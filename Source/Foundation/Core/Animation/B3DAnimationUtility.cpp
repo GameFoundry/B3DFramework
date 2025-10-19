@@ -424,66 +424,66 @@ void AnimationUtility::CombineCurve(
 	output = TAnimationCurve<T>(keyFrames);
 }
 
-void AnimationUtility::CalculateRange(const Vector<TAnimationCurve<float>>& curves, float& xMin, float& xMax, float& yMin, float& yMax)
+void AnimationUtility::CalculateRange(const Vector<TAnimationCurve<float>>& curves, float& outXMin, float& outXMax, float& outYMin, float& outYMax)
 {
-	xMin = std::numeric_limits<float>::infinity();
-	xMax = -std::numeric_limits<float>::infinity();
-	yMin = std::numeric_limits<float>::infinity();
-	yMax = -std::numeric_limits<float>::infinity();
+	outXMin = std::numeric_limits<float>::infinity();
+	outXMax = -std::numeric_limits<float>::infinity();
+	outYMin = std::numeric_limits<float>::infinity();
+	outYMax = -std::numeric_limits<float>::infinity();
 
 	for(auto& entry : curves)
 	{
 		const auto timeRange = entry.GetTimeRange();
 		const auto valueRange = entry.CalculateRange();
 
-		xMin = std::min(xMin, timeRange.first);
-		xMax = std::max(xMax, timeRange.second);
-		yMin = std::min(yMin, valueRange.first);
-		yMax = std::max(yMax, valueRange.second);
+		outXMin = std::min(outXMin, timeRange.first);
+		outXMax = std::max(outXMax, timeRange.second);
+		outYMin = std::min(outYMin, valueRange.first);
+		outYMax = std::max(outYMax, valueRange.second);
 	}
 
-	if(xMin == std::numeric_limits<float>::infinity())
-		xMin = 0.0f;
+	if(outXMin == std::numeric_limits<float>::infinity())
+		outXMin = 0.0f;
 
-	if(xMax == -std::numeric_limits<float>::infinity())
-		xMax = 0.0f;
+	if(outXMax == -std::numeric_limits<float>::infinity())
+		outXMax = 0.0f;
 
-	if(yMin == std::numeric_limits<float>::infinity())
-		yMin = 0.0f;
+	if(outYMin == std::numeric_limits<float>::infinity())
+		outYMin = 0.0f;
 
-	if(yMax == -std::numeric_limits<float>::infinity())
-		yMax = 0.0f;
+	if(outYMax == -std::numeric_limits<float>::infinity())
+		outYMax = 0.0f;
 }
 
-void AnimationUtility::CalculateRange(const Vector<SPtr<TAnimationCurve<float>>>& curves, float& xMin, float& xMax, float& yMin, float& yMax)
+void AnimationUtility::CalculateRange(const Vector<SPtr<TAnimationCurve<float>>>& curves, float& outXMin, float& outXMax, float& outYMin, float& outYMax)
 {
-	xMin = std::numeric_limits<float>::infinity();
-	xMax = -std::numeric_limits<float>::infinity();
-	yMin = std::numeric_limits<float>::infinity();
-	yMax = -std::numeric_limits<float>::infinity();
+	outXMin = std::numeric_limits<float>::infinity();
+	outXMax = -std::numeric_limits<float>::infinity();
+	outYMin = std::numeric_limits<float>::infinity();
+	outYMax = -std::numeric_limits<float>::infinity();
 
 	for(auto& entry : curves)
 	{
 		const auto timeRange = entry->GetTimeRange();
 		const auto valueRange = entry->CalculateRange();
 
-		xMin = std::min(xMin, timeRange.first);
-		xMax = std::max(xMax, timeRange.second);
-		yMin = std::min(yMin, valueRange.first);
-		yMax = std::max(yMax, valueRange.second);
+		outXMin = std::min(outXMin, timeRange.first);
+		outXMax = std::max(outXMax, timeRange.second);
+		outYMin = std::min(outYMin, valueRange.first);
+		outYMax = std::max(outYMax, valueRange.second);
 	}
 
-	if(xMin == std::numeric_limits<float>::infinity())
-		xMin = 0.0f;
+	if(outXMin == std::numeric_limits<float>::infinity())
+		outXMin = 0.0f;
 
-	if(xMax == -std::numeric_limits<float>::infinity())
-		xMax = 0.0f;
+	if(outXMax == -std::numeric_limits<float>::infinity())
+		outXMax = 0.0f;
 
-	if(yMin == std::numeric_limits<float>::infinity())
-		yMin = 0.0f;
+	if(outYMin == std::numeric_limits<float>::infinity())
+		outYMin = 0.0f;
 
-	if(yMax == -std::numeric_limits<float>::infinity())
-		yMax = 0.0f;
+	if(outYMax == -std::numeric_limits<float>::infinity())
+		outYMax = 0.0f;
 }
 
 template <class T>

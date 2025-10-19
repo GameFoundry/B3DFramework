@@ -51,7 +51,7 @@ void ImageSprite::Update(const ImageSpriteInformation& information, u64 groupId)
 	SpriteRenderElement& renderElement = renderElementData.RenderElement;
 	{
 		const u32 existingQuadCount = renderElement.VertexCount / 4;
-		u32 newQuadCount = quadCount;
+		const u32 newQuadCount = quadCount;
 		if(newQuadCount != existingQuadCount)
 		{
 			if(renderElement.VertexPositions != nullptr) B3DDeleteMultiple(renderElement.VertexPositions, renderElement.VertexCount);
@@ -74,7 +74,7 @@ void ImageSprite::Update(const ImageSpriteInformation& information, u64 groupId)
 		materialInformation.Tint = information.Color;
 		materialInformation.AnimationStartTime = information.AnimationStartTime;
 
-		bool animated = information.Image->GetAnimation().FrameCount > 1;
+		const bool animated = information.Image->GetAnimation().FrameCount > 1;
 		if(animated)
 			materialInformation.SpriteImage = information.Image;
 
@@ -107,19 +107,19 @@ void ImageSprite::Update(const ImageSpriteInformation& information, u64 groupId)
 
 	if(useScale9Grid)
 	{
-		u32 leftBorder = information.BorderLeft;
-		u32 rightBorder = information.BorderRight;
-		u32 topBorder = information.BorderTop;
-		u32 bottomBorder = information.BorderBottom;
+		const u32 leftBorder = information.BorderLeft;
+		const u32 rightBorder = information.BorderRight;
+		const u32 topBorder = information.BorderTop;
+		const u32 bottomBorder = information.BorderBottom;
 
-		float centerWidth = (float)std::max(0, information.Size.Width - (i32)leftBorder - (i32)rightBorder);
-		float centerHeight = (float)std::max(0, information.Size.Height - (i32)topBorder - (i32)bottomBorder);
+		const float centerWidth = (float)std::max(0, information.Size.Width - (i32)leftBorder - (i32)rightBorder);
+		const float centerHeight = (float)std::max(0, information.Size.Height - (i32)topBorder - (i32)bottomBorder);
 
-		float topCenterStart = (float)(offset.X + leftBorder);
-		float topRightStart = (float)(topCenterStart + centerWidth);
+		const float topCenterStart = (float)(offset.X + leftBorder);
+		const float topRightStart = (float)(topCenterStart + centerWidth);
 
-		float middleStart = (float)(offset.Y + topBorder);
-		float bottomStart = (float)(middleStart + centerHeight);
+		const float middleStart = (float)(offset.Y + topBorder);
+		const float bottomStart = (float)(middleStart + centerHeight);
 
 		// Top left
 		renderElement.VertexPositions[0] = Vector2((float)offset.X, (float)offset.Y);
@@ -176,22 +176,22 @@ void ImageSprite::Update(const ImageSpriteInformation& information, u64 groupId)
 		renderElement.VertexPositions[35] = Vector2(topRightStart + rightBorder, bottomStart + bottomBorder);
 
 		const Size2I& imageSize = spriteAllocation->GetSize();
-		float invWidth = 1.0f / (float)imageSize.Width;
-		float invHeight = 1.0f / (float)imageSize.Height;
+		const float inverseWidth = 1.0f / (float)imageSize.Width;
+		const float inverseHeight = 1.0f / (float)imageSize.Height;
 
-		float uvLeftBorder = information.BorderLeft * invWidth;
-		float uvRightBorder = information.BorderRight * invWidth;
-		float uvTopBorder = information.BorderTop * invHeight;
-		float uvBottomBorder = information.BorderBottom * invHeight;
+		const float uvLeftBorder = information.BorderLeft * inverseWidth;
+		const float uvRightBorder = information.BorderRight * inverseWidth;
+		const float uvTopBorder = information.BorderTop * inverseHeight;
+		const float uvBottomBorder = information.BorderBottom * inverseHeight;
 
-		float uvCenterWidth = std::max(0.0f, uvScale.X - uvLeftBorder - uvRightBorder);
-		float uvCenterHeight = std::max(0.0f, uvScale.Y - uvTopBorder - uvBottomBorder);
+		const float uvCenterWidth = std::max(0.0f, uvScale.X - uvLeftBorder - uvRightBorder);
+		const float uvCenterHeight = std::max(0.0f, uvScale.Y - uvTopBorder - uvBottomBorder);
 
-		float uvTopCenterStart = uvOffset.X + uvLeftBorder;
-		float uvTopRightStart = uvTopCenterStart + uvCenterWidth;
+		const float uvTopCenterStart = uvOffset.X + uvLeftBorder;
+		const float uvTopRightStart = uvTopCenterStart + uvCenterWidth;
 
-		float uvMiddleStart = uvOffset.Y + uvTopBorder;
-		float uvBottomStart = uvMiddleStart + uvCenterHeight;
+		const float uvMiddleStart = uvOffset.Y + uvTopBorder;
+		const float uvBottomStart = uvMiddleStart + uvCenterHeight;
 
 		// UV - Top left
 		renderElement.VertexUVs[0] = spriteAllocation->TransformUV(Vector2(uvOffset.X, uvOffset.Y));

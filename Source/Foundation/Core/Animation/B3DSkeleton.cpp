@@ -95,7 +95,7 @@ SPtr<Skeleton> Skeleton::Create(BONE_DESC* bones, u32 boneCount)
 	return B3DMakeSharedFromExisting<Skeleton>(rawPtr);
 }
 
-void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, const AnimationClip& clip, float time, bool loop)
+void Skeleton::GetPose(Matrix4* outPose, LocalSkeletonPose& outLocalPose, const SkeletonMask& mask, const AnimationClip& clip, float time, bool loop)
 {
 	B3DMarkAllocatorFrame();
 	{
@@ -127,22 +127,22 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 
 		clip.GetBoneMapping(*this, state.BoneToCurveMapping);
 
-		GetPose(pose, localPose, mask, &layer, 1);
+		GetPose(outPose, outLocalPose, mask, &layer, 1);
 	}
 	B3DClearAllocatorFrame();
 }
 
-void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, const AnimationStateLayer* layers, u32 layerCount)
+void Skeleton::GetPose(Matrix4* outPose, LocalSkeletonPose& outLocalPose, const SkeletonMask& mask, const AnimationStateLayer* layers, u32 layerCount)
 {
 	// Note: If more performance is required this method could be optimized with vector instructions
 
-	B3D_ASSERT(localPose.NumBones == mNumBones);
+	B3D_ASSERT(outLocalPose.NumBones == mNumBones);
 
-	for(u32 i = 0; i < mNumBones; i++)
+	for(u32 boneIndex = 0; boneIndex < mNumBones; boneIndex++)
 	{
-		localPose.Positions[i] = Vector3::kZero;
-		localPose.Rotations[i] = Quaternion::kZero;
-		localPose.Scales[i] = Vector3::kOne;
+		outLocalPose.Positions[boneIndex] = Vector3::kZero;
+		outLocalPose.Rotations[boneIndex] = Quaternion::kZero;
+		outLocalPose.Scales[boneIndex] = Vector3::kOne;
 	}
 
 	bool* hasAnimCurve = B3DStackAllocate<bool>(mNumBones);
@@ -151,9 +151,9 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 	// Note: For a possible performance improvement consider keeping an array of only active (non-disabled) bones and
 	// just iterate over them without mask checks. Possibly also a list of active curve mappings to avoid those checks
 	// as well.
-	for(u32 i = 0; i < layerCount; i++)
+	for(u32 layerIndex = 0; layerIndex < layerCount; layerIndex++)
 	{
-		const AnimationStateLayer& layer = layers[i];
+		const AnimationStateLayer& layer = layers[layerIndex];
 
 		float invLayerWeight;
 		if(layer.Additive)
@@ -189,9 +189,9 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 				if(curveIdx != (u32)-1)
 				{
 					const TAnimationCurve<Vector3>& curve = state.Curves->Position[curveIdx].Curve;
-					localPose.Positions[k] += curve.Evaluate(state.Time, state.PositionCaches[curveIdx], false) * normWeight;
+					outLocalPose.Positions[k] += curve.Evaluate(state.Time, state.PositionCaches[curveIdx], false) * normWeight;
 
-					localPose.HasOverride[k] = false;
+					outLocalPose.HasOverride[k] = false;
 					hasAnimCurve[k] = true;
 				}
 
@@ -199,9 +199,9 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 				if(curveIdx != (u32)-1)
 				{
 					const TAnimationCurve<Vector3>& curve = state.Curves->Scale[curveIdx].Curve;
-					localPose.Scales[k] *= curve.Evaluate(state.Time, state.ScaleCaches[curveIdx], false) * normWeight;
+					outLocalPose.Scales[k] *= curve.Evaluate(state.Time, state.ScaleCaches[curveIdx], false) * normWeight;
 
-					localPose.HasOverride[k] = false;
+					outLocalPose.HasOverride[k] = false;
 					hasAnimCurve[k] = true;
 				}
 
@@ -210,17 +210,17 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 					curveIdx = mapping.Rotation;
 					if(curveIdx != (u32)-1)
 					{
-						bool isAssigned = localPose.Rotations[k].W != 0.0f;
+						bool isAssigned = outLocalPose.Rotations[k].W != 0.0f;
 						if(!isAssigned)
-							localPose.Rotations[k] = Quaternion::kIdentity;
+							outLocalPose.Rotations[k] = Quaternion::kIdentity;
 
 						const TAnimationCurve<Quaternion>& curve = state.Curves->Rotation[curveIdx].Curve;
 
 						Quaternion value = curve.Evaluate(state.Time, state.RotationCaches[curveIdx], false);
 						value = Quaternion::Lerp(normWeight, Quaternion::kIdentity, value);
 
-						localPose.Rotations[k] *= value;
-						localPose.HasOverride[k] = false;
+						outLocalPose.Rotations[k] *= value;
+						outLocalPose.HasOverride[k] = false;
 						hasAnimCurve[k] = true;
 					}
 				}
@@ -232,11 +232,11 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 						const TAnimationCurve<Quaternion>& curve = state.Curves->Rotation[curveIdx].Curve;
 						Quaternion value = curve.Evaluate(state.Time, state.RotationCaches[curveIdx], false) * normWeight;
 
-						if(value.Dot(localPose.Rotations[k]) < 0.0f)
+						if(value.Dot(outLocalPose.Rotations[k]) < 0.0f)
 							value = -value;
 
-						localPose.Rotations[k] += value;
-						localPose.HasOverride[k] = false;
+						outLocalPose.Rotations[k] += value;
+						outLocalPose.HasOverride[k] = false;
 						hasAnimCurve[k] = true;
 					}
 				}
@@ -250,9 +250,9 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 		if(hasAnimCurve[i])
 			continue;
 
-		localPose.Positions[i] = mBoneTransforms[i].GetPosition();
-		localPose.Rotations[i] = mBoneTransforms[i].GetRotation();
-		localPose.Scales[i] = mBoneTransforms[i].GetScale();
+		outLocalPose.Positions[i] = mBoneTransforms[i].GetPosition();
+		outLocalPose.Rotations[i] = mBoneTransforms[i].GetRotation();
+		outLocalPose.Scales[i] = mBoneTransforms[i].GetScale();
 	}
 
 	// Calculate local pose matrices
@@ -262,19 +262,19 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 
 	for(u32 i = 0; i < mNumBones; i++)
 	{
-		bool isAssigned = localPose.Rotations[i].W != 0.0f;
+		bool isAssigned = outLocalPose.Rotations[i].W != 0.0f;
 		if(!isAssigned)
-			localPose.Rotations[i] = Quaternion::kIdentity;
+			outLocalPose.Rotations[i] = Quaternion::kIdentity;
 		else
-			localPose.Rotations[i].Normalize();
+			outLocalPose.Rotations[i].Normalize();
 
-		if(localPose.HasOverride[i])
+		if(outLocalPose.HasOverride[i])
 		{
 			isGlobal[i] = true;
 			continue;
 		}
 
-		pose[i] = Matrix4::TRS(localPose.Positions[i], localPose.Rotations[i], localPose.Scales[i]);
+		outPose[i] = Matrix4::TRS(outLocalPose.Positions[i], outLocalPose.Rotations[i], outLocalPose.Scales[i]);
 	}
 
 	// Calculate global poses
@@ -292,7 +292,7 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 		if(!isGlobal[parentBoneIndex])
 			fnCalcGlobal(parentBoneIndex);
 
-		pose[boneIndex] = pose[parentBoneIndex] * pose[boneIndex];
+		outPose[boneIndex] = outPose[parentBoneIndex] * outPose[boneIndex];
 		isGlobal[boneIndex] = true;
 	};
 
@@ -303,7 +303,7 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 	}
 
 	for(u32 i = 0; i < mNumBones; i++)
-		pose[i] = pose[i] * mInvBindPoses[i];
+		outPose[i] = outPose[i] * mInvBindPoses[i];
 
 	B3DStackFree(isGlobal);
 	B3DStackFree(hasAnimCurve);

@@ -161,7 +161,7 @@ const EvaluatedAnimationData* AnimationScene::Update(bool async)
 	return output;
 }
 
-void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& currentBoneIndex)
+void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& outBoneIndex)
 {
 	// Culling
 	if(anim->CullEnabled)
@@ -201,11 +201,11 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& currentBoneInd
 
 		EvaluatedAnimationData::PoseInfo& poseInfo = animInfo.PoseInfo;
 		poseInfo.AnimationId = anim->AnimationId;
-		poseInfo.BoneStartIndex = currentBoneIndex;
+		poseInfo.BoneStartIndex = outBoneIndex;
 		poseInfo.BoneCount = boneCount;
 
 		memset(anim->SkeletonPose.HasOverride, 0, sizeof(bool) * anim->SkeletonPose.NumBones);
-		Matrix4* boneDst = renderData.Transforms.data() + currentBoneIndex;
+		Matrix4* boneDst = renderData.Transforms.data() + outBoneIndex;
 
 		// Copy transforms from mapped scene objects
 		u32 boneTfrmIdx = 0;
@@ -224,7 +224,7 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& currentBoneInd
 		// Animate bones
 		anim->Skeleton->GetPose(boneDst, anim->SkeletonPose, anim->SkeletonMask, anim->Layers, anim->LayerCount);
 
-		currentBoneIndex += boneCount;
+		outBoneIndex += boneCount;
 		hasAnimInfo = true;
 	}
 	else
@@ -247,9 +247,9 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& currentBoneInd
 	memset(anim->SceneObjectPose.HasOverride, 1, sizeof(bool) * 3 * anim->SceneObjectCount);
 
 	// Update scene object transforms
-	for(u32 i = 0; i < anim->SceneObjectCount; i++)
+	for(u32 sceneObjectIndex = 0; sceneObjectIndex < anim->SceneObjectCount; sceneObjectIndex++)
 	{
-		const AnimatedSceneObjectInfo& soInfo = anim->SceneObjectInfos[i];
+		const AnimatedSceneObjectInfo& soInfo = anim->SceneObjectInfos[sceneObjectIndex];
 
 		// We already evaluated bones
 		if(soInfo.BoneIndex != -1)
@@ -263,33 +263,33 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& currentBoneInd
 			continue;
 
 		{
-			u32 curveIdx = soInfo.CurveIndices.Position;
-			if(curveIdx != (u32)-1)
+			u32 curveIndex = soInfo.CurveIndices.Position;
+			if(curveIndex != (u32)-1)
 			{
-				const TAnimationCurve<Vector3>& curve = state.Curves->Position[curveIdx].Curve;
-				anim->SceneObjectPose.Positions[curveIdx] = curve.Evaluate(state.Time, state.PositionCaches[curveIdx], false);
-				anim->SceneObjectPose.HasOverride[i * 3 + 0] = false;
+				const TAnimationCurve<Vector3>& curve = state.Curves->Position[curveIndex].Curve;
+				anim->SceneObjectPose.Positions[curveIndex] = curve.Evaluate(state.Time, state.PositionCaches[curveIndex], false);
+				anim->SceneObjectPose.HasOverride[sceneObjectIndex * 3 + 0] = false;
 			}
 		}
 
 		{
-			u32 curveIdx = soInfo.CurveIndices.Rotation;
-			if(curveIdx != (u32)-1)
+			u32 curveIndex = soInfo.CurveIndices.Rotation;
+			if(curveIndex != (u32)-1)
 			{
-				const TAnimationCurve<Quaternion>& curve = state.Curves->Rotation[curveIdx].Curve;
-				anim->SceneObjectPose.Rotations[curveIdx] = curve.Evaluate(state.Time, state.RotationCaches[curveIdx], false);
-				anim->SceneObjectPose.Rotations[curveIdx].Normalize();
-				anim->SceneObjectPose.HasOverride[i * 3 + 1] = false;
+				const TAnimationCurve<Quaternion>& curve = state.Curves->Rotation[curveIndex].Curve;
+				anim->SceneObjectPose.Rotations[curveIndex] = curve.Evaluate(state.Time, state.RotationCaches[curveIndex], false);
+				anim->SceneObjectPose.Rotations[curveIndex].Normalize();
+				anim->SceneObjectPose.HasOverride[sceneObjectIndex * 3 + 1] = false;
 			}
 		}
 
 		{
-			u32 curveIdx = soInfo.CurveIndices.Scale;
-			if(curveIdx != (u32)-1)
+			u32 curveIndex = soInfo.CurveIndices.Scale;
+			if(curveIndex != (u32)-1)
 			{
-				const TAnimationCurve<Vector3>& curve = state.Curves->Scale[curveIdx].Curve;
-				anim->SceneObjectPose.Scales[curveIdx] = curve.Evaluate(state.Time, state.ScaleCaches[curveIdx], false);
-				anim->SceneObjectPose.HasOverride[i * 3 + 2] = false;
+				const TAnimationCurve<Vector3>& curve = state.Curves->Scale[curveIndex].Curve;
+				anim->SceneObjectPose.Scales[curveIndex] = curve.Evaluate(state.Time, state.ScaleCaches[curveIndex], false);
+				anim->SceneObjectPose.HasOverride[sceneObjectIndex * 3 + 2] = false;
 			}
 		}
 	}
@@ -313,9 +313,9 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& currentBoneInd
 	// Update morph shapes
 	if(anim->MorphShapeCount > 0)
 	{
-		auto iterFind = prevRenderData.Infos.find(anim->AnimationId);
-		if(iterFind != prevRenderData.Infos.end())
-			animInfo.MorphShapeInfo = iterFind->second.MorphShapeInfo;
+		auto found = prevRenderData.Infos.find(anim->AnimationId);
+		if(found != prevRenderData.Infos.end())
+			animInfo.MorphShapeInfo = found->second.MorphShapeInfo;
 		else
 			animInfo.MorphShapeInfo.Version = 1; // 0 is considered invalid version
 

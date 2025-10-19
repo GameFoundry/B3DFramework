@@ -85,11 +85,11 @@ namespace b3d
 		/**
 		 * Creates a new audio clip.
 		 *
-		 * @param	samples					Stream containing audio samples in format specified in @p createInformation.
-		 * @param	streamSize				Size of the audio data in the provided stream, in bytes.
-		 * @param	sampleCount				Number of samples in @p samples stream.
-		 * @param	createInformation		Descriptor describing the type of the audio stream (format, sample rate, etc.).
-		 * @return							Newly created AudioClip. Must be manually initialized.
+		 * @param	samples				Stream containing audio samples in format specified in @p createInformation.
+		 * @param	streamSize			Size of the audio data in the provided stream, in bytes.
+		 * @param	sampleCount			Number of samples in @p samples stream.
+		 * @param	createInformation	Descriptor describing the type of the audio stream (format, sample rate, etc.).
+		 * @return						Newly created AudioClip. Must be manually initialized.
 		 */
 		virtual SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation) = 0;
 

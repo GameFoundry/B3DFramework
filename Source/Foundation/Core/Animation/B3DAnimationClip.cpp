@@ -9,82 +9,82 @@ using namespace b3d;
 
 void AnimationCurves::AddPositionCurve(const String& name, const TAnimationCurve<Vector3>& curve)
 {
-	auto iterFind = std::find_if(Position.begin(), Position.end(), [&](auto x)
+	auto found = std::find_if(Position.begin(), Position.end(), [&](auto x)
 								 { return x.Name == name; });
 
-	if(iterFind != Position.end())
-		iterFind->Curve = curve;
+	if(found != Position.end())
+		found->Curve = curve;
 	else
 		Position.push_back({ name, AnimationCurveFlags(), curve });
 }
 
 void AnimationCurves::AddRotationCurve(const String& name, const TAnimationCurve<Quaternion>& curve)
 {
-	auto iterFind = std::find_if(Rotation.begin(), Rotation.end(), [&](auto x)
+	auto found = std::find_if(Rotation.begin(), Rotation.end(), [&](auto x)
 								 { return x.Name == name; });
 
-	if(iterFind != Rotation.end())
-		iterFind->Curve = curve;
+	if(found != Rotation.end())
+		found->Curve = curve;
 	else
 		Rotation.push_back({ name, AnimationCurveFlags(), curve });
 }
 
 void AnimationCurves::AddScaleCurve(const String& name, const TAnimationCurve<Vector3>& curve)
 {
-	auto iterFind = std::find_if(Scale.begin(), Scale.end(), [&](auto x)
+	auto found = std::find_if(Scale.begin(), Scale.end(), [&](auto x)
 								 { return x.Name == name; });
 
-	if(iterFind != Scale.end())
-		iterFind->Curve = curve;
+	if(found != Scale.end())
+		found->Curve = curve;
 	else
 		Scale.push_back({ name, AnimationCurveFlags(), curve });
 }
 
 void AnimationCurves::AddGenericCurve(const String& name, const TAnimationCurve<float>& curve)
 {
-	auto iterFind = std::find_if(Generic.begin(), Generic.end(), [&](auto x)
+	auto found = std::find_if(Generic.begin(), Generic.end(), [&](auto x)
 								 { return x.Name == name; });
 
-	if(iterFind != Generic.end())
-		iterFind->Curve = curve;
+	if(found != Generic.end())
+		found->Curve = curve;
 	else
 		Generic.push_back({ name, AnimationCurveFlags(), curve });
 }
 
 void AnimationCurves::RemovePositionCurve(const String& name)
 {
-	auto iterFind = std::find_if(Position.begin(), Position.end(), [&](auto x)
+	auto found = std::find_if(Position.begin(), Position.end(), [&](auto x)
 								 { return x.Name == name; });
 
-	if(iterFind != Position.end())
-		Position.erase(iterFind);
+	if(found != Position.end())
+		Position.erase(found);
 }
 
 void AnimationCurves::RemoveRotationCurve(const String& name)
 {
-	auto iterFind = std::find_if(Rotation.begin(), Rotation.end(), [&](auto x)
+	auto found = std::find_if(Rotation.begin(), Rotation.end(), [&](auto x)
 								 { return x.Name == name; });
 
-	if(iterFind != Rotation.end())
-		Rotation.erase(iterFind);
+	if(found != Rotation.end())
+		Rotation.erase(found);
 }
 
 void AnimationCurves::RemoveScaleCurve(const String& name)
 {
-	auto iterFind = std::find_if(Scale.begin(), Scale.end(), [&](auto x)
+	auto found = std::find_if(Scale.begin(), Scale.end(), [&](auto x)
 								 { return x.Name == name; });
 
-	if(iterFind != Scale.end())
-		Scale.erase(iterFind);
+	if(found != Scale.end())
+		Scale.erase(found);
 }
 
 void AnimationCurves::RemoveGenericCurve(const String& name)
 {
-	auto iterFind = std::find_if(Generic.begin(), Generic.end(), [&](auto x)
+	auto found = std::find_if(Generic.begin(), Generic.end(), [&](auto x)
 								 { return x.Name == name; });
 
-	if(iterFind != Generic.end())
-		Generic.erase(iterFind);
+	if(found != Generic.end())
+		Generic.erase(found);
 }
 
 AnimationClip::AnimationClip()
@@ -178,20 +178,20 @@ void AnimationClip::BuildNameMapping()
 	{
 		u32 typeIndex = (u32)type;
 
-		for(u32 i = 0; i < (u32)curve.size(); i++)
+		for(u32 curveIndex = 0; curveIndex < (u32)curve.size(); curveIndex++)
 		{
-			auto& entry = curve[i];
+			auto& entry = curve[curveIndex];
 
-			auto iterFind = mNameMapping.find(entry.Name);
-			if(iterFind == mNameMapping.end())
+			auto found = mNameMapping.find(entry.Name);
+			if(found == mNameMapping.end())
 			{
 				u32* indices = mNameMapping[entry.Name].data();
 				memset(indices, -1, sizeof(u32) * (int)CurveType::Count);
 
-				indices[typeIndex] = i;
+				indices[typeIndex] = curveIndex;
 			}
 			else
-				mNameMapping[entry.Name][typeIndex] = i;
+				mNameMapping[entry.Name][typeIndex] = curveIndex;
 		}
 	};
 
@@ -202,9 +202,9 @@ void AnimationClip::BuildNameMapping()
 	// Generic and morph curves
 	{
 		Vector<TNamedAnimationCurve<float>>& curve = mCurves->Generic;
-		for(u32 i = 0; i < (u32)curve.size(); i++)
+		for(u32 curveIndex = 0; curveIndex < (u32)curve.size(); curveIndex++)
 		{
-			auto& entry = curve[i];
+			auto& entry = curve[curveIndex];
 
 			u32 typeIndex;
 			if(entry.Flags.IsSet(AnimationCurveFlag::MorphFrame))
@@ -214,16 +214,16 @@ void AnimationClip::BuildNameMapping()
 			else
 				typeIndex = (u32)CurveType::Generic;
 
-			auto iterFind = mNameMapping.find(entry.Name);
-			if(iterFind == mNameMapping.end())
+			auto found = mNameMapping.find(entry.Name);
+			if(found == mNameMapping.end())
 			{
 				u32* indices = mNameMapping[entry.Name].data();
 				memset(indices, -1, sizeof(u32) * (int)CurveType::Count);
 
-				indices[typeIndex] = i;
+				indices[typeIndex] = curveIndex;
 			}
 			else
-				mNameMapping[entry.Name][typeIndex] = i;
+				mNameMapping[entry.Name][typeIndex] = curveIndex;
 		}
 	}
 }
@@ -235,46 +235,46 @@ void AnimationClip::Initialize()
 	Resource::Initialize();
 }
 
-void AnimationClip::GetBoneMapping(const Skeleton& skeleton, AnimationCurveMapping* mapping) const
+void AnimationClip::GetBoneMapping(const Skeleton& skeleton, AnimationCurveMapping* outMapping) const
 {
 	u32 boneCount = skeleton.GetBoneCount();
-	for(u32 i = 0; i < boneCount; i++)
+	for(u32 boneIndex = 0; boneIndex < boneCount; boneIndex++)
 	{
-		const SkeletonBoneInfo& boneInfo = skeleton.GetBoneInfo(i);
+		const SkeletonBoneInfo& boneInfo = skeleton.GetBoneInfo(boneIndex);
 
-		GetCurveMapping(boneInfo.Name, mapping[i]);
+		GetCurveMapping(boneInfo.Name, outMapping[boneIndex]);
 	}
 }
 
-void AnimationClip::GetCurveMapping(const String& name, AnimationCurveMapping& mapping) const
+void AnimationClip::GetCurveMapping(const String& name, AnimationCurveMapping& outMapping) const
 {
-	auto iterFind = mNameMapping.find(name);
-	if(iterFind != mNameMapping.end())
+	auto found = mNameMapping.find(name);
+	if(found != mNameMapping.end())
 	{
-		const u32* indices = iterFind->second.data();
+		const u32* indices = found->second.data();
 
-		mapping.Position = indices[(u32)CurveType::Position];
-		mapping.Rotation = indices[(u32)CurveType::Rotation];
-		mapping.Scale = indices[(u32)CurveType::Scale];
+		outMapping.Position = indices[(u32)CurveType::Position];
+		outMapping.Rotation = indices[(u32)CurveType::Rotation];
+		outMapping.Scale = indices[(u32)CurveType::Scale];
 	}
 	else
-		mapping = { (u32)-1, (u32)-1, (u32)-1 };
+		outMapping = { (u32)-1, (u32)-1, (u32)-1 };
 }
 
-void AnimationClip::GetMorphMapping(const String& name, u32& frameIndex, u32& weightIndex) const
+void AnimationClip::GetMorphMapping(const String& name, u32& outFrameIndex, u32& outWeightIndex) const
 {
-	auto iterFind = mNameMapping.find(name);
-	if(iterFind != mNameMapping.end())
+	auto found = mNameMapping.find(name);
+	if(found != mNameMapping.end())
 	{
-		const u32* indices = iterFind->second.data();
+		const u32* indices = found->second.data();
 
-		frameIndex = indices[(u32)CurveType::MorphFrame];
-		weightIndex = indices[(u32)CurveType::MorphWeight];
+		outFrameIndex = indices[(u32)CurveType::MorphFrame];
+		outWeightIndex = indices[(u32)CurveType::MorphWeight];
 	}
 	else
 	{
-		frameIndex = (u32)-1;
-		weightIndex = (u32)-1;
+		outFrameIndex = (u32)-1;
+		outWeightIndex = (u32)-1;
 	}
 }
 

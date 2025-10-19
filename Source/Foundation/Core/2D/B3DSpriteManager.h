@@ -97,13 +97,13 @@ namespace b3d
 			SpriteMaterial* newMaterial = B3DNew<T>(std::forward<Args>(args)...);
 
 			u32 id = newMaterial->GetId();
-			auto iterFind = mMaterials.find(id);
-			if(iterFind != mMaterials.end())
+			auto found = mMaterials.find(id);
+			if(found != mMaterials.end())
 			{
 				// Already exists
 				B3D_LOG(Warning, Generic, "Attempting to register a sprite material that already exists, ignoring request.");
 				B3DDelete(newMaterial);
-				return iterFind->second;
+				return found->second;
 			}
 
 			mMaterials[id] = newMaterial;

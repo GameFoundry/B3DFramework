@@ -122,33 +122,33 @@ namespace b3d
 		 * Outputs a skeleton pose containing required transforms for transforming the skeleton to the values specified by
 		 * the provided animation clip evaluated at the specified time.
 		 *
-		 * @param[out]	pose		Output pose containing the requested transforms. Must be pre-allocated with enough space
+		 * @param	outPose			Output pose containing the requested transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone matrices of this skeleton.
-		 * @param[in]	mask		Mask that filters which skeleton bones are enabled or disabled.
-		 * @param[out]	localPose	Output pose containing the local transforms. Must be pre-allocated with enough space
+		 * @param	mask			Mask that filters which skeleton bones are enabled or disabled.
+		 * @param	outLocalPose	Output pose containing the local transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone data of this skeleton.
-		 * @param[in]	clip		Clip to evaluate.
-		 * @param[in]	time		Time to evaluate the clip with.
-		 * @param[in]	loop		Determines should the time be looped (wrapped) if it goes past the clip start/end.
+		 * @param	clip			Clip to evaluate.
+		 * @param	time			Time to evaluate the clip with.
+		 * @param	loop			Determines should the time be looped (wrapped) if it goes past the clip start/end.
 		 *
-		 * @note	It is more efficient to use the other getPose overload as sequential calls can benefit from animation
+		 * @note	It is more efficient to use the other GetPose overload as sequential calls can benefit from animation
 		 *			evaluator cache.
 		 */
-		void GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, const AnimationClip& clip, float time, bool loop = true);
+		void GetPose(Matrix4* outPose, LocalSkeletonPose& outLocalPose, const SkeletonMask& mask, const AnimationClip& clip, float time, bool loop = true);
 
 		/**
 		 * Outputs a skeleton pose containing required transforms for transforming the skeleton to the values specified by
 		 * the provided set of animation curves.
 		 *
-		 * @param[out]	pose		Output pose containing the requested transforms. Must be pre-allocated with enough space
+		 * @param	outPose			Output pose containing the requested transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone matrices of this skeleton.
-		 * @param[in]	mask		Mask that filters which skeleton bones are enabled or disabled.
-		 * @param[out]	localPose	Output pose containing the local transforms. Must be pre-allocated with enough space
+		 * @param	mask			Mask that filters which skeleton bones are enabled or disabled.
+		 * @param	outLocalPose	Output pose containing the local transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone data of this skeleton.
-		 * @param[in]	layers		One or multiple layers, containing one or multiple animation states to evaluate.
-		 * @param[in]	layerCount	Number of layers in the @p layers array.
+		 * @param	layers			One or multiple layers, containing one or multiple animation states to evaluate.
+		 * @param	layerCount		Number of layers in the @p layers array.
 		 */
-		void GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, const AnimationStateLayer* layers, u32 layerCount);
+		void GetPose(Matrix4* outPose, LocalSkeletonPose& outLocalPose, const SkeletonMask& mask, const AnimationStateLayer* layers, u32 layerCount);
 
 		/** Returns the total number of bones in the skeleton. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(NumBones))
@@ -170,8 +170,8 @@ namespace b3d
 		/**
 		 * Creates a new Skeleton.
 		 *
-		 * @param[in]	bones		An array of bones to initialize the skeleton with. Data will be copied.
-		 * @param[in]	boneCount	Number of bones in the @p bones array.
+		 * @param	bones		An array of bones to initialize the skeleton with. Data will be copied.
+		 * @param	boneCount	Number of bones in the @p bones array.
 		 */
 		static SPtr<Skeleton> Create(BONE_DESC* bones, u32 boneCount);
 

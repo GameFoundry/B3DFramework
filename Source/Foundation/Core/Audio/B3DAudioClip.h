@@ -120,13 +120,13 @@ namespace b3d
 		/**
 		 * Creates a new AudioClip and populates it with provided samples.
 		 *
-		 * @param	samples		Data streams containing the samples to load. Data will be read starting from the current
-		 *						position in the stream. The samples should be in audio format as specified in the
-		 *						@p desc parameter. Ownership of the data stream is taken by the audio clip and the
-		 *						caller must not close it manually.
-		 * @param	streamSize	Number of bytes to read from the @p samples stream.
-		 * @param	sampleCount	Total number of samples (including all channels).
-		 * @param	createInformation		Descriptor containing meta-data for the provided samples.
+		 * @param	samples				Data streams containing the samples to load. Data will be read starting from the current
+		 *								position in the stream. The samples should be in audio format as specified in the
+		 *								@p createInformation parameter. Ownership of the data stream is taken by the audio clip and the
+		 *								caller must not close it manually.
+		 * @param	streamSize			Number of bytes to read from the @p samples stream.
+		 * @param	sampleCount			Total number of samples (including all channels).
+		 * @param	createInformation	Descriptor containing meta-data for the provided samples.
 		 *
 		 * @note	If the provided samples are in PCM format, they should be signed integers of provided bit depth.
 		 */
@@ -137,12 +137,12 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Creates a new AudioClip without initializing it. Use create() for normal use. */
-		static SPtr<AudioClip> CreateShared(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc);
+		/** Creates a new AudioClip without initializing it. Use Create() for normal use. */
+		static SPtr<AudioClip> CreateShared(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
 
 		/** @} */
 	protected:
-		AudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc);
+		AudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
 
 		void Initialize() override;
 		bool IsCompressible() const override { return false; } // Compression handled on a case by case basis manually by the audio system
@@ -150,8 +150,8 @@ namespace b3d
 		/**
 		 * Returns original audio data. Only available if @p keepSourceData has been provided on creation.
 		 *
-		 * @param[out]	outSize		Size of the returned stream data, in bytes.
-		 * @return					Stream containing the original audio data.
+		 * @param	outSize	Size of the returned stream data, in bytes.
+		 * @return			Stream containing the original audio data.
 		 */
 		virtual SPtr<DataStream> GetSourceStream(u32& outSize) = 0;
 

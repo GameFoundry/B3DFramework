@@ -137,16 +137,16 @@ namespace b3d
 		 * Calculates the total range covered by a set of curves.
 		 *
 		 * @param	curves		Curves to calculate range for.
-		 * @param	xMin		Minimum time value present in the curves.
-		 * @param	xMax		Maximum time value present in the curves.
-		 * @param	yMin		Minimum curve value present in the curves.
-		 * @param	yMax		Maximum curve value present in the curves.
+		 * @param	outXMin		Minimum time value present in the curves.
+		 * @param	outXMax		Maximum time value present in the curves.
+		 * @param	outYMin		Minimum curve value present in the curves.
+		 * @param	outYMax		Maximum curve value present in the curves.
 		 */
-		static void CalculateRange(const Vector<TAnimationCurve<float>>& curves, float& xMin, float& xMax, float& yMin, float& yMax);
+		static void CalculateRange(const Vector<TAnimationCurve<float>>& curves, float& outXMin, float& outXMax, float& outYMin, float& outYMax);
 
 		/** @copydoc CalculateRange(const Vector<TAnimationCurve<float>>&, float&, float&, float&, float&) */
 		B3D_SCRIPT_EXPORT()
-		static void CalculateRange(const Vector<SPtr<TAnimationCurve<float>>>& curves, float& xMin, float& xMax, float& yMin, float& yMax);
+		static void CalculateRange(const Vector<SPtr<TAnimationCurve<float>>>& curves, float& outXMin, float& outXMax, float& outYMin, float& outYMax);
 
 		/** Scales all curve values and tangents by the specified scale factor. */
 		template <class T>

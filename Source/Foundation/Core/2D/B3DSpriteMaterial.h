@@ -104,13 +104,13 @@ namespace b3d
 		/**
 		 * Generates a hash value that describes the contents of the sprite material info structure. Returned hash doesn't
 		 * guarantee that the two objects with the same hash are identical, but rather that the objects are mergeable via
-		 * merge().
+		 * Merge().
 		 */
 		virtual u64 GetMergeHash(const SpriteMaterialInfo& info) const;
 
 		/**
 		 * Merges two SpriteMaterialInfo%s into one structure. User must guarantee that the two objects are mergeable
-		 * by ensuring their merge hashes match (by calling getMergeHash()).
+		 * by ensuring their merge hashes match (by calling GetMergeHash()).
 		 *
 		 * @param	mergeInto	Object that contains the first part of the data, and will contain the result of the
 		 *						merge.

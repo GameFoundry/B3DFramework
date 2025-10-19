@@ -122,8 +122,8 @@ namespace b3d
 		 * @param	clipRect				Rectangle to clip the vertices to.
 		 * @param	clip					Should the vertices be clipped to the provided @p clipRect.
 		 *
-		 * @see		getNumRenderElements()
-		 * @see		getNumQuads()
+		 * @see		GetRenderElementCount()
+		 * @see		GetNumQuads()
 		 */
 		u32 FillBuffer(u8* outVertices, u8* outUv, u32* outIndices, u32 vertexOffset, u32 indexOffset, u32 maxVertexCount, u32 maxIndexCount, u32 vertexStride, u32 indexStride, u32 renderElementIndex, const Vector2I& offset, const Area2I& clipRect, bool clip = true) const; // DEPRECATED
 

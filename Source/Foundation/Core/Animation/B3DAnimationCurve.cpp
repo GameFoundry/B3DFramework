@@ -16,60 +16,60 @@ namespace b3d
  * Checks if any components of the keyframes are constant (step) functions and updates the hermite curve coefficients
  * accordingly.
  */
-static void SetStepCoefficients(const TKeyframe<float>& lhs, const TKeyframe<float>& rhs, float (&coefficients)[4])
+static void SetStepCoefficients(const TKeyframe<float>& lhs, const TKeyframe<float>& rhs, float (&outCoefficients)[4])
 {
 	if(lhs.OutTangent != std::numeric_limits<float>::infinity() &&
 	   rhs.InTangent != std::numeric_limits<float>::infinity())
 		return;
 
-	coefficients[0] = 0.0f;
-	coefficients[1] = 0.0f;
-	coefficients[2] = 0.0f;
-	coefficients[3] = lhs.Value;
+	outCoefficients[0] = 0.0f;
+	outCoefficients[1] = 0.0f;
+	outCoefficients[2] = 0.0f;
+	outCoefficients[3] = lhs.Value;
 }
 
-static void SetStepCoefficients(const TKeyframe<Vector3>& lhs, const TKeyframe<Vector3>& rhs, Vector3 (&coefficients)[4])
+static void SetStepCoefficients(const TKeyframe<Vector3>& lhs, const TKeyframe<Vector3>& rhs, Vector3 (&outCoefficients)[4])
 {
-	for(u32 i = 0; i < 3; i++)
+	for(u32 componentIndex = 0; componentIndex < 3; componentIndex++)
 	{
-		if(lhs.OutTangent[i] != std::numeric_limits<float>::infinity() &&
-		   rhs.InTangent[i] != std::numeric_limits<float>::infinity())
+		if(lhs.OutTangent[componentIndex] != std::numeric_limits<float>::infinity() &&
+		   rhs.InTangent[componentIndex] != std::numeric_limits<float>::infinity())
 			continue;
 
-		coefficients[0][i] = 0.0f;
-		coefficients[1][i] = 0.0f;
-		coefficients[2][i] = 0.0f;
-		coefficients[3][i] = lhs.Value[i];
+		outCoefficients[0][componentIndex] = 0.0f;
+		outCoefficients[1][componentIndex] = 0.0f;
+		outCoefficients[2][componentIndex] = 0.0f;
+		outCoefficients[3][componentIndex] = lhs.Value[componentIndex];
 	}
 }
 
-static void SetStepCoefficients(const TKeyframe<Vector2>& lhs, const TKeyframe<Vector2>& rhs, Vector2 (&coefficients)[4])
+static void SetStepCoefficients(const TKeyframe<Vector2>& lhs, const TKeyframe<Vector2>& rhs, Vector2 (&outCoefficients)[4])
 {
-	for(u32 i = 0; i < 2; i++)
+	for(u32 componentIndex = 0; componentIndex < 2; componentIndex++)
 	{
-		if(lhs.OutTangent[i] != std::numeric_limits<float>::infinity() &&
-		   rhs.InTangent[i] != std::numeric_limits<float>::infinity())
+		if(lhs.OutTangent[componentIndex] != std::numeric_limits<float>::infinity() &&
+		   rhs.InTangent[componentIndex] != std::numeric_limits<float>::infinity())
 			continue;
 
-		coefficients[0][i] = 0.0f;
-		coefficients[1][i] = 0.0f;
-		coefficients[2][i] = 0.0f;
-		coefficients[3][i] = lhs.Value[i];
+		outCoefficients[0][componentIndex] = 0.0f;
+		outCoefficients[1][componentIndex] = 0.0f;
+		outCoefficients[2][componentIndex] = 0.0f;
+		outCoefficients[3][componentIndex] = lhs.Value[componentIndex];
 	}
 }
 
-static void SetStepCoefficients(const TKeyframe<Quaternion>& lhs, const TKeyframe<Quaternion>& rhs, Quaternion (&coefficients)[4])
+static void SetStepCoefficients(const TKeyframe<Quaternion>& lhs, const TKeyframe<Quaternion>& rhs, Quaternion (&outCoefficients)[4])
 {
-	for(u32 i = 0; i < 4; i++)
+	for(u32 componentIndex = 0; componentIndex < 4; componentIndex++)
 	{
-		if(lhs.OutTangent[i] != std::numeric_limits<float>::infinity() &&
-		   rhs.InTangent[i] != std::numeric_limits<float>::infinity())
+		if(lhs.OutTangent[componentIndex] != std::numeric_limits<float>::infinity() &&
+		   rhs.InTangent[componentIndex] != std::numeric_limits<float>::infinity())
 			continue;
 
-		coefficients[0][i] = 0.0f;
-		coefficients[1][i] = 0.0f;
-		coefficients[2][i] = 0.0f;
-		coefficients[3][i] = lhs.Value[i];
+		outCoefficients[0][componentIndex] = 0.0f;
+		outCoefficients[1][componentIndex] = 0.0f;
+		outCoefficients[2][componentIndex] = 0.0f;
+		outCoefficients[3][componentIndex] = lhs.Value[componentIndex];
 	}
 }
 
@@ -820,7 +820,7 @@ TKeyframe<T> TAnimationCurve<T>::EvaluateKey(float time, bool loop) const
 }
 
 template <class T>
-void TAnimationCurve<T>::FindKeys(float time, const TCurveCache<T>& animInstance, u32& leftKey, u32& rightKey) const
+void TAnimationCurve<T>::FindKeys(float time, const TCurveCache<T>& animInstance, u32& outLeftKey, u32& outRightKey) const
 {
 	// Check nearby keys first if there is cached data
 	if(animInstance.cachedKey != (u32)-1)
@@ -829,16 +829,16 @@ void TAnimationCurve<T>::FindKeys(float time, const TCurveCache<T>& animInstance
 		if(time >= curKey.Time)
 		{
 			const u32 end = std::min((u32)mKeyframes.size(), animInstance.cachedKey + kCacheLookahead + 1);
-			for(u32 i = animInstance.cachedKey + 1; i < end; i++)
+			for(u32 keyIndex = animInstance.cachedKey + 1; keyIndex < end; keyIndex++)
 			{
-				const KeyFrame& nextKey = mKeyframes[i];
+				const KeyFrame& nextKey = mKeyframes[keyIndex];
 
 				if(time < nextKey.Time)
 				{
-					leftKey = i - 1;
-					rightKey = i;
+					outLeftKey = keyIndex - 1;
+					outRightKey = keyIndex;
 
-					animInstance.cachedKey = leftKey;
+					animInstance.cachedKey = outLeftKey;
 					return;
 				}
 			}
@@ -846,16 +846,16 @@ void TAnimationCurve<T>::FindKeys(float time, const TCurveCache<T>& animInstance
 		else
 		{
 			const u32 start = (u32)std::max(0, (i32)animInstance.cachedKey - (i32)kCacheLookahead);
-			for(u32 i = start; i < animInstance.cachedKey; i++)
+			for(u32 keyIndex = start; keyIndex < animInstance.cachedKey; keyIndex++)
 			{
-				const KeyFrame& prevKey = mKeyframes[i];
+				const KeyFrame& prevKey = mKeyframes[keyIndex];
 
 				if(time >= prevKey.Time)
 				{
-					leftKey = i;
-					rightKey = i + 1;
+					outLeftKey = keyIndex;
+					outRightKey = keyIndex + 1;
 
-					animInstance.cachedKey = leftKey;
+					animInstance.cachedKey = outLeftKey;
 					return;
 				}
 			}
@@ -863,12 +863,12 @@ void TAnimationCurve<T>::FindKeys(float time, const TCurveCache<T>& animInstance
 	}
 
 	// Cannot find nearby ones, search all keys
-	FindKeys(time, leftKey, rightKey);
-	animInstance.cachedKey = leftKey;
+	FindKeys(time, outLeftKey, outRightKey);
+	animInstance.cachedKey = outLeftKey;
 }
 
 template <class T>
-void TAnimationCurve<T>::FindKeys(float time, u32& leftKey, u32& rightKey) const
+void TAnimationCurve<T>::FindKeys(float time, u32& outLeftKey, u32& outRightKey) const
 {
 	i32 start = 0;
 	auto searchLength = (i32)mKeyframes.size();
@@ -889,8 +889,8 @@ void TAnimationCurve<T>::FindKeys(float time, u32& leftKey, u32& rightKey) const
 		}
 	}
 
-	leftKey = std::max(0, start - 1);
-	rightKey = std::min(start, (i32)mKeyframes.size() - 1);
+	outLeftKey = std::max(0, start - 1);
+	outRightKey = std::min(start, (i32)mKeyframes.size() - 1);
 }
 
 template <class T>

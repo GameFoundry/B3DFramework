@@ -190,32 +190,32 @@ namespace b3d
 		 * Maps skeleton bone names to animation curve names, and returns a set of indices that can be easily used for
 		 * locating an animation curve based on the bone index.
 		 *
-		 * @param	skeleton	Skeleton to create the mapping for.
-		 * @param	mapping		Pre-allocated array that will receive output animation clip indices. The array must
-		 *							be large enough to store an index for every bone in the @p skeleton. Bones that have
-		 *							no related animation curves will be assigned value -1.
+		 * @param	skeleton		Skeleton to create the mapping for.
+		 * @param	outMapping		Pre-allocated array that will receive output animation clip indices. The array must
+		 *								be large enough to store an index for every bone in the @p skeleton. Bones that have
+		 *								no related animation curves will be assigned value -1.
 		 */
-		void GetBoneMapping(const Skeleton& skeleton, AnimationCurveMapping* mapping) const;
+		void GetBoneMapping(const Skeleton& skeleton, AnimationCurveMapping* outMapping) const;
 
 		/**
 		 * Attempts to find translation/rotation/scale curves with the specified name and fills the mapping structure with
 		 * their indices, which can then be used for quick lookup.
 		 *
-		 * @param	name		Name of the curves to look up.
-		 * @param	mapping		Triple containing the translation/rotation/scale indices of the found curves. Indices
-		 *							will be -1 for curves that haven't been found.
+		 * @param	name			Name of the curves to look up.
+		 * @param	outMapping		Triple containing the translation/rotation/scale indices of the found curves. Indices
+		 *								will be -1 for curves that haven't been found.
 		 */
-		void GetCurveMapping(const String& name, AnimationCurveMapping& mapping) const;
+		void GetCurveMapping(const String& name, AnimationCurveMapping& outMapping) const;
 
 		/**
 		 * Attempts to find a generic curve with the specified name and fills output with found index, which can then be
 		 * used for quick lookup.
 		 *
-		 * @param	name		Name of the curve to look up.
-		 * @param	frameIndex	Index of the curve animating the morph shape frames, or -1 if not found.
-		 * @param	weightIndex	Index of the curve animating the channel weight, or -1 if not found.
+		 * @param	name				Name of the curve to look up.
+		 * @param	outFrameIndex		Index of the curve animating the morph shape frames, or -1 if not found.
+		 * @param	outWeightIndex		Index of the curve animating the channel weight, or -1 if not found.
 		 */
-		void GetMorphMapping(const String& name, u32& frameIndex, u32& weightIndex) const;
+		void GetMorphMapping(const String& name, u32& outFrameIndex, u32& outWeightIndex) const;
 
 		/**
 		 * Checks are the curves contained within the clip additive. Additive clips are intended to be added on top of

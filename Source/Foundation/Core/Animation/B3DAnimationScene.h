@@ -79,15 +79,15 @@ namespace b3d
 		 * Evaluates animations for all animated objects, and returns the evaluated skeleton bone poses and morph shape
 		 * meshes that can be passed along to the renderer.
 		 *
-		 * @param	async		If true the method returns immediately while the animation gets evaluated in the
-		 *								background. The returned evaluated data will be the data from the previous frame.
-		 *								Therefore note that this introduces a one frame latency on the animation. If the
-		 *								latency is not acceptable set this to false, at a potential performance impact.
-		 * @return						Evaluated animation data for this frame (if @p async is false), or the previous
-		 *								frame (if @p async is true). Note that the system re-uses the returned buffers,
-		 *								and the returned buffer should stop being used after every second call to update().
-		 *								This is enough to have one buffer be processed by the render thread, one queued
-		 *								for future rendering and one that's being written to.
+		 * @param	async	If true the method returns immediately while the animation gets evaluated in the
+		 *					background. The returned evaluated data will be the data from the previous frame.
+		 *					Therefore note that this introduces a one frame latency on the animation. If the
+		 *					latency is not acceptable set this to false, at a potential performance impact.
+		 * @return			Evaluated animation data for this frame (if @p async is false), or the previous
+		 *					frame (if @p async is true). Note that the system re-uses the returned buffers,
+		 *					and the returned buffer should stop being used after every second call to Update().
+		 *					This is enough to have one buffer be processed by the render thread, one queued
+		 *					for future rendering and one that's being written to.
 		 */
 		const EvaluatedAnimationData* Update(bool async = true);
 
@@ -126,11 +126,11 @@ namespace b3d
 		/**
 		 * Evaluates animation for a single object and writes the result in the currently active write buffer.
 		 *
-		 * @param	anim		Proxy representing the animation to evaluate.
-		 * @param	boneIndex		Index in the output buffer in which to write evaluated bone information. This will be
+		 * @param	anim			Proxy representing the animation to evaluate.
+		 * @param	outBoneIndex	Index in the output buffer in which to write evaluated bone information. This will be
 		 *							automatically advanced by the number of written bone transforms.
 		 */
-		void EvaluateAnimation(AnimationProxy* anim, u32& boneIndex);
+		void EvaluateAnimation(AnimationProxy* anim, u32& outBoneIndex);
 
 		u64 mNextId = 1;
 		UnorderedMap<u64, Animation*> mAnimations;

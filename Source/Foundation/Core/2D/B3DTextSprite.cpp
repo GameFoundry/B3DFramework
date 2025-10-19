@@ -28,8 +28,8 @@ void TextSprite::Update(const TextSpriteInformation& information, u64 groupId)
 {
 	B3DMarkAllocatorFrame();
 	{
-		const U32String utf32text = UTF8::ToUtF32(information.Text);
-		TTextGeometry<FrameAllocatorTag> textGeometry(utf32text, information.Font, information.FontSize, (u32)information.Size.Width, (u32)information.Size.Height, information.WordWrap, information.WordBreak);
+		const U32String utf32Text = UTF8::ToUtF32(information.Text);
+		TTextGeometry<FrameAllocatorTag> textGeometry(utf32Text, information.Font, information.FontSize, (u32)information.Size.Width, (u32)information.Size.Height, information.WordWrap, information.WordBreak);
 
 		const u32 pageCount = textGeometry.GetPageCount();
 
@@ -159,15 +159,15 @@ u32 TextSprite::BuildTextQuads(const TextGeometry& textGeometry, u32 width, u32 
 void TextSprite::GetAlignmentOffsets(const TextGeometry& textGeometry, u32 width, u32 height, GUIHorizontalTextAlignment horzAlign, GUIVerticalTextAlignment vertAlign, Vector2I* output)
 {
 	const u32 lineCount = textGeometry.GetLineCount();
-	float currentHeight = 0.0f;
+	float currentHeightTotal = 0.0f;
 	for(u32 lineIndex = 0; lineIndex < lineCount; lineIndex++)
 	{
 		const TextGeometry::Line& line = textGeometry.GetLine(lineIndex);
-		currentHeight += line.GetYOffset();
+		currentHeightTotal += line.GetYOffset();
 	}
 
 	// Calc vertical alignment offset
-	const float verticalFreeSpace = Math::Max(0.0f, (float)height - currentHeight);
+	const float verticalFreeSpace = Math::Max(0.0f, (float)height - currentHeightTotal);
 	float verticalOffset = 0.0f;
 	switch(vertAlign)
 	{

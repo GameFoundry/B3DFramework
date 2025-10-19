@@ -9,21 +9,21 @@ using namespace b3d;
 
 u32 SpriteRenderElement::GetVertexAndIndexData(u32 vertexOffset, u32 indexOffset, const Vector2& offset, const Area2& clipRectangle, bool performClipping, DataRange& outPositions, DataRange& outUVs, DataRange& outIndices) const
 {
-	const u32 startVertex = vertexOffset;
-	const u32 startIndex = indexOffset;
+	const u32 startVertexIndex = vertexOffset;
+	const u32 startIndexValue = indexOffset;
 
 	const u32 quadCount = VertexCount / 4;
 
-	B3D_ASSERT((startVertex + VertexCount) <= outPositions.ElementCount);
-	B3D_ASSERT((startVertex + VertexCount) <= outUVs.ElementCount);
-	B3D_ASSERT((startIndex + IndexCount) <= outIndices.ElementCount);
+	B3D_ASSERT((startVertexIndex + VertexCount) <= outPositions.ElementCount);
+	B3D_ASSERT((startVertexIndex + VertexCount) <= outUVs.ElementCount);
+	B3D_ASSERT((startIndexValue + IndexCount) <= outIndices.ElementCount);
 
 	if(performClipping)
 	{
 		for(u32 quadIndex = 0; quadIndex < quadCount; quadIndex++)
 		{
 			const u32 localFirstVertexIndex = quadIndex * 4;
-			const u32 globalFirstVertexIndex = startVertex + localFirstVertexIndex;
+			const u32 globalFirstVertexIndex = startVertexIndex + localFirstVertexIndex;
 
 			for(u32 vertexIndex = 0; vertexIndex < 4; vertexIndex++)
 			{
@@ -42,7 +42,7 @@ u32 SpriteRenderElement::GetVertexAndIndexData(u32 vertexOffset, u32 indexOffset
 		for(u32 quadIndex = 0; quadIndex < quadCount; quadIndex++)
 		{
 			const u32 localFirstVertexIndex = quadIndex * 4;
-			const u32 globalFirstVertexIndex = startVertex + localFirstVertexIndex;
+			const u32 globalFirstVertexIndex = startVertexIndex + localFirstVertexIndex;
 
 			for(u32 vertexIndex = 0; vertexIndex < 4; vertexIndex++)
 			{
@@ -55,8 +55,8 @@ u32 SpriteRenderElement::GetVertexAndIndexData(u32 vertexOffset, u32 indexOffset
 	if(outIndices.Data != nullptr)
 	{
 		for(u32 index = 0; index < IndexCount; ++index)
-			outIndices.Set(startIndex + index, Indices[index]);
-		
+			outIndices.Set(startIndexValue + index, Indices[index]);
+
 	}
 
 	return quadCount;
@@ -80,8 +80,8 @@ u32 Sprite::FillBuffer(u8* outVertices, u8* outUv, u32* outIndices, u32 vertexOf
 	const RenderElementData& renderElementData = mCachedRenderElements[renderElementIndex];
 	const SpriteRenderElement& renderElement = renderElementData.RenderElement;
 
-	u32 startVertex = vertexOffset;
-	u32 startIndex = indexOffset;
+	u32 startVertexIndex = vertexOffset;
+	u32 startIndexValue = indexOffset;
 
 	u32 maxVertexIndex = maxVertexCount;
 	u32 maxIndexIndex = maxIndexCount;
@@ -90,11 +90,11 @@ u32 Sprite::FillBuffer(u8* outVertices, u8* outUv, u32* outIndices, u32 vertexOf
 	u32 indexCount = renderElement.IndexCount;
 	const u32 quadCount = vertexCount / 4;
 
-	B3D_ASSERT((startVertex + vertexCount) <= maxVertexIndex);
-	B3D_ASSERT((startIndex + indexCount) <= maxIndexIndex);
+	B3D_ASSERT((startVertexIndex + vertexCount) <= maxVertexIndex);
+	B3D_ASSERT((startIndexValue + indexCount) <= maxIndexIndex);
 
-	u8* vertexDestination = outVertices + startVertex * vertexStride;
-	u8* uvDestination = outUv + startVertex * vertexStride;
+	u8* vertexDestination = outVertices + startVertexIndex * vertexStride;
+	u8* uvDestination = outUv + startVertexIndex * vertexStride;
 
 	// TODO - I'm sure this can be done in a more cache friendly way. Profile it later.
 	Vector2 vectorOffset((float)offset.X, (float)offset.Y);
@@ -199,7 +199,7 @@ u32 Sprite::FillBuffer(u8* outVertices, u8* outUv, u32* outIndices, u32 vertexOf
 	}
 
 	if(outIndices != nullptr)
-		memcpy(&outIndices[startIndex], renderElement.Indices, indexCount * sizeof(u32));
+		memcpy(&outIndices[startIndexValue], renderElement.Indices, indexCount * sizeof(u32));
 
 	return quadCount;
 }

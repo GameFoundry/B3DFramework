@@ -36,9 +36,9 @@ SpriteManager::~SpriteManager()
 
 SpriteMaterial* SpriteManager::GetMaterial(u32 id) const
 {
-	auto iterFind = mMaterials.find(id);
-	if(iterFind != mMaterials.end())
-		return iterFind->second;
+	auto found = mMaterials.find(id);
+	if(found != mMaterials.end())
+		return found->second;
 
 	return nullptr;
 }
