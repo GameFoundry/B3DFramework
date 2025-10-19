@@ -111,7 +111,7 @@ namespace b3d
 		void SetMouseDoubleClickData(const GUIPhysicalPoint& position, GUIMouseButton button);
 
 		/**	Initializes the event with MouseDrag event data. */
-		void SetMouseDragData(const GUIPhysicalPoint& position, const GUIPhysicalPoint& dragStartPosition);
+		void SetMouseDragData(const GUIPhysicalPoint& position, const GUIPhysicalPoint& dragAmount);
 
 		/**	Initializes the event with MouseDragStart event data. */
 		void SetMouseDragStartData(const GUIPhysicalPoint& position, const GUIPhysicalPoint& dragStartPosition);

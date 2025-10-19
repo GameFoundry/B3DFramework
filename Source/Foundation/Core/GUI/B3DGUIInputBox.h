@@ -86,19 +86,19 @@ namespace b3d
 
 	private:
 		/** Inserts a new string into the current text at the specified index. */
-		void InsertString(u32 charIdx, const String& string);
+		void InsertString(u32 charIndex, const String& string);
 
 		/**	Inserts a new character into the current text at the specified index. */
-		void InsertChar(u32 charIdx, u32 charCode);
+		void InsertChar(u32 charIndex, u32 charCode);
 
 		/**	Erases a single character at the specified index. */
-		void EraseChar(u32 charIdx);
+		void EraseChar(u32 charIndex);
 
 		/**
 		 * Deletes text that is currently selected.
 		 *
-		 * @param[in]	internal	If internal no filter will be applied after the text is deleted, and no event will be
-		 * 							triggered either.
+		 * @param	internal	If internal no filter will be applied after the text is deleted, and no event will be
+		 * 						triggered either.
 		 */
 		void DeleteSelectedText(bool internal = false);
 
@@ -159,7 +159,7 @@ namespace b3d
 		GUIElementState mState = GUIElementState::Normal;
 
 		String mText;
-		u32 mNumChars = 0;
+		u32 mCharCount = 0;
 		std::function<bool(const String&)> mFilter;
 
 		bool mCaretShown = false;

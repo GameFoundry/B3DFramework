@@ -233,7 +233,7 @@ namespace b3d
 		static GUIBatchRenderData GetRenderData(const Batch& batch);
 
 		/** Calculates the bounds of all elements in all the batches in the provided batch. */
-		static Area2I CalculateBounds(Batch& batche);
+		static Area2I CalculateBounds(Batch& batch);
 
 		/** Creates information about a material for the provided render element. */
 		static BatchedMaterial CreateBatchedMaterial(const BatchedGUIRenderElement& batchedGuiRenderElement);

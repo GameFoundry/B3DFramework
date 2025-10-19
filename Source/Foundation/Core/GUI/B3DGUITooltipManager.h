@@ -21,9 +21,9 @@ namespace b3d
 		/**
 		 * Shows a tooltip at the specified location. This will replace any previously shown tooltip.
 		 *
-		 * @param[in]	widget		GUI widget over which to display the tooltip.
-		 * @param[in]	position	Position of the tooltip, relative to the parent GUI widget.
-		 * @param[in]	text		Text to display on the tooltip.
+		 * @param	widget		GUI widget over which to display the tooltip.
+		 * @param	position	Position of the tooltip, relative to the parent GUI widget.
+		 * @param	text		Text to display on the tooltip.
 		 */
 		void Show(const GUIWidget& widget, const GUIPhysicalPoint& position, const String& text);
 

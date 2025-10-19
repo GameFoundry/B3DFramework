@@ -43,8 +43,8 @@ void GUIViewport::FillBuffer(
 	u32 vertexOffset,
 	u32 indexOffset,
 	const Vector2I& offset,
-	u32 maxNumVerts,
-	u32 maxNumIndices,
+	u32 maxVertexCount,
+	u32 maxIndexCount,
 	u32 renderElementIdx) const
 {
 }

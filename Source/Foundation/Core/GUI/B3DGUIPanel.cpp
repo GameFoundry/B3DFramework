@@ -44,11 +44,11 @@ const String& GUIPanel::GetGuiTypeName()
 	return kName;
 }
 
-void GUIPanel::SetDepthRange(i16 depth, u16 depthRangeMin, u16 depthRangeMax)
+void GUIPanel::SetDepthRange(i16 depth, u16 depthRangeMinimum, u16 depthRangeMaximum)
 {
 	mDepthOffset = depth;
-	mDepthRangeMin = depthRangeMin;
-	mDepthRangeMax = depthRangeMax;
+	mDepthRangeMin = depthRangeMinimum;
+	mDepthRangeMax = depthRangeMaximum;
 
 	MarkLayoutAsDirty();
 }
@@ -78,7 +78,7 @@ void GUIPanel::UpdateOptimalLayoutSizes()
 		mChildConstrainedSizeRanges.resize(mChildren.size());
 
 	GUILogicalSize optimalSize(BsZero);
-	GUILogicalSize minSize(BsZero);
+	GUILogicalSize minimumSize(BsZero);
 
 	u32 childIndex = 0;
 	for(auto& child : mChildren)
@@ -89,21 +89,21 @@ void GUIPanel::UpdateOptimalLayoutSizes()
 		{
 			childSizeRange = GetChildConstrainedSizeRange(child);
 
-			const GUILogicalUnit marginsX = child->GetMargins().Left + child->GetMargins().Right;
-			const GUILogicalUnit marginsY = child->GetMargins().Top + child->GetMargins().Bottom;
+			const GUILogicalUnit marginsHorizontal = child->GetMargins().Left + child->GetMargins().Right;
+			const GUILogicalUnit marginsVertical = child->GetMargins().Top + child->GetMargins().Bottom;
 
-			GUILogicalPoint childMax;
-			childMax.X = child->GetSizeConstraints().ExplicitPosition.X + childSizeRange.Optimal.Width + marginsX;
-			childMax.Y = child->GetSizeConstraints().ExplicitPosition.Y + childSizeRange.Optimal.Height + marginsY;
+			GUILogicalPoint childMaximum;
+			childMaximum.X = child->GetSizeConstraints().ExplicitPosition.X + childSizeRange.Optimal.Width + marginsHorizontal;
+			childMaximum.Y = child->GetSizeConstraints().ExplicitPosition.Y + childSizeRange.Optimal.Height + marginsVertical;
 
-			optimalSize.Width = Math::Max(optimalSize.Width, childMax.X);
-			optimalSize.Height = Math::Max(optimalSize.Height, childMax.Y);
+			optimalSize.Width = Math::Max(optimalSize.Width, childMaximum.X);
+			optimalSize.Height = Math::Max(optimalSize.Height, childMaximum.Y);
 
-			childMax.X = child->GetSizeConstraints().ExplicitPosition.X + childSizeRange.Minimum.Width + marginsX;
-			childMax.Y = child->GetSizeConstraints().ExplicitPosition.Y + childSizeRange.Minimum.Height + marginsY;
+			childMaximum.X = child->GetSizeConstraints().ExplicitPosition.X + childSizeRange.Minimum.Width + marginsHorizontal;
+			childMaximum.Y = child->GetSizeConstraints().ExplicitPosition.Y + childSizeRange.Minimum.Height + marginsVertical;
 
-			minSize.Width = Math::Max(minSize.Width, childMax.X);
-			minSize.Height = Math::Max(minSize.Height, childMax.Y);
+			minimumSize.Width = Math::Max(minimumSize.Width, childMaximum.X);
+			minimumSize.Height = Math::Max(minimumSize.Height, childMaximum.Y);
 		}
 		else
 			childSizeRange = GUIConstrainedSizeRange();
@@ -112,8 +112,8 @@ void GUIPanel::UpdateOptimalLayoutSizes()
 	}
 
 	mConstrainedSizeRange = GetSizeConstraints().CalculateConstrainedSizeRange(optimalSize);
-	mConstrainedSizeRange.Minimum.Width = std::max(mConstrainedSizeRange.Minimum.Width, minSize.Width);
-	mConstrainedSizeRange.Minimum.Height = std::max(mConstrainedSizeRange.Minimum.Height, minSize.Height);
+	mConstrainedSizeRange.Minimum.Width = std::max(mConstrainedSizeRange.Minimum.Width, minimumSize.Width);
+	mConstrainedSizeRange.Minimum.Height = std::max(mConstrainedSizeRange.Minimum.Height, minimumSize.Height);
 }
 
 void GUIPanel::GetChildRelativeLayoutAreas(const GUILogicalSize& layoutSize, GUILogicalPoint* outElementPositions, GUILogicalSize* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSizeRange>& sizeRanges) const
@@ -121,15 +121,15 @@ void GUIPanel::GetChildRelativeLayoutAreas(const GUILogicalSize& layoutSize, GUI
 	B3D_ASSERT(mChildren.size() == elementCount);
 
 	// Panel always uses optimal sizes and explicit positions
-	u32 childIdx = 0;
+	u32 childIndex = 0;
 	for(auto& child : mChildren)
 	{
-		const GUILogicalArea childElementArea = CalculateRelativeElementArea(layoutSize, child, sizeRanges[childIdx]);
+		const GUILogicalArea childElementArea = CalculateRelativeElementArea(layoutSize, child, sizeRanges[childIndex]);
 
-		outElementPositions[childIdx] = GUILogicalPoint(childElementArea.X, childElementArea.Y);
-		outElementSizes[childIdx] = GUILogicalSize(childElementArea.Width, childElementArea.Height);
+		outElementPositions[childIndex] = GUILogicalPoint(childElementArea.X, childElementArea.Y);
+		outElementSizes[childIndex] = GUILogicalSize(childElementArea.Width, childElementArea.Height);
 
-		childIdx++;
+		childIndex++;
 	}
 }
 
@@ -151,27 +151,27 @@ GUILogicalArea GUIPanel::CalculateRelativeElementArea(const GUILogicalSize& layo
 void GUIPanel::UpdateDepthRangeInternal(GUILayoutData& data)
 {
 	i32 newPanelDepth = data.GetPanelDepth() + mDepthOffset;
-	i32 newPanelDepthRangeMin = newPanelDepth - mDepthRangeMin;
-	i32 newPanelDepthRangeMax = newPanelDepth + mDepthRangeMax;
+	i32 newPanelDepthRangeMinimum = newPanelDepth - mDepthRangeMin;
+	i32 newPanelDepthRangeMaximum = newPanelDepth + mDepthRangeMax;
 
-	i32* allDepths[3] = { &newPanelDepth, &newPanelDepthRangeMin, &newPanelDepthRangeMax };
+	i32* allDepths[3] = { &newPanelDepth, &newPanelDepthRangeMinimum, &newPanelDepthRangeMaximum };
 
 	for(auto& depth : allDepths)
 	{
-		i32 minValue = std::max((i32)data.GetPanelDepth() - (i32)data.DepthRangeMin, (i32)std::numeric_limits<i16>::min());
-		*depth = std::max(*depth, minValue);
+		i32 minimumValue = std::max((i32)data.GetPanelDepth() - (i32)data.DepthRangeMin, (i32)std::numeric_limits<i16>::min());
+		*depth = std::max(*depth, minimumValue);
 
-		i32 maxValue = std::min((i32)data.GetPanelDepth() + (i32)data.DepthRangeMax, (i32)std::numeric_limits<i16>::max());
-		*depth = std::min(*depth, maxValue);
+		i32 maximumValue = std::min((i32)data.GetPanelDepth() + (i32)data.DepthRangeMax, (i32)std::numeric_limits<i16>::max());
+		*depth = std::min(*depth, maximumValue);
 	}
 
 	data.SetPanelDepth((i16)newPanelDepth);
 
 	if(mDepthRangeMin != (u16)-1 || data.DepthRangeMin != (u16)-1)
-		data.DepthRangeMin = (u16)(newPanelDepth - newPanelDepthRangeMin);
+		data.DepthRangeMin = (u16)(newPanelDepth - newPanelDepthRangeMinimum);
 
 	if(mDepthRangeMax != (u16)-1 || data.DepthRangeMax != (u16)-1)
-		data.DepthRangeMax = (u16)(newPanelDepthRangeMax - newPanelDepth);
+		data.DepthRangeMax = (u16)(newPanelDepthRangeMaximum - newPanelDepth);
 }
 
 void GUIPanel::UpdateLayoutForChildren()
@@ -191,20 +191,20 @@ void GUIPanel::UpdateLayoutForChildren()
 
 	GetChildRelativeLayoutAreas(mLayoutData.Size, elementPositions, elementSizes, elementCount, mChildConstrainedSizeRanges);
 
-	u32 childIdx = 0;
+	u32 childIndex = 0;
 
 	for(auto& child : mChildren)
 	{
 		if(child->IsActive())
 		{
-			childData.RelativePosition = elementPositions[childIdx];
-			childData.Size = elementSizes[childIdx];
+			childData.RelativePosition = elementPositions[childIndex];
+			childData.Size = elementSizes[childIndex];
 
 			child->SetLayoutData(childData);
 			child->UpdateLayoutForChildren();
 		}
 
-		childIdx++;
+		childIndex++;
 	}
 
 	if(elementSizes != nullptr)

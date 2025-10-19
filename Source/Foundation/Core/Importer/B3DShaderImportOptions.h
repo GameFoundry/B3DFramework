@@ -33,17 +33,17 @@ namespace b3d
 		 * Checks if the define exists and returns its value if it does.
 		 *
 		 * @param	define		Name of the define to get the value for.
-		 * @param	value		value of the define. Only defined if the method returns true.
+		 * @param	outValue	Value of the define. Only defined if the method returns true.
 		 * @return				True if the define was found, false otherwise.
 		 */
 		B3D_SCRIPT_EXPORT()
 
-		bool GetDefine(const String& define, String& value) const
+		bool GetDefine(const String& define, String& outValue) const
 		{
-			auto findIter = mDefines.find(define);
-			if(findIter != mDefines.end())
+			auto found = mDefines.find(define);
+			if(found != mDefines.end())
 			{
-				value = findIter->second;
+				outValue = found->second;
 				return true;
 			}
 
@@ -60,8 +60,8 @@ namespace b3d
 
 		bool HasDefine(const String& define) const
 		{
-			auto findIter = mDefines.find(define);
-			return findIter != mDefines.end();
+			auto found = mDefines.find(define);
+			return found != mDefines.end();
 		}
 
 		/**

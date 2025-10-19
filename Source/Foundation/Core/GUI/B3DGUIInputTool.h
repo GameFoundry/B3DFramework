@@ -19,12 +19,12 @@ namespace b3d
 		/**
 		 * Constructs a new input line description.
 		 *
-		 * @param[in]	startChar		Index of the first character on the line.
-		 * @param[in]	endChar			Index of the last character on the line.
-		 * @param[in]	lineHeight		Height of the line in pixels.
-		 * @param[in]	lineYStart		Vertical offset from the top of the text to the start of this line (0 for first
+		 * @param	startChar			Index of the first character on the line.
+		 * @param	endChar				Index of the last character on the line.
+		 * @param	lineHeight			Height of the line in pixels.
+		 * @param	lineYStart			Vertical offset from the top of the text to the start of this line (0 for first
 		 *								line usually).
-		 * @param[in]	includesNewline	True if the lines end character is a newline character.
+		 * @param	includesNewline		True if the lines end character is a newline character.
 		 */
 		GUIInputLineDesc(u32 startChar, u32 endChar, u32 lineHeight, i32 lineYStart, bool includesNewline);
 
@@ -49,7 +49,7 @@ namespace b3d
 		 * the start character index of this line. If the index is out of range of this line character indices, it will
 		 * always return false.
 		 */
-		bool IsNewline(u32 charIdx) const;
+		bool IsNewline(u32 characterIndex) const;
 
 		/**	Returns true if the last character on this line is a newline. */
 		bool HasNewlineChar() const { return mIncludesNewline; }
@@ -77,25 +77,25 @@ namespace b3d
 
 	protected:
 		/**	Returns number of lines in the current text string. */
-		u32 GetNumLines() const { return (u32)mLineDescs.size(); }
+		u32 GetLineCount() const { return (u32)mLineDescs.size(); }
 
 		/**	Returns descriptor for a line with the specified index. */
-		const GUIInputLineDesc& GetLineDesc(u32 lineIdx) const { return mLineDescs.at(lineIdx); }
+		const GUIInputLineDesc& GetLineDesc(u32 lineIndex) const { return mLineDescs.at(lineIndex); }
 
 		/**
 		 * Returns index of a line containing the specified character.
 		 *
-		 * @param[in]	charIdx					Index of the character to look for.
-		 * @param[in]	newlineCountsOnNextLine	If true, newline characters will return the next line and not the line
-		 *										they're actually on.
+		 * @param	characterIndex			Index of the character to look for.
+		 * @param	newlineCountsOnNextLine	If true, newline characters will return the next line and not the line
+		 *									they're actually on.
 		 */
-		u32 GetLineForChar(u32 charIdx, bool newlineCountsOnNextLine = false) const;
+		u32 GetLineForChar(u32 characterIndex, bool newlineCountsOnNextLine = false) const;
 
 		/** Returns a rectangle containing position and size of the character with the provided index, relative to parent GUI element. */
 		Area2I GetCharacterBounds(u32 characterIndex) const;
 
 		/** Returns character index nearest to the specified position. Position should be relative to parent GUI element. */
-		i32 GetCharIdxAtPos(const GUIPhysicalPoint& pos) const;
+		i32 GetCharIdxAtPos(const GUIPhysicalPoint& position) const;
 
 		/**	Returns true if the currently set text desctiptor is valid (has any characters). */
 		bool IsDescValid() const;
@@ -111,7 +111,7 @@ namespace b3d
 		u32 GetCharIdxAtInputIdx(u32 inputIdx) const;
 
 		/**	Checks is the specified character index a newline. */
-		bool IsNewlineChar(u32 charIdx) const;
+		bool IsNewlineChar(u32 characterIndex) const;
 
 		/**
 		 * Checks is the character after the specified input index a newline.
@@ -124,10 +124,10 @@ namespace b3d
 		const GUIInteractable* mElement = nullptr;
 
 		Vector2* mQuads = nullptr;
-		u32 mNumQuads = 0;
+		u32 mQuadCount = 0;
 
 		TextSpriteInformation mTextDesc;
-		u32 mNumChars = 0;
+		u32 mCharacterCount = 0;
 
 		Vector<GUIInputLineDesc> mLineDescs;
 	};

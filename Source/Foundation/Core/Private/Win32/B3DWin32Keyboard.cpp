@@ -107,12 +107,12 @@ void Keyboard::Capture()
 		return;
 
 	DIDEVICEOBJECTDATA diBuff[DI_BUFFER_SIZE_KEYBOARD];
-	DWORD numEntries = DI_BUFFER_SIZE_KEYBOARD;
+	DWORD entryCount = DI_BUFFER_SIZE_KEYBOARD;
 
 	// Note: Only one keyboard per app due to this static (which is fine)
 	static bool verifyAfterAltTab = false;
 
-	HRESULT hr = m->Keyboard->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &numEntries, 0);
+	HRESULT hr = m->Keyboard->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &entryCount, 0);
 	if(hr != DI_OK)
 	{
 		hr = m->Keyboard->Acquire();
@@ -131,16 +131,16 @@ void Keyboard::Capture()
 		return;
 	}
 
-	for(u32 i = 0; i < numEntries; ++i)
+	for(u32 entryIndex = 0; entryIndex < entryCount; ++entryIndex)
 	{
-		ButtonCode buttonCode = (ButtonCode)diBuff[i].dwOfs;
+		ButtonCode buttonCode = (ButtonCode)diBuff[entryIndex].dwOfs;
 
-		m->KeyBuffer[(u32)buttonCode] = (u8)(diBuff[i].dwData);
+		m->KeyBuffer[(u32)buttonCode] = (u8)(diBuff[entryIndex].dwData);
 
-		if(diBuff[i].dwData & 0x80)
-			mOwner->NotifyButtonPressedInternal(0, buttonCode, diBuff[i].dwTimeStamp);
+		if(diBuff[entryIndex].dwData & 0x80)
+			mOwner->NotifyButtonPressedInternal(0, buttonCode, diBuff[entryIndex].dwTimeStamp);
 		else
-			mOwner->NotifyButtonReleasedInternal(0, buttonCode, diBuff[i].dwTimeStamp);
+			mOwner->NotifyButtonReleasedInternal(0, buttonCode, diBuff[entryIndex].dwTimeStamp);
 	}
 
 	// If a lost device/access denied was detected, recover
@@ -160,14 +160,14 @@ void Keyboard::Capture()
 				m->Keyboard->GetDeviceState(sizeof(m->KeyBuffer), &m->KeyBuffer);
 		}
 
-		for(u32 i = 0; i < 256; i++)
+		for(u32 keyIndex = 0; keyIndex < 256; keyIndex++)
 		{
-			if(keyBufferCopy[i] != m->KeyBuffer[i])
+			if(keyBufferCopy[keyIndex] != m->KeyBuffer[keyIndex])
 			{
-				if(m->KeyBuffer[i])
-					mOwner->NotifyButtonPressedInternal(0, (ButtonCode)i, GetTickCount64());
+				if(m->KeyBuffer[keyIndex])
+					mOwner->NotifyButtonPressedInternal(0, (ButtonCode)keyIndex, GetTickCount64());
 				else
-					mOwner->NotifyButtonReleasedInternal(0, (ButtonCode)i, GetTickCount64());
+					mOwner->NotifyButtonReleasedInternal(0, (ButtonCode)keyIndex, GetTickCount64());
 			}
 		}
 
@@ -177,14 +177,14 @@ void Keyboard::Capture()
 
 void Keyboard::ChangeCaptureContext(u64 windowHandle)
 {
-	HWND newhWnd = (HWND)windowHandle;
+	HWND newWindowHandle = (HWND)windowHandle;
 
-	if(m->HWnd != newhWnd)
+	if(m->HWnd != newWindowHandle)
 	{
 		ReleaseDirectInput(m);
 
 		if(windowHandle != (u64)-1)
-			InitializeDirectInput(m, newhWnd);
+			InitializeDirectInput(m, newWindowHandle);
 		else
 			m->HWnd = (HWND)-1;
 	}

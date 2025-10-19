@@ -220,8 +220,8 @@ namespace b3d
 		{
 			ParamOffset() = default;
 
-			ParamOffset(u32 _paramIdx, u32 _location)
-				: ParamIdx(_paramIdx), Location(_location)
+			ParamOffset(u32 _parameterIndex, u32 _location)
+				: ParamIdx(_parameterIndex), Location(_location)
 			{}
 
 			u32 ParamIdx = 0;
@@ -235,7 +235,7 @@ namespace b3d
 		u32 NumParameters = 0;
 		ParamOffset* ParameterOffsets = nullptr;
 
-		void ConcatenateString(b3d::String& outputString, b3d::String* parameters, u32 numParameterValues) const;
+		void ConcatenateString(b3d::String& outputString, b3d::String* parameters, u32 parameterValueCount) const;
 		void UpdateString(const b3d::String& string);
 	};
 

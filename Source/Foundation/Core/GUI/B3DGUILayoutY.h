@@ -40,12 +40,12 @@ namespace b3d
 		 * Calculates positions & sizes of all elements in the layout. This method expects a pre-allocated array to store
 		 * the data in.
 		 *
-		 * @param	layoutSize			Size of the parent layout area to position the child elements in.
-		 * @param	outElementPositions	Array to hold output positions. Must be the same size as the number of child elements.
-		 * @param	outElementSizes		Array to hold output areas. Must be the same size as the number of child elements.
-		 * @param	elementCount		Size of the element positions/sizes arrays.
-		 * @param	sizeRanges			Ranges of possible sizes used for the child elements. Array must be same size as elements array.
-		 * @param	myOptimalSize		Optimal size of this element with all the child elements.
+		 * @param	layoutSize				Size of the parent layout area to position the child elements in.
+		 * @param	outElementPositions		Array to hold output positions. Must be the same size as the number of child elements.
+		 * @param	outElementSizes			Array to hold output areas. Must be the same size as the number of child elements.
+		 * @param	elementCount			Size of the element positions/sizes arrays.
+		 * @param	sizeRanges				Ranges of possible sizes used for the child elements. Array must be same size as elements array.
+		 * @param	myOptimalSize			Optimal size of this element with all the child elements.
 		 */
 		void GetChildRelativeLayoutAreas(const GUILogicalSize& layoutSize, GUILogicalPoint* outElementPositions, GUILogicalSize* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSizeRange>& sizeRanges, const GUILogicalSize& myOptimalSize) const;
 	};

@@ -24,42 +24,42 @@ namespace b3d
 		/**
 		 * Creates a new element with the provided render texture.
 		 *
-		 * @param[in]	texture			Render texture to display.
-		 * @param[in]	transparent		Determines should the texture be rendered with transparency active.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
+		 * @param	texture			Render texture to display.
+		 * @param	transparent		Determines should the texture be rendered with transparency active.
+		 * @param	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
+		 *							GUIWidget the element is used on. If not specified default style is used.
 		 */
 		static GUIRenderTexture* Create(const SPtr<RenderTexture>& texture, bool transparent, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new element with the provided render texture.
 		 *
-		 * @param[in]	texture			Render texture to display.
-		 * @param[in]	transparent		Determines should the texture be rendered with transparency active.
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized.
-		 *								This will override any similar options set by style.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
+		 * @param	texture			Render texture to display.
+		 * @param	transparent		Determines should the texture be rendered with transparency active.
+		 * @param	options			Options that allow you to control how is the element positioned and sized.
+		 *							This will override any similar options set by style.
+		 * @param	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
+		 *							GUIWidget the element is used on. If not specified default style is used.
 		 */
 		static GUIRenderTexture* Create(const SPtr<RenderTexture>& texture, bool transparent, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new element with the provided render texture.
 		 *
-		 * @param[in]	texture			Render texture to display.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
+		 * @param	texture			Render texture to display.
+		 * @param	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
+		 *							GUIWidget the element is used on. If not specified default style is used.
 		 */
 		static GUIRenderTexture* Create(const SPtr<RenderTexture>& texture, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new element with the provided render texture.
 		 *
-		 * @param[in]	texture			Render texture to display.
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized.
-		 *								This will override any similar options set by style.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
+		 * @param	texture			Render texture to display.
+		 * @param	options			Options that allow you to control how is the element positioned and sized.
+		 *							This will override any similar options set by style.
+		 * @param	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
+		 *							GUIWidget the element is used on. If not specified default style is used.
 		 */
 		static GUIRenderTexture* Create(const SPtr<RenderTexture>& texture, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 

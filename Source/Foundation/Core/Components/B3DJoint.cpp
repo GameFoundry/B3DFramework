@@ -183,11 +183,11 @@ void Joint::CalculateLocalBodyTransform(JointBody body, Vector3& position, Quate
 	HRigidbody rigidbody = mInformation.Bodies[(u32)body].Body;
 	if(rigidbody == nullptr) // Get world space transform if no relative to any body
 	{
-		const Transform& tfrm = SO()->GetTransform();
-		Quaternion worldRot = tfrm.GetRotation();
+		const Transform& transform = SO()->GetTransform();
+		Quaternion worldRotation = transform.GetRotation();
 
-		rotation = worldRot * rotation;
-		position = worldRot.Rotate(position) + tfrm.GetPosition();
+		rotation = worldRotation * rotation;
+		position = worldRotation.Rotate(position) + transform.GetPosition();
 	}
 	else
 		position = rotation.Rotate(position);

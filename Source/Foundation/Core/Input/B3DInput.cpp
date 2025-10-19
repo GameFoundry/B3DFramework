@@ -20,8 +20,8 @@ const float Input::kWeightModifier = 0.5f;
 
 Input::DeviceData::DeviceData()
 {
-	for(u32 i = 0; i < static_cast<unsigned>(ButtonCode::TotalKeyCount); i++)
-		KeyStates[i] = ButtonState::Off;
+	for(u32 keyIndex = 0; keyIndex < static_cast<unsigned>(ButtonCode::TotalKeyCount); keyIndex++)
+		KeyStates[keyIndex] = ButtonState::Off;
 }
 
 Input::Input()
@@ -30,40 +30,27 @@ Input::Input()
 	mWindowHandle = primaryWindow->GetPlatformWindowHandle();
 
 	// Subscribe to events
-	auto fnCharInput = [this](u32 character) { CharInput(character); };
-	mCharInputConn = Platform::onCharInput.Connect(fnCharInput);
-
-	auto fnCursorMoved = [this](const Vector2I& cursorPos, const OSPointerButtonStates& buttonStates) { CursorMoved(cursorPos, buttonStates); };
-	mCursorMovedConn = Platform::onCursorMoved.Connect(fnCursorMoved);
-
-	auto fnCursorPressed = [this](const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& buttonStates) { CursorPressed(cursorPos, button, buttonStates); };
-	mCursorPressedConn = Platform::onCursorButtonPressed.Connect(fnCursorPressed);
-
-	auto fnCursorReleased = [this](const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& buttonStates) { CursorReleased(cursorPos, button, buttonStates); };
-	mCursorReleasedConn = Platform::onCursorButtonReleased.Connect(fnCursorReleased);
-
-	auto fnCursorDoubleClick = [this](const Vector2I& cursorPos, const OSPointerButtonStates& buttonStates) { CursorDoubleClick(cursorPos, buttonStates); };
-	mCursorDoubleClickConn = Platform::onCursorDoubleClick.Connect(fnCursorDoubleClick);
-
-	auto fnInputCommand = [this](InputCommandType commandType) { InputCommandEntered(commandType); };
-	mInputCommandConn = Platform::onInputCommand.Connect(fnInputCommand);
-
-	auto fnMouseWheelScrolled = [this](float scrollPos) { MouseWheelScrolled(scrollPos); };
-	mMouseWheelScrolledConn = Platform::onMouseWheelScrolled.Connect(fnMouseWheelScrolled);
+	mCharInputConn = Platform::onCharInput.Connect([this](u32 character) { CharInput(character); });
+	mCursorMovedConn = Platform::onCursorMoved.Connect([this](const Vector2I& cursorPosition, const OSPointerButtonStates& buttonStates) { CursorMoved(cursorPosition, buttonStates); });
+	mCursorPressedConn = Platform::onCursorButtonPressed.Connect([this](const Vector2I& cursorPosition, OSMouseButton button, const OSPointerButtonStates& buttonStates) { CursorPressed(cursorPosition, button, buttonStates); });
+	mCursorReleasedConn = Platform::onCursorButtonReleased.Connect([this](const Vector2I& cursorPosition, OSMouseButton button, const OSPointerButtonStates& buttonStates) { CursorReleased(cursorPosition, button, buttonStates); });
+	mCursorDoubleClickConn = Platform::onCursorDoubleClick.Connect([this](const Vector2I& cursorPosition, const OSPointerButtonStates& buttonStates) { CursorDoubleClick(cursorPosition, buttonStates); });
+	mInputCommandConn = Platform::onInputCommand.Connect([this](InputCommandType commandType) { InputCommandEntered(commandType); });
+	mMouseWheelScrolledConn = Platform::onMouseWheelScrolled.Connect([this](float scrollPosition) { MouseWheelScrolled(scrollPosition); });
 
 	RenderWindowManager::Instance().OnFocusGained.Connect([this](RenderWindow& window) { InputWindowChanged(window); });
 	RenderWindowManager::Instance().OnFocusLost.Connect([this](RenderWindow&) { InputFocusLost(); });
 
-	for(int i = 0; i < 3; i++)
-		mPointerButtonStates[i] = ButtonState::Off;
+	for(int buttonIndex = 0; buttonIndex < 3; buttonIndex++)
+		mPointerButtonStates[buttonIndex] = ButtonState::Off;
 
 	// Mouse smoothing
 	mMouseSampleAccumulator[0] = 0;
 	mMouseSampleAccumulator[1] = 0;
 	mTotalMouseSamplingTime[0] = 1.0f / 125.0f; // Use 125Hz as initial pooling rate for mice
 	mTotalMouseSamplingTime[1] = 1.0f / 125.0f;
-	mTotalMouseNumSamples[0] = 1;
-	mTotalMouseNumSamples[1] = 1;
+	mTotalMouseSampleCount[0] = 1;
+	mTotalMouseSampleCount[1] = 1;
 	mMouseSmoothedAxis[0] = 0.0f;
 	mMouseSmoothedAxis[1] = 0.0f;
 	mMouseZeroTime[0] = 0.0f;
@@ -93,12 +80,12 @@ void Input::UpdateInternal()
 
 	for(auto& deviceData : mDevices)
 	{
-		for(u32 i = 0; i < static_cast<unsigned>(ButtonCode::TotalKeyCount); i++)
+		for(u32 keyIndex = 0; keyIndex < static_cast<unsigned>(ButtonCode::TotalKeyCount); keyIndex++)
 		{
-			if(deviceData.KeyStates[i] == ButtonState::ToggledOff || deviceData.KeyStates[i] == ButtonState::ToggledOnOff)
-				deviceData.KeyStates[i] = ButtonState::Off;
-			else if(deviceData.KeyStates[i] == ButtonState::ToggledOn)
-				deviceData.KeyStates[i] = ButtonState::On;
+			if(deviceData.KeyStates[keyIndex] == ButtonState::ToggledOff || deviceData.KeyStates[keyIndex] == ButtonState::ToggledOnOff)
+				deviceData.KeyStates[keyIndex] = ButtonState::Off;
+			else if(deviceData.KeyStates[keyIndex] == ButtonState::ToggledOn)
+				deviceData.KeyStates[keyIndex] = ButtonState::On;
 		}
 
 		u32 axisCount = (u32)deviceData.Axes.size();
@@ -106,12 +93,12 @@ void Input::UpdateInternal()
 			deviceData.Axes[axisIndex] = 0.0f;
 	}
 
-	for(u32 i = 0; i < 3; i++)
+	for(u32 buttonIndex = 0; buttonIndex < 3; buttonIndex++)
 	{
-		if(mPointerButtonStates[i] == ButtonState::ToggledOff || mPointerButtonStates[i] == ButtonState::ToggledOnOff)
-			mPointerButtonStates[i] = ButtonState::Off;
-		else if(mPointerButtonStates[i] == ButtonState::ToggledOn)
-			mPointerButtonStates[i] = ButtonState::On;
+		if(mPointerButtonStates[buttonIndex] == ButtonState::ToggledOff || mPointerButtonStates[buttonIndex] == ButtonState::ToggledOnOff)
+			mPointerButtonStates[buttonIndex] = ButtonState::Off;
+		else if(mPointerButtonStates[buttonIndex] == ButtonState::ToggledOn)
+			mPointerButtonStates[buttonIndex] = ButtonState::On;
 	}
 
 	mPointerDelta = Vector2I::kZero; // Reset delta in case we don't receive any mouse input this frame
@@ -154,7 +141,7 @@ void Input::UpdateInternal()
 
 void Input::TriggerCallbacksInternal()
 {
-	Vector2I pointerPos;
+	Vector2I pointerPosition;
 	float mouseScroll;
 	OSPointerButtonStates pointerState;
 
@@ -173,14 +160,14 @@ void Input::TriggerCallbacksInternal()
 		std::swap(mTextInputEvents[0], mTextInputEvents[1]);
 		std::swap(mCommandEvents[0], mCommandEvents[1]);
 
-		pointerPos = mPointerPosition;
+		pointerPosition = mPointerPosition;
 		mouseScroll = mMouseScroll;
 		pointerState = mPointerState;
 
 		mMouseScroll = 0.0f;
 	}
 
-	if(pointerPos != mLastPointerPosition || mouseScroll != 0.0f)
+	if(pointerPosition != mLastPointerPosition || mouseScroll != 0.0f)
 	{
 		PointerEvent event;
 		event.Alt = false;
@@ -192,7 +179,7 @@ void Input::TriggerCallbacksInternal()
 		event.MouseWheelScrollAmount = mouseScroll;
 
 		event.Type = PointerEventType::CursorMoved;
-		event.ScreenPos = pointerPos;
+		event.ScreenPos = pointerPosition;
 
 		if(mLastPositionSet)
 			mPointerDelta = event.ScreenPos - mLastPointerPosition;
@@ -211,15 +198,15 @@ void Input::TriggerCallbacksInternal()
 		{
 		case EventType::ButtonDown:
 			{
-				const ButtonEvent& eventData = mButtonDownEvents[1][event.Idx];
+				const ButtonEvent& eventData = mButtonDownEvents[1][event.Index];
 
 				mDevices[eventData.DeviceIndex].KeyStates[(u32)eventData.ButtonCode & 0x0000FFFF] = ButtonState::ToggledOn;
-				OnButtonDown(mButtonDownEvents[1][event.Idx]);
+				OnButtonDown(mButtonDownEvents[1][event.Index]);
 			}
 			break;
 		case EventType::ButtonUp:
 			{
-				const ButtonEvent& eventData = mButtonUpEvents[1][event.Idx];
+				const ButtonEvent& eventData = mButtonUpEvents[1][event.Index];
 
 				while(eventData.DeviceIndex >= (u32)mDevices.size())
 					mDevices.push_back(DeviceData());
@@ -229,12 +216,12 @@ void Input::TriggerCallbacksInternal()
 				else
 					mDevices[eventData.DeviceIndex].KeyStates[(u32)eventData.ButtonCode & 0x0000FFFF] = ButtonState::ToggledOff;
 
-				OnButtonUp(mButtonUpEvents[1][event.Idx]);
+				OnButtonUp(mButtonUpEvents[1][event.Index]);
 			}
 			break;
 		case EventType::PointerDown:
 			{
-				const PointerEvent& eventData = mPointerPressedEvents[1][event.Idx];
+				const PointerEvent& eventData = mPointerPressedEvents[1][event.Index];
 				mPointerButtonStates[(u32)eventData.Button] = ButtonState::ToggledOn;
 
 				OnPointerPressed(eventData);
@@ -242,7 +229,7 @@ void Input::TriggerCallbacksInternal()
 			break;
 		case EventType::PointerUp:
 			{
-				const PointerEvent& eventData = mPointerReleasedEvents[1][event.Idx];
+				const PointerEvent& eventData = mPointerReleasedEvents[1][event.Index];
 
 				if(mPointerButtonStates[(u32)eventData.Button] == ButtonState::ToggledOn)
 					mPointerButtonStates[(u32)eventData.Button] = ButtonState::ToggledOnOff;
@@ -254,13 +241,13 @@ void Input::TriggerCallbacksInternal()
 			break;
 		case EventType::PointerDoubleClick:
 			mPointerDoubleClicked = true;
-			OnPointerDoubleClick(mPointerDoubleClickEvents[1][event.Idx]);
+			OnPointerDoubleClick(mPointerDoubleClickEvents[1][event.Index]);
 			break;
 		case EventType::TextInput:
-			OnCharInput(mTextInputEvents[1][event.Idx]);
+			OnCharInput(mTextInputEvents[1][event.Index]);
 			break;
 		case EventType::Command:
-			OnInputCommand(mCommandEvents[1][event.Idx]);
+			OnInputCommand(mCommandEvents[1][event.Index]);
 			break;
 		default:
 			break;
@@ -279,16 +266,16 @@ void Input::TriggerCallbacksInternal()
 
 void Input::InputWindowChanged(RenderWindow& win)
 {
-	const u64 hWnd = win.GetPlatformWindowHandle();
+	const u64 windowHandle = win.GetPlatformWindowHandle();
 
 	if(mKeyboard != nullptr)
-		mKeyboard->ChangeCaptureContext(hWnd);
+		mKeyboard->ChangeCaptureContext(windowHandle);
 
 	if(mMouse != nullptr)
-		mMouse->ChangeCaptureContext(hWnd);
+		mMouse->ChangeCaptureContext(windowHandle);
 
 	for(auto& gamepad : mGamepads)
-		gamepad->ChangeCaptureContext(hWnd);
+		gamepad->ChangeCaptureContext(windowHandle);
 }
 
 void Input::InputFocusLost()
@@ -303,28 +290,28 @@ void Input::InputFocusLost()
 		gamepad->ChangeCaptureContext((u64)-1);
 }
 
-void Input::NotifyMouseMovedInternal(i32 relX, i32 relY, i32 relZ)
+void Input::NotifyMouseMovedInternal(i32 relativeX, i32 relativeY, i32 relativeZ)
 {
-	mMouseSampleAccumulator[0] += relX;
-	mMouseSampleAccumulator[1] += relY;
+	mMouseSampleAccumulator[0] += relativeX;
+	mMouseSampleAccumulator[1] += relativeY;
 
-	mTotalMouseNumSamples[0] += Math::RoundToI32(Math::Abs((float)relX));
-	mTotalMouseNumSamples[1] += Math::RoundToI32(Math::Abs((float)relY));
+	mTotalMouseSampleCount[0] += Math::RoundToI32(Math::Abs((float)relativeX));
+	mTotalMouseSampleCount[1] += Math::RoundToI32(Math::Abs((float)relativeY));
 
 	// Update sample times used for determining sampling rate. But only if something was
 	// actually sampled, and only if this isn't the first non-zero sample.
 	if(mLastMouseUpdateFrame != GetTime().GetCurrentFrameIndex())
 	{
-		if(relX != 0 && !Math::ApproxEquals(mMouseSmoothedAxis[0], 0.0f))
+		if(relativeX != 0 && !Math::ApproxEquals(mMouseSmoothedAxis[0], 0.0f))
 			mTotalMouseSamplingTime[0] += GetTime().GetFrameDelta();
 
-		if(relY != 0 && !Math::ApproxEquals(mMouseSmoothedAxis[1], 0.0f))
+		if(relativeY != 0 && !Math::ApproxEquals(mMouseSmoothedAxis[1], 0.0f))
 			mTotalMouseSamplingTime[1] += GetTime().GetFrameDelta();
 
 		mLastMouseUpdateFrame = GetTime().GetCurrentFrameIndex();
 	}
 
-	AxisMoved(0, (float)relZ, (u32)InputAxis::MouseZ);
+	AxisMoved(0, (float)relativeZ, (u32)InputAxis::MouseZ);
 }
 
 void Input::NotifyAxisMovedInternal(u32 gamepadIndex, u32 axisIndex, i32 value)
@@ -388,15 +375,15 @@ void Input::AxisMoved(u32 deviceIndex, float value, u32 axis)
 	mDevices[deviceIndex].Axes[axis] = value;
 }
 
-void Input::CursorMoved(const Vector2I& cursorPos, const OSPointerButtonStates& buttonStates)
+void Input::CursorMoved(const Vector2I& cursorPosition, const OSPointerButtonStates& buttonStates)
 {
 	Lock lock(mMutex);
 
-	mPointerPosition = cursorPos;
+	mPointerPosition = cursorPosition;
 	mPointerState = buttonStates;
 }
 
-void Input::CursorPressed(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& buttonStates)
+void Input::CursorPressed(const Vector2I& cursorPosition, OSMouseButton button, const OSPointerButtonStates& buttonStates)
 {
 	Lock lock(mMutex);
 
@@ -423,14 +410,14 @@ void Input::CursorPressed(const Vector2I& cursorPos, OSMouseButton button, const
 		break;
 	}
 
-	event.ScreenPos = cursorPos;
+	event.ScreenPos = cursorPosition;
 	event.Type = PointerEventType::ButtonPressed;
 
 	mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerDown, (u32)mPointerPressedEvents[0].size()));
 	mPointerPressedEvents[0].push_back(event);
 }
 
-void Input::CursorReleased(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& buttonStates)
+void Input::CursorReleased(const Vector2I& cursorPosition, OSMouseButton button, const OSPointerButtonStates& buttonStates)
 {
 	Lock lock(mMutex);
 
@@ -457,14 +444,14 @@ void Input::CursorReleased(const Vector2I& cursorPos, OSMouseButton button, cons
 		break;
 	}
 
-	event.ScreenPos = cursorPos;
+	event.ScreenPos = cursorPosition;
 	event.Type = PointerEventType::ButtonReleased;
 
 	mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerUp, (u32)mPointerReleasedEvents[0].size()));
 	mPointerReleasedEvents[0].push_back(event);
 }
 
-void Input::CursorDoubleClick(const Vector2I& cursorPos, const OSPointerButtonStates& buttonStates)
+void Input::CursorDoubleClick(const Vector2I& cursorPosition, const OSPointerButtonStates& buttonStates)
 {
 	Lock lock(mMutex);
 
@@ -476,7 +463,7 @@ void Input::CursorDoubleClick(const Vector2I& cursorPos, const OSPointerButtonSt
 	event.ButtonStates[1] = buttonStates.MouseButtons[1];
 	event.ButtonStates[2] = buttonStates.MouseButtons[2];
 	event.Button = PointerEventButton::Left;
-	event.ScreenPos = cursorPos;
+	event.ScreenPos = cursorPosition;
 	event.Type = PointerEventType::DoubleClick;
 
 	mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerDoubleClick, (u32)mPointerDoubleClickEvents[0].size()));
@@ -491,11 +478,11 @@ void Input::InputCommandEntered(InputCommandType commandType)
 	mCommandEvents[0].push_back(commandType);
 }
 
-void Input::MouseWheelScrolled(float scrollPos)
+void Input::MouseWheelScrolled(float scrollPosition)
 {
 	Lock lock(mMutex);
 
-	mMouseScroll = scrollPos;
+	mMouseScroll = scrollPosition;
 }
 
 void Input::CharInput(u32 character)
@@ -614,7 +601,7 @@ float Input::SmoothMouse(float value, u32 axisIndex)
 	float deltaTime = GetTime().GetFrameDelta();
 	if(deltaTime < 0.25f)
 	{
-		float secondsPerSample = mTotalMouseSamplingTime[axisIndex] / mTotalMouseNumSamples[axisIndex];
+		float secondsPerSample = mTotalMouseSamplingTime[axisIndex] / mTotalMouseSampleCount[axisIndex];
 
 		if(value == 0.0f)
 		{

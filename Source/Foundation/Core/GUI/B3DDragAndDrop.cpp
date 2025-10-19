@@ -6,8 +6,6 @@
 #include "Utility/B3DTime.h"
 #include "RTTI/B3DDragAndDropDataRTTI.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 RTTIType* DragAndDropData::GetRttiStatic()
@@ -42,8 +40,8 @@ RTTIType* ResourceDragAndDropData::GetRtti() const
 
 DragAndDrop::DragAndDrop()
 {
-	mMouseCaptureChangedConn = Platform::onMouseCaptureChanged.Connect(std::bind(&DragAndDrop::mCaptureChanged, this));
-	Input::Instance().OnPointerReleased.Connect(std::bind(&DragAndDrop::CursorReleased, this, _1));
+	mMouseCaptureChangedConn = Platform::onMouseCaptureChanged.Connect([this]() { MouseCaptureChanged(); });
+	Input::Instance().OnPointerReleased.Connect([this](const PointerEvent& event) { CursorReleased(event); });
 }
 
 DragAndDrop::~DragAndDrop()
@@ -51,12 +49,12 @@ DragAndDrop::~DragAndDrop()
 	mMouseCaptureChangedConn.Disconnect();
 }
 
-void DragAndDrop::AddDropCallback(std::function<void(bool)>&& dropCallback)
+void DragAndDrop::AddDropCallback(Function<void(bool)>&& dropCallback)
 {
 	mDropCallbacks.emplace_back(std::move(dropCallback));
 }
 
-void DragAndDrop::StartDrag(const SPtr<DragAndDropData>& data, std::function<void(bool)>&& dropCallback, bool needsValidDropTarget)
+void DragAndDrop::StartDrag(const SPtr<DragAndDropData>& data, Function<void(bool)>&& dropCallback, bool needsValidDropTarget)
 {
 	if(IsDropInProgress())
 		EndDrag(false);

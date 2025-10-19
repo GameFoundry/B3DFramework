@@ -94,10 +94,10 @@ namespace b3d
 		 * Calculates the optimal bounds to place an element of the specified size, within the available area using the
 		 * internal data as a guide.
 		 *
-		 * @param	size							Size of the element to try to position, in pixels.
-		 * @param	availableArea					Available area to try to position the element in, in pixels.
-		 * @param	outHorizontalDirection			Output parameter that signals the preferred horizontal direction of the bounds (left or right).
-		 * @param	outVerticalDirection			Output parameter that signals the preferred vertical direction of the bounds (up or down).
+		 * @param	size						Size of the element to try to position, in pixels.
+		 * @param	availableArea				Available area to try to position the element in, in pixels.
+		 * @param	outHorizontalDirection		Output parameter that signals the preferred horizontal direction of the bounds (left or right).
+		 * @param	outVerticalDirection		Output parameter that signals the preferred vertical direction of the bounds (up or down).
 		 */
 		TArea2<PositionType, SizeType> GetOptimalBounds(const TSize2<SizeType>& size, const TArea2<PositionType, SizeType>& availableArea, HorizontalDirection& outHorizontalDirection, VerticalDirection& outVerticalDirection) const;
 

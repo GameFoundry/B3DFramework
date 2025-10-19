@@ -230,11 +230,11 @@ void Skybox::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& alloca
 	if(!syncPacket)
 		return;
 
-	bool oldIsActive = mActive;
+	bool previousIsActive = mActive;
 	syncPacket->ApplySyncData(this);
 
 	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
-	if(oldIsActive != mActive)
+	if(previousIsActive != mActive)
 	{
 		if(mActive)
 			rendererScene->RegisterSkybox(this);

@@ -94,19 +94,19 @@ void TLight<IsRenderProxy>::SetIntensity(float intensity)
 template<bool IsRenderProxy>
 float TLight<IsRenderProxy>::GetLuminance() const
 {
-	float radius2 = mSourceRadius * mSourceRadius;
+	float radiusSquared = mSourceRadius * mSourceRadius;
 
 	switch(mType)
 	{
 	case LightType::Radial:
 		if(mSourceRadius > 0.0f)
-			return mIntensity / (4 * radius2 * Math::kPi); // Luminous flux -> luminance
+			return mIntensity / (4 * radiusSquared * Math::kPi); // Luminous flux -> luminance
 		else
 			return mIntensity / (4 * Math::kPi); // Luminous flux -> luminous intensity
 	case LightType::Spot:
 		{
 			if(mSourceRadius > 0.0f)
-				return mIntensity / (radius2 * Math::kPi); // Luminous flux -> luminance
+				return mIntensity / (radiusSquared * Math::kPi); // Luminous flux -> luminance
 			else
 			{
 				// Note: Consider using the simpler conversion I / PI to match with the area-light conversion
@@ -335,8 +335,8 @@ void Light::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocat
 	if(syncPacket == nullptr)
 		return;
 
-	bool oldIsActive = mActive;
-	LightType oldType = mType;
+	bool previousActiveState = mActive;
+	LightType previousType = mType;
 
 	syncPacket->ApplySyncData(this);
 
@@ -348,24 +348,24 @@ void Light::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocat
 	const u32 updateEverythingFlag = ~(u32)ComponentDirtyFlag::Transform;
 	if((flags & updateEverythingFlag) != 0)
 	{
-		if(oldIsActive != mActive)
+		if(previousActiveState != mActive)
 		{
 			if(mActive)
 				rendererScene->RegisterLight(this);
 			else
 			{
-				LightType newType = mType;
-				mType = oldType;
+				LightType currentType = mType;
+				mType = previousType;
 				rendererScene->UnregisterLight(this);
-				mType = newType;
+				mType = currentType;
 			}
 		}
 		else
 		{
-			LightType newType = mType;
-			mType = oldType;
+			LightType currentType = mType;
+			mType = previousType;
 			rendererScene->UnregisterLight(this);
-			mType = newType;
+			mType = currentType;
 
 			rendererScene->RegisterLight(this);
 		}

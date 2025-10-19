@@ -275,8 +275,8 @@ namespace b3d
 		/**
 		 * Returns the total (linear + angular) velocity at a specific point.
 		 *
-		 * @param	point		Point in world space.
-		 * @return				Total velocity of the point.
+		 * @param	point	Point in world space.
+		 * @return			Total velocity of the point.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector3 GetVelocityAtPoint(const Vector3& point) const;
@@ -308,7 +308,7 @@ namespace b3d
 		 * This should be called whenever relevant child collider properties change (like mass or shape).
 		 *
 		 * If automatic tensor calculation is turned off then this will do nothing. If automatic mass calculation is turned
-		 * off then this will use the mass set directly on the body using setMass().
+		 * off then this will use the mass set directly on the body using SetMass().
 		 */
 		void UpdateMassDistribution();
 
@@ -318,7 +318,7 @@ namespace b3d
 
 		/**
 		 * Searches child scene objects for Collider components and attaches them to the rigidbody. Make sure to call
-		 * clearColliders() if you need to clear old colliders first.
+		 * ClearColliders() if you need to clear old colliders first.
 		 */
 		void UpdateColliders();
 

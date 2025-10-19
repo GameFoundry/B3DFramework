@@ -74,9 +74,9 @@ void AudioListener::DestroyInternal()
 
 void AudioListener::UpdateTransform()
 {
-	const Transform& tfrm = SO()->GetTransform();
+	const Transform& transform = SO()->GetTransform();
 
-	mImplementation->SetTransform(tfrm);
+	mImplementation->SetTransform(transform);
 	mImplementation->SetVelocity(mVelocity);
 }
 

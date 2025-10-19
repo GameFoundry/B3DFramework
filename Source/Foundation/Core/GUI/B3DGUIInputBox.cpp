@@ -52,7 +52,7 @@ void GUIInputBox::SetText(const String& text)
 		const GUILogicalSize originalSize = mSizeConstraints.CalculateConstrainedOptimalSize(CalculateUnconstrainedOptimalSize());
 
 		mText = text;
-		mNumChars = UTF8::Count(mText);
+		mCharCount = UTF8::Count(mText);
 
 		if(mHasFocus)
 		{
@@ -61,8 +61,8 @@ void GUIInputBox::SetText(const String& text)
 			GetGUIManager().GetInputCaretTool()->UpdateText(this, textSpriteInformation);
 			GetGUIManager().GetInputSelectionTool()->UpdateText(this, textSpriteInformation);
 
-			if(mNumChars > 0)
-				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(mNumChars - 1, CARET_AFTER);
+			if(mCharCount > 0)
+				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(mCharCount - 1, CARET_AFTER);
 			else
 				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(0, CARET_BEFORE);
 
@@ -134,17 +134,17 @@ void GUIInputBox::UpdateRenderElements()
 		if(mSelectionShown)
 		{
 			const Vector<ImageSprite*>& sprites = selection->GetSprites();
-			for(u32 selectionSpriteIndex = 0; selectionSpriteIndex < (u32)sprites.size(); ++selectionSpriteIndex)
+			for(u32 spriteIndex = 0; spriteIndex < (u32)sprites.size(); ++spriteIndex)
 			{
-				ImageSprite* const sprite = sprites[selectionSpriteIndex];
-				const Area2 selectionBounds = selection->GetBounds(selectionSpriteIndex).To<float>();
+				ImageSprite* const sprite = sprites[spriteIndex];
+				const Area2 selectionBounds = selection->GetBounds(spriteIndex).To<float>();
 
-				for(u32 renderElementIndex = 0; renderElementIndex < sprite->GetRenderElementCount(); renderElementIndex++)
+				for(u32 elementIndex = 0; elementIndex < sprite->GetRenderElementCount(); elementIndex++)
 				{
 					mRenderElements.Add(GUIRenderElement());
 					GUIRenderElement& renderElement = mRenderElements.Back();
 
-					sprite->GetRenderElement(renderElementIndex, renderElement);
+					sprite->GetRenderElement(elementIndex, renderElement);
 
 					renderElement.Depth = 2;
 					renderElement.Type = GUIMeshType::Triangle;
@@ -264,7 +264,7 @@ bool GUIInputBox::DoOnMouseEvent(const GUIMouseEvent& ev)
 				ShowCaret();
 			}
 
-			if(mNumChars > 0)
+			if(mCharCount > 0)
 				GetGUIManager().GetInputCaretTool()->MoveCaretToPos(ev.GetPosition() - GetTextOffset());
 			else
 				GetGUIManager().GetInputCaretTool()->MoveCaretToStart();
@@ -315,7 +315,7 @@ bool GUIInputBox::DoOnMouseEvent(const GUIMouseEvent& ev)
 		{
 			if(!ev.IsShiftDown())
 			{
-				if(mNumChars > 0)
+				if(mCharCount > 0)
 					GetGUIManager().GetInputCaretTool()->MoveCaretToPos(ev.GetPosition() - GetTextOffset());
 				else
 					GetGUIManager().GetInputCaretTool()->MoveCaretToStart();
@@ -342,24 +342,24 @@ bool GUIInputBox::DoOnTextInputEvent(const GUITextInputEvent& ev)
 	if(mSelectionShown)
 		DeleteSelectedText(true);
 
-	u32 charIdx = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
+	u32 charIndex = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
 
 	bool filterOkay = true;
 	if(mFilter != nullptr)
 	{
 		String newText = mText;
-		u32 byteIdx = UTF8::CharToByteIndex(mText, charIdx);
+		u32 byteIndex = UTF8::CharToByteIndex(mText, charIndex);
 		String utf8chars = UTF8::FromUtF32(U32String(1, ev.GetInputChar()));
-		newText.insert(newText.begin() + byteIdx, utf8chars.begin(), utf8chars.end());
+		newText.insert(newText.begin() + byteIndex, utf8chars.begin(), utf8chars.end());
 
 		filterOkay = mFilter(newText);
 	}
 
 	if(filterOkay)
 	{
-		InsertChar(charIdx, ev.GetInputChar());
+		InsertChar(charIndex, ev.GetInputChar());
 
-		GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_AFTER);
+		GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIndex, CARET_AFTER);
 		ScrollTextToCaret();
 
 		if(!OnValueChanged.Empty())
@@ -433,7 +433,7 @@ bool GUIInputBox::DoOnCommandEvent(const GUICommandEvent& ev)
 
 	if(ev.GetType() == GUICommandEventType::Backspace)
 	{
-		if(mNumChars > 0)
+		if(mCharCount > 0)
 		{
 			const GUILogicalSize originalSize = mSizeConstraints.CalculateConstrainedOptimalSize(CalculateUnconstrainedOptimalSize());
 			if(mSelectionShown)
@@ -442,33 +442,33 @@ bool GUIInputBox::DoOnCommandEvent(const GUICommandEvent& ev)
 			}
 			else
 			{
-				u32 charIdx = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos() - 1;
+				u32 charIndex = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos() - 1;
 
-				if(charIdx < mNumChars)
+				if(charIndex < mCharCount)
 				{
 					bool filterOkay = true;
 					if(mFilter != nullptr)
 					{
 						String newText = mText;
-						u32 byteIdx = UTF8::CharToByteIndex(mText, charIdx);
-						u32 byteCount = UTF8::CharByteCount(mText, charIdx);
-						newText.erase(byteIdx, byteCount);
+						u32 byteIndex = UTF8::CharToByteIndex(mText, charIndex);
+						u32 byteCount = UTF8::CharByteCount(mText, charIndex);
+						newText.erase(byteIndex, byteCount);
 
 						filterOkay = mFilter(newText);
 					}
 
 					if(filterOkay)
 					{
-						EraseChar(charIdx);
+						EraseChar(charIndex);
 
-						if(charIdx > 0)
+						if(charIndex > 0)
 						{
-							charIdx--;
+							charIndex--;
 
-							GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_AFTER);
+							GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIndex, CARET_AFTER);
 						}
 						else
-							GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_BEFORE);
+							GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIndex, CARET_BEFORE);
 
 						ScrollTextToCaret();
 
@@ -490,7 +490,7 @@ bool GUIInputBox::DoOnCommandEvent(const GUICommandEvent& ev)
 
 	if(ev.GetType() == GUICommandEventType::Delete)
 	{
-		if(mNumChars > 0)
+		if(mCharCount > 0)
 		{
 			const GUILogicalSize originalSize = mSizeConstraints.CalculateConstrainedOptimalSize(CalculateUnconstrainedOptimalSize());
 			if(mSelectionShown)
@@ -499,28 +499,28 @@ bool GUIInputBox::DoOnCommandEvent(const GUICommandEvent& ev)
 			}
 			else
 			{
-				u32 charIdx = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
-				if(charIdx < mNumChars)
+				u32 charIndex = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
+				if(charIndex < mCharCount)
 				{
 					bool filterOkay = true;
 					if(mFilter != nullptr)
 					{
 						String newText = mText;
-						u32 byteIdx = UTF8::CharToByteIndex(mText, charIdx);
-						u32 byteCount = UTF8::CharByteCount(mText, charIdx);
-						newText.erase(byteIdx, byteCount);
+						u32 byteIndex = UTF8::CharToByteIndex(mText, charIndex);
+						u32 byteCount = UTF8::CharByteCount(mText, charIndex);
+						newText.erase(byteIndex, byteCount);
 
 						filterOkay = mFilter(newText);
 					}
 
 					if(filterOkay)
 					{
-						EraseChar(charIdx);
+						EraseChar(charIndex);
 
-						if(charIdx > 0)
-							charIdx--;
+						if(charIndex > 0)
+							charIndex--;
 
-						GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_AFTER);
+						GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIndex, CARET_AFTER);
 
 						ScrollTextToCaret();
 
@@ -544,14 +544,14 @@ bool GUIInputBox::DoOnCommandEvent(const GUICommandEvent& ev)
 	{
 		if(mSelectionShown)
 		{
-			u32 selStart = GetGUIManager().GetInputSelectionTool()->GetSelectionStart();
+			u32 selectionStart = GetGUIManager().GetInputSelectionTool()->GetSelectionStart();
 			ClearSelection();
 
 			if(!mCaretShown)
 				ShowCaret();
 
-			if(selStart > 0)
-				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(selStart - 1, CARET_AFTER);
+			if(selectionStart > 0)
+				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(selectionStart - 1, CARET_AFTER);
 			else
 				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(0, CARET_BEFORE);
 		}
@@ -580,14 +580,14 @@ bool GUIInputBox::DoOnCommandEvent(const GUICommandEvent& ev)
 	{
 		if(mSelectionShown)
 		{
-			u32 selEnd = GetGUIManager().GetInputSelectionTool()->GetSelectionEnd();
+			u32 selectionEnd = GetGUIManager().GetInputSelectionTool()->GetSelectionEnd();
 			ClearSelection();
 
 			if(!mCaretShown)
 				ShowCaret();
 
-			if(selEnd > 0)
-				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(selEnd - 1, CARET_AFTER);
+			if(selectionEnd > 0)
+				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(selectionEnd - 1, CARET_AFTER);
 			else
 				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(0, CARET_BEFORE);
 		}
@@ -678,21 +678,21 @@ bool GUIInputBox::DoOnCommandEvent(const GUICommandEvent& ev)
 			if(mSelectionShown)
 				DeleteSelectedText();
 
-			u32 charIdx = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
+			u32 charIndex = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
 
 			bool filterOkay = true;
 			if(mFilter != nullptr)
 			{
 				String newText = mText;
-				u32 byteIdx = UTF8::CharToByteIndex(mText, charIdx);
-				newText.insert(newText.begin() + byteIdx, '\n');
+				u32 byteIndex = UTF8::CharToByteIndex(mText, charIndex);
+				newText.insert(newText.begin() + byteIndex, '\n');
 
 				filterOkay = mFilter(newText);
 			}
 
 			if(filterOkay)
 			{
-				InsertChar(charIdx, '\n');
+				InsertChar(charIndex, '\n');
 
 				GetGUIManager().GetInputCaretTool()->MoveCaretRight();
 				ScrollTextToCaret();
@@ -845,12 +845,12 @@ void GUIInputBox::ClampScrollToBounds(const GUIPhysicalArea& unclippedTextBounds
 	}
 }
 
-void GUIInputBox::InsertString(u32 charIdx, const String& string)
+void GUIInputBox::InsertString(u32 charIndex, const String& string)
 {
-	u32 byteIdx = UTF8::CharToByteIndex(mText, charIdx);
+	u32 byteIndex = UTF8::CharToByteIndex(mText, charIndex);
 
-	mText.insert(mText.begin() + byteIdx, string.begin(), string.end());
-	mNumChars = UTF8::Count(mText);
+	mText.insert(mText.begin() + byteIndex, string.begin(), string.end());
+	mCharCount = UTF8::Count(mText);
 
 	const TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 
@@ -858,13 +858,13 @@ void GUIInputBox::InsertString(u32 charIdx, const String& string)
 	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textSpriteInformation);
 }
 
-void GUIInputBox::InsertChar(u32 charIdx, u32 charCode)
+void GUIInputBox::InsertChar(u32 charIndex, u32 charCode)
 {
-	u32 byteIdx = UTF8::CharToByteIndex(mText, charIdx);
+	u32 byteIndex = UTF8::CharToByteIndex(mText, charIndex);
 	String utf8chars = UTF8::FromUtF32(U32String(1, (char32_t)charCode));
 
-	mText.insert(mText.begin() + byteIdx, utf8chars.begin(), utf8chars.end());
-	mNumChars = UTF8::Count(mText);
+	mText.insert(mText.begin() + byteIndex, utf8chars.begin(), utf8chars.end());
+	mCharCount = UTF8::Count(mText);
 
 	const TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 
@@ -872,13 +872,13 @@ void GUIInputBox::InsertChar(u32 charIdx, u32 charCode)
 	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textSpriteInformation);
 }
 
-void GUIInputBox::EraseChar(u32 charIdx)
+void GUIInputBox::EraseChar(u32 charIndex)
 {
-	u32 byteIdx = UTF8::CharToByteIndex(mText, charIdx);
-	u32 byteCount = UTF8::CharByteCount(mText, charIdx);
+	u32 byteIndex = UTF8::CharToByteIndex(mText, charIndex);
+	u32 byteCount = UTF8::CharByteCount(mText, charIndex);
 
-	mText.erase(byteIdx, byteCount);
-	mNumChars = UTF8::Count(mText);
+	mText.erase(byteIndex, byteCount);
+	mCharCount = UTF8::Count(mText);
 
 	const TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 
@@ -888,17 +888,17 @@ void GUIInputBox::EraseChar(u32 charIdx)
 
 void GUIInputBox::DeleteSelectedText(bool internal)
 {
-	u32 selStart = GetGUIManager().GetInputSelectionTool()->GetSelectionStart();
-	u32 selEnd = GetGUIManager().GetInputSelectionTool()->GetSelectionEnd();
+	u32 selectionStart = GetGUIManager().GetInputSelectionTool()->GetSelectionStart();
+	u32 selectionEnd = GetGUIManager().GetInputSelectionTool()->GetSelectionEnd();
 
-	u32 byteStart = UTF8::CharToByteIndex(mText, selStart);
-	u32 byteEnd = UTF8::CharToByteIndex(mText, selEnd);
+	u32 byteStartIndex = UTF8::CharToByteIndex(mText, selectionStart);
+	u32 byteEndIndex = UTF8::CharToByteIndex(mText, selectionEnd);
 
 	bool filterOkay = true;
 	if(!internal && mFilter != nullptr)
 	{
 		String newText = mText;
-		newText.erase(newText.begin() + byteStart, newText.begin() + byteEnd);
+		newText.erase(newText.begin() + byteStartIndex, newText.begin() + byteEndIndex);
 
 		filterOkay = mFilter(newText);
 	}
@@ -908,16 +908,16 @@ void GUIInputBox::DeleteSelectedText(bool internal)
 
 	if(filterOkay)
 	{
-		mText.erase(mText.begin() + byteStart, mText.begin() + byteEnd);
-		mNumChars = UTF8::Count(mText);
+		mText.erase(mText.begin() + byteStartIndex, mText.begin() + byteEndIndex);
+		mCharCount = UTF8::Count(mText);
 
 		const TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 		GetGUIManager().GetInputCaretTool()->UpdateText(this, textSpriteInformation);
 		GetGUIManager().GetInputSelectionTool()->UpdateText(this, textSpriteInformation);
 
-		if(selStart > 0)
+		if(selectionStart > 0)
 		{
-			u32 newCaretPos = selStart - 1;
+			u32 newCaretPos = selectionStart - 1;
 			GetGUIManager().GetInputCaretTool()->MoveCaretToChar(newCaretPos, CARET_AFTER);
 		}
 		else
@@ -936,13 +936,13 @@ void GUIInputBox::DeleteSelectedText(bool internal)
 
 String GUIInputBox::GetSelectedText()
 {
-	u32 selStart = GetGUIManager().GetInputSelectionTool()->GetSelectionStart();
-	u32 selEnd = GetGUIManager().GetInputSelectionTool()->GetSelectionEnd();
+	u32 selectionStart = GetGUIManager().GetInputSelectionTool()->GetSelectionStart();
+	u32 selectionEnd = GetGUIManager().GetInputSelectionTool()->GetSelectionEnd();
 
-	u32 byteStart = UTF8::CharToByteIndex(mText, selStart);
-	u32 byteEnd = UTF8::CharToByteIndex(mText, selEnd);
+	u32 byteStartIndex = UTF8::CharToByteIndex(mText, selectionStart);
+	u32 byteEndIndex = UTF8::CharToByteIndex(mText, selectionEnd);
 
-	return mText.substr(byteStart, byteEnd - byteStart);
+	return mText.substr(byteStartIndex, byteEndIndex - byteStartIndex);
 }
 
 GUIPhysicalPoint GUIInputBox::GetTextOffset() const
@@ -958,9 +958,9 @@ SPtr<GUIContextMenu> GUIInputBox::GetContextMenu() const
 	{
 		contextMenu = B3DMakeShared<GUIContextMenu>();
 
-		contextMenu->AddMenuItem("Cut", std::bind(&GUIInputBox::mText, const_cast<GUIInputBox*>(this)), 0);
-		contextMenu->AddMenuItem("Copy", std::bind(&GUIInputBox::CopyText, const_cast<GUIInputBox*>(this)), 0);
-		contextMenu->AddMenuItem("Paste", std::bind(&GUIInputBox::PasteText, const_cast<GUIInputBox*>(this)), 0);
+		contextMenu->AddMenuItem("Cut", [this]() { const_cast<GUIInputBox*>(this)->CutText(); }, 0);
+		contextMenu->AddMenuItem("Copy", [this]() { const_cast<GUIInputBox*>(this)->CopyText(); }, 0);
+		contextMenu->AddMenuItem("Paste", [this]() { const_cast<GUIInputBox*>(this)->PasteText(); }, 0);
 
 		contextMenu->SetLocalizedName("Cut", HString("Cut"));
 		contextMenu->SetLocalizedName("Copy", HString("Copy"));
@@ -997,15 +997,15 @@ void GUIInputBox::PasteText()
 	DeleteSelectedText(true);
 
 	String textInClipboard = Platform::CopyFromClipboard();
-	u32 charIdx = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
+	u32 charIndex = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
 
 	bool filterOkay = true;
 	if(mFilter != nullptr)
 	{
 		String newText = mText;
 
-		u32 byteIdx = UTF8::CharToByteIndex(newText, charIdx);
-		newText.insert(newText.begin() + byteIdx, textInClipboard.begin(), textInClipboard.end());
+		u32 byteIndex = UTF8::CharToByteIndex(newText, charIndex);
+		newText.insert(newText.begin() + byteIndex, textInClipboard.begin(), textInClipboard.end());
 
 		filterOkay = mFilter(newText);
 	}
@@ -1013,11 +1013,11 @@ void GUIInputBox::PasteText()
 	if(filterOkay)
 	{
 		const GUILogicalSize originalSize = mSizeConstraints.CalculateConstrainedOptimalSize(CalculateUnconstrainedOptimalSize());
-		InsertString(charIdx, textInClipboard);
+		InsertString(charIndex, textInClipboard);
 
-		u32 numChars = UTF8::Count(textInClipboard);
-		if(numChars > 0)
-			GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx + (numChars - 1), CARET_AFTER);
+		u32 charCount = UTF8::Count(textInClipboard);
+		if(charCount > 0)
+			GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIndex + (charCount - 1), CARET_AFTER);
 
 		ScrollTextToCaret();
 

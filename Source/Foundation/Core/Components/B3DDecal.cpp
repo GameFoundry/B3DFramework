@@ -19,9 +19,9 @@ TDecal<IsRenderProxy>::TDecal()
 template<bool IsRenderProxy>
 void TDecal<IsRenderProxy>::SetLayer(u64 layer)
 {
-	const bool isPow2 = layer && !((layer - 1) & layer);
+	const bool isPowerOfTwo = layer && !((layer - 1) & layer);
 
-	if(!isPow2)
+	if(!isPowerOfTwo)
 	{
 		B3D_LOG(Warning, Renderer, "Invalid layer provided. Only one layer bit may be set. Ignoring.");
 		return;
@@ -200,7 +200,7 @@ void Decal::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocat
 	if(syncPacket == nullptr)
 		return;
 
-	bool oldIsActive = mActive;
+	bool previousActiveState = mActive;
 	syncPacket->ApplySyncData(this);
 
 	mWorldTransformMatrix = mTransform.GetMatrix();
@@ -214,7 +214,7 @@ void Decal::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocat
 	const u32 updateEverythingFlag = ~(u32)ComponentDirtyFlag::Transform;
 	if((flags & updateEverythingFlag) != 0)
 	{
-		if(oldIsActive != mActive)
+		if(previousActiveState != mActive)
 		{
 			if(mActive)
 				rendererScene->RegisterDecal(this);

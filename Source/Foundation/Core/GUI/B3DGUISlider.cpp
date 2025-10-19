@@ -8,8 +8,6 @@
 #include "GUI/B3DGUISizeConstraints.h"
 #include "GUI/B3DGUICommandEvent.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 GUISlider::GUISlider(bool horizontal, const String& styleName, const GUISizeConstraints& dimensions)
@@ -29,7 +27,10 @@ GUISlider::GUISlider(bool horizontal, const String& styleName, const GUISizeCons
 	RegisterChildElement(mBackground);
 	RegisterChildElement(mFillBackground);
 
-	mHandleMovedConn = mSliderHandle->OnHandleMovedOrResized.Connect(std::bind(&GUISlider::OnHandleMoved, this, _1, _2));
+	mHandleMovedConn = mSliderHandle->OnHandleMovedOrResized.Connect([this](float newPosition, float newSize)
+	{
+		OnHandleMoved(newPosition, newSize);
+	});
 }
 
 GUISlider::~GUISlider()
@@ -123,15 +124,15 @@ float GUISlider::GetHandlePositionInRange() const
 void GUISlider::SetHandlePositionInRange(float value)
 {
 	float diff = mMaxRange - mMinRange;
-	float pct = (value - mMinRange) / diff;
+	float percent = (value - mMinRange) / diff;
 
-	SetHandlePositionInPercent(pct);
+	SetHandlePositionInPercent(percent);
 }
 
-void GUISlider::SetRange(float min, float max)
+void GUISlider::SetRange(float minimum, float maximum)
 {
-	mMinRange = min;
-	mMaxRange = max;
+	mMinRange = minimum;
+	mMaxRange = maximum;
 }
 
 float GUISlider::GetRangeMaximum() const

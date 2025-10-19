@@ -217,7 +217,7 @@ namespace b3d
 		bool UseAutomaticBounds = true;
 
 		/**
-		 * Custom bounds to use them @p useAutomaticBounds is disabled. The bounds are in the simulation space of the
+		 * Custom bounds to use them @p UseAutomaticBounds is disabled. The bounds are in the simulation space of the
 		 * particle system.
 		 */
 		B3D_SCRIPT_EXPORT(UIOrder(2))
@@ -536,17 +536,17 @@ namespace b3d
 		/**
 		 * Advances the particle system time according to the current time, time delta and the provided settings.
 		 *
-		 * @param		time		Current time to use as a base.
-		 * @param		timeDelta	Amount of time to advance the time by.
-		 * @param		duration	Maximum time allowed by the particle system.
-		 * @param		loop		Determines what happens when the time exceeds @p duration. If true the time will
-		 *							wrap around to 0 and start over, if false the time will be clamped to @p
-		 *							duration.
-		 * @param		timeStep	Actual time-step the simulation was advanced by. This is normally equal to
-		 *							@p timeDelta but might be a different value if time was clamped.
-		 * @return					New time value.
+		 * @param	time		Current time to use as a base.
+		 * @param	timeDelta	Amount of time to advance the time by.
+		 * @param	duration	Maximum time allowed by the particle system.
+		 * @param	loop		Determines what happens when the time exceeds @p duration. If true the time will
+		 *						wrap around to 0 and start over, if false the time will be clamped to @p
+		 *						duration.
+		 * @param	outTimeStep	Actual time-step the simulation was advanced by. This is normally equal to
+		 *						@p timeDelta but might be a different value if time was clamped.
+		 * @return				New time value.
 		 */
-		static float AdvanceTime(float time, float timeDelta, float duration, bool loop, float& timeStep);
+		static float AdvanceTime(float time, float timeDelta, float duration, bool loop, float& outTimeStep);
 
 		/** @} */
 
@@ -593,8 +593,8 @@ namespace b3d
 		 * the simulation.
 		 *
 		 * @param	state			State describing the current state of the simulation.
-		 * @param	startIdx		Index of the first particle to update.
-		 * @param	count			Number of particles to update, starting from @p startIdx.
+		 * @param	startIndex		Index of the first particle to update.
+		 * @param	count			Number of particles to update, starting from @p startIndex.
 		 * @param	spacing			When false all particles will use the same time-step. If true the time-step will
 		 *							be divided by @p count so particles are uniformly distributed over the
 		 *							time-step.
@@ -602,14 +602,14 @@ namespace b3d
 		 *							calculating spacing. Should be in range [0, 1). 0 = beginning of the current
 		 *							time step, 1 = start of next particle.
 		 */
-		void PreSimulate(const ParticleSystemState& state, u32 startIdx, u32 count, bool spacing, float spacingOffset);
+		void PreSimulate(const ParticleSystemState& state, u32 startIndex, u32 count, bool spacing, float spacingOffset);
 
 		/**
 		 * Integrates particle properties, advancing the simulation.
 		 *
 		 * @param	state			State describing the current state of the simulation.
-		 * @param	startIdx		Index of the first particle to update.
-		 * @param	count			Number of particles to update, starting from @p startIdx.
+		 * @param	startIndex		Index of the first particle to update.
+		 * @param	count			Number of particles to update, starting from @p startIndex.
 		 * @param	spacing			When false all particles will use the same time-step. If true the time-step will
 		 *							be divided by @p count so particles are uniformly distributed over the
 		 *							time-step.
@@ -617,14 +617,14 @@ namespace b3d
 		 *							calculating spacing. Should be in range [0, 1). 0 = beginning of the current
 		 *							time step, 1 = start of next particle.
 		 */
-		void Simulate(const ParticleSystemState& state, u32 startIdx, u32 count, bool spacing, float spacingOffset);
+		void Simulate(const ParticleSystemState& state, u32 startIndex, u32 count, bool spacing, float spacingOffset);
 
 		/**
 		 * Executes evolvers that need to run after the simulation.
 		 *
 		 * @param	state			State describing the current state of the simulation.
-		 * @param	startIdx		Index of the first particle to update.
-		 * @param	count			Number of particles to update, starting from @p startIdx.
+		 * @param	startIndex		Index of the first particle to update.
+		 * @param	count			Number of particles to update, starting from @p startIndex.
 		 * @param	spacing			When false all particles will use the same time-step. If true the time-step will
 		 *							be divided by @p count so particles are uniformly distributed over the
 		 *							time-step.
@@ -632,7 +632,7 @@ namespace b3d
 		 *							calculating spacing. Should be in range [0, 1). 0 = beginning of the current
 		 *							time step, 1 = start of next particle.
 		 */
-		void PostSimulate(const ParticleSystemState& state, u32 startIdx, u32 count, bool spacing, float spacingOffset);
+		void PostSimulate(const ParticleSystemState& state, u32 startIndex, u32 count, bool spacing, float spacingOffset);
 
 		SPtr<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;

@@ -156,10 +156,10 @@ namespace b3d
 
 		/**
 		 * Returns the row and column of the current animation frame for time @p t.
-		 * 
-		 * @param t				Time to evaluate the animation at.
-		 * @param outRow		Row containing the animation frame at time @p t.
-		 * @param outColumn		Column containing the animation frame at time @p t.
+		 *
+		 * @param	t			Time to evaluate the animation at.
+		 * @param	outRow		Row containing the animation frame at time @p t.
+		 * @param	outColumn	Column containing the animation frame at time @p t.
 		 */
 		void GetAnimationFrame(float t, u32& outRow, u32& outColumn) const;
 
@@ -215,8 +215,8 @@ namespace b3d
 		 * have animation playback enabled then just the default offset and size will be provided, otherwise the
 		 * animation will be evaluated and appropriate UV returned.
 		 *
-		 * @param allocation	Image allocation to evaluate animation for. Must be owned by this sprite image.
-		 * @param t				Time to evaluate the animation at.
+		 * @param	allocation	Image allocation to evaluate animation for. Must be owned by this sprite image.
+		 * @param	t			Time to evaluate the animation at.
 		 * @return 				UV range of the animation frame at the specified time.
 		 */
 		Area2 EvaluateAnimation(const SpriteImageAllocationType& allocation, float t) const;
@@ -260,8 +260,8 @@ namespace b3d
 		 * If an existing allocation for the provided size already exists, it will be returned and a new allocation will not be made alive. Allocated
 		 * portion of the texture will remain alive as long as there is at least a single reference to the returned SpriteImageAllocation.
 		 *
-		 * @param	size		Requested size of the allocation, in physical pixel units.
-		 * @return 				Allocation structure that provides information about the allocation and used for tracking allocation lifetime.
+		 * @param	size	Requested size of the allocation, in physical pixel units.
+		 * @return 			Allocation structure that provides information about the allocation and used for tracking allocation lifetime.
 		 */
 		virtual SPtr<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) = 0;
 
@@ -275,9 +275,9 @@ namespace b3d
 		 *
 		 * If an existing allocation for the provided size already exists, it will be returned and a new allocation will not be made alive. Allocated
 		 * portion of the texture will remain alive as long as there is at least a single reference to the returned SpriteImageAllocation.
-		 * 
-		 * @param scale			Scale to apply.
-		 * @return 				Allocation structure that provides information about the allocation and used for tracking allocation lifetime.
+		 *
+		 * @param	scale	Scale to apply.
+		 * @return 			Allocation structure that provides information about the allocation and used for tracking allocation lifetime.
 		 */
 		virtual SPtr<SpriteImageAllocation> FindOrAllocateScaledImage(float scale) = 0;
 

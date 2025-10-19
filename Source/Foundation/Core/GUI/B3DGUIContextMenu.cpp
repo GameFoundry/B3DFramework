@@ -20,7 +20,7 @@ void GUIContextMenu::Open(const GUIPhysicalPoint& position, GUIWidget& widget)
 	desc.DropDownData = GetDropDownData();
 
 	GameObjectHandle<GUIDropDownMenu> dropDownBox = GUIDropDownBoxManager::Instance().OpenDropDownBox(
-		desc, GUIDropDownType::ContextMenu, std::bind(&GUIContextMenu::OnMenuClosed, this));
+		desc, GUIDropDownType::ContextMenu, [this]() { OnMenuClosed(); });
 
 	mContextMenuOpen = true;
 }

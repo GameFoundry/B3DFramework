@@ -62,18 +62,18 @@ void GUIInputCaret::MoveCaretRight()
 
 void GUIInputCaret::MoveCaretUp()
 {
-	u32 charIdx = GetCharIdxAtCaretPos();
-	if(charIdx > 0)
-		charIdx -= 1;
+	u32 characterIndex = GetCharIdxAtCaretPos();
+	if(characterIndex > 0)
+		characterIndex -= 1;
 
-	u32 lineIdx = GetLineForChar(charIdx);
-	const GUIInputLineDesc& desc = GetLineDesc(lineIdx);
+	u32 lineIndex = GetLineForChar(characterIndex);
+	const GUIInputLineDesc& desc = GetLineDesc(lineIndex);
 	// If char is a newline, I want that to count as being on the next line because that's
 	// how user sees it
-	if(desc.IsNewline(charIdx))
-		lineIdx++;
+	if(desc.IsNewline(characterIndex))
+		lineIndex++;
 
-	if(lineIdx == 0)
+	if(lineIndex == 0)
 	{
 		MoveCaretToStart();
 		return;
@@ -87,18 +87,18 @@ void GUIInputCaret::MoveCaretUp()
 
 void GUIInputCaret::MoveCaretDown()
 {
-	u32 charIdx = GetCharIdxAtCaretPos();
-	if(charIdx > 0)
-		charIdx -= 1;
+	u32 characterIndex = GetCharIdxAtCaretPos();
+	if(characterIndex > 0)
+		characterIndex -= 1;
 
-	u32 lineIdx = GetLineForChar(charIdx);
-	const GUIInputLineDesc& desc = GetLineDesc(lineIdx);
+	u32 lineIndex = GetLineForChar(characterIndex);
+	const GUIInputLineDesc& desc = GetLineDesc(lineIndex);
 	// If char is a newline, I want that to count as being on the next line because that's
 	// how user sees it
-	if(desc.IsNewline(charIdx))
-		lineIdx++;
+	if(desc.IsNewline(characterIndex))
+		lineIndex++;
 
-	if(lineIdx == (GetNumLines() - 1))
+	if(lineIndex == (GetLineCount() - 1))
 	{
 		MoveCaretToEnd();
 		return;
@@ -112,32 +112,32 @@ void GUIInputCaret::MoveCaretDown()
 
 void GUIInputCaret::MoveCaretToPos(const GUIPhysicalPoint& pos)
 {
-	i32 charIdx = GetCharIdxAtPos(pos);
+	i32 characterIndex = GetCharIdxAtPos(pos);
 
-	if(charIdx != -1)
+	if(characterIndex != -1)
 	{
-		Area2I charRect = GetCharacterBounds(charIdx);
+		Area2I charRect = GetCharacterBounds(characterIndex);
 
 		float xCenter = (float)charRect.X + (float)charRect.Width * 0.5f;
 		if((float)pos.X <= xCenter)
-			MoveCaretToChar(charIdx, CARET_BEFORE);
+			MoveCaretToChar(characterIndex, CARET_BEFORE);
 		else
-			MoveCaretToChar(charIdx, CARET_AFTER);
+			MoveCaretToChar(characterIndex, CARET_AFTER);
 	}
 	else
 	{
-		u32 numLines = GetNumLines();
+		u32 lineCount = GetLineCount();
 
-		if(numLines == 0)
+		if(lineCount == 0)
 		{
 			mCaretPos = 0;
 			return;
 		}
 
 		u32 curPos = 0;
-		for(u32 i = 0; i < numLines; i++)
+		for(u32 lineIndex = 0; lineIndex < lineCount; lineIndex++)
 		{
-			const GUIInputLineDesc& line = GetLineDesc(i);
+			const GUIInputLineDesc& line = GetLineDesc(lineIndex);
 
 			i32 lineStart = line.GetLineYStart();
 			if(pos.Y >= lineStart && pos.Y < (lineStart + (i32)line.GetLineHeight()))
@@ -146,8 +146,8 @@ void GUIInputCaret::MoveCaretToPos(const GUIPhysicalPoint& pos)
 				return;
 			}
 
-			u32 numChars = line.GetEndChar(false) - line.GetStartChar() + 1; // +1 For extra line start position
-			curPos += numChars;
+			u32 characterCount = line.GetEndChar(false) - line.GetStartChar() + 1; // +1 For extra line start position
+			curPos += characterCount;
 		}
 
 		{
@@ -162,33 +162,33 @@ void GUIInputCaret::MoveCaretToPos(const GUIPhysicalPoint& pos)
 	}
 }
 
-void GUIInputCaret::MoveCaretToChar(u32 charIdx, CaretPos caretPos)
+void GUIInputCaret::MoveCaretToChar(u32 characterIndex, CaretPos caretPos)
 {
-	if(charIdx >= mNumChars)
+	if(characterIndex >= mCharacterCount)
 	{
 		mCaretPos = 0;
 		return;
 	}
 
-	u32 numLines = GetNumLines();
+	u32 lineCount = GetLineCount();
 	u32 curPos = 0;
 	u32 curCharIdx = 0;
-	for(u32 i = 0; i < numLines; i++)
+	for(u32 lineIndex = 0; lineIndex < lineCount; lineIndex++)
 	{
-		const GUIInputLineDesc& lineDesc = GetLineDesc(i);
+		const GUIInputLineDesc& lineDesc = GetLineDesc(lineIndex);
 
 		curPos++; // Move past line start position
 
-		u32 numChars = lineDesc.GetEndChar() - lineDesc.GetStartChar();
-		u32 numCaretPositions = lineDesc.GetEndChar(false) - lineDesc.GetStartChar();
-		if(charIdx >= (curCharIdx + numChars))
+		u32 characterCount = lineDesc.GetEndChar() - lineDesc.GetStartChar();
+		u32 caretPositionCount = lineDesc.GetEndChar(false) - lineDesc.GetStartChar();
+		if(characterIndex >= (curCharIdx + characterCount))
 		{
-			curCharIdx += numChars;
-			curPos += numCaretPositions;
+			curCharIdx += characterCount;
+			curPos += caretPositionCount;
 			continue;
 		}
 
-		u32 diff = charIdx - curCharIdx;
+		u32 diff = characterIndex - curCharIdx;
 
 		if(caretPos == CARET_BEFORE)
 			curPos += diff - 1;
@@ -208,14 +208,14 @@ u32 GUIInputCaret::GetCharIdxAtCaretPos() const
 
 GUIPhysicalPoint GUIInputCaret::GetCaretPosition() const
 {
-	if(mNumChars > 0 && IsDescValid())
+	if(mCharacterCount > 0 && IsDescValid())
 	{
 		u32 curPos = 0;
-		u32 numLines = GetNumLines();
+		u32 lineCount = GetLineCount();
 
-		for(u32 i = 0; i < numLines; i++)
+		for(u32 lineIndex = 0; lineIndex < lineCount; lineIndex++)
 		{
-			const GUIInputLineDesc& lineDesc = GetLineDesc(i);
+			const GUIInputLineDesc& lineDesc = GetLineDesc(lineIndex);
 
 			if(mCaretPos == curPos)
 			{
@@ -226,15 +226,15 @@ GUIPhysicalPoint GUIInputCaret::GetCaretPosition() const
 			curPos += lineDesc.GetEndChar(false) - lineDesc.GetStartChar() + 1; // + 1 for special line start position
 		}
 
-		u32 charIdx = GetCharIdxAtCaretPos();
-		if(charIdx > 0)
-			charIdx -= 1;
+		u32 characterIndex = GetCharIdxAtCaretPos();
+		if(characterIndex > 0)
+			characterIndex -= 1;
 
-		charIdx = std::min((u32)(mNumChars - 1), charIdx);
+		characterIndex = std::min((u32)(mCharacterCount - 1), characterIndex);
 
-		Area2I charRect = GetCharacterBounds(charIdx);
-		u32 lineIdx = GetLineForChar(charIdx);
-		u32 yOffset = GetLineDesc(lineIdx).GetLineYStart();
+		Area2I charRect = GetCharacterBounds(characterIndex);
+		u32 lineIndex = GetLineForChar(characterIndex);
+		u32 yOffset = GetLineDesc(lineIndex).GetLineYStart();
 
 		return GUIPhysicalPoint(charRect.X + charRect.Width, yOffset);
 	}
@@ -244,14 +244,14 @@ GUIPhysicalPoint GUIInputCaret::GetCaretPosition() const
 
 GUIPhysicalUnit GUIInputCaret::GetCaretHeight() const
 {
-	u32 charIdx = GetCharIdxAtCaretPos();
-	if(charIdx > 0)
-		charIdx -= 1;
+	u32 characterIndex = GetCharIdxAtCaretPos();
+	if(characterIndex > 0)
+		characterIndex -= 1;
 
-	if(charIdx < mNumChars && IsDescValid())
+	if(characterIndex < mCharacterCount && IsDescValid())
 	{
-		u32 lineIdx = GetLineForChar(charIdx);
-		return (i32)GetLineDesc(lineIdx).GetLineHeight();
+		u32 lineIndex = GetLineForChar(characterIndex);
+		return (i32)GetLineDesc(lineIndex).GetLineHeight();
 	}
 	else
 	{
@@ -275,17 +275,17 @@ bool GUIInputCaret::IsCaretAtNewline() const
 
 u32 GUIInputCaret::GetMaxCaretPos() const
 {
-	if(mNumChars == 0)
+	if(mCharacterCount == 0)
 		return 0;
 
-	u32 numLines = GetNumLines();
+	u32 lineCount = GetLineCount();
 	u32 maxPos = 0;
-	for(u32 i = 0; i < numLines; i++)
+	for(u32 lineIndex = 0; lineIndex < lineCount; lineIndex++)
 	{
-		const GUIInputLineDesc& lineDesc = GetLineDesc(i);
+		const GUIInputLineDesc& lineDesc = GetLineDesc(lineIndex);
 
-		u32 numChars = lineDesc.GetEndChar(false) - lineDesc.GetStartChar() + 1; // + 1 for special line start position
-		maxPos += numChars;
+		u32 characterCount = lineDesc.GetEndChar(false) - lineDesc.GetStartChar() + 1; // + 1 for special line start position
+		maxPos += characterCount;
 	}
 
 	return maxPos - 1;

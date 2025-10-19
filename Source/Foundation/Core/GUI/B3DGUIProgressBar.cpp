@@ -5,8 +5,6 @@
 #include "GUI/B3DGUITexture.h"
 #include "GUI/B3DGUISizeConstraints.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 GUIProgressBar::GUIProgressBar(PrivatelyConstruct, const String& styleName, const GUISizeConstraints& sizeConstraints)

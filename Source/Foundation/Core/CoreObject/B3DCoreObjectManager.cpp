@@ -99,27 +99,27 @@ void CoreObjectManager::UnregisterObject(CoreObject* object)
 	{
 		Lock lock(mObjectsMutex);
 
-		auto iterFind = mDependants.find(internalId);
-		if(iterFind != mDependants.end())
+		auto foundDependants = mDependants.find(internalId);
+		if(foundDependants != mDependants.end())
 		{
-			Vector<CoreObject*>& dependants = iterFind->second;
+			Vector<CoreObject*>& dependants = foundDependants->second;
 			for(auto& entry : dependants)
 			{
-				auto iterFind2 = mDependencies.find(entry->GetInternalId());
-				if(iterFind2 != mDependencies.end())
+				auto foundDependencies = mDependencies.find(entry->GetInternalId());
+				if(foundDependencies != mDependencies.end())
 				{
-					Vector<CoreObject*>& dependencies = iterFind2->second;
-					auto iterFind3 = std::find(dependencies.begin(), dependencies.end(), object);
+					Vector<CoreObject*>& dependencies = foundDependencies->second;
+					auto foundObject = std::find(dependencies.begin(), dependencies.end(), object);
 
-					if(iterFind3 != dependencies.end())
-						dependencies.erase(iterFind3);
+					if(foundObject != dependencies.end())
+						dependencies.erase(foundObject);
 
 					if(dependencies.size() == 0)
-						mDependencies.erase(iterFind2);
+						mDependencies.erase(foundDependencies);
 				}
 			}
 
-			mDependants.erase(iterFind);
+			mDependants.erase(foundDependants);
 		}
 
 		mDependencies.erase(internalId);
@@ -159,10 +159,10 @@ void CoreObjectManager::UpdateDependencies(CoreObject* object, Vector<CoreObject
 			if(dependencies != nullptr)
 				std::sort(dependencies->begin(), dependencies->end());
 
-			auto iterFind = mDependencies.find(id);
-			if(iterFind != mDependencies.end())
+			auto foundDependencies = mDependencies.find(id);
+			if(foundDependencies != mDependencies.end())
 			{
-				const Vector<CoreObject*>& oldDependencies = iterFind->second;
+				const Vector<CoreObject*>& oldDependencies = foundDependencies->second;
 
 				if(dependencies != nullptr)
 				{
@@ -179,16 +179,16 @@ void CoreObjectManager::UpdateDependencies(CoreObject* object, Vector<CoreObject
 				for(auto& dependency : toRemove)
 				{
 					u64 dependencyId = dependency->GetInternalId();
-					auto iterFind2 = mDependants.find(dependencyId);
+					auto foundDependants = mDependants.find(dependencyId);
 
-					if(iterFind2 != mDependants.end())
+					if(foundDependants != mDependants.end())
 					{
-						Vector<CoreObject*>& dependants = iterFind2->second;
-						auto findIter3 = std::find(dependants.begin(), dependants.end(), object);
-						dependants.erase(findIter3);
+						Vector<CoreObject*>& dependants = foundDependants->second;
+						auto foundObject = std::find(dependants.begin(), dependants.end(), object);
+						dependants.erase(foundObject);
 
 						if(dependants.size() == 0)
-							mDependants.erase(iterFind2);
+							mDependants.erase(foundDependants);
 					}
 				}
 
@@ -266,11 +266,11 @@ void CoreObjectManager::SyncToRenderThread(CoreObject* object)
 		// are dependent on one another.
 
 		u64 objectId = currentObject->GetInternalId();
-		auto iterFind = mDependencies.find(objectId);
+		auto foundDependencies = mDependencies.find(objectId);
 
-		if(iterFind != mDependencies.end())
+		if(foundDependencies != mDependencies.end())
 		{
-			const Vector<CoreObject*>& dependencies = iterFind->second;
+			const Vector<CoreObject*>& dependencies = foundDependencies->second;
 			for(auto& dependency : dependencies)
 				fnSyncObject(dependency);
 		}
@@ -369,11 +369,11 @@ void CoreObjectManager::SyncDownload(FrameAllocator* allocator)
 			// are dependent on one another.
 
 			u64 objectId = currentObject->GetInternalId();
-			auto iterFind = mDependencies.find(objectId);
+			auto foundDependencies = mDependencies.find(objectId);
 
-			if(iterFind != mDependencies.end())
+			if(foundDependencies != mDependencies.end())
 			{
-				const Vector<CoreObject*>& dependencies = iterFind->second;
+				const Vector<CoreObject*>& dependencies = foundDependencies->second;
 				for(auto& dependency : dependencies)
 					fnSyncObject(dependency);
 			}

@@ -117,40 +117,40 @@ void GUIScrollArea::UpdateOptimalLayoutSizes()
 	if(mChildren.size() != mChildSizeRanges.size())
 		mChildSizeRanges.resize(mChildren.size());
 
-	u32 childIdx = 0;
+	u32 childIndex = 0;
 	for(auto& child : mChildren)
 	{
 		if(child->IsActive())
-			mChildSizeRanges[childIdx] = child->GetConstrainedSizeRange();
+			mChildSizeRanges[childIndex] = child->GetConstrainedSizeRange();
 		else
-			mChildSizeRanges[childIdx] = GUIConstrainedSizeRange();
+			mChildSizeRanges[childIndex] = GUIConstrainedSizeRange();
 
-		childIdx++;
+		childIndex++;
 	}
 
 	mSizeRange = mSizeConstraints.CalculateConstrainedSizeRange(CalculateUnconstrainedOptimalSize());
 }
 
-void GUIScrollArea::CalculateRelativeElementAreas(const GUILogicalSize& scrollAreaSize,  GUILogicalPoint* outElementPositions, GUILogicalSize* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSizeRange>& sizeRanges, GUILogicalSize& outVisibleSize) const
+void GUIScrollArea::CalculateRelativeElementAreas(const GUILogicalSize& scrollAreaSize,  GUILogicalPoint* outElementPositions, GUILogicalSize* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSizeRange>& constrainedSizeRanges, GUILogicalSize& outVisibleSize) const
 {
 	B3D_ASSERT(mChildren.size() == elementCount && elementCount == 3);
 
-	u32 layoutIdx = 0;
-	u32 horzScrollIdx = 0;
-	u32 vertScrollIdx = 0;
-	u32 idx = 0;
+	u32 layoutIndex = 0;
+	u32 horizontalScrollIndex = 0;
+	u32 verticalScrollIndex = 0;
+	u32 childIndex = 0;
 	for(auto& child : mChildren) // TODO - Avoid indexing like this here, simply output a struct with relevant information
 	{
 		if(child == mContentLayout)
-			layoutIdx = idx;
+			layoutIndex = childIndex;
 
 		if(child == mHorizontalScrollBar)
-			horzScrollIdx = idx;
+			horizontalScrollIndex = childIndex;
 
 		if(child == mVerticalScrollBar)
-			vertScrollIdx = idx;
+			verticalScrollIndex = childIndex;
 
-		idx++;
+		childIndex++;
 	}
 
 	// Calculate content layout bounds
@@ -159,11 +159,11 @@ void GUIScrollArea::CalculateRelativeElementAreas(const GUILogicalSize& scrollAr
 	//// technically provides "infinite" space
 	GUILogicalUnit optimalContentWidth = scrollAreaSize.Width;
 	if(mContent.HorizontalScrollBarType != ScrollBarType::NeverShow)
-		optimalContentWidth = sizeRanges[layoutIdx].Optimal.Width;
+		optimalContentWidth = constrainedSizeRanges[layoutIndex].Optimal.Width;
 
 	GUILogicalUnit optimalContentHeight = scrollAreaSize.Height;
 	if(mContent.VerticalScrollBarType != ScrollBarType::NeverShow)
-		optimalContentHeight = sizeRanges[layoutIdx].Optimal.Height;
+		optimalContentHeight = constrainedSizeRanges[layoutIndex].Optimal.Height;
 
 	GUILogicalUnit layoutWidth = Math::Max(optimalContentWidth, scrollAreaSize.Width);
 	GUILogicalUnit layoutHeight = Math::Max(optimalContentHeight, scrollAreaSize.Height);
@@ -178,8 +178,8 @@ void GUIScrollArea::CalculateRelativeElementAreas(const GUILogicalSize& scrollAr
 		outVisibleSize.Height = Math::Max(scrollAreaSize.Height - kScrollBarWidth, 0);
 		optimalContentHeight = Math::Max(optimalContentHeight - kScrollBarWidth, 0);
 
-		if(sizeRanges[layoutIdx].Minimum.Height > 0)
-			optimalContentHeight = Math::Max(sizeRanges[layoutIdx].Minimum.Height, optimalContentHeight);
+		if(constrainedSizeRanges[layoutIndex].Minimum.Height > 0)
+			optimalContentHeight = Math::Max(constrainedSizeRanges[layoutIndex].Minimum.Height, optimalContentHeight);
 
 		layoutHeight = Math::Max(optimalContentHeight, outVisibleSize.Height); // Never go below optimal size
 	}
@@ -190,14 +190,14 @@ void GUIScrollArea::CalculateRelativeElementAreas(const GUILogicalSize& scrollAr
 		outVisibleSize.Width = Math::Max(scrollAreaSize.Width - kScrollBarWidth, 0);
 		optimalContentWidth = Math::Max(optimalContentWidth - kScrollBarWidth, 0);
 
-		if(sizeRanges[layoutIdx].Minimum.Width > 0)
-			optimalContentWidth = Math::Max(sizeRanges[layoutIdx].Minimum.Width, optimalContentWidth);
+		if(constrainedSizeRanges[layoutIndex].Minimum.Width > 0)
+			optimalContentWidth = Math::Max(constrainedSizeRanges[layoutIndex].Minimum.Width, optimalContentWidth);
 
 		layoutWidth = Math::Max(optimalContentWidth, outVisibleSize.Width); // Never go below optimal size
 	}
 
-	outElementSizes[layoutIdx] = GUILogicalSize(layoutWidth, layoutHeight);
-	outElementPositions[layoutIdx] = GUILogicalPoint(0, 0);
+	outElementSizes[layoutIndex] = GUILogicalSize(layoutWidth, layoutHeight);
+	outElementPositions[layoutIndex] = GUILogicalPoint(0, 0);
 
 	// Calculate vertical scrollbar bounds
 	if(hasVerticalScrollbar)
@@ -207,13 +207,13 @@ void GUIScrollArea::CalculateRelativeElementAreas(const GUILogicalSize& scrollAr
 		if(hasHorizontalScrollbar)
 			scrollBarHeight = Math::Max(scrollBarHeight - kScrollBarWidth, 0);
 
-		outElementSizes[vertScrollIdx] = GUILogicalSize(kScrollBarWidth, scrollBarHeight);
-		outElementPositions[vertScrollIdx] = GUILogicalPoint( scrollBarOffset, 0);
+		outElementSizes[verticalScrollIndex] = GUILogicalSize(kScrollBarWidth, scrollBarHeight);
+		outElementPositions[verticalScrollIndex] = GUILogicalPoint( scrollBarOffset, 0);
 	}
 	else
 	{
-		outElementSizes[vertScrollIdx] = GUILogicalSize(0, 0);
-		outElementPositions[vertScrollIdx] = GUILogicalPoint(layoutWidth, 0);
+		outElementSizes[verticalScrollIndex] = GUILogicalSize(0, 0);
+		outElementPositions[verticalScrollIndex] = GUILogicalPoint(layoutWidth, 0);
 	}
 
 	// Calculate horizontal scrollbar bounds
@@ -224,13 +224,13 @@ void GUIScrollArea::CalculateRelativeElementAreas(const GUILogicalSize& scrollAr
 		if(hasVerticalScrollbar)
 			scrollBarWidth = Math::Max(scrollBarWidth - kScrollBarWidth, 0);
 
-		outElementSizes[horzScrollIdx] = GUILogicalSize(scrollBarWidth, kScrollBarWidth);
-		outElementPositions[horzScrollIdx] = GUILogicalPoint(0, scrollBarOffset);
+		outElementSizes[horizontalScrollIndex] = GUILogicalSize(scrollBarWidth, kScrollBarWidth);
+		outElementPositions[horizontalScrollIndex] = GUILogicalPoint(0, scrollBarOffset);
 	}
 	else
 	{
-		outElementSizes[horzScrollIdx] = GUILogicalSize(0, 0);
-		outElementPositions[horzScrollIdx] = GUILogicalPoint(0, layoutHeight);
+		outElementSizes[horizontalScrollIndex] = GUILogicalSize(0, 0);
+		outElementPositions[horizontalScrollIndex] = GUILogicalPoint(0, layoutHeight);
 	}
 }
 
@@ -246,21 +246,21 @@ void GUIScrollArea::UpdateLayoutForChildren()
 		elementSizes = B3DStackNew<GUILogicalSize>(elementCount);
 	}
 
-	u32 layoutIdx = 0;
-	u32 horzScrollIdx = 0;
-	u32 vertScrollIdx = 0;
-	for(u32 i = 0; i < elementCount; i++)
+	u32 layoutIndex = 0;
+	u32 horizontalScrollIndex = 0;
+	u32 verticalScrollIndex = 0;
+	for(u32 elementIndex = 0; elementIndex < elementCount; elementIndex++)
 	{
-		GUIElement* child = GetChild(i);
+		GUIElement* child = GetChild(elementIndex);
 
 		if(child == mContentLayout)
-			layoutIdx = i;
+			layoutIndex = elementIndex;
 
 		if(child == mHorizontalScrollBar)
-			horzScrollIdx = i;
+			horizontalScrollIndex = elementIndex;
 
 		if(child == mVerticalScrollBar)
-			vertScrollIdx = i;
+			verticalScrollIndex = elementIndex;
 	}
 
 	const GUILogicalSize scrollAreaSize = mLayoutData.Size;
@@ -270,14 +270,14 @@ void GUIScrollArea::UpdateLayoutForChildren()
 	if(mContentLayout->IsActive())
 	{
 		GUILayoutData layoutData = mLayoutData;
-		layoutData.RelativePosition = elementPositions[layoutIdx];
-		layoutData.Size = elementSizes[layoutIdx];
+		layoutData.RelativePosition = elementPositions[layoutIndex];
+		layoutData.Size = elementSizes[layoutIndex];
 
 		mContentLayout->SetLayoutData(layoutData);
 		mContentLayout->UpdateLayoutForChildren();
 	}
 
-	mContentSize = elementSizes[layoutIdx];
+	mContentSize = elementSizes[layoutIndex];
 
 	const bool showVerticalScrollBar = mContent.VerticalScrollBarType != ScrollBarType::NeverShow && mContentSize.Height > mVisibleSize.Height;
 	const bool showHorizontalScrollBar = mContent.HorizontalScrollBarType != ScrollBarType::NeverShow && mContentSize.Width > mVisibleSize.Width;
@@ -285,10 +285,10 @@ void GUIScrollArea::UpdateLayoutForChildren()
 	// Vertical scrollbar
 	{
 		GUILayoutData layoutData = mLayoutData;
-		layoutData.RelativePosition = elementPositions[vertScrollIdx];
+		layoutData.RelativePosition = elementPositions[verticalScrollIndex];
 
 		if(showVerticalScrollBar)
-			layoutData.Size = elementSizes[vertScrollIdx];
+			layoutData.Size = elementSizes[verticalScrollIndex];
 		else
 			layoutData.Size = GUILogicalSize(0, 0);
 
@@ -297,22 +297,22 @@ void GUIScrollArea::UpdateLayoutForChildren()
 
 		// Set new handle size and update position to match the new size
 		GUILogicalUnit scrollableHeight = Math::Max(mContentSize.Height - layoutData.Size.Height, 0);
-		float newScrollPct = 0.0f;
+		float newScrollPercent = 0.0f;
 
 		if(scrollableHeight > 0)
-			newScrollPct = mVerticalOffset / (float)scrollableHeight;
+			newScrollPercent = mVerticalOffset / (float)scrollableHeight;
 
 		mVerticalScrollBar->SetHandleSizeInternal((float)layoutData.Size.Height / (float)mContentSize.Height);
-		mVerticalScrollBar->SetScrollPosInternal(newScrollPct);
+		mVerticalScrollBar->SetScrollPosInternal(newScrollPercent);
 	}
 
 	// Horizontal scrollbar
 	{
 		GUILayoutData layoutData = mLayoutData;
-		layoutData.RelativePosition = elementPositions[horzScrollIdx];
+		layoutData.RelativePosition = elementPositions[horizontalScrollIndex];
 
 		if(showHorizontalScrollBar)
-			layoutData.Size = elementSizes[horzScrollIdx];
+			layoutData.Size = elementSizes[horizontalScrollIndex];
 		else
 			layoutData.Size = GUILogicalSize(0, 0);
 
@@ -321,13 +321,13 @@ void GUIScrollArea::UpdateLayoutForChildren()
 
 		// Set new handle size and update position to match the new size
 		GUILogicalUnit scrollableWidth = Math::Max(mContentSize.Width - layoutData.Size.Width, 0);
-		float newScrollPct = 0.0f;
+		float newScrollPercent = 0.0f;
 
 		if(scrollableWidth > 0)
-			newScrollPct = mHorizontalOffset / (float)scrollableWidth;
+			newScrollPercent = mHorizontalOffset / (float)scrollableWidth;
 
 		mHorizontalScrollBar->SetHandleSizeInternal((float)layoutData.Size.Width / (float)mContentSize.Width);
-		mHorizontalScrollBar->SetScrollPosInternal(newScrollPct);
+		mHorizontalScrollBar->SetScrollPosInternal(newScrollPercent);
 	}
 
 	if(elementSizes != nullptr)
@@ -376,33 +376,33 @@ void GUIScrollArea::UpdateAbsoluteCoordinatesForChildren()
 	mVerticalScrollBar->UpdateAbsoluteCoordinates(mIntermediateAbsolutePosition, mAbsoluteScale, mIntermediateAbsoluteClippedArea);
 }
 
-void GUIScrollArea::DoOnVerticalScrollUpdate(float scrollPos)
+void GUIScrollArea::DoOnVerticalScrollUpdate(float scrollHandlePosition)
 {
 	GUILogicalUnit scrollableHeight = Math::Max(mContentSize.Height - mVisibleSize.Height, 0);
-	mVerticalOffset = (float)scrollableHeight * Math::Clamp01(scrollPos);
+	mVerticalOffset = (float)scrollableHeight * Math::Clamp01(scrollHandlePosition);
 
 	MarkAbsoluteCoordinatesAsDirty();
 }
 
-void GUIScrollArea::DoOnHorizontalScrollUpdate(float scrollPos)
+void GUIScrollArea::DoOnHorizontalScrollUpdate(float scrollHandlePosition)
 {
 	GUILogicalUnit scrollableWidth = Math::Max(mContentSize.Width - mVisibleSize.Width, 0);
-	mHorizontalOffset = (float)scrollableWidth * Math::Clamp01(scrollPos);
+	mHorizontalOffset = (float)scrollableWidth * Math::Clamp01(scrollHandlePosition);
 
 	MarkAbsoluteCoordinatesAsDirty();
 }
 
-void GUIScrollArea::ScrollToVertical(float pct)
+void GUIScrollArea::ScrollToVertical(float percent)
 {
-	mVerticalScrollBar->SetScrollPosInternal(pct);
+	mVerticalScrollBar->SetScrollPosInternal(percent);
 	mRecalculateVerticalOffset = true;
 
 	MarkAbsoluteCoordinatesAsDirty();
 }
 
-void GUIScrollArea::ScrollToHorizontal(float pct)
+void GUIScrollArea::ScrollToHorizontal(float percent)
 {
-	mHorizontalScrollBar->SetScrollPosInternal(pct);
+	mHorizontalScrollBar->SetScrollPosInternal(percent);
 	mRecalculateHorizontalOffset = true;
 
 	MarkAbsoluteCoordinatesAsDirty();

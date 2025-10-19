@@ -52,7 +52,7 @@ namespace b3d
 
 		/** Enables or disables a flag that controls the joint's behaviour. */
 		B3D_SCRIPT_EXPORT(ExportName(SetFlag))
-		void SetFlag(SphericalJointFlag flag, bool enabled);
+		void SetFlag(SphericalJointFlag flag, bool isEnabled);
 
 		/** Checks is the specified flag enabled. */
 		B3D_SCRIPT_EXPORT(ExportName(HasFlag))
@@ -100,7 +100,7 @@ namespace b3d
 		virtual LimitConeRange GetLimit() const = 0;
 
 		/** @copydoc SphericalJoint::SetFlag */
-		virtual void SetFlag(SphericalJointFlag flag, bool enabled) = 0;
+		virtual void SetFlag(SphericalJointFlag flag, bool isEnabled) = 0;
 
 		/** @copydoc SphericalJoint::HasFlag */
 		virtual bool HasFlag(SphericalJointFlag flag) const = 0;

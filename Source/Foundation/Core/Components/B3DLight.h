@@ -99,7 +99,7 @@ namespace b3d
 		Color GetColor() const { return mColor; }
 
 		/**
-		 * Range at which the light contribution fades out to zero. Use setUseAutoAttenuation to provide a radius
+		 * Range at which the light contribution fades out to zero. Use SetUseAutoAttenuation to provide a radius
 		 * automatically dependant on light intensity. The radius will cut-off light contribution and therefore manually set
 		 * very small radius can end up being very physically incorrect.
 		 */
@@ -211,12 +211,12 @@ namespace b3d
 		Color mColor = Color::kWhite; /**< Color of the light. */
 		float mAttRadius = 10.0f; /**< Radius at which light intensity falls off to zero. */
 		float mSourceRadius = 0.0f; /**< Radius of the light source. If > 0 the light is an area light. */
-		float mIntensity = 100.0f; /**< Power of the light source. @see setIntensity. */
+		float mIntensity = 100.0f; /**< Power of the light source. @see SetIntensity. */
 		Degree mSpotAngle { 45 }; /**< Total angle covered by a spot light. */
 		Degree mSpotFalloffAngle { 35.0f }; /**< Spot light angle at which falloff starts. Must be smaller than total angle. */
 		Sphere mBounds; /**< Sphere that bounds the light area of influence. */
 		bool mAutoAttenuation = false; /**< Determines is attenuation radius is automatically determined. */
-		float mShadowBias = 0.5f; /**< See setShadowBias() */
+		float mShadowBias = 0.5f; /**< See SetShadowBias() */
 	};
 
 	/** @} */

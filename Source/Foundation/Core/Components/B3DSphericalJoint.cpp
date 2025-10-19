@@ -30,19 +30,19 @@ void SphericalJoint::SetLimit(const LimitConeRange& limit)
 		GetImplementation().SetLimit(limit);
 }
 
-void SphericalJoint::SetFlag(SphericalJointFlag flag, bool enabled)
+void SphericalJoint::SetFlag(SphericalJointFlag flag, bool isEnabled)
 {
-	bool isEnabled = mInformation.Flags.IsSet(flag);
-	if(isEnabled == enabled)
+	bool isFlagEnabled = mInformation.Flags.IsSet(flag);
+	if(isFlagEnabled == isEnabled)
 		return;
 
-	if(enabled)
+	if(isEnabled)
 		mInformation.Flags.Set(flag);
 	else
 		mInformation.Flags.Unset(flag);
 
 	if(mImplementation != nullptr)
-		GetImplementation().SetFlag(flag, enabled);
+		GetImplementation().SetFlag(flag, isEnabled);
 }
 
 UPtr<IJointImplementation> SphericalJoint::CreateImplementation()

@@ -119,10 +119,10 @@ void AudioSource::Stop()
 		mImplementation->Stop();
 }
 
-void AudioSource::SetTime(float position)
+void AudioSource::SetTime(float time)
 {
 	if(mImplementation != nullptr)
-		mImplementation->SetTime(position);
+		mImplementation->SetTime(time);
 }
 
 float AudioSource::GetTime() const

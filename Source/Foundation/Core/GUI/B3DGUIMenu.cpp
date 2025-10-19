@@ -10,13 +10,13 @@ bool GUIMenuItemComparer::operator()(const GUIMenuItem* const& a, const GUIMenuI
 	return a->mPriority > b->mPriority || (a->mPriority == b->mPriority && a->mSeqIdx < b->mSeqIdx);
 }
 
-GUIMenuItem::GUIMenuItem(GUIMenuItem* parent, const String& name, std::function<void()> callback, i32 priority, u32 seqIdx, const ShortcutKey& key)
-	: mParent(parent), mIsSeparator(false), mName(name), mCallback(callback), mPriority(priority), mShortcut(key), mSeqIdx(seqIdx)
+GUIMenuItem::GUIMenuItem(GUIMenuItem* parent, const String& name, std::function<void()> callback, i32 priority, u32 sequentialIndex, const ShortcutKey& key)
+	: mParent(parent), mIsSeparator(false), mName(name), mCallback(callback), mPriority(priority), mShortcut(key), mSeqIdx(sequentialIndex)
 {
 }
 
-GUIMenuItem::GUIMenuItem(GUIMenuItem* parent, i32 priority, u32 seqIdx)
-	: mParent(parent), mIsSeparator(true), mCallback(nullptr), mPriority(priority), mSeqIdx(seqIdx)
+GUIMenuItem::GUIMenuItem(GUIMenuItem* parent, i32 priority, u32 sequentialIndex)
+	: mParent(parent), mIsSeparator(true), mCallback(nullptr), mPriority(priority), mSeqIdx(sequentialIndex)
 {
 }
 
@@ -28,46 +28,46 @@ GUIMenuItem::~GUIMenuItem()
 
 const GUIMenuItem* GUIMenuItem::FindChild(const String& name) const
 {
-	auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&](GUIMenuItem* x)
+	auto found = std::find_if(begin(mChildren), end(mChildren), [&](GUIMenuItem* x)
 								 { return x->GetName() == name; });
 
-	if(iterFind != mChildren.end())
-		return *iterFind;
+	if(found != mChildren.end())
+		return *found;
 
 	return nullptr;
 }
 
 GUIMenuItem* GUIMenuItem::FindChild(const String& name)
 {
-	auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&](GUIMenuItem* x)
+	auto found = std::find_if(begin(mChildren), end(mChildren), [&](GUIMenuItem* x)
 								 { return x->GetName() == name; });
 
-	if(iterFind != mChildren.end())
-		return *iterFind;
+	if(found != mChildren.end())
+		return *found;
 
 	return nullptr;
 }
 
 void GUIMenuItem::RemoveChild(const String& name)
 {
-	auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&](GUIMenuItem* x)
+	auto found = std::find_if(begin(mChildren), end(mChildren), [&](GUIMenuItem* x)
 								 { return x->GetName() == name; });
 
-	if(iterFind != mChildren.end())
+	if(found != mChildren.end())
 	{
-		B3DDelete(*iterFind);
-		mChildren.erase(iterFind);
+		B3DDelete(*found);
+		mChildren.erase(found);
 	}
 }
 
 void GUIMenuItem::RemoveChild(const GUIMenuItem* item)
 {
-	auto iterFind = std::find(begin(mChildren), end(mChildren), item);
+	auto found = std::find(begin(mChildren), end(mChildren), item);
 
-	if(iterFind != mChildren.end())
+	if(found != mChildren.end())
 	{
-		B3DDelete(*iterFind);
-		mChildren.erase(iterFind);
+		B3DDelete(*found);
+		mChildren.erase(found);
 	}
 }
 
@@ -95,24 +95,24 @@ GUIMenuItem* GUIMenu::AddMenuItemInternal(const String& path, std::function<void
 	Vector<String> pathElements = StringUtil::Split(path, "/");
 
 	GUIMenuItem* curSubMenu = &mRootElement;
-	for(u32 i = 0; i < (u32)pathElements.size(); i++)
+	for(u32 elementIndex = 0; elementIndex < (u32)pathElements.size(); elementIndex++)
 	{
-		if(pathElements[i] == "")
+		if(pathElements[elementIndex] == "")
 			continue;
 
-		const String& pathElem = *(pathElements.begin() + i);
-		GUIMenuItem* existingItem = curSubMenu->FindChild(pathElem);
+		const String& pathElement = *(pathElements.begin() + elementIndex);
+		GUIMenuItem* existingItem = curSubMenu->FindChild(pathElement);
 
 		if(existingItem == nullptr)
 		{
-			bool isLastElem = i == (u32)(pathElements.size() - 1);
+			bool isLastElement = elementIndex == (u32)(pathElements.size() - 1);
 
-			if(isLastElem)
-				existingItem = B3DNew<GUIMenuItem>(curSubMenu, pathElem, callback, priority, mNextIdx++, key);
+			if(isLastElement)
+				existingItem = B3DNew<GUIMenuItem>(curSubMenu, pathElement, callback, priority, mNextIdx++, key);
 			else
 			{
 				existingItem = B3DAllocate<GUIMenuItem>();
-				existingItem = new(existingItem) GUIMenuItem(curSubMenu, pathElem, nullptr, priority, mNextIdx++, ShortcutKey::kNone);
+				existingItem = new(existingItem) GUIMenuItem(curSubMenu, pathElement, nullptr, priority, mNextIdx++, ShortcutKey::kNone);
 			}
 
 			curSubMenu->AddChild(existingItem);
@@ -137,10 +137,10 @@ GUIMenuItem* GUIMenu::GetMenuItem(const String& path)
 	Vector<String> pathElements = StringUtil::Split(path, "/");
 
 	GUIMenuItem* curSubMenu = &mRootElement;
-	for(u32 i = 0; i < (u32)pathElements.size(); i++)
+	for(u32 elementIndex = 0; elementIndex < (u32)pathElements.size(); elementIndex++)
 	{
-		const String& pathElem = *(pathElements.begin() + i);
-		GUIMenuItem* existingItem = curSubMenu->FindChild(pathElem);
+		const String& pathElement = *(pathElements.begin() + elementIndex);
+		GUIMenuItem* existingItem = curSubMenu->FindChild(pathElement);
 
 		if(existingItem == nullptr || existingItem->IsSeparator())
 			return nullptr;

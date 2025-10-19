@@ -14,8 +14,6 @@
 #include "GUI/B3DDropDownAreaPlacement.h"
 #include "StyleSheet/B3DGUIStyleSheet.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 const GUILogicalUnit GUITooltip::kTooltipWidth = 200;
@@ -80,10 +78,10 @@ void GUITooltip::OnCreated()
 	positionBounds.Width = kCursorSize;
 	positionBounds.Height = kCursorSize;
 
-	TDropDownAreaPlacement<GUILogicalUnit>::HorizontalDirection horzDir;
-	TDropDownAreaPlacement<GUILogicalUnit>::VerticalDirection vertDir;
+	TDropDownAreaPlacement<GUILogicalUnit>::HorizontalDirection horizontalDirection;
+	TDropDownAreaPlacement<GUILogicalUnit>::VerticalDirection verticalDirection;
 	TDropDownAreaPlacement<GUILogicalUnit> placement = TDropDownAreaPlacement<GUILogicalUnit>::AroundBounds(positionBounds);
-	GUILogicalArea placementBounds = placement.GetOptimalBounds(size, logicalAvailableBounds, horzDir, vertDir);
+	GUILogicalArea placementBounds = placement.GetOptimalBounds(size, logicalAvailableBounds, horizontalDirection, verticalDirection);
 
 	backgroundPanel->SetPosition(placementBounds.X, placementBounds.Y);
 	contentPanel->SetPosition(placementBounds.X + contentOffsetX, placementBounds.Y + contentOffsetY);

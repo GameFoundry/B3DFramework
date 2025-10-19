@@ -22,10 +22,10 @@ namespace b3d
 		 * Creates a new drop down hit box that will detect mouse input over certain area.
 		 * You must call setBounds() to define the area.
 		 *
-		 * @param[in]	captureMouseOver	If true mouse over/out/move events will be captured by this control and wont be
-		 *									passed to other GUI elements.
-		 * @param[in]	captureMousePresses	If true mouse clicks will be captured by this control and wont be passed
-		 *									to other GUI elements.
+		 * @param	captureMouseOver	If true mouse over/out/move events will be captured by this control and wont be
+		 *								passed to other GUI elements.
+		 * @param	captureMousePresses	If true mouse clicks will be captured by this control and wont be passed
+		 *								to other GUI elements.
 		 */
 		static GUIDropDownHitBox* Create(bool captureMouseOver, bool captureMousePresses);
 
@@ -33,12 +33,12 @@ namespace b3d
 		 * Creates a new drop down hit box that will detect mouse input over certain area. You must call setBounds() to
 		 * define the area.
 		 *
-		 * @param[in]	captureMouseOver	If true mouse over/out/move events will be captured by this control and wont be
-		 *									passed to other GUI elements.
-		 * @param[in]	captureMousePresses	If true mouse clicks will be captured by this control and wont be passed to
-		 *									other GUI elements.
-		 * @param[in]	options				Options that allow you to control how is the element positioned and sized.
-		 *									This will override any similar options set by style.
+		 * @param	captureMouseOver	If true mouse over/out/move events will be captured by this control and wont be
+		 *								passed to other GUI elements.
+		 * @param	captureMousePresses	If true mouse clicks will be captured by this control and wont be passed to
+		 *								other GUI elements.
+		 * @param	options				Options that allow you to control how is the element positioned and sized.
+		 *								This will override any similar options set by style.
 		 */
 		static GUIDropDownHitBox* Create(bool captureMouseOver, bool captureMousePresses, const GUIOptions& options);
 

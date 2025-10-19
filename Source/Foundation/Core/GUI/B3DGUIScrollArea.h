@@ -162,22 +162,22 @@ namespace b3d
 		/**
 		 * Called when the vertical scrollbar moves.
 		 *
-		 * @param	percent	Scrollbar position ranging [0, 1].
+		 * @param	scrollHandlePosition	Scrollbar position ranging [0, 1].
 		 */
-		void DoOnVerticalScrollUpdate(float percent);
+		void DoOnVerticalScrollUpdate(float scrollHandlePosition);
 
 		/**
 		 * Called when the horizontal scrollbar moves.
 		 *
-		 * @param	percent	Scrollbar position ranging [0, 1].
+		 * @param	scrollHandlePosition	Scrollbar position ranging [0, 1].
 		 */
-		void DoOnHorizontalScrollUpdate(float percent);
+		void DoOnHorizontalScrollUpdate(float scrollHandlePosition);
 
 		void UpdateLayoutForChildren() override;
 		void UpdateAbsoluteCoordinatesForChildren() override;
 
 		/** Calculates the position and size of the scroll area child layout and the scroll bars. */
-		void CalculateRelativeElementAreas(const GUILogicalSize& scrollAreaSize, GUILogicalPoint* outElementPositions, GUILogicalSize* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSizeRange>& sizeRanges, GUILogicalSize& outVisibleSize) const;
+		void CalculateRelativeElementAreas(const GUILogicalSize& scrollAreaSize, GUILogicalPoint* outElementPositions, GUILogicalSize* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSizeRange>& constrainedSizeRanges, GUILogicalSize& outVisibleSize) const;
 
 		GUIScrollAreaContent mContent;
 

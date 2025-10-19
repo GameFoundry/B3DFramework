@@ -107,18 +107,18 @@ namespace b3d
 		/**
 		 * Fill the pre-allocated vertex, uv and index buffers with the mesh data for the specified render element.
 		 *
-		 * @param[out]	vertices			Previously allocated buffer where to store the vertices. Output is expected
-		 *									to match the GUIMeshType as returned by getRenderElements() for the specified
-		 *									element.
-		 * @param[out]	indices				Previously allocated buffer where to store the indices.
-		 * @param[in]	vertexOffset		At which vertex should the method start filling the buffer.
-		 * @param[in]	offset				Offset that should be applied to all output vertex positions.
-		 * @param[in]	indexOffset			At which index should the method start filling the buffer.
-		 * @param[in]	maxNumVerts			Total number of vertices the buffers were allocated for. Used only for memory
-		 *									safety.
-		 * @param[in]	maxNumIndices		Total number of indices the buffers were allocated for. Used only for memory
-		 *									safety.
-		 * @param[in]	renderElementIdx	Zero-based index of the render element.
+		 * @param	vertices				Previously allocated buffer where to store the vertices. Output is expected
+		 *										to match the GUIMeshType as returned by getRenderElements() for the specified
+		 *										element.
+		 * @param	indices					Previously allocated buffer where to store the indices.
+		 * @param	vertexOffset			At which vertex should the method start filling the buffer.
+		 * @param	offset					Offset that should be applied to all output vertex positions.
+		 * @param	indexOffset				At which index should the method start filling the buffer.
+		 * @param	maxVertexCount			Total number of vertices the buffers were allocated for. Used only for memory
+		 *										safety.
+		 * @param	maxIndexCount			Total number of indices the buffers were allocated for. Used only for memory
+		 *										safety.
+		 * @param	renderElementIndex		Zero-based index of the render element.
 		 *
 		 */
 		virtual void FillBuffer(
@@ -127,26 +127,26 @@ namespace b3d
 			u32 vertexOffset,
 			u32 indexOffset,
 			const Vector2I& offset,
-			u32 maxNumVerts,
-			u32 maxNumIndices,
-			u32 renderElementIdx) const { }
+			u32 maxVertexCount,
+			u32 maxIndexCount,
+			u32 renderElementIndex) const { }
 
 		/**
 		 * Retrieves vertex and index data from GUI render element and outputs them to the provided buffers. GUI render
 		 * elements must have been previously populated by calling UpdateRenderElements().
 		 *
-		 * @param	renderElementIndex	Zero-based index of the render element from which to retrieve the data.
-		 * @param	vertexOffset		At which vertex should the method start writing to the output position/uv buffer.
-		 * @param	indexOffset			At which index should the method start writing to the output index buffer.
-		 * @param	outPositions		Previously allocated buffer where to store the vertex positions. Caller must ensure
-		 *								size and data type match the mesh type and vertex count retrieved from
-		 *								GetRenderElements() for the specified element.
-		 * @param	outUVs				Previously allocated buffer where to store the vertex UVs. Caller must ensure
-		 *								size and data type match the mesh type and vertex count retrieved from
-		 *								GetRenderElements() for the specified element. Can be null if not needed.
-		 * @param	outIndices			Previously allocated buffer where to store the indices. Caller must ensure
-		 *								size and data type match the mesh type and index count retrieved from
-		 *								GetRenderElements() for the specified element. 
+		 * @param	renderElementIndex		Zero-based index of the render element from which to retrieve the data.
+		 * @param	vertexOffset			At which vertex should the method start writing to the output position/uv buffer.
+		 * @param	indexOffset				At which index should the method start writing to the output index buffer.
+		 * @param	outPositions			Previously allocated buffer where to store the vertex positions. Caller must ensure
+		 *										size and data type match the mesh type and vertex count retrieved from
+		 *										GetRenderElements() for the specified element.
+		 * @param	outUVs					Previously allocated buffer where to store the vertex UVs. Caller must ensure
+		 *										size and data type match the mesh type and vertex count retrieved from
+		 *										GetRenderElements() for the specified element. Can be null if not needed.
+		 * @param	outIndices				Previously allocated buffer where to store the indices. Caller must ensure
+		 *										size and data type match the mesh type and index count retrieved from
+		 *										GetRenderElements() for the specified element.
 		 */
 		virtual void GetRenderElementVertexAndIndexData(
 			u32 renderElementIndex,
@@ -306,8 +306,8 @@ namespace b3d
 		static void Append(const SpriteInfo (&spriteInfos)[N], TInlineArray<GUIRenderElement, 4>& output)
 		{
 			u32 totalCount = 0;
-			for(u32 i = 0; i < N; i++)
-				totalCount += spriteInfos[i].Sprite ? spriteInfos[i].Sprite->GetRenderElementCount() : 0;
+			for(u32 spriteInfoIndex = 0; spriteInfoIndex < N; spriteInfoIndex++)
+				totalCount += spriteInfos[spriteInfoIndex].Sprite ? spriteInfos[spriteInfoIndex].Sprite->GetRenderElementCount() : 0;
 
 			u32 outputIndex = (u32)output.Size();
 			output.Resize(output.Size() + totalCount);

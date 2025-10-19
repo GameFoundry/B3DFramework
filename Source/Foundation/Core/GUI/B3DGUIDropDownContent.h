@@ -32,22 +32,22 @@ namespace b3d
 		/**
 		 * Creates a new drop down contents element.
 		 *
-		 * @param[in]	parent			Parent sub-menu that owns the drop down contents.
-		 * @param[in]	dropDownData	Data that will be used for initializing the child entries.
-		 * @param[in]	style			Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default button style is used.
+		 * @param	parent			Parent sub-menu that owns the drop down contents.
+		 * @param	dropDownData	Data that will be used for initializing the child entries.
+		 * @param	style			Optional style to use for the element. Style will be retrieved from GUISkin of the
+		 *							GUIWidget the element is used on. If not specified default button style is used.
 		 */
 		static GUIDropDownContent* Create(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const String& style = StringUtil::kBlank);
 
 		/**
 		 * Creates a new drop down contents element.
 		 *
-		 * @param[in]	parent			Parent sub-menu that owns the drop down contents.
-		 * @param[in]	dropDownData	Data that will be used for initializing the child entries.
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized.
-		 *								This will override any similar options set by style.
-		 * @param[in]	style			Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default button style is used.
+		 * @param	parent			Parent sub-menu that owns the drop down contents.
+		 * @param	dropDownData	Data that will be used for initializing the child entries.
+		 * @param	options			Options that allow you to control how is the element positioned and sized.
+		 *							This will override any similar options set by style.
+		 * @param	style			Optional style to use for the element. Style will be retrieved from GUISkin of the
+		 *							GUIWidget the element is used on. If not specified default button style is used.
 		 */
 		static GUIDropDownContent* Create(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const GUIOptions& options, const String& style = StringUtil::kBlank);
 
@@ -59,7 +59,7 @@ namespace b3d
 		void SetRange(u32 start, u32 end);
 
 		/**	Returns height of a menu element at the specified index, in pixels. */
-		GUILogicalUnit GetElementHeight(u32 idx) const;
+		GUILogicalUnit GetElementHeight(u32 index) const;
 
 		/**
 		 * Enables or disables keyboard focus. When keyboard focus is enabled the contents will respond to keyboard events.
@@ -76,7 +76,7 @@ namespace b3d
 		GUIDropDownContent(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const String& style, const GUISizeConstraints& dimensions);
 
 		/**	Get localized name of a menu item element with the specified index. */
-		HString GetElementLocalizedName(u32 idx) const;
+		HString GetElementLocalizedName(u32 index) const;
 
 		GUILogicalSize CalculateUnconstrainedOptimalSize() const override;
 		void UpdateLayoutForChildren() override;
@@ -86,23 +86,23 @@ namespace b3d
 		/**
 		 * Marks the element with the specified index as selected.
 		 *
-		 * @param[in]	idx		Index of the displayed element (indexing visible elements).
+		 * @param	index	Index of the displayed element (indexing visible elements).
 		 */
-		void SetSelected(u32 idx);
+		void SetSelected(u32 index);
 
 		/**
 		 * Selects the next available non-separator entry.
 		 *
-		 * @param[in]	startIdx	Index of the menu element.
+		 * @param	startIndex	Index of the menu element.
 		 */
-		void SelectNext(u32 startIdx);
+		void SelectNext(u32 startIndex);
 
 		/**
 		 * Selects the previous available non-separator entry.
 		 *
-		 * @param[in]	startIdx	Index of the menu element.
+		 * @param	startIndex	Index of the menu element.
 		 */
-		void SelectPrevious(u32 startIdx);
+		void SelectPrevious(u32 startIndex);
 
 		GUIDropDownData mDropDownData;
 		Vector<bool> mStates;

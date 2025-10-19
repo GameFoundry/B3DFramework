@@ -149,18 +149,18 @@ void GUILayout::UpdateAbsoluteCoordinatesForChildren()
 		const Area2 relativeClippedArea = WidgetToElementSpace(mAbsoluteClippedArea).To<float>();
 		mCulling->UpdateVisibleElements(relativeClippedArea);
 
-		for(auto& visibleChild : mCulling->GetVisibleElements())
+		for(auto& visibleElement : mCulling->GetVisibleElements())
 		{
-			visibleChild->UpdateAbsoluteCoordinates(mIntermediateAbsolutePosition, mAbsoluteScale, mIntermediateAbsoluteClippedArea);
-			visibleChild->UpdateAbsoluteCoordinatesForChildren();
+			visibleElement->UpdateAbsoluteCoordinates(mIntermediateAbsolutePosition, mAbsoluteScale, mIntermediateAbsoluteClippedArea);
+			visibleElement->UpdateAbsoluteCoordinatesForChildren();
 		}
 	}
 	else
 	{
-		for(auto& child : mChildren)
+		for(auto& childElement : mChildren)
 		{
-			child->UpdateAbsoluteCoordinates(mIntermediateAbsolutePosition, mAbsoluteScale, mIntermediateAbsoluteClippedArea);
-			child->UpdateAbsoluteCoordinatesForChildren();
+			childElement->UpdateAbsoluteCoordinates(mIntermediateAbsolutePosition, mAbsoluteScale, mIntermediateAbsoluteClippedArea);
+			childElement->UpdateAbsoluteCoordinatesForChildren();
 		}
 	}
 }

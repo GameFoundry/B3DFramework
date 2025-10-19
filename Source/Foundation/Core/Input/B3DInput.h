@@ -60,11 +60,11 @@ namespace b3d
 		struct QueuedEvent
 		{
 			QueuedEvent(EventType type, u32 eventIndex)
-				: Type(type), Idx(eventIndex)
+				: Type(type), Index(eventIndex)
 			{}
 
 			EventType Type;
-			u32 Idx;
+			u32 Index;
 		};
 
 	public:
@@ -207,16 +207,16 @@ namespace b3d
 		u64 GetWindowHandle() const { return mWindowHandle; }
 
 		/** Called by Mouse when mouse movement is detected. */
-		void NotifyMouseMovedInternal(i32 relX, i32 relY, i32 relZ);
+		void NotifyMouseMovedInternal(i32 relativeX, i32 relativeY, i32 relativeZ);
 
 		/** Called by any of the raw input devices when analog axis movement is detected. */
-		void NotifyAxisMovedInternal(u32 gamepadIdx, u32 axisIdx, i32 value);
+		void NotifyAxisMovedInternal(u32 gamepadIndex, u32 axisIndex, i32 value);
 
 		/** Called by any of the raw input devices when a button is pressed. */
-		void NotifyButtonPressedInternal(u32 deviceIdx, ButtonCode code, u64 timestamp);
+		void NotifyButtonPressedInternal(u32 deviceIndex, ButtonCode code, u64 timestamp);
 
 		/** Called by any of the raw input devices when a button is released. */
-		void NotifyButtonReleasedInternal(u32 deviceIdx, ButtonCode code, u64 timestamp);
+		void NotifyButtonReleasedInternal(u32 deviceIndex, ButtonCode code, u64 timestamp);
 
 		/** @} */
 
@@ -249,49 +249,49 @@ namespace b3d
 		/**
 		 * Called from the message loop to notify user has entered a character.
 		 *
-		 * @see		onCharInput
+		 * @see		OnCharInput
 		 */
 		void CharInput(u32 character);
 
 		/**
 		 * Called from the message loop to notify user has moved the cursor.
 		 *
-		 * @see		onCursorMoved
+		 * @see		OnPointerMoved
 		 */
-		void CursorMoved(const Vector2I& cursorPos, const OSPointerButtonStates& btnStates);
+		void CursorMoved(const Vector2I& cursorPosition, const OSPointerButtonStates& buttonStates);
 
 		/**
 		 * Called from the message loop to notify user has pressed a mouse button.
 		 *
-		 * @see		onCursorPressed
+		 * @see		OnPointerPressed
 		 */
-		void CursorPressed(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& btnStates);
+		void CursorPressed(const Vector2I& cursorPosition, OSMouseButton button, const OSPointerButtonStates& buttonStates);
 
 		/**
 		 * Called from the message loop to notify user has released a mouse button.
 		 *
-		 * @see		onCursorReleased
+		 * @see		OnPointerReleased
 		 */
-		void CursorReleased(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& btnStates);
+		void CursorReleased(const Vector2I& cursorPosition, OSMouseButton button, const OSPointerButtonStates& buttonStates);
 
 		/**
 		 * Called from the message loop to notify user has double-clicked a mouse button.
 		 *
-		 * @see		onDoubleClick
+		 * @see		OnPointerDoubleClick
 		 */
-		void CursorDoubleClick(const Vector2I& cursorPos, const OSPointerButtonStates& btnStates);
+		void CursorDoubleClick(const Vector2I& cursorPosition, const OSPointerButtonStates& buttonStates);
 
 		/**
 		 * Called from the message loop to notify user has entered an input command.
 		 *
-		 * @see		onInputCommand
+		 * @see		OnInputCommand
 		 */
 		void InputCommandEntered(InputCommandType commandType);
 
 		/**
 		 * Called from the message loop to notify user has scrolled the mouse wheel.
 		 *
-		 * @see		onMouseWheelScrolled
+		 * @see		OnPointerMoved
 		 */
 		void MouseWheelScrolled(float scrollPos);
 
@@ -348,7 +348,7 @@ namespace b3d
 		Vector<Gamepad*> mGamepads;
 
 		float mTotalMouseSamplingTime[2];
-		u32 mTotalMouseNumSamples[2];
+		u32 mTotalMouseSampleCount[2];
 		float mMouseZeroTime[2];
 		i32 mMouseSampleAccumulator[2];
 		float mMouseSmoothedAxis[2];

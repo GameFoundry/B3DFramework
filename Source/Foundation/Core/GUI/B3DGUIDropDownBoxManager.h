@@ -22,9 +22,9 @@ namespace b3d
 		 * Opens a new drop down box at the specified location, look and elements. This will close any previously open drop
 		 * down box.
 		 *
-		 * @param[in]	createInformation				Various parameters for initializing the drop down box.
-		 * @param[in]	type				Specific type of drop down box to display.
-		 * @param[in]	onClosedCallback	Callback triggered when drop down box is closed.
+		 * @param	createInformation	Various parameters for initializing the drop down box.
+		 * @param	type				Specific type of drop down box to display.
+		 * @param	onClosedCallback	Callback triggered when drop down box is closed.
 		 */
 		GameObjectHandle<GUIDropDownMenu> OpenDropDownBox(const DropDownBoxCreateInformation& createInformation, GUIDropDownType type, std::function<void()> onClosedCallback);
 

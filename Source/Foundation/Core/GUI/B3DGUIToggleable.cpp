@@ -40,16 +40,16 @@ void GUIToggleable::SetToggleGroupInternal(SPtr<GUIToggleGroup> toggleGroup)
 	bool isToggled = false;
 	if(mToggleGroup != nullptr) // If in group ensure at least one element is toggled on
 	{
-		for(auto& toggleElem : mToggleGroup->mButtons)
+		for(auto& toggleElement : mToggleGroup->mButtons)
 		{
 			if(isToggled)
 			{
-				if(toggleElem->mIsToggled)
-					toggleElem->SetIsToggled(false);
+				if(toggleElement->mIsToggled)
+					toggleElement->SetIsToggled(false);
 			}
 			else
 			{
-				if(toggleElem->mIsToggled)
+				if(toggleElement->mIsToggled)
 					isToggled = true;
 			}
 		}
@@ -74,11 +74,11 @@ void GUIToggleable::SetIsToggled(bool isToggled, bool triggerEvent)
 				canBeToggledOff = true;
 			else
 			{
-				for(auto& toggleElem : mToggleGroup->mButtons)
+				for(auto& toggleElement : mToggleGroup->mButtons)
 				{
-					if(toggleElem != this)
+					if(toggleElement != this)
 					{
-						if(toggleElem->mIsToggled)
+						if(toggleElement->mIsToggled)
 						{
 							canBeToggledOff = true;
 							break;
@@ -106,10 +106,10 @@ void GUIToggleable::SetIsToggled(bool isToggled, bool triggerEvent)
 	{
 		if(mToggleGroup != nullptr)
 		{
-			for(auto& toggleElem : mToggleGroup->mButtons)
+			for(auto& toggleElement : mToggleGroup->mButtons)
 			{
-				if(toggleElem != this)
-					toggleElem->SetIsToggled(false, triggerEvent);
+				if(toggleElement != this)
+					toggleElement->SetIsToggled(false, triggerEvent);
 			}
 		}
 	}

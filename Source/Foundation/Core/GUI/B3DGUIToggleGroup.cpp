@@ -32,8 +32,8 @@ SPtr<GUIToggleGroup> GUIToggleGroup::Create(bool allowAllOff)
 
 void GUIToggleGroup::AddInternal(GUIToggleable* toggle)
 {
-	auto iterFind = std::find(begin(mButtons), end(mButtons), toggle);
-	if(iterFind != end(mButtons))
+	auto found = std::find(begin(mButtons), end(mButtons), toggle);
+	if(found != end(mButtons))
 		return;
 
 	mButtons.push_back(toggle);
@@ -45,10 +45,10 @@ void GUIToggleGroup::RemoveInternal(GUIToggleable* toggle)
 	auto sharedPtr = mThis.lock(); // Make sure we keep a reference because calling SetToggleGroupInternal(nullptr)
 								   // may otherwise clear the last reference and cause us to destruct
 
-	auto iterFind = std::find(begin(mButtons), end(mButtons), toggle);
-	if(iterFind == end(mButtons))
+	auto found = std::find(begin(mButtons), end(mButtons), toggle);
+	if(found == end(mButtons))
 		return;
 
-	(*iterFind)->SetToggleGroupInternal(nullptr);
-	mButtons.erase(iterFind);
+	(*found)->SetToggleGroupInternal(nullptr);
+	mButtons.erase(found);
 }

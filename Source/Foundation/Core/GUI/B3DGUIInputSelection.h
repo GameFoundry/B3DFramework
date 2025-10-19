@@ -30,11 +30,11 @@ namespace b3d
 
 		/**
 		 * Shows the selection using the specified anchor. By default this will select 0 characters so you must manually
-		 * move the selection using moveSelectionToCaret() before anything is considered selected.
+		 * move the selection using MoveSelectionToCaret() before anything is considered selected.
 		 *
-		 * @param[in]	anchorCaretPos	Anchor position which to initially select. Anchor position determines selection
-		 *								area behavior when the input caret moves (determines whether left or right side of
-		 *								the selection will move with the caret).
+		 * @param	anchorCaretPos	Anchor position which to initially select. Anchor position determines selection
+		 *							area behavior when the input caret moves (determines whether left or right side of
+		 *							the selection will move with the caret).
 		 */
 		void ShowSelection(u32 anchorCaretPos);
 
@@ -45,7 +45,7 @@ namespace b3d
 		void ClearSelectionVisuals();
 
 		/**
-		 * Moves the selection to caret. Selected area will be from the anchor provided in showSelection() to the caret
+		 * Moves the selection to caret. Selected area will be from the anchor provided in ShowSelection() to the caret
 		 * position provided here.
 		 */
 		void MoveSelectionToCaret(u32 caretPos);
@@ -57,7 +57,7 @@ namespace b3d
 		void SelectAll();
 
 		/**
-		 * Starts selection drag at the specified caret position. Call selectionDragUpdate() and selectionDragEnd() as the
+		 * Starts selection drag at the specified caret position. Call SelectionDragUpdate() and SelectionDragEnd() as the
 		 * drag operation progresses.
 		 */
 		void SelectionDragStart(u32 caretPos);

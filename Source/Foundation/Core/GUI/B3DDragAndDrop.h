@@ -111,7 +111,7 @@ namespace b3d
 		 * Starts a drag operation with the specified data. This means GUI elements will start receiving drag and drop
 		 * related events and they may choose to handle them.
 		 *
-		 * @param 	data					Some operation specific data that is just passed through to however needs it.
+		 * @param	data					Some operation specific data that is just passed through to however needs it.
 		 */
 		B3D_SCRIPT_EXPORT()
 		void StartDrag(const SPtr<DragAndDropData>& data) { StartDrag(data, nullptr); }
@@ -120,7 +120,7 @@ namespace b3d
 		 * Starts a drag operation with the specified data. This means GUI elements will start receiving drag and drop
 		 * related events and they may choose to handle them.
 		 *
-		 * @param 	data					Some operation specific data that is just passed through to however needs it.
+		 * @param	data					Some operation specific data that is just passed through to however needs it.
 		 * @param	dropCallback			The drop callback that gets triggered whenever mouse button is released and
 		 *									drag operation ends. You should perform any cleanup here.
 		 * @param	needsValidDropTarget	(optional) Determines whether the drop operation may happen anywhere or
@@ -200,7 +200,7 @@ namespace b3d
 	private:
 		SPtr<DragAndDropData> mDragData;
 		SPtr<DragAndDropData> mDropData;
-		Vector<std::function<void(bool)>> mDropCallbacks;
+		Vector<Function<void(bool)>> mDropCallbacks;
 		bool mNeedsValidDropTarget = false;
 		bool mIsDropActiveThisFrame = false;
 		HEvent mMouseCaptureChangedConn;

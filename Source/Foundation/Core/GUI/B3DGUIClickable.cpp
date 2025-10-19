@@ -75,12 +75,12 @@ u32 GUIClickable::GetRenderElementDepthRange() const
 	return 2;
 }
 
-bool GUIClickable::DoOnMouseEvent(const GUIMouseEvent& ev)
+bool GUIClickable::DoOnMouseEvent(const GUIMouseEvent& event)
 {
 	if(mOptionFlags.IsSet(GUIElementOption::IgnorePointerEvents))
 		return false;
 
-	if(ev.GetType() == GUIMouseEventType::MouseOver)
+	if(event.GetType() == GUIMouseEventType::MouseOver)
 	{
 		if(!IsDisabled())
 		{
@@ -96,7 +96,7 @@ bool GUIClickable::DoOnMouseEvent(const GUIMouseEvent& ev)
 
 		return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 	}
-	else if(ev.GetType() == GUIMouseEventType::MouseOut)
+	else if(event.GetType() == GUIMouseEventType::MouseOut)
 	{
 		if(!IsDisabled())
 		{
@@ -112,7 +112,7 @@ bool GUIClickable::DoOnMouseEvent(const GUIMouseEvent& ev)
 
 		return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 	}
-	else if(ev.GetType() == GUIMouseEventType::MouseDown)
+	else if(event.GetType() == GUIMouseEventType::MouseDown)
 	{
 		if(!IsDisabled())
 		{
@@ -122,7 +122,7 @@ bool GUIClickable::DoOnMouseEvent(const GUIMouseEvent& ev)
 
 		return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 	}
-	else if(ev.GetType() == GUIMouseEventType::MouseUp)
+	else if(event.GetType() == GUIMouseEventType::MouseUp)
 	{
 		if(!IsDisabled())
 		{
@@ -138,7 +138,7 @@ bool GUIClickable::DoOnMouseEvent(const GUIMouseEvent& ev)
 
 		return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 	}
-	else if(ev.GetType() == GUIMouseEventType::MouseDoubleClick)
+	else if(event.GetType() == GUIMouseEventType::MouseDoubleClick)
 	{
 		if(!IsDisabled())
 			OnDoubleClick();
@@ -149,12 +149,12 @@ bool GUIClickable::DoOnMouseEvent(const GUIMouseEvent& ev)
 	return false;
 }
 
-bool GUIClickable::DoOnCommandEvent(const GUICommandEvent& ev)
+bool GUIClickable::DoOnCommandEvent(const GUICommandEvent& event)
 {
-	const bool baseReturnValue = GUIInteractable::DoOnCommandEvent(ev);
+	const bool baseReturnValue = GUIInteractable::DoOnCommandEvent(event);
 
 	GUIElementState state = (GUIElementState)((u32)mActiveState & (u32)GUIElementState::TypeMask);
-	if(ev.GetType() == GUICommandEventType::FocusGained)
+	if(event.GetType() == GUICommandEventType::FocusGained)
 	{
 		mHasFocus = true;
 
@@ -170,7 +170,7 @@ bool GUIClickable::DoOnCommandEvent(const GUICommandEvent& ev)
 
 		return true;
 	}
-	else if(ev.GetType() == GUICommandEventType::FocusLost)
+	else if(event.GetType() == GUICommandEventType::FocusLost)
 	{
 		mHasFocus = false;
 		RemoveStateFlags(GUIElementStateFlag::Focus);

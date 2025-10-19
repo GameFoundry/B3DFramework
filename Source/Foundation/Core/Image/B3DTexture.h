@@ -262,15 +262,15 @@ namespace b3d
 		/**
 		 * Updates the texture with new data. Provided data buffer will be locked until the operation completes.
 		 *
-		 * @param data					Pixel data to write. User must ensure it is in format and size compatible with
-		 *								the texture.
-		 * @param face					Texture face to write to.
-		 * @param mipLevel				Mipmap level to write to.
-		 * @param discardEntireBuffer	When true the existing contents of the resource you are updating will be
-		 *								discarded. This can make the operation faster. Resources with certain buffer
-		 *								types might require this flag to be in a specific state otherwise the operation
-		 *								will fail.
-		 * @return						Async operation object you can use to track operation completion.
+		 * @param	data					Pixel data to write. User must ensure it is in format and size compatible with
+		 *									the texture.
+		 * @param	face					Texture face to write to.
+		 * @param	mipLevel				Mipmap level to write to.
+		 * @param	discardEntireBuffer		When true the existing contents of the resource you are updating will be
+		 *									discarded. This can make the operation faster. Resources with certain buffer
+		 *									types might require this flag to be in a specific state otherwise the operation
+		 *									will fail.
+		 * @return							Async operation object you can use to track operation completion.
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
@@ -280,11 +280,11 @@ namespace b3d
 		 * Reads internal texture data to the provided previously allocated buffer. Provided data buffer will be locked
 		 * until the operation completes.
 		 *
-		 * @param data		Pre-allocated buffer of proper size and format where data will be read to. You can use
-		 *					TextureProperties::allocBuffer() to allocate a buffer of a correct format and size.
-		 * @param face		Texture face to read from.
-		 * @param mipLevel	Mipmap level to read from.
-		 * @return			Async operation object you can use to track operation completion.
+		 * @param	data		Pre-allocated buffer of proper size and format where data will be read to. You can use
+		 *						TextureProperties::allocBuffer() to allocate a buffer of a correct format and size.
+		 * @param	face		Texture face to read from.
+		 * @param	mipLevel	Mipmap level to read from.
+		 * @return				Async operation object you can use to track operation completion.
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
@@ -293,10 +293,10 @@ namespace b3d
 		/**
 		 * Reads internal texture data into a newly allocated buffer.
 		 *
-		 * @param face		Texture face to read from.
-		 * @param mipLevel	Mipmap level to read from.
-		 * @return			Async operation object that will contain the buffer with the data once the operation
-		 *					completes.
+		 * @param	face		Texture face to read from.
+		 * @param	mipLevel	Mipmap level to read from.
+		 * @return				Async operation object that will contain the buffer with the data once the operation
+		 *						completes.
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
@@ -306,10 +306,10 @@ namespace b3d
 		/**
 		 * Reads data from the cached system memory texture buffer into the provided buffer.
 		 *
-		 * @param data		Pre-allocated buffer of proper size and format where data will be read to. You can use
-		 *					TextureProperties::allocBuffer() to allocate a buffer of a correct format and size.
-		 * @param face		Texture face to read from.
-		 * @param mipLevel	Mipmap level to read from.
+		 * @param	data		Pre-allocated buffer of proper size and format where data will be read to. You can use
+		 *						TextureProperties::allocBuffer() to allocate a buffer of a correct format and size.
+		 * @param	face		Texture face to read from.
+		 * @param	mipLevel	Mipmap level to read from.
 		 *
 		 * @note
 		 * The data read is the cached texture data. Any data written to the texture from the GPU or render thread will not
@@ -410,9 +410,9 @@ namespace b3d
 			/**
 			 * Locks the buffer for reading or writing.
 			 *
-			 * @param options	Options for controlling what you may do with the locked data.
-			 * @param mipLevel	(optional) Mipmap level to lock.
-			 * @param face		(optional) Texture face to lock.
+			 * @param	options		Options for controlling what you may do with the locked data.
+			 * @param	mipLevel	(optional) Mipmap level to lock.
+			 * @param	face		(optional) Texture face to lock.
 			 *
 			 * @note
 			 * If you are just reading or writing one block of data use readData()/writeData() methods as they can be much faster
@@ -515,6 +515,9 @@ namespace b3d
 			 * Requests a texture view for the specified mip and array ranges. Returns an existing view of one for the specified
 			 * ranges already exists, otherwise creates a new one. You must release all views by calling ReleaseView() when done.
 			 *
+			 * @param	surface		Texture surface to create a view for.
+			 * @param	usage		Usage of the texture view.
+			 *
 			 * @note	Render thread only.
 			 */
 			SPtr<TextureView> RequestView(const TextureSurface& surface, GpuViewUsage usage);
@@ -545,10 +548,10 @@ namespace b3d
 			virtual void BlitInternal(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureBlitInformation& blitInformation) = 0;
 
 			/** @copydoc ReadData */
-			virtual void ReadDataInternal(PixelData& dest, u32 mipLevel = 0, u32 face = 0, const SPtr<GpuQueue>& gpuQueue = nullptr) = 0;
+			virtual void ReadDataInternal(PixelData& destination, u32 mipLevel = 0, u32 face = 0, const SPtr<GpuQueue>& gpuQueue = nullptr) = 0;
 
 			/** @copydoc WriteData */
-			virtual void WriteDataInternal(const PixelData& src, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) = 0;
+			virtual void WriteDataInternal(const PixelData& source, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) = 0;
 
 			/** @copydoc Clear */
 			virtual void ClearInternal(const Color& value, u32 mipLevel = 0, u32 face = 0, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);

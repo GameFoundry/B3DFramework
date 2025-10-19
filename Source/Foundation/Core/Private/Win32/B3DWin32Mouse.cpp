@@ -128,48 +128,48 @@ void Mouse::Capture()
 			return;
 	}
 
-	i32 relX, relY, relZ;
-	relX = relY = relZ = 0;
+	i32 relativeX, relativeY, relativeZ;
+	relativeX = relativeY = relativeZ = 0;
 
 	bool axesMoved = false;
-	for(u32 i = 0; i < numEntries; ++i)
+	for(u32 entryIndex = 0; entryIndex < numEntries; ++entryIndex)
 	{
-		switch(diBuff[i].dwOfs)
+		switch(diBuff[entryIndex].dwOfs)
 		{
 		case DIMOFS_BUTTON0:
-			DoMouseClick(mOwner, ButtonCode::MouseLeft, diBuff[i]);
+			DoMouseClick(mOwner, ButtonCode::MouseLeft, diBuff[entryIndex]);
 			break;
 		case DIMOFS_BUTTON1:
-			DoMouseClick(mOwner, ButtonCode::MouseRight, diBuff[i]);
+			DoMouseClick(mOwner, ButtonCode::MouseRight, diBuff[entryIndex]);
 			break;
 		case DIMOFS_BUTTON2:
-			DoMouseClick(mOwner, ButtonCode::MouseMiddle, diBuff[i]);
+			DoMouseClick(mOwner, ButtonCode::MouseMiddle, diBuff[entryIndex]);
 			break;
 		case DIMOFS_BUTTON3:
-			DoMouseClick(mOwner, ButtonCode::MouseButton4, diBuff[i]);
+			DoMouseClick(mOwner, ButtonCode::MouseButton4, diBuff[entryIndex]);
 			break;
 		case DIMOFS_BUTTON4:
-			DoMouseClick(mOwner, ButtonCode::MouseButton5, diBuff[i]);
+			DoMouseClick(mOwner, ButtonCode::MouseButton5, diBuff[entryIndex]);
 			break;
 		case DIMOFS_BUTTON5:
-			DoMouseClick(mOwner, ButtonCode::MouseButton6, diBuff[i]);
+			DoMouseClick(mOwner, ButtonCode::MouseButton6, diBuff[entryIndex]);
 			break;
 		case DIMOFS_BUTTON6:
-			DoMouseClick(mOwner, ButtonCode::MouseButton7, diBuff[i]);
+			DoMouseClick(mOwner, ButtonCode::MouseButton7, diBuff[entryIndex]);
 			break;
 		case DIMOFS_BUTTON7:
-			DoMouseClick(mOwner, ButtonCode::MouseButton8, diBuff[i]);
+			DoMouseClick(mOwner, ButtonCode::MouseButton8, diBuff[entryIndex]);
 			break;
 		case DIMOFS_X:
-			relX += diBuff[i].dwData;
+			relativeX += diBuff[entryIndex].dwData;
 			axesMoved = true;
 			break;
 		case DIMOFS_Y:
-			relY += diBuff[i].dwData;
+			relativeY += diBuff[entryIndex].dwData;
 			axesMoved = true;
 			break;
 		case DIMOFS_Z:
-			relZ += diBuff[i].dwData;
+			relativeZ += diBuff[entryIndex].dwData;
 			axesMoved = true;
 			break;
 		default: break;
@@ -177,19 +177,19 @@ void Mouse::Capture()
 	}
 
 	if(axesMoved)
-		mOwner->NotifyMouseMovedInternal(relX, relY, relZ);
+		mOwner->NotifyMouseMovedInternal(relativeX, relativeY, relativeZ);
 }
 
 void Mouse::ChangeCaptureContext(u64 windowHandle)
 {
-	HWND newhWnd = (HWND)windowHandle;
+	HWND newWindowHandle = (HWND)windowHandle;
 
-	if(m->HWnd != newhWnd)
+	if(m->HWnd != newWindowHandle)
 	{
 		ReleaseDirectInput(m);
 
 		if(windowHandle != (u64)-1)
-			InitializeDirectInput(m, newhWnd);
+			InitializeDirectInput(m, newWindowHandle);
 		else
 			m->HWnd = (HWND)-1;
 	}

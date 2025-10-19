@@ -275,10 +275,10 @@ void Gamepad::Capture()
 		// Right trigger
 		axisState[5].Value = std::min((int)inputState.Gamepad.bRightTrigger * 129, kMaxAxis);
 
-		for(u32 i = 0; i < 6; i++)
+		for(u32 axisIndex = 0; axisIndex < 6; axisIndex++)
 		{
-			axisState[i].Moved = axisState[i].Value != m->AxisState[i];
-			m->AxisState[i] = axisState[i].Value;
+			axisState[axisIndex].Moved = axisState[axisIndex].Value != m->AxisState[axisIndex];
+			m->AxisState[axisIndex] = axisState[axisIndex].Value;
 		}
 
 		// DPAD (POV)
@@ -323,37 +323,37 @@ void Gamepad::Capture()
 		}
 
 		// Buttons
-		for(u32 i = 0; i < 16; i++)
+		for(u32 buttonIndex = 0; buttonIndex < 16; buttonIndex++)
 		{
-			bool buttonState = (inputState.Gamepad.wButtons & (1 << i)) != 0;
+			bool buttonState = (inputState.Gamepad.wButtons & (1 << buttonIndex)) != 0;
 
-			if(buttonState != m->ButtonState[i])
+			if(buttonState != m->ButtonState[buttonIndex])
 			{
 				if(buttonState)
-					mOwner->NotifyButtonPressedInternal(m->Info.Id, GamepadButtonToButtonCode(i), GetTickCount64());
+					mOwner->NotifyButtonPressedInternal(m->Info.Id, GamepadButtonToButtonCode(buttonIndex), GetTickCount64());
 				else
-					mOwner->NotifyButtonReleasedInternal(m->Info.Id, GamepadButtonToButtonCode(i), GetTickCount64());
+					mOwner->NotifyButtonReleasedInternal(m->Info.Id, GamepadButtonToButtonCode(buttonIndex), GetTickCount64());
 
-				m->ButtonState[i] = buttonState;
+				m->ButtonState[buttonIndex] = buttonState;
 			}
 		}
 
-		for(int i = 0; i < 6; ++i)
+		for(int axisIndex = 0; axisIndex < 6; ++axisIndex)
 		{
-			if(!axisState[i].Moved)
+			if(!axisState[axisIndex].Moved)
 				continue;
 
-			mOwner->NotifyAxisMovedInternal(m->Info.Id, i + (int)InputAxis::MouseZ, axisState[i].Value);
+			mOwner->NotifyAxisMovedInternal(m->Info.Id, axisIndex + (int)InputAxis::MouseZ, axisState[axisIndex].Value);
 		}
 	}
 	else // DirectInput
 	{
 		DIDEVICEOBJECTDATA diBuff[DI_BUFFER_SIZE_GAMEPAD];
-		DWORD numEntries = DI_BUFFER_SIZE_GAMEPAD;
+		DWORD entryCount = DI_BUFFER_SIZE_GAMEPAD;
 
 		HRESULT hr = m->Gamepad->Poll();
 		if(hr == DI_OK)
-			hr = m->Gamepad->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &numEntries, 0);
+			hr = m->Gamepad->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &entryCount, 0);
 
 		if(hr != DI_OK)
 		{
@@ -362,7 +362,7 @@ void Gamepad::Capture()
 				hr = m->Gamepad->Acquire();
 
 			m->Gamepad->Poll();
-			hr = m->Gamepad->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &numEntries, 0);
+			hr = m->Gamepad->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &entryCount, 0);
 
 			if(FAILED(hr))
 				return;
@@ -378,53 +378,53 @@ void Gamepad::Capture()
 		B3DZeroOut(axisState);
 
 		// Note: Not reporting slider or POV events
-		for(u32 i = 0; i < numEntries; ++i)
+		for(u32 entryIndex = 0; entryIndex < entryCount; ++entryIndex)
 		{
-			switch(diBuff[i].dwOfs)
+			switch(diBuff[entryIndex].dwOfs)
 			{
 			case DIJOFS_POV(0):
-				HandlePov(mOwner, m, 0, diBuff[i]);
+				HandlePov(mOwner, m, 0, diBuff[entryIndex]);
 				break;
 			case DIJOFS_POV(1):
-				HandlePov(mOwner, m, 1, diBuff[i]);
+				HandlePov(mOwner, m, 1, diBuff[entryIndex]);
 				break;
 			case DIJOFS_POV(2):
-				HandlePov(mOwner, m, 2, diBuff[i]);
+				HandlePov(mOwner, m, 2, diBuff[entryIndex]);
 				break;
 			case DIJOFS_POV(3):
-				HandlePov(mOwner, m, 3, diBuff[i]);
+				HandlePov(mOwner, m, 3, diBuff[entryIndex]);
 				break;
 			default:
 				// Button event
-				if(diBuff[i].dwOfs >= DIJOFS_BUTTON(0) && diBuff[i].dwOfs < DIJOFS_BUTTON(128))
+				if(diBuff[entryIndex].dwOfs >= DIJOFS_BUTTON(0) && diBuff[entryIndex].dwOfs < DIJOFS_BUTTON(128))
 				{
-					int button = diBuff[i].dwOfs - DIJOFS_BUTTON(0);
+					int button = diBuff[entryIndex].dwOfs - DIJOFS_BUTTON(0);
 
-					if((diBuff[i].dwData & 0x80) != 0)
-						mOwner->NotifyButtonPressedInternal(m->Info.Id, GamepadButtonToButtonCode(button), diBuff[i].dwTimeStamp);
+					if((diBuff[entryIndex].dwData & 0x80) != 0)
+						mOwner->NotifyButtonPressedInternal(m->Info.Id, GamepadButtonToButtonCode(button), diBuff[entryIndex].dwTimeStamp);
 					else
-						mOwner->NotifyButtonReleasedInternal(m->Info.Id, GamepadButtonToButtonCode(button), diBuff[i].dwTimeStamp);
+						mOwner->NotifyButtonReleasedInternal(m->Info.Id, GamepadButtonToButtonCode(button), diBuff[entryIndex].dwTimeStamp);
 				}
-				else if((short)(diBuff[i].uAppData >> 16) == 0x1313) // Axis event
+				else if((short)(diBuff[entryIndex].uAppData >> 16) == 0x1313) // Axis event
 				{
-					int axis = (int)(0x0000FFFF & diBuff[i].uAppData);
+					int axis = (int)(0x0000FFFF & diBuff[entryIndex].uAppData);
 					if(axis < 24)
 					{
 						axisState[axis].Moved = true;
-						axisState[axis].Value = diBuff[i].dwData;
+						axisState[axis].Value = diBuff[entryIndex].dwData;
 					}
 				}
 			}
 		}
 
-		if(numEntries > 0)
+		if(entryCount > 0)
 		{
-			for(int i = 0; i < 24; ++i)
+			for(int axisIndex = 0; axisIndex < 24; ++axisIndex)
 			{
-				if(!axisState[i].Moved)
+				if(!axisState[axisIndex].Moved)
 					continue;
 
-				mOwner->NotifyAxisMovedInternal(m->Info.Id, i + (int)InputAxis::MouseZ, axisState[i].Value);
+				mOwner->NotifyAxisMovedInternal(m->Info.Id, axisIndex + (int)InputAxis::MouseZ, axisState[axisIndex].Value);
 			}
 		}
 	}
@@ -432,15 +432,15 @@ void Gamepad::Capture()
 
 void Gamepad::ChangeCaptureContext(u64 windowHandle)
 {
-	HWND newhWnd = (HWND)windowHandle;
+	HWND newWindowHandle = (HWND)windowHandle;
 
-	if(m->HWnd != newhWnd)
+	if(m->HWnd != newWindowHandle)
 	{
 		ReleaseDirectInput(m);
 
 		if(!m->Info.IsXInput && windowHandle != (u64)-1)
-			InitializeDirectInput(m, newhWnd);
+			InitializeDirectInput(m, newWindowHandle);
 		else
-			m->HWnd = newhWnd;
+			m->HWnd = newWindowHandle;
 	}
 }

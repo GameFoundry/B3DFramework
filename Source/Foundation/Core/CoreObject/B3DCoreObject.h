@@ -115,7 +115,7 @@ namespace b3d
 		/**
 		 * Constructs a new core object.
 		 *
-		 * @param createRenderProxy		Set to true if the object requires a RenderProxy counter-part. Render proxies allow the object
+		 * @param	createRenderProxy		Set to true if the object requires a RenderProxy counter-part. Render proxies allow the object
 		 *									to be used from the render thread, using data syncing from the main thread object to keep up to date.
 		 *									If true, you class should override CreateRenderProxy() to create the proxy, and CreateRenderProxySyncPacket()
 		 *									to provide the data for synchronization between the objects. MarkRenderProxyDataDirty() should be used to notify
@@ -148,7 +148,7 @@ namespace b3d
 		 * Marks the render proxy data as dirty. This causes the SyncToRenderProxy() method to trigger the next time objects are synced
 		 * to the render thread.
 		 *
-		 * @param flags		Flags in case you want to signal that only part of the internal data is dirty.
+		 * @param	flags	Flags in case you want to signal that only part of the internal data is dirty.
 		 *					SyncToRenderProxy() will be called regardless and it's up to the implementation to read
 		 *					the flags value if needed.
 		 */

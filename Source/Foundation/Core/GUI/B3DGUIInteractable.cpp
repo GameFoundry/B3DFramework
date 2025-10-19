@@ -42,12 +42,12 @@ void GUIInteractable::NotifyStateFlagsChanged()
 		mStyleSheetRuleInformation.CurrentStateRuleset = GUIStyleSheetRuleset::kDefault;
 
 	const GUIStyleSheetRules* inheritedRules = mStyleSheetRuleInformation.CurrentStateRuleset != nullptr ? &mStyleSheetRuleInformation.CurrentStateRuleset->Rules : nullptr;
-	for(auto& psudoElementRuleInformation : mPseudoElementStyleSheetRules)
+	for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
 	{
-		if(psudoElementRuleInformation.StateRulesets != nullptr)
-			psudoElementRuleInformation.CurrentStateRuleset = psudoElementRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags, inheritedRules);
+		if(pseudoElementRuleInformation.StateRulesets != nullptr)
+			pseudoElementRuleInformation.CurrentStateRuleset = pseudoElementRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags, inheritedRules);
 		else
-			psudoElementRuleInformation.CurrentStateRuleset = GUIStyleSheetRuleset::kDefault;
+			pseudoElementRuleInformation.CurrentStateRuleset = GUIStyleSheetRuleset::kDefault;
 	}
 }
 
@@ -195,9 +195,9 @@ void GUIInteractable::Destroy()
 	if(mIsPendingDestroy)
 		return;
 
-	const SPtr<GUINavGroup> currentNavigationGroup = GetNavigationGroup();
-	if(currentNavigationGroup != nullptr)
-		currentNavigationGroup->UnregisterElement(this);
+	const SPtr<GUINavGroup> navigationGroup = GetNavigationGroup();
+	if(navigationGroup != nullptr)
+		navigationGroup->UnregisterElement(this);
 
 	GUIRenderable::Destroy();
 }

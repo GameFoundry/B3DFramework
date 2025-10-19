@@ -186,8 +186,8 @@ void ParticleSystem::SetEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers)
 
 	std::sort(mEvolvers.begin(), mEvolvers.end(), [](const SPtr<ParticleEvolver>& a, const SPtr<ParticleEvolver>& b)
 			  {
-			i32 priorityA = a ? a->GetProperties().Priority : 0;
-			i32 priorityB = b ? b->GetProperties().Priority : 0;
+			const i32 priorityA = a ? a->GetProperties().Priority : 0;
+			const i32 priorityB = b ? b->GetProperties().Priority : 0;
 
 			if (priorityA == priorityB)
 				return a > b; // Use address, at this point it doesn't matter, but sorting requires us to differentiate
@@ -293,11 +293,11 @@ void ParticleSystem::Simulate(float timeDelta, const EvaluatedAnimationData* ani
 	// Simulate if running on CPU, otherwise just pass the spawned particles off to the render thread
 	if(!mSettings.GpuSimulation)
 	{
-		const u32 numParticles = mParticleSet->GetParticleCount();
+		const u32 particleCount = mParticleSet->GetParticleCount();
 
-		PreSimulate(state, 0, numParticles, false, 0.0f);
-		Simulate(state, 0, numParticles, false, 0.0f);
-		PostSimulate(state, 0, numParticles, false, 0.0f);
+		PreSimulate(state, 0, particleCount, false, 0.0f);
+		Simulate(state, 0, particleCount, false, 0.0f);
+		PostSimulate(state, 0, particleCount, false, 0.0f);
 	}
 
 	mTime = newTime;
@@ -314,23 +314,23 @@ AABox ParticleSystem::CalculateBounds() const
 
 	const ParticleSetData& particles = mParticleSet->GetParticles();
 	AABox bounds(Vector3(-(float)kMaximumSceneExtent), Vector3((float)kMaximumSceneExtent));
-	for(u32 i = 0; i < particleCount; i++)
-		bounds.Merge(particles.Position[i]);
+	for(u32 particleIndex = 0; particleIndex < particleCount; particleIndex++)
+		bounds.Merge(particles.Position[particleIndex]);
 
 	return bounds;
 }
 
-float ParticleSystem::AdvanceTime(float time, float timeDelta, float duration, bool loop, float& timeStep)
+float ParticleSystem::AdvanceTime(float time, float timeDelta, float duration, bool loop, float& outTimeStep)
 {
-	timeStep = timeDelta;
-	float newTime = time + timeStep;
+	outTimeStep = timeDelta;
+	float newTime = time + outTimeStep;
 	if(newTime >= duration)
 	{
 		if(loop)
 			newTime = fmod(newTime, duration);
 		else
 		{
-			timeStep = time - duration;
+			outTimeStep = time - duration;
 			newTime = duration;
 		}
 	}
@@ -338,44 +338,44 @@ float ParticleSystem::AdvanceTime(float time, float timeDelta, float duration, b
 	return newTime;
 }
 
-void ParticleSystem::PreSimulate(const ParticleSystemState& state, u32 startIdx, u32 count, bool spacing, float spacingOffset)
+void ParticleSystem::PreSimulate(const ParticleSystemState& state, u32 startIndex, u32 count, bool spacing, float spacingOffset)
 {
 	const ParticleSetData& particles = mParticleSet->GetParticles();
 	const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
-	const u32 endIdx = startIdx + count;
+	const u32 endIndex = startIndex + count;
 
 	// Decrement lifetime
-	for(u32 i = startIdx; i < endIdx; i++)
+	for(u32 particleIndex = startIndex; particleIndex < endIndex; particleIndex++)
 	{
 		float timeStep = state.TimeStep;
 		if(spacing)
 		{
 			// Note: We're calculating this in a few places during a single frame. Store it and re-use?
-			const u32 localIdx = i - startIdx;
-			const float subFrameOffset = ((float)localIdx + spacingOffset) * subFrameSpacing;
+			const u32 localIndex = particleIndex - startIndex;
+			const float subFrameOffset = ((float)localIndex + spacingOffset) * subFrameSpacing;
 			timeStep *= subFrameOffset;
 		}
 
-		particles.Lifetime[i] -= timeStep;
+		particles.Lifetime[particleIndex] -= timeStep;
 	}
 
 	// Kill expired particles
-	u32 numParticles = count;
-	for(u32 i = 0; i < numParticles;)
+	u32 particleCount = count;
+	for(u32 particleSubIndex = 0; particleSubIndex < particleCount;)
 	{
-		const u32 particleIdx = startIdx + i;
-		if(particles.Lifetime[particleIdx] <= 0.0f)
+		const u32 particleIndex = startIndex + particleSubIndex;
+		if(particles.Lifetime[particleIndex] <= 0.0f)
 		{
-			mParticleSet->FreeParticle(particleIdx);
-			numParticles--;
+			mParticleSet->FreeParticle(particleIndex);
+			particleCount--;
 		}
 		else
-			i++;
+			particleSubIndex++;
 	}
 
 	// Remember old positions
-	for(u32 i = startIdx; i < endIdx; i++)
-		particles.PrevPosition[i] = particles.Position[i];
+	for(u32 particleIndex = startIndex; particleIndex < endIndex; particleIndex++)
+		particles.PrevPosition[particleIndex] = particles.Position[particleIndex];
 
 	// Evolve pre-simulation
 	for(auto& evolver : mEvolvers)
@@ -387,31 +387,31 @@ void ParticleSystem::PreSimulate(const ParticleSystemState& state, u32 startIdx,
 		if(props.Priority < 0)
 			break;
 
-		evolver->Evolve(mRandom, state, *mParticleSet, startIdx, count, spacing, spacingOffset);
+		evolver->Evolve(mRandom, state, *mParticleSet, startIndex, count, spacing, spacingOffset);
 	}
 }
 
-void ParticleSystem::Simulate(const ParticleSystemState& state, u32 startIdx, u32 count, bool spacing, float spacingOffset)
+void ParticleSystem::Simulate(const ParticleSystemState& state, u32 startIndex, u32 count, bool spacing, float spacingOffset)
 {
 	const ParticleSetData& particles = mParticleSet->GetParticles();
 	const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
-	const u32 endIdx = startIdx + count;
+	const u32 endIndex = startIndex + count;
 
-	for(u32 i = startIdx; i < endIdx; i++)
+	for(u32 particleIndex = startIndex; particleIndex < endIndex; particleIndex++)
 	{
 		float timeStep = state.TimeStep;
 		if(spacing)
 		{
-			const u32 localIdx = i - startIdx;
-			const float subFrameOffset = ((float)localIdx + spacingOffset) * subFrameSpacing;
+			const u32 localIndex = particleIndex - startIndex;
+			const float subFrameOffset = ((float)localIndex + spacingOffset) * subFrameSpacing;
 			timeStep *= subFrameOffset;
 		}
 
-		particles.Position[i] += particles.Velocity[i] * timeStep;
+		particles.Position[particleIndex] += particles.Velocity[particleIndex] * timeStep;
 	}
 }
 
-void ParticleSystem::PostSimulate(const ParticleSystemState& state, u32 startIdx, u32 count, bool spacing, float spacingOffset)
+void ParticleSystem::PostSimulate(const ParticleSystemState& state, u32 startIndex, u32 count, bool spacing, float spacingOffset)
 {
 	// Evolve post-simulation
 	for(auto& evolver : mEvolvers)
@@ -423,7 +423,7 @@ void ParticleSystem::PostSimulate(const ParticleSystemState& state, u32 startIdx
 		if(props.Priority >= 0)
 			continue;
 
-		evolver->Evolve(mRandom, state, *mParticleSet, startIdx, count, spacing, spacingOffset);
+		evolver->Evolve(mRandom, state, *mParticleSet, startIndex, count, spacing, spacingOffset);
 	}
 }
 
@@ -599,7 +599,7 @@ void ParticleSystem::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator
 	if(syncPacket == nullptr)
 		return;
 
-	bool oldIsActive = mActive;
+	const bool wasActive = mActive;
 	syncPacket->ApplySyncData(this);
 
 	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
@@ -607,7 +607,7 @@ void ParticleSystem::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator
 	const u32 updateEverythingFlag = ~(u32)ComponentDirtyFlag::Transform;
 	if((flags & updateEverythingFlag) != 0)
 	{
-		if(oldIsActive != mActive)
+		if(wasActive != mActive)
 		{
 			if(mActive)
 				rendererScene->RegisterParticleSystem(this);

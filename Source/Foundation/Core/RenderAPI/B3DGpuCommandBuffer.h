@@ -163,7 +163,7 @@ namespace b3d
 
 			GpuResourceUseFlags SourceUsage; /**< Determines how was resource used before the barrier. Barrier will only work for provided accesses. */
 			GpuAccessFlags SourceAccess; /**< Determines if the resource was read or written before the barrier. */
-			GpuResourceUseFlags DestinationUsage; /**< Determines how was resource will be used after the barrier. Barrier will only work for provided accesses. */
+			GpuResourceUseFlags DestinationUsage; /**< Determines how was resource will be used after the barrier. Barrier will only work for provided accesses. Images will transition to a layout compatible for this usage - incompatible usages are not allowed. */
 			GpuAccessFlags DestinationAccess; /**< Determines if the resource will be read or written after the barrier. */
 		};
 
@@ -408,23 +408,37 @@ namespace b3d
 			virtual bool IsInRenderPass() const = 0;
 
 			/**
-			 * Issues a memory and/or execution barrier that guarantees that the contents of GPU buffers will be correctly visible for the provided destination stages. The barrier must be issued when
-			 * performing writes to an image or a buffer. For example if writing to a buffer/image:
+			 * Issues a memory and/or execution barrier that guarantees that the contents of GPU buffers will be correctly visible for the provided destination stages. Additionally, transitions
+			 * the images to the correct layout to be used in the destination.
+			 *
+			 * The barrier must be issued when performing writes to an image or a buffer. For example if writing to a buffer/image:
 			 *  - a write-after-read barrier must be issued to ensure any GPU operations reading from the buffer complete before we start writing to it.
 			 *  - a read-after-write/write-after-write barrier must be issued to ensure any GPU operations writing to the buffer complete before we start reading it (or doing another wring).
 			 *
+			 * The barrier must be issued when the destination usage requires a different image layout (relevant for images only):
+			 *  - Texture used for shader reads will in a read-only layout
+			 *  - Texture used for shader writes will be in general purpose layout
+			 *  - Texture used for color attachment writes will be in the color attachment layout
+			 *  - Texture used for color attachment reads will be in the general purpose layout (can also be read by the shader)
+			 *  - Texture used for depth-stencil attachment writes will be in the depth-stencil attachment layout
+			 *  - Texture used for read-only depth-stencil attachments will be in the read-only depth stencil attachment layout (can also be read by the shader)
+			 *  - Textures with TU_DYNAMIC usage are always in general purpose layout, regardless of usages above
+			 *
 			 * In certain cases the barriers are handled automatically and don't need to be issued:
-			 *  - When starting a render pass, all render pass attachments will be safe to write, provided were only used for shader reads previously
-			 *  - When ending a render pass, all render pass attachments will be safe to read by shaders, provided they were only used for attachment reads/writes
-			 *  - All transfer operations (copy, blit, resolve, clear) issue barriers under the hood when the transfer operation runs
+			 *  - When starting a render pass, all render pass attachments will be safe to write, provided they were only used for shader reads previously.
+			 *    They will also be transitioned from shader read-only layout, to color/depth-stencil read/write attachment layout.
+			 *  - When ending a render pass, all render pass attachments will be safe to read by shaders, as well as used by future color/depth-stencil attachment writes,
+			 *    provided they were only used for attachment reads/writes.
+			 *    They will also be transitioned in shader read-only layout (for color attachments) and kept in depth-stencil optimal layout for stencil attachments.
+			 *  - All transfer operations (copy, blit, resolve, clear) issue barriers and layout transitions under the hood when the transfer operation runs
+			 *    Original layout is always restored when the operation ends.
 			 *
 			 * Common example cases where you need to issue a barrier:
-			 *  - A shader writes to a texture/buffer and you wish to read from that texture/buffer in the shader. You need to issue a barrier between the write and read.
-			 *  - A shader writes to a texture/buffer and you wish to write to that texture/buffer in the shader again. You need to issue a barrier between the write and write.
+			 *  - A shader writes to a texture/buffer and you wish to read from that texture/buffer in a shader. You need to issue a barrier between the write and read.
+			 *  - A shader writes to a texture/buffer and you wish to write to that texture/buffer in a shader again. You need to issue a barrier between the write and write.
 			 *  - A shader reads from a texture/buffer and you wish to write to that texture/buffer. You need to issue a barrier between read and write.
 			 *  - A shader writes to a texture and you wish to use that texture as a render pass attachment. You need to issue a barrier between the write and beginning the render pass.
 			 *  - A render target writes to an attachment, which you then use one of its textures for writes in a shader. You must issue a barrier after ending the render pass and writing to the texture.
-			 *  - A render target writes to an attachment, and then another render pass writes to the same attachment. You must issue a barrier between render passes.
 			 *  - A render target writes to depth-stencil attachment, and then another render pass uses the depth-stencil attachment as a read-only attachment. You must issue a barrier between render passes.
 			 */
 			virtual void IssueBarriers(const GpuBarriers& barriers) = 0;

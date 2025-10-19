@@ -96,7 +96,7 @@ namespace b3d
 		 * @param	ray				Ray to check.
 		 * @param	outHit			Information about the hit. Valid only if the method returns true.
 		 * @param	maximumDistance	Maximum distance from the ray origin to search for hits.
-		 * @return			True if the ray has hit the collider.
+		 * @return					True if the ray has hit the collider.
 		 */
 		bool RayCast(const Ray& ray, PhysicsQueryHit& outHit, float maximumDistance = FLT_MAX) const;
 

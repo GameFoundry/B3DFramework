@@ -71,8 +71,8 @@ namespace b3d
 		~GUIClickable() override = default;
 
 		void UpdateRenderElements() override;
-		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
-		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
+		bool DoOnMouseEvent(const GUIMouseEvent& event) override;
+		bool DoOnCommandEvent(const GUICommandEvent& event) override;
 		String GetTooltip() const override;
 		void NotifyStyleChanged() override;
 

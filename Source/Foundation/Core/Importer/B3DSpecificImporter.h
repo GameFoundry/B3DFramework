@@ -62,9 +62,9 @@ namespace b3d
 		 * Imports the given file. If file contains more than one resource only the primary resource is imported (for
 		 * example for an FBX a mesh would be imported, but animations ignored).
 		 *
-		 * @param	filePath		Pathname of the file, with file extension.
-		 * @param	importOptions	Options that can control how is the resource imported.
-		 * @return					null if it fails, otherwise the loaded object.
+		 * @param	filePath			Pathname of the file, with file extension.
+		 * @param	importOptions		Options that can control how is the resource imported.
+		 * @return						null if it fails, otherwise the loaded object.
 		 */
 		virtual SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) = 0;
 
@@ -72,10 +72,10 @@ namespace b3d
 		 * Imports the given file. This method returns all imported resources, which is relevant for files that can contain
 		 * multiple resources (for example an FBX which may contain both a mesh and animations).
 		 *
-		 * @param	filePath		Pathname of the file, with file extension.
-		 * @param	importOptions	Options that can control how are the resources imported.
-		 * @return					Empty array if it fails, otherwise the loaded objects. First element is always the
-		 *							primary resource.
+		 * @param	filePath			Pathname of the file, with file extension.
+		 * @param	importOptions		Options that can control how are the resources imported.
+		 * @return						Empty array if it fails, otherwise the loaded objects. First element is always the
+		 *								primary resource.
 		 */
 		virtual Vector<SubResourceRaw> ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions);
 

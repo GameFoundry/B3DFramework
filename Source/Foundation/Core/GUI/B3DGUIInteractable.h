@@ -51,9 +51,9 @@ namespace b3d
 		/**
 		 * Change the GUI element focus state.
 		 *
-		 * @param[in]	enabled		Give the element focus or take it away.
-		 * @param[in]	clear		If true the focus will be cleared from any elements currently in focus. Otherwise
-		 *							the element will just be appended to the in-focus list (if enabling focus).
+		 * @param	enabled		Give the element focus or take it away.
+		 * @param	clear		If true the focus will be cleared from any elements currently in focus. Otherwise
+		 *						the element will just be appended to the in-focus list (if enabling focus).
 		 */
 		B3D_SCRIPT_EXPORT()
 		virtual void SetFocus(bool enabled, bool clear = false);

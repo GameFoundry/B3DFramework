@@ -81,13 +81,13 @@ namespace b3d
 		/**
 		 * Constructs a new scrollbar.
 		 *
-		 * @param[in]	horizontal	If true the scroll bar will have a horizontal moving handle, otherwise it will be a
-		 *							vertical one.
-		 * @param[in]	resizable	If true the scrollbar will have additional handles that allow the scroll handle to be
-		 *							resized. This allows you to adjust the size of the visible scroll area.
-		 * @param[in]	styleName	Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *							GUIWidget the element is used on. If not specified default style is used.
-		 * @param[in]	dimensions	Determines valid dimensions (size) of the element.
+		 * @param	horizontal	If true the scroll bar will have a horizontal moving handle, otherwise it will be a
+		 *						vertical one.
+		 * @param	resizable	If true the scrollbar will have additional handles that allow the scroll handle to be
+		 *						resized. This allows you to adjust the size of the visible scroll area.
+		 * @param	styleName	Optional style to use for the element. Style will be retrieved from GUISkin of the
+		 *						GUIWidget the element is used on. If not specified default style is used.
+		 * @param	dimensions	Determines valid dimensions (size) of the element.
 		 */
 		GUIScrollBar(bool horizontal, bool resizable, const String& styleName, const GUISizeConstraints& dimensions);
 		virtual ~GUIScrollBar();

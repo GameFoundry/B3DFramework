@@ -61,7 +61,7 @@ namespace b3d
 		 *							UUID will be assigned.
 		 * @return					Imported resource.
 		 *
-		 * @see		createImportOptions
+		 * @see		CreateImportOptions
 		 * @note	Thread safe.
 		 */
 		B3D_SCRIPT_EXPORT()
@@ -92,7 +92,7 @@ namespace b3d
 		 * @return					A list of all imported resources. The primary resource is always the first returned
 		 *							resource.
 		 *
-		 * @see		createImportOptions
+		 * @see		CreateImportOptions
 		 * @note	Thread safe.
 		 */
 		B3D_SCRIPT_EXPORT()
@@ -139,7 +139,7 @@ namespace b3d
 		/**
 		 * Checks if we can import a file with the specified magic number.
 		 *
-		 * @param	magicNumber 		The buffer containing the magic number.
+		 * @param	magicNumber			The buffer containing the magic number.
 		 * @param	magicNumberSize		Size of the magic number buffer.
 		 */
 		bool SupportsFileType(const u8* magicNumber, u32 magicNumberSize) const;

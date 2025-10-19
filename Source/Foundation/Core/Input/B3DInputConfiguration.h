@@ -140,8 +140,8 @@ namespace b3d
 	/**	Contains virtual <-> physical key mappings. */
 	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Input)) InputConfiguration : public IScriptExportable
 	{
-		static const int kMaxNumDevicesPerType = 8;
-		static const int kMaxNumDevices = (u32)InputDevice::Count * kMaxNumDevicesPerType;
+		static const int kMaxDeviceCountPerType = 8;
+		static const int kMaxNumDevices = (u32)InputDevice::Count * kMaxDeviceCountPerType;
 
 		/**	Internal virtual button data container. */
 		struct VirtualButtonData
@@ -172,11 +172,11 @@ namespace b3d
 		/**
 		 * Registers a new virtual button.
 		 *
-		 * @param	name		Unique name used to access the virtual button.
-		 * @param	buttonCode	Physical button the virtual button is triggered by.
-		 * @param	modifiers	Modifiers required to be pressed with the physical button to trigger the virtual button.
-		 * @param	repeatable	If true, the virtual button events will be sent continually while the physical button
-		 *						is being held.
+		 * @param	name			Unique name used to access the virtual button.
+		 * @param	buttonCode		Physical button the virtual button is triggered by.
+		 * @param	modifiers		Modifiers required to be pressed with the physical button to trigger the virtual button.
+		 * @param	repeatable		If true, the virtual button events will be sent continually while the physical button
+		 *							is being held.
 		 */
 		B3D_SCRIPT_EXPORT()
 		void RegisterButton(const String& name, ButtonCode buttonCode, ButtonModifier modifiers = ButtonModifier::None, bool repeatable = false);

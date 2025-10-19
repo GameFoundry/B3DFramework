@@ -27,12 +27,12 @@ namespace b3d
 		/**
 		 * Draws a line going from @p a to @p b.
 		 *
-		 * @param[in]	a		Starting point of the line, relative to the canvas origin (top-left).
-		 * @param[in]	b		Ending point of the line, relative to the canvas origin (top-left).
-		 * @param[in]	color	Color of the line.
-		 * @param[in]	depth	Depth at which to draw the element. Elements with higher depth will be drawn before others.
-		 *						Additionally elements of the same type (triangle or line) will be drawn in order they are
-		 *						submitted if they share the same depth.
+		 * @param	a		Starting point of the line, relative to the canvas origin (top-left).
+		 * @param	b		Ending point of the line, relative to the canvas origin (top-left).
+		 * @param	color	Color of the line.
+		 * @param	depth	Depth at which to draw the element. Elements with higher depth will be drawn before others.
+		 *					Additionally elements of the same type (triangle or line) will be drawn in order they are
+		 *					submitted if they share the same depth.
 		 */
 		B3D_SCRIPT_EXPORT()
 		void DrawLine(const GUILogicalPoint& a, const GUILogicalPoint& b, const Color& color, u8 depth = 128);
@@ -41,12 +41,12 @@ namespace b3d
 		 * Draws multiple lines following the path by the provided vertices. First vertex connects to the second vertex,
 		 * and every following vertex connects to the previous vertex.
 		 *
-		 * @param[in]	vertices	Points to use for drawing the line. Must have at least two elements. All points are
-		 *							relative to the canvas origin (top-left).
-		 * @param[in]	color		Color of the line.
-		 * @param[in]	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
-		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
-		 *							they are submitted if they share the same depth.
+		 * @param	vertices	Points to use for drawing the line. Must have at least two elements. All points are
+		 *						relative to the canvas origin (top-left).
+		 * @param	color		Color of the line.
+		 * @param	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
+		 *						others. Additionally elements of the same type (triangle or line) will be drawn in order
+		 *						they are submitted if they share the same depth.
 		 */
 		B3D_SCRIPT_EXPORT()
 		void DrawPolyLine(const Vector<GUILogicalPoint>& vertices, const Color& color, u8 depth = 128);
@@ -54,15 +54,15 @@ namespace b3d
 		/**
 		 * Draws a quad with a the provided image displayed.
 		 *
-		 * @param[in]	image		Image to draw.
-		 * @param[in]	area		Position and size of the texture to draw. Position is relative to the canvas origin
-		 *							(top-left). If size is zero, the default texture size will be used.
-		 * @param[in]	color		Color to tint the drawn texture with.
-		 * @param[in]	scaleMode	Scale mode to use when sizing the texture. Only relevant if the provided quad size
-		 *							doesn't match the texture size.
-		 * @param[in]	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
-		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
-		 *							they are submitted if they share the same depth.
+		 * @param	image		Image to draw.
+		 * @param	area		Position and size of the texture to draw. Position is relative to the canvas origin
+		 *						(top-left). If size is zero, the default texture size will be used.
+		 * @param	color		Color to tint the drawn texture with.
+		 * @param	scaleMode	Scale mode to use when sizing the texture. Only relevant if the provided quad size
+		 *						doesn't match the texture size.
+		 * @param	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
+		 *						others. Additionally elements of the same type (triangle or line) will be drawn in order
+		 *						they are submitted if they share the same depth.
 		 */
 		B3D_SCRIPT_EXPORT()
 		void DrawImage(const HSpriteImage& image, const GUILogicalArea& area, const Color& color, TextureScaleMode scaleMode = TextureScaleMode::StretchToFit, u8 depth = 128);
@@ -71,12 +71,12 @@ namespace b3d
 		 * Draws a triangle strip. First three vertices are used to form the initial triangle, and every next vertex will
 		 * form a triangle with the previous two.
 		 *
-		 * @param[in]	vertices	A set of points defining the triangles. Must have at least three elements. All points
-		 *							are relative to the canvas origin (top-left).
-		 * @param[in]	color		Color of the triangles.
-		 * @param[in]	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
-		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
-		 *							they are submitted if they share the same depth.
+		 * @param	vertices	A set of points defining the triangles. Must have at least three elements. All points
+		 *						are relative to the canvas origin (top-left).
+		 * @param	color		Color of the triangles.
+		 * @param	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
+		 *						others. Additionally elements of the same type (triangle or line) will be drawn in order
+		 *						they are submitted if they share the same depth.
 		 */
 		B3D_SCRIPT_EXPORT()
 		void DrawTriangleStrip(const Vector<GUILogicalPoint>& vertices, const Color& color, u8 depth = 128);
@@ -84,12 +84,12 @@ namespace b3d
 		/**
 		 * Draws a triangle list. Every three vertices in the list represent a unique triangle.
 		 *
-		 * @param[in]	vertices	A set of points defining the triangles. Must have at least three elements, and its size
-		 *							must be a multiple of three.
-		 * @param[in]	color		Color of the triangles.
-		 * @param[in]	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
-		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
-		 *							they are submitted if they share the same depth.
+		 * @param	vertices	A set of points defining the triangles. Must have at least three elements, and its size
+		 *						must be a multiple of three.
+		 * @param	color		Color of the triangles.
+		 * @param	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
+		 *						others. Additionally elements of the same type (triangle or line) will be drawn in order
+		 *						they are submitted if they share the same depth.
 		 */
 		B3D_SCRIPT_EXPORT()
 		void DrawTriangleList(const Vector<GUILogicalPoint>& vertices, const Color& color, u8 depth = 128);
@@ -98,15 +98,15 @@ namespace b3d
 		 * Draws a piece of text with the wanted font. The text will be aligned to the top-left corner of the provided
 		 * position, and will not be word wrapped.
 		 *
-		 * @param[in]	text		Text to draw.
-		 * @param[in]	position	Position of the text to draw. This represents the top-left corner of the text. It is
-		 *							relative to the canvas origin (top-left).
-		 * @param[in]	font		Font to draw the text with.
-		 * @param[in]	size		Size of the font.
-		 * @param[in]	color		Color of the text.
-		 * @param[in]	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
-		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
-		 *							they are submitted if they share the same depth.
+		 * @param	text		Text to draw.
+		 * @param	position	Position of the text to draw. This represents the top-left corner of the text. It is
+		 *						relative to the canvas origin (top-left).
+		 * @param	font		Font to draw the text with.
+		 * @param	size		Size of the font.
+		 * @param	color		Color of the text.
+		 * @param	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
+		 *						others. Additionally elements of the same type (triangle or line) will be drawn in order
+		 *						they are submitted if they share the same depth.
 		 */
 		B3D_SCRIPT_EXPORT()
 		void DrawText(const String& text, const GUILogicalPoint& position, const HFont& font, float size, const Color& color, u8 depth = 128);
@@ -195,7 +195,7 @@ namespace b3d
 
 		virtual ~GUICanvas();
 
-		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
+		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxVertexCount, u32 maxIndexCount, u32 renderElementIdx) const override;
 		void UpdateRenderElements() override;
 
 		/** Build an image sprite from the provided canvas element. */

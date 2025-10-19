@@ -34,14 +34,14 @@ GUIDropDownContent* GUIDropDownContent::Create(GUIDropDownMenu::DropDownSubMenu*
 
 void GUIDropDownContent::SetRange(u32 start, u32 end)
 {
-	std::function<void(u32, u32)> onHover =
+	std::function<void(u32, u32)> fnOnHover =
 		[&](u32 idx, u32 visIdx)
 	{
 		SetSelected(visIdx);
 		mParent->ElementSelected(idx);
 	};
 
-	std::function<void(u32, u32)> onClick =
+	std::function<void(u32, u32)> fnOnClick =
 		[&](u32 idx, u32 visIdx)
 	{
 		SetSelected(visIdx);
@@ -67,14 +67,14 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 		mSelectedIdx = UINT_MAX;
 
 	mVisibleElements.clear();
-	u32 curVisIdx = 0;
-	for(u32 i = start; i < end; i++)
+	u32 currentVisibleIndex = 0;
+	for(u32 elementIndex = start; elementIndex < end; elementIndex++)
 	{
 		mVisibleElements.push_back(VisibleElement());
 		VisibleElement& visibleElement = mVisibleElements.back();
-		visibleElement.SequentialIndex = i;
+		visibleElement.SequentialIndex = elementIndex;
 
-		GUIDropDownDataEntry& element = mDropDownData.Entries[i];
+		GUIDropDownDataEntry& element = mDropDownData.Entries[elementIndex];
 
 		if(element.IsSeparator())
 		{
@@ -92,7 +92,7 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 
 			if(element.IsSubMenu())
 			{
-				GUILabel* const label = GUILabel::Create(GUIContent(GetElementLocalizedName(i)));
+				GUILabel* const label = GUILabel::Create(GUIContent(GetElementLocalizedName(elementIndex)));
 				label->SetOptionFlags(GUIElementOption::IgnorePointerEvents);
 
 				GUIButton* const arrow = GUIButton::Create(GUIContent(StockIcons::Instance().GetIcon(StockIcon::FontAwesomeRightLong, 12.0f)), kExpandArrowStyleClass);
@@ -101,17 +101,17 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 				visibleElement.Layout->AddElement(label);
 				visibleElement.Layout->AddElement(arrow);
 
-				visibleElement.UnderlayButton->OnHover.Connect(std::bind(onClick, i, curVisIdx));
+				visibleElement.UnderlayButton->OnHover.Connect([elementIndex, currentVisibleIndex, &fnOnHover] { fnOnHover(elementIndex, currentVisibleIndex); });
 			}
 			else if(mIsToggle)
 			{
-				GUILabel* const label = GUILabel::Create(GUIContent(GetElementLocalizedName(i)));
+				GUILabel* const label = GUILabel::Create(GUIContent(GetElementLocalizedName(elementIndex)));
 				label->SetOptionFlags(GUIElementOption::IgnorePointerEvents);
 
 				GUIToggle* const toggle = GUIToggle::Create(GUIContent(), kToggleStyleClass);
 				toggle->SetOptionFlags(GUIElementOption::IgnorePointerEvents);
 
-				if(mStates[i])
+				if(mStates[elementIndex])
 					toggle->SetIsToggled(true);
 
 				visibleElement.Button = toggle;
@@ -133,9 +133,9 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 			}
 			else
 			{
-				visibleElement.Button = GUIButton::Create(GetElementLocalizedName(i), kButtonStyleClass);
-				visibleElement.Button->OnHover.Connect(std::bind(onHover, i, curVisIdx));
-				visibleElement.Button->OnClick.Connect(std::bind(onClick, i, curVisIdx));
+				visibleElement.Button = GUIButton::Create(GetElementLocalizedName(elementIndex), kButtonStyleClass);
+				visibleElement.Button->OnHover.Connect([elementIndex, currentVisibleIndex, &fnOnHover] { fnOnHover(elementIndex, currentVisibleIndex); });
+				visibleElement.Button->OnClick.Connect([elementIndex, currentVisibleIndex, &fnOnClick] { fnOnClick(elementIndex, currentVisibleIndex); });
 				visibleElement.Layout->AddElement(visibleElement.Button);
 			}
 
@@ -150,13 +150,13 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 			}
 		}
 
-		curVisIdx++;
+		currentVisibleIndex++;
 	}
 
 	MarkLayoutAsDirty();
 }
 
-GUILogicalUnit GUIDropDownContent::GetElementHeight(u32 idx) const
+GUILogicalUnit GUIDropDownContent::GetElementHeight(u32 index) const
 {
 	static constexpr GUILogicalUnit kDefaultHeight = 16; // Height to use when no style available
 
@@ -167,7 +167,7 @@ GUILogicalUnit GUIDropDownContent::GetElementHeight(u32 idx) const
 	const GUIStyleSheetCascade& styleSheetCascade = widget->GetStyleSheetCascade();
 
 	GUIStyleSheetRules rules;
-	if(mDropDownData.Entries[idx].IsSeparator())
+	if(mDropDownData.Entries[index].IsSeparator())
 		rules = styleSheetCascade.BuildRules("texture", kSeparatorStyleClass);
 	else
 	{
@@ -178,13 +178,13 @@ GUILogicalUnit GUIDropDownContent::GetElementHeight(u32 idx) const
 	return GUILogicalUnit((i32)rules.Size.Height);
 }
 
-HString GUIDropDownContent::GetElementLocalizedName(u32 idx) const
+HString GUIDropDownContent::GetElementLocalizedName(u32 index) const
 {
-	const String& label = mDropDownData.Entries[idx].GetLabel();
+	const String& label = mDropDownData.Entries[index].GetLabel();
 
-	auto findLocalizedName = mDropDownData.LocalizedNames.find(label);
-	if(findLocalizedName != mDropDownData.LocalizedNames.end())
-		return findLocalizedName->second;
+	auto found = mDropDownData.LocalizedNames.find(label);
+	if(found != mDropDownData.LocalizedNames.end())
+		return found->second;
 	else
 		return HString(label);
 }
@@ -265,7 +265,7 @@ bool GUIDropDownContent::DoOnMouseEvent(const GUIMouseEvent& ev)
 	return false;
 }
 
-void GUIDropDownContent::SetSelected(u32 idx)
+void GUIDropDownContent::SetSelected(u32 index)
 {
 	if(mSelectedIdx != UINT_MAX)
 	{
@@ -276,7 +276,7 @@ void GUIDropDownContent::SetSelected(u32 idx)
 			previouslySelectedElement.Button->RemoveStateFlags(GUIElementStateFlag::Hover);
 	}
 
-	mSelectedIdx = idx;
+	mSelectedIdx = index;
 
 	VisibleElement& newlySelectedElement = mVisibleElements[mSelectedIdx];
 
@@ -287,83 +287,83 @@ void GUIDropDownContent::SetSelected(u32 idx)
 	mParent->ElementSelected(mVisibleElements[mSelectedIdx].SequentialIndex);
 }
 
-void GUIDropDownContent::SelectNext(u32 startIdx)
+void GUIDropDownContent::SelectNext(u32 startIndex)
 {
-	u32 numElements = (u32)mDropDownData.Entries.size();
+	u32 elementCount = (u32)mDropDownData.Entries.size();
 
 	bool gotNextIndex = false;
-	u32 nextIdx = startIdx;
-	for(u32 i = 0; i < numElements; i++)
+	u32 nextIndex = startIndex;
+	for(u32 elementIndex = 0; elementIndex < elementCount; elementIndex++)
 	{
-		if(nextIdx >= numElements)
-			nextIdx = 0; // Wrap around
+		if(nextIndex >= elementCount)
+			nextIndex = 0; // Wrap around
 
-		GUIDropDownDataEntry& entry = mDropDownData.Entries[nextIdx];
+		GUIDropDownDataEntry& entry = mDropDownData.Entries[nextIndex];
 		if(!entry.IsSeparator())
 		{
 			gotNextIndex = true;
 			break;
 		}
 
-		nextIdx++;
+		nextIndex++;
 	}
 
 	if(gotNextIndex)
 	{
-		while(nextIdx < mRangeStart || nextIdx >= mRangeEnd)
+		while(nextIndex < mRangeStart || nextIndex >= mRangeEnd)
 			mParent->ScrollDown();
 
-		u32 visIdx = 0;
-		for(auto& visElem : mVisibleElements)
+		u32 visibleIndex = 0;
+		for(auto& visibleElement : mVisibleElements)
 		{
-			if(visElem.SequentialIndex == nextIdx)
+			if(visibleElement.SequentialIndex == nextIndex)
 			{
-				SetSelected(visIdx);
+				SetSelected(visibleIndex);
 				break;
 			}
 
-			visIdx++;
+			visibleIndex++;
 		}
 	}
 }
 
-void GUIDropDownContent::SelectPrevious(u32 startIdx)
+void GUIDropDownContent::SelectPrevious(u32 startIndex)
 {
-	u32 numElements = (u32)mDropDownData.Entries.size();
+	u32 elementCount = (u32)mDropDownData.Entries.size();
 
 	bool gotNextIndex = false;
-	i32 prevIdx = (i32)startIdx;
+	i32 previousIndex = (i32)startIndex;
 
-	for(u32 i = 0; i < numElements; i++)
+	for(u32 elementIndex = 0; elementIndex < elementCount; elementIndex++)
 	{
-		if(prevIdx < 0)
-			prevIdx = numElements - 1; // Wrap around
+		if(previousIndex < 0)
+			previousIndex = elementCount - 1; // Wrap around
 
-		GUIDropDownDataEntry& entry = mDropDownData.Entries[prevIdx];
+		GUIDropDownDataEntry& entry = mDropDownData.Entries[previousIndex];
 		if(!entry.IsSeparator())
 		{
 			gotNextIndex = true;
 			break;
 		}
 
-		prevIdx--;
+		previousIndex--;
 	}
 
 	if(gotNextIndex)
 	{
-		while(prevIdx < (i32)mRangeStart || prevIdx >= (i32)mRangeEnd)
+		while(previousIndex < (i32)mRangeStart || previousIndex >= (i32)mRangeEnd)
 			mParent->ScrollUp();
 
-		u32 visIdx = 0;
-		for(auto& visElem : mVisibleElements)
+		u32 visibleIndex = 0;
+		for(auto& visibleElement : mVisibleElements)
 		{
-			if(visElem.SequentialIndex == (u32)prevIdx)
+			if(visibleElement.SequentialIndex == (u32)previousIndex)
 			{
-				SetSelected(visIdx);
+				SetSelected(visibleIndex);
 				break;
 			}
 
-			visIdx++;
+			visibleIndex++;
 		}
 	}
 }

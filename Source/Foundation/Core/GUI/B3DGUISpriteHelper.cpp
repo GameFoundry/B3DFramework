@@ -168,18 +168,18 @@ Size2I GUIContentSprites::CalculateScaledImageSize(const HSpriteImage& image, co
 	const i32 contentMaxWidth = size.Width;
 	const i32 contentMaxHeight = size.Height;
 
-	float horzRatio = (float)contentMaxWidth / (float)contentWidth;
-	float vertRatio = (float)contentMaxHeight / (float)contentHeight;
+	float horizontalRatio = (float)contentMaxWidth / (float)contentWidth;
+	float verticalRatio = (float)contentMaxHeight / (float)contentHeight;
 
-	if(horzRatio < vertRatio)
+	if(horizontalRatio < verticalRatio)
 	{
-		contentWidth = Math::RoundToI32(contentWidth * horzRatio);
-		contentHeight = Math::RoundToI32(contentHeight * horzRatio);
+		contentWidth = Math::RoundToI32(contentWidth * horizontalRatio);
+		contentHeight = Math::RoundToI32(contentHeight * horizontalRatio);
 	}
 	else
 	{
-		contentWidth = Math::RoundToI32(contentWidth * vertRatio);
-		contentHeight = Math::RoundToI32(contentHeight * vertRatio);
+		contentWidth = Math::RoundToI32(contentWidth * verticalRatio);
+		contentHeight = Math::RoundToI32(contentHeight * verticalRatio);
 	}
 
 	return Size2I(contentWidth, contentHeight);

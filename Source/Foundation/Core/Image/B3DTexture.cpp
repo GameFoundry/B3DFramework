@@ -51,10 +51,10 @@ u32 TextureProperties::GetFaceCount() const
 
 void TextureProperties::MapFromSubresourceIdx(u32 subresourceIdx, u32& face, u32& mip) const
 {
-	u32 numMipmaps = MipMapCount + 1;
+	u32 mipmapCount = MipMapCount + 1;
 
-	face = Math::FloorToInt((subresourceIdx) / (float)numMipmaps);
-	mip = subresourceIdx % numMipmaps;
+	face = Math::FloorToInt((subresourceIdx) / (float)mipmapCount);
+	mip = subresourceIdx % mipmapCount;
 }
 
 u32 TextureProperties::MapToSubresourceIdx(u32 face, u32 mip) const
@@ -68,7 +68,7 @@ SPtr<PixelData> TextureProperties::AllocBuffer(u32 face, u32 mipLevel) const
 	u32 height = Height;
 	u32 depth = Depth;
 
-	for(u32 j = 0; j < mipLevel; j++)
+	for(u32 mipIndex = 0; mipIndex < mipLevel; mipIndex++)
 	{
 		if(width != 1) width /= 2;
 		if(height != 1) height /= 2;
@@ -254,10 +254,10 @@ void Texture::ReadCachedData(PixelData& dest, u32 face, u32 mipLevel)
 	if(mCPUSubresourceData[subresourceIdx]->GetSize() != dest.GetSize())
 		B3D_EXCEPT(InternalErrorException, "Buffer sizes don't match.");
 
-	u8* srcPtr = mCPUSubresourceData[subresourceIdx]->GetData();
-	u8* destPtr = dest.GetData();
+	u8* sourcePointer = mCPUSubresourceData[subresourceIdx]->GetData();
+	u8* destinationPointer = dest.GetData();
 
-	memcpy(destPtr, srcPtr, dest.GetSize());
+	memcpy(destinationPointer, sourcePointer, dest.GetSize());
 }
 
 void Texture::CreateCpuBuffers()
@@ -268,15 +268,15 @@ void Texture::CreateCpuBuffers()
 	u32 numSubresources = numFaces * numMips;
 	mCPUSubresourceData.resize(numSubresources);
 
-	for(u32 i = 0; i < numFaces; i++)
+	for(u32 faceIndex = 0; faceIndex < numFaces; faceIndex++)
 	{
 		u32 curWidth = mProperties.Width;
 		u32 curHeight = mProperties.Height;
 		u32 curDepth = mProperties.Depth;
 
-		for(u32 j = 0; j < numMips; j++)
+		for(u32 mipIndex = 0; mipIndex < numMips; mipIndex++)
 		{
-			u32 subresourceIdx = mProperties.MapToSubresourceIdx(i, j);
+			u32 subresourceIdx = mProperties.MapToSubresourceIdx(faceIndex, mipIndex);
 
 			mCPUSubresourceData[subresourceIdx] = B3DMakeShared<PixelData>(curWidth, curHeight, curDepth, mProperties.Format);
 			mCPUSubresourceData[subresourceIdx]->AllocateInternalBuffer();
@@ -637,14 +637,14 @@ SPtr<TextureView> Texture::RequestView(const TextureSurface& surface, GpuViewUsa
 	key.Surface = surface;
 	key.Usage = usage;
 
-	auto iterFind = mTextureViews.find(key);
-	if(iterFind == mTextureViews.end())
+	auto found = mTextureViews.find(key);
+	if(found == mTextureViews.end())
 	{
 		mTextureViews[key] = CreateView(key);
 
-		iterFind = mTextureViews.find(key);
+		found = mTextureViews.find(key);
 	}
 
-	return iterFind->second;
+	return found->second;
 }
 }}

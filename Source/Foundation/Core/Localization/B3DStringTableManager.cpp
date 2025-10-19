@@ -17,9 +17,9 @@ void StringTableManager::SetActiveLanguage(Language language)
 
 HStringTable StringTableManager::GetTable(u32 id)
 {
-	auto iterFind = mTables.find(id);
-	if(iterFind != mTables.end())
-		return iterFind->second;
+	auto found = mTables.find(id);
+	if(found != mTables.end())
+		return found->second;
 
 	HStringTable newTable = StringTable::Create();
 	SetTable(id, newTable);

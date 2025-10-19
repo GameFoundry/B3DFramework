@@ -293,10 +293,10 @@ void Rigidbody::AddCollider(const HCollider& collider)
 
 void Rigidbody::RemoveCollider(const HCollider& collider)
 {
-	auto findIterator = std::find(mChildColliders.begin(), mChildColliders.end(), collider);
+	auto found = std::find(mChildColliders.begin(), mChildColliders.end(), collider);
 
-	if(findIterator != mChildColliders.end())
-		mChildColliders.erase(findIterator);
+	if(found != mChildColliders.end())
+		mChildColliders.erase(found);
 }
 
 void Rigidbody::CheckForNestedRigibody()

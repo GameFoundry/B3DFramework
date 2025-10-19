@@ -58,18 +58,18 @@ namespace b3d
 
 		/**
 		 * Controls which obstacles will the character be able to automatically step over without being stopped. This is the
-		 * height of the maximum obstacle that will be stepped over (with exceptions, see climbingMode).
+		 * height of the maximum obstacle that will be stepped over (with exceptions, see ClimbingMode).
 		 */
 		float StepOffset = 0.5f;
 
 		/**
 		 * Controls which slopes should the character consider too steep and won't be able to move over. See
-		 * nonWalkableMode for more information.
+		 * NonWalkableMode for more information.
 		 */
 		Radian SlopeLimit = Degree(45.0f);
 
 		/**
-		 * Represents minimum distance that the character will move during a call to move(). This is used to stop the
+		 * Represents minimum distance that the character will move during a call to Move(). This is used to stop the
 		 * recursive motion algorithm when the remaining distance is too small.
 		 */
 		float MinMoveDistance = 0.0f;
@@ -155,7 +155,7 @@ namespace b3d
 
 		/**
 		 * Determines the  position of the bottom of the controller. Position takes contact offset into account. Changing
-		 * this will teleport the character to the location. Use move() for movement that includes physics.
+		 * this will teleport the character to the location. Use Move() for movement that includes physics.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(FootPosition), Property(Setter), UI(Hide))
 		void SetFootPosition(const Vector3& position);

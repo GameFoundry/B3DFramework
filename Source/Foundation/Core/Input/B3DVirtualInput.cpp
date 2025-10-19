@@ -14,11 +14,8 @@ VirtualInput::VirtualInput()
 {
 	mInputConfiguration = B3DMakeShared<InputConfiguration>();
 
-	auto fnButtonDown = [this](const ButtonEvent& event) { ButtonDown(event); };
-	Input::Instance().OnButtonDown.Connect(fnButtonDown);
-
-	auto fnButtonUp = [this](const ButtonEvent& event) { ButtonUp(event); };
-	Input::Instance().OnButtonUp.Connect(fnButtonUp);
+	Input::Instance().OnButtonDown.Connect([this](const ButtonEvent& event) { ButtonDown(event); });
+	Input::Instance().OnButtonUp.Connect([this](const ButtonEvent& event) { ButtonUp(event); });
 }
 
 void VirtualInput::SetConfiguration(const SPtr<InputConfiguration>& input)
@@ -61,10 +58,10 @@ bool VirtualInput::IsButtonDown(const VirtualButton& button, u32 deviceIndex) co
 		return false;
 
 	const Map<u32, ButtonData>& cachedStates = mDevices[deviceIndex].CachedStates;
-	auto foundIterator = cachedStates.find(button.ButtonIdentifier);
+	auto found = cachedStates.find(button.ButtonIdentifier);
 
-	if(foundIterator != cachedStates.end())
-		return foundIterator->second.State == ButtonState::ToggledOn;
+	if(found != cachedStates.end())
+		return found->second.State == ButtonState::ToggledOn;
 
 	return false;
 }
@@ -75,10 +72,10 @@ bool VirtualInput::IsButtonUp(const VirtualButton& button, u32 deviceIndex) cons
 		return false;
 
 	const Map<u32, ButtonData>& cachedStates = mDevices[deviceIndex].CachedStates;
-	auto foundIterator = cachedStates.find(button.ButtonIdentifier);
+	auto found = cachedStates.find(button.ButtonIdentifier);
 
-	if(foundIterator != cachedStates.end())
-		return foundIterator->second.State == ButtonState::ToggledOff;
+	if(found != cachedStates.end())
+		return found->second.State == ButtonState::ToggledOff;
 
 	return false;
 }
@@ -89,10 +86,10 @@ bool VirtualInput::IsButtonHeld(const VirtualButton& button, u32 deviceIndex) co
 		return false;
 
 	const Map<u32, ButtonData>& cachedStates = mDevices[deviceIndex].CachedStates;
-	auto foundIterator = cachedStates.find(button.ButtonIdentifier);
+	auto found = cachedStates.find(button.ButtonIdentifier);
 
-	if(foundIterator != cachedStates.end())
-		return foundIterator->second.State == ButtonState::On || foundIterator->second.State == ButtonState::ToggledOn;
+	if(found != cachedStates.end())
+		return found->second.State == ButtonState::On || found->second.State == ButtonState::ToggledOn;
 
 	return false;
 }
@@ -316,9 +313,9 @@ void VirtualInput::ButtonUp(const ButtonEvent& event)
 
 			mEvents.push(virtualEvent);
 
-			auto foundIterator = std::find(heldButtons.begin(), heldButtons.end(), button.ButtonIdentifier);
-			if(foundIterator != heldButtons.end())
-				heldButtons.SwapAndErase(foundIterator);
+			auto found = std::find(heldButtons.begin(), heldButtons.end(), button.ButtonIdentifier);
+			if(found != heldButtons.end())
+				heldButtons.SwapAndErase(found);
 		}
 	}
 }

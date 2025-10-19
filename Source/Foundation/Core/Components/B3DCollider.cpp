@@ -44,8 +44,8 @@ void Collider::SetMass(float mass)
 
 	mMass = mass;
 
-	for(auto& entry : mShapes)
-		entry->SetMass(mass);
+	for(auto& shape : mShapes)
+		shape->SetMass(mass);
 
 	if(mParentRigidbody != nullptr)
 		mParentRigidbody->UpdateMassDistribution();
@@ -55,8 +55,8 @@ void Collider::SetMaterial(const HPhysicsMaterial& material)
 {
 	mMaterial = material;
 
-	for(auto& entry : mShapes)
-		entry->SetMaterial(material);
+	for(auto& shape : mShapes)
+		shape->SetMaterial(material);
 }
 
 void Collider::SetContactOffset(float value)
@@ -65,8 +65,8 @@ void Collider::SetContactOffset(float value)
 
 	mContactOffset = value;
 
-	for(auto& entry : mShapes)
-		entry->SetContactOffset(value);
+	for(auto& shape : mShapes)
+		shape->SetContactOffset(value);
 }
 
 void Collider::SetRestOffset(float value)
@@ -75,16 +75,16 @@ void Collider::SetRestOffset(float value)
 
 	mRestOffset = value;
 
-	for(auto& entry : mShapes)
-		entry->SetRestOffset(value);
+	for(auto& shape : mShapes)
+		shape->SetRestOffset(value);
 }
 
 void Collider::SetLayer(u64 layer)
 {
 	mLayer = layer;
 
-	for(auto& entry : mShapes)
-		entry->SetLayer(layer);
+	for(auto& shape : mShapes)
+		shape->SetLayer(layer);
 }
 
 void Collider::SetCollisionReportMode(CollisionReportMode mode)
@@ -105,17 +105,17 @@ void Collider::OnCreated()
 	}
 
 	u32 shapeIndex = 0;
-	for(auto& entry : mShapes)
+	for(auto& shape : mShapes)
 	{
-		entry->SetParentCollider(this);
-		entry->SetShapeIndexInParent(shapeIndex++);
-		entry->SetIsTrigger(mIsTrigger);
-		entry->SetContactOffset(mContactOffset);
-		entry->SetRestOffset(mRestOffset);
-		entry->SetLayer(mLayer);
-		entry->SetMass(mMass);
-		entry->SetScale(scale);
-		// entry->UpdateTransform(); called implicitly by SetScale
+		shape->SetParentCollider(this);
+		shape->SetShapeIndexInParent(shapeIndex++);
+		shape->SetIsTrigger(mIsTrigger);
+		shape->SetContactOffset(mContactOffset);
+		shape->SetRestOffset(mRestOffset);
+		shape->SetLayer(mLayer);
+		shape->SetMass(mMass);
+		shape->SetScale(scale);
+		// shape->UpdateTransform(); called implicitly by SetScale
 	}
 
 	B3D_ASSERT(mImplementation == nullptr);
@@ -141,12 +141,12 @@ void Collider::OnDestroyed()
 {
 	if(!mParentRigidbody.IsValid())
 	{
-		for (const auto& existingShape : mShapes)
+		for (const auto& shape : mShapes)
 		{
-			if (existingShape == nullptr)
+			if (shape == nullptr)
 				continue;
 
-			mImplementation->DetachShape(existingShape);
+			mImplementation->DetachShape(shape);
 		}
 
 		mImplementation = nullptr;
@@ -227,18 +227,18 @@ bool Collider::SetRigidbody(const HRigidbody& rigidbody)
 	{
 		if(GetEnabled()) // If not enabled, shapes won't be part of the dynamic rigidbody
 		{
-			for(auto& entry : mShapes)
+			for(auto& shape : mShapes)
 			{
-				mParentRigidbody->GetImplementation().DetachShape(entry);
+				mParentRigidbody->GetImplementation().DetachShape(shape);
 
-				entry->SetContinuousCollisionDetection(false);
+				shape->SetContinuousCollisionDetection(false);
 			}
 		}
 	}
 	else
 	{
-		for(auto& entry : mShapes)
-			mImplementation->DetachShape(entry);
+		for(auto& shape : mShapes)
+			mImplementation->DetachShape(shape);
 
 		if(GetEnabled()) // If not enabled, body won't be part of the scene
 			mImplementation->RemoveFromScene();
@@ -251,12 +251,12 @@ bool Collider::SetRigidbody(const HRigidbody& rigidbody)
 	{
 		if(GetEnabled())
 		{
-			for(auto& entry : mShapes)
+			for(auto& shape : mShapes)
 			{
 				const RigidbodyFlags rigidbodyFlags = rigidbody->GetFlags();
-				entry->SetContinuousCollisionDetection(rigidbodyFlags.IsSet(RigidbodyFlag::CCD));
+				shape->SetContinuousCollisionDetection(rigidbodyFlags.IsSet(RigidbodyFlag::CCD));
 
-				rigidbody->GetImplementation().AttachShape(entry);
+				rigidbody->GetImplementation().AttachShape(shape);
 			}
 		}
 	}
@@ -270,8 +270,8 @@ bool Collider::SetRigidbody(const HRigidbody& rigidbody)
 		mImplementation = GetPhysics().CreateColliderImplementation();
 		mImplementation->SetTransform(transform.GetPosition(), transform.GetRotation());
 
-		for(auto& entry : mShapes)
-			mImplementation->AttachShape(entry);
+		for(auto& shape : mShapes)
+			mImplementation->AttachShape(shape);
 
 		if(GetEnabled())
 			mImplementation->AddToScene(*scene->GetPhysicsScene());
@@ -359,8 +359,8 @@ void Collider::UpdateTransform(bool updateShapeTransforms)
 
 	if(updateShapeTransforms)
 	{
-		for(auto& entry : mShapes)
-			entry->UpdateTransform();
+		for(auto& shape : mShapes)
+			shape->UpdateTransform();
 	}
 }
 
@@ -371,8 +371,8 @@ void Collider::UpdateCollisionReportMode()
 	if(mParentRigidbody != nullptr)
 		mode = mParentRigidbody->GetCollisionReportMode();
 
-	for(auto& entry : mShapes)
-		entry->SetCollisionReportMode(mode);
+	for(auto& shape : mShapes)
+		shape->SetCollisionReportMode(mode);
 }
 
 RTTIType* Collider::GetRttiStatic()

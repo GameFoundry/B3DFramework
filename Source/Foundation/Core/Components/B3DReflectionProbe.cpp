@@ -315,8 +315,8 @@ void ReflectionProbe::SyncFromCoreObject(const CoreSyncData& data, FrameAllocato
 	if(syncPacket == nullptr)
 		return;
 
-	bool oldIsActive = mActive;
-	ReflectionProbeType oldType = mType;
+	bool previousIsActive = mActive;
+	ReflectionProbeType previousType = mType;
 
 	syncPacket->ApplySyncData(this);
 
@@ -330,14 +330,14 @@ void ReflectionProbe::SyncFromCoreObject(const CoreSyncData& data, FrameAllocato
 	}
 	else
 	{
-		if(oldIsActive != mActive)
+		if(previousIsActive != mActive)
 		{
 			if(mActive)
 				rendererScene->RegisterReflectionProbe(this);
 			else
 			{
 				ReflectionProbeType newType = mType;
-				mType = oldType;
+				mType = previousType;
 				rendererScene->UnregisterReflectionProbe(this);
 				mType = newType;
 			}
@@ -345,7 +345,7 @@ void ReflectionProbe::SyncFromCoreObject(const CoreSyncData& data, FrameAllocato
 		else
 		{
 			ReflectionProbeType newType = mType;
-			mType = oldType;
+			mType = previousType;
 			rendererScene->UnregisterReflectionProbe(this);
 			mType = newType;
 

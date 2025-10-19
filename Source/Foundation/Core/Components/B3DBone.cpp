@@ -62,10 +62,10 @@ void Bone::OnTransformChanged(TransformChangedFlags flags)
 
 void Bone::UpdateParentAnimation()
 {
-	HSceneObject currentSO = SO();
-	while(currentSO != nullptr)
+	HSceneObject currentSceneObject = SO();
+	while(currentSceneObject != nullptr)
 	{
-		HAnimation parent = currentSO->GetComponent<Animation>();
+		HAnimation parent = currentSceneObject->GetComponent<Animation>();
 		if(parent != nullptr)
 		{
 			if(parent->GetEnabled())
@@ -76,7 +76,7 @@ void Bone::UpdateParentAnimation()
 			return;
 		}
 
-		currentSO = currentSO->GetParent();
+		currentSceneObject = currentSceneObject->GetParent();
 	}
 
 	SetParentAnimation(HAnimation());

@@ -23,15 +23,15 @@ CharacterController::CharacterController()
 
 CharacterCollisionFlags CharacterController::Move(const Vector3& displacement)
 {
-	CharacterCollisionFlags output;
+	CharacterCollisionFlags outFlags;
 
 	if(mImplementation == nullptr)
-		return output;
+		return outFlags;
 
-	output = mImplementation->Move(displacement);
+	outFlags = mImplementation->Move(displacement);
 	UpdateSceneObjectPositionFromController();
 
-	return output;
+	return outFlags;
 }
 
 Vector3 CharacterController::GetFootPosition() const

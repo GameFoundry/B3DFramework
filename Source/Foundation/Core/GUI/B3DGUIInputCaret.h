@@ -60,10 +60,10 @@ namespace b3d
 		/**
 		 * Moves the caret to a specific character index.
 		 *
-		 * @param[in]	charIdx		Index of the character to move the caret to.
-		 * @param[in]	caretPos	Whether to place the caret before or after the character.
+		 * @param	characterIndex	Index of the character to move the caret to.
+		 * @param	caretPos		Whether to place the caret before or after the character.
 		 */
-		void MoveCaretToChar(u32 charIdx, CaretPos caretPos);
+		void MoveCaretToChar(u32 characterIndex, CaretPos caretPos);
 
 		/**	Returns character index after the current caret position. */
 		u32 GetCharIdxAtCaretPos() const;

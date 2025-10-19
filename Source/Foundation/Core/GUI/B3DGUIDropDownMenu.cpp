@@ -79,7 +79,7 @@ void GUIDropDownMenu::OnCreated()
 	mScrollButtonHeight = scrollbarButtonStyleSheetRules.Size.Height;
 
 	mFrontHitBox = GUIDropDownHitBox::Create(false, false);
-	mFrontHitBox->OnFocusLost.Connect(std::bind(&GUIDropDownMenu::DropDownFocusLost, this));
+	mFrontHitBox->OnFocusLost.Connect([this]() { DropDownFocusLost(); });
 	mFrontHitBox->SetFocus(true);
 	GUILayoutData hitboxLayoutData = mFrontHitBox->GetLayoutData();
 	hitboxLayoutData.RelativePosition = GUILogicalPoint::kZero;
@@ -257,7 +257,7 @@ Vector<GUIDropDownMenu::DropDownSubMenu::PageInfo> GUIDropDownMenu::DropDownSubM
 {
 	const RectOffset& backgroundFramePadding = Owner->mBackgroundFramePadding;
 
-	i32 numElements = (i32)Data.Entries.size();
+	i32 elementCount = (i32)Data.Entries.size();
 
 	PageInfo curPageInfo;
 	curPageInfo.Start = 0;
@@ -266,20 +266,20 @@ Vector<GUIDropDownMenu::DropDownSubMenu::PageInfo> GUIDropDownMenu::DropDownSubM
 	curPageInfo.Height = backgroundFramePadding.Top + backgroundFramePadding.Bottom;
 
 	Vector<PageInfo> pageInfos;
-	for(i32 i = 0; i < numElements; i++)
+	for(i32 elementIndex = 0; elementIndex < elementCount; elementIndex++)
 	{
-		curPageInfo.Height += Content->GetElementHeight((u32)i);
+		curPageInfo.Height += Content->GetElementHeight((u32)elementIndex);
 		curPageInfo.End++;
 
 		if(curPageInfo.Height > Size.Height)
 		{
 			// Remove last few elements until we fit again
-			while(curPageInfo.Height > Size.Height && i >= 0)
+			while(curPageInfo.Height > Size.Height && elementIndex >= 0)
 			{
-				curPageInfo.Height -= (u32)Content->GetElementHeight((u32)i);
+				curPageInfo.Height -= (u32)Content->GetElementHeight((u32)elementIndex);
 				curPageInfo.End--;
 
-				i--;
+				elementIndex--;
 			}
 
 			// Nothing fits, break out of infinite loop
@@ -342,7 +342,7 @@ void GUIDropDownMenu::DropDownSubMenu::UpdateGuiElements()
 			SidebarPanel = Owner->GetPanel()->AddNewElement<GUIPanel>();
 
 			ScrollUpBtn = GUIButton::Create(GUIContent(StockIcons::Instance().GetIcon(StockIcon::FontAwesomeCaretUp)), kScrollbarButtonStyleClass);
-			ScrollUpBtn->OnClick.Connect(std::bind(&DropDownSubMenu::ScrollUp, this));
+			ScrollUpBtn->OnClick.Connect([this]() { ScrollUp(); });
 
 			GUIElementOptions scrollUpBtnOptions = ScrollUpBtn->GetOptionFlags();
 			scrollUpBtnOptions.Unset(GUIElementOption::AcceptsKeyFocus);
@@ -350,7 +350,7 @@ void GUIDropDownMenu::DropDownSubMenu::UpdateGuiElements()
 			ScrollUpBtn->SetOptionFlags(scrollUpBtnOptions);
 
 			ScrollDownBtn = GUIButton::Create(GUIContent(StockIcons::Instance().GetIcon(StockIcon::FontAwesomeCaretDown)), kScrollbarButtonStyleClass);
-			ScrollDownBtn->OnClick.Connect(std::bind(&::b3d::GUIDropDownMenu::DropDownSubMenu::ScrollDown, this));
+			ScrollDownBtn->OnClick.Connect([this]() { ScrollDown(); });
 
 			GUIElementOptions scrollDownBtnOptions = ScrollDownBtn->GetOptionFlags();
 			scrollDownBtnOptions.Unset(GUIElementOption::AcceptsKeyFocus);
@@ -462,13 +462,13 @@ void GUIDropDownMenu::DropDownSubMenu::CloseSubMenu()
 	}
 }
 
-void GUIDropDownMenu::DropDownSubMenu::ElementActivated(u32 idx, const GUIPhysicalArea& bounds)
+void GUIDropDownMenu::DropDownSubMenu::ElementActivated(u32 index, const GUIPhysicalArea& bounds)
 {
 	CloseSubMenu();
 
-	if(!Data.Entries[idx].IsSubMenu())
+	if(!Data.Entries[index].IsSubMenu())
 	{
-		auto callback = Data.Entries[idx].GetCallback();
+		auto callback = Data.Entries[index].GetCallback();
 		if(callback != nullptr)
 			callback();
 
@@ -479,7 +479,7 @@ void GUIDropDownMenu::DropDownSubMenu::ElementActivated(u32 idx, const GUIPhysic
 	{
 		Content->SetKeyboardFocus(false);
 
-		ActiveChildSubMenu = B3DNew<DropDownSubMenu>(Owner, this, TDropDownAreaPlacement<GUIPhysicalUnit>::AroundBoundsVertical(bounds), AvailableBounds, Data.Entries[idx].GetSubMenuData(), Type, DepthOffset + 1);
+		ActiveChildSubMenu = B3DNew<DropDownSubMenu>(Owner, this, TDropDownAreaPlacement<GUIPhysicalUnit>::AroundBoundsVertical(bounds), AvailableBounds, Data.Entries[index].GetSubMenuData(), Type, DepthOffset + 1);
 	}
 }
 
@@ -491,7 +491,7 @@ void GUIDropDownMenu::DropDownSubMenu::Close()
 		GUIDropDownBoxManager::Instance().CloseDropDownBox();
 }
 
-void GUIDropDownMenu::DropDownSubMenu::ElementSelected(u32 idx)
+void GUIDropDownMenu::DropDownSubMenu::ElementSelected(u32 index)
 {
 	CloseSubMenu();
 }

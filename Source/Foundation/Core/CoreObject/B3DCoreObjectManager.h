@@ -34,8 +34,8 @@ namespace b3d
 				: InternalId(0)
 			{}
 
-			PerObjectSyncData(const SPtr<render::RenderProxy> destObj, u64 internalId, const CoreSyncData& syncData)
-				: RenderProxy(destObj), SyncData(syncData), InternalId(internalId)
+			PerObjectSyncData(const SPtr<render::RenderProxy> destinationObject, u64 internalId, const CoreSyncData& syncData)
+				: RenderProxy(destinationObject), SyncData(syncData), InternalId(internalId)
 			{}
 
 			SPtr<render::RenderProxy> RenderProxy;

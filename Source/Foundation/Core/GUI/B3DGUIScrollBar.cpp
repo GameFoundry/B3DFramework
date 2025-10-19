@@ -10,8 +10,6 @@
 #include "GUI/B3DGUISpace.h"
 #include "Text/B3DStockIcons.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 const GUIPhysicalUnit GUIScrollBar::kButtonScrollAmount = 10;
@@ -62,10 +60,10 @@ GUIScrollBar::GUIScrollBar(bool horizontal, bool resizable, const String& styleN
 	mLayout->AddElement(mDownBtn);
 	mLayout->AddNewElement<GUIFixedSpace>(2);
 
-	mHandleBtn->OnHandleMovedOrResized.Connect(std::bind(&::b3d::GUIScrollBar::HandleMoved, this, _1, _2));
+	mHandleBtn->OnHandleMovedOrResized.Connect([this](float handlePct, float sizePct) { HandleMoved(handlePct, sizePct); });
 
-	mUpBtn->OnClick.Connect(std::bind(&::b3d::GUIScrollBar::UpButtonClicked, this));
-	mDownBtn->OnClick.Connect(std::bind(&::b3d::GUIScrollBar::DownButtonClicked, this));
+	mUpBtn->OnClick.Connect([this]() { UpButtonClicked(); });
+	mDownBtn->OnClick.Connect([this]() { DownButtonClicked(); });
 }
 
 GUIScrollBar::~GUIScrollBar()

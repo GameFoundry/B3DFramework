@@ -17,10 +17,10 @@ void GUINavGroup::FocusFirst()
 		return;
 
 	// Find first element with an explicit index, if one exists
-	auto iterStart = mOrderedElements.begin();
-	if(iterStart->first != 0)
+	auto it = mOrderedElements.begin();
+	if(it->first != 0)
 	{
-		iterStart->second->SetFocus(true, true);
+		it->second->SetFocus(true, true);
 		return;
 	}
 
@@ -37,25 +37,25 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 		return;
 	}
 
-	const i32 tabIdx = mElements[anchor];
+	const i32 tabIndex = mElements[anchor];
 
 	// Find next element using the explicit index
-	if(tabIdx != 0)
+	if(tabIndex != 0)
 	{
-		auto iterFind = mOrderedElements.lower_bound(tabIdx);
-		while(iterFind->second != anchor)
-			++iterFind;
+		auto found = mOrderedElements.lower_bound(tabIndex);
+		while(found->second != anchor)
+			++found;
 
-		++iterFind;
+		++found;
 
 		// Reached the end, wrap around
-		if(iterFind == mOrderedElements.end())
+		if(found == mOrderedElements.end())
 			return FocusFirst();
 
 		// If a next element with an explicit index exists, select it
-		if(iterFind->first != 0)
+		if(found->first != 0)
 		{
-			iterFind->second->SetFocus(true, true);
+			found->second->SetFocus(true, true);
 			return;
 		}
 
@@ -93,15 +93,15 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 
 			// Build a list of relevant elements, ordered by height
 			FrameSet<GUIInteractable*, YCompare> elements;
-			for(auto iter = unindexedRange.first; iter != unindexedRange.second; ++iter)
+			for(auto it = unindexedRange.first; it != unindexedRange.second; ++it)
 			{
-				GUIInteractable* element = iter->second;
+				GUIInteractable* element = it->second;
 				const bool acceptsKeyFocus = element->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
 				if(!acceptsKeyFocus || element->IsHidden() || element->IsDisabled())
 					continue;
 
-				const GUIPhysicalArea elemBounds = element->GetAbsoluteClippedArea();
-				const bool isFullyClipped = elemBounds.Width == 0 || elemBounds.Height == 0;
+				const GUIPhysicalArea elementBounds = element->GetAbsoluteClippedArea();
+				const bool isFullyClipped = elementBounds.Width == 0 || elementBounds.Height == 0;
 
 				if(isFullyClipped)
 					continue;
@@ -110,30 +110,30 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 			}
 
 			// Find the row the currently selected element is part of
-			auto iterElem = elements.begin();
-			auto iterRowStart = iterElem;
+			auto elementIt = elements.begin();
+			auto rowStartIt = elementIt;
 
 			GUIPhysicalUnit firstRowY = 0;
 			GUIPhysicalUnit rowY = 0;
-			for(; iterElem != elements.end(); ++iterElem)
+			for(; elementIt != elements.end(); ++elementIt)
 			{
-				GUIInteractable* element = *iterElem;
+				GUIInteractable* element = *elementIt;
 
-				const GUIPhysicalArea elemBounds = element->GetAbsoluteClippedArea();
-				if(iterElem == elements.begin())
+				const GUIPhysicalArea elementBounds = element->GetAbsoluteClippedArea();
+				if(elementIt == elements.begin())
 				{
-					firstRowY = elemBounds.Y;
-					rowY = elemBounds.Y;
+					firstRowY = elementBounds.Y;
+					rowY = elementBounds.Y;
 				}
 				else
 				{
-					const GUIPhysicalUnit yDiff = elemBounds.Y - rowY;
+					const GUIPhysicalUnit yDiff = elementBounds.Y - rowY;
 
 					// New row
 					if(yDiff >= kRowHeight)
 					{
-						iterRowStart = iterElem;
-						rowY = elemBounds.Y;
+						rowStartIt = elementIt;
+						rowY = elementBounds.Y;
 					}
 				}
 
@@ -141,36 +141,36 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 					break;
 			}
 
-			const bool foundRow = iterElem != elements.end();
+			const bool foundRow = elementIt != elements.end();
 			if(!foundRow)
 				rowY = firstRowY;
 
 			// Try to find the next element in the current row (to the right of the current one)
 			GUIInteractable* nextElement = nullptr;
 			GUIPhysicalUnit nearestX = std::numeric_limits<i32>::max();
-			iterElem = iterRowStart;
-			for(; iterElem != elements.end(); ++iterElem)
+			elementIt = rowStartIt;
+			for(; elementIt != elements.end(); ++elementIt)
 			{
-				GUIInteractable* element = *iterElem;
+				GUIInteractable* element = *elementIt;
 				if(element == anchor)
 					continue;
 
-				const GUIPhysicalArea elemBounds = element->GetAbsoluteClippedArea();
-				const GUIPhysicalUnit yDiff = elemBounds.Y - rowY;
+				const GUIPhysicalArea elementBounds = element->GetAbsoluteClippedArea();
+				const GUIPhysicalUnit yDiff = elementBounds.Y - rowY;
 
 				// New row
 				if(yDiff >= kRowHeight)
 				{
-					rowY = elemBounds.Y;
+					rowY = elementBounds.Y;
 					break;
 				}
 
 				// Note: We're purposely ignoring elements at the same exact position, as the tab focus would then just
 				// ping-pong between the two elements, and we'd have to keep a list of previously visited elements in
 				// order to avoid the issue.
-				if(elemBounds.X > focusedElemBounds.X)
+				if(elementBounds.X > focusedElemBounds.X)
 				{
-					const GUIPhysicalUnit xDiff = elemBounds.X - focusedElemBounds.X;
+					const GUIPhysicalUnit xDiff = elementBounds.X - focusedElemBounds.X;
 					if(xDiff < nearestX)
 					{
 						nearestX = xDiff;
@@ -183,20 +183,20 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 			if(!nextElement)
 			{
 				nearestX = std::numeric_limits<i32>::max();
-				for(; iterElem != elements.end(); ++iterElem)
+				for(; elementIt != elements.end(); ++elementIt)
 				{
-					GUIInteractable* element = *iterElem;
+					GUIInteractable* element = *elementIt;
 
-					const GUIPhysicalArea elemBounds = element->GetAbsoluteClippedArea();
-					const GUIPhysicalUnit yDiff = elemBounds.Y - rowY;
+					const GUIPhysicalArea elementBounds = element->GetAbsoluteClippedArea();
+					const GUIPhysicalUnit yDiff = elementBounds.Y - rowY;
 
 					// New row
 					if(yDiff >= kRowHeight)
 						break;
 
-					if(elemBounds.X < nearestX)
+					if(elementBounds.X < nearestX)
 					{
-						nearestX = elemBounds.X;
+						nearestX = elementBounds.X;
 						nextElement = element;
 					}
 				}
@@ -211,10 +211,10 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 		B3DClearAllocatorFrame();
 
 		// No more elements with no tab index. Check elements with positive tab index
-		const auto iterAfterUnindexed = unindexedRange.second;
-		if(iterAfterUnindexed != mOrderedElements.end())
+		const auto afterUnindexedIt = unindexedRange.second;
+		if(afterUnindexedIt != mOrderedElements.end())
 		{
-			iterAfterUnindexed->second->SetFocus(true, true);
+			afterUnindexedIt->second->SetFocus(true, true);
 			return;
 		}
 
@@ -225,14 +225,14 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 
 void GUINavGroup::FocusTopLeft()
 {
-	GUIPhysicalUnit lowestDist = std::numeric_limits<i32>::max();
+	GUIPhysicalUnit lowestDistance = std::numeric_limits<i32>::max();
 	GUIInteractable* topLeftElement = nullptr;
 
 	// Grab only elements without an explicit index
 	const auto unindexedRange = mOrderedElements.equal_range(0);
-	for(auto iter = unindexedRange.first; iter != unindexedRange.second; ++iter)
+	for(auto it = unindexedRange.first; it != unindexedRange.second; ++it)
 	{
-		GUIInteractable* element = iter->second;
+		GUIInteractable* element = it->second;
 
 		// Ignore elements that are hidden, disabled or just don't accept input focus
 		const bool acceptsKeyFocus = element->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
@@ -240,16 +240,16 @@ void GUINavGroup::FocusTopLeft()
 			continue;
 
 		// Ignore elements that have been fully clipped
-		const GUIPhysicalArea elemBounds = element->GetAbsoluteClippedArea();
-		if(elemBounds.Width == 0 || elemBounds.Height == 0)
+		const GUIPhysicalArea elementBounds = element->GetAbsoluteClippedArea();
+		if(elementBounds.Width == 0 || elementBounds.Height == 0)
 			continue;
 
-		GUIPhysicalPoint elementPos = elemBounds.GetPosition();
+		GUIPhysicalPoint elementPosition = elementBounds.GetPosition();
 
-		const GUIPhysicalUnit dist = elementPos.SquaredLength();
-		if(dist < lowestDist)
+		const GUIPhysicalUnit distance = elementPosition.SquaredLength();
+		if(distance < lowestDistance)
 		{
-			lowestDist = dist;
+			lowestDistance = distance;
 			topLeftElement = element;
 		}
 	}
@@ -258,46 +258,46 @@ void GUINavGroup::FocusTopLeft()
 		topLeftElement->SetFocus(true, true);
 }
 
-void GUINavGroup::RegisterElement(GUIInteractable* element, i32 tabIdx)
+void GUINavGroup::RegisterElement(GUIInteractable* element, i32 tabIndex)
 {
-	mElements[element] = tabIdx;
-	mOrderedElements.insert(std::make_pair(tabIdx, element));
+	mElements[element] = tabIndex;
+	mOrderedElements.insert(std::make_pair(tabIndex, element));
 }
 
-void GUINavGroup::SetIndex(GUIInteractable* element, i32 tabIdx)
+void GUINavGroup::SetIndex(GUIInteractable* element, i32 tabIndex)
 {
-	const auto iterFind = mElements.find(element);
-	B3D_ASSERT(iterFind != mElements.end());
+	const auto found = mElements.find(element);
+	B3D_ASSERT(found != mElements.end());
 
-	const i32 existingTabIdx = iterFind->second;
-	mElements[element] = tabIdx;
+	const i32 existingTabIndex = found->second;
+	mElements[element] = tabIndex;
 
-	const auto iterPair = mOrderedElements.equal_range(existingTabIdx);
-	for(auto iter = iterPair.first; iter != iterPair.second; ++iter)
+	const auto range = mOrderedElements.equal_range(existingTabIndex);
+	for(auto it = range.first; it != range.second; ++it)
 	{
-		if(iter->second == element)
+		if(it->second == element)
 		{
-			mOrderedElements.erase(iter);
+			mOrderedElements.erase(it);
 			break;
 		}
 	}
 
-	mOrderedElements.insert(std::make_pair(tabIdx, element));
+	mOrderedElements.insert(std::make_pair(tabIndex, element));
 }
 
 void GUINavGroup::UnregisterElement(GUIInteractable* element)
 {
-	const auto iterFind = mElements.find(element);
-	if(iterFind == mElements.end())
+	const auto found = mElements.find(element);
+	if(found == mElements.end())
 		return;
 
-	const i32 existingTabIdx = iterFind->second;
-	const auto iterPair = mOrderedElements.equal_range(existingTabIdx);
-	for(auto iter = iterPair.first; iter != iterPair.second; ++iter)
+	const i32 existingTabIndex = found->second;
+	const auto range = mOrderedElements.equal_range(existingTabIndex);
+	for(auto it = range.first; it != range.second; ++it)
 	{
-		if(iter->second == element)
+		if(it->second == element)
 		{
-			mOrderedElements.erase(iter);
+			mOrderedElements.erase(it);
 			break;
 		}
 	}

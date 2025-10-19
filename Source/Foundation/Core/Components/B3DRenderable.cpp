@@ -60,7 +60,7 @@ void TRenderable<IsRenderProxy>::SetMaterials(const Vector<MaterialType>& materi
 	const u32 materialCount = (u32)mMaterials.size();
 	const u32 materialCountToAssign = std::min(materialCount, (u32)materials.size());
 
-	for(u32 materialIndex = 0; materialIndex < materialCountToAssign; materialIndex++)
+	for(u32 materialIndex = 0; materialIndex < materialCountToAssign; ++materialIndex)
 		mMaterials[materialIndex] = materials[materialIndex];
 
 	for(u32 materialIndex = materialCountToAssign; materialIndex < materialCount; ++materialIndex)
@@ -319,7 +319,7 @@ void Renderable::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	if(mMesh.IsLoaded())
 		dependencies.push_back(mMesh.Get());
 
-	for(auto& material : mMaterials)
+	for(const auto& material : mMaterials)
 	{
 		if(material.IsLoaded())
 			dependencies.push_back(material.Get());
@@ -343,7 +343,7 @@ void Renderable::GetListenerResources(Vector<HResource>& resources)
 	if(mMesh != nullptr)
 		resources.push_back(mMesh);
 
-	for(auto& material : mMaterials)
+	for(const auto& material : mMaterials)
 	{
 		if(material != nullptr)
 			resources.push_back(material);
@@ -455,7 +455,7 @@ static SPtr<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
 	u8* currentWriteLocation = temporaryBuffer;
 
 	// Initialize bone transforms to identity, so the object renders properly even if no animation is animating it
-	for(u32 boneIndex = 0; boneIndex < boneCount; boneIndex++)
+	for(u32 boneIndex = 0; boneIndex < boneCount; ++boneIndex)
 	{
 		memcpy(currentWriteLocation, &Matrix4::kIdentity, 12 * sizeof(float)); // Assuming row-major format
 		currentWriteLocation += 12 * sizeof(float);
@@ -560,11 +560,11 @@ void Renderable::CreateAnimationBuffers()
 		SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
 		u32 totalSize = vertexSize * vertexCount;
-		u8* dest = (u8*)B3DStackAllocate(totalSize);
-		memset(dest, 0, totalSize);
+		u8* destination = (u8*)B3DStackAllocate(totalSize);
+		memset(destination, 0, totalSize);
 
-		vertexBuffer->WriteData(0, totalSize, dest, BWT_DISCARD);
-		B3DStackFree(dest);
+		vertexBuffer->WriteData(0, totalSize, destination, BWT_DISCARD);
+		B3DStackFree(destination);
 
 		mMorphShapeBuffer = vertexBuffer;
 	}
@@ -581,9 +581,9 @@ void Renderable::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
 
 	const EvaluatedAnimationData::AnimationInfo* animInfo = nullptr;
 
-	auto findIterator = animData.Infos.find(mAnimationId);
-	if(findIterator != animData.Infos.end())
-		animInfo = &findIterator->second;
+	auto found = animData.Infos.find(mAnimationId);
+	if(found != animData.Infos.end())
+		animInfo = &found->second;
 
 	if(animInfo == nullptr)
 		return;
@@ -600,7 +600,7 @@ void Renderable::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
 		const u32 bufferSize = poseInfo.BoneCount * 3 * sizeof(Vector4);
 		u8* const temporaryBuffer = (u8*)B3DStackAllocate(bufferSize);
 		u8* currentWriteLocation = temporaryBuffer;
-		for(u32 boneIndex = 0; boneIndex < poseInfo.BoneCount; boneIndex++)
+		for(u32 boneIndex = 0; boneIndex < poseInfo.BoneCount; ++boneIndex)
 		{
 			const Matrix4& transform = animData.Transforms[poseInfo.BoneStartIndex + boneIndex];
 			memcpy(currentWriteLocation, &transform, 12 * sizeof(float)); // Assuming row-major format

@@ -116,10 +116,10 @@ namespace b3d
 		 * prevents extents for being automatically calculated from aspect and near plane so it is up to the caller to keep
 		 * these values accurate.
 		 *
-		 * @param left		The position where the left clip plane intersect the near clip plane, in view space.
-		 * @param right		The position where the right clip plane intersect the near clip plane, in view space.
-		 * @param top		The position where the top clip plane intersect the near clip plane, in view space.
-		 * @param bottom	The position where the bottom clip plane intersect the near clip plane, in view space.
+		 * @param	left	The position where the left clip plane intersect the near clip plane, in view space.
+		 * @param	right	The position where the right clip plane intersect the near clip plane, in view space.
+		 * @param	top	The position where the top clip plane intersect the near clip plane, in view space.
+		 * @param	bottom	The position where the bottom clip plane intersect the near clip plane, in view space.
 		 */
 		void SetFrustumExtents(float left, float right, float top, float bottom);
 
@@ -130,7 +130,7 @@ namespace b3d
 		void ResetFrustumExtents();
 
 		/** Returns the extents of the frustum in view space at the near plane. */
-		void GetFrustumExtents(float& outleft, float& outright, float& outtop, float& outbottom) const;
+		void GetFrustumExtents(float& outLeft, float& outRight, float& outTop, float& outBottom) const;
 
 		/**
 		 * Returns the standard projection matrix that determines how are 3D points projected to two dimensions. The layout
@@ -192,21 +192,21 @@ namespace b3d
 		/**
 		 * Sets the orthographic window size, for use with orthographic rendering only.
 		 *
-		 * @param	w	Width of the window in world units.
-		 * @param	h	Height of the window in world units.
+		 * @param	width	Width of the window in world units.
+		 * @param	height	Height of the window in world units.
 		 *
 		 * @note
 		 * Calling this method will recalculate the aspect ratio, use SetOrthographicHeight() or SetOrthographicWidth() alone
 		 * if you wish to preserve the aspect ratio but just fit one or other dimension to a particular size.
 		 */
-		void SetOrthographicSize(float w, float h);
+		void SetOrthographicSize(float width, float height);
 
 		/**
 		 * Determines the type of projection used by the camera. Projection type controls how is 3D geometry projected onto a
 		 * 2D plane.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(OrthographicHeight), Property(Setter), UIOrder(-1))
-		void SetOrthographicHeight(float h);
+		void SetOrthographicHeight(float height);
 
 		/** @copydoc SetOrthographicHeight */
 		B3D_SCRIPT_EXPORT(ExportName(OrthographicHeight), Property(Getter), UIOrder(-1))
@@ -217,7 +217,7 @@ namespace b3d
 		 * will be calculated from the aspect ratio. Value is specified in world units.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(OrthographicWidth), Property(Setter), UI(Hide))
-		void SetOrthographicWidth(float w);
+		void SetOrthographicWidth(float width);
 
 		/** @copydoc GetOrthographicWidth */
 		B3D_SCRIPT_EXPORT(ExportName(OrthographicWidth), Property(Getter), UI(Hide))
@@ -294,8 +294,8 @@ namespace b3d
 		/**
 		 * Converts a point in world space to screen coordinates.
 		 *
-		 * @param	worldPoint		3D point in world space.
-		 * @return					2D point on the render target attached to the camera's viewport, in pixels.
+		 * @param	worldPoint	3D point in world space.
+		 * @return	2D point on the render target attached to the camera's viewport, in pixels.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector2I WorldToScreenPoint(const Vector3& worldPoint) const;
@@ -303,8 +303,8 @@ namespace b3d
 		/**
 		 * Converts a point in world space to normalized device coordinates.
 		 *
-		 * @param	worldPoint		3D point in world space.
-		 * @return					2D point in normalized device coordinates ([-1, 1] range), relative to the camera's viewport.
+		 * @param	worldPoint	3D point in world space.
+		 * @return	2D point in normalized device coordinates ([-1, 1] range), relative to the camera's viewport.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector2 WorldToNDCPoint(const Vector3& worldPoint) const;
@@ -312,8 +312,8 @@ namespace b3d
 		/**
 		 * Converts a point in world space to view space coordinates.
 		 *
-		 * @param	worldPoint		3D point in world space.
-		 * @return					3D point relative to the camera's coordinate system.
+		 * @param	worldPoint	3D point in world space.
+		 * @return	3D point relative to the camera's coordinate system.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector3 WorldToViewPoint(const Vector3& worldPoint) const;
@@ -321,10 +321,10 @@ namespace b3d
 		/**
 		 * Converts a point in screen space to a point in world space.
 		 *
-		 * @param	screenPoint		2D point on the render target attached to the camera's viewport, in pixels.
-		 * @param	depth			Depth to place the world point at, in world coordinates. The depth is applied to the
-		 *							vector going from camera origin to the point on the near plane.
-		 * @return					3D point in world space.
+		 * @param	screenPoint	2D point on the render target attached to the camera's viewport, in pixels.
+		 * @param	depth	Depth to place the world point at, in world coordinates. The depth is applied to the
+		 *	vector going from camera origin to the point on the near plane.
+		 * @return	3D point in world space.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector3 ScreenToWorldPoint(const Vector2I& screenPoint, float depth = 0.5f) const;
@@ -333,8 +333,8 @@ namespace b3d
 		 * Converts a point in screen space (pixels corresponding to render target attached to the camera) to a point in
 		 * world space.
 		 *
-		 * @param	screenPoint Point to transform.
-		 * @param	deviceDepth Depth to place the world point at, in normalized device coordinates.
+		 * @param	screenPoint	Point to transform.
+		 * @param	deviceDepth	Depth to place the world point at, in normalized device coordinates.
 		 * @return	3D point in world space.
 		 */
 		Vector3 ScreenToWorldPointDeviceDepth(const Vector2I& screenPoint, float deviceDepth = 0.5f) const;
@@ -343,9 +343,9 @@ namespace b3d
 		 * Converts a point in screen space to a point in view space.
 		 *
 		 * @param	screenPoint	2D point on the render target attached to the camera's viewport, in pixels.
-		 * @param	depth		Depth to place the world point at, in device depth. The depth is applied to the
-		 *						vector going from camera origin to the point on the near plane.
-		 * @return				3D point relative to the camera's coordinate system.
+		 * @param	depth	Depth to place the world point at, in device depth. The depth is applied to the
+		 *	vector going from camera origin to the point on the near plane.
+		 * @return	3D point relative to the camera's coordinate system.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector3 ScreenToViewPoint(const Vector2I& screenPoint, float depth = 0.5f) const;
@@ -353,9 +353,9 @@ namespace b3d
 		/**
 		 * Converts a point in screen space to normalized device coordinates.
 		 *
-		 * @param	screenPoint		2D point on the render target attached to the camera's viewport, in pixels.
-		 * @return					2D point in normalized device coordinates ([-1, 1] range), relative to
-		 *							the camera's viewport.
+		 * @param	screenPoint	2D point on the render target attached to the camera's viewport, in pixels.
+		 * @return	2D point in normalized device coordinates ([-1, 1] range), relative to
+		 *	the camera's viewport.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector2 ScreenToNDCPoint(const Vector2I& screenPoint) const;
@@ -363,8 +363,8 @@ namespace b3d
 		/**
 		 * Converts a point in view space to world space.
 		 *
-		 * @param	viewPoint		3D point relative to the camera's coordinate system.
-		 * @return					3D point in world space.
+		 * @param	viewPoint	3D point relative to the camera's coordinate system.
+		 * @return	3D point in world space.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector3 ViewToWorldPoint(const Vector3& viewPoint) const;
@@ -372,8 +372,8 @@ namespace b3d
 		/**
 		 * Converts a point in view space to screen space.
 		 *
-		 * @param	viewPoint		3D point relative to the camera's coordinate system.
-		 * @return					2D point on the render target attached to the camera's viewport, in pixels.
+		 * @param	viewPoint	3D point relative to the camera's coordinate system.
+		 * @return	2D point on the render target attached to the camera's viewport, in pixels.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector2I ViewToScreenPoint(const Vector3& viewPoint) const;
@@ -381,9 +381,9 @@ namespace b3d
 		/**
 		 * Converts a point in view space to normalized device coordinates.
 		 *
-		 * @param	viewPoint		3D point relative to the camera's coordinate system.
-		 * @return					2D point in normalized device coordinates ([-1, 1] range), relative to
-		 *							the camera's viewport.
+		 * @param	viewPoint	3D point relative to the camera's coordinate system.
+		 * @return	2D point in normalized device coordinates ([-1, 1] range), relative to
+		 *	the camera's viewport.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector2 ViewToNDCPoint(const Vector3& viewPoint) const;
@@ -392,10 +392,10 @@ namespace b3d
 		 * Converts a point in normalized device coordinates to world space.
 		 *
 		 * @param	ndcPoint	2D point in normalized device coordinates ([-1, 1] range), relative to
-		 *						the camera's viewport.
-		 * @param	depth		Depth to place the world point at. The depth is applied to the
-		 *						vector going from camera origin to the point on the near plane.
-		 * @return				3D point in world space.
+		 *	the camera's viewport.
+		 * @param	depth	Depth to place the world point at. The depth is applied to the
+		 *	vector going from camera origin to the point on the near plane.
+		 * @return	3D point in world space.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector3 NDCToWorldPoint(const Vector2& ndcPoint, float depth = 0.5f) const;
@@ -404,10 +404,10 @@ namespace b3d
 		 * Converts a point in normalized device coordinates to view space.
 		 *
 		 * @param	ndcPoint	2D point in normalized device coordinates ([-1, 1] range), relative to
-		 *						the camera's viewport.
-		 * @param	depth		Depth to place the world point at. The depth is applied to the
-		 *						vector going from camera origin to the point on the near plane.
-		 * @return				3D point relative to the camera's coordinate system.
+		 *	the camera's viewport.
+		 * @param	depth	Depth to place the world point at. The depth is applied to the
+		 *	vector going from camera origin to the point on the near plane.
+		 * @return	3D point relative to the camera's coordinate system.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector3 NDCToViewPoint(const Vector2& ndcPoint, float depth = 0.5f) const;
@@ -416,8 +416,8 @@ namespace b3d
 		 * Converts a point in normalized device coordinates to screen space.
 		 *
 		 * @param	ndcPoint	2D point in normalized device coordinates ([-1, 1] range), relative to
-		 *						the camera's viewport.
-		 * @return				2D point on the render target attached to the camera's viewport, in pixels.
+		 *	the camera's viewport.
+		 * @return	2D point on the render target attached to the camera's viewport, in pixels.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector2I NDCToScreenPoint(const Vector2& ndcPoint) const;
@@ -425,19 +425,19 @@ namespace b3d
 		/**
 		 * Converts a point in screen space to a ray in world space.
 		 *
-		 * @param	screenPoint		2D point on the render target attached to the camera's viewport, in pixels.
-		 * @return					Ray in world space, originating at the selected point on the camera near plane.
+		 * @param	screenPoint	2D point on the render target attached to the camera's viewport, in pixels.
+		 * @return	Ray in world space, originating at the selected point on the camera near plane.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Ray ScreenPointToRay(const Vector2I& screenPoint) const;
 
 		/**
-		 * Projects a point in view space to normalized device coordinates. Similar to viewToNdcPoint() but preserves
+		 * Projects a point in view space to normalized device coordinates. Similar to ViewToNDCPoint() but preserves
 		 * the depth component.
 		 *
-		 * @param	point			3D point relative to the camera's coordinate system.
-		 * @return					3D point in normalized device coordinates ([-1, 1] range), relative to the
-		 *							camera's viewport. Z value range depends on active render API.
+		 * @param	point	3D point relative to the camera's coordinate system.
+		 * @return	3D point in normalized device coordinates ([-1, 1] range), relative to the
+		 *	camera's viewport. Z value range depends on active render API.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector3 ProjectPoint(const Vector3& point) const;
@@ -445,9 +445,9 @@ namespace b3d
 		/**
 		 * Un-projects a point in normalized device space to view space.
 		 *
-		 * @param	point			3D point in normalized device coordinates ([-1, 1] range), relative to the
-		 *							camera's viewport. Z value range depends on active render API.
-		 * @return					3D point relative to the camera's coordinate system.
+		 * @param	point	3D point in normalized device coordinates ([-1, 1] range), relative to the
+		 *	camera's viewport. Z value range depends on active render API.
+		 * @return	3D point relative to the camera's coordinate system.
 		 */
 		B3D_SCRIPT_EXPORT()
 		Vector3 UnprojectPoint(const Vector3& point) const;

@@ -92,15 +92,15 @@ u32 GUIListBox::GetSelectedElementIndex() const
 
 void GUIListBox::SetElementStates(const Vector<bool>& states)
 {
-	u32 numElements = (u32)mElementStates.size();
-	u32 min = std::min(numElements, (u32)states.size());
+	u32 elementCount = (u32)mElementStates.size();
+	u32 min = std::min(elementCount, (u32)states.size());
 
-	bool anythingModified = min != numElements;
+	bool anythingModified = min != elementCount;
 	if(!anythingModified)
 	{
-		for(u32 i = 0; i < numElements; i++)
+		for(u32 elementIndex = 0; elementIndex < elementCount; elementIndex++)
 		{
-			if(mElementStates[i] != states[i])
+			if(mElementStates[elementIndex] != states[elementIndex])
 			{
 				anythingModified = true;
 				break;
@@ -116,14 +116,14 @@ void GUIListBox::SetElementStates(const Vector<bool>& states)
 	if(wasOpen)
 		CloseListBox();
 
-	for(u32 i = 0; i < min; i++)
+	for(u32 elementIndex = 0; elementIndex < min; elementIndex++)
 	{
-		mElementStates[i] = states[i];
+		mElementStates[elementIndex] = states[elementIndex];
 
-		if(mElementStates[i] && !mIsMultiselect)
+		if(mElementStates[elementIndex] && !mIsMultiselect)
 		{
-			for(u32 j = i + 1; j < numElements; j++)
-				mElementStates[j] = false;
+			for(u32 remainingIndex = elementIndex + 1; remainingIndex < elementCount; remainingIndex++)
+				mElementStates[remainingIndex] = false;
 
 			break;
 		}
@@ -273,28 +273,28 @@ bool GUIListBox::DoOnCommandEvent(const GUICommandEvent& ev)
 	return processed;
 }
 
-void GUIListBox::ElementSelected(u32 idx)
+void GUIListBox::ElementSelected(u32 index)
 {
-	if(idx >= (u32)mElements.size())
+	if(index >= (u32)mElements.size())
 		return;
 
 	if(mIsMultiselect)
 	{
-		bool selected = mElementStates[idx];
-		mElementStates[idx] = !selected;
+		bool selected = mElementStates[index];
+		mElementStates[index] = !selected;
 
 		if(!OnSelectionToggled.Empty())
-			OnSelectionToggled(idx, !selected);
+			OnSelectionToggled(index, !selected);
 	}
 	else
 	{
-		for(u32 i = 0; i < (u32)mElementStates.size(); i++)
-			mElementStates[i] = false;
+		for(u32 elementIndex = 0; elementIndex < (u32)mElementStates.size(); elementIndex++)
+			mElementStates[elementIndex] = false;
 
-		mElementStates[idx] = true;
+		mElementStates[index] = true;
 
 		if(!OnSelectionToggled.Empty())
-			OnSelectionToggled(idx, true);
+			OnSelectionToggled(index, true);
 
 		CloseListBox();
 	}
@@ -308,13 +308,13 @@ void GUIListBox::OpenListBox()
 
 	DropDownBoxCreateInformation createInformation;
 
-	u32 i = 0;
-	for(auto& elem : mElements)
+	u32 elementIndex = 0;
+	for(auto& element : mElements)
 	{
-		String identifier = ToString(i);
-		createInformation.DropDownData.Entries.push_back(GUIDropDownDataEntry::Button(identifier, std::bind(&GUIListBox::ElementSelected, this, i)));
-		createInformation.DropDownData.LocalizedNames[identifier] = elem;
-		i++;
+		String identifier = ToString(elementIndex);
+		createInformation.DropDownData.Entries.push_back(GUIDropDownDataEntry::Button(identifier, [this, elementIndex]() { ElementSelected(elementIndex); }));
+		createInformation.DropDownData.LocalizedNames[identifier] = element;
+		elementIndex++;
 	}
 
 	GUIWidget* widget = GetParentWidget();
@@ -331,7 +331,7 @@ void GUIListBox::OpenListBox()
 		type = GUIDropDownType::ListBox;
 
 	mDropDownBox = GUIDropDownBoxManager::Instance().OpenDropDownBox(
-		createInformation, type, std::bind(&GUIListBox::OnListBoxClosed, this));
+		createInformation, type, [this]() { OnListBoxClosed(); });
 
 	SetOnInternal(true);
 }
@@ -349,22 +349,22 @@ void GUIListBox::CloseListBox()
 
 void GUIListBox::UpdateContents()
 {
-	u32 selectedIdx = 0;
-	u32 numSelected = 0;
-	for(u32 i = 0; i < (u32)mElementStates.size(); i++)
+	u32 selectedIndex = 0;
+	u32 selectedCount = 0;
+	for(u32 elementIndex = 0; elementIndex < (u32)mElementStates.size(); elementIndex++)
 	{
-		if(mElementStates[i])
+		if(mElementStates[elementIndex])
 		{
-			selectedIdx = i;
-			numSelected++;
+			selectedIndex = elementIndex;
+			selectedCount++;
 		}
 	}
 
 	if(mIsMultiselect)
 	{
-		if(numSelected == 1)
-			SetContent(GUIContent(mElements[selectedIdx]));
-		else if(numSelected == 0)
+		if(selectedCount == 1)
+			SetContent(GUIContent(mElements[selectedIndex]));
+		else if(selectedCount == 0)
 			SetContent(GUIContent(HEString("None")));
 		else
 			SetContent(GUIContent(HEString("Multiple")));
@@ -372,7 +372,7 @@ void GUIListBox::UpdateContents()
 	else
 	{
 		if(!mElements.empty())
-			SetContent(GUIContent(mElements[selectedIdx]));
+			SetContent(GUIContent(mElements[selectedIndex]));
 		else
 			SetContent(GUIContent(HEString("None")));
 	}

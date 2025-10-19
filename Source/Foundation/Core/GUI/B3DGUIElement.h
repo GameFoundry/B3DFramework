@@ -282,10 +282,10 @@ namespace b3d
 		 * This should be called after updating the layout (as layout update calculates the needed relative coordinates).
 		 * This may also be called independently of layout update, which is useful for scroll areas that then do not require
 		 * a full layout pass to scroll their children.
-		 * 
-		 * @param parentOrigin			Absolute origin to add to the relative coordinates, in order to determine the absolute element coordinates.
-		 * @param parentScale			Scale of the parent GUI element.
-		 * @param parentVisibleArea		Absolute visible (clipped) area though which this element may be seen. This will be used for culling and clipping.
+		 *
+		 * @param	parentOrigin		Absolute origin to add to the relative coordinates, in order to determine the absolute element coordinates.
+		 * @param	parentScale			Scale of the parent GUI element.
+		 * @param	parentVisibleArea	Absolute visible (clipped) area though which this element may be seen. This will be used for culling and clipping.
 		 */
 		virtual void UpdateAbsoluteCoordinates(const GUIPhysicalPointF& parentOrigin, float parentScale, const GUIPhysicalAreaF& parentVisibleArea);
 
@@ -305,7 +305,7 @@ namespace b3d
 		u32 GetChildCount() const { return (u32)mChildren.size(); }
 
 		/**	Return the child element at the specified index.*/
-		GUIElement* GetChild(u32 idx) const { return mChildren[idx]; }
+		GUIElement* GetChild(u32 index) const { return mChildren[index]; }
 
 		/**
 		 * Returns all children that can be seen through the parent's visible area (i.e. all elements that are not culled or explicitly made invisible). Note this

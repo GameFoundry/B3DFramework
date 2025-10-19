@@ -74,38 +74,38 @@ void GUITexture::UpdateRenderElements()
 		textureSize = mImageSpriteInformation.Image->GetAnimationFrameSize().To<i32>();
 	}
 
-	Size2I destSize = mAbsoluteSize.To<i32>();
+	Size2I destinationSize = mAbsoluteSize.To<i32>();
 
 	// ScaleToFit is the only scaling mode that might result in the GUITexture area not being completely covered by
 	// the sprite. We need the actual sprite size and offsets to center it.
 	Vector2I imageSpriteOffset;
 	if(mScaleMode == TextureScaleMode::ScaleToFit)
 	{
-		if(destSize.Width != 0 && destSize.Height != 0)
+		if(destinationSize.Width != 0 && destinationSize.Height != 0)
 		{
-			float aspectX = (float)textureSize.Width / (float)destSize.Width;
-			float aspectY = (float)textureSize.Height / (float)destSize.Height;
+			float aspectX = (float)textureSize.Width / (float)destinationSize.Width;
+			float aspectY = (float)textureSize.Height / (float)destinationSize.Height;
 
 			if(aspectY > aspectX)
 			{
-				destSize.Width = Math::RoundToI32((float)textureSize.Width / aspectY);
-				destSize.Height = Math::RoundToI32((float)textureSize.Height / aspectY);
+				destinationSize.Width = Math::RoundToI32((float)textureSize.Width / aspectY);
+				destinationSize.Height = Math::RoundToI32((float)textureSize.Height / aspectY);
 			}
 			else
 			{
-				destSize.Width = Math::RoundToI32((float)textureSize.Width / aspectX);
-				destSize.Height = Math::RoundToI32((float)textureSize.Height / aspectX);
+				destinationSize.Width = Math::RoundToI32((float)textureSize.Width / aspectX);
+				destinationSize.Height = Math::RoundToI32((float)textureSize.Height / aspectX);
 			}
 		}
 
 		imageSpriteOffset = Vector2I(
-			((i32)mAbsoluteSize.Width - destSize.Width) / 2,
-			((i32)mAbsoluteSize.Height - destSize.Height) / 2);
+			((i32)mAbsoluteSize.Width - destinationSize.Width) / 2,
+			((i32)mAbsoluteSize.Height - destinationSize.Height) / 2);
 	}
 	else
 		imageSpriteOffset = Vector2I(BsZero);
 
-	mImageSpriteInformation.Size = destSize;
+	mImageSpriteInformation.Size = destinationSize;
 	mImageSpriteInformation.Transparent = mTransparent;
 	mImageSpriteInformation.Color = GetTint();
 
@@ -117,7 +117,7 @@ void GUITexture::UpdateRenderElements()
 	}
 
 	if(mScaleMode != TextureScaleMode::ScaleToFit)
-		mImageSpriteInformation.UvScale = ImageSprite::GetTextureUvScale(textureSize, destSize, mScaleMode);
+		mImageSpriteInformation.UvScale = ImageSprite::GetTextureUvScale(textureSize, destinationSize, mScaleMode);
 	else
 		mImageSpriteInformation.UvScale = Vector2::kOne;
 

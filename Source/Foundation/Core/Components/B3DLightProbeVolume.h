@@ -297,11 +297,11 @@ namespace b3d
 			 * Renders dirty probes and updates their SH coefficients in the local GPU buffer.
 			 *
 			 * @param	commandBuffer	Command buffer to encode the operations on.
-			 * @param	maxProbes		Maximum number of probes to render. Set to zero to render all dirty probes. Limiting the
+			 * @param	maxProbeCount	Maximum number of probes to render. Set to zero to render all dirty probes. Limiting the
 			 *							number of probes allows the rendering to be distributed over multiple frames.
 			 * @return					True if there are no more dirty probes to process.
 			 */
-			bool RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProbes);
+			bool RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProbeCount);
 
 			/**
 			 * Resizes the internal texture that stores light probe SH coefficients, to the specified size (in the number

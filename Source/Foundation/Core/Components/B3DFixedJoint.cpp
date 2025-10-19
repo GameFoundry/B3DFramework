@@ -31,29 +31,29 @@ void FixedJoint::CalculateLocalBodyTransform(JointBody body, Vector3& position, 
 	rotation = mInformation.Bodies[(u32)body].Rotation;
 
 	HRigidbody rigidbody = mInformation.Bodies[(u32)body].Body;
-	const Transform& tfrm = SO()->GetTransform();
+	const Transform& transform = SO()->GetTransform();
 	if(rigidbody == nullptr) // Get world space transform if no relative to any body
 	{
-		Quaternion worldRot = tfrm.GetRotation();
+		Quaternion worldRotation = transform.GetRotation();
 
-		rotation = worldRot * rotation;
-		position = worldRot.Rotate(position) + tfrm.GetPosition();
+		rotation = worldRotation * rotation;
+		position = worldRotation.Rotate(position) + transform.GetPosition();
 	}
 	else
 	{
-		const Transform& rigidbodyTfrm = rigidbody->SO()->GetTransform();
+		const Transform& rigidbodyTransform = rigidbody->SO()->GetTransform();
 
 		// Find world space transform
-		Quaternion worldRot = rigidbodyTfrm.GetRotation();
+		Quaternion worldRotation = rigidbodyTransform.GetRotation();
 
-		rotation = worldRot * rotation;
-		position = worldRot.Rotate(position) + rigidbodyTfrm.GetPosition();
+		rotation = worldRotation * rotation;
+		position = worldRotation.Rotate(position) + rigidbodyTransform.GetPosition();
 
 		// Get transform of the joint local to the object
 		Quaternion invRotation = rotation.Inverse();
 
-		position = invRotation.Rotate(tfrm.GetPosition() - position);
-		rotation = invRotation * tfrm.GetRotation();
+		position = invRotation.Rotate(transform.GetPosition() - position);
+		rotation = invRotation * transform.GetRotation();
 	}
 }
 

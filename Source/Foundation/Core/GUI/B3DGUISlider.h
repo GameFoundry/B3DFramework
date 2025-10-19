@@ -38,7 +38,7 @@ namespace b3d
 
 		/** Sets a minimum and maximum allow values in the input field. Set to large negative/positive values if you don't require clamping. */
 		B3D_SCRIPT_EXPORT()
-		void SetRange(float min, float max);
+		void SetRange(float minimum, float maximum);
 
 		/** Returns the minimum value of the slider */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(RangeMinimum))

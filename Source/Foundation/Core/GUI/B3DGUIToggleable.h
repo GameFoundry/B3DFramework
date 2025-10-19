@@ -73,8 +73,8 @@ namespace b3d
 		/**
 		 * Calculates the bounds of the content are in which the checkmark will be placed.
 		 *
-		 * @param	elementOptimalSize		Unconstrained optimal size for the GUI element. Will be used to derive checkmark area
-		 *									size if explicit size is not provided in the style sheet.
+		 * @param	elementOptimalSize	Unconstrained optimal size for the GUI element. Will be used to derive checkmark area
+		 * 								size if explicit size is not provided in the style sheet.
 		 */
 		GUILogicalSize CalculateCheckmarkContentAreaSize(const GUILogicalSize& elementOptimalSize) const;
 

@@ -44,14 +44,14 @@ namespace b3d
 		bool SRgb = false;
 
 		/**
-		 * Determines should the texture be imported as a cubemap. See setCubemapSource to choose how will the source
+		 * Determines should the texture be imported as a cubemap. See CubemapSourceType to choose how will the source
 		 * texture be converted to a cubemap.
 		 */
 		B3D_SCRIPT_EXPORT()
 		bool Cubemap = false;
 
 		/**
-		 * Determines how should the source texture be interpreted when generating a cubemap. Only relevant when @p cubemap
+		 * Determines how should the source texture be interpreted when generating a cubemap. Only relevant when @p Cubemap
 		 * is set to true.
 		 */
 		B3D_SCRIPT_EXPORT()

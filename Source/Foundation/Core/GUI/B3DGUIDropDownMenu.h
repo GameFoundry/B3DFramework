@@ -120,15 +120,15 @@ namespace b3d
 			/**
 			 * Creates a new drop down box sub-menu.
 			 *
-			 * @param[in]	owner			Owner drop down box this sub menu belongs to.
-			 * @param[in]	parent			Parent sub-menu. Can be null.
-			 * @param[in]	placement		Determines how is the sub-menu positioned in the visible area.
-			 * @param[in]	availableBounds	Available bounds (in pixels) in which the sub-menu may be opened.
-			 * @param[in]	dropDownData	Data to use for initializing menu items of the sub-menu.
-			 * @param[in]	type			Type of the drop down box to show.
-			 * @param[in]	depthOffset		How much to offset the sub-menu depth. We want deeper levels of the sub-menu
-			 *								hierarchy to be in front of lower levels, so you should increase this value for
-			 *								each level of the sub-menu hierarchy.
+			 * @param	owner			Owner drop down box this sub menu belongs to.
+			 * @param	parent			Parent sub-menu. Can be null.
+			 * @param	placement		Determines how is the sub-menu positioned in the visible area.
+			 * @param	availableBounds	Available bounds (in pixels) in which the sub-menu may be opened.
+			 * @param	dropDownData	Data to use for initializing menu items of the sub-menu.
+			 * @param	type			Type of the drop down box to show.
+			 * @param	depthOffset		How much to offset the sub-menu depth. We want deeper levels of the sub-menu
+			 *							hierarchy to be in front of lower levels, so you should increase this value for
+			 *							each level of the sub-menu hierarchy.
 			 */
 			DropDownSubMenu(GUIDropDownMenu* owner, DropDownSubMenu* parent, const TDropDownAreaPlacement<GUIPhysicalUnit>& placement, const GUIPhysicalArea& availableBounds, const GUIDropDownData& dropDownData, GUIDropDownType type, u32 depthOffset);
 			~DropDownSubMenu();
@@ -154,18 +154,18 @@ namespace b3d
 			/**
 			 * Called when the user activates an element with the specified index.
 			 *
-			 * @param[in]	idx		Index of the activated element.
-			 * @param[in]	bounds	Bounds of the GUI element that is used as a visual representation of this drop down
-			 *						element.
+			 * @param	index	Index of the activated element.
+			 * @param	bounds	Bounds of the GUI element that is used as a visual representation of this drop down
+			 *					element.
 			 */
-			void ElementActivated(u32 idx, const GUIPhysicalArea& bounds);
+			void ElementActivated(u32 index, const GUIPhysicalArea& bounds);
 
 			/**
 			 * Called when the user selects an element with the specified index.
 			 *
-			 * @param[in]	idx		Index of the element that was selected.
+			 * @param	index	Index of the element that was selected.
 			 */
-			void ElementSelected(u32 idx);
+			void ElementSelected(u32 index);
 
 			/**	Called when the user wants to close the currently open sub-menu. */
 			void CloseSubMenu();

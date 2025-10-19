@@ -91,7 +91,7 @@ namespace b3d
 		void SetLayer(u64 layer);
 
 		/**
-		 * Sets bounds that will be used when determining if object is visible. Only relevant if setUseOverrideBounds() is
+		 * Sets bounds that will be used when determining if object is visible. Only relevant if SetUseOverrideBounds() is
 		 * set to true.
 		 *
 		 * @param	bounds	Bounds in local space.
@@ -99,7 +99,7 @@ namespace b3d
 		void SetOverrideBounds(const AABox& bounds);
 
 		/**
-		 * Enables or disables override bounds. When enabled the bounds provided to setOverrideBounds() will be used for
+		 * Enables or disables override bounds. When enabled the bounds provided to SetOverrideBounds() will be used for
 		 * determining object visibility, otherwise the bounds from the object's mesh will be used. Disabled by default.
 		 */
 		void SetUseOverrideBounds(bool enable);

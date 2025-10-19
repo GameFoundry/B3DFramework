@@ -27,25 +27,25 @@ namespace b3d
 		/**
 		 * Constructs a new non-separator menu item.
 		 *
-		 * @param[in]	parent		Parent item, if any.
-		 * @param[in]	name		Name of the item to be displayed.
-		 * @param[in]	callback	Callback to be triggered when menu items is selected.
-		 * @param[in]	priority	Priority that determines the order of this element compared to its siblings.
-		 * @param[in]	seqIdx		Sequential index of the menu item that specifies in what order was it added to the menu
-		 * 							compared to other items.
-		 * @param[in]	key			Keyboard shortcut that can be used for triggering the menu item.
+		 * @param	parent				Parent item, if any.
+		 * @param	name				Name of the item to be displayed.
+		 * @param	callback			Callback to be triggered when menu items is selected.
+		 * @param	priority			Priority that determines the order of this element compared to its siblings.
+		 * @param	sequentialIndex		Sequential index of the menu item that specifies in what order was it added to the menu
+		 * 								compared to other items.
+		 * @param	key					Keyboard shortcut that can be used for triggering the menu item.
 		 */
-		GUIMenuItem(GUIMenuItem* parent, const String& name, std::function<void()> callback, i32 priority, u32 seqIdx, const ShortcutKey& key);
+		GUIMenuItem(GUIMenuItem* parent, const String& name, std::function<void()> callback, i32 priority, u32 sequentialIndex, const ShortcutKey& key);
 
 		/**
 		 * Constructs a new separator menu item.
 		 *
-		 * @param[in]	parent		Parent item, if any.
-		 * @param[in]	priority	Priority that determines the order of this element compared to its siblings.
-		 * @param[in]	seqIdx		Sequential index of the menu item that specifies in what order was it added to the menu
-		 * 							compared to other items.
+		 * @param	parent				Parent item, if any.
+		 * @param	priority			Priority that determines the order of this element compared to its siblings.
+		 * @param	sequentialIndex		Sequential index of the menu item that specifies in what order was it added to the menu
+		 * 								compared to other items.
 		 */
-		GUIMenuItem(GUIMenuItem* parent, i32 priority, u32 seqIdx);
+		GUIMenuItem(GUIMenuItem* parent, i32 priority, u32 sequentialIndex);
 		~GUIMenuItem();
 
 		/**	Registers a new child with the item. */
@@ -116,26 +116,26 @@ namespace b3d
 		/**
 		 * Adds a new menu item with the specified callback.
 		 *
-		 * @param[in]	path		Path that determines where to add the element. See class information on how to specify
-		 *							paths. All sub-elements of a path will be added automatically.
-		 * @param[in]	callback	Callback that triggers when the path element is selected.
-		 * @param[in]	priority	Priority determines the position of the menu item relative to its siblings. Higher
-		 *							priority means it will be placed earlier in the menu.
-		 * @param[in]	key			Keyboard shortcut that can be used for triggering the menu item.
-		 * @return					A menu item object that you may use for removing the menu item later. Its lifetime is
-		 *							managed internally.
+		 * @param	path		Path that determines where to add the element. See class information on how to specify
+		 *						paths. All sub-elements of a path will be added automatically.
+		 * @param	callback	Callback that triggers when the path element is selected.
+		 * @param	priority	Priority determines the position of the menu item relative to its siblings. Higher
+		 *						priority means it will be placed earlier in the menu.
+		 * @param	key			Keyboard shortcut that can be used for triggering the menu item.
+		 * @return				A menu item object that you may use for removing the menu item later. Its lifetime is
+		 *						managed internally.
 		 */
 		GUIMenuItem* AddMenuItem(const String& path, std::function<void()> callback, i32 priority, const ShortcutKey& key = ShortcutKey::kNone);
 
 		/**
 		 * Adds a new separator menu item with the specified callback.
 		 *
-		 * @param[in]	path		Path that determines where to add the element. See class information on how to specify
-		 *							paths. All sub-elements of a path will be added automatically.
-		 * @param[in]	priority	Priority determines the position of the menu item relative to its siblings. Higher
-		 *							priority means it will be placed earlier in the menu.
-		 * @return					A menu item object that you may use for removing the menu item later. Its lifetime is
-		 *							managed internally.
+		 * @param	path		Path that determines where to add the element. See class information on how to specify
+		 *						paths. All sub-elements of a path will be added automatically.
+		 * @param	priority	Priority determines the position of the menu item relative to its siblings. Higher
+		 *						priority means it will be placed earlier in the menu.
+		 * @return				A menu item object that you may use for removing the menu item later. Its lifetime is
+		 *						managed internally.
 		 */
 		GUIMenuItem* AddSeparator(const String& path, i32 priority);
 
@@ -150,10 +150,10 @@ namespace b3d
 		 * localizing the menu item. This method allows you to set specific names (different from path labels) to each menu
 		 * item. All the values are localized so they will also be updated according to the string table.
 		 *
-		 * @param[in]	menuItemLabel	The menu item label. (for example if you have a menu like "View/Toolbars/Find, this
-		 *								parameter would be either "View", "Toolbars" or "Find" depending which entry you
-		 *								want to localize)
-		 * @param[in]	localizedName	Localized string with the name.
+		 * @param	menuItemLabel	The menu item label. (for example if you have a menu like "View/Toolbars/Find, this
+		 *							parameter would be either "View", "Toolbars" or "Find" depending which entry you
+		 *							want to localize)
+		 * @param	localizedName	Localized string with the name.
 		 */
 		void SetLocalizedName(const String& menuItemLabel, const HString& localizedName);
 

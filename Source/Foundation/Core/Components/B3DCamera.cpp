@@ -111,7 +111,7 @@ ConvexVolume TCamera<IsRenderProxy>::GetWorldFrustum() const
 
 	Vector<Plane> worldPlanes(frustumPlanes.size());
 	u32 planeIndex = 0;
-	for(auto& plane : frustumPlanes)
+	for(const auto& plane : frustumPlanes)
 	{
 		worldPlanes[planeIndex] = worldMatrix.MultiplyAffine(plane);
 		planeIndex++;
@@ -153,13 +153,13 @@ void TCamera<IsRenderProxy>::CalculateProjectionParameters(float& left, float& r
 			float tanThetaX = Math::Tan(thetaX);
 			float tanThetaY = tanThetaX / mAspect;
 
-			float half_w = tanThetaX * mNearDist;
-			float half_h = tanThetaY * mNearDist;
+			float halfWidth = tanThetaX * mNearDist;
+			float halfHeight = tanThetaY * mNearDist;
 
-			left = -half_w;
-			right = half_w;
-			bottom = -half_h;
-			top = half_h;
+			left = -halfWidth;
+			right = halfWidth;
+			bottom = -halfHeight;
+			top = halfHeight;
 
 			mLeft = left;
 			mRight = right;
@@ -168,13 +168,13 @@ void TCamera<IsRenderProxy>::CalculateProjectionParameters(float& left, float& r
 		}
 		else
 		{
-			float half_w = GetOrthographicWidth() * 0.5f;
-			float half_h = GetOrthographicHeight() * 0.5f;
+			float halfWidth = GetOrthographicWidth() * 0.5f;
+			float halfHeight = GetOrthographicHeight() * 0.5f;
 
-			left = -half_w;
-			right = half_w;
-			bottom = -half_h;
-			top = half_h;
+			left = -halfWidth;
+			right = halfWidth;
+			bottom = -halfHeight;
+			top = halfHeight;
 
 			mLeft = left;
 			mRight = right;
@@ -195,16 +195,16 @@ void TCamera<IsRenderProxy>::UpdateFrustum() const
 
 		if(!mCustomProjMatrix)
 		{
-			float inv_w = 1 / (right - left);
-			float inv_h = 1 / (top - bottom);
-			float inv_d = 1 / (mFarDist - mNearDist);
+			float inverseWidth = 1 / (right - left);
+			float inverseHeight = 1 / (top - bottom);
+			float inverseDepth = 1 / (mFarDist - mNearDist);
 
 			if(mProjType == PT_PERSPECTIVE)
 			{
-				float A = 2 * mNearDist * inv_w;
-				float B = 2 * mNearDist * inv_h;
-				float C = (right + left) * inv_w;
-				float D = (top + bottom) * inv_h;
+				float A = 2 * mNearDist * inverseWidth;
+				float B = 2 * mNearDist * inverseHeight;
+				float C = (right + left) * inverseWidth;
+				float D = (top + bottom) * inverseHeight;
 				float q, qn;
 
 				if(mFarDist == 0)
@@ -215,8 +215,8 @@ void TCamera<IsRenderProxy>::UpdateFrustum() const
 				}
 				else
 				{
-					q = -(mFarDist + mNearDist) * inv_d;
-					qn = -2 * (mFarDist * mNearDist) * inv_d;
+					q = -(mFarDist + mNearDist) * inverseDepth;
+					qn = -2 * (mFarDist * mNearDist) * inverseDepth;
 				}
 
 				mProjMatrix = Matrix4::kZero;
@@ -230,10 +230,10 @@ void TCamera<IsRenderProxy>::UpdateFrustum() const
 			}
 			else if(mProjType == PT_ORTHOGRAPHIC)
 			{
-				float A = 2 * inv_w;
-				float B = 2 * inv_h;
-				float C = -(right + left) * inv_w;
-				float D = -(top + bottom) * inv_h;
+				float A = 2 * inverseWidth;
+				float B = 2 * inverseHeight;
+				float C = -(right + left) * inverseWidth;
+				float D = -(top + bottom) * inverseHeight;
 				float q, qn;
 
 				if(mFarDist == 0)
@@ -244,8 +244,8 @@ void TCamera<IsRenderProxy>::UpdateFrustum() const
 				}
 				else
 				{
-					q = -2 * inv_d;
-					qn = -(mFarDist + mNearDist) * inv_d;
+					q = -2 * inverseDepth;
+					qn = -(mFarDist + mNearDist) * inverseDepth;
 				}
 
 				mProjMatrix = Matrix4::kZero;
@@ -285,9 +285,9 @@ void TCamera<IsRenderProxy>::UpdateFrustum() const
 		if(mProjType == PT_PERSPECTIVE)
 		{
 			// Merge with far plane bounds
-			float radio = farDist / mNearDist;
-			min.Min(Vector3(left * radio, bottom * radio, -farDist));
-			max.Max(Vector3(right * radio, top * radio, 0));
+			float ratio = farDist / mNearDist;
+			min.Min(Vector3(left * ratio, bottom * ratio, -farDist));
+			max.Max(Vector3(right * ratio, top * ratio, 0));
 		}
 
 		mBoundingBox.SetExtents(min, max);
@@ -322,9 +322,9 @@ float TCamera<IsRenderProxy>::GetAspectRatio() const
 }
 
 template <bool IsRenderProxy>
-void TCamera<IsRenderProxy>::SetAspectRatio(float r)
+void TCamera<IsRenderProxy>::SetAspectRatio(float ratio)
 {
-	mAspect = r;
+	mAspect = ratio;
 	InvalidateFrustum();
 	MarkRenderProxyDataDirty();
 }
@@ -364,28 +364,28 @@ void TCamera<IsRenderProxy>::SetCustomProjectionMatrix(bool enable, const Matrix
 }
 
 template <bool IsRenderProxy>
-void TCamera<IsRenderProxy>::SetOrthographicSize(float w, float h)
+void TCamera<IsRenderProxy>::SetOrthographicSize(float width, float height)
 {
-	mOrthoHeight = h;
-	mAspect = w / h;
+	mOrthoHeight = height;
+	mAspect = width / height;
 
 	InvalidateFrustum();
 	MarkRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
-void TCamera<IsRenderProxy>::SetOrthographicHeight(float h)
+void TCamera<IsRenderProxy>::SetOrthographicHeight(float height)
 {
-	mOrthoHeight = h;
+	mOrthoHeight = height;
 
 	InvalidateFrustum();
 	MarkRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
-void TCamera<IsRenderProxy>::SetOrthographicWidth(float w)
+void TCamera<IsRenderProxy>::SetOrthographicWidth(float width)
 {
-	mOrthoHeight = w / mAspect;
+	mOrthoHeight = width / mAspect;
 
 	InvalidateFrustum();
 	MarkRenderProxyDataDirty();
@@ -426,14 +426,14 @@ void TCamera<IsRenderProxy>::ResetFrustumExtents()
 }
 
 template <bool IsRenderProxy>
-void TCamera<IsRenderProxy>::GetFrustumExtents(float& outleft, float& outright, float& outtop, float& outbottom) const
+void TCamera<IsRenderProxy>::GetFrustumExtents(float& outLeft, float& outRight, float& outTop, float& outBottom) const
 {
 	UpdateFrustum();
 
-	outleft = mLeft;
-	outright = mRight;
-	outtop = mTop;
-	outbottom = mBottom;
+	outLeft = mLeft;
+	outRight = mRight;
+	outTop = mTop;
+	outBottom = mBottom;
 }
 
 template <bool IsRenderProxy>
@@ -486,11 +486,11 @@ Vector3 TCamera<IsRenderProxy>::ScreenToWorldPointDeviceDepth(const Vector2I& sc
 	Vector3 worldPoint3D;
 	if(Math::Abs(worldPoint.W) > 1e-7f)
 	{
-		float invW = 1.0f / worldPoint.W;
+		float inverseW = 1.0f / worldPoint.W;
 
-		worldPoint3D.X = worldPoint.X * invW;
-		worldPoint3D.Y = worldPoint.Y * invW;
-		worldPoint3D.Z = worldPoint.Z * invW;
+		worldPoint3D.X = worldPoint.X * inverseW;
+		worldPoint3D.Y = worldPoint.Y * inverseW;
+		worldPoint3D.Z = worldPoint.Z * inverseW;
 	}
 
 	return ViewToWorldPoint(worldPoint3D);
@@ -592,24 +592,24 @@ Ray TCamera<IsRenderProxy>::ScreenPointToRay(const Vector2I& screenPoint) const
 template<bool IsRenderProxy>
 Vector3 TCamera<IsRenderProxy>::ProjectPoint(const Vector3& point) const
 {
-	Vector4 projPoint4(point.X, point.Y, point.Z, 1.0f);
-	projPoint4 = GetProjectionMatrix().Multiply(projPoint4);
+	Vector4 projectedPoint4(point.X, point.Y, point.Z, 1.0f);
+	projectedPoint4 = GetProjectionMatrix().Multiply(projectedPoint4);
 
-	if(Math::Abs(projPoint4.W) > 1e-7f)
+	if(Math::Abs(projectedPoint4.W) > 1e-7f)
 	{
-		float invW = 1.0f / projPoint4.W;
-		projPoint4.X *= invW;
-		projPoint4.Y *= invW;
-		projPoint4.Z *= invW;
+		float inverseW = 1.0f / projectedPoint4.W;
+		projectedPoint4.X *= inverseW;
+		projectedPoint4.Y *= inverseW;
+		projectedPoint4.Z *= inverseW;
 	}
 	else
 	{
-		projPoint4.X = 0.0f;
-		projPoint4.Y = 0.0f;
-		projPoint4.Z = 0.0f;
+		projectedPoint4.X = 0.0f;
+		projectedPoint4.Y = 0.0f;
+		projectedPoint4.Z = 0.0f;
 	}
 
-	return Vector3(projPoint4.X, projPoint4.Y, projPoint4.Z);
+	return Vector3(projectedPoint4.X, projectedPoint4.Y, projectedPoint4.Z);
 }
 
 template<bool IsRenderProxy>
@@ -626,12 +626,12 @@ Vector3 TCamera<IsRenderProxy>::UnprojectPoint(const Vector3& point) const
 	if(Math::Abs(farAwayPoint.W) > 1e-7f)
 	{
 		// Perspective divide, to get the values that make sense in 3D space
-		float invW = 1.0f / farAwayPoint.W;
+		float inverseW = 1.0f / farAwayPoint.W;
 
 		Vector3 farAwayPoint3D;
-		farAwayPoint3D.X = farAwayPoint.X * invW;
-		farAwayPoint3D.Y = farAwayPoint.Y * invW;
-		farAwayPoint3D.Z = farAwayPoint.Z * invW;
+		farAwayPoint3D.X = farAwayPoint.X * inverseW;
+		farAwayPoint3D.Y = farAwayPoint.Y * inverseW;
+		farAwayPoint3D.Z = farAwayPoint.Z * inverseW;
 
 		// Find the distance to the far point along the camera's viewing axis
 		float distAlongZ = farAwayPoint3D.Dot(-Vector3::kUnitZ);

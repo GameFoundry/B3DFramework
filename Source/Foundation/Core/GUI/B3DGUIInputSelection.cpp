@@ -40,16 +40,16 @@ void GUIInputSelection::UpdateSprite()
 	if(mElement != nullptr)
 		widget = mElement->GetParentWidget();
 
-	u32 idx = 0;
+	u32 index = 0;
 	for(auto& sprite : mSprites)
 	{
 		ImageSpriteInformation imageSpriteInformation;
-		imageSpriteInformation.Size.Width = mSelectionRects[idx].Width;
-		imageSpriteInformation.Size.Height = mSelectionRects[idx].Height;
+		imageSpriteInformation.Size.Width = mSelectionRects[index].Width;
+		imageSpriteInformation.Size.Height = mSelectionRects[index].Height;
 		imageSpriteInformation.Image = GUIManager::Instance().GetTextSelectionTexture();
 
 		sprite->Update(imageSpriteInformation, (u64)widget);
-		idx++;
+		index++;
 	}
 }
 
@@ -69,20 +69,20 @@ Vector<Area2I> GUIInputSelection::GetSelectionRects() const
 	{
 		const GUIInputLineDesc& lineDesc = GetLineDesc(startLine);
 
-		u32 startCharIdx = mSelectionStart;
+		u32 startCharacterIndex = mSelectionStart;
 
-		u32 endCharIdx = mSelectionEnd - 1;
+		u32 endCharacterIndex = mSelectionEnd - 1;
 		if(startLine != endLine)
 		{
-			endCharIdx = lineDesc.GetEndChar(false);
-			if(endCharIdx > 0)
-				endCharIdx = endCharIdx - 1;
+			endCharacterIndex = lineDesc.GetEndChar(false);
+			if(endCharacterIndex > 0)
+				endCharacterIndex = endCharacterIndex - 1;
 		}
 
-		if(!IsNewlineChar(startCharIdx) && !IsNewlineChar(endCharIdx))
+		if(!IsNewlineChar(startCharacterIndex) && !IsNewlineChar(endCharacterIndex))
 		{
-			Area2I startChar = GetCharacterBounds(startCharIdx);
-			Area2I endChar = GetCharacterBounds(endCharIdx);
+			Area2I startChar = GetCharacterBounds(startCharacterIndex);
+			Area2I endChar = GetCharacterBounds(endCharacterIndex);
 
 			Area2I selectionRect;
 			selectionRect.X = startChar.X;
@@ -94,18 +94,18 @@ Vector<Area2I> GUIInputSelection::GetSelectionRects() const
 		}
 	}
 
-	for(u32 i = startLine + 1; i < endLine; i++)
+	for(u32 lineIndex = startLine + 1; lineIndex < endLine; lineIndex++)
 	{
-		const GUIInputLineDesc& lineDesc = GetLineDesc(i);
+		const GUIInputLineDesc& lineDesc = GetLineDesc(lineIndex);
 		if(lineDesc.GetStartChar() == lineDesc.GetEndChar() || IsNewlineChar(lineDesc.GetStartChar()))
 			continue;
 
-		u32 endCharIdx = lineDesc.GetEndChar(false);
-		if(endCharIdx > 0)
-			endCharIdx = endCharIdx - 1;
+		u32 endCharacterIndex = lineDesc.GetEndChar(false);
+		if(endCharacterIndex > 0)
+			endCharacterIndex = endCharacterIndex - 1;
 
 		Area2I startChar = GetCharacterBounds(lineDesc.GetStartChar());
-		Area2I endChar = GetCharacterBounds(endCharIdx);
+		Area2I endChar = GetCharacterBounds(endCharacterIndex);
 
 		Area2I selectionRect;
 		selectionRect.X = startChar.X;
@@ -122,12 +122,12 @@ Vector<Area2I> GUIInputSelection::GetSelectionRects() const
 
 		if(lineDesc.GetStartChar() != lineDesc.GetEndChar() && !IsNewlineChar(lineDesc.GetStartChar()))
 		{
-			u32 endCharIdx = mSelectionEnd - 1;
+			u32 endCharacterIndex = mSelectionEnd - 1;
 
-			if(!IsNewlineChar(endCharIdx))
+			if(!IsNewlineChar(endCharacterIndex))
 			{
 				Area2I startChar = GetCharacterBounds(lineDesc.GetStartChar());
-				Area2I endChar = GetCharacterBounds(endCharIdx);
+				Area2I endChar = GetCharacterBounds(endCharacterIndex);
 
 				Area2I selectionRect;
 				selectionRect.X = startChar.X;
@@ -150,11 +150,11 @@ Area2I GUIInputSelection::GetBounds(u32 selectionIndex) const
 
 void GUIInputSelection::ShowSelection(u32 anchorCaretPos)
 {
-	u32 charIdx = GetCharIdxAtInputIdx(anchorCaretPos);
+	u32 characterIndex = GetCharIdxAtInputIdx(anchorCaretPos);
 
-	mSelectionStart = charIdx;
-	mSelectionEnd = charIdx;
-	mSelectionAnchor = charIdx;
+	mSelectionStart = characterIndex;
+	mSelectionEnd = characterIndex;
+	mSelectionAnchor = characterIndex;
 }
 
 void GUIInputSelection::ClearSelectionVisuals()
@@ -206,16 +206,16 @@ void GUIInputSelection::SelectionDragEnd()
 
 void GUIInputSelection::MoveSelectionToCaret(u32 caretPos)
 {
-	u32 charIdx = GetCharIdxAtInputIdx(caretPos);
+	u32 characterIndex = GetCharIdxAtInputIdx(caretPos);
 
-	if(charIdx > mSelectionAnchor)
+	if(characterIndex > mSelectionAnchor)
 	{
 		mSelectionStart = mSelectionAnchor;
-		mSelectionEnd = charIdx;
+		mSelectionEnd = characterIndex;
 	}
 	else
 	{
-		mSelectionStart = charIdx;
+		mSelectionStart = characterIndex;
 		mSelectionEnd = mSelectionAnchor;
 	}
 
@@ -226,7 +226,7 @@ void GUIInputSelection::MoveSelectionToCaret(u32 caretPos)
 void GUIInputSelection::SelectAll()
 {
 	mSelectionStart = 0;
-	mSelectionEnd = mNumChars;
+	mSelectionEnd = mCharacterCount;
 }
 
 bool GUIInputSelection::IsSelectionEmpty() const

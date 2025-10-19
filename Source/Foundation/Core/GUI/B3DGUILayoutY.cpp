@@ -29,10 +29,10 @@ void GUILayoutY::UpdateOptimalLayoutSizes()
 	GUILogicalSize optimalSize(BsZero);
 	GUILogicalSize minSize(BsZero);
 
-	u32 childIdx = 0;
+	u32 childIndex = 0;
 	for(auto& child : mChildren)
 	{
-		GUIConstrainedSizeRange& childSizeRange = mChildConstrainedSizeRanges[childIdx];
+		GUIConstrainedSizeRange& childSizeRange = mChildConstrainedSizeRanges[childIndex];
 
 		if(child->IsActive())
 		{
@@ -55,7 +55,7 @@ void GUILayoutY::UpdateOptimalLayoutSizes()
 		else
 			childSizeRange = GUIConstrainedSizeRange();
 
-		childIdx++;
+		childIndex++;
 	}
 
 	mConstrainedSizeRange = GetSizeConstraints().CalculateConstrainedSizeRange(optimalSize);
@@ -158,7 +158,7 @@ void GUILayoutY::GetChildRelativeLayoutAreas(const GUILogicalSize& layoutSize, G
 	childIndex = 0;
 	const float inverseWeightedNonClampedSize = 1.0f / weightedNonClampedSize;
 	u32 childCount = (u32)mChildren.size();
-	for(u32 i = 0; i < childCount; i++)
+	for(u32 childLoopIndex = 0; childLoopIndex < childCount; childLoopIndex++)
 	{
 		if(processedElements[childIndex])
 		{
@@ -334,21 +334,21 @@ void GUILayoutY::UpdateLayoutForChildren()
 	GetChildRelativeLayoutAreas(mLayoutData.Size, elementPositions, elementSizes, elementCount, mChildConstrainedSizeRanges, mConstrainedSizeRange.Optimal);
 
 	// Now that we have all the areas, actually assign them
-	u32 childIdx = 0;
+	u32 childIndex = 0;
 
 	GUILayoutData childData = mLayoutData;
 	for(auto& child : mChildren)
 	{
 		if(child->IsActive())
 		{
-			childData.RelativePosition = elementPositions[childIdx];
-			childData.Size = elementSizes[childIdx];
+			childData.RelativePosition = elementPositions[childIndex];
+			childData.Size = elementSizes[childIndex];
 
 			child->SetLayoutData(childData);
 			child->UpdateLayoutForChildren();
 		}
 
-		childIdx++;
+		childIndex++;
 	}
 
 	if(elementSizes != nullptr)

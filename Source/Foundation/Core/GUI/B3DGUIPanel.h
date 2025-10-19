@@ -27,14 +27,14 @@ namespace b3d
 
 		/**
 		 * Minimum range of depths that children of this GUI panel can have. If any panel has depth outside of the
-		 * range [depth - depthRangeMin, depth + depthRangeMax] it will be clamped to nearest extreme. Value
+		 * range [Depth - DepthRangeMinimum, Depth + DepthRangeMaximum] it will be clamped to nearest extreme. Value
 		 * of 65535 means infinite range.
 		 */
 		u16 DepthRangeMinimum;
 
 		/**
 		 * Maximum range of depths that children of this GUI panel can have. If any panel has depth outside of the
-		 * range [depth - depthRangeMin, depth + depthRangeMax] it will be clamped to nearest extreme. Value
+		 * range [Depth - DepthRangeMinimum, Depth + DepthRangeMaximum] it will be clamped to nearest extreme. Value
 		 * of 65535 means infinite range.
 		 */
 		u16 DepthRangeMaximum;
@@ -53,17 +53,17 @@ namespace b3d
 		/**
 		 * Changes values that control at which depth is GUI panel and its children rendered.
 		 *
-		 * @param[in]	depth			Determines rendering order of the GUI panel. Panels with lower depth will be
-		 *								rendered in front of panels with higher depth. Provided depth is relative to depth
-		 *								of the parent GUI panel (if any).
-		 * @param[in]	depthRangeMin	Minimum range of depths that children of this GUI panel can have. If any panel has
-		 *								depth outside of the range [depth - depthRangeMin, depth + depthRangeMax] it will
-		 *								be clamped to nearest extreme. Value of -1 means infinite range.
-		 * @param[in]	depthRangeMax	Maximum range of depths that children of this GUI panel can have. If any panel has
-		 *								depth outside of the range [depth - depthRangeMin, depth + depthRangeMax] it will
-		 *								be clamped to nearest extreme. Value of -1 means infinite range.
+		 * @param	depth					Determines rendering order of the GUI panel. Panels with lower depth will be
+		 *									rendered in front of panels with higher depth. Provided depth is relative to depth
+		 *									of the parent GUI panel (if any).
+		 * @param	depthRangeMinimum		Minimum range of depths that children of this GUI panel can have. If any panel has
+		 *									depth outside of the range [depth - depthRangeMinimum, depth + depthRangeMaximum] it will
+		 *									be clamped to nearest extreme. Value of -1 means infinite range.
+		 * @param	depthRangeMaximum		Maximum range of depths that children of this GUI panel can have. If any panel has
+		 *									depth outside of the range [depth - depthRangeMinimum, depth + depthRangeMaximum] it will
+		 *									be clamped to nearest extreme. Value of -1 means infinite range.
 		 */
-		void SetDepthRange(i16 depth = 0, u16 depthRangeMin = -1, u16 depthRangeMax = -1);
+		void SetDepthRange(i16 depth = 0, u16 depthRangeMinimum = -1, u16 depthRangeMaximum = -1);
 
 		/** Returns type name of the GUI element used for finding GUI element styles. */
 		static const String& GetGuiTypeName();

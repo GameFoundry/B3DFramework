@@ -52,7 +52,7 @@ namespace b3d
 
 	public:
 		/**
-		 * Builds a quad-tree from provided child elements and their current relative positions and size. 
+		 * Builds a quad-tree from provided child elements and their current relative positions and size.
 		 *
 		 * @param	elements				Elements to register into the quad-tree.
 		 * @param	maximumQuadTreeSize		Maximum allowed bounds of the internal quad tree.

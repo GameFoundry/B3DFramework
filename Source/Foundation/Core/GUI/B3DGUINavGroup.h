@@ -25,8 +25,8 @@ namespace b3d
 		/**
 		 * Sets the focus to the next element in the navigation order.
 		 *
-		 * @param[in]	anchor		Element relative to which to determine the navigation. This is usually the currently
-		 *							focused element.
+		 * @param	anchor	Element relative to which to determine the navigation. This is usually the currently
+		 *					focused element.
 		 */
 		void FocusNext(GUIInteractable* anchor);
 
@@ -38,11 +38,11 @@ namespace b3d
 		 * Registers a new element with the tab group. Caller must ensure the element has been removed from the previous
 		 * tab group, if any.
 		 *
-		 * @param[in]	element		Element to register.
-		 * @param[in]	tabIdx		Index of the element in the tab group. Set setIndex() for more information on how
-		 *							is the index interpreted.
+		 * @param	element		Element to register.
+		 * @param	tabIndex	Index of the element in the tab group. Set setIndex() for more information on how
+		 *						is the index interpreted.
 		 */
-		void RegisterElement(GUIInteractable* element, i32 tabIdx = 0);
+		void RegisterElement(GUIInteractable* element, i32 tabIndex = 0);
 
 		/**
 		 * Sets the index of a previously registered element in the tab group. The index determines in what order will the
@@ -52,7 +52,7 @@ namespace b3d
 		 * rest of indices are visited in order from lowest to highest. Negative indices are visited before auto-positioned
 		 * 0-index element, and positive indices are visited after.
 		 */
-		void SetIndex(GUIInteractable* element, i32 tabIdx);
+		void SetIndex(GUIInteractable* element, i32 tabIndex);
 
 		/** Unregisters an element from the tab group. */
 		void UnregisterElement(GUIInteractable* element);

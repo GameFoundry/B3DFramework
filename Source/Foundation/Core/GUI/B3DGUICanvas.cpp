@@ -106,19 +106,19 @@ void GUICanvas::DrawTriangleStrip(const Vector<GUILogicalPoint>& vertices, const
 	mDepthRange = std::max(mDepthRange, (u8)(depth + 1));
 
 	// Convert strip to list
-	for(u32 i = 2; i < (u32)vertices.size(); i++)
+	for(u32 vertexIndex = 2; vertexIndex < (u32)vertices.size(); vertexIndex++)
 	{
-		if(i % 2 == 0)
+		if(vertexIndex % 2 == 0)
 		{
-			mVertexData.push_back(GUILogicalPointF((float)vertices[i - 2].X + 0.5f, (float)vertices[i - 2].Y + 0.5f));
-			mVertexData.push_back(GUILogicalPointF((float)vertices[i - 1].X + 0.5f, (float)vertices[i - 1].Y + 0.5f));
-			mVertexData.push_back(GUILogicalPointF((float)vertices[i - 0].X + 0.5f, (float)vertices[i - 0].Y + 0.5f));
+			mVertexData.push_back(GUILogicalPointF((float)vertices[vertexIndex - 2].X + 0.5f, (float)vertices[vertexIndex - 2].Y + 0.5f));
+			mVertexData.push_back(GUILogicalPointF((float)vertices[vertexIndex - 1].X + 0.5f, (float)vertices[vertexIndex - 1].Y + 0.5f));
+			mVertexData.push_back(GUILogicalPointF((float)vertices[vertexIndex - 0].X + 0.5f, (float)vertices[vertexIndex - 0].Y + 0.5f));
 		}
 		else
 		{
-			mVertexData.push_back(GUILogicalPointF((float)vertices[i - 0].X + 0.5f, (float)vertices[i - 0].Y + 0.5f));
-			mVertexData.push_back(GUILogicalPointF((float)vertices[i - 1].X + 0.5f, (float)vertices[i - 1].Y + 0.5f));
-			mVertexData.push_back(GUILogicalPointF((float)vertices[i - 2].X + 0.5f, (float)vertices[i - 2].Y + 0.5f));
+			mVertexData.push_back(GUILogicalPointF((float)vertices[vertexIndex - 0].X + 0.5f, (float)vertices[vertexIndex - 0].Y + 0.5f));
+			mVertexData.push_back(GUILogicalPointF((float)vertices[vertexIndex - 1].X + 0.5f, (float)vertices[vertexIndex - 1].Y + 0.5f));
+			mVertexData.push_back(GUILogicalPointF((float)vertices[vertexIndex - 2].X + 0.5f, (float)vertices[vertexIndex - 2].Y + 0.5f));
 		}
 	}
 
@@ -221,12 +221,12 @@ void GUICanvas::UpdateRenderElements()
 		case CanvasElementType::Image:
 			BuildImageElement(element);
 
-			for(u32 i = 0; i < element.ImageSprite->GetRenderElementCount(); i++)
+			for(u32 elementIndex = 0; elementIndex < element.ImageSprite->GetRenderElementCount(); elementIndex++)
 			{
 				mRenderElements.Add(GUIRenderElement());
 				GUIRenderElement& renderElement = mRenderElements.Back();
 
-				element.ImageSprite->GetRenderElement(i, renderElement);
+				element.ImageSprite->GetRenderElement(elementIndex, renderElement);
 
 				renderElement.Depth = element.Depth;
 				renderElement.Type = GUIMeshType::Triangle;
@@ -236,12 +236,12 @@ void GUICanvas::UpdateRenderElements()
 		case CanvasElementType::Text:
 			BuildTextElement(element);
 
-			for(u32 i = 0; i < element.TextSprite->GetRenderElementCount(); i++)
+			for(u32 elementIndex = 0; elementIndex < element.TextSprite->GetRenderElementCount(); elementIndex++)
 			{
 				mRenderElements.Add(GUIRenderElement());
 				GUIRenderElement& renderElement = mRenderElements.Back();
 
-				element.TextSprite->GetRenderElement(i, renderElement);
+				element.TextSprite->GetRenderElement(elementIndex, renderElement);
 
 				renderElement.Depth = element.Depth;
 				renderElement.Type = GUIMeshType::Triangle;
@@ -305,8 +305,8 @@ void GUICanvas::FillBuffer(
 	u32 vertexOffset,
 	u32 indexOffset,
 	const Vector2I& offset,
-	u32 maxNumVerts,
-	u32 maxNumIndices,
+	u32 maxVertexCount,
+	u32 maxIndexCount,
 	u32 renderElementIdx) const
 {
 	u8* uvs = vertices + sizeof(Vector2);
@@ -333,7 +333,7 @@ void GUICanvas::FillBuffer(
 			clipRect.X -= (i32)area.X;
 			clipRect.Y -= (i32)area.Y;
 
-			element.ImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
+			element.ImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxVertexCount, maxIndexCount, vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
 		}
 		break;
 	case CanvasElementType::Text:
@@ -344,38 +344,38 @@ void GUICanvas::FillBuffer(
 			clipRect.X -= (i32)position.X;
 			clipRect.Y -= (i32)position.Y;
 
-			element.TextSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
+			element.TextSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxVertexCount, maxIndexCount, vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
 		}
 		break;
 	case CanvasElementType::Triangle:
 		{
 			u32 vertexStride = sizeof(Vector2) * 2;
 
-			u32 startVert = vertexOffset;
+			u32 startVertex = vertexOffset;
 			u32 startIndex = indexOffset;
 
-			u32 maxVertIdx = maxNumVerts;
-			u32 maxIndexIdx = maxNumIndices;
+			u32 maxVertexIndex = maxVertexCount;
+			u32 maxIndexIndex = maxIndexCount;
 
-			u32 numVertices = element.ClippedVertexCount;
-			u32 numIndices = numVertices;
+			u32 vertexCount = element.ClippedVertexCount;
+			u32 indexCount = vertexCount;
 
-			B3D_ASSERT((startVert + numVertices) <= maxVertIdx);
-			B3D_ASSERT((startIndex + numIndices) <= maxIndexIdx);
+			B3D_ASSERT((startVertex + vertexCount) <= maxVertexIndex);
+			B3D_ASSERT((startIndex + indexCount) <= maxIndexIndex);
 
-			u8* vertDst = vertices + startVert * vertexStride;
-			u8* uvDst = uvs + startVert * vertexStride;
-			u32* indexDst = indices + startIndex;
+			u8* vertexDestination = vertices + startVertex * vertexStride;
+			u8* uvDestination = uvs + startVertex * vertexStride;
+			u32* indexDestination = indices + startIndex;
 
 			Vector2 zeroUV(BsZero);
-			for(u32 i = 0; i < element.ClippedVertexCount; i++)
+			for(u32 vertexIndex = 0; vertexIndex < element.ClippedVertexCount; vertexIndex++)
 			{
-				memcpy(vertDst, &mClippedVertices[element.ClippedVertexStart + i], sizeof(Vector2));
-				memcpy(uvDst, &zeroUV, sizeof(Vector2));
+				memcpy(vertexDestination, &mClippedVertices[element.ClippedVertexStart + vertexIndex], sizeof(Vector2));
+				memcpy(uvDestination, &zeroUV, sizeof(Vector2));
 
-				vertDst += vertexStride;
-				uvDst += vertexStride;
-				indexDst[i] = i;
+				vertexDestination += vertexStride;
+				uvDestination += vertexStride;
+				indexDestination[vertexIndex] = vertexIndex;
 			}
 		}
 		break;
@@ -383,29 +383,29 @@ void GUICanvas::FillBuffer(
 		{
 			u32 vertexStride = sizeof(Vector2);
 
-			u32 startVert = vertexOffset;
+			u32 startVertex = vertexOffset;
 			u32 startIndex = indexOffset;
 
-			u32 maxVertIdx = maxNumVerts;
-			u32 maxIndexIdx = maxNumIndices;
+			u32 maxVertexIndex = maxVertexCount;
+			u32 maxIndexIndex = maxIndexCount;
 
-			u32 numVertices = element.ClippedVertexCount;
-			u32 numIndices = numVertices;
+			u32 vertexCount = element.ClippedVertexCount;
+			u32 indexCount = vertexCount;
 
-			B3D_ASSERT((startVert + numVertices) <= maxVertIdx);
-			B3D_ASSERT((startIndex + numIndices) <= maxIndexIdx);
+			B3D_ASSERT((startVertex + vertexCount) <= maxVertexIndex);
+			B3D_ASSERT((startIndex + indexCount) <= maxIndexIndex);
 
-			u8* vertDst = vertices + startVert * vertexStride;
-			u32* indexDst = indices + startIndex;
+			u8* vertexDestination = vertices + startVertex * vertexStride;
+			u32* indexDestination = indices + startIndex;
 
-			for(u32 i = 0; i < element.ClippedVertexCount; i++)
+			for(u32 vertexIndex = 0; vertexIndex < element.ClippedVertexCount; vertexIndex++)
 			{
-				const Vector2& point = mClippedLineVertices[element.ClippedVertexStart + i];
+				const Vector2& point = mClippedLineVertices[element.ClippedVertexStart + vertexIndex];
 
-				memcpy(vertDst, &point, sizeof(Vector2));
+				memcpy(vertexDestination, &point, sizeof(Vector2));
 
-				vertDst += vertexStride;
-				indexDst[i] = i;
+				vertexDestination += vertexStride;
+				indexDestination[vertexIndex] = vertexIndex;
 			}
 		}
 		break;
@@ -460,12 +460,12 @@ void GUICanvas::BuildTriangleElement(const CanvasElement& element, const Vector2
 	if(element.Type == CanvasElementType::Triangle)
 	{
 		u8* verticesToClip = (u8*)&mVertexData[element.VertexStart];
-		u32 trianglesToClip = element.VertexCount / 3;
+		u32 triangleCount = element.VertexCount / 3;
 
 		auto writeCallback = [&](Vector2* vertices, Vector2* uvs, u32 count)
 		{
-			for(u32 i = 0; i < count; i++)
-				mClippedVertices.push_back((vertices[i] * scale) + offset);
+			for(u32 vertexIndex = 0; vertexIndex < count; vertexIndex++)
+				mClippedVertices.push_back((vertices[vertexIndex] * scale) + offset);
 
 			element.ClippedVertexCount += count;
 		};
@@ -473,11 +473,11 @@ void GUICanvas::BuildTriangleElement(const CanvasElement& element, const Vector2
 		element.ClippedVertexStart = (u32)mClippedVertices.size();
 		element.ClippedVertexCount = 0;
 
-		ImageSprite::ClipTrianglesToRect(verticesToClip, nullptr, trianglesToClip, sizeof(Vector2), clipRect, writeCallback);
+		ImageSprite::ClipTrianglesToRect(verticesToClip, nullptr, triangleCount, sizeof(Vector2), clipRect, writeCallback);
 	}
 	else
 	{
-		u32 numLines = element.VertexCount - 1;
+		u32 lineCount = element.VertexCount - 1;
 		const GUILogicalPointF* linePoints = &mVertexData[element.VertexStart];
 
 		struct Plane2D
@@ -498,15 +498,15 @@ void GUICanvas::BuildTriangleElement(const CanvasElement& element, const Vector2
 		element.ClippedVertexStart = (u32)mClippedLineVertices.size();
 		element.ClippedVertexCount = 0;
 
-		for(u32 i = 0; i < numLines; i++)
+		for(u32 lineIndex = 0; lineIndex < lineCount; lineIndex++)
 		{
-			GUILogicalPointF a = linePoints[i];
-			GUILogicalPointF b = linePoints[i + 1];
+			GUILogicalPointF a = linePoints[lineIndex];
+			GUILogicalPointF b = linePoints[lineIndex + 1];
 
 			bool isVisible = true;
-			for(u32 j = 0; j < (u32)clipPlanes.size(); j++)
+			for(u32 planeIndex = 0; planeIndex < (u32)clipPlanes.size(); planeIndex++)
 			{
-				const Plane2D& plane = clipPlanes[j];
+				const Plane2D& plane = clipPlanes[planeIndex];
 				float d0 = plane.Normal.Dot(a.To<float>()) - plane.D;
 				float d1 = plane.Normal.Dot(b.To<float>()) - plane.D;
 
