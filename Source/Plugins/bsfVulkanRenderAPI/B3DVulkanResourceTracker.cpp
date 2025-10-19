@@ -346,7 +346,10 @@ void VulkanResourceTracker::IterateAndCreateOverlappingImageSubresourceTrackingS
 
 			// Our range doesn't overlap with any existing ranges, so just add it
 			if(cutOverlappingRanges.empty())
-				AddSubresourceTrackingState(subresourceRange);
+			{
+				const u32 newGlobalSubresourceIndex = AddSubresourceTrackingState(subresourceRange);
+				FnDoOnOverlappingSubresource(newGlobalSubresourceIndex, userData);
+			}
 			else // Search if overlapping ranges fully cover the requested range, and insert non-covered regions
 			{
 				FrameQueue<VkImageSubresourceRange> sourceRanges;
@@ -417,7 +420,10 @@ void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresour
 	}, &callbackParameters);
 
 	// Register any sub-resources
-	for(u32 layerIndex = 0; layerIndex < subresourceRange.layerCount; layerIndex++) // TODO - Need to make sure this range doesn't include VK_REMAINING_*
+	B3D_ASSERT(subresourceRange.layerCount != VK_REMAINING_ARRAY_LAYERS);
+	B3D_ASSERT(subresourceRange.levelCount != VK_REMAINING_MIP_LEVELS);
+
+	for(u32 layerIndex = 0; layerIndex < subresourceRange.layerCount; layerIndex++)
 	{
 		for(u32 levelIndex = 0; levelIndex < subresourceRange.levelCount; levelIndex++)
 		{
@@ -432,51 +438,16 @@ void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresour
 void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 globalSubresourceIndex, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuAccessFlags access, VkPipelineStageFlags stages)
 {
 	ImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[globalSubresourceIndex];
-	if(subresourceTrackingState.InitialLayout == VK_IMAGE_LAYOUT_UNDEFINED) // New subresource
+	//if(subresourceTrackingState.Access == GpuAccessFlag::None) // New subresource
+	if(!subresourceTrackingState.IsInitialized)
 	{
-		subresourceTrackingState.CurrentLayout = layout;
 		subresourceTrackingState.InitialLayout = layout;
 		subresourceTrackingState.InitialReadOnly = !access.IsSet(GpuAccessFlag::Write);
-		subresourceTrackingState.RequiredLayout = layout;
-		subresourceTrackingState.RenderPassLayout = finalLayout;
+		subresourceTrackingState.RenderPassLayout = finalLayout; // TODO - Handle this below
+		subresourceTrackingState.CurrentLayout = layout; // TODO - Handle this below
+		subresourceTrackingState.RequiredLayout = layout; // TODO - Handle this below
+		subresourceTrackingState.IsInitialized = true;
 
-		switch(use)
-		{
-		default:
-		case ImageUseFlagBits::Shader:
-			subresourceTrackingState.ShaderUse.Access |= access;
-			subresourceTrackingState.ShaderUse.Stages |= stages;
-			break;
-		case ImageUseFlagBits::Framebuffer:
-			subresourceTrackingState.FramebufferUse.Access |= access;
-			subresourceTrackingState.FramebufferUse.Stages |= stages;
-			break;
-		case ImageUseFlagBits::Transfer:
-			subresourceTrackingState.TransferUse.Access |= access;
-			subresourceTrackingState.TransferUse.Stages |= stages;
-			break;
-		}
-
-	#if B3D_HAZARD_TRACKING
-		WriteHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
-
-		// Render pass handles framebuffer barriers, and we handle transfer barriers explicitly
-		if(use == ImageUseFlagBits::Shader || use == ImageUseFlagBits::Framebuffer)
-		{
-			writeHazardTracking->Access |= access;
-
-			if(access.IsSet(GpuAccessFlag::Read))
-				writeHazardTracking->ReadAccessStages.ClearStageSafeAccess(stages);
-
-			if(access.IsSet(GpuAccessFlag::Write))
-				writeHazardTracking->WriteAccessStages.ClearStageSafeAccess(stages);
-		}
-	#endif
-
-		subresourceTrackingState.UseFlags |= use;
-
-		if(use == ImageUseFlagBits::Shader)
-			mRenderPassSubresources.insert(globalSubresourceIndex);
 	}
 	// TODO - Unify existing and new subresource paths
 	else
@@ -494,10 +465,81 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 			UpdateTransferSubresource(image, subresourceTrackingState, layout, access, stages);
 			break;
 		}
-
-		if(use == ImageUseFlagBits::Shader)
-			mRenderPassSubresources.insert(globalSubresourceIndex);
 	}
+
+#if B3D_HAZARD_TRACKING
+	WriteHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
+
+	// If this image has been previously used prevent read-after-write and write-after-read hazards
+	if(use != ImageUseFlagBits::Transfer) // TODO - Excluded temporarily while we issue barriers manually
+	{
+		if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
+		{
+			// Read-after-write (and write-after-write, as little sense does that make)
+			if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Write))
+			{
+				// Triggers if user did not issue a RAW memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
+				if(!writeHazardTracking->WriteAccessStages.IsAccessSafe(stages))
+				{
+					writeHazardTracking->WriteAccessStages.LogUnsafeAccess(stages, access, GpuAccessFlag::Write);
+					B3D_ENSURE(false);
+				}
+			}
+		}
+	}
+
+	// No need to check for write-after-read barrier for framebuffer as it only needs an execution dependency and that is already handled by the render pass
+	if(use != ImageUseFlagBits::Framebuffer && use != ImageUseFlagBits::Transfer) // TODO - Transfer excluded temporarily while we issue barriers manually
+	{
+		if(access.IsSet(GpuAccessFlag::Write))
+		{
+			// Write-after-read
+			if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Read))
+			{
+				// Triggers if user did not issue a WAR memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
+				if(!writeHazardTracking->ReadAccessStages.IsAccessSafe(stages))
+				{
+					writeHazardTracking->ReadAccessStages.LogUnsafeAccess(stages, GpuAccessFlag::Write, GpuAccessFlag::Read);
+					B3D_ENSURE(false);
+				}
+			}
+		}
+	}
+
+	if(use != ImageUseFlagBits::Transfer) // TODO - Excluded temporarily while we issue barriers manually
+	{
+		writeHazardTracking->Access |= access;
+
+		if(access.IsSet(GpuAccessFlag::Read))
+			writeHazardTracking->ReadAccessStages.ClearStageSafeAccess(stages);
+
+		if(access.IsSet(GpuAccessFlag::Write))
+			writeHazardTracking->WriteAccessStages.ClearStageSafeAccess(stages);
+	}
+#endif
+
+	subresourceTrackingState.UseFlags |= use;
+	subresourceTrackingState.Access |= access;
+
+	switch(use)
+	{
+	default:
+	case ImageUseFlagBits::Shader:
+		subresourceTrackingState.ShaderUse.Access |= access;
+		subresourceTrackingState.ShaderUse.Stages |= stages;
+		break;
+	case ImageUseFlagBits::Framebuffer:
+		subresourceTrackingState.FramebufferUse.Access |= access;
+		subresourceTrackingState.FramebufferUse.Stages |= stages;
+		break;
+	case ImageUseFlagBits::Transfer:
+		subresourceTrackingState.TransferUse.Access |= access;
+		subresourceTrackingState.TransferUse.Stages |= stages;
+		break;
+	}
+
+	if(use == ImageUseFlagBits::Shader)
+		mRenderPassSubresources.insert(globalSubresourceIndex);
 }
 
 void VulkanResourceTracker::TrackResourceUse(VulkanResource* resource, GpuAccessFlags access)
@@ -600,7 +642,6 @@ void VulkanResourceTracker::TrackSwapChainUse(VulkanSwapChain* swapChain)
 	}
 }
 
-
 void VulkanResourceTracker::UpdateShaderSubresource(VulkanImage* image, ImageSubresourceTrackingState& subresourceTrackingState, VkImageLayout layout, GpuAccessFlags access, VkPipelineStageFlags stages)
 {
 	// New layout is valid, check for transitions (UNDEFINED signifies the caller doesn't want a layout transition)
@@ -634,51 +675,6 @@ void VulkanResourceTracker::UpdateShaderSubresource(VulkanImage* image, ImageSub
 		// Queue a layout transition
 		mQueuedLayoutTransitions.insert(image);
 	}
-
-#if B3D_HAZARD_TRACKING
-	WriteHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
-
-	// If this image has been previously used prevent read-after-write and write-after-read hazards
-	if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
-	{
-		// Read-after-write (and write-after-write, as little sense does that make)
-		if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Write))
-		{
-			// Triggers if user did not issue a RAW memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-			if(!writeHazardTracking->WriteAccessStages.IsAccessSafe(stages))
-			{
-				writeHazardTracking->WriteAccessStages.LogUnsafeAccess(stages, access, GpuAccessFlag::Write);
-				B3D_ENSURE(false);
-			}
-		}
-	}
-
-	if(access.IsSet(GpuAccessFlag::Write))
-	{
-		// Write-after-read
-		if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Read))
-		{
-			// Triggers if user did not issue a WAR memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-			if(!writeHazardTracking->ReadAccessStages.IsAccessSafe(stages))
-			{
-				writeHazardTracking->ReadAccessStages.LogUnsafeAccess(stages, GpuAccessFlag::Write, GpuAccessFlag::Read);
-				B3D_ENSURE(false);
-			}
-		}
-	}
-
-	writeHazardTracking->Access |= access;
-
-	if(access.IsSet(GpuAccessFlag::Read))
-		writeHazardTracking->ReadAccessStages.ClearStageSafeAccess(stages);
-
-	if(access.IsSet(GpuAccessFlag::Write))
-		writeHazardTracking->WriteAccessStages.ClearStageSafeAccess(stages);
-#endif
-
-	subresourceTrackingState.UseFlags |= ImageUseFlagBits::Shader;
-	subresourceTrackingState.ShaderUse.Access |= access;
-	subresourceTrackingState.ShaderUse.Stages |= stages;
 }
 
 void VulkanResourceTracker::UpdateFramebufferSubresource(VulkanImage* image, ImageSubresourceTrackingState& subresourceTrackingState, VkImageLayout layout, VkImageLayout finalLayout, GpuAccessFlags access, VkPipelineStageFlags stages)
@@ -691,44 +687,6 @@ void VulkanResourceTracker::UpdateFramebufferSubresource(VulkanImage* image, Ima
 
 	if(subresourceTrackingState.CurrentLayout != subresourceTrackingState.RequiredLayout)
 		mQueuedLayoutTransitions.insert(image);
-
-#if B3D_HAZARD_TRACKING
-	WriteHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
-
-	// If this image has been previously written to be a shader prevent read-after-write and write-after-write hazards
-	// Note: This could be handled through sub-pass dependencies instead of explicit memory barriers, but those require
-	// different render pass objects depending on access/stage flags, which is probably more overhead than just
-	// executing the explicit barrier.
-	if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
-	{
-		// Read-after-write
-		if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Write))
-		{
-			// Triggers if user did not issue a RAW memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-			if(!writeHazardTracking->WriteAccessStages.IsAccessSafe(stages))
-			{
-				writeHazardTracking->WriteAccessStages.LogUnsafeAccess(stages, access, GpuAccessFlag::Write);
-				B3D_ENSURE(false);
-			}
-		}
-	}
-
-	writeHazardTracking->Access |= access;
-
-	if(access.IsSet(GpuAccessFlag::Read))
-		writeHazardTracking->ReadAccessStages.ClearStageSafeAccess(stages);
-
-	if(access.IsSet(GpuAccessFlag::Write))
-		writeHazardTracking->WriteAccessStages.ClearStageSafeAccess(stages);
-#endif
-
-	// No need to check for write-after-read barrier as it only needs an execution dependency and that is already
-	// handled by the render pass
-
-	subresourceTrackingState.FramebufferUse.Access |= access;
-	subresourceTrackingState.FramebufferUse.Stages |= stages;
-
-	subresourceTrackingState.UseFlags |= ImageUseFlagBits::Framebuffer;
 }
 
 void VulkanResourceTracker::UpdateTransferSubresource(VulkanImage* image, ImageSubresourceTrackingState& subresourceTrackingState, VkImageLayout layout, GpuAccessFlags access, VkPipelineStageFlags stages)
@@ -762,12 +720,6 @@ void VulkanResourceTracker::UpdateTransferSubresource(VulkanImage* image, ImageS
 
 	subresourceTrackingState.CurrentLayout = layout;
 	subresourceTrackingState.RequiredLayout = layout;
-
-	// These are currently not used nor cleared
-	subresourceTrackingState.TransferUse.Access |= access;
-	subresourceTrackingState.TransferUse.Stages |= stages;
-
-	subresourceTrackingState.UseFlags |= ImageUseFlagBits::Transfer;
 }
 
 VulkanResourceTracker::ImageSubresourceTrackingState& VulkanResourceTracker::FindSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip)

@@ -148,6 +148,10 @@ namespace b3d::render
 			 */
 			ImageUseFlags UseFlags;
 
+			/** Specifies how will the subresource be accessed during the current render pass or dispatch call. Unlike accesses in *Use structs, this one is not reset after render pass. */
+			GpuAccessFlags Access;
+			bool IsInitialized = false;
+
 			/** Determines is the initial use of this subresource read-only. Used for better determining access flags. */
 			bool InitialReadOnly = false;
 
