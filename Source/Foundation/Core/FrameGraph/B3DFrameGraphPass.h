@@ -18,7 +18,7 @@ namespace b3d::render
 	 *
 	 * This combines the resource ID with usage and access information to describe
 	 * exactly how a pass interacts with a resource. The frame graph uses this information
-	 * to validate correct usage and (in later phases) to calculate synchronization barriers.
+	 * to validate correct usage and to calculate synchronization barriers.
 	 */
 	struct FrameGraphResourceAccess
 	{
@@ -38,8 +38,7 @@ namespace b3d::render
 	 * Function type for pass setup callback.
 	 *
 	 * The setup function is called during compilation to declare resource dependencies.
-	 * Use the provided FrameGraphPass reference to call Read(), Write(), ReadWrite(), or
-	 * CreateRenderTarget().
+	 * Use the provided FrameGraphPass reference to call Read(), Write(), or ReadWrite().
 	 */
 	using FrameGraphPassSetupFunc = std::function<void(class FrameGraphPass&)>;
 
@@ -93,7 +92,6 @@ namespace b3d::render
 	 * Setup Phase (during Compile()):
 	 * - Setup callback is invoked
 	 * - Resource dependencies are declared via Read(), Write(), ReadWrite()
-	 * - Optionally a render target is created via CreateRenderTarget()
 	 * - Dependencies are validated
 	 *
 	 * Execution Phase (during Execute()):
@@ -101,8 +99,7 @@ namespace b3d::render
 	 * - User records GPU commands (SetPipeline, Draw, Dispatch, etc.)
 	 * - Commands are submitted to the appropriate GPU queue
 	 *
-	 * Phase 1 Note: Passes execute in declaration order with no automatic synchronization.
-	 * Phase 2+ will add dependency analysis and optimal execution ordering.
+	 * Passes execute in dependency-sorted order with automatic synchronization and barriers.
 	 *
 	 * @note
 	 * All FrameGraphPass instances are owned and managed by the FrameGraph.
@@ -133,45 +130,111 @@ namespace b3d::render
 		/**
 		 * Declares that this pass will read from a resource.
 		 *
-		 * @param resource  Resource to read from
-		 * @param usage     How the resource is used (e.g., ShaderAccess)
+		 * Creates a read-after-write dependency on any pass that writes to this resource,
+		 * ensuring proper execution order. The frame graph automatically inserts memory
+		 * barriers to make the resource visible to this pass.
+		 *
+		 * Common usage flags:
+		 * - GpuResourceUseFlag::Texture - Reading as shader texture (sampled)
+		 * - GpuResourceUseFlag::Buffer - Reading from buffer (constant buffer, vertex/index)
+		 * - GpuResourceUseFlag::StorageTexture - Reading from storage texture/image (UAV)
+		 *
+		 * @param resource  Resource to read from (must be imported)
+		 * @param usage     How the resource is used during the read
 		 */
 		void Read(FrameGraphResourceId resource, GpuResourceUseFlags usage);
 
 		/**
 		 * Declares that this pass will write to a resource.
 		 *
-		 * @param resource  Resource to write to
-		 * @param usage     How the resource is used (e.g., ColorAttachment)
+		 * Creates dependencies with any pass that reads or writes this resource, ensuring
+		 * proper execution order. The frame graph automatically inserts memory barriers to
+		 * make the write visible to subsequent passes.
+		 *
+		 * Common usage flags:
+		 * - GpuResourceUseFlag::ColorAttachment - Writing as render target
+		 * - GpuResourceUseFlag::DepthStencil - Writing depth/stencil
+		 * - GpuResourceUseFlag::StorageTexture - Writing to storage texture/image (UAV)
+		 * - GpuResourceUseFlag::UnorderedAccess - Writing to storage buffer (UAV)
+		 *
+		 * For render attachments, prefer WriteColor(), WriteDepth(), or ReadDepth() for
+		 * automatic render target creation.
+		 *
+		 * @param resource  Resource to write to (must be imported)
+		 * @param usage     How the resource is used during the write
 		 */
 		void Write(FrameGraphResourceId resource, GpuResourceUseFlags usage);
 
 		/**
 		 * Declares that this pass will both read and write a resource.
 		 *
-		 * @param resource  Resource to access
-		 * @param usage     How the resource is used (e.g., StorageTexture for UAV)
+		 * Equivalent to calling both Read() and Write() for the same resource. Creates
+		 * appropriate dependencies and barriers for both access types. Commonly used for
+		 * storage resources (UAVs) in compute shaders that both consume and produce data.
+		 *
+		 * Typical usage:
+		 * - Compute shader that updates a buffer in-place
+		 * - Image processing that reads and writes to the same texture
+		 * - Particle simulation with read-modify-write of particle data
+		 *
+		 * @param resource  Resource to access (must be imported)
+		 * @param usage     How the resource is used (typically StorageTexture or UnorderedAccess)
 		 */
 		void ReadWrite(FrameGraphResourceId resource, GpuResourceUseFlags usage);
 
 		/**
-		 * Mark a resource as a color attachment (render target).
-		 * Only valid for Render passes during setup phase.
-		 * Automatically calls Write() with RenderTarget usage.
+		 * Mark a resource as a color attachment (render target) for this render pass.
+		 *
+		 * Color attachments are textures that receive rendering output. The frame graph
+		 * automatically creates a RenderTarget from all declared color and depth attachments
+		 * during compilation.
+		 *
+		 * This method implicitly calls Write() with ColorAttachment usage, so the resource
+		 * will be in ColorAttachment layout during execution. The frame graph handles all
+		 * layout transitions automatically.
+		 *
+		 * Only valid for render passes. Call this in the setup callback.
+		 *
+		 * @param resource  Texture resource to use as color attachment (must be imported texture)
+		 * @param index     Attachment index (0-7, default 0) for multiple render targets
 		 */
 		void WriteColor(FrameGraphResourceId resource, u32 index = 0);
 
 		/**
-		 * Mark a resource as a depth/stencil attachment.
-		 * Only valid for Render passes during setup phase.
-		 * Automatically calls Write() with DepthStencil usage.
+		 * Mark a resource as a writable depth/stencil attachment for this render pass.
+		 *
+		 * Use this when you need to both read and write depth (e.g., standard depth testing
+		 * and writing). The resource will be in DepthStencil layout which allows both
+		 * operations.
+		 *
+		 * This method implicitly calls Write() with DepthStencil usage. The frame graph
+		 * handles layout transitions automatically.
+		 *
+		 * For read-only depth (e.g., depth testing without writes), use ReadDepth() instead,
+		 * which uses the more efficient DepthStencilReadOnly layout.
+		 *
+		 * Only valid for render passes. Call this in the setup callback.
+		 *
+		 * @param resource  Texture resource to use as depth/stencil (must be imported depth texture)
 		 */
 		void WriteDepth(FrameGraphResourceId resource);
 
 		/**
-		 * Mark a resource as a read-only depth/stencil attachment.
-		 * Only valid for Render passes during setup phase.
-		 * Automatically calls Read() with DepthStencil usage.
+		 * Mark a resource as a read-only depth/stencil attachment for this render pass.
+		 *
+		 * Use this when you need depth testing but not depth writes (e.g., rendering
+		 * transparent objects after opaque, or rendering overlays). The resource will be
+		 * in DepthStencilReadOnly layout, which is more efficient than the read-write layout
+		 * and allows concurrent reads on some GPUs.
+		 *
+		 * This method implicitly calls Read() with DepthStencil usage. The frame graph
+		 * handles layout transitions automatically.
+		 *
+		 * For depth writes, use WriteDepth() instead.
+		 *
+		 * Only valid for render passes. Call this in the setup callback.
+		 *
+		 * @param resource  Texture resource to use as read-only depth/stencil
 		 */
 		void ReadDepth(FrameGraphResourceId resource);
 
@@ -184,29 +247,6 @@ namespace b3d::render
 		/** Check if depth is read-only */
 		bool IsDepthReadOnly() const { return mDepthReadOnly; }
 
-		/** Get the automatically created render target (valid during execute phase for Render passes) */
-		const SPtr<RenderTarget>& GetRenderTarget() const { return mRenderTarget; }
-
-		/**
-		 * Creates a render target from the specified attachments.
-		 *
-		 * This method automatically declares Write access to all specified attachments and creates
-		 * a RenderTarget that can be used with BeginRenderPass(). The render target is cached for
-		 * the duration of the frame and released during Reset().
-		 *
-		 * @param colorAttachments      Array of color attachment resource IDs (must be textures)
-		 * @param colorAttachmentCount  Number of color attachments (1 to B3D_MAXIMUM_RENDER_TARGET_COUNT)
-		 * @param depthAttachment       Depth/stencil attachment resource ID (must be texture, or kInvalidFrameGraphResourceId)
-		 * @return                      The created render target, or nullptr if creation failed
-		 *
-		 * @note This method must be called during the setup phase (inside the setup callback).
-		 * @note All attachment resources must be imported textures with appropriate formats.
-		 */
-		// TODO - This method seems obsolete? It's called by the FrameGraphCompiler, but I'm not sure if its better kept here instead (especially for transient resources in the future)
-		SPtr<RenderTarget> CreateRenderTarget(// TODO - Don't split parameters over multiple lines unless it's a very long line
-			FrameGraphResourceId* colorAttachments, // TODO - This should be TArrayView
-			u32 colorAttachmentCount,
-			FrameGraphResourceId depthAttachment = kInvalidFrameGraphResourceId);
 
 		/** Returns all declared resource accesses */
 		const Vector<FrameGraphResourceAccess>& GetResourceAccesses() const
@@ -217,13 +257,13 @@ namespace b3d::render
 		/** Sets the setup function (internal) */
 		void SetSetupFunction(FrameGraphPassSetupFunc setupFunc)
 		{
-			mSetupFunc = std::move(setupFunc);
+			mSetupFunction = std::move(setupFunc);
 		}
 
 		/** Sets the execute function (internal) */
 		void SetExecuteFunction(FrameGraphPassExecuteFunc executeFunc)
 		{
-			mExecuteFunc = std::move(executeFunc);
+			mExecuteFunction = std::move(executeFunc);
 		}
 
 		/** Executes the setup function (internal) */
@@ -278,11 +318,10 @@ namespace b3d::render
 		FrameGraph* mFrameGraph;
 		FrameGraphPassType mType;
 		Vector<FrameGraphResourceAccess> mResourceAccesses;
-		FrameGraphPassSetupFunc mSetupFunc; // TODO - Func -> Function
-		FrameGraphPassExecuteFunc mExecuteFunc; // TODO - Func -> Function
-		SPtr<RenderTarget> mRenderTarget; // Cached render target created by CreateRenderTarget()
+		FrameGraphPassSetupFunc mSetupFunction;
+		FrameGraphPassExecuteFunc mExecuteFunction;
 
-		// Render pass attachments (Phase 3)
+		// Render pass attachments
 		UnorderedMap<u32, FrameGraphResourceId> mColorAttachments; // index -> resource
 		FrameGraphResourceId mDepthAttachment;
 		bool mDepthReadOnly = false;

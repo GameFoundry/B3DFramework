@@ -7,25 +7,24 @@
 using namespace b3d;
 using namespace b3d::render;
 
-String FrameGraphDebug::GenerateGraphText(const Vector<UPtr<FrameGraphPassNode>>& nodes)
+String FrameGraphDebug::GenerateGraphText(const Vector<UPtr<FrameGraphPass>>& passes)
 {
 	String result = "Frame Graph Dependencies:\n";
 	result += "=========================\n\n";
 
-	for (const auto& node : nodes)
+	for (const auto& pass : passes)
 	{
-		FrameGraphPass* pass = node->GetPass();
 		result += StringFormat::Format("Pass: {0}\n", pass->GetName());
 
-		if (node->IsCulled())
+		if (pass->IsCulled())
 		{
 			result += "  [CULLED]\n";
 		}
 		else
 		{
-			result += StringFormat::Format("  Reference Count: {0}\n", node->GetReferenceCount());
+			result += StringFormat::Format("  Reference Count: {0}\n", pass->GetReferenceCount());
 
-			const auto& incoming = node->GetIncomingDependencies();
+			const auto& incoming = pass->GetIncomingDependencies();
 			if (!incoming.empty())
 			{
 				result += "  Incoming Dependencies:\n";
@@ -52,7 +51,7 @@ String FrameGraphDebug::GenerateGraphText(const Vector<UPtr<FrameGraphPassNode>>
 				}
 			}
 
-			const auto& outgoing = node->GetOutgoingDependencies();
+			const auto& outgoing = pass->GetOutgoingDependencies();
 			if (!outgoing.empty())
 			{
 				result += "  Outgoing Dependencies:\n";
@@ -71,19 +70,18 @@ String FrameGraphDebug::GenerateGraphText(const Vector<UPtr<FrameGraphPassNode>>
 	return result;
 }
 
-String FrameGraphDebug::GenerateGraphDOT(const Vector<UPtr<FrameGraphPassNode>>& nodes)
+String FrameGraphDebug::GenerateGraphDOT(const Vector<UPtr<FrameGraphPass>>& passes)
 {
 	String result = "digraph FrameGraph {\n";
 	result += "  rankdir=TB;\n";
 	result += "  node [shape=box];\n\n";
 
 	// Add nodes
-	for (u32 i = 0; i < nodes.size(); i++)
+	for (u32 i = 0; i < passes.size(); i++)
 	{
-		const auto& node = nodes[i];
-		FrameGraphPass* pass = node->GetPass();
+		const auto& pass = passes[i];
 
-		String nodeStyle = node->IsCulled() ?
+		String nodeStyle = pass->IsCulled() ?
 			"style=filled,fillcolor=gray,fontcolor=white" :
 			"style=filled,fillcolor=lightblue";
 
@@ -94,18 +92,18 @@ String FrameGraphDebug::GenerateGraphDOT(const Vector<UPtr<FrameGraphPassNode>>&
 	result += "\n";
 
 	// Add edges
-	for (u32 i = 0; i < nodes.size(); i++)
+	for (u32 i = 0; i < passes.size(); i++)
 	{
-		const auto& node = nodes[i];
-		const auto& outgoing = node->GetOutgoingDependencies();
+		const auto& pass = passes[i];
+		const auto& outgoing = pass->GetOutgoingDependencies();
 
 		for (const auto& dep : outgoing)
 		{
 			// Find consumer index
 			u32 consumerIndex = 0;
-			for (u32 j = 0; j < nodes.size(); j++)
+			for (u32 j = 0; j < passes.size(); j++)
 			{
-				if (nodes[j]->GetPass() == dep.ConsumerPass)
+				if (passes[j].get() == dep.ConsumerPass)
 				{
 					consumerIndex = j;
 					break;

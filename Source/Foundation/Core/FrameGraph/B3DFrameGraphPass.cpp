@@ -76,82 +76,16 @@ void FrameGraphPass::ReadDepth(FrameGraphResourceId resource)
 	Read(resource, GpuResourceUseFlag::DepthStencilAttachment);
 }
 
-SPtr<render::RenderTarget> FrameGraphPass::CreateRenderTarget(
-	FrameGraphResourceId* colorAttachments,
-	u32 colorAttachmentCount,
-	FrameGraphResourceId depthAttachment)
-{
-	B3D_ENSURE(colorAttachmentCount > 0 && colorAttachmentCount <= B3D_MAXIMUM_RENDER_TARGET_COUNT);
-
-	// Declare writes to all attachments
-	for (u32 i = 0; i < colorAttachmentCount; ++i)
-	{
-		B3D_ENSURE(colorAttachments[i].IsValid());
-		Write(colorAttachments[i], GpuResourceUseFlag::ColorAttachment);
-	}
-
-	if (depthAttachment.IsValid())
-		Write(depthAttachment, GpuResourceUseFlag::DepthStencilAttachment);
-
-	// Create render texture from the resources
-	RenderTextureCreateInformation rtCreateInfo;
-
-	for (u32 i = 0; i < colorAttachmentCount; ++i)
-	{
-		FrameGraphResource* resource = mFrameGraph->GetResource(colorAttachments[i]);
-		if (!B3D_ENSURE(resource != nullptr))
-		{
-			B3D_LOG(Error, RenderBackend, "Pass '{0}': Invalid color attachment resource ID {1}",
-				mName, colorAttachments[i].Index);
-			return nullptr;
-		}
-
-		if (!B3D_ENSURE(resource->GetType() == FrameGraphResourceType::Texture))
-		{
-			B3D_LOG(Error, RenderBackend, "Pass '{0}': Color attachment {1} is not a texture",
-				mName, i);
-			return nullptr;
-		}
-
-		auto* textureResource = static_cast<FrameGraphTextureResource*>(resource);
-		rtCreateInfo.ColorSurfaces[i].Texture = textureResource->GetTexture();
-	}
-
-	if (depthAttachment.IsValid())
-	{
-		FrameGraphResource* resource = mFrameGraph->GetResource(depthAttachment);
-		if (!B3D_ENSURE(resource != nullptr))
-		{
-			B3D_LOG(Error, RenderBackend, "Pass '{0}': Invalid depth attachment resource ID {1}",
-				mName, depthAttachment.Index);
-			return nullptr;
-		}
-
-		if (!B3D_ENSURE(resource->GetType() == FrameGraphResourceType::Texture))
-		{
-			B3D_LOG(Error, RenderBackend, "Pass '{0}': Depth attachment is not a texture", mName);
-			return nullptr;
-		}
-
-		auto* textureResource = static_cast<FrameGraphTextureResource*>(resource);
-		rtCreateInfo.DepthStencilSurface.Texture = textureResource->GetTexture();
-	}
-
-	// Cache the render target for this pass
-	mRenderTarget = RenderTexture::Create(rtCreateInfo);
-	return mRenderTarget;
-}
-
 void FrameGraphPass::ExecuteSetup()
 {
-	if (mSetupFunc)
-		mSetupFunc(*this);
+	if (mSetupFunction)
+		mSetupFunction(*this);
 }
 
 void FrameGraphPass::ExecuteCommands(GpuCommandBuffer& commandBuffer)
 {
-	if (mExecuteFunc)
-		mExecuteFunc(commandBuffer);
+	if (mExecuteFunction)
+		mExecuteFunction(commandBuffer);
 }
 
 void FrameGraphPass::Reset()
@@ -163,9 +97,6 @@ void FrameGraphPass::Reset()
 	mColorAttachments.clear();
 	mDepthAttachment = kInvalidFrameGraphResourceId;
 	mDepthReadOnly = false;
-
-	// Release cached render target
-	mRenderTarget.reset();
 
 	// Reset dependency metadata
 	mIncomingDependencies.clear();

@@ -23,8 +23,8 @@ namespace b3d::render
 	/**
 	 * Base class for frame graph resources.
 	 *
-	 * In Phase 1, only imported resources are supported.
-	 * Transient resources will be added in Phase 4.
+	 * Currently only imported resources are supported.
+	 * Transient resources will be added in a future update.
 	 */
 	class B3D_EXPORT FrameGraphResource
 	{
@@ -45,7 +45,7 @@ namespace b3d::render
 		/** Returns the resource type */
 		FrameGraphResourceType GetType() const { return mType; }
 
-		/** Returns whether this is a transient resource (always false in Phase 1) */
+		/** Returns whether this is a transient resource (always false for imported resources) */
 		virtual bool IsTransient() const { return false; }
 
 	protected:
@@ -61,8 +61,8 @@ namespace b3d::render
 	 * The texture lifetime is managed externally and must remain valid for the duration of
 	 * frame graph execution.
 	 *
-	 * Phase 1 Note: Only imported resources are supported.
-	 * Phase 4 will add transient (temporary) resources that are automatically allocated.
+	 * Currently only imported resources are supported.
+	 * Transient (temporary) resources that are automatically allocated will be added in a future update.
 	 */
 	class B3D_EXPORT FrameGraphTextureResource : public FrameGraphResource
 	{
@@ -96,8 +96,8 @@ namespace b3d::render
 	 * The buffer lifetime is managed externally and must remain valid for the duration of
 	 * frame graph execution.
 	 *
-	 * Phase 1 Note: Only imported resources are supported.
-	 * Phase 4 will add transient (temporary) resources that are automatically allocated.
+	 * Currently only imported resources are supported.
+	 * Transient (temporary) resources that are automatically allocated will be added in a future update.
 	 */
 	class B3D_EXPORT FrameGraphBufferResource : public FrameGraphResource
 	{

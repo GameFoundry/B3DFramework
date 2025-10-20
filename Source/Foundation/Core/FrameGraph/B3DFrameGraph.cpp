@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DFrameGraph.h"
 #include "B3DFrameGraphCompiler.h"
-#include "B3DFrameGraphBarrier.h"
 #include "Debug/B3DDebug.h"
 
 using namespace b3d;
@@ -340,10 +339,7 @@ void FrameGraph::ExecutePass(FrameGraphPass* pass)
 		return;
 	}
 
-	// Phase 1: No barriers, no resource allocation
-	// Later phases will inject barriers here based on resource dependencies
-
-	// Execute user lambda - this may call BeginRenderPass/EndRenderPass // TODO - Begin/End render pass calling should be done by the FrameGraph system itself
+	// Execute user lambda - this may call BeginRenderPass/EndRenderPass
 	pass->ExecuteCommands(*cmd);
 
 	// End command buffer recording

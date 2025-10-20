@@ -3,13 +3,14 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
-#include "B3DFrameGraphDependency.h"
 
 namespace b3d::render
 {
 	/** @addtogroup RenderAPI
 	 *  @{
 	 */
+
+	class FrameGraphPass;
 
 	/**
 	 * Debugging utilities for frame graph visualization and inspection.
@@ -21,18 +22,18 @@ namespace b3d::render
 		 * Generate a text representation of the dependency graph.
 		 * Useful for debugging and visualization.
 		 *
-		 * @param nodes The pass nodes to visualize
+		 * @param passes The passes to visualize
 		 * @return String representation of the graph
 		 */
-		static String GenerateGraphText(const Vector<UPtr<FrameGraphPassNode>>& nodes);
+		static String GenerateGraphText(const Vector<UPtr<FrameGraphPass>>& passes);
 
 		/**
 		 * Generate a DOT format representation for visualization tools like Graphviz.
 		 *
-		 * @param nodes The pass nodes to visualize
+		 * @param passes The passes to visualize
 		 * @return DOT format string
 		 */
-		static String GenerateGraphDOT(const Vector<UPtr<FrameGraphPassNode>>& nodes);
+		static String GenerateGraphDOT(const Vector<UPtr<FrameGraphPass>>& passes);
 	};
 
 	/** @} */

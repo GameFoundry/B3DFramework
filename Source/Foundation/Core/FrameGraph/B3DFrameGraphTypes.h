@@ -16,8 +16,8 @@ namespace b3d::render
 	 * Resources are identified by index into internal storage. This is a lightweight handle type
 	 * that can be copied freely. Use FrameGraph::GetResource() to look up the actual resource.
 	 *
-	 * Phase 1 Note: Resources are only imported from external textures/buffers.
-	 * Transient resources will be added in Phase 4.
+	 * Currently resources are only imported from external textures/buffers.
+	 * Transient resources will be added in a future update.
 	 */
 	struct FrameGraphResourceId
 	{
