@@ -162,6 +162,9 @@ namespace b3d
 			 * @note Logs an error if multiple incompatible usage flags are detected.
 			 */
 			static VkImageLayout GetImageLayoutFromUsage(GpuResourceUseFlags usage, GpuAccessFlags access);
+
+			/** Maps a framework ImageLayout enum to Vulkan VkImageLayout. */
+			static VkImageLayout GetImageLayout(ImageLayout layout);
 		};
 
 		/** @} */

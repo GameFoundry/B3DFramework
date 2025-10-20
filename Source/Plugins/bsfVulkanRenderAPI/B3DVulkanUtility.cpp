@@ -1199,3 +1199,40 @@ VkImageLayout VulkanUtility::GetImageLayoutFromUsage(GpuResourceUseFlags usage, 
 	return VK_IMAGE_LAYOUT_UNDEFINED;
 }
 
+VkImageLayout VulkanUtility::GetImageLayout(ImageLayout layout)
+{
+	switch (layout)
+	{
+		case ImageLayout::Undefined:
+			return VK_IMAGE_LAYOUT_UNDEFINED;
+
+		case ImageLayout::General:
+			return VK_IMAGE_LAYOUT_GENERAL;
+
+		case ImageLayout::ColorAttachment:
+			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		case ImageLayout::DepthStencilAttachment:
+			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		case ImageLayout::DepthStencilReadOnly:
+			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+		case ImageLayout::ShaderReadOnly:
+			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		case ImageLayout::TransferSource:
+			return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+
+		case ImageLayout::TransferDestination:
+			return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+
+		case ImageLayout::Present:
+			return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		default:
+			B3D_LOG(Warning, RenderBackend, "Unknown ImageLayout enum value: {0}", (u32)layout);
+			return VK_IMAGE_LAYOUT_UNDEFINED;
+	}
+}
+

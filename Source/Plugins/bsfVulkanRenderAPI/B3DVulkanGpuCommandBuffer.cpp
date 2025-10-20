@@ -2056,7 +2056,7 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 	VulkanBarrierHelper barrierHelper(this, &mResourceTracker);
 
 	// Helper lambda to process a single image with the barrier
-	auto fnAddImageBarrier = [this, &barrierHelper](VulkanImage* vulkanImage, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrier& barrier)
+	auto fnAddImageBarrier = [this, &barrierHelper](VulkanImage* vulkanImage, const GpuTextureSubresourceRange& subresourceRange, const GpuSurfaceBarrier& barrier)
 	{
 		if(vulkanImage == nullptr)
 			return;
@@ -2071,20 +2071,20 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 			VulkanBarrierHelper* BarrierHelper;
 			VulkanResourceTracker* ResourceTracker;
 			VulkanImage* Image;
-			const GpuBarrier& Barrier;
+			const GpuSurfaceBarrier& Barrier;
 		};
 
 		CallbackParameters callbackParameters { &barrierHelper, &mResourceTracker, vulkanImage, barrier};
 		mResourceTracker.IterateAndCreateOverlappingImageSubresourceTrackingState(vulkanImage, vkSubresourceRange, [](u32 globalSubresourceIndex, void* userData)
 		{
 			CallbackParameters* const callbackParameters = static_cast<CallbackParameters*>(userData);
-			const GpuBarrier& barrier = callbackParameters->Barrier;
+			const GpuSurfaceBarrier& barrier = callbackParameters->Barrier;
 
-			VulkanResourceTracker& resourceTracker = *callbackParameters->ResourceTracker;;
+			VulkanResourceTracker& resourceTracker = *callbackParameters->ResourceTracker;
 			const VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState = resourceTracker.GetSubresourceTrackingStateAtIndex(globalSubresourceIndex);
 
-			const VkImageLayout oldLayout = subresourceTrackingState.CurrentLayout;
-			const VkImageLayout newLayout = VulkanUtility::GetImageLayoutFromUsage(barrier.DestinationUsage, barrier.DestinationAccess);
+			const VkImageLayout oldLayout = (barrier.SourceLayout != ImageLayout::Automatic) ?  VulkanUtility::GetImageLayout(barrier.SourceLayout) : subresourceTrackingState.CurrentLayout;
+			const VkImageLayout newLayout = (barrier.DestinationLayout != ImageLayout::Undefined) ?  VulkanUtility::GetImageLayout(barrier.DestinationLayout) : oldLayout; // Undefined means no layout transition
 
 			callbackParameters->BarrierHelper->AddImageBarrier(callbackParameters->Image, subresourceTrackingState.Range, barrier.SourceUsage, barrier.SourceAccess, barrier.DestinationUsage, barrier.DestinationAccess, oldLayout, newLayout);
 

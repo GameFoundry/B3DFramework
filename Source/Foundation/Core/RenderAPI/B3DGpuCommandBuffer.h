@@ -64,6 +64,70 @@ namespace b3d
 		typedef Flags<GpuResourceUseFlag> GpuResourceUseFlags;
 		B3D_FLAGS_OPERATORS(GpuResourceUseFlag)
 
+		/**
+		 * Image layout - determines how an image is accessed in GPU operations.
+		 *
+		 * Phase 3 Note: This is a framework-level abstraction. Each backend (Vulkan, D3D12)
+		 * maps these layouts to their specific image layout enums. The frame graph automatically
+		 * tracks and transitions layouts as needed.
+		 */
+		enum class ImageLayout
+		{
+			/**
+			 * Undefined layout - initial state or don't care.
+			 * Transitioning from Undefined may discard image contents.
+			 */
+			Undefined,
+
+			/**
+			 * General purpose layout - supports all operations but may not be optimal.
+			 * Required for storage images (UAV) and some read-write operations.
+			 */
+			General,
+
+			/**
+			 * Optimal for color attachment writes (render targets).
+			 * Used during rendering to color attachments.
+			 */
+			ColorAttachment,
+
+			/**
+			 * Optimal for depth/stencil attachment writes.
+			 * Used during rendering to depth/stencil attachments.
+			 */
+			DepthStencilAttachment,
+
+			/**
+			 * Optimal for depth/stencil attachment reads (read-only depth).
+			 * Used when depth/stencil is bound but not written to, and potentially sampled.
+			 */
+			DepthStencilReadOnly,
+
+			/**
+			 * Optimal for shader reads (sampling, texelFetch).
+			 * Most common layout for texture sampling.
+			 */
+			ShaderReadOnly,
+
+			/**
+			 * Optimal for transfer source operations (copies, blits).
+			 */
+			TransferSource,
+
+			/**
+			 * Optimal for transfer destination operations (copies, blits).
+			 */
+			TransferDestination,
+
+			/**
+			 * Layout for presenting to swap chain.
+			 * Only used for swap chain images.
+			 */
+			Present,
+
+			Automatic /**< Let the system decide the optimal layout based on usage. Only valid in certain situations. */
+		};
+
 		/** Object describing a GpuCommandBufferPool. */
 		struct GpuCommandBufferPoolInformation
 		{
@@ -181,19 +245,38 @@ namespace b3d
 			SPtr<GpuBuffer> Object;
 		};
 
-		/** Describes a barrier for a Texture. */
-		struct GpuTextureBarrier : GpuBarrier
+		/** Describes a common set of barrier information used both by Texture and RenderTarget barrier. */
+		struct GpuSurfaceBarrier : GpuBarrier
 		{
-			GpuTextureBarrier(const SPtr<Texture>& object, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: Object(object), SubresourceRange(subResourceRange)
+			GpuSurfaceBarrier(GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
+				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
+				: GpuBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess), SubresourceRange(subResourceRange)
 			{ }
 
-			GpuTextureBarrier(const SPtr<Texture>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: GpuBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess), Object(object), SubresourceRange(subResourceRange)
+			GpuSurfaceBarrier(GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess,
+				ImageLayout sourceLayout, ImageLayout destinationLayout, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
+				: GpuBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess), SubresourceRange(subResourceRange), SourceLayout(sourceLayout), DestinationLayout(destinationLayout)
+			{ }
+
+			GpuTextureSubresourceRange SubresourceRange; /**< Subresources (mips, array levels) of the textures to apply the barrier to. */
+			ImageLayout SourceLayout = ImageLayout::Automatic; /**< Source image layout. If set to Automatic, layout is determined from the current usage of the texture object. */
+			ImageLayout DestinationLayout = ImageLayout::Undefined; /**< Destination image layout. If set to Undefined, no layout transition will be performed. */
+		};
+
+		/** Describes a barrier for a Texture. */
+		struct GpuTextureBarrier : GpuSurfaceBarrier
+		{
+			GpuTextureBarrier(const SPtr<Texture>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
+				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
+				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, subResourceRange), Object(object)
+			{ }
+
+			GpuTextureBarrier(const SPtr<Texture>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess,
+				ImageLayout sourceLayout, ImageLayout destinationLayout, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
+				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, sourceLayout, destinationLayout, subResourceRange), Object(object)
 			{ }
 
 			SPtr<Texture> Object;
-			GpuTextureSubresourceRange SubresourceRange;
 		};
 /**
 		 * Describes a barrier for a RenderTarget.
@@ -204,25 +287,26 @@ namespace b3d
 		 *
 		 * @note SurfaceMask must specify only a single surface bit (e.g., RT_COLOR0, RT_DEPTH). Combinations of multiple bits are invalid.
 		 */
-		struct GpuRenderTargetBarrier : GpuBarrier
+		struct GpuRenderTargetBarrier : GpuSurfaceBarrier
 		{
-			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: Object(object), SurfaceMask(surfaceMask), SubresourceRange(subresourceRange)
+			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
+				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
+				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, subresourceRange), Object(object), SurfaceMask(surfaceMask)
 			{ }
 
-			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: GpuBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess), Object(object), SurfaceMask(surfaceMask), SubresourceRange(subresourceRange)
+			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
+				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, ImageLayout sourceLayout, ImageLayout destinationLayout, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
+				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, sourceLayout, destinationLayout, subresourceRange), Object(object), SurfaceMask(surfaceMask)
 			{ }
 
 			SPtr<RenderTarget> Object;
 			RenderSurfaceMaskBits SurfaceMask; /**< Specifies which surface of the render target the barrier applies to. Must be a single bit. */
-			GpuTextureSubresourceRange SubresourceRange; /**< Subresources (mips, array levels) of the textures to apply the barrier to. */
 		};
 
 		/** A list of buffer, texture, and render target barriers. */
 		struct GpuBarriers
 		{
-			GpuBarriers(TArrayView<GpuBufferBarrier> bufferBarriers, TArrayView<GpuTextureBarrier> textureBarriers = TArrayView<GpuTextureBarrier>(), TArrayView<GpuRenderTargetBarrier> renderTargetBarriers = TArrayView<GpuRenderTargetBarrier>())
+			GpuBarriers(TArrayView<GpuBufferBarrier> bufferBarriers = TArrayView<GpuBufferBarrier>(), TArrayView<GpuTextureBarrier> textureBarriers = TArrayView<GpuTextureBarrier>(), TArrayView<GpuRenderTargetBarrier> renderTargetBarriers = TArrayView<GpuRenderTargetBarrier>())
 			{
 				BufferBarriers.Reserve(bufferBarriers.Size());
 
