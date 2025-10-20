@@ -13,24 +13,59 @@ FrameGraphCompiler::FrameGraphCompiler(FrameGraph& frameGraph)
 
 UPtr<CompiledFrameGraph> FrameGraphCompiler::Compile()
 {
-	// Execute setup functions to populate resource accesses
-	ExecuteSetupFunctions();
+	B3D_LOG(Info, RenderBackend, "Compiling frame graph...");
 
-	// Validate
+	// Phase 1: Validation and setup
 	if (!Validate())
 	{
 		B3D_LOG(Error, RenderBackend, "Frame graph validation failed");
 		return nullptr;
 	}
 
+	ExecuteSetupFunctions();
+
+	// Phase 2: Dependency analysis
+	mDependencyAnalyzer = B3DMakeUnique<FrameGraphDependencyAnalyzer>(mFrameGraph);
+	if (!mDependencyAnalyzer->Analyze())
+	{
+		B3D_LOG(Error, RenderBackend, "Dependency analysis failed");
+		return nullptr;
+	}
+
+	// Phase 2: Dependency validation
+	if (!ValidateDependencies(mDependencyAnalyzer->GetPassNodes()))
+	{
+		B3D_LOG(Warning, RenderBackend, "Dependency validation found potential issues");
+	}
+
+	// Phase 2: Pass culling
+	mCulling = B3DMakeUnique<FrameGraphCulling>(mFrameGraph);
+	auto& nodes = const_cast<Vector<UPtr<FrameGraphPassNode>>&>(mDependencyAnalyzer->GetPassNodes());
+	mCulling->Cull(nodes, mDependencyAnalyzer->GetResourceLifetimes());
+
+	if (mCulling->GetCulledPassCount() > 0)
+	{
+		B3D_LOG(Info, RenderBackend, "Culled {0} unused passes", mCulling->GetCulledPassCount());
+	}
+
+	// Phase 2: Topological sort
+	mTopologicalSort = B3DMakeUnique<FrameGraphTopologicalSort>();
+	if (!mTopologicalSort->Sort(mDependencyAnalyzer->GetPassNodes(), mSortedPasses))
+	{
+		B3D_LOG(Error, RenderBackend, "Topological sort failed - cycle detected");
+		return nullptr;
+	}
+
+	B3D_LOG(Info, RenderBackend, "Frame graph compiled successfully. Execution order:");
+	for (u32 i = 0; i < mSortedPasses.size(); i++)
+	{
+		B3D_LOG(Info, RenderBackend, "  {0}. {1}", i + 1, mSortedPasses[i]->GetPass()->GetName());
+	}
+
 	// Create compiled graph
 	auto compiled = B3DMakeUnique<CompiledFrameGraph>();
-
-	// Phase 1: Just store passes in declaration order
-	for (const auto& pass : mFrameGraph.GetPasses())
-	{
-		compiled->Passes.push_back(pass.get());
-	}
+	compiled->SortedPasses = mSortedPasses;
+	compiled->ResourceLifetimes = mDependencyAnalyzer->GetResourceLifetimes();
 
 	return compiled;
 }
@@ -153,4 +188,47 @@ bool FrameGraphCompiler::ValidateResourceAccess(FrameGraphPass* pass, const Fram
 	// Phase 3 will add: barrier calculation, hazard detection, layout validation
 
 	return true;
+}
+
+bool FrameGraphCompiler::ValidateDependencies(const Vector<UPtr<FrameGraphPassNode>>& nodes)
+{
+	bool valid = true;
+
+	// Check for passes with no inputs or outputs (isolated passes)
+	for (const auto& node : nodes)
+	{
+		if (node->IsCulled())
+			continue;
+
+		FrameGraphPass* pass = node->GetPass();
+		const auto& accesses = pass->GetResourceAccesses();
+
+		if (accesses.empty())
+		{
+			B3D_LOG(Warning, RenderBackend,
+				"Pass '{0}' has no resource accesses. This may indicate an error.",
+				pass->GetName());
+		}
+
+		// Check for passes that only read (no side effects)
+		bool hasWrite = false;
+		for (const auto& access : accesses)
+		{
+			if (access.Access.IsSet(GpuAccessFlag::Write))
+			{
+				hasWrite = true;
+				break;
+			}
+		}
+
+		if (!hasWrite && node->GetOutgoingDependencies().empty())
+		{
+			B3D_LOG(Warning, RenderBackend,
+				"Pass '{0}' only reads resources and has no outgoing dependencies. "
+				"It will be culled unless it writes to an output resource.",
+				pass->GetName());
+		}
+	}
+
+	return valid;
 }

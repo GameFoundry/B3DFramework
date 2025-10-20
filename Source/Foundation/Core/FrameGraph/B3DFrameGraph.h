@@ -14,6 +14,70 @@ namespace b3d::render
 	 *  @{
 	 */
 
+	/**
+	 * @page FrameGraphPhase2 Frame Graph Phase 2: Dependency Analysis
+	 *
+	 * Phase 2 adds automatic dependency analysis and pass ordering based on resource usage.
+	 *
+	 * ## Features
+	 *
+	 * - **Automatic Dependency Detection**: Passes are analyzed to determine Read-After-Write (RAW),
+	 *   Write-After-Read (WAR), and Write-After-Write (WAW) dependencies
+	 * - **Topological Sorting**: Passes are executed in an order that satisfies all dependencies
+	 * - **Pass Culling**: Passes that don't contribute to final outputs are automatically removed
+	 * - **Output Resources**: Resources can be explicitly marked as outputs to prevent culling
+	 *
+	 * ## Usage Example
+	 *
+	 * ```cpp
+	 * FrameGraph graph(device);
+	 *
+	 * // Import resources
+	 * auto inputTexture = graph.ImportTexture("Input", myInputTexture);
+	 * auto intermediateBuffer = graph.ImportBuffer("Intermediate", myBuffer);
+	 * auto outputTexture = graph.ImportTexture("Output", myOutputTexture);
+	 *
+	 * // Mark output
+	 * graph.MarkAsOutput(outputTexture);
+	 *
+	 * // Pass B - depends on Pass A (will be automatically ordered)
+	 * graph.DeclarePass("PassB",
+	 *     [=](FrameGraphPass& pass) {
+	 *         pass.Read(intermediateBuffer, GpuResourceUseFlag::Buffer, GpuAccessFlag::Read);
+	 *         pass.Write(outputTexture, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write);
+	 *     },
+	 *     [=](GpuCommandBuffer& cmd) { rendering });
+	 *
+	 * // Pass A - produces data for Pass B
+	 * graph.DeclarePass("PassA",
+	 *     [=](FrameGraphPass& pass) {
+	 *         pass.Read(inputTexture, GpuResourceUseFlag::Texture, GpuAccessFlag::Read);
+	 *         pass.Write(intermediateBuffer, GpuResourceUseFlag::UnorderedAccess, GpuAccessFlag::Write);
+	 *     },
+	 *     [=](GpuCommandBuffer& cmd) { compute });
+	 *
+	 * // Compile: PassA and PassB will be automatically ordered (A before B)
+	 * graph.Compile();
+	 *
+	 * // Execute in correct order
+	 * graph.Execute();
+	 * ```
+	 *
+	 * ## Dependency Types
+	 *
+	 * - **RAW (Read-After-Write)**: Consumer reads what producer wrote (true dependency)
+	 * - **WAR (Write-After-Read)**: Consumer writes what producer read (anti-dependency)
+	 * - **WAW (Write-After-Write)**: Consumer writes what producer wrote (output dependency)
+	 *
+	 * ## Limitations
+	 *
+	 * Phase 2 does not yet include:
+	 * - Automatic barrier insertion (Phase 3)
+	 * - Automatic layout transitions (Phase 3)
+	 * - Transient resource allocation (Phase 4)
+	 * - Multi-queue optimization (Phase 5)
+	 */
+
 	class FrameGraphCompiler;
 	class FrameGraphExecutor;
 	class CompiledFrameGraph;
@@ -32,11 +96,11 @@ namespace b3d::render
 	 * // 1. Import external resources
 	 * auto backbuffer = graph.ImportTexture("Backbuffer", swapChainTexture);
 	 *
-	 * // 2. Declare passes
+	 * // 2. Declare passes (can be in any order - will be sorted automatically)
 	 * graph.DeclarePass("Render",
 	 *     [=](FrameGraphPass& pass) {
 	 *         // Setup: Declare resource dependencies
-	 *         pass.Write(backbuffer, GpuResourceUseFlag::ColorAttachment);
+	 *         pass.Write(backbuffer, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write);
 	 *     },
 	 *     [=](GpuCommandBuffer& cmd) {
 	 *         // Execute: Record GPU commands
@@ -46,30 +110,32 @@ namespace b3d::render
 	 *         cmd.EndRenderPass();
 	 *     });
 	 *
-	 * // 3. Compile and execute
+	 * // 3. Mark outputs (prevents culling)
+	 * graph.MarkAsOutput(backbuffer);
+	 *
+	 * // 4. Compile and execute
 	 * graph.Compile();
 	 * graph.Execute();
 	 *
-	 * // 4. Reset for next frame
+	 * // 5. Reset for next frame
 	 * graph.Reset();
 	 * @endcode
 	 *
-	 * Phase 1 Implementation (Current):
-	 * - Import external resources (textures/buffers)
-	 * - Declare passes with resource dependencies
-	 * - Basic validation of resource usage
-	 * - Sequential execution in declaration order
-	 * - Manual synchronization required (no automatic barriers)
+	 * Phase 2 Implementation (Current):
+	 * - Automatic dependency analysis (RAW, WAR, WAW)
+	 * - Topological sorting for optimal execution order
+	 * - Pass culling (removes unused passes)
+	 * - Output resource marking
+	 * - Resource lifetime tracking
+	 * - Manual synchronization still required (no automatic barriers)
 	 *
-	 * Phase 1 Limitations:
+	 * Phase 2 Limitations:
 	 * - No automatic memory barriers or layout transitions
-	 * - No dependency-based execution ordering
 	 * - No transient resource allocation
 	 * - No multi-queue optimization
-	 * - No resource aliasing or lifetime analysis
+	 * - No resource aliasing
 	 *
 	 * Future Phases:
-	 * - Phase 2: Multiple passes with dependency analysis and optimal ordering
 	 * - Phase 3: Automatic barrier insertion and layout management
 	 * - Phase 4: Transient resource allocation and aliasing
 	 * - Phase 5: Async compute and multi-queue optimization
@@ -127,13 +193,16 @@ namespace b3d::render
 		 * - Executes all pass setup callbacks to declare resource dependencies
 		 * - Validates that all referenced resources exist
 		 * - Validates resource access patterns (read/write consistency, etc.)
+		 * - Analyzes dependencies between passes (RAW, WAR, WAW)
+		 * - Performs topological sorting to determine execution order
+		 * - Culls unused passes that don't contribute to outputs
 		 * - Creates a compiled frame graph ready for execution
 		 *
 		 * Must be called after declaring all passes and before Execute().
 		 * Can be called multiple times, but the previous compilation will be discarded.
 		 *
-		 * Phase 1: Basic validation only
-		 * Later phases: Dependency analysis, topological sort, barrier calculation, lifetime analysis
+		 * Phase 2: Dependency analysis, topological sort, pass culling
+		 * Later phases: Barrier calculation, transient resource allocation
 		 */
 		void Compile();
 
@@ -148,8 +217,8 @@ namespace b3d::render
 		 * Must be called after Compile(). Can be called multiple times with the same compilation,
 		 * but typically you should Reset() and re-compile for each frame.
 		 *
-		 * Phase 1: Executes passes sequentially in declaration order
-		 * Later phases: Executes in dependency order, potentially in parallel across multiple queues
+		 * Phase 2: Executes passes in topologically sorted order (culled passes skipped)
+		 * Later phases: Automatic barrier insertion, parallel execution across multiple queues
 		 */
 		void Execute();
 
@@ -167,6 +236,15 @@ namespace b3d::render
 		 */
 		void Reset();
 
+		/**
+		 * Mark a resource as an output.
+		 * Output resources will not be culled even if no passes explicitly write to them.
+		 * Use this for resources that need to be visible outside the frame graph.
+		 *
+		 * @param resource The resource to mark as output
+		 */
+		void MarkAsOutput(FrameGraphResourceId resource);
+
 		/** Returns the GPU device */
 		GpuDevice& GetDevice() { return mDevice; }
 
@@ -178,6 +256,14 @@ namespace b3d::render
 
 		/** Looks up a resource by ID (internal) */
 		FrameGraphResource* GetResource(FrameGraphResourceId id) const;
+
+		/**
+		 * Get output resources (for debugging/inspection).
+		 */
+		const UnorderedSet<FrameGraphResourceId>& GetOutputResources() const
+		{
+			return mOutputResources;
+		}
 
 	private:
 		GpuDevice& mDevice;
@@ -191,6 +277,9 @@ namespace b3d::render
 
 		u32 mNextResourceId = 0;
 		u32 mNextPassIndex = 0;
+
+		/** Resources explicitly marked as outputs (Phase 2) */
+		UnorderedSet<FrameGraphResourceId> mOutputResources;
 	};
 
 	/** @} */

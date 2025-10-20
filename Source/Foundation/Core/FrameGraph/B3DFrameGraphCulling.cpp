@@ -25,6 +25,7 @@ void FrameGraphCulling::Cull(Vector<UPtr<FrameGraphPassNode>>& nodes,
 
 	// Step 2: Find passes that write to output resources
 	// In Phase 2, we consider a resource an output if:
+	// - It's explicitly marked as output, OR
 	// - It's imported AND written to (will be used outside frame graph)
 	Vector<FrameGraphPassNode*> outputPasses;
 
@@ -33,7 +34,9 @@ void FrameGraphCulling::Cull(Vector<UPtr<FrameGraphPassNode>>& nodes,
 		const auto& lifetime = pair.second;
 
 		// Check if this is an output resource
-		if (lifetime.IsImported && lifetime.IsWritten && lifetime.LastUse != nullptr)
+		bool isOutput = lifetime.IsOutput || (lifetime.IsImported && lifetime.IsWritten);
+
+		if (isOutput && lifetime.LastUse != nullptr)
 		{
 			FrameGraphPassNode* node = FindNode(lifetime.LastUse, nodes);
 			if (node)

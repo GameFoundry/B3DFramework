@@ -26,10 +26,20 @@ FrameGraphExecutor::~FrameGraphExecutor() = default;
 
 void FrameGraphExecutor::Execute(const CompiledFrameGraph& compiledGraph)
 {
-	for (FrameGraphPass* pass : compiledGraph.Passes)
+	B3D_LOG(Info, RenderBackend, "Executing frame graph with {0} passes",
+		compiledGraph.SortedPasses.size());
+
+	// Execute passes in sorted order
+	for (FrameGraphPassNode* node : compiledGraph.SortedPasses)
 	{
+		FrameGraphPass* pass = node->GetPass();
+		B3D_ENSURE(pass != nullptr);
+
+		B3D_LOG(Info, RenderBackend, "Executing pass: {0}", pass->GetName());
 		ExecutePass(pass);
 	}
+
+	B3D_LOG(Info, RenderBackend, "Frame graph execution complete");
 }
 
 void FrameGraphExecutor::ExecutePass(FrameGraphPass* pass)

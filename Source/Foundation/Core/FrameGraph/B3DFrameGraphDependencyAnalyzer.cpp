@@ -238,6 +238,15 @@ void FrameGraphDependencyAnalyzer::TrackResourceLifetimes()
 			}
 		}
 	}
+
+	// Mark explicit outputs
+	const auto& outputResources = mFrameGraph.GetOutputResources();
+	for (FrameGraphResourceId outputId : outputResources)
+	{
+		auto it = mResourceLifetimes.find(outputId);
+		if (it != mResourceLifetimes.end())
+			it->second.IsOutput = true;
+	}
 }
 
 FrameGraphPassNode* FrameGraphDependencyAnalyzer::FindNode(FrameGraphPass* pass)

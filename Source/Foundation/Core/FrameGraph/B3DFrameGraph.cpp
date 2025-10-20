@@ -97,7 +97,7 @@ void FrameGraph::Execute()
 	}
 
 	// Validate that we have passes to execute
-	if (mCompiledGraph->Passes.empty())
+	if (mCompiledGraph->SortedPasses.empty())
 	{
 		B3D_LOG(Warning, RenderBackend, "Executing frame graph with no passes");
 		return;
@@ -120,6 +120,7 @@ void FrameGraph::Reset()
 	mResources.clear();
 	mPasses.clear();
 	mCompiledGraph.reset();
+	mOutputResources.clear();
 
 	// Reset ID counters
 	mNextResourceId = 0;
@@ -128,6 +129,13 @@ void FrameGraph::Reset()
 	// Reset executor
 	if (mExecutor)
 		mExecutor->Reset();
+}
+
+void FrameGraph::MarkAsOutput(FrameGraphResourceId resource)
+{
+	B3D_ENSURE(resource.IsValid());
+	mOutputResources.insert(resource);
+	B3D_LOG(Info, RenderBackend, "Marked resource {0} as output", resource.Index);
 }
 
 FrameGraphResource* FrameGraph::GetResource(FrameGraphResourceId id) const

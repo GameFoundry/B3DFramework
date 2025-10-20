@@ -75,9 +75,39 @@ bool FrameGraphTopologicalSort::Sort(const Vector<UPtr<FrameGraphPassNode>>& nod
 
 	if (hasCycle)
 	{
-		B3D_LOG(Error, RenderBackend, "Cycle detected in frame graph dependencies. Involved passes:");
+		B3D_LOG(Error, RenderBackend, "Cycle detected in frame graph dependencies.");
+		B3D_LOG(Error, RenderBackend, "The following passes are involved in the cycle:");
+
 		for (const auto& pass : mCyclePasses)
-			B3D_LOG(Error, RenderBackend, "  - {0}", pass->GetName());
+		{
+			B3D_LOG(Error, RenderBackend, "  Pass: {0}", pass->GetName());
+
+			// Find the node
+			FrameGraphPassNode* cycleNode = nullptr;
+			for (const auto& node : nodes)
+			{
+				if (node->GetPass() == pass)
+				{
+					cycleNode = node.get();
+					break;
+				}
+			}
+
+			if (cycleNode)
+			{
+				B3D_LOG(Error, RenderBackend, "    Unresolved dependencies: {0}",
+					cycleNode->GetReferenceCount());
+
+				// Log incoming dependencies
+				const auto& incoming = cycleNode->GetIncomingDependencies();
+				for (const auto& dep : incoming)
+				{
+					B3D_LOG(Error, RenderBackend, "      <- {0} (via resource {1})",
+						dep.ProducerPass->GetName(),
+						dep.Resource.Index);
+				}
+			}
+		}
 
 		return false;
 	}
