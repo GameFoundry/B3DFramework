@@ -35,34 +35,36 @@ namespace b3d::render
 	 * ```cpp
 	 * FrameGraph graph(device);
 	 *
-	 * // Import resources
-	 * auto inputTexture = graph.ImportTexture("Input", myInputTexture);
-	 * auto intermediateBuffer = graph.ImportBuffer("Intermediate", myBuffer);
+	 * // Import output texture
 	 * auto outputTexture = graph.ImportTexture("Output", myOutputTexture);
 	 *
 	 * // Mark output
 	 * graph.MarkAsOutput(outputTexture);
 	 *
-	 * // Pass B - depends on Pass A (will be automatically ordered)
-	 * graph.DeclarePass("PassB",
+	 * // Render pass - UseParameters automatically imports all shader resources
+	 * graph.DeclareRenderPass("PBR",
 	 *     [=](FrameGraphPass& pass) {
-	 *         pass.Read(intermediateBuffer, GpuResourceUseFlag::Buffer, GpuAccessFlag::Read);
-	 *         pass.Write(outputTexture, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write);
+	 *         // Single call auto-imports all textures, buffers, etc. from GpuParameters
+	 *         pass.UseParameters(materialParams);
+	 *         pass.WriteColor(outputTexture);
 	 *     },
-	 *     [=](GpuCommandBuffer& cmd) { rendering });
+	 *     [=](GpuCommandBuffer& cmd) {
+	 *         cmd.SetGpuParameters(materialParams);
+	 *         cmd.Draw(...);
+	 *     });
 	 *
-	 * // Pass A - produces data for Pass B
-	 * graph.DeclarePass("PassA",
+	 * // Compute pass - also works with compute shaders
+	 * graph.DeclareComputePass("PostProcess",
 	 *     [=](FrameGraphPass& pass) {
-	 *         pass.Read(inputTexture, GpuResourceUseFlag::Texture, GpuAccessFlag::Read);
-	 *         pass.Write(intermediateBuffer, GpuResourceUseFlag::UnorderedAccess, GpuAccessFlag::Write);
+	 *         pass.UseParameters(computeParams);
 	 *     },
-	 *     [=](GpuCommandBuffer& cmd) { compute });
+	 *     [=](GpuCommandBuffer& cmd) {
+	 *         cmd.SetGpuParameters(computeParams);
+	 *         cmd.Dispatch(...);
+	 *     });
 	 *
-	 * // Compile: PassA and PassB will be automatically ordered (A before B)
+	 * // Compile and execute
 	 * graph.Compile();
-	 *
-	 * // Execute in correct order
 	 * graph.Execute();
 	 * ```
 	 *
@@ -176,6 +178,33 @@ namespace b3d::render
 		FrameGraphResourceId ImportBuffer(
 			const StringView& name,
 			const SPtr<GpuBuffer>& buffer);
+
+		/**
+		 * Imports a render target (e.g., swap chain) into the frame graph.
+		 *
+		 * Use this for importing swap chain textures from RenderWindow, which cannot
+		 * be accessed as standalone Texture objects. The render target must remain valid
+		 * for the entire frame graph execution.
+		 *
+		 * Typical uses:
+		 * - Swap chain backbuffer from RenderWindow
+		 * - Other render targets that don't expose underlying textures
+		 *
+		 * @param name          Debug name for profiling and error messages
+		 * @param renderTarget  Existing render target (must not be null)
+		 * @param surface       Which surface of the render target to use (default: RT_COLOR0 for backbuffer)
+		 * @return              Resource ID for use in pass Read/Write declarations
+		 *
+		 * Example:
+		 * @code
+		 * auto backbuffer = graph.ImportRenderTarget("Backbuffer", window, RT_COLOR0);
+		 * graph.MarkAsOutput(backbuffer);
+		 * @endcode
+		 */
+		FrameGraphResourceId ImportRenderTarget(
+			const StringView& name,
+			const SPtr<RenderTarget>& renderTarget,
+			RenderSurfaceMaskBits surface = RT_COLOR0);
 
 		/**
 		 * Declare a generic pass with full manual control.

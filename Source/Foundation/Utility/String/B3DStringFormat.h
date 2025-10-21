@@ -227,6 +227,12 @@ namespace b3d
 			return String(param);
 		}
 
+		/**	Helper method that converts a StringView to a narrow string. */
+		static String ToString(StringView param)
+		{
+			return String(param.data(), param.size());
+		}
+
 		/**	Helper method for converting any data type to a wide string. */
 		template <class T>
 		static WString ToWString(const T& param)

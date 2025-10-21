@@ -6,6 +6,8 @@
 #include "B3DFrameGraphTypes.h"
 #include "Image/B3DTexture.h"
 #include "RenderAPI/B3DGpuBuffer.h"
+#include "RenderAPI/B3DRenderTarget.h"
+#include "Utility/B3DCommonTypes.h"
 
 namespace b3d::render
 {
@@ -17,7 +19,8 @@ namespace b3d::render
 	enum class FrameGraphResourceType
 	{
 		Texture,
-		Buffer
+		Buffer,
+		RenderTarget
 	};
 
 	/**
@@ -122,6 +125,44 @@ namespace b3d::render
 
 	private:
 		SPtr<GpuBuffer> mBuffer;
+	};
+
+	/**
+	 * Frame graph render target resource (imported).
+	 *
+	 * Represents a render target (e.g., swap chain) that has been imported into the frame graph.
+	 * This is used for resources that cannot be accessed as standalone textures, such as
+	 * swap chain backbuffers from RenderWindow.
+	 *
+	 * The render target lifetime is managed externally and must remain valid for the duration
+	 * of frame graph execution.
+	 */
+	class B3D_EXPORT FrameGraphRenderTargetResource : public FrameGraphResource
+	{
+	public:
+		/**
+		 * Constructs a new render target resource.
+		 *
+		 * @param id			Unique identifier for this resource
+		 * @param name			Name for debugging/profiling
+		 * @param renderTarget	The underlying render target (must not be null)
+		 * @param surface		Which surface of the render target to use (e.g., RT_COLOR0 for backbuffer)
+		 */
+		FrameGraphRenderTargetResource(
+			FrameGraphResourceId id,
+			const StringView& name,
+			const SPtr<RenderTarget>& renderTarget,
+			RenderSurfaceMaskBits surface);
+
+		/** Returns the underlying render target */
+		const SPtr<RenderTarget>& GetRenderTarget() const { return mRenderTarget; }
+
+		/** Returns which surface of the render target is being used */
+		RenderSurfaceMaskBits GetSurface() const { return mSurface; }
+
+	private:
+		SPtr<RenderTarget> mRenderTarget;
+		RenderSurfaceMaskBits mSurface;
 	};
 
 	/** @} */

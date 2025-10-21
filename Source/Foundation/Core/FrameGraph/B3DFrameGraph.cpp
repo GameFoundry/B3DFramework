@@ -57,6 +57,24 @@ FrameGraphResourceId FrameGraph::ImportBuffer(
 	return id;
 }
 
+FrameGraphResourceId FrameGraph::ImportRenderTarget(
+	const StringView& name,
+	const SPtr<RenderTarget>& renderTarget,
+	RenderSurfaceMaskBits surface)
+{
+	if (!B3D_ENSURE(renderTarget != nullptr))
+		return kInvalidFrameGraphResourceId;
+
+	FrameGraphResourceId id{mNextResourceId++};
+
+	auto resource = B3DMakeUnique<FrameGraphRenderTargetResource>(id, name, renderTarget, surface);
+	mResources.push_back(std::move(resource));
+
+	B3D_LOG(Info, RenderBackend, "Imported render target '{0}' (surface mask: {1})", name, (u32)surface);
+
+	return id;
+}
+
 void FrameGraph::DeclarePass(
 	const StringView& name,
 	FrameGraphPassSetupFunc setupFunc,

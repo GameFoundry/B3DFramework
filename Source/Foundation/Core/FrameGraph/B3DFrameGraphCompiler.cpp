@@ -893,6 +893,31 @@ void FrameGraphCompiler::BuildBarriers(
 		return barrier;
 	};
 
+	// Local lambda to create a render target barrier from a transition
+	auto fnCreateRenderTargetBarrier = [this](const ResourceTransition& transition) -> TOptional<GpuRenderTargetBarrier>
+	{
+		FrameGraphResource* resource = mFrameGraph.GetResource(transition.Resource);
+		if (!resource || resource->GetType() != FrameGraphResourceType::RenderTarget)
+			return {};
+
+		auto* renderTargetResource = static_cast<FrameGraphRenderTargetResource*>(resource);
+
+		GpuRenderTargetBarrier barrier(
+			renderTargetResource->GetRenderTarget(),
+			renderTargetResource->GetSurface(),
+			transition.SourceUsage,
+			transition.SourceAccess,
+			transition.DestinationUsage,
+			transition.DestinationAccess
+		);
+
+		// Set explicit layouts
+		barrier.SourceLayout = transition.SourceLayout;
+		barrier.DestinationLayout = transition.DestinationLayout;
+
+		return barrier;
+	};
+
 	// Group transitions by destination pass
 	UnorderedMap<FrameGraphPass*, Vector<ResourceTransition>> transitionsByPass;
 
@@ -929,21 +954,32 @@ void FrameGraphCompiler::BuildBarriers(
 				continue;
 			}
 
+			// Try render target barrier
+			auto renderTargetBarrier = fnCreateRenderTargetBarrier(transition);
+			if (renderTargetBarrier.has_value())
+			{
+				batch.Barriers.RenderTargetBarriers.Add(renderTargetBarrier.value());
+				continue;
+			}
+
 			B3D_LOG(Warning, RenderBackend,
 				"Failed to create barrier for resource {0} in pass '{1}'",
 				transition.Resource.Index,
 				pass->GetName());
 		}
 
-		if (batch.Barriers.BufferBarriers.Size() > 0 || batch.Barriers.TextureBarriers.Size() > 0)
+		if (batch.Barriers.BufferBarriers.Size() > 0 ||
+			batch.Barriers.TextureBarriers.Size() > 0 ||
+			batch.Barriers.RenderTargetBarriers.Size() > 0)
 		{
 			outBarriers.push_back(batch);
 
 			B3D_LOG(Info, RenderBackend,
-				"Created barrier batch for pass '{0}': {1} buffer barriers, {2} texture barriers",
+				"Created barrier batch for pass '{0}': {1} buffer barriers, {2} texture barriers, {3} render target barriers",
 				pass->GetName(),
 				batch.Barriers.BufferBarriers.Size(),
-				batch.Barriers.TextureBarriers.Size());
+				batch.Barriers.TextureBarriers.Size(),
+				batch.Barriers.RenderTargetBarriers.Size());
 		}
 	}
 }

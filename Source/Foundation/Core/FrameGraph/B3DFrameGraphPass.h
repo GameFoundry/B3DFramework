@@ -135,9 +135,10 @@ namespace b3d::render
 		 * barriers to make the resource visible to this pass.
 		 *
 		 * Common usage flags:
-		 * - GpuResourceUseFlag::Texture - Reading as shader texture (sampled)
-		 * - GpuResourceUseFlag::Buffer - Reading from buffer (constant buffer, vertex/index)
-		 * - GpuResourceUseFlag::StorageTexture - Reading from storage texture/image (UAV)
+		 * - GpuResourceUseFlag::ShaderAccess - Reading as shader texture (sampled) or storage image/buffer
+		 * - GpuResourceUseFlag::UniformBuffer - Reading from uniform/constant buffer
+		 * - GpuResourceUseFlag::VertexBuffer - Reading as vertex buffer
+		 * - GpuResourceUseFlag::IndexBuffer - Reading as index buffer
 		 *
 		 * @param resource  Resource to read from (must be imported)
 		 * @param usage     How the resource is used during the read
@@ -153,9 +154,8 @@ namespace b3d::render
 		 *
 		 * Common usage flags:
 		 * - GpuResourceUseFlag::ColorAttachment - Writing as render target
-		 * - GpuResourceUseFlag::DepthStencil - Writing depth/stencil
-		 * - GpuResourceUseFlag::StorageTexture - Writing to storage texture/image (UAV)
-		 * - GpuResourceUseFlag::UnorderedAccess - Writing to storage buffer (UAV)
+		 * - GpuResourceUseFlag::DepthStencilAttachment - Writing depth/stencil
+		 * - GpuResourceUseFlag::ShaderAccess - Writing to storage texture/image or storage buffer (UAV)
 		 *
 		 * For render attachments, prefer WriteColor(), WriteDepth(), or ReadDepth() for
 		 * automatic render target creation.
@@ -237,6 +237,25 @@ namespace b3d::render
 		 * @param resource  Texture resource to use as read-only depth/stencil
 		 */
 		void ReadDepth(FrameGraphResourceId resource);
+
+		/**
+		 * Imports and declares all resources from a GpuParameters object.
+		 *
+		 * Automatically imports resources and determines correct access flags:
+		 * - Sampled textures -> Read
+		 * - Storage textures -> Read | Write
+		 * - Uniform buffers -> Read
+		 * - Storage buffers -> Read or Read | Write (based on shader reflection)
+		 *
+		 * Access flags are determined from GpuParameterObjectType in the pipeline layout,
+		 * matching the behavior of VulkanGpuParameters::PrepareForBind.
+		 *
+		 * Note: Does NOT automatically bind parameters during execute - user must call
+		 * cmd.SetGpuParameters() explicitly to allow different parameters per draw call.
+		 *
+		 * @param params  GpuParameters object containing resources to import
+		 */
+		void UseParameters(const SPtr<GpuParameters>& params);
 
 		/** Get color attachments (for render passes) */
 		const UnorderedMap<u32, FrameGraphResourceId>& GetColorAttachments() const { return mColorAttachments; }

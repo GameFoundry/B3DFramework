@@ -32,3 +32,15 @@ FrameGraphBufferResource::FrameGraphBufferResource(
 {
 	B3D_ENSURE(buffer != nullptr);
 }
+
+FrameGraphRenderTargetResource::FrameGraphRenderTargetResource(
+	FrameGraphResourceId id,
+	const StringView& name,
+	const SPtr<RenderTarget>& renderTarget,
+	RenderSurfaceMaskBits surface)
+	: FrameGraphResource(id, name, FrameGraphResourceType::RenderTarget)
+	, mRenderTarget(renderTarget)
+	, mSurface(surface)
+{
+	B3D_ENSURE(renderTarget != nullptr);
+}
