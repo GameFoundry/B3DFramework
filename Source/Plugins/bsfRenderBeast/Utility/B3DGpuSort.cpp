@@ -255,18 +255,54 @@ u32 GpuSort::Sort(GpuCommandBuffer& commandBuffer, const GpuSortBuffers& buffers
 
 	u32 bitOffset = 0;
 	u32 inputBufferIdx = 0;
+	u32 executedPassCount = 0;
 	for(u32 i = 0; i < kNumPasses; i++)
 	{
 		if(((kKeyMask << bitOffset) & keyMask) != 0)
 		{
 			gRadixSortParamsDef.gBitOffset.Set(params, bitOffset);
 
+			if(executedPassCount > 0)
+			{
+				// Write-after-read for mHelperBuffers[0] (if not first pass)
+				commandBuffer.IssueBarriers({{
+						GpuBufferBarrier(mHelperBuffers[0], GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Read, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write),
+					}});
+			}
+
 			RadixSortClearMat::Get()->Execute(commandBuffer, mHelperBuffers[0]);
+
+			// Write-after-write for mHelperBuffers[0], read-after-write for sort buffer keys
+			commandBuffer.IssueBarriers({{
+					GpuBufferBarrier(mHelperBuffers[0], GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write),
+					GpuBufferBarrier(buffers.Keys[inputBufferIdx], GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Read)
+				}});
+
 			RadixSortCountMat::Get()->Execute(commandBuffer, gpuSortProps.NumGroups, params, buffers.Keys[inputBufferIdx], mHelperBuffers[0]);
+
+			// Read-after-write for mHelperBuffers[0], write-after-read for mHelperBuffers[0] (if not first pass)
+			commandBuffer.IssueBarriers({{
+					GpuBufferBarrier(mHelperBuffers[0], GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Read),
+					GpuBufferBarrier(executedPassCount > 0 ? mHelperBuffers[1] : nullptr, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Read),
+				}});
+
 			RadixSortPrefixScanMat::Get()->Execute(commandBuffer, params, mHelperBuffers[0], mHelperBuffers[1]);
+
+			const u32 outputBufferIndex = (inputBufferIdx + 1) % 2;
+
+			// Read-after-write for mHelperBuffers[0], buffers.Values[inputBufferIndex], write-after-read for buffers.Keys[outputBufferIndex], buffers.Values[outputBufferIndex] (if not first pass), write-after-read (vertex/fragment) for buffers.Values[outputBufferIndex] as this was used when rendering the particles
+			commandBuffer.IssueBarriers({{
+					GpuBufferBarrier(mHelperBuffers[1], GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Read),
+					GpuBufferBarrier(buffers.Values[inputBufferIdx], GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Read),
+					GpuBufferBarrier(executedPassCount > 0 ? buffers.Keys[outputBufferIndex] : nullptr, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Read, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write),
+					GpuBufferBarrier(executedPassCount > 0 ? buffers.Values[outputBufferIndex] : nullptr, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Read, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write),
+					GpuBufferBarrier(executedPassCount == 0 ? buffers.Values[outputBufferIndex] : nullptr, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageVertexShader | GpuResourceUseFlag::StageFragmentShader, GpuAccessFlag::Read, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write),
+				}});
+
 			RadixSortReorderMat::Get()->Execute(commandBuffer, gpuSortProps.NumGroups, params, mHelperBuffers[1], buffers, inputBufferIdx);
 
 			inputBufferIdx = (inputBufferIdx + 1) % 2;
+			executedPassCount++;
 		}
 
 		bitOffset += kRadixNumBits;

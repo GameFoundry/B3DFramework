@@ -889,6 +889,15 @@ void GpuParticleSimulation::Sort(GpuCommandBuffer& commandBuffer, const Renderer
 
 		entry->SetSortInfo(true, offset);
 
+		if(systemIdx > 0)
+		{
+			// Write-after-write for sort buffer keys and sorted indices
+			commandBuffer.IssueBarriers({ {
+					GpuBufferBarrier(m->Resources.mSortBuffers.Keys[0], GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write),
+					GpuBufferBarrier(m->Resources.mSortedIndices[0], GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write)
+				}});
+		}
+
 		offset += prepareMat->Execute(commandBuffer, *entry, systemIdx, viewOrigin, offset, m->Resources.mSortBuffers.Keys[0], m->Resources.mSortedIndices[0]);
 
 		systemIdx++;

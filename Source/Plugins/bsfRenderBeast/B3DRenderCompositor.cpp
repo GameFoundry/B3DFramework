@@ -386,10 +386,11 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	const EvaluatedParticleData* particleData = inputs.FrameInfo.PerSceneFrameData.Particles;
 	if(particleData)
 	{
-		const auto numParticleSystems = (u32)inputs.Scene.ParticleSystems.size();
-
+		const auto particleSystemCount = (u32)inputs.Scene.ParticleSystems.size();
 		const GpuParticleResources& gpuSimResources = GpuParticleSimulation::Instance().GetResources();
-		for(u32 i = 0; i < numParticleSystems; i++)
+
+		bool isGpuSortingUsed = false;
+		for(u32 i = 0; i < particleSystemCount; i++)
 		{
 			if(!visibility.ParticleSystems[i])
 				continue;
@@ -411,7 +412,20 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 			}
 			// Bind textures/buffers from GPU simulation
 			else if(rendererParticles.GpuParticleSystem)
+			{
 				rendererParticles.BindGpuSimulatedInputs(gpuSimResources, inputs.View);
+
+				if(rendererParticles.GpuParticleSystem->HasSortInfo())
+					isGpuSortingUsed = true;
+			}
+		}
+
+		if(isGpuSortingUsed)
+		{
+			const SPtr<GpuBuffer>& sortedIndices = gpuSimResources.GetSortedIndices();
+
+			// Make sorted indices readable
+			inputs.ActiveCommandBuffer->IssueBarriers({{ GpuBufferBarrier(sortedIndices, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Read)}});
 		}
 	}
 

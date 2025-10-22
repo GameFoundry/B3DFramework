@@ -71,7 +71,7 @@ void DownsampleMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>
 		gDownsampleParamDef.gOffsets.Set(mParamBuffer, invTextureSize * Vector2(1.0f, 1.0f));
 	}
 
-	commandBuffer.BeginRenderPass(output, RT_DEPTH_STENCIL);
+	commandBuffer.BeginRenderPass(RenderPassCreateInformation(output, mGPUParameters, RT_DEPTH_STENCIL));
 
 	Bind(commandBuffer);
 
@@ -81,7 +81,6 @@ void DownsampleMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>
 		GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 }
 
 PooledRenderTextureCreateInformation DownsampleMat::GetOutputDesc(const SPtr<Texture>& target)
