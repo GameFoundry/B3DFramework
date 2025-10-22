@@ -860,9 +860,6 @@ void GpuParticleSimulation::Sort(GpuCommandBuffer& commandBuffer, const Renderer
 	if(!supportsCompute)
 		return;
 
-	// Make sure that the position texture isn't bound for rendering
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
-
 	const Vector3& viewOrigin = view.GetProperties().ViewOrigin;
 
 	GpuParticleSortPrepareMat* prepareMat = GpuParticleSortPrepareMat::Get();

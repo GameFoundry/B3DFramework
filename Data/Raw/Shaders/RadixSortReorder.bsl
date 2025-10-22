@@ -10,6 +10,8 @@ shader RadixSortReorder
 		Buffer<uint> gInputValues;
 		Buffer<uint> gInputOffsets;
 		RWBuffer<uint> gOutputKeys;
+
+		[layout(rg16ui)]
 		RWBuffer<uint> gOutputValues;
 		
 		groupshared uint sGroupOffsets[NUM_DIGITS];
