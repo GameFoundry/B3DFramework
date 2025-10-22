@@ -120,8 +120,11 @@ namespace b3d
 			EyeAdaptHistogramReduceMat() = default;
 			void Initialize() override;
 
+			/** Prepares GPU parameters for rendering. Must be called before Execute(). */
+			void Prepare(const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame);
+
 			/** Executes the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			static PooledRenderTextureCreateInformation GetOutputDesc();
@@ -148,8 +151,11 @@ namespace b3d
 			EyeAdaptationMat() = default;
 			void Initialize() override;
 
+			/** Prepares GPU parameters before rendering. */
+			void Prepare(const SPtr<Texture>& reducedHistogram, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+
 			/** Executes the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& reducedHistogram, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			static PooledRenderTextureCreateInformation GetOutputDesc();

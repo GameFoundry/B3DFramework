@@ -196,11 +196,8 @@ void EyeAdaptHistogramReduceMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter("gEyeAdaptationTex", mEyeAdaptationTex);
 }
 
-void EyeAdaptHistogramReduceMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output)
+void EyeAdaptHistogramReduceMat::Prepare(const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
-	// Set parameters
 	mHistogramTex.Set(histogram);
 
 	SPtr<Texture> eyeAdaptationTex;
@@ -215,8 +212,14 @@ void EyeAdaptHistogramReduceMat::Execute(GpuCommandBuffer& commandBuffer, const 
 	u32 numHistograms = threadGroupCount.X * threadGroupCount.Y;
 
 	gEyeAdaptHistogramReduceParamDef.gThreadGroupCount.Set(mParamBuffer, numHistograms);
+}
 
-	commandBuffer.BeginRenderPass(output, RT_DEPTH_STENCIL);
+void EyeAdaptHistogramReduceMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	RenderPassCreateInformation info(output, mGPUParameters, RT_DEPTH_STENCIL);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 
@@ -224,7 +227,9 @@ void EyeAdaptHistogramReduceMat::Execute(GpuCommandBuffer& commandBuffer, const 
 	GetRendererUtility().DrawScreenQuad(commandBuffer, drawUV);
 
 	commandBuffer.EndRenderPass();
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
+
+	RenderPassCreateInformation unbind(nullptr);
+	commandBuffer.BeginRenderPass(unbind);
 }
 
 PooledRenderTextureCreateInformation EyeAdaptHistogramReduceMat::GetOutputDesc()
@@ -248,23 +253,26 @@ void EyeAdaptationMat::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("THREADGROUP_SIZE_Y", EyeAdaptHistogramMat::kThreadGroupSizeY);
 }
 
-void EyeAdaptationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& reducedHistogram, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+void EyeAdaptationMat::Prepare(const SPtr<Texture>& reducedHistogram, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+{
+	mReducedHistogramTex.Set(reducedHistogram);
+	PopulateParams(mParamBuffer, frameDelta, settings, exposureScale);
+}
+
+void EyeAdaptationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	// Set parameters
-	mReducedHistogramTex.Set(reducedHistogram);
-
-	PopulateParams(mParamBuffer, frameDelta, settings, exposureScale);
-
-	// Render
-	commandBuffer.BeginRenderPass(output, RT_DEPTH_STENCIL);
+	RenderPassCreateInformation info(output, mGPUParameters, RT_DEPTH_STENCIL);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
+
+	RenderPassCreateInformation unbind(nullptr);
+	commandBuffer.BeginRenderPass(unbind);
 }
 
 PooledRenderTextureCreateInformation EyeAdaptationMat::GetOutputDesc()

@@ -529,10 +529,12 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		msaaCoverageMaterial->Execute(commandBuffer, inputs.View);
 		commandBuffer.EndRenderPass();
 
-		MSAACoverageStencilMat* stencilMat = MSAACoverageStencilMat::Get();
-		RenderPassCreateInformation msaaStencilInfo(sceneDepthNode->DepthTex->RenderTexture, stencilMat->GetParams());
+		MSAACoverageStencilMat* msaaCoverageStencilMaterial = MSAACoverageStencilMat::Get();
+		msaaCoverageStencilMaterial->Prepare(msaaCoverageNode->Output->Texture);
+
+		RenderPassCreateInformation msaaStencilInfo(sceneDepthNode->DepthTex->RenderTexture, msaaCoverageStencilMaterial->GetParams());
 		commandBuffer.BeginRenderPass(msaaStencilInfo);
-		stencilMat->Execute(commandBuffer, inputs.View, msaaCoverageNode->Output->Texture);
+		msaaCoverageStencilMaterial->Execute(commandBuffer, inputs.View);
 		commandBuffer.EndRenderPass();
 	}
 
@@ -1868,23 +1870,20 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 				prevFrameEyeAdaptation = previous->Texture;
 
 			EyeAdaptHistogramReduceMat* eyeAdaptHistogramReduce = EyeAdaptHistogramReduceMat::Get();
-			eyeAdaptHistogramReduce->Execute(commandBuffer, 
-				downsampledScene->Texture,
-				eyeAdaptHistogram->Texture,
-				prevFrameEyeAdaptation,
-				reducedHistogram->RenderTexture);
+			eyeAdaptHistogramReduce->Prepare(downsampledScene->Texture, eyeAdaptHistogram->Texture, prevFrameEyeAdaptation);
+			eyeAdaptHistogramReduce->Execute(commandBuffer, reducedHistogram->RenderTexture);
 
 			eyeAdaptHistogram = nullptr;
 
 			// Generate eye adaptation value
 			Output = resPool.Get(EyeAdaptationMat::GetOutputDesc());
 			EyeAdaptationMat* eyeAdaptationMat = EyeAdaptationMat::Get();
-			eyeAdaptationMat->Execute(commandBuffer,
+			eyeAdaptationMat->Prepare(
 				reducedHistogram->Texture,
-				Output->RenderTexture,
 				inputs.FrameInfo.Timings.TimeDelta,
 				settings.AutoExposure,
 				settings.ExposureScale);
+			eyeAdaptationMat->Execute(commandBuffer, Output->RenderTexture);
 		}
 		else
 		{
