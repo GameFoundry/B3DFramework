@@ -1506,13 +1506,20 @@ namespace b3d
 			void Initialize() override;
 
 			/**
+			 * Updates GPU parameters. Must be called any time input parameters change.
+			 * 
+			 * @param	view			Information about the view we're rendering from.
+			 * @param	gbuffer			GBuffer textures.
+			 */
+			void Prepare(const RendererView& view, GBufferTextures gbuffer);
+
+			/**
 			 * Renders the effect with the provided parameters, using the currently bound render target.
 			 *
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	view			Information about the view we're rendering from.
-			 * @param	gbuffer			GBuffer textures.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, GBufferTextures gbuffer);
+			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view);
 
 			/** Returns the material variation matching the provided parameters. */
 			static MSAACoverageMat* GetVariation(u32 msaaCount);
@@ -1535,13 +1542,19 @@ namespace b3d
 			void Initialize() override;
 
 			/**
+			 * Updates GPU parameters. Must be called any time input parameters change.
+			 * 
+			 * @param	coverage		Coverage texture as output by MSAACoverageMat.
+			 */
+			void Prepare(const SPtr<Texture>& coverage);
+
+			/**
 			 * Renders the effect with the provided parameters, using the currently bound render target.
 			 *
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	view			Information about the view we're rendering from.
-			 * @param	coverage		Coverage texture as output by MSAACoverageMat.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& coverage);
+			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view);
 
 		private:
 			GpuParameterSampledTexture mCoverageTexParam;

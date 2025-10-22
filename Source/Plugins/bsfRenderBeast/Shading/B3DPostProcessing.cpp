@@ -2403,15 +2403,19 @@ void MSAACoverageMat::Initialize()
 	mGBufferParams.Initialize(*mGpuDevice, GPT_FRAGMENT_PROGRAM, mGPUParameters);
 }
 
-void MSAACoverageMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, GBufferTextures gbuffer)
+void MSAACoverageMat::Prepare(const RendererView& view, GBufferTextures gbuffer)
+{
+	mGBufferParams.Bind(gbuffer);
+
+	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
+	mGPUParameters->SetUniformBuffer("PerCamera", perView);
+}
+
+void MSAACoverageMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	mGBufferParams.Bind(gbuffer);
-
 	const Area2I& viewRect = view.GetProperties().Target.ViewRect;
-	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
-	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0, 0, (float)viewRect.Width, (float)viewRect.Height));
@@ -2436,12 +2440,16 @@ void MSAACoverageStencilMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter("gMSAACoverage", mCoverageTexParam);
 }
 
-void MSAACoverageStencilMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& coverage)
+void MSAACoverageStencilMat::Prepare(const SPtr<Texture>& coverage)
+{
+	mCoverageTexParam.Set(coverage);
+}
+
+void MSAACoverageStencilMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
 	const Area2I& viewRect = view.GetProperties().Target.ViewRect;
-	mCoverageTexParam.Set(coverage);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0, 0, (float)viewRect.Width, (float)viewRect.Height));

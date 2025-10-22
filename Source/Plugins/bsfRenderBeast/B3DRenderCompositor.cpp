@@ -521,10 +521,12 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		gbuffer.RoughMetal = RoughMetalTex->Texture;
 		gbuffer.Depth = sceneDepthNode->DepthTex->Texture;
 
-		MSAACoverageMat* mat = MSAACoverageMat::GetVariation(viewProps.Target.NumSamples);
-		RenderPassCreateInformation msaaCoverageInfo(msaaCoverageNode->Output->RenderTexture, mat->GetParams());
+		MSAACoverageMat* const msaaCoverageMaterial = MSAACoverageMat::GetVariation(viewProps.Target.NumSamples);
+		msaaCoverageMaterial->Prepare(inputs.View, gbuffer);
+
+		RenderPassCreateInformation msaaCoverageInfo(msaaCoverageNode->Output->RenderTexture, msaaCoverageMaterial->GetParams());
 		commandBuffer.BeginRenderPass(msaaCoverageInfo);
-		mat->Execute(commandBuffer, inputs.View, gbuffer);
+		msaaCoverageMaterial->Execute(commandBuffer, inputs.View);
 		commandBuffer.EndRenderPass();
 
 		MSAACoverageStencilMat* stencilMat = MSAACoverageStencilMat::Get();
