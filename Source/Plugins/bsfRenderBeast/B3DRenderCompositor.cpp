@@ -453,13 +453,16 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 
 	// Render base pass
 	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
+
+	// Clear the GBuffer
 	commandBuffer.BeginRenderPass(RenderTarget);
 
 	Area2 area(0.0f, 0.0f, 1.0f, 1.0f);
 	commandBuffer.SetViewport(area);
 
-	// Clear all targets
 	commandBuffer.ClearViewport(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kZero, 1.0f, 0);
+
+	commandBuffer.EndRenderPass();
 
 	// Trigger pre-base-pass callbacks
 	if(sceneCamera != nullptr)
@@ -476,8 +479,19 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		}
 	}
 
-	// Render all visible opaque elements that use the deferred pipeline
+	// Collect all GpuParameters that will be used in the base pass
 	const Vector<RenderQueueElement>& opaqueElements = inputs.View.GetOpaqueQueue(false)->GetSortedElements();
+	RenderPassCreateInformation basePassInfo(RenderTarget, RT_NONE, RT_ALL);
+	for(const auto& element : opaqueElements)
+	{
+		SPtr<GpuParameters> gpuParams = element.RenderElem->Params->GetGpuParams(element.PassIdx);
+		if(gpuParams != nullptr)
+			basePassInfo.Parameters.Add(gpuParams);
+	}
+
+	commandBuffer.BeginRenderPass(basePassInfo);
+
+	// Render all visible opaque elements that use the deferred pipeline
 	RenderQueueElements(commandBuffer, opaqueElements);
 
 	commandBuffer.EndRenderPass();
@@ -494,12 +508,14 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		gbuffer.Depth = sceneDepthNode->DepthTex->Texture;
 
 		MSAACoverageMat* mat = MSAACoverageMat::GetVariation(viewProps.Target.NumSamples);
-		commandBuffer.BeginRenderPass(msaaCoverageNode->Output->RenderTexture);
+		RenderPassCreateInformation msaaCoverageInfo(msaaCoverageNode->Output->RenderTexture, mat->GetParams());
+		commandBuffer.BeginRenderPass(msaaCoverageInfo);
 		mat->Execute(commandBuffer, inputs.View, gbuffer);
 		commandBuffer.EndRenderPass();
 
 		MSAACoverageStencilMat* stencilMat = MSAACoverageStencilMat::Get();
-		commandBuffer.BeginRenderPass(sceneDepthNode->DepthTex->RenderTexture);
+		RenderPassCreateInformation msaaStencilInfo(sceneDepthNode->DepthTex->RenderTexture, stencilMat->GetParams());
+		commandBuffer.BeginRenderPass(msaaStencilInfo);
 		stencilMat->Execute(commandBuffer, inputs.View, msaaCoverageNode->Output->Texture);
 		commandBuffer.EndRenderPass();
 	}
@@ -510,9 +526,17 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	}});
 
 	// Render decals after all normal objects, using a read-only depth buffer
-	commandBuffer.BeginRenderPass(RenderTargetNoMask, RT_DEPTH, RT_ALL);
-
 	const Vector<RenderQueueElement>& decalElements = inputs.View.GetDecalQueue()->GetSortedElements();
+	RenderPassCreateInformation decalPassInfo(RenderTargetNoMask, RT_DEPTH, RT_ALL);
+	for(const auto& element : decalElements)
+	{
+		SPtr<GpuParameters> gpuParams = element.RenderElem->Params->GetGpuParams(element.PassIdx);
+		if(gpuParams != nullptr)
+			decalPassInfo.Parameters.Add(gpuParams);
+	}
+
+	commandBuffer.BeginRenderPass(decalPassInfo);
+
 	RenderQueueElements(commandBuffer, decalElements);
 
 	// Trigger post-base-pass callbacks
@@ -532,7 +556,9 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 
 	// Make sure that any compute shaders are able to read g-buffer by unbinding it
 	commandBuffer.EndRenderPass();
-	commandBuffer.BeginRenderPass(nullptr);  // TODO - RenderPass
+
+	RenderPassCreateInformation unbindInfo(nullptr);
+	commandBuffer.BeginRenderPass(unbindInfo);
 }
 
 void RCNodeBasePass::Clear()
