@@ -326,23 +326,26 @@ void EyeAdaptationBasicSetupMat::Initialize()
 	SetSamplerState(mGPUParameters, "gInputSamp", "gInputTex", samplerState);
 }
 
-void EyeAdaptationBasicSetupMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+void EyeAdaptationBasicSetupMat::Prepare(const SPtr<Texture>& input, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+{
+	mInputTex.Set(input);
+	EyeAdaptationMat::PopulateParams(mParamBuffer, frameDelta, settings, exposureScale);
+}
+
+void EyeAdaptationBasicSetupMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	// Set parameters
-	mInputTex.Set(input);
-
-	EyeAdaptationMat::PopulateParams(mParamBuffer, frameDelta, settings, exposureScale);
-
-	// Render
-	commandBuffer.BeginRenderPass(output);
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
+
+	RenderPassCreateInformation unbind(nullptr);
+	commandBuffer.BeginRenderPass(unbind);
 }
 
 PooledRenderTextureCreateInformation EyeAdaptationBasicSetupMat::GetOutputDesc(const SPtr<Texture>& input)
@@ -364,11 +367,8 @@ void EyeAdaptationBasicMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter("gPrevFrameTex", mPrevFrameTexParam);
 }
 
-void EyeAdaptationBasicMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+void EyeAdaptationBasicMat::Prepare(const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
-	// Set parameters
 	mCurFrameTexParam.Set(curFrame);
 
 	if(prevFrame == nullptr) // Could be that this is the first run
@@ -382,15 +382,22 @@ void EyeAdaptationBasicMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<
 	Vector2I texSize = { (i32)texProps.Width, (i32)texProps.Height };
 
 	gEyeAdaptationBasicParamsMatDef.gInputTexSize.Set(mParamsBuffer, texSize);
+}
 
-	// Render
-	commandBuffer.BeginRenderPass(output);
+void EyeAdaptationBasicMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
+
+	RenderPassCreateInformation unbind(nullptr);
+	commandBuffer.BeginRenderPass(unbind);
 }
 
 PooledRenderTextureCreateInformation EyeAdaptationBasicMat::GetOutputDesc()
@@ -415,21 +422,27 @@ void CreateTonemap2DLUTMat::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("LUT_SIZE", kLutSize);
 }
 
-void CreateTonemap2DLUTMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& output, const RenderSettings& settings)
+void CreateTonemap2DLUTMat::Prepare(const RenderSettings& settings)
+{
+	PopulateTonemappingParameterBuffer(settings, mParamBuffer);
+	PopulateWhiteBalanceParameterBuffer(settings, mWhiteBalanceParamBuffer);
+}
+
+void CreateTonemap2DLUTMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	PopulateTonemappingParameterBuffer(settings, mParamBuffer);
-	PopulateWhiteBalanceParameterBuffer(settings, mWhiteBalanceParamBuffer);
-
 	// Render
-	commandBuffer.BeginRenderPass(output);
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
+
+	RenderPassCreateInformation unbind(nullptr);
+	commandBuffer.BeginRenderPass(unbind);
 }
 
 void CreateTonemap2DLUTMat::PopulateTonemappingParameterBuffer(const RenderSettings& settings, const SPtr<GpuBuffer>& parameterBuffer)
@@ -644,19 +657,22 @@ void BloomClipMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTex);
 }
 
-void BloomClipMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, const RenderSettings& settings, const SPtr<RenderTarget>& output)
+void BloomClipMat::Prepare(const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, const RenderSettings& settings)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	gBloomClipParamDef.gThreshold.Set(mParamBuffer, threshold);
 	gBloomClipParamDef.gManualExposureScale.Set(mParamBuffer, Math::RaiseToPower(2.0f, settings.ExposureScale));
 
 	// Set parameters
 	mInputTex.Set(input);
 	mEyeAdaptationTex.Set(eyeAdaptation);
+}
 
-	// Render
-	commandBuffer.BeginRenderPass(output);
+void BloomClipMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -683,10 +699,8 @@ void ScreenSpaceLensFlareMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter("gGradientTex", mGradientTex);
 }
 
-void ScreenSpaceLensFlareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings, const SPtr<RenderTarget>& output)
+void ScreenSpaceLensFlareMat::Prepare(const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	// Set parameters
 	gScreenSpaceLensFlareParamDef.gThreshold.Set(mParamBuffer, settings.Threshold);
 	gScreenSpaceLensFlareParamDef.gGhostCount.Set(mParamBuffer, settings.GhostCount);
@@ -699,14 +713,23 @@ void ScreenSpaceLensFlareMat::Execute(GpuCommandBuffer& commandBuffer, const SPt
 
 	mInputTex.Set(input);
 	mGradientTex.Set(RendererTextures::lensFlareGradient);
+}
+
+void ScreenSpaceLensFlareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Render
-	commandBuffer.BeginRenderPass(output);
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
+
+	RenderPassCreateInformation unbind(nullptr);
+	commandBuffer.BeginRenderPass(unbind);
 }
 
 ScreenSpaceLensFlareMat* ScreenSpaceLensFlareMat::GetVariation(bool halo, bool haloAspect, bool chromaticAberration)
@@ -750,15 +773,12 @@ void ChromaticAberrationMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter("gFringeTex", mFringeTex);
 }
 
-void ChromaticAberrationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const ChromaticAberrationSettings& settings, const SPtr<RenderTarget>& output)
+void ChromaticAberrationMat::Prepare(const SPtr<Texture>& input, const ChromaticAberrationSettings& settings)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	const TextureProperties& texProps = input->GetProperties();
 
 	// Set parameters
 	gChromaticAberrationParamDef.gInputSize.Set(mParamBuffer, Vector2((float)texProps.Width, (float)texProps.Height));
-
 	gChromaticAberrationParamDef.gShiftAmount.Set(mParamBuffer, settings.ShiftAmount);
 
 	SPtr<Texture> fringeTex;
@@ -769,9 +789,15 @@ void ChromaticAberrationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr
 
 	mInputTex.Set(input);
 	mFringeTex.Set(fringeTex);
+}
+
+void ChromaticAberrationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Render
-	commandBuffer.BeginRenderPass(output);
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -802,18 +828,22 @@ void FilmGrainMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTex);
 }
 
-void FilmGrainMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, float time, const FilmGrainSettings& settings, const SPtr<RenderTarget>& output)
+void FilmGrainMat::Prepare(const SPtr<Texture>& input, float time, const FilmGrainSettings& settings)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	// Set parameters
 	gFilmGrainParamDef.gIntensity.Set(mParamBuffer, settings.Intensity);
 	gFilmGrainParamDef.gTime.Set(mParamBuffer, settings.Speed * time);
 
 	mInputTex.Set(input);
+}
+
+void FilmGrainMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Render
-	commandBuffer.BeginRenderPass(output);
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1626,18 +1656,22 @@ void FXAAMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTexture);
 }
 
-void FXAAMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& destination)
+void FXAAMat::Prepare(const SPtr<Texture>& source)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	const TextureProperties& srcProps = source->GetProperties();
 
 	Vector2 invTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
 	gFXAAParamDef.gInvTexSize.Set(mParamBuffer, invTexSize);
 
 	mInputTexture.Set(source);
+}
 
-	commandBuffer.BeginRenderPass(destination);
+void FXAAMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -2389,16 +2423,20 @@ void EncodeDepthMat::Initialize()
 	SetSamplerState(mGPUParameters, "gInputSamp", "gInputTex", samplerState);
 }
 
-void EncodeDepthMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& depth, float near, float far, const SPtr<RenderTarget>& output)
+void EncodeDepthMat::Prepare(const SPtr<Texture>& depth, float near, float far)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	mInputTexture.Set(depth);
 
 	gEncodeDepthParamDef.gNear.Set(mParamBuffer, near);
 	gEncodeDepthParamDef.gFar.Set(mParamBuffer, far);
+}
 
-	commandBuffer.BeginRenderPass(output, RT_NONE, RT_COLOR0);
+void EncodeDepthMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	RenderPassCreateInformation info(output, mGPUParameters, RT_NONE, RT_COLOR0);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);

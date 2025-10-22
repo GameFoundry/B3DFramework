@@ -1147,7 +1147,8 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 
 		TetrahedraRenderMat* renderTetrahedra =
 			TetrahedraRenderMat::GetVariation(viewProps.Target.NumSamples > 1, true);
-		renderTetrahedra->Execute(commandBuffer, inputs.View, sceneDepthNode->DepthTex->Texture, lpInfo.TetrahedraVolume, rt);
+		renderTetrahedra->Prepare(inputs.View, sceneDepthNode->DepthTex->Texture);
+		renderTetrahedra->Execute(commandBuffer, lpInfo.TetrahedraVolume, rt);
 
 		rt = nullptr;
 		depthTex = nullptr;
@@ -1737,7 +1738,8 @@ void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 		RCNodeResolvedSceneDepth* resolvedSceneDepthNode = dependencies.Get<RCNodeResolvedSceneDepth>();
 
 		EncodeDepthMat* encodeDepthMat = EncodeDepthMat::Get();
-		encodeDepthMat->Execute(commandBuffer, resolvedSceneDepthNode->Output->Texture, viewProps.DepthEncodeNear, viewProps.DepthEncodeFar, target);
+		encodeDepthMat->Prepare(resolvedSceneDepthNode->Output->Texture, viewProps.DepthEncodeNear, viewProps.DepthEncodeFar);
+		encodeDepthMat->Execute(commandBuffer, target);
 	}
 
 	commandBuffer.EndRenderPass();
@@ -1892,12 +1894,12 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 				resPool.Get(EyeAdaptationBasicSetupMat::GetOutputDesc(downsampledScene->Texture));
 
 			EyeAdaptationBasicSetupMat* setupMat = EyeAdaptationBasicSetupMat::Get();
-			setupMat->Execute(commandBuffer,
+			setupMat->Prepare(
 				downsampledScene->Texture,
-				luminanceTex->RenderTexture,
 				inputs.FrameInfo.Timings.TimeDelta,
 				settings.AutoExposure,
 				settings.ExposureScale);
+			setupMat->Execute(commandBuffer, luminanceTex->RenderTexture);
 
 			SPtr<Texture> downsampleInput = luminanceTex->Texture;
 			luminanceTex = nullptr;
@@ -1921,13 +1923,13 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 				prevFrameEyeAdaptation = previous->Texture;
 
 			Output = resPool.Get(EyeAdaptationBasicMat::GetOutputDesc());
-			eyeAdaptationMat->Execute(commandBuffer,
+			eyeAdaptationMat->Prepare(
 				downsampleInput,
 				prevFrameEyeAdaptation,
-				Output->RenderTexture,
 				inputs.FrameInfo.Timings.TimeDelta,
 				settings.AutoExposure,
 				settings.ExposureScale);
+			eyeAdaptationMat->Execute(commandBuffer, Output->RenderTexture);
 		}
 
 		const RendererView& view = inputs.View;
@@ -2008,7 +2010,8 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 					if(mTonemapLUT == nullptr)
 						mTonemapLUT = GetGpuResourcePool().Get(createLUT->GetOutputDesc());
 
-					createLUT->Execute(commandBuffer, mTonemapLUT->RenderTexture, settings);
+					createLUT->Prepare(settings);
+					createLUT->Execute(commandBuffer, mTonemapLUT->RenderTexture);
 				}
 
 				// Ensure tonemap LUT can be read by the tonemapping shader after the write above
@@ -2348,7 +2351,8 @@ void RCNodeFXAA::Render(const RenderCompositorNodeInputs& inputs)
 
 	// Note: I could skip executing FXAA over DOF and motion blurred pixels
 	FXAAMat* fxaa = FXAAMat::Get();
-	fxaa->Execute(*inputs.ActiveCommandBuffer, ppLastFrame, ppOutput);
+	fxaa->Prepare(ppLastFrame);
+	fxaa->Execute(*inputs.ActiveCommandBuffer, ppOutput);
 }
 
 void RCNodeFXAA::Clear()
@@ -2376,7 +2380,8 @@ void RCNodeChromaticAberration::Render(const RenderCompositorNodeInputs& inputs)
 	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
 
 	ChromaticAberrationMat* chromaticAberration = ChromaticAberrationMat::GetVariation(settings.ChromaticAberration.Type);
-	chromaticAberration->Execute(*inputs.ActiveCommandBuffer, ppLastFrame, settings.ChromaticAberration, ppOutput);
+	chromaticAberration->Prepare(ppLastFrame, settings.ChromaticAberration);
+	chromaticAberration->Execute(*inputs.ActiveCommandBuffer, ppOutput);
 }
 
 void RCNodeChromaticAberration::Clear()
@@ -2404,7 +2409,8 @@ void RCNodeFilmGrain::Render(const RenderCompositorNodeInputs& inputs)
 	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
 
 	FilmGrainMat* filmGrain = FilmGrainMat::Get();
-	filmGrain->Execute(*inputs.ActiveCommandBuffer, ppLastFrame, inputs.FrameInfo.Timings.Time, settings.FilmGrain, ppOutput);
+	filmGrain->Prepare(ppLastFrame, inputs.FrameInfo.Timings.Time, settings.FilmGrain);
+	filmGrain->Execute(*inputs.ActiveCommandBuffer, ppOutput);
 }
 
 void RCNodeFilmGrain::Clear()
@@ -2982,7 +2988,8 @@ void RCNodeBloom::Render(const RenderCompositorNodeInputs& inputs)
 		SPtr<PooledRenderTexture> blurOutput = filterOutput;
 		if(settings.Bloom.Threshold > 0.0f)
 		{
-			clipMat->Execute(*inputs.ActiveCommandBuffer, downsampledTex->Texture, settings.Bloom.Threshold, eyeAdaptationTex, settings, filterOutput->RenderTexture);
+			clipMat->Prepare(downsampledTex->Texture, settings.Bloom.Threshold, eyeAdaptationTex, settings);
+			clipMat->Execute(*inputs.ActiveCommandBuffer, filterOutput->RenderTexture);
 
 			blurOutput = blurInput;
 			blurInput = filterOutput;
@@ -3044,7 +3051,8 @@ void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs
 		lensFlareSettings.Halo,
 		haloAspect,
 		lensFlareSettings.ChromaticAberration);
-	lensFlareMat->Execute(commandBuffer, downsampledTex->Texture, lensFlareSettings, featureTex->RenderTexture);
+	lensFlareMat->Prepare(downsampledTex->Texture, lensFlareSettings);
+	lensFlareMat->Execute(commandBuffer, featureTex->RenderTexture);
 
 	// Blur
 	GaussianBlurMat* filterMat = GaussianBlurMat::Get();

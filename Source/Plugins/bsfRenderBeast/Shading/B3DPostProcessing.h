@@ -186,8 +186,11 @@ namespace b3d
 			EyeAdaptationBasicSetupMat() = default;
 			void Initialize() override;
 
+			/** Prepares GPU parameters before rendering. */
+			void Prepare(const SPtr<Texture>& input, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+
 			/** Executes the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& input);
@@ -215,8 +218,11 @@ namespace b3d
 			EyeAdaptationBasicMat() = default;
 			void Initialize() override;
 
+			/** Prepares GPU parameters before rendering. */
+			void Prepare(const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+
 			/** Executes the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			static PooledRenderTextureCreateInformation GetOutputDesc();
@@ -256,8 +262,11 @@ namespace b3d
 			CreateTonemap2DLUTMat() = default;
 			void Initialize() override;
 
+			/** Prepares GPU parameters for rendering. Must be called before Execute(). */
+			void Prepare(const RenderSettings& settings);
+
 			/** Executes the post-process effect with the provided parameters, generating an unwrapped 2D LUT using the vertex & fragment shader pipeline. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& output, const RenderSettings& settings);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			PooledRenderTextureCreateInformation GetOutputDesc() const;
@@ -374,18 +383,24 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Executes the post-process effect with the provided parameters and writes the results to the currently bound
-			 * render target.
+			 * Prepares GPU parameters for rendering. Must be called before Execute().
 			 *
-			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	input			Texture to process.
 			 * @param	threshold		Threshold below which values will be ignored for purposes of bloom.
 			 * @param	eyeAdaptation	Texture containing eye adaptation exposure value. Only needed if using the
 			 *								AUTO_EXPOSURE variation of this material.
 			 * @param	settings		Render settings for the current view.
+			 */
+			void Prepare(const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, const RenderSettings& settings);
+
+			/**
+			 * Executes the post-process effect with the provided parameters and writes the results to the currently bound
+			 * render target.
+			 *
+			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Render target to write the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, const RenderSettings& settings, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -437,15 +452,21 @@ namespace b3d
 			void Initialize() override;
 
 			/**
+			 * Prepares GPU parameters for rendering. Must be called before Execute().
+			 *
+			 * @param	input			Texture to process.
+			 * @param	settings		Settings used for customizing the effect.
+			 */
+			void Prepare(const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings);
+
+			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
 			 * render target.
 			 *
 			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	input			Texture to process.
-			 * @param	settings		Settings used for customizing the effect.
 			 * @param	output			Render target to write the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -495,15 +516,21 @@ namespace b3d
 			void Initialize() override;
 
 			/**
+			 * Prepares GPU parameters for rendering. Must be called before Execute().
+			 *
+			 * @param	input			Texture to process.
+			 * @param	settings		Settings used for customizing the effect.
+			 */
+			void Prepare(const SPtr<Texture>& input, const ChromaticAberrationSettings& settings);
+
+			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
 			 * render target.
 			 *
 			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	input			Texture to process.
-			 * @param	settings		Settings used for customizing the effect.
 			 * @param	output			Render target to write the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const ChromaticAberrationSettings& settings, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -536,16 +563,22 @@ namespace b3d
 			void Initialize() override;
 
 			/**
+			 * Prepares GPU parameters for rendering. Must be called before Execute().
+			 *
+			 * @param	input			Texture to process.
+			 * @param	time			Time of the current frame, in seconds.
+			 * @param	settings		Settings used for customizing the effect.
+			 */
+			void Prepare(const SPtr<Texture>& input, float time, const FilmGrainSettings& settings);
+
+			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
 			 * render target.
 			 *
 			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	input			Texture to process.
-			 * @param	time			Time of the current frame, in seconds.
-			 * @param	settings		Settings used for customizing the effect.
 			 * @param	output			Render target to write the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, float time, const FilmGrainSettings& settings, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
@@ -1055,13 +1088,20 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Renders the post-process effect with the provided parameters.
+			 * Prepares GPU parameters for rendering. Must be called before Execute().
+			 *
+			 * @param	source			Input texture to apply FXAA to.
+			 */
+			void Prepare(const SPtr<Texture>& source);
+
+			/**
+			 * Executes the post-process effect with the provided parameters and writes the results to the provided
+			 * render target.
 			 *
 			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	source			Input texture to apply FXAA to.
-			 * @param	destination		Output target to which to write the antialiased image to.
+			 * @param	output			Output target to which to write the antialiased image to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& destination);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
@@ -1472,17 +1512,23 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Renders the post-process effect with the provided parameters.
+			 * Updates GPU parameters. Must be called any time input parameters change.
 			 *
-			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	depth			Resolved (non-MSAA) depth texture to encode.
 			 * @param	near			Near range (in view space) to start encoding the depth. Any depth lower than this will
 			 *							be encoded to 1.
 			 * @param	far				Far range (in view space) to end encoding the depth. Any depth higher than this will
 			 *							be encoded to 0.
+			 */
+			void Prepare(const SPtr<Texture>& depth, float near, float far);
+
+			/**
+			 * Renders the post-process effect with the provided parameters.
+			 *
+			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Output texture to write the results in. Results will be written in the alpha channel.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& depth, float near, float far, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;

@@ -54,15 +54,21 @@ namespace b3d
 			void Initialize() override;
 
 			/**
+			 * Prepares GPU parameters for rendering. Must be called before Execute().
+			 *
+			 * @param	view			View that is currently being rendered.
+			 * @param	sceneDepth		Depth of scene objects that should be lit.
+			 */
+			void Prepare(const RendererView& view, const SPtr<Texture>& sceneDepth);
+
+			/**
 			 * Executes the material using the provided parameters.
 			 *
 			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	view			View that is currently being rendered.
-			 * @param	sceneDepth		Depth of scene objects that should be lit.
 			 * @param	mesh			Mesh to render.
 			 * @param	output			Output texture created using the descriptor returned by getOutputDesc().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh, const SPtr<RenderTexture>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Mesh>& mesh, const SPtr<RenderTexture>& output);
 
 			/**
 			 * Returns the descriptors that can be used for creating the output render texture for this material. The render

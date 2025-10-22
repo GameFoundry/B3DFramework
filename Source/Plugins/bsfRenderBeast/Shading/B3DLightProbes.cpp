@@ -40,10 +40,8 @@ void TetrahedraRenderMat::Initialize()
 	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
 }
 
-void TetrahedraRenderMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh, const SPtr<RenderTexture>& output)
+void TetrahedraRenderMat::Prepare(const RendererView& view, const SPtr<Texture>& sceneDepth)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	const TextureProperties& texProps = sceneDepth->GetProperties();
 
 	Vector2I texSize(texProps.Width, texProps.Height);
@@ -51,8 +49,14 @@ void TetrahedraRenderMat::Execute(GpuCommandBuffer& commandBuffer, const Rendere
 
 	mDepthBufferTex.Set(sceneDepth);
 	mGPUParameters->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
+}
 
-	commandBuffer.BeginRenderPass(output);
+void TetrahedraRenderMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Mesh>& mesh, const SPtr<RenderTexture>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().Draw(commandBuffer, mesh);
