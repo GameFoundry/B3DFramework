@@ -127,7 +127,7 @@ namespace b3d
 			SPtr<Shader> GetShader() const { return mShader; }
 
 			/** Returns the internal parameter set containing GPU bindable parameters. */
-			SPtr<GpuParameters> GetParams() const { return mGPUParameters; }
+			SPtr<GpuParameters> GetGPUParameters() const { return mGPUParameters; }
 
 			/** Returns the material's graphics pipeline state. This will be null if the material is a compute material. */
 			SPtr<GpuGraphicsPipelineState> GetGraphicsPipeline() const { return mGraphicsPipeline; }

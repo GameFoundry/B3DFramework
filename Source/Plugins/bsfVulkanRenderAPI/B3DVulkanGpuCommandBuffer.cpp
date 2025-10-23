@@ -431,6 +431,16 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	}
 #endif
 
+	// Register framebuffer & swap chain. Note this needs to happen before binding parameters, because if texture is used as a read-only attachment GPU parameters need to be
+	// aware to pick the correct layout
+	if(mFramebuffer)
+	{
+		mResourceTracker.TrackFramebufferUse(mFramebuffer, loadMask, readOnlyMask);
+
+		if(swapChain)
+			mResourceTracker.TrackSwapChainUse(swapChain);
+	}
+
 	// Pre-register all GPU parameters before the render pass, so we can automatically issue barriers
 	for(const SPtr<GpuParameters>& parameters : createInformation.Parameters)
 	{
@@ -456,14 +466,6 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 
 	// Re-set the params as they will need to be re-bound
 	SetGpuParameters(mBoundParams);
-
-	if(mFramebuffer)
-	{
-		mResourceTracker.TrackFramebufferUse(mFramebuffer, loadMask, readOnlyMask);
-
-		if(swapChain)
-			mResourceTracker.TrackSwapChainUse(swapChain);
-	}
 
 	mGfxPipelineRequiresBind = true;
 
@@ -1814,8 +1816,10 @@ void VulkanGpuCommandBuffer::BindGpuParams()
 		}
 		else
 		{
+#if 0
 			B3D_LOG(Warning, RenderBackend,
 				"SetGpuParameters() called with parameters not declared in RenderPassCreateInformation. Automatic resource barriers and layout transitions may not execute correctly.");
+#endif
 
 			// Fallback: No cached data, call PrepareForBind now
 			// This handles compute dispatch and non-render-pass scenarios

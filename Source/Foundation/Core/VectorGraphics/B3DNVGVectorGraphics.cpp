@@ -805,7 +805,7 @@ namespace b3d::render
 		commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);
 
 		// Note: The parameter layout for all variations must match
-		const SPtr<render::GpuParameters> gpuParameters = render::VectorGraphicsMaterial::Get()->GetParams();
+		const SPtr<render::GpuParameters> gpuParameters = render::VectorGraphicsMaterial::Get()->GetGPUParameters();
 		gpuParameters->SetUniformBuffer("RenderUniforms", mRenderBuffers.RenderUniformBuffer);
 		gpuParameters->SetUniformBuffer("ViewUniforms", mRenderBuffers.ViewUniformBuffer);
 
