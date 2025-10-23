@@ -227,9 +227,6 @@ void EyeAdaptHistogramReduceMat::Execute(GpuCommandBuffer& commandBuffer, const 
 	GetRendererUtility().DrawScreenQuad(commandBuffer, drawUV);
 
 	commandBuffer.EndRenderPass();
-
-	RenderPassCreateInformation unbind(nullptr);
-	commandBuffer.BeginRenderPass(unbind);
 }
 
 PooledRenderTextureCreateInformation EyeAdaptHistogramReduceMat::GetOutputDesc()
@@ -270,9 +267,6 @@ void EyeAdaptationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Rende
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-
-	RenderPassCreateInformation unbind(nullptr);
-	commandBuffer.BeginRenderPass(unbind);
 }
 
 PooledRenderTextureCreateInformation EyeAdaptationMat::GetOutputDesc()
@@ -343,9 +337,6 @@ void EyeAdaptationBasicSetupMat::Execute(GpuCommandBuffer& commandBuffer, const 
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-
-	RenderPassCreateInformation unbind(nullptr);
-	commandBuffer.BeginRenderPass(unbind);
 }
 
 PooledRenderTextureCreateInformation EyeAdaptationBasicSetupMat::GetOutputDesc(const SPtr<Texture>& input)
@@ -395,9 +386,6 @@ void EyeAdaptationBasicMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-
-	RenderPassCreateInformation unbind(nullptr);
-	commandBuffer.BeginRenderPass(unbind);
 }
 
 PooledRenderTextureCreateInformation EyeAdaptationBasicMat::GetOutputDesc()
@@ -440,9 +428,6 @@ void CreateTonemap2DLUTMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-
-	RenderPassCreateInformation unbind(nullptr);
-	commandBuffer.BeginRenderPass(unbind);
 }
 
 void CreateTonemap2DLUTMat::PopulateTonemappingParameterBuffer(const RenderSettings& settings, const SPtr<GpuBuffer>& parameterBuffer)
@@ -727,9 +712,6 @@ void ScreenSpaceLensFlareMat::Execute(GpuCommandBuffer& commandBuffer, const SPt
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-
-	RenderPassCreateInformation unbind(nullptr);
-	commandBuffer.BeginRenderPass(unbind);
 }
 
 ScreenSpaceLensFlareMat* ScreenSpaceLensFlareMat::GetVariation(bool halo, bool haloAspect, bool chromaticAberration)
@@ -1080,7 +1062,25 @@ void GaussianDOFSeparateMat::Initialize()
 	SetSamplerState(mGPUParameters, "gColorSamp", "gColorTex", samplerState);
 }
 
-void GaussianDOFSeparateMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& color, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings)
+void GaussianDOFSeparateMat::Prepare(const SPtr<Texture>& color, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings)
+{
+	const TextureProperties& srcProps = color->GetProperties();
+	Vector2 invTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
+
+	gGaussianDOFParamDef.gHalfPixelOffset.Set(mParamBuffer, invTexSize * 0.5f);
+	gGaussianDOFParamDef.gNearBlurPlane.Set(mParamBuffer, settings.FocalDistance - settings.FocalRange * 0.5f);
+	gGaussianDOFParamDef.gFarBlurPlane.Set(mParamBuffer, settings.FocalDistance + settings.FocalRange * 0.5f);
+	gGaussianDOFParamDef.gInvNearBlurRange.Set(mParamBuffer, 1.0f / settings.NearTransitionRange);
+	gGaussianDOFParamDef.gInvFarBlurRange.Set(mParamBuffer, 1.0f / settings.FarTransitionRange);
+
+	mColorTexture.Set(color);
+	mDepthTexture.Set(depth);
+
+	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
+	mGPUParameters->SetUniformBuffer("PerCamera", perView);
+}
+
+void GaussianDOFSeparateMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& color)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -1109,21 +1109,8 @@ void GaussianDOFSeparateMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr
 	else
 		rt = mOutput0->RenderTexture;
 
-	Vector2 invTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
-
-	gGaussianDOFParamDef.gHalfPixelOffset.Set(mParamBuffer, invTexSize * 0.5f);
-	gGaussianDOFParamDef.gNearBlurPlane.Set(mParamBuffer, settings.FocalDistance - settings.FocalRange * 0.5f);
-	gGaussianDOFParamDef.gFarBlurPlane.Set(mParamBuffer, settings.FocalDistance + settings.FocalRange * 0.5f);
-	gGaussianDOFParamDef.gInvNearBlurRange.Set(mParamBuffer, 1.0f / settings.NearTransitionRange);
-	gGaussianDOFParamDef.gInvFarBlurRange.Set(mParamBuffer, 1.0f / settings.FarTransitionRange);
-
-	mColorTexture.Set(color);
-	mDepthTexture.Set(depth);
-
-	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
-	mGPUParameters->SetUniformBuffer("PerCamera", perView);
-
-	commandBuffer.BeginRenderPass(rt);
+	RenderPassCreateInformation info(rt, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1176,12 +1163,9 @@ void GaussianDOFCombineMat::Initialize()
 		mGPUParameters->GetSampledTextureParameter("gFarTex", mFarTexture);
 }
 
-void GaussianDOFCombineMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& focused, const SPtr<Texture>& near, const SPtr<Texture>& far, const SPtr<Texture>& depth, const SPtr<RenderTarget>& output, const RendererView& view, const DepthOfFieldSettings& settings)
+void GaussianDOFCombineMat::Prepare(const SPtr<Texture>& focused, const SPtr<Texture>& near, const SPtr<Texture>& far, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	const TextureProperties& srcProps = focused->GetProperties();
-
 	Vector2 invTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
 
 	gGaussianDOFParamDef.gHalfPixelOffset.Set(mParamBuffer, invTexSize * 0.5f);
@@ -1197,8 +1181,14 @@ void GaussianDOFCombineMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
+}
 
-	commandBuffer.BeginRenderPass(output);
+void GaussianDOFCombineMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1234,10 +1224,8 @@ void BokehDOFPrepareMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter("gDepthBufferTex", mDepthTexture);
 }
 
-void BokehDOFPrepareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output)
+void BokehDOFPrepareMat::Prepare(const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	const TextureProperties& srcProps = input->GetProperties();
 
 	Vector2 invTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
@@ -1250,14 +1238,23 @@ void BokehDOFPrepareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
+}
 
-	commandBuffer.BeginRenderPass(output);
+void BokehDOFPrepareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 
 	bool MSAA = mVariationParameters.GetI32("MSAA_COUNT") > 1;
 	if(MSAA)
+	{
+		const TextureProperties& srcProps = mInputTexture.Get()->GetProperties();
 		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)srcProps.Width, (float)srcProps.Height));
+	}
 	else
 		GetRendererUtility().DrawScreenQuad(commandBuffer);
 
@@ -1480,10 +1477,8 @@ void BokehDOFCombineMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter("gDepthBufferTex", mDepthTexture);
 }
 
-void BokehDOFCombineMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& unfocused, const SPtr<Texture>& focused, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output)
+void BokehDOFCombineMat::Prepare(const SPtr<Texture>& unfocused, const SPtr<Texture>& focused, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	const TextureProperties& focusedProps = focused->GetProperties();
 	const TextureProperties& unfocusedProps = unfocused->GetProperties();
 	u32 halfHeight = std::max(1U, Math::DivideAndRoundUp(focusedProps.Height, 2U));
@@ -1504,8 +1499,14 @@ void BokehDOFCombineMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
+}
 
-	commandBuffer.BeginRenderPass(output);
+void BokehDOFCombineMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1552,10 +1553,8 @@ void MotionBlurMat::Initialize()
 		mGPUParameters->SetSamplerState("gDepthBufferSamp", pointSampState);
 }
 
-void MotionBlurMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const MotionBlurSettings& settings, const SPtr<RenderTarget>& output)
+void MotionBlurMat::Prepare(const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const MotionBlurSettings& settings)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	u32 numSamples;
 	switch(settings.Quality)
 	{
@@ -1574,8 +1573,14 @@ void MotionBlurMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
+}
 
-	commandBuffer.BeginRenderPass(output);
+void MotionBlurMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	RenderPassCreateInformation info(output, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -2009,10 +2014,8 @@ void SSRStencilMat::Initialize()
 	mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
 }
 
-void SSRStencilMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, GBufferTextures gbuffer, const ScreenSpaceReflectionsSettings& settings)
+void SSRStencilMat::Prepare(const RendererView& view, GBufferTextures gbuffer, const ScreenSpaceReflectionsSettings& settings)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	mGBufferParams.Bind(gbuffer);
 
 	Vector2 roughnessScaleBias = SSRTraceMat::CalcRoughnessFadeScaleBias(settings.MaxRoughness);
@@ -2020,10 +2023,16 @@ void SSRStencilMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView&
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
+}
+
+void SSRStencilMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	Bind(commandBuffer);
 
 	const RendererViewProperties& viewProps = view.GetProperties();
-	const Area2I& viewRect = viewProps.Target.ViewRect;
-	Bind(commandBuffer);
+	Area2I viewRect = viewProps.Target.ViewRect;
 
 	if(viewProps.Target.NumSamples > 1)
 		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
@@ -2232,10 +2241,8 @@ void TemporalFilteringMat::Initialize()
 	}
 }
 
-void TemporalFilteringMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& prevFrame, const SPtr<Texture>& curFrame, const SPtr<Texture>& velocity, const SPtr<Texture>& sceneDepth, const Vector2& jitter, float exposure, const SPtr<RenderTarget>& destination)
+void TemporalFilteringMat::Prepare(const RendererView& view, const SPtr<Texture>& prevFrame, const SPtr<Texture>& curFrame, const SPtr<Texture>& velocity, const SPtr<Texture>& sceneDepth, const Vector2& jitter, float exposure)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
-
 	SPtr<Texture> velocityTex = velocity;
 	if(!velocityTex)
 		velocityTex = Texture::kBlack;
@@ -2351,14 +2358,20 @@ void TemporalFilteringMat::Execute(GpuCommandBuffer& commandBuffer, const Render
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
+}
 
-	commandBuffer.BeginRenderPass(destination);
+void TemporalFilteringMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<RenderTarget>& destination)
+{
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	RenderPassCreateInformation info(destination, mGPUParameters);
+	commandBuffer.BeginRenderPass(info);
 	commandBuffer.ClearRenderTarget(FBT_COLOR);
 
-	const RendererViewProperties& viewProps = view.GetProperties();
-	const Area2I& viewRect = viewProps.Target.ViewRect;
-
 	Bind(commandBuffer);
+
+	const RendererViewProperties& viewProps = view.GetProperties();
+	Area2I viewRect = viewProps.Target.ViewRect;
 
 	if(viewProps.Target.NumSamples > 1)
 		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));

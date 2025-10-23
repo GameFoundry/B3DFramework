@@ -2102,7 +2102,8 @@ void RCNodeBokehDOF::Render(const RenderCompositorNodeInputs& inputs)
 	SPtr<PooledRenderTexture> halfResSceneAndDepth =
 		GetGpuResourcePool().Get(BokehDOFPrepareMat::GetOutputDesc(sceneColorNode->SceneColorTex->Texture));
 
-	prepareMat->Execute(commandBuffer, sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings, halfResSceneAndDepth->RenderTexture);
+	prepareMat->Prepare(sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings);
+	prepareMat->Execute(commandBuffer, halfResSceneAndDepth->RenderTexture);
 
 	SPtr<PooledRenderTexture> unfocusedTex =
 		GetGpuResourcePool().Get(BokehDOFMat::GetOutputDesc(halfResSceneAndDepth->Texture));
@@ -2111,7 +2112,8 @@ void RCNodeBokehDOF::Render(const RenderCompositorNodeInputs& inputs)
 	halfResSceneAndDepth = nullptr;
 
 	// Combine the unfocused and focused textures to form the final image
-	combineMat->Execute(commandBuffer, unfocusedTex->Texture, sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings, lightAccumNode->LightAccumulationTex->RenderTexture);
+	combineMat->Prepare(unfocusedTex->Texture, sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings);
+	combineMat->Execute(commandBuffer, lightAccumNode->LightAccumulationTex->RenderTexture);
 
 	// TODO - This might be incorrect when not supporting tiled deferred? As light accum is the same as scene color
 	sceneColorNode->Swap(lightAccumNode);
@@ -2187,7 +2189,8 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 
 		TemporalFilteringMat* temporalFilteringMat =
 			TemporalFilteringMat::GetVariation(TemporalFilteringType::FullScreenAA, true, viewProps.Target.NumSamples > 1);
-		temporalFilteringMat->Execute(commandBuffer, inputs.View, mPrevFrame->Texture, sceneColor->Texture, velocityTex, sceneDepthNode->DepthTex->Texture, viewProps.TemporalJitter, exposure, mPooledOutput->RenderTexture);
+		temporalFilteringMat->Prepare(inputs.View, mPrevFrame->Texture, sceneColor->Texture, velocityTex, sceneDepthNode->DepthTex->Texture, viewProps.TemporalJitter, exposure);
+		temporalFilteringMat->Execute(commandBuffer, inputs.View, mPooledOutput->RenderTexture);
 
 		sceneColorNode->SetExternalTexture(mPooledOutput);
 	}
@@ -2235,8 +2238,8 @@ void RCNodeMotionBlur::Render(const RenderCompositorNodeInputs& inputs)
 	// MotionBlurMat* motionBlurMat = MotionBlurMat::Get();
 
 	// SPtr<Texture> depth = sceneDepthNode->depthTex->texture;
-	// motionBlurMat->Execute(sceneColorNode->sceneColorTex->texture, depth, inputs.view, settings,
-	//	lightAccumNode->lightAccumulationTex->renderTexture);
+	// motionBlurMat->Prepare(sceneColorNode->sceneColorTex->texture, depth, inputs.view, settings);
+	// motionBlurMat->Execute(commandBuffer, lightAccumNode->lightAccumulationTex->renderTexture);
 
 	// sceneColorNode->swap(lightAccumNode);
 }
@@ -2275,7 +2278,8 @@ void RCNodeGaussianDOF::Render(const RenderCompositorNodeInputs& inputs)
 	SPtr<Texture> ppLastFrame;
 	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
 
-	separateMat->Execute(commandBuffer, ppLastFrame, sceneDepthNode->DepthTex->Texture, inputs.View, settings);
+	separateMat->Prepare(ppLastFrame, sceneDepthNode->DepthTex->Texture, inputs.View, settings);
+	separateMat->Execute(commandBuffer, ppLastFrame);
 
 	SPtr<PooledRenderTexture> nearTex, farTex;
 	if(near && far)
@@ -2320,7 +2324,8 @@ void RCNodeGaussianDOF::Render(const RenderCompositorNodeInputs& inputs)
 		}
 	}
 
-	combineMat->Execute(commandBuffer, ppLastFrame, blurredNearTex, blurredFarTex, sceneDepthNode->DepthTex->Texture, ppOutput, inputs.View, settings);
+	combineMat->Prepare(ppLastFrame, blurredNearTex, blurredFarTex, sceneDepthNode->DepthTex->Texture, inputs.View, settings);
+	combineMat->Execute(commandBuffer, ppOutput);
 
 	separateMat->Release();
 }
@@ -2861,10 +2866,11 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	gbuffer.Depth = sceneDepthNode->DepthTex->Texture;
 
 	SSRStencilMat* stencilMat = SSRStencilMat::GetVariation(viewProps.Target.NumSamples > 1, true);
+	stencilMat->Prepare(inputs.View, gbuffer, settings);
 
 	// Note: Making the assumption that the stencil buffer is clear at this point
 	commandBuffer.BeginRenderPass(resolvedSceneDepthNode->Output->RenderTexture, RT_DEPTH, RT_DEPTH_STENCIL);
-	stencilMat->Execute(commandBuffer, inputs.View, gbuffer, settings);
+	stencilMat->Execute(commandBuffer, inputs.View);
 	commandBuffer.EndRenderPass();
 
 	SPtr<PooledRenderTexture> traceOutput = resPool.Get(PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
@@ -2887,7 +2893,8 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 
 		TemporalFilteringMat* temporalFilteringMat =
 			TemporalFilteringMat::GetVariation(TemporalFilteringType::SSR, false, viewProps.Target.NumSamples > 1);
-		temporalFilteringMat->Execute(commandBuffer, inputs.View, mPrevFrame->Texture, traceOutput->Texture, nullptr, sceneDepthNode->DepthTex->Texture, Vector2::kZero, 1.0f, mPooledOutput->RenderTexture);
+		temporalFilteringMat->Prepare(inputs.View, mPrevFrame->Texture, traceOutput->Texture, nullptr, sceneDepthNode->DepthTex->Texture, Vector2::kZero, 1.0f);
+		temporalFilteringMat->Execute(commandBuffer, inputs.View, mPooledOutput->RenderTexture);
 
 		traceOutput = nullptr;
 	}
