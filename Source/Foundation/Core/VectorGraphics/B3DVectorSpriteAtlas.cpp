@@ -244,9 +244,12 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 		renderTextureCreateInformation.DepthStencilSurface.Texture = stencilTexture;
 
 		SPtr<render::RenderTexture> renderTarget = render::RenderTexture::Create(renderTextureCreateInformation);
-		
-		// Bind render surface & clear it
-		commandBuffer->BeginRenderPass(renderTarget, RT_NONE, RT_NONE);
+
+		// Prepare GPU parameters just before render pass
+		SPtr<render::GpuParameters> gpuParameters = entry.Renderable->Prepare();
+
+		// Begin render pass WITH GPU parameters
+		commandBuffer->BeginRenderPass(render::RenderPassCreateInformation(renderTarget, gpuParameters, RT_NONE, RT_NONE));
 		commandBuffer->SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
 		commandBuffer->ClearRenderTarget(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kZero, 1, 0, 0xFF);
 

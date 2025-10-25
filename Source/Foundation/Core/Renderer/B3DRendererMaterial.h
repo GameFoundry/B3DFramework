@@ -129,6 +129,9 @@ namespace b3d
 			/** Returns the internal parameter set containing GPU bindable parameters. */
 			SPtr<GpuParameters> GetGPUParameters() const { return mGPUParameters; }
 
+			/** Creates a new instance of GPU parameters for this material. */
+			virtual SPtr<GpuParameters> CreateGpuParameters() const = 0;
+
 			/** Returns the material's graphics pipeline state. This will be null if the material is a compute material. */
 			SPtr<GpuGraphicsPipelineState> GetGraphicsPipeline() const { return mGraphicsPipeline; }
 
@@ -193,6 +196,9 @@ namespace b3d
 
 			/** Returns a set of dynamically defined defines used when compiling this shader. */
 			static ShaderDefines GetShaderDefines() { return mMetaData.Defines; }
+
+			/** Creates a new instance of GPU parameters for this material. */
+			SPtr<GpuParameters> CreateGpuParameters() const override;
 
 		protected:
 			RendererMaterial();
@@ -538,6 +544,17 @@ namespace b3d
 
 		template <class T>
 		RendererMaterialMetaData RendererMaterial<T>::mMetaData;
+
+		template <class T>
+		SPtr<GpuParameters> RendererMaterial<T>::CreateGpuParameters() const
+		{
+			if(mGraphicsPipeline != nullptr)
+				return mGpuDevice->CreateGpuParameters(mGraphicsPipeline->GetParameterLayout());
+			else if(mComputePipeline != nullptr)
+				return mGpuDevice->CreateGpuParameters(mComputePipeline->GetParameterLayout());
+
+			return nullptr;
+		}
 
 		/** @} */
 	} // namespace render

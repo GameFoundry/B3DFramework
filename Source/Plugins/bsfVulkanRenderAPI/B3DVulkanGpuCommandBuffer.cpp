@@ -453,6 +453,21 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		if(setCount == 0)
 			continue;
 
+		const SPtr<GpuPipelineParameterLayout>& uniformLayout = parameters->GetPipelineParameterInformation();
+
+		// Flush all uniform buffers
+		// Note: We need to do this here, because updating the buffer can cause a new underlying VulkanBuffer to be created, and we need that to be ready before we call PrepareForBind below.
+		// Potential issue may arise of the buffer is updated externally beyond this point, which might need handling, but generally it should be bad practice
+		const u32 uniformBufferCount = uniformLayout->GetBindingCount(GpuParameterType::UniformBuffer);
+		for (u32 uniformBufferIndex = 0; uniformBufferIndex < uniformBufferCount; uniformBufferIndex++)
+		{
+			const GpuParameterBinding& binding = uniformLayout->GetBinding(GpuParameterType::UniformBuffer, uniformBufferIndex);
+			SPtr<GpuBuffer> buffer = parameters->GetUniformBuffer(binding.Set, binding.Slot);
+
+			if (buffer != nullptr)
+				buffer->FlushCache();
+		}
+
 		// Use mDescriptorSetsTemp for temporary storage and call PrepareForBind
 		TInlineArray<u32, 4> tempDynamicOffsets;
 		vkParams->PrepareForBind(*this, mResourceTracker, mDescriptorSetsTemp, tempDynamicOffsets);

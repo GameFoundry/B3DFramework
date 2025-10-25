@@ -660,9 +660,12 @@ namespace b3d
 			/** Returns the settings object used for creating this renderable. */
 			const VectorGraphicsSettings& GetSettings() const { return mSettings; }
 
+			/** Prepares GPU parameters for rendering. Must be called before Render(). */
+			virtual SPtr<GpuParameters> Prepare() = 0;
+
 			/**
 			 * Records command required for rasterizing the path into pixels. Before calling this the user is required to have bound a render target containing
-			 * a color texture and a stencil buffer.
+			 * a color texture and a stencil buffer. Prepare() must be called before this method.
 			 */
 			virtual void Render(GpuCommandBuffer& commandBuffer) = 0;
 

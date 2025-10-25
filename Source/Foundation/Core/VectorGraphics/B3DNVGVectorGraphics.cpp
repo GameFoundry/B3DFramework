@@ -788,13 +788,33 @@ namespace b3d::render
 		return renderBuffers;
 	}
 
-	void NVGVectorPathRenderable::Render(GpuCommandBuffer& commandBuffer)
+	SPtr<GpuParameters> NVGVectorPathRenderable::Prepare()
 	{
+		// Cook render buffers if not already done
 		if(!mRenderBuffersCooked)
 		{
 			mRenderBuffers = CookRenderBuffers();
 			mRenderBuffersCooked = true;
 		}
+
+		// Create or reuse GPU parameters
+		if(!mRenderBuffers.GpuParameters)
+		{
+			// Create new GPU parameters object
+			mRenderBuffers.GpuParameters = VectorGraphicsMaterial::Get()->CreateGpuParameters();
+
+			// Set uniform buffers
+			mRenderBuffers.GpuParameters->SetUniformBuffer("RenderUniforms", mRenderBuffers.RenderUniformBuffer);
+			mRenderBuffers.GpuParameters->SetUniformBuffer("ViewUniforms", mRenderBuffers.ViewUniformBuffer);
+		}
+
+		return mRenderBuffers.GpuParameters;
+	}
+
+	void NVGVectorPathRenderable::Render(GpuCommandBuffer& commandBuffer)
+	{
+		// Ensure Prepare() was called first
+		B3D_ENSURE(mRenderBuffers.GpuParameters != nullptr);
 
 		commandBuffer.BeginLabel("VectorPathRenderable::Render");
 
@@ -804,10 +824,8 @@ namespace b3d::render
 		commandBuffer.SetIndexBuffer(mRenderBuffers.IndexBuffer); // TODO - We shouldn't need one at all actually
 		commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);
 
-		// Note: The parameter layout for all variations must match
-		const SPtr<render::GpuParameters> gpuParameters = render::VectorGraphicsMaterial::Get()->GetGPUParameters();
-		gpuParameters->SetUniformBuffer("RenderUniforms", mRenderBuffers.RenderUniformBuffer);
-		gpuParameters->SetUniformBuffer("ViewUniforms", mRenderBuffers.ViewUniformBuffer);
+		// Use stored GPU parameters from mRenderBuffers
+		const SPtr<GpuParameters>& gpuParameters = mRenderBuffers.GpuParameters;
 
 		const u32 renderUniformBufferDynamicIndex = gpuParameters->GetPipelineParameterInformation()->GetDynamicOffsetIndex("RenderUniforms");
 		B3D_ENSURE(renderUniformBufferDynamicIndex != ~0u);
