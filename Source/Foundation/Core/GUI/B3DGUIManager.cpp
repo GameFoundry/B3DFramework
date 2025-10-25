@@ -1728,34 +1728,31 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 		return dirtyRegionBuffer;
 	};
 
-	auto fnDrawRegions = [this, &fnCreateClipRegionBuffer, &widgetRenderData, &commandBuffer, renderTargetWidth, renderTargetHeight, viewflipYFlip, rebuildCachedRenderTexture](const Vector<Area2I>& regions, bool useDebugMaterial)
+	// Structure to hold prepared rendering information
+	struct PreparedMeshData
+	{
+		const GUIMeshRenderData* RenderData = nullptr;
+		FrameVector<Area2I> OverlappingRegions;
+		SPtr<render::GpuParameters> GpuParameters;
+		SPtr<GpuBuffer> ClipRegionBuffer;
+		u32 ClipRegionCount = 0;
+	};
+
+	// Accumulate all GPU parameters before starting render pass
+	RenderPassCreateInformation mainRenderPassCreateInformation(cameraRenderData.CachedRenderTexture, RT_NONE, RT_ALL);
+
+	auto fnPrepareRegions = [this, &fnCreateClipRegionBuffer, &widgetRenderData, renderTargetWidth, renderTargetHeight, viewflipYFlip, &mainRenderPassCreateInformation](const Vector<Area2I>& regions, bool useDebugMaterial, FrameVector<PreparedMeshData>& outPreparedMeshData)
 	{
 		const Area2I clipRectangle(0, 0, renderTargetWidth, renderTargetHeight);
 
 		FrameVector<Area2I> clippedRegions;
 		clippedRegions.reserve(regions.size());
 
-		// Clear all regions
 		for(Area2I region : regions)
 		{
 			region.Clip(clipRectangle);
 			clippedRegions.push_back(region);
-
-			const Area2 normalizedRegionArea =
-				Area2(
-					region.X / (float)renderTargetWidth,
-					region.Y / (float)renderTargetHeight,
-					region.Width / (float)renderTargetWidth,
-					region.Height / (float)renderTargetHeight);
-
-			// TODO - This could probably be more efficient by drawing N regions in a single draw call
-			commandBuffer.SetViewport(normalizedRegionArea);
-
-			if(!rebuildCachedRenderTexture)
-				commandBuffer.ClearViewport(FBT_COLOR, Color::kZero);
 		}
-
-		commandBuffer.SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
 
 		const Vector2I viewportOffset(0, 0);
 		const float inverseRegionWidth = 1.0f / (renderTargetWidth* 0.5f);
@@ -1817,39 +1814,97 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 				SpriteMaterial* const material = meshRenderData->Material;
 				const GUIBatchGpuParameterInfo& parameterInfo = widget.GpuParameterInfos[meshRenderData->GpuParametersIndex];
 
-				// Note: Sprite material is being re-bound for each draw. We should ensure the material is bound only when it actually changes.
 				const SPtr<GpuBuffer>& uniformBuffer = parameterInfo.UniformBuffer;
 				const SPtr<GpuBuffer>& clipRegionBuffer = fnCreateClipRegionBuffer(widget, meshRenderData->GpuParametersIndex, meshToDraw.OverlappingRegions);
 				const SPtr<MaterialParameterAdapter>& materialParameterAdapter = widget.MaterialParameterAdapters[parameterInfo.MaterialParameterIndex];
 
-				// Note: Ideally all these buffers are using dynamic buffer offsets, and textures are atlased so we can avoid rebinding parameters each time
+				// Prepare material and get GPU parameters
 				if(!kEnableGUIRegionDebugDrawing || !useDebugMaterial)
-				{
 					material->Prepare(materialParameterAdapter, meshRenderData->Mesh, meshRenderData->MaterialInformation.Texture, mSamplerState, uniformBuffer, clipRegionBuffer);
-					material->Render(commandBuffer, materialParameterAdapter->GetGpuParameters(), meshRenderData->Mesh, meshRenderData->SubMesh, clipRegionBuffer, (u32)meshToDraw.OverlappingRegions.size(), meshRenderData->MaterialInformation.AdditionalData);
-				}
 				else
-				{
 					material->Prepare(materialParameterAdapter, meshRenderData->Mesh, Texture::kPink, mSamplerState, uniformBuffer, clipRegionBuffer);
-					material->Render(commandBuffer, materialParameterAdapter->GetGpuParameters(), meshRenderData->Mesh, meshRenderData->SubMesh, clipRegionBuffer, (u32)meshToDraw.OverlappingRegions.size(), meshRenderData->MaterialInformation.AdditionalData);
-				}
+
+				PreparedMeshData preparedData;
+				preparedData.RenderData = meshRenderData;
+				preparedData.OverlappingRegions = meshToDraw.OverlappingRegions;
+				preparedData.GpuParameters = materialParameterAdapter->GetGpuParameters();
+				preparedData.ClipRegionBuffer = clipRegionBuffer;
+				preparedData.ClipRegionCount = (u32)meshToDraw.OverlappingRegions.size();
+
+				mainRenderPassCreateInformation.Parameters.Add(preparedData.GpuParameters);
+				outPreparedMeshData.push_back(std::move(preparedData));
 			}
 		}
 	};
 
-	commandBuffer.BeginRenderPass(cameraRenderData.CachedRenderTexture, RT_NONE, RT_ALL);
+	// Determine which regions to prepare
+	FrameVector<PreparedMeshData> debugDrawPreparedMeshes;
+	FrameVector<PreparedMeshData> preparedMeshes;
+
+	if(!rebuildCachedRenderTexture && !kRedrawAllRegions)
+	{
+		fnPrepareRegions(cameraRenderData.LastFrameDirtyDebugDrawRegions, false, debugDrawPreparedMeshes);
+		fnPrepareRegions(cameraRenderData.DirtyRegions, true, preparedMeshes);
+	}
+	else
+	{
+		fnPrepareRegions({ Area2I(0, 0, renderTargetWidth, renderTargetHeight) }, true, preparedMeshes);
+	}
+
+	// Begin render pass with all accumulated GPU parameters
+	commandBuffer.BeginRenderPass(mainRenderPassCreateInformation);
 
 	if(rebuildCachedRenderTexture)
 		commandBuffer.ClearRenderTarget(FBT_COLOR, Color::kZero);
 
+	// Now execute the actual rendering using the prepared data
+	auto fnDrawPreparedMeshes = [&commandBuffer, renderTargetWidth, renderTargetHeight, rebuildCachedRenderTexture](const FrameVector<PreparedMeshData>& preparedMeshes, const Vector<Area2I>& regions)
+	{
+		const Area2I clipRectangle(0, 0, renderTargetWidth, renderTargetHeight);
+
+		// Clear all regions
+		for(Area2I region : regions)
+		{
+			region.Clip(clipRectangle);
+
+			const Area2 normalizedRegionArea =
+				Area2(
+					region.X / (float)renderTargetWidth,
+					region.Y / (float)renderTargetHeight,
+					region.Width / (float)renderTargetWidth,
+					region.Height / (float)renderTargetHeight);
+
+			// TODO - This could probably be more efficient by clearing N regions in a single draw call
+			commandBuffer.SetViewport(normalizedRegionArea);
+
+			if(!rebuildCachedRenderTexture)
+				commandBuffer.ClearViewport(FBT_COLOR, Color::kZero);
+		}
+
+		commandBuffer.SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+
+		for(const PreparedMeshData& preparedData : preparedMeshes)
+		{
+			const GUIMeshRenderData* const meshRenderData = preparedData.RenderData;
+			SpriteMaterial* const material = meshRenderData->Material;
+
+			// Note: Sprite material is being re-bound for each draw. We should ensure the material is bound only when it actually changes.
+			// Note: Ideally all these buffers are using dynamic buffer offsets, and textures are atlased so we can avoid rebinding parameters each time
+			material->Render(commandBuffer, preparedData.GpuParameters, meshRenderData->Mesh, meshRenderData->SubMesh, preparedData.ClipRegionBuffer, preparedData.ClipRegionCount, meshRenderData->MaterialInformation.AdditionalData);
+		}
+	};
+
 	if(!rebuildCachedRenderTexture && !kRedrawAllRegions)
 	{
-		fnDrawRegions(cameraRenderData.LastFrameDirtyDebugDrawRegions, false);
-		fnDrawRegions(cameraRenderData.DirtyRegions, true);
+		if(!cameraRenderData.LastFrameDirtyDebugDrawRegions.empty())
+			fnDrawPreparedMeshes(debugDrawPreparedMeshes, cameraRenderData.LastFrameDirtyDebugDrawRegions);
+
+		if(!cameraRenderData.DirtyRegions.empty())
+			fnDrawPreparedMeshes(preparedMeshes, cameraRenderData.DirtyRegions);
 	}
 	else
 	{
-		fnDrawRegions({ Area2I(0, 0, renderTargetWidth, renderTargetHeight) }, true);
+		fnDrawPreparedMeshes(preparedMeshes, { Area2I(0, 0, renderTargetWidth, renderTargetHeight) });
 	}
 
 	cameraRenderData.LastFrameDirtyDebugDrawRegions.clear();
