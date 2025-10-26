@@ -34,14 +34,14 @@ namespace b3d
 		{
 		public:
 			MemBlock(u8* data, u32 size)
-				: mData(data), mSize(size)
+				: Data(data), Size(size)
 			{}
 
 			/** Allocates a piece of memory within the block. Caller must ensure the block has enough empty space. */
 			u8* Alloc(u32 amount)
 			{
-				u8* freePtr = &mData[mFreePtr];
-				mFreePtr += amount;
+				u8* freePtr = &Data[FreePtr];
+				FreePtr += amount;
 
 				return freePtr;
 			}
@@ -52,20 +52,20 @@ namespace b3d
 			 */
 			void Free(u8* data, u32 allocSize)
 			{
-				if((data + allocSize) == (mData + mFreePtr))
-					mFreePtr -= allocSize;
+				if((data + allocSize) == (Data + FreePtr))
+					FreePtr -= allocSize;
 			}
 
 			/** Releases all allocations within a block but doesn't actually free the memory. */
 			void Clear()
 			{
-				mFreePtr = 0;
+				FreePtr = 0;
 			}
 
-			u8* MData = nullptr;
-			u32 MFreePtr = 0;
-			u32 MSize = 0;
-			MemBlock* MNextBlock = nullptr;
+			u8* Data = nullptr;
+			u32 FreePtr = 0;
+			u32 Size = 0;
+			MemBlock* MextBlock = nullptr;
 		};
 
 	public:

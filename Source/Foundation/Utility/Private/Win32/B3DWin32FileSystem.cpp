@@ -411,7 +411,7 @@ void FileSystem::GetChildren(const Path& dirPath, Vector<Path>& files, Vector<Pa
 		{
 			Path fullPath = dirPath;
 			if((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-				directories.push_back(fullPath.Append(UTF8::FromWide(tempName) + u8"/"));
+				directories.push_back(fullPath.Append(UTF8::FromWide(tempName) + "/"));
 			else
 				files.push_back(fullPath.Append(UTF8::FromWide(tempName)));
 		}

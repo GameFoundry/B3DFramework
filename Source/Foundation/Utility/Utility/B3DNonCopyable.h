@@ -9,7 +9,7 @@ namespace b3d
 	 */
 
 	/** Interface that prevents copies be made of any type that implements it. */
-	class INonCopyable
+	class B3D_EXPORT INonCopyable
 	{
 	protected:
 		INonCopyable() = default;

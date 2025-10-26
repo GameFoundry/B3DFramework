@@ -188,6 +188,12 @@ namespace b3d
 	/**	Converts an unsigned int to a string. */
 	B3D_EXPORT String ToString(unsigned int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
+	/**	Converts a long to a string. */
+	B3D_EXPORT String ToString(long val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+
+	/**	Converts an unsigned long to a string. */
+	B3D_EXPORT String ToString(unsigned long val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+
 	/**	Converts a 64bit int to a string. */
 	B3D_EXPORT String ToString(i64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
@@ -869,3 +875,33 @@ namespace std
 } // namespace std
 
 /** @endcond */
+
+namespace b3d
+{
+	/** @addtogroup String
+	 *  @{
+	 */
+
+	/** Hash function that allows map lookups using String, StringView or const char*. */
+	struct StringHash
+	{
+		using is_transparent = void;
+
+		[[nodiscard]] size_t operator()(const char* value) const
+		{
+			return std::hash<StringView>{}(value);
+		}
+
+		[[nodiscard]] size_t operator()(StringView value) const
+		{
+			return std::hash<StringView>{}(value);
+		}
+
+		[[nodiscard]] size_t operator()(const String& value) const
+		{
+			return std::hash<String>{}(value);
+		}
+	};
+
+	/** @} */
+}

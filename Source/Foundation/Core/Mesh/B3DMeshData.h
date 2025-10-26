@@ -59,7 +59,8 @@ namespace b3d
 #ifdef B3D_DEBUG
 			if(mData >= mEnd)
 			{
-				B3D_EXCEPT(InternalErrorException, "Vertex element iterator out of buffer bounds.");
+				B3D_ASSERT(false);
+				return true;
 			}
 #endif
 

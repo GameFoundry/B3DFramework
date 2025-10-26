@@ -22,7 +22,7 @@ bool OAImporter::IsExtensionSupported(const String& ext) const
 	String lowerCaseExt = ext;
 	StringUtil::ToLowerCase(lowerCaseExt);
 
-	return lowerCaseExt == u8"wav" || lowerCaseExt == u8"flac" || lowerCaseExt == u8"ogg";
+	return lowerCaseExt == "wav" || lowerCaseExt == "flac" || lowerCaseExt == "ogg";
 }
 
 bool OAImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const
@@ -50,11 +50,11 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 		StringUtil::ToLowerCase(extension);
 
 		UPtr<AudioDecoder> reader;
-		if(extension == u8".wav")
+		if(extension == ".wav")
 			reader = B3DMakeUnique<WaveDecoder>();
-		else if(extension == u8".flac")
+		else if(extension == ".flac")
 			reader = B3DMakeUnique<FLACDecoder>();
-		else if(extension == u8".ogg")
+		else if(extension == ".ogg")
 			reader = B3DMakeUnique<OggVorbisDecoder>();
 
 		if(reader == nullptr)

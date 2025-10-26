@@ -47,10 +47,10 @@ namespace b3d
 			void GetParameters(LightData& output) const;
 
 			/**
-			 * Populates the provided parameter block buffer with information about the light. Provided buffer's structure
+			 * Populates the provided uniform buffer with information about the light. Provided buffer's structure
 			 * must match PerLightParamDef.
 			 */
-			void GetParameters(SPtr<GpuBuffer>& buffer) const;
+			void PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index = 0) const;
 
 			/**
 			 * Calculates the light position that is shifted in order to account for area spot lights. For non-spot lights
@@ -72,14 +72,24 @@ namespace b3d
 		};
 
 		/** Allows you to easily bind GBuffer textures to some material. */
-		class GBufferParams
+		class GBufferParameterBinding
 		{
 		public:
+
+			static constexpr const char* kAlbedoTextureName = "gGBufferATex";
+			static constexpr const char* kNormalsTextureName = "gGBufferBTex";
+			static constexpr const char* kRoughMetalTextureName = "gGBufferCTex";
+			static constexpr const char* kDepthTextureName = "gDepthBufferTex";
+			static constexpr const char* kDepthSamplerName = "gDepthBufferSamp";
+
 			/** Initializes the required parameters. To be called once before use. */
 			void Initialize(GpuDevice& gpuDevice, GpuProgramType type, const SPtr<GpuParameters>& gpuParams);
 
 			/** Binds the GBuffer textures to the pipeline. */
 			void Bind(const GBufferTextures& gbuffer);
+
+			/** Assigns the provided GBuffer textures to the provided GPU parameters object. */
+			static void Set(GpuDevice& gpuDevice, const SPtr<GpuParameters>& gpuParameters, const GBufferTextures& textures);
 
 		private:
 			SPtr<GpuParameters> mParams;
@@ -168,22 +178,22 @@ namespace b3d
 			void GatherInfluencingLights(const Bounds& bounds, const LightData* (&output)[kStandardForwardMaxNumLights], Vector3I& counts) const;
 
 			/** Returns the number of directional lights in the lights buffer. */
-			u32 GetNumDirLights() const { return mNumLights[0]; }
+			u32 GetDirectionalLightCount() const { return mLightCounts[0]; }
 
 			/** Returns the number of radial point lights in the lights buffer. */
-			u32 GetNumRadialLights() const { return mNumLights[1]; }
+			u32 GetRadialLightCount() const { return mLightCounts[1]; }
 
 			/** Returns the number of spot point lights in the lights buffer. */
-			u32 GetNumSpotLights() const { return mNumLights[2]; }
+			u32 GetSpotLightCount() const { return mLightCounts[2]; }
 
 			/** Returns the number of visible lights of the specified type. */
-			u32 GetNumLights(LightType type) const { return mNumLights[(u32)type]; }
+			u32 GetLightCount(LightType type) const { return mLightCounts[(u32)type]; }
 
 			/** Returns the number of visible shadowed lights of the specified type. */
-			u32 GetNumShadowedLights(LightType type) const { return mNumShadowedLights[(u32)type]; }
+			u32 GetShadowedLightCount(LightType type) const { return mShadowedLightCounts[(u32)type]; }
 
 			/** Returns the number of visible unshadowed lights of the specified type. */
-			u32 GetNumUnshadowedLights(LightType type) const { return mNumLights[(u32)type] - mNumShadowedLights[(u32)type]; }
+			u32 GetUnshadowedLightCount(LightType type) const { return mLightCounts[(u32)type] - mShadowedLightCounts[(u32)type]; }
 
 			/** Returns a list of all visible lights of the specified type. */
 			const Vector<const RendererLight*>& GetLights(LightType type) const { return mVisibleLights[(u32)type]; }
@@ -191,8 +201,8 @@ namespace b3d
 		private:
 			SPtr<GpuBuffer> mLightBuffer;
 
-			u32 mNumLights[(u32)LightType::Count];
-			u32 mNumShadowedLights[(u32)LightType::Count];
+			u32 mLightCounts[(u32)LightType::Count];
+			u32 mShadowedLightCounts[(u32)LightType::Count];
 
 			// These are rebuilt every call to update()
 			Vector<const RendererLight*> mVisibleLights[(u32)LightType::Count];

@@ -252,36 +252,36 @@ namespace b3d
 	};
 
 	/** Contains functionality common for both main and render thread versions of GpuParameters. */
-	class B3D_EXPORT GpuParamsBase
+	class B3D_EXPORT GpuParametersBase
 	{
 	public:
-		virtual ~GpuParamsBase() = default;
+		virtual ~GpuParametersBase() = default;
 
 		// Note: Disallow copy/assign because it would require some care when copying (copy internal data shared_ptr and
 		// all the internal buffers too). Trivial to implement but not needed at this time. Un-delete and implement if necessary.
-		GpuParamsBase(const GpuParamsBase& other) = delete;
-		GpuParamsBase& operator=(const GpuParamsBase& rhs) = delete;
+		GpuParametersBase(const GpuParametersBase& other) = delete;
+		GpuParametersBase& operator=(const GpuParametersBase& rhs) = delete;
 
 		/** Gets the object that contains the processed information about all parameters. */
 		SPtr<GpuPipelineParameterLayout> GetPipelineParameterInformation() const { return mParameterLayout; }
 
 		/** Checks if parameter with the specified name exists. */
-		bool HasParameter(const String& name) const;
+		bool HasParameter(const StringView& name) const;
 
 		/**	Checks if texture parameter with the specified name exists. */
-		bool HasSampledTexture(const String& name) const;
+		bool HasSampledTexture(const StringView& name) const;
 
 		/**	Checks if load/store texture parameter with the specified name exists. */
-		bool HasStorageTexture(const String& name) const;
+		bool HasStorageTexture(const StringView& name) const;
 
 		/**	Checks if buffer parameter with the specified name exists. */
-		bool HasStorageBuffer(const String& name) const;
+		bool HasStorageBuffer(const StringView& name) const;
 
 		/**	Checks if sampler state parameter with the specified name exists. */
-		bool HasSamplerState(const String& name) const;
+		bool HasSamplerState(const StringView& name) const;
 
 		/** Checks if a parameter block with the specified name exists for the specific GPU program type. */
-		bool HasUniformBuffer(const String& name) const;
+		bool HasUniformBuffer(const StringView& name) const;
 
 		/** Marks the main thread object as dirty, causing it to sync its contents with its render thread counterpart. */
 		virtual void MarkRenderProxyDataDirtyInternal() {}
@@ -290,22 +290,22 @@ namespace b3d
 		virtual void MarkResourcesDirtyInternal() {}
 
 	protected:
-		GpuParamsBase(const SPtr<GpuPipelineParameterLayout>& parameterLayout);
+		GpuParametersBase(const SPtr<GpuPipelineParameterLayout>& parameterLayout);
 
 		SPtr<GpuPipelineParameterLayout> mParameterLayout;
 	};
 
 	/** Templated version of GpuParameters that contains functionality for both main and render thread versions of stored data. */
 	template <bool IsRenderProxy>
-	class B3D_EXPORT TGpuParams : public GpuParamsBase
+	class B3D_EXPORT TGpuParameters : public GpuParametersBase
 	{
 	public:
-		using GpuParamsType = CoreVariantType<GpuParameters, IsRenderProxy>;
+		using GpuParametersType = CoreVariantType<GpuParameters, IsRenderProxy>;
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 		using UniformBufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
-		virtual ~TGpuParams();
+		virtual ~TGpuParameters();
 
 		/**
 		 * Returns a handle for the parameter with the specified name. Handle may then be stored and used for quickly
@@ -316,40 +316,40 @@ namespace b3d
 		 * Parameter handles will be invalidated when their parent GpuParameters object changes.
 		 */
 		template <class T>
-		void GetParameter(const String& name, TGpuParameterPrimitive<T, IsRenderProxy>& output) const;
+		void GetParameter(const StringView& name, TGpuParameterPrimitive<T, IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetStructParameter(const String& name, TGpuParameterStruct<IsRenderProxy>& output) const;
+		void GetStructParameter(const StringView& name, TGpuParameterStruct<IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetSampledTextureParameter(const String& name, TGpuParameterSampledTexture<IsRenderProxy>& output) const;
+		void GetSampledTextureParameter(const StringView& name, TGpuParameterSampledTexture<IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetStorageTextureParameter(const String& name, TGpuParameterStorageTexture<IsRenderProxy>& output) const;
+		void GetStorageTextureParameter(const StringView& name, TGpuParameterStorageTexture<IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetStorageBufferParameter(const String& name, TGpuParameterBuffer<IsRenderProxy>& output) const;
+		void GetStorageBufferParameter(const StringView& name, TGpuParameterBuffer<IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetSamplerStateParameter(const String& name, TGpuParameterSampler<IsRenderProxy>& output) const;
+		void GetSamplerStateParameter(const StringView& name, TGpuParameterSampler<IsRenderProxy>& output) const;
 
 		/** Equivalent to GetParam(), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
-		template<class T> bool TryGetParameter(const String& name, TGpuParameterPrimitive<T, IsRenderProxy>& output) const;
+		template<class T> bool TryGetParameter(const StringView& name, TGpuParameterPrimitive<T, IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetStructParameter(const String& name, TGpuParameterStruct<IsRenderProxy>& output) const;
+		bool TryGetStructParameter(const StringView& name, TGpuParameterStruct<IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetSampledTextureParameter(const String& name, TGpuParameterSampledTexture<IsRenderProxy>& output) const;
+		bool TryGetSampledTextureParameter(const StringView& name, TGpuParameterSampledTexture<IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetStorageTextureParameter(const String& name, TGpuParameterStorageTexture<IsRenderProxy>& output) const;
+		bool TryGetStorageTextureParameter(const StringView& name, TGpuParameterStorageTexture<IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetStorageBufferParameter(const String& name, TGpuParameterBuffer<IsRenderProxy>& output) const;
+		bool TryGetStorageBufferParameter(const StringView& name, TGpuParameterBuffer<IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetSamplerStateParameter(const String& name, TGpuParameterSampler<IsRenderProxy>& output) const;
+		bool TryGetSamplerStateParameter(const StringView& name, TGpuParameterSampler<IsRenderProxy>& output) const;
 
 		/**	Gets a uniform buffer from the specified set/slot/array index combination. */
 		UniformBufferType GetUniformBuffer(u32 set, u32 slot, u32 arrayIndex = 0) const;
@@ -394,10 +394,10 @@ namespace b3d
 		 * @param	offset		Dynamic offset in the buffer, at which the to start reading the buffer.
 		 * @return				Returns true if the operation succeeded, otherwise logs and errors and returns false.
 		 */
-		bool SetUniformBuffer(const String& name, const UniformBufferType& buffer, u32 arrayIndex = 0, u32 offset = 0);
+		bool SetUniformBuffer(const StringView& name, const UniformBufferType& buffer, u32 arrayIndex = 0, u32 offset = 0);
 
 		/** Equivalent to SetParamBlockBuffer(const String&, const UniformBufferType&, u32, u32), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
-		bool TrySetUniformBuffer(const String& name, const UniformBufferType& parameterBlockBuffer, u32 arrayIndex = 0, u32 offset = 0);
+		bool TrySetUniformBuffer(const StringView& name, const UniformBufferType& parameterBlockBuffer, u32 arrayIndex = 0, u32 offset = 0);
 
 		/**
 		 * Sets a texture at the specified set/slot combination.
@@ -431,7 +431,7 @@ namespace b3d
 
 		/**	Assigns a data value to the parameter with the specified name. */
 		template <class T>
-		void SetParameter(const String& name, const T& value)
+		void SetParameter(const StringView& name, const T& value)
 		{
 			TGpuParameterPrimitive<T, IsRenderProxy> param;
 			GetParameter(name, param);
@@ -439,7 +439,7 @@ namespace b3d
 		}
 
 		/**	Assigns a texture to the parameter with the specified name. */
-		void SetSampledTexture(const String& name, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete)
+		void SetSampledTexture(const StringView& name, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete)
 		{
 			TGpuParameterSampledTexture<IsRenderProxy> param;
 			GetSampledTextureParameter(name, param);
@@ -447,7 +447,7 @@ namespace b3d
 		}
 
 		/**	Assigns a load/store texture to the parameter with the specified name. */
-		void SetStorageTexture(const String& name, const TextureType& texture, const TextureSurface& surface)
+		void SetStorageTexture(const StringView& name, const TextureType& texture, const TextureSurface& surface)
 		{
 			TGpuParameterStorageTexture<IsRenderProxy> param;
 			GetStorageTextureParameter(name, param);
@@ -462,7 +462,7 @@ namespace b3d
 		 * @param	arrayIndex	In case the bind point represents an array, index to bind the buffer to.
 		 * @param	view		Optional view information that controls how is the buffer viewed when bound to the pipeline.
 		 */
-		void SetStorageBuffer(const String& name, const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation())
+		void SetStorageBuffer(const StringView& name, const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation())
 		{
 			TGpuParameterBuffer<IsRenderProxy> param;
 			GetStorageBufferParameter(name, param);
@@ -470,7 +470,7 @@ namespace b3d
 		}
 
 		/**	Assigns a sampler state to the parameter with the specified name. */
-		void SetSamplerState(const String& name, const SPtr<SamplerState>& sampler)
+		void SetSamplerState(const StringView& name, const SPtr<SamplerState>& sampler)
 		{
 			TGpuParameterSampler<IsRenderProxy> param;
 			GetSamplerStateParameter(name, param);
@@ -478,10 +478,9 @@ namespace b3d
 		}
 
 	protected:
-		TGpuParams(const SPtr<GpuPipelineParameterLayout>& parameterLayout);
+		TGpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout);
 
-		/** @copydoc CoreObject::GetThisPtr */
-		virtual SPtr<GpuParamsType> GetThisPtrInternal() const = 0;
+		virtual SPtr<GpuParametersType> GetSelf() const = 0;
 
 		/** Data for a single bound texture. */
 		struct TextureData
@@ -493,9 +492,6 @@ namespace b3d
 		/** Data for a single bound storage buffer. */
 		struct StorageBufferData
 		{
-			StorageBufferData()
-			{ }
-
 			BufferType Buffer;
 			GpuBufferViewInformation View; /**< Controls how is the buffer viewed when bound to the pipeline. */
 		};
@@ -527,7 +523,7 @@ namespace b3d
 	 *
 	 * @note	Main thread only.
 	 */
-	class B3D_EXPORT GpuParameters : public CoreObject, public TGpuParams<false>, public IResourceListener
+	class B3D_EXPORT GpuParameters : public CoreObject, public TGpuParameters<false>, public IResourceListener
 	{
 	public:
 		~GpuParameters() {}
@@ -567,7 +563,7 @@ namespace b3d
 
 		GpuParameters(const SPtr<GpuPipelineParameterLayout>& paramInfo);
 
-		SPtr<GpuParameters> GetThisPtrInternal() const override;
+		SPtr<GpuParameters> GetSelf() const override;
 		SPtr<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
@@ -589,7 +585,7 @@ namespace b3d
 		 *
 		 * @note	Render thread only.
 		 */
-		class B3D_EXPORT GpuParameters : public RenderProxy, public TGpuParams<true>
+		class B3D_EXPORT GpuParameters : public RenderProxy, public TGpuParameters<true>
 		{
 		public:
 			virtual ~GpuParameters() = default;
@@ -599,7 +595,7 @@ namespace b3d
 
 			GpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout);
 
-			SPtr<GpuParameters> GetThisPtrInternal() const override;
+			SPtr<GpuParameters> GetSelf() const override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 		};
 

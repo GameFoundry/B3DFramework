@@ -1006,23 +1006,30 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 	{
 		ProfileGPUBlock sampleBlock(commandBuffer, "Standard deferred unshadowed lights");
 
-		commandBuffer.BeginRenderPass(Output->RenderTarget, RT_DEPTH_STENCIL, RT_DEPTH_STENCIL);
-
+		// Collect all unshadowed lights
+		Vector<const RendererLight*> unshadowedLights;
 		for(u32 i = 0; i < (u32)LightType::Count; i++)
 		{
 			LightType lightType = (LightType)i;
-
 			auto& lights = lightData.GetLights(lightType);
-			u32 count = lightData.GetNumUnshadowedLights(lightType);
+			u32 count = lightData.GetUnshadowedLightCount(lightType);
 
 			for(u32 j = 0; j < count; j++)
-			{
-				u32 lightIdx = j;
-				const RendererLight& light = *lights[lightIdx];
-
-				StandardDeferred::Instance().RenderLight(commandBuffer, lightType, light, inputs.View, gbuffer, Texture::kBlack);
-			}
+				unshadowedLights.push_back(lights[j]);
 		}
+
+		// Prepare batch (groups lights and creates instanced uniform buffers)
+		StandardDeferred::LightBatches baches = StandardDeferred::Instance().PrepareLightBatches(unshadowedLights, inputs.View, gbuffer, Texture::kBlack);
+
+		// Begin render pass with pre-declared parameters
+		RenderPassCreateInformation passInfo(Output->RenderTarget, RT_DEPTH_STENCIL, RT_DEPTH_STENCIL);
+		for(const auto& [key, value] : baches.Batches)
+			passInfo.Parameters.Add(value.GpuParameters);
+
+		commandBuffer.BeginRenderPass(passInfo);
+
+		// Render all lights using dynamic offsets
+		StandardDeferred::Instance().RenderLightBatches(commandBuffer, baches);
 
 		commandBuffer.EndRenderPass();
 	}
@@ -1061,15 +1068,15 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 		ProfileGPUBlock sampleBlock(commandBuffer, "Standard deferred shadowed lights");
 
 		const ShadowRendering& shadowRenderer = inputs.ViewGroup.GetShadowRenderer();
-		for(u32 i = 0; i < (u32)LightType::Count; i++)
+		for(u32 lightTypeIndex = 0; lightTypeIndex < (u32)LightType::Count; lightTypeIndex++)
 		{
-			LightType lightType = (LightType)i;
+			const LightType lightType = (LightType)lightTypeIndex;
 
 			auto& lights = lightData.GetLights(lightType);
-			u32 count = lightData.GetNumShadowedLights(lightType);
-			u32 offset = lightData.GetNumUnshadowedLights(lightType);
+			u32 lightCount = lightData.GetShadowedLightCount(lightType);
+			u32 offset = lightData.GetUnshadowedLightCount(lightType);
 
-			for(u32 j = 0; j < count; j++)
+			for(u32 lightIndex = 0; lightIndex < lightCount; lightIndex++)
 			{
 				commandBuffer.BeginRenderPass(mLightOcclusionRT, RT_DEPTH, RT_DEPTH_STENCIL);
 
@@ -1078,15 +1085,21 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 
 				commandBuffer.ClearViewport(FBT_COLOR, Color::kZero);
 
-				u32 lightIdx = offset + j;
+				u32 lightIdx = offset + lightIndex;
 				const RendererLight& light = *lights[lightIdx];
 				shadowRenderer.RenderShadowOcclusion(commandBuffer, inputs.View, light, gbuffer);
 				commandBuffer.EndRenderPass();
 
 				commandBuffer.IssueBarriers({{ GpuTextureBarrier(Output->LightAccumulationTex->Texture, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write )}});
 
-				commandBuffer.BeginRenderPass(Output->RenderTarget, RT_DEPTH_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
-				StandardDeferred::Instance().RenderLight(commandBuffer, lightType, light, inputs.View, gbuffer, lightOcclusionTex->Texture);
+				StandardDeferred::LightBatches batches = StandardDeferred::Instance().PrepareLightBatches({ &light }, inputs.View, gbuffer, lightOcclusionTex->Texture);
+
+				RenderPassCreateInformation lightingPassInfo(Output->RenderTarget, RT_DEPTH_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
+				for(const auto& [key, value] : batches.Batches)
+					lightingPassInfo.Parameters.Add(value.GpuParameters);
+
+				commandBuffer.BeginRenderPass(lightingPassInfo);
+				StandardDeferred::Instance().RenderLightBatches(commandBuffer, batches);
 				commandBuffer.EndRenderPass();
 			}
 		}

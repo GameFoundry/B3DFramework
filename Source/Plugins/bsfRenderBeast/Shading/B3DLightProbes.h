@@ -148,7 +148,7 @@ namespace b3d
 			static IrradianceEvaluateMat* GetVariation(bool msaa, bool singleSampleMSAA, bool skyOnly);
 
 		private:
-			GBufferParams mGBufferParams;
+			GBufferParameterBinding mGBufferParams;
 			SPtr<GpuBuffer> mParamBuffer;
 			GpuParameterSampledTexture mParamInputTex;
 			GpuParameterSampledTexture mParamSkyIrradianceTex;

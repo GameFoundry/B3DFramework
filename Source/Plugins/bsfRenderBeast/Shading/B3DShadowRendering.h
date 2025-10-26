@@ -297,7 +297,7 @@ namespace b3d
 			SPtr<SamplerState> mSamplerState;
 			SPtr<GpuBuffer> mVertParams;
 
-			GBufferParams mGBufferParams;
+			GBufferParameterBinding mGBufferParams;
 
 			GpuParameterSampledTexture mShadowMapParam;
 			GpuParameterSampler mShadowSamplerParam;
@@ -350,7 +350,7 @@ namespace b3d
 			SPtr<SamplerState> mSamplerState;
 			SPtr<GpuBuffer> mVertParams;
 
-			GBufferParams mGBufferParams;
+			GBufferParameterBinding mGBufferParams;
 
 			GpuParameterSampledTexture mShadowMapParam;
 			GpuParameterSampler mShadowSamplerParam;

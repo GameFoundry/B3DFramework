@@ -8,7 +8,7 @@
 using namespace b3d;
 
 const String CrashHandler::kSCrashReportFolder = "CrashReports";
-const String CrashHandler::kSCrashLogName = u8"log.html";
+const String CrashHandler::kSCrashLogName = "log.html";
 const String CrashHandler::kSFatalErrorMsg =
 	"A fatal error occurred and the program has to terminate!";
 

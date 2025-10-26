@@ -112,11 +112,11 @@ namespace b3d
 		/** Converts a sequential binding index index into a set/slot combination. */
 		GpuParameterBinding GetBinding(GpuParameterType type, u32 sequentialBindingIndex) const;
 
-		/** Finds set/slot indices of a parameter with the specified name. Set/slot indices are set to ~0u if parameter cannot be found. */
-		void GetBinding(const String& name, GpuParameterBinding& binding) const;
+		/** String specific overload until we have heterogeneous lookup in UnorderedMap, to avoid re-constructing String. */
+		void GetBinding(const StringView& name, GpuParameterBinding& binding) const { binding = GetBinding(name); }
 
 		/** Finds set/slot indices of a parameter with the specified name. Set/slot indices are set to ~0u if parameter cannot be found. */
-		GpuParameterBinding GetBinding(const String& name) const;
+		GpuParameterBinding GetBinding(const StringView& name) const;
 
 		/** Returns the number of entries in the array at the specified binding index. */
 		u32 GetArraySize(GpuParameterType type, u32 sequentialBindingIndex) const;
@@ -137,16 +137,16 @@ namespace b3d
 		 * Returns ~0u if parameter at the specific set/slot combination doesn't support dynamic offsets (supported on uniform and storage buffers),
 		 * or if the parameter is not found.
 		 */
-		u32 GetDynamicOffsetIndex(const String& name, u32 arrayIndex = 0) const;
+		u32 GetDynamicOffsetIndex(const StringView& name, u32 arrayIndex = 0) const;
 
 		/** Returns true if the layout has a uniform with the specified name. */
-		bool HasUniform(const String& name) const { return mUniformMap.find(name) != mUniformMap.end(); }
+		bool HasUniform(const StringView& name) const { return mUniformMap.find(name) != mUniformMap.end(); }
 
 		/** Returns true if the layout has a uniform with the specified name and type. */
-		bool HasUniformOfType(const String& name, GpuParameterType type) const;
+		bool HasUniformOfType(const StringView& name, GpuParameterType type) const;
 
 		/** Returns information about a uniform parameter by the specified name, or null if not found. */
-		const UniformInformation* TryGetUniformInformation(const String& name) const;
+		const UniformInformation* TryGetUniformInformation(const StringView& name) const;
 
 		/** Returns information about a uniform parameter by the specified type and sequential index, or null if not found. */
 		const UniformInformation* TryGetUniformInformation(GpuParameterType type, u32 sequentialBindingIndex) const;
@@ -155,10 +155,10 @@ namespace b3d
 		const UniformInformation* TryGetUniformInformation(const GpuParameterBinding& binding) const;
 
 		/** Returns true if the layout has a uniform buffer member with the specified name. */
-		bool HasUniformBufferMember(const String& name) const { return mUniformBufferMembers.find(name) != mUniformBufferMembers.end(); }
+		bool HasUniformBufferMember(const StringView& name) const { return mUniformBufferMembers.find(name) != mUniformBufferMembers.end(); }
 
 		/** Returns information about a member of a uniform buffer by the specified name, or null if not found. */
-		const GpuUniformBufferMemberInformation* TryGetUniformBufferMemberInformation(const String& name) const;
+		const GpuUniformBufferMemberInformation* TryGetUniformBufferMemberInformation(const StringView& name) const;
 
 	protected:
 		GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation);
@@ -169,8 +169,8 @@ namespace b3d
 			TInlineArray<UniformInformation*, 32> Uniforms; /**< Uniform for each slot index. */
 		};
 
-		UnorderedMap<String, UniformInformation> mUniformMap; /**< A map of all uniforms. */
-		UnorderedMap<String, GpuUniformBufferMemberInformation> mUniformBufferMembers; /**< All data parameters in all uniform buffers. */
+		Map<String, UniformInformation, std::less<>> mUniformMap; /**< A map of all uniforms. */ // TODO - Map instead of UnorderedMap to support heterogeneous lookup, until we port to C++20
+		Map<String, GpuUniformBufferMemberInformation, std::less<>> mUniformBufferMembers; /**< All data parameters in all uniform buffers. */ // TODO - Map instead of UnorderedMap to support heterogeneous lookup, until we port to C++20
 		Array<TInlineArray<UniformInformation*, 16>, (u32)GpuParameterType::Count> mUniformsPerType; /**< List of uniforms per type. */
 		TInlineArray<SetInformation, 2> mSets;
 		u32 mResourceCount = 0;

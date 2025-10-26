@@ -13,22 +13,6 @@ namespace render {
 
 PerLightParamDef gPerLightParamDef;
 
-void DeferredDirectionalLightMat::Initialize()
-{
-	mGBufferParams.Initialize(*mGpuDevice, GPT_FRAGMENT_PROGRAM, mGPUParameters);
-	mGPUParameters->GetSampledTextureParameter("gLightOcclusionTex", mLightOcclusionTexParam);
-}
-
-void DeferredDirectionalLightMat::Bind(GpuCommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight)
-{
-	mGBufferParams.Bind(gBufferInput);
-	mLightOcclusionTexParam.Set(lightOcclusion);
-	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
-	mGPUParameters->SetUniformBuffer("PerLight", perLight);
-
-	RendererMaterial::Bind(commandBuffer);
-}
-
 DeferredDirectionalLightMat* DeferredDirectionalLightMat::GetVariation(bool msaa, bool singleSampleMSAA)
 {
 	if(msaa)
@@ -40,22 +24,6 @@ DeferredDirectionalLightMat* DeferredDirectionalLightMat::GetVariation(bool msaa
 	}
 
 	return Get(GetVariation<false, false>());
-}
-
-void DeferredPointLightMat::Initialize()
-{
-	mGBufferParams.Initialize(*mGpuDevice, GPT_FRAGMENT_PROGRAM, mGPUParameters);
-	mGPUParameters->GetSampledTextureParameter("gLightOcclusionTex", mLightOcclusionTexParam);
-}
-
-void DeferredPointLightMat::Bind(GpuCommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight)
-{
-	mGBufferParams.Bind(gBufferInput);
-	mLightOcclusionTexParam.Set(lightOcclusion);
-	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
-	mGPUParameters->SetUniformBuffer("PerLight", perLight);
-
-	RendererMaterial::Bind(commandBuffer);
 }
 
 DeferredPointLightMat* DeferredPointLightMat::GetVariation(bool inside, bool msaa, bool singleSampleMSAA)
@@ -257,69 +225,152 @@ DeferredIBLFinalizeMat* DeferredIBLFinalizeMat::GetVariation(bool msaa, bool sin
 	}
 }
 
-StandardDeferred::StandardDeferred()
+StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArrayView<const RendererLight*>& lights, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion)
 {
-	mPerLightBuffer = gPerLightParamDef.CreateBuffer();
+	LightBatches batches;
+
+	const auto& viewProperties = view.GetProperties();
+	const bool isMSAA = viewProperties.Target.NumSamples > 1;
+
+	// Group lights by material variation
+	for(const RendererLight* light : lights)
+	{
+		const LightType lightType = light->Internal->GetType();
+
+		// Determine material variation
+		MaterialVariationKey key;
+		key.Type = lightType;
+		key.IsMSAA = isMSAA;
+		key.IsInside = false;
+		key.IsSingleSampleMSAA = false;
+
+		// For point/spot lights, determine if viewer is inside
+		if(lightType != LightType::Directional)
+		{
+			float distSqrd = (light->Internal->GetBounds().Center - viewProperties.ViewOrigin).SquaredLength();
+			float boundRadius = light->Internal->GetBounds().Radius + viewProperties.NearPlane * 3.0f;
+			key.IsInside = distSqrd < (boundRadius * boundRadius);
+		}
+
+		// Add light to the appropriate group
+		LightBatch& batch = batches.Batches[key];
+
+		BatchedLightInstance instance;
+		instance.Light = light;
+		instance.UniformBufferOffset = 0; // Will be set later
+
+		batch.Lights.Add(instance);
+	}
+
+	// Get GPU device for alignment calculations
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const u32 uniformBlockStride = Math::CeilToMultiple(gPerLightParamDef.GetSize(), gpuDevice->GetCapabilities().MinimumUniformBufferOffsetAlignment);
+
+	// For each group, create instanced buffers and GPU parameters
+	for(auto& [key, batch] : batches.Batches)
+	{
+		const u32 lightCount = (u32)batch.Lights.size();
+
+		// Create instanced uniform buffer
+		batch.PerLightUniformBuffer = gPerLightParamDef.CreateBuffer(lightCount);
+		batch.UniformStride = uniformBlockStride;
+
+		// Write light parameters to buffer
+		for(u32 lightIndex = 0; lightIndex < lightCount; lightIndex++)
+		{
+			batch.Lights[lightIndex].Light->PopulateUniformBuffer(batch.PerLightUniformBuffer, lightIndex);
+			batch.Lights[lightIndex].UniformBufferOffset = lightIndex * uniformBlockStride;
+		}
+
+		// Get material for this group
+		if(key.Type == LightType::Directional)
+		{
+			DeferredDirectionalLightMat* const lightMaterial = DeferredDirectionalLightMat::GetVariation(key.IsMSAA, true);
+			batch.GpuParameters = lightMaterial->CreateGpuParameters();
+		}
+		else
+		{
+			DeferredPointLightMat* const lightMaterial = DeferredPointLightMat::GetVariation(key.IsInside, key.IsMSAA, true);
+			batch.GpuParameters = lightMaterial->CreateGpuParameters();
+
+			// Cache stencil mesh
+			if(key.Type == LightType::Radial)
+				batch.StencilMesh = RendererUtility::Instance().GetSphereStencil();
+			else // Spot
+				batch.StencilMesh = RendererUtility::Instance().GetSpotLightStencil();
+		}
+
+		// Bind shared resources to GpuParameters
+		SPtr<GpuBuffer> perViewBuffer = view.GetPerViewBuffer();
+
+		// Set uniform buffers
+		batch.GpuParameters->SetUniformBuffer("PerCamera", perViewBuffer);
+		batch.GpuParameters->SetUniformBuffer("PerLight", batch.PerLightUniformBuffer);
+
+		if(batch.GpuParameters->HasSampledTexture("gLightOcclusionTex"))
+			batch.GpuParameters->SetSampledTexture("gLightOcclusionTex", lightOcclusion);
+
+		GBufferParameterBinding::Set(*gpuDevice, batch.GpuParameters, gBufferInput);
+
+		// Get dynamic offset index
+		batch.DynamicOffsetIndex = batch.GpuParameters->GetPipelineParameterInformation()->GetDynamicOffsetIndex("PerLight");
+		B3D_ENSURE(batch.DynamicOffsetIndex != ~0u);
+	}
+
+	return batches;
+}
+
+void StandardDeferred::RenderLightBatches(GpuCommandBuffer& commandBuffer, const LightBatches& batches)
+{
+	// Render each group
+	for(const auto& [key, batch] : batches.Batches)
+	{
+		// Set GpuParameters once for the group
+		commandBuffer.SetGpuParameters(batch.GpuParameters);
+
+		// Render each light in the group
+		for(const BatchedLightInstance& lightInstance : batch.Lights)
+		{
+			// Set dynamic offset to select this light's parameters
+			commandBuffer.SetDynamicBufferOffset(batch.DynamicOffsetIndex, lightInstance.UniformBufferOffset);
+
+			// Render the light
+			if(key.Type == LightType::Directional)
+			{
+				DeferredDirectionalLightMat* const lightMaterial = DeferredDirectionalLightMat::GetVariation(key.IsMSAA, true);
+				lightMaterial->Bind(commandBuffer, false);
+				GetRendererUtility().DrawScreenQuad(commandBuffer);
+
+				// MSAA second pass
+				if(key.IsMSAA)
+				{
+					DeferredDirectionalLightMat* const multiSampleLightMaterial = DeferredDirectionalLightMat::GetVariation(true, false);
+					multiSampleLightMaterial->Bind(commandBuffer, false);
+					GetRendererUtility().DrawScreenQuad(commandBuffer);
+				}
+			}
+			else // Point or Spot
+			{
+				DeferredPointLightMat* const lightMaterial = DeferredPointLightMat::GetVariation(key.IsInside, key.IsMSAA, true);
+				lightMaterial->Bind(commandBuffer, false);
+				GetRendererUtility().Draw(commandBuffer, batch.StencilMesh);
+
+				// MSAA second pass
+				if(key.IsMSAA)
+				{
+					DeferredPointLightMat* multiSampleLightMaterial = DeferredPointLightMat::GetVariation(key.IsInside, true, false);
+					multiSampleLightMaterial->Bind(commandBuffer, false);
+					GetRendererUtility().Draw(commandBuffer, batch.StencilMesh);
+				}
+			}
+		}
+	}
 }
 
 void StandardDeferred::RenderLight(GpuCommandBuffer& commandBuffer, LightType lightType, const RendererLight& light, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion)
 {
-	const auto& viewProps = view.GetProperties();
-
-	bool isMSAA = view.GetProperties().Target.NumSamples > 1;
-	SPtr<GpuBuffer> perViewBuffer = view.GetPerViewBuffer();
-
-	light.GetParameters(mPerLightBuffer);
-
-	if(lightType == LightType::Directional)
-	{
-		DeferredDirectionalLightMat* material = DeferredDirectionalLightMat::GetVariation(isMSAA, true);
-		material->Bind(commandBuffer, gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
-
-		GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-		// Draw pixels requiring per-sample evaluation
-		if(isMSAA)
-		{
-			DeferredDirectionalLightMat* msaaMaterial = DeferredDirectionalLightMat::GetVariation(true, false);
-			msaaMaterial->Bind(commandBuffer, gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
-
-			GetRendererUtility().DrawScreenQuad(commandBuffer);
-		}
-	}
-	else // Radial or spot
-	{
-		// Check if viewer is inside the light volume
-		float distSqrd = (light.Internal->GetBounds().Center - viewProps.ViewOrigin).SquaredLength();
-
-		// Extend the bounds slighty to cover the case when the viewer is outside, but the near plane is intersecting
-		// the light bounds. We need to be conservative since the material for rendering outside will not properly
-		// render the inside of the light volume.
-		float boundRadius = light.Internal->GetBounds().Radius + viewProps.NearPlane * 3.0f;
-
-		bool isInside = distSqrd < (boundRadius * boundRadius);
-
-		SPtr<Mesh> stencilMesh;
-		if(lightType == LightType::Radial)
-			stencilMesh = RendererUtility::Instance().GetSphereStencil();
-		else // Spot
-			stencilMesh = RendererUtility::Instance().GetSpotLightStencil();
-
-		DeferredPointLightMat* material = DeferredPointLightMat::GetVariation(isInside, isMSAA, true);
-		material->Bind(commandBuffer, gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
-
-		// Note: If MSAA is enabled this will be rendered multisampled (on polygon edges), see if this can be avoided
-		GetRendererUtility().Draw(commandBuffer, stencilMesh);
-
-		// Draw pixels requiring per-sample evaluation
-		if(isMSAA)
-		{
-			DeferredPointLightMat* msaaMaterial = DeferredPointLightMat::GetVariation(isInside, true, false);
-			msaaMaterial->Bind(commandBuffer, gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
-
-			GetRendererUtility().Draw(commandBuffer, stencilMesh);
-		}
-	}
+	LightBatches batches = PrepareLightBatches({ &light }, view, gBufferInput, lightOcclusion);
+	RenderLightBatches(commandBuffer, batches);
 }
 
 void StandardDeferred::RenderReflProbe(GpuCommandBuffer& commandBuffer, const ReflProbeData& probeData, const RendererView& view, const GBufferTextures& gBufferInput, const SceneInfo& sceneInfo, const SPtr<GpuBuffer>& reflProbeParams)

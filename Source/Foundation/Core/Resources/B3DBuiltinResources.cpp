@@ -29,22 +29,22 @@ constexpr const char* BuiltinResources::kMultiLineLabelStyle;
 /* 								GUI TEXTURES                      		*/
 /************************************************************************/
 
-const String BuiltinResources::kWhiteTex = u8"White.psd";
+const String BuiltinResources::kWhiteTex = "White.psd";
 
 /************************************************************************/
 /* 							CURSOR TEXTURES                      		*/
 /************************************************************************/
 
-const String BuiltinResources::kCursorArrowTex = u8"Arrow.psd";
-const String BuiltinResources::kCursorArrowDragTex = u8"ArrowDrag.psd";
-const String BuiltinResources::kCursorArrowLeftRightTex = u8"ArrowLeftRight.psd";
-const String BuiltinResources::kCursorIBeamTex = u8"IBeam.psd";
-const String BuiltinResources::kCursorDenyTex = u8"Deny.psd";
-const String BuiltinResources::kCursorWaitTex = u8"Wait.psd";
-const String BuiltinResources::kCursorSizeNeswTex = u8"SizeNESW.psd";
-const String BuiltinResources::kCursorSizeNsTex = u8"SizeNS.psd";
-const String BuiltinResources::kCursorSizeNwseTex = u8"SizeNWSE.psd";
-const String BuiltinResources::kCursorSizeWeTex = u8"SizeWE.psd";
+const String BuiltinResources::kCursorArrowTex = "Arrow.psd";
+const String BuiltinResources::kCursorArrowDragTex = "ArrowDrag.psd";
+const String BuiltinResources::kCursorArrowLeftRightTex = "ArrowLeftRight.psd";
+const String BuiltinResources::kCursorIBeamTex = "IBeam.psd";
+const String BuiltinResources::kCursorDenyTex = "Deny.psd";
+const String BuiltinResources::kCursorWaitTex = "Wait.psd";
+const String BuiltinResources::kCursorSizeNeswTex = "SizeNESW.psd";
+const String BuiltinResources::kCursorSizeNsTex = "SizeNS.psd";
+const String BuiltinResources::kCursorSizeNwseTex = "SizeNWSE.psd";
+const String BuiltinResources::kCursorSizeWeTex = "SizeWE.psd";
 
 const Vector2I BuiltinResources::kCursorArrowHotspot = Vector2I(10, 8);
 const Vector2I BuiltinResources::kCursorArrowDragHotspot = Vector2I(8, 4);
@@ -61,16 +61,16 @@ const Vector2I BuiltinResources::kCursorSizeWeHotspot = Vector2I(16, 15);
 /* 									SHADERS                      		*/
 /************************************************************************/
 
-const String BuiltinResources::kShaderSpriteTextFile = u8"SpriteText.bsl";
-const String BuiltinResources::kShaderSpriteImageFile = u8"SpriteImage.bsl";
-const String BuiltinResources::kShaderSpriteLineFile = u8"SpriteLine.bsl";
+const String BuiltinResources::kShaderSpriteTextFile = "SpriteText.bsl";
+const String BuiltinResources::kShaderSpriteImageFile = "SpriteImage.bsl";
+const String BuiltinResources::kShaderSpriteLineFile = "SpriteLine.bsl";
 
-constexpr const char* kShaderDiffuseFile = u8"Diffuse.bsl";
-constexpr const char* kShaderTransparentFile = u8"Transparent.bsl";
-constexpr const char* kShaderParticlesUnlitFile = u8"ParticlesUnlit.bsl";
-constexpr const char* kShaderParticlesLitFile = u8"ParticlesLit.bsl";
-constexpr const char* kShaderParticlesLitOpaqueFile = u8"ParticlesLitOpaque.bsl";
-constexpr const char* kShaderDecalFile = u8"Decal.bsl";
+constexpr const char* kShaderDiffuseFile = "Diffuse.bsl";
+constexpr const char* kShaderTransparentFile = "Transparent.bsl";
+constexpr const char* kShaderParticlesUnlitFile = "ParticlesUnlit.bsl";
+constexpr const char* kShaderParticlesLitFile = "ParticlesLit.bsl";
+constexpr const char* kShaderParticlesLitOpaqueFile = "ParticlesLitOpaque.bsl";
+constexpr const char* kShaderDecalFile = "Decal.bsl";
 
 BuiltinResources::~BuiltinResources()
 {
@@ -92,7 +92,7 @@ BuiltinResources::~BuiltinResources()
 void BuiltinResources::OnStartUp()
 {
 	// Set up paths
-	mBuiltinRawDataFolder = Paths::GetDataPath() + u8"Raw/";
+	mBuiltinRawDataFolder = Paths::GetDataPath() + "Raw/";
 
 	mBuiltinDataFolder = Paths::GetDataPath();
 	mEngineShaderFolder = mBuiltinDataFolder + kShaderFolder;
@@ -218,7 +218,7 @@ void BuiltinResources::OnStartUp()
 HSpriteTexture BuiltinResources::GetSkinTexture(const String& name) const
 {
 	Path texturePath = Path::Combine(Path::Combine(kVirtualPathPrefix, kSkinFolder), kSpriteFolder);
-	texturePath.Append(u8"sprite_" + name);
+	texturePath.Append("sprite_" + name);
 
 	return GetResources().Load<SpriteTexture>(texturePath, ResourceLoadOptions(false));
 }
@@ -460,7 +460,7 @@ HTexture BuiltinResources::GetTexture(BuiltinTexture type)
 		textureVirtualPath.Append(kTextureNormalFile);
 		break;
 	case BuiltinTexture::BokehFlare:
-		textureVirtualPath.Append(u8"BokehHex.png");
+		textureVirtualPath.Append("BokehHex.png");
 		break;
 	case BuiltinTexture::Black3D:
 		textureVirtualPath.Append(kTextureBlack3DFile);

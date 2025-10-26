@@ -496,6 +496,28 @@ String ToString(unsigned int val, unsigned short width, char fill, std::ios::fmt
 	return stream.str();
 }
 
+String ToString(long val, unsigned short width, char fill, std::ios::fmtflags flags)
+{
+	StringStream stream;
+	stream.width(width);
+	stream.fill(fill);
+	if(flags)
+		stream.setf(flags);
+	stream << val;
+	return stream.str();
+}
+
+String ToString(unsigned long val, unsigned short width, char fill, std::ios::fmtflags flags)
+{
+	StringStream stream;
+	stream.width(width);
+	stream.fill(fill);
+	if(flags)
+		stream.setf(flags);
+	stream << val;
+	return stream.str();
+}
+
 String ToString(i64 val, unsigned short width, char fill, std::ios::fmtflags flags)
 {
 	StringStream stream;

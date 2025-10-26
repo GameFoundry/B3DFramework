@@ -297,12 +297,7 @@ GpuParameterBinding GpuPipelineParameterLayout::GetBinding(GpuParameterType type
 	return GpuParameterBinding(uniformInformation->Set, uniformInformation->Slot);
 }
 
-void GpuPipelineParameterLayout::GetBinding(const String& name, GpuParameterBinding& binding) const
-{
-	binding = GetBinding(name);
-}
-
-GpuParameterBinding GpuPipelineParameterLayout::GetBinding(const String& name) const
+GpuParameterBinding GpuPipelineParameterLayout::GetBinding(const StringView& name) const
 {
 	GpuParameterBinding output;
 
@@ -360,7 +355,7 @@ u32 GpuPipelineParameterLayout::GetDynamicOffsetIndex(u32 set, u32 slot, u32 arr
 	return uniformInformation.DynamicOffsetIndex + arrayIndex;
 }
 
-u32 GpuPipelineParameterLayout::GetDynamicOffsetIndex(const String& name, u32 arrayIndex) const
+u32 GpuPipelineParameterLayout::GetDynamicOffsetIndex(const StringView& name, u32 arrayIndex) const
 {
 	if(auto found = mUniformMap.find(name); found != mUniformMap.end())
 		return GetDynamicOffsetIndex(found->second.Set, found->second.Slot, arrayIndex);
@@ -368,7 +363,7 @@ u32 GpuPipelineParameterLayout::GetDynamicOffsetIndex(const String& name, u32 ar
 	return ~0u;
 }
 
-bool GpuPipelineParameterLayout::HasUniformOfType(const String& name, GpuParameterType type) const
+bool GpuPipelineParameterLayout::HasUniformOfType(const StringView& name, GpuParameterType type) const
 {
 	if(auto found = mUniformMap.find(name); found != mUniformMap.end())
 		return found->second.Type == type;
@@ -376,7 +371,7 @@ bool GpuPipelineParameterLayout::HasUniformOfType(const String& name, GpuParamet
 	return false;
 }
 
-const UniformInformation* GpuPipelineParameterLayout::TryGetUniformInformation(const String& name) const
+const UniformInformation* GpuPipelineParameterLayout::TryGetUniformInformation(const StringView& name) const
 {
 	if(auto found = mUniformMap.find(name); found != mUniformMap.end())
 		return &found->second;
@@ -403,7 +398,7 @@ const UniformInformation* GpuPipelineParameterLayout::TryGetUniformInformation(c
 	return mSets[binding.Set].Uniforms[binding.Slot];
 }
 
-const GpuUniformBufferMemberInformation* GpuPipelineParameterLayout::TryGetUniformBufferMemberInformation(const String& name) const
+const GpuUniformBufferMemberInformation* GpuPipelineParameterLayout::TryGetUniformBufferMemberInformation(const StringView& name) const
 {
 	if(auto found = mUniformBufferMembers.find(name); found != mUniformBufferMembers.end())
 		return &found->second;

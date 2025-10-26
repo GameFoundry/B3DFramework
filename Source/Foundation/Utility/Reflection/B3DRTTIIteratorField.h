@@ -282,7 +282,7 @@ namespace b3d
 		void SetReflectablePointer(void* fieldValue, u32 tupleElementIndex, const SPtr<IReflectable>& reflectable) override
 		{
 			ElementType& value = *static_cast<ElementType*>(fieldValue);
-			if constexpr(typename B3DIsStdPair<ElementType>::value)
+			if constexpr(B3DIsStdPair<ElementType>::value)
 			{
 				B3D_ENSURE(tupleElementIndex <= 1);
 
@@ -318,7 +318,7 @@ namespace b3d
 		SPtr<IReflectable> GetReflectablePointer(const void* fieldValue, u32 tupleElementIndex) override
 		{
 			const ElementType& value = *static_cast<const ElementType*>(fieldValue);
-			if constexpr(typename B3DIsStdPair<ElementType>::value)
+			if constexpr(B3DIsStdPair<ElementType>::value)
 			{
 				B3D_ENSURE(tupleElementIndex <= 1);
 
@@ -381,7 +381,7 @@ namespace b3d
 		const IReflectable& GetReflectable(const void* fieldValue, u32 tupleElementIndex) override
 		{
 			const ElementType& value = *static_cast<const ElementType*>(fieldValue);
-			if constexpr(typename B3DIsStdPair<ElementType>::value)
+			if constexpr(B3DIsStdPair<ElementType>::value)
 			{
 				B3D_ENSURE(tupleElementIndex <= 1);
 

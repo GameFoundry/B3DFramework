@@ -237,7 +237,7 @@ namespace b3d
 		template <class T>
 		static WString ToWString(const T& param)
 		{
-			return b3d::toWString(param);
+			return b3d::ToWString(param);
 		}
 
 		/**	Helper method that "converts" a wide string to a wide string (simply a pass through). */

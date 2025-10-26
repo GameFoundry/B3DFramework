@@ -56,7 +56,7 @@ namespace b3d
 
 		private:
 			u32 mSampleCount;
-			GBufferParams mGBufferParams;
+			GBufferParameterBinding mGBufferParams;
 
 			GpuParameterBuffer mLightBufferParam;
 			GpuParameterStorageTexture mOutputTextureParam;

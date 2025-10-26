@@ -1443,7 +1443,7 @@ namespace b3d
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
-			GBufferParams mGBufferParams;
+			GBufferParameterBinding mGBufferParams;
 		};
 
 		B3D_PARAM_BLOCK_BEGIN(SSRTraceParamDef)
@@ -1519,7 +1519,7 @@ namespace b3d
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
-			GBufferParams mGBufferParams;
+			GBufferParameterBinding mGBufferParams;
 			GpuParameterSampledTexture mSceneColorTexture;
 			GpuParameterSampledTexture mHiZTexture;
 		};
@@ -1703,7 +1703,7 @@ namespace b3d
 			static MSAACoverageMat* GetVariation(u32 msaaCount);
 
 		private:
-			GBufferParams mGBufferParams;
+			GBufferParameterBinding mGBufferParams;
 		};
 
 		/**

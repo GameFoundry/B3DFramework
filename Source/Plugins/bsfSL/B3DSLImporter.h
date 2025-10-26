@@ -27,7 +27,7 @@ namespace b3d
 		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
 		SPtr<ImportOptions> CreateImportOptions() const override;
 
-		static inline constexpr const char* kShaderExtensionWithoutLeadingDot = u8"bsl";
+		static inline constexpr const char* kShaderExtensionWithoutLeadingDot = "bsl";
 	};
 
 	/** @} */

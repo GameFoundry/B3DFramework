@@ -32,22 +32,18 @@ namespace b3d
 			RMAT_DEF("DeferredDirectionalLight.bsl");
 
 			/** Helper method used for initializing variations of this material. */
-			template <bool msaa, bool singleSampleMSAA>
+			template <bool MSAA, bool MSAA_RESOLVE_0TH>
 			static const ShaderVariationParameters& GetVariation()
 			{
 				static ShaderVariationParameters variation = ShaderVariationParameters(
-					{ ShaderVariationParameter("MSAA", msaa),
-					  ShaderVariationParameter("MSAA_RESOLVE_0TH", singleSampleMSAA) });
+					{ ShaderVariationParameter("MSAA", MSAA),
+					  ShaderVariationParameter("MSAA_RESOLVE_0TH", MSAA_RESOLVE_0TH) });
 
 				return variation;
 			}
 
 		public:
 			DeferredDirectionalLightMat() = default;
-			void Initialize() override;
-
-			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(GpuCommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -58,10 +54,6 @@ namespace b3d
 			 * @return							Requested variation of the material.
 			 */
 			static DeferredDirectionalLightMat* GetVariation(bool msaa, bool singleSampleMSAA = false);
-
-		private:
-			GBufferParams mGBufferParams;
-			GpuParameterSampledTexture mLightOcclusionTexParam;
 		};
 
 		/** Shader that renders point (radial & spot) light sources during deferred rendering light pass. */
@@ -70,23 +62,19 @@ namespace b3d
 			RMAT_DEF("DeferredPointLight.bsl");
 
 			/** Helper method used for initializing variations of this material. */
-			template <bool inside, bool msaa, bool singleSampleMSAA>
+			template <bool INSIDE_GEOMETRY, bool MSAA, bool MSAA_RESOLVE_0TH>
 			static const ShaderVariationParameters& GetVariation()
 			{
 				static ShaderVariationParameters variation = ShaderVariationParameters(
-					{ ShaderVariationParameter("MSAA", msaa),
-					  ShaderVariationParameter("INSIDE_GEOMETRY", inside),
-					  ShaderVariationParameter("MSAA_RESOLVE_0TH", singleSampleMSAA) });
+					{ ShaderVariationParameter("MSAA", MSAA),
+					  ShaderVariationParameter("INSIDE_GEOMETRY", INSIDE_GEOMETRY),
+					  ShaderVariationParameter("MSAA_RESOLVE_0TH", MSAA_RESOLVE_0TH) });
 
 				return variation;
 			}
 
 		public:
 			DeferredPointLightMat() = default;
-			void Initialize() override;
-
-			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(GpuCommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -98,10 +86,6 @@ namespace b3d
 			 * @return							Requested variation of the material.
 			 */
 			static DeferredPointLightMat* GetVariation(bool inside, bool msaa, bool singleSampleMSAA = false);
-
-		private:
-			GBufferParams mGBufferParams;
-			GpuParameterSampledTexture mLightOcclusionTexParam;
 		};
 
 		B3D_PARAM_BLOCK_BEGIN(PerProbeParamDef)
@@ -154,7 +138,7 @@ namespace b3d
 			static DeferredIBLSetupMat* GetVariation(bool msaa, bool singleSampleMSAA = false);
 
 		private:
-			GBufferParams mGBufferParams;
+			GBufferParameterBinding mGBufferParams;
 			ImageBasedLightingParams mIBLParams;
 		};
 
@@ -200,7 +184,7 @@ namespace b3d
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
-			GBufferParams mGBufferParams;
+			GBufferParameterBinding mGBufferParams;
 			ImageBasedLightingParams mIBLParams;
 		};
 
@@ -243,7 +227,7 @@ namespace b3d
 			static DeferredIBLSkyMat* GetVariation(bool msaa, bool singleSampleMSAA = false);
 
 		private:
-			GBufferParams mGBufferParams;
+			GBufferParameterBinding mGBufferParams;
 			ImageBasedLightingParams mIBLParams;
 		};
 
@@ -286,7 +270,7 @@ namespace b3d
 			static DeferredIBLFinalizeMat* GetVariation(bool msaa, bool singleSampleMSAA = false);
 
 		private:
-			GBufferParams mGBufferParams;
+			GBufferParameterBinding mGBufferParams;
 			ImageBasedLightingParams mIBLParams;
 			GpuParameterSampledTexture mIBLRadiance;
 		};
@@ -295,7 +279,72 @@ namespace b3d
 		class StandardDeferred : public Module<StandardDeferred>
 		{
 		public:
-			StandardDeferred();
+			/** Material variation key for grouping lights by material type. */
+			struct MaterialVariationKey
+			{
+				LightType Type;
+				bool IsMSAA;
+				bool IsInside; // For point/spot lights only
+				bool IsSingleSampleMSAA;
+
+				bool operator<(const MaterialVariationKey& other) const
+				{
+					if(Type != other.Type) return Type < other.Type;
+					if(IsMSAA != other.IsMSAA) return IsMSAA < other.IsMSAA;
+					if(IsInside != other.IsInside) return IsInside < other.IsInside;
+					return IsSingleSampleMSAA < other.IsSingleSampleMSAA;
+				}
+			};
+
+			/** Information about a single light instance in a batch. */
+			struct BatchedLightInstance
+			{
+				const RendererLight* Light;
+				u32 UniformBufferOffset; /**< Byte offset in the instanced uniform buffer. */
+			};
+
+			/** Group of lights sharing the same material variation. */
+			struct LightBatch
+			{
+				// Material pointers
+				SPtr<Mesh> StencilMesh; // For point/spot lights
+
+				// Lights in this group
+				TArray<BatchedLightInstance> Lights;
+
+				// Shared GPU resources
+				SPtr<GpuBuffer> PerLightUniformBuffer; // Instanced buffer
+				SPtr<GpuParameters> GpuParameters; // Single GpuParameters for all lights
+				u32 DynamicOffsetIndex; // Index for SetDynamicBufferOffset
+				u32 UniformStride; // Stride between light instances in buffer
+			};
+
+			/** Batch of lights grouped by material variation. */
+			struct LightBatches
+			{
+				Map<MaterialVariationKey, LightBatch> Batches;
+			};
+
+			/**
+			 * Groups lights using the same material together in a batch, and prepares uniform buffers so all the light rendering can happen with the same
+			 * uniform buffer (using dynamic offsets).
+			 *
+			 * @param lights            Lights to batch.
+			 * @param view              View to render from.
+			 * @param gBufferInput      GBuffer textures.
+			 * @param lightOcclusion    Shadow occlusion texture (or Texture::kBlack if no shadows).
+			 * @return                  Prepared batch containing grouped lights and GPU resources.
+			 */
+			LightBatches PrepareLightBatches(const TArrayView<const RendererLight*>& lights, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion);
+
+			/**
+			 * Renders a prepared light batch using dynamic offsets.
+			 * Must be called within an active render pass.
+			 *
+			 * @param commandBuffer     Command buffer to render with.
+			 * @param batches           Prepared light batch.
+			 */
+			void RenderLightBatches(GpuCommandBuffer& commandBuffer, const LightBatches& batches);
 
 			/** Calculates lighting for the specified light, using the standard deferred renderer. */
 			void RenderLight(GpuCommandBuffer& commandBuffer, LightType type, const RendererLight& light, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion);
@@ -306,9 +355,6 @@ namespace b3d
 			 * contibution after blending.
 			 */
 			void RenderReflProbe(GpuCommandBuffer& commandBuffer, const ReflProbeData& probeData, const RendererView& view, const GBufferTextures& gBufferInput, const SceneInfo& sceneInfo, const SPtr<GpuBuffer>& reflProbeParams);
-
-		private:
-			SPtr<GpuBuffer> mPerLightBuffer;
 		};
 	} // namespace render
 } // namespace b3d

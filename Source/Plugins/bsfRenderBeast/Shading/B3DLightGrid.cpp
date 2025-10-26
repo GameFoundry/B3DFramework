@@ -274,9 +274,9 @@ void LightGrid::UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& 
 	Vector2I lightStrides;
 	if(!noLighting)
 	{
-		lightCount[0] = lightData.GetNumLights(LightType::Directional);
-		lightCount[1] = lightData.GetNumLights(LightType::Radial);
-		lightCount[2] = lightData.GetNumLights(LightType::Spot);
+		lightCount[0] = lightData.GetLightCount(LightType::Directional);
+		lightCount[1] = lightData.GetLightCount(LightType::Radial);
+		lightCount[2] = lightData.GetLightCount(LightType::Spot);
 		lightCount[3] = lightCount[0] + lightCount[1] + lightCount[2];
 
 		lightStrides[0] = lightCount[0];

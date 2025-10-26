@@ -71,15 +71,15 @@ void TiledDeferredLightingMat::Execute(GpuCommandBuffer& commandBuffer, const Re
 	else
 	{
 		Vector4I unshadowedLightCounts;
-		unshadowedLightCounts[0] = lightData.GetNumUnshadowedLights(LightType::Directional);
-		unshadowedLightCounts[1] = lightData.GetNumUnshadowedLights(LightType::Radial);
-		unshadowedLightCounts[2] = lightData.GetNumUnshadowedLights(LightType::Spot);
+		unshadowedLightCounts[0] = lightData.GetUnshadowedLightCount(LightType::Directional);
+		unshadowedLightCounts[1] = lightData.GetUnshadowedLightCount(LightType::Radial);
+		unshadowedLightCounts[2] = lightData.GetUnshadowedLightCount(LightType::Spot);
 		unshadowedLightCounts[3] = unshadowedLightCounts[0] + unshadowedLightCounts[1] + unshadowedLightCounts[2];
 
 		Vector4I lightCounts;
-		lightCounts[0] = lightData.GetNumLights(LightType::Directional);
-		lightCounts[1] = lightData.GetNumLights(LightType::Radial);
-		lightCounts[2] = lightData.GetNumLights(LightType::Spot);
+		lightCounts[0] = lightData.GetLightCount(LightType::Directional);
+		lightCounts[1] = lightData.GetLightCount(LightType::Radial);
+		lightCounts[2] = lightData.GetLightCount(LightType::Spot);
 		lightCounts[3] = lightCounts[0] + lightCounts[1] + lightCounts[2];
 
 		Vector2I lightStrides;

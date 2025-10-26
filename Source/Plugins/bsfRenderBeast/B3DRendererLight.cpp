@@ -43,7 +43,7 @@ void RendererLight::GetParameters(LightData& output) const
 	output.ShiftedLightPosition = GetShiftedLightPosition();
 }
 
-void RendererLight::GetParameters(SPtr<GpuBuffer>& buffer) const
+void RendererLight::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index) const
 {
 	LightData lightData;
 	GetParameters(lightData);
@@ -64,11 +64,11 @@ void RendererLight::GetParameters(SPtr<GpuBuffer>& buffer) const
 		break;
 	}
 
-	gPerLightParamDef.gLightPositionAndSrcRadius.Set(buffer, Vector4(lightData.Position, lightData.SrcRadius));
-	gPerLightParamDef.gLightColorAndLuminance.Set(buffer, Vector4(lightData.Color, lightData.Luminance));
-	gPerLightParamDef.gLightSpotAnglesAndSqrdInvAttRadius.Set(buffer, Vector4(lightData.SpotAngles, lightData.AttRadiusSqrdInv));
-	gPerLightParamDef.gLightDirectionAndBoundRadius.Set(buffer, Vector4(lightData.Direction, lightData.BoundsRadius));
-	gPerLightParamDef.gShiftedLightPositionAndType.Set(buffer, Vector4(lightData.ShiftedLightPosition, type));
+	gPerLightParamDef.gLightPositionAndSrcRadius.Set(buffer, Vector4(lightData.Position, lightData.SrcRadius), index);
+	gPerLightParamDef.gLightColorAndLuminance.Set(buffer, Vector4(lightData.Color, lightData.Luminance), index);
+	gPerLightParamDef.gLightSpotAnglesAndSqrdInvAttRadius.Set(buffer, Vector4(lightData.SpotAngles, lightData.AttRadiusSqrdInv), index);
+	gPerLightParamDef.gLightDirectionAndBoundRadius.Set(buffer, Vector4(lightData.Direction, lightData.BoundsRadius), index);
+	gPerLightParamDef.gShiftedLightPositionAndType.Set(buffer, Vector4(lightData.ShiftedLightPosition, type), index);
 
 	Vector4 lightGeometry;
 	lightGeometry.X = Internal->GetType() == LightType::Spot ? (float)Light::kLightConeNumSides : 0;
@@ -102,26 +102,19 @@ Vector3 RendererLight::GetShiftedLightPosition() const
 		return tfrm.GetPosition();
 }
 
-void GBufferParams::Initialize(GpuDevice& gpuDevice, GpuProgramType type, const SPtr<GpuParameters>& gpuParams)
+void GBufferParameterBinding::Initialize(GpuDevice& gpuDevice, GpuProgramType type, const SPtr<GpuParameters>& gpuParams)
 {
 	mParams = gpuParams;
 
-	if(mParams->HasSampledTexture("gGBufferATex"))
-		mParams->GetSampledTextureParameter("gGBufferATex", mGBufferA);
+	mParams->TryGetSampledTextureParameter(kAlbedoTextureName, mGBufferA);
+	mParams->TryGetSampledTextureParameter(kNormalsTextureName, mGBufferB);
+	mParams->TryGetSampledTextureParameter(kRoughMetalTextureName, mGBufferC);
+	mParams->TryGetSampledTextureParameter(kDepthTextureName, mGBufferDepth);
 
-	if(mParams->HasSampledTexture("gGBufferBTex"))
-		mParams->GetSampledTextureParameter("gGBufferBTex", mGBufferB);
-
-	if(mParams->HasSampledTexture("gGBufferCTex"))
-		mParams->GetSampledTextureParameter("gGBufferCTex", mGBufferC);
-
-	if(mParams->HasSampledTexture("gDepthBufferTex"))
-		mParams->GetSampledTextureParameter("gDepthBufferTex", mGBufferDepth);
-
-	if(mParams->HasSamplerState("gDepthBufferSamp"))
+	if(mParams->HasSamplerState(kDepthSamplerName))
 	{
 		GpuParameterSampler samplerStateParam;
-		mParams->GetSamplerStateParameter("gDepthBufferSamp", samplerStateParam);
+		mParams->GetSamplerStateParameter(kDepthSamplerName, samplerStateParam);
 
 		SamplerStateInformation desc;
 		desc.MinFilter = FO_POINT;
@@ -133,12 +126,41 @@ void GBufferParams::Initialize(GpuDevice& gpuDevice, GpuProgramType type, const 
 	}
 }
 
-void GBufferParams::Bind(const GBufferTextures& gbuffer)
+void GBufferParameterBinding::Bind(const GBufferTextures& gbuffer)
 {
 	mGBufferA.Set(gbuffer.Albedo);
 	mGBufferB.Set(gbuffer.Normals);
 	mGBufferC.Set(gbuffer.RoughMetal);
 	mGBufferDepth.Set(gbuffer.Depth);
+}
+
+void GBufferParameterBinding::Set(GpuDevice& gpuDevice, const SPtr<GpuParameters>& gpuParameters, const GBufferTextures& textures)
+{
+	if(gpuParameters->HasSampledTexture(kAlbedoTextureName))
+		gpuParameters->SetSampledTexture(kAlbedoTextureName, textures.Albedo);
+
+	if(gpuParameters->HasSampledTexture(kNormalsTextureName))
+		gpuParameters->SetSampledTexture(kNormalsTextureName, textures.Normals);
+
+	if(gpuParameters->HasSampledTexture(kRoughMetalTextureName))
+		gpuParameters->SetSampledTexture(kRoughMetalTextureName, textures.RoughMetal);
+
+	if(gpuParameters->HasSampledTexture(kDepthTextureName))
+		gpuParameters->SetSampledTexture(kDepthTextureName, textures.Depth);
+
+	if(gpuParameters->HasSamplerState(kDepthSamplerName))
+	{
+		GpuParameterSampler samplerStateParam;
+		gpuParameters->GetSamplerStateParameter(kDepthSamplerName, samplerStateParam);
+
+		SamplerStateInformation samplerStateInformation;
+		samplerStateInformation.MinFilter = FO_POINT;
+		samplerStateInformation.MagFilter = FO_POINT;
+		samplerStateInformation.MipFilter = FO_POINT;
+
+		SPtr<SamplerState> sampleState = gpuDevice.FindOrCreateSamplerState(samplerStateInformation);
+		samplerStateParam.Set(sampleState);
+	}
 }
 
 void ForwardLightingParams::Populate(const SPtr<GpuParameters>& params, bool clustered)
@@ -167,7 +189,7 @@ void ForwardLightingParams::Populate(const SPtr<GpuParameters>& params, bool clu
 }
 
 VisibleLightData::VisibleLightData()
-	: mNumLights{}, mNumShadowedLights{}
+	: mLightCounts{}, mShadowedLightCounts{}
 {}
 
 void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGroup& viewGroup)
@@ -201,7 +223,7 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 	}
 
 	for(u32 i = 0; i < (u32)LightType::Count; i++)
-		mNumLights[i] = (u32)mVisibleLights[i].size();
+		mLightCounts[i] = (u32)mVisibleLights[i].size();
 
 	// Partition all visible lights so that unshadowed ones come first
 	auto partition = [](Vector<const RendererLight*>& entries)
@@ -235,7 +257,7 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 	};
 
 	for(u32 i = 0; i < (u32)LightType::Count; i++)
-		mNumShadowedLights[i] = mNumLights[i] - partition(mVisibleLights[i]);
+		mShadowedLightCounts[i] = mLightCounts[i] - partition(mVisibleLights[i]);
 
 	// Generate light data to initialize the GPU buffer with
 	mVisibleLightData.clear();
@@ -283,7 +305,7 @@ void VisibleLightData::GatherInfluencingLights(const Bounds& bounds, const Light
 	u32 outputIndices[kStandardForwardMaxNumLights];
 	u32 numInfluencingLights = 0;
 
-	u32 numDirLights = GetNumDirLights();
+	u32 numDirLights = GetDirectionalLightCount();
 	for(u32 i = 0; i < numDirLights; i++)
 	{
 		if(numInfluencingLights >= kStandardForwardMaxNumLights)
@@ -354,7 +376,7 @@ void VisibleLightData::GatherInfluencingLights(const Bounds& bounds, const Light
 	}
 
 	u32 outputIdx = pointLightOffset;
-	u32 spotLightIdx = GetNumDirLights() + GetNumRadialLights();
+	u32 spotLightIdx = GetDirectionalLightCount() + GetRadialLightCount();
 	for(u32 i = pointLightOffset; i < numInfluencingLights; i++)
 	{
 		bool isSpot = outputIndices[i] >= spotLightIdx;

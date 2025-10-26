@@ -204,23 +204,23 @@ namespace b3d
 		static constexpr const char* kFontsFolder = "Fonts/";
 		static constexpr const char* kUnitTestDataFolder = "UnitTestData/";
 
-		static constexpr const char* kMeshSphereFile = u8"Sphere";
-		static constexpr const char* kMeshBoxFile = u8"Box";
-		static constexpr const char* kMeshConeFile = u8"Cone";
-		static constexpr const char* kMeshCylinderFile = u8"Cylinder";
-		static constexpr const char* kMeshQuadFile = u8"Quad";
-		static constexpr const char* kMeshDiscFile = u8"Disc";
+		static constexpr const char* kMeshSphereFile = "Sphere";
+		static constexpr const char* kMeshBoxFile = "Box";
+		static constexpr const char* kMeshConeFile = "Cone";
+		static constexpr const char* kMeshCylinderFile = "Cylinder";
+		static constexpr const char* kMeshQuadFile = "Quad";
+		static constexpr const char* kMeshDiscFile = "Disc";
 
-		static constexpr const char* kTextureWhiteFile = u8"White";
-		static constexpr const char* kTextureBlackFile = u8"Black";
-		static constexpr const char* kTextureNormalFile = u8"Normal";
-		static constexpr const char* kTextureWhite3DFile = u8"White3D";
-		static constexpr const char* kTextureBlack3DFile = u8"Black3D";
+		static constexpr const char* kTextureWhiteFile = "White";
+		static constexpr const char* kTextureBlackFile = "Black";
+		static constexpr const char* kTextureNormalFile = "Normal";
+		static constexpr const char* kTextureWhite3DFile = "White3D";
+		static constexpr const char* kTextureBlack3DFile = "Black3D";
 
-		static constexpr const char* kDefaultFontName = u8"arial.ttf";
+		static constexpr const char* kDefaultFontName = "arial.ttf";
 		static constexpr const u32 kDefaultFontSize = 8;
 
-		static constexpr const char* kGuiSkinFile = u8"GUISkin";
+		static constexpr const char* kGuiSkinFile = "GUISkin";
 
 	private:
 		void OnStartUp() override;
