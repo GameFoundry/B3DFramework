@@ -30,18 +30,24 @@ namespace b3d
 			{}
 
 			/**
-			 * Sets the parameter in the provided parameter block buffer. Caller is responsible for ensuring the param block
-			 * buffer contains this parameter.
+			 * Sets the parameter in the provided uniform buffer. Caller is responsible for ensuring the uniform buffer contains this parameter.
+			 *
+			 * @param uniformBuffer			Uniform buffer to set the parameter in.
+			 * @param value					Value to set.
+			 * @param arrayIndex			Index in the array to set the value for (if the parameter is an array).
+			 * @param suballocationIndex	Index of the sub-allocation in the uniform buffer to set the value for, if the buffer contains multiple sub-allocated buffers.
 			 */
-			void Set(const SPtr<GpuBuffer>& parameterBlockBuffer, const T& value, u32 arrayIdx = 0) const
+			void Set(const SPtr<GpuBuffer>& uniformBuffer, const T& value, u32 arrayIndex = 0, u32 suballocationIndex = 0) const
 			{
 #if B3D_DEBUG
-				if(arrayIdx >= mParameterInformation.ArraySize)
-				{
-					B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParameterInformation.ArraySize) + ". Requested size: " + ToString(arrayIdx));
-				}
+				if(!B3D_ENSURE(arrayIndex < mParameterInformation.ArraySize))
+					return;
+
+				if(!B3D_ENSURE(suballocationIndex < uniformBuffer->GetInformation().SuballocationCount))
+					return;
 #endif
 
+				const u32 offset = CalculateSuballocationOffset(uniformBuffer, suballocationIndex, arrayIndex);
 				const GpuDataParameterTypeInformation& typeInformation = b3d::GpuParameters::kParamSizes.Lookup[mParameterInformation.Type];
 
 				const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
@@ -51,36 +57,55 @@ namespace b3d
 				if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 				{
 					auto transposed = TransposePolicy<T>::Transpose(value);
-					parameterBlockBuffer->WriteCachedType((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32), typeInformation, &transposed);
+					uniformBuffer->WriteCachedType(offset, typeInformation, &transposed);
 				}
 				else
-					parameterBlockBuffer->WriteCachedType((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32), typeInformation, &value);
+					uniformBuffer->WriteCachedType(offset, typeInformation, &value);
 			}
 
 			/**
-			 * Gets the parameter in the provided parameter block buffer. Caller is responsible for ensuring the param block
-			 * buffer contains this parameter.
+			 * Gets the parameter in the provided uniform buffer. Caller is responsible for ensuring the uniform buffer contains this parameter.
+			 *
+			 * @param uniformBuffer			Uniform buffer to get the parameter from.
+			 * @param arrayIndex			Index in the array to get the value for (if the parameter is an array).
+			 * @param suballocationIndex	Index of the sub-allocation in the uniform buffer to get the value for, if the buffer contains multiple sub-allocated buffers.
 			 */
-			T Get(const SPtr<GpuBuffer>& parameterBlockBuffer, u32 arrayIdx = 0) const
+			T Get(const SPtr<GpuBuffer>& uniformBuffer, u32 arrayIndex = 0, u32 suballocationIndex = 0) const
 			{
 #if B3D_DEBUG
-				if(arrayIdx >= mParameterInformation.ArraySize)
-				{
-					B3D_LOG(Error, Material, "Array index out of range. Array size: {0}. Requested size: {1}", mParameterInformation.ArraySize, arrayIdx);
+				if(!B3D_ENSURE(arrayIndex < mParameterInformation.ArraySize))
 					return T();
-				}
+
+				if(!B3D_ENSURE(suballocationIndex < uniformBuffer->GetInformation().SuballocationCount))
+					return T();
 #endif
 
+				const u32 offset = CalculateSuballocationOffset(uniformBuffer, suballocationIndex, arrayIndex);
 				u32 elementSizeBytes = mParameterInformation.ElementSize * sizeof(u32);
 				u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T));
 
 				T value;
-				parameterBlockBuffer->ReadCached((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32), sizeBytes, &value);
+				uniformBuffer->ReadCached(offset, sizeBytes, &value);
 
 				return value;
 			}
 
 		protected:
+			/**
+			 * Calculates the byte offset for a parameter accounting for sub-allocations and array indices.
+			 */
+			u32 CalculateSuballocationOffset(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex, u32 arrayIndex) const
+			{
+				// Calculate base parameter offset within a single uniform block
+				const u32 parameterOffset = (mParameterInformation.CpuOffset + arrayIndex * mParameterInformation.ArrayElementStride) * sizeof(u32);
+
+				// If buffer has sub-allocations, add sub-allocation stride
+				const GpuBufferInformation& bufferInfo = buffer->GetInformation();
+
+				const u32 suballocationStride = buffer->GetSuballocationSize();
+				return suballocationIndex * suballocationStride + parameterOffset;
+			}
+
 			GpuUniformBufferMemberInformation mParameterInformation;
 		};
 

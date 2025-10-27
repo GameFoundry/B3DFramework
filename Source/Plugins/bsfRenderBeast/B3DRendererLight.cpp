@@ -64,11 +64,11 @@ void RendererLight::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index) co
 		break;
 	}
 
-	gPerLightParamDef.gLightPositionAndSrcRadius.Set(buffer, Vector4(lightData.Position, lightData.SrcRadius), index);
-	gPerLightParamDef.gLightColorAndLuminance.Set(buffer, Vector4(lightData.Color, lightData.Luminance), index);
-	gPerLightParamDef.gLightSpotAnglesAndSqrdInvAttRadius.Set(buffer, Vector4(lightData.SpotAngles, lightData.AttRadiusSqrdInv), index);
-	gPerLightParamDef.gLightDirectionAndBoundRadius.Set(buffer, Vector4(lightData.Direction, lightData.BoundsRadius), index);
-	gPerLightParamDef.gShiftedLightPositionAndType.Set(buffer, Vector4(lightData.ShiftedLightPosition, type), index);
+	gPerLightParamDef.gLightPositionAndSrcRadius.Set(buffer, Vector4(lightData.Position, lightData.SrcRadius), 0, index);
+	gPerLightParamDef.gLightColorAndLuminance.Set(buffer, Vector4(lightData.Color, lightData.Luminance), 0, index);
+	gPerLightParamDef.gLightSpotAnglesAndSqrdInvAttRadius.Set(buffer, Vector4(lightData.SpotAngles, lightData.AttRadiusSqrdInv), 0, index);
+	gPerLightParamDef.gLightDirectionAndBoundRadius.Set(buffer, Vector4(lightData.Direction, lightData.BoundsRadius), 0, index);
+	gPerLightParamDef.gShiftedLightPositionAndType.Set(buffer, Vector4(lightData.ShiftedLightPosition, type), 0, index);
 
 	Vector4 lightGeometry;
 	lightGeometry.X = Internal->GetType() == LightType::Spot ? (float)Light::kLightConeNumSides : 0;
@@ -79,7 +79,7 @@ void RendererLight::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index) co
 	float coneRadius = Math::Sin(lightData.SpotAngles.X) * (Internal->GetAttenuationRadius() + extraRadius);
 	lightGeometry.W = coneRadius;
 
-	gPerLightParamDef.gLightGeometry.Set(buffer, lightGeometry);
+	gPerLightParamDef.gLightGeometry.Set(buffer, lightGeometry, 0, index);
 
 	const Transform& tfrm = Internal->GetWorldTransform();
 
@@ -87,7 +87,7 @@ void RendererLight::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index) co
 	lightRotation.LookRotation(-tfrm.GetRotation().ZAxis());
 
 	Matrix4 transform = Matrix4::TRS(lightData.ShiftedLightPosition, lightRotation, Vector3::kOne);
-	gPerLightParamDef.gMatConeTransform.Set(buffer, transform);
+	gPerLightParamDef.gMatConeTransform.Set(buffer, transform, 0, index);
 }
 
 Vector3 RendererLight::GetShiftedLightPosition() const
