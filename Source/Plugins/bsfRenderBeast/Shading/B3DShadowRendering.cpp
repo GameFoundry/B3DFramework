@@ -269,6 +269,98 @@ ShadowProjectOmniMat* ShadowProjectOmniMat::GetVariation(u32 quality, bool insid
 #undef BIND_MAT
 }
 
+/** Helper class containing utilities for shadow projection material binding. */
+struct ShadowProjectionParameterBinding
+{
+	/**
+	 * Binds common shadow parameters that are shared by all shadow projection materials.
+	 *
+	 * @param gpuParameters          The GPU parameters object to set parameters on.
+	 * @param vertexParameterBuffer  The vertex parameter buffer containing position and scale.
+	 * @param perCameraBuffer        The per-camera parameter buffer.
+	 * @param lightPositionAndScale  The light position and scale/radius to set in vertex parameters.
+	 * @param shadowParameterBuffer  Optional shadow-specific parameter buffer (for projection materials).
+	 */
+	static void BindCommonParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& vertexParameterBuffer, const SPtr<GpuBuffer>& perCameraBuffer, const Vector4& lightPositionAndScale, const SPtr<GpuBuffer>& shadowParameterBuffer = nullptr)
+	{
+		// Set vertex parameters
+		gShadowProjectVertParamsDef.gPositionAndScale.Set(vertexParameterBuffer, lightPositionAndScale);
+		if(gpuParameters->HasUniformBuffer("VertParams"))
+			gpuParameters->SetUniformBuffer("VertParams", vertexParameterBuffer);
+
+		// Set per-camera buffer
+		gpuParameters->SetUniformBuffer("PerCamera", perCameraBuffer);
+
+		// Set shadow-specific parameters buffer (if provided, for projection materials)
+		if(shadowParameterBuffer != nullptr)
+			gpuParameters->SetUniformBuffer("Params", shadowParameterBuffer);
+	}
+
+	/**
+	 * Binds shadow projection stencil material parameters for standard (non-omnidirectional) shadows.
+	 *
+	 * @param gpuParameters The GPU parameters object to set parameters on.
+	 */
+	static void BindStencilProjectionParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& perCameraBuffer, const SPtr<GpuBuffer>& vertexParameterBuffer)
+	{
+		// Bind common parameters (VertParams, PerCamera, Params)
+		// Default light position for spot/directional lights
+		BindCommonParameters(gpuParameters, vertexParameterBuffer, perCameraBuffer, Vector4(0.0f, 0.0f, 0.0f, 1.0f), nullptr);
+	}
+
+	/**
+	 * Binds shadow projection material parameters for standard (non-omnidirectional) shadows.
+	 *
+	 * @param gpuParameters The GPU parameters object to set parameters on.
+	 * @param gpuDevice     The GPU device used to retrieve the sampler state.
+	 */
+	static void BindProjectionParameters(const SPtr<GpuParameters>& gpuParameters, GpuDevice& gpuDevice, const SPtr<Texture>& shadowMap, const SPtr<GpuBuffer>& shadowParameterBuffer,
+		const SPtr<GpuBuffer>& perCameraBuffer, const SPtr<GpuBuffer>& vertexParameterBuffer, const GBufferTextures& gbuffer)
+	{
+		// Bind common parameters (VertParams, PerCamera, Params)
+		// Default light position for spot/directional lights
+		BindCommonParameters(gpuParameters, vertexParameterBuffer, perCameraBuffer, Vector4(0.0f, 0.0f, 0.0f, 1.0f), shadowParameterBuffer);
+
+		// Set GBuffer textures
+		GBufferParameterBinding::Set(gpuDevice, gpuParameters, gbuffer);
+
+		// Set shadow texture and sampler
+		gpuParameters->SetSampledTexture("gShadowTex", shadowMap);
+
+		if(gpuParameters->HasSamplerState("gShadowSampler"))
+			gpuParameters->SetSamplerState("gShadowSampler", ShadowProjectMat::GetShadowSampler(gpuDevice));
+		else
+			gpuParameters->SetSamplerState("gShadowTex", ShadowProjectMat::GetShadowSampler(gpuDevice));
+	}
+
+	/**
+	 * Binds omnidirectional shadow projection material parameters.
+	 *
+	 * @param gpuParameters The GPU parameters object to set parameters on.
+	 * @param gpuDevice     The GPU device used to retrieve the sampler state.
+	 */
+	static void BindOmnidirectionalProjectionParameters(const SPtr<GpuParameters>& gpuParameters, GpuDevice& gpuDevice, const Light& light, const SPtr<Texture>& shadowMap, const SPtr<GpuBuffer>& shadowParameterBuffer,
+		const SPtr<GpuBuffer>& perCameraBuffer, const SPtr<GpuBuffer>& vertexParameterBuffer, const GBufferTextures& gbuffer)
+	{
+		// Bind common parameters (VertParams, PerCamera, Params)
+		// Set light position and radius for omnidirectional light
+		const Transform& transform = light.GetWorldTransform();
+		Vector4 lightPositionAndScale(transform.GetPosition(), light.GetAttenuationRadius());
+		BindCommonParameters(gpuParameters, vertexParameterBuffer, perCameraBuffer, lightPositionAndScale, shadowParameterBuffer);
+
+		// Set GBuffer textures
+		GBufferParameterBinding::Set(gpuDevice, gpuParameters, gbuffer);
+
+		// Set shadow cubemap texture and sampler
+		gpuParameters->SetSampledTexture("gShadowCubeTex", shadowMap);
+
+		if(gpuParameters->HasSamplerState("gShadowCubeSampler"))
+			gpuParameters->SetSamplerState("gShadowCubeSampler", ShadowProjectOmniMat::GetShadowSampler(gpuDevice));
+		else
+			gpuParameters->SetSamplerState("gShadowCubeTex", ShadowProjectOmniMat::GetShadowSampler(gpuDevice));
+	}
+};
+
 void ShadowInfo::UpdateNormArea(u32 atlasSize)
 {
 	NormArea.X = Area.X / (float)atlasSize;
@@ -994,28 +1086,8 @@ void ShadowRendering::RenderShadowOcclusion(GpuCommandBuffer& commandBuffer, con
 			mat->Bind(commandBuffer);
 
 			// Bind GPU parameters explicitly
-			SPtr<GpuParameters> gpuParams = mat->GetGPUParameters();
-
-			// Set vertex parameters
-			Vector4 lightPosAndScale(tfrm.GetPosition(), light->GetAttenuationRadius());
-			gShadowProjectVertParamsDef.gPositionAndScale.Set(shadowProjectVertBuffer, lightPosAndScale);
-			gpuParams->SetUniformBuffer("VertParams", shadowProjectVertBuffer);
-
-			// Set GBuffer textures
-			GBufferParameterBinding::Set(commandBuffer.GetGpuDevice(), gpuParams, gbuffer);
-
-			// Set shadow cubemap texture and sampler
-			gpuParams->SetSampledTexture("gShadowCubeTex", shadowMap);
-
-			GpuParameterSampler shadowSamplerParam;
-			if(gpuParams->HasSamplerState("gShadowCubeSampler"))
-				gpuParams->SetSamplerState("gShadowCubeSampler", ShadowProjectOmniMat::GetShadowSampler(commandBuffer.GetGpuDevice()));
-			else
-				gpuParams->SetSamplerState("gShadowCubeTex", ShadowProjectOmniMat::GetShadowSampler(commandBuffer.GetGpuDevice()));
-
-			// Set parameter buffers
-			gpuParams->SetUniformBuffer("Params", shadowOmniParamBuffer);
-			gpuParams->SetUniformBuffer("PerCamera", perViewBuffer);
+			SPtr<GpuParameters> gpuParameters = mat->GetGPUParameters();
+			ShadowProjectionParameterBinding::BindOmnidirectionalProjectionParameters(gpuParameters, commandBuffer.GetGpuDevice(), *light, shadowMap, shadowOmniParamBuffer, perViewBuffer, shadowProjectVertBuffer, gbuffer);
 
 			// Bind parameters to pipeline
 			mat->BindParameters(commandBuffer);
@@ -1124,16 +1196,8 @@ void ShadowRendering::RenderShadowOcclusion(GpuCommandBuffer& commandBuffer, con
 				stencilMat->Bind(commandBuffer);
 
 				// Bind GPU parameters for stencil material
-				SPtr<GpuParameters> stencilGpuParams = stencilMat->GetGPUParameters(); // TODO - GPU parameter code is duplicated here and below, deduplicate
-
-				// Set vertex parameters (default for spot light)
-				Vector4 lightPosAndScale(0, 0, 0, 1);
-				gShadowProjectVertParamsDef.gPositionAndScale.Set(shadowProjectVertBuffer, lightPosAndScale);
-				if(stencilGpuParams->HasUniformBuffer("VertParams"))
-					stencilGpuParams->SetUniformBuffer("VertParams", shadowProjectVertBuffer);
-
-				// Set per-camera buffer
-				stencilGpuParams->SetUniformBuffer("PerCamera", perViewBuffer);
+				SPtr<GpuParameters> stencilGpuParameters = stencilMat->GetGPUParameters(); // TODO - GPU parameter code is duplicated here and below, deduplicate
+				ShadowProjectionParameterBinding::BindStencilProjectionParameters(stencilGpuParameters, perViewBuffer, shadowProjectVertBuffer);
 
 				// Bind parameters to pipeline
 				stencilMat->BindParameters(commandBuffer);
@@ -1155,16 +1219,8 @@ void ShadowRendering::RenderShadowOcclusion(GpuCommandBuffer& commandBuffer, con
 				stencilMaterial->Bind(commandBuffer);
 
 				// Bind GPU parameters for stencil material
-				SPtr<GpuParameters> stencilGpuParams = stencilMaterial->GetGPUParameters();
-
-				// Set vertex parameters (default for directional light)
-				Vector4 lightPosAndScale(0, 0, 0, 1);
-				gShadowProjectVertParamsDef.gPositionAndScale.Set(shadowProjectVertBuffer, lightPosAndScale);
-				if(stencilGpuParams->HasUniformBuffer("VertParams"))
-					stencilGpuParams->SetUniformBuffer("VertParams", shadowProjectVertBuffer);
-
-				// Set per-camera buffer
-				stencilGpuParams->SetUniformBuffer("PerCamera", perViewBuffer);
+				SPtr<GpuParameters> stencilGpuParameters = stencilMaterial->GetGPUParameters();
+				ShadowProjectionParameterBinding::BindStencilProjectionParameters(stencilGpuParameters, perViewBuffer, shadowProjectVertBuffer);
 
 				// Bind parameters to pipeline
 				stencilMaterial->BindParameters(commandBuffer);
@@ -1179,27 +1235,7 @@ void ShadowRendering::RenderShadowOcclusion(GpuCommandBuffer& commandBuffer, con
 
 			// Bind GPU parameters explicitly
 			SPtr<GpuParameters> gpuParams = mat->GetGPUParameters();
-
-			// Set vertex parameters (default for spot/directional)
-			Vector4 lightPosAndScale(Vector3(0.0f, 0.0f, 0.0f), 1.0f);
-			gShadowProjectVertParamsDef.gPositionAndScale.Set(shadowProjectVertBuffer, lightPosAndScale);
-			if(gpuParams->HasUniformBuffer("VertParams"))
-				gpuParams->SetUniformBuffer("VertParams", shadowProjectVertBuffer);
-
-			// Set GBuffer textures
-			GBufferParameterBinding::Set(commandBuffer.GetGpuDevice(), gpuParams, gbuffer);
-
-			// Set shadow texture and sampler
-			gpuParams->SetSampledTexture("gShadowTex", shadowMap);
-
-			if(gpuParams->HasSamplerState("gShadowSampler"))
-				gpuParams->SetSamplerState("gShadowSampler", ShadowProjectMat::GetShadowSampler(commandBuffer.GetGpuDevice()));
-			else
-				gpuParams->SetSamplerState("gShadowTex", ShadowProjectMat::GetShadowSampler(commandBuffer.GetGpuDevice()));
-
-			// Set parameter buffers
-			gpuParams->SetUniformBuffer("Params", shadowParamBuffer);
-			gpuParams->SetUniformBuffer("PerCamera", perViewBuffer);
+			ShadowProjectionParameterBinding::BindProjectionParameters(gpuParams, commandBuffer.GetGpuDevice(), shadowMap, shadowParamBuffer, perViewBuffer, shadowProjectVertBuffer, gbuffer);
 
 			// Bind parameters to pipeline
 			mat->BindParameters(commandBuffer);
