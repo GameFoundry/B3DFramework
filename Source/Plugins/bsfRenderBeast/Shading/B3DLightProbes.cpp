@@ -160,7 +160,6 @@ void IrradianceEvaluateMat::Execute(GpuCommandBuffer& commandBuffer, const Rende
 	GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)viewProps.Target.ViewRect.Width, (float)viewProps.Target.ViewRect.Height));
 
 	commandBuffer.EndRenderPass();
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 }
 
 IrradianceEvaluateMat* IrradianceEvaluateMat::GetVariation(bool msaa, bool singleSampleMSAA, bool skyOnly)

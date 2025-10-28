@@ -725,7 +725,6 @@ void RenderBeast::CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& co
 
 	// Make sure the render texture is available for reads
 	commandBuffer.EndRenderPass();
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 }
 
 SPtr<RendererScene> RenderBeast::CreateScene()

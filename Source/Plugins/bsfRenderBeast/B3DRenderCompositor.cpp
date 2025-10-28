@@ -1117,9 +1117,6 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 			}
 		}
 	}
-
-	// Makes sure light accumulation can be read by following passes
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 }
 
 void RCNodeDeferredDirectLighting::Clear()
@@ -1384,9 +1381,6 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 
 			commandBuffer.EndRenderPass();
 		}
-
-		// Makes sure light accumulation can be read by following passes
-		commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 	}
 }
 
@@ -2252,7 +2246,6 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 	else
 		mPooledOutput = sceneColor;
 
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 	Output = mPooledOutput->Texture;
 }
 
@@ -2852,7 +2845,6 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		blurVert->Execute(commandBuffer, mPooledOutput->RenderTexture);
 	}
 
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 	Output = mPooledOutput->Texture;
 }
 
@@ -2968,7 +2960,6 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	else
 		mPooledOutput = traceOutput;
 
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 	Output = mPooledOutput->Texture;
 }
 

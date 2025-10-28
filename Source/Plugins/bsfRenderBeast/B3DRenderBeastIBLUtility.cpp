@@ -197,7 +197,6 @@ void IrradianceComputeSHFragMat::Execute(GpuCommandBuffer& commandBuffer, const 
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 }
 
 PooledRenderTextureCreateInformation IrradianceComputeSHFragMat::GetOutputDesc(const SPtr<Texture>& input)
@@ -237,7 +236,6 @@ void IrradianceAccumulateSHMat::Execute(GpuCommandBuffer& commandBuffer, const S
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.EndRenderPass();
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 }
 
 PooledRenderTextureCreateInformation IrradianceAccumulateSHMat::GetOutputDesc(const SPtr<Texture>& input)
@@ -291,7 +289,6 @@ void IrradianceAccumulateCubeSHMat::Execute(GpuCommandBuffer& commandBuffer, con
 
 	commandBuffer.EndRenderPass();
 
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 	commandBuffer.SetViewport(Area2(0, 0, 1, 1));
 }
 
@@ -442,8 +439,6 @@ void RenderBeastIBLUtility::FilterCubemapForSpecular(GpuCommandBuffer& commandBu
 			material->Execute(commandBuffer, scratchCubemap, face, mip, target);
 		}
 	}
-
-	commandBuffer.BeginRenderPass(nullptr); // TODO - RenderPass
 }
 
 bool SupportsComputeSh()
