@@ -181,7 +181,7 @@ void RendererParticles::BindGpuSimulatedInputs(const GpuParticleResources& gpuSi
 	RenderElement.ParamsGpu.PositionTimeTexture.Set(gpuSimStateTextures.PositionAndTimeTex);
 	RenderElement.ParamsGpu.SizeRotationTexture.Set(gpuSimStaticTextures.SizeAndRotationTex);
 	RenderElement.ParamsGpu.CurvesTexture.Set(gpuCurves.GetTexture());
-	RenderElement.NumParticles = GpuParticleSystem->GetNumTiles() * GpuParticleResources::kParticlesPerTile;
+	RenderElement.NumParticles = GpuParticleSystem->GetTileCount() * GpuParticleResources::kParticlesPerTile;
 
 	if(GpuParticleSystem->HasSortInfo())
 	{

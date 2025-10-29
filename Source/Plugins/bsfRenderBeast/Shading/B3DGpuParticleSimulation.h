@@ -74,7 +74,7 @@ namespace b3d
 			 * Returns the total number of tiles used by this particle system. This may include inactive tiles unless you have
 			 * freed them using freeInactiveTiles earlier.
 			 */
-			u32 GetNumTiles() const { return (u32)mTiles.size(); }
+			u32 GetTileCount() const { return (u32)mTiles.size(); }
 
 			/** Rebuilds ths internal buffers that contain tile UVs and per-particle UVs. */
 			void UpdateGpuBuffers();
@@ -137,6 +137,32 @@ namespace b3d
 		{
 			struct Pimpl;
 
+			/** Context for clearing particle tiles. Contains pre-configured buffer and parameters. */
+			struct TileClearParameters
+			{
+				SPtr<GpuBuffer> ScratchBuffer;
+				SPtr<GpuParameters> GpuParameters;
+
+				/** Returns true if the buffer is not currently bound to any command buffer. */
+				bool IsAvailable() const
+				{
+					return ScratchBuffer->GetBoundCount() == 0;
+				}
+			};
+
+			/** Context for injecting new particles. Contains pre-configured buffer and parameters. */
+			struct ParticleInjectParameters
+			{
+				SPtr<GpuBuffer> ScratchBuffer;
+				SPtr<GpuParameters> GpuParameters;
+
+				/** Returns true if the buffer is not currently bound to any command buffer. */
+				bool IsAvailable() const
+				{
+					return ScratchBuffer->GetBoundCount() == 0;
+				}
+			};
+
 		public:
 			GpuParticleSimulation();
 			~GpuParticleSimulation();
@@ -173,14 +199,66 @@ namespace b3d
 			GpuParticleResources& GetResources() const;
 
 		private:
+			/** Information for rendering a batch of tile clears. */
+			struct TileClearBatch
+			{
+				TileClearParameters Parameters;
+				u32 InstanceCount;
+			};
+
+			/** Information for rendering a batch of particle injections. */
+			struct ParticleInjectBatch
+			{
+				ParticleInjectParameters Parameters;
+				u32 ParticleCount;
+			};
+
 			/** Prepares buffer necessary for simulating the provided particle system. */
 			void PrepareBuffers(const GpuParticleSystem* system, const RendererParticles& rendererInfo);
 
-			/** Clears out all the areas in particle textures as marked by the provided tiles to their default values. */
-			void ClearTiles(GpuCommandBuffer& commandBuffer, const Vector<u32>& tiles);
+			/**
+			 * Prepares scratch buffers for clearing tiles. Allocates parameters from the pool, populates buffers with tile data,
+			 * and stores batches for later rendering.
+			 *
+			 * @param tiles    List of tile IDs to clear.
+			 */
+			void PrepareClearTiles(const Vector<u32>& tiles);
 
-			/** Inserts the provided set of particles into the particle textures. */
-			void InjectParticles(GpuCommandBuffer& commandBuffer, const Vector<GpuParticle>& particles);
+			/**
+			 * Clears out all the areas in particle textures as marked by the provided tiles to their default values.
+			 * Must call PrepareClearTiles() before.
+			 */
+			void DrawClearTiles(GpuCommandBuffer& commandBuffer);
+
+			/**
+			 * Prepares scratch buffers for injecting particles. Allocates parameters from the pool, populates buffers with particle data, and stores batches for later rendering.
+			 *
+			 * @param particles    List of particles to inject.
+			 */
+			void PrepareInjectParticles(const Vector<GpuParticle>& particles);
+
+			/** Inserts the provided set of particles into the particle textures. Must called PrepareInjectParticles() before. */
+			void DrawInjectParticles(GpuCommandBuffer& commandBuffer);
+
+			/**
+			 * Finds an unused tile scratch parameters from the pool, or creates a new ones if all are in use.
+			 *
+			 * @return A tile scratch buffer ready to be used.
+			 */
+			TileClearParameters& FindOrCreateTileClearParameters();
+
+			/**
+			 * Finds an unused inject scratch parameters from the pool, or creates a new one if all are in use.
+			 *
+			 * @return An inject scratch buffer ready to be used.
+			 */
+			ParticleInjectParameters& FindOrCreateParticleInjectParameters();
+
+			/** Creates a new tile scratch buffer and parameters with the appropriate configuration. */
+			TileClearParameters CreateTileClearParameters();
+
+			/** Creates a new inject scratch buffer and parameters with the appropriate configuration. */
+			ParticleInjectParameters CreateParticleInjectParameters();
 
 			Pimpl* m;
 		};

@@ -27,17 +27,13 @@ GpuParticleTileVertexParamsDef gGpuParticleTileVertexParamsDef;
 /** Material used for clearing tiles in the texture used for particle GPU simulation. */
 class GpuParticleClearMat : public RendererMaterial<GpuParticleClearMat>
 {
-	RMAT_DEF_CUSTOMIZED("GpuParticleClear.bsl");
+	RMAT_DEF_CUSTOMIZED("GpuParticleClear.bsl")
 
 public:
 	GpuParticleClearMat() = default;
-	void Initialize() override;
 
-	/** Binds the material to the pipeline, along with the @p tileUVs buffer containing locations of tiles to clear. */
-	void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& tileUVs);
-
-private:
-	GpuParameterBuffer mTileUVParam;
+	/** Populates GPU parameters for rendering using this material. */
+	static void PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& vertexInputBuffer, const SPtr<GpuBuffer>& tileUVs);
 };
 
 /** Material used for adding new particles into the particle state textures. */
@@ -47,7 +43,9 @@ class GpuParticleInjectMat : public RendererMaterial<GpuParticleInjectMat>
 
 public:
 	GpuParticleInjectMat() = default;
-	void Initialize() override;
+
+	/** Populates GPU parameters for rendering using this material. */
+	static void PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& vertexInputBuffer);
 };
 
 /** Material used for adding new curves into the curve texture. */
@@ -260,8 +258,6 @@ struct GpuParticleHelperBuffers
 	SPtr<GpuBuffer> SpriteIndices;
 	SPtr<VertexDescription> TileVertexDescription;
 	SPtr<VertexDescription> InjectVertexDescription;
-	SPtr<GpuBuffer> TileScratch;
-	SPtr<GpuBuffer> InjectScratch;
 };
 
 GpuParticleResources::GpuParticleResources()
@@ -496,24 +492,6 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 
 	SpriteIndices->WriteData(0, SpriteIndices->GetTotalSize(), indices);
 	B3DStackFree(indices);
-
-	// Prepare a scratch buffer we'll use to clear tiles
-	GpuBufferCreateInformation tileScratchBufferCreateInformation;
-	tileScratchBufferCreateInformation.Type = GpuBufferType::SimpleStorage;
-	tileScratchBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
-	tileScratchBufferCreateInformation.SimpleStorage.Format = BF_32X2F;
-	tileScratchBufferCreateInformation.SimpleStorage.Count = kNumScratchTiles;
-
-	TileScratch = gpuDevice->CreateGpuBuffer(tileScratchBufferCreateInformation);
-
-	// Prepare a scratch buffer we'll use to inject new particles
-	GpuBufferCreateInformation injectScratchBufferCreateInformation;
-	injectScratchBufferCreateInformation.Type = GpuBufferType::Vertex;
-	injectScratchBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
-	injectScratchBufferCreateInformation.Vertex.Count = kNumScratchParticles;
-	injectScratchBufferCreateInformation.Vertex.ElementSize = InjectVertexDescription->GetVertexStride(0);
-
-	InjectScratch = gpuDevice->CreateGpuBuffer(injectScratchBufferCreateInformation);
 }
 
 GpuParticleSystem::GpuParticleSystem(ParticleSystem* parent)
@@ -717,6 +695,28 @@ AABox GpuParticleSystem::GetBounds() const
 	return settings.CustomBounds;
 }
 
+static SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
+{
+	SPtr<GpuBuffer> inputBuffer = gGpuParticleTileVertexParamsDef.CreateBuffer();
+
+	// [0, 1] -> [-1, 1] and flip Y
+	Vector4 uvToNdc(2.0f, -2.0f, -1.0f, 1.0f);
+
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
+
+	// Either of these flips the Y axis, but if they're both true they cancel out
+	if((gpuBackendConventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ (gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down))
+	{
+		uvToNdc.Y = -uvToNdc.Y;
+		uvToNdc.W = -uvToNdc.W;
+	}
+
+	gGpuParticleTileVertexParamsDef.gUVToNDC.Set(inputBuffer, uvToNdc);
+
+	return inputBuffer;
+}
+
 struct GpuParticleSimulation::Pimpl
 {
 	GpuParticleResources Resources;
@@ -725,6 +725,13 @@ struct GpuParticleSimulation::Pimpl
 	SPtr<GpuBuffer> DepthCollisionParams;
 	SPtr<GpuBuffer> SimulationParams;
 	UnorderedSet<GpuParticleSystem*> Systems;
+	SPtr<GpuBuffer> ParticleVertexInputBuffer;
+
+	TArray<TileClearParameters> TileClearParameterPool;
+	TArray<ParticleInjectParameters> ParticleInjectParameterPool;
+
+	TArray<TileClearBatch> PreparedTileClearBatches;
+	TArray<ParticleInjectBatch> PreparedParticleInjectBatches;
 };
 
 GpuParticleSimulation::GpuParticleSimulation()
@@ -733,6 +740,11 @@ GpuParticleSimulation::GpuParticleSimulation()
 	m->VectorFieldParams = gVectorFieldParamsDef.CreateBuffer();
 	m->DepthCollisionParams = gGpuParticleDepthCollisionParamsDef.CreateBuffer();
 	m->SimulationParams = gGpuParticleSimulateParamsDef.CreateBuffer();
+
+	m->ParticleVertexInputBuffer = CreateGpuParticleVertexInputBuffer();
+
+	m->TileClearParameterPool.Add(CreateTileClearParameters());
+	m->ParticleInjectParameterPool.Add(CreateParticleInjectParameters());
 }
 
 GpuParticleSimulation::~GpuParticleSimulation()
@@ -778,17 +790,28 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 			entry->UpdateGpuBuffers();
 	}
 
-	commandBuffer.BeginRenderPass(m->Resources.GetInjectTarget(), RT_NONE, RT_ALL);
+	RenderPassCreateInformation clearAndInjectParticlesPass(m->Resources.GetInjectTarget(), RT_NONE, RT_ALL);
 
-	ClearTiles(commandBuffer, newTiles);
-	InjectParticles(commandBuffer, allNewParticles);
+	PrepareClearTiles(newTiles);
+	PrepareInjectParticles(allNewParticles);
+
+	for(const auto& batch : m->PreparedTileClearBatches)
+		clearAndInjectParticlesPass.Parameters.Add(batch.Parameters.GpuParameters);
+
+	for(const auto& batch : m->PreparedParticleInjectBatches)
+		clearAndInjectParticlesPass.Parameters.Add(batch.Parameters.GpuParameters);
+	
+	commandBuffer.BeginRenderPass(clearAndInjectParticlesPass);
+
+	DrawClearTiles(commandBuffer);
+	DrawInjectParticles(commandBuffer);
+
+	commandBuffer.EndRenderPass();
 
 	// Simulate
 	// TODO - Run multiple iterations for more stable simulation at lower/erratic framerates
 	gGpuParticleSimulateParamsDef.gDT.Set(m->SimulationParams, dt);
 	gGpuParticleSimulateParamsDef.gNumIterations.Set(m->SimulationParams, 1);
-
-	commandBuffer.EndRenderPass();
 
 	commandBuffer.BeginRenderPass(m->Resources.GetSimulationTarget());
 	commandBuffer.SetVertexDescription(m->HelperBuffers.TileVertexDescription);
@@ -806,19 +829,19 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 		Count
 	};
 
-	for(u32 i = 0; i < (u32)SimType::Count; i++)
+	for(u32 simulationTypeIndex = 0; simulationTypeIndex < (u32)SimType::Count; simulationTypeIndex++)
 	{
-		const SimType type = (SimType)i;
+		const SimType type = (SimType)simulationTypeIndex;
 		const bool simulateDepthCollisions = type == SimType::DepthCollisionsWorld ||
 			type == SimType::DepthCollisionsLocal;
 		const bool localSpace = type == SimType::DepthCollisionsLocal;
 
-		GpuParticleSimulateMat* simulateMat = GpuParticleSimulateMat::GetVariation(simulateDepthCollisions, localSpace);
-		simulateMat->BindGlobal(commandBuffer, m->Resources, viewParams, gbuffer.Depth, gbuffer.Normals, m->SimulationParams);
+		GpuParticleSimulateMat* const simulateMaterial = GpuParticleSimulateMat::GetVariation(simulateDepthCollisions, localSpace);
+		simulateMaterial->BindGlobal(commandBuffer, m->Resources, viewParams, gbuffer.Depth, gbuffer.Normals, m->SimulationParams);
 
 		for(auto& entry : m->Systems)
 		{
-			if(entry->GetNumTiles() == 0)
+			if(entry->GetTileCount() == 0)
 				continue;
 
 			ParticleSystem* parentSystem = entry->GetParent();
@@ -843,9 +866,9 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 			if(simSettings.VectorField.VectorField)
 				vfTexture = simSettings.VectorField.VectorField->GetTexture();
 
-			simulateMat->BindPerCallParams(commandBuffer, entry->GetTileUVs(), rendererParticles.PerObjectParamBuffer, m->VectorFieldParams, vfTexture, m->DepthCollisionParams);
+			simulateMaterial->BindPerCallParams(commandBuffer, entry->GetTileUVs(), rendererParticles.PerObjectParamBuffer, m->VectorFieldParams, vfTexture, m->DepthCollisionParams);
 
-			const u32 tileCount = entry->GetNumTiles();
+			const u32 tileCount = entry->GetTileCount();
 			const u32 numInstances = Math::DivideAndRoundUp(tileCount, kTilesPerInstance);
 			commandBuffer.DrawIndexed(0, kTilesPerInstance * 6, 0, kTilesPerInstance * 4, numInstances);
 		}
@@ -869,7 +892,7 @@ void GpuParticleSimulation::Sort(GpuCommandBuffer& commandBuffer, const Renderer
 	u32 offset = 0;
 	for(auto& entry : m->Systems)
 	{
-		if(entry->GetNumTiles() == 0)
+		if(entry->GetTileCount() == 0)
 		{
 			entry->SetSortInfo(false, 0);
 			continue;
@@ -985,16 +1008,13 @@ void GpuParticleSimulation::PrepareBuffers(const GpuParticleSystem* system, cons
 	}
 }
 
-void GpuParticleSimulation::ClearTiles(GpuCommandBuffer& commandBuffer, const Vector<u32>& tiles)
+void GpuParticleSimulation::DrawClearTiles(GpuCommandBuffer& commandBuffer)
 {
-	const auto numTiles = (u32)tiles.size();
-	if(numTiles == 0)
+	if(m->PreparedTileClearBatches.Empty())
 		return;
 
-	const u32 numIterations = Math::DivideAndRoundUp(numTiles, GpuParticleHelperBuffers::kNumScratchTiles);
-
-	GpuParticleClearMat* clearMat = GpuParticleClearMat::Get();
-	clearMat->Bind(commandBuffer, m->HelperBuffers.TileScratch);
+	GpuParticleClearMat* const clearMaterial = GpuParticleClearMat::Get();
+	clearMaterial->Bind(commandBuffer, false);
 
 	commandBuffer.SetVertexDescription(m->HelperBuffers.TileVertexDescription);
 
@@ -1003,60 +1023,32 @@ void GpuParticleSimulation::ClearTiles(GpuCommandBuffer& commandBuffer, const Ve
 	commandBuffer.SetIndexBuffer(m->HelperBuffers.SpriteIndices);
 	commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);
 
-	u32 tileStart = 0;
-	for(u32 i = 0; i < numIterations; i++)
+	for(const TileClearBatch& batch : m->PreparedTileClearBatches)
 	{
-		static_assert(GpuParticleHelperBuffers::kNumScratchTiles % kTilesPerInstance == 0, "Tile scratch buffer size must be divisible with number of tiles per instance.");
-
-		const u32 tileEnd = std::min(numTiles, tileStart + GpuParticleHelperBuffers::kNumScratchTiles);
-
-		auto* tileUVs = (Vector2*)B3DStackAllocate(m->HelperBuffers.TileScratch->GetTotalSize());
-		for(u32 j = tileStart; j < tileEnd; j++)
-			tileUVs[j - tileStart] = GpuParticleResources::GetTileCoords(tiles[j]);
-
-		const u32 alignedTileEnd = Math::DivideAndRoundUp(tileEnd, kTilesPerInstance) * kTilesPerInstance;
-		for(u32 j = tileEnd; j < alignedTileEnd; j++)
-			tileUVs[j] = Vector2(2.0f, 2.0f); // Out of bounds (we don't want to accidentaly clear used tiles)
-
-		m->HelperBuffers.TileScratch->WriteData(0, m->HelperBuffers.TileScratch->GetTotalSize(), tileUVs, BWT_DISCARD); // TODO - Write using the command buffer below? It wouldn't require discard.
-		B3DStackFree(tileUVs);
-
-		const u32 numInstances = (alignedTileEnd - tileStart) / kTilesPerInstance;
-		commandBuffer.DrawIndexed(0, kTilesPerInstance * 6, 0, kTilesPerInstance * 4, numInstances);
-
-		tileStart = alignedTileEnd;
+		commandBuffer.SetGpuParameters(batch.Parameters.GpuParameters);
+		commandBuffer.DrawIndexed(0, kTilesPerInstance * 6, 0, kTilesPerInstance * 4, batch.InstanceCount);
 	}
 }
 
-void GpuParticleSimulation::InjectParticles(GpuCommandBuffer& commandBuffer, const Vector<GpuParticle>& particles)
+void GpuParticleSimulation::DrawInjectParticles(GpuCommandBuffer& commandBuffer)
 {
-	const auto numParticles = (u32)particles.size();
-	const u32 numIterations = Math::DivideAndRoundUp(numParticles, GpuParticleHelperBuffers::kNumScratchParticles);
+	if(m->PreparedParticleInjectBatches.Empty())
+		return;
 
-	GpuParticleInjectMat* injectMat = GpuParticleInjectMat::Get();
-	injectMat->Bind(commandBuffer);
+	GpuParticleInjectMat* const injectMaterial = GpuParticleInjectMat::Get();
+	injectMaterial->Bind(commandBuffer, false);
 
 	commandBuffer.SetVertexDescription(m->HelperBuffers.InjectVertexDescription);
-
-	SPtr<GpuBuffer> buffers[] = { m->HelperBuffers.InjectScratch, m->HelperBuffers.ParticleUVs };
-	commandBuffer.SetVertexBuffers(0, buffers, (u32)B3DSize(buffers));
 	commandBuffer.SetIndexBuffer(m->HelperBuffers.SpriteIndices);
 	commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);
 
-	u32 particleStart = 0;
-	for(u32 i = 0; i < numIterations; i++)
+	for(const ParticleInjectBatch& batch : m->PreparedParticleInjectBatches)
 	{
-		const u32 particleEnd = std::min(numParticles, particleStart + GpuParticleHelperBuffers::kNumScratchParticles);
+		commandBuffer.SetGpuParameters(batch.Parameters.GpuParameters);
 
-		auto* particleData = (GpuParticleVertex*)B3DStackAllocate(m->HelperBuffers.InjectScratch->GetTotalSize());
-		for(u32 j = particleStart; j < particleEnd; j++)
-			particleData[j - particleStart] = particles[j].GetVertex();
-
-		m->HelperBuffers.InjectScratch->WriteData(0, m->HelperBuffers.InjectScratch->GetTotalSize(), particleData, BWT_DISCARD); // TODO - Write using the command buffer below? It wouldn't require discard.
-		B3DStackFree(particleData);
-
-		commandBuffer.DrawIndexed(0, 6, 0, 4, particleEnd - particleStart);
-		particleStart = particleEnd;
+		SPtr<GpuBuffer> vertexBuffers[] = { batch.Parameters.ScratchBuffer, m->HelperBuffers.ParticleUVs };
+		commandBuffer.SetVertexBuffers(0, vertexBuffers, (u32)B3DSize(vertexBuffers));
+		commandBuffer.DrawIndexed(0, 6, 0, 4, batch.ParticleCount);
 	}
 }
 
@@ -1065,34 +1057,158 @@ GpuParticleResources& GpuParticleSimulation::GetResources() const
 	return m->Resources;
 }
 
-SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
+GpuParticleSimulation::TileClearParameters GpuParticleSimulation::CreateTileClearParameters()
 {
-	SPtr<GpuBuffer> inputBuffer = gGpuParticleTileVertexParamsDef.CreateBuffer();
-
-	// [0, 1] -> [-1, 1] and flip Y
-	Vector4 uvToNdc(2.0f, -2.0f, -1.0f, 1.0f);
-
 	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
-	// Either of these flips the Y axis, but if they're both true they cancel out
-	if((gpuBackendConventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ (gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down))
-	{
-		uvToNdc.Y = -uvToNdc.Y;
-		uvToNdc.W = -uvToNdc.W;
-	}
+	GpuBufferCreateInformation tileScratchBufferCreateInformation;
+	tileScratchBufferCreateInformation.Type = GpuBufferType::SimpleStorage;
+	tileScratchBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+	tileScratchBufferCreateInformation.SimpleStorage.Format = BF_32X2F;
+	tileScratchBufferCreateInformation.SimpleStorage.Count = GpuParticleHelperBuffers::kNumScratchTiles;
 
-	gGpuParticleTileVertexParamsDef.gUVToNDC.Set(inputBuffer, uvToNdc);
+	TileClearParameters output;
+	output.ScratchBuffer = gpuDevice->CreateGpuBuffer(tileScratchBufferCreateInformation);
 
-	return inputBuffer;
+	output.GpuParameters = GpuParticleClearMat::Get()->CreateGpuParameters();
+	GpuParticleClearMat::PopulateParameters(output.GpuParameters, m->ParticleVertexInputBuffer, output.ScratchBuffer);
+
+	return output;
 }
 
-void GpuParticleClearMat::Initialize()
+GpuParticleSimulation::ParticleInjectParameters GpuParticleSimulation::CreateParticleInjectParameters()
 {
-	const SPtr<GpuBuffer> inputBuffer = CreateGpuParticleVertexInputBuffer();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
-	mGPUParameters->SetUniformBuffer("Input", inputBuffer);
-	mGPUParameters->GetStorageBufferParameter("gTileUVs", mTileUVParam);
+	GpuBufferCreateInformation injectScratchBufferCreateInformation;
+	injectScratchBufferCreateInformation.Type = GpuBufferType::Vertex;
+	injectScratchBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+	injectScratchBufferCreateInformation.Vertex.Count = GpuParticleHelperBuffers::kNumScratchParticles;
+	injectScratchBufferCreateInformation.Vertex.ElementSize = m->HelperBuffers.InjectVertexDescription->GetVertexStride(0);
+
+	ParticleInjectParameters output;
+	output.ScratchBuffer = gpuDevice->CreateGpuBuffer(injectScratchBufferCreateInformation);
+
+	output.GpuParameters = GpuParticleInjectMat::Get()->CreateGpuParameters();
+	GpuParticleInjectMat::PopulateParameters(output.GpuParameters, m->ParticleVertexInputBuffer);
+
+	return output;
+}
+
+GpuParticleSimulation::TileClearParameters& GpuParticleSimulation::FindOrCreateTileClearParameters()
+{
+	for(auto& entry : m->TileClearParameterPool)
+	{
+		if(entry.IsAvailable())
+			return entry;
+	}
+
+	m->TileClearParameterPool.Add(CreateTileClearParameters());
+	return m->TileClearParameterPool.back();
+}
+
+GpuParticleSimulation::ParticleInjectParameters& GpuParticleSimulation::FindOrCreateParticleInjectParameters()
+{
+	for(auto& entry : m->ParticleInjectParameterPool)
+	{
+		if(entry.IsAvailable())
+			return entry;
+	}
+
+	m->ParticleInjectParameterPool.Add(CreateParticleInjectParameters());
+	return m->ParticleInjectParameterPool.back();
+}
+
+void GpuParticleSimulation::PrepareClearTiles(const Vector<u32>& tiles)
+{
+	// Clear previous frame's batches
+	m->PreparedTileClearBatches.Clear();
+
+	const auto tileCount = (u32)tiles.size();
+	if(tileCount == 0)
+		return;
+
+	const u32 batchCount = Math::DivideAndRoundUp(tileCount, GpuParticleHelperBuffers::kNumScratchTiles);
+
+	u32 tileStart = 0;
+	for(u32 batchIndex = 0; batchIndex < batchCount; ++batchIndex)
+	{
+		static_assert(GpuParticleHelperBuffers::kNumScratchTiles % kTilesPerInstance == 0,
+			"Tile scratch buffer size must be divisible with number of tiles per instance.");
+
+		const u32 tileEnd = std::min(tileCount, tileStart + GpuParticleHelperBuffers::kNumScratchTiles);
+
+		// Get parameters from the pool
+		TileClearParameters& parameters = FindOrCreateTileClearParameters();
+
+		// Allocate temporary array for tile UVs
+		auto* tileUVs = (Vector2*)B3DStackAllocate(parameters.ScratchBuffer->GetTotalSize());
+
+		// Populate tile UVs
+		for(u32 tileIndex = tileStart; tileIndex < tileEnd; ++tileIndex)
+			tileUVs[tileIndex - tileStart] = GpuParticleResources::GetTileCoords(tiles[tileIndex]);
+
+		// Fill remaining slots with out-of-bounds values
+		const u32 alignedTileEnd = Math::DivideAndRoundUp(tileEnd, kTilesPerInstance) * kTilesPerInstance;
+		for(u32 tileIndex = tileEnd; tileIndex < alignedTileEnd; ++tileIndex)
+			tileUVs[tileIndex] = Vector2(2.0f, 2.0f); // Out of bounds
+
+		// Write data to buffer (BEFORE render pass)
+		parameters.ScratchBuffer->WriteData(0, parameters.ScratchBuffer->GetTotalSize(), tileUVs);
+
+		// Free temporary array
+		B3DStackFree(tileUVs);
+
+		// Store batch information for rendering
+		TileClearBatch batch;
+		batch.Parameters = parameters;
+		batch.InstanceCount = (alignedTileEnd - tileStart) / kTilesPerInstance;
+		m->PreparedTileClearBatches.Add(batch);
+
+		tileStart = alignedTileEnd;
+	}
+}
+
+void GpuParticleSimulation::PrepareInjectParticles(const Vector<GpuParticle>& particles)
+{
+	// Clear previous frame's batches
+	m->PreparedParticleInjectBatches.Clear();
+
+	const auto particleCount = (u32)particles.size();
+	if(particleCount == 0)
+		return;
+
+	const u32 batchCount = Math::DivideAndRoundUp(particleCount, GpuParticleHelperBuffers::kNumScratchParticles);
+
+	u32 particleStart = 0;
+	for(u32 batchIndex = 0; batchIndex < batchCount; ++batchIndex)
+	{
+		const u32 particleEnd = std::min(particleCount, particleStart + GpuParticleHelperBuffers::kNumScratchParticles);
+
+		// Get parameters from the pool
+		ParticleInjectParameters& parameters = FindOrCreateParticleInjectParameters();
+
+		// Allocate temporary array for particle data
+		auto* particleData = (GpuParticleVertex*)B3DStackAllocate(parameters.ScratchBuffer->GetTotalSize());
+
+		// Populate particle data
+		for(u32 particleIndex = particleStart; particleIndex < particleEnd; ++particleIndex)
+			particleData[particleIndex - particleStart] = particles[particleIndex].GetVertex();
+
+		// Write data to buffer (BEFORE render pass)
+		parameters.ScratchBuffer->WriteData(0, parameters.ScratchBuffer->GetTotalSize(), particleData, BWT_DISCARD);
+
+		// Free temporary array
+		B3DStackFree(particleData);
+
+		// Store batch information for rendering
+		ParticleInjectBatch batch;
+		batch.Parameters = parameters;
+		batch.ParticleCount = particleEnd - particleStart;
+		m->PreparedParticleInjectBatches.Add(batch);
+
+		particleStart = particleEnd;
+	}
 }
 
 void GpuParticleClearMat::InitDefinesInternal(ShaderDefines& defines)
@@ -1100,17 +1216,15 @@ void GpuParticleClearMat::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("TILES_PER_INSTANCE", kTilesPerInstance);
 }
 
-void GpuParticleClearMat::Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& tileUVs)
+void GpuParticleClearMat::PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& vertexInputBuffer, const SPtr<GpuBuffer>& tileUVs)
 {
-	mTileUVParam.Set(tileUVs);
-
-	RendererMaterial::Bind(commandBuffer);
+	gpuParameters->SetUniformBuffer("Input", vertexInputBuffer);
+	gpuParameters->SetStorageBuffer("gTileUVs", tileUVs);
 }
 
-void GpuParticleInjectMat::Initialize()
+void GpuParticleInjectMat::PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& vertexInputBuffer)
 {
-	const SPtr<GpuBuffer> inputBuffer = CreateGpuParticleVertexInputBuffer();
-	mGPUParameters->SetUniformBuffer("Input", inputBuffer);
+	gpuParameters->SetUniformBuffer("Input", vertexInputBuffer);
 }
 
 void GpuParticleCurveInjectMat::Initialize()
@@ -1298,7 +1412,7 @@ u32 GpuParticleSortPrepareMat::Execute(GpuCommandBuffer& commandBuffer, const Gp
 
 	B3D_ASSERT(systemIdx < std::pow(2, 16));
 
-	const u32 numParticles = system.GetNumTiles() * GpuParticleResources::kParticlesPerTile;
+	const u32 numParticles = system.GetTileCount() * GpuParticleResources::kParticlesPerTile;
 
 	const u32 numIterations = Math::DivideAndRoundUp(numParticles, kNumThreads);
 	const u32 numGroups = std::min(numIterations, kMaxNumGroups);
