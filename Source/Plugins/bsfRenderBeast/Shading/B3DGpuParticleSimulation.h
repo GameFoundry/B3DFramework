@@ -125,16 +125,7 @@ namespace b3d
 			 *
 			 * @param	rendererInfo	Renderer information for this system
 			 */
-			void PrepareSimulationBuffers(const RendererParticles& rendererInfo, float dt);
-
-			/** Returns the simulation parameters buffer for this system. */
-			const SPtr<GpuBuffer>& GetSimulationParams() const { return mSimulationParams; }
-
-			/** Returns the vector field parameters buffer for this system. */
-			const SPtr<GpuBuffer>& GetVectorFieldParams() const { return mVectorFieldParams; }
-
-			/** Returns the depth collision parameters buffer for this system. */
-			const SPtr<GpuBuffer>& GetDepthCollisionParams() const { return mDepthCollisionParams; }
+			void PrepareSimulationBuffers(const RendererParticles& rendererInfo, float dt, const SPtr<GpuParameters>& gpuParameters);
 
 		private:
 			ParticleSystem* mParent = nullptr;
