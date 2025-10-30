@@ -120,6 +120,22 @@ namespace b3d
 			/** Returns GPU parameters used for simulation. Creates if not yet allocated. */
 			SPtr<GpuParameters> GetOrCreateSimulateParameters(GpuParticleSimulateMat* material);
 
+			/**
+			 * Prepares simulation parameter buffers for this system. Creates buffers on first call.
+			 *
+			 * @param	rendererInfo	Renderer information for this system
+			 */
+			void PrepareSimulationBuffers(const RendererParticles& rendererInfo, float dt);
+
+			/** Returns the simulation parameters buffer for this system. */
+			const SPtr<GpuBuffer>& GetSimulationParams() const { return mSimulationParams; }
+
+			/** Returns the vector field parameters buffer for this system. */
+			const SPtr<GpuBuffer>& GetVectorFieldParams() const { return mVectorFieldParams; }
+
+			/** Returns the depth collision parameters buffer for this system. */
+			const SPtr<GpuBuffer>& GetDepthCollisionParams() const { return mDepthCollisionParams; }
+
 		private:
 			ParticleSystem* mParent = nullptr;
 			Vector<GpuParticleTile> mTiles;
@@ -135,6 +151,9 @@ namespace b3d
 			SPtr<GpuBuffer> mParticleIndices;
 
 			SPtr<GpuParameters> mSimulateParameters;
+			SPtr<GpuBuffer> mSimulationParams;
+			SPtr<GpuBuffer> mVectorFieldParams;
+			SPtr<GpuBuffer> mDepthCollisionParams;
 		};
 
 		/** Performs simulation for all particle systems that have GPU simulation enabled. */
