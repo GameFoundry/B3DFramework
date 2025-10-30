@@ -270,6 +270,10 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 GpuParticleSystem::GpuParticleSystem(ParticleSystem* parent)
 	: mParent(parent)
 {
+	mSimulationParams = gGpuParticleSimulateParamsDef.CreateBuffer();
+	mVectorFieldParams = gVectorFieldParamsDef.CreateBuffer();
+	mDepthCollisionParams = gGpuParticleDepthCollisionParamsDef.CreateBuffer();
+
 	GpuParticleSimulation::Instance().AddSystem(this);
 }
 
@@ -468,26 +472,20 @@ AABox GpuParticleSystem::GetBounds() const
 	return settings.CustomBounds;
 }
 
-// TODO - Move GpuParticleSimulateMat to the header so I don't need to pass the material as the parameter. Ideally create simulate parameters during construction.
-SPtr<GpuParameters> GpuParticleSystem::GetOrCreateSimulateParameters(GpuParticleSimulateMat* material)
+const SPtr<GpuParameters>& GpuParticleSystem::PrepareSimulateParameters(const RendererParticles& rendererInfo, float dt)
 {
-	if(!mSimulateParameters)
-		mSimulateParameters = material->CreateGpuParameters();
+	// Note: Many of those could only be updated when relevant settings change, but for simplicity we update them every frame.
 
-	return mSimulateParameters;
-}
+	ParticleSystem* const parentSystem = GetParent();
 
-void GpuParticleSystem::PrepareSimulationBuffers(const RendererParticles& rendererInfo, float dt, const SPtr<GpuParameters>& gpuParameters)
-{
-	// Create buffers on first use
-	if(!mSimulationParams)
-		mSimulationParams = gGpuParticleSimulateParamsDef.CreateBuffer();
+	const ParticleGpuSimulationSettings& gpuSimulationSettings = parentSystem->GetGpuSimulationSettings();
+	const ParticleSystemSettings& systemSettings = parentSystem->GetSettings();
 
-	if(!mVectorFieldParams)
-		mVectorFieldParams = gVectorFieldParamsDef.CreateBuffer();
+	const bool supportsDepthCollisions = gpuSimulationSettings.DepthCollision.Enabled;
+	const bool localSpace = systemSettings.SimulationSpace == ParticleSimulationSpace::Local;
 
-	if(!mDepthCollisionParams)
-		mDepthCollisionParams = gGpuParticleDepthCollisionParamsDef.CreateBuffer();
+	GpuParticleSimulateMat* const simulateMaterial = GpuParticleSimulateMat::GetVariation(supportsDepthCollisions, localSpace);
+	mSimulateParameters = simulateMaterial->CreateGpuParameters();
 
 	// Get parent system settings
 	const ParticleSystemSettings& settings = mParent->GetSettings();
@@ -568,9 +566,11 @@ void GpuParticleSystem::PrepareSimulationBuffers(const RendererParticles& render
 	}
 
 	// Bind uniform buffers to GPU parameters
-	gpuParameters->SetUniformBuffer("Params", mSimulationParams);
-	gpuParameters->SetUniformBuffer("VectorFieldParams", mVectorFieldParams);
-	gpuParameters->SetUniformBuffer("DepthCollisionParams", mDepthCollisionParams);
+	mSimulateParameters->SetUniformBuffer("Params", mSimulationParams);
+	mSimulateParameters->SetUniformBuffer("VectorFieldParams", mVectorFieldParams);
+	mSimulateParameters->SetUniformBuffer("DepthCollisionParams", mDepthCollisionParams);
+
+	return mSimulateParameters;
 }
 
 static SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
@@ -593,48 +593,6 @@ static SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 	gGpuParticleTileVertexParamsDef.gUVToNDC.Set(inputBuffer, uvToNdc);
 
 	return inputBuffer;
-}
-
-/** Helper structure for caching system classification and renderer info during simulation preparation. */
-struct SystemSimulationInfo
-{
-	GpuParticleSystem* System;
-	const RendererParticles* RendererInfo;
-	SPtr<Texture> VectorFieldTexture;
-
-	enum class SimType
-	{
-		Normal,
-		DepthCollisionsWorld,
-		DepthCollisionsLocal
-	};
-	SimType Type;
-
-	bool SupportsDepthCollisions() const
-	{
-		return Type != SimType::Normal;
-	}
-
-	bool IsLocalSpace() const
-	{
-		return Type == SimType::DepthCollisionsLocal;
-	}
-};
-
-/** Helper function to classify a system by its simulation type. */
-static SystemSimulationInfo::SimType ClassifySystem(const GpuParticleSystem* system)
-{
-	ParticleSystem* parentSystem = system->GetParent();
-	const ParticleGpuSimulationSettings& simSettings = parentSystem->GetGpuSimulationSettings();
-
-	if(!simSettings.DepthCollision.Enabled)
-		return SystemSimulationInfo::SimType::Normal;
-
-	const ParticleSystemSettings& settings = parentSystem->GetSettings();
-	bool isLocal = settings.SimulationSpace == ParticleSimulationSpace::Local;
-
-	return isLocal ? SystemSimulationInfo::SimType::DepthCollisionsLocal
-	               : SystemSimulationInfo::SimType::DepthCollisionsWorld;
 }
 
 struct GpuParticleSimulation::Pimpl
@@ -724,14 +682,7 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 	// Simulate
 	// TODO - Run multiple iterations for more stable simulation at lower/erratic framerates
 
-	// PHASE 1: Prepare all parameters BEFORE BeginRenderPass
-	// - Classify each system by simulation type
-	// - Prepare uniform buffers (simulation params, vector fields, collision params)
-	// - Create/retrieve GpuParameters for each system
-	// - Populate GpuParameters with all inputs (textures, buffers, uniforms)
-	Vector<SystemSimulationInfo> systemsToSimulate;
-	systemsToSimulate.reserve(m->Systems.size());
-
+	RenderPassCreateInformation simulatePass(m->Resources.GetSimulationTarget(), RT_NONE, RT_ALL);
 	for(auto& entry : m->Systems)
 	{
 		if(entry->GetTileCount() == 0)
@@ -740,62 +691,26 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 		ParticleSystem* parentSystem = entry->GetParent();
 		const RendererParticles& rendererParticles = sceneInfo.ParticleSystems[parentSystem->GetRendererId()];
 
-		// Classify system
-		SystemSimulationInfo info;
-		info.System = entry;
-		info.RendererInfo = &rendererParticles;
-		info.Type = ClassifySystem(entry);
-
 		// Get vector field texture if any
-		const ParticleGpuSimulationSettings& simSettings = parentSystem->GetGpuSimulationSettings();
-		if(simSettings.VectorField.VectorField)
-			info.VectorFieldTexture = simSettings.VectorField.VectorField->GetTexture();
+		SPtr<Texture> vectorFieldTexture;
 
-		// Determine which material variation to use
-		const bool supportsDepthCollisions = info.SupportsDepthCollisions();
-		const bool localSpace = info.IsLocalSpace();
-		GpuParticleSimulateMat* const simulateMaterial = GpuParticleSimulateMat::GetVariation(supportsDepthCollisions, localSpace);
+		const ParticleGpuSimulationSettings& gpuSimulationSettings = parentSystem->GetGpuSimulationSettings();
+		if(gpuSimulationSettings.VectorField.VectorField)
+			vectorFieldTexture = gpuSimulationSettings.VectorField.VectorField->GetTexture();
 
-		// Get or create per-system GPU parameters
-		SPtr<GpuParameters> systemParams = entry->GetOrCreateSimulateParameters(simulateMaterial);
+		const bool supportsDepthCollisions = gpuSimulationSettings.DepthCollision.Enabled;
 
-		// Prepare per-system uniform buffers and bind them (gDT, gNumIterations, gDrag, gAcceleration, vector field params, depth collision params)
-		entry->PrepareSimulationBuffers(rendererParticles, dt, systemParams);
+		const SPtr<GpuParameters>& systemParams = entry->PrepareSimulateParameters(rendererParticles, dt);
 
 		// Populate remaining parameters (textures and other buffers)
-		GpuParticleSimulateMat::PopulateParameters(
-			systemParams,
-			m->Resources,
-			m->ParticleVertexInputBuffer,
-			viewParams,
-			gbuffer.Depth,
-			gbuffer.Normals,
-			entry->GetTileUVs(),              // Storage buffer (tile UV offsets)
-			rendererParticles.PerObjectParamBuffer,  // Uniform buffer (per-object params)
-			info.VectorFieldTexture,          // Texture (vector field 3D texture)
-			supportsDepthCollisions
+		GpuParticleSimulateMat::PopulateParameters(systemParams, m->Resources, m->ParticleVertexInputBuffer, viewParams,
+			gbuffer.Depth, gbuffer.Normals, entry->GetTileUVs(), rendererParticles.PerObjectParamBuffer, vectorFieldTexture, supportsDepthCollisions
 		);
 
-		systemsToSimulate.push_back(info);
-	}
-
-	// PHASE 2: Create render pass with all parameters pre-declared
-	// The render pass now knows about all GpuParameters upfront
-	RenderPassCreateInformation simulatePass(m->Resources.GetSimulationTarget(), RT_NONE, RT_ALL);
-
-	for(const SystemSimulationInfo& info : systemsToSimulate)
-	{
-		SPtr<GpuParameters> systemParams = info.System->GetOrCreateSimulateParameters(
-			GpuParticleSimulateMat::GetVariation(info.SupportsDepthCollisions(), info.IsLocalSpace())
-		);
 		simulatePass.Parameters.Add(systemParams);
 	}
 
 	commandBuffer.BeginRenderPass(simulatePass);
-
-	// PHASE 3: Render loop - bind materials and draw
-	// All parameters are already prepared and bound to the render pass
-	// Just need to bind the correct material variation and issue draw calls
 	commandBuffer.SetVertexDescription(m->HelperBuffers.TileVertexDescription);
 
 	SPtr<GpuBuffer> buffers[] = { m->HelperBuffers.TileUVs };
@@ -823,19 +738,29 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 		simulateMaterial->Bind(commandBuffer, false);
 
 		// Render all systems matching this simulation type
-		for(const SystemSimulationInfo& info : systemsToSimulate)
+		for(auto& entry : m->Systems)
 		{
+			if(entry->GetTileCount() == 0)
+				continue;
+
+			ParticleSystem* parentSystem = entry->GetParent();
+			const ParticleGpuSimulationSettings& gpuSimulationSettings = parentSystem->GetGpuSimulationSettings();
+			const ParticleSystemSettings& settings = parentSystem->GetSettings();
+
+			const bool supportsDepthCollisions = gpuSimulationSettings.DepthCollision.Enabled;
+			const bool localSpace = settings.SimulationSpace == ParticleSimulationSpace::Local;
+
 			// Skip systems that don't match this simulation type
-			if(static_cast<u32>(info.Type) != simulationTypeIndex)
+			if(supportsDepthCollisions != currentDepthCollisions || (currentDepthCollisions && localSpace != currentLocalSpace))
 				continue;
 
 			// Get the pre-populated parameters
-			SPtr<GpuParameters> systemParams = info.System->GetOrCreateSimulateParameters(simulateMaterial);
+			SPtr<GpuParameters> systemParams = entry->GetSimulateParameters();
 
 			// Bind parameters and draw
 			commandBuffer.SetGpuParameters(systemParams);
 
-			const u32 tileCount = info.System->GetTileCount();
+			const u32 tileCount = entry->GetTileCount();
 			const u32 numInstances = Math::DivideAndRoundUp(tileCount, GpuParticleConstants::kTilesPerInstance);
 			commandBuffer.DrawIndexed(0, GpuParticleConstants::kTilesPerInstance * 6, 0, GpuParticleConstants::kTilesPerInstance * 4, numInstances);
 		}
