@@ -117,6 +117,9 @@ namespace b3d
 			 */
 			u32 GetSortOffset() const { return mSortOffset; }
 
+			/** Returns GPU parameters used for simulation. Creates if not yet allocated. */
+			SPtr<GpuParameters> GetOrCreateSimulateParameters(GpuParticleSimulateMat* material);
+
 		private:
 			ParticleSystem* mParent = nullptr;
 			Vector<GpuParticleTile> mTiles;
@@ -130,6 +133,8 @@ namespace b3d
 
 			SPtr<GpuBuffer> mTileUVs;
 			SPtr<GpuBuffer> mParticleIndices;
+
+			SPtr<GpuParameters> mSimulateParameters;
 		};
 
 		/** Performs simulation for all particle systems that have GPU simulation enabled. */

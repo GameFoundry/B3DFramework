@@ -112,22 +112,27 @@ public:
 	GpuParticleSimulateMat() = default;
 	void Initialize() override;
 
-	/** Binds the material to the pipeline along with any frame-static parameters. */
-	void BindGlobal(GpuCommandBuffer& commandBuffer, GpuParticleResources& resources, const SPtr<GpuBuffer>& viewParams, const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<GpuBuffer>& simulationParams);
-
 	/**
-	 * Binds parameters that change with every material dispatch.
+	 * Populates GPU parameters for rendering using this material.
 	 *
-	 * @param	commandBuffer			Command buffer to bind the parameters on.
-	 * @param	tileUVs					Sets the UV offsets of individual tiles for a particular particle system
-	 *										that's being rendered.
-	 * @param	perObjectParams			General purpose particle system parameters.
-	 * @param	vectorFieldParams		Information about the currently bound vector field, if any.
-	 * @param	vectorFieldTexture		3D texture representing the vector field, or null if none.
-	 * @param	depthCollisionParams	Parameter buffer for controlling depth buffer collisions, if enabled.
-	 *
+	 * @param	gpuParameters				Parameters to populate
+	 * @param	resources					GPU particle resources containing textures
+	 * @param	particleVertexInputBuffer	Uniform buffer used in the particle vertex shader.
+	 * @param	viewParams					Per-camera view parameters
+	 * @param	depth						Depth texture for collision detection
+	 * @param	normals						Normals texture for collision detection
+	 * @param	simulationParams			Simulation parameters (dt, drag, acceleration)
+	 * @param	tileUVs						Sets the UV offsets of individual tiles for a particular particle system that's being rendered.
+	 * @param	perObjectParams				General purpose particle system parameters.
+	 * @param	vectorFieldParams			Information about the currently bound vector field, if any.
+	 * @param	vectorFieldTexture			3D texture representing the vector field, or null if none.
+	 * @param	depthCollisionParams		Parameter buffer for controlling depth buffer collisions, if enabled.
+	 * @param	supportsDepthCollisions		True if this material variation supports depth collisions
 	 */
-	void BindPerCallParams(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& tileUVs, const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& vectorFieldParams, const SPtr<Texture>& vectorFieldTexture, const SPtr<GpuBuffer>& depthCollisionParams);
+	static void PopulateParameters(const SPtr<GpuParameters>& gpuParameters, GpuParticleResources& resources, const SPtr<GpuBuffer>& particleVertexInputBuffer,
+		const SPtr<GpuBuffer>& viewParams, const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<GpuBuffer>& simulationParams, const SPtr<GpuBuffer>& tileUVs,
+		const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& vectorFieldParams, const SPtr<Texture>& vectorFieldTexture,
+		const SPtr<GpuBuffer>& depthCollisionParams, bool supportsDepthCollisions);
 
 	/** Returns the material variation matching the provided parameters. */
 	static GpuParticleSimulateMat* GetVariation(bool depthCollisions, bool localSpace);
@@ -695,6 +700,15 @@ AABox GpuParticleSystem::GetBounds() const
 	return settings.CustomBounds;
 }
 
+// TODO - Move GpuParticleSimulateMat to the header so I don't need to pass the material as the parameter. Ideally create simulate parameters during construction.
+SPtr<GpuParameters> GpuParticleSystem::GetOrCreateSimulateParameters(GpuParticleSimulateMat* material)
+{
+	if(!mSimulateParameters)
+		mSimulateParameters = material->CreateGpuParameters();
+
+	return mSimulateParameters;
+}
+
 static SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 {
 	SPtr<GpuBuffer> inputBuffer = gGpuParticleTileVertexParamsDef.CreateBuffer();
@@ -837,7 +851,7 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 		const bool localSpace = type == SimType::DepthCollisionsLocal;
 
 		GpuParticleSimulateMat* const simulateMaterial = GpuParticleSimulateMat::GetVariation(simulateDepthCollisions, localSpace);
-		simulateMaterial->BindGlobal(commandBuffer, m->Resources, viewParams, gbuffer.Depth, gbuffer.Normals, m->SimulationParams);
+		simulateMaterial->Bind(commandBuffer, false);
 
 		for(auto& entry : m->Systems)
 		{
@@ -862,11 +876,20 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 
 			PrepareBuffers(entry, rendererParticles);
 
+			// Get or create per-system GPU parameters
+			SPtr<GpuParameters> systemParams = entry->GetOrCreateSimulateParameters(simulateMaterial);
+
+			// Populate parameters
 			SPtr<Texture> vfTexture;
 			if(simSettings.VectorField.VectorField)
 				vfTexture = simSettings.VectorField.VectorField->GetTexture();
 
-			simulateMaterial->BindPerCallParams(commandBuffer, entry->GetTileUVs(), rendererParticles.PerObjectParamBuffer, m->VectorFieldParams, vfTexture, m->DepthCollisionParams);
+			GpuParticleSimulateMat::PopulateParameters(systemParams, m->Resources, m->ParticleVertexInputBuffer, viewParams, gbuffer.Depth, 
+				gbuffer.Normals, m->SimulationParams, entry->GetTileUVs(), rendererParticles.PerObjectParamBuffer, m->VectorFieldParams, vfTexture,
+				m->DepthCollisionParams, simulateDepthCollisions);
+
+			// Bind parameters and draw
+			commandBuffer.SetGpuParameters(systemParams);
 
 			const u32 tileCount = entry->GetTileCount();
 			const u32 numInstances = Math::DivideAndRoundUp(tileCount, kTilesPerInstance);
@@ -1265,43 +1288,37 @@ void GpuParticleSimulateMat::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("TILES_PER_INSTANCE", kTilesPerInstance);
 }
 
-void GpuParticleSimulateMat::BindGlobal(GpuCommandBuffer& commandBuffer, GpuParticleResources& resources, const SPtr<GpuBuffer>& viewParams, const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<GpuBuffer>& simulationParams)
+void GpuParticleSimulateMat::PopulateParameters(const SPtr<GpuParameters>& gpuParameters, GpuParticleResources& resources, const SPtr<GpuBuffer>& particleVertexInputBuffer, 
+	const SPtr<GpuBuffer>& viewParams, const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<GpuBuffer>& simulationParams,
+	const SPtr<GpuBuffer>& tileUVs, const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& vectorFieldParams, const SPtr<Texture>& vectorFieldTexture,
+	const SPtr<GpuBuffer>& depthCollisionParams, bool supportsDepthCollisions)
 {
 	GpuParticleStateTextures& prevState = resources.GetPreviousState();
 	const GpuParticleStaticTextures& staticTextures = resources.GetStaticTextures();
 	GpuParticleCurves& curveTexture = resources.GetCurveTexture();
 
-	mGPUParameters->SetUniformBuffer(mParamsBinding.Set, mParamsBinding.Slot, simulationParams);
+	// Set uniform buffers
+	gpuParameters->SetUniformBuffer("Input", particleVertexInputBuffer);
+	gpuParameters->SetUniformBuffer("Params", simulationParams);
+	gpuParameters->SetUniformBuffer("VectorFieldParams", vectorFieldParams);
 
-	mPosAndTimeTexParam.Set(prevState.PositionAndTimeTex);
-	mVelocityTexParam.Set(prevState.VelocityTex);
+	// Set textures and buffers
+	gpuParameters->SetSampledTexture("gPosAndTimeTex", prevState.PositionAndTimeTex);
+	gpuParameters->SetSampledTexture("gVelocityTex", prevState.VelocityTex);
+	gpuParameters->SetSampledTexture("gVectorFieldTex", vectorFieldTexture);
+	gpuParameters->SetStorageBuffer("gTileUVs", tileUVs);
 
-	if(mSupportsDepthCollisions)
+	if(supportsDepthCollisions)
 	{
-		mGPUParameters->SetUniformBuffer(mPerCameraBinding.Set, mPerCameraBinding.Slot, viewParams);
+		gpuParameters->SetUniformBuffer("PerCamera", viewParams);
+		gpuParameters->SetUniformBuffer("PerObject", perObjectParams);
+		gpuParameters->SetUniformBuffer("DepthCollisionParams", depthCollisionParams);
 
-		mSizeRotationTexParam.Set(staticTextures.SizeAndRotationTex);
-		mCurvesTexParam.Set(curveTexture.GetTexture());
-		mDepthTexParam.Set(depth);
-		mNormalsTexParam.Set(normals);
+		gpuParameters->SetSampledTexture("gSizeRotationTex", staticTextures.SizeAndRotationTex);
+		gpuParameters->SetSampledTexture("gCurvesTex", curveTexture.GetTexture());
+		gpuParameters->SetSampledTexture("gDepthTex", depth);
+		gpuParameters->SetSampledTexture("gNormalsTex", normals);
 	}
-
-	RendererMaterial::Bind(commandBuffer,false);
-}
-
-void GpuParticleSimulateMat::BindPerCallParams(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& tileUVs, const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& vectorFieldParams, const SPtr<Texture>& vectorFieldTexture, const SPtr<GpuBuffer>& depthCollisionParams)
-{
-	mTileUVParam.Set(tileUVs);
-	mGPUParameters->SetUniformBuffer(mVectorFieldBinding.Set, mVectorFieldBinding.Slot, vectorFieldParams);
-	mVectorFieldTexParam.Set(vectorFieldTexture);
-
-	if(mSupportsDepthCollisions)
-	{
-		mGPUParameters->SetUniformBuffer(mPerObjectBinding.Set, mPerObjectBinding.Slot, perObjectParams);
-		mGPUParameters->SetUniformBuffer(mDepthCollisionBinding.Set, mDepthCollisionBinding.Slot, depthCollisionParams);
-	}
-
-	BindParameters(commandBuffer);
 }
 
 GpuParticleSimulateMat* GpuParticleSimulateMat::GetVariation(bool depthCollisions, bool localSpace)
