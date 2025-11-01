@@ -411,7 +411,7 @@ namespace b3d
 			const LightGrid& GetLightGrid() const { return mLightGrid; }
 
 			/** Updates the light grid used for forward rendering. */
-			void UpdateLightGrid(GpuCommandBuffer& commandBuffer, const VisibleLightData& visibleLightData, const VisibleReflProbeData& visibleReflProbeData);
+			void UpdateLightGrid(GpuCommandBuffer& commandBuffer, const VisibleLightData& visibleLightData, const VisibleReflectionProbeData& visibleReflProbeData);
 
 			/**
 			 * Returns a value that can be used for transforming x, y coordinates from NDC into UV coordinates that can be used
@@ -590,7 +590,7 @@ namespace b3d
 			 * Returns information about refl. probes visible from this group of views. Only valid after a call to
 			 * determineVisibility().
 			 */
-			const VisibleReflProbeData& GetVisibleReflProbeData() const { return mVisibleReflProbeData; }
+			const VisibleReflectionProbeData& GetVisibleReflProbeData() const { return mVisibleReflProbeData; }
 
 			/** Returns the object responsible for rendering shadows for this view group. */
 			ShadowRendering& GetShadowRenderer() { return mShadowRenderer; }
@@ -611,7 +611,7 @@ namespace b3d
 			bool mIsMainPass = false;
 
 			VisibleLightData mVisibleLightData;
-			VisibleReflProbeData mVisibleReflProbeData;
+			VisibleReflectionProbeData mVisibleReflProbeData;
 
 			// Note: Ideally we would want to keep this global, so all views share it. This way each view group renders its
 			// own set of shadows, but there might be shadows that are shared, and therefore we could avoid rendering them

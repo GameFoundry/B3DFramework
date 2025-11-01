@@ -24,7 +24,7 @@ namespace b3d
 		static constexpr u32 kStandardForwardMaxNumProbes = 8;
 
 		/** Information about a single reflection probe, as seen by the lighting shader. */
-		struct ReflProbeData
+		struct ReflectioneProbeData
 		{
 			Vector3 Position;
 			float Radius;
@@ -37,10 +37,10 @@ namespace b3d
 		};
 
 		/** Contains GPU buffers used by the renderer to manipulate reflection probes. */
-		class VisibleReflProbeData
+		class VisibleReflectionProbeData
 		{
 		public:
-			VisibleReflProbeData() = default;
+			VisibleReflectionProbeData() = default;
 
 			/**
 			 * Updates the internal buffers with a new set of refl. probes. Before calling make sure that probe visibility has
@@ -52,13 +52,13 @@ namespace b3d
 			SPtr<GpuBuffer> GetProbeBuffer() const { return mProbeBuffer; }
 
 			/** Returns the number of reflection probes in the probe buffer. */
-			u32 GetNumProbes() const { return mNumProbes; }
+			u32 GetProbeCount() const { return mNumProbes; }
 
 			/** Returns information about a probe at the specified index. */
-			const ReflProbeData& GetProbeData(u32 idx) const { return mReflProbeData[idx]; }
+			const ReflectioneProbeData& GetProbeData(u32 idx) const { return mReflProbeData[idx]; }
 
 		private:
-			Vector<ReflProbeData> mReflProbeData;
+			Vector<ReflectioneProbeData> mReflProbeData;
 			SPtr<GpuBuffer> mProbeBuffer;
 			u32 mNumProbes = 0;
 		};
@@ -81,7 +81,7 @@ namespace b3d
 			RendererReflectionProbe(ReflectionProbe* probe);
 
 			/** Populates the structure with reflection probe parameters. */
-			void GetParameters(ReflProbeData& output) const;
+			void GetParameters(ReflectioneProbeData& output) const;
 
 			ReflectionProbe* Probe;
 			u32 ArrayIdx;
@@ -90,18 +90,31 @@ namespace b3d
 		};
 
 		/** Helper struct containing all parameters for binding image lighting related data to the GPU programs using them .*/
-		struct ImageBasedLightingParams
+		struct ImageBasedLightingParameterBinding
 		{
+			static constexpr const char* kSkyReflectionTextureName = "gSkyReflectionTex";
+			static constexpr const char* kReflectionProbeCubemapsTextureName = "gReflProbeCubemaps";
+			static constexpr const char* kPreintegratedEnvBRDFTextureName = "gPreintegratedEnvBRDF";
+			static constexpr const char* kAmbientOcclusionTextureName = "gAmbientOcclusionTex";
+			static constexpr const char* kSSRTexName = "gSSRTex";
+			static constexpr const char* kReflectionProbesBufferName = "gReflectionProbes";
+			static constexpr const char* kReflectionProbeIndicesBufferName = "gReflectionProbeIndices";
+			static constexpr const char* kGlobalReflectionProbeUniformBufferName = "ReflectionProbes";
+			static constexpr const char* kPerProbeUniformBufferName = "ReflProbeParams";
+
 			/**
 			 * Initializes the parameters from the provided parameters.
 			 *
-			 * @param[in]	params		GPU parameters object to look for the parameters in.
+			 * @param[in]	parameters	GPU parameters object to look for the parameters in.
 			 * @param[in]	programType	Type of the GPU program to look up the parameters for.
 			 * @param[in]	optional	If true no warnings will be thrown if some or all of the parameters will be found.
 			 * @param[in]	gridIndices	Set to true if grid indices (used by light grid) parameter is required.
 			 * @param[in]	probeArray	True if the refl. probe data is to be provided in a structured buffer.
 			 */
-			void Populate(const SPtr<GpuParameters>& params, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray);
+			void Initialize(const SPtr<GpuParameters>& parameters, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray);
+
+			/** Sets the reflection probe cubemaps texture in the provided @p parameters object. */
+			static void SetReflectionProbeCubemaps(const SPtr<GpuParameters>& parameters, const SPtr<Texture>& cubemaps, bool optional = false);
 
 			GpuParameterSampledTexture SkyReflectionsTexParam;
 			GpuParameterSampledTexture AmbientOcclusionTexParam;
@@ -119,9 +132,9 @@ namespace b3d
 		};
 
 		/** Parameter buffer containing information about reflection probes. */
-		struct ReflProbeParamBuffer
+		struct ReflectionProbeUniformBuffer
 		{
-			ReflProbeParamBuffer();
+			ReflectionProbeUniformBuffer();
 
 			/** Updates the parameter buffer contents with required refl. probe data. */
 			void Populate(const Skybox* sky, u32 numProbes, const SPtr<Texture>& reflectionCubemaps, bool capturingReflections);
@@ -130,7 +143,7 @@ namespace b3d
 		};
 
 		B3D_PARAM_BLOCK_BEGIN(ReflProbesParamDef)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(ReflProbeData, gReflectionProbes, kStandardForwardMaxNumProbes)
+			B3D_PARAM_BLOCK_ENTRY_ARRAY(ReflectioneProbeData, gReflectionProbes, kStandardForwardMaxNumProbes)
 		B3D_PARAM_BLOCK_END
 
 		extern ReflProbesParamDef gReflProbesParamDef;

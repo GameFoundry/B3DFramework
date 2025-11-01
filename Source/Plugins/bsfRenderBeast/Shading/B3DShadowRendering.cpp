@@ -336,7 +336,6 @@ struct ShadowProjectionParameterBinding
 		// Bind common parameters (VertParams, PerCamera, Params)
 		// Set light position and radius for omnidirectional light
 		const Transform& transform = light.GetWorldTransform();
-		Vector4 lightPositionAndScale(transform.GetPosition(), light.GetAttenuationRadius());
 		BindCommonParameters(gpuParameters, vertexParameterBuffer, perCameraBuffer, shadowParameterBuffer);
 
 		// Set GBuffer textures

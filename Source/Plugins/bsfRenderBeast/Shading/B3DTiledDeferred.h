@@ -200,7 +200,7 @@ namespace b3d
 			void Initialize() override;
 
 			/** Binds the material for rendering, sets up parameters and executes it. */
-			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, const Inputs& inputs);
+			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflectionProbeData& probeData, const Inputs& inputs);
 
 			/** Returns the material variation matching the provided parameters. */
 			static TiledDeferredImageBasedLightingMat* GetVariation(u32 msaaCount);
@@ -216,12 +216,12 @@ namespace b3d
 			GpuParameterSampledTexture mInColorTextureParam;
 			GpuParameterSampledTexture mMSAACoverageTexParam;
 
-			ImageBasedLightingParams mImageBasedParams;
+			ImageBasedLightingParameterBinding mImageBasedParams;
 
 			GpuParameterStorageTexture mOutputTextureParam;
 
 			SPtr<GpuBuffer> mParamBuffer;
-			ReflProbeParamBuffer mReflProbeParamBuffer;
+			ReflectionProbeUniformBuffer mReflProbeParamBuffer;
 
 			static const u32 kTileSize;
 		};

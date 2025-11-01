@@ -189,7 +189,7 @@ namespace b3d
 			ForwardLightingParams ForwardLightingParams;
 
 			/** Collection of parameters used for image based lighting. */
-			ImageBasedLightingParams ImageBasedParams;
+			ImageBasedLightingParameterBinding ImageBasedParams;
 
 			/** Number of particles to render. */
 			u32 NumParticles = 0;

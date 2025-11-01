@@ -476,7 +476,7 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 			const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 
 			element.ForwardLightingParams.Populate(gpuParams, supportsClusteredForward);
-			element.ImageBasedParams.Populate(gpuParams, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
+			element.ImageBasedParams.Initialize(gpuParams, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
 		}
 	}
 }
@@ -1007,7 +1007,7 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 	if(useForwardRendering)
 	{
 		renElement.ForwardLightingParams.Populate(gpuParams, supportsClusteredForward);
-		renElement.ImageBasedParams.Populate(gpuParams, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
+		renElement.ImageBasedParams.Initialize(gpuParams, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
 	}
 
 	const bool isTransparent = shaderFlags.IsSet(ShaderFlag::Transparent);

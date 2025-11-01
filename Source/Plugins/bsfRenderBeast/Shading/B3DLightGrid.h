@@ -10,7 +10,7 @@ namespace b3d
 {
 	namespace render
 	{
-		class VisibleReflProbeData;
+		class VisibleReflectionProbeData;
 		class VisibleLightData;
 
 		/** @addtogroup RenderBeast
@@ -159,7 +159,7 @@ namespace b3d
 			LightGrid();
 
 			/** Updates the light grid from the provided view. */
-			void UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const VisibleReflProbeData& probeData, bool noLighting);
+			void UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const VisibleReflectionProbeData& probeData, bool noLighting);
 
 			/**
 			 * Returns the buffers containing light indices per grid cell and global grid parameters. This data gets Updated on

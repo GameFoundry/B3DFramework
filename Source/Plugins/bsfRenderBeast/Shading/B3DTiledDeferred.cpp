@@ -321,7 +321,7 @@ void TiledDeferredImageBasedLightingMat::Initialize()
 	mParamBuffer = gTiledImageBasedLightingParamDef.CreateBuffer();
 	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
 
-	mImageBasedParams.Populate(mGPUParameters, GPT_COMPUTE_PROGRAM, false, false, true);
+	mImageBasedParams.Initialize(mGPUParameters, GPT_COMPUTE_PROGRAM, false, false, true);
 
 	mGPUParameters->SetUniformBuffer("ReflProbeParams", mReflProbeParamBuffer.Buffer);
 }
@@ -331,7 +331,7 @@ void TiledDeferredImageBasedLightingMat::InitDefinesInternal(ShaderDefines& defi
 	defines.Set("TILE_SIZE", kTileSize);
 }
 
-void TiledDeferredImageBasedLightingMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, const Inputs& inputs)
+void TiledDeferredImageBasedLightingMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflectionProbeData& probeData, const Inputs& inputs)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -348,7 +348,7 @@ void TiledDeferredImageBasedLightingMat::Execute(GpuCommandBuffer& commandBuffer
 	if(view.GetRenderSettings().EnableSkybox)
 		skybox = sceneInfo.Skybox;
 
-	mReflProbeParamBuffer.Populate(skybox, probeData.GetNumProbes(), sceneInfo.ReflProbeCubemapsTex, viewProps.CapturingReflections);
+	mReflProbeParamBuffer.Populate(skybox, probeData.GetProbeCount(), sceneInfo.ReflProbeCubemapsTex, viewProps.CapturingReflections);
 
 	mParamBuffer->FlushCache();
 	mReflProbeParamBuffer.Buffer->FlushCache();

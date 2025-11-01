@@ -72,7 +72,7 @@ namespace b3d
 			ForwardLightingParams ForwardLightingParams;
 
 			/** Collection of parameters used for image based lighting. */
-			ImageBasedLightingParams ImageBasedParams;
+			ImageBasedLightingParameterBinding ImageBasedParams;
 
 			/** Vertex buffer containing element's morph shape vertices, if it has any. */
 			SPtr<GpuBuffer> MorphShapeBuffer;

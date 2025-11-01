@@ -124,8 +124,8 @@ namespace b3d
 			DeferredIBLSetupMat() = default;
 			void Initialize() override;
 
-			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(GpuCommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& ssr, const SPtr<Texture>& ao, const SPtr<GpuBuffer>& reflProbeParams);
+			/** Prepares material parameters for rendering. */
+			void Prepare(const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& ssr, const SPtr<Texture>& ao, const SPtr<GpuBuffer>& reflProbeParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -139,7 +139,7 @@ namespace b3d
 
 		private:
 			GBufferParameterBinding mGBufferParams;
-			ImageBasedLightingParams mIBLParams;
+			ImageBasedLightingParameterBinding mIBLParams;
 		};
 
 		/**
@@ -166,10 +166,12 @@ namespace b3d
 
 		public:
 			DeferredIBLProbeMat() = default;
-			void Initialize() override;
 
-			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(GpuCommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SceneInfo& sceneInfo, const ReflProbeData& probeData, const SPtr<GpuBuffer>& reflProbeParams);
+			/** Populates the provided GPU parameters with the provided parameters. */
+			static void PopulateParameters(GpuDevice& gpuDevice, const SPtr<GpuParameters>& gpuParameters, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SceneInfo& sceneInfo, const SPtr<GpuBuffer>& perProbeUniformBuffer, const SPtr<GpuBuffer>& globalProbeUniformBuffer);
+
+			/** Creates a new uniform buffer containing provided per-probe data. */
+			static SPtr<GpuBuffer> CreatePerProbeUniformBuffer(const ReflectioneProbeData& probeData);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -181,11 +183,6 @@ namespace b3d
 			 * @return							Requested variation of the material.
 			 */
 			static DeferredIBLProbeMat* GetVariation(bool inside, bool msaa, bool singleSampleMSAA = false);
-
-		private:
-			SPtr<GpuBuffer> mParamBuffer;
-			GBufferParameterBinding mGBufferParams;
-			ImageBasedLightingParams mIBLParams;
 		};
 
 		/**
@@ -213,8 +210,8 @@ namespace b3d
 			DeferredIBLSkyMat() = default;
 			void Initialize() override;
 
-			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(GpuCommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const Skybox* skybox, const SPtr<GpuBuffer>& reflProbeParams);
+			/** Prepares material parameters for rendering. */
+			void Prepare(const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const Skybox* skybox, const SPtr<GpuBuffer>& reflProbeParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -228,7 +225,7 @@ namespace b3d
 
 		private:
 			GBufferParameterBinding mGBufferParams;
-			ImageBasedLightingParams mIBLParams;
+			ImageBasedLightingParameterBinding mIBLParams;
 		};
 
 		/**
@@ -256,8 +253,8 @@ namespace b3d
 			DeferredIBLFinalizeMat() = default;
 			void Initialize() override;
 
-			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(GpuCommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& iblRadiance, const SPtr<Texture>& preintegratedBrdf, const SPtr<GpuBuffer>& reflProbeParams);
+			/** Prepares material parameters for rendering. */
+			void Prepare(const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& iblRadiance, const SPtr<Texture>& preintegratedBrdf, const SPtr<GpuBuffer>& reflProbeParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -271,7 +268,7 @@ namespace b3d
 
 		private:
 			GBufferParameterBinding mGBufferParams;
-			ImageBasedLightingParams mIBLParams;
+			ImageBasedLightingParameterBinding mIBLParams;
 			GpuParameterSampledTexture mIBLRadiance;
 		};
 
@@ -280,14 +277,14 @@ namespace b3d
 		{
 		public:
 			/** Material variation key for grouping lights by material type. */
-			struct MaterialVariationKey
+			struct LightMaterialVariationKey
 			{
 				LightType Type;
 				bool IsMSAA;
 				bool IsInside; // For point/spot lights only
 				bool IsSingleSampleMSAA;
 
-				bool operator<(const MaterialVariationKey& other) const
+				bool operator<(const LightMaterialVariationKey& other) const
 				{
 					if(Type != other.Type) return Type < other.Type;
 					if(IsMSAA != other.IsMSAA) return IsMSAA < other.IsMSAA;
@@ -322,7 +319,15 @@ namespace b3d
 			/** Batch of lights grouped by material variation. */
 			struct LightBatches
 			{
-				Map<MaterialVariationKey, LightBatch> Batches;
+				Map<LightMaterialVariationKey, LightBatch> Batches;
+			};
+
+			/** Contains information required for rendering a single reflection probe. */
+			struct ReflectionProbeRenderInformation
+			{
+				bool IsViewerInside = false;
+				u32 Type = 0;
+				SPtr<GpuParameters> GpuParameters;
 			};
 
 			/**
@@ -346,15 +351,15 @@ namespace b3d
 			 */
 			void RenderLightBatches(GpuCommandBuffer& commandBuffer, const LightBatches& batches);
 
-			/** Calculates lighting for the specified light, using the standard deferred renderer. */
-			void RenderLight(GpuCommandBuffer& commandBuffer, LightType type, const RendererLight& light, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion);
+			/** Prepares all GPU parameters required for rendering reflection probes. */
+			TArray<ReflectionProbeRenderInformation> PrepareReflectionProbes(GpuDevice& device, const VisibleReflectionProbeData& visibleReflectionProbeData, const RendererView& view, const GBufferTextures& gBufferInput, const SceneInfo& sceneInfo, const SPtr<GpuBuffer>& globalReflectionProbeUniformBuffer);
 
 			/**
-			 * Evaluates filtered radiance from a single reflection probe and blends it into the current render target.
-			 * Alpha value of the render target is used for determining the contribution and will be updated with new
-			 * contibution after blending.
+			 * Evaluates filtered radiance from provided reflection probes and blends it into the current render target.
+			 * Alpha value of the render target is used for determining the contribution and will be updated with new contibution after blending.
+			 * Probes must have been prepared for rendering via a previous call to PrepareReflectionProbes.
 			 */
-			void RenderReflProbe(GpuCommandBuffer& commandBuffer, const ReflProbeData& probeData, const RendererView& view, const GBufferTextures& gBufferInput, const SceneInfo& sceneInfo, const SPtr<GpuBuffer>& reflProbeParams);
+			void RenderReflectionProbes(GpuCommandBuffer& commandBuffer, const TArray<ReflectionProbeRenderInformation>& probeRenderInformation, const RendererView& view);
 		};
 	} // namespace render
 } // namespace b3d

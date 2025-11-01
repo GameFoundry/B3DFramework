@@ -258,7 +258,7 @@ LightGrid::LightGrid()
 	mGridParamBuffer = gLightGridParamDefDef.CreateBuffer();
 }
 
-void LightGrid::UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const VisibleReflProbeData& probeData, bool noLighting)
+void LightGrid::UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const VisibleReflectionProbeData& probeData, bool noLighting)
 {
 	const RendererViewProperties& viewProps = view.GetProperties();
 
@@ -297,7 +297,7 @@ void LightGrid::UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& 
 
 	gLightGridParamDefDef.gLightCounts.Set(mGridParamBuffer, lightCount);
 	gLightGridParamDefDef.gLightStrides.Set(mGridParamBuffer, lightStrides);
-	gLightGridParamDefDef.gNumReflProbes.Set(mGridParamBuffer, probeData.GetNumProbes());
+	gLightGridParamDefDef.gNumReflProbes.Set(mGridParamBuffer, probeData.GetProbeCount());
 	gLightGridParamDefDef.gNumCells.Set(mGridParamBuffer, numCells);
 	gLightGridParamDefDef.gGridSize.Set(mGridParamBuffer, gridSize);
 	gLightGridParamDefDef.gMaxNumLightsPerCell.Set(mGridParamBuffer, kMaxLightsPerCell);
