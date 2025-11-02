@@ -522,27 +522,6 @@ namespace b3d
 			 */
 			virtual void BeginRenderPass(const RenderPassCreateInformation& createInformation) = 0;
 
-			/**
-			 * Begins a new render pass (legacy overload for backward compatibility).
-			 *
-			 * @param target          Render target to draw to.
-			 * @param readOnlyMask    Determines which attachments will be bound for read-only operations.
-			 *                        This is mainly useful for depth or stencil attachments which need to be bound
-			 *                        both for depth/stencil tests, as well as shader reads.
-			 * @param loadMask        Determines which render target surfaces will have their current contents
-			 *                        preserved. By default when a render target is bound its contents will be
-			 *                        lost. You might need to preserve contents if you need to perform blending
-			 *                        or similar operations with the existing contents of the render target.
-			 *
-			 *                        Use the mask to select exactly which surfaces of the render target need
-			 *                        their contents preserved.
-			 */
-			void BeginRenderPass(const SPtr<RenderTarget>& target, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
-			{
-				RenderPassCreateInformation createInfo(target, readOnlyMask, loadMask);
-				BeginRenderPass(createInfo);
-			}
-
 			/** Ends the current render pass. */
 			virtual void EndRenderPass() = 0;
 
