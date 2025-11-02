@@ -271,10 +271,10 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 
 		commandBuffer->EndRenderPass();
 
-		commandBuffer->BeginRenderPass(atlasRenderTexture, RT_NONE, RT_COLOR0);
-		commandBuffer->SetViewport(entry.UVRegion);
-		render::GetRendererUtility().Blit(*commandBuffer, colorTexture);
-		commandBuffer->EndRenderPass();
+		render::BlitInformation blitInformation = render::BlitInformation::BlitColor(colorTexture, atlasRenderTexture, Area2I::kEmpty, RT_NONE, RT_COLOR0);
+		blitInformation.OutputArea = entry.UVRegion;
+
+		render::GetRendererUtility().Blit(*commandBuffer, blitInformation);
 	}
 
 	gpuDevice->SubmitCommandBuffer(commandBuffer);

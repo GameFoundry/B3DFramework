@@ -1917,15 +1917,16 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 	// Note: This could be optimized by blitting only the modified regions
 	commandBuffer.EndRenderPass();
 
-	commandBuffer.BeginRenderPass(RenderPassCreateInformation(renderTarget, RT_NONE, RT_ALL));
-	commandBuffer.SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+	BlitInformation blitInformation = BlitInformation::Blend(cameraRenderData.CachedRenderTexture->GetColorTexture(0), renderTarget, Area2I::kEmpty, RT_NONE, RT_ALL);
+	blitInformation.OutputArea = Area2(0.0f, 0.0f, 1.0f, 1.0f);
+	blitInformation.WriteAlpha = true;
 
-	GetRendererUtility().Blend(commandBuffer, cameraRenderData.CachedRenderTexture->GetColorTexture(0), Area2I::kEmpty, false, false, true);
+	GetRendererUtility().Blit(commandBuffer, blitInformation);
+
+	commandBuffer.EndLabel();
 
 	// Restore original viewport
 	commandBuffer.SetViewport(camera.GetViewport()->GetArea());
-	commandBuffer.EndLabel();
-	commandBuffer.EndRenderPass();
 }
 
 void GUIRenderer::Update(float time)

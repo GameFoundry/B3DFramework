@@ -43,8 +43,19 @@ namespace b3d
 			BlitMat() = default;
 			void Initialize() override;
 
-			/** Executes the material on the currently bound render target, copying from @p source. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const Area2& area, bool flipUV);
+			/** Creates a new set of GpuParameters and assigns the provided texture. */
+			SPtr<GpuParameters> Prepare(const SPtr<Texture>& source);
+
+			/**
+			 * Executes the blit operation using pre-configured GPU parameters.
+			 *
+			 * @param commandBuffer     Command buffer to record draw commands into. A render pass must already be active.
+			 * @param gpuParameters     GPU parameters containing the configured source texture. Should be obtained via Prepare().
+			 * @param area              Area to use for UV coordinates when drawing the fullscreen quad. For unfiltered blits,
+			 *                          this controls the sampled region. For filtered blits, normalized (0,1) UVs are used.
+			 * @param flipUV            If true, vertical texture coordinates are flipped.
+			 */
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameters>& gpuParameters, const Area2& area, bool flipUV);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -65,7 +76,6 @@ namespace b3d
 			static BlitMat* GetVariation(u32 msaaCount, bool isColor, bool isFiltered, bool blend = false, bool writeAlpha = false);
 
 		private:
-			GpuParameterSampledTexture mSource;
 			bool mIsFiltered = false;
 		};
 
@@ -174,6 +184,130 @@ namespace b3d
 			SPtr<GpuBuffer> mParamBuffer;
 		};
 
+		/** Information describing a blit operation from a source texture to a render target. */
+		struct BlitInformation
+		{
+			/**
+			 * Source texture to blit from. This texture will be sampled and copied to the output render target.
+			 * The texture can be either a color or depth texture, determined by the @p IsDepth parameter.
+			 */
+			SPtr<Texture> InputTexture;
+
+			/**
+			 * Area of the source texture to blit from, in pixel coordinates. If set to Area2I::kEmpty (default),
+			 * the entire source texture will be used. The area is used to control which portion of the source
+			 * texture is sampled when useFiltering is false. When useFiltering is true, the entire texture
+			 * is always sampled with normalized UV coordinates.
+			 */
+			Area2I InputArea = Area2I::kEmpty;
+
+			/**
+			 * Destination render target to blit to. The blit operation will render into this target's
+			 * color and/or depth surfaces depending on the isDepth parameter.
+			 */
+			SPtr<RenderTarget> OutputRenderTarget;
+
+			/**
+			 * Optional viewport area for the output render target, in normalized coordinates [0,1].
+			 * If not specified, the current viewport remains unchanged. If specified, the viewport
+			 * will be set to this area before rendering, allowing the blit to target a specific
+			 * region of the output render target.
+			 */
+			TOptional<Area2> OutputArea;
+
+			/**
+			 * Determines which render surfaces should not be loaded from memory at the start of the render pass.
+			 * This is a performance optimization - surfaces that will be completely overwritten don't need to be
+			 * loaded. Use RenderSurfaceMask flags (RT_NONE, RT_COLOR0, RT_DEPTH, etc.) to specify surfaces.
+			 * Default is RT_NONE (no surfaces are loaded).
+			 *
+			 * @see RenderSurfaceMask for available flags
+			 * @see RenderPassCreateInformation::LoadMask for more details
+			 */
+			RenderSurfaceMask LoadMask = RT_NONE;
+
+			/**
+			 * Determines which render surfaces should be treated as read-only during the render pass.
+			 * Read-only surfaces cannot be written to and may enable additional optimizations (e.g., keeping
+			 * depth buffer in compressed state). Use RenderSurfaceMask flags (RT_NONE, RT_COLOR0, RT_DEPTH,
+			 * RT_ALL, etc.) to specify surfaces.
+			 * Default is RT_NONE (all surfaces are writable).
+			 *
+			 * @see RenderSurfaceMask for available flags
+			 * @see RenderPassCreateInformation::ReadOnlyMask for more details
+			 */
+			RenderSurfaceMask ReadOnlyMask = RT_NONE;
+
+			/** Determines which frame buffer surfaces to clear. Use values from FrameBufferType. */
+			u32 ClearMask = 0;
+
+			/**
+			 * If true, the vertical texture coordinates will be flipped during the blit. This is useful
+			 * when blitting between render targets with different coordinate systems (e.g., OpenGL vs DirectX).
+			 */
+			bool FlipUV = false;
+
+			/**
+			 * If true, the source texture is treated as a depth texture and the blit will write to the
+			 * output's depth surface. If false, the source is treated as a color texture and writes to
+			 * the color surface. Depth blits use point sampling and write depth values directly.
+			 */
+			bool IsDepth = false;
+
+			/**
+			 * If true, bilinear filtering is used when sampling the source texture. This produces smoother
+			 * results when scaling but may introduce blur. If false, point sampling is used which preserves
+			 * sharp edges but may show aliasing when scaling.
+			 * Note: Ignored when @p IsDepth is true (depth always uses point sampling).
+			 */
+			bool UseFiltering = false;
+
+			/**
+			 * If true, the blit will blend with the existing contents of the output render target using
+			 * standard alpha blending (source alpha, inverse source alpha, add). If false, the source
+			 * texture completely replaces the destination. Only relevant if @p IsDepth is false.
+			 */
+			bool UseBlend = false;
+
+			/**
+			 * Controls whether the alpha channel is written during blending operations. Only relevant
+			 * when @p UseBlend is true. If false, only RGB channels are written and alpha is preserved.
+			 * If true, all RGBA channels are written.
+			 */
+			bool WriteAlpha = false;
+
+			/** Helper to create blit information with commonly used settings for copying a color texture (no blending, no filtering, no UV flip). */
+			static BlitInformation BlitColor(const SPtr<Texture>& inputTexture, const SPtr<RenderTarget>& outputRenderTarget, const Area2I& inputArea = Area2I::kEmpty, RenderSurfaceMask loadMask = RT_NONE, RenderSurfaceMask readOnlyMask = RT_NONE)
+			{
+				BlitInformation blitInformation;
+				blitInformation.InputTexture = inputTexture;
+				blitInformation.OutputRenderTarget = outputRenderTarget;
+				blitInformation.InputArea = inputArea;
+				blitInformation.LoadMask = loadMask;
+				blitInformation.ReadOnlyMask = readOnlyMask;
+
+				return blitInformation;
+			}
+
+			/** Helper to create blit information with commonly used settings for copying a depth texture (no blending, no filtering, no UV flip). */
+			static BlitInformation BlitDepth(const SPtr<Texture>& inputTexture, const SPtr<RenderTarget>& outputRenderTarget, const Area2I& inputArea = Area2I::kEmpty, RenderSurfaceMask loadMask = RT_NONE, RenderSurfaceMask readOnlyMask = RT_NONE)
+			{
+				BlitInformation blitInformation = BlitColor(inputTexture, outputRenderTarget, inputArea, loadMask, readOnlyMask);
+				blitInformation.IsDepth = true;
+
+				return blitInformation;
+			}
+
+			/** Helper to create blit information with commonly used settings for blending a color texture with the currently bound render target (no filtering, no UV flip). */
+			static BlitInformation Blend(const SPtr<Texture>& inputTexture, const SPtr<RenderTarget>& outputRenderTarget, const Area2I& inputArea = Area2I::kEmpty, RenderSurfaceMask loadMask = RT_NONE, RenderSurfaceMask readOnlyMask = RT_NONE)
+			{
+				BlitInformation blitInformation = BlitColor(inputTexture, outputRenderTarget, inputArea, loadMask, readOnlyMask);
+				blitInformation.UseBlend = true;
+
+				return blitInformation;
+			}
+		};
+
 		/**
 		 * Contains various utility methods that make various common operations in the renderer easier.
 		 *
@@ -258,34 +392,16 @@ namespace b3d
 			void DrawMorph(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>& mesh, const SubMesh& subMesh, const SPtr<GpuBuffer>& morphVertices, const SPtr<VertexDescription>& morphVertexDescription);
 
 			/**
-			 * Blits contents of the provided texture into the currently bound render target. If the provided texture contains
-			 * multiple samples, they will be resolved.
+			 * Blits a source texture to a render target with optional filtering, blending, and coordinate transformations.
+			 * This method encapsulates the complete blit operation including render pass management and viewport setup.
 			 *
-			 * @param	commandBuffer	Command buffer to encode the operation on.
-			 * @param	texture			Source texture to blit.
-			 * @param	area			Area of the source texture to blit in pixels. If width or height is zero it is assumed
-			 *							the entire texture should be blitted.
-			 * @param	flipUV			If true, vertical UV coordinate will be flipped upside down.
-			 * @param	isDepth			If true, the input texture is assumed to be a depth texture (instead of a color one).
-			 *							Multisampled depth textures will be resolved by taking the minimum value of all samples,
-			 *							unlike color textures which wil be averaged.
-			 * @param	isFiltered		True if to apply bilinear filtering to the sampled texture. Only relevant for color
-			 *							textures with no multiple samples.
-			 */
-			void Blit(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& texture, const Area2I& area = Area2I::kEmpty, bool flipUV = false, bool isDepth = false, bool isFiltered = false);
-
-			/**
-			 * Blends contents of the provided texture into the currently bound render target.
+			 * @param commandBuffer     Command buffer to record the blit operation into.
+			 * @param blitInformation   Structure containing all blit parameters (source/destination, areas, options).
 			 *
-			 * @param	commandBuffer	Command buffer to encode the operation on.
-			 * @param	texture			Source texture to blit.
-			 * @param	area				Area of the source texture to blit in pixels. If width or height is zero it is assumed
-			 *							the entire texture should be blitted.
-			 * @param	flipUV			If true, vertical UV coordinate will be flipped upside down.
-			 * @param	isFiltered		True if to apply bilinear filtering to the sampled texture.
-			 * @param	writeAlpha		If true, alpha form the source texture will be transferred to the destination texture.
+			 * @note This method manages the render pass lifecycle - callers should NOT call BeginRenderPass/EndRenderPass.
+			 * @note The viewport is only modified if blitInfo.OutputArea is specified; otherwise, the current viewport is preserved.
 			 */
-			void Blend(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& texture, const Area2I& area = Area2I::kEmpty, bool flipUV = false, bool isFiltered = false, bool writeAlpha = false);
+			void Blit(GpuCommandBuffer& commandBuffer, const BlitInformation& blitInformation);
 
 			/**
 			 * Draws a quad over the entire viewport in normalized device coordinates.

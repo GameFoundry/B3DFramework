@@ -1809,10 +1809,10 @@ RCNodeSkybox::DependencyDefinition RCNodeSkybox::GetDependencyDefinition()
 void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 {
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
-	const RendererViewProperties& viewProps = inputs.View.GetProperties();
+	const RendererViewProperties& viewProperties = inputs.View.GetProperties();
 
 	SPtr<Texture> input;
-	if(viewProps.RunPostProcessing)
+	if(viewProperties.RunPostProcessing)
 	{
 		RCNodePostProcess* postProcessNode = dependencies.Get<RCNodePostProcess>();
 
@@ -1825,22 +1825,22 @@ void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 		input = sceneColorNode->SceneColorTex->Texture;
 	}
 
-	SPtr<RenderTarget> target = viewProps.Target.Target;
+	SPtr<RenderTarget> target = viewProperties.Target.Target;
 
 	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
-	commandBuffer.BeginRenderPass(RenderPassCreateInformation(target));
-	commandBuffer.SetViewport(viewProps.Target.NrmViewRect);
 
-	GetRendererUtility().Blit(commandBuffer, input, Area2I::kEmpty, viewProps.FlipView);
+	BlitInformation blitInformation = BlitInformation::BlitColor(input, target);
+	blitInformation.OutputArea = viewProperties.Target.NrmViewRect;
+	blitInformation.FlipUV = viewProperties.FlipView;
 
-	commandBuffer.EndRenderPass();
+	GetRendererUtility().Blit(commandBuffer, blitInformation);
 
-	if(viewProps.EncodeDepth)
+	if(viewProperties.EncodeDepth)
 	{
 		RCNodeResolvedSceneDepth* resolvedSceneDepthNode = dependencies.Get<RCNodeResolvedSceneDepth>();
 
 		EncodeDepthMat* const encodeDepthMat = EncodeDepthMat::Get();
-		encodeDepthMat->Prepare(resolvedSceneDepthNode->Output->Texture, viewProps.DepthEncodeNear, viewProps.DepthEncodeFar);
+		encodeDepthMat->Prepare(resolvedSceneDepthNode->Output->Texture, viewProperties.DepthEncodeNear, viewProperties.DepthEncodeFar);
 		encodeDepthMat->Execute(commandBuffer, target);
 	}
 
@@ -2272,10 +2272,7 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		resolvedSceneColor = resPool.Get(PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
-		commandBuffer.BeginRenderPass(resolvedSceneColor->RenderTexture);
-		GetRendererUtility().Blit(commandBuffer, sceneColor->Texture);
-		commandBuffer.EndRenderPass();
-
+		GetRendererUtility().Blit(commandBuffer, BlitInformation::BlitColor(sceneColor->Texture, resolvedSceneColor->RenderTexture));
 		sceneColor = resolvedSceneColor;
 	}
 
@@ -2619,10 +2616,10 @@ void RCNodeResolvedSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 		Output = GetGpuResourcePool().Get(
 			PooledRenderTextureCreateInformation::Create2D(PF_D32_S8X24, width, height, TU_DEPTHSTENCIL, 1, false));
 
-		commandBuffer.BeginRenderPass(Output->RenderTexture);
-		commandBuffer.ClearRenderTarget(FBT_STENCIL);
-		GetRendererUtility().Blit(*inputs.ActiveCommandBuffer, sceneDepthNode->DepthTex->Texture, Area2I::kEmpty, false, true);
-		commandBuffer.EndRenderPass();
+		BlitInformation blitInformation = BlitInformation::BlitDepth(sceneDepthNode->DepthTex->Texture, Output->RenderTexture);
+		blitInformation.ClearMask = FBT_STENCIL;
+
+		GetRendererUtility().Blit(commandBuffer, BlitInformation::BlitDepth(sceneDepthNode->DepthTex->Texture, Output->RenderTexture));
 	}
 	else
 		Output = sceneDepthNode->DepthTex;
@@ -2675,33 +2672,32 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 	rtDesc.ColorSurfaces[0].Texture = Output->Texture;
 	rtDesc.ColorSurfaces[0].MipLevel = 0;
 
-	SPtr<RenderTexture> rt = RenderTexture::Create(rtDesc);
+	SPtr<RenderTexture> renderTexture = RenderTexture::Create(rtDesc);
 
-	Area2 destRect;
+	Area2 destinationArea;
 	bool downsampledFirstMip = false; // Not used currently
 	if(downsampledFirstMip)
 	{
 		// Make sure that 1 pixel in HiZ maps to a 2x2 block in source
-		destRect = Area2(0, 0, Math::CeilToInt(viewProps.Target.ViewRect.Width / 2.0f) / (float)size, Math::CeilToInt(viewProps.Target.ViewRect.Height / 2.0f) / (float)size);
+		destinationArea = Area2(0, 0, Math::CeilToInt(viewProps.Target.ViewRect.Width / 2.0f) / (float)size, Math::CeilToInt(viewProps.Target.ViewRect.Height / 2.0f) / (float)size);
 
 		material->Prepare(resolvedSceneDepth->Output->Texture, 0);
-		material->Execute(commandBuffer, rt, srcRect, destRect);
+		material->Execute(commandBuffer, renderTexture, srcRect, destinationArea);
 	}
 	else // First level is just a copy of the depth buffer
 	{
-		destRect = Area2(0, 0, viewProps.Target.ViewRect.Width / (float)size, viewProps.Target.ViewRect.Height / (float)size);
+		destinationArea = Area2(0, 0, viewProps.Target.ViewRect.Width / (float)size, viewProps.Target.ViewRect.Height / (float)size);
 
-		commandBuffer.BeginRenderPass(rt);
-		commandBuffer.SetViewport(destRect);
+		Area2I sourceArea;
+		sourceArea.X = (i32)(srcRect.X * viewProps.Target.ViewRect.Width);
+		sourceArea.Y = (i32)(srcRect.Y * viewProps.Target.ViewRect.Height);
+		sourceArea.Width = (u32)(srcRect.Width * viewProps.Target.ViewRect.Width);
+		sourceArea.Height = (u32)(srcRect.Height * viewProps.Target.ViewRect.Height);
 
-		Area2I srcAreaInt;
-		srcAreaInt.X = (i32)(srcRect.X * viewProps.Target.ViewRect.Width);
-		srcAreaInt.Y = (i32)(srcRect.Y * viewProps.Target.ViewRect.Height);
-		srcAreaInt.Width = (u32)(srcRect.Width * viewProps.Target.ViewRect.Width);
-		srcAreaInt.Height = (u32)(srcRect.Height * viewProps.Target.ViewRect.Height);
+		BlitInformation blitInformation = BlitInformation::BlitColor(resolvedSceneDepth->Output->Texture, renderTexture, sourceArea);
+		blitInformation.OutputArea = destinationArea;
 
-		GetRendererUtility().Blit(commandBuffer, resolvedSceneDepth->Output->Texture, srcAreaInt);
-		commandBuffer.EndRenderPass();
+		GetRendererUtility().Blit(commandBuffer, blitInformation);
 		commandBuffer.SetViewport(Area2(0, 0, 1, 1));
 	}
 
@@ -2709,10 +2705,10 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 	for(u32 i = 1; i <= numMips; i++)
 	{
 		rtDesc.ColorSurfaces[0].MipLevel = i;
-		rt = RenderTexture::Create(rtDesc);
+		renderTexture = RenderTexture::Create(rtDesc);
 
 		material->Prepare(Output->Texture, i - 1);
-		material->Execute(commandBuffer, rt, destRect, destRect);
+		material->Execute(commandBuffer, renderTexture, destinationArea, destinationArea);
 	}
 }
 
@@ -2759,10 +2755,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		PooledRenderTextureCreateInformation desc = PooledRenderTextureCreateInformation::Create2D(normalsProps.Format, normalsProps.Width, normalsProps.Height, TU_RENDERTARGET);
 		resolvedNormals = resPool.Get(desc);
 
-		commandBuffer.BeginRenderPass(resolvedNormals->RenderTexture);
-		GetRendererUtility().Blit(commandBuffer, sceneNormals);
-		commandBuffer.EndRenderPass();
-
+		GetRendererUtility().Blit(commandBuffer, BlitInformation::BlitColor(sceneNormals, resolvedNormals->RenderTexture));
 		sceneNormals = resolvedNormals->Texture;
 	}
 
@@ -2955,10 +2948,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		resolvedSceneColor = resPool.Get(PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
-		commandBuffer.BeginRenderPass(resolvedSceneColor->RenderTexture);
-		GetRendererUtility().Blit(commandBuffer, sceneColor);
-		commandBuffer.EndRenderPass();
-
+		GetRendererUtility().Blit(commandBuffer, BlitInformation::BlitColor(sceneColor, resolvedSceneColor->RenderTexture));
 		sceneColor = resolvedSceneColor->Texture;
 	}
 	else

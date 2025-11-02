@@ -284,38 +284,51 @@ void RendererUtility::DrawMorph(GpuCommandBuffer& commandBuffer, const SPtr<Mesh
 	mesh->NotifyUsedOnGPU();
 }
 
-void RendererUtility::Blit(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& texture, const Area2I& area, bool flipUV, bool isDepth, bool isFiltered)
+void RendererUtility::Blit(GpuCommandBuffer& commandBuffer, const BlitInformation& blitInformation)
 {
-	auto& texProps = texture->GetProperties();
+	if(!B3D_ENSURE(blitInformation.InputTexture != nullptr))
+		return;
 
-	Area2 fArea((float)area.X, (float)area.Y, (float)area.Width, (float)area.Height);
+	if(!B3D_ENSURE(blitInformation.OutputRenderTarget != nullptr))
+		return;
+
+	// Convert input area to float coordinates
+	auto& textureProperties = blitInformation.InputTexture->GetProperties();
+	const Area2I& area = blitInformation.InputArea;
+
+	Area2 inputAreaFloat((float)area.X, (float)area.Y, (float)area.Width, (float)area.Height);
 	if(area.Width == 0 || area.Height == 0)
 	{
-		fArea.X = 0.0f;
-		fArea.Y = 0.0f;
-		fArea.Width = (float)texProps.Width;
-		fArea.Height = (float)texProps.Height;
+		inputAreaFloat.X = 0.0f;
+		inputAreaFloat.Y = 0.0f;
+		inputAreaFloat.Width = (float)textureProperties.Width;
+		inputAreaFloat.Height = (float)textureProperties.Height;
 	}
 
-	BlitMat* blitMat = BlitMat::GetVariation(texProps.SampleCount, !isDepth, isFiltered);
-	blitMat->Execute(commandBuffer, texture, fArea, flipUV);
-}
+	// Get appropriate material variation
+	BlitMat* const blitMaterial = BlitMat::GetVariation(textureProperties.SampleCount, !blitInformation.IsDepth, blitInformation.UseFiltering, blitInformation.UseBlend, blitInformation.WriteAlpha);
 
-void RendererUtility::Blend(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& texture, const Area2I& area, bool flipUV, bool isFiltered, bool writeAlpha)
-{
-	const TextureProperties& textureProperties = texture->GetProperties();
+	// Get GPU parameters and configure source texture
+	const SPtr<GpuParameters> gpuParameters = blitMaterial->Prepare(blitInformation.InputTexture);
 
-	Area2 areaFloat((float)area.X, (float)area.Y, (float)area.Width, (float)area.Height);
-	if(area.Width == 0 || area.Height == 0)
+	// Begin render pass
+	RenderPassCreateInformation renderPassInfo(blitInformation.OutputRenderTarget, gpuParameters, blitInformation.LoadMask, blitInformation.ReadOnlyMask);
+	commandBuffer.BeginRenderPass(renderPassInfo);
+
+	if(blitInformation.OutputArea.has_value())
+		commandBuffer.SetViewport(blitInformation.OutputArea.value());
+
+	if(blitInformation.ClearMask != 0)
 	{
-		areaFloat.X = 0.0f;
-		areaFloat.Y = 0.0f;
-		areaFloat.Width = (float)textureProperties.Width;
-		areaFloat.Height = (float)textureProperties.Height;
+		if(blitInformation.OutputArea.has_value())
+			commandBuffer.ClearViewport(blitInformation.ClearMask);
+		else
+			commandBuffer.ClearRenderTarget(blitInformation.ClearMask);
 	}
 
-	BlitMat* const blitMaterial = BlitMat::GetVariation(textureProperties.SampleCount, true, isFiltered, true, writeAlpha);
-	blitMaterial->Execute(commandBuffer, texture, areaFloat, flipUV);
+	blitMaterial->Execute(commandBuffer, gpuParameters, inputAreaFloat, blitInformation.FlipUV);
+
+	commandBuffer.EndRenderPass();
 }
 
 void RendererUtility::DrawScreenQuad(GpuCommandBuffer& commandBuffer, const Area2& uv, const Vector2I& textureSize, u32 numInstances, bool flipUV)
@@ -404,16 +417,23 @@ RendererUtility& GetRendererUtility()
 
 void BlitMat::Initialize()
 {
-	mGPUParameters->GetSampledTextureParameter("gSource", mSource);
 	mIsFiltered = mVariationParameters.GetI32("MODE") == 1;
 }
 
-void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const Area2& area, bool flipUV)
+SPtr<GpuParameters> BlitMat::Prepare(const SPtr<Texture>& source)
+{
+	SPtr<GpuParameters> gpuParameters = CreateGpuParameters();
+	gpuParameters->SetSampledTexture("gSource", source);
+
+	return gpuParameters;
+}
+
+void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameters>& gpuParameters, const Area2& area, bool flipUV)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	mSource.Set(source);
-	Bind(commandBuffer);
+	Bind(commandBuffer, false);
+	commandBuffer.SetGpuParameters(gpuParameters);
 
 	if(!mIsFiltered)
 		GetRendererUtility().DrawScreenQuad(commandBuffer, area, Vector2I(1, 1), 1, flipUV);
