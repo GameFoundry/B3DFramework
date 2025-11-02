@@ -319,7 +319,7 @@ void FrameGraph::Execute()
 
 			// Begin render pass
 			B3D_LOG(Info, RenderBackend, "Beginning render pass for '{0}'", pass->GetName());
-			currentCmd->BeginRenderPass(renderTarget);
+			currentCmd->BeginRenderPass(RenderPassCreateInformation(renderTarget)); // TODO - Render pass should pre-declare all used resources so barriers/layout transitions can be issued automatically by command buffer
 		}
 
 		// Execute the pass with resource accessor

@@ -537,7 +537,7 @@ void CompositeMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>&
 	gCompositeParamDef.gTint.Set(mParamBuffer, tint);
 
 	// Render
-	commandBuffer.BeginRenderPass(target);
+	commandBuffer.BeginRenderPass(RenderPassCreateInformation(target, mGPUParameters));
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -574,7 +574,7 @@ void BicubicUpsampleMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 	gBicubicUpsampleParamDef.gInvTwoPixels.Set(mParamBuffer, invTwoPixelSize);
 
 	// Render
-	commandBuffer.BeginRenderPass(target);
+	commandBuffer.BeginRenderPass(RenderPassCreateInformation(target, mGPUParameters));
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
