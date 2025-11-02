@@ -537,7 +537,7 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 
 	if(clearBuffers != 0)
 	{
-		commandBuffer.BeginRenderPass(target);
+		commandBuffer.BeginRenderPass(RenderPassCreateInformation(target));
 		commandBuffer.ClearViewport(clearBuffers, viewport->GetClearColorValue(), viewport->GetClearDepthValue(), viewport->GetClearStencilValue());
 		commandBuffer.EndRenderPass();
 	}

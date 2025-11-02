@@ -38,7 +38,7 @@ void ReflectionCubeDownsampleMat::Execute(GpuCommandBuffer& commandBuffer, const
 		gReflectionCubeDownsampleParamDef.gMipLevel.Set(mParamBuffer, mip);
 	}
 
-	commandBuffer.BeginRenderPass(target);
+	commandBuffer.BeginRenderPass(RenderPassCreateInformation(target, mGPUParameters));
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -79,7 +79,7 @@ void ReflectionCubeImportanceSampleMat::Execute(GpuCommandBuffer& commandBuffer,
 	float mipFactor = 0.5f * std::log2(width * height / kNumSamples);
 	gReflectionCubeImportanceSampleParamDef.gPrecomputedMipFactor.Set(mParamBuffer, mipFactor);
 
-	commandBuffer.BeginRenderPass(target);
+	commandBuffer.BeginRenderPass(RenderPassCreateInformation(target, mGPUParameters));
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -191,7 +191,7 @@ void IrradianceComputeSHFragMat::Execute(GpuCommandBuffer& commandBuffer, const 
 	gIrradianceComputeSHFragParamDef.gCoeffComponentIdx.Set(mParamBuffer, coefficientIdx % 4);
 
 	// Render
-	commandBuffer.BeginRenderPass(output);
+	commandBuffer.BeginRenderPass(RenderPassCreateInformation(output, mGPUParameters));
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -230,7 +230,7 @@ void IrradianceAccumulateSHMat::Execute(GpuCommandBuffer& commandBuffer, const S
 	gIrradianceAccumulateSHParamDef.gHalfPixel.Set(mParamBuffer, halfPixel);
 
 	// Render
-	commandBuffer.BeginRenderPass(output);
+	commandBuffer.BeginRenderPass(RenderPassCreateInformation(output, mGPUParameters));
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -281,7 +281,7 @@ void IrradianceAccumulateCubeSHMat::Execute(GpuCommandBuffer& commandBuffer, con
 	viewRect.Height = 1.0f / rtProps.Height;
 
 	// Render
-	commandBuffer.BeginRenderPass(output);
+	commandBuffer.BeginRenderPass(RenderPassCreateInformation(output, mGPUParameters));
 	commandBuffer.SetViewport(viewRect);
 
 	Bind(commandBuffer);
@@ -366,7 +366,7 @@ void IrradianceProjectSHMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr
 
 	mInputTexture.Set(shCoeffs);
 
-	commandBuffer.BeginRenderPass(target);
+	commandBuffer.BeginRenderPass(RenderPassCreateInformation(target, mGPUParameters));
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
