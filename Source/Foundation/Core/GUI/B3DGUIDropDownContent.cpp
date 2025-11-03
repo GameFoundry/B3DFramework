@@ -101,7 +101,7 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 				visibleElement.Layout->AddElement(label);
 				visibleElement.Layout->AddElement(arrow);
 
-				visibleElement.UnderlayButton->OnHover.Connect([elementIndex, currentVisibleIndex, fnOnHover] { fnOnHover(elementIndex, currentVisibleIndex); });
+				visibleElement.UnderlayButton->OnHover.Connect([elementIndex, currentVisibleIndex, fnOnClick] { fnOnClick(elementIndex, currentVisibleIndex); });
 			}
 			else if(mIsToggle)
 			{
