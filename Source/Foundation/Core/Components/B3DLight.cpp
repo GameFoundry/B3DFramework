@@ -36,16 +36,12 @@ namespace b3d
 
 template<bool IsRenderProxy>
 TLight<IsRenderProxy>::TLight()
-{
-	UpdateAttenuationRange();
-}
+{ }
 
 template<bool IsRenderProxy>
 TLight<IsRenderProxy>::TLight(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
 	: mType(type), mCastsShadows(castsShadows), mColor(color), mAttRadius(attRadius), mSourceRadius(srcRadius), mIntensity(intensity), mSpotAngle(spotAngle), mSpotFalloffAngle(spotFalloffAngle)
-{
-	UpdateAttenuationRange();
-}
+{ }
 
 template<bool IsRenderProxy>
 void TLight<IsRenderProxy>::SetUseAutoAttenuation(bool enabled)
@@ -264,6 +260,8 @@ void Light::Initialize()
 
 	Component::Initialize();
 	CoreObject::Initialize();
+
+	UpdateAttenuationRange();
 }
 
 void Light::OnCreated()
@@ -311,6 +309,7 @@ const u32 Light::kLightConeNumSlices = 10;
 Light::Light(const SPtr<SceneInstance>& scene, LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
 	: TLight(type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle), mRendererId(0), mSceneInstance(scene)
 {
+	UpdateAttenuationRange();
 }
 
 Light::~Light()
