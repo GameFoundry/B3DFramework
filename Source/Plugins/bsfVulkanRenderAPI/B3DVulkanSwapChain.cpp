@@ -294,7 +294,9 @@ void VulkanSwapChain::Destroy()
 
 ImageAcquireResult VulkanSwapChain::AcquireImage()
 {
-	AssertIfNotVulkanSubmitThread();
+	// This should be called from the submit thread, or one of the helper workers (workers are utilized because of the wait in vkAcquireNextImageKHR,
+	// otherwise the calling fiber cannot yield - we need to launch this in its own thread).
+	AssertIfRenderThread();
 
 	ImageAcquireResult output;
 
