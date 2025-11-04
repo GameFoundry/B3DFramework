@@ -31,18 +31,18 @@ static VulkanImageCreateInformation BuildImageCreateInformation(VkImage image, V
 	return desc;
 }
 
-VulkanImage::VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout, VkFormat actualFormat, const TextureProperties& props, bool ownsImage, bool isShaderReadAllowed, const StringView& name)
-	: VulkanImage(owner, BuildImageCreateInformation(image, allocation, layout, actualFormat, props), ownsImage, isShaderReadAllowed, name)
+VulkanImage::VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout, VkFormat actualFormat, const TextureProperties& textureProperties, bool ownsImage, bool isShaderReadAllowed, const StringView& name)
+	: VulkanImage(owner, BuildImageCreateInformation(image, allocation, layout, actualFormat, textureProperties), ownsImage, isShaderReadAllowed, name)
 {}
 
-VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& desc, bool ownsImage, bool isShaderReadAllowed, const StringView& name)
-	: VulkanResource(owner, false, name), mImage(desc.Image), mAllocation(desc.Allocation), mUsage(desc.Usage), mOwnsImage(ownsImage), mIsShaderReadAllowed(isShaderReadAllowed), mFaceCount(desc.FaceCount), mDepthSliceCount(desc.DepthSliceCount), mMipLevelCount(desc.MipLevelCount)
+VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, bool ownsImage, bool isShaderReadAllowed, const StringView& name)
+	: VulkanResource(owner, false, name), mImage(createInformation.Image), mAllocation(createInformation.Allocation), mUsage(createInformation.Usage), mOwnsImage(ownsImage), mIsShaderReadAllowed(isShaderReadAllowed), mFaceCount(createInformation.FaceCount), mDepthSliceCount(createInformation.DepthSliceCount), mMipLevelCount(createInformation.MipLevelCount)
 {
 	mImageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	mImageViewCI.pNext = nullptr;
 	mImageViewCI.flags = 0;
-	mImageViewCI.image = desc.Image;
-	mImageViewCI.format = desc.Format;
+	mImageViewCI.image = createInformation.Image;
+	mImageViewCI.format = createInformation.Format;
 	mImageViewCI.components = {
 		VK_COMPONENT_SWIZZLE_R,
 		VK_COMPONENT_SWIZZLE_G,
@@ -50,7 +50,7 @@ VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateIn
 		VK_COMPONENT_SWIZZLE_A
 	};
 
-	switch(desc.Type)
+	switch(createInformation.Type)
 	{
 	case TEX_TYPE_1D:
 		mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_1D;
@@ -72,23 +72,23 @@ VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateIn
 	// For depth stencil attachments we need a special view for shader reads and for framebuffer attachment, so we create two main views
 	if((mUsage & TU_DEPTHSTENCIL) != 0)
 	{
-		mFramebufferMainView = CreateView(completeSurface, desc.Format, GetAspectFlags(), true);
-		mMainView = CreateView(completeSurface, desc.Format, VK_IMAGE_ASPECT_DEPTH_BIT, false);
+		mFramebufferMainView = CreateView(completeSurface, createInformation.Format, GetAspectFlags(), true);
+		mMainView = CreateView(completeSurface, createInformation.Format, VK_IMAGE_ASPECT_DEPTH_BIT, false);
 	}
 	else
 	{
 		// For 3D render attachments we also require a special view for framebuffer attachments
 		if(mDepthSliceCount > 1 && (mUsage & TU_RENDERTARGET) != 0)
-			mFramebufferMainView = CreateView(completeSurface, desc.Format, VK_IMAGE_ASPECT_COLOR_BIT, true);
+			mFramebufferMainView = CreateView(completeSurface, createInformation.Format, VK_IMAGE_ASPECT_COLOR_BIT, true);
 
 		// For all other cases (non-framebuffer attachment, or a non-3D non-depth-stencil attachment) regular view will suffice.
-		mMainView = CreateView(completeSurface, desc.Format, VK_IMAGE_ASPECT_COLOR_BIT, false);
+		mMainView = CreateView(completeSurface, createInformation.Format, VK_IMAGE_ASPECT_COLOR_BIT, false);
 	}
 
 	const u32 subresourceCount = mFaceCount * mMipLevelCount;
 	mSubresources = (VulkanImageSubresource**)B3DAllocate(sizeof(VulkanImageSubresource*) * subresourceCount);
 	for(u32 i = 0; i < subresourceCount; i++)
-		mSubresources[i] = owner->Create<VulkanImageSubresource>(desc.Layout);
+		mSubresources[i] = owner->Create<VulkanImageSubresource>(createInformation.Layout);
 }
 
 VulkanImage::~VulkanImage()

@@ -52,6 +52,19 @@ bool WriteHazardPipelineTracking::IsAccessSafe(VkPipelineStageFlags stages) cons
 	return true;
 }
 
+VkPipelineStageFlags WriteHazardPipelineTracking::GetUnsafeAccessStages(VkPipelineStageFlags stages) const
+{
+	VkPipelineStageFlags unsafeStages = 0;
+
+	for(u32 stageFlagIndex = 0; stageFlagIndex < (u32)SafeAccess.size(); stageFlagIndex++)
+	{
+		if((SafeAccess[stageFlagIndex] & stages) != stages)
+			unsafeStages |= (1 << stageFlagIndex);
+	}
+
+	return unsafeStages;
+}
+
 void WriteHazardPipelineTracking::LogUnsafeAccess(VkPipelineStageFlags stages, GpuAccessFlags currentAccessType, GpuAccessFlags previousAccessType) const
 {
 	StringStream stream;
@@ -256,6 +269,7 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 		}
 		else if(use == ImageUseFlagBits::Transfer)
 		{
+#if B3D_LEGACY_TRANSFER_BARRIERS
 			// Ensure previously queued transitions were executed
 			B3D_ASSERT(subresourceTrackingState.CurrentLayout == subresourceTrackingState.RequiredLayout);
 
@@ -284,6 +298,7 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 			}
 
 			subresourceTrackingState.CurrentLayout = layout;
+#endif
 			subresourceTrackingState.RequiredLayout = layout;
 		}
 
@@ -296,25 +311,33 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 	WriteHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
 
 	// If this image has been previously used prevent read-after-write and write-after-read hazards
+#if B3D_LEGACY_TRANSFER_BARRIERS
 	if(use != ImageUseFlagBits::Transfer) // TODO - Excluded temporarily while we issue barriers manually
 	{
-		if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
+#endif
+	if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
+	{
+		// Read-after-write (and write-after-write, as little sense does that make)
+		if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Write))
 		{
-			// Read-after-write (and write-after-write, as little sense does that make)
-			if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Write))
+			// Triggers if user did not issue a RAW memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
+			if(!writeHazardTracking->WriteAccessStages.IsAccessSafe(stages))
 			{
-				// Triggers if user did not issue a RAW memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-				if(!writeHazardTracking->WriteAccessStages.IsAccessSafe(stages))
-				{
-					writeHazardTracking->WriteAccessStages.LogUnsafeAccess(stages, access, GpuAccessFlag::Write);
-					B3D_ENSURE(false);
-				}
+				writeHazardTracking->WriteAccessStages.LogUnsafeAccess(stages, access, GpuAccessFlag::Write);
+				B3D_ENSURE(false);
 			}
 		}
 	}
+#if B3D_LEGACY_TRANSFER_BARRIERS 
+	}
+#endif
 
 	// No need to check for write-after-read barrier for framebuffer as it only needs an execution dependency and that is already handled by the render pass
-	if(use != ImageUseFlagBits::Framebuffer && use != ImageUseFlagBits::Transfer) // TODO - Transfer excluded temporarily while we issue barriers manually
+#if B3D_LEGACY_TRANSFER_BARRIERS
+	if(use != ImageUseFlagBits::Transfer) // TODO - Excluded temporarily while we issue barriers manually
+	{
+#endif
+	if(use != ImageUseFlagBits::Framebuffer)
 	{
 		if(access.IsSet(GpuAccessFlag::Write))
 		{
@@ -330,17 +353,24 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 			}
 		}
 	}
+#if B3D_LEGACY_TRANSFER_BARRIERS 
+	}
+#endif
 
+#if B3D_LEGACY_TRANSFER_BARRIERS 
 	if(use != ImageUseFlagBits::Transfer) // TODO - Excluded temporarily while we issue barriers manually
 	{
-		writeHazardTracking->Access |= access;
+#endif
+	writeHazardTracking->Access |= access;
 
-		if(access.IsSet(GpuAccessFlag::Read))
-			writeHazardTracking->ReadAccessStages.ClearStageSafeAccess(stages);
+	if(access.IsSet(GpuAccessFlag::Read))
+		writeHazardTracking->ReadAccessStages.ClearStageSafeAccess(stages);
 
-		if(access.IsSet(GpuAccessFlag::Write))
-			writeHazardTracking->WriteAccessStages.ClearStageSafeAccess(stages);
+	if(access.IsSet(GpuAccessFlag::Write))
+		writeHazardTracking->WriteAccessStages.ClearStageSafeAccess(stages);
+#if B3D_LEGACY_TRANSFER_BARRIERS 
 	}
+#endif
 #endif
 
 	subresourceTrackingState.UseFlags |= use;
@@ -549,7 +579,23 @@ TArrayView<VulkanResourceTracker::ImageSubresourceTrackingState> VulkanResourceT
 	return TArrayView(&mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex], imageTrackingState.SubresourceInfoCount);
 }
 
-const VulkanResourceTracker::ImageSubresourceTrackingState& VulkanResourceTracker::FindSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip) const
+const VulkanResourceTracker::ImageSubresourceTrackingState& VulkanResourceTracker::GetSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip) const
+{
+	const ImageSubresourceTrackingState* const trackingState = FindSubresourceTrackingState(image, face, mip);
+	if(!B3D_ENSURE(trackingState != nullptr))
+	{
+		// Fallback to first subresource
+		const u32 imageTrackingIndex = mImages.find(image)->second;
+		const ImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
+
+		const ImageSubresourceTrackingState* const subresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
+		return subresourceTrackingStates[0];
+	}
+
+	return *trackingState;
+}
+
+const VulkanResourceTracker::ImageSubresourceTrackingState* VulkanResourceTracker::FindSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip) const
 {
 	const u32 imageTrackingIndex = mImages.find(image)->second;
 	const ImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
@@ -562,18 +608,26 @@ const VulkanResourceTracker::ImageSubresourceTrackingState& VulkanResourceTracke
 		if(face >= subresourceTrackingState.Range.baseArrayLayer && face < (subresourceTrackingState.Range.baseArrayLayer + subresourceTrackingState.Range.layerCount) &&
 		   mip >= subresourceTrackingState.Range.baseMipLevel && mip < (subresourceTrackingState.Range.baseMipLevel + subresourceTrackingState.Range.levelCount))
 		{
-			return subresourceTrackingState;
+			return &subresourceTrackingState;
 		}
 	}
 
-	B3D_ASSERT(false); // Caller should ensure the subresource actually exists, so this shouldn't happen
-	return subresourceTrackingStates[0];
+	return nullptr;
 }
 
-VulkanResourceTracker::ImageSubresourceTrackingState& VulkanResourceTracker::FindSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip)
+const VulkanResourceTracker::BufferTrackingState* VulkanResourceTracker::FindBufferTrackingState(VulkanBuffer* buffer) const
+{
+	auto found = mBuffers.find(buffer);
+	if(found != mBuffers.end())
+		return &found->second;
+
+	return nullptr;
+}
+
+VulkanResourceTracker::ImageSubresourceTrackingState& VulkanResourceTracker::GetSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip)
 {
 	// Delegate to 'const' version and re-cast
-	return const_cast<ImageSubresourceTrackingState&>(const_cast<const VulkanResourceTracker*>(this)->FindSubresourceTrackingState(image, face, mip));
+	return const_cast<ImageSubresourceTrackingState&>(const_cast<const VulkanResourceTracker*>(this)->GetSubresourceTrackingState(image, face, mip));
 }
 
 void VulkanResourceTracker::IterateAndCreateOverlappingImageSubresourceTrackingState(VulkanImage* image, VkImageSubresourceRange subresourceRange, void (*FnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData)
@@ -1145,7 +1199,7 @@ RenderSurfaceMask VulkanResourceTracker::GetFramebufferReadOnlyMask(VulkanFrameb
 	for(u32 colorAttachmentIndex = 0; colorAttachmentIndex < colorAttachmentCount; colorAttachmentIndex++)
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetColorAttachment(colorAttachmentIndex);
-		const ImageSubresourceTrackingState& subresourceTrackingState = FindSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		const ImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
 
 		const bool readOnly = subresourceTrackingState.UseFlags.IsSet(ImageUseFlagBits::Shader);
 
@@ -1156,7 +1210,7 @@ RenderSurfaceMask VulkanResourceTracker::GetFramebufferReadOnlyMask(VulkanFrameb
 	if(renderPass->HasDepthAttachment())
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetDepthStencilAttachment();
-		const ImageSubresourceTrackingState& subresourceTrackingState = FindSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		const ImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
 
 		const bool readOnly = subresourceTrackingState.UseFlags.IsSet(ImageUseFlagBits::Shader);
 
@@ -1180,7 +1234,7 @@ void VulkanResourceTracker::MoveAllFramebufferAttachmentsToFinalLayouts(VulkanFr
 	for(u32 colorAttachmentIndex = 0; colorAttachmentIndex < colorAttachmentCount; colorAttachmentIndex++)
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetColorAttachment(colorAttachmentIndex);
-		ImageSubresourceTrackingState& subresourceTrackingState = FindSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		ImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
 
 		subresourceTrackingState.CurrentLayout = subresourceTrackingState.RenderPassLayout;
 		subresourceTrackingState.RequiredLayout = subresourceTrackingState.RenderPassLayout;
@@ -1189,7 +1243,7 @@ void VulkanResourceTracker::MoveAllFramebufferAttachmentsToFinalLayouts(VulkanFr
 	if(renderPass->HasDepthAttachment())
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetDepthStencilAttachment();
-		ImageSubresourceTrackingState& subresourceTrackingState = FindSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		ImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
 
 		subresourceTrackingState.CurrentLayout = subresourceTrackingState.RenderPassLayout;
 		subresourceTrackingState.RequiredLayout = subresourceTrackingState.RenderPassLayout;

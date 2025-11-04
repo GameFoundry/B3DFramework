@@ -9,6 +9,7 @@
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "RenderAPI/B3DGpuQueries.h"
 #include "RenderAPI/B3DVertexDescription.h"
+#include "B3DVulkanResource.h"
 
 namespace b3d
 {
@@ -79,6 +80,9 @@ namespace b3d
 			/** Gets Vulkan flags representing a certain shader stage. */
 			static VkShaderStageFlagBits GetShaderStage(GpuProgramType type);
 
+			/** Maps a framework ImageLayout enum to Vulkan VkImageLayout. */
+			static VkImageLayout GetImageLayout(ImageLayout layout);
+
 			/** Converts a set of shader stage flags into a pipeline stage flags set containing the relevant shader stages. */
 			static VkPipelineStageFlags ShaderToPipelineStage(VkShaderStageFlags shaderStageFlags);
 
@@ -117,6 +121,9 @@ namespace b3d
 			/** Checks if the two image subresource ranges have any overlapping subresources. */
 			static bool RangeOverlaps(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b);
 
+			/** Checks if the two image subresource ranges are identical. */
+			static bool RangeEquals(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b);
+
 			/**
 			 * Calculates the size and alignment of a single element within a shader interface block using the std140 layout.
 			 *
@@ -142,6 +149,13 @@ namespace b3d
 			static VkAccessFlags GetAccessMaskFromUsage(GpuResourceUseFlags usage, GpuAccessFlags access);
 
 			/**
+			 * Converts pipeline stages and access flag combination into VkAccessFlags. Note for buffers it may not be
+			 * possible to determine exact access flags just from pipeline stages, so the returned flags may be more
+			 * conservative than they need to be.
+			 */
+			static VkAccessFlags GetAccessMaskFromPipelineStages(VkPipelineStageFlags stages, GpuAccessFlags access); // TODO - Deprecate in favor of GetPipelineStageAndAccessMask
+
+			/**
 			 * Returns pipeline stages based on the resource usage flags. This allows for fine-grained control
 			 * of which shader stages are involved when individual shader stage flags are used (VertexShader,
 			 * FragmentShader, ComputeShader). When using the combined Shader flag or other non-shader usage
@@ -149,25 +163,21 @@ namespace b3d
 			 */
 			static VkPipelineStageFlags GetPipelineStageFlags(GpuResourceUseFlags usage, VkAccessFlags accessFlags);
 
+			/** Returns a set of GpuAccessFlags that correspond to the provided VkAccessFlags. */
+			static GpuAccessFlags GetAccessFlagsFromAccessMask(VkAccessFlags accessFlags);
+
 			/** Returns a set of pipeline stages that can are allowed to be used for the specified set of access flags. */
 			static VkPipelineStageFlags GetPipelineStageFlags(VkAccessFlags accessFlags);
 
 			/**
-			 * Determines the appropriate Vulkan image layout based on resource usage and access flags.
+			 * Converts VulkanResourceAccessTypeFlags and access flags into VkPipelineStageFlags and VkAccessFlags.
 			 *
-			 * This method handles all common usage patterns including render targets, shader resources, and transfers.
-			 * For dynamic textures (TU_DYNAMIC), callers should check this before calling and use VK_IMAGE_LAYOUT_GENERAL directly.
-			 *
-			 * @param usage  How the image will be used.
-			 * @param access Type of access (read/write) for the image.
-			 * @return       The appropriate VkImageLayout for the given usage pattern.
-			 *
-			 * @note Logs an error if multiple incompatible usage flags are detected.
+			 * @param accessStage	Vulkan resource access stage flags specifying where is the resource accessed and how.
+			 * @param access		Type of access (read/write) for the resource.
+			 * @param outStages		Output parameter that receives the corresponding Vulkan pipeline stage flags.
+			 * @param outAccessMask Output parameter that receives the corresponding Vulkan access flags.
 			 */
-			static VkImageLayout GetImageLayoutFromUsage(GpuResourceUseFlags usage, GpuAccessFlags access);
-
-			/** Maps a framework ImageLayout enum to Vulkan VkImageLayout. */
-			static VkImageLayout GetImageLayout(ImageLayout layout);
+			static void GetPipelineStageAndAccessMask(VulkanAccessStageFlags accessStage, GpuAccessFlags access, VkPipelineStageFlags& outStages, VkAccessFlags& outAccessMask);
 		};
 
 		/** @} */

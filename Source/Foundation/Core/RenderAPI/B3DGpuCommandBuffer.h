@@ -64,13 +64,7 @@ namespace b3d
 		typedef Flags<GpuResourceUseFlag> GpuResourceUseFlags;
 		B3D_FLAGS_OPERATORS(GpuResourceUseFlag)
 
-		/**
-		 * Image layout - determines how an image is accessed in GPU operations.
-		 *
-		 * Phase 3 Note: This is a framework-level abstraction. Each backend (Vulkan, D3D12)
-		 * maps these layouts to their specific image layout enums. The frame graph automatically
-		 * tracks and transitions layouts as needed.
-		 */
+		/** Image layout - determines how an image is accessed in GPU operations. */
 		enum class ImageLayout
 		{
 			/**

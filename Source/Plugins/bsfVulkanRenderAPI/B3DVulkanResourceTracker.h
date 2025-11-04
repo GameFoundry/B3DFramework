@@ -8,7 +8,8 @@
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "Utility/B3DDenseMap.h"
 
-#define B3D_HAZARD_TRACKING B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#define B3D_HAZARD_TRACKING 1 // This used to be debug only, but is now required. Keeping the #define for clarity.
+#define B3D_LEGACY_TRANSFER_BARRIERS 1 // TODO - Remove all code under this define once we port transfers to use tracked barriers
 
 namespace b3d::render
 {
@@ -64,6 +65,9 @@ namespace b3d::render
 		/** Checks is it safe to access the resource in all the provided pipeline stages. */
 		bool IsAccessSafe(VkPipelineStageFlags stages) const;
 
+		/** Returns a list of all source stages that we cannot safely access data from the provided @p stages. */
+		VkPipelineStageFlags GetUnsafeAccessStages(VkPipelineStageFlags stages) const;
+
 		/** Writes a descriptive error message when access is unsafe. */
 		void LogUnsafeAccess(VkPipelineStageFlags stages, GpuAccessFlags currentAccessType, GpuAccessFlags previousAccessType) const;
 	};
@@ -72,6 +76,10 @@ namespace b3d::render
 	struct WriteHazardTracking
 	{
 		GpuAccessFlags Access; /**< Has the buffer been read or written so far. */
+
+		// TODO - Instead of tracking by VK_PIPELINE_STAGE only, also track by VK_ACCESS, because when issuing barriers we need to determine the access mask from the pipeline
+		// flags, and in some cases it cannot be directly determined (e.g. for vertex input stage, input could have been index or vertex attribute, for shader input the input
+		// could be shader read or uniform read). We can just add our own enum mimicing VK_PIPELINE_STAGE with two extra cases added for the above.
 
 		/** Keeps track of all pipeline stages that the resource was read from, and which of those stages can be safely accessed by a write operation (and on which stage). */
 		WriteHazardPipelineTracking ReadAccessStages;
@@ -167,7 +175,7 @@ namespace b3d::render
 			bool InitialReadOnly = false;
 
 #if B3D_HAZARD_TRACKING
-			/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued*/
+			/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued. */
 			WriteHazardTracking* WriteHazardTracking = nullptr;
 #endif
 
@@ -261,6 +269,12 @@ namespace b3d::render
 		/** Clears shader-related usage flags for all image subresources that were used during the current render pass. Usually called after render pass ends. */
 		void ClearShaderFlagsForAllRenderPassImageSubresources();
 
+		/** Finds a read-only buffer tracking state for the specified buffer. */
+		const BufferTrackingState* FindBufferTrackingState(VulkanBuffer* buffer) const;
+
+		/** Finds the tracking state for the specified image, or returns nullptr if not found. */
+		const ImageTrackingState* FindImageTrackingState(VulkanImage* image) const;
+
 		/** Returns a read-only view of all subresource tracking states for the specified image. */
 		TArrayView<const ImageSubresourceTrackingState> GetSubresourceTrackingStatesForImage(VulkanImage* image) const;
 
@@ -270,11 +284,11 @@ namespace b3d::render
 		/** Returns the subresource tracking state at the specified global index. */
 		const ImageSubresourceTrackingState& GetSubresourceTrackingStateAtIndex(u32 globalSubresourceIndex) { return mSubresourceTrackingState[globalSubresourceIndex]; }
 
-		/** Finds a subresource tracking state for the specified face and mip level of the provided image. */
-		ImageSubresourceTrackingState& FindSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip);
+		/** Finds a read-only subresource tracking state for the specified face and mip level of the provided image. */
+		const ImageSubresourceTrackingState& GetSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip) const;
 
 		/** Finds a read-only subresource tracking state for the specified face and mip level of the provided image. */
-		const ImageSubresourceTrackingState& FindSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip) const;
+		const ImageSubresourceTrackingState* FindSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip) const;
 
 		/**
 		 * Populates an array with all queued layout transitions and clears the queue. The transitions are expressed
@@ -361,11 +375,11 @@ namespace b3d::render
 		/** Retrieves the tracking state for the specified image. The image must have been previously tracked. */
 		ImageTrackingState& GetImageTrackingState(VulkanImage* image);
 
-		/** Finds the tracking state for the specified image, or returns nullptr if not found. */
-		const ImageTrackingState* FindImageTrackingState(VulkanImage* image) const;
-
 		/** Finds the tracking state index for the specified image, or returns ~0u if not found. */
 		u32 FindImageTrackingStateIndex(VulkanImage* image) const;
+
+		/** Finds a subresource tracking state for the specified face and mip level of the provided image. */
+		ImageSubresourceTrackingState& GetSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip);
 
 		/**
 		 * Private overload of TrackBufferUsage that operates on an existing BufferTrackingState.

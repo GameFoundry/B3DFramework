@@ -891,6 +891,11 @@ bool VulkanUtility::RangeOverlaps(const VkImageSubresourceRange& a, const VkImag
 	return false;
 }
 
+bool VulkanUtility::RangeEquals(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b)
+{
+	return a.baseArrayLayer == b.baseArrayLayer && a.baseMipLevel == b.baseMipLevel && a.layerCount == b.layerCount && a.levelCount == b.levelCount && a.aspectMask == b.aspectMask;
+}
+
 u32 VulkanUtility::CalcInterfaceBlockElementSizeAndOffset(GpuDataParameterType type, u32 arraySize, u32& offset)
 {
 	const GpuDataParameterTypeInformation& typeInfo = b3d::GpuParameters::kParamSizes.Lookup[type];
@@ -1039,6 +1044,61 @@ VkAccessFlags VulkanUtility::GetAccessMaskFromUsage(GpuResourceUseFlags usage, G
 	return accessMask;
 }
 
+VkAccessFlags VulkanUtility::GetAccessMaskFromPipelineStages(VkPipelineStageFlags stages, GpuAccessFlags access)
+{
+	VkAccessFlags accessMask = 0;
+
+	if((stages & (VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT)) != 0)
+	{
+		if(access.IsSet(GpuAccessFlag::Read))
+			accessMask |= VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT; // Note: Cannot distinguish between uniform and other reads
+
+		if(access.IsSet(GpuAccessFlag::Write))
+			accessMask |= VK_ACCESS_SHADER_WRITE_BIT;
+	}
+
+	if((stages & (VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)) != 0)
+	{
+		if(access.IsSet(GpuAccessFlag::Read))
+			accessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+
+		if(access.IsSet(GpuAccessFlag::Write))
+			accessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	}
+
+	if((stages & (VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT)) != 0)
+	{
+		if(access.IsSet(GpuAccessFlag::Read))
+			accessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+
+		if(access.IsSet(GpuAccessFlag::Write))
+			accessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	}
+
+	if((stages & (VK_PIPELINE_STAGE_VERTEX_INPUT_BIT)) != 0)
+		accessMask |= VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT; // Note: Cannot distinguish between vertex and index buffer
+
+	if((stages & (VK_PIPELINE_STAGE_HOST_BIT)) != 0)
+	{
+		if(access.IsSet(GpuAccessFlag::Read))
+			accessMask |= VK_ACCESS_HOST_READ_BIT;
+
+		if(access.IsSet(GpuAccessFlag::Write))
+			accessMask |= VK_ACCESS_HOST_WRITE_BIT;
+	}
+
+	if((stages & (VK_PIPELINE_STAGE_TRANSFER_BIT)) != 0)
+	{
+		if(access.IsSet(GpuAccessFlag::Read))
+			accessMask |= VK_ACCESS_TRANSFER_READ_BIT;
+
+		if(access.IsSet(GpuAccessFlag::Write))
+			accessMask |= VK_ACCESS_TRANSFER_WRITE_BIT;
+	}
+
+	return accessMask;
+}
+
 VkPipelineStageFlags VulkanUtility::GetPipelineStageFlags(GpuResourceUseFlags usage, VkAccessFlags accessFlags)
 {
 	VkPipelineStageFlags flags = 0;
@@ -1102,121 +1162,123 @@ VkPipelineStageFlags VulkanUtility::GetPipelineStageFlags(GpuResourceUseFlags us
 	return flags;
 }
 
+GpuAccessFlags VulkanUtility::GetAccessFlagsFromAccessMask(VkAccessFlags accessFlags)
+{
+	GpuAccessFlags flags = GpuAccessFlag::None;
+
+	if((accessFlags & (VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_HOST_READ_BIT)) != 0)
+		flags.Set(GpuAccessFlag::Read);
+
+	if((accessFlags & (VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_WRITE_BIT)) != 0)
+		flags.Set(GpuAccessFlag::Write);
+
+	return flags;
+}
+
 VkPipelineStageFlags VulkanUtility::GetPipelineStageFlags(VkAccessFlags accessFlags)
 {
 	return GetPipelineStageFlags(GpuResourceUseFlag::Undefined, accessFlags);
 }
 
-VkImageLayout VulkanUtility::GetImageLayoutFromUsage(GpuResourceUseFlags usage, GpuAccessFlags access)
+void VulkanUtility::GetPipelineStageAndAccessMask(VulkanAccessStageFlags accessStage, GpuAccessFlags access, VkPipelineStageFlags& outStages, VkAccessFlags& outAccessMask)
 {
-	// Validate for incompatible flag combinations
-	const bool hasColorAttachment = usage.IsSet(GpuResourceUseFlag::ColorAttachment);
-	const bool hasDepthStencilAttachment = usage.IsSet(GpuResourceUseFlag::DepthStencilAttachment);
-	const bool hasTransfer = usage.IsSet(GpuResourceUseFlag::Transfer);
-	const bool hasShader = usage.IsSet(GpuResourceUseFlag::ShaderAccess);
-	const bool hasBufferUsage = usage.IsSet(GpuResourceUseFlag::IndexBuffer) ||
-	                            usage.IsSet(GpuResourceUseFlag::VertexBuffer) ||
-	                            usage.IsSet(GpuResourceUseFlag::UniformBuffer);
-	const bool isReadOnly = access.IsSet(GpuAccessFlag::Read) && !access.IsSet(GpuAccessFlag::Write);
+	outStages = 0;
+	outAccessMask = 0;
 
-	// Validate invalid buffer usage on images
-	if(!B3D_ENSURE(!hasBufferUsage))
+	const bool isRead = access.IsSet(GpuAccessFlag::Read);
+	const bool isWrite = access.IsSet(GpuAccessFlag::Write);
+
+	if(accessStage.IsSet(VulkanAccessStageFlag::DrawIndirect))
 	{
-		B3D_LOG(Error, RenderBackend, "Buffer-specific usage flags (IndexBuffer, VertexBuffer, UniformBuffer) cannot be used with images.");
-		return VK_IMAGE_LAYOUT_UNDEFINED;
+		outStages |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
 	}
 
-	// Cannot be both color and depth/stencil attachment
-	if(!B3D_ENSURE(!(hasColorAttachment && hasDepthStencilAttachment)))
+	if(accessStage.IsSet(VulkanAccessStageFlag::VertexInputAttributes))
 	{
-		B3D_LOG(Error, RenderBackend, "Image cannot be used as both ColorAttachment and DepthStencilAttachment simultaneously.");
-		return VK_IMAGE_LAYOUT_UNDEFINED;
+		outStages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
 	}
 
-	// Transfer cannot be combined with attachments
-	if(!B3D_ENSURE(!(hasTransfer && (hasColorAttachment || hasDepthStencilAttachment))))
+	if(accessStage.IsSet(VulkanAccessStageFlag::VertexInputIndices))
 	{
-		B3D_LOG(Error, RenderBackend, "Transfer usage cannot be combined with attachment usage.");
-		return VK_IMAGE_LAYOUT_UNDEFINED;
+		outStages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_INDEX_READ_BIT;
 	}
 
-	// Shader + Attachment is only valid if both are read-only
-	if(hasShader && (hasColorAttachment || hasDepthStencilAttachment))
+	if(accessStage.IsSet(VulkanAccessStageFlag::VertexShaderNonUniform))
 	{
-		if(!B3D_ENSURE(isReadOnly))
-		{
-			B3D_LOG(Error, RenderBackend, "Shader and attachment usage can only be combined for read-only access (shader sampling from attachment).");
-			return VK_IMAGE_LAYOUT_UNDEFINED;
-		}
+		outStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_SHADER_READ_BIT;
+		if(isWrite) outAccessMask |= VK_ACCESS_SHADER_WRITE_BIT;
 	}
 
-	// Handle ColorAttachment
-	if(usage.IsSet(GpuResourceUseFlag::ColorAttachment))
+	if(accessStage.IsSet(VulkanAccessStageFlag::FragmentShaderNonUniform))
 	{
-		// Read-only color attachment (shader read while attached) uses GENERAL layout
-		if(access.IsSet(GpuAccessFlag::Read) && !access.IsSet(GpuAccessFlag::Write))
-			return VK_IMAGE_LAYOUT_GENERAL;
-
-		// Write access (or read+write) uses optimal attachment layout
-		if(access.IsSet(GpuAccessFlag::Write))
-			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		// If no access flags set, assume write
-		return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		outStages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_SHADER_READ_BIT;
+		if(isWrite) outAccessMask |= VK_ACCESS_SHADER_WRITE_BIT;
 	}
 
-	// Handle DepthStencilAttachment
-	if(usage.IsSet(GpuResourceUseFlag::DepthStencilAttachment))
+	if(accessStage.IsSet(VulkanAccessStageFlag::ComputeShaderNonUniform))
 	{
-		// Read-only depth/stencil uses read-only optimal layout
-		if(access.IsSet(GpuAccessFlag::Read) && !access.IsSet(GpuAccessFlag::Write))
-			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-
-		// Write access (or read+write) uses attachment optimal layout
-		if(access.IsSet(GpuAccessFlag::Write))
-			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-		// If no access flags set, assume write
-		return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		outStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_SHADER_READ_BIT;
+		if(isWrite) outAccessMask |= VK_ACCESS_SHADER_WRITE_BIT;
 	}
 
-	// Handle Transfer
-	if(usage.IsSet(GpuResourceUseFlag::Transfer))
+	if(accessStage.IsSet(VulkanAccessStageFlag::VertexShaderUniform))
 	{
-		// Transfer source (read)
-		if(access.IsSet(GpuAccessFlag::Read) && !access.IsSet(GpuAccessFlag::Write))
-			return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-
-		// Transfer destination (write)
-		if(access.IsSet(GpuAccessFlag::Write))
-			return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-
-		// If no access specified, default to source
-		return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		outStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_UNIFORM_READ_BIT;
 	}
 
-	// Handle Shader usage 
-	if(usage.IsSet(GpuResourceUseFlag::ShaderAccess))
+	if(accessStage.IsSet(VulkanAccessStageFlag::FragmentShaderniform))
 	{
-		// Shader write access requires GENERAL layout
-		if(access.IsSet(GpuAccessFlag::Write))
-			return VK_IMAGE_LAYOUT_GENERAL;
-
-		// Read-only shader access uses shader read optimal layout
-		if(access.IsSet(GpuAccessFlag::Read))
-			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-		// If no access specified, assume read-only
-		return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		outStages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_UNIFORM_READ_BIT;
 	}
 
-	// Undefined or no usage specified
-	if(usage.IsSet(GpuResourceUseFlag::Undefined) || usage == GpuResourceUseFlag::Undefined)
-		return VK_IMAGE_LAYOUT_UNDEFINED;
+	if(accessStage.IsSet(VulkanAccessStageFlag::ComputeShaderUniform))
+	{
+		outStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_UNIFORM_READ_BIT;
+	}
 
-	// Unknown usage pattern
-	B3D_LOG(Warning, RenderBackend, "Unknown or unhandled resource usage flags when determining image layout. Returning UNDEFINED layout.");
-	return VK_IMAGE_LAYOUT_UNDEFINED;
+	if(accessStage.IsSet(VulkanAccessStageFlag::EarlyFragmentTests))
+	{
+		outStages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+		if(isWrite) outAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	}
+
+	if(accessStage.IsSet(VulkanAccessStageFlag::LateFragmentTests))
+	{
+		outStages |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+		if(isWrite) outAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	}
+
+	if(accessStage.IsSet(VulkanAccessStageFlag::ColorAttachment))
+	{
+		outStages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+		if(isWrite) outAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	}
+
+	if(accessStage.IsSet(VulkanAccessStageFlag::Transfer))
+	{
+		outStages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
+		if(isWrite) outAccessMask |= VK_ACCESS_TRANSFER_WRITE_BIT;
+	}
+
+	if(accessStage.IsSet(VulkanAccessStageFlag::Host))
+	{
+		outStages |= VK_PIPELINE_STAGE_HOST_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_HOST_READ_BIT;
+		if(isWrite) outAccessMask |= VK_ACCESS_HOST_WRITE_BIT;
+	}
 }
 
 VkImageLayout VulkanUtility::GetImageLayout(ImageLayout layout)

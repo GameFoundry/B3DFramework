@@ -48,19 +48,19 @@ namespace b3d
 			 * @param	allocation				Information about the memory bound to the image.
 			 * @param	layout					Initial layout of the image.
 			 * @param	actualFormat			Actual format the image was created with (rather than the requested format).
-			 * @param	props					Properties describing the image.
+			 * @param	textureProperties		Properties describing the image.
 			 * @param	ownsImage				If true, this object will take care of releasing the image and its memory, otherwise it is expected they will be released externally.
 			 * @param	isShaderReadAllowed		True if the image is allowed to be read in the shader. If not, it can only be used as a framebuffer attachment.
 			 */
-			VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout, VkFormat actualFormat, const TextureProperties& props, bool ownsImage = true, bool isShaderReadAllowed = true, const StringView& name = "");
+			VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout, VkFormat actualFormat, const TextureProperties& textureProperties, bool ownsImage = true, bool isShaderReadAllowed = true, const StringView& name = "");
 
 			/**
 			 * @param	owner					Resource manager that keeps track of lifetime of this resource.
-			 * @param	desc					Describes the image to assign.
+			 * @param	createInformation		Describes the image to assign.
 			 * @param	ownsImage				If true, this object will take care of releasing the image and its memory, otherwise it is expected they will be released externally.
 			 * @param	isShaderReadAllowed		True if the image is allowed to be read in the shader. If not, it can only be used as a framebuffer attachment.
 			 */
-			VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& desc, bool ownsImage = true, bool isShaderReadAllowed = true, const StringView& name = "");
+			VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, bool ownsImage = true, bool isShaderReadAllowed = true, const StringView& name = "");
 			~VulkanImage();
 
 			void Destroy() override;
@@ -232,7 +232,7 @@ namespace b3d
 
 			/**
 			 * Returns the layout the subresource is currently in. Note that this is only used to communicate layouts between
-			 * different command buffers, and will only be updated only after command buffer submit() call. In short this means
+			 * different command buffers, and will only be updated only after command buffer submit. In short this means
 			 * you should only care about this value on the submit thread.
 			 *
 			 * @note	Submit thread only.
