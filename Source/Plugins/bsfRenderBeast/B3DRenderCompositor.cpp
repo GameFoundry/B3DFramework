@@ -574,9 +574,6 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 
 	// Make sure that any compute shaders are able to read g-buffer by unbinding it
 	commandBuffer.EndRenderPass();
-
-	RenderPassCreateInformation unbindInfo(nullptr);
-	commandBuffer.BeginRenderPass(unbindInfo);
 }
 
 void RCNodeBasePass::Clear()

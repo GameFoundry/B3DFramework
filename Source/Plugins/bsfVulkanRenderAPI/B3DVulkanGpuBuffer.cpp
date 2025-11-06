@@ -350,7 +350,11 @@ void* VulkanGpuBuffer::Map(u32 offset, u32 length, GpuLockOptions options)
 		}
 		else
 		{
-			B3D_LOG(Warning, RenderBackend, "Writing to a buffer that is currently bound on a command buffer. Previous usages of the buffer will be affected. Buffer: {0}", mName);
+			// Warn unless user claims to know what he is doing by using the no overwrite flag
+			if(options != GBL_WRITE_ONLY_NO_OVERWRITE)
+			{
+				B3D_LOG(Warning, RenderBackend, "Writing to a buffer that is currently bound on a command buffer. Previous usages of the buffer will be affected. Buffer: {0}", mName);
+			}
 
 			return buffer->Map(offset, length, isReadRequired);
 		}
@@ -414,9 +418,6 @@ void VulkanGpuBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffse
 
 	if(src == nullptr || dst == nullptr)
 		return;
-
-	if(vulkanCommandBuffer.IsInRenderPass())
-		vulkanCommandBuffer.EndRenderPass(true);
 
 	vulkanCommandBuffer.CopyBufferToBuffer(src, dst, srcOffset, dstOffset, length);
 }
@@ -547,7 +548,7 @@ void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, Buff
 		// Even if the buffer is directly mappable we might wish to avoid mapping it directly in these situations:
 		const bool shouldMapDirectly =
 			(!isUsedOnGPU || options == GBL_WRITE_ONLY_NO_OVERWRITE) && // GPU is currently using the buffer and we cannot map it safely (unless user specifically requested the no-overwrite flag)
-			(!mBuffer->IsBound() || (commandBuffer == nullptr && canDiscardBuffer)); // Buffer is bound to a command buffer already. If user provided a command buffer queue a write operation there instead of mapping directly. If not, discard the original buffer and lock a new copy of the buffer.
+			(!mBuffer->IsBound() || (commandBuffer == nullptr && canDiscardBuffer) || options == GBL_WRITE_ONLY_NO_OVERWRITE); // Buffer is bound to a command buffer already. If user provided a command buffer queue a write operation there instead of mapping directly. If not, discard the original buffer and lock a new copy of the buffer.
 
 		if(shouldMapDirectly)
 		{

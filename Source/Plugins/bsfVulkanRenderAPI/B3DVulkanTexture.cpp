@@ -1070,9 +1070,6 @@ void VulkanTexture::CopyInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 	if(sourceImage == nullptr || destinationImage == nullptr)
 		return;
 
-	if(vulkanCommandBuffer.IsInRenderPass())
-		vulkanCommandBuffer.EndRenderPass(true);
-
 	if(sourceHasMultipleSamples && !destinationHasMultipleSamples) // Resolving from MS to non-MS texture
 	{
 		VkImageResolve resolveRegion;
@@ -1193,9 +1190,6 @@ void VulkanTexture::BlitInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 
 	if (sourceImage == nullptr || destinationImage == nullptr)
 		return;
-
-	if (vulkanCommandBuffer.IsInRenderPass())
-		vulkanCommandBuffer.EndRenderPass(true);
 
 	VkImageBlit imageBlit;
 	imageBlit.srcSubresource.baseArrayLayer = blitInformation.SourceFace;

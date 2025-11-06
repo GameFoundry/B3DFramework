@@ -128,7 +128,7 @@ namespace b3d
 			void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ) override;
 			void BeginRenderPass(const RenderPassCreateInformation& createInformation) override;
-			void EndRenderPass() override { EndRenderPass(false); }
+			void EndRenderPass() override;
 			bool IsInRenderPass() const override { return mState == State::RecordingRenderPass; }
 			void SetViewport(const Area2& area) override;
 			void ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask) override;
@@ -429,13 +429,6 @@ namespace b3d
 			/** Begins render pass recording. Must be called within begin()/end() calls. */
 			void BeginRenderPass();
 
-			/**
-			 * Ends render pass recording (as started with BeginRenderPass().
-			 *
-			 * @param isInternalInterrupt		This will be true if we're ending the render pass temporarily, as a requirement for some internal operation (such as memory barriers), rather than explicitly requested by the user.
-			 */
-			void EndRenderPass(bool isInternalInterrupt);
-
 			/** Checks if all the prerequisites for rendering have been made (e.g. render target and pipeline state are set.) */
 			bool IsReadyForRender();
 
@@ -456,7 +449,7 @@ namespace b3d
 			void BindVertexInputs();
 
 			/** Binds the currently stored GPU parameters object, if dirty. */
-			void BindGpuParams();
+			void BindGpuParameters();
 
 			/**
 			 * Clears the specified area of the currently bound render target. If in the middle of the render pass this will issue a clear command,
@@ -532,7 +525,6 @@ namespace b3d
 			bool mScissorRequiresBind : 1;
 			bool mBoundParamsDirty : 1;
 			bool mVertexInputsDirty : 1;
-			bool mIsRenderPassInterrupted = false;
 			bool mIsDebugLabelOpen = false;
 			DescriptorSetBindFlags mDescriptorSetsBindState;
 			SPtr<VulkanGpuParameters> mBoundParams;
