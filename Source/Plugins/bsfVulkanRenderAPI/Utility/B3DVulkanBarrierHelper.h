@@ -42,10 +42,10 @@ namespace b3d::render
 		/**
 		 * Constructs a barrier helper associated with the provided command buffer.
 		 *
-		 * @param commandBuffer		Command buffer on which barriers will be issued.
-		 * @param resourceTracker	Object responsible for tracking all resource usages on a command buffer.
+		 * @param resourceTracker	Object responsible for tracking all resource usages on a command buffer. Used for determining current object state,
+		 *							and notified with new state when barriers and layout transitions are executed.
 		 */
-		VulkanBarrierHelper(VulkanGpuCommandBuffer* commandBuffer, VulkanResourceTracker* resourceTracker);
+		VulkanBarrierHelper(VulkanResourceTracker* resourceTracker);
 
 		/**
 		 * Adds a memory barrier for a buffer resource.
@@ -97,8 +97,10 @@ namespace b3d::render
 		 * After execution, all accumulated barriers are cleared.
 		 *
 		 * If no barriers have been accumulated, this is a no-op.
+		 *
+		 * @param commandBuffer		Command buffer on which barriers will be issued.
 		 */
-		void Execute();
+		void Execute(VulkanGpuCommandBuffer& commandBuffer);
 
 		/**
 		 * Clears all accumulated barriers without executing them.
@@ -140,7 +142,6 @@ namespace b3d::render
 			VkImageLayout NewLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		};
 
-		VulkanGpuCommandBuffer* mCommandBuffer;
 		VulkanResourceTracker* mResourceTracker;
 
 		FrameVector<VkBufferMemoryBarrier> mBufferBarriers;

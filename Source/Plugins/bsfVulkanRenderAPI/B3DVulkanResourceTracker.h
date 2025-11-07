@@ -13,6 +13,7 @@
 
 namespace b3d::render
 {
+	class VulkanBarrierHelper;
 	class VulkanRenderPass;
 	class VulkanGpuCommandBuffer;
 	class VulkanImage;
@@ -208,8 +209,9 @@ namespace b3d::render
 		 * @param	buffer				Buffer to track.
 		 * @param	useFlags			Categorizes how the buffer will be used (shader access, vertex input, etc.), and on which stages.
 		 * @param	accessFlags			Access flags specifying how the buffer will be accessed (read/write).
+		 * @param	barrierHelper		If there are any necessary memory barriers before the buffer can be used they will be recorded into the provided object.
 		 */
-		void TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags);
+		void TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper);
 
 		/**
 		 * Lets the tracker know that the provided image resource has been queued on the associated command buffer. Use this only for images
@@ -222,14 +224,15 @@ namespace b3d::render
 		 * @param	finalLayout			Layout the image will be in after render pass completes (relevant only for framebuffer attachments).
 		 * @param	useFlags			Categorizes how the image be used (shader access, color attachment, depth attachment, etc.), and on which stages.
 		 * @param	accessFlags			Access flags specifying how the image will be accessed (read/write).
+		 * @param	barrierHelper		If there are any necessary layout transitions or memory barriers before the buffer can be used they will be recorded into the provided object.
 		 */
-		void TrackImageUsage(VulkanImage* image, VkImageSubresourceRange subresourceRange, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags);
+		void TrackImageUsage(VulkanImage* image, VkImageSubresourceRange subresourceRange, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper);
 
 		/**
 		 * Lets the tracker know that the provided framebuffer has been queued on the associated command buffer. All associated attachment images
 		 * will be tracked as well, there's no need to track them separately.
 		 */
-		void TrackFramebufferUsage(VulkanFramebuffer* framebuffer, RenderSurfaceMask loadMask, RenderSurfaceMask readOnlyMask);
+		void TrackFramebufferUsage(VulkanFramebuffer* framebuffer, RenderSurfaceMask loadMask, RenderSurfaceMask readOnlyMask, VulkanBarrierHelper& barrierHelper);
 
 		/** Lets the tracker know that the provided swap chain has been queued on the associated command buffer. */
 		void TrackSwapChainUsage(VulkanSwapChain* swapChain);
@@ -374,14 +377,14 @@ namespace b3d::render
 		 * Private overload of TrackBufferUsage that operates on an existing BufferTrackingState.
 		 * Lets the tracker know that the provided buffer resource has been queued on the associated command buffer.
 		 */
-		void TrackBufferUsage(BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access);
+		void TrackBufferUsage(BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper);
 
 		/**
 		 * Lets the tracker know that the provided image subresource range resource has been queued the associated command buffer. This does bulk of the work to determine necessary layout transitions
 		 * and barriers based on previous subresource usage.
 		 */
 		// TODO - Refactor this signature, try to clean it up once we have explicit layout transitions
-		void TrackSubresourceUsage(VulkanImage* image, u32 globalSubresourceIndex, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags);
+		void TrackSubresourceUsage(VulkanImage* image, u32 globalSubresourceIndex, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper);
 
 		/**
 		 * Private overload of IterateAndCreateOverlappingImageSubresourceTrackingState that operates on an existing ImageTrackingState.

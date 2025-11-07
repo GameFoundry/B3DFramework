@@ -8,8 +8,8 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanBarrierHelper::VulkanBarrierHelper(VulkanGpuCommandBuffer* commandBuffer, VulkanResourceTracker* resourceTracker)
-	: mCommandBuffer(commandBuffer), mResourceTracker(resourceTracker)
+VulkanBarrierHelper::VulkanBarrierHelper(VulkanResourceTracker* resourceTracker)
+	: mResourceTracker(resourceTracker)
 {
 }
 
@@ -257,7 +257,7 @@ void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubre
 #endif
 }
 
-void VulkanBarrierHelper::Execute()
+void VulkanBarrierHelper::Execute(VulkanGpuCommandBuffer& commandBuffer)
 {
 	if(!HasBarriers())
 		return;
@@ -267,7 +267,7 @@ void VulkanBarrierHelper::Execute()
 	if(mCombinedSourceAccess.IsSet(GpuAccessFlag::Write) || mHasLayoutTransition)
 	{
 		vkCmdPipelineBarrier(
-			mCommandBuffer->GetVulkanHandle(),
+			commandBuffer.GetVulkanHandle(),
 			mCombinedSourceStages,
 			mCombinedDestinationStages,
 			0,
@@ -279,7 +279,7 @@ void VulkanBarrierHelper::Execute()
 	else if(mCombinedSourceAccess.IsSet(GpuAccessFlag::Read) && mCombinedDestinationAccess.IsSet(GpuAccessFlag::Write))
 	{
 		vkCmdPipelineBarrier(
-			mCommandBuffer->GetVulkanHandle(),
+			commandBuffer.GetVulkanHandle(),
 			mCombinedSourceStages,
 			mCombinedDestinationStages,
 			0,

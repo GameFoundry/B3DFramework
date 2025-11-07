@@ -225,13 +225,6 @@ namespace b3d
 			void Reset();
 
 			/**
-			 * Lets the command buffer know that the provided image will be used for shader reads or writes in a subsequent draw
-			 * or dispatch call. Transfers the image to the provided layout and issues any necessary execution and memory
-			 * barriers.
-			 */
-			void RegisterImageShader(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, GpuResourceUseFlags useFlag, GpuAccessFlags access); // TODO - Unify with RegisterImageTransfer below
-
-			/**
 			 * Lets the command buffer know that the provided image will be used for a transfer operation. Transfers the image
 			 * to the provided layout and issues any necessary execution and memory barriers.
 			 */
@@ -449,7 +442,7 @@ namespace b3d
 			void BindVertexInputs();
 
 			/** Binds the currently stored GPU parameters object, if dirty. */
-			void BindGpuParameters();
+			void BindGpuParameters(VulkanBarrierHelper& barrierHelper);
 
 			/** Creates an array of clear values from the specified clear mask and values. To be used for the explicit clear command, or render bass begin. */
 			Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> BuildClearValues(RenderSurfaceMask clearMask, const Color& color, float depth, u16 stencil);

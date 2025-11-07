@@ -125,7 +125,7 @@ VulkanResourceTracker::BufferTrackingState& VulkanResourceTracker::GetOrCreateBu
 	}
 }
 
-void VulkanResourceTracker::TrackBufferUsage(BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access)
+void VulkanResourceTracker::TrackBufferUsage(BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper)
 {
 	B3D_ASSERT(!bufferTrackingState.UseHandle.Used);
 
@@ -176,13 +176,13 @@ void VulkanResourceTracker::TrackBufferUsage(BufferTrackingState& bufferTracking
 	bufferTrackingState.UseFlags |= useFlags;
 }
 
-void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags)
+void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper)
 {
 	BufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
-	TrackBufferUsage(bufferTrackingState, useFlags, accessFlags);
+	TrackBufferUsage(bufferTrackingState, useFlags, accessFlags, barrierHelper);
 }
 
-void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresourceRange subresourceRange, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags)
+void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresourceRange subresourceRange, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper)
 {
 	ImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
 
@@ -192,6 +192,7 @@ void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresour
 	struct CallbackParameters
 	{
 		VulkanResourceTracker* Self;
+		VulkanBarrierHelper* BarrierHelper;
 		VulkanImage* Image;
 		ImageUseFlagBits Use;
 		VkImageLayout Layout;
@@ -200,13 +201,13 @@ void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresour
 		GpuAccessFlags AccessFlags;
 	};
 
-	CallbackParameters callbackParameters { this, image, use, layout, finalLayout, useFlags, accessFlags };
+	CallbackParameters callbackParameters { this, &barrierHelper, image, use, layout, finalLayout, useFlags, accessFlags };
 	IterateAndCreateOverlappingImageSubresourceTrackingState(imageTrackingState, *image, subresourceRange, [](u32 globalSubresourceIndex, void* userData)
 	{
 		CallbackParameters* const callbackParameters = (CallbackParameters*)userData;
 		VulkanResourceTracker* self = callbackParameters->Self;
 
-		self->TrackSubresourceUsage(callbackParameters->Image, globalSubresourceIndex, callbackParameters->Use, callbackParameters->Layout, callbackParameters->FinalLayout, callbackParameters->UseFlags, callbackParameters->AccessFlags);
+		self->TrackSubresourceUsage(callbackParameters->Image, globalSubresourceIndex, callbackParameters->Use, callbackParameters->Layout, callbackParameters->FinalLayout, callbackParameters->UseFlags, callbackParameters->AccessFlags, *callbackParameters->BarrierHelper);
 	}, &callbackParameters);
 
 	// Register any sub-resources
@@ -225,7 +226,7 @@ void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresour
 	}
 }
 
-void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 globalSubresourceIndex, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags)
+void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 globalSubresourceIndex, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper)
 {
 	ImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[globalSubresourceIndex];
 	if(subresourceTrackingState.Access == GpuAccessFlag::None) // New subresource
@@ -416,7 +417,7 @@ void VulkanResourceTracker::TrackResourceUsage(VulkanResource* resource, GpuAcce
 	}
 }
 
-void VulkanResourceTracker::TrackFramebufferUsage(VulkanFramebuffer* framebuffer, RenderSurfaceMask loadMask, RenderSurfaceMask readOnlyMask)
+void VulkanResourceTracker::TrackFramebufferUsage(VulkanFramebuffer* framebuffer, RenderSurfaceMask loadMask, RenderSurfaceMask readOnlyMask, VulkanBarrierHelper& barrierHelper)
 {
 	auto insertResult = mResources.insert(std::make_pair(framebuffer, ResourceUseHandle()));
 	if(insertResult.second) // New element
@@ -453,7 +454,7 @@ void VulkanResourceTracker::TrackFramebufferUsage(VulkanFramebuffer* framebuffer
 		GpuAccessFlag access = readOnlyMask.IsSet((RenderSurfaceMaskBits)(1 << colorAttachmentIndex)) ? GpuAccessFlag::Read : GpuAccessFlag::Write;
 
 		VkImageSubresourceRange range = attachment.Image->GetRange(attachment.Surface);
-		TrackImageUsage(attachment.Image, range, ImageUseFlagBits::Framebuffer, layout, attachment.FinalLayout, GpuResourceUseFlag::ColorAttachment, access);
+		TrackImageUsage(attachment.Image, range, ImageUseFlagBits::Framebuffer, layout, attachment.FinalLayout, GpuResourceUseFlag::ColorAttachment, access, barrierHelper);
 	}
 
 	if(renderPass->HasDepthAttachment())
@@ -472,7 +473,7 @@ void VulkanResourceTracker::TrackFramebufferUsage(VulkanFramebuffer* framebuffer
 		const GpuAccessFlag access = readOnlyMask.IsSet(RT_DEPTH) ? GpuAccessFlag::Read : GpuAccessFlag::Write;
 
 		VkImageSubresourceRange range = attachment.Image->GetRange(attachment.Surface);
-		TrackImageUsage(attachment.Image, range, ImageUseFlagBits::Framebuffer, layout, attachment.FinalLayout, GpuResourceUseFlag::DepthStencilAttachment, access);
+		TrackImageUsage(attachment.Image, range, ImageUseFlagBits::Framebuffer, layout, attachment.FinalLayout, GpuResourceUseFlag::DepthStencilAttachment, access, barrierHelper);
 	}
 }
 
