@@ -318,7 +318,7 @@ void RendererUtility::Blit(GpuCommandBuffer& commandBuffer, const BlitInformatio
 	if(blitInformation.OutputArea.has_value())
 		commandBuffer.SetViewport(blitInformation.OutputArea.value());
 
-	if(blitInformation.ClearMask != 0)
+	if(blitInformation.ClearMask != RT_NONE)
 	{
 		if(blitInformation.OutputArea.has_value())
 			commandBuffer.ClearViewport(blitInformation.ClearMask);

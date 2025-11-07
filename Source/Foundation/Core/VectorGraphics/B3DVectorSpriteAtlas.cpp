@@ -249,9 +249,11 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 		SPtr<render::GpuParameters> gpuParameters = entry.Renderable->Prepare();
 
 		// Begin render pass WITH GPU parameters
-		commandBuffer->BeginRenderPass(render::RenderPassCreateInformation(renderTarget, gpuParameters, RT_NONE, RT_NONE));
+		render::RenderPassCreateInformation renderPassCreateInformation(renderTarget, gpuParameters, RT_NONE, RT_NONE);
+		renderPassCreateInformation.ClearMask = RT_ALL;
+
+		commandBuffer->BeginRenderPass(renderPassCreateInformation);
 		commandBuffer->SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
-		commandBuffer->ClearRenderTarget(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kZero, 1, 0, 0xFF);
 
 		entry.Renderable->Render(*commandBuffer);
 

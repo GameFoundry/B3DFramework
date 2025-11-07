@@ -1851,11 +1851,14 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 		fnPrepareRegions({ Area2I(0, 0, renderTargetWidth, renderTargetHeight) }, true, preparedMeshes);
 	}
 
+	if(rebuildCachedRenderTexture)
+	{
+		mainRenderPassCreateInformation.ClearMask = RT_COLOR_ALL;
+		mainRenderPassCreateInformation.ClearColor = Color::kZero;;
+	}
+
 	// Begin render pass with all accumulated GPU parameters
 	commandBuffer.BeginRenderPass(mainRenderPassCreateInformation);
-
-	if(rebuildCachedRenderTexture)
-		commandBuffer.ClearRenderTarget(FBT_COLOR, Color::kZero);
 
 	// Now execute the actual rendering using the prepared data
 	auto fnDrawPreparedMeshes = [&commandBuffer, renderTargetWidth, renderTargetHeight, rebuildCachedRenderTexture](const FrameVector<PreparedMeshData>& preparedMeshes, const Vector<Area2I>& regions)
@@ -1878,7 +1881,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 			commandBuffer.SetViewport(normalizedRegionArea);
 
 			if(!rebuildCachedRenderTexture)
-				commandBuffer.ClearViewport(FBT_COLOR, Color::kZero);
+				commandBuffer.ClearViewport(RT_COLOR_ALL, Color::kZero);
 		}
 
 		commandBuffer.SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));

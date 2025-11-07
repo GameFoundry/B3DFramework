@@ -567,7 +567,7 @@ struct ShadowRenderQueueCubeOptions
 
 	void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
 	{
-		commandBuffer.ClearRenderTarget(FBT_DEPTH);
+		commandBuffer.ClearRenderTarget(RT_DEPTH);
 	}
 
 	bool Intersects(const Sphere& bounds) const
@@ -612,7 +612,7 @@ struct ShadowRenderQueueCubeSingleOptions
 
 	void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
 	{
-		commandBuffer.ClearRenderTarget(FBT_DEPTH);
+		commandBuffer.ClearRenderTarget(RT_DEPTH);
 	}
 
 	bool Intersects(const Sphere& bounds) const
@@ -652,7 +652,7 @@ struct ShadowRenderQueueSpotOptions
 	void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
 	{
 		commandBuffer.SetViewport(ViewportArea);
-		commandBuffer.ClearViewport(FBT_DEPTH);
+		commandBuffer.ClearViewport(RT_DEPTH);
 	}
 
 	bool Intersects(const Sphere& bounds) const
@@ -691,7 +691,7 @@ struct ShadowRenderQueueDirOptions
 
 	void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
 	{
-		commandBuffer.ClearRenderTarget(FBT_DEPTH);
+		commandBuffer.ClearRenderTarget(RT_DEPTH);
 	}
 
 	bool Intersects(const Sphere& bounds) const

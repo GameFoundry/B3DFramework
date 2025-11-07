@@ -247,10 +247,6 @@ void VulkanGpuCommandBuffer::End()
 	EnsureValidThread();
 	B3D_ASSERT(mState == State::Recording);
 
-	// If a clear is queued, execute the render pass with no additional instructions
-	if(mClearMask)
-		ExecuteClearPass();
-
 	if(mIsDebugLabelOpen)
 		EndLabel();
 
@@ -355,13 +351,8 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		loadMask.Set(RT_DEPTH);
 	}
 
-	// If a clear is queued for previous FB, execute the render pass with no additional instructions
-	if(mClearMask)
-		ExecuteClearPass();
-
 	mFramebuffer = newFramebuffer;
 	mRenderTargetReadOnlyMask = readOnlyMask;
-	mRenderTargetLoadMask = loadMask;
 
 #if B3D_HAZARD_TRACKING
 	// These are guaranteed by the render pass external dependency. It's always safe to use read images from shaders as attachments.
@@ -444,27 +435,108 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	// Potentially need to rebind vertex buffers as we bind dummy vertex buffers for shaders attributes not provided by the user
 	mVertexInputsDirty = true;
 
-	BeginRenderPass();
+	const Area2I renderArea = GetRenderPassArea();
+
+	const RenderSurfaceMask readMask = mResourceTracker.GetFramebufferReadOnlyMask(mFramebuffer, mRenderTargetReadOnlyMask);
+	const RenderSurfaceMask originalClearMask = createInformation.ClearMask;
+	Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> clearValues = BuildClearValues(originalClearMask, createInformation.ClearColor, createInformation.ClearDepth, createInformation.ClearStencil);
+
+	ExecuteLayoutTransitions();
+
+	RenderSurfaceMask clearMask = createInformation.ClearMask;
+
+#if B3D_DEBUG
+	const VkClearColorValue kDebugClearColor = { { 1.0f, 0.0f, 1.0f, 1.0f } }; // Bright pink
+
+	for(u32 sequentialColorAttachmentIndex = 0; sequentialColorAttachmentIndex < colorAttachmentCount; sequentialColorAttachmentIndex++)
+	{
+		const VulkanFramebufferAttachment& colorAttachment = mFramebuffer->GetColorAttachment(sequentialColorAttachmentIndex);
+		const RenderSurfaceMaskBits colorAttachmentBit = (RenderSurfaceMaskBits)(1 << sequentialColorAttachmentIndex);
+		if(loadMask.IsSet(colorAttachmentBit))
+			continue;
+
+		if(readMask.IsSet(colorAttachmentBit))
+		{
+			B3D_LOG(Error, RenderBackend, "Color attachment at index {0} cannot be read only if we're not loading it.", colorAttachment.Index);
+			continue;
+		}
+
+		// In debug mode clear not loaded values to the clear color
+		if(!originalClearMask.IsSet(colorAttachmentBit))
+		{
+			clearMask |= colorAttachmentBit;
+			clearValues[colorAttachment.Index].color = kDebugClearColor;
+		}
+	}
+
+	if(renderPass->HasDepthAttachment())
+	{
+		if(!loadMask.IsSet(RT_DEPTH))
+		{
+			if(readMask.IsSet(RT_DEPTH))
+			{
+				B3D_LOG(Error, RenderBackend, "Depth attachment cannot be read only if we're not loading it.");
+			}
+			else
+			{
+				if(!originalClearMask.IsSet(RT_DEPTH))
+				{
+					clearMask |= RT_DEPTH;
+					clearValues[colorAttachmentCount].depthStencil.depth = 0.0f;
+				}
+			}
+		}
+
+		if(!loadMask.IsSet(RT_STENCIL))
+		{
+			if(readMask.IsSet(RT_STENCIL))
+			{
+				B3D_LOG(Error, RenderBackend, "Stencil attachment cannot be read only if we're not loading it.");
+			}
+			else
+			{
+				if(!originalClearMask.IsSet(RT_STENCIL))
+				{
+					clearMask |= RT_STENCIL;
+					clearValues[colorAttachmentCount].depthStencil.stencil = 0;
+				}
+			}
+		}
+	}
+#endif
+
+	VkRenderPassBeginInfo renderPassBeginInfo;
+	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassBeginInfo.pNext = nullptr;
+	renderPassBeginInfo.framebuffer = mFramebuffer->GetVulkanHandle();
+	renderPassBeginInfo.renderPass = renderPass->GetVkRenderPass(loadMask, readMask, clearMask);
+	renderPassBeginInfo.renderArea = VulkanUtility::ToVulkanRect(renderArea);
+	renderPassBeginInfo.clearValueCount = renderPass->GetClearEntryCount(clearMask);
+	renderPassBeginInfo.pClearValues = clearValues.data();
+
+	vkCmdBeginRenderPass(mCommandBufferHandle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	mState = State::RecordingRenderPass;
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumRenderTargetChanges);
 }
 
-void VulkanGpuCommandBuffer::ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask)
+void VulkanGpuCommandBuffer::ClearRenderTarget(RenderSurfaceMask mask, const Color& color, float depth, u16 stencil)
 {
 	EnsureValidThread();
 
 	Area2I area(0, 0, mFramebuffer->GetWidth(), mFramebuffer->GetHeight());
-	ClearViewport(area, buffers, color, depth, stencil, targetMask);
+	ClearAttachments(area, mask, color, depth, stencil);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumClears);
 }
 
-void VulkanGpuCommandBuffer::ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask)
+void VulkanGpuCommandBuffer::ClearViewport(RenderSurfaceMask mask, const Color& color, float depth, u16 stencil)
 {
 	EnsureValidThread();
 
 	const Area2I viewportArea = GetViewportArea();
-	ClearViewport(viewportArea, buffers, color, depth, stencil, targetMask);
+	ClearAttachments(viewportArea, mask, color, depth, stencil);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumClears);
 }
@@ -964,111 +1036,6 @@ void VulkanGpuCommandBuffer::BeginRenderPass()
 		return;
 	}
 
-	const Area2I renderArea = GetRenderPassArea();
-
-	const RenderSurfaceMask readMask = mResourceTracker.GetFramebufferReadOnlyMask(mFramebuffer, mRenderTargetReadOnlyMask);
-	RenderSurfaceMask loadMask = mRenderTargetLoadMask;
-	const RenderSurfaceMask originalClearMask = mClearMask;
-
-	// Check if an explicit clear is needed. This is done if the the clear area doesn't match the render area, or if the user requests both
-	// clear and load flags for the same attachments (we can only do either during start of a render pass).
-	bool isClearCommandRequired = false;
-	if(mClearMask != RT_NONE)
-	{
-		if(mClearArea != renderArea || loadMask.IsSetAny(originalClearMask))
-		{
-			isClearCommandRequired = true;
-			mClearMask = RT_NONE;
-		}
-	}
-
-#if B3D_AUTOMATIC_BARRIERS
-	ExecuteWriteHazardBarrier();
-#endif
-	ExecuteLayoutTransitions();
-
-	VulkanRenderPass* renderPass = mFramebuffer->GetRenderPass();
-
-	RenderSurfaceMask clearMask = mClearMask;
-#if B3D_DEBUG
-	const VkClearColorValue kDebugClearColor = { { 1.0f, 0.0f, 1.0f, 1.0f } }; // Bright pink
-
-	const u32 colorAttachmentCount = renderPass->GetColorAttachmentCount();
-	for(u32 sequentialColorAttachmentIndex = 0; sequentialColorAttachmentIndex < colorAttachmentCount; sequentialColorAttachmentIndex++)
-	{
-		const VulkanFramebufferAttachment& colorAttachment = mFramebuffer->GetColorAttachment(sequentialColorAttachmentIndex);
-		const RenderSurfaceMaskBits colorAttachmentBit = (RenderSurfaceMaskBits)(1 << sequentialColorAttachmentIndex);
-		if(loadMask.IsSet(colorAttachmentBit))
-			continue;
-
-		if(readMask.IsSet(colorAttachmentBit))
-		{
-			B3D_LOG(Error, RenderBackend, "Color attachment at index {0} cannot be read only if we're not loading it.", colorAttachment.Index);
-			continue;
-		}
-
-		// In debug mode clear not loaded values to the clear color
-		if(!originalClearMask.IsSet(colorAttachmentBit))
-		{
-			clearMask |= colorAttachmentBit;
-			mClearValues[colorAttachment.Index].color = kDebugClearColor;
-		}
-	}
-
-	if(renderPass->HasDepthAttachment())
-	{
-		if(!loadMask.IsSet(RT_DEPTH))
-		{
-			if(readMask.IsSet(RT_DEPTH))
-			{
-				B3D_LOG(Error, RenderBackend, "Depth attachment cannot be read only if we're not loading it.");
-			}
-			else
-			{
-				if(!originalClearMask.IsSet(RT_DEPTH))
-				{
-					clearMask |= RT_DEPTH;
-					mClearValues[colorAttachmentCount].depthStencil.depth = 0.0f;
-				}
-			}
-		}
-
-		if(!loadMask.IsSet(RT_STENCIL))
-		{
-			if(readMask.IsSet(RT_STENCIL))
-			{
-				B3D_LOG(Error, RenderBackend, "Stencil attachment cannot be read only if we're not loading it.");
-			}
-			else
-			{
-				if(!originalClearMask.IsSet(RT_STENCIL))
-				{
-					clearMask |= RT_STENCIL;
-					mClearValues[colorAttachmentCount].depthStencil.stencil = 0;
-				}
-			}
-		}
-	}
-#endif
-
-	VkRenderPassBeginInfo renderPassBeginInfo;
-	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.pNext = nullptr;
-	renderPassBeginInfo.framebuffer = mFramebuffer->GetVulkanHandle();
-	renderPassBeginInfo.renderPass = renderPass->GetVkRenderPass(loadMask, readMask, clearMask);
-	renderPassBeginInfo.renderArea = VulkanUtility::ToVulkanRect(renderArea);
-	renderPassBeginInfo.clearValueCount = renderPass->GetClearEntryCount(clearMask);
-	renderPassBeginInfo.pClearValues = mClearValues.data();
-
-	vkCmdBeginRenderPass(mCommandBufferHandle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-	mClearMask = RT_NONE;
-	mState = State::RecordingRenderPass;
-
-	if(isClearCommandRequired)
-	{
-		ExecuteClearCommand(mClearArea, originalClearMask, mClearValues);
-	}
 }
 
 void VulkanGpuCommandBuffer::EndRenderPass()
@@ -1142,7 +1109,6 @@ void VulkanGpuCommandBuffer::EndRenderPass()
 	mRenderTarget = nullptr;
 	mRenderTargetModified = false;
 	mRenderTargetReadOnlyMask = RT_NONE;
-	mRenderTargetLoadMask = RT_NONE;
 	mFramebuffer = nullptr;
 
 	mRenderPassGpuParametersCache.clear();
@@ -1459,80 +1425,51 @@ void VulkanGpuCommandBuffer::Reset()
 	mQueueSyncMask = GpuQueueMask();
 }
 
-void VulkanGpuCommandBuffer::ClearViewport(const Area2I& area, u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask)
+Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> VulkanGpuCommandBuffer::BuildClearValues(RenderSurfaceMask clearMask, const Color& color, float depth, u16 stencil)
 {
-	if(buffers == 0 || mFramebuffer == nullptr)
-		return;
+	Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> clearValues{};
 
-	// If a clear operation is queued we need to execute it first
-	const bool isClearAlreadyQueued = !IsInRenderPass() && (mClearMask != RT_NONE) && (area != mClearArea);
-	if(isClearAlreadyQueued)
-	{
-		// Render pass start will trigger a an implicit clear
-		BeginRenderPass();
-		B3D_ASSERT(mClearMask == RT_NONE);
-	}
-
-	mClearArea = area;
+	if(clearMask == RT_NONE || mFramebuffer == nullptr)
+		return clearValues;
 
 	// Determine which attachments require clearing, and their clear values
 	const VulkanRenderPass* renderPass = mFramebuffer->GetRenderPass();
 	const u32 colorAttachmentCount = renderPass->GetColorAttachmentCount();
-	if((buffers & FBT_COLOR) != 0)
+	for(u32 sequentialColorAttachmentIndex = 0; sequentialColorAttachmentIndex < colorAttachmentCount; sequentialColorAttachmentIndex++)
 	{
-		for(u32 sequentialColorAttachmentIndex = 0; sequentialColorAttachmentIndex < colorAttachmentCount; sequentialColorAttachmentIndex++)
-		{
-			const VulkanFramebufferAttachment& colorAttachment = mFramebuffer->GetColorAttachment(sequentialColorAttachmentIndex);
-			const RenderSurfaceMaskBits colorAttachmentBit = (RenderSurfaceMaskBits)(1 << colorAttachment.Index);
+		const VulkanFramebufferAttachment& colorAttachment = mFramebuffer->GetColorAttachment(sequentialColorAttachmentIndex);
+		const RenderSurfaceMaskBits colorAttachmentBit = (RenderSurfaceMaskBits)(1 << colorAttachment.Index);
 
-			if((colorAttachmentBit & targetMask) == 0)
-				continue;
+		if(!clearMask.IsSet(colorAttachmentBit))
+			continue;
 
-			mClearMask |= colorAttachmentBit;
-
-			VkClearColorValue& colorAttachmentClearValue = mClearValues[sequentialColorAttachmentIndex].color;
-			colorAttachmentClearValue.float32[0] = color.R;
-			colorAttachmentClearValue.float32[1] = color.G;
-			colorAttachmentClearValue.float32[2] = color.B;
-			colorAttachmentClearValue.float32[3] = color.A;
-		}
+		VkClearColorValue& colorAttachmentClearValue = clearValues[sequentialColorAttachmentIndex].color;
+		colorAttachmentClearValue.float32[0] = color.R;
+		colorAttachmentClearValue.float32[1] = color.G;
+		colorAttachmentClearValue.float32[2] = color.B;
+		colorAttachmentClearValue.float32[3] = color.A;
 	}
 
-	if((buffers & (FBT_DEPTH | FBT_STENCIL)) != 0)
+	if(renderPass->HasDepthAttachment())
 	{
-		if(renderPass->HasDepthAttachment())
-		{
-			u32 depthAttachmentSequentialIndex = colorAttachmentCount;
+		u32 depthAttachmentSequentialIndex = colorAttachmentCount;
 
-			if((buffers & FBT_DEPTH) != 0)
-			{
-				mClearValues[depthAttachmentSequentialIndex].depthStencil.depth = depth;
-				mClearMask |= RT_DEPTH;
-			}
+		if(clearMask.IsSet(RT_DEPTH))
+			clearValues[depthAttachmentSequentialIndex].depthStencil.depth = depth;
 
-			if((buffers & FBT_STENCIL) != 0)
-			{
-				mClearValues[depthAttachmentSequentialIndex].depthStencil.stencil = stencil;
-				mClearMask |= RT_STENCIL;
-			}
-		}
+		if(clearMask.IsSet(RT_STENCIL))
+			clearValues[depthAttachmentSequentialIndex].depthStencil.stencil = stencil;
 	}
 
-	// Nothing to do
-	if(mClearMask == RT_NONE)
-		return;
-
-	// If currently in a render pass, execute a clear command. Otherwise we do the clear implicitly when beginning the render pass
-	if(IsInRenderPass())
-	{
-		ExecuteClearCommand(mClearArea, mClearMask, mClearValues);
-		mClearMask = RT_NONE;
-	}
-
-	NotifyRenderTargetModified();
+	return clearValues;
 }
 
-void VulkanGpuCommandBuffer::ExecuteClearCommand(const Area2I& area, RenderSurfaceMask clearMask, const Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1>& clearValues)
+void VulkanGpuCommandBuffer::ClearAttachments(const Area2I& area, RenderSurfaceMask clearMask, const Color& color, float depth, u16 stencil)
+{
+	ClearAttachments(area, clearMask, BuildClearValues(clearMask, color, depth, stencil));
+}
+
+void VulkanGpuCommandBuffer::ClearAttachments(const Area2I& area, RenderSurfaceMask clearMask, const Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1>& clearValues)
 {
 	if(clearMask == RT_NONE || mFramebuffer == nullptr)
 		return;
@@ -1622,6 +1559,7 @@ void VulkanGpuCommandBuffer::ExecuteClearCommand(const Area2I& area, RenderSurfa
 	clearRect.rect.extent.height = area.Height;
 
 	vkCmdClearAttachments(mCommandBufferHandle, attachmentsToClearCount, attachments.data(), 1, &clearRect);
+	NotifyRenderTargetModified();
 }
 
 bool VulkanGpuCommandBuffer::IsReadyForRender()
@@ -1839,50 +1777,6 @@ void VulkanGpuCommandBuffer::ExecuteLayoutTransitions()
 
 	mResourceTracker.ClearQueuedLayoutTransitions();
 	mLayoutTransitionBarriersTemp.clear();
-}
-
-void VulkanGpuCommandBuffer::ExecuteClearPass()
-{
-	B3D_ASSERT(mState == State::Recording);
-
-	ExecuteLayoutTransitions();
-
-	VulkanRenderPass* renderPass = mFramebuffer->GetRenderPass();
-
-	bool isClearCommandRequired = false;
-	RenderSurfaceMask renderPassClearMask = mClearMask;
-
-	// If both load and clear flags are specified, execute an explicit clear command instead. For some reason this is not working
-	// during render pass begin on some cards.
-	if(mRenderTargetLoadMask.IsSetAny(mClearMask))
-	{
-		isClearCommandRequired = true;
-		renderPassClearMask = RT_NONE;
-	}
-
-	VkRenderPassBeginInfo renderPassBeginInfo;
-	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassBeginInfo.pNext = nullptr;
-	renderPassBeginInfo.framebuffer = mFramebuffer->GetVulkanHandle();
-	renderPassBeginInfo.renderPass = renderPass->GetVkRenderPass(mRenderTargetLoadMask, RT_NONE, renderPassClearMask);
-	renderPassBeginInfo.renderArea.offset.x = mClearArea.X;
-	renderPassBeginInfo.renderArea.offset.y = mClearArea.Y;
-	renderPassBeginInfo.renderArea.extent.width = mClearArea.Width;
-	renderPassBeginInfo.renderArea.extent.height = mClearArea.Height;
-	renderPassBeginInfo.clearValueCount = renderPass->GetClearEntryCount(renderPassClearMask);
-	renderPassBeginInfo.pClearValues = mClearValues.data();
-
-	vkCmdBeginRenderPass(mCommandBufferHandle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-	if(isClearCommandRequired)
-	{
-		ExecuteClearCommand(mClearArea, mClearMask, mClearValues);
-	}
-
-	vkCmdEndRenderPass(mCommandBufferHandle);
-
-	mResourceTracker.MoveAllFramebufferAttachmentsToFinalLayouts(mFramebuffer);
-	mClearMask = RT_NONE;
 }
 
 void VulkanGpuCommandBuffer::SetEvent(VulkanEvent* event)

@@ -238,8 +238,8 @@ namespace b3d
 			 */
 			RenderSurfaceMask ReadOnlyMask = RT_NONE;
 
-			/** Determines which frame buffer surfaces to clear. Use values from FrameBufferType. */
-			u32 ClearMask = 0;
+			/** Determines which render surfaces to clear. */
+			RenderSurfaceMask ClearMask = RT_NONE;
 
 			/**
 			 * If true, the vertical texture coordinates will be flipped during the blit. This is useful

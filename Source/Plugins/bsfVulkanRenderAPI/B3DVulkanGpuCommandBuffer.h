@@ -131,8 +131,8 @@ namespace b3d
 			void EndRenderPass() override;
 			bool IsInRenderPass() const override { return mState == State::RecordingRenderPass; }
 			void SetViewport(const Area2& area) override;
-			void ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask) override;
-			void ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask) override;
+			void ClearRenderTarget(RenderSurfaceMask mask, const Color& color, float depth, u16 stencil) override;
+			void ClearViewport(RenderSurfaceMask mask, const Color& color, float depth, u16 stencil) override;
 			void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom) override;
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
@@ -451,11 +451,19 @@ namespace b3d
 			/** Binds the currently stored GPU parameters object, if dirty. */
 			void BindGpuParameters();
 
+			/** Creates an array of clear values from the specified clear mask and values. To be used for the explicit clear command, or render bass begin. */
+			Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> BuildClearValues(RenderSurfaceMask clearMask, const Color& color, float depth, u16 stencil);
+
 			/**
-			 * Clears the specified area of the currently bound render target. If in the middle of the render pass this will issue a clear command,
-			 * but if render pass has not begun yet it will instead attempt to perform the clear at the next render pass start.
+			 * Executes a clear command in the command buffer.
+			 *
+			 * @param area			Area in the currently bound render target to clear.
+			 * @param clearMask		Mask specifying which surfaces of the currently bound render target to clear.
+			 * @param color			Color value used for clearing color attachments.
+			 * @param depth			Depth value used for clearing the depth attachment.
+			 * @param stencil		Stencil value used for clearing the stencil attachment.
 			 */
-			void ClearViewport(const Area2I& area, u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask);
+			void ClearAttachments(const Area2I& area, RenderSurfaceMask clearMask, const Color& color, float depth, u16 stencil);
 
 			/**
 			 * Executes a clear command in the command buffer.
@@ -464,10 +472,7 @@ namespace b3d
 			 * @param clearMask		Mask specifying which surfaces of the currently bound render target to clear.
 			 * @param clearValues	Values used for clearing attachments.
 			 */
-			void ExecuteClearCommand(const Area2I& area, RenderSurfaceMask clearMask, const Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1>& clearValues);
-
-			/** Starts and ends a render pass, intended only for a clear operation. */
-			void ExecuteClearPass();
+			void ClearAttachments(const Area2I& area, RenderSurfaceMask clearMask, const Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1>& clearValues);
 
 			/** Executes any queued layout transitions by issuing a pipeline barrier. */
 			void ExecuteLayoutTransitions();
@@ -497,7 +502,6 @@ namespace b3d
 
 			VulkanFramebuffer* mFramebuffer = nullptr;
 			RenderSurfaceMask mRenderTargetReadOnlyMask = RT_NONE;
-			RenderSurfaceMask mRenderTargetLoadMask = RT_NONE;
 
 			VulkanResourceTracker mResourceTracker;
 			GpuQueueId mSubmittedQueueId;
@@ -528,10 +532,6 @@ namespace b3d
 			bool mIsDebugLabelOpen = false;
 			DescriptorSetBindFlags mDescriptorSetsBindState;
 			SPtr<VulkanGpuParameters> mBoundParams;
-
-			std::array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> mClearValues{};
-			RenderSurfaceMask mClearMask;
-			Area2I mClearArea;
 
 			VkBuffer mVertexBuffersTemp[BS_MAX_BOUND_VERTEX_BUFFERS]{};
 			VkDeviceSize mVertexBufferOffsetsTemp[BS_MAX_BOUND_VERTEX_BUFFERS]{};

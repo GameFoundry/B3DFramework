@@ -525,20 +525,20 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 	SPtr<Viewport> viewport = camera->GetViewport();
 
 	ClearFlags clearFlags = viewport->GetClearFlags();
-	u32 clearBuffers = 0;
+	RenderSurfaceMask clearMask = RT_NONE;
 	if(clearFlags.IsSet(ClearFlagBits::Color))
-		clearBuffers |= FBT_COLOR;
+		clearMask |= RT_COLOR_ALL;
 
 	if(clearFlags.IsSet(ClearFlagBits::Depth))
-		clearBuffers |= FBT_DEPTH;
+		clearMask |= RT_DEPTH;
 
 	if(clearFlags.IsSet(ClearFlagBits::Stencil))
-		clearBuffers |= FBT_STENCIL;
+		clearMask |= RT_STENCIL;
 
-	if(clearBuffers != 0)
+	if(clearMask != RT_NONE)
 	{
 		commandBuffer.BeginRenderPass(RenderPassCreateInformation(target));
-		commandBuffer.ClearViewport(clearBuffers, viewport->GetClearColorValue(), viewport->GetClearDepthValue(), viewport->GetClearStencilValue());
+		commandBuffer.ClearViewport(clearMask, viewport->GetClearColorValue(), viewport->GetClearDepthValue(), viewport->GetClearStencilValue());
 		commandBuffer.EndRenderPass();
 	}
 

@@ -1413,9 +1413,10 @@ void BokehDOFMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& 
 	const Vector2I tileCount = imageSize / 1;
 
 	RenderPassCreateInformation info(output, mGPUParameters, RT_DEPTH_STENCIL, RT_DEPTH_STENCIL);
-	commandBuffer.BeginRenderPass(info);
+	info.ClearMask = RT_COLOR_ALL;
+	info.ClearColor = Color::kZero;
 
-	commandBuffer.ClearRenderTarget(FBT_COLOR, Color::kZero);
+	commandBuffer.BeginRenderPass(info);
 	commandBuffer.SetVertexDescription(mTileVertexDescription);
 
 	SPtr<GpuBuffer> buffers[] = { mTileVertexBuffer };
@@ -2168,9 +2169,10 @@ void SSRTraceMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarg
 	B3D_PROFILE_RENDERER_MATERIAL
 
 	RenderPassCreateInformation info(destination, mGPUParameters, RT_DEPTH_STENCIL, RT_DEPTH_STENCIL);
-	commandBuffer.BeginRenderPass(info);
+	info.ClearMask = RT_COLOR_ALL;
+	info.ClearColor = Color::kZero;
 
-	commandBuffer.ClearRenderTarget(FBT_COLOR, Color::kZero);
+	commandBuffer.BeginRenderPass(info);
 
 	Bind(commandBuffer);
 
@@ -2402,8 +2404,9 @@ void TemporalFilteringMat::Execute(GpuCommandBuffer& commandBuffer, const Render
 	B3D_PROFILE_RENDERER_MATERIAL
 
 	RenderPassCreateInformation info(destination, mGPUParameters);
+	info.ClearMask = RT_COLOR_ALL;
+
 	commandBuffer.BeginRenderPass(info);
-	commandBuffer.ClearRenderTarget(FBT_COLOR);
 
 	Bind(commandBuffer);
 

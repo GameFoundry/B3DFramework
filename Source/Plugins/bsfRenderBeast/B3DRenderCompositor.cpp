@@ -474,7 +474,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	Area2 area(0.0f, 0.0f, 1.0f, 1.0f);
 	commandBuffer.SetViewport(area);
 
-	commandBuffer.ClearViewport(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kZero, 1.0f, 0);
+	commandBuffer.ClearViewport(RT_ALL, Color::kZero);
 
 	commandBuffer.EndRenderPass();
 
@@ -1090,12 +1090,13 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 						shadowProjectionPassInfo.Parameters.Add(shadowProjectionRenderingInfo.StencilGpuParameters);
 				}
 
+				shadowProjectionPassInfo.ClearMask = RT_COLOR_ALL;
+				shadowProjectionPassInfo.ClearColor = Color::kZero;
+
 				commandBuffer.BeginRenderPass(shadowProjectionPassInfo);
 
 				Area2 area(0.0f, 0.0f, 1.0f, 1.0f);
 				commandBuffer.SetViewport(area);
-
-				commandBuffer.ClearViewport(FBT_COLOR, Color::kZero);
 
 				shadowRenderer.RenderShadowProjectionBatch(commandBuffer, inputs.View, light, shadowProjectionRenderingBatch);
 				commandBuffer.EndRenderPass();
@@ -1166,8 +1167,10 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 
 		SPtr<RenderTexture> rt = RenderTexture::Create(rtDesc);
 
-		commandBuffer.BeginRenderPass(RenderPassCreateInformation(rt));
-		commandBuffer.ClearRenderTarget(FBT_DEPTH);
+		RenderPassCreateInformation clearRenderPassCreateInformation(rt);
+		clearRenderPassCreateInformation.ClearMask = RT_DEPTH;
+
+		commandBuffer.BeginRenderPass(clearRenderPassCreateInformation);
 		GetRendererUtility().Clear(commandBuffer, -1);
 		commandBuffer.EndRenderPass();
 
@@ -2614,7 +2617,7 @@ void RCNodeResolvedSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 			PooledRenderTextureCreateInformation::Create2D(PF_D32_S8X24, width, height, TU_DEPTHSTENCIL, 1, false));
 
 		BlitInformation blitInformation = BlitInformation::BlitDepth(sceneDepthNode->DepthTex->Texture, Output->RenderTexture);
-		blitInformation.ClearMask = FBT_STENCIL;
+		blitInformation.ClearMask = RT_STENCIL;
 
 		GetRendererUtility().Blit(commandBuffer, BlitInformation::BlitDepth(sceneDepthNode->DepthTex->Texture, Output->RenderTexture));
 	}
