@@ -8,6 +8,7 @@
 #include "B3DVulkanTexture.h"
 #include "B3DVulkanUtility.h"
 #include "Utility/B3DBitwise.h"
+#include "Utility/B3DVulkanBarrierHelper.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -125,17 +126,18 @@ VulkanResourceTracker::BufferTrackingState& VulkanResourceTracker::GetOrCreateBu
 	}
 }
 
-void VulkanResourceTracker::TrackBufferUsage(BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper)
+void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper)
 {
 	B3D_ASSERT(!bufferTrackingState.UseHandle.Used);
 
-	const VulkanAccessStageFlags accessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(useFlags);
+	barrierHelper.AddBufferBarrier(buffer, bufferTrackingState, useFlags, access);
 
 #if B3D_HAZARD_TRACKING
+	const VulkanAccessStageFlags accessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(useFlags);
 	WriteHazardTracking* const writeHazardTracking = bufferTrackingState.WriteHazardTracking;
 
 	// If this buffer has been previously written to prevent read-after-write and write-after-read hazards
-	if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
+	if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write)) // TODO - This check can be removed outside of development builds
 	{
 		// Read-after-write (or write-after-write)
 		if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Write))
@@ -149,7 +151,7 @@ void VulkanResourceTracker::TrackBufferUsage(BufferTrackingState& bufferTracking
 		}
 	}
 
-	if(access.IsSet(GpuAccessFlag::Write))
+	if(access.IsSet(GpuAccessFlag::Write)) // TODO - This check can be removed outside of development builds
 	{
 		// Write-after-read
 		if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Read))
@@ -179,7 +181,7 @@ void VulkanResourceTracker::TrackBufferUsage(BufferTrackingState& bufferTracking
 void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper)
 {
 	BufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
-	TrackBufferUsage(bufferTrackingState, useFlags, accessFlags, barrierHelper);
+	TrackBufferUsage(buffer, bufferTrackingState, useFlags, accessFlags, barrierHelper);
 }
 
 void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresourceRange subresourceRange, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper)
@@ -311,9 +313,10 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 			mQueuedLayoutTransitions.insert(image);
 	}
 
-	const VulkanAccessStageFlags accessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(useFlags);
+	barrierHelper.AddSubresourceBarrier(image, subresourceTrackingState, useFlags, accessFlags, subresourceTrackingState.RequiredLayout);
 
 #if B3D_HAZARD_TRACKING
+	const VulkanAccessStageFlags accessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(useFlags);
 	WriteHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
 
 	// If this image has been previously used prevent read-after-write and write-after-read hazards
@@ -321,7 +324,7 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 	if(use != ImageUseFlagBits::Transfer) // TODO - Excluded temporarily while we issue barriers manually
 	{
 #endif
-	if(accessFlags.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
+	if(accessFlags.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))// TODO - This check can be removed outside of development builds
 	{
 		// Read-after-write (and write-after-write, as little sense does that make)
 		if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Write))
@@ -345,7 +348,7 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 #endif
 	if(use != ImageUseFlagBits::Framebuffer)
 	{
-		if(accessFlags.IsSet(GpuAccessFlag::Write))
+		if(accessFlags.IsSet(GpuAccessFlag::Write))// TODO - This check can be removed outside of development builds
 		{
 			// Write-after-read
 			if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Read))
@@ -827,13 +830,6 @@ void VulkanResourceTracker::UpdateImageLayoutTrackingAfterBarrier(VulkanImage* i
 
 		ImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Self->mSubresourceTrackingState[globalSubresourceIndex];
 
-		if(subresourceTrackingState.CurrentLayout != subresourceTrackingState.RequiredLayout)
-		{
-			B3D_LOG(Warning, RenderBackend, "Image layout transition failed: queued implicit transitions have not completed. "
-				"Current layout: {0}, Required layout: {1}. Ensure all queued layout transitions are executed before issuing explicit barriers.",
-				VulkanUtility::GetImageLayoutName(subresourceTrackingState.CurrentLayout), VulkanUtility::GetImageLayoutName(subresourceTrackingState.RequiredLayout));
-		}
-
 		if(subresourceTrackingState.CurrentLayout != callbackParameters->OldLayout)
 		{
 			B3D_LOG(Warning, RenderBackend, "Image layout transition failed: current layout does not match expected old layout. "
@@ -841,7 +837,6 @@ void VulkanResourceTracker::UpdateImageLayoutTrackingAfterBarrier(VulkanImage* i
 				VulkanUtility::GetImageLayoutName(subresourceTrackingState.CurrentLayout), VulkanUtility::GetImageLayoutName(callbackParameters->OldLayout));
 		}
 
-		B3D_ENSURE(subresourceTrackingState.CurrentLayout == subresourceTrackingState.RequiredLayout); // Ensure any queued implicit transitions have completed first
 		B3D_ENSURE(subresourceTrackingState.CurrentLayout == callbackParameters->OldLayout);
 		subresourceTrackingState.CurrentLayout = callbackParameters->NewLayout;
 		subresourceTrackingState.RequiredLayout = callbackParameters->NewLayout; // TODO - RequiredLayout should no longer be necessary with explicit transitions

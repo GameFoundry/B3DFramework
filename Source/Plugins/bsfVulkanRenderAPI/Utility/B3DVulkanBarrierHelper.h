@@ -68,6 +68,16 @@ namespace b3d::render
 		void AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
 
 		/**
+		 * Adds a memory barrier for a buffer resource. Automatically deduces source usage/access from provided tracked state.
+		 *
+		 * @param buffer				Buffer to add barrier for.
+		 * @param bufferTrackingState	Buffer tracking information as retrieved from VulkanResourceTracker.
+		 * @param destinationUsage		How the buffer will be used after the barrier.
+		 * @param destinationAccess		Type of access (read/write) after the barrier.
+		 */
+		void AddBufferBarrier(VulkanBuffer* buffer, const VulkanResourceTracker::BufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
+
+		/**
 		 * Adds a memory barrier for an image resource.
 		 *
 		 * @param image					Image to add barrier for.
@@ -91,6 +101,17 @@ namespace b3d::render
 		 * @param newLayout				Layout the image will be transitioned to after the barrier.
 		 */
 		void AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout newLayout);
+
+		/**
+		 * Adds a memory barrier for an existing subresource of an image resource. Automatically deduces source usage/access and layout from provided tracked state.
+		 *
+		 * @param image								Image to add barrier for.
+		 * @param subresourceTrackingState			Subresource tracking information as retrieved from VulkanResourceTracker.
+		 * @param destinationUsage					How the image will be used after the barrier.
+		 * @param destinationAccess					Type of access (read/write) after the barrier.
+		 * @param newLayout							Layout the image will be transitioned to after the barrier.
+		 */
+		void AddSubresourceBarrier(VulkanImage* image, const VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout newLayout);
 
 		/**
 		 * Executes all accumulated barriers by issuing a pipeline barrier command.

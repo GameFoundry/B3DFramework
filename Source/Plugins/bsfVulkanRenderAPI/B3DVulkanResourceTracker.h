@@ -377,7 +377,7 @@ namespace b3d::render
 		 * Private overload of TrackBufferUsage that operates on an existing BufferTrackingState.
 		 * Lets the tracker know that the provided buffer resource has been queued on the associated command buffer.
 		 */
-		void TrackBufferUsage(BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper);
+		void TrackBufferUsage(VulkanBuffer* buffer, BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper);
 
 		/**
 		 * Lets the tracker know that the provided image subresource range resource has been queued the associated command buffer. This does bulk of the work to determine necessary layout transitions
