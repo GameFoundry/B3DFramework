@@ -283,14 +283,6 @@ namespace b3d::render
 		const ImageSubresourceTrackingState* FindSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip) const;
 
 		/**
-		 * Populates an array with all queued layout transitions and clears the queue. The transitions are expressed
-		 * as Vulkan image memory barriers that can be submitted to the command buffer.
-		 *
-		 * @param	outBarriers		Output array that will be populated with image memory barriers.
-		 */
-		void PopulateAndResetLayoutTransitions(TArray<VkImageMemoryBarrier>& outBarriers);
-
-		/**
 		 * Returns the current layout of the specified image subresource, as seen by the associated command buffer. This is different from the
 		 * global layout stored in VulkanImage itself, as it includes any transitions performed by the command buffer
 		 * (at the current point in time), while the global layout is only updated after a command buffer as been submitted.
@@ -345,12 +337,6 @@ namespace b3d::render
 
 		/** Returns the internal map of all tracked images to their tracking state indices. */
 		TDenseMap<VulkanResource*, u32>& GetImages() { return mImages; }
-
-		/** Returns the set of images with queued layout transitions. */
-		UnorderedSet<VulkanImage*>& GetQueuedLayoutTransitions() { return mQueuedLayoutTransitions; }
-
-		/** Clears the set of queued layout transitions. */
-		void ClearQueuedLayoutTransitions() { mQueuedLayoutTransitions.clear(); }
 
 	private:
 		friend class VulkanGpuCommandBuffer;
@@ -435,8 +421,6 @@ namespace b3d::render
 
 		/** Set of global subresource indices that are used on the current render pass. */
 		Set<u32> mRenderPassSubresources;
-
-		UnorderedSet<VulkanImage*> mQueuedLayoutTransitions;
 
 #if B3D_HAZARD_TRACKING
 		/** Pool allocator for WriteHazardTracking structures. */

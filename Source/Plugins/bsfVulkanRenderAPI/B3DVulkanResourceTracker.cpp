@@ -307,10 +307,6 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 #endif
 			subresourceTrackingState.RequiredLayout = layout;
 		}
-
-		// Queue a layout transition
-		if(subresourceTrackingState.CurrentLayout != subresourceTrackingState.RequiredLayout)
-			mQueuedLayoutTransitions.insert(image);
 	}
 
 	barrierHelper.AddSubresourceBarrier(image, subresourceTrackingState, useFlags, accessFlags, subresourceTrackingState.RequiredLayout);
@@ -1065,48 +1061,6 @@ void VulkanResourceTracker::ClearShaderFlagsForAllRenderPassImageSubresources()
 	}
 
 	mRenderPassSubresources.clear();
-}
-
-void VulkanResourceTracker::PopulateAndResetLayoutTransitions(TArray<VkImageMemoryBarrier>& outBarriers)
-{
-	// TODO - Port this to use VulkanBarrierHelper
-
-	// Note: These layout transitions will contain transitions for offscreen framebuffer attachments (while they
-	// transition to shader read-only layout). This can be avoided, since they're immediately used by the render pass
-	// as color attachments, making the layout change redundant.
-	for(auto& image : mQueuedLayoutTransitions)
-	{
-		TArrayView<ImageSubresourceTrackingState> subresourceTrackingStates = GetSubresourceTrackingStatesForImage(image);
-
-		for(auto& subresourceTrackingState : subresourceTrackingStates)
-		{
-			if(subresourceTrackingState.RequiredLayout == VK_IMAGE_LAYOUT_UNDEFINED ||
-			   subresourceTrackingState.CurrentLayout == subresourceTrackingState.RequiredLayout)
-				continue;
-
-			const bool isReadOnly =
-				!subresourceTrackingState.FramebufferUse.IsSet(GpuAccessFlag::Write) &&
-				!subresourceTrackingState.ShaderUse.IsSet(GpuAccessFlag::Write);
-
-			outBarriers.Add(VkImageMemoryBarrier());
-
-			VkImageMemoryBarrier& barrier = outBarriers.Back();
-			barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			barrier.pNext = nullptr;
-			barrier.srcAccessMask = 0; // Not relevant for layout transition
-			barrier.dstAccessMask = image->GetAccessFlags(subresourceTrackingState.RequiredLayout, isReadOnly);
-			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			barrier.oldLayout = subresourceTrackingState.CurrentLayout;
-			barrier.newLayout = subresourceTrackingState.RequiredLayout;
-			barrier.image = image->GetVulkanHandle();
-			barrier.subresourceRange = subresourceTrackingState.Range;
-
-			subresourceTrackingState.CurrentLayout = subresourceTrackingState.RequiredLayout;
-		}
-	}
-
-	mQueuedLayoutTransitions.clear();
 }
 
 VkImageLayout VulkanResourceTracker::GetCurrentSubresourceLayout(VulkanImage* image, const VkImageSubresourceRange& range, VulkanFramebuffer* framebuffer, RenderSurfaceMask explicitReadOnlyMask) const

@@ -445,8 +445,6 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	const RenderSurfaceMask originalClearMask = createInformation.ClearMask;
 	Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> clearValues = BuildClearValues(originalClearMask, createInformation.ClearColor, createInformation.ClearDepth, createInformation.ClearStencil);
 
-	ExecuteLayoutTransitions();
-
 	RenderSurfaceMask clearMask = createInformation.ClearMask;
 
 #if B3D_DEBUG
@@ -938,8 +936,6 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 
 	barrierHelper.Execute(*this);
 
-	ExecuteLayoutTransitions();
-
 	if(mCmpPipelineRequiresBind)
 	{
 		VulkanPipeline* pipeline = mComputePipeline->GetVulkanResource();
@@ -1391,7 +1387,6 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 	mVertexBuffers.clear();
 	mVertexInputsDirty = true;
 	mAcquiredSwapChainImages.clear();
-	mResourceTracker.ClearQueuedLayoutTransitions();
 
 	return submitInformation;
 }
@@ -1773,28 +1768,6 @@ void VulkanGpuCommandBuffer::BindGpuParameters(VulkanBarrierHelper& barrierHelpe
 	}
 
 	mBoundParamsDirty = false;
-}
-
-void VulkanGpuCommandBuffer::ExecuteLayoutTransitions()
-{
-	mResourceTracker.PopulateAndResetLayoutTransitions(mLayoutTransitionBarriersTemp);
-
-	VkPipelineStageFlags srcStage = 0;
-	VkPipelineStageFlags dstStage = 0;
-	::GetPipelineStageFlags(mLayoutTransitionBarriersTemp, srcStage, dstStage);
-
-	if(!mLayoutTransitionBarriersTemp.Empty())
-	{
-		vkCmdPipelineBarrier(
-			mCommandBufferHandle,
-			srcStage, dstStage,
-			0, 0, nullptr,
-			0, nullptr,
-			(u32)mLayoutTransitionBarriersTemp.size(), mLayoutTransitionBarriersTemp.data());
-	}
-
-	mResourceTracker.ClearQueuedLayoutTransitions();
-	mLayoutTransitionBarriersTemp.clear();
 }
 
 void VulkanGpuCommandBuffer::SetEvent(VulkanEvent* event)
@@ -2196,12 +2169,6 @@ void VulkanGpuCommandBuffer::RegisterImageTransfer(VulkanImage* image, const VkI
 {
 	// External code must end the render pass before attempting transfer operations
 	B3D_ASSERT(!IsInRenderPass());
-
-#if B3D_LEGACY_TRANSFER_BARRIERS
-	// If any layout transitions ere queued, we need to execute them before the code below, as the code may issue its own pipeline barriers and layouts need to be up to date
-	if(!mResourceTracker.GetQueuedLayoutTransitions().empty())
-		ExecuteLayoutTransitions();
-#endif
 
 	VulkanBarrierHelper barrierHelper(&mResourceTracker);
 

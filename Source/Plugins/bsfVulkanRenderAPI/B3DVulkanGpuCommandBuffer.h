@@ -467,9 +467,6 @@ namespace b3d
 			 */
 			void ClearAttachments(const Area2I& area, RenderSurfaceMask clearMask, const Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1>& clearValues);
 
-			/** Executes any queued layout transitions by issuing a pipeline barrier. */
-			void ExecuteLayoutTransitions();
-
 			/** Returns the current viewport area in pixels. This depends on the currently bound framebuffer and normalized viewport area. */
 			Area2I GetViewportArea() const;
 
@@ -530,7 +527,6 @@ namespace b3d
 			VkDeviceSize mVertexBufferOffsetsTemp[BS_MAX_BOUND_VERTEX_BUFFERS]{};
 			VkDescriptorSet* mDescriptorSetsTemp;
 			TransitionInfo mTransitionInfoTemp[GQT_COUNT];
-			TArray<VkImageMemoryBarrier> mLayoutTransitionBarriersTemp;
 			Vector<VulkanEvent*> mQueuedEvents;
 			Vector<SwapChainImageInformation> mAcquiredSwapChainImages;
 			TInlineArray<u32, 4> mDynamicDescriptorOffsetsToBind;
