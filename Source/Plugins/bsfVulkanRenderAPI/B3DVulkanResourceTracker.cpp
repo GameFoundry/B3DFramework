@@ -13,7 +13,6 @@
 using namespace b3d;
 using namespace b3d::render;
 
-#if B3D_HAZARD_TRACKING
 WriteHazardPipelineTracking::WriteHazardPipelineTracking()
 {
 	// Everything is safe to access by default
@@ -93,7 +92,6 @@ void WriteHazardPipelineTracking::LogUnsafeAccess(VulkanAccessStageFlags stages,
 
 	B3D_LOG(Warning, RenderBackend, "{0}", stream.str());
 }
-#endif
 
 VulkanResourceTracker::VulkanResourceTracker(VulkanGpuCommandBuffer* commandBuffer)
 	: mCommandBuffer(commandBuffer)
@@ -110,10 +108,7 @@ VulkanResourceTracker::BufferTrackingState& VulkanResourceTracker::GetOrCreateBu
 
 		bufferTrackingState.UseHandle.Used = false;
 		bufferTrackingState.UseHandle.Flags = GpuAccessFlag::None;
-
-#if B3D_HAZARD_TRACKING
 		bufferTrackingState.WriteHazardTracking = mWriteHazardPool.Construct<WriteHazardTracking>();
-#endif
 
 		buffer->NotifyBound();
 
@@ -130,40 +125,58 @@ void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, BufferTrackin
 {
 	B3D_ASSERT(!bufferTrackingState.UseHandle.Used);
 
-	barrierHelper.AddBufferBarrier(buffer, bufferTrackingState, useFlags, access);
+	// TODO - Output the information about the added barrier, then append it to hazard tracking checks below
+	const VulkanBarrierHelper::BarrierTrackingInfo* barrierTrackingInfo = barrierHelper.AddBufferBarrier(buffer, bufferTrackingState, useFlags, access);
 
-#if B3D_HAZARD_TRACKING
 	const VulkanAccessStageFlags accessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(useFlags);
 	WriteHazardTracking* const writeHazardTracking = bufferTrackingState.WriteHazardTracking;
 
+#if B3D_VERIFY_BARRIERS
+	WriteHazardTracking writeHazardTrackingCopy = *writeHazardTracking;
+
+	if(barrierTrackingInfo != nullptr)
+	{
+		// TODO - Unify this code with UpdateWriteHacardTrackingAfterBarrier
+		const bool needsMemoryBarrier = barrierTrackingInfo->SourceAccess.IsSet(GpuAccessFlag::Write);
+		const bool needsExecutionBarrier = barrierTrackingInfo->SourceAccess.IsSet(GpuAccessFlag::Read) && barrierTrackingInfo->DestinationAccess.IsSet(GpuAccessFlag::Write) || needsMemoryBarrier;
+
+		if(needsExecutionBarrier)
+			writeHazardTrackingCopy.ReadAccessStages.AddStageSafeAccess(barrierTrackingInfo->SourceAccessStages, barrierTrackingInfo->DestinationAccessStages);
+
+		if(needsMemoryBarrier)
+			writeHazardTrackingCopy.WriteAccessStages.AddStageSafeAccess(barrierTrackingInfo->SourceAccessStages, barrierTrackingInfo->DestinationAccessStages);
+		
+	}
+
 	// If this buffer has been previously written to prevent read-after-write and write-after-read hazards
-	if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write)) // TODO - This check can be removed outside of development builds
+	if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
 	{
 		// Read-after-write (or write-after-write)
-		if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Write))
+		if(writeHazardTrackingCopy.Access.IsSet(GpuAccessFlag::Write))
 		{
 			// Triggers if user did not issue a RAW memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-			if(!writeHazardTracking->WriteAccessStages.IsAccessSafe(accessStageFlags))
+			if(!writeHazardTrackingCopy.WriteAccessStages.IsAccessSafe(accessStageFlags))
 			{
-				writeHazardTracking->WriteAccessStages.LogUnsafeAccess(accessStageFlags, access, GpuAccessFlag::Write);
+				writeHazardTrackingCopy.WriteAccessStages.LogUnsafeAccess(accessStageFlags, access, GpuAccessFlag::Write);
 				B3D_ENSURE(false);
 			}
 		}
 	}
 
-	if(access.IsSet(GpuAccessFlag::Write)) // TODO - This check can be removed outside of development builds
+	if(access.IsSet(GpuAccessFlag::Write))
 	{
 		// Write-after-read
-		if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Read))
+		if(writeHazardTrackingCopy.Access.IsSet(GpuAccessFlag::Read))
 		{
 			// Triggers if user did not issue a WAR memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-			if(!writeHazardTracking->ReadAccessStages.IsAccessSafe(accessStageFlags))
+			if(!writeHazardTrackingCopy.ReadAccessStages.IsAccessSafe(accessStageFlags))
 			{
-				writeHazardTracking->ReadAccessStages.LogUnsafeAccess(accessStageFlags, GpuAccessFlag::Write, GpuAccessFlag::Read);
+				writeHazardTrackingCopy.ReadAccessStages.LogUnsafeAccess(accessStageFlags, GpuAccessFlag::Write, GpuAccessFlag::Read);
 				B3D_ENSURE(false);
 			}
 		}
 	}
+#endif
 
 	writeHazardTracking->Access |= access;
 
@@ -172,7 +185,6 @@ void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, BufferTrackin
 
 	if(access.IsSet(GpuAccessFlag::Write))
 		writeHazardTracking->WriteAccessStages.ClearStageSafeAccess(accessStageFlags);
-#endif
 
 	bufferTrackingState.UseHandle.Flags |= access;
 	bufferTrackingState.UseFlags |= useFlags;
@@ -275,97 +287,65 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 		}
 		else if(use == ImageUseFlagBits::Transfer)
 		{
-#if B3D_LEGACY_TRANSFER_BARRIERS
-			// Ensure previously queued transitions were executed
-			B3D_ASSERT(subresourceTrackingState.CurrentLayout == subresourceTrackingState.RequiredLayout);
-
-			// Transition to a valid transfer layout
-			if(subresourceTrackingState.CurrentLayout != layout) // TODO - This should be handled externally by issuing barriers manually
-			{
-				const VkAccessFlags sourceAccessFlags = image->GetAccessFlags(layout);
-				const VkAccessFlags destinationAccessFlags = accessFlags.IsSet(GpuAccessFlag::Write) ? VK_ACCESS_TRANSFER_WRITE_BIT : VK_ACCESS_TRANSFER_READ_BIT;
-
-				VkImageMemoryBarrier barrier;
-				barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-				barrier.pNext = nullptr;
-				barrier.srcAccessMask = sourceAccessFlags;
-				barrier.dstAccessMask = destinationAccessFlags;
-				barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-				barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-				barrier.oldLayout = subresourceTrackingState.CurrentLayout;
-				barrier.newLayout = layout;
-				barrier.image = image->GetVulkanHandle();
-				barrier.subresourceRange = subresourceTrackingState.Range;
-
-				const VkPipelineStageFlags sourceStage = VulkanUtility::GetPipelineStageFlags(sourceAccessFlags);
-				const VkPipelineStageFlags destinationStage = VulkanUtility::GetPipelineStageFlags(destinationAccessFlags);
-
-				vkCmdPipelineBarrier(mCommandBuffer->GetVulkanHandle(), sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-			}
-
-			subresourceTrackingState.CurrentLayout = layout;
-#endif
 			subresourceTrackingState.RequiredLayout = layout;
 		}
 	}
 
-	barrierHelper.AddSubresourceBarrier(image, subresourceTrackingState, useFlags, accessFlags, subresourceTrackingState.RequiredLayout);
+	const VulkanBarrierHelper::BarrierTrackingInfo* const barrierTrackingInfo = barrierHelper.AddSubresourceBarrier(image, subresourceTrackingState, useFlags, accessFlags, subresourceTrackingState.RequiredLayout);
 
-#if B3D_HAZARD_TRACKING
 	const VulkanAccessStageFlags accessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(useFlags);
 	WriteHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
 
-	// If this image has been previously used prevent read-after-write and write-after-read hazards
-#if B3D_LEGACY_TRANSFER_BARRIERS
-	if(use != ImageUseFlagBits::Transfer) // TODO - Excluded temporarily while we issue barriers manually
+#if B3D_VERIFY_BARRIERS
+	WriteHazardTracking writeHazardTrackingCopy = *writeHazardTracking;
+
+	if(barrierTrackingInfo != nullptr)
 	{
-#endif
-	if(accessFlags.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))// TODO - This check can be removed outside of development builds
+		// TODO - Unify this code with UpdateWriteHacardTrackingAfterBarrier
+		const bool needsMemoryBarrier = barrierTrackingInfo->SourceAccess.IsSet(GpuAccessFlag::Write);
+		const bool needsExecutionBarrier = barrierTrackingInfo->SourceAccess.IsSet(GpuAccessFlag::Read) && barrierTrackingInfo->DestinationAccess.IsSet(GpuAccessFlag::Write) || needsMemoryBarrier;
+
+		if(needsExecutionBarrier)
+			writeHazardTrackingCopy.ReadAccessStages.AddStageSafeAccess(barrierTrackingInfo->SourceAccessStages, barrierTrackingInfo->DestinationAccessStages);
+
+		if(needsMemoryBarrier)
+			writeHazardTrackingCopy.WriteAccessStages.AddStageSafeAccess(barrierTrackingInfo->SourceAccessStages, barrierTrackingInfo->DestinationAccessStages);
+	}
+
+	// If this image has been previously used prevent read-after-write and write-after-read hazards
+	if(accessFlags.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
 	{
 		// Read-after-write (and write-after-write, as little sense does that make)
-		if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Write))
+		if(writeHazardTrackingCopy.Access.IsSet(GpuAccessFlag::Write))
 		{
 			// Triggers if user did not issue a RAW memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-			if(!writeHazardTracking->WriteAccessStages.IsAccessSafe(accessStageFlags))
+			if(!writeHazardTrackingCopy.WriteAccessStages.IsAccessSafe(accessStageFlags))
 			{
-				writeHazardTracking->WriteAccessStages.LogUnsafeAccess(accessStageFlags, accessFlags, GpuAccessFlag::Write);
+				writeHazardTrackingCopy.WriteAccessStages.LogUnsafeAccess(accessStageFlags, accessFlags, GpuAccessFlag::Write);
 				B3D_ENSURE(false);
 			}
 		}
 	}
-#if B3D_LEGACY_TRANSFER_BARRIERS 
-	}
-#endif
 
 	// No need to check for write-after-read barrier for framebuffer as it only needs an execution dependency and that is already handled by the render pass
-#if B3D_LEGACY_TRANSFER_BARRIERS
-	if(use != ImageUseFlagBits::Transfer) // TODO - Excluded temporarily while we issue barriers manually
-	{
-#endif
 	if(use != ImageUseFlagBits::Framebuffer)
 	{
-		if(accessFlags.IsSet(GpuAccessFlag::Write))// TODO - This check can be removed outside of development builds
+		if(accessFlags.IsSet(GpuAccessFlag::Write))
 		{
 			// Write-after-read
-			if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Read))
+			if(writeHazardTrackingCopy.Access.IsSet(GpuAccessFlag::Read))
 			{
 				// Triggers if user did not issue a WAR memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-				if(!writeHazardTracking->ReadAccessStages.IsAccessSafe(accessStageFlags))
+				if(!writeHazardTrackingCopy.ReadAccessStages.IsAccessSafe(accessStageFlags))
 				{
-					writeHazardTracking->ReadAccessStages.LogUnsafeAccess(accessStageFlags, GpuAccessFlag::Write, GpuAccessFlag::Read);
+					writeHazardTrackingCopy.ReadAccessStages.LogUnsafeAccess(accessStageFlags, GpuAccessFlag::Write, GpuAccessFlag::Read);
 					B3D_ENSURE(false);
 				}
 			}
 		}
 	}
-#if B3D_LEGACY_TRANSFER_BARRIERS 
-	}
 #endif
 
-#if B3D_LEGACY_TRANSFER_BARRIERS 
-	if(use != ImageUseFlagBits::Transfer) // TODO - Excluded temporarily while we issue barriers manually
-	{
-#endif
 	writeHazardTracking->Access |= accessFlags;
 
 	if(accessFlags.IsSet(GpuAccessFlag::Read))
@@ -373,10 +353,6 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 
 	if(accessFlags.IsSet(GpuAccessFlag::Write))
 		writeHazardTracking->WriteAccessStages.ClearStageSafeAccess(accessStageFlags);
-#if B3D_LEGACY_TRANSFER_BARRIERS 
-	}
-#endif
-#endif
 
 	subresourceTrackingState.UseFlags |= use;
 	subresourceTrackingState.Access |= accessFlags;
@@ -567,7 +543,6 @@ TArrayView<const VulkanResourceTracker::ImageSubresourceTrackingState> VulkanRes
 
 	return TArrayView(&mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex], imageTrackingState.SubresourceInfoCount);
 }
-
 
 TArrayView<VulkanResourceTracker::ImageSubresourceTrackingState> VulkanResourceTracker::GetSubresourceTrackingStatesForImage(VulkanImage* image)
 {
@@ -777,10 +752,7 @@ u32 VulkanResourceTracker::AddSubresourceTrackingState(const VkImageSubresourceR
 	subresourceTrackingState.RequiredLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	subresourceTrackingState.RenderPassLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	subresourceTrackingState.Range = range;
-
-#if B3D_HAZARD_TRACKING
 	subresourceTrackingState.WriteHazardTracking = mWriteHazardPool.Construct<WriteHazardTracking>();
-#endif
 
 	return (u32)mSubresourceTrackingState.size() - 1;
 }
@@ -792,12 +764,10 @@ u32 VulkanResourceTracker::CopySubresourceTrackingStateWithNewRange(u32 copyFrom
 	ImageSubresourceTrackingState subresourceCopy = *copyFromSubresource;
 	subresourceCopy.Range = newRange;
 
-#if B3D_HAZARD_TRACKING
 	subresourceCopy.WriteHazardTracking = mWriteHazardPool.Construct<WriteHazardTracking>();
 
 	if(B3D_ENSURE(copyFromSubresource->WriteHazardTracking != nullptr))
 		*subresourceCopy.WriteHazardTracking = *copyFromSubresource->WriteHazardTracking;
-#endif
 
 	const u32 newSubresourceIndex = (u32)mSubresourceTrackingState.size();
 	if(copyFromSubresource->UseFlags.IsSet(ImageUseFlagBits::Shader))
@@ -839,26 +809,25 @@ void VulkanResourceTracker::UpdateImageLayoutTrackingAfterBarrier(VulkanImage* i
 	}, &callbackParameters);
 }
 
-#if B3D_HAZARD_TRACKING
 void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(VulkanBuffer* buffer, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess)
 {
-	const bool isReadOrWriteAfterWrite = sourceAccess.IsSet(GpuAccessFlag::Write);
-	const bool isWriteAfterRead = sourceAccess.IsSet(GpuAccessFlag::Read) && destinationAccess.IsSet(GpuAccessFlag::Write);
+	const bool needsMemoryBarrier = sourceAccess.IsSet(GpuAccessFlag::Write);
+	const bool needsExecutionBarrier = sourceAccess.IsSet(GpuAccessFlag::Read) && destinationAccess.IsSet(GpuAccessFlag::Write) || needsMemoryBarrier;
 
 	BufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
 	WriteHazardTracking* const writeHazardTracking = bufferTrackingState.WriteHazardTracking;
 
-	if(isReadOrWriteAfterWrite || isWriteAfterRead)
+	if(needsExecutionBarrier)
 		writeHazardTracking->ReadAccessStages.AddStageSafeAccess(sourceAccessStageFlags, destinationAccessStageFlags);
 
-	if(isReadOrWriteAfterWrite)
+	if(needsMemoryBarrier)
 		writeHazardTracking->WriteAccessStages.AddStageSafeAccess(sourceAccessStageFlags, destinationAccessStageFlags);
 }
 
 void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(VulkanImage* image, const VkImageSubresourceRange& range, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess)
 {
-	const bool isReadOrWriteAfterWrite = sourceAccess.IsSet(GpuAccessFlag::Write);
-	const bool isWriteAfterRead = sourceAccess.IsSet(GpuAccessFlag::Read) && destinationAccess.IsSet(GpuAccessFlag::Write);
+	const bool needsMemoryBarrier = sourceAccess.IsSet(GpuAccessFlag::Write);
+	const bool needsExecutionBarrier = sourceAccess.IsSet(GpuAccessFlag::Read) && destinationAccess.IsSet(GpuAccessFlag::Write) || needsMemoryBarrier;
 
 	ImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
 
@@ -867,11 +836,11 @@ void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(VulkanImage* i
 		VulkanResourceTracker* Self;
 		VulkanAccessStageFlags SourceAccessStageFlags;
 		VulkanAccessStageFlags DestinationAccessStageFlags;
-		bool IsReadOrWriteAfterWrite;
-		bool IsWriteAfterRead;
+		bool NeedsMemoryBarrier;
+		bool NeedsExecutionBarrier;
 	};
 
-	CallbackParameters callbackParameters = { this, sourceAccessStageFlags, destinationAccessStageFlags, isReadOrWriteAfterWrite, isWriteAfterRead };
+	CallbackParameters callbackParameters = { this, sourceAccessStageFlags, destinationAccessStageFlags, needsMemoryBarrier, needsExecutionBarrier };
 
 	IterateAndCreateOverlappingImageSubresourceTrackingState(imageTrackingState, *image, range, [](u32 globalSubresourceIndex, void* userData)
 	{
@@ -880,15 +849,14 @@ void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(VulkanImage* i
 		ImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Self->mSubresourceTrackingState[globalSubresourceIndex];
 		WriteHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
 
-		if(callbackParameters->IsReadOrWriteAfterWrite || callbackParameters->IsWriteAfterRead)
+		if(callbackParameters->NeedsExecutionBarrier)
 			writeHazardTracking->ReadAccessStages.AddStageSafeAccess(callbackParameters->SourceAccessStageFlags, callbackParameters->DestinationAccessStageFlags);
 
-		if(callbackParameters->IsReadOrWriteAfterWrite)
+		if(callbackParameters->NeedsMemoryBarrier)
 			writeHazardTracking->WriteAccessStages.AddStageSafeAccess(callbackParameters->SourceAccessStageFlags, callbackParameters->DestinationAccessStageFlags);
 
 	}, &callbackParameters);
 }
-#endif
 
 void VulkanResourceTracker::NotifyUsed(GpuQueueId queueId)
 {
@@ -1012,7 +980,6 @@ void VulkanResourceTracker::NotifyUnbound()
 
 void VulkanResourceTracker::Clear()
 {
-#if B3D_HAZARD_TRACKING
 	for(auto& entry : mBuffers)
 	{
 		if(entry.second.WriteHazardTracking != nullptr)
@@ -1024,7 +991,6 @@ void VulkanResourceTracker::Clear()
 		if(entry.WriteHazardTracking != nullptr)
 			mWriteHazardPool.Destruct(entry.WriteHazardTracking);
 	}
-#endif
 
 	mResources.clear();
 	mImages.clear();

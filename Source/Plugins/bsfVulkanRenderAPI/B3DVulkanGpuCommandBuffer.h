@@ -224,12 +224,6 @@ namespace b3d
 			 */
 			void Reset();
 
-			/**
-			 * Lets the command buffer know that the provided image will be used for a transfer operation. Transfers the image
-			 * to the provided layout and issues any necessary execution and memory barriers.
-			 */
-			void RegisterImageTransfer(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, GpuAccessFlags access);
-
 			/************************************************************************/
 			/* 								COMMANDS	                     		*/
 			/************************************************************************/
@@ -245,9 +239,6 @@ namespace b3d
 			 * information.
 			 */
 			void MemoryBarrier(VkBuffer buffer, VkAccessFlags sourceAccessFlags, VkAccessFlags destinationAccessFlags, VkPipelineStageFlags sourceStage, VkPipelineStageFlags destinationStage);
-
-			/** Issues a pipeline barrier on the provided buffer. Uses the default pipeline stages for provided access flags.  */
-			void MemoryBarrier(VkBuffer buffer, VkAccessFlags sourceAccessFlags, VkAccessFlags destinationAccessFlags);
 
 			/**
 			 * Copies the provided memory into the buffer.
@@ -496,9 +487,7 @@ namespace b3d
 			VulkanResourceTracker mResourceTracker;
 			GpuQueueId mSubmittedQueueId;
 
-#if B3D_HAZARD_TRACKING
 			PoolAlloc<sizeof(WriteHazardTracking)> mWriteHazardPool;
-#endif
 
 			SPtr<VulkanGpuGraphicsPipelineState> mGraphicsPipeline;
 			SPtr<VulkanGpuComputePipelineState> mComputePipeline;

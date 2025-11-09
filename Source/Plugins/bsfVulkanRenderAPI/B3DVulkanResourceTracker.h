@@ -8,8 +8,7 @@
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "Utility/B3DDenseMap.h"
 
-#define B3D_HAZARD_TRACKING 1 // This used to be debug only, but is now required. Keeping the #define for clarity.
-#define B3D_LEGACY_TRANSFER_BARRIERS 1 // TODO - Remove all code under this define once we port transfers to use tracked barriers
+#define B3D_VERIFY_BARRIERS B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT // If enabled, ensures that memory barriers are properly issued
 
 namespace b3d::render
 {
@@ -37,7 +36,6 @@ namespace b3d::render
 	typedef Flags<ImageUseFlagBits> ImageUseFlags;
 	B3D_FLAGS_OPERATORS(ImageUseFlagBits)
 
-#if B3D_HAZARD_TRACKING
 	/** Keeps track on which pipelines was a resource written/read, and on which pipelines may it be safely accessed from. */
 	struct WriteHazardPipelineTracking
 	{
@@ -75,12 +73,13 @@ namespace b3d::render
 		GpuAccessFlags Access; /**< Has the buffer been read or written so far. */
 
 		/** Keeps track of all pipeline stages that the resource was read from, and which of those stages can be safely accessed by a write operation (and on which stage). */
-		WriteHazardPipelineTracking ReadAccessStages;
+		WriteHazardPipelineTracking ReadAccessStages; // TODO - Rename to ExecutionBarrierTracking
 
 		/** Keeps track of all pipeline stages that the resource was written to, and which of those stages can be safely accessed by a read or write operation (and on which stage). */
-		WriteHazardPipelineTracking WriteAccessStages;
+		WriteHazardPipelineTracking WriteAccessStages; // TODO - Rename to MemoryBarrierTracking
+
+		// TODO - Add LayoutTransitionTracking - Tracks last use of an imagine in a specific layout, and which layouts can be safely transitioned to/from without a barrier
 	};
-#endif
 
 	/**
 	 * Helper class that tracks all resources used on a command buffer. It is responsible for keeping those resources alive why they
@@ -118,10 +117,8 @@ namespace b3d::render
 			/** Flags indicating how the buffer is being used (shader access, transfer, etc.). */
 			GpuResourceUseFlags UseFlags;
 
-#if B3D_HAZARD_TRACKING
 			/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued*/
 			WriteHazardTracking* WriteHazardTracking = nullptr;
-#endif
 		};
 
 		/** Contains information about a single Vulkan image resource bound/used on this command buffer. */
@@ -164,10 +161,8 @@ namespace b3d::render
 			/** Determines is the initial use of this subresource read-only. Used for better determining access flags. */
 			bool InitialReadOnly = false;
 
-#if B3D_HAZARD_TRACKING
 			/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued. */
 			WriteHazardTracking* WriteHazardTracking = nullptr;
-#endif
 
 			// Only relevant for layout transitions
 			/**
@@ -204,7 +199,8 @@ namespace b3d::render
 		VulkanResourceTracker(VulkanGpuCommandBuffer* commandBuffer);
 
 		/**
-		 * Lets the tracker know that the provided buffer resource has been queued on the associated command buffer.
+		 * Lets the tracker know that the provided buffer resource will be queued on the associated command buffer. Call this before the buffer is used, with
+		 * the appropriate usage of how is it about to be used. Execute the barriers queued in @p barrierHelper before use.
 		 * 
 		 * @param	buffer				Buffer to track.
 		 * @param	useFlags			Categorizes how the buffer will be used (shader access, vertex input, etc.), and on which stages.
@@ -214,8 +210,9 @@ namespace b3d::render
 		void TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper);
 
 		/**
-		 * Lets the tracker know that the provided image resource has been queued on the associated command buffer. Use this only for images
-		 * bound as shader parameter - for attachments use TrackFramebufferUse() instead.
+		 * Lets the tracker know that the provided image resource will be queued on the associated command buffer. Call this before the image is used, with
+		 * the appropriate usage of how is it about to be used. Execute the barriers queued in @p barrierHelper before use.
+		 * Use this only for images bound as shader parameters - for attachments use TrackFramebufferUse() instead.
 		 *
 		 * @param	image				Image to track.
 		 * @param	subresourceRange	Subresource range of the image to track.
@@ -229,16 +226,17 @@ namespace b3d::render
 		void TrackImageUsage(VulkanImage* image, VkImageSubresourceRange subresourceRange, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper);
 
 		/**
-		 * Lets the tracker know that the provided framebuffer has been queued on the associated command buffer. All associated attachment images
-		 * will be tracked as well, there's no need to track them separately.
+		 * Lets the tracker know that the provided framebuffer will be queued on the associated command buffer. All associated attachment images
+		 * will be tracked as well, there's no need to track them separately. Call this before the framebuffer is used. Execute the barriers
+		 * queued in @p barrierHelper before use.
 		 */
 		void TrackFramebufferUsage(VulkanFramebuffer* framebuffer, RenderSurfaceMask loadMask, RenderSurfaceMask readOnlyMask, VulkanBarrierHelper& barrierHelper);
 
-		/** Lets the tracker know that the provided swap chain has been queued on the associated command buffer. */
+		/** Lets the tracker know that the provided swap chain will be queued on the associated command buffer. */
 		void TrackSwapChainUsage(VulkanSwapChain* swapChain);
 
 		/**
-		 * Lets the tracker know that the provided resource has been queued on the associated command buffer.
+		 * Lets the tracker know that the provided resource will be queued on the associated command buffer.
 		 * If a resource is an image, buffer, swap chain or framebuffer use the more specific Track*Use() overload.
 		 */
 		void TrackResourceUsage(VulkanResource* resource, GpuAccessFlags access);
@@ -324,13 +322,11 @@ namespace b3d::render
 		/** Updates image layout tracking for a single image subresource after a barrier has been issued. */
 		void UpdateImageLayoutTrackingAfterBarrier(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout oldLayout, VkImageLayout newLayout);
 
-#if B3D_HAZARD_TRACKING
 		/** Updates write hazard tracking for a single buffer after a barrier has been issued. */
 		void UpdateWriteHazardTrackingAfterBarrier(VulkanBuffer* buffer, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess);
 
 		/** Updates write hazard tracking for a single image after a barrier has been issued. */
 		void UpdateWriteHazardTrackingAfterBarrier(VulkanImage* image, const VkImageSubresourceRange& range, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess);
-#endif
 
 		/** Returns the internal map of all tracked buffers and their tracking states. */
 		TDenseMap<VulkanResource*, BufferTrackingState>& GetBuffers() { return mBuffers; }
@@ -361,12 +357,12 @@ namespace b3d::render
 
 		/**
 		 * Private overload of TrackBufferUsage that operates on an existing BufferTrackingState.
-		 * Lets the tracker know that the provided buffer resource has been queued on the associated command buffer.
+		 * Lets the tracker know that the provided buffer resource will be queued on the associated command buffer.
 		 */
 		void TrackBufferUsage(VulkanBuffer* buffer, BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper);
 
 		/**
-		 * Lets the tracker know that the provided image subresource range resource has been queued the associated command buffer. This does bulk of the work to determine necessary layout transitions
+		 * Lets the tracker know that the provided image subresource range resource will be queued the associated command buffer. This does bulk of the work to determine necessary layout transitions
 		 * and barriers based on previous subresource usage.
 		 */
 		// TODO - Refactor this signature, try to clean it up once we have explicit layout transitions
@@ -422,10 +418,8 @@ namespace b3d::render
 		/** Set of global subresource indices that are used on the current render pass. */
 		Set<u32> mRenderPassSubresources;
 
-#if B3D_HAZARD_TRACKING
 		/** Pool allocator for WriteHazardTracking structures. */
 		PoolAlloc<sizeof(WriteHazardTracking)> mWriteHazardPool;
-#endif
 	};
 
 	/** @} */

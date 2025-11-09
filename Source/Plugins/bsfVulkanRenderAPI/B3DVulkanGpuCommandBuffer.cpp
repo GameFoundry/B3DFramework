@@ -354,10 +354,8 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	mFramebuffer = newFramebuffer;
 	mRenderTargetReadOnlyMask = readOnlyMask;
 
-#if B3D_HAZARD_TRACKING
 	// These are guaranteed by the render pass external dependency. It's always safe to use read images from shaders as attachments.
 	// Note: Must be called before registering the framebuffer, as that will register new write hazards that need to be resolved
-
 	const VulkanAccessStageFlags kSourceAccessStageFlags = VulkanAccessStageFlag::AllShader;
 	const VulkanAccessStageFlags kDestinationAccessStageFlags = VulkanAccessStageFlag::ColorAttachment | VulkanAccessStageFlag::EarlyFragmentTests | VulkanAccessStageFlag::LateFragmentTests;
 
@@ -380,7 +378,6 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 
 		mResourceTracker.UpdateWriteHazardTrackingAfterBarrier(image, range, kSourceAccessStageFlags, GpuAccessFlag::Read, kDestinationAccessStageFlags, GpuAccessFlag::Read | GpuAccessFlag::Write);
 	}
-#endif
 
 	VulkanBarrierHelper barrierHelper(&mResourceTracker);
 
@@ -1084,7 +1081,6 @@ void VulkanGpuCommandBuffer::EndRenderPass()
 		}
 	}
 
-#if B3D_HAZARD_TRACKING
 	if(mFramebuffer != nullptr)
 	{
 		// These are guaranteed by the render pass external dependency. It's always safe to read an attachment in a shader after render pass.
@@ -1113,7 +1109,6 @@ void VulkanGpuCommandBuffer::EndRenderPass()
 			mResourceTracker.UpdateWriteHazardTrackingAfterBarrier(image, range, kSourceAccessStageFlags, GpuAccessFlag::Write, VulkanAccessStageFlag::EarlyFragmentTests | VulkanAccessStageFlag::LateFragmentTests, GpuAccessFlag::Write);
 		}
 	}
-#endif
 
 	mState = State::Recording;
 	mRenderTarget = nullptr;
@@ -1812,38 +1807,19 @@ void VulkanGpuCommandBuffer::CopyBufferToBuffer(VulkanBuffer* source, VulkanBuff
 	region.srcOffset = sourceOffset;
 	region.dstOffset = destinationOffset;
 
-	// Issue pre-copy barriers
-	FrameScope frameScope;
 	VulkanBarrierHelper barrierHelper(&mResourceTracker);
 
-	if(source->IsBound())
-		barrierHelper.AddBufferBarrier(source, source->GetUseFlags(), source->GetAccessFlags(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Read);
-
-	if(destination->IsBound())
-		barrierHelper.AddBufferBarrier(destination, destination->GetUseFlags(), destination->GetAccessFlags(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Write);
+	mResourceTracker.TrackBufferUsage(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, barrierHelper);
+	mResourceTracker.TrackBufferUsage(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
 
 	barrierHelper.Execute(*this);
 
 	vkCmdCopyBuffer(GetVulkanHandle(), source->GetVulkanHandle(), destination->GetVulkanHandle(), 1, &region);
-
-	// TODO - Avoid explicit post-copy barriers. Let those be issued when the resources are actually used. But I need automatic barrier insertion to support this.
-
-	// Issue post-copy barriers
-	barrierHelper.AddBufferBarrier(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, source->GetUseFlags(), source->GetAccessFlags());
-	barrierHelper.AddBufferBarrier(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, destination->GetUseFlags(), destination->GetAccessFlags());
-	barrierHelper.Execute(*this);
-
-	mResourceTracker.TrackBufferUsage(source, source->GetUseFlags(), source->GetAccessFlags(), barrierHelper);
-	mResourceTracker.TrackBufferUsage(destination, destination->GetUseFlags(), destination->GetAccessFlags(), barrierHelper);
 }
 
 void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout)
 {
 	B3D_ENSURE(!IsInRenderPass());
-
-#if B3D_LEGACY_TRANSFER_BARRIERS
-	RegisterImageTransfer(destination, subresourceRange, layout, GpuAccessFlag::Write);
-#endif
 
 	VkImageSubresourceLayers rangeLayers;
 	rangeLayers.aspectMask = subresourceRange.aspectMask;
@@ -1861,58 +1837,19 @@ void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage
 	copyRegion.imageExtent = region;
 	copyRegion.imageSubresource = rangeLayers;
 
-	// Issue pre-copy barrier for source buffer
-	FrameScope frameScope;
 	VulkanBarrierHelper barrierHelper(&mResourceTracker);
-	if(source->IsBound())
-		barrierHelper.AddBufferBarrier(source, source->GetUseFlags(), source->GetAccessFlags(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Read);
 
-	// TODO - Layout transition above should not be necessary
-	// TODO - Should use a similar approach for buffer barriers (but leave this for later)
-
-#if !B3D_LEGACY_TRANSFER_BARRIERS
-	barrierHelper.AddImageBarrier(destination, subresourceRange, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, layout);
-#endif
+	mResourceTracker.TrackBufferUsage(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, barrierHelper);
+	mResourceTracker.TrackImageUsage(destination, subresourceRange, ImageUseFlagBits::Transfer, layout, layout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
 
 	barrierHelper.Execute(*this);
-
-	// TODO - Auto-barrier/auto-layout
-	// - Keep an instance of VulkanBarrierHelper in the command buffer. Initially empty.
-	// - Gets filled up when preparing for render pass or before executing dispatch (or before transfer ops)
-	// - Takes care of merging similar barriers (for the same resource). Disallow subresource splitting (it indicates same image used in different ways during pass)
-	// - This might not even need to be stored on the command buffer, but just in BeginRenderPass,Dispatch and transfer op methods
-	// - Also refactor write hazard to use new StageAccess enum instead of VK pipelines, as we can correctly determine access masks from that enum
 
 	vkCmdCopyBufferToImage(GetVulkanHandle(), source->GetVulkanHandle(), destination->GetVulkanHandle(), layout, 1, &copyRegion);
-	// TODO - Need to clear write hazard safe flags for transfer stage. This also applies to all other transfer operations
-
-	// TODO - Avoid explicit post-copy barriers. Let those be issued when the resources are actually used. But I need automatic barrier insertion to support this.
-
-	// Issue post-copy barrier for source buffer
-	barrierHelper.AddBufferBarrier(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, source->GetUseFlags(), source->GetAccessFlags());
-	// TODO - Missing barrier for the image
-	barrierHelper.Execute(*this);
-
-	mResourceTracker.TrackBufferUsage(source, source->GetUseFlags(), source->GetAccessFlags(), barrierHelper);
-#if !B3D_LEGACY_TRANSFER_BARRIERS
-	mResourceTracker.TrackImageUsage(destination, subresourceRange, ImageUseFlagBits::Transfer, layout, layout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write);
-#endif
 }
 
 void VulkanGpuCommandBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight)
 {
 	B3D_ENSURE(!IsInRenderPass());
-
-	VkImageSubresourceRange subresourceRangeForBarrier = subresourceRange;
-	subresourceRangeForBarrier.aspectMask = source->GetAspectFlags(); // If the source image contains both depth & stencil, then both aspect flags need to provided for pipeline barrier. But for the copy operation there must only be one aspect.
-
-	RegisterImageTransfer(source, subresourceRangeForBarrier, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, GpuAccessFlag::Read);
-
-#if !B3D_LEGACY_TRANSFER_BARRIERS
-	// Issue layout transitions if needed
-	if(!mResourceTracker.GetQueuedLayoutTransitions().empty())
-		ExecuteLayoutTransitions();
-#endif
 
 	VkImageSubresourceLayers rangeLayers;
 	rangeLayers.aspectMask = subresourceRange.aspectMask;
@@ -1930,82 +1867,80 @@ void VulkanGpuCommandBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer
 	copyRegion.imageExtent = region;
 	copyRegion.imageSubresource = rangeLayers;
 
-	// Issue pre-copy barrier for destination buffer
-	FrameScope frameScope;
+	// If the source image contains both depth & stencil, then both aspect flags need to provided for pipeline barrier. But for the copy operation there must only be one aspect.
+	VkImageSubresourceRange subresourceRangeForBarrier = subresourceRange;
+	subresourceRangeForBarrier.aspectMask = source->GetAspectFlags(); 
+
 	VulkanBarrierHelper barrierHelper(&mResourceTracker);
 
-	// TODO - Missing barrier for the image
+	mResourceTracker.TrackImageUsage(source, subresourceRangeForBarrier, ImageUseFlagBits::Transfer, layout, layout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, barrierHelper);
+	mResourceTracker.TrackBufferUsage(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
 
-	if(destination->IsBound())
-		barrierHelper.AddBufferBarrier(destination, destination->GetUseFlags(), destination->GetAccessFlags(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Write);
-
-	// Note: Image barriers are handled by RegisterImageTransfer
 	barrierHelper.Execute(*this);
 
 	vkCmdCopyImageToBuffer(GetVulkanHandle(), source->GetVulkanHandle(), layout, destination->GetVulkanHandle(), 1, &copyRegion);
-
-	// TODO - Avoid explicit post-copy barriers. Let those be issued when the resources are actually used. But I need automatic barrier insertion to support this.
-
-	// Issue post-copy barrier for destination buffer
-	barrierHelper.AddBufferBarrier(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, destination->GetUseFlags(), destination->GetAccessFlags());
-	// TODO - Missing barrier for the image
-	barrierHelper.Execute(*this);
-
-	mResourceTracker.TrackBufferUsage(destination, destination->GetUseFlags(), destination->GetAccessFlags(), barrierHelper);
 }
 
 void VulkanGpuCommandBuffer::CopyImageToImage(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageCopy* regions)
 {
 	B3D_ENSURE(!IsInRenderPass());
 
-	RegisterImageTransfer(source, sourceSubresourceRange, sourceLayout, GpuAccessFlag::Read);
-	RegisterImageTransfer(destination, destinationSubresourceRange, destinationLayout, GpuAccessFlag::Write);
+	// If the source image contains both depth & stencil, then both aspect flags need to provided for pipeline barrier. But for the copy operation there must only be one aspect.
+	VkImageSubresourceRange sourceSubresourceRangeForBarrier = sourceSubresourceRange;
+	sourceSubresourceRangeForBarrier.aspectMask = source->GetAspectFlags(); 
 
-#if !B3D_LEGACY_TRANSFER_BARRIERS
-	// Issue layout transitions if needed
-	if(!mResourceTracker.GetQueuedLayoutTransitions().empty())
-		ExecuteLayoutTransitions();
-#endif
+	VkImageSubresourceRange destinationSubresourceRangeForBarrier = destinationSubresourceRange;
+	destinationSubresourceRangeForBarrier.aspectMask = source->GetAspectFlags(); 
+
+	VulkanBarrierHelper barrierHelper(&mResourceTracker);
+
+	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, ImageUseFlagBits::Transfer, sourceLayout, sourceLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, barrierHelper);
+	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, ImageUseFlagBits::Transfer, destinationLayout, destinationLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
+
+	barrierHelper.Execute(*this);
 
 	vkCmdCopyImage(GetVulkanHandle(), source->GetVulkanHandle(), sourceLayout, destination->GetVulkanHandle(), destinationLayout, regionCount, regions);
-
-	// TODO - Post copy barriers? And pre-copy for that matter as well?
 }
 
 void VulkanGpuCommandBuffer::Blit(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageBlit* regions)
 {
 	B3D_ENSURE(!IsInRenderPass());
 
-	RegisterImageTransfer(source, sourceSubresourceRange, sourceLayout, GpuAccessFlag::Read);
-	RegisterImageTransfer(destination, destinationSubresourceRange, destinationLayout, GpuAccessFlag::Write);
+	// If the source image contains both depth & stencil, then both aspect flags need to provided for pipeline barrier. But for the copy operation there must only be one aspect.
+	VkImageSubresourceRange sourceSubresourceRangeForBarrier = sourceSubresourceRange;
+	sourceSubresourceRangeForBarrier.aspectMask = source->GetAspectFlags(); 
 
-#if !B3D_LEGACY_TRANSFER_BARRIERS
-	// Issue layout transitions if needed
-	if(!mResourceTracker.GetQueuedLayoutTransitions().empty())
-		ExecuteLayoutTransitions();
-#endif
+	VkImageSubresourceRange destinationSubresourceRangeForBarrier = destinationSubresourceRange;
+	destinationSubresourceRangeForBarrier.aspectMask = source->GetAspectFlags(); 
+
+	VulkanBarrierHelper barrierHelper(&mResourceTracker);
+
+	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, ImageUseFlagBits::Transfer, sourceLayout, sourceLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, barrierHelper);
+	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, ImageUseFlagBits::Transfer, destinationLayout, destinationLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
+
+	barrierHelper.Execute(*this);
 
 	vkCmdBlitImage(GetVulkanHandle(), source->GetVulkanHandle(), sourceLayout, destination->GetVulkanHandle(), destinationLayout, regionCount, regions, VK_FILTER_LINEAR);
-
-	// TODO - Post copy barriers? And pre-copy for that matter as well?
 }
 
 void VulkanGpuCommandBuffer::Resolve(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageResolve* regions)
 {
 	B3D_ENSURE(!IsInRenderPass());
 
-	RegisterImageTransfer(source, sourceSubresourceRange, sourceLayout, GpuAccessFlag::Read);
-	RegisterImageTransfer(destination, destinationSubresourceRange, destinationLayout, GpuAccessFlag::Write);
+	VkImageSubresourceRange sourceSubresourceRangeForBarrier = sourceSubresourceRange;
+	sourceSubresourceRangeForBarrier.aspectMask = source->GetAspectFlags(); 
 
-#if !B3D_LEGACY_TRANSFER_BARRIERS
-	// Issue layout transitions if needed
-	if(!mResourceTracker.GetQueuedLayoutTransitions().empty())
-		ExecuteLayoutTransitions();
-#endif
+	VkImageSubresourceRange destinationSubresourceRangeForBarrier = destinationSubresourceRange;
+	destinationSubresourceRangeForBarrier.aspectMask = source->GetAspectFlags(); 
+
+	VulkanBarrierHelper barrierHelper(&mResourceTracker);
+
+	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, ImageUseFlagBits::Transfer, sourceLayout, sourceLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, barrierHelper);
+	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, ImageUseFlagBits::Transfer, destinationLayout, destinationLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
+
+	barrierHelper.Execute(*this);
 
 	vkCmdResolveImage(GetVulkanHandle(), source->GetVulkanHandle(), sourceLayout, destination->GetVulkanHandle(), destinationLayout, regionCount, regions);
-
-	// TODO - Post copy barriers? And pre-copy for that matter as well?
 }
 
 // TODO - Deprecate
@@ -2023,12 +1958,6 @@ void VulkanGpuCommandBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags source
 	barrier.size = VK_WHOLE_SIZE;
 
 	vkCmdPipelineBarrier(GetVulkanHandle(), sourceStage, destinationStage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
-}
-
-// TODO - Deprecate
-void VulkanGpuCommandBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags sourceAccessFlags, VkAccessFlags destinationAccessFlags)
-{
-	MemoryBarrier(buffer, sourceAccessFlags, destinationAccessFlags, VulkanUtility::GetPipelineStageFlags(sourceAccessFlags), VulkanUtility::GetPipelineStageFlags(destinationAccessFlags));
 }
 
 VkImageLayout VulkanGpuCommandBuffer::GetCurrentLayout(VulkanImage* image, const VkImageSubresourceRange& range, bool inRenderPass)
@@ -2163,17 +2092,6 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 	}
 
 	barrierHelper.Execute(*this);
-}
-
-void VulkanGpuCommandBuffer::RegisterImageTransfer(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, GpuAccessFlags access)
-{
-	// External code must end the render pass before attempting transfer operations
-	B3D_ASSERT(!IsInRenderPass());
-
-	VulkanBarrierHelper barrierHelper(&mResourceTracker);
-
-	B3D_ASSERT(layout != VK_IMAGE_LAYOUT_UNDEFINED);
-	mResourceTracker.TrackImageUsage(image, range, ImageUseFlagBits::Transfer, layout, layout, GpuResourceUseFlag::Transfer, access, barrierHelper);
 }
 
 void VulkanGpuCommandBuffer::NotifyRenderTargetModified()

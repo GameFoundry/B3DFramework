@@ -39,6 +39,19 @@ namespace b3d::render
 	class VulkanBarrierHelper
 	{
 	public:
+
+		/** Information needed to update hazard tracking after barrier execution. */
+		struct BarrierTrackingInfo
+		{
+			VulkanBuffer* Buffer = nullptr;
+			VulkanImage* Image = nullptr;
+			VkImageSubresourceRange ImageSubresourceRange{};
+			GpuAccessFlags SourceAccess = GpuAccessFlag::None;
+			VulkanAccessStageFlags SourceAccessStages = VulkanAccessStageFlag::None;
+			GpuAccessFlags DestinationAccess = GpuAccessFlag::None;
+			VulkanAccessStageFlags DestinationAccessStages = VulkanAccessStageFlag::None;
+		};
+
 		/**
 		 * Constructs a barrier helper associated with the provided command buffer.
 		 *
@@ -55,8 +68,9 @@ namespace b3d::render
 		 * @param sourceAccess			Type of access (read/write) before the barrier.
 		 * @param destinationUsage		How the buffer will be used after the barrier.
 		 * @param destinationAccess		Type of access (read/write) after the barrier.
+		 * @return						Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
 		 */
-		void AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
+		const BarrierTrackingInfo* AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
 
 		/**
 		 * Adds a memory barrier for a buffer resource. Automatically deduces source usage/access from current tracked state.
@@ -64,8 +78,9 @@ namespace b3d::render
 		 * @param buffer				Buffer to add barrier for.
 		 * @param destinationUsage		How the buffer will be used after the barrier.
 		 * @param destinationAccess		Type of access (read/write) after the barrier.
+		 * @return						Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
 		 */
-		void AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
+		const BarrierTrackingInfo* AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
 
 		/**
 		 * Adds a memory barrier for a buffer resource. Automatically deduces source usage/access from provided tracked state.
@@ -74,22 +89,24 @@ namespace b3d::render
 		 * @param bufferTrackingState	Buffer tracking information as retrieved from VulkanResourceTracker.
 		 * @param destinationUsage		How the buffer will be used after the barrier.
 		 * @param destinationAccess		Type of access (read/write) after the barrier.
+		 * @return						Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
 		 */
-		void AddBufferBarrier(VulkanBuffer* buffer, const VulkanResourceTracker::BufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
+		const BarrierTrackingInfo* AddBufferBarrier(VulkanBuffer* buffer, const VulkanResourceTracker::BufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
 
 		/**
 		 * Adds a memory barrier for an image resource.
 		 *
-		 * @param image					Image to add barrier for.
-		 * @param subresourceRange		Subresource range of the image to barrier.
-		 * @param sourceUsage			How the image was used before the barrier.
+		 * @param image						Image to add barrier for.
+		 * @param subresourceRange			Subresource range of the image to barrier.
+		 * @param sourceUsage				How the image was used before the barrier.
 		 * @param sourceAccessFlags			Type of access (read/write) before the barrier.
-		 * @param destinationUsage		How the image will be used after the barrier.
-		 * @param destinationAccessFlags		Type of access (read/write) after the barrier.
-		 * @param oldLayout				Current layout of the image before the barrier.
-		 * @param newLayout				Layout the image will be transitioned to after the barrier.
+		 * @param destinationUsage			How the image will be used after the barrier.
+		 * @param destinationAccessFlags	Type of access (read/write) after the barrier.
+		 * @param oldLayout					Current layout of the image before the barrier.
+		 * @param newLayout					Layout the image will be transitioned to after the barrier.
+		 * @return							Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
 		 */
-		void AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccessFlags, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout);
+		const BarrierTrackingInfo* AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccessFlags, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout);
 
 		/**
 		 * Adds a memory barrier for an image resource. Automatically deduces source usage/access and layout from current tracked state.
@@ -99,19 +116,21 @@ namespace b3d::render
 		 * @param destinationUsage		How the image will be used after the barrier.
 		 * @param destinationAccess		Type of access (read/write) after the barrier.
 		 * @param newLayout				Layout the image will be transitioned to after the barrier.
+		 * @return						Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
 		 */
-		void AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout newLayout);
+		const BarrierTrackingInfo* AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout newLayout);
 
 		/**
 		 * Adds a memory barrier for an existing subresource of an image resource. Automatically deduces source usage/access and layout from provided tracked state.
 		 *
-		 * @param image								Image to add barrier for.
-		 * @param subresourceTrackingState			Subresource tracking information as retrieved from VulkanResourceTracker.
-		 * @param destinationUsage					How the image will be used after the barrier.
-		 * @param destinationAccess					Type of access (read/write) after the barrier.
-		 * @param newLayout							Layout the image will be transitioned to after the barrier.
+		 * @param image							Image to add barrier for.
+		 * @param subresourceTrackingState		Subresource tracking information as retrieved from VulkanResourceTracker.
+		 * @param destinationUsage				How the image will be used after the barrier.
+		 * @param destinationAccess				Type of access (read/write) after the barrier.
+		 * @param newLayout						Layout the image will be transitioned to after the barrier.
+		 * @return								Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
 		 */
-		void AddSubresourceBarrier(VulkanImage* image, const VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout newLayout);
+		const BarrierTrackingInfo* AddSubresourceBarrier(VulkanImage* image, const VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout newLayout);
 
 		/**
 		 * Executes all accumulated barriers by issuing a pipeline barrier command.
@@ -136,23 +155,10 @@ namespace b3d::render
 
 	private:
 		/** Low-level overload of AddImageBarrier that uses VulkanAccessStageFlags directly. */
-		void AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout);
+		const BarrierTrackingInfo* AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout);
 
-		/** Low-level overload of AddBufferBarrier that uses VulkanAccessStageFlags  directly. */
-		void AddBufferBarrier(VulkanBuffer* buffer, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags);
-#if B3D_HAZARD_TRACKING
-		/** Information needed to update hazard tracking after barrier execution. */
-		struct BarrierTrackingInfo
-		{
-			VulkanBuffer* Buffer = nullptr;
-			VulkanImage* Image = nullptr;
-			VkImageSubresourceRange ImageSubresourceRange{};
-			GpuAccessFlags SourceAccess = GpuAccessFlag::None;
-			VulkanAccessStageFlags SourceAccessStages = VulkanAccessStageFlag::None;
-			GpuAccessFlags DestinationAccess = GpuAccessFlag::None;
-			VulkanAccessStageFlags DestinationAccessStages = VulkanAccessStageFlag::None;
-		};
-#endif
+		/** Low-level overload of AddBufferBarrier that uses VulkanAccessStageFlags directly. */
+		const BarrierTrackingInfo* AddBufferBarrier(VulkanBuffer* buffer, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags);
 
 		/** Information needed to update layout after barrier execution. */
 		struct LayoutTrackingInfo
@@ -176,9 +182,7 @@ namespace b3d::render
 		FrameVector<LayoutTrackingInfo> mImageLayoutTracking;
 		bool mHasLayoutTransition = false;
 
-#if B3D_HAZARD_TRACKING
 		FrameVector<BarrierTrackingInfo> mBarrierTracking;
-#endif
 	};
 
 	/** @} */

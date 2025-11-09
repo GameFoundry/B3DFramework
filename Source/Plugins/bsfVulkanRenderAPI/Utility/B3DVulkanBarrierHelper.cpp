@@ -13,40 +13,39 @@ VulkanBarrierHelper::VulkanBarrierHelper(VulkanResourceTracker* resourceTracker)
 {
 }
 
-void VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
 {
 	if(buffer == nullptr)
-		return;
+		return nullptr;
 
 	const VulkanAccessStageFlags sourceAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(sourceUsage);
 	const VulkanAccessStageFlags destinationAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(destinationUsage);
 
-	AddBufferBarrier(buffer, sourceAccessStageFlags, sourceAccess, destinationAccessStageFlags, destinationAccess);
+	return AddBufferBarrier(buffer, sourceAccessStageFlags, sourceAccess, destinationAccessStageFlags, destinationAccess);
 }
 
-void VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
 {
 	if(buffer == nullptr)
-		return;
+		return nullptr;
 
 	const VulkanResourceTracker::BufferTrackingState* bufferTrackingState = mResourceTracker->FindBufferTrackingState(buffer);
 	if(bufferTrackingState == nullptr)
-		return;
+		return nullptr;
 
-	AddBufferBarrier(buffer, *bufferTrackingState, destinationUsage, destinationAccess);
+	return AddBufferBarrier(buffer, *bufferTrackingState, destinationUsage, destinationAccess);
 }
 
-void VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, const VulkanResourceTracker::BufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, const VulkanResourceTracker::BufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
 {
 	if(buffer == nullptr)
-		return;
+		return nullptr;
 
 	const VulkanAccessStageFlags destinationAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(destinationUsage);
 
 	VulkanAccessStageFlags sourceAccessStageFlags;
 	GpuAccessFlags sourceAccessFlags;
 
-#if B3D_HAZARD_TRACKING
 	// WAW or RAW hazard
 	const VulkanAccessStageFlags writeAccessStageFlags = bufferTrackingState.WriteHazardTracking->WriteAccessStages.GetUnsafeAccessStages(destinationAccessStageFlags);
 	if(destinationAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
@@ -66,18 +65,17 @@ void VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, const VulkanRes
 		if(readAccessStageFlags != VulkanAccessStageFlag::None)
 			sourceAccessFlags |= GpuAccessFlag::Read;
 	}
-#endif
 
 	if(sourceAccessFlags == GpuAccessFlag::None)
-		return;
+		return nullptr;
 
-	AddBufferBarrier(buffer, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess);
+	return AddBufferBarrier(buffer, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess);
 }
 
-void VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags)
 {
 	if(buffer == nullptr)
-		return;
+		return nullptr;
 
 	VkPipelineStageFlags sourceStageMask, destinationStageMask;
 	VkAccessFlags sourceAccessMask, destinationAccessMask;
@@ -112,8 +110,6 @@ void VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, VulkanAccessSta
 		found->dstAccessMask |= destinationAccessMask;
 	}
 
-
-#if B3D_HAZARD_TRACKING
 	BarrierTrackingInfo trackingInfo;
 	trackingInfo.Buffer = buffer;
 	trackingInfo.SourceAccess = sourceAccessFlags;
@@ -121,25 +117,26 @@ void VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, VulkanAccessSta
 	trackingInfo.DestinationAccess = destinationAccessFlags;
 	trackingInfo.DestinationAccessStages = destinationAccessStageFlags;
 	mBarrierTracking.push_back(trackingInfo);
-#endif
+
+	return &mBarrierTracking.back();
 }
 
-void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccessFlags, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccessFlags, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
 	const VulkanAccessStageFlags sourceAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(sourceUsage);
 	const VulkanAccessStageFlags destinationAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(destinationUsage);
 
-	AddImageBarrier(image, subresourceRange, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccessFlags, oldLayout, newLayout);
+	return AddImageBarrier(image, subresourceRange, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccessFlags, oldLayout, newLayout);
 }
 
-void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout newLayout)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout newLayout)
 {
 	if(image == nullptr)
-		return;
+		return nullptr;
 
 	const VulkanResourceTracker::ImageTrackingState* imageTrackingState = mResourceTracker->FindImageTrackingState(image);
 	if(imageTrackingState == nullptr)
-		return;
+		return nullptr;
 
 	struct CallbackParameters
 	{
@@ -149,9 +146,10 @@ void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubre
 		GpuResourceUseFlags DestinationUsage;
 		GpuAccessFlags DestinationAccess;
 		VkImageLayout NewLayout;
+		const BarrierTrackingInfo* OutTrackingInfo;
 	};
 
-	CallbackParameters callbackParameters { this, mResourceTracker, image, destinationUsage, destinationAccess, newLayout };
+	CallbackParameters callbackParameters { this, mResourceTracker, image, destinationUsage, destinationAccess, newLayout, nullptr };
 	mResourceTracker->IterateAndCreateOverlappingImageSubresourceTrackingState(image, subresourceRange, [](u32 globalSubresourceIndex, void* userData)
 	{
 		CallbackParameters* const callbackParameters = static_cast<CallbackParameters*>(userData);
@@ -160,21 +158,22 @@ void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubre
 		const VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState = resourceTracker.GetSubresourceTrackingStateAtIndex(globalSubresourceIndex);
 
 		VulkanBarrierHelper& barrierHelper = *callbackParameters->BarrierHelper;
-		barrierHelper.AddSubresourceBarrier(callbackParameters->Image, subresourceTrackingState, callbackParameters->DestinationUsage, callbackParameters->DestinationAccess, callbackParameters->NewLayout);
+		callbackParameters->OutTrackingInfo = barrierHelper.AddSubresourceBarrier(callbackParameters->Image, subresourceTrackingState, callbackParameters->DestinationUsage, callbackParameters->DestinationAccess, callbackParameters->NewLayout);
 	}, &callbackParameters);
+
+	return callbackParameters.OutTrackingInfo;
 }
 
-void VulkanBarrierHelper::AddSubresourceBarrier(VulkanImage* image, const VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout newLayout)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresourceBarrier(VulkanImage* image, const VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout newLayout)
 {
 	if(image == nullptr)
-		return;
+		return nullptr;
 	
 	const VulkanAccessStageFlags destinationAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(destinationUsage);
 
 	VulkanAccessStageFlags sourceAccessStageFlags;
 	GpuAccessFlags sourceAccessFlags;
 
-#if B3D_HAZARD_TRACKING
 	// WAW or RAW hazard
 	const VulkanAccessStageFlags writeAccessStageFlags = subresourceTrackingState.WriteHazardTracking->WriteAccessStages.GetUnsafeAccessStages(destinationAccessStageFlags);
 	if(destinationAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
@@ -194,21 +193,17 @@ void VulkanBarrierHelper::AddSubresourceBarrier(VulkanImage* image, const Vulkan
 		if(readAccessStageFlags != VulkanAccessStageFlag::None)
 			sourceAccessFlags |= GpuAccessFlag::Read;
 	}
-#endif
-
-	// TODO - Execution only barriers?
-	// TODO - Stages need to be provided for layout transitions (again, for execution dependency)
 
 	if(sourceAccessFlags == GpuAccessFlag::None && (subresourceTrackingState.CurrentLayout == newLayout || newLayout == VK_IMAGE_LAYOUT_UNDEFINED))
-		return;
+		return nullptr;
 
-	AddImageBarrier(image, subresourceTrackingState.Range, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess, subresourceTrackingState.CurrentLayout, newLayout);
+	return AddImageBarrier(image, subresourceTrackingState.Range, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess, subresourceTrackingState.CurrentLayout, newLayout);
 }
 
-void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
 	if(image == nullptr)
-		return;
+		return nullptr;
 
 	VkPipelineStageFlags sourceStageMask, destinationStageMask;
 	VkAccessFlags sourceAccessMask, destinationAccessMask;
@@ -272,12 +267,11 @@ void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubre
 			foundTracking->NewLayout = newLayout;
 		}
 
-		// TODO - Use more specific stages for layout transitions?
+		// TODO - Use more specific stages for layout transitions? Make sure layout transitions are only doing an execution barrier if memory barrier isn't needed
 		mCombinedSourceStages |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 		mHasLayoutTransition = true;
 	}
 
-#if B3D_HAZARD_TRACKING
 	BarrierTrackingInfo barrierTrackingInfo;
 	barrierTrackingInfo.Image = image;
 	barrierTrackingInfo.ImageSubresourceRange = subresourceRange;
@@ -286,7 +280,8 @@ void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubre
 	barrierTrackingInfo.DestinationAccess = destinationAccessFlags;
 	barrierTrackingInfo.DestinationAccessStages = destinationAccessStageFlags;
 	mBarrierTracking.push_back(barrierTrackingInfo);
-#endif
+
+	return &mBarrierTracking.back();
 }
 
 void VulkanBarrierHelper::Execute(VulkanGpuCommandBuffer& commandBuffer)
@@ -333,10 +328,11 @@ void VulkanBarrierHelper::Execute(VulkanGpuCommandBuffer& commandBuffer)
 			trackingInfo.NewLayout);
 	}
 
-#if B3D_HAZARD_TRACKING
 	// Update hazard tracking for all barriers
 	for(const auto& trackingInfo : mBarrierTracking)
 	{
+		// TODO - SourceAccess/DestinationAccess should probably be the combined source/destination access, as the only thing that
+		// matters if memory barrier was executed or not. 
 		if(trackingInfo.Buffer != nullptr)
 		{
 			mResourceTracker->UpdateWriteHazardTrackingAfterBarrier(
@@ -357,7 +353,6 @@ void VulkanBarrierHelper::Execute(VulkanGpuCommandBuffer& commandBuffer)
 				trackingInfo.DestinationAccess);
 		}
 	}
-#endif
 
 	Clear();
 }
@@ -374,9 +369,7 @@ void VulkanBarrierHelper::Clear()
 	mImageLayoutTracking.clear();
 	mHasLayoutTransition = false;
 
-#if B3D_HAZARD_TRACKING
 	mBarrierTracking.clear();
-#endif
 }
 
 bool VulkanBarrierHelper::HasBarriers() const
