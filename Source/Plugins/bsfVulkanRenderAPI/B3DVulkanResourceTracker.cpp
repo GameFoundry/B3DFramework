@@ -985,7 +985,7 @@ VkImageLayout VulkanResourceTracker::GetCurrentSubresourceLayout(VulkanImage* im
 	const u32 face = range.baseArrayLayer;
 	const u32 mip = range.baseMipLevel;
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	const ImageTrackingState* const imageTrackingState = FindImageTrackingState(image);
 	if(imageTrackingState == nullptr)
 	{

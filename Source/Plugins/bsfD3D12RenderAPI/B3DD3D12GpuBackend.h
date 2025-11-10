@@ -39,7 +39,7 @@ namespace b3d
 		TInlineArray<SPtr<render::D3D12GpuDevice>, 2> mDevices;
 		SPtr<render::D3D12GpuDevice> mPrimaryDevice;
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 		ComPtr<ID3D12Debug> mDebugController;
 #endif
 	};

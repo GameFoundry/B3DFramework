@@ -26,7 +26,7 @@ namespace b3d
 		{
 			QueuedCommand(Function<void()>&& callback = nullptr, const char* debugName = nullptr, const String& debugExtraInformation = StringUtil::kBlank)
 				: Callback(std::move(callback))
-#if B3D_BUILD_TYPE != B3D_BUILD_TYPE_SHIPPING && B3D_BUILD_TYPE != B3D_BUILD_TYPE_PROFILING
+#if !B3D_BUILD_TYPE_SHIPPING && !B3D_BUILD_TYPE_PROFILING
 				, DebugName(debugName)
 				, DebugExtraInformation(debugExtraInformation)
 #endif
@@ -34,7 +34,7 @@ namespace b3d
 
 			Function<void()> Callback; /**< Callback associated with the command. */
 
-#if B3D_BUILD_TYPE != B3D_BUILD_TYPE_SHIPPING && B3D_BUILD_TYPE != B3D_BUILD_TYPE_PROFILING
+#if !B3D_BUILD_TYPE_SHIPPING && !B3D_BUILD_TYPE_PROFILING
 			const char* DebugName; /**< Name of the command, for easier debugging. */
 			const String DebugExtraInformation; /**< Additional information for debugging. */
 #endif

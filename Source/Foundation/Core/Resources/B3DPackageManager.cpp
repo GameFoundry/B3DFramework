@@ -10,14 +10,14 @@ using namespace b3d;
 
 PackageReadLock::PackageReadLock(struct RuntimePackageInformation& runtimePackageInformation, Mutex& lockMutex, const char* lockReason)
 	: RuntimePackageInformation(runtimePackageInformation), LockMutex(lockMutex)
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	, LockReason(lockReason)
 #endif
 {
 	// NOTE: Mutex must be locked at this point
 	runtimePackageInformation.AcquiredReadLockCount++;
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	runtimePackageInformation.ReadLockReasons.Add(lockReason);
 #endif
 }
@@ -31,7 +31,7 @@ PackageReadLock::~PackageReadLock()
 		{
 			RuntimePackageInformation.AcquiredReadLockCount--;
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 			auto found = std::find(RuntimePackageInformation.ReadLockReasons.begin(), RuntimePackageInformation.ReadLockReasons.end(), LockReason);
 			if(found != RuntimePackageInformation.ReadLockReasons.end())
 				RuntimePackageInformation.ReadLockReasons.erase(found);
@@ -45,7 +45,7 @@ PackageWriteLock::PackageWriteLock(struct RuntimePackageInformation* runtimePack
 	: RuntimePackageInformation(runtimePackageInformation), LockMutex(lockMutex)
 {
 	// NOTE: Mutex must be locked at this point
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	runtimePackageInformation->WriteLockReason = lockReason;
 #endif
 }
@@ -62,7 +62,7 @@ PackageWriteLock::~PackageWriteLock()
 
 	RuntimePackageInformation->AcquiredWriteLock = false;
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	RuntimePackageInformation->WriteLockReason = nullptr;
 #endif
 
@@ -546,7 +546,7 @@ void PackageManager::LoadPackageResourceInformation(Package& package, const Path
 
 			const Path& virtualResourcePath = Path::Combine(virtualPathPrefix, resourceMetaData->Path);
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 			if(auto foundVirtualPath = mVirtualPathToResourcePackagePath.find(virtualResourcePath); foundVirtualPath != mVirtualPathToResourcePackagePath.end())
 			{
 				const Path existingPhysicalPath = Path::Combine(foundVirtualPath->second.PhysicalPackagePath, foundVirtualPath->second.ResourcePathWithinPackage);

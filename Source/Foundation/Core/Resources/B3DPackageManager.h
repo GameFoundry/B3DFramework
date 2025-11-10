@@ -24,7 +24,7 @@ namespace b3d
 		u32 AcquiredReadLockCount = 0;
 		Signal LoadSignal;
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 		TInlineArray<const char*, 2> ReadLockReasons;
 		const char* WriteLockReason = nullptr;
 #endif
@@ -99,7 +99,7 @@ namespace b3d
 		RuntimePackageInformation& RuntimePackageInformation;
 		Mutex& LockMutex;
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 		const char* LockReason;
 #endif
 	};

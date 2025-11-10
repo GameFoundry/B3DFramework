@@ -37,7 +37,7 @@ void D3D12GpuBackend::OnStartUp()
 {
 	HRESULT hr;
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	// Enable the debug layer
 	if (kEnableD3D12DebugLayer)
 	{
@@ -67,7 +67,7 @@ void D3D12GpuBackend::OnStartUp()
 
 	// Create DXGI factory
 	UINT dxgiFactoryFlags = 0;
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	if (kEnableD3D12DebugLayer)
 		dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
 #endif
@@ -177,7 +177,7 @@ void D3D12GpuBackend::OnShutDown()
 	mDXGIAdapter.Reset();
 	mDXGIFactory.Reset();
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	// Report live objects if debug layer is enabled
 	if (mDebugController)
 	{

@@ -33,7 +33,7 @@ namespace b3d
 			/** Sets a name of the resource, primarily used for debugging. */
 			void SetDebugName(const StringView& name)
 			{
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 				mDebugName = name;
 #endif
 			}

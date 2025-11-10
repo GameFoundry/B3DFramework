@@ -8,7 +8,7 @@
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "Utility/B3DDenseMap.h"
 
-#define B3D_VERIFY_BARRIERS B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT // If enabled, ensures that memory barriers are properly issued
+#define B3D_VERIFY_BARRIERS B3D_BUILD_TYPE_DEVELOPMENT // If enabled, ensures that memory barriers are properly issued
 
 namespace b3d::render
 {

@@ -631,7 +631,7 @@ void D3D12GpuCommandBuffer::ResetQueries(const SPtr<GpuQueryPool>& queryPool)
 
 void D3D12GpuCommandBuffer::BeginLabel(const StringView& name)
 {
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	// Use PIX markers for debugging
 	std::wstring wideName(name.begin(), name.end());
 	PIXBeginEvent(mCommandList.Get(), 0, wideName.c_str());
@@ -640,14 +640,14 @@ void D3D12GpuCommandBuffer::BeginLabel(const StringView& name)
 
 void D3D12GpuCommandBuffer::EndLabel()
 {
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	PIXEndEvent(mCommandList.Get());
 #endif
 }
 
 void D3D12GpuCommandBuffer::InsertLabel(const StringView& name)
 {
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	std::wstring wideName(name.begin(), name.end());
 	PIXSetMarker(mCommandList.Get(), 0, wideName.c_str());
 #endif

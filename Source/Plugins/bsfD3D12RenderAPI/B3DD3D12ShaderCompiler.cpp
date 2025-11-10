@@ -53,7 +53,7 @@ bool D3D12ShaderCompiler::CompileShader(const GpuProgramCreateInformation& desc,
 
 	// Set up compilation flags
 	UINT compileFlags = 0;
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	compileFlags |= D3DCOMPILE_DEBUG;
 	compileFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 #else

@@ -328,7 +328,7 @@ u32 GpuPipelineParameterLayout::GetArraySize(GpuParameterType type, u32 sequenti
 
 u32 GpuPipelineParameterLayout::GetDynamicOffsetIndex(u32 set, u32 slot, u32 arrayIndex) const
 {
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	if(set >= mSets.size())
 	{
 		B3D_LOG(Error, RenderBackend, "Cannot retrieve dynamic offset index. Set index out of range: Valid range: [0, {0}). Requested: {1}.", mSets.size(), set);

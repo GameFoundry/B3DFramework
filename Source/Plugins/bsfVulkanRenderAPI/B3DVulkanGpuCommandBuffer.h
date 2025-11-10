@@ -525,7 +525,7 @@ namespace b3d
 			SPtr<RenderTarget> mRenderTarget;
 			bool mRenderTargetModified = false;
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#if B3D_BUILD_TYPE_DEVELOPMENT
 			Vector<QueryInformation> mOpenQueries; // Only used for validation
 #endif
 		};
