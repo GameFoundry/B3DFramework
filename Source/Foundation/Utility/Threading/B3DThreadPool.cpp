@@ -8,11 +8,11 @@
 #if B3D_PLATFORM_WIN32
 #	include "windows.h"
 
-#	if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#	if B3D_COMPILER_MSVC
 // disable: nonstandard extension used: 'X' uses SEH and 'Y' has destructor
 // We don't care about this as any exception is meant to crash the program.
 #		pragma warning(disable : 4509)
-#	endif // B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#	endif // B3D_COMPILER_MSVC
 
 #endif // B3D_PLATFORM_WIN32
 

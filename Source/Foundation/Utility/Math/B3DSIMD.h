@@ -14,13 +14,13 @@
 #define SIMDPP_ARCH_ARM_NEON 1
 #endif
 
-#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#if B3D_COMPILER_MSVC
 #	pragma warning(disable : 4244)
 #endif
 
 #include "ThirdParty/simdpp/simd.h"
 
-#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#if B3D_COMPILER_MSVC
 #	pragma warning(default : 4244)
 #endif
 

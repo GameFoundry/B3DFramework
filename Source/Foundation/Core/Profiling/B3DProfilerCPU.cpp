@@ -5,15 +5,15 @@
 #include "Platform/B3DPlatform.h"
 #include <chrono>
 
-#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#if B3D_COMPILER_MSVC
 #	include <intrin.h>
 #endif
 
-#if B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
+#if B3D_COMPILER_GCC || B3D_COMPILER_CLANG
 #	include "B3DCpuid.h"
 #endif
 
-#if B3D_COMPILER == B3D_COMPILER_ID_CLANG
+#if B3D_COMPILER_CLANG
 #	if B3D_PLATFORM_WIN32
 #		include "intrin.h"
 #	else
@@ -75,7 +75,7 @@ void ProfilerCPU::TimerPrecise::Reset()
 
 inline u64 ProfilerCPU::TimerPrecise::GetNumCycles()
 {
-#if B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
+#if B3D_COMPILER_GCC || B3D_COMPILER_CLANG
 	unsigned int a = 0;
 	unsigned int b[4];
 	__get_cpuid(a, &b[0], &b[1], &b[2], &b[3]);
@@ -91,7 +91,7 @@ inline u64 ProfilerCPU::TimerPrecise::GetNumCycles()
 					 : "=A"(x));
 	return x;
 #	endif
-#elif B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#elif B3D_COMPILER_MSVC
 	int a[4];
 	int b = 0;
 	__cpuid(a, b);

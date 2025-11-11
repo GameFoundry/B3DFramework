@@ -6,7 +6,7 @@
 
 // DLL export
 #if B3D_PLATFORM_WIN32 // Windows
-#	if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#	if B3D_COMPILER_MSVC
 #		if defined(BS_SCR_BE_STATIC_LIB) || defined(B3D_CODEGEN)
 #			define B3D_SCRIPT_INTEROP_EXPORT
 #		else

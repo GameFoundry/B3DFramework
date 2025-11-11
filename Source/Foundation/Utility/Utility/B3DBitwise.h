@@ -5,7 +5,7 @@
 #include "B3DUtilityPrerequisites.h"
 #include "Math/B3DMath.h"
 
-#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#if B3D_COMPILER_MSVC
 #	include <intrin.h>
 #endif
 
@@ -131,18 +131,18 @@ namespace b3d
 
 			return res;
 		}
-#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#if B3D_COMPILER_MSVC
 #	pragma intrinsic(_BitScanReverse, _BitScanForward)
 #endif
 
 		/** Finds the most-significant non-zero bit in the provided value and returns the index of that bit. */
 		static u32 MostSignificantBit(u32 val)
 		{
-#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#if B3D_COMPILER_MSVC
 			unsigned long index;
 			_BitScanReverse(&index, val);
 			return index;
-#elif B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
+#elif B3D_COMPILER_GCC || B3D_COMPILER_CLANG
 			return 31 - __builtin_clz(val);
 #else
 			static_assert(false, "Not implemented");
@@ -152,11 +152,11 @@ namespace b3d
 		/** Finds the least-significant non-zero bit in the provided value and returns the index of that bit. */
 		static u32 LeastSignificantBit(u32 val)
 		{
-#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#if B3D_COMPILER_MSVC
 			unsigned long index;
 			_BitScanForward(&index, val);
 			return index;
-#elif B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
+#elif B3D_COMPILER_GCC || B3D_COMPILER_CLANG
 			return __builtin_ctz(val);
 #else
 			static_assert(false, "Not implemented");
@@ -166,7 +166,7 @@ namespace b3d
 		/** Finds the most-significant non-zero bit in the provided value and returns the index of that bit. */
 		static u32 MostSignificantBit(u64 val)
 		{
-#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#if B3D_COMPILER_MSVC
 #	if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64
 			unsigned long index;
 			_BitScanReverse64(&index, val);
@@ -183,7 +183,7 @@ namespace b3d
 				return index;
 			}
 #	endif // B3D_ARCHITECTURE
-#elif B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
+#elif B3D_COMPILER_GCC || B3D_COMPILER_CLANG
 			return 31 - __builtin_clzll(val);
 #else // B3D_COMPILER
 			static_assert(false, "Not implemented");
@@ -193,7 +193,7 @@ namespace b3d
 		/** Finds the least-significant non-zero bit in the provided value and returns the index of that bit. */
 		static u32 LeastSignificantBit(u64 val)
 		{
-#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#if B3D_COMPILER_MSVC
 #	if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64
 			unsigned long index;
 			_BitScanForward64(&index, val);
@@ -210,7 +210,7 @@ namespace b3d
 				return index + 32;
 			}
 #	endif // B3D_ARCHITECTURE
-#elif B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
+#elif B3D_COMPILER_GCC || B3D_COMPILER_CLANG
 			return __builtin_ctzll(val);
 #else // B3D_COMPILER
 			static_assert(false, "Not implemented");

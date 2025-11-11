@@ -142,7 +142,7 @@
 // Platform-specific stuff
 #include "Prerequisites/B3DPlatformDefines.h"
 
-#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#if B3D_COMPILER_MSVC
 
 // TODO - This is not deactivated anywhere, therefore it applies to any file that includes this header.
 //      - Right now I don't have an easier way to apply these warnings globally so I'm keeping it this way.

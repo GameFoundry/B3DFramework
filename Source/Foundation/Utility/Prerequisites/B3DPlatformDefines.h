@@ -115,6 +115,12 @@
 #define B3D_PLATFORM_IOS (B3D_PLATFORM == B3D_PLATFORM_ID_IOS)
 #define B3D_PLATFORM_ANDROID (B3D_PLATFORM == B3D_PLATFORM_ID_ANDROID)
 
+// Boolean convenience macros for compilers
+#define B3D_COMPILER_MSVC (B3D_COMPILER == B3D_COMPILER_ID_MSVC)
+#define B3D_COMPILER_GCC (B3D_COMPILER == B3D_COMPILER_ID_GCC)
+#define B3D_COMPILER_INTEL (B3D_COMPILER == B3D_COMPILER_ID_INTEL)
+#define B3D_COMPILER_CLANG (B3D_COMPILER == B3D_COMPILER_ID_CLANG)
+
 // Find the architecture type
 #if defined(__x86_64__) || defined(_M_X64)
 #	define B3D_ARCHITECTURE B3D_ARCHITECTURE_ID_X86_64
@@ -126,7 +132,7 @@
 
 // DLL export
 #if B3D_PLATFORM_WIN32 // Windows
-#	if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#	if B3D_COMPILER_MSVC
 #		if defined(B3D_STATIC_LIB)
 #			define B3D_EXPORT
 #		else
@@ -155,7 +161,7 @@
 
 // DLL export for plugins
 #if B3D_PLATFORM_WIN32 // Windows
-#	if B3D_COMPILER == B3D_COMPILER_ID_MSVC
+#	if B3D_COMPILER_MSVC
 #		define B3D_PLUGIN_EXPORT __declspec(dllexport)
 #	else
 #		define B3D_PLUGIN_EXPORT __attribute__((dllexport))
@@ -179,7 +185,7 @@
 #		define B3D_DEBUG 0
 #	endif
 
-#	if B3D_COMPILER == B3D_COMPILER_ID_INTEL
+#	if B3D_COMPILER_INTEL
 #		define B3D_THREADLOCAL __declspec(thread)
 #	endif
 
@@ -195,7 +201,7 @@
 #		define B3D_DEBUG 0
 #	endif
 
-#	if B3D_COMPILER == B3D_COMPILER_ID_INTEL
+#	if B3D_COMPILER_INTEL
 #		define B3D_THREADLOCAL __thread
 #	endif
 
@@ -216,7 +222,7 @@
 #		define B3D_DEBUG 0
 #	endif
 
-#	if B3D_COMPILER == B3D_COMPILER_ID_INTEL
+#	if B3D_COMPILER_INTEL
 #		define B3D_THREADLOCAL __thread
 #	endif
 
