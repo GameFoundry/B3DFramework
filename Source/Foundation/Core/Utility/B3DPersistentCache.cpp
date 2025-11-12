@@ -221,7 +221,7 @@ void PersistentCache::RunEviction(u64 targetSizeInMb)
 		u64 LastUsedTimestamp;
 	};
 
-	const FrameScope frameScope;
+	const FrameAllocatorScope frameScope;
 	FrameVector<SortedCacheEntry> sortedEntries;
 
 	{
@@ -266,7 +266,7 @@ void PersistentCache::RunEviction(u64 targetSizeInMb)
 
 void PersistentCache::WriteDirtyMetaData()
 {
-	const FrameScope frameScope;
+	const FrameAllocatorScope frameScope;
 	FrameVector<Path> entriesToUpdate;
 
 	// Get a list of dirty entries

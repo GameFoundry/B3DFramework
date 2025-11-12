@@ -376,7 +376,7 @@ Vector<ShaderVariationParameters> BSLCompiler::CreateShaderVariations(const BSLP
 
 	Vector<ShaderVariationParameters> variations;
 
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameVector<const BSLParsedVariationData*> variationsToProcess;
 	for(u32 variationIndex = 0; variationIndex < (u32)shaderMetaData.Variations.size(); variationIndex++)
 		variationsToProcess.push_back(&shaderMetaData.Variations[variationIndex]);

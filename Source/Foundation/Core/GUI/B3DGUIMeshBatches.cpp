@@ -659,7 +659,7 @@ void GUIMeshBatches::MarkBoundsDirty(const BatchedGUIElement& element, u32 batch
 
 void GUIMeshBatches::RebuildMesh(Batch& batch)
 {
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 
 	batch.IndexCount = 0;
 	batch.VertexCount = 0;

@@ -6,273 +6,413 @@
 
 using namespace b3d;
 
-u8* FrameAllocator::MemBlock::Alloc(u32 amount)
+u8* FrameAllocator::MemoryBlock::Alloc(u32 allocationSize)
 {
-	u8* freePtr = &MData[MFreePtr];
-	MFreePtr += amount;
+	u8* freePointer = &Data[FreePointer];
+	FreePointer += allocationSize;
 
-	return freePtr;
+	return freePointer;
 }
 
-void FrameAllocator::MemBlock::Clear()
+void FrameAllocator::MemoryBlock::Clear()
 {
-	MFreePtr = 0;
+	FreePointer = 0;
 }
 
 FrameAllocator::FrameAllocator(u32 blockSize)
-	: mBlockSize(blockSize), mFreeBlock(nullptr), mNextBlockIdx(0), mTotalAllocBytes(0), mLastFrame(nullptr)
+	: mBlockSize(blockSize), mFreeBlock(nullptr), mNextBlockIndex(0), mTotalAllocatedBytes(0), mLastFrame(nullptr)
+	, mCurrentFrameDepth(0)
 {
+#if B3D_DEBUG
+	mOwnerThread = ThreadId();
+#endif
 }
 
 FrameAllocator::~FrameAllocator()
 {
 	for(auto& block : mBlocks)
-		DeallocBlock(block);
+		DeallocateBlock(block);
 }
 
-u8* FrameAllocator::Alloc(u32 amount)
+#if B3D_DEBUG
+void FrameAllocator::WriteDebugHeader(u8* data, u32 allocationSize, u32 frameDepth)
+{
+	u32* sizePointer = reinterpret_cast<u32*>(data);
+	u32* depthPointer = reinterpret_cast<u32*>(data + sizeof(u32));
+
+	*sizePointer = allocationSize;
+	*depthPointer = frameDepth;
+}
+
+void FrameAllocator::ReadDebugHeader(const u8* data, u32& outSize, u32& outDepth)
+{
+	const u32* sizePointer = reinterpret_cast<const u32*>(data);
+	const u32* depthPointer = reinterpret_cast<const u32*>(data + sizeof(u32));
+
+	outSize = *sizePointer;
+	outDepth = *depthPointer;
+}
+#endif
+
+u8* FrameAllocator::Allocate(u32 allocationSize)
 {
 #if B3D_DEBUG
-	amount += sizeof(u32);
+	// Validate thread ownership
+	B3D_ASSERT(mOwnerThread == ThreadId() && "FrameAllocator accessed from different thread than owner");
+
+	// Expand allocation to include debug header: [u32 size][u32 depth]
+	allocationSize += kDebugHeaderSize;
 #endif
-	u32 freeMem = 0;
+
+	// Check if current block has enough free memory
+	u32 freeMemory = 0;
 	if(mFreeBlock != nullptr)
-		freeMem = mFreeBlock->MSize - mFreeBlock->MFreePtr;
+		freeMemory = mFreeBlock->Size - mFreeBlock->FreePointer;
 
-	if(amount > freeMem)
-		AllocBlock(amount);
+	// Allocate new block if current block doesn't have enough space
+	if(allocationSize > freeMemory)
+		AllocateBlock(allocationSize);
 
-	u8* data = mFreeBlock->Alloc(amount);
+	// Perform bump pointer allocation within the block
+	u8* data = mFreeBlock->Alloc(allocationSize);
 
 #if B3D_DEBUG
-	mTotalAllocBytes += amount;
+	// Update total allocation tracking
+	mTotalAllocatedBytes.fetch_add(allocationSize, std::memory_order_relaxed);
 
-	u32* storedSize = reinterpret_cast<u32*>(data);
-	*storedSize = amount;
+	// Write debug header with size and current frame depth
+	WriteDebugHeader(data, allocationSize, mCurrentFrameDepth);
 
-	return data + sizeof(u32);
+	// Return pointer past the debug header to user
+	return data + kDebugHeaderSize;
 #else
 	return data;
 #endif
 }
 
-u8* FrameAllocator::AllocAligned(u32 amount, u32 alignment)
+u8* FrameAllocator::AllocateAligned(u32 allocationSize, u32 alignment)
 {
 #if B3D_DEBUG
-	amount += sizeof(u32);
+	// Validate thread ownership
+	B3D_ASSERT(mOwnerThread == ThreadId() && "FrameAllocator accessed from different thread than owner");
+
+	// Expand allocation to include debug header
+	allocationSize += kDebugHeaderSize;
 #endif
 
-	u32 freeMem = 0;
-	u32 freePtr = 0;
+	u32 freeMemory = 0;
+	u32 freePointer = 0;
 	if(mFreeBlock != nullptr)
 	{
-		freeMem = mFreeBlock->MSize - mFreeBlock->MFreePtr;
+		freeMemory = mFreeBlock->Size - mFreeBlock->FreePointer;
 
 #if B3D_DEBUG
-		freePtr = mFreeBlock->MFreePtr + sizeof(u32);
+		// In debug builds, account for header when calculating alignment
+		freePointer = mFreeBlock->FreePointer + kDebugHeaderSize;
 #else
-		freePtr = mFreeBlock->MFreePtr;
+		freePointer = mFreeBlock->FreePointer;
 #endif
 	}
 
-	u32 alignOffset = (alignment - (freePtr & (alignment - 1))) & (alignment - 1);
-	if((amount + alignOffset) > freeMem)
+	// Calculate alignment offset using bit manipulation
+	// Formula: Rounds up freePointer to next alignment boundary
+	// Example: freePointer=10, alignment=16 → offset=6 (10+6=16)
+	u32 alignmentOffset = (alignment - (freePointer & (alignment - 1))) & (alignment - 1);
+
+	if((allocationSize + alignmentOffset) > freeMemory)
 	{
-		// New blocks are allocated on a 16 byte boundary, ensure enough space is allocated taking into account
-		// the requested alignment
+		// Need to allocate a new block
+		// New blocks are allocated on a 16-byte boundary (kBlockAlignment)
+		// Calculate worst-case alignment offset for the new block
 
 #if B3D_DEBUG
-		alignOffset = (alignment - (sizeof(u32) & (alignment - 1))) & (alignment - 1);
+		// In debug, header comes first, so align relative to header size
+		alignmentOffset = (alignment - (kDebugHeaderSize & (alignment - 1))) & (alignment - 1);
 #else
-		if(alignment > 16)
-			alignOffset = alignment - 16;
+		// In release, if alignment > 16, we need extra space since blocks are 16-byte aligned
+		if(alignment > kBlockAlignment)
+			alignmentOffset = alignment - kBlockAlignment;
 		else
-			alignOffset = 0;
+			alignmentOffset = 0;
 #endif
 
-		AllocBlock(amount + alignOffset);
+		AllocateBlock(allocationSize + alignmentOffset);
 	}
 
-	amount += alignOffset;
-	u8* data = mFreeBlock->Alloc(amount);
+	// Include alignment offset in total allocation
+	allocationSize += alignmentOffset;
+	u8* data = mFreeBlock->Alloc(allocationSize);
 
 #if B3D_DEBUG
-	mTotalAllocBytes += amount;
+	// Update total allocation tracking
+	mTotalAllocatedBytes.fetch_add(allocationSize, std::memory_order_relaxed);
 
-	u32* storedSize = reinterpret_cast<u32*>(data + alignOffset);
-	*storedSize = amount;
+	// Write debug header at the aligned position (after alignment offset)
+	WriteDebugHeader(data + alignmentOffset, allocationSize, mCurrentFrameDepth);
 
-	return data + sizeof(u32) + alignOffset;
+	// Return pointer past both alignment offset and debug header
+	return data + kDebugHeaderSize + alignmentOffset;
 #else
-	return data + alignOffset;
+	return data + alignmentOffset;
 #endif
 }
 
 void FrameAllocator::Free(u8* data)
 {
-	// Dealloc is only used for debug and can be removed if needed. All the actual deallocation
-	// happens in clear()
+	// Note: Deallocation doesn't actually free memory - all memory is bulk-freed in Clear()
+	// This method only updates debug tracking and validates cross-frame allocation/deallocation
 
 #if B3D_DEBUG
 	if(data)
 	{
-		data -= sizeof(u32);
-		u32* storedSize = reinterpret_cast<u32*>(data);
-		mTotalAllocBytes -= *storedSize;
+		// Step back to the start of the allocation (before debug header)
+		data -= kDebugHeaderSize;
+
+		// Read debug header to get size and frame depth
+		u32 allocationSize;
+		u32 allocationDepth;
+		ReadDebugHeader(data, allocationSize, allocationDepth);
+
+		// Validate that memory is being freed at the same frame depth it was allocated
+		B3D_ASSERT(allocationDepth == mCurrentFrameDepth &&
+			"Memory allocated at one frame depth is being freed at a different depth. "
+			"This violates the frame allocator contract.");
+
+		// Update total allocation tracking
+		mTotalAllocatedBytes.fetch_sub(allocationSize, std::memory_order_relaxed);
 	}
 #endif
 }
 
 void FrameAllocator::MarkFrame()
 {
-	void** framePtr = (void**)Alloc(sizeof(void*));
-	*framePtr = mLastFrame;
-	mLastFrame = framePtr;
+#if B3D_DEBUG
+	// Validate thread ownership
+	B3D_ASSERT(mOwnerThread == ThreadId() && "FrameAllocator accessed from different thread than owner");
+#endif
+
+	// Allocate space for a frame marker (pointer to previous frame marker)
+	// This creates a linked list of frame markers stored within the allocator's own memory
+	void** framePointer = (void**)Allocate(sizeof(void*));
+	*framePointer = mLastFrame;
+	mLastFrame = framePointer;
+
+	// Increment frame depth to track nesting level
+	mCurrentFrameDepth++;
 }
 
 void FrameAllocator::Clear()
 {
+#if B3D_DEBUG
+	// Validate thread ownership
+	B3D_ASSERT(mOwnerThread == ThreadId() && "FrameAllocator accessed from different thread than owner");
+#endif
+
+	// Check if we have a frame marker
+	// If mLastFrame is not null, we're doing a frame-scoped clear (pop to last MarkFrame)
+	// If mLastFrame is null, we're doing a full clear (deallocate everything)
+
 	if(mLastFrame != nullptr)
 	{
-		B3D_ASSERT(mBlocks.size() > 0 && mNextBlockIdx > 0);
+		// Frame marker exists - perform frame-scoped clear
 
+		B3D_ASSERT(mBlocks.size() > 0 && mNextBlockIndex > 0);
+
+		// Decrement frame depth since we're exiting a frame scope. Need to do this before the Free call below.
+		mCurrentFrameDepth--;
+
+		// Free the frame marker allocation itself before we lose the pointer
 		Free((u8*)mLastFrame);
 
-		u8* framePtr = (u8*)mLastFrame;
+		// Dereference the frame marker to get the actual marker position in memory
+		u8* framePointer = (u8*)mLastFrame;
+
+		// Follow the linked list to the previous frame marker
 		mLastFrame = *(void**)mLastFrame;
 
 #if B3D_DEBUG
-		framePtr -= sizeof(u32);
+		// In debug builds, step back past the debug header to get to the actual allocation start
+		framePointer -= kDebugHeaderSize;
 #endif
 
-		u32 startBlockIdx = mNextBlockIdx - 1;
-		u32 numFreedBlocks = 0;
-		for(i32 blockIndex = startBlockIdx; blockIndex >= 0; blockIndex--)
+		// Find which block contains the frame marker and rewind allocations
+		// Walk backwards through blocks to find the one containing our frame marker
+
+		u32 startBlockIndex = mNextBlockIndex - 1;
+		u32 numberOfFreedBlocks = 0;
+
+		for(i32 blockIndex = startBlockIndex; blockIndex >= 0; blockIndex--)
 		{
-			MemBlock* curBlock = mBlocks[blockIndex];
-			u8* blockEnd = curBlock->MData + curBlock->MSize;
-			if(framePtr >= curBlock->MData && framePtr < blockEnd)
+			MemoryBlock* currentBlock = mBlocks[blockIndex];
+			u8* blockEnd = currentBlock->Data + currentBlock->Size;
+
+			// Check if frame marker is within this block's memory range
+			if(framePointer >= currentBlock->Data && framePointer < blockEnd)
 			{
-				u8* dataEnd = curBlock->MData + curBlock->MFreePtr;
-				u32 sizeInBlock = (u32)(dataEnd - framePtr);
-				B3D_ASSERT(sizeInBlock <= curBlock->MFreePtr);
+				// Found the block containing the frame marker
+				// Calculate how much memory to free from this block
+				u8* dataEnd = currentBlock->Data + currentBlock->FreePointer;
+				u32 sizeInBlock = (u32)(dataEnd - framePointer);
+				B3D_ASSERT(sizeInBlock <= currentBlock->FreePointer);
 
-				curBlock->MFreePtr -= sizeInBlock;
-				if(curBlock->MFreePtr == 0)
+				// Rewind the block's free pointer to the frame marker position
+				currentBlock->FreePointer -= sizeInBlock;
+
+				if(currentBlock->FreePointer == 0)
 				{
-					numFreedBlocks++;
+					numberOfFreedBlocks++;
 
-					// Reset block counter if we're gonna reallocate this one
-					if(numFreedBlocks > 1)
-						mNextBlockIdx = (u32)blockIndex;
+					// If we're freeing more than one block, reset the block counter
+					if(numberOfFreedBlocks > 1)
+						mNextBlockIndex = (u32)blockIndex;
 				}
 
 				break;
 			}
 			else
 			{
-				curBlock->MFreePtr = 0;
-				mNextBlockIdx = (u32)blockIndex;
-				numFreedBlocks++;
+				// Frame marker is not in this block - this entire block was allocated after the marker
+				// Mark it as completely freed
+				currentBlock->FreePointer = 0;
+				mNextBlockIndex = (u32)blockIndex;
+				numberOfFreedBlocks++;
 			}
 		}
 
-		if(numFreedBlocks > 1)
-		{
-			u32 totalBytes = 0;
-			for(u32 blockIndex = 0; blockIndex < numFreedBlocks; blockIndex++)
-			{
-				MemBlock* curBlock = mBlocks[mNextBlockIdx];
-				totalBytes += curBlock->MSize;
+		// Optionally merge freed blocks to reduce fragmentation
+		// If we freed multiple blocks, merge them into one large block
 
-				DeallocBlock(curBlock);
-				mBlocks.erase(mBlocks.begin() + mNextBlockIdx);
+		if(numberOfFreedBlocks > 1)
+		{
+			// Calculate total size of all freed blocks
+			u32 totalBytes = 0;
+			for(u32 blockIndex = 0; blockIndex < numberOfFreedBlocks; blockIndex++)
+			{
+				MemoryBlock* currentBlock = mBlocks[mNextBlockIndex];
+				totalBytes += currentBlock->Size;
+
+				// Deallocate the block
+				DeallocateBlock(currentBlock);
+				mBlocks.erase(mBlocks.begin() + mNextBlockIndex);
 			}
 
-			u32 oldNextBlockIdx = mNextBlockIdx;
-			AllocBlock(totalBytes);
+			// Allocate a single new block with the combined size
+			u32 oldNextBlockIndex = mNextBlockIndex;
+			AllocateBlock(totalBytes);
 
-			// Point to the first non-full block, or if none available then point the the block we just allocated
-			if(oldNextBlockIdx > 0)
-				mFreeBlock = mBlocks[oldNextBlockIdx - 1];
+			// Point to the first non-full block, or the block we just allocated if none available
+			if(oldNextBlockIndex > 0)
+				mFreeBlock = mBlocks[oldNextBlockIndex - 1];
 		}
 		else
 		{
-			mFreeBlock = mBlocks[mNextBlockIdx - 1];
+			// Only one block was affected, just point to it as the free block
+			mFreeBlock = mBlocks[mNextBlockIndex - 1];
 		}
 	}
 	else
 	{
+		// No frame marker - full clear with debug validation
+
 #if B3D_DEBUG
-		if(mTotalAllocBytes.load() > 0)
-			B3D_EXCEPT(InvalidStateException, "Not all frame allocated bytes were properly released.");
+		// In debug builds, validate that all allocated memory was explicitly freed
+		if(mTotalAllocatedBytes.load(std::memory_order_relaxed) > 0)
+		{
+			B3D_ASSERT(false,
+				"Not all frame allocated bytes were properly released. "
+				"This indicates a memory leak - memory was allocated but not freed before Clear().");
+		}
 #endif
+
+		// Merge all blocks into one large block to reduce fragmentation
 
 		if(mBlocks.size() > 1)
 		{
-			// Merge all blocks into one
+			// Calculate total size of all blocks
 			u32 totalBytes = 0;
 			for(auto& block : mBlocks)
 			{
-				totalBytes += block->MSize;
-				DeallocBlock(block);
+				totalBytes += block->Size;
+				DeallocateBlock(block);
 			}
 
+			// Clear the block list and reset counters
 			mBlocks.clear();
-			mNextBlockIdx = 0;
+			mNextBlockIndex = 0;
 
-			AllocBlock(totalBytes);
+			// Allocate a single merged block
+			AllocateBlock(totalBytes);
 		}
 		else if(mBlocks.size() > 0)
-			mBlocks[0]->MFreePtr = 0;
+		{
+			// Only one block exists - just reset its free pointer
+			mBlocks[0]->FreePointer = 0;
+		}
 	}
 }
 
-FrameAllocator::MemBlock* FrameAllocator::AllocBlock(u32 wantedSize)
+FrameAllocator::MemoryBlock* FrameAllocator::AllocateBlock(u32 wantedSize)
 {
+	// Determine the size of the block to allocate
+	// Use the default block size unless the wanted size is larger
 	u32 blockSize = mBlockSize;
 	if(wantedSize > blockSize)
 		blockSize = wantedSize;
 
-	MemBlock* newBlock = nullptr;
-	while(mNextBlockIdx < mBlocks.size())
+	// Try to reuse an existing block from the pool
+	MemoryBlock* newBlock = nullptr;
+	while(mNextBlockIndex < mBlocks.size())
 	{
-		MemBlock* curBlock = mBlocks[mNextBlockIdx];
-		if(blockSize <= curBlock->MSize)
+		MemoryBlock* currentBlock = mBlocks[mNextBlockIndex];
+
+		if(blockSize <= currentBlock->Size)
 		{
-			newBlock = curBlock;
-			mNextBlockIdx++;
+			// Found a suitable block to reuse
+			newBlock = currentBlock;
+			mNextBlockIndex++;
 			break;
 		}
 		else
 		{
-			// Found an empty block that doesn't fit our data, delete it
-			DeallocBlock(curBlock);
-			mBlocks.erase(mBlocks.begin() + mNextBlockIdx);
+			// Found an empty block that's too small - delete it
+			DeallocateBlock(currentBlock);
+			mBlocks.erase(mBlocks.begin() + mNextBlockIndex);
 		}
 	}
 
+	// If no suitable block was found, allocate a new one
 	if(newBlock == nullptr)
 	{
-		u32 alignOffset = 16 - (sizeof(MemBlock) & (16 - 1));
+		// Calculate alignment offset for the MemoryBlock object itself
+		// We want the data buffer to be 16-byte aligned, so we need to account for
+		// the MemoryBlock header size when calculating the offset
+		u32 alignmentOffset = kBlockAlignment - (sizeof(MemoryBlock) & (kBlockAlignment - 1));
 
-		u8* data = (u8*)reinterpret_cast<u8*>(B3DAllocateAligned16(blockSize + sizeof(MemBlock) + alignOffset));
-		newBlock = new(data) MemBlock(blockSize);
-		data += sizeof(MemBlock) + alignOffset;
-		newBlock->MData = data;
+		// Allocate memory for both the MemoryBlock object and the data buffer
+		u8* data = (u8*)reinterpret_cast<u8*>(B3DAllocateAligned16(blockSize + sizeof(MemoryBlock) + alignmentOffset));
 
+		// Construct MemoryBlock object at the start using placement new
+		newBlock = new(data) MemoryBlock(blockSize);
+
+		// Data buffer starts after the MemoryBlock object and alignment offset
+		data += sizeof(MemoryBlock) + alignmentOffset;
+		newBlock->Data = data;
+
+		// Add the new block to our pool
 		mBlocks.push_back(newBlock);
-		mNextBlockIdx++;
+		mNextBlockIndex++;
 	}
 
-	mFreeBlock = newBlock; // If previous block had some empty space it is lost until next "clear"
+	// Set this as the current free block
+	// Note: Any remaining space in the previous free block is lost until the next Clear()
+	mFreeBlock = newBlock;
 
 	return newBlock;
 }
 
-void FrameAllocator::DeallocBlock(MemBlock* block)
+void FrameAllocator::DeallocateBlock(MemoryBlock* block)
 {
-	block->~MemBlock();
+	block->~MemoryBlock();
 	B3DFreeAligned16(block);
 }
 
@@ -294,12 +434,12 @@ B3D_EXPORT FrameAllocator& GetFrameAllocator()
 
 B3D_EXPORT u8* B3DFrameAllocate(u32 byteCount)
 {
-	return GetFrameAllocator().Alloc(byteCount);
+	return GetFrameAllocator().Allocate(byteCount);
 }
 
 B3D_EXPORT u8* B3DFrameAllocateAligned(u32 count, u32 align)
 {
-	return GetFrameAllocator().AllocAligned(count, align);
+	return GetFrameAllocator().AllocateAligned(count, align);
 }
 
 B3D_EXPORT void B3DFrameFree(void* data)

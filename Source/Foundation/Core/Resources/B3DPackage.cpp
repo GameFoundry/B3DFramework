@@ -1030,7 +1030,7 @@ bool Package::Save(const SPtr<DataStream>& stream, const SavePackageOptions& opt
 
 	const SPtr<DataStream> existingPackageFileStream = !mAssociatedPackageFilePath.IsEmpty() ? FileSystem::OpenFile(mAssociatedPackageFilePath) : nullptr;
 
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameVector<SerializedResourceHeader> resourceHeaders(resourceCount);
 
 	resourceIndex = 0;

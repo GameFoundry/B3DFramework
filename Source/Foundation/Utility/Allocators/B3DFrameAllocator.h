@@ -23,58 +23,106 @@ namespace b3d
 	class FrameAllocatorTag;
 
 	/**
-	 * Frame allocator. Performs very fast allocations but can only free all of its memory at once. Perfect for allocations
-	 * that last just a single frame.
+	 * Frame allocator. Performs very fast allocations using a bump allocator pattern but can only free all of its memory
+	 * at once. Perfect for allocations that last just a single frame.
 	 *
-	 * @note	Not thread safe with an exception. alloc() and clear() methods need to be called from the same thread.
-	 * 			dealloc() is thread safe and can be called from any thread.
+	 * Frames can be nested within each other using MarkFrame() and Clear(). Each MarkFrame() increases the frame depth,
+	 * and Clear() decreases it. Memory allocated at a specific depth must be freed at the same depth. In debug builds,
+	 * attempting to free memory at a different depth than it was allocated will trigger an assertion.
+	 *
+	 * @par Memory Layout (Debug builds only)
+	 * Each allocation includes an 8-byte header: [u32 allocationSize][u32 frameDepth]
+	 * Release builds have zero overhead - allocations are returned directly from the bump pointer.
+	 *
+	 * @par Thread Safety
+	 * This allocator is NOT thread-safe for concurrent access. Each thread must use its own allocator instance.
+	 * The global frame allocator (GetFrameAllocator()) achieves thread safety through thread-local storage,
+	 * ensuring each thread gets its own allocator instance. In debug builds, all methods validate that they're
+	 * called from the allocator's owner thread.
+	 *
+	 * @par Performance Characteristics
+	 * - Allocation: O(1) bump pointer (unless new block needed, then O(n) for block search/allocation)
+	 * - Deallocation: O(1) counter update in debug builds, no-op in release builds
+	 * - Clear: O(blocks) to reset pointers and optionally merge blocks
+	 *
+	 * @par Example Usage
+	 * @code
+	 * {
+	 *     FrameScope outerFrame;  // Depth 0 → 1
+	 *     void* data1 = allocator.Alloc(100);  // Allocated at depth 1
+	 *
+	 *     {
+	 *         FrameScope innerFrame;  // Depth 1 → 2
+	 *         void* data2 = allocator.Alloc(200);  // Allocated at depth 2
+	 *         allocator.Free(data2);  // OK: freed at depth 2
+	 *     }  // innerFrame destroyed, depth 2 → 1
+	 *
+	 *     allocator.Free(data1);  // OK: freed at depth 1
+	 * }  // outerFrame destroyed, depth 1 → 0
+	 * @endcode
 	 */
 	class B3D_EXPORT FrameAllocator
 	{
 	private:
 		/** A single block of memory within a frame allocator. */
-		class MemBlock
+		class MemoryBlock
 		{
 		public:
-			MemBlock(u32 size)
-				: MSize(size) {}
+			MemoryBlock(u32 size)
+				: Size(size) {}
 
-			~MemBlock() = default;
+			~MemoryBlock() = default;
 
-			/** Allocates a piece of memory within the block. Caller must ensure the block has enough empty space. */
-			u8* Alloc(u32 amount);
+			/**
+			 * Allocates a piece of memory within the block using bump pointer allocation.
+			 *
+			 * @param	allocationSize	Number of bytes to allocate.
+			 * @return	Pointer to the allocated memory.
+			 *
+			 * @note	Caller must ensure the block has enough free space before calling.
+			 */
+			u8* Alloc(u32 allocationSize);
 
-			/** Releases all allocations within a block but doesn't actually free the memory. */
+			/**
+			 * Releases all allocations within a block by resetting the free pointer to zero.
+			 * Does not actually free the underlying memory buffer.
+			 */
 			void Clear();
 
-			u8* MData = nullptr;
-			u32 MFreePtr = 0;
-			u32 MSize;
+			u8* Data = nullptr;
+			u32 FreePointer = 0;
+			u32 Size;
 		};
 
+#if B3D_DEBUG
+		static constexpr u32 kDebugHeaderSize = sizeof(u32) * 2;  // [allocationSize][frameDepth]
+#endif
+		static constexpr u32 kDefaultBlockSize = 1024 * 1024;  // 1 MB
+		static constexpr u32 kBlockAlignment = 16;
+
 	public:
-		FrameAllocator(u32 blockSize = 1024 * 1024);
+		FrameAllocator(u32 blockSize = kDefaultBlockSize);
 		~FrameAllocator();
 
 		/**
 		 * Allocates a new block of memory of the specified size.
 		 *
-		 * @param	amount	Amount of memory to allocate, in bytes.
+		 * @param	allocationSize	Amount of memory to allocate, in bytes.
 		 *
 		 * @note	Not thread safe.
 		 */
-		u8* Alloc(u32 amount);
+		u8* Allocate(u32 allocationSize);
 
 		/**
 		 * Allocates a new block of memory of the specified size aligned to the specified boundary. If the aligment is less
 		 * or equal to 16 it is more efficient to use the AllocAligned16() alternative of this method.
 		 *
-		 * @param	amount		Amount of memory to allocate, in bytes.
-		 * @param	alignment	Alignment of the allocated memory. Must be power of two.
+		 * @param	allocationSize	Amount of memory to allocate, in bytes.
+		 * @param	alignment		Alignment of the allocated memory. Must be power of two.
 		 *
 		 * @note	Not thread safe.
 		 */
-		u8* AllocAligned(u32 amount, u32 alignment);
+		u8* AllocateAligned(u32 allocationSize, u32 alignment);
 
 		/**
 		 * Allocates and constructs a new object.
@@ -84,7 +132,7 @@ namespace b3d
 		template <class T, class... Args>
 		T* Construct(Args&&... args)
 		{
-			return new((T*)Alloc(sizeof(T))) T(std::forward<Args>(args)...);
+			return new((T*)Allocate(sizeof(T))) T(std::forward<Args>(args)...);
 		}
 
 		/**
@@ -103,8 +151,13 @@ namespace b3d
 		 * Deallocates a previously allocated block of memory.
 		 *
 		 * @note
-		 * No deallocation is actually done here. This method is only used for debug purposes so it is easier to track
-		 * down memory leaks and corruption.
+		 * No actual deallocation happens here. This method only updates debug tracking counters and validates
+		 * that memory is being freed at the same frame depth it was allocated. The actual memory is bulk-freed
+		 * in Clear() using the bump allocator pattern.
+		 *
+		 * @note
+		 * In debug builds, asserts if memory is freed at a different frame depth than it was allocated.
+		 *
 		 * @note
 		 * Thread safe.
 		 */
@@ -128,12 +181,31 @@ namespace b3d
 			Free((u8*)obj);
 		}
 
-		/** Starts a new frame. Next call to Clear() will only clear memory allocated past this point. */
+		/**
+		 * Marks the beginning of a new frame scope. Increments the frame depth counter.
+		 * The next call to Clear() will only clear memory allocated past this point.
+		 *
+		 * @note
+		 * Frames can be nested. Each MarkFrame() must be paired with a corresponding Clear() call.
+		 * Use the FrameScope RAII helper to ensure proper pairing.
+		 */
 		void MarkFrame();
 
 		/**
 		 * Deallocates all allocated memory since the last call to MarkFrame() (or all the memory if there was no call
-		 * to MarkFrame()).
+		 * to MarkFrame()). Decrements the frame depth counter.
+		 *
+		 * @note
+		 * Uses a frame marker linked list to track nested scopes. Frame markers are stored within the allocator's
+		 * own memory, creating a self-referential structure. When clearing to a frame marker, the allocator rewinds
+		 * the allocation pointers to the marker's position.
+		 *
+		 * @note
+		 * If no frame marker exists and debug validation is enabled, asserts that all allocated memory has been
+		 * explicitly freed (mTotalAllocatedBytes == 0).
+		 *
+		 * @note
+		 * Optionally merges multiple freed blocks into a single larger block to reduce fragmentation.
 		 *
 		 * @note	Not thread safe.
 		 */
@@ -141,11 +213,12 @@ namespace b3d
 
 	private:
 		u32 mBlockSize;
-		Vector<MemBlock*> mBlocks;
-		MemBlock* mFreeBlock;
-		u32 mNextBlockIdx;
-		std::atomic<u32> mTotalAllocBytes;
+		Vector<MemoryBlock*> mBlocks;
+		MemoryBlock* mFreeBlock;
+		u32 mNextBlockIndex;
+		std::atomic<u32> mTotalAllocatedBytes;
 		void* mLastFrame;
+		u32 mCurrentFrameDepth;
 
 #if B3D_DEBUG
 		ThreadId mOwnerThread;
@@ -155,10 +228,30 @@ namespace b3d
 		 * Allocates a dynamic block of memory of the wanted size. The exact allocation size might be slightly higher in
 		 * order to store block meta data.
 		 */
-		MemBlock* AllocBlock(u32 wantedSize);
+		MemoryBlock* AllocateBlock(u32 wantedSize);
 
 		/** Frees a memory block. */
-		void DeallocBlock(MemBlock* block);
+		void DeallocateBlock(MemoryBlock* block);
+
+#if B3D_DEBUG
+		/**
+		 * Writes the debug header (allocation size and frame depth) before the user data.
+		 *
+		 * @param	data			Pointer to the start of the allocation (header location).
+		 * @param	allocationSize	Total size of the allocation including header.
+		 * @param	frameDepth		Frame depth at which this allocation was made.
+		 */
+		void WriteDebugHeader(u8* data, u32 allocationSize, u32 frameDepth);
+
+		/**
+		 * Reads the debug header to retrieve allocation size and frame depth.
+		 *
+		 * @param	data			Pointer to the start of the allocation (header location).
+		 * @param	outSize			[out] Allocation size stored in header.
+		 * @param	outDepth		[out] Frame depth stored in header.
+		 */
+		void ReadDebugHeader(const u8* data, u32& outSize, u32& outDepth);
+#endif
 	};
 
 	/**
@@ -226,7 +319,7 @@ namespace b3d
 			if(num > static_cast<size_t>(-1) / sizeof(T))
 				return nullptr; // Error
 
-			void* const pv = mFrameAlloc->Alloc((u32)(num * sizeof(T)));
+			void* const pv = mFrameAlloc->Allocate((u32)(num * sizeof(T)));
 			if(!pv)
 				return nullptr; // Error
 
@@ -394,10 +487,10 @@ namespace b3d
 	B3D_EXPORT void B3DClearAllocatorFrame();
 
 	/** Opens a frame scope on construction and closes it on destruction. See B3DMarkAllocatorFrame(). */
-	struct FrameScope
+	struct FrameAllocatorScope
 	{
-		FrameScope() { B3DMarkAllocatorFrame(); }
-		~FrameScope() { B3DClearAllocatorFrame();  }
+		FrameAllocatorScope() { B3DMarkAllocatorFrame(); }
+		~FrameAllocatorScope() { B3DClearAllocatorFrame();  }
 	};
 
 	/** String allocated with a frame allocator. */

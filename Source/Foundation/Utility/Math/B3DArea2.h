@@ -290,7 +290,7 @@ namespace b3d
 	template<typename PositionType, typename SizeType>
 	void TArea2<PositionType, SizeType>::Cut(const Vector<TArea2>& rectanglesToCutWith, Vector<TArea2>& pieces) const
 	{
-		FrameScope frameScope;
+		FrameAllocatorScope frameScope;
 		FrameVector<TArea2> temporaryPieceBuffers[2];
 		u32 outputBufferIndex = 0;
 

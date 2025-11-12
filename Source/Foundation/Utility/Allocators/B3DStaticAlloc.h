@@ -90,7 +90,7 @@ namespace b3d
 
 			u8* data;
 			if(amount > freeMem)
-				data = mDynamicAlloc.Alloc(amount);
+				data = mDynamicAlloc.Allocate(amount);
 			else
 			{
 				data = &mStaticData[mFreePtr];

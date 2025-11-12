@@ -230,7 +230,7 @@ void VulkanGpuBackend::OnStartUp()
 
 	if(availableExtensionCount > 0)
 	{
-		FrameScope frameScope;
+		FrameAllocatorScope frameScope;
 		FrameVector<VkExtensionProperties> availableExtensions(availableExtensionCount);
 
 		if(vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionCount, availableExtensions.data()) == VK_SUCCESS)

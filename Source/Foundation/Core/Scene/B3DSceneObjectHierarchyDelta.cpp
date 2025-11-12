@@ -95,7 +95,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 
 	rttiOperationContext.GameObjectCollection->BeginHandleResolve();
 
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 
 	FrameUnorderedSet<UUID> addedSceneObjectsMap;
 	for(const auto& entry : AddedSceneObjects)

@@ -674,7 +674,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& commandBuffer, 
 	u32 samplerBindingCount = vkParamInfo.GetBindingCount(GpuParameterType::Sampler);
 	u32 setCount = vkParamInfo.GetSetCount();
 
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameVector<u32> dynamicOffsetMapping(perDeviceData.PerSetData->ElementCount, ~0u);
 
 	Lock lock(mMutex);

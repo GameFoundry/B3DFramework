@@ -50,15 +50,13 @@ GUILogicalSize GUIUtility::CalculateOptimalContentSizeWithPaddingAndBorder(const
 	const HFont font = styleSheetRule.Font;
 	if(font != nullptr && !text.empty())
 	{
-		B3DMarkAllocatorFrame();
+		FrameAllocatorScope frameScope;
 
 		const U32String utf32text = UTF8::ToUtF32(text);
 		TTextGeometry<FrameAllocatorTag> textData(utf32text, font, styleSheetRule.FontSize, (u32)wordWrapWidth, 0, styleSheetRule.WordWrap == GUIWordWrapMode::WrapWord);
 
 		contentSize.Width += Math::RoundToI32(textData.GetWidth());
 		contentSize.Height += Math::RoundToI32((float)textData.GetLineCount() * textData.GetLineHeight());
-
-		B3DClearAllocatorFrame();
 	}
 
 	return CalculateSizeWithPaddingAndBorder(contentSize, styleSheetRule);
@@ -90,15 +88,13 @@ Size2I GUIUtility::CalculateTextBounds(const String& text, const HFont& font, fl
 	Size2I size{BsZero};
 	if(font != nullptr)
 	{
-		B3DMarkAllocatorFrame();
+		FrameAllocatorScope frameScope;
 
 		const U32String utf32text = UTF8::ToUtF32(text);
 		TTextGeometry<FrameAllocatorTag> textData(utf32text, font, fontSize, 0, 0, false);
 
 		size.Width = Math::RoundToI32(textData.GetWidth());
 		size.Height = Math::RoundToI32((float)textData.GetLineCount() * textData.GetLineHeight());
-
-		B3DClearAllocatorFrame();
 	}
 
 	return size;

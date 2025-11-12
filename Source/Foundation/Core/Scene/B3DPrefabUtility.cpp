@@ -238,7 +238,7 @@ void PrefabUtility::UpdatePrefab(const HPrefab& prefabToUpdate, const HSceneObje
 
 bool PrefabUtility::UpdateNestedPrefabInstances(const HSceneObject& sceneObject)
 {
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 
 	PrefabCache prefabCache;
 	return UpdateNestedPrefabInstancesRecursive(sceneObject, prefabCache);
@@ -364,7 +364,7 @@ void PrefabUtility::AssignPrefabInstanceIds(const HSceneObject& instanceRoot, co
 		HSceneObject PrefabSceneObject;
 	};
 
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameStack<MatchingSceneObjects> todo;
 	todo.emplace(instanceRoot, prefabRoot);
 

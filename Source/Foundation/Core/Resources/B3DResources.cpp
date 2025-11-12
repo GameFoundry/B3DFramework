@@ -372,7 +372,7 @@ void Resources::ReleaseInternalReference(ResourceHandle& resource)
 
 void Resources::UnloadAllUnused()
 {
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameVector<HResource> resourcesToUnload;
 
 	{
@@ -404,7 +404,7 @@ void Resources::UnloadAllUnused()
 
 void Resources::UnloadAll()
 {
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameVector<HResource> resourcesToUnload;
 
 	// Unload and invalidate all resources

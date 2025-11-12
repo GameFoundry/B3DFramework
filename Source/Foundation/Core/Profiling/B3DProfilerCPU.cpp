@@ -238,7 +238,7 @@ void ProfilerCPU::ThreadInfo::Reset()
 ProfilerCPU::ProfiledBlock* ProfilerCPU::ThreadInfo::GetBlock(const char* name)
 {
 	ProfiledBlock* block = FrameAllocator.Construct<ProfiledBlock>(&FrameAllocator);
-	block->Name = (char*)FrameAllocator.Alloc(((u32)strlen(name) + 1) * sizeof(char));
+	block->Name = (char*)FrameAllocator.Allocate(((u32)strlen(name) + 1) * sizeof(char));
 	strcpy(block->Name, name);
 
 	return block;

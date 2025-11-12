@@ -23,7 +23,7 @@ PrefabIdRemapper::PrefabIdRemapper(const HSceneObject& originalPrefabHierarchy, 
 
 UnorderedMap<UUID, UUID> PrefabIdRemapper::RestoreOriginalPrefabIds(const HSceneObject& hierarchyRoot)
 {
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameStack<SceneObjectInformation> todo;
 	todo.emplace(hierarchyRoot, UUID::kEmpty, -1);
 

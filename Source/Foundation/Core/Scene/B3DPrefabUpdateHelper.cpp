@@ -156,7 +156,7 @@ void PrefabUpdateHelper::UpdatePrefab(const HPrefab& prefabToUpdate, const HScen
 	// to any prefab, or is just linked to itself, this will be its own ID in the provided hierarchy. This ID represents the object whose prefab object ID we will need to update.
 	UnorderedMap<UUID, UUID> instanceIdToPrefabThatNeedsRemappingInstanceId = FindInstanceIdsThatNeedRemapping(sceneObjectToUpdateWith);
 
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 
 	// Record any parent prefab instances. As described above, we need to update these recursively bottom to top, in order to maintain prefab object ID links.
 	FrameVector<PrefabInstanceRoot> prefabInstanceParents;

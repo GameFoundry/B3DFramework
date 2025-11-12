@@ -484,7 +484,7 @@ GUIStyleSheetRules GUIStyleSheet::BuildRules(const GUIRenderable& guiElement, St
 	if(inheritedRules)
 		outputRules = *inheritedRules;
 
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameSet<u32> sortedRulesetIndices;
 
 	PopulatePotentialRulesetIndices(guiElement, sortedRulesetIndices);
@@ -506,7 +506,7 @@ GUIStyleSheetRules GUIStyleSheet::BuildRules(StringView elementType, StringView 
 	if(inheritedRules)
 		outputRules = *inheritedRules;
 
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameSet<u32> sortedRulesetIndices;
 
 	PopulatePotentialRulesetIndices(elementType, elementClass, elementId, sortedRulesetIndices);
@@ -542,7 +542,7 @@ bool GUIStyleSheet::HasRulesetForClass(StringView elementClass, StringView eleme
 
 void GUIStyleSheet::GetMatchingRulesetIndices(const GUIRenderable& guiElement, TArray<u32>& outOrderedRulesetIndices, StringView pseudoElement, StringView pseudoClass, bool ignorePseudoClass) const
 {
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameSet<u32> sortedRulesetIndices;
 
 	PopulatePotentialRulesetIndices(guiElement, sortedRulesetIndices);

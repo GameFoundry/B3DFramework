@@ -60,7 +60,7 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 
 	fontCreateInformation.FontData = B3DMakeShared<MemoryDataStream>(fontDataStream);
 
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameVector<u32> charactersToRender;
 
 	SPtr<Font> font = Font::CreateShared(fontCreateInformation);

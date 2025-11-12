@@ -1131,7 +1131,7 @@ TextureRowAllocation GpuParticleCurves::Alloc(Color* pixels, uint32_t count)
 	if(pendingAlloc.Allocation.Length == 0)
 		return pendingAlloc.Allocation;
 
-	pendingAlloc.Pixels = (Color*)mPendingAllocator.Alloc(sizeof(Color) * count);
+	pendingAlloc.Pixels = (Color*)mPendingAllocator.Allocate(sizeof(Color) * count);
 	memcpy(pendingAlloc.Pixels, pixels, sizeof(Color) * count);
 
 	mPendingAllocations.push_back(pendingAlloc);

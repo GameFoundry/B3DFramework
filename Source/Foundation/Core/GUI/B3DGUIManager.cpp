@@ -1638,7 +1638,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 {
 	// TODO - Sprite animation might be broken. I need to continually mark the animated region as dirty.
 
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 

@@ -55,7 +55,7 @@ void RenderCompositor::Build(const RendererView& view, const TArray<StringID>& p
 {
 	Clear();
 
-	FrameScope frameScope;
+	FrameAllocatorScope frameScope;
 	FrameUnorderedMap<StringID, u32> processedNodes;
 	mIsValid = true;
 

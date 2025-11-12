@@ -130,7 +130,7 @@ RenderProxySyncPacket* GpuBuffer::CreateRenderProxySyncPacket(FrameAllocator& al
 
 	SyncPacket* syncPacket = allocator.Construct<SyncPacket>(*this, allocator, flags);
 	syncPacket->BufferSize = mTotalSize;
-	syncPacket->BufferData = allocator.Alloc(mTotalSize);
+	syncPacket->BufferData = allocator.Allocate(mTotalSize);
 	ReadCached(0, mTotalSize, syncPacket->BufferData);
 
 	return syncPacket;

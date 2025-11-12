@@ -445,7 +445,7 @@ void SceneInstance::SetRoot(const HSceneObject& newRoot)
 
 	// Make sure to keep persistent objects
 	{
-		FrameScope frameScope;
+		FrameAllocatorScope frameScope;
 		FrameVector<HSceneObject> toMove;
 		for(u32 i = 0; i < childCount; i++)
 		{
