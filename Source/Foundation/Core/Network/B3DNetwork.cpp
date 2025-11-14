@@ -5,7 +5,6 @@
 #include <steam/steamnetworkingsockets.h>
 #include <steam/isteamnetworkingutils.h>
 #include "Debug/B3DDebug.h"
-#include "Threading/B3DTaskScheduler.h"
 
 using namespace b3d;
 
@@ -79,6 +78,7 @@ struct NetworkPeer::Impl
 	ISteamNetworkingSockets* Sockets = nullptr;
 	HSteamListenSocket ListenSocket = k_HSteamListenSocket_Invalid;
 	HSteamNetConnection ClientConnection = k_HSteamNetConnection_Invalid;
+	HSteamNetPollGroup PollGroup = k_HSteamNetPollGroup_Invalid;
 
 	bool IsServer = false;
 	u32 MaxConnections = 0;
@@ -158,6 +158,11 @@ struct NetworkPeer::Impl
 		case k_ESteamNetworkingConnectionState_Connected:
 			// Connection established
 			GetOrAllocateConnectionID(info->m_hConn);
+			// Add to poll group if server
+			if(IsServer && PollGroup != k_HSteamNetPollGroup_Invalid)
+			{
+				Sockets->SetConnectionPollGroup(info->m_hConn, PollGroup);
+			}
 			break;
 
 		case k_ESteamNetworkingConnectionState_ClosedByPeer:
@@ -222,6 +227,16 @@ bool NetworkPeer::StartServer(u16 port, u32 maxConnections)
 	if(m->ListenSocket == k_HSteamListenSocket_Invalid)
 	{
 		B3D_LOG(Error, Network, "Failed to create listen socket on port {0}.", port);
+		return false;
+	}
+
+	// Create poll group for efficient message polling
+	m->PollGroup = m->Sockets->CreatePollGroup();
+	if(m->PollGroup == k_HSteamNetPollGroup_Invalid)
+	{
+		B3D_LOG(Error, Network, "Failed to create poll group.");
+		m->Sockets->CloseListenSocket(m->ListenSocket);
+		m->ListenSocket = k_HSteamListenSocket_Invalid;
 		return false;
 	}
 
@@ -293,6 +308,13 @@ void NetworkPeer::DisconnectAll()
 		m->ListenSocket = k_HSteamListenSocket_Invalid;
 	}
 
+	// Destroy poll group
+	if(m->PollGroup != k_HSteamNetPollGroup_Invalid)
+	{
+		m->Sockets->DestroyPollGroup(m->PollGroup);
+		m->PollGroup = k_HSteamNetPollGroup_Invalid;
+	}
+
 	// Close client connection
 	if(m->ClientConnection != k_HSteamNetConnection_Invalid)
 	{
@@ -319,11 +341,14 @@ void NetworkPeer::PollMessages(Vector<NetworkMessage>& outMessages, u32 maxMessa
 
 	if(m->IsServer)
 	{
-		// Server: receive from all connections
-		messageCount = m->Sockets->ReceiveMessagesOnListenSocket(
-			m->ListenSocket,
-			m->MessagePool.data(),
-			maxMessages);
+		// Server: receive from poll group
+		if(m->PollGroup != k_HSteamNetPollGroup_Invalid)
+		{
+			messageCount = m->Sockets->ReceiveMessagesOnPollGroup(
+				m->PollGroup,
+				m->MessagePool.data(),
+				maxMessages);
+		}
 	}
 	else
 	{
@@ -418,11 +443,12 @@ bool NetworkPeer::GetConnectionInfo(ConnectionID connection, ConnectionInformati
 
 	outInfo.ID = connection;
 	GNSToNetworkAddress(connectionInfo.m_addrRemote, outInfo.RemoteAddress);
-	outInfo.PingMS = status.m_nPing;
-	outInfo.PacketLossPercent = status.m_flOutPacketsDroppedPct * 100.0f;
-	outInfo.JitterMS = status.m_usecMaxJitter / 1000.0f;
-	outInfo.BytesSentPerSecond = status.m_flOutBytesPerSec;
-	outInfo.BytesReceivedPerSecond = status.m_flInBytesPerSec;
+	outInfo.PingMS = (float)status.m_nPing;
+	// GNS doesn't provide packet loss directly, use connection quality instead (0-1, lower is worse)
+	outInfo.PacketLossPercent = (1.0f - status.m_flConnectionQualityLocal) * 100.0f;
+	outInfo.JitterMS = status.m_usecMaxJitter / 1000.0f; // Convert microseconds to milliseconds
+	outInfo.BytesSentPerSecond = (u64)status.m_flOutBytesPerSec;
+	outInfo.BytesReceivedPerSecond = (u64)status.m_flInBytesPerSec;
 
 	return true;
 }
@@ -484,7 +510,7 @@ NetworkAddress::NetworkAddress(const char* address)
 	{
 		String ipString = addressString.substr(0, pipePos);
 		String portString = addressString.substr(pipePos + 1);
-		Port = (u16)std::stoi(portString);
+		Port = (u16)atoi(portString.c_str());
 
 		// Parse IP portion
 		SteamNetworkingIPAddr gnsAddress;

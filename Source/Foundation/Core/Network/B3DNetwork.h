@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "Utility/B3DModule.h"
 
 namespace b3d
 {
