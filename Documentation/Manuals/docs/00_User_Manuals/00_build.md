@@ -76,18 +76,9 @@ Make sure to modify `C:/path/to/bsf/install` and set it to the path where you ex
 The CMake file above references `Main.cpp` file. The most basic file that runs the framework looks like so:
 ```
 #include "B3DApplication.h"
+#include "B3DEntry.h"
 
-#if B3D_PLATFORM_WIN32
-#include <windows.h>
-
-int CALLBACK WinMain(
-	_In_ HINSTANCE hInstance,
-	_In_ HINSTANCE hPrevInstance,
-	_In_ LPSTR lpCmdLine,
-	_In_ int nCmdShow)
-#else
-int main()
-#endif
+int B3DMain()
 {
 	using namespace b3d;
 
@@ -177,18 +168,9 @@ Make sure to set `C:/bsf` to the directory where you cloned `bsf`.
 The CMake file above references `Main.cpp` file. The most basic file that runs the framework looks like so:
 ```
 #include "B3DApplication.h"
+#include "B3DEntry.h"
 
-#if B3D_PLATFORM_WIN32
-#include <windows.h>
-
-int CALLBACK WinMain(
-	_In_ HINSTANCE hInstance,
-	_In_ HINSTANCE hPrevInstance,
-	_In_ LPSTR lpCmdLine,
-	_In_ int nCmdShow)
-#else
-int main()
-#endif
+int B3DMain()
 {
 	using namespace b3d;
 

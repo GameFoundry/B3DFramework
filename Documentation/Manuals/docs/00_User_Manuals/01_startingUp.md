@@ -10,26 +10,17 @@ The entirety of the framework API is contained in the **b3d** namespace, so you 
 
 ~~~~~~~~~~~~~{.cpp}
 #include "B3DApplication.h"
+#include "B3DEntry.h"
 
 using namespace b3d;
 ~~~~~~~~~~~~~
 
 # Entry point
 
-The entry point differs depending on the platform. On Windows, you need to use `WinMain`, while on other platforms you use the standard `main` function:
+The framework provides a unified entry point through the `B3DMain()` function. This function handles the platform-specific differences automatically:
 
 ~~~~~~~~~~~~~{.cpp}
-#if B3D_PLATFORM_WIN32
-#include <windows.h>
-
-int CALLBACK WinMain(
-	_In_ HINSTANCE hInstance,
-	_In_ HINSTANCE hPrevInstance,
-	_In_ LPSTR lpCmdLine,
-	_In_ int nCmdShow)
-#else
-int main()
-#endif
+int B3DMain()
 {
 	using namespace b3d;
 
@@ -107,21 +98,12 @@ Here's a complete code example. The code opens up a basic window and adds a came
 
 ~~~~~~~~~~~~~{.cpp}
 #include "B3DApplication.h"
+#include "B3DEntry.h"
 #include "Scene/B3DSceneObject.h"
 #include "Components/B3DCamera.h"
 #include "RenderAPI/B3DRenderWindow.h"
 
-#if B3D_PLATFORM_WIN32
-#include <windows.h>
-
-int CALLBACK WinMain(
-	_In_ HINSTANCE hInstance,
-	_In_ HINSTANCE hPrevInstance,
-	_In_ LPSTR lpCmdLine,
-	_In_ int nCmdShow)
-#else
-int main()
-#endif
+int B3DMain()
 {
 	using namespace b3d;
 
