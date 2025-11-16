@@ -489,8 +489,26 @@ namespace b3d
 	/** Opens a frame scope on construction and closes it on destruction. See B3DMarkAllocatorFrame(). */
 	struct FrameAllocatorScope
 	{
-		FrameAllocatorScope() { B3DMarkAllocatorFrame(); }
-		~FrameAllocatorScope() { B3DClearAllocatorFrame();  }
+		FrameAllocatorScope()
+		{
+			mAllocator = &GetFrameAllocator();
+			mAllocator->MarkFrame();
+		}
+
+		FrameAllocatorScope(FrameAllocator* allocator)
+			: mAllocator(allocator)
+		{
+			B3D_ASSERT(allocator != nullptr);
+			mAllocator->MarkFrame();
+		}
+
+		~FrameAllocatorScope()
+		{
+			mAllocator->Clear();
+		}
+
+	private:
+		FrameAllocator* mAllocator;
 	};
 
 	/** String allocated with a frame allocator. */

@@ -651,7 +651,7 @@ SPtr<SerializedObject> IDeltaHandler::GenerateDelta(const SPtr<IReflectable>& or
 void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, RTTIOperationContext& context)
 {
 	FrameAllocator& allocator = GetFrameAllocator();
-	allocator.MarkFrame();
+	FrameAllocatorScope frameAllocatorScope(&allocator);
 
 	FrameVector<DeltaCommand> commands;
 
@@ -952,8 +952,6 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 			}
 		}
 	}
-
-	allocator.Clear();
 }
 
 void IDeltaHandler::GenerateDeltaApplyCommands(RTTIType* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context)
