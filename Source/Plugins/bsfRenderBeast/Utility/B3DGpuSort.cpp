@@ -335,7 +335,7 @@ void RunSortTest()
 	gRadixSortParamsDef.gBitOffset.Set(params, bitOffset);
 
 	GpuSortBuffers sortBuffers = GpuSort::CreateSortBuffers(count);
-	sortBuffers.Keys[0]->WriteData(0, sortBuffers.Keys[0]->GetTotalSize(), inputKeys.data(), BWT_DISCARD);
+	GpuBufferUtility::Write(sortBuffers.Keys[0], 0, sortBuffers.Keys[0]->GetTotalSize(), inputKeys.data(), GpuBufferWriteFlag::Discard);
 
 	SPtr<GpuBuffer> helperBuffers[2];
 	helperBuffers[0] = CreateHelperBuffer();

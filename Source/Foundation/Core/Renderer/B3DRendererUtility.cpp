@@ -48,8 +48,11 @@ RendererUtility::RendererUtility()
 
 		mFullScreenQuadVB = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
-		u32 indices[]{ 0, 1, 2, 1, 3, 2 };
-		mFullScreenQuadIB->WriteData(0, sizeof(indices), indices, BWT_DISCARD);
+		const u32 indices[]{ 0, 1, 2, 1, 3, 2 };
+
+		void* destinationMemory = mFullScreenQuadIB->Lock(0, sizeof(indices), GBL_WRITE_ONLY);
+		memcpy(destinationMemory, indices, sizeof(indices));
+		mFullScreenQuadIB->Unlock();
 	}
 
 	{
@@ -212,13 +215,13 @@ void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>
 	auto& vertexBuffers = vertexData->GetBuffers();
 	if(vertexBuffers.size() > 0)
 	{
-		SPtr<GpuBuffer> buffers[BS_MAX_BOUND_VERTEX_BUFFERS];
+		SPtr<GpuBuffer> buffers[B3D_MAX_BOUND_VERTEX_BUFFERS];
 
 		u32 endSlot = 0;
-		u32 startSlot = BS_MAX_BOUND_VERTEX_BUFFERS;
+		u32 startSlot = B3D_MAX_BOUND_VERTEX_BUFFERS;
 		for(auto iter = vertexBuffers.begin(); iter != vertexBuffers.end(); ++iter)
 		{
-			if(iter->first >= BS_MAX_BOUND_VERTEX_BUFFERS)
+			if(iter->first >= B3D_MAX_BOUND_VERTEX_BUFFERS)
 				B3D_EXCEPT(InvalidParametersException, "Buffer index out of range");
 
 			startSlot = std::min(iter->first, startSlot);
@@ -251,13 +254,13 @@ void RendererUtility::DrawMorph(GpuCommandBuffer& commandBuffer, const SPtr<Mesh
 	commandBuffer.SetVertexDescription(morphVertexDescription);
 
 	auto& meshBuffers = vertexData->GetBuffers();
-	SPtr<GpuBuffer> allBuffers[BS_MAX_BOUND_VERTEX_BUFFERS];
+	SPtr<GpuBuffer> allBuffers[B3D_MAX_BOUND_VERTEX_BUFFERS];
 
 	u32 endSlot = 0;
-	u32 startSlot = BS_MAX_BOUND_VERTEX_BUFFERS;
+	u32 startSlot = B3D_MAX_BOUND_VERTEX_BUFFERS;
 	for(auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
 	{
-		if(iter->first >= BS_MAX_BOUND_VERTEX_BUFFERS)
+		if(iter->first >= B3D_MAX_BOUND_VERTEX_BUFFERS)
 			B3D_EXCEPT(InvalidParametersException, "Buffer index out of range");
 
 		startSlot = std::min(iter->first, startSlot);
@@ -389,11 +392,9 @@ void RendererUtility::DrawScreenQuad(GpuCommandBuffer& commandBuffer, const Area
 	u32 bufferSize = meshData->GetStreamSize(0);
 	u8* srcVertBufferData = meshData->GetStreamData(0);
 
-	
-	void* dstData = B3DStackAllocate(bufferSize);
-	memcpy(dstData, srcVertBufferData, bufferSize);
-	mFullScreenQuadVB->WriteData(mNextQuadVBSlot * bufferSize, bufferSize, dstData, BWT_NO_OVERWRITE, commandBuffer.GetShared());
-	B3DStackFree(dstData);
+	void* destinationMemory = mFullScreenQuadVB->Lock(mNextQuadVBSlot * bufferSize, bufferSize, GBL_WRITE_ONLY_NO_OVERWRITE);
+	memcpy(destinationMemory, srcVertBufferData, bufferSize);
+	mFullScreenQuadVB->Unlock();
 
 	commandBuffer.SetVertexDescription(mFullscreenQuadVertexDescription);
 	commandBuffer.SetVertexBuffers(0, &mFullScreenQuadVB, 1);

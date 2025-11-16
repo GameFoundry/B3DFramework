@@ -74,7 +74,7 @@ const ShaderVariationParameters& GetParticleShaderVariation(ParticleOrientation 
 ParticlesParamDef gParticlesParamDef;
 GpuParticlesParamDef gGpuParticlesParamDef;
 
-void WriteIndices(GpuBuffer* buffer, const Vector<u32>& input, u32 texSize)
+void WriteIndices(const SPtr<GpuBuffer>& buffer, const Vector<u32>& input, u32 texSize)
 {
 	const auto numParticles = (u32)input.size();
 	if(numParticles == 0)
@@ -91,7 +91,7 @@ void WriteIndices(GpuBuffer* buffer, const Vector<u32>& input, u32 texSize)
 		indices[idx++] = (x & 0xFFFF) | (y << 16);
 	}
 
-	buffer->WriteData(0, buffer->GetTotalSize(), indices, BWT_DISCARD);
+	GpuBufferUtility::Write(buffer, 0, buffer->GetTotalSize(), indices, GpuBufferWriteFlag::Discard);
 	B3DStackFree(indices);
 }
 
@@ -243,7 +243,7 @@ const ParticleBillboardTextures* ParticleTexturePool::Alloc(const ParticleBillbo
 	output->Color->WriteData(simulationData.Color, 0, 0, true);
 	output->SizeAndFrameIdx->WriteData(simulationData.SizeAndFrameIdx, 0, 0, true);
 
-	WriteIndices(output->Indices.get(), simulationData.Indices, size);
+	WriteIndices(output->Indices, simulationData.Indices, size);
 	return output;
 }
 
@@ -273,7 +273,7 @@ const ParticleMeshTextures* ParticleTexturePool::Alloc(const ParticleMeshRenderD
 	output->Size->WriteData(simulationData.Size, 0, 0, true);
 	output->Rotation->WriteData(simulationData.Rotation, 0, 0, true);
 
-	WriteIndices(output->Indices.get(), simulationData.Indices, size);
+	WriteIndices(output->Indices, simulationData.Indices, size);
 	return output;
 }
 
@@ -415,7 +415,7 @@ ParticleRenderer::ParticleRenderer()
 		tangentDst += stride;
 	}
 
-	m->BillboardVb->WriteData(0, meshData.GetStreamSize(0), meshData.GetStreamData(0), BWT_DISCARD);
+	GpuBufferUtility::Write(m->BillboardVb, 0, meshData.GetStreamSize(0), meshData.GetStreamData(0), GpuBufferWriteFlag::Discard);
 }
 
 ParticleRenderer::~ParticleRenderer()

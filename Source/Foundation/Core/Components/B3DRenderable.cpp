@@ -451,8 +451,8 @@ static SPtr<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
 	SPtr<GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 
 	const u32 bufferSize = boneCount * 3 * sizeof(Vector4);
-	u8* const temporaryBuffer = (u8*)B3DStackAllocate(bufferSize);
-	u8* currentWriteLocation = temporaryBuffer;
+	void* destinationMemory = buffer->Lock(0, bufferSize, GBL_WRITE_ONLY);
+	u8* currentWriteLocation = (u8*)destinationMemory;
 
 	// Initialize bone transforms to identity, so the object renders properly even if no animation is animating it
 	for(u32 boneIndex = 0; boneIndex < boneCount; ++boneIndex)
@@ -461,8 +461,7 @@ static SPtr<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
 		currentWriteLocation += 12 * sizeof(float);
 	}
 
-	buffer->WriteData(0, bufferSize, temporaryBuffer, BWT_DISCARD);
-	B3DStackFree(temporaryBuffer);
+	buffer->Unlock();
 
 	return buffer;
 }
@@ -560,11 +559,10 @@ void Renderable::CreateAnimationBuffers()
 		SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
 		u32 totalSize = vertexSize * vertexCount;
-		u8* destination = (u8*)B3DStackAllocate(totalSize);
-		memset(destination, 0, totalSize);
 
-		vertexBuffer->WriteData(0, totalSize, destination, BWT_DISCARD);
-		B3DStackFree(destination);
+		void* destinationMemory = vertexBuffer->Lock(0, totalSize, GBL_WRITE_ONLY);
+		memset(destinationMemory, 0, totalSize);
+		vertexBuffer->Unlock();
 
 		mMorphShapeBuffer = vertexBuffer;
 	}
@@ -608,7 +606,7 @@ void Renderable::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
 			currentWriteLocation += 12 * sizeof(float);
 		}
 
-		mBoneMatrixBuffer->WriteData(0, bufferSize, temporaryBuffer, BWT_DISCARD);
+		GpuBufferUtility::Write(mBoneMatrixBuffer, 0, bufferSize, temporaryBuffer, GpuBufferWriteFlag::Discard);
 		B3DStackFree(temporaryBuffer);
 	}
 
@@ -621,7 +619,7 @@ void Renderable::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
 			u32 bufferSize = meshData->GetSize();
 			u8* data = meshData->GetData();
 
-			mMorphShapeBuffer->WriteData(0, bufferSize, data, BWT_DISCARD);
+			GpuBufferUtility::Write(mMorphShapeBuffer, 0, bufferSize, data, GpuBufferWriteFlag::Discard);
 			mMorphShapeVersion = animInfo->MorphShapeInfo.Version;
 		}
 	}

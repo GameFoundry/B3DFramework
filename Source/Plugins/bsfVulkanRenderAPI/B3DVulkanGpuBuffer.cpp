@@ -155,7 +155,7 @@ void VulkanGpuBuffer::Initialize()
 	mBufferCI.pQueueFamilyIndices = nullptr;
 
 	// TODO - Should all buffer really be readable by default?
-	mBuffer = CreateBuffer(GetVulkanDevice(), mTotalSize, false, true);
+	mBuffer = CreateBuffer(GetVulkanDevice(), mTotalSize, mInformation.Type == GpuBufferType::StagingRead || mInformation.Type == GpuBufferType::StagingWrite, mInformation.Type != GpuBufferType::StagingWrite);
 }
 
 VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable)
@@ -267,7 +267,7 @@ void* VulkanGpuBuffer::Map(u32 offset, u32 length, GpuLockOptions options)
 	// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
 	// being used because the write could have completed yet still not visible, so we need to issue a pipeline
 	// barrier below.
-	const bool isUsedOnGPU = !useMask.IsEmpty() || mSupportsGPUWrites;
+	const bool isUsedOnGPU = !useMask.IsEmpty() || mSupportsGPUWrites; // TODO - mSupportsGPUWrites check doesn't seem right here. 
 
 	const bool isReadRequired = options == GBL_READ_ONLY || options == GBL_READ_WRITE;
 	const bool isWrite = options != GBL_READ_ONLY;
@@ -324,38 +324,6 @@ void VulkanGpuBuffer::Unmap()
 	// a pipeline barrier because (as per spec) host writes are implicitly visible to the device.
 	mBuffer->Unmap(true);
 	mIsMapped = false;
-}
-
-void VulkanGpuBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<GpuCommandBuffer>& commandBuffer)
-{
-	if((dstOffset + length) > mTotalSize)
-	{
-		B3D_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the destination buffer {2}. "
-									 "Copy operation aborted.",
-			   dstOffset, length, mTotalSize);
-
-		return;
-	}
-
-	if((srcOffset + length) > srcBuffer.GetTotalSize())
-	{
-		B3D_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the source buffer {2}. "
-									 "Copy operation aborted.",
-			   srcOffset, length, srcBuffer.GetTotalSize());
-
-		return;
-	}
-
-	auto& vkSource = static_cast<VulkanGpuBuffer&>(srcBuffer);
-	auto& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*commandBuffer);
-
-	VulkanBuffer* src = vkSource.mBuffer;
-	VulkanBuffer* dst = mBuffer;
-
-	if(src == nullptr || dst == nullptr)
-		return;
-
-	vulkanCommandBuffer.CopyBufferToBuffer(src, dst, srcOffset, dstOffset, length);
 }
 
 void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const SPtr<GpuQueue>& gpuQueue)
@@ -447,122 +415,6 @@ GpuQueueMask VulkanGpuBuffer::GetUseMask(GpuAccessFlags accessFlags)
 	return mBuffer->GetUseInfo(accessFlags);
 }
 
-void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags, const SPtr<GpuCommandBuffer>& commandBuffer)
-{
-	if((offset + length) > mTotalSize)
-	{
-		B3D_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the buffer {2}.", offset, length, mTotalSize);
-		return;
-	}
-
-	if(length == 0)
-		return;
-
-	if(mBuffer == nullptr)
-		return;
-
-	GpuLockOptions options = GBL_WRITE_ONLY_DISCARD_RANGE;
-	if(writeFlags == BWT_NO_OVERWRITE)
-		options = GBL_WRITE_ONLY_NO_OVERWRITE;
-	else if(writeFlags == BWT_DISCARD)
-		options = GBL_WRITE_ONLY_DISCARD;
-
-	const bool canDiscardBuffer =
-		(options == GBL_WRITE_ONLY_DISCARD) ||
-		(options == GBL_WRITE_ONLY_DISCARD_RANGE && offset == 0 && length == mTotalSize);
-
-	// Check is the GPU currently reading or writing from the buffer
-	const GpuQueueMask useMask = mBuffer->GetUseInfo(GpuAccessFlag::Read | GpuAccessFlag::Write);
-
-	if(mDirectlyMappable) // TODO - Need to check if this is memory on an integrated GPU, in which case it might be directly mappable always
-	{
-		// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
-		// being used because the write could have completed yet still not visible, so we need to issue a pipeline
-		// barrier below.
-		const bool isUsedOnGPU = !useMask.IsEmpty() || mSupportsGPUWrites;
-
-		// Even if the buffer is directly mappable we might wish to avoid mapping it directly in these situations:
-		const bool shouldMapDirectly =
-			(!isUsedOnGPU || options == GBL_WRITE_ONLY_NO_OVERWRITE) && // GPU is currently using the buffer and we cannot map it safely (unless user specifically requested the no-overwrite flag)
-			(!mBuffer->IsBound() || (commandBuffer == nullptr && canDiscardBuffer) || options == GBL_WRITE_ONLY_NO_OVERWRITE); // Buffer is bound to a command buffer already. If user provided a command buffer queue a write operation there instead of mapping directly. If not, discard the original buffer and lock a new copy of the buffer.
-
-		if(shouldMapDirectly)
-		{
-			void* lockedData = Lock(offset, length, options);
-			memcpy(lockedData, source, length);
-			Unlock();
-
-			return;
-		}
-	}
-
-	// Can't use direct mapping, so use a staging buffer or memory
-	// See if we can use the cheaper staging memory, rather than a staging buffer
-	const bool useStagingMemory = offset % 4 == 0 && length % 4 == 0 && length <= 65536;
-
-	// Create a staging buffer if needed
-	VulkanBuffer* const stagingBuffer = !useStagingMemory ? CreateBuffer(GetVulkanDevice(), length, true, false) : nullptr;
-
-	SPtr<VulkanGpuCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBuffer != nullptr
-		? commandBuffer
-		: mDevice.GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer()
-	);
-
-	// Copy the source into the staging buffer
-	if(stagingBuffer != nullptr)
-	{
-		void* lockedStagingData = stagingBuffer->Map(0, length);
-		memcpy(lockedStagingData, source, length);
-
-		stagingBuffer->Unmap();
-	}
-
-	// If the buffer is used in any way on the GPU, we need to wait for that use to finish before we issue our copy
-	GpuQueueMask syncMask;
-	if(!useMask.IsEmpty() && options != GBL_WRITE_ONLY_NO_OVERWRITE) // Buffer is currently used on the GPU
-	{
-		syncMask = useMask;
-	}
-
-	// Check if the buffer will still be bound somewhere after the CBs using it finish
-	const u32 useCount = mBuffer->GetUseCount();
-	const u32 boundCount = mBuffer->GetBoundCount();
-
-	const bool isBoundWithoutUse = boundCount > useCount;
-
-	// If a buffer is bound a command buffer, and we're using a transfer buffer to update, warn as only the latest update will persist on the transfer buffer
-	if(isBoundWithoutUse && commandBuffer == nullptr)
-	{
-		if(!canDiscardBuffer)
-		{
-			B3D_LOG(Warning, RenderBackend, "Writing to a buffer '{0}' that is currently bound on a command buffer, without providing an explicit command buffer. Such writes will be queued on the transfer buffer which is submitted before any user command buffers. This means multiple writes will overwrite it each other if not careful.", mName);
-		}
-		else
-		{
-			VulkanBuffer* newBuffer = CreateBuffer(GetVulkanDevice(), mTotalSize, false, true);
-			mBuffer->Destroy();
-			mBuffer = newBuffer;
-		}
-	}
-
-	if(vulkanCommandBuffer->IsInRenderPass())
-		vulkanCommandBuffer->EndRenderPass();
-
-	// Queue copy/update command for the actual write
-	if(stagingBuffer != nullptr)
-		vulkanCommandBuffer->CopyBufferToBuffer(stagingBuffer, mBuffer, 0, offset, length);
-	else // Staging memory
-		vulkanCommandBuffer->UpdateBuffer(mBuffer, (u8*)source, offset, length);
-
-	if(stagingBuffer != nullptr)
-		stagingBuffer->Destroy();
-
-	vulkanCommandBuffer->AddQueueSyncMask(syncMask);
-
-	// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
-	// done automatically before next "normal" command buffer submission.
-}
-
 VkBufferView VulkanGpuBuffer::GetOrCreateView(GpuBufferFormat format) const
 {
 	if(mInformation.Type != GpuBufferType::SimpleStorage || mBuffer == nullptr)
@@ -571,7 +423,7 @@ VkBufferView VulkanGpuBuffer::GetOrCreateView(GpuBufferFormat format) const
 	if(format == BF_UNKNOWN)
 		format = mInformation.SimpleStorage.Format;
 
-	return mBuffer->GetOrCreateView(VulkanUtility::GetBufferFormat(mInformation.SimpleStorage.Format));
+	return mBuffer->GetOrCreateView(VulkanUtility::GetBufferFormat(format));
 }
 
 void VulkanGpuBuffer::RecreateInternalBuffer()

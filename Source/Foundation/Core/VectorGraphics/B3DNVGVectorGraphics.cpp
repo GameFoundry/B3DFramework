@@ -711,7 +711,7 @@ namespace b3d::render
 		renderBuffers.IndexBuffer = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
 
 		const u32 indexBufferSize = indexCount * sizeof(u32);
-		renderBuffers.IndexBuffer->WriteData(0, indexBufferSize, mRawRenderData.Indices.data());
+		GpuBufferUtility::Write(renderBuffers.IndexBuffer, 0, indexBufferSize, mRawRenderData.Indices.data());
 
 		GpuBufferCreateInformation vertexBufferCreateInformation;
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
@@ -722,7 +722,7 @@ namespace b3d::render
 		renderBuffers.VertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
 		const u32 vertexBufferSize = renderBuffers.VertexDescription->GetVertexStride() * vertexCount;
-		renderBuffers.VertexBuffer->WriteData(0, vertexBufferSize, mRawRenderData.Vertices.data());
+		GpuBufferUtility::Write(renderBuffers.VertexBuffer, 0, vertexBufferSize, mRawRenderData.Vertices.data());
 
 		u32 uniformBlockCount = 0;
 		for(const auto& command : mRawRenderData.RenderCommands)

@@ -296,7 +296,7 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 		}
 
 		if(size > 0)
-			mLightBuffer->WriteData(0, size, mVisibleLightData.data(), BWT_DISCARD);
+			GpuBufferUtility::Write(mLightBuffer, 0, size, mVisibleLightData.data(), GpuBufferWriteFlag::Discard);
 	}
 }
 

@@ -762,7 +762,7 @@ ShadowRendering::ShadowRendering(u32 shadowMapSize)
 			0, 2, 3
 		};
 
-		mPlaneIB->WriteData(0, sizeof(indices), indices);
+		GpuBufferUtility::Write(mPlaneIB, 0, sizeof(indices), indices);
 	}
 
 	// Create frustum index and vertex buffers
@@ -781,7 +781,7 @@ ShadowRendering::ShadowRendering(u32 shadowMapSize)
 		indexBufferCreateInformation.Index.Count = 36;
 
 		mFrustumIB = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
-		mFrustumIB->WriteData(0, sizeof(AABox::kCubeIndices), AABox::kCubeIndices);
+		GpuBufferUtility::Write(mFrustumIB, 0, sizeof(AABox::kCubeIndices), AABox::kCubeIndices);
 	}
 }
 
@@ -1867,7 +1867,7 @@ void ShadowRendering::DrawNearFarPlanes(GpuCommandBuffer& commandBuffer, float n
 		{ -1.0f, 1.0f * flipY, far },
 	};
 
-	mPlaneVB->WriteData(0, sizeof(vertices), vertices, BWT_DISCARD);
+	GpuBufferUtility::Write(mPlaneVB, 0, sizeof(vertices), vertices, GpuBufferWriteFlag::Discard);
 
 	// Draw the mesh
 	commandBuffer.SetVertexDescription(mPositionOnlyVertexDescription);
@@ -1881,7 +1881,7 @@ void ShadowRendering::DrawNearFarPlanes(GpuCommandBuffer& commandBuffer, float n
 void ShadowRendering::DrawFrustum(GpuCommandBuffer& commandBuffer, const std::array<Vector3, 8>& corners) const
 {
 	// Update VB with new vertices
-	mFrustumVB->WriteData(0, sizeof(Vector3) * 8, corners.data(), BWT_DISCARD);
+	GpuBufferUtility::Write(mFrustumVB, 0, sizeof(Vector3) * 8, corners.data(), GpuBufferWriteFlag::Discard);
 
 	// Draw the mesh
 	commandBuffer.SetVertexDescription(mPositionOnlyVertexDescription);

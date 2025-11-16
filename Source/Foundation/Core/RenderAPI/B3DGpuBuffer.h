@@ -394,49 +394,6 @@ namespace b3d::render
 		virtual void ReadData(u32 offset, u32 length, void* destination, const SPtr<GpuQueue>& gpuQueue = nullptr) = 0;
 
 		/**
-		 * Writes data into a portion of the buffer from the source memory.
-		 *
-		 * @note	If the buffer cannot be directly mapped by the CPU (i.e. doesn't have the StoreOnCPU or StoreOnCPUWithGPUAccess flags) this will
-		 *			internally create a staging buffer, on which the contents will be copied before being written by the GPU, using the provided command buffer).
-		 *
-		 * @param	offset			Offset in bytes from which to copy the data.
-		 * @param	length			Length of the area you want to copy, in bytes.
-		 * @param	source			Source buffer containing the data to write. Data is read from the start of the buffer
-		 *							(@p offset is only applied to the destination).
-		 * @param	writeFlags		Optional write flags that may affect performance.
-		 * @param	commandBuffer	Command buffer on which to encode the staging buffer copy, in case the buffer is not directly readable. If not provided
-		 *							the operation will be queued on an internal command buffer that will be submitted before any regular command
-		 *							buffer submission.
-		 */
-		virtual void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) = 0;
-
-		/**
-		 * Copies data from a specific portion of the source buffer into a specific portion of this buffer.
-		 *
-		 * @param[in]	srcBuffer			Buffer to copy from.
-		 * @param[in]	srcOffset			Offset into the source buffer to start copying from, in bytes.
-		 * @param[in]	dstOffset			Offset into this buffer to start copying to, in bytes.
-		 * @param[in]	length				Size of the data to copy, in bytes.
-		 * @param[in]	discardWholeBuffer	Specify true if the data in the current buffer can be entirely discarded. This
-		 *									may improve performance.
-		 * @param[in]	commandBuffer		Command buffer to queue the copy operation on. If null, main command buffer is
-		 *									used.
-		 */
-		virtual void CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<render::GpuCommandBuffer>& commandBuffer = nullptr) = 0;
-
-		/**
-		 * Copy data from the provided buffer into this buffer. If buffers are not the same size, smaller size will be used.
-		 *
-		 * @param	source			Hardware buffer to copy from.
-		 * @param	commandBuffer	Command buffer to queue the copy operation on. If null, main command buffer is used.
-		 */
-		virtual void CopyData(GpuBuffer& source, const SPtr<render::GpuCommandBuffer>& commandBuffer = nullptr)
-		{
-			const u32 sizeToCopy = std::min(GetTotalSize(), source.GetTotalSize());
-			CopyData(source, 0, 0, sizeToCopy, true, commandBuffer);
-		}
-
-		/**
 		 * Writes the data into the CPU cached buffer. Buffer must have been created with AllowWriteCachingOnCPU flag. In order
 		 * for the data to actually reach the underlying buffer you must call FlushCache().
 		 */
@@ -531,7 +488,7 @@ namespace b3d::render
 		 * Default flag. If the buffer is currently used by the GPU this will cause a CPU<->GPU sync point as the CPU waits on
 		 * the GPU to finish operations on the buffer.
 		 */
-		Default,
+		Normal = 0,
 
 		/**
 		 * If the buffer is currently being used on the GPU the system will internally allocate new memory for the buffer
@@ -540,7 +497,7 @@ namespace b3d::render
 		 * buffer range, as anything not written by the caller will be undefined. Avoids CPU<->GPU sync points at
 		 * the cost of additional memory being allocated.
 		 */
-		Discard,
+		Discard = 1 << 0,
 
 		/**
 		 * If the buffer is currently being used on the GPU the system will still let you update it. It's up to the
@@ -548,14 +505,14 @@ namespace b3d::render
 		 * required by the low-level render API when doing such an operation (such as issuing memory barriers, flushing
 		 * memory and respecting granularity). Use only when you know what you are doing.
 		 */
-		NoOverwrite
+		NoOverwrite = 1 << 1
 	};
 
 	using GpuBufferWriteFlags = Flags<GpuBufferWriteFlag>;
 	B3D_FLAGS_OPERATORS(GpuBufferWriteFlag);
 
 	/** Provides various utility operations on GpuBuffer. */
-	struct GpuBufferUtility
+	struct B3D_EXPORT GpuBufferUtility
 	{
 		/**
 		 * Creates a staging buffer that can be used for as copy source or destination for the provided buffer.
@@ -583,7 +540,7 @@ namespace b3d::render
 		 *							the operation will be queued on a transfer command buffer that will be submitted just before next regular command
 		 *							buffer submission (or at the latest, at the end of the current frame).
 		 */
-		static void Write(const SPtr<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags writeFlags, SPtr<GpuCommandBuffer> commandBuffer = nullptr);
+		static void Write(const SPtr<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags writeFlags = GpuBufferWriteFlag::Normal, SPtr<GpuCommandBuffer> commandBuffer = nullptr);
 
 		/**
 		 * Reads data from a buffer while accounting for the fact that the buffer might not be directly CPU-readable. Only buffers with

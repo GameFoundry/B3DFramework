@@ -378,7 +378,7 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 		B3D_LOG(Error, Mesh, "Index buffer values are being written out of valid range.");
 	}
 
-	mIndexBuffer->WriteData(0, indicesSize, sourceIndexData, discardEntireBuffer ? BWT_DISCARD : BWT_NORMAL, commandBuffer);
+	GpuBufferUtility::Write(mIndexBuffer, 0, indicesSize, sourceIndexData, discardEntireBuffer ? GpuBufferWriteFlag::Discard : GpuBufferWriteFlag::Normal, commandBuffer);
 
 	// Vertices
 	for(u32 streamIndex = 0; streamIndex <= mVertexDescription->GetLargestStreamIndex(); streamIndex++)
@@ -412,7 +412,7 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 			B3D_LOG(Error, Mesh, "Vertex buffer values for stream \"{0}\" are being written out of valid range.", streamIndex);
 		}
 
-		vertexBuffer->WriteData(0, bufferSize, sourceVertexBufferData, discardEntireBuffer ? BWT_DISCARD : BWT_NORMAL, commandBuffer);
+		GpuBufferUtility::Write(vertexBuffer, 0, bufferSize, sourceVertexBufferData, discardEntireBuffer ? GpuBufferWriteFlag::Discard : GpuBufferWriteFlag::Normal, commandBuffer);
 	}
 
 	if(performUpdateBounds)

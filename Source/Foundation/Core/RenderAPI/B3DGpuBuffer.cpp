@@ -23,6 +23,9 @@ static u32 CalculateUnalignedGpuBufferSize(const GpuBufferInformation& informati
 		return information.SimpleStorage.Count * GpuBuffer::GetFormatSize(information.SimpleStorage.Format);
 	case GpuBufferType::StructuredStorage: 
 		return information.StructuredStorage.Count * information.StructuredStorage.ElementSize;
+	case GpuBufferType::StagingRead:
+	case GpuBufferType::StagingWrite:
+		return information.Staging.Size;
 	}
 
 	B3D_ENSURE(false);
@@ -307,7 +310,9 @@ namespace b3d::render
 		if(!mIsCacheDirty)
 			return;
 
-		WriteData(0, mTotalSize, mCache, BWT_NORMAL);
+		// TODO - This should write to CPU cached buffer directly via map/unmap. But we need a ring buffer to handle usage over multiple frames
+		GpuBufferUtility::Write(std::static_pointer_cast<GpuBuffer>(GetShared()), 0, mTotalSize, mCache);
+
 		mIsCacheDirty = false;
 	}
 
@@ -333,7 +338,8 @@ namespace b3d::render
 
 		if(B3D_ENSURE(mTotalSize == syncPacket->BufferSize))
 		{
-			WriteData(0, syncPacket->BufferSize, syncPacket->BufferData);
+			// TODO - This should write to CPU cached buffer directly via map/unmap. But we need a ring buffer to handle usage over multiple frames
+			GpuBufferUtility::Write(std::static_pointer_cast<GpuBuffer>(GetShared()), 0, syncPacket->BufferSize, syncPacket->BufferData);
 		}
 
 		allocator.Free(syncPacket->BufferData);
@@ -366,7 +372,15 @@ namespace b3d::render
 		const GpuBufferInformation& gpuBufferInformation = buffer->GetInformation();
 		const bool isCPUAccessible = gpuBufferInformation.Type == GpuBufferType::StagingRead || gpuBufferInformation.Type == GpuBufferType::StagingWrite || gpuBufferInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess);
 		const bool supportsGPUWrites = gpuBufferInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
-		const bool canDiscardBuffer = flags.IsSet(GpuBufferWriteFlag::Discard);
+
+		GpuLockOptions options = GBL_WRITE_ONLY_DISCARD_RANGE;
+		if(flags.IsSet(GpuBufferWriteFlag::NoOverwrite))
+			options = GBL_WRITE_ONLY_NO_OVERWRITE;
+		else if(flags.IsSet(GpuBufferWriteFlag::Discard))
+			options = GBL_WRITE_ONLY_DISCARD;
+
+		const bool canDiscardBuffer = flags.IsSet(GpuBufferWriteFlag::Discard) ||
+			(offset == 0 && length == buffer->GetTotalSize());
 
 		// Check is the GPU currently reading or writing from the buffer
 		const GpuQueueMask useMask = buffer->GetUseMask(GpuAccessFlag::Read | GpuAccessFlag::Write);
@@ -385,7 +399,7 @@ namespace b3d::render
 
 			if(shouldMapDirectly)
 			{
-				void* lockedData = buffer->Lock(offset, length, GBL_WRITE_ONLY);
+				void* lockedData = buffer->Lock(offset, length, options);
 				memcpy(lockedData, source, length);
 				buffer->Unlock();
 
@@ -398,9 +412,6 @@ namespace b3d::render
 		// Create a staging buffer
 		SPtr<GpuBuffer> stagingBuffer = CreateStaging(buffer, false);
 
-		if(commandBuffer == nullptr)
-			commandBuffer = buffer->GetDevice().GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer();
-
 		// Copy the source into the staging buffer
 		if(stagingBuffer != nullptr)
 		{
@@ -412,7 +423,7 @@ namespace b3d::render
 
 		// If the buffer is used in any way on the GPU, we need to wait for that use to finish before we issue our copy
 		GpuQueueMask syncMask;
-		if(!useMask.IsEmpty() && !flags.IsSet(GpuBufferWriteFlag::NoOverwrite)) // Buffer is currently used on the GPU
+		if(!useMask.IsEmpty() && options != GBL_WRITE_ONLY_NO_OVERWRITE) // Buffer is currently used on the GPU
 			syncMask = useMask;
 
 		// Check if the buffer will still be bound somewhere after the CBs using it finish
@@ -433,11 +444,10 @@ namespace b3d::render
 		}
 
 		// Queue copy/update command for the actual write
+		if(commandBuffer == nullptr)
+			commandBuffer = buffer->GetDevice().GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer();
+
 		commandBuffer->CopyBufferToBuffer(stagingBuffer, buffer, 0, offset, length);
-
-		if(stagingBuffer != nullptr)
-			stagingBuffer->Destroy();
-
 		commandBuffer->AddQueueSyncMask(syncMask);
 
 		// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead

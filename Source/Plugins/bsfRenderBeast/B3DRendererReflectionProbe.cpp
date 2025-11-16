@@ -68,7 +68,7 @@ void VisibleReflectionProbeData::Update(const SceneInfo& sceneInfo, const Render
 		}
 
 		if(size > 0)
-			mProbeBuffer->WriteData(0, size, mReflProbeData.data(), BWT_DISCARD);
+			GpuBufferUtility::Write(mProbeBuffer, 0, size, mReflProbeData.data(), GpuBufferWriteFlag::Discard);
 	}
 }
 

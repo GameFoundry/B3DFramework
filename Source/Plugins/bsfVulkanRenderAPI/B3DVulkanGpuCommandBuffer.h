@@ -512,8 +512,8 @@ namespace b3d
 			DescriptorSetBindFlags mDescriptorSetsBindState;
 			SPtr<VulkanGpuParameters> mBoundParams;
 
-			VkBuffer mVertexBuffersTemp[BS_MAX_BOUND_VERTEX_BUFFERS]{};
-			VkDeviceSize mVertexBufferOffsetsTemp[BS_MAX_BOUND_VERTEX_BUFFERS]{};
+			VkBuffer mVertexBuffersTemp[B3D_MAX_BOUND_VERTEX_BUFFERS]{};
+			VkDeviceSize mVertexBufferOffsetsTemp[B3D_MAX_BOUND_VERTEX_BUFFERS]{};
 			VkDescriptorSet* mDescriptorSetsTemp;
 			TransitionInfo mTransitionInfoTemp[GQT_COUNT];
 			Vector<VulkanEvent*> mQueuedEvents;
