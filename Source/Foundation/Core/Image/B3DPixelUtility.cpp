@@ -6,7 +6,11 @@
 #include "Math/B3DMath.h"
 #include "Error/B3DException.h"
 #include "Image/B3DTexture.h"
+#include "FileSystem/B3DPath.h"
 #include <nvtt.h>
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "ThirdParty/stb_image_write.h"
 
 using namespace b3d;
 
@@ -3263,4 +3267,162 @@ Vector<SPtr<PixelData>> PixelUtility::GenerateMipmaps(const SPtr<PixelData>& sou
 	}
 
 	return output;
+}
+
+bool PixelUtility::SaveImage(const SPtr<PixelData>& pixelData, const Path& outputPath, ImageFormat format)
+{
+	if (pixelData == nullptr)
+	{
+		B3D_LOG(Error, PixelUtility, "SaveImage failed: pixelData is null");
+		return false;
+	}
+
+	const u32 width = pixelData->GetWidth();
+	const u32 height = pixelData->GetHeight();
+	const u32 depth = pixelData->GetDepth();
+
+	if (width == 0 || height == 0)
+	{
+		B3D_LOG(Error, PixelUtility, "SaveImage failed: Invalid dimensions ({0}x{1})", width, height);
+		return false;
+	}
+
+	if (depth != 1)
+	{
+		B3D_LOG(Error, PixelUtility, "SaveImage failed: 3D textures (depth > 1) are not supported for image export");
+		return false;
+	}
+
+	if (outputPath.IsEmpty())
+	{
+		B3D_LOG(Error, PixelUtility, "SaveImage failed: Output path is empty");
+		return false;
+	}
+
+	// Validate pixel format support
+	PixelFormat pixelFormat = pixelData->GetFormat();
+	u32 componentCount = 0;
+	bool needsConversion = false;
+
+	switch (pixelFormat)
+	{
+	case PF_R8:
+		componentCount = 1;
+		break;
+	case PF_RGB8:
+		componentCount = 3;
+		break;
+	case PF_BGR8:
+		componentCount = 3;
+		needsConversion = true;
+		break;
+	case PF_RGBA8:
+		componentCount = 4;
+		break;
+	case PF_BGRA8:
+		componentCount = 4;
+		needsConversion = true;
+		break;
+	default:
+		B3D_LOG(Error, PixelUtility, "SaveImage failed: Unsupported pixel format '{0}'. Only 8-bit normalized formats are supported (R8, RGB8, BGR8, RGBA8, BGRA8).",
+			GetFormatName(pixelFormat));
+		return false;
+	}
+
+	// Get source data
+	u8* const sourceData = pixelData->GetData();
+	if (sourceData == nullptr)
+	{
+		B3D_LOG(Error, PixelUtility, "SaveImage failed: Pixel data buffer is null");
+		return false;
+	}
+
+	const u32 rowPitch = pixelData->GetRowPitch();
+
+	// Prepare data for export (convert BGR to RGB if needed)
+	u8* exportData = sourceData;
+	u8* tempBuffer = nullptr;
+
+	if (needsConversion)
+	{
+		// Allocate temporary buffer for BGR -> RGB conversion
+		u32 dataSize = height * rowPitch;
+		tempBuffer = (u8*)B3DStackAllocate(dataSize);
+
+		// Convert BGR/BGRA to RGB/RGBA
+		for (u32 y = 0; y < height; y++)
+		{
+			u8* srcRow = sourceData + y * rowPitch;
+			u8* dstRow = tempBuffer + y * rowPitch;
+
+			for (u32 x = 0; x < width; x++)
+			{
+				u32 srcOffset = x * componentCount;
+				u32 dstOffset = x * componentCount;
+
+				// Swap R and B channels
+				dstRow[dstOffset + 0] = srcRow[srcOffset + 2]; // R = B
+				dstRow[dstOffset + 1] = srcRow[srcOffset + 1]; // G = G
+				dstRow[dstOffset + 2] = srcRow[srcOffset + 0]; // B = R
+
+				// Copy alpha if present
+				if (componentCount == 4)
+					dstRow[dstOffset + 3] = srcRow[srcOffset + 3]; // A = A
+			}
+		}
+
+		exportData = tempBuffer;
+	}
+
+	// Set correct file extension based on format
+	Path finalPath = outputPath;
+	switch (format)
+	{
+	case ImageFormat::PNG:
+		finalPath.SetExtension("png");
+		break;
+	case ImageFormat::JPG:
+		finalPath.SetExtension("jpg");
+		break;
+	case ImageFormat::BMP:
+		finalPath.SetExtension("bmp");
+		break;
+	case ImageFormat::TGA:
+		finalPath.SetExtension("tga");
+		break;
+	}
+
+	// Convert path to string for stb_image_write
+	String pathString = finalPath.ToString();
+
+	// Call appropriate stb_image_write function
+	int result = 0;
+	switch (format)
+	{
+	case ImageFormat::PNG:
+		result = stbi_write_png(pathString.c_str(), (int)width, (int)height, (int)componentCount, exportData, (int)rowPitch);
+		break;
+	case ImageFormat::JPG:
+		result = stbi_write_jpg(pathString.c_str(), (int)width, (int)height, (int)componentCount, exportData, 90);
+		break;
+	case ImageFormat::BMP:
+		result = stbi_write_bmp(pathString.c_str(), (int)width, (int)height, (int)componentCount, exportData);
+		break;
+	case ImageFormat::TGA:
+		result = stbi_write_tga(pathString.c_str(), (int)width, (int)height, (int)componentCount, exportData);
+		break;
+	}
+
+	// Clean up temporary buffer if allocated
+	if (tempBuffer != nullptr)
+		B3DStackFree(tempBuffer);
+
+	// Check result
+	if (result == 0)
+	{
+		B3D_LOG(Error, PixelUtility, "SaveImage failed: Unable to write image file to '{0}'", pathString);
+		return false;
+	}
+
+	return true;
 }

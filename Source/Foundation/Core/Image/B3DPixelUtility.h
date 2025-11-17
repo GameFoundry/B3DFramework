@@ -85,6 +85,15 @@ namespace b3d
 		Linear /*< Box filter is applied, averaging nearby pixels. */
 	};
 
+	/**	Supported image file formats for export. */
+	enum class B3D_SCRIPT_EXPORT() ImageFormat
+	{
+		PNG, /*< Portable Network Graphics (lossless, compressed). */
+		JPG, /*< JPEG (lossy, quality 90). */
+		BMP, /*< Bitmap (uncompressed). */
+		TGA  /*< Truevision TGA (run-length encoding). */
+	};
+
 	/**	Utility methods for converting and managing pixel data and formats. */
 	class B3D_EXPORT PixelUtility
 	{
@@ -325,6 +334,21 @@ namespace b3d
 		/** Converts pixel data in sRGB space to one in linear space. Only converts the RGB components. */
 		B3D_SCRIPT_EXPORT()
 		static SPtr<PixelData> SRGBToLinear(const SPtr<PixelData>& input);
+
+		/**
+		 * Saves pixel data to an image file.
+		 *
+		 * @param pixelData		Pixel data to save. Must be non-null with valid dimensions.
+		 * @param outputPath	Output file path. Extension will be set based on format.
+		 * @param format		Image format to save as (PNG, JPG, BMP, TGA).
+		 *
+		 * @return				True if save succeeded, false on error (with log message).
+		 *
+		 * @note				Only supports 8-bit normalized formats: R8, RGB8, BGR8, RGBA8, BGRA8.
+		 *						Compressed, float, depth, and integer formats will return false.
+		 */
+		B3D_SCRIPT_EXPORT()
+		static bool SaveImage(const SPtr<PixelData>& pixelData, const Path& outputPath, ImageFormat format);
 	};
 
 	/** @} */
