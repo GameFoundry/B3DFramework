@@ -32,44 +32,43 @@ void SetSamplerState(const SPtr<GpuParameters>& params, const String& name, cons
 	}
 }
 
-DownsampleParamDef gDownsampleParamDef;
+DownsampleUniformDefinition gDownsampleUniformDefinition;
 
-void DownsampleMat::Initialize()
+void DownsampleMaterial::Initialize()
 {
-	mParamBuffer = gDownsampleParamDef.CreateBuffer();
-
-	if(mGPUParameters->HasUniformBuffer("Input"))
-		mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
-
-	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTexture);
+	mGPUParameters->TryGetUniformBufferParameter("Input", mUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
 }
 
-void DownsampleMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output)
+void DownsampleMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	// Set parameters
-	mInputTexture.Set(input);
-
+	// Populate parameter buffer
+	GpuBufferSuballocation parameterBuffer = gDownsampleUniformDefinition.AllocateTransient();
 	const TextureProperties& rtProps = input->GetProperties();
 
 	bool MSAA = mVariationParameters.GetI32("MSAA") > 0;
 	if(MSAA)
 	{
-		gDownsampleParamDef.gOffsets.Set(mParamBuffer, Vector2(-1.0f, -1.0f));
-		gDownsampleParamDef.gOffsets.Set(mParamBuffer, Vector2(1.0f, -1.0f));
-		gDownsampleParamDef.gOffsets.Set(mParamBuffer, Vector2(-1.0f, 1.0f));
-		gDownsampleParamDef.gOffsets.Set(mParamBuffer, Vector2(1.0f, 1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(parameterBuffer, Vector2(-1.0f, -1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(parameterBuffer, Vector2(1.0f, -1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(parameterBuffer, Vector2(-1.0f, 1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(parameterBuffer, Vector2(1.0f, 1.0f));
 	}
 	else
 	{
 		Vector2 invTextureSize(1.0f / rtProps.Width, 1.0f / rtProps.Height);
 
-		gDownsampleParamDef.gOffsets.Set(mParamBuffer, invTextureSize * Vector2(-1.0f, -1.0f));
-		gDownsampleParamDef.gOffsets.Set(mParamBuffer, invTextureSize * Vector2(1.0f, -1.0f));
-		gDownsampleParamDef.gOffsets.Set(mParamBuffer, invTextureSize * Vector2(-1.0f, 1.0f));
-		gDownsampleParamDef.gOffsets.Set(mParamBuffer, invTextureSize * Vector2(1.0f, 1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(parameterBuffer, invTextureSize * Vector2(-1.0f, -1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(parameterBuffer, invTextureSize * Vector2(1.0f, -1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(parameterBuffer, invTextureSize * Vector2(-1.0f, 1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(parameterBuffer, invTextureSize * Vector2(1.0f, 1.0f));
 	}
+
+	// Set parameters
+	mUniformBufferParameter.Set(parameterBuffer);
+	mInputTextureParameter.Set(input);
 
 	commandBuffer.BeginRenderPass(RenderPassCreateInformation(output, mGPUParameters, RT_DEPTH_STENCIL));
 
@@ -83,7 +82,7 @@ void DownsampleMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>
 	commandBuffer.EndRenderPass();
 }
 
-PooledRenderTextureCreateInformation DownsampleMat::GetOutputDesc(const SPtr<Texture>& target)
+PooledRenderTextureCreateInformation DownsampleMaterial::GetOutputDesc(const SPtr<Texture>& target)
 {
 	const TextureProperties& rtProps = target->GetProperties();
 
@@ -93,7 +92,7 @@ PooledRenderTextureCreateInformation DownsampleMat::GetOutputDesc(const SPtr<Tex
 	return PooledRenderTextureCreateInformation::Create2D(rtProps.Format, width, height, TU_RENDERTARGET);
 }
 
-DownsampleMat* DownsampleMat::GetVariation(u32 quality, bool msaa)
+DownsampleMaterial* DownsampleMaterial::GetVariation(u32 quality, bool msaa)
 {
 	if(quality == 0)
 	{

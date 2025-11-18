@@ -58,7 +58,7 @@ namespace b3d
 			u32 mSampleCount;
 			GBufferParameterBinding mGBufferParams;
 
-			GpuParameterBuffer mLightBufferParam;
+			GpuParameterStorageBuffer mLightBufferParam;
 			GpuParameterStorageTexture mOutputTextureParam;
 
 			GpuParameterSampledTexture mInColorTextureParam;
@@ -157,7 +157,7 @@ namespace b3d
 			static constexpr u32 kNumThreads = 128;
 
 			GpuParameterStorageTexture mOutputTextureParam;
-			GpuParameterBuffer mOutputBufferParam;
+			GpuParameterStorageBuffer mOutputBufferParam;
 			SPtr<GpuBuffer> mParamBuffer;
 		};
 

@@ -171,7 +171,7 @@ namespace b3d
 			GpuParameterBinding PerCameraBinding;
 
 			/** Binding spot for the buffer containing instance id -> particle index mapping. */
-			GpuParameterBuffer IndicesBuffer;
+			GpuParameterStorageBuffer IndicesBuffer;
 
 			/** Optional texture input for the depth buffer. */
 			GpuParameterSampledTexture DepthInputTexture;

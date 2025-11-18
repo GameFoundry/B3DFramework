@@ -1975,9 +1975,9 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 			// Downsample some more
 			for(u32 i = 0; i < 5; i++)
 			{
-				DownsampleMat* downsampleMat = DownsampleMat::GetVariation(1, false);
+				DownsampleMaterial* downsampleMat = DownsampleMaterial::GetVariation(1, false);
 				SPtr<PooledRenderTexture> downsampledLuminance =
-					resPool.Get(DownsampleMat::GetOutputDesc(downsampleInput));
+					resPool.Get(DownsampleMaterial::GetOutputDesc(downsampleInput));
 
 				downsampleMat->Execute(commandBuffer, downsampleInput, downsampledLuminance->RenderTexture);
 				downsampleInput = downsampledLuminance->Texture;
@@ -2502,9 +2502,9 @@ void RCNodeHalfSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 
 	// Downsample scene
 	const bool msaa = viewProps.Target.NumSamples > 1;
-	DownsampleMat* downsampleMat = DownsampleMat::GetVariation(1, msaa);
+	DownsampleMaterial* downsampleMat = DownsampleMaterial::GetVariation(1, msaa);
 
-	Output = GetGpuResourcePool().Get(DownsampleMat::GetOutputDesc(input));
+	Output = GetGpuResourcePool().Get(DownsampleMaterial::GetOutputDesc(input));
 
 	downsampleMat->Execute(*inputs.ActiveCommandBuffer, input, Output->RenderTexture);
 }
@@ -2542,10 +2542,10 @@ void RCNodeSceneColorDownsamples::Render(const RenderCompositorNodeInputs& input
 	{
 		Output[0] = halfSceneColorNode->Output;
 
-		DownsampleMat* downsampleMat = DownsampleMat::GetVariation(1, false);
+		DownsampleMaterial* downsampleMat = DownsampleMaterial::GetVariation(1, false);
 		for(u32 i = 1; i < AvailableDownsamples; i++)
 		{
-			Output[i] = resPool.Get(DownsampleMat::GetOutputDesc(Output[i - 1]->Texture));
+			Output[i] = resPool.Get(DownsampleMaterial::GetOutputDesc(Output[i - 1]->Texture));
 			downsampleMat->Execute(*inputs.ActiveCommandBuffer, Output[i - 1]->Texture, Output[i]->RenderTexture);
 		}
 	}

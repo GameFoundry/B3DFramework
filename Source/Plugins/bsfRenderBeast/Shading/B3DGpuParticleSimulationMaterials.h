@@ -166,8 +166,8 @@ namespace b3d { namespace render
 		AABox Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& indices, u32 numParticles);
 
 	private:
-		GpuParameterBuffer mParticleIndicesParam;
-		GpuParameterBuffer mOutputParam;
+		GpuParameterStorageBuffer mParticleIndicesParam;
+		GpuParameterStorageBuffer mOutputParam;
 		GpuParameterSampledTexture mPosAndTimeTexParam;
 		SPtr<GpuBuffer> mInputBuffer;
 	};
@@ -216,9 +216,9 @@ namespace b3d { namespace render
 		u32 Execute(GpuCommandBuffer& commandBuffer, const GpuParticleSystem& system, u32 systemIdx, const Vector3& viewOrigin, u32 offset, const SPtr<GpuBuffer>& outKeys, const SPtr<GpuBuffer>& outIndices);
 
 	private:
-		GpuParameterBuffer mInputIndicesParam;
-		GpuParameterBuffer mOutputKeysParam;
-		GpuParameterBuffer mOutputIndicesParam;
+		GpuParameterStorageBuffer mInputIndicesParam;
+		GpuParameterStorageBuffer mOutputKeysParam;
+		GpuParameterStorageBuffer mOutputIndicesParam;
 		GpuParameterSampledTexture mPosAndTimeTexParam;
 		SPtr<GpuBuffer> mInputBuffer;
 	};

@@ -84,10 +84,10 @@ namespace b3d
 			float MaterialAnimationTime = 0.0f;
 
 			/** Shader parameter binding for the bone matrix buffer. */
-			TGpuParameterBuffer<true> BoneMatrixBufferParameter;
+			TGpuParameterStorageBuffer<true> BoneMatrixBufferParameter;
 
 			/** Shader parameter binding for the previous frame's bone matrix buffer. */
-			TGpuParameterBuffer<true> PreviousBoneMatrixBufferParameter;
+			TGpuParameterStorageBuffer<true> PreviousBoneMatrixBufferParameter;
 
 			/** Version of the morph shape vertices in the buffer. */
 			mutable u32 MorphShapeVersion;

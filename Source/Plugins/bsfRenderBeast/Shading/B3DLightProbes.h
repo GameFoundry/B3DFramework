@@ -154,8 +154,8 @@ namespace b3d
 			GpuParameterSampledTexture mParamSkyIrradianceTex;
 			GpuParameterSampledTexture mParamAmbientOcclusionTex;
 			GpuParameterSampledTexture mParamSHCoeffsTexture;
-			GpuParameterBuffer mParamTetrahedraBuffer;
-			GpuParameterBuffer mParamTetFacesBuffer;
+			GpuParameterStorageBuffer mParamTetrahedraBuffer;
+			GpuParameterStorageBuffer mParamTetFacesBuffer;
 			bool mSkyOnly;
 		};
 

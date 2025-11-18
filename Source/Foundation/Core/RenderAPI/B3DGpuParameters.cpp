@@ -215,10 +215,17 @@ void TGpuParameters<IsRenderProxy>::GetStorageTextureParameter(const StringView&
 }
 
 template <bool IsRenderProxy>
-void TGpuParameters<IsRenderProxy>::GetStorageBufferParameter(const StringView& name, TGpuParameterBuffer<IsRenderProxy>& output) const
+void TGpuParameters<IsRenderProxy>::GetStorageBufferParameter(const StringView& name, TGpuParameterStorageBuffer<IsRenderProxy>& output) const
 {
 	if(!TryGetStorageBufferParameter(name, output))
-		B3D_LOG(Warning, RenderBackend, "Cannot find buffer parameter with the name: '{0}'", name);
+		B3D_LOG(Warning, RenderBackend, "Cannot find storage buffer parameter with the name: '{0}'", name);
+}
+
+template <bool IsRenderProxy>
+void TGpuParameters<IsRenderProxy>::GetUniformBufferParameter(const StringView& name, TGpuParameterUniformBuffer<IsRenderProxy>& output) const
+{
+	if(!TryGetUniformBufferParameter(name, output))
+		B3D_LOG(Warning, RenderBackend, "Cannot find uniform buffer parameter with the name: '{0}'", name);
 }
 
 template <bool IsRenderProxy>
@@ -286,16 +293,30 @@ bool TGpuParameters<IsRenderProxy>::TryGetStorageTextureParameter(const StringVi
 }
 
 template <bool IsRenderProxy>
-bool TGpuParameters<IsRenderProxy>::TryGetStorageBufferParameter(const StringView& name, TGpuParameterBuffer<IsRenderProxy>& output) const
+bool TGpuParameters<IsRenderProxy>::TryGetStorageBufferParameter(const StringView& name, TGpuParameterStorageBuffer<IsRenderProxy>& output) const
 {
 	const GpuParameterBinding binding = mParameterLayout->GetBinding(name);
 	if (!binding.IsValid())
 	{
-		output = TGpuParameterBuffer<IsRenderProxy>(GpuParameterBinding(), nullptr);
+		output = TGpuParameterStorageBuffer<IsRenderProxy>(GpuParameterBinding(), nullptr);
 		return false;
 	}
 
-	output = TGpuParameterBuffer<IsRenderProxy>(binding, GetSelf());
+	output = TGpuParameterStorageBuffer<IsRenderProxy>(binding, GetSelf());
+	return true;
+}
+
+template <bool IsRenderProxy>
+bool TGpuParameters<IsRenderProxy>::TryGetUniformBufferParameter(const StringView& name, TGpuParameterUniformBuffer<IsRenderProxy>& output) const
+{
+	const GpuParameterBinding binding = mParameterLayout->GetBinding(name);
+	if (!binding.IsValid())
+	{
+		output = TGpuParameterUniformBuffer<IsRenderProxy>(GpuParameterBinding(), nullptr);
+		return false;
+	}
+
+	output = TGpuParameterUniformBuffer<IsRenderProxy>(binding, GetSelf());
 	return true;
 }
 

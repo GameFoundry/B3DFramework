@@ -122,9 +122,9 @@ namespace b3d
 			GpuParameterSampledTexture ReflectionProbeCubemapsTexParam;
 
 			GpuParameterSampledTexture PreintegratedEnvBrdfParam;
-			GpuParameterBuffer ReflectionProbesParam;
+			GpuParameterStorageBuffer ReflectionProbesParam;
 
-			GpuParameterBuffer ReflectionProbeIndicesParam;
+			GpuParameterStorageBuffer ReflectionProbeIndicesParam;
 			GpuParameterBinding ReflProbeParamBindings;
 
 			// Only utilized when standard forward rendering is used

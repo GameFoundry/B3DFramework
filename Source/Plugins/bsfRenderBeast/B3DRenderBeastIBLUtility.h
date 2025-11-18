@@ -158,7 +158,7 @@ namespace b3d
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
 			GpuParameterSampledTexture mInputTexture;
-			GpuParameterBuffer mOutputBuffer;
+			GpuParameterStorageBuffer mOutputBuffer;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(IrradianceReduceSHParamDef)
@@ -210,7 +210,7 @@ namespace b3d
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
-			GpuParameterBuffer mInputBuffer;
+			GpuParameterStorageBuffer mInputBuffer;
 			GpuParameterStorageTexture mOutputTexture;
 		};
 

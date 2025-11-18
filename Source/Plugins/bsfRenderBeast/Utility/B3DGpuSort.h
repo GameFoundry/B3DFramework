@@ -50,7 +50,7 @@ namespace b3d
 			 */
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& outputCounts);
 
-			GpuParameterBuffer MOutputParam;
+			GpuParameterStorageBuffer MOutputParam;
 		};
 
 		/**
@@ -78,8 +78,8 @@ namespace b3d
 			 */
 			void Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputKeys, const SPtr<GpuBuffer>& outputCounts);
 
-			GpuParameterBuffer MInputKeysParam;
-			GpuParameterBuffer MOutputCountsParam;
+			GpuParameterStorageBuffer MInputKeysParam;
+			GpuParameterStorageBuffer MOutputCountsParam;
 		};
 
 		/**
@@ -105,8 +105,8 @@ namespace b3d
 			 */
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputCounts, const SPtr<GpuBuffer>& outputOffsets);
 
-			GpuParameterBuffer MInputCountsParam;
-			GpuParameterBuffer MOutputOffsetsParam;
+			GpuParameterStorageBuffer MInputCountsParam;
+			GpuParameterStorageBuffer MOutputOffsetsParam;
 		};
 
 		/**
@@ -137,11 +137,11 @@ namespace b3d
 			 */
 			void Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputOffsets, const GpuSortBuffers& buffers, u32 inputBufferIdx);
 
-			GpuParameterBuffer MInputOffsetsBufferParam;
-			GpuParameterBuffer MInputKeysBufferParam;
-			GpuParameterBuffer MInputValuesBufferParam;
-			GpuParameterBuffer MOutputKeysBufferParam;
-			GpuParameterBuffer MOutputValuesBufferParam;
+			GpuParameterStorageBuffer MInputOffsetsBufferParam;
+			GpuParameterStorageBuffer MInputKeysBufferParam;
+			GpuParameterStorageBuffer MInputValuesBufferParam;
+			GpuParameterStorageBuffer MOutputKeysBufferParam;
+			GpuParameterStorageBuffer MOutputValuesBufferParam;
 		};
 
 		/**

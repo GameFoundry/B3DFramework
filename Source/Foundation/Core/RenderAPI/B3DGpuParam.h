@@ -14,6 +14,11 @@
 #include "Math/B3DVector4I.h"
 #include "Image/B3DColor.h"
 
+namespace b3d::render
+{
+	class GpuBufferSuballocation;
+}
+
 namespace b3d
 {
 	/** @addtogroup Implementation
@@ -230,7 +235,7 @@ namespace b3d
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_EXPORT TGpuParameterBuffer
+	class B3D_EXPORT TGpuParameterStorageBuffer
 	{
 	private:
 		friend class GpuParameters;
@@ -240,14 +245,50 @@ namespace b3d
 		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 	public:
-		TGpuParameterBuffer();
-		TGpuParameterBuffer(const GpuParameterBinding& binding, const GpuParamsType& parent);
+		TGpuParameterStorageBuffer();
+		TGpuParameterStorageBuffer(const GpuParameterBinding& binding, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::Set */
 		void Set(const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) const;
 
 		/** @copydoc TGpuDataParam::Get */
 		BufferType Get(u32 arrayIndex = 0) const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const std::nullptr_t& nullval) const
+		{
+			return !mBinding.IsValid();
+		}
+
+	protected:
+		GpuParamsType mParent;
+		GpuParameterBinding mBinding;
+	};
+
+	/** @copydoc TGpuParameterPrimitive */
+	template <bool IsRenderProxy>
+	class B3D_EXPORT TGpuParameterUniformBuffer
+	{
+	private:
+		friend class GpuParameters;
+		friend class render::GpuParameters;
+
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, IsRenderProxy>>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+
+	public:
+		TGpuParameterUniformBuffer();
+		TGpuParameterUniformBuffer(const GpuParameterBinding& binding, const GpuParamsType& parent);
+
+		/** @copydoc TGpuDataParam::Set */
+		void Set(const BufferType& buffer) const;
+
+		/** @copydoc TGpuDataParam::Set */
+		template<bool Condition = IsRenderProxy, std::enable_if_t<Condition, i32> = 0>
+		void Set(const render::GpuBufferSuballocation& bufferSuballocation) const;
+
+		/** @copydoc TGpuDataParam::Get */
+		BufferType Get() const;
 
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
@@ -315,7 +356,8 @@ namespace b3d
 	typedef TGpuParameterPrimitive<Color, false> GpuParameterColor;
 
 	typedef TGpuParameterStruct<false> GpuParameterStruct;
-	typedef TGpuParameterBuffer<false> GpuParameterBuffer;
+	typedef TGpuParameterStorageBuffer<false> GpuParameterStorageBuffer;
+	typedef TGpuParameterUniformBuffer<false> GpuParameterUniformBuffer;
 	typedef TGpuParameterSampler<false> GpuParameterSampler;
 	typedef TGpuParameterSampledTexture<false> GpuParameterSampledTexture;
 	typedef TGpuParameterStorageTexture<false> GpuParameterStorageTexture;
@@ -340,7 +382,8 @@ namespace b3d
 		typedef TGpuParameterPrimitive<Color, true> GpuParameterColor;
 
 		typedef TGpuParameterStruct<true> GpuParameterStruct;
-		typedef TGpuParameterBuffer<true> GpuParameterBuffer;
+		typedef TGpuParameterStorageBuffer<true> GpuParameterStorageBuffer;
+		typedef TGpuParameterUniformBuffer<true> GpuParameterUniformBuffer;
 		typedef TGpuParameterSampler<true> GpuParameterSampler;
 		typedef TGpuParameterSampledTexture<true> GpuParameterSampledTexture;
 		typedef TGpuParameterStorageTexture<true> GpuParameterStorageTexture;

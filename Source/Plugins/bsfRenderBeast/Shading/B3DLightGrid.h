@@ -82,15 +82,15 @@ namespace b3d
 			void GetOutputs(SPtr<GpuBuffer>& lightsLLHeads, SPtr<GpuBuffer>& lightsLL, SPtr<GpuBuffer>& probesLLHeads, SPtr<GpuBuffer>& probesLL) const;
 
 		private:
-			GpuParameterBuffer mLightBufferParam;
-			GpuParameterBuffer mLightsCounterParam;
-			GpuParameterBuffer mLightsLLHeadsParam;
-			GpuParameterBuffer mLightsLLParam;
+			GpuParameterStorageBuffer mLightBufferParam;
+			GpuParameterStorageBuffer mLightsCounterParam;
+			GpuParameterStorageBuffer mLightsLLHeadsParam;
+			GpuParameterStorageBuffer mLightsLLParam;
 
-			GpuParameterBuffer mProbesBufferParam;
-			GpuParameterBuffer mProbesCounterParam;
-			GpuParameterBuffer mProbesLLHeadsParam;
-			GpuParameterBuffer mProbesLLParam;
+			GpuParameterStorageBuffer mProbesBufferParam;
+			GpuParameterStorageBuffer mProbesCounterParam;
+			GpuParameterStorageBuffer mProbesLLHeadsParam;
+			GpuParameterStorageBuffer mProbesLLParam;
 
 			SPtr<GpuBuffer> mLightsCounter;
 			SPtr<GpuBuffer> mLightsLLHeads;
@@ -123,19 +123,19 @@ namespace b3d
 			void GetOutputs(SPtr<GpuBuffer>& gridLightOffsetsAndSize, SPtr<GpuBuffer>& gridLightIndices, SPtr<GpuBuffer>& gridProbeOffsetsAndSize, SPtr<GpuBuffer>& gridProbeIndices) const;
 
 		private:
-			GpuParameterBuffer mLightsLLHeadsParam;
-			GpuParameterBuffer mLightsLLParam;
+			GpuParameterStorageBuffer mLightsLLHeadsParam;
+			GpuParameterStorageBuffer mLightsLLParam;
 
-			GpuParameterBuffer mProbesLLHeadsParam;
-			GpuParameterBuffer mProbesLLParam;
+			GpuParameterStorageBuffer mProbesLLHeadsParam;
+			GpuParameterStorageBuffer mProbesLLParam;
 
-			GpuParameterBuffer mGridDataCounterParam;
+			GpuParameterStorageBuffer mGridDataCounterParam;
 
-			GpuParameterBuffer mGridLightOffsetAndSizeParam;
-			GpuParameterBuffer mGridLightIndicesParam;
+			GpuParameterStorageBuffer mGridLightOffsetAndSizeParam;
+			GpuParameterStorageBuffer mGridLightIndicesParam;
 
-			GpuParameterBuffer mGridProbeOffsetAndSizeParam;
-			GpuParameterBuffer mGridProbeIndicesParam;
+			GpuParameterStorageBuffer mGridProbeOffsetAndSizeParam;
+			GpuParameterStorageBuffer mGridProbeIndicesParam;
 
 			SPtr<GpuBuffer> mGridDataCounter;
 

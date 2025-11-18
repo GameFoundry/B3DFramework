@@ -19,14 +19,14 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_UNIFORM_BUFFER_BEGIN(DownsampleParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(DownsampleUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Vector2, gOffsets, 4)
 		B3D_UNIFORM_BUFFER_END
 
-		extern DownsampleParamDef gDownsampleParamDef;
+		extern DownsampleUniformDefinition gDownsampleUniformDefinition;
 
 		/** Shader that downsamples a texture to half its size. */
-		class DownsampleMat : public RendererMaterial<DownsampleMat>
+		class DownsampleMaterial : public RendererMaterial<DownsampleMaterial>
 		{
 			RMAT_DEF("PPDownsample.bsl");
 
@@ -42,7 +42,7 @@ namespace b3d
 			};
 
 		public:
-			DownsampleMat() = default;
+			DownsampleMaterial() = default;
 			void Initialize() override;
 
 			/** Renders the post-process effect with the provided parameters. */
@@ -52,11 +52,11 @@ namespace b3d
 			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
 
 			/** Returns the downsample material variation matching the provided parameters. */
-			static DownsampleMat* GetVariation(u32 quality, bool msaa);
+			static DownsampleMaterial* GetVariation(u32 quality, bool msaa);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-			GpuParameterSampledTexture mInputTexture;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mInputTextureParameter;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptHistogramParamDef)

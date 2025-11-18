@@ -329,7 +329,10 @@ namespace b3d
 		void GetStorageTextureParameter(const StringView& name, TGpuParameterStorageTexture<IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetStorageBufferParameter(const StringView& name, TGpuParameterBuffer<IsRenderProxy>& output) const;
+		void GetStorageBufferParameter(const StringView& name, TGpuParameterStorageBuffer<IsRenderProxy>& output) const;
+
+		/** @copydoc GetParameter */
+		void GetUniformBufferParameter(const StringView& name, TGpuParameterUniformBuffer<IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
 		void GetSamplerStateParameter(const StringView& name, TGpuParameterSampler<IsRenderProxy>& output) const;
@@ -347,7 +350,10 @@ namespace b3d
 		bool TryGetStorageTextureParameter(const StringView& name, TGpuParameterStorageTexture<IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetStorageBufferParameter(const StringView& name, TGpuParameterBuffer<IsRenderProxy>& output) const;
+		bool TryGetStorageBufferParameter(const StringView& name, TGpuParameterStorageBuffer<IsRenderProxy>& output) const;
+
+		/** @copydoc TryGetParameter */
+		bool TryGetUniformBufferParameter(const StringView& name, TGpuParameterUniformBuffer<IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
 		bool TryGetSamplerStateParameter(const StringView& name, TGpuParameterSampler<IsRenderProxy>& output) const;
@@ -465,7 +471,7 @@ namespace b3d
 		 */
 		void SetStorageBuffer(const StringView& name, const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation())
 		{
-			TGpuParameterBuffer<IsRenderProxy> param;
+			TGpuParameterStorageBuffer<IsRenderProxy> param;
 			GetStorageBufferParameter(name, param);
 			param.Set(buffer, arrayIndex, view);
 		}

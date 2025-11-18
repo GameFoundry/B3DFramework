@@ -119,19 +119,19 @@ namespace b3d
 			 * Parameter to which to bind a buffer containing light grid offsets and size, per grid cell. Used for forward
 			 * rendering.
 			 */
-			GpuParameterBuffer GridLightOffsetsAndSizeParam;
+			GpuParameterStorageBuffer GridLightOffsetsAndSizeParam;
 
 			/** Parameter to which to bind a buffer containing all light indices, as mapped by grid offsets & size. */
-			GpuParameterBuffer GridLightIndicesParam;
+			GpuParameterStorageBuffer GridLightIndicesParam;
 
 			/** Parameter to which to bind light buffer used for forward rendering. */
-			GpuParameterBuffer LightsBufferParam;
+			GpuParameterStorageBuffer LightsBufferParam;
 
 			/**
 			 * Parameter to which to bind a buffer containing reflection probe grid offsets and size, per grid cell. Used for
 			 * forward rendering.
 			 */
-			GpuParameterBuffer GridProbeOffsetsAndSizeParam;
+			GpuParameterStorageBuffer GridProbeOffsetsAndSizeParam;
 
 			/**
 			 * Binding for a parameter block containing a list of lights influencing this object. Only used when standard
