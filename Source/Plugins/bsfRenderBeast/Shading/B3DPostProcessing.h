@@ -105,19 +105,19 @@ namespace b3d
 			static const u32 kLoopCountY = 8;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptHistogramReduceParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptHistogramReduceUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(int, gThreadGroupCount)
 		B3D_UNIFORM_BUFFER_END
 
-		extern EyeAdaptHistogramReduceParamDef gEyeAdaptHistogramReduceParamDef;
+		extern EyeAdaptHistogramReduceUniformDefinition gEyeAdaptHistogramReduceUniformDefinition;
 
 		/** Shader that reduces the luminance histograms created by EyeAdaptHistogramMat into a single histogram. */
-		class EyeAdaptHistogramReduceMat : public RendererMaterial<EyeAdaptHistogramReduceMat>
+		class EyeAdaptHistogramReduceMaterial : public RendererMaterial<EyeAdaptHistogramReduceMaterial>
 		{
 			RMAT_DEF("PPEyeAdaptHistogramReduce.bsl");
 
 		public:
-			EyeAdaptHistogramReduceMat() = default;
+			EyeAdaptHistogramReduceMaterial() = default;
 			void Initialize() override;
 
 			/** Prepares GPU parameters for rendering. Must be called before Execute(). */
@@ -130,25 +130,24 @@ namespace b3d
 			static PooledRenderTextureCreateInformation GetOutputDesc();
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-
-			GpuParameterSampledTexture mHistogramTex;
-			GpuParameterSampledTexture mEyeAdaptationTex;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mHistogramTextureParameter;
+			GpuParameterSampledTexture mEyeAdaptationTextureParameter;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptationParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptationUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Vector4, gEyeAdaptationParams, 3)
 		B3D_UNIFORM_BUFFER_END
 
-		extern EyeAdaptationParamDef gEyeAdaptationParamDef;
+		extern EyeAdaptationUniformDefinition gEyeAdaptationUniformDefinition;
 
 		/** Shader that computes the eye adaptation value based on scene luminance. */
-		class EyeAdaptationMat : public RendererMaterial<EyeAdaptationMat>
+		class EyeAdaptationMaterial : public RendererMaterial<EyeAdaptationMaterial>
 		{
 			RMAT_DEF_CUSTOMIZED("PPEyeAdaptation.bsl");
 
 		public:
-			EyeAdaptationMat() = default;
+			EyeAdaptationMaterial() = default;
 			void Initialize() override;
 
 			/** Prepares GPU parameters before rendering. */
@@ -161,13 +160,13 @@ namespace b3d
 			static PooledRenderTextureCreateInformation GetOutputDesc();
 
 			/**
-			 * Populates the provided paramater buffer with eye adaptation parameters. The parameter buffer is expected to be
-			 * created with EyeAdaptationParamDef block definition.
+			 * Populates the provided uniform buffer with eye adaptation parameters. The uniform buffer is expected to be
+			 * created with EyeAdaptationUniformDefinition block definition.
 			 */
-			static void PopulateParams(const SPtr<GpuBuffer>& paramBuffer, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+			static void PopulateUniformBuffer(const GpuBufferSuballocation& uniformBuffer, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
 			GpuParameterSampledTexture mReducedHistogramTex;
 		};
 
@@ -178,12 +177,12 @@ namespace b3d
 		 * to the downsampling shader in order to calculate the average luminance, used for non-histogram eye adaptation
 		 * calculation (when compute shader is not available).
 		 */
-		class EyeAdaptationBasicSetupMat : public RendererMaterial<EyeAdaptationBasicSetupMat>
+		class EyeAdaptationBasicSetupMaterial : public RendererMaterial<EyeAdaptationBasicSetupMaterial>
 		{
 			RMAT_DEF("PPEyeAdaptationBasicSetup.bsl");
 
 		public:
-			EyeAdaptationBasicSetupMat() = default;
+			EyeAdaptationBasicSetupMaterial() = default;
 			void Initialize() override;
 
 			/** Prepares GPU parameters before rendering. */
@@ -196,26 +195,26 @@ namespace b3d
 			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& input);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-			GpuParameterSampledTexture mInputTex;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mInputTextureParameter;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptationBasicParamsMatDef)
+		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptationBasicUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gInputTexSize)
 		B3D_UNIFORM_BUFFER_END
 
-		extern EyeAdaptationBasicParamsMatDef gEyeAdaptationBasicParamsMatDef;
+		extern EyeAdaptationBasicUniformDefinition gEyeAdaptationBasicUniformDefinition;
 
 		/**
 		 * Shader that computes eye adapatation value from a texture that has luminance encoded in its alpha channel (as done
 		 * by EyeAdaptationBasicSetupMat). The result is a 1x1 texture containing the eye adaptation value.
 		 */
-		class EyeAdaptationBasicMat : public RendererMaterial<EyeAdaptationBasicMat>
+		class EyeAdaptationBasicMaterial : public RendererMaterial<EyeAdaptationBasicMaterial>
 		{
 			RMAT_DEF("PPEyeAdaptationBasic.bsl");
 
 		public:
-			EyeAdaptationBasicMat() = default;
+			EyeAdaptationBasicMaterial() = default;
 			void Initialize() override;
 
 			/** Prepares GPU parameters before rendering. */
@@ -228,10 +227,10 @@ namespace b3d
 			static PooledRenderTextureCreateInformation GetOutputDesc();
 
 		private:
-			SPtr<GpuBuffer> mEyeAdaptationParamsBuffer;
-			SPtr<GpuBuffer> mParamsBuffer;
-			GpuParameterSampledTexture mCurFrameTexParam;
-			GpuParameterSampledTexture mPrevFrameTexParam;
+			GpuParameterUniformBuffer mEyeAdaptationUniformBufferParameter;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mCurrentFrameTextureParameter;
+			GpuParameterSampledTexture mPreviousFrameTextureParameter;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(CreateTonemapLUTParamDef)
@@ -1618,23 +1617,23 @@ namespace b3d
 			bool mHasVelocityTexture = false;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(EncodeDepthParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(EncodeDepthUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gNear)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gFar)
 		B3D_UNIFORM_BUFFER_END
 
-		extern EncodeDepthParamDef gEncodeDepthParamDef;
+		extern EncodeDepthUniformDefinition gEncodeDepthUniformDefinition;
 
 		/**
 		 * Shader that encodes depth from a specified range into [0, 1] range, and writes the result in the alpha channel
 		 * of the output texture.
 		 */
-		class EncodeDepthMat : public RendererMaterial<EncodeDepthMat>
+		class EncodeDepthMaterial : public RendererMaterial<EncodeDepthMaterial>
 		{
 			RMAT_DEF("PPEncodeDepth.bsl");
 
 		public:
-			EncodeDepthMat() = default;
+			EncodeDepthMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -1657,8 +1656,8 @@ namespace b3d
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-			GpuParameterSampledTexture mInputTexture;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mInputTextureParameter;
 		};
 
 		/**

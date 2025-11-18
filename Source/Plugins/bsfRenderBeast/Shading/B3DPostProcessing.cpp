@@ -186,20 +186,20 @@ Vector2 EyeAdaptHistogramMaterial::GetHistogramScaleOffset(const AutoExposureSet
 	return Vector2(scale, offset);
 }
 
-EyeAdaptHistogramReduceParamDef gEyeAdaptHistogramReduceParamDef;
+EyeAdaptHistogramReduceUniformDefinition gEyeAdaptHistogramReduceUniformDefinition;
 
-void EyeAdaptHistogramReduceMat::Initialize()
+void EyeAdaptHistogramReduceMaterial::Initialize()
 {
-	mParamBuffer = gEyeAdaptHistogramReduceParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
-	mGPUParameters->GetSampledTextureParameter("gHistogramTex", mHistogramTex);
-	mGPUParameters->GetSampledTextureParameter("gEyeAdaptationTex", mEyeAdaptationTex);
+	mGPUParameters->GetUniformBufferParameter("Input", mUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gHistogramTex", mHistogramTextureParameter);
+	mGPUParameters->GetSampledTextureParameter("gEyeAdaptationTex", mEyeAdaptationTextureParameter);
 }
 
-void EyeAdaptHistogramReduceMat::Prepare(const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame)
+void EyeAdaptHistogramReduceMaterial::Prepare(const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame)
 {
-	mHistogramTex.Set(histogram);
+	GpuBufferSuballocation uniformBuffer = gEyeAdaptHistogramReduceUniformDefinition.AllocateTransient();
+
+	mHistogramTextureParameter.Set(histogram);
 
 	SPtr<Texture> eyeAdaptationTex;
 	if(prevFrame == nullptr) // Could be that this is the first run
@@ -207,15 +207,17 @@ void EyeAdaptHistogramReduceMat::Prepare(const SPtr<Texture>& sceneColor, const 
 	else
 		eyeAdaptationTex = prevFrame;
 
-	mEyeAdaptationTex.Set(eyeAdaptationTex);
+	mEyeAdaptationTextureParameter.Set(eyeAdaptationTex);
 
 	Vector2I threadGroupCount = EyeAdaptHistogramMaterial::GetThreadGroupCount(sceneColor);
 	u32 numHistograms = threadGroupCount.X * threadGroupCount.Y;
 
-	gEyeAdaptHistogramReduceParamDef.gThreadGroupCount.Set(mParamBuffer, numHistograms);
+	gEyeAdaptHistogramReduceUniformDefinition.gThreadGroupCount.Set(uniformBuffer, numHistograms);
+
+	mUniformBufferParameter.Set(uniformBuffer);
 }
 
-void EyeAdaptHistogramReduceMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void EyeAdaptHistogramReduceMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -230,34 +232,36 @@ void EyeAdaptHistogramReduceMat::Execute(GpuCommandBuffer& commandBuffer, const 
 	commandBuffer.EndRenderPass();
 }
 
-PooledRenderTextureCreateInformation EyeAdaptHistogramReduceMat::GetOutputDesc()
+PooledRenderTextureCreateInformation EyeAdaptHistogramReduceMaterial::GetOutputDesc()
 {
 	return PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, EyeAdaptHistogramMaterial::kHistogramNumTexels, 2, TU_RENDERTARGET);
 }
 
-EyeAdaptationParamDef gEyeAdaptationParamDef;
+EyeAdaptationUniformDefinition gEyeAdaptationUniformDefinition;
 
-void EyeAdaptationMat::Initialize()
+void EyeAdaptationMaterial::Initialize()
 {
-	mParamBuffer = gEyeAdaptationParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("EyeAdaptationParams", mParamBuffer);
+	mGPUParameters->GetUniformBufferParameter("EyeAdaptationParams", mUniformBufferParameter);
 	mGPUParameters->GetSampledTextureParameter("gHistogramTex", mReducedHistogramTex);
 }
 
-void EyeAdaptationMat::InitDefinesInternal(ShaderDefines& defines)
+void EyeAdaptationMaterial::InitDefinesInternal(ShaderDefines& defines)
 {
 	defines.Set("THREADGROUP_SIZE_X", EyeAdaptHistogramMaterial::kThreadGroupSizeX);
 	defines.Set("THREADGROUP_SIZE_Y", EyeAdaptHistogramMaterial::kThreadGroupSizeY);
 }
 
-void EyeAdaptationMat::Prepare(const SPtr<Texture>& reducedHistogram, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+void EyeAdaptationMaterial::Prepare(const SPtr<Texture>& reducedHistogram, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 {
 	mReducedHistogramTex.Set(reducedHistogram);
-	PopulateParams(mParamBuffer, frameDelta, settings, exposureScale);
+
+	GpuBufferSuballocation uniformBuffer = gEyeAdaptationUniformDefinition.AllocateTransient();
+	PopulateUniformBuffer(uniformBuffer, frameDelta, settings, exposureScale);
+
+	mUniformBufferParameter.Set(uniformBuffer);
 }
 
-void EyeAdaptationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void EyeAdaptationMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -270,12 +274,12 @@ void EyeAdaptationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Rende
 	commandBuffer.EndRenderPass();
 }
 
-PooledRenderTextureCreateInformation EyeAdaptationMat::GetOutputDesc()
+PooledRenderTextureCreateInformation EyeAdaptationMaterial::GetOutputDesc()
 {
 	return PooledRenderTextureCreateInformation::Create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
 }
 
-void EyeAdaptationMat::PopulateParams(const SPtr<GpuBuffer>& paramBuffer, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+void EyeAdaptationMaterial::PopulateUniformBuffer(const GpuBufferSuballocation& uniformBuffer, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 {
 	Vector2 histogramScaleAndOffset = EyeAdaptHistogramMaterial::GetHistogramScaleOffset(settings);
 
@@ -300,17 +304,15 @@ void EyeAdaptationMat::PopulateParams(const SPtr<GpuBuffer>& paramBuffer, float 
 	eyeAdaptationParams[2].Z = Math::RaiseToPower(2.0f, settings.HistogramLog2Min);
 	eyeAdaptationParams[2].W = 0.0f; // Unused
 
-	gEyeAdaptationParamDef.gEyeAdaptationParams.Set(paramBuffer, eyeAdaptationParams[0], 0);
-	gEyeAdaptationParamDef.gEyeAdaptationParams.Set(paramBuffer, eyeAdaptationParams[1], 1);
-	gEyeAdaptationParamDef.gEyeAdaptationParams.Set(paramBuffer, eyeAdaptationParams[2], 2);
+	gEyeAdaptationUniformDefinition.gEyeAdaptationParams.Set(uniformBuffer, eyeAdaptationParams[0], 0);
+	gEyeAdaptationUniformDefinition.gEyeAdaptationParams.Set(uniformBuffer, eyeAdaptationParams[1], 1);
+	gEyeAdaptationUniformDefinition.gEyeAdaptationParams.Set(uniformBuffer, eyeAdaptationParams[2], 2);
 }
 
-void EyeAdaptationBasicSetupMat::Initialize()
+void EyeAdaptationBasicSetupMaterial::Initialize()
 {
-	mParamBuffer = gEyeAdaptationParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("EyeAdaptationParams", mParamBuffer);
-	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTex);
+	mGPUParameters->GetUniformBufferParameter("EyeAdaptationParams", mUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
 
 	SamplerStateCreateInformation samplerStateCreateInformation;
 	samplerStateCreateInformation.MinFilter = FO_POINT;
@@ -321,13 +323,17 @@ void EyeAdaptationBasicSetupMat::Initialize()
 	SetSamplerState(mGPUParameters, "gInputSamp", "gInputTex", samplerState);
 }
 
-void EyeAdaptationBasicSetupMat::Prepare(const SPtr<Texture>& input, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+void EyeAdaptationBasicSetupMaterial::Prepare(const SPtr<Texture>& input, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 {
-	mInputTex.Set(input);
-	EyeAdaptationMat::PopulateParams(mParamBuffer, frameDelta, settings, exposureScale);
+	mInputTextureParameter.Set(input);
+
+	GpuBufferSuballocation uniformBuffer = gEyeAdaptationUniformDefinition.AllocateTransient();
+	EyeAdaptationMaterial::PopulateUniformBuffer(uniformBuffer, frameDelta, settings, exposureScale);
+
+	mUniformBufferParameter.Set(uniformBuffer);
 }
 
-void EyeAdaptationBasicSetupMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void EyeAdaptationBasicSetupMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -340,43 +346,45 @@ void EyeAdaptationBasicSetupMat::Execute(GpuCommandBuffer& commandBuffer, const 
 	commandBuffer.EndRenderPass();
 }
 
-PooledRenderTextureCreateInformation EyeAdaptationBasicSetupMat::GetOutputDesc(const SPtr<Texture>& input)
+PooledRenderTextureCreateInformation EyeAdaptationBasicSetupMaterial::GetOutputDesc(const SPtr<Texture>& input)
 {
 	auto& props = input->GetProperties();
 	return PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, props.Width, props.Height, TU_RENDERTARGET);
 }
 
-EyeAdaptationBasicParamsMatDef gEyeAdaptationBasicParamsMatDef;
+EyeAdaptationBasicUniformDefinition gEyeAdaptationBasicUniformDefinition;
 
-void EyeAdaptationBasicMat::Initialize()
+void EyeAdaptationBasicMaterial::Initialize()
 {
-	mEyeAdaptationParamsBuffer = gEyeAdaptationParamDef.CreateBuffer();
-	mParamsBuffer = gEyeAdaptationBasicParamsMatDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("EyeAdaptationParams", mEyeAdaptationParamsBuffer);
-	mGPUParameters->SetUniformBuffer("Input", mParamsBuffer);
-	mGPUParameters->GetSampledTextureParameter("gCurFrameTex", mCurFrameTexParam);
-	mGPUParameters->GetSampledTextureParameter("gPrevFrameTex", mPrevFrameTexParam);
+	mGPUParameters->GetUniformBufferParameter("Input", mUniformBufferParameter);
+	mGPUParameters->GetUniformBufferParameter("EyeAdaptationParams", mEyeAdaptationUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gCurFrameTex", mCurrentFrameTextureParameter);
+	mGPUParameters->GetSampledTextureParameter("gPrevFrameTex", mPreviousFrameTextureParameter);
 }
 
-void EyeAdaptationBasicMat::Prepare(const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+void EyeAdaptationBasicMaterial::Prepare(const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 {
-	mCurFrameTexParam.Set(curFrame);
+	GpuBufferSuballocation eyeAdaptationUniformBuffer = gEyeAdaptationUniformDefinition.AllocateTransient();
+	GpuBufferSuballocation uniformBuffer = gEyeAdaptationBasicUniformDefinition.AllocateTransient();
 
-	if(prevFrame == nullptr) // Could be that this is the first run
-		mPrevFrameTexParam.Set(Texture::kWhite);
-	else
-		mPrevFrameTexParam.Set(prevFrame);
-
-	EyeAdaptationMat::PopulateParams(mEyeAdaptationParamsBuffer, frameDelta, settings, exposureScale);
+	EyeAdaptationMaterial::PopulateUniformBuffer(eyeAdaptationUniformBuffer, frameDelta, settings, exposureScale);
 
 	auto& texProps = curFrame->GetProperties();
 	Vector2I texSize = { (i32)texProps.Width, (i32)texProps.Height };
 
-	gEyeAdaptationBasicParamsMatDef.gInputTexSize.Set(mParamsBuffer, texSize);
+	gEyeAdaptationBasicUniformDefinition.gInputTexSize.Set(uniformBuffer, texSize);
+
+	mEyeAdaptationUniformBufferParameter.Set(eyeAdaptationUniformBuffer);
+	mUniformBufferParameter.Set(uniformBuffer);
+	mCurrentFrameTextureParameter.Set(curFrame);
+
+	if(prevFrame == nullptr) // Could be that this is the first run
+		mPreviousFrameTextureParameter.Set(Texture::kWhite);
+	else
+		mPreviousFrameTextureParameter.Set(prevFrame);
 }
 
-void EyeAdaptationBasicMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void EyeAdaptationBasicMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -389,7 +397,7 @@ void EyeAdaptationBasicMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<
 	commandBuffer.EndRenderPass();
 }
 
-PooledRenderTextureCreateInformation EyeAdaptationBasicMat::GetOutputDesc()
+PooledRenderTextureCreateInformation EyeAdaptationBasicMaterial::GetOutputDesc()
 {
 	return PooledRenderTextureCreateInformation::Create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
 }
@@ -2456,14 +2464,12 @@ TemporalFilteringMat* TemporalFilteringMat::GetVariation(TemporalFilteringType t
 	}
 }
 
-EncodeDepthParamDef gEncodeDepthParamDef;
+EncodeDepthUniformDefinition gEncodeDepthUniformDefinition;
 
-void EncodeDepthMat::Initialize()
+void EncodeDepthMaterial::Initialize()
 {
-	mParamBuffer = gEncodeDepthParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
-	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTexture);
+	mGPUParameters->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
 
 	SamplerStateInformation sampDesc;
 	sampDesc.MinFilter = FO_POINT;
@@ -2477,15 +2483,17 @@ void EncodeDepthMat::Initialize()
 	SetSamplerState(mGPUParameters, "gInputSamp", "gInputTex", samplerState);
 }
 
-void EncodeDepthMat::Prepare(const SPtr<Texture>& depth, float near, float far)
+void EncodeDepthMaterial::Prepare(const SPtr<Texture>& depth, float near, float far)
 {
-	mInputTexture.Set(depth);
+	GpuBufferSuballocation uniformBuffer = gEncodeDepthUniformDefinition.AllocateTransient();
+	gEncodeDepthUniformDefinition.gNear.Set(uniformBuffer, near);
+	gEncodeDepthUniformDefinition.gFar.Set(uniformBuffer, far);
 
-	gEncodeDepthParamDef.gNear.Set(mParamBuffer, near);
-	gEncodeDepthParamDef.gFar.Set(mParamBuffer, far);
+	mInputTextureParameter.Set(depth);
+	mUniformBufferParameter.Set(uniformBuffer);
 }
 
-void EncodeDepthMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void EncodeDepthMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 

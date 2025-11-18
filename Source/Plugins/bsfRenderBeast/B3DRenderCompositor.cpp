@@ -1810,7 +1810,7 @@ void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		RCNodeResolvedSceneDepth* resolvedSceneDepthNode = dependencies.Get<RCNodeResolvedSceneDepth>();
 
-		EncodeDepthMat* const encodeDepthMat = EncodeDepthMat::Get();
+		EncodeDepthMaterial* const encodeDepthMat = EncodeDepthMaterial::Get();
 		encodeDepthMat->Prepare(resolvedSceneDepthNode->Output->Texture, viewProperties.DepthEncodeNear, viewProperties.DepthEncodeFar);
 		encodeDepthMat->Execute(commandBuffer, target);
 	}
@@ -1933,21 +1933,21 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 			eyeAdaptHistogramMat->Execute(commandBuffer, downsampledScene->Texture, eyeAdaptHistogram->Texture, settings.AutoExposure);
 
 			// Reduce histogram
-			SPtr<PooledRenderTexture> reducedHistogram = resPool.Get(EyeAdaptHistogramReduceMat::GetOutputDesc());
+			SPtr<PooledRenderTexture> reducedHistogram = resPool.Get(EyeAdaptHistogramReduceMaterial::GetOutputDesc());
 
 			SPtr<Texture> prevFrameEyeAdaptation;
 			if(previous != nullptr)
 				prevFrameEyeAdaptation = previous->Texture;
 
-			EyeAdaptHistogramReduceMat* eyeAdaptHistogramReduce = EyeAdaptHistogramReduceMat::Get();
+			EyeAdaptHistogramReduceMaterial* eyeAdaptHistogramReduce = EyeAdaptHistogramReduceMaterial::Get();
 			eyeAdaptHistogramReduce->Prepare(downsampledScene->Texture, eyeAdaptHistogram->Texture, prevFrameEyeAdaptation);
 			eyeAdaptHistogramReduce->Execute(commandBuffer, reducedHistogram->RenderTexture);
 
 			eyeAdaptHistogram = nullptr;
 
 			// Generate eye adaptation value
-			Output = resPool.Get(EyeAdaptationMat::GetOutputDesc());
-			EyeAdaptationMat* eyeAdaptationMat = EyeAdaptationMat::Get();
+			Output = resPool.Get(EyeAdaptationMaterial::GetOutputDesc());
+			EyeAdaptationMaterial* eyeAdaptationMat = EyeAdaptationMaterial::Get();
 			eyeAdaptationMat->Prepare(
 				reducedHistogram->Texture,
 				inputs.FrameInfo.Timings.TimeDelta,
@@ -1959,9 +1959,9 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 		{
 			// Populate alpha values of the downsampled texture with luminance
 			SPtr<PooledRenderTexture> luminanceTex =
-				resPool.Get(EyeAdaptationBasicSetupMat::GetOutputDesc(downsampledScene->Texture));
+				resPool.Get(EyeAdaptationBasicSetupMaterial::GetOutputDesc(downsampledScene->Texture));
 
-			EyeAdaptationBasicSetupMat* setupMat = EyeAdaptationBasicSetupMat::Get();
+			EyeAdaptationBasicSetupMaterial* setupMat = EyeAdaptationBasicSetupMaterial::Get();
 			setupMat->Prepare(
 				downsampledScene->Texture,
 				inputs.FrameInfo.Timings.TimeDelta,
@@ -1984,13 +1984,13 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 			}
 
 			// Generate eye adaptation value
-			EyeAdaptationBasicMat* eyeAdaptationMat = EyeAdaptationBasicMat::Get();
+			EyeAdaptationBasicMaterial* eyeAdaptationMat = EyeAdaptationBasicMaterial::Get();
 
 			SPtr<Texture> prevFrameEyeAdaptation;
 			if(previous != nullptr)
 				prevFrameEyeAdaptation = previous->Texture;
 
-			Output = resPool.Get(EyeAdaptationBasicMat::GetOutputDesc());
+			Output = resPool.Get(EyeAdaptationBasicMaterial::GetOutputDesc());
 			eyeAdaptationMat->Prepare(
 				downsampleInput,
 				prevFrameEyeAdaptation,
