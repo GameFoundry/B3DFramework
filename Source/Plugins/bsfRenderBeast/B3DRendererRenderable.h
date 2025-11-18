@@ -18,21 +18,21 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_PARAM_BLOCK_BEGIN(PerObjectParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatWorld)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatInvWorld)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatWorldNoScale)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatInvWorldNoScale)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatPrevWorld)
-			B3D_PARAM_BLOCK_ENTRY(float, gWorldDeterminantSign)
-			B3D_PARAM_BLOCK_ENTRY(i32, gLayer)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(PerObjectParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatWorld)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatInvWorld)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatWorldNoScale)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatInvWorldNoScale)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatPrevWorld)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gWorldDeterminantSign)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gLayer)
+		B3D_UNIFORM_BUFFER_END
 
 		extern PerObjectParamDef gPerObjectParamDef;
 
-		B3D_PARAM_BLOCK_BEGIN(PerCallParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatWorldViewProj)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(PerCallParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatWorldViewProj)
+		B3D_UNIFORM_BUFFER_END
 
 		extern PerCallParamDef gPerCallParamDef;
 

@@ -534,7 +534,7 @@ namespace b3d::render
 		void Write(const void* data, u32 size) const;
 
 	private:
-		friend class GpuBufferPool;
+		friend class TransientGpuBufferPool;
 
 		GpuBufferSuballocation(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex, u32 suballocationOffset)
 			: mBuffer(buffer), mSuballocationIndex(suballocationIndex), mSuballocationOffset(suballocationOffset) {}

@@ -76,27 +76,27 @@ namespace b3d
 
 	namespace render
 	{
-		B3D_PARAM_BLOCK_BEGIN(VectorGraphicsRenderUniformDefinition)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gScissorMatrix)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gPaintMatrix)
-			B3D_PARAM_BLOCK_ENTRY(Color, gInnerColor)
-			B3D_PARAM_BLOCK_ENTRY(Color, gOuterColor)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gScissorExtents)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gScissorScale)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gExtent)
-			B3D_PARAM_BLOCK_ENTRY(float, gRadius)
-			B3D_PARAM_BLOCK_ENTRY(float, gFeather)
-			B3D_PARAM_BLOCK_ENTRY(float, gStrokeMultiplier)
-			B3D_PARAM_BLOCK_ENTRY(float, gStrokeThreshold)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(VectorGraphicsRenderUniformDefinition)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gScissorMatrix)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gPaintMatrix)
+			B3D_UNIFORM_BUFFER_MEMBER(Color, gInnerColor)
+			B3D_UNIFORM_BUFFER_MEMBER(Color, gOuterColor)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gScissorExtents)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gScissorScale)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gExtent)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gRadius)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gFeather)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gStrokeMultiplier)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gStrokeThreshold)
+		B3D_UNIFORM_BUFFER_END
 
 		extern VectorGraphicsRenderUniformDefinition gVectorGraphicsRenderUniforms;
 
-		B3D_PARAM_BLOCK_BEGIN(VectorGraphicsViewUniformDefinition)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gViewportOffset)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gInverseViewportHalfSize)
-			B3D_PARAM_BLOCK_ENTRY(float, gViewportYFlip)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(VectorGraphicsViewUniformDefinition)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gViewportOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInverseViewportHalfSize)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gViewportYFlip)
+		B3D_UNIFORM_BUFFER_END
 
 		extern VectorGraphicsViewUniformDefinition gVectorGraphicsViewUniforms;
 

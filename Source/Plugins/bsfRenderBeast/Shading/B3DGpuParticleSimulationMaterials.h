@@ -16,9 +16,9 @@ namespace b3d { namespace render
 	 *  @{
 	 */
 
-	B3D_PARAM_BLOCK_BEGIN(GpuParticleTileVertexParamsDef)
-		B3D_PARAM_BLOCK_ENTRY(Vector4, gUVToNDC)
-	B3D_PARAM_BLOCK_END
+	B3D_UNIFORM_BUFFER_BEGIN(GpuParticleTileVertexParamsDef)
+		B3D_UNIFORM_BUFFER_MEMBER(Vector4, gUVToNDC)
+	B3D_UNIFORM_BUFFER_END
 
 	inline GpuParticleTileVertexParamsDef gGpuParticleTileVertexParamsDef;
 
@@ -58,35 +58,35 @@ namespace b3d { namespace render
 		void Prepare(const SPtr<GpuBuffer>& vertexInputBuffer);
 	};
 
-	B3D_PARAM_BLOCK_BEGIN(VectorFieldParamsDef)
-		B3D_PARAM_BLOCK_ENTRY(Vector3, gFieldBounds)
-		B3D_PARAM_BLOCK_ENTRY(float, gFieldIntensity)
-		B3D_PARAM_BLOCK_ENTRY(Vector3, gFieldTiling)
-		B3D_PARAM_BLOCK_ENTRY(float, gFieldTightness)
-		B3D_PARAM_BLOCK_ENTRY(Matrix4, gWorldToField)
-		B3D_PARAM_BLOCK_ENTRY(Matrix3, gFieldToWorld)
-	B3D_PARAM_BLOCK_END
+	B3D_UNIFORM_BUFFER_BEGIN(VectorFieldParamsDef)
+		B3D_UNIFORM_BUFFER_MEMBER(Vector3, gFieldBounds)
+		B3D_UNIFORM_BUFFER_MEMBER(float, gFieldIntensity)
+		B3D_UNIFORM_BUFFER_MEMBER(Vector3, gFieldTiling)
+		B3D_UNIFORM_BUFFER_MEMBER(float, gFieldTightness)
+		B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gWorldToField)
+		B3D_UNIFORM_BUFFER_MEMBER(Matrix3, gFieldToWorld)
+	B3D_UNIFORM_BUFFER_END
 
 	inline VectorFieldParamsDef gVectorFieldParamsDef;
 
-	B3D_PARAM_BLOCK_BEGIN(GpuParticleDepthCollisionParamsDef)
-		B3D_PARAM_BLOCK_ENTRY(float, gCollisionRange)
-		B3D_PARAM_BLOCK_ENTRY(float, gRestitution)
-		B3D_PARAM_BLOCK_ENTRY(float, gDampening)
-		B3D_PARAM_BLOCK_ENTRY(float, gCollisionRadiusScale)
-		B3D_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleCurveOffset)
-		B3D_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleCurveScale)
-	B3D_PARAM_BLOCK_END
+	B3D_UNIFORM_BUFFER_BEGIN(GpuParticleDepthCollisionParamsDef)
+		B3D_UNIFORM_BUFFER_MEMBER(float, gCollisionRange)
+		B3D_UNIFORM_BUFFER_MEMBER(float, gRestitution)
+		B3D_UNIFORM_BUFFER_MEMBER(float, gDampening)
+		B3D_UNIFORM_BUFFER_MEMBER(float, gCollisionRadiusScale)
+		B3D_UNIFORM_BUFFER_MEMBER(Vector2, gSizeScaleCurveOffset)
+		B3D_UNIFORM_BUFFER_MEMBER(Vector2, gSizeScaleCurveScale)
+	B3D_UNIFORM_BUFFER_END
 
 	inline GpuParticleDepthCollisionParamsDef gGpuParticleDepthCollisionParamsDef;
 
-	B3D_PARAM_BLOCK_BEGIN(GpuParticleSimulateParamsDef)
-		B3D_PARAM_BLOCK_ENTRY(i32, gNumVectorFields)
-		B3D_PARAM_BLOCK_ENTRY(i32, gNumIterations)
-		B3D_PARAM_BLOCK_ENTRY(float, gDT)
-		B3D_PARAM_BLOCK_ENTRY(float, gDrag)
-		B3D_PARAM_BLOCK_ENTRY(Vector3, gAcceleration)
-	B3D_PARAM_BLOCK_END
+	B3D_UNIFORM_BUFFER_BEGIN(GpuParticleSimulateParamsDef)
+		B3D_UNIFORM_BUFFER_MEMBER(i32, gNumVectorFields)
+		B3D_UNIFORM_BUFFER_MEMBER(i32, gNumIterations)
+		B3D_UNIFORM_BUFFER_MEMBER(float, gDT)
+		B3D_UNIFORM_BUFFER_MEMBER(float, gDrag)
+		B3D_UNIFORM_BUFFER_MEMBER(Vector3, gAcceleration)
+	B3D_UNIFORM_BUFFER_END
 
 	inline GpuParticleSimulateParamsDef gGpuParticleSimulateParamsDef;
 
@@ -133,11 +133,11 @@ namespace b3d { namespace render
 		static GpuParticleSimulateMat* GetVariation(bool depthCollisions, bool localSpace);
 	};
 
-	B3D_PARAM_BLOCK_BEGIN(GpuParticleBoundsParamsDef)
-		B3D_PARAM_BLOCK_ENTRY(u32, gIterationsPerGroup)
-		B3D_PARAM_BLOCK_ENTRY(u32, gNumExtraIterations)
-		B3D_PARAM_BLOCK_ENTRY(u32, gNumParticles)
-	B3D_PARAM_BLOCK_END
+	B3D_UNIFORM_BUFFER_BEGIN(GpuParticleBoundsParamsDef)
+		B3D_UNIFORM_BUFFER_MEMBER(u32, gIterationsPerGroup)
+		B3D_UNIFORM_BUFFER_MEMBER(u32, gNumExtraIterations)
+		B3D_UNIFORM_BUFFER_MEMBER(u32, gNumParticles)
+	B3D_UNIFORM_BUFFER_END
 
 	inline GpuParticleBoundsParamsDef gGpuParticleBoundsParamsDef;
 
@@ -172,14 +172,14 @@ namespace b3d { namespace render
 		SPtr<GpuBuffer> mInputBuffer;
 	};
 
-	B3D_PARAM_BLOCK_BEGIN(GpuParticleSortPrepareParamDef)
-		B3D_PARAM_BLOCK_ENTRY(i32, gIterationsPerGroup)
-		B3D_PARAM_BLOCK_ENTRY(i32, gNumExtraIterations)
-		B3D_PARAM_BLOCK_ENTRY(i32, gNumParticles)
-		B3D_PARAM_BLOCK_ENTRY(i32, gOutputOffset)
-		B3D_PARAM_BLOCK_ENTRY(i32, gSystemKey)
-		B3D_PARAM_BLOCK_ENTRY(Vector3, gLocalViewOrigin)
-	B3D_PARAM_BLOCK_END
+	B3D_UNIFORM_BUFFER_BEGIN(GpuParticleSortPrepareParamDef)
+		B3D_UNIFORM_BUFFER_MEMBER(i32, gIterationsPerGroup)
+		B3D_UNIFORM_BUFFER_MEMBER(i32, gNumExtraIterations)
+		B3D_UNIFORM_BUFFER_MEMBER(i32, gNumParticles)
+		B3D_UNIFORM_BUFFER_MEMBER(i32, gOutputOffset)
+		B3D_UNIFORM_BUFFER_MEMBER(i32, gSystemKey)
+		B3D_UNIFORM_BUFFER_MEMBER(Vector3, gLocalViewOrigin)
+	B3D_UNIFORM_BUFFER_END
 
 	inline GpuParticleSortPrepareParamDef gGpuParticleSortPrepareParamDef;
 

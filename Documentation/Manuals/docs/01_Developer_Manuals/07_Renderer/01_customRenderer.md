@@ -334,8 +334,8 @@ void IrradianceComputeSHMat::_initDefines(ShaderDefines& defines)
 
 > All builtin shaders are cached. The system will automatically pick up any changes to shaders in *Data/Raw/Engine* folder and rebuild the cache when needed. However if you are changing defines as above you must manually force the system to rebuild by modifying the BSL file in *Data/Raw/Engine* folder.
 
-## Parameter blocks
-In the [GPU programs](../Low_Level_rendering/gpuPrograms) manual we talked about parameter block buffers, represented by **GpuParamBlockBuffer** class. These blocks are used for group data parameters (such as float, int or bool) into blocks that can then be efficiently bound to the pipeline. They are better known as uniform buffers in OpenGL/Vulkan, or constant buffers in DX11. 
+## Uniform buffer definitions
+In the [GPU programs](../Low_Level_rendering/gpuPrograms) manual we talked about uniform buffers, represented by **GpuBuffer** objects with uniform buffer usage. These buffers are used to group data parameters (such as float, int or bool) into blocks that can then be efficiently bound to the pipeline. They are better known as uniform buffers in OpenGL/Vulkan, or constant buffers in DX11.
 
 An example of such a buffer in HLSL looks like this:
 ~~~~~~~~~~~~~{.cpp}
@@ -348,45 +348,61 @@ cbuffer PerCamera
 	float4x4 gMatView;
 	float4x4 gMatProj;
 	float4x4 gMatInvProj;
-	float4x4 gMatInvViewProj;			
+	float4x4 gMatInvViewProj;
 }
 ~~~~~~~~~~~~~
 
-Such parameter block buffers are primarily useful when you need to share the same data between multiple materials. Instead of accessing parametes individually through **Material** or **GpuParams**, you would instead create a **GpuParamBlockBuffer** object, populate it, and then bind to **Material** or **GpuParams**.
+Such uniform buffers are primarily useful when you need to share the same data between multiple materials. Instead of accessing parameters individually through **Material** or **GpuParams**, you would instead create a **GpuBuffer** object, populate it, and then bind to **Material** or **GpuParams**.
 
-When we talked about them earlier we have shown how to manually create a **GpuParamBlockBuffer** object and write to it by reading the **GpuParamDesc** object of the **GpuProgram**. This is cumbersome and requires a lot of boilerplate code. A simpler way of creating and populating a parameter block is to use @B3D_PARAM_BLOCK_BEGIN, @B3D_PARAM_BLOCK_ENTRY and @B3D_PARAM_BLOCK_END macros. You simply define the parameter block structure using these macros in C++, to match the structure in HLSL/GLSL code.
+When we talked about them earlier we have shown how to manually create a **GpuBuffer** object and write to it by reading the **GpuParamDesc** object of the **GpuProgram**. This is cumbersome and requires a lot of boilerplate code. A simpler way of creating and populating a uniform buffer is to use @B3D_UNIFORM_BUFFER_BEGIN, @B3D_UNIFORM_BUFFER_MEMBER and @B3D_UNIFORM_BUFFER_END macros. You simply define the uniform buffer structure using these macros in C++, to match the structure in HLSL/GLSL code.
 
 ~~~~~~~~~~~~~{.cpp}
-B3D_PARAM_BLOCK_BEGIN(PerCameraParamBlockDef)
-	B3D_PARAM_BLOCK_ENTRY(Vector3, gViewDir)
-	B3D_PARAM_BLOCK_ENTRY(Vector3, gViewOrigin)
-	B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
-	B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatView)
-	B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatProj)
-	B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatInvProj)
-	B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatInvViewProj)
-B3D_PARAM_BLOCK_END
+B3D_UNIFORM_BUFFER_BEGIN(PerCameraUniformBufferDef)
+	B3D_UNIFORM_BUFFER_MEMBER(Vector3, gViewDir)
+	B3D_UNIFORM_BUFFER_MEMBER(Vector3, gViewOrigin)
+	B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatViewProj)
+	B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatView)
+	B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatProj)
+	B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatInvProj)
+	B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatInvViewProj)
+B3D_UNIFORM_BUFFER_END
 ~~~~~~~~~~~~~
 
-Once your parameter block definition is created, you can instantiate a parameter block buffer, assign values to it, and assign the blocks to materials, like so:
+Once your uniform buffer definition is created, you can instantiate a uniform buffer, assign values to it, and assign the buffer to materials, like so:
 ~~~~~~~~~~~~~{.cpp}
-PerCameraParamBlockDef def; // Normally you want to make this global so it's instantiated only once
+PerCameraUniformBufferDef def; // Normally you want to make this global so it's instantiated only once
 
-// Instantiates a new parameter block from the definition
-SPtr<GpuParamBlockBuffer> paramBlock = def.createBuffer(); 
+// Instantiates a new uniform buffer from the definition
+SPtr<GpuBuffer> uniformBuffer = def.CreateBuffer();
 
-// Assign a value to the gViewDir parameter of the parameter block
-def.gViewDir.set(paramBlock, Vector3(0.707f, 0.707f, 0.0f));
-... set other parameters in block ...
+// Assign a value to the gViewDir parameter of the uniform buffer
+def.gViewDir.Set(uniformBuffer, Vector3(0.707f, 0.707f, 0.0f));
+... set other parameters in buffer ...
 
-// Assign the parameter block to the material (optionally, assign to GpuParams if using them directly)
+// Assign the uniform buffer to the material (optionally, assign to GpuParams if using them directly)
 SPtr<Material> material = ...;
-material->setParamBlockBuffer("PerCamera", paramBlock);
+material->SetUniformBuffer("PerCamera", uniformBuffer);
 
 ... render using the material ...
 ~~~~~~~~~~~~~
 
-Blocks are often used with renderer materials we described in the previous section, although we didn't use one in that example.
+For per-frame data that changes every frame, you should use transient allocations instead:
+~~~~~~~~~~~~~{.cpp}
+// Allocate a transient buffer (valid for the current frame only)
+GpuBufferSuballocation transient = def.AllocateTransient();
+
+// Set parameters directly on the transient allocation
+def.gViewDir.Set(transient, Vector3(0.707f, 0.707f, 0.0f));
+... set other parameters ...
+
+// Bind the transient allocation to the material
+material->SetUniformBuffer("PerCamera", transient);
+
+... render using the material ...
+// No need to manually manage frame lifetimes - automatically recycled
+~~~~~~~~~~~~~
+
+Uniform buffer definitions are often used with renderer materials we described in the previous section, although we didn't use one in that example.
 
 Note that by using this approach you lose all the error checking normally performed by **Material** or **GpuParams** when you are assigning parameters individually. You must make sure that the layout in C++ matches the layout in the GPU program. In case of GLSL you must also specify `layout(std140)` keyword to ensure its layout is compatible with C++ struct layout. You must also make sure that variable names match the names in the GPU program code.
 

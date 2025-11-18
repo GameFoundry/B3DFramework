@@ -4,20 +4,28 @@
 #include "RenderAPI/B3DGpuParam.h"
 
 using namespace b3d;
+using namespace b3d::render;
 
-namespace b3d { namespace render
-{
 GpuUniformBuffer::~GpuUniformBuffer()
 {
-	GpuUniformBufferManager::UnregisterBuffer(this);
+	GpuUniformBufferManager::Instance().UnregisterBuffer(this);
 }
 
 GpuUniformBufferManager::GpuUniformBufferManager()
 {
 	for(auto& entry : GetToInitializeList())
+	{
 		entry->Initialize();
+		mActiveBuffers.Add(entry);
+	}
 
 	GetToInitializeList().clear();
+}
+
+void GpuUniformBufferManager::AdvanceFrame()
+{
+	for(auto& entry : mActiveBuffers)
+		entry->mTransientAllocationPool.AdvanceFrame();
 }
 
 void GpuUniformBufferManager::RegisterBuffer(GpuUniformBuffer* buffer)
@@ -34,4 +42,3 @@ void GpuUniformBufferManager::UnregisterBuffer(GpuUniformBuffer* buffer)
 	if(found != GetToInitializeList().End())
 		GetToInitializeList().Erase(found);
 }
-}}

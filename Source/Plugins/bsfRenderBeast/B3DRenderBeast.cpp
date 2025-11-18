@@ -267,6 +267,7 @@ void RenderBeast::RenderAllScenes(FrameTimings timings, PerFrameData perFrameDat
 		mIsFrameCaptureRequested = false;
 	}
 
+	GpuUniformBufferManager::Instance().AdvanceFrame();
 	mRendererExtensionsDirty = false;
 }
 

@@ -176,16 +176,16 @@ namespace b3d
 
 	namespace render
 	{
-		B3D_PARAM_BLOCK_BEGIN(GUISpriteUniformBufferDefinition)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gWorldTransform)
-			B3D_PARAM_BLOCK_ENTRY(float, gInvViewportWidth)
-			B3D_PARAM_BLOCK_ENTRY(float, gInvViewportHeight)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gViewportOffset)
-			B3D_PARAM_BLOCK_ENTRY(Color, gTint)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gUVSizeOffset)
-			B3D_PARAM_BLOCK_ENTRY(float, gViewportYFlip)
-			B3D_PARAM_BLOCK_ENTRY(u32, gClipRegionCount)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(GUISpriteUniformBufferDefinition)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gWorldTransform)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gInvViewportWidth)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gInvViewportHeight)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gViewportOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(Color, gTint)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gUVSizeOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gViewportYFlip)
+			B3D_UNIFORM_BUFFER_MEMBER(u32, gClipRegionCount)
+		B3D_UNIFORM_BUFFER_END
 
 		extern GUISpriteUniformBufferDefinition gGUISpriteUniformBufferDefinition;
 

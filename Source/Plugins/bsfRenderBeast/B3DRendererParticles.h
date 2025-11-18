@@ -32,24 +32,24 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_PARAM_BLOCK_BEGIN(ParticlesParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gSubImageSize)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gUVOffset)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gUVScale)
-			B3D_PARAM_BLOCK_ENTRY(Vector3, gAxisUp)
-			B3D_PARAM_BLOCK_ENTRY(i32, gTexSize)
-			B3D_PARAM_BLOCK_ENTRY(Vector3, gAxisRight)
-			B3D_PARAM_BLOCK_ENTRY(i32, gBufferOffset)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ParticlesParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gSubImageSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gUVOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gUVScale)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gAxisUp)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gTexSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gAxisRight)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gBufferOffset)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ParticlesParamDef gParticlesParamDef;
 
-		B3D_PARAM_BLOCK_BEGIN(GpuParticlesParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gColorCurveOffset)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gColorCurveScale)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleFrameIdxCurveOffset)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleFrameIdxCurveScale)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(GpuParticlesParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gColorCurveOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gColorCurveScale)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gSizeScaleFrameIdxCurveOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gSizeScaleFrameIdxCurveScale)
+		B3D_UNIFORM_BUFFER_END
 
 		extern GpuParticlesParamDef gGpuParticlesParamDef;
 

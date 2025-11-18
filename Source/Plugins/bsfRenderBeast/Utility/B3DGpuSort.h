@@ -16,13 +16,13 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_PARAM_BLOCK_BEGIN(RadixSortParamsDef)
-			B3D_PARAM_BLOCK_ENTRY(int, gBitOffset)
-			B3D_PARAM_BLOCK_ENTRY(int, gTilesPerGroup)
-			B3D_PARAM_BLOCK_ENTRY(int, gNumGroups)
-			B3D_PARAM_BLOCK_ENTRY(int, gNumExtraTiles)
-			B3D_PARAM_BLOCK_ENTRY(int, gNumExtraKeys)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(RadixSortParamsDef)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gBitOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gTilesPerGroup)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gNumGroups)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gNumExtraTiles)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gNumExtraKeys)
+		B3D_UNIFORM_BUFFER_END
 
 		extern RadixSortParamsDef gRadixSortParamsDef;
 

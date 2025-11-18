@@ -19,9 +19,9 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_PARAM_BLOCK_BEGIN(DownsampleParamDef)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(Vector2, gOffsets, 4)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(DownsampleParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Vector2, gOffsets, 4)
+		B3D_UNIFORM_BUFFER_END
 
 		extern DownsampleParamDef gDownsampleParamDef;
 
@@ -59,11 +59,11 @@ namespace b3d
 			GpuParameterSampledTexture mInputTexture;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(EyeAdaptHistogramParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector4I, gPixelOffsetAndSize)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gHistogramParams)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gThreadGroupCount)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptHistogramParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4I, gPixelOffsetAndSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gHistogramParams)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gThreadGroupCount)
+		B3D_UNIFORM_BUFFER_END
 
 		extern EyeAdaptHistogramParamDef gEyeAdaptHistogramParamDef;
 
@@ -105,9 +105,9 @@ namespace b3d
 			static const u32 kLoopCountY = 8;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(EyeAdaptHistogramReduceParamDef)
-			B3D_PARAM_BLOCK_ENTRY(int, gThreadGroupCount)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptHistogramReduceParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gThreadGroupCount)
+		B3D_UNIFORM_BUFFER_END
 
 		extern EyeAdaptHistogramReduceParamDef gEyeAdaptHistogramReduceParamDef;
 
@@ -136,9 +136,9 @@ namespace b3d
 			GpuParameterSampledTexture mEyeAdaptationTex;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(EyeAdaptationParamDef)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gEyeAdaptationParams, 3)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptationParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Vector4, gEyeAdaptationParams, 3)
+		B3D_UNIFORM_BUFFER_END
 
 		extern EyeAdaptationParamDef gEyeAdaptationParamDef;
 
@@ -200,9 +200,9 @@ namespace b3d
 			GpuParameterSampledTexture mInputTex;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(EyeAdaptationBasicParamsMatDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gInputTexSize)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptationBasicParamsMatDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gInputTexSize)
+		B3D_UNIFORM_BUFFER_END
 
 		extern EyeAdaptationBasicParamsMatDef gEyeAdaptationBasicParamsMatDef;
 
@@ -234,22 +234,22 @@ namespace b3d
 			GpuParameterSampledTexture mPrevFrameTexParam;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(CreateTonemapLUTParamDef)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gTonemapParams, 2)
-			B3D_PARAM_BLOCK_ENTRY(float, gGammaAdjustment)
-			B3D_PARAM_BLOCK_ENTRY(int, gGammaCorrectionType)
-			B3D_PARAM_BLOCK_ENTRY(Vector3, gSaturation)
-			B3D_PARAM_BLOCK_ENTRY(Vector3, gContrast)
-			B3D_PARAM_BLOCK_ENTRY(Vector3, gGain)
-			B3D_PARAM_BLOCK_ENTRY(Vector3, gOffset)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(CreateTonemapLUTParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Vector4, gTonemapParams, 2)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gGammaAdjustment)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gGammaCorrectionType)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gSaturation)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gContrast)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gGain)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gOffset)
+		B3D_UNIFORM_BUFFER_END
 
 		extern CreateTonemapLUTParamDef gCreateTonemapLUTParamDef;
 
-		B3D_PARAM_BLOCK_BEGIN(WhiteBalanceParamDef)
-			B3D_PARAM_BLOCK_ENTRY(float, gWhiteTemp)
-			B3D_PARAM_BLOCK_ENTRY(float, gWhiteOffset)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(WhiteBalanceParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gWhiteTemp)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gWhiteOffset)
+		B3D_UNIFORM_BUFFER_END
 
 		extern WhiteBalanceParamDef gWhiteBalanceParamDef;
 
@@ -307,13 +307,13 @@ namespace b3d
 			GpuParameterStorageTexture mOutputTex;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(TonemappingParamDef)
-			B3D_PARAM_BLOCK_ENTRY(float, gRawGamma)
-			B3D_PARAM_BLOCK_ENTRY(float, gManualExposureScale)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gTexSize)
-			B3D_PARAM_BLOCK_ENTRY(Color, gBloomTint)
-			B3D_PARAM_BLOCK_ENTRY(int, gNumSamples)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(TonemappingParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gRawGamma)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gManualExposureScale)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gTexSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Color, gBloomTint)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gNumSamples)
+		B3D_UNIFORM_BUFFER_END
 
 		extern TonemappingParamDef gTonemappingParamDef;
 
@@ -373,10 +373,10 @@ namespace b3d
 			GpuParameterSampledTexture mEyeAdaptationTex;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(BloomClipParamDef)
-			B3D_PARAM_BLOCK_ENTRY(float, gThreshold)
-			B3D_PARAM_BLOCK_ENTRY(float, gManualExposureScale)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(BloomClipParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gThreshold)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gManualExposureScale)
+		B3D_UNIFORM_BUFFER_END
 
 		extern BloomClipParamDef gBloomClipParamDef;
 
@@ -435,16 +435,16 @@ namespace b3d
 			GpuParameterSampledTexture mEyeAdaptationTex;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(ScreenSpaceLensFlareParamDef)
-			B3D_PARAM_BLOCK_ENTRY(float, gThreshold)
-			B3D_PARAM_BLOCK_ENTRY(float, gGhostSpacing)
-			B3D_PARAM_BLOCK_ENTRY(i32, gGhostCount)
-			B3D_PARAM_BLOCK_ENTRY(float, gHaloRadius)
-			B3D_PARAM_BLOCK_ENTRY(float, gHaloThickness)
-			B3D_PARAM_BLOCK_ENTRY(float, gHaloThreshold)
-			B3D_PARAM_BLOCK_ENTRY(float, gHaloAspectRatio)
-			B3D_PARAM_BLOCK_ENTRY(float, gChromaticAberration)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ScreenSpaceLensFlareParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gThreshold)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gGhostSpacing)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gGhostCount)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gHaloRadius)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gHaloThickness)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gHaloThreshold)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gHaloAspectRatio)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gChromaticAberration)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ScreenSpaceLensFlareParamDef gScreenSpaceLensFlareParamDef;
 
@@ -504,10 +504,10 @@ namespace b3d
 			GpuParameterSampledTexture mGradientTex;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(ChromaticAberrationParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gInputSize)
-			B3D_PARAM_BLOCK_ENTRY(float, gShiftAmount)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ChromaticAberrationParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInputSize)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gShiftAmount)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ChromaticAberrationParamDef gChromaticAberrationParamDef;
 
@@ -563,10 +563,10 @@ namespace b3d
 			GpuParameterSampledTexture mFringeTex;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(FilmGrainParamDef)
-			B3D_PARAM_BLOCK_ENTRY(float, gIntensity)
-			B3D_PARAM_BLOCK_ENTRY(float, gTime)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(FilmGrainParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gIntensity)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gTime)
+		B3D_UNIFORM_BUFFER_END
 
 		extern FilmGrainParamDef gFilmGrainParamDef;
 
@@ -605,11 +605,11 @@ namespace b3d
 
 		const int kMaxBlurSamples = 128;
 
-		B3D_PARAM_BLOCK_BEGIN(GaussianBlurParamDef)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gSampleOffsets, (kMaxBlurSamples + 1) / 2)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gSampleWeights, kMaxBlurSamples)
-			B3D_PARAM_BLOCK_ENTRY(int, gNumSamples)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(GaussianBlurParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Vector4, gSampleOffsets, (kMaxBlurSamples + 1) / 2)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Vector4, gSampleWeights, kMaxBlurSamples)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gNumSamples)
+		B3D_UNIFORM_BUFFER_END
 
 		extern GaussianBlurParamDef gGaussianBlurParamDef;
 
@@ -710,13 +710,13 @@ namespace b3d
 			bool mIsAdditive = false;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(GaussianDOFParamDef)
-			B3D_PARAM_BLOCK_ENTRY(float, gNearBlurPlane)
-			B3D_PARAM_BLOCK_ENTRY(float, gFarBlurPlane)
-			B3D_PARAM_BLOCK_ENTRY(float, gInvNearBlurRange)
-			B3D_PARAM_BLOCK_ENTRY(float, gInvFarBlurRange)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gHalfPixelOffset)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(GaussianDOFParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gNearBlurPlane)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gFarBlurPlane)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gInvNearBlurRange)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gInvFarBlurRange)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gHalfPixelOffset)
+		B3D_UNIFORM_BUFFER_END
 
 		extern GaussianDOFParamDef sGaussianDOFParamDef;
 
@@ -858,21 +858,21 @@ namespace b3d
 			GpuParameterSampledTexture mDepthTexture;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(DepthOfFieldCommonParamDef)
-			B3D_PARAM_BLOCK_ENTRY(float, gFocalPlaneDistance)
-			B3D_PARAM_BLOCK_ENTRY(float, gApertureSize)
-			B3D_PARAM_BLOCK_ENTRY(float, gFocalLength)
-			B3D_PARAM_BLOCK_ENTRY(float, gInFocusRange)
-			B3D_PARAM_BLOCK_ENTRY(float, gSensorSize)
-			B3D_PARAM_BLOCK_ENTRY(float, gImageSize)
-			B3D_PARAM_BLOCK_ENTRY(float, gMaxBokehSize)
-			B3D_PARAM_BLOCK_ENTRY(float, gNearTransitionRegion)
-			B3D_PARAM_BLOCK_ENTRY(float, gFarTransitionRegion)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(DepthOfFieldCommonParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gFocalPlaneDistance)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gApertureSize)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gFocalLength)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gInFocusRange)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gSensorSize)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gImageSize)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gMaxBokehSize)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gNearTransitionRegion)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gFarTransitionRegion)
+		B3D_UNIFORM_BUFFER_END
 
-		B3D_PARAM_BLOCK_BEGIN(BokehDOFPrepareParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gInvInputSize)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(BokehDOFPrepareParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvInputSize)
+		B3D_UNIFORM_BUFFER_END
 
 		/**
 		 * Shader does a 2x texture downsample while accounting for different depth of field layers and encoding depth into
@@ -927,16 +927,16 @@ namespace b3d
 			GpuParameterSampledTexture mDepthTexture;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(BokehDOFParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gTileCount)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gInvInputSize)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gInvOutputSize)
-			B3D_PARAM_BLOCK_ENTRY(float, gAdaptiveThresholdColor)
-			B3D_PARAM_BLOCK_ENTRY(float, gAdaptiveThresholdCOC)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gBokehSize)
-			B3D_PARAM_BLOCK_ENTRY(int, gLayerPixelOffset)
-			B3D_PARAM_BLOCK_ENTRY(float, gInvDepthRange)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(BokehDOFParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gTileCount)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvInputSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvOutputSize)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gAdaptiveThresholdColor)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gAdaptiveThresholdCOC)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gBokehSize)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gLayerPixelOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gInvDepthRange)
+		B3D_UNIFORM_BUFFER_END
 
 		/**
 		 * Shader that renders the Bokeh DOF sprites and generates the blurred depth of field images. Separate images
@@ -1004,10 +1004,10 @@ namespace b3d
 			SPtr<GpuBuffer> mTileVertexBuffer;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(BokehDOFCombineParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gLayerAndScaleOffset)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gFocusedImageSize)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(BokehDOFCombineParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gLayerAndScaleOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gFocusedImageSize)
+		B3D_UNIFORM_BUFFER_END
 
 		/** Shader that combines the unfocused texture's near and far layers, together with the focused version. */
 		class BokehDOFCombineMat : public RendererMaterial<BokehDOFCombineMat>
@@ -1059,9 +1059,9 @@ namespace b3d
 			GpuParameterSampledTexture mDepthTexture;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(MotionBlurParamDef)
-			B3D_PARAM_BLOCK_ENTRY(u32, gHalfNumSamples)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(MotionBlurParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(u32, gHalfNumSamples)
+		B3D_UNIFORM_BUFFER_END
 
 		/** Shader that blurs the scene depending on camera and/or object movement. */
 		class MotionBlurMat : public RendererMaterial<MotionBlurMat>
@@ -1096,10 +1096,10 @@ namespace b3d
 			GpuParameterSampledTexture mDepthTexture;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(BuildHiZFParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gHalfPixelOffset)
-			B3D_PARAM_BLOCK_ENTRY(int, gMipLevel)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(BuildHiZFParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gHalfPixelOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gMipLevel)
+		B3D_UNIFORM_BUFFER_END
 
 		extern BuildHiZFParamDef gBuildHiZFParamDef;
 
@@ -1157,9 +1157,9 @@ namespace b3d
 			bool mNoTextureViews = false;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(FXAAParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gInvTexSize)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(FXAAParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvTexSize)
+		B3D_UNIFORM_BUFFER_END
 
 		extern FXAAParamDef gFXAAParamDef;
 
@@ -1193,18 +1193,18 @@ namespace b3d
 			GpuParameterSampledTexture mInputTexture;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(SSAOParamDef)
-			B3D_PARAM_BLOCK_ENTRY(float, gSampleRadius)
-			B3D_PARAM_BLOCK_ENTRY(float, gWorldSpaceRadiusMask)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gTanHalfFOV)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gRandomTileScale)
-			B3D_PARAM_BLOCK_ENTRY(float, gCotHalfFOV)
-			B3D_PARAM_BLOCK_ENTRY(float, gBias)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gDownsampledPixelSize)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gFadeMultiplyAdd)
-			B3D_PARAM_BLOCK_ENTRY(float, gPower)
-			B3D_PARAM_BLOCK_ENTRY(float, gIntensity)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(SSAOParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gSampleRadius)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gWorldSpaceRadiusMask)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gTanHalfFOV)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gRandomTileScale)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gCotHalfFOV)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gBias)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gDownsampledPixelSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gFadeMultiplyAdd)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gPower)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gIntensity)
+		B3D_UNIFORM_BUFFER_END
 
 		extern SSAOParamDef gSSAOParamDef;
 
@@ -1288,10 +1288,10 @@ namespace b3d
 			GpuParameterSampledTexture mRandomTexture;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(SSAODownsampleParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gPixelSize)
-			B3D_PARAM_BLOCK_ENTRY(float, gInvDepthThreshold)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(SSAODownsampleParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gPixelSize)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gInvDepthThreshold)
+		B3D_UNIFORM_BUFFER_END
 
 		extern SSAODownsampleParamDef gSSAODownsampleParamDef;
 
@@ -1332,11 +1332,11 @@ namespace b3d
 			GpuParameterSampledTexture mNormalsTexture;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(SSAOBlurParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gPixelSize)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gPixelOffset)
-			B3D_PARAM_BLOCK_ENTRY(float, gInvDepthThreshold)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(SSAOBlurParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gPixelSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gPixelOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gInvDepthThreshold)
+		B3D_UNIFORM_BUFFER_END
 
 		extern SSAOBlurParamDef gSSAOBlurParamDef;
 
@@ -1388,9 +1388,9 @@ namespace b3d
 			GpuParameterSampledTexture mDepthTexture;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(SSRStencilParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gRoughnessScaleBias)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(SSRStencilParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gRoughnessScaleBias)
+		B3D_UNIFORM_BUFFER_END
 
 		extern SSRStencilParamDef gSSRStencilParamDef;
 
@@ -1446,15 +1446,15 @@ namespace b3d
 			GBufferParameterBinding mGBufferParams;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(SSRTraceParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gNDCToHiZUV)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gHiZUVToScreenUV)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gHiZSize)
-			B3D_PARAM_BLOCK_ENTRY(int, gHiZNumMips)
-			B3D_PARAM_BLOCK_ENTRY(float, gIntensity)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gRoughnessScaleBias)
-			B3D_PARAM_BLOCK_ENTRY(int, gTemporalJitter)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(SSRTraceParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gNDCToHiZUV)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gHiZUVToScreenUV)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gHiZSize)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gHiZNumMips)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gIntensity)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gRoughnessScaleBias)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gTemporalJitter)
+		B3D_UNIFORM_BUFFER_END
 
 		extern SSRTraceParamDef gSSRTraceParamDef;
 
@@ -1524,19 +1524,19 @@ namespace b3d
 			GpuParameterSampledTexture mHiZTexture;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(TemporalResolveParamDef)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(float, gSampleWeights, 9)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(float, gSampleWeightsLowpass, 9)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(TemporalResolveParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(float, gSampleWeights, 9)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(float, gSampleWeightsLowpass, 9)
+		B3D_UNIFORM_BUFFER_END
 
 		extern TemporalResolveParamDef gTemporalResolveParamDef;
 
-		B3D_PARAM_BLOCK_BEGIN(TemporalFilteringParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gSceneDepthTexelSize)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gSceneColorTexelSize)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gVelocityTexelSize)
-			B3D_PARAM_BLOCK_ENTRY(float, gManualExposure)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(TemporalFilteringParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gSceneDepthTexelSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gSceneColorTexelSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gVelocityTexelSize)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gManualExposure)
+		B3D_UNIFORM_BUFFER_END
 
 		extern TemporalFilteringParamDef gTemporalFilteringParamDef;
 
@@ -1618,10 +1618,10 @@ namespace b3d
 			bool mHasVelocityTexture = false;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(EncodeDepthParamDef)
-			B3D_PARAM_BLOCK_ENTRY(float, gNear)
-			B3D_PARAM_BLOCK_ENTRY(float, gFar)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(EncodeDepthParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gNear)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gFar)
+		B3D_UNIFORM_BUFFER_END
 
 		extern EncodeDepthParamDef gEncodeDepthParamDef;
 

@@ -263,69 +263,99 @@ You can also use the **Get*** methods to retrieve currently bound uniform buffer
 SPtr<GpuBuffer> buffer = parameters->GetUniformBuffer(0, 0);
 ~~~~~~~~~~~~~
 
-### Parameter block definitions
+### Uniform buffer definitions
 Manually creating uniform buffers and ensuring correct memory layout can be error-prone. The framework provides a set of helper macros that make it easier to define and work with uniform buffers by automatically handling layout calculations.
 
-Use @b3d::B3D_PARAM_BLOCK_BEGIN, @b3d::B3D_PARAM_BLOCK_ENTRY and @b3d::B3D_PARAM_BLOCK_END macros to define a parameter block structure that corresponds to a uniform buffer in your GPU program:
+Use @b3d::B3D_UNIFORM_BUFFER_BEGIN, @b3d::B3D_UNIFORM_BUFFER_MEMBER and @b3d::B3D_UNIFORM_BUFFER_END macros to define a uniform buffer structure that corresponds to a uniform buffer in your GPU program:
 
 ~~~~~~~~~~~~~{.cpp}
-B3D_PARAM_BLOCK_BEGIN(MyParamDef)
-	B3D_PARAM_BLOCK_ENTRY(Matrix4, viewProjMatrix)
-	B3D_PARAM_BLOCK_ENTRY(Color, tintColor)
-	B3D_PARAM_BLOCK_ENTRY(Vector2, screenSize)
-B3D_PARAM_BLOCK_END
+B3D_UNIFORM_BUFFER_BEGIN(MyUniformBufferDef)
+	B3D_UNIFORM_BUFFER_MEMBER(Matrix4, viewProjMatrix)
+	B3D_UNIFORM_BUFFER_MEMBER(Color, tintColor)
+	B3D_UNIFORM_BUFFER_MEMBER(Vector2, screenSize)
+B3D_UNIFORM_BUFFER_END
 
 // Declare a global instance (typically in a .cpp file)
-MyParamDef gMyParamDef;
+MyUniformBufferDef gMyUniformBufferDef;
 ~~~~~~~~~~~~~
 
-The macro generates a structure with methods for creating buffers and setting parameter values. Each entry becomes a member that knows its offset and layout within the buffer.
+The macro generates a structure with methods for creating buffers and setting parameter values. Each member becomes a field that knows its offset and layout within the buffer.
 
-To use the parameter block definition:
+#### Creating persistent uniform buffers
+For uniform buffers that don't change every frame, you can create persistent buffers:
 
 ~~~~~~~~~~~~~{.cpp}
-// Create a uniform buffer using the parameter block definition
-SPtr<GpuBuffer> uniformBuffer = gMyParamDef.CreateBuffer();
+// Create a persistent uniform buffer using the definition
+SPtr<GpuBuffer> uniformBuffer = gMyUniformBufferDef.CreateBuffer();
 
 // Bind the buffer to GpuParameters
 parameters->SetUniformBuffer("MyUniformBlock", uniformBuffer);
 
-// Set individual parameter values using the parameter block definition
+// Set individual parameter values using the uniform buffer definition
 Matrix4 matrix = ...;
-gMyParamDef.viewProjMatrix.Set(uniformBuffer, matrix);
-gMyParamDef.tintColor.Set(uniformBuffer, Color::kWhite);
-gMyParamDef.screenSize.Set(uniformBuffer, Vector2(1920.0f, 1080.0f));
+gMyUniformBufferDef.viewProjMatrix.Set(uniformBuffer, matrix);
+gMyUniformBufferDef.tintColor.Set(uniformBuffer, Color::kWhite);
+gMyUniformBufferDef.screenSize.Set(uniformBuffer, Vector2(1920.0f, 1080.0f));
 
 // Flush cached writes to GPU (if needed before rendering)
 uniformBuffer->FlushCache();
 ~~~~~~~~~~~~~
 
-For array parameters, use @b3d::render::B3D_PARAM_BLOCK_ENTRY_ARRAY:
+#### Transient uniform buffers (recommended for per-frame data)
+For uniform buffers that are updated every frame, the framework provides a more efficient allocation method using **AllocateTransient()**. This method returns a @b3d::render::GpuBufferSuballocation from an internal pool that is automatically recycled after a few frames:
 
 ~~~~~~~~~~~~~{.cpp}
-B3D_PARAM_BLOCK_BEGIN(LightingParamDef)
-	B3D_PARAM_BLOCK_ENTRY_ARRAY(Vector4, lightPositions, 8)
-	B3D_PARAM_BLOCK_ENTRY_ARRAY(Color, lightColors, 8)
-	B3D_PARAM_BLOCK_ENTRY(i32, lightCount)
-B3D_PARAM_BLOCK_END
+// Allocate a transient buffer (valid for the current frame)
+GpuBufferSuballocation transient = gMyUniformBufferDef.AllocateTransient();
 
-// Set array elements by specifying array index
-gLightingParamDef.lightPositions.Set(uniformBuffer, lightPos0, 0);
-gLightingParamDef.lightPositions.Set(uniformBuffer, lightPos1, 1);
-gLightingParamDef.lightColors.Set(uniformBuffer, lightColor0, 0);
+// Set parameter values directly on the transient allocation
+gMyUniformBufferDef.viewProjMatrix.Set(transient, matrix);
+gMyUniformBufferDef.tintColor.Set(transient, Color::kWhite);
+gMyUniformBufferDef.screenSize.Set(transient, Vector2(1920.0f, 1080.0f));
+
+// Bind the transient allocation to GpuParameters
+parameters->SetUniformBuffer("MyUniformBlock", transient);
+
+// No need to flush - automatically handled
+// No need to track frame indices - automatically recycled
 ~~~~~~~~~~~~~
 
-The parameter block system automatically handles:
+**AllocateTransient()** provides several advantages for per-frame uniform buffers:
+- **No manual frame tracking** - The pool automatically ensures allocations remain valid across frames-in-flight
+- **Better performance** - Avoids creating new buffers every frame
+- **Automatic recycling** - Allocations are reused after @b3d::RenderThread::kMaximumFramesInFlight frames
+- **Zero fragmentation** - Uses a pool allocator with O(1) allocation
+
+> **Note:** Transient allocations are valid for @b3d::RenderThread::kMaximumFramesInFlight frames (typically 3). Don't store them beyond a single frame's rendering operations. Allocate fresh each frame.
+
+For array parameters, use @b3d::render::B3D_UNIFORM_BUFFER_MEMBER_ARRAY:
+
+~~~~~~~~~~~~~{.cpp}
+B3D_UNIFORM_BUFFER_BEGIN(LightingUniformBufferDef)
+	B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Vector4, lightPositions, 8)
+	B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Color, lightColors, 8)
+	B3D_UNIFORM_BUFFER_MEMBER(i32, lightCount)
+B3D_UNIFORM_BUFFER_END
+
+// Using with transient allocation
+GpuBufferSuballocation lightingBuffer = gLightingUniformBufferDef.AllocateTransient();
+gLightingUniformBufferDef.lightPositions.Set(lightingBuffer, lightPos0, 0);
+gLightingUniformBufferDef.lightPositions.Set(lightingBuffer, lightPos1, 1);
+gLightingUniformBufferDef.lightColors.Set(lightingBuffer, lightColor0, 0);
+~~~~~~~~~~~~~
+
+The uniform buffer system automatically handles:
 - Correct memory layout and alignment according to GPU backend conventions
 - Matrix transposition when required by the rendering API
 - Array stride calculations
 - Buffer size calculation
+- Frame-based memory recycling for transient allocations
 
 You can also create multiple instances of the same buffer layout:
 
 ~~~~~~~~~~~~~{.cpp}
-// Create buffer for multiple objects (useful for instancing)
-SPtr<GpuBuffer> multiInstanceBuffer = gMyParamDef.CreateBuffer(100); // 100 instances
+// Create persistent buffer with multiple sub-allocations (useful for instancing)
+SPtr<GpuBuffer> multiInstanceBuffer = gMyUniformBufferDef.CreateBuffer(100); // 100 sub-allocations
 ~~~~~~~~~~~~~
 
 ## Binding GPU parameters
@@ -372,11 +402,11 @@ SPtr<GpuGraphicsPipelineState> pipeline = gpuDevice.CreateGpuGraphicsPipelineSta
 // 3. Create GpuParameters for the pipeline
 SPtr<GpuParameters> parameters = GpuParameters::Create(pipeline);
 
-// 4. Set up uniform buffer using parameter block definition
-B3D_PARAM_BLOCK_BEGIN(PerObjectParamDef)
-	B3D_PARAM_BLOCK_ENTRY(Matrix4, worldViewProj)
-	B3D_PARAM_BLOCK_ENTRY(Color, tintColor)
-B3D_PARAM_BLOCK_END
+// 4. Set up uniform buffer using uniform buffer definition
+B3D_UNIFORM_BUFFER_BEGIN(PerObjectParamDef)
+	B3D_UNIFORM_BUFFER_MEMBER(Matrix4, worldViewProj)
+	B3D_UNIFORM_BUFFER_MEMBER(Color, tintColor)
+B3D_UNIFORM_BUFFER_END
 
 PerObjectParamDef gPerObjectParamDef; // Declare globally
 

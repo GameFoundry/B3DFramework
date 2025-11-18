@@ -182,10 +182,10 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_PARAM_BLOCK_BEGIN(DebugDrawParamsDef)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gViewDir)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(DebugDrawParamsDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatViewProj)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gViewDir)
+		B3D_UNIFORM_BUFFER_END
 
 		extern DebugDrawParamsDef gDebugDrawParamsDef;
 

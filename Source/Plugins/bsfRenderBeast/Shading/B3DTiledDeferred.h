@@ -21,11 +21,11 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_PARAM_BLOCK_BEGIN(TiledLightingParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector4I, gLightCounts)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gLightStrides)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gFramebufferSize)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(TiledLightingParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4I, gLightCounts)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gLightStrides)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gFramebufferSize)
+		B3D_UNIFORM_BUFFER_END
 
 		extern TiledLightingParamDef gTiledLightingParamDef;
 
@@ -93,11 +93,11 @@ namespace b3d
 			GpuParameterSampledTexture mInputParam;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(ClearLoadStoreParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gSize)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gFloatClearVal)
-			B3D_PARAM_BLOCK_ENTRY(Vector4I, gIntClearVal)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ClearLoadStoreParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gFloatClearVal)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4I, gIntClearVal)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ClearLoadStoreParamDef gClearLoadStoreParamDef;
 
@@ -161,9 +161,9 @@ namespace b3d
 			SPtr<GpuBuffer> mParamBuffer;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(TiledImageBasedLightingParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gFramebufferSize)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(TiledImageBasedLightingParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gFramebufferSize)
+		B3D_UNIFORM_BUFFER_END
 
 		extern TiledImageBasedLightingParamDef gTiledImageBasedLightingParamDef;
 

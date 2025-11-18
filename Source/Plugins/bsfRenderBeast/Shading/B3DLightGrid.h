@@ -17,15 +17,15 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_PARAM_BLOCK_BEGIN(LightGridParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector4I, gLightCounts)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gLightStrides)
-			B3D_PARAM_BLOCK_ENTRY(i32, gNumReflProbes)
-			B3D_PARAM_BLOCK_ENTRY(i32, gNumCells)
-			B3D_PARAM_BLOCK_ENTRY(Vector3I, gGridSize)
-			B3D_PARAM_BLOCK_ENTRY(i32, gMaxNumLightsPerCell)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gGridPixelSize)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(LightGridParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4I, gLightCounts)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gLightStrides)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gNumReflProbes)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gNumCells)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector3I, gGridSize)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gMaxNumLightsPerCell)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gGridPixelSize)
+		B3D_UNIFORM_BUFFER_END
 
 		extern LightGridParamDef gLightGridParamDefDef;
 

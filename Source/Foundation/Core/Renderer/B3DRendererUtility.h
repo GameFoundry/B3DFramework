@@ -79,9 +79,9 @@ namespace b3d
 			bool mIsFiltered = false;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(CompositeParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Color, gTint)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(CompositeParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Color, gTint)
+		B3D_UNIFORM_BUFFER_END
 
 		extern CompositeParamDef gCompositeParamDef;
 
@@ -110,12 +110,12 @@ namespace b3d
 			GpuParameterSampledTexture mSourceTex;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(BicubicUpsampleParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Color, gTint)
-			B3D_PARAM_BLOCK_ENTRY(Vector2I, gTextureSize)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gInvPixel)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gInvTwoPixels)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(BicubicUpsampleParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Color, gTint)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gTextureSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvPixel)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvTwoPixels)
+		B3D_UNIFORM_BUFFER_END
 
 		extern BicubicUpsampleParamDef gBicubicUpsampleParamDef;
 
@@ -162,9 +162,9 @@ namespace b3d
 			GpuParameterSampledTexture mSourceTex;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(ClearParamDef)
-			B3D_PARAM_BLOCK_ENTRY(i32, gClearValue)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ClearParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gClearValue)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ClearParamDef gClearParamDef;
 

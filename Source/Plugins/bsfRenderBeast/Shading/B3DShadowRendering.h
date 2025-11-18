@@ -24,12 +24,12 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_PARAM_BLOCK_BEGIN(ShadowParamsDef)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gNDCZToDeviceZ)
-			B3D_PARAM_BLOCK_ENTRY(float, gDepthBias)
-			B3D_PARAM_BLOCK_ENTRY(float, gInvDepthRange)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ShadowParamsDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatViewProj)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gNDCZToDeviceZ)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gDepthBias)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gInvDepthRange)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ShadowParamsDef gShadowParamsDef;
 
@@ -135,15 +135,15 @@ namespace b3d
 			static ShadowDepthDirectionalMat* GetVariation(bool skinned, bool morph);
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(ShadowCubeMatricesDef)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(Matrix4, gFaceVPMatrices, 6)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ShadowCubeMatricesDef)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Matrix4, gFaceVPMatrices, 6)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ShadowCubeMatricesDef gShadowCubeMatricesDef;
 
-		B3D_PARAM_BLOCK_BEGIN(ShadowCubeMasksDef)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(int, gFaceMasks, 6)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ShadowCubeMasksDef)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(int, gFaceMasks, 6)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ShadowCubeMasksDef gShadowCubeMasksDef;
 
@@ -182,9 +182,9 @@ namespace b3d
 			static ShadowDepthCubeMat* GetVariation(bool skinned, bool morph);
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(ShadowProjectVertParamsDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gPositionAndScale)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ShadowProjectVertParamsDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gPositionAndScale)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ShadowProjectVertParamsDef gShadowProjectVertParamsDef;
 
@@ -244,16 +244,16 @@ namespace b3d
 			GBufferTextures Gbuffer;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(ShadowProjectParamsDef)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMixedToShadowSpace)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gShadowMapSize)
-			B3D_PARAM_BLOCK_ENTRY(Vector2, gShadowMapSizeInv)
-			B3D_PARAM_BLOCK_ENTRY(float, gSoftTransitionScale)
-			B3D_PARAM_BLOCK_ENTRY(float, gFadePercent)
-			B3D_PARAM_BLOCK_ENTRY(float, gFadePlaneDepth)
-			B3D_PARAM_BLOCK_ENTRY(float, gInvFadePlaneRange)
-			B3D_PARAM_BLOCK_ENTRY(float, gFace)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ShadowProjectParamsDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMixedToShadowSpace)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gShadowMapSize)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gShadowMapSizeInv)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gSoftTransitionScale)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gFadePercent)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gFadePlaneDepth)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gInvFadePlaneRange)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gFace)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ShadowProjectParamsDef gShadowProjectParamsDef;
 
@@ -293,13 +293,13 @@ namespace b3d
 			static SPtr<SamplerState> GetShadowSampler(GpuDevice& gpuDevice);
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(ShadowProjectOmniParamsDef)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(Matrix4, gFaceVPMatrices, 6)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightPosAndRadius)
-			B3D_PARAM_BLOCK_ENTRY(float, gInvResolution)
-			B3D_PARAM_BLOCK_ENTRY(float, gFadePercent)
-			B3D_PARAM_BLOCK_ENTRY(float, gDepthBias)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ShadowProjectOmniParamsDef)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Matrix4, gFaceVPMatrices, 6)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gLightPosAndRadius)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gInvResolution)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gFadePercent)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gDepthBias)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ShadowProjectOmniParamsDef gShadowProjectOmniParamsDef;
 

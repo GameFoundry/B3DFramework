@@ -210,9 +210,9 @@ namespace b3d
 			SPtr<RenderBeastOptions> mOptions;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(PerFrameParamDef)
-			B3D_PARAM_BLOCK_ENTRY(float, gTime)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(PerFrameParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gTime)
+		B3D_UNIFORM_BUFFER_END
 
 		extern PerFrameParamDef gPerFrameParamDef;
 

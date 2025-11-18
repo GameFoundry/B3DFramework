@@ -209,16 +209,16 @@ namespace b3d
 			Vector<LightData> mVisibleLightData;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(LightsParamDef)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(LightData, gLights, kStandardForwardMaxNumLights)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(LightsParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(LightData, gLights, kStandardForwardMaxNumLights)
+		B3D_UNIFORM_BUFFER_END
 
 		extern LightsParamDef gLightsParamDef;
 
-		B3D_PARAM_BLOCK_BEGIN(LightAndReflProbeParamsParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector4I, gLightOffsets)
-			B3D_PARAM_BLOCK_ENTRY(int, gReflProbeCount)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(LightAndReflProbeParamsParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4I, gLightOffsets)
+			B3D_UNIFORM_BUFFER_MEMBER(int, gReflProbeCount)
+		B3D_UNIFORM_BUFFER_END
 
 		extern LightAndReflProbeParamsParamDef gLightAndReflProbeParamsParamDef;
 

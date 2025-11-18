@@ -14,15 +14,15 @@ namespace b3d
 	{
 		class RendererLight;
 
-		B3D_PARAM_BLOCK_BEGIN(PerLightParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightPositionAndSrcRadius)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightColorAndLuminance)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightSpotAnglesAndSqrdInvAttRadius)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightDirectionAndBoundRadius)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gShiftedLightPositionAndType)
-			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightGeometry)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatConeTransform)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(PerLightParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gLightPositionAndSrcRadius)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gLightColorAndLuminance)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gLightSpotAnglesAndSqrdInvAttRadius)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gLightDirectionAndBoundRadius)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gShiftedLightPositionAndType)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gLightGeometry)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatConeTransform)
+		B3D_UNIFORM_BUFFER_END
 
 		extern PerLightParamDef gPerLightParamDef;
 
@@ -88,14 +88,14 @@ namespace b3d
 			static DeferredPointLightMat* GetVariation(bool inside, bool msaa, bool singleSampleMSAA = false);
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(PerProbeParamDef)
-			B3D_PARAM_BLOCK_ENTRY(Vector3, gPosition)
-			B3D_PARAM_BLOCK_ENTRY(Vector3, gExtents)
-			B3D_PARAM_BLOCK_ENTRY(float, gTransitionDistance)
-			B3D_PARAM_BLOCK_ENTRY(Matrix4, gInvBoxTransform)
-			B3D_PARAM_BLOCK_ENTRY(i32, gCubemapIdx)
-			B3D_PARAM_BLOCK_ENTRY(i32, gType)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(PerProbeParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gPosition)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gExtents)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gTransitionDistance)
+			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gInvBoxTransform)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gCubemapIdx)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gType)
+		B3D_UNIFORM_BUFFER_END
 
 		extern PerProbeParamDef gPerProbeParamDef;
 

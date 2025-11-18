@@ -63,14 +63,14 @@ namespace b3d
 			u32 mNumProbes = 0;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(ReflProbeParamsParamDef)
-			B3D_PARAM_BLOCK_ENTRY(i32, gReflCubemapNumMips)
-			B3D_PARAM_BLOCK_ENTRY(i32, gNumProbes)
-			B3D_PARAM_BLOCK_ENTRY(i32, gSkyCubemapAvailable)
-			B3D_PARAM_BLOCK_ENTRY(i32, gUseReflectionMaps)
-			B3D_PARAM_BLOCK_ENTRY(i32, gSkyCubemapNumMips)
-			B3D_PARAM_BLOCK_ENTRY(float, gSkyBrightness)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ReflProbeParamsParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gReflCubemapNumMips)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gNumProbes)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gSkyCubemapAvailable)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gUseReflectionMaps)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gSkyCubemapNumMips)
+			B3D_UNIFORM_BUFFER_MEMBER(float, gSkyBrightness)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ReflProbeParamsParamDef gReflProbeParamsParamDef;
 
@@ -142,9 +142,9 @@ namespace b3d
 			SPtr<GpuBuffer> Buffer;
 		};
 
-		B3D_PARAM_BLOCK_BEGIN(ReflProbesParamDef)
-			B3D_PARAM_BLOCK_ENTRY_ARRAY(ReflectioneProbeData, gReflectionProbes, kStandardForwardMaxNumProbes)
-		B3D_PARAM_BLOCK_END
+		B3D_UNIFORM_BUFFER_BEGIN(ReflProbesParamDef)
+			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(ReflectioneProbeData, gReflectionProbes, kStandardForwardMaxNumProbes)
+		B3D_UNIFORM_BUFFER_END
 
 		extern ReflProbesParamDef gReflProbesParamDef;
 
