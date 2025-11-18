@@ -753,26 +753,27 @@ ScreenSpaceLensFlareMat* ScreenSpaceLensFlareMat::GetVariation(bool halo, bool h
 	}
 }
 
-ChromaticAberrationParamDef gChromaticAberrationParamDef;
+ChromaticAberrationUniformDefinition gChromaticAberrationUniformDefinition;
 
-constexpr int ChromaticAberrationMat::kMaxSamples;
+constexpr int ChromaticAberrationMaterial::kMaxSamples;
 
-void ChromaticAberrationMat::Initialize()
+void ChromaticAberrationMaterial::Initialize()
 {
-	mParamBuffer = gChromaticAberrationParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
-	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTex);
-	mGPUParameters->GetSampledTextureParameter("gFringeTex", mFringeTex);
+	mGPUParameters->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
+	mGPUParameters->GetSampledTextureParameter("gFringeTex", mFringeTextureParameter);
 }
 
-void ChromaticAberrationMat::Prepare(const SPtr<Texture>& input, const ChromaticAberrationSettings& settings)
+void ChromaticAberrationMaterial::Prepare(const SPtr<Texture>& input, const ChromaticAberrationSettings& settings)
 {
 	const TextureProperties& texProps = input->GetProperties();
 
-	// Set parameters
-	gChromaticAberrationParamDef.gInputSize.Set(mParamBuffer, Vector2((float)texProps.Width, (float)texProps.Height));
-	gChromaticAberrationParamDef.gShiftAmount.Set(mParamBuffer, settings.ShiftAmount);
+	GpuBufferSuballocation uniformBuffer = gChromaticAberrationUniformDefinition.AllocateTransient();
+
+	gChromaticAberrationUniformDefinition.gInputSize.Set(uniformBuffer, Vector2((float)texProps.Width, (float)texProps.Height));
+	gChromaticAberrationUniformDefinition.gShiftAmount.Set(uniformBuffer, settings.ShiftAmount);
+
+	mUniformBufferParameter.Set(uniformBuffer);
 
 	SPtr<Texture> fringeTex;
 	if(settings.FringeTexture)
@@ -780,11 +781,11 @@ void ChromaticAberrationMat::Prepare(const SPtr<Texture>& input, const Chromatic
 	else
 		fringeTex = RendererTextures::chromaticAberrationFringe;
 
-	mInputTex.Set(input);
-	mFringeTex.Set(fringeTex);
+	mInputTextureParameter.Set(input);
+	mFringeTextureParameter.Set(fringeTex);
 }
 
-void ChromaticAberrationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void ChromaticAberrationMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -798,7 +799,7 @@ void ChromaticAberrationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr
 	commandBuffer.EndRenderPass();
 }
 
-ChromaticAberrationMat* ChromaticAberrationMat::GetVariation(ChromaticAberrationType type)
+ChromaticAberrationMaterial* ChromaticAberrationMaterial::GetVariation(ChromaticAberrationType type)
 {
 	if(type == ChromaticAberrationType::Complex)
 		return Get(GetVariation<false>());
@@ -806,7 +807,7 @@ ChromaticAberrationMat* ChromaticAberrationMat::GetVariation(ChromaticAberration
 	return Get(GetVariation<true>());
 }
 
-void ChromaticAberrationMat::InitDefinesInternal(ShaderDefines& defines)
+void ChromaticAberrationMaterial::InitDefinesInternal(ShaderDefines& defines)
 {
 	defines.Set("MAX_SAMPLES", kMaxSamples);
 }

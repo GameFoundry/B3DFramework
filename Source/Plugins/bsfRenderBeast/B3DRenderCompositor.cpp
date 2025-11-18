@@ -2447,7 +2447,7 @@ void RCNodeChromaticAberration::Render(const RenderCompositorNodeInputs& inputs)
 	SPtr<Texture> ppLastFrame;
 	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
 
-	ChromaticAberrationMat* chromaticAberration = ChromaticAberrationMat::GetVariation(settings.ChromaticAberration.Type);
+	ChromaticAberrationMaterial* chromaticAberration = ChromaticAberrationMaterial::GetVariation(settings.ChromaticAberration.Type);
 	chromaticAberration->Prepare(ppLastFrame, settings.ChromaticAberration);
 	chromaticAberration->Execute(*inputs.ActiveCommandBuffer, ppOutput);
 }

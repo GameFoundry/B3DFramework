@@ -503,15 +503,15 @@ namespace b3d
 			GpuParameterSampledTexture mGradientTex;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(ChromaticAberrationParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(ChromaticAberrationUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInputSize)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gShiftAmount)
 		B3D_UNIFORM_BUFFER_END
 
-		extern ChromaticAberrationParamDef gChromaticAberrationParamDef;
+		extern ChromaticAberrationUniformDefinition gChromaticAberrationUniformDefinition;
 
 		/** Renders a chromatic aberration effect by shifting RGB color channels. */
-		class ChromaticAberrationMat : public RendererMaterial<ChromaticAberrationMat>
+		class ChromaticAberrationMaterial : public RendererMaterial<ChromaticAberrationMaterial>
 		{
 			RMAT_DEF_CUSTOMIZED("PPChromaticAberration.bsl");
 
@@ -528,7 +528,7 @@ namespace b3d
 			}
 
 		public:
-			ChromaticAberrationMat() = default;
+			ChromaticAberrationMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -551,15 +551,14 @@ namespace b3d
 			/**
 			 * Returns the material variation matching the provided parameters.
 			 *
-			 * @param[in]	type		Type that determines how is the effect performed.
+			 * @param	type		Type that determines how is the effect performed.
 			 */
-			static ChromaticAberrationMat* GetVariation(ChromaticAberrationType type);
+			static ChromaticAberrationMaterial* GetVariation(ChromaticAberrationType type);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-
-			GpuParameterSampledTexture mInputTex;
-			GpuParameterSampledTexture mFringeTex;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mInputTextureParameter;
+			GpuParameterSampledTexture mFringeTextureParameter;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(FilmGrainParamDef)
