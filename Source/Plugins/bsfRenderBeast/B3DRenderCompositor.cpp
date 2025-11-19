@@ -2158,21 +2158,21 @@ void RCNodeBokehDOF::Render(const RenderCompositorNodeInputs& inputs)
 	RCNodeSceneDepth* sceneDepthNode = dependencies.Get<RCNodeSceneDepth>();
 	RCNodeLightAccumulation* lightAccumNode = dependencies.Get<RCNodeLightAccumulation>();
 
-	BokehDOFPrepareMat* prepareMat = BokehDOFPrepareMat::GetVariation(msaa);
-	BokehDOFMat* renderMat = BokehDOFMat::GetVariation(settings.BokehOcclusion);
-	BokehDOFCombineMat* combineMat = BokehDOFCombineMat::GetVariation(msaa ? MSAAMode::Full : MSAAMode::None);
+	BokehDOFPrepareMaterial* prepareMat = BokehDOFPrepareMaterial::GetVariation(msaa);
+	BokehDOFMaterial* renderMat = BokehDOFMaterial::GetVariation(settings.BokehOcclusion);
+	BokehDOFCombineMaterial* combineMat = BokehDOFCombineMaterial::GetVariation(msaa ? MSAAMode::Full : MSAAMode::None);
 
 	SPtr<Texture> depth = sceneDepthNode->DepthTex->Texture;
 
 	// Downsample scene and store depth in .w
 	SPtr<PooledRenderTexture> halfResSceneAndDepth =
-		GetGpuResourcePool().Get(BokehDOFPrepareMat::GetOutputDesc(sceneColorNode->SceneColorTex->Texture));
+		GetGpuResourcePool().Get(BokehDOFPrepareMaterial::GetOutputDesc(sceneColorNode->SceneColorTex->Texture));
 
 	prepareMat->Prepare(sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings);
 	prepareMat->Execute(commandBuffer, halfResSceneAndDepth->RenderTexture);
 
 	SPtr<PooledRenderTexture> unfocusedTex =
-		GetGpuResourcePool().Get(BokehDOFMat::GetOutputDesc(halfResSceneAndDepth->Texture));
+		GetGpuResourcePool().Get(BokehDOFMaterial::GetOutputDesc(halfResSceneAndDepth->Texture));
 
 	renderMat->Prepare(halfResSceneAndDepth->Texture, inputs.View, settings, unfocusedTex->RenderTexture);
 	renderMat->Execute(commandBuffer, halfResSceneAndDepth->Texture, unfocusedTex->RenderTexture);

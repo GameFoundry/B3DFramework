@@ -852,7 +852,7 @@ namespace b3d
 			GpuParameterSampledTexture mDepthTextureParameter;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(DepthOfFieldCommonParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(DepthOfFieldCommonUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gFocalPlaneDistance)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gApertureSize)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gFocalLength)
@@ -864,15 +864,19 @@ namespace b3d
 			B3D_UNIFORM_BUFFER_MEMBER(float, gFarTransitionRegion)
 		B3D_UNIFORM_BUFFER_END
 
-		B3D_UNIFORM_BUFFER_BEGIN(BokehDOFPrepareParamDef)
+		extern DepthOfFieldCommonUniformDefinition gDepthOfFieldCommonUniformDefinition;
+
+		B3D_UNIFORM_BUFFER_BEGIN(BokehDOFPrepareUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvInputSize)
 		B3D_UNIFORM_BUFFER_END
+
+		extern BokehDOFPrepareUniformDefinition gBokehDOFPrepareUniformDefinition;
 
 		/**
 		 * Shader does a 2x texture downsample while accounting for different depth of field layers and encoding depth into
 		 * the output.
 		 */
-		class BokehDOFPrepareMat : public RendererMaterial<BokehDOFPrepareMat>
+		class BokehDOFPrepareMaterial : public RendererMaterial<BokehDOFPrepareMaterial>
 		{
 			RMAT_DEF("PPBokehDOFPrepare.bsl");
 
@@ -887,7 +891,7 @@ namespace b3d
 			}
 
 		public:
-			BokehDOFPrepareMat() = default;
+			BokehDOFPrepareMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -912,16 +916,16 @@ namespace b3d
 			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
 
 			/** Returns the material variation matching the provided parameters. */
-			static BokehDOFPrepareMat* GetVariation(bool msaa);
+			static BokehDOFPrepareMaterial* GetVariation(bool msaa);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-			SPtr<GpuBuffer> mCommonParamBuffer;
-			GpuParameterSampledTexture mInputTexture;
-			GpuParameterSampledTexture mDepthTexture;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterUniformBuffer mCommonUniformBufferParameter;
+			GpuParameterSampledTexture mInputTextureParameter;
+			GpuParameterSampledTexture mDepthTextureParameter;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(BokehDOFParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(BokehDOFUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gTileCount)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvInputSize)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvOutputSize)
@@ -932,11 +936,13 @@ namespace b3d
 			B3D_UNIFORM_BUFFER_MEMBER(float, gInvDepthRange)
 		B3D_UNIFORM_BUFFER_END
 
+		extern BokehDOFUniformDefinition gBokehDOFUniformDefinition;
+
 		/**
 		 * Shader that renders the Bokeh DOF sprites and generates the blurred depth of field images. Separate images
 		 * are generated for the near-field and in-focus + far-field.
 		 */
-		class BokehDOFMat : public RendererMaterial<BokehDOFMat>
+		class BokehDOFMaterial : public RendererMaterial<BokehDOFMaterial>
 		{
 			RMAT_DEF_CUSTOMIZED("PPBokehDOF.bsl");
 
@@ -954,7 +960,7 @@ namespace b3d
 			static constexpr u32 kNearFarPadding = 128;
 			static constexpr u32 kQuadsPerTile = 8;
 
-			BokehDOFMat() = default;
+			BokehDOFMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -979,32 +985,34 @@ namespace b3d
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
 
-			/** Populates the common depth of field parameter buffers with values from the provided settings object. */
-			static void PopulateDofCommonParams(const SPtr<GpuBuffer>& buffer, const DepthOfFieldSettings& settings, const RendererView& view);
+			/** Populates the common depth of field uniform buffer with values from the provided settings object. */
+			static void PopulateDofCommonParams(const GpuBufferSuballocation& uniformBuffer, const DepthOfFieldSettings& settings, const RendererView& view);
 
 			/** Returns the material variation matching the provided parameters. */
-			static BokehDOFMat* GetVariation(bool depthOcclusion);
+			static BokehDOFMaterial* GetVariation(bool depthOcclusion);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-			SPtr<GpuBuffer> mCommonParamBuffer;
-			GpuParameterSampledTexture mInputTextureVS;
-			GpuParameterSampledTexture mInputTextureFS;
-			GpuParameterSampledTexture mBokehTexture;
-			GpuParameterSampledTexture mDepthTexture;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterUniformBuffer mCommonUniformBufferParameter;
+			GpuParameterSampledTexture mInputTextureVSParameter;
+			GpuParameterSampledTexture mInputTextureFSParameter;
+			GpuParameterSampledTexture mBokehTextureParameter;
+			GpuParameterSampledTexture mDepthTextureParameter;
 
 			SPtr<VertexDescription> mTileVertexDescription;
 			SPtr<GpuBuffer> mTileIndexBuffer;
 			SPtr<GpuBuffer> mTileVertexBuffer;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(BokehDOFCombineParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(BokehDOFCombineUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gLayerAndScaleOffset)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gFocusedImageSize)
 		B3D_UNIFORM_BUFFER_END
 
+		extern BokehDOFCombineUniformDefinition gBokehDOFCombineUniformDefinition;
+
 		/** Shader that combines the unfocused texture's near and far layers, together with the focused version. */
-		class BokehDOFCombineMat : public RendererMaterial<BokehDOFCombineMat>
+		class BokehDOFCombineMaterial : public RendererMaterial<BokehDOFCombineMaterial>
 		{
 			RMAT_DEF("PPBokehDOFCombine.bsl");
 
@@ -1019,7 +1027,7 @@ namespace b3d
 			}
 
 		public:
-			BokehDOFCombineMat() = default;
+			BokehDOFCombineMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -1043,14 +1051,14 @@ namespace b3d
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 			/** Returns the material variation matching the provided parameters. */
-			static BokehDOFCombineMat* GetVariation(MSAAMode msaaMode);
+			static BokehDOFCombineMaterial* GetVariation(MSAAMode msaaMode);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-			SPtr<GpuBuffer> mCommonParamBuffer;
-			GpuParameterSampledTexture mUnfocusedTexture;
-			GpuParameterSampledTexture mFocusedTexture;
-			GpuParameterSampledTexture mDepthTexture;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterUniformBuffer mCommonUniformBufferParameter;
+			GpuParameterSampledTexture mUnfocusedTextureParameter;
+			GpuParameterSampledTexture mFocusedTextureParameter;
+			GpuParameterSampledTexture mDepthTextureParameter;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(MotionBlurParamDef)

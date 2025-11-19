@@ -1234,38 +1234,39 @@ GaussianDOFCombineMaterial* GaussianDOFCombineMaterial::GetVariation(bool near, 
 		return Get(GetVariation<false, true>());
 }
 
-DepthOfFieldCommonParamDef gDepthOfFieldCommonParamDef;
-BokehDOFPrepareParamDef gBokehDOFPrepareParamDef;
+DepthOfFieldCommonUniformDefinition gDepthOfFieldCommonUniformDefinition;
+BokehDOFPrepareUniformDefinition gBokehDOFPrepareUniformDefinition;
 
-void BokehDOFPrepareMat::Initialize()
+void BokehDOFPrepareMaterial::Initialize()
 {
-	mParamBuffer = gBokehDOFPrepareParamDef.CreateBuffer();
-	mCommonParamBuffer = gDepthOfFieldCommonParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
-	mGPUParameters->SetUniformBuffer("DepthOfFieldParams", mCommonParamBuffer);
-
-	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTexture);
-	mGPUParameters->GetSampledTextureParameter("gDepthBufferTex", mDepthTexture);
+	mGPUParameters->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mGPUParameters->GetUniformBufferParameter("DepthOfFieldParams", mCommonUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
+	mGPUParameters->GetSampledTextureParameter("gDepthBufferTex", mDepthTextureParameter);
 }
 
-void BokehDOFPrepareMat::Prepare(const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings)
+void BokehDOFPrepareMaterial::Prepare(const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings)
 {
 	const TextureProperties& srcProps = input->GetProperties();
 
+	GpuBufferSuballocation uniformBuffer = gBokehDOFPrepareUniformDefinition.AllocateTransient();
+	GpuBufferSuballocation commonUniformBuffer = gDepthOfFieldCommonUniformDefinition.AllocateTransient();
+
 	Vector2 invTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
-	gBokehDOFPrepareParamDef.gInvInputSize.Set(mParamBuffer, invTexSize);
+	gBokehDOFPrepareUniformDefinition.gInvInputSize.Set(uniformBuffer, invTexSize);
 
-	BokehDOFMat::PopulateDofCommonParams(mCommonParamBuffer, settings, view);
+	BokehDOFMaterial::PopulateDofCommonParams(commonUniformBuffer, settings, view);
 
-	mInputTexture.Set(input);
-	mDepthTexture.Set(depth);
+	mUniformBufferParameter.Set(uniformBuffer);
+	mCommonUniformBufferParameter.Set(commonUniformBuffer);
+	mInputTextureParameter.Set(input);
+	mDepthTextureParameter.Set(depth);
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 }
 
-void BokehDOFPrepareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void BokehDOFPrepareMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -1277,7 +1278,7 @@ void BokehDOFPrepareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Ren
 	bool MSAA = mVariationParameters.GetI32("MSAA_COUNT") > 1;
 	if(MSAA)
 	{
-		const TextureProperties& srcProps = mInputTexture.Get()->GetProperties();
+		const TextureProperties& srcProps = mInputTextureParameter.Get()->GetProperties();
 		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)srcProps.Width, (float)srcProps.Height));
 	}
 	else
@@ -1286,7 +1287,7 @@ void BokehDOFPrepareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Ren
 	commandBuffer.EndRenderPass();
 }
 
-PooledRenderTextureCreateInformation BokehDOFPrepareMat::GetOutputDesc(const SPtr<Texture>& target)
+PooledRenderTextureCreateInformation BokehDOFPrepareMaterial::GetOutputDesc(const SPtr<Texture>& target)
 {
 	const TextureProperties& rtProps = target->GetProperties();
 
@@ -1296,7 +1297,7 @@ PooledRenderTextureCreateInformation BokehDOFPrepareMat::GetOutputDesc(const SPt
 	return PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET);
 }
 
-BokehDOFPrepareMat* BokehDOFPrepareMat::GetVariation(bool msaa)
+BokehDOFPrepareMaterial* BokehDOFPrepareMaterial::GetVariation(bool msaa)
 {
 	if(msaa)
 		return Get(GetVariation<true>());
@@ -1304,21 +1305,18 @@ BokehDOFPrepareMat* BokehDOFPrepareMat::GetVariation(bool msaa)
 		return Get(GetVariation<false>());
 }
 
-BokehDOFParamDef gBokehDOFParamDef;
+BokehDOFUniformDefinition gBokehDOFUniformDefinition;
 
-constexpr u32 BokehDOFMat::kNearFarPadding;
-constexpr u32 BokehDOFMat::kQuadsPerTile;
+constexpr u32 BokehDOFMaterial::kNearFarPadding;
+constexpr u32 BokehDOFMaterial::kQuadsPerTile;
 
-void BokehDOFMat::Initialize()
+void BokehDOFMaterial::Initialize()
 {
-	mParamBuffer = gBokehDOFParamDef.CreateBuffer();
-	mCommonParamBuffer = gDepthOfFieldCommonParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
-	mGPUParameters->SetUniformBuffer("DepthOfFieldParams", mCommonParamBuffer);
-	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureVS);
-	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureFS);
-	mGPUParameters->GetSampledTextureParameter("gBokehTex", mBokehTexture);
+	mGPUParameters->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mGPUParameters->GetUniformBufferParameter("DepthOfFieldParams", mCommonUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureVSParameter);
+	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureFSParameter);
+	mGPUParameters->GetSampledTextureParameter("gBokehTex", mBokehTextureParameter);
 
 	// Prepare vertex declaration for rendering tiles
 	TInlineArray<VertexElement, 8> tileVertexElements;
@@ -1385,49 +1383,55 @@ void BokehDOFMat::Initialize()
 	B3DStackFree(indices);
 }
 
-void BokehDOFMat::InitDefinesInternal(ShaderDefines& defines)
+void BokehDOFMaterial::InitDefinesInternal(ShaderDefines& defines)
 {
 	defines.Set("QUADS_PER_TILE", kQuadsPerTile);
 }
 
-void BokehDOFMat::Prepare(const SPtr<Texture>& input, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output)
+void BokehDOFMaterial::Prepare(const SPtr<Texture>& input, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output)
 {
 	const TextureProperties& srcProps = input->GetProperties();
 	const RenderTargetProperties& dstProps = output->GetProperties();
 
+	GpuBufferSuballocation uniformBuffer = gBokehDOFUniformDefinition.AllocateTransient();
+	GpuBufferSuballocation commonUniformBuffer = gDepthOfFieldCommonUniformDefinition.AllocateTransient();
+
 	Vector2 inputInvTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
 	Vector2 outputInvTexSize(1.0f / dstProps.Width, 1.0f / dstProps.Height);
-	gBokehDOFParamDef.gInvInputSize.Set(mParamBuffer, inputInvTexSize);
-	gBokehDOFParamDef.gInvOutputSize.Set(mParamBuffer, outputInvTexSize);
-	gBokehDOFParamDef.gAdaptiveThresholdCOC.Set(mParamBuffer, settings.AdaptiveRadiusThreshold);
-	gBokehDOFParamDef.gAdaptiveThresholdColor.Set(mParamBuffer, settings.AdaptiveColorThreshold);
-	gBokehDOFParamDef.gLayerPixelOffset.Set(mParamBuffer, (i32)srcProps.Height + (i32)kNearFarPadding);
-	gBokehDOFParamDef.gInvDepthRange.Set(mParamBuffer, 1.0f / settings.OcclusionDepthRange);
+	gBokehDOFUniformDefinition.gInvInputSize.Set(uniformBuffer, inputInvTexSize);
+	gBokehDOFUniformDefinition.gInvOutputSize.Set(uniformBuffer, outputInvTexSize);
+	gBokehDOFUniformDefinition.gAdaptiveThresholdCOC.Set(uniformBuffer, settings.AdaptiveRadiusThreshold);
+	gBokehDOFUniformDefinition.gAdaptiveThresholdColor.Set(uniformBuffer, settings.AdaptiveColorThreshold);
+	gBokehDOFUniformDefinition.gLayerPixelOffset.Set(uniformBuffer, (i32)srcProps.Height + (i32)kNearFarPadding);
+	gBokehDOFUniformDefinition.gInvDepthRange.Set(uniformBuffer, 1.0f / settings.OcclusionDepthRange);
 
 	float bokehSize = settings.MaxBokehSize * srcProps.Width;
-	gBokehDOFParamDef.gBokehSize.Set(mParamBuffer, Vector2(bokehSize, bokehSize));
+	gBokehDOFUniformDefinition.gBokehSize.Set(uniformBuffer, Vector2(bokehSize, bokehSize));
 
 	Vector2I imageSize(srcProps.Width, srcProps.Height);
 
 	// TODO - Allow tile count to halve (i.e. half sampling rate)
 	Vector2I tileCount = imageSize / 1;
-	gBokehDOFParamDef.gTileCount.Set(mParamBuffer, tileCount);
+	gBokehDOFUniformDefinition.gTileCount.Set(uniformBuffer, tileCount);
 
-	PopulateDofCommonParams(mCommonParamBuffer, settings, view);
-	mInputTextureVS.Set(input);
-	mInputTextureFS.Set(input);
+	PopulateDofCommonParams(commonUniformBuffer, settings, view);
+
+	mUniformBufferParameter.Set(uniformBuffer);
+	mCommonUniformBufferParameter.Set(commonUniformBuffer);
+	mInputTextureVSParameter.Set(input);
+	mInputTextureFSParameter.Set(input);
 
 	SPtr<Texture> bokehTexture = settings.BokehShape;
 	if(bokehTexture == nullptr)
 		bokehTexture = RendererTextures::bokehFlare;
 
-	mBokehTexture.Set(bokehTexture);
+	mBokehTextureParameter.Set(bokehTexture);
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 }
 
-void BokehDOFMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output)
+void BokehDOFMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -1456,7 +1460,7 @@ void BokehDOFMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& 
 	commandBuffer.EndRenderPass();
 }
 
-PooledRenderTextureCreateInformation BokehDOFMat::GetOutputDesc(const SPtr<Texture>& target)
+PooledRenderTextureCreateInformation BokehDOFMaterial::GetOutputDesc(const SPtr<Texture>& target)
 {
 	const TextureProperties& rtProps = target->GetProperties();
 
@@ -1466,14 +1470,14 @@ PooledRenderTextureCreateInformation BokehDOFMat::GetOutputDesc(const SPtr<Textu
 	return PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET);
 }
 
-void BokehDOFMat::PopulateDofCommonParams(const SPtr<GpuBuffer>& buffer, const DepthOfFieldSettings& settings, const RendererView& view)
+void BokehDOFMaterial::PopulateDofCommonParams(const GpuBufferSuballocation& uniformBuffer, const DepthOfFieldSettings& settings, const RendererView& view)
 {
-	gDepthOfFieldCommonParamDef.gFocalPlaneDistance.Set(buffer, settings.FocalDistance);
-	gDepthOfFieldCommonParamDef.gApertureSize.Set(buffer, settings.ApertureSize * 0.001f); // mm to m
-	gDepthOfFieldCommonParamDef.gFocalLength.Set(buffer, settings.FocalLength * 0.001f); // mm to m
-	gDepthOfFieldCommonParamDef.gInFocusRange.Set(buffer, settings.FocalRange);
-	gDepthOfFieldCommonParamDef.gNearTransitionRegion.Set(buffer, settings.NearTransitionRange);
-	gDepthOfFieldCommonParamDef.gFarTransitionRegion.Set(buffer, settings.FarTransitionRange);
+	gDepthOfFieldCommonUniformDefinition.gFocalPlaneDistance.Set(uniformBuffer, settings.FocalDistance);
+	gDepthOfFieldCommonUniformDefinition.gApertureSize.Set(uniformBuffer, settings.ApertureSize * 0.001f); // mm to m
+	gDepthOfFieldCommonUniformDefinition.gFocalLength.Set(uniformBuffer, settings.FocalLength * 0.001f); // mm to m
+	gDepthOfFieldCommonUniformDefinition.gInFocusRange.Set(uniformBuffer, settings.FocalRange);
+	gDepthOfFieldCommonUniformDefinition.gNearTransitionRegion.Set(uniformBuffer, settings.NearTransitionRange);
+	gDepthOfFieldCommonUniformDefinition.gFarTransitionRegion.Set(uniformBuffer, settings.FarTransitionRange);
 
 	float sensorSize, imageSize;
 	if(settings.SensorSize.X < settings.SensorSize.Y)
@@ -1487,12 +1491,12 @@ void BokehDOFMat::PopulateDofCommonParams(const SPtr<GpuBuffer>& buffer, const D
 		imageSize = (float)view.GetProperties().Target.TargetHeight;
 	}
 
-	gDepthOfFieldCommonParamDef.gSensorSize.Set(buffer, sensorSize);
-	gDepthOfFieldCommonParamDef.gImageSize.Set(buffer, imageSize);
-	gDepthOfFieldCommonParamDef.gMaxBokehSize.Set(buffer, Math::Clamp01(settings.MaxBokehSize) * imageSize);
+	gDepthOfFieldCommonUniformDefinition.gSensorSize.Set(uniformBuffer, sensorSize);
+	gDepthOfFieldCommonUniformDefinition.gImageSize.Set(uniformBuffer, imageSize);
+	gDepthOfFieldCommonUniformDefinition.gMaxBokehSize.Set(uniformBuffer, Math::Clamp01(settings.MaxBokehSize) * imageSize);
 }
 
-BokehDOFMat* BokehDOFMat::GetVariation(bool depthOcclusion)
+BokehDOFMaterial* BokehDOFMaterial::GetVariation(bool depthOcclusion)
 {
 	if(depthOcclusion)
 		return Get(GetVariation<true>());
@@ -1500,46 +1504,47 @@ BokehDOFMat* BokehDOFMat::GetVariation(bool depthOcclusion)
 		return Get(GetVariation<false>());
 }
 
-BokehDOFCombineParamDef gBokehDOFCombineParamDef;
+BokehDOFCombineUniformDefinition gBokehDOFCombineUniformDefinition;
 
-void BokehDOFCombineMat::Initialize()
+void BokehDOFCombineMaterial::Initialize()
 {
-	mParamBuffer = gBokehDOFPrepareParamDef.CreateBuffer();
-	mCommonParamBuffer = gDepthOfFieldCommonParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
-	mGPUParameters->SetUniformBuffer("DepthOfFieldParams", mCommonParamBuffer);
-
-	mGPUParameters->GetSampledTextureParameter("gUnfocusedTex", mUnfocusedTexture);
-	mGPUParameters->GetSampledTextureParameter("gFocusedTex", mFocusedTexture);
-	mGPUParameters->GetSampledTextureParameter("gDepthBufferTex", mDepthTexture);
+	mGPUParameters->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mGPUParameters->GetUniformBufferParameter("DepthOfFieldParams", mCommonUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gUnfocusedTex", mUnfocusedTextureParameter);
+	mGPUParameters->GetSampledTextureParameter("gFocusedTex", mFocusedTextureParameter);
+	mGPUParameters->GetSampledTextureParameter("gDepthBufferTex", mDepthTextureParameter);
 }
 
-void BokehDOFCombineMat::Prepare(const SPtr<Texture>& unfocused, const SPtr<Texture>& focused, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings)
+void BokehDOFCombineMaterial::Prepare(const SPtr<Texture>& unfocused, const SPtr<Texture>& focused, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings)
 {
 	const TextureProperties& focusedProps = focused->GetProperties();
 	const TextureProperties& unfocusedProps = unfocused->GetProperties();
 	u32 halfHeight = std::max(1U, Math::DivideAndRoundUp(focusedProps.Height, 2U));
 
+	GpuBufferSuballocation uniformBuffer = gBokehDOFCombineUniformDefinition.AllocateTransient();
+	GpuBufferSuballocation commonUniformBuffer = gDepthOfFieldCommonUniformDefinition.AllocateTransient();
+
 	float uvScale = halfHeight / (float)unfocusedProps.Height;
-	float uvOffset = (halfHeight + BokehDOFMat::kNearFarPadding) / (float)unfocusedProps.Height;
+	float uvOffset = (halfHeight + BokehDOFMaterial::kNearFarPadding) / (float)unfocusedProps.Height;
 
 	Vector2 layerScaleOffset(uvScale, uvOffset);
 	Vector2 focusedImageSize((float)focusedProps.Width, (float)focusedProps.Height);
-	gBokehDOFCombineParamDef.gLayerAndScaleOffset.Set(mParamBuffer, layerScaleOffset);
-	gBokehDOFCombineParamDef.gFocusedImageSize.Set(mParamBuffer, focusedImageSize);
+	gBokehDOFCombineUniformDefinition.gLayerAndScaleOffset.Set(uniformBuffer, layerScaleOffset);
+	gBokehDOFCombineUniformDefinition.gFocusedImageSize.Set(uniformBuffer, focusedImageSize);
 
-	BokehDOFMat::PopulateDofCommonParams(mCommonParamBuffer, settings, view);
+	BokehDOFMaterial::PopulateDofCommonParams(commonUniformBuffer, settings, view);
 
-	mUnfocusedTexture.Set(unfocused);
-	mFocusedTexture.Set(focused);
-	mDepthTexture.Set(depth);
+	mUniformBufferParameter.Set(uniformBuffer);
+	mCommonUniformBufferParameter.Set(commonUniformBuffer);
+	mUnfocusedTextureParameter.Set(unfocused);
+	mFocusedTextureParameter.Set(focused);
+	mDepthTextureParameter.Set(depth);
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 }
 
-void BokehDOFCombineMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void BokehDOFCombineMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -1552,7 +1557,7 @@ void BokehDOFCombineMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Ren
 	commandBuffer.EndRenderPass();
 }
 
-BokehDOFCombineMat* BokehDOFCombineMat::GetVariation(MSAAMode msaaMode)
+BokehDOFCombineMaterial* BokehDOFCombineMaterial::GetVariation(MSAAMode msaaMode)
 {
 	switch(msaaMode)
 	{
