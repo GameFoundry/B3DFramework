@@ -1061,17 +1061,19 @@ namespace b3d
 			GpuParameterSampledTexture mDepthTextureParameter;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(MotionBlurParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(MotionBlurUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(u32, gHalfNumSamples)
 		B3D_UNIFORM_BUFFER_END
 
+		extern MotionBlurUniformDefinition gMotionBlurUniformDefinition;
+
 		/** Shader that blurs the scene depending on camera and/or object movement. */
-		class MotionBlurMat : public RendererMaterial<MotionBlurMat>
+		class MotionBlurMaterial : public RendererMaterial<MotionBlurMaterial>
 		{
 			RMAT_DEF("PPMotionBlur.bsl");
 
 		public:
-			MotionBlurMat() = default;
+			MotionBlurMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -1093,20 +1095,20 @@ namespace b3d
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
 			GpuParameterSampledTexture mInputTexture;
 			GpuParameterSampledTexture mDepthTexture;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(BuildHiZFParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(BuildHiZUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gHalfPixelOffset)
 			B3D_UNIFORM_BUFFER_MEMBER(int, gMipLevel)
 		B3D_UNIFORM_BUFFER_END
 
-		extern BuildHiZFParamDef gBuildHiZFParamDef;
+		extern BuildHiZUniformDefinition gBuildHiZUniformDefinition;
 
 		/** Shader that calculates a single level of the hierarchical Z mipmap chain. */
-		class BuildHiZMat : public RendererMaterial<BuildHiZMat>
+		class BuildHiZMaterial : public RendererMaterial<BuildHiZMaterial>
 		{
 			RMAT_DEF("PPBuildHiZ.bsl");
 
@@ -1123,7 +1125,7 @@ namespace b3d
 			}
 
 		public:
-			BuildHiZMat() = default;
+			BuildHiZMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -1151,27 +1153,27 @@ namespace b3d
 			 * @param	noTextureViews		Specify as true if the current render backend doesn't support texture views, in
 			 *								which case the implementation falls back on using a simpler version of the shader.
 			 */
-			static BuildHiZMat* GetVariation(bool noTextureViews);
+			static BuildHiZMaterial* GetVariation(bool noTextureViews);
 
 		private:
 			GpuParameterSampledTexture mInputTexture;
-			SPtr<GpuBuffer> mParamBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
 			bool mNoTextureViews = false;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(FXAAParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(FXAAUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvTexSize)
 		B3D_UNIFORM_BUFFER_END
 
-		extern FXAAParamDef gFXAAParamDef;
+		extern FXAAUniformDefinition gFXAAUniformDefinition;
 
 		/** Shader that performs Fast Approximate anti-aliasing. */
-		class FXAAMat : public RendererMaterial<FXAAMat>
+		class FXAAMaterial : public RendererMaterial<FXAAMaterial>
 		{
 			RMAT_DEF("PPFXAA.bsl");
 
 		public:
-			FXAAMat() = default;
+			FXAAMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -1191,7 +1193,7 @@ namespace b3d
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
 			GpuParameterSampledTexture mInputTexture;
 		};
 

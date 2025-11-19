@@ -2298,7 +2298,7 @@ void RCNodeMotionBlur::Render(const RenderCompositorNodeInputs& inputs)
 	// RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
 	// RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[3]);
 
-	// MotionBlurMat* motionBlurMat = MotionBlurMat::Get();
+	// MotionBlurMaterial* motionBlurMat = MotionBlurMaterial::Get();
 
 	// SPtr<Texture> depth = sceneDepthNode->depthTex->texture;
 	// motionBlurMat->Prepare(sceneColorNode->sceneColorTex->texture, depth, inputs.view, settings);
@@ -2418,7 +2418,7 @@ void RCNodeFXAA::Render(const RenderCompositorNodeInputs& inputs)
 	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
 
 	// Note: I could skip executing FXAA over DOF and motion blurred pixels
-	FXAAMat* fxaa = FXAAMat::Get();
+	FXAAMaterial* fxaa = FXAAMaterial::Get();
 	fxaa->Prepare(ppLastFrame);
 	fxaa->Execute(*inputs.ActiveCommandBuffer, ppOutput);
 }
@@ -2627,7 +2627,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 
 	bool noTextureViews = !commandBuffer.GetGpuDevice().GetCapabilities().HasCapability(RSC_TEXTURE_VIEWS);
 
-	BuildHiZMat* material = BuildHiZMat::GetVariation(noTextureViews);
+	BuildHiZMaterial* material = BuildHiZMaterial::GetVariation(noTextureViews);
 
 	// Generate first mip
 	RenderTextureCreateInformation rtDesc;

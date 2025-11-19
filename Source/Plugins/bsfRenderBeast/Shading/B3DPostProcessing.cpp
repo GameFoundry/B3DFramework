@@ -1571,14 +1571,11 @@ BokehDOFCombineMaterial* BokehDOFCombineMaterial::GetVariation(MSAAMode msaaMode
 	}
 }
 
-MotionBlurParamDef gMotionBlurParamDef;
+MotionBlurUniformDefinition gMotionBlurUniformDefinition;
 
-void MotionBlurMat::Initialize()
+void MotionBlurMaterial::Initialize()
 {
-	mParamBuffer = gBokehDOFPrepareParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
-
+	mGPUParameters->GetUniformBufferParameter("Params", mUniformBufferParameter);
 	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTexture);
 	mGPUParameters->GetSampledTextureParameter("gDepthBufferTex", mDepthTexture);
 
@@ -1596,7 +1593,7 @@ void MotionBlurMat::Initialize()
 		mGPUParameters->SetSamplerState("gDepthBufferSamp", pointSampState);
 }
 
-void MotionBlurMat::Prepare(const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const MotionBlurSettings& settings)
+void MotionBlurMaterial::Prepare(const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const MotionBlurSettings& settings)
 {
 	u32 numSamples;
 	switch(settings.Quality)
@@ -1609,8 +1606,10 @@ void MotionBlurMat::Prepare(const SPtr<Texture>& input, const SPtr<Texture>& dep
 	case MotionBlurQuality::Ultra: numSamples = 16; break;
 	}
 
-	gMotionBlurParamDef.gHalfNumSamples.Set(mParamBuffer, numSamples / 2);
+	GpuBufferSuballocation uniformBuffer = gMotionBlurUniformDefinition.AllocateTransient();
+	gMotionBlurUniformDefinition.gHalfNumSamples.Set(uniformBuffer, numSamples / 2);
 
+	mUniformBufferParameter.Set(uniformBuffer);
 	mInputTexture.Set(input);
 	mDepthTexture.Set(depth);
 
@@ -1618,7 +1617,7 @@ void MotionBlurMat::Prepare(const SPtr<Texture>& input, const SPtr<Texture>& dep
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 }
 
-void MotionBlurMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void MotionBlurMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -1631,9 +1630,9 @@ void MotionBlurMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTa
 	commandBuffer.EndRenderPass();
 }
 
-BuildHiZFParamDef gBuildHiZParamDef;
+BuildHiZUniformDefinition gBuildHiZUniformDefinition;
 
-void BuildHiZMat::Initialize()
+void BuildHiZMaterial::Initialize()
 {
 	mNoTextureViews = mVariationParameters.GetBool("NO_TEXTURE_VIEWS");
 
@@ -1642,8 +1641,7 @@ void BuildHiZMat::Initialize()
 	// If no texture view support, we must manually pick a valid mip level in the shader
 	if(mNoTextureViews)
 	{
-		mParamBuffer = gBuildHiZParamDef.CreateBuffer();
-		mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
+		mGPUParameters->GetUniformBufferParameter("Input", mUniformBufferParameter);
 
 		SamplerStateInformation inputSampDesc;
 		inputSampDesc.MinFilter = FO_POINT;
@@ -1655,7 +1653,7 @@ void BuildHiZMat::Initialize()
 	}
 }
 
-void BuildHiZMat::Prepare(const SPtr<Texture>& source, u32 srcMip)
+void BuildHiZMaterial::Prepare(const SPtr<Texture>& source, u32 srcMip)
 {
 	// If no texture view support, we must manually pick a valid mip level in the shader
 	if(mNoTextureViews)
@@ -1668,14 +1666,17 @@ void BuildHiZMat::Prepare(const SPtr<Texture>& source, u32 srcMip)
 
 		Vector2 halfPixelOffset(0.5f / pixelWidth, 0.5f / pixelHeight);
 
-		gBuildHiZParamDef.gHalfPixelOffset.Set(mParamBuffer, halfPixelOffset);
-		gBuildHiZParamDef.gMipLevel.Set(mParamBuffer, srcMip);
+		GpuBufferSuballocation uniformBuffer = gBuildHiZUniformDefinition.AllocateTransient();
+		gBuildHiZUniformDefinition.gHalfPixelOffset.Set(uniformBuffer, halfPixelOffset);
+		gBuildHiZUniformDefinition.gMipLevel.Set(uniformBuffer, srcMip);
+
+		mUniformBufferParameter.Set(uniformBuffer);
 	}
 	else
 		mInputTexture.Set(source, TextureSurface(srcMip));
 }
 
-void BuildHiZMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& output, const Area2& srcRect, const Area2& dstRect)
+void BuildHiZMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& output, const Area2& srcRect, const Area2& dstRect)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -1691,7 +1692,7 @@ void BuildHiZMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderText
 	commandBuffer.EndRenderPass();
 }
 
-BuildHiZMat* BuildHiZMat::GetVariation(bool noTextureViews)
+BuildHiZMaterial* BuildHiZMaterial::GetVariation(bool noTextureViews)
 {
 	if(noTextureViews)
 		return Get(GetVariation<true>());
@@ -1699,27 +1700,28 @@ BuildHiZMat* BuildHiZMat::GetVariation(bool noTextureViews)
 	return Get(GetVariation<false>());
 }
 
-FXAAParamDef gFXAAParamDef;
+FXAAUniformDefinition gFXAAUniformDefinition;
 
-void FXAAMat::Initialize()
+void FXAAMaterial::Initialize()
 {
-	mParamBuffer = gFXAAParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
+	mGPUParameters->GetUniformBufferParameter("Input", mUniformBufferParameter);
 	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTexture);
 }
 
-void FXAAMat::Prepare(const SPtr<Texture>& source)
+void FXAAMaterial::Prepare(const SPtr<Texture>& source)
 {
 	const TextureProperties& srcProps = source->GetProperties();
 
 	Vector2 invTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
-	gFXAAParamDef.gInvTexSize.Set(mParamBuffer, invTexSize);
 
+	GpuBufferSuballocation uniformBuffer = gFXAAUniformDefinition.AllocateTransient();
+	gFXAAUniformDefinition.gInvTexSize.Set(uniformBuffer, invTexSize);
+
+	mUniformBufferParameter.Set(uniformBuffer);
 	mInputTexture.Set(source);
 }
 
-void FXAAMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void FXAAMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
