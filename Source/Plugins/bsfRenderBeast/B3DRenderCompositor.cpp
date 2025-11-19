@@ -2476,7 +2476,7 @@ void RCNodeFilmGrain::Render(const RenderCompositorNodeInputs& inputs)
 	SPtr<Texture> ppLastFrame;
 	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
 
-	FilmGrainMat* filmGrain = FilmGrainMat::Get();
+	FilmGrainMaterial* filmGrain = FilmGrainMaterial::Get();
 	filmGrain->Prepare(ppLastFrame, inputs.FrameInfo.Timings.Time, settings.FilmGrain);
 	filmGrain->Execute(*inputs.ActiveCommandBuffer, ppOutput);
 }
@@ -3114,7 +3114,7 @@ void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs
 			TU_RENDERTARGET));
 
 	bool haloAspect = lensFlareSettings.HaloAspectRatio != 1.0f;
-	ScreenSpaceLensFlareMat* lensFlareMat = ScreenSpaceLensFlareMat::GetVariation(
+	ScreenSpaceLensFlareMaterial* lensFlareMat = ScreenSpaceLensFlareMaterial::GetVariation(
 		lensFlareSettings.Halo,
 		haloAspect,
 		lensFlareSettings.ChromaticAberration);

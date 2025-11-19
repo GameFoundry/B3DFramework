@@ -691,34 +691,35 @@ BloomClipMat* BloomClipMat::GetVariation(bool autoExposure)
 	return Get(GetVariation<false>());
 }
 
-ScreenSpaceLensFlareParamDef gScreenSpaceLensFlareParamDef;
+ScreenSpaceLensFlareUniformDefinition gScreenSpaceLensFlareUniformDefinition;
 
-void ScreenSpaceLensFlareMat::Initialize()
+void ScreenSpaceLensFlareMaterial::Initialize()
 {
-	mParamBuffer = gScreenSpaceLensFlareParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
-	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTex);
-	mGPUParameters->GetSampledTextureParameter("gGradientTex", mGradientTex);
+	mGPUParameters->GetUniformBufferParameter("Input", mUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
+	mGPUParameters->GetSampledTextureParameter("gGradientTex", mGradientTextureParameter);
 }
 
-void ScreenSpaceLensFlareMat::Prepare(const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings)
+void ScreenSpaceLensFlareMaterial::Prepare(const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings)
 {
-	// Set parameters
-	gScreenSpaceLensFlareParamDef.gThreshold.Set(mParamBuffer, settings.Threshold);
-	gScreenSpaceLensFlareParamDef.gGhostCount.Set(mParamBuffer, settings.GhostCount);
-	gScreenSpaceLensFlareParamDef.gGhostSpacing.Set(mParamBuffer, settings.GhostSpacing);
-	gScreenSpaceLensFlareParamDef.gHaloRadius.Set(mParamBuffer, settings.HaloRadius);
-	gScreenSpaceLensFlareParamDef.gHaloThickness.Set(mParamBuffer, settings.HaloThickness);
-	gScreenSpaceLensFlareParamDef.gHaloThreshold.Set(mParamBuffer, settings.HaloThreshold);
-	gScreenSpaceLensFlareParamDef.gHaloAspectRatio.Set(mParamBuffer, settings.HaloAspectRatio);
-	gScreenSpaceLensFlareParamDef.gChromaticAberration.Set(mParamBuffer, settings.ChromaticAberrationOffset);
+	GpuBufferSuballocation uniformBuffer = gScreenSpaceLensFlareUniformDefinition.AllocateTransient();
 
-	mInputTex.Set(input);
-	mGradientTex.Set(RendererTextures::lensFlareGradient);
+	gScreenSpaceLensFlareUniformDefinition.gThreshold.Set(uniformBuffer, settings.Threshold);
+	gScreenSpaceLensFlareUniformDefinition.gGhostCount.Set(uniformBuffer, settings.GhostCount);
+	gScreenSpaceLensFlareUniformDefinition.gGhostSpacing.Set(uniformBuffer, settings.GhostSpacing);
+	gScreenSpaceLensFlareUniformDefinition.gHaloRadius.Set(uniformBuffer, settings.HaloRadius);
+	gScreenSpaceLensFlareUniformDefinition.gHaloThickness.Set(uniformBuffer, settings.HaloThickness);
+	gScreenSpaceLensFlareUniformDefinition.gHaloThreshold.Set(uniformBuffer, settings.HaloThreshold);
+	gScreenSpaceLensFlareUniformDefinition.gHaloAspectRatio.Set(uniformBuffer, settings.HaloAspectRatio);
+	gScreenSpaceLensFlareUniformDefinition.gChromaticAberration.Set(uniformBuffer, settings.ChromaticAberrationOffset);
+
+	mUniformBufferParameter.Set(uniformBuffer);
+
+	mInputTextureParameter.Set(input);
+	mGradientTextureParameter.Set(RendererTextures::lensFlareGradient);
 }
 
-void ScreenSpaceLensFlareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void ScreenSpaceLensFlareMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -732,7 +733,7 @@ void ScreenSpaceLensFlareMat::Execute(GpuCommandBuffer& commandBuffer, const SPt
 	commandBuffer.EndRenderPass();
 }
 
-ScreenSpaceLensFlareMat* ScreenSpaceLensFlareMat::GetVariation(bool halo, bool haloAspect, bool chromaticAberration)
+ScreenSpaceLensFlareMaterial* ScreenSpaceLensFlareMaterial::GetVariation(bool halo, bool haloAspect, bool chromaticAberration)
 {
 	if(halo)
 	{
@@ -819,26 +820,27 @@ void ChromaticAberrationMaterial::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("MAX_SAMPLES", kMaxSamples);
 }
 
-FilmGrainParamDef gFilmGrainParamDef;
+FilmGrainUniformDefinition gFilmGrainUniformDefinition;
 
-void FilmGrainMat::Initialize()
+void FilmGrainMaterial::Initialize()
 {
-	mParamBuffer = gFilmGrainParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
-	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTex);
+	mGPUParameters->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
 }
 
-void FilmGrainMat::Prepare(const SPtr<Texture>& input, float time, const FilmGrainSettings& settings)
+void FilmGrainMaterial::Prepare(const SPtr<Texture>& input, float time, const FilmGrainSettings& settings)
 {
-	// Set parameters
-	gFilmGrainParamDef.gIntensity.Set(mParamBuffer, settings.Intensity);
-	gFilmGrainParamDef.gTime.Set(mParamBuffer, settings.Speed * time);
+	GpuBufferSuballocation uniformBuffer = gFilmGrainUniformDefinition.AllocateTransient();
 
-	mInputTex.Set(input);
+	gFilmGrainUniformDefinition.gIntensity.Set(uniformBuffer, settings.Intensity);
+	gFilmGrainUniformDefinition.gTime.Set(uniformBuffer, settings.Speed * time);
+
+	mUniformBufferParameter.Set(uniformBuffer);
+
+	mInputTextureParameter.Set(input);
 }
 
-void FilmGrainMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void FilmGrainMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 

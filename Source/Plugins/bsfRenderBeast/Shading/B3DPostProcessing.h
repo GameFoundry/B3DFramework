@@ -432,7 +432,7 @@ namespace b3d
 			GpuParameterSampledTexture mEyeAdaptationTex;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(ScreenSpaceLensFlareParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(ScreenSpaceLensFlareUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gThreshold)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gGhostSpacing)
 			B3D_UNIFORM_BUFFER_MEMBER(i32, gGhostCount)
@@ -443,10 +443,10 @@ namespace b3d
 			B3D_UNIFORM_BUFFER_MEMBER(float, gChromaticAberration)
 		B3D_UNIFORM_BUFFER_END
 
-		extern ScreenSpaceLensFlareParamDef gScreenSpaceLensFlareParamDef;
+		extern ScreenSpaceLensFlareUniformDefinition gScreenSpaceLensFlareUniformDefinition;
 
 		/** Generates ghost features from bright areas of an image, required for screen space lens flare rendering. */
-		class ScreenSpaceLensFlareMat : public RendererMaterial<ScreenSpaceLensFlareMat>
+		class ScreenSpaceLensFlareMaterial : public RendererMaterial<ScreenSpaceLensFlareMaterial>
 		{
 			RMAT_DEF("PPScreenSpaceLensFlare.bsl");
 
@@ -462,7 +462,7 @@ namespace b3d
 			}
 
 		public:
-			ScreenSpaceLensFlareMat() = default;
+			ScreenSpaceLensFlareMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -485,20 +485,19 @@ namespace b3d
 			/**
 			 * Returns the material variation matching the provided parameters.
 			 *
-			 * @param[in]	halo					If true the effect will render a halo as well as a normal lens flare.
-			 * @param[in]	haloAspect				If true, user can set a custom aspect ratio for the rendered halo.
+			 * @param	halo					If true the effect will render a halo as well as a normal lens flare.
+			 * @param	haloAspect				If true, user can set a custom aspect ratio for the rendered halo.
 			 *										Only relevant if @p halo is turned on.
-			 * @param[in]	chromaticAberration		If true, lens flare and halo (if enabled) features will be rendered by
+			 * @param	chromaticAberration		If true, lens flare and halo (if enabled) features will be rendered by
 			 *										splitting the red, green and blue channels according to a user-provided
 			 *										offset.
 			 */
-			static ScreenSpaceLensFlareMat* GetVariation(bool halo, bool haloAspect, bool chromaticAberration);
+			static ScreenSpaceLensFlareMaterial* GetVariation(bool halo, bool haloAspect, bool chromaticAberration);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-
-			GpuParameterSampledTexture mInputTex;
-			GpuParameterSampledTexture mGradientTex;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mInputTextureParameter;
+			GpuParameterSampledTexture mGradientTextureParameter;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(ChromaticAberrationUniformDefinition)
@@ -559,20 +558,20 @@ namespace b3d
 			GpuParameterSampledTexture mFringeTextureParameter;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(FilmGrainParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(FilmGrainUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gIntensity)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gTime)
 		B3D_UNIFORM_BUFFER_END
 
-		extern FilmGrainParamDef gFilmGrainParamDef;
+		extern FilmGrainUniformDefinition gFilmGrainUniformDefinition;
 
 		/** Renders a film grain effect using a noise function. */
-		class FilmGrainMat : public RendererMaterial<FilmGrainMat>
+		class FilmGrainMaterial : public RendererMaterial<FilmGrainMaterial>
 		{
 			RMAT_DEF("PPFilmGrain.bsl");
 
 		public:
-			FilmGrainMat() = default;
+			FilmGrainMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -594,9 +593,8 @@ namespace b3d
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-
-			GpuParameterSampledTexture mInputTex;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mInputTextureParameter;
 		};
 
 		const int kMaxBlurSamples = 128;
