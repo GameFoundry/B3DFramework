@@ -2054,27 +2054,29 @@ SSAOBlurMat* SSAOBlurMat::GetVariation(bool horizontal)
 	return Get(GetVariation<false>());
 }
 
-SSRStencilParamDef gSSRStencilParamDef;
+SSRStencilUniformDefinition gSSRStencilUniformDefinition;
 
-void SSRStencilMat::Initialize()
+void SSRStencilMaterial::Initialize()
 {
 	mGBufferParams.Initialize(*mGpuDevice, GPT_FRAGMENT_PROGRAM, mGPUParameters);
-	mParamBuffer = gSSRStencilParamDef.CreateBuffer();
-	mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
+	mGPUParameters->GetUniformBufferParameter("Input", mUniformBufferParameter);
 }
 
-void SSRStencilMat::Prepare(const RendererView& view, GBufferTextures gbuffer, const ScreenSpaceReflectionsSettings& settings)
+void SSRStencilMaterial::Prepare(const RendererView& view, GBufferTextures gbuffer, const ScreenSpaceReflectionsSettings& settings)
 {
 	mGBufferParams.Bind(gbuffer);
 
-	Vector2 roughnessScaleBias = SSRTraceMat::CalcRoughnessFadeScaleBias(settings.MaxRoughness);
-	gSSRStencilParamDef.gRoughnessScaleBias.Set(mParamBuffer, roughnessScaleBias);
+	Vector2 roughnessScaleBias = SSRTraceMaterial::CalcRoughnessFadeScaleBias(settings.MaxRoughness);
+
+	GpuBufferSuballocation uniformBuffer = gSSRStencilUniformDefinition.AllocateTransient();
+	gSSRStencilUniformDefinition.gRoughnessScaleBias.Set(uniformBuffer, roughnessScaleBias);
+	mUniformBufferParameter.Set(uniformBuffer);
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 }
 
-void SSRStencilMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
+void SSRStencilMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -2089,7 +2091,7 @@ void SSRStencilMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView&
 		GetRendererUtility().DrawScreenQuad(commandBuffer);
 }
 
-SSRStencilMat* SSRStencilMat::GetVariation(bool msaa, bool singleSampleMSAA)
+SSRStencilMaterial* SSRStencilMaterial::GetVariation(bool msaa, bool singleSampleMSAA)
 {
 	if(msaa)
 	{
@@ -2102,18 +2104,15 @@ SSRStencilMat* SSRStencilMat::GetVariation(bool msaa, bool singleSampleMSAA)
 		return Get(GetVariation<false, false>());
 }
 
-SSRTraceParamDef gSSRTraceParamDef;
+SSRTraceUniformDefinition gSSRTraceUniformDefinition;
 
-void SSRTraceMat::Initialize()
+void SSRTraceMaterial::Initialize()
 {
 	mGBufferParams.Initialize(*mGpuDevice, GPT_FRAGMENT_PROGRAM, mGPUParameters);
-	mParamBuffer = gSSRTraceParamDef.CreateBuffer();
 
-	mGPUParameters->GetSampledTextureParameter("gSceneColor", mSceneColorTexture);
-	mGPUParameters->GetSampledTextureParameter("gHiZ", mHiZTexture);
-
-	if(mGPUParameters->HasUniformBuffer("Input"))
-		mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
+	mGPUParameters->TryGetUniformBufferParameter("Input", mUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gSceneColor", mSceneColorTextureParameter);
+	mGPUParameters->GetSampledTextureParameter("gHiZ", mHiZTextureParameter);
 
 	SamplerStateInformation desc;
 	desc.MinFilter = FO_POINT;
@@ -2130,14 +2129,14 @@ void SSRTraceMat::Initialize()
 		mGPUParameters->SetSamplerState("gHiZ", hiZSamplerState);
 }
 
-void SSRTraceMat::Prepare(const RendererView& view, GBufferTextures gbuffer, const SPtr<Texture>& sceneColor, const SPtr<Texture>& hiZ, const ScreenSpaceReflectionsSettings& settings)
+void SSRTraceMaterial::Prepare(const RendererView& view, GBufferTextures gbuffer, const SPtr<Texture>& sceneColor, const SPtr<Texture>& hiZ, const ScreenSpaceReflectionsSettings& settings)
 {
 	const RendererViewProperties& viewProps = view.GetProperties();
 	const TextureProperties& hiZProps = hiZ->GetProperties();
 
 	mGBufferParams.Bind(gbuffer);
-	mSceneColorTexture.Set(sceneColor);
-	mHiZTexture.Set(hiZ);
+	mSceneColorTextureParameter.Set(sceneColor);
+	mHiZTextureParameter.Set(hiZ);
 
 	Area2I viewRect = viewProps.Target.ViewRect;
 
@@ -2170,20 +2169,24 @@ void SSRTraceMat::Prepare(const RendererView& view, GBufferTextures gbuffer, con
 
 	u32 temporalJitter = (viewProps.FrameIdx % 8) * 1503;
 
+	GpuBufferSuballocation uniformBuffer = gSSRTraceUniformDefinition.AllocateTransient();
+
 	Vector2I bufferSize(viewRect.Width, viewRect.Height);
-	gSSRTraceParamDef.gHiZSize.Set(mParamBuffer, bufferSize);
-	gSSRTraceParamDef.gHiZNumMips.Set(mParamBuffer, hiZProps.MipMapCount);
-	gSSRTraceParamDef.gNDCToHiZUV.Set(mParamBuffer, ndcToHiZUV);
-	gSSRTraceParamDef.gHiZUVToScreenUV.Set(mParamBuffer, HiZUVToScreenUV);
-	gSSRTraceParamDef.gIntensity.Set(mParamBuffer, settings.Intensity);
-	gSSRTraceParamDef.gRoughnessScaleBias.Set(mParamBuffer, roughnessScaleBias);
-	gSSRTraceParamDef.gTemporalJitter.Set(mParamBuffer, temporalJitter);
+	gSSRTraceUniformDefinition.gHiZSize.Set(uniformBuffer, bufferSize);
+	gSSRTraceUniformDefinition.gHiZNumMips.Set(uniformBuffer, hiZProps.MipMapCount);
+	gSSRTraceUniformDefinition.gNDCToHiZUV.Set(uniformBuffer, ndcToHiZUV);
+	gSSRTraceUniformDefinition.gHiZUVToScreenUV.Set(uniformBuffer, HiZUVToScreenUV);
+	gSSRTraceUniformDefinition.gIntensity.Set(uniformBuffer, settings.Intensity);
+	gSSRTraceUniformDefinition.gRoughnessScaleBias.Set(uniformBuffer, roughnessScaleBias);
+	gSSRTraceUniformDefinition.gTemporalJitter.Set(uniformBuffer, temporalJitter);
+
+	mUniformBufferParameter.Set(uniformBuffer);
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 }
 
-void SSRTraceMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& destination, const RendererView& view)
+void SSRTraceMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& destination, const RendererView& view)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -2207,7 +2210,7 @@ void SSRTraceMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarg
 	commandBuffer.EndRenderPass();
 }
 
-Vector2 SSRTraceMat::CalcRoughnessFadeScaleBias(float maxRoughness)
+Vector2 SSRTraceMaterial::CalcRoughnessFadeScaleBias(float maxRoughness)
 {
 	const static float kRangeScale = 2.0f;
 
@@ -2218,7 +2221,7 @@ Vector2 SSRTraceMat::CalcRoughnessFadeScaleBias(float maxRoughness)
 	return scaleBias;
 }
 
-SSRTraceMat* SSRTraceMat::GetVariation(u32 quality, bool msaa, bool singleSampleMSAA)
+SSRTraceMaterial* SSRTraceMaterial::GetVariation(u32 quality, bool msaa, bool singleSampleMSAA)
 {
 #define PICK_MATERIAL(QUALITY)                                \
 	if(msaa)                                                  \

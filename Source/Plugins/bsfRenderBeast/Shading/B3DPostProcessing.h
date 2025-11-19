@@ -1382,14 +1382,14 @@ namespace b3d
 			GpuParameterSampledTexture mDepthTexture;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(SSRStencilParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(SSRStencilUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gRoughnessScaleBias)
 		B3D_UNIFORM_BUFFER_END
 
-		extern SSRStencilParamDef gSSRStencilParamDef;
+		extern SSRStencilUniformDefinition gSSRStencilUniformDefinition;
 
 		/** Shader used for marking which parts of the screen require screen space reflections. */
-		class SSRStencilMat : public RendererMaterial<SSRStencilMat>
+		class SSRStencilMaterial : public RendererMaterial<SSRStencilMaterial>
 		{
 			RMAT_DEF("PPSSRStencil.bsl");
 
@@ -1405,7 +1405,7 @@ namespace b3d
 			}
 
 		public:
-			SSRStencilMat() = default;
+			SSRStencilMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -1433,14 +1433,14 @@ namespace b3d
 			 *									evaluated. Otherwise all samples will be evaluated.
 			 * @return							Requested variation of the material.
 			 */
-			static SSRStencilMat* GetVariation(bool msaa, bool singleSampleMSAA);
+			static SSRStencilMaterial* GetVariation(bool msaa, bool singleSampleMSAA);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
 			GBufferParameterBinding mGBufferParams;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(SSRTraceParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(SSRTraceUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gNDCToHiZUV)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gHiZUVToScreenUV)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gHiZSize)
@@ -1450,10 +1450,10 @@ namespace b3d
 			B3D_UNIFORM_BUFFER_MEMBER(int, gTemporalJitter)
 		B3D_UNIFORM_BUFFER_END
 
-		extern SSRTraceParamDef gSSRTraceParamDef;
+		extern SSRTraceUniformDefinition gSSRTraceUniformDefinition;
 
 		/** Shader used for tracing rays for screen space reflections. */
-		class SSRTraceMat : public RendererMaterial<SSRTraceMat>
+		class SSRTraceMaterial : public RendererMaterial<SSRTraceMaterial>
 		{
 			RMAT_DEF("PPSSRTrace.bsl");
 
@@ -1470,7 +1470,7 @@ namespace b3d
 			}
 
 		public:
-			SSRTraceMat() = default;
+			SSRTraceMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -1509,13 +1509,13 @@ namespace b3d
 			 *									evaluated. Otherwise all samples will be evaluated.
 			 * @return							Requested variation of the material.
 			 */
-			static SSRTraceMat* GetVariation(u32 quality, bool msaa, bool singleSampleMSAA = false);
+			static SSRTraceMaterial* GetVariation(u32 quality, bool msaa, bool singleSampleMSAA = false);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
 			GBufferParameterBinding mGBufferParams;
-			GpuParameterSampledTexture mSceneColorTexture;
-			GpuParameterSampledTexture mHiZTexture;
+			GpuParameterSampledTexture mSceneColorTextureParameter;
+			GpuParameterSampledTexture mHiZTextureParameter;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(TemporalResolveParamDef)

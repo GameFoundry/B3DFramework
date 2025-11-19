@@ -2924,7 +2924,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	gbuffer.RoughMetal = gbufferNode->RoughMetalTex->Texture;
 	gbuffer.Depth = sceneDepthNode->DepthTex->Texture;
 
-	SSRStencilMat* stencilMat = SSRStencilMat::GetVariation(viewProps.Target.NumSamples > 1, true);
+	SSRStencilMaterial* stencilMat = SSRStencilMaterial::GetVariation(viewProps.Target.NumSamples > 1, true);
 	stencilMat->Prepare(inputs.View, gbuffer, settings);
 
 	// Note: Making the assumption that the stencil buffer is clear at this point
@@ -2941,7 +2941,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 
 	SPtr<RenderTexture> traceRt = RenderTexture::Create(traceRtDesc);
 
-	SSRTraceMat* traceMat = SSRTraceMat::GetVariation(settings.Quality, viewProps.Target.NumSamples > 1, true);
+	SSRTraceMaterial* traceMat = SSRTraceMaterial::GetVariation(settings.Quality, viewProps.Target.NumSamples > 1, true);
 	traceMat->Prepare(inputs.View, gbuffer, sceneColor, hiZ, settings);
 	traceMat->Execute(commandBuffer, traceRt, inputs.View);
 
