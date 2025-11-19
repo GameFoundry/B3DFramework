@@ -370,15 +370,15 @@ namespace b3d
 			GpuParameterSampledTexture mEyeAdaptationTextureParameter;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(BloomClipParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(BloomClipUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gThreshold)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gManualExposureScale)
 		B3D_UNIFORM_BUFFER_END
 
-		extern BloomClipParamDef gBloomClipParamDef;
+		extern BloomClipUniformDefinition gBloomClipUniformDefinition;
 
 		/** Shader that clips parts of the image that shouldn't be affected by bloom (parts that aren't bright enough). */
-		class BloomClipMat : public RendererMaterial<BloomClipMat>
+		class BloomClipMaterial : public RendererMaterial<BloomClipMaterial>
 		{
 			RMAT_DEF("PPBloomClip.bsl");
 
@@ -393,7 +393,7 @@ namespace b3d
 			}
 
 		public:
-			BloomClipMat() = default;
+			BloomClipMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -419,17 +419,16 @@ namespace b3d
 			/**
 			 * Returns the material variation matching the provided parameters.
 			 *
-			 * @param[in]	autoExposure	If true the exposure value will need to be provided in a texture output from the
+			 * @param	autoExposure	If true the exposure value will need to be provided in a texture output from the
 			 *								eye adaptation material. Otherwise manual exposure scale from render settings will
 			 *								be used.
 			 */
-			static BloomClipMat* GetVariation(bool autoExposure);
+			static BloomClipMaterial* GetVariation(bool autoExposure);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-
-			GpuParameterSampledTexture mInputTex;
-			GpuParameterSampledTexture mEyeAdaptationTex;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mInputTextureParameter;
+			GpuParameterSampledTexture mEyeAdaptationTextureParameter;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(ScreenSpaceLensFlareUniformDefinition)
@@ -1669,7 +1668,7 @@ namespace b3d
 		 * Shader that outputs a texture that determines which pixels require per-sample evaluation. Only relevant when
 		 * rendering with MSAA enabled.
 		 */
-		class MSAACoverageMat : public RendererMaterial<MSAACoverageMat>
+		class MSAACoverageMaterial : public RendererMaterial<MSAACoverageMaterial>
 		{
 			RMAT_DEF("MSAACoverage.bsl");
 
@@ -1684,12 +1683,12 @@ namespace b3d
 			}
 
 		public:
-			MSAACoverageMat() = default;
+			MSAACoverageMaterial() = default;
 			void Initialize() override;
 
 			/**
 			 * Updates GPU parameters. Must be called any time input parameters change.
-			 * 
+			 *
 			 * @param	view			Information about the view we're rendering from.
 			 * @param	gbuffer			GBuffer textures.
 			 */
@@ -1704,29 +1703,29 @@ namespace b3d
 			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view);
 
 			/** Returns the material variation matching the provided parameters. */
-			static MSAACoverageMat* GetVariation(u32 msaaCount);
+			static MSAACoverageMaterial* GetVariation(u32 msaaCount);
 
 		private:
 			GBufferParameterBinding mGBufferParams;
 		};
 
 		/**
-		 * Converts the coverage texture output by MSAACoverageMat and writes its information in the highest bit of the
+		 * Converts the coverage texture output by MSAACoverageMaterial and writes its information in the highest bit of the
 		 * currently bound stencil buffer. This allows coverage information to be used by normal (non-compute) rendering
 		 * shaders.
 		 */
-		class MSAACoverageStencilMat : public RendererMaterial<MSAACoverageStencilMat>
+		class MSAACoverageStencilMaterial : public RendererMaterial<MSAACoverageStencilMaterial>
 		{
 			RMAT_DEF("MSAACoverageStencil.bsl");
 
 		public:
-			MSAACoverageStencilMat() = default;
+			MSAACoverageStencilMaterial() = default;
 			void Initialize() override;
 
 			/**
 			 * Updates GPU parameters. Must be called any time input parameters change.
-			 * 
-			 * @param	coverage		Coverage texture as output by MSAACoverageMat.
+			 *
+			 * @param	coverage		Coverage texture as output by MSAACoverageMaterial.
 			 */
 			void Prepare(const SPtr<Texture>& coverage);
 
@@ -1739,7 +1738,7 @@ namespace b3d
 			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view);
 
 		private:
-			GpuParameterSampledTexture mCoverageTexParam;
+			GpuParameterSampledTexture mCoverageTextureParameter;
 		};
 
 		/** @} */

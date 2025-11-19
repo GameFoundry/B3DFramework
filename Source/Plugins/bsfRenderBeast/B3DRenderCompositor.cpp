@@ -513,7 +513,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		gbuffer.RoughMetal = RoughMetalTex->Texture;
 		gbuffer.Depth = sceneDepthNode->DepthTex->Texture;
 
-		MSAACoverageMat* const msaaCoverageMaterial = MSAACoverageMat::GetVariation(viewProps.Target.NumSamples);
+		MSAACoverageMaterial* const msaaCoverageMaterial = MSAACoverageMaterial::GetVariation(viewProps.Target.NumSamples);
 		msaaCoverageMaterial->Prepare(inputs.View, gbuffer);
 
 		RenderPassCreateInformation msaaCoverageInfo(msaaCoverageNode->Output->RenderTexture, msaaCoverageMaterial->GetGPUParameters());
@@ -521,7 +521,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		msaaCoverageMaterial->Execute(commandBuffer, inputs.View);
 		commandBuffer.EndRenderPass();
 
-		MSAACoverageStencilMat* msaaCoverageStencilMaterial = MSAACoverageStencilMat::Get();
+		MSAACoverageStencilMaterial* msaaCoverageStencilMaterial = MSAACoverageStencilMaterial::Get();
 		msaaCoverageStencilMaterial->Prepare(msaaCoverageNode->Output->Texture);
 
 		RenderPassCreateInformation msaaStencilInfo(sceneDepthNode->DepthTex->RenderTexture, msaaCoverageStencilMaterial->GetGPUParameters());
@@ -3024,7 +3024,7 @@ void RCNodeBloom::Render(const RenderCompositorNodeInputs& inputs)
 	GaussianBlurMaterial* filterMat = GaussianBlurMaterial::GetVariation(true);
 
 	const bool autoExposure = settings.EnableHdr && settings.EnableAutoExposure;
-	BloomClipMat* clipMat = BloomClipMat::GetVariation(autoExposure);
+	BloomClipMaterial* clipMat = BloomClipMaterial::GetVariation(autoExposure);
 
 	SPtr<Texture> eyeAdaptationTex = nullptr;
 	if(autoExposure)

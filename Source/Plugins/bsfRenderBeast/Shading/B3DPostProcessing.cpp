@@ -649,28 +649,28 @@ TonemappingMaterial* TonemappingMaterial::GetVariation(bool volumeLUT, bool gamm
 	}
 }
 
-BloomClipParamDef gBloomClipParamDef;
+BloomClipUniformDefinition gBloomClipUniformDefinition;
 
-void BloomClipMat::Initialize()
+void BloomClipMaterial::Initialize()
 {
-	mParamBuffer = gBloomClipParamDef.CreateBuffer();
-
-	mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
-	mGPUParameters->GetSampledTextureParameter("gEyeAdaptationTex", mEyeAdaptationTex);
-	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTex);
+	mGPUParameters->GetUniformBufferParameter("Input", mUniformBufferParameter);
+	mGPUParameters->GetSampledTextureParameter("gEyeAdaptationTex", mEyeAdaptationTextureParameter);
+	mGPUParameters->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
 }
 
-void BloomClipMat::Prepare(const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, const RenderSettings& settings)
+void BloomClipMaterial::Prepare(const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, const RenderSettings& settings)
 {
-	gBloomClipParamDef.gThreshold.Set(mParamBuffer, threshold);
-	gBloomClipParamDef.gManualExposureScale.Set(mParamBuffer, Math::RaiseToPower(2.0f, settings.ExposureScale));
+	GpuBufferSuballocation uniformBuffer = gBloomClipUniformDefinition.AllocateTransient();
 
-	// Set parameters
-	mInputTex.Set(input);
-	mEyeAdaptationTex.Set(eyeAdaptation);
+	gBloomClipUniformDefinition.gThreshold.Set(uniformBuffer, threshold);
+	gBloomClipUniformDefinition.gManualExposureScale.Set(uniformBuffer, Math::RaiseToPower(2.0f, settings.ExposureScale));
+
+	mUniformBufferParameter.Set(uniformBuffer);
+	mInputTextureParameter.Set(input);
+	mEyeAdaptationTextureParameter.Set(eyeAdaptation);
 }
 
-void BloomClipMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
+void BloomClipMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -683,7 +683,7 @@ void BloomClipMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTar
 	commandBuffer.EndRenderPass();
 }
 
-BloomClipMat* BloomClipMat::GetVariation(bool autoExposure)
+BloomClipMaterial* BloomClipMaterial::GetVariation(bool autoExposure)
 {
 	if(autoExposure)
 		return Get(GetVariation<true>());
@@ -2534,12 +2534,12 @@ void EncodeDepthMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Re
 	commandBuffer.EndRenderPass();
 }
 
-void MSAACoverageMat::Initialize()
+void MSAACoverageMaterial::Initialize()
 {
 	mGBufferParams.Initialize(*mGpuDevice, GPT_FRAGMENT_PROGRAM, mGPUParameters);
 }
 
-void MSAACoverageMat::Prepare(const RendererView& view, GBufferTextures gbuffer)
+void MSAACoverageMaterial::Prepare(const RendererView& view, GBufferTextures gbuffer)
 {
 	mGBufferParams.Bind(gbuffer);
 
@@ -2547,7 +2547,7 @@ void MSAACoverageMat::Prepare(const RendererView& view, GBufferTextures gbuffer)
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 }
 
-void MSAACoverageMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
+void MSAACoverageMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -2557,7 +2557,7 @@ void MSAACoverageMat::Execute(GpuCommandBuffer& commandBuffer, const RendererVie
 	GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0, 0, (float)viewRect.Width, (float)viewRect.Height));
 }
 
-MSAACoverageMat* MSAACoverageMat::GetVariation(u32 msaaCount)
+MSAACoverageMaterial* MSAACoverageMaterial::GetVariation(u32 msaaCount)
 {
 	switch(msaaCount)
 	{
@@ -2571,17 +2571,17 @@ MSAACoverageMat* MSAACoverageMat::GetVariation(u32 msaaCount)
 	}
 }
 
-void MSAACoverageStencilMat::Initialize()
+void MSAACoverageStencilMaterial::Initialize()
 {
-	mGPUParameters->GetSampledTextureParameter("gMSAACoverage", mCoverageTexParam);
+	mGPUParameters->GetSampledTextureParameter("gMSAACoverage", mCoverageTextureParameter);
 }
 
-void MSAACoverageStencilMat::Prepare(const SPtr<Texture>& coverage)
+void MSAACoverageStencilMaterial::Prepare(const SPtr<Texture>& coverage)
 {
-	mCoverageTexParam.Set(coverage);
+	mCoverageTextureParameter.Set(coverage);
 }
 
-void MSAACoverageStencilMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
+void MSAACoverageStencilMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
