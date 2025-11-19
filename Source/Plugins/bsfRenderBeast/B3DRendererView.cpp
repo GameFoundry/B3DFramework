@@ -18,32 +18,30 @@ namespace b3d {
 namespace render {
 
 PerCameraParamDef gPerCameraParamDef;
-SkyboxParamDef gSkyboxParamDef;
+SkyboxUniformDefinition gSkyboxUniformDefinition;
 
-void SkyboxMat::Initialize()
+void SkyboxMaterial::Initialize()
 {
 	if(mGPUParameters->HasSampledTexture("gSkyTex"))
-		mGPUParameters->GetSampledTextureParameter("gSkyTex", mSkyTextureParam);
+		mGPUParameters->GetSampledTextureParameter("gSkyTex", mSkyTextureParameter);
 
-	mParamBuffer = gSkyboxParamDef.CreateBuffer();
-
-	if(mGPUParameters->HasUniformBuffer("Params"))
-		mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
+	mGPUParameters->TryGetUniformBufferParameter("Params", mUniformBufferParameter);
 }
 
-void SkyboxMat::Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
+void SkyboxMaterial::Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
 {
 	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
 
-	mSkyTextureParam.Set(texture);
+	GpuBufferSuballocation uniformBuffer = gSkyboxUniformDefinition.AllocateTransient();
+	gSkyboxUniformDefinition.gClearColor.Set(uniformBuffer, solidColor);
 
-	gSkyboxParamDef.gClearColor.Set(mParamBuffer, solidColor);
-	mParamBuffer->FlushCache();
+	mUniformBufferParameter.Set(uniformBuffer);
+	mSkyTextureParameter.Set(texture);
 
 	RendererMaterial::Bind(commandBuffer);
 }
 
-SkyboxMat* SkyboxMat::GetVariation(bool color)
+SkyboxMaterial* SkyboxMaterial::GetVariation(bool color)
 {
 	if(color)
 		return Get(GetVariation<true>());

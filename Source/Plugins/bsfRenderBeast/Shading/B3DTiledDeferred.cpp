@@ -9,11 +9,11 @@
 namespace b3d {
 namespace render {
 
-TiledLightingParamDef gTiledLightingParamDef;
+TiledLightingUniformDefinition gTiledLightingUniformDefinition;
 
-const u32 TiledDeferredLightingMat::kTileSize = 16;
+const u32 TiledDeferredLightingMaterial::kTileSize = 16;
 
-void TiledDeferredLightingMat::Initialize()
+void TiledDeferredLightingMaterial::Initialize()
 {
 	mGBufferParams.Initialize(*mGpuDevice, GPT_COMPUTE_PROGRAM, mGPUParameters);
 	mSampleCount = mVariationParameters.GetUI32("MSAA_COUNT");
@@ -27,16 +27,15 @@ void TiledDeferredLightingMat::Initialize()
 	if(mSampleCount > 1)
 		mGPUParameters->GetSampledTextureParameter("gMSAACoverage", mMSAACoverageTexParam);
 
-	mParamBuffer = gTiledLightingParamDef.CreateBuffer();
-	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
+	mGPUParameters->GetUniformBufferParameter("Params", mUniformBufferParameter);
 }
 
-void TiledDeferredLightingMat::InitDefinesInternal(ShaderDefines& defines)
+void TiledDeferredLightingMaterial::InitDefinesInternal(ShaderDefines& defines)
 {
 	defines.Set("TILE_SIZE", kTileSize);
 }
 
-void TiledDeferredLightingMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage)
+void TiledDeferredLightingMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -48,10 +47,12 @@ void TiledDeferredLightingMat::Execute(GpuCommandBuffer& commandBuffer, const Re
 	u32 width = viewProps.Target.ViewRect.Width;
 	u32 height = viewProps.Target.ViewRect.Height;
 
+	GpuBufferSuballocation uniformBuffer = gTiledLightingUniformDefinition.AllocateTransient();
+
 	Vector2I framebufferSize;
 	framebufferSize[0] = width;
 	framebufferSize[1] = height;
-	gTiledLightingParamDef.gFramebufferSize.Set(mParamBuffer, framebufferSize);
+	gTiledLightingUniformDefinition.gFramebufferSize.Set(uniformBuffer, framebufferSize);
 
 	if(!settings.EnableLighting)
 	{
@@ -65,8 +66,8 @@ void TiledDeferredLightingMat::Execute(GpuCommandBuffer& commandBuffer, const Re
 		lightStrides[0] = 0;
 		lightStrides[1] = 0;
 
-		gTiledLightingParamDef.gLightCounts.Set(mParamBuffer, lightCounts);
-		gTiledLightingParamDef.gLightStrides.Set(mParamBuffer, lightStrides);
+		gTiledLightingUniformDefinition.gLightCounts.Set(uniformBuffer, lightCounts);
+		gTiledLightingUniformDefinition.gLightStrides.Set(uniformBuffer, lightStrides);
 	}
 	else
 	{
@@ -87,14 +88,14 @@ void TiledDeferredLightingMat::Execute(GpuCommandBuffer& commandBuffer, const Re
 		lightStrides[1] = lightStrides[0] + lightCounts[1];
 
 		if(!settings.EnableShadows)
-			gTiledLightingParamDef.gLightCounts.Set(mParamBuffer, lightCounts);
+			gTiledLightingUniformDefinition.gLightCounts.Set(uniformBuffer, lightCounts);
 		else
-			gTiledLightingParamDef.gLightCounts.Set(mParamBuffer, unshadowedLightCounts);
+			gTiledLightingUniformDefinition.gLightCounts.Set(uniformBuffer, unshadowedLightCounts);
 
-		gTiledLightingParamDef.gLightStrides.Set(mParamBuffer, lightStrides);
+		gTiledLightingUniformDefinition.gLightStrides.Set(uniformBuffer, lightStrides);
 	}
 
-	mParamBuffer->FlushCache();
+	mUniformBufferParameter.Set(uniformBuffer);
 
 	mGBufferParams.Bind(gbuffer);
 	mGPUParameters->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
@@ -115,7 +116,7 @@ void TiledDeferredLightingMat::Execute(GpuCommandBuffer& commandBuffer, const Re
 	commandBuffer.DispatchCompute(numTilesX, numTilesY);
 }
 
-TiledDeferredLightingMat* TiledDeferredLightingMat::GetVariation(u32 msaaCount)
+TiledDeferredLightingMaterial* TiledDeferredLightingMaterial::GetVariation(u32 msaaCount)
 {
 	switch(msaaCount)
 	{
@@ -160,9 +161,9 @@ void TextureArrayToMSAATexture::Execute(GpuCommandBuffer& commandBuffer, const S
 	GetRendererUtility().DrawScreenQuad(commandBuffer, area);
 }
 
-ClearLoadStoreParamDef gClearLoadStoreParamDef;
+ClearLoadStoreUniformDefinition gClearLoadStoreUniformDefinition;
 
-void ClearLoadStoreMat::Initialize()
+void ClearLoadStoreMaterial::Initialize()
 {
 	i32 objType = mVariationParameters.GetI32("OBJ_TYPE");
 
@@ -171,17 +172,16 @@ void ClearLoadStoreMat::Initialize()
 	else
 		mGPUParameters->GetStorageBufferParameter("gOutput", mOutputBufferParam);
 
-	mParamBuffer = gClearLoadStoreParamDef.CreateBuffer();
-	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
+	mGPUParameters->GetUniformBufferParameter("Params", mUniformBufferParameter);
 }
 
-void ClearLoadStoreMat::InitDefinesInternal(ShaderDefines& defines)
+void ClearLoadStoreMaterial::InitDefinesInternal(ShaderDefines& defines)
 {
 	defines.Set("TILE_SIZE", kTileSize);
 	defines.Set("NUM_THREADS", kNumThreads);
 }
 
-void ClearLoadStoreMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const Color& clearValue, const TextureSurface& surface)
+void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const Color& clearValue, const TextureSurface& surface)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -192,11 +192,15 @@ void ClearLoadStoreMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Text
 
 	mOutputTextureParam.Set(target, surface);
 
+	GpuBufferSuballocation uniformBuffer = gClearLoadStoreUniformDefinition.AllocateTransient();
+
 	u32 width = props.Width;
 	u32 height = props.Height;
-	gClearLoadStoreParamDef.gSize.Set(mParamBuffer, Vector2I((i32)width, (i32)height));
-	gClearLoadStoreParamDef.gFloatClearVal.Set(mParamBuffer, Vector4(clearValue.R, clearValue.G, clearValue.A, clearValue.A));
-	gClearLoadStoreParamDef.gIntClearVal.Set(mParamBuffer, Vector4I(*(i32*)&clearValue.R, *(i32*)&clearValue.G, *(i32*)&clearValue.A, *(i32*)&clearValue.A));
+	gClearLoadStoreUniformDefinition.gSize.Set(uniformBuffer, Vector2I((i32)width, (i32)height));
+	gClearLoadStoreUniformDefinition.gFloatClearVal.Set(uniformBuffer, Vector4(clearValue.R, clearValue.G, clearValue.A, clearValue.A));
+	gClearLoadStoreUniformDefinition.gIntClearVal.Set(uniformBuffer, Vector4I(*(i32*)&clearValue.R, *(i32*)&clearValue.G, *(i32*)&clearValue.A, *(i32*)&clearValue.A));
+
+	mUniformBufferParameter.Set(uniformBuffer);
 
 	Bind(commandBuffer);
 
@@ -206,7 +210,7 @@ void ClearLoadStoreMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Text
 	commandBuffer.DispatchCompute(numGroupsX, numGroupsY);
 }
 
-void ClearLoadStoreMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& target, const Color& clearValue)
+void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& target, const Color& clearValue)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -223,10 +227,14 @@ void ClearLoadStoreMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuB
 		width = bufferInformation.StructuredStorage.Count;
 	}
 
+	GpuBufferSuballocation uniformBuffer = gClearLoadStoreUniformDefinition.AllocateTransient();
+
 	u32 height = 1;
-	gClearLoadStoreParamDef.gSize.Set(mParamBuffer, Vector2I((i32)width, (i32)height));
-	gClearLoadStoreParamDef.gFloatClearVal.Set(mParamBuffer, Vector4(clearValue.R, clearValue.G, clearValue.A, clearValue.A));
-	gClearLoadStoreParamDef.gIntClearVal.Set(mParamBuffer, Vector4I(*(i32*)&clearValue.R, *(i32*)&clearValue.G, *(i32*)&clearValue.A, *(i32*)&clearValue.A));
+	gClearLoadStoreUniformDefinition.gSize.Set(uniformBuffer, Vector2I((i32)width, (i32)height));
+	gClearLoadStoreUniformDefinition.gFloatClearVal.Set(uniformBuffer, Vector4(clearValue.R, clearValue.G, clearValue.A, clearValue.A));
+	gClearLoadStoreUniformDefinition.gIntClearVal.Set(uniformBuffer, Vector4I(*(i32*)&clearValue.R, *(i32*)&clearValue.G, *(i32*)&clearValue.A, *(i32*)&clearValue.A));
+
+	mUniformBufferParameter.Set(uniformBuffer);
 
 	Bind(commandBuffer);
 
@@ -266,7 +274,7 @@ const ShaderVariationParameters& GetClearLoadStoreVariation(u32 numComponents)
 	}
 }
 
-ClearLoadStoreMat* ClearLoadStoreMat::GetVariation(ClearLoadStoreType objType, ClearLoadStoreDataType dataType, u32 numComponents)
+ClearLoadStoreMaterial* ClearLoadStoreMaterial::GetVariation(ClearLoadStoreType objType, ClearLoadStoreDataType dataType, u32 numComponents)
 {
 	switch(objType)
 	{
@@ -294,16 +302,16 @@ ClearLoadStoreMat* ClearLoadStoreMat::GetVariation(ClearLoadStoreType objType, C
 	}
 }
 
-TiledImageBasedLightingParamDef gTiledImageBasedLightingParamDef;
+TiledImageBasedLightingUniformDefinition gTiledImageBasedLightingUniformDefinition;
 
 // Note: Tile size was reduced from 32 to 16 because of macOS limitations. Ideally we should try keeping the larger
 // size on non-macOS platforms, but currently where don't have a platform-specific way of setting this.
 //
 // The theory is that using larger tiles will amortize the cost of computing tile AABB's (which this shader uses,
 // compared to the cheaper-to-compute frustums).
-const u32 TiledDeferredImageBasedLightingMat::kTileSize = 16;
+const u32 TiledDeferredImageBasedLightingMaterial::kTileSize = 16;
 
-void TiledDeferredImageBasedLightingMat::Initialize()
+void TiledDeferredImageBasedLightingMaterial::Initialize()
 {
 	mSampleCount = mVariationParameters.GetUI32("MSAA_COUNT");
 
@@ -318,20 +326,19 @@ void TiledDeferredImageBasedLightingMat::Initialize()
 	if(mSampleCount > 1)
 		mGPUParameters->GetSampledTextureParameter("gMSAACoverage", mMSAACoverageTexParam);
 
-	mParamBuffer = gTiledImageBasedLightingParamDef.CreateBuffer();
-	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
+	mGPUParameters->GetUniformBufferParameter("Params", mUniformBufferParameter);
 
 	mImageBasedParams.Initialize(mGPUParameters, GPT_COMPUTE_PROGRAM, false, false, true);
 
 	mGPUParameters->SetUniformBuffer("ReflProbeParams", mReflProbeParamBuffer.Buffer);
 }
 
-void TiledDeferredImageBasedLightingMat::InitDefinesInternal(ShaderDefines& defines)
+void TiledDeferredImageBasedLightingMaterial::InitDefinesInternal(ShaderDefines& defines)
 {
 	defines.Set("TILE_SIZE", kTileSize);
 }
 
-void TiledDeferredImageBasedLightingMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflectionProbeData& probeData, const Inputs& inputs)
+void TiledDeferredImageBasedLightingMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflectionProbeData& probeData, const Inputs& inputs)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -339,10 +346,14 @@ void TiledDeferredImageBasedLightingMat::Execute(GpuCommandBuffer& commandBuffer
 	u32 width = viewProps.Target.ViewRect.Width;
 	u32 height = viewProps.Target.ViewRect.Height;
 
+	GpuBufferSuballocation uniformBuffer = gTiledImageBasedLightingUniformDefinition.AllocateTransient();
+
 	Vector2I framebufferSize;
 	framebufferSize[0] = width;
 	framebufferSize[1] = height;
-	gTiledImageBasedLightingParamDef.gFramebufferSize.Set(mParamBuffer, framebufferSize);
+	gTiledImageBasedLightingUniformDefinition.gFramebufferSize.Set(uniformBuffer, framebufferSize);
+
+	mUniformBufferParameter.Set(uniformBuffer);
 
 	Skybox* skybox = nullptr;
 	if(view.GetRenderSettings().EnableSkybox)
@@ -350,7 +361,6 @@ void TiledDeferredImageBasedLightingMat::Execute(GpuCommandBuffer& commandBuffer
 
 	mReflProbeParamBuffer.Populate(skybox, probeData.GetProbeCount(), sceneInfo.ReflProbeCubemapsTex, viewProps.CapturingReflections);
 
-	mParamBuffer->FlushCache();
 	mReflProbeParamBuffer.Buffer->FlushCache();
 
 	mGBufferA.Set(inputs.Gbuffer.Albedo);
@@ -387,7 +397,7 @@ void TiledDeferredImageBasedLightingMat::Execute(GpuCommandBuffer& commandBuffer
 	commandBuffer.DispatchCompute(numTilesX, numTilesY);
 }
 
-TiledDeferredImageBasedLightingMat* TiledDeferredImageBasedLightingMat::GetVariation(u32 msaaCount)
+TiledDeferredImageBasedLightingMaterial* TiledDeferredImageBasedLightingMaterial::GetVariation(u32 msaaCount)
 {
 	switch(msaaCount)
 	{

@@ -276,8 +276,7 @@ struct ShadowProjectionParameterBinding
 	static void BindCommonParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& vertexParameterBuffer, const SPtr<GpuBuffer>& perCameraBuffer, const SPtr<GpuBuffer>& shadowParameterBuffer = nullptr)
 	{
 		// Set vertex parameters
-		if(gpuParameters->HasUniformBuffer("VertParams"))
-			gpuParameters->SetUniformBuffer("VertParams", vertexParameterBuffer);
+		gpuParameters->TrySetUniformBuffer("VertParams", vertexParameterBuffer);
 
 		// Set per-camera buffer
 		gpuParameters->SetUniformBuffer("PerCamera", perCameraBuffer);

@@ -90,7 +90,7 @@ void LightGridLLCreationMat::SetParams(GpuCommandBuffer& commandBuffer, const Ve
 		mBufferNumCells = numCells;
 	}
 
-	ClearLoadStoreMat* clearMat = ClearLoadStoreMat::GetVariation(
+	ClearLoadStoreMaterial* clearMat = ClearLoadStoreMaterial::GetVariation(
 		ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Int, 1);
 
 	clearMat->Execute(commandBuffer, mLightsCounter);
@@ -208,7 +208,7 @@ void LightGridLLReductionMat::SetParams(GpuCommandBuffer& commandBuffer, const V
 		mBufferNumCells = numCells;
 	}
 
-	ClearLoadStoreMat* clearMat = ClearLoadStoreMat::GetVariation(ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Int, 1);
+	ClearLoadStoreMaterial* clearMat = ClearLoadStoreMaterial::GetVariation(ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Int, 1);
 	clearMat->Execute(commandBuffer, mGridDataCounter);
 
 	mGPUParameters->SetUniformBuffer("GridParams", gridParams);

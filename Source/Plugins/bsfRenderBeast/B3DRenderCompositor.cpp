@@ -847,7 +847,7 @@ void RCNodeLightAccumulation::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		resPool.Get(LightAccumulationTexArray, PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_LOADSTORE, 1, false, numSamples));
 
-		ClearLoadStoreMat* clearMat = ClearLoadStoreMat::GetVariation(ClearLoadStoreType::TextureArray, ClearLoadStoreDataType::Float, 4);
+		ClearLoadStoreMaterial* clearMat = ClearLoadStoreMaterial::GetVariation(ClearLoadStoreType::TextureArray, ClearLoadStoreDataType::Float, 4);
 
 		for(u32 i = 0; i < numSamples; i++)
 		{
@@ -959,8 +959,8 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 			msaaCoverage = coverageNode->Output->Texture;
 		}
 
-		TiledDeferredLightingMat* tiledDeferredMat =
-			TiledDeferredLightingMat::GetVariation(viewProps.Target.NumSamples);
+		TiledDeferredLightingMaterial* tiledDeferredMat =
+			TiledDeferredLightingMaterial::GetVariation(viewProps.Target.NumSamples);
 
 		const VisibleLightData& lightData = inputs.ViewGroup.GetVisibleLightData();
 
@@ -1234,10 +1234,10 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 			msaaCoverage = coverageNode->Output->Texture;
 		}
 
-		TiledDeferredImageBasedLightingMat* material =
-			TiledDeferredImageBasedLightingMat::GetVariation(viewProps.Target.NumSamples);
+		TiledDeferredImageBasedLightingMaterial* material =
+			TiledDeferredImageBasedLightingMaterial::GetVariation(viewProps.Target.NumSamples);
 
-		TiledDeferredImageBasedLightingMat::Inputs iblInputs;
+		TiledDeferredImageBasedLightingMaterial::Inputs iblInputs;
 		iblInputs.Gbuffer = gbuffer;
 		iblInputs.SceneColorTex = sceneColorNode->SceneColorTex->Texture;
 		iblInputs.LightAccumulation = lightAccumNode->LightAccumulationTex->Texture;
@@ -1739,10 +1739,10 @@ void RCNodeSkybox::Render(const RenderCompositorNodeInputs& inputs)
 	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	SPtr<Texture> radiance = skybox ? skybox->GetTexture() : nullptr;
 
-	SkyboxMat* material;
+	SkyboxMaterial* material;
 	if(radiance != nullptr)
 	{
-		material = SkyboxMat::GetVariation(false);
+		material = SkyboxMaterial::GetVariation(false);
 		material->Bind(commandBuffer, inputs.View.GetPerViewBuffer(), radiance, Color::kWhite);
 	}
 	else
@@ -1750,7 +1750,7 @@ void RCNodeSkybox::Render(const RenderCompositorNodeInputs& inputs)
 		// Cancel out the linear->SRGB conversion
 		Color clearColor = inputs.View.GetProperties().Target.ClearColor.GetLinear();
 
-		material = SkyboxMat::GetVariation(true);
+		material = SkyboxMaterial::GetVariation(true);
 		material->Bind(commandBuffer, inputs.View.GetPerViewBuffer(), nullptr, clearColor);
 	}
 

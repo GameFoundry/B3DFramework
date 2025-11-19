@@ -21,16 +21,16 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_UNIFORM_BUFFER_BEGIN(TiledLightingParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(TiledLightingUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector4I, gLightCounts)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gLightStrides)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gFramebufferSize)
 		B3D_UNIFORM_BUFFER_END
 
-		extern TiledLightingParamDef gTiledLightingParamDef;
+		extern TiledLightingUniformDefinition gTiledLightingUniformDefinition;
 
 		/** Shader that performs a lighting pass over data stored in the Gbuffer. */
-		class TiledDeferredLightingMat : public RendererMaterial<TiledDeferredLightingMat>
+		class TiledDeferredLightingMaterial : public RendererMaterial<TiledDeferredLightingMaterial>
 		{
 			RMAT_DEF_CUSTOMIZED("TiledDeferredLighting.bsl");
 
@@ -45,14 +45,14 @@ namespace b3d
 			}
 
 		public:
-			TiledDeferredLightingMat() = default;
+			TiledDeferredLightingMaterial() = default;
 			void Initialize() override;
 
 			/** Binds the material for rendering, sets up parameters and executes it. */
 			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage);
 
 			/** Returns the material variation matching the provided parameters. */
-			static TiledDeferredLightingMat* GetVariation(u32 msaaCount);
+			static TiledDeferredLightingMaterial* GetVariation(u32 msaaCount);
 
 		private:
 			u32 mSampleCount;
@@ -64,7 +64,7 @@ namespace b3d
 			GpuParameterSampledTexture mInColorTextureParam;
 			GpuParameterSampledTexture mMSAACoverageTexParam;
 
-			SPtr<GpuBuffer> mParamBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
 
 			static const u32 kTileSize;
 		};
@@ -93,15 +93,15 @@ namespace b3d
 			GpuParameterSampledTexture mInputParam;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(ClearLoadStoreParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(ClearLoadStoreUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gSize)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gFloatClearVal)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector4I, gIntClearVal)
 		B3D_UNIFORM_BUFFER_END
 
-		extern ClearLoadStoreParamDef gClearLoadStoreParamDef;
+		extern ClearLoadStoreUniformDefinition gClearLoadStoreUniformDefinition;
 
-		/** Possible object types used as clear destinations by ClearLoadStoreMat. */
+		/** Possible object types used as clear destinations by ClearLoadStoreMaterial. */
 		enum class ClearLoadStoreType
 		{
 			Texture,
@@ -110,7 +110,7 @@ namespace b3d
 			StructuredBuffer
 		};
 
-		/** Possible data types used in destination objects in ClearLoadStoreMat. */
+		/** Possible data types used in destination objects in ClearLoadStoreMaterial. */
 		enum class ClearLoadStoreDataType
 		{
 			Float,
@@ -118,12 +118,12 @@ namespace b3d
 		};
 
 		/** Clears the provided texture to zero, using a compute shader. */
-		class ClearLoadStoreMat : public RendererMaterial<ClearLoadStoreMat>
+		class ClearLoadStoreMaterial : public RendererMaterial<ClearLoadStoreMaterial>
 		{
 			RMAT_DEF_CUSTOMIZED("ClearLoadStore.bsl");
 
 		public:
-			ClearLoadStoreMat() = default;
+			ClearLoadStoreMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -141,13 +141,13 @@ namespace b3d
 			/**
 			 * Returns the material variation matching the provided parameters.
 			 *
-			 * @param[in]		objType			Type of object used for clear source.
-			 * @param[in]		dataType		Base data type stored in the clear source object.
-			 * @param[in]		numComponents	Number of components in the source objects's data type (e.g. float2, float4).
+			 * @param		objType			Type of object used for clear source.
+			 * @param		dataType		Base data type stored in the clear source object.
+			 * @param		numComponents	Number of components in the source objects's data type (e.g. float2, float4).
 			 * 									In range [1, 4].
 			 * @return							Material variation matching the provided values.
 			 */
-			static ClearLoadStoreMat* GetVariation(ClearLoadStoreType objType, ClearLoadStoreDataType dataType, u32 numComponents);
+			static ClearLoadStoreMaterial* GetVariation(ClearLoadStoreType objType, ClearLoadStoreDataType dataType, u32 numComponents);
 
 		private:
 			/** TILE_SIZE * TILE_SIZE is the number of pixels to process per thread. */
@@ -158,17 +158,17 @@ namespace b3d
 
 			GpuParameterStorageTexture mOutputTextureParam;
 			GpuParameterStorageBuffer mOutputBufferParam;
-			SPtr<GpuBuffer> mParamBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(TiledImageBasedLightingParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(TiledImageBasedLightingUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gFramebufferSize)
 		B3D_UNIFORM_BUFFER_END
 
-		extern TiledImageBasedLightingParamDef gTiledImageBasedLightingParamDef;
+		extern TiledImageBasedLightingUniformDefinition gTiledImageBasedLightingUniformDefinition;
 
 		/** Shader that performs a lighting pass over data stored in the Gbuffer. */
-		class TiledDeferredImageBasedLightingMat : public RendererMaterial<TiledDeferredImageBasedLightingMat>
+		class TiledDeferredImageBasedLightingMaterial : public RendererMaterial<TiledDeferredImageBasedLightingMaterial>
 		{
 			RMAT_DEF_CUSTOMIZED("TiledDeferredImageBasedLighting.bsl");
 
@@ -196,14 +196,14 @@ namespace b3d
 				SPtr<Texture> MsaaCoverage;
 			};
 
-			TiledDeferredImageBasedLightingMat() = default;
+			TiledDeferredImageBasedLightingMaterial() = default;
 			void Initialize() override;
 
 			/** Binds the material for rendering, sets up parameters and executes it. */
 			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflectionProbeData& probeData, const Inputs& inputs);
 
 			/** Returns the material variation matching the provided parameters. */
-			static TiledDeferredImageBasedLightingMat* GetVariation(u32 msaaCount);
+			static TiledDeferredImageBasedLightingMaterial* GetVariation(u32 msaaCount);
 
 		private:
 			u32 mSampleCount;
@@ -220,7 +220,7 @@ namespace b3d
 
 			GpuParameterStorageTexture mOutputTextureParam;
 
-			SPtr<GpuBuffer> mParamBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
 			ReflectionProbeUniformBuffer mReflProbeParamBuffer;
 
 			static const u32 kTileSize;

@@ -49,14 +49,14 @@ namespace b3d
 
 		extern PerCameraParamDef gPerCameraParamDef;
 
-		B3D_UNIFORM_BUFFER_BEGIN(SkyboxParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(SkyboxUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Color, gClearColor)
 		B3D_UNIFORM_BUFFER_END
 
-		extern SkyboxParamDef gSkyboxParamDef;
+		extern SkyboxUniformDefinition gSkyboxUniformDefinition;
 
 		/** Shader that renders a skybox using a cubemap or a solid color. */
-		class SkyboxMat : public RendererMaterial<SkyboxMat>
+		class SkyboxMaterial : public RendererMaterial<SkyboxMaterial>
 		{
 			RMAT_DEF("Skybox.bsl");
 
@@ -71,7 +71,7 @@ namespace b3d
 			}
 
 		public:
-			SkyboxMat() = default;
+			SkyboxMaterial() = default;
 			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
@@ -80,14 +80,14 @@ namespace b3d
 			/**
 			 * Returns the material variation matching the provided parameters.
 			 *
-			 * @param[in]	color	When true the material will use a solid color to render a skybox. When false a user
-			 *						provided texture will be used instead.
+			 * @param	color	When true the material will use a solid color to render a skybox. When false a user
+			 *					provided texture will be used instead.
 			 */
-			static SkyboxMat* GetVariation(bool color);
+			static SkyboxMaterial* GetVariation(bool color);
 
 		private:
-			GpuParameterSampledTexture mSkyTextureParam;
-			SPtr<GpuBuffer> mParamBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mSkyTextureParameter;
 		};
 
 		/** Data shared between RendererViewCreateInformation and RendererViewProperties */
