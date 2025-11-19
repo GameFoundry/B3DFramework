@@ -79,19 +79,19 @@ namespace b3d
 			bool mIsFiltered = false;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(CompositeParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(CompositeUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Color, gTint)
 		B3D_UNIFORM_BUFFER_END
 
-		extern CompositeParamDef gCompositeParamDef;
+		extern CompositeUniformDefinition gCompositeUniformDefinition;
 
 		/** Blends the contents of the provided texture with the bound render target. */
-		class B3D_EXPORT CompositeMat : public RendererMaterial<CompositeMat>
+		class B3D_EXPORT CompositeMaterial : public RendererMaterial<CompositeMaterial>
 		{
 			RMAT_DEF("Composite.bsl");
 
 		public:
-			CompositeMat() = default;
+			CompositeMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -106,21 +106,21 @@ namespace b3d
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::kWhite);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-			GpuParameterSampledTexture mSourceTex;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mSourceTextureParameter;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(BicubicUpsampleParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(BicubicUpsampleUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Color, gTint)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gTextureSize)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvPixel)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gInvTwoPixels)
 		B3D_UNIFORM_BUFFER_END
 
-		extern BicubicUpsampleParamDef gBicubicUpsampleParamDef;
+		extern BicubicUpsampleUniformDefinition gBicubicUpsampleUniformDefinition;
 
 		/** Samples the source texture using bicubic filtering and outputs the results to the provided render target. */
-		class B3D_EXPORT BicubicUpsampleMat : public RendererMaterial<BicubicUpsampleMat>
+		class B3D_EXPORT BicubicUpsampleMaterial : public RendererMaterial<BicubicUpsampleMaterial>
 		{
 			RMAT_DEF("BicubicUpsample.bsl");
 
@@ -135,7 +135,7 @@ namespace b3d
 			}
 
 		public:
-			BicubicUpsampleMat() = default;
+			BicubicUpsampleMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -155,33 +155,33 @@ namespace b3d
 			 *
 			 * @param	hermite		If true, use Hermite cubic filtering, otherwise use Lagrange cubic filtering.
 			 */
-			static BicubicUpsampleMat* GetVariation(bool hermite = false);
+			static BicubicUpsampleMaterial* GetVariation(bool hermite = false);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-			GpuParameterSampledTexture mSourceTex;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mSourceTextureParameter;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(ClearParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(ClearUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(i32, gClearValue)
 		B3D_UNIFORM_BUFFER_END
 
-		extern ClearParamDef gClearParamDef;
+		extern ClearUniformDefinition gClearUniformDefinition;
 
 		/** Shader that clears the currently bound render target to an integer value. */
-		class B3D_EXPORT ClearMat : public RendererMaterial<ClearMat>
+		class B3D_EXPORT ClearMaterial : public RendererMaterial<ClearMaterial>
 		{
 			RMAT_DEF("Clear.bsl");
 
 		public:
-			ClearMat() = default;
+			ClearMaterial() = default;
 			void Initialize() override;
 
 			/** Executes the material on the currently bound render target, clearing to to @p value. */
 			void Execute(GpuCommandBuffer& commandBuffer, u32 value);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
 		};
 
 		/** Information describing a blit operation from a source texture to a render target. */

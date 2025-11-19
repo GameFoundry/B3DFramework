@@ -3129,7 +3129,7 @@ void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs
 
 	if(lensFlareSettings.BicubicUpsampling)
 	{
-		BicubicUpsampleMat* upsampleMat = BicubicUpsampleMat::GetVariation(false);
+		BicubicUpsampleMaterial* upsampleMat = BicubicUpsampleMaterial::GetVariation(false);
 		upsampleMat->Execute(commandBuffer, 
 			downsampledTex->Texture,
 			sceneColorNode->RenderTarget,
@@ -3137,7 +3137,7 @@ void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs
 	}
 	else
 	{
-		CompositeMat* upsampleMat = CompositeMat::Get();
+		CompositeMaterial* upsampleMat = CompositeMaterial::Get();
 		upsampleMat->Execute(commandBuffer, 
 			downsampledTex->Texture,
 			sceneColorNode->RenderTarget,
