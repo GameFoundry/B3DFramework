@@ -500,8 +500,9 @@ namespace b3d::render
 	class B3D_EXPORT GpuBufferSuballocation
 	{
 	public:
-		/** Default constructor - creates invalid suballocation. */
 		GpuBufferSuballocation() = default;
+		GpuBufferSuballocation(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex, u32 suballocationOffset)
+			: mBuffer(buffer), mSuballocationIndex(suballocationIndex), mSuballocationOffset(suballocationOffset) {}
 
 		/** Gets the underlying GPU buffer. */
 		const SPtr<GpuBuffer>& GetBuffer() const { return mBuffer; }
@@ -532,12 +533,6 @@ namespace b3d::render
 		 * @param size  Size of data in bytes (must be <= GetSize())
 		 */
 		void Write(const void* data, u32 size) const;
-
-	private:
-		friend class TransientGpuBufferPool;
-
-		GpuBufferSuballocation(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex, u32 suballocationOffset)
-			: mBuffer(buffer), mSuballocationIndex(suballocationIndex), mSuballocationOffset(suballocationOffset) {}
 
 	private:
 		SPtr<GpuBuffer> mBuffer;

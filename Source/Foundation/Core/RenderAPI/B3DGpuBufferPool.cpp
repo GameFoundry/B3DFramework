@@ -4,13 +4,46 @@
 
 using namespace b3d::render;
 
-void TransientGpuBufferPool::Initialize(GpuDevice& device, const GpuBufferCreateInformation& createInfo, u32 initialBufferCount, u32 suballocationsPerBuffer)
+TrackedGpuBufferSuballocation::TrackedGpuBufferSuballocation(GpuBufferPool* owner, const GpuBufferSuballocation& base)
+	: GpuBufferSuballocation(base) , mOwner(owner)
+{
+}
+
+TrackedGpuBufferSuballocation::~TrackedGpuBufferSuballocation()
+{
+	if (mOwner != nullptr)
+		mOwner->Release(*this);
+}
+
+TrackedGpuBufferSuballocation::TrackedGpuBufferSuballocation(TrackedGpuBufferSuballocation&& other) noexcept
+	: GpuBufferSuballocation(std::move(other))
+	, mOwner(other.mOwner)
+{
+	other.mOwner = nullptr;
+}
+
+TrackedGpuBufferSuballocation& TrackedGpuBufferSuballocation::operator=(TrackedGpuBufferSuballocation&& other) noexcept
+{
+	if (this != &other)
+	{
+		if (mOwner != nullptr)
+			mOwner->Release(*this);
+
+		GpuBufferSuballocation::operator=(std::move(other));
+
+		mOwner = other.mOwner;
+		other.mOwner = nullptr;
+	}
+	return *this;
+}
+
+void TransientGpuBufferPool::Initialize(GpuDevice& device, const GpuBufferCreateInformation& createInfo, u32 suballocationsPerBuffer, u32 initialBufferCount)
 {
 	mDevice = &device;
 	mBufferCreateInformation = createInfo;
 	mSuballocationsPerBuffer = suballocationsPerBuffer;
 
-	B3D_ASSERT(suballocationsPerBuffer > 0, "Suballocations per buffer must be greater than 0");
+	B3D_ASSERT(suballocationsPerBuffer > 0 && "Suballocations per buffer must be greater than 0");
 
 	// Calculate aligned suballocation size
 	mSuballocationSize = b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInfo, device);
@@ -21,7 +54,7 @@ void TransientGpuBufferPool::Initialize(GpuDevice& device, const GpuBufferCreate
 
 GpuBufferSuballocation TransientGpuBufferPool::Allocate()
 {
-	B3D_ASSERT(mDevice != nullptr, "GpuBufferPool not initialized");
+	B3D_ASSERT(mDevice != nullptr && "GpuBufferPool not initialized");
 
 	// Try to pop from free list
 	if (mFreeListHead != ~0u)
@@ -43,7 +76,7 @@ GpuBufferSuballocation TransientGpuBufferPool::Allocate()
 
 void TransientGpuBufferPool::AdvanceFrame()
 {
-	B3D_ASSERT(mDevice != nullptr, "GpuBufferPool not initialized");
+	B3D_ASSERT(mDevice != nullptr && "GpuBufferPool not initialized");
 
 	mCurrentFrameNumber++;
 
@@ -66,7 +99,7 @@ void TransientGpuBufferPool::AdvanceFrame()
 
 void TransientGpuBufferPool::AddNewBufferToPool()
 {
-	B3D_ASSERT(mDevice != nullptr, "GpuBufferPool not initialized");
+	B3D_ASSERT(mDevice != nullptr && "GpuBufferPool not initialized");
 
 	// Create new GpuBuffer with suballocations
 	GpuBufferCreateInformation bufferCreateInformation = mBufferCreateInformation;
@@ -94,4 +127,156 @@ void TransientGpuBufferPool::AddNewBufferToPool()
 
 		mSuballocations.Add(entry);
 	}
+}
+
+void GpuBufferPool::Initialize(GpuDevice& device, const GpuBufferCreateInformation& createInfo, u32 suballocationsPerBuffer, u32 initialBufferCount)
+{
+	mDevice = &device;
+	mBufferCreateInformation = createInfo;
+	mSuballocationsPerBuffer = suballocationsPerBuffer;
+
+	B3D_ASSERT(suballocationsPerBuffer > 0 && "Suballocations per buffer must be greater than 0");
+
+	// Calculate aligned suballocation size
+	mSuballocationSize = b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInfo, device);
+
+	for (u32 bufferIndex = 0; bufferIndex < initialBufferCount; bufferIndex++)
+		AddNewBufferToPool();
+}
+
+GpuBufferSuballocation GpuBufferPool::Allocate()
+{
+	B3D_ASSERT(mDevice != nullptr && "GpuBufferPool not initialized");
+
+	// Find first buffer with free entries
+	for (u32 bufferIndex = 0; bufferIndex < mBuffers.size(); bufferIndex++)
+	{
+		BufferEntry& bufferEntry = mBuffers[bufferIndex];
+
+		if (bufferEntry.Buffer == nullptr)
+			continue;
+
+		if (bufferEntry.FreeListHead != ~0u)
+		{
+			const u32 globalSuballocationIndex = bufferEntry.FreeListHead;
+			SuballocationEntry& suballocationEntry = mSuballocations[globalSuballocationIndex];
+
+			bufferEntry.FreeListHead = suballocationEntry.NextFreeIndex;
+			bufferEntry.AllocatedCount++;
+
+			const u32 baseGlobalSuballocationIndex = bufferIndex * mSuballocationsPerBuffer;
+			const u32 suballocationIndex = globalSuballocationIndex - baseGlobalSuballocationIndex;
+			const u32 suballocationOffset = suballocationIndex * mSuballocationSize;
+			return GpuBufferSuballocation(bufferEntry.Buffer, suballocationIndex, suballocationOffset);
+		}
+	}
+
+	// No free entries in any buffer, grow
+	AddNewBufferToPool();
+	return Allocate();
+}
+
+b3d::UPtr<TrackedGpuBufferSuballocation> GpuBufferPool::AllocateTracked()
+{
+	GpuBufferSuballocation allocation = Allocate();
+	return b3d::B3DMakeUnique<TrackedGpuBufferSuballocation>(this, allocation);
+}
+
+void GpuBufferPool::Release(const GpuBufferSuballocation& allocation)
+{
+	B3D_ASSERT(mDevice != nullptr && "GpuBufferPool not initialized");
+	B3D_ASSERT(allocation.IsValid() && "Cannot release invalid allocation");
+
+	// Find the buffer entry. Not using a map since number of buffers is expected to be small (increase suballocation count if that's not the case).
+	const SPtr<GpuBuffer>& buffer = allocation.GetBuffer();
+	u32 foundBufferIndex = ~0u;
+
+	for (u32 bufferIndex = 0; bufferIndex < mBuffers.size(); bufferIndex++)
+	{
+		if (mBuffers[bufferIndex].Buffer == buffer)
+		{
+			foundBufferIndex = bufferIndex;
+			break;
+		}
+	}
+
+	B3D_ASSERT(foundBufferIndex != ~0u && "Buffer not found in pool");
+
+	// Calculate entry index directly from base + offset
+	BufferEntry& bufferEntry = mBuffers[foundBufferIndex];
+
+	const u32 baseGlobalSuballocationIndex = foundBufferIndex * mSuballocationsPerBuffer;
+	const u32 globalSuballocationIndex = baseGlobalSuballocationIndex + allocation.GetSuballocationIndex();
+
+	SuballocationEntry& suballocationEntry = mSuballocations[globalSuballocationIndex];
+	B3D_ASSERT(bufferEntry.AllocatedCount > 0 && "Buffer allocation count underflow");
+
+	bufferEntry.AllocatedCount--;
+
+	suballocationEntry.NextFreeIndex = bufferEntry.FreeListHead;
+	bufferEntry.FreeListHead = globalSuballocationIndex;
+
+	// If buffer is now empty, mark it as deleted (keep in array for reuse)
+	if (bufferEntry.AllocatedCount == 0)
+	{
+		// Mark buffer slot as deleted (keep in mBuffers array for reuse)
+		bufferEntry.Buffer = nullptr;
+	}
+}
+
+void GpuBufferPool::AddNewBufferToPool()
+{
+	B3D_ASSERT(mDevice != nullptr, "GpuBufferPool not initialized");
+
+	// Create new GpuBuffer with suballocations
+	GpuBufferCreateInformation bufferCreateInformation = mBufferCreateInformation;
+	bufferCreateInformation.SuballocationCount = mSuballocationsPerBuffer;
+
+	SPtr<GpuBuffer> newBuffer = mDevice->CreateGpuBuffer(bufferCreateInformation);
+
+	// Lambda to initialize suballocations for a buffer entry
+	auto fnInitializeBufferEntry = [this, &newBuffer](u32 bufferIndex)
+	{
+		BufferEntry& bufferEntry = mBuffers[bufferIndex];
+		const u32 baseGlobalSuballocationIndex = bufferIndex * mSuballocationsPerBuffer;
+
+		bufferEntry.Buffer = newBuffer;
+		bufferEntry.AllocatedCount = 0;
+		bufferEntry.FreeListHead = baseGlobalSuballocationIndex;
+
+		// Initialize all suballocations for this buffer
+		for (u32 subIndex = 0; subIndex < mSuballocationsPerBuffer; subIndex++)
+		{
+			const u32 entryIndex = baseGlobalSuballocationIndex + subIndex;
+			SuballocationEntry& entry = mSuballocations[entryIndex];
+
+			// Link into this buffer's free-list
+			entry.NextFreeIndex = (subIndex + 1 < mSuballocationsPerBuffer) ? entryIndex + 1 : ~0u;
+		}
+	};
+
+	// Try to reuse a deleted buffer slot first
+	for (u32 bufferIndex = 0; bufferIndex < (u32)mBuffers.size(); bufferIndex++)
+	{
+		BufferEntry& bufferEntry = mBuffers[bufferIndex];
+		if (bufferEntry.Buffer == nullptr)  // Found deleted slot
+		{
+			fnInitializeBufferEntry(bufferIndex);
+			return;
+		}
+	}
+
+	// No deleted slots, create new buffer entry
+	BufferEntry newBufferEntry;
+
+	// Add placeholder entries to mSuballocations
+	mSuballocations.Reserve((u32)mSuballocations.Size() + mSuballocationsPerBuffer);
+
+	for (u32 suballocationIndex = 0; suballocationIndex < mSuballocationsPerBuffer; suballocationIndex++)
+		mSuballocations.Add(SuballocationEntry{});
+
+	mBuffers.Add(newBufferEntry);
+
+	// Initialize the new buffer entry
+	fnInitializeBufferEntry((u32)(mBuffers.Size() - 1));
 }
