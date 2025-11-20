@@ -1135,13 +1135,13 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 	const LightProbes& lightProbes = inputs.Scene.LightProbes;
 	LightProbesInfo lpInfo = lightProbes.GetInfo();
 
-	IrradianceEvaluateMat* evaluateMat;
+	IrradianceEvaluateMaterial* evaluateMat;
 	SPtr<PooledRenderTexture> volumeIndices;
 	if(lightProbes.HasAnyProbes())
 	{
 		PooledRenderTextureCreateInformation volumeIndicesDesc;
 		PooledRenderTextureCreateInformation depthDesc;
-		TetrahedraRenderMat::GetOutputDesc(inputs.View, volumeIndicesDesc, depthDesc);
+		TetrahedraRenderMaterial::GetOutputDesc(inputs.View, volumeIndicesDesc, depthDesc);
 
 		volumeIndices = resPool.Get(volumeIndicesDesc);
 		SPtr<PooledRenderTexture> depthTex = resPool.Get(depthDesc);
@@ -1159,19 +1159,19 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 		GetRendererUtility().Clear(commandBuffer, -1);
 		commandBuffer.EndRenderPass();
 
-		TetrahedraRenderMat* renderTetrahedra =
-			TetrahedraRenderMat::GetVariation(viewProps.Target.NumSamples > 1, true);
+		TetrahedraRenderMaterial* renderTetrahedra =
+			TetrahedraRenderMaterial::GetVariation(viewProps.Target.NumSamples > 1, true);
 		renderTetrahedra->Prepare(inputs.View, sceneDepthNode->DepthTex->Texture);
 		renderTetrahedra->Execute(commandBuffer, lpInfo.TetrahedraVolume, rt);
 
 		rt = nullptr;
 		depthTex = nullptr;
 
-		evaluateMat = IrradianceEvaluateMat::GetVariation(viewProps.Target.NumSamples > 1, true, false);
+		evaluateMat = IrradianceEvaluateMaterial::GetVariation(viewProps.Target.NumSamples > 1, true, false);
 	}
 	else // Sky only
 	{
-		evaluateMat = IrradianceEvaluateMat::GetVariation(viewProps.Target.NumSamples > 1, true, true);
+		evaluateMat = IrradianceEvaluateMaterial::GetVariation(viewProps.Target.NumSamples > 1, true, true);
 	}
 
 	GBufferTextures gbuffer;

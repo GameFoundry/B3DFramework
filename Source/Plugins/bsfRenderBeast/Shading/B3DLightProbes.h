@@ -24,17 +24,17 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_UNIFORM_BUFFER_BEGIN(TetrahedraRenderParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(TetrahedraRenderUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gDepthTexSize)
 		B3D_UNIFORM_BUFFER_END
 
-		extern TetrahedraRenderParamDef gTetrahedraRenderParamDef;
+		extern TetrahedraRenderUniformDefinition gTetrahedraRenderUniformDefinition;
 
 		/**
 		 * Shader that renders the tetrahedra used for light probe evaluation. Tetrahedra depth is compare with current scene
 		 * depth, and for each scene pixel the matching tetrahedron index is written to the output target.
 		 */
-		class TetrahedraRenderMat : public RendererMaterial<TetrahedraRenderMat>
+		class TetrahedraRenderMaterial : public RendererMaterial<TetrahedraRenderMaterial>
 		{
 			RMAT_DEF("TetrahedraRender.bsl");
 
@@ -50,7 +50,7 @@ namespace b3d
 			}
 
 		public:
-			TetrahedraRenderMat() = default;
+			TetrahedraRenderMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -79,27 +79,27 @@ namespace b3d
 			/**
 			 * Returns the material variation matching the provided parameters.
 			 *
-			 * @param[in]	msaa				True if the shader will operate on a multisampled surface.
-			 * @param[in]	singleSampleMSAA	Only relevant of @p msaa is true. When enabled only the first sample will be
+			 * @param	msaa				True if the shader will operate on a multisampled surface.
+			 * @param	singleSampleMSAA	Only relevant of @p msaa is true. When enabled only the first sample will be
 			 *									evaluated. Otherwise all samples will be evaluated.
 			 * @return							Requested variation of the material.
 			 */
-			static TetrahedraRenderMat* GetVariation(bool msaa, bool singleSampleMSAA);
+			static TetrahedraRenderMaterial* GetVariation(bool msaa, bool singleSampleMSAA);
 
 		private:
-			SPtr<GpuBuffer> mParamBuffer;
-			GpuParameterSampledTexture mDepthBufferTex;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mDepthBufferTextureParameter;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(IrradianceEvaluateParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(IrradianceEvaluateUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gSkyBrightness)
 			B3D_UNIFORM_BUFFER_MEMBER(i32, gNumTetrahedra)
 		B3D_UNIFORM_BUFFER_END
 
-		extern IrradianceEvaluateParamDef gIrradianceEvaluateParamDef;
+		extern IrradianceEvaluateUniformDefinition gIrradianceEvaluateUniformDefinition;
 
 		/** Evaluates radiance from the light probe volume, or the sky if light probes are not available. */
-		class IrradianceEvaluateMat : public RendererMaterial<IrradianceEvaluateMat>
+		class IrradianceEvaluateMaterial : public RendererMaterial<IrradianceEvaluateMaterial>
 		{
 			RMAT_DEF("IrradianceEvaluate.bsl");
 
@@ -116,7 +116,7 @@ namespace b3d
 			}
 
 		public:
-			IrradianceEvaluateMat() = default;
+			IrradianceEvaluateMaterial() = default;
 			void Initialize() override;
 
 			/**
@@ -125,7 +125,7 @@ namespace b3d
 			 * @param	commandBuffer		Command buffer to execute on.
 			 * @param	view				View that is currently being rendered.
 			 * @param	gbuffer				Previously rendered GBuffer textures.
-			 * @param	lightProbeIndices	Indices calculated by TetrahedraRenderMat.
+			 * @param	lightProbeIndices	Indices calculated by TetrahedraRenderMaterial.
 			 * @param	lightProbesInfo		Information about light probes.
 			 * @param	skybox				Skybox, if available. If sky is not available, but sky rendering is enabled,
 			 *								the system will instead use a default irradiance texture.
@@ -138,24 +138,24 @@ namespace b3d
 			/**
 			 * Returns the material variation matching the provided parameters.
 			 *
-			 * @param[in]	msaa				True if the shader will operate on a multisampled surface.
-			 * @param[in]	singleSampleMSAA	Only relevant of @p msaa is true. When enabled only the first sample will be
+			 * @param	msaa				True if the shader will operate on a multisampled surface.
+			 * @param	singleSampleMSAA	Only relevant of @p msaa is true. When enabled only the first sample will be
 			 *									evaluated. Otherwise all samples will be evaluated.
-			 * @param[in]	skyOnly				When true, only the sky irradiance will be evaluated. Otherwise light probe
+			 * @param	skyOnly				When true, only the sky irradiance will be evaluated. Otherwise light probe
 			 *									irradiance will be evaluated.
 			 * @return							Requested variation of the material.
 			 */
-			static IrradianceEvaluateMat* GetVariation(bool msaa, bool singleSampleMSAA, bool skyOnly);
+			static IrradianceEvaluateMaterial* GetVariation(bool msaa, bool singleSampleMSAA, bool skyOnly);
 
 		private:
 			GBufferParameterBinding mGBufferParams;
-			SPtr<GpuBuffer> mParamBuffer;
-			GpuParameterSampledTexture mParamInputTex;
-			GpuParameterSampledTexture mParamSkyIrradianceTex;
-			GpuParameterSampledTexture mParamAmbientOcclusionTex;
-			GpuParameterSampledTexture mParamSHCoeffsTexture;
-			GpuParameterStorageBuffer mParamTetrahedraBuffer;
-			GpuParameterStorageBuffer mParamTetFacesBuffer;
+			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterSampledTexture mInputTextureParameter;
+			GpuParameterSampledTexture mSkyIrradianceTextureParameter;
+			GpuParameterSampledTexture mAmbientOcclusionTextureParameter;
+			GpuParameterSampledTexture mSHCoeffsTextureParameter;
+			GpuParameterStorageBuffer mTetrahedraBufferParameter;
+			GpuParameterStorageBuffer mTetFacesBufferParameter;
 			bool mSkyOnly;
 		};
 
