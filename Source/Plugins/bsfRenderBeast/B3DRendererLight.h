@@ -209,18 +209,18 @@ namespace b3d
 			Vector<LightData> mVisibleLightData;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(LightsParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(LightsUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(LightData, gLights, kStandardForwardMaxNumLights)
 		B3D_UNIFORM_BUFFER_END
 
-		extern LightsParamDef gLightsParamDef;
+		extern LightsUniformDefinition gLightsUniformDefinition;
 
-		B3D_UNIFORM_BUFFER_BEGIN(LightAndReflProbeParamsParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(LightAndReflProbeParamsUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector4I, gLightOffsets)
 			B3D_UNIFORM_BUFFER_MEMBER(int, gReflProbeCount)
 		B3D_UNIFORM_BUFFER_END
 
-		extern LightAndReflProbeParamsParamDef gLightAndReflProbeParamsParamDef;
+		extern LightAndReflProbeParamsUniformDefinition gLightAndReflProbeParamsUniformDefinition;
 
 		/** @} */
 	} // namespace render

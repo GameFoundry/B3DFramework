@@ -142,11 +142,11 @@ namespace b3d
 			SPtr<GpuBuffer> Buffer;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(ReflProbesParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(ReflProbesUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(ReflectioneProbeData, gReflectionProbes, kStandardForwardMaxNumProbes)
 		B3D_UNIFORM_BUFFER_END
 
-		extern ReflProbesParamDef gReflProbesParamDef;
+		extern ReflProbesUniformDefinition gReflProbesUniformDefinition;
 
 		/** @} */
 	} // namespace render

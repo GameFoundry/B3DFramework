@@ -398,6 +398,6 @@ void VisibleLightData::GatherInfluencingLights(const Bounds& bounds, const Light
 	}
 }
 
-LightsParamDef gLightsParamDef;
-LightAndReflProbeParamsParamDef gLightAndReflProbeParamsParamDef;
+LightsUniformDefinition gLightsUniformDefinition;
+LightAndReflProbeParamsUniformDefinition gLightAndReflProbeParamsUniformDefinition;
 }} // namespace b3d::render

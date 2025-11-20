@@ -179,5 +179,5 @@ void ReflectionProbeUniformBuffer::Populate(const Skybox* sky, u32 numProbes, co
 	gReflProbeParamsParamDef.gSkyBrightness.Set(Buffer, brightness);
 }
 
-ReflProbesParamDef gReflProbesParamDef;
+ReflProbesUniformDefinition gReflProbesUniformDefinition;
 }} // namespace b3d::render

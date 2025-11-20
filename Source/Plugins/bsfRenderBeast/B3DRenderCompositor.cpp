@@ -1437,9 +1437,9 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 
 	struct StandardForwardBuffers
 	{
-		SPtr<GpuBuffer> LightsParamBlock;
-		SPtr<GpuBuffer> ReflProbesParamBlock;
-		SPtr<GpuBuffer> LightAndReflProbeParamsParamBlock;
+		GpuBufferSuballocation LightsUniformBuffer;
+		GpuBufferSuballocation ReflProbesUniformBuffer;
+		GpuBufferSuballocation LightAndReflProbeParamsUniformBuffer;
 	} standardForwardBuffers;
 
 	const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
@@ -1447,13 +1447,6 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const LightGrid& lightGrid = inputs.View.GetLightGrid();
 		lightGridOutputs = lightGrid.GetOutputs();
-	}
-	else
-	{
-		// Note: Store these instead of creating them every time?
-		standardForwardBuffers.LightsParamBlock = gLightsParamDef.CreateBuffer();
-		standardForwardBuffers.ReflProbesParamBlock = gReflProbesParamDef.CreateBuffer();
-		standardForwardBuffers.LightAndReflProbeParamsParamBlock = gLightAndReflProbeParamsParamDef.CreateBuffer();
 	}
 
 	Skybox* skybox = nullptr;
@@ -1486,6 +1479,11 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 
 	const auto bindParamsForStandardForward = [&standardForwardBuffers, &visibleLightData, &visibleReflProbeData](GpuParameters& gpuParams, const Bounds& bounds, const ForwardLightingParams& fwdParams, const ImageBasedLightingParameterBinding& iblParams)
 	{
+		// Allocate transient uniform buffers
+		standardForwardBuffers.LightsUniformBuffer = gLightsUniformDefinition.AllocateTransient();
+		standardForwardBuffers.ReflProbesUniformBuffer = gReflProbesUniformDefinition.AllocateTransient();
+		standardForwardBuffers.LightAndReflProbeParamsUniformBuffer = gLightAndReflProbeParamsUniformDefinition.AllocateTransient();
+
 		// Populate light & probe buffers
 		Vector3I lightCounts;
 		const LightData* lights[kStandardForwardMaxNumLights];
@@ -1498,23 +1496,23 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		lightOffsets.W = lightOffsets.Z + lightCounts.Z;
 
 		for(i32 j = 0; j < lightOffsets.W; j++)
-			gLightsParamDef.gLights.Set(standardForwardBuffers.LightsParamBlock, *lights[j], j);
+			gLightsUniformDefinition.gLights.Set(standardForwardBuffers.LightsUniformBuffer, *lights[j], j);
 
 		i32 numReflProbes = std::min(visibleReflProbeData.GetProbeCount(), kStandardForwardMaxNumProbes);
 		for(i32 j = 0; j < numReflProbes; j++)
 		{
-			gReflProbesParamDef.gReflectionProbes.Set(standardForwardBuffers.ReflProbesParamBlock, visibleReflProbeData.GetProbeData(j), j);
+			gReflProbesUniformDefinition.gReflectionProbes.Set(standardForwardBuffers.ReflProbesUniformBuffer, visibleReflProbeData.GetProbeData(j), j);
 		}
 
-		gLightAndReflProbeParamsParamDef.gLightOffsets.Set(standardForwardBuffers.LightAndReflProbeParamsParamBlock, lightOffsets);
-		gLightAndReflProbeParamsParamDef.gReflProbeCount.Set(standardForwardBuffers.LightAndReflProbeParamsParamBlock, numReflProbes);
+		gLightAndReflProbeParamsUniformDefinition.gLightOffsets.Set(standardForwardBuffers.LightAndReflProbeParamsUniformBuffer, lightOffsets);
+		gLightAndReflProbeParamsUniformDefinition.gReflProbeCount.Set(standardForwardBuffers.LightAndReflProbeParamsUniformBuffer, numReflProbes);
 
 		if(iblParams.ReflProbesBinding.Set != (u32)-1)
 		{
 			gpuParams.SetUniformBuffer(
 				iblParams.ReflProbesBinding.Set,
 				iblParams.ReflProbesBinding.Slot,
-				standardForwardBuffers.ReflProbesParamBlock);
+				standardForwardBuffers.ReflProbesUniformBuffer);
 		}
 
 		if(fwdParams.LightsParamBlockBinding.Set != (u32)-1)
@@ -1522,7 +1520,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 			gpuParams.SetUniformBuffer(
 				fwdParams.LightsParamBlockBinding.Set,
 				fwdParams.LightsParamBlockBinding.Slot,
-				standardForwardBuffers.LightsParamBlock);
+				standardForwardBuffers.LightsUniformBuffer);
 		}
 
 		if(fwdParams.LightAndReflProbeParamsParamBlockBinding.Set != (u32)-1)
@@ -1530,7 +1528,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 			gpuParams.SetUniformBuffer(
 				fwdParams.LightAndReflProbeParamsParamBlockBinding.Set,
 				fwdParams.LightAndReflProbeParamsParamBlockBinding.Slot,
-				standardForwardBuffers.LightAndReflProbeParamsParamBlock);
+				standardForwardBuffers.LightAndReflProbeParamsUniformBuffer);
 		}
 	};
 
