@@ -1588,6 +1588,10 @@ namespace b3d { namespace render
 	/** If true, all draw regions will be redrawn every frame, regardless if dirty or not. */
 	static constexpr bool kRedrawAllRegions = false;
 
+	GUIRenderer::GUIWidgetRenderData::GUIWidgetRenderData(u64 widgetId, GpuDevice& device)
+		: WidgetId(widgetId), UniformBufferPool(device, GpuBufferCreateInformation::CreateUniform(gGUISpriteUniformBufferDefinition.GetSize()), 256)
+	{ }
+
 GUIRenderer::GUIRenderer()
 	: RendererExtension(RenderLocation::Overlay, 10)
 {}
@@ -1761,6 +1765,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 		struct MeshToDraw
 		{
 			const GUIMeshRenderData* RenderData = nullptr;
+			const GpuBufferSuballocation UniformBuffer;
 			FrameVector<Area2I> OverlappingRegions;
 		};
 
@@ -1801,10 +1806,10 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 						continue;
 
 					// Note: We will unnecessarily do this update multiple times if the same mesh overlaps multiple dirty regions
-					const SPtr<GpuBuffer>& uniformBuffer = widget.GpuParameterInfos[meshRenderData.GpuParametersIndex].UniformBuffer;
+					GpuBufferSuballocation uniformBuffer = widget.UniformBufferPool.Allocate();
 					SpriteMaterial::PopulateUniformBuffer(uniformBuffer, viewportOffset, inverseRegionWidth, inverseRegionHeight, viewflipYFlip, mTime, (u32)overlappingDirtyRegions.size(), widget.WorldTransform, meshRenderData.MaterialInformation);
 
-					meshesToRedraw.push_back({ &meshRenderData, std::move(overlappingDirtyRegions) });
+					meshesToRedraw.push_back({ &meshRenderData, std::move(uniformBuffer), std::move(overlappingDirtyRegions) });
 				}
 			}
 
@@ -1814,7 +1819,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 				SpriteMaterial* const material = meshRenderData->Material;
 				const GUIBatchGpuParameterInfo& parameterInfo = widget.GpuParameterInfos[meshRenderData->GpuParametersIndex];
 
-				const SPtr<GpuBuffer>& uniformBuffer = parameterInfo.UniformBuffer;
+				const GpuBufferSuballocation& uniformBuffer = meshToDraw.UniformBuffer;
 				const SPtr<GpuBuffer>& clipRegionBuffer = fnCreateClipRegionBuffer(widget, meshRenderData->GpuParametersIndex, meshToDraw.OverlappingRegions);
 				const SPtr<MaterialParameterAdapter>& materialParameterAdapter = widget.MaterialParameterAdapters[parameterInfo.MaterialParameterIndex];
 
@@ -1941,6 +1946,7 @@ void GUIRenderer::UpdateDrawGroups(const Camera* camera, u64 widgetId, u32 widge
 {
 	mWidgetToCameraMap[widgetId] = camera;
 
+	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	GUICameraRenderData& cameraRenderData = mPerCameraData[camera];
 	Vector<GUIWidgetRenderData>& widgets = cameraRenderData.WidgetRenderData;
 	GUIWidgetRenderData* widget;
@@ -1948,10 +1954,8 @@ void GUIRenderer::UpdateDrawGroups(const Camera* camera, u64 widgetId, u32 widge
 	auto found = std::find_if(widgets.begin(), widgets.end(), [widgetId](auto& x) { return x.WidgetId == widgetId; });
 	if(found == widgets.end())
 	{
-		widgets.push_back(GUIWidgetRenderData());
+		widgets.push_back(GUIWidgetRenderData(widgetId, *gpuDevice));
 		widget = &widgets.back();
-
-		widget->WidgetId = widgetId;
 	}
 	else
 		widget = &(*found);
@@ -1987,12 +1991,7 @@ void GUIRenderer::UpdateDrawGroups(const Camera* camera, u64 widgetId, u32 widge
 
 		const u32 allocatedParameterInfoCount = (u32)widget->GpuParameterInfos.size();
 		if(elementCount > allocatedParameterInfoCount)
-		{
 			widget->GpuParameterInfos.resize(elementCount);
-
-			for(u32 i = allocatedParameterInfoCount; i < elementCount; i++)
-				widget->GpuParameterInfos[i].UniformBuffer = gGUISpriteUniformBufferDefinition.CreateBuffer();
-		}
 
 		u32 currentBufferIndex = 0;
 		for(auto& batch : widget->Batches)

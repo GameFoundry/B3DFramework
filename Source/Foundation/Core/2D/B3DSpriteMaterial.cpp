@@ -96,7 +96,7 @@ SPtr<render::MaterialParameterAdapter> SpriteMaterial::CreateParameterAdapter(bo
 	return mMaterial->CreateParameterAdapter(supportClipping ? mWithClippingVariationIndex : mWithoutClippingVariationIndex);
 }
 
-void SpriteMaterial::Prepare(const SPtr<render::MaterialParameterAdapter>& parameterAdapter, const SPtr<render::MeshBase>& mesh, const SPtr<render::Texture>& texture, const SPtr<SamplerState>& sampler, const SPtr<render::GpuBuffer>& uniformBuffer, const SPtr<render::GpuBuffer>& clipRegionBuffer) const
+void SpriteMaterial::Prepare(const SPtr<render::MaterialParameterAdapter>& parameterAdapter, const SPtr<render::MeshBase>& mesh, const SPtr<render::Texture>& texture, const SPtr<SamplerState>& sampler, const render::GpuBufferSuballocation& uniformBuffer, const SPtr<render::GpuBuffer>& clipRegionBuffer) const
 {
 	SPtr<render::Texture> spriteTexture;
 	if(texture != nullptr)
@@ -140,7 +140,7 @@ void SpriteMaterial::Render(render::GpuCommandBuffer& commandBuffer, const SPtr<
 	}
 }
 
-void SpriteMaterial::PopulateUniformBuffer(const SPtr<render::GpuBuffer>& buffer, const Vector2I& viewportOffset, float inverseViewportWidth, float inverseViewportHeight, bool flipY, float animationTime, u32 clipRegionCount, const Matrix4& transform, const render::SpriteMaterialInfo& materialInformation)
+void SpriteMaterial::PopulateUniformBuffer(const render::GpuBufferSuballocation& buffer, const Vector2I& viewportOffset, float inverseViewportWidth, float inverseViewportHeight, bool flipY, float animationTime, u32 clipRegionCount, const Matrix4& transform, const render::SpriteMaterialInfo& materialInformation)
 {
 	render::gGUISpriteUniformBufferDefinition.gTint.Set(buffer, materialInformation.Tint);
 	render::gGUISpriteUniformBufferDefinition.gWorldTransform.Set(buffer, transform);
@@ -165,8 +165,6 @@ void SpriteMaterial::PopulateUniformBuffer(const SPtr<render::GpuBuffer>& buffer
 	}
 	else
 		render::gGUISpriteUniformBufferDefinition.gUVSizeOffset.Set(buffer, Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-
-	buffer->FlushCache();
 }
 
 namespace b3d

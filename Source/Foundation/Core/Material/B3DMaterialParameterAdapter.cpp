@@ -519,27 +519,27 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 		shader->GetBufferParams(),
 		shader->GetSamplerParams());
 
-	Map<String, UniformBufferPointerType> paramBlockBuffers;
+	Map<String, UniformBufferPointerType> uniformBuffers;
 
 	//// Create uniform buffers
-	for(auto& paramBlock : uniformBufferData)
+	for(auto& uniformBufferData : uniformBufferData)
 	{
-		UniformBufferPointerType newParamBlockBuffer;
-		if(!paramBlock.External)
-			newParamBlockBuffer = CreateGpuBuffer<UniformBufferType>(GpuBufferCreateInformation::CreateUniform(paramBlock.Size, paramBlock.Flags | GpuBufferFlag::AllowWriteCachingOnCPU));
+		UniformBufferPointerType newUniformBuffer;
+		if(!uniformBufferData.External)
+			newUniformBuffer = CreateGpuBuffer<UniformBufferType>(GpuBufferCreateInformation::CreateUniform(uniformBufferData.Size, uniformBufferData.Flags | GpuBufferFlag::AllowWriteCachingOnCPU));
 
-		paramBlock.SequentialIdx = (u32)mUniformBuffers.size();
+		uniformBufferData.SequentialIdx = (u32)mUniformBuffers.size();
 
-		paramBlockBuffers[paramBlock.Name] = newParamBlockBuffer;
-		mUniformBuffers.push_back(UniformBufferInfo(paramBlock.Name, paramBlock.Set, paramBlock.Slot, newParamBlockBuffer, true));
+		uniformBuffers[uniformBufferData.Name] = newUniformBuffer;
+		mUniformBuffers.push_back(UniformBufferInfo(uniformBufferData.Name, uniformBufferData.Set, uniformBufferData.Slot, newUniformBuffer, 0, true));
 	}
 
 	//// Assign uniform buffers and generate information about data parameters
 	B3D_ASSERT(passCount < 64); // BlockInfo flags uses u64 for tracking usage
-	for(u32 i = 0; i < passCount; i++)
+	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 	{
-		SPtr<GpuParametersType> paramPtr = mGPUParameterPerPass[i];
-		const Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
+		SPtr<GpuParametersType> gpuParameters = mGPUParameterPerPass[passIndex];
+		const Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[passIndex];
 
 		for(u32 j = 0; j < kNumStages; j++)
 		{
@@ -547,11 +547,11 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 			for(auto& buffer : uniformBufferData)
 			{
 				const String& paramBlockName = buffer.Name;
-				if(paramPtr->HasUniformBuffer(paramBlockName))
+				if(gpuParameters->HasUniformBuffer(paramBlockName))
 				{
-					UniformBufferPointerType uniformBuffer = paramBlockBuffers[paramBlockName];
+					UniformBufferPointerType uniformBuffer = uniformBuffers[paramBlockName];
 
-					paramPtr->SetUniformBuffer(paramBlockName, uniformBuffer);
+					gpuParameters->SetUniformBuffer(paramBlockName, uniformBuffer);
 				}
 			}
 
@@ -564,15 +564,15 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 			{
 				const GpuUniformBufferInformation& uniformBufferInformation = iterBlockDesc->second;
 
-				u32 globalBlockIdx = (u32)-1;
+				u32 globalBlockIdx = ~0u;
 				if(!uniformBufferInformation.IsShareable)
 				{
-					UniformBufferPointerType newParamBlockBuffer = CreateGpuBuffer<UniformBufferType>(GpuBufferCreateInformation::CreateUniform(uniformBufferInformation.Size * sizeof(u32)));
+					UniformBufferPointerType newUniformBuffer = CreateGpuBuffer<UniformBufferType>(GpuBufferCreateInformation::CreateUniform(uniformBufferInformation.Size * sizeof(u32)));
 
 					globalBlockIdx = (u32)mUniformBuffers.size();
 
-					paramPtr->SetUniformBuffer(iterBlockDesc->first, newParamBlockBuffer);
-					mUniformBuffers.emplace_back(iterBlockDesc->first, iterBlockDesc->second.Set, iterBlockDesc->second.Slot, newParamBlockBuffer, false);
+					gpuParameters->SetUniformBuffer(iterBlockDesc->first, newUniformBuffer);
+					mUniformBuffers.emplace_back(iterBlockDesc->first, iterBlockDesc->second.Set, iterBlockDesc->second.Slot, newUniformBuffer, 0, false);
 				}
 				else
 				{
@@ -584,7 +584,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 				}
 
 				// If this uniform buffer is valid, create data/struct mappings for it
-				if(globalBlockIdx == (u32)-1)
+				if(globalBlockIdx == ~0u)
 					continue;
 
 				for(auto& dataParam : desc->UniformBufferMembers)
@@ -624,7 +624,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 
 		if(iterFind == mUniformBuffers.end())
 		{
-			mUniformBuffers.push_back(UniformBufferInfo(entry.first, 0, 0, nullptr, true));
+			mUniformBuffers.push_back(UniformBufferInfo(entry.first, 0, 0, nullptr, 0, true));
 			mUniformBuffers.back().IsUsed = false;
 		}
 	}
@@ -839,9 +839,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::SetUniformBuffer(u32 index, const
 	UniformBufferInfo& uniformBufferInfo = mUniformBuffers[index];
 	if(!uniformBufferInfo.Shareable)
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot set uniform buffer with the name \"{0}\". "
-									 "Buffer is not assignable. ",
-			   uniformBufferInfo.Name);
+		B3D_LOG(Error, RenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer is not assignable. ", uniformBufferInfo.Name);
 		return;
 	}
 
@@ -854,18 +852,18 @@ void TMaterialParameterAdapter<IsRenderProxy>::SetUniformBuffer(u32 index, const
 	{
 		uniformBufferInfo.Buffer = buffer;
 
-		u32 numPasses = (u32)mGPUParameterPerPass.size();
-		for(u32 j = 0; j < numPasses; j++)
+		const u32 passCount = (u32)mGPUParameterPerPass.size();
+		for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 		{
-			SPtr<GpuParametersType> paramPtr = mGPUParameterPerPass[j];
-			for(u32 i = 0; i < kNumStages; i++)
+			const SPtr<GpuParametersType>& gpuParameters = mGPUParameterPerPass[passIndex];
+			for(u32 stageIndex = 0; stageIndex < kNumStages; stageIndex++)
 			{
-				GpuProgramType progType = (GpuProgramType)i;
+				GpuProgramType gpuProgramType = (GpuProgramType)stageIndex;
 
-				const UniformBufferBinding& binding = uniformBufferInfo.PassData[j].Bindings[progType];
+				const UniformBufferBinding& binding = uniformBufferInfo.PassData[passIndex].Bindings[gpuProgramType];
 
-				if(binding.Slot != (u32)-1)
-					paramPtr->SetUniformBuffer(binding.Set, binding.Slot, buffer);
+				if(binding.Slot != ~0u)
+					gpuParameters->SetUniformBuffer(binding.Set, binding.Slot, buffer);
 			}
 		}
 	}
@@ -874,14 +872,14 @@ void TMaterialParameterAdapter<IsRenderProxy>::SetUniformBuffer(u32 index, const
 template <bool IsRenderProxy>
 void TMaterialParameterAdapter<IsRenderProxy>::SetUniformBuffer(const String& name, const UniformBufferPointerType& buffer, bool ignoreInUpdate)
 {
-	u32 bufferIdx = GetUniformBufferIndex(name);
-	if(bufferIdx == (u32)-1)
+	const u32 bufferIndex = GetUniformBufferIndex(name);
+	if(bufferIndex == (u32)-1)
 	{
 		B3D_LOG(Error, RenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer name not found. ", name);
 		return;
 	}
 
-	SetUniformBuffer(bufferIdx, buffer, ignoreInUpdate);
+	SetUniformBuffer(bufferIndex, buffer, ignoreInUpdate);
 }
 
 template <bool IsRenderProxy>
@@ -898,8 +896,9 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 	// Update data params
 	for(auto& paramInfo : mDataParamInfos)
 	{
-		UniformBufferPointerType paramBlock = mUniformBuffers[paramInfo.BlockIdx].Buffer;
-		if(paramBlock == nullptr || !mUniformBuffers[paramInfo.BlockIdx].AllowUpdate)
+		const UniformBufferInfo& uniformBufferInfo = mUniformBuffers[paramInfo.BlockIdx];
+		UniformBufferPointerType uniformBuffer = uniformBufferInfo.Buffer;
+		if(uniformBuffer == nullptr || !uniformBufferInfo.AllowUpdate)
 			continue;
 
 		const MaterialParameters::ParamData* materialParamInfo = materialParameters->GetParamData(paramInfo.ParamIdx);
@@ -932,7 +931,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 				const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 				if(transposeMatrices)
 				{
-					auto fnWriteTransposed = [&paramInfo, &paramSize, &arraySize, &paramBlock, data](auto& temp)
+					auto fnWriteTransposed = [&paramInfo, &paramSize, &arraySize, &uniformBuffer, &uniformBufferInfo, data](auto& temp)
 					{
 						for(u32 i = 0; i < arraySize; i++)
 						{
@@ -940,8 +939,8 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 							memcpy(&temp, data + readOffset, paramSize);
 							auto transposed = temp.Transpose();
 
-							u32 writeOffset = (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
-							paramBlock->WriteCached(writeOffset, paramSize, &transposed);
+							u32 writeOffset = uniformBufferInfo.SuballocationByteOffset + (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
+							uniformBuffer->WriteCached(writeOffset, paramSize, &transposed);
 						}
 					};
 
@@ -1006,8 +1005,8 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 							for(u32 i = 0; i < arraySize; i++)
 							{
 								u32 arrayOffset = i * paramSize;
-								u32 writeOffset = (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
-								paramBlock->WriteCached(writeOffset, paramSize, data + arrayOffset);
+								u32 writeOffset = uniformBufferInfo.SuballocationByteOffset + (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
+								uniformBuffer->WriteCached(writeOffset, paramSize, data + arrayOffset);
 							}
 							break;
 						}
@@ -1018,8 +1017,8 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 					for(u32 i = 0; i < arraySize; i++)
 					{
 						u32 readOffset = i * paramSize;
-						u32 writeOffset = (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
-						paramBlock->WriteCached(writeOffset, paramSize, data + readOffset);
+						u32 writeOffset = uniformBufferInfo.SuballocationByteOffset + (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
+						uniformBuffer->WriteCached(writeOffset, paramSize, data + readOffset);
 					}
 				}
 			}
@@ -1032,7 +1031,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 					for(u32 i = 0; i < arraySize; i++)
 					{
 						u32 readOffset = i * paramSize;
-						u32 writeOffset = (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
+						u32 writeOffset = uniformBufferInfo.SuballocationByteOffset + (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
 
 						float value;
 						if(materialParameters->IsAnimated(*materialParamInfo, i))
@@ -1044,7 +1043,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 						else
 							memcpy(&value, data + readOffset, paramSize);
 
-						paramBlock->WriteCached(writeOffset, paramSize, &value);
+						uniformBuffer->WriteCached(writeOffset, paramSize, &value);
 					}
 				}
 				else if(materialParamInfo->DataType == GPDT_FLOAT4)
@@ -1054,20 +1053,20 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 					CoreVariantHandleType<SpriteImage, IsRenderProxy> spriteImage =
 						materialParameters->GetOwningSpriteImage(*materialParamInfo);
 
-					u32 writeOffset = paramInfo.Offset * sizeof(u32);
+					u32 writeOffset = uniformBufferInfo.SuballocationByteOffset + paramInfo.Offset * sizeof(u32);
 					Area2 uv = Area2(0.0f, 0.0f, 1.0f, 1.0f);
 					if(spriteImage != nullptr)
 						uv = spriteImage->EvaluateAnimation(spriteImage->GetDefaultAllocatedImage(), t);
 
-					paramBlock->WriteCached(writeOffset, paramSize, &uv);
+					uniformBuffer->WriteCached(writeOffset, paramSize, &uv);
 
 					// Only the first array element receives sprite UVs, the rest are treated as normal
 					for(u32 i = 1; i < arraySize; i++)
 					{
 						u32 readOffset = i * paramSize;
-						writeOffset = (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
+						writeOffset = uniformBufferInfo.SuballocationByteOffset + (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
 
-						paramBlock->WriteCached(writeOffset, paramSize, data + readOffset);
+						uniformBuffer->WriteCached(writeOffset, paramSize, data + readOffset);
 					}
 				}
 				else if(materialParamInfo->DataType == GPDT_COLOR)
@@ -1077,7 +1076,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 						B3D_ASSERT(paramSize == sizeof(Color));
 
 						u32 readOffset = i * paramSize;
-						u32 writeOffset = (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
+						u32 writeOffset = uniformBufferInfo.SuballocationByteOffset + (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
 
 						Color value;
 						if(materialParameters->IsAnimated(*materialParamInfo, i))
@@ -1090,7 +1089,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 						else
 							memcpy(&value, data + readOffset, paramSize);
 
-						paramBlock->WriteCached(writeOffset, paramSize, &value);
+						uniformBuffer->WriteCached(writeOffset, paramSize, &value);
 					}
 				}
 			}
@@ -1103,23 +1102,23 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 			{
 				materialParameters->GetStructData(*materialParamInfo, paramData, paramSize, i);
 
-				u32 writeOffset = (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
-				paramBlock->WriteCached(writeOffset, paramSize, paramData);
+				u32 writeOffset = uniformBufferInfo.SuballocationByteOffset + (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
+				uniformBuffer->WriteCached(writeOffset, paramSize, paramData);
 			}
 			B3DStackFree(paramData);
 		}
 	}
 
 	// Update object params
-	const auto numPasses = (u32)mGPUParameterPerPass.size();
+	const auto passCount = (u32)mGPUParameterPerPass.size();
 
-	for(u32 i = 0; i < numPasses; i++)
+	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 	{
-		SPtr<GpuParametersType> paramPtr = mGPUParameterPerPass[i];
+		SPtr<GpuParametersType> gpuParameters = mGPUParameterPerPass[passIndex];
 
-		for(u32 j = 0; j < kNumStages; j++)
+		for(u32 stageIndex = 0; stageIndex < kNumStages; stageIndex++)
 		{
-			const StageParamInfo& stageInfo = mPassParamInfos[i].Stages[j];
+			const StageParamInfo& stageInfo = mPassParamInfos[passIndex].Stages[stageIndex];
 
 			for(u32 k = 0; k < stageInfo.SampledTextureCount; k++)
 			{
@@ -1133,7 +1132,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 				TextureType texture;
 				materialParameters->GetTexture(*materialParamInfo, texture, surface);
 
-				paramPtr->SetSampledTexture(paramInfo.SetIdx, paramInfo.SlotIdx, texture, surface, 0);
+				gpuParameters->SetSampledTexture(paramInfo.SetIdx, paramInfo.SlotIdx, texture, surface, 0);
 			}
 
 			for(u32 k = 0; k < stageInfo.StorageTextureCount; k++)
@@ -1148,7 +1147,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 				TextureType texture;
 				materialParameters->GetStorageTexture(*materialParamInfo, texture, surface);
 
-				paramPtr->SetStorageTexture(paramInfo.SetIdx, paramInfo.SlotIdx,texture, surface, 0);
+				gpuParameters->SetStorageTexture(paramInfo.SetIdx, paramInfo.SlotIdx,texture, surface, 0);
 			}
 
 			for(u32 k = 0; k < stageInfo.BufferCount; k++)
@@ -1162,7 +1161,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 				BufferType buffer;
 				materialParameters->GetBuffer(*materialParamInfo, buffer);
 
-				paramPtr->SetStorageBuffer(paramInfo.SetIdx, paramInfo.SlotIdx, buffer, 0);
+				gpuParameters->SetStorageBuffer(paramInfo.SetIdx, paramInfo.SlotIdx, buffer, 0);
 			}
 
 			for(u32 k = 0; k < stageInfo.SamplerStateCount; k++)
@@ -1176,11 +1175,11 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 				SPtr<SamplerState> samplerState;
 				materialParameters->GetSamplerState(*materialParamInfo, samplerState);
 
-				paramPtr->SetSamplerState(paramInfo.SetIdx, paramInfo.SlotIdx, samplerState, 0);
+				gpuParameters->SetSamplerState(paramInfo.SetIdx, paramInfo.SlotIdx, samplerState, 0);
 			}
 		}
 
-		paramPtr->MarkRenderProxyDataDirtyInternal();
+		gpuParameters->MarkRenderProxyDataDirtyInternal();
 	}
 
 	mParamVersion = materialParameters->GetParamVersion();
@@ -1188,3 +1187,55 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 
 template class TMaterialParameterAdapter<false>;
 template class TMaterialParameterAdapter<true>;
+
+namespace b3d::render
+{
+	void MaterialParameterAdapter::SetUniformBuffer(u32 index, const GpuBufferSuballocation& suballocation, bool ignoreInUpdate)
+	{
+		UniformBufferInfo& uniformBufferInfo = mUniformBuffers[index];
+		if(!uniformBufferInfo.Shareable)
+		{
+			B3D_LOG(Error, RenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer is not assignable. ", uniformBufferInfo.Name);
+			return;
+		}
+
+		if(!uniformBufferInfo.IsUsed)
+			return;
+
+		uniformBufferInfo.AllowUpdate = !ignoreInUpdate;
+
+		if(uniformBufferInfo.Buffer != suballocation.GetBuffer() || uniformBufferInfo.SuballocationByteOffset != suballocation.GetSuballocationOffset())
+		{
+			uniformBufferInfo.Buffer = suballocation.GetBuffer();
+			uniformBufferInfo.SuballocationByteOffset = suballocation.GetSuballocationOffset();;
+
+			const u32 passCount = (u32)mGPUParameterPerPass.size();
+			for(u32 passIndex = 0; passIndex < passCount; passIndex++)
+			{
+				const SPtr<GpuParameters>& gpuParameters = mGPUParameterPerPass[passIndex];
+				for(u32 stageIndex = 0; stageIndex < kNumStages; stageIndex++)
+				{
+					GpuProgramType gpuProgramType = (GpuProgramType)stageIndex;
+
+					const UniformBufferBinding& binding = uniformBufferInfo.PassData[passIndex].Bindings[gpuProgramType];
+
+					if(binding.Slot != ~0u)
+						gpuParameters->SetUniformBuffer(binding.Set, binding.Slot, suballocation);
+				}
+			}
+		}
+	}
+
+	void MaterialParameterAdapter::SetUniformBuffer(const String& name, const GpuBufferSuballocation& suballocation, bool ignoreInUpdate)
+	{
+		const u32 bufferIndex = GetUniformBufferIndex(name);
+		if(bufferIndex == (u32)-1)
+		{
+			B3D_LOG(Error, RenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer name not found. ", name);
+			return;
+		}
+
+		SetUniformBuffer(bufferIndex, suballocation, ignoreInUpdate);
+	}
+}
+

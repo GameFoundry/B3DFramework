@@ -28,37 +28,6 @@ namespace b3d
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
-		/** Binding location for a single GPU uniform buffer. */
-		struct UniformBufferBinding
-		{
-			u32 Set;
-			u32 Slot;
-		};
-
-		/** All bindings for GPU uniform buffers, for a single pass. */
-		struct PassUniformBufferBindings
-		{
-			UniformBufferBinding Bindings[GPT_COUNT];
-		};
-
-		/** Information about a uniform buffer. */
-		struct UniformBufferInfo
-		{
-			UniformBufferInfo(const String& name, u32 set, u32 slot, const UniformBufferPointerType& buffer, bool shareable)
-				: Name(name), Set(set), Slot(slot), Buffer(buffer), Shareable(shareable), AllowUpdate(true), IsUsed(true), PassData(nullptr)
-			{}
-
-			String Name;
-			u32 Set;
-			u32 Slot;
-			UniformBufferPointerType Buffer;
-			bool Shareable;
-			bool AllowUpdate;
-			bool IsUsed;
-
-			PassUniformBufferBindings* PassData;
-		};
-
 		/** Information about how a data parameter maps from a material parameter into a uniform buffer. */
 		struct DataParamInfo
 		{
@@ -154,9 +123,41 @@ namespace b3d
 
 		static const u32 kNumStages;
 
-	private:
+	protected:
 		template <bool IsRenderProxy2>
 		friend class TMaterial;
+
+		/** Binding location for a single GPU uniform buffer. */
+		struct UniformBufferBinding
+		{
+			u32 Set;
+			u32 Slot;
+		};
+
+		/** All bindings for GPU uniform buffers, for a single pass. */
+		struct PassUniformBufferBindings
+		{
+			UniformBufferBinding Bindings[GPT_COUNT];
+		};
+
+		/** Information about a uniform buffer. */
+		struct UniformBufferInfo
+		{
+			UniformBufferInfo(const String& name, u32 set, u32 slot, const UniformBufferPointerType& buffer, u32 suballocationByteOffset, bool shareable)
+				: Name(name), Set(set), Slot(slot), Buffer(buffer), SuballocationByteOffset(suballocationByteOffset), Shareable(shareable), AllowUpdate(true), IsUsed(true), PassData(nullptr)
+			{}
+
+			String Name;
+			u32 Set;
+			u32 Slot;
+			UniformBufferPointerType Buffer;
+			u32 SuballocationByteOffset;
+			bool Shareable;
+			bool AllowUpdate;
+			bool IsUsed;
+
+			PassUniformBufferBindings* PassData;
+		};
 
 		Vector<SPtr<GpuParametersType>> mGPUParameterPerPass;
 		Vector<UniformBufferInfo> mUniformBuffers;
@@ -189,6 +190,30 @@ namespace b3d
 			MaterialParameterAdapter(const SPtr<Variation>& variation, const SPtr<Shader>& shader, const SPtr<MaterialParameters>& materialParameters)
 				: TMaterialParameterAdapter(variation, shader, materialParameters)
 			{}
+
+			using TMaterialParameterAdapter::SetUniformBuffer;
+
+			/**
+			 * Assign a uniform buffer with the specified index to all the relevant child GpuParameters.
+			 *
+			 * @param index					Index of the buffer, as retrieved from GetUniformBufferIndex().
+			 * @param bufferSuballocation	Uniform buffer to assign.
+			 * @param ignoreInUpdate		If true the buffer will not be updated during the Update() call. This is useful
+			 *								if the caller wishes to manually update the buffer contents externally, to prevent
+			 *								overwriting manually written data during update.
+			 */
+			void SetUniformBuffer(u32 index, const GpuBufferSuballocation& bufferSuballocation, bool ignoreInUpdate = false);
+
+			/**
+			 * Assign a uniform buffer with the specified name to all the relevant child GpuParameters.
+			 *
+			 * @param name					Name of the buffer to set.
+			 * @param bufferSuballocation	Uniform buffer to assign.
+			 * @param ignoreInUpdate		If true the buffer will not be updated during the Update() call. This is useful
+			 *								if the caller wishes to manually update the buffer contents externally, to prevent
+			 *								overwriting manually written data during update.
+			 */
+			void SetUniformBuffer(const String& name, const GpuBufferSuballocation& bufferSuballocation, bool ignoreInUpdate = false);
 		};
 	} // namespace render
 

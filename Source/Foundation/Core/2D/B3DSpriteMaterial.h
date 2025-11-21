@@ -136,7 +136,7 @@ namespace b3d
 		 * @param	uniformBuffer		Buffer containing data GPU parameters, created from GUISpriteUniformBufferDefinition.
 		 * @param	clipRegionBuffer	Buffer containing regions against all rendered sprite quads will be culled/clipped against.
 		 */
-		virtual void Prepare(const SPtr<render::MaterialParameterAdapter>& parameterAdapter, const SPtr<render::MeshBase>& mesh, const SPtr<render::Texture>& texture, const SPtr<SamplerState>& sampler, const SPtr<render::GpuBuffer>& uniformBuffer, const SPtr<render::GpuBuffer>& clipRegionBuffer) const;
+		virtual void Prepare(const SPtr<render::MaterialParameterAdapter>& parameterAdapter, const SPtr<render::MeshBase>& mesh, const SPtr<render::Texture>& texture, const SPtr<SamplerState>& sampler, const render::GpuBufferSuballocation& uniformBuffer, const SPtr<render::GpuBuffer>& clipRegionBuffer) const;
 
 		/**
 		 * Renders the provided mesh using the current material.
@@ -152,7 +152,7 @@ namespace b3d
 		virtual void Render(render::GpuCommandBuffer& commandBuffer, const SPtr<render::GpuParameters>& parameters, const SPtr<render::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<render::GpuBuffer>& clipRegionBuffer, u32 clipRegionCount, const SPtr<SpriteMaterialExtraInfo>& additionalData) const;
 
 		/** Writes the provided parameters into a uniform buffer created from GUISpriteUniformBufferDefinition. */
-		static void PopulateUniformBuffer(const SPtr<render::GpuBuffer>& buffer, const Vector2I& viewportOffset, float inverseViewportWidth, float inverseViewportHeight, bool flipY, float animationTime, u32 clipRegionCount, const Matrix4& transform, const render::SpriteMaterialInfo& materialInformation);
+		static void PopulateUniformBuffer(const render::GpuBufferSuballocation& buffer, const Vector2I& viewportOffset, float inverseViewportWidth, float inverseViewportHeight, bool flipY, float animationTime, u32 clipRegionCount, const Matrix4& transform, const render::SpriteMaterialInfo& materialInformation);
 	protected:
 		/** Perform initialization of render-thread specific objects. */
 		virtual void Initialize();

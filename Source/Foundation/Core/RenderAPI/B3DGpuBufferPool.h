@@ -50,6 +50,10 @@ namespace b3d::render
 	{
 	public:
 		TransientGpuBufferPool() = default;
+
+		/** Constructs and immediately initializes the pool. See Initialize(). */
+		TransientGpuBufferPool(GpuDevice& device, const GpuBufferCreateInformation& createInfo, u32 suballocationsPerBuffer, u32 initialBufferCount = 1);
+
 		~TransientGpuBufferPool() = default;
 
 		/**

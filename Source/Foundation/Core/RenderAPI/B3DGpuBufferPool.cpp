@@ -37,6 +37,11 @@ TrackedGpuBufferSuballocation& TrackedGpuBufferSuballocation::operator=(TrackedG
 	return *this;
 }
 
+TransientGpuBufferPool::TransientGpuBufferPool(GpuDevice& device, const GpuBufferCreateInformation& createInfo, u32 suballocationsPerBuffer, u32 initialBufferCount)
+{
+	Initialize(device, createInfo, suballocationsPerBuffer, initialBufferCount);
+}
+
 void TransientGpuBufferPool::Initialize(GpuDevice& device, const GpuBufferCreateInformation& createInfo, u32 suballocationsPerBuffer, u32 initialBufferCount)
 {
 	mDevice = &device;

@@ -439,18 +439,21 @@ namespace b3d
 
 			struct GUIBatchGpuParameterInfo 
 			{
-				SPtr<GpuBuffer> UniformBuffer;
 				SPtr<GpuBuffer> DirtyRegionBuffer;
 				u32 MaterialParameterIndex = ~0u;
 			};
 
 			struct GUIWidgetRenderData
 			{
+				GUIWidgetRenderData() = default;
+				GUIWidgetRenderData(u64 widgetId, GpuDevice& device);
+
 				u64 WidgetId;
 				u32 WidgetDepth = 0;
 				Vector<GUIBatchRenderData> Batches;
 				TArray<GUIBatchGpuParameterInfo> GpuParameterInfos;
 				TArray<SPtr<MaterialParameterAdapter>> MaterialParameterAdapters;
+				TransientGpuBufferPool UniformBufferPool;
 
 				Matrix4 WorldTransform = Matrix4::kIdentity;
 			};

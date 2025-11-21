@@ -501,7 +501,7 @@ namespace b3d::render
 	{
 	public:
 		GpuBufferSuballocation() = default;
-		GpuBufferSuballocation(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex, u32 suballocationOffset)
+		explicit GpuBufferSuballocation(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex = 0, u32 suballocationOffset = 0)
 			: mBuffer(buffer), mSuballocationIndex(suballocationIndex), mSuballocationOffset(suballocationOffset) {}
 
 		/** Gets the underlying GPU buffer. */
