@@ -1465,7 +1465,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const GpuParameterBinding& binding = fwdParams.GridParamsBinding;
 		if(binding.Slot != (u32)-1)
-			gpuParams.SetUniformBuffer(binding.Set, binding.Slot, lightGridOutputs.GridParams);
+			gpuParams.SetUniformBuffer(binding.Set, binding.Slot, lightGridOutputs.UniformBuffer);
 
 		fwdParams.GridLightOffsetsAndSizeParam.Set(lightGridOutputs.GridLightOffsetsAndSize);
 		fwdParams.GridProbeOffsetsAndSizeParam.Set(lightGridOutputs.GridProbeOffsetsAndSize);

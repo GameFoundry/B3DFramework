@@ -17,7 +17,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_UNIFORM_BUFFER_BEGIN(LightGridParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(LightGridUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector4I, gLightCounts)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gLightStrides)
 			B3D_UNIFORM_BUFFER_MEMBER(i32, gNumReflProbes)
@@ -27,13 +27,13 @@ namespace b3d
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gGridPixelSize)
 		B3D_UNIFORM_BUFFER_END
 
-		extern LightGridParamDef gLightGridParamDefDef;
+		extern LightGridUniformDefinition gLightGridUniformDefinition;
 
 		/** A set of buffers containing outputs from LightGrid. */
 		struct LightGridOutputs
 		{
-			/** Parameter block of LightGridParamDef. */
-			SPtr<GpuBuffer> GridParams;
+			/** Uniform buffer using LightGridUniformDefinition. */
+			GpuBufferSuballocation UniformBuffer;
 
 			/**
 			 * Flattened array of grid cells, where each entry contains the number of lights affecting that cell, and a index
@@ -64,16 +64,16 @@ namespace b3d
 		 * Shader that creates a linked list for each light grid cell, containing which lights and reflection probes affects
 		 * each cell.
 		 */
-		class LightGridLLCreationMat : public RendererMaterial<LightGridLLCreationMat>
+		class LightGridLLCreationMaterial : public RendererMaterial<LightGridLLCreationMaterial>
 		{
 			RMAT_DEF_CUSTOMIZED("LightGridLLCreation.bsl");
 
 		public:
-			LightGridLLCreationMat() = default;
+			LightGridLLCreationMaterial() = default;
 			void Initialize() override;
 
 			/** Binds parameter buffers and prepares any internal buffers. Must be called before Execute(). */
-			void SetParams(GpuCommandBuffer& commandBuffer, const Vector3I& gridSize, const SPtr<GpuBuffer>& gridParams, const SPtr<GpuBuffer>& lightsBuffer, const SPtr<GpuBuffer>& probesBuffer);
+			void SetParams(GpuCommandBuffer& commandBuffer, const Vector3I& gridSize, const GpuBufferSuballocation& gridUniformBuffer, const SPtr<GpuBuffer>& lightsBuffer, const SPtr<GpuBuffer>& probesBuffer);
 
 			/** Binds the material for rendering, sets up per-camera parameters and executes it. */
 			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view);
@@ -100,21 +100,21 @@ namespace b3d
 			SPtr<GpuBuffer> mProbesLLHeads;
 			SPtr<GpuBuffer> mProbesLL;
 
-			u32 mBufferNumCells = 0;
+			u32 mBufferCellCount = 0;
 			Vector3I mGridSize;
 		};
 
 		/** Shader that reduces the linked list created by LightGridLLCreationMat into a sequential array. */
-		class LightGridLLReductionMat : public RendererMaterial<LightGridLLReductionMat>
+		class LightGridLLReductionMaterial : public RendererMaterial<LightGridLLReductionMaterial>
 		{
 			RMAT_DEF_CUSTOMIZED("LightGridLLReduction.bsl");
 
 		public:
-			LightGridLLReductionMat() = default;
+			LightGridLLReductionMaterial() = default;
 			void Initialize() override;
 
 			/** Binds parameter buffers and prepares any internal buffers. Must be called before Execute(). */
-			void SetParams(GpuCommandBuffer& commandBuffer, const Vector3I& gridSize, const SPtr<GpuBuffer>& gridParams, const SPtr<GpuBuffer>& lightLLHeads, const SPtr<GpuBuffer>& lightLL, const SPtr<GpuBuffer>& probeLLHeads, const SPtr<GpuBuffer>& probeLL);
+			void SetParams(GpuCommandBuffer& commandBuffer, const Vector3I& gridSize, const GpuBufferSuballocation& gridUniformBuffer, const SPtr<GpuBuffer>& lightLLHeads, const SPtr<GpuBuffer>& lightLL, const SPtr<GpuBuffer>& probeLLHeads, const SPtr<GpuBuffer>& probeLL);
 
 			/** Binds the material for renderingand executes it. */
 			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view);
@@ -145,7 +145,7 @@ namespace b3d
 			SPtr<GpuBuffer> mGridProbeOffsetAndSize;
 			SPtr<GpuBuffer> mGridProbeIndices;
 
-			u32 mBufferNumCells;
+			u32 mBufferCellCount;
 			Vector3I mGridSize;
 		};
 
@@ -156,8 +156,6 @@ namespace b3d
 		class LightGrid
 		{
 		public:
-			LightGrid();
-
 			/** Updates the light grid from the provided view. */
 			void UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const VisibleReflectionProbeData& probeData, bool noLighting);
 
@@ -168,7 +166,7 @@ namespace b3d
 			LightGridOutputs GetOutputs() const;
 
 		private:
-			SPtr<GpuBuffer> mGridParamBuffer;
+			GpuBufferSuballocation mGridUniformBuffer;
 		};
 
 		/** @} */
