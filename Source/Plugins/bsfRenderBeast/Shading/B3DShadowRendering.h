@@ -56,7 +56,7 @@ namespace b3d
 			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameters>& gpuParameters);
 
 			/** Binds all the provided buffers to the provided GpuParameters object. */
-			static void PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& perObjectParams);
+			static void PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const SPtr<GpuBuffer>& perObjectParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -90,7 +90,7 @@ namespace b3d
 			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameters>& gpuParameters);
 
 			/** Binds all the provided buffers to the provided GpuParameters object. */
-			static void PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& perObjectParams);
+			static void PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const SPtr<GpuBuffer>& perObjectParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -124,7 +124,7 @@ namespace b3d
 			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameters>& gpuParameters);
 
 			/** Binds all the provided buffers to the provided GpuParameters object. */
-			static void PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& perObjectParams);
+			static void PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const SPtr<GpuBuffer>& perObjectParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -170,8 +170,7 @@ namespace b3d
 			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameters>& gpuParameters);
 
 			/** Binds all the provided buffers to the provided GpuParameters object. */
-			static void PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& shadowCubeMatrices,
-				const SPtr<GpuBuffer>& shadowCubeMasks, const SPtr<GpuBuffer>& perObjectParams);
+			static void PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& shadowCubeMatrices, const GpuBufferSuballocation& shadowCubeMasks, const SPtr<GpuBuffer>& perObjectParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.

@@ -29,9 +29,9 @@ namespace b3d
 			commandBuffer.SetGpuParameters(gpuParameters);
 		}
 
-		void ShadowDepthNormalMaterial::PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& perObjectParams)
+		void ShadowDepthNormalMaterial::PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const SPtr<GpuBuffer>& perObjectParams)
 		{
-			gpuParameters->SetUniformBuffer("ShadowParams", shadowParams);
+			gpuParameters->SetUniformBuffer("ShadowParams", shadowUniforms);
 			gpuParameters->SetUniformBuffer("PerObject", perObjectParams);
 		}
 
@@ -60,9 +60,9 @@ namespace b3d
 			commandBuffer.SetGpuParameters(gpuParameters);
 		}
 
-		void ShadowDepthNormalNoPSMaterial::PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& perObjectParams)
+		void ShadowDepthNormalNoPSMaterial::PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const SPtr<GpuBuffer>& perObjectParams)
 		{
-			gpuParameters->SetUniformBuffer("ShadowParams", shadowParams);
+			gpuParameters->SetUniformBuffer("ShadowParams", shadowUniforms);
 			gpuParameters->SetUniformBuffer("PerObject", perObjectParams);
 		}
 
@@ -91,9 +91,9 @@ namespace b3d
 			commandBuffer.SetGpuParameters(gpuParameters);
 		}
 
-		void ShadowDepthDirectionalMaterial::PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& perObjectParams)
+		void ShadowDepthDirectionalMaterial::PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const SPtr<GpuBuffer>& perObjectParams)
 		{
-			gpuParameters->SetUniformBuffer("ShadowParams", shadowParams);
+			gpuParameters->SetUniformBuffer("ShadowParams", shadowUniforms);
 			gpuParameters->SetUniformBuffer("PerObject", perObjectParams);
 		}
 
@@ -125,9 +125,9 @@ namespace b3d
 			commandBuffer.SetGpuParameters(gpuParameters);
 		}
 
-		void ShadowDepthCubeMaterial::PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& shadowCubeMatrices, const SPtr<GpuBuffer>& shadowCubeMasks, const SPtr<GpuBuffer>& perObjectParams)
+		void ShadowDepthCubeMaterial::PopulateParameters(const SPtr<GpuParameters>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& shadowCubeMatrices, const GpuBufferSuballocation& shadowCubeMasks, const SPtr<GpuBuffer>& perObjectParams)
 		{
-			gpuParameters->SetUniformBuffer("ShadowParams", shadowParams);
+			gpuParameters->SetUniformBuffer("ShadowParams", shadowUniforms);
 			gpuParameters->SetUniformBuffer("ShadowCubeMatrices", shadowCubeMatrices);
 			gpuParameters->SetUniformBuffer("ShadowCubeMasks", shadowCubeMasks);
 			gpuParameters->SetUniformBuffer("PerObject", perObjectParams);
@@ -560,9 +560,9 @@ namespace b3d
 			ShadowRenderQueueCubeOptions(
 				const ConvexVolume (&frustums)[6],
 				const ConvexVolume& boundingVolume,
-				const SPtr<GpuBuffer>& shadowParamsBuffer,
-				const SPtr<GpuBuffer>& shadowCubeMatricesBuffer)
-				: Frustums(frustums), BoundingVolume(boundingVolume), ShadowParamsBuffer(shadowParamsBuffer), ShadowCubeMatricesBuffer(shadowCubeMatricesBuffer)
+				const GpuBufferSuballocation& shadowParamsBuffer,
+				const GpuBufferSuballocation& shadowCubeMatricesBuffer)
+				: Frustums(frustums), BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowParamsBuffer), ShadowCubeMatricesBuffer(shadowCubeMatricesBuffer)
 			{}
 
 			void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
@@ -580,12 +580,12 @@ namespace b3d
 				Material = ShadowDepthCubeMaterial::Get(variation);
 
 				command.GpuParameters = Material->CreateGpuParameters();
-				SPtr<GpuBuffer> shadowCubeMatricesBuffer = gShadowCubeMasksUniformDefinition.CreateBuffer();
+				GpuBufferSuballocation shadowCubeMatricesBuffer = gShadowCubeMasksUniformDefinition.AllocateTransient();
 
 				for(u32 j = 0; j < 6; j++)
 					gShadowCubeMasksUniformDefinition.gFaceMasks.Set(shadowCubeMatricesBuffer, (Frustums[j].Intersects(bounds) ? 1 : 0), j);
 
-				ShadowDepthCubeMaterial::PopulateParameters(command.GpuParameters, ShadowParamsBuffer, ShadowCubeMatricesBuffer, shadowCubeMatricesBuffer, command.Renderable->PerObjectParamBuffer);
+				ShadowDepthCubeMaterial::PopulateParameters(command.GpuParameters, ShadowUniformBuffer, ShadowCubeMatricesBuffer, shadowCubeMatricesBuffer, command.Renderable->PerObjectParamBuffer);
 			}
 
 			void Bind(GpuCommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
@@ -595,8 +595,8 @@ namespace b3d
 
 			const ConvexVolume (&Frustums)[6];
 			const ConvexVolume& BoundingVolume;
-			const SPtr<GpuBuffer>& ShadowParamsBuffer;
-			const SPtr<GpuBuffer>& ShadowCubeMatricesBuffer;
+			const GpuBufferSuballocation& ShadowUniformBuffer;
+			const GpuBufferSuballocation& ShadowCubeMatricesBuffer;
 
 			mutable ShadowDepthCubeMaterial* Material = nullptr;
 		};
@@ -606,8 +606,8 @@ namespace b3d
 		{
 			ShadowRenderQueueCubeSingleOptions(
 				const ConvexVolume& boundingVolume,
-				const SPtr<GpuBuffer>& shadowParamsBuffer)
-				: BoundingVolume(boundingVolume), ShadowParamsBuffer(shadowParamsBuffer)
+				const GpuBufferSuballocation& shadowUniformBuffer)
+				: BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowUniformBuffer)
 			{}
 
 			void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
@@ -625,7 +625,7 @@ namespace b3d
 				Material = ShadowDepthNormalNoPSMaterial::Get(variation);
 
 				command.GpuParameters = Material->CreateGpuParameters();
-				ShadowDepthNormalNoPSMaterial::PopulateParameters(command.GpuParameters, ShadowParamsBuffer, command.Renderable->PerObjectParamBuffer);
+				ShadowDepthNormalNoPSMaterial::PopulateParameters(command.GpuParameters, ShadowUniformBuffer, command.Renderable->PerObjectParamBuffer);
 			}
 
 			void Bind(GpuCommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
@@ -634,7 +634,7 @@ namespace b3d
 			}
 
 			const ConvexVolume& BoundingVolume;
-			const SPtr<GpuBuffer>& ShadowParamsBuffer;
+			const GpuBufferSuballocation& ShadowUniformBuffer;
 
 			mutable ShadowDepthNormalNoPSMaterial* Material = nullptr;
 		};
@@ -645,8 +645,8 @@ namespace b3d
 			ShadowRenderQueueSpotOptions(
 				Area2 viewportArea,
 				const ConvexVolume& boundingVolume,
-				const SPtr<GpuBuffer>& shadowParamsBuffer)
-				: ViewportArea(viewportArea), BoundingVolume(boundingVolume), ShadowParamsBuffer(shadowParamsBuffer)
+				const GpuBufferSuballocation& shadowUniformBuffer)
+				: ViewportArea(viewportArea), BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowUniformBuffer)
 			{}
 
 			void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
@@ -665,7 +665,7 @@ namespace b3d
 				Material = ShadowDepthNormalMaterial::Get(variation);
 
 				command.GpuParameters = Material->CreateGpuParameters();
-				ShadowDepthNormalMaterial::PopulateParameters(command.GpuParameters, ShadowParamsBuffer, command.Renderable->PerObjectParamBuffer);
+				ShadowDepthNormalMaterial::PopulateParameters(command.GpuParameters, ShadowUniformBuffer, command.Renderable->PerObjectParamBuffer);
 			}
 
 			void Bind(GpuCommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
@@ -675,7 +675,7 @@ namespace b3d
 
 			const Area2& ViewportArea;
 			const ConvexVolume& BoundingVolume;
-			const SPtr<GpuBuffer>& ShadowParamsBuffer;
+			const GpuBufferSuballocation& ShadowUniformBuffer;
 
 			mutable ShadowDepthNormalMaterial* Material = nullptr;
 		};
@@ -685,8 +685,8 @@ namespace b3d
 		{
 			ShadowRenderQueueDirOptions(
 				const ConvexVolume& boundingVolume,
-				const SPtr<GpuBuffer>& shadowParamsBuffer)
-				: BoundingVolume(boundingVolume), ShadowParamsBuffer(shadowParamsBuffer)
+				const GpuBufferSuballocation& shadowUniformBuffer)
+				: BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowUniformBuffer)
 			{}
 
 			void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
@@ -704,7 +704,7 @@ namespace b3d
 				Material = ShadowDepthDirectionalMaterial::Get(variation);
 
 				command.GpuParameters = Material->CreateGpuParameters();
-				ShadowDepthDirectionalMaterial::PopulateParameters(command.GpuParameters, ShadowParamsBuffer, command.Renderable->PerObjectParamBuffer);
+				ShadowDepthDirectionalMaterial::PopulateParameters(command.GpuParameters, ShadowUniformBuffer, command.Renderable->PerObjectParamBuffer);
 			}
 
 			void Bind(GpuCommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
@@ -713,7 +713,7 @@ namespace b3d
 			}
 
 			const ConvexVolume& BoundingVolume;
-			const SPtr<GpuBuffer>& ShadowParamsBuffer;
+			const GpuBufferSuballocation& ShadowUniformBuffer;
 
 			mutable ShadowDepthDirectionalMaterial* Material = nullptr;
 		};
@@ -1396,7 +1396,7 @@ namespace b3d
 
 			const Transform& tfrm = light->GetWorldTransform();
 			Vector3 lightDir = -tfrm.GetRotation().ZAxis();
-			SPtr<GpuBuffer> shadowParamsBuffer = gShadowUniformDefinition.CreateBuffer();
+			GpuBufferSuballocation shadowUniformBuffer = gShadowUniformDefinition.AllocateTransient();
 
 			ShadowInfo shadowInfo;
 			shadowInfo.LightId = lightIdx;
@@ -1489,15 +1489,15 @@ namespace b3d
 				shadowInfo.DepthFar = shadowInfo.DepthFade + shadowInfo.FadeRange;
 				shadowInfo.DepthBias = GetDepthBias(*light, frustumBounds.Radius, shadowInfo.DepthRange, mapSize);
 
-				gShadowUniformDefinition.gDepthBias.Set(shadowParamsBuffer, shadowInfo.DepthBias);
-				gShadowUniformDefinition.gInvDepthRange.Set(shadowParamsBuffer, 1.0f / shadowInfo.DepthRange);
-				gShadowUniformDefinition.gMatViewProj.Set(shadowParamsBuffer, shadowInfo.ShadowVpTransform);
-				gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowParamsBuffer, RendererView::GetNdczToDeviceZ());
+				gShadowUniformDefinition.gDepthBias.Set(shadowUniformBuffer, shadowInfo.DepthBias);
+				gShadowUniformDefinition.gInvDepthRange.Set(shadowUniformBuffer, 1.0f / shadowInfo.DepthRange);
+				gShadowUniformDefinition.gMatViewProj.Set(shadowUniformBuffer, shadowInfo.ShadowVpTransform);
+				gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowUniformBuffer, RendererView::GetNdczToDeviceZ());
 
 				// Render all renderables into the shadow map
 				ShadowRenderQueueDirOptions dirOptions(
 					cascadeCullVolume,
-					shadowParamsBuffer);
+					shadowUniformBuffer);
 
 				ShadowRenderQueue::Execute(commandBuffer, scene, frameInfo, shadowMap.GetTarget(i), dirOptions);
 
@@ -1512,7 +1512,7 @@ namespace b3d
 		{
 			Light* light = rendererLight.Internal;
 
-			SPtr<GpuBuffer> shadowParamsBuffer = gShadowUniformDefinition.CreateBuffer();
+			GpuBufferSuballocation shadowUniformBuffer = gShadowUniformDefinition.AllocateTransient();
 
 			ShadowInfo mapInfo;
 			mapInfo.FadePerView = options.FadePercents;
@@ -1567,10 +1567,10 @@ namespace b3d
 
 			mapInfo.ShadowVpTransform = proj * view;
 
-			gShadowUniformDefinition.gDepthBias.Set(shadowParamsBuffer, mapInfo.DepthBias);
-			gShadowUniformDefinition.gInvDepthRange.Set(shadowParamsBuffer, 1.0f / mapInfo.DepthRange);
-			gShadowUniformDefinition.gMatViewProj.Set(shadowParamsBuffer, mapInfo.ShadowVpTransform);
-			gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowParamsBuffer, RendererView::GetNdczToDeviceZ());
+			gShadowUniformDefinition.gDepthBias.Set(shadowUniformBuffer, mapInfo.DepthBias);
+			gShadowUniformDefinition.gInvDepthRange.Set(shadowUniformBuffer, 1.0f / mapInfo.DepthRange);
+			gShadowUniformDefinition.gMatViewProj.Set(shadowUniformBuffer, mapInfo.ShadowVpTransform);
+			gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowUniformBuffer, RendererView::GetNdczToDeviceZ());
 
 			const Vector<Plane>& frustumPlanes = localFrustum.GetPlanes();
 			Matrix4 worldMatrix = view.InverseAffine();
@@ -1589,7 +1589,7 @@ namespace b3d
 			ShadowRenderQueueSpotOptions spotOptions(
 				mapInfo.NormArea,
 				worldFrustum,
-				shadowParamsBuffer);
+				shadowUniformBuffer);
 
 			ShadowRenderQueue::Execute(commandBuffer, scene, frameInfo, atlas.GetTarget(), spotOptions);
 
@@ -1606,7 +1606,7 @@ namespace b3d
 		{
 			Light* const light = rendererLight.Internal;
 
-			SPtr<GpuBuffer> shadowParamsBuffer = gShadowUniformDefinition.CreateBuffer();
+			GpuBufferSuballocation shadowUniformBuffer = gShadowUniformDefinition.AllocateTransient();
 
 			ShadowInfo shadowInfo;
 			shadowInfo.LightId = options.LightIdx;
@@ -1674,14 +1674,14 @@ namespace b3d
 
 			bool renderAllFacesAtOnce = caps.HasCapability(RSC_RENDER_TARGET_LAYERS);
 
-			SPtr<GpuBuffer> shadowCubeMatricesBuffer;
+			GpuBufferSuballocation shadowCubeMatricesBuffer;
 			if(renderAllFacesAtOnce)
-				shadowCubeMatricesBuffer = gShadowCubeMatricesUniformDefinition.CreateBuffer();
+				shadowCubeMatricesBuffer = gShadowCubeMatricesUniformDefinition.AllocateTransient();
 
-			gShadowUniformDefinition.gDepthBias.Set(shadowParamsBuffer, shadowInfo.DepthBias);
-			gShadowUniformDefinition.gInvDepthRange.Set(shadowParamsBuffer, 1.0f / shadowInfo.DepthRange);
-			gShadowUniformDefinition.gMatViewProj.Set(shadowParamsBuffer, Matrix4::kIdentity);
-			gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowParamsBuffer, RendererView::GetNdczToDeviceZ());
+			gShadowUniformDefinition.gDepthBias.Set(shadowUniformBuffer, shadowInfo.DepthBias);
+			gShadowUniformDefinition.gInvDepthRange.Set(shadowUniformBuffer, 1.0f / shadowInfo.DepthRange);
+			gShadowUniformDefinition.gMatViewProj.Set(shadowUniformBuffer, Matrix4::kIdentity);
+			gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowUniformBuffer, RendererView::GetNdczToDeviceZ());
 
 			ConvexVolume frustums[6];
 			Vector<Plane> boundingPlanes;
@@ -1751,7 +1751,7 @@ namespace b3d
 				}
 				else
 				{
-					gShadowUniformDefinition.gMatViewProj.Set(shadowParamsBuffer, shadowViewProj);
+					gShadowUniformDefinition.gMatViewProj.Set(shadowUniformBuffer, shadowViewProj);
 
 					RenderTextureCreateInformation rtDesc;
 					rtDesc.DepthStencilSurface.Texture = cubemap.GetTexture();
@@ -1764,7 +1764,7 @@ namespace b3d
 					ConvexVolume boundingVolume(boundingPlanes);
 					ShadowRenderQueueCubeSingleOptions cubeOptions(
 						frustum,
-						shadowParamsBuffer);
+						shadowUniformBuffer);
 
 					ShadowRenderQueue::Execute(commandBuffer, scene, frameInfo, faceRt, cubeOptions);
 				}
@@ -1777,7 +1777,7 @@ namespace b3d
 				ShadowRenderQueueCubeOptions cubeOptions(
 					frustums,
 					boundingVolume,
-					shadowParamsBuffer,
+					shadowUniformBuffer,
 					shadowCubeMatricesBuffer);
 
 				ShadowRenderQueue::Execute(commandBuffer, scene, frameInfo, cubemap.GetTarget(), cubeOptions);
