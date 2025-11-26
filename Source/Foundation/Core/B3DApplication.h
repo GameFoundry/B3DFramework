@@ -215,6 +215,8 @@ namespace b3d
 		u64 mFrameStep = 16666; // 60 times a second in microseconds
 		u64 mLastFrameTime = 0; // Microseconds
 
+		u32 mExitAfterNFrames = 0; /**< 0 = unlimited. */
+
 		SPtr<PersistentCache> mApplicationCache;
 		SPtr<ProfilerOverlay> mProfilerOverlay;
 		UnorderedMap<String, LoadedPlugin> mLoadedPlugins;

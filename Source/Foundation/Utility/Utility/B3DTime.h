@@ -119,6 +119,17 @@ namespace b3d
 		 */
 		String GetAppStartUpDateString(bool isUTC);
 
+		/**
+		 * Sets a fixed delta time for deterministic simulation. When enabled, GetFrameDelta() returns
+		 * this constant value regardless of real-time elapsed.
+		 *
+		 * @param deltaSeconds Fixed time step in seconds (e.g., 0.016666 for 60 FPS). 0 disables.
+		 */
+		void SetFixedDeltaTime(float deltaSeconds);
+
+		/** Returns the fixed delta time in microseconds, or 0 if using real-time. */
+		u64 GetFixedDeltaTimeUs() const { return mFixedDeltaTimeMicrosec; }
+
 		/** @name Internal
 		 *  @{
 		 */
@@ -136,6 +147,7 @@ namespace b3d
 		float mTimeSinceStart = 0.0f; /**< Time since start in seconds */
 		u64 mTimeSinceStartMs = 0u;
 		bool mFirstFrame = true;
+		u64 mFixedDeltaTimeMicrosec = 0; /**< Fixed delta time in microseconds (0 = disabled, use real-time) */
 
 		u64 mAppStartTime = 0u; /**< Time the application started, in microseconds */
 		u64 mLastFrameTime = 0u; /**< Time since last runOneFrame call, In microseconds */
@@ -181,6 +193,14 @@ namespace b3d
 		/** Pauses or unpauses the simulation time. This is equivalent to setting the time scale to 0. */
 		B3D_SCRIPT_EXPORT()
 		void SetPaused(bool paused) { mIsTimePaused = paused;}
+
+		/**
+		 * Sets a fixed delta time for deterministic simulation. When enabled, the base frame delta
+		 * uses this constant value before time scale is applied.
+		 *
+		 * @param delta		Fixed time step in microseconds. 0 disables.
+		 */
+		void SetFixedDeltaTimeUs(u64 delta);
 
 		/** Returns the step (in seconds) between fixed frame updates. */
 		float GetFixedFrameDelta() const { return (float)(mFixedStep * Time::kMicrosecToSec); }
@@ -237,6 +257,8 @@ namespace b3d
 		u64 mLastFixedUpdateTime = 0;
 		bool mFirstFixedFrame = true;
 		u32 mRemainingFixedUpdateCount = kMaximumAccumulatedFixedUpdates;
+
+		u64 mFixedDeltaTimeMicrosec = 0; /**< Fixed delta time in microseconds (0 = disabled, use real-time) */
 
 		Timer* mTimer;
 	};

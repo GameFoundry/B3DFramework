@@ -27,7 +27,12 @@ void Time::Update()
 	u64 currentFrameTime = mTimer->GetMicroseconds();
 
 	if(!mFirstFrame)
-		mFrameDelta = (float)((currentFrameTime - mLastFrameTime) * kMicrosecToSec);
+	{
+		if(mFixedDeltaTimeMicrosec > 0)
+			mFrameDelta = (float)(mFixedDeltaTimeMicrosec * kMicrosecToSec);
+		else
+			mFrameDelta = (float)((currentFrameTime - mLastFrameTime) * kMicrosecToSec);
+	}
 	else
 	{
 		mFrameDelta = 0.0f;
@@ -39,6 +44,14 @@ void Time::Update()
 	mLastFrameTime = currentFrameTime;
 
 	mCurrentFrame.fetch_add(1, std::memory_order_relaxed);
+}
+
+void Time::SetFixedDeltaTime(float deltaSeconds)
+{
+	if(deltaSeconds > 0.0f)
+		mFixedDeltaTimeMicrosec = (u64)(deltaSeconds / kMicrosecToSec);
+	else
+		mFixedDeltaTimeMicrosec = 0;
 }
 
 u64 Time::GetTimePrecise() const
@@ -79,7 +92,12 @@ void SceneTime::Update()
 	u64 currentFrameTime = mTimer->GetMicroseconds();
 
 	if(!mFirstFrame)
-		mFrameDelta = (float)((currentFrameTime - mLastFrameTime) * Time::kMicrosecToSec);
+	{
+		if(mFixedDeltaTimeMicrosec > 0)
+			mFrameDelta = (float)(mFixedDeltaTimeMicrosec * Time::kMicrosecToSec);
+		else
+			mFrameDelta = (float)((currentFrameTime - mLastFrameTime) * Time::kMicrosecToSec);
+	}
 	else
 	{
 		mFrameDelta = 0.0f;
@@ -95,6 +113,14 @@ void SceneTime::Update()
 void SceneTime::SetScale(float scale)
 {
 	mTimeScale = Math::Max(0.0f, scale);
+}
+
+void SceneTime::SetFixedDeltaTimeUs(u64 delta)
+{
+	if(delta > 0)
+		mFixedDeltaTimeMicrosec = delta;
+	else
+		mFixedDeltaTimeMicrosec = 0;
 }
 
 u32 SceneTime::GetFixedUpdateStep(u64& outStep)

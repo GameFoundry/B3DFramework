@@ -58,6 +58,7 @@
 #include "Scene/B3DPrefab.h"
 #include "Text/B3DFont.h"
 #include "Threading/B3DScheduler.h"
+#include "Utility/B3DCommandLine.h"
 #include "Utility/B3DDynamicLibrary.h"
 #include "Utility/B3DPersistentCache.h"
 
@@ -209,6 +210,14 @@ void Application::OnStartUp()
 	StringTableManager::StartUp();
 	DeferredCallManager::StartUp();
 	Time::StartUp();
+
+	// Parse command-line parameters for fixed timestep and exit after N frames
+	const i32 fixedTimestepFPS = CommandLine::GetParameterValueAsInt("FixedTimestep", 0);
+	if(fixedTimestepFPS > 0)
+		GetTime().SetFixedDeltaTime(1.0f / (float)fixedTimestepFPS);
+
+	mExitAfterNFrames = (u32)CommandLine::GetParameterValueAsInt("ExitAfterNFrames", 0);
+
 	DynamicLibraryManager::StartUp();
 	CoreObjectManager::StartUp();
 	GameObjectManager::StartUp();
@@ -456,6 +465,10 @@ void Application::RunMainLoopFrame()
 
 	GetProfilerCPU().EndThread();
 	GetProfiler().UpdateInternal();
+
+	// Check if we should exit after N frames
+	if(mExitAfterNFrames > 0 && GetTime().GetCurrentFrameIndex() >= mExitAfterNFrames)
+		StopMainLoop();
 }
 
 void Application::WaitUntilFrameFinished()

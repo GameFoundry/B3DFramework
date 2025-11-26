@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Scene/B3DSceneInstance.h"
 
+#include "B3DApplication.h"
 #include "B3DGameObjectCollection.h"
 #include "B3DScene.h"
 #include "B3DSceneManager.h"
@@ -592,6 +593,10 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name)
 	sceneInstance->SetShared(sceneInstance);
 	sceneInstance->Initialize();
 
+	// Apply fixed timestep if set via command-line
+	const u64 fixedDeltaTimeUs = ::GetTime().GetFixedDeltaTimeUs();
+	sceneInstance->GetTime().SetFixedDeltaTimeUs(fixedDeltaTimeUs);
+
 	return sceneInstance;
 }
 
@@ -613,6 +618,10 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject
 
 	sceneInstance->SetShared(sceneInstance);
 	sceneInstance->Initialize();
+
+	// Apply fixed timestep if set via command-line
+	const u64 fixedDeltaTimeUs = ::GetTime().GetFixedDeltaTimeUs();
+	sceneInstance->GetTime().SetFixedDeltaTimeUs(fixedDeltaTimeUs);
 
 	return sceneInstance;
 }
