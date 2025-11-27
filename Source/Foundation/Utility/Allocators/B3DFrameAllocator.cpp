@@ -318,7 +318,7 @@ void FrameAllocator::Clear()
 		// In debug builds, validate that all allocated memory was explicitly freed
 		if(mTotalAllocatedBytes.load(std::memory_order_relaxed) > 0)
 		{
-			B3D_ASSERT(false,
+			B3D_ASSERT(false &&
 				"Not all frame allocated bytes were properly released. "
 				"This indicates a memory leak - memory was allocated but not freed before Clear().");
 		}

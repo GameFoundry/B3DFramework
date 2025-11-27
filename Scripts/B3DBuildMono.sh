@@ -9,7 +9,10 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
     echo "IMPORTANT: "
     echo " - Make sure to install all prerequisites as specified here: https://github.com/dotnet/runtime/blob/main/docs/workflow/requirements/windows-requirements.md"
     echo " - If you receive an error that .NET runtime is in use, shut down all programs that may use it (such as Visual Studio)"
-    echo " - If you receive an error that files cannot be created or opened, try running the script at disk root, as long paths can be a problem"
+    echo " - If you receive an error that files cannot be created or opened. Try enabling long paths in the OS and Git."
+    echo "   - On Windows edit registry HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem\LongPathsEnabled 1 (DWORD)"
+    echo "   - On Git `git config --system core.longpaths true`"
+    echo "   - If the error keeps occuring, you can move the script directory to drive root, and then copy dependencies to correct location after the build."
     echo " - If you receive a ILLinker error during compilation, try running the script again until it succeeds"
     echo ""
     sleep 2
@@ -27,16 +30,18 @@ cd Intermediate
 mkdir -p DependencySources
 cd DependencySources
 
+# Pinned .NET runtime version (patch must match this version)
+DOTNET_VERSION="v9.0.11"
+
 # Clone
 if [ -d "DotNetRuntime" ]; then
     cd DotNetRuntime
-    git stash
-    git pull origin release/9.0
-    git stash pop
+    git fetch --tags
+    git checkout $DOTNET_VERSION
 else
     git clone https://github.com/dotnet/runtime.git DotNetRuntime
     cd DotNetRuntime
-    git checkout release/9.0
+    git checkout $DOTNET_VERSION
 	git apply "$CurrentDirectory/Patches/Mono.patch" || exit 1
 fi
 
@@ -57,11 +62,60 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
     mkdir -p "$MonoOutputFolder/bin/Debug/"
 fi
 
+# Essential assemblies for basic C# scripting (minimal set)
+# Includes core runtime, facades, and commonly used system libraries
+ESSENTIAL_ASSEMBLIES=(
+    # Core runtime
+    "System.Private.CoreLib"
+    "mscorlib"                # Legacy facade that forwards to System.Private.CoreLib
+    "netstandard"
+    # Basic system libraries
+    "System.Runtime"
+    "System.Runtime.InteropServices"
+    "System.Runtime.CompilerServices.Unsafe"
+    "System.Reflection"
+    "System.Collections"
+    "System.Threading"
+    "System.Threading.Tasks"
+    "System.Memory"
+    "System.IO"
+    "System.Text.Encoding"
+    "System.Diagnostics.Debug"
+)
+
+# Helper to copy only essential assemblies from a directory (dll, pdb, and xml)
+copy_essential_assemblies()
+{
+    local sourceDir="$1"
+    local destDir="$2"
+
+    for assembly in "${ESSENTIAL_ASSEMBLIES[@]}"; do
+        # Copy .dll
+        if [ -f "$sourceDir/$assembly.dll" ]; then
+            cp -p -- "$sourceDir/$assembly.dll" "$destDir/"
+        fi
+        # Copy .pdb (debug symbols)
+        if [ -f "$sourceDir/$assembly.pdb" ]; then
+            cp -p -- "$sourceDir/$assembly.pdb" "$destDir/"
+        fi
+        # Copy .xml (documentation)
+        if [ -f "$sourceDir/$assembly.xml" ]; then
+            cp -p -- "$sourceDir/$assembly.xml" "$destDir/"
+        fi
+    done
+}
+
 # Helper to copy libraries for different configurations/platforms/architectures
 copy_libraries()
 {
-    cp -p -a -- "artifacts/bin/mono/$1.$2.$3/IL/." "$MonoOutputFolder/bin/Assemblies/"
-    cp -p -a -- "artifacts/bin/runtime/net9.0-$1-$3-$2/." "$MonoOutputFolder/bin/Assemblies/"
+    local ilDir="artifacts/bin/mono/$1.$2.$3/IL"
+    local runtimeDir="artifacts/bin/runtime/net9.0-$1-$3-$2"
+
+    # Copy only essential assemblies instead of everything
+    copy_essential_assemblies "$ilDir" "$MonoOutputFolder/bin/Assemblies/"
+    copy_essential_assemblies "$runtimeDir" "$MonoOutputFolder/bin/Assemblies/"
+
+    # Copy native runtime library
     cp -p -- "artifacts/bin/mono/$1.$2.$3/coreclr$SharedLibraryExtension" "$MonoOutputFolder/bin/$4"
 
     if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then

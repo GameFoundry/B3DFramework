@@ -343,7 +343,7 @@ function(B3DCopyFolderOnBuild target sourceParentFolder destinationParentFolder 
 	set(sourceFolder ${sourceParentFolder}/${folderName})
 	set(destinationFolder ${destinationParentFolder}/${folderName})
 	
-	file(GLOB_RECURSE allFiles RELATIVE ${sourceFolder} "${destinationFolder}/${filter}")
+	file(GLOB_RECURSE allFiles RELATIVE ${sourceFolder} "${sourceFolder}/${filter}")
 
 	foreach(currentFilePath ${allFiles})
 		get_filename_component(FILENAME ${currentFilePath} NAME)

@@ -8,13 +8,13 @@ index e464c87b9e3..a1bae2ea5ad 100644
  
 -MONO_COMPONENT_API
 -MonoClass*
--mono_class_bind_generic_parameters (MonoClass *klass, int type_argc, MonoType **types, mono_bool is_dynamic);
+-mono_class_bind_generic_parameters (MonoClass *klass, int type_argc, MonoType **types, gboolean is_dynamic);
 -
  MonoType*
  mono_reflection_bind_generic_parameters (MonoReflectionTypeHandle type, int type_argc, MonoType **types, MonoError *error);
  void
 diff --git a/src/native/public/mono/metadata/details/reflection-functions.h b/src/native/public/mono/metadata/details/reflection-functions.h
-index 718db5eeea6..5588c46b08f 100644
+index 718db5eeea6..4f5705f03b1 100644
 --- a/src/native/public/mono/metadata/details/reflection-functions.h
 +++ b/src/native/public/mono/metadata/details/reflection-functions.h
 @@ -62,3 +62,5 @@ MONO_API_FUNCTION(MonoBoolean, mono_declsec_get_assembly_action, (MonoAssembly *
@@ -22,4 +22,4 @@ index 718db5eeea6..5588c46b08f 100644
  
  MONO_API_FUNCTION(MonoAssembly*, mono_reflection_assembly_get_assembly, (MonoReflectionAssembly *refassembly))
 +
-+MONO_API_FUNCTION(MonoClass*, mono_class_bind_generic_parameters, (MonoClass *klass, int type_argc, MonoType **types, gboolean is_dynamic))
++MONO_API_FUNCTION(MonoClass*, mono_class_bind_generic_parameters, (MonoClass *klass, int type_argc, MonoType **types, mono_bool is_dynamic))

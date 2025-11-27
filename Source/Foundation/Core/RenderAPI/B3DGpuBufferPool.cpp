@@ -231,7 +231,7 @@ void GpuBufferPool::Release(const GpuBufferSuballocation& allocation)
 
 void GpuBufferPool::AddNewBufferToPool()
 {
-	B3D_ASSERT(mDevice != nullptr, "GpuBufferPool not initialized");
+	B3D_ASSERT(mDevice != nullptr && "GpuBufferPool not initialized");
 
 	// Create new GpuBuffer with suballocations
 	GpuBufferCreateInformation bufferCreateInformation = mBufferCreateInformation;
