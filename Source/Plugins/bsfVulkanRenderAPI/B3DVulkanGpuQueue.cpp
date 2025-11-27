@@ -301,54 +301,74 @@ void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool q
 	if(queueEmpty)
 		lastFinishedSubmission = mNextSubmitIndex - 1;
 
-	Lock lock(mMutex);
-	it = mActiveSubmissions.begin();
-	while(it != mActiveSubmissions.end())
+	WaitGroup waitGroup;
+
 	{
-		if(it->SubmitIndex > lastFinishedSubmission)
-			break;
-
-		for(u32 commandBufferIndex = 0; commandBufferIndex < it->CommandBufferCount; commandBufferIndex++)
+		Lock lock(mMutex);
+		it = mActiveSubmissions.begin();
+		while(it != mActiveSubmissions.end())
 		{
-			const QueueSubmissionEntryInformation queueSubmissionInformation = mActiveCommandBuffers.front();
-			mActiveCommandBuffers.pop();
+			if(it->SubmitIndex > lastFinishedSubmission)
+				break;
 
-			const bool isPresentCall = queueSubmissionInformation.CommandBuffer == nullptr;
-			SingleConsumerQueue& messageBackQueue = isPresentCall ? it->PresentOperationSwapChain->GetMessageQueue() : queueSubmissionInformation.CommandBuffer->GetPool().GetMessageQueue();
-
-			TInlineArray<VulkanSemaphore*, 8> semaphoresToRelease;
-			for (u32 semaphoreIndex = 0; semaphoreIndex < queueSubmissionInformation.SemaphoreCount; semaphoreIndex++)
+			for(u32 commandBufferIndex = 0; commandBufferIndex < it->CommandBufferCount; commandBufferIndex++)
 			{
-				VulkanSemaphore* const semaphore = mActiveSemaphores.front();
-				mActiveSemaphores.pop();
+				const QueueSubmissionEntryInformation queueSubmissionInformation = mActiveCommandBuffers.front();
+				mActiveCommandBuffers.pop();
 
-				semaphoresToRelease.Add(semaphore);
-			}
+				const bool isPresentCall = queueSubmissionInformation.CommandBuffer == nullptr;
+				SingleConsumerQueue& messageBackQueue = isPresentCall ? it->PresentOperationSwapChain->GetMessageQueue() : queueSubmissionInformation.CommandBuffer->GetPool().GetMessageQueue();
 
-			messageBackQueue.PostCommand([semaphoresToRelease]()
-			{
-				for (const auto& semaphore : semaphoresToRelease)
-					semaphore->NotifyDone(0, GpuAccessFlag::Read | GpuAccessFlag::Write);
-			});
-
-			if (isPresentCall)
-				messageBackQueue.PostCommand([swapChain = it->PresentOperationSwapChain] { swapChain->NotifyUnbound(); });
-			else
-			{
-				messageBackQueue.PostCommand([commandBuffer = queueSubmissionInformation.CommandBuffer]()
+				TInlineArray<VulkanSemaphore*, 8> semaphoresToRelease;
+				for (u32 semaphoreIndex = 0; semaphoreIndex < queueSubmissionInformation.SemaphoreCount; semaphoreIndex++)
 				{
-					commandBuffer->mState = VulkanGpuCommandBuffer::State::Done;
-					commandBuffer->OnDidComplete();
-					commandBuffer->Reset();
+					VulkanSemaphore* const semaphore = mActiveSemaphores.front();
+					mActiveSemaphores.pop();
+
+					semaphoresToRelease.Add(semaphore);
+				}
+
+				messageBackQueue.PostCommand([semaphoresToRelease]()
+				{
+					for (const auto& semaphore : semaphoresToRelease)
+						semaphore->NotifyDone(0, GpuAccessFlag::Read | GpuAccessFlag::Write);
 				});
+
+				waitGroup.Increment();
+				if (isPresentCall)
+				{
+					messageBackQueue.PostCommand([swapChain = it->PresentOperationSwapChain, waitGroup = forceWait ? &waitGroup : nullptr]
+					{
+						swapChain->NotifyUnbound();
+
+						if(waitGroup != nullptr)
+							waitGroup->NotifyDone();
+					}, "CommandBufferCompleteCallback");
+				}
+				else
+				{
+					messageBackQueue.PostCommand([commandBuffer = queueSubmissionInformation.CommandBuffer, waitGroup = forceWait ? &waitGroup : nullptr]()
+					{
+						commandBuffer->mState = VulkanGpuCommandBuffer::State::Done;
+						commandBuffer->OnDidComplete();
+						commandBuffer->Reset();
+
+						if(waitGroup != nullptr)
+							waitGroup->NotifyDone();
+					}, "CommandBufferCompleteCallback");
+				}
+
+				if(mLastSubmittedCommandBuffer == queueSubmissionInformation.CommandBuffer)
+					mLastSubmittedCommandBuffer = nullptr;
 			}
 
-			if(mLastSubmittedCommandBuffer == queueSubmissionInformation.CommandBuffer)
-				mLastSubmittedCommandBuffer = nullptr;
+			it = mActiveSubmissions.erase(it);
 		}
-
-		it = mActiveSubmissions.erase(it);
 	}
+
+	// Ensure the message back callbacks also trigger in the force wait case
+	if(forceWait)
+		waitGroup.Wait();
 }
 
 u32 VulkanGpuQueue::RegisterSemaphoresAndGetHandles(const TArrayView<VulkanSemaphore*>& inSemaphores, TInlineArray<VkSemaphore, 8>& outSemaphores)
