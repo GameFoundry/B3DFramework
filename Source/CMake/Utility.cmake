@@ -332,7 +332,7 @@ function(B3DSetUpPostBuildAndInstallSteps target)
 	endforeach()
 endfunction()
 
-# Copies the provided follow when @p target is built.
+# Copies the provided folder when @p target is built.
 #
 # @param	target					Target which needs to build to trigger the copy operation.
 # @param	sourceParentFolder		Location containing the folder to copy from.
