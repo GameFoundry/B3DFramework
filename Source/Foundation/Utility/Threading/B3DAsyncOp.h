@@ -5,7 +5,7 @@
 #include "B3DUtilityPrerequisites.h"
 #include "B3DSignal.h"
 #include "B3DWaitGroup.h"
-#include "Utility/B3DAny.h"
+#include "Utility/B3DAny.h"  // Still needed for GetGenericReturnValue()
 
 namespace b3d
 {
@@ -21,6 +21,57 @@ namespace b3d
 	struct B3D_EXPORT AsyncOpEmpty
 	{};
 
+	/**
+	 * Type-erased function signature for extracting return value as Any.
+	 * Used by scripting layer to get values without knowing the concrete type.
+	 */
+	using GetValueAsFn = Any(*)(const void* data);
+
+	/**
+	 * Base structure for AsyncOp data storage. Contains common fields for all async operations.
+	 * Derived classes add type-specific return value storage.
+	 *
+	 * @note NO virtual functions - uses type-erased callback for scripting compatibility.
+	 *       Proper cleanup is handled via custom shared_ptr deleter.
+	 */
+	struct B3D_EXPORT AsyncOpDataBase
+	{
+		bool IsCompleted = false;
+		WaitGroup ContinuationWaitGroup;
+		Mutex Mutex;
+		Signal Signal;
+		GetValueAsFn GetValueFn = nullptr;  // Type-erased value extractor
+
+		~AsyncOpDataBase() = default;  // Non-virtual
+	};
+
+	/** Typed data structure that stores the return value inline. */
+	template<typename T>
+	struct TAsyncOpData final : AsyncOpDataBase
+	{
+		TOptional<T> ReturnValue;
+
+		/** Static function to extract value as Any (used for scripting). */
+		static Any ExtractValue(const void* data)
+		{
+			auto* self = static_cast<const TAsyncOpData<T>*>(data);
+			if (self->ReturnValue.has_value())
+				return Any(*self->ReturnValue);
+			return Any();
+		}
+	};
+
+	/** Specialization for void - no return value storage, zero overhead. */
+	template<>
+	struct TAsyncOpData<void> final : AsyncOpDataBase
+	{
+		/** Static function returns empty Any for void operations. */
+		static Any ExtractValue(const void* /*data*/)
+		{
+			return Any();
+		}
+	};
+
 	/** @} */
 	/** @} */
 
@@ -31,44 +82,29 @@ namespace b3d
 	/** Common base for all TAsyncOp specializations. */
 	class B3D_EXPORT AsyncOp
 	{
-	protected:
-		struct AsyncOpData
-		{
-			Any ReturnValue; // TODO - TAsyncOp should be specialized so we don't need another heap allocation here
-			bool IsCompleted = false;
-			WaitGroup ContinuationWaitGroup;
-			Mutex Mutex;
-			Signal Signal;
-		};
-
 	public:
-		AsyncOp()
-			: mData(B3DMakeShared<AsyncOpData>())
-		{}
-
 		AsyncOp(AsyncOpEmpty empty)
 		{}
 
 		AsyncOp(const AsyncOp& other) = default;
+
 		AsyncOp(AsyncOp&& other)
 			: mData(std::exchange(other.mData, nullptr))
-		{ }
+		{}
 
 		AsyncOp& operator=(const AsyncOp& other) = default;
+
 		AsyncOp& operator=(AsyncOp&& other)
 		{
-			if(&other != this)
-			{
+			if (&other != this)
 				mData = std::exchange(other.mData, nullptr);
-			}
-
 			return *this;
 		}
 
 		/** Returns true if the async operation has completed. */
 		bool HasCompleted() const
 		{
-			if(mData == nullptr)
+			if (mData == nullptr)
 				return false;
 
 			Lock lock(mData->Mutex);
@@ -80,7 +116,7 @@ namespace b3d
 		void DoWhenComplete(F&& callback)
 		{
 			// If not initialized, nothing to wait on
-			if(mData == nullptr)
+			if (mData == nullptr)
 			{
 				B3D_LOG(Error, Generic, "Unable to trigger callback. Async operation was never initialized with data.");
 				return;
@@ -91,7 +127,7 @@ namespace b3d
 				Lock lock(mData->Mutex);
 				isCompleted = mData->IsCompleted;
 
-				if(!isCompleted)
+				if (!isCompleted)
 					mData->ContinuationWaitGroup.Increment();
 			}
 
@@ -127,7 +163,7 @@ namespace b3d
 		void BlockUntilComplete(bool blockUntilCallbacksComplete = true) const
 		{
 			// If not initialized, nothing to wait on
-			if(mData == nullptr)
+			if (mData == nullptr)
 			{
 				B3D_LOG(Error, Generic, "Unable to block until complete. Async operation was never initialized with data.");
 				return;
@@ -144,25 +180,36 @@ namespace b3d
 		}
 
 		/**
-		 * Retrieves the value returned by the async operation as a generic type. Only valid if hasCompleted() returns
-		 * true.
+		 * Retrieves the value returned by the async operation as a generic type.
+		 * Only valid if HasCompleted() returns true.
+		 *
+		 * @note Primarily used for scripting interop. Prefer GetReturnValue() in TAsyncOp<T>.
 		 */
 		Any GetGenericReturnValue() const
 		{
-			if(mData == nullptr)
+			if (mData == nullptr)
 				return Any();
 
 			Lock lock(mData->Mutex);
 #if B3D_DEBUG
-			if(!mData->IsCompleted)
+			if (!mData->IsCompleted)
 				B3D_LOG(Error, Generic, "Trying to get AsyncOp return value but the operation hasn't completed.");
 #endif
 
-			return mData->ReturnValue;
+			// Call type-erased function pointer (no virtual dispatch)
+			if (mData->GetValueFn)
+				return mData->GetValueFn(mData.get());
+			return Any();
 		}
 
 	protected:
-		SPtr<AsyncOpData> mData;
+		AsyncOp() = default;
+
+		explicit AsyncOp(SPtr<AsyncOpDataBase> data)
+			: mData(std::move(data))
+		{}
+
+		SPtr<AsyncOpDataBase> mData;
 	};
 
 	/**
@@ -172,42 +219,53 @@ namespace b3d
 	 * @note
 	 * You are allowed (and meant to) to copy this by value.
 	 */
-	template <class ReturnType>
+	template<typename ReturnType>
 	class TAsyncOp : public AsyncOp
 	{
 	public:
 		using ReturnValueType = ReturnType;
 
-		TAsyncOp() = default;
+		TAsyncOp()
+			: AsyncOp(CreateData())
+		{}
 
 		TAsyncOp(AsyncOpEmpty empty)
 			: AsyncOp(empty)
 		{}
 
 		TAsyncOp(const TAsyncOp& other) = default;
+
 		TAsyncOp(TAsyncOp&& other)
 			: AsyncOp(std::move(other))
-		{ }
+		{}
 
 		TAsyncOp& operator=(const TAsyncOp& other) = default;
+
 		TAsyncOp& operator=(TAsyncOp&& other)
 		{
 			return static_cast<TAsyncOp&>(AsyncOp::operator=(std::move(other)));
 		}
 
-		/** Retrieves the value returned by the async operation. Only valid if hasCompleted() returns true. */
+		/**
+		 * Retrieves the value returned by the async operation. Only valid if HasCompleted() returns true.
+		 *
+		 * @return Copy of the return value. Returns by value for thread safety.
+		 */
 		ReturnType GetReturnValue() const
 		{
 			B3D_ASSERT(mData != nullptr);
 
-			Lock lock(mData->Mutex);
+			auto* typedData = static_cast<TAsyncOpData<ReturnType>*>(mData.get());
+			Lock lock(typedData->Mutex);
 
 #if B3D_DEBUG
-			if(!mData->IsCompleted)
+			if (!typedData->IsCompleted)
 				B3D_LOG(Error, Generic, "Trying to get AsyncOp return value but the operation hasn't completed.");
+			if (!typedData->ReturnValue.has_value())
+				B3D_LOG(Error, Generic, "AsyncOp completed but no return value was set.");
 #endif
 
-			return AnyCast<ReturnType>(mData->ReturnValue);
+			return typedData->ReturnValue.value_or(ReturnType{});
 		}
 
 	public: // ***** INTERNAL ******
@@ -218,45 +276,77 @@ namespace b3d
 		/** Mark the async operation as completed, without setting a return value. */
 		void CompleteOperation()
 		{
-			if(mData == nullptr)
-				mData = B3DMakeShared<AsyncOpData>();
+			if (mData == nullptr)
+				mData = CreateData();
 
-			{
-				Lock lock(mData->Mutex);
+			auto* typedData = static_cast<TAsyncOpData<ReturnType>*>(mData.get());
+			Lock lock(typedData->Mutex);
 
-				mData->IsCompleted = true;
-				mData->Signal.NotifyAll();
-			}
+			typedData->IsCompleted = true;
+			typedData->Signal.NotifyAll();
 		}
 
-		/** Mark the async operation as completed. */
+		/** Mark the async operation as completed with the given return value (copy). */
 		void CompleteOperation(const ReturnType& returnValue)
 		{
-			if(mData == nullptr)
-				mData = B3DMakeShared<AsyncOpData>();
+			if (mData == nullptr)
+				mData = CreateData();
 
-			{
-				Lock lock(mData->Mutex);
+			auto* typedData = static_cast<TAsyncOpData<ReturnType>*>(mData.get());
+			Lock lock(typedData->Mutex);
 
-				mData->ReturnValue = returnValue;
-				mData->IsCompleted = true;
-				mData->Signal.NotifyAll();
-			}
+			typedData->ReturnValue = returnValue;
+			typedData->IsCompleted = true;
+			typedData->Signal.NotifyAll();
+		}
+
+		/** Mark the async operation as completed with the given return value (move). */
+		void CompleteOperation(ReturnType&& returnValue)
+		{
+			if (mData == nullptr)
+				mData = CreateData();
+
+			auto* typedData = static_cast<TAsyncOpData<ReturnType>*>(mData.get());
+			Lock lock(typedData->Mutex);
+
+			typedData->ReturnValue = std::move(returnValue);
+			typedData->IsCompleted = true;
+			typedData->Signal.NotifyAll();
 		}
 
 		/** @} */
+
 	protected:
-		template <class ReturnType2>
+		template<typename ReturnType2>
 		friend bool operator==(const TAsyncOp<ReturnType2>&, std::nullptr_t);
-		template <class ReturnType2>
+		template<typename ReturnType2>
 		friend bool operator!=(const TAsyncOp<ReturnType2>&, std::nullptr_t);
+
+	private:
+		/** Creates typed data with custom deleter and sets up type-erased value extractor. */
+		static SPtr<AsyncOpDataBase> CreateData()
+		{
+			auto* data = B3DNew<TAsyncOpData<ReturnType>>();
+			data->GetValueFn = &TAsyncOpData<ReturnType>::ExtractValue;
+
+			return SPtr<AsyncOpDataBase>(
+				data,
+				[](AsyncOpDataBase* p) { B3DDelete(static_cast<TAsyncOpData<ReturnType>*>(p)); }
+			);
+		}
 	};
 
-	template <>
+	/**
+	 * Specialization of TAsyncOp for void return type (no return value).
+	 * Uses AsyncOpDataTyped<void> which has zero storage overhead for return value.
+	 */
+	template<>
 	class TAsyncOp<void> : public AsyncOp
 	{
 	public:
-		TAsyncOp() = default;
+		TAsyncOp()
+			: AsyncOp(CreateData())
+		{}
 
 		TAsyncOp(AsyncOpEmpty empty)
 			: AsyncOp(empty)
@@ -280,24 +370,37 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Mark the async operation as completed, without setting a return value. */
+		/** Mark the async operation as completed (no return value). */
 		void CompleteOperation()
 		{
-			if(mData == nullptr)
-				mData = B3DMakeShared<AsyncOpData>();
+			if (mData == nullptr)
+				mData = CreateData();
 
-			{
-				Lock lock(mData->Mutex);
+			auto* typedData = static_cast<TAsyncOpData<void>*>(mData.get());
+			Lock lock(typedData->Mutex);
 
-				mData->IsCompleted = true;
-				mData->Signal.NotifyAll();
-			}
+			typedData->IsCompleted = true;
+			typedData->Signal.NotifyAll();
 		}
 
 		/** @} */
+
 	protected:
 		friend bool operator==(const TAsyncOp<void>&, std::nullptr_t);
 		friend bool operator!=(const TAsyncOp<void>&, std::nullptr_t);
+
+	private:
+		/** Creates typed data with custom deleter and sets up type-erased value extractor. */
+		static SPtr<AsyncOpDataBase> CreateData()
+		{
+			auto* data = B3DNew<TAsyncOpData<void>>();
+			data->GetValueFn = &TAsyncOpData<void>::ExtractValue;
+
+			return SPtr<AsyncOpDataBase>(
+				data,
+				[](AsyncOpDataBase* p) { B3DDelete(static_cast<TAsyncOpData<void>*>(p)); }
+			);
+		}
 	};
 
 	/**	Checks if an AsyncOp is null. */
