@@ -35,7 +35,7 @@ void CrashHandler::LogErrorAndStackTrace(const String& errorMsg, const String& s
 	errorMessage << "\n\nStack trace: \n";
 	errorMessage << stackTrace;
 
-	GetDebug().Log(errorMessage.str(), LogVerbosity::Fatal, nullptr);
+	GetDebug().Log(errorMessage.str(), LogVerbosity::Fatal, "Crash");
 }
 
 void CrashHandler::LogErrorAndStackTrace(const String& type, const String& description, const String& function, const String& file, u32 line) const
