@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DD3D12Prerequisites.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 
 namespace b3d
 {

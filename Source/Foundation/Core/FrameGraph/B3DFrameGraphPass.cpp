@@ -2,7 +2,7 @@
 #include "B3DFrameGraph.h"
 #include "B3DFrameGraphResource.h"
 #include "RenderAPI/B3DRenderTexture.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "RenderAPI/B3DGpuPipelineParameterLayout.h"
 #include "Debug/B3DDebug.h"
 

@@ -1,6 +1,6 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "B3DD3D12GpuParameters.h"
+#include "B3DD3D12GpuParameterSet.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12GpuPipelineParameterLayout.h"
 #include "B3DD3D12GpuBuffer.h"

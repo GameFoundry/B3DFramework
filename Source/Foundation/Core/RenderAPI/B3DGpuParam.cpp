@@ -5,7 +5,7 @@
 #include "B3DApplication.h"
 #include "B3DGpuDevice.h"
 #include "B3DGpuDeviceCapabilities.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "RenderAPI/B3DGpuBuffer.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "Debug/B3DDebug.h"

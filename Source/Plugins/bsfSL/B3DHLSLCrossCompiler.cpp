@@ -6,7 +6,7 @@
 #include "Resources/B3DBuiltinResources.h"
 
 #define XSC_ENABLE_LANGUAGE_EXT 1
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "Xsc/Xsc.h"
 
 using namespace std;

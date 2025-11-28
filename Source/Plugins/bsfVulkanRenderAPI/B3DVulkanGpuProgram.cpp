@@ -3,7 +3,7 @@
 #include "B3DVulkanGpuProgram.h"
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanUtility.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "RenderAPI/B3DVertexDescription.h"
 #include "Profiling/B3DRenderStats.h"

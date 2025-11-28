@@ -3,7 +3,7 @@
 #include "B3DVulkanGLSLToSPIRV.h"
 #include "B3DVulkanGpuProgram.h"
 #include "B3DVulkanUtility.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "Math/B3DMath.h"
 

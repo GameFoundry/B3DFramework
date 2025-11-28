@@ -3,7 +3,7 @@
 #include "B3DSamplerOverrides.h"
 #include "B3DRenderBeastOptions.h"
 #include "Material/B3DMaterial.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "Material/B3DMaterialParameterAdapter.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "Material/B3DMaterialParameters.h"

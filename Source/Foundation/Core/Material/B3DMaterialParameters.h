@@ -6,7 +6,7 @@
 #include "Reflection/B3DIReflectable.h"
 #include "Allocators/B3DStaticAlloc.h"
 #include "Math/B3DVector2.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "Allocators/B3DPoolAlloc.h"
 
 namespace b3d

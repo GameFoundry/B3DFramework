@@ -5,7 +5,7 @@
 #include "Error/B3DException.h"
 #include "Image/B3DTexture.h"
 #include "Math/B3DArea2.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 
 using namespace b3d;
 using namespace b3d::render;

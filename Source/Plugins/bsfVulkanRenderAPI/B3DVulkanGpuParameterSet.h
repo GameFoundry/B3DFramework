@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DVulkanPrerequisites.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "Allocators/B3DGroupAlloc.h"
 
 namespace b3d::render

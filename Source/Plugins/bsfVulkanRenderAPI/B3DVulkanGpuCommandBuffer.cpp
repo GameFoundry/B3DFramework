@@ -3,7 +3,7 @@
 #include "B3DVulkanGpuCommandBuffer.h"
 #include "B3DVulkanUtility.h"
 #include "B3DVulkanGpuDevice.h"
-#include "B3DVulkanGpuParameters.h"
+#include "B3DVulkanGpuParameterSet.h"
 #include "B3DVulkanGpuQueue.h"
 #include "B3DVulkanTexture.h"
 #include "B3DVulkanGpuBuffer.h"

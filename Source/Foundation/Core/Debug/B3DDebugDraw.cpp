@@ -7,7 +7,7 @@
 #include "Image/B3DSpriteTexture.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "Material/B3DMaterial.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "Material/B3DMaterialParameterAdapter.h"
 #include "Renderer/B3DRenderer.h"
 #include "Renderer/B3DRendererUtility.h"

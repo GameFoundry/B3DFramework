@@ -9,7 +9,7 @@
 #include "ThirdParty/D3D12MemAlloc.h"
 
 #include "B3DD3D12GpuBuffer.h"
-#include "B3DD3D12GpuParameters.h"
+#include "B3DD3D12GpuParameterSet.h"
 #include "B3DD3D12GpuPipelineParameterLayout.h"
 #include "B3DD3D12GpuProgram.h"
 #include "B3DD3D12Queries.h"

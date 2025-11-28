@@ -8,7 +8,7 @@
 #include "Debug/B3DDebug.h"
 #include "RTTI/B3DShaderRTTI.h"
 #include "Resources/B3DResources.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "Material/B3DPass.h"
 #include "RenderAPI/B3DSamplerState.h"
 #include "Image/B3DTexture.h"

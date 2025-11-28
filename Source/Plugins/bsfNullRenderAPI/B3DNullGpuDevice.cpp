@@ -8,7 +8,7 @@
 #include "B3DNullTexture.h"
 #include "B3DNullGpuProgram.h"
 #include "B3DNullGpuPipelineState.h"
-#include "B3DNullGpuParameters.h"
+#include "B3DNullGpuParameterSet.h"
 #include "B3DNullGpuPipelineParameterLayout.h"
 #include "B3DNullSamplerState.h"
 #include "B3DNullEventQuery.h"

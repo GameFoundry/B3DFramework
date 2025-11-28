@@ -4,7 +4,7 @@
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12Utility.h"
 #include "B3DD3D12ShaderCompiler.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "RenderAPI/B3DVertexDescription.h"
 #include "Profiling/B3DRenderStats.h"

@@ -4,7 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "RenderAPI/B3DGpuParam.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "Animation/B3DAnimationCurve.h"
 
 namespace b3d

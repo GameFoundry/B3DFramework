@@ -3,7 +3,7 @@
 #include "B3DRendererLight.h"
 #include "Material/B3DMaterial.h"
 #include "Material/B3DMaterialParameterAdapter.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "Components/B3DLight.h"
 #include "Renderer/B3DRendererUtility.h"
 #include "B3DRenderBeast.h"

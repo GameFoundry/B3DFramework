@@ -8,7 +8,7 @@
 #include "Material/B3DMaterial.h"
 #include "Material/B3DMaterialParameterAdapter.h"
 #include "Material/B3DPass.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "Utility/B3DShapeMeshes3D.h"
 #include "Material/B3DShader.h"
 #include "Renderer/B3DIBLUtility.h"

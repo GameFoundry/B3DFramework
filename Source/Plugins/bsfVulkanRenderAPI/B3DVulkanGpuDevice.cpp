@@ -24,7 +24,7 @@ static_assert(false, "Other platform includes go here.");
 #include "B3DVulkanEventQuery.h"
 #include "B3DVulkanGLSLToSPIRV.h"
 #include "B3DVulkanGpuBuffer.h"
-#include "B3DVulkanGpuParameters.h"
+#include "B3DVulkanGpuParameterSet.h"
 #include "B3DVulkanGpuPipelineParameterLayout.h"
 #include "B3DVulkanGpuProgram.h"
 #include "B3DVulkanSamplerState.h"

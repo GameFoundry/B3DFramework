@@ -5,7 +5,7 @@
 #include "B3DApplication.h"
 #include "RTTI/B3DPassRTTI.h"
 #include "Material/B3DMaterial.h"
-#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuParameterSet.h"
 #include "RenderAPI/B3DGpuProgram.h"
 #include "RenderAPI/B3DGpuPipelineState.h"
 #include "CoreObject/B3DCoreObjectSync.h"

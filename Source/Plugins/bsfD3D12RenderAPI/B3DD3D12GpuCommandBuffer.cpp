@@ -4,7 +4,7 @@
 #include "B3DD3D12Utility.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12GpuBackend.h"
-#include "B3DD3D12GpuParameters.h"
+#include "B3DD3D12GpuParameterSet.h"
 #include "B3DD3D12GpuPipelineParameterLayout.h"
 #include "B3DD3D12GpuQueue.h"
 #include "B3DD3D12Texture.h"
