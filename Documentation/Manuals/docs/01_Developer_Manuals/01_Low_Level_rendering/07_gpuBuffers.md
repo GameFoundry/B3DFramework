@@ -56,11 +56,11 @@ buffer->Unlock();
 ~~~~~~~~~~~~~
 
 # Binding
-Once created, a buffer can be bound to a GPU program through **GpuParameters** by calling @b3d::GpuParameters::SetStorageBuffer.
+Once created, a buffer can be bound to a GPU program through **GpuParameterSet** by calling @b3d::GpuParameterSet::SetStorageBuffer.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<render::GpuParameters> parameters = ...;
-parameters->SetStorageBuffer("myBuffer", buffer);
+SPtr<render::GpuParameterSet> parameterSet = ...;
+parameterSet->SetStorageBuffer("myBuffer", buffer);
 ~~~~~~~~~~~~~
 
 # Load-store buffers
@@ -73,4 +73,4 @@ createInformation.Flags |= GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
 SPtr<render::GpuBuffer> buffer = commandBuffer->GetGpuDevice().CreateGpuBuffer(createInformation);
 ~~~~~~~~~~~~~
 
-After that the buffer can be bound as normal, as shown above. This is different from load-store textures which have a separate set of methods for binding in **GpuParameters**.
+After that the buffer can be bound as normal, as shown above. This is different from load-store textures which have a separate set of methods for binding in **GpuParameterSet**.

@@ -252,7 +252,7 @@ namespace b3d
 		};
 	};
 
-	/** Contains functionality common for both main and render thread versions of GpuParameters. */
+	/** Contains functionality common for both main and render thread versions of GpuParameterSet. */
 	class B3D_EXPORT GpuParametersSetBase
 	{
 	public:
@@ -300,7 +300,7 @@ namespace b3d
 		u32 mSet = 0;
 	};
 
-	/** Templated version of GpuParameters that contains functionality for both main and render thread versions of stored data. */
+	/** Templated version of GpuParameterSet that contains functionality for both main and render thread versions of stored data. */
 	template <bool IsRenderProxy>
 	class B3D_EXPORT TGpuParameterSet : public GpuParametersSetBase
 	{
@@ -318,7 +318,7 @@ namespace b3d
 		 *
 		 * Throws exception if parameter with that name and type doesn't exist.
 		 *
-		 * Parameter handles will be invalidated when their parent GpuParameters object changes.
+		 * Parameter handles will be invalidated when their parent GpuParameterSet object changes.
 		 */
 		template <class T>
 		void GetParameter(const StringView& name, TGpuParameterPrimitive<T, IsRenderProxy>& output) const;
@@ -538,15 +538,15 @@ namespace b3d
 		~GpuParameterSet() {}
 
 		/**
-		 * Creates new GpuParameters object that can serve for changing the GPU program parameters on the specified pipeline.
+		 * Creates new GpuParameterSet object that can serve for changing the GPU program parameters on the specified pipeline.
 		 *
 		 * @param	pipelineState	Pipeline state for which this object can set parameters for.
 		 * @param	setIndex		Index of the parameter set that the object will be used for binding parameters for.
-		 * @return					New GpuParameters object.
+		 * @return					New GpuParameterSet object.
 		 */
 		static SPtr<GpuParameterSet> Create(const SPtr<GpuGraphicsPipelineState>& pipelineState, u32 setIndex = 0);
 
-		/** @copydoc GpuParameters::Create(const SPtr<GraphicsPipelineState>&) */
+		/** @copydoc GpuParameterSet::Create(const SPtr<GraphicsPipelineState>&) */
 		static SPtr<GpuParameterSet> Create(const SPtr<GpuComputePipelineState>& pipelineState, u32 setIndex = 0);
 
 		/**
@@ -592,7 +592,7 @@ namespace b3d
 		 */
 
 		/**
-		 * Render thread version of b3d::GpuParameters.
+		 * Render thread version of b3d::GpuParameterSet.
 		 *
 		 * @note	Render thread only.
 		 */

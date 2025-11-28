@@ -15,7 +15,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Null implementation of GpuParameters, containing resource descriptors for all shader stages. */
+		/** Null implementation of GpuParameterSet, containing resource descriptors for a single descriptor set. */
 		class NullGpuParameters : public GpuParameters
 		{
 		public:

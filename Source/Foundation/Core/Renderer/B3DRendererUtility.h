@@ -43,7 +43,7 @@ namespace b3d
 			BlitMat() = default;
 			void Initialize() override;
 
-			/** Creates a new set of GpuParameters and assigns the provided texture. */
+			/** Creates a new GpuParameterSet and assigns the provided texture. */
 			SPtr<GpuParameterSet> Prepare(const SPtr<Texture>& source);
 
 			/**

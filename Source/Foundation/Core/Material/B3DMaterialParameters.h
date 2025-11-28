@@ -785,16 +785,16 @@ namespace b3d
 	};
 
 	/**
-	 * Contains all parameter values set in a Material. This is similar to GpuParameters which also stores parameter values,
-	 * however GpuParameters are built for use on the GPU-side and don't store parameters that don't exist in a compiled GPU
-	 * program. This object on the other hand stores all parameters defined in a shader, regardless or not if they actually
-	 * exist in the GPU program. 
+	 * Contains all parameter values set in a Material. This is similar to GpuParameterSet which also stores parameter values,
+	 * however GpuParameterSet objects are built for use on the GPU-side and don't store parameters that don't exist in a
+	 * compiled GPU program. This object on the other hand stores all parameters defined in a shader, regardless or not if
+	 * they actually exist in the GPU program.
 	 *
 	 * @note
-	 * This introduces redundancy as parameters stored by GpuParameters and this object are duplicated. If this is an issue the
-	 * implementation can be modified to only store parameters not included in GpuParameters.
+	 * This introduces redundancy as parameters stored by GpuParameterSet and this object are duplicated. If this is an issue
+	 * the implementation can be modified to only store parameters not included in GpuParameterSet.
 	 * @note
-	 * The reason why parameters in this class and GpuParameters differ is most often compiler optimizations. If a compiler
+	 * The reason why parameters in this class and GpuParameterSet differ is most often compiler optimizations. If a compiler
 	 * optimizes out a variable in a GPU program we should still be able to store it, either for later when the variable
 	 * will be introduced, or for other variations that might have that variable implemented.
 	 */

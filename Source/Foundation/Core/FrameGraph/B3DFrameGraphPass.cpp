@@ -87,7 +87,7 @@ void FrameGraphPass::UseParameters(const SPtr<GpuParameterSet>& params)
 	if (!layout)
 		return;
 
-	// Each GpuParameters handles a single descriptor set
+	// Each GpuParameterSet handles a single descriptor set
 	const u32 set = params->GetSet();
 
 	// Import sampled textures (always read-only)

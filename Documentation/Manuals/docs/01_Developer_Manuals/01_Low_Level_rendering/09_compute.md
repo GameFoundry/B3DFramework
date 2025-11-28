@@ -15,16 +15,16 @@ GpuComputePipelineStateCreateInformation pipelineCreateInfo;
 pipelineCreateInfo.Program = myComputeProgram;
 SPtr<GpuComputePipelineState> computePipelineState = device->CreateGpuComputePipelineState(pipelineCreateInfo);
 
-// Create GPU parameters for binding resources
-SPtr<GpuParameters> gpuParameters = device->CreateGpuParameters(computePipelineState);
+// Create GPU parameter set for binding resources (set 0)
+SPtr<GpuParameterSet> parameterSet = device->CreateGpuParameterSet(computePipelineState->GetParameterLayout(), 0);
 
 // Set parameters (buffers, textures, etc.)
-gpuParameters->SetStorageBuffer("inputBuffer", myInputBuffer);
-gpuParameters->SetStorageBuffer("outputBuffer", myOutputBuffer);
+parameterSet->SetStorageBuffer("inputBuffer", myInputBuffer);
+parameterSet->SetStorageBuffer("outputBuffer", myOutputBuffer);
 
 // Bind the pipeline state and parameters
 commandBuffer->SetGpuComputePipelineState(computePipelineState);
-commandBuffer->SetGpuParameters(gpuParameters);
+commandBuffer->SetGpuParameters(parameterSet);
 
 // Execute a GPU program with 32x32 thread-groups
 commandBuffer->DispatchCompute(32, 32, 1);
@@ -33,4 +33,4 @@ commandBuffer->DispatchCompute(32, 32, 1);
 B3D_LOG(Info, RenderAPI, "Compute dispatch completed with 32x32 thread groups");
 ~~~~~~~~~~~~~
 
-Note that compute operations are recorded in a **GpuCommandBuffer** which must then be submitted to a queue for execution. You can set up parameters using **GpuParameters** and bind them before dispatching the compute shader.
+Note that compute operations are recorded in a **GpuCommandBuffer** which must then be submitted to a queue for execution. You can set up parameters using **GpuParameterSet** and bind them before dispatching the compute shader.

@@ -86,7 +86,7 @@ namespace b3d
 		u32 GetUniformBufferIndex(const String& name) const;
 
 		/**
-		 * Assign a uniform buffer with the specified index to all the relevant child GpuParameters.
+		 * Assign a uniform buffer with the specified index to all the relevant child GpuParameterSet objects.
 		 *
 		 * @param index				Index of the buffer, as retrieved from GetUniformBufferIndex().
 		 * @param buffer			Uniform buffer to assign.
@@ -97,7 +97,7 @@ namespace b3d
 		void SetUniformBuffer(u32 index, const UniformBufferPointerType& buffer, bool ignoreInUpdate = false);
 
 		/**
-		 * Assign a uniform buffer with the specified name to all the relevant child GpuParameters.
+		 * Assign a uniform buffer with the specified name to all the relevant child GpuParameterSet objects.
 		 *
 		 * @param name				Name of the buffer to set.
 		 * @param buffer			Uniform buffer to assign.
@@ -172,7 +172,7 @@ namespace b3d
 		u8* mData;
 	};
 
-	/** Used for transferring material parameters to GpuParameters. */
+	/** Used for transferring material parameters to GpuParameterSet. */
 	class B3D_EXPORT MaterialParameterAdapter : public TMaterialParameterAdapter<false>
 	{
 	public:
@@ -198,7 +198,7 @@ namespace b3d
 			using TMaterialParameterAdapter::SetUniformBuffer;
 
 			/**
-			 * Assign a uniform buffer with the specified index to all the relevant child GpuParameters.
+			 * Assign a uniform buffer with the specified index to all the relevant child GpuParameterSet objects.
 			 *
 			 * @param index					Index of the buffer, as retrieved from GetUniformBufferIndex().
 			 * @param bufferSuballocation	Uniform buffer to assign.
@@ -209,7 +209,7 @@ namespace b3d
 			void SetUniformBuffer(u32 index, const GpuBufferSuballocation& bufferSuballocation, bool ignoreInUpdate = false);
 
 			/**
-			 * Assign a uniform buffer with the specified name to all the relevant child GpuParameters.
+			 * Assign a uniform buffer with the specified name to all the relevant child GpuParameterSet objects.
 			 *
 			 * @param name					Name of the buffer to set.
 			 * @param bufferSuballocation	Uniform buffer to assign.

@@ -486,7 +486,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 {
 	const u32 passCount = variation->GetPassCount();
 
-	// Create GpuParameters for each pass and descriptor set
+	// Create GpuParameterSet for each pass and descriptor set
 	Vector<SPtr<GpuProgramParameterDescription>> allParameterDescriptions;
 	Vector<Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT>> parameterDescriptionsPerPass;
 	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
@@ -503,7 +503,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 			parameterLayout = computePipeline->GetParameterLayout();
 		}
 
-		// Create one GpuParameters for each descriptor set that has resources
+		// Create one GpuParameterSet for each descriptor set that has resources
 		const u32 setCount = parameterLayout->GetSetCount();
 		mGpuParametersPerPass[passIndex].Resize(setCount);
 		for(u32 setIndex = 0; setIndex < setCount; setIndex++)
@@ -555,7 +555,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 
 		for(u32 j = 0; j < kNumStages; j++)
 		{
-			// Assign shareable buffers to all GpuParameters that have them
+			// Assign shareable buffers to all GpuParameterSet objects that have them
 			for(auto& buffer : uniformBufferData)
 			{
 				const String& paramBlockName = buffer.Name;
@@ -585,7 +585,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 
 					globalBlockIdx = (u32)mUniformBuffers.size();
 
-					// Set non-shareable buffer on the GpuParameters for the correct set
+					// Set non-shareable buffer on the GpuParameterSet for the correct set
 					u32 bufferSet = uniformBufferInformation.Set;
 					if(bufferSet < gpuParametersForPass.Size() && gpuParametersForPass[bufferSet])
 						gpuParametersForPass[bufferSet]->SetUniformBuffer(iterBlockDesc->first, newUniformBuffer);
@@ -1230,7 +1230,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 			}
 		}
 
-		// Mark all GpuParameters in this pass as dirty
+		// Mark all GpuParameterSet objects in this pass as dirty
 		for(u32 setIndex = 0; setIndex < gpuParametersForPass.Size(); setIndex++)
 		{
 			SPtr<GpuParametersType>& gpuParameters = gpuParametersForPass[setIndex];

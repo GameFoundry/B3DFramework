@@ -20,7 +20,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Vulkan implementation of GpuParameters, containing resource descriptors for all shader stages. */
+		/** Vulkan implementation of GpuParameterSet, containing resource descriptors for a single descriptor set. */
 		class VulkanGpuParameters : public GpuParameterSet
 		{
 		public:

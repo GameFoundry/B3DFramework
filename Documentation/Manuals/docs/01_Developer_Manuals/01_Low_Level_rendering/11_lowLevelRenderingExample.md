@@ -69,12 +69,12 @@ pipelineStateInformation.FragmentProgram = fragmentProgram;
 SPtr<GpuGraphicsPipelineState> pipelineState = gpuDevice->CreateGpuGraphicsPipelineState(pipelineStateInformation);
 ~~~~~~~~~~~~~
 
-## Creating GPU parameters
+## Creating GPU parameter sets
 
-GPU parameters are created from the pipeline state and will hold uniform buffers, textures, and samplers:
+GPU parameter sets are created from the pipeline state's parameter layout and will hold uniform buffers, textures, and samplers for a specific descriptor set:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuParameters> gpuParameters = gpuDevice->CreateGpuParameters(pipelineState->GetParameterLayout());
+SPtr<GpuParameterSet> parameterSet = gpuDevice->CreateGpuParameterSet(pipelineState->GetParameterLayout(), 0);
 ~~~~~~~~~~~~~
 
 ## Creating vertex description
@@ -202,16 +202,16 @@ uniformBlock.Tint = Color(1.0f, 1.0f, 1.0f, 0.5f);
 SPtr<GpuBuffer> uniformBuffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(sizeof(UniformBlock)));
 uniformBuffer->WriteCached(0, sizeof(uniformBlock), &uniformBlock);
 
-gpuParameters->SetUniformBuffer("Params", uniformBuffer);
+parameterSet->SetUniformBuffer("Params", uniformBuffer);
 ~~~~~~~~~~~~~
 
 ## Binding textures and samplers
 
-Textures and samplers are bound to the GPU parameters:
+Textures and samplers are bound to the GPU parameter set:
 
 ~~~~~~~~~~~~~{.cpp}
-gpuParameters->SetSampledTexture("gMainTexture", surfaceTexture);
-gpuParameters->SetSamplerState("gMainTexture", surfaceSampler);
+parameterSet->SetSampledTexture("gMainTexture", surfaceTexture);
+parameterSet->SetSamplerState("gMainTexture", surfaceSampler);
 ~~~~~~~~~~~~~
 
 ## Beginning render pass
@@ -235,12 +235,12 @@ commandBuffer->SetVertexDescription(vertexDescription);
 commandBuffer->SetDrawOperation(DOT_TRIANGLE_LIST);
 ~~~~~~~~~~~~~
 
-## Binding GPU parameters
+## Binding GPU parameter sets
 
-GPU parameters containing uniform buffers, textures, and samplers are bound:
+GPU parameter sets containing uniform buffers, textures, and samplers are bound:
 
 ~~~~~~~~~~~~~{.cpp}
-commandBuffer->SetGpuParameters(gpuParameters);
+commandBuffer->SetGpuParameters(parameterSet);
 ~~~~~~~~~~~~~
 
 ## Drawing

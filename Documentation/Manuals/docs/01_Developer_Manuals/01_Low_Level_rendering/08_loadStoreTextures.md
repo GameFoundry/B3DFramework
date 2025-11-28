@@ -21,25 +21,25 @@ SPtr<GpuDevice> gpuDevice = ...;
 SPtr<Texture> texture = gpuDevice->CreateTexture(createInformation);
 ~~~~~~~~~~~~~
 
-You can then bind a load-store texture to a GPU program by calling @b3d::render::GpuParameters::SetStorageTexture as was described in an earlier chapter.
+You can then bind a load-store texture to a GPU program by calling @b3d::render::GpuParameterSet::SetStorageTexture as was described in an earlier chapter.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuParameters> parameters = ...;
+SPtr<GpuParameterSet> parameterSet = ...;
 SPtr<Texture> texture = ...;
 
 TextureSurface surface = TextureSurface::kComplete;
-parameters->SetStorageTexture("myLoadStoreTex", texture, surface);
+parameterSet->SetStorageTexture("myLoadStoreTex", texture, surface);
 ~~~~~~~~~~~~~
 
-Load-store textures do not support sampling using sampler states, you can only read-write their pixels directly. They also do not support mip-maps, and if your texture has multiple mip-maps you must provide a @b3d::TextureSurface struct to **render::GpuParameters::SetStorageTexture()** in order to specify which mip-level to bind (by default it is the first).
+Load-store textures do not support sampling using sampler states, you can only read-write their pixels directly. They also do not support mip-maps, and if your texture has multiple mip-maps you must provide a @b3d::TextureSurface struct to **render::GpuParameterSet::SetStorageTexture()** in order to specify which mip-level to bind (by default it is the first).
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuParameters> parameters = ...;
+SPtr<GpuParameterSet> parameterSet = ...;
 SPtr<Texture> texture = ...;
 
 TextureSurface surface;
 surface.MipLevel = 5; // Bind 5th mip-level for load-store operations
-parameters->SetStorageTexture("myLoadStoreTex", texture, surface);
+parameterSet->SetStorageTexture("myLoadStoreTex", texture, surface);
 ~~~~~~~~~~~~~
 
 Load-store textures can also be bound as normal textures, for read-only operations like sampling. Note that they cannot be bound for both operations at once. Also note that load-store textures are not supported for 3D textures, and have limited support (depending on the rendering backend) for multisampled surfaces.

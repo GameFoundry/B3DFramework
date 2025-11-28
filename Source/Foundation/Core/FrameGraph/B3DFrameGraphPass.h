@@ -241,7 +241,7 @@ namespace b3d::render
 		void ReadDepth(FrameGraphResourceId resource);
 
 		/**
-		 * Imports and declares all resources from a GpuParameters object.
+		 * Imports and declares all resources from a GpuParameterSet object.
 		 *
 		 * Automatically imports resources and determines correct access flags:
 		 * - Sampled textures -> Read
@@ -255,7 +255,7 @@ namespace b3d::render
 		 * Note: Does NOT automatically bind parameters during execute - user must call
 		 * cmd.SetGpuParameters() explicitly to allow different parameters per draw call.
 		 *
-		 * @param params  GpuParameters object containing resources to import
+		 * @param params  GpuParameterSet object containing resources to import
 		 */
 		void UseParameters(const SPtr<GpuParameterSet>& params);
 

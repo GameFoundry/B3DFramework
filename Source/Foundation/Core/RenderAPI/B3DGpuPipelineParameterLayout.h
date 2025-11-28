@@ -121,7 +121,7 @@ namespace b3d
 
 		/**
 		 * Returns an index that can be used for applying a dynamic offset for buffer lookup. The index can be provided
-		 * to the command buffer after GpuParameters using this layout have been bound on the command buffer.
+		 * to the command buffer after GpuParameterSet using this layout have been bound on the command buffer.
 		 *
 		 * Returns ~0u if parameter at the specific set/slot combination doesn't support dynamic offsets (supported on uniform and storage buffers),
 		 * or if the parameter is not found.
@@ -130,7 +130,7 @@ namespace b3d
 
 		/**
 		 * Returns an index that can be used for applying a dynamic offset for buffer lookup. The index can be provided
-		 * to the command buffer after GpuParameters using this layout have been bound on the command buffer.
+		 * to the command buffer after GpuParameterSet using this layout have been bound on the command buffer.
 		 *
 		 * Returns ~0u if parameter at the specific set/slot combination doesn't support dynamic offsets (supported on uniform and storage buffers),
 		 * or if the parameter is not found.

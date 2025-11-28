@@ -100,32 +100,34 @@ Although you can use a GPU program without any parameters, most will require som
 
 You can access information about GPU program parameters by calling @b3d::GpuProgram::GetParameterDescription. This will return a @b3d::GpuProgramParameterDescription structure containing information about all GPU parameters used by that GPU program. This includes primitives (int, float, etc.), textures, samplers, buffers and uniform buffers (constant buffers in DirectX or uniform blocks in OpenGL/Vulkan).
 
-You generally don't need to use this information directly. It is instead automatically parsed when you create a GPU pipeline. Once you have a pipeline you can use it to create a @b3d::render::GpuParameters object that allows you to assign values to all parameters of a specific pipeline.
+You generally don't need to use this information directly. It is instead automatically parsed when you create a GPU pipeline. Once you have a pipeline you can use it to create @b3d::render::GpuParameterSet objects that allow you to assign values to parameters within a specific descriptor set of the pipeline.
 
-## GpuParameters
-**GpuParameters** is a container for all parameters required by a single GPU pipeline (graphics or compute). It allows you to set textures, samplers, buffers, and primitive values used by GPU programs. Parameter values are stored on the CPU side and are only submitted to the GPU when the parameters are bound to the command buffer during rendering.
+## GpuParameterSet
+**GpuParameterSet** is a container for parameters within a single descriptor set of a GPU pipeline. Each **GpuParameterSet** represents one descriptor set (e.g., set 0, set 1, etc.), allowing for efficient updates when only some parameters change between draw calls. It allows you to set textures, samplers, buffers, and primitive values used by GPU programs. Parameter values are stored on the CPU side and are only submitted to the GPU when the parameters are bound to the command buffer during rendering.
 
-### Creating GpuParameters
-To create a **GpuParameters** object, use the GPU device's @b3d::GpuDevice::CreateGpuParameters method with either a graphics or a compute pipeline state as a parameter.
+### Creating GpuParameterSet
+To create a **GpuParameterSet** object, use the GPU device's @b3d::GpuDevice::CreateGpuParameterSet method with the pipeline's parameter layout and the set index as parameters.
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<GpuDevice> device = ...;
 SPtr<GpuGraphicsPipelineState> graphicsPipeline = ...;
-SPtr<GpuParameters> parameters = device->CreateGpuParameters(graphicsPipeline);
+
+// Create a parameter set for descriptor set 0
+SPtr<GpuParameterSet> parameterSet = device->CreateGpuParameterSet(graphicsPipeline->GetParameterLayout(), 0);
 ~~~~~~~~~~~~~
 
-The created **GpuParameters** object will be initialized with parameter layout information from the pipeline, allowing the system to validate parameter assignments and manage internal storage.
+The created **GpuParameterSet** object will be initialized with parameter layout information for the specified descriptor set, allowing the system to validate parameter assignments and manage internal storage.
 
 ### Setting parameters by name
 Once created you can assign values to parameters by calling any of the following methods (depending on parameter type):
- - @b3d::render::GpuParameters::SetSampledTexture - Assigns a read-only (sampled) texture to a GPU program.
- - @b3d::render::GpuParameters::SetStorageTexture - Assign a load-store (writable) texture to a GPU program.
- - @b3d::render::GpuParameters::SetStorageBuffer - Assigns a storage buffer (either read-only or read-write) to a GPU program.
- - @b3d::render::GpuParameters::SetSamplerState - Assigns a sampler state that determines how is a sampled texture read by the shader.
- - @b3d::render::GpuParameters::SetParameter<T> - Assigns a primitive type like *float*, *int*, **Vector3**, **Matrix4** or others.
- - @b3d::render::GpuParameters::SetUniformBuffer - Assigns a uniform buffer that contains primitive parameters (discussed in detail below).
+ - @b3d::render::GpuParameterSet::SetSampledTexture - Assigns a read-only (sampled) texture to a GPU program.
+ - @b3d::render::GpuParameterSet::SetStorageTexture - Assign a load-store (writable) texture to a GPU program.
+ - @b3d::render::GpuParameterSet::SetStorageBuffer - Assigns a storage buffer (either read-only or read-write) to a GPU program.
+ - @b3d::render::GpuParameterSet::SetSamplerState - Assigns a sampler state that determines how is a sampled texture read by the shader.
+ - @b3d::render::GpuParameterSet::SetParameter<T> - Assigns a primitive type like *float*, *int*, **Vector3**, **Matrix4** or others.
+ - @b3d::render::GpuParameterSet::SetUniformBuffer - Assigns a uniform buffer that contains primitive parameters (discussed in detail below).
 
-> **Important:** Before you can use **SetParameter** to set primitive values, you must first bind a uniform buffer using **SetUniformBuffer**. Primitive parameters are written into the bound uniform buffer, not stored directly in GpuParameters. Textures, storage buffers, and sampler states do not have this requirement.
+> **Important:** Before you can use **SetParameter** to set primitive values, you must first bind a uniform buffer using **SetUniformBuffer**. Primitive parameters are written into the bound uniform buffer, not stored directly in GpuParameterSet. Textures, storage buffers, and sampler states do not have this requirement.
 
 Supported primitive types for **SetParameter** include:
  - *float*, *double*
@@ -145,15 +147,15 @@ Each of the methods accepts the name of the parameter (as specified in the GPU p
 
 // Set a primitive parameter (writes to the bound uniform buffer)
 Matrix4 viewProjectionMatrix = ...;
-parameters->SetParameter("viewProjMatrix", viewProjectionMatrix);
+parameterSet->SetParameter("viewProjMatrix", viewProjectionMatrix);
 
 // Set a sampled texture (no uniform buffer required)
 SPtr<Texture> diffuseTexture = ...;
-parameters->SetSampledTexture("mainTexture", diffuseTexture);
+parameterSet->SetSampledTexture("mainTexture", diffuseTexture);
 
 // Set a sampler state (no uniform buffer required)
 SPtr<SamplerState> linearSampler = ...;
-parameters->SetSamplerState("mainSampler", linearSampler);
+parameterSet->SetSamplerState("mainSampler", linearSampler);
 ~~~~~~~~~~~~~
 
 You can also bind to specific texture surfaces (e.g. mip levels, array slices) by providing a @b3d::TextureSurface parameter:
@@ -161,32 +163,32 @@ You can also bind to specific texture surfaces (e.g. mip levels, array slices) b
 ~~~~~~~~~~~~~{.cpp}
 // Bind a specific mip level of a texture
 TextureSurface surface(0, 1, 2, 1); // Mip level 2, one mip, face 0, one face
-parameters->SetSampledTexture("mainTexture", diffuseTexture, surface);
+parameterSet->SetSampledTexture("mainTexture", diffuseTexture, surface);
 ~~~~~~~~~~~~~
 
 ### Checking parameter existence
-Before setting a parameter, you can check if it exists in the pipeline using the **Has*** methods:
+Before setting a parameter, you can check if it exists in the parameter set using the **Has*** methods:
 
 ~~~~~~~~~~~~~{.cpp}
-if(parameters->HasParameter("viewProjMatrix"))
-	parameters->SetParameter("viewProjMatrix", viewProjectionMatrix);
+if(parameterSet->HasParameter("viewProjMatrix"))
+	parameterSet->SetParameter("viewProjMatrix", viewProjectionMatrix);
 
-if(parameters->HasSampledTexture("mainTexture"))
-	parameters->SetSampledTexture("mainTexture", diffuseTexture);
+if(parameterSet->HasSampledTexture("mainTexture"))
+	parameterSet->SetSampledTexture("mainTexture", diffuseTexture);
 
-if(parameters->HasUniformBuffer("PerObjectData"))
-	parameters->SetUniformBuffer("PerObjectData", uniformBuffer);
+if(parameterSet->HasUniformBuffer("PerObjectData"))
+	parameterSet->SetUniformBuffer("PerObjectData", uniformBuffer);
 ~~~~~~~~~~~~~
 
-Additional check methods include @b3d::render::GpuParameters::HasStorageTexture, @b3d::render::GpuParameters::HasStorageBuffer, and @b3d::render::GpuParameters::HasSamplerState.
+Additional check methods include @b3d::render::GpuParameterSet::HasStorageTexture, @b3d::render::GpuParameterSet::HasStorageBuffer, and @b3d::render::GpuParameterSet::HasSamplerState.
 
 ### Using parameter handles
 If parameters are modified often you can use *parameter handles* for faster access. Handles avoid the name lookup that occurs when setting parameters directly:
- - @b3d::render::GpuParameters::GetSampledTextureParameter - Outputs a handle that can be used for reading & writing the parameter value.
- - @b3d::render::GpuParameters::GetStorageTextureParameter - Outputs a handle that can be used for reading & writing the parameter value.
- - @b3d::render::GpuParameters::GetStorageBufferParameter - Outputs a handle that can be used for reading & writing the parameter value.
- - @b3d::render::GpuParameters::GetSamplerStateParameter - Outputs a handle that can be used for reading & writing the parameter value.
- - @b3d::render::GpuParameters::GetParameter<T> - Outputs a handle that can be used for reading & writing the parameter value.
+ - @b3d::render::GpuParameterSet::GetSampledTextureParameter - Outputs a handle that can be used for reading & writing the parameter value.
+ - @b3d::render::GpuParameterSet::GetStorageTextureParameter - Outputs a handle that can be used for reading & writing the parameter value.
+ - @b3d::render::GpuParameterSet::GetStorageBufferParameter - Outputs a handle that can be used for reading & writing the parameter value.
+ - @b3d::render::GpuParameterSet::GetSamplerStateParameter - Outputs a handle that can be used for reading & writing the parameter value.
+ - @b3d::render::GpuParameterSet::GetParameter<T> - Outputs a handle that can be used for reading & writing the parameter value.
 
 Each method accepts the parameter name and outputs a handle. Handles provide **Set()** and **Get()** methods for reading and writing parameter values. They can be retrieved once and reused, avoiding repeated name lookups.
 
@@ -195,8 +197,8 @@ Each method accepts the parameter name and outputs a handle. Handles provide **S
 TGpuParameterPrimitive<Matrix4, false> matrixParameter;
 TGpuParameterSampledTexture<false> textureParameter;
 
-parameters->GetParameter("viewProjMatrix", matrixParameter);
-parameters->GetSampledTextureParameter("mainTexture", textureParameter);
+parameterSet->GetParameter("viewProjMatrix", matrixParameter);
+parameterSet->GetSampledTextureParameter("mainTexture", textureParameter);
 
 // Later in performance-critical code, use handles to set values quickly
 Matrix4 viewProjectionMatrix = ...;
@@ -210,23 +212,23 @@ For cases where a parameter may not exist, use the **Try*** variants which retur
 
 ~~~~~~~~~~~~~{.cpp}
 TGpuParameterPrimitive<Matrix4, false> optionalParameter;
-if(parameters->TryGetParameter("optionalMatrix", optionalParameter))
+if(parameterSet->TryGetParameter("optionalMatrix", optionalParameter))
 {
 	optionalParameter.Set(myMatrix);
 }
 ~~~~~~~~~~~~~
 
-The **Try*** methods are available for all parameter types: @b3d::render::GpuParameters::TryGetParameter, @b3d::render::GpuParameters::TryGetSampledTextureParameter, @b3d::render::GpuParameters::TryGetStorageTextureParameter, @b3d::render::GpuParameters::TryGetStorageBufferParameter, and @b3d::render::GpuParameters::TryGetSamplerStateParameter.
+The **Try*** methods are available for all parameter types: @b3d::render::GpuParameterSet::TryGetParameter, @b3d::render::GpuParameterSet::TryGetSampledTextureParameter, @b3d::render::GpuParameterSet::TryGetStorageTextureParameter, @b3d::render::GpuParameterSet::TryGetStorageBufferParameter, and @b3d::render::GpuParameterSet::TryGetSamplerStateParameter.
 
 ## Uniform buffers
 Primitive parameters (*int*, *float*, **Vector3**, **Matrix4**, etc.) in GPU programs are grouped in uniform buffers. These are memory blocks that store multiple related parameters together, better known as *constant buffers* in DirectX or *uniform blocks* in OpenGL/Vulkan.
 
 ### Understanding uniform buffers and primitive parameters
-When you call **SetParameter** on primitive types, the framework writes those values into a uniform buffer that must be bound to the **GpuParameters** object. The relationship works as follows:
+When you call **SetParameter** on primitive types, the framework writes those values into a uniform buffer that must be bound to the **GpuParameterSet** object. The relationship works as follows:
 
 1. Your GPU program declares uniform buffers (e.g., `cbuffer PerObjectData` in HLSL or `layout(binding=0) uniform PerObjectData` in GLSL)
 2. Each uniform buffer contains one or more primitive parameters
-3. You must create a **GpuBuffer** and bind it to **GpuParameters** using **SetUniformBuffer** **before** calling **SetParameter**
+3. You must create a **GpuBuffer** and bind it to **GpuParameterSet** using **SetUniformBuffer** **before** calling **SetParameter**
 4. Once bound, calling **SetParameter** writes values into the appropriate uniform buffer
 
 > **Important:** Calling **SetParameter** without first binding a uniform buffer will result in the parameter write being ignored or causing errors. The framework needs to know which uniform buffer to write to.
@@ -247,11 +249,11 @@ SPtr<GpuBuffer> uniformBuffer = device->CreateGpuBuffer(createInformation);
 MyUniformData data = ...;
 uniformBuffer->WriteData(0, sizeof(MyUniformData), &data);
 
-// Bind the uniform buffer by set and slot
-parameters->SetUniformBuffer(0, 0, uniformBuffer);
+// Bind the uniform buffer by slot (within the parameter set's descriptor set)
+parameterSet->SetUniformBuffer(0, uniformBuffer);
 
 // Or bind by name (matches uniform block name in shader)
-parameters->SetUniformBuffer("PerObjectData", uniformBuffer);
+parameterSet->SetUniformBuffer("PerObjectData", uniformBuffer);
 ~~~~~~~~~~~~~
 
 When manually creating uniform buffers, you are responsible for ensuring the buffer layout matches what the GPU program expects, including proper alignment and padding according to the render API's rules.
@@ -259,8 +261,8 @@ When manually creating uniform buffers, you are responsible for ensuring the buf
 You can also use the **Get*** methods to retrieve currently bound uniform buffers:
 
 ~~~~~~~~~~~~~{.cpp}
-// Get uniform buffer bound at set 0, slot 0
-SPtr<GpuBuffer> buffer = parameters->GetUniformBuffer(0, 0);
+// Get uniform buffer bound at slot 0
+SPtr<GpuBuffer> buffer = parameterSet->GetUniformBuffer(0);
 ~~~~~~~~~~~~~
 
 ### Uniform buffer definitions
@@ -288,8 +290,8 @@ For uniform buffers that don't change every frame, you can create persistent buf
 // Create a persistent uniform buffer using the definition
 SPtr<GpuBuffer> uniformBuffer = gMyUniformBufferDef.CreateBuffer();
 
-// Bind the buffer to GpuParameters
-parameters->SetUniformBuffer("MyUniformBlock", uniformBuffer);
+// Bind the buffer to GpuParameterSet
+parameterSet->SetUniformBuffer("MyUniformBlock", uniformBuffer);
 
 // Set individual parameter values using the uniform buffer definition
 Matrix4 matrix = ...;
@@ -313,8 +315,8 @@ gMyUniformBufferDef.viewProjMatrix.Set(transient, matrix);
 gMyUniformBufferDef.tintColor.Set(transient, Color::kWhite);
 gMyUniformBufferDef.screenSize.Set(transient, Vector2(1920.0f, 1080.0f));
 
-// Bind the transient allocation to GpuParameters
-parameters->SetUniformBuffer("MyUniformBlock", transient);
+// Bind the transient allocation to GpuParameterSet
+parameterSet->SetUniformBuffer("MyUniformBlock", transient);
 
 // No need to flush - automatically handled
 // No need to track frame indices - automatically recycled
@@ -358,12 +360,12 @@ You can also create multiple instances of the same buffer layout:
 SPtr<GpuBuffer> multiInstanceBuffer = gMyUniformBufferDef.CreateBuffer(100); // 100 sub-allocations
 ~~~~~~~~~~~~~
 
-## Binding GPU parameters
-Once **GpuParameters** has been created and populated with necessary data, you can bind it to the GPU by calling @b3d::render::GpuCommandBuffer::SetGpuParameters.
+## Binding GPU parameter sets
+Once **GpuParameterSet** has been created and populated with necessary data, you can bind it to the GPU by calling @b3d::render::GpuCommandBuffer::SetGpuParameters.
 
 ~~~~~~~~~~~~~{.cpp}
 // This should be called after the pipeline expecting these parameters is bound
-commandBuffer->SetGpuParameters(parameters);
+commandBuffer->SetGpuParameters(parameterSet);
 ~~~~~~~~~~~~~
 
 ## Complete example
@@ -399,8 +401,8 @@ pipelineInfo.FragmentProgram = fragmentProgram;
 
 SPtr<GpuGraphicsPipelineState> pipeline = gpuDevice.CreateGpuGraphicsPipelineState(pipelineInfo);
 
-// 3. Create GpuParameters for the pipeline
-SPtr<GpuParameters> parameters = GpuParameters::Create(pipeline);
+// 3. Create GpuParameterSet for the pipeline (set 0)
+SPtr<GpuParameterSet> parameterSet = gpuDevice->CreateGpuParameterSet(pipeline->GetParameterLayout(), 0);
 
 // 4. Set up uniform buffer using uniform buffer definition
 B3D_UNIFORM_BUFFER_BEGIN(PerObjectParamDef)
@@ -411,18 +413,18 @@ B3D_UNIFORM_BUFFER_END
 PerObjectParamDef gPerObjectParamDef; // Declare globally
 
 SPtr<GpuBuffer> perObjectBuffer = gPerObjectParamDef.CreateBuffer();
-parameters->SetUniformBuffer("PerObjectData", perObjectBuffer);
+parameterSet->SetUniformBuffer("PerObjectData", perObjectBuffer);
 
 // 5. Set parameters
 gPerObjectParamDef.worldViewProj.Set(perObjectBuffer, myMatrix);
 gPerObjectParamDef.tintColor.Set(perObjectBuffer, Color::kWhite);
 
 SPtr<Texture> texture = ...;
-parameters->SetSampledTexture("mainTexture", texture);
+parameterSet->SetSampledTexture("mainTexture", texture);
 
 // 6. Bind pipeline and parameters, then draw
 commandBuffer->SetGpuGraphicsPipelineState(pipeline);
-commandBuffer->SetGpuParameters(parameters);
+commandBuffer->SetGpuParameters(parameterSet);
 
 // Your draw calls here...
 ~~~~~~~~~~~~~

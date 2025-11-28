@@ -395,7 +395,7 @@ namespace b3d
 				u64 PoolIdentifier = 0;
 			};
 
-			/** Cached data from GpuParameters that were registered during render pass start. */
+			/** Cached data from GpuParameterSet that were registered during render pass start. */
 			struct CachedGpuParameterData
 			{
 				VkDescriptorSet DescriptorSet;
@@ -432,7 +432,7 @@ namespace b3d
 			/** Binds vertex and index buffers to the pipeline, if dirty. */
 			void BindVertexInputs();
 
-			/** Binds the currently stored GPU parameters object, if dirty. */
+			/** Binds the currently stored GPU parameter sets, if dirty. */
 			void BindGpuParameters(VulkanBarrierHelper& barrierHelper);
 
 			/** Creates an array of clear values from the specified clear mask and values. To be used for the explicit clear command, or render bass begin. */

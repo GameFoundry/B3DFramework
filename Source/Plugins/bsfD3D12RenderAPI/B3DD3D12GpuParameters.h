@@ -13,14 +13,14 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** DirectX 12 implementation of GPU parameters. */
+		/** DirectX 12 implementation of GpuParameterSet. */
 		class D3D12GpuParameters : public GpuParameters
 		{
 		public:
 			D3D12GpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout, GpuDevice& device);
 			~D3D12GpuParameters() override;
 
-			/** @copydoc GpuParameters::Initialize */
+			/** @copydoc GpuParameterSet::Initialize */
 			void Initialize() override;
 
 			/**
@@ -33,7 +33,7 @@ namespace b3d
 			void BindDescriptors(D3D12GpuDevice& device, ID3D12GraphicsCommandList* commandList, bool isGraphics);
 
 		protected:
-			/** @copydoc GpuParameters::WriteParameters */
+			/** @copydoc GpuParameterSet::WriteParameters */
 			void WriteParameters() override;
 
 		private:

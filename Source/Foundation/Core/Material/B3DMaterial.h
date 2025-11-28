@@ -171,9 +171,10 @@ namespace b3d
 		SPtr<PassType> GetPass(u32 passIndex = 0, u32 variationIndex = 0) const;
 
 		/**
-		 * Creates an adapter that can be used for transferring parameters from the material to one or multiple GpuParameters (one per pass).
-		 * The adapter will take care of tracking when material parameters change and can be used to update the underlying GpuParameters.
-		 * Adapter is only valid for a particular material variation, you will need to create a different adapter for each variation.
+		 * Creates an adapter that can be used for transferring parameters from the material to GpuParameterSet objects.
+		 * The adapter will take care of tracking when material parameters change and can be used to update the underlying
+		 * GpuParameterSet objects. Adapter is only valid for a particular material variation, you will need to create a
+		 * different adapter for each variation.
 		 */
 		SPtr<MaterialParameterAdapterType> CreateParameterAdapter(u32 variationIndex = 0);
 

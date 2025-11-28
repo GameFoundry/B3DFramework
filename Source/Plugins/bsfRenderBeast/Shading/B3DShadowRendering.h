@@ -55,7 +55,7 @@ namespace b3d
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
 			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameterSet>& gpuParameters);
 
-			/** Binds all the provided buffers to the provided GpuParameters object. */
+			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const SPtr<GpuBuffer>& perObjectParams);
 
 			/**
@@ -89,7 +89,7 @@ namespace b3d
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
 			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameterSet>& gpuParameters);
 
-			/** Binds all the provided buffers to the provided GpuParameters object. */
+			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const SPtr<GpuBuffer>& perObjectParams);
 
 			/**
@@ -123,7 +123,7 @@ namespace b3d
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
 			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameterSet>& gpuParameters);
 
-			/** Binds all the provided buffers to the provided GpuParameters object. */
+			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const SPtr<GpuBuffer>& perObjectParams);
 
 			/**
@@ -169,7 +169,7 @@ namespace b3d
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
 			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameterSet>& gpuParameters);
 
-			/** Binds all the provided buffers to the provided GpuParameters object. */
+			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& shadowCubeMatrices, const GpuBufferSuballocation& shadowCubeMasks, const SPtr<GpuBuffer>& perObjectParams);
 
 			/**
@@ -552,7 +552,7 @@ namespace b3d
 			/** For each visible shadow casting light, renders a shadow map from its point of view. */
 			void RenderShadowMaps(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, const RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
-			/** Prepares all the GpuParameters required for rendering projected shadows for the specified light. Should be followed by RenderShadowProjectionBatch. */
+			/** Prepares all the GpuParameterSet objects required for rendering projected shadows for the specified light. Should be followed by RenderShadowProjectionBatch. */
 			ProjectedShadowRenderingBatchInformation PrepareParametersForRenderShadowProjection(GpuDevice& gpuDevice, const RendererView& view, const RendererLight& rendererLight, GBufferTextures gbuffer) const;
 
 			/**
