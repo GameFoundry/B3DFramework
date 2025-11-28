@@ -24,7 +24,7 @@ parameterSet->SetStorageBuffer("outputBuffer", myOutputBuffer);
 
 // Bind the pipeline state and parameters
 commandBuffer->SetGpuComputePipelineState(computePipelineState);
-commandBuffer->SetGpuParameters(parameterSet);
+commandBuffer->SetGpuParameterSet(parameterSet);
 
 // Execute a GPU program with 32x32 thread-groups
 commandBuffer->DispatchCompute(32, 32, 1);

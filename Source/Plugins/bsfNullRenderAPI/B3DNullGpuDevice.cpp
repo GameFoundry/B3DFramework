@@ -167,7 +167,7 @@ namespace b3d
 			return program;
 		}
 
-		SPtr<GpuParameters> NullGpuDevice::CreateGpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout, bool deferredInitialize)
+		SPtr<GpuParameterSet> NullGpuDevice::CreateGpuParameterSet(const SPtr<GpuPipelineParameterLayout>& parameterLayout, u32 setIndex, bool deferredInitialize)
 		{
 			SPtr<NullGpuParameters> parameters = B3DMakeShared<NullGpuParameters>(*this, parameterLayout);
 

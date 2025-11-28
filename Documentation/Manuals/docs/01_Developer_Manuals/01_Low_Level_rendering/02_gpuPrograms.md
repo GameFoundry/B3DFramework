@@ -361,11 +361,11 @@ SPtr<GpuBuffer> multiInstanceBuffer = gMyUniformBufferDef.CreateBuffer(100); // 
 ~~~~~~~~~~~~~
 
 ## Binding GPU parameter sets
-Once **GpuParameterSet** has been created and populated with necessary data, you can bind it to the GPU by calling @b3d::render::GpuCommandBuffer::SetGpuParameters.
+Once **GpuParameterSet** has been created and populated with necessary data, you can bind it to the GPU by calling @b3d::render::GpuCommandBuffer::SetGpuParameterSet.
 
 ~~~~~~~~~~~~~{.cpp}
 // This should be called after the pipeline expecting these parameters is bound
-commandBuffer->SetGpuParameters(parameterSet);
+commandBuffer->SetGpuParameterSet(parameterSet);
 ~~~~~~~~~~~~~
 
 ## Complete example
@@ -424,7 +424,7 @@ parameterSet->SetSampledTexture("mainTexture", texture);
 
 // 6. Bind pipeline and parameters, then draw
 commandBuffer->SetGpuGraphicsPipelineState(pipeline);
-commandBuffer->SetGpuParameters(parameterSet);
+commandBuffer->SetGpuParameterSet(parameterSet);
 
 // Your draw calls here...
 ~~~~~~~~~~~~~

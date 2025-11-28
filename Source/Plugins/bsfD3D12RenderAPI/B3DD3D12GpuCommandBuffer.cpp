@@ -327,7 +327,7 @@ CommandBufferState D3D12GpuCommandBuffer::GetState() const
 	}
 }
 
-void D3D12GpuCommandBuffer::SetGpuParameters(const SPtr<GpuParameters>& parameters)
+void D3D12GpuCommandBuffer::SetGpuParameterSet(const SPtr<GpuParameterSet>& parameters)
 {
 	mBoundParams = std::static_pointer_cast<D3D12GpuParameters>(parameters);
 	mBoundParamsDirty = true;

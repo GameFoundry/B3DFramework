@@ -32,7 +32,7 @@ namespace b3d::render
 	 *     [=](GpuCommandBuffer& cmd, FrameGraphPassResources& resources) {
 	 *         auto texture = resources.GetTexture(transientTexture);
 	 *         params->SetTexture("paramName", texture);
-	 *         cmd.SetGpuParameters(params);
+	 *         cmd.SetGpuParameterSet(params);
 	 *         cmd.Draw(3);
 	 *     });
 	 * @endcode

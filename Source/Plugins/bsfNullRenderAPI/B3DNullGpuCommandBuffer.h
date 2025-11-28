@@ -31,7 +31,7 @@ namespace b3d
 			void SetName(const StringView& name) override { mName = name; }
 			CommandBufferState GetState() const override { return mState; }
 
-			void SetGpuParameters(const SPtr<GpuParameters>& parameters) override {}
+			void SetGpuParameterSet(const SPtr<GpuParameterSet>& parameters) override {}
 			void SetDynamicBufferOffset(u32 bufferIndex, u32 offset) override {}
 			void SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState) override {}
 			void SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& pipelineState) override {}

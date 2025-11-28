@@ -389,7 +389,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		TInlineArray<u32, 4> tempDynamicOffsets;
 		vkParams->PrepareForBind(*this, mResourceTracker, mBarrierHelper, descriptorSet, tempDynamicOffsets);
 
-		// Cache the preparation results for later use by SetGpuParameters
+		// Cache the preparation results for later use by SetGpuParameterSet
 		CachedGpuParameterData& cacheData = mRenderPassGpuParametersCache[parameters.get()];
 		cacheData.DescriptorSet = descriptorSet;
 		cacheData.DynamicOffsets = std::move(tempDynamicOffsets);
@@ -1677,7 +1677,7 @@ void VulkanGpuCommandBuffer::BindGpuParameters(VulkanBarrierHelper& barrierHelpe
 				if(IsInRenderPass())
 				{
 					B3D_ENSURE(false);
-					B3D_LOG(Warning, RenderBackend, "SetGpuParameters() called with parameters not declared in RenderPassCreateInformation. Automatic resource barriers and layout transitions may not execute correctly.");
+					B3D_LOG(Warning, RenderBackend, "SetGpuParameterSet() called with parameters not declared in RenderPassCreateInformation. Automatic resource barriers and layout transitions may not execute correctly.");
 				}
 
 				// Fallback: No cached data, call PrepareForBind now

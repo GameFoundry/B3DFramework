@@ -57,7 +57,7 @@ namespace b3d
 			SPtr<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			SPtr<EventQuery> CreateEventQuery() override;
 			SPtr<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, bool deferredInitialize = false) override;
-			SPtr<GpuParameters> CreateGpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout, bool deferredInitialize) override;
+			SPtr<GpuParameterSet> CreateGpuParameterSet(const SPtr<GpuPipelineParameterLayout>& parameterLayout, u32 setIndex = 0, bool deferredInitialize = false) override;
 			SPtr<GpuGraphicsPipelineState> CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, bool deferredInitialize) override;
 			SPtr<GpuComputePipelineState> CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, bool deferredInitialize) override;
 			SPtr<GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, bool deferredInitialize) override;

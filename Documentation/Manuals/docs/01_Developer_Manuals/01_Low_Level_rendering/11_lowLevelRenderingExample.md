@@ -240,7 +240,7 @@ commandBuffer->SetDrawOperation(DOT_TRIANGLE_LIST);
 GPU parameter sets containing uniform buffers, textures, and samplers are bound:
 
 ~~~~~~~~~~~~~{.cpp}
-commandBuffer->SetGpuParameters(parameterSet);
+commandBuffer->SetGpuParameterSet(parameterSet);
 ~~~~~~~~~~~~~
 
 ## Drawing

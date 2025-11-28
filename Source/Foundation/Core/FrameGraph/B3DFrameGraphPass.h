@@ -253,7 +253,7 @@ namespace b3d::render
 		 * matching the behavior of VulkanGpuParameters::PrepareForBind.
 		 *
 		 * Note: Does NOT automatically bind parameters during execute - user must call
-		 * cmd.SetGpuParameters() explicitly to allow different parameters per draw call.
+		 * cmd.SetGpuParameterSet() explicitly to allow different parameters per draw call.
 		 *
 		 * @param params  GpuParameterSet object containing resources to import
 		 */

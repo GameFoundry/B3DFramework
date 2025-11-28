@@ -39,7 +39,7 @@ Once created, you can record rendering commands by calling methods on the comman
 - @b3d::render::GpuCommandBuffer::EndRenderPass - Ends the current render pass
 - @b3d::render::GpuCommandBuffer::SetGpuGraphicsPipelineState - Sets the graphics pipeline state
 - @b3d::render::GpuCommandBuffer::SetGpuComputePipelineState - Sets the compute pipeline state
-- @b3d::render::GpuCommandBuffer::SetGpuParameters - Binds a GPU parameter set
+- @b3d::render::GpuCommandBuffer::SetGpuParameterSet - Binds a GPU parameter set
 - @b3d::render::GpuCommandBuffer::SetVertexBuffers - Binds vertex buffers
 - @b3d::render::GpuCommandBuffer::SetIndexBuffer - Binds an index buffer
 - @b3d::render::GpuCommandBuffer::SetVertexDescription - Sets the vertex declaration
@@ -65,7 +65,7 @@ commandBuffer->SetVertexBuffers(0, &vertexBuffer, 1);
 commandBuffer->SetIndexBuffer(indexBuffer);
 commandBuffer->SetVertexDescription(vertexDescription);
 commandBuffer->SetDrawOperation(DOT_TRIANGLE_LIST);
-commandBuffer->SetGpuParameters(parameterSet);
+commandBuffer->SetGpuParameterSet(parameterSet);
 
 // Draw
 commandBuffer->DrawIndexed(0, indexCount, 0, vertexCount, 1, 0);

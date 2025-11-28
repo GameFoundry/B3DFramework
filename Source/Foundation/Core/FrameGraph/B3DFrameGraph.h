@@ -57,7 +57,7 @@ namespace b3d::render
 	 *         pass.WriteColor(outputTexture);
 	 *     },
 	 *     [=](GpuCommandBuffer& cmd, FrameGraphPassResources& resources) {
-	 *         cmd.SetGpuParameters(materialParams);
+	 *         cmd.SetGpuParameterSet(materialParams);
 	 *         cmd.Draw(...);
 	 *     });
 	 *
@@ -112,7 +112,7 @@ namespace b3d::render
 	 *         compositeParams->SetTexture("bloomTex", bloom);
 	 *
 	 *         cmd.SetPipeline(compositePipeline);
-	 *         cmd.SetGpuParameters(compositeParams);
+	 *         cmd.SetGpuParameterSet(compositeParams);
 	 *         cmd.Draw(3);
 	 *         // Bloom texture is deallocated automatically after this pass
 	 *     });
@@ -140,7 +140,7 @@ namespace b3d::render
 	 *         updateParams->SetBuffer("particleBuffer", buffer);
 	 *
 	 *         cmd.SetPipeline(updatePipeline);
-	 *         cmd.SetGpuParameters(updateParams);
+	 *         cmd.SetGpuParameterSet(updateParams);
 	 *         cmd.Dispatch(100, 1, 1);
 	 *     });
 	 * @endcode
@@ -184,7 +184,7 @@ namespace b3d::render
 	 *         myParams->SetTexture("inputTex", texture);
 	 *
 	 *         // Step 3: Use as normal
-	 *         cmd.SetGpuParameters(myParams);
+	 *         cmd.SetGpuParameterSet(myParams);
 	 *         cmd.Draw(3);
 	 *     });
 	 * @endcode
@@ -287,7 +287,7 @@ namespace b3d::render
 	 *         params->SetTexture("bloomTex", bloom);
 	 *
 	 *         cmd.SetPipeline(compositePipeline);
-	 *         cmd.SetGpuParameters(params);
+	 *         cmd.SetGpuParameterSet(params);
 	 *         cmd.Draw(3);
 	 *         // Bloom texture is automatically deallocated after this pass
 	 *     });
