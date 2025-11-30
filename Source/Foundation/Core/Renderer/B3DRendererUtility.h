@@ -9,7 +9,7 @@
 #include "RenderAPI/B3DGpuDevice.h"
 #include "Mesh/B3DMeshBase.h"
 #include "Renderer/B3DRendererMaterial.h"
-#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DGpuUniformBuffer.h"
 
 namespace b3d
 {

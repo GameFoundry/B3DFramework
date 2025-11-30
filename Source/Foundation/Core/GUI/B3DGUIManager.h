@@ -15,7 +15,7 @@
 #include "Math/B3DMatrix4.h"
 #include "Utility/B3DEvent.h"
 #include "Material/B3DMaterialParam.h"
-#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DGpuUniformBuffer.h"
 #include "RenderAPI/B3DGpuDevice.h"
 
 namespace b3d

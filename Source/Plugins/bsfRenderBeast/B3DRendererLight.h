@@ -4,7 +4,7 @@
 
 #include "B3DRenderBeastPrerequisites.h"
 #include "Renderer/B3DRendererMaterial.h"
-#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DGpuUniformBuffer.h"
 #include "Components/B3DLight.h"
 #include "RenderAPI/B3DGpuPipelineParameterLayout.h"
 

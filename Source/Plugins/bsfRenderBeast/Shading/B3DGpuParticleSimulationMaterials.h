@@ -4,7 +4,7 @@
 
 #include "B3DRenderBeastPrerequisites.h"
 #include "Renderer/B3DRendererMaterial.h"
-#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DGpuUniformBuffer.h"
 #include "B3DGpuParticleConstants.h"
 
 namespace b3d { namespace render

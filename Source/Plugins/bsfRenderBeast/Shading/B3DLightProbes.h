@@ -8,7 +8,7 @@
 #include "Math/B3DMatrixNxM.h"
 #include "Renderer/B3DRendererMaterial.h"
 #include "Renderer/B3DGpuResourcePool.h"
-#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DGpuUniformBuffer.h"
 #include "B3DRendererLight.h"
 
 namespace b3d

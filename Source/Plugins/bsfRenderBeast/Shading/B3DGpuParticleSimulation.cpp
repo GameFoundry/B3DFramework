@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DGpuParticleSimulation.h"
-#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DGpuUniformBuffer.h"
 #include "Renderer/B3DRendererMaterial.h"
 #include "Renderer/B3DGpuResourcePool.h"
 #include "RenderAPI/B3DVertexDescription.h"

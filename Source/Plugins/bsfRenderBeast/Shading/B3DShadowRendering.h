@@ -6,7 +6,7 @@
 #include "Utility/B3DModule.h"
 #include "Math/B3DMatrix4.h"
 #include "Math/B3DConvexVolume.h"
-#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DGpuUniformBuffer.h"
 #include "Renderer/B3DRendererMaterial.h"
 #include "Image/B3DTextureAtlasLayout.h"
 #include "B3DRendererLight.h"

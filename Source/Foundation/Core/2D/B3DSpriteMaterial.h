@@ -6,7 +6,7 @@
 #include "Material/B3DMaterialParam.h"
 #include "Image/B3DColor.h"
 #include "Material/B3DShaderVariation.h"
-#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DGpuUniformBuffer.h"
 
 namespace b3d
 {

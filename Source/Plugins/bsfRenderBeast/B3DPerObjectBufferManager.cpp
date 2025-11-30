@@ -27,10 +27,7 @@ RenderableUniformBufferManager::RenderableAllocation RenderableUniformBufferMana
 	RenderableAllocation result;
 
 	result.PerObjectSuballocation = mRenderablePool.Allocate();
-	result.SharedParameterSet = GetOrCreateParameterSet(
-		result.PerObjectSuballocation.GetBuffer(),
-		nullptr,
-		layout);
+	result.SharedParameterSet = GetOrCreateParameterSet(result.PerObjectSuballocation.GetBuffer(), nullptr, layout);
 
 	GpuParameterBinding binding = layout->GetBinding("PerObject");
 	if(binding.IsValid())
@@ -46,10 +43,7 @@ RenderableUniformBufferManager::DecalAllocation RenderableUniformBufferManager::
 	result.PerObjectSuballocation = mRenderablePool.Allocate();
 	result.DecalSuballocation = mDecalPool.Allocate();
 
-	result.SharedParameterSet = GetOrCreateParameterSet(
-		result.PerObjectSuballocation.GetBuffer(),
-		result.DecalSuballocation.GetBuffer(),
-		layout);
+	result.SharedParameterSet = GetOrCreateParameterSet(result.PerObjectSuballocation.GetBuffer(), result.DecalSuballocation.GetBuffer(), layout);
 
 	GpuParameterBinding perObjectBinding = layout->GetBinding("PerObject");
 	if(perObjectBinding.IsValid())
@@ -76,9 +70,7 @@ void RenderableUniformBufferManager::Release(const DecalAllocation& allocation)
 	if(!allocation.PerObjectSuballocation.IsValid())
 		return;
 
-	ReleaseParameterSet(
-		allocation.PerObjectSuballocation.GetBuffer(),
-		allocation.DecalSuballocation.GetBuffer());
+	ReleaseParameterSet(allocation.PerObjectSuballocation.GetBuffer(), allocation.DecalSuballocation.GetBuffer());
 
 	mRenderablePool.Release(allocation.PerObjectSuballocation);
 

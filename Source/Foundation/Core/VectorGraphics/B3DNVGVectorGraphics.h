@@ -4,7 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "VectorGraphics/B3DVectorGraphics.h"
-#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DGpuUniformBuffer.h"
 #include "Renderer/B3DRendererMaterial.h"
 #include <ThirdParty/nanovg.h>
 

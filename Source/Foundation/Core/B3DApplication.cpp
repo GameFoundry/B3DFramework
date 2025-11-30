@@ -50,7 +50,7 @@
 #include "Material/B3DShaderCompiler.h"
 #include "Particles/B3DParticleScene.h"
 #include "Particles/B3DVectorField.h"
-#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DGpuUniformBuffer.h"
 #include "Platform/B3DFolderMonitor.h"
 #include "RenderAPI/B3DGpuBackend.h"
 #include "Renderer/B3DRenderer.h"
