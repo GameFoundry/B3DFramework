@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
-#include "RenderAPI/B3DGpuParam.h"
+#include "RenderAPI/B3DGpuParameter.h"
 #include "RenderAPI/B3DGpuBufferPool.h"
 #include "CoreObject/B3DCoreObject.h"
 #include "Resources/B3DIResourceListener.h"
