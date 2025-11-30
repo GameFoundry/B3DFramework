@@ -9,6 +9,7 @@
 #include "Material/B3DMaterialParam.h"
 #include "RenderAPI/B3DGpuPipelineParameterLayout.h"
 #include "B3DRendererReflectionProbe.h"
+#include "Utility/B3DRenderableUniformBufferManager.h"
 
 namespace b3d
 {
@@ -35,7 +36,7 @@ namespace b3d
 		{
 		public:
 			/** Updates the provided buffer with the data from the provided matrices. */
-			static void Update(SPtr<GpuBuffer>& buffer, const Matrix4& tfrm, const Matrix4& tfrmNoScale, const Matrix4& prevTfrm, u32 layer);
+			static void Update(const GpuBufferSuballocation& suballocation, const Matrix4& tfrm, const Matrix4& tfrmNoScale, const Matrix4& prevTfrm, u32 layer);
 		};
 
 		struct MaterialSamplerOverrides;
@@ -92,8 +93,6 @@ namespace b3d
 		/** Contains information about a Renderable, used by the Renderer. */
 		struct RendererRenderable
 		{
-			RendererRenderable();
-
 			/** Updates the per-object GPU buffer according to the currently set properties. */
 			void UpdatePerObjectBuffer();
 
@@ -104,7 +103,7 @@ namespace b3d
 			Renderable* Renderable = nullptr;
 			Vector<RenderableElement> Elements;
 
-			SPtr<GpuBuffer> PerObjectParamBuffer;
+			RenderableUniformBufferManager::RenderableAllocation BufferAllocation;
 		};
 
 		/** @} */

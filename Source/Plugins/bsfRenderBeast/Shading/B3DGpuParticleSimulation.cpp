@@ -707,7 +707,7 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 
 		// Populate remaining parameters (textures and other buffers)
 		GpuParticleSimulateMaterial::PopulateParameters(systemParams, m->Resources, m->ParticleVertexInputBuffer, viewParams,
-			gbuffer.Depth, gbuffer.Normals, entry->GetTileUVs(), rendererParticles.PerObjectParamBuffer, vectorFieldTexture, supportsDepthCollisions
+			gbuffer.Depth, gbuffer.Normals, entry->GetTileUVs(), rendererParticles.BufferAllocation.PerObjectSuballocation, vectorFieldTexture, supportsDepthCollisions
 		);
 
 		simulatePass.Parameters.Add(systemParams);

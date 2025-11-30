@@ -11,15 +11,15 @@ namespace render {
 
 PerObjectUniformDefinition gPerObjectUniformDefinition;
 
-void PerObjectBuffer::Update(SPtr<GpuBuffer>& buffer, const Matrix4& tfrm, const Matrix4& tfrmNoScale, const Matrix4& prevTfrm, u32 layer)
+void PerObjectBuffer::Update(const GpuBufferSuballocation& suballocation, const Matrix4& tfrm, const Matrix4& tfrmNoScale, const Matrix4& prevTfrm, u32 layer)
 {
-	gPerObjectUniformDefinition.gMatWorld.Set(buffer, tfrm);
-	gPerObjectUniformDefinition.gMatInvWorld.Set(buffer, tfrm.InverseAffine());
-	gPerObjectUniformDefinition.gMatWorldNoScale.Set(buffer, tfrmNoScale);
-	gPerObjectUniformDefinition.gMatInvWorldNoScale.Set(buffer, tfrmNoScale.InverseAffine());
-	gPerObjectUniformDefinition.gMatPrevWorld.Set(buffer, prevTfrm);
-	gPerObjectUniformDefinition.gWorldDeterminantSign.Set(buffer, tfrm.Determinant3x3() >= 0.0f ? 1.0f : -1.0f);
-	gPerObjectUniformDefinition.gLayer.Set(buffer, (i32)layer);
+	gPerObjectUniformDefinition.gMatWorld.Set(suballocation, tfrm);
+	gPerObjectUniformDefinition.gMatInvWorld.Set(suballocation, tfrm.InverseAffine());
+	gPerObjectUniformDefinition.gMatWorldNoScale.Set(suballocation, tfrmNoScale);
+	gPerObjectUniformDefinition.gMatInvWorldNoScale.Set(suballocation, tfrmNoScale.InverseAffine());
+	gPerObjectUniformDefinition.gMatPrevWorld.Set(suballocation, prevTfrm);
+	gPerObjectUniformDefinition.gWorldDeterminantSign.Set(suballocation, tfrm.Determinant3x3() >= 0.0f ? 1.0f : -1.0f);
+	gPerObjectUniformDefinition.gLayer.Set(suballocation, (i32)layer);
 }
 
 void RenderableElement::Draw(GpuCommandBuffer& commandBuffer) const
@@ -30,16 +30,11 @@ void RenderableElement::Draw(GpuCommandBuffer& commandBuffer) const
 		GetRendererUtility().DrawMorph(commandBuffer, Mesh, SubMesh, MorphShapeBuffer, MorphVertexDefinition);
 }
 
-RendererRenderable::RendererRenderable()
-{
-	PerObjectParamBuffer = gPerObjectUniformDefinition.CreateBuffer();
-}
-
 void RendererRenderable::UpdatePerObjectBuffer()
 {
 	const Matrix4 worldNoScaleTransform = Renderable->GetWorldTransformMatrixWithoutScale();
 	const u32 layer = Bitwise::MostSignificantBit(Renderable->GetLayer());
 
-	PerObjectBuffer::Update(PerObjectParamBuffer, WorldTfrm, worldNoScaleTransform, PrevWorldTfrm, layer);
+	PerObjectBuffer::Update(BufferAllocation.PerObjectSuballocation, WorldTfrm, worldNoScaleTransform, PrevWorldTfrm, layer);
 }
 }} // namespace b3d::render

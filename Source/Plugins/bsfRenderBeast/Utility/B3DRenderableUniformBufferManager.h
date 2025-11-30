@@ -29,7 +29,7 @@ namespace b3d::render
 		};
 
 		/** Allocation result for a decal (includes DecalParamBuffer). */
-		struct DecalAllocation : RenderableAllocation
+		struct DecalAllocation : RenderableAllocation // TODO - The allocation result should return a union (or variant) of all possible extra sub-allocations. And there should only be one Allocate method that takes an enum indicating type of allocation needed.
 		{
 			GpuBufferSuballocation DecalSuballocation;
 			u32 DecalDynamicOffsetIndex = 0;

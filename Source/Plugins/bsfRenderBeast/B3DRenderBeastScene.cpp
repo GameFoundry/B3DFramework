@@ -363,7 +363,6 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 	rendererRenderable->WorldTfrm = renderable->GetWorldTransformMatrix();
 	rendererRenderable->PrevWorldTfrm = rendererRenderable->WorldTfrm;
 	rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Clean;
-	rendererRenderable->UpdatePerObjectBuffer();
 
 	SPtr<Mesh> mesh = renderable->GetMesh();
 	if(mesh != nullptr)
@@ -442,6 +441,15 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 		}
 	}
 
+	// Allocate from the uniform buffer manager after the first element's ParameterAdapter is created
+	if(!rendererRenderable->Elements.empty())
+	{
+		SPtr<GpuPipelineParameterLayout> layout = rendererRenderable->Elements[0].ParameterAdapter->GetGpuParameterSet()->GetPipelineParameterLayout();
+		rendererRenderable->BufferAllocation = mRenderableUniformBufferManager.AllocateForRenderable(layout);
+	}
+
+	rendererRenderable->UpdatePerObjectBuffer();
+
 	// Prepare all parameter bindings
 	for(auto& element : rendererRenderable->Elements)
 	{
@@ -452,12 +460,14 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 			continue;
 		}
 
+		// Store shared parameter set pointer for render-time binding
+		element.SharedPerObjectParameterSet = rendererRenderable->BufferAllocation.SharedParameterSet;
+
 		SPtr<GpuParameterSet> gpuParameterSet = element.ParameterAdapter->GetGpuParameterSet();
 
 		// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 		// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
 		gpuParameterSet->TrySetUniformBuffer("PerFrame", mPerFrameParamBuffer);
-		gpuParameterSet->SetUniformBuffer("PerObject", rendererRenderable->PerObjectParamBuffer);
 
 		gpuParameterSet->GetPipelineParameterLayout()->GetBinding("PerCamera", element.PerCameraBinding);
 
@@ -510,6 +520,9 @@ void RenderBeastScene::UnregisterRenderable(Renderable* renderable)
 		FreeSamplerStateOverrides(element);
 		element.SamplerOverrides = nullptr;
 	}
+
+	// Release the buffer allocation
+	mRenderableUniformBufferManager.Release(rendererRenderable->BufferAllocation);
 
 	if(renderableId != lastRenderableId)
 	{
@@ -769,9 +782,6 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 		return;
 	}
 
-	rendererParticles.PerObjectParamBuffer = gPerObjectUniformDefinition.CreateBuffer();
-	rendererParticles.UpdatePerObjectBuffer();
-
 	SPtr<GpuBuffer> particlesParamBuffer = gParticlesParamDef.CreateBuffer();
 	rendererParticles.ParticlesParamBuffer = particlesParamBuffer;
 
@@ -882,6 +892,16 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 
 	SPtr<GpuParameterSet> gpuParams = renElement.ParameterAdapter->GetGpuParameterSet();
 
+	// Allocate from the uniform buffer manager after ParameterAdapter is created
+	SPtr<GpuPipelineParameterLayout> layout = gpuParams->GetPipelineParameterLayout();
+	rendererParticles.BufferAllocation = mRenderableUniformBufferManager.AllocateForRenderable(layout);
+
+	// Store shared parameter set pointer for render-time binding
+	renElement.SharedPerObjectParameterSet = rendererParticles.BufferAllocation.SharedParameterSet;
+
+	// Now update the per-object buffer (allocation is ready)
+	rendererParticles.UpdatePerObjectBuffer();
+
 	if(gpu)
 	{
 		gpuParams->GetSampledTextureParameter("gPositionTimeTex", renElement.ParamsGpu.PositionTimeTexture);
@@ -921,7 +941,6 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 	// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 	// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
 	gpuParams->SetUniformBuffer("ParticleParams", rendererParticles.ParticlesParamBuffer);
-	gpuParams->SetUniformBuffer("PerObject", rendererParticles.PerObjectParamBuffer);
 	gpuParams->SetUniformBuffer("GpuParticleParams", rendererParticles.GpuParticlesParamBuffer);
 
 	gpuParams->GetStorageBufferParameter("gIndices", renElement.IndicesBuffer);
@@ -1034,6 +1053,9 @@ void RenderBeastScene::UnregisterParticleSystem(ParticleSystem* particleSystem)
 		rendererParticles.GpuParticleSystem = nullptr;
 	}
 
+	// Release the buffer allocation
+	mRenderableUniformBufferManager.Release(rendererParticles.BufferAllocation);
+
 	ParticleSystem* lastSystem = mInfo.ParticleSystems.back().ParticleSystem;
 	const u32 lastRendererId = lastSystem->GetRendererId();
 
@@ -1061,7 +1083,6 @@ void RenderBeastScene::RegisterDecal(Decal* decal)
 
 	RendererDecal& rendererDecal = mInfo.Decals.back();
 	rendererDecal.Decal = decal;
-	rendererDecal.UpdatePerObjectBuffer();
 
 	DecalRenderElement& renElement = rendererDecal.RenderElement;
 	renElement.Type = (u32)RenderElementType::Decal;
@@ -1110,12 +1131,20 @@ void RenderBeastScene::RegisterDecal(Decal* decal)
 	// Prepare all parameter bindings
 	SPtr<GpuParameterSet> gpuParams = renElement.ParameterAdapter->GetGpuParameterSet();
 
+	// Allocate from the uniform buffer manager after ParameterAdapter is created
+	SPtr<GpuPipelineParameterLayout> layout = gpuParams->GetPipelineParameterLayout();
+	rendererDecal.BufferAllocation = mRenderableUniformBufferManager.AllocateForRenderable(layout);
+
+	// Store shared parameter set pointer for render-time binding
+	renElement.SharedPerObjectParameterSet = rendererDecal.BufferAllocation.SharedParameterSet;
+
+	// Now update the per-object buffer (allocation is ready)
+	rendererDecal.UpdatePerObjectBuffer();
+
 	// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 	// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
 	gpuParams->SetUniformBuffer("PerFrame", mPerFrameParamBuffer);
 	gpuParams->SetUniformBuffer("DecalParams", rendererDecal.DecalParamBuffer);
-	gpuParams->SetUniformBuffer("PerObject", rendererDecal.PerObjectParamBuffer);
-	gpuParams->SetUniformBuffer("PerCall", rendererDecal.PerCallParamBuffer);
 
 	gpuParams->GetPipelineParameterLayout()->GetBinding("PerCamera", renElement.PerCameraBinding);
 
@@ -1147,6 +1176,9 @@ void RenderBeastScene::UnregisterDecal(Decal* decal)
 	FreeSamplerStateOverrides(renElement);
 	renElement.SamplerOverrides = nullptr;
 
+	// Release the buffer allocation
+	mRenderableUniformBufferManager.Release(rendererDecal.BufferAllocation);
+
 	if(rendererId != lastDecalId)
 	{
 		// Swap current last element with the one we want to erase
@@ -1166,6 +1198,7 @@ void RenderBeastScene::Initialize()
 	GetRenderBeast()->NotifySceneCreated(std::static_pointer_cast<RenderBeastScene>(GetShared()));
 
 	mGpuDevice = GetRenderBeast()->GetGpuDevice();
+	mRenderableUniformBufferManager.Initialize(*mGpuDevice);
 	RendererScene::Initialize();
 }
 
@@ -1469,7 +1502,6 @@ void RenderBeastScene::PrepareVisibleRenderable(u32 idx, const FrameInfo& frameI
 		}
 	}
 
-	mInfo.Renderables[idx]->PerObjectParamBuffer->FlushCache();
 	mInfo.RenderableReady[idx] = true;
 }
 
@@ -1491,8 +1523,6 @@ void RenderBeastScene::PrepareParticleSystem(u32 idx, const FrameInfo& frameInfo
 
 	ParticlesRenderElement& renElement = mInfo.ParticleSystems[idx].RenderElement;
 	renElement.ParameterAdapter->Update(renElement.Material, 0.0f);
-
-	mInfo.ParticleSystems[idx].PerObjectParamBuffer->FlushCache();
 }
 
 void RenderBeastScene::PrepareDecal(u32 idx, const FrameInfo& frameInfo)
@@ -1500,8 +1530,6 @@ void RenderBeastScene::PrepareDecal(u32 idx, const FrameInfo& frameInfo)
 	DecalRenderElement& renElement = mInfo.Decals[idx].RenderElement;
 	renElement.MaterialAnimationTime += frameInfo.Timings.TimeDelta;
 	renElement.ParameterAdapter->Update(renElement.Material, renElement.MaterialAnimationTime);
-
-	mInfo.Decals[idx].PerObjectParamBuffer->FlushCache();
 }
 
 void RenderBeastScene::UpdateParticleSystemBounds(const EvaluatedParticleData* particleRenderData)

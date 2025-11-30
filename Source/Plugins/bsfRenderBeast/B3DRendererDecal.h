@@ -8,6 +8,7 @@
 #include "Material/B3DMaterialParam.h"
 #include "RenderAPI/B3DGpuPipelineParameterLayout.h"
 #include "Renderer/B3DRendererMaterial.h"
+#include "Utility/B3DRenderableUniformBufferManager.h"
 
 namespace b3d
 {
@@ -103,8 +104,7 @@ namespace b3d
 			mutable DecalRenderElement RenderElement;
 
 			SPtr<GpuBuffer> DecalParamBuffer;
-			SPtr<GpuBuffer> PerObjectParamBuffer;
-			SPtr<GpuBuffer> PerCallParamBuffer;
+			RenderableUniformBufferManager::RenderableAllocation BufferAllocation;
 		};
 
 		/** @} */

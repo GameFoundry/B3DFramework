@@ -19,7 +19,6 @@ void DecalRenderElement::Draw(GpuCommandBuffer& commandBuffer) const
 RendererDecal::RendererDecal()
 {
 	DecalParamBuffer = gDecalParamDef.CreateBuffer();
-	PerObjectParamBuffer = gPerObjectUniformDefinition.CreateBuffer();
 }
 
 void RendererDecal::UpdatePerObjectBuffer()
@@ -37,7 +36,7 @@ void RendererDecal::UpdatePerObjectBuffer()
 	const Matrix4 worldNoScaleTransform = Decal->GetWorldTransformMatrixWithoutScale() * scaleAndOffset;
 
 	// Note: Not providing the previous frame matrix here
-	PerObjectBuffer::Update(PerObjectParamBuffer, worldTransform, worldNoScaleTransform, worldTransform, 0);
+	PerObjectBuffer::Update(BufferAllocation.PerObjectSuballocation, worldTransform, worldNoScaleTransform, worldTransform, 0);
 
 	const Transform& tfrm = Decal->GetWorldTransform();
 

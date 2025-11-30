@@ -35,10 +35,25 @@ UnorderedMap<StringID, RenderCompositor::NodeDescriptor*> RenderCompositor::mNod
 /** Renders all elements in a render queue. */
 void RenderQueueElements(GpuCommandBuffer& commandBuffer, const Vector<RenderQueueElement>& elements)
 {
+	// TODO: Consider sorting elements by SharedPerObjectParameterSet to minimize parameter set rebinds.
+	// Currently respecting existing RenderQueue sorting rules (material, distance, etc.).
+
+	SPtr<GpuParameterSet> lastBoundPerObjectSet;
+
 	for(auto& entry : elements)
 	{
 		if(entry.ApplyPass)
 			GetRendererUtility().SetPass(commandBuffer, entry.RenderElem->Material, entry.PassIdx, entry.TechniqueIdx);
+
+		// Bind shared per-object parameter set if changed (using SetGpuParameterSet directly, not SetPassParams)
+		if(entry.RenderElem->SharedPerObjectParameterSet != lastBoundPerObjectSet)
+		{
+			if(entry.RenderElem->SharedPerObjectParameterSet)
+			{
+				commandBuffer.SetGpuParameterSet(entry.RenderElem->SharedPerObjectParameterSet);
+				lastBoundPerObjectSet = entry.RenderElem->SharedPerObjectParameterSet;
+			}
+		}
 
 		GetRendererUtility().SetPassParams(commandBuffer, entry.RenderElem->ParameterAdapter, entry.PassIdx);
 

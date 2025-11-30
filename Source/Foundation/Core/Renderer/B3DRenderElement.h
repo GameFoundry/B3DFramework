@@ -35,6 +35,9 @@ namespace b3d
 			/** All GPU parameters from the material used by the renderable. */
 			SPtr<MaterialParameterAdapter> ParameterAdapter;
 
+			/** Shared parameter set for per-object data (set #1), bound at render time. */
+			SPtr<GpuParameterSet> SharedPerObjectParameterSet;
+
 			/** Renderer specific value that identifies the type of this renderable element. */
 			u32 Type = 0;
 

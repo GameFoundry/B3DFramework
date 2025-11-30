@@ -10,6 +10,7 @@
 #include "Allocators/B3DPoolAlloc.h"
 #include "Renderer/B3DRendererMaterial.h"
 #include "Utility/B3DTextureRowAllocator.h"
+#include "Utility/B3DRenderableUniformBufferManager.h"
 #include "B3DRendererLight.h"
 #include "B3DRendererReflectionProbe.h"
 #include "Shading/B3DGpuParticleSimulation.h"
@@ -230,8 +231,8 @@ namespace b3d
 			/** Extra parameters required by the particle rendering shader if the particle system is GPU simulated. */
 			SPtr<GpuBuffer> GpuParticlesParamBuffer;
 
-			/** Buffer containing the world transform data for the rendered object. */
-			SPtr<GpuBuffer> PerObjectParamBuffer;
+			/** Allocation for the per-object buffer from the uniform buffer manager. */
+			RenderableUniformBufferManager::RenderableAllocation BufferAllocation;
 
 			/** Information about the color over lifetime curve stored in the global curve texture. */
 			TextureRowAllocation ColorCurveAlloc;

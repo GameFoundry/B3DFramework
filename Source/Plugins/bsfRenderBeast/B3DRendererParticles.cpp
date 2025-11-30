@@ -119,7 +119,7 @@ void RendererParticles::UpdatePerObjectBuffer()
 	else
 		localToWorldNoScale = Matrix4::kIdentity;
 
-	PerObjectBuffer::Update(PerObjectParamBuffer, LocalToWorld, localToWorldNoScale, PrevLocalToWorld, layer);
+	PerObjectBuffer::Update(BufferAllocation.PerObjectSuballocation, LocalToWorld, localToWorldNoScale, PrevLocalToWorld, layer);
 }
 
 void RendererParticles::BindCpuSimulatedInputs(const ParticleRenderData* renderData, const RendererView& view) const
