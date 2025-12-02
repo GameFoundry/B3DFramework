@@ -24,7 +24,7 @@ shader TiledDeferredImageBasedLighting
 	code
 	{			
 		[internal]
-		cbuffer Params : register(b0)
+		cbuffer Params
 		{
 			uint2 gFramebufferSize;
 		}
