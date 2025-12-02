@@ -24,7 +24,7 @@ namespace b3d
 			VkDescriptorSet GetVulkanHandle() const { return mSet; }
 
 			/** Updates the descriptor set with the provided values. */
-			void Write(VkWriteDescriptorSet* entries, u32 count);
+			void Write(TArrayView<VkWriteDescriptorSet> entries);
 
 		protected:
 			VkDescriptorSet mSet;

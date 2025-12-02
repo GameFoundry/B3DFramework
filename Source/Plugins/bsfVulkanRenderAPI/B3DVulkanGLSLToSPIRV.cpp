@@ -730,10 +730,14 @@ static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramP
 			memberInformation->ParentUniformBufferSet = uniformBufferInformation->Set;
 			memberInformation->ParentUniformBufferSlot = uniformBufferInformation->Slot;
 
-			outParameterDescription.UniformBufferMembers[memberInformation->Name] = std::move(memberInformation.value());
+			// Note: Name must be captured before moving to avoid use-after-move (evaluation order is unsequenced)
+			String memberName = memberInformation->Name;
+			outParameterDescription.UniformBufferMembers[std::move(memberName)] = std::move(memberInformation.value());
 		}
 
-		outParameterDescription.UniformBuffers[uniformBufferInformation->Name] = std::move(uniformBufferInformation.value());
+		// Note: Name must be captured before moving to avoid use-after-move (evaluation order is unsequenced)
+		String bufferName = uniformBufferInformation->Name;
+		outParameterDescription.UniformBuffers[std::move(bufferName)] = std::move(uniformBufferInformation.value());
 	}
 
 	// Combined texture/sampler (e.g. sampler2D)
@@ -742,15 +746,19 @@ static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramP
 		TOptional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossSampledTexture(compiler, resource, outLog);
 		if(sampledImageInformation)
 		{
+			String name = sampledImageInformation->Name;
 			if(sampledImageInformation->Type == GPOT_BYTE_BUFFER)
-				outParameterDescription.Buffers[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
+				outParameterDescription.Buffers[std::move(name)] = std::move(sampledImageInformation.value());
 			else
-				outParameterDescription.SampledTextures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
+				outParameterDescription.SampledTextures[std::move(name)] = std::move(sampledImageInformation.value());
 		}
 
 		TOptional<GpuObjectParameterInformation> samplerInformation = ParseSPIRVCrossSampler(compiler, resource, outLog);
 		if(samplerInformation)
-			outParameterDescription.Samplers[samplerInformation->Name] = std::move(samplerInformation.value());
+		{
+			String name = samplerInformation->Name;
+			outParameterDescription.Samplers[std::move(name)] = std::move(samplerInformation.value());
+		}
 	}
 
 	// Sampled texture or buffer (e.g. texture2D/Texture2D, samplerBuffer/Buffer)
@@ -759,10 +767,11 @@ static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramP
 		TOptional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossSampledTexture(compiler, resource, outLog);
 		if(sampledImageInformation)
 		{
+			String name = sampledImageInformation->Name;
 			if(sampledImageInformation->Type == GPOT_BYTE_BUFFER)
-				outParameterDescription.Buffers[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
+				outParameterDescription.Buffers[std::move(name)] = std::move(sampledImageInformation.value());
 			else
-				outParameterDescription.SampledTextures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
+				outParameterDescription.SampledTextures[std::move(name)] = std::move(sampledImageInformation.value());
 		}
 	}
 
@@ -772,10 +781,11 @@ static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramP
 		TOptional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossStorageTexture(compiler, resource, outLog);
 		if(sampledImageInformation)
 		{
+			String name = sampledImageInformation->Name;
 			if(sampledImageInformation->Type == GPOT_RWBYTE_BUFFER)
-				outParameterDescription.Buffers[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
+				outParameterDescription.Buffers[std::move(name)] = std::move(sampledImageInformation.value());
 			else
-				outParameterDescription.StorageTextures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
+				outParameterDescription.StorageTextures[std::move(name)] = std::move(sampledImageInformation.value());
 		}
 	}
 
@@ -784,7 +794,10 @@ static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramP
 	{
 		TOptional<GpuObjectParameterInformation> samplerInformation = ParseSPIRVCrossSampler(compiler, resource, outLog);
 		if(samplerInformation)
-			outParameterDescription.Samplers[samplerInformation->Name] = std::move(samplerInformation.value());
+		{
+			String name = samplerInformation->Name;
+			outParameterDescription.Samplers[std::move(name)] = std::move(samplerInformation.value());
+		}
 	}
 
 	// Structured buffers (e.g. buffer/StructuredBuffer/RWStructuredBuffer)
@@ -792,7 +805,10 @@ static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramP
 	{
 		TOptional<GpuObjectParameterInformation> storageBufferInformation = ParseSPIRVCrossStorageBuffer(compiler, resource, outLog);
 		if(storageBufferInformation)
-			outParameterDescription.Buffers[storageBufferInformation->Name] = std::move(storageBufferInformation.value());
+		{
+			String name = storageBufferInformation->Name;
+			outParameterDescription.Buffers[std::move(name)] = std::move(storageBufferInformation.value());
+		}
 	}
 }
 

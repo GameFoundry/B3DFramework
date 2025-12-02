@@ -65,7 +65,7 @@ namespace b3d
 
 	/** Copies the contents of one array to another. Automatically accounts for array element size. */
 	template <class T>
-	void B3DCopy(T* dst, T* src, size_t count)
+	void B3DCopy(T* dst, const T* src, size_t count)
 	{
 		std::memcpy(dst, src, sizeof(T) * count);
 	}

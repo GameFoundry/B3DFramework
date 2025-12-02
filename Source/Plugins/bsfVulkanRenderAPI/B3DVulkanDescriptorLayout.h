@@ -16,7 +16,7 @@ namespace b3d
 		class VulkanDescriptorLayout
 		{
 		public:
-			VulkanDescriptorLayout(VulkanGpuDevice& device, VkDescriptorSetLayoutBinding* bindings, u32 numBindings);
+			VulkanDescriptorLayout(VulkanGpuDevice& device, TArrayView<VkDescriptorSetLayoutBinding> bindings);
 			~VulkanDescriptorLayout();
 
 			/** Returns a handle to the Vulkan set layout object. */
@@ -26,7 +26,7 @@ namespace b3d
 			size_t GetHash() const { return mHash; }
 
 			/** Calculates a has value for the provided descriptor set layout bindings. */
-			static size_t CalculateHash(VkDescriptorSetLayoutBinding* bindings, u32 numBindings);
+			static size_t CalculateHash(TArrayView<VkDescriptorSetLayoutBinding> bindings);
 
 		protected:
 			VulkanGpuDevice& mDevice;

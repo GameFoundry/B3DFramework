@@ -340,7 +340,7 @@ float ParticleSystem::AdvanceTime(float time, float timeDelta, float duration, b
 
 void ParticleSystem::PreSimulate(const ParticleSystemState& state, u32 startIndex, u32 count, bool spacing, float spacingOffset)
 {
-	const ParticleSetData& particles = mParticleSet->GetParticles();
+	ParticleSetData& particles = mParticleSet->GetParticles();
 	const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
 	const u32 endIndex = startIndex + count;
 
@@ -393,7 +393,7 @@ void ParticleSystem::PreSimulate(const ParticleSystemState& state, u32 startInde
 
 void ParticleSystem::Simulate(const ParticleSystemState& state, u32 startIndex, u32 count, bool spacing, float spacingOffset)
 {
-	const ParticleSetData& particles = mParticleSet->GetParticles();
+	ParticleSetData& particles = mParticleSet->GetParticles();
 	const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
 	const u32 endIndex = startIndex + count;
 

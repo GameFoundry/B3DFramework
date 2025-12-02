@@ -61,17 +61,17 @@ namespace b3d
 
 		u32 Capacity = 0;
 
-		Vector3* PrevPosition = nullptr;
-		Vector3* Position = nullptr;
-		Vector3* Velocity = nullptr;
-		Vector3* Size = nullptr;
-		Vector3* Rotation = nullptr;
-		float* InitialLifetime = nullptr;
-		float* Lifetime = nullptr;
-		RGBA* Color = nullptr;
-		u32* Seed = nullptr;
-		float* Frame = nullptr;
-		u32* Indices = nullptr;
+		TArrayView<Vector3> PrevPosition;
+		TArrayView<Vector3> Position;
+		TArrayView<Vector3> Velocity;
+		TArrayView<Vector3> Size;
+		TArrayView<Vector3> Rotation;
+		TArrayView<float> InitialLifetime;
+		TArrayView<float> Lifetime;
+		TArrayView<RGBA> Color;
+		TArrayView<u32> Seed;
+		TArrayView<float> Frame;
+		TArrayView<u32> Indices;
 
 	private:
 		/**
@@ -80,56 +80,44 @@ namespace b3d
 		 */
 		void Allocate()
 		{
-			alloc.Reserve<Vector3>(Capacity).Reserve<Vector3>(Capacity).Reserve<Vector3>(Capacity).Reserve<Vector3>(Capacity).Reserve<Vector3>(Capacity).Reserve<float>(Capacity).Reserve<float>(Capacity).Reserve<RGBA>(Capacity).Reserve<u32>(Capacity).Reserve<float>(Capacity).Reserve<u32>(Capacity).Init();
+			mAllocator.Reserve<Vector3>(Capacity).Reserve<Vector3>(Capacity).Reserve<Vector3>(Capacity).Reserve<Vector3>(Capacity).Reserve<Vector3>(Capacity).Reserve<float>(Capacity).Reserve<float>(Capacity).Reserve<RGBA>(Capacity).Reserve<u32>(Capacity).Reserve<float>(Capacity).Reserve<u32>(Capacity).Initialize();
 
-			PrevPosition = alloc.Alloc<Vector3>(Capacity);
-			Position = alloc.Alloc<Vector3>(Capacity);
-			Velocity = alloc.Alloc<Vector3>(Capacity);
-			Size = alloc.Alloc<Vector3>(Capacity);
-			Rotation = alloc.Alloc<Vector3>(Capacity);
-			Lifetime = alloc.Alloc<float>(Capacity);
-			InitialLifetime = alloc.Alloc<float>(Capacity);
-			Color = alloc.Alloc<RGBA>(Capacity);
-			Seed = alloc.Alloc<u32>(Capacity);
-			Frame = alloc.Alloc<float>(Capacity);
-			Indices = alloc.Alloc<u32>(Capacity);
+			PrevPosition = mAllocator.Allocate<Vector3>(Capacity);
+			Position = mAllocator.Allocate<Vector3>(Capacity);
+			Velocity = mAllocator.Allocate<Vector3>(Capacity);
+			Size = mAllocator.Allocate<Vector3>(Capacity);
+			Rotation = mAllocator.Allocate<Vector3>(Capacity);
+			Lifetime = mAllocator.Allocate<float>(Capacity);
+			InitialLifetime = mAllocator.Allocate<float>(Capacity);
+			Color = mAllocator.Allocate<RGBA>(Capacity);
+			Seed = mAllocator.Allocate<u32>(Capacity);
+			Frame = mAllocator.Allocate<float>(Capacity);
+			Indices = mAllocator.Allocate<u32>(Capacity);
 		}
 
 		/** Frees the internal buffers. */
 		void Free()
 		{
-			if(PrevPosition) alloc.Free(PrevPosition);
-			if(Position) alloc.Free(Position);
-			if(Velocity) alloc.Free(Velocity);
-			if(Size) alloc.Free(Size);
-			if(Rotation) alloc.Free(Rotation);
-			if(Lifetime) alloc.Free(Lifetime);
-			if(InitialLifetime) alloc.Free(InitialLifetime);
-			if(Color) alloc.Free(Color);
-			if(Seed) alloc.Free(Seed);
-			if(Frame) alloc.Free(Frame);
-			if(Indices) alloc.Free(Indices);
-
-			alloc.Clear();
+			mAllocator.Clear();
 		}
 
 		/** Transfers ownership of @p other internal buffers to this object. */
 		void Move(ParticleSetData& other)
 		{
-			PrevPosition = std::exchange(other.PrevPosition, nullptr);
-			Position = std::exchange(other.Position, nullptr);
-			Velocity = std::exchange(other.Velocity, nullptr);
-			Size = std::exchange(other.Size, nullptr);
-			Rotation = std::exchange(other.Rotation, nullptr);
-			Lifetime = std::exchange(other.Lifetime, nullptr);
-			InitialLifetime = std::exchange(other.InitialLifetime, nullptr);
-			Color = std::exchange(other.Color, nullptr);
-			Seed = std::exchange(other.Seed, nullptr);
-			Frame = std::exchange(other.Frame, nullptr);
-			Indices = std::exchange(other.Indices, nullptr);
+			PrevPosition = std::exchange(other.PrevPosition, TArrayView<Vector3>());
+			Position = std::exchange(other.Position, TArrayView<Vector3>());
+			Velocity = std::exchange(other.Velocity, TArrayView<Vector3>());
+			Size = std::exchange(other.Size, TArrayView<Vector3>());
+			Rotation = std::exchange(other.Rotation, TArrayView<Vector3>());
+			Lifetime = std::exchange(other.Lifetime, TArrayView<float>());
+			InitialLifetime = std::exchange(other.InitialLifetime, TArrayView<float>());
+			Color = std::exchange(other.Color, TArrayView<RGBA>());
+			Seed = std::exchange(other.Seed, TArrayView<u32>());
+			Frame = std::exchange(other.Frame, TArrayView<float>());
+			Indices = std::exchange(other.Indices, TArrayView<u32>());
 			Capacity = std::exchange(other.Capacity, 0);
 
-			alloc = std::move(other.alloc);
+			mAllocator = std::move(other.mAllocator);
 		}
 
 		/** Copies data from @p other buffers to this object. */
@@ -137,20 +125,20 @@ namespace b3d
 		{
 			B3D_ASSERT(Capacity >= other.Capacity);
 
-			B3DCopy(PrevPosition, other.PrevPosition, other.Capacity);
-			B3DCopy(Position, other.Position, other.Capacity);
-			B3DCopy(Velocity, other.Velocity, other.Capacity);
-			B3DCopy(Size, other.Size, other.Capacity);
-			B3DCopy(Rotation, other.Rotation, other.Capacity);
-			B3DCopy(Lifetime, other.Lifetime, other.Capacity);
-			B3DCopy(InitialLifetime, other.InitialLifetime, other.Capacity);
-			B3DCopy(Color, other.Color, other.Capacity);
-			B3DCopy(Seed, other.Seed, other.Capacity);
-			B3DCopy(Frame, other.Frame, other.Capacity);
-			B3DCopy(Indices, other.Indices, other.Capacity);
+			B3DCopy(PrevPosition.Data(), other.PrevPosition.Data(), other.Capacity);
+			B3DCopy(Position.Data(), other.Position.Data(), other.Capacity);
+			B3DCopy(Velocity.Data(), other.Velocity.Data(), other.Capacity);
+			B3DCopy(Size.Data(), other.Size.Data(), other.Capacity);
+			B3DCopy(Rotation.Data(), other.Rotation.Data(), other.Capacity);
+			B3DCopy(Lifetime.Data(), other.Lifetime.Data(), other.Capacity);
+			B3DCopy(InitialLifetime.Data(), other.InitialLifetime.Data(), other.Capacity);
+			B3DCopy(Color.Data(), other.Color.Data(), other.Capacity);
+			B3DCopy(Seed.Data(), other.Seed.Data(), other.Capacity);
+			B3DCopy(Frame.Data(), other.Frame.Data(), other.Capacity);
+			B3DCopy(Indices.Data(), other.Indices.Data(), other.Capacity);
 		}
 
-		GroupAlloc alloc;
+		GroupAllocator mAllocator;
 	};
 
 	/** Provides a simple and fast way to allocate and deallocate particles. */

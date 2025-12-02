@@ -57,10 +57,10 @@ namespace b3d
 				VulkanDescriptorSet* LastUsedSet;
 				TInlineArray<VulkanDescriptorSet*, 4> SetCache;
 
-				VkWriteDescriptorSet* WriteSetInfos;
-				VkDescriptorImageInfo* ImageWriteInfos;
-				VkDescriptorBufferInfo* BufferWriteInfos;
-				VkBufferView* BufferViews;
+				TArrayView<VkWriteDescriptorSet> WriteSetInfos;
+				TArrayView<VkDescriptorImageInfo> ImageWriteInfos;
+				TArrayView<VkDescriptorBufferInfo> BufferWriteInfos;
+				TArrayView<VkBufferView> BufferViews;
 
 				u32 ElementCount;
 				u32 LastFreeSetIndex = ~0u;
@@ -73,13 +73,13 @@ namespace b3d
 			SetInformation mSetInformation;
 			bool mSetDirty = false;
 
-			VkImage* mSampledImages = nullptr;
-			VkImage* mStorageImages = nullptr;
-			VkBuffer* mUniformBuffers = nullptr;
-			VkBuffer* mBuffers = nullptr;
-			VkSampler* mSamplers = nullptr;
+			TArrayView<VkImage> mSampledImages;
+			TArrayView<VkImage> mStorageImages;
+			TArrayView<VkBuffer> mUniformBuffers;
+			TArrayView<VkBuffer> mBuffers;
+			TArrayView<VkSampler> mSamplers;
 
-			GroupAlloc mAllocator;
+			GroupAllocator mAllocator;
 			Mutex mMutex;
 		};
 

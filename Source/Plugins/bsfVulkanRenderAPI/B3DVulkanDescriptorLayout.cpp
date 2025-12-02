@@ -6,17 +6,17 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanDescriptorLayout::VulkanDescriptorLayout(VulkanGpuDevice& device, VkDescriptorSetLayoutBinding* bindings, u32 numBindings)
+VulkanDescriptorLayout::VulkanDescriptorLayout(VulkanGpuDevice& device, TArrayView<VkDescriptorSetLayoutBinding> bindings)
 	: mDevice(device)
 {
-	mHash = CalculateHash(bindings, numBindings);
+	mHash = CalculateHash(bindings);
 
 	VkDescriptorSetLayoutCreateInfo layoutCI;
 	layoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layoutCI.pNext = nullptr;
 	layoutCI.flags = 0;
-	layoutCI.bindingCount = numBindings;
-	layoutCI.pBindings = bindings;
+	layoutCI.bindingCount = (u32)bindings.size();
+	layoutCI.pBindings = bindings.data();
 
 	VkResult result = vkCreateDescriptorSetLayout(device.GetLogical(), &layoutCI, gVulkanAllocator, &mLayout);
 	B3D_ASSERT(result == VK_SUCCESS);
@@ -27,10 +27,10 @@ VulkanDescriptorLayout::~VulkanDescriptorLayout()
 	vkDestroyDescriptorSetLayout(mDevice.GetLogical(), mLayout, gVulkanAllocator);
 }
 
-size_t VulkanDescriptorLayout::CalculateHash(VkDescriptorSetLayoutBinding* bindings, u32 numBindings)
+size_t VulkanDescriptorLayout::CalculateHash(TArrayView<VkDescriptorSetLayoutBinding> bindings)
 {
 	size_t hash = 0;
-	for(u32 i = 0; i < numBindings; i++)
+	for(u32 i = 0; i < (u32)bindings.size(); i++)
 	{
 		size_t bindingHash = 0;
 		B3DCombineHash(bindingHash, bindings[i].binding);

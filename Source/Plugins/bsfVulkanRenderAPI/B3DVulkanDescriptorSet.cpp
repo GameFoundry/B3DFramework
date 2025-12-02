@@ -16,10 +16,10 @@ VulkanDescriptorSet::~VulkanDescriptorSet()
 	B3D_ASSERT(result == VK_SUCCESS);
 }
 
-void VulkanDescriptorSet::Write(VkWriteDescriptorSet* entries, u32 count)
+void VulkanDescriptorSet::Write(TArrayView<VkWriteDescriptorSet> entries)
 {
-	for(u32 i = 0; i < count; i++)
+	for(u32 i = 0; i < (u32)entries.size(); i++)
 		entries[i].dstSet = mSet;
 
-	vkUpdateDescriptorSets(mOwner->GetDevice().GetLogical(), count, entries, 0, nullptr);
+	vkUpdateDescriptorSets(mOwner->GetDevice().GetLogical(), (u32)entries.size(), entries.data(), 0, nullptr);
 }

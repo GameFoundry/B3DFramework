@@ -24,16 +24,16 @@ namespace b3d
 			void Initialize() override;
 
 			/** Returns a pointer to an array of bindings for the set at the specified index. */
-			VkDescriptorSetLayoutBinding* GetBindings(u32 set) const { return mExtendedSetInformation[set].Bindings; }
+			TArrayView<const VkDescriptorSetLayoutBinding> GetBindings(u32 set) const { return mExtendedSetInformation[set].Bindings; }
 
 			/** Returns a pointer to any array of types expected by layout bindings. */
-			GpuParameterObjectType* GetTypes(u32 set) const { return mExtendedSetInformation[set].Types; }
+			TArrayView<const GpuParameterObjectType> GetTypes(u32 set) const { return mExtendedSetInformation[set].Types; }
 
 			/** Returns a pointer to any array of underlying element types for textures/buffers. */
-			GpuBufferFormat* GetElementTypes(u32 set) const { return mExtendedSetInformation[set].ElementTypes; }
+			TArrayView<const GpuBufferFormat> GetElementTypes(u32 set) const { return mExtendedSetInformation[set].ElementTypes; }
 
 			/** Returns a pointer to any array of underlying element array sizes for textures/buffers. */
-			u32* GetElementArraySizes(u32 set) const { return mExtendedSetInformation[set].ArraySizes; }
+			TArrayView<const u32> GetElementArraySizes(u32 set) const { return mExtendedSetInformation[set].ArraySizes; }
 
 			/** Returns the sequential index of the binding at the specific set/slot. Returns ~0u if slot is not used. */
 			u32 GetUsedBindingSequentialIndex(u32 set, u32 slot) const { return mExtendedSetInformation[set].SlotToUsedBindingSequentialIndex[slot]; }
@@ -48,20 +48,20 @@ namespace b3d
 			/** Data related to a single descriptor set layout. */
 			struct ExtendedSetInformation
 			{
-				VkDescriptorSetLayoutBinding* Bindings = nullptr;
-				GpuParameterObjectType* Types = nullptr;
-				GpuBufferFormat* ElementTypes = nullptr;
-				u32* ArraySizes = nullptr;
-				u32* SlotToUsedBindingSequentialIndex;
-				u32* SlotToUsedResourceSequentialIndex;
+				TArrayView<VkDescriptorSetLayoutBinding> Bindings;
+				TArrayView<GpuParameterObjectType> Types;
+				TArrayView<GpuBufferFormat> ElementTypes;
+				TArrayView<u32> ArraySizes;
+				TArrayView<u32> SlotToUsedBindingSequentialIndex;
+				TArrayView<u32> SlotToUsedResourceSequentialIndex;
 			};
 
 			VulkanGpuDevice& mGpuDevice;
 
-			VulkanDescriptorLayout** mLayouts;
-			ExtendedSetInformation* mExtendedSetInformation;
+			TArrayView<VulkanDescriptorLayout*> mLayouts;
+			TArrayView<ExtendedSetInformation> mExtendedSetInformation;
 
-			GroupAlloc mAlloc;
+			GroupAllocator mAllocator;
 		};
 
 		/** @} */

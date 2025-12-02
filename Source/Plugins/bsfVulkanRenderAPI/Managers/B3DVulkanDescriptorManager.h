@@ -12,14 +12,12 @@ namespace b3d
 		/** Used as a key in a hash map containing VulkanDescriptorLayout%s. */
 		struct VulkanLayoutKey
 		{
-			VulkanLayoutKey(VkDescriptorSetLayoutBinding* bindings, u32 numBindings);
+			VulkanLayoutKey(TArrayView<VkDescriptorSetLayoutBinding> bindings);
 
 			/** Compares two descriptor layouts. */
 			bool operator==(const VulkanLayoutKey& rhs) const;
 
-			u32 NumBindings;
-			VkDescriptorSetLayoutBinding* Bindings;
-
+			TArrayView<VkDescriptorSetLayoutBinding> Bindings;
 			VulkanDescriptorLayout* Layout = nullptr;
 		};
 
@@ -56,7 +54,7 @@ namespace std
 			if(value.Layout != nullptr)
 				return value.Layout->GetHash();
 
-			return b3d::render::VulkanDescriptorLayout::CalculateHash(value.Bindings, value.NumBindings);
+			return b3d::render::VulkanDescriptorLayout::CalculateHash(value.Bindings);
 		}
 	};
 
@@ -90,13 +88,13 @@ namespace b3d
 			~VulkanDescriptorManager();
 
 			/** Attempts to find an existing one, or allocates a new descriptor set layout from the provided set of bindings. */
-			VulkanDescriptorLayout* GetLayout(VkDescriptorSetLayoutBinding* bindings, u32 numBindings);
+			VulkanDescriptorLayout* GetLayout(TArrayView<VkDescriptorSetLayoutBinding> bindings);
 
 			/** Allocates a new empty descriptor set matching the provided layout. */
 			VulkanDescriptorSet* CreateSet(VulkanDescriptorLayout* layout);
 
 			/** Attempts to find an existing one, or allocates a new pipeline layout based on the provided descriptor layouts. */
-			VkPipelineLayout GetPipelineLayout(VulkanDescriptorLayout** layouts, u32 numLayouts);
+			VkPipelineLayout GetPipelineLayout(VulkanDescriptorLayout** layouts, u32 bindingCount);
 
 		protected:
 			VulkanGpuDevice& mDevice;

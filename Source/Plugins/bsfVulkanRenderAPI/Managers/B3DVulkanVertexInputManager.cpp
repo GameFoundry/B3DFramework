@@ -112,14 +112,14 @@ void VulkanVertexInputManager::AddNew(const SPtr<VertexDescription>& vertexBuffe
 		bindingCount++;
 
 	VertexInputEntry newEntry;
-	GroupAlloc& alloc = newEntry.Allocator;
+	GroupAllocator& alloc = newEntry.Allocator;
 
 	alloc.Reserve<VkVertexInputAttributeDescription>(attributeCount)
 		.Reserve<VkVertexInputBindingDescription>(bindingCount)
-		.Init();
+		.Initialize();
 
-	newEntry.Attributes = alloc.Alloc<VkVertexInputAttributeDescription>(attributeCount);
-	newEntry.Bindings = alloc.Alloc<VkVertexInputBindingDescription>(bindingCount);
+	newEntry.Attributes = alloc.Allocate<VkVertexInputAttributeDescription>(attributeCount);
+	newEntry.Bindings = alloc.Allocate<VkVertexInputBindingDescription>(bindingCount);
 
 	bool* isFirstAttributeInVertexBuffer = B3DStackAllocate<bool>(bindingCount);
 	for(u32 i = 0; i < bindingCount; i++)
@@ -196,9 +196,9 @@ void VulkanVertexInputManager::AddNew(const SPtr<VertexDescription>& vertexBuffe
 	vertexInputCI.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vertexInputCI.pNext = nullptr;
 	vertexInputCI.flags = 0;
-	vertexInputCI.pVertexBindingDescriptions = newEntry.Bindings;
+	vertexInputCI.pVertexBindingDescriptions = newEntry.Bindings.Data();
 	vertexInputCI.vertexBindingDescriptionCount = bindingCount;
-	vertexInputCI.pVertexAttributeDescriptions = newEntry.Attributes;
+	vertexInputCI.pVertexAttributeDescriptions = newEntry.Attributes.Data();
 	vertexInputCI.vertexAttributeDescriptionCount = attributeCount;
 
 	// Create key and add to the layout map

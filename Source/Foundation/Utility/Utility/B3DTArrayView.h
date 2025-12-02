@@ -170,6 +170,23 @@ namespace b3d
 			return mData[mSize - 1];
 		}
 
+		/**
+		 * Returns a view into a subset of this array.
+		 * @param offset	Starting index of the subset.
+		 * @param count		Number of elements in the subset. If 0, includes all elements from offset to the end.
+		 * @return			A new TArrayView representing the subset.
+		 */
+		TArrayView Subset(u64 offset, u64 count = 0) const
+		{
+			B3D_ASSERT(offset <= mSize && "Subset offset out-of-range.");
+
+			if (count == 0)
+				count = mSize - offset;
+
+			B3D_ASSERT(offset + count <= mSize && "Subset range out-of-range.");
+			return TArrayView(mData + offset, count);
+		}
+
 		bool Contains(const Type& element)
 		{
 			for(u64 elementIndex = 0; elementIndex < mSize; elementIndex++)

@@ -102,23 +102,23 @@ static const ShaderVariationParameters* GetBasePassVariation(bool useForwardRend
 /** Initializes a specific base pass technique on the provided material and returns the technique index. */
 static u32 InitAndRetrieveBasePassTechnique(Material& material, bool useForwardRendering, bool supportsClusteredForward, bool shaderCanWriteVelocity, bool writeVelocity, RenderableAnimType animType)
 {
-	const ShaderVariationParameters* variation = writeVelocity ? GetBasePassVariation<true>(useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, animType) : GetBasePassVariation<false>(useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, animType);
+	const ShaderVariationParameters* const variationParameters = writeVelocity ? GetBasePassVariation<true>(useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, animType) : GetBasePassVariation<false>(useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, animType);
 
-	FindVariationInformation findDesc;
-	findDesc.VariationParameters = variation;
-	findDesc.Override = true;
+	FindVariationInformation findInformation;
+	findInformation.VariationParameters = variationParameters;
+	findInformation.Override = true;
 
-	u32 techniqueIdx = material.FindVariation(findDesc);
+	u32 variationIndex = material.FindVariation(findInformation);
 
-	if(techniqueIdx == (u32)-1)
-		techniqueIdx = material.GetDefaultVariation();
+	if(variationIndex == ~0u)
+		variationIndex = material.GetDefaultVariation();
 
-	// Make sure the technique shaders are compiled
-	const SPtr<Variation>& technique = material.GetVariation(techniqueIdx);
-	if(technique)
-		technique->Compile();
+	// Make sure the variation is compiled
+	const SPtr<Variation>& variation = material.GetVariation(variationIndex);
+	if(variation != nullptr)
+		variation->Compile();
 
-	return techniqueIdx;
+	return variationIndex;
 }
 
 static void ValidateBasePassMaterial(Material& material, RenderableAnimType animType, u32 techniqueIdx, VertexDescription& vertexBufferDescription)

@@ -65,12 +65,12 @@ namespace b3d
 			/**	Contains data about a single instance of vertex input object. */
 			struct VertexInputEntry
 			{
-				VkVertexInputAttributeDescription* Attributes;
-				VkVertexInputBindingDescription* Bindings;
+				TArrayView<VkVertexInputAttributeDescription> Attributes;
+				TArrayView<VkVertexInputBindingDescription> Bindings;
 				SPtr<VulkanVertexInput> VertexInput;
 				u32 LastUsedIdx;
 
-				GroupAlloc Allocator;
+				GroupAllocator Allocator;
 			};
 
 		public:
