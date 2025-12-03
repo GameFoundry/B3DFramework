@@ -361,7 +361,7 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 
 	RendererRenderable* rendererRenderable = mInfo.Renderables.back();
 	rendererRenderable->Renderable = renderable;
-	rendererRenderable->WorldTransform = renderable->GetWorldTransformMatrix();
+	rendererRenderable->UpdatePerObjectData();
 	rendererRenderable->PrevWorldTransform = rendererRenderable->WorldTransform;
 	rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Clean;
 
@@ -502,7 +502,7 @@ void RenderBeastScene::UpdateRenderable(Renderable* renderable)
 	if(rendererRenderable->PrevFrameDirtyState != PrevFrameDirtyState::Updated)
 		rendererRenderable->PrevWorldTransform = rendererRenderable->WorldTransform;
 
-	rendererRenderable->WorldTransform = renderable->GetWorldTransformMatrix();
+	rendererRenderable->UpdatePerObjectData();
 	rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Updated;
 
 	mRenderableUniformBufferManager.UpdatePerObjectBuffer(*rendererRenderable);
@@ -771,14 +771,7 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 	rendererParticles.PrevWorldTransform = rendererParticles.WorldTransform;
 	rendererParticles.PrevFrameDirtyState = PrevFrameDirtyState::Updated;
 
-	const ParticleSystemSettings& settings = particleSystem->GetSettings();
-	if(settings.SimulationSpace == ParticleSimulationSpace::Local)
-	{
-		const Transform& tfrm = particleSystem->GetWorldTransform();
-		rendererParticles.WorldTransform = tfrm.GetMatrix();
-	}
-	else
-		rendererParticles.WorldTransform = Matrix4::kIdentity;
+	rendererParticles.UpdatePerObjectData();
 
 	if(tfrmOnly)
 	{
@@ -789,6 +782,7 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 	SPtr<GpuBuffer> particlesParamBuffer = gParticlesParamDef.CreateBuffer();
 	rendererParticles.ParticlesParamBuffer = particlesParamBuffer;
 
+	const ParticleSystemSettings& settings = particleSystem->GetSettings();
 	Vector3 axisForward = settings.OrientationPlaneNormal;
 
 	Vector3 axisUp = Vector3::kUnitY;
@@ -1148,6 +1142,7 @@ void RenderBeastScene::RegisterDecal(Decal* decal)
 
 	// Now update the per-object buffer (allocation is ready)
 	rendererDecal.UpdateDecalParamBuffer();
+	rendererDecal.UpdatePerObjectData();
 	mRenderableUniformBufferManager.UpdatePerObjectBuffer(rendererDecal);
 
 	// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
@@ -1170,6 +1165,7 @@ void RenderBeastScene::UpdateDecal(Decal* decal)
 	RendererDecal& rendererDecal = mInfo.Decals[rendererId];
 
 	rendererDecal.UpdateDecalParamBuffer();
+	rendererDecal.UpdatePerObjectData();
 	mRenderableUniformBufferManager.UpdatePerObjectBuffer(rendererDecal);
 
 	mInfo.DecalCullInfos[rendererId].Bounds = decal->GetBounds();

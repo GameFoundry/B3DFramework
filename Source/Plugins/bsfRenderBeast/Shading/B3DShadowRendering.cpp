@@ -29,10 +29,9 @@ namespace b3d
 			commandBuffer.SetGpuParameterSet(gpuParameters);
 		}
 
-		void ShadowDepthNormalMaterial::PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& perObjectParams)
+		void ShadowDepthNormalMaterial::PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms)
 		{
 			gpuParameters->SetUniformBuffer("ShadowParams", shadowUniforms);
-			gpuParameters->SetUniformBuffer("PerObject", perObjectParams);
 		}
 
 		ShadowDepthNormalMaterial* ShadowDepthNormalMaterial::GetVariation(bool skinned, bool morph)
@@ -60,10 +59,9 @@ namespace b3d
 			commandBuffer.SetGpuParameterSet(gpuParameters);
 		}
 
-		void ShadowDepthNormalNoPSMaterial::PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& perObjectParams)
+		void ShadowDepthNormalNoPSMaterial::PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms)
 		{
 			gpuParameters->SetUniformBuffer("ShadowParams", shadowUniforms);
-			gpuParameters->SetUniformBuffer("PerObject", perObjectParams);
 		}
 
 		ShadowDepthNormalNoPSMaterial* ShadowDepthNormalNoPSMaterial::GetVariation(bool skinned, bool morph)
@@ -91,10 +89,9 @@ namespace b3d
 			commandBuffer.SetGpuParameterSet(gpuParameters);
 		}
 
-		void ShadowDepthDirectionalMaterial::PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& perObjectParams)
+		void ShadowDepthDirectionalMaterial::PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms)
 		{
 			gpuParameters->SetUniformBuffer("ShadowParams", shadowUniforms);
-			gpuParameters->SetUniformBuffer("PerObject", perObjectParams);
 		}
 
 		ShadowDepthDirectionalMaterial* ShadowDepthDirectionalMaterial::GetVariation(bool skinned, bool morph)
@@ -125,12 +122,11 @@ namespace b3d
 			commandBuffer.SetGpuParameterSet(gpuParameters);
 		}
 
-		void ShadowDepthCubeMaterial::PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& shadowCubeMatrices, const GpuBufferSuballocation& shadowCubeMasks, const GpuBufferSuballocation& perObjectParams)
+		void ShadowDepthCubeMaterial::PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& shadowCubeMatrices, const GpuBufferSuballocation& shadowCubeMasks)
 		{
 			gpuParameters->SetUniformBuffer("ShadowParams", shadowUniforms);
 			gpuParameters->SetUniformBuffer("ShadowCubeMatrices", shadowCubeMatrices);
 			gpuParameters->SetUniformBuffer("ShadowCubeMasks", shadowCubeMasks);
-			gpuParameters->SetUniformBuffer("PerObject", perObjectParams);
 		}
 
 		ShadowDepthCubeMaterial* ShadowDepthCubeMaterial::GetVariation(bool skinned, bool morph)
@@ -491,6 +487,7 @@ namespace b3d
 					kVariationLookup[3] = &GetVertexInputVariation<true, true, false>(false);
 
 					RenderPassCreateInformation passCreateInformation(renderTarget);
+					TInlineArray<SPtr<GpuParameterSet>, 4> perObjectParameterSets;
 
 					// Make a list of relevant renderables and prepare them for rendering
 					for(u32 renderableIndex = 0; renderableIndex < sceneInfo.Renderables.size(); renderableIndex++)
@@ -502,6 +499,15 @@ namespace b3d
 						scene.PrepareVisibleRenderable(renderableIndex, frameInfo);
 
 						RendererRenderable* renderable = sceneInfo.Renderables[renderableIndex];
+
+						// Register per-object parameter set if not already registered
+						const SPtr<GpuParameterSet>& perObjectParameterSet = renderable->BufferAllocation.SharedParameterSet;
+						auto found = std::find(perObjectParameterSets.begin(), perObjectParameterSets.end(), perObjectParameterSet);
+						if(found == perObjectParameterSets.end())
+						{
+							passCreateInformation.Parameters.Add(perObjectParameterSet);
+							perObjectParameterSets.Add(perObjectParameterSet);
+						}
 
 						Command renderableCommand;
 						renderableCommand.IsElement = false;
@@ -544,7 +550,14 @@ namespace b3d
 									GetRendererUtility().DrawMorph(commandBuffer, element.Mesh, element.SubMesh, element.MorphShapeBuffer, element.MorphVertexDefinition);
 							}
 							else
+							{
 								opt.Bind(commandBuffer, command);
+
+								// Bind per-object parameter set and dynamic offset
+								const auto& bufferAllocation = command.Renderable->BufferAllocation;
+								commandBuffer.SetGpuParameterSet(bufferAllocation.SharedParameterSet);
+								commandBuffer.SetDynamicBufferOffset(bufferAllocation.PerObjectDynamicOffsetIndex, bufferAllocation.PerObjectSuballocation.GetSuballocationOffset());
+							}
 						}
 					}
 
@@ -585,7 +598,7 @@ namespace b3d
 				for(u32 j = 0; j < 6; j++)
 					gShadowCubeMasksUniformDefinition.gFaceMasks.Set(shadowCubeMatricesBuffer, (Frustums[j].Intersects(bounds) ? 1 : 0), j);
 
-				ShadowDepthCubeMaterial::PopulateParameters(command.GpuParameterSets, ShadowUniformBuffer, ShadowCubeMatricesBuffer, shadowCubeMatricesBuffer, command.Renderable->BufferAllocation.PerObjectSuballocation);
+				ShadowDepthCubeMaterial::PopulateParameters(command.GpuParameterSets, ShadowUniformBuffer, ShadowCubeMatricesBuffer, shadowCubeMatricesBuffer);
 			}
 
 			void Bind(GpuCommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
@@ -625,7 +638,7 @@ namespace b3d
 				Material = ShadowDepthNormalNoPSMaterial::Get(variation);
 
 				command.GpuParameterSets = Material->CreateGpuParameterSet();
-				ShadowDepthNormalNoPSMaterial::PopulateParameters(command.GpuParameterSets, ShadowUniformBuffer, command.Renderable->BufferAllocation.PerObjectSuballocation);
+				ShadowDepthNormalNoPSMaterial::PopulateParameters(command.GpuParameterSets, ShadowUniformBuffer);
 			}
 
 			void Bind(GpuCommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
@@ -665,7 +678,7 @@ namespace b3d
 				Material = ShadowDepthNormalMaterial::Get(variation);
 
 				command.GpuParameterSets = Material->CreateGpuParameterSet();
-				ShadowDepthNormalMaterial::PopulateParameters(command.GpuParameterSets, ShadowUniformBuffer, command.Renderable->BufferAllocation.PerObjectSuballocation);
+				ShadowDepthNormalMaterial::PopulateParameters(command.GpuParameterSets, ShadowUniformBuffer);
 			}
 
 			void Bind(GpuCommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
@@ -704,7 +717,7 @@ namespace b3d
 				Material = ShadowDepthDirectionalMaterial::Get(variation);
 
 				command.GpuParameterSets = Material->CreateGpuParameterSet();
-				ShadowDepthDirectionalMaterial::PopulateParameters(command.GpuParameterSets, ShadowUniformBuffer, command.Renderable->BufferAllocation.PerObjectSuballocation);
+				ShadowDepthDirectionalMaterial::PopulateParameters(command.GpuParameterSets, ShadowUniformBuffer);
 			}
 
 			void Bind(GpuCommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const

@@ -173,9 +173,8 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParamete
 			fnRegisterUniformBufferMember(uniformBufferMember.second);
 	}
 
-	// Generate sequential indices and dynamic offset indices
-	u32 nextDynamicOffsetIndex = 0;
-	auto fnCalculateSequentialIndices = [this, &nextDynamicOffsetIndex](SetInformation& setInformation, GpuParameterType type, bool supportsDynamicOffset)
+	// Generate sequential indices (per-type iteration for resource counting)
+	auto fnCalculateSequentialIndices = [this](SetInformation& setInformation, GpuParameterType type)
 	{
 		const u32 typeIndex = (u32)type;
 		setInformation.ResourceCountPerType[typeIndex] = 0;
@@ -198,9 +197,6 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParamete
 				uniformInformation->SequentialSamplerResourceIndex = sequentialResourceIndex;
 			}
 
-			if(supportsDynamicOffset)
-				uniformInformation->DynamicOffsetIndex = nextDynamicOffsetIndex++;
-
 			sequentialResourceIndex += uniformInformation->ArraySize;
 
 			setInformation.BindingCount++;
@@ -211,13 +207,34 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParamete
 
 	for(auto& setInformation : mSets)
 	{
-		fnCalculateSequentialIndices(setInformation, GpuParameterType::UniformBuffer, true);
-		fnCalculateSequentialIndices(setInformation, GpuParameterType::SampledTexture, false);
-		fnCalculateSequentialIndices(setInformation, GpuParameterType::StorageTexture, false);
-		fnCalculateSequentialIndices(setInformation, GpuParameterType::StorageBuffer, true);
-		fnCalculateSequentialIndices(setInformation, GpuParameterType::Sampler, true);
+		fnCalculateSequentialIndices(setInformation, GpuParameterType::UniformBuffer);
+		fnCalculateSequentialIndices(setInformation, GpuParameterType::SampledTexture);
+		fnCalculateSequentialIndices(setInformation, GpuParameterType::StorageTexture);
+		fnCalculateSequentialIndices(setInformation, GpuParameterType::StorageBuffer);
+		fnCalculateSequentialIndices(setInformation, GpuParameterType::Sampler);
 
 		mBindingCount += setInformation.BindingCount;
+	}
+
+	// Assign dynamic offset index in slot-order (Vulkan spec requires binding number order). This should match the order in VulkanGpuParameterSet::PrepareForBind
+	u32 nextDynamicOffsetIndex = 0;
+	for(auto& setInformation : mSets)
+	{
+		for(u32 slotIndex = 0; slotIndex < setInformation.Uniforms.size(); slotIndex++)
+		{
+			UniformInformation* uniformInformation = setInformation.Uniforms[slotIndex];
+			if(uniformInformation == nullptr)
+				continue;
+
+			bool supportsDynamicOffset = false;
+			if(uniformInformation->Type == GpuParameterType::UniformBuffer)
+				supportsDynamicOffset = true;
+			else if(uniformInformation->Type == GpuParameterType::StorageBuffer)
+				supportsDynamicOffset = (uniformInformation->ObjectType == GPOT_STRUCTURED_BUFFER || uniformInformation->ObjectType == GPOT_RWSTRUCTURED_BUFFER);
+
+			if(supportsDynamicOffset)
+				uniformInformation->DynamicOffsetIndex = nextDynamicOffsetIndex++;
+		}
 	}
 }
 

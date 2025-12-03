@@ -32,6 +32,27 @@ namespace b3d { namespace render {
 
 UnorderedMap<StringID, RenderCompositor::NodeDescriptor*> RenderCompositor::mNodeDescriptors;
 
+/** Prepares a render pass by registering all required parameter sets from the render queue elements. */
+void PrepareRenderQueuePass(RenderPassCreateInformation& passInfo, const Vector<RenderQueueElement>& elements)
+{
+	TInlineArray<SPtr<GpuParameterSet>, 4> perObjectParameterSets;
+
+	for(const auto& element : elements)
+	{
+		SPtr<GpuParameterSet> parameterSet0 = element.RenderElem->ParameterAdapter->GetGpuParameterSet(element.PassIdx);
+		if(parameterSet0 != nullptr)
+			passInfo.Parameters.Add(parameterSet0);
+
+		const SPtr<GpuParameterSet>& parameterSet1 = element.RenderElem->SharedPerObjectParameterSet;
+		auto found = std::find(perObjectParameterSets.begin(), perObjectParameterSets.end(), parameterSet1);
+		if(found == perObjectParameterSets.end())
+		{
+			passInfo.Parameters.Add(parameterSet1);
+			perObjectParameterSets.Add(parameterSet1);
+		}
+	}
+}
+
 /** Renders all elements in a render queue. */
 void RenderQueueElements(GpuCommandBuffer& commandBuffer, const Vector<RenderQueueElement>& elements)
 {
@@ -506,12 +527,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	// Collect all GpuParameters that will be used in the base pass
 	const Vector<RenderQueueElement>& opaqueElements = inputs.View.GetOpaqueQueue(false)->GetSortedElements();
 	RenderPassCreateInformation basePassInfo(RenderTarget, RT_NONE, RT_ALL);
-	for(const auto& element : opaqueElements)
-	{
-		SPtr<GpuParameterSet> gpuParams = element.RenderElem->ParameterAdapter->GetGpuParameterSet(element.PassIdx);
-		if(gpuParams != nullptr)
-			basePassInfo.Parameters.Add(gpuParams);
-	}
+	PrepareRenderQueuePass(basePassInfo, opaqueElements);
 
 	commandBuffer.BeginRenderPass(basePassInfo);
 
@@ -551,12 +567,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	// Render decals after all normal objects, using a read-only depth buffer
 	const Vector<RenderQueueElement>& decalElements = inputs.View.GetDecalQueue()->GetSortedElements();
 	RenderPassCreateInformation decalPassInfo(RenderTargetNoMask, RT_DEPTH, RT_ALL);
-	for(const auto& element : decalElements)
-	{
-		SPtr<GpuParameterSet> gpuParams = element.RenderElem->ParameterAdapter->GetGpuParameterSet(element.PassIdx);
-		if(gpuParams != nullptr)
-			decalPassInfo.Parameters.Add(gpuParams);
-	}
+	PrepareRenderQueuePass(decalPassInfo, decalElements);
 
 	commandBuffer.BeginRenderPass(decalPassInfo);
 
@@ -1680,12 +1691,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	// Collect all GpuParameters that will be used in the opaque pass
 	const Vector<RenderQueueElement>& opaqueElements = opaqueQueue->GetSortedElements();
 	RenderPassCreateInformation opaquePassInfo(renderTarget, RT_NONE, RT_ALL);
-	for(const auto& element : opaqueElements)
-	{
-		SPtr<GpuParameterSet> gpuParams = element.RenderElem->ParameterAdapter->GetGpuParameterSet(element.PassIdx);
-		if(gpuParams != nullptr)
-			opaquePassInfo.Parameters.Add(gpuParams);
-	}
+	PrepareRenderQueuePass(opaquePassInfo, opaqueElements);
 
 	commandBuffer.BeginRenderPass(opaquePassInfo);
 	RenderQueueElements(commandBuffer, opaqueElements);
@@ -1694,12 +1700,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	// Collect all GpuParameters that will be used in the transparent pass
 	const Vector<RenderQueueElement>& transparentElements = transparentQueue->GetSortedElements();
 	RenderPassCreateInformation transparentPassInfo(renderTarget, RT_DEPTH, RT_ALL);
-	for(const auto& element : transparentElements)
-	{
-		SPtr<GpuParameterSet> gpuParams = element.RenderElem->ParameterAdapter->GetGpuParameterSet(element.PassIdx);
-		if(gpuParams != nullptr)
-			transparentPassInfo.Parameters.Add(gpuParams);
-	}
+	PrepareRenderQueuePass(transparentPassInfo, transparentElements);
 
 	commandBuffer.BeginRenderPass(transparentPassInfo);
 	RenderQueueElements(commandBuffer, transparentElements);

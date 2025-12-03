@@ -380,7 +380,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 			const u32 slot = uniformLayout->GetSlot(GpuParameterType::UniformBuffer, set, uniformBufferIndex);
 			SPtr<GpuBuffer> buffer = parameters->GetUniformBuffer(slot);
 
-			if (buffer != nullptr)
+			if (buffer != nullptr && buffer->GetInformation().Flags.IsSet(GpuBufferFlag::AllowWriteCachingOnCPU))
 				buffer->FlushCache();
 		}
 
@@ -390,7 +390,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		vkParams->PrepareForBind(*this, mResourceTracker, mBarrierHelper, descriptorSet, tempDynamicOffsets);
 
 		// Cache the preparation results for later use by SetGpuParameterSet
-		CachedGpuParameterData& cacheData = mRenderPassGpuParametersCache[parameters.get()];
+		CachedGpuParameterData& cacheData = mRenderPassGpuParameterSetCache[parameters.get()];
 		cacheData.DescriptorSet = descriptorSet;
 		cacheData.DynamicOffsets = std::move(tempDynamicOffsets);
 	}
@@ -784,7 +784,7 @@ void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanc
 	if(!IsReadyForRender())
 		return;
 
-	BindGpuParameters(mBarrierHelper);
+	BindGpuParameters(mGraphicsPipeline->GetParameterLayout(), mBarrierHelper);
 
 	// All barriers should have been issued during begin render pass
 	B3D_ENSURE(!mBarrierHelper.HasBarriers());
@@ -839,7 +839,7 @@ void VulkanGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 ver
 	if(!IsReadyForRender())
 		return;
 
-	BindGpuParameters(mBarrierHelper);
+	BindGpuParameters(mGraphicsPipeline->GetParameterLayout(), mBarrierHelper);
 
 	// All barriers should have been issued during begin render pass
 	B3D_ENSURE(!mBarrierHelper.HasBarriers());
@@ -898,7 +898,7 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 		return;
 
 	// Need to bind gpu params before starting render pass, in order to make sure any layout transitions execute
-	BindGpuParameters(mBarrierHelper);
+	BindGpuParameters(mComputePipeline->GetParameterLayout(), mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -1056,7 +1056,7 @@ void VulkanGpuCommandBuffer::EndRenderPass()
 	mRenderTargetReadOnlyMask = RT_NONE;
 	mFramebuffer = nullptr;
 
-	mRenderPassGpuParametersCache.clear();
+	mRenderPassGpuParameterSetCache.clear();
 
 	// In case the same GPU params from last pass get used, this makes sure the states we reset above, get re-applied
 	mBoundParamsDirty = true;
@@ -1650,20 +1650,23 @@ void VulkanGpuCommandBuffer::BindVertexInputs()
 	B3D_ENSURE(!mBarrierHelper.HasBarriers());
 }
 
-void VulkanGpuCommandBuffer::BindGpuParameters(VulkanBarrierHelper& barrierHelper)
+void VulkanGpuCommandBuffer::BindGpuParameters(const SPtr<GpuPipelineParameterLayout>& pipelineParameterLayout, VulkanBarrierHelper& barrierHelper)
 {
+	B3D_ASSERT(pipelineParameterLayout != nullptr);
+
 	if(!mBoundParamsDirty)
 		return;
 
 	mBoundDescriptorSetCount = 0;
 	mDynamicDescriptorOffsetsToBind.clear();
-	for(u32 set = 0; set < mBoundGpuParameterSets.Size(); set++)
+
+	for(u32 set = 0; set < pipelineParameterLayout->GetSetCount(); set++)
 	{
 		const SPtr<VulkanGpuParameterSet>& boundGpuParameterSet = mBoundGpuParameterSets[set];
 		if(boundGpuParameterSet != nullptr)
 		{
-			auto it = mRenderPassGpuParametersCache.find(boundGpuParameterSet.get());
-			if(it != mRenderPassGpuParametersCache.end())
+			auto it = mRenderPassGpuParameterSetCache.find(boundGpuParameterSet.get());
+			if(it != mRenderPassGpuParameterSetCache.end())
 			{
 				// Use cached preparation data (skip PrepareForBind)
 				const CachedGpuParameterData& cacheData = it->second;

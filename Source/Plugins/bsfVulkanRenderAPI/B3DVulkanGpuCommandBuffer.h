@@ -433,7 +433,7 @@ namespace b3d
 			void BindVertexInputs();
 
 			/** Binds the currently stored GPU parameter sets, if dirty. */
-			void BindGpuParameters(VulkanBarrierHelper& barrierHelper);
+			void BindGpuParameters(const SPtr<GpuPipelineParameterLayout>& pipelineParameterLayout, VulkanBarrierHelper& barrierHelper);
 
 			/** Creates an array of clear values from the specified clear mask and values. To be used for the explicit clear command, or render bass begin. */
 			Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> BuildClearValues(RenderSurfaceMask clearMask, const Color& color, float depth, u16 stencil);
@@ -519,7 +519,7 @@ namespace b3d
 			Vector<SwapChainImageInformation> mAcquiredSwapChainImages;
 			TInlineArray<u32, 4> mDynamicDescriptorOffsetsToBind;
 			UnorderedMap<u32, u32> mDynamicDescriptorOffsetsOverrides;
-			UnorderedMap<GpuParameterSet*, CachedGpuParameterData> mRenderPassGpuParametersCache;
+			UnorderedMap<GpuParameterSet*, CachedGpuParameterData> mRenderPassGpuParameterSetCache;
 
 			SPtr<RenderTarget> mRenderTarget;
 			bool mRenderTargetModified = false;

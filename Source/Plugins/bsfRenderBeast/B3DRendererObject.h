@@ -14,8 +14,6 @@ namespace b3d::render
 	/** Base class for all renderable objects. */
 	struct RendererObject
 	{
-		virtual ~RendererObject() = default;
-
 		/** Allocation for the per-object buffer from the uniform buffer manager. */
 		RenderableUniformBufferManager::RenderableAllocation BufferAllocation;
 

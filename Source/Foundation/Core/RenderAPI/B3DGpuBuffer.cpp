@@ -230,7 +230,7 @@ u32 GpuBuffer::CalculateSuballocatedBufferSize(const GpuBufferInformation& infor
 		if(information.Type == GpuBufferType::Uniform)
 			return Math::CeilToMultiple(unalignedBufferSize, gpuDevice.GetCapabilities().MinimumUniformBufferOffsetAlignment);
 		else if(information.Type == GpuBufferType::StagingWrite || information.Type == GpuBufferType::StagingRead)
-			return Math::CeilToMultiple(unalignedBufferSize, gpuDevice.GetCapabilities().OptimalBufferToBufferCopyOffsetAlignment); // Note: Note handling buffers used for image copies here, presumably we don't suballocate those
+			return Math::CeilToMultiple(unalignedBufferSize, gpuDevice.GetCapabilities().OptimalBufferToBufferCopyOffsetAlignment); // Note: Not handling buffers used for image copies here, presumably we don't suballocate those
 		else
 			B3D_ENSURE(false);
 	}
