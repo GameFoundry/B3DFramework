@@ -152,7 +152,7 @@ namespace b3d
 				SPtr<GpuBuffer> IndexBuffer;
 				SPtr<GpuBuffer> ViewUniformBuffer;
 				SPtr<GpuBuffer> RenderUniformBuffer;
-				SPtr<GpuParameterSet> GpuParameters;
+				SPtr<GpuParameterSet> GpuParameterSet;
 			};
 
 			/** Context that will be filled by NanoVG callbacks when executing NanoVG path commands. */

@@ -119,6 +119,9 @@ namespace b3d
 		/** Returns the number of entries in the array at the specified set and sequential binding index. */
 		u32 GetArraySize(GpuParameterType type, u32 set, u32 sequentialBindingIndex) const;
 
+		/** Returns the number of dynamic offset slots in the specified set. */
+		u32 GetDynamicOffsetCount(u32 set) const;
+
 		/**
 		 * Returns an index that can be used for applying a dynamic offset for buffer lookup. The index can be provided
 		 * to the command buffer after GpuParameterSet using this layout have been bound on the command buffer.
@@ -173,6 +176,7 @@ namespace b3d
 			Map<String, GpuUniformBufferMemberInformation, std::less<>> UniformBufferMembers; /**< All data parameters in all uniform buffers. */ // TODO - Map instead of UnorderedMap to support heterogeneous lookup, until we port to C++20
 			u32 ResourceCount = 0;
 			u32 BindingCount = 0;
+			u32 DynamicOffsetCount = 0; /**< Number of dynamic offset slots in this set. */
 		};
 
 		Map<String, UniformInformation, std::less<>> mUniformMap; /**< A map of all uniforms. */ // TODO - Map instead of UnorderedMap to support heterogeneous lookup, until we port to C++20

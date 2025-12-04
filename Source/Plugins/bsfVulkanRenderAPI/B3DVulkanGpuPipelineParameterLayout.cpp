@@ -114,45 +114,46 @@ void VulkanGpuPipelineParameterLayout::Initialize()
 	};
 
 	using PerTypeUniformArray = std::decay_t<decltype(mSets[0].UniformsPerType[0])>;
-	auto fnSetUniformBindings = [this, &bindings, fnGetShaderStageFlags](const PerTypeUniformArray& uniforms, VkDescriptorType descriptorType)
+	auto fnSetUniformBindings = [this, fnGetShaderStageFlags](ExtendedSetInformation& setInformation, const PerTypeUniformArray& uniforms, VkDescriptorType descriptorType)
 	{
 		for(const auto& entry : uniforms)
 		{
 			const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry->Set, entry->Slot);
 			B3D_ASSERT(usedBindingSequentialIndex != ~0u);
 
-			VkDescriptorSetLayoutBinding& binding = bindings[usedBindingSequentialIndex];
+			VkDescriptorSetLayoutBinding& binding = setInformation.Bindings[usedBindingSequentialIndex];
 			binding.descriptorCount = 1;
 			binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
 			binding.descriptorType = descriptorType;
 		}
 	};
 
-	auto fnSetBindings = [this, &bindings, &types, &elementTypes, &elementArraySizes, fnGetShaderStageFlags](const PerTypeUniformArray& uniforms, VkDescriptorType descriptorType)
+	auto fnSetBindings = [this, fnGetShaderStageFlags](ExtendedSetInformation& setInformation, const PerTypeUniformArray& uniforms, VkDescriptorType descriptorType)
 	{
 		for(const auto& entry : uniforms)
 		{
 			const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry->Set, entry->Slot);
 			B3D_ASSERT(usedBindingSequentialIndex != ~0u);
 
-			VkDescriptorSetLayoutBinding& binding = bindings[usedBindingSequentialIndex];
+			VkDescriptorSetLayoutBinding& binding = setInformation.Bindings[usedBindingSequentialIndex];
 			binding.descriptorCount = entry->ArraySize;
 			binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
 			binding.descriptorType = descriptorType;
 
-			types[usedBindingSequentialIndex] = entry->ObjectType;
-			elementTypes[usedBindingSequentialIndex] = entry->ElementType;
-			elementArraySizes[usedBindingSequentialIndex] = entry->ArraySize;
+			setInformation.Types[usedBindingSequentialIndex] = entry->ObjectType;
+			setInformation.ElementTypes[usedBindingSequentialIndex] = entry->ElementType;
+			setInformation.ArraySizes[usedBindingSequentialIndex] = entry->ArraySize;
 		}
 	};
 
 	for(u32 setIndex = 0; setIndex < setCount; setIndex++)
 	{
 		const auto& uniformsPerType = mSets[setIndex].UniformsPerType;
+		ExtendedSetInformation& setInformation = mExtendedSetInformation[setIndex];
 
-		fnSetUniformBindings(uniformsPerType[(u32)GpuParameterType::UniformBuffer], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
-		fnSetBindings(uniformsPerType[(u32)GpuParameterType::SampledTexture], VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
-		fnSetBindings(uniformsPerType[(u32)GpuParameterType::StorageTexture], VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+		fnSetUniformBindings(setInformation, uniformsPerType[(u32)GpuParameterType::UniformBuffer], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
+		fnSetBindings(setInformation, uniformsPerType[(u32)GpuParameterType::SampledTexture], VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+		fnSetBindings(setInformation, uniformsPerType[(u32)GpuParameterType::StorageTexture], VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
 
 		// Set up sampler bindings
 		for(auto& entry : uniformsPerType[(u32)GpuParameterType::Sampler])
@@ -160,7 +161,7 @@ void VulkanGpuPipelineParameterLayout::Initialize()
 			const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry->Set, entry->Slot);
 			B3D_ASSERT(usedBindingSequentialIndex != ~0u);
 
-			VkDescriptorSetLayoutBinding& binding = bindings[usedBindingSequentialIndex];
+			VkDescriptorSetLayoutBinding& binding = setInformation.Bindings[usedBindingSequentialIndex];
 
 			// If we already assigned an image to this binding slot, then it's a combined image/sampler
 			if(binding.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE)
@@ -171,9 +172,9 @@ void VulkanGpuPipelineParameterLayout::Initialize()
 				binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
 				binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
 
-				types[usedBindingSequentialIndex] = entry->ObjectType;
-				elementTypes[usedBindingSequentialIndex] = entry->ElementType;
-				elementArraySizes[usedBindingSequentialIndex] = entry->ArraySize;
+				setInformation.Types[usedBindingSequentialIndex] = entry->ObjectType;
+				setInformation.ElementTypes[usedBindingSequentialIndex] = entry->ElementType;
+				setInformation.ArraySizes[usedBindingSequentialIndex] = entry->ArraySize;
 			}
 		}
 
@@ -183,7 +184,7 @@ void VulkanGpuPipelineParameterLayout::Initialize()
 			const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry->Set, entry->Slot);
 			B3D_ASSERT(usedBindingSequentialIndex != ~0u);
 
-			VkDescriptorSetLayoutBinding& binding = bindings[usedBindingSequentialIndex];
+			VkDescriptorSetLayoutBinding& binding = setInformation.Bindings[usedBindingSequentialIndex];
 			binding.descriptorCount = entry->ArraySize;
 			binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
 
@@ -202,9 +203,9 @@ void VulkanGpuPipelineParameterLayout::Initialize()
 				break;
 			}
 
-			types[usedBindingSequentialIndex] = entry->ObjectType;
-			elementTypes[usedBindingSequentialIndex] = entry->ElementType;
-			elementArraySizes[usedBindingSequentialIndex] = entry->ArraySize;
+			setInformation.Types[usedBindingSequentialIndex] = entry->ObjectType;
+			setInformation.ElementTypes[usedBindingSequentialIndex] = entry->ElementType;
+			setInformation.ArraySizes[usedBindingSequentialIndex] = entry->ArraySize;
 		}
 	}
 

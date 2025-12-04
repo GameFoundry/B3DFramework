@@ -65,7 +65,7 @@ namespace b3d
 			CommandBufferState GetState() const override;
 
 			void SetGpuParameterSet(const SPtr<GpuParameterSet>& parameters) override;
-			void SetDynamicBufferOffset(u32 bufferIndex, u32 offset) override;
+			void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) override;
 			void SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState) override;
 			void SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& pipelineState) override;
 			void SetVertexBuffers(u32 index, SPtr<GpuBuffer>* buffers, u32 bufferCount) override;

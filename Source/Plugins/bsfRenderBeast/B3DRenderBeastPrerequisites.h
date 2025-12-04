@@ -22,6 +22,16 @@ namespace b3d
 		 *  @{
 		 */
 
+		/** Descriptor set indices used by RenderBeast for GPU pipeline parameter binding. */
+		namespace GpuPipelineSet
+		{
+			/** Descriptor set for user material parameters, and other renderer parameters that don't have a specific set. */
+			constexpr u32 kMaterial = 0;
+
+			/** Descriptor set for per-object uniform buffers and other per-object data. */
+			constexpr u32 kPerObject = 1;
+		}
+
 		/**
 		 * Determines the feature set to be used by RenderBeast. Feature sets control the quality and type of rendering
 		 * effects depending on available hardware (For example a desktop computer can handle higher end rendering than a

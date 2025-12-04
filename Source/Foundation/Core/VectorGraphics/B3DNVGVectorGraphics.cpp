@@ -798,23 +798,23 @@ namespace b3d::render
 		}
 
 		// Create or reuse GPU parameters
-		if(!mRenderBuffers.GpuParameters)
+		if(!mRenderBuffers.GpuParameterSet)
 		{
 			// Create new GPU parameters object
-			mRenderBuffers.GpuParameters = VectorGraphicsMaterial::Get()->CreateGpuParameterSet();
+			mRenderBuffers.GpuParameterSet = VectorGraphicsMaterial::Get()->CreateGpuParameterSet();
 
 			// Set uniform buffers
-			mRenderBuffers.GpuParameters->SetUniformBuffer("RenderUniforms", mRenderBuffers.RenderUniformBuffer);
-			mRenderBuffers.GpuParameters->SetUniformBuffer("ViewUniforms", mRenderBuffers.ViewUniformBuffer);
+			mRenderBuffers.GpuParameterSet->SetUniformBuffer("RenderUniforms", mRenderBuffers.RenderUniformBuffer);
+			mRenderBuffers.GpuParameterSet->SetUniformBuffer("ViewUniforms", mRenderBuffers.ViewUniformBuffer);
 		}
 
-		return mRenderBuffers.GpuParameters;
+		return mRenderBuffers.GpuParameterSet;
 	}
 
 	void NVGVectorPathRenderable::Render(GpuCommandBuffer& commandBuffer)
 	{
 		// Ensure Prepare() was called first
-		B3D_ENSURE(mRenderBuffers.GpuParameters != nullptr);
+		B3D_ENSURE(mRenderBuffers.GpuParameterSet != nullptr);
 
 		commandBuffer.BeginLabel("VectorPathRenderable::Render");
 
@@ -825,13 +825,14 @@ namespace b3d::render
 		commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);
 
 		// Use stored GPU parameters from mRenderBuffers
-		const SPtr<GpuParameterSet>& gpuParameters = mRenderBuffers.GpuParameters;
+		const SPtr<GpuParameterSet>& gpuParameterSet = mRenderBuffers.GpuParameterSet;
 
-		const u32 renderUniformBufferDynamicIndex = gpuParameters->GetPipelineParameterLayout()->GetDynamicOffsetIndex("RenderUniforms");
+		const u32 renderUniformBufferDynamicIndex = gpuParameterSet->GetPipelineParameterLayout()->GetDynamicOffsetIndex("RenderUniforms");
 		B3D_ENSURE(renderUniformBufferDynamicIndex != ~0u);
 
-		commandBuffer.SetGpuParameterSet(gpuParameters);
+		commandBuffer.SetGpuParameterSet(gpuParameterSet);
 
+		const u32 setIndex = gpuParameterSet->GetSet();
 		const u32 vertexCount = (u32)mRawRenderData.Vertices.size();
 
 		u32 uniformBlockStride = gVectorGraphicsRenderUniforms.GetSize();
@@ -848,7 +849,7 @@ namespace b3d::render
 			case NVGRenderCommandType::Fill:
 				{
 					const SubMesh& fillShapeStencilSubmesh = mRawRenderData.Submeshes[submeshIndex++];
-					commandBuffer.SetDynamicBufferOffset(renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
+					commandBuffer.SetDynamicBufferOffset(setIndex, renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
 					uniformBlockIndex++;
 
 					render::VectorGraphicsMaterial* const fillShapeStencilMaterial = render::VectorGraphicsMaterial::GetVariation(NVGDrawMode::FillShapeStencil, command.BlendMode, mSettings.UseAntialiasing);
@@ -859,7 +860,7 @@ namespace b3d::render
 					}
 
 					const SubMesh& strokeSubmesh = mRawRenderData.Submeshes[submeshIndex++];
-					commandBuffer.SetDynamicBufferOffset(renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
+					commandBuffer.SetDynamicBufferOffset(setIndex, renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
 					uniformBlockIndex++;
 
 					if(mSettings.UseAntialiasing)
@@ -887,7 +888,7 @@ namespace b3d::render
 				render::VectorGraphicsMaterial* const simpleFillMaterial = render::VectorGraphicsMaterial::GetVariation(NVGDrawMode::FillSimple, command.BlendMode, mSettings.UseAntialiasing);
 				if(B3D_ENSURE(simpleFillMaterial))
 				{
-					commandBuffer.SetDynamicBufferOffset(renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
+					commandBuffer.SetDynamicBufferOffset(setIndex, renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
 					uniformBlockIndex++;
 
 					commandBuffer.SetGpuGraphicsPipelineState(simpleFillMaterial->GetGraphicsPipeline());
@@ -899,7 +900,7 @@ namespace b3d::render
 				{
 					const SubMesh& strokeSubmesh = mRawRenderData.Submeshes[submeshIndex++];
 
-					commandBuffer.SetDynamicBufferOffset(renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
+					commandBuffer.SetDynamicBufferOffset(setIndex, renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
 					uniformBlockIndex++;
 
 					if(mSettings.StencilStrokes)
@@ -911,7 +912,7 @@ namespace b3d::render
 							commandBuffer.DrawIndexed(strokeSubmesh.IndexOffset, strokeSubmesh.IndexCount, 0, vertexCount, 1);
 						}
 
-						commandBuffer.SetDynamicBufferOffset(renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
+						commandBuffer.SetDynamicBufferOffset(setIndex, renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
 						uniformBlockIndex++;
 
 						render::VectorGraphicsMaterial* const strokeAAMaterial = render::VectorGraphicsMaterial::GetVariation(NVGDrawMode::StrokeAA, command.BlendMode, mSettings.UseAntialiasing);

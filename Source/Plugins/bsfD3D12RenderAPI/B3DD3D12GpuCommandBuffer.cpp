@@ -333,7 +333,7 @@ void D3D12GpuCommandBuffer::SetGpuParameterSet(const SPtr<GpuParameterSet>& para
 	mBoundParamsDirty = true;
 }
 
-void D3D12GpuCommandBuffer::SetDynamicBufferOffset(u32 bufferIndex, u32 offset)
+void D3D12GpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset)
 {
 	// TODO: Implement dynamic buffer offsets using root descriptors
 	B3D_LOG(Warning, RenderBackend, "Dynamic buffer offsets not yet implemented for D3D12");

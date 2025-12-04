@@ -77,7 +77,7 @@ void RenderQueueElements(GpuCommandBuffer& commandBuffer, const Vector<RenderQue
 		}
 
 		// Set the dynamic buffer offset for this element's per-object data
-		commandBuffer.SetDynamicBufferOffset(entry.RenderElem->PerObjectDynamicOffsetIndex, entry.RenderElem->PerObjectBufferOffset);
+		commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObject, entry.RenderElem->PerObjectDynamicOffsetIndex, entry.RenderElem->PerObjectBufferOffset);
 
 		GetRendererUtility().SetPassParams(commandBuffer, entry.RenderElem->ParameterAdapter, entry.PassIdx);
 

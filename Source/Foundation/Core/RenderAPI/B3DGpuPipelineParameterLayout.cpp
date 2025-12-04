@@ -217,9 +217,10 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParamete
 	}
 
 	// Assign dynamic offset index in slot-order (Vulkan spec requires binding number order). This should match the order in VulkanGpuParameterSet::PrepareForBind
-	u32 nextDynamicOffsetIndex = 0;
+	// Each set has its own dynamic offset indices starting from 0
 	for(auto& setInformation : mSets)
 	{
+		u32 nextDynamicOffsetIndex = 0;
 		for(u32 slotIndex = 0; slotIndex < setInformation.Uniforms.size(); slotIndex++)
 		{
 			UniformInformation* uniformInformation = setInformation.Uniforms[slotIndex];
@@ -235,6 +236,7 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParamete
 			if(supportsDynamicOffset)
 				uniformInformation->DynamicOffsetIndex = nextDynamicOffsetIndex++;
 		}
+		setInformation.DynamicOffsetCount = nextDynamicOffsetIndex;
 	}
 }
 
@@ -350,6 +352,13 @@ u32 GpuPipelineParameterLayout::GetArraySize(GpuParameterType type, u32 set, u32
 #endif
 
 	return setInformation.UniformsPerType[(u32)type][sequentialBindingIndex]->ArraySize;
+}
+
+u32 GpuPipelineParameterLayout::GetDynamicOffsetCount(u32 set) const
+{
+	if(set >= mSets.size())
+		return 0;
+	return mSets[set].DynamicOffsetCount;
 }
 
 u32 GpuPipelineParameterLayout::GetDynamicOffsetIndex(u32 set, u32 slot, u32 arrayIndex) const

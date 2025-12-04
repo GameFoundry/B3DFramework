@@ -556,7 +556,7 @@ namespace b3d
 								// Bind per-object parameter set and dynamic offset
 								const auto& bufferAllocation = command.Renderable->BufferAllocation;
 								commandBuffer.SetGpuParameterSet(bufferAllocation.SharedParameterSet);
-								commandBuffer.SetDynamicBufferOffset(bufferAllocation.PerObjectDynamicOffsetIndex, bufferAllocation.PerObjectSuballocation.GetSuballocationOffset());
+								commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObject, bufferAllocation.PerObjectDynamicOffsetIndex, bufferAllocation.PerObjectSuballocation.GetSuballocationOffset());
 							}
 						}
 					}
@@ -1313,8 +1313,9 @@ namespace b3d
 					const u32 shadowSuballocationOffset = visibleShadowIndex * batch.UniformBufferSuballocationSize;
 					const u32 vertSuballocationOffset = visibleShadowIndex * batch.VertexUniformBufferSuballocationSize;
 
-					commandBuffer.SetDynamicBufferOffset(shadowRenderingInformation.PrimaryUniformBufferDynamicIndex, shadowSuballocationOffset);
-					commandBuffer.SetDynamicBufferOffset(shadowRenderingInformation.PrimaryVertexUniformBufferDynamicIndex, vertSuballocationOffset);
+					const u32 setIndex = shadowRenderingInformation.PrimaryGpuParameters->GetSet();
+					commandBuffer.SetDynamicBufferOffset(setIndex, shadowRenderingInformation.PrimaryUniformBufferDynamicIndex, shadowSuballocationOffset);
+					commandBuffer.SetDynamicBufferOffset(setIndex, shadowRenderingInformation.PrimaryVertexUniformBufferDynamicIndex, vertSuballocationOffset);
 
 					GetRendererUtility().Draw(commandBuffer, GetRendererUtility().GetSphereStencil());
 				}
@@ -1342,7 +1343,8 @@ namespace b3d
 						commandBuffer.SetGpuParameterSet(shadowRenderingInformation.StencilGpuParameters);
 
 						const u32 vertSuballocationOffset = visibleShadowIndex * batch.VertexUniformBufferSuballocationSize;
-						commandBuffer.SetDynamicBufferOffset(shadowRenderingInformation.StencilVertexUniformBufferDynamicIndex, vertSuballocationOffset);
+						const u32 setIndex = shadowRenderingInformation.StencilGpuParameters->GetSet();
+						commandBuffer.SetDynamicBufferOffset(setIndex, shadowRenderingInformation.StencilVertexUniformBufferDynamicIndex, vertSuballocationOffset);
 
 						DrawFrustum(commandBuffer, frustumVertices);
 					}
@@ -1360,7 +1362,8 @@ namespace b3d
 						commandBuffer.SetGpuParameterSet(shadowRenderingInformation.StencilGpuParameters);
 
 						const u32 vertSuballocationOffset = visibleShadowIndex * batch.VertexUniformBufferSuballocationSize;
-						commandBuffer.SetDynamicBufferOffset(shadowRenderingInformation.StencilVertexUniformBufferDynamicIndex, vertSuballocationOffset);
+						const u32 setIndex = shadowRenderingInformation.StencilGpuParameters->GetSet();
+						commandBuffer.SetDynamicBufferOffset(setIndex, shadowRenderingInformation.StencilVertexUniformBufferDynamicIndex, vertSuballocationOffset);
 
 						DrawNearFarPlanes(commandBuffer, near.Z, far.Z, shadowInfo.CascadeIdx != 0);
 					}
@@ -1373,9 +1376,10 @@ namespace b3d
 					// Calculate sub-allocation offsets
 					const u32 shadowSuballocationOffset = visibleShadowIndex * batch.UniformBufferSuballocationSize;
 					const u32 vertSuballocationOffset = visibleShadowIndex * batch.VertexUniformBufferSuballocationSize;
+					const u32 setIndex = shadowRenderingInformation.PrimaryGpuParameters->GetSet();
 
-					commandBuffer.SetDynamicBufferOffset(shadowRenderingInformation.PrimaryUniformBufferDynamicIndex, shadowSuballocationOffset);
-					commandBuffer.SetDynamicBufferOffset(shadowRenderingInformation.PrimaryVertexUniformBufferDynamicIndex, vertSuballocationOffset);
+					commandBuffer.SetDynamicBufferOffset(setIndex, shadowRenderingInformation.PrimaryUniformBufferDynamicIndex, shadowSuballocationOffset);
+					commandBuffer.SetDynamicBufferOffset(setIndex, shadowRenderingInformation.PrimaryVertexUniformBufferDynamicIndex, vertSuballocationOffset);
 
 					if(!isCSM)
 						DrawFrustum(commandBuffer, frustumVertices);

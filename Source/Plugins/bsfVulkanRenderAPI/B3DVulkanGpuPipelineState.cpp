@@ -476,10 +476,10 @@ void VulkanGpuComputePipelineState::Initialize()
 	VulkanResourceManager& rescManager = gpuDevice.GetResourceManager();
 	VulkanGpuPipelineParameterLayout& vkParamInfo = static_cast<VulkanGpuPipelineParameterLayout&>(*mParameterLayout);
 
-	u32 numLayouts = vkParamInfo.GetSetCount();
-	VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)B3DStackAllocate(sizeof(VulkanDescriptorLayout*) * numLayouts);
+	u32 layoutCount = vkParamInfo.GetSetCount();
+	VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)B3DStackAllocate(sizeof(VulkanDescriptorLayout*) * layoutCount);
 
-	for(u32 j = 0; j < numLayouts; j++)
+	for(u32 j = 0; j < layoutCount; j++)
 		layouts[j] = vkParamInfo.GetLayout(j);
 
 	VulkanShaderModule* module = vkProgram->GetVulkanResource();
@@ -489,7 +489,7 @@ void VulkanGpuComputePipelineState::Initialize()
 	else
 		pipelineCI.stage.module = VK_NULL_HANDLE;
 
-	pipelineCI.layout = descManager.GetPipelineLayout(layouts, numLayouts);
+	pipelineCI.layout = descManager.GetPipelineLayout(layouts, layoutCount);
 
 	VkPipeline pipeline;
 	VkResult result = vkCreateComputePipelines(gpuDevice.GetLogical(), VK_NULL_HANDLE, 1, &pipelineCI, gVulkanAllocator, &pipeline);

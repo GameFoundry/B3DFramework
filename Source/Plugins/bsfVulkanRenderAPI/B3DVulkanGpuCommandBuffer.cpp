@@ -577,25 +577,32 @@ void VulkanGpuCommandBuffer::SetGpuParameterSet(const SPtr<GpuParameterSet>& par
 
 	mBoundParamsDirty = true;
 	mDescriptorSetsBindState = DescriptorSetBindFlag::Graphics | DescriptorSetBindFlag::Compute;
-	mDynamicDescriptorOffsetsOverrides.clear(); // Caller is only expected call SetDynamicBufferOffset after all parameter sets are bound
+
+	if(set < mDynamicOffsetsOverridesPerSet.size())
+		mDynamicOffsetsOverridesPerSet[set].clear();
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumGpuParamBinds);
 }
 
-void VulkanGpuCommandBuffer::SetDynamicBufferOffset(u32 bufferIndex, u32 offset)
+void VulkanGpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset)
 {
 	EnsureValidThread();
 
-	mDynamicDescriptorOffsetsOverrides[bufferIndex] = offset;
+	// Ensure storage is sized
+	while(mDynamicOffsetsOverridesPerSet.size() <= set)
+		mDynamicOffsetsOverridesPerSet.Add(UnorderedMap<u32, u32>());
+
+	mDynamicOffsetsOverridesPerSet[set][bufferIndex] = offset;
 	mDescriptorSetsBindState = DescriptorSetBindFlag::Graphics | DescriptorSetBindFlag::Compute;
 
 	// If GPU params were bound already, we retrieved the initial set of offsets, so just override it
-	if(!mBoundParamsDirty)
+	if(!mBoundParamsDirty && set < mDynamicOffsetsPerSet.size())
 	{
-		if(!B3D_ENSURE(bufferIndex < (u32)mDynamicDescriptorOffsetsToBind.size()))
-			return;
-
-		mDynamicDescriptorOffsetsToBind[bufferIndex] = offset;
+		if(bufferIndex < mDynamicOffsetsPerSet[set].size())
+		{
+			mDynamicOffsetsPerSet[set][bufferIndex] = offset;
+			RebuildFlatDynamicOffsets();
+		}
 	}
 }
 
@@ -810,7 +817,7 @@ void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanc
 		{
 			VkPipelineLayout pipelineLayout = mGraphicsPipeline->GetPipelineLayoutHandle();
 
-			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mDynamicDescriptorOffsetsToBind.size(), mDynamicDescriptorOffsetsToBind.data());
+			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mFlatDynamicOffsets.size(), mFlatDynamicOffsets.data());
 		}
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Graphics);
@@ -865,7 +872,7 @@ void VulkanGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 ver
 		{
 			VkPipelineLayout pipelineLayout = mGraphicsPipeline->GetPipelineLayoutHandle();
 
-			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mDynamicDescriptorOffsetsToBind.size(), mDynamicDescriptorOffsetsToBind.data());
+			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mFlatDynamicOffsets.size(), mFlatDynamicOffsets.data());
 		}
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Graphics);
@@ -920,7 +927,7 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 		if(mBoundDescriptorSetCount > 0)
 		{
 			VkPipelineLayout pipelineLayout = mComputePipeline->GetPipelineLayoutHandle();
-			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mDynamicDescriptorOffsetsToBind.size(), mDynamicDescriptorOffsetsToBind.data());
+			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mFlatDynamicOffsets.size(), mFlatDynamicOffsets.data());
 		}
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Compute);
@@ -1658,13 +1665,24 @@ void VulkanGpuCommandBuffer::BindGpuParameters(const SPtr<GpuPipelineParameterLa
 		return;
 
 	mBoundDescriptorSetCount = 0;
-	mDynamicDescriptorOffsetsToBind.clear();
 
-	for(u32 set = 0; set < pipelineParameterLayout->GetSetCount(); set++)
+	const u32 setCount = pipelineParameterLayout->GetSetCount();
+
+	// Ensure per-set storage is sized
+	while(mDynamicOffsetsPerSet.size() < setCount)
+		mDynamicOffsetsPerSet.Add(TInlineArray<u32, 4>());
+	while(mDynamicOffsetsOverridesPerSet.size() < setCount)
+		mDynamicOffsetsOverridesPerSet.Add(UnorderedMap<u32, u32>());
+
+	for(u32 set = 0; set < setCount; set++)
 	{
+		mDynamicOffsetsPerSet[set].clear();
+
 		const SPtr<VulkanGpuParameterSet>& boundGpuParameterSet = mBoundGpuParameterSets[set];
 		if(boundGpuParameterSet != nullptr)
 		{
+			TInlineArray<u32, 4> setDynamicOffsets;
+
 			auto it = mRenderPassGpuParameterSetCache.find(boundGpuParameterSet.get());
 			if(it != mRenderPassGpuParameterSetCache.end())
 			{
@@ -1672,7 +1690,7 @@ void VulkanGpuCommandBuffer::BindGpuParameters(const SPtr<GpuPipelineParameterLa
 				const CachedGpuParameterData& cacheData = it->second;
 
 				mDescriptorSetsTemp[set] = cacheData.DescriptorSet;
-				mDynamicDescriptorOffsetsToBind.Append(cacheData.DynamicOffsets.Begin(), cacheData.DynamicOffsets.End());
+				setDynamicOffsets = cacheData.DynamicOffsets;
 			}
 			else
 			{
@@ -1685,23 +1703,33 @@ void VulkanGpuCommandBuffer::BindGpuParameters(const SPtr<GpuPipelineParameterLa
 
 				// Fallback: No cached data, call PrepareForBind now
 				// This handles compute dispatch and non-render-pass scenarios
-				boundGpuParameterSet->PrepareForBind(*this, mResourceTracker, barrierHelper, mDescriptorSetsTemp[set], mDynamicDescriptorOffsetsToBind);
+				boundGpuParameterSet->PrepareForBind(*this, mResourceTracker, barrierHelper, mDescriptorSetsTemp[set], setDynamicOffsets);
 			}
 
+			// Apply per-set dynamic offset overrides
+			for(const auto& [index, offsetVal] : mDynamicOffsetsOverridesPerSet[set])
+			{
+				if(index < setDynamicOffsets.size())
+					setDynamicOffsets[index] = offsetVal;
+			}
+
+			mDynamicOffsetsPerSet[set] = std::move(setDynamicOffsets);
 			mBoundDescriptorSetCount++;
 		}
 	}
 
-	// Apply dynamic offset overrides
-	for(const auto& pair : mDynamicDescriptorOffsetsOverrides)
-	{
-		if(!B3D_ENSURE(pair.first < (u32)mDynamicDescriptorOffsetsToBind.size()))
-			continue;
-
-		mDynamicDescriptorOffsetsToBind[pair.first] = pair.second;
-	}
-
+	RebuildFlatDynamicOffsets();
 	mBoundParamsDirty = false;
+}
+
+void VulkanGpuCommandBuffer::RebuildFlatDynamicOffsets()
+{
+	mFlatDynamicOffsets.clear();
+	for(const auto& setOffsets : mDynamicOffsetsPerSet)
+	{
+		for(u32 offset : setOffsets)
+			mFlatDynamicOffsets.Add(offset);
+	}
 }
 
 void VulkanGpuCommandBuffer::SetEvent(VulkanEvent* event)

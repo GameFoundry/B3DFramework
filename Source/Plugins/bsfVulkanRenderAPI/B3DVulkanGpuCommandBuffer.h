@@ -118,7 +118,7 @@ namespace b3d
 			CommandBufferState GetState() const override;
 
 			void SetGpuParameterSet(const SPtr<GpuParameterSet>& parameterSet) override;
-			void SetDynamicBufferOffset(u32 bufferIndex, u32 offset) override;
+			void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) override;
 			void SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState) override;
 			void SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& pipelineState) override;
 			void SetVertexBuffers(u32 index, SPtr<GpuBuffer>* buffers, u32 bufferCount) override;
@@ -470,6 +470,9 @@ namespace b3d
 			/** Returns the owner GPU device, cast as a VulkanGpuDevice. */
 			VulkanGpuDevice& GetVulkanGpuDevice() const { return static_cast<VulkanGpuDevice&>(mGpuDevice); }
 
+			/** Rebuilds the flat dynamic offset array from per-set arrays. */
+			void RebuildFlatDynamicOffsets();
+
 			u32 mId;
 			State mState = State::Ready;
 			VkCommandBuffer mCommandBufferHandle;
@@ -517,8 +520,9 @@ namespace b3d
 			TransitionInfo mTransitionInfoTemp[GQT_COUNT];
 			Vector<VulkanEvent*> mQueuedEvents;
 			Vector<SwapChainImageInformation> mAcquiredSwapChainImages;
-			TInlineArray<u32, 4> mDynamicDescriptorOffsetsToBind;
-			UnorderedMap<u32, u32> mDynamicDescriptorOffsetsOverrides;
+			TInlineArray<TInlineArray<u32, 4>, 4> mDynamicOffsetsPerSet;
+			TInlineArray<UnorderedMap<u32, u32>, 4> mDynamicOffsetsOverridesPerSet;
+			TInlineArray<u32, 16> mFlatDynamicOffsets;
 			UnorderedMap<GpuParameterSet*, CachedGpuParameterData> mRenderPassGpuParameterSetCache;
 
 			SPtr<RenderTarget> mRenderTarget;

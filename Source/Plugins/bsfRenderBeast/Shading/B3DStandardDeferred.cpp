@@ -319,10 +319,11 @@ void StandardDeferred::RenderLightBatches(GpuCommandBuffer& commandBuffer, const
 		commandBuffer.SetGpuParameterSet(batch.GpuParameters);
 
 		// Render each light in the group
+		const u32 set = batch.GpuParameters->GetSet();
 		for(const BatchedLightInstance& lightInstance : batch.Lights)
 		{
 			// Set dynamic offset to select this light's parameters
-			commandBuffer.SetDynamicBufferOffset(batch.DynamicOffsetIndex, lightInstance.UniformBufferOffset);
+			commandBuffer.SetDynamicBufferOffset(set, batch.DynamicOffsetIndex, lightInstance.UniformBufferOffset);
 
 			// Render the light
 			if(key.Type == LightType::Directional)
