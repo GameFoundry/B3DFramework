@@ -51,6 +51,7 @@ namespace b3d
 		u32 Set; /**< Uniquely identifies the bind location in the GPU pipeline, together with the slot. */
 		GpuBufferFormat ElementType = BF_UNKNOWN; /**< Underlying type of individual elements in the buffer or texture. */
 		u32 ArraySize = 1; /**< Number of elements in the array, if the parameter is an array. */
+		GpuProgramStageBits Stages = GpuProgramStageBit::None; /**< Stages in which the parameter is used in. */
 	};
 
 	/**	Describes a GPU program parameter block (collection of GPU program data parameters). */
@@ -60,6 +61,7 @@ namespace b3d
 		u32 Slot; /** Slot within a set. Uniquely identifies bind location in the GPU pipeline, together with the set. */
 		u32 Set; /** Uniquely identifies the bind location in the GPU pipeline, together with the slot. */
 		u32 Size; /**< In multiples of 4 bytes. */
+		GpuProgramStageBits Stages = GpuProgramStageBit::None; /**< Stages in which the parameter is used in. */
 		bool IsShareable; /** True for blocks that can be shared between different GPU pipeline stages. */
 	};
 

@@ -7,6 +7,7 @@
 #include "RenderAPI/B3DGpuDevice.h"
 #include "RTTI/B3DStringRTTI.h"
 #include "RTTI/B3DStdRTTI.h"
+#include "RTTI/B3DFlagsRTTI.h"
 #include "RTTI/B3DDataBlobRTTI.h"
 #include "RenderAPI/B3DGpuProgram.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
@@ -223,123 +224,42 @@ namespace b3d
 	};
 
 	template <>
-	struct RTTIPlainType<GpuObjectParameterInformation>
+	struct RTTIPlainType<GpuObjectParameterInformation> : RTTIPlainTypeHelper<GpuObjectParameterInformation, TID_GpuObjectParameterInformation, 4>
 	{
-		enum
+		template <class Processor>
+		static void RTTIEnumerateFields(GpuObjectParameterInformation& object, Processor& processor, u8 version)
 		{
-			id = TID_GpuParamObjectDesc
-		};
-
-		enum
-		{
-			hasDynamicSize = 1
-		};
-
-		static constexpr uint32_t kVersion = 3;
-
-		static BitLength ToMemory(const GpuObjectParameterInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]
-											   {
-				BitLength size = 0;
-				size += B3DRTTIWrite(kVersion, stream);
-				size += B3DRTTIWrite(data.Name, stream);
-				size += B3DRTTIWrite(data.Type, stream);
-				size += B3DRTTIWrite(data.Slot, stream);
-				size += B3DRTTIWrite(data.Set, stream);
-				size += B3DRTTIWrite(data.ElementType, stream);
-				size += B3DRTTIWrite(data.ArraySize, stream);
-
-				return size; });
-		}
-
-		static BitLength FromMemory(GpuObjectParameterInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			BitLength size;
-			B3DRTTIReadSizeHeader(stream, compress, size);
-
-			uint32_t version = 0;
-			B3DRTTIRead(version, stream);
-
-			B3DRTTIRead(data.Name, stream);
-			B3DRTTIRead(data.Type, stream);
-			B3DRTTIRead(data.Slot, stream);
-			B3DRTTIRead(data.Set, stream);
+			processor(object.Name);
+			processor(object.Type);
+			processor(object.Slot);
+			processor(object.Set);
 
 			if(version > 1)
-				B3DRTTIRead(data.ElementType, stream);
+				processor(object.ElementType);
 
 			if(version > 2)
-				B3DRTTIRead(data.ArraySize, stream);
+				processor(object.ArraySize);
 
-			return size;
-		}
-
-		static BitLength GetSize(const GpuObjectParameterInformation& data, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			BitLength dataSize = B3DRTTISize(kVersion) + B3DRTTISize(data.Name) + B3DRTTISize(data.Type) +
-				B3DRTTISize(data.Slot) + B3DRTTISize(data.Set) + B3DRTTISize(data.ElementType) + B3DRTTISize(data.ArraySize);
-
-			B3DRTTIAddHeaderSize(dataSize, compress);
-			return dataSize;
+			if(version > 3)
+				processor(object.Stages);
 		}
 	};
 
 	template <>
-	struct RTTIPlainType<GpuUniformBufferInformation>
+	struct RTTIPlainType<GpuUniformBufferInformation> : RTTIPlainTypeHelper<GpuUniformBufferInformation, TID_GpuUniformBufferInformation, 2>
 	{
-		enum
+		template <class Processor>
+		static void RTTIEnumerateFields(GpuUniformBufferInformation& object, Processor& processor, u8 version)
 		{
-			id = TID_GpuParamBlockDesc
-		};
+			processor(object.Name);
+			processor(object.Set);
+			processor(object.Slot);
+			processor(object.Size);
 
-		enum
-		{
-			hasDynamicSize = 1
-		};
+			if(version > 1)
+				processor(object.Stages);
 
-		static constexpr uint32_t kVersion = 1;
-
-		static BitLength ToMemory(const GpuUniformBufferInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]
-											   {
-				BitLength size = 0;
-				size += B3DRTTIWrite(kVersion, stream);
-				size += B3DRTTIWrite(data.Name, stream);
-				size += B3DRTTIWrite(data.Set, stream);
-				size += B3DRTTIWrite(data.Slot, stream);
-				size += B3DRTTIWrite(data.Size, stream);
-				size += B3DRTTIWrite(data.IsShareable, stream);
-
-				return size; });
-		}
-
-		static BitLength FromMemory(GpuUniformBufferInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			BitLength size;
-			B3DRTTIReadSizeHeader(stream, compress, size);
-
-			uint32_t version = 0;
-			B3DRTTIRead(version, stream);
-			B3D_ASSERT(version == kVersion);
-
-			B3DRTTIRead(data.Name, stream);
-			B3DRTTIRead(data.Set, stream);
-			B3DRTTIRead(data.Slot, stream);
-			B3DRTTIRead(data.Size, stream);
-			B3DRTTIRead(data.IsShareable, stream);
-
-			return size;
-		}
-
-		static BitLength GetSize(const GpuUniformBufferInformation& data, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			BitLength dataSize = B3DRTTISize(kVersion) + B3DRTTISize(data.Name) + B3DRTTISize(data.Set) +
-				B3DRTTISize(data.Slot) + B3DRTTISize(data.Size) + B3DRTTISize(data.IsShareable);
-
-			B3DRTTIAddHeaderSize(dataSize, compress);
-			return dataSize;
+			processor(object.IsShareable);
 		}
 	};
 

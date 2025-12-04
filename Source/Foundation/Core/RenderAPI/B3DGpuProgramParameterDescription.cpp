@@ -5,8 +5,6 @@
 
 using namespace b3d;
 
-constexpr u32 RTTIPlainType<GpuUniformBufferInformation>::kVersion;
-constexpr u32 RTTIPlainType<GpuObjectParameterInformation>::kVersion;
 constexpr u32 RTTIPlainType<GpuUniformBufferMemberInformation>::kVersion;
 
 RTTIType* GpuProgramParameterDescription::GetRttiStatic()
