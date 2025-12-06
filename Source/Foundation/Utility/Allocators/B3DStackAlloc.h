@@ -386,7 +386,7 @@ namespace b3d
 	{
 		template<typename... Arguments>
 		explicit constexpr StackMemory(Arguments&&... arguments, u32 count)
-			: mData(B3DStackNew<T>(std::forward<Arguments>(arguments)..., count))
+			: mData(B3DStackNew<T>(std::forward<Arguments>(arguments)..., count)), mCount(count)
 		{}
 
 		~StackMemory()
@@ -396,7 +396,11 @@ namespace b3d
 		}
 
 		constexpr operator T*() const& noexcept { return mData; }
-		constexpr T& operator[](size_t index) const noexcept { return mData[index]; }
+		constexpr T& operator[](size_t index) const noexcept
+		{
+			B3D_ASSERT(index < mCount);
+			return mData[index];
+		}
 
 		constexpr T* Data() const noexcept { return mData; }
 
