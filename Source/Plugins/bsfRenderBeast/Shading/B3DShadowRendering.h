@@ -8,6 +8,7 @@
 #include "Math/B3DConvexVolume.h"
 #include "Renderer/B3DGpuUniformBuffer.h"
 #include "Renderer/B3DRendererMaterial.h"
+#include "RenderAPI/B3DGpuPipelineParameterLayout.h"
 #include "Image/B3DTextureAtlasLayout.h"
 #include "B3DRendererLight.h"
 
@@ -564,6 +565,9 @@ namespace b3d
 			/** Changes the default shadow map size. Will cause all shadow maps to be rebuilt. */
 			void SetShadowMapSize(u32 size);
 
+			/** Gets or creates a shadow parameter set for the given per-object buffer. */
+			SPtr<GpuParameterSet> GetOrCreateShadowParameterSet(const SPtr<GpuBuffer>& perObjectBuffer);
+
 		private:
 			/** Renders cascaded shadow maps for the provided directional light viewed from the provided view. */
 			void RenderCascadedShadowMaps(GpuCommandBuffer& commandBuffer, const RendererView& view, u32 lightIdx, RenderBeastScene& scene, const FrameInfo& frameInfo);
@@ -702,6 +706,17 @@ namespace b3d
 			Vector<bool> mRenderableVisibility; // Transient
 			Vector<ShadowMapOptions> mSpotLightShadowOptions; // Transient
 			Vector<ShadowMapOptions> mRadialLightShadowOptions; // Transient
+
+			// Shadow-specific per-object parameter set management (V+F+G stages for geometry shader support)
+			SPtr<GpuPipelineParameterSetLayout> mShadowPerObjectLayout;
+
+			struct ShadowParameterSetEntry
+			{
+				SPtr<GpuParameterSet> ParameterSet;
+				u32 RefCount = 0;
+			};
+
+			UnorderedMap<GpuBuffer*, ShadowParameterSetEntry> mShadowParameterSets;
 		};
 
 		/* @} */

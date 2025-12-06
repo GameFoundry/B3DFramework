@@ -14,6 +14,9 @@
 #include "B3DRendererRenderable.h"
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "RenderAPI/B3DRenderTexture.h"
+#include "RenderAPI/B3DGpuProgramParameterDescription.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "Math/B3DMath.h"
 
 namespace b3d
 {
@@ -500,8 +503,8 @@ namespace b3d
 
 						RendererRenderable* renderable = sceneInfo.Renderables[renderableIndex];
 
-						// Register per-object parameter set if not already registered
-						const SPtr<GpuParameterSet>& perObjectParameterSet = renderable->BufferAllocation.SharedParameterSet;
+						// Register per-object shadow parameter set if not already registered
+						const SPtr<GpuParameterSet>& perObjectParameterSet = opt.GetShadowParameterSet(renderable->BufferAllocation.PerObjectSuballocation.GetBuffer());
 						auto found = std::find(perObjectParameterSets.begin(), perObjectParameterSets.end(), perObjectParameterSet);
 						if(found == perObjectParameterSets.end())
 						{
@@ -553,9 +556,10 @@ namespace b3d
 							{
 								opt.Bind(commandBuffer, command);
 
-								// Bind per-object parameter set and dynamic offset
+								// Bind per-object shadow parameter set and dynamic offset
 								const auto& bufferAllocation = command.Renderable->BufferAllocation;
-								commandBuffer.SetGpuParameterSet(bufferAllocation.SharedParameterSet);
+								SPtr<GpuParameterSet> shadowParameterSet = opt.GetShadowParameterSet(bufferAllocation.PerObjectSuballocation.GetBuffer()); // TODO - Should sort objects by set if possible, to avoid switching sets
+								commandBuffer.SetGpuParameterSet(shadowParameterSet);
 								commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObject, bufferAllocation.PerObjectDynamicOffsetIndex, bufferAllocation.PerObjectSuballocation.GetSuballocationOffset());
 							}
 						}
@@ -571,11 +575,12 @@ namespace b3d
 		struct ShadowRenderQueueCubeOptions
 		{
 			ShadowRenderQueueCubeOptions(
+				ShadowRendering& shadowRendering,
 				const ConvexVolume (&frustums)[6],
 				const ConvexVolume& boundingVolume,
 				const GpuBufferSuballocation& shadowParamsBuffer,
 				const GpuBufferSuballocation& shadowCubeMatricesBuffer)
-				: Frustums(frustums), BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowParamsBuffer), ShadowCubeMatricesBuffer(shadowCubeMatricesBuffer)
+				: ShadowRenderer(shadowRendering), Frustums(frustums), BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowParamsBuffer), ShadowCubeMatricesBuffer(shadowCubeMatricesBuffer)
 			{}
 
 			void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
@@ -606,6 +611,12 @@ namespace b3d
 				Material->Bind(commandBuffer, command.GpuParameterSets);
 			}
 
+			SPtr<GpuParameterSet> GetShadowParameterSet(const SPtr<GpuBuffer>& perObjectBuffer) const
+			{
+				return ShadowRenderer.GetOrCreateShadowParameterSet(perObjectBuffer);
+			}
+
+			ShadowRendering& ShadowRenderer;
 			const ConvexVolume (&Frustums)[6];
 			const ConvexVolume& BoundingVolume;
 			const GpuBufferSuballocation& ShadowUniformBuffer;
@@ -618,9 +629,10 @@ namespace b3d
 		struct ShadowRenderQueueCubeSingleOptions
 		{
 			ShadowRenderQueueCubeSingleOptions(
+				ShadowRendering& shadowRendering,
 				const ConvexVolume& boundingVolume,
 				const GpuBufferSuballocation& shadowUniformBuffer)
-				: BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowUniformBuffer)
+				: ShadowRenderer(shadowRendering), BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowUniformBuffer)
 			{}
 
 			void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
@@ -646,6 +658,12 @@ namespace b3d
 				Material->Bind(commandBuffer, command.GpuParameterSets);
 			}
 
+			SPtr<GpuParameterSet> GetShadowParameterSet(const SPtr<GpuBuffer>& perObjectBuffer) const
+			{
+				return ShadowRenderer.GetOrCreateShadowParameterSet(perObjectBuffer);
+			}
+
+			ShadowRendering& ShadowRenderer;
 			const ConvexVolume& BoundingVolume;
 			const GpuBufferSuballocation& ShadowUniformBuffer;
 
@@ -656,10 +674,11 @@ namespace b3d
 		struct ShadowRenderQueueSpotOptions
 		{
 			ShadowRenderQueueSpotOptions(
+				ShadowRendering& shadowRendering,
 				Area2 viewportArea,
 				const ConvexVolume& boundingVolume,
 				const GpuBufferSuballocation& shadowUniformBuffer)
-				: ViewportArea(viewportArea), BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowUniformBuffer)
+				: ShadowRenderer(shadowRendering), ViewportArea(viewportArea), BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowUniformBuffer)
 			{}
 
 			void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
@@ -686,6 +705,12 @@ namespace b3d
 				Material->Bind(commandBuffer, command.GpuParameterSets);
 			}
 
+			SPtr<GpuParameterSet> GetShadowParameterSet(const SPtr<GpuBuffer>& perObjectBuffer) const
+			{
+				return ShadowRenderer.GetOrCreateShadowParameterSet(perObjectBuffer);
+			}
+
+			ShadowRendering& ShadowRenderer;
 			const Area2& ViewportArea;
 			const ConvexVolume& BoundingVolume;
 			const GpuBufferSuballocation& ShadowUniformBuffer;
@@ -697,9 +722,10 @@ namespace b3d
 		struct ShadowRenderQueueDirOptions
 		{
 			ShadowRenderQueueDirOptions(
+				ShadowRendering& shadowRendering,
 				const ConvexVolume& boundingVolume,
 				const GpuBufferSuballocation& shadowUniformBuffer)
-				: BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowUniformBuffer)
+				: ShadowRenderer(shadowRendering), BoundingVolume(boundingVolume), ShadowUniformBuffer(shadowUniformBuffer)
 			{}
 
 			void PrepareRenderTarget(GpuCommandBuffer& commandBuffer) const
@@ -725,6 +751,12 @@ namespace b3d
 				Material->Bind(commandBuffer, command.GpuParameterSets);
 			}
 
+			SPtr<GpuParameterSet> GetShadowParameterSet(const SPtr<GpuBuffer>& perObjectBuffer) const
+			{
+				return ShadowRenderer.GetOrCreateShadowParameterSet(perObjectBuffer);
+			}
+
+			ShadowRendering& ShadowRenderer;
 			const ConvexVolume& BoundingVolume;
 			const GpuBufferSuballocation& ShadowUniformBuffer;
 
@@ -796,6 +828,21 @@ namespace b3d
 				mFrustumIB = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
 				GpuBufferUtility::Write(mFrustumIB, 0, sizeof(AABox::kCubeIndices), AABox::kCubeIndices);
 			}
+
+			// Create shadow per-object layout with geometry stage (for point light cubemap shadows)
+			{
+				GpuUniformBufferInformation perObjectInfo;
+				perObjectInfo.Name = "PerObject";
+				perObjectInfo.Set = GpuPipelineSet::kPerObject;
+				perObjectInfo.Slot = 0;
+				perObjectInfo.Size = Math::CeilToMultiple(gPerObjectUniformDefinition.GetSize() / 4u, 4u);
+				perObjectInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment | GpuProgramStageBit::Geometry;
+				perObjectInfo.IsShareable = true;
+
+				GpuProgramParameterDescription description;
+				description.UniformBuffers["PerObject"] = perObjectInfo;
+				mShadowPerObjectLayout = gpuDevice->CreateGpuPipelineParameterSetLayout(description);
+			}
 		}
 
 		void ShadowRendering::SetShadowMapSize(u32 size)
@@ -808,6 +855,26 @@ namespace b3d
 			mShadowCubemaps.clear();
 
 			mShadowMapSize = size;
+		}
+
+		SPtr<GpuParameterSet> ShadowRendering::GetOrCreateShadowParameterSet(const SPtr<GpuBuffer>& perObjectBuffer)
+		{
+			GpuBuffer* key = perObjectBuffer.get();
+
+			auto iter = mShadowParameterSets.find(key);
+			if(iter != mShadowParameterSets.end())
+				return iter->second.ParameterSet;
+
+			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+			SPtr<GpuParameterSet> parameterSet = gpuDevice->CreateGpuParameterSet(mShadowPerObjectLayout, GpuPipelineSet::kPerObject);
+			parameterSet->SetUniformBuffer("PerObject", perObjectBuffer, 0);
+
+			ShadowParameterSetEntry entry;
+			entry.ParameterSet = parameterSet;
+			entry.RefCount = 1;
+
+			mShadowParameterSets[key] = entry;
+			return parameterSet;
 		}
 
 		void ShadowRendering::RenderShadowMaps(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, const RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
@@ -825,6 +892,7 @@ namespace b3d
 
 			// Clear all transient data from last frame
 			mShadowInfos.clear();
+			mShadowParameterSets.clear();
 
 			mSpotLightShadows.resize(sceneInfo.SpotLights.size());
 			mRadialLightShadows.resize(sceneInfo.RadialLights.size());
@@ -1513,6 +1581,7 @@ namespace b3d
 
 				// Render all renderables into the shadow map
 				ShadowRenderQueueDirOptions dirOptions(
+					*this,
 					cascadeCullVolume,
 					shadowUniformBuffer);
 
@@ -1604,6 +1673,7 @@ namespace b3d
 
 			// Render all renderables into the shadow map
 			ShadowRenderQueueSpotOptions spotOptions(
+				*this,
 				mapInfo.NormArea,
 				worldFrustum,
 				shadowUniformBuffer);
@@ -1780,6 +1850,7 @@ namespace b3d
 					// Render all renderables into the shadow map
 					ConvexVolume boundingVolume(boundingPlanes);
 					ShadowRenderQueueCubeSingleOptions cubeOptions(
+						*this,
 						frustum,
 						shadowUniformBuffer);
 
@@ -1792,6 +1863,7 @@ namespace b3d
 				// Render all renderables into the shadow map
 				ConvexVolume boundingVolume(boundingPlanes);
 				ShadowRenderQueueCubeOptions cubeOptions(
+					*this,
 					frustums,
 					boundingVolume,
 					shadowUniformBuffer,

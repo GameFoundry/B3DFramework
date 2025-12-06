@@ -33,33 +33,38 @@ void RenderableUniformBufferManager::Initialize(GpuDevice& device)
 
 	mStagingPool.Initialize(device, stagingCreateInfo, kStagingEntriesPerBuffer, 1);
 
-	// Build GpuProgramParameterDescription for per-object set
-	GpuProgramParameterDescription parameterDescription;
-
-	// PerObject uniform buffer (slot 0)
-	// Used by vertex, fragment, and geometry shaders
+	// PerObject uniform buffer info (shared by both layouts)
 	GpuUniformBufferInformation perObjectInfo;
 	perObjectInfo.Name = "PerObject";
 	perObjectInfo.Set = GpuPipelineSet::kPerObject;
 	perObjectInfo.Slot = 0;
 	perObjectInfo.Size = Math::CeilToMultiple(gPerObjectUniformDefinition.GetSize() / 4u, 4u);
-	perObjectInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment | GpuProgramStageBit::Geometry;
+	perObjectInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment;
 	perObjectInfo.IsShareable = true;
-	parameterDescription.UniformBuffers["PerObject"] = perObjectInfo;
 
-	// DecalParams uniform buffer (slot 1)
-	// Used only by fragment shader
-	//GpuUniformBufferInformation decalInfo;
-	//decalInfo.Name = "DecalParams";
-	//decalInfo.Set = GpuPipelineSet::kPerObject;
-	//decalInfo.Slot = 1;
-	//decalInfo.Size = Math::CeilToMultiple(gDecalParamDef.GetSize() / 4u, 4u);
-	//decalInfo.Stages = GpuProgramStageBit::Fragment;
-	//decalInfo.IsShareable = true;
-	//parameterDescription.UniformBuffers["DecalParams"] = decalInfo;
+	// Create renderable layout (PerObject only)
+	{
+		GpuProgramParameterDescription renderableDescription;
+		renderableDescription.UniformBuffers["PerObject"] = perObjectInfo;
+		mRenderableParameterSetLayout = device.CreateGpuPipelineParameterSetLayout(renderableDescription);
+	}
 
-	// Create the set layout directly
-	mParameterSetLayout = device.CreateGpuPipelineParameterSetLayout(parameterDescription);
+	// Create decal layout (PerObject + DecalParams)
+	{
+		GpuProgramParameterDescription decalDescription;
+		decalDescription.UniformBuffers["PerObject"] = perObjectInfo;
+
+		GpuUniformBufferInformation decalInfo;
+		decalInfo.Name = "DecalParams";
+		decalInfo.Set = GpuPipelineSet::kPerObject;
+		decalInfo.Slot = 1;
+		decalInfo.Size = Math::CeilToMultiple(gDecalParamDef.GetSize() / 4u, 4u);
+		decalInfo.Stages = GpuProgramStageBit::Fragment;
+		decalInfo.IsShareable = true;
+		decalDescription.UniformBuffers["DecalParams"] = decalInfo;
+
+		mDecalParameterSetLayout = device.CreateGpuPipelineParameterSetLayout(decalDescription);
+	}
 }
 
 RenderableUniformBufferManager::RenderableAllocation RenderableUniformBufferManager::AllocateForRenderable()
@@ -69,9 +74,9 @@ RenderableUniformBufferManager::RenderableAllocation RenderableUniformBufferMana
 	result.PerObjectSuballocation = mRenderablePool.Allocate();
 	result.SharedParameterSet = GetOrCreateParameterSet(result.PerObjectSuballocation.GetBuffer(), nullptr);
 
-	const u32 slot = mParameterSetLayout->GetSlot("PerObject");
+	const u32 slot = mRenderableParameterSetLayout->GetSlot("PerObject");
 	if(slot != ~0u)
-		result.PerObjectDynamicOffsetIndex = mParameterSetLayout->GetDynamicOffsetIndex(slot);
+		result.PerObjectDynamicOffsetIndex = mRenderableParameterSetLayout->GetDynamicOffsetIndex(slot);
 
 	return result;
 }
@@ -85,13 +90,13 @@ RenderableUniformBufferManager::DecalAllocation RenderableUniformBufferManager::
 
 	result.SharedParameterSet = GetOrCreateParameterSet(result.PerObjectSuballocation.GetBuffer(), result.DecalSuballocation.GetBuffer());
 
-	const u32 perObjectSlot = mParameterSetLayout->GetSlot("PerObject");
+	const u32 perObjectSlot = mDecalParameterSetLayout->GetSlot("PerObject");
 	if(perObjectSlot != ~0u)
-		result.PerObjectDynamicOffsetIndex = mParameterSetLayout->GetDynamicOffsetIndex(perObjectSlot);
+		result.PerObjectDynamicOffsetIndex = mDecalParameterSetLayout->GetDynamicOffsetIndex(perObjectSlot);
 
-	const u32 decalSlot = mParameterSetLayout->GetSlot("DecalParams");
+	const u32 decalSlot = mDecalParameterSetLayout->GetSlot("DecalParams");
 	if(decalSlot != ~0u)
-		result.DecalDynamicOffsetIndex = mParameterSetLayout->GetDynamicOffsetIndex(decalSlot);
+		result.DecalDynamicOffsetIndex = mDecalParameterSetLayout->GetDynamicOffsetIndex(decalSlot);
 
 	return result;
 }
@@ -129,11 +134,14 @@ SPtr<render::GpuParameterSet> RenderableUniformBufferManager::GetOrCreateParamet
 		return iter->second.ParameterSet;
 	}
 
-	SPtr<GpuParameterSet> parameterSet = mDevice->CreateGpuParameterSet(mParameterSetLayout, GpuPipelineSet::kPerObject);
+	const bool isDecal = decalBuffer != nullptr;
+	const SPtr<GpuPipelineParameterSetLayout>& layout = isDecal ? mDecalParameterSetLayout : mRenderableParameterSetLayout;
+
+	SPtr<GpuParameterSet> parameterSet = mDevice->CreateGpuParameterSet(layout, GpuPipelineSet::kPerObject);
 
 	parameterSet->SetUniformBuffer("PerObject", perObjectBuffer, 0);
 
-	if(decalBuffer != nullptr)
+	if(isDecal)
 		parameterSet->SetUniformBuffer("DecalParams", decalBuffer, 0);
 
 	BufferParameterSetEntry entry;

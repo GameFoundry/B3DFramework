@@ -135,7 +135,8 @@ namespace b3d::render
 		GpuBufferPool mDecalPool;
 		TransientGpuBufferPool mStagingPool;
 		UnorderedMap<BufferKey, BufferParameterSetEntry, BufferKeyHash> mParameterSetsByBuffer;
-		SPtr<GpuPipelineParameterSetLayout> mParameterSetLayout;
+		SPtr<GpuPipelineParameterSetLayout> mRenderableParameterSetLayout;
+		SPtr<GpuPipelineParameterSetLayout> mDecalParameterSetLayout;
 		GpuDevice* mDevice = nullptr;
 	};
 
