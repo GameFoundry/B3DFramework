@@ -372,12 +372,12 @@ void TiledDeferredImageBasedLightingMaterial::Execute(GpuCommandBuffer& commandB
 	if(skybox)
 		skyFilteredRadiance = skybox->GetFilteredRadiance();
 
-	mImageBasedParams.PreintegratedEnvBrdfParam.Set(inputs.PreIntegratedGf);
-	mImageBasedParams.ReflectionProbesParam.Set(probeData.GetProbeBuffer());
-	mImageBasedParams.ReflectionProbeCubemapsTexParam.Set(sceneInfo.ReflProbeCubemapsTex);
+	mImageBasedParams.PreintegratedEnvBrdfParameter.Set(inputs.PreIntegratedGf);
+	mImageBasedParams.ReflectionProbesParameter.Set(probeData.GetProbeBuffer());
+	mImageBasedParams.ReflectionProbeCubemapsTexParameter.Set(sceneInfo.ReflProbeCubemapsTex);
 	mImageBasedParams.SkyReflectionsTexParam.Set(skyFilteredRadiance);
 	mImageBasedParams.AmbientOcclusionTexParam.Set(inputs.AmbientOcclusion);
-	mImageBasedParams.SsrTexParam.Set(inputs.Ssr);
+	mImageBasedParams.SsrTexParameter.Set(inputs.Ssr);
 
 	mGpuParameterSet->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
 

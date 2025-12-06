@@ -52,8 +52,8 @@ namespace b3d
 			/** Type of animation applied to this element, if any. */
 			RenderableAnimType AnimType;
 
-			/** Binding indices representing where should the per-camera param block buffer be bound to. */
-			GpuParameterBinding PerCameraBinding;
+			/** Parameter for binding the per-camera uniform buffer. */
+			GpuParameterUniformBuffer PerCameraUniformBufferParameter;
 
 			/** Collection of parameters used for direct lighting using the forward rendering path. */
 			ForwardLightingParams ForwardLightingParams;

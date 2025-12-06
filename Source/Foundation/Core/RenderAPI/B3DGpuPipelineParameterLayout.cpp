@@ -9,7 +9,7 @@
 
 using namespace b3d;
 
-GpuPipelineParameterLayoutSet::GpuPipelineParameterLayoutSet(const GpuProgramParameterDescription& parameterDescription)
+GpuPipelineParameterSetLayout::GpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
 {
 	auto fnRegisterUniforms = [this](const auto& entry, u32 arraySize, GpuParameterType type, GpuParameterObjectType objectType, GpuBufferFormat elementType) mutable
 	{
@@ -200,7 +200,7 @@ GpuPipelineParameterLayoutSet::GpuPipelineParameterLayoutSet(const GpuProgramPar
 	mDynamicOffsetCount = nextDynamicOffsetIndex;
 }
 
-u32 GpuPipelineParameterLayoutSet::GetSequentialResourceIndex(u32 slot, u32 arrayIndex) const
+u32 GpuPipelineParameterSetLayout::GetSequentialResourceIndex(u32 slot, u32 arrayIndex) const
 {
 #if B3D_DEBUG
 	if(slot >= mUniforms.size() || mUniforms[slot] == nullptr)
@@ -224,7 +224,7 @@ u32 GpuPipelineParameterLayoutSet::GetSequentialResourceIndex(u32 slot, u32 arra
 }
 
 
-u32 GpuPipelineParameterLayoutSet::GetSequentialBindingIndex(u32 slot) const
+u32 GpuPipelineParameterSetLayout::GetSequentialBindingIndex(u32 slot) const
 {
 #if B3D_DEBUG
 	if(slot >= mUniforms.size() || mUniforms[slot] == nullptr)
@@ -237,7 +237,7 @@ u32 GpuPipelineParameterLayoutSet::GetSequentialBindingIndex(u32 slot) const
 	return mUniforms[slot]->SequentialBindingIndex;
 }
 
-u32 GpuPipelineParameterLayoutSet::GetSlot(GpuParameterType type, u32 sequentialBindingIndex) const
+u32 GpuPipelineParameterSetLayout::GetSlot(GpuParameterType type, u32 sequentialBindingIndex) const
 {
 #if B3D_DEBUG
 	if(sequentialBindingIndex >= mUniformsPerType[(u32)type].size())
@@ -253,7 +253,7 @@ u32 GpuPipelineParameterLayoutSet::GetSlot(GpuParameterType type, u32 sequential
 	return mUniformsPerType[(u32)type][sequentialBindingIndex]->Slot;
 }
 
-u32 GpuPipelineParameterLayoutSet::GetSlot(const StringView& name) const
+u32 GpuPipelineParameterSetLayout::GetSlot(const StringView& name) const
 {
 	if(auto found = mUniformMap.find(name); found != mUniformMap.end())
 		return found->second.Slot;
@@ -261,7 +261,7 @@ u32 GpuPipelineParameterLayoutSet::GetSlot(const StringView& name) const
 	return ~0u;
 }
 
-u32 GpuPipelineParameterLayoutSet::GetArraySize(GpuParameterType type, u32 sequentialBindingIndex) const
+u32 GpuPipelineParameterSetLayout::GetArraySize(GpuParameterType type, u32 sequentialBindingIndex) const
 {
 #if B3D_DEBUG
 	if(sequentialBindingIndex >= mUniformsPerType[(u32)type].size())
@@ -277,7 +277,7 @@ u32 GpuPipelineParameterLayoutSet::GetArraySize(GpuParameterType type, u32 seque
 	return mUniformsPerType[(u32)type][sequentialBindingIndex]->ArraySize;
 }
 
-u32 GpuPipelineParameterLayoutSet::GetDynamicOffsetIndex(u32 slot, u32 arrayIndex) const
+u32 GpuPipelineParameterSetLayout::GetDynamicOffsetIndex(u32 slot, u32 arrayIndex) const
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	if(slot >= mUniforms.size() || mUniforms[slot] == nullptr)
@@ -300,7 +300,15 @@ u32 GpuPipelineParameterLayoutSet::GetDynamicOffsetIndex(u32 slot, u32 arrayInde
 	return uniformInformation.DynamicOffsetIndex + arrayIndex;
 }
 
-bool GpuPipelineParameterLayoutSet::HasUniformOfType(const StringView& name, GpuParameterType type) const
+u32 GpuPipelineParameterSetLayout::GetDynamicOffsetIndex(const StringView& name, u32 arrayIndex) const
+{
+	if(auto found = mUniformMap.find(name); found != mUniformMap.end())
+		return GetDynamicOffsetIndex(found->second.Slot, arrayIndex);
+
+	return ~0u;
+}
+
+bool GpuPipelineParameterSetLayout::HasUniformOfType(const StringView& name, GpuParameterType type) const
 {
 	if(auto found = mUniformMap.find(name); found != mUniformMap.end())
 		return found->second.Type == type;
@@ -308,7 +316,7 @@ bool GpuPipelineParameterLayoutSet::HasUniformOfType(const StringView& name, Gpu
 	return false;
 }
 
-const UniformInformation* GpuPipelineParameterLayoutSet::TryGetUniformInformation(const StringView& name) const
+const UniformInformation* GpuPipelineParameterSetLayout::TryGetUniformInformation(const StringView& name) const
 {
 	if(auto found = mUniformMap.find(name); found != mUniformMap.end())
 		return &found->second;
@@ -316,7 +324,7 @@ const UniformInformation* GpuPipelineParameterLayoutSet::TryGetUniformInformatio
 	return nullptr;
 }
 
-const UniformInformation* GpuPipelineParameterLayoutSet::TryGetUniformInformation(GpuParameterType type, u32 sequentialBindingIndex) const
+const UniformInformation* GpuPipelineParameterSetLayout::TryGetUniformInformation(GpuParameterType type, u32 sequentialBindingIndex) const
 {
 	if(sequentialBindingIndex >= mUniformsPerType[(u32)type].size())
 		return nullptr;
@@ -324,7 +332,7 @@ const UniformInformation* GpuPipelineParameterLayoutSet::TryGetUniformInformatio
 	return mUniformsPerType[(u32)type][sequentialBindingIndex];
 }
 
-const UniformInformation* GpuPipelineParameterLayoutSet::TryGetUniformInformation(u32 slot) const
+const UniformInformation* GpuPipelineParameterSetLayout::TryGetUniformInformation(u32 slot) const
 {
 	if(slot >= (u32)mUniforms.size())
 		return nullptr;
@@ -332,7 +340,7 @@ const UniformInformation* GpuPipelineParameterLayoutSet::TryGetUniformInformatio
 	return mUniforms[slot];
 }
 
-const GpuUniformBufferMemberInformation* GpuPipelineParameterLayoutSet::TryGetUniformBufferMemberInformation(const StringView& name) const
+const GpuUniformBufferMemberInformation* GpuPipelineParameterSetLayout::TryGetUniformBufferMemberInformation(const StringView& name) const
 {
 	if(auto found = mUniformBufferMembers.find(name); found != mUniformBufferMembers.end())
 		return &found->second;
@@ -373,293 +381,10 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParamete
 				B3D_LOG(Warning, RenderBackend, "{0}", result.GetFullErrorMessage());
 		}
 	}
-
-	auto fnRegisterUniforms = [this](const auto& entry, u32 arraySize, GpuParameterType type, GpuParameterObjectType objectType, GpuBufferFormat elementType, GpuProgramStageBit stage)
-	{
-		// If entry with the same name exists, ensure it's an exact duplicate we can ignore
-		if(auto found = mUniformMap.find(entry.Name); found != mUniformMap.end())
-		{
-			if(found->second.Type != type)
-			{
-				B3D_LOG(Warning, RenderBackend, "Found a uniform with same name {0}, but a different type. One has type {1}, and other {2}",
-					entry.Name, (u32)type, (u32)found->second.Type);
-				return;
-			}
-		
-			if(found->second.Set != entry.Set || found->second.Slot != entry.Slot)
-			{
-				B3D_LOG(Warning, RenderBackend, "Found a uniform with same name {0}, but a different set/slot combination. One is using set:{1}, slot:{2}, and other set:{3}, slot:{4}",
-					entry.Name, entry.Set, entry.Slot, found->second.Set, found->second.Slot);
-				return;
-			}
-
-			if(found->second.ArraySize != arraySize)
-			{
-				B3D_LOG(Warning, RenderBackend, "Found a uniform with same name {0}, but a different array size. One has array size {1}, and other {2}",
-					entry.Name, arraySize, found->second.ArraySize);
-				return;
-			}
-
-			found->second.Usage |= stage;
-			return;
-		}
-
-		// Ensure provided set/slot combination is valid
-		if(entry.Set == ~0u || entry.Slot == ~0u)
-		{
-			B3D_LOG(Warning, RenderBackend, "Invalid set/slot combination provided for uniform {0}. Set: {1}, slot: {2}", entry.Name, entry.Set, entry.Slot);
-			return;
-		}
-
-		UniformInformation uniformInformation;
-		uniformInformation.Name = entry.Name;
-		uniformInformation.Type = type;
-		uniformInformation.Set = entry.Set;
-		uniformInformation.Slot = entry.Slot;
-		uniformInformation.ArraySize = arraySize;
-		uniformInformation.ObjectType = objectType;
-		uniformInformation.ElementType = elementType;
-		uniformInformation.Usage |= stage;
-
-		mUniformMap[entry.Name] = std::move(uniformInformation);
-	};
-
-	// Generate a unique list of uniforms from all per-program descriptions
-	// NOTE: Generated map must remain immutable after this as we are referencing its elements by pointer
-	for(u32 parameterDescriptionIndex = 0; parameterDescriptionIndex < GPT_COUNT; parameterDescriptionIndex++)
-	{
-		const SPtr<GpuProgramParameterDescription>& parameterDescription = perProgramParameterDescriptions[parameterDescriptionIndex];
-		if(parameterDescription == nullptr)
-			continue;
-
-		const GpuProgramStageBit stageBit = (GpuProgramStageBit)(1 << parameterDescriptionIndex);
-		for(const auto& uniformBuffer : parameterDescription->UniformBuffers)
-			fnRegisterUniforms(uniformBuffer.second, 1, GpuParameterType::UniformBuffer, GPOT_UNKNOWN, BF_UNKNOWN, stageBit);
-
-		for(auto& sampledTexture : parameterDescription->SampledTextures)
-			fnRegisterUniforms(sampledTexture.second, sampledTexture.second.ArraySize, GpuParameterType::SampledTexture, sampledTexture.second.Type, sampledTexture.second.ElementType, stageBit);
-
-		for(auto& storageTexture : parameterDescription->StorageTextures)
-			fnRegisterUniforms(storageTexture.second, storageTexture.second.ArraySize, GpuParameterType::StorageTexture, storageTexture.second.Type, storageTexture.second.ElementType, stageBit);
-
-		for(auto& buffer : parameterDescription->Buffers)
-			fnRegisterUniforms(buffer.second, buffer.second.ArraySize, GpuParameterType::StorageBuffer, buffer.second.Type, buffer.second.ElementType, stageBit);
-
-		for(auto& sampler : parameterDescription->Samplers)
-			fnRegisterUniforms(sampler.second, sampler.second.ArraySize, GpuParameterType::Sampler, sampler.second.Type, sampler.second.ElementType, stageBit);
-	}
-
-	// Register uniform information in per-slot and per-type arrays
-	for(auto it = mUniformMap.begin(); it != mUniformMap.end();)
-	{
-		UniformInformation& uniformInformation = it->second;
-
-		// Check if some other entry is using the same set/slot combination
-		if(uniformInformation.Set < mSets.size())
-		{
-			if(uniformInformation.Slot < mSets[uniformInformation.Set].Uniforms.size())
-			{
-				UniformInformation* otherUniformInformation = mSets[uniformInformation.Set].Uniforms[uniformInformation.Slot];
-				if(otherUniformInformation)
-				{
-					// Duplicate set/slot can be allowed only in the combined texture/sampler case
-					const bool isPotentialCombinedSampler = (uniformInformation.Type == GpuParameterType::SampledTexture && otherUniformInformation->Type == GpuParameterType::Sampler || uniformInformation.Type == GpuParameterType::Sampler && otherUniformInformation->Type == GpuParameterType::SampledTexture);
-					if(!isPotentialCombinedSampler)
-					{
-						B3D_LOG(Warning, RenderBackend, "Provided set/slot combination for uniform {0} is already in use by {1}. Set: {2}, slot: {3}", it->first, mSets[uniformInformation.Set].Uniforms[uniformInformation.Slot]->Name, uniformInformation.Set, uniformInformation.Slot);
-
-						mUniformMap.erase(it);
-
-						// Need to start from beginning, as the map pointers could now be out of date
-						it = mUniformMap.begin();
-						mSets.Clear();
-
-						continue;
-					}
-				}
-			}
-		}
-
-		while(mSets.size() <= uniformInformation.Set)
-			mSets.Add(SetInformation());
-
-		while(mSets[uniformInformation.Set].Uniforms.size() <= uniformInformation.Slot)
-			mSets[uniformInformation.Set].Uniforms.Add(nullptr);
-
-		SetInformation& setInformation = mSets[uniformInformation.Set];
-		setInformation.Uniforms[uniformInformation.Slot] = &uniformInformation;
-		setInformation.UniformsPerType[(u32)uniformInformation.Type].Add(&uniformInformation);
-
-		++it;
-	}
-
-	// Register uniform buffer members
-	auto fnRegisterUniformBufferMember = [this](const GpuUniformBufferMemberInformation& entry)
-	{
-		// Ensure provided set/slot combination is valid
-		if(entry.ParentUniformBufferSet == ~0u || entry.ParentUniformBufferSlot == ~0u)
-		{
-			B3D_LOG(Warning, RenderBackend, "Invalid uniform buffer set/slot combination provided for uniform buffer member {0}. Set: {1}, slot: {2}", entry.Name, entry.ParentUniformBufferSet, entry.ParentUniformBufferSlot);
-			return;
-		}
-
-		SetInformation& setInformation = mSets[entry.ParentUniformBufferSet];
-
-		// If entry with the same name exists, ensure it's an exact duplicate we can ignore
-		if(auto found = setInformation.UniformBufferMembers.find(entry.Name); found != setInformation.UniformBufferMembers.end())
-		{
-			if(found->second != entry)
-			{
-				B3D_LOG(Warning, RenderBackend, "Found a uniform member with same name {0}, but different type information.", entry.Name);
-			}
-
-			return;
-		}
-
-		setInformation.UniformBufferMembers[entry.Name] = entry;
-	};
-
-	for(u32 parameterDescriptionIndex = 0; parameterDescriptionIndex < GPT_COUNT; parameterDescriptionIndex++)
-	{
-		const SPtr<GpuProgramParameterDescription>& parameterDescription = perProgramParameterDescriptions[parameterDescriptionIndex];
-		if(parameterDescription == nullptr)
-			continue;
-
-		for(auto& uniformBufferMember : parameterDescription->UniformBufferMembers)
-			fnRegisterUniformBufferMember(uniformBufferMember.second);
-	}
-
-	// Generate sequential indices (per-type iteration for resource counting)
-	auto fnCalculateSequentialIndices = [this](SetInformation& setInformation, GpuParameterType type)
-	{
-		const u32 typeIndex = (u32)type;
-		setInformation.ResourceCountPerType[typeIndex] = 0;
-
-		u32 sequentialResourceIndex = 0;
-		for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < setInformation.UniformsPerType[typeIndex].size(); ++sequentialBindingIndex)
-		{
-			UniformInformation* uniformInformation = setInformation.UniformsPerType[typeIndex][sequentialBindingIndex];
-			if(uniformInformation == nullptr)
-				continue;
-
-			if(type != GpuParameterType::Sampler || uniformInformation->SequentialResourceIndex == ~0u)
-			{
-				uniformInformation->SequentialBindingIndex = sequentialBindingIndex;
-				uniformInformation->SequentialResourceIndex = sequentialResourceIndex;
-			}
-			else
-			{
-				uniformInformation->SequentialSamplerBindingIndex = sequentialBindingIndex;
-				uniformInformation->SequentialSamplerResourceIndex = sequentialResourceIndex;
-			}
-
-			sequentialResourceIndex += uniformInformation->ArraySize;
-
-			setInformation.BindingCount++;
-			setInformation.ResourceCountPerType[typeIndex] += uniformInformation->ArraySize;
-			setInformation.ResourceCount += uniformInformation->ArraySize;
-		}
-	};
-
-	for(auto& setInformation : mSets)
-	{
-		fnCalculateSequentialIndices(setInformation, GpuParameterType::UniformBuffer);
-		fnCalculateSequentialIndices(setInformation, GpuParameterType::SampledTexture);
-		fnCalculateSequentialIndices(setInformation, GpuParameterType::StorageTexture);
-		fnCalculateSequentialIndices(setInformation, GpuParameterType::StorageBuffer);
-		fnCalculateSequentialIndices(setInformation, GpuParameterType::Sampler);
-
-		mBindingCount += setInformation.BindingCount;
-	}
-
-	// Assign dynamic offset index in slot-order (Vulkan spec requires binding number order). This should match the order in VulkanGpuParameterSet::PrepareForBind
-	// Each set has its own dynamic offset indices starting from 0
-	for(auto& setInformation : mSets)
-	{
-		u32 nextDynamicOffsetIndex = 0;
-		for(u32 slotIndex = 0; slotIndex < setInformation.Uniforms.size(); slotIndex++)
-		{
-			UniformInformation* uniformInformation = setInformation.Uniforms[slotIndex];
-			if(uniformInformation == nullptr)
-				continue;
-
-			bool supportsDynamicOffset = false;
-			if(uniformInformation->Type == GpuParameterType::UniformBuffer)
-				supportsDynamicOffset = true;
-			else if(uniformInformation->Type == GpuParameterType::StorageBuffer)
-				supportsDynamicOffset = (uniformInformation->ObjectType == GPOT_STRUCTURED_BUFFER || uniformInformation->ObjectType == GPOT_RWSTRUCTURED_BUFFER);
-
-			if(supportsDynamicOffset)
-				uniformInformation->DynamicOffsetIndex = nextDynamicOffsetIndex++;
-		}
-		setInformation.DynamicOffsetCount = nextDynamicOffsetIndex;
-	}
 }
 
 void GpuPipelineParameterLayout::Initialize()
 {
 	for(u32 set = 0; set < (u32)mPerSetParameterDescriptions.Size(); ++set)
-		mSets[set].Set = CreateSet(mPerSetParameterDescriptions[set]);
-}
-
-GpuParameterBinding GpuPipelineParameterLayout::GetBinding(const StringView& name) const
-{
-	GpuParameterBinding output;
-
-	if(auto found = mUniformMap.find(name); found != mUniformMap.end())
-	{
-		output.Set = found->second.Set;
-		output.Slot = found->second.Slot;
-	}
-
-	return output;
-}
-
-u32 GpuPipelineParameterLayout::GetDynamicOffsetIndex(u32 set, u32 slot, u32 arrayIndex) const
-{
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	if(set >= mSets.size())
-	{
-		B3D_LOG(Error, RenderBackend, "Cannot retrieve dynamic offset index. Set index out of range: Valid range: [0, {0}). Requested: {1}.", mSets.size(), set);
-		return ~0u;
-	}
-
-	if(slot >= mSets[set].Uniforms.size() || mSets[set].Uniforms[slot] == nullptr)
-	{
-		B3D_LOG(Error, RenderBackend, "Cannot retrieve dynamic offset index. Slot index doesn't exist in the set. Requested: {0}.", slot);
-		return ~0u;
-	}
-#endif
-
-	const UniformInformation& uniformInformation = *mSets[set].Uniforms[slot];
-
-#if B3D_DEBUG
-	if(arrayIndex >= uniformInformation.ArraySize)
-	{
-		B3D_LOG(Error, RenderBackend, "Cannot retrieve dynamic offset index. Array index out of range: Valid range: [0, {0}). Requested: {1}.", uniformInformation.ArraySize, arrayIndex);
-		return -1;
-	}
-#endif
-
-	return uniformInformation.DynamicOffsetIndex + arrayIndex;
-}
-
-u32 GpuPipelineParameterLayout::GetDynamicOffsetIndex(const StringView& name, u32 arrayIndex) const
-{
-	if(auto found = mUniformMap.find(name); found != mUniformMap.end())
-		return GetDynamicOffsetIndex(found->second.Set, found->second.Slot, arrayIndex);
-
-	return ~0u;
-}
-
-const UniformInformation* GpuPipelineParameterLayout::TryGetUniformInformation(GpuParameterType type, u32 set, u32 sequentialBindingIndex) const
-{
-	if(set >= (u32)mSets.size())
-		return nullptr;
-
-	const SetInformation& setInformation = mSets[set];
-	if(sequentialBindingIndex >= setInformation.UniformsPerType[(u32)type].size())
-		return nullptr;
-
-	return setInformation.UniformsPerType[(u32)type][sequentialBindingIndex];
+		mSets.Add(CreateSet(mPerSetParameterDescriptions[set]));
 }

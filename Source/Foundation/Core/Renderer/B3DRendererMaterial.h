@@ -491,13 +491,10 @@ namespace b3d
 			pass->Compile();
 
 			mGraphicsPipeline = pass->GetGraphicsPipelineState();
-			if(mGraphicsPipeline != nullptr)
-				mGpuParameterSet = mGpuDevice->CreateGpuParameterSet(mGraphicsPipeline->GetParameterLayout());
-			else
-			{
+			if(mGraphicsPipeline == nullptr)
 				mComputePipeline = pass->GetComputePipelineState();
-				mGpuParameterSet = mGpuDevice->CreateGpuParameterSet(mComputePipeline->GetParameterLayout());
-			}
+
+			mGpuParameterSet = CreateGpuParameterSet();
 
 			// Assign default values from the shader
 			const auto& textureParams = mShader->GetTextureParams();
@@ -549,9 +546,9 @@ namespace b3d
 		SPtr<GpuParameterSet> RendererMaterial<T>::CreateGpuParameterSet(u32 set) const
 		{
 			if(mGraphicsPipeline != nullptr)
-				return mGpuDevice->CreateGpuParameterSet(mGraphicsPipeline->GetParameterLayout(), set);
+				return mGpuDevice->CreateGpuParameterSet(mGraphicsPipeline->GetParameterLayout()->GetSet(set), set);
 			else if(mComputePipeline != nullptr)
-				return mGpuDevice->CreateGpuParameterSet(mComputePipeline->GetParameterLayout(), set);
+				return mGpuDevice->CreateGpuParameterSet(mComputePipeline->GetParameterLayout()->GetSet(set), set);
 
 			return nullptr;
 		}

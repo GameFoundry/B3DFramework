@@ -83,7 +83,7 @@ void FrameGraphPass::UseParameters(const SPtr<GpuParameterSet>& params)
 	if (!params)
 		return;
 
-	auto layoutSet = params->GetPipelineParameterLayoutSet();
+	auto layoutSet = params->GetLayout();
 	if (!layoutSet)
 		return;
 

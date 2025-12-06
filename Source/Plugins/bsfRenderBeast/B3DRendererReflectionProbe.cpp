@@ -109,14 +109,14 @@ void ImageBasedLightingParameterBinding::Initialize(const SPtr<GpuParameterSet>&
 	// Reflections
 	if(!optional || parameters->HasSampledTexture(kReflectionProbeCubemapsTextureName))
 	{
-		parameters->GetSampledTextureParameter(kReflectionProbeCubemapsTextureName, ReflectionProbeCubemapsTexParam);
+		parameters->GetSampledTextureParameter(kReflectionProbeCubemapsTextureName, ReflectionProbeCubemapsTexParameter);
 
 		if(probeArray)
-			parameters->GetStorageBufferParameter(kReflectionProbesBufferName, ReflectionProbesParam);
+			parameters->GetStorageBufferParameter(kReflectionProbesBufferName, ReflectionProbesParameter);
 	}
 
 	if(!optional || parameters->HasSampledTexture(kPreintegratedEnvBRDFTextureName))
-		parameters->GetSampledTextureParameter(kPreintegratedEnvBRDFTextureName, PreintegratedEnvBrdfParam);
+		parameters->GetSampledTextureParameter(kPreintegratedEnvBRDFTextureName, PreintegratedEnvBrdfParameter);
 
 	// AO
 	if(parameters->HasSampledTexture(kAmbientOcclusionTextureName))
@@ -124,17 +124,16 @@ void ImageBasedLightingParameterBinding::Initialize(const SPtr<GpuParameterSet>&
 
 	// SSR
 	if(parameters->HasSampledTexture(kSSRTexName))
-		parameters->GetSampledTextureParameter(kSSRTexName, SsrTexParam);
+		parameters->GetSampledTextureParameter(kSSRTexName, SsrTexParameter);
 
 	if(gridIndices)
 	{
 		if(!optional || parameters->HasStorageBuffer(kReflectionProbeIndicesBufferName))
-			parameters->GetStorageBufferParameter(kReflectionProbeIndicesBufferName, ReflectionProbeIndicesParam);
+			parameters->GetStorageBufferParameter(kReflectionProbeIndicesBufferName, ReflectionProbeIndicesParameter);
 	}
 
-	parameters->GetPipelineParameterLayout()->GetBinding(kPerProbeUniformBufferName, ReflProbeParamBindings);
-
-	parameters->GetPipelineParameterLayout()->GetBinding(kGlobalReflectionProbeUniformBufferName, ReflProbesBinding);
+	parameters->TryGetUniformBufferParameter(kPerProbeUniformBufferName, ReflectionProbeUniformBufferParameter);
+	parameters->TryGetUniformBufferParameter(kGlobalReflectionProbeUniformBufferName, ReflectionProbesUniformBufferParameter);
 }
 
 void ImageBasedLightingParameterBinding::SetReflectionProbeCubemaps(const SPtr<GpuParameterSet>& parameters, const SPtr<Texture>& cubemaps, bool optional)

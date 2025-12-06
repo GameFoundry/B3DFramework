@@ -118,17 +118,17 @@ namespace b3d
 
 			GpuParameterSampledTexture SkyReflectionsTexParam;
 			GpuParameterSampledTexture AmbientOcclusionTexParam;
-			GpuParameterSampledTexture SsrTexParam;
-			GpuParameterSampledTexture ReflectionProbeCubemapsTexParam;
+			GpuParameterSampledTexture SsrTexParameter;
+			GpuParameterSampledTexture ReflectionProbeCubemapsTexParameter;
 
-			GpuParameterSampledTexture PreintegratedEnvBrdfParam;
-			GpuParameterStorageBuffer ReflectionProbesParam;
+			GpuParameterSampledTexture PreintegratedEnvBrdfParameter;
+			GpuParameterStorageBuffer ReflectionProbesParameter;
 
-			GpuParameterStorageBuffer ReflectionProbeIndicesParam;
-			GpuParameterBinding ReflProbeParamBindings;
+			GpuParameterStorageBuffer ReflectionProbeIndicesParameter;
+			GpuParameterUniformBuffer ReflectionProbeUniformBufferParameter;
 
 			// Only utilized when standard forward rendering is used
-			GpuParameterBinding ReflProbesBinding;
+			GpuParameterUniformBuffer ReflectionProbesUniformBufferParameter;
 		};
 
 		/** Parameter buffer containing information about reflection probes. */

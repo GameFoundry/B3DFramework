@@ -459,22 +459,22 @@ SPtr<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBuf
 }
 
 template <bool IsRenderProxy>
-SPtr<CoreVariantType<GpuParameterSet, IsRenderProxy>> CreateGpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout, u32 setIndex)
+SPtr<CoreVariantType<GpuParameterSet, IsRenderProxy>> CreateGpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
 {
 	return nullptr;
 }
 
 template <>
-SPtr<GpuParameterSet> CreateGpuParameters<false>(const SPtr<GpuPipelineParameterLayout>& parameterLayout, u32 setIndex)
+SPtr<GpuParameterSet> CreateGpuParameterSet<false>(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
 {
-	return GpuParameterSet::Create(parameterLayout, setIndex);
+	return GpuParameterSet::Create(parameterSetLayout, setIndex);
 }
 
 template <>
-SPtr<render::GpuParameterSet> CreateGpuParameters<true>(const SPtr<GpuPipelineParameterLayout>& parameterLayout, u32 setIndex)
+SPtr<render::GpuParameterSet> CreateGpuParameterSet<true>(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
 {
 	const SPtr<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
-	return device->CreateGpuParameterSet(parameterLayout, setIndex);
+	return device->CreateGpuParameterSet(parameterSetLayout, setIndex);
 }
 
 template <bool IsRenderProxy>
@@ -508,11 +508,11 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 		mGpuParametersPerPass[passIndex].Resize(setCount);
 		for(u32 setIndex = 0; setIndex < setCount; setIndex++)
 		{
-			const SPtr<GpuPipelineParameterLayoutSet>& layoutSet = parameterLayout->GetSet(setIndex);
+			const SPtr<GpuPipelineParameterSetLayout>& layoutSet = parameterLayout->GetSet(setIndex);
 
 			const u32 resourceCount = layoutSet->GetResourceCount();
 			if(resourceCount > 0)
-				mGpuParametersPerPass[passIndex][setIndex] = CreateGpuParameters<IsRenderProxy>(parameterLayout, setIndex);
+				mGpuParametersPerPass[passIndex][setIndex] = CreateGpuParameterSet<IsRenderProxy>(layoutSet, setIndex);
 		}
 
 		parameterDescriptionsPerPass.push_back(GatherParameterDescriptions(curPass));

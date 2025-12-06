@@ -264,10 +264,7 @@ namespace b3d
 		GpuParametersSetBase& operator=(const GpuParametersSetBase& rhs) = delete;
 
 		/** Gets the object that contains the processed information about all parameters. */
-		SPtr<GpuPipelineParameterLayout> GetPipelineParameterLayout() const { return mParameterLayout; }
-
-		/** Gets the object that contains the processed information about all parameters. */
-		SPtr<GpuPipelineParameterLayoutSet> GetPipelineParameterLayoutSet() const { return mParameterLayoutSet; }
+		SPtr<GpuPipelineParameterSetLayout> GetLayout() const { return mParameterSetLayout; }
 
 		/** Returns the set that this object is responsible binding parameters for. */
 		u32 GetSet() const { return mSet; }
@@ -297,10 +294,9 @@ namespace b3d
 		virtual void MarkResourcesDirtyInternal() {}
 
 	protected:
-		GpuParametersSetBase(const SPtr<GpuPipelineParameterLayout>& parameterLayout, u32 setIndex);
+		GpuParametersSetBase(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex);
 
-		SPtr<GpuPipelineParameterLayout> mParameterLayout;
-		SPtr<GpuPipelineParameterLayoutSet> mParameterLayoutSet;
+		SPtr<GpuPipelineParameterSetLayout> mParameterSetLayout;
 		u32 mSet = 0;
 	};
 
@@ -491,7 +487,7 @@ namespace b3d
 		}
 
 	protected:
-		TGpuParameterSet(const SPtr<GpuPipelineParameterLayout>& parameterLayout, u32 setIndex);
+		TGpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex);
 
 		virtual SPtr<GpuParametersType> GetSelf() const = 0;
 
@@ -544,9 +540,10 @@ namespace b3d
 		/**
 		 * Creates a new set of GPU parameters using an object describing the parameters.
 		 *
-		 * @param	parameterLayout	Description of GPU parameters for a specific GPU pipeline state.
+		 * @param	parameterSetLayout	Description of GPU parameters for a specific GPU pipeline state.
+		 * @param	setIndex			Index of the parameter set within the pipeline.
 		 */
-		static SPtr<GpuParameterSet> Create(const SPtr<GpuPipelineParameterLayout>& parameterLayout, u32 setIndex = 0);
+		static SPtr<GpuParameterSet> Create(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex = 0);
 
 		/** Contains a lookup table for sizes of all data parameters. Sizes are in bytes. */
 		const static GpuDataParameterTypeInformationLookup kParamSizes;
@@ -563,7 +560,7 @@ namespace b3d
 		struct SyncPacket;
 		friend class render::GpuParameterSet;
 
-		GpuParameterSet(const SPtr<GpuPipelineParameterLayout>& paramInfo, u32 setIndex);
+		GpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex);
 
 		SPtr<GpuParameterSet> GetSelf() const override;
 		SPtr<render::RenderProxy> CreateRenderProxy() const override;
@@ -643,7 +640,7 @@ namespace b3d
 		protected:
 			friend class b3d::GpuParameterSet;
 
-			GpuParameterSet(const SPtr<GpuPipelineParameterLayout>& parameterLayout, u32 setIndex);
+			GpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterLayout, u32 setIndex);
 
 			SPtr<GpuParameterSet> GetSelf() const override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;

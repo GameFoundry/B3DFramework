@@ -167,24 +167,16 @@ void ForwardLightingParams::Populate(const SPtr<GpuParameterSet>& params, bool c
 {
 	if(clustered)
 	{
-		params->GetPipelineParameterLayout()->GetBinding("GridParams", GridParamsBinding);
-
-		if(params->HasStorageBuffer("gLights"))
-			params->GetStorageBufferParameter("gLights", LightsBufferParam);
-
-		if(params->HasStorageBuffer("gGridLightOffsetsAndSize"))
-			params->GetStorageBufferParameter("gGridLightOffsetsAndSize", GridLightOffsetsAndSizeParam);
-
-		if(params->HasStorageBuffer("gLightIndices"))
-			params->GetStorageBufferParameter("gLightIndices", GridLightIndicesParam);
-
-		if(params->HasStorageBuffer("gGridProbeOffsetsAndSize"))
-			params->GetStorageBufferParameter("gGridProbeOffsetsAndSize", GridProbeOffsetsAndSizeParam);
+		params->TryGetUniformBufferParameter("GridParams", GridUniformBufferParameter);
+		params->TryGetStorageBufferParameter("gLights", LightsBufferParameter);
+		params->TryGetStorageBufferParameter("gGridLightOffsetsAndSize", GridLightOffsetsAndSizeParameter);
+		params->TryGetStorageBufferParameter("gLightIndices", GridLightIndicesParameter);
+		params->TryGetStorageBufferParameter("gGridProbeOffsetsAndSize", GridProbeOffsetsAndSizeParameter);
 	}
 	else
 	{
-		params->GetPipelineParameterLayout()->GetBinding("Lights", LightsParamBlockBinding); 
-		params->GetPipelineParameterLayout()->GetBinding( "LightAndReflProbeParams", LightAndReflProbeParamsParamBlockBinding);
+		params->TryGetUniformBufferParameter("Lights", LightsUniformBufferParameter); 
+		params->TryGetUniformBufferParameter("LightAndReflProbeParams", LightAndReflectionProbeUniformBufferParameter);
 	}
 }
 

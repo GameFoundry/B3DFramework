@@ -24,7 +24,7 @@ namespace b3d
 		class VulkanGpuParameterSet : public GpuParameterSet
 		{
 		public:
-			VulkanGpuParameterSet(VulkanGpuDevice& gpuDevice, const SPtr<GpuPipelineParameterLayout>& parameterLayout, u32 set);
+			VulkanGpuParameterSet(VulkanGpuDevice& gpuDevice, const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 set);
 			~VulkanGpuParameterSet() override;
 
 			bool SetUniformBuffer(u32 slot, const SPtr<GpuBuffer>& uniformBuffer, u32 arrayIndex = 0, u32 offset = 0) override;

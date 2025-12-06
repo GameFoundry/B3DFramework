@@ -445,8 +445,8 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 	// Allocate from the uniform buffer manager after the first element's ParameterAdapter is created
 	if(!rendererRenderable->Elements.empty())
 	{
-		SPtr<GpuPipelineParameterLayout> layout = rendererRenderable->Elements[0].ParameterAdapter->GetGpuParameterSet()->GetPipelineParameterLayout();
-		rendererRenderable->BufferAllocation = mRenderableUniformBufferManager.AllocateForRenderable(layout);
+		SPtr<GpuPipelineParameterSetLayout> layoutSet = rendererRenderable->Elements[0].ParameterAdapter->GetGpuParameterSet()->GetLayout();
+		rendererRenderable->BufferAllocation = mRenderableUniformBufferManager.AllocateForRenderable(layoutSet);
 	}
 
 	mRenderableUniformBufferManager.UpdatePerObjectBuffer(*rendererRenderable);
@@ -471,14 +471,9 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 		// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 		// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
 		gpuParameterSet->TrySetUniformBuffer("PerFrame", mPerFrameParamBuffer);
-
-		gpuParameterSet->GetPipelineParameterLayout()->GetBinding("PerCamera", element.PerCameraBinding);
-
-		if(gpuParameterSet->HasStorageBuffer("boneMatrices"))
-			gpuParameterSet->GetStorageBufferParameter("boneMatrices", element.BoneMatrixBufferParameter);
-
-		if(gpuParameterSet->HasStorageBuffer("prevBoneMatrices"))
-			gpuParameterSet->GetStorageBufferParameter("prevBoneMatrices", element.PreviousBoneMatrixBufferParameter);
+		gpuParameterSet->TryGetUniformBufferParameter("PerCamera", element.PerCameraUniformBufferParameter);
+		gpuParameterSet->TryGetStorageBufferParameter("boneMatrices", element.BoneMatrixBufferParameter);
+		gpuParameterSet->TryGetStorageBufferParameter("prevBoneMatrices", element.PreviousBoneMatrixBufferParameter);
 
 		ShaderFlags shaderFlags = shader->GetFlags();
 		const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
@@ -891,8 +886,8 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 	SPtr<GpuParameterSet> gpuParams = renElement.ParameterAdapter->GetGpuParameterSet();
 
 	// Allocate from the uniform buffer manager after ParameterAdapter is created
-	SPtr<GpuPipelineParameterLayout> layout = gpuParams->GetPipelineParameterLayout();
-	rendererParticles.BufferAllocation = mRenderableUniformBufferManager.AllocateForRenderable(layout);
+	SPtr<GpuPipelineParameterSetLayout> layoutSet = gpuParams->GetLayout();
+	rendererParticles.BufferAllocation = mRenderableUniformBufferManager.AllocateForRenderable(layoutSet);
 
 	// Store shared parameter set and dynamic offset info for render-time binding
 	renElement.SharedPerObjectParameterSet = rendererParticles.BufferAllocation.SharedParameterSet;
@@ -944,8 +939,7 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 	gpuParams->SetUniformBuffer("GpuParticleParams", rendererParticles.GpuParticlesParamBuffer);
 
 	gpuParams->GetStorageBufferParameter("gIndices", renElement.IndicesBuffer);
-
-	gpuParams->GetPipelineParameterLayout()->GetBinding("PerCamera", renElement.PerCameraBinding);
+	gpuParams->TryGetUniformBufferParameter("PerCamera", renElement.PerCameraUniformBufferParameter);
 
 	if(gpu)
 	{
@@ -1129,11 +1123,11 @@ void RenderBeastScene::RegisterDecal(Decal* decal)
 	renElement.SamplerOverrides = AllocSamplerStateOverrides(renElement);
 
 	// Prepare all parameter bindings
-	SPtr<GpuParameterSet> gpuParams = renElement.ParameterAdapter->GetGpuParameterSet();
+	SPtr<GpuParameterSet> gpuParameterSet = renElement.ParameterAdapter->GetGpuParameterSet();
 
 	// Allocate from the uniform buffer manager after ParameterAdapter is created
-	SPtr<GpuPipelineParameterLayout> layout = gpuParams->GetPipelineParameterLayout();
-	rendererDecal.BufferAllocation = mRenderableUniformBufferManager.AllocateForRenderable(layout);
+	SPtr<GpuPipelineParameterSetLayout> layoutSet = gpuParameterSet->GetLayout();
+	rendererDecal.BufferAllocation = mRenderableUniformBufferManager.AllocateForRenderable(layoutSet);
 
 	// Store shared parameter set and dynamic offset info for render-time binding
 	renElement.SharedPerObjectParameterSet = rendererDecal.BufferAllocation.SharedParameterSet;
@@ -1147,16 +1141,12 @@ void RenderBeastScene::RegisterDecal(Decal* decal)
 
 	// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 	// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-	gpuParams->SetUniformBuffer("PerFrame", mPerFrameParamBuffer);
-	gpuParams->SetUniformBuffer("DecalParams", rendererDecal.DecalParamBuffer);
+	gpuParameterSet->SetUniformBuffer("PerFrame", mPerFrameParamBuffer);
+	gpuParameterSet->SetUniformBuffer("DecalParams", rendererDecal.DecalParamBuffer);
 
-	gpuParams->GetPipelineParameterLayout()->GetBinding("PerCamera", renElement.PerCameraBinding);
-
-	if(gpuParams->HasSampledTexture("gDepthBufferTex"))
-		gpuParams->GetSampledTextureParameter("gDepthBufferTex", renElement.DepthInputTexture);
-
-	if(gpuParams->HasSampledTexture("gMaskTex"))
-		gpuParams->GetSampledTextureParameter("gMaskTex", renElement.MaskInputTexture);
+	gpuParameterSet->TryGetUniformBufferParameter("PerCamera", renElement.PerCameraUniformBufferParameter);
+	gpuParameterSet->TryGetSampledTextureParameter("gDepthBufferTex", renElement.DepthInputTexture);
+	gpuParameterSet->TryGetSampledTextureParameter("gMaskTex", renElement.MaskInputTexture);
 }
 
 void RenderBeastScene::UpdateDecal(Decal* decal)
@@ -1425,7 +1415,7 @@ void RenderBeastScene::RefreshSamplerOverrides(bool force)
 					for(u32 setIndex = 0; setIndex < setCount; setIndex++)
 					{
 						const SPtr<GpuParameterSet>& parameterSet = renderableElement.ParameterAdapter->GetGpuParameterSet(passIndex, setIndex);
-						const SPtr<GpuPipelineParameterLayoutSet>& uniformLayoutSet = parameterSet->GetPipelineParameterLayoutSet();
+						const SPtr<GpuPipelineParameterSetLayout>& uniformLayoutSet = parameterSet->GetLayout();
 
 						const u32 samplerCount = uniformLayoutSet->GetBindingCount(GpuParameterType::Sampler);
 						for(u32 samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)

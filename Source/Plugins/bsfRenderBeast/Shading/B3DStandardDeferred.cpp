@@ -70,7 +70,7 @@ void DeferredIBLSetupMaterial::Prepare(const GBufferTextures& gBufferInput, cons
 	mGpuParameterSet->SetUniformBuffer("ReflProbeParams", reflProbeParams);
 
 	mIBLParams.AmbientOcclusionTexParam.Set(ao);
-	mIBLParams.SsrTexParam.Set(ssr);
+	mIBLParams.SsrTexParameter.Set(ssr);
 }
 
 DeferredIBLSetupMaterial* DeferredIBLSetupMaterial::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -195,7 +195,7 @@ void DeferredIBLFinalizeMaterial::Prepare(const GBufferTextures& gBufferInput, c
 	mGpuParameterSet->SetUniformBuffer("PerCamera", perCamera);
 	mGpuParameterSet->SetUniformBuffer("ReflProbeParams", reflProbeParams);
 
-	mIBLParams.PreintegratedEnvBrdfParam.Set(preintegratedBrdf);
+	mIBLParams.PreintegratedEnvBrdfParameter.Set(preintegratedBrdf);
 
 	mIBLRadiance.Set(iblRadiance);
 }
@@ -303,7 +303,7 @@ StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArra
 		GBufferParameterBinding::Set(*gpuDevice, batch.GpuParameters, gBufferInput);
 
 		// Get dynamic offset index
-		batch.DynamicOffsetIndex = batch.GpuParameters->GetPipelineParameterLayout()->GetDynamicOffsetIndex("PerLight");
+		batch.DynamicOffsetIndex = batch.GpuParameters->GetLayout()->GetDynamicOffsetIndex("PerLight");
 		B3D_ENSURE(batch.DynamicOffsetIndex != ~0u);
 	}
 

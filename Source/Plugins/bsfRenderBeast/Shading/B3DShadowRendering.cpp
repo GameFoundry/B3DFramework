@@ -1118,9 +1118,9 @@ namespace b3d
 
 					ShadowProjectionParameterBinding::BindOmnidirectionalProjectionParameters(gpuParameters, gpuDevice, *light, shadowMap, shadowOmniParamBuffer, perViewBuffer, shadowProjectVertBuffer, gbuffer);
 
-					const SPtr<GpuPipelineParameterLayout>& pipelineParameterLayout = gpuParameters->GetPipelineParameterLayout();
-					shadowRenderingInfo.PrimaryUniformBufferDynamicIndex = pipelineParameterLayout->GetDynamicOffsetIndex("Params");
-					shadowRenderingInfo.PrimaryVertexUniformBufferDynamicIndex = pipelineParameterLayout->GetDynamicOffsetIndex("VertParams");
+					const SPtr<GpuPipelineParameterSetLayout>& pipelineParameterSetLayout = gpuParameters->GetLayout();
+					shadowRenderingInfo.PrimaryUniformBufferDynamicIndex = pipelineParameterSetLayout->GetDynamicOffsetIndex("Params");
+					shadowRenderingInfo.PrimaryVertexUniformBufferDynamicIndex = pipelineParameterSetLayout->GetDynamicOffsetIndex("VertParams");
 
 					batchRenderingInfo.Shadows.Add(shadowRenderingInfo);
 				}
@@ -1264,8 +1264,8 @@ namespace b3d
 
 					shadowRenderingInfo.ShadowQuality = effectiveShadowQuality;
 
-					const SPtr<GpuPipelineParameterLayout>& stencilPipelineParameterLayout = shadowRenderingInfo.StencilGpuParameters->GetPipelineParameterLayout();
-					shadowRenderingInfo.StencilVertexUniformBufferDynamicIndex = stencilPipelineParameterLayout->GetDynamicOffsetIndex("VertParams");
+					const SPtr<GpuPipelineParameterSetLayout>& stencilPipelineParameterSetLayout = shadowRenderingInfo.StencilGpuParameters->GetLayout();
+					shadowRenderingInfo.StencilVertexUniformBufferDynamicIndex = stencilPipelineParameterSetLayout->GetDynamicOffsetIndex("VertParams");
 
 					gShadowProjectUniformDefinition.gFace.Set(shadowParamBuffer, (float)shadowMapFace, 0, shadowIndex);
 
@@ -1277,9 +1277,9 @@ namespace b3d
 
 					shadowRenderingInfo.PrimaryGpuParameters = gpuParameters;
 
-					const SPtr<GpuPipelineParameterLayout>& pipelineParameterLayout = gpuParameters->GetPipelineParameterLayout();
-					shadowRenderingInfo.PrimaryUniformBufferDynamicIndex = pipelineParameterLayout->GetDynamicOffsetIndex("Params");
-					shadowRenderingInfo.PrimaryVertexUniformBufferDynamicIndex = pipelineParameterLayout->GetDynamicOffsetIndex("VertParams");
+					const SPtr<GpuPipelineParameterSetLayout>& pipelineParameterSetLayout = gpuParameters->GetLayout();
+					shadowRenderingInfo.PrimaryUniformBufferDynamicIndex = pipelineParameterSetLayout->GetDynamicOffsetIndex("Params");
+					shadowRenderingInfo.PrimaryVertexUniformBufferDynamicIndex = pipelineParameterSetLayout->GetDynamicOffsetIndex("VertParams");
 
 					batchRenderingInfo.Shadows.Add(shadowRenderingInfo);
 				}

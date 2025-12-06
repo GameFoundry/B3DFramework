@@ -827,7 +827,7 @@ namespace b3d::render
 		// Use stored GPU parameters from mRenderBuffers
 		const SPtr<GpuParameterSet>& gpuParameterSet = mRenderBuffers.GpuParameterSet;
 
-		const u32 renderUniformBufferDynamicIndex = gpuParameterSet->GetPipelineParameterLayout()->GetDynamicOffsetIndex("RenderUniforms");
+		const u32 renderUniformBufferDynamicIndex = gpuParameterSet->GetLayout()->GetDynamicOffsetIndex("RenderUniforms");
 		B3D_ENSURE(renderUniformBufferDynamicIndex != ~0u);
 
 		commandBuffer.SetGpuParameterSet(gpuParameterSet);

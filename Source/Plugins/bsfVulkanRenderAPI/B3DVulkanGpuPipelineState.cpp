@@ -255,15 +255,14 @@ void VulkanGpuGraphicsPipelineState::Initialize()
 
 	VulkanGpuDevice& gpuDevice = static_cast<VulkanGpuDevice&>(mGpuDevice);
 	VulkanDescriptorManager& descManager = gpuDevice.GetDescriptorManager();
-	VulkanGpuPipelineParameterLayout& vkParamInfo = static_cast<VulkanGpuPipelineParameterLayout&>(*mParameterLayout);
 
-	u32 numLayouts = vkParamInfo.GetSetCount();
-	VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)B3DStackAllocate(sizeof(VulkanDescriptorLayout*) * numLayouts);
+	u32 layoutCount = mParameterLayout->GetSetCount();
+	VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)B3DStackAllocate(sizeof(VulkanDescriptorLayout*) * layoutCount);
 
-	for(u32 layoutIndex = 0; layoutIndex < numLayouts; layoutIndex++)
-		layouts[layoutIndex] = vkParamInfo.GetLayout(layoutIndex);
+	for(u32 layoutIndex = 0; layoutIndex < layoutCount; layoutIndex++)
+		layouts[layoutIndex] = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterLayout->GetSet(layoutIndex)).GetLayout();
 
-	mPipelineLayout = descManager.GetPipelineLayout(layouts, numLayouts);
+	mPipelineLayout = descManager.GetPipelineLayout(layouts, layoutCount);
 
 	B3DStackFree(layouts);
 
@@ -474,13 +473,12 @@ void VulkanGpuComputePipelineState::Initialize()
 	VulkanGpuDevice& gpuDevice = static_cast<VulkanGpuDevice&>(mGpuDevice);
 	VulkanDescriptorManager& descManager = gpuDevice.GetDescriptorManager();
 	VulkanResourceManager& rescManager = gpuDevice.GetResourceManager();
-	VulkanGpuPipelineParameterLayout& vkParamInfo = static_cast<VulkanGpuPipelineParameterLayout&>(*mParameterLayout);
 
-	u32 layoutCount = vkParamInfo.GetSetCount();
+	u32 layoutCount = mParameterLayout->GetSetCount();
 	VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)B3DStackAllocate(sizeof(VulkanDescriptorLayout*) * layoutCount);
 
 	for(u32 j = 0; j < layoutCount; j++)
-		layouts[j] = vkParamInfo.GetLayout(j);
+		layouts[j] = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterLayout->GetSet(j)).GetLayout();
 
 	VulkanShaderModule* module = vkProgram->GetVulkanResource();
 

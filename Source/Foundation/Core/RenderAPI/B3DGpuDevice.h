@@ -13,6 +13,7 @@ namespace b3d::render
 
 namespace b3d
 {
+	class GpuPipelineParameterSetLayout;
 	class GpuFrameCapture;
 	struct SamplerStateCreateInformation;
 	struct TextureCreateInformation;
@@ -398,11 +399,11 @@ namespace b3d
 		/**
 		 * Creates a set of GPU parameters that allow you to bind values to be used as input to GPU programs within a GPU pipeline with the provided layout.
 		 *
-		 * @param	parameterLayout			Layout that describes the GPU parameters, as retrieved from the GPU pipeline.
+		 * @param	parameterSetLayout		Layout that describes the GPU parameters for a particular set.
 		 * @param	setIndex				Index of the parameter set that the object will be used for binding parameters for.
 		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
 		 */
-		virtual SPtr<render::GpuParameterSet> CreateGpuParameterSet(const SPtr<GpuPipelineParameterLayout>& parameterLayout, u32 setIndex = 0, bool deferredInitialize = false) = 0;
+		virtual SPtr<render::GpuParameterSet> CreateGpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex = 0, bool deferredInitialize = false) = 0;
 
 		/**
 		 * Creates a graphics pipeline.

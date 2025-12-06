@@ -368,15 +368,15 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 			continue;
 
 		VulkanGpuParameterSet* vkParams = static_cast<VulkanGpuParameterSet*>(parameters.get());
-		const SPtr<GpuPipelineParameterLayoutSet>& uniformLayoutSet = parameters->GetPipelineParameterLayoutSet();
+		const SPtr<GpuPipelineParameterSetLayout>& uniformSetLayout = parameters->GetLayout();
 
 		// Flush all uniform buffers
 		// Note: We need to do this here, because updating the buffer can cause a new underlying VulkanBuffer to be created, and we need that to be ready before we call PrepareForBind below.
 		// Potential issue may arise of the buffer is updated externally beyond this point, which might need handling, but generally it should be bad practice
-		const u32 uniformBufferCount = uniformLayoutSet->GetBindingCount(GpuParameterType::UniformBuffer);
+		const u32 uniformBufferCount = uniformSetLayout->GetBindingCount(GpuParameterType::UniformBuffer);
 		for (u32 uniformBufferIndex = 0; uniformBufferIndex < uniformBufferCount; uniformBufferIndex++)
 		{
-			const u32 slot = uniformLayoutSet->GetSlot(GpuParameterType::UniformBuffer, uniformBufferIndex);
+			const u32 slot = uniformSetLayout->GetSlot(GpuParameterType::UniformBuffer, uniformBufferIndex);
 			SPtr<GpuBuffer> buffer = parameters->GetUniformBuffer(slot);
 
 			if (buffer != nullptr && buffer->GetInformation().Flags.IsSet(GpuBufferFlag::AllowWriteCachingOnCPU))
@@ -561,7 +561,7 @@ void VulkanGpuCommandBuffer::SetGpuParameterSet(const SPtr<GpuParameterSet>& par
 	// be allowed to go out of scope on a non-render thread anyway.
 	mBoundGpuParameterSets[set] = std::static_pointer_cast<VulkanGpuParameterSet>(parameterSet);
 
-	const SPtr<GpuPipelineParameterLayoutSet>& uniformLayoutSet = vulkanParameterSet->GetPipelineParameterLayoutSet();
+	const SPtr<GpuPipelineParameterSetLayout>& uniformLayoutSet = vulkanParameterSet->GetLayout();
 
 	// Flush all uniform buffers
 	const u32 uniformBufferCount = uniformLayoutSet->GetBindingCount(GpuParameterType::UniformBuffer);

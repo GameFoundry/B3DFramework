@@ -168,8 +168,8 @@ namespace b3d
 				GpuParameterSampledTexture CurvesTexture;
 			};
 
-			/** Binding locations for the per-camera param block buffer. */
-			GpuParameterBinding PerCameraBinding;
+			/** Parameter for binding the per-camera uniform buffer. */
+			GpuParameterUniformBuffer PerCameraUniformBufferParameter;
 
 			/** Binding spot for the buffer containing instance id -> particle index mapping. */
 			GpuParameterStorageBuffer IndicesBuffer;

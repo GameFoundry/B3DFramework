@@ -410,15 +410,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 			continue;
 
 		for(auto& element : inputs.Scene.Renderables[i]->Elements)
-		{
-			const GpuParameterBinding& binding = element.PerCameraBinding;
-
-			if(binding.IsValid())
-			{
-				const SPtr<GpuParameterSet>& parameterSet = element.ParameterAdapter->GetGpuParameterSet(0, binding.Set);
-				parameterSet->SetUniformBuffer(binding.Slot, inputs.View.GetPerViewBuffer());
-			}
-		}
+			element.PerCameraUniformBufferParameter.Set(inputs.View.GetPerViewBuffer());
 	}
 
 	//// Prepare particle systems
@@ -470,13 +462,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		const RendererDecal& rendererDecal = inputs.Scene.Decals[i];
 		DecalRenderElement& renderElement = rendererDecal.RenderElement;
 
-		const GpuParameterBinding& binding = renderElement.PerCameraBinding;
-		if(binding.IsValid())
-		{
-			const SPtr<GpuParameterSet>& parameterSet = renderElement.ParameterAdapter->GetGpuParameterSet(0, binding.Set);
-			parameterSet->SetUniformBuffer(binding.Slot, inputs.View.GetPerViewBuffer());
-		}
-
+		renderElement.PerCameraUniformBufferParameter.Set(inputs.View.GetPerViewBuffer());
 		renderElement.DepthInputTexture.Set(sceneDepthTex->Texture);
 		renderElement.MaskInputTexture.Set(IdTex->Texture);
 	}
@@ -1492,20 +1478,16 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 
 	const auto fnBindClusteredForwardParameters = [&lightGridOutputs, &visibleLightData, &visibleReflProbeData](MaterialParameterAdapter& parameterAdapter, const ForwardLightingParams& fwdParams, const ImageBasedLightingParameterBinding& iblParams)
 	{
-		if(fwdParams.GridParamsBinding.IsValid())
-		{
-			const SPtr<GpuParameterSet>& parameterSet = parameterAdapter.GetGpuParameterSet(0, fwdParams.GridParamsBinding.Set);
-			parameterSet->SetUniformBuffer(fwdParams.GridParamsBinding.Slot, lightGridOutputs.UniformBuffer);
-		}
+		fwdParams.GridUniformBufferParameter.Set(lightGridOutputs.UniformBuffer);
 
-		fwdParams.GridLightOffsetsAndSizeParam.Set(lightGridOutputs.GridLightOffsetsAndSize);
-		fwdParams.GridProbeOffsetsAndSizeParam.Set(lightGridOutputs.GridProbeOffsetsAndSize);
+		fwdParams.GridLightOffsetsAndSizeParameter.Set(lightGridOutputs.GridLightOffsetsAndSize);
+		fwdParams.GridProbeOffsetsAndSizeParameter.Set(lightGridOutputs.GridProbeOffsetsAndSize);
 
-		fwdParams.GridLightIndicesParam.Set(lightGridOutputs.GridLightIndices);
-		iblParams.ReflectionProbeIndicesParam.Set(lightGridOutputs.GridProbeIndices);
+		fwdParams.GridLightIndicesParameter.Set(lightGridOutputs.GridLightIndices);
+		iblParams.ReflectionProbeIndicesParameter.Set(lightGridOutputs.GridProbeIndices);
 
-		fwdParams.LightsBufferParam.Set(visibleLightData.GetLightBuffer());
-		iblParams.ReflectionProbesParam.Set(visibleReflProbeData.GetProbeBuffer());
+		fwdParams.LightsBufferParameter.Set(visibleLightData.GetLightBuffer());
+		iblParams.ReflectionProbesParameter.Set(visibleReflProbeData.GetProbeBuffer());
 	};
 
 	const auto fnBindStandardDeferredParameters = [&standardForwardBuffers, &visibleLightData, &visibleReflProbeData](MaterialParameterAdapter& parameterAdapter, const Bounds& bounds, const ForwardLightingParams& fwdParams, const ImageBasedLightingParameterBinding& iblParams)
@@ -1538,40 +1520,22 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		gLightAndReflProbeParamsUniformDefinition.gLightOffsets.Set(standardForwardBuffers.LightAndReflProbeParamsUniformBuffer, lightOffsets);
 		gLightAndReflProbeParamsUniformDefinition.gReflProbeCount.Set(standardForwardBuffers.LightAndReflProbeParamsUniformBuffer, numReflProbes);
 
-		if(iblParams.ReflProbesBinding.IsValid())
-		{
-			const SPtr<GpuParameterSet>& parameterSet = parameterAdapter.GetGpuParameterSet(0, iblParams.ReflProbesBinding.Set);
-			parameterSet->SetUniformBuffer(iblParams.ReflProbesBinding.Slot, standardForwardBuffers.ReflProbesUniformBuffer);
-		}
-
-		if(fwdParams.LightsParamBlockBinding.IsValid())
-		{
-			const SPtr<GpuParameterSet>& parameterSet = parameterAdapter.GetGpuParameterSet(0, fwdParams.LightsParamBlockBinding.Set);
-			parameterSet->SetUniformBuffer(fwdParams.LightsParamBlockBinding.Slot, standardForwardBuffers.LightsUniformBuffer);
-		}
-
-		if(fwdParams.LightAndReflProbeParamsParamBlockBinding.IsValid())
-		{
-			const SPtr<GpuParameterSet>& parameterSet = parameterAdapter.GetGpuParameterSet(0, fwdParams.LightAndReflProbeParamsParamBlockBinding.Set);
-			parameterSet->SetUniformBuffer(fwdParams.LightAndReflProbeParamsParamBlockBinding.Slot, standardForwardBuffers.LightAndReflProbeParamsUniformBuffer);
-		}
+		iblParams.ReflectionProbesUniformBufferParameter.Set(standardForwardBuffers.ReflProbesUniformBuffer);
+		fwdParams.LightsUniformBufferParameter.Set(standardForwardBuffers.LightsUniformBuffer);
+		fwdParams.LightAndReflectionProbeUniformBufferParameter.Set(standardForwardBuffers.LightAndReflProbeParamsUniformBuffer);
 	};
 
 	const auto fnBindCommonIBLParameters = [&reflProbeParamBuffer, &skyFilteredRadiance, &sceneInfo](MaterialParameterAdapter& parameterAdapter, ImageBasedLightingParameterBinding& iblParams)
 	{
 		// Note: Ideally these should be bound once (they are the same for all renderables)
-		if(iblParams.ReflProbeParamBindings.IsValid())
-		{
-			const SPtr<GpuParameterSet>& parameterSet = parameterAdapter.GetGpuParameterSet(0, iblParams.ReflProbeParamBindings.Set);
-			parameterSet->SetUniformBuffer(iblParams.ReflProbeParamBindings.Slot, reflProbeParamBuffer.Buffer);
-		}
+		iblParams.ReflectionProbeUniformBufferParameter.Set(reflProbeParamBuffer.Buffer);
 
 		iblParams.SkyReflectionsTexParam.Set(skyFilteredRadiance);
 		iblParams.AmbientOcclusionTexParam.Set(Texture::kWhite); // Note: Add SSAO here?
-		iblParams.SsrTexParam.Set(Texture::kBlack); // Note: Add SSR here?
+		iblParams.SsrTexParameter.Set(Texture::kBlack); // Note: Add SSR here?
 
-		iblParams.ReflectionProbeCubemapsTexParam.Set(sceneInfo.ReflProbeCubemapsTex);
-		iblParams.PreintegratedEnvBrdfParam.Set(RendererTextures::preintegratedEnvGF);
+		iblParams.ReflectionProbeCubemapsTexParameter.Set(sceneInfo.ReflProbeCubemapsTex);
+		iblParams.PreintegratedEnvBrdfParameter.Set(RendererTextures::preintegratedEnvGF);
 	};
 
 	// Prepare render target

@@ -112,38 +112,38 @@ namespace b3d
 			 */
 			void Populate(const SPtr<GpuParameterSet>& params, bool clustered);
 
-			/** Binding indices representing where should lights param block buffer be bound to. */
-			GpuParameterBinding GridParamsBinding;
+			/** Parameter used for binding the light grid uniform buffer. */
+			GpuParameterUniformBuffer GridUniformBufferParameter;
 
 			/**
 			 * Parameter to which to bind a buffer containing light grid offsets and size, per grid cell. Used for forward
 			 * rendering.
 			 */
-			GpuParameterStorageBuffer GridLightOffsetsAndSizeParam;
+			GpuParameterStorageBuffer GridLightOffsetsAndSizeParameter;
 
 			/** Parameter to which to bind a buffer containing all light indices, as mapped by grid offsets & size. */
-			GpuParameterStorageBuffer GridLightIndicesParam;
+			GpuParameterStorageBuffer GridLightIndicesParameter;
 
 			/** Parameter to which to bind light buffer used for forward rendering. */
-			GpuParameterStorageBuffer LightsBufferParam;
+			GpuParameterStorageBuffer LightsBufferParameter;
 
 			/**
 			 * Parameter to which to bind a buffer containing reflection probe grid offsets and size, per grid cell. Used for
 			 * forward rendering.
 			 */
-			GpuParameterStorageBuffer GridProbeOffsetsAndSizeParam;
+			GpuParameterStorageBuffer GridProbeOffsetsAndSizeParameter;
 
 			/**
-			 * Binding for a parameter block containing a list of lights influencing this object. Only used when standard
+			 * Parameter used for binding a uniform block containing a list of lights influencing this object. Only used when standard
 			 * (non-clustered) forward rendering is used.
 			 */
-			GpuParameterBinding LightsParamBlockBinding;
+			GpuParameterUniformBuffer LightsUniformBufferParameter;
 
 			/**
-			 * Binding for a parameter block that contains the number of lights and reflection probes in the light/refl. probe
-			 * parameter blocks. Only used when standard (non-clustered) forward rendering is used.
+			 * Parameter used for binding a uniform buffer that contains the number of lights and reflection probes in the light/refl. probe
+			 * uniform buffers. Only used when standard (non-clustered) forward rendering is used.
 			 */
-			GpuParameterBinding LightAndReflProbeParamsParamBlockBinding;
+			GpuParameterUniformBuffer LightAndReflectionProbeUniformBufferParameter;
 		};
 
 		/**

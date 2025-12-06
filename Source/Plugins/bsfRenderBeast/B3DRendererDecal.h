@@ -74,8 +74,8 @@ namespace b3d
 			 */
 			MaterialSamplerOverrides* SamplerOverrides;
 
-			/** Binding indices representing where should the per-camera param block buffer be bound to. */
-			GpuParameterBinding PerCameraBinding;
+			/** Parameter for binding the per-camera uniform buffer. */
+			GpuParameterUniformBuffer PerCameraUniformBufferParameter;
 
 			/** Indices for different variations of the used material. */
 			u32 TechniqueIndices[2][3];
