@@ -136,6 +136,32 @@ void RenderBeast::InitializeOnRenderThread(const LoadedRendererTextures& rendere
 		}
 	}
 
+	// Build type configurations for UniformBufferPools
+	{
+		using PoolConfiguration = UniformBufferPools::PoolConfiguration;
+
+		// Normal type - just PerObject buffer
+		{
+			PoolConfiguration config;
+			config.Type = UniformBufferPools::RenderablePool;
+			config.EntriesPerBuffer = 1024;
+			config.Layout = mRenderableParameterSetInfo.Layout;
+			config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", gPerObjectUniformDefinition.GetSize(), GpuBufferFlag::StoreOnGPU});
+			mTypeConfigurations.Add(config);
+		}
+
+		// Decal type - PerObject + DecalParams buffers
+		{
+			PoolConfiguration config;
+			config.Type = UniformBufferPools::DecalPool;
+			config.EntriesPerBuffer = 256;
+			config.Layout = mDecalParameterSetInfo.Layout;
+			config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", gPerObjectUniformDefinition.GetSize(), GpuBufferFlag::StoreOnGPU});
+			config.Buffers.Add({UniformBufferPools::DecalBuffer, "DecalParams", gDecalParamDef.GetSize(), GpuBufferFlag::StoreOnGPU});
+			mTypeConfigurations.Add(config);
+		}
+	}
+
 	RendererUtility::StartUp();
 	GpuSort::StartUp();
 	GpuResourcePool::StartUp();
@@ -303,7 +329,7 @@ void RenderBeast::RenderAllScenes(FrameTimings timings, PerFrameData perFrameDat
 			RenderScene(*entry, frameInfo);
 		}
 
-		entry->GetRenderableUniformBufferManager().AdvanceFrame();
+		entry->GetUniformBufferPools().AdvanceFrame();
 	}
 
 	mDevice->EndFrame();

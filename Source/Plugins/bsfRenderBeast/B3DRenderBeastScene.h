@@ -9,7 +9,7 @@
 #include "Renderer/B3DRendererScene.h"
 #include "Shading/B3DLightProbes.h"
 #include "Utility/B3DSamplerOverrides.h"
-#include "Utility/B3DRenderableUniformBufferManager.h"
+#include "Utility/B3DUniformBufferPools.h"
 
 namespace b3d
 {
@@ -184,8 +184,8 @@ namespace b3d
 			/** Returns a modifiable version of SceneInfo. Only to be used by friends who know what they are doing. */
 			SceneInfo& GetSceneInfo() { return mInfo; }
 
-			/** Returns the manager for renderable uniform buffer allocations. */
-			RenderableUniformBufferManager& GetRenderableUniformBufferManager() { return mRenderableUniformBufferManager; }
+			/** Returns the object for managing uniform buffer allocations. */
+			UniformBufferPools& GetUniformBufferPools() { return mUniformBufferPools; }
 
 		private:
 			/** Creates a renderer view descriptor for the particular camera. */
@@ -210,7 +210,7 @@ namespace b3d
 			SceneInfo mInfo;
 			SPtr<GpuBuffer> mPerFrameParamBuffer;
 			UnorderedMap<SamplerOverrideKey, MaterialSamplerOverrides*> mSamplerOverrides;
-			RenderableUniformBufferManager mRenderableUniformBufferManager;
+			UniformBufferPools mUniformBufferPools;
 
 			SPtr<RenderBeastOptions> mOptions;
 		};

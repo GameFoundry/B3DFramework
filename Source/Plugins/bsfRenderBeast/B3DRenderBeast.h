@@ -7,6 +7,7 @@
 #include "Renderer/B3DRendererMaterial.h"
 #include "B3DRendererView.h"
 #include "B3DRenderBeastScene.h"
+#include "Utility/B3DUniformBufferPools.h"
 
 namespace b3d
 {
@@ -78,6 +79,9 @@ namespace b3d
 
 			/** Returns the per-object parameter set info for decals. */
 			const DecalParameterSetInfo& GetDecalParameterSetInfo() const { return mDecalParameterSetInfo; }
+
+			/** Returns the type configurations for the renderable uniform buffer manager. */
+			const TInlineArray<UniformBufferPools::PoolConfiguration, 4>& GetPerObjectUniformTypeConfigurations() const { return mTypeConfigurations; }
 
 			void Initialize(const SPtr<GpuDevice>& gpuDevice) override;
 			void Destroy() override;
@@ -171,6 +175,7 @@ namespace b3d
 			// Per-object parameter set layouts and dynamic offset indices
 			RenderableParameterSetInfo mRenderableParameterSetInfo;
 			DecalParameterSetInfo mDecalParameterSetInfo;
+			TInlineArray<UniformBufferPools::PoolConfiguration, 4> mTypeConfigurations;
 
 			// Scene data
 			Vector<RenderBeastScene*> mScenes;

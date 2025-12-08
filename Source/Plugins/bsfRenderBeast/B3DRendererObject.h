@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DRenderBeastPrerequisites.h"
-#include "Utility/B3DRenderableUniformBufferManager.h"
+#include "Utility/B3DUniformBufferPools.h"
 #include "RenderAPI/B3DGpuBuffer.h"
 
 namespace b3d::render
@@ -16,7 +16,7 @@ namespace b3d::render
 	struct RendererObject
 	{
 		/** Handle for releasing the per-object uniform buffer allocation. */
-		RenderableUniformBufferManager::AllocationHandle PerObjectBufferAllocationHandle;
+		UniformBufferPools::AllocationHandle PerObjectBufferAllocationHandle;
 
 		/** Shared parameter set for per-object data binding. */
 		SPtr<GpuParameterSet> PerObjectParameterSet;
