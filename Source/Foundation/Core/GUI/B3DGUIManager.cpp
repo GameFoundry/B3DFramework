@@ -40,6 +40,7 @@
 #include "Material/B3DMaterialParameterAdapter.h"
 #include "VectorGraphics/B3DVectorSpriteAtlas.h"
 #include "RenderAPI/B3DGpuBackend.h"
+#include "RenderAPI/B3DGpuBufferPool.h"
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "RenderAPI/B3DGpuDeviceCapabilities.h"
 
@@ -1588,8 +1589,20 @@ namespace b3d { namespace render
 	/** If true, all draw regions will be redrawn every frame, regardless if dirty or not. */
 	static constexpr bool kRedrawAllRegions = false;
 
+	/** Maximum number of clip regions per draw call. */
+	static constexpr u32 kMaxClipRegionsPerDraw = 64;
+
+	/** Clip region data stored in GPU buffer. */
+	struct ClipRegionArea
+	{
+		Vector2I TopLeft;
+		Vector2I BottomRight;
+	};
+
 	GUIRenderer::GUIWidgetRenderData::GUIWidgetRenderData(u64 widgetId, GpuDevice& device)
-		: WidgetId(widgetId), UniformBufferPool(device, GpuBufferCreateInformation::CreateUniform(gGUISpriteUniformBufferDefinition.GetSize()), 256)
+		: WidgetId(widgetId)
+		, UniformBufferPool(device, GpuBufferCreateInformation::CreateUniform(gGUISpriteUniformBufferDefinition.GetSize()), 256)
+		, ClipRegionBufferPool(device, GpuBufferCreateInformation::CreateStructuredStorage(sizeof(ClipRegionArea), kMaxClipRegionsPerDraw, GpuBufferFlag::StoreOnCPUWithGPUAccess), 1, 4)
 	{ }
 
 GUIRenderer::GUIRenderer()
@@ -1694,30 +1707,16 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 		}
 	}
 
-	auto fnCreateClipRegionBuffer = [this, &gpuDevice](GUIWidgetRenderData& widgetRenderData, u32 bufferIndex, const FrameVector<Area2I>& clipRegions) -> SPtr<GpuBuffer>
+	auto fnCreateClipRegionBuffer = [](GUIWidgetRenderData& widgetRenderData, const FrameVector<Area2I>& clipRegions) -> SPtr<GpuBuffer>
 	{
-		struct ClipRegionArea
-		{
-			Vector2I TopLeft;
-			Vector2I BottomRight;
-		};
-
 		const u32 clipRegionCount = (u32)clipRegions.size();
-		const u32 requiredBufferSize = sizeof(ClipRegionArea) * clipRegionCount;
-		SPtr<GpuBuffer> dirtyRegionBuffer = widgetRenderData.GpuParameterInfos[bufferIndex].DirtyRegionBuffer;
-		if (dirtyRegionBuffer == nullptr || dirtyRegionBuffer->GetTotalSize() < requiredBufferSize)
-		{
-			GpuBufferInformation gpuBufferInformation;
-			gpuBufferInformation.Type = GpuBufferType::StructuredStorage;
-			gpuBufferInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
-			gpuBufferInformation.StructuredStorage.Count = clipRegionCount;
-			gpuBufferInformation.StructuredStorage.ElementSize = sizeof(ClipRegionArea);
+		B3D_ASSERT(clipRegionCount <= kMaxClipRegionsPerDraw);
 
-			dirtyRegionBuffer = gpuDevice->CreateGpuBuffer(gpuBufferInformation);
-			widgetRenderData.GpuParameterInfos[bufferIndex].DirtyRegionBuffer = dirtyRegionBuffer;
-		}
+		GpuBufferSuballocation suballocation = widgetRenderData.ClipRegionBufferPool.Allocate();
+		const SPtr<GpuBuffer>& clipRegionBuffer = suballocation.GetBuffer();
+		const u32 writeSize = sizeof(ClipRegionArea) * clipRegionCount;
 
-		ClipRegionArea* destination = reinterpret_cast<ClipRegionArea*>(dirtyRegionBuffer->Lock(GBL_WRITE_ONLY_DISCARD));
+		ClipRegionArea* destination = reinterpret_cast<ClipRegionArea*>(clipRegionBuffer->Lock(0, writeSize, GBL_WRITE_ONLY));
 
 		for (u32 dirtyRegionIndex = 0; dirtyRegionIndex < clipRegionCount; ++dirtyRegionIndex)
 		{
@@ -1727,9 +1726,9 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 			destination[dirtyRegionIndex].BottomRight = dirtyRegion.GetPosition() + Vector2I(dirtyRegion.GetSize().Width, dirtyRegion.GetSize().Height);
 		}
 
-		dirtyRegionBuffer->Unlock();
+		clipRegionBuffer->Unlock();
 
-		return dirtyRegionBuffer;
+		return clipRegionBuffer;
 	};
 
 	// Structure to hold prepared rendering information
@@ -1799,7 +1798,19 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 					for (const Area2I& region : clippedRegions)
 					{
 						if (meshRenderData.Bounds.Overlaps(region))
+						{
 							overlappingDirtyRegions.push_back(region);
+
+							// When we hit the max, create an entry and continue collecting remaining regions
+							if (overlappingDirtyRegions.size() == kMaxClipRegionsPerDraw)
+							{
+								GpuBufferSuballocation uniformBuffer = widget.UniformBufferPool.Allocate();
+								SpriteMaterial::PopulateUniformBuffer(uniformBuffer, viewportOffset, inverseRegionWidth, inverseRegionHeight, viewflipYFlip, mTime, (u32)overlappingDirtyRegions.size(), widget.WorldTransform, meshRenderData.MaterialInformation);
+
+								meshesToRedraw.push_back({ &meshRenderData, std::move(uniformBuffer), std::move(overlappingDirtyRegions) });
+								overlappingDirtyRegions = FrameVector<Area2I>();
+							}
+						}
 					}
 
 					if(overlappingDirtyRegions.empty())
@@ -1820,7 +1831,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 				const GUIBatchGpuParameterInfo& parameterInfo = widget.GpuParameterInfos[meshRenderData->GpuParametersIndex];
 
 				const GpuBufferSuballocation& uniformBuffer = meshToDraw.UniformBuffer;
-				const SPtr<GpuBuffer>& clipRegionBuffer = fnCreateClipRegionBuffer(widget, meshRenderData->GpuParametersIndex, meshToDraw.OverlappingRegions);
+				const SPtr<GpuBuffer>& clipRegionBuffer = fnCreateClipRegionBuffer(widget, meshToDraw.OverlappingRegions);
 				const SPtr<MaterialParameterAdapter>& materialParameterAdapter = widget.MaterialParameterAdapters[parameterInfo.MaterialParameterIndex];
 
 				// Prepare material and get GPU parameters

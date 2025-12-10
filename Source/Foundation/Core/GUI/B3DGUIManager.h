@@ -437,9 +437,8 @@ namespace b3d
 			/** Clears all draw groups from the specified widget. */
 			void ClearDrawGroups(u64 widgetId);
 
-			struct GUIBatchGpuParameterInfo 
+			struct GUIBatchGpuParameterInfo
 			{
-				SPtr<GpuBuffer> DirtyRegionBuffer;
 				u32 MaterialParameterIndex = ~0u;
 			};
 
@@ -454,6 +453,7 @@ namespace b3d
 				TArray<GUIBatchGpuParameterInfo> GpuParameterInfos;
 				TArray<SPtr<MaterialParameterAdapter>> MaterialParameterAdapters;
 				TransientGpuBufferPool UniformBufferPool;
+				TransientGpuBufferPool ClipRegionBufferPool;
 
 				Matrix4 WorldTransform = Matrix4::kIdentity;
 			};

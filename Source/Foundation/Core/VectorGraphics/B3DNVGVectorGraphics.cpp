@@ -751,7 +751,7 @@ namespace b3d::render
 
 		const u32 uniformBlockStride = Math::CeilToMultiple(gVectorGraphicsRenderUniforms.GetSize(), gpuDevice->GetCapabilities().MinimumUniformBufferOffsetAlignment);
 
-		u8* uniformBufferData = (u8*)renderBuffers.RenderUniformBuffer->Lock(GBL_WRITE_ONLY_DISCARD);
+		u8* uniformBufferData = (u8*)renderBuffers.RenderUniformBuffer->Lock(GBL_WRITE_ONLY);
 
 		for(const auto& command : mRawRenderData.RenderCommands)
 		{
