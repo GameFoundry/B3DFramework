@@ -121,6 +121,11 @@ namespace b3d::render
 
 			/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued*/
 			WriteHazardTracking* WriteHazardTracking = nullptr;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			/** Suballocation indices that are bound in this tracking state. Typically 1-2. */
+			TInlineArray<u32, 2> BoundSuballocationIndices;
+#endif
 		};
 
 		/** Contains information about a single Vulkan image resource bound/used on this command buffer. */
@@ -197,13 +202,14 @@ namespace b3d::render
 		/**
 		 * Lets the tracker know that the provided buffer resource will be queued on the associated command buffer. Call this before the buffer is used, with
 		 * the appropriate usage of how is it about to be used. Execute the barriers queued in @p barrierHelper before use.
-		 * 
+		 *
 		 * @param	buffer				Buffer to track.
 		 * @param	useFlags			Categorizes how the buffer will be used (shader access, vertex input, etc.), and on which stages.
 		 * @param	accessFlags			Access flags specifying how the buffer will be accessed (read/write).
 		 * @param	barrierHelper		If there are any necessary memory barriers before the buffer can be used they will be recorded into the provided object.
+		 * @param	dynamicOffset		Byte offset into the buffer (e.g., for dynamic uniform buffers). Used to calculate suballocation index for tracking in debug builds.
 		 */
-		void TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper);
+		void TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper, u32 dynamicOffset = 0);
 
 		/**
 		 * Lets the tracker know that the provided image resource will be queued on the associated command buffer. Call this before the image is used, with
@@ -353,8 +359,11 @@ namespace b3d::render
 		/**
 		 * Private overload of TrackBufferUsage that operates on an existing BufferTrackingState.
 		 * Lets the tracker know that the provided buffer resource will be queued on the associated command buffer.
+		 * Handles suballocation tracking in debug builds.
+		 *
+		 * @param	dynamicOffset		Byte offset into the buffer. Used to calculate suballocation index for tracking.
 		 */
-		void TrackBufferUsage(VulkanBuffer* buffer, BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper);
+		void TrackBufferUsage(VulkanBuffer* buffer, BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper, u32 dynamicOffset = 0);
 
 		/**
 		 * Lets the tracker know that the provided image subresource range resource will be queued the associated command buffer. This does bulk of the work to determine necessary layout transitions

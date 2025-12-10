@@ -440,6 +440,14 @@ namespace b3d::render
 		/** Returns the amount of submitted command buffers that the buffer is bound to. */
 		virtual u32 GetUseCount() const = 0;
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		/** Checks if any suballocation overlapping the given byte range is bound. */
+		virtual bool IsRangeBound(u32 offset, u32 size) const = 0;
+
+		/** Checks if any suballocation overlapping the given byte range is in use. */
+		virtual bool IsRangeInUse(u32 offset, u32 size) const = 0;
+#endif
+
 	protected:
 		friend class b3d::GpuDevice;
 		friend class b3d::GpuBuffer;

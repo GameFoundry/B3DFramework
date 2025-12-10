@@ -171,7 +171,7 @@ VulkanResourceTracker::BufferTrackingState& VulkanResourceTracker::GetOrCreateBu
 	}
 }
 
-void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper)
+void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper, u32 dynamicOffset)
 {
 	B3D_ASSERT(!bufferTrackingState.UseHandle.Used);
 
@@ -200,12 +200,34 @@ void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, BufferTrackin
 
 	bufferTrackingState.UseHandle.Flags |= access;
 	bufferTrackingState.UseFlags |= useFlags;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// Calculate suballocation index from dynamic offset and track it
+	const u32 suballocationIndex = buffer->GetSuballocationIndexForOffset(dynamicOffset);
+
+	// Track this suballocation (avoid duplicates if same suballocation bound multiple times)
+	bool alreadyTracked = false;
+	for(u32 existingIndex : bufferTrackingState.BoundSuballocationIndices)
+	{
+		if(existingIndex == suballocationIndex)
+		{
+			alreadyTracked = true;
+			break;
+		}
+	}
+
+	if(!alreadyTracked)
+	{
+		bufferTrackingState.BoundSuballocationIndices.Add(suballocationIndex);
+		buffer->NotifySuballocationBound(suballocationIndex);
+	}
+#endif
 }
 
-void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper)
+void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper, u32 dynamicOffset)
 {
 	BufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
-	TrackBufferUsage(buffer, bufferTrackingState, useFlags, accessFlags, barrierHelper);
+	TrackBufferUsage(buffer, bufferTrackingState, useFlags, accessFlags, barrierHelper, dynamicOffset);
 }
 
 void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresourceRange subresourceRange, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper)
@@ -838,11 +860,18 @@ void VulkanResourceTracker::NotifyUsed(GpuQueueId queueId)
 
 	for(auto& entry : mBuffers)
 	{
-		ResourceUseHandle& useHandle = entry.second.UseHandle;
+		BufferTrackingState& trackingState = entry.second;
+		ResourceUseHandle& useHandle = trackingState.UseHandle;
 		B3D_ASSERT(!useHandle.Used);
 
 		useHandle.Used = true;
 		entry.first->NotifyUsed(queueId, useHandle.Flags);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		VulkanBuffer* buffer = static_cast<VulkanBuffer*>(entry.first);
+		for(u32 suballocationIndex : trackingState.BoundSuballocationIndices)
+			buffer->NotifySuballocationUsed(suballocationIndex);
+#endif
 	}
 
 	for(auto& entry : mSwapChains)
@@ -878,8 +907,15 @@ void VulkanResourceTracker::NotifyDone(GpuQueueId queueId)
 
 	for(auto& entry : mBuffers)
 	{
-		ResourceUseHandle& useHandle = entry.second.UseHandle;
+		BufferTrackingState& trackingState = entry.second;
+		ResourceUseHandle& useHandle = trackingState.UseHandle;
 		B3D_ASSERT(useHandle.Used);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		VulkanBuffer* buffer = static_cast<VulkanBuffer*>(entry.first);
+		for(u32 suballocationIndex : trackingState.BoundSuballocationIndices)
+			buffer->NotifySuballocationDone(suballocationIndex);
+#endif
 
 		entry.first->NotifyDone(queueId, useHandle.Flags);
 	}
@@ -917,8 +953,15 @@ void VulkanResourceTracker::NotifyUnbound()
 
 	for(auto& entry : mBuffers)
 	{
-		ResourceUseHandle& useHandle = entry.second.UseHandle;
+		BufferTrackingState& trackingState = entry.second;
+		ResourceUseHandle& useHandle = trackingState.UseHandle;
 		B3D_ASSERT(!useHandle.Used);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		VulkanBuffer* buffer = static_cast<VulkanBuffer*>(entry.first);
+		for(u32 suballocationIndex : trackingState.BoundSuballocationIndices)
+			buffer->NotifySuballocationUnbound(suballocationIndex);
+#endif
 
 		entry.first->NotifyUnbound();
 	}

@@ -16,6 +16,15 @@ namespace b3d
 		 *  @{
 		 */
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		/** Tracks the bound/use state of a single suballocation within a buffer. */
+		struct SuballocationTrackingState
+		{
+			u32 BoundCount = 0;  /**< Number of command buffers this suballocation is bound to. */
+			u32 UseCount = 0;    /**< Number of submitted command buffers using this suballocation. */
+		};
+#endif
+
 		/** Wrapper around a Vulkan buffer object that manages its usage and lifetime. */
 		class VulkanBuffer : public VulkanResource
 		{
@@ -77,6 +86,50 @@ namespace b3d
 			 */
 			VkBufferView GetOrCreateView(VkFormat format);
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			// --- Suballocation Tracking (Debug Only) ---
+
+			/**
+			 * Initializes suballocation tracking for the specified count. Called during buffer creation.
+			 * Only needs to be called for buffers with more than one suballocation.
+			 *
+			 * @param suballocationCount	Number of suballocations in the buffer.
+			 * @param suballocationSize		Size of each suballocation in bytes.
+			 */
+			void InitializeSuballocationTracking(u32 suballocationCount, u32 suballocationSize);
+
+			// --- Notification methods (called by VulkanResourceTracker) ---
+
+			/** Notifies that a suballocation is bound to a command buffer. */
+			void NotifySuballocationBound(u32 suballocationIndex);
+
+			/** Notifies that a suballocation is used (command buffer submitted). */
+			void NotifySuballocationUsed(u32 suballocationIndex);
+
+			/** Notifies that a suballocation is done being used (command buffer completed). */
+			void NotifySuballocationDone(u32 suballocationIndex);
+
+			/** Notifies that a suballocation is unbound (command buffer destroyed without submit). */
+			void NotifySuballocationUnbound(u32 suballocationIndex);
+
+			// --- Query methods (called during Map/Write validation) ---
+
+			/** Checks if a suballocation is currently bound to any command buffer. */
+			bool IsSuballocationBound(u32 suballocationIndex) const;
+
+			/** Checks if a suballocation is currently in use on the GPU. */
+			bool IsSuballocationInUse(u32 suballocationIndex) const;
+
+			/** Checks if any suballocation overlapping the given byte range is bound. */
+			bool IsRangeBound(u32 offset, u32 size) const;
+
+			/** Checks if any suballocation overlapping the given byte range is in use. */
+			bool IsRangeInUse(u32 offset, u32 size) const;
+
+			/** Returns the suballocation index for the given byte offset. */
+			u32 GetSuballocationIndexForOffset(u32 offset) const;
+#endif
+
 		private:
 			/** Information about a view of this buffer. */
 			struct ViewInformation
@@ -103,6 +156,11 @@ namespace b3d
 			mutable VkDeviceSize mMappedOffset = 0;
 			mutable VkDeviceSize mMappedSize = 0;
 			mutable Mutex mViewsMutex;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			TInlineArray<SuballocationTrackingState, 2> mSuballocationStates;
+			u32 mSuballocationSize = 0;  // Size of each suballocation (for range-to-index conversion)
+#endif
 		};
 
 		/**	Vulkan-specific implementation of GpuBuffer. */
@@ -116,6 +174,11 @@ namespace b3d
 			GpuQueueMask GetUseMask(GpuAccessFlags accessFlags) override;
 			u32 GetBoundCount() const override { return mBuffer->GetBoundCount(); }
 			u32 GetUseCount() const override { return mBuffer->GetUseCount(); }
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			bool IsRangeBound(u32 offset, u32 size) const override { return mBuffer->IsRangeBound(offset, size); }
+			bool IsRangeInUse(u32 offset, u32 size) const override { return mBuffer->IsRangeInUse(offset, size); }
+#endif
 
 			/** Gets the resource wrapping the buffer object. */
 			VulkanBuffer* GetVulkanResource() const { return mBuffer; }
