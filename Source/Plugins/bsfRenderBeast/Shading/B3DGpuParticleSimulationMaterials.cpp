@@ -110,12 +110,13 @@ AABox GpuParticleBoundsMaterial::Execute(GpuCommandBuffer& commandBuffer, const 
 	const u32 iterationsPerGroup = numIterations / numGroups;
 	const u32 extraIterations = numIterations % numGroups;
 
-	GpuBufferSuballocation inputUniformBuffer = gGpuParticleBoundsUniformDefinition.AllocateTransient();
-	gGpuParticleBoundsUniformDefinition.gIterationsPerGroup.Set(inputUniformBuffer, iterationsPerGroup);
-	gGpuParticleBoundsUniformDefinition.gNumExtraIterations.Set(inputUniformBuffer, extraIterations);
-	gGpuParticleBoundsUniformDefinition.gNumParticles.Set(inputUniformBuffer, numParticles);
+	GpuMappedRegion inputUniforms = gGpuParticleBoundsUniformDefinition.AllocateTransientAndMap();
 
-	mInputUniformBufferParameter.Set(inputUniformBuffer);
+	gGpuParticleBoundsUniformDefinition.gIterationsPerGroup.Set(inputUniforms, iterationsPerGroup);
+	gGpuParticleBoundsUniformDefinition.gNumExtraIterations.Set(inputUniforms, extraIterations);
+	gGpuParticleBoundsUniformDefinition.gNumParticles.Set(inputUniforms, numParticles);
+
+	mInputUniformBufferParameter.Set(inputUniforms.GetSuballocation());
 
 	GpuBufferCreateInformation outputBufferCreateInformation;
 	outputBufferCreateInformation.Type = GpuBufferType::SimpleStorage;
@@ -192,15 +193,16 @@ u32 GpuParticleSortPrepareMaterial::Execute(GpuCommandBuffer& commandBuffer, con
 	else
 		localViewOrigin = viewOrigin;
 
-	GpuBufferSuballocation inputUniformBuffer = gGpuParticleSortPrepareUniformDefinition.AllocateTransient();
-	gGpuParticleSortPrepareUniformDefinition.gIterationsPerGroup.Set(inputUniformBuffer, iterationsPerGroup);
-	gGpuParticleSortPrepareUniformDefinition.gNumExtraIterations.Set(inputUniformBuffer, extraIterations);
-	gGpuParticleSortPrepareUniformDefinition.gNumParticles.Set(inputUniformBuffer, numParticles);
-	gGpuParticleSortPrepareUniformDefinition.gOutputOffset.Set(inputUniformBuffer, offset);
-	gGpuParticleSortPrepareUniformDefinition.gSystemKey.Set(inputUniformBuffer, systemIdx << 16);
-	gGpuParticleSortPrepareUniformDefinition.gLocalViewOrigin.Set(inputUniformBuffer, localViewOrigin);
+	GpuMappedRegion inputUniforms = gGpuParticleSortPrepareUniformDefinition.AllocateTransientAndMap();
 
-	mInputUniformBufferParameter.Set(inputUniformBuffer);
+	gGpuParticleSortPrepareUniformDefinition.gIterationsPerGroup.Set(inputUniforms, iterationsPerGroup);
+	gGpuParticleSortPrepareUniformDefinition.gNumExtraIterations.Set(inputUniforms, extraIterations);
+	gGpuParticleSortPrepareUniformDefinition.gNumParticles.Set(inputUniforms, numParticles);
+	gGpuParticleSortPrepareUniformDefinition.gOutputOffset.Set(inputUniforms, offset);
+	gGpuParticleSortPrepareUniformDefinition.gSystemKey.Set(inputUniforms, systemIdx << 16);
+	gGpuParticleSortPrepareUniformDefinition.gLocalViewOrigin.Set(inputUniforms, localViewOrigin);
+
+	mInputUniformBufferParameter.Set(inputUniforms.GetSuballocation());
 
 	mInputIndicesParam.Set(system.GetParticleIndices());
 	mOutputKeysParam.Set(outKeys);

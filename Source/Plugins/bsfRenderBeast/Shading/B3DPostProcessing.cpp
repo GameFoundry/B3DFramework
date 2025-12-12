@@ -45,29 +45,29 @@ void DownsampleMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Populate parameter buffer
-	GpuBufferSuballocation uniformBuffer = gDownsampleUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gDownsampleUniformDefinition.AllocateTransientAndMap();
 	const TextureProperties& rtProps = input->GetProperties();
 
 	bool MSAA = mVariationParameters.GetI32("MSAA") > 0;
 	if(MSAA)
 	{
-		gDownsampleUniformDefinition.gOffsets.Set(uniformBuffer, Vector2(-1.0f, -1.0f));
-		gDownsampleUniformDefinition.gOffsets.Set(uniformBuffer, Vector2(1.0f, -1.0f));
-		gDownsampleUniformDefinition.gOffsets.Set(uniformBuffer, Vector2(-1.0f, 1.0f));
-		gDownsampleUniformDefinition.gOffsets.Set(uniformBuffer, Vector2(1.0f, 1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(uniforms, Vector2(-1.0f, -1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(uniforms, Vector2(1.0f, -1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(uniforms, Vector2(-1.0f, 1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(uniforms, Vector2(1.0f, 1.0f));
 	}
 	else
 	{
 		Vector2 invTextureSize(1.0f / rtProps.Width, 1.0f / rtProps.Height);
 
-		gDownsampleUniformDefinition.gOffsets.Set(uniformBuffer, invTextureSize * Vector2(-1.0f, -1.0f));
-		gDownsampleUniformDefinition.gOffsets.Set(uniformBuffer, invTextureSize * Vector2(1.0f, -1.0f));
-		gDownsampleUniformDefinition.gOffsets.Set(uniformBuffer, invTextureSize * Vector2(-1.0f, 1.0f));
-		gDownsampleUniformDefinition.gOffsets.Set(uniformBuffer, invTextureSize * Vector2(1.0f, 1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(uniforms, invTextureSize * Vector2(-1.0f, -1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(uniforms, invTextureSize * Vector2(1.0f, -1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(uniforms, invTextureSize * Vector2(-1.0f, 1.0f));
+		gDownsampleUniformDefinition.gOffsets.Set(uniforms, invTextureSize * Vector2(1.0f, 1.0f));
 	}
 
 	// Set parameters
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 	mInputTextureParameter.Set(input);
 
 	commandBuffer.BeginRenderPass(RenderPassCreateInformation(output, mGpuParameterSet, RT_DEPTH_STENCIL));
@@ -132,19 +132,19 @@ void EyeAdaptHistogramMaterial::Execute(GpuCommandBuffer& commandBuffer, const S
 	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Populate parameter buffer
-	GpuBufferSuballocation uniformBuffer = gEyeAdaptHistogramUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gEyeAdaptHistogramUniformDefinition.AllocateTransientAndMap();
 
 	const TextureProperties& props = input->GetProperties();
 	Vector4I offsetAndSize(0, 0, (i32)props.Width, (i32)props.Height);
 
-	gEyeAdaptHistogramUniformDefinition.gHistogramParams.Set(uniformBuffer, GetHistogramScaleOffset(settings));
-	gEyeAdaptHistogramUniformDefinition.gPixelOffsetAndSize.Set(uniformBuffer, offsetAndSize);
+	gEyeAdaptHistogramUniformDefinition.gHistogramParams.Set(uniforms, GetHistogramScaleOffset(settings));
+	gEyeAdaptHistogramUniformDefinition.gPixelOffsetAndSize.Set(uniforms, offsetAndSize);
 
 	Vector2I threadGroupCount = GetThreadGroupCount(input);
-	gEyeAdaptHistogramUniformDefinition.gThreadGroupCount.Set(uniformBuffer, threadGroupCount);
+	gEyeAdaptHistogramUniformDefinition.gThreadGroupCount.Set(uniforms, threadGroupCount);
 
 	// Set parameters
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 	mSceneColorParameter.Set(input);
 
 	// Dispatch
@@ -197,7 +197,7 @@ void EyeAdaptHistogramReduceMaterial::Initialize()
 
 void EyeAdaptHistogramReduceMaterial::Prepare(const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame)
 {
-	GpuBufferSuballocation uniformBuffer = gEyeAdaptHistogramReduceUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gEyeAdaptHistogramReduceUniformDefinition.AllocateTransientAndMap();
 
 	mHistogramTextureParameter.Set(histogram);
 
@@ -212,9 +212,9 @@ void EyeAdaptHistogramReduceMaterial::Prepare(const SPtr<Texture>& sceneColor, c
 	Vector2I threadGroupCount = EyeAdaptHistogramMaterial::GetThreadGroupCount(sceneColor);
 	u32 numHistograms = threadGroupCount.X * threadGroupCount.Y;
 
-	gEyeAdaptHistogramReduceUniformDefinition.gThreadGroupCount.Set(uniformBuffer, numHistograms);
+	gEyeAdaptHistogramReduceUniformDefinition.gThreadGroupCount.Set(uniforms, numHistograms);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 }
 
 void EyeAdaptHistogramReduceMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
@@ -255,10 +255,10 @@ void EyeAdaptationMaterial::Prepare(const SPtr<Texture>& reducedHistogram, float
 {
 	mReducedHistogramTex.Set(reducedHistogram);
 
-	GpuBufferSuballocation uniformBuffer = gEyeAdaptationUniformDefinition.AllocateTransient();
-	PopulateUniformBuffer(uniformBuffer, frameDelta, settings, exposureScale);
+	GpuMappedRegion uniforms = gEyeAdaptationUniformDefinition.AllocateTransientAndMap();
+	PopulateUniformBuffer(uniforms, frameDelta, settings, exposureScale);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 }
 
 void EyeAdaptationMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
@@ -279,7 +279,7 @@ PooledRenderTextureCreateInformation EyeAdaptationMaterial::GetOutputDesc()
 	return PooledRenderTextureCreateInformation::Create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
 }
 
-void EyeAdaptationMaterial::PopulateUniformBuffer(const GpuBufferSuballocation& uniformBuffer, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+void EyeAdaptationMaterial::PopulateUniformBuffer(const GpuMappedRegion& uniforms, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 {
 	Vector2 histogramScaleAndOffset = EyeAdaptHistogramMaterial::GetHistogramScaleOffset(settings);
 
@@ -304,9 +304,9 @@ void EyeAdaptationMaterial::PopulateUniformBuffer(const GpuBufferSuballocation& 
 	eyeAdaptationParams[2].Z = Math::RaiseToPower(2.0f, settings.HistogramLog2Min);
 	eyeAdaptationParams[2].W = 0.0f; // Unused
 
-	gEyeAdaptationUniformDefinition.gEyeAdaptationParams.Set(uniformBuffer, eyeAdaptationParams[0], 0);
-	gEyeAdaptationUniformDefinition.gEyeAdaptationParams.Set(uniformBuffer, eyeAdaptationParams[1], 1);
-	gEyeAdaptationUniformDefinition.gEyeAdaptationParams.Set(uniformBuffer, eyeAdaptationParams[2], 2);
+	gEyeAdaptationUniformDefinition.gEyeAdaptationParams.Set(uniforms, eyeAdaptationParams[0], 0);
+	gEyeAdaptationUniformDefinition.gEyeAdaptationParams.Set(uniforms, eyeAdaptationParams[1], 1);
+	gEyeAdaptationUniformDefinition.gEyeAdaptationParams.Set(uniforms, eyeAdaptationParams[2], 2);
 }
 
 void EyeAdaptationBasicSetupMaterial::Initialize()
@@ -327,10 +327,10 @@ void EyeAdaptationBasicSetupMaterial::Prepare(const SPtr<Texture>& input, float 
 {
 	mInputTextureParameter.Set(input);
 
-	GpuBufferSuballocation uniformBuffer = gEyeAdaptationUniformDefinition.AllocateTransient();
-	EyeAdaptationMaterial::PopulateUniformBuffer(uniformBuffer, frameDelta, settings, exposureScale);
+	GpuMappedRegion uniforms = gEyeAdaptationUniformDefinition.AllocateTransientAndMap();
+	EyeAdaptationMaterial::PopulateUniformBuffer(uniforms, frameDelta, settings, exposureScale);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 }
 
 void EyeAdaptationBasicSetupMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)
@@ -364,18 +364,18 @@ void EyeAdaptationBasicMaterial::Initialize()
 
 void EyeAdaptationBasicMaterial::Prepare(const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 {
-	GpuBufferSuballocation eyeAdaptationUniformBuffer = gEyeAdaptationUniformDefinition.AllocateTransient();
-	GpuBufferSuballocation uniformBuffer = gEyeAdaptationBasicUniformDefinition.AllocateTransient();
+	GpuMappedRegion eyeAdaptationUniforms = gEyeAdaptationUniformDefinition.AllocateTransientAndMap();
+	GpuMappedRegion eyeAdaptationBasicUniforms = gEyeAdaptationBasicUniformDefinition.AllocateTransientAndMap();
 
-	EyeAdaptationMaterial::PopulateUniformBuffer(eyeAdaptationUniformBuffer, frameDelta, settings, exposureScale);
+	EyeAdaptationMaterial::PopulateUniformBuffer(eyeAdaptationUniforms, frameDelta, settings, exposureScale);
 
 	auto& texProps = curFrame->GetProperties();
 	Vector2I texSize = { (i32)texProps.Width, (i32)texProps.Height };
 
-	gEyeAdaptationBasicUniformDefinition.gInputTexSize.Set(uniformBuffer, texSize);
+	gEyeAdaptationBasicUniformDefinition.gInputTexSize.Set(eyeAdaptationBasicUniforms, texSize);
 
-	mEyeAdaptationUniformBufferParameter.Set(eyeAdaptationUniformBuffer);
-	mUniformBufferParameter.Set(uniformBuffer);
+	mEyeAdaptationUniformBufferParameter.Set(eyeAdaptationUniforms.GetSuballocation());
+	mUniformBufferParameter.Set(eyeAdaptationBasicUniforms.GetSuballocation());
 	mCurrentFrameTextureParameter.Set(curFrame);
 
 	if(prevFrame == nullptr) // Could be that this is the first run
@@ -418,14 +418,14 @@ void CreateTonemap2DLUTMaterial::InitDefinesInternal(ShaderDefines& defines)
 
 void CreateTonemap2DLUTMaterial::Prepare(const RenderSettings& settings)
 {
-	GpuBufferSuballocation uniformBuffer = gCreateTonemapLUTUniformDefinition.AllocateTransient();
-	GpuBufferSuballocation whiteBalanceUniformBuffer = gWhiteBalanceUniformDefinition.AllocateTransient();
+	GpuMappedRegion lutUniforms = gCreateTonemapLUTUniformDefinition.AllocateTransientAndMap();
+	GpuMappedRegion whiteBalanceUniforms = gWhiteBalanceUniformDefinition.AllocateTransientAndMap();
 
-	PopulateTonemappingUniformBuffer(settings, uniformBuffer);
-	PopulateWhiteBalanceUniformBuffer(settings, whiteBalanceUniformBuffer);
+	PopulateTonemappingUniformBuffer(settings, lutUniforms);
+	PopulateWhiteBalanceUniformBuffer(settings, whiteBalanceUniforms);
 
-	mUniformBufferParameter.Set(uniformBuffer);
-	mWhiteBalanceUniformBufferParameter.Set(whiteBalanceUniformBuffer);
+	mUniformBufferParameter.Set(lutUniforms.GetSuballocation());
+	mWhiteBalanceUniformBufferParameter.Set(whiteBalanceUniforms.GetSuballocation());
 }
 
 void CreateTonemap2DLUTMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& output)
@@ -442,14 +442,14 @@ void CreateTonemap2DLUTMaterial::Execute(GpuCommandBuffer& commandBuffer, const 
 	commandBuffer.EndRenderPass();
 }
 
-void CreateTonemap2DLUTMaterial::PopulateTonemappingUniformBuffer(const RenderSettings& settings, const GpuBufferSuballocation& uniformBuffer)
+void CreateTonemap2DLUTMaterial::PopulateTonemappingUniformBuffer(const RenderSettings& settings, const GpuMappedRegion& uniforms)
 {
 	// Set parameters
-	gCreateTonemapLUTUniformDefinition.gGammaAdjustment.Set(uniformBuffer, 2.2f / settings.Gamma);
+	gCreateTonemapLUTUniformDefinition.gGammaAdjustment.Set(uniforms, 2.2f / settings.Gamma);
 
 	// Note: Assuming sRGB (PC monitor) for now, change to Rec.709 when running on console (value 1), or to raw 2.2
 	// gamma when running on Mac (value 2)
-	gCreateTonemapLUTUniformDefinition.gGammaCorrectionType.Set(uniformBuffer, 0);
+	gCreateTonemapLUTUniformDefinition.gGammaCorrectionType.Set(uniforms, 0);
 
 	Vector4 tonemapParams[2];
 	tonemapParams[0].X = settings.Tonemapping.FilmicCurveShoulderStrength;
@@ -462,20 +462,20 @@ void CreateTonemap2DLUTMaterial::PopulateTonemappingUniformBuffer(const RenderSe
 	tonemapParams[1].Z = settings.Tonemapping.FilmicCurveLinearWhitePoint;
 	tonemapParams[1].W = 0.0f; // Unused
 
-	gCreateTonemapLUTUniformDefinition.gTonemapParams.Set(uniformBuffer, tonemapParams[0], 0);
-	gCreateTonemapLUTUniformDefinition.gTonemapParams.Set(uniformBuffer, tonemapParams[1], 1);
+	gCreateTonemapLUTUniformDefinition.gTonemapParams.Set(uniforms, tonemapParams[0], 0);
+	gCreateTonemapLUTUniformDefinition.gTonemapParams.Set(uniforms, tonemapParams[1], 1);
 
 	// Set color grading params
-	gCreateTonemapLUTUniformDefinition.gSaturation.Set(uniformBuffer, settings.ColorGrading.Saturation);
-	gCreateTonemapLUTUniformDefinition.gContrast.Set(uniformBuffer, settings.ColorGrading.Contrast);
-	gCreateTonemapLUTUniformDefinition.gGain.Set(uniformBuffer, settings.ColorGrading.Gain);
-	gCreateTonemapLUTUniformDefinition.gOffset.Set(uniformBuffer, settings.ColorGrading.Offset);
+	gCreateTonemapLUTUniformDefinition.gSaturation.Set(uniforms, settings.ColorGrading.Saturation);
+	gCreateTonemapLUTUniformDefinition.gContrast.Set(uniforms, settings.ColorGrading.Contrast);
+	gCreateTonemapLUTUniformDefinition.gGain.Set(uniforms, settings.ColorGrading.Gain);
+	gCreateTonemapLUTUniformDefinition.gOffset.Set(uniforms, settings.ColorGrading.Offset);
 }
 
-void CreateTonemap2DLUTMaterial::PopulateWhiteBalanceUniformBuffer(const RenderSettings& settings, const GpuBufferSuballocation& uniformBuffer)
+void CreateTonemap2DLUTMaterial::PopulateWhiteBalanceUniformBuffer(const RenderSettings& settings, const GpuMappedRegion& uniforms)
 {
-	gWhiteBalanceUniformDefinition.gWhiteTemp.Set(uniformBuffer, settings.WhiteBalance.Temperature);
-	gWhiteBalanceUniformDefinition.gWhiteOffset.Set(uniformBuffer, settings.WhiteBalance.Tint);
+	gWhiteBalanceUniformDefinition.gWhiteTemp.Set(uniforms, settings.WhiteBalance.Temperature);
+	gWhiteBalanceUniformDefinition.gWhiteOffset.Set(uniforms, settings.WhiteBalance.Tint);
 }
 
 PooledRenderTextureCreateInformation CreateTonemap2DLUTMaterial::GetOutputDesc() const
@@ -499,14 +499,14 @@ void CreateTonemap3DLUTMaterial::Execute(GpuCommandBuffer& commandBuffer, const 
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	GpuBufferSuballocation uniformBuffer = gCreateTonemapLUTUniformDefinition.AllocateTransient();
-	GpuBufferSuballocation whiteBalanceUniformBuffer = gWhiteBalanceUniformDefinition.AllocateTransient();
+	GpuMappedRegion lutUniforms = gCreateTonemapLUTUniformDefinition.AllocateTransientAndMap();
+	GpuMappedRegion whiteBalanceUniforms = gWhiteBalanceUniformDefinition.AllocateTransientAndMap();
 
-	CreateTonemap2DLUTMaterial::PopulateTonemappingUniformBuffer(settings, uniformBuffer);
-	CreateTonemap2DLUTMaterial::PopulateWhiteBalanceUniformBuffer(settings, whiteBalanceUniformBuffer);
+	CreateTonemap2DLUTMaterial::PopulateTonemappingUniformBuffer(settings, lutUniforms);
+	CreateTonemap2DLUTMaterial::PopulateWhiteBalanceUniformBuffer(settings, whiteBalanceUniforms);
 
-	mUniformBufferParameter.Set(uniformBuffer);
-	mWhiteBalanceUniformBufferParameter.Set(whiteBalanceUniformBuffer);
+	mUniformBufferParameter.Set(lutUniforms.GetSuballocation());
+	mWhiteBalanceUniformBufferParameter.Set(whiteBalanceUniforms.GetSuballocation());
 
 	// Dispatch
 	mOutputTextureParameter.Set(output);
@@ -542,15 +542,15 @@ void TonemappingMaterial::Prepare(const SPtr<Texture>& sceneColor, const SPtr<Te
 {
 	const TextureProperties& texProps = sceneColor->GetProperties();
 
-	GpuBufferSuballocation uniformBuffer = gTonemappingUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gTonemappingUniformDefinition.AllocateTransientAndMap();
 
-	gTonemappingUniformDefinition.gRawGamma.Set(uniformBuffer, 1.0f / settings.Gamma);
-	gTonemappingUniformDefinition.gManualExposureScale.Set(uniformBuffer, Math::RaiseToPower(2.0f, settings.ExposureScale));
-	gTonemappingUniformDefinition.gTexSize.Set(uniformBuffer, Vector2((float)texProps.Width, (float)texProps.Height));
-	gTonemappingUniformDefinition.gBloomTint.Set(uniformBuffer, settings.Bloom.Tint);
-	gTonemappingUniformDefinition.gNumSamples.Set(uniformBuffer, texProps.SampleCount);
+	gTonemappingUniformDefinition.gRawGamma.Set(uniforms, 1.0f / settings.Gamma);
+	gTonemappingUniformDefinition.gManualExposureScale.Set(uniforms, Math::RaiseToPower(2.0f, settings.ExposureScale));
+	gTonemappingUniformDefinition.gTexSize.Set(uniforms, Vector2((float)texProps.Width, (float)texProps.Height));
+	gTonemappingUniformDefinition.gBloomTint.Set(uniforms, settings.Bloom.Tint);
+	gTonemappingUniformDefinition.gNumSamples.Set(uniforms, texProps.SampleCount);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 
 	mInputTextureParameter.Set(sceneColor);
 	mColorLUTParameter.Set(colorLUT);
@@ -660,12 +660,12 @@ void BloomClipMaterial::Initialize()
 
 void BloomClipMaterial::Prepare(const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, const RenderSettings& settings)
 {
-	GpuBufferSuballocation uniformBuffer = gBloomClipUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gBloomClipUniformDefinition.AllocateTransientAndMap();
 
-	gBloomClipUniformDefinition.gThreshold.Set(uniformBuffer, threshold);
-	gBloomClipUniformDefinition.gManualExposureScale.Set(uniformBuffer, Math::RaiseToPower(2.0f, settings.ExposureScale));
+	gBloomClipUniformDefinition.gThreshold.Set(uniforms, threshold);
+	gBloomClipUniformDefinition.gManualExposureScale.Set(uniforms, Math::RaiseToPower(2.0f, settings.ExposureScale));
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 	mInputTextureParameter.Set(input);
 	mEyeAdaptationTextureParameter.Set(eyeAdaptation);
 }
@@ -702,18 +702,18 @@ void ScreenSpaceLensFlareMaterial::Initialize()
 
 void ScreenSpaceLensFlareMaterial::Prepare(const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings)
 {
-	GpuBufferSuballocation uniformBuffer = gScreenSpaceLensFlareUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gScreenSpaceLensFlareUniformDefinition.AllocateTransientAndMap();
 
-	gScreenSpaceLensFlareUniformDefinition.gThreshold.Set(uniformBuffer, settings.Threshold);
-	gScreenSpaceLensFlareUniformDefinition.gGhostCount.Set(uniformBuffer, settings.GhostCount);
-	gScreenSpaceLensFlareUniformDefinition.gGhostSpacing.Set(uniformBuffer, settings.GhostSpacing);
-	gScreenSpaceLensFlareUniformDefinition.gHaloRadius.Set(uniformBuffer, settings.HaloRadius);
-	gScreenSpaceLensFlareUniformDefinition.gHaloThickness.Set(uniformBuffer, settings.HaloThickness);
-	gScreenSpaceLensFlareUniformDefinition.gHaloThreshold.Set(uniformBuffer, settings.HaloThreshold);
-	gScreenSpaceLensFlareUniformDefinition.gHaloAspectRatio.Set(uniformBuffer, settings.HaloAspectRatio);
-	gScreenSpaceLensFlareUniformDefinition.gChromaticAberration.Set(uniformBuffer, settings.ChromaticAberrationOffset);
+	gScreenSpaceLensFlareUniformDefinition.gThreshold.Set(uniforms, settings.Threshold);
+	gScreenSpaceLensFlareUniformDefinition.gGhostCount.Set(uniforms, settings.GhostCount);
+	gScreenSpaceLensFlareUniformDefinition.gGhostSpacing.Set(uniforms, settings.GhostSpacing);
+	gScreenSpaceLensFlareUniformDefinition.gHaloRadius.Set(uniforms, settings.HaloRadius);
+	gScreenSpaceLensFlareUniformDefinition.gHaloThickness.Set(uniforms, settings.HaloThickness);
+	gScreenSpaceLensFlareUniformDefinition.gHaloThreshold.Set(uniforms, settings.HaloThreshold);
+	gScreenSpaceLensFlareUniformDefinition.gHaloAspectRatio.Set(uniforms, settings.HaloAspectRatio);
+	gScreenSpaceLensFlareUniformDefinition.gChromaticAberration.Set(uniforms, settings.ChromaticAberrationOffset);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 
 	mInputTextureParameter.Set(input);
 	mGradientTextureParameter.Set(RendererTextures::lensFlareGradient);
@@ -776,12 +776,12 @@ void ChromaticAberrationMaterial::Prepare(const SPtr<Texture>& input, const Chro
 {
 	const TextureProperties& texProps = input->GetProperties();
 
-	GpuBufferSuballocation uniformBuffer = gChromaticAberrationUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gChromaticAberrationUniformDefinition.AllocateTransientAndMap();
 
-	gChromaticAberrationUniformDefinition.gInputSize.Set(uniformBuffer, Vector2((float)texProps.Width, (float)texProps.Height));
-	gChromaticAberrationUniformDefinition.gShiftAmount.Set(uniformBuffer, settings.ShiftAmount);
+	gChromaticAberrationUniformDefinition.gInputSize.Set(uniforms, Vector2((float)texProps.Width, (float)texProps.Height));
+	gChromaticAberrationUniformDefinition.gShiftAmount.Set(uniforms, settings.ShiftAmount);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 
 	SPtr<Texture> fringeTex;
 	if(settings.FringeTexture)
@@ -830,12 +830,12 @@ void FilmGrainMaterial::Initialize()
 
 void FilmGrainMaterial::Prepare(const SPtr<Texture>& input, float time, const FilmGrainSettings& settings)
 {
-	GpuBufferSuballocation uniformBuffer = gFilmGrainUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gFilmGrainUniformDefinition.AllocateTransientAndMap();
 
-	gFilmGrainUniformDefinition.gIntensity.Set(uniformBuffer, settings.Intensity);
-	gFilmGrainUniformDefinition.gTime.Set(uniformBuffer, settings.Speed * time);
+	gFilmGrainUniformDefinition.gIntensity.Set(uniforms, settings.Intensity);
+	gFilmGrainUniformDefinition.gTime.Set(uniforms, settings.Speed * time);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 
 	mInputTextureParameter.Set(input);
 }
@@ -874,9 +874,9 @@ void GaussianBlurMaterial::InitDefinesInternal(ShaderDefines& defines)
 
 void GaussianBlurMaterial::PrepareDirection(Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint, const SPtr<Texture>& additive)
 {
-	GpuBufferSuballocation uniformBuffer = gGaussianBlurUniformDefinition.AllocateTransient();
-	PopulateUniformBuffer(uniformBuffer, direction, source, filterSize, tint);
-	mUniformBufferParameter.Set(uniformBuffer);
+	GpuMappedRegion uniforms = gGaussianBlurUniformDefinition.AllocateTransientAndMap();
+	PopulateUniformBuffer(uniforms, direction, source, filterSize, tint);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 
 	mInputTextureParameter.Set(source);
 
@@ -1005,7 +1005,7 @@ float GaussianBlurMaterial::CalcKernelRadius(const SPtr<Texture>& source, float 
 	return std::min(length * scale / 2, (float)kMaxBlurSamples - 1);
 }
 
-void GaussianBlurMaterial::PopulateUniformBuffer(const GpuBufferSuballocation& uniformBuffer, Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint)
+void GaussianBlurMaterial::PopulateUniformBuffer(const GpuMappedRegion& uniforms, Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint)
 {
 	const TextureProperties& srcProps = source->GetProperties();
 
@@ -1022,7 +1022,7 @@ void GaussianBlurMaterial::PopulateUniformBuffer(const GpuBufferSuballocation& u
 		Vector4 weight(tint.R, tint.G, tint.B, tint.A);
 		weight *= sampleWeights[i];
 
-		gGaussianBlurUniformDefinition.gSampleWeights.Set(uniformBuffer, weight, i);
+		gGaussianBlurUniformDefinition.gSampleWeights.Set(uniforms, weight, i);
 	}
 
 	u32 axis0 = direction == DirHorizontal ? 0 : 1;
@@ -1047,10 +1047,10 @@ void GaussianBlurMaterial::PopulateUniformBuffer(const GpuBufferSuballocation& u
 			offset[axis1 + 2] = 0.0f;
 		}
 
-		gGaussianBlurUniformDefinition.gSampleOffsets.Set(uniformBuffer, offset, i);
+		gGaussianBlurUniformDefinition.gSampleOffsets.Set(uniforms, offset, i);
 	}
 
-	gGaussianBlurUniformDefinition.gNumSamples.Set(uniformBuffer, numSamples);
+	gGaussianBlurUniformDefinition.gNumSamples.Set(uniforms, numSamples);
 }
 
 GaussianBlurMaterial* GaussianBlurMaterial::GetVariation(bool additive)
@@ -1086,15 +1086,15 @@ void GaussianDOFSeparateMaterial::Prepare(const SPtr<Texture>& color, const SPtr
 	const TextureProperties& srcProps = color->GetProperties();
 	Vector2 invTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
 
-	GpuBufferSuballocation uniformBuffer = gGaussianDOFUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gGaussianDOFUniformDefinition.AllocateTransientAndMap();
 
-	gGaussianDOFUniformDefinition.gHalfPixelOffset.Set(uniformBuffer, invTexSize * 0.5f);
-	gGaussianDOFUniformDefinition.gNearBlurPlane.Set(uniformBuffer, settings.FocalDistance - settings.FocalRange * 0.5f);
-	gGaussianDOFUniformDefinition.gFarBlurPlane.Set(uniformBuffer, settings.FocalDistance + settings.FocalRange * 0.5f);
-	gGaussianDOFUniformDefinition.gInvNearBlurRange.Set(uniformBuffer, 1.0f / settings.NearTransitionRange);
-	gGaussianDOFUniformDefinition.gInvFarBlurRange.Set(uniformBuffer, 1.0f / settings.FarTransitionRange);
+	gGaussianDOFUniformDefinition.gHalfPixelOffset.Set(uniforms, invTexSize * 0.5f);
+	gGaussianDOFUniformDefinition.gNearBlurPlane.Set(uniforms, settings.FocalDistance - settings.FocalRange * 0.5f);
+	gGaussianDOFUniformDefinition.gFarBlurPlane.Set(uniforms, settings.FocalDistance + settings.FocalRange * 0.5f);
+	gGaussianDOFUniformDefinition.gInvNearBlurRange.Set(uniforms, 1.0f / settings.NearTransitionRange);
+	gGaussianDOFUniformDefinition.gInvFarBlurRange.Set(uniforms, 1.0f / settings.FarTransitionRange);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 
 	mColorTextureParameter.Set(color);
 	mDepthTextureParameter.Set(depth);
@@ -1189,15 +1189,15 @@ void GaussianDOFCombineMaterial::Prepare(const SPtr<Texture>& focused, const SPt
 	const TextureProperties& srcProps = focused->GetProperties();
 	Vector2 invTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
 
-	GpuBufferSuballocation uniformBuffer = gGaussianDOFUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gGaussianDOFUniformDefinition.AllocateTransientAndMap();
 
-	gGaussianDOFUniformDefinition.gHalfPixelOffset.Set(uniformBuffer, invTexSize * 0.5f);
-	gGaussianDOFUniformDefinition.gNearBlurPlane.Set(uniformBuffer, settings.FocalDistance - settings.FocalRange * 0.5f);
-	gGaussianDOFUniformDefinition.gFarBlurPlane.Set(uniformBuffer, settings.FocalDistance + settings.FocalRange * 0.5f);
-	gGaussianDOFUniformDefinition.gInvNearBlurRange.Set(uniformBuffer, 1.0f / settings.NearTransitionRange);
-	gGaussianDOFUniformDefinition.gInvFarBlurRange.Set(uniformBuffer, 1.0f / settings.FarTransitionRange);
+	gGaussianDOFUniformDefinition.gHalfPixelOffset.Set(uniforms, invTexSize * 0.5f);
+	gGaussianDOFUniformDefinition.gNearBlurPlane.Set(uniforms, settings.FocalDistance - settings.FocalRange * 0.5f);
+	gGaussianDOFUniformDefinition.gFarBlurPlane.Set(uniforms, settings.FocalDistance + settings.FocalRange * 0.5f);
+	gGaussianDOFUniformDefinition.gInvNearBlurRange.Set(uniforms, 1.0f / settings.NearTransitionRange);
+	gGaussianDOFUniformDefinition.gInvFarBlurRange.Set(uniforms, 1.0f / settings.FarTransitionRange);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 
 	mFocusedTextureParameter.Set(focused);
 	mNearTextureParameter.Set(near);
@@ -1249,16 +1249,16 @@ void BokehDOFPrepareMaterial::Prepare(const SPtr<Texture>& input, const SPtr<Tex
 {
 	const TextureProperties& srcProps = input->GetProperties();
 
-	GpuBufferSuballocation uniformBuffer = gBokehDOFPrepareUniformDefinition.AllocateTransient();
-	GpuBufferSuballocation commonUniformBuffer = gDepthOfFieldCommonUniformDefinition.AllocateTransient();
+	GpuMappedRegion prepareUniforms = gBokehDOFPrepareUniformDefinition.AllocateTransientAndMap();
+	GpuMappedRegion commonUniforms = gDepthOfFieldCommonUniformDefinition.AllocateTransientAndMap();
 
 	Vector2 invTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
-	gBokehDOFPrepareUniformDefinition.gInvInputSize.Set(uniformBuffer, invTexSize);
+	gBokehDOFPrepareUniformDefinition.gInvInputSize.Set(prepareUniforms, invTexSize);
 
-	BokehDOFMaterial::PopulateDofCommonParams(commonUniformBuffer, settings, view);
+	BokehDOFMaterial::PopulateDofCommonParams(commonUniforms, settings, view);
 
-	mUniformBufferParameter.Set(uniformBuffer);
-	mCommonUniformBufferParameter.Set(commonUniformBuffer);
+	mUniformBufferParameter.Set(prepareUniforms.GetSuballocation());
+	mCommonUniformBufferParameter.Set(commonUniforms.GetSuballocation());
 	mInputTextureParameter.Set(input);
 	mDepthTextureParameter.Set(depth);
 
@@ -1393,31 +1393,31 @@ void BokehDOFMaterial::Prepare(const SPtr<Texture>& input, const RendererView& v
 	const TextureProperties& srcProps = input->GetProperties();
 	const RenderTargetProperties& dstProps = output->GetProperties();
 
-	GpuBufferSuballocation uniformBuffer = gBokehDOFUniformDefinition.AllocateTransient();
-	GpuBufferSuballocation commonUniformBuffer = gDepthOfFieldCommonUniformDefinition.AllocateTransient();
+	GpuMappedRegion bokehUniforms = gBokehDOFUniformDefinition.AllocateTransientAndMap();
+	GpuMappedRegion depthOfFieldCommonUniforms = gDepthOfFieldCommonUniformDefinition.AllocateTransientAndMap();
 
 	Vector2 inputInvTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
 	Vector2 outputInvTexSize(1.0f / dstProps.Width, 1.0f / dstProps.Height);
-	gBokehDOFUniformDefinition.gInvInputSize.Set(uniformBuffer, inputInvTexSize);
-	gBokehDOFUniformDefinition.gInvOutputSize.Set(uniformBuffer, outputInvTexSize);
-	gBokehDOFUniformDefinition.gAdaptiveThresholdCOC.Set(uniformBuffer, settings.AdaptiveRadiusThreshold);
-	gBokehDOFUniformDefinition.gAdaptiveThresholdColor.Set(uniformBuffer, settings.AdaptiveColorThreshold);
-	gBokehDOFUniformDefinition.gLayerPixelOffset.Set(uniformBuffer, (i32)srcProps.Height + (i32)kNearFarPadding);
-	gBokehDOFUniformDefinition.gInvDepthRange.Set(uniformBuffer, 1.0f / settings.OcclusionDepthRange);
+	gBokehDOFUniformDefinition.gInvInputSize.Set(bokehUniforms, inputInvTexSize);
+	gBokehDOFUniformDefinition.gInvOutputSize.Set(bokehUniforms, outputInvTexSize);
+	gBokehDOFUniformDefinition.gAdaptiveThresholdCOC.Set(bokehUniforms, settings.AdaptiveRadiusThreshold);
+	gBokehDOFUniformDefinition.gAdaptiveThresholdColor.Set(bokehUniforms, settings.AdaptiveColorThreshold);
+	gBokehDOFUniformDefinition.gLayerPixelOffset.Set(bokehUniforms, (i32)srcProps.Height + (i32)kNearFarPadding);
+	gBokehDOFUniformDefinition.gInvDepthRange.Set(bokehUniforms, 1.0f / settings.OcclusionDepthRange);
 
 	float bokehSize = settings.MaxBokehSize * srcProps.Width;
-	gBokehDOFUniformDefinition.gBokehSize.Set(uniformBuffer, Vector2(bokehSize, bokehSize));
+	gBokehDOFUniformDefinition.gBokehSize.Set(bokehUniforms, Vector2(bokehSize, bokehSize));
 
 	Vector2I imageSize(srcProps.Width, srcProps.Height);
 
 	// TODO - Allow tile count to halve (i.e. half sampling rate)
 	Vector2I tileCount = imageSize / 1;
-	gBokehDOFUniformDefinition.gTileCount.Set(uniformBuffer, tileCount);
+	gBokehDOFUniformDefinition.gTileCount.Set(bokehUniforms, tileCount);
 
-	PopulateDofCommonParams(commonUniformBuffer, settings, view);
+	PopulateDofCommonParams(depthOfFieldCommonUniforms, settings, view);
 
-	mUniformBufferParameter.Set(uniformBuffer);
-	mCommonUniformBufferParameter.Set(commonUniformBuffer);
+	mUniformBufferParameter.Set(bokehUniforms.GetSuballocation());
+	mCommonUniformBufferParameter.Set(depthOfFieldCommonUniforms.GetSuballocation());
 	mInputTextureVSParameter.Set(input);
 	mInputTextureFSParameter.Set(input);
 
@@ -1470,14 +1470,14 @@ PooledRenderTextureCreateInformation BokehDOFMaterial::GetOutputDesc(const SPtr<
 	return PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET);
 }
 
-void BokehDOFMaterial::PopulateDofCommonParams(const GpuBufferSuballocation& uniformBuffer, const DepthOfFieldSettings& settings, const RendererView& view)
+void BokehDOFMaterial::PopulateDofCommonParams(const GpuMappedRegion& uniforms, const DepthOfFieldSettings& settings, const RendererView& view)
 {
-	gDepthOfFieldCommonUniformDefinition.gFocalPlaneDistance.Set(uniformBuffer, settings.FocalDistance);
-	gDepthOfFieldCommonUniformDefinition.gApertureSize.Set(uniformBuffer, settings.ApertureSize * 0.001f); // mm to m
-	gDepthOfFieldCommonUniformDefinition.gFocalLength.Set(uniformBuffer, settings.FocalLength * 0.001f); // mm to m
-	gDepthOfFieldCommonUniformDefinition.gInFocusRange.Set(uniformBuffer, settings.FocalRange);
-	gDepthOfFieldCommonUniformDefinition.gNearTransitionRegion.Set(uniformBuffer, settings.NearTransitionRange);
-	gDepthOfFieldCommonUniformDefinition.gFarTransitionRegion.Set(uniformBuffer, settings.FarTransitionRange);
+	gDepthOfFieldCommonUniformDefinition.gFocalPlaneDistance.Set(uniforms, settings.FocalDistance);
+	gDepthOfFieldCommonUniformDefinition.gApertureSize.Set(uniforms, settings.ApertureSize * 0.001f); // mm to m
+	gDepthOfFieldCommonUniformDefinition.gFocalLength.Set(uniforms, settings.FocalLength * 0.001f); // mm to m
+	gDepthOfFieldCommonUniformDefinition.gInFocusRange.Set(uniforms, settings.FocalRange);
+	gDepthOfFieldCommonUniformDefinition.gNearTransitionRegion.Set(uniforms, settings.NearTransitionRange);
+	gDepthOfFieldCommonUniformDefinition.gFarTransitionRegion.Set(uniforms, settings.FarTransitionRange);
 
 	float sensorSize, imageSize;
 	if(settings.SensorSize.X < settings.SensorSize.Y)
@@ -1491,9 +1491,9 @@ void BokehDOFMaterial::PopulateDofCommonParams(const GpuBufferSuballocation& uni
 		imageSize = (float)view.GetProperties().Target.TargetHeight;
 	}
 
-	gDepthOfFieldCommonUniformDefinition.gSensorSize.Set(uniformBuffer, sensorSize);
-	gDepthOfFieldCommonUniformDefinition.gImageSize.Set(uniformBuffer, imageSize);
-	gDepthOfFieldCommonUniformDefinition.gMaxBokehSize.Set(uniformBuffer, Math::Clamp01(settings.MaxBokehSize) * imageSize);
+	gDepthOfFieldCommonUniformDefinition.gSensorSize.Set(uniforms, sensorSize);
+	gDepthOfFieldCommonUniformDefinition.gImageSize.Set(uniforms, imageSize);
+	gDepthOfFieldCommonUniformDefinition.gMaxBokehSize.Set(uniforms, Math::Clamp01(settings.MaxBokehSize) * imageSize);
 }
 
 BokehDOFMaterial* BokehDOFMaterial::GetVariation(bool depthOcclusion)
@@ -1521,21 +1521,21 @@ void BokehDOFCombineMaterial::Prepare(const SPtr<Texture>& unfocused, const SPtr
 	const TextureProperties& unfocusedProps = unfocused->GetProperties();
 	u32 halfHeight = std::max(1U, Math::DivideAndRoundUp(focusedProps.Height, 2U));
 
-	GpuBufferSuballocation uniformBuffer = gBokehDOFCombineUniformDefinition.AllocateTransient();
-	GpuBufferSuballocation commonUniformBuffer = gDepthOfFieldCommonUniformDefinition.AllocateTransient();
+	GpuMappedRegion bokehCombineUniforms = gBokehDOFCombineUniformDefinition.AllocateTransientAndMap();
+	GpuMappedRegion depthOfFieldCommonUniforms = gDepthOfFieldCommonUniformDefinition.AllocateTransientAndMap();
 
 	float uvScale = halfHeight / (float)unfocusedProps.Height;
 	float uvOffset = (halfHeight + BokehDOFMaterial::kNearFarPadding) / (float)unfocusedProps.Height;
 
 	Vector2 layerScaleOffset(uvScale, uvOffset);
 	Vector2 focusedImageSize((float)focusedProps.Width, (float)focusedProps.Height);
-	gBokehDOFCombineUniformDefinition.gLayerAndScaleOffset.Set(uniformBuffer, layerScaleOffset);
-	gBokehDOFCombineUniformDefinition.gFocusedImageSize.Set(uniformBuffer, focusedImageSize);
+	gBokehDOFCombineUniformDefinition.gLayerAndScaleOffset.Set(bokehCombineUniforms, layerScaleOffset);
+	gBokehDOFCombineUniformDefinition.gFocusedImageSize.Set(bokehCombineUniforms, focusedImageSize);
 
-	BokehDOFMaterial::PopulateDofCommonParams(commonUniformBuffer, settings, view);
+	BokehDOFMaterial::PopulateDofCommonParams(depthOfFieldCommonUniforms, settings, view);
 
-	mUniformBufferParameter.Set(uniformBuffer);
-	mCommonUniformBufferParameter.Set(commonUniformBuffer);
+	mUniformBufferParameter.Set(bokehCombineUniforms.GetSuballocation());
+	mCommonUniformBufferParameter.Set(depthOfFieldCommonUniforms.GetSuballocation());
 	mUnfocusedTextureParameter.Set(unfocused);
 	mFocusedTextureParameter.Set(focused);
 	mDepthTextureParameter.Set(depth);
@@ -1606,10 +1606,10 @@ void MotionBlurMaterial::Prepare(const SPtr<Texture>& input, const SPtr<Texture>
 	case MotionBlurQuality::Ultra: numSamples = 16; break;
 	}
 
-	GpuBufferSuballocation uniformBuffer = gMotionBlurUniformDefinition.AllocateTransient();
-	gMotionBlurUniformDefinition.gHalfNumSamples.Set(uniformBuffer, numSamples / 2);
+	GpuMappedRegion uniforms = gMotionBlurUniformDefinition.AllocateTransientAndMap();
+	gMotionBlurUniformDefinition.gHalfNumSamples.Set(uniforms, numSamples / 2);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 	mInputTexture.Set(input);
 	mDepthTexture.Set(depth);
 
@@ -1666,11 +1666,11 @@ void BuildHiZMaterial::Prepare(const SPtr<Texture>& source, u32 srcMip)
 
 		Vector2 halfPixelOffset(0.5f / pixelWidth, 0.5f / pixelHeight);
 
-		GpuBufferSuballocation uniformBuffer = gBuildHiZUniformDefinition.AllocateTransient();
-		gBuildHiZUniformDefinition.gHalfPixelOffset.Set(uniformBuffer, halfPixelOffset);
-		gBuildHiZUniformDefinition.gMipLevel.Set(uniformBuffer, srcMip);
+		GpuMappedRegion uniforms = gBuildHiZUniformDefinition.AllocateTransientAndMap();
+		gBuildHiZUniformDefinition.gHalfPixelOffset.Set(uniforms, halfPixelOffset);
+		gBuildHiZUniformDefinition.gMipLevel.Set(uniforms, srcMip);
 
-		mUniformBufferParameter.Set(uniformBuffer);
+		mUniformBufferParameter.Set(uniforms.GetSuballocation());
 	}
 	else
 		mInputTexture.Set(source, TextureSurface(srcMip));
@@ -1714,10 +1714,10 @@ void FXAAMaterial::Prepare(const SPtr<Texture>& source)
 
 	Vector2 invTexSize(1.0f / srcProps.Width, 1.0f / srcProps.Height);
 
-	GpuBufferSuballocation uniformBuffer = gFXAAUniformDefinition.AllocateTransient();
-	gFXAAUniformDefinition.gInvTexSize.Set(uniformBuffer, invTexSize);
+	GpuMappedRegion uniforms = gFXAAUniformDefinition.AllocateTransientAndMap();
+	gFXAAUniformDefinition.gInvTexSize.Set(uniforms, invTexSize);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 	mInputTexture.Set(source);
 }
 
@@ -1830,16 +1830,16 @@ void SSAOMaterial::Prepare(const RendererView& view, const SSAOTextureInputs& te
 	fadeMultiplyAdd.X = 1.0f / settings.FadeRange;
 	fadeMultiplyAdd.Y = -settings.FadeDistance / settings.FadeRange;
 
-	GpuBufferSuballocation uniformBuffer = gSSAOUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gSSAOUniformDefinition.AllocateTransientAndMap();
 
-	gSSAOUniformDefinition.gSampleRadius.Set(uniformBuffer, radius);
-	gSSAOUniformDefinition.gCotHalfFOV.Set(uniformBuffer, cotHalfFOV);
-	gSSAOUniformDefinition.gTanHalfFOV.Set(uniformBuffer, tanHalfFOV);
-	gSSAOUniformDefinition.gWorldSpaceRadiusMask.Set(uniformBuffer, 1.0f);
-	gSSAOUniformDefinition.gBias.Set(uniformBuffer, (settings.Bias * viewScale) / 1000.0f);
-	gSSAOUniformDefinition.gFadeMultiplyAdd.Set(uniformBuffer, fadeMultiplyAdd);
-	gSSAOUniformDefinition.gPower.Set(uniformBuffer, settings.Power);
-	gSSAOUniformDefinition.gIntensity.Set(uniformBuffer, settings.Intensity);
+	gSSAOUniformDefinition.gSampleRadius.Set(uniforms, radius);
+	gSSAOUniformDefinition.gCotHalfFOV.Set(uniforms, cotHalfFOV);
+	gSSAOUniformDefinition.gTanHalfFOV.Set(uniforms, tanHalfFOV);
+	gSSAOUniformDefinition.gWorldSpaceRadiusMask.Set(uniforms, 1.0f);
+	gSSAOUniformDefinition.gBias.Set(uniforms, (settings.Bias * viewScale) / 1000.0f);
+	gSSAOUniformDefinition.gFadeMultiplyAdd.Set(uniforms, fadeMultiplyAdd);
+	gSSAOUniformDefinition.gPower.Set(uniforms, settings.Power);
+	gSSAOUniformDefinition.gIntensity.Set(uniforms, settings.Intensity);
 
 	bool upsample = mVariationParameters.GetBool("MIX_WITH_UPSAMPLED");
 	if(upsample)
@@ -1850,7 +1850,7 @@ void SSAOMaterial::Prepare(const RendererView& view, const SSAOTextureInputs& te
 		downsampledPixelSize.X = 1.0f / props.Width;
 		downsampledPixelSize.Y = 1.0f / props.Height;
 
-		gSSAOUniformDefinition.gDownsampledPixelSize.Set(uniformBuffer, downsampledPixelSize);
+		gSSAOUniformDefinition.gDownsampledPixelSize.Set(uniforms, downsampledPixelSize);
 	}
 
 	// Generate a scale which we need to use in order to achieve tiling
@@ -1863,9 +1863,9 @@ void SSAOMaterial::Prepare(const RendererView& view, const SSAOTextureInputs& te
 	u32 scaleHeight = (rtProps.Height + rndHeight - 1) / rndHeight;
 
 	Vector2 randomTileScale((float)scaleWidth, (float)scaleHeight);
-	gSSAOUniformDefinition.gRandomTileScale.Set(uniformBuffer, randomTileScale);
+	gSSAOUniformDefinition.gRandomTileScale.Set(uniforms, randomTileScale);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 
 	mSetupAOTexture.Set(textures.AoSetup);
 
@@ -1967,11 +1967,11 @@ void SSAODownsampleMaterial::Prepare(const RendererView& view, const SPtr<Textur
 
 	float scale = viewProps.Target.ViewRect.Width / (float)rtProps.Width;
 
-	GpuBufferSuballocation uniformBuffer = gSSAODownsampleUniformDefinition.AllocateTransient();
-	gSSAODownsampleUniformDefinition.gPixelSize.Set(uniformBuffer, pixelSize);
-	gSSAODownsampleUniformDefinition.gInvDepthThreshold.Set(uniformBuffer, (1.0f / depthRange) / scale);
+	GpuMappedRegion uniforms = gSSAODownsampleUniformDefinition.AllocateTransientAndMap();
+	gSSAODownsampleUniformDefinition.gPixelSize.Set(uniforms, pixelSize);
+	gSSAODownsampleUniformDefinition.gInvDepthThreshold.Set(uniforms, (1.0f / depthRange) / scale);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 	mDepthTexture.Set(depth);
 	mNormalsTexture.Set(normals);
 
@@ -2035,12 +2035,12 @@ void SSAOBlurMaterial::Prepare(const RendererView& view, const SPtr<Texture>& ao
 
 	float scale = viewProps.Target.ViewRect.Width / (float)texProps.Width;
 
-	GpuBufferSuballocation uniformBuffer = gSSAOBlurUniformDefinition.AllocateTransient();
-	gSSAOBlurUniformDefinition.gPixelSize.Set(uniformBuffer, pixelSize);
-	gSSAOBlurUniformDefinition.gPixelOffset.Set(uniformBuffer, pixelOffset);
-	gSSAOBlurUniformDefinition.gInvDepthThreshold.Set(uniformBuffer, (1.0f / depthRange) / scale);
+	GpuMappedRegion uniforms = gSSAOBlurUniformDefinition.AllocateTransientAndMap();
+	gSSAOBlurUniformDefinition.gPixelSize.Set(uniforms, pixelSize);
+	gSSAOBlurUniformDefinition.gPixelOffset.Set(uniforms, pixelOffset);
+	gSSAOBlurUniformDefinition.gInvDepthThreshold.Set(uniforms, (1.0f / depthRange) / scale);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 	mAOTexture.Set(ao);
 	mDepthTexture.Set(sceneDepth);
 
@@ -2083,9 +2083,9 @@ void SSRStencilMaterial::Prepare(const RendererView& view, GBufferTextures gbuff
 
 	Vector2 roughnessScaleBias = SSRTraceMaterial::CalcRoughnessFadeScaleBias(settings.MaxRoughness);
 
-	GpuBufferSuballocation uniformBuffer = gSSRStencilUniformDefinition.AllocateTransient();
-	gSSRStencilUniformDefinition.gRoughnessScaleBias.Set(uniformBuffer, roughnessScaleBias);
-	mUniformBufferParameter.Set(uniformBuffer);
+	GpuMappedRegion uniforms = gSSRStencilUniformDefinition.AllocateTransientAndMap();
+	gSSRStencilUniformDefinition.gRoughnessScaleBias.Set(uniforms, roughnessScaleBias);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGpuParameterSet->SetUniformBuffer("PerCamera", perView);
@@ -2184,18 +2184,18 @@ void SSRTraceMaterial::Prepare(const RendererView& view, GBufferTextures gbuffer
 
 	u32 temporalJitter = (viewProps.FrameIdx % 8) * 1503;
 
-	GpuBufferSuballocation uniformBuffer = gSSRTraceUniformDefinition.AllocateTransient();
+	GpuMappedRegion uniforms = gSSRTraceUniformDefinition.AllocateTransientAndMap();
 
 	Vector2I bufferSize(viewRect.Width, viewRect.Height);
-	gSSRTraceUniformDefinition.gHiZSize.Set(uniformBuffer, bufferSize);
-	gSSRTraceUniformDefinition.gHiZNumMips.Set(uniformBuffer, hiZProps.MipMapCount);
-	gSSRTraceUniformDefinition.gNDCToHiZUV.Set(uniformBuffer, ndcToHiZUV);
-	gSSRTraceUniformDefinition.gHiZUVToScreenUV.Set(uniformBuffer, HiZUVToScreenUV);
-	gSSRTraceUniformDefinition.gIntensity.Set(uniformBuffer, settings.Intensity);
-	gSSRTraceUniformDefinition.gRoughnessScaleBias.Set(uniformBuffer, roughnessScaleBias);
-	gSSRTraceUniformDefinition.gTemporalJitter.Set(uniformBuffer, temporalJitter);
+	gSSRTraceUniformDefinition.gHiZSize.Set(uniforms, bufferSize);
+	gSSRTraceUniformDefinition.gHiZNumMips.Set(uniforms, hiZProps.MipMapCount);
+	gSSRTraceUniformDefinition.gNDCToHiZUV.Set(uniforms, ndcToHiZUV);
+	gSSRTraceUniformDefinition.gHiZUVToScreenUV.Set(uniforms, HiZUVToScreenUV);
+	gSSRTraceUniformDefinition.gIntensity.Set(uniforms, settings.Intensity);
+	gSSRTraceUniformDefinition.gRoughnessScaleBias.Set(uniforms, roughnessScaleBias);
+	gSSRTraceUniformDefinition.gTemporalJitter.Set(uniforms, temporalJitter);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGpuParameterSet->SetUniformBuffer("PerCamera", perView);
@@ -2316,8 +2316,8 @@ void TemporalFilteringMaterial::Initialize()
 
 void TemporalFilteringMaterial::Prepare(const RendererView& view, const SPtr<Texture>& prevFrame, const SPtr<Texture>& curFrame, const SPtr<Texture>& velocity, const SPtr<Texture>& sceneDepth, const Vector2& jitter, float exposure)
 {
-	GpuBufferSuballocation uniformBuffer = gTemporalFilteringUniformDefinition.AllocateTransient();
-	GpuBufferSuballocation temporalUniformBuffer = gTemporalResolveUniformDefinition.AllocateTransient();
+	GpuMappedRegion filteringUniforms = gTemporalFilteringUniformDefinition.AllocateTransientAndMap();
+	GpuMappedRegion resolveUniforms = gTemporalResolveUniformDefinition.AllocateTransientAndMap();
 
 	SPtr<Texture> velocityTex = velocity;
 	if(!velocityTex)
@@ -2343,10 +2343,10 @@ void TemporalFilteringMaterial::Prepare(const RendererView& view, const SPtr<Tex
 		velocityPixelSize = Vector4(1.0f / velocityProps.Width, 1.0f / velocityProps.Height, (float)velocityProps.Width, (float)velocityProps.Height);
 	}
 
-	gTemporalFilteringUniformDefinition.gSceneColorTexelSize.Set(uniformBuffer, colorPixelSize);
-	gTemporalFilteringUniformDefinition.gSceneDepthTexelSize.Set(uniformBuffer, depthPixelSize);
-	gTemporalFilteringUniformDefinition.gVelocityTexelSize.Set(uniformBuffer, velocityPixelSize);
-	gTemporalFilteringUniformDefinition.gManualExposure.Set(uniformBuffer, 1.0f / exposure);
+	gTemporalFilteringUniformDefinition.gSceneColorTexelSize.Set(filteringUniforms, colorPixelSize);
+	gTemporalFilteringUniformDefinition.gSceneDepthTexelSize.Set(filteringUniforms, depthPixelSize);
+	gTemporalFilteringUniformDefinition.gVelocityTexelSize.Set(filteringUniforms, velocityPixelSize);
+	gTemporalFilteringUniformDefinition.gManualExposure.Set(filteringUniforms, 1.0f / exposure);
 
 	const GpuBackendConventions& gpuBackendConventions = mGpuDevice->GetCapabilities().Conventions;
 
@@ -2428,12 +2428,12 @@ void TemporalFilteringMaterial::Prepare(const RendererView& view, const SPtr<Tex
 
 	for(u32 i = 0; i < 9; ++i)
 	{
-		gTemporalResolveUniformDefinition.gSampleWeights.Set(temporalUniformBuffer, sampleWeights[i] / totalWeights, i);
-		gTemporalResolveUniformDefinition.gSampleWeightsLowpass.Set(temporalUniformBuffer, sampleWeightsLowPass[i] / totalWeightsLowPass, i);
+		gTemporalResolveUniformDefinition.gSampleWeights.Set(resolveUniforms, sampleWeights[i] / totalWeights, i);
+		gTemporalResolveUniformDefinition.gSampleWeightsLowpass.Set(resolveUniforms, sampleWeightsLowPass[i] / totalWeightsLowPass, i);
 	}
 
-	mUniformBufferParameter.Set(uniformBuffer);
-	mTemporalUniformBufferParameter.Set(temporalUniformBuffer);
+	mUniformBufferParameter.Set(filteringUniforms.GetSuballocation());
+	mTemporalUniformBufferParameter.Set(resolveUniforms.GetSuballocation());
 
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGpuParameterSet->SetUniformBuffer("PerCamera", perView);
@@ -2516,12 +2516,12 @@ void EncodeDepthMaterial::Initialize()
 
 void EncodeDepthMaterial::Prepare(const SPtr<Texture>& depth, float near, float far)
 {
-	GpuBufferSuballocation uniformBuffer = gEncodeDepthUniformDefinition.AllocateTransient();
-	gEncodeDepthUniformDefinition.gNear.Set(uniformBuffer, near);
-	gEncodeDepthUniformDefinition.gFar.Set(uniformBuffer, far);
+	GpuMappedRegion uniforms = gEncodeDepthUniformDefinition.AllocateTransientAndMap();
+	gEncodeDepthUniformDefinition.gNear.Set(uniforms, near);
+	gEncodeDepthUniformDefinition.gFar.Set(uniforms, far);
 
 	mInputTextureParameter.Set(depth);
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms.GetSuballocation());
 }
 
 void EncodeDepthMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output)

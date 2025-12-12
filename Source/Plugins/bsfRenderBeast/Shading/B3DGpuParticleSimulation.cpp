@@ -493,15 +493,15 @@ const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const 
 	const float nrmTime = time / settings.Duration;
 
 	// Allocate transient uniform buffers
-	GpuBufferSuballocation simulationUniformBuffer = gGpuParticleSimulateUniformDefinition.AllocateTransient();
-	GpuBufferSuballocation vectorFieldUniformBuffer = gVectorFieldUniformDefinition.AllocateTransient();
-	GpuBufferSuballocation depthCollisionUniformBuffer = gGpuParticleDepthCollisionUniformDefinition.AllocateTransient();
+	GpuMappedRegion simulationUniforms = gGpuParticleSimulateUniformDefinition.AllocateTransientAndMap();
+	GpuMappedRegion vectorFieldUniforms = gVectorFieldUniformDefinition.AllocateTransientAndMap();
+	GpuMappedRegion depthCollisionUniforms = gGpuParticleDepthCollisionUniformDefinition.AllocateTransientAndMap();
 
 	// Write simulation parameters
-	gGpuParticleSimulateUniformDefinition.gDT.Set(simulationUniformBuffer, dt);
-	gGpuParticleSimulateUniformDefinition.gNumIterations.Set(simulationUniformBuffer, 1);
-	gGpuParticleSimulateUniformDefinition.gDrag.Set(simulationUniformBuffer, simSettings.Drag);
-	gGpuParticleSimulateUniformDefinition.gAcceleration.Set(simulationUniformBuffer, simSettings.Acceleration);
+	gGpuParticleSimulateUniformDefinition.gDT.Set(simulationUniforms, dt);
+	gGpuParticleSimulateUniformDefinition.gNumIterations.Set(simulationUniforms, 1);
+	gGpuParticleSimulateUniformDefinition.gDrag.Set(simulationUniforms, simSettings.Drag);
+	gGpuParticleSimulateUniformDefinition.gAcceleration.Set(simulationUniforms, simSettings.Acceleration);
 
 	// Write vector field parameters
 	SPtr<Texture> vfTexture;
@@ -510,7 +510,7 @@ const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const 
 
 	if(vfTexture)
 	{
-		gGpuParticleSimulateUniformDefinition.gNumVectorFields.Set(simulationUniformBuffer, 1);
+		gGpuParticleSimulateUniformDefinition.gNumVectorFields.Set(simulationUniforms, 1);
 
 		const SPtr<VectorField>& vectorField = simSettings.VectorField.VectorField;
 		const VECTOR_FIELD_DESC& vfDesc = vectorField->GetDesc();
@@ -520,10 +520,10 @@ const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const 
 			simSettings.VectorField.TilingY ? 0.0f : 1.0f,
 			simSettings.VectorField.TilingZ ? 0.0f : 1.0f);
 
-		gVectorFieldUniformDefinition.gFieldBounds.Set(vectorFieldUniformBuffer, vfDesc.Bounds.GetSize());
-		gVectorFieldUniformDefinition.gFieldTightness.Set(vectorFieldUniformBuffer, simSettings.VectorField.Tightness);
-		gVectorFieldUniformDefinition.gFieldTiling.Set(vectorFieldUniformBuffer, tiling);
-		gVectorFieldUniformDefinition.gFieldIntensity.Set(vectorFieldUniformBuffer, simSettings.VectorField.Intensity);
+		gVectorFieldUniformDefinition.gFieldBounds.Set(vectorFieldUniforms, vfDesc.Bounds.GetSize());
+		gVectorFieldUniformDefinition.gFieldTightness.Set(vectorFieldUniforms, simSettings.VectorField.Tightness);
+		gVectorFieldUniformDefinition.gFieldTiling.Set(vectorFieldUniforms, tiling);
+		gVectorFieldUniformDefinition.gFieldIntensity.Set(vectorFieldUniforms, simSettings.VectorField.Intensity);
 
 		const Vector3 rotationRate = simSettings.VectorField.RotationRate.Evaluate(nrmTime, mRandom) * time;
 		const Quaternion addedRotation(Degree(rotationRate.X), Degree(rotationRate.Y), Degree(rotationRate.Z));
@@ -537,12 +537,12 @@ const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const 
 
 		const Matrix3 fieldToWorld3x3 = fieldToWorld.Get3x3();
 
-		gVectorFieldUniformDefinition.gFieldToWorld.Set(vectorFieldUniformBuffer, fieldToWorld3x3);
-		gVectorFieldUniformDefinition.gWorldToField.Set(vectorFieldUniformBuffer, fieldToWorld.InverseAffine());
+		gVectorFieldUniformDefinition.gFieldToWorld.Set(vectorFieldUniforms, fieldToWorld3x3);
+		gVectorFieldUniformDefinition.gWorldToField.Set(vectorFieldUniforms, fieldToWorld.InverseAffine());
 	}
 	else
 	{
-		gGpuParticleSimulateUniformDefinition.gNumVectorFields.Set(simulationUniformBuffer, 0);
+		gGpuParticleSimulateUniformDefinition.gNumVectorFields.Set(simulationUniforms, 0);
 	}
 
 	// Write depth collision parameters
@@ -552,26 +552,26 @@ const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const 
 		Vector3 scale3D = rendererInfo.ParticleSystem->GetWorldTransform().GetScale();
 		float uniformScale = std::max(std::max(scale3D.X, scale3D.Y), scale3D.Z);
 
-		gGpuParticleDepthCollisionUniformDefinition.gCollisionRange.Set(depthCollisionUniformBuffer, 2.0f);
+		gGpuParticleDepthCollisionUniformDefinition.gCollisionRange.Set(depthCollisionUniforms, 2.0f);
 		gGpuParticleDepthCollisionUniformDefinition.gCollisionRadiusScale.Set(
-			depthCollisionUniformBuffer, depthCollisionSettings.RadiusScale * uniformScale);
-		gGpuParticleDepthCollisionUniformDefinition.gDampening.Set(depthCollisionUniformBuffer, depthCollisionSettings.Dampening);
-		gGpuParticleDepthCollisionUniformDefinition.gRestitution.Set(depthCollisionUniformBuffer, depthCollisionSettings.Restitution);
+			depthCollisionUniforms, depthCollisionSettings.RadiusScale * uniformScale);
+		gGpuParticleDepthCollisionUniformDefinition.gDampening.Set(depthCollisionUniforms, depthCollisionSettings.Dampening);
+		gGpuParticleDepthCollisionUniformDefinition.gRestitution.Set(depthCollisionUniforms, depthCollisionSettings.Restitution);
 
 		const Vector2 sizeScaleUVOffset =
 			GpuParticleCurves::GetUvOffset(rendererInfo.SizeScaleFrameIdxCurveAlloc);
 		const float sizeScaleUVScale =
 			GpuParticleCurves::GetUvScale(rendererInfo.SizeScaleFrameIdxCurveAlloc);
 
-		gGpuParticleDepthCollisionUniformDefinition.gSizeScaleCurveOffset.Set(depthCollisionUniformBuffer, sizeScaleUVOffset);
+		gGpuParticleDepthCollisionUniformDefinition.gSizeScaleCurveOffset.Set(depthCollisionUniforms, sizeScaleUVOffset);
 		gGpuParticleDepthCollisionUniformDefinition.gSizeScaleCurveScale.Set(
-			depthCollisionUniformBuffer, Vector2(sizeScaleUVScale, 0.0f));
+			depthCollisionUniforms, Vector2(sizeScaleUVScale, 0.0f));
 	}
 
 	// Bind transient uniform buffers to GPU parameters
-	mSimulateParameters->SetUniformBuffer("Params", simulationUniformBuffer);
-	mSimulateParameters->SetUniformBuffer("VectorFieldParams", vectorFieldUniformBuffer);
-	mSimulateParameters->SetUniformBuffer("DepthCollisionParams", depthCollisionUniformBuffer);
+	mSimulateParameters->SetUniformBuffer("Params", simulationUniforms.GetSuballocation());
+	mSimulateParameters->SetUniformBuffer("VectorFieldParams", vectorFieldUniforms.GetSuballocation());
+	mSimulateParameters->SetUniformBuffer("DepthCollisionParams", depthCollisionUniforms.GetSuballocation());
 
 	return mSimulateParameters;
 }

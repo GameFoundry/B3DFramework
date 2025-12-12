@@ -246,16 +246,20 @@ u32 GpuBuffer::CalculateTotalBufferSize(const GpuBufferInformation& information,
 
 namespace b3d::render
 {
+	u32 GpuBufferSuballocation::GetSize() const
+	{
+		return mBuffer ? mBuffer->GetSuballocationSize() : 0;
+	}
 
 	void GpuMappedRegion::Unmap()
 	{
-		if(mMappedMemory != nullptr && mBuffer != nullptr)
+		if(mMappedMemory != nullptr && mSuballocation.IsValid())
 		{
 			if(mOptions.IsSet(GpuMapOption::Write))
-				mBuffer->Flush(mOffset, mSize);
+				mSuballocation.GetBuffer()->Flush(mSuballocation.GetSuballocationOffset(), mSize);
 
 			mMappedMemory = nullptr;
-			mBuffer = nullptr;
+			mSuballocation.Invalidate();
 		}
 	}
 
@@ -275,6 +279,32 @@ namespace b3d::render
 			B3DFree(mCache);
 		}
 	}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	void GpuBuffer::ValidateMap(u32 offset, u32 size, GpuMapOptions options)
+	{
+		if(options.IsSet(GpuMapOption::Write))
+		{
+			// We currently don't track exact bound ranges for buffers that aren't suballocated, so we cannot warn in that case
+			const bool ignoreWarning = mInformation.SuballocationCount <= 1 && offset != 0 && size != mTotalSize;
+
+			if(!ignoreWarning)
+			{
+				if(IsRangeInUse(offset, size))
+					B3D_LOG(Warning, RenderBackend, "Writing to a buffer that is currently used on the GPU. This will result in undefined behaviour. Buffer: {0}", mName);
+				else if(!options.IsSet(GpuMapOption::NoOverwrite))
+				{
+					if(IsRangeBound(offset, size))
+						B3D_LOG(Warning, RenderBackend, "Writing to a buffer that is currently bound on a command buffer. Previous usages of the buffer will be affected. Buffer: {0}", mName);
+				}
+			}
+		}
+		else
+		{
+			// TODO - When reading buffers writable by the GPU we should also check if they are currently used by the GPU. But it's not a common case to have a CPU visible buffers writable by the GPU, so skipping that for now.
+		}	
+	}
+#endif
 
 	void GpuBuffer::Write(u32 offset, u32 length, const void* source)
 	{
@@ -409,16 +439,6 @@ namespace b3d::render
 		}
 
 		allocator.Free(syncPacket->BufferData);
-	}
-
-	void GpuBufferSuballocation::Write(const void* data, u32 size) const
-	{
-		B3D_ASSERT(IsValid());
-		B3D_ASSERT(size <= GetSize());
-
-		void* const bufferMemory = mBuffer->Lock(mSuballocationOffset, size, GBL_WRITE_ONLY);
-		memcpy(bufferMemory, data, size);
-		mBuffer->Unlock();
 	}
 
 	SPtr<GpuBuffer> GpuBufferUtility::CreateStaging(const SPtr<GpuBuffer>& buffer, bool readable)

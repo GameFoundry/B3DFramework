@@ -92,9 +92,9 @@ namespace b3d
 			/**
 			 * Sets parameter value directly to mapped memory via a GpuMappedRegion.
 			 *
-			 * @param mappedRegion  Active mapping containing the mapped memory pointer of the buffer in which to set the value.
-			 * @param value         Value to set.
-			 * @param arrayIndex    Index in the array (if parameter is an array).
+			 * @param mappedRegion		Active mapping containing the mapped memory pointer of the buffer in which to set the value.
+			 * @param value				Value to set.
+			 * @param arrayIndex		Index in the array (if parameter is an array).
 			 */
 			void Set(const GpuMappedRegion& mappedRegion, const T& value, u32 arrayIndex = 0) const
 			{
@@ -112,7 +112,7 @@ namespace b3d
 				const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 				const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 
-				u8* destination = static_cast<u8*>(mappedRegion.GetMappedMemory()) + parameterOffset;
+				u8* const destination = static_cast<u8*>(mappedRegion.GetMappedMemory()) + parameterOffset;
 
 				if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 				{
@@ -232,6 +232,46 @@ namespace b3d
 			{
 				return mTransientAllocationPool.Allocate();
 			}
+
+			/**
+			 * Allocates a new transient buffer using AllocateTransient() and returns the mapped memory that can be used for writing
+			 * uniform data to that buffer.
+			 *
+			 * @param options				Map options (typically GpuMapOption::Write).
+			 * @return						RAII mapped region.
+			 */
+			GpuMappedRegion AllocateTransientAndMap(GpuMapOptions options = GpuMapOption::Write)
+			{
+				return Map(AllocateTransient(), options);
+			}
+
+			/**
+			 * Maps all of the specified buffer for writing uniform buffer data.
+			 * Returns a GpuMappedRegion that can be used with GpuUniformBufferMember::Set.
+			 *
+			 * @param buffer				The GPU buffer to map (render thread version).
+			 * @param options				Map options (typically GpuMapOption::Write).
+			 * @return						RAII mapped region.
+			 */
+			GpuMappedRegion Map(const SPtr<GpuBuffer>& buffer, GpuMapOptions options = GpuMapOption::Write) const
+			{
+				return buffer->Map2(0, mBufferSize, options);
+			}
+
+			/**
+			 * Maps a buffer suballocation for writing uniform buffer data.
+			 * Returns a GpuMappedRegion that can be used with GpuUniformBufferMember::Set.
+			 *
+			 * @param suballocation		The buffer suballocation to map.
+			 * @param options			Map options (typically GpuMapOption::Write).
+			 * @return					RAII mapped region.
+			 */
+			GpuMappedRegion Map(const GpuBufferSuballocation& suballocation, GpuMapOptions options = GpuMapOption::Write) const
+			{
+				B3D_ASSERT(suballocation.IsValid());
+				return suballocation.GetBuffer()->Map2(suballocation.GetSuballocationOffset(), mBufferSize, options);
+			}
+
 		protected:
 			friend class GpuUniformBufferManager;
 

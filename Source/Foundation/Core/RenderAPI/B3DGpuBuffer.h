@@ -360,11 +360,47 @@ namespace b3d::render
 	{
 		Read = 1 << 0,      /**< Map for reading (will invalidate before mapping). */
 		Write = 1 << 1,     /**< Map for writing (will flush after unmapping). */
+		NoOverwrite = 1 << 2, /**< Suppresses validation warnings if the caller writes to a buffer region already bound to a command buffer. Indicates that the caller knows what he is doing. */
 		ReadWrite = Read | Write  /**< Map for both reading and writing. */
 	};
 
 	using GpuMapOptions = Flags<GpuMapOption>;
 	B3D_FLAGS_OPERATORS(GpuMapOption);
+
+	/** Represents a single sub-allocation within a specific GpuBuffer. */
+	class B3D_EXPORT GpuBufferSuballocation
+	{
+	public:
+		GpuBufferSuballocation() = default;
+		explicit GpuBufferSuballocation(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex = 0, u32 suballocationOffset = 0)
+			: mBuffer(buffer), mSuballocationIndex(suballocationIndex), mSuballocationOffset(suballocationOffset) {}
+
+		/** Gets the underlying GPU buffer. */
+		const SPtr<GpuBuffer>& GetBuffer() const { return mBuffer; }
+
+		/** Gets the zero-based suballocation index within the buffer. */
+		u32 GetSuballocationIndex() const { return mSuballocationIndex; }
+
+		/** Gets the byte offset from the start of the buffer for this suballocation. */
+		u32 GetSuballocationOffset() const { return mSuballocationOffset; }
+
+		/**
+		 * Gets the size of this suballocation in bytes (aligned).
+		 * May be larger than requested size during buffer creation due to alignment requirements.
+		 */
+		u32 GetSize() const;
+
+		/** Checks if this is a valid suballocation. */
+		bool IsValid() const { return mBuffer != nullptr; }
+
+		/** Clears the suballocation, making it invalid. */
+		void Invalidate() { mBuffer = nullptr; }
+
+	private:
+		SPtr<GpuBuffer> mBuffer;
+		u32 mSuballocationIndex = 0; // TODO - Remove this, it can be deduced from the offset. It's also not currently set within GpuMappedRegion
+		u32 mSuballocationOffset = 0;
+	};
 
 	/**
 	 * RAII wrapper for GPU buffer mapping. Automatically flushes on destruction if mapped for writing.
@@ -375,15 +411,15 @@ namespace b3d::render
 	public:
 		GpuMappedRegion() = default;
 
-		GpuMappedRegion(void* mappedMemory, GpuBuffer* buffer, u32 offset, u32 size, GpuMapOptions options)
-			: mMappedMemory(mappedMemory) , mBuffer(buffer) , mOffset(offset) , mSize(size) , mOptions(options)
+		GpuMappedRegion(void* mappedMemory, GpuBufferSuballocation suballocation, u32 size, GpuMapOptions options)
+			: mMappedMemory(mappedMemory) , mSuballocation(std::move(suballocation)) , mSize(size) , mOptions(options)
 		{}
 
 		GpuMappedRegion(GpuMappedRegion&& other) noexcept
-			: mMappedMemory(other.mMappedMemory), mBuffer(other.mBuffer) , mOffset(other.mOffset) , mSize(other.mSize) , mOptions(other.mOptions)
+			: mMappedMemory(other.mMappedMemory), mSuballocation(std::move(other.mSuballocation)), mSize(other.mSize) , mOptions(other.mOptions)
 		{
 			other.mMappedMemory = nullptr;
-			other.mBuffer = nullptr;
+			other.mSuballocation = GpuBufferSuballocation();
 		}
 
 		GpuMappedRegion& operator=(GpuMappedRegion&& other) noexcept
@@ -391,13 +427,11 @@ namespace b3d::render
 			if(this != &other)
 			{
 				Unmap();
-				mMappedMemory = other.mMappedMemory;
-				mBuffer = other.mBuffer;
-				mOffset = other.mOffset;
+				mMappedMemory = std::exchange(other.mMappedMemory, nullptr);
+				mSuballocation = std::move(other.mSuballocation);
 				mSize = other.mSize;
 				mOptions = other.mOptions;
-				other.mMappedMemory = nullptr;
-				other.mBuffer = nullptr;
+				other.mSuballocation.Invalidate();
 			}
 			return *this;
 		}
@@ -411,13 +445,13 @@ namespace b3d::render
 		void Unmap();
 
 		void* GetMappedMemory() const { return mMappedMemory; }
+		const GpuBufferSuballocation& GetSuballocation() const { return mSuballocation; }
 		bool IsValid() const { return mMappedMemory != nullptr; }
 		explicit operator bool() const { return IsValid(); }
 
 	private:
 		void* mMappedMemory = nullptr;
-		GpuBuffer* mBuffer = nullptr;
-		u32 mOffset = 0;
+		GpuBufferSuballocation mSuballocation;
 		u32 mSize = 0;
 		GpuMapOptions mOptions;
 	};
@@ -487,11 +521,15 @@ namespace b3d::render
 		 */
 		GpuMappedRegion Map2(u32 offset, u32 size, GpuMapOptions options)
 		{
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			ValidateMap(offset, size, options);
+#endif
+
 			if(options.IsSet(GpuMapOption::Read))
 				Invalidate(offset, size);
 
 			void* mappedMemory = static_cast<u8*>(GetMappedMemory()) + offset;
-			return GpuMappedRegion(mappedMemory, this, offset, size, options);
+			return GpuMappedRegion(mappedMemory, GpuBufferSuballocation(std::static_pointer_cast<GpuBuffer>(GetShared()), 0, offset), size, options);
 		}
 
 		/**
@@ -647,6 +685,11 @@ namespace b3d::render
 		/** Recreates the underlying buffer. Note this will clear all currently written data. Old buffer will be released once its done being used. */
 		virtual void RecreateInternalBuffer() = 0;
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		/** Logs a warning if the offset we're trying to map is currently being used on GPU, or is bound to any command buffer. */
+		void ValidateMap(u32 offset, u32 size, GpuMapOptions options);
+#endif
+
 	protected:
 		GpuBufferInformation mInformation;
 		GpuDevice& mDevice;
@@ -689,50 +732,6 @@ namespace b3d::render
 
 	using GpuBufferWriteFlags = Flags<GpuBufferWriteFlag>;
 	B3D_FLAGS_OPERATORS(GpuBufferWriteFlag);
-
-	/** Represents a single sub-allocation within a specific GpuBuffer. */
-	class B3D_EXPORT GpuBufferSuballocation
-	{
-	public:
-		GpuBufferSuballocation() = default;
-		explicit GpuBufferSuballocation(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex = 0, u32 suballocationOffset = 0)
-			: mBuffer(buffer), mSuballocationIndex(suballocationIndex), mSuballocationOffset(suballocationOffset) {}
-
-		/** Gets the underlying GPU buffer. */
-		const SPtr<GpuBuffer>& GetBuffer() const { return mBuffer; }
-
-		/** Gets the zero-based suballocation index within the buffer. */
-		u32 GetSuballocationIndex() const { return mSuballocationIndex; }
-
-		/** Gets the byte offset from the start of the buffer for this suballocation. */
-		u32 GetSuballocationOffset() const { return mSuballocationOffset; }
-
-		/**
-		 * Gets the size of this suballocation in bytes (aligned).
-		 * May be larger than requested size during buffer creation due to alignment requirements.
-		 */
-		u32 GetSize() const
-		{
-			return mBuffer ? mBuffer->GetSuballocationSize() : 0;
-		}
-
-		/** Checks if this is a valid suballocation. */
-		bool IsValid() const { return mBuffer != nullptr; }
-
-		/**
-		 * Writes data to this suballocation. Note the underlying buffer must be CPU readable. Caller must flush the buffer after completing
-		 * all writes and before using it on the GPU.
-		 *
-		 * @param data  Data to write
-		 * @param size  Size of data in bytes (must be <= GetSize())
-		 */
-		void Write(const void* data, u32 size) const;
-
-	private:
-		SPtr<GpuBuffer> mBuffer;
-		u32 mSuballocationIndex = 0;
-		u32 mSuballocationOffset = 0;
-	};
 
 	/** Provides various utility operations on GpuBuffer. */
 	struct B3D_EXPORT GpuBufferUtility

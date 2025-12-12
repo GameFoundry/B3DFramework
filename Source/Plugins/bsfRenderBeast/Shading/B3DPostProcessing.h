@@ -160,10 +160,10 @@ namespace b3d
 			static PooledRenderTextureCreateInformation GetOutputDesc();
 
 			/**
-			 * Populates the provided uniform buffer with eye adaptation parameters. The uniform buffer is expected to be
-			 * created with EyeAdaptationUniformDefinition block definition.
+			 * Populates the provided uniform buffer memory with eye adaptation parameters. The uniform buffer is expected to be
+			 * created with EyeAdaptationUniformDefinition definition.
 			 */
-			static void PopulateUniformBuffer(const GpuBufferSuballocation& uniformBuffer, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+			static void PopulateUniformBuffer(const GpuMappedRegion& uniforms, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -270,11 +270,11 @@ namespace b3d
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			PooledRenderTextureCreateInformation GetOutputDesc() const;
 
-			/** Populates a uniform buffer of CreateTonemapLUTUniformDefinition type using the provided settings. */
-			static void PopulateTonemappingUniformBuffer(const RenderSettings& settings, const GpuBufferSuballocation& uniformBuffer);
+			/** Populates uniform buffer memory of CreateTonemapLUTUniformDefinition type using the provided settings. */
+			static void PopulateTonemappingUniformBuffer(const RenderSettings& settings, const GpuMappedRegion& uniforms);
 
-			/** Populates a uniform buffer of WhiteBalanceUniformDefinition type using the provided settings. */
-			static void PopulateWhiteBalanceUniformBuffer(const RenderSettings& settings, const GpuBufferSuballocation& uniformBuffer);
+			/** Populates uniform buffer memory of WhiteBalanceUniformDefinition type using the provided settings. */
+			static void PopulateWhiteBalanceUniformBuffer(const RenderSettings& settings, const GpuMappedRegion& uniforms);
 
 			/** Size of a single dimension in the color lookup table. */
 			static const u32 kLutSize = 32;
@@ -674,13 +674,13 @@ namespace b3d
 			/**
 			 * Populates the provided uniform buffer with parameters required for a shader including gaussian blur.
 			 *
-			 * @param[in]	uniformBuffer	Buffer to write the parameters to. Must be created using @p GaussianBlurUniformDefinition.
+			 * @param[in]	uniforms		Memory of the buffer to write the parameters to. Buffer must have been created using @p GaussianBlurUniformDefinition.
 			 * @param[in]	direction		Direction in which to perform the separable blur.
 			 * @param[in]	source			Source texture that needs to be blurred.
 			 * @param[in]	filterSize		Size of the blurring filter, in percent of the source texture. In range [0, 1].
 			 * @param[in]	tint			Optional tint to apply all filtered pixels.
 			 */
-			static void PopulateUniformBuffer(const GpuBufferSuballocation& uniformBuffer, Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint = Color::kWhite);
+			static void PopulateUniformBuffer(const GpuMappedRegion& uniforms, Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint = Color::kWhite);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -984,8 +984,8 @@ namespace b3d
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
 
-			/** Populates the common depth of field uniform buffer with values from the provided settings object. */
-			static void PopulateDofCommonParams(const GpuBufferSuballocation& uniformBuffer, const DepthOfFieldSettings& settings, const RendererView& view);
+			/** Populates the common depth of field uniform buffer memory with values from the provided settings object. */
+			static void PopulateDofCommonParams(const GpuMappedRegion& uniforms, const DepthOfFieldSettings& settings, const RendererView& view);
 
 			/** Returns the material variation matching the provided parameters. */
 			static BokehDOFMaterial* GetVariation(bool depthOcclusion);
