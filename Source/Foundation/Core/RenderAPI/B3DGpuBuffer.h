@@ -367,6 +367,9 @@ namespace b3d::render
 	using GpuMapOptions = Flags<GpuMapOption>;
 	B3D_FLAGS_OPERATORS(GpuMapOption);
 
+	// Forward declaration for GpuBufferSuballocation::Map return type
+	class GpuBufferMappedScope;
+
 	/** Represents a single sub-allocation within a specific GpuBuffer. */
 	class B3D_EXPORT GpuBufferSuballocation
 	{
@@ -394,7 +397,15 @@ namespace b3d::render
 		bool IsValid() const { return mBuffer != nullptr; }
 
 		/** Clears the suballocation, making it invalid. */
-		void Invalidate() { mBuffer = nullptr; }
+		void Reset() { mBuffer = nullptr; }
+
+		/**
+		 * Maps this suballocation for CPU access.
+		 *
+		 * @param options	Map options (typically GpuMapOption::Write).
+		 * @return			RAII mapped region that auto-flushes on destruction.
+		 */
+		GpuBufferMappedScope Map(GpuMapOptions options = GpuMapOption::Write) const;
 
 	private:
 		SPtr<GpuBuffer> mBuffer;
@@ -406,23 +417,23 @@ namespace b3d::render
 	 * RAII wrapper for GPU buffer mapping. Automatically flushes on destruction if mapped for writing.
 	 * Move-only to prevent double-flush scenarios.
 	 */
-	class B3D_EXPORT GpuMappedRegion
+	class B3D_EXPORT GpuBufferMappedScope
 	{
 	public:
-		GpuMappedRegion() = default;
+		GpuBufferMappedScope() = default;
 
-		GpuMappedRegion(void* mappedMemory, GpuBufferSuballocation suballocation, u32 size, GpuMapOptions options)
+		GpuBufferMappedScope(void* mappedMemory, GpuBufferSuballocation suballocation, u32 size, GpuMapOptions options)
 			: mMappedMemory(mappedMemory) , mSuballocation(std::move(suballocation)) , mSize(size) , mOptions(options)
 		{}
 
-		GpuMappedRegion(GpuMappedRegion&& other) noexcept
+		GpuBufferMappedScope(GpuBufferMappedScope&& other) noexcept
 			: mMappedMemory(other.mMappedMemory), mSuballocation(std::move(other.mSuballocation)), mSize(other.mSize) , mOptions(other.mOptions)
 		{
 			other.mMappedMemory = nullptr;
 			other.mSuballocation = GpuBufferSuballocation();
 		}
 
-		GpuMappedRegion& operator=(GpuMappedRegion&& other) noexcept
+		GpuBufferMappedScope& operator=(GpuBufferMappedScope&& other) noexcept
 		{
 			if(this != &other)
 			{
@@ -431,15 +442,15 @@ namespace b3d::render
 				mSuballocation = std::move(other.mSuballocation);
 				mSize = other.mSize;
 				mOptions = other.mOptions;
-				other.mSuballocation.Invalidate();
+				other.mSuballocation.Reset();
 			}
 			return *this;
 		}
 
-		GpuMappedRegion(const GpuMappedRegion&) = delete;
-		GpuMappedRegion& operator=(const GpuMappedRegion&) = delete;
+		GpuBufferMappedScope(const GpuBufferMappedScope&) = delete;
+		GpuBufferMappedScope& operator=(const GpuBufferMappedScope&) = delete;
 
-		~GpuMappedRegion() { Unmap(); }
+		~GpuBufferMappedScope() { Unmap(); }
 
 		/** Explicitly releases the mapping. Safe to call multiple times. Flushes if write mapping. */
 		void Unmap();
@@ -448,6 +459,9 @@ namespace b3d::render
 		const GpuBufferSuballocation& GetSuballocation() const { return mSuballocation; }
 		bool IsValid() const { return mMappedMemory != nullptr; }
 		explicit operator bool() const { return IsValid(); }
+
+		/** Implicit conversion to GpuBufferSuballocation. */
+		operator const GpuBufferSuballocation&() const { return mSuballocation; }
 
 	private:
 		void* mMappedMemory = nullptr;
@@ -519,7 +533,7 @@ namespace b3d::render
 		 * @param options  Specifies read/write intent for the mapping.
 		 * @return         RAII mapped region containing the mapped memory pointer.
 		 */
-		GpuMappedRegion Map2(u32 offset, u32 size, GpuMapOptions options)
+		GpuBufferMappedScope Map2(u32 offset, u32 size, GpuMapOptions options)
 		{
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			ValidateMap(offset, size, options);
@@ -529,7 +543,7 @@ namespace b3d::render
 				Invalidate(offset, size);
 
 			void* mappedMemory = static_cast<u8*>(GetMappedMemory()) + offset;
-			return GpuMappedRegion(mappedMemory, GpuBufferSuballocation(std::static_pointer_cast<GpuBuffer>(GetShared()), 0, offset), size, options);
+			return GpuBufferMappedScope(mappedMemory, GpuBufferSuballocation(std::static_pointer_cast<GpuBuffer>(GetShared()), 0, offset), size, options);
 		}
 
 		/**
@@ -538,7 +552,7 @@ namespace b3d::render
 		 * @param options  Specifies read/write intent for the mapping.
 		 * @return         RAII mapped region containing the mapped memory pointer.
 		 */
-		GpuMappedRegion Map2(GpuMapOptions options)
+		GpuBufferMappedScope Map2(GpuMapOptions options)
 		{
 			return Map2(0, mTotalSize, options);
 		}

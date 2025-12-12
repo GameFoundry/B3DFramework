@@ -30,7 +30,7 @@ void UniformBufferPools::Initialize(GpuDevice& device)
 		GpuBufferCreateInformation stagingCreateInfo;
 		stagingCreateInfo.Type = GpuBufferType::StagingWrite;
 		stagingCreateInfo.Staging.Size = perObjectSize;
-		stagingCreateInfo.Flags = GpuBufferFlag::AllowWriteCachingOnCPU; // TODO - Only while GpuUniformBuffer doesn't support non-cached writes
+		stagingCreateInfo.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 
 		mPerObjectStagingPool.Initialize(device, stagingCreateInfo, kStagingEntriesPerBuffer, 1);
 	}
@@ -41,7 +41,7 @@ void UniformBufferPools::Initialize(GpuDevice& device)
 		GpuBufferCreateInformation stagingCreateInfo;
 		stagingCreateInfo.Type = GpuBufferType::StagingWrite;
 		stagingCreateInfo.Staging.Size = decalParamSize;
-		stagingCreateInfo.Flags = GpuBufferFlag::AllowWriteCachingOnCPU;
+		stagingCreateInfo.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 
 		mDecalStagingPool.Initialize(device, stagingCreateInfo, kStagingEntriesPerBuffer, 1);
 	}
@@ -52,7 +52,7 @@ void UniformBufferPools::Initialize(GpuDevice& device)
 		GpuBufferCreateInformation stagingCreateInfo;
 		stagingCreateInfo.Type = GpuBufferType::StagingWrite;
 		stagingCreateInfo.Staging.Size = gpuParticlesParamSize;
-		stagingCreateInfo.Flags = GpuBufferFlag::AllowWriteCachingOnCPU;
+		stagingCreateInfo.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 
 		mGpuParticlesStagingPool.Initialize(device, stagingCreateInfo, kStagingEntriesPerBuffer, 1);
 	}
@@ -232,7 +232,7 @@ void UniformBufferPools::UpdatePerObjectBuffer(const RendererObject& object, con
 	if (!object.PerObjectSuballocation.IsValid())
 		return;
 
-	GpuBufferSuballocation staging = mPerObjectStagingPool.Allocate();
+	GpuBufferMappedScope staging = mPerObjectStagingPool.Allocate().Map();
 
 	gPerObjectUniformDefinition.gMatWorld.Set(staging, object.WorldTransform);
 	gPerObjectUniformDefinition.gMatInvWorld.Set(staging, object.WorldTransform.InverseAffine());
@@ -242,12 +242,13 @@ void UniformBufferPools::UpdatePerObjectBuffer(const RendererObject& object, con
 	gPerObjectUniformDefinition.gWorldDeterminantSign.Set(staging, object.WorldTransform.Determinant3x3() >= 0.0f ? 1.0f : -1.0f);
 	gPerObjectUniformDefinition.gLayer.Set(staging, (i32)object.Layer);
 
-	staging.GetBuffer()->FlushCache(staging.GetSuballocationIndex());
+	staging.Unmap();
 
 	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer();
 
+	const GpuBufferSuballocation& source = staging.GetSuballocation();
 	const GpuBufferSuballocation& destination = object.PerObjectSuballocation;
-	actualCommandBuffer->CopyBufferToBuffer(staging.GetBuffer(), destination.GetBuffer(), staging.GetSuballocationOffset(), destination.GetSuballocationOffset(), staging.GetSize());
+	actualCommandBuffer->CopyBufferToBuffer(source.GetBuffer(), destination.GetBuffer(), source.GetSuballocationOffset(), destination.GetSuballocationOffset(), source.GetSize());
 }
 
 void UniformBufferPools::UpdateDecalParamBuffer(const RendererDecal& decal, const SPtr<GpuCommandBuffer>& commandBuffer)
@@ -273,7 +274,7 @@ void UniformBufferPools::UpdateDecalParamBuffer(const RendererDecal& decal, cons
 	if (gpuBackendConventions.UvYAxis == GpuBackendConventions::Axis::Up)
 		flipDerivatives = -1.0f;
 
-	GpuBufferSuballocation staging = mDecalStagingPool.Allocate();
+	GpuBufferMappedScope staging = mDecalStagingPool.Allocate().Map();
 
 	gDecalParamDef.gWorldToDecal.Set(staging, worldToDecal);
 	gDecalParamDef.gDecalNormal.Set(staging, decalNormal);
@@ -281,12 +282,13 @@ void UniformBufferPools::UpdateDecalParamBuffer(const RendererDecal& decal, cons
 	gDecalParamDef.gFlipDerivatives.Set(staging, flipDerivatives);
 	gDecalParamDef.gLayerMask.Set(staging, (i32)decal.Decal->GetLayerMask());
 
-	staging.GetBuffer()->FlushCache(staging.GetSuballocationIndex());
+	staging.Unmap();
 
 	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer();
 
+	const GpuBufferSuballocation& source = staging.GetSuballocation();
 	const GpuBufferSuballocation& destination = decal.DecalParamSuballocation;
-	actualCommandBuffer->CopyBufferToBuffer(staging.GetBuffer(), destination.GetBuffer(), staging.GetSuballocationOffset(), destination.GetSuballocationOffset(), staging.GetSize());
+	actualCommandBuffer->CopyBufferToBuffer(source.GetBuffer(), destination.GetBuffer(), source.GetSuballocationOffset(), destination.GetSuballocationOffset(), source.GetSize());
 }
 
 void UniformBufferPools::UpdateGpuParticlesParamBuffer(const RendererParticles& particles, const SPtr<GpuCommandBuffer>& commandBuffer)
@@ -299,19 +301,20 @@ void UniformBufferPools::UpdateGpuParticlesParamBuffer(const RendererParticles& 
 	const Vector2 sizeScaleFrameIdxCurveOffset = GpuParticleCurves::GetUvOffset(particles.SizeScaleFrameIdxCurveAlloc);
 	const float sizeScaleFrameIdxCurveScale = GpuParticleCurves::GetUvScale(particles.SizeScaleFrameIdxCurveAlloc);
 
-	GpuBufferSuballocation staging = mGpuParticlesStagingPool.Allocate();
+	GpuBufferMappedScope staging = mGpuParticlesStagingPool.Allocate().Map();
 
 	gGpuParticlesParamDef.gColorCurveOffset.Set(staging, colorCurveOffset);
 	gGpuParticlesParamDef.gColorCurveScale.Set(staging, Vector2(colorCurveScale, 0.0f));
 	gGpuParticlesParamDef.gSizeScaleFrameIdxCurveOffset.Set(staging, sizeScaleFrameIdxCurveOffset);
 	gGpuParticlesParamDef.gSizeScaleFrameIdxCurveScale.Set(staging, Vector2(sizeScaleFrameIdxCurveScale, 0.0f));
 
-	staging.GetBuffer()->FlushCache(staging.GetSuballocationIndex());
+	staging.Unmap();
 
 	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer();
 
+	const GpuBufferSuballocation& source = staging.GetSuballocation();
 	const GpuBufferSuballocation& destination = particles.GpuParticlesParamSuballocation;
-	actualCommandBuffer->CopyBufferToBuffer(staging.GetBuffer(), destination.GetBuffer(), staging.GetSuballocationOffset(), destination.GetSuballocationOffset(), staging.GetSize());
+	actualCommandBuffer->CopyBufferToBuffer(source.GetBuffer(), destination.GetBuffer(), source.GetSuballocationOffset(), destination.GetSuballocationOffset(), source.GetSize());
 }
 
 void UniformBufferPools::AdvanceFrame()

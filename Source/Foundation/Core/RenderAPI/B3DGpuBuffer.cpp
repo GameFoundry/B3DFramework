@@ -251,7 +251,14 @@ namespace b3d::render
 		return mBuffer ? mBuffer->GetSuballocationSize() : 0;
 	}
 
-	void GpuMappedRegion::Unmap()
+	GpuBufferMappedScope GpuBufferSuballocation::Map(GpuMapOptions options) const
+	{
+		B3D_ASSERT(IsValid());
+
+		return mBuffer->Map2(mSuballocationOffset, GetSize(), options);
+	}
+
+	void GpuBufferMappedScope::Unmap()
 	{
 		if(mMappedMemory != nullptr && mSuballocation.IsValid())
 		{
@@ -259,7 +266,6 @@ namespace b3d::render
 				mSuballocation.GetBuffer()->Flush(mSuballocation.GetSuballocationOffset(), mSize);
 
 			mMappedMemory = nullptr;
-			mSuballocation.Invalidate();
 		}
 	}
 

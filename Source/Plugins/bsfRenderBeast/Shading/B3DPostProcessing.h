@@ -163,7 +163,7 @@ namespace b3d
 			 * Populates the provided uniform buffer memory with eye adaptation parameters. The uniform buffer is expected to be
 			 * created with EyeAdaptationUniformDefinition definition.
 			 */
-			static void PopulateUniformBuffer(const GpuMappedRegion& uniforms, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+			static void PopulateUniformBuffer(const GpuBufferMappedScope& uniforms, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -271,10 +271,10 @@ namespace b3d
 			PooledRenderTextureCreateInformation GetOutputDesc() const;
 
 			/** Populates uniform buffer memory of CreateTonemapLUTUniformDefinition type using the provided settings. */
-			static void PopulateTonemappingUniformBuffer(const RenderSettings& settings, const GpuMappedRegion& uniforms);
+			static void PopulateTonemappingUniformBuffer(const RenderSettings& settings, const GpuBufferMappedScope& uniforms);
 
 			/** Populates uniform buffer memory of WhiteBalanceUniformDefinition type using the provided settings. */
-			static void PopulateWhiteBalanceUniformBuffer(const RenderSettings& settings, const GpuMappedRegion& uniforms);
+			static void PopulateWhiteBalanceUniformBuffer(const RenderSettings& settings, const GpuBufferMappedScope& uniforms);
 
 			/** Size of a single dimension in the color lookup table. */
 			static const u32 kLutSize = 32;
@@ -680,7 +680,7 @@ namespace b3d
 			 * @param[in]	filterSize		Size of the blurring filter, in percent of the source texture. In range [0, 1].
 			 * @param[in]	tint			Optional tint to apply all filtered pixels.
 			 */
-			static void PopulateUniformBuffer(const GpuMappedRegion& uniforms, Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint = Color::kWhite);
+			static void PopulateUniformBuffer(const GpuBufferMappedScope& uniforms, Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint = Color::kWhite);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -985,7 +985,7 @@ namespace b3d
 			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
 
 			/** Populates the common depth of field uniform buffer memory with values from the provided settings object. */
-			static void PopulateDofCommonParams(const GpuMappedRegion& uniforms, const DepthOfFieldSettings& settings, const RendererView& view);
+			static void PopulateDofCommonParams(const GpuBufferMappedScope& uniforms, const DepthOfFieldSettings& settings, const RendererView& view);
 
 			/** Returns the material variation matching the provided parameters. */
 			static BokehDOFMaterial* GetVariation(bool depthOcclusion);

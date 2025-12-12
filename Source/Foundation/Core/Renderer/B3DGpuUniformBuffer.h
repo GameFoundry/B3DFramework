@@ -96,7 +96,7 @@ namespace b3d
 			 * @param value				Value to set.
 			 * @param arrayIndex		Index in the array (if parameter is an array).
 			 */
-			void Set(const GpuMappedRegion& mappedRegion, const T& value, u32 arrayIndex = 0) const
+			void Set(const GpuBufferMappedScope& mappedRegion, const T& value, u32 arrayIndex = 0) const
 			{
 				B3D_ASSERT(mappedRegion.IsValid());
 
@@ -231,45 +231,6 @@ namespace b3d
 			GpuBufferSuballocation AllocateTransient()
 			{
 				return mTransientAllocationPool.Allocate();
-			}
-
-			/**
-			 * Allocates a new transient buffer using AllocateTransient() and returns the mapped memory that can be used for writing
-			 * uniform data to that buffer.
-			 *
-			 * @param options				Map options (typically GpuMapOption::Write).
-			 * @return						RAII mapped region.
-			 */
-			GpuMappedRegion AllocateTransientAndMap(GpuMapOptions options = GpuMapOption::Write)
-			{
-				return Map(AllocateTransient(), options);
-			}
-
-			/**
-			 * Maps all of the specified buffer for writing uniform buffer data.
-			 * Returns a GpuMappedRegion that can be used with GpuUniformBufferMember::Set.
-			 *
-			 * @param buffer				The GPU buffer to map (render thread version).
-			 * @param options				Map options (typically GpuMapOption::Write).
-			 * @return						RAII mapped region.
-			 */
-			GpuMappedRegion Map(const SPtr<GpuBuffer>& buffer, GpuMapOptions options = GpuMapOption::Write) const
-			{
-				return buffer->Map2(0, mBufferSize, options);
-			}
-
-			/**
-			 * Maps a buffer suballocation for writing uniform buffer data.
-			 * Returns a GpuMappedRegion that can be used with GpuUniformBufferMember::Set.
-			 *
-			 * @param suballocation		The buffer suballocation to map.
-			 * @param options			Map options (typically GpuMapOption::Write).
-			 * @return					RAII mapped region.
-			 */
-			GpuMappedRegion Map(const GpuBufferSuballocation& suballocation, GpuMapOptions options = GpuMapOption::Write) const
-			{
-				B3D_ASSERT(suballocation.IsValid());
-				return suballocation.GetBuffer()->Map2(suballocation.GetSuballocationOffset(), mBufferSize, options);
 			}
 
 		protected:

@@ -493,9 +493,9 @@ const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const 
 	const float nrmTime = time / settings.Duration;
 
 	// Allocate transient uniform buffers
-	GpuMappedRegion simulationUniforms = gGpuParticleSimulateUniformDefinition.AllocateTransientAndMap();
-	GpuMappedRegion vectorFieldUniforms = gVectorFieldUniformDefinition.AllocateTransientAndMap();
-	GpuMappedRegion depthCollisionUniforms = gGpuParticleDepthCollisionUniformDefinition.AllocateTransientAndMap();
+	GpuBufferMappedScope simulationUniforms = gGpuParticleSimulateUniformDefinition.AllocateTransient().Map();
+	GpuBufferMappedScope vectorFieldUniforms = gVectorFieldUniformDefinition.AllocateTransient().Map();
+	GpuBufferMappedScope depthCollisionUniforms = gGpuParticleDepthCollisionUniformDefinition.AllocateTransient().Map();
 
 	// Write simulation parameters
 	gGpuParticleSimulateUniformDefinition.gDT.Set(simulationUniforms, dt);
@@ -569,9 +569,9 @@ const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const 
 	}
 
 	// Bind transient uniform buffers to GPU parameters
-	mSimulateParameters->SetUniformBuffer("Params", simulationUniforms.GetSuballocation());
-	mSimulateParameters->SetUniformBuffer("VectorFieldParams", vectorFieldUniforms.GetSuballocation());
-	mSimulateParameters->SetUniformBuffer("DepthCollisionParams", depthCollisionUniforms.GetSuballocation());
+	mSimulateParameters->SetUniformBuffer("Params", simulationUniforms);
+	mSimulateParameters->SetUniformBuffer("VectorFieldParams", vectorFieldUniforms);
+	mSimulateParameters->SetUniformBuffer("DepthCollisionParams", depthCollisionUniforms);
 
 	return mSimulateParameters;
 }
