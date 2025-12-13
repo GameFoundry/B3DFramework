@@ -414,8 +414,8 @@ namespace b3d::render
 	};
 
 	/**
-	 * RAII wrapper for GPU buffer mapping. Automatically flushes on destruction if mapped for writing.
-	 * Move-only to prevent double-flush scenarios.
+	 * RAII wrapper returned by GpuBuffer::Map operation. Allows you to access the mapped memory, and automatically flushes the memory on destruction, if needed.
+	 * Prevents the mapped buffer from being destructed while the scope is active. As a helper can also be constructed back into a GpuBufferSuballocation referencing the mapped range.
 	 */
 	class B3D_EXPORT GpuBufferMappedScope
 	{

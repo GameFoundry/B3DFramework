@@ -43,12 +43,12 @@ void TetrahedraRenderMaterial::Prepare(const RendererView& view, const SPtr<Text
 {
 	const TextureProperties& texProps = sceneDepth->GetProperties();
 
-	GpuBufferSuballocation uniformBuffer = gTetrahedraRenderUniformDefinition.AllocateTransient();
+	GpuBufferMappedScope uniforms = gTetrahedraRenderUniformDefinition.AllocateTransient().Map();
 
 	Vector2I texSize(texProps.Width, texProps.Height);
-	gTetrahedraRenderUniformDefinition.gDepthTexSize.Set(uniformBuffer, texSize);
+	gTetrahedraRenderUniformDefinition.gDepthTexSize.Set(uniforms, texSize);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms);
 	mDepthBufferTextureParameter.Set(sceneDepth);
 	mGpuParameterSet->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
 }
@@ -130,12 +130,12 @@ void IrradianceEvaluateMaterial::Execute(GpuCommandBuffer& commandBuffer, const 
 	if(skyIrradiance == nullptr)
 		skyIrradiance = RendererTextures::defaultIndirect;
 
-	GpuBufferSuballocation uniformBuffer = gIrradianceEvaluateUniformDefinition.AllocateTransient();
+	GpuBufferMappedScope uniforms = gIrradianceEvaluateUniformDefinition.AllocateTransient().Map();
 
-	gIrradianceEvaluateUniformDefinition.gSkyBrightness.Set(uniformBuffer, skyBrightness);
-	gIrradianceEvaluateUniformDefinition.gNumTetrahedra.Set(uniformBuffer, lightProbesInfo.NumTetrahedra);
+	gIrradianceEvaluateUniformDefinition.gSkyBrightness.Set(uniforms, skyBrightness);
+	gIrradianceEvaluateUniformDefinition.gNumTetrahedra.Set(uniforms, lightProbesInfo.NumTetrahedra);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms);
 	mSkyIrradianceTextureParameter.Set(skyIrradiance);
 	mAmbientOcclusionTextureParameter.Set(ambientOcclusion);
 

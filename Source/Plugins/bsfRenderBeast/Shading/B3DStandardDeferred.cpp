@@ -100,24 +100,24 @@ void DeferredIBLProbeMaterial::PopulateParameters(GpuDevice& gpuDevice, const SP
 
 GpuBufferSuballocation DeferredIBLProbeMaterial::CreatePerProbeUniformBuffer(const ReflectioneProbeData& probeData)
 {
-	GpuBufferSuballocation uniformBuffer = gPerProbeUniformDefinition.AllocateTransient();
+	GpuBufferMappedScope uniforms = gPerProbeUniformDefinition.AllocateTransient().Map();
 
-	gPerProbeUniformDefinition.gPosition.Set(uniformBuffer, probeData.Position);
+	gPerProbeUniformDefinition.gPosition.Set(uniforms, probeData.Position);
 
 	if(probeData.Type == 1)
-		gPerProbeUniformDefinition.gExtents.Set(uniformBuffer, probeData.BoxExtents);
+		gPerProbeUniformDefinition.gExtents.Set(uniforms, probeData.BoxExtents);
 	else
 	{
 		Vector3 extents(probeData.Radius, probeData.Radius, probeData.Radius);
-		gPerProbeUniformDefinition.gExtents.Set(uniformBuffer, extents);
+		gPerProbeUniformDefinition.gExtents.Set(uniforms, extents);
 	}
 
-	gPerProbeUniformDefinition.gTransitionDistance.Set(uniformBuffer, probeData.TransitionDistance);
-	gPerProbeUniformDefinition.gInvBoxTransform.Set(uniformBuffer, probeData.InvBoxTransform);
-	gPerProbeUniformDefinition.gCubemapIdx.Set(uniformBuffer, probeData.CubemapIdx);
-	gPerProbeUniformDefinition.gType.Set(uniformBuffer, probeData.Type);
+	gPerProbeUniformDefinition.gTransitionDistance.Set(uniforms, probeData.TransitionDistance);
+	gPerProbeUniformDefinition.gInvBoxTransform.Set(uniforms, probeData.InvBoxTransform);
+	gPerProbeUniformDefinition.gCubemapIdx.Set(uniforms, probeData.CubemapIdx);
+	gPerProbeUniformDefinition.gType.Set(uniforms, probeData.Type);
 
-	return uniformBuffer;
+	return uniforms;
 }
 
 DeferredIBLProbeMaterial* DeferredIBLProbeMaterial::GetVariation(bool inside, bool msaa, bool singleSampleMSAA)

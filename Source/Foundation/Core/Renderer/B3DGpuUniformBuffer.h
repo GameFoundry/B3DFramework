@@ -126,31 +126,30 @@ namespace b3d
 			/**
 			 * Gets the parameter in the provided uniform buffer. Caller is responsible for ensuring the uniform buffer contains this parameter.
 			 *
-			 * @param uniformBuffer			Uniform buffer to get the parameter from.
+			 * @param mappedRegion			Active mapping containing the mapped memory pointer of the buffer from which to get the value.
 			 * @param arrayIndex			Index in the array to get the value for (if the parameter is an array).
-			 * @param suballocationIndex	Index of the sub-allocation in the uniform buffer to get the value for, if the buffer contains multiple sub-allocated buffers.
 			 */
-			T Get(const SPtr<GpuBuffer>& uniformBuffer, u32 arrayIndex = 0, u32 suballocationIndex = 0) const
+			T Get(const GpuBufferMappedScope& mappedRegion, u32 arrayIndex = 0) const
 			{
 #if B3D_DEBUG
 				if(!B3D_ENSURE(arrayIndex < mMemberInformation.ArraySize))
 					return T();
-
-				if(!B3D_ENSURE(suballocationIndex < uniformBuffer->GetInformation().SuballocationCount))
-					return T();
 #endif
 
-				const u32 offset = CalculateSuballocationOffset(uniformBuffer, suballocationIndex, arrayIndex);
-				const bool isWriteCached = uniformBuffer->GetInformation().Flags.IsSet(GpuBufferFlag::AllowWriteCachingOnCPU);
-				u32 elementSizeBytes = mMemberInformation.ElementSize * sizeof(u32);
-				u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T));
+				const u32 parameterOffset = (mMemberInformation.CpuOffset + arrayIndex * mMemberInformation.ArrayElementStride) * sizeof(u32);
+				const GpuDataParameterTypeInformation& typeInformation = b3d::GpuParameterSet::kParamSizes.Lookup[mMemberInformation.Type];
+
+				const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+				const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
+				const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
+
+				const u8* const source = static_cast<const u8*>(mappedRegion.GetMappedMemory()) + parameterOffset;
 
 				T value;
+				ReadTypedFromMemory(source, typeInformation, &value);
 
-				if(isWriteCached)
-					uniformBuffer->ReadCached(offset, sizeBytes, &value);
-				else
-					uniformBuffer->Read(offset, sizeBytes, &value);
+				if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
+					return TransposePolicy<T>::Transpose(value);
 
 				return value;
 			}
@@ -169,16 +168,32 @@ namespace b3d
 			/** Writes typed data to memory with proper alignment/padding. */
 			static void WriteTypedToMemory(void* destination, const GpuDataParameterTypeInformation& typeInformation, const void* source)
 			{
-				const u8* value = static_cast<const u8*>(source);
-				u8* dest = static_cast<u8*>(destination);
+				const u8* sourceBytes = static_cast<const u8*>(source);
+				u8* destinationBytes = static_cast<u8*>(destination);
 
 				for(u32 row = 0; row < typeInformation.NumRows; ++row)
 				{
 					const u32 rowSize = typeInformation.NumColumns * typeInformation.BaseTypeSize;
-					memcpy(dest, value, rowSize);
+					memcpy(destinationBytes, sourceBytes, rowSize);
 
-					dest += typeInformation.Alignment;
-					value += rowSize;
+					destinationBytes += typeInformation.Alignment;
+					sourceBytes += rowSize;
+				}
+			}
+
+			/** Reads typed data to memory with proper alignment/padding. */
+			static void ReadTypedFromMemory(const void* source, const GpuDataParameterTypeInformation& typeInformation, void* destination)
+			{
+				const u8* sourceBytes = static_cast<const u8*>(source);
+				u8* destinationBytes = static_cast<u8*>(destination);
+
+				for(u32 row = 0; row < typeInformation.NumRows; ++row)
+				{
+					const u32 rowSize = typeInformation.NumColumns * typeInformation.BaseTypeSize;
+					memcpy(destinationBytes, sourceBytes, rowSize);
+
+					destinationBytes += rowSize;
+					sourceBytes += typeInformation.Alignment;
 				}
 			}
 

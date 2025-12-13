@@ -52,17 +52,17 @@ void RunSortTest();
  * Allocates a transient uniform buffer according to gRadixSortUniformDefinition definition and writes GpuSort properties
  * into the buffer.
  */
-GpuBufferSuballocation CreateGpuSortUniformBuffer(const GpuSortProperties& props)
+GpuBufferSuballocation CreateGpuSortUniformBuffer(const GpuSortProperties& props, u32 bitOffset)
 {
-	GpuBufferSuballocation uniformBuffer = gRadixSortUniformDefinition.AllocateTransient();
+	GpuBufferMappedScope uniforms = gRadixSortUniformDefinition.AllocateTransient().Map();
 
-	gRadixSortUniformDefinition.gTilesPerGroup.Set(uniformBuffer, props.TilesPerGroup);
-	gRadixSortUniformDefinition.gNumGroups.Set(uniformBuffer, props.NumGroups);
-	gRadixSortUniformDefinition.gNumExtraTiles.Set(uniformBuffer, props.ExtraTiles);
-	gRadixSortUniformDefinition.gNumExtraKeys.Set(uniformBuffer, props.ExtraKeys);
-	gRadixSortUniformDefinition.gBitOffset.Set(uniformBuffer, 0);
+	gRadixSortUniformDefinition.gTilesPerGroup.Set(uniforms, props.TilesPerGroup);
+	gRadixSortUniformDefinition.gNumGroups.Set(uniforms, props.NumGroups);
+	gRadixSortUniformDefinition.gNumExtraTiles.Set(uniforms, props.ExtraTiles);
+	gRadixSortUniformDefinition.gNumExtraKeys.Set(uniforms, props.ExtraKeys);
+	gRadixSortUniformDefinition.gBitOffset.Set(uniforms, bitOffset);
 
-	return uniformBuffer;
+	return uniforms;
 }
 
 /**
@@ -259,8 +259,7 @@ u32 GpuSort::Sort(GpuCommandBuffer& commandBuffer, const GpuSortBuffers& buffers
 	{
 		if(((kKeyMask << bitOffset) & keyMask) != 0)
 		{
-			GpuBufferSuballocation uniformBuffer = CreateGpuSortUniformBuffer(gpuSortProps);
-			gRadixSortUniformDefinition.gBitOffset.Set(uniformBuffer, bitOffset);
+			GpuBufferSuballocation uniformBuffer = CreateGpuSortUniformBuffer(gpuSortProps, bitOffset);
 
 			RadixSortClearMaterial::Get()->Execute(commandBuffer, mHelperBuffers[0]);
 			RadixSortCountMaterial::Get()->Execute(commandBuffer, gpuSortProps.NumGroups, uniformBuffer, buffers.Keys[inputBufferIdx], mHelperBuffers[0]);
@@ -330,9 +329,7 @@ void RunSortTest()
 
 	// Prepare buffers
 	const GpuSortProperties gpuSortProps(count);
-	GpuBufferSuballocation uniformBuffer = CreateGpuSortUniformBuffer(gpuSortProps);
-
-	gRadixSortUniformDefinition.gBitOffset.Set(uniformBuffer, bitOffset);
+	GpuBufferSuballocation uniformBuffer = CreateGpuSortUniformBuffer(gpuSortProps, bitOffset);
 
 	GpuSortBuffers sortBuffers = GpuSort::CreateSortBuffers(count);
 	GpuBufferUtility::Write(sortBuffers.Keys[0], 0, sortBuffers.Keys[0]->GetTotalSize(), inputKeys.data(), GpuBufferWriteFlag::Discard);

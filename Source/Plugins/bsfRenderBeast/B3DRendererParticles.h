@@ -34,7 +34,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_UNIFORM_BUFFER_BEGIN(ParticlesParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(ParticlesUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gSubImageSize)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gUVOffset)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gUVScale)
@@ -44,16 +44,16 @@ namespace b3d
 			B3D_UNIFORM_BUFFER_MEMBER(i32, gBufferOffset)
 		B3D_UNIFORM_BUFFER_END
 
-		extern ParticlesParamDef gParticlesParamDef;
+		extern ParticlesUniformDefinition gParticlesUniformDefinition;
 
-		B3D_UNIFORM_BUFFER_BEGIN(GpuParticlesParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(GpuParticlesUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gColorCurveOffset)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gColorCurveScale)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gSizeScaleFrameIdxCurveOffset)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gSizeScaleFrameIdxCurveScale)
 		B3D_UNIFORM_BUFFER_END
 
-		extern GpuParticlesParamDef gGpuParticlesParamDef;
+		extern GpuParticlesUniformDefinition gGpuParticlesUniformDefinition;
 
 		/** Types of forward lighting supported on particle shaders. */
 		enum class ParticleForwardLightingType

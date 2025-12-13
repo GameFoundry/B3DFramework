@@ -280,13 +280,15 @@ void LightGrid::UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& 
 	u32 numCells = gridSize[0] * gridSize[1] * gridSize[2];
 
 	mGridUniformBuffer = gLightGridUniformDefinition.AllocateTransient();
-	gLightGridUniformDefinition.gLightCounts.Set(mGridUniformBuffer, lightCount);
-	gLightGridUniformDefinition.gLightStrides.Set(mGridUniformBuffer, lightStrides);
-	gLightGridUniformDefinition.gNumReflProbes.Set(mGridUniformBuffer, probeData.GetProbeCount());
-	gLightGridUniformDefinition.gNumCells.Set(mGridUniformBuffer, numCells);
-	gLightGridUniformDefinition.gGridSize.Set(mGridUniformBuffer, gridSize);
-	gLightGridUniformDefinition.gMaxNumLightsPerCell.Set(mGridUniformBuffer, kMaxLightsPerCell);
-	gLightGridUniformDefinition.gGridPixelSize.Set(mGridUniformBuffer, Vector2I(kCellXySize, kCellXySize));
+
+	GpuBufferMappedScope lightGridUniforms = mGridUniformBuffer.Map();
+	gLightGridUniformDefinition.gLightCounts.Set(lightGridUniforms, lightCount);
+	gLightGridUniformDefinition.gLightStrides.Set(lightGridUniforms, lightStrides);
+	gLightGridUniformDefinition.gNumReflProbes.Set(lightGridUniforms, probeData.GetProbeCount());
+	gLightGridUniformDefinition.gNumCells.Set(lightGridUniforms, numCells);
+	gLightGridUniformDefinition.gGridSize.Set(lightGridUniforms, gridSize);
+	gLightGridUniformDefinition.gMaxNumLightsPerCell.Set(lightGridUniforms, kMaxLightsPerCell);
+	gLightGridUniformDefinition.gGridPixelSize.Set(lightGridUniforms, Vector2I(kCellXySize, kCellXySize));
 
 	LightGridLLCreationMaterial* creationMat = LightGridLLCreationMaterial::Get();
 	creationMat->SetParams(commandBuffer, gridSize, mGridUniformBuffer, lightData.GetLightBuffer(), probeData.GetProbeBuffer());

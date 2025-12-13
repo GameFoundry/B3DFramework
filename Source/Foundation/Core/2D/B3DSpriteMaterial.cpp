@@ -140,15 +140,15 @@ void SpriteMaterial::Render(render::GpuCommandBuffer& commandBuffer, const SPtr<
 	}
 }
 
-void SpriteMaterial::PopulateUniformBuffer(const render::GpuBufferSuballocation& buffer, const Vector2I& viewportOffset, float inverseViewportWidth, float inverseViewportHeight, bool flipY, float animationTime, u32 clipRegionCount, const Matrix4& transform, const render::SpriteMaterialInfo& materialInformation)
+void SpriteMaterial::PopulateUniformBuffer(const render::GpuBufferMappedScope& uniforms, const Vector2I& viewportOffset, float inverseViewportWidth, float inverseViewportHeight, bool flipY, float animationTime, u32 clipRegionCount, const Matrix4& transform, const render::SpriteMaterialInfo& materialInformation)
 {
-	render::gGUISpriteUniformBufferDefinition.gTint.Set(buffer, materialInformation.Tint);
-	render::gGUISpriteUniformBufferDefinition.gWorldTransform.Set(buffer, transform);
-	render::gGUISpriteUniformBufferDefinition.gInvViewportWidth.Set(buffer, inverseViewportWidth);
-	render::gGUISpriteUniformBufferDefinition.gInvViewportHeight.Set(buffer, inverseViewportHeight);
-	render::gGUISpriteUniformBufferDefinition.gViewportOffset.Set(buffer, viewportOffset);
-	render::gGUISpriteUniformBufferDefinition.gViewportYFlip.Set(buffer, flipY ? -1.0f : 1.0f);
-	render::gGUISpriteUniformBufferDefinition.gClipRegionCount.Set(buffer, clipRegionCount);
+	render::gGUISpriteUniformBufferDefinition.gTint.Set(uniforms, materialInformation.Tint);
+	render::gGUISpriteUniformBufferDefinition.gWorldTransform.Set(uniforms, transform);
+	render::gGUISpriteUniformBufferDefinition.gInvViewportWidth.Set(uniforms, inverseViewportWidth);
+	render::gGUISpriteUniformBufferDefinition.gInvViewportHeight.Set(uniforms, inverseViewportHeight);
+	render::gGUISpriteUniformBufferDefinition.gViewportOffset.Set(uniforms, viewportOffset);
+	render::gGUISpriteUniformBufferDefinition.gViewportYFlip.Set(uniforms, flipY ? -1.0f : 1.0f);
+	render::gGUISpriteUniformBufferDefinition.gClipRegionCount.Set(uniforms, clipRegionCount);
 
 	const float t = std::max(0.0f, animationTime - materialInformation.AnimationStartTime);
 	if(materialInformation.SpriteImage)
@@ -161,10 +161,10 @@ void SpriteMaterial::PopulateUniformBuffer(const render::GpuBufferSuballocation&
 		const float inverseHeight = 1.0f / materialInformation.SpriteImage->GetAnimation().RowCount;
 
 		Vector4 sizeOffset(inverseWidth, inverseHeight, column * inverseWidth, row * inverseHeight);
-		render::gGUISpriteUniformBufferDefinition.gUVSizeOffset.Set(buffer, sizeOffset);
+		render::gGUISpriteUniformBufferDefinition.gUVSizeOffset.Set(uniforms, sizeOffset);
 	}
 	else
-		render::gGUISpriteUniformBufferDefinition.gUVSizeOffset.Set(buffer, Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+		render::gGUISpriteUniformBufferDefinition.gUVSizeOffset.Set(uniforms, Vector4(1.0f, 1.0f, 0.0f, 0.0f));
 }
 
 namespace b3d

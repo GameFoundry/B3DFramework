@@ -1509,17 +1509,21 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		lightOffsets.Z = lightOffsets.Y + lightCounts.Y;
 		lightOffsets.W = lightOffsets.Z + lightCounts.Z;
 
+		GpuBufferMappedScope lightsUniforms = standardForwardBuffers.LightsUniformBuffer.Map();
+		GpuBufferMappedScope reflectionProbesUniforms = standardForwardBuffers.ReflProbesUniformBuffer.Map();
+		GpuBufferMappedScope lightAndReflectionProbeUniforms = standardForwardBuffers.LightAndReflProbeParamsUniformBuffer.Map();
+
 		for(i32 j = 0; j < lightOffsets.W; j++)
-			gLightsUniformDefinition.gLights.Set(standardForwardBuffers.LightsUniformBuffer, *lights[j], j);
+			gLightsUniformDefinition.gLights.Set(lightsUniforms, *lights[j], j);
 
 		i32 numReflProbes = std::min(visibleReflProbeData.GetProbeCount(), kStandardForwardMaxNumProbes);
 		for(i32 j = 0; j < numReflProbes; j++)
 		{
-			gReflProbesUniformDefinition.gReflectionProbes.Set(standardForwardBuffers.ReflProbesUniformBuffer, visibleReflProbeData.GetProbeData(j), j);
+			gReflProbesUniformDefinition.gReflectionProbes.Set(reflectionProbesUniforms, visibleReflProbeData.GetProbeData(j), j);
 		}
 
-		gLightAndReflProbeParamsUniformDefinition.gLightOffsets.Set(standardForwardBuffers.LightAndReflProbeParamsUniformBuffer, lightOffsets);
-		gLightAndReflProbeParamsUniformDefinition.gReflProbeCount.Set(standardForwardBuffers.LightAndReflProbeParamsUniformBuffer, numReflProbes);
+		gLightAndReflProbeParamsUniformDefinition.gLightOffsets.Set(lightAndReflectionProbeUniforms, lightOffsets);
+		gLightAndReflProbeParamsUniformDefinition.gReflProbeCount.Set(lightAndReflectionProbeUniforms, numReflProbes);
 
 		iblParams.ReflectionProbesUniformBufferParameter.Set(standardForwardBuffers.ReflProbesUniformBuffer);
 		fwdParams.LightsUniformBufferParameter.Set(standardForwardBuffers.LightsUniformBuffer);

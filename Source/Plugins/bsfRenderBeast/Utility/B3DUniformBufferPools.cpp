@@ -48,7 +48,7 @@ void UniformBufferPools::Initialize(GpuDevice& device)
 
 	// Initialize GPU particles param staging pool
 	{
-		const u32 gpuParticlesParamSize = gGpuParticlesParamDef.GetSize();
+		const u32 gpuParticlesParamSize = gGpuParticlesUniformDefinition.GetSize();
 		GpuBufferCreateInformation stagingCreateInfo;
 		stagingCreateInfo.Type = GpuBufferType::StagingWrite;
 		stagingCreateInfo.Staging.Size = gpuParticlesParamSize;
@@ -303,10 +303,10 @@ void UniformBufferPools::UpdateGpuParticlesParamBuffer(const RendererParticles& 
 
 	GpuBufferMappedScope staging = mGpuParticlesStagingPool.Allocate().Map();
 
-	gGpuParticlesParamDef.gColorCurveOffset.Set(staging, colorCurveOffset);
-	gGpuParticlesParamDef.gColorCurveScale.Set(staging, Vector2(colorCurveScale, 0.0f));
-	gGpuParticlesParamDef.gSizeScaleFrameIdxCurveOffset.Set(staging, sizeScaleFrameIdxCurveOffset);
-	gGpuParticlesParamDef.gSizeScaleFrameIdxCurveScale.Set(staging, Vector2(sizeScaleFrameIdxCurveScale, 0.0f));
+	gGpuParticlesUniformDefinition.gColorCurveOffset.Set(staging, colorCurveOffset);
+	gGpuParticlesUniformDefinition.gColorCurveScale.Set(staging, Vector2(colorCurveScale, 0.0f));
+	gGpuParticlesUniformDefinition.gSizeScaleFrameIdxCurveOffset.Set(staging, sizeScaleFrameIdxCurveOffset);
+	gGpuParticlesUniformDefinition.gSizeScaleFrameIdxCurveScale.Set(staging, Vector2(sizeScaleFrameIdxCurveScale, 0.0f));
 
 	staging.Unmap();
 

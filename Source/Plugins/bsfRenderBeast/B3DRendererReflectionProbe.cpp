@@ -160,17 +160,18 @@ void RendererReflectionProbe::PopulateGlobalReflectionProbeUniformBuffer(const G
 		brightness = sky->GetBrightness();
 	}
 
-	gGlobalReflectionProbeUniformBufferDefinition.gSkyCubemapNumMips.Set(uniformBuffer, numSkyMips);
-	gGlobalReflectionProbeUniformBufferDefinition.gSkyCubemapAvailable.Set(uniformBuffer, skyReflectionsAvailable);
-	gGlobalReflectionProbeUniformBufferDefinition.gNumProbes.Set(uniformBuffer, numProbes);
+	GpuBufferMappedScope uniforms = uniformBuffer.Map();
+	gGlobalReflectionProbeUniformBufferDefinition.gSkyCubemapNumMips.Set(uniforms, numSkyMips);
+	gGlobalReflectionProbeUniformBufferDefinition.gSkyCubemapAvailable.Set(uniforms, skyReflectionsAvailable);
+	gGlobalReflectionProbeUniformBufferDefinition.gNumProbes.Set(uniforms, numProbes);
 
 	u32 numReflProbeMips = 0;
 	if(reflectionCubemaps != nullptr)
 		numReflProbeMips = reflectionCubemaps->GetProperties().MipMapCount + 1;
 
-	gGlobalReflectionProbeUniformBufferDefinition.gReflCubemapNumMips.Set(uniformBuffer, numReflProbeMips);
-	gGlobalReflectionProbeUniformBufferDefinition.gUseReflectionMaps.Set(uniformBuffer, capturingReflections ? 0 : 1);
-	gGlobalReflectionProbeUniformBufferDefinition.gSkyBrightness.Set(uniformBuffer, brightness);
+	gGlobalReflectionProbeUniformBufferDefinition.gReflCubemapNumMips.Set(uniforms, numReflProbeMips);
+	gGlobalReflectionProbeUniformBufferDefinition.gUseReflectionMaps.Set(uniforms, capturingReflections ? 0 : 1);
+	gGlobalReflectionProbeUniformBufferDefinition.gSkyBrightness.Set(uniforms, brightness);
 }
 
 ReflProbesUniformDefinition gReflProbesUniformDefinition;

@@ -601,12 +601,12 @@ namespace b3d
 				Material = ShadowDepthCubeMaterial::Get(variation);
 
 				command.GpuParameterSets = Material->CreateGpuParameterSet();
-				GpuBufferSuballocation shadowCubeMatricesBuffer = gShadowCubeMasksUniformDefinition.AllocateTransient();
+				GpuBufferMappedScope shadowCubeMatricesUniforms = gShadowCubeMasksUniformDefinition.AllocateTransient().Map();
 
 				for(u32 j = 0; j < 6; j++)
-					gShadowCubeMasksUniformDefinition.gFaceMasks.Set(shadowCubeMatricesBuffer, (Frustums[j].Intersects(bounds) ? 1 : 0), j);
+					gShadowCubeMasksUniformDefinition.gFaceMasks.Set(shadowCubeMatricesUniforms, (Frustums[j].Intersects(bounds) ? 1 : 0), j);
 
-				ShadowDepthCubeMaterial::PopulateParameters(command.GpuParameterSets, ShadowUniformBuffer, ShadowCubeMatricesBuffer, shadowCubeMatricesBuffer);
+				ShadowDepthCubeMaterial::PopulateParameters(command.GpuParameterSets, ShadowUniformBuffer, ShadowCubeMatricesBuffer, shadowCubeMatricesUniforms);
 			}
 
 			void Bind(GpuCommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
@@ -1484,7 +1484,7 @@ namespace b3d
 
 			const Transform& tfrm = light->GetWorldTransform();
 			Vector3 lightDir = -tfrm.GetRotation().ZAxis();
-			GpuBufferSuballocation shadowUniformBuffer = gShadowUniformDefinition.AllocateTransient();
+			GpuBufferMappedScope shadowUniforms = gShadowUniformDefinition.AllocateTransient().Map();
 
 			ShadowInfo shadowInfo;
 			shadowInfo.LightId = lightIdx;
@@ -1577,16 +1577,16 @@ namespace b3d
 				shadowInfo.DepthFar = shadowInfo.DepthFade + shadowInfo.FadeRange;
 				shadowInfo.DepthBias = GetDepthBias(*light, frustumBounds.Radius, shadowInfo.DepthRange, mapSize);
 
-				gShadowUniformDefinition.gDepthBias.Set(shadowUniformBuffer, shadowInfo.DepthBias);
-				gShadowUniformDefinition.gInvDepthRange.Set(shadowUniformBuffer, 1.0f / shadowInfo.DepthRange);
-				gShadowUniformDefinition.gMatViewProj.Set(shadowUniformBuffer, shadowInfo.ShadowVpTransform);
-				gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowUniformBuffer, RendererView::GetNdczToDeviceZ());
+				gShadowUniformDefinition.gDepthBias.Set(shadowUniforms, shadowInfo.DepthBias);
+				gShadowUniformDefinition.gInvDepthRange.Set(shadowUniforms, 1.0f / shadowInfo.DepthRange);
+				gShadowUniformDefinition.gMatViewProj.Set(shadowUniforms, shadowInfo.ShadowVpTransform);
+				gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowUniforms, RendererView::GetNdczToDeviceZ());
 
 				// Render all renderables into the shadow map
 				ShadowRenderQueueDirOptions dirOptions(
 					*this,
 					cascadeCullVolume,
-					shadowUniformBuffer);
+					shadowUniforms);
 
 				ShadowRenderQueue::Execute(commandBuffer, scene, frameInfo, shadowMap.GetTarget(i), dirOptions);
 
@@ -1601,7 +1601,7 @@ namespace b3d
 		{
 			Light* light = rendererLight.Internal;
 
-			GpuBufferSuballocation shadowUniformBuffer = gShadowUniformDefinition.AllocateTransient();
+			GpuBufferMappedScope shadowUniforms = gShadowUniformDefinition.AllocateTransient().Map();
 
 			ShadowInfo mapInfo;
 			mapInfo.FadePerView = options.FadePercents;
@@ -1656,10 +1656,10 @@ namespace b3d
 
 			mapInfo.ShadowVpTransform = proj * view;
 
-			gShadowUniformDefinition.gDepthBias.Set(shadowUniformBuffer, mapInfo.DepthBias);
-			gShadowUniformDefinition.gInvDepthRange.Set(shadowUniformBuffer, 1.0f / mapInfo.DepthRange);
-			gShadowUniformDefinition.gMatViewProj.Set(shadowUniformBuffer, mapInfo.ShadowVpTransform);
-			gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowUniformBuffer, RendererView::GetNdczToDeviceZ());
+			gShadowUniformDefinition.gDepthBias.Set(shadowUniforms, mapInfo.DepthBias);
+			gShadowUniformDefinition.gInvDepthRange.Set(shadowUniforms, 1.0f / mapInfo.DepthRange);
+			gShadowUniformDefinition.gMatViewProj.Set(shadowUniforms, mapInfo.ShadowVpTransform);
+			gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowUniforms, RendererView::GetNdczToDeviceZ());
 
 			const Vector<Plane>& frustumPlanes = localFrustum.GetPlanes();
 			Matrix4 worldMatrix = view.InverseAffine();
@@ -1679,7 +1679,7 @@ namespace b3d
 				*this,
 				mapInfo.NormArea,
 				worldFrustum,
-				shadowUniformBuffer);
+				shadowUniforms);
 
 			ShadowRenderQueue::Execute(commandBuffer, scene, frameInfo, atlas.GetTarget(), spotOptions);
 
@@ -1696,7 +1696,7 @@ namespace b3d
 		{
 			Light* const light = rendererLight.Internal;
 
-			GpuBufferSuballocation shadowUniformBuffer = gShadowUniformDefinition.AllocateTransient();
+			GpuBufferMappedScope shadowUniforms = gShadowUniformDefinition.AllocateTransient().Map();
 
 			ShadowInfo shadowInfo;
 			shadowInfo.LightId = options.LightIdx;
@@ -1768,10 +1768,10 @@ namespace b3d
 			if(renderAllFacesAtOnce)
 				shadowCubeMatricesBuffer = gShadowCubeMatricesUniformDefinition.AllocateTransient();
 
-			gShadowUniformDefinition.gDepthBias.Set(shadowUniformBuffer, shadowInfo.DepthBias);
-			gShadowUniformDefinition.gInvDepthRange.Set(shadowUniformBuffer, 1.0f / shadowInfo.DepthRange);
-			gShadowUniformDefinition.gMatViewProj.Set(shadowUniformBuffer, Matrix4::kIdentity);
-			gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowUniformBuffer, RendererView::GetNdczToDeviceZ());
+			gShadowUniformDefinition.gDepthBias.Set(shadowUniforms, shadowInfo.DepthBias);
+			gShadowUniformDefinition.gInvDepthRange.Set(shadowUniforms, 1.0f / shadowInfo.DepthRange);
+			gShadowUniformDefinition.gMatViewProj.Set(shadowUniforms, Matrix4::kIdentity);
+			gShadowUniformDefinition.gNDCZToDeviceZ.Set(shadowUniforms, RendererView::GetNdczToDeviceZ());
 
 			ConvexVolume frustums[6];
 			Vector<Plane> boundingPlanes;
@@ -1837,11 +1837,13 @@ namespace b3d
 
 					// Register far plane of all frustums
 					boundingPlanes.push_back(worldPlanes[FRUSTUM_PLANE_FAR]);
-					gShadowCubeMatricesUniformDefinition.gFaceVPMatrices.Set(shadowCubeMatricesBuffer, shadowViewProj, i);
+
+					GpuBufferMappedScope shadowCubeMatricesUniforms = shadowCubeMatricesBuffer.Map();
+					gShadowCubeMatricesUniformDefinition.gFaceVPMatrices.Set(shadowCubeMatricesUniforms, shadowViewProj, i);
 				}
 				else
 				{
-					gShadowUniformDefinition.gMatViewProj.Set(shadowUniformBuffer, shadowViewProj);
+					gShadowUniformDefinition.gMatViewProj.Set(shadowUniforms, shadowViewProj);
 
 					RenderTextureCreateInformation rtDesc;
 					rtDesc.DepthStencilSurface.Texture = cubemap.GetTexture();
@@ -1855,7 +1857,7 @@ namespace b3d
 					ShadowRenderQueueCubeSingleOptions cubeOptions(
 						*this,
 						frustum,
-						shadowUniformBuffer);
+						shadowUniforms);
 
 					ShadowRenderQueue::Execute(commandBuffer, scene, frameInfo, faceRt, cubeOptions);
 				}
@@ -1869,7 +1871,7 @@ namespace b3d
 					*this,
 					frustums,
 					boundingVolume,
-					shadowUniformBuffer,
+					shadowUniforms,
 					shadowCubeMatricesBuffer);
 
 				ShadowRenderQueue::Execute(commandBuffer, scene, frameInfo, cubemap.GetTarget(), cubeOptions);

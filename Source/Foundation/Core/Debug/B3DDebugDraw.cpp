@@ -194,15 +194,15 @@ void DebugDrawRenderer::Render(const Camera& camera, const RendererViewContext& 
 	Matrix4 projMatrix = camera.GetProjectionMatrix();
 	Matrix4 viewProjMat = projMatrix * viewMatrix;
 
-	GpuBufferSuballocation uniformBuffer = gDebugDrawUniformDefinition.AllocateTransient();
+	GpuBufferMappedScope uniforms = gDebugDrawUniformDefinition.AllocateTransient().Map();
 
-	gDebugDrawUniformDefinition.gMatViewProj.Set(uniformBuffer, viewProjMat);
-	gDebugDrawUniformDefinition.gViewDir.Set(uniformBuffer, (Vector4)camera.GetWorldTransform().GetForward());
+	gDebugDrawUniformDefinition.gMatViewProj.Set(uniforms, viewProjMat);
+	gDebugDrawUniformDefinition.gViewDir.Set(uniforms, (Vector4)camera.GetWorldTransform().GetForward());
 
 	for(auto& entry : mMeshes)
 	{
 		DebugDrawMaterial* material = DebugDrawMaterial::GetVariation(entry.Type);
-		material->Execute(*viewContext.CommandBuffer, uniformBuffer, entry.Mesh, entry.SubMesh);
+		material->Execute(*viewContext.CommandBuffer, uniforms, entry.Mesh, entry.SubMesh);
 	}
 }
 }}

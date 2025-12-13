@@ -511,10 +511,10 @@ void ClearMaterial::Execute(GpuCommandBuffer& commandBuffer, u32 value)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	GpuBufferSuballocation uniformBuffer = gClearUniformDefinition.AllocateTransient();
-	gClearUniformDefinition.gClearValue.Set(uniformBuffer, value);
+	GpuBufferMappedScope uniforms = gClearUniformDefinition.AllocateTransient().Map();
+	gClearUniformDefinition.gClearValue.Set(uniforms, value);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -532,10 +532,10 @@ void CompositeMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Text
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	GpuBufferSuballocation uniformBuffer = gCompositeUniformDefinition.AllocateTransient();
-	gCompositeUniformDefinition.gTint.Set(uniformBuffer, tint);
+	GpuBufferMappedScope uniforms = gCompositeUniformDefinition.AllocateTransient().Map();
+	gCompositeUniformDefinition.gTint.Set(uniforms, tint);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms);
 	mSourceTextureParameter.Set(source);
 
 	// Render
@@ -565,13 +565,13 @@ void BicubicUpsampleMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPt
 	Vector2 invPixelSize(1.0f / texSize.X, 1.0f / texSize.Y);
 	Vector2 invTwoPixelSize(2.0f / texSize.X, 2.0f / texSize.Y);
 
-	GpuBufferSuballocation uniformBuffer = gBicubicUpsampleUniformDefinition.AllocateTransient();
-	gBicubicUpsampleUniformDefinition.gTint.Set(uniformBuffer, tint);
-	gBicubicUpsampleUniformDefinition.gTextureSize.Set(uniformBuffer, texSize);
-	gBicubicUpsampleUniformDefinition.gInvPixel.Set(uniformBuffer, invPixelSize);
-	gBicubicUpsampleUniformDefinition.gInvTwoPixels.Set(uniformBuffer, invTwoPixelSize);
+	GpuBufferMappedScope uniforms = gBicubicUpsampleUniformDefinition.AllocateTransient().Map();
+	gBicubicUpsampleUniformDefinition.gTint.Set(uniforms, tint);
+	gBicubicUpsampleUniformDefinition.gTextureSize.Set(uniforms, texSize);
+	gBicubicUpsampleUniformDefinition.gInvPixel.Set(uniforms, invPixelSize);
+	gBicubicUpsampleUniformDefinition.gInvTwoPixels.Set(uniforms, invTwoPixelSize);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms);
 	mSourceTextureParameter.Set(source);
 
 	// Render

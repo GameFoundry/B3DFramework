@@ -1804,10 +1804,10 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 							// When we hit the max, create an entry and continue collecting remaining regions
 							if (overlappingDirtyRegions.size() == kMaxClipRegionsPerDraw)
 							{
-								GpuBufferSuballocation uniformBuffer = widget.UniformBufferPool.Allocate();
-								SpriteMaterial::PopulateUniformBuffer(uniformBuffer, viewportOffset, inverseRegionWidth, inverseRegionHeight, viewflipYFlip, mTime, (u32)overlappingDirtyRegions.size(), widget.WorldTransform, meshRenderData.MaterialInformation);
+								GpuBufferMappedScope uniforms = widget.UniformBufferPool.Allocate().Map();
+								SpriteMaterial::PopulateUniformBuffer(uniforms, viewportOffset, inverseRegionWidth, inverseRegionHeight, viewflipYFlip, mTime, (u32)overlappingDirtyRegions.size(), widget.WorldTransform, meshRenderData.MaterialInformation);
 
-								meshesToRedraw.push_back({ &meshRenderData, std::move(uniformBuffer), std::move(overlappingDirtyRegions) });
+								meshesToRedraw.push_back({ &meshRenderData, std::move(uniforms), std::move(overlappingDirtyRegions) });
 								overlappingDirtyRegions = FrameVector<Area2I>();
 							}
 						}
@@ -1817,10 +1817,10 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 						continue;
 
 					// Note: We will unnecessarily do this update multiple times if the same mesh overlaps multiple dirty regions
-					GpuBufferSuballocation uniformBuffer = widget.UniformBufferPool.Allocate();
-					SpriteMaterial::PopulateUniformBuffer(uniformBuffer, viewportOffset, inverseRegionWidth, inverseRegionHeight, viewflipYFlip, mTime, (u32)overlappingDirtyRegions.size(), widget.WorldTransform, meshRenderData.MaterialInformation);
+					GpuBufferMappedScope uniforms = widget.UniformBufferPool.Allocate().Map();
+					SpriteMaterial::PopulateUniformBuffer(uniforms, viewportOffset, inverseRegionWidth, inverseRegionHeight, viewflipYFlip, mTime, (u32)overlappingDirtyRegions.size(), widget.WorldTransform, meshRenderData.MaterialInformation);
 
-					meshesToRedraw.push_back({ &meshRenderData, std::move(uniformBuffer), std::move(overlappingDirtyRegions) });
+					meshesToRedraw.push_back({ &meshRenderData, std::move(uniforms), std::move(overlappingDirtyRegions) });
 				}
 			}
 

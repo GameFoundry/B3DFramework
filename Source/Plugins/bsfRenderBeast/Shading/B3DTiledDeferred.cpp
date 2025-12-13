@@ -47,12 +47,12 @@ void TiledDeferredLightingMaterial::Execute(GpuCommandBuffer& commandBuffer, con
 	u32 width = viewProps.Target.ViewRect.Width;
 	u32 height = viewProps.Target.ViewRect.Height;
 
-	GpuBufferSuballocation uniformBuffer = gTiledLightingUniformDefinition.AllocateTransient();
+	GpuBufferMappedScope uniforms = gTiledLightingUniformDefinition.AllocateTransient().Map();
 
 	Vector2I framebufferSize;
 	framebufferSize[0] = width;
 	framebufferSize[1] = height;
-	gTiledLightingUniformDefinition.gFramebufferSize.Set(uniformBuffer, framebufferSize);
+	gTiledLightingUniformDefinition.gFramebufferSize.Set(uniforms, framebufferSize);
 
 	if(!settings.EnableLighting)
 	{
@@ -66,8 +66,8 @@ void TiledDeferredLightingMaterial::Execute(GpuCommandBuffer& commandBuffer, con
 		lightStrides[0] = 0;
 		lightStrides[1] = 0;
 
-		gTiledLightingUniformDefinition.gLightCounts.Set(uniformBuffer, lightCounts);
-		gTiledLightingUniformDefinition.gLightStrides.Set(uniformBuffer, lightStrides);
+		gTiledLightingUniformDefinition.gLightCounts.Set(uniforms, lightCounts);
+		gTiledLightingUniformDefinition.gLightStrides.Set(uniforms, lightStrides);
 	}
 	else
 	{
@@ -88,14 +88,14 @@ void TiledDeferredLightingMaterial::Execute(GpuCommandBuffer& commandBuffer, con
 		lightStrides[1] = lightStrides[0] + lightCounts[1];
 
 		if(!settings.EnableShadows)
-			gTiledLightingUniformDefinition.gLightCounts.Set(uniformBuffer, lightCounts);
+			gTiledLightingUniformDefinition.gLightCounts.Set(uniforms, lightCounts);
 		else
-			gTiledLightingUniformDefinition.gLightCounts.Set(uniformBuffer, unshadowedLightCounts);
+			gTiledLightingUniformDefinition.gLightCounts.Set(uniforms, unshadowedLightCounts);
 
-		gTiledLightingUniformDefinition.gLightStrides.Set(uniformBuffer, lightStrides);
+		gTiledLightingUniformDefinition.gLightStrides.Set(uniforms, lightStrides);
 	}
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms);
 
 	mGBufferParams.Bind(gbuffer);
 	mGpuParameterSet->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
@@ -192,15 +192,15 @@ void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr
 
 	mOutputTextureParam.Set(target, surface);
 
-	GpuBufferSuballocation uniformBuffer = gClearLoadStoreUniformDefinition.AllocateTransient();
+	GpuBufferMappedScope uniforms = gClearLoadStoreUniformDefinition.AllocateTransient().Map();
 
 	u32 width = props.Width;
 	u32 height = props.Height;
-	gClearLoadStoreUniformDefinition.gSize.Set(uniformBuffer, Vector2I((i32)width, (i32)height));
-	gClearLoadStoreUniformDefinition.gFloatClearVal.Set(uniformBuffer, Vector4(clearValue.R, clearValue.G, clearValue.A, clearValue.A));
-	gClearLoadStoreUniformDefinition.gIntClearVal.Set(uniformBuffer, Vector4I(*(i32*)&clearValue.R, *(i32*)&clearValue.G, *(i32*)&clearValue.A, *(i32*)&clearValue.A));
+	gClearLoadStoreUniformDefinition.gSize.Set(uniforms, Vector2I((i32)width, (i32)height));
+	gClearLoadStoreUniformDefinition.gFloatClearVal.Set(uniforms, Vector4(clearValue.R, clearValue.G, clearValue.B, clearValue.A));
+	gClearLoadStoreUniformDefinition.gIntClearVal.Set(uniforms, Vector4I(*(i32*)&clearValue.R, *(i32*)&clearValue.G, *(i32*)&clearValue.B, *(i32*)&clearValue.A));
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms);
 
 	Bind(commandBuffer);
 
@@ -227,14 +227,14 @@ void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr
 		width = bufferInformation.StructuredStorage.Count;
 	}
 
-	GpuBufferSuballocation uniformBuffer = gClearLoadStoreUniformDefinition.AllocateTransient();
+	GpuBufferMappedScope uniforms = gClearLoadStoreUniformDefinition.AllocateTransient().Map();
 
 	u32 height = 1;
-	gClearLoadStoreUniformDefinition.gSize.Set(uniformBuffer, Vector2I((i32)width, (i32)height));
-	gClearLoadStoreUniformDefinition.gFloatClearVal.Set(uniformBuffer, Vector4(clearValue.R, clearValue.G, clearValue.A, clearValue.A));
-	gClearLoadStoreUniformDefinition.gIntClearVal.Set(uniformBuffer, Vector4I(*(i32*)&clearValue.R, *(i32*)&clearValue.G, *(i32*)&clearValue.A, *(i32*)&clearValue.A));
+	gClearLoadStoreUniformDefinition.gSize.Set(uniforms, Vector2I((i32)width, (i32)height));
+	gClearLoadStoreUniformDefinition.gFloatClearVal.Set(uniforms, Vector4(clearValue.R, clearValue.G, clearValue.B, clearValue.A));
+	gClearLoadStoreUniformDefinition.gIntClearVal.Set(uniforms, Vector4I(*(i32*)&clearValue.R, *(i32*)&clearValue.G, *(i32*)&clearValue.B, *(i32*)&clearValue.A));
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms);
 
 	Bind(commandBuffer);
 
@@ -346,14 +346,14 @@ void TiledDeferredImageBasedLightingMaterial::Execute(GpuCommandBuffer& commandB
 	u32 width = viewProps.Target.ViewRect.Width;
 	u32 height = viewProps.Target.ViewRect.Height;
 
-	GpuBufferSuballocation uniformBuffer = gTiledImageBasedLightingUniformDefinition.AllocateTransient();
+	GpuBufferMappedScope uniforms = gTiledImageBasedLightingUniformDefinition.AllocateTransient().Map();
 
 	Vector2I framebufferSize;
 	framebufferSize[0] = width;
 	framebufferSize[1] = height;
-	gTiledImageBasedLightingUniformDefinition.gFramebufferSize.Set(uniformBuffer, framebufferSize);
+	gTiledImageBasedLightingUniformDefinition.gFramebufferSize.Set(uniforms, framebufferSize);
 
-	mUniformBufferParameter.Set(uniformBuffer);
+	mUniformBufferParameter.Set(uniforms);
 
 	Skybox* skybox = nullptr;
 	if(view.GetRenderSettings().EnableSkybox)

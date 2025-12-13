@@ -74,8 +74,8 @@ const ShaderVariationParameters& GetParticleShaderVariation(ParticleOrientation 
 	}
 }
 
-ParticlesParamDef gParticlesParamDef;
-GpuParticlesParamDef gGpuParticlesParamDef;
+ParticlesUniformDefinition gParticlesUniformDefinition;
+GpuParticlesUniformDefinition gGpuParticlesUniformDefinition;
 
 void WriteIndices(const SPtr<GpuBuffer>& buffer, const Vector<u32>& input, u32 texSize)
 {
@@ -189,7 +189,7 @@ void RendererParticles::BindGpuSimulatedInputs(const GpuParticleResources& gpuSi
 
 void RendererParticles::PopulateAndBindParticlesUniformBuffer(i32 texSize, i32 bufferOffset) const
 {
-	GpuBufferSuballocation uniformBuffer = gParticlesParamDef.AllocateTransient();
+	GpuBufferMappedScope uniforms = gParticlesUniformDefinition.AllocateTransient().Map();
 
 	// Set axis vectors
 	const ParticleSystemSettings& settings = ParticleSystem->GetSettings();
@@ -201,8 +201,8 @@ void RendererParticles::PopulateAndBindParticlesUniformBuffer(i32 texSize, i32 b
 	Vector3 axisRight = axisUp.Cross(axisForward);
 	Vector3::Orthonormalize(axisRight, axisUp, axisForward);
 
-	gParticlesParamDef.gAxisUp.Set(uniformBuffer, axisUp);
-	gParticlesParamDef.gAxisRight.Set(uniformBuffer, axisRight);
+	gParticlesUniformDefinition.gAxisUp.Set(uniforms, axisUp);
+	gParticlesUniformDefinition.gAxisRight.Set(uniforms, axisRight);
 
 	// Set UV parameters from sprite image if available
 	const SPtr<Shader> shader = RenderElement.Material->GetShader();
@@ -216,23 +216,23 @@ void RendererParticles::PopulateAndBindParticlesUniformBuffer(i32 texSize, i32 b
 	if(spriteImage)
 	{
 		const Area2 UVRange = spriteImage->GetDefaultAllocatedImage().GetUVRange();
-		gParticlesParamDef.gUVOffset.Set(uniformBuffer, UVRange.GetPosition());
-		gParticlesParamDef.gUVScale.Set(uniformBuffer, Vector2(UVRange.Width, UVRange.Height));
+		gParticlesUniformDefinition.gUVOffset.Set(uniforms, UVRange.GetPosition());
+		gParticlesUniformDefinition.gUVScale.Set(uniforms, Vector2(UVRange.Width, UVRange.Height));
 
 		const SpriteSheetGridAnimation& anim = spriteImage->GetAnimation();
-		gParticlesParamDef.gSubImageSize.Set(uniformBuffer, Vector4((float)anim.ColumnCount, (float)anim.RowCount, 1.0f / anim.ColumnCount, 1.0f / anim.RowCount));
+		gParticlesUniformDefinition.gSubImageSize.Set(uniforms, Vector4((float)anim.ColumnCount, (float)anim.RowCount, 1.0f / anim.ColumnCount, 1.0f / anim.RowCount));
 	}
 	else
 	{
-		gParticlesParamDef.gUVOffset.Set(uniformBuffer, Vector2::kZero);
-		gParticlesParamDef.gUVScale.Set(uniformBuffer, Vector2::kOne);
-		gParticlesParamDef.gSubImageSize.Set(uniformBuffer, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+		gParticlesUniformDefinition.gUVOffset.Set(uniforms, Vector2::kZero);
+		gParticlesUniformDefinition.gUVScale.Set(uniforms, Vector2::kOne);
+		gParticlesUniformDefinition.gSubImageSize.Set(uniforms, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	}
 
-	gParticlesParamDef.gTexSize.Set(uniformBuffer, texSize);
-	gParticlesParamDef.gBufferOffset.Set(uniformBuffer, bufferOffset);
+	gParticlesUniformDefinition.gTexSize.Set(uniforms, texSize);
+	gParticlesUniformDefinition.gBufferOffset.Set(uniforms, bufferOffset);
 
-	RenderElement.ParticlesUniformBufferParameter.Set(uniformBuffer);
+	RenderElement.ParticlesUniformBufferParameter.Set(uniforms);
 }
 
 ParticleTexturePool::~ParticleTexturePool()

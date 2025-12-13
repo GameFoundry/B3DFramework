@@ -145,7 +145,7 @@ void RenderBeast::InitializeOnRenderThread(const LoadedRendererTextures& rendere
 			gpuParticlesInfo.Name = "GpuParticleParams";
 			gpuParticlesInfo.Set = GpuPipelineSet::kPerObject;
 			gpuParticlesInfo.Slot = 1;
-			gpuParticlesInfo.Size = Math::CeilToMultiple(gGpuParticlesParamDef.GetSize() / 4u, 4u);
+			gpuParticlesInfo.Size = Math::CeilToMultiple(gGpuParticlesUniformDefinition.GetSize() / 4u, 4u);
 			gpuParticlesInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment;
 			gpuParticlesInfo.IsShareable = true;
 			gpuParticlesDescription.UniformBuffers["GpuParticleParams"] = gpuParticlesInfo;
@@ -194,7 +194,7 @@ void RenderBeast::InitializeOnRenderThread(const LoadedRendererTextures& rendere
 			config.EntriesPerBuffer = 256;
 			config.Layout = mGpuParticlesParameterSetInfo.Layout;
 			config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", gPerObjectUniformDefinition.GetSize(), GpuBufferFlag::StoreOnGPU});
-			config.Buffers.Add({UniformBufferPools::GpuParticlesBuffer, "GpuParticleParams", gGpuParticlesParamDef.GetSize(), GpuBufferFlag::StoreOnGPU});
+			config.Buffers.Add({UniformBufferPools::GpuParticlesBuffer, "GpuParticleParams", gGpuParticlesUniformDefinition.GetSize(), GpuBufferFlag::StoreOnGPU});
 			mTypeConfigurations.Add(config);
 		}
 	}
