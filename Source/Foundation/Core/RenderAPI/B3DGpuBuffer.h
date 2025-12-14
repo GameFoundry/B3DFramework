@@ -268,6 +268,134 @@ namespace b3d
 		}
 	};
 
+	/** Options for GPU buffer mapping operations. */
+	enum class GpuMapOption
+	{
+		Read = 1 << 0,      /**< Map for reading (will invalidate before mapping). */
+		Write = 1 << 1,     /**< Map for writing (will flush after unmapping). */
+		NoOverwrite = 1 << 2, /**< Suppresses validation warnings if the caller writes to a buffer region already bound to a command buffer. Indicates that the caller knows what he is doing. */
+		ReadWrite = Read | Write  /**< Map for both reading and writing. */
+	};
+
+	using GpuMapOptions = Flags<GpuMapOption>;
+	B3D_FLAGS_OPERATORS(GpuMapOption);
+
+	// Forward declaration for TGpuBufferSuballocation::Map return type
+	template <bool IsRenderProxy>
+	class TGpuBufferMappedScope;
+
+	/** Represents a single sub-allocation within a specific GpuBuffer. Templated to support both main thread and render thread variants. */
+	template <bool IsRenderProxy>
+	class TGpuBufferSuballocation
+	{
+	public:
+		using GpuBufferType = CoreVariantType<b3d::GpuBuffer, IsRenderProxy>;
+
+		TGpuBufferSuballocation() = default;
+		explicit TGpuBufferSuballocation(const SPtr<GpuBufferType>& buffer, u32 suballocationIndex = 0, u32 suballocationOffset = 0)
+			: mBuffer(buffer), mSuballocationIndex(suballocationIndex), mSuballocationOffset(suballocationOffset) {}
+
+		/** Gets the underlying GPU buffer. */
+		const SPtr<GpuBufferType>& GetBuffer() const { return mBuffer; }
+
+		/** Gets the zero-based suballocation index within the buffer. */
+		u32 GetSuballocationIndex() const { return mSuballocationIndex; }
+
+		/** Gets the byte offset from the start of the buffer for this suballocation. */
+		u32 GetSuballocationOffset() const { return mSuballocationOffset; }
+
+		/**
+		 * Gets the size of this suballocation in bytes (aligned).
+		 * May be larger than requested size during buffer creation due to alignment requirements.
+		 */
+		u32 GetSize() const;
+
+		/** Checks if this is a valid suballocation. */
+		bool IsValid() const { return mBuffer != nullptr; }
+
+		/** Clears the suballocation, making it invalid. */
+		void Reset() { mBuffer = nullptr; }
+
+		/**
+		 * Maps this suballocation for CPU access.
+		 *
+		 * @param options	Map options (typically GpuMapOption::Write).
+		 * @return			RAII mapped region that auto-flushes on destruction.
+		 */
+		TGpuBufferMappedScope<IsRenderProxy> Map(GpuMapOptions options = GpuMapOption::Write) const;
+
+	private:
+		SPtr<GpuBufferType> mBuffer;
+		u32 mSuballocationIndex = 0; // TODO - Remove this, it can be deduced from the offset. It's also not currently set within GpuMappedRegion
+		u32 mSuballocationOffset = 0;
+	};
+
+	/**
+	 * RAII wrapper returned by GpuBuffer::Map operation. Allows you to access the mapped memory, and automatically flushes the memory on destruction, if needed.
+	 * Prevents the mapped buffer from being destructed while the scope is active. As a helper can also be constructed back into a TGpuBufferSuballocation referencing the mapped range.
+	 * Templated to support both main thread and render thread variants.
+	 */
+	template <bool IsRenderProxy>
+	class TGpuBufferMappedScope
+	{
+	public:
+		using GpuSuballocationType = TGpuBufferSuballocation<IsRenderProxy>;
+		using GpuBufferType = typename GpuSuballocationType::GpuBufferType;
+
+		TGpuBufferMappedScope() = default;
+
+		TGpuBufferMappedScope(void* mappedMemory, GpuSuballocationType suballocation, u32 size, GpuMapOptions options)
+			: mMappedMemory(mappedMemory) , mSuballocation(std::move(suballocation)) , mSize(size) , mOptions(options)
+		{}
+
+		TGpuBufferMappedScope(TGpuBufferMappedScope&& other) noexcept
+			: mMappedMemory(other.mMappedMemory), mSuballocation(std::move(other.mSuballocation)), mSize(other.mSize) , mOptions(other.mOptions)
+		{
+			other.mMappedMemory = nullptr;
+			other.mSuballocation = GpuSuballocationType();
+		}
+
+		TGpuBufferMappedScope& operator=(TGpuBufferMappedScope&& other) noexcept
+		{
+			if(this != &other)
+			{
+				Unmap();
+				mMappedMemory = std::exchange(other.mMappedMemory, nullptr);
+				mSuballocation = std::move(other.mSuballocation);
+				mSize = other.mSize;
+				mOptions = other.mOptions;
+				other.mSuballocation.Reset();
+			}
+			return *this;
+		}
+
+		TGpuBufferMappedScope(const TGpuBufferMappedScope&) = delete;
+		TGpuBufferMappedScope& operator=(const TGpuBufferMappedScope&) = delete;
+
+		~TGpuBufferMappedScope() { Unmap(); }
+
+		/** Explicitly releases the mapping. Safe to call multiple times. Flushes if write mapping (render proxy) or marks dirty (main thread). */
+		void Unmap();
+
+		void* GetMappedMemory() const { return mMappedMemory; }
+		const GpuSuballocationType& GetSuballocation() const { return mSuballocation; }
+		const SPtr<GpuBufferType>& GetBuffer() const { return mSuballocation.GetBuffer(); }
+		bool IsValid() const { return mMappedMemory != nullptr; }
+		explicit operator bool() const { return IsValid(); }
+
+		/** Implicit conversion to TGpuBufferSuballocation. */
+		operator const GpuSuballocationType&() const { return mSuballocation; }
+
+	private:
+		void* mMappedMemory = nullptr;
+		GpuSuballocationType mSuballocation;
+		u32 mSize = 0;
+		GpuMapOptions mOptions;
+	};
+
+	using GpuBufferSuballocation = TGpuBufferSuballocation<false>;
+	using GpuBufferMappedScope = TGpuBufferMappedScope<false>;
+
 	/** Defines a buffer that can be used for operations on the GPU. */
 	class B3D_EXPORT GpuBuffer : public CoreObject
 	{
@@ -306,13 +434,38 @@ namespace b3d
 		 */
 		void Read(u32 offset, u32 length, void* destination);
 
+		/**
+		 * Maps the cache buffer and returns an RAII mapped region that automatically handles flush on destruction.
+		 *
+		 * @param offset   Offset in bytes from which to map.
+		 * @param size     Size of the region to map, in bytes.
+		 * @param options  Specifies read/write intent for the mapping.
+		 * @return         RAII mapped region containing the mapped memory pointer.
+		 */
+		GpuBufferMappedScope Map(u32 offset, u32 size, GpuMapOptions options)
+		{
+			void* mappedMemory = mCache + offset;
+			return GpuBufferMappedScope(mappedMemory, GpuBufferSuballocation(std::static_pointer_cast<GpuBuffer>(GetShared()), 0, offset), size, options);
+		}
+
+		/**
+		 * Maps the entire buffer and returns an RAII mapped region.
+		 *
+		 * @param options  Specifies read/write intent for the mapping.
+		 * @return         RAII mapped region containing the mapped memory pointer.
+		 */
+		GpuBufferMappedScope Map(GpuMapOptions options)
+		{
+			return Map(0, mTotalSize, options);
+		}
+
 		/** Creates a new buffer. */
 		static SPtr<GpuBuffer> Create(const GpuBufferCreateInformation& createInformation);
 
 		/** Returns the size of a single element in the buffer, of the provided format, in bytes. */
 		static u32 GetFormatSize(GpuBufferFormat format);
 
-		/** Returns teh size of a single index buffer element of the specified type, in bytes. */
+		/** Returns the size of a single index buffer element of the specified type, in bytes. */
 		static u32 GetIndexSize(IndexType type) { return type == IT_32BIT ? 4 : 2; }
 
 		/** Calculates the size of a buffer described by the provided information, in bytes. */
@@ -328,6 +481,7 @@ namespace b3d
 	protected:
 		struct SyncPacket;
 		friend class render::GpuBuffer;
+		template <bool IsRenderProxy> friend class TGpuBufferMappedScope;
 
 		GpuBuffer(const GpuBufferCreateInformation& createInformation);
 
@@ -341,125 +495,43 @@ namespace b3d
 		u32 mTotalSize = 0;
 		u8* mCache = nullptr;
 	};
+
+	template <bool IsRenderProxy>
+	u32 TGpuBufferSuballocation<IsRenderProxy>::GetSize() const
+	{
+		return mBuffer ? mBuffer->GetSuballocationSize() : 0;
+	}
+
+	template <bool IsRenderProxy>
+	TGpuBufferMappedScope<IsRenderProxy> TGpuBufferSuballocation<IsRenderProxy>::Map(GpuMapOptions options) const
+	{
+		B3D_ASSERT(IsValid());
+
+		return mBuffer->Map(mSuballocationOffset, GetSize(), options);
+	}
+
+	template <bool IsRenderProxy>
+	void TGpuBufferMappedScope<IsRenderProxy>::Unmap()
+	{
+		if(mMappedMemory != nullptr && mSuballocation.IsValid())
+		{
+			if(mOptions.IsSet(GpuMapOption::Write))
+			{
+				if constexpr(IsRenderProxy)
+					mSuballocation.GetBuffer()->Flush(mSuballocation.GetSuballocationOffset(), mSize);
+				else
+					mSuballocation.GetBuffer()->MarkRenderProxyDataDirty();
+			}
+
+			mMappedMemory = nullptr;
+		}
+	}
 }
 
 namespace b3d::render
 {
-	/** Options for GPU buffer mapping operations. */
-	enum class GpuMapOption
-	{
-		Read = 1 << 0,      /**< Map for reading (will invalidate before mapping). */
-		Write = 1 << 1,     /**< Map for writing (will flush after unmapping). */
-		NoOverwrite = 1 << 2, /**< Suppresses validation warnings if the caller writes to a buffer region already bound to a command buffer. Indicates that the caller knows what he is doing. */
-		ReadWrite = Read | Write  /**< Map for both reading and writing. */
-	};
-
-	using GpuMapOptions = Flags<GpuMapOption>;
-	B3D_FLAGS_OPERATORS(GpuMapOption);
-
-	// Forward declaration for GpuBufferSuballocation::Map return type
-	class GpuBufferMappedScope;
-
-	/** Represents a single sub-allocation within a specific GpuBuffer. */
-	class B3D_EXPORT GpuBufferSuballocation
-	{
-	public:
-		GpuBufferSuballocation() = default;
-		explicit GpuBufferSuballocation(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex = 0, u32 suballocationOffset = 0)
-			: mBuffer(buffer), mSuballocationIndex(suballocationIndex), mSuballocationOffset(suballocationOffset) {}
-
-		/** Gets the underlying GPU buffer. */
-		const SPtr<GpuBuffer>& GetBuffer() const { return mBuffer; }
-
-		/** Gets the zero-based suballocation index within the buffer. */
-		u32 GetSuballocationIndex() const { return mSuballocationIndex; }
-
-		/** Gets the byte offset from the start of the buffer for this suballocation. */
-		u32 GetSuballocationOffset() const { return mSuballocationOffset; }
-
-		/**
-		 * Gets the size of this suballocation in bytes (aligned).
-		 * May be larger than requested size during buffer creation due to alignment requirements.
-		 */
-		u32 GetSize() const;
-
-		/** Checks if this is a valid suballocation. */
-		bool IsValid() const { return mBuffer != nullptr; }
-
-		/** Clears the suballocation, making it invalid. */
-		void Reset() { mBuffer = nullptr; }
-
-		/**
-		 * Maps this suballocation for CPU access.
-		 *
-		 * @param options	Map options (typically GpuMapOption::Write).
-		 * @return			RAII mapped region that auto-flushes on destruction.
-		 */
-		GpuBufferMappedScope Map(GpuMapOptions options = GpuMapOption::Write) const;
-
-	private:
-		SPtr<GpuBuffer> mBuffer;
-		u32 mSuballocationIndex = 0; // TODO - Remove this, it can be deduced from the offset. It's also not currently set within GpuMappedRegion
-		u32 mSuballocationOffset = 0;
-	};
-
-	/**
-	 * RAII wrapper returned by GpuBuffer::Map operation. Allows you to access the mapped memory, and automatically flushes the memory on destruction, if needed.
-	 * Prevents the mapped buffer from being destructed while the scope is active. As a helper can also be constructed back into a GpuBufferSuballocation referencing the mapped range.
-	 */
-	class B3D_EXPORT GpuBufferMappedScope
-	{
-	public:
-		GpuBufferMappedScope() = default;
-
-		GpuBufferMappedScope(void* mappedMemory, GpuBufferSuballocation suballocation, u32 size, GpuMapOptions options)
-			: mMappedMemory(mappedMemory) , mSuballocation(std::move(suballocation)) , mSize(size) , mOptions(options)
-		{}
-
-		GpuBufferMappedScope(GpuBufferMappedScope&& other) noexcept
-			: mMappedMemory(other.mMappedMemory), mSuballocation(std::move(other.mSuballocation)), mSize(other.mSize) , mOptions(other.mOptions)
-		{
-			other.mMappedMemory = nullptr;
-			other.mSuballocation = GpuBufferSuballocation();
-		}
-
-		GpuBufferMappedScope& operator=(GpuBufferMappedScope&& other) noexcept
-		{
-			if(this != &other)
-			{
-				Unmap();
-				mMappedMemory = std::exchange(other.mMappedMemory, nullptr);
-				mSuballocation = std::move(other.mSuballocation);
-				mSize = other.mSize;
-				mOptions = other.mOptions;
-				other.mSuballocation.Reset();
-			}
-			return *this;
-		}
-
-		GpuBufferMappedScope(const GpuBufferMappedScope&) = delete;
-		GpuBufferMappedScope& operator=(const GpuBufferMappedScope&) = delete;
-
-		~GpuBufferMappedScope() { Unmap(); }
-
-		/** Explicitly releases the mapping. Safe to call multiple times. Flushes if write mapping. */
-		void Unmap();
-
-		void* GetMappedMemory() const { return mMappedMemory; }
-		const GpuBufferSuballocation& GetSuballocation() const { return mSuballocation; }
-		const SPtr<GpuBuffer>& GetBuffer() const { return mSuballocation.GetBuffer(); }
-		bool IsValid() const { return mMappedMemory != nullptr; }
-		explicit operator bool() const { return IsValid(); }
-
-		/** Implicit conversion to GpuBufferSuballocation. */
-		operator const GpuBufferSuballocation&() const { return mSuballocation; }
-
-	private:
-		void* mMappedMemory = nullptr;
-		GpuBufferSuballocation mSuballocation;
-		u32 mSize = 0;
-		GpuMapOptions mOptions;
-	};
+	using GpuBufferSuballocation = TGpuBufferSuballocation<true>;
+	using GpuBufferMappedScope = TGpuBufferMappedScope<true>;
 
 	/** Defines a buffer that can be used for operations on the GPU. */
 	class B3D_EXPORT GpuBuffer : public RenderProxy

@@ -33,6 +33,12 @@ static u32 CalculateUnalignedGpuBufferSize(const GpuBufferInformation& informati
 	return 128;
 }
 
+// Explicit template instantiations
+template class TGpuBufferSuballocation<false>;
+template class TGpuBufferSuballocation<true>;
+template class TGpuBufferMappedScope<false>;
+template class TGpuBufferMappedScope<true>;
+
 GpuBuffer::GpuBuffer(const GpuBufferCreateInformation& createInformation)
 	: mInformation(createInformation)
 {
@@ -240,29 +246,6 @@ u32 GpuBuffer::CalculateTotalBufferSize(const GpuBufferInformation& information,
 
 namespace b3d::render
 {
-	u32 GpuBufferSuballocation::GetSize() const
-	{
-		return mBuffer ? mBuffer->GetSuballocationSize() : 0;
-	}
-
-	GpuBufferMappedScope GpuBufferSuballocation::Map(GpuMapOptions options) const
-	{
-		B3D_ASSERT(IsValid());
-
-		return mBuffer->Map(mSuballocationOffset, GetSize(), options);
-	}
-
-	void GpuBufferMappedScope::Unmap()
-	{
-		if(mMappedMemory != nullptr && mSuballocation.IsValid())
-		{
-			if(mOptions.IsSet(GpuMapOption::Write))
-				mSuballocation.GetBuffer()->Flush(mSuballocation.GetSuballocationOffset(), mSize);
-
-			mMappedMemory = nullptr;
-		}
-	}
-
 	GpuBuffer::GpuBuffer(GpuDevice& device, const GpuBufferCreateInformation& createInformation, u32 suballocationSize)
 		: mInformation(createInformation), mDevice(device), mSuballocationSize(suballocationSize), mTotalSize(createInformation.SuballocationCount * mSuballocationSize)
 	{ }

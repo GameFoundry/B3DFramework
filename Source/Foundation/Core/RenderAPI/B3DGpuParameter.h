@@ -13,11 +13,7 @@
 #include "Math/B3DVector3I.h"
 #include "Math/B3DVector4I.h"
 #include "Image/B3DColor.h"
-
-namespace b3d::render
-{
-	class GpuBufferSuballocation;
-}
+#include "RenderAPI/B3DGpuBuffer.h"
 
 namespace b3d
 {
