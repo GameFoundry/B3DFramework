@@ -582,6 +582,8 @@ static SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 
 	const u32 size = gGpuParticleTileVertexUniformDefinition.GetSize();
 	SPtr<GpuBuffer> stagingBuffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(size));
+	GpuBufferMappedScope stagingMemory = stagingBuffer->Map2(GpuMapOption::Write);
+
 	SPtr<GpuBuffer> inputBuffer = gGpuParticleTileVertexUniformDefinition.CreateBuffer(GpuBufferFlag::StoreOnGPU);
 
 	// [0, 1] -> [-1, 1] and flip Y
@@ -596,7 +598,8 @@ static SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 		uvToNdc.W = -uvToNdc.W;
 	}
 
-	gGpuParticleTileVertexUniformDefinition.gUVToNDC.Set(stagingBuffer, uvToNdc);
+	gGpuParticleTileVertexUniformDefinition.gUVToNDC.Set(stagingMemory, uvToNdc);
+	stagingMemory.Unmap();
 
 	//stagingBuffer->FlushCache(); // TODO - Call regular flush here
 	gpuDevice->GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer()->CopyBufferToBuffer(stagingBuffer, inputBuffer, 0, 0, size);

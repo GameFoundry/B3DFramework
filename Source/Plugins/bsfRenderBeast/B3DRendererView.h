@@ -402,7 +402,7 @@ namespace b3d
 			void UpdatePerViewBuffer();
 
 			/** Returns a buffer that stores per-view parameters. */
-			SPtr<GpuBuffer> GetPerViewBuffer() const { return mParamBuffer; }
+			SPtr<GpuBuffer> GetPerViewBuffer() const { return mUniformBuffer; }
 
 			/**
 			 * Returns information about visible lights, in the form of a light grid, used for forward rendering. Only valid
@@ -528,7 +528,7 @@ namespace b3d
 			SPtr<RenderSettings> mRenderSettings;
 			u32 mRenderSettingsHash;
 
-			SPtr<GpuBuffer> mParamBuffer;
+			SPtr<GpuBuffer> mUniformBuffer;
 			VisibilityInfo mVisibility;
 			LightGrid mLightGrid;
 			u32 mViewIdx;

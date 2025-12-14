@@ -48,7 +48,7 @@ namespace b3d
 					return;
 #endif
 
-				const u32 offset = CalculateSuballocationOffset(uniformBuffer, suballocationIndex, arrayIndex);
+				const u32 parameterOffset = CalculateParameterOffset(uniformBuffer, suballocationIndex, arrayIndex);
 				const GpuDataParameterTypeInformation& typeInformation = b3d::GpuParameterSet::kParamSizes.Lookup[mMemberInformation.Type];
 
 				const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
@@ -61,42 +61,29 @@ namespace b3d
 					auto transposed = TransposePolicy<T>::Transpose(value);
 	
 					if(isWriteCached)
-						uniformBuffer->WriteCachedType(offset, typeInformation, &transposed);
+						uniformBuffer->WriteCachedType(parameterOffset, typeInformation, &transposed);
 					else
-						uniformBuffer->WriteTyped(offset, typeInformation, &transposed);
+						uniformBuffer->WriteTyped(parameterOffset, typeInformation, &transposed);
 				}
 				else
 				{
 					if(isWriteCached)
-						uniformBuffer->WriteCachedType(offset, typeInformation, &value);
+						uniformBuffer->WriteCachedType(parameterOffset, typeInformation, &value);
 					else
-						uniformBuffer->WriteTyped(offset, typeInformation, &value);
+						uniformBuffer->WriteTyped(parameterOffset, typeInformation, &value);
 				}
-			}
-
-			/**
-			 * Sets parameter value in the uniform buffer in the provided pool suballocation.
-			 *
-			 * @param suballocation		Buffer suballocation handle.
-			 * @param value				Value to set.
-			 * @param arrayIndex		Index in the array to set the value for (if the parameter is an array).
-			 */
-			void Set(const GpuBufferSuballocation& suballocation, const T& value, u32 arrayIndex = 0) const
-			{
-				B3D_ASSERT(suballocation.IsValid());
-
-				// Delegate to existing method with extracted buffer and index
-				Set(suballocation.GetBuffer(), value, arrayIndex, suballocation.GetSuballocationIndex());
 			}
 
 			/**
 			 * Sets parameter value directly to mapped memory via a GpuMappedRegion.
 			 *
-			 * @param mappedRegion		Active mapping containing the mapped memory pointer of the buffer in which to set the value.
-			 * @param value				Value to set.
-			 * @param arrayIndex		Index in the array (if parameter is an array).
+			 * @param mappedRegion			Active mapping containing the mapped memory pointer of the buffer in which to set the value.
+			 * @param value					Value to set.
+			 * @param arrayIndex			Index in the array (if parameter is an array).
+			 * @param suballocationIndex	Index of the sub-allocation in the uniform buffer to set the value for, if the buffer contains multiple sub-allocated buffers.
+			 *								Mapped region is assumed to point to the start of the buffer (i.e. first suballocation).
 			 */
-			void Set(const GpuBufferMappedScope& mappedRegion, const T& value, u32 arrayIndex = 0) const
+			void Set(const GpuBufferMappedScope& mappedRegion, const T& value, u32 arrayIndex = 0, u32 suballocationIndex = 0) const
 			{
 				B3D_ASSERT(mappedRegion.IsValid());
 
@@ -105,7 +92,7 @@ namespace b3d
 					return;
 #endif
 
-				const u32 parameterOffset = (mMemberInformation.CpuOffset + arrayIndex * mMemberInformation.ArrayElementStride) * sizeof(u32);
+				const u32 parameterOffset = CalculateParameterOffset(mappedRegion.GetBuffer(), suballocationIndex, arrayIndex);
 				const GpuDataParameterTypeInformation& typeInformation = b3d::GpuParameterSet::kParamSizes.Lookup[mMemberInformation.Type];
 
 				const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
@@ -128,15 +115,17 @@ namespace b3d
 			 *
 			 * @param mappedRegion			Active mapping containing the mapped memory pointer of the buffer from which to get the value.
 			 * @param arrayIndex			Index in the array to get the value for (if the parameter is an array).
+			 * @param suballocationIndex	Index of the sub-allocation in the uniform buffer to get the value for, if the buffer contains multiple sub-allocated buffers.
+			 *								Mapped region is assumed to point to the start of the buffer (i.e. first suballocation).
 			 */
-			T Get(const GpuBufferMappedScope& mappedRegion, u32 arrayIndex = 0) const
+			T Get(const GpuBufferMappedScope& mappedRegion, u32 arrayIndex = 0, u32 suballocationIndex = 0) const
 			{
 #if B3D_DEBUG
 				if(!B3D_ENSURE(arrayIndex < mMemberInformation.ArraySize))
 					return T();
 #endif
 
-				const u32 parameterOffset = (mMemberInformation.CpuOffset + arrayIndex * mMemberInformation.ArrayElementStride) * sizeof(u32);
+				const u32 parameterOffset = CalculateParameterOffset(mappedRegion.GetBuffer(), suballocationIndex, arrayIndex);
 				const GpuDataParameterTypeInformation& typeInformation = b3d::GpuParameterSet::kParamSizes.Lookup[mMemberInformation.Type];
 
 				const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
@@ -156,7 +145,7 @@ namespace b3d
 
 		protected:
 			/** Calculates the byte offset for a parameter accounting for sub-allocations and array indices. */
-			u32 CalculateSuballocationOffset(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex, u32 arrayIndex) const
+			u32 CalculateParameterOffset(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex, u32 arrayIndex) const
 			{
 				// Calculate base parameter offset within a single uniform block
 				const u32 parameterOffset = (mMemberInformation.CpuOffset + arrayIndex * mMemberInformation.ArrayElementStride) * sizeof(u32);

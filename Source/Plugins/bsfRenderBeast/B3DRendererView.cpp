@@ -64,13 +64,13 @@ RendererViewProperties::RendererViewProperties(const RendererViewCreateInformati
 RendererView::RendererView()
 	: mCamera(nullptr), mRenderSettingsHash(0), mViewIdx(-1)
 {
-	mParamBuffer = gPerCameraUniformDefinition.CreateBuffer();
+	mUniformBuffer = gPerCameraUniformDefinition.CreateBuffer();
 }
 
 RendererView::RendererView(const RendererViewCreateInformation& desc)
 	: mProperties(desc), mCamera(desc.SceneCamera), mRenderSettingsHash(0), mViewIdx(-1)
 {
-	mParamBuffer = gPerCameraUniformDefinition.CreateBuffer();
+	mUniformBuffer = gPerCameraUniformDefinition.CreateBuffer();
 	mProperties.PrevViewProjTransform = mProperties.ViewProjTransform;
 
 	SetStateReductionMode(desc.StateReduction);
@@ -246,13 +246,6 @@ void RendererView::BeginFrame(const FrameInfo& frameInfo)
 
 	if(perViewBufferDirty)
 		UpdatePerViewBuffer();
-
-	// Note: inverse view-projection can be cached, it doesn't change every frame
-	Matrix4 viewProj = mProperties.ProjTransform * mProperties.ViewTransform;
-	Matrix4 invViewProj = viewProj.Inverse();
-	Matrix4 NDCToPrevNDC = mProperties.PrevViewProjTransform * invViewProj;
-
-	gPerCameraUniformDefinition.gNDCToPrevNDC.Set(mParamBuffer, NDCToPrevNDC);
 
 	mFrameTimings = frameInfo.Timings;
 	mAsyncAnim = frameInfo.IsUsingAsynchronousAnimation;
@@ -786,17 +779,19 @@ Matrix4 InvertProjectionMatrix(const Matrix4& mat)
 
 void RendererView::UpdatePerViewBuffer()
 {
+	GpuBufferMappedScope uniforms = mUniformBuffer->Map2(GpuMapOption::Write);
+
 	Matrix4 viewProj = mProperties.ProjTransform * mProperties.ViewTransform;
 	Matrix4 invProj = InvertProjectionMatrix(mProperties.ProjTransform);
 	Matrix4 invView = mProperties.ViewTransform.InverseAffine();
 	Matrix4 invViewProj = invView * invProj;
 
-	gPerCameraUniformDefinition.gMatProj.Set(mParamBuffer, mProperties.ProjTransform);
-	gPerCameraUniformDefinition.gMatView.Set(mParamBuffer, mProperties.ViewTransform);
-	gPerCameraUniformDefinition.gMatViewProj.Set(mParamBuffer, viewProj);
-	gPerCameraUniformDefinition.gMatInvViewProj.Set(mParamBuffer, invViewProj);
-	gPerCameraUniformDefinition.gMatInvProj.Set(mParamBuffer, invProj);
-	gPerCameraUniformDefinition.gMatPrevViewProj.Set(mParamBuffer, mProperties.PrevViewProjTransform);
+	gPerCameraUniformDefinition.gMatProj.Set(uniforms, mProperties.ProjTransform);
+	gPerCameraUniformDefinition.gMatView.Set(uniforms, mProperties.ViewTransform);
+	gPerCameraUniformDefinition.gMatViewProj.Set(uniforms, viewProj);
+	gPerCameraUniformDefinition.gMatInvViewProj.Set(uniforms, invViewProj);
+	gPerCameraUniformDefinition.gMatInvProj.Set(uniforms, invProj);
+	gPerCameraUniformDefinition.gMatPrevViewProj.Set(uniforms, mProperties.PrevViewProjTransform);
 
 	// Construct a special inverse view-projection matrix that had projection entries that effect z and w eliminated.
 	// Used to transform a vector(clip_x, clip_y, view_z, view_w), where clip_x/clip_y are in clip space, and
@@ -811,16 +806,16 @@ void RendererView::UpdatePerViewBuffer()
 
 	Matrix4 NDCToPrevNDC = mProperties.PrevViewProjTransform * invViewProj;
 
-	gPerCameraUniformDefinition.gMatScreenToWorld.Set(mParamBuffer, invViewProj * projZ);
-	gPerCameraUniformDefinition.gNDCToPrevNDC.Set(mParamBuffer, NDCToPrevNDC);
-	gPerCameraUniformDefinition.gViewDir.Set(mParamBuffer, mProperties.ViewDirection);
-	gPerCameraUniformDefinition.gViewOrigin.Set(mParamBuffer, mProperties.ViewOrigin);
-	gPerCameraUniformDefinition.gDeviceZToWorldZ.Set(mParamBuffer, GetDeviceZToViewZ(mProperties.ProjTransform));
-	gPerCameraUniformDefinition.gNDCZToWorldZ.Set(mParamBuffer, GetNdczToViewZ(mProperties.ProjTransform));
-	gPerCameraUniformDefinition.gNDCZToDeviceZ.Set(mParamBuffer, GetNdczToDeviceZ());
+	gPerCameraUniformDefinition.gMatScreenToWorld.Set(uniforms, invViewProj * projZ);
+	gPerCameraUniformDefinition.gNDCToPrevNDC.Set(uniforms, NDCToPrevNDC);
+	gPerCameraUniformDefinition.gViewDir.Set(uniforms, mProperties.ViewDirection);
+	gPerCameraUniformDefinition.gViewOrigin.Set(uniforms, mProperties.ViewOrigin);
+	gPerCameraUniformDefinition.gDeviceZToWorldZ.Set(uniforms, GetDeviceZToViewZ(mProperties.ProjTransform));
+	gPerCameraUniformDefinition.gNDCZToWorldZ.Set(uniforms, GetNdczToViewZ(mProperties.ProjTransform));
+	gPerCameraUniformDefinition.gNDCZToDeviceZ.Set(uniforms, GetNdczToDeviceZ());
 
 	Vector2 nearFar(mProperties.NearPlane, mProperties.FarPlane);
-	gPerCameraUniformDefinition.gNearFar.Set(mParamBuffer, nearFar);
+	gPerCameraUniformDefinition.gNearFar.Set(uniforms, nearFar);
 
 	const Area2I& viewRect = mProperties.Target.ViewRect;
 
@@ -830,22 +825,22 @@ void RendererView::UpdatePerViewBuffer()
 	viewportRect[2] = viewRect.Width;
 	viewportRect[3] = viewRect.Height;
 
-	gPerCameraUniformDefinition.gViewportRectangle.Set(mParamBuffer, viewportRect);
+	gPerCameraUniformDefinition.gViewportRectangle.Set(uniforms, viewportRect);
 
 	Vector4 ndcToUV = GetNdcToUv();
-	gPerCameraUniformDefinition.gClipToUVScaleOffset.Set(mParamBuffer, ndcToUV);
+	gPerCameraUniformDefinition.gClipToUVScaleOffset.Set(uniforms, ndcToUV);
 
 	Vector4 uvToNDC(
 		1.0f / ndcToUV.X,
 		1.0f / ndcToUV.Y,
 		-ndcToUV.Z / ndcToUV.X,
 		-ndcToUV.W / ndcToUV.Y);
-	gPerCameraUniformDefinition.gUVToClipScaleOffset.Set(mParamBuffer, uvToNDC);
+	gPerCameraUniformDefinition.gUVToClipScaleOffset.Set(uniforms, uvToNDC);
 
 	if(!mRenderSettings->EnableLighting)
-		gPerCameraUniformDefinition.gAmbientFactor.Set(mParamBuffer, 100.0f);
+		gPerCameraUniformDefinition.gAmbientFactor.Set(uniforms, 100.0f);
 	else
-		gPerCameraUniformDefinition.gAmbientFactor.Set(mParamBuffer, 0.0f);
+		gPerCameraUniformDefinition.gAmbientFactor.Set(uniforms, 0.0f);
 }
 
 Vector4 RendererView::GetNdcToUv() const

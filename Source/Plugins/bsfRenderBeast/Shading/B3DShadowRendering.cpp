@@ -1155,22 +1155,25 @@ namespace b3d
 				batchRenderingInfo.UniformBufferSuballocationSize = shadowOmniParamBuffer->GetSuballocationSize();
 				batchRenderingInfo.VertexUniformBufferSuballocationSize = shadowProjectVertBuffer->GetSuballocationSize();
 
+				GpuBufferMappedScope omnidirectionalShadowUniforms = shadowOmniParamBuffer->Map2(GpuMapOption::Write);
+				GpuBufferMappedScope shadowProjectVertexUniforms =shadowProjectVertBuffer->Map2(GpuMapOption::Write); 
+
 				for(u32 visibleShadowIndex = 0; visibleShadowIndex < (u32)shadowInfos.Size(); ++visibleShadowIndex)
 				{
 					const ShadowInfo& shadowInfo = *shadowInfos[visibleShadowIndex];
 
 					for(u32 faceIndex = 0; faceIndex < 6; faceIndex++)
-						gShadowProjectOmniUniformDefinition.gFaceVPMatrices.Set(shadowOmniParamBuffer, shadowInfo.ShadowVpTransforms[faceIndex], faceIndex, visibleShadowIndex);
+						gShadowProjectOmniUniformDefinition.gFaceVPMatrices.Set(omnidirectionalShadowUniforms, shadowInfo.ShadowVpTransforms[faceIndex], faceIndex, visibleShadowIndex);
 
-					gShadowProjectOmniUniformDefinition.gDepthBias.Set(shadowOmniParamBuffer, shadowInfo.DepthBias, 0, visibleShadowIndex);
-					gShadowProjectOmniUniformDefinition.gFadePercent.Set(shadowOmniParamBuffer, shadowInfo.FadePerView[viewIndex], 0, visibleShadowIndex);
-					gShadowProjectOmniUniformDefinition.gInvResolution.Set(shadowOmniParamBuffer, 1.0f / shadowInfo.Area.Width, 0, visibleShadowIndex);
+					gShadowProjectOmniUniformDefinition.gDepthBias.Set(omnidirectionalShadowUniforms, shadowInfo.DepthBias, 0, visibleShadowIndex);
+					gShadowProjectOmniUniformDefinition.gFadePercent.Set(omnidirectionalShadowUniforms, shadowInfo.FadePerView[viewIndex], 0, visibleShadowIndex);
+					gShadowProjectOmniUniformDefinition.gInvResolution.Set(omnidirectionalShadowUniforms, 1.0f / shadowInfo.Area.Width, 0, visibleShadowIndex);
 
 					Vector4 lightPosAndRadius(lightTransform.GetPosition(), light->GetAttenuationRadius());
-					gShadowProjectOmniUniformDefinition.gLightPosAndRadius.Set(shadowOmniParamBuffer, lightPosAndRadius, 0, visibleShadowIndex);
+					gShadowProjectOmniUniformDefinition.gLightPosAndRadius.Set(omnidirectionalShadowUniforms, lightPosAndRadius, 0, visibleShadowIndex);
 
 					Vector4 lightPosAndScale(lightTransform.GetPosition(), light->GetAttenuationRadius());
-					gShadowProjectVertUniformDefinition.gPositionAndScale.Set(shadowProjectVertBuffer, lightPosAndScale, 0, visibleShadowIndex);
+					gShadowProjectVertUniformDefinition.gPositionAndScale.Set(shadowProjectVertexUniforms, lightPosAndScale, 0, visibleShadowIndex);
 
 					// Reduce shadow quality based on shadow map resolution for spot lights
 					u32 effectiveShadowQuality = GetShadowQuality(shadowQuality, shadowInfo.Area.Width, 2);
@@ -1238,6 +1241,9 @@ namespace b3d
 				batchRenderingInfo.UniformBufferSuballocationSize = shadowParamBuffer->GetSuballocationSize();
 				batchRenderingInfo.VertexUniformBufferSuballocationSize = shadowProjectVertBuffer->GetSuballocationSize();
 
+				GpuBufferMappedScope shadowUniforms = shadowParamBuffer->Map2(GpuMapOption::Write);
+				GpuBufferMappedScope shadowProjectVertexUniforms =shadowProjectVertBuffer->Map2(GpuMapOption::Write); 
+
 				for(u32 shadowIndex = 0; shadowIndex < (u32)shadowInfos.size(); ++shadowIndex)
 				{
 					const ShadowInfo* shadowInfo = shadowInfos[shadowIndex];
@@ -1276,23 +1282,23 @@ namespace b3d
 					Vector2 shadowMapSize((float)shadowMapProps.Width, (float)shadowMapProps.Height);
 					float transitionScale = GetFadeTransition(*light, shadowInfo->SubjectBounds.Radius, shadowInfo->DepthRange, shadowInfo->Area.Width);
 
-					gShadowProjectUniformDefinition.gFadePlaneDepth.Set(shadowParamBuffer, shadowInfo->DepthFade, 0, shadowIndex);
-					gShadowProjectUniformDefinition.gMixedToShadowSpace.Set(shadowParamBuffer, mixedToShadowUV, 0, shadowIndex);
-					gShadowProjectUniformDefinition.gShadowMapSize.Set(shadowParamBuffer, shadowMapSize, 0, shadowIndex);
-					gShadowProjectUniformDefinition.gShadowMapSizeInv.Set(shadowParamBuffer, 1.0f / shadowMapSize, 0, shadowIndex);
-					gShadowProjectUniformDefinition.gSoftTransitionScale.Set(shadowParamBuffer, transitionScale, 0, shadowIndex);
+					gShadowProjectUniformDefinition.gFadePlaneDepth.Set(shadowUniforms, shadowInfo->DepthFade, 0, shadowIndex);
+					gShadowProjectUniformDefinition.gMixedToShadowSpace.Set(shadowUniforms, mixedToShadowUV, 0, shadowIndex);
+					gShadowProjectUniformDefinition.gShadowMapSize.Set(shadowUniforms, shadowMapSize, 0, shadowIndex);
+					gShadowProjectUniformDefinition.gShadowMapSizeInv.Set(shadowUniforms, 1.0f / shadowMapSize, 0, shadowIndex);
+					gShadowProjectUniformDefinition.gSoftTransitionScale.Set(shadowUniforms, transitionScale, 0, shadowIndex);
 
 					if(isCSM)
-						gShadowProjectUniformDefinition.gFadePercent.Set(shadowParamBuffer, 1.0f, 0, shadowIndex);
+						gShadowProjectUniformDefinition.gFadePercent.Set(shadowUniforms, 1.0f, 0, shadowIndex);
 					else
-						gShadowProjectUniformDefinition.gFadePercent.Set(shadowParamBuffer, shadowInfo->FadePerView[viewIndex], 0, shadowIndex);
+						gShadowProjectUniformDefinition.gFadePercent.Set(shadowUniforms, shadowInfo->FadePerView[viewIndex], 0, shadowIndex);
 
 					if(shadowInfo->FadeRange == 0.0f)
-						gShadowProjectUniformDefinition.gInvFadePlaneRange.Set(shadowParamBuffer, 0.0f, 0, shadowIndex);
+						gShadowProjectUniformDefinition.gInvFadePlaneRange.Set(shadowUniforms, 0.0f, 0, shadowIndex);
 					else
-						gShadowProjectUniformDefinition.gInvFadePlaneRange.Set(shadowParamBuffer, 1.0f / shadowInfo->FadeRange, 0, shadowIndex);
+						gShadowProjectUniformDefinition.gInvFadePlaneRange.Set(shadowUniforms, 1.0f / shadowInfo->FadeRange, 0, shadowIndex);
 
-					gShadowProjectVertUniformDefinition.gPositionAndScale.Set(shadowProjectVertBuffer, Vector4(0.0f, 0.0f, 0.0f, 1.0f), 0, shadowIndex);
+					gShadowProjectVertUniformDefinition.gPositionAndScale.Set(shadowProjectVertexUniforms, Vector4(0.0f, 0.0f, 0.0f, 1.0f), 0, shadowIndex);
 
 					ProjectedShadowRenderingInformation shadowRenderingInfo;
 					shadowRenderingInfo.ShadowInfo = shadowInfo;
@@ -1338,7 +1344,7 @@ namespace b3d
 					const SPtr<GpuPipelineParameterSetLayout>& stencilPipelineParameterSetLayout = shadowRenderingInfo.StencilGpuParameters->GetLayout();
 					shadowRenderingInfo.StencilVertexUniformBufferDynamicIndex = stencilPipelineParameterSetLayout->GetDynamicOffsetIndex("VertParams");
 
-					gShadowProjectUniformDefinition.gFace.Set(shadowParamBuffer, (float)shadowMapFace, 0, shadowIndex);
+					gShadowProjectUniformDefinition.gFace.Set(shadowUniforms, (float)shadowMapFace, 0, shadowIndex);
 
 					ShadowProjectMaterial* const primaryMaterial = ShadowProjectMaterial::GetVariation(effectiveShadowQuality, isCSM, viewProperties.Target.NumSamples > 1);
 

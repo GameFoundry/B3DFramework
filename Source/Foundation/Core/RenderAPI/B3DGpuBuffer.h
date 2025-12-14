@@ -457,6 +457,7 @@ namespace b3d::render
 
 		void* GetMappedMemory() const { return mMappedMemory; }
 		const GpuBufferSuballocation& GetSuballocation() const { return mSuballocation; }
+		const SPtr<GpuBuffer>& GetBuffer() const { return mSuballocation.GetBuffer(); }
 		bool IsValid() const { return mMappedMemory != nullptr; }
 		explicit operator bool() const { return IsValid(); }
 

@@ -64,11 +64,13 @@ void RendererLight::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index) co
 		break;
 	}
 
-	gPerLightUniformDefinition.gLightPositionAndSrcRadius.Set(buffer, Vector4(lightData.Position, lightData.SrcRadius), 0, index);
-	gPerLightUniformDefinition.gLightColorAndLuminance.Set(buffer, Vector4(lightData.Color, lightData.Luminance), 0, index);
-	gPerLightUniformDefinition.gLightSpotAnglesAndSqrdInvAttRadius.Set(buffer, Vector4(lightData.SpotAngles, lightData.AttRadiusSqrdInv), 0, index);
-	gPerLightUniformDefinition.gLightDirectionAndBoundRadius.Set(buffer, Vector4(lightData.Direction, lightData.BoundsRadius), 0, index);
-	gPerLightUniformDefinition.gShiftedLightPositionAndType.Set(buffer, Vector4(lightData.ShiftedLightPosition, type), 0, index);
+	GpuBufferMappedScope uniforms = buffer->Map2(GpuMapOption::Write);
+
+	gPerLightUniformDefinition.gLightPositionAndSrcRadius.Set(uniforms, Vector4(lightData.Position, lightData.SrcRadius), 0, index);
+	gPerLightUniformDefinition.gLightColorAndLuminance.Set(uniforms, Vector4(lightData.Color, lightData.Luminance), 0, index);
+	gPerLightUniformDefinition.gLightSpotAnglesAndSqrdInvAttRadius.Set(uniforms, Vector4(lightData.SpotAngles, lightData.AttRadiusSqrdInv), 0, index);
+	gPerLightUniformDefinition.gLightDirectionAndBoundRadius.Set(uniforms, Vector4(lightData.Direction, lightData.BoundsRadius), 0, index);
+	gPerLightUniformDefinition.gShiftedLightPositionAndType.Set(uniforms, Vector4(lightData.ShiftedLightPosition, type), 0, index);
 
 	Vector4 lightGeometry;
 	lightGeometry.X = Internal->GetType() == LightType::Spot ? (float)Light::kLightConeNumSides : 0;
@@ -79,7 +81,7 @@ void RendererLight::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index) co
 	float coneRadius = Math::Sin(lightData.SpotAngles.X) * (Internal->GetAttenuationRadius() + extraRadius);
 	lightGeometry.W = coneRadius;
 
-	gPerLightUniformDefinition.gLightGeometry.Set(buffer, lightGeometry, 0, index);
+	gPerLightUniformDefinition.gLightGeometry.Set(uniforms, lightGeometry, 0, index);
 
 	const Transform& tfrm = Internal->GetWorldTransform();
 
@@ -87,7 +89,7 @@ void RendererLight::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index) co
 	lightRotation.LookRotation(-tfrm.GetRotation().ZAxis());
 
 	Matrix4 transform = Matrix4::TRS(lightData.ShiftedLightPosition, lightRotation, Vector3::kOne);
-	gPerLightUniformDefinition.gMatConeTransform.Set(buffer, transform, 0, index);
+	gPerLightUniformDefinition.gMatConeTransform.Set(uniforms, transform, 0, index);
 }
 
 Vector3 RendererLight::GetShiftedLightPosition() const
