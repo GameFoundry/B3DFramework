@@ -200,7 +200,10 @@ uniformBlock.MatrixWorldViewProjection = CalculateWorldViewProjectionMatrix();
 uniformBlock.Tint = Color(1.0f, 1.0f, 1.0f, 0.5f);
 
 SPtr<GpuBuffer> uniformBuffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(sizeof(UniformBlock)));
-uniformBuffer->WriteCached(0, sizeof(uniformBlock), &uniformBlock);
+{
+	GpuBufferMappedScope mappedScope = uniformBuffer->Map(GpuMapOption::Write);
+	memcpy(mappedScope.GetMappedMemory(), &uniformBlock, sizeof(uniformBlock));
+}
 
 parameterSet->SetUniformBuffer("Params", uniformBuffer);
 ~~~~~~~~~~~~~

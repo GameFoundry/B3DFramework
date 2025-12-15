@@ -19,16 +19,18 @@ SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(createInformation);
 ~~~~~~~~~~~~~
 
 Once the vertex buffer is created you will want to populate it with some data. For this you can use any of the following methods:
- - @b3d::render::GpuBuffer::Lock - Locks a specific region of the vertex buffer and returns a pointer you can then use for reading and writing. Make sure to specify valid a @b3d::GpuLockOptions signaling whether you are planning on reading or writing from the buffer. Once done call @b3d::render::GpuBuffer::Unlock to make the locked region accessible to the GPU again.
- - @b3d::render::GpuBuffer::WriteData - Writes an entire block of memory at once.
+ - @b3d::render::GpuBuffer::Map - Maps a specific region of the vertex buffer and returns a @b3d::render::GpuBufferMappedScope RAII wrapper containing a pointer you can use for reading and writing. The buffer is automatically flushed when the scope exits.
+ - @b3d::render::GpuBuffer::Write - Writes an entire block of memory at once.
 
 ~~~~~~~~~~~~~{.cpp}
-// Fill out a vertex buffer using lock/unlock approach
-Vector3* positions = (Vector3*)vertexBuffer->Lock(0, sizeof(Vector3) * 8, GBL_WRITE_ONLY_DISCARD);
-positions[0] = Vector3(0, 0, 0);
-positions[1] = Vector3(10, 0, 0);
-// ... assign other 6 positions
-vertexBuffer->Unlock();
+// Fill out a vertex buffer using Map approach
+{
+	GpuBufferMappedScope mappedScope = vertexBuffer->Map(0, sizeof(Vector3) * 8, GpuMapOption::Write);
+	Vector3* positions = static_cast<Vector3*>(mappedScope.GetMappedMemory());
+	positions[0] = Vector3(0, 0, 0);
+	positions[1] = Vector3(10, 0, 0);
+	// ... assign other 6 positions
+} // Automatically flushes on scope exit
 ~~~~~~~~~~~~~
 
 Once a vertex buffer is created and populated with data, you can bind it to the pipeline by calling @b3d::render::GpuCommandBuffer::SetVertexBuffers. You can bind one or multiple vertex buffers at once. If binding multiple vertex buffers they must all share the same vertex count, but each may contain different vertex properties (e.g. one might contain just positions and UV, while another might contain tangents and normals).

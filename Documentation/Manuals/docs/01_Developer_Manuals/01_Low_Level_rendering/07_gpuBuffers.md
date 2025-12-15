@@ -37,22 +37,23 @@ SPtr<render::GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(createInformation);
 
 # Reading/writing
 You can read from or write to a GPU buffer using methods provided by **render::GpuBuffer**:
-- @b3d::render::GpuBuffer::WriteData - Writes data from CPU memory into the buffer. If the buffer is not CPU-accessible, a staging buffer will be used internally.
-- @b3d::render::GpuBuffer::ReadData - Reads data from the buffer into CPU memory. If the buffer is not CPU-accessible, a staging buffer will be used internally.
-- @b3d::render::GpuBuffer::Lock / @b3d::render::GpuBuffer::Unlock - Lock a portion of the buffer for direct CPU access. Only available on buffers that are CPU-accessible.
+- @b3d::render::GpuBuffer::Write - Writes data from CPU memory into the buffer. The buffer must be CPU-accessible.
+- @b3d::render::GpuBuffer::Read - Reads data from the buffer into CPU memory. The buffer must be CPU-accessible.
+- @b3d::render::GpuBuffer::Map - Maps a region of the buffer for direct CPU access. Returns a @b3d::render::GpuBufferMappedScope RAII wrapper that automatically handles flushing on destruction.
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<render::GpuBuffer> buffer = ...;
 
-// Write data to buffer
+// Write data to buffer directly
 MyData data[32];
 // ... populate data
-buffer->WriteData(0, sizeof(data), data, BWT_NORMAL);
+buffer->Write(0, sizeof(data), data);
 
-// Or lock for direct access (only if buffer is CPU-accessible)
-void* lockedData = buffer->Lock(0, sizeof(data), GBL_WRITE_ONLY);
-memcpy(lockedData, data, sizeof(data));
-buffer->Unlock();
+// Or map for direct access (returns RAII scope that auto-flushes)
+{
+	GpuBufferMappedScope mappedScope = buffer->Map(0, sizeof(data), GpuMapOption::Write);
+	memcpy(mappedScope.GetMappedMemory(), data, sizeof(data));
+} // Automatically flushes on scope exit
 ~~~~~~~~~~~~~
 
 # Binding
