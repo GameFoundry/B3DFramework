@@ -935,7 +935,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 	u32 curentBlockIndex = ~0u;
 
 	// Helper to finalize previous buffer (flush staging + queue copy if needed)
-	auto fnFinalizePreviousBuffer = [&stagingBuffer, currentUniformBufferInfo, &mappedScope]()
+	auto fnFinalizePreviousBuffer = [&stagingBuffer, &currentUniformBufferInfo, &mappedScope]()
 	{
 		if constexpr(IsRenderProxy)
 		{
