@@ -495,6 +495,27 @@ namespace b3d
 			 */
 			void WriteData(const PixelData& source, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
 
+			/**
+			 * Flushes CPU writes to the specified subresource to make them visible to the GPU.
+			 * Only relevant for directly mappable textures with non-coherent memory.
+			 *
+			 * @param face      Texture face to flush.
+			 * @param mipLevel  Mipmap level to flush.
+			 */
+			virtual void Flush(u32 face, u32 mipLevel) {}
+
+			/**
+			 * Invalidates GPU writes to the specified subresource to make them visible to the CPU.
+			 * Only relevant for directly mappable textures with non-coherent memory.
+			 *
+			 * @param face      Texture face to invalidate.
+			 * @param mipLevel  Mipmap level to invalidate.
+			 */
+			virtual void Invalidate(u32 face, u32 mipLevel) {}
+
+			/** Returns a pointer to persistently mapped memory, or nullptr if not mappable. */
+			void* GetMappedMemory() const { return mMappedMemory; }
+
 			/**	Returns properties that contain information about the texture. */
 			const TextureProperties& GetProperties() const { return mProperties; }
 

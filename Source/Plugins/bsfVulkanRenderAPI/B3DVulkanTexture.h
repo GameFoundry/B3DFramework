@@ -283,6 +283,8 @@ namespace b3d
 			PixelFormat GetInternalFormat() const { return mInternalFormat; }
 
 			void SetName(const StringView& name) override;
+			void Flush(u32 face, u32 mipLevel) override;
+			void Invalidate(u32 face, u32 mipLevel) override;
 
 		protected:
 			friend class VulkanGpuDevice;

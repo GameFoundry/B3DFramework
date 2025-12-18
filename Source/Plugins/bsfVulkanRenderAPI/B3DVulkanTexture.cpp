@@ -819,6 +819,7 @@ void VulkanTexture::Initialize()
 
 	mInternalFormat = VulkanUtility::GetClosestSupportedPixelFormat(mGpuDevice, props.Format, props.Type, props.Usage, optimalTiling, props.UseHardwareSRGB);
 	mImage = CreateImage(mInternalFormat);
+	mMappedMemory = mImage->GetMappedMemory();
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Texture);
 	Texture::Initialize();
@@ -830,6 +831,24 @@ void VulkanTexture::SetName(const StringView& name)
 
 	if(mImage != nullptr)
 		mImage->SetName(name);
+}
+
+void VulkanTexture::Flush(u32 face, u32 mipLevel)
+{
+	if(mImage == nullptr || !mDirectlyMappable)
+		return;
+
+	VkSubresourceLayout layout = mImage->GetSubresourceLayout(face, mipLevel);
+	mImage->Flush(layout.offset, layout.size);
+}
+
+void VulkanTexture::Invalidate(u32 face, u32 mipLevel)
+{
+	if(mImage == nullptr || !mDirectlyMappable)
+		return;
+
+	VkSubresourceLayout layout = mImage->GetSubresourceLayout(face, mipLevel);
+	mImage->Invalidate(layout.offset, layout.size);
 }
 
 VulkanImage* VulkanTexture::CreateImage(PixelFormat format)
@@ -846,6 +865,7 @@ VulkanImage* VulkanTexture::CreateImage(PixelFormat format)
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	VulkanAllocationResult allocation = mGpuDevice.AllocateMemory(image, memoryUsage);
+
 	VulkanImage *const vulkanImage = mGpuDevice.GetResourceManager().Create<VulkanImage>(image, allocation, mImageCreateInformation.initialLayout, mImageCreateInformation.format, GetProperties());
 	vulkanImage->SetName(mName);
 
@@ -1310,6 +1330,7 @@ PixelData VulkanTexture::LockInternal(GpuLockOptions options, u32 mipLevel, u32 
 		mImage->Destroy();
 
 		mImage = CreateImage(mInternalFormat);
+		mMappedMemory = mImage->GetMappedMemory();
 		mImage->Map(face, mipLevel, lockedArea);
 
 		return lockedArea;
@@ -1576,6 +1597,7 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 			VulkanImage* const newImage = CreateImage(mInternalFormat);
 			mImage->Destroy();
 			mImage = newImage;
+			mMappedMemory = mImage->GetMappedMemory();
 			
 		}
 	}
