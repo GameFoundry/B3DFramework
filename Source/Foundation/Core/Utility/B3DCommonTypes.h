@@ -143,38 +143,6 @@ namespace b3d
 		IT_32BIT B3D_SCRIPT_EXPORT(ExportName(Index32)) /**< 32-bit indices. */
 	};
 
-	/** These values represent a hint to the driver when locking a hardware buffer. */
-	enum GpuLockOptions
-	{
-		/**
-		 * Allows you to write to the buffer. Can cause a CPU-GPU sync point so avoid using it often (every frame) as
-		 * that might limit your performance significantly.
-		 */
-		GBL_READ_WRITE,
-		/**
-		 * Allows you to write to the buffer. Tells the driver to completely discard the contents of the buffer you are
-		 * writing to. The driver will (most likely) internally allocate another buffer with same specifications (which is
-		 * fairly fast) and you will avoid CPU-GPU stalls.
-		 */
-		GBL_WRITE_ONLY_DISCARD,
-		/**
-		 * Allows you to write to the buffer. Tells the driver to discard the contents of the mapped buffer range (but
-		 * not the entire buffer like with GBL_WRITE_ONLY_DISCARD). Use this if you plan on overwriting all of the
-		 * range. This can help avoid CPU-GPU stalls.
-		 */
-		GBL_WRITE_ONLY_DISCARD_RANGE,
-		/**  Allows you to read from a buffer. Be aware that reading is usually a very slow operation. */
-		GBL_READ_ONLY,
-		/**
-		 * Allows you to write to the buffer. Guarantees the driver that you will not be updating any part of the buffer
-		 * that is currently used. This will also avoid CPU-GPU stalls, without requiring you to discard the entire buffer.
-		 * However it is hard to guarantee when GPU has finished using a buffer.
-		 */
-		GBL_WRITE_ONLY_NO_OVERWRITE,
-		/** Allows you to write to a buffer. */
-		GBL_WRITE_ONLY
-	};
-
 	/** Types of programs that may run on GPU. */
 	enum GpuProgramType
 	{

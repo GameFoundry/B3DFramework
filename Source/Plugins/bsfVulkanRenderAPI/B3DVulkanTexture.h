@@ -192,6 +192,9 @@ namespace b3d
 			/** Converts a VkSubresourceLayout (which is in bytes) into blocks based on the provided format. */
 			static ImageSubresourcePitch ConvertSubresourceLayoutToBlocks(const VkSubresourceLayout& subresourceLayout, PixelFormat format);
 
+			/** Applies row and slice pitch from a VkSubresourceLayout to a PixelData object. */
+			static void ApplyRowAndSlicePitch(const VkSubresourceLayout& layout, PixelData& pixelData);
+
 		private:
 			/** Creates a new view of the provided part (or entirety) of surface. */
 			VulkanImageView CreateView(const TextureSurface& surface, VkFormat format, VkImageAspectFlags aspectMask, bool isPartOfFramebuffer) const;

@@ -402,27 +402,20 @@ ImageSubresourcePitch VulkanImage::ConvertSubresourceLayoutToBlocks(const VkSubr
 	return ImageSubresourcePitch(rowPitchInPixels, rowPitchInPixels != 0 ? depthPitch / rowPitchInPixels : 0);
 }
 
+void VulkanImage::ApplyRowAndSlicePitch(const VkSubresourceLayout& layout, PixelData& pixelData)
+{
+	u32 slicePitch = (u32)layout.depthPitch;
+	if(slicePitch == 0)
+		slicePitch = (u32)layout.rowPitch * pixelData.GetHeight();
+
+	pixelData.SetRowPitch((u32)layout.rowPitch);
+	pixelData.SetSlicePitch(slicePitch);
+}
+
 void VulkanImage::Map(u32 mipLevel, u32 arrayLayer, PixelData& output, bool isInvalidateRequired) const
 {
-	VulkanGpuDevice& device = mOwner->GetDevice();
-
-	VkImageSubresource range;
-	range.mipLevel = mipLevel;
-	range.arrayLayer = arrayLayer;
-
-	if(mImageViewCI.subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
-		range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	else // Depth stencil, but we only map depth
-		range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-
-	VkSubresourceLayout layout;
-	vkGetImageSubresourceLayout(device.GetLogical(), mImage, &range, &layout);
-
-	if (layout.depthPitch == 0)
-		layout.depthPitch = layout.rowPitch * output.GetHeight();
-
-	output.SetRowPitch((u32)layout.rowPitch);
-	output.SetSlicePitch((u32)layout.depthPitch);
+	VkSubresourceLayout layout = GetSubresourceLayout(arrayLayer, mipLevel);
+	ApplyRowAndSlicePitch(layout, output);
 
 	u8 *const data = Map(layout.offset, layout.size, isInvalidateRequired);
 	output.SetExternalBuffer(data);
@@ -1256,7 +1249,7 @@ render::GpuTextureMappedScope VulkanTexture::Map(u32 mipLevel, u32 arrayLayer, G
 		return GpuTextureMappedScope();
 	}
 
-	if(mImage == nullptr || !mDirectlyMappable)
+	if(mImage == nullptr || !mDirectlyMappable || mMappedMemory == nullptr)
 		return GpuTextureMappedScope();
 
 	const TextureProperties& props = GetProperties();
@@ -1307,9 +1300,18 @@ render::GpuTextureMappedScope VulkanTexture::Map(u32 mipLevel, u32 arrayLayer, G
 	const u32 mipHeight = std::max(1u, props.Height >> mipLevel);
 	const u32 mipDepth = std::max(1u, props.Depth >> mipLevel);
 
-	// Create PixelData and set up external buffer via VulkanImage::Map
+	// Get subresource layout and apply pitches
+	VkSubresourceLayout layout = mImage->GetSubresourceLayout(arrayLayer, mipLevel);
+
 	PixelData pixelData(mipWidth, mipHeight, mipDepth, mInternalFormat);
-	mImage->Map(mipLevel, arrayLayer, pixelData, isReadRequired);
+	VulkanImage::ApplyRowAndSlicePitch(layout, pixelData);
+
+	// Invalidate memory if read is required (makes GPU writes visible to CPU)
+	if(isReadRequired)
+		mImage->Invalidate(layout.offset, layout.size);
+
+	// Set external buffer to persistently mapped memory + offset
+	pixelData.SetExternalBuffer(static_cast<u8*>(mMappedMemory) + layout.offset);
 
 	return GpuTextureMappedScope(pixelData, std::static_pointer_cast<Texture>(GetShared()), GpuTextureSubresource(mipLevel, arrayLayer), options);
 }
