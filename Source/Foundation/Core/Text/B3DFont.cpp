@@ -722,7 +722,7 @@ void FontAtlasRenderer::BlitGlyphs(Vector<GlyphBitmap> glyphBitmaps)
 			blitInformation.DestinationVolume.Bottom = entry.PositionInAtlas.Y + (i32)entry.Size.Height;
 			blitInformation.DestinationVolume.Back = 1;
 
-			entry.GlyphTexture->Blit(*commandBuffer, entry.AtlasTexture, blitInformation);
+			commandBuffer->BlitTexture(entry.GlyphTexture, entry.AtlasTexture, blitInformation);
 		}
 
 		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();

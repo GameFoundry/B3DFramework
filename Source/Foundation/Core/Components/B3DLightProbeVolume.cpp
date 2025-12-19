@@ -445,7 +445,7 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 		ResizeCoefficientTexture(std::max(32U, usedProbeCount * 2));
 
 		if (oldTexture)
-			oldTexture->Copy(commandBuffer, mCoefficients);
+			commandBuffer.CopyTexture(oldTexture, mCoefficients);
 	}
 
 	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();

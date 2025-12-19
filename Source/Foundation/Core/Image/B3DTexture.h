@@ -257,6 +257,20 @@ namespace b3d
 		}
 	};
 
+	/** Contains the row pitch and slice height for an image subresource. */
+	struct ImageSubresourcePitch
+	{
+		ImageSubresourcePitch(u32 rowPitch = 0, u32 sliceHeight = 0)
+			: RowPitch(rowPitch), SliceHeight(sliceHeight)
+		{ }
+
+		/** Number of blocks before advancing to the next row. For non-compressed formats this is equal to the number of pixels. For compressed it depends on the block size. */
+		u32 RowPitch = 0;
+
+		/** Number of block columns before advancing to the next slice. For non-compressed formats this is equal to the number of pixels. For compressed it depends on the block size. */
+		u32 SliceHeight = 0;
+	};
+
 	/**
 	 * RAII wrapper returned by Texture::Map operation. Contains PixelData with mapped memory buffer.
 	 * Automatically flushes on destruction for write operations. Move-only semantics.
@@ -513,28 +527,6 @@ namespace b3d
 			virtual GpuTextureMappedScope Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options) = 0;
 
 			/**
-			 * Copies the contents a subresource in this texture to another texture. Texture format and size of the subresource
-			 * must match.
-			 *
-			 * You are allowed to copy from a multisampled to non-multisampled surface, which will resolve the multisampled
-			 * surface before copying.
-			 *
-			 * @param	commandBuffer		Command buffer to queue the copy operation on.
-			 * @param	target				Texture that contains the destination subresource.
-			 * @param	copyInformation		Structure used for customizing the copy operation.
-			 */
-			void Copy(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureCopyInformation& copyInformation = TextureCopyInformation::kDefault);
-
-			/**
-			 * Blits the contents a subresource in this texture to another texture.
-			 *
-			 * @param	commandBuffer		Command buffer to queue the blit operation on.
-			 * @param	target				Texture that contains the destination subresource.
-			 * @param	blitInformation		Structure used for customizing the copy operation.
-			 */
-			void Blit(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureBlitInformation& blitInformation = TextureBlitInformation::kDefault);
-
-			/**
 			 * Sets all the pixels of the specified face and mip level to the provided value.
 			 *
 			 * @param	value			Color to clear the pixels to.
@@ -607,6 +599,18 @@ namespace b3d
 			 */
 			virtual void Invalidate(u32 mipLevel, u32 arrayLayer) {}
 
+			/**
+			 * Returns pitch information for a particular image subresource.
+			 *
+			 * @param face		Face (array slice or cubemap face) of the subresource.
+			 * @param mipLevel	Mipmap level of the subresource.
+			 * @return			Row and slice pitch information for the subresource.
+			 */
+			virtual ImageSubresourcePitch GetPitchForSubresource(u32 face, u32 mipLevel) const = 0;
+
+			/** Recreates the underlying texture. Note this will clear all currently written data. Old texture will be released once its done being used. */
+			virtual void RecreateInternalTexture() = 0;
+
 			/** Returns a pointer to persistently mapped memory, or nullptr if not mappable. */
 			void* GetMappedMemory() const { return mMappedMemory; }
 
@@ -641,12 +645,6 @@ namespace b3d
 			static SPtr<Texture> kNormal;
 
 		protected:
-			/** @copydoc Copy */
-			virtual void CopyInternal(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureCopyInformation& copyInformation) = 0;
-
-			/** @copydoc Blit */
-			virtual void BlitInternal(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureBlitInformation& blitInformation) = 0;
-
 			/** @copydoc ReadData */
 			virtual void ReadDataInternal(PixelData& destination, u32 mipLevel = 0, u32 face = 0, const SPtr<GpuQueue>& gpuQueue = nullptr) = 0;
 
@@ -671,6 +669,32 @@ namespace b3d
 			TextureProperties mProperties;
 			SPtr<PixelData> mInitData;
 			void* mMappedMemory = nullptr;
+		};
+
+		/** Utility class for working with textures, providing helper methods for staging buffer operations and data transfer. */
+		struct B3D_EXPORT TextureUtility
+		{
+			/**
+			 * Creates a staging buffer sized appropriately for texture data transfer.
+			 *
+			 * @param device		GPU device on which to create the buffer.
+			 * @param texture		Texture for which to create the staging buffer.
+			 * @param mipLevel		Mip level of the texture subresource.
+			 * @param arrayLayer	Array layer (or cubemap face) of the texture subresource.
+			 * @param readable		True if the buffer needs to be CPU-readable (for readback), false if CPU-writeable (for upload).
+			 * @return				Newly created staging buffer sized for the specified texture subresource.
+			 */
+			static SPtr<GpuBuffer> CreateStagingBuffer(GpuDevice& device, const SPtr<Texture>& texture, u32 mipLevel, u32 arrayLayer, bool readable);
+
+			/**
+			 * Creates a staging buffer with the specified size.
+			 *
+			 * @param device		GPU device on which to create the buffer.
+			 * @param size			Size of the buffer in bytes.
+			 * @param readable		True if the buffer needs to be CPU-readable (for readback), false if CPU-writeable (for upload).
+			 * @return				Newly created staging buffer.
+			 */
+			static SPtr<GpuBuffer> CreateStagingBuffer(GpuDevice& device, u32 size, bool readable);
 		};
 
 		/** @} */

@@ -285,9 +285,6 @@ namespace b3d
 			/** Returns the internal format of the texture when used on the specified device. This may differ from the requested format if the device doesn't support it. */
 			PixelFormat GetInternalFormat() const { return mInternalFormat; }
 
-			/** Returns pitch information for a particular image subresource. */
-			ImageSubresourcePitch GetPitchForSubresource(VulkanImage* image, u32 face, u32 mipLevel) const;
-
 			/** Returns true if the buffer can be mapped by directly by the CPU. */
 			bool IsDirectlyMappable() const { return mDirectlyMappable; }
 
@@ -295,6 +292,8 @@ namespace b3d
 			GpuTextureMappedScope Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options) override;
 			void Flush(u32 mipLevel, u32 arrayLayer) override;
 			void Invalidate(u32 mipLevel, u32 arrayLayer) override;
+			void RecreateInternalTexture() override;
+			ImageSubresourcePitch GetPitchForSubresource(u32 face, u32 mipLevel) const override;
 
 		protected:
 			friend class VulkanGpuDevice;
@@ -302,8 +301,6 @@ namespace b3d
 			VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation);
 
 			void Initialize() override;
-			void CopyInternal(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureCopyInformation& copyInformation) override;
-			void BlitInternal(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureBlitInformation& blitInformation) override;
 			TAsyncOp<SPtr<PixelData>> ReadDataAsync(GpuCommandBuffer& commandBuffer, u32 mipLevel = 0, u32 face = 0) override;
 			void ReadDataInternal(PixelData& destination, u32 mipLevel = 0, u32 face = 0, const SPtr<GpuQueue>& gpuQueue = nullptr) override;
 			void WriteDataInternal(const PixelData& source, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) override;

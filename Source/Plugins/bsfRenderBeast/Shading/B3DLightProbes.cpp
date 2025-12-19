@@ -294,7 +294,7 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 		copyDesc.DestinationPosition = Vector3I(0, rowIdx, 0);
 
 		SPtr<Texture> localTexture = entry.Volume->GetCoefficientsTexture();
-		localTexture->Copy(commandBuffer, mProbeCoefficientsGPU, copyDesc);
+		commandBuffer.CopyTexture(localTexture, mProbeCoefficientsGPU, copyDesc);
 
 		rowIdx += localTexture->GetProperties().Height;
 	}
@@ -812,7 +812,7 @@ void LightProbes::ResizeCoefficientTexture(GpuCommandBuffer& commandBuffer, u32 
 
 	SPtr<Texture> newTexture = gpuDevice->CreateTexture(desc);
 	if (mProbeCoefficientsGPU)
-		mProbeCoefficientsGPU->Copy(commandBuffer, newTexture);
+		commandBuffer.CopyTexture(mProbeCoefficientsGPU, newTexture);
 
 	mProbeCoefficientsGPU = newTexture;
 	mMaxCoefficientRows = numRows;

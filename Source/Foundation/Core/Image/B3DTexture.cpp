@@ -408,160 +408,6 @@ TAsyncOp<SPtr<PixelData>> Texture::ReadDataAsync(GpuCommandBuffer& commandBuffer
 	return output;
 }
 
-void Texture::Copy(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureCopyInformation& copyInformation)
-{
-	ASSERT_IF_NOT_RENDER_THREAD;
-
-	if (copyInformation.FaceCount == 0)
-	{
-		B3D_LOG(Warning, Texture, "Copy operation failed. Face count is zero.");
-		return;
-	}
-
-	if(target->mProperties.Type != mProperties.Type)
-	{
-		B3D_LOG(Error, Texture, "Source and destination textures must be of same type.");
-		return;
-	}
-
-	if(mProperties.Format != target->mProperties.Format) // Note: It might be okay to use different formats of the same size
-	{
-		B3D_LOG(Error, Texture, "Source and destination texture formats must match.");
-		return;
-	}
-
-	if(target->mProperties.SampleCount > 1 && mProperties.SampleCount != target->mProperties.SampleCount)
-	{
-		B3D_LOG(Error, Texture, "When copying to a multisampled texture, source texture must have the same number of samples.");
-		return;
-	}
-
-	if((copyInformation.SourceFace + copyInformation.FaceCount) > mProperties.GetFaceCount())
-	{
-		B3D_LOG(Error, Texture, "Invalid source face index.");
-		return;
-	}
-
-	if((copyInformation.DestinationFace + copyInformation.FaceCount) > target->mProperties.GetFaceCount())
-	{
-		B3D_LOG(Error, Texture, "Invalid destination face index.");
-		return;
-	}
-
-	if(copyInformation.SourceMip > mProperties.MipMapCount)
-	{
-		B3D_LOG(Error, Texture, "Source mip level out of range. Valid range is [0, {0}].", mProperties.MipMapCount);
-		return;
-	}
-
-	if(copyInformation.DestinationMip > target->mProperties.MipMapCount)
-	{
-		B3D_LOG(Error, Texture, "Destination mip level out of range. Valid range is [0, {0}].", target->mProperties.MipMapCount);
-		return;
-	}
-
-	u32 srcWidth, srcHeight, srcDepth;
-	PixelUtility::GetSizeForMipLevel(
-		mProperties.Width,
-		mProperties.Height,
-		mProperties.Depth,
-		copyInformation.SourceMip,
-		srcWidth,
-		srcHeight,
-		srcDepth);
-
-	u32 dstWidth, dstHeight, dstDepth;
-	PixelUtility::GetSizeForMipLevel(
-		target->mProperties.Width,
-		target->mProperties.Height,
-		target->mProperties.Depth,
-		copyInformation.DestinationMip,
-		dstWidth,
-		dstHeight,
-		dstDepth);
-
-	if(copyInformation.DestinationPosition.X < 0 || copyInformation.DestinationPosition.X >= (i32)dstWidth ||
-	   copyInformation.DestinationPosition.Y < 0 || copyInformation.DestinationPosition.Y >= (i32)dstHeight ||
-	   copyInformation.DestinationPosition.Z < 0 || copyInformation.DestinationPosition.Z >= (i32)dstDepth)
-	{
-		B3D_LOG(Error, Texture, "Destination position falls outside the destination texture.");
-		return;
-	}
-
-	bool entireSurface = copyInformation.SourceVolume.GetWidth() == 0 ||
-		copyInformation.SourceVolume.GetHeight() == 0 ||
-		copyInformation.SourceVolume.GetDepth() == 0;
-
-	u32 dstRight = (u32)copyInformation.DestinationPosition.X;
-	u32 dstBottom = (u32)copyInformation.DestinationPosition.Y;
-	u32 dstBack = (u32)copyInformation.DestinationPosition.Z;
-	if(!entireSurface)
-	{
-		if(copyInformation.SourceVolume.Left >= srcWidth || copyInformation.SourceVolume.Right > srcWidth ||
-		   copyInformation.SourceVolume.Top >= srcHeight || copyInformation.SourceVolume.Bottom > srcHeight ||
-		   copyInformation.SourceVolume.Front >= srcDepth || copyInformation.SourceVolume.Back > srcDepth)
-		{
-			B3D_LOG(Error, Texture, "Source volume falls outside the source texture.");
-			return;
-		}
-
-		dstRight += copyInformation.SourceVolume.GetWidth();
-		dstBottom += copyInformation.SourceVolume.GetHeight();
-		dstBack += copyInformation.SourceVolume.GetDepth();
-	}
-	else
-	{
-		dstRight += srcWidth;
-		dstBottom += srcHeight;
-		dstBack += srcDepth;
-	}
-
-	if(dstRight > dstWidth || dstBottom > dstHeight || dstBack > dstDepth)
-	{
-		B3D_LOG(Error, Texture, "Destination volume falls outside the destination texture.");
-		return;
-	}
-
-	CopyInternal(commandBuffer, target, copyInformation);
-}
-
-void Texture::Blit(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureBlitInformation& blitInformation)
-{
-	ASSERT_IF_NOT_RENDER_THREAD;
-
-	if (blitInformation.FaceCount == 0)
-	{
-		B3D_LOG(Warning, Texture, "Blit operation failed. Face count is zero.");
-		return;
-	}
-
-	if((blitInformation.SourceFace + blitInformation.FaceCount) > mProperties.GetFaceCount())
-	{
-		B3D_LOG(Error, Texture, "Blit operation failed. Source face out of valid range.");
-		return;
-	}
-
-	if((blitInformation.DestinationFace + blitInformation.FaceCount) > target->mProperties.GetFaceCount())
-	{
-		B3D_LOG(Error, Texture, "Blit operation failed. Destination face out of valid range.");
-		return;
-	}
-
-	if(blitInformation.SourceMip > mProperties.MipMapCount)
-	{
-		B3D_LOG(Error, Texture, "Blit operation failed. Source mip level out of valid range. Valid range is [0, {0}].", mProperties.MipMapCount);
-		return;
-	}
-
-	if(blitInformation.DestinationMip > target->mProperties.MipMapCount)
-	{
-		B3D_LOG(Error, Texture, "Blit operation failed. Destination mip level out of range. Valid range is [0, {0}].", target->mProperties.MipMapCount);
-		return;
-	}
-
-	BlitInternal(commandBuffer, target, blitInformation);
-}
-
 void Texture::Clear(const Color& value, u32 mipLevel, u32 face, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
@@ -620,5 +466,29 @@ SPtr<TextureView> Texture::RequestView(const TextureSurface& surface, GpuViewUsa
 	}
 
 	return found->second;
+}
+
+SPtr<GpuBuffer> TextureUtility::CreateStagingBuffer(GpuDevice& device, const SPtr<Texture>& texture, u32 mipLevel, u32 arrayLayer, bool readable)
+{
+	if(!B3D_ENSURE(texture != nullptr))
+		return nullptr;
+
+	const TextureProperties& properties = texture->GetProperties();
+
+	u32 mipWidth, mipHeight, mipDepth;
+	PixelUtility::GetSizeForMipLevel(properties.Width, properties.Height, properties.Depth, mipLevel, mipWidth, mipHeight, mipDepth);
+
+	const u32 bufferSize = PixelUtility::GetMemorySize(mipWidth, mipHeight, mipDepth, properties.Format);
+
+	return CreateStagingBuffer(device, bufferSize, readable);
+}
+
+SPtr<GpuBuffer> TextureUtility::CreateStagingBuffer(GpuDevice& device, u32 size, bool readable)
+{
+	GpuBufferCreateInformation createInformation;
+	createInformation.Type = readable ? GpuBufferType::StagingRead : GpuBufferType::StagingWrite;
+	createInformation.Staging.Size = size;
+
+	return device.CreateGpuBuffer(createInformation);
 }
 }}

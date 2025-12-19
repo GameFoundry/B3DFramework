@@ -674,6 +674,27 @@ namespace b3d
 			virtual void CopyTextureToBuffer(const SPtr<Texture>& source, const SPtr<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) = 0;
 
 			/**
+			 * Copies data between texture subresources without format conversion or scaling. Both textures must have matching formats.
+			 * For multisampled source textures copying to a non-multisampled destination, a resolve operation is performed.
+			 * Command buffer must not currently be in a render pass.
+			 *
+			 * @param	source			Source texture to copy from.
+			 * @param	destination		Destination texture to copy into.
+			 * @param	copyInformation	Describes which subresources to copy and where.
+			 */
+			virtual void CopyTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureCopyInformation& copyInformation = TextureCopyInformation::kDefault) = 0;
+
+			/**
+			 * Copies data between texture subresources with optional format conversion and scaling. Uses filtering when scaling.
+			 * Does not support multisampled textures. Command buffer must not currently be in a render pass.
+			 *
+			 * @param	source			Source texture to copy from.
+			 * @param	destination		Destination texture to copy into.
+			 * @param	blitInformation	Describes which subresources to copy and where, including source/destination regions for scaling.
+			 */
+			virtual void BlitTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureBlitInformation& blitInformation = TextureBlitInformation::kDefault) = 0;
+
+			/**
 			 * Schedules the timestamp to be recorded in the command buffer. The timestamp will record the
 			 * time at which the command has been executed by the GPU. The timestamp will be written to the associated
 			 * query pool, which should only be accessed when the query pool has resolved the query.

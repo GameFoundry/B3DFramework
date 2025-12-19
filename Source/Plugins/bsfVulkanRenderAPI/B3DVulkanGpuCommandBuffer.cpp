@@ -949,7 +949,7 @@ void VulkanGpuCommandBuffer::CopyBufferToTexture(const SPtr<GpuBuffer>& source, 
 	VkExtent3D extent;
 	PixelUtility::GetSizeForMipLevel(textureProperties.Width, textureProperties.Height, textureProperties.Depth, mipLevel, extent.width, extent.height, extent.depth);
 
-	const ImageSubresourcePitch pitch = vulkanDestination->GetPitchForSubresource(destinationImage, arrayLayer, mipLevel);
+	const ImageSubresourcePitch pitch = vulkanDestination->GetPitchForSubresource(arrayLayer, mipLevel);
 
 	VkImageSubresourceRange range;
 	range.aspectMask = destinationImage->GetAspectFlags();
@@ -986,7 +986,7 @@ void VulkanGpuCommandBuffer::CopyTextureToBuffer(const SPtr<Texture>& source, co
 	VkExtent3D extent;
 	PixelUtility::GetSizeForMipLevel(textureProperties.Width, textureProperties.Height, textureProperties.Depth, mipLevel, extent.width, extent.height, extent.depth);
 
-	const ImageSubresourcePitch pitch = vulkanSource->GetPitchForSubresource(sourceImage, arrayLayer, mipLevel);
+	const ImageSubresourcePitch pitch = vulkanSource->GetPitchForSubresource(arrayLayer, mipLevel);
 
 	VkImageSubresourceRange range;
 	if((textureProperties.Usage & TU_DEPTHSTENCIL) != 0)
@@ -1000,6 +1000,323 @@ void VulkanGpuCommandBuffer::CopyTextureToBuffer(const SPtr<Texture>& source, co
 
 	const VkImageLayout transferLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 	CopyImageToBuffer(sourceImage, destinationBuffer, extent, range, transferLayout, pitch.RowPitch, pitch.SliceHeight);
+}
+
+void VulkanGpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureCopyInformation& copyInformation)
+{
+	EnsureValidThread();
+
+	auto* vulkanSource = static_cast<VulkanTexture*>(source.get());
+	auto* vulkanDestination = static_cast<VulkanTexture*>(destination.get());
+
+	const TextureProperties& sourceProperties = vulkanSource->GetProperties();
+	const TextureProperties& destinationProperties = vulkanDestination->GetProperties();
+
+	if(copyInformation.FaceCount == 0)
+	{
+		B3D_LOG(Warning, Texture, "Copy operation failed. Face count is zero.");
+		return;
+	}
+
+	if(destinationProperties.Type != sourceProperties.Type)
+	{
+		B3D_LOG(Error, Texture, "Source and destination textures must be of same type.");
+		return;
+	}
+
+	if(vulkanSource->GetInternalFormat() != vulkanDestination->GetInternalFormat())
+	{
+		B3D_LOG(Error, Texture, "Source and destination texture formats must match.");
+		return;
+	}
+
+	if(destinationProperties.SampleCount > 1 && sourceProperties.SampleCount != destinationProperties.SampleCount)
+	{
+		B3D_LOG(Error, Texture, "When copying to a multisampled texture, source texture must have the same number of samples.");
+		return;
+	}
+
+	if((copyInformation.SourceFace + copyInformation.FaceCount) > sourceProperties.GetFaceCount())
+	{
+		B3D_LOG(Error, Texture, "Invalid source face index.");
+		return;
+	}
+
+	if((copyInformation.DestinationFace + copyInformation.FaceCount) > destinationProperties.GetFaceCount())
+	{
+		B3D_LOG(Error, Texture, "Invalid destination face index.");
+		return;
+	}
+
+	if(copyInformation.SourceMip > sourceProperties.MipMapCount)
+	{
+		B3D_LOG(Error, Texture, "Source mip level out of range. Valid range is [0, {0}].", sourceProperties.MipMapCount);
+		return;
+	}
+
+	if(copyInformation.DestinationMip > destinationProperties.MipMapCount)
+	{
+		B3D_LOG(Error, Texture, "Destination mip level out of range. Valid range is [0, {0}].", destinationProperties.MipMapCount);
+		return;
+	}
+
+	u32 sourceWidth, sourceHeight, sourceDepth;
+	PixelUtility::GetSizeForMipLevel(sourceProperties.Width, sourceProperties.Height, sourceProperties.Depth, copyInformation.SourceMip, sourceWidth, sourceHeight, sourceDepth);
+
+	u32 destinationWidth, destinationHeight, destinationDepth;
+	PixelUtility::GetSizeForMipLevel(destinationProperties.Width, destinationProperties.Height, destinationProperties.Depth, copyInformation.DestinationMip, destinationWidth, destinationHeight, destinationDepth);
+
+	if(copyInformation.DestinationPosition.X < 0 || copyInformation.DestinationPosition.X >= (i32)destinationWidth ||
+	   copyInformation.DestinationPosition.Y < 0 || copyInformation.DestinationPosition.Y >= (i32)destinationHeight ||
+	   copyInformation.DestinationPosition.Z < 0 || copyInformation.DestinationPosition.Z >= (i32)destinationDepth)
+	{
+		B3D_LOG(Error, Texture, "Destination position falls outside the destination texture.");
+		return;
+	}
+
+	bool copyEntireSurface = copyInformation.SourceVolume.GetWidth() == 0 ||
+		copyInformation.SourceVolume.GetHeight() == 0 ||
+		copyInformation.SourceVolume.GetDepth() == 0;
+
+	u32 destinationRight = (u32)copyInformation.DestinationPosition.X;
+	u32 destinationBottom = (u32)copyInformation.DestinationPosition.Y;
+	u32 destinationBack = (u32)copyInformation.DestinationPosition.Z;
+	if(!copyEntireSurface)
+	{
+		if(copyInformation.SourceVolume.Left >= sourceWidth || copyInformation.SourceVolume.Right > sourceWidth ||
+		   copyInformation.SourceVolume.Top >= sourceHeight || copyInformation.SourceVolume.Bottom > sourceHeight ||
+		   copyInformation.SourceVolume.Front >= sourceDepth || copyInformation.SourceVolume.Back > sourceDepth)
+		{
+			B3D_LOG(Error, Texture, "Source volume falls outside the source texture.");
+			return;
+		}
+
+		destinationRight += copyInformation.SourceVolume.GetWidth();
+		destinationBottom += copyInformation.SourceVolume.GetHeight();
+		destinationBack += copyInformation.SourceVolume.GetDepth();
+	}
+	else
+	{
+		destinationRight += sourceWidth;
+		destinationBottom += destinationHeight;
+		destinationBack += sourceDepth;
+	}
+
+	if(destinationRight > destinationWidth || destinationBottom > destinationHeight || destinationBack > destinationDepth)
+	{
+		B3D_LOG(Error, Texture, "Destination volume falls outside the destination texture.");
+		return;
+	}
+
+	const bool sourceHasMultipleSamples = sourceProperties.SampleCount > 1;
+	const bool destinationHasMultipleSamples = destinationProperties.SampleCount > 1;
+
+	if((sourceProperties.Usage & TU_DEPTHSTENCIL) != 0 || (destinationProperties.Usage & TU_DEPTHSTENCIL) != 0)
+	{
+		B3D_LOG(Error, RenderBackend, "Texture copy/resolve isn't supported for depth-stencil textures.");
+		return;
+	}
+
+	bool needsResolve = sourceHasMultipleSamples && !destinationHasMultipleSamples;
+	bool isMSCopy = sourceHasMultipleSamples || destinationHasMultipleSamples;
+	if(!needsResolve && isMSCopy)
+	{
+		if(sourceProperties.SampleCount != destinationProperties.SampleCount)
+		{
+			B3D_LOG(Error, RenderBackend, "When copying textures their multisample counts must match. Ignoring copy.");
+			return;
+		}
+	}
+
+	VulkanImage* sourceImage = vulkanSource->GetVulkanResource();
+	VulkanImage* destinationImage = vulkanDestination->GetVulkanResource();
+
+	if(sourceImage == nullptr || destinationImage == nullptr)
+		return;
+
+	VkImageLayout transferSourceLayout = vulkanSource->IsDirectlyMappable() ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+	VkImageLayout transferDestinationLayout = vulkanDestination->IsDirectlyMappable() ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+
+	u32 mipWidth, mipHeight, mipDepth;
+
+	if(copyEntireSurface)
+	{
+		PixelUtility::GetSizeForMipLevel(sourceProperties.Width, sourceProperties.Height, sourceProperties.Depth, copyInformation.SourceMip, mipWidth, mipHeight, mipDepth);
+	}
+	else
+	{
+		mipWidth = copyInformation.SourceVolume.GetWidth();
+		mipHeight = copyInformation.SourceVolume.GetHeight();
+		mipDepth = copyInformation.SourceVolume.GetDepth();
+	}
+
+	if(mipWidth == 0 || mipHeight == 0 || mipDepth == 0)
+		return;
+
+	VkImageSubresourceRange sourceRange;
+	sourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	sourceRange.baseArrayLayer = copyInformation.SourceFace;
+	sourceRange.layerCount = copyInformation.FaceCount;
+	sourceRange.baseMipLevel = copyInformation.SourceMip;
+	sourceRange.levelCount = 1;
+
+	VkImageSubresourceRange destinationRange;
+	destinationRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	destinationRange.baseArrayLayer = copyInformation.DestinationFace;
+	destinationRange.layerCount = copyInformation.FaceCount;
+	destinationRange.baseMipLevel = copyInformation.DestinationMip;
+	destinationRange.levelCount = 1;
+
+	if(sourceHasMultipleSamples && !destinationHasMultipleSamples)
+	{
+		VkImageResolve resolveRegion;
+		resolveRegion.srcOffset = { (i32)copyInformation.SourceVolume.Left, (i32)copyInformation.SourceVolume.Top, (i32)copyInformation.SourceVolume.Front };
+		resolveRegion.dstOffset = { copyInformation.DestinationPosition.X, copyInformation.DestinationPosition.Y, copyInformation.DestinationPosition.Z };
+		resolveRegion.extent = { mipWidth, mipHeight, mipDepth };
+		resolveRegion.srcSubresource.baseArrayLayer = copyInformation.SourceFace;
+		resolveRegion.srcSubresource.layerCount = copyInformation.FaceCount;
+		resolveRegion.srcSubresource.mipLevel = copyInformation.SourceMip;
+		resolveRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		resolveRegion.dstSubresource.baseArrayLayer = copyInformation.DestinationFace;
+		resolveRegion.dstSubresource.layerCount = copyInformation.FaceCount;
+		resolveRegion.dstSubresource.mipLevel = copyInformation.DestinationMip;
+		resolveRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+		Resolve(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &resolveRegion);
+	}
+	else
+	{
+		VkImageCopy imageRegion;
+		imageRegion.srcOffset = { (i32)copyInformation.SourceVolume.Left, (i32)copyInformation.SourceVolume.Top, (i32)copyInformation.SourceVolume.Front };
+		imageRegion.dstOffset = { copyInformation.DestinationPosition.X, copyInformation.DestinationPosition.Y, copyInformation.DestinationPosition.Z };
+		imageRegion.extent = { mipWidth, mipHeight, mipDepth };
+		imageRegion.srcSubresource.baseArrayLayer = copyInformation.SourceFace;
+		imageRegion.srcSubresource.layerCount = copyInformation.FaceCount;
+		imageRegion.srcSubresource.mipLevel = copyInformation.SourceMip;
+		imageRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageRegion.dstSubresource.baseArrayLayer = copyInformation.DestinationFace;
+		imageRegion.dstSubresource.layerCount = copyInformation.FaceCount;
+		imageRegion.dstSubresource.mipLevel = copyInformation.DestinationMip;
+		imageRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+		CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &imageRegion);
+	}
+}
+
+void VulkanGpuCommandBuffer::BlitTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureBlitInformation& blitInformation)
+{
+	EnsureValidThread();
+
+	auto* vulkanSource = static_cast<VulkanTexture*>(source.get());
+	auto* vulkanDestination = static_cast<VulkanTexture*>(destination.get());
+
+	const TextureProperties& sourceProperties = vulkanSource->GetProperties();
+	const TextureProperties& destinationProperties = vulkanDestination->GetProperties();
+
+	if(blitInformation.FaceCount == 0)
+	{
+		B3D_LOG(Warning, Texture, "Blit operation failed. Face count is zero.");
+		return;
+	}
+
+	if((blitInformation.SourceFace + blitInformation.FaceCount) > sourceProperties.GetFaceCount())
+	{
+		B3D_LOG(Error, Texture, "Blit operation failed. Source face out of valid range.");
+		return;
+	}
+
+	if((blitInformation.DestinationFace + blitInformation.FaceCount) > destinationProperties.GetFaceCount())
+	{
+		B3D_LOG(Error, Texture, "Blit operation failed. Destination face out of valid range.");
+		return;
+	}
+
+	if(blitInformation.SourceMip > sourceProperties.MipMapCount)
+	{
+		B3D_LOG(Error, Texture, "Blit operation failed. Source mip level out of valid range. Valid range is [0, {0}].", sourceProperties.MipMapCount);
+		return;
+	}
+
+	if(blitInformation.DestinationMip > destinationProperties.MipMapCount)
+	{
+		B3D_LOG(Error, Texture, "Blit operation failed. Destination mip level out of range. Valid range is [0, {0}].", destinationProperties.MipMapCount);
+		return;
+	}
+
+	if((sourceProperties.Usage & TU_DEPTHSTENCIL) != 0 || (destinationProperties.Usage & TU_DEPTHSTENCIL) != 0)
+	{
+		B3D_LOG(Error, RenderBackend, "Texture blit isn't supported for depth-stencil textures.");
+		return;
+	}
+
+	VkImageLayout transferSourceLayout = vulkanSource->IsDirectlyMappable() ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+	VkImageLayout transferDestinationLayout = vulkanDestination->IsDirectlyMappable() ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+
+	const bool copyFromEntireSurface = blitInformation.SourceVolume.GetWidth() == 0 ||
+		blitInformation.SourceVolume.GetHeight() == 0 ||
+		blitInformation.SourceVolume.GetDepth() == 0;
+
+	PixelVolume sourceVolume = blitInformation.SourceVolume;
+	if(copyFromEntireSurface)
+	{
+		u32 mipWidth, mipHeight, mipDepth;
+		PixelUtility::GetSizeForMipLevel(sourceProperties.Width, sourceProperties.Height, sourceProperties.Depth, blitInformation.SourceMip, mipWidth, mipHeight, mipDepth);
+
+		sourceVolume.Right = sourceVolume.Left + mipWidth;
+		sourceVolume.Bottom = sourceVolume.Top + mipHeight;
+		sourceVolume.Back = sourceVolume.Front + mipDepth;
+	}
+
+	const bool copyToEntireSurface = blitInformation.DestinationVolume.GetWidth() == 0 ||
+		blitInformation.DestinationVolume.GetHeight() == 0 ||
+		blitInformation.DestinationVolume.GetDepth() == 0;
+
+	PixelVolume destinationVolume = blitInformation.DestinationVolume;
+	if(copyToEntireSurface)
+	{
+		u32 mipWidth, mipHeight, mipDepth;
+		PixelUtility::GetSizeForMipLevel(destinationProperties.Width, destinationProperties.Height, destinationProperties.Depth, blitInformation.DestinationMip, mipWidth, mipHeight, mipDepth);
+
+		destinationVolume.Right = destinationVolume.Left + mipWidth;
+		destinationVolume.Bottom = destinationVolume.Top + mipHeight;
+		destinationVolume.Back = destinationVolume.Front + mipDepth;
+	}
+
+	VkImageSubresourceRange sourceRange;
+	sourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	sourceRange.baseArrayLayer = blitInformation.SourceFace;
+	sourceRange.layerCount = blitInformation.FaceCount;
+	sourceRange.baseMipLevel = blitInformation.SourceMip;
+	sourceRange.levelCount = 1;
+
+	VkImageSubresourceRange destinationRange;
+	destinationRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	destinationRange.baseArrayLayer = blitInformation.DestinationFace;
+	destinationRange.layerCount = blitInformation.FaceCount;
+	destinationRange.baseMipLevel = blitInformation.DestinationMip;
+	destinationRange.levelCount = 1;
+
+	VulkanImage* sourceImage = vulkanSource->GetVulkanResource();
+	VulkanImage* destinationImage = vulkanDestination->GetVulkanResource();
+
+	if(sourceImage == nullptr || destinationImage == nullptr)
+		return;
+
+	VkImageBlit imageBlit;
+	imageBlit.srcSubresource.baseArrayLayer = blitInformation.SourceFace;
+	imageBlit.srcSubresource.layerCount = blitInformation.FaceCount;
+	imageBlit.srcSubresource.mipLevel = blitInformation.SourceMip;
+	imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageBlit.srcOffsets[0] = { (i32)sourceVolume.Left, (i32)sourceVolume.Top, (i32)sourceVolume.Front };
+	imageBlit.srcOffsets[1] = { (i32)sourceVolume.Right, (i32)sourceVolume.Bottom, (i32)sourceVolume.Back };
+	imageBlit.dstSubresource.baseArrayLayer = blitInformation.DestinationFace;
+	imageBlit.dstSubresource.layerCount = blitInformation.FaceCount;
+	imageBlit.dstSubresource.mipLevel = blitInformation.DestinationMip;
+	imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageBlit.dstOffsets[0] = { (i32)destinationVolume.Left, (i32)destinationVolume.Top, (i32)destinationVolume.Front };
+	imageBlit.dstOffsets[1] = { (i32)destinationVolume.Right, (i32)destinationVolume.Bottom, (i32)destinationVolume.Back };
+
+	Blit(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &imageBlit);
 }
 
 void VulkanGpuCommandBuffer::BeginLabel(const StringView& name)

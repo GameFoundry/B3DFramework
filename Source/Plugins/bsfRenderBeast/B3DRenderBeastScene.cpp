@@ -687,7 +687,7 @@ void RenderBeastScene::UpdateReflectionProbes(GpuCommandBuffer& commandBuffer)
 							copyDesc.DestinationFace = probeInfo.ArrayIdx * 6 + face;
 							copyDesc.DestinationMip = mip;
 
-							texture->Copy(commandBuffer, sceneInfo.ReflProbeCubemapsTex, copyDesc);
+							commandBuffer.CopyTexture(texture, sceneInfo.ReflProbeCubemapsTex, copyDesc);
 						}
 					}
 				}
