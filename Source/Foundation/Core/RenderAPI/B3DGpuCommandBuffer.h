@@ -682,7 +682,7 @@ namespace b3d
 			 * @param	destination		Destination texture to copy into.
 			 * @param	copyInformation	Describes which subresources to copy and where.
 			 */
-			virtual void CopyTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureCopyInformation& copyInformation = TextureCopyInformation::kDefault) = 0;
+			virtual bool CopyTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureCopyInformation& copyInformation = TextureCopyInformation::kDefault);
 
 			/**
 			 * Copies data between texture subresources with optional format conversion and scaling. Uses filtering when scaling.
@@ -692,7 +692,7 @@ namespace b3d
 			 * @param	destination		Destination texture to copy into.
 			 * @param	blitInformation	Describes which subresources to copy and where, including source/destination regions for scaling.
 			 */
-			virtual void BlitTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureBlitInformation& blitInformation = TextureBlitInformation::kDefault) = 0;
+			virtual bool BlitTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureBlitInformation& blitInformation = TextureBlitInformation::kDefault);
 
 			/**
 			 * Schedules the timestamp to be recorded in the command buffer. The timestamp will record the
@@ -802,6 +802,8 @@ namespace b3d
 			/** Reports an error if the current thread is not the thread associated with the object. */
 			void EnsureValidThread() const { B3D_DEBUG_ONLY(B3D_ENSURE(B3D_CURRENT_THREAD_ID == mOwnerThread)); }
 
+	
+	
 			GpuDevice& mGpuDevice;
 			const GpuCommandBufferCreateInformation mInformation;
 			const GpuQueueUsage mUsage;
