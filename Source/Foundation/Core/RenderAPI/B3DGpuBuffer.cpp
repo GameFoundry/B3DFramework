@@ -542,22 +542,26 @@ namespace b3d::render
 		if(buffer == nullptr)
 			return {};
 
+		// TODO - Staging buffer might not be necessary if he texture is directly mappable
+		SPtr<GpuBuffer> stagingBuffer = CreateStaging(buffer, true);
+		commandBuffer.CopyBufferToBuffer(buffer, stagingBuffer, offset, 0, length);
+
 		TAsyncOp<SPtr<MemoryDataStream>> op;
-		auto fnOnCommandBufferCompleted = [buffer, offset, length, op]() mutable
+		auto fnOnCommandBufferCompleted = [stagingBuffer, offset, length, op]() mutable
 		{
-			const SPtr<MemoryDataStream> dataStream = B3DMakeShared<MemoryDataStream>(buffer->GetTotalSize());
-			Read(buffer, offset, length, dataStream->Data());
+			GpuBufferMappedScope mapping = stagingBuffer->Map(GpuMapOption::Read);
+			const SPtr<MemoryDataStream> dataStream = B3DMakeShared<MemoryDataStream>(stagingBuffer->GetTotalSize());
+			memcpy(dataStream->Data(), mapping.GetMappedMemory(), length);
 
 			op.CompleteOperation(dataStream);
 		};
 
-		auto fnOnCommandBufferDestroyed = [buffer, op](bool isSubmitted) mutable
+		auto fnOnCommandBufferDestroyed = [op](bool isSubmitted) mutable
 		{
 			// In this case the completion callback will trigger.
 			if(isSubmitted)
 				return;
 
-			buffer->Destroy();
 			op.CompleteOperation(nullptr);
 		};
 
