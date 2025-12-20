@@ -356,19 +356,6 @@ void Texture::Initialize()
 	RenderProxy::Initialize();
 }
 
-TAsyncOp<SPtr<PixelData>> Texture::ReadDataAsync(GpuCommandBuffer& commandBuffer, u32 mipLevel, u32 face)
-{
-	SPtr<PixelData> pixelData = GetProperties().AllocBuffer(face, mipLevel);
-
-	// We fall-back to sync read if the backend doesn't implement an async method
-	TextureUtility::Read(std::static_pointer_cast<Texture>(GetShared()), *pixelData, mipLevel, face);
-
-	TAsyncOp<SPtr<PixelData>> output;
-	output.CompleteOperation(pixelData);
-
-	return output;
-}
-
 /************************************************************************/
 /* 								TEXTURE VIEW                      		*/
 /************************************************************************/
@@ -611,8 +598,8 @@ void TextureUtility::Read(const SPtr<Texture>& texture, PixelData& destination, 
 	// Can't use direct mapping, so use a staging buffer
 
 	// Allocate a staging buffer
-	PixelData lockedArea(mipWidth, mipHeight, mipDepth, texture->GetSupportedFormat());
-	SPtr<GpuBuffer> stagingBuffer = CreateStagingBuffer(texture, lockedArea, true);
+	PixelData pixelData(mipWidth, mipHeight, mipDepth, texture->GetSupportedFormat());
+	SPtr<GpuBuffer> stagingBuffer = CreateStagingBuffer(texture, pixelData, true);
 
 	// Similar to above, if image supports GPU writes or is currently being written to, we need to wait on any
 	// potential writes to complete
@@ -634,9 +621,51 @@ void TextureUtility::Read(const SPtr<Texture>& texture, PixelData& destination, 
 
 	{
 		GpuBufferMappedScope mapping = stagingBuffer->Map(GpuMapOption::Read);
-		lockedArea.SetExternalBuffer((u8*)mapping.GetMappedMemory());
-		PixelUtility::BulkPixelConversion(lockedArea, destination);
+		pixelData.SetExternalBuffer((u8*)mapping.GetMappedMemory());
+		PixelUtility::BulkPixelConversion(pixelData, destination);
 	}
+}
+
+TAsyncOp<SPtr<PixelData>> TextureUtility::ReadAsync(const SPtr<Texture>& texture, GpuCommandBuffer& commandBuffer, u32 mipLevel, u32 arrayLayer)
+{
+	if(texture == nullptr)
+		return {};
+
+	const TextureProperties& textureProperties = texture->GetProperties();
+	const u32 mipWidth = Math::Max(1u, textureProperties.Width >> mipLevel);
+	const u32 mipHeight = Math::Max(1u, textureProperties.Height >> mipLevel);
+	const u32 mipDepth = Math::Max(1u, textureProperties.Depth >> mipLevel);
+
+	const SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(mipWidth, mipHeight, mipDepth, texture->GetSupportedFormat());
+
+	// TODO - Staging buffer might not be necessary if he texture is directly mappable
+	SPtr<GpuBuffer> stagingBuffer = CreateStagingBuffer(texture, *pixelData, true);
+	commandBuffer.CopyTextureToBuffer(texture, stagingBuffer, mipLevel, arrayLayer);
+
+	TAsyncOp<SPtr<PixelData>> op;
+	auto fnOnCommandBufferCompleted = [stagingBuffer, op, pixelData]() mutable
+	{
+		GpuBufferMappedScope mapping = stagingBuffer->Map(GpuMapOption::Read);
+
+		pixelData->AllocateInternalBuffer();
+		memcpy(pixelData->GetData(), mapping.GetMappedMemory(), pixelData->GetSize());
+
+		op.CompleteOperation(pixelData);
+	};
+
+	auto fnOnCommandBufferDestroyed = [op](bool isSubmitted) mutable
+	{
+		// In this case the completion callback will trigger.
+		if(isSubmitted)
+			return;
+
+		op.CompleteOperation(nullptr);
+	};
+
+	commandBuffer.OnDidComplete.Connect(fnOnCommandBufferCompleted);
+	commandBuffer.OnDestroyed.Connect(fnOnCommandBufferDestroyed);
+
+	return op;
 }
 
 void TextureUtility::Clear(const SPtr<Texture>& texture, const Color& value, u32 mipLevel, u32 arrayLayer, const SPtr<GpuCommandBuffer>& commandBuffer)

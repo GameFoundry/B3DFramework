@@ -303,7 +303,6 @@ namespace b3d
 			VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation);
 
 			void Initialize() override;
-			TAsyncOp<SPtr<PixelData>> ReadDataAsync(GpuCommandBuffer& commandBuffer, u32 mipLevel = 0, u32 face = 0) override;
 
 		private:
 			/** Creates a new image for the specified device, matching the current properties. */

@@ -778,7 +778,7 @@ namespace b3d
 			/** Returns the shared pointer to the current object. */
 			SPtr<GpuCommandBuffer> GetShared() const { return mSelf.lock(); }
 
-			/** Triggers when the command buffer finishes execution on the GPU. */
+			/** Triggers when the command buffer finishes execution on the GPU. triggers on the thread that owns the command buffer (the thread the command buffer pool was created on). */
 			Event<void()> OnDidComplete;
 
 			/** Triggered just before a command buffer is about to be destroyed. Provided parameter determines if the command buffer was ever submitted or not. */

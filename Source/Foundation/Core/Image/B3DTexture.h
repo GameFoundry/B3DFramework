@@ -536,17 +536,6 @@ namespace b3d
 			virtual GpuDevice& GetDevice() const = 0;
 
 			/**
-			 * Performs a non-blocking read operation. The GPU will execute the read when the command buffer reaches the execution point
-			 * and the asynchronous operation will be signaled with the return value.
-			 *
-			 * @param	commandBuffer	Command buffer to queue the operation on.
-			 * @param	mipLevel		(optional) Mipmap level to read from.
-			 * @param	face			(optional) Texture face to read from.
-			 * @return					Operation that will be signaled when the data is ready to be read.
-			 */
-			virtual TAsyncOp<SPtr<PixelData>> ReadDataAsync(GpuCommandBuffer& commandBuffer, u32 mipLevel = 0, u32 face = 0);
-
-			/**
 			 * Flushes CPU writes to the specified subresource to make them visible to the GPU.
 			 * Only relevant for directly mappable textures with non-coherent memory.
 			 *
@@ -727,6 +716,17 @@ namespace b3d
 			 * @param	gpuQueue		GPU queue on which to perform the read. If not specified the default transfer queue will be used.
 			 */
 			static void Read(const SPtr<Texture>& texture, PixelData& destination, u32 mipLevel = 0, u32 arrayLayer = 0, const SPtr<GpuQueue>& gpuQueue = nullptr);
+
+			/**
+			 * Performs a non-blocking read operation. The GPU will execute the read when the command buffer reaches the execution point
+			 * and the asynchronous operation will be signaled with the return value.
+			 *
+			 * @param	commandBuffer	Command buffer to queue the operation on.
+			 * @param	mipLevel		Mipmap level to read from.
+			 * @param	arrayLayer		Texture array layer (or cubemap face or depth slice) to read from.
+			 * @return					Operation that will be signaled when the data is ready to be read.
+			 */
+			static TAsyncOp<SPtr<PixelData>> ReadAsync(const SPtr<Texture>& texture, GpuCommandBuffer& commandBuffer, u32 mipLevel = 0, u32 arrayLayer = 0);
 
 			/**
 			 * Sets all the pixels of the specified face and mip level to the provided value.
