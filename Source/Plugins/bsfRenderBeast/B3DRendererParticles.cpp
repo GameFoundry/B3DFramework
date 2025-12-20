@@ -14,6 +14,7 @@
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "Utility/B3DBitwise.h"
 #include "Image/B3DSpriteTexture.h"
+#include "Image/B3DTexture.h"
 
 namespace b3d {
 namespace render {
@@ -271,9 +272,9 @@ const ParticleBillboardTextures* ParticleTexturePool::Alloc(const ParticleBillbo
 	// Populate texture contents
 	// Note: Perhaps instead of using write-discard here, we should track which frame has finished rendering and then
 	// just use no-overwrite? write-discard will very likely allocate memory under the hood.
-	output->PositionAndRotation->WriteData(simulationData.PositionAndRotation, 0, 0, true);
-	output->Color->WriteData(simulationData.Color, 0, 0, true);
-	output->SizeAndFrameIdx->WriteData(simulationData.SizeAndFrameIdx, 0, 0, true);
+	TextureUtility::Write(output->PositionAndRotation, simulationData.PositionAndRotation, 0, 0, TextureWriteFlag::Discard);
+	TextureUtility::Write(output->Color, simulationData.Color, 0, 0, TextureWriteFlag::Discard);
+	TextureUtility::Write(output->SizeAndFrameIdx, simulationData.SizeAndFrameIdx, 0, 0, TextureWriteFlag::Discard);
 
 	WriteIndices(output->Indices, simulationData.Indices, size);
 	return output;
@@ -300,10 +301,10 @@ const ParticleMeshTextures* ParticleTexturePool::Alloc(const ParticleMeshRenderD
 	// Populate texture contents
 	// Note: Perhaps instead of using write-discard here, we should track which frame has finished rendering and then
 	// just use no-overwrite? write-discard will very likely allocate memory under the hood.
-	output->Position->WriteData(simulationData.Position, 0, 0, true);
-	output->Color->WriteData(simulationData.Color, 0, 0, true);
-	output->Size->WriteData(simulationData.Size, 0, 0, true);
-	output->Rotation->WriteData(simulationData.Rotation, 0, 0, true);
+	TextureUtility::Write(output->Position, simulationData.Position, 0, 0, TextureWriteFlag::Discard);
+	TextureUtility::Write(output->Color, simulationData.Color, 0, 0, TextureWriteFlag::Discard);
+	TextureUtility::Write(output->Size, simulationData.Size, 0, 0, TextureWriteFlag::Discard);
+	TextureUtility::Write(output->Rotation, simulationData.Rotation, 0, 0, TextureWriteFlag::Discard);
 
 	WriteIndices(output->Indices, simulationData.Indices, size);
 	return output;

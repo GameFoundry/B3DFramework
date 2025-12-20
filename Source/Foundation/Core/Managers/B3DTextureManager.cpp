@@ -4,6 +4,7 @@
 
 #include "Error/B3DException.h"
 #include "Image/B3DPixelUtility.h"
+#include "Image/B3DTexture.h"
 #include "RenderAPI/B3DGpuDevice.h"
 
 using namespace b3d;
@@ -72,7 +73,7 @@ void TextureManager::OnStartUp()
 	whitePixelData->SetColorAt(Color::kWhite, 1, 0);
 	whitePixelData->SetColorAt(Color::kWhite, 1, 1);
 
-	whiteTexture->WriteData(*whitePixelData);
+	TextureUtility::Write(whiteTexture, *whitePixelData);
 	Texture::kWhite = whiteTexture;
 
 	// Black built-in texture
@@ -85,7 +86,7 @@ void TextureManager::OnStartUp()
 	blackPixelData->SetColorAt(Color::kZero, 1, 0);
 	blackPixelData->SetColorAt(Color::kZero, 1, 1);
 
-	blackTexture->WriteData(*blackPixelData);
+	TextureUtility::Write(blackTexture, *blackPixelData);
 	Texture::kBlack = blackTexture;
 
 
@@ -99,7 +100,7 @@ void TextureManager::OnStartUp()
 	pinkPixelData->SetColorAt(Color::kPink, 1, 0);
 	pinkPixelData->SetColorAt(Color::kPink, 1, 1);
 
-	pinkTexture->WriteData(*pinkPixelData);
+	TextureUtility::Write(pinkTexture, *pinkPixelData);
 	Texture::kPink = pinkTexture;
 
 	// Normal (Y = Up) built-in texture
@@ -113,7 +114,7 @@ void TextureManager::OnStartUp()
 	normalPixelData->SetColorAt(encodedNormal, 1, 0);
 	normalPixelData->SetColorAt(encodedNormal, 1, 1);
 
-	normalTexture->WriteData(*normalPixelData);
+	TextureUtility::Write(normalTexture, *normalPixelData);
 	Texture::kNormal = normalTexture;
 }
 

@@ -513,6 +513,9 @@ namespace b3d
 			/** Assigns an name to the image, primarily used for easier debugging. */
 			virtual void SetName(const StringView& name) { mName = name; }
 
+			/** Returns the name of the image. Primarily used for debugging purposes. */
+			const String& GetName() const { return mName; }
+
 			/**
 			 * Maps a texture subresource for CPU access.
 			 *
@@ -526,17 +529,8 @@ namespace b3d
 			 */
 			virtual GpuTextureMappedScope Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options) = 0;
 
-			/**
-			 * Sets all the pixels of the specified face and mip level to the provided value.
-			 *
-			 * @param	value			Color to clear the pixels to.
-			 * @param	mipLevel		Mip level to clear.
-			 * @param	face			Face (array index or cubemap face) to clear.
-			 * @param	commandBuffer	Command buffer on which to encode the staging texture copy, in case the texture is not directly writeable.
-			 *							If not provided the operation will be queued on an internal command buffer that will be submitted before
-			 *							any regular command buffer submission.
-			 */
-			void Clear(const Color& value, u32 mipLevel = 0, u32 face = 0, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
+			/** Returns the GPU device this texture belongs to. */
+			virtual GpuDevice& GetGpuDevice() const = 0;
 
 			/**
 			 * Reads data from the texture buffer into the provided buffer.
@@ -563,23 +557,6 @@ namespace b3d
 			 * @return					Operation that will be signaled when the data is ready to be read.
 			 */
 			virtual TAsyncOp<SPtr<PixelData>> ReadDataAsync(GpuCommandBuffer& commandBuffer, u32 mipLevel = 0, u32 face = 0);
-
-			/**
-			 * Writes data from the provided buffer into the texture buffer.
-			 *
-			 * @note	If the texture cannot be directly mapped by the CPU this will internally create a staging buffer, on which the
-			 *			contents will be copied before being written by the GPU, using the provided command buffer, or an internal command buffer if
-			 *			none is provided.
-			 *
-			 * @param	source				Buffer to retrieve the data from.
-			 * @param	mipLevel			(optional) Mipmap level to write into.
-			 * @param	face				(optional) Texture face to write into.
-			 * @param	discardWholeBuffer	(optional) If true any existing texture data will be discard. This can improve performance of the write operation.
-			 * @param	commandBuffer		Command buffer on which to encode the staging texture copy, in case the texture is not directly writeable.
-			 *								If not provided the operation will be queued on an internal command buffer that will be submitted before
-			 *								any regular command buffer submission.
-			 */
-			void WriteData(const PixelData& source, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
 
 			/**
 			 * Flushes CPU writes to the specified subresource to make them visible to the GPU.
@@ -613,6 +590,20 @@ namespace b3d
 
 			/** Returns a pointer to persistently mapped memory, or nullptr if not mappable. */
 			void* GetMappedMemory() const { return mMappedMemory; }
+
+			/**
+			 * Returns which GPU queues are currently using the specified subresource.
+			 * @param mipLevel		Mipmap level.
+			 * @param arrayLayer	Texture arrayLayer (or cubemap face).
+			 * @param accessFlags	Filter by read/write access type.
+			 */
+			virtual GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags = GpuAccessFlag::Read | GpuAccessFlag::Write) const = 0;
+
+			/** Returns how many command buffers the specified subresource is bound to. */
+			virtual u32 GetBoundCount(u32 mipLevel, u32 arrayLevel) const = 0;
+
+			/** Returns how many submitted command buffers are using the specified subresource. */
+			virtual u32 GetUseCount(u32 mipLevel, u32 arrayLevel) const = 0;
 
 			/**	Returns properties that contain information about the texture. */
 			const TextureProperties& GetProperties() const { return mProperties; }
@@ -648,12 +639,6 @@ namespace b3d
 			/** @copydoc ReadData */
 			virtual void ReadDataInternal(PixelData& destination, u32 mipLevel = 0, u32 face = 0, const SPtr<GpuQueue>& gpuQueue = nullptr) = 0;
 
-			/** @copydoc WriteData */
-			virtual void WriteDataInternal(const PixelData& source, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) = 0;
-
-			/** @copydoc Clear */
-			virtual void ClearInternal(const Color& value, u32 mipLevel = 0, u32 face = 0, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
-
 			/************************************************************************/
 			/* 								TEXTURE VIEW                      		*/
 			/************************************************************************/
@@ -671,30 +656,89 @@ namespace b3d
 			void* mMappedMemory = nullptr;
 		};
 
+		/** Flags controlling texture write behavior. */
+		enum class TextureWriteFlag
+		{
+			/**
+			 * Default flag. Performs the write assuming the image subresource is not currently bound to a command buffer, or used by the GPU.
+			 * If the image subresource is in use by the GPU or bound to a command buffer, it's expected the caller will provide a command buffer
+			 * on which to queue the write operation on, to ensure previous uses are not disturbed. Otherwise write fails.
+			 */
+			Normal = 0,
+
+			/**
+			 * If the image subresource is currently being used on the GPU the system will internally allocate new memory for the subresource
+			 * and write to the new memory. Old subresource will remain for whatever purpose it was used for until execution finishes,
+			 * at which point it will be freed. Caller must ensure to either fully write in the all the image subresources,
+			 * as anything not written by the caller will be undefined. Useful if you don't care about previous image contents.
+			 */
+			Discard = 1 << 0,
+
+			/**
+			 * If the image subresource is currently being used on the GPU the system will still let you update it. It's up to the
+			 * caller not to update the same  region as the GPU is operating on, while respecting any other rules required
+			 * by the low-level render API when doing such an operation (such as issuing memory barriers, flushing* memory and
+			 * respecting granularity). Use only when you know what you are doing.
+			 */
+			NoOverwrite = 1 << 1
+		};
+
+		using TextureWriteFlags = Flags<TextureWriteFlag>;
+		B3D_FLAGS_OPERATORS(TextureWriteFlag)
+
 		/** Utility class for working with textures, providing helper methods for staging buffer operations and data transfer. */
 		struct B3D_EXPORT TextureUtility
 		{
 			/**
 			 * Creates a staging buffer sized appropriately for texture data transfer.
 			 *
-			 * @param device		GPU device on which to create the buffer.
 			 * @param texture		Texture for which to create the staging buffer.
 			 * @param mipLevel		Mip level of the texture subresource.
-			 * @param arrayLayer	Array layer (or cubemap face) of the texture subresource.
 			 * @param readable		True if the buffer needs to be CPU-readable (for readback), false if CPU-writeable (for upload).
 			 * @return				Newly created staging buffer sized for the specified texture subresource.
 			 */
-			static SPtr<GpuBuffer> CreateStagingBuffer(GpuDevice& device, const SPtr<Texture>& texture, u32 mipLevel, u32 arrayLayer, bool readable);
+			static SPtr<GpuBuffer> CreateStagingBuffer(const SPtr<Texture>& texture, u32 mipLevel, bool readable);
 
 			/**
 			 * Creates a staging buffer with the specified size.
 			 *
-			 * @param device		GPU device on which to create the buffer.
-			 * @param size			Size of the buffer in bytes.
+			 * @param texture		Texture for which to create the staging buffer.
+			 * @param pixelData		Pixel data structure with initialized row/depth pitch, used to determine buffer size.
 			 * @param readable		True if the buffer needs to be CPU-readable (for readback), false if CPU-writeable (for upload).
 			 * @return				Newly created staging buffer.
 			 */
-			static SPtr<GpuBuffer> CreateStagingBuffer(GpuDevice& device, u32 size, bool readable);
+			static SPtr<GpuBuffer> CreateStagingBuffer(const SPtr<Texture>& texture, const PixelData& pixelData, bool readable);
+
+			/**
+			 * Writes pixel data to a texture subresource.
+			 *
+			 * This method automatically chooses the optimal path:
+			 * - For directly mappable textures: Uses Map() + BulkPixelConversion
+			 * - For non-mappable textures: Uses staging buffer + CopyBufferToTexture
+			 *
+			 * @param texture		Texture to write data to.
+			 * @param source		Pixel data to write. Must be compatible with texture format and dimensions.
+			 * @param mipLevel		Destination mipmap level.
+			 * @param arrayLayer	Destination texture face (array layer or cubemap face).
+			 * @param flags			Optional flags controlling write behavior.
+			 * @param commandBuffer	Command buffer for staging operations. If null, uses internal transfer buffer.
+			 *
+			 * @note Render thread only.
+			 */
+			static void Write(const SPtr<Texture>& texture, const PixelData& source, u32 mipLevel = 0, u32 arrayLayer = 0, TextureWriteFlags flags = TextureWriteFlag::Normal, SPtr<GpuCommandBuffer> commandBuffer = nullptr);
+
+			/**
+			 * Sets all the pixels of the specified face and mip level to the provided value.
+			 *
+			 * @param	texture			Texture to write data to.
+			 * @param	value			Color to clear the pixels to.
+			 * @param	mipLevel		Mip level to clear.
+			 * @param	arrayLayer		Array layer (or cubemap face) to clear.
+			 * @param	commandBuffer	Command buffer on which to encode the staging texture copy, in case the texture is not directly writeable.
+			 *							If not provided the operation will be queued on an internal command buffer that will be submitted before
+			 *							any regular command buffer submission.
+			 */
+			static void Clear(const SPtr<Texture>& texture, const Color& value, u32 mipLevel = 0, u32 arrayLayer = 0, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
 		};
 
 		/** @} */

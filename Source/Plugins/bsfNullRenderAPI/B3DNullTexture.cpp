@@ -9,10 +9,8 @@ namespace b3d
 	namespace render
 	{
 		NullTexture::NullTexture(NullGpuDevice& gpuDevice, const TextureCreateInformation& createInformation)
-			: Texture(createInformation)
-		{
-			(void)gpuDevice; // Unused parameter
-		}
+			: Texture(createInformation), mGpuDevice(gpuDevice)
+		{ }
 
 		NullTexture::~NullTexture()
 		{

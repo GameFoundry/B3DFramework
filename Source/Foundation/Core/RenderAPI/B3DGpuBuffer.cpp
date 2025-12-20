@@ -368,7 +368,6 @@ namespace b3d::render
 			return;
 
 		const GpuBufferInformation& gpuBufferInformation = buffer->GetInformation();
-		const bool isCPUAccessible = gpuBufferInformation.Type == GpuBufferType::StagingRead || gpuBufferInformation.Type == GpuBufferType::StagingWrite || gpuBufferInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess);
 		const bool supportsGPUWrites = gpuBufferInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
 
 		GpuMapOptions mapOptions = GpuMapOption::Write;
@@ -382,7 +381,8 @@ namespace b3d::render
 		const u32 useCount = buffer->GetUseCount();
 		const u32 boundCount = buffer->GetBoundCount();
 
-		if(isCPUAccessible) // TODO - Need to check if this is memory on an integrated GPU, in which case it might be directly mappable always
+		void* mappedMemory = buffer->GetMappedMemory();
+		if(mappedMemory != nullptr)
 		{
 			// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
 			// being used because the write could have completed yet still not visible, so we need to issue a pipeline

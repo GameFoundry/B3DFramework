@@ -182,7 +182,7 @@ SPtr<render::Texture> GeneratePreintegratedEnvBrdf()
 		}
 	}
 
-	texture->WriteData(*pixelData);
+	TextureUtility::Write(texture, *pixelData);
 
 	return texture;
 }
@@ -221,7 +221,7 @@ SPtr<render::Texture> GenerateDefaultIndirect()
 		data->SetColorAt(Color::kBlack, 0, 1);
 		data->SetColorAt(Color::kBlack, 1, 1);
 
-		skyTexture->WriteData(*data, 0, sides[i]);
+		TextureUtility::Write(skyTexture, *data, 0, sides[i]);
 	}
 
 	{
@@ -232,7 +232,7 @@ SPtr<render::Texture> GenerateDefaultIndirect()
 		data->SetColorAt(skyColor, 0, 1);
 		data->SetColorAt(skyColor, 1, 1);
 
-		skyTexture->WriteData(*data, 0, CF_PositiveY);
+		TextureUtility::Write(skyTexture, *data, 0, CF_PositiveY);
 	}
 
 	{
@@ -243,7 +243,7 @@ SPtr<render::Texture> GenerateDefaultIndirect()
 		data->SetColorAt(Color::kBlack, 0, 1);
 		data->SetColorAt(Color::kBlack, 1, 1);
 
-		skyTexture->WriteData(*data, 0, CF_NegativeY);
+		TextureUtility::Write(skyTexture, *data, 0, CF_NegativeY);
 	}
 
 	TextureCreateInformation irradianceCubemapDesc;

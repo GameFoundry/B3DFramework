@@ -28,6 +28,10 @@ namespace b3d
 			~NullTexture();
 
 			void SetName(const StringView& name) override { mName = name; }
+			GpuDevice& GetGpuDevice() const override { return mGpuDevice; }
+			GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags) const override { return GpuQueueMask(); }
+			u32 GetBoundCount(u32 mipLevel, u32 arrayLayer) const override { return 0; }
+			u32 GetUseCount(u32 mipLevel, u32 arrayLayer) const override { return 0; }
 
 		protected:
 			friend class NullGpuDevice;
@@ -38,9 +42,9 @@ namespace b3d
 			void BlitInternal(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureBlitInformation& blitInformation) override {}
 			TAsyncOp<SPtr<PixelData>> ReadDataAsync(GpuCommandBuffer& commandBuffer, u32 mipLevel = 0, u32 face = 0) override;
 			void ReadDataInternal(PixelData& destination, u32 mipLevel = 0, u32 face = 0, const SPtr<GpuQueue>& gpuQueue = nullptr) override {}
-			void WriteDataInternal(const PixelData& source, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) override {}
 
 		private:
+			NullGpuDevice& mGpuDevice;
 			PixelData* mMappedBuffer = nullptr;
 			String mName;
 		};

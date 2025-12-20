@@ -290,6 +290,10 @@ namespace b3d
 
 			void SetName(const StringView& name) override;
 			GpuTextureMappedScope Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options) override;
+			GpuDevice& GetGpuDevice() const override { return mGpuDevice; }
+			GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags) const override;
+			u32 GetBoundCount(u32 mipLevel, u32 arrayLayer) const override;
+			u32 GetUseCount(u32 mipLevel, u32 arrayLayer) const override;
 			void Flush(u32 mipLevel, u32 arrayLayer) override;
 			void Invalidate(u32 mipLevel, u32 arrayLayer) override;
 			void RecreateInternalTexture() override;
@@ -303,7 +307,6 @@ namespace b3d
 			void Initialize() override;
 			TAsyncOp<SPtr<PixelData>> ReadDataAsync(GpuCommandBuffer& commandBuffer, u32 mipLevel = 0, u32 face = 0) override;
 			void ReadDataInternal(PixelData& destination, u32 mipLevel = 0, u32 face = 0, const SPtr<GpuQueue>& gpuQueue = nullptr) override;
-			void WriteDataInternal(const PixelData& source, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) override;
 
 		private:
 			/** Creates a new image for the specified device, matching the current properties. */

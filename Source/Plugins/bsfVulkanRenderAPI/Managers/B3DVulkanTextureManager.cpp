@@ -4,6 +4,7 @@
 
 #include "B3DApplication.h"
 #include "B3DVulkanTexture.h"
+#include "Image/B3DTexture.h"
 #include "B3DVulkanRenderTexture.h"
 #include "B3DVulkanResource.h"
 #include "B3DVulkanUtility.h"
@@ -75,7 +76,7 @@ void VulkanTextureManager::OnStartUp()
 
 		createInformation.Name = "VulkanDummyRead";
 		mDummyReadTextures[idx] = std::static_pointer_cast<VulkanTexture>(mGpuDevice.CreateTexture(createInformation));
-		mDummyReadTextures[idx]->WriteData(*pixelData);
+		TextureUtility::Write(mDummyReadTextures[idx], *pixelData);
 
 		createInformation.Name = "VulkanDummyStorage";
 		createInformation.Usage = TU_LOADSTORE | TU_MUTABLEFORMAT;

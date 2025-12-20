@@ -708,8 +708,9 @@ namespace b3d::render
 	enum class GpuBufferWriteFlag
 	{
 		/**
-		 * Default flag. If the buffer is currently used by the GPU this will cause a CPU<->GPU sync point as the CPU waits on
-		 * the GPU to finish operations on the buffer.
+		 * Default flag. Performs the write assuming the buffer is not currently bound to a command buffer, or used by the GPU.
+		 * If the buffer is in use by the GPU or bound to a command buffer, it's expected the caller will provide a command buffer
+		 * on which to queue the write operation on, to ensure previous uses are not disturbed. Otherwise write fails.
 		 */
 		Normal = 0,
 
@@ -717,8 +718,8 @@ namespace b3d::render
 		 * If the buffer is currently being used on the GPU the system will internally allocate new memory for the buffer
 		 * and write to the new memory. Old buffer memory will remain for whatever purpose it was used for until
 		 * execution finishes, at which point it will be freed. Caller must ensure to either fully write in the
-		 * buffer range, as anything not written by the caller will be undefined. Avoids CPU<->GPU sync points at
-		 * the cost of additional memory being allocated.
+		 * buffer range, as anything not written by the caller will be undefined. Useful if you don't care about
+		 * previous buffer contents.
 		 */
 		Discard = 1 << 0,
 

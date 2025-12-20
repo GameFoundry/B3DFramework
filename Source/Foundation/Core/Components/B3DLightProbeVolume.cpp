@@ -426,7 +426,7 @@ void LightProbeVolume::Initialize()
 		}
 	}
 
-	mCoefficients->WriteData(*coeffData, 0, 0, true);
+	TextureUtility::Write(mCoefficients, *coeffData, 0, 0, TextureWriteFlag::Discard);
 	mInitCoefficients.clear();
 
 	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
