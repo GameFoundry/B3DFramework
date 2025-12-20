@@ -1595,6 +1595,9 @@ void VulkanGpuCommandBuffer::Reset()
 
 	mResourceTracker.Clear();
 	mQueueSyncMask = GpuQueueMask();
+
+	OnDidComplete.Clear();
+	OnDestroyed.Clear();
 }
 
 Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> VulkanGpuCommandBuffer::BuildClearValues(RenderSurfaceMask clearMask, const Color& color, float depth, u16 stencil)
