@@ -215,13 +215,13 @@ namespace b3d
 
 		/// <summary>Retrieves detailed information about a currently playing animation clip.</summary>
 		/// <param name="clip">Clip to retrieve the information for.</param>
-		/// <param name="state">
+		/// <param name="outState">
 		/// Animation clip state containing the requested information. Only valid if the method returns true.
 		/// </param>
 		/// <returns>True if the state was found (animation clip is playing), false otherwise.</returns>
-		public bool GetState(RRef<AnimationClip> clip, out AnimationClipState state)
+		public bool GetState(RRef<AnimationClip> clip, out AnimationClipState outState)
 		{
-			return Internal_GetState(mCachedPtr, clip, out state);
+			return Internal_GetState(mCachedPtr, clip, out outState);
 		}
 
 		/// <summary>
@@ -278,7 +278,7 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_IsPlaying(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_GetState(IntPtr thisPtr, RRef<AnimationClip> clip, out AnimationClipState state);
+		private static extern bool Internal_GetState(IntPtr thisPtr, RRef<AnimationClip> clip, out AnimationClipState outState);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetState(IntPtr thisPtr, RRef<AnimationClip> clip, ref AnimationClipState state);
 		[MethodImpl(MethodImplOptions.InternalCall)]

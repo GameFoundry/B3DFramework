@@ -41,7 +41,7 @@ namespace b3d
 		static float InternalGetHandlePositionInPercent(ScriptGUISliderWrapperBase* self);
 		static void InternalSetHandlePositionInRange(ScriptGUISliderWrapperBase* self, float value);
 		static float InternalGetHandlePositionInRange(ScriptGUISliderWrapperBase* self);
-		static void InternalSetRange(ScriptGUISliderWrapperBase* self, float min, float max);
+		static void InternalSetRange(ScriptGUISliderWrapperBase* self, float minimum, float maximum);
 		static float InternalGetRangeMinimum(ScriptGUISliderWrapperBase* self);
 		static float InternalGetRangeMaximum(ScriptGUISliderWrapperBase* self);
 		static void InternalSetStep(ScriptGUISliderWrapperBase* self, float step);

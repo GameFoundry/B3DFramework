@@ -127,7 +127,7 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptColorGradient::InternalGetKey(ScriptColorGradient* self, uint32_t idx, __ColorGradientKeyInterop* __output)
+	void ScriptColorGradient::InternalGetKey(ScriptColorGradient* self, uint32_t index, __ColorGradientKeyInterop* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -136,7 +136,7 @@ namespace b3d
 		}
 
 		ColorGradientKey tmp__output;
-		tmp__output = static_cast<ColorGradient*>(self->GetNativeObject())->GetKey(idx);
+		tmp__output = static_cast<ColorGradient*>(self->GetNativeObject())->GetKey(index);
 
 		__ColorGradientKeyInterop interop__output;
 		interop__output = ScriptColorGradientKey::ToInterop(tmp__output);

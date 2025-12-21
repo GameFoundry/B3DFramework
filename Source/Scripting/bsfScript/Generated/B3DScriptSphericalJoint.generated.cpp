@@ -65,12 +65,12 @@ namespace b3d
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitConeRange::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptSphericalJoint::InternalSetFlag(ScriptSphericalJoint* self, SphericalJointFlag flag, bool enabled)
+	void ScriptSphericalJoint::InternalSetFlag(ScriptSphericalJoint* self, SphericalJointFlag flag, bool isEnabled)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<SphericalJoint*>(self->GetNativeObject())->SetFlag(flag, enabled);
+		static_cast<SphericalJoint*>(self->GetNativeObject())->SetFlag(flag, isEnabled);
 	}
 
 	bool ScriptSphericalJoint::InternalHasFlag(ScriptSphericalJoint* self, SphericalJointFlag flag)

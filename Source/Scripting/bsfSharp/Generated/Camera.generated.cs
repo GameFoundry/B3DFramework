@@ -372,7 +372,7 @@ namespace b3d
 		}
 
 		/// <summary>
-		/// Projects a point in view space to normalized device coordinates. Similar to viewToNdcPoint() but preserves the depth 
+		/// Projects a point in view space to normalized device coordinates. Similar to ViewToNDCPoint() but preserves the depth 
 		/// component.
 		/// </summary>
 		/// <param name="point">3D point relative to the camera&apos;s coordinate system.</param>
@@ -433,11 +433,11 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern ProjectionType Internal_GetProjectionType(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOrthographicHeight(IntPtr thisPtr, float h);
+		private static extern void Internal_SetOrthographicHeight(IntPtr thisPtr, float height);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_GetOrthographicHeight(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOrthographicWidth(IntPtr thisPtr, float w);
+		private static extern void Internal_SetOrthographicWidth(IntPtr thisPtr, float width);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_GetOrthographicWidth(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

@@ -74,8 +74,8 @@ namespace b3d
 		}
 
 		/// <summary>
-		/// Determines should the texture be imported as a cubemap. See setCubemapSource to choose how will the source texture be 
-		/// converted to a cubemap.
+		/// Determines should the texture be imported as a cubemap. See CubemapSourceType to choose how will the source texture 
+		/// be converted to a cubemap.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -87,7 +87,7 @@ namespace b3d
 
 		/// <summary>
 		/// Determines how should the source texture be interpreted when generating a cubemap. Only relevant when <see 
-		/// cref="cubemap"/> is set to true.
+		/// cref="Cubemap"/> is set to true.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

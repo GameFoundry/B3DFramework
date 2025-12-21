@@ -56,18 +56,18 @@ namespace b3d
 
 		/// <summary>Check is the virtual button just getting pressed. This state is only active for one frame.</summary>
 		/// <param name="button">Virtual button identifier.</param>
-		/// <param name="deviceIdx">Optional device index in case multiple input devices are available.</param>
-		public static bool IsButtonDown(VirtualButton button, int deviceIdx = 0)
+		/// <param name="deviceIndex">Optional device index in case multiple input devices are available.</param>
+		public static bool IsButtonDown(VirtualButton button, int deviceIndex = 0)
 		{
-			return Internal_IsButtonDown(ref button, deviceIdx);
+			return Internal_IsButtonDown(ref button, deviceIndex);
 		}
 
 		/// <summary>Check is the virtual button just getting released. This state is only active for one frame.</summary>
 		/// <param name="button">Virtual button identifier.</param>
-		/// <param name="deviceIdx">Optional device index in case multiple input devices are available.</param>
-		public static bool IsButtonUp(VirtualButton button, int deviceIdx = 0)
+		/// <param name="deviceIndex">Optional device index in case multiple input devices are available.</param>
+		public static bool IsButtonUp(VirtualButton button, int deviceIndex = 0)
 		{
-			return Internal_IsButtonUp(ref button, deviceIdx);
+			return Internal_IsButtonUp(ref button, deviceIndex);
 		}
 
 		/// <summary>
@@ -75,10 +75,10 @@ namespace b3d
 		/// for multiple frames.
 		/// </summary>
 		/// <param name="button">Virtual button identifier.</param>
-		/// <param name="deviceIdx">Optional device index in case multiple input devices are available.</param>
-		public static bool IsButtonHeld(VirtualButton button, int deviceIdx = 0)
+		/// <param name="deviceIndex">Optional device index in case multiple input devices are available.</param>
+		public static bool IsButtonHeld(VirtualButton button, int deviceIndex = 0)
 		{
-			return Internal_IsButtonHeld(ref button, deviceIdx);
+			return Internal_IsButtonHeld(ref button, deviceIndex);
 		}
 
 		/// <summary>
@@ -86,10 +86,10 @@ namespace b3d
 		/// be outside the range for devices with unbound axes (for example mouse).
 		/// </summary>
 		/// <param name="axis">Virtual axis identifier.</param>
-		/// <param name="deviceIdx">Optional device index in case multiple input devices are available.</param>
-		public static float GetAxisValue(VirtualAxis axis, int deviceIdx = 0)
+		/// <param name="deviceIndex">Optional device index in case multiple input devices are available.</param>
+		public static float GetAxisValue(VirtualAxis axis, int deviceIndex = 0)
 		{
-			return Internal_GetAxisValue(ref axis, deviceIdx);
+			return Internal_GetAxisValue(ref axis, deviceIndex);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -101,13 +101,13 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_GetOrCreateVirtualAxis(string name, out VirtualAxis __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_IsButtonDown(ref VirtualButton button, int deviceIdx);
+		private static extern bool Internal_IsButtonDown(ref VirtualButton button, int deviceIndex);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_IsButtonUp(ref VirtualButton button, int deviceIdx);
+		private static extern bool Internal_IsButtonUp(ref VirtualButton button, int deviceIndex);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_IsButtonHeld(ref VirtualButton button, int deviceIdx);
+		private static extern bool Internal_IsButtonHeld(ref VirtualButton button, int deviceIndex);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern float Internal_GetAxisValue(ref VirtualAxis axis, int deviceIdx);
+		private static extern float Internal_GetAxisValue(ref VirtualAxis axis, int deviceIndex);
 		private static void Internal_OnButtonDown(ref VirtualButton p0, int p1)
 		{
 			OnButtonDown?.Invoke(p0, p1);

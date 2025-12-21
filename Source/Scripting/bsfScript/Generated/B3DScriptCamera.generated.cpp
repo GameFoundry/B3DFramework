@@ -267,12 +267,12 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptCamera::InternalSetOrthographicHeight(ScriptCamera* self, float h)
+	void ScriptCamera::InternalSetOrthographicHeight(ScriptCamera* self, float height)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<Camera*>(self->GetNativeObject())->SetOrthographicHeight(h);
+		static_cast<Camera*>(self->GetNativeObject())->SetOrthographicHeight(height);
 	}
 
 	float ScriptCamera::InternalGetOrthographicHeight(ScriptCamera* self)
@@ -289,12 +289,12 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptCamera::InternalSetOrthographicWidth(ScriptCamera* self, float w)
+	void ScriptCamera::InternalSetOrthographicWidth(ScriptCamera* self, float width)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<Camera*>(self->GetNativeObject())->SetOrthographicWidth(w);
+		static_cast<Camera*>(self->GetNativeObject())->SetOrthographicWidth(width);
 	}
 
 	float ScriptCamera::InternalGetOrthographicWidth(ScriptCamera* self)

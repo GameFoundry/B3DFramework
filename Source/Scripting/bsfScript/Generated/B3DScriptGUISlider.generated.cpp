@@ -105,12 +105,12 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptGUISlider::InternalSetRange(ScriptGUISliderWrapperBase* self, float min, float max)
+	void ScriptGUISlider::InternalSetRange(ScriptGUISliderWrapperBase* self, float minimum, float maximum)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<GUISlider*>(self->GetNativeObject())->SetRange(min, max);
+		static_cast<GUISlider*>(self->GetNativeObject())->SetRange(minimum, maximum);
 	}
 
 	float ScriptGUISlider::InternalGetRangeMinimum(ScriptGUISliderWrapperBase* self)

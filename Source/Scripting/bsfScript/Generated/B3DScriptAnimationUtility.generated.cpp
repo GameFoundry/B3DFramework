@@ -183,7 +183,7 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptAnimationUtility::InternalCalculateRange(MonoArray* curves, float* xMin, float* xMax, float* yMin, float* yMax)
+	void ScriptAnimationUtility::InternalCalculateRange(MonoArray* curves, float* outXMin, float* outXMax, float* outYMin, float* outYMax)
 	{
 		Vector<SPtr<TAnimationCurve<float>>> nativeArraycurves;
 		if(curves != nullptr)
@@ -203,6 +203,6 @@ namespace b3d
 			}
 
 		}
-		AnimationUtility::CalculateRange(nativeArraycurves, *xMin, *xMax, *yMin, *yMax);
+		AnimationUtility::CalculateRange(nativeArraycurves, *outXMin, *outXMax, *outYMin, *outYMax);
 	}
 }

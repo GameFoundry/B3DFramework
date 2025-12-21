@@ -36,7 +36,7 @@ namespace b3d
 
 		/// <summary>
 		/// Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider 
-		/// using the cached version of evaluate() for better performance.
+		/// using the cached version of Evaluate() for better performance.
 		/// </summary>
 		/// <param name="time">%Time to evaluate the curve at.</param>
 		/// <param name="loop">
@@ -88,7 +88,7 @@ namespace b3d
 
 		/// <summary>
 		/// Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider 
-		/// using the cached version of evaluate() for better performance.
+		/// using the cached version of Evaluate() for better performance.
 		/// </summary>
 		/// <param name="time">%Time to evaluate the curve at.</param>
 		/// <param name="loop">
@@ -142,7 +142,7 @@ namespace b3d
 
 		/// <summary>
 		/// Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider 
-		/// using the cached version of evaluate() for better performance.
+		/// using the cached version of Evaluate() for better performance.
 		/// </summary>
 		/// <param name="time">%Time to evaluate the curve at.</param>
 		/// <param name="loop">
@@ -196,7 +196,7 @@ namespace b3d
 
 		/// <summary>
 		/// Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider 
-		/// using the cached version of evaluate() for better performance.
+		/// using the cached version of Evaluate() for better performance.
 		/// </summary>
 		/// <param name="time">%Time to evaluate the curve at.</param>
 		/// <param name="loop">
@@ -250,7 +250,7 @@ namespace b3d
 
 		/// <summary>
 		/// Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider 
-		/// using the cached version of evaluate() for better performance.
+		/// using the cached version of Evaluate() for better performance.
 		/// </summary>
 		/// <param name="time">%Time to evaluate the curve at.</param>
 		/// <param name="loop">

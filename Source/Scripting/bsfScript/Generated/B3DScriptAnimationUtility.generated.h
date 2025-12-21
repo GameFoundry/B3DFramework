@@ -28,6 +28,6 @@ namespace b3d
 		static MonoObject* InternalCombineCurve3D(MonoArray* curveComponents);
 		static MonoArray* InternalSplitCurve2D(MonoObject* compoundCurve);
 		static MonoObject* InternalCombineCurve2D(MonoArray* curveComponents);
-		static void InternalCalculateRange(MonoArray* curves, float* xMin, float* xMax, float* yMin, float* yMax);
+		static void InternalCalculateRange(MonoArray* curves, float* outXMin, float* outXMax, float* outYMin, float* outYMax);
 	};
 }

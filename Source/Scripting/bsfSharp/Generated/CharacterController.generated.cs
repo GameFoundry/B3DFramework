@@ -23,7 +23,7 @@ namespace b3d
 
 		/// <summary>
 		/// Determines the position of the bottom of the controller. Position takes contact offset into account. Changing this 
-		/// will teleport the character to the location. Use move() for movement that includes physics.
+		/// will teleport the character to the location. Use Move() for movement that includes physics.
 		/// </summary>
 		[NativeWrapper]
 		public Vector3 FootPosition

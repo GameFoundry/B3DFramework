@@ -27,7 +27,7 @@ namespace b3d
 	private:
 		static void InternalSetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* limit);
 		static void InternalGetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* __output);
-		static void InternalSetFlag(ScriptSphericalJoint* self, SphericalJointFlag flag, bool enabled);
+		static void InternalSetFlag(ScriptSphericalJoint* self, SphericalJointFlag flag, bool isEnabled);
 		static bool InternalHasFlag(ScriptSphericalJoint* self, SphericalJointFlag flag);
 	};
 }

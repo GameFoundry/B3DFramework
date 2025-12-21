@@ -46,9 +46,9 @@ namespace b3d
 		static void InternalGetViewMatrix(ScriptCamera* self, TMatrix4<float>* __output);
 		static void InternalSetProjectionType(ScriptCamera* self, ProjectionType pt);
 		static ProjectionType InternalGetProjectionType(ScriptCamera* self);
-		static void InternalSetOrthographicHeight(ScriptCamera* self, float h);
+		static void InternalSetOrthographicHeight(ScriptCamera* self, float height);
 		static float InternalGetOrthographicHeight(ScriptCamera* self);
-		static void InternalSetOrthographicWidth(ScriptCamera* self, float w);
+		static void InternalSetOrthographicWidth(ScriptCamera* self, float width);
 		static float InternalGetOrthographicWidth(ScriptCamera* self);
 		static void InternalSetPriority(ScriptCamera* self, int32_t priority);
 		static int32_t InternalGetPriority(ScriptCamera* self);

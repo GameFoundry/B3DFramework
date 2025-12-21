@@ -31,7 +31,7 @@ namespace b3d
 		static void InternalSetKeys(ScriptColorGradientHDR* self, MonoArray* keys, float duration);
 		static MonoArray* InternalGetKeys(ScriptColorGradientHDR* self);
 		static uint32_t InternalGetNumKeys(ScriptColorGradientHDR* self);
-		static void InternalGetKey(ScriptColorGradientHDR* self, uint32_t idx, __ColorGradientKeyInterop* __output);
+		static void InternalGetKey(ScriptColorGradientHDR* self, uint32_t index, __ColorGradientKeyInterop* __output);
 		static void InternalSetConstant(ScriptColorGradientHDR* self, Color* color);
 		static void InternalEvaluate(ScriptColorGradientHDR* self, float t, Color* __output);
 	};

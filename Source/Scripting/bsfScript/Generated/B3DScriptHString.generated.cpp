@@ -84,13 +84,13 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptLocString::InternalSetParameter(ScriptLocString* self, uint32_t idx, MonoString* value)
+	void ScriptLocString::InternalSetParameter(ScriptLocString* self, uint32_t index, MonoString* value)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
-		static_cast<HString*>(self->GetNativeObject())->SetParameter(idx, tmpvalue);
+		static_cast<HString*>(self->GetNativeObject())->SetParameter(index, tmpvalue);
 	}
 }

@@ -40,7 +40,7 @@ namespace b3d
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetVariation", (void*)&ScriptMaterial::InternalSetVariation);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Clone", (void*)&ScriptMaterial::InternalClone);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetShader", (void*)&ScriptMaterial::InternalGetShader);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetVariation", (void*)&ScriptMaterial::InternalGetVariation);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetVariationParameters", (void*)&ScriptMaterial::InternalGetVariationParameters);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFloat", (void*)&ScriptMaterial::InternalSetFloat);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFloatCurve", (void*)&ScriptMaterial::InternalSetFloatCurve);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetColor", (void*)&ScriptMaterial::InternalSetColor);
@@ -148,7 +148,7 @@ namespace b3d
 		return __output;
 	}
 
-	MonoObject* ScriptMaterial::InternalGetVariation(ScriptMaterial* self)
+	MonoObject* ScriptMaterial::InternalGetVariationParameters(ScriptMaterial* self)
 	{
 		SPtr<ShaderVariationParameters> tmp__output = B3DMakeShared<ShaderVariationParameters>();
 		if(!self->IsNativeObjectValid())

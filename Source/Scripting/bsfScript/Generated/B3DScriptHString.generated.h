@@ -26,6 +26,6 @@ namespace b3d
 		static void InternalHString1(MonoObject* scriptObject, uint32_t stringTableId);
 		static void InternalHString2(MonoObject* scriptObject);
 		static MonoString* InternalGetValue(ScriptLocString* self);
-		static void InternalSetParameter(ScriptLocString* self, uint32_t idx, MonoString* value);
+		static void InternalSetParameter(ScriptLocString* self, uint32_t index, MonoString* value);
 	};
 }

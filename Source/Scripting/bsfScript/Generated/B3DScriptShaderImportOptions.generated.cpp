@@ -54,7 +54,7 @@ namespace b3d
 		static_cast<ShaderImportOptions*>(self->GetNativeObject())->SetDefine(tmpdefine, tmpvalue);
 	}
 
-	bool ScriptShaderImportOptions::InternalGetDefine(ScriptShaderImportOptions* self, MonoString* define, MonoString** value)
+	bool ScriptShaderImportOptions::InternalGetDefine(ScriptShaderImportOptions* self, MonoString* define, MonoString** outValue)
 	{
 		bool tmp__output;
 		if(!self->IsNativeObjectValid())
@@ -62,12 +62,12 @@ namespace b3d
 
 		String tmpdefine;
 		tmpdefine = MonoUtil::MonoToString(define);
-		String tmpvalue;
-		tmp__output = static_cast<ShaderImportOptions*>(self->GetNativeObject())->GetDefine(tmpdefine, tmpvalue);
+		String tmpoutValue;
+		tmp__output = static_cast<ShaderImportOptions*>(self->GetNativeObject())->GetDefine(tmpdefine, tmpoutValue);
 
 		bool __output;
 		__output = tmp__output;
-		MonoUtil::ReferenceCopy(value,  (MonoObject*)MonoUtil::StringToMono(tmpvalue));
+		MonoUtil::ReferenceCopy(outValue,  (MonoObject*)MonoUtil::StringToMono(tmpoutValue));
 
 		return __output;
 	}

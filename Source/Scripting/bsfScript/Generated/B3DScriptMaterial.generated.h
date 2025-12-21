@@ -37,7 +37,7 @@ namespace b3d
 		static void InternalSetVariation(ScriptMaterial* self, MonoObject* variation);
 		static MonoObject* InternalClone(ScriptMaterial* self);
 		static MonoObject* InternalGetShader(ScriptMaterial* self);
-		static MonoObject* InternalGetVariation(ScriptMaterial* self);
+		static MonoObject* InternalGetVariationParameters(ScriptMaterial* self);
 		static void InternalSetFloat(ScriptMaterial* self, MonoString* name, float value, uint32_t arrayIdx);
 		static void InternalSetFloatCurve(ScriptMaterial* self, MonoString* name, MonoObject* value, uint32_t arrayIdx);
 		static void InternalSetColor(ScriptMaterial* self, MonoString* name, Color* value, uint32_t arrayIdx);

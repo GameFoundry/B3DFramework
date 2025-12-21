@@ -47,11 +47,11 @@ namespace b3d
 
 		/// <summary>Checks if the define exists and returns its value if it does.</summary>
 		/// <param name="define">Name of the define to get the value for.</param>
-		/// <param name="value">value of the define. Only defined if the method returns true.</param>
+		/// <param name="outValue">Value of the define. Only defined if the method returns true.</param>
 		/// <returns>True if the define was found, false otherwise.</returns>
-		public bool GetDefine(string define, out string value)
+		public bool GetDefine(string define, out string outValue)
 		{
-			return Internal_GetDefine(mCachedPtr, define, out value);
+			return Internal_GetDefine(mCachedPtr, define, out outValue);
 		}
 
 		/// <summary>Checks if the provided define exists.</summary>
@@ -72,7 +72,7 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetDefine(IntPtr thisPtr, string define, string value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_GetDefine(IntPtr thisPtr, string define, out string value);
+		private static extern bool Internal_GetDefine(IntPtr thisPtr, string define, out string outValue);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_HasDefine(IntPtr thisPtr, string define);
 		[MethodImpl(MethodImplOptions.InternalCall)]

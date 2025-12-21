@@ -134,10 +134,10 @@ namespace b3d
 		MonoUtil::InvokeThunk(OnPointerDoubleClickThunk, tmpp0);
 	}
 
-	float ScriptInput::InternalGetAxisValue(uint32_t type, uint32_t deviceIdx)
+	float ScriptInput::InternalGetAxisValue(uint32_t type, uint32_t deviceIndex)
 	{
 		float tmp__output;
-		tmp__output = Input::Instance().GetAxisValue(type, deviceIdx);
+		tmp__output = Input::Instance().GetAxisValue(type, deviceIndex);
 
 		float __output;
 		__output = tmp__output;
@@ -145,10 +145,10 @@ namespace b3d
 		return __output;
 	}
 
-	bool ScriptInput::InternalIsButtonHeld(ButtonCode keyCode, uint32_t deviceIdx)
+	bool ScriptInput::InternalIsButtonHeld(ButtonCode keyCode, uint32_t deviceIndex)
 	{
 		bool tmp__output;
-		tmp__output = Input::Instance().IsButtonHeld(keyCode, deviceIdx);
+		tmp__output = Input::Instance().IsButtonHeld(keyCode, deviceIndex);
 
 		bool __output;
 		__output = tmp__output;
@@ -156,10 +156,10 @@ namespace b3d
 		return __output;
 	}
 
-	bool ScriptInput::InternalIsButtonUp(ButtonCode keyCode, uint32_t deviceIdx)
+	bool ScriptInput::InternalIsButtonUp(ButtonCode keyCode, uint32_t deviceIndex)
 	{
 		bool tmp__output;
-		tmp__output = Input::Instance().IsButtonUp(keyCode, deviceIdx);
+		tmp__output = Input::Instance().IsButtonUp(keyCode, deviceIndex);
 
 		bool __output;
 		__output = tmp__output;
@@ -167,10 +167,10 @@ namespace b3d
 		return __output;
 	}
 
-	bool ScriptInput::InternalIsButtonDown(ButtonCode keyCode, uint32_t deviceIdx)
+	bool ScriptInput::InternalIsButtonDown(ButtonCode keyCode, uint32_t deviceIndex)
 	{
 		bool tmp__output;
-		tmp__output = Input::Instance().IsButtonDown(keyCode, deviceIdx);
+		tmp__output = Input::Instance().IsButtonDown(keyCode, deviceIndex);
 
 		bool __output;
 		__output = tmp__output;

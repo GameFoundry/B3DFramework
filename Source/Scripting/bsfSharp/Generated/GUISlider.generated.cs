@@ -70,9 +70,9 @@ namespace b3d
 		/// Sets a minimum and maximum allow values in the input field. Set to large negative/positive values if you don&apos;t 
 		/// require clamping.
 		/// </summary>
-		public void SetRange(float min, float max)
+		public void SetRange(float minimum, float maximum)
 		{
-			Internal_SetRange(mCachedPtr, min, max);
+			Internal_SetRange(mCachedPtr, minimum, maximum);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -84,7 +84,7 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_GetHandlePositionInRange(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetRange(IntPtr thisPtr, float min, float max);
+		private static extern void Internal_SetRange(IntPtr thisPtr, float minimum, float maximum);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_GetRangeMinimum(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

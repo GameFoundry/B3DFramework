@@ -20,7 +20,7 @@ namespace b3d
 		private Texture(bool __dummy0) { }
 		protected Texture() { }
 
-		private Texture(PixelFormat format, int width, int height, int depth, TextureType texType, TextureUsage usage, int numSamples, bool hasMipmaps, bool gammaCorrection)
+		private Texture(PixelFormat format, int width, int height, int depth, TextureType texType, int usage, int numSamples, bool hasMipmaps, bool gammaCorrection)
 		{
 			Internal_Create(this, format, width, height, depth, texType, usage, numSamples, hasMipmaps, gammaCorrection);
 		}
@@ -38,7 +38,7 @@ namespace b3d
 		}
 
 		[NativeWrapper]
-		public TextureUsage Usage
+		public int Usage
 		{
 			get { return Internal_GetUsage(mCachedPtr); }
 		}
@@ -156,11 +156,11 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern AsyncOp<PixelData> Internal_ReadData(IntPtr thisPtr, int face, int mipLevel);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(Texture managedInstance, PixelFormat format, int width, int height, int depth, TextureType texType, TextureUsage usage, int numSamples, bool hasMipmaps, bool gammaCorrection);
+		private static extern void Internal_Create(Texture managedInstance, PixelFormat format, int width, int height, int depth, TextureType texType, int usage, int numSamples, bool hasMipmaps, bool gammaCorrection);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern PixelFormat Internal_GetPixelFormat(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern TextureUsage Internal_GetUsage(IntPtr thisPtr);
+		private static extern int Internal_GetUsage(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern TextureType Internal_GetType(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

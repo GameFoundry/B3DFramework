@@ -39,9 +39,9 @@ namespace b3d
 		}
 
 		/// <summary>Enables or disables a flag that controls the joint&apos;s behaviour.</summary>
-		public void SetFlag(SphericalJointFlag flag, bool enabled)
+		public void SetFlag(SphericalJointFlag flag, bool isEnabled)
 		{
-			Internal_SetFlag(mCachedPtr, flag, enabled);
+			Internal_SetFlag(mCachedPtr, flag, isEnabled);
 		}
 
 		/// <summary>Checks is the specified flag enabled.</summary>
@@ -55,7 +55,7 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_GetLimit(IntPtr thisPtr, out LimitConeRange __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetFlag(IntPtr thisPtr, SphericalJointFlag flag, bool enabled);
+		private static extern void Internal_SetFlag(IntPtr thisPtr, SphericalJointFlag flag, bool isEnabled);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_HasFlag(IntPtr thisPtr, SphericalJointFlag flag);
 	}

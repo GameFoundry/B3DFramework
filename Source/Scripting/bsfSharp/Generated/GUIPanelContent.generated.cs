@@ -27,13 +27,15 @@ namespace b3d
 		/// </summary>
 		public short Depth;
 		/// <summary>
-		/// Minimum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [depth 
-		/// - depthRangeMin, depth + depthRangeMax] it will be clamped to nearest extreme. Value of 65535 means infinite range.
+		/// Minimum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [Depth 
+		/// - DepthRangeMinimum, Depth + DepthRangeMaximum] it will be clamped to nearest extreme. Value of 65535 means infinite 
+		/// range.
 		/// </summary>
 		public ushort DepthRangeMinimum;
 		/// <summary>
-		/// Maximum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [depth 
-		/// - depthRangeMin, depth + depthRangeMax] it will be clamped to nearest extreme. Value of 65535 means infinite range.
+		/// Maximum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [Depth 
+		/// - DepthRangeMinimum, Depth + DepthRangeMaximum] it will be clamped to nearest extreme. Value of 65535 means infinite 
+		/// range.
 		/// </summary>
 		public ushort DepthRangeMaximum;
 	}

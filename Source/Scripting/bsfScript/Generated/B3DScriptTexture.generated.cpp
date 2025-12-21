@@ -83,7 +83,7 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptTexture::InternalCreate(MonoObject* scriptObject, PixelFormat format, uint32_t width, uint32_t height, uint32_t depth, TextureType texType, TextureUsage usage, uint32_t numSamples, bool hasMipmaps, bool gammaCorrection)
+	void ScriptTexture::InternalCreate(MonoObject* scriptObject, PixelFormat format, uint32_t width, uint32_t height, uint32_t depth, TextureType texType, int32_t usage, uint32_t numSamples, bool hasMipmaps, bool gammaCorrection)
 	{
 		TResourceHandle<Texture> nativeObject = TextureEx::Create(format, width, height, depth, texType, usage, numSamples, hasMipmaps, gammaCorrection);
 		ScriptObjectWrapper::Create<ScriptTexture>(nativeObject, scriptObject);
@@ -103,15 +103,15 @@ namespace b3d
 		return __output;
 	}
 
-	TextureUsage ScriptTexture::InternalGetUsage(ScriptTexture* self)
+	int32_t ScriptTexture::InternalGetUsage(ScriptTexture* self)
 	{
-		TextureUsage tmp__output;
+		int32_t tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
 		tmp__output = TextureEx::GetUsage(B3DStaticResourceCast<Texture>(self->GetBaseNativeObjectAsHandle()));
 
-		TextureUsage __output;
+		int32_t __output;
 		__output = tmp__output;
 
 		return __output;

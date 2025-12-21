@@ -42,9 +42,9 @@ namespace b3d
 		static MonoObject* InternalGetConfiguration();
 		static void InternalGetOrCreateVirtualButton(MonoString* name, VirtualButton* __output);
 		static void InternalGetOrCreateVirtualAxis(MonoString* name, VirtualAxis* __output);
-		static bool InternalIsButtonDown(VirtualButton* button, uint32_t deviceIdx);
-		static bool InternalIsButtonUp(VirtualButton* button, uint32_t deviceIdx);
-		static bool InternalIsButtonHeld(VirtualButton* button, uint32_t deviceIdx);
-		static float InternalGetAxisValue(VirtualAxis* axis, uint32_t deviceIdx);
+		static bool InternalIsButtonDown(VirtualButton* button, uint32_t deviceIndex);
+		static bool InternalIsButtonUp(VirtualButton* button, uint32_t deviceIndex);
+		static bool InternalIsButtonHeld(VirtualButton* button, uint32_t deviceIndex);
+		static float InternalGetAxisValue(VirtualAxis* axis, uint32_t deviceIndex);
 	};
 }

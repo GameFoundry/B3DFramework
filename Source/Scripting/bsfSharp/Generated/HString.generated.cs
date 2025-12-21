@@ -66,9 +66,11 @@ namespace b3d
 		/// Sets a value of a string parameter. Parameters are specified as bracketed values within the string itself (for 
 		/// example {0}, {1}) etc. Use ^ as an escape character.
 		/// </summary>
-		public void SetParameter(int idx, string value)
+		/// <param name="index">Index of the parameter to set.</param>
+		/// <param name="value">Value to assign to the parameter.</param>
+		public void SetParameter(int index, string value)
 		{
-			Internal_SetParameter(mCachedPtr, idx, value);
+			Internal_SetParameter(mCachedPtr, index, value);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -82,7 +84,7 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern string Internal_GetValue(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetParameter(IntPtr thisPtr, int idx, string value);
+		private static extern void Internal_SetParameter(IntPtr thisPtr, int index, string value);
 	}
 
 	/** @} */

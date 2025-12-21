@@ -59,10 +59,10 @@ namespace b3d
 		static HEvent OnPointerReleasedConnection;
 		static HEvent OnPointerDoubleClickConnection;
 
-		static float InternalGetAxisValue(uint32_t type, uint32_t deviceIdx);
-		static bool InternalIsButtonHeld(ButtonCode keyCode, uint32_t deviceIdx);
-		static bool InternalIsButtonUp(ButtonCode keyCode, uint32_t deviceIdx);
-		static bool InternalIsButtonDown(ButtonCode keyCode, uint32_t deviceIdx);
+		static float InternalGetAxisValue(uint32_t type, uint32_t deviceIndex);
+		static bool InternalIsButtonHeld(ButtonCode keyCode, uint32_t deviceIndex);
+		static bool InternalIsButtonUp(ButtonCode keyCode, uint32_t deviceIndex);
+		static bool InternalIsButtonDown(ButtonCode keyCode, uint32_t deviceIndex);
 		static void InternalGetPointerPosition(TVector2<int32_t>* __output);
 		static void InternalGetPointerDelta(TVector2<int32_t>* __output);
 		static bool InternalIsPointerButtonHeld(PointerEventButton pointerButton);

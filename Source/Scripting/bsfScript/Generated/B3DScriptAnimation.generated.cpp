@@ -296,7 +296,7 @@ namespace b3d
 		return __output;
 	}
 
-	bool ScriptAnimation::InternalGetState(ScriptAnimation* self, MonoObject* clip, AnimationClipState* state)
+	bool ScriptAnimation::InternalGetState(ScriptAnimation* self, MonoObject* clip, AnimationClipState* outState)
 	{
 		bool tmp__output;
 		if(!self->IsNativeObjectValid())
@@ -307,7 +307,7 @@ namespace b3d
 		scriptObjectWrapperclip = ScriptRRefBase::GetScriptObjectWrapper(clip);
 		if(scriptObjectWrapperclip != nullptr)
 			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetNativeObject());
-		tmp__output = static_cast<Animation*>(self->GetNativeObject())->GetState(tmpclip, *state);
+		tmp__output = static_cast<Animation*>(self->GetNativeObject())->GetState(tmpclip, *outState);
 
 		bool __output;
 		__output = tmp__output;

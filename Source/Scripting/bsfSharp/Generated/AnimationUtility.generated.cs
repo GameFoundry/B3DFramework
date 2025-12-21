@@ -53,9 +53,9 @@ namespace b3d
 			return Internal_CombineCurve2D(curveComponents);
 		}
 
-		public static void CalculateRange(AnimationCurve[] curves, out float xMin, out float xMax, out float yMin, out float yMax)
+		public static void CalculateRange(AnimationCurve[] curves, out float outXMin, out float outXMax, out float outYMin, out float outYMax)
 		{
-			Internal_CalculateRange(curves, out xMin, out xMax, out yMin, out yMax);
+			Internal_CalculateRange(curves, out outXMin, out outXMax, out outYMin, out outYMax);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -71,7 +71,7 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern Vector2Curve Internal_CombineCurve2D(AnimationCurve[] curveComponents);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_CalculateRange(AnimationCurve[] curves, out float xMin, out float xMax, out float yMin, out float yMax);
+		private static extern void Internal_CalculateRange(AnimationCurve[] curves, out float outXMin, out float outXMax, out float outYMin, out float outYMax);
 	}
 
 	/** @} */

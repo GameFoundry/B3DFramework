@@ -34,7 +34,7 @@ namespace b3d
 		}
 
 		/// <summary>
-		/// Sets a shader that will be used by the material. Material will be initialized using all compatible techniques from 
+		/// Sets a shader that will be used by the material. Material will be initialized using all compatible variations from 
 		/// the shader. Shader must be set before doing any other operations with the material.
 		/// </summary>
 		[ShowInInspector]
@@ -46,16 +46,16 @@ namespace b3d
 		}
 
 		/// <summary>
-		/// Set of parameters that determine which subset of techniques in the assigned shader should be used. Only the 
-		/// techniques that have the provided parameters with the provided values will match. This will control which technique 
-		/// is considered the default technique and which subset of techniques are searched during a call to findTechnique().
+		/// Set of parameters that determine which subset of variations in the assigned shader should be used. Only the 
+		/// variations that have the provided parameters with the provided values will match. This will control which variation 
+		/// is considered the default variation and which subset of variations are searched during a call to FindVariation().
 		/// </summary>
 		[NotNull]
 		[PassByCopy]
 		[NativeWrapper]
 		public ShaderVariationParameters Variation
 		{
-			get { return Internal_GetVariation(mCachedPtr); }
+			get { return Internal_GetVariationParameters(mCachedPtr); }
 			set { Internal_SetVariation(mCachedPtr, value); }
 		}
 
@@ -289,7 +289,7 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Shader> Internal_GetShader(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ShaderVariationParameters Internal_GetVariation(IntPtr thisPtr);
+		private static extern ShaderVariationParameters Internal_GetVariationParameters(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetFloat(IntPtr thisPtr, string name, float value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]

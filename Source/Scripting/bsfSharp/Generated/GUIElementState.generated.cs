@@ -17,7 +17,7 @@ namespace b3d
 		ActiveOn = 260,
 		/// <summary>State when the element has input focus and pointer is not hovering over the element.</summary>
 		Focused = 8,
-		/// <summary>Normal state when element is not being iteracted with.</summary>
+		/// <summary>Normal state when element is not being interacted with.</summary>
 		Normal = 1,
 		/// <summary>State when pointer is hovering over the element.</summary>
 		Hover = 2,

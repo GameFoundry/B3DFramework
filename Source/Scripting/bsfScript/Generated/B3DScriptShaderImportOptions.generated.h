@@ -26,7 +26,7 @@ namespace b3d
 
 	private:
 		static void InternalSetDefine(ScriptShaderImportOptions* self, MonoString* define, MonoString* value);
-		static bool InternalGetDefine(ScriptShaderImportOptions* self, MonoString* define, MonoString** value);
+		static bool InternalGetDefine(ScriptShaderImportOptions* self, MonoString* define, MonoString** outValue);
 		static bool InternalHasDefine(ScriptShaderImportOptions* self, MonoString* define);
 		static void InternalRemoveDefine(ScriptShaderImportOptions* self, MonoString* define);
 		static ShadingLanguageFlag InternalGetLanguages(ScriptShaderImportOptions* self);

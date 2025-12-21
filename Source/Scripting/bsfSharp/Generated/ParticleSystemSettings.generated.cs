@@ -200,7 +200,7 @@ namespace b3d
 		}
 
 		/// <summary>
-		/// Custom bounds to use them <see cref="useAutomaticBounds"/> is disabled. The bounds are in the simulation space of the 
+		/// Custom bounds to use them <see cref="UseAutomaticBounds"/> is disabled. The bounds are in the simulation space of the 
 		/// particle system.
 		/// </summary>
 		[ShowInInspector]

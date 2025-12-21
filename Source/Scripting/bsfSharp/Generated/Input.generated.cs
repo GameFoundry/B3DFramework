@@ -70,34 +70,34 @@ namespace b3d
 		/// with unbound axes (for example mouse).
 		/// </summary>
 		/// <param name="type">Type of axis to query. Usually a type from InputAxis but can be a custom value.</param>
-		/// <param name="deviceIdx">Index of the device in case more than one is hooked up (0 - primary).</param>
-		public static float GetAxisValue(int type, int deviceIdx = 0)
+		/// <param name="deviceIndex">Index of the device in case more than one is hooked up (0 - primary).</param>
+		public static float GetAxisValue(int type, int deviceIndex = 0)
 		{
-			return Internal_GetAxisValue(type, deviceIdx);
+			return Internal_GetAxisValue(type, deviceIndex);
 		}
 
 		/// <summary>Query if the provided button is currently being held (this frame or previous frames).</summary>
 		/// <param name="keyCode">Code of the button to query.</param>
-		/// <param name="deviceIdx">Device to query the button on (0 - primary).</param>
-		public static bool IsButtonHeld(ButtonCode keyCode, int deviceIdx = 0)
+		/// <param name="deviceIndex">Device to query the button on (0 - primary).</param>
+		public static bool IsButtonHeld(ButtonCode keyCode, int deviceIndex = 0)
 		{
-			return Internal_IsButtonHeld(keyCode, deviceIdx);
+			return Internal_IsButtonHeld(keyCode, deviceIndex);
 		}
 
 		/// <summary>Query if the provided button is currently being released (only true for one frame).</summary>
 		/// <param name="keyCode">Code of the button to query.</param>
-		/// <param name="deviceIdx">Device to query the button on (0 - primary).</param>
-		public static bool IsButtonUp(ButtonCode keyCode, int deviceIdx = 0)
+		/// <param name="deviceIndex">Device to query the button on (0 - primary).</param>
+		public static bool IsButtonUp(ButtonCode keyCode, int deviceIndex = 0)
 		{
-			return Internal_IsButtonUp(keyCode, deviceIdx);
+			return Internal_IsButtonUp(keyCode, deviceIndex);
 		}
 
 		/// <summary>Query if the provided button is currently being pressed (only true for one frame).</summary>
 		/// <param name="keyCode">Code of the button to query.</param>
-		/// <param name="deviceIdx">Device to query the button on (0 - primary).</param>
-		public static bool IsButtonDown(ButtonCode keyCode, int deviceIdx = 0)
+		/// <param name="deviceIndex">Device to query the button on (0 - primary).</param>
+		public static bool IsButtonDown(ButtonCode keyCode, int deviceIndex = 0)
 		{
-			return Internal_IsButtonDown(keyCode, deviceIdx);
+			return Internal_IsButtonDown(keyCode, deviceIndex);
 		}
 
 		/// <summary>Query if the provided pointer button is currently being held (this frame or previous frames).</summary>
@@ -134,13 +134,13 @@ namespace b3d
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern float Internal_GetAxisValue(int type, int deviceIdx);
+		private static extern float Internal_GetAxisValue(int type, int deviceIndex);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_IsButtonHeld(ButtonCode keyCode, int deviceIdx);
+		private static extern bool Internal_IsButtonHeld(ButtonCode keyCode, int deviceIndex);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_IsButtonUp(ButtonCode keyCode, int deviceIdx);
+		private static extern bool Internal_IsButtonUp(ButtonCode keyCode, int deviceIndex);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_IsButtonDown(ButtonCode keyCode, int deviceIdx);
+		private static extern bool Internal_IsButtonDown(ButtonCode keyCode, int deviceIndex);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_GetPointerPosition(out TVector2<int> __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]

@@ -68,7 +68,7 @@ namespace b3d
 		}
 
 		/// <summary>
-		/// Range at which the light contribution fades out to zero. Use setUseAutoAttenuation to provide a radius automatically 
+		/// Range at which the light contribution fades out to zero. Use SetUseAutoAttenuation to provide a radius automatically 
 		/// dependant on light intensity. The radius will cut-off light contribution and therefore manually set very small radius 
 		/// can end up being very physically incorrect.
 		/// </summary>

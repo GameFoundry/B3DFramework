@@ -55,10 +55,10 @@ namespace b3d
 		}
 
 		/// <summary>Returns the color key at the specified index. If out of range an empty key is returned.</summary>
-		public ColorGradientKey GetKey(int idx)
+		public ColorGradientKey GetKey(int index)
 		{
 			ColorGradientKey temp;
-			Internal_GetKey(mCachedPtr, idx, out temp);
+			Internal_GetKey(mCachedPtr, index, out temp);
 			return temp;
 		}
 
@@ -88,7 +88,7 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern int Internal_GetNumKeys(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetKey(IntPtr thisPtr, int idx, out ColorGradientKey __output);
+		private static extern void Internal_GetKey(IntPtr thisPtr, int index, out ColorGradientKey __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetConstant(IntPtr thisPtr, ref Color color);
 		[MethodImpl(MethodImplOptions.InternalCall)]

@@ -58,7 +58,7 @@ namespace b3d
 		static void InternalStop(ScriptAnimation* self, uint32_t layer);
 		static void InternalStopAll(ScriptAnimation* self);
 		static bool InternalIsPlaying(ScriptAnimation* self);
-		static bool InternalGetState(ScriptAnimation* self, MonoObject* clip, AnimationClipState* state);
+		static bool InternalGetState(ScriptAnimation* self, MonoObject* clip, AnimationClipState* outState);
 		static void InternalSetState(ScriptAnimation* self, MonoObject* clip, AnimationClipState* state);
 		static void InternalSetMorphChannelWeight(ScriptAnimation* self, MonoString* name, float weight);
 		static void InternalSetCustomBounds(ScriptAnimation* self, __TAABox_float_Interop* bounds);

@@ -115,10 +115,10 @@ namespace b3d
 		*__output = tmp__output;
 	}
 
-	bool ScriptVirtualInput::InternalIsButtonDown(VirtualButton* button, uint32_t deviceIdx)
+	bool ScriptVirtualInput::InternalIsButtonDown(VirtualButton* button, uint32_t deviceIndex)
 	{
 		bool tmp__output;
-		tmp__output = VirtualInput::Instance().IsButtonDown(*button, deviceIdx);
+		tmp__output = VirtualInput::Instance().IsButtonDown(*button, deviceIndex);
 
 		bool __output;
 		__output = tmp__output;
@@ -126,10 +126,10 @@ namespace b3d
 		return __output;
 	}
 
-	bool ScriptVirtualInput::InternalIsButtonUp(VirtualButton* button, uint32_t deviceIdx)
+	bool ScriptVirtualInput::InternalIsButtonUp(VirtualButton* button, uint32_t deviceIndex)
 	{
 		bool tmp__output;
-		tmp__output = VirtualInput::Instance().IsButtonUp(*button, deviceIdx);
+		tmp__output = VirtualInput::Instance().IsButtonUp(*button, deviceIndex);
 
 		bool __output;
 		__output = tmp__output;
@@ -137,10 +137,10 @@ namespace b3d
 		return __output;
 	}
 
-	bool ScriptVirtualInput::InternalIsButtonHeld(VirtualButton* button, uint32_t deviceIdx)
+	bool ScriptVirtualInput::InternalIsButtonHeld(VirtualButton* button, uint32_t deviceIndex)
 	{
 		bool tmp__output;
-		tmp__output = VirtualInput::Instance().IsButtonHeld(*button, deviceIdx);
+		tmp__output = VirtualInput::Instance().IsButtonHeld(*button, deviceIndex);
 
 		bool __output;
 		__output = tmp__output;
@@ -148,10 +148,10 @@ namespace b3d
 		return __output;
 	}
 
-	float ScriptVirtualInput::InternalGetAxisValue(VirtualAxis* axis, uint32_t deviceIdx)
+	float ScriptVirtualInput::InternalGetAxisValue(VirtualAxis* axis, uint32_t deviceIndex)
 	{
 		float tmp__output;
-		tmp__output = VirtualInput::Instance().GetAxisValue(*axis, deviceIdx);
+		tmp__output = VirtualInput::Instance().GetAxisValue(*axis, deviceIndex);
 
 		float __output;
 		__output = tmp__output;

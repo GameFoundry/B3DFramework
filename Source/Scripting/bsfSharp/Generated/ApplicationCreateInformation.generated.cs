@@ -32,6 +32,19 @@ namespace b3d
 			return value;
 		}
 
+		public ApplicationCreateInformation(VideoMode videoMode, string title, bool fullscreen)
+		{
+			this.RenderApi = "";
+			this.Renderer = "";
+			this.Physics = "";
+			this.Audio = "";
+			this.Input = "";
+			this.PhysicsCooking = true;
+			this.AsyncAnimation = true;
+			this.PrimaryWindow = RenderWindowCreateInformation.Default();
+			this.Importers = null;
+		}
+
 		/// <summary>Name of the render system plugin to use.</summary>
 		public string RenderApi;
 		/// <summary>Name of the renderer plugin to use.</summary>

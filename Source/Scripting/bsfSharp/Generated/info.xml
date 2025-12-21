@@ -101,43 +101,6 @@
 			<doc>Determines the minimum interval allowed between the generated particles. 0 specifies the particles can be generated anywhere on the shape.</doc>
 		</field>
 	</struct>
-	<class native="Viewport" script="Viewport">
-		<doc>Viewport determines to which RenderTarget should rendering be performed. It allows you to render to a sub-region of the target by specifying the area rectangle, and allows you to set up color/depth/stencil clear values for that specific region.</doc>
-		<ctor>
-			<doc>Creates a new viewport.</doc>
-			<param name="target" type="RenderTarget">
-			</param>
-			<param name="x" type="float">
-			</param>
-			<param name="y" type="float">
-			</param>
-			<param name="width" type="float">
-			</param>
-			<param name="height" type="float">
-			</param>
-		</ctor>
-		<property name="Target" type="RenderTarget" getter="GetTarget" setter="SetTarget" static="false">
-			<doc>Determines the render target the viewport is associated with.</doc>
-		</property>
-		<property name="Area" type="TArea2&lt;float,float&gt;" getter="GetArea" setter="SetArea" static="false">
-			<doc>Determines the area that the viewport covers. Coordinates are in normalized [0, 1] range.</doc>
-		</property>
-		<property name="PixelArea" type="TArea2&lt;int,int&gt;" getter="GetPixelArea" setter="" static="false">
-			<doc>Returns the area of the render target covered by the viewport, in pixels.</doc>
-		</property>
-		<property name="ClearFlags" type="ClearFlags" getter="GetClearFlags" setter="SetClearFlags" static="false">
-			<doc>Determines which portions of the render target should be cleared before rendering to this viewport is performed.</doc>
-		</property>
-		<property name="ClearColor" type="Color" getter="GetClearColorValue" setter="SetClearColorValue" static="false">
-			<doc>Determines the color to clear the viewport to before rendering, if color clear is enabled.</doc>
-		</property>
-		<property name="ClearDepth" type="float" getter="GetClearDepthValue" setter="SetClearDepthValue" static="false">
-			<doc>Determines the value to clear the depth buffer to before rendering, if depth clear is enabled.</doc>
-		</property>
-		<property name="ClearStencil" type="ushort" getter="GetClearStencilValue" setter="SetClearStencilValue" static="false">
-			<doc>Determines the value to clear the stencil buffer to before rendering, if stencil clear is enabled.</doc>
-		</property>
-	</class>
 	<enum native="AreaComponent" script="AreaComponent">
 		<doc>Names of individual components of an area.</doc>
 		<enumentry native="Width" script="Width">
@@ -710,7 +673,7 @@
 		</method>
 		<method native="GetKey" script="GetKey" static="false">
 			<doc>Returns the color key at the specified index. If out of range an empty key is returned.</doc>
-			<param name="idx" type="int">
+			<param name="index" type="int">
 			</param>
 			<returns type="ColorGradientKey">
 			</returns>
@@ -887,7 +850,7 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 			</param>
 		</ctor>
 		<method native="Evaluate" script="Evaluate" static="false">
-			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
+			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of Evaluate() for better performance.</doc>
 			<param name="time" type="float">
 				<doc>%Time to evaluate the curve at.</doc>
 			</param>
@@ -911,7 +874,7 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 			</param>
 		</ctor>
 		<method native="Evaluate" script="Evaluate" static="false">
-			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
+			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of Evaluate() for better performance.</doc>
 			<param name="time" type="float">
 				<doc>%Time to evaluate the curve at.</doc>
 			</param>
@@ -935,7 +898,7 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 			</param>
 		</ctor>
 		<method native="Evaluate" script="Evaluate" static="false">
-			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
+			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of Evaluate() for better performance.</doc>
 			<param name="time" type="float">
 				<doc>%Time to evaluate the curve at.</doc>
 			</param>
@@ -959,7 +922,7 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 			</param>
 		</ctor>
 		<method native="Evaluate" script="Evaluate" static="false">
-			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
+			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of Evaluate() for better performance.</doc>
 			<param name="time" type="float">
 				<doc>%Time to evaluate the curve at.</doc>
 			</param>
@@ -983,7 +946,7 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 			</param>
 		</ctor>
 		<method native="Evaluate" script="Evaluate" static="false">
-			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
+			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of Evaluate() for better performance.</doc>
 			<param name="time" type="float">
 				<doc>%Time to evaluate the curve at.</doc>
 			</param>
@@ -1049,7 +1012,7 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 		</method>
 		<method native="GetKey" script="GetKey" static="false">
 			<doc>Returns the color key at the specified index. If out of range an empty key is returned.</doc>
-			<param name="idx" type="int">
+			<param name="index" type="int">
 			</param>
 			<returns type="ColorGradientKey">
 			</returns>
@@ -1664,17 +1627,6 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
 		</field>
 	</struct>
-	<class native="GUIFixedSpace" script="GUIFixedSpace">
-		<doc>GUI element that may be inserted into layouts in order to make a space of a fixed size.</doc>
-		<ctor>
-			<doc>Creates a new fixed space GUI element.</doc>
-			<param name="size" type="TUnitValue&lt;int,LogicalPixel&gt;">
-			</param>
-		</ctor>
-		<property name="Size" type="TUnitValue&lt;int,LogicalPixel&gt;" getter="GetSize" setter="SetSize" static="false">
-			<doc>Changes the size of the space to the specified value, in pixels.</doc>
-		</property>
-	</class>
 	<class native="Texture" script="Texture">
 		<doc>Abstract class representing a texture. Specific render systems have their own Texture implementations. Internally represented as one or more surfaces with pixels in a certain number of dimensions, backed by a hardware buffer.</doc>
 		<method native="ReadData" script="GetGPUPixels" static="false">
@@ -1700,7 +1652,7 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 			</param>
 			<param name="texType" type="TextureType">
 			</param>
-			<param name="usage" type="TextureUsage">
+			<param name="usage" type="int">
 			</param>
 			<param name="numSamples" type="int">
 			</param>
@@ -1747,7 +1699,7 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 		</method>
 		<property name="PixelFormat" type="PixelFormat" getter="GetPixelFormat" setter="" static="false">
 		</property>
-		<property name="Usage" type="TextureUsage" getter="GetUsage" setter="" static="false">
+		<property name="Usage" type="int" getter="GetUsage" setter="" static="false">
 		</property>
 		<property name="Type" type="TextureType" getter="GetType" setter="" static="false">
 		</property>
@@ -1762,6 +1714,17 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 		<property name="SampleCount" type="int" getter="GetSampleCount" setter="" static="false">
 		</property>
 		<property name="MipMapCount" type="int" getter="GetMipmapCount" setter="" static="false">
+		</property>
+	</class>
+	<class native="GUIFixedSpace" script="GUIFixedSpace">
+		<doc>GUI element that may be inserted into layouts in order to make a space of a fixed size.</doc>
+		<ctor>
+			<doc>Creates a new fixed space GUI element.</doc>
+			<param name="size" type="TUnitValue&lt;int,LogicalPixel&gt;">
+			</param>
+		</ctor>
+		<property name="Size" type="TUnitValue&lt;int,LogicalPixel&gt;" getter="GetSize" setter="SetSize" static="false">
+			<doc>Changes the size of the space to the specified value, in pixels.</doc>
 		</property>
 	</class>
 	<struct native="TArea2&lt;int32_t, int32_t&gt;" script="TArea2&lt;int,int&gt;">
@@ -2443,189 +2406,6 @@ Also see SetContactOffset().</doc>
 		<field name="W" type="int">
 		</field>
 	</struct>
-	<struct native="ParticleCircleShapeSettings" script="ParticleCircleShapeSettings">
-		<doc>Information describing a ParticleEmitterCircleShape.</doc>
-		<ctor>
-		</ctor>
-		<field name="Radius" type="float">
-			<doc>Radius of the circle.</doc>
-		</field>
-		<field name="Thickness" type="float">
-			<doc>Proportion of the surface that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the circle, while thickness of 1 results in particles being emitted from the entire surface. In-between values will use a part of the surface.</doc>
-		</field>
-		<field name="Arc" type="Degree">
-			<doc>Angular portion of the cone from which to emit particles from, in degrees.</doc>
-		</field>
-		<field name="Mode" type="ParticleEmissionMode">
-			<doc>Determines how will particle positions on the shape be generated.</doc>
-		</field>
-	</struct>
-	<enum native="CompressionType" script="CompressionType">
-		<doc>Supported compression modes.</doc>
-		<enumentry native="Uncompressed" script="Uncompressed">
-		</enumentry>
-		<enumentry native="Snappy" script="Snappy">
-		</enumentry>
-		<enumentry native="Default" script="Default">
-		</enumentry>
-	</enum>
-	<enum native="ResultStatus" script="ResultStatus">
-		<doc>Common result codes for TResult/Result types.</doc>
-		<enumentry native="FailedReadOnly" script="FailedReadOnly">
-		</enumentry>
-		<enumentry native="Succeeded" script="Succeeded">
-		</enumentry>
-		<enumentry native="Failed" script="Failed">
-		</enumentry>
-		<enumentry native="FailedAlreadyExists" script="FailedAlreadyExists">
-		</enumentry>
-		<enumentry native="FailedInvalidInput" script="FailedInvalidInput">
-		</enumentry>
-		<enumentry native="FailedInternalError" script="FailedInternalError">
-		</enumentry>
-		<enumentry native="FailedNotFound" script="FailedNotFound">
-		</enumentry>
-	</enum>
-	<class native="GUIPanel" script="GUIPanel">
-		<doc>Represents a GUI panel that you can use for free placement of GUI elements within its bounds.</doc>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="contents" type="GUIPanelContent">
-				<doc>Structure describing the contents of the GUI element to create.</doc>
-			</param>
-			<param name="styleClass" type="string">
-				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
-			</param>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="contents" type="GUIPanelContent">
-				<doc>Structure describing the contents of the GUI element to create.</doc>
-			</param>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="styleClass" type="string">
-				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
-			</param>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-	</class>
-	<class native="Time" script="Time">
-		<doc>Manages global time related functionality.</doc>
-		<property name="RealTimeInSeconds" type="float" getter="GetRealTimeInSeconds" setter="" static="false">
-			<doc>Gets the time elapsed since application start. Only gets updated once per frame.</doc>
-		</property>
-		<property name="RealTimeInMilliseconds" type="ulong" getter="GetRealTimeInMilliseconds" setter="" static="false">
-			<doc>Gets the time elapsed since application start. Only gets updated once per frame.</doc>
-		</property>
-		<property name="FrameDelta" type="float" getter="GetFrameDelta" setter="" static="false">
-			<doc>Gets the time since last frame was executed. Only gets updated once per frame.</doc>
-		</property>
-		<property name="CurrentFrameIndex" type="ulong" getter="GetCurrentFrameIndex" setter="" static="false">
-			<doc>Returns the sequential index of the current frame. First frame is 0.</doc>
-		</property>
-		<property name="TimePrecise" type="ulong" getter="GetTimePrecise" setter="" static="false">
-			<doc>Returns the precise time since application start, in microseconds. Unlike other time methods this is not only updated every frame, but will return exact time at the moment it is called.</doc>
-		</property>
-	</class>
-	<struct native="Result" script="Result">
-		<doc>Same as TResult, but with no output object.</doc>
-		<ctor>
-		</ctor>
-		<field name="Status" type="ResultStatus">
-		</field>
-		<field name="ErrorMessage" type="string">
-		</field>
-		<field name="AdditionalErrorMessage" type="string">
-		</field>
-	</struct>
-	<class native="MorphChannel" script="MorphChannel">
-		<doc>A collection of morph shapes that are sequentially blended together. Each shape has a weight in range [0, 1] which determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be blended with those before or after them, depending on their weight.</doc>
-		<property name="Name" type="string" getter="GetName" setter="" static="false">
-			<doc>Returns the unique name of the channel.</doc>
-		</property>
-		<property name="Shapes" type="MorphShape" getter="GetShapes" setter="" static="false">
-			<doc>Returns all morph shapes within this channel, in order from lowest to highest.</doc>
-		</property>
-	</class>
-	<class native="AudioSource" script="AudioSource">
-		<doc>Represents a source for emitting audio. Audio can be played spatially (gun shot), or normally (music). Each audio source must have an AudioClip to play-back, and it can also have a position in the case of spatial (3D) audio.
-Whether or not an audio source is spatial is controlled by the assigned AudioClip. The volume and the pitch of a spatial audio source is controlled by its position and the AudioListener&apos;s position/direction/velocity.</doc>
-		<method native="Play" script="Play" static="false">
-			<doc>Starts playing the currently assigned audio clip.</doc>
-		</method>
-		<method native="Pause" script="Pause" static="false">
-			<doc>Pauses the audio playback.</doc>
-		</method>
-		<method native="Stop" script="Stop" static="false">
-			<doc>Stops audio playback, rewinding it to the start.</doc>
-		</method>
-		<property name="Clip" type="RRef&lt;AudioClip&gt;" getter="GetClip" setter="SetClip" static="false">
-			<doc>Audio clip to play.</doc>
-		</property>
-		<property name="Volume" type="float" getter="GetVolume" setter="SetVolume" static="false">
-			<doc>Volume of the audio played from this source, in [0, 1] range.</doc>
-		</property>
-		<property name="Pitch" type="float" getter="GetPitch" setter="SetPitch" static="false">
-			<doc>Determines the pitch of the played audio. 1 is the default.</doc>
-		</property>
-		<property name="Loop" type="bool" getter="GetIsLooping" setter="SetIsLooping" static="false">
-			<doc>Determines whether the audio clip should loop when it finishes playing.</doc>
-		</property>
-		<property name="Priority" type="int" getter="GetPriority" setter="SetPriority" static="false">
-			<doc>Determines the priority of the audio source. If more audio sources are playing than supported by the hardware, some might get disabled. By setting a higher priority the audio source is guaranteed to be disabled after sources with lower priority.</doc>
-		</property>
-		<property name="MinDistance" type="float" getter="GetMinDistance" setter="SetMinDistance" static="false">
-			<doc>Minimum distance at which audio attenuation starts. When the listener is closer to the source than this value, audio is heard at full volume. Once farther away the audio starts attenuating.</doc>
-		</property>
-		<property name="Attenuation" type="float" getter="GetAttenuation" setter="SetAttenuation" static="false">
-			<doc>Attenuation that controls how quickly does audio volume drop off as the listener moves further from the source.</doc>
-		</property>
-		<property name="Time" type="float" getter="GetTime" setter="SetTime" static="false">
-			<doc>Determines the current time of playback. If playback hasn&apos;t yet started, it specifies the time at which playback will start at. The time is in seconds, in range [0, clipLength].</doc>
-		</property>
-		<property name="PlayOnStart" type="bool" getter="GetPlayOnStart" setter="SetPlayOnStart" static="false">
-			<doc>Sets whether playback should start as soon as the component is enabled.</doc>
-		</property>
-		<property name="State" type="AudioSourceState" getter="GetState" setter="" static="false">
-			<doc>Returns the current state of the audio playback (playing/paused/stopped).</doc>
-		</property>
-	</class>
-	<class native="MeshData" script="MeshData">
-		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
-	</class>
-	<class native="SceneTime" script="SceneTime">
-		<doc>Manages simulation time for a particular scene. This time runs only while scene is simulating.</doc>
-		<method native="Reset" script="Reset" static="false">
-			<doc>Resets the simulation time to zero. Primarily used for editor purposes for resetting the time when ending play in editor.</doc>
-		</method>
-		<method native="SetPaused" script="SetPaused" static="false">
-			<doc>Pauses or unpauses the simulation time. This is equivalent to setting the time scale to 0.</doc>
-			<param name="paused" type="bool">
-			</param>
-		</method>
-		<property name="TimeInSeconds" type="float" getter="GetTimeInSeconds" setter="" static="false">
-			<doc>Gets the time since the simulation started playing, multiplied by the time scale factor. In editor this will reset to zero every time you start playing in editor, and in a standalone application this will be similar to GetRealTimeInSeconds(), except simulation time can be sped up/down, or stopped entirely by setting the time scale.</doc>
-		</property>
-		<property name="Scale" type="float" getter="GetScale" setter="SetScale" static="false">
-			<doc>Allows you to speed time up or down, or completely pause it by providing zero. Must be zero or larger.</doc>
-		</property>
-	</class>
 	<enum native="ChromaticAberrationType" script="ChromaticAberrationType">
 		<doc>Types of available chromatic aberration effects.</doc>
 		<enumentry native="Complex" script="Complex">
@@ -2671,9 +2451,11 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</ctor>
 		<method native="SetParameter" script="SetParameter" static="false">
 			<doc>Sets a value of a string parameter. Parameters are specified as bracketed values within the string itself (for example {0}, {1}) etc. Use ^ as an escape character.</doc>
-			<param name="idx" type="int">
+			<param name="index" type="int">
+				<doc>Index of the parameter to set.</doc>
 			</param>
 			<param name="value" type="string">
+				<doc>Value to assign to the parameter.</doc>
 			</param>
 		</method>
 	</class>
@@ -2861,13 +2643,13 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<method native="CalculateRange" script="CalculateRange" static="true">
 			<param name="curves" type="AnimationCurve">
 			</param>
-			<param name="xMin" type="float">
+			<param name="outXMin" type="float">
 			</param>
-			<param name="xMax" type="float">
+			<param name="outXMax" type="float">
 			</param>
-			<param name="yMin" type="float">
+			<param name="outYMin" type="float">
 			</param>
-			<param name="yMax" type="float">
+			<param name="outYMax" type="float">
 			</param>
 		</method>
 	</class>
@@ -2990,6 +2772,30 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Returns a list of all morph channels in the morph animation.</doc>
 		</property>
 	</class>
+	<enum native="TextureUsageFlag" script="TextureUsageFlag">
+		<doc>Flags that describe how a texture is used.</doc>
+		<enumentry native="MutableFormat" script="MutableFormat">
+			<doc>Allows retrieving views of the texture using a different format than specified on creation.</doc>
+		</enumentry>
+		<enumentry native="DepthStencil" script="DepthStencil">
+			<doc>Texture used as a depth/stencil buffer by the GPU. Must be combined with StoreOnGPU flag.</doc>
+		</enumentry>
+		<enumentry native="StoreOnCPUWithGPUAccess" script="Dynamic">
+			<doc>Places the texture into CPU memory accessible to the GPU. This means the texture is faster to update from the CPU, but it&apos;s slower to access by the GPU. Not allowed for GPU-writeable textures (render target, depth stencil or unordered access).</doc>
+		</enumentry>
+		<enumentry native="Default" script="Default">
+			<doc>Default setting suitable for majority of textures.</doc>
+		</enumentry>
+		<enumentry native="RenderTarget" script="Render">
+			<doc>Texture that can be rendered to by the GPU. Must be combined with StoreOnGPU flag.</doc>
+		</enumentry>
+		<enumentry native="AllowUnorderedAccessOnTheGPU" script="LoadStore">
+			<doc>Ensures that the GPU can perform unordered write operations on the texture. Generally used for textures in compute operations. Must be combined with StoreOnGPU flag.</doc>
+		</enumentry>
+		<enumentry native="CPUCached" script="CPUCached">
+			<doc>All texture data will also be cached in CPU memory for fast read access from the CPU. Only relevant for main thread textures, ignored for render thread textures.</doc>
+		</enumentry>
+	</enum>
 	<enum native="TextureScaleMode" script="TextureScaleMode">
 		<doc>Type of scaling modes for GUI images.</doc>
 		<enumentry native="RepeatToFit" script="RepeatToFit">
@@ -3030,6 +2836,189 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</ctor>
 		<property name="Settings" type="ParticleSkinnedMeshShapeSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the shape.</doc>
+		</property>
+	</class>
+	<struct native="ParticleCircleShapeSettings" script="ParticleCircleShapeSettings">
+		<doc>Information describing a ParticleEmitterCircleShape.</doc>
+		<ctor>
+		</ctor>
+		<field name="Radius" type="float">
+			<doc>Radius of the circle.</doc>
+		</field>
+		<field name="Thickness" type="float">
+			<doc>Proportion of the surface that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the circle, while thickness of 1 results in particles being emitted from the entire surface. In-between values will use a part of the surface.</doc>
+		</field>
+		<field name="Arc" type="Degree">
+			<doc>Angular portion of the cone from which to emit particles from, in degrees.</doc>
+		</field>
+		<field name="Mode" type="ParticleEmissionMode">
+			<doc>Determines how will particle positions on the shape be generated.</doc>
+		</field>
+	</struct>
+	<enum native="CompressionType" script="CompressionType">
+		<doc>Supported compression modes.</doc>
+		<enumentry native="Uncompressed" script="Uncompressed">
+		</enumentry>
+		<enumentry native="Snappy" script="Snappy">
+		</enumentry>
+		<enumentry native="Default" script="Default">
+		</enumentry>
+	</enum>
+	<enum native="ResultStatus" script="ResultStatus">
+		<doc>Common result codes for TResult/Result types.</doc>
+		<enumentry native="FailedReadOnly" script="FailedReadOnly">
+		</enumentry>
+		<enumentry native="Succeeded" script="Succeeded">
+		</enumentry>
+		<enumentry native="Failed" script="Failed">
+		</enumentry>
+		<enumentry native="FailedAlreadyExists" script="FailedAlreadyExists">
+		</enumentry>
+		<enumentry native="FailedInvalidInput" script="FailedInvalidInput">
+		</enumentry>
+		<enumentry native="FailedInternalError" script="FailedInternalError">
+		</enumentry>
+		<enumentry native="FailedNotFound" script="FailedNotFound">
+		</enumentry>
+	</enum>
+	<class native="GUIPanel" script="GUIPanel">
+		<doc>Represents a GUI panel that you can use for free placement of GUI elements within its bounds.</doc>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="contents" type="GUIPanelContent">
+				<doc>Structure describing the contents of the GUI element to create.</doc>
+			</param>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="contents" type="GUIPanelContent">
+				<doc>Structure describing the contents of the GUI element to create.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+	</class>
+	<class native="Time" script="Time">
+		<doc>Manages global time related functionality.</doc>
+		<property name="RealTimeInSeconds" type="float" getter="GetRealTimeInSeconds" setter="" static="false">
+			<doc>Gets the time elapsed since application start. Only gets updated once per frame.</doc>
+		</property>
+		<property name="RealTimeInMilliseconds" type="ulong" getter="GetRealTimeInMilliseconds" setter="" static="false">
+			<doc>Gets the time elapsed since application start. Only gets updated once per frame.</doc>
+		</property>
+		<property name="FrameDelta" type="float" getter="GetFrameDelta" setter="" static="false">
+			<doc>Gets the time since last frame was executed. Only gets updated once per frame.</doc>
+		</property>
+		<property name="CurrentFrameIndex" type="ulong" getter="GetCurrentFrameIndex" setter="" static="false">
+			<doc>Returns the sequential index of the current frame. First frame is 0.</doc>
+		</property>
+		<property name="TimePrecise" type="ulong" getter="GetTimePrecise" setter="" static="false">
+			<doc>Returns the precise time since application start, in microseconds. Unlike other time methods this is not only updated every frame, but will return exact time at the moment it is called.</doc>
+		</property>
+	</class>
+	<struct native="Result" script="Result">
+		<doc>Same as TResult, but with no output object.</doc>
+		<ctor>
+		</ctor>
+		<field name="Status" type="ResultStatus">
+		</field>
+		<field name="ErrorMessage" type="string">
+		</field>
+		<field name="AdditionalErrorMessage" type="string">
+		</field>
+	</struct>
+	<class native="MorphChannel" script="MorphChannel">
+		<doc>A collection of morph shapes that are sequentially blended together. Each shape has a weight in range [0, 1] which determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be blended with those before or after them, depending on their weight.</doc>
+		<property name="Name" type="string" getter="GetName" setter="" static="false">
+			<doc>Returns the unique name of the channel.</doc>
+		</property>
+		<property name="Shapes" type="MorphShape" getter="GetShapes" setter="" static="false">
+			<doc>Returns all morph shapes within this channel, in order from lowest to highest.</doc>
+		</property>
+	</class>
+	<class native="AudioSource" script="AudioSource">
+		<doc>Represents a source for emitting audio. Audio can be played spatially (gun shot), or normally (music). Each audio source must have an AudioClip to play-back, and it can also have a position in the case of spatial (3D) audio.
+Whether or not an audio source is spatial is controlled by the assigned AudioClip. The volume and the pitch of a spatial audio source is controlled by its position and the AudioListener&apos;s position/direction/velocity.</doc>
+		<method native="Play" script="Play" static="false">
+			<doc>Starts playing the currently assigned audio clip.</doc>
+		</method>
+		<method native="Pause" script="Pause" static="false">
+			<doc>Pauses the audio playback.</doc>
+		</method>
+		<method native="Stop" script="Stop" static="false">
+			<doc>Stops audio playback, rewinding it to the start.</doc>
+		</method>
+		<property name="Clip" type="RRef&lt;AudioClip&gt;" getter="GetClip" setter="SetClip" static="false">
+			<doc>Audio clip to play.</doc>
+		</property>
+		<property name="Volume" type="float" getter="GetVolume" setter="SetVolume" static="false">
+			<doc>Volume of the audio played from this source, in [0, 1] range.</doc>
+		</property>
+		<property name="Pitch" type="float" getter="GetPitch" setter="SetPitch" static="false">
+			<doc>Determines the pitch of the played audio. 1 is the default.</doc>
+		</property>
+		<property name="Loop" type="bool" getter="GetIsLooping" setter="SetIsLooping" static="false">
+			<doc>Determines whether the audio clip should loop when it finishes playing.</doc>
+		</property>
+		<property name="Priority" type="int" getter="GetPriority" setter="SetPriority" static="false">
+			<doc>Determines the priority of the audio source. If more audio sources are playing than supported by the hardware, some might get disabled. By setting a higher priority the audio source is guaranteed to be disabled after sources with lower priority.</doc>
+		</property>
+		<property name="MinDistance" type="float" getter="GetMinDistance" setter="SetMinDistance" static="false">
+			<doc>Minimum distance at which audio attenuation starts. When the listener is closer to the source than this value, audio is heard at full volume. Once farther away the audio starts attenuating.</doc>
+		</property>
+		<property name="Attenuation" type="float" getter="GetAttenuation" setter="SetAttenuation" static="false">
+			<doc>Attenuation that controls how quickly does audio volume drop off as the listener moves further from the source.</doc>
+		</property>
+		<property name="Time" type="float" getter="GetTime" setter="SetTime" static="false">
+			<doc>Determines the current time of playback. If playback hasn&apos;t yet started, it specifies the time at which playback will start at. The time is in seconds, in range [0, clipLength].</doc>
+		</property>
+		<property name="PlayOnStart" type="bool" getter="GetPlayOnStart" setter="SetPlayOnStart" static="false">
+			<doc>Sets whether playback should start as soon as the component is enabled.</doc>
+		</property>
+		<property name="State" type="AudioSourceState" getter="GetState" setter="" static="false">
+			<doc>Returns the current state of the audio playback (playing/paused/stopped).</doc>
+		</property>
+	</class>
+	<class native="MeshData" script="MeshData">
+		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
+	</class>
+	<class native="SceneTime" script="SceneTime">
+		<doc>Manages simulation time for a particular scene. This time runs only while scene is simulating.</doc>
+		<method native="Reset" script="Reset" static="false">
+			<doc>Resets the simulation time to zero. Primarily used for editor purposes for resetting the time when ending play in editor.</doc>
+		</method>
+		<method native="SetPaused" script="SetPaused" static="false">
+			<doc>Pauses or unpauses the simulation time. This is equivalent to setting the time scale to 0.</doc>
+			<param name="paused" type="bool">
+			</param>
+		</method>
+		<property name="TimeInSeconds" type="float" getter="GetTimeInSeconds" setter="" static="false">
+			<doc>Gets the time since the simulation started playing, multiplied by the time scale factor. In editor this will reset to zero every time you start playing in editor, and in a standalone application this will be similar to GetRealTimeInSeconds(), except simulation time can be sped up/down, or stopped entirely by setting the time scale.</doc>
+		</property>
+		<property name="Scale" type="float" getter="GetScale" setter="SetScale" static="false">
+			<doc>Allows you to speed time up or down, or completely pause it by providing zero. Must be zero or larger.</doc>
 		</property>
 	</class>
 	<struct native="TKeyframe&lt;int32_t&gt;" script="KeyFrameInt">
@@ -3664,6 +3653,69 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<enumentry native="Clamp" script="Clamp">
 		</enumentry>
 	</enum>
+	<enum native="ImageFormat" script="ImageFormat">
+		<doc>Supported image file formats for export.</doc>
+		<enumentry native="PNG" script="PNG">
+		</enumentry>
+		<enumentry native="BMP" script="BMP">
+		</enumentry>
+		<enumentry native="JPG" script="JPG">
+		</enumentry>
+		<enumentry native="TGA" script="TGA">
+		</enumentry>
+	</enum>
+	<struct native="GUIToggleContent" script="GUIToggleContent">
+		<doc>Structure describing contents of a GUIToggle element.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="content" type="GUIContent">
+			</param>
+			<param name="toggleGroup" type="GUIToggleGroup">
+			</param>
+		</ctor>
+		<field name="GeneralContent" type="GUIContent">
+		</field>
+		<field name="ToggleGroup" type="GUIToggleGroup">
+		</field>
+	</struct>
+	<class native="Viewport" script="Viewport">
+		<doc>Viewport determines to which RenderTarget should rendering be performed. It allows you to render to a sub-region of the target by specifying the area rectangle, and allows you to set up color/depth/stencil clear values for that specific region.</doc>
+		<ctor>
+			<doc>Creates a new viewport.</doc>
+			<param name="target" type="RenderTarget">
+			</param>
+			<param name="x" type="float">
+			</param>
+			<param name="y" type="float">
+			</param>
+			<param name="width" type="float">
+			</param>
+			<param name="height" type="float">
+			</param>
+		</ctor>
+		<property name="Target" type="RenderTarget" getter="GetTarget" setter="SetTarget" static="false">
+			<doc>Determines the render target the viewport is associated with.</doc>
+		</property>
+		<property name="Area" type="TArea2&lt;float,float&gt;" getter="GetArea" setter="SetArea" static="false">
+			<doc>Determines the area that the viewport covers. Coordinates are in normalized [0, 1] range.</doc>
+		</property>
+		<property name="PixelArea" type="TArea2&lt;int,int&gt;" getter="GetPixelArea" setter="" static="false">
+			<doc>Returns the area of the render target covered by the viewport, in pixels.</doc>
+		</property>
+		<property name="ClearFlags" type="ClearFlags" getter="GetClearFlags" setter="SetClearFlags" static="false">
+			<doc>Determines which portions of the render target should be cleared before rendering to this viewport is performed.</doc>
+		</property>
+		<property name="ClearColor" type="Color" getter="GetClearColorValue" setter="SetClearColorValue" static="false">
+			<doc>Determines the color to clear the viewport to before rendering, if color clear is enabled.</doc>
+		</property>
+		<property name="ClearDepth" type="float" getter="GetClearDepthValue" setter="SetClearDepthValue" static="false">
+			<doc>Determines the value to clear the depth buffer to before rendering, if depth clear is enabled.</doc>
+		</property>
+		<property name="ClearStencil" type="ushort" getter="GetClearStencilValue" setter="SetClearStencilValue" static="false">
+			<doc>Determines the value to clear the stencil buffer to before rendering, if stencil clear is enabled.</doc>
+		</property>
+	</class>
 	<struct native="PlaneColliderShapeInformation" script="PlaneColliderShapeInformation">
 		<doc>Information describing a plane collider shape that extends infinitely in the X/Z axes.</doc>
 		<ctor>
@@ -3802,6 +3854,14 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 	<struct native="ApplicationCreateInformation" script="ApplicationCreateInformation">
 		<doc>Structure containing parameters for starting the application.</doc>
 		<ctor>
+		</ctor>
+		<ctor>
+			<param name="videoMode" type="VideoMode">
+			</param>
+			<param name="title" type="string">
+			</param>
+			<param name="fullscreen" type="bool">
+			</param>
 		</ctor>
 		<field name="RenderApi" type="string">
 			<doc>Name of the render system plugin to use.</doc>
@@ -4087,9 +4147,9 @@ This object is intended to remain static in the world. You /can/ move it, but it
 		<doc>A slider with a draggable handle that can be vertical or horizontal.</doc>
 		<method native="SetRange" script="SetRange" static="false">
 			<doc>Sets a minimum and maximum allow values in the input field. Set to large negative/positive values if you don&apos;t require clamping.</doc>
-			<param name="min" type="float">
+			<param name="minimum" type="float">
 			</param>
-			<param name="max" type="float">
+			<param name="maximum" type="float">
 			</param>
 		</method>
 		<property name="HandlePositionInPercent" type="float" getter="GetHandlePositionInPercent" setter="SetHandlePositionInPercent" static="false">
@@ -4557,7 +4617,7 @@ This object is intended to remain static in the world. You /can/ move it, but it
 			<param name="clip" type="RRef&lt;AnimationClip&gt;">
 				<doc>Clip to retrieve the information for.</doc>
 			</param>
-			<param name="state" type="AnimationClipState">
+			<param name="outState" type="AnimationClipState">
 				<doc>Animation clip state containing the requested information. Only valid if the method returns true.</doc>
 			</param>
 			<returns type="bool">
@@ -4919,7 +4979,7 @@ This object is intended to remain static in the world. You /can/ move it, but it
 			</returns>
 		</method>
 		<method native="ProjectPoint" script="ProjectPoint" static="false">
-			<doc>Projects a point in view space to normalized device coordinates. Similar to viewToNdcPoint() but preserves the depth component.</doc>
+			<doc>Projects a point in view space to normalized device coordinates. Similar to ViewToNDCPoint() but preserves the depth component.</doc>
 			<param name="point" type="Vector3">
 				<doc>3D point relative to the camera&apos;s coordinate system.</doc>
 			</param>
@@ -5349,7 +5409,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			</returns>
 		</method>
 		<property name="FootPosition" type="Vector3" getter="GetFootPosition" setter="SetFootPosition" static="false">
-			<doc>Determines the position of the bottom of the controller. Position takes contact offset into account. Changing this will teleport the character to the location. Use move() for movement that includes physics.</doc>
+			<doc>Determines the position of the bottom of the controller. Position takes contact offset into account. Changing this will teleport the character to the location. Use Move() for movement that includes physics.</doc>
 		</property>
 		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
 			<doc>Determines the radius of the controller capsule.</doc>
@@ -5786,7 +5846,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<param name="type" type="int">
 				<doc>Type of axis to query. Usually a type from InputAxis but can be a custom value.</doc>
 			</param>
-			<param name="deviceIdx" type="int">
+			<param name="deviceIndex" type="int">
 				<doc>Index of the device in case more than one is hooked up (0 - primary).</doc>
 			</param>
 			<returns type="float">
@@ -5797,7 +5857,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<param name="keyCode" type="ButtonCode">
 				<doc>Code of the button to query.</doc>
 			</param>
-			<param name="deviceIdx" type="int">
+			<param name="deviceIndex" type="int">
 				<doc>Device to query the button on (0 - primary).</doc>
 			</param>
 			<returns type="bool">
@@ -5808,7 +5868,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<param name="keyCode" type="ButtonCode">
 				<doc>Code of the button to query.</doc>
 			</param>
-			<param name="deviceIdx" type="int">
+			<param name="deviceIndex" type="int">
 				<doc>Device to query the button on (0 - primary).</doc>
 			</param>
 			<returns type="bool">
@@ -5819,7 +5879,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<param name="keyCode" type="ButtonCode">
 				<doc>Code of the button to query.</doc>
 			</param>
-			<param name="deviceIdx" type="int">
+			<param name="deviceIndex" type="int">
 				<doc>Device to query the button on (0 - primary).</doc>
 			</param>
 			<returns type="bool">
@@ -6283,10 +6343,10 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 			<doc>Determines rendering order of the GUI panel. Panels with lower depth will be rendered in front of panels with higher depth. Provided depth is relative to depth of the parent GUI panel (if any).</doc>
 		</field>
 		<field name="DepthRangeMinimum" type="ushort">
-			<doc>Minimum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [depth - depthRangeMin, depth + depthRangeMax] it will be clamped to nearest extreme. Value of 65535 means infinite range.</doc>
+			<doc>Minimum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [Depth - DepthRangeMinimum, Depth + DepthRangeMaximum] it will be clamped to nearest extreme. Value of 65535 means infinite range.</doc>
 		</field>
 		<field name="DepthRangeMaximum" type="ushort">
-			<doc>Maximum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [depth - depthRangeMin, depth + depthRangeMax] it will be clamped to nearest extreme. Value of 65535 means infinite range.</doc>
+			<doc>Maximum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [Depth - DepthRangeMinimum, Depth + DepthRangeMaximum] it will be clamped to nearest extreme. Value of 65535 means infinite range.</doc>
 		</field>
 	</struct>
 	<class native="FontBitmapInformation" script="FontBitmapInformation">
@@ -6329,7 +6389,7 @@ Default value is 0.5. Should be in rough range [-1, 1].</doc>
 			<doc>Determines the color emitted by the light.</doc>
 		</property>
 		<property name="AttenuationRadius" type="float" getter="GetAttenuationRadius" setter="SetAttenuationRadius" static="false">
-			<doc>Range at which the light contribution fades out to zero. Use setUseAutoAttenuation to provide a radius automatically dependant on light intensity. The radius will cut-off light contribution and therefore manually set very small radius can end up being very physically incorrect.</doc>
+			<doc>Range at which the light contribution fades out to zero. Use SetUseAutoAttenuation to provide a radius automatically dependant on light intensity. The radius will cut-off light contribution and therefore manually set very small radius can end up being very physically incorrect.</doc>
 		</property>
 		<property name="SourceRadius" type="float" getter="GetSourceRadius" setter="SetSourceRadius" static="false">
 			<doc>Radius of the light source. If non-zero then this light represents an area light, otherwise it is a punctual light. Area lights have different attenuation then punctual lights, and their appearance in specular reflections is realistic. Shape of the area light depends on light type: - For directional light the shape is a disc projected on the hemisphere on the sky. This parameter represents angular radius (in degrees) of the disk and should be very small (think of how much space the Sun takes on the sky - roughly 0.25 degree radius). - For radial light the shape is a sphere and the source radius is the radius of the sphere. - For spot lights the shape is a disc oriented in the direction of the spot light and the source radius is the radius of the disc.</doc>
@@ -6366,8 +6426,8 @@ Default value is 0.5. Should be in rough range [-1, 1].</doc>
 			<param name="define" type="string">
 				<doc>Name of the define to get the value for.</doc>
 			</param>
-			<param name="value" type="string">
-				<doc>value of the define. Only defined if the method returns true.</doc>
+			<param name="outValue" type="string">
+				<doc>Value of the define. Only defined if the method returns true.</doc>
 			</param>
 			<returns type="bool">
 				<doc>True if the define was found, false otherwise.</doc>
@@ -6989,7 +7049,7 @@ Resize will not change the positions of current light probes. If you wish to res
 			<doc>Determines should the particle system bounds be automatically calculated, or should the fixed value provided be used. Bounds are used primarily for culling purposes. Note that automatic bounds are not supported when GPU simulation is enabled.</doc>
 		</property>
 		<property name="CustomBounds" type="AABox" getter="GetCustomBounds" setter="SetCustomBounds" static="false">
-			<doc>Custom bounds to use them <see cref="useAutomaticBounds"/> is disabled. The bounds are in the simulation space of the particle system.</doc>
+			<doc>Custom bounds to use them <see cref="UseAutomaticBounds"/> is disabled. The bounds are in the simulation space of the particle system.</doc>
 		</property>
 	</class>
 	<class native="ParticleGpuSimulationSettings" script="ParticleGpuSimulationSettings">
@@ -7325,7 +7385,7 @@ The particle system requires you to specify at least one ParticleEmitter, which 
 			<doc>Enables or disables a flag that controls the joint&apos;s behaviour.</doc>
 			<param name="flag" type="SphericalJointFlag">
 			</param>
-			<param name="enabled" type="bool">
+			<param name="isEnabled" type="bool">
 			</param>
 		</method>
 		<method native="HasFlag" script="HasFlag" static="false">
@@ -7653,10 +7713,10 @@ Optionally if the parameter is an array you may provide an array index you which
 			</param>
 		</ctor>
 		<property name="Shader" type="RRef&lt;Shader&gt;" getter="GetShader" setter="SetShader" static="false">
-			<doc>Sets a shader that will be used by the material. Material will be initialized using all compatible techniques from the shader. Shader must be set before doing any other operations with the material.</doc>
+			<doc>Sets a shader that will be used by the material. Material will be initialized using all compatible variations from the shader. Shader must be set before doing any other operations with the material.</doc>
 		</property>
-		<property name="Variation" type="ShaderVariationParameters" getter="GetVariation" setter="SetVariation" static="false">
-			<doc>Set of parameters that determine which subset of techniques in the assigned shader should be used. Only the techniques that have the provided parameters with the provided values will match. This will control which technique is considered the default technique and which subset of techniques are searched during a call to findTechnique().</doc>
+		<property name="Variation" type="ShaderVariationParameters" getter="GetVariationParameters" setter="SetVariation" static="false">
+			<doc>Set of parameters that determine which subset of variations in the assigned shader should be used. Only the variations that have the provided parameters with the provided values will match. This will control which variation is considered the default variation and which subset of variations are searched during a call to FindVariation().</doc>
 		</property>
 	</class>
 	<class native="ResourceMetaData" script="ResourceMetaData">
@@ -8614,7 +8674,7 @@ Primary purpose of this class is to avoid expensive string compare (axis names),
 			<doc>State when the element has input focus and pointer is not hovering over the element.</doc>
 		</enumentry>
 		<enumentry native="Normal" script="Normal">
-			<doc>Normal state when element is not being iteracted with.</doc>
+			<doc>Normal state when element is not being interacted with.</doc>
 		</enumentry>
 		<enumentry native="Hover" script="Hover">
 			<doc>State when pointer is hovering over the element.</doc>
@@ -8885,7 +8945,7 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 			<param name="button" type="VirtualButton">
 				<doc>Virtual button identifier.</doc>
 			</param>
-			<param name="deviceIdx" type="int">
+			<param name="deviceIndex" type="int">
 				<doc>Optional device index in case multiple input devices are available.</doc>
 			</param>
 			<returns type="bool">
@@ -8896,7 +8956,7 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 			<param name="button" type="VirtualButton">
 				<doc>Virtual button identifier.</doc>
 			</param>
-			<param name="deviceIdx" type="int">
+			<param name="deviceIndex" type="int">
 				<doc>Optional device index in case multiple input devices are available.</doc>
 			</param>
 			<returns type="bool">
@@ -8907,7 +8967,7 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 			<param name="button" type="VirtualButton">
 				<doc>Virtual button identifier.</doc>
 			</param>
-			<param name="deviceIdx" type="int">
+			<param name="deviceIndex" type="int">
 				<doc>Optional device index in case multiple input devices are available.</doc>
 			</param>
 			<returns type="bool">
@@ -8918,7 +8978,7 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 			<param name="axis" type="VirtualAxis">
 				<doc>Virtual axis identifier.</doc>
 			</param>
-			<param name="deviceIdx" type="int">
+			<param name="deviceIndex" type="int">
 				<doc>Optional device index in case multiple input devices are available.</doc>
 			</param>
 			<returns type="float">
@@ -9292,21 +9352,6 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			</param>
 		</ctor>
 	</class>
-	<struct native="GUIToggleContent" script="GUIToggleContent">
-		<doc>Structure describing contents of a GUIToggle element.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="content" type="GUIContent">
-			</param>
-			<param name="toggleGroup" type="GUIToggleGroup">
-			</param>
-		</ctor>
-		<field name="GeneralContent" type="GUIContent">
-		</field>
-		<field name="ToggleGroup" type="GUIToggleGroup">
-		</field>
-	</struct>
 	<class native="GUIToggleable" script="GUIToggleable">
 		<doc>GUI element representing a toggleable button.</doc>
 		<property name="IsToggled" type="bool" getter="IsToggled" setter="SetIsToggled" static="false">
@@ -9398,33 +9443,6 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			</param>
 		</ctor>
 	</class>
-	<enum native="TextureUsage" script="TextureUsage">
-		<doc>Flags that describe how is a texture used.</doc>
-		<enumentry native="TU_MUTABLEFORMAT" script="MutableFormat">
-			<doc>Allows you to retrieve views of the texture using a format different from one specified on creation.</doc>
-		</enumentry>
-		<enumentry native="TU_DEPTHSTENCIL" script="DepthStencil">
-			<doc>Texture used as a depth/stencil buffer by the GPU.</doc>
-		</enumentry>
-		<enumentry native="TU_DYNAMIC" script="Dynamic">
-			<doc>A regular texture that is often updated by the CPU.</doc>
-		</enumentry>
-		<enumentry native="TU_STATIC" script="Default">
-			<doc>A regular texture that is not often or ever updated from the CPU.</doc>
-		</enumentry>
-		<enumentry native="TU_RENDERTARGET" script="Render">
-			<doc>Texture that can be rendered to by the GPU.</doc>
-		</enumentry>
-		<enumentry native="TU_LOADSTORE" script="LoadStore">
-			<doc>Texture that allows load/store operations from the GPU program.</doc>
-		</enumentry>
-		<enumentry native="TU_CPUCACHED" script="CPUCached">
-			<doc>All mesh data will also be cached in CPU memory, making it available for fast read access from the CPU.</doc>
-		</enumentry>
-		<enumentry native="TU_CPUREADABLE" script="CPUReadable">
-			<doc>Allows the CPU to directly read the texture data buffers from the GPU.</doc>
-		</enumentry>
-	</enum>
 	<struct native="SpriteSheetGridAnimation" script="SpriteSheetGridAnimation">
 		<doc>Descriptor that describes a simple sprite sheet animation. The parent area is split into a grid of <see cref="RowCount"/> x <see cref="ColumnCount"/>, each representing one frame of the animation. Every frame is of equal size. Frames are sequentially evaluated starting from the top-most row, iterating over all columns in a row and then moving to next row, up to <see cref="FrameCount"/> frames. <see cref="FramesPerSecond"/> frames are evaluated every second, allowing you to control animation speed.</doc>
 		<ctor>
@@ -9842,10 +9860,10 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>Determines whether the texture data should be treated as if its in sRGB (gamma) space. Such texture will be converted by hardware to linear space before use on the GPU.</doc>
 		</property>
 		<property name="Cubemap" type="bool" getter="GetCubemap" setter="SetCubemap" static="false">
-			<doc>Determines should the texture be imported as a cubemap. See setCubemapSource to choose how will the source texture be converted to a cubemap.</doc>
+			<doc>Determines should the texture be imported as a cubemap. See CubemapSourceType to choose how will the source texture be converted to a cubemap.</doc>
 		</property>
 		<property name="CubemapSourceType" type="CubemapSourceType" getter="GetCubemapSourceType" setter="SetCubemapSourceType" static="false">
-			<doc>Determines how should the source texture be interpreted when generating a cubemap. Only relevant when <see cref="cubemap"/> is set to true.</doc>
+			<doc>Determines how should the source texture be interpreted when generating a cubemap. Only relevant when <see cref="Cubemap"/> is set to true.</doc>
 		</property>
 	</class>
 	<class native="SceneInstance" script="SceneInstance">
