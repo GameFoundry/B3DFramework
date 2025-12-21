@@ -146,8 +146,13 @@ void VulkanGpuCommandBufferPool::Reset()
 {
 	EnsureValidThread();
 
-	// TODO - Not implemented
-	B3D_ASSERT(false && "Not implemented");
+	VkDevice logicalDevice = static_cast<VulkanGpuDevice&>(mGpuDevice).GetLogical();
+
+	for(const auto& entry : mCommandBuffers)
+		entry.second->Cleanup();
+
+	const VkResult result = vkResetCommandPool(logicalDevice, mVulkanPool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT);
+	B3D_ASSERT(result == VK_SUCCESS);
 }
 
 template <class T>
@@ -1574,15 +1579,10 @@ bool VulkanGpuCommandBuffer::UpdateExecutionStatus(bool block)
 	return result == VK_SUCCESS;
 }
 
-void VulkanGpuCommandBuffer::Reset()
+void VulkanGpuCommandBuffer::Cleanup()
 {
-	bool wasSubmitted = mState == State::Submitted || mState == State::Done;
-
+	const bool wasSubmitted = mState == State::Submitted || mState == State::Done;
 	mState = State::Ready;
-	vkResetCommandBuffer(mCommandBufferHandle, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT); // Note: Maybe better not to release resources?
-
-	const VkResult result = vkResetFences(GetVulkanGpuDevice().GetLogical(), 1, &mFence);
-	B3D_ASSERT(result == VK_SUCCESS);
 
 	if(wasSubmitted)
 		mResourceTracker.NotifyDone(mSubmittedQueueId);
@@ -1598,6 +1598,16 @@ void VulkanGpuCommandBuffer::Reset()
 
 	OnDidComplete.Clear();
 	OnDestroyed.Clear();
+
+	const VkResult result = vkResetFences(GetVulkanGpuDevice().GetLogical(), 1, &mFence);
+	B3D_ASSERT(result == VK_SUCCESS);
+}
+
+void VulkanGpuCommandBuffer::Reset()
+{
+	Cleanup();
+
+	vkResetCommandBuffer(mCommandBufferHandle, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT); // Note: Maybe better not to release resources?
 }
 
 Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> VulkanGpuCommandBuffer::BuildClearValues(RenderSurfaceMask clearMask, const Color& color, float depth, u16 stencil)

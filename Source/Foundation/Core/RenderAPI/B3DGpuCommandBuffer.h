@@ -799,10 +799,20 @@ namespace b3d
 
 			GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation);
 
+			/**
+			 * Performs internal cleanup of command buffer state without resetting the underlying API command buffer.
+			 * This is called by the owning pool during pool-level reset, which resets all command buffers together.
+			 * Can also be called internally by individual command buffer Reset() implementations.
+			 *
+			 * Cleanup includes:
+			 * - Resource tracker notifications and clearing
+			 * - Queue sync mask reset
+			 * - Event clearing (OnDidComplete, OnDestroyed)
+			 */
+			virtual void Cleanup() {}
+
 			/** Reports an error if the current thread is not the thread associated with the object. */
 			void EnsureValidThread() const { B3D_DEBUG_ONLY(B3D_ENSURE(B3D_CURRENT_THREAD_ID == mOwnerThread)); }
-
-	
 	
 			GpuDevice& mGpuDevice;
 			const GpuCommandBufferCreateInformation mInformation;
