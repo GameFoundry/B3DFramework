@@ -11,7 +11,7 @@ using namespace b3d;
 const GpuQueueMask GpuQueueMask::kNone = GpuQueueMask(0);
 const GpuQueueMask GpuQueueMask::kAll = GpuQueueMask(~0u);
 
-GpuQueue::GpuQueue(GpuDevice& gpuDevice, GpuQueueUsage usage, u32 index)
+GpuQueue::GpuQueue(GpuDevice& gpuDevice, GpuQueueType usage, u32 index)
 	:mGpuDevice(gpuDevice), mUsage(usage), mIndex(index)
 {
 	

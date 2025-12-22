@@ -126,7 +126,7 @@ namespace b3d
 		/** Object describing a GpuCommandBufferPool. */
 		struct GpuCommandBufferPoolInformation
 		{
-			GpuQueueUsage Usage = GQT_GRAPHICS; /**< Determines which commands may be executed on the command buffer. Queue on which the command buffer is submitted must match this usage. */
+			GpuQueueType Usage = GQT_GRAPHICS; /**< Determines which commands may be executed on the command buffer. Queue on which the command buffer is submitted must match this usage. */
 			ThreadId Thread; /**< Thread on which the command buffer pool is allowed to be used on. Any created command buffers are also bound to this thread. */
 			bool UsePoolReset = false; /**< When true, command buffers are reset as a group via pool-level reset instead of individually. */
 		};
@@ -140,7 +140,7 @@ namespace b3d
 			{ }
 
 			/** Allocates a create information for a command buffer pool owned by the calling thread. */
-			static GpuCommandBufferPoolCreateInformation CreateForThisThread(GpuQueueUsage usage = GQT_GRAPHICS)
+			static GpuCommandBufferPoolCreateInformation CreateForThisThread(GpuQueueType usage = GQT_GRAPHICS)
 			{
 				GpuCommandBufferPoolCreateInformation createInformation;
 				createInformation.Thread = B3D_CURRENT_THREAD_ID;
@@ -463,7 +463,7 @@ namespace b3d
 			GpuDevice& GetGpuDevice() const { return mGpuDevice; }
 
 			/** Returns the usage that determines on which queue is the command buffer allowed to be submitted on, and which commands may be recorded. */
-			GpuQueueUsage GetUsage() const { return mUsage; }
+			GpuQueueType GetUsage() const { return mUsage; }
 
 			/** Assigns an name to the command buffer, primarily used for easier debugging. */
 			virtual void SetName(const StringView& name) { mName = name; }
@@ -801,7 +801,7 @@ namespace b3d
 		protected:
 			friend class GpuCommandBufferPool;
 
-			GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation);
+			GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 
 			/**
 			 * Performs internal cleanup of command buffer state without resetting the underlying API command buffer.
@@ -820,7 +820,7 @@ namespace b3d
 	
 			GpuDevice& mGpuDevice;
 			const GpuCommandBufferCreateInformation mInformation;
-			const GpuQueueUsage mUsage;
+			const GpuQueueType mUsage;
 			const ThreadId mOwnerThread;
 			String mName;
 			bool mIsSubmitted = false;

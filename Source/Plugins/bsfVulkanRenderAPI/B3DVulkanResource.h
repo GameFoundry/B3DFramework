@@ -116,7 +116,7 @@ namespace b3d
 			 * @note	If resource concurrency is enabled, then this value has no meaning as the resource can be used on
 			 *			multiple queue families at once.
 			 */
-			GpuQueueUsage GetOwnedQueueType() const
+			GpuQueueType GetOwnedQueueType() const
 			{
 				Lock lock(mMutex);
 				return mOwnedQueueType;
@@ -162,7 +162,7 @@ namespace b3d
 			};
 
 			VulkanResourceManager* mOwner;
-			GpuQueueUsage mOwnedQueueType = GQT_UNKNOWN;
+			GpuQueueType mOwnedQueueType = GQT_UNKNOWN;
 			State mState;
 			String mDebugName;
 

@@ -120,7 +120,7 @@ void FrameGraph::DeclarePass(
 	const StringView& name,
 	FrameGraphPassSetupFunc setupFunc,
 	FrameGraphPassExecuteFunc executeFunc,
-	GpuQueueUsage queue)
+	GpuQueueType queue)
 {
 	u32 passIndex = mNextPassIndex++;
 
@@ -135,7 +135,7 @@ void FrameGraph::DeclareRenderPass(
 	const StringView& name,
 	FrameGraphPassSetupFunc setupFunc,
 	FrameGraphPassExecuteFunc executeFunc,
-	GpuQueueUsage queue)
+	GpuQueueType queue)
 {
 	B3D_ENSURE(queue == GQT_GRAPHICS); // Render passes must be on graphics queue
 
@@ -225,7 +225,7 @@ void FrameGraph::Execute()
 
 	// Execute passes in sorted order, batching by queue
 	SPtr<GpuCommandBuffer> currentCmd;
-	GpuQueueUsage currentQueue = GQT_GRAPHICS;
+	GpuQueueType currentQueue = GQT_GRAPHICS;
 	bool hasActiveCmd = false;
 
 	auto fnSubmitCurrentCmd = [&]()
@@ -453,7 +453,7 @@ SPtr<GpuQueue> FrameGraph::GetQueueForPass(FrameGraphPass* pass)
 	return mDevice.GetQueue(pass->GetQueue(), 0);
 }
 
-SPtr<GpuCommandBufferPool> FrameGraph::GetPoolForQueue(GpuQueueUsage queueType)
+SPtr<GpuCommandBufferPool> FrameGraph::GetPoolForQueue(GpuQueueType queueType)
 {
 	switch (queueType)
 	{

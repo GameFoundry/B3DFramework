@@ -62,8 +62,8 @@ namespace b3d
 			bool IsGpuProgramLanguageSupported(const StringView& language) const override { return language == kGpuProgramLanguageName; }
 			SPtr<GpuProgramBytecode> CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const override;
 
-			u32 GetQueueCount(GpuQueueUsage usage) const override { return (u32)mQueueInfos[(u32)usage].Queues.size(); }
-			SPtr<GpuQueue> GetQueue(GpuQueueUsage usage, u32 index) const override;
+			u32 GetQueueCount(GpuQueueType usage) const override { return (u32)mQueueInfos[(u32)usage].Queues.size(); }
+			SPtr<GpuQueue> GetQueue(GpuQueueType usage, u32 index) const override;
 			void SubmitTransferCommandBuffers(bool wait = false) override;
 			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 			void WaitUntilIdle() override;
@@ -110,13 +110,13 @@ namespace b3d
 			 * Returns index of the queue family for the specified queue type. Returns -1 if no queues for the specified type
 			 * exist. There will always be a queue family for the graphics type.
 			 */
-			u32 GetQueueFamily(GpuQueueUsage type) const { return mQueueInfos[(int)type].FamilyIndex; }
+			u32 GetQueueFamily(GpuQueueType type) const { return mQueueInfos[(int)type].FamilyIndex; }
 
 			/**
 			 * Fills out a mask that has bits set for every queue index that maps to the same physical queue as the provided
 			 * index. This is useful as different queue indices will sometimes map to the same physical queue.
 			 */
-			GpuQueueMask GetQueueMask(GpuQueueUsage type, u32 queueIdx) const;
+			GpuQueueMask GetQueueMask(GpuQueueType type, u32 queueIdx) const;
 
 			/** Perform an operation for each queue on the device. */
 			void DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&& callback) const;

@@ -446,7 +446,7 @@ namespace b3d::render
 			const StringView& name,
 			FrameGraphPassSetupFunc setupFunc,
 			FrameGraphPassExecuteFunc executeFunc,
-			GpuQueueUsage queue = GQT_GRAPHICS);
+			GpuQueueType queue = GQT_GRAPHICS);
 
 		/**
 		 * Declare a render pass with automatic render target management.
@@ -471,7 +471,7 @@ namespace b3d::render
 			const StringView& name,
 			FrameGraphPassSetupFunc setupFunc,
 			FrameGraphPassExecuteFunc executeFunc,
-			GpuQueueUsage queue = GQT_GRAPHICS);
+			GpuQueueType queue = GQT_GRAPHICS);
 
 		/**
 		 * Declare a compute pass for GPU computation.
@@ -602,7 +602,7 @@ namespace b3d::render
 		SPtr<GpuQueue> GetQueueForPass(FrameGraphPass* pass);
 
 		/** Gets the appropriate command buffer pool for a queue type */
-		SPtr<GpuCommandBufferPool> GetPoolForQueue(GpuQueueUsage queueType);
+		SPtr<GpuCommandBufferPool> GetPoolForQueue(GpuQueueType queueType);
 
 		//////////////////////////////////////////////////////////////////////////
 		// Transient Resource Allocation (internal)

@@ -34,7 +34,7 @@ VulkanSubmitThread::VulkanSubmitThread(VulkanGpuDevice& gpuDevice)
 	{
 		for (u32 gpuQueueUsageIndex = 0; gpuQueueUsageIndex < GQT_COUNT; gpuQueueUsageIndex++)
 		{
-			const GpuQueueUsage queueUsage = (GpuQueueUsage)gpuQueueUsageIndex;
+			const GpuQueueType queueUsage = (GpuQueueType)gpuQueueUsageIndex;
 			if (mGpuDevice.GetQueueCount(queueUsage) == 0)
 				continue;
 

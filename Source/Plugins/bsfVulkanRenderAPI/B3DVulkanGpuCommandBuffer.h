@@ -167,7 +167,7 @@ namespace b3d
 			 * 
 			 * @note Submit thread only.
 			 */
-			GpuCommandBufferSubmitInformation PrepareForSubmitOnSubmitThread(GpuQueueUsage queueUsage, u32 queueIndex);
+			GpuCommandBufferSubmitInformation PrepareForSubmitOnSubmitThread(GpuQueueType queueUsage, u32 queueIndex);
 
 			/** Called when the command buffer is about to be sent to the submit queue for submit. */
 			void NotifyWillQueueForSubmit();
@@ -410,7 +410,7 @@ namespace b3d
 				TInlineArray<u32, 4> DynamicOffsets;
 			};
 
-			VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation);
+			VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 
 			/** Returns the pool the command buffer was allocated from. */
 			VulkanGpuCommandBufferPool& GetPool() const { return mPool; }

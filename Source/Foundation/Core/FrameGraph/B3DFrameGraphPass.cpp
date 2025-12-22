@@ -12,7 +12,7 @@ using namespace b3d::render;
 FrameGraphPass::FrameGraphPass(
 	u32 index,
 	const StringView& name,
-	GpuQueueUsage queue,
+	GpuQueueType queue,
 	FrameGraph* frameGraph,
 	FrameGraphPassType type)
 	: mIndex(index)

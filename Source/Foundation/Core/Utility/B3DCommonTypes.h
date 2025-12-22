@@ -487,8 +487,8 @@ namespace b3d
 		}
 	};
 
-	/** Specifies how is a GPU queue intended to be used. This controls which command buffers are allowed to be submitted on the queue. */
-	enum GpuQueueUsage
+	/** Specifies the type of GPU queue. This controls which command buffers are allowed to be submitted on the queue. */
+	enum GpuQueueType
 	{
 		/** Queue used for rendering. Allows the use of draw, compute and transfer commands. This is the default all-purpose usage. */
 		GQT_GRAPHICS,

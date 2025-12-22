@@ -57,7 +57,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	const float defaultQueuePriorities[B3D_MAX_QUEUES_PER_TYPE] = { 0.0f };
 	Vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 
-	auto fnPopulateQueueInfo = [&](GpuQueueUsage type, uint32_t familyIdx)
+	auto fnPopulateQueueInfo = [&](GpuQueueType type, uint32_t familyIdx)
 	{
 		queueCreateInfos.push_back(VkDeviceQueueCreateInfo());
 
@@ -189,7 +189,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 			VkQueue queue;
 			vkGetDeviceQueue(mLogicalDevice, mQueueInfos[i].FamilyIndex, j, &queue);
 
-			mQueueInfos[i].Queues[j] = B3DMakeSharedFromExisting(new (B3DAllocate<VulkanGpuQueue>()) VulkanGpuQueue(*this, (GpuQueueUsage)i, j, queue));
+			mQueueInfos[i].Queues[j] = B3DMakeSharedFromExisting(new (B3DAllocate<VulkanGpuQueue>()) VulkanGpuQueue(*this, (GpuQueueType)i, j, queue));
 		}
 	}
 
@@ -465,7 +465,7 @@ SPtr<GpuProgramBytecode> VulkanGpuDevice::CompileGpuProgramBytecode(const GpuPro
 #endif
 }
 
-SPtr<GpuQueue> VulkanGpuDevice::GetQueue(GpuQueueUsage usage, u32 index) const
+SPtr<GpuQueue> VulkanGpuDevice::GetQueue(GpuQueueType usage, u32 index) const
 {
 	if (index >= GetQueueCount(usage))
 		return nullptr;
@@ -675,7 +675,7 @@ void VulkanGpuDevice::DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&
 {
 	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 	{
-		GpuQueueUsage queueType = (GpuQueueUsage)queueTypeIndex;
+		GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
 
 		const u32 queueCount = GetQueueCount(queueType);
 		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
@@ -686,7 +686,7 @@ void VulkanGpuDevice::DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&
 	}
 }
 
-GpuQueueMask VulkanGpuDevice::GetQueueMask(GpuQueueUsage type, u32 queueIdx) const
+GpuQueueMask VulkanGpuDevice::GetQueueMask(GpuQueueType type, u32 queueIdx) const
 {
 	const u32 queueCount = GetQueueCount(type);
 	if(queueCount == 0)
@@ -1011,7 +1011,7 @@ void VulkanGpuDevice::GetSyncSemaphores(GpuQueueMask syncMask, TInlineArray<Vulk
 
 	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 	{
-		const GpuQueueUsage queueType = (GpuQueueUsage)queueTypeIndex;
+		const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
 
 		const u32 queueCount = GetQueueCount(queueType);
 		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)

@@ -113,7 +113,7 @@ namespace b3d::render
 		FrameGraphPass(
 			u32 index,
 			const StringView& name,
-			GpuQueueUsage queue,
+			GpuQueueType queue,
 			FrameGraph* frameGraph,
 			FrameGraphPassType type);
 
@@ -124,7 +124,7 @@ namespace b3d::render
 		const String& GetName() const { return mName; }
 
 		/** Returns the queue this pass executes on */
-		GpuQueueUsage GetQueue() const { return mQueue; }
+		GpuQueueType GetQueue() const { return mQueue; }
 
 		/** Get the pass type */
 		FrameGraphPassType GetPassType() const { return mType; }
@@ -335,7 +335,7 @@ namespace b3d::render
 	private:
 		u32 mIndex;
 		String mName;
-		GpuQueueUsage mQueue;
+		GpuQueueType mQueue;
 		FrameGraph* mFrameGraph;
 		FrameGraphPassType mType;
 		Vector<FrameGraphResourceAccess> mResourceAccesses;

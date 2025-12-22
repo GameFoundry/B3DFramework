@@ -56,7 +56,7 @@ namespace b3d
 			B3D_ASSERT(Id < (B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT));
 		}
 
-		GpuQueueId(GpuQueueUsage type, u32 index)
+		GpuQueueId(GpuQueueType type, u32 index)
 		{
 			switch(type)
 			{
@@ -73,7 +73,7 @@ namespace b3d
 			B3D_ASSERT(Id < (B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT));
 		}
 
-		GpuQueueUsage GetType() const
+		GpuQueueType GetType() const
 		{
 			if(Id >= B3D_MAX_QUEUES_PER_TYPE * 2)
 				return GQT_TRANSFER;
@@ -208,7 +208,7 @@ namespace b3d
 		virtual ~GpuQueue();
 
 		/** Determines which type of command buffer commands can be used on the command buffers submitted on the queue. */
-		GpuQueueUsage GetUsage() const { return mUsage; }
+		GpuQueueType GetUsage() const { return mUsage; }
 
 		/** Returns the unique index of the queue, for its type. */
 		u32 GetIndex() const { return mIndex; }
@@ -263,13 +263,13 @@ namespace b3d
 			SPtr<render::GpuCommandBuffer> CurrentTransferCommandBuffer; /**< Currently active transfer buffer, if any. */
 		};
 
-		GpuQueue(GpuDevice& gpuDevice, GpuQueueUsage usage, u32 index);
+		GpuQueue(GpuDevice& gpuDevice, GpuQueueType usage, u32 index);
 
 		/** Provides the same functionality as SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>&, GpuQueueMask), but makes the command buffer flush optional. */
 		virtual void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, bool flushTransferCommandBuffer) = 0;
 
 		GpuDevice& mGpuDevice;
-		GpuQueueUsage mUsage;
+		GpuQueueType mUsage;
 		u32 mIndex;
 
 		mutable Mutex mMutex;
@@ -301,10 +301,10 @@ namespace b3d
 		virtual bool IsGpuProgramLanguageSupported(const StringView& language) const = 0;
 
 		/** Returns the number of queues supported for the specific usage. */
-		virtual u32 GetQueueCount(GpuQueueUsage usage) const = 0;
+		virtual u32 GetQueueCount(GpuQueueType usage) const = 0;
 
 		/** Retrieves a queue with the specified usage and index. */
-		virtual SPtr<GpuQueue> GetQueue(GpuQueueUsage usage, u32 index) const = 0;
+		virtual SPtr<GpuQueue> GetQueue(GpuQueueType usage, u32 index) const = 0;
 
 		/**
 		 * Submits the command buffer for execution on an automatically retrieved queue.

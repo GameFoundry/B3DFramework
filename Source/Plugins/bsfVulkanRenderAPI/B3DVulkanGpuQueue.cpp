@@ -10,7 +10,7 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanGpuQueue::VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueUsage usage, u32 index, VkQueue vulkanQueue)
+VulkanGpuQueue::VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueType usage, u32 index, VkQueue vulkanQueue)
 	: GpuQueue(device, usage, index), mQueue(vulkanQueue)
 {
 	for(u32 i = 0; i < B3D_MAX_UNIQUE_QUEUES; i++)
@@ -200,7 +200,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 		if (submitInformation.SourceQueueTransitionCommandBuffer[queueUsageIndex] == nullptr)
 			continue;
 
-		const GpuQueueUsage transitionQueueUsage = (GpuQueueUsage)queueUsageIndex;
+		const GpuQueueType transitionQueueUsage = (GpuQueueType)queueUsageIndex;
 		
 		// Find an appropriate queue to execute on
 		u32 transitionQueueIndex = 0;

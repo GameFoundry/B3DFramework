@@ -178,7 +178,7 @@ static void GetPipelineStageFlags(const TArray<T>& barriers, VkPipelineStageFlag
 const Color kDebugLabelColor = Color::kBansheeOrange;
 constexpr u32 kMaximumBoundDescriptorSets = 64;
 
-VulkanGpuCommandBuffer::VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation)
+VulkanGpuCommandBuffer::VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
 	: GpuCommandBuffer(device, ownerThread, queueType, createInformation), mId(id), mCommandBufferHandle(commandBufferHandle), mPool(pool), mOwnerThread(ownerThread), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false), mResourceTracker(this), mBarrierHelper(&mResourceTracker)
 {
 	const u32 maximumBoundDescriptorSets = Math::Min(kMaximumBoundDescriptorSets, device.GetDeviceProperties().limits.maxBoundDescriptorSets);
@@ -1337,7 +1337,7 @@ VulkanSemaphore* VulkanGpuCommandBuffer::RequestInterQueueSemaphore() const
 	return mInterQueueSemaphores[mNumUsedInterQueueSemaphores++];
 }
 
-GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubmitThread(GpuQueueUsage queueUsage, u32 queueIndex)
+GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubmitThread(GpuQueueType queueUsage, u32 queueIndex)
 {
 	AssertIfNotVulkanSubmitThread();
 	B3D_ASSERT(IsSubmitted()); // Caller should already have set this flag
@@ -1353,7 +1353,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 		if(!resource->IsExclusive())
 			continue;
 
-		const GpuQueueUsage oldQueueUsage = resource->GetOwnedQueueType();
+		const GpuQueueType oldQueueUsage = resource->GetOwnedQueueType();
 		if(oldQueueUsage != GQT_UNKNOWN && oldQueueUsage != queueUsage)
 		{
 			TArray<VkBufferMemoryBarrier>& barriers = mTransitionInfoTemp[(i32)oldQueueUsage].BufferBarriers;
@@ -1379,7 +1379,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 		VulkanImage* const image = static_cast<VulkanImage*>(entry.first);
 		TArrayView<VulkanResourceTracker::ImageSubresourceTrackingState> subresourceTrackingStates = mResourceTracker.GetSubresourceTrackingStatesForImage(image);
 
-		const GpuQueueUsage oldQueueUsage = image->GetOwnedQueueType();
+		const GpuQueueType oldQueueUsage = image->GetOwnedQueueType();
 		bool queueMismatch = image->IsExclusive() && oldQueueUsage != GQT_UNKNOWN && oldQueueUsage != queueUsage;
 
 		if(queueMismatch)
@@ -1466,7 +1466,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 	B3D_ASSERT(B3DSize(mTransitionInfoTemp) == GQT_COUNT);
 	for(u32 queueUsageIndex = 0; queueUsageIndex < GQT_COUNT; queueUsageIndex++)
 	{
-		const GpuQueueUsage transitionQueueUsage = (GpuQueueUsage)queueUsageIndex;
+		const GpuQueueType transitionQueueUsage = (GpuQueueType)queueUsageIndex;
 		TransitionInfo& transitionInformation = mTransitionInfoTemp[queueUsageIndex];
 
 		bool empty = transitionInformation.ImageBarriers.Empty() && transitionInformation.BufferBarriers.Empty();
@@ -1504,7 +1504,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 	// Issue second part of transition pipeline barriers (on this queue)
 	for(u32 queueUsageIndex = 0; queueUsageIndex < GQT_COUNT; queueUsageIndex++)
 	{
-		const GpuQueueUsage transitionQueueUsage = (GpuQueueUsage)queueUsageIndex;
+		const GpuQueueType transitionQueueUsage = (GpuQueueType)queueUsageIndex;
 		TransitionInfo& transitionInformation = mTransitionInfoTemp[queueUsageIndex];
 
 		bool empty = transitionInformation.ImageBarriers.Empty() && transitionInformation.BufferBarriers.Empty();
