@@ -584,6 +584,11 @@ void VulkanGpuDevice::EndFrame()
 {
 	SubmitTransferCommandBuffers();
 
+	DoForEachQueue([](VulkanGpuQueue& queue)
+	{
+		queue.EndFrame();
+	});
+
 	GetVulkanSubmitThread().QueueRefreshCommandBufferCompletionStates(this);
 }
 

@@ -38,7 +38,12 @@ namespace b3d
 			void Destroy()
 			{
 				for(u32 poolIndex = 0; poolIndex < kPoolCount; ++poolIndex)
+				{
+					if(mPools[poolIndex])
+						mPools[poolIndex]->Destroy();
+
 					mPools[poolIndex] = nullptr;
+				}
 			}
 
 			/** Returns the pool for the current frame. */

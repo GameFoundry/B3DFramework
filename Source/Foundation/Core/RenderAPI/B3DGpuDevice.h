@@ -9,6 +9,7 @@
 namespace b3d::render
 {
 	class GpuQueryPool;
+	class GpuCommandBufferPoolRing;
 }
 
 namespace b3d
@@ -250,11 +251,15 @@ namespace b3d
 
 		/** Blocks the calling thread until all operations on the queue finish executing on the GPU. */
 		virtual void WaitUntilIdle() = 0;
+
+		/** Advances the transfer command buffer pool rings to the next frame, resetting the pools. Called at the end of each frame. */
+		virtual void EndFrame();
+
 	protected:
 		/** Information about a transfer command buffer associated with a particular thread. */
 		struct PerThreadTransferCommandBufferInformation
 		{
-			SPtr<render::GpuCommandBufferPool> CommandBufferPool; /**< Pool for allocating the command buffers. */
+			UPtr<render::GpuCommandBufferPoolRing> PoolRing; /**< Ring buffer of pools for allocating transfer command buffers. */
 			SPtr<render::GpuCommandBuffer> CurrentTransferCommandBuffer; /**< Currently active transfer buffer, if any. */
 		};
 

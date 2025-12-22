@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DGpuDevice.h"
 #include "B3DGpuCommandBuffer.h"
+#include "B3DGpuCommandBufferPoolRing.h"
 #include "B3DEventQuery.h"
 #include "B3DGpuFrameCapture.h"
 
@@ -19,18 +20,27 @@ GpuQueue::GpuQueue(GpuDevice& gpuDevice, GpuQueueUsage usage, u32 index)
 GpuQueue::~GpuQueue()
 {
 	WaitGroup waitGroup;
-	for(const auto& entry : mTransferCommandBuffers)
+	for(auto& entry : mTransferCommandBuffers)
 	{
-		if (entry.second.CommandBufferPool == nullptr)
+		if(!entry.second.PoolRing)
 			continue;
+
+		// Get scheduler thread from the first pool in the ring (all pools have the same owning thread)
+		render::GpuCommandBufferPool& firstPool = entry.second.PoolRing->GetCurrentPool();
 
 		waitGroup.Increment();
 
 		// It's important we queue the destroy on the thread the command buffer pool was created on, as command buffers are bound to a single thread. We don't use the command buffer pool message queue directly
 		// as the destroy operation may wait on the queue to complete, which would result in a deadlock.
-		const SPtr<SchedulerThread> ownerSchedulerThread = entry.second.CommandBufferPool->GetMessageQueue().GetSchedulerThread();
-		if (B3D_ENSURE(ownerSchedulerThread))
-			ownerSchedulerThread->Post(SchedulerTask([&waitGroup, commandBufferPool = entry.second.CommandBufferPool] { commandBufferPool->Destroy(); waitGroup.NotifyDone(); }, "Destroy GpuCommandBufferPool"));
+		const SPtr<SchedulerThread> ownerSchedulerThread = firstPool.GetMessageQueue().GetSchedulerThread();
+		if(B3D_ENSURE(ownerSchedulerThread))
+		{
+			ownerSchedulerThread->Post(SchedulerTask([&waitGroup, poolRing = entry.second.PoolRing.get()]
+			{
+				poolRing->Destroy();
+				waitGroup.NotifyDone();
+			}, "Destroy GpuCommandBufferPoolRing"));
+		}
 	}
 
 	waitGroup.Wait();
@@ -41,13 +51,15 @@ SPtr<render::GpuCommandBuffer> GpuQueue::GetOrCreateTransferCommandBuffer()
 	Lock lock(mMutex);
 
 	PerThreadTransferCommandBufferInformation& transferCommandBufferInformation = mTransferCommandBuffers[B3D_CURRENT_THREAD_ID];
-	if(transferCommandBufferInformation.CommandBufferPool == nullptr)
+	if(!transferCommandBufferInformation.PoolRing)
 	{
 		render::GpuCommandBufferPoolCreateInformation poolCreateInformation;
 		poolCreateInformation.Thread = B3D_CURRENT_THREAD_ID;
 		poolCreateInformation.Usage = mUsage;
+		poolCreateInformation.UsePoolReset = true;
 
-		transferCommandBufferInformation.CommandBufferPool = mGpuDevice.CreateGpuCommandBufferPool(poolCreateInformation);
+		transferCommandBufferInformation.PoolRing = B3DMakeUnique<render::GpuCommandBufferPoolRing>();
+		transferCommandBufferInformation.PoolRing->Initialize(mGpuDevice, poolCreateInformation);
 	}
 
 	if(transferCommandBufferInformation.CurrentTransferCommandBuffer == nullptr)
@@ -55,7 +67,7 @@ SPtr<render::GpuCommandBuffer> GpuQueue::GetOrCreateTransferCommandBuffer()
 		render::GpuCommandBufferCreateInformation commandBufferCreateInformation;
 		commandBufferCreateInformation.Name = "Transfer";
 
-		transferCommandBufferInformation.CurrentTransferCommandBuffer = transferCommandBufferInformation.CommandBufferPool->Create(commandBufferCreateInformation);
+		transferCommandBufferInformation.CurrentTransferCommandBuffer = transferCommandBufferInformation.PoolRing->GetCurrentPool().FindOrCreate(commandBufferCreateInformation);
 	}
 
 	return transferCommandBufferInformation.CurrentTransferCommandBuffer;
@@ -121,5 +133,19 @@ void GpuQueue::SubmitTransferCommandBuffer(bool wait)
 
 	if (wait)
 		WaitUntilIdle();
+}
+
+void GpuQueue::EndFrame()
+{
+	Lock lock(mMutex);
+
+	for(auto& entry : mTransferCommandBuffers)
+	{
+		if(!entry.second.PoolRing)
+			continue;
+
+		entry.second.PoolRing->AdvanceFrame();
+		entry.second.CurrentTransferCommandBuffer = nullptr;
+	}
 }
 
