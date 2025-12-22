@@ -603,15 +603,10 @@ void VulkanGpuDevice::EndFrame()
 
 void VulkanGpuDevice::SubmitTransferCommandBuffers(bool wait)
 {
-	DoForEachQueue([](VulkanGpuQueue& queue)
-	{
-		queue.SubmitTransferCommandBuffer(false);
-	});
-	
+	GetTransferBufferHelper().SubmitAllTransferCommandBuffers();
+
 	if (wait)
-	{
 		GetVulkanSubmitThread().WaitUntilIdle();
-	}
 }
 
 void VulkanGpuDevice::PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, GpuQueueMask syncMask)

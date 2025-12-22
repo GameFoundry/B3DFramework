@@ -944,8 +944,9 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 				mappedScope.Unmap();
 
 				GpuDevice& gpuDevice = currentUniformBufferInfo->Buffer->GetDevice();
+				GpuQueue& queue = *gpuDevice.GetQueue(GQT_GRAPHICS, 0);
 				SPtr<render::GpuCommandBuffer> commandBuffer =
-					gpuDevice.GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer();
+					gpuDevice.GetTransferBufferHelper().GetOrCreateTransferCommandBuffer(queue);
 
 				commandBuffer->CopyBufferToBuffer(stagingBuffer, currentUniformBufferInfo->Buffer, 0, currentUniformBufferInfo->SuballocationByteOffset, currentUniformBufferInfo->Buffer->GetSuballocationSize());
 				stagingBuffer = nullptr;

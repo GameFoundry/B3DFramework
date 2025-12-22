@@ -64,6 +64,12 @@ namespace b3d
 		void SubmitTransferCommandBuffer(GpuQueue& queue, bool wait);
 
 		/**
+		 * Submits all active transfer command buffers for the current thread across all queues.
+		 * Useful when you need to ensure all pending transfer operations from the current thread are submitted before proceeding.
+		 */
+		void SubmitAllTransferCommandBuffers();
+
+		/**
 		 * Advances all transfer command buffer pool rings to the next frame.
 		 * Called at the end of each frame by the renderer.
 		 */

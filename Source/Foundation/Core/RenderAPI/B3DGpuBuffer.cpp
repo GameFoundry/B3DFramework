@@ -450,7 +450,10 @@ namespace b3d::render
 
 		// Queue copy/update command for the actual write
 		if(commandBuffer == nullptr)
-			commandBuffer = buffer->GetDevice().GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer();
+		{
+			GpuDevice& device = buffer->GetDevice();
+			commandBuffer = device.GetTransferBufferHelper().GetOrCreateTransferCommandBuffer(*device.GetQueue(GQT_GRAPHICS, 0));
+		}
 
 		commandBuffer->CopyBufferToBuffer(stagingBuffer, buffer, 0, offset, length);
 		commandBuffer->AddQueueSyncMask(syncMask);
@@ -489,7 +492,8 @@ namespace b3d::render
 			// If used on the GPU, we need to wait until all write operations complete before mapping it
 			if(isUsedOnGPU)
 			{
-				SPtr<GpuCommandBuffer> commandBuffer = transferGpuQueue.GetOrCreateTransferCommandBuffer();
+				GpuTransferBufferHelper& transferHelper = buffer->GetDevice().GetTransferBufferHelper();
+				SPtr<GpuCommandBuffer> commandBuffer = transferHelper.GetOrCreateTransferCommandBuffer(transferGpuQueue);
 
 				// Make any writes visible before mapping
 				if(supportsGPUWrites)
@@ -500,7 +504,7 @@ namespace b3d::render
 
 				// Submit the command buffer and wait until it finishes
 				commandBuffer->AddQueueSyncMask(writeUseMask);
-				transferGpuQueue.SubmitTransferCommandBuffer(true);
+				transferHelper.SubmitTransferCommandBuffer(transferGpuQueue, true);
 			}
 
 			GpuBufferMappedScope mapping = buffer->Map(offset, length, GpuMapOption::Read);
@@ -520,14 +524,15 @@ namespace b3d::render
 			syncMask = writeUseMask;
 		}
 
-		SPtr<GpuCommandBuffer> commandBuffer = transferGpuQueue.GetOrCreateTransferCommandBuffer();
+		GpuTransferBufferHelper& transferHelper = buffer->GetDevice().GetTransferBufferHelper();
+		SPtr<GpuCommandBuffer> commandBuffer = transferHelper.GetOrCreateTransferCommandBuffer(transferGpuQueue);
 
 		// Queue copy command
 		commandBuffer->CopyBufferToBuffer(buffer, stagingBuffer, offset, 0, length);
 
 		// Submit the command buffer and wait until it finishes
 		commandBuffer->AddQueueSyncMask(syncMask);
-		transferGpuQueue.SubmitTransferCommandBuffer(true);
+		transferHelper.SubmitTransferCommandBuffer(transferGpuQueue, true);
 
 		{
 			GpuBufferMappedScope mapping = stagingBuffer->Map(0, length, GpuMapOption::Read);

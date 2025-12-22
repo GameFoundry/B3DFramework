@@ -301,17 +301,10 @@ void D3D12GpuDevice::EndFrame()
 
 void D3D12GpuDevice::SubmitTransferCommandBuffers(bool wait)
 {
-	// Submit transfer command buffers on all queues
-	for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
-	{
-		const u32 queueCount = GetQueueCount((GpuQueueUsage)queueTypeIndex);
-		for (u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
-		{
-			SPtr<GpuQueue> queue = GetQueue((GpuQueueUsage)queueTypeIndex, queueIndex);
-			if (queue)
-				queue->SubmitTransferCommandBuffer(wait);
-		}
-	}
+	GetTransferBufferHelper().SubmitAllTransferCommandBuffers();
+
+	if (wait)
+		WaitUntilIdle();
 }
 
 void D3D12GpuDevice::PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, u32 syncMask)

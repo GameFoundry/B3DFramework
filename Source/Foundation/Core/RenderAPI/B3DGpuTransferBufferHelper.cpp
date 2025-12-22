@@ -154,6 +154,31 @@ void GpuTransferBufferHelper::SubmitTransferCommandBuffer(GpuQueue& queue, bool 
 		queue.WaitUntilIdle();
 }
 
+void GpuTransferBufferHelper::SubmitAllTransferCommandBuffers()
+{
+	ThreadData* threadData = GetCurrentThreadData();
+	if(threadData == nullptr)
+		return;
+
+	for(auto& queueEntry : threadData->QueueData)
+	{
+		QueueData& queueData = queueEntry.second;
+		SPtr<render::GpuCommandBuffer> commandBufferToSubmit = queueData.CurrentCommandBuffer;
+		queueData.CurrentCommandBuffer = nullptr;
+
+		if(commandBufferToSubmit != nullptr)
+		{
+			commandBufferToSubmit->End();
+
+			// Get the queue for this queue ID
+			const GpuQueueId queueId(queueEntry.first);
+			SPtr<GpuQueue> queue = mGpuDevice.GetQueue(queueId.GetType(), queueId.GetIndex());
+			if(queue)
+				queue->SubmitCommandBuffer(commandBufferToSubmit, 0xFFFFFFFF);
+		}
+	}
+}
+
 void GpuTransferBufferHelper::EndFrame()
 {
 	Lock lock(mRegistryMutex);
