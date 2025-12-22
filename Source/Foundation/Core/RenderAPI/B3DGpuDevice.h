@@ -264,7 +264,7 @@ namespace b3d
 			SPtr<render::GpuCommandBuffer> CurrentTransferCommandBuffer; /**< Currently active transfer buffer, if any. */
 		};
 
-		GpuQueue(GpuDevice& gpuDevice, GpuQueueType usage, u32 index);
+		GpuQueue(GpuDevice& gpuDevice, GpuQueueType type, u32 index);
 
 		/** Provides the same functionality as SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>&, GpuQueueMask), but makes the command buffer flush optional. */
 		virtual void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, bool flushTransferCommandBuffer) = 0;
@@ -302,10 +302,10 @@ namespace b3d
 		virtual bool IsGpuProgramLanguageSupported(const StringView& language) const = 0;
 
 		/** Returns the number of queues supported for the specific usage. */
-		virtual u32 GetQueueCount(GpuQueueType usage) const = 0;
+		virtual u32 GetQueueCount(GpuQueueType type) const = 0;
 
 		/** Retrieves a queue with the specified usage and index. */
-		virtual SPtr<GpuQueue> GetQueue(GpuQueueType usage, u32 index) const = 0;
+		virtual SPtr<GpuQueue> GetQueue(GpuQueueType type, u32 index) const = 0;
 
 		/**
 		 * Submits the command buffer for execution on an automatically retrieved queue.

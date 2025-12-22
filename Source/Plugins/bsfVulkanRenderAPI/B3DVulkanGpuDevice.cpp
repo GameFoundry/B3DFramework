@@ -471,12 +471,12 @@ SPtr<GpuProgramBytecode> VulkanGpuDevice::CompileGpuProgramBytecode(const GpuPro
 #endif
 }
 
-SPtr<GpuQueue> VulkanGpuDevice::GetQueue(GpuQueueType usage, u32 index) const
+SPtr<GpuQueue> VulkanGpuDevice::GetQueue(GpuQueueType type, u32 index) const
 {
-	if (index >= GetQueueCount(usage))
+	if (index >= GetQueueCount(type))
 		return nullptr;
 
-	return mQueueInfos[(u32)usage].Queues[index];
+	return mQueueInfos[(u32)type].Queues[index];
 }
 
 SPtr<GpuCommandBufferPool> VulkanGpuDevice::CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation)
@@ -693,23 +693,6 @@ void VulkanGpuDevice::DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&
 			callback(*queue);
 		}
 	}
-}
-
-GpuQueueMask VulkanGpuDevice::GetQueueMask(GpuQueueType type, u32 queueIdx) const
-{
-	const u32 queueCount = GetQueueCount(type);
-	if(queueCount == 0)
-		return 0;
-
-	GpuQueueMask mask;
-	u32 localIndex = queueIdx % queueCount;
-	while(localIndex < B3D_MAX_QUEUES_PER_TYPE)
-	{
-		mask |= GpuQueueMask(GpuQueueId(type, localIndex));
-		localIndex += queueCount;
-	}
-
-	return mask;
 }
 
 SurfaceFormat VulkanGpuDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, bool useHardwareSRGB) const

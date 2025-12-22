@@ -140,11 +140,11 @@ namespace b3d
 			{ }
 
 			/** Allocates a create information for a command buffer pool owned by the calling thread. */
-			static GpuCommandBufferPoolCreateInformation CreateForThisThread(GpuQueueType usage = GQT_GRAPHICS)
+			static GpuCommandBufferPoolCreateInformation CreateForThisThread(GpuQueueType type = GQT_GRAPHICS)
 			{
 				GpuCommandBufferPoolCreateInformation createInformation;
 				createInformation.Thread = B3D_CURRENT_THREAD_ID;
-				createInformation.Type = usage;
+				createInformation.Type = type;
 
 				return createInformation;
 			}
@@ -462,8 +462,8 @@ namespace b3d
 			/** Returns the GPU device the command buffer is created on. */
 			GpuDevice& GetGpuDevice() const { return mGpuDevice; }
 
-			/** Returns the usage that determines on which queue is the command buffer allowed to be submitted on, and which commands may be recorded. */
-			GpuQueueType GetUsage() const { return mUsage; }
+			/** Returns the queue type that determines on which queue is the command buffer allowed to be submitted on, and which commands may be recorded. */
+			GpuQueueType GetQueueType() const { return mQueueType; }
 
 			/** Assigns an name to the command buffer, primarily used for easier debugging. */
 			virtual void SetName(const StringView& name) { mName = name; }
@@ -820,7 +820,7 @@ namespace b3d
 	
 			GpuDevice& mGpuDevice;
 			const GpuCommandBufferCreateInformation mInformation;
-			const GpuQueueType mUsage;
+			const GpuQueueType mQueueType;
 			const ThreadId mOwnerThread;
 			String mName;
 			bool mIsSubmitted = false;

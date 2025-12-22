@@ -11,8 +11,8 @@ using namespace b3d;
 const GpuQueueMask GpuQueueMask::kNone = GpuQueueMask(0);
 const GpuQueueMask GpuQueueMask::kAll = GpuQueueMask(~0u);
 
-GpuQueue::GpuQueue(GpuDevice& gpuDevice, GpuQueueType usage, u32 index)
-	:mGpuDevice(gpuDevice), mType(usage), mIndex(index)
+GpuQueue::GpuQueue(GpuDevice& gpuDevice, GpuQueueType type, u32 index)
+	:mGpuDevice(gpuDevice), mType(type), mIndex(index)
 {
 	
 }
@@ -77,11 +77,11 @@ void GpuDevice::SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& comman
 	if (!B3D_ENSURE(commandBuffer))
 		return;
 
-	const u32 queueCount = GetQueueCount(commandBuffer->GetUsage());
+	const u32 queueCount = GetQueueCount(commandBuffer->GetQueueType());
 	if (!B3D_ENSURE(queueIndex < queueCount))
 		return;
 
-	const SPtr<GpuQueue>& queue = GetQueue(commandBuffer->GetUsage(), queueIndex);
+	const SPtr<GpuQueue>& queue = GetQueue(commandBuffer->GetQueueType(), queueIndex);
 	if (!B3D_ENSURE(queue))
 		return;
 

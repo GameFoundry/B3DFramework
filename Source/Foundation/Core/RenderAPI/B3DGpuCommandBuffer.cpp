@@ -30,7 +30,7 @@ void GpuCommandBufferPool::Destroy()
 }
 
 GpuCommandBuffer::GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
-	:mGpuDevice(gpuDevice), mUsage(queueType), mOwnerThread(ownerThread), mInformation(createInformation)
+	:mGpuDevice(gpuDevice), mQueueType(queueType), mOwnerThread(ownerThread), mInformation(createInformation)
 { }
 
 

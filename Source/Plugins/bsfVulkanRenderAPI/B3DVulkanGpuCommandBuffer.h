@@ -161,13 +161,13 @@ namespace b3d
 			/**
 			 * Prepares the command buffer to be submitted on a GpuQueue.
 			 *
-			 * @param queueUsage			Usage of the queue the command buffer will be submitted on.
+			 * @param queueType			Usage of the queue the command buffer will be submitted on.
 			 * @param queueIndex			Index of the queue the command buffer will be submitted on.
 			 * @return						Information required for submitting the command buffer on the queue.
 			 * 
 			 * @note Submit thread only.
 			 */
-			GpuCommandBufferSubmitInformation PrepareForSubmitOnSubmitThread(GpuQueueType queueUsage, u32 queueIndex);
+			GpuCommandBufferSubmitInformation PrepareForSubmitOnSubmitThread(GpuQueueType queueType, u32 queueIndex);
 
 			/** Called when the command buffer is about to be sent to the submit queue for submit. */
 			void NotifyWillQueueForSubmit();

@@ -18,7 +18,7 @@ namespace b3d
 		class VulkanGpuQueue : public GpuQueue
 		{
 		public:
-			VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueType usage, u32 index, VkQueue vulkanQueue);
+			VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueType type, u32 index, VkQueue vulkanQueue);
 
 			void SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, bool flushTransferCommandBuffer) override;
 			void WaitUntilIdle() override;

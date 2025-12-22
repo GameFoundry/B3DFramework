@@ -433,7 +433,7 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, GpuQueueMas
 	}
 
 	VulkanGpuDevice& presentDevice = queue.GetDevice();
-	const GpuQueueMask queueMask = presentDevice.GetQueueMask(queue.GetType(), queue.GetIndex());
+	const GpuQueueMask queueMask = queue.GetId();
 
 	// Ignore myself as we handle this in VulkanGpuQueue::Present() already
 	syncMask &= ~queueMask;

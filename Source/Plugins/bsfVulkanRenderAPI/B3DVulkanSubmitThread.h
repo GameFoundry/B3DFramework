@@ -65,7 +65,7 @@ namespace b3d::render
 		void WaitUntilIdle(VulkanGpuQueue& queue);
 
 		/** Returns a pool that may be used for allocating command buffers for the submit thread. */
-		VulkanGpuCommandBufferPool& GetCommandBufferPool(GpuQueueType queueUsage) const { return *mCommandBufferPools[queueUsage]; }
+		VulkanGpuCommandBufferPool& GetCommandBufferPool(GpuQueueType queueType) const { return *mCommandBufferPools[queueType]; }
 
 		/** Returns the id of the thread that submit work is being performed on. */
 		u32 GetThreadId() const;

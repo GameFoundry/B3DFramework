@@ -32,17 +32,17 @@ VulkanSubmitThread::VulkanSubmitThread(VulkanGpuDevice& gpuDevice)
 
 	auto fnInitialize = [this]()
 	{
-		for (u32 gpuQueueUsageIndex = 0; gpuQueueUsageIndex < GQT_COUNT; gpuQueueUsageIndex++)
+		for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 		{
-			const GpuQueueType queueUsage = (GpuQueueType)gpuQueueUsageIndex;
-			if (mGpuDevice.GetQueueCount(queueUsage) == 0)
+			const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
+			if (mGpuDevice.GetQueueCount(queueType) == 0)
 				continue;
 
 			GpuCommandBufferPoolCreateInformation poolCreateInformation;
 			poolCreateInformation.Thread = B3D_CURRENT_THREAD_ID;
-			poolCreateInformation.Type = queueUsage;
+			poolCreateInformation.Type = queueType;
 
-			mCommandBufferPools[gpuQueueUsageIndex] = std::static_pointer_cast<VulkanGpuCommandBufferPool>(mGpuDevice.CreateGpuCommandBufferPool(poolCreateInformation));
+			mCommandBufferPools[queueTypeIndex] = std::static_pointer_cast<VulkanGpuCommandBufferPool>(mGpuDevice.CreateGpuCommandBufferPool(poolCreateInformation));
 		}
 	};
 
