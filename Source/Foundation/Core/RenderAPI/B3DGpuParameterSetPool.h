@@ -17,19 +17,19 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Mode for descriptor pool operation. */
-	enum class GpuDescriptorPoolMode
+	/** Mode for parameter set pool operation. */
+	enum class GpuParameterSetPoolMode
 	{
-		/** Used for per-frame allocations. All descriptor sets allocated from the pool are deallocated at once. */
+		/** Used for per-frame allocations. All parameter sets allocated from the pool are deallocated at once. */
 		Transient,
 		/** Used for persistent (multi-frame) allocations. Individual sets must be deallocated via Free(). */
 		Persistent
 	};
 
-	/** Information describing GpuDescriptorPool. */
-	struct GpuDescriptorPoolInformation
+	/** Information describing GpuParameterSetPool. */
+	struct GpuParameterSetPoolInformation
 	{
-		GpuDescriptorPoolMode Mode = GpuDescriptorPoolMode::Transient;
+		GpuParameterSetPoolMode Mode = GpuParameterSetPoolMode::Transient;
 		u32 MaxSets = 8192;
 		u32 MaxSampledImages = 4096;
 		u32 MaxStorageImages = 2048;
@@ -42,28 +42,28 @@ namespace b3d
 		u32 MaxStorageBuffersDynamic = 1024;
 	};
 
-	/** Creation information for GpuDescriptorPool. */
-	struct GpuDescriptorPoolCreateInformation : GpuDescriptorPoolInformation
+	/** Creation information for GpuParameterSetPool. */
+	struct GpuParameterSetPoolCreateInformation : GpuParameterSetPoolInformation
 	{
-		GpuDescriptorPoolCreateInformation() = default;
-		GpuDescriptorPoolCreateInformation(const GpuDescriptorPoolInformation& other)
-			:GpuDescriptorPoolInformation(other)
+		GpuParameterSetPoolCreateInformation() = default;
+		GpuParameterSetPoolCreateInformation(const GpuParameterSetPoolInformation& other)
+			:GpuParameterSetPoolInformation(other)
 		{ }
 	};
 
 	/**
-	 * A pool for allocating descriptor sets (GPU parameter sets).
+	 * A pool for allocating GPU parameter sets.
 	 *
 	 * There are two modes of operation:
-	 * - Transient: Used for per-frame allocations. All descriptor sets allocated from the pool are deallocated at once.
+	 * - Transient: Used for per-frame allocations. All parameter sets allocated from the pool are deallocated at once.
 	 * - Persistent: Used for persistent (multi-frame) allocations. Individual sets must be deallocated via Free().
 	 *
 	 * Not thread safe. All GpuParameterSets allocated from this pool must be used on the same thread.
 	 */
-	class B3D_EXPORT GpuDescriptorPool
+	class B3D_EXPORT GpuParameterSetPool
 	{
 	public:
-		virtual ~GpuDescriptorPool() = default;
+		virtual ~GpuParameterSetPool() = default;
 
 		/**
 		 * Allocates a new parameter set from this pool.
@@ -82,10 +82,11 @@ namespace b3d
 		 * After calling Reset(), all previously allocated parameter sets from this pool become invalid and must not be used.
 		 */
 		virtual void Reset() = 0;
-	protected:
-		GpuDescriptorPool(const GpuDescriptorPoolCreateInformation& createInformation);
 
-		GpuDescriptorPoolInformation mInformation;
+	protected:
+		GpuParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation);
+
+		GpuParameterSetPoolInformation mInformation;
 		u32 mAllocatedSetCount = 0;
 	};
 

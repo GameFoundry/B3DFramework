@@ -1,14 +1,14 @@
 //************************************ B3D Framework - Copyright 2025 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "B3DVulkanGpuDescriptorPool.h"
+#include "B3DVulkanGpuParameterSetPool.h"
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanGpuParameterSet.h"
 #include "B3DVulkanGpuPipelineParameterLayout.h"
 
 namespace b3d::render
 {
-	VulkanGpuDescriptorPool::VulkanGpuDescriptorPool(VulkanGpuDevice& device, const GpuDescriptorPoolCreateInformation& createInformation)
-		: GpuDescriptorPool(createInformation)
+	VulkanGpuParameterSetPool::VulkanGpuParameterSetPool(VulkanGpuDevice& device, const GpuParameterSetPoolCreateInformation& createInformation)
+		: GpuParameterSetPool(createInformation)
 		, mDevice(device)
 	{
 		VkDescriptorPoolSize poolSizes[10];
@@ -51,7 +51,7 @@ namespace b3d::render
 
 		// Transient mode: no individual free, enables O(1) reset
 		// Persistent mode: individual free allowed, no bulk reset
-		if (createInformation.Mode == GpuDescriptorPoolMode::Persistent)
+		if (createInformation.Mode == GpuParameterSetPoolMode::Persistent)
 			poolCreateInformation.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 		else
 			poolCreateInformation.flags = 0;
@@ -60,18 +60,18 @@ namespace b3d::render
 		B3D_ASSERT(result == VK_SUCCESS);
 	}
 
-	VulkanGpuDescriptorPool::~VulkanGpuDescriptorPool()
+	VulkanGpuParameterSetPool::~VulkanGpuParameterSetPool()
 	{
 		if (mPool != VK_NULL_HANDLE)
 			vkDestroyDescriptorPool(mDevice.GetLogical(), mPool, gVulkanAllocator);
 	}
 
-	SPtr<GpuParameterSet> VulkanGpuDescriptorPool::Allocate(
+	SPtr<GpuParameterSet> VulkanGpuParameterSetPool::Allocate(
 		const SPtr<GpuPipelineParameterSetLayout>& layout, u32 setIndex)
 	{
 		if (mAllocatedSetCount >= mInformation.MaxSets)
 		{
-			B3D_LOG(Error, RenderBackend, "Descriptor pool exhausted. Cannot allocate more parameter sets.");
+			B3D_LOG(Error, RenderBackend, "Parameter set pool exhausted. Cannot allocate more parameter sets.");
 			return nullptr;
 		}
 
@@ -86,11 +86,11 @@ namespace b3d::render
 		return paramSet;
 	}
 
-	void VulkanGpuDescriptorPool::Reset()
+	void VulkanGpuParameterSetPool::Reset()
 	{
-		if(mInformation.Mode == GpuDescriptorPoolMode::Persistent)
+		if (mInformation.Mode == GpuParameterSetPoolMode::Persistent)
 		{
-			B3D_LOG(Error, RenderBackend, "Cannot perform Reset on a Persistent mode descriptor pool.");
+			B3D_LOG(Error, RenderBackend, "Cannot perform Reset on a Persistent mode parameter set pool.");
 			return;
 		}
 
@@ -100,11 +100,11 @@ namespace b3d::render
 		mAllocatedSetCount = 0;
 	}
 
-	void VulkanGpuDescriptorPool::Free(const SPtr<GpuParameterSet>& parameterSet)
+	void VulkanGpuParameterSetPool::Free(const SPtr<GpuParameterSet>& parameterSet)
 	{
-		if(mInformation.Mode == GpuDescriptorPoolMode::Transient)
+		if (mInformation.Mode == GpuParameterSetPoolMode::Transient)
 		{
-			B3D_LOG(Error, RenderBackend, "Cannot free individual descriptors in Transient mode descriptor pool.");
+			B3D_LOG(Error, RenderBackend, "Cannot free individual parameter sets in Transient mode pool.");
 			return;
 		}
 
@@ -113,13 +113,13 @@ namespace b3d::render
 		// TODO: The parameter set needs to track which pool it came from and free its
 		// descriptor set accordingly. For now, this is a placeholder.
 		// In a full implementation, VulkanGpuParameterSet would have a reference to the
-		// owning pool and call FreeRawSet() with its VkDescriptorSet.
+		// owning pool and call FreeVkSet() with its VkDescriptorSet.
 
 		if (mAllocatedSetCount > 0)
 			mAllocatedSetCount--;
 	}
 
-	VkDescriptorSet VulkanGpuDescriptorPool::AllocateVkSet(VkDescriptorSetLayout layout)
+	VkDescriptorSet VulkanGpuParameterSetPool::AllocateVkSet(VkDescriptorSetLayout layout)
 	{
 		if (mAllocatedSetCount >= mInformation.MaxSets)
 			return VK_NULL_HANDLE;
@@ -144,9 +144,9 @@ namespace b3d::render
 		return set;
 	}
 
-	void VulkanGpuDescriptorPool::FreeVkSet(VkDescriptorSet set)
+	void VulkanGpuParameterSetPool::FreeVkSet(VkDescriptorSet set)
 	{
-		B3D_ASSERT(mInformation.Mode == GpuDescriptorPoolMode::Persistent);
+		B3D_ASSERT(mInformation.Mode == GpuParameterSetPoolMode::Persistent);
 
 		if (set == VK_NULL_HANDLE)
 			return;

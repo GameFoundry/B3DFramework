@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2025 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "RenderAPI/B3DGpuDescriptorPool.h"
+#include "RenderAPI/B3DGpuParameterSetPool.h"
 
 namespace b3d
 {
-	GpuDescriptorPool::GpuDescriptorPool(const GpuDescriptorPoolCreateInformation& createInformation)
+	GpuParameterSetPool::GpuParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation)
 		: mInformation(createInformation)
 	{
 	}

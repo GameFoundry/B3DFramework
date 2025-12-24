@@ -208,7 +208,7 @@ namespace b3d
 			return B3DMakeShared<GpuPipelineParameterSetLayout>(parameterDescription);
 		}
 
-		UPtr<GpuDescriptorPool> NullGpuDevice::CreateDescriptorPool(const GpuDescriptorPoolCreateInformation& createInformation)
+		UPtr<GpuParameterSetPool> NullGpuDevice::CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation)
 		{
 			return nullptr;
 		}

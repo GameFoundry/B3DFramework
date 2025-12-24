@@ -23,7 +23,7 @@ namespace b3d
 		/** Vulkan implementation of GpuParameterSet, containing resource descriptors for a single descriptor set. */
 		class VulkanGpuParameterSet : public GpuParameterSet
 		{
-			friend class VulkanGpuDescriptorPool;
+			friend class VulkanGpuParameterSetPool;
 
 		public:
 			VulkanGpuParameterSet(VulkanGpuDevice& gpuDevice, const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 set);

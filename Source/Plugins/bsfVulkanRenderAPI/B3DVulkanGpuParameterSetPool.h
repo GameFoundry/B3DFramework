@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DVulkanPrerequisites.h"
-#include "RenderAPI/B3DGpuDescriptorPool.h"
+#include "RenderAPI/B3DGpuParameterSetPool.h"
 
 namespace b3d
 {
@@ -13,12 +13,12 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Vulkan implementation of GpuDescriptorPool. */
-		class VulkanGpuDescriptorPool final : public GpuDescriptorPool
+		/** Vulkan implementation of GpuParameterSetPool. */
+		class VulkanGpuParameterSetPool final : public GpuParameterSetPool
 		{
 		public:
-			VulkanGpuDescriptorPool(VulkanGpuDevice& device, const GpuDescriptorPoolCreateInformation& createInformation);
-			~VulkanGpuDescriptorPool() override;
+			VulkanGpuParameterSetPool(VulkanGpuDevice& device, const GpuParameterSetPoolCreateInformation& createInformation);
+			~VulkanGpuParameterSetPool() override;
 
 			SPtr<GpuParameterSet> Allocate(const SPtr<GpuPipelineParameterSetLayout>& layout, u32 setIndex) override;
 			void Free(const SPtr<GpuParameterSet>& parameterSet) override;

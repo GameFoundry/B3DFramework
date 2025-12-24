@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
-#include "B3DGpuDescriptorPool.h"
+#include "B3DGpuParameterSetPool.h"
 #include "B3DGpuQueries.h"
 #include "B3DPrerequisites.h"
 #include "B3DSamplerState.h"
@@ -441,12 +441,12 @@ namespace b3d
 		virtual SPtr<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription) = 0;
 
 		/**
-		 * Creates a descriptor pool for parameter set allocation.
+		 * Creates a parameter set pool for allocating GPU parameter sets.
 		 *
 		 * @param	createInformation	Pool configuration including mode and capacity limits.
-		 * @return						Created descriptor pool.
+		 * @return						Created parameter set pool.
 		 */
-		virtual UPtr<GpuDescriptorPool> CreateDescriptorPool(const GpuDescriptorPoolCreateInformation& createInformation) = 0;
+		virtual UPtr<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) = 0;
 
 		/************************************************************************/
 		/* 								UTILITY METHODS                    		*/
