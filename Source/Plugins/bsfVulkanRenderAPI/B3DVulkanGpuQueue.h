@@ -133,6 +133,7 @@ namespace b3d
 
 			VkQueue mQueue;
 			VkPipelineStageFlags mSubmitDstWaitMask[B3D_MAX_UNIQUE_QUEUES];
+			mutable Mutex mMutex;
 
 			Queue<QueueSubmissionEntryInformation> mActiveCommandBuffers;
 			Queue<VulkanSemaphore*> mActiveSemaphores;

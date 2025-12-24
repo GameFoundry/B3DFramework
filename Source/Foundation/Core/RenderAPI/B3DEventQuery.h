@@ -16,8 +16,8 @@ namespace b3d
 		class B3D_EXPORT EventQuery
 		{
 		public:
-			EventQuery() = default;
-			virtual ~EventQuery() = default;
+			EventQuery();
+			virtual ~EventQuery();
 
 			/** Schedules the query for execution on the command buffer. Once the GPU reaches this point the query will be set in the signaled state. */
 			virtual void Begin(GpuCommandBuffer& commandBuffer) = 0;

@@ -47,7 +47,6 @@ namespace b3d
 
 			u32 GetQueueCount(GpuQueueUsage usage) const override { return (u32)mQueueInfos[(u32)usage].Queues.size(); }
 			SPtr<GpuQueue> GetQueue(GpuQueueUsage usage, u32 index) const override;
-			void SubmitTransferCommandBuffers(bool wait = false) override;
 			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) override;
 			void WaitUntilIdle() override;
 			void BeginFrame() override;

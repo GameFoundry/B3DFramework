@@ -101,7 +101,7 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter)
 	static_assert(false, "mVideoModeInfo needs to be created.");
 #endif
 
-	mTransferBufferHelper = B3DMakeUnique<GpuTransferBufferHelper>(*this);
+	mTransferBufferHelper = B3DMakeUnique<GpuTransferBufferHelper>(*this, GpuQueueId(GQT_GRAPHICS, 0));
 }
 
 D3D12GpuDevice::~D3D12GpuDevice()
@@ -297,14 +297,6 @@ void D3D12GpuDevice::EndFrame()
 	mTransferBufferHelper->EndFrame();
 
 	// TODO: Implement frame end logic
-}
-
-void D3D12GpuDevice::SubmitTransferCommandBuffers(bool wait)
-{
-	GetTransferBufferHelper().SubmitAllTransferCommandBuffers();
-
-	if (wait)
-		WaitUntilIdle();
 }
 
 void D3D12GpuDevice::PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, u32 syncMask)

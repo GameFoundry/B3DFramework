@@ -8,6 +8,7 @@
 namespace b3d
 {
 	class GpuQueue;
+	struct GpuQueueId;
 
 	namespace render
 	{
@@ -28,46 +29,40 @@ namespace b3d
 	class B3D_EXPORT GpuTransferBufferHelper
 	{
 	public:
-		/** Information about transfer command buffers for a specific queue on a specific thread. */
-		struct QueueData
-		{
-			UPtr<render::GpuCommandBufferPoolRing> PoolRing;
-			SPtr<render::GpuCommandBuffer> CurrentCommandBuffer;
-		};
-
-		/** Per-thread data containing transfer buffers for all queues. */
+		/** Per-thread data containing transfer buffer state. */
 		struct ThreadData
 		{
-			UnorderedMap<u32, QueueData> QueueData; /**< Per-queue transfer command buffer data. Index is the unique queue ID. */
+			UPtr<render::GpuCommandBufferPoolRing> PoolRing; /**< Ring buffer of pools for allocating transfer command buffers. */
+			SPtr<render::GpuCommandBuffer> CurrentCommandBuffer; /**< Currently active transfer buffer, if any. */
 			ThreadId OwnerThread; /**< Thread ID that owns this data. */
 		};
 
-		explicit GpuTransferBufferHelper(GpuDevice& device);
+		/**
+		 * Creates a transfer buffer helper for the specified device and target queue.
+		 *
+		 * @param device		GPU device this helper belongs to.
+		 * @param targetQueue	Queue that transfer command buffers will be submitted to.
+		 */
+		GpuTransferBufferHelper(GpuDevice& device, GpuQueueId targetQueue);
 		~GpuTransferBufferHelper();
 
 		/**
 		 * Returns a command buffer for transfer operations on the current thread. If no command buffer exists for this
-		 * thread, one is created. The command buffer is associated with the specified queue.
+		 * thread, one is created. The command buffer will be submitted to the configured target queue.
 		 *
-		 * @param queue		Queue that the transfer command buffer will be submitted to.
+		 * This is a helper method that creates a transient transfer command buffer under the hood.
+		 *
 		 * @return			Transfer command buffer for the current thread.
 		 */
-		SPtr<render::GpuCommandBuffer> GetOrCreateTransferCommandBuffer(GpuQueue& queue);
+		const SPtr<render::GpuCommandBuffer>& GetOrCreateTransferCommandBuffer();
 
 		/**
-		 * Submits the active transfer command buffer for the current thread on the specified queue.
+		 * Submits the active transfer command buffer for the current thread.
 		 * After submission, the command buffer is invalidated and a new one will be created on the next GetOrCreate call.
 		 *
-		 * @param queue		Queue to submit the transfer command buffer to.
 		 * @param wait		If true, blocks until the command buffer finishes executing on the GPU.
 		 */
-		void SubmitTransferCommandBuffer(GpuQueue& queue, bool wait);
-
-		/**
-		 * Submits all active transfer command buffers for the current thread across all queues.
-		 * Useful when you need to ensure all pending transfer operations from the current thread are submitted before proceeding.
-		 */
-		void SubmitAllTransferCommandBuffers();
+		void SubmitTransferCommandBuffer(bool wait = false);
 
 		/**
 		 * Advances all transfer command buffer pool rings to the next frame.
@@ -84,6 +79,8 @@ namespace b3d
 		ThreadData* GetCurrentThreadData();
 
 		GpuDevice& mGpuDevice;
+		GpuQueueType mTargetQueueType;
+		u32 mTargetQueueIndex;
 
 		Mutex mRegistryMutex;
 		Vector<UPtr<ThreadData>> mThreadRegistry;

@@ -12,8 +12,8 @@ namespace
 	thread_local GpuTransferBufferHelper* gPerThreadActiveHelper = nullptr;
 }
 
-GpuTransferBufferHelper::GpuTransferBufferHelper(GpuDevice& device)
-	: mGpuDevice(device)
+GpuTransferBufferHelper::GpuTransferBufferHelper(GpuDevice& device, GpuQueueId targetQueue)
+	: mGpuDevice(device), mTargetQueueType(targetQueue.GetType()), mTargetQueueIndex(targetQueue.GetIndex())
 {
 }
 
@@ -24,28 +24,24 @@ GpuTransferBufferHelper::~GpuTransferBufferHelper()
 	Lock lock(mRegistryMutex);
 	for(auto& threadData : mThreadRegistry)
 	{
-		for(auto& queueEntry : threadData->QueueData)
+		if(!threadData->PoolRing)
+			continue;
+
+		// Get scheduler thread from the first pool in the ring (all pools have the same owning thread)
+		render::GpuCommandBufferPool& firstPool = threadData->PoolRing->GetCurrentPool();
+
+		waitGroup.Increment();
+
+		// It's important we queue the destroy on the thread the command buffer pool was created on, as command buffers are bound to a single thread. We don't use the command buffer pool message queue directly
+		// as the destroy operation may wait on the queue to complete, which would result in a deadlock.
+		const SPtr<SchedulerThread> ownerSchedulerThread = firstPool.GetMessageQueue().GetSchedulerThread();
+		if(B3D_ENSURE(ownerSchedulerThread))
 		{
-			QueueData& queueData = queueEntry.second;
-			if(!queueData.PoolRing)
-				continue;
-
-			// Get scheduler thread from the first pool in the ring (all pools have the same owning thread)
-			render::GpuCommandBufferPool& firstPool = queueData.PoolRing->GetCurrentPool();
-
-			waitGroup.Increment();
-
-			// It's important we queue the destroy on the thread the command buffer pool was created on, as command buffers are bound to a single thread. We don't use the command buffer pool message queue directly
-			// as the destroy operation may wait on the queue to complete, which would result in a deadlock.
-			const SPtr<SchedulerThread> ownerSchedulerThread = firstPool.GetMessageQueue().GetSchedulerThread();
-			if(B3D_ENSURE(ownerSchedulerThread))
+			ownerSchedulerThread->Post(SchedulerTask([&waitGroup, poolRing = threadData->PoolRing.get()]
 			{
-				ownerSchedulerThread->Post(SchedulerTask([&waitGroup, poolRing = queueData.PoolRing.get()]
-				{
-					poolRing->Destroy();
-					waitGroup.NotifyDone();
-				}, "Destroy GpuCommandBufferPoolRing"));
-			}
+				poolRing->Destroy();
+				waitGroup.NotifyDone();
+			}, "Destroy GpuCommandBufferPoolRing"));
 		}
 	}
 
@@ -99,83 +95,56 @@ GpuTransferBufferHelper::ThreadData* GpuTransferBufferHelper::RegisterCurrentThr
 	return threadDataPtr;
 }
 
-SPtr<render::GpuCommandBuffer> GpuTransferBufferHelper::GetOrCreateTransferCommandBuffer(GpuQueue& queue)
+const SPtr<render::GpuCommandBuffer>& GpuTransferBufferHelper::GetOrCreateTransferCommandBuffer()
 {
 	ThreadData* threadData = RegisterCurrentThreadIfNeeded();
 
-	const u32 queueId = queue.GetId().Id;
-	QueueData& queueData = threadData->QueueData[queueId];
-
 	// Initialize pool ring if needed
-	if(!queueData.PoolRing)
+	if(!threadData->PoolRing)
 	{
 		render::GpuCommandBufferPoolCreateInformation poolCreateInformation;
 		poolCreateInformation.Thread = B3D_CURRENT_THREAD_ID;
-		poolCreateInformation.Type = queue.GetType();
+		poolCreateInformation.Type = mTargetQueueType;
 		poolCreateInformation.UsePoolReset = true;
 
-		queueData.PoolRing = B3DMakeUnique<render::GpuCommandBufferPoolRing>(mGpuDevice, poolCreateInformation);
+		threadData->PoolRing = B3DMakeUnique<render::GpuCommandBufferPoolRing>(mGpuDevice, poolCreateInformation);
 	}
 
 	// Create command buffer if needed
-	if(queueData.CurrentCommandBuffer == nullptr)
+	if(threadData->CurrentCommandBuffer == nullptr)
 	{
 		render::GpuCommandBufferCreateInformation commandBufferCreateInformation;
 		commandBufferCreateInformation.Name = "Transfer";
 
-		queueData.CurrentCommandBuffer = queueData.PoolRing->GetCurrentPool().FindOrCreate(commandBufferCreateInformation);
+		threadData->CurrentCommandBuffer = threadData->PoolRing->GetCurrentPool().FindOrCreate(commandBufferCreateInformation);
 	}
 
-	return queueData.CurrentCommandBuffer;
+	return threadData->CurrentCommandBuffer;
 }
 
-void GpuTransferBufferHelper::SubmitTransferCommandBuffer(GpuQueue& queue, bool wait)
+void GpuTransferBufferHelper::SubmitTransferCommandBuffer(bool wait)
 {
 	ThreadData* threadData = GetCurrentThreadData();
 	if(threadData == nullptr)
 		return;
 
-	u32 queueId = queue.GetId().Id;
-	auto found = threadData->QueueData.find(queueId);
-	if(found == threadData->QueueData.end())
-		return;
-
-	QueueData& queueData = found->second;
-	SPtr<render::GpuCommandBuffer> commandBufferToSubmit = queueData.CurrentCommandBuffer;
-	queueData.CurrentCommandBuffer = nullptr;
+	SPtr<render::GpuCommandBuffer> commandBufferToSubmit = threadData->CurrentCommandBuffer;
+	threadData->CurrentCommandBuffer = nullptr;
 
 	if(commandBufferToSubmit != nullptr)
 	{
 		commandBufferToSubmit->End();
-		queue.SubmitCommandBuffer(commandBufferToSubmit, 0xFFFFFFFF);
+
+		SPtr<GpuQueue> queue = mGpuDevice.GetQueue(mTargetQueueType, mTargetQueueIndex);
+		if(queue)
+			queue->SubmitCommandBuffer(commandBufferToSubmit, 0xFFFFFFFF);
 	}
 
 	if(wait)
-		queue.WaitUntilIdle();
-}
-
-void GpuTransferBufferHelper::SubmitAllTransferCommandBuffers()
-{
-	ThreadData* threadData = GetCurrentThreadData();
-	if(threadData == nullptr)
-		return;
-
-	for(auto& queueEntry : threadData->QueueData)
 	{
-		QueueData& queueData = queueEntry.second;
-		SPtr<render::GpuCommandBuffer> commandBufferToSubmit = queueData.CurrentCommandBuffer;
-		queueData.CurrentCommandBuffer = nullptr;
-
-		if(commandBufferToSubmit != nullptr)
-		{
-			commandBufferToSubmit->End();
-
-			// Get the queue for this queue ID
-			const GpuQueueId queueId(queueEntry.first);
-			SPtr<GpuQueue> queue = mGpuDevice.GetQueue(queueId.GetType(), queueId.GetIndex());
-			if(queue)
-				queue->SubmitCommandBuffer(commandBufferToSubmit, 0xFFFFFFFF);
-		}
+		SPtr<GpuQueue> queue = mGpuDevice.GetQueue(mTargetQueueType, mTargetQueueIndex);
+		if(queue)
+			queue->WaitUntilIdle();
 	}
 }
 
@@ -185,14 +154,10 @@ void GpuTransferBufferHelper::EndFrame()
 
 	for(auto& threadData : mThreadRegistry)
 	{
-		for(auto& queueEntry : threadData->QueueData)
-		{
-			QueueData& queueData = queueEntry.second;
-			if(!queueData.PoolRing)
-				continue;
+		if(!threadData->PoolRing)
+			continue;
 
-			queueData.PoolRing->AdvanceFrame();
-			queueData.CurrentCommandBuffer = nullptr;
-		}
+		threadData->PoolRing->AdvanceFrame();
+		threadData->CurrentCommandBuffer = nullptr;
 	}
 }

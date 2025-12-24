@@ -244,8 +244,7 @@ void UniformBufferPools::UpdatePerObjectBuffer(const RendererObject& object, con
 
 	staging.Unmap();
 
-	GpuQueue& queue = *mDevice->GetQueue(GQT_GRAPHICS, 0);
-	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetTransferBufferHelper().GetOrCreateTransferCommandBuffer(queue);
+	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetOrCreateTransferCommandBuffer();
 
 	const GpuBufferSuballocation& source = staging.GetSuballocation();
 	const GpuBufferSuballocation& destination = object.PerObjectSuballocation;
@@ -285,8 +284,7 @@ void UniformBufferPools::UpdateDecalParamBuffer(const RendererDecal& decal, cons
 
 	staging.Unmap();
 
-	GpuQueue& queue = *mDevice->GetQueue(GQT_GRAPHICS, 0);
-	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetTransferBufferHelper().GetOrCreateTransferCommandBuffer(queue);
+	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetOrCreateTransferCommandBuffer();
 
 	const GpuBufferSuballocation& source = staging.GetSuballocation();
 	const GpuBufferSuballocation& destination = decal.DecalParamSuballocation;
@@ -312,8 +310,7 @@ void UniformBufferPools::UpdateGpuParticlesParamBuffer(const RendererParticles& 
 
 	staging.Unmap();
 
-	GpuQueue& queue = *mDevice->GetQueue(GQT_GRAPHICS, 0);
-	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetTransferBufferHelper().GetOrCreateTransferCommandBuffer(queue);
+	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetOrCreateTransferCommandBuffer();
 
 	const GpuBufferSuballocation& source = staging.GetSuballocation();
 	const GpuBufferSuballocation& destination = particles.GpuParticlesParamSuballocation;

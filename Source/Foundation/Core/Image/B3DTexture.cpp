@@ -524,10 +524,7 @@ void TextureUtility::Write(const SPtr<Texture>& texture, const PixelData& source
 
 	// Get or create command buffer
 	if(commandBuffer == nullptr)
-	{
-		GpuQueue& transferQueue = *device.GetQueue(GQT_GRAPHICS, 0);
-		commandBuffer = device.GetTransferBufferHelper().GetOrCreateTransferCommandBuffer(transferQueue);
-	}
+		commandBuffer = device.GetOrCreateTransferCommandBuffer();
 
 	// Issue copy command
 	commandBuffer->CopyBufferToTexture(stagingBuffer, texture, 0, mipLevel, arrayLayer);
@@ -575,8 +572,8 @@ void TextureUtility::Read(const SPtr<Texture>& texture, PixelData& destination, 
 		// If used on the GPU, we need to wait until all write operations complete before mapping it
 		if(isUsedOnGPU)
 		{
-			GpuTransferBufferHelper& transferHelper = texture->GetDevice().GetTransferBufferHelper();
-			SPtr<GpuCommandBuffer> commandBuffer = transferHelper.GetOrCreateTransferCommandBuffer(transferGpuQueue);
+			GpuDevice& device = texture->GetDevice();
+			SPtr<GpuCommandBuffer> commandBuffer = device.GetOrCreateTransferCommandBuffer();
 
 			// Make any writes visible before mapping
 			if(supportsGPUWrites)
@@ -587,7 +584,7 @@ void TextureUtility::Read(const SPtr<Texture>& texture, PixelData& destination, 
 
 			// Submit the command buffer and wait until it finishes
 			commandBuffer->AddQueueSyncMask(subresourceWriteUseMask);
-			transferHelper.SubmitTransferCommandBuffer(transferGpuQueue, true);
+			device.SubmitTransferCommandBuffers(true);
 		}
 
 		GpuTextureMappedScope mappedScope = texture->Map(mipLevel, arrayLayer, GpuMapOption::Read);
@@ -611,15 +608,15 @@ void TextureUtility::Read(const SPtr<Texture>& texture, PixelData& destination, 
 		syncMask = subresourceWriteUseMask;
 	}
 
-	GpuTransferBufferHelper& transferHelper = texture->GetDevice().GetTransferBufferHelper();
-	SPtr<GpuCommandBuffer> commandBuffer = transferHelper.GetOrCreateTransferCommandBuffer(transferGpuQueue);
+	GpuDevice& device = texture->GetDevice();
+	SPtr<GpuCommandBuffer> commandBuffer = device.GetOrCreateTransferCommandBuffer();
 
 	// Queue copy command
 	commandBuffer->CopyTextureToBuffer(texture, stagingBuffer, mipLevel, arrayLayer, 0);
 
 	// Submit the command buffer and wait until it finishes
 	commandBuffer->AddQueueSyncMask(syncMask);
-	transferHelper.SubmitTransferCommandBuffer(transferGpuQueue, true);
+	device.SubmitTransferCommandBuffers(true);
 
 	{
 		GpuBufferMappedScope mapping = stagingBuffer->Map(GpuMapOption::Read);

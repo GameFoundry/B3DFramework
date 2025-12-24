@@ -224,7 +224,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	static_assert(false, "mVideoModeInfo needs to be created.");
 #endif
 
-	mTransferBufferHelper = B3DMakeUnique<GpuTransferBufferHelper>(*this);
+	mTransferBufferHelper = B3DMakeUnique<GpuTransferBufferHelper>(*this, GpuQueueId(GQT_GRAPHICS, 0));
 }
 
 VulkanGpuDevice::~VulkanGpuDevice()
@@ -590,11 +590,6 @@ void VulkanGpuDevice::EndFrame()
 {
 	SubmitTransferCommandBuffers();
 
-	DoForEachQueue([](VulkanGpuQueue& queue)
-	{
-		queue.EndFrame();
-	});
-
 	// Advance transfer buffer helper pools to next frame
 	mTransferBufferHelper->EndFrame();
 
@@ -603,7 +598,7 @@ void VulkanGpuDevice::EndFrame()
 
 void VulkanGpuDevice::SubmitTransferCommandBuffers(bool wait)
 {
-	GetTransferBufferHelper().SubmitAllTransferCommandBuffers();
+	mTransferBufferHelper->SubmitTransferCommandBuffer();
 
 	if (wait)
 		GetVulkanSubmitThread().WaitUntilIdle();

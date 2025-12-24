@@ -687,8 +687,7 @@ void D3D12Texture::WriteData(const PixelData& data, u32 face, u32 mipLevel, bool
 	uploadBuffer->Unmap(0, nullptr);
 
 	// Get or create transfer command buffer for the current thread
-	GpuQueue& queue = *device.GetQueue(GQT_GRAPHICS, 0);
-	SPtr<render::GpuCommandBuffer> transferCommandBuffer = device.GetTransferBufferHelper().GetOrCreateTransferCommandBuffer(queue);
+	SPtr<render::GpuCommandBuffer> transferCommandBuffer = device.GetOrCreateTransferCommandBuffer();
 	D3D12GpuCommandBuffer* d3d12CommandBuffer = static_cast<D3D12GpuCommandBuffer*>(transferCommandBuffer.get());
 
 	// Record copy commands on the transfer command buffer
@@ -766,9 +765,7 @@ void D3D12Texture::ReadData(PixelData& data, u32 face, u32 mipLevel)
 	}
 
 	// Get or create transfer command buffer for the current thread
-	GpuTransferBufferHelper& transferHelper = device.GetTransferBufferHelper();
-	GpuQueue& queue = *device.GetQueue(GQT_GRAPHICS, 0);
-	SPtr<render::GpuCommandBuffer> transferCommandBuffer = transferHelper.GetOrCreateTransferCommandBuffer(queue);
+	SPtr<render::GpuCommandBuffer> transferCommandBuffer = device.GetOrCreateTransferCommandBuffer();
 	D3D12GpuCommandBuffer* d3d12CommandBuffer = static_cast<D3D12GpuCommandBuffer*>(transferCommandBuffer.get());
 
 	// Record copy commands on the transfer command buffer
@@ -777,7 +774,7 @@ void D3D12Texture::ReadData(PixelData& data, u32 face, u32 mipLevel)
 	d3d12CommandBuffer->TransitionResource(mTexture.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON, subresourceIndex);
 
 	// For ReadData, we must wait for completion since the caller needs the data
-	transferHelper.SubmitTransferCommandBuffer(queue, true);
+	device.SubmitTransferCommandBuffers(true);
 
 	// Map the readback buffer and copy to PixelData
 	void* mappedData = nullptr;

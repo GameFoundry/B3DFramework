@@ -11,6 +11,8 @@ namespace b3d::render
 {
 	class GpuQueryPool;
 	class GpuCommandBufferPoolRing;
+	class GpuBuffer;
+	class Texture;
 }
 
 namespace b3d
@@ -19,6 +21,8 @@ namespace b3d
 	class GpuFrameCapture;
 	struct SamplerStateCreateInformation;
 	struct TextureCreateInformation;
+	struct TextureCopyInformation;
+	struct TextureBlitInformation;
 
 	namespace render
 	{
@@ -47,7 +51,7 @@ namespace b3d
 
 	typedef Flags<GpuAccessFlag> GpuAccessFlags;
 	B3D_FLAGS_OPERATORS(GpuAccessFlag);
-	
+
 	/** Uniquely represents a GPU queue. */
 	struct GpuQueueId
 	{
@@ -83,7 +87,7 @@ namespace b3d
 				return GQT_COMPUTE;
 
 			return GQT_GRAPHICS;
-			
+
 		}
 
 		u32 GetIndex() const
@@ -206,7 +210,7 @@ namespace b3d
 	class B3D_EXPORT GpuQueue
 	{
 	public:
-		virtual ~GpuQueue();
+		virtual ~GpuQueue() = default;
 
 		/** Determines which type of command buffer commands can be used on the command buffers submitted on the queue. */
 		GpuQueueType GetType() const { return mType; }
@@ -222,7 +226,7 @@ namespace b3d
 		 *
 		 * @param	commandBuffer	Command buffer to submit.
 		 * @param	syncMask		Optional synchronization mask that determines if the submitted command buffer
-		 *							depends on any other command buffers submitted on other queues. 
+		 *							depends on any other command buffers submitted on other queues.
 		 *
 		 *							This mask is only relevant if your command buffers are executing on different
 		 *							queues, and are dependent. If they are executing on the same queue then they will
@@ -236,34 +240,14 @@ namespace b3d
 		 *
 		 * @param	renderWindow		Window whose back-buffer to present.
 		 * @param	syncMask			Optional synchronization mask that determines if the present operation
-		 *								depends on any command buffers submitted on other queues. 
+		 *								depends on any command buffers submitted on other queues.
 		 */
 		virtual void PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) = 0;
-
-		/**
-		 * Returns a command buffer that is to be used for transfer operations when user doesn't provide an explicit command buffer.
-		 * Transfer command buffers on all queues should be submitted before any regular explicit command buffer submission, or at the end of frame.
-		 * Each thread calling this method will retrieve a separate command buffer.
-		 */
-		virtual SPtr<render::GpuCommandBuffer> GetOrCreateTransferCommandBuffer();
-
-		/** Submits the active transfer command buffer for the current thread. Existing command buffer is invalidated.  If @p wait is true, calling thread will wait until the command buffer finishes executing on the GPU. */
-		virtual void SubmitTransferCommandBuffer(bool wait);
 
 		/** Blocks the calling thread until all operations on the queue finish executing on the GPU. */
 		virtual void WaitUntilIdle() = 0;
 
-		/** Advances the transfer command buffer pool rings to the next frame, resetting the pools. Called at the end of each frame. */
-		virtual void EndFrame();
-
 	protected:
-		/** Information about a transfer command buffer associated with a particular thread. */
-		struct PerThreadTransferCommandBufferInformation
-		{
-			UPtr<render::GpuCommandBufferPoolRing> PoolRing; /**< Ring buffer of pools for allocating transfer command buffers. */
-			SPtr<render::GpuCommandBuffer> CurrentTransferCommandBuffer; /**< Currently active transfer buffer, if any. */
-		};
-
 		GpuQueue(GpuDevice& gpuDevice, GpuQueueType type, u32 index);
 
 		/** Provides the same functionality as SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>&, GpuQueueMask), but makes the command buffer flush optional. */
@@ -272,9 +256,6 @@ namespace b3d
 		GpuDevice& mGpuDevice;
 		GpuQueueType mType;
 		u32 mIndex;
-
-		mutable Mutex mMutex;
-		mutable UnorderedMap<ThreadId, PerThreadTransferCommandBufferInformation> mTransferCommandBuffers;
 	};
 
 	/**
@@ -312,7 +293,7 @@ namespace b3d
 		 *
 		 * @param	commandBuffer	Command buffer to submit. Usage of the command buffer determines the queue to execute on.
 		 * @param	syncMask		Optional synchronization mask that determines if the submitted command buffer
-		 *							depends on any other command buffers submitted on other queues. 
+		 *							depends on any other command buffers submitted on other queues.
 		 *
 		 *							This mask is only relevant if your command buffers are executing on different
 		 *							queues, and are dependent. If they are executing on the same queue then they will
@@ -323,15 +304,12 @@ namespace b3d
 		 */
 		virtual void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask = GpuQueueMask::kAll, u32 queueIndex = 0);
 
-		/** Submits all non-empty transfer command buffers on all queues, for the current thread. Optionally waits until the GPU is done processing them. */
-		virtual void SubmitTransferCommandBuffers(bool wait = false) = 0;
-
 		/**
 		 * Presents the back-buffer image from the provided window onto the window, using the appropriate queue that supports present operations.
 		 *
 		 * @param	renderWindow		Window whose back-buffer to present.
 		 * @param	syncMask			Optional synchronization mask that determines if the present operation
-		 *								depends on command buffers submitted on other queues. 
+		 *								depends on command buffers submitted on other queues.
 		 */
 		virtual void PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) = 0;
 
@@ -343,8 +321,23 @@ namespace b3d
 		/** Notifies the device the rendering for the current frame has ended. See BeginFrame(). */
 		virtual void EndFrame() = 0;
 
-		/** Returns the transfer buffer helper for this device. */
-		GpuTransferBufferHelper& GetTransferBufferHelper() { return *mTransferBufferHelper; }
+		/**
+		 * Retrieves or creates a transfer command buffer for the current thread.
+		 * The returned command buffer will be automatically submitted during EndFrame() or when
+		 * SubmitTransferCommandBuffer() is called.
+		 */
+		const SPtr<render::GpuCommandBuffer>& GetOrCreateTransferCommandBuffer();
+
+		/**
+		 * Submits the transfer command buffer for the current thread. Optionally waits until the GPU is done processing it.
+		 *
+		 * @param	wait	If true, blocks until the GPU has finished executing the transfer command buffer.
+		 */
+		virtual void SubmitTransferCommandBuffers(bool wait = false);
+
+		/************************************************************************/
+		/* 								CREATION METHODS                   		*/
+		/************************************************************************/
 
 		/**
 		 * Compiles the GPU program to an intermediate bytecode format. The bytecode can be cached and used for
@@ -388,7 +381,7 @@ namespace b3d
 
 		/**
 		 * Creates a new query pool.
-		 * 
+		 *
 		 * @param	createInformation		Object describing the query pool to create.
 		 */
 		virtual SPtr<render::GpuQueryPool> CreateQueryPool(const render::GpuQueryPoolCreateInformation& createInformation) = 0;

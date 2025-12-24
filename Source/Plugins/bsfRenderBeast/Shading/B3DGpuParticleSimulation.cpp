@@ -598,9 +598,8 @@ static SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 	gGpuParticleTileVertexUniformDefinition.gUVToNDC.Set(stagingMemory, uvToNdc);
 	stagingMemory.Unmap();
 
-	//stagingBuffer->FlushCache(); // TODO - Call regular flush here
-	GpuQueue& queue = *gpuDevice->GetQueue(GQT_GRAPHICS, 0);
-	gpuDevice->GetTransferBufferHelper().GetOrCreateTransferCommandBuffer(queue)->CopyBufferToBuffer(stagingBuffer, inputBuffer, 0, 0, size);
+	const SPtr<GpuCommandBuffer>& commandBuffer = gpuDevice->GetOrCreateTransferCommandBuffer();
+	commandBuffer->CopyBufferToBuffer(stagingBuffer, inputBuffer, 0, 0, size);
 
 	return inputBuffer;
 }
