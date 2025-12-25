@@ -7,8 +7,9 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanDescriptorSet::VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VulkanGpuParameterSetPool* pool, const StringView& name)
-	: VulkanResource(owner, true, name), mSet(set), mPool(pool)
+VulkanDescriptorSet::VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VkDescriptorPool descriptorPool,
+	VulkanGpuParameterSetPool* pool, const StringView& name)
+	: VulkanResource(owner, true, name), mSet(set), mVkDescriptorPool(descriptorPool), mPool(pool)
 { }
 
 VulkanDescriptorSet::~VulkanDescriptorSet()

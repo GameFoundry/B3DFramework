@@ -19,17 +19,21 @@ namespace b3d
 		class VulkanDescriptorSet : public VulkanResource
 		{
 		public:
-			VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VulkanGpuParameterSetPool* pool, const StringView& name = "");
+			VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VkDescriptorPool descriptorPool, VulkanGpuParameterSetPool* pool, const StringView& name = "");
 			~VulkanDescriptorSet();
 
 			/** Returns a handle to the Vulkan descriptor set object. */
 			VkDescriptorSet GetVulkanHandle() const { return mSet; }
+
+			/** Returns the Vulkan descriptor pool this set was allocated from. */
+			VkDescriptorPool GetVkDescriptorPool() const { return mVkDescriptorPool; }
 
 			/** Updates the descriptor set with the provided values. */
 			void Write(TArrayView<VkWriteDescriptorSet> entries);
 
 		protected:
 			VkDescriptorSet mSet;
+			VkDescriptorPool mVkDescriptorPool = VK_NULL_HANDLE;
 			VulkanGpuParameterSetPool* mPool = nullptr;
 		};
 
