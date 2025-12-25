@@ -69,18 +69,13 @@ namespace b3d::render
 
 	SPtr<GpuParameterSet> VulkanGpuParameterSetPool::Create(const SPtr<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
 	{
-		if (mAllocatedSetCount >= mInformation.MaxSets)
-		{
-			B3D_LOG(Error, RenderBackend, "Parameter set pool exhausted. Cannot allocate more parameter sets.");
-			return nullptr;
-		}
-
-		auto paramSet = B3DMakeShared<VulkanGpuParameterSet>(mDevice, layout, setIndex, *this);
+		SPtr<VulkanGpuParameterSet> output = B3DMakeShared<VulkanGpuParameterSet>(mDevice, layout, setIndex, *this);
+		output->SetShared(output);
 
 		if (!deferredInitialize)
-			paramSet->Initialize();
+			output->Initialize();
 
-		return paramSet;
+		return output;
 	}
 
 	void VulkanGpuParameterSetPool::Reset()
@@ -102,33 +97,10 @@ namespace b3d::render
 
 		VkResult result = vkResetDescriptorPool(mDevice.GetLogical(), mPool, 0);
 		B3D_ASSERT(result == VK_SUCCESS);
-
-		mAllocatedSetCount = 0;
-	}
-
-	void VulkanGpuParameterSetPool::Free(const SPtr<GpuParameterSet>& parameterSet)
-	{
-		if (mInformation.Mode == GpuParameterSetPoolMode::Transient)
-		{
-			B3D_LOG(Error, RenderBackend, "Cannot free individual parameter sets in Transient mode pool.");
-			return;
-		}
-
-		B3D_ASSERT(parameterSet != nullptr);
-		B3D_ASSERT(parameterSet->GetOwnerPool() == this);
-
-		// The VulkanDescriptorSet destructor will handle calling vkFreeDescriptorSets when the
-		// GpuParameterSet is destroyed (since we're in Persistent mode, freeOnDestroy is true).
-		// We just decrement our count here.
-		if (mAllocatedSetCount > 0)
-			mAllocatedSetCount--;
 	}
 
 	VulkanDescriptorSet* VulkanGpuParameterSetPool::AllocateDescriptorSet(VkDescriptorSetLayout layout)
 	{
-		if (mAllocatedSetCount >= mInformation.MaxSets)
-			return nullptr;
-
 		VkDescriptorSetAllocateInfo allocInfo;
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocInfo.pNext = nullptr;
@@ -136,8 +108,8 @@ namespace b3d::render
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &layout;
 
-		VkDescriptorSet set = VK_NULL_HANDLE;
-		VkResult result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocInfo, &set);
+		VkDescriptorSet vkSet = VK_NULL_HANDLE;
+		VkResult result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocInfo, &vkSet);
 
 		if (result != VK_SUCCESS)
 		{
@@ -145,42 +117,32 @@ namespace b3d::render
 			return nullptr;
 		}
 
-		const bool freeOnDestroy = mInformation.Mode == GpuParameterSetPoolMode::Persistent;
-		VulkanDescriptorSet* wrapper = mDevice.GetResourceManager().Create<VulkanDescriptorSet>(set, mPool, freeOnDestroy, this);
+		VulkanDescriptorSet* set = mDevice.GetResourceManager().Create<VulkanDescriptorSet>(vkSet, this);
 
-		mAllocatedSetCount++;
-		return wrapper;
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		if(mInformation.Mode == GpuParameterSetPoolMode::Transient)
+			mLiveDescriptorSets.insert(set);
+#endif
+
+		return set;
 	}
 
-	void VulkanGpuParameterSetPool::FreeVkSet(VkDescriptorSet set)
+	void VulkanGpuParameterSetPool::NotifyDescriptorSetDestroyed(VulkanDescriptorSet* set)
 	{
-		B3D_ASSERT(mInformation.Mode == GpuParameterSetPoolMode::Persistent);
+		// Transient pools free all sets at once through Reset()
+		if(mInformation.Mode == GpuParameterSetPoolMode::Transient)
+		{
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			mLiveDescriptorSets.erase(set);
+#endif
+			return;
+		}
 
 		if (set == VK_NULL_HANDLE)
 			return;
 
-		VkResult result = vkFreeDescriptorSets(mDevice.GetLogical(), mPool, 1, &set);
+		VkDescriptorSet vkSet = set->GetVulkanHandle();
+		VkResult result = vkFreeDescriptorSets(mDevice.GetLogical(), mPool, 1, &vkSet);
 		B3D_ASSERT(result == VK_SUCCESS);
-
-		if (mAllocatedSetCount > 0)
-			mAllocatedSetCount--;
 	}
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	void VulkanGpuParameterSetPool::RegisterDescriptorSet(VulkanDescriptorSet* set)
-	{
-		if(mInformation.Mode == GpuParameterSetPoolMode::Persistent)
-			return;
-
-		mLiveDescriptorSets.insert(set);
-	}
-
-	void VulkanGpuParameterSetPool::UnregisterDescriptorSet(VulkanDescriptorSet* set)
-	{
-		if(mInformation.Mode == GpuParameterSetPoolMode::Persistent)
-			return;
-
-		mLiveDescriptorSets.erase(set);
-	}
-#endif
 } // namespace b3d::render

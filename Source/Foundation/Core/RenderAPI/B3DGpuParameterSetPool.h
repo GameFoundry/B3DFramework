@@ -56,7 +56,7 @@ namespace b3d
 	 *
 	 * There are two modes of operation:
 	 * - Transient: Used for per-frame allocations. All parameter sets allocated from the pool are deallocated at once.
-	 * - Persistent: Used for persistent (multi-frame) allocations. Individual sets must be deallocated via Free().
+	 * - Persistent: Used for persistent (multi-frame) allocations. Individual sets are deallocated as the go out of scope.
 	 *
 	 * Not thread safe. All GpuParameterSets allocated from this pool must be used on the same thread.
 	 */
@@ -76,9 +76,6 @@ namespace b3d
 		 */
 		virtual SPtr<render::GpuParameterSet> Create(const SPtr<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize = false) = 0;
 
-		/** Frees a single parameter set previously allocated from this pool. Only valid for persistent mode pools. */
-		virtual void Free(const SPtr<render::GpuParameterSet>& parameterSet) = 0;
-
 		/**
 		 * Resets the pool, freeing all allocated sets at once. Only relevant for transient mode pools.
 		 * After calling Reset(), all previously allocated parameter sets from this pool become invalid and must not be used.
@@ -92,7 +89,6 @@ namespace b3d
 		GpuParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation);
 
 		GpuParameterSetPoolInformation mInformation;
-		u32 mAllocatedSetCount = 0;
 	};
 
 	/** @} */

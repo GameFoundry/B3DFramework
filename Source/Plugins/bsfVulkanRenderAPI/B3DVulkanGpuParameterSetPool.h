@@ -24,7 +24,6 @@ namespace b3d
 			~VulkanGpuParameterSetPool() override;
 
 			SPtr<GpuParameterSet> Create(const SPtr<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize = false) override;
-			void Free(const SPtr<GpuParameterSet>& parameterSet) override;
 			void Reset() override;
 
 			/** Returns the underlying Vulkan descriptor pool handle. */
@@ -39,23 +38,13 @@ namespace b3d
 			 */
 			VulkanDescriptorSet* AllocateDescriptorSet(VkDescriptorSetLayout layout);
 
-			/**
-			 * Frees a native Vulkan descriptor set.
-			 *
-			 * @param set	The descriptor set to free.
-			 */
-			void FreeVkSet(VkDescriptorSet set);
+			/** Frees the Vulkan descriptor set allocated by AllocateDescriptorSet. */
+			void NotifyDescriptorSetDestroyed(VulkanDescriptorSet* set);
 
 			VulkanGpuDevice& mDevice;
 			VkDescriptorPool mPool = VK_NULL_HANDLE;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			/** Registers a descriptor set as live (development builds only). */
-			void RegisterDescriptorSet(VulkanDescriptorSet* set);
-
-			/** Unregisters a descriptor set when destroyed (development builds only). */
-			void UnregisterDescriptorSet(VulkanDescriptorSet* set);
-
 			UnorderedSet<VulkanDescriptorSet*> mLiveDescriptorSets;
 #endif
 		};

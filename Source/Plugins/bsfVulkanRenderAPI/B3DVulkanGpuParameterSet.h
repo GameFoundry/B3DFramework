@@ -56,8 +56,7 @@ namespace b3d
 			/** All GPU param data related to a single descriptor set. */
 			struct SetInformation
 			{
-				VulkanDescriptorSet* LastUsedSet;
-				TInlineArray<VulkanDescriptorSet*, 4> SetCache;
+				VulkanDescriptorSet* DescriptorSet = nullptr;
 
 				TArrayView<VkWriteDescriptorSet> WriteSetInfos;
 				TArrayView<VkDescriptorImageInfo> ImageWriteInfos;
@@ -65,7 +64,6 @@ namespace b3d
 				TArrayView<VkBufferView> BufferViews;
 
 				u32 ElementCount;
-				u32 LastFreeSetIndex = ~0u;
 			};
 
 			void Initialize() override;

@@ -90,9 +90,6 @@ namespace b3d
 			/** Attempts to find an existing one, or allocates a new descriptor set layout from the provided set of bindings. */
 			VulkanDescriptorLayout* GetLayout(TArrayView<VkDescriptorSetLayoutBinding> bindings);
 
-			/** Allocates a new empty descriptor set matching the provided layout. */
-			VulkanDescriptorSet* CreateSet(VulkanDescriptorLayout* layout);
-
 			/** Attempts to find an existing one, or allocates a new pipeline layout based on the provided descriptor layouts. */
 			VkPipelineLayout GetPipelineLayout(VulkanDescriptorLayout** layouts, u32 bindingCount);
 
@@ -101,7 +98,6 @@ namespace b3d
 
 			UnorderedSet<VulkanLayoutKey> mLayouts;
 			UnorderedMap<VulkanPipelineLayoutKey, VkPipelineLayout> mPipelineLayouts;
-			Vector<VulkanDescriptorPool*> mPools;
 		};
 
 		/** @} */

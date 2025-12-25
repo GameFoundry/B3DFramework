@@ -7,29 +7,13 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanDescriptorSet::VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VkDescriptorPool pool,
-	bool freeOnDestroy, VulkanGpuParameterSetPool* ownerPool, const StringView& name)
-	: VulkanResource(owner, true, name), mSet(set), mPool(pool), mFreeOnDestroy(freeOnDestroy)
-{
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	mOwnerPool = ownerPool;
-	if (mOwnerPool != nullptr)
-		mOwnerPool->RegisterDescriptorSet(this);
-#endif
-}
+VulkanDescriptorSet::VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VulkanGpuParameterSetPool* pool, const StringView& name)
+	: VulkanResource(owner, true, name), mSet(set), mPool(pool)
+{ }
 
 VulkanDescriptorSet::~VulkanDescriptorSet()
 {
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	if (mOwnerPool != nullptr)
-		mOwnerPool->UnregisterDescriptorSet(this);
-#endif
-
-	if (!mFreeOnDestroy)
-		return;
-
-	VkResult result = vkFreeDescriptorSets(mOwner->GetDevice().GetLogical(), mPool, 1, &mSet);
-	B3D_ASSERT(result == VK_SUCCESS);
+	mPool->NotifyDescriptorSetDestroyed(this);
 }
 
 void VulkanDescriptorSet::Write(TArrayView<VkWriteDescriptorSet> entries)

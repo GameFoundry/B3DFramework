@@ -19,8 +19,7 @@ namespace b3d
 		class VulkanDescriptorSet : public VulkanResource
 		{
 		public:
-			VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VkDescriptorPool pool,
-				bool freeOnDestroy = true, VulkanGpuParameterSetPool* ownerPool = nullptr, const StringView& name = "");
+			VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VulkanGpuParameterSetPool* pool, const StringView& name = "");
 			~VulkanDescriptorSet();
 
 			/** Returns a handle to the Vulkan descriptor set object. */
@@ -31,12 +30,7 @@ namespace b3d
 
 		protected:
 			VkDescriptorSet mSet;
-			VkDescriptorPool mPool;
-			bool mFreeOnDestroy;
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-			VulkanGpuParameterSetPool* mOwnerPool = nullptr;
-#endif
+			VulkanGpuParameterSetPool* mPool = nullptr;
 		};
 
 		/** @} */

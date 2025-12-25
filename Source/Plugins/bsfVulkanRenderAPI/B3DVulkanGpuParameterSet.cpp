@@ -73,8 +73,10 @@ VulkanGpuParameterSet::~VulkanGpuParameterSet()
 {
 	Lock lock(mMutex);
 
-	for(auto& entry : mSetInformation.SetCache)
-		entry->Destroy();
+	if (mSetInformation.DescriptorSet == nullptr)
+		return;
+
+	mSetInformation.DescriptorSet->Destroy();
 }
 
 void VulkanGpuParameterSet::Initialize()
@@ -124,25 +126,14 @@ void VulkanGpuParameterSet::Initialize()
 
 	VulkanDescriptorLayout* layout = vulkanGpuPipelineParameterSetLayout.GetLayout();
 	mSetInformation.ElementCount = bindingCount;
-	mSetInformation.LastFreeSetIndex = 0;
 
-	if (mOwnerPool != nullptr)
+	VulkanGpuParameterSetPool* vulkanPool = static_cast<VulkanGpuParameterSetPool*>(mOwnerPool);
+	mSetInformation.DescriptorSet = vulkanPool->AllocateDescriptorSet(layout->GetVulkanHandle());
+	if (mSetInformation.DescriptorSet == nullptr)
 	{
-		// Pool-allocated path: allocate from the pool's VkDescriptorPool
-		VulkanGpuParameterSetPool* vulkanPool = static_cast<VulkanGpuParameterSetPool*>(mOwnerPool);
-		mSetInformation.LastUsedSet = vulkanPool->AllocateDescriptorSet(layout->GetVulkanHandle());
-		if (mSetInformation.LastUsedSet == nullptr)
-		{
-			B3D_LOG(Error, RenderBackend, "Failed to allocate descriptor set from pool.");
-			return;
-		}
+		B3D_LOG(Error, RenderBackend, "Failed to allocate descriptor set from pool.");
+		return;
 	}
-	else
-	{
-		// Legacy path: allocate from VulkanDescriptorManager
-		mSetInformation.LastUsedSet = descManager.CreateSet(layout);
-	}
-	mSetInformation.SetCache.Add(mSetInformation.LastUsedSet);
 
 	const TArrayView<const VkDescriptorSetLayoutBinding> perSetBindings = vulkanGpuPipelineParameterSetLayout.GetBindings();
 	const TArrayView<const GpuParameterObjectType> types = vulkanGpuPipelineParameterSetLayout.GetTypes();
@@ -1008,58 +999,40 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanGpuCommandBuffer& commandBuffer
 			outDynamicOffsets.Add(dynamicOffset);
 	}
 
-	// Acquire sets as needed, and updated their contents if dirty
-	VulkanDescriptorManager& descManager = mGpuDevice.GetDescriptorManager();
-
+	// Acquire sets as needed, and update their contents if dirty
 	if(mSetDirty)
 	{
 		// Set is dirty, we need to update
-		//// Use latest unless already used, otherwise try to find an unused one
-		if(mSetInformation.LastUsedSet->IsBound())
+		// If current set is bound, allocate new from pool
+		if(mSetInformation.DescriptorSet->IsBound())
 		{
-			mSetInformation.LastUsedSet = nullptr;
+			VulkanGpuParameterSetPool* vulkanPool = static_cast<VulkanGpuParameterSetPool*>(mOwnerPool);
+			VulkanDescriptorLayout* layout = pipelineParameterInformationSet.GetLayout();
 
-			for(size_t setCacheIndex = 0; setCacheIndex < mSetInformation.SetCache.size(); setCacheIndex++)
+			VulkanDescriptorSet* oldSet = mSetInformation.DescriptorSet;
+			VulkanDescriptorSet* newSet = vulkanPool->AllocateDescriptorSet(layout->GetVulkanHandle());
+
+			if (newSet != nullptr)
 			{
-				const u32 setIndex = (mSetInformation.LastFreeSetIndex + setCacheIndex) % (u32)mSetInformation.SetCache.size();
-				if(!mSetInformation.SetCache[setIndex]->IsBound())
-				{
-					mSetInformation.LastUsedSet = mSetInformation.SetCache[setIndex];
-					mSetInformation.LastFreeSetIndex = setIndex;
+				mSetInformation.DescriptorSet = newSet;
 
-					break;
-				}
+				if (oldSet != nullptr)
+					oldSet->Destroy();
 			}
-
-			// Cannot find an empty set
-			if(mSetInformation.LastUsedSet == nullptr)
+			else
 			{
-				if (mOwnerPool != nullptr)
-				{
-					// Pool-allocated sets: do not dynamically allocate new sets
-					// Fall back to the first cached set with a warning
-					B3D_LOG(Warning, RenderBackend, "Pool-allocated parameter set has no free descriptor sets. "
-						"Reusing bound set - this may cause rendering artifacts.");
-					mSetInformation.LastUsedSet = mSetInformation.SetCache[0];
-				}
-				else
-				{
-					// Legacy path: allocate a new one from descriptor manager
-					VulkanDescriptorLayout* const layout = pipelineParameterInformationSet.GetLayout();
-					mSetInformation.LastUsedSet = descManager.CreateSet(layout);
-					mSetInformation.SetCache.Add(mSetInformation.LastUsedSet);
-				}
+				B3D_LOG(Warning, RenderBackend, "Pool exhausted during descriptor set reallocation. Reusing bound set.");
 			}
 		}
 
 		// Note: Currently I write to the entire set at once, but it might be beneficial to remember only the exact
 		// entries that were updated, and only write to them individually.
-		mSetInformation.LastUsedSet->Write(mSetInformation.WriteSetInfos);
+		mSetInformation.DescriptorSet->Write(mSetInformation.WriteSetInfos);
 
 		mSetDirty = false;
 	}
 
-	VulkanDescriptorSet* const set = mSetInformation.LastUsedSet;
+	VulkanDescriptorSet* const set = mSetInformation.DescriptorSet;
 
 	resourceTracker.TrackResourceUsage(set, GpuAccessFlag::Read);
 	outSet = set->GetVulkanHandle();

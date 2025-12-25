@@ -3,7 +3,6 @@
 #include "Managers/B3DVulkanDescriptorManager.h"
 #include "B3DVulkanDescriptorLayout.h"
 #include "B3DVulkanDescriptorSet.h"
-#include "B3DVulkanDescriptorPool.h"
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanResource.h"
 
@@ -71,9 +70,7 @@ size_t VulkanPipelineLayoutKey::CalculateHash() const
 
 VulkanDescriptorManager::VulkanDescriptorManager(VulkanGpuDevice& device)
 	: mDevice(device)
-{
-	mPools.push_back(B3DNew<VulkanDescriptorPool>(device));
-}
+{ }
 
 VulkanDescriptorManager::~VulkanDescriptorManager()
 {
@@ -88,9 +85,6 @@ VulkanDescriptorManager::~VulkanDescriptorManager()
 		B3DFree(entry.first.Layouts);
 		vkDestroyPipelineLayout(mDevice.GetLogical(), entry.second, gVulkanAllocator);
 	}
-
-	for(auto& entry : mPools)
-		B3DDelete(entry);
 }
 
 VulkanDescriptorLayout* VulkanDescriptorManager::GetLayout(TArrayView<VkDescriptorSetLayoutBinding> bindings)
@@ -112,35 +106,6 @@ VulkanDescriptorLayout* VulkanDescriptorManager::GetLayout(TArrayView<VkDescript
 	mLayouts.insert(key);
 
 	return key.Layout;
-}
-
-VulkanDescriptorSet* VulkanDescriptorManager::CreateSet(VulkanDescriptorLayout* layout)
-{
-	// Note: We always retrieve the last created pool, even though there could be free room in earlier pools. However
-	// that requires additional tracking. Since the assumption is that the first pool will be large enough for all
-	// descriptors, and the only reason to create a second pool is fragmentation, this approach should not result in
-	// a major resource waste.
-	VkDescriptorSetLayout setLayout = layout->GetVulkanHandle();
-
-	VkDescriptorSetAllocateInfo allocateInfo;
-	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocateInfo.pNext = nullptr;
-	allocateInfo.descriptorPool = mPools.back()->GetVulkanHandle();
-	allocateInfo.descriptorSetCount = 1;
-	allocateInfo.pSetLayouts = &setLayout;
-
-	VkDescriptorSet set;
-	VkResult result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
-	if(result < 0) // Possible fragmentation, try in a new pool
-	{
-		mPools.push_back(B3DNew<VulkanDescriptorPool>(mDevice));
-		allocateInfo.descriptorPool = mPools.back()->GetVulkanHandle();
-
-		result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
-		B3D_ASSERT(result == VK_SUCCESS);
-	}
-
-	return mDevice.GetResourceManager().Create<VulkanDescriptorSet>(set, allocateInfo.descriptorPool);
 }
 
 VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayout** layouts, u32 bindingCount)
