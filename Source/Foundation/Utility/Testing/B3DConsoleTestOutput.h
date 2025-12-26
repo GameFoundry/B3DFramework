@@ -22,9 +22,9 @@ namespace b3d
 		void OutputSuccess(const String& testName) override;
 
 		void OnSuiteStart(const String& suiteName) override;
-		void OnSuiteEnd(const String& suiteName, u32 totalTests, u32 passedTests, u32 failedTests, u64 durationMs) override;
+		void OnSuiteEnd(const String& suiteName, u32 totalTests, u32 passedTests, u32 failedTests, u64 durationUs) override;
 		void OnTestStart(const String& testName) override;
-		void OnTestEnd(const String& testName, bool passed, u64 durationMs) override;
+		void OnTestEnd(const String& testName, bool passed, u64 durationUs) override;
 
 		/** Returns 0 if all tests passed, 1 if any failed. */
 		int GetExitCode() const { return mHadFailures ? 1 : 0; }

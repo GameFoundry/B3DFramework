@@ -40,10 +40,10 @@ namespace b3d
 		 * @param	totalTests		Total number of tests in the suite.
 		 * @param	passedTests		Number of tests that passed.
 		 * @param	failedTests		Number of tests that failed.
-		 * @param	durationMs		Total execution time in milliseconds.
+		 * @param	durationUs		Total execution time in microseconds.
 		 */
 		virtual void OnSuiteEnd(const String& suiteName, u32 totalTests, u32 passedTests,
-		                        u32 failedTests, u64 durationMs) {}
+		                        u32 failedTests, u64 durationUs) {}
 
 		/**
 		 * Triggered when an individual test starts executing.
@@ -57,9 +57,9 @@ namespace b3d
 		 *
 		 * @param	testName	Name of the test that finished.
 		 * @param	passed		True if the test passed, false if it failed.
-		 * @param	durationMs	Execution time in milliseconds.
+		 * @param	durationUs	Execution time in microseconds.
 		 */
-		virtual void OnTestEnd(const String& testName, bool passed, u64 durationMs) {}
+		virtual void OnTestEnd(const String& testName, bool passed, u64 durationUs) {}
 
 		/**
 		 * Triggered when a unit test succeeds (optional to implement).

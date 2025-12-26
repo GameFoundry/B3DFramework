@@ -64,7 +64,7 @@ void ConsoleTestOutput::OnSuiteStart(const String& suiteName)
 	mCurrentTestIndex = 0;
 }
 
-void ConsoleTestOutput::OnSuiteEnd(const String& suiteName, u32 totalTests, u32 passedTests, u32 failedTests, u64 durationMs)
+void ConsoleTestOutput::OnSuiteEnd(const String& suiteName, u32 totalTests, u32 passedTests, u32 failedTests, u64 durationUs)
 {
 	std::cout << "\n";
 	PrintSeparator();
@@ -85,7 +85,9 @@ void ConsoleTestOutput::OnSuiteEnd(const String& suiteName, u32 totalTests, u32 
 	else
 		std::cout << "Failed: 0 (0.0%)\n";
 
-	PrintColored("Duration: " + ToString(durationMs) + "ms", ConsoleColor::Cyan);
+	// Display duration: show ms with 2 decimal places for precision
+	float durationMs = durationUs / 1000.0f;
+	PrintColored("Duration: " + ToString(durationMs, 2, 0, ' ', std::ios::fixed) + "ms", ConsoleColor::Cyan);
 
 	// List failures
 	if(!mFailures.empty())
@@ -116,7 +118,7 @@ void ConsoleTestOutput::OnTestStart(const String& testName)
 	std::cout << "Running test " << ToString((u64)mCurrentTestIndex) << ": " << testName << "... " << std::flush;
 }
 
-void ConsoleTestOutput::OnTestEnd(const String& testName, bool passed, u64 durationMs)
+void ConsoleTestOutput::OnTestEnd(const String& testName, bool passed, u64 durationUs)
 {
 	// Print result on same line
 	if(passed)
@@ -132,7 +134,14 @@ void ConsoleTestOutput::OnTestEnd(const String& testName, bool passed, u64 durat
 		ResetConsoleColor();
 	}
 
-	std::cout << " (" << ToString(durationMs) << "ms)\n" << std::flush;
+	// Display duration: show us for sub-millisecond, otherwise ms with decimals
+	if(durationUs < 1000)
+		std::cout << " (" << ToString(durationUs) << "us)\n" << std::flush;
+	else
+	{
+		float durationMs = durationUs / 1000.0f;
+		std::cout << " (" << ToString(durationMs, 2, 0, ' ', std::ios::fixed) << "ms)\n" << std::flush;
+	}
 }
 
 void ConsoleTestOutput::PrintColored(const String& text, ConsoleColor color)

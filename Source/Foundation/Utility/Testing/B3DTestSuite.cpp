@@ -66,7 +66,7 @@ void TestSuite::Run(TestOutput& output)
 			VerifyLogs();
 
 		// Calculate test duration
-		u64 testDurationMs = testTimer.GetMilliseconds();
+		u64 testDurationUs = testTimer.GetMicroseconds();
 
 		// Check if test passed
 		u32 failureCountAfter = mFailureCount;
@@ -81,7 +81,7 @@ void TestSuite::Run(TestOutput& output)
 			failedTests++;
 
 		// Notify test end
-		output.OnTestEnd(testEntry.Name, passed, testDurationMs);
+		output.OnTestEnd(testEntry.Name, passed, testDurationUs);
 	}
 
 	ShutDown();
@@ -94,10 +94,10 @@ void TestSuite::Run(TestOutput& output)
 	}
 
 	// Calculate total duration
-	u64 suiteDurationMs = suiteTimer.GetMilliseconds();
+	u64 suiteDurationUs = suiteTimer.GetMicroseconds();
 
 	// Notify suite end
-	output.OnSuiteEnd(mSuiteName, totalTests, passedTests, failedTests, suiteDurationMs);
+	output.OnSuiteEnd(mSuiteName, totalTests, passedTests, failedTests, suiteDurationUs);
 
 	// Run child suites recursively
 	for(auto& suite : mSuites)
