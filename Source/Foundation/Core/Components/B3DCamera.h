@@ -538,6 +538,14 @@ namespace b3d
 		B3D_SCRIPT_EXPORT(ExportName(Main), Property(Getter))
 		bool IsMain() const { return mMain; }
 
+		/**
+		 * Requests an asynchronous capture of the next rendered frame from this camera.
+		 *
+		 * @return	Async operation with captured pixel data, or nullptr if camera is inactive.
+		 */
+		B3D_SCRIPT_EXPORT()
+		TAsyncOp<SPtr<PixelData>> RequestCapture();
+
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/
 		/************************************************************************/

@@ -478,6 +478,12 @@ namespace b3d
 			 */
 			void NotifyLuminanceUpdated(u64 frameIdx, SPtr<GpuCommandBuffer> cb, SPtr<PooledRenderTexture> texture) const;
 
+			/** Queues a screen capture to be resolved the next time the view is rendered. */
+			void RequestScreenCapture(TAsyncOp<SPtr<PixelData>> asyncOp);
+
+			/** Processes pending captures after rendering completes. */
+			void ResolveSceneCaptures(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& sceneColorTexture) const;
+
 			/**
 			 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]
 			 * into view Z value.
@@ -545,6 +551,9 @@ namespace b3d
 			u32 mRedrawForFrames = 0;
 			u64 mWaitingOnAutoExposureFrame = std::numeric_limits<u64>::max();
 			mutable Vector<LuminanceUpdate> mLuminanceUpdates;
+
+			// Screen capture
+			mutable Vector<TAsyncOp<SPtr<PixelData>>> mRequestedScreenCaptures;
 
 			// Exposure
 			float mPreviousEyeAdaptation = 0.0f;

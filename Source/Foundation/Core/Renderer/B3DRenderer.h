@@ -15,6 +15,7 @@ namespace b3d
 {
 	class RendererExtension;
 	class LightProbeVolume;
+	class PixelData;
 	struct RenderSettings;
 	struct EvaluatedAnimationData;
 	struct EvaluatedParticleData;
@@ -210,8 +211,18 @@ namespace b3d
 			 */
 			virtual SPtr<RendererMeshData> CreateMeshDataInternal(const SPtr<MeshData>& meshData);
 
-			/** Queues GPU command capture of the next frame, if a frame capture is set up. */
-			virtual void RequestFrameCapture() { }
+			/** Queues GPU command capture of the next frame, if a frame capture is set up (e.g. RenderDoc capture). */
+			virtual void RequestDebugFrameCapture() { }
+
+			/**
+			 * Requests a screen capture for the specified camera.
+			 *
+			 * @param	camera		The camera whose view should be captured.
+			 * @param	asyncOp		Async operation to complete when capture finishes.
+
+			 * @note	Render thread.
+			 */
+			virtual void RequestScreenCapture(Camera* camera, TAsyncOp<SPtr<PixelData>> asyncOp) { asyncOp.CompleteOperation(nullptr); }
 
 			/**
 			 * Registers an extension object that will be called every frame, for each scene and view. Allows external code to perform

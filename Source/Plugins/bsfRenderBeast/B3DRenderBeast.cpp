@@ -852,6 +852,24 @@ SPtr<RendererScene> RenderBeast::CreateScene()
 	return scene;
 }
 
+void RenderBeast::RequestScreenCapture(Camera* camera, TAsyncOp<SPtr<PixelData>> asyncOp)
+{
+	for (RenderBeastScene* scene : mScenes)
+	{
+		const SceneInfo& sceneInfo = scene->GetSceneInfo();
+		auto it = sceneInfo.CameraToView.find(camera);
+		if (it != sceneInfo.CameraToView.end())
+		{
+			RendererView* view = sceneInfo.Views[it->second];
+			view->RequestScreenCapture(std::move(asyncOp));
+			return;
+		}
+	}
+
+	B3D_LOG(Warning, Renderer, "RequestCapture: No view found for camera");
+	asyncOp.CompleteOperation(nullptr);
+}
+
 SPtr<RenderBeast> GetRenderBeast()
 {
 	return std::static_pointer_cast<RenderBeast>(RendererManager::Instance().GetActive());

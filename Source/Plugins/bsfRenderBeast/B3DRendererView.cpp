@@ -13,6 +13,7 @@
 #include "B3DRendererDecal.h"
 #include "Animation/B3DAnimationScene.h"
 #include "RenderAPI/B3DGpuCommandBuffer.h"
+#include "Image/B3DTexture.h"
 
 namespace b3d {
 namespace render {
@@ -1000,5 +1001,38 @@ void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, con
 			mViews[i]->UpdateLightGrid(commandBuffer, mVisibleLightData, mVisibleReflProbeData);
 		}
 	}
+}
+
+void RendererView::RequestScreenCapture(TAsyncOp<SPtr<PixelData>> asyncOp)
+{
+	mRequestedScreenCaptures.push_back(std::move(asyncOp));
+}
+
+void RendererView::ResolveSceneCaptures(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& sceneColorTexture) const
+{
+	if(mRequestedScreenCaptures.empty())
+		return;
+
+	if(sceneColorTexture == nullptr)
+	{
+		for(auto& entry : mRequestedScreenCaptures)
+			entry.CompleteOperation(nullptr);
+
+		mRequestedScreenCaptures.clear();
+		return;
+	}
+
+	Vector<TAsyncOp<SPtr<PixelData>>> captureOps = std::move(mRequestedScreenCaptures);
+	mRequestedScreenCaptures.clear();
+
+	TAsyncOp<SPtr<PixelData>> readOp = TextureUtility::ReadAsync(sceneColorTexture, commandBuffer, 0, 0);
+
+	auto fnOnReadOpCompleted = [captureOps = std::move(captureOps), readOp]() mutable
+	{
+		for(auto& entry : captureOps)
+			entry.CompleteOperation(readOp.GetReturnValue());
+	};
+
+	readOp.DoWhenComplete(std::move(fnOnReadOpCompleted));
 }
 }} // namespace b3d::render

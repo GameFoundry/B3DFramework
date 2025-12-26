@@ -6,8 +6,10 @@
 #include "Scene/B3DSceneObject.h"
 #include "Scene/B3DSceneInstance.h"
 #include "CoreObject/B3DCoreObjectSync.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "RenderAPI/B3DGpuDevice.h"
 #include "RenderAPI/B3DGpuDeviceCapabilities.h"
+#include "Renderer/B3DRenderer.h"
 #include "Renderer/B3DRendererScene.h"
 #include "Renderer/B3DRenderSettings.h"
 #include "Renderer/B3DRenderSettings.implementation.h"
@@ -752,6 +754,33 @@ void Camera::SetMain(bool main)
 
 	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
 	scene->NotifyMainCameraStateChanged(B3DStaticGameObjectCast<Camera>(GetHandle()));
+}
+
+TAsyncOp<SPtr<PixelData>> Camera::RequestCapture()
+{
+	SPtr<Viewport> viewport = GetViewport();
+	if (viewport == nullptr || viewport->GetTarget() == nullptr)
+	{
+		B3D_LOG(Warning, Renderer, "RequestCapture called on camera with no viewport");
+		TAsyncOp<SPtr<PixelData>> op;
+		op.CompleteOperation(nullptr);
+		return op;
+	}
+
+	TAsyncOp<SPtr<PixelData>> asyncOp;
+	SPtr<render::Camera> renderCamera = B3DGetRenderProxy(this);
+
+	auto fnRequestCapture = [renderCamera, asyncOp]() mutable
+	{
+		SPtr<render::Renderer> renderer = render::GetRenderer();
+		if (renderer != nullptr)
+			renderer->RequestScreenCapture(renderCamera.get(), asyncOp);
+		else
+			asyncOp.CompleteOperation(nullptr);
+	};
+
+	GetRenderThread().PostCommand(fnRequestCapture, "Camera::RequestCapture", false, GetName());
+	return asyncOp;
 }
 
 void Camera::Initialize()

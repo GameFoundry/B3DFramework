@@ -97,7 +97,8 @@ namespace b3d
 			void Initialize(const SPtr<GpuDevice>& gpuDevice) override;
 			void Destroy() override;
 			void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override;
-			void RequestFrameCapture() override { mIsFrameCaptureRequested = true; }
+			void RequestDebugFrameCapture() override { mIsFrameCaptureRequested = true; }
+			void RequestScreenCapture(Camera* camera, TAsyncOp<SPtr<PixelData>> asyncOp) override;
 			SPtr<GpuDevice> GetGpuDevice() const { return mDevice; }
 			SPtr<RendererScene> CreateScene() override;
 
