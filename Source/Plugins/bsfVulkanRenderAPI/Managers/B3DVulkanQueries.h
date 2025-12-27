@@ -17,7 +17,7 @@ namespace b3d
 		 */
 
 		/** Vulkan implementation of a GPU query pool. */
-		class VulkanGpuQueryPool : public GpuQueryPool, public VulkanResource
+		class VulkanGpuQueryPool : public VulkanResource, public GpuQueryPool // Note: VulkanResource must be first base class because we call delete on 'this' from VulkanResource
 		{
 		public:
 			VulkanGpuQueryPool(VulkanResourceManager& vulkanResourceManager, const GpuQueryPoolCreateInformation& createInformation);
@@ -38,7 +38,7 @@ namespace b3d
 
 			/** Called when the last reference in the shared pointer owning this object goes out of scope. */
 			template <class T, class AllocatorTag>
-			static void SharedDeleter(VulkanResource* object)
+			static void SharedDeleter(VulkanGpuQueryPool* object)
 			{
 				if(!object->IsDestroyed())
 					object->Destroy();

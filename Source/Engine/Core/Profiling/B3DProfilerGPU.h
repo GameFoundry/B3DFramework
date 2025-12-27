@@ -165,6 +165,11 @@ namespace b3d
 		 */
 		void Update();
 
+		/**
+		 * Releases all GPU resources held by the profiler. Must be called on the render thread before shutdown.
+		 */
+		void Clear();
+
 		/** @} */
 
 	private:

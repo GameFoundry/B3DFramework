@@ -42,6 +42,8 @@ void Renderer::InitializeOnRenderThread()
 
 void Renderer::DestroyOnRenderThread()
 {
+	GpuProfiler::Instance().Clear();
+
 	mParameterSetPool = nullptr;
 	mCommandBufferPoolRing->Destroy();
 	mCommandBufferPoolRing = nullptr;

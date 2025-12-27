@@ -124,8 +124,6 @@ Application::~Application()
 
 	Importer::ShutDown();
 	MeshManager::ShutDown();
-	GpuProfiler::ShutDown();
-
 	PrefabManager::ShutDown();
 
 	Input::ShutDown();
@@ -152,6 +150,9 @@ Application::~Application()
 	// we need to wait for those objects to get destroyed before continuing.
 	CoreObjectManager::Instance().SyncToRenderThread(true);
 	GetRenderThread().PostCommand([] {}, "SyncToRenderThread before shutdown", true);
+
+	// Destroy profiler after render thread is shut down, because we rely on it to clear the profiler resources
+	GpuProfiler::ShutDown();
 
 	UnloadPlugin(mStartUpDesc.Renderer);
 

@@ -153,7 +153,34 @@ GpuProfiler::~GpuProfiler()
 {
 	Lock lock(mMutex);
 
+	B3D_ASSERT(mFreeTimestampQueryPools.Empty() && "GpuProfiler shutting down but query pools were not released. They must be released on the render thread before shutdown.");
+	B3D_ASSERT(mUnresolvedProfilerData.empty() && "GpuProfiler shutting down but unresolved profiler data was not released.");
+	B3D_ASSERT(mResolvedProfilerData.empty() && "GpuProfiler shutting down but resolved profiler data was not released.");
+
 	mFreeCommandBufferProfilers.Clear();
+}
+
+void GpuProfiler::Clear()
+{
+	Lock lock(mMutex);
+
+	// Clear command buffer profilers first (they will release their query pools)
+	for(auto& entry : mUnresolvedProfilerData)
+	{
+		for(auto& profiler : entry.second.Queued)
+			profiler->Clear();
+	}
+	mUnresolvedProfilerData.clear();
+
+	for(auto& entry : mResolvedProfilerData)
+		entry.second.LastResolved->Clear();
+	mResolvedProfilerData.clear();
+
+	for(auto& profiler : mFreeCommandBufferProfilers)
+		profiler->Clear();
+
+	// Now clear the query pools
+	mFreeTimestampQueryPools.Clear();
 }
 
 void GpuProfiler::Update()
