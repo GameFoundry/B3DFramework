@@ -82,6 +82,8 @@ namespace b3d
 				if (!currentToken.empty())
 				{
 					allTokens.Add(currentToken);
+
+					currentTokenBuilder.str("");
 					currentTokenBuilder.clear();
 				}
 			}
