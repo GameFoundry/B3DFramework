@@ -194,7 +194,7 @@ void MacOSRenderWindow::SetFullscreen(const VideoMode& videoMode)
 	if (mIsChild)
 		return;
 
-	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetCoreApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
+	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
 	const u32 outputCount = videoModeInfo.GetOutputCount();
 
 	u32 outputIdx = videoMode.outputIdx;
@@ -254,7 +254,7 @@ void MacOSRenderWindow::SetWindowed(UINT32 width, UINT32 height)
 		return;
 
 	// Restore original display mode
-	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetCoreApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
+	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
 	const u32 outputCount = videoModeInfo.GetOutputCount();
 
 	u32 outputIdx = 0; // 0 is always primary

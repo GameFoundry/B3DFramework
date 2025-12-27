@@ -275,7 +275,7 @@ void LinuxRenderWindow::SetFullscreen(const VideoMode& mode)
 	if(mIsChild)
 		return;
 
-	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetCoreApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
+	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
 	const u32 outputCount = videoModeInfo.GetOutputCount();
 
 	u32 outputIdx = mode.outputIdx;
@@ -399,7 +399,7 @@ void LinuxRenderWindow::SetWindowed(u32 width, u32 height)
 		return;
 
 	// Restore old screen config
-	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetCoreApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
+	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
 	const u32 outputCount = videoModeInfo.GetOutputCount();
 
 	u32 outputIdx = 0; // 0 is always primary

@@ -142,7 +142,7 @@ elseif(APPLE) # MacOS
 endif()
 
 # IDE specific
-set_property(TARGET bsf PROPERTY FOLDER Foundation)
+set_property(TARGET bsf PROPERTY FOLDER Engine)
 
 # Install
 if(NOT B3D_IS_ENGINE)

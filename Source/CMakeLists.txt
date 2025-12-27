@@ -132,8 +132,8 @@ configure_file("${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DEngineConfig.h.in" "${PR
 configure_file("${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DFrameworkConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/Utility/B3DFrameworkConfig.h")
 
 # Sub-directories
-## Foundation
-add_subdirectory(Foundation)
+## Engine
+add_subdirectory(Engine)
 
 ## Plugins
 ### If using MSVC include all plugins in the solution (which ones actually build is controlled by dependencies)
@@ -248,7 +248,7 @@ endif()
 
 ## Builtin resource preprocessing
 add_executable(bsfImportTool
-	Foundation/Core/Resources/B3DBuiltinResourcesImporter.cpp)
+	Engine/Core/Resources/B3DBuiltinResourcesImporter.cpp)
 B3DSetDefaultLinkAndCompileFlags(bsfImportTool)
 target_compile_definitions(bsfImportTool PUBLIC -DBS_IS_ASSET_TOOL)
 

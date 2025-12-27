@@ -21,7 +21,7 @@
 @implementation BSApplication
 -(void)terminate:(nullable id)sender
 {
-	b3d::gCoreApplication().quitRequested();
+	b3d::GetApplication().NotifyQuitRequested();
 }
 
 -(void)sendEvent:(NSEvent *)event
@@ -985,7 +985,7 @@ namespace b3d
 		// Shut down app when the main window is closed
 		if(mData->mainWindow == window)
 		{
-			b3d::gCoreApplication().quitRequested();
+			b3d::GetApplication().NotifyQuitRequested();
 			mData->mainWindow = nullptr;
 		}
 	}

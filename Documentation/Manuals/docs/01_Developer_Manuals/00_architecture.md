@@ -11,16 +11,16 @@ Framework is implemented throughout many separate libraries. Spreading the engin
  - It ensures a higher quality design by decoupling code and forcing an order of dependencies
  
 All the libraries can be separated into two main categories:
- - Foundation - These are the core libraries of the engine. They are designed in layers, where each layer is built on top of the previous layer and provides higher level and more specific functionality than the previous one.
- - Plugins - These are separate, independant, and in most cases optional libraries containing various high level systems. They usually implement some interface that was defined in one of the foundation layers. You are able to design your own plugins that completely replace certain portion of the engine functionality without having to modify the engine itself (e.g. use a new physics library, or a renderer backend)
+ - Engine - These are the core libraries of the engine. They are designed in layers, where each layer is built on top of the previous layer and provides higher level and more specific functionality than the previous one.
+ - Plugins - These are separate, independant, and in most cases optional libraries containing various high level systems. They usually implement some interface that was defined in one of the engine layers. You are able to design your own plugins that completely replace certain portion of the engine functionality without having to modify the engine itself (e.g. use a new physics library, or a renderer backend)
  
 To give you a better idea here is a diagram showing how all the libraries connect. You can use this for reference when we talk about the individual library purposes later on.
 ![Framework libraries](../Images/ArchitectureSimple.png)  
  
-# Foundation #
-The foundation layers contain the core of the engine. All the essentials and all the abstract interfaces for plugins belong here. 
+# Engine #
+The engine layers contain the core of the engine. All the essentials and all the abstract interfaces for plugins belong here.
 
-The foundation was split into layers to further decouple code. Lower layers do not know about higher layers and low level code never caters to specialized high level code. This makes the design cleaner and forces a certain direction for dependencies.
+The engine was split into layers to further decouple code. Lower layers do not know about higher layers and low level code never caters to specialized high level code. This makes the design cleaner and forces a certain direction for dependencies.
 
 Lower layers were designed to be more general purpose than higher layers. They provide very general techniques usually usable in various situations, and they attempt to cater to everyone. On the other hand higher layers provide a lot more focused and specialized techniques. This might mean relying on very specific rendering APIs, platforms or plugins but it also means using newer, fancier and maybe not as widely accepted techniques (e.g. some new rendering algorithm or a shader).
 
