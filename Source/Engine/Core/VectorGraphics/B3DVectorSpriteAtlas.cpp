@@ -33,6 +33,10 @@ GUIVectorSpriteAtlas::GUIVectorSpriteAtlas(const GUIVectorSpriteAtlasSettings& s
 GUIVectorSpriteAtlas::~GUIVectorSpriteAtlas()
 {
 	DestroyPendingReleasedAllocations();
+
+	B3D_ASSERT(mAllocations.empty());
+	B3D_ASSERT(mAtlasLayout.IsEmpty());
+	B3D_ASSERT(mUniqueTextures.empty());
 }
 
 GUIVectorSpriteAtlasAllocation GUIVectorSpriteAtlas::Allocate(const VectorPath& vectorPath, const VectorGraphicsSettings& settings)

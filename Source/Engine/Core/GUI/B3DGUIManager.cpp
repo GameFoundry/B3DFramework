@@ -116,6 +116,11 @@ GUIManager::~GUIManager()
 
 	B3DDelete(mInputCaret);
 	B3DDelete(mInputSelection);
+
+	// Wait until render thread unregisters all widgets, so all GUI vector path resources are released. This needs to be
+	// done before the vector sprite atlas is destroyed.
+	GetRenderThread().PostCommand([] {}, "GUIRenderer::~GUIRenderer", true);
+	mVectorSpriteAtlas = nullptr;
 }
 
 void GUIManager::DestroyRenderer(render::GUIRenderer* renderer)
