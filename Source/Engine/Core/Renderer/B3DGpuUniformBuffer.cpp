@@ -8,7 +8,8 @@ using namespace b3d::render;
 
 GpuUniformBuffer::~GpuUniformBuffer()
 {
-	GpuUniformBufferManager::Instance().UnregisterBuffer(this);
+	if(GpuUniformBufferManager::IsStarted())
+		GpuUniformBufferManager::Instance().UnregisterBuffer(this);
 }
 
 GpuUniformBufferManager::GpuUniformBufferManager()
