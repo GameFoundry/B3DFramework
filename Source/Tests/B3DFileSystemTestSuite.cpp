@@ -38,14 +38,14 @@ String ReadFile(Path path)
 
 void FileSystemTestSuite::StartUp()
 {
-	mTestDirectory = FileSystem::GetWorkingDirectoryPath() + kTestDirectoryName;
+	mTestDirectory = FileSystem::GetWorkingFolderPath() + kTestDirectoryName;
 	if(FileSystem::Exists(mTestDirectory))
 	{
 		B3D_EXCEPT(InternalErrorException, String("Directory '") + kTestDirectoryName + "' should not already exist; you should remove it manually.");
 	}
 	else
 	{
-		FileSystem::CreateDir(mTestDirectory);
+		FileSystem::CreateFolder(mTestDirectory);
 		B3D_TEST_ASSERT_MSG(FileSystem::Exists(mTestDirectory), "FileSystemTestSuite::StartUp(): test directory creation failed");
 	}
 }
@@ -95,7 +95,7 @@ void FileSystemTestSuite::TestExistsYesFile()
 void FileSystemTestSuite::TestExistsYesDir()
 {
 	Path path = mTestDirectory + "plop/";
-	FileSystem::CreateDir(path);
+	FileSystem::CreateFolder(path);
 	B3D_TEST_ASSERT(FileSystem::Exists(path));
 	FileSystem::Remove(path);
 }
@@ -131,22 +131,22 @@ void FileSystemTestSuite::TestIsFileYes()
 void FileSystemTestSuite::TestIsFileNo()
 {
 	Path path = mTestDirectory + "some-directory-1/";
-	FileSystem::CreateDir(path);
+	FileSystem::CreateFolder(path);
 	B3D_TEST_ASSERT(!FileSystem::IsFile(path));
 }
 
 void FileSystemTestSuite::TestIsDirectoryYes()
 {
 	Path path = mTestDirectory + "some-directory-2/";
-	FileSystem::CreateDir(path);
-	B3D_TEST_ASSERT(FileSystem::IsDirectory(path));
+	FileSystem::CreateFolder(path);
+	B3D_TEST_ASSERT(FileSystem::IsFolder(path));
 }
 
 void FileSystemTestSuite::TestIsDirectoryNo()
 {
 	Path path = mTestDirectory + "some-file-2";
 	CreateEmptyFile(path);
-	B3D_TEST_ASSERT(!FileSystem::IsDirectory(path));
+	B3D_TEST_ASSERT(!FileSystem::IsFolder(path));
 }
 
 void FileSystemTestSuite::TestRemoveFile()
@@ -161,7 +161,7 @@ void FileSystemTestSuite::TestRemoveFile()
 void FileSystemTestSuite::TestRemoveDirectory()
 {
 	Path path = mTestDirectory + "directory-to-remove/";
-	FileSystem::CreateDir(path);
+	FileSystem::CreateFolder(path);
 	B3D_TEST_ASSERT(FileSystem::Exists(path));
 	FileSystem::Remove(path, true);
 	B3D_TEST_ASSERT(!FileSystem::Exists(path));
@@ -259,10 +259,10 @@ void FileSystemTestSuite::TestCopyNoOverwriteExisting()
 void FileSystemTestSuite::TestGetChildren()
 {
 	Path path = mTestDirectory + "get-children-test/";
-	FileSystem::CreateDir(path);
-	FileSystem::CreateDir(path + "foo/");
-	FileSystem::CreateDir(path + "bar/");
-	FileSystem::CreateDir(path + "baz/");
+	FileSystem::CreateFolder(path);
+	FileSystem::CreateFolder(path + "foo/");
+	FileSystem::CreateFolder(path + "bar/");
+	FileSystem::CreateFolder(path + "baz/");
 	CreateEmptyFile(path + "ga");
 	CreateEmptyFile(path + "bu");
 	CreateEmptyFile(path + "zo");
@@ -294,7 +294,7 @@ void FileSystemTestSuite::TestGetLastModifiedTime()
 
 void FileSystemTestSuite::TestGetTempDirectoryPath()
 {
-	Path path = FileSystem::GetTempDirectoryPath();
+	Path path = FileSystem::GetTemporaryFolderPath();
 	/* No judging. */
 	B3D_TEST_ASSERT(!path.ToString().empty());
 }
