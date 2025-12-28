@@ -71,6 +71,10 @@ void VulkanGpuCommandBufferPool::Destroy()
 
 	EnsureValidThread();
 
+	// Reset the pool before destroying it, so any command buffers in Done state transition to Ready state
+	if(mInformation.UsePoolReset)
+		Reset();
+
 	bool areAnyCommandBuffersStillExecuting = false;
 	for(const auto& commandBufferPair : mCommandBuffers)
 	{
@@ -154,7 +158,8 @@ void VulkanGpuCommandBufferPool::Reset()
 		if(entry.second->GetState() == GpuCommandBufferState::Ready)
 			continue;
 
-		B3D_ASSERT(entry.second->GetState() == GpuCommandBufferState::Done);
+		// If RecordingDone then command buffer was not yet submitted
+		B3D_ASSERT(entry.second->GetState() == GpuCommandBufferState::Done || entry.second->GetState() == GpuCommandBufferState::RecordingDone);
 		entry.second->NotifyParentPoolReset();
 	}
 
