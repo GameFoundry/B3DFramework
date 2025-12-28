@@ -181,7 +181,7 @@ void VulkanVertexInputManager::AddNew(const SPtr<VertexDescription>& vertexBuffe
 			if((binding.inputRate == VK_VERTEX_INPUT_RATE_VERTEX && !isSteppingPerVertex) ||
 			   (binding.inputRate == VK_VERTEX_INPUT_RATE_INSTANCE && isSteppingPerVertex))
 			{
-				B3D_LOG(Error, RenderBackend, "Found multiple vertex attributes belonging to the same binding but with "
+				B3D_LOG(Error, LogRenderBackend, "Found multiple vertex attributes belonging to the same binding but with "
 											 "different input rates. All attributes in a binding must have the same input rate. Ignoring "
 											 "invalid input rates.");
 			}
@@ -218,7 +218,7 @@ void VulkanVertexInputManager::RemoveLeastUsed()
 
 	if(!mWarningShown)
 	{
-		B3D_LOG(Warning, RenderBackend, "Vertex input buffer is full, pruning last {0} elements. This is "
+		B3D_LOG(Warning, LogRenderBackend, "Vertex input buffer is full, pruning last {0} elements. This is "
 									   "probably okay unless you are creating a massive amount of input layouts as they will get re-created every "
 									   "frame. In that case you should increase the layout buffer size. This warning won't be shown again.",
 			   kElementCountToPrune);

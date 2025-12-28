@@ -475,13 +475,13 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 		{
 			if(field->Schema.IsContainer != decodedFieldSchema.IsContainer)
 			{
-				B3D_LOG(Error, Serialization, "Data type mismatch. One is array, other is a single type.");
+				B3D_LOG(Error, LogSerialization, "Data type mismatch. One is array, other is a single type.");
 				return false;
 			}
 
 			if(field->Schema.FieldDataTypes.Size() != decodedFieldSchema.FieldDataTypes.Size())
 			{
-				B3D_LOG(Error, Serialization, "Data type mismatch. Field type count doesn't match ({0} vs {1}). ", field->Schema.FieldDataTypes.Size(), decodedFieldSchema.FieldDataTypes.Size());
+				B3D_LOG(Error, LogSerialization, "Data type mismatch. Field type count doesn't match ({0} vs {1}). ", field->Schema.FieldDataTypes.Size(), decodedFieldSchema.FieldDataTypes.Size());
 				return false;
 			}
 
@@ -490,13 +490,13 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 			{
 				if(!decodedFieldSchema.FieldDataTypes[fieldTypeIndex].HasDynamicSize && field->Schema.FieldDataTypes[fieldTypeIndex].FixedSize != decodedFieldSchema.FieldDataTypes[fieldTypeIndex].FixedSize)
 				{
-					B3D_LOG(Error, Serialization, "Data type mismatch. Type size stored in file and actual type size don't match ({0} vs {1}).", field->Schema.FieldDataTypes[fieldTypeIndex].FixedSize.Bytes, decodedFieldSchema.FieldDataTypes[fieldTypeIndex].FixedSize.Bytes);
+					B3D_LOG(Error, LogSerialization, "Data type mismatch. Type size stored in file and actual type size don't match ({0} vs {1}).", field->Schema.FieldDataTypes[fieldTypeIndex].FixedSize.Bytes, decodedFieldSchema.FieldDataTypes[fieldTypeIndex].FixedSize.Bytes);
 					return false;
 				}
 
 				if(field->Schema.FieldDataTypes[fieldTypeIndex].Type != decodedFieldSchema.FieldDataTypes[fieldTypeIndex].Type)
 				{
-					B3D_LOG(Error, Serialization, "Data type mismatch. Type stored in file and actual type don't match ({0} vs {1}).", (u32)field->Schema.FieldDataTypes[fieldTypeIndex].Type, (u32)decodedFieldSchema.FieldDataTypes[fieldTypeIndex].Type);
+					B3D_LOG(Error, LogSerialization, "Data type mismatch. Type stored in file and actual type don't match ({0} vs {1}).", (u32)field->Schema.FieldDataTypes[fieldTypeIndex].Type, (u32)decodedFieldSchema.FieldDataTypes[fieldTypeIndex].Type);
 					return false;
 				}
 			}
@@ -718,7 +718,7 @@ SPtr<IReflectable> BinaryDeserializationContext::GetOrDeserializeReflectableObje
 	if(foundExisting == mReflectableObjectsToDeserialize.end())
 	{
 		if(reflectableObjectId != 0)
-			B3D_LOG(Warning, Generic, "When deserializing, object ID: {0} was found but no such object was contained in the file.", reflectableObjectId);
+			B3D_LOG(Warning, LogGeneric, "When deserializing, object ID: {0} was found but no such object was contained in the file.", reflectableObjectId);
 
 		return nullptr;
 	}
@@ -728,7 +728,7 @@ SPtr<IReflectable> BinaryDeserializationContext::GetOrDeserializeReflectableObje
 	{
 		if(objectToDeserialize.DeserializationInProgress)
 		{
-			B3D_LOG(Warning, Generic, "Detected a circular reference when decoding. Referenced "
+			B3D_LOG(Warning, LogGeneric, "Detected a circular reference when decoding. Referenced "
 									 "object's fields will be resolved in an undefined order (i.e. one of the "
 									 "objects will not be fully deserialized when assigned to its field). "
 									 "Use RTTI_Flag_WeakRef to get rid of this warning and tell the system which of"
@@ -766,7 +766,7 @@ SPtr<IReflectable> BinaryDeserializationContext::GetReflectableObject(u32 reflec
 	if(foundExisting == mReflectableObjectsToDeserialize.end())
 	{
 		if(reflectableObjectId != 0)
-			B3D_LOG(Warning, Generic, "When deserializing, object ID: {0} was found but no such object was contained in the file.", reflectableObjectId);
+			B3D_LOG(Warning, LogGeneric, "When deserializing, object ID: {0} was found but no such object was contained in the file.", reflectableObjectId);
 
 		return nullptr;
 	}
@@ -1122,7 +1122,7 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 										break;
 									}
 								default:
-									B3D_LOG(Error, Serialization, "Error serializing data. Encountered a type I don't know how to encode. Type: {0}, Is array: {1}", (u32)typeSchema.Type, iteratorField->Schema.IsContainer);
+									B3D_LOG(Error, LogSerialization, "Error serializing data. Encountered a type I don't know how to encode. Type: {0}, Is array: {1}", (u32)typeSchema.Type, iteratorField->Schema.IsContainer);
 								}
 							}
 						}
@@ -1343,7 +1343,7 @@ void BinarySerializer::Encode(IReflectable* object, const SPtr<DataStream>& stre
 	// Encode primary object and its value types
 	if(!serializationContext.SerializeReflectableObject(object, objectId, referencedObjectsToSerialize))
 	{
-		B3D_LOG(Error, Serialization, "Destination buffer is null or not large enough.");
+		B3D_LOG(Error, LogSerialization, "Destination buffer is null or not large enough.");
 		return;
 	}
 
@@ -1366,7 +1366,7 @@ void BinarySerializer::Encode(IReflectable* object, const SPtr<DataStream>& stre
 
 			if(!serializationContext.SerializeReflectableObject(curObject.get(), curObjectid, referencedObjectsToSerialize))
 			{
-				B3D_LOG(Error, Serialization, "Destination buffer is null or not large enough.");
+				B3D_LOG(Error, LogSerialization, "Destination buffer is null or not large enough.");
 				return;
 			}
 
@@ -1427,7 +1427,7 @@ SPtr<IReflectable> BinarySerializer::Decode(const SPtr<DataStream>& stream, u32 
 	{
 		if(!schema)
 		{
-			B3D_LOG(Error, Serialization, "Cannot decode an object without meta-data nor schema.");
+			B3D_LOG(Error, LogSerialization, "Cannot decode an object without meta-data nor schema.");
 			return nullptr;
 		}
 	}

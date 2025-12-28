@@ -113,7 +113,7 @@ void FMODAudioSource::Play()
 
 		if(fmod->playSound(sound, nullptr, true, &mChannel) != FMOD_OK)
 		{
-			B3D_LOG(Error, Audio, "Failed playing sound.");
+			B3D_LOG(Error, LogAudio, "Failed playing sound.");
 
 			if(mStreamingSound != nullptr)
 			{

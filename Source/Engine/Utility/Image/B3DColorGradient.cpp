@@ -72,7 +72,7 @@ void TColorGradient<COLOR, TIME>::SetKeys(const Vector<ColorGradientKey>& keys, 
 
 	if(keys.size() > kMaxKeys)
 	{
-		B3D_LOG(Warning, Generic, "Number of keys in ColorGradient exceeds the support number ({0}). "
+		B3D_LOG(Warning, LogGeneric, "Number of keys in ColorGradient exceeds the support number ({0}). "
 								 "Keys will be ignored.",
 			   kMaxKeys);
 	}

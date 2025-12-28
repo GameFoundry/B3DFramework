@@ -25,9 +25,9 @@ void FreeImageLoadErrorHandler(FREE_IMAGE_FORMAT fif, const char* message)
 	// Callback method as required by FreeImage to report problems
 	const char* typeName = FreeImage_GetFormatFromFIF(fif);
 	if(typeName)
-		B3D_LOG(Error, FreeImageImporter, "FreeImage error: '{0}' when loading format {1}", message, typeName);
+		B3D_LOG(Error, LogFreeImageImporter, "FreeImage error: '{0}' when loading format {1}", message, typeName);
 	else
-		B3D_LOG(Error, FreeImageImporter, "FreeImage error: '{0}'", message);
+		B3D_LOG(Error, LogFreeImageImporter, "FreeImage error: '{0}'", message);
 }
 
 FreeImgImporter::FreeImgImporter()
@@ -627,7 +627,7 @@ bool FreeImgImporter::GenerateCubemap(const SPtr<PixelData>& source, CubemapSour
 			}
 			else
 			{
-				B3D_LOG(Warning, FreeImageImporter, "Unable to generate a cubemap: unrecognized face configuration.");
+				B3D_LOG(Warning, LogFreeImageImporter, "Unable to generate a cubemap: unrecognized face configuration.");
 				return false;
 			}
 		}
@@ -652,13 +652,13 @@ bool FreeImgImporter::GenerateCubemap(const SPtr<PixelData>& source, CubemapSour
 
 	if(faceSize.X != faceSize.Y)
 	{
-		B3D_LOG(Warning, FreeImageImporter, "Unable to generate a cubemap: width & height must match.");
+		B3D_LOG(Warning, LogFreeImageImporter, "Unable to generate a cubemap: width & height must match.");
 		return false;
 	}
 
 	if(!Bitwise::IsPow2(faceSize.X))
 	{
-		B3D_LOG(Warning, FreeImageImporter, "Unable to generate a cubemap: width & height must be powers of 2.");
+		B3D_LOG(Warning, LogFreeImageImporter, "Unable to generate a cubemap: width & height must be powers of 2.");
 		return false;
 	}
 

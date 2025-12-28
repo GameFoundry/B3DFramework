@@ -153,7 +153,7 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, SPtr<const I
 			}
 			else
 			{
-				B3D_LOG(Warning, FBXImporter, "Cannot generate a collision mesh as the physics module was not started.");
+				B3D_LOG(Warning, LogFBXImporter, "Cannot generate a collision mesh as the physics module was not started.");
 			}
 		}
 
@@ -330,7 +330,7 @@ SPtr<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool sha
 		if(numProcessedBones == numAllBones)
 			return Skeleton::Create(allBones.data(), numAllBones);
 
-		B3D_LOG(Error, FBXImporter, "Not all bones were found in the node hierarchy. Skeleton invalid.");
+		B3D_LOG(Error, LogFBXImporter, "Not all bones were found in the node hierarchy. Skeleton invalid.");
 	}
 
 	return nullptr;
@@ -402,7 +402,7 @@ SPtr<MorphShapes> FBXImporter::CreateMorphShapes(const FBXImportScene& scene)
 					}
 					else
 					{
-						B3D_LOG(Error, FBXImporter, "Corrupt blend shape frame. Number of vertices doesn't match the number of mesh vertices.");
+						B3D_LOG(Error, LogFBXImporter, "Corrupt blend shape frame. Number of vertices doesn't match the number of mesh vertices.");
 					}
 				}
 			}
@@ -444,7 +444,7 @@ bool FBXImporter::StartUpSdk(FbxScene*& scene)
 	mFBXManager = FbxManager::Create();
 	if(mFBXManager == nullptr)
 	{
-		B3D_LOG(Error, FBXImporter, "FBX import failed: FBX SDK failed to initialize. FbxManager::Create() failed.");
+		B3D_LOG(Error, LogFBXImporter, "FBX import failed: FBX SDK failed to initialize. FbxManager::Create() failed.");
 		return false;
 	}
 
@@ -454,7 +454,7 @@ bool FBXImporter::StartUpSdk(FbxScene*& scene)
 	scene = FbxScene::Create(mFBXManager, "Import Scene");
 	if(scene == nullptr)
 	{
-		B3D_LOG(Warning, FBXImporter, "FBX import failed: Failed to create FBX scene.");
+		B3D_LOG(Warning, LogFBXImporter, "FBX import failed: Failed to create FBX scene.");
 		return false;
 	}
 
@@ -481,7 +481,7 @@ bool FBXImporter::LoadFbxFile(FbxScene* scene, const Path& filePath)
 
 	if(!importStatus)
 	{
-		B3D_LOG(Error, FBXImporter, "FBX import failed: Call to FbxImporter::Initialize() failed.\n"
+		B3D_LOG(Error, LogFBXImporter, "FBX import failed: Call to FbxImporter::Initialize() failed.\n"
 								   "Error returned: %s\n\n{0}",
 			   importer->GetStatus().GetErrorString());
 		return false;
@@ -496,7 +496,7 @@ bool FBXImporter::LoadFbxFile(FbxScene* scene, const Path& filePath)
 	{
 		importer->Destroy();
 
-		B3D_LOG(Error, FBXImporter, "FBX import failed: Call to FbxImporter::Import() failed.\n"
+		B3D_LOG(Error, LogFBXImporter, "FBX import failed: Call to FbxImporter::Import() failed.\n"
 								   "Error returned: %s\n\n{0}",
 			   importer->GetStatus().GetErrorString());
 		return false;
@@ -1222,7 +1222,7 @@ void ReadLayerData(FbxLayerElementTemplate<TFBX>& layer, Vector<TNative>& output
 		}
 		break;
 	default:
-		B3D_LOG(Warning, FBXImporter, "FBX Import: Unsupported layer mapping mode.");
+		B3D_LOG(Warning, LogFBXImporter, "FBX Import: Unsupported layer mapping mode.");
 		break;
 	}
 }
@@ -1237,7 +1237,7 @@ void ReadLayerData(FbxLayerElementTemplate<TFBX>& layer, Vector<TNative>& output
 	else if(refMode == FbxLayerElement::eIndexToDirect)
 		ReadLayerData<TFBX, TNative, FBXIndexIndexer<TFBX, TNative>>(layer, output, indices);
 	else
-		B3D_LOG(Warning, FBXImporter, "FBX Import: Unsupported layer reference mode.");
+		B3D_LOG(Warning, LogFBXImporter, "FBX Import: Unsupported layer reference mode.");
 }
 
 void FBXImporter::ParseMesh(FbxMesh* mesh, FBXImportNode* parentNode, const FBXImportOptions& options, FBXImportScene& outputScene)
@@ -1577,7 +1577,7 @@ void FBXImporter::ImportSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh
 			// each such mesh, since they will all require their own bind poses. Animation curves will also need to be
 			// handled specially (likely by allowing them to be applied to multiple bones at once). The other option is
 			// not to bake the node transform into mesh vertices and handle it on a Scene Object level.
-			B3D_LOG(Warning, FBXImporter, "Skinned mesh has multiple different instances. This is not supported.");
+			B3D_LOG(Warning, LogFBXImporter, "Skinned mesh has multiple different instances. This is not supported.");
 		}
 
 		FBXImportNode* parentNode = mesh.ReferencedBy[0];
@@ -1646,7 +1646,7 @@ void FBXImporter::ImportSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh
 	u32 numBones = (u32)mesh.Bones.size();
 	if(numBones > 256)
 	{
-		B3D_LOG(Warning, FBXImporter, "A maximum of 256 bones per skeleton are supported. Imported skeleton has {0} bones.", numBones);
+		B3D_LOG(Warning, LogFBXImporter, "A maximum of 256 bones per skeleton are supported. Imported skeleton has {0} bones.", numBones);
 	}
 
 	// Normalize weights
@@ -2156,7 +2156,7 @@ TAnimationCurve<T> FBXImporter::ImportCurve(FbxAnimCurve* (&fbxCurve)[C], float 
 
 	// Resample keys
 	if(!importOptions.AnimResample && forceResample)
-		B3D_LOG(Verbose, FBXImporter, "Animation has different keyframes for different curve components, forcing resampling.");
+		B3D_LOG(Verbose, LogFBXImporter, "Animation has different keyframes for different curve components, forcing resampling.");
 
 	// Make sure to resample along the length of the entire clip
 	curveStart = std::min(curveStart, clipStart);

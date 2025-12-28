@@ -195,7 +195,7 @@ void Texture::UpdateCpuBuffers(u32 subresourceIdx, const PixelData& pixelData)
 
 	if(subresourceIdx >= (u32)mCPUSubresourceData.size())
 	{
-		B3D_LOG(Error, Texture, "Invalid subresource index: {0}. Supported range: 0 .. {1}", subresourceIdx, (u32)mCPUSubresourceData.size());
+		B3D_LOG(Error, LogTexture, "Invalid subresource index: {0}. Supported range: 0 .. {1}", subresourceIdx, (u32)mCPUSubresourceData.size());
 		return;
 	}
 
@@ -209,7 +209,7 @@ void Texture::UpdateCpuBuffers(u32 subresourceIdx, const PixelData& pixelData)
 	if(pixelData.GetWidth() != mipWidth || pixelData.GetHeight() != mipHeight ||
 	   pixelData.GetDepth() != mipDepth || pixelData.GetFormat() != mProperties.Format)
 	{
-		B3D_LOG(Error, Texture, "Provided buffer is not of valid dimensions or format in order to update this texture.");
+		B3D_LOG(Error, LogTexture, "Provided buffer is not of valid dimensions or format in order to update this texture.");
 		return;
 	}
 
@@ -226,7 +226,7 @@ void Texture::ReadCachedData(PixelData& dest, u32 face, u32 mipLevel)
 {
 	if(!mProperties.Usage.IsSetAny(TextureUsageFlag::CPUCached))
 	{
-		B3D_LOG(Error, Texture, "Attempting to read CPU data from a texture that is created without CPU caching.");
+		B3D_LOG(Error, LogTexture, "Attempting to read CPU data from a texture that is created without CPU caching.");
 		return;
 	}
 
@@ -236,14 +236,14 @@ void Texture::ReadCachedData(PixelData& dest, u32 face, u32 mipLevel)
 	if(dest.GetWidth() != mipWidth || dest.GetHeight() != mipHeight ||
 	   dest.GetDepth() != mipDepth || dest.GetFormat() != mProperties.Format)
 	{
-		B3D_LOG(Error, Texture, "Provided buffer is not of valid dimensions or format in order to read from this texture.");
+		B3D_LOG(Error, LogTexture, "Provided buffer is not of valid dimensions or format in order to read from this texture.");
 		return;
 	}
 
 	u32 subresourceIdx = mProperties.MapToSubresourceIdx(face, mipLevel);
 	if(subresourceIdx >= (u32)mCPUSubresourceData.size())
 	{
-		B3D_LOG(Error, Texture, "Invalid subresource index: {0}. Supported range: 0 .. {1}", subresourceIdx, (u32)mCPUSubresourceData.size());
+		B3D_LOG(Error, LogTexture, "Invalid subresource index: {0}. Supported range: 0 .. {1}", subresourceIdx, (u32)mCPUSubresourceData.size());
 		return;
 	}
 
@@ -422,7 +422,7 @@ void TextureUtility::Write(const SPtr<Texture>& texture, const PixelData& source
 	const TextureProperties& textureProperties = texture->GetProperties();
 	if(textureProperties.SampleCount > 1)
 	{
-		B3D_LOG(Error, RenderBackend, "Multisampled textures cannot be written to from the CPU.");
+		B3D_LOG(Error, LogRenderBackend, "Multisampled textures cannot be written to from the CPU.");
 		return;
 	}
 
@@ -431,7 +431,7 @@ void TextureUtility::Write(const SPtr<Texture>& texture, const PixelData& source
 
 	if(arrayLayer > 0 && textureProperties.Type == TEX_TYPE_3D)
 	{
-		B3D_LOG(Error, RenderBackend, "3D texture arrays are not supported.");
+		B3D_LOG(Error, LogRenderBackend, "3D texture arrays are not supported.");
 		return;
 	}
 
@@ -516,7 +516,7 @@ void TextureUtility::Write(const SPtr<Texture>& texture, const PixelData& source
 	{
 		if(!canDiscardContents)
 		{
-			B3D_LOG(Warning, RenderBackend, "Writing to a image '{0}' that is currently bound on a command buffer, without providing an explicit command buffer. Such writes will be queued on the transfer buffer which is submitted before any user command buffers. This means multiple writes will overwrite it each other if not careful.", texture->GetName());
+			B3D_LOG(Warning, LogRenderBackend, "Writing to a image '{0}' that is currently bound on a command buffer, without providing an explicit command buffer. Such writes will be queued on the transfer buffer which is submitted before any user command buffers. This means multiple writes will overwrite it each other if not careful.", texture->GetName());
 		}
 		else
 			texture->RecreateInternalTexture();
@@ -543,13 +543,13 @@ void TextureUtility::Read(const SPtr<Texture>& texture, PixelData& destination, 
 	if(destination.GetWidth() != mipWidth || destination.GetHeight() != mipHeight ||
 	   destination.GetDepth() != mipDepth || destination.GetFormat() != textureProperties.Format)
 	{
-		B3D_LOG(Error, Texture, "Provided buffer is not of valid dimensions or format in order to read from this texture.");
+		B3D_LOG(Error, LogTexture, "Provided buffer is not of valid dimensions or format in order to read from this texture.");
 		return;
 	}
 
 	if(textureProperties.SampleCount > 1)
 	{
-		B3D_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
+		B3D_LOG(Error, LogRenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 		return;
 	}
 
@@ -674,13 +674,13 @@ void TextureUtility::Clear(const SPtr<Texture>& texture, const Color& value, u32
 	const TextureProperties& textureProperties = texture->GetProperties();
 	if(arrayLayer >= textureProperties.GetFaceCount())
 	{
-		B3D_LOG(Error, Texture, "Invalid array index.");
+		B3D_LOG(Error, LogTexture, "Invalid array index.");
 		return;
 	}
 
 	if(mipLevel > textureProperties.MipMapCount)
 	{
-		B3D_LOG(Error, Texture, "Mip level out of range. Valid range is [0, {0}].", textureProperties.MipMapCount);
+		B3D_LOG(Error, LogTexture, "Mip level out of range. Valid range is [0, {0}].", textureProperties.MipMapCount);
 		return;
 	}
 

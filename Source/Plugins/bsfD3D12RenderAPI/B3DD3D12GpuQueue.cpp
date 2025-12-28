@@ -20,7 +20,7 @@ D3D12GpuQueue::D3D12GpuQueue(D3D12GpuDevice& device, GpuQueueUsage usage, u32 in
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create fence for GPU queue");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create fence for GPU queue");
 		return;
 	}
 
@@ -28,10 +28,10 @@ D3D12GpuQueue::D3D12GpuQueue(D3D12GpuDevice& device, GpuQueueUsage usage, u32 in
 	mFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 	if (mFenceEvent == nullptr)
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create fence event for GPU queue");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create fence event for GPU queue");
 	}
 
-	B3D_LOG(Info, RenderBackend, "Created D3D12 GPU queue: usage={0}, index={1}", (u32)usage, index);
+	B3D_LOG(Info, LogRenderBackend, "Created D3D12 GPU queue: usage={0}, index={1}", (u32)usage, index);
 }
 
 D3D12GpuQueue::~D3D12GpuQueue()
@@ -48,7 +48,7 @@ D3D12GpuQueue::~D3D12GpuQueue()
 	mFence.Reset();
 	mQueue.Reset();
 
-	B3D_LOG(Info, RenderBackend, "Destroyed D3D12 GPU queue");
+	B3D_LOG(Info, LogRenderBackend, "Destroyed D3D12 GPU queue");
 }
 
 void D3D12GpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, u32 syncMask, bool flushTransferCommandBuffer)
@@ -68,7 +68,7 @@ void D3D12GpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuf
 	// Make sure the command buffer is in the correct state
 	if (!d3d12CommandBuffer->IsReadyForSubmit())
 	{
-		B3D_LOG(Warning, RenderBackend, "Attempting to submit command buffer that is not ready for submission");
+		B3D_LOG(Warning, LogRenderBackend, "Attempting to submit command buffer that is not ready for submission");
 		return;
 	}
 
@@ -76,7 +76,7 @@ void D3D12GpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuf
 	ID3D12GraphicsCommandList* commandList = d3d12CommandBuffer->GetD3D12Handle();
 	if (!commandList)
 	{
-		B3D_LOG(Error, RenderBackend, "Command buffer has no D3D12 command list");
+		B3D_LOG(Error, LogRenderBackend, "Command buffer has no D3D12 command list");
 		return;
 	}
 
@@ -112,7 +112,7 @@ void D3D12GpuQueue::WaitUntilIdle()
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to signal fence in WaitUntilIdle");
+		B3D_LOG(Error, LogRenderBackend, "Failed to signal fence in WaitUntilIdle");
 		return;
 	}
 
@@ -126,7 +126,7 @@ void D3D12GpuQueue::WaitUntilIdle()
 		}
 		else
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to set fence event in WaitUntilIdle");
+			B3D_LOG(Error, LogRenderBackend, "Failed to set fence event in WaitUntilIdle");
 		}
 	}
 }
@@ -144,7 +144,7 @@ void D3D12GpuQueue::PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, 
 	// 2. Call Present() on the swap chain
 	// 3. Handle vsync based on render window settings
 
-	B3D_LOG(Warning, RenderBackend, "D3D12GpuQueue::PresentRenderWindow not fully implemented");
+	B3D_LOG(Warning, LogRenderBackend, "D3D12GpuQueue::PresentRenderWindow not fully implemented");
 
 	// Placeholder for when swap chain integration is complete:
 	// D3D12SwapChain* swapChain = GetSwapChainFromRenderWindow(renderWindow);
@@ -172,7 +172,7 @@ void D3D12GpuQueue::Signal(ID3D12Fence* fence, u64 value)
 	HRESULT hr = mQueue->Signal(fence, value);
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to signal fence on GPU queue");
+		B3D_LOG(Error, LogRenderBackend, "Failed to signal fence on GPU queue");
 	}
 }
 
@@ -184,7 +184,7 @@ void D3D12GpuQueue::Wait(ID3D12Fence* fence, u64 value)
 	HRESULT hr = mQueue->Wait(fence, value);
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to wait on fence in GPU queue");
+		B3D_LOG(Error, LogRenderBackend, "Failed to wait on fence in GPU queue");
 	}
 }
 
@@ -201,7 +201,7 @@ HRESULT D3D12GpuQueue::Present(D3D12SwapChain* swapChain)
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to present swap chain");
+		B3D_LOG(Error, LogRenderBackend, "Failed to present swap chain");
 	}
 
 	return hr;

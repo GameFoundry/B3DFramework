@@ -770,7 +770,7 @@ SurfaceFormat VulkanGpuDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, boo
 
 			if(useHardwareSRGB)
 			{
-				B3D_LOG(Error, RenderBackend, "Cannot find a valid sRGB format for a render window surface, "
+				B3D_LOG(Error, LogRenderBackend, "Cannot find a valid sRGB format for a render window surface, "
 											 "falling back to a default format.");
 			}
 		}
@@ -1018,7 +1018,7 @@ void VulkanGpuDevice::GetSyncSemaphores(GpuQueueMask syncMask, TInlineArray<Vulk
 
 	if(semaphoreRequestFailed)
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to allocate semaphores for a command buffer sync. This means some of the "
+		B3D_LOG(Error, LogRenderBackend, "Failed to allocate semaphores for a command buffer sync. This means some of the "
 									 "dependency requests will not be fulfilled. This happened because a command buffer has too many "
 									 "dependant command buffers. The maximum allowed number is {0} but can be increased by incrementing the "
 									 "value of B3D_MAX_COMMAND_BUFFER_DEPENDENCIES.",

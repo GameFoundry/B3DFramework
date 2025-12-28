@@ -107,15 +107,15 @@ public:
 		{
 		case 0:
 			ss << "PhysX info (" << errorCode << "): " << message << " at " << file << ":" << line;
-			B3D_LOG(Info, Physics, "{0}", ss.str());
+			B3D_LOG(Info, LogPhysics, "{0}", ss.str());
 			break;
 		case 1:
 			ss << "PhysX warning (" << errorCode << "): " << message << " at " << file << ":" << line;
-			B3D_LOG(Warning, Physics, "{0}", ss.str());
+			B3D_LOG(Warning, LogPhysics, "{0}", ss.str());
 			break;
 		case 2:
 			ss << "PhysX error (" << errorCode << "): " << message << " at " << file << ":" << line;
-			B3D_LOG(Error, Physics, "{0}", ss.str());
+			B3D_LOG(Error, LogPhysics, "{0}", ss.str());
 			B3D_ASSERT(false); // Halt execution on debug builds when error occurs
 			break;
 		}
@@ -297,7 +297,7 @@ class PhysXBroadPhaseCallback : public PxBroadPhaseCallback
 	{
 		ColliderShape* colliderShape = (ColliderShape*)shape.userData;
 		if(colliderShape != nullptr)
-			B3D_LOG(Warning, Physics, "Physics object out of bounds. Consider increasing broadphase region!");
+			B3D_LOG(Warning, LogPhysics, "Physics object out of bounds. Consider increasing broadphase region!");
 	}
 
 	void onObjectOutOfBounds(PxAggregate& aggregate) override
@@ -686,7 +686,7 @@ void PhysXScene::FixedUpdate(float step)
 
 	u32 errorState;
 	if(!mScene->fetchResults(true, &errorState))
-		B3D_LOG(Warning, Physics, "Physics simulation failed. Error code: {0}", errorState);
+		B3D_LOG(Warning, LogPhysics, "Physics simulation failed. Error code: {0}", errorState);
 
 	B3DFrameFreeAligned(scratchBuffer);
 	B3DClearAllocatorFrame();

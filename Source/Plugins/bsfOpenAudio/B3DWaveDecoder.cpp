@@ -29,7 +29,7 @@ bool WaveDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 
 
 	if(!ParseHeader(info))
 	{
-		B3D_LOG(Error, Audio, "Provided file is not a valid WAVE file.");
+		B3D_LOG(Error, LogAudio, "Provided file is not a valid WAVE file.");
 		return false;
 	}
 
@@ -80,7 +80,7 @@ bool WaveDecoder::ParseHeader(AudioDataInfo& info)
 
 			if(format != WAVE_FORMAT_PCM && format != WAVE_FORMAT_EXTENDED)
 			{
-				B3D_LOG(Warning, Audio, "Wave file doesn't contain raw PCM data. Not supported.");
+				B3D_LOG(Warning, LogAudio, "Wave file doesn't contain raw PCM data. Not supported.");
 				return false;
 			}
 
@@ -110,7 +110,7 @@ bool WaveDecoder::ParseHeader(AudioDataInfo& info)
 
 			if(bitDepth != 8 && bitDepth != 16 && bitDepth != 24 && bitDepth != 32)
 			{
-				B3D_LOG(Error, Audio, "Unsupported number of bits per sample: {0}", bitDepth);
+				B3D_LOG(Error, LogAudio, "Unsupported number of bits per sample: {0}", bitDepth);
 				return false;
 			}
 
@@ -123,7 +123,7 @@ bool WaveDecoder::ParseHeader(AudioDataInfo& info)
 
 				if(extensionSize != 22)
 				{
-					B3D_LOG(Warning, Audio, "Wave file doesn't contain raw PCM data. Not supported.");
+					B3D_LOG(Warning, LogAudio, "Wave file doesn't contain raw PCM data. Not supported.");
 					return false;
 				}
 
@@ -142,7 +142,7 @@ bool WaveDecoder::ParseHeader(AudioDataInfo& info)
 				memcpy(&format, subFormat, sizeof(format));
 				if(format != WAVE_FORMAT_PCM)
 				{
-					B3D_LOG(Warning, Audio, "Wave file doesn't contain raw PCM data. Not supported.");
+					B3D_LOG(Warning, LogAudio, "Wave file doesn't contain raw PCM data. Not supported.");
 					return false;
 				}
 			}

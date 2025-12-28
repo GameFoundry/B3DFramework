@@ -18,7 +18,7 @@
 #	include "Profiling/B3DProfilerGPU.h"
 #endif
 
-B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(RendererMaterial, Log)
+B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(LogRendererMaterial, Log)
 
 /** @addtogroup Renderer-Internal
  *  @{
@@ -289,7 +289,7 @@ namespace b3d
 			{
 				if (!B3D_ENSURE(mMetaData.Shader))
 				{
-					B3D_LOG(Error, RendererMaterial, "Cannot initialize renderer material. Failed to compile shader {0}.", mMetaData.ShaderPath);
+					B3D_LOG(Error, LogRendererMaterial, "Cannot initialize renderer material. Failed to compile shader {0}.", mMetaData.ShaderPath);
 					return;
 				}
 
@@ -400,7 +400,7 @@ namespace b3d
 			const u32 variationIndex = variationParameters.GetIndex();
 			if(!B3D_ENSURE(variationIndex != ~0u))
 			{
-				B3D_LOG(Error, RendererMaterial, "Cannot compile renderer material variation for {0}. Variation parameters cannot be found.", mMetaData.ShaderPath);
+				B3D_LOG(Error, LogRendererMaterial, "Cannot compile renderer material variation for {0}. Variation parameters cannot be found.", mMetaData.ShaderPath);
 			}
 
 			return CompileRendererMaterialVariation(variationIndex);

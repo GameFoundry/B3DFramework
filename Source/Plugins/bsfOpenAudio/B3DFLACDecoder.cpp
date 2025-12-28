@@ -164,7 +164,7 @@ bool FLACDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 
 	mDecoder = FLAC__stream_decoder_new();
 	if(mDecoder == nullptr)
 	{
-		B3D_LOG(Error, Audio, "Failed to open a FLAC file.");
+		B3D_LOG(Error, LogAudio, "Failed to open a FLAC file.");
 		return false;
 	}
 
@@ -175,7 +175,7 @@ bool FLACDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 
 	if(!FLAC__stream_decoder_process_until_end_of_metadata(mDecoder))
 	{
 		Close();
-		B3D_LOG(Error, Audio, "Failed to open a FLAC file.");
+		B3D_LOG(Error, LogAudio, "Failed to open a FLAC file.");
 		return false;
 	}
 

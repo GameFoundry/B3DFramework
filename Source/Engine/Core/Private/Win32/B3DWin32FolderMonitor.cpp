@@ -96,7 +96,7 @@ void Win32FolderMonitor::StartMonitor(HANDLE compPortHandle)
 			State = MonitorState::Inactive;
 		}
 
-		B3D_LOG(Error, Generic, "Failed to start folder monitor on folder \"{0}\" because ReadDirectoryChangesW failed.", FolderToMonitor);
+		B3D_LOG(Error, LogGeneric, "Failed to start folder monitor on folder \"{0}\" because ReadDirectoryChangesW failed.", FolderToMonitor);
 		return;
 	}
 }
@@ -323,9 +323,9 @@ FolderMonitor::FolderMonitor(const Path& folderPath, bool monitorSubdirectories,
 	m->WorkerThread = nullptr;
 	m->CompPortHandle = nullptr;
 
-	if(!FileSystem::IsDirectory(folderPath))
+	if(!FileSystem::IsFolder(folderPath))
 	{
-		B3D_LOG(Error, Generic, "Provided path \"{0}\" is not a directory", folderPath);
+		B3D_LOG(Error, LogGeneric, "Provided path \"{0}\" is not a directory", folderPath);
 		return;
 	}
 
@@ -334,7 +334,7 @@ FolderMonitor::FolderMonitor(const Path& folderPath, bool monitorSubdirectories,
 
 	if(dirHandle == INVALID_HANDLE_VALUE)
 	{
-		B3D_LOG(Error, Generic, "Failed to open folder \"{0}\" for monitoring. Error code: {1}", folderPath, (u64)GetLastError());
+		B3D_LOG(Error, LogGeneric, "Failed to open folder \"{0}\" for monitoring. Error code: {1}", folderPath, (u64)GetLastError());
 		return;
 	}
 
@@ -358,7 +358,7 @@ FolderMonitor::FolderMonitor(const Path& folderPath, bool monitorSubdirectories,
 		B3DDelete(m->LowLevelMonitor);
 		m->LowLevelMonitor = nullptr;
 
-		B3D_LOG(Error, Generic, "Failed to open completion port for folder monitoring. Error code: {0}", (u64)GetLastError());
+		B3D_LOG(Error, LogGeneric, "Failed to open completion port for folder monitoring. Error code: {0}", (u64)GetLastError());
 		return;
 	}
 
@@ -371,7 +371,7 @@ FolderMonitor::FolderMonitor(const Path& folderPath, bool monitorSubdirectories,
 			B3DDelete(m->LowLevelMonitor);
 			m->LowLevelMonitor = nullptr;
 
-			B3D_LOG(Error, Generic, "Failed to create a new worker thread for folder monitoring");
+			B3D_LOG(Error, LogGeneric, "Failed to create a new worker thread for folder monitoring");
 			return;
 		}
 	}
@@ -385,7 +385,7 @@ FolderMonitor::FolderMonitor(const Path& folderPath, bool monitorSubdirectories,
 		B3DDelete(m->LowLevelMonitor);
 		m->LowLevelMonitor = nullptr;
 
-		B3D_LOG(Error, Generic, "Failed to create a new worker thread for folder monitoring");
+		B3D_LOG(Error, LogGeneric, "Failed to create a new worker thread for folder monitoring");
 		return;
 	}
 

@@ -385,7 +385,7 @@ void RendererView::NotifyLuminanceUpdated(u64 frameIdx, SPtr<GpuCommandBuffer> c
 {
 	if(cb == nullptr)
 	{
-		B3D_LOG(Error, Renderer, "Cannot queue luminance update. (Null command buffer provided.)");
+		B3D_LOG(Error, LogRenderer, "Cannot queue luminance update. (Null command buffer provided.)");
 		return;
 	}
 

@@ -56,11 +56,11 @@ void D3D12GpuBackend::OnStartUp()
 				}
 			}
 
-			B3D_LOG(Info, RenderBackend, "D3D12 debug layer enabled.");
+			B3D_LOG(Info, LogRenderBackend, "D3D12 debug layer enabled.");
 		}
 		else
 		{
-			B3D_LOG(Warning, RenderBackend, "Failed to enable D3D12 debug layer. Install the Graphics Tools feature.");
+			B3D_LOG(Warning, LogRenderBackend, "Failed to enable D3D12 debug layer. Install the Graphics Tools feature.");
 		}
 	}
 #endif
@@ -106,7 +106,7 @@ void D3D12GpuBackend::OnStartUp()
 
 	if (availableAdapters.empty())
 	{
-		B3D_LOG(Error, RenderBackend, "No compatible D3D12 adapters found!");
+		B3D_LOG(Error, LogRenderBackend, "No compatible D3D12 adapters found!");
 		return;
 	}
 

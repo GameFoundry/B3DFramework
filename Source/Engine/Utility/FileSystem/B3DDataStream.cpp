@@ -107,7 +107,7 @@ String DataStream::GetAsString()
 			dataOffset = 4;
 		else if(IsUtF32Be(headerBytes))
 		{
-			B3D_LOG(Warning, Generic, "UTF-32 big endian decoding not supported");
+			B3D_LOG(Warning, LogGeneric, "UTF-32 big endian decoding not supported");
 			return "";
 		}
 	}
@@ -124,7 +124,7 @@ String DataStream::GetAsString()
 			dataOffset = 2;
 		else if(IsUtF16Be(headerBytes))
 		{
-			B3D_LOG(Warning, Generic, "UTF-16 big endian decoding not supported");
+			B3D_LOG(Warning, LogGeneric, "UTF-16 big endian decoding not supported");
 			return "";
 		}
 	}

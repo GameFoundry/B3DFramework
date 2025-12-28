@@ -19,7 +19,7 @@
 #include <fstream>
 
 #define HANDLE_PATH_ERROR(path__, errno__) \
-	B3D_LOG(Error, FileSystem, (String(__FUNCTION__) + ": " + (path__) + ": " + (strerror(errno__))));
+	B3D_LOG(Error, LogFileSystem, (String(__FUNCTION__) + ": " + (path__) + ": " + (strerror(errno__))));
 
 using namespace b3d;
 
@@ -129,14 +129,14 @@ bool FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 		src.close();
 		if(!src)
 		{
-			B3D_LOG(Error, FileSystem, String(__FUNCTION__) + ": renaming " + oldPathStr + " to " + newPathStr + ": " + strerror(errno));
+			B3D_LOG(Error, LogFileSystem, String(__FUNCTION__) + ": renaming " + oldPathStr + " to " + newPathStr + ": " + strerror(errno));
 			return false; // Do not remove source if we failed!
 		}
 
 		// Then, remove source file (hopefully succeeds)
 		if(std::remove(oldPathStr.c_str()) == -1)
 		{
-			B3D_LOG(Error, FileSystem, String(__FUNCTION__) + ": renaming " + oldPathStr + " to " + newPathStr + ": " + strerror(errno));
+			B3D_LOG(Error, LogFileSystem, String(__FUNCTION__) + ": renaming " + oldPathStr + " to " + newPathStr + ": " + strerror(errno));
 			return false;
 		}
 	}
@@ -155,7 +155,7 @@ SPtr<DataStream> FileSystem::OpenFile(const Path& path, bool readOnly)
 	SPtr<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(path, accessMode);
 	if(!fileDataStream->Open())
 	{
-		B3D_LOG(Warning, Platform, "Failed to open file at path '{0}'. File stream failed to open.", path);
+		B3D_LOG(Warning, LogPlatform, "Failed to open file at path '{0}'. File stream failed to open.", path);
 		return nullptr;
 	}
 
@@ -167,7 +167,7 @@ SPtr<DataStream> FileSystem::CreateAndOpenFile(const Path& path)
 	SPtr<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(path, DataStream::AccessMode::WRITE);
 	if(!fileDataStream->Open())
 	{
-		B3D_LOG(Warning, Platform, "Failed to create file at path '{0}'. File stream failed to open.", path);
+		B3D_LOG(Warning, LogPlatform, "Failed to create file at path '{0}'. File stream failed to open.", path);
 		return nullptr;
 	}
 
@@ -275,7 +275,7 @@ Path FileSystem::GetWorkingDirectoryPath()
 	if(getcwd(buffer, PATH_MAX) != nullptr)
 		wd = buffer;
 	else
-		B3D_LOG(Error, FileSystem, String("Error when calling getcwd(): ") + strerror(errno));
+		B3D_LOG(Error, LogFileSystem, String("Error when calling getcwd(): ") + strerror(errno));
 
 	B3DFree(buffer);
 	return Path(wd);
@@ -370,7 +370,7 @@ Path FileSystem::GetTempDirectoryPath()
 
 	if(directoryName == nullptr)
 	{
-		B3D_LOG(Error, FileSystem, String(__FUNCTION__) + ": " + strerror(errno));
+		B3D_LOG(Error, LogFileSystem, String(__FUNCTION__) + ": " + strerror(errno));
 		return Path(StringUtil::BLANK);
 	}
 

@@ -53,13 +53,13 @@ D3D12GpuQueryPool::D3D12GpuQueryPool(D3D12GpuDevice& device, const GpuQueryPoolC
 		break;
 
 	default:
-		B3D_LOG(Error, RenderBackend, "Unsupported query type");
+		B3D_LOG(Error, LogRenderBackend, "Unsupported query type");
 		return;
 	}
 
 	CreateQueryHeap();
 
-	B3D_LOG(Info, RenderBackend, "Created D3D12 query pool: type={0}, size={1}", (u32)createInformation.Type, mPoolSize);
+	B3D_LOG(Info, LogRenderBackend, "Created D3D12 query pool: type={0}, size={1}", (u32)createInformation.Type, mPoolSize);
 }
 
 D3D12GpuQueryPool::~D3D12GpuQueryPool()
@@ -87,7 +87,7 @@ void D3D12GpuQueryPool::CreateQueryHeap()
 	HRESULT hr = d3d12Device->CreateQueryHeap(&heapDesc, IID_PPV_ARGS(&mQueryHeap));
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create D3D12 query heap");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create D3D12 query heap");
 		return;
 	}
 
@@ -141,7 +141,7 @@ void D3D12GpuQueryPool::CreateQueryHeap()
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create query readback buffer");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create query readback buffer");
 		return;
 	}
 }
@@ -150,7 +150,7 @@ GpuQueryId D3D12GpuQueryPool::AllocateQuery()
 {
 	if (mNextQueryId >= mPoolSize)
 	{
-		B3D_LOG(Warning, RenderBackend, "Query pool exhausted, returning invalid query ID");
+		B3D_LOG(Warning, LogRenderBackend, "Query pool exhausted, returning invalid query ID");
 		return GpuQueryId();
 	}
 
@@ -179,13 +179,13 @@ u64 D3D12GpuQueryPool::GetQueryResult(GpuQueryId queryId, u32 elementIndex)
 {
 	if (!queryId.IsValid() || queryId.Id >= mNextQueryId)
 	{
-		B3D_LOG(Error, RenderBackend, "Invalid query ID: {0}", queryId.Id);
+		B3D_LOG(Error, LogRenderBackend, "Invalid query ID: {0}", queryId.Id);
 		return 0;
 	}
 
 	if (!mResolved)
 	{
-		B3D_LOG(Warning, RenderBackend, "Attempting to read query results before resolve");
+		B3D_LOG(Warning, LogRenderBackend, "Attempting to read query results before resolve");
 		return 0;
 	}
 
@@ -207,7 +207,7 @@ u64 D3D12GpuQueryPool::GetQueryResult(GpuQueryId queryId, u32 elementIndex)
 	HRESULT hr = mReadbackBuffer->Map(0, &readRange, &mappedData);
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to map query readback buffer");
+		B3D_LOG(Error, LogRenderBackend, "Failed to map query readback buffer");
 		return 0;
 	}
 
@@ -258,7 +258,7 @@ D3D12EventQuery::D3D12EventQuery(GpuDevice& device)
 	HRESULT hr = d3d12DevicePtr->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create D3D12 fence for event query");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create D3D12 fence for event query");
 	}
 }
 

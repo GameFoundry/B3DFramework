@@ -101,7 +101,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<Vulkan
 	u32 imageCount = Math::Clamp(kPreferredImageCount, surfaceCaps.minImageCount, surfaceCaps.maxImageCount);
 
 	if(imageCount < kPreferredImageCount)
-		B3D_LOG(Error, RenderBackend, "Unable to allocate adequate number of swap chain images.");
+		B3D_LOG(Error, LogRenderBackend, "Unable to allocate adequate number of swap chain images.");
 
 	VkSurfaceTransformFlagsKHR transform;
 	if(surfaceCaps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
@@ -307,7 +307,7 @@ ImageAcquireResult VulkanSwapChain::AcquireImage()
 		// If outdated ignore the error, everything should be back to normal once it is rebuilt.
 		if(!mIsSwapChainOutdated)
 		{
-			B3D_LOG(Error, RenderBackend, "Unable to acquire a swap chain image. Maximum number of images has already been acquired.");
+			B3D_LOG(Error, LogRenderBackend, "Unable to acquire a swap chain image. Maximum number of images has already been acquired.");
 		}
 
 		output = ImageAcquireResult(VK_ERROR_UNKNOWN, 0);

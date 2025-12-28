@@ -21,60 +21,60 @@ void Win32HandleError(DWORD error, const WString& path)
 	switch(error)
 	{
 	case ERROR_FILE_NOT_FOUND:
-		B3D_LOG(Error, FileSystem, "File at path: \"{0}\" not found.", path);
+		B3D_LOG(Error, LogFileSystem, "File at path: \"{0}\" not found.", path);
 		break;
 	case ERROR_PATH_NOT_FOUND:
 	case ERROR_BAD_NETPATH:
 	case ERROR_CANT_RESOLVE_FILENAME:
 	case ERROR_INVALID_DRIVE:
-		B3D_LOG(Error, FileSystem, "Path \"{0}\" not found.", path);
+		B3D_LOG(Error, LogFileSystem, "Path \"{0}\" not found.", path);
 		break;
 	case ERROR_ACCESS_DENIED:
-		B3D_LOG(Error, FileSystem, "Access to path \"{0}\" denied.", path);
+		B3D_LOG(Error, LogFileSystem, "Access to path \"{0}\" denied.", path);
 		break;
 	case ERROR_ALREADY_EXISTS:
 	case ERROR_FILE_EXISTS:
-		B3D_LOG(Error, FileSystem, "File/folder at path \"{0}\" already exists.", path);
+		B3D_LOG(Error, LogFileSystem, "File/folder at path \"{0}\" already exists.", path);
 		break;
 	case ERROR_INVALID_NAME:
 	case ERROR_DIRECTORY:
 	case ERROR_FILENAME_EXCED_RANGE:
 	case ERROR_BAD_PATHNAME:
-		B3D_LOG(Error, FileSystem, "Invalid path string: \"{0}\".", path);
+		B3D_LOG(Error, LogFileSystem, "Invalid path string: \"{0}\".", path);
 		break;
 	case ERROR_FILE_READ_ONLY:
-		B3D_LOG(Error, FileSystem, "File at path \"{0}\" is read only.", path);
+		B3D_LOG(Error, LogFileSystem, "File at path \"{0}\" is read only.", path);
 		break;
 	case ERROR_CANNOT_MAKE:
-		B3D_LOG(Error, FileSystem, "Cannot create file/folder at path: \"{0}\".", path);
+		B3D_LOG(Error, LogFileSystem, "Cannot create file/folder at path: \"{0}\".", path);
 		break;
 	case ERROR_DIR_NOT_EMPTY:
-		B3D_LOG(Error, FileSystem, "Directory at path \"{0}\" not empty.", path);
+		B3D_LOG(Error, LogFileSystem, "Directory at path \"{0}\" not empty.", path);
 		break;
 	case ERROR_WRITE_FAULT:
-		B3D_LOG(Error, FileSystem, "Error while writing a file at path \"{0}\".", path);
+		B3D_LOG(Error, LogFileSystem, "Error while writing a file at path \"{0}\".", path);
 		break;
 	case ERROR_READ_FAULT:
-		B3D_LOG(Error, FileSystem, "Error while reading a file at path \"{0}\".", path);
+		B3D_LOG(Error, LogFileSystem, "Error while reading a file at path \"{0}\".", path);
 		break;
 	case ERROR_SHARING_VIOLATION:
-		B3D_LOG(Error, FileSystem, "Sharing violation at path \"{0}\".", path);
+		B3D_LOG(Error, LogFileSystem, "Sharing violation at path \"{0}\".", path);
 		break;
 	case ERROR_LOCK_VIOLATION:
-		B3D_LOG(Error, FileSystem, "Lock violation at path \"{0}\".", path);
+		B3D_LOG(Error, LogFileSystem, "Lock violation at path \"{0}\".", path);
 		break;
 	case ERROR_HANDLE_EOF:
-		B3D_LOG(Error, FileSystem, "End of file reached for file at path \"{0}\".", path);
+		B3D_LOG(Error, LogFileSystem, "End of file reached for file at path \"{0}\".", path);
 		break;
 	case ERROR_HANDLE_DISK_FULL:
 	case ERROR_DISK_FULL:
-		B3D_LOG(Error, FileSystem, "Disk full.");
+		B3D_LOG(Error, LogFileSystem, "Disk full.");
 		break;
 	case ERROR_NEGATIVE_SEEK:
-		B3D_LOG(Error, FileSystem, "Negative seek.");
+		B3D_LOG(Error, LogFileSystem, "Negative seek.");
 		break;
 	default:
-		B3D_LOG(Error, FileSystem, "Undefined file system exception: {0}", (u32)error);
+		B3D_LOG(Error, LogFileSystem, "Undefined file system exception: {0}", (u32)error);
 		break;
 	}
 }
@@ -304,7 +304,7 @@ SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 
 	if(!Win32PathExists(pathString) || !Win32IsFile(pathString))
 	{
-		B3D_LOG(Warning, Platform, "Failed to open file at path '{0}'. File doesn't exist.", fullPath);
+		B3D_LOG(Warning, LogPlatform, "Failed to open file at path '{0}'. File doesn't exist.", fullPath);
 		return nullptr;
 	}
 
@@ -315,7 +315,7 @@ SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 	SPtr<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(fullPath, accessMode);
 	if(!fileDataStream->Open())
 	{
-		B3D_LOG(Warning, Platform, "Failed to open file at path '{0}'. File stream failed to open.", fullPath);
+		B3D_LOG(Warning, LogPlatform, "Failed to open file at path '{0}'. File stream failed to open.", fullPath);
 		return nullptr;
 	}
 
@@ -327,7 +327,7 @@ SPtr<DataStream> FileSystem::CreateAndOpenFile(const Path& fullPath)
 	SPtr<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(fullPath, DataStream::AccessMode::WRITE);
 	if(!fileDataStream->Open())
 	{
-		B3D_LOG(Warning, Platform, "Failed to create file at path '{0}'. File stream failed to open.", fullPath);
+		B3D_LOG(Warning, LogPlatform, "Failed to create file at path '{0}'. File stream failed to open.", fullPath);
 		return nullptr;
 	}
 
@@ -351,14 +351,14 @@ bool FileSystem::IsFile(const Path& fullPath)
 	return Win32PathExists(pathStr) && Win32IsFile(pathStr);
 }
 
-bool FileSystem::IsDirectory(const Path& fullPath)
+bool FileSystem::IsFolder(const Path& fullPath)
 {
 	WString pathStr = UTF8::ToWide(fullPath.ToString());
 
 	return Win32PathExists(pathStr) && Win32IsDirectory(pathStr);
 }
 
-bool FileSystem::CreateDir(const Path& fullPath)
+bool FileSystem::CreateFolder(const Path& fullPath)
 {
 	Path parentPath = fullPath;
 	while(!Exists(parentPath) && parentPath.GetDirectoryCount() > 0)
@@ -511,13 +511,13 @@ std::time_t FileSystem::GetLastModifiedTime(const Path& fullPath)
 	return Win32GetLastModifiedTime(UTF8::ToWide(fullPath.ToString()));
 }
 
-Path FileSystem::GetWorkingDirectoryPath()
+Path FileSystem::GetWorkingFolderPath()
 {
 	wchar_t path[MAX_PATH];
 	DWORD characterCount = GetModuleFileNameW(nullptr, path, (DWORD)B3DSize(path));
 	if(characterCount == 0)
 	{
-		B3D_LOG(Error, FileSystem, "Internal error. Failed to retrieve current module path.");
+		B3D_LOG(Error, LogFileSystem, "Internal error. Failed to retrieve current module path.");
 		return Path::kBlank;
 	}
 
@@ -527,7 +527,7 @@ Path FileSystem::GetWorkingDirectoryPath()
 	return pathToModule;
 }
 
-Path FileSystem::GetTempDirectoryPath()
+Path FileSystem::GetTemporaryFolderPath()
 {
 	const String utf8dir = UTF8::FromWide(Win32GetTempDirectory());
 	return Path(utf8dir);
@@ -535,7 +535,7 @@ Path FileSystem::GetTempDirectoryPath()
 
 Path FileSystem::GetUniqueTemporaryFilePath()
 {
-	Path output = GetTempDirectoryPath();
+	Path output = GetTemporaryFolderPath();
 	output.SetFilename(UUIDGenerator::GenerateRandom().ToString());
 
 	while(Exists(output))
@@ -554,6 +554,6 @@ Path FileSystem::GetApplicationDataFolder()
 	}
 
 	// Fallback
-	return GetWorkingDirectoryPath();
+	return GetWorkingFolderPath();
 }
 

@@ -176,13 +176,13 @@ namespace b3d
 	}                                                                                                                                                                                                                        \
 	while(0)
 
-	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Uncategorized, Log)
-	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(FileSystem, Log)
-	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(RTTI, Log)
-	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Generic, Log)
-	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Platform, Log)
-	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Serialization, Log)
-	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(UnitTest, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(LogUncategorized, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(LogFileSystem, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(LogRTTI, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(LogGeneric, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(LogPlatform, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(LogSerialization, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(LogUnitTest, Log)
 
 	// Ensure that our ensure macro implementation is correctly not inlined on MSVC
 	template <typename ReturnType = void, class Function>
@@ -197,7 +197,7 @@ namespace b3d
 			if (!sHasFailureBeenReported || alwaysCheck) \
 			{ \
 				sHasFailureBeenReported = true; \
-				B3D_LOG(Error, Uncategorized, ##__VA_ARGS__); \
+				B3D_LOG(Error, LogUncategorized, ##__VA_ARGS__); \
 				return true; \
 			} \
 			return false; }) && ([]() { B3D_BREAK(); }(), false)))

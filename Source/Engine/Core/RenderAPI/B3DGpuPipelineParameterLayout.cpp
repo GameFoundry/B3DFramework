@@ -18,21 +18,21 @@ GpuPipelineParameterSetLayout::GpuPipelineParameterSetLayout(const GpuProgramPar
 		{
 			if(found->second.Type != type)
 			{
-				B3D_LOG(Warning, RenderBackend, "Found a uniform with same name {0}, but a different type. One has type {1}, and other {2}",
+				B3D_LOG(Warning, LogRenderBackend, "Found a uniform with same name {0}, but a different type. One has type {1}, and other {2}",
 					entry.Name, (u32)type, (u32)found->second.Type);
 				return;
 			}
 		
 			if(found->second.Set != entry.Set || found->second.Slot != entry.Slot)
 			{
-				B3D_LOG(Warning, RenderBackend, "Found a uniform with same name {0}, but a different set/slot combination. One is using set:{1}, slot:{2}, and other set:{3}, slot:{4}",
+				B3D_LOG(Warning, LogRenderBackend, "Found a uniform with same name {0}, but a different set/slot combination. One is using set:{1}, slot:{2}, and other set:{3}, slot:{4}",
 					entry.Name, entry.Set, entry.Slot, found->second.Set, found->second.Slot);
 				return;
 			}
 
 			if(found->second.ArraySize != arraySize)
 			{
-				B3D_LOG(Warning, RenderBackend, "Found a uniform with same name {0}, but a different array size. One has array size {1}, and other {2}",
+				B3D_LOG(Warning, LogRenderBackend, "Found a uniform with same name {0}, but a different array size. One has array size {1}, and other {2}",
 					entry.Name, arraySize, found->second.ArraySize);
 				return;
 			}
@@ -44,7 +44,7 @@ GpuPipelineParameterSetLayout::GpuPipelineParameterSetLayout(const GpuProgramPar
 		// Ensure provided set/slot combination is valid
 		if(entry.Set == ~0u || entry.Slot == ~0u)
 		{
-			B3D_LOG(Warning, RenderBackend, "Invalid set/slot combination provided for uniform {0}. Set: {1}, slot: {2}", entry.Name, entry.Set, entry.Slot);
+			B3D_LOG(Warning, LogRenderBackend, "Invalid set/slot combination provided for uniform {0}. Set: {1}, slot: {2}", entry.Name, entry.Set, entry.Slot);
 			return;
 		}
 
@@ -94,7 +94,7 @@ GpuPipelineParameterSetLayout::GpuPipelineParameterSetLayout(const GpuProgramPar
 				const bool isPotentialCombinedSampler = (uniformInformation.Type == GpuParameterType::SampledTexture && otherUniformInformation->Type == GpuParameterType::Sampler || uniformInformation.Type == GpuParameterType::Sampler && otherUniformInformation->Type == GpuParameterType::SampledTexture);
 				if(!isPotentialCombinedSampler)
 				{
-					B3D_LOG(Warning, RenderBackend, "Provided set/slot combination for uniform {0} is already in use by {1}. Set: {2}, slot: {3}", it->first, mUniforms[uniformInformation.Slot]->Name, uniformInformation.Set, uniformInformation.Slot);
+					B3D_LOG(Warning, LogRenderBackend, "Provided set/slot combination for uniform {0} is already in use by {1}. Set: {2}, slot: {3}", it->first, mUniforms[uniformInformation.Slot]->Name, uniformInformation.Set, uniformInformation.Slot);
 
 					mUniformMap.erase(it);
 
@@ -120,7 +120,7 @@ GpuPipelineParameterSetLayout::GpuPipelineParameterSetLayout(const GpuProgramPar
 		// Ensure provided set/slot combination is valid
 		if(entry.ParentUniformBufferSet == ~0u || entry.ParentUniformBufferSlot == ~0u)
 		{
-			B3D_LOG(Warning, RenderBackend, "Invalid uniform buffer set/slot combination provided for uniform buffer member {0}. Set: {1}, slot: {2}", entry.Name, entry.ParentUniformBufferSet, entry.ParentUniformBufferSlot);
+			B3D_LOG(Warning, LogRenderBackend, "Invalid uniform buffer set/slot combination provided for uniform buffer member {0}. Set: {1}, slot: {2}", entry.Name, entry.ParentUniformBufferSet, entry.ParentUniformBufferSlot);
 			return;
 		}
 
@@ -129,7 +129,7 @@ GpuPipelineParameterSetLayout::GpuPipelineParameterSetLayout(const GpuProgramPar
 		{
 			if(found->second != entry)
 			{
-				B3D_LOG(Warning, RenderBackend, "Found a uniform member with same name {0}, but different type information.", entry.Name);
+				B3D_LOG(Warning, LogRenderBackend, "Found a uniform member with same name {0}, but different type information.", entry.Name);
 			}
 
 			return;
@@ -205,7 +205,7 @@ u32 GpuPipelineParameterSetLayout::GetSequentialResourceIndex(u32 slot, u32 arra
 #if B3D_DEBUG
 	if(slot >= mUniforms.size() || mUniforms[slot] == nullptr)
 	{
-		B3D_LOG(Error, RenderBackend, "Slot index doesn't exist in the set. Requested: {1}.", slot);
+		B3D_LOG(Error, LogRenderBackend, "Slot index doesn't exist in the set. Requested: {1}.", slot);
 		return ~0u;
 	}
 #endif
@@ -215,7 +215,7 @@ u32 GpuPipelineParameterSetLayout::GetSequentialResourceIndex(u32 slot, u32 arra
 #if B3D_DEBUG
 	if(arrayIndex >= uniformInformation.ArraySize)
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot retrieve sequential resource index. Array index out of range: Valid range: [0, {0}). Requested: {1}.", uniformInformation.ArraySize, arrayIndex);
+		B3D_LOG(Error, LogRenderBackend, "Cannot retrieve sequential resource index. Array index out of range: Valid range: [0, {0}). Requested: {1}.", uniformInformation.ArraySize, arrayIndex);
 		return -1;
 	}
 #endif
@@ -229,7 +229,7 @@ u32 GpuPipelineParameterSetLayout::GetSequentialBindingIndex(u32 slot) const
 #if B3D_DEBUG
 	if(slot >= mUniforms.size() || mUniforms[slot] == nullptr)
 	{
-		B3D_LOG(Error, RenderBackend, "Slot index doesn't exist in the set. Requested: {0}.", slot);
+		B3D_LOG(Error, LogRenderBackend, "Slot index doesn't exist in the set. Requested: {0}.", slot);
 		return ~0u;
 	}
 #endif
@@ -242,7 +242,7 @@ u32 GpuPipelineParameterSetLayout::GetSlot(GpuParameterType type, u32 sequential
 #if B3D_DEBUG
 	if(sequentialBindingIndex >= mUniformsPerType[(u32)type].size())
 	{
-		B3D_LOG(Error, RenderBackend, "Sequential slot index out of range: Valid range: [0, {0}). Requested: {1}.", mUniformsPerType[(u32)type].size(), sequentialBindingIndex);
+		B3D_LOG(Error, LogRenderBackend, "Sequential slot index out of range: Valid range: [0, {0}). Requested: {1}.", mUniformsPerType[(u32)type].size(), sequentialBindingIndex);
 		return 0;
 	}
 
@@ -266,7 +266,7 @@ u32 GpuPipelineParameterSetLayout::GetArraySize(GpuParameterType type, u32 seque
 #if B3D_DEBUG
 	if(sequentialBindingIndex >= mUniformsPerType[(u32)type].size())
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot retrieve array size. Sequential binding index out of range: Valid range: [0, {0}). Requested: {1}.", mUniformsPerType[(u32)type].size(), sequentialBindingIndex);
+		B3D_LOG(Error, LogRenderBackend, "Cannot retrieve array size. Sequential binding index out of range: Valid range: [0, {0}). Requested: {1}.", mUniformsPerType[(u32)type].size(), sequentialBindingIndex);
 		return 0;
 	}
 
@@ -282,7 +282,7 @@ u32 GpuPipelineParameterSetLayout::GetDynamicOffsetIndex(u32 slot, u32 arrayInde
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	if(slot >= mUniforms.size() || mUniforms[slot] == nullptr)
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot retrieve dynamic offset index. Slot index doesn't exist in the set. Requested: {0}.", slot);
+		B3D_LOG(Error, LogRenderBackend, "Cannot retrieve dynamic offset index. Slot index doesn't exist in the set. Requested: {0}.", slot);
 		return ~0u;
 	}
 #endif
@@ -292,7 +292,7 @@ u32 GpuPipelineParameterSetLayout::GetDynamicOffsetIndex(u32 slot, u32 arrayInde
 #if B3D_DEBUG
 	if(arrayIndex >= uniformInformation.ArraySize)
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot retrieve dynamic offset index. Array index out of range: Valid range: [0, {0}). Requested: {1}.", uniformInformation.ArraySize, arrayIndex);
+		B3D_LOG(Error, LogRenderBackend, "Cannot retrieve dynamic offset index. Array index out of range: Valid range: [0, {0}). Requested: {1}.", uniformInformation.ArraySize, arrayIndex);
 		return -1;
 	}
 #endif
@@ -379,7 +379,7 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const 
 		for(u32 setIndex = 0; setIndex < programPerSetDescriptions.size(); setIndex++)
 		{
 			if(Result result = perSetParameterDescriptions[setIndex].TryCombine(programPerSetDescriptions[setIndex], stageBit); !result.IsSuccessful())
-				B3D_LOG(Warning, RenderBackend, "{0}", result.GetFullErrorMessage());
+				B3D_LOG(Warning, LogRenderBackend, "{0}", result.GetFullErrorMessage());
 		}
 	}
 

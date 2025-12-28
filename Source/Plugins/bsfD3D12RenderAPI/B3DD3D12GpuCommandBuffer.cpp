@@ -336,7 +336,7 @@ void D3D12GpuCommandBuffer::SetGpuParameterSet(const SPtr<GpuParameterSet>& para
 void D3D12GpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset)
 {
 	// TODO: Implement dynamic buffer offsets using root descriptors
-	B3D_LOG(Warning, RenderBackend, "Dynamic buffer offsets not yet implemented for D3D12");
+	B3D_LOG(Warning, LogRenderBackend, "Dynamic buffer offsets not yet implemented for D3D12");
 }
 
 void D3D12GpuCommandBuffer::SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState)
@@ -495,13 +495,13 @@ void D3D12GpuCommandBuffer::SetViewport(const Area2& area)
 void D3D12GpuCommandBuffer::ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask)
 {
 	// TODO: Implement render target clearing
-	B3D_LOG(Warning, RenderBackend, "ClearRenderTarget not yet fully implemented for D3D12");
+	B3D_LOG(Warning, LogRenderBackend, "ClearRenderTarget not yet fully implemented for D3D12");
 }
 
 void D3D12GpuCommandBuffer::ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask)
 {
 	// TODO: Implement viewport clearing
-	B3D_LOG(Warning, RenderBackend, "ClearViewport not yet fully implemented for D3D12");
+	B3D_LOG(Warning, LogRenderBackend, "ClearViewport not yet fully implemented for D3D12");
 }
 
 void D3D12GpuCommandBuffer::EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom)
@@ -533,7 +533,7 @@ void D3D12GpuCommandBuffer::WriteTimestamp(GpuQueryId query, const SPtr<GpuQuery
 
 	if (!query.IsValid() || !queryPool)
 	{
-		B3D_LOG(Error, RenderBackend, "Invalid query or query pool");
+		B3D_LOG(Error, LogRenderBackend, "Invalid query or query pool");
 		return;
 	}
 
@@ -541,7 +541,7 @@ void D3D12GpuCommandBuffer::WriteTimestamp(GpuQueryId query, const SPtr<GpuQuery
 
 	if (d3d12QueryPool->GetQueryType() != GpuQueryType::Timestamp)
 	{
-		B3D_LOG(Error, RenderBackend, "Query pool is not a timestamp query pool");
+		B3D_LOG(Error, LogRenderBackend, "Query pool is not a timestamp query pool");
 		return;
 	}
 
@@ -556,7 +556,7 @@ void D3D12GpuCommandBuffer::BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool
 
 	if (!query.IsValid() || !queryPool)
 	{
-		B3D_LOG(Error, RenderBackend, "Invalid query or query pool");
+		B3D_LOG(Error, LogRenderBackend, "Invalid query or query pool");
 		return;
 	}
 
@@ -565,7 +565,7 @@ void D3D12GpuCommandBuffer::BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool
 	// Timestamp queries don't support BeginQuery
 	if (d3d12QueryPool->GetQueryType() == GpuQueryType::Timestamp)
 	{
-		B3D_LOG(Error, RenderBackend, "Timestamp queries don't support BeginQuery, use WriteTimestamp instead");
+		B3D_LOG(Error, LogRenderBackend, "Timestamp queries don't support BeginQuery, use WriteTimestamp instead");
 		return;
 	}
 
@@ -580,7 +580,7 @@ void D3D12GpuCommandBuffer::EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>&
 
 	if (!query.IsValid() || !queryPool)
 	{
-		B3D_LOG(Error, RenderBackend, "Invalid query or query pool");
+		B3D_LOG(Error, LogRenderBackend, "Invalid query or query pool");
 		return;
 	}
 
@@ -589,7 +589,7 @@ void D3D12GpuCommandBuffer::EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>&
 	// Timestamp queries don't support EndQuery
 	if (d3d12QueryPool->GetQueryType() == GpuQueryType::Timestamp)
 	{
-		B3D_LOG(Error, RenderBackend, "Timestamp queries don't support EndQuery, use WriteTimestamp instead");
+		B3D_LOG(Error, LogRenderBackend, "Timestamp queries don't support EndQuery, use WriteTimestamp instead");
 		return;
 	}
 
@@ -604,7 +604,7 @@ void D3D12GpuCommandBuffer::ResetQueries(const SPtr<GpuQueryPool>& queryPool)
 
 	if (!queryPool)
 	{
-		B3D_LOG(Error, RenderBackend, "Invalid query pool");
+		B3D_LOG(Error, LogRenderBackend, "Invalid query pool");
 		return;
 	}
 

@@ -64,7 +64,7 @@ OAAudio::OAAudio()
 		mDevice = alcOpenDevice(nullptr);
 
 	if(mDevice == nullptr)
-		B3D_LOG(Error, Audio, "Failed to open OpenAL device: {0}", defaultDeviceName);
+		B3D_LOG(Error, LogAudio, "Failed to open OpenAL device: {0}", defaultDeviceName);
 
 	RebuildContexts();
 }
@@ -131,7 +131,7 @@ void OAAudio::SetActiveDevice(const AudioDevice& device)
 	String narrowName = device.Name;
 	mDevice = alcOpenDevice(narrowName.c_str());
 	if(mDevice == nullptr)
-		B3D_LOG(Error, Audio, "Failed to open OpenAL device: ", narrowName);
+		B3D_LOG(Error, LogAudio, "Failed to open OpenAL device: ", narrowName);
 
 	RebuildContexts();
 }
@@ -205,7 +205,7 @@ ALCcontext* OAAudio::GetContext(const OAAudioListener* listener) const
 	else
 		return mContexts[0];
 
-	B3D_LOG(Error, Audio, "Unable to find context for an audio listener.");
+	B3D_LOG(Error, LogAudio, "Unable to find context for an audio listener.");
 	return nullptr;
 }
 
@@ -378,7 +378,7 @@ void OAAudio::WriteToOpenALBuffer(u32 bufferId, u8* samples, const AudioDataInfo
 			}
 			else
 			{
-				B3D_LOG(Warning, RenderBackend, "OpenAL doesn't support bit depth larger than 16. Your audio data will be truncated.");
+				B3D_LOG(Warning, LogRenderBackend, "OpenAL doesn't support bit depth larger than 16. Your audio data will be truncated.");
 
 				u32 bufferSize = info.SampleCount * 2;
 				u8* sampleBuffer16 = (u8*)B3DStackAllocate(bufferSize);

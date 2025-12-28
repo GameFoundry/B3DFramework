@@ -63,7 +63,7 @@ void MonoAssembly::Load()
 	SPtr<DataStream> assemblyStream = FileSystem::OpenFile(mPath, true);
 	if(assemblyStream == nullptr)
 	{
-		B3D_LOG(Error, Script, "Cannot load assembly at path \"{0}\" because the file doesn't exist", mPath);
+		B3D_LOG(Error, LogScript, "Cannot load assembly at path \"{0}\" because the file doesn't exist", mPath);
 		return;
 	}
 
@@ -79,7 +79,7 @@ void MonoAssembly::Load()
 
 	if(status != MONO_IMAGE_OK || image == nullptr)
 	{
-		B3D_LOG(Error, Script, "Failed loading image data for assembly \"{0}\"", mPath);
+		B3D_LOG(Error, LogScript, "Failed loading image data for assembly \"{0}\"", mPath);
 		return;
 	}
 
@@ -106,7 +106,7 @@ void MonoAssembly::Load()
 	mMonoAssembly = mono_assembly_load_from_full(image, imageName.c_str(), &status, false);
 	if(status != MONO_IMAGE_OK || mMonoAssembly == nullptr)
 	{
-		B3D_LOG(Error, Script, "Failed loading assembly \"{0}\"", mPath);
+		B3D_LOG(Error, LogScript, "Failed loading assembly \"{0}\"", mPath);
 		return;
 	}
 

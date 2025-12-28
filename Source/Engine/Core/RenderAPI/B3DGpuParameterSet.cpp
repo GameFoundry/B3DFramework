@@ -154,7 +154,7 @@ bool TGpuParameterSet<IsRenderProxy>::SetUniformBuffer(u32 slot, const UniformBu
 	const u32 sequentialResourceIndex = mParameterSetLayout->GetSequentialResourceIndex(slot, arrayIndex);
 	if (sequentialResourceIndex == ~0u)
 	{
-		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find uniform buffer with the set/slot combination: {0}/{1}", mSet, slot);
+		B3D_LOG(Warning, LogRenderBackend, "Unable to assign parameter. Cannot find uniform buffer with the set/slot combination: {0}/{1}", mSet, slot);
 		return false;
 	}
 
@@ -171,7 +171,7 @@ bool TGpuParameterSet<IsRenderProxy>::SetUniformBuffer(const StringView& name, c
 	const u32 slot = mParameterSetLayout->GetSlot(name);
 	if(slot == ~0u)
 	{
-		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find uniform buffer with name: {0}", name);
+		B3D_LOG(Warning, LogRenderBackend, "Unable to assign parameter. Cannot find uniform buffer with name: {0}", name);
 		return false;
 	}
 
@@ -192,49 +192,49 @@ template <class T>
 void TGpuParameterSet<IsRenderProxy>::GetParameter(const StringView& name, TGpuParameterPrimitive<T, IsRenderProxy>& output) const
 {
 	if(!TryGetParameter(name, output))
-		B3D_LOG(Warning, RenderBackend, "Cannot find parameter with the name: '{0}'", name);
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find parameter with the name: '{0}'", name);
 }
 
 template <bool IsRenderProxy>
 void TGpuParameterSet<IsRenderProxy>::GetStructParameter(const StringView& name, TGpuParameterStruct<IsRenderProxy>& output) const
 {
 	if(!TryGetStructParameter(name, output))
-		B3D_LOG(Warning, RenderBackend, "Cannot find struct parameter with the name: '{0}'", name);
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find struct parameter with the name: '{0}'", name);
 }
 
 template <bool IsRenderProxy>
 void TGpuParameterSet<IsRenderProxy>::GetSampledTextureParameter(const StringView& name, TGpuParameterSampledTexture<IsRenderProxy>& output) const
 {
 	if(!TryGetSampledTextureParameter(name, output))
-		B3D_LOG(Warning, RenderBackend, "Cannot find texture parameter with the name: '{0}'", name);
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find texture parameter with the name: '{0}'", name);
 }
 
 template <bool IsRenderProxy>
 void TGpuParameterSet<IsRenderProxy>::GetStorageTextureParameter(const StringView& name, TGpuParameterStorageTexture<IsRenderProxy>& output) const
 {
 	if(!TryGetStorageTextureParameter(name, output))
-		B3D_LOG(Warning, RenderBackend, "Cannot find storage texture parameter with the name: '{0}'", name);
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find storage texture parameter with the name: '{0}'", name);
 }
 
 template <bool IsRenderProxy>
 void TGpuParameterSet<IsRenderProxy>::GetStorageBufferParameter(const StringView& name, TGpuParameterStorageBuffer<IsRenderProxy>& output) const
 {
 	if(!TryGetStorageBufferParameter(name, output))
-		B3D_LOG(Warning, RenderBackend, "Cannot find storage buffer parameter with the name: '{0}'", name);
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find storage buffer parameter with the name: '{0}'", name);
 }
 
 template <bool IsRenderProxy>
 void TGpuParameterSet<IsRenderProxy>::GetUniformBufferParameter(const StringView& name, TGpuParameterUniformBuffer<IsRenderProxy>& output) const
 {
 	if(!TryGetUniformBufferParameter(name, output))
-		B3D_LOG(Warning, RenderBackend, "Cannot find uniform buffer parameter with the name: '{0}'", name);
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find uniform buffer parameter with the name: '{0}'", name);
 }
 
 template <bool IsRenderProxy>
 void TGpuParameterSet<IsRenderProxy>::GetSamplerStateParameter(const StringView& name, TGpuParameterSampler<IsRenderProxy>& output) const
 {
 	if(!TryGetSamplerStateParameter(name, output))
-		B3D_LOG(Warning, RenderBackend, "Cannot find sampler parameter with the name: '{0}'", name);
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find sampler parameter with the name: '{0}'", name);
 }
 
 template <bool IsRenderProxy>
@@ -416,7 +416,7 @@ bool TGpuParameterSet<IsRenderProxy>::SetSampledTexture(u32 slot, const TextureT
 	const u32 sequentialArrayIndex = mParameterSetLayout->GetSequentialResourceIndex(slot, arrayIndex);
 	if (sequentialArrayIndex == ~0u)
 	{
-		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find sampled texture parameter with the set/slot combination: {0}/{1}", mSet, slot);
+		B3D_LOG(Warning, LogRenderBackend, "Unable to assign parameter. Cannot find sampled texture parameter with the set/slot combination: {0}/{1}", mSet, slot);
 		return false;
 	}
 
@@ -435,7 +435,7 @@ bool TGpuParameterSet<IsRenderProxy>::SetStorageTexture(u32 slot, const TextureT
 	const u32 sequentialArrayIndex = mParameterSetLayout->GetSequentialResourceIndex(slot, arrayIndex);
 	if (sequentialArrayIndex == ~0u)
 	{
-		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find storage texture parameter with the set/slot combination: {0}/{1}", mSet, slot);
+		B3D_LOG(Warning, LogRenderBackend, "Unable to assign parameter. Cannot find storage texture parameter with the set/slot combination: {0}/{1}", mSet, slot);
 		return false;
 	}
 
@@ -454,7 +454,7 @@ bool TGpuParameterSet<IsRenderProxy>::SetStorageBuffer(u32 slot, const BufferTyp
 	const u32 sequentialArrayIndex = mParameterSetLayout->GetSequentialResourceIndex(slot, arrayIndex);
 	if (sequentialArrayIndex == ~0u)
 	{
-		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find buffer parameter with the set/slot combination: {0}/{1}", mSet, slot);
+		B3D_LOG(Warning, LogRenderBackend, "Unable to assign parameter. Cannot find buffer parameter with the set/slot combination: {0}/{1}", mSet, slot);
 		return false;
 	}
 
@@ -473,7 +473,7 @@ bool TGpuParameterSet<IsRenderProxy>::SetSamplerState(u32 slot, const SPtr<Sampl
 	const u32 sequentialArrayIndex = mParameterSetLayout->GetSequentialResourceIndex(slot, arrayIndex);
 	if (sequentialArrayIndex == ~0u)
 	{
-		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find sampler parameter with the set/slot combination: {0}/{1}", mSet, slot);
+		B3D_LOG(Warning, LogRenderBackend, "Unable to assign parameter. Cannot find sampler parameter with the set/slot combination: {0}/{1}", mSet, slot);
 		return false;
 	}
 

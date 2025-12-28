@@ -54,7 +54,7 @@ void ScriptManagedComponent::InternalInvoke(ScriptManagedComponent* self, MonoSt
 
 	if(!found)
 	{
-		B3D_LOG(Warning, Script, "Method invoke failed. Cannot find method \"{0}\" on component of type \"{1}\".", methodName, compClass->GetTypeName());
+		B3D_LOG(Warning, LogScript, "Method invoke failed. Cannot find method \"{0}\" on component of type \"{1}\".", methodName, compClass->GetTypeName());
 	}
 }
 

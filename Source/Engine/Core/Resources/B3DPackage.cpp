@@ -328,7 +328,7 @@ void Package::AddResource(const Path& path, const SPtr<Resource>& resource)
 
 		if (id.Empty())
 		{
-			B3D_LOG(Error, Resources, "Cannot register resource in package {0} ({1}) at path {2}. Provided resource id is empty.", mName, mAssociatedPackageFilePath, path);
+			B3D_LOG(Error, LogResources, "Cannot register resource in package {0} ({1}) at path {2}. Provided resource id is empty.", mName, mAssociatedPackageFilePath, path);
 			return;
 		}
 	}
@@ -339,13 +339,13 @@ void Package::AddResource(const Path& path, const SPtr<Resource>& resource)
 
 	if (path.IsAbsolute())
 	{
-		B3D_LOG(Error, Resources, "Cannot register resource in package {0} ({1}) at path {2}. Provided path must be relative. ", mName, mAssociatedPackageFilePath, path);
+		B3D_LOG(Error, LogResources, "Cannot register resource in package {0} ({1}) at path {2}. Provided path must be relative. ", mName, mAssociatedPackageFilePath, path);
 		return;
 	}
 
 	if (path.IsEmpty())
 	{
-		B3D_LOG(Error, Resources, "Cannot register resource in package {0} ({1}). Provided path must not be empty. ", mName, mAssociatedPackageFilePath);
+		B3D_LOG(Error, LogResources, "Cannot register resource in package {0} ({1}). Provided path must not be empty. ", mName, mAssociatedPackageFilePath);
 		return;
 	}
 
@@ -379,13 +379,13 @@ void Package::AddResource(const Path& path, const SPtr<Resource>& resource)
 
 	if (mResourceInformationByPath.find(path) != mResourceInformationByPath.end())
 	{
-		B3D_LOG(Error, Resources, "Cannot register resource in package {0} ({1}) at path {2}. Resource at path already exists. ", mName, mAssociatedPackageFilePath, path);
+		B3D_LOG(Error, LogResources, "Cannot register resource in package {0} ({1}) at path {2}. Resource at path already exists. ", mName, mAssociatedPackageFilePath, path);
 		return;
 	}
 
 	if (mResourceInformationByUUID.find(id) != mResourceInformationByUUID.end())
 	{
-		B3D_LOG(Error, Resources, "Cannot register resource in package {0} ({1}) at path {2}. Resource with UUID {3} already exists. ", mName, mAssociatedPackageFilePath, path, id);
+		B3D_LOG(Error, LogResources, "Cannot register resource in package {0} ({1}) at path {2}. Resource with UUID {3} already exists. ", mName, mAssociatedPackageFilePath, path, id);
 	}
 
 	mResourceInformationByPath[path] = resourceInformation.get();
@@ -446,21 +446,21 @@ void Package::RemoveResource(const UUID& id, bool recursive)
 		return;
 	}
 
-	B3D_LOG(Warning, Resources, "Cannot remove resource {0} from package {1} ({2}). Provided resource is not part of this package.", id, mName, mAssociatedPackageFilePath);
+	B3D_LOG(Warning, LogResources, "Cannot remove resource {0} from package {1} ({2}). Provided resource is not part of this package.", id, mName, mAssociatedPackageFilePath);
 }
 
 void Package::SetResource(const SPtr<Resource>& resource, bool markAsDirty)
 {
 	if(resource == nullptr)
 	{
-		B3D_LOG(Error, Resources, "Cannot change resource in package {0} ({1}). Provided resource is null.", mName, mAssociatedPackageFilePath);
+		B3D_LOG(Error, LogResources, "Cannot change resource in package {0} ({1}). Provided resource is null.", mName, mAssociatedPackageFilePath);
 		return;
 	}
 
 	const UUID& id = resource->GetId();
 	if (id.Empty())
 	{
-		B3D_LOG(Error, Resources, "Cannot change resource in package {0} ({1}). Provided resource id is empty.", mName, mAssociatedPackageFilePath);
+		B3D_LOG(Error, LogResources, "Cannot change resource in package {0} ({1}). Provided resource id is empty.", mName, mAssociatedPackageFilePath);
 		return;
 	}
 
@@ -495,19 +495,19 @@ bool Package::SetResourcePath(const UUID& id, const Path& path, bool recursive)
 {
 	if (id.Empty())
 	{
-		B3D_LOG(Error, Resources, "Unable to set resource path '{2}' in package {0} ({1}). Provided resource id is empty.", mName, mAssociatedPackageFilePath, path);
+		B3D_LOG(Error, LogResources, "Unable to set resource path '{2}' in package {0} ({1}). Provided resource id is empty.", mName, mAssociatedPackageFilePath, path);
 		return false;
 	}
 
 	if(path.IsAbsolute())
 	{
-		B3D_LOG(Error, Resources, "Unable to set resource path '{2}' in package {0} ({1}). Provided path must be relative. ", mName, mAssociatedPackageFilePath, path);
+		B3D_LOG(Error, LogResources, "Unable to set resource path '{2}' in package {0} ({1}). Provided path must be relative. ", mName, mAssociatedPackageFilePath, path);
 		return false;
 	}
 
 	if(path.IsEmpty())
 	{
-		B3D_LOG(Error, Resources, "Unable to set resource path in package {0} ({1}). Provided path must not be empty. ", mName, mAssociatedPackageFilePath);
+		B3D_LOG(Error, LogResources, "Unable to set resource path in package {0} ({1}). Provided path must not be empty. ", mName, mAssociatedPackageFilePath);
 		return false;
 	}
 
@@ -522,7 +522,7 @@ bool Package::SetResourcePath(const UUID& id, const Path& path, bool recursive)
 
 	if (const auto found = mResourceInformationByPath.find(path); found != mResourceInformationByPath.end())
 	{
-		B3D_LOG(Error, Resources, "Unable to set resource path '{2}' in package {0} ({1}). Resource at path already exists. ", mName, mAssociatedPackageFilePath, path);
+		B3D_LOG(Error, LogResources, "Unable to set resource path '{2}' in package {0} ({1}). Resource at path already exists. ", mName, mAssociatedPackageFilePath, path);
 		return false;
 	}
 
@@ -533,13 +533,13 @@ bool Package::SetResourcePath(const Path& path, const Path& newPath, bool recurs
 {
 	if(path.IsAbsolute())
 	{
-		B3D_LOG(Error, Resources, "Unable to set resource path '{2}' in package {0} ({1}). Provided path must be relative. ", mName, mAssociatedPackageFilePath, path);
+		B3D_LOG(Error, LogResources, "Unable to set resource path '{2}' in package {0} ({1}). Provided path must be relative. ", mName, mAssociatedPackageFilePath, path);
 		return false;
 	}
 
 	if(path.IsEmpty())
 	{
-		B3D_LOG(Error, Resources, "Unable to set resource path in package {0} ({1}). Provided path must not be empty. ", mName, mAssociatedPackageFilePath);
+		B3D_LOG(Error, LogResources, "Unable to set resource path in package {0} ({1}). Provided path must not be empty. ", mName, mAssociatedPackageFilePath);
 		return false;
 	}
 
@@ -552,7 +552,7 @@ bool Package::SetResourcePath(const Path& path, const Path& newPath, bool recurs
 	{
 		if (const auto foundNew = mResourceInformationByPath.find(newPath); foundNew != mResourceInformationByPath.end())
 		{
-			B3D_LOG(Error, Resources, "Unable to set resource path '{2}' in package {0} ({1}). Resource at path already exists. ", mName, mAssociatedPackageFilePath, newPath);
+			B3D_LOG(Error, LogResources, "Unable to set resource path '{2}' in package {0} ({1}). Resource at path already exists. ", mName, mAssociatedPackageFilePath, newPath);
 			return false;
 		}
 
@@ -607,7 +607,7 @@ SPtr<Resource> Package::LoadResource(const Path& path)
 			id = found->second->MetaData->Id;
 		else
 		{
-			B3D_LOG(Warning, Resources, "Failed to load resource at path '{2}' from package {0} ({1}). Resource is not found in the package.", mName, mAssociatedPackageFilePath, path);
+			B3D_LOG(Warning, LogResources, "Failed to load resource at path '{2}' from package {0} ({1}). Resource is not found in the package.", mName, mAssociatedPackageFilePath, path);
 			return nullptr;
 		}
 	}
@@ -718,7 +718,7 @@ SPtr<Resource> Package::DeserializeResource(const Path& path) const
 			id = found->second->MetaData->Id;
 		else
 		{
-			B3D_LOG(Warning, Resources, "Failed to deserialize resource at path '{2}' from package {0} ({1}). Resource is not found in the package.", mName, mAssociatedPackageFilePath, path);
+			B3D_LOG(Warning, LogResources, "Failed to deserialize resource at path '{2}' from package {0} ({1}). Resource is not found in the package.", mName, mAssociatedPackageFilePath, path);
 			return nullptr;
 		}
 	}
@@ -775,7 +775,7 @@ SPtr<Resource> Package::GetResource(const Path& path) const
 			id = found->second->MetaData->Id;
 		else
 		{
-			B3D_LOG(Warning, Resources, "Failed to get resource at path '{2}' from package {0} ({1}). Resource is not found in the package.", mName, mAssociatedPackageFilePath, path);
+			B3D_LOG(Warning, LogResources, "Failed to get resource at path '{2}' from package {0} ({1}). Resource is not found in the package.", mName, mAssociatedPackageFilePath, path);
 			return nullptr;
 		}
 	}
@@ -790,7 +790,7 @@ SPtr<Resource> Package::GetResource(const UUID& id) const
 	ResourceInformation* resourceInformation = GetResourceInformation(id);
 	if (!resourceInformation)
 	{
-		B3D_LOG(Warning, Resources, "Failed to get resource with id '{2}' from package {0} ({1}). Resource is not found in the package.", mName, mAssociatedPackageFilePath, id);
+		B3D_LOG(Warning, LogResources, "Failed to get resource with id '{2}' from package {0} ({1}). Resource is not found in the package.", mName, mAssociatedPackageFilePath, id);
 		return nullptr;
 	}
 
@@ -809,7 +809,7 @@ void Package::UnloadResource(const UUID& id)
 {
 	if(id.Empty())
 	{
-		B3D_LOG(Warning, Resources, "Failed to unload resource with from package {0} ({1}). Provided id is empty.", mName, mAssociatedPackageFilePath, id);
+		B3D_LOG(Warning, LogResources, "Failed to unload resource with from package {0} ({1}). Provided id is empty.", mName, mAssociatedPackageFilePath, id);
 		return;
 	}
 
@@ -830,7 +830,7 @@ void Package::UnloadResource(const UUID& id)
 		}
 	}
 
-	B3D_LOG(Warning, Resources, "Failed to unload resource with id '{2}' from package {0} ({1}). Resource is not found in the package.", mName, mAssociatedPackageFilePath, id);
+	B3D_LOG(Warning, LogResources, "Failed to unload resource with id '{2}' from package {0} ({1}). Resource is not found in the package.", mName, mAssociatedPackageFilePath, id);
 }
 
 void Package::UnloadAllResources()
@@ -864,13 +864,13 @@ SPtr<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offset
 	const SPtr<DataStream> dataStream = FileSystem::OpenFile(mAssociatedPackageFilePath);
 	if (!dataStream)
 	{
-		B3D_LOG(Error, Resources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). The package has not been serialized or the package file is missing.", mName, mAssociatedPackageFilePath, id, mAssociatedPackageFilePath);
+		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). The package has not been serialized or the package file is missing.", mName, mAssociatedPackageFilePath, id, mAssociatedPackageFilePath);
 		return nullptr;
 	}
 
 	if (!dataStream->IsReadable())
 	{
-		B3D_LOG(Error, Resources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). The data stream from package file is not readable.", mName, mAssociatedPackageFilePath, id);
+		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). The data stream from package file is not readable.", mName, mAssociatedPackageFilePath, id);
 		return nullptr;
 	}
 
@@ -882,7 +882,7 @@ SPtr<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offset
 
 	if (dataStream->Eof())
 	{
-		B3D_LOG(Error, Resources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Data stream from package file reached end prematurely.", mName, mAssociatedPackageFilePath, id);
+		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Data stream from package file reached end prematurely.", mName, mAssociatedPackageFilePath, id);
 		return nullptr;
 	}
 	else
@@ -915,7 +915,7 @@ SPtr<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offset
 			}
 			else
 			{
-				B3D_LOG(Error, Resources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Data decompression failed.", mName, mAssociatedPackageFilePath, id);
+				B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Data decompression failed.", mName, mAssociatedPackageFilePath, id);
 				return nullptr;
 			}
 		}
@@ -923,14 +923,14 @@ SPtr<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offset
 
 	if (loadedData == nullptr)
 	{
-		B3D_LOG(Error, Resources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Unknown deserialization error.", mName, mAssociatedPackageFilePath, id);
+		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Unknown deserialization error.", mName, mAssociatedPackageFilePath, id);
 		return nullptr;
 	}
 	else
 	{
 		if (!loadedData->IsDerivedFrom(Resource::GetRttiStatic()))
 		{
-			B3D_LOG(Error, Resources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Deserialized object is not a Resource type.", mName, mAssociatedPackageFilePath, id);
+			B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Deserialized object is not a Resource type.", mName, mAssociatedPackageFilePath, id);
 			return nullptr;
 		}
 	}
@@ -941,10 +941,10 @@ SPtr<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offset
 void Package::UnloadResource(ResourceInformation* resourceInformation)
 {
 	if (resourceInformation->SizeInDataStream == 0)
-		B3D_LOG(Error, Resources, "Resource with id '{2}' in package {0} ({1}) is being unloaded but it was never saved. You will not be able to reload this resource.", mName, mAssociatedPackageFilePath, resourceInformation->MetaData->Id);
+		B3D_LOG(Error, LogResources, "Resource with id '{2}' in package {0} ({1}) is being unloaded but it was never saved. You will not be able to reload this resource.", mName, mAssociatedPackageFilePath, resourceInformation->MetaData->Id);
 
 	if (resourceInformation->IsLoadedResourceDirty)
-		B3D_LOG(Error, Resources, "Resource with id '{2}' in package {0} ({1}) is being unloaded but it has changes that were never saved. You will not be able to reload this resource.", mName, mAssociatedPackageFilePath, resourceInformation->MetaData->Id);
+		B3D_LOG(Error, LogResources, "Resource with id '{2}' in package {0} ({1}) is being unloaded but it has changes that were never saved. You will not be able to reload this resource.", mName, mAssociatedPackageFilePath, resourceInformation->MetaData->Id);
 
 	resourceInformation->LoadedResource = nullptr;
 	resourceInformation->LoadProgress.store(0.0f, std::memory_order_relaxed);
@@ -1064,7 +1064,7 @@ bool Package::Save(const SPtr<DataStream>& stream, const SavePackageOptions& opt
 
 			if (!existingPackageFileStream || entry.second->SizeInDataStream == 0)
 			{
-				B3D_LOG(Error, Resources, "Cannot save resource with id {2} to package {0} ({1}). Original data for resource cannot be found in the associated package file.", mName, mAssociatedPackageFilePath, entry.second->MetaData->Id);
+				B3D_LOG(Error, LogResources, "Cannot save resource with id {2} to package {0} ({1}). Original data for resource cannot be found in the associated package file.", mName, mAssociatedPackageFilePath, entry.second->MetaData->Id);
 				resourceHeaders[resourceIndex].SizeInDataStream = 0;
 			}
 			else
@@ -1102,7 +1102,7 @@ bool Package::Save(const SPtr<DataStream>& stream, const SavePackageOptions& opt
 						uncompressedDataStream = B3DMakeShared<MemoryDataStream>();
 						if(!Compression::Decompress(*existingPackageFileStream, *uncompressedDataStream, entry.second->SizeInDataStream, savedCompressionTypesPerResource[resourceIndex]))
 						{
-							B3D_LOG(Error, Resources, "Cannot save resource with id {2} to package {0} ({1}). Decompression failed for original resource data.", mName, mAssociatedPackageFilePath, entry.second->MetaData->Id);
+							B3D_LOG(Error, LogResources, "Cannot save resource with id {2} to package {0} ({1}). Decompression failed for original resource data.", mName, mAssociatedPackageFilePath, entry.second->MetaData->Id);
 							continue;
 							
 						}
@@ -1270,7 +1270,7 @@ Package::ResourceInformation* Package::GetResourceInformation(const UUID& id, bo
 
 	if(warnIfMissing)
 	{
-		B3D_LOG(Warning, Resources, "Cannot find information about a packaged resource with UUID {0} in package {1} ({2}). The resource is not part of this package.", id, mName, mAssociatedPackageFilePath);
+		B3D_LOG(Warning, LogResources, "Cannot find information about a packaged resource with UUID {0} in package {1} ({2}). The resource is not part of this package.", id, mName, mAssociatedPackageFilePath);
 	}
 
 	return nullptr;
@@ -1283,7 +1283,7 @@ Package::ResourceInformation* Package::GetResourceInformation(const Path& path, 
 
 	if(warnIfMissing)
 	{
-		B3D_LOG(Warning, Resources, "Cannot find information about a packaged resource with path '{0}' in package {1} ({2}). The resource is not part of this package.", path, mName, mAssociatedPackageFilePath);
+		B3D_LOG(Warning, LogResources, "Cannot find information about a packaged resource with path '{0}' in package {1} ({2}). The resource is not part of this package.", path, mName, mAssociatedPackageFilePath);
 	}
 
 	return nullptr;

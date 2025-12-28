@@ -27,7 +27,7 @@ void ShaderInformationBase::AddParameter(ShaderDataParameterInformation paramDes
 {
 	if(paramDesc.Type == GPDT_STRUCT && paramDesc.ElementSize <= 0)
 	{
-		B3D_LOG(Error, Material, "You need to provide a non-zero element size for a struct parameter.");
+		B3D_LOG(Error, LogMaterial, "You need to provide a non-zero element size for a struct parameter.");
 		return;
 	}
 
@@ -157,7 +157,7 @@ void ShaderInformationBase::SetParameterAttribute(const String& name, const Shad
 
 	if(!paramDesc)
 	{
-		B3D_LOG(Warning, Material, "Attempting to apply a shader parameter attribute to a non-existing parameter.");
+		B3D_LOG(Warning, LogMaterial, "Attempting to apply a shader parameter attribute to a non-existing parameter.");
 		return;
 	}
 
@@ -165,13 +165,13 @@ void ShaderInformationBase::SetParameterAttribute(const String& name, const Shad
 	{
 		if(paramDescObj)
 		{
-			B3D_LOG(Warning, Material, "Attempting to apply SpriteUV attribute to an object parameter is not supported.");
+			B3D_LOG(Warning, LogMaterial, "Attempting to apply SpriteUV attribute to an object parameter is not supported.");
 			return;
 		}
 
 		if(paramDescData->Type != GPDT_FLOAT4)
 		{
-			B3D_LOG(Warning, Material, "SpriteUV attribute can only be applied to 4D vectors.");
+			B3D_LOG(Warning, LogMaterial, "SpriteUV attribute can only be applied to 4D vectors.");
 			return;
 		}
 	}

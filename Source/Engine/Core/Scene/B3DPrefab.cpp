@@ -16,7 +16,7 @@ using namespace b3d;
 
 namespace b3d
 {
-	B3D_LOG_CATEGORY(Prefab)
+	B3D_LOG_CATEGORY(LogPrefab)
 }
 
 void PrefabManager::RegisterPrefab(Prefab& prefab)
@@ -197,7 +197,7 @@ void Prefab::RecordNestedPrefabInstanceDeltas()
 	//				sceneObject->SetPrefabDelta(SceneObjectHierarchyDelta::Create(linkedPrefab->GetRoot(), sceneObject, SceneObjectHierarchyDeltaFlag::PrefabDelta));
 	//			else
 	//			{
-	//				B3D_LOG(Warning, Prefab, "Cannot record prefab delta for scene object '{0}'. Failed to load prefab with ID: '{1}'.", sceneObject.GetId(), prefabResourceId);
+	//				B3D_LOG(Warning, LogPrefab, "Cannot record prefab delta for scene object '{0}'. Failed to load prefab with ID: '{1}'.", sceneObject.GetId(), prefabResourceId);
 	//			}
 	//		}
 

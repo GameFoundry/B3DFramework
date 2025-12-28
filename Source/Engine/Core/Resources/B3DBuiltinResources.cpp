@@ -244,7 +244,7 @@ HFont BuiltinResources::GetFont(const String& font) const
 
 		if(!packageManager.TryResolveVirtualResourcePath(fontVirtualFilePath).has_value())
 		{
-			B3D_LOG(Warning, GUI, "Cannot find font of the requested font : {0}. Using default font instead.", font);
+			B3D_LOG(Warning, LogGUI, "Cannot find font of the requested font : {0}. Using default font instead.", font);
 			return GetDefaultFont();
 		}
 	}

@@ -24,7 +24,7 @@ namespace b3d
 	{
 		Result output;
 		output.Status = value.Status;
-		B3D_LOG(Error, Script, "const char* type cannot be assigned from scripting for field 'ErrorMessage'. This is not supported for this type.");
+		B3D_LOG(Error, LogScript, "const char* type cannot be assigned from scripting for field 'ErrorMessage'. This is not supported for this type.");
 		String tmpAdditionalErrorMessage;
 		tmpAdditionalErrorMessage = MonoUtil::MonoToString(value.AdditionalErrorMessage);
 		output.AdditionalErrorMessage = tmpAdditionalErrorMessage;

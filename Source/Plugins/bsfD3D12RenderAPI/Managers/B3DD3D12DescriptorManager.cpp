@@ -133,7 +133,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::AllocateCPUDescriptor(D3D12D
 	// Allocate new descriptor
 	if (heap.NextFreeIndex >= heap.NumDescriptors)
 	{
-		B3D_LOG(Error, RenderBackend, "Descriptor heap exhausted for type {0}", (u32)type);
+		B3D_LOG(Error, LogRenderBackend, "Descriptor heap exhausted for type {0}", (u32)type);
 		return D3D12_CPU_DESCRIPTOR_HANDLE{ 0 };
 	}
 
@@ -167,7 +167,7 @@ void D3D12DescriptorManager::AllocateGPUDescriptorRange(D3D12DescriptorHeapType 
 	// Simple linear allocation (no free list for GPU descriptors yet)
 	if (heap.NextFreeIndex + count > heap.NumDescriptors)
 	{
-		B3D_LOG(Error, RenderBackend, "GPU descriptor heap exhausted for type {0}", (u32)type);
+		B3D_LOG(Error, LogRenderBackend, "GPU descriptor heap exhausted for type {0}", (u32)type);
 		outCPUHandle.ptr = 0;
 		outGPUHandle.ptr = 0;
 		return;

@@ -149,7 +149,7 @@ SpecificImporter* Importer::PrepareForImport(const Path& filePath, SPtr<const Im
 {
 	if(!FileSystem::IsFile(filePath))
 	{
-		B3D_LOG(Warning, Importer, "Trying to import asset that doesn't exists. Asset path: {0}", filePath);
+		B3D_LOG(Warning, LogImporter, "Trying to import asset that doesn't exists. Asset path: {0}", filePath);
 		return nullptr;
 	}
 
@@ -290,7 +290,7 @@ SPtr<ImportOptions> Importer::CreateImportOptions(const Path& inputFilePath)
 {
 	if(!FileSystem::IsFile(inputFilePath))
 	{
-		B3D_LOG(Warning, Importer, "Trying to import asset that doesn't exists. Asset path: {0}", inputFilePath);
+		B3D_LOG(Warning, LogImporter, "Trying to import asset that doesn't exists. Asset path: {0}", inputFilePath);
 		return nullptr;
 	}
 
@@ -305,7 +305,7 @@ void Importer::RegisterAssetImporterInternal(SpecificImporter* importer)
 {
 	if(!importer)
 	{
-		B3D_LOG(Warning, Importer, "Trying to register a null asset importer!");
+		B3D_LOG(Warning, LogImporter, "Trying to register a null asset importer!");
 		return;
 	}
 
@@ -321,7 +321,7 @@ SpecificImporter* Importer::GetImporterForFile(const Path& inputFilePath) const
 	extension = extension.substr(1, extension.size() - 1); // Remove the .
 	if(!SupportsFileType(extension))
 	{
-		B3D_LOG(Warning, Importer, "There is no importer for the provided file type. ({0})", inputFilePath);
+		B3D_LOG(Warning, LogImporter, "There is no importer for the provided file type. ({0})", inputFilePath);
 		return nullptr;
 	}
 

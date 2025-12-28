@@ -94,7 +94,7 @@ Area2I GUIInputTool::GetCharacterBounds(u32 characterIndex) const
 		return charRect;
 	}
 
-	B3D_LOG(Error, GUI, "Invalid character index: {0}", characterIndex);
+	B3D_LOG(Error, LogGUI, "Invalid character index: {0}", characterIndex);
 	return Area2I();
 }
 
@@ -169,7 +169,7 @@ u32 GUIInputTool::GetLineForChar(u32 characterIndex, bool newlineCountsOnNextLin
 		lineIndex++;
 	}
 
-	B3D_LOG(Error, GUI, "Invalid character index: {0}", characterIndex);
+	B3D_LOG(Error, LogGUI, "Invalid character index: {0}", characterIndex);
 	return 0;
 }
 

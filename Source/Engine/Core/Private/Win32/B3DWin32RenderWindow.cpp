@@ -102,11 +102,11 @@ void Win32RenderWindow::Initialize()
 				displayDeviceMode.dmFields |= DM_DISPLAYFREQUENCY;
 
 				if(ChangeDisplaySettingsEx(NULL, &displayDeviceMode, NULL, CDS_FULLSCREEN | CDS_TEST, NULL) != DISP_CHANGE_SUCCESSFUL)
-					B3D_LOG(Error, Platform, "ChangeDisplaySettings with user display frequency failed.");
+					B3D_LOG(Error, LogPlatform, "ChangeDisplaySettings with user display frequency failed.");
 			}
 
 			if(ChangeDisplaySettingsEx(NULL, &displayDeviceMode, NULL, CDS_FULLSCREEN, NULL) != DISP_CHANGE_SUCCESSFUL)
-				B3D_LOG(Error, Platform, "ChangeDisplaySettings failed");
+				B3D_LOG(Error, LogPlatform, "ChangeDisplaySettings failed");
 		}
 	}
 
@@ -269,7 +269,7 @@ void Win32RenderWindow::SetFullscreen(u32 width, u32 height, float refreshRate, 
 	GetMonitorInfo(hMonitor, &monitorInfo);
 
 	if(ChangeDisplaySettingsEx(monitorInfo.szDevice, &displayDeviceMode, NULL, CDS_FULLSCREEN, NULL) != DISP_CHANGE_SUCCESSFUL)
-		B3D_LOG(Error, Platform, "ChangeDisplaySettings failed.");
+		B3D_LOG(Error, LogPlatform, "ChangeDisplaySettings failed.");
 
 	mRenderWindowProperties.Top = monitorInfo.rcMonitor.top;
 	mRenderWindowProperties.Left = monitorInfo.rcMonitor.left;

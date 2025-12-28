@@ -15,13 +15,13 @@ MonoObject* ScriptReflectableWrapper::GetOrCreateScriptObject(const SPtr<IReflec
 	const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
 	if(scriptWrapperObjectMetaData == nullptr)
 	{
-		B3D_LOG(Error, Script, "Cannot retrieve script object. Mapping between a reflectable object and a managed type is missing for type \"{0}\"", rttiId);
+		B3D_LOG(Error, LogScript, "Cannot retrieve script object. Mapping between a reflectable object and a managed type is missing for type \"{0}\"", rttiId);
 		return nullptr;
 	}
 
 	if(scriptWrapperObjectMetaData->CreateCallbackType != ScriptWrapperCreateCallbackType::Reflectable)
 	{
-		B3D_LOG(Error, Script, "Cannot retrieve script object. Script wrapper for type \"{0}\" does not support creation of an IReflectable shared pointer.", rttiId);
+		B3D_LOG(Error, LogScript, "Cannot retrieve script object. Script wrapper for type \"{0}\" does not support creation of an IReflectable shared pointer.", rttiId);
 		return nullptr;
 	}
 

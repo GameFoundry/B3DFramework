@@ -71,7 +71,7 @@ namespace b3d
 		 *
 		 * @param	fullPath	Full path to a full folder to create.
 		 */
-		static bool CreateDir(const Path& fullPath);
+		static bool CreateFolder(const Path& fullPath);
 
 		/**
 		 * Returns true if a file or a folder exists at the specified path.
@@ -92,7 +92,7 @@ namespace b3d
 		 *
 		 * @param	fullPath	Full path to a file or folder.
 		 */
-		static bool IsDirectory(const Path& fullPath);
+		static bool IsFolder(const Path& fullPath);
 
 		/**
 		 * Returns all files or folders located in the specified folder.
@@ -125,10 +125,10 @@ namespace b3d
 		static std::time_t GetLastModifiedTime(const Path& fullPath);
 
 		/** Returns the path to the currently working directory. */
-		static Path GetWorkingDirectoryPath();
+		static Path GetWorkingFolderPath();
 
 		/** Returns the path to a directory where temporary files may be stored. */
-		static Path GetTempDirectoryPath();
+		static Path GetTemporaryFolderPath();
 
 		/** Returns a path to a file in the temporary directory. The path is guaranteed not to exist currently in the directory. */
 		static Path GetUniqueTemporaryFilePath();
@@ -139,8 +139,10 @@ namespace b3d
 	private:
 		/** Copy a single file. Internal function used by copy(). */
 		static bool CopyFile(const Path& oldPath, const Path& newPath);
+
 		/** Remove a single file. Internal function used by remove(). */
 		static bool RemoveFile(const Path& path);
+
 		/** Move a single file. Internal function used by move(). */
 		static bool MoveFile(const Path& oldPath, const Path& newPath);
 	};

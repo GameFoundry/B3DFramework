@@ -91,7 +91,7 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter)
 	HRESULT hr = D3D12MA::CreateAllocator(&allocatorDesc, &mAllocator);
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create D3D12 memory allocator");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create D3D12 memory allocator");
 	}
 
 	// Initialize video mode information
@@ -145,7 +145,7 @@ SPtr<GpuProgramBytecode> D3D12GpuDevice::CompileGpuProgramBytecode(const GpuProg
 	bytecode->compilerId = 0; // TODO: Define D3D12 compiler ID
 	bytecode->compilerVersion = 0;
 
-	B3D_LOG(Warning, RenderBackend, "D3D12 shader compilation not yet implemented");
+	B3D_LOG(Warning, LogRenderBackend, "D3D12 shader compilation not yet implemented");
 
 	return bytecode;
 }
@@ -436,5 +436,5 @@ void D3D12GpuDevice::InitializeCapabilities()
 		break;
 	}
 
-	B3D_LOG(Info, RenderBackend, "D3D12 Device: {0}", mCapabilities.DeviceName);
+	B3D_LOG(Info, LogRenderBackend, "D3D12 Device: {0}", mCapabilities.DeviceName);
 }

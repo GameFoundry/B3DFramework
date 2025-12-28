@@ -59,7 +59,7 @@ void RenderDocFrameCapture::LoadRenderDocAPI()
 
 	if (mRenderDocLibrary == nullptr)
 	{
-		B3D_LOG(Error, RenderBackend, "Failed loading RenderDoc API. renderdoc.dll cannot be found/loaded.");
+		B3D_LOG(Error, LogRenderBackend, "Failed loading RenderDoc API. renderdoc.dll cannot be found/loaded.");
 		return;
 	}
 

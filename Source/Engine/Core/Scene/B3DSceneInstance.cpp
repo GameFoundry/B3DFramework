@@ -48,7 +48,7 @@ void SceneInstanceComponents::SetComponentState(ComponentState state)
 {
 	if(mDisableStateChange)
 	{
-		B3D_LOG(Warning, Scene, "Component state cannot be changed from the calling locating. "
+		B3D_LOG(Warning, LogScene, "Component state cannot be changed from the calling locating. "
 							   "Are you calling it from Component callbacks?");
 		return;
 	}

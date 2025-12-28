@@ -70,7 +70,7 @@ void D3D12GpuProgram::Initialize()
 		}
 		else
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to create shader blob for '{0}'", mName);
+			B3D_LOG(Error, LogRenderBackend, "Failed to create shader blob for '{0}'", mName);
 			mIsCompiled = false;
 		}
 	}

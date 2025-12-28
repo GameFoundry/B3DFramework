@@ -11,7 +11,7 @@
 
 using namespace b3d;
 
-B3D_LOG_CATEGORY_STATIC(Compression, Log)
+B3D_LOG_CATEGORY_STATIC(LogCompression, Log)
 
 /** Source accepting a data stream. Used for Snappy compression library. */
 class DataStreamSource : public snappy::Source
@@ -180,7 +180,7 @@ u64 Compression::Compress(DataStream& input, DataStream& output, u64 inputDataSi
 {
 	if(compressionType != CompressionType::Snappy)
 	{
-		B3D_LOG(Error, Compression, "Cannot compress data. Unsupported compression type provided: {0}.", (u32)compressionType);
+		B3D_LOG(Error, LogCompression, "Cannot compress data. Unsupported compression type provided: {0}.", (u32)compressionType);
 		return false;
 	}
 
@@ -194,7 +194,7 @@ bool Compression::Decompress(DataStream& input, DataStream& output, u64 inputDat
 {
 	if(compressionType != CompressionType::Snappy)
 	{
-		B3D_LOG(Error, Compression, "Cannot decompress data. Unsupported compression type provided: {0}.", (u32)compressionType);
+		B3D_LOG(Error, LogCompression, "Cannot decompress data. Unsupported compression type provided: {0}.", (u32)compressionType);
 		return false;
 	}
 
@@ -203,7 +203,7 @@ bool Compression::Decompress(DataStream& input, DataStream& output, u64 inputDat
 
 	if(!snappy::Uncompress(&dataSource, &dataSink))
 	{
-		B3D_LOG(Error, Compression, "Cannot decompress data. Corrupt input data.");
+		B3D_LOG(Error, LogCompression, "Cannot decompress data. Corrupt input data.");
 		return false;
 	}
 

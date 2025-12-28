@@ -274,7 +274,7 @@ namespace b3d
 			{
 				auto findIter = mNodeDescriptors.find(T::GetNodeId());
 				if(findIter != mNodeDescriptors.end())
-					B3D_LOG(Error, Renderer, "Found two render compositor nodes with the same name \"{0}\".", String(T::GetNodeId().CStr()));
+					B3D_LOG(Error, LogRenderer, "Found two render compositor nodes with the same name \"{0}\".", String(T::GetNodeId().CStr()));
 
 				mNodeDescriptors[T::GetNodeId()] = B3DNew<TNodeDescriptor<T>>();
 			}

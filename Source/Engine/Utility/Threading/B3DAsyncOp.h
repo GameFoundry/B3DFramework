@@ -118,7 +118,7 @@ namespace b3d
 			// If not initialized, nothing to wait on
 			if (mData == nullptr)
 			{
-				B3D_LOG(Error, Generic, "Unable to trigger callback. Async operation was never initialized with data.");
+				B3D_LOG(Error, LogGeneric, "Unable to trigger callback. Async operation was never initialized with data.");
 				return;
 			}
 
@@ -165,7 +165,7 @@ namespace b3d
 			// If not initialized, nothing to wait on
 			if (mData == nullptr)
 			{
-				B3D_LOG(Error, Generic, "Unable to block until complete. Async operation was never initialized with data.");
+				B3D_LOG(Error, LogGeneric, "Unable to block until complete. Async operation was never initialized with data.");
 				return;
 			}
 
@@ -193,7 +193,7 @@ namespace b3d
 			Lock lock(mData->Mutex);
 #if B3D_DEBUG
 			if (!mData->IsCompleted)
-				B3D_LOG(Error, Generic, "Trying to get AsyncOp return value but the operation hasn't completed.");
+				B3D_LOG(Error, LogGeneric, "Trying to get AsyncOp return value but the operation hasn't completed.");
 #endif
 
 			// Call type-erased function pointer (no virtual dispatch)
@@ -260,9 +260,9 @@ namespace b3d
 
 #if B3D_DEBUG
 			if (!typedData->IsCompleted)
-				B3D_LOG(Error, Generic, "Trying to get AsyncOp return value but the operation hasn't completed.");
+				B3D_LOG(Error, LogGeneric, "Trying to get AsyncOp return value but the operation hasn't completed.");
 			if (!typedData->ReturnValue.has_value())
-				B3D_LOG(Error, Generic, "AsyncOp completed but no return value was set.");
+				B3D_LOG(Error, LogGeneric, "AsyncOp completed but no return value was set.");
 #endif
 
 			return typedData->ReturnValue.value_or(ReturnType{});

@@ -10,7 +10,7 @@
 
 using namespace b3d;
 
-B3D_LOG_CATEGORY_STATIC(PersistentCache, Log)
+B3D_LOG_CATEGORY_STATIC(LogPersistentCache, Log)
 
 SPtr<PersistentCacheObject> PersistentCacheObject::Create(const SPtr<IReflectable>& object)
 {
@@ -165,7 +165,7 @@ void PersistentCache::Initialize(const Path& cacheFolder)
 		}
 		else
 		{
-			FileSystem::CreateDir(mCacheFolder);
+			FileSystem::CreateFolder(mCacheFolder);
 		}
 	}
 
@@ -375,14 +375,14 @@ SPtr<IReflectable> PersistentCache::TryGetEntry(const Path& path)
 	const SPtr<Resource> resource = package->LoadResource(path);
 	if (resource == nullptr)
 	{
-		B3D_LOG(Error, PersistentCache, "Cannot retrieve cache entry at path '{0}'. Failed deserializing entry from the package.", path);
+		B3D_LOG(Error, LogPersistentCache, "Cannot retrieve cache entry at path '{0}'. Failed deserializing entry from the package.", path);
 		return nullptr;
 	}
 
 	const SPtr<PersistentCacheObject> persistentCacheObject = B3DRTTICast<PersistentCacheObject>(resource);
 	if (persistentCacheObject == nullptr)
 	{
-		B3D_LOG(Error, PersistentCache, "Cannot retrieve cache entry at path '{0}. Package object is not of a valid type", path);
+		B3D_LOG(Error, LogPersistentCache, "Cannot retrieve cache entry at path '{0}. Package object is not of a valid type", path);
 		return nullptr;
 	}
 
@@ -397,13 +397,13 @@ bool PersistentCache::SetEntry(const Path& path, const SPtr<IReflectable>& data,
 {
 	if (path.IsEmpty())
 	{
-		B3D_LOG(Error, PersistentCache, "Cannot add entry to cache. Provided path is empty.");
+		B3D_LOG(Error, LogPersistentCache, "Cannot add entry to cache. Provided path is empty.");
 		return false;
 	}
 
 	if (path.IsAbsolute())
 	{
-		B3D_LOG(Error, PersistentCache, "Cannot add entry to cache. Path must be relative. Path provided: {0}", path);
+		B3D_LOG(Error, LogPersistentCache, "Cannot add entry to cache. Path must be relative. Path provided: {0}", path);
 		return false;
 	}
 
@@ -449,7 +449,7 @@ void PersistentCache::DeleteEntry(const CacheOperation& operation)
 	auto found = mEntries.find(operation.EntryPath);
 	if(!B3D_ENSURE(found != mEntries.end()))
 	{
-		B3D_LOG(Error, PersistentCache, "Cannot delete entry from cache. Entry at path {0} is not registered as part of the cache. ", operation.EntryPath);
+		B3D_LOG(Error, LogPersistentCache, "Cannot delete entry from cache. Entry at path {0} is not registered as part of the cache. ", operation.EntryPath);
 		return;
 	}
 
@@ -602,7 +602,7 @@ SPtr<Package> PersistentCache::GetPackageForEntry(const CacheOperation& operatio
 	SPtr<Package> package = Package::Load(pathToPackage);
 	if (package == nullptr)
 	{
-		B3D_LOG(Error, PersistentCache, "Failed retrieving cache entry. Cache package at path '{0}' failed to deserialize.", operation.EntryPath);
+		B3D_LOG(Error, LogPersistentCache, "Failed retrieving cache entry. Cache package at path '{0}' failed to deserialize.", operation.EntryPath);
 		return nullptr;
 	}
 
@@ -651,16 +651,16 @@ bool PersistentCache::SetPackageForEntry(const CacheOperation& operation, const 
 			{
 				if (FileSystem::IsFile(fullPathToDirectory))
 				{
-					B3D_LOG(Error, PersistentCache, "Cannot add entry '{0}' to cache. Directory in the path '{1}' already exists as a file with the same name.", operation.EntryPath, fullPathToDirectory);
+					B3D_LOG(Error, LogPersistentCache, "Cannot add entry '{0}' to cache. Directory in the path '{1}' already exists as a file with the same name.", operation.EntryPath, fullPathToDirectory);
 					return false;
 				}
 
 				continue;
 			}
 
-			if(!FileSystem::CreateDir(fullPathToDirectory))
+			if(!FileSystem::CreateFolder(fullPathToDirectory))
 			{
-				B3D_LOG(Error, PersistentCache, "Cannot add entry '{0}' to cache. Failed to create directory hierarchy to path '{1}'.", operation.EntryPath, fullPathToDirectory);
+				B3D_LOG(Error, LogPersistentCache, "Cannot add entry '{0}' to cache. Failed to create directory hierarchy to path '{1}'.", operation.EntryPath, fullPathToDirectory);
 				return false;
 			}
 		}
@@ -669,7 +669,7 @@ bool PersistentCache::SetPackageForEntry(const CacheOperation& operation, const 
 	// First write to a temporary file
 	// Note: This means we might temporarily exceed cache capacity, but that's fine as alternatives are too complex to implement.
 	const Path temporaryPackageDirectory = mCacheFolder + kCacheStagingDirectory;
-	FileSystem::CreateDir(temporaryPackageDirectory);
+	FileSystem::CreateFolder(temporaryPackageDirectory);
 
 	Path temporaryPackagePath = temporaryPackageDirectory;
 	temporaryPackagePath.Append(package->GetPackageId().ToString() + Package::kPackageExtension);
@@ -677,7 +677,7 @@ bool PersistentCache::SetPackageForEntry(const CacheOperation& operation, const 
 	SPtr<DataStream> temporaryFileStream = FileSystem::CreateAndOpenFile(temporaryPackagePath);
 	if(temporaryFileStream == nullptr)
 	{
-		B3D_LOG(Error, PersistentCache, "Cannot add entry '{0}' to cache. Unable to open a temporary file for writing at path '{1}'.", operation.EntryPath, temporaryPackagePath);
+		B3D_LOG(Error, LogPersistentCache, "Cannot add entry '{0}' to cache. Unable to open a temporary file for writing at path '{1}'.", operation.EntryPath, temporaryPackagePath);
 		return false;
 	}
 
@@ -695,14 +695,14 @@ bool PersistentCache::SetPackageForEntry(const CacheOperation& operation, const 
 
 	if(!temporaryFileStream->Close())
 	{
-		B3D_LOG(Error, PersistentCache, "Cannot add entry '{0}' to cache. Failed to write to the data stream at path '{1}'.", operation.EntryPath, temporaryPackagePath);
+		B3D_LOG(Error, LogPersistentCache, "Cannot add entry '{0}' to cache. Failed to write to the data stream at path '{1}'.", operation.EntryPath, temporaryPackagePath);
 		return false;
 	}
 
 	// Move the file to it's final location
 	if(!FileSystem::Move(temporaryPackagePath, pathToPackage, false))
 	{
-		B3D_LOG(Error, PersistentCache, "Cannot add entry '{0}' to cache. Failed to copy from staging '{1}' to destination '{2}'.", operation.EntryPath, temporaryPackagePath, pathToPackage);
+		B3D_LOG(Error, LogPersistentCache, "Cannot add entry '{0}' to cache. Failed to copy from staging '{1}' to destination '{2}'.", operation.EntryPath, temporaryPackagePath, pathToPackage);
 		return false;
 	}
 

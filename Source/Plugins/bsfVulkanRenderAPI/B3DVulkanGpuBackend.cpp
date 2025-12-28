@@ -138,11 +138,11 @@ static VkBool32 DebugReportMessageCallback(VkDebugReportFlagsEXT flags, VkDebugR
 	const String message = StringUtil::Format("[{0}] Vulkan backend reported the following message (Code:{1} Layer:\"{2}\"):\n\t{3}", severity, msgCode, pLayerPrefix, pMsg);
 
 	if(flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
-		B3D_LOG(Error, RenderBackend, "{0}", message);
+		B3D_LOG(Error, LogRenderBackend, "{0}", message);
 	else if(flags & VK_DEBUG_REPORT_WARNING_BIT_EXT || flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
-		B3D_LOG(Warning, RenderBackend, "{0}", message);
+		B3D_LOG(Warning, LogRenderBackend, "{0}", message);
 	else
-		B3D_LOG(Info, RenderBackend, "{0}", message);
+		B3D_LOG(Info, LogRenderBackend, "{0}", message);
 
 	// Don't abort calls that caused a validation message
 	return VK_FALSE;
@@ -193,11 +193,11 @@ VkBool32 DebugUtilsMessageCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messag
 	}
 
 	if(messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-		B3D_LOG(Error, RenderBackend, "{0}", message.str());
+		B3D_LOG(Error, LogRenderBackend, "{0}", message.str());
 	else if(messageSeverity <= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-		B3D_LOG(Warning, RenderBackend, "{0}", message.str());
+		B3D_LOG(Warning, LogRenderBackend, "{0}", message.str());
 	else
-		B3D_LOG(Info, RenderBackend, "{0}", message.str());
+		B3D_LOG(Info, LogRenderBackend, "{0}", message.str());
 
 	// Don't abort calls that caused a validation message
 	return VK_FALSE;

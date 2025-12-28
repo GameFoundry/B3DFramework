@@ -49,7 +49,7 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 		String pathStr = filePath.ToString();
 		if(GetFMODAudio().GetFMODInternal()->createSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
 		{
-			B3D_LOG(Error, Audio, "Failed importing audio file: {0}", pathStr);
+			B3D_LOG(Error, LogAudio, "Failed importing audio file: {0}", pathStr);
 			return nullptr;
 		}
 	}
@@ -62,7 +62,7 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 
 	if(format != FMOD_SOUND_FORMAT_PCM8 && format != FMOD_SOUND_FORMAT_PCM16 && format != FMOD_SOUND_FORMAT_PCM24 && format != FMOD_SOUND_FORMAT_PCM32 && format != FMOD_SOUND_FORMAT_PCMFLOAT)
 	{
-		B3D_LOG(Error, Audio, "Failed importing audio file, invalid imported format: ", filePath);
+		B3D_LOG(Error, LogAudio, "Failed importing audio file, invalid imported format: ", filePath);
 		return nullptr;
 	}
 

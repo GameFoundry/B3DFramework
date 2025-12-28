@@ -45,13 +45,13 @@ SPtr<typename TVariation<IsRenderProxy>::PassType> TVariation<IsRenderProxy>::Ge
 {
 	if(!mHasPassData)
 	{
-		B3D_LOG(Error, Material, "Unable to retrieve shader variation pass. The variation has not been compiled.");
+		B3D_LOG(Error, LogMaterial, "Unable to retrieve shader variation pass. The variation has not been compiled.");
 		return nullptr;
 	}
 
 	if(passIndex >= (u32)mPasses.size())
 	{
-		B3D_LOG(Error, Material, "Unable to retrieve shader variation pass. The provided index={0} is out of range=[0, {1}].", passIndex, mPasses.size());
+		B3D_LOG(Error, LogMaterial, "Unable to retrieve shader variation pass. The provided index={0} is out of range=[0, {1}].", passIndex, mPasses.size());
 		return nullptr;
 	}
 
@@ -63,7 +63,7 @@ u32 TVariation<IsRenderProxy>::GetPassCount() const
 {
 	if(!mHasPassData)
 	{
-		B3D_LOG(Error, Material, "Unable to retrieve shader variation pass count. The variation has not been compiled.");
+		B3D_LOG(Error, LogMaterial, "Unable to retrieve shader variation pass count. The variation has not been compiled.");
 		return 0;
 	}
 	
@@ -100,7 +100,7 @@ TAsyncOp<bool> TVariation<IsRenderProxy>::Compile()
 		const SPtr<ShaderType> owner = mOwner.lock();
 		if(!B3D_ENSURE(owner != nullptr))
 		{
-			B3D_LOG(Error, Material, "Cannot compile shader variation. Parent shader is not assigned.");
+			B3D_LOG(Error, LogMaterial, "Cannot compile shader variation. Parent shader is not assigned.");
 			operation.CompleteOperation(false);
 			return operation;
 		}
@@ -139,7 +139,7 @@ TAsyncOp<bool> TVariation<IsRenderProxy>::Compile()
 			SPtr<IShaderCompiler> shaderCompiler = ShaderCompilers::Instance().GetCompiler("bsl");
 			if(shaderCompiler == nullptr)
 			{
-				B3D_LOG(Error, Material, "Cannot compile variation. BSL shader compiler is not available.");
+				B3D_LOG(Error, LogMaterial, "Cannot compile variation. BSL shader compiler is not available.");
 				operation.CompleteOperation(false);
 				return operation;
 			}
@@ -149,7 +149,7 @@ TAsyncOp<bool> TVariation<IsRenderProxy>::Compile()
 
 			if(!compileResult.ErrorMessage.empty())
 			{
-				B3D_LOG(Error, Renderer, "Compilation error when compiling a variation for shader \"{0}\":\n{1}. Location: {2} ({3})", owner->GetShaderName(), compileResult.ErrorMessage, compileResult.ErrorLine, compileResult.ErrorColumn);
+				B3D_LOG(Error, LogRenderer, "Compilation error when compiling a variation for shader \"{0}\":\n{1}. Location: {2} ({3})", owner->GetShaderName(), compileResult.ErrorMessage, compileResult.ErrorLine, compileResult.ErrorColumn);
 				operation.CompleteOperation(false);
 				return operation;
 			}

@@ -397,7 +397,7 @@ UnorderedMap<ValidParamKey, String> DetermineValidParameters(const Vector<SPtr<G
 		if(findIter->second->Type != iter->second.Type &&
 		   !(iter->second.Type == GPDT_COLOR && (findIter->second->Type == GPDT_FLOAT4 || findIter->second->Type == GPDT_FLOAT3)))
 		{
-			B3D_LOG(Warning, Material, "Ignoring shader parameter \"{0}\". Type doesn't match the one defined in the "
+			B3D_LOG(Warning, LogMaterial, "Ignoring shader parameter \"{0}\". Type doesn't match the one defined in the "
 									  "GPU program. Shader defined type: {1} - Gpu program defined type: {2}",
 				   iter->first, iter->second.Type, findIter->second->Type);
 			continue;
@@ -862,7 +862,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::SetUniformBuffer(u32 index, const
 	UniformBufferInfo& uniformBufferInfo = mUniformBuffers[index];
 	if(!uniformBufferInfo.Shareable)
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer is not assignable. ", uniformBufferInfo.Name);
+		B3D_LOG(Error, LogRenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer is not assignable. ", uniformBufferInfo.Name);
 		return;
 	}
 
@@ -902,7 +902,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::SetUniformBuffer(const String& na
 	const u32 bufferIndex = GetUniformBufferIndex(name);
 	if(bufferIndex == (u32)-1)
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer name not found. ", name);
+		B3D_LOG(Error, LogRenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer name not found. ", name);
 		return;
 	}
 
@@ -1310,7 +1310,7 @@ namespace b3d::render
 		UniformBufferInfo& uniformBufferInfo = mUniformBuffers[index];
 		if(!uniformBufferInfo.Shareable)
 		{
-			B3D_LOG(Error, RenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer is not assignable. ", uniformBufferInfo.Name);
+			B3D_LOG(Error, LogRenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer is not assignable. ", uniformBufferInfo.Name);
 			return;
 		}
 
@@ -1350,7 +1350,7 @@ namespace b3d::render
 		const u32 bufferIndex = GetUniformBufferIndex(name);
 		if(bufferIndex == (u32)-1)
 		{
-			B3D_LOG(Error, RenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer name not found. ", name);
+			B3D_LOG(Error, LogRenderBackend, "Cannot set uniform buffer with the name \"{0}\". Buffer name not found. ", name);
 			return;
 		}
 

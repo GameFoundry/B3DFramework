@@ -89,7 +89,7 @@ void GUICanvas::DrawTriangleStrip(const Vector<GUILogicalPoint>& vertices, const
 {
 	if(vertices.size() < 3)
 	{
-		B3D_LOG(Warning, GUI, "Invalid number of vertices. Ignoring call.");
+		B3D_LOG(Warning, LogGUI, "Invalid number of vertices. Ignoring call.");
 		return;
 	}
 
@@ -135,7 +135,7 @@ void GUICanvas::DrawTriangleList(const Vector<GUILogicalPoint>& vertices, const 
 {
 	if(vertices.size() < 3 || vertices.size() % 3 != 0)
 	{
-		B3D_LOG(Warning, GUI, "Invalid number of vertices. Ignoring call.");
+		B3D_LOG(Warning, LogGUI, "Invalid number of vertices. Ignoring call.");
 		return;
 	}
 

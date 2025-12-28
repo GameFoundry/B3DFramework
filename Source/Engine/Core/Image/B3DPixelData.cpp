@@ -202,7 +202,7 @@ void PixelData::SetColorsInternal(const T& colors, u32 elementCount)
 	u32 totalElementCount = width * height * depth;
 	if(elementCount != totalElementCount)
 	{
-		B3D_LOG(Error, PixelUtility, "Unable to set colors, invalid array size.");
+		B3D_LOG(Error, LogPixelUtility, "Unable to set colors, invalid array size.");
 		return;
 	}
 

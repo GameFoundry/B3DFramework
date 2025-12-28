@@ -62,7 +62,7 @@ SPtr<CoreVariantType<Shader, IsRenderProxy>> ShaderCompilers::GetOrCompileShader
 
 	if(shaderFileStream == nullptr)
 	{
-		B3D_LOG(Error, Resources, "Shader compilation failed for shader \"{0}\". Shader source cannot be found.", shaderPath);
+		B3D_LOG(Error, LogResources, "Shader compilation failed for shader \"{0}\". Shader source cannot be found.", shaderPath);
 		return nullptr;
 	}
 
@@ -106,20 +106,20 @@ SPtr<CoreVariantType<Shader, IsRenderProxy>> ShaderCompilers::GetOrCompileShader
 		const SPtr<IShaderCompiler> bslCompiler = GetCompiler("bsl");
 		if(bslCompiler == nullptr)
 		{
-			B3D_LOG(Error, Resources, "Shader compilation failed for shader \"{0}\". Shader compiler for BSL is not available.", shaderPath);
+			B3D_LOG(Error, LogResources, "Shader compilation failed for shader \"{0}\". Shader compiler for BSL is not available.", shaderPath);
 			return nullptr;
 		}
 
 		ShaderCompilerResult compileResult = bslCompiler->Compile(shaderName, shaderSource, defines.GetAll(), activeShadingLanguage, false, shader);
 		if(!compileResult.ErrorMessage.empty())
 		{
-			B3D_LOG(Error, Resources, "Shader compilation failed for shader \"{0}\". Compilation error:\n{1}. Location: {2} ({3})", shaderPath, compileResult.ErrorMessage, compileResult.ErrorLine, compileResult.ErrorColumn);
+			B3D_LOG(Error, LogResources, "Shader compilation failed for shader \"{0}\". Compilation error:\n{1}. Location: {2} ({3})", shaderPath, compileResult.ErrorMessage, compileResult.ErrorLine, compileResult.ErrorColumn);
 			return nullptr;
 		}
 
 		if(shader == nullptr)
 		{
-			B3D_LOG(Error, Resources, "Shader compilation failed for shader \"{0}\". Unknown compilation failure.", shaderPath);
+			B3D_LOG(Error, LogResources, "Shader compilation failed for shader \"{0}\". Unknown compilation failure.", shaderPath);
 			return nullptr;
 		}
 

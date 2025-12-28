@@ -61,7 +61,7 @@ void LinuxFolderMonitor::AddPath(const Path& path)
 	if(watchHandle == -1)
 	{
 		String error = strerror(errno);
-		B3D_LOG(Error, Platform, "Unable to start folder monitor for path: \"{0}\". Error: {1}", pathString, error);
+		B3D_LOG(Error, LogPlatform, "Unable to start folder monitor for path: \"{0}\". Error: {1}", pathString, error);
 	}
 
 	PathToHandle[path] = watchHandle;
@@ -216,7 +216,7 @@ FolderMonitor::FolderMonitor(const Path& folderPath, bool monitorSubdirectories,
 
 	if(!FileSystem::IsDirectory(folderPath))
 	{
-		B3D_LOG(Error, Platform, "Provided path \"{0}\" is not a directory", folderPath);
+		B3D_LOG(Error, LogPlatform, "Provided path \"{0}\" is not a directory", folderPath);
 		return;
 	}
 
@@ -243,7 +243,7 @@ FolderMonitor::FolderMonitor(const Path& folderPath, bool monitorSubdirectories,
 
 	if(m->WorkerThread == nullptr)
 	{
-		B3D_LOG(Error, Platform, "Failed to create a new worker thread for folder monitoring");
+		B3D_LOG(Error, LogPlatform, "Failed to create a new worker thread for folder monitoring");
 		return;
 	}
 

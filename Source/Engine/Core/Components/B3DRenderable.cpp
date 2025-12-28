@@ -87,7 +87,7 @@ void TRenderable<IsRenderProxy>::SetLayer(u64 layer)
 
 	if(!isPow2)
 	{
-		B3D_LOG(Warning, Renderer, "Invalid layer provided. Only one layer bit may be set. Ignoring.");
+		B3D_LOG(Warning, LogRenderer, "Invalid layer provided. Only one layer bit may be set. Ignoring.");
 		return;
 	}
 

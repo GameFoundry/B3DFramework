@@ -151,7 +151,7 @@ Vector<TextureAtlasUtility::Page> TextureAtlasUtility::CreateAtlasLayout(Vector<
 			// Check if an element is too large to ever fit
 			if(element.Input.Width > maxWidth || element.Input.Height > maxHeight)
 			{
-				B3D_LOG(Warning, Generic, "Some of the provided elements don't fit in an atlas of provided size. "
+				B3D_LOG(Warning, LogGeneric, "Some of the provided elements don't fit in an atlas of provided size. "
 										 "Returning empty array of pages.");
 				return Vector<Page>();
 			}

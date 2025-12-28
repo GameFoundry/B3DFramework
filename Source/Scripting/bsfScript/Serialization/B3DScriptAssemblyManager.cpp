@@ -831,14 +831,14 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 
 		if(MonoUtil::IsEnum(klass))
 		{
-			B3D_LOG(Warning, Script, "Unsupported type provided.");
+			B3D_LOG(Warning, LogScript, "Unsupported type provided.");
 			return nullptr;
 		}
 
 		MonoPrimitiveType monoPrimitiveType = MonoUtil::GetPrimitiveType(klass);
 		if(monoPrimitiveType != MonoPrimitiveType::Class && monoPrimitiveType != MonoPrimitiveType::ValueType)
 		{
-			B3D_LOG(Warning, Script, "Unsupported type provided.");
+			B3D_LOG(Warning, LogScript, "Unsupported type provided.");
 			return nullptr;
 		}
 
@@ -850,7 +850,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 			if(monoClass == ScriptResource::GetMetaData()->ScriptClass ||
 			   monoClass == ScriptManagedResource::GetMetaData()->ScriptClass)
 			{
-				B3D_LOG(Warning, Script, "Unsupported type provided.");
+				B3D_LOG(Warning, LogScript, "Unsupported type provided.");
 				return nullptr;
 			}
 
@@ -894,7 +894,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 		{
 			if(monoClass == mBuiltin.ComponentClass || monoClass == mBuiltin.ManagedComponentClass)
 			{
-				B3D_LOG(Warning, Script, "Unsupported type provided.");
+				B3D_LOG(Warning, LogScript, "Unsupported type provided.");
 				return nullptr;
 			}
 
@@ -942,7 +942,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 		SPtr<ManagedObjectInfo> objInfo;
 		if(!Instance().GetSerializableObjectInfo(elementNs, elementTypeName, objInfo))
 		{
-			B3D_LOG(Error, Script, "Object has no serialization meta-data.");
+			B3D_LOG(Error, LogScript, "Object has no serialization meta-data.");
 			return nullptr;
 		}
 
@@ -966,7 +966,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 			SPtr<ManagedSerializableObject> managedObj = ManagedSerializableObject::CreateFromExisting(value);
 			if(!managedObj)
 			{
-				B3D_LOG(Error, Script, "Object failed to serialize due to an internal error.");
+				B3D_LOG(Error, LogScript, "Object failed to serialize due to an internal error.");
 				return nullptr;
 			}
 

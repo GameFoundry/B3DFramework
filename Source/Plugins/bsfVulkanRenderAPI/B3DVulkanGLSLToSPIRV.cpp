@@ -903,7 +903,7 @@ static bool ParseVertexAttributes(const glslang::TProgram* program, Vector<Verte
 		{
 			VertexElementType type = MapGLSLangToVertexElemType(*ttype);
 			if(type == VET_UNKNOWN)
-				B3D_LOG(Error, RenderBackend, "Cannot determine vertex input attribute type for attribute: {0}", attribName);
+				B3D_LOG(Error, LogRenderBackend, "Cannot determine vertex input attribute type for attribute: {0}", attribName);
 
 			elementList.push_back(VertexElement(type, semantic, index, 0, 0, location));
 		}
@@ -912,7 +912,7 @@ static bool ParseVertexAttributes(const glslang::TProgram* program, Vector<Verte
 			// Ignore built-in attributes
 			if(memcmp(attribName, "gl_", 3) != 0)
 			{
-				B3D_LOG(Error, RenderBackend, "Cannot determine vertex input attribute semantic for attribute: {0}", attribName);
+				B3D_LOG(Error, LogRenderBackend, "Cannot determine vertex input attribute semantic for attribute: {0}", attribName);
 			}
 		}
 	}

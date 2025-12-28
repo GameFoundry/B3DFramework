@@ -218,7 +218,7 @@ void ScriptComponent::InternalRemoveComponent(MonoObject* parentSceneObject, Mon
 		}
 	}
 
-	B3D_LOG(Warning, Scene, "Attempting to remove a component that doesn't exists on SceneObject \"{0}\"", sceneObject->GetName());
+	B3D_LOG(Warning, LogScene, "Attempting to remove a component that doesn't exists on SceneObject \"{0}\"", sceneObject->GetName());
 }
 
 MonoObject* ScriptComponent::InternalGetSceneObject(ScriptGameObjectWrapper* self)

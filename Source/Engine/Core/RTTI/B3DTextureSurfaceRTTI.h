@@ -66,7 +66,7 @@ namespace b3d
 				B3DRTTIRead(data.IsBoundAs2DArray, stream);
 				break;
 			default:
-				B3D_LOG(Error, RTTI, "Unable to deserialize TextureSurface. (Unknown version.)");
+				B3D_LOG(Error, LogRTTI, "Unable to deserialize TextureSurface. (Unknown version.)");
 				break;
 			}
 

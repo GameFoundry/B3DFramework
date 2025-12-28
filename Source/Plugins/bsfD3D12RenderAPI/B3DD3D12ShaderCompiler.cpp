@@ -88,14 +88,14 @@ bool D3D12ShaderCompiler::CompileShader(const GpuProgramCreateInformation& desc,
 				(const char*)errorBlob->GetBufferPointer();
 			if (bytecode)
 				bytecode->Messages = errorMsg;
-			B3D_LOG(Error, RenderBackend, "Failed to compile shader '{0}':\n{1}", desc.Name, errorMsg);
+			B3D_LOG(Error, LogRenderBackend, "Failed to compile shader '{0}':\n{1}", desc.Name, errorMsg);
 		}
 		else
 		{
 			String errorMsg = "Shader compilation failed with unknown error";
 			if (bytecode)
 				bytecode->Messages = errorMsg;
-			B3D_LOG(Error, RenderBackend, "Failed to compile shader '{0}': {1}", desc.Name, errorMsg);
+			B3D_LOG(Error, LogRenderBackend, "Failed to compile shader '{0}': {1}", desc.Name, errorMsg);
 		}
 
 		return false;
@@ -108,7 +108,7 @@ bool D3D12ShaderCompiler::CompileShader(const GpuProgramCreateInformation& desc,
 			(const char*)errorBlob->GetBufferPointer();
 		if (bytecode)
 			bytecode->Messages = warningMsg;
-		B3D_LOG(Warning, RenderBackend, "Shader '{0}' compiled with warnings:\n{1}", desc.Name, warningMsg);
+		B3D_LOG(Warning, LogRenderBackend, "Shader '{0}' compiled with warnings:\n{1}", desc.Name, warningMsg);
 	}
 	else
 	{
@@ -150,7 +150,7 @@ void D3D12ShaderCompiler::ReflectShader(ID3DBlob* shaderBlob, GpuProgramType typ
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Warning, RenderBackend, "Failed to reflect shader");
+		B3D_LOG(Warning, LogRenderBackend, "Failed to reflect shader");
 		return;
 	}
 
@@ -272,7 +272,7 @@ void D3D12ShaderCompiler::ReflectBoundResources(ID3D12ShaderReflection* reflecti
 			break;
 
 		default:
-			B3D_LOG(Warning, RenderBackend, "Unknown resource type in shader reflection: {0}", (u32)bindDesc.Type);
+			B3D_LOG(Warning, LogRenderBackend, "Unknown resource type in shader reflection: {0}", (u32)bindDesc.Type);
 			break;
 		}
 	}
@@ -297,7 +297,7 @@ void D3D12ShaderCompiler::ReflectVertexInput(ID3D12ShaderReflection* reflection,
 		u16 semanticIdx = 0;
 		if (!ParseSemanticName(paramDesc.SemanticName, semantic, semanticIdx))
 		{
-			B3D_LOG(Warning, RenderBackend, "Unknown vertex semantic: {0}", paramDesc.SemanticName);
+			B3D_LOG(Warning, LogRenderBackend, "Unknown vertex semantic: {0}", paramDesc.SemanticName);
 			continue;
 		}
 

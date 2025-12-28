@@ -569,7 +569,7 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 		{
 			bool outputExists = FileSystem::Exists(fontsFolder);
 			if(!outputExists)
-				FileSystem::CreateDir(fontsFolder);
+				FileSystem::CreateFolder(fontsFolder);
 
 			for(auto& entry : fontsJSON)
 			{

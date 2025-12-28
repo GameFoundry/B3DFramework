@@ -92,14 +92,14 @@ namespace b3d::render
 	{
 		if (mInformation.Mode == GpuParameterSetPoolMode::Persistent)
 		{
-			B3D_LOG(Error, RenderBackend, "Cannot perform Reset on a Persistent mode parameter set pool.");
+			B3D_LOG(Error, LogRenderBackend, "Cannot perform Reset on a Persistent mode parameter set pool.");
 			return;
 		}
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		if (!mLiveDescriptorSets.empty())
 		{
-			B3D_LOG(Warning, RenderBackend, "Resetting parameter set pool with {0} live descriptor sets. "
+			B3D_LOG(Warning, LogRenderBackend, "Resetting parameter set pool with {0} live descriptor sets. "
 				"These sets will become invalid.", mLiveDescriptorSets.size());
 		}
 		mLiveDescriptorSets.clear();
@@ -140,7 +140,7 @@ namespace b3d::render
 
 		if (result != VK_SUCCESS)
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to allocate descriptor set from pool.");
+			B3D_LOG(Error, LogRenderBackend, "Failed to allocate descriptor set from pool.");
 			return nullptr;
 		}
 

@@ -59,7 +59,7 @@ SPtr<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneOb
 {
 	if(original->GetPrefabResourceId() != modified->GetPrefabResourceId())
 	{
-		B3D_LOG(Warning, Prefab, "Cannot create a delta between objects not linked to the same prefab.");
+		B3D_LOG(Warning, LogPrefab, "Cannot create a delta between objects not linked to the same prefab.");
 		return nullptr;
 	}
 

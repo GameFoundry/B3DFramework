@@ -610,7 +610,7 @@ void Scheduler::ProcessTasksOnCurrentThread()
 	const SPtr<SchedulerThread>& thread = SchedulerThread::Get();
 	if (!B3D_ENSURE(thread != nullptr))
 	{
-		B3D_LOG(Error, Generic, "ProcessTasks() called on a thread not bound to any scheduler");
+		B3D_LOG(Error, LogGeneric, "ProcessTasks() called on a thread not bound to any scheduler");
 		return;
 	}
 

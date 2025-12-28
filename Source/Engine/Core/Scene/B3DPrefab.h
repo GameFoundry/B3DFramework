@@ -12,7 +12,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Prefab, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(LogPrefab, Log)
 
 	/** Keeps track of all live prefabs and ensures they are kept up to date. */
 	class B3D_EXPORT PrefabManager : public Module<PrefabManager>

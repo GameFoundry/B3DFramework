@@ -339,7 +339,7 @@ void Win32Platform::UnregisterDropTarget(DropTarget* target)
 	auto iterFind = mData->DropTargets.DropTargetsPerWindow.find(target->GetOwnerWindowInternal());
 	if(iterFind == mData->DropTargets.DropTargetsPerWindow.end())
 	{
-		B3D_LOG(Warning, Platform, "Attempting to destroy a drop target but cannot find its parent window.");
+		B3D_LOG(Warning, LogPlatform, "Attempting to destroy a drop target but cannot find its parent window.");
 	}
 	else
 	{
@@ -448,7 +448,7 @@ void Platform::StartUpInternal()
 
 	if(timeBeginPeriod(1) == TIMERR_NOCANDO)
 	{
-		B3D_LOG(Warning, Platform, "Unable to set timer resolution to 1ms. This can cause significant waste "
+		B3D_LOG(Warning, LogPlatform, "Unable to set timer resolution to 1ms. This can cause significant waste "
 								  "in performance for waiting threads.");
 	}
 

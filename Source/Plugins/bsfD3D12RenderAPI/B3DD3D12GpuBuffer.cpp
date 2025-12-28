@@ -109,7 +109,7 @@ void D3D12GpuBuffer::Initialize()
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create D3D12 buffer resource");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create D3D12 buffer resource");
 		return;
 	}
 
@@ -134,12 +134,12 @@ void D3D12GpuBuffer::Initialize()
 			mIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
 		else
 		{
-			B3D_LOG(Error, RenderBackend, "Invalid index buffer element size: {0}", props.ElementSize);
+			B3D_LOG(Error, LogRenderBackend, "Invalid index buffer element size: {0}", props.ElementSize);
 			mIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
 		}
 	}
 
-	B3D_LOG(Info, RenderBackend, "Created D3D12 buffer: size={0} bytes, type={1}, usage={2}",
+	B3D_LOG(Info, LogRenderBackend, "Created D3D12 buffer: size={0} bytes, type={1}, usage={2}",
 		props.ElementSize * props.ElementCount, (u32)props.Type, (u32)props.Usage);
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_VertexBuffer);
@@ -163,7 +163,7 @@ void* D3D12GpuBuffer::Map(u32 offset, u32 length, GpuLockOptions options)
 	// Only upload and readback heaps can be mapped
 	if (props.Usage == GBU_STATIC)
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot map static buffer - use dynamic or readback buffer instead");
+		B3D_LOG(Error, LogRenderBackend, "Cannot map static buffer - use dynamic or readback buffer instead");
 		return nullptr;
 	}
 
@@ -185,7 +185,7 @@ void* D3D12GpuBuffer::Map(u32 offset, u32 length, GpuLockOptions options)
 	HRESULT hr = mBuffer->Map(0, &readRange, &mMappedData);
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to map D3D12 buffer");
+		B3D_LOG(Error, LogRenderBackend, "Failed to map D3D12 buffer");
 		return nullptr;
 	}
 
@@ -281,7 +281,7 @@ void D3D12GpuBuffer::WriteData(u32 offset, u32 length, const void* source, GpuBu
 
 		if (FAILED(hr))
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to create upload buffer for WriteData");
+			B3D_LOG(Error, LogRenderBackend, "Failed to create upload buffer for WriteData");
 			return;
 		}
 
@@ -292,7 +292,7 @@ void D3D12GpuBuffer::WriteData(u32 offset, u32 length, const void* source, GpuBu
 
 		if (FAILED(hr))
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to map upload buffer");
+			B3D_LOG(Error, LogRenderBackend, "Failed to map upload buffer");
 			return;
 		}
 
@@ -317,7 +317,7 @@ void D3D12GpuBuffer::WriteData(u32 offset, u32 length, const void* source, GpuBu
 	}
 	else
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot write to readback buffer");
+		B3D_LOG(Error, LogRenderBackend, "Cannot write to readback buffer");
 	}
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_VertexBuffer);
@@ -385,7 +385,7 @@ void D3D12GpuBuffer::ReadData(u32 offset, u32 length, void* dest)
 
 		if (FAILED(hr))
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to create readback buffer for ReadData");
+			B3D_LOG(Error, LogRenderBackend, "Failed to create readback buffer for ReadData");
 			return;
 		}
 
@@ -408,7 +408,7 @@ void D3D12GpuBuffer::ReadData(u32 offset, u32 length, void* dest)
 
 		if (FAILED(hr))
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to map readback buffer");
+			B3D_LOG(Error, LogRenderBackend, "Failed to map readback buffer");
 			return;
 		}
 
@@ -434,7 +434,7 @@ void D3D12GpuBuffer::CopyData(GpuBuffer& destination, u32 srcOffset, u32 dstOffs
 	// 3. Use CopyBufferRegion to copy between buffers
 	// 4. Execute the command list
 
-	B3D_LOG(Warning, RenderBackend, "D3D12GpuBuffer::CopyData not yet implemented");
+	B3D_LOG(Warning, LogRenderBackend, "D3D12GpuBuffer::CopyData not yet implemented");
 }
 
 void D3D12GpuBuffer::Flush(u32 offset, u32 size)

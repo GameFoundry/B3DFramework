@@ -79,7 +79,7 @@ bool OggVorbisDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info,
 	int status = ov_open_callbacks(&mDecoderData, &mOggVorbisFile, nullptr, 0, callbacks);
 	if(status < 0)
 	{
-		B3D_LOG(Error, Audio, "Failed to open Ogg Vorbis file.");
+		B3D_LOG(Error, LogAudio, "Failed to open Ogg Vorbis file.");
 		return false;
 	}
 

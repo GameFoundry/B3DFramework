@@ -7,7 +7,7 @@
 using namespace b3d;
 using namespace render;
 
-B3D_LOG_CATEGORY(RendererMaterial)
+B3D_LOG_CATEGORY(LogRendererMaterial)
 
 void RendererMaterialBase::Bind(GpuCommandBuffer& commandBuffer, bool bindParameters) const
 {

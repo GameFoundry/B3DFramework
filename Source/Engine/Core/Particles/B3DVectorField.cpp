@@ -19,7 +19,7 @@ VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& v
 	: TVectorField(desc)
 {
 	if(mDesc.CountX == 0 || mDesc.CountY == 0 || mDesc.CountZ == 0)
-		B3D_LOG(Warning, Particles, "Vector field count cannot be zero.");
+		B3D_LOG(Warning, LogParticles, "Vector field count cannot be zero.");
 
 	mDesc.CountX = std::max(1U, mDesc.CountX);
 	mDesc.CountY = std::max(1U, mDesc.CountY);
@@ -28,7 +28,7 @@ VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& v
 	const u32 count = mDesc.CountX * mDesc.CountY * mDesc.CountZ;
 	if(count != (u32)values.size())
 	{
-		B3D_LOG(Warning, Particles, "Number of values provided to the vector field does not match the expected number. "
+		B3D_LOG(Warning, LogParticles, "Number of values provided to the vector field does not match the expected number. "
 								   "Expected: {0}. Got: {1}.",
 			   count, (u32)values.size());
 	}
@@ -202,7 +202,7 @@ SPtr<Resource> FGAImporter::Import(const Path& filePath, SPtr<const ImportOption
 
 	if(size.X < 0 || size.Y < 0 || size.Z < 0)
 	{
-		B3D_LOG(Error, Particles, "Invalid dimensions.");
+		B3D_LOG(Error, LogParticles, "Invalid dimensions.");
 		return nullptr;
 	}
 
@@ -212,7 +212,7 @@ SPtr<Resource> FGAImporter::Import(const Path& filePath, SPtr<const ImportOption
 
 	if(*readPos == '\0')
 	{
-		B3D_LOG(Error, Particles, "Unexpected end of file.");
+		B3D_LOG(Error, LogParticles, "Unexpected end of file.");
 		return nullptr;
 	}
 
@@ -226,7 +226,7 @@ SPtr<Resource> FGAImporter::Import(const Path& filePath, SPtr<const ImportOption
 
 	if(*readPos == '\0')
 	{
-		B3D_LOG(Error, Particles, "Unexpected end of file.");
+		B3D_LOG(Error, LogParticles, "Unexpected end of file.");
 		return nullptr;
 	}
 
@@ -244,14 +244,14 @@ SPtr<Resource> FGAImporter::Import(const Path& filePath, SPtr<const ImportOption
 
 		if((i != (count - 1)) && *readPos == '\0')
 		{
-			B3D_LOG(Error, Particles, "Unexpected end of file.");
+			B3D_LOG(Error, LogParticles, "Unexpected end of file.");
 			return nullptr;
 		}
 	}
 
 	if(*readPos != '\0')
 	{
-		B3D_LOG(Warning, Particles, "Unexpected excess data. This might indicate corrupt data. Remaining data will be truncated.");
+		B3D_LOG(Warning, LogParticles, "Unexpected excess data. This might indicate corrupt data. Remaining data will be truncated.");
 	}
 
 	const String fileName = filePath.GetFilename(false);

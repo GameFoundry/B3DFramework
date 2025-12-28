@@ -69,7 +69,7 @@ bool GpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr<Textu
 
 	if(source == nullptr || destination == nullptr)
 	{
-		B3D_LOG(Error, Texture, "Copy operation failed. Source or destination texture is null.");
+		B3D_LOG(Error, LogTexture, "Copy operation failed. Source or destination texture is null.");
 		return false;
 	}
 
@@ -78,49 +78,49 @@ bool GpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr<Textu
 
 	if(copyInformation.FaceCount == 0)
 	{
-		B3D_LOG(Warning, Texture, "Copy operation failed. Face count is zero.");
+		B3D_LOG(Warning, LogTexture, "Copy operation failed. Face count is zero.");
 		return false;
 	}
 
 	if(destinationProperties.Type != sourceProperties.Type)
 	{
-		B3D_LOG(Error, Texture, "Source and destination textures must be of same type.");
+		B3D_LOG(Error, LogTexture, "Source and destination textures must be of same type.");
 		return false;
 	}
 
 	if(sourceProperties.Format != destinationProperties.Format)
 	{
-		B3D_LOG(Error, Texture, "Source and destination texture formats must match.");
+		B3D_LOG(Error, LogTexture, "Source and destination texture formats must match.");
 		return false;
 	}
 
 	if(destinationProperties.SampleCount > 1 && sourceProperties.SampleCount != destinationProperties.SampleCount)
 	{
-		B3D_LOG(Error, Texture, "When copying to a multisampled texture, source texture must have the same number of samples.");
+		B3D_LOG(Error, LogTexture, "When copying to a multisampled texture, source texture must have the same number of samples.");
 		return false;
 	}
 
 	if((copyInformation.SourceFace + copyInformation.FaceCount) > sourceProperties.GetFaceCount())
 	{
-		B3D_LOG(Error, Texture, "Invalid source face index.");
+		B3D_LOG(Error, LogTexture, "Invalid source face index.");
 		return false;
 	}
 
 	if((copyInformation.DestinationFace + copyInformation.FaceCount) > destinationProperties.GetFaceCount())
 	{
-		B3D_LOG(Error, Texture, "Invalid destination face index.");
+		B3D_LOG(Error, LogTexture, "Invalid destination face index.");
 		return false;
 	}
 
 	if(copyInformation.SourceMip > sourceProperties.MipMapCount)
 	{
-		B3D_LOG(Error, Texture, "Source mip level out of range. Valid range is [0, {0}].", sourceProperties.MipMapCount);
+		B3D_LOG(Error, LogTexture, "Source mip level out of range. Valid range is [0, {0}].", sourceProperties.MipMapCount);
 		return false;
 	}
 
 	if(copyInformation.DestinationMip > destinationProperties.MipMapCount)
 	{
-		B3D_LOG(Error, Texture, "Destination mip level out of range. Valid range is [0, {0}].", destinationProperties.MipMapCount);
+		B3D_LOG(Error, LogTexture, "Destination mip level out of range. Valid range is [0, {0}].", destinationProperties.MipMapCount);
 		return false;
 	}
 
@@ -134,7 +134,7 @@ bool GpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr<Textu
 	   copyInformation.DestinationPosition.Y < 0 || copyInformation.DestinationPosition.Y >= (i32)destinationHeight ||
 	   copyInformation.DestinationPosition.Z < 0 || copyInformation.DestinationPosition.Z >= (i32)destinationDepth)
 	{
-		B3D_LOG(Error, Texture, "Destination position falls outside the destination texture.");
+		B3D_LOG(Error, LogTexture, "Destination position falls outside the destination texture.");
 		return false;
 	}
 
@@ -151,7 +151,7 @@ bool GpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr<Textu
 		   copyInformation.SourceVolume.Top >= sourceHeight || copyInformation.SourceVolume.Bottom > sourceHeight ||
 		   copyInformation.SourceVolume.Front >= sourceDepth || copyInformation.SourceVolume.Back > sourceDepth)
 		{
-			B3D_LOG(Error, Texture, "Source volume falls outside the source texture.");
+			B3D_LOG(Error, LogTexture, "Source volume falls outside the source texture.");
 			return false;
 		}
 
@@ -168,7 +168,7 @@ bool GpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr<Textu
 
 	if(destinationRight > destinationWidth || destinationBottom > destinationHeight || destinationBack > destinationDepth)
 	{
-		B3D_LOG(Error, Texture, "Destination volume falls outside the destination texture.");
+		B3D_LOG(Error, LogTexture, "Destination volume falls outside the destination texture.");
 		return false;
 	}
 
@@ -177,7 +177,7 @@ bool GpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr<Textu
 
 	if(sourceProperties.Usage.IsSet(TextureUsageFlag::DepthStencil) || destinationProperties.Usage.IsSet(TextureUsageFlag::DepthStencil))
 	{
-		B3D_LOG(Error, RenderBackend, "Texture copy/resolve isn't supported for depth-stencil textures.");
+		B3D_LOG(Error, LogRenderBackend, "Texture copy/resolve isn't supported for depth-stencil textures.");
 		return false;
 	}
 
@@ -187,7 +187,7 @@ bool GpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr<Textu
 	{
 		if(sourceProperties.SampleCount != destinationProperties.SampleCount)
 		{
-			B3D_LOG(Error, RenderBackend, "When copying textures their multisample counts must match. Ignoring copy.");
+			B3D_LOG(Error, LogRenderBackend, "When copying textures their multisample counts must match. Ignoring copy.");
 			return false;
 		}
 	}
@@ -201,7 +201,7 @@ bool GpuCommandBuffer::BlitTexture(const SPtr<Texture>& source, const SPtr<Textu
 
 	if(source == nullptr || destination == nullptr)
 	{
-		B3D_LOG(Error, Texture, "Blit operation failed. Source or destination texture is null.");
+		B3D_LOG(Error, LogTexture, "Blit operation failed. Source or destination texture is null.");
 		return false;
 	}
 
@@ -210,37 +210,37 @@ bool GpuCommandBuffer::BlitTexture(const SPtr<Texture>& source, const SPtr<Textu
 
 	if(blitInformation.FaceCount == 0)
 	{
-		B3D_LOG(Warning, Texture, "Blit operation failed. Face count is zero.");
+		B3D_LOG(Warning, LogTexture, "Blit operation failed. Face count is zero.");
 		return false;
 	}
 
 	if((blitInformation.SourceFace + blitInformation.FaceCount) > sourceProperties.GetFaceCount())
 	{
-		B3D_LOG(Error, Texture, "Blit operation failed. Source face out of valid range.");
+		B3D_LOG(Error, LogTexture, "Blit operation failed. Source face out of valid range.");
 		return false;
 	}
 
 	if((blitInformation.DestinationFace + blitInformation.FaceCount) > destinationProperties.GetFaceCount())
 	{
-		B3D_LOG(Error, Texture, "Blit operation failed. Destination face out of valid range.");
+		B3D_LOG(Error, LogTexture, "Blit operation failed. Destination face out of valid range.");
 		return false;
 	}
 
 	if(blitInformation.SourceMip > sourceProperties.MipMapCount)
 	{
-		B3D_LOG(Error, Texture, "Blit operation failed. Source mip level out of valid range. Valid range is [0, {0}].", sourceProperties.MipMapCount);
+		B3D_LOG(Error, LogTexture, "Blit operation failed. Source mip level out of valid range. Valid range is [0, {0}].", sourceProperties.MipMapCount);
 		return false;
 	}
 
 	if(blitInformation.DestinationMip > destinationProperties.MipMapCount)
 	{
-		B3D_LOG(Error, Texture, "Blit operation failed. Destination mip level out of range. Valid range is [0, {0}].", destinationProperties.MipMapCount);
+		B3D_LOG(Error, LogTexture, "Blit operation failed. Destination mip level out of range. Valid range is [0, {0}].", destinationProperties.MipMapCount);
 		return false;
 	}
 
 	if(sourceProperties.Usage.IsSet(TextureUsageFlag::DepthStencil) || destinationProperties.Usage.IsSet(TextureUsageFlag::DepthStencil))
 	{
-		B3D_LOG(Error, RenderBackend, "Texture blit isn't supported for depth-stencil textures.");
+		B3D_LOG(Error, LogRenderBackend, "Texture blit isn't supported for depth-stencil textures.");
 		return false;
 	}
 

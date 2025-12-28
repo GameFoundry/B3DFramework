@@ -187,7 +187,7 @@ NetworkPeer::NetworkPeer()
 	SteamDatagramErrMsg errMsg;
 	if(!GameNetworkingSockets_Init(nullptr, errMsg))
 	{
-		B3D_LOG(Error, Network, "Failed to initialize GameNetworkingSockets: {0}", errMsg);
+		B3D_LOG(Error, LogNetwork, "Failed to initialize GameNetworkingSockets: {0}", errMsg);
 		return;
 	}
 
@@ -208,13 +208,13 @@ bool NetworkPeer::StartServer(u16 port, u32 maxConnections)
 {
 	if(!m->Sockets)
 	{
-		B3D_LOG(Error, Network, "Cannot start server, sockets not initialized.");
+		B3D_LOG(Error, LogNetwork, "Cannot start server, sockets not initialized.");
 		return false;
 	}
 
 	if(m->ListenSocket != k_HSteamListenSocket_Invalid || m->ClientConnection != k_HSteamNetConnection_Invalid)
 	{
-		B3D_LOG(Error, Network, "Cannot start server, peer already active.");
+		B3D_LOG(Error, LogNetwork, "Cannot start server, peer already active.");
 		return false;
 	}
 
@@ -226,7 +226,7 @@ bool NetworkPeer::StartServer(u16 port, u32 maxConnections)
 	m->ListenSocket = m->Sockets->CreateListenSocketIP(serverAddress, 0, nullptr);
 	if(m->ListenSocket == k_HSteamListenSocket_Invalid)
 	{
-		B3D_LOG(Error, Network, "Failed to create listen socket on port {0}.", port);
+		B3D_LOG(Error, LogNetwork, "Failed to create listen socket on port {0}.", port);
 		return false;
 	}
 
@@ -234,7 +234,7 @@ bool NetworkPeer::StartServer(u16 port, u32 maxConnections)
 	m->PollGroup = m->Sockets->CreatePollGroup();
 	if(m->PollGroup == k_HSteamNetPollGroup_Invalid)
 	{
-		B3D_LOG(Error, Network, "Failed to create poll group.");
+		B3D_LOG(Error, LogNetwork, "Failed to create poll group.");
 		m->Sockets->CloseListenSocket(m->ListenSocket);
 		m->ListenSocket = k_HSteamListenSocket_Invalid;
 		return false;
@@ -243,7 +243,7 @@ bool NetworkPeer::StartServer(u16 port, u32 maxConnections)
 	m->IsServer = true;
 	m->MaxConnections = maxConnections;
 
-	B3D_LOG(Info, Network, "Server started on port {0}, max connections: {1}", port, maxConnections);
+	B3D_LOG(Info, LogNetwork, "Server started on port {0}, max connections: {1}", port, maxConnections);
 	return true;
 }
 
@@ -251,13 +251,13 @@ ConnectionID NetworkPeer::Connect(const NetworkAddress& address)
 {
 	if(!m->Sockets)
 	{
-		B3D_LOG(Error, Network, "Cannot connect, sockets not initialized.");
+		B3D_LOG(Error, LogNetwork, "Cannot connect, sockets not initialized.");
 		return ConnectionID::Invalid();
 	}
 
 	if(m->ListenSocket != k_HSteamListenSocket_Invalid || m->ClientConnection != k_HSteamNetConnection_Invalid)
 	{
-		B3D_LOG(Error, Network, "Cannot connect, peer already active.");
+		B3D_LOG(Error, LogNetwork, "Cannot connect, peer already active.");
 		return ConnectionID::Invalid();
 	}
 
@@ -266,7 +266,7 @@ ConnectionID NetworkPeer::Connect(const NetworkAddress& address)
 	m->ClientConnection = m->Sockets->ConnectByIPAddress(serverAddress, 0, nullptr);
 	if(m->ClientConnection == k_HSteamNetConnection_Invalid)
 	{
-		B3D_LOG(Error, Network, "Failed to initiate connection to {0}", address.ToString(true));
+		B3D_LOG(Error, LogNetwork, "Failed to initiate connection to {0}", address.ToString(true));
 		return ConnectionID::Invalid();
 	}
 
@@ -386,7 +386,7 @@ void NetworkPeer::SendMessage(ConnectionID connection, const u8* data, u32 size,
 	HSteamNetConnection handle = m->GetConnectionHandle(connection);
 	if(handle == k_HSteamNetConnection_Invalid)
 	{
-		B3D_LOG(Error, Network, "Cannot send message, invalid connection ID.");
+		B3D_LOG(Error, LogNetwork, "Cannot send message, invalid connection ID.");
 		return;
 	}
 
@@ -401,7 +401,7 @@ void NetworkPeer::SendMessage(ConnectionID connection, const u8* data, u32 size,
 
 	if(result != k_EResultOK)
 	{
-		B3D_LOG(Warning, Network, "Failed to send message, error code: {0}", (int32)result);
+		B3D_LOG(Warning, LogNetwork, "Failed to send message, error code: {0}", (int32)result);
 	}
 }
 
@@ -585,7 +585,7 @@ void Network::Host(u16 port, u32 maxConnections)
 {
 	if(mPeer)
 	{
-		B3D_LOG(Error, Network, "Cannot start hosting when an existing network connection is active.");
+		B3D_LOG(Error, LogNetwork, "Cannot start hosting when an existing network connection is active.");
 		return;
 	}
 
@@ -603,7 +603,7 @@ void Network::Connect(const char* host, u16 port)
 {
 	if(mPeer)
 	{
-		B3D_LOG(Error, Network, "Cannot connect when an existing network connection is active.");
+		B3D_LOG(Error, LogNetwork, "Cannot connect when an existing network connection is active.");
 		return;
 	}
 

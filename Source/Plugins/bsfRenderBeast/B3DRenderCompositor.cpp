@@ -181,7 +181,7 @@ void RenderCompositor::Build(const RendererView& view, const TArray<StringID>& p
 			// Check if invalid
 			if(currentNodeIndex == ~0u)
 			{
-				B3D_LOG(Error, Renderer, "Render compositor nodes recursion detected. Node \"{0}\" "
+				B3D_LOG(Error, LogRenderer, "Render compositor nodes recursion detected. Node \"{0}\" "
 										"depends on node \"{1}\" which is not available at this stage.",
 					   String(nodeId.CStr()), String(foundNodeDescriptor->first.CStr()));
 				return false;

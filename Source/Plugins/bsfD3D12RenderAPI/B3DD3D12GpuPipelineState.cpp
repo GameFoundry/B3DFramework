@@ -204,11 +204,11 @@ void D3D12GpuGraphicsPipelineState::CreatePipelineState()
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create graphics pipeline state");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create graphics pipeline state");
 	}
 	else
 	{
-		B3D_LOG(Info, RenderBackend, "Created graphics pipeline state");
+		B3D_LOG(Info, LogRenderBackend, "Created graphics pipeline state");
 	}
 }
 
@@ -291,10 +291,10 @@ void D3D12GpuComputePipelineState::CreatePipelineState()
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create compute pipeline state");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create compute pipeline state");
 	}
 	else
 	{
-		B3D_LOG(Info, RenderBackend, "Created compute pipeline state");
+		B3D_LOG(Info, LogRenderBackend, "Created compute pipeline state");
 	}
 }

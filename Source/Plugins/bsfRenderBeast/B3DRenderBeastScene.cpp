@@ -156,7 +156,7 @@ static void ValidateBasePassMaterial(Material& material, RenderableAnimType anim
 				for(auto& entry : missingElements)
 					wrnStream << "\t" << ToString(entry.GetSemantic()) << entry.GetSemanticIndex() << std::endl;
 
-				B3D_LOG(Warning, Renderer, "{0}", wrnStream.str());
+				B3D_LOG(Warning, LogRenderer, "{0}", wrnStream.str());
 				break;
 			}
 		}
@@ -458,7 +458,7 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 		SPtr<Shader> shader = element.Material->GetShader();
 		if(shader == nullptr)
 		{
-			B3D_LOG(Warning, Renderer, "Missing shader on material.");
+			B3D_LOG(Warning, LogRenderer, "Missing shader on material.");
 			continue;
 		}
 
@@ -570,7 +570,7 @@ void RenderBeastScene::RegisterReflectionProbe(ReflectionProbe* probe)
 
 	if(probeInfo.ArrayIdx > kMaxReflectionCubemaps)
 	{
-		B3D_LOG(Error, Renderer, "Reached the maximum number of allowed reflection probe cubemaps at once. "
+		B3D_LOG(Error, LogRenderer, "Reached the maximum number of allowed reflection probe cubemaps at once. "
 								"Ignoring reflection probe data.");
 	}
 }
@@ -668,7 +668,7 @@ void RenderBeastScene::UpdateReflectionProbes(GpuCommandBuffer& commandBuffer)
 				{
 					if(!probeInfo.ErrorFlagged)
 					{
-						B3D_LOG(Error, Renderer, "Cubemap texture invalid to use as a reflection cubemap. "
+						B3D_LOG(Error, LogRenderer, "Cubemap texture invalid to use as a reflection cubemap. "
 												"Check texture size (must be {0}x{0}) and mip-map count",
 							   IBLUtility::kReflectionCubemapSize);
 

@@ -713,7 +713,7 @@ void Animation::BlendAdditive(const HAnimationClip& clip, float weight, float fa
 
 	if(clip != nullptr && !clip->IsAdditive())
 	{
-		B3D_LOG(Warning, Renderer, "BlendAdditive() called with a clip that doesn't contain additive animation. Ignoring.");
+		B3D_LOG(Warning, LogRenderer, "BlendAdditive() called with a clip that doesn't contain additive animation. Ignoring.");
 
 		// Stop any clips on this layer, even if invalid
 		HAnimationClip nullClip;

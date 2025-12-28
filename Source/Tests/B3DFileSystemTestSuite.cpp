@@ -55,7 +55,7 @@ void FileSystemTestSuite::ShutDown()
 	FileSystem::Remove(mTestDirectory, true);
 	if(FileSystem::Exists(mTestDirectory))
 	{
-		B3D_LOG(Error, UnitTest, "FileSystemTestSuite failed to delete '{0}', you should remove it manually.", mTestDirectory);
+		B3D_LOG(Error, LogUnitTest, "FileSystemTestSuite failed to delete '{0}', you should remove it manually.", mTestDirectory);
 	}
 }
 

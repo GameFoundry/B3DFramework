@@ -60,7 +60,7 @@ void D3D12Texture::CreateTexture()
 	mDXGIFormat = D3D12Utility::GetDXGIFormat(props.Format);
 	if (mDXGIFormat == DXGI_FORMAT_UNKNOWN)
 	{
-		B3D_LOG(Error, RenderBackend, "Unsupported texture format");
+		B3D_LOG(Error, LogRenderBackend, "Unsupported texture format");
 		return;
 	}
 
@@ -96,7 +96,7 @@ void D3D12Texture::CreateTexture()
 		arraySize = props.NumFaces * 6;
 		break;
 	default:
-		B3D_LOG(Error, RenderBackend, "Unsupported texture type");
+		B3D_LOG(Error, LogRenderBackend, "Unsupported texture type");
 		return;
 	}
 
@@ -184,7 +184,7 @@ void D3D12Texture::CreateTexture()
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create D3D12 texture resource");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create D3D12 texture resource");
 		return;
 	}
 
@@ -195,7 +195,7 @@ void D3D12Texture::CreateTexture()
 		mTexture->SetName(wideName.c_str());
 	}
 
-	B3D_LOG(Info, RenderBackend, "Created D3D12 texture: {0}x{1}, format={2}, mips={3}",
+	B3D_LOG(Info, LogRenderBackend, "Created D3D12 texture: {0}x{1}, format={2}, mips={3}",
 		props.Width, props.Height, (u32)mDXGIFormat, props.NumMipmaps);
 }
 
@@ -264,7 +264,7 @@ void D3D12Texture::CreateStagingBuffer(u32 subresourceIndex, u32 width, u32 heig
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create staging buffer for texture mapping");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create staging buffer for texture mapping");
 		mStagingBuffer.Reset();
 	}
 }
@@ -309,7 +309,7 @@ PixelData D3D12Texture::Map(GpuResourceUsage usage, u32 face, u32 mipLevel)
 
 		if (FAILED(hr))
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to create temporary command allocator for texture mapping");
+			B3D_LOG(Error, LogRenderBackend, "Failed to create temporary command allocator for texture mapping");
 			return PixelData();
 		}
 
@@ -323,7 +323,7 @@ PixelData D3D12Texture::Map(GpuResourceUsage usage, u32 face, u32 mipLevel)
 
 		if (FAILED(hr))
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to create temporary command list for texture mapping");
+			B3D_LOG(Error, LogRenderBackend, "Failed to create temporary command list for texture mapping");
 			return PixelData();
 		}
 
@@ -397,7 +397,7 @@ PixelData D3D12Texture::Map(GpuResourceUsage usage, u32 face, u32 mipLevel)
 	HRESULT hr = mStagingBuffer->Map(0, &readRange, &mMappedData);
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to map staging buffer");
+		B3D_LOG(Error, LogRenderBackend, "Failed to map staging buffer");
 		return PixelData();
 	}
 
@@ -429,7 +429,7 @@ void D3D12Texture::Unmap(u32 face, u32 mipLevel)
 
 	if (mMappedSubresource != subresourceIndex)
 	{
-		B3D_LOG(Warning, RenderBackend, "Unmapping subresource that wasn't mapped");
+		B3D_LOG(Warning, LogRenderBackend, "Unmapping subresource that wasn't mapped");
 		return;
 	}
 
@@ -453,7 +453,7 @@ void D3D12Texture::Unmap(u32 face, u32 mipLevel)
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create temporary command allocator for texture unmapping");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create temporary command allocator for texture unmapping");
 		return;
 	}
 
@@ -467,7 +467,7 @@ void D3D12Texture::Unmap(u32 face, u32 mipLevel)
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create temporary command list for texture unmapping");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create temporary command list for texture unmapping");
 		return;
 	}
 
@@ -514,7 +514,7 @@ void D3D12Texture::Unmap(u32 face, u32 mipLevel)
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create upload buffer for texture unmapping");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create upload buffer for texture unmapping");
 		tempCommandList->Close();
 		return;
 	}
@@ -649,7 +649,7 @@ void D3D12Texture::WriteData(const PixelData& data, u32 face, u32 mipLevel, bool
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create upload buffer for texture WriteData");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create upload buffer for texture WriteData");
 		return;
 	}
 
@@ -658,7 +658,7 @@ void D3D12Texture::WriteData(const PixelData& data, u32 face, u32 mipLevel, bool
 	hr = uploadBuffer->Map(0, nullptr, &mappedData);
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to map upload buffer for texture WriteData");
+		B3D_LOG(Error, LogRenderBackend, "Failed to map upload buffer for texture WriteData");
 		return;
 	}
 
@@ -760,7 +760,7 @@ void D3D12Texture::ReadData(PixelData& data, u32 face, u32 mipLevel)
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create readback buffer for texture ReadData");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create readback buffer for texture ReadData");
 		return;
 	}
 
@@ -782,7 +782,7 @@ void D3D12Texture::ReadData(PixelData& data, u32 face, u32 mipLevel)
 	hr = readbackBuffer->Map(0, &readRange, &mappedData);
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to map readback buffer for texture ReadData");
+		B3D_LOG(Error, LogRenderBackend, "Failed to map readback buffer for texture ReadData");
 		return;
 	}
 
@@ -837,5 +837,5 @@ void D3D12Texture::CopyData(Texture& destination, const PixelData& srcData, cons
 	// 2. Use CopyTextureRegion to copy between textures
 	// 3. Handle resource state transitions
 
-	B3D_LOG(Warning, RenderBackend, "D3D12Texture::CopyData not yet implemented");
+	B3D_LOG(Warning, LogRenderBackend, "D3D12Texture::CopyData not yet implemented");
 }

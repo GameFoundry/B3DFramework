@@ -16,7 +16,7 @@ HShaderInclude DefaultShaderIncludeHandler::FindInclude(const String& name) cons
 
 TOptional<String> DefaultShaderIncludeHandler::FindIncludeSource(const String& name) const
 {
-	const Path filePath = FileSystem::GetWorkingDirectoryPath() + name;
+	const Path filePath = FileSystem::GetWorkingFolderPath() + name;
 	if(FileSystem::IsFile(filePath))
 	{
 		if(const SPtr<DataStream> stream = FileSystem::OpenFile(filePath))

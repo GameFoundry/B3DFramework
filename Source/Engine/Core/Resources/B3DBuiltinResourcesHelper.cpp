@@ -33,11 +33,11 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 
 	bool outputExists = FileSystem::Exists(outputFolder);
 	if(!outputExists)
-		FileSystem::CreateDir(outputFolder);
+		FileSystem::CreateFolder(outputFolder);
 
 	Path spriteOutputFolder = outputFolder + "/Sprites/";
 	if(mode == AssetType::Sprite)
-		FileSystem::CreateDir(spriteOutputFolder);
+		FileSystem::CreateFolder(spriteOutputFolder);
 
 	struct QueuedImportOp
 	{

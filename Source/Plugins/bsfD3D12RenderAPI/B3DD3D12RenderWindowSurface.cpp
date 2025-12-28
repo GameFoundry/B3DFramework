@@ -46,7 +46,7 @@ D3D12RenderWindowSurface::D3D12RenderWindowSurface(const RenderWindowSurfaceCrea
 	mSwapChain = B3DNew<D3D12SwapChain>(swapChainCreateInfo, mDevice);
 	mSwapChain->Initialize();
 
-	B3D_LOG(Info, RenderBackend, "Created D3D12 render window surface: width={0}, height={1}, vsync={2}, srgb={3}",
+	B3D_LOG(Info, LogRenderBackend, "Created D3D12 render window surface: width={0}, height={1}, vsync={2}, srgb={3}",
 		createInformation.Width, createInformation.Height, createInformation.VSync, mUseHardwareSRGB);
 }
 
@@ -60,7 +60,7 @@ void D3D12RenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsyn
 	if (!mSwapChain || mIsDestroyed)
 		return;
 
-	B3D_LOG(Info, RenderBackend, "Rebuilding D3D12 swap chain: width={0}, height={1}, vsync={2}", width, height, vsync);
+	B3D_LOG(Info, LogRenderBackend, "Rebuilding D3D12 swap chain: width={0}, height={1}, vsync={2}", width, height, vsync);
 
 	// Wait for GPU to finish all work before destroying swap chain
 	mDevice.WaitUntilIdle();
@@ -89,7 +89,7 @@ void D3D12RenderWindowSurface::MarkSwapChainAsInvalid()
 	{
 		// Mark swap chain as needing rebuild
 		// The actual rebuild will happen on the next frame when RebuildSwapChain is called
-		B3D_LOG(Info, RenderBackend, "D3D12 swap chain marked as invalid");
+		B3D_LOG(Info, LogRenderBackend, "D3D12 swap chain marked as invalid");
 	}
 }
 
@@ -98,7 +98,7 @@ void D3D12RenderWindowSurface::Destroy()
 	if (mIsDestroyed)
 		return;
 
-	B3D_LOG(Info, RenderBackend, "Destroying D3D12 render window surface");
+	B3D_LOG(Info, LogRenderBackend, "Destroying D3D12 render window surface");
 
 	// Wait for GPU to finish all work before destroying swap chain
 	mDevice.WaitUntilIdle();

@@ -86,7 +86,7 @@ HResource Resources::Load(const Path& resourcePath, const ResourceLoadOptions& l
 	UUID resourceId;
 	if(!TryAcquirePackageLockForResourceLoad(resourcePath, "Load resource", packageReadLock, resourceId))
 	{
-		B3D_LOG(Warning, Resources, "Cannot load resource. File at path '{0}' doesn't exist.", resourcePath);
+		B3D_LOG(Warning, LogResources, "Cannot load resource. File at path '{0}' doesn't exist.", resourcePath);
 		return nullptr;
 	}
 
@@ -108,7 +108,7 @@ HResource Resources::Load(const UUID& resourceId, const ResourceLoadOptions& loa
 	Path packagePath;
 	if(!TryAcquirePackageLockForResourceLoad(resourceId, "Load resource", packageReadLock, packagePath))
 	{
-		B3D_LOG(Warning, Resources, "Cannot load resource. Resource with ID '{0}' doesn't exist.", resourceId);
+		B3D_LOG(Warning, LogResources, "Cannot load resource. Resource with ID '{0}' doesn't exist.", resourceId);
 		return nullptr;
 	}
 
@@ -136,7 +136,7 @@ HResource Resources::Load(UPtr<PackageReadLock> packageReadLock, const UUID& res
 
 	if(metaData == nullptr)
 	{
-		B3D_LOG(Warning, Resources, "Cannot load resource. Resource with ID: {0} cannot be found in the package.", resourceId);
+		B3D_LOG(Warning, LogResources, "Cannot load resource. Resource with ID: {0} cannot be found in the package.", resourceId);
 		return HResource();
 	}
 
@@ -482,25 +482,25 @@ void Resources::SaveAsSinglePackage(const HResource& resource, const Path& folde
 {
 	if(folder.IsEmpty())
 	{
-		B3D_LOG(Warning, Resources, "Cannot save resource. Provided folder is empty.");
+		B3D_LOG(Warning, LogResources, "Cannot save resource. Provided folder is empty.");
 		return;
 	}
 
 	if(name.empty())
 	{
-		B3D_LOG(Warning, Resources, "Cannot save resource. Provided name is empty.");
+		B3D_LOG(Warning, LogResources, "Cannot save resource. Provided name is empty.");
 		return;
 	}
 
 	if(!folder.IsAbsolute())
 	{
-		B3D_LOG(Warning, Resources, "Cannot save resource. Provided folder is not absolute.");
+		B3D_LOG(Warning, LogResources, "Cannot save resource. Provided folder is not absolute.");
 		return;
 	}
 
 	if(!resource.IsLoaded(false))
 	{
-		B3D_LOG(Warning, Resources, "Cannot save resource at path {0}/{1}.b3d. Provided resource is null or not loaded.", folder, name);
+		B3D_LOG(Warning, LogResources, "Cannot save resource at path {0}/{1}.b3d. Provided resource is null or not loaded.", folder, name);
 		return;
 	}
 
@@ -569,7 +569,7 @@ void Resources::UpdateResourcesFromPackage(const UPtr<PackageWriteLock>& package
 		const SPtr<Resource> resource = package->LoadResource(resourceId);
 		if(resource == nullptr)
 		{
-			B3D_LOG(Warning, Resources, "Failed to update resource '{0}' with new data from the package. Unknown error.", resourceId);
+			B3D_LOG(Warning, LogResources, "Failed to update resource '{0}' with new data from the package. Unknown error.", resourceId);
 			continue;
 		}
 

@@ -24,7 +24,7 @@ int main(int __argc, char* __argv[])
 	// No assembly to run, or Mono directory not provided
 	if(__argc < 2)
 	{
-		B3D_LOG(Error, Script, "No assembly provided");
+		B3D_LOG(Error, LogScript, "No assembly provided");
 		return 0;
 	}
 

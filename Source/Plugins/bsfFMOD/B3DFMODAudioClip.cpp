@@ -58,7 +58,7 @@ FMOD_RESULT F_CALLBACK PCMSetPosCallback(FMOD_SOUND* sound, int subsound, unsign
 		decompressor->ReadPos = position / bytesPerSample;
 		break;
 	default:
-		B3D_LOG(Error, Audio, "Invalid time unit.");
+		B3D_LOG(Error, LogAudio, "Invalid time unit.");
 		break;
 	}
 
@@ -158,7 +158,7 @@ void FMODAudioClip::Initialize()
 		FMOD::System* fmod = GetFMODAudio().GetFMOD();
 		if(fmod->createSound((const char*)sampleBuffer, flags, &exInfo, &mSound) != FMOD_OK)
 		{
-			B3D_LOG(Error, Audio, "Failed creating sound.");
+			B3D_LOG(Error, LogAudio, "Failed creating sound.");
 		}
 		else
 		{
@@ -199,7 +199,7 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 {
 	if(!RequiresStreaming() || mStreamData == nullptr)
 	{
-		B3D_LOG(Error, Audio, "Invalid audio stream data.");
+		B3D_LOG(Error, LogAudio, "Invalid audio stream data.");
 		return nullptr;
 	}
 
@@ -259,7 +259,7 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 
 			if(!decompressorData->VorbisReader.Open(memStream, info, mStreamOffset))
 			{
-				B3D_LOG(Error, Audio, "Failed decompressing AudioClip stream.");
+				B3D_LOG(Error, LogAudio, "Failed decompressing AudioClip stream.");
 				return nullptr;
 			}
 
@@ -307,7 +307,7 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 	FMOD::System* fmod = GetFMODAudio().GetFMOD();
 	if(fmod->createSound(streamData, flags, &exInfo, &sound) != FMOD_OK)
 	{
-		B3D_LOG(Error, Audio, "Failed creating a streaming sound.");
+		B3D_LOG(Error, LogAudio, "Failed creating a streaming sound.");
 		return nullptr;
 	}
 

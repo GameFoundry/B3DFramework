@@ -52,7 +52,7 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 		{
 			if (error)
 			{
-				B3D_LOG(Error, RenderBackend, "Failed to serialize root signature: {0}",
+				B3D_LOG(Error, LogRenderBackend, "Failed to serialize root signature: {0}",
 					(const char*)error->GetBufferPointer());
 			}
 			return;
@@ -210,7 +210,7 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 	{
 		if (error)
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to serialize root signature: {0}",
+			B3D_LOG(Error, LogRenderBackend, "Failed to serialize root signature: {0}",
 				(const char*)error->GetBufferPointer());
 		}
 		return;
@@ -225,10 +225,10 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create root signature");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create root signature");
 	}
 	else
 	{
-		B3D_LOG(Info, RenderBackend, "Created root signature with {0} parameters", rootParameters.size());
+		B3D_LOG(Info, LogRenderBackend, "Created root signature with {0} parameters", rootParameters.size());
 	}
 }

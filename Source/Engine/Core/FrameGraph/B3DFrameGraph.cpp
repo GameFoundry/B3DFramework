@@ -73,7 +73,7 @@ FrameGraphResourceId FrameGraph::ImportRenderTarget(
 	auto resource = B3DMakeUnique<FrameGraphRenderTargetResource>(id, name, renderTarget, surface);
 	mResources.push_back(std::move(resource));
 
-	B3D_LOG(Info, RenderBackend, "Imported render target '{0}' (surface mask: {1})", name, (u32)surface);
+	B3D_LOG(Info, LogRenderBackend, "Imported render target '{0}' (surface mask: {1})", name, (u32)surface);
 
 	return id;
 }
@@ -91,7 +91,7 @@ FrameGraphResourceId FrameGraph::DeclareTransientTexture(
 	// Store create information separately
 	mTransientTextureCreateInfo[id] = createInformation;
 
-	B3D_LOG(Info, RenderBackend, "Declared transient texture '{0}' (id: {1})",
+	B3D_LOG(Info, LogRenderBackend, "Declared transient texture '{0}' (id: {1})",
 		name, id.Index);
 
 	return id;
@@ -110,7 +110,7 @@ FrameGraphResourceId FrameGraph::DeclareTransientBuffer(
 	// Store create information separately
 	mTransientBufferCreateInfo[id] = createInformation;
 
-	B3D_LOG(Info, RenderBackend, "Declared transient buffer '{0}' (id: {1})",
+	B3D_LOG(Info, LogRenderBackend, "Declared transient buffer '{0}' (id: {1})",
 		name, id.Index);
 
 	return id;
@@ -167,13 +167,13 @@ void FrameGraph::Compile()
 	// Validate that we have passes or resources to compile
 	if (mPasses.empty() && mResources.empty())
 	{
-		B3D_LOG(Warning, RenderBackend, "Compiling empty frame graph (no passes or resources)");
+		B3D_LOG(Warning, LogRenderBackend, "Compiling empty frame graph (no passes or resources)");
 	}
 
 	// Check for duplicate compilation without reset
 	if (mCompiledGraph != nullptr)
 	{
-		B3D_LOG(Warning, RenderBackend,
+		B3D_LOG(Warning, LogRenderBackend,
 			"Frame graph compiled multiple times without Reset(). Previous compilation will be discarded.");
 	}
 
@@ -183,7 +183,7 @@ void FrameGraph::Compile()
 	// Validation failed - log error
 	if (mCompiledGraph == nullptr)
 	{
-		B3D_LOG(Error, RenderBackend, "Frame graph compilation failed due to validation errors");
+		B3D_LOG(Error, LogRenderBackend, "Frame graph compilation failed due to validation errors");
 	}
 }
 
@@ -192,25 +192,25 @@ void FrameGraph::Execute()
 	// Validate that graph has been compiled
 	if (!B3D_ENSURE(mCompiledGraph != nullptr))
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot execute frame graph: not compiled. Call Compile() first.");
+		B3D_LOG(Error, LogRenderBackend, "Cannot execute frame graph: not compiled. Call Compile() first.");
 		return;
 	}
 
 	// Validate that we have passes to execute
 	if (mCompiledGraph->SortedPasses.empty())
 	{
-		B3D_LOG(Warning, RenderBackend, "Executing frame graph with no passes");
+		B3D_LOG(Warning, LogRenderBackend, "Executing frame graph with no passes");
 		return;
 	}
 
-	B3D_LOG(Info, RenderBackend, "Executing frame graph with {0} passes",
+	B3D_LOG(Info, LogRenderBackend, "Executing frame graph with {0} passes",
 		mCompiledGraph->SortedPasses.size());
 
 	// Create resource allocator if not exists
 	if (!mResourceAllocator)
 	{
 		mResourceAllocator = B3DMakeUnique<FrameGraphResourceAllocator>(mDevice);
-		B3D_LOG(Info, RenderBackend, "Created transient resource allocator");
+		B3D_LOG(Info, LogRenderBackend, "Created transient resource allocator");
 	}
 
 	// Build transient allocation info from compiled usage histories
@@ -237,13 +237,13 @@ void FrameGraph::Execute()
 			SPtr<GpuQueue> queue = mDevice.GetQueue(currentQueue, 0);
 			if (queue)
 			{
-				B3D_LOG(Info, RenderBackend, "Submitting command buffer for queue {0}",
+				B3D_LOG(Info, LogRenderBackend, "Submitting command buffer for queue {0}",
 					static_cast<u32>(currentQueue));
 				queue->SubmitCommandBuffer(currentCmd);
 			}
 			else
 			{
-				B3D_LOG(Error, RenderBackend, "Failed to get queue for type {0}",
+				B3D_LOG(Error, LogRenderBackend, "Failed to get queue for type {0}",
 					static_cast<u32>(currentQueue));
 			}
 
@@ -254,7 +254,7 @@ void FrameGraph::Execute()
 
 	for (FrameGraphPass* pass : mCompiledGraph->SortedPasses)
 	{
-		B3D_LOG(Info, RenderBackend, "Executing pass: {0} (type: {1})",
+		B3D_LOG(Info, LogRenderBackend, "Executing pass: {0} (type: {1})",
 			pass->GetName(),
 			pass->GetPassType() == FrameGraphPassType::Render ? "Render" :
 			pass->GetPassType() == FrameGraphPassType::Compute ? "Compute" : "Generic");
@@ -287,7 +287,7 @@ void FrameGraph::Execute()
 		{
 			for (const FrameGraphBarrierBatch* batch : barrierIt->second)
 			{
-				B3D_LOG(Info, RenderBackend,
+				B3D_LOG(Info, LogRenderBackend,
 					"Issuing {0} buffer barriers and {1} texture barriers before pass '{2}'",
 					batch->Barriers.BufferBarriers.Size(),
 					batch->Barriers.TextureBarriers.Size(),
@@ -310,7 +310,7 @@ void FrameGraph::Execute()
 			auto rtIt = mCompiledGraph->RenderTargets.find(pass);
 			if (rtIt == mCompiledGraph->RenderTargets.end())
 			{
-				B3D_LOG(Error, RenderBackend, "Render target not found for render pass '{0}'",
+				B3D_LOG(Error, LogRenderBackend, "Render target not found for render pass '{0}'",
 					pass->GetName());
 				continue;
 			}
@@ -318,7 +318,7 @@ void FrameGraph::Execute()
 			renderTarget = rtIt->second;
 
 			// Begin render pass
-			B3D_LOG(Info, RenderBackend, "Beginning render pass for '{0}'", pass->GetName());
+			B3D_LOG(Info, LogRenderBackend, "Beginning render pass for '{0}'", pass->GetName());
 			currentCmd->BeginRenderPass(RenderPassCreateInformation(renderTarget)); // TODO - Render pass should pre-declare all used resources so barriers/layout transitions can be issued automatically by command buffer
 		}
 
@@ -328,7 +328,7 @@ void FrameGraph::Execute()
 		// End render pass if needed
 		if (isRenderPass)
 		{
-			B3D_LOG(Info, RenderBackend, "Ending render pass for '{0}'", pass->GetName());
+			B3D_LOG(Info, LogRenderBackend, "Ending render pass for '{0}'", pass->GetName());
 			currentCmd->EndRenderPass();
 		}
 
@@ -339,7 +339,7 @@ void FrameGraph::Execute()
 	// Submit final command buffer
 	fnSubmitCurrentCmd();
 
-	B3D_LOG(Info, RenderBackend, "Frame graph execution complete");
+	B3D_LOG(Info, LogRenderBackend, "Frame graph execution complete");
 }
 
 void FrameGraph::Reset()
@@ -376,7 +376,7 @@ void FrameGraph::MarkAsOutput(FrameGraphResourceId resource)
 {
 	B3D_ENSURE(resource.IsValid());
 	mOutputResources.insert(resource);
-	B3D_LOG(Info, RenderBackend, "Marked resource {0} as output", resource.Index);
+	B3D_LOG(Info, LogRenderBackend, "Marked resource {0} as output", resource.Index);
 }
 
 FrameGraphResource* FrameGraph::GetResource(FrameGraphResourceId id) const
@@ -411,7 +411,7 @@ void FrameGraph::ExecutePass(FrameGraphPass* pass)
 	SPtr<GpuCommandBufferPool> pool = GetPoolForQueue(pass->GetQueue());
 	if (pool == nullptr)
 	{
-		B3D_LOG(Error, RenderBackend, "Pass '{0}': Unsupported queue type {1}",
+		B3D_LOG(Error, LogRenderBackend, "Pass '{0}': Unsupported queue type {1}",
 			pass->GetName(), static_cast<u32>(pass->GetQueue()));
 		return;
 	}
@@ -423,7 +423,7 @@ void FrameGraph::ExecutePass(FrameGraphPass* pass)
 	SPtr<GpuCommandBuffer> cmd = pool->FindOrCreate(cmdCreateInfo);
 	if (!B3D_ENSURE(cmd != nullptr))
 	{
-		B3D_LOG(Error, RenderBackend, "Pass '{0}': Failed to create command buffer", pass->GetName());
+		B3D_LOG(Error, LogRenderBackend, "Pass '{0}': Failed to create command buffer", pass->GetName());
 		return;
 	}
 
@@ -440,7 +440,7 @@ void FrameGraph::ExecutePass(FrameGraphPass* pass)
 	SPtr<GpuQueue> queue = GetQueueForPass(pass);
 	if (!B3D_ENSURE(queue != nullptr))
 	{
-		B3D_LOG(Error, RenderBackend, "Pass '{0}': Failed to get queue for type {1}",
+		B3D_LOG(Error, LogRenderBackend, "Pass '{0}': Failed to get queue for type {1}",
 			pass->GetName(), static_cast<u32>(pass->GetQueue()));
 		return;
 	}
@@ -483,7 +483,7 @@ void FrameGraph::BuildTransientAllocationInfo()
 		if (historyIt == mCompiledGraph->UsageHistories.end())
 		{
 			// Unused transient - skip allocation
-			B3D_LOG(Warning, RenderBackend, "Transient resource '{0}' was declared but never used",
+			B3D_LOG(Warning, LogRenderBackend, "Transient resource '{0}' was declared but never used",
 				resource->GetName());
 			continue;
 		}
@@ -492,7 +492,7 @@ void FrameGraph::BuildTransientAllocationInfo()
 		mTransientAllocationInfo[resource->GetId()] = historyIt->second;
 	}
 
-	B3D_LOG(Info, RenderBackend, "Prepared {0} transient resources for allocation",
+	B3D_LOG(Info, LogRenderBackend, "Prepared {0} transient resources for allocation",
 		mTransientAllocationInfo.size());
 }
 
@@ -529,7 +529,7 @@ void FrameGraph::AllocateTransientsForPass(FrameGraphPass* pass)
 
 			texResource->SetTexture(allocated);
 
-			B3D_LOG(Info, RenderBackend, "Allocated transient texture '{0}' for pass '{1}'",
+			B3D_LOG(Info, LogRenderBackend, "Allocated transient texture '{0}' for pass '{1}'",
 				texResource->GetName(), pass->GetName());
 		}
 		else if (resource->GetType() == FrameGraphResourceType::Buffer)
@@ -546,7 +546,7 @@ void FrameGraph::AllocateTransientsForPass(FrameGraphPass* pass)
 
 			bufResource->SetBuffer(allocated);
 
-			B3D_LOG(Info, RenderBackend, "Allocated transient buffer '{0}' for pass '{1}'",
+			B3D_LOG(Info, LogRenderBackend, "Allocated transient buffer '{0}' for pass '{1}'",
 				bufResource->GetName(), pass->GetName());
 		}
 	}
@@ -577,7 +577,7 @@ void FrameGraph::DeallocateTransientResourcesAfterPass(FrameGraphPass* pass)
 			mResourceAllocator->FreeTexture(texResource->GetTexture());
 			texResource->SetTexture(nullptr);  // Clear pointer
 
-			B3D_LOG(Info, RenderBackend, "Freed transient texture '{0}' after pass '{1}'",
+			B3D_LOG(Info, LogRenderBackend, "Freed transient texture '{0}' after pass '{1}'",
 				texResource->GetName(), pass->GetName());
 		}
 		else if (resource->GetType() == FrameGraphResourceType::Buffer)
@@ -586,7 +586,7 @@ void FrameGraph::DeallocateTransientResourcesAfterPass(FrameGraphPass* pass)
 			mResourceAllocator->FreeBuffer(bufResource->GetBuffer());
 			bufResource->SetBuffer(nullptr);
 
-			B3D_LOG(Info, RenderBackend, "Freed transient buffer '{0}' after pass '{1}'",
+			B3D_LOG(Info, LogRenderBackend, "Freed transient buffer '{0}' after pass '{1}'",
 				bufResource->GetName(), pass->GetName());
 		}
 	}

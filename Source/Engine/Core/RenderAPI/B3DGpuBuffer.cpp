@@ -264,11 +264,11 @@ namespace b3d::render
 			if(!ignoreWarning)
 			{
 				if(IsRangeInUse(offset, size))
-					B3D_LOG(Warning, RenderBackend, "Writing to a buffer that is currently used on the GPU. This will result in undefined behaviour. Buffer: {0}", mName);
+					B3D_LOG(Warning, LogRenderBackend, "Writing to a buffer that is currently used on the GPU. This will result in undefined behaviour. Buffer: {0}", mName);
 				else if(!options.IsSet(GpuMapOption::NoOverwrite))
 				{
 					if(IsRangeBound(offset, size))
-						B3D_LOG(Warning, RenderBackend, "Writing to a buffer that is currently bound on a command buffer. Previous usages of the buffer will be affected. Buffer: {0}", mName);
+						B3D_LOG(Warning, LogRenderBackend, "Writing to a buffer that is currently bound on a command buffer. Previous usages of the buffer will be affected. Buffer: {0}", mName);
 				}
 			}
 		}
@@ -440,7 +440,7 @@ namespace b3d::render
 #if B3D_BUILD_TYPE_DEVELOPMENT
 				if(buffer->IsRangeBound(offset, length))
 				{
-					B3D_LOG(Warning, RenderBackend, "Writing to a buffer '{0}' that is currently bound on a command buffer, without providing an explicit command buffer. Such writes will be queued on the transfer buffer which is submitted before any user command buffers. This means  writes will overwrite it each other if not careful.", buffer->GetName());
+					B3D_LOG(Warning, LogRenderBackend, "Writing to a buffer '{0}' that is currently bound on a command buffer, without providing an explicit command buffer. Such writes will be queued on the transfer buffer which is submitted before any user command buffers. This means  writes will overwrite it each other if not careful.", buffer->GetName());
 				}
 #endif
 			}

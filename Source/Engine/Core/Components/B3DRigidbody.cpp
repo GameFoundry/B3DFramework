@@ -42,7 +42,7 @@ void Rigidbody::SetMass(float mass)
 {
 	if(mFlags.IsSet(RigidbodyFlag::AutoMass))
 	{
-		B3D_LOG(Warning, Physics, "Attempting to set Rigidbody mass, but it has automatic mass calculation turned on.");
+		B3D_LOG(Warning, LogPhysics, "Attempting to set Rigidbody mass, but it has automatic mass calculation turned on.");
 		return;
 	}
 
@@ -125,7 +125,7 @@ void Rigidbody::SetInertiaTensor(const Vector3& tensor)
 {
 	if(mFlags.IsSet(RigidbodyFlag::AutoTensors))
 	{
-		B3D_LOG(Warning, Physics, "Attempting to set Rigidbody inertia tensor, but it has automatic tensor calculation turned on.");
+		B3D_LOG(Warning, LogPhysics, "Attempting to set Rigidbody inertia tensor, but it has automatic tensor calculation turned on.");
 		return;
 	}
 
@@ -148,7 +148,7 @@ void Rigidbody::SetCenterOfMassPosition(const Vector3& position)
 {
 	if(mFlags.IsSet(RigidbodyFlag::AutoTensors))
 	{
-		B3D_LOG(Warning, Physics, "Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
+		B3D_LOG(Warning, LogPhysics, "Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
 		return;
 	}
 
@@ -169,7 +169,7 @@ void Rigidbody::SetCenterOfMassRotation(const Quaternion& rotation)
 {
 	if(mFlags.IsSet(RigidbodyFlag::AutoTensors))
 	{
-		B3D_LOG(Warning, Physics, "Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
+		B3D_LOG(Warning, LogPhysics, "Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
 		return;
 	}
 
@@ -307,7 +307,7 @@ void Rigidbody::CheckForNestedRigibody()
 	{
 		if(currentSO->HasComponent<Rigidbody>())
 		{
-			B3D_LOG(Warning, Physics, "Nested Rigidbodies detected. This will result in inconsistent transformations. "
+			B3D_LOG(Warning, LogPhysics, "Nested Rigidbodies detected. This will result in inconsistent transformations. "
 									 "To parent one Rigidbody to another move its colliders to the new parent, but remove the Rigidbody "
 									 "component.");
 			return;

@@ -39,7 +39,7 @@ void TMaterialParameterPrimitive<T, IsRenderProxy>::Set(const T& value, u32 arra
 
 	if(arrayIdx >= this->mArraySize)
 	{
-		B3D_LOG(Warning, Material, "Array index out of range. Provided index was {0} but array length is {1}", arrayIdx, this->mArraySize);
+		B3D_LOG(Warning, LogMaterial, "Array index out of range. Provided index was {0} but array length is {1}", arrayIdx, this->mArraySize);
 		return;
 	}
 
@@ -72,7 +72,7 @@ void TMaterialParameterCurve<T, IsRenderProxy>::Set(TAnimationCurve<T> value, u3
 
 	if(arrayIdx >= this->mArraySize)
 	{
-		B3D_LOG(Warning, Material, "Array index out of range. Provided index was {0} but array length is {1}", arrayIdx, this->mArraySize);
+		B3D_LOG(Warning, LogMaterial, "Array index out of range. Provided index was {0} but array length is {1}", arrayIdx, this->mArraySize);
 		return;
 	}
 
@@ -105,7 +105,7 @@ void TMaterialParameterColorGradient<IsRenderProxy>::Set(const ColorGradientHDR&
 
 	if(arrayIdx >= this->mArraySize)
 	{
-		B3D_LOG(Warning, Material, "Array index out of range. Provided index was {0} but array length is {1}", arrayIdx, this->mArraySize);
+		B3D_LOG(Warning, LogMaterial, "Array index out of range. Provided index was {0} but array length is {1}", arrayIdx, this->mArraySize);
 		return;
 	}
 
@@ -138,7 +138,7 @@ void TMaterialParameterStruct<IsRenderProxy>::Set(const void* value, u32 sizeByt
 
 	if(arrayIdx >= this->mArraySize)
 	{
-		B3D_LOG(Warning, Material, "Array index out of range. Provided index was {0} but array length is {1}", arrayIdx, this->mArraySize);
+		B3D_LOG(Warning, LogMaterial, "Array index out of range. Provided index was {0} but array length is {1}", arrayIdx, this->mArraySize);
 		return;
 	}
 

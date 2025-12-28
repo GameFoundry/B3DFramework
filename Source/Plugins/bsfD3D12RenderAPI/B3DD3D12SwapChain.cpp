@@ -49,7 +49,7 @@ void D3D12SwapChain::Initialize()
 
 	mIsInitialized = true;
 
-	B3D_LOG(Info, RenderBackend, "Initialized D3D12 swap chain: {0}x{1}, format={2}, buffers={3}",
+	B3D_LOG(Info, LogRenderBackend, "Initialized D3D12 swap chain: {0}x{1}, format={2}, buffers={3}",
 		mWidth, mHeight, (u32)mCreateInfo.ColorFormat, mBackBufferCount);
 }
 
@@ -96,7 +96,7 @@ void D3D12SwapChain::Destroy()
 	mBackBufferCount = 0;
 	mIsInitialized = false;
 
-	B3D_LOG(Info, RenderBackend, "Destroyed D3D12 swap chain");
+	B3D_LOG(Info, LogRenderBackend, "Destroyed D3D12 swap chain");
 }
 
 void D3D12SwapChain::CreateSwapChain()
@@ -104,7 +104,7 @@ void D3D12SwapChain::CreateSwapChain()
 	IDXGIFactory6* factory = GetD3D12GpuBackend().GetDXGIFactory();
 	if (!factory)
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to get DXGI factory for swap chain creation");
+		B3D_LOG(Error, LogRenderBackend, "Failed to get DXGI factory for swap chain creation");
 		return;
 	}
 
@@ -112,7 +112,7 @@ void D3D12SwapChain::CreateSwapChain()
 	SPtr<GpuQueue> queue = mDevice.GetQueue(GQT_GRAPHICS, 0);
 	if (!queue)
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to get graphics queue for swap chain creation");
+		B3D_LOG(Error, LogRenderBackend, "Failed to get graphics queue for swap chain creation");
 		return;
 	}
 
@@ -150,7 +150,7 @@ void D3D12SwapChain::CreateSwapChain()
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create swap chain: HRESULT={0}", (u32)hr);
+		B3D_LOG(Error, LogRenderBackend, "Failed to create swap chain: HRESULT={0}", (u32)hr);
 		return;
 	}
 
@@ -158,7 +158,7 @@ void D3D12SwapChain::CreateSwapChain()
 	hr = swapChain1.As(&mSwapChain);
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to upgrade swap chain interface: HRESULT={0}", (u32)hr);
+		B3D_LOG(Error, LogRenderBackend, "Failed to upgrade swap chain interface: HRESULT={0}", (u32)hr);
 		return;
 	}
 
@@ -177,7 +177,7 @@ void D3D12SwapChain::GetBackBufferResources()
 		HRESULT hr = mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mBackBuffers[i]));
 		if (FAILED(hr))
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to get swap chain back buffer {0}: HRESULT={1}", i, (u32)hr);
+			B3D_LOG(Error, LogRenderBackend, "Failed to get swap chain back buffer {0}: HRESULT={1}", i, (u32)hr);
 			mBackBuffers[i].Reset();
 		}
 		else
@@ -208,7 +208,7 @@ void D3D12SwapChain::CreateRenderTargetViews()
 
 		if (mBackBufferRTVs[i].ptr == 0)
 		{
-			B3D_LOG(Error, RenderBackend, "Failed to allocate RTV descriptor for back buffer {0}", i);
+			B3D_LOG(Error, LogRenderBackend, "Failed to allocate RTV descriptor for back buffer {0}", i);
 			continue;
 		}
 
@@ -221,7 +221,7 @@ void D3D12SwapChain::CreateRenderTargetViews()
 
 		d3d12Device->CreateRenderTargetView(mBackBuffers[i].Get(), &rtvDesc, mBackBufferRTVs[i]);
 
-		B3D_LOG(Info, RenderBackend, "Created RTV for back buffer {0}", i);
+		B3D_LOG(Info, LogRenderBackend, "Created RTV for back buffer {0}", i);
 	}
 }
 
@@ -274,7 +274,7 @@ void D3D12SwapChain::CreateDepthStencilBuffer()
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to create depth stencil buffer: HRESULT={0}", (u32)hr);
+		B3D_LOG(Error, LogRenderBackend, "Failed to create depth stencil buffer: HRESULT={0}", (u32)hr);
 		return;
 	}
 
@@ -285,7 +285,7 @@ void D3D12SwapChain::CreateDepthStencilBuffer()
 
 	if (mDepthStencilView.ptr == 0)
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to allocate DSV descriptor");
+		B3D_LOG(Error, LogRenderBackend, "Failed to allocate DSV descriptor");
 		return;
 	}
 
@@ -298,7 +298,7 @@ void D3D12SwapChain::CreateDepthStencilBuffer()
 
 	d3d12Device->CreateDepthStencilView(mDepthStencilBuffer.Get(), &dsvDesc, mDepthStencilView);
 
-	B3D_LOG(Info, RenderBackend, "Created depth stencil buffer: {0}x{1}, format={2}", mWidth, mHeight, (u32)mCreateInfo.DepthStencilFormat);
+	B3D_LOG(Info, LogRenderBackend, "Created depth stencil buffer: {0}x{1}, format={2}", mWidth, mHeight, (u32)mCreateInfo.DepthStencilFormat);
 }
 
 u32 D3D12SwapChain::GetCurrentBackBufferIndex() const
@@ -367,7 +367,7 @@ HRESULT D3D12SwapChain::Present(u32 syncInterval)
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to present swap chain: HRESULT={0}", (u32)hr);
+		B3D_LOG(Error, LogRenderBackend, "Failed to present swap chain: HRESULT={0}", (u32)hr);
 	}
 
 	return hr;
@@ -377,7 +377,7 @@ void D3D12SwapChain::CreateFramebuffers()
 {
 	if (!mRenderTarget)
 	{
-		B3D_LOG(Warning, RenderBackend, "Cannot create framebuffers without render target reference");
+		B3D_LOG(Warning, LogRenderBackend, "Cannot create framebuffers without render target reference");
 		return;
 	}
 
@@ -385,6 +385,6 @@ void D3D12SwapChain::CreateFramebuffers()
 	for (u32 i = 0; i < mBackBufferCount; i++)
 	{
 		mFramebuffers[i] = B3DNew<D3D12Framebuffer>(mRenderTarget, i);
-		B3D_LOG(Info, RenderBackend, "Created framebuffer for back buffer {0}", i);
+		B3D_LOG(Info, LogRenderBackend, "Created framebuffer for back buffer {0}", i);
 	}
 }

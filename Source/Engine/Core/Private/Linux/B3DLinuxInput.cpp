@@ -45,7 +45,7 @@ bool getEventInfo(int fileHandle, EventInfo& eventInfo)
 
 				if(ioctl(fileHandle, EVIOCGBIT(i, sizeof(absAxisBits)), absAxisBits) == -1)
 				{
-					B3D_LOG(Error, Platform, "Could not read device absolute axis features.");
+					B3D_LOG(Error, LogPlatform, "Could not read device absolute axis features.");
 					continue;
 				}
 
@@ -67,7 +67,7 @@ bool getEventInfo(int fileHandle, EventInfo& eventInfo)
 
 				if(ioctl(fileHandle, EVIOCGBIT(i, sizeof(relAxisBits)), relAxisBits) == -1)
 				{
-					B3D_LOG(Error, Platform, "Could not read device relative axis features.");
+					B3D_LOG(Error, LogPlatform, "Could not read device relative axis features.");
 					continue;
 				}
 
@@ -84,7 +84,7 @@ bool getEventInfo(int fileHandle, EventInfo& eventInfo)
 
 				if(ioctl(fileHandle, EVIOCGBIT(i, sizeof(keyBits)), keyBits) == -1)
 				{
-					B3D_LOG(Error, Platform, "Could not read device key features.");
+					B3D_LOG(Error, LogPlatform, "Could not read device key features.");
 					continue;
 				}
 
@@ -204,7 +204,7 @@ bool parseGamepadInfo(int fileHandle, int eventHandlerIdx, GamepadInfo& info)
 		if(ioctl(fileHandle, EVIOCGNAME(sizeof(name)), name) != -1)
 			info.name = String(name);
 		else
-			B3D_LOG(Error, Platform, "Could not read device name.");
+			B3D_LOG(Error, LogPlatform, "Could not read device name.");
 
 		// Get axis ranges
 		u32 unknownAxisIdx = 0;
@@ -217,7 +217,7 @@ bool parseGamepadInfo(int fileHandle, int eventHandlerIdx, GamepadInfo& info)
 			input_absinfo absinfo;
 			if(ioctl(fileHandle, EVIOCGABS(entry), &absinfo) == -1)
 			{
-				B3D_LOG(Error, Platform, "Could not read absolute axis device features.");
+				B3D_LOG(Error, LogPlatform, "Could not read absolute axis device features.");
 				continue;
 			}
 

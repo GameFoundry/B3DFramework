@@ -90,7 +90,7 @@ void WriteHazardPipelineTracking::LogUnsafeAccess(VulkanAccessStageFlags stages,
 		}
 	}
 
-	B3D_LOG(Warning, RenderBackend, "{0}", stream.str());
+	B3D_LOG(Warning, LogRenderBackend, "{0}", stream.str());
 }
 
 void WriteHazardTracking::AddSafeAccess(VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess)
@@ -789,7 +789,7 @@ void VulkanResourceTracker::UpdateImageLayoutTrackingAfterBarrier(VulkanImage* i
 
 		if(subresourceTrackingState.CurrentLayout != callbackParameters->OldLayout)
 		{
-			B3D_LOG(Warning, RenderBackend, "Image layout transition failed: current layout does not match expected old layout. "
+			B3D_LOG(Warning, LogRenderBackend, "Image layout transition failed: current layout does not match expected old layout. "
 				"Current layout: {0}, Expected old layout: {1}. The barrier's old layout must match the image's current layout.",
 				VulkanUtility::GetImageLayoutName(subresourceTrackingState.CurrentLayout), VulkanUtility::GetImageLayoutName(callbackParameters->OldLayout));
 		}

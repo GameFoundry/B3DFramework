@@ -83,7 +83,7 @@ PixelFormat VulkanUtility::GetClosestSupportedPixelFormat(const VulkanGpuDevice&
 				format = PF_RGBA8;
 		}
 
-		B3D_LOG(Error, Generic, "Provided an unsupported Vulkan image format with ID={0}. Falling back to format with ID={1}", originalFormat, format);
+		B3D_LOG(Error, LogGeneric, "Provided an unsupported Vulkan image format with ID={0}. Falling back to format with ID={1}", originalFormat, format);
 	}
 
 	return format;
@@ -1256,7 +1256,7 @@ VkImageLayout VulkanUtility::GetImageLayout(ImageLayout layout)
 			return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 		default:
-			B3D_LOG(Warning, RenderBackend, "Unknown ImageLayout enum value: {0}", (u32)layout);
+			B3D_LOG(Warning, LogRenderBackend, "Unknown ImageLayout enum value: {0}", (u32)layout);
 			return VK_IMAGE_LAYOUT_UNDEFINED;
 	}
 }

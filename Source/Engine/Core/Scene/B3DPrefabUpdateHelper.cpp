@@ -30,7 +30,7 @@ TOptional<PrefabUpdateHelper::ObjectInPrefab> PrefabUpdateHelper::FindInstanceIn
 
 	if(!prefab.IsLoaded())
 	{
-		B3D_LOG(Error, Prefab, "Unable to find instance in prefab. Prefab {0} cannot be loaded.", prefabResourceId);
+		B3D_LOG(Error, LogPrefab, "Unable to find instance in prefab. Prefab {0} cannot be loaded.", prefabResourceId);
 		return {};
 	}
 

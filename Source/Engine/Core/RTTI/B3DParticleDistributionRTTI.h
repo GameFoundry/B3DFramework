@@ -57,7 +57,7 @@ namespace b3d
 				B3DRTTIRead(data.mMaxGradient, stream);
 				break;
 			default:
-				B3D_LOG(Error, RTTI, "Unknown version of TDistribution<T> data. Unable to deserialize.");
+				B3D_LOG(Error, LogRTTI, "Unknown version of TDistribution<T> data. Unable to deserialize.");
 				break;
 			}
 
@@ -120,7 +120,7 @@ namespace b3d
 				B3DRTTIRead(data.mMaxCurve, stream);
 				break;
 			default:
-				B3D_LOG(Error, RTTI, "Unknown version of TDistribution<T> data. Unable to deserialize.");
+				B3D_LOG(Error, LogRTTI, "Unknown version of TDistribution<T> data. Unable to deserialize.");
 				break;
 			}
 

@@ -536,7 +536,7 @@ void OAAudioSource::StreamUnlocked()
 
 			if(bufferBits == 0)
 			{
-				B3D_LOG(Error, Audio, "Error decoding stream.");
+				B3D_LOG(Error, LogAudio, "Error decoding stream.");
 				return;
 			}
 			else

@@ -181,7 +181,7 @@ void MeshData::SetVertexData(VertexElementSemantic semantic, void* data, u32 siz
 
 	if(!mVertexDescription->HasElement(semantic, semanticIndex, streamIndex))
 	{
-		B3D_LOG(Warning, Mesh, "MeshData doesn't contain an element of specified type: Semantic: {0}, "
+		B3D_LOG(Warning, LogMesh, "MeshData doesn't contain an element of specified type: Semantic: {0}, "
 							  "Semantic index: {1}, Stream index: {2}",
 			   semantic, semanticIndex, streamIndex);
 		return;
@@ -216,7 +216,7 @@ void MeshData::GetVertexData(VertexElementSemantic semantic, void* data, u32 siz
 
 	if(!mVertexDescription->HasElement(semantic, semanticIndex, streamIndex))
 	{
-		B3D_LOG(Warning, Mesh, "MeshData doesn't contain an element of specified type: Semantic: {0}, "
+		B3D_LOG(Warning, LogMesh, "MeshData doesn't contain an element of specified type: Semantic: {0}, "
 							  "Semantic index: {1}, Stream index: {2}",
 			   semantic, semanticIndex, streamIndex);
 		return;

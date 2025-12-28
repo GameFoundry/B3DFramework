@@ -127,7 +127,7 @@ void FMODAudio::SetActiveDevice(const AudioDevice& device)
 		}
 	}
 
-	B3D_LOG(Warning, Audio, "Failed changing audio device to: {0}", device.Name);
+	B3D_LOG(Warning, LogAudio, "Failed changing audio device to: {0}", device.Name);
 }
 
 SPtr<AudioClip> FMODAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)

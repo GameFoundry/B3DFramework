@@ -744,7 +744,7 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 
 		if(!mMeshData)
 		{
-			B3D_LOG(Verbose, Particles, "Particle emitter mesh not created with CPU caching, performing an expensive GPU read.");
+			B3D_LOG(Verbose, LogParticles, "Particle emitter mesh not created with CPU caching, performing an expensive GPU read.");
 
 			mMeshData = mesh->AllocBuffer();
 			mesh->ReadData(mMeshData);
@@ -763,19 +763,19 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 	const VertexElement* positionElement = vertexDesc->GetElement(VES_POSITION);
 	if(positionElement == nullptr)
 	{
-		B3D_LOG(Error, Particles, "Mesh particle emitter requires position vertex data to be present in the provided mesh data.");
+		B3D_LOG(Error, LogParticles, "Mesh particle emitter requires position vertex data to be present in the provided mesh data.");
 		return false;
 	}
 
 	if(positionElement->GetType() != VET_FLOAT3)
 	{
-		B3D_LOG(Error, Particles, "Mesh particle emitter requires position vertex data to use 3D vectors for individual elements.");
+		B3D_LOG(Error, LogParticles, "Mesh particle emitter requires position vertex data to use 3D vectors for individual elements.");
 		return false;
 	}
 
 	if(!perVertex && (mMeshData->GetIndexCount() % 3 != 0))
 	{
-		B3D_LOG(Error, Particles, "Unless using the per-vertex emission mode, mesh particle emitter requires the number "
+		B3D_LOG(Error, LogParticles, "Unless using the per-vertex emission mode, mesh particle emitter requires the number "
 								 "of indices to be divisible by three, using a triangle list layout.");
 		return false;
 	}
@@ -787,20 +787,20 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 
 		if(blendIdxElement == nullptr || blendWeightElement == nullptr)
 		{
-			B3D_LOG(Error, Particles, "Skinned mesh particle emitter requires blend indices and blend weight data to be present in the "
+			B3D_LOG(Error, LogParticles, "Skinned mesh particle emitter requires blend indices and blend weight data to be present in the "
 									 "provided mesh data.");
 			return false;
 		}
 
 		if(blendIdxElement->GetType() != VET_UBYTE4)
 		{
-			B3D_LOG(Error, Particles, "Skinned mesh particle emitter requires blend indices to be a 4-byte encoded format.");
+			B3D_LOG(Error, LogParticles, "Skinned mesh particle emitter requires blend indices to be a 4-byte encoded format.");
 			return false;
 		}
 
 		if(blendWeightElement->GetType() != VET_FLOAT4)
 		{
-			B3D_LOG(Error, Particles, "Skinned mesh particle emitter requires blend weights to be a 4D vector format.");
+			B3D_LOG(Error, LogParticles, "Skinned mesh particle emitter requires blend weights to be a 4D vector format.");
 			return false;
 		}
 	}

@@ -2257,7 +2257,7 @@ void PixelUtility::PackColor(float r, float g, float b, float a, const PixelForm
 
 	if(format == PF_RGB10A2)
 	{
-		B3D_LOG(Error, PixelUtility, "packColor() not implemented for format \"{0}\".", GetFormatName(PF_RGB10A2));
+		B3D_LOG(Error, LogPixelUtility, "packColor() not implemented for format \"{0}\".", GetFormatName(PF_RGB10A2));
 		return;
 	}
 
@@ -2316,7 +2316,7 @@ void PixelUtility::PackColor(float r, float g, float b, float a, const PixelForm
 		}
 		else
 		{
-			B3D_LOG(Error, PixelUtility, "packColor() not implemented for format \"{0}\".", GetFormatName(format));
+			B3D_LOG(Error, LogPixelUtility, "packColor() not implemented for format \"{0}\".", GetFormatName(format));
 			return;
 		}
 
@@ -2384,7 +2384,7 @@ void PixelUtility::UnpackColor(float* r, float* g, float* b, float* a, PixelForm
 
 	if(format == PF_RGB10A2)
 	{
-		B3D_LOG(Error, PixelUtility, "unpackColor() not implemented for format \"{0}\".", GetFormatName(PF_RGB10A2));
+		B3D_LOG(Error, LogPixelUtility, "unpackColor() not implemented for format \"{0}\".", GetFormatName(PF_RGB10A2));
 		return;
 	}
 
@@ -2432,7 +2432,7 @@ void PixelUtility::UnpackColor(float* r, float* g, float* b, float* a, PixelForm
 		}
 		else
 		{
-			B3D_LOG(Error, PixelUtility, "unpackColor() not implemented for format \"{0}\".", GetFormatName(format));
+			B3D_LOG(Error, LogPixelUtility, "unpackColor() not implemented for format \"{0}\".", GetFormatName(format));
 			return;
 		}
 
@@ -2451,11 +2451,11 @@ void PixelUtility::PackDepth(float depth, const PixelFormat format, void* dest)
 {
 	if(!IsDepth(format))
 	{
-		B3D_LOG(Error, PixelUtility, "Cannot convert depth to {0}: it is not a depth format", GetFormatName(format));
+		B3D_LOG(Error, LogPixelUtility, "Cannot convert depth to {0}: it is not a depth format", GetFormatName(format));
 		return;
 	}
 
-	B3D_LOG(Error, PixelUtility, "Method is not implemented");
+	B3D_LOG(Error, LogPixelUtility, "Method is not implemented");
 	// TODO implement depth packing
 }
 
@@ -2463,7 +2463,7 @@ float PixelUtility::UnpackDepth(PixelFormat format, void* src)
 {
 	if(!IsDepth(format))
 	{
-		B3D_LOG(Error, PixelUtility, "Cannot unpack from {0}: it is not a depth format", GetFormatName(format));
+		B3D_LOG(Error, LogPixelUtility, "Cannot unpack from {0}: it is not a depth format", GetFormatName(format));
 		return 0;
 	}
 
@@ -2486,7 +2486,7 @@ float PixelUtility::UnpackDepth(PixelFormat format, void* src)
 		return *((float*)&masked);
 		break;
 	default:
-		B3D_LOG(Error, PixelUtility, "Cannot unpack from {0}", GetFormatName(format));
+		B3D_LOG(Error, LogPixelUtility, "Cannot unpack from {0}", GetFormatName(format));
 		return 0;
 		break;
 	}
@@ -2496,7 +2496,7 @@ void PixelUtility::BulkPixelConversion(const PixelData& source, PixelData& desti
 {
 	if(source.GetWidth() != destination.GetWidth() || source.GetHeight() != destination.GetHeight() || source.GetDepth() != destination.GetDepth())
 	{
-		B3D_LOG(Error, PixelUtility, "Cannot convert pixels between buffers of different sizes.");
+		B3D_LOG(Error, LogPixelUtility, "Cannot convert pixels between buffers of different sizes.");
 		return;
 	}
 
@@ -2521,12 +2521,12 @@ void PixelUtility::BulkPixelConversion(const PixelData& source, PixelData& desti
 
 			if(source.GetLeft() % blockDim.X != 0 || source.GetTop() % blockDim.Y != 0)
 			{
-				B3D_LOG(Error, PixelUtility, "Source offset must be a multiple of block size for compressed formats.");
+				B3D_LOG(Error, LogPixelUtility, "Source offset must be a multiple of block size for compressed formats.");
 			}
 
 			if(destination.GetLeft() % blockDim.X != 0 || destination.GetTop() % blockDim.Y != 0)
 			{
-				B3D_LOG(Error, PixelUtility, "Destination offset must be a multiple of block size for compressed formats.");
+				B3D_LOG(Error, LogPixelUtility, "Destination offset must be a multiple of block size for compressed formats.");
 			}
 		}
 
@@ -2564,7 +2564,7 @@ void PixelUtility::BulkPixelConversion(const PixelData& source, PixelData& desti
 	{
 		if(source.GetFormat() != destination.GetFormat())
 		{
-			B3D_LOG(Error, PixelUtility, "Cannot convert from a compressed format to another format.");
+			B3D_LOG(Error, LogPixelUtility, "Cannot convert from a compressed format to another format.");
 			return;
 		}
 	}
@@ -2621,14 +2621,14 @@ void PixelUtility::FlipComponentOrder(PixelData& data)
 {
 	if(IsCompressed(data.GetFormat()))
 	{
-		B3D_LOG(Error, PixelUtility, "flipComponentOrder() not supported on compressed images.");
+		B3D_LOG(Error, LogPixelUtility, "flipComponentOrder() not supported on compressed images.");
 		return;
 	}
 
 	const PixelFormatDescription& pfd = GetDescriptionFor(data.GetFormat());
 	if(pfd.ElemBytes > 4)
 	{
-		B3D_LOG(Error, PixelUtility, "flipComponentOrder() only supported on 4 byte or smaller pixel formats.");
+		B3D_LOG(Error, LogPixelUtility, "flipComponentOrder() only supported on 4 byte or smaller pixel formats.");
 		return;
 	}
 
@@ -2647,7 +2647,7 @@ void PixelUtility::FlipComponentOrder(PixelData& data)
 
 	if(bitCountMismatch)
 	{
-		B3D_LOG(Error, PixelUtility, "flipComponentOrder() not supported for formats that don't have the same number "
+		B3D_LOG(Error, LogPixelUtility, "flipComponentOrder() not supported for formats that don't have the same number "
 									"of bytes for all components.");
 		return;
 	}
@@ -2852,7 +2852,7 @@ void PixelUtility::Copy(const PixelData& src, PixelData& dst, u32 offsetX, u32 o
 {
 	if(src.GetFormat() != dst.GetFormat())
 	{
-		B3D_LOG(Error, PixelUtility, "Source format is different from destination format for copy(). This operation "
+		B3D_LOG(Error, LogPixelUtility, "Source format is different from destination format for copy(). This operation "
 									"cannot be used for a format conversion. Aborting copy.");
 		return;
 	}
@@ -2863,7 +2863,7 @@ void PixelUtility::Copy(const PixelData& src, PixelData& dst, u32 offsetX, u32 o
 
 	if(right > src.GetWidth() || bottom > src.GetHeight() || back > src.GetDepth())
 	{
-		B3D_LOG(Error, PixelUtility, "Provided offset or destination size is too large and is referencing pixels that "
+		B3D_LOG(Error, LogPixelUtility, "Provided offset or destination size is too large and is referencing pixels that "
 									"are out of bounds on the source texture. Aborting copy().");
 		return;
 	}
@@ -3068,19 +3068,19 @@ void PixelUtility::Compress(const PixelData& source, PixelData& destination, con
 {
 	if(!IsCompressed(options.Format))
 	{
-		B3D_LOG(Error, PixelUtility, "Compression failed. Destination format is not a valid compressed format.");
+		B3D_LOG(Error, LogPixelUtility, "Compression failed. Destination format is not a valid compressed format.");
 		return;
 	}
 
 	if(source.GetDepth() != 1)
 	{
-		B3D_LOG(Error, PixelUtility, "Compression failed. 3D texture compression not supported.");
+		B3D_LOG(Error, LogPixelUtility, "Compression failed. 3D texture compression not supported.");
 		return;
 	}
 
 	if(IsCompressed(source.GetFormat()))
 	{
-		B3D_LOG(Error, PixelUtility, "Compression failed. Source data cannot be compressed.");
+		B3D_LOG(Error, LogPixelUtility, "Compression failed. Source data cannot be compressed.");
 		return;
 	}
 
@@ -3121,7 +3121,7 @@ void PixelUtility::Compress(const PixelData& source, PixelData& destination, con
 	nvtt::Compressor compressor;
 	if(!compressor.process(io, co, oo))
 	{
-		B3D_LOG(Error, PixelUtility, "Compression failed. Internal error.");
+		B3D_LOG(Error, LogPixelUtility, "Compression failed. Internal error.");
 		return;
 	}
 }
@@ -3157,19 +3157,19 @@ Vector<SPtr<PixelData>> PixelUtility::GenerateMipmaps(const SPtr<PixelData>& sou
 
 	if(source->GetDepth() != 1)
 	{
-		B3D_LOG(Error, PixelUtility, "Mipmap generation failed. 3D texture formats not supported.");
+		B3D_LOG(Error, LogPixelUtility, "Mipmap generation failed. 3D texture formats not supported.");
 		return output;
 	}
 
 	if(IsCompressed(source->GetFormat()))
 	{
-		B3D_LOG(Error, PixelUtility, "Mipmap generation failed. Source data cannot be compressed.");
+		B3D_LOG(Error, LogPixelUtility, "Mipmap generation failed. Source data cannot be compressed.");
 		return output;
 	}
 
 	if(!Bitwise::IsPow2(source->GetWidth()) || !Bitwise::IsPow2(source->GetHeight()))
 	{
-		B3D_LOG(Error, PixelUtility, "Mipmap generation failed. Texture width & height must be powers of 2.");
+		B3D_LOG(Error, LogPixelUtility, "Mipmap generation failed. Texture width & height must be powers of 2.");
 		return output;
 	}
 
@@ -3248,7 +3248,7 @@ Vector<SPtr<PixelData>> PixelUtility::GenerateMipmaps(const SPtr<PixelData>& sou
 	nvtt::Compressor compressor;
 	if(!compressor.process(io, co, oo))
 	{
-		B3D_LOG(Error, PixelUtility, "Mipmap generation failed. Internal error.");
+		B3D_LOG(Error, LogPixelUtility, "Mipmap generation failed. Internal error.");
 		return output;
 	}
 
@@ -3273,7 +3273,7 @@ bool PixelUtility::SaveImage(const SPtr<PixelData>& pixelData, const Path& outpu
 {
 	if (pixelData == nullptr)
 	{
-		B3D_LOG(Error, PixelUtility, "SaveImage failed: pixelData is null");
+		B3D_LOG(Error, LogPixelUtility, "SaveImage failed: pixelData is null");
 		return false;
 	}
 
@@ -3283,19 +3283,19 @@ bool PixelUtility::SaveImage(const SPtr<PixelData>& pixelData, const Path& outpu
 
 	if (width == 0 || height == 0)
 	{
-		B3D_LOG(Error, PixelUtility, "SaveImage failed: Invalid dimensions ({0}x{1})", width, height);
+		B3D_LOG(Error, LogPixelUtility, "SaveImage failed: Invalid dimensions ({0}x{1})", width, height);
 		return false;
 	}
 
 	if (depth != 1)
 	{
-		B3D_LOG(Error, PixelUtility, "SaveImage failed: 3D textures (depth > 1) are not supported for image export");
+		B3D_LOG(Error, LogPixelUtility, "SaveImage failed: 3D textures (depth > 1) are not supported for image export");
 		return false;
 	}
 
 	if (outputPath.IsEmpty())
 	{
-		B3D_LOG(Error, PixelUtility, "SaveImage failed: Output path is empty");
+		B3D_LOG(Error, LogPixelUtility, "SaveImage failed: Output path is empty");
 		return false;
 	}
 
@@ -3324,7 +3324,7 @@ bool PixelUtility::SaveImage(const SPtr<PixelData>& pixelData, const Path& outpu
 		needsConversion = true;
 		break;
 	default:
-		B3D_LOG(Error, PixelUtility, "SaveImage failed: Unsupported pixel format '{0}'. Only 8-bit normalized formats are supported (R8, RGB8, BGR8, RGBA8, BGRA8).",
+		B3D_LOG(Error, LogPixelUtility, "SaveImage failed: Unsupported pixel format '{0}'. Only 8-bit normalized formats are supported (R8, RGB8, BGR8, RGBA8, BGRA8).",
 			GetFormatName(pixelFormat));
 		return false;
 	}
@@ -3333,7 +3333,7 @@ bool PixelUtility::SaveImage(const SPtr<PixelData>& pixelData, const Path& outpu
 	u8* const sourceData = pixelData->GetData();
 	if (sourceData == nullptr)
 	{
-		B3D_LOG(Error, PixelUtility, "SaveImage failed: Pixel data buffer is null");
+		B3D_LOG(Error, LogPixelUtility, "SaveImage failed: Pixel data buffer is null");
 		return false;
 	}
 
@@ -3420,7 +3420,7 @@ bool PixelUtility::SaveImage(const SPtr<PixelData>& pixelData, const Path& outpu
 	// Check result
 	if (result == 0)
 	{
-		B3D_LOG(Error, PixelUtility, "SaveImage failed: Unable to write image file to '{0}'", pathString);
+		B3D_LOG(Error, LogPixelUtility, "SaveImage failed: Unable to write image file to '{0}'", pathString);
 		return false;
 	}
 

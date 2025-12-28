@@ -282,7 +282,7 @@ namespace b3d
 				}
 				break;
 			default:
-				B3D_LOG(Error, RTTI, "Unknown version. Unable to deserialize.");
+				B3D_LOG(Error, LogRTTI, "Unknown version. Unable to deserialize.");
 				break;
 			}
 

@@ -39,7 +39,7 @@ void DynamicLibrary::Load()
 
 	if(!mHandle)
 	{
-		B3D_LOG(Error, Generic, "Could not load dynamic library {0}. System Error: {1}", mName, DynlibError());
+		B3D_LOG(Error, LogGeneric, "Could not load dynamic library {0}. System Error: {1}", mName, DynlibError());
 	}
 }
 
@@ -50,7 +50,7 @@ void DynamicLibrary::Unload()
 
 	if(DYNLIB_UNLOAD(mHandle))
 	{
-		B3D_LOG(Error, Generic, "Could not unload dynamic library {0}. System Error: {1}", mName, DynlibError());
+		B3D_LOG(Error, LogGeneric, "Could not unload dynamic library {0}. System Error: {1}", mName, DynlibError());
 	}
 
 	mHandle = nullptr;

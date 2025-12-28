@@ -89,7 +89,7 @@ void VulkanSubmitThread::QueuePresent(VulkanGpuQueue& queue, VulkanSwapChain& sw
 	const bool acquireSuccess = swapChain.TryGetFirstAcquiredImageIndex(acquiredImageIndex);
 	if(!acquireSuccess)
 	{
-		B3D_LOG(Error, RenderBackend, "Unable to present image. No image has been acquired on the swap chain.");
+		B3D_LOG(Error, LogRenderBackend, "Unable to present image. No image has been acquired on the swap chain.");
 		return;
 	}
 

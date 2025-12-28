@@ -20,13 +20,13 @@ MonoObject* ScriptResourceWrapper::GetOrCreateScriptObject(const HResource& nati
 	const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
 	if(scriptWrapperObjectMetaData == nullptr)
 	{
-		B3D_LOG(Error, Script, "Cannot retrieve script object. Mapping between a resource and a managed type is missing for type \"{0}\"", rttiId);
+		B3D_LOG(Error, LogScript, "Cannot retrieve script object. Mapping between a resource and a managed type is missing for type \"{0}\"", rttiId);
 		return nullptr;
 	}
 
 	if(scriptWrapperObjectMetaData->CreateCallbackType != ScriptWrapperCreateCallbackType::Resource)
 	{
-		B3D_LOG(Error, Script, "Cannot retrieve script object. Script wrapper for type \"{0}\" does not support creation of a Resource handle.", rttiId);
+		B3D_LOG(Error, LogScript, "Cannot retrieve script object. Script wrapper for type \"{0}\" does not support creation of a Resource handle.", rttiId);
 		return nullptr;
 	}
 

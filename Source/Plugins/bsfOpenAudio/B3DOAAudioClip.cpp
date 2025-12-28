@@ -71,7 +71,7 @@ void OAAudioClip::Initialize()
 				if(reader.Open(stream, info, offset))
 					reader.Read(sampleBuffer, info.SampleCount);
 				else
-					B3D_LOG(Error, Audio, "Failed decompressing AudioClip stream.");
+					B3D_LOG(Error, LogAudio, "Failed decompressing AudioClip stream.");
 			}
 			// Load directly
 			else
@@ -123,7 +123,7 @@ void OAAudioClip::Initialize()
 			if(mStreamData != nullptr)
 			{
 				if(!mVorbisReader.Open(mStreamData, info, mStreamOffset))
-					B3D_LOG(Error, Audio, "Failed decompressing AudioClip stream.");
+					B3D_LOG(Error, LogAudio, "Failed decompressing AudioClip stream.");
 			}
 		}
 	}
@@ -169,7 +169,7 @@ void OAAudioClip::GetSamples(u8* samples, u32 offset, u32 count) const
 		return;
 	}
 
-	B3D_LOG(Warning, RenderBackend, "Attempting to read samples while sample data is not available.");
+	B3D_LOG(Warning, LogRenderBackend, "Attempting to read samples while sample data is not available.");
 }
 
 SPtr<DataStream> OAAudioClip::GetSourceStream(u32& outSize)

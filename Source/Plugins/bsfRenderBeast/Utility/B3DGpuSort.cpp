@@ -232,7 +232,7 @@ u32 GpuSort::Sort(GpuCommandBuffer& commandBuffer, const GpuSortBuffers& buffers
 
 	if(errorMsg)
 	{
-		B3D_LOG(Error, Renderer, "GpuSort failed: {0}", errorMsg);
+		B3D_LOG(Error, LogRenderer, "GpuSort failed: {0}", errorMsg);
 		return 0;
 	}
 
@@ -246,7 +246,7 @@ u32 GpuSort::Sort(GpuCommandBuffer& commandBuffer, const GpuSortBuffers& buffers
 
 	if(!validSize)
 	{
-		B3D_LOG(Error, Renderer, "GpuSort failed: All sort buffers must have the same size.");
+		B3D_LOG(Error, LogRenderer, "GpuSort failed: All sort buffers must have the same size.");
 		return 0;
 	}
 

@@ -106,14 +106,14 @@ bool CookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u
 	PxCooking* cooking = GetPhysX().GetCooking();
 	if(cooking == nullptr)
 	{
-		B3D_LOG(Warning, Physics, "Attempting to cook a physics mesh but cooking is not enabled globally.");
+		B3D_LOG(Warning, LogPhysics, "Attempting to cook a physics mesh but cooking is not enabled globally.");
 		return false;
 	}
 
 	SPtr<VertexDescription> vertexDesc = meshData->GetVertexDescription();
 	if(!vertexDesc->HasElement(VES_POSITION))
 	{
-		B3D_LOG(Warning, Physics, "Provided PhysicsMesh mesh data has no vertex positions.");
+		B3D_LOG(Warning, LogPhysics, "Provided PhysicsMesh mesh data has no vertex positions.");
 		return false;
 	}
 
@@ -121,7 +121,7 @@ bool CookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u
 	{
 		if(!CookConvex(cooking, meshData, data, size))
 		{
-			B3D_LOG(Warning, Physics, "Failed cooking a convex mesh. Perpahs it is too complex? Maximum number of "
+			B3D_LOG(Warning, LogPhysics, "Failed cooking a convex mesh. Perpahs it is too complex? Maximum number of "
 									 "convex vertices is 256.");
 			return false;
 		}

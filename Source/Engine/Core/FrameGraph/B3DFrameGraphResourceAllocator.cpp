@@ -19,7 +19,7 @@ namespace b3d::render
 
 	FrameGraphResourceAllocator::~FrameGraphResourceAllocator()
 	{
-		B3D_LOG(Info, RenderBackend, "FrameGraphResourceAllocator destroyed. Final pool sizes: {0} textures, {1} buffers",
+		B3D_LOG(Info, LogRenderBackend, "FrameGraphResourceAllocator destroyed. Final pool sizes: {0} textures, {1} buffers",
 			mTexturePool.size(), mBufferPool.size());
 	}
 
@@ -41,7 +41,7 @@ namespace b3d::render
 					entry.InUse = true;
 					mStatisticsDirty = true;
 
-					B3D_LOG(Info, RenderBackend, "Reused texture '{0}' from pool ({1}x{2} {3})",
+					B3D_LOG(Info, LogRenderBackend, "Reused texture '{0}' from pool ({1}x{2} {3})",
 						name, createInformation.Width, createInformation.Height,
 						PixelUtility::GetFormatName(createInformation.Format));
 
@@ -67,7 +67,7 @@ namespace b3d::render
 		mTexturePool.push_back(entry);
 		mStatisticsDirty = true;
 
-		B3D_LOG(Info, RenderBackend, "Created new texture '{0}' ({1}x{2} {3}, {4} bytes)",
+		B3D_LOG(Info, LogRenderBackend, "Created new texture '{0}' ({1}x{2} {3}, {4} bytes)",
 			name, createInformation.Width, createInformation.Height,
 			PixelUtility::GetFormatName(createInformation.Format), entry.MemorySize);
 
@@ -92,7 +92,7 @@ namespace b3d::render
 					entry.InUse = true;
 					mStatisticsDirty = true;
 
-					B3D_LOG(Info, RenderBackend, "Reused buffer '{0}' from pool (type: {1}, {2} bytes)",
+					B3D_LOG(Info, LogRenderBackend, "Reused buffer '{0}' from pool (type: {1}, {2} bytes)",
 						name, (u32)createInformation.Type, entry.MemorySize);
 
 					return buffer;
@@ -117,7 +117,7 @@ namespace b3d::render
 		mBufferPool.push_back(entry);
 		mStatisticsDirty = true;
 
-		B3D_LOG(Info, RenderBackend, "Created new buffer '{0}' (type: {1}, {2} bytes)",
+		B3D_LOG(Info, LogRenderBackend, "Created new buffer '{0}' (type: {1}, {2} bytes)",
 			name, (u32)createInformation.Type, entry.MemorySize);
 
 		return buffer;
@@ -140,7 +140,7 @@ namespace b3d::render
 		}
 
 		// Texture not found in pool - this is an error
-		B3D_LOG(Warning, RenderBackend, "Attempted to free texture that was not allocated by this allocator");
+		B3D_LOG(Warning, LogRenderBackend, "Attempted to free texture that was not allocated by this allocator");
 	}
 
 	void FrameGraphResourceAllocator::FreeBuffer(const SPtr<GpuBuffer>& buffer)
@@ -160,7 +160,7 @@ namespace b3d::render
 		}
 
 		// Buffer not found in pool - this is an error
-		B3D_LOG(Warning, RenderBackend, "Attempted to free buffer that was not allocated by this allocator");
+		B3D_LOG(Warning, LogRenderBackend, "Attempted to free buffer that was not allocated by this allocator");
 	}
 
 	void FrameGraphResourceAllocator::Reset()

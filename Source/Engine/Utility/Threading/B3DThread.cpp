@@ -43,7 +43,7 @@ namespace
 		auto result = Expr;																										\
 		if(result != TRUE)																										\
 		{																														\
-			B3D_LOG(Error, Generic, "Win32 operation '{0}' failed with error: {1}", #Expr, (i32)GetLastError());				\
+			B3D_LOG(Error, LogGeneric, "Win32 operation '{0}' failed with error: {1}", #Expr, (i32)GetLastError());				\
 			B3D_ASSERT(false);																									\
 		}																														\
 	} while (false)

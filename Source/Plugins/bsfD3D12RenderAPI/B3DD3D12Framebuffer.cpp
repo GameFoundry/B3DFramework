@@ -104,7 +104,7 @@ void D3D12Framebuffer::CreateViews()
 				rtvDesc.Texture3D.WSize = props.Depth;
 				break;
 			default:
-				B3D_LOG(Error, RenderBackend, "Unsupported texture type for render target view");
+				B3D_LOG(Error, LogRenderBackend, "Unsupported texture type for render target view");
 				continue;
 			}
 
@@ -144,7 +144,7 @@ void D3D12Framebuffer::CreateViews()
 					dsvDesc.Texture2DArray.ArraySize = props.NumFaces;
 					break;
 				default:
-					B3D_LOG(Error, RenderBackend, "Unsupported texture type for depth-stencil view");
+					B3D_LOG(Error, LogRenderBackend, "Unsupported texture type for depth-stencil view");
 					return;
 				}
 
@@ -162,7 +162,7 @@ void D3D12Framebuffer::CreateViews()
 		const SPtr<IRenderWindowSurface>& surfacePtr = renderWindow->GetRenderWindowSurface();
 		if (!surfacePtr)
 		{
-			B3D_LOG(Warning, RenderBackend, "RenderWindow has no surface, cannot create framebuffer");
+			B3D_LOG(Warning, LogRenderBackend, "RenderWindow has no surface, cannot create framebuffer");
 			return;
 		}
 
@@ -171,7 +171,7 @@ void D3D12Framebuffer::CreateViews()
 
 		if (!swapChain)
 		{
-			B3D_LOG(Warning, RenderBackend, "RenderWindow surface has no swap chain, cannot create framebuffer");
+			B3D_LOG(Warning, LogRenderBackend, "RenderWindow surface has no swap chain, cannot create framebuffer");
 			return;
 		}
 
@@ -187,6 +187,6 @@ void D3D12Framebuffer::CreateViews()
 			mHasDepthStencil = true;
 		}
 
-		B3D_LOG(Info, RenderBackend, "Created framebuffer from RenderWindow swap chain: {0}x{1}", mWidth, mHeight);
+		B3D_LOG(Info, LogRenderBackend, "Created framebuffer from RenderWindow swap chain: {0}x{1}", mWidth, mHeight);
 	}
 }

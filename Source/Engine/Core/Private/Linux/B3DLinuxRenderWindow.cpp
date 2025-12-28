@@ -229,7 +229,7 @@ void LinuxRenderWindow::SetVideoMode(i32 screen, RROutput output, RRMode mode)
 	XRRScreenResources* screenRes = XRRGetScreenResources(display, rootWindow);
 	if(screenRes == nullptr)
 	{
-		B3D_LOG(Error, Platform, "XRR: Failed to retrieve screen resources. ");
+		B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve screen resources. ");
 		return;
 	}
 
@@ -238,7 +238,7 @@ void LinuxRenderWindow::SetVideoMode(i32 screen, RROutput output, RRMode mode)
 	{
 		XRRFreeScreenResources(screenRes);
 
-		B3D_LOG(Error, Platform, "XRR: Failed to retrieve output info for output: {0}", (u32)output);
+		B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve output info for output: {0}", (u32)output);
 		return;
 	}
 
@@ -248,7 +248,7 @@ void LinuxRenderWindow::SetVideoMode(i32 screen, RROutput output, RRMode mode)
 		XRRFreeScreenResources(screenRes);
 		XRRFreeOutputInfo(outputInfo);
 
-		B3D_LOG(Error, Platform, "XRR: Failed to retrieve CRTC info for output: {0}", (u32)output);
+		B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve CRTC info for output: {0}", (u32)output);
 		return;
 	}
 
@@ -257,7 +257,7 @@ void LinuxRenderWindow::SetVideoMode(i32 screen, RROutput output, RRMode mode)
 	Status status = XRRSetCrtcConfig(display, screenRes, outputInfo->crtc, CurrentTime, crtcInfo->x, crtcInfo->y, mode, crtcInfo->rotation, &output, 1);
 
 	if(status != Success)
-		B3D_LOG(Error, Platform, "XRR: XRRSetCrtcConfig failed.");
+		B3D_LOG(Error, LogPlatform, "XRR: XRRSetCrtcConfig failed.");
 
 	XRRFreeCrtcInfo(crtcInfo);
 	XRRFreeOutputInfo(outputInfo);
@@ -281,7 +281,7 @@ void LinuxRenderWindow::SetFullscreen(const VideoMode& mode)
 	u32 outputIdx = mode.outputIdx;
 	if(outputIdx >= outputCount)
 	{
-		B3D_LOG(Error, Platform, "Invalid output device index.");
+		B3D_LOG(Error, LogPlatform, "Invalid output device index.");
 		return;
 	}
 
@@ -307,7 +307,7 @@ void LinuxRenderWindow::SetFullscreen(const VideoMode& mode)
 		XRRScreenResources* screenRes = XRRGetScreenResources(display, rootWindow);
 		if(screenRes == nullptr)
 		{
-			B3D_LOG(Error, Platform, "XRR: Failed to retrieve screen resources. ");
+			B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve screen resources. ");
 			return;
 		}
 
@@ -316,7 +316,7 @@ void LinuxRenderWindow::SetFullscreen(const VideoMode& mode)
 		{
 			XRRFreeScreenResources(screenRes);
 
-			B3D_LOG(Error, Platform, "XRR: Failed to retrieve output info for output: {0}", (u32)outputID);
+			B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve output info for output: {0}", (u32)outputID);
 			return;
 		}
 
@@ -326,7 +326,7 @@ void LinuxRenderWindow::SetFullscreen(const VideoMode& mode)
 			XRRFreeScreenResources(screenRes);
 			XRRFreeOutputInfo(outputInfo);
 
-			B3D_LOG(Error, Platform, "XRR: Failed to retrieve CRTC info for output: {0}", (u32)outputID);
+			B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve CRTC info for output: {0}", (u32)outputID);
 			return;
 		}
 
@@ -368,7 +368,7 @@ void LinuxRenderWindow::SetFullscreen(const VideoMode& mode)
 		{
 			LinuxPlatform::unlockX();
 
-			B3D_LOG(Error, Platform, "Unable to enter fullscreen, unsupported video mode requested.");
+			B3D_LOG(Error, LogPlatform, "Unable to enter fullscreen, unsupported video mode requested.");
 			return;
 		}
 
@@ -405,7 +405,7 @@ void LinuxRenderWindow::SetWindowed(u32 width, u32 height)
 	u32 outputIdx = 0; // 0 is always primary
 	if(outputIdx >= outputCount)
 	{
-		B3D_LOG(Error, Platform, "Invalid output device index.");
+		B3D_LOG(Error, LogPlatform, "Invalid output device index.");
 		return;
 	}
 

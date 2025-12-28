@@ -312,7 +312,7 @@ namespace b3d
 				B3DRTTIRead(data.Interval, stream);
 				break;
 			default:
-				B3D_LOG(Error, RTTI, "Unknown version of ParticleBurst data. Unable to deserialize.");
+				B3D_LOG(Error, LogRTTI, "Unknown version of ParticleBurst data. Unable to deserialize.");
 				break;
 			}
 

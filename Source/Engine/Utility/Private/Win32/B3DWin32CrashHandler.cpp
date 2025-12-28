@@ -214,7 +214,7 @@ void Win32LoadSymbols()
 	SymSetOptions(options);
 	if(!SymInitialize(hProcess, nullptr, false))
 	{
-		B3D_LOG(Error, Generic, "SymInitialize failed. Error code: {0}", +(u32)GetLastError());
+		B3D_LOG(Error, LogGeneric, "SymInitialize failed. Error code: {0}", +(u32)GetLastError());
 		return;
 	}
 
@@ -253,20 +253,20 @@ void Win32LoadSymbols()
 
 			if(!SymGetModuleInfo64(GetCurrentProcess(), moduleAddress, &imageInfo))
 			{
-				B3D_LOG(Warning, Platform, "Failed retrieving module info for module: {0}. Error code: {1}", moduleName, (u32)GetLastError());
+				B3D_LOG(Warning, LogPlatform, "Failed retrieving module info for module: {0}. Error code: {1}", moduleName, (u32)GetLastError());
 			}
 			else
 			{
 				// Disabled because too much spam in the log, enable as needed
 #if 0
 					if (imageInfo.SymType == SymNone)
-						B3D_LOG(Warning, Platform, "Failed loading symbols for module: {0}", moduleName);
+						B3D_LOG(Warning, LogPlatform, "Failed loading symbols for module: {0}", moduleName);
 #endif
 			}
 		}
 		else
 		{
-			B3D_LOG(Warning, Platform, "Failed loading module {0}.Error code: {1}. Search path: {2}. Image name: {3}", moduleName, (u32)GetLastError(), pdbSearchPath, imageName);
+			B3D_LOG(Warning, LogPlatform, "Failed loading module {0}.Error code: {1}. Search path: {2}. Image name: {3}", moduleName, (u32)GetLastError(), pdbSearchPath, imageName);
 		}
 	}
 

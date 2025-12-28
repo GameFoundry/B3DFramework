@@ -69,7 +69,7 @@ namespace b3d
 				B3DRTTIRead(data.Coefficients, stream);
 				break;
 			default:
-				B3D_LOG(Error, RTTI, "Unknown version of SavedLightProbeInfo data. Unable to deserialize.");
+				B3D_LOG(Error, LogRTTI, "Unknown version of SavedLightProbeInfo data. Unable to deserialize.");
 				break;
 			}
 

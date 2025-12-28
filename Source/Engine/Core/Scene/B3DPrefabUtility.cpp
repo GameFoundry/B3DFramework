@@ -120,7 +120,7 @@ HPrefab PrefabCache::FindOrLoadPrefab(const UUID& prefabId)
 
 	if(!prefab.IsLoaded(false))
 	{
-		B3D_LOG(Error, Scene, "Prefab with ID: {0} cannot be loaded.", prefabId);
+		B3D_LOG(Error, LogScene, "Prefab with ID: {0} cannot be loaded.", prefabId);
 		return nullptr;
 	}
 
@@ -154,7 +154,7 @@ void PrefabUtility::RevertToPrefab(const HSceneObject& sceneObject)
 	HPrefab linkedPrefab = GetResources().Load<Prefab>(prefabResourceId, ResourceLoadOptions(false, false, false));
 	if(!linkedPrefab.IsLoaded(false))
 	{
-		B3D_LOG(Warning, Prefab, "Cannot revert scene object '{0}' to prefab. Failed to load prefab with ID: '{1}'.", sceneObject.GetId(), prefabResourceId);
+		B3D_LOG(Warning, LogPrefab, "Cannot revert scene object '{0}' to prefab. Failed to load prefab with ID: '{1}'.", sceneObject.GetId(), prefabResourceId);
 		return;
 	}
 
@@ -184,13 +184,13 @@ HSceneObject PrefabUtility::UpdateInstanceFromPrefab(const HSceneObject& instanc
 
 	if(!instance->IsPrefabInstanceRoot())
 	{
-		B3D_LOG(Warning, Scene, "Cannot update scene object from prefab. Provided scene object '{0}' ({1}) is not a prefab instance root.", instance->GetName(), instance.GetId());
+		B3D_LOG(Warning, LogScene, "Cannot update scene object from prefab. Provided scene object '{0}' ({1}) is not a prefab instance root.", instance->GetName(), instance.GetId());
 		return HSceneObject();
 	}
 
 	if(instance->GetPrefabResourceId() != prefab.GetId())
 	{
-		B3D_LOG(Warning, Scene, "Cannot update scene object from prefab. Provided scene object '{0}' ({1}) is referencing prefab '{2}', but the provided prefab is '{3}'.", instance->GetName(), instance.GetId(), instance->GetPrefabResourceId(), prefab.GetId());
+		B3D_LOG(Warning, LogScene, "Cannot update scene object from prefab. Provided scene object '{0}' ({1}) is referencing prefab '{2}', but the provided prefab is '{3}'.", instance->GetName(), instance.GetId(), instance->GetPrefabResourceId(), prefab.GetId());
 		return HSceneObject();
 	}
 
@@ -263,7 +263,7 @@ bool PrefabUtility::UpdateNestedPrefabInstancesRecursive(const HSceneObject& roo
 			const UUID& nestedPrefabId = child->GetPrefabResourceId();
 			if(auto found = std::find(inOutParentPrefabChain.begin(), inOutParentPrefabChain.end(), nestedPrefabId); found != inOutParentPrefabChain.end())
 			{
-				B3D_LOG(Error, Scene, "Failed to update instance from prefab. Detected circular dependency for prefab with ID:{0}.)", nestedPrefabId);
+				B3D_LOG(Error, LogScene, "Failed to update instance from prefab. Detected circular dependency for prefab with ID:{0}.)", nestedPrefabId);
 				foundCircularDependency = true;
 				return false;
 			}

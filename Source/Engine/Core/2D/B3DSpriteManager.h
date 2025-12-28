@@ -101,7 +101,7 @@ namespace b3d
 			if(found != mMaterials.end())
 			{
 				// Already exists
-				B3D_LOG(Warning, Generic, "Attempting to register a sprite material that already exists, ignoring request.");
+				B3D_LOG(Warning, LogGeneric, "Attempting to register a sprite material that already exists, ignoring request.");
 				B3DDelete(newMaterial);
 				return found->second;
 			}

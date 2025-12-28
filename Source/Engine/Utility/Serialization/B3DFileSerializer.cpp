@@ -16,7 +16,7 @@ FileEncoder::FileEncoder(const Path& fileLocation)
 {
 	Path parentDir = fileLocation.GetDirectory();
 	if(!FileSystem::Exists(parentDir))
-		FileSystem::CreateDir(parentDir);
+		FileSystem::CreateFolder(parentDir);
 
 	mOutputStream = FileSystem::CreateAndOpenFile(fileLocation);
 }

@@ -500,7 +500,7 @@ SPtr<ISerialized> IntermediateSerializer::SerializeTupleElement(IReflectable& ob
 			return serializedPlainData;
 		}
 	default:
-		B3D_LOG(Error, Serialization, "Error serializing data. Encountered a type I don't know how to encode. Type: {0}, Is array: {1}", (u32)typeSchema.Type, field.Schema.IsContainer);
+		B3D_LOG(Error, LogSerialization, "Error serializing data. Encountered a type I don't know how to encode. Type: {0}, Is array: {1}", (u32)typeSchema.Type, field.Schema.IsContainer);
 		return nullptr;
 	}
 }
@@ -530,7 +530,7 @@ SPtr<IReflectable> IntermediateSerializer::GetOrDeserializeReflectableObject(con
 	{
 		if(objectDeserializationData.DeserializationInProgress)
 		{
-			B3D_LOG(Warning, Generic, "Detected a circular reference when decoding. "
+			B3D_LOG(Warning, LogGeneric, "Detected a circular reference when decoding. "
 									  "Referenced object's fields will be resolved in an undefined order "
 									  "(i.e. one of the objects will not be fully deserialized when assigned "
 									  "to its field). Use RTTI_Flag_WeakRef to get rid of this warning and tell "

@@ -56,7 +56,7 @@ static bool EnsureImageViewValidForShader(const VulkanImageView& view, const Gpu
 
 	if(!isViewValid)
 	{
-		B3D_LOG(Error, RenderBackend, "Unable to bind texture. Image view is not of expected type. Expected {0} but got {1}.", (u32)expectedType, (u32)actualType);
+		B3D_LOG(Error, LogRenderBackend, "Unable to bind texture. Image view is not of expected type. Expected {0} but got {1}.", (u32)expectedType, (u32)actualType);
 	}
 
 	return isViewValid;
@@ -131,7 +131,7 @@ void VulkanGpuParameterSet::Initialize()
 	mSetInformation.DescriptorSet = vulkanPool->AllocateDescriptorSet(layout->GetVulkanHandle());
 	if (mSetInformation.DescriptorSet == nullptr)
 	{
-		B3D_LOG(Error, RenderBackend, "Failed to allocate descriptor set from pool.");
+		B3D_LOG(Error, LogRenderBackend, "Failed to allocate descriptor set from pool.");
 		return;
 	}
 
@@ -303,7 +303,7 @@ bool VulkanGpuParameterSet::SetUniformBuffer(u32 slot,const SPtr<GpuBuffer>& uni
 	const u32 usedResourceSequentialIndex = pipelineParameterInformationSet.GetUsedResourceSequentialIndex(slot, arrayIndex);
 	if(usedResourceSequentialIndex == ~0u)
 	{
-		B3D_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", mSet, slot);
+		B3D_LOG(Error, LogRenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", mSet, slot);
 		return false;
 	}
 
@@ -361,7 +361,7 @@ bool VulkanGpuParameterSet::SetSampledTexture(u32 slot, const SPtr<Texture>& tex
 
 	if(usedResourceSequentialIndex == ~0u || usedBindingSequentialIndex == ~0u)
 	{
-		B3D_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", mSet, slot);
+		B3D_LOG(Error, LogRenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", mSet, slot);
 		return false;
 	}
 
@@ -426,7 +426,7 @@ bool VulkanGpuParameterSet::SetStorageTexture(u32 slot, const SPtr<Texture>& tex
 
 	if(usedBindingSequentialIndex == ~0u || usedResourceSequentialIndex == ~0u)
 	{
-		B3D_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", mSet, slot);
+		B3D_LOG(Error, LogRenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", mSet, slot);
 		return false;
 	}
 
@@ -491,7 +491,7 @@ bool VulkanGpuParameterSet::SetStorageBuffer(u32 slot, const SPtr<GpuBuffer>& bu
 
 	if(usedBindingSequentialIndex == ~0u || usedResourceSequentialIndex == ~0u)
 	{
-		B3D_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", mSet, slot);
+		B3D_LOG(Error, LogRenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", mSet, slot);
 		return false;
 	}
 
@@ -582,7 +582,7 @@ bool VulkanGpuParameterSet::SetSamplerState(u32 slot, const SPtr<SamplerState>& 
 	const u32 usedResourceSequentialIndex = pipelineParameterInformationSet.GetUsedResourceSequentialIndex(slot, arrayIndex);
 	if(usedResourceSequentialIndex == ~0u)
 	{
-		B3D_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", mSet, slot);
+		B3D_LOG(Error, LogRenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", mSet, slot);
 		return false;
 	}
 
@@ -1021,7 +1021,7 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanGpuCommandBuffer& commandBuffer
 			}
 			else
 			{
-				B3D_LOG(Warning, RenderBackend, "Pool exhausted during descriptor set reallocation. Reusing bound set.");
+				B3D_LOG(Warning, LogRenderBackend, "Pool exhausted during descriptor set reallocation. Reusing bound set.");
 			}
 		}
 

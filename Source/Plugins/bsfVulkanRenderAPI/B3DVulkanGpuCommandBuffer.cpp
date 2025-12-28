@@ -217,7 +217,7 @@ VulkanGpuCommandBuffer::~VulkanGpuCommandBuffer()
 		B3D_ASSERT(result == VK_SUCCESS || result == VK_TIMEOUT);
 
 		if(result == VK_TIMEOUT)
-			B3D_LOG(Warning, RenderBackend, "Freeing a command buffer before done executing because fence wait expired!");
+			B3D_LOG(Warning, LogRenderBackend, "Freeing a command buffer before done executing because fence wait expired!");
 
 		// Resources have been marked as used, make sure to notify them we're done with them
 		Reset();
@@ -329,7 +329,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		}
 		else
 		{
-			B3D_LOG(Error, RenderBackend, "Binding render target failed. Unable to acquire swap chain image.");
+			B3D_LOG(Error, LogRenderBackend, "Binding render target failed. Unable to acquire swap chain image.");
 
 			swapChain = nullptr;
 			newFramebuffer = nullptr;
@@ -350,7 +350,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	// Warn if invalid load mask
 	if(loadMask.IsSet(RT_DEPTH) && !loadMask.IsSet(RT_STENCIL))
 	{
-		B3D_LOG(Warning, RenderBackend, "SetRenderTarget() invalid load mask, depth enabled but stencil disabled. "
+		B3D_LOG(Warning, LogRenderBackend, "SetRenderTarget() invalid load mask, depth enabled but stencil disabled. "
 										   "This is not supported. Both will be loaded.");
 
 		loadMask.Set(RT_STENCIL);
@@ -358,7 +358,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 
 	if(!loadMask.IsSet(RT_DEPTH) && loadMask.IsSet(RT_STENCIL))
 	{
-		B3D_LOG(Warning, RenderBackend, "SetRenderTarget() invalid load mask, stencil enabled but depth disabled. "
+		B3D_LOG(Warning, LogRenderBackend, "SetRenderTarget() invalid load mask, stencil enabled but depth disabled. "
 										   "This is not supported. Both will be loaded.");
 
 		loadMask.Set(RT_DEPTH);
@@ -424,7 +424,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 
 		if(readMask.IsSet(colorAttachmentBit))
 		{
-			B3D_LOG(Error, RenderBackend, "Color attachment at index {0} cannot be read only if we're not loading it.", colorAttachment.Index);
+			B3D_LOG(Error, LogRenderBackend, "Color attachment at index {0} cannot be read only if we're not loading it.", colorAttachment.Index);
 			continue;
 		}
 
@@ -442,7 +442,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		{
 			if(readMask.IsSet(RT_DEPTH))
 			{
-				B3D_LOG(Error, RenderBackend, "Depth attachment cannot be read only if we're not loading it.");
+				B3D_LOG(Error, LogRenderBackend, "Depth attachment cannot be read only if we're not loading it.");
 			}
 			else
 			{
@@ -458,7 +458,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		{
 			if(readMask.IsSet(RT_STENCIL))
 			{
-				B3D_LOG(Error, RenderBackend, "Stencil attachment cannot be read only if we're not loading it.");
+				B3D_LOG(Error, LogRenderBackend, "Stencil attachment cannot be read only if we're not loading it.");
 			}
 			else
 			{
@@ -881,7 +881,7 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 
 	if (groupCountX == 0 || groupCountY == 0 || groupCountZ == 0)
 	{
-		B3D_LOG(Warning, RenderBackend, "Ignoring call to DispatchCompute(). Thread count is zero.");
+		B3D_LOG(Warning, LogRenderBackend, "Ignoring call to DispatchCompute(). Thread count is zero.");
 	}
 
 	if(!B3D_ENSURE(!IsInRenderPass()))
@@ -1248,7 +1248,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass()
 
 	if(mFramebuffer == nullptr)
 	{
-		B3D_LOG(Warning, RenderBackend, "Attempting to begin a render pass but no render target is bound to the command buffer.");
+		B3D_LOG(Warning, LogRenderBackend, "Attempting to begin a render pass but no render target is bound to the command buffer.");
 		return;
 	}
 
@@ -1703,7 +1703,7 @@ void VulkanGpuCommandBuffer::ClearAttachments(const Area2I& area, RenderSurfaceM
 		{
 			if(baseLayerIndex != colorAttachmentBaseLayer)
 			{
-				B3D_LOG(Error, RenderBackend, "All starting layers for frame buffer attachments must be matching when performing a clear command.");
+				B3D_LOG(Error, LogRenderBackend, "All starting layers for frame buffer attachments must be matching when performing a clear command.");
 			}
 		}
 
@@ -1739,7 +1739,7 @@ void VulkanGpuCommandBuffer::ClearAttachments(const Area2I& area, RenderSurfaceM
 			{
 				if(baseLayerIndex != depthStencilAttachmentBaseLayer)
 				{
-					B3D_LOG(Error, RenderBackend, "All starting layers for frame buffer attachments must be matching when performing a clear command.");
+					B3D_LOG(Error, LogRenderBackend, "All starting layers for frame buffer attachments must be matching when performing a clear command.");
 				}
 			}
 
@@ -1795,7 +1795,7 @@ bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 
 		if(subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write) && !pipeline->IsColorReadOnly(i))
 		{
-			B3D_LOG(Warning, RenderBackend, "Framebuffer attachment also used as a shader input, but color writes "
+			B3D_LOG(Warning, LogRenderBackend, "Framebuffer attachment also used as a shader input, but color writes "
 										   "aren't disabled. This will result in undefined behavior.");
 		}
 	}
@@ -1807,7 +1807,7 @@ bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 
 		if(subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write) && !pipeline->IsDepthReadOnly())
 		{
-			B3D_LOG(Warning, RenderBackend, "Framebuffer attachment also used as a shader input, but depth/stencil "
+			B3D_LOG(Warning, LogRenderBackend, "Framebuffer attachment also used as a shader input, but depth/stencil "
 										   "writes aren't disabled. This will result in undefined behavior.");
 		}
 	}
@@ -1949,7 +1949,7 @@ void VulkanGpuCommandBuffer::BindGpuParameters(const SPtr<GpuPipelineParameterLa
 				if(IsInRenderPass())
 				{
 					B3D_ENSURE(false);
-					B3D_LOG(Warning, RenderBackend, "SetGpuParameterSet() called with parameters not declared in RenderPassCreateInformation. Automatic resource barriers and layout transitions may not execute correctly.");
+					B3D_LOG(Warning, LogRenderBackend, "SetGpuParameterSet() called with parameters not declared in RenderPassCreateInformation. Automatic resource barriers and layout transitions may not execute correctly.");
 				}
 
 				// Fallback: No cached data, call PrepareForBind now

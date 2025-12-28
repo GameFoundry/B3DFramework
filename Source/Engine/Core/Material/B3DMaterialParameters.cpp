@@ -296,13 +296,13 @@ void MaterialParametersBase::ReportGetParamError(GetParamResult errorCode, const
 	switch(errorCode)
 	{
 	case GetParamResult::NotFound:
-		B3D_LOG(Warning, Material, "Material doesn't have a parameter named {0}.", name);
+		B3D_LOG(Warning, LogMaterial, "Material doesn't have a parameter named {0}.", name);
 		break;
 	case GetParamResult::InvalidType:
-		B3D_LOG(Warning, Material, "Parameter \"{0}\" is not of the requested type.", name);
+		B3D_LOG(Warning, LogMaterial, "Parameter \"{0}\" is not of the requested type.", name);
 		break;
 	case GetParamResult::IndexOutOfBounds:
-		B3D_LOG(Warning, Material, "Parameter \"{0}\" array index {1} out of range.", name, arrayIdx);
+		B3D_LOG(Warning, LogMaterial, "Parameter \"{0}\" array index {1} out of range.", name, arrayIdx);
 		break;
 	default:
 		break;
@@ -615,7 +615,7 @@ void TMaterialParameters<IsRenderProxy>::GetStructData(const ParamData& param, v
 	const StructParameterMetaData& structParam = mStructParameterMetaData[param.Index + arrayIdx];
 	if(structParam.DataSize != size)
 	{
-		B3D_LOG(Warning, Material, "Size mismatch when writing to a struct. Provided size was {0} bytes but the struct "
+		B3D_LOG(Warning, LogMaterial, "Size mismatch when writing to a struct. Provided size was {0} bytes but the struct "
 								  "size is {1} bytes",
 			   size, structParam.DataSize);
 		return;
@@ -630,7 +630,7 @@ void TMaterialParameters<IsRenderProxy>::SetStructData(const ParamData& param, c
 	const StructParameterMetaData& structParam = mStructParameterMetaData[param.Index + arrayIdx];
 	if(structParam.DataSize != size)
 	{
-		B3D_LOG(Warning, Material, "Size mismatch when writing to a struct. Provided size was {0} bytes but the struct "
+		B3D_LOG(Warning, LogMaterial, "Size mismatch when writing to a struct. Provided size was {0} bytes but the struct "
 								  "size is {1} bytes",
 			   size, structParam.DataSize);
 		return;

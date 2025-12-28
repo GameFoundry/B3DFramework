@@ -118,20 +118,20 @@ UPtr<PackageWriteLock> PackageManager::SavePackage(const SPtr<Package>& package,
 {
 	if(package == nullptr)
 	{
-		B3D_LOG(Error, Resources, "Cannot save package. Provided package for path '{0}' is empty.", destinationPath);
+		B3D_LOG(Error, LogResources, "Cannot save package. Provided package for path '{0}' is empty.", destinationPath);
 		return nullptr;
 	}
 
 	if(!destinationPath.IsAbsolute())
 	{
-		B3D_LOG(Error, Resources, "Cannot save package. Provided path '{0}' is not absolute.", destinationPath);
+		B3D_LOG(Error, LogResources, "Cannot save package. Provided path '{0}' is not absolute.", destinationPath);
 		return nullptr;
 	}
 
 	const bool destinationFileAlreadyExists = FileSystem::IsFile(destinationPath);
 	if(destinationFileAlreadyExists && !options.Overwrite)
 	{
-		B3D_LOG(Error, Resources, "Cannot save package. File exists at provided path '{0}'.", destinationPath);
+		B3D_LOG(Error, LogResources, "Cannot save package. File exists at provided path '{0}'.", destinationPath);
 		return nullptr;
 	}
 
@@ -161,7 +161,7 @@ UPtr<PackageWriteLock> PackageManager::SavePackage(const SPtr<Package>& package,
 
 	const Path& destinationParentFolderPath = destinationPath.GetParent();
 	if(!FileSystem::Exists(destinationParentFolderPath))
-		FileSystem::CreateDir(destinationParentFolderPath);
+		FileSystem::CreateFolder(destinationParentFolderPath);
 
 	FileSystem::Move(temporarySavePath, destinationPath);
 
@@ -193,7 +193,7 @@ void PackageManager::UnloadPackage(const Path& packagePath)
 {
 	if(!packagePath.IsAbsolute())
 	{
-		B3D_LOG(Warning, Resources, "Cannot delete package. Provided path '{0}' is not absolute.", packagePath);
+		B3D_LOG(Warning, LogResources, "Cannot delete package. Provided path '{0}' is not absolute.", packagePath);
 		return;
 	}
 
@@ -224,7 +224,7 @@ void PackageManager::ChangePhysicalPackagePath(const PackageWriteLock& packageWr
 {
 	if(!newPath.IsAbsolute())
 	{
-		B3D_LOG(Warning, Resources, "Cannot change physical package path. Provided path '{0}' is not absolute.", newPath);
+		B3D_LOG(Warning, LogResources, "Cannot change physical package path. Provided path '{0}' is not absolute.", newPath);
 		return;
 	}
 
@@ -239,7 +239,7 @@ void PackageManager::ChangePhysicalPackagePath(const PackageWriteLock& packageWr
 
 		if(auto foundDestinationPackage = mPackagesByPath.find(newPath); foundDestinationPackage != mPackagesByPath.end())
 		{
-			B3D_LOG(Warning, Resources, "Cannot change physical package path. Another package already exists at location '{0}'.", newPath);
+			B3D_LOG(Warning, LogResources, "Cannot change physical package path. Another package already exists at location '{0}'.", newPath);
 			return;
 		}
 
@@ -361,7 +361,7 @@ AcquirePackageLockResult PackageManager::AcquireReadLock(const Path& physicalPac
 {
 	if(!physicalPackagePath.IsAbsolute())
 	{
-		B3D_LOG(Warning, Resources, "Fail to acquire package read lock. Provided path \"{0}\" is not absolute.", physicalPackagePath);
+		B3D_LOG(Warning, LogResources, "Fail to acquire package read lock. Provided path \"{0}\" is not absolute.", physicalPackagePath);
 		return AcquirePackageLockResult::NotAcquiredPackageNotFound;
 	}
 
@@ -454,7 +454,7 @@ AcquirePackageLockResult PackageManager::AcquireWriteLock(const Path& physicalPa
 {
 	if(!physicalPackagePath.IsAbsolute())
 	{
-		B3D_LOG(Warning, Resources, "Fail to acquire package write lock. Provided path \"{0}\" is not absolute.", physicalPackagePath);
+		B3D_LOG(Warning, LogResources, "Fail to acquire package write lock. Provided path \"{0}\" is not absolute.", physicalPackagePath);
 		return AcquirePackageLockResult::NotAcquiredPackageNotFound;
 	}
 
@@ -554,7 +554,7 @@ void PackageManager::LoadPackageResourceInformation(Package& package, const Path
 
 				if(existingPhysicalPath != newPhysicalPath)
 				{
-					B3D_LOG(Warning, Resources, "Same virtual path '{0}' used for multiple resources: '{1}' and '{2}'. This will result in undefined behaviour when looking up the resources via virtual path.", virtualResourcePath, existingPhysicalPath, newPhysicalPath);
+					B3D_LOG(Warning, LogResources, "Same virtual path '{0}' used for multiple resources: '{1}' and '{2}'. This will result in undefined behaviour when looking up the resources via virtual path.", virtualResourcePath, existingPhysicalPath, newPhysicalPath);
 				}
 			}
 #endif

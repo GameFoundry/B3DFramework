@@ -27,7 +27,7 @@ SceneObject::~SceneObject()
 {
 	if(!mThisHandle.IsDestroyed())
 	{
-		B3D_LOG(Warning, Scene, "Object is being deleted without being destroyed first? {0}", mName);
+		B3D_LOG(Warning, LogScene, "Object is being deleted without being destroyed first? {0}", mName);
 		DestroyImmediate();
 	}
 }
@@ -206,7 +206,7 @@ void SceneObject::Initialize()
 	{
 		if(sceneObject->GetScene() == nullptr)
 		{
-			B3D_LOG(Warning, Scene, "Cannot instantiate scene object. No associated scene found.");
+			B3D_LOG(Warning, LogScene, "Cannot instantiate scene object. No associated scene found.");
 			return;
 		}
 
@@ -676,7 +676,7 @@ void SceneObject::RemoveChild(const HSceneObject& object)
 	if(result != mChildren.end())
 		mChildren.erase(result);
 	else
-		B3D_LOG(Warning, Scene, "Trying to remove a child but it's not a child of the transform.");
+		B3D_LOG(Warning, LogScene, "Trying to remove a child but it's not a child of the transform.");
 }
 
 HSceneObject SceneObject::FindPath(const String& path) const
@@ -826,7 +826,7 @@ HSceneObject SceneObject::Clone()
 
 	if(!cloneParent.IsValid())
 	{
-		B3D_LOG(Error, Scene, "Cannot clone scene object {0} ({1}). Cannot find a scene object to parent the clone to.", GetName(), GetId());
+		B3D_LOG(Error, LogScene, "Cannot clone scene object {0} ({1}). Cannot find a scene object to parent the clone to.", GetName(), GetId());
 		return HSceneObject();
 	}
 
@@ -903,14 +903,14 @@ void SceneObject::RemoveComponent(const HComponent& component)
 {
 	if(component == nullptr)
 	{
-		B3D_LOG(Warning, Scene, "Trying to remove a null component");
+		B3D_LOG(Warning, LogScene, "Trying to remove a null component");
 		return;
 	}
 
 	if(auto found = std::find(mComponents.begin(), mComponents.end(), component); found != mComponents.end())
 		mComponents.erase(found);
 	else
-		B3D_LOG(Warning, Scene, "Trying to remove a component that doesn't exist on this SceneObject.");
+		B3D_LOG(Warning, LogScene, "Trying to remove a component that doesn't exist on this SceneObject.");
 }
 
 HComponent SceneObject::AddComponent(u32 typeId)
@@ -919,7 +919,7 @@ HComponent SceneObject::AddComponent(u32 typeId)
 
 	if(!B3DRTTIIsSubclass<Component>(newObj.get()))
 	{
-		B3D_LOG(Error, Scene, "Specified type is not a valid Component.");
+		B3D_LOG(Error, LogScene, "Specified type is not a valid Component.");
 		return HComponent();
 	}
 

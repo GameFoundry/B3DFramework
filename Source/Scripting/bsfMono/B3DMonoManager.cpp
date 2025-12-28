@@ -71,30 +71,30 @@ namespace b3d
 
 		if(errorLevel == 0)
 		{
-			B3D_LOG(Error, Script, "Mono: {0} in domain {1}", message, logDomain);
+			B3D_LOG(Error, LogScript, "Mono: {0} in domain {1}", message, logDomain);
 		}
 		else if(errorLevel <= 2)
 		{
-			B3D_LOG(Error, Script, "Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel);
+			B3D_LOG(Error, LogScript, "Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel);
 		}
 		else if(errorLevel <= 3)
 		{
-			B3D_LOG(Warning, Script, "Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel);
+			B3D_LOG(Warning, LogScript, "Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel);
 		}
 		else
 		{
-			B3D_LOG(Info, Particles, "Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel);
+			B3D_LOG(Info, LogParticles, "Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel);
 		}
 	}
 
 	void MonoPrintCallback(const char* string, mono_bool isStdout)
 	{
-		B3D_LOG(Warning, Script, "Mono error: {0}", string);
+		B3D_LOG(Warning, LogScript, "Mono error: {0}", string);
 	}
 
 	void MonoPrintErrorCallback(const char* string, mono_bool isStdout)
 	{
-		B3D_LOG(Error, Script, "Mono error: {0}", string);
+		B3D_LOG(Error, LogScript, "Mono error: {0}", string);
 	}
 } // namespace b3d
 

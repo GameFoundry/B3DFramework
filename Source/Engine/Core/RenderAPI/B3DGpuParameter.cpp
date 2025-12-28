@@ -110,7 +110,7 @@ void TGpuParameterStruct<IsRenderProxy>::Set(const void* value, u32 sizeBytes, u
 #if B3D_DEBUG
 	if(sizeBytes > elementSizeBytes)
 	{
-		B3D_LOG(Warning, RenderBackend, "Provided element size larger than maximum element size. Maximum size: {0}."
+		B3D_LOG(Warning, LogRenderBackend, "Provided element size larger than maximum element size. Maximum size: {0}."
 									   " Supplied size: {1}",
 			   elementSizeBytes, sizeBytes);
 	}
@@ -150,7 +150,7 @@ void TGpuParameterStruct<IsRenderProxy>::Get(void* value, u32 sizeBytes, u32 arr
 #if B3D_DEBUG
 	if(sizeBytes > elementSizeBytes)
 	{
-		B3D_LOG(Warning, RenderBackend, "Provided element size larger than maximum element size. Maximum size: {0}."
+		B3D_LOG(Warning, LogRenderBackend, "Provided element size larger than maximum element size. Maximum size: {0}."
 									   " Supplied size: {1}",
 			   elementSizeBytes, sizeBytes);
 	}

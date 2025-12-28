@@ -230,7 +230,7 @@ MonoObject* ScriptSceneObject::InternalGetChild(ScriptSceneObject* self, u32 chi
 	const u32 childCount = self->GetNativeObject()->GetChildCount();
 	if(childIndex >= childCount)
 	{
-		B3D_LOG(Warning, Scene, "Attempting to access an out of range SceneObject child. Provided index: \"{0}\". Valid range: [0, {1})", childIndex, childCount);
+		B3D_LOG(Warning, LogScene, "Attempting to access an out of range SceneObject child. Provided index: \"{0}\". Valid range: [0, {1})", childIndex, childCount);
 		return nullptr;
 	}
 

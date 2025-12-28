@@ -68,7 +68,7 @@ void PixelDataEx::SetRawPixels(const SPtr<PixelData>& thisPtr, const Vector<char
 	u32 arrayLen = (u32)value.size();
 	if(thisPtr->GetSize() != arrayLen)
 	{
-		B3D_LOG(Warning, Texture, "Unable to set colors, invalid array size.");
+		B3D_LOG(Warning, LogTexture, "Unable to set colors, invalid array size.");
 		return;
 	}
 
@@ -80,7 +80,7 @@ bool PixelDataEx::CheckIsLocked(const SPtr<PixelData>& thisPtr)
 {
 	if(thisPtr->IsLocked())
 	{
-		B3D_LOG(Warning, Texture, "Attempting to access a locked pixel data buffer.");
+		B3D_LOG(Warning, LogTexture, "Attempting to access a locked pixel data buffer.");
 		return true;
 	}
 

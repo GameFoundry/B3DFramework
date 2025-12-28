@@ -127,7 +127,7 @@ void Keyboard::Capture()
 
 	if(FAILED(hr))
 	{
-		B3D_LOG(Error, Platform, "Failed to read keyboard input. Internal error. ");
+		B3D_LOG(Error, LogPlatform, "Failed to read keyboard input. Internal error. ");
 		return;
 	}
 

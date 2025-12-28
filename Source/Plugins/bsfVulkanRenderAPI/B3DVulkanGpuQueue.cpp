@@ -31,7 +31,7 @@ void VulkanGpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBu
 
 	if (vulkanCommandBuffer.GetState() == GpuCommandBufferState::Executing)
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot submit a command buffer that's still executing.");
+		B3D_LOG(Error, LogRenderBackend, "Cannot submit a command buffer that's still executing.");
 		return;
 	}
 

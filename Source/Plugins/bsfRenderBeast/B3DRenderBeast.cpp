@@ -866,7 +866,7 @@ void RenderBeast::RequestScreenCapture(Camera* camera, TAsyncOp<SPtr<PixelData>>
 		}
 	}
 
-	B3D_LOG(Warning, Renderer, "RequestCapture: No view found for camera");
+	B3D_LOG(Warning, LogRenderer, "RequestCapture: No view found for camera");
 	asyncOp.CompleteOperation(nullptr);
 }
 

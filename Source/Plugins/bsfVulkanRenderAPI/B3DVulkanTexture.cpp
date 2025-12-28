@@ -519,7 +519,7 @@ VkAccessFlags VulkanImage::GetAccessFlags(VkImageLayout layout, bool readOnly)
 		break;
 	default:
 		accessFlags = 0;
-		B3D_LOG(Warning, RenderBackend, "Unsupported source layout for Vulkan image.");
+		B3D_LOG(Warning, LogRenderBackend, "Unsupported source layout for Vulkan image.");
 		break;
 	}
 
@@ -1025,13 +1025,13 @@ render::GpuTextureMappedScope VulkanTexture::Map(u32 mipLevel, u32 arrayLayer, G
 
 	if(mipLevel > mProperties.MipMapCount)
 	{
-		B3D_LOG(Error, Texture, "Invalid mip level: {0}. Min is 0, max is {1}", mipLevel, mProperties.MipMapCount);
+		B3D_LOG(Error, LogTexture, "Invalid mip level: {0}. Min is 0, max is {1}", mipLevel, mProperties.MipMapCount);
 		return GpuTextureMappedScope();
 	}
 
 	if(arrayLayer >= mProperties.GetFaceCount())
 	{
-		B3D_LOG(Error, Texture, "Invalid face index: {0}. Min is 0, max is {1}", mipLevel, mProperties.GetFaceCount());
+		B3D_LOG(Error, LogTexture, "Invalid face index: {0}. Min is 0, max is {1}", mipLevel, mProperties.GetFaceCount());
 		return GpuTextureMappedScope();
 	}
 
@@ -1042,7 +1042,7 @@ render::GpuTextureMappedScope VulkanTexture::Map(u32 mipLevel, u32 arrayLayer, G
 
 	if(props.SampleCount > 1)
 	{
-		B3D_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
+		B3D_LOG(Error, LogRenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 		return GpuTextureMappedScope();
 	}
 
@@ -1076,7 +1076,7 @@ render::GpuTextureMappedScope VulkanTexture::Map(u32 mipLevel, u32 arrayLayer, G
 
 		if(!useMask.IsEmpty())
 		{
-			B3D_LOG(Error, RenderBackend, "Cannot map texture '{0}': subresource is currently being used by the GPU.", mName);
+			B3D_LOG(Error, LogRenderBackend, "Cannot map texture '{0}': subresource is currently being used by the GPU.", mName);
 			return GpuTextureMappedScope();
 		}
 	}

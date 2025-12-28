@@ -89,12 +89,12 @@ FrameGraphCompiler::FrameGraphCompiler(FrameGraph& frameGraph)
 
 UPtr<CompiledFrameGraph> FrameGraphCompiler::Compile()
 {
-	B3D_LOG(Info, RenderBackend, "Compiling frame graph...");
+	B3D_LOG(Info, LogRenderBackend, "Compiling frame graph...");
 
 	// Validation and setup
 	if (!Validate())
 	{
-		B3D_LOG(Error, RenderBackend, "Frame graph validation failed");
+		B3D_LOG(Error, LogRenderBackend, "Frame graph validation failed");
 		return nullptr;
 	}
 
@@ -103,14 +103,14 @@ UPtr<CompiledFrameGraph> FrameGraphCompiler::Compile()
 	// Dependency analysis
 	if (!AnalyzeDependencies())
 	{
-		B3D_LOG(Error, RenderBackend, "Dependency analysis failed");
+		B3D_LOG(Error, LogRenderBackend, "Dependency analysis failed");
 		return nullptr;
 	}
 
 	// Dependency validation
 	if (!ValidateDependencies())
 	{
-		B3D_LOG(Warning, RenderBackend, "Dependency validation found potential issues");
+		B3D_LOG(Warning, LogRenderBackend, "Dependency validation found potential issues");
 	}
 
 	// Pass culling
@@ -118,26 +118,26 @@ UPtr<CompiledFrameGraph> FrameGraphCompiler::Compile()
 
 	if (mCulledPassCount > 0)
 	{
-		B3D_LOG(Info, RenderBackend, "Culled {0} unused passes", mCulledPassCount);
+		B3D_LOG(Info, LogRenderBackend, "Culled {0} unused passes", mCulledPassCount);
 	}
 
 	// Topological sort
 	if (!TopologicalSort(mSortedPasses))
 	{
-		B3D_LOG(Error, RenderBackend, "Topological sort failed - cycle detected");
+		B3D_LOG(Error, LogRenderBackend, "Topological sort failed - cycle detected");
 		return nullptr;
 	}
 
-	B3D_LOG(Info, RenderBackend, "Frame graph compiled successfully. Execution order:");
+	B3D_LOG(Info, LogRenderBackend, "Frame graph compiled successfully. Execution order:");
 	for (u32 i = 0; i < mSortedPasses.size(); i++)
 	{
-		B3D_LOG(Info, RenderBackend, "  {0}. {1}", i + 1, mSortedPasses[i]->GetName());
+		B3D_LOG(Info, LogRenderBackend, "  {0}. {1}", i + 1, mSortedPasses[i]->GetName());
 	}
 
 	// Validate render pass setup
 	if (!ValidateRenderPasses())
 	{
-		B3D_LOG(Error, RenderBackend, "Render pass validation failed");
+		B3D_LOG(Error, LogRenderBackend, "Render pass validation failed");
 		return nullptr;
 	}
 
@@ -166,7 +166,7 @@ UPtr<CompiledFrameGraph> FrameGraphCompiler::Compile()
 	// Validation
 	if (!ValidateLayouts(*compiled))
 	{
-		B3D_LOG(Error, RenderBackend, "Layout validation failed");
+		B3D_LOG(Error, LogRenderBackend, "Layout validation failed");
 		return nullptr;
 	}
 
@@ -188,7 +188,7 @@ bool FrameGraphCompiler::Validate()
 	// Validate that we have at least one pass
 	if (mFrameGraph.GetPasses().empty())
 	{
-		B3D_LOG(Warning, RenderBackend, "Frame graph has no passes declared");
+		B3D_LOG(Warning, LogRenderBackend, "Frame graph has no passes declared");
 		// This is not an error - empty frame graphs are allowed
 	}
 
@@ -211,13 +211,13 @@ bool FrameGraphCompiler::ValidatePass(FrameGraphPass* pass)
 	// Check that pass has a valid name
 	if (pass->GetName().empty())
 	{
-		B3D_LOG(Warning, RenderBackend, "Pass at index {0} has no name", pass->GetIndex());
+		B3D_LOG(Warning, LogRenderBackend, "Pass at index {0} has no name", pass->GetIndex());
 	}
 
 	// Check that pass has resource accesses
 	if (pass->GetResourceAccesses().empty())
 	{
-		B3D_LOG(Warning, RenderBackend, "Pass '{0}' has no resource accesses declared",
+		B3D_LOG(Warning, LogRenderBackend, "Pass '{0}' has no resource accesses declared",
 			pass->GetName());
 	}
 
@@ -238,7 +238,7 @@ bool FrameGraphCompiler::ValidateResourceAccess(FrameGraphPass* pass, const Fram
 	// Check that resource ID is valid
 	if (!access.Resource.IsValid())
 	{
-		B3D_LOG(Error, RenderBackend, "Pass '{0}': Invalid resource ID", pass->GetName());
+		B3D_LOG(Error, LogRenderBackend, "Pass '{0}': Invalid resource ID", pass->GetName());
 		return false;
 	}
 
@@ -246,7 +246,7 @@ bool FrameGraphCompiler::ValidateResourceAccess(FrameGraphPass* pass, const Fram
 	FrameGraphResource* resource = mFrameGraph.GetResource(access.Resource);
 	if (resource == nullptr)
 	{
-		B3D_LOG(Error, RenderBackend,
+		B3D_LOG(Error, LogRenderBackend,
 			"Pass '{0}': References non-existent resource ID {1}",
 			pass->GetName(), access.Resource.Index);
 		return false;
@@ -255,7 +255,7 @@ bool FrameGraphCompiler::ValidateResourceAccess(FrameGraphPass* pass, const Fram
 	// Check that usage flags are specified
 	if (access.Usage == GpuResourceUseFlag::Undefined)
 	{
-		B3D_LOG(Error, RenderBackend,
+		B3D_LOG(Error, LogRenderBackend,
 			"Pass '{0}': Resource '{1}' has undefined usage flags",
 			pass->GetName(), resource->GetName());
 		return false;
@@ -264,7 +264,7 @@ bool FrameGraphCompiler::ValidateResourceAccess(FrameGraphPass* pass, const Fram
 	// Check that access flags are specified
 	if (access.Access == GpuAccessFlag::None)
 	{
-		B3D_LOG(Error, RenderBackend,
+		B3D_LOG(Error, LogRenderBackend,
 			"Pass '{0}': Resource '{1}' has no access flags (must be Read and/or Write)",
 			pass->GetName(), resource->GetName());
 		return false;
@@ -279,7 +279,7 @@ bool FrameGraphCompiler::ValidateResourceAccess(FrameGraphPass* pass, const Fram
 	// Color attachments must have write access (cannot be read-only)
 	if (isColorAttachment && !isWrite)
 	{
-		B3D_LOG(Error, RenderBackend,
+		B3D_LOG(Error, LogRenderBackend,
 			"Pass '{0}': Resource '{1}' used as color attachment but not marked for write access",
 			pass->GetName(), resource->GetName());
 		return false;
@@ -288,7 +288,7 @@ bool FrameGraphCompiler::ValidateResourceAccess(FrameGraphPass* pass, const Fram
 	// Depth/stencil attachments must have read or write access (can be read-only, write-only, or read-write)
 	if (isDepthStencilAttachment && !isRead && !isWrite)
 	{
-		B3D_LOG(Error, RenderBackend,
+		B3D_LOG(Error, LogRenderBackend,
 			"Pass '{0}': Resource '{1}' used as depth/stencil attachment but has no read or write access",
 			pass->GetName(), resource->GetName());
 		return false;
@@ -312,7 +312,7 @@ bool FrameGraphCompiler::ValidateDependencies()
 
 		if (accesses.empty())
 		{
-			B3D_LOG(Warning, RenderBackend,
+			B3D_LOG(Warning, LogRenderBackend,
 				"Pass '{0}' has no resource accesses. This may indicate an error.",
 				pass->GetName());
 		}
@@ -330,7 +330,7 @@ bool FrameGraphCompiler::ValidateDependencies()
 
 		if (!hasWrite && pass->GetOutgoingDependencies().empty())
 		{
-			B3D_LOG(Warning, RenderBackend,
+			B3D_LOG(Warning, LogRenderBackend,
 				"Pass '{0}' only reads resources and has no outgoing dependencies. "
 				"It will be culled unless it writes to an output resource.",
 				pass->GetName());
@@ -353,7 +353,7 @@ bool FrameGraphCompiler::ValidateRenderPasses()
 			// Check that render passes have at least one attachment
 			if (pass->GetColorAttachments().empty() && !pass->GetDepthAttachment().IsValid())
 			{
-				B3D_LOG(Error, RenderBackend,
+				B3D_LOG(Error, LogRenderBackend,
 					"Render pass '{0}' has no color or depth attachments",
 					pass->GetName());
 				valid = false;
@@ -368,7 +368,7 @@ bool FrameGraphCompiler::ValidateRenderPasses()
 				if (access.Usage.IsSet(GpuResourceUseFlag::ColorAttachment) ||
 					access.Usage.IsSet(GpuResourceUseFlag::DepthStencilAttachment))
 				{
-					B3D_LOG(Error, RenderBackend,
+					B3D_LOG(Error, LogRenderBackend,
 						"Compute pass '{0}' uses render target resources. Use DeclareRenderPass instead.",
 						pass->GetName());
 					valid = false;
@@ -384,7 +384,7 @@ bool FrameGraphCompiler::ValidateLayouts(const CompiledFrameGraph& compiledGraph
 {
 	// For now, just log that layouts were validated
 	// More sophisticated validation can be added later
-	B3D_LOG(Info, RenderBackend, "Layout validation passed for {0} resources",
+	B3D_LOG(Info, LogRenderBackend, "Layout validation passed for {0} resources",
 		compiledGraph.UsageHistories.size());
 
 	return true;
@@ -641,7 +641,7 @@ void FrameGraphCompiler::CullUnusedPasses()
 		if (pass->IsCulled())
 		{
 			mCulledPassCount++;
-			B3D_LOG(Info, RenderBackend, "Culled unused pass: {0}", pass->GetName());
+			B3D_LOG(Info, LogRenderBackend, "Culled unused pass: {0}", pass->GetName());
 		}
 	}
 }
@@ -704,20 +704,20 @@ bool FrameGraphCompiler::TopologicalSort(Vector<FrameGraphPass*>& outSortedPasse
 
 	if (hasCycle)
 	{
-		B3D_LOG(Error, RenderBackend, "Cycle detected in frame graph dependencies.");
-		B3D_LOG(Error, RenderBackend, "The following passes are involved in the cycle:");
+		B3D_LOG(Error, LogRenderBackend, "Cycle detected in frame graph dependencies.");
+		B3D_LOG(Error, LogRenderBackend, "The following passes are involved in the cycle:");
 
 		for (const auto& pass : mCyclePasses)
 		{
-			B3D_LOG(Error, RenderBackend, "  Pass: {0}", pass->GetName());
-			B3D_LOG(Error, RenderBackend, "    Unresolved dependencies: {0}",
+			B3D_LOG(Error, LogRenderBackend, "  Pass: {0}", pass->GetName());
+			B3D_LOG(Error, LogRenderBackend, "    Unresolved dependencies: {0}",
 				pass->GetReferenceCount());
 
 			// Log incoming dependencies
 			const auto& incoming = pass->GetIncomingDependencies();
 			for (const auto& dep : incoming)
 			{
-				B3D_LOG(Error, RenderBackend, "      <- {0} (via resource {1})",
+				B3D_LOG(Error, LogRenderBackend, "      <- {0} (via resource {1})",
 					dep.ProducerPass->GetName(),
 					dep.Resource.Index);
 			}
@@ -760,7 +760,7 @@ void FrameGraphCompiler::BuildUsageHistory(const Vector<FrameGraphPass*>& passes
 			// Add this usage to the history
 			history.Uses.emplace_back(pass, access.Usage, access.Access, layout);
 
-			B3D_LOG(Verbose, RenderBackend,
+			B3D_LOG(Verbose, LogRenderBackend,
 				"Resource {0} used by pass '{1}': usage=0x{2:X}, access=0x{3:X}, layout={4}",
 				access.Resource.Index,
 				pass->GetName(),
@@ -770,7 +770,7 @@ void FrameGraphCompiler::BuildUsageHistory(const Vector<FrameGraphPass*>& passes
 		}
 	}
 
-	B3D_LOG(Info, RenderBackend, "Built usage history for {0} resources", mUsageHistories.size());
+	B3D_LOG(Info, LogRenderBackend, "Built usage history for {0} resources", mUsageHistories.size());
 }
 
 ImageLayout FrameGraphCompiler::DetermineLayout(GpuResourceUseFlags usage, GpuAccessFlags access) const
@@ -812,7 +812,7 @@ void FrameGraphCompiler::BuildTransitions(Vector<ResourceTransition>& outTransit
 
 				outTransitions.push_back(transition);
 
-				B3D_LOG(Verbose, RenderBackend,
+				B3D_LOG(Verbose, LogRenderBackend,
 					"Transition for resource {0}: pass '{1}' -> '{2}', layout {3} -> {4}",
 					history.Resource.Index,
 					prevUsage.Pass->GetName(),
@@ -823,7 +823,7 @@ void FrameGraphCompiler::BuildTransitions(Vector<ResourceTransition>& outTransit
 		}
 	}
 
-	B3D_LOG(Info, RenderBackend, "Built {0} resource transitions", outTransitions.size());
+	B3D_LOG(Info, LogRenderBackend, "Built {0} resource transitions", outTransitions.size());
 }
 
 bool FrameGraphCompiler::NeedsBarrier(const ResourceUsage& prevUsage, const ResourceUsage& currUsage) const
@@ -965,7 +965,7 @@ void FrameGraphCompiler::BuildBarriers(
 				continue;
 			}
 
-			B3D_LOG(Warning, RenderBackend,
+			B3D_LOG(Warning, LogRenderBackend,
 				"Failed to create barrier for resource {0} in pass '{1}'",
 				transition.Resource.Index,
 				pass->GetName());
@@ -977,7 +977,7 @@ void FrameGraphCompiler::BuildBarriers(
 		{
 			outBarriers.push_back(batch);
 
-			B3D_LOG(Info, RenderBackend,
+			B3D_LOG(Info, LogRenderBackend,
 				"Created barrier batch for pass '{0}': {1} buffer barriers, {2} texture barriers, {3} render target barriers",
 				pass->GetName(),
 				batch.Barriers.BufferBarriers.Size(),
@@ -1021,7 +1021,7 @@ void FrameGraphCompiler::CreateRenderTargets(
 				auto it = importedTextures.find(resourceId);
 				if (it == importedTextures.end())
 				{
-					B3D_LOG(Error, RenderBackend, "Render pass '{0}': Color attachment {1} references invalid resource {2}",
+					B3D_LOG(Error, LogRenderBackend, "Render pass '{0}': Color attachment {1} references invalid resource {2}",
 						pass->GetName(), index, resourceId.Index);
 					continue;
 				}
@@ -1037,7 +1037,7 @@ void FrameGraphCompiler::CreateRenderTargets(
 				auto it = importedTextures.find(depthId);
 				if (it == importedTextures.end())
 				{
-					B3D_LOG(Error, RenderBackend, "Render pass '{0}': Depth attachment references invalid resource {1}",
+					B3D_LOG(Error, LogRenderBackend, "Render pass '{0}': Depth attachment references invalid resource {1}",
 						pass->GetName(), depthId.Index);
 					continue;
 				}
@@ -1062,11 +1062,11 @@ void FrameGraphCompiler::CreateRenderTargets(
 
 			if (!renderTarget)
 			{
-				B3D_LOG(Error, RenderBackend, "Failed to create render target for pass '{0}'", pass->GetName());
+				B3D_LOG(Error, LogRenderBackend, "Failed to create render target for pass '{0}'", pass->GetName());
 				continue;
 			}
 
-			B3D_LOG(Info, RenderBackend, "Created render target for pass '{0}' with {1} color attachments{2}",
+			B3D_LOG(Info, LogRenderBackend, "Created render target for pass '{0}' with {1} color attachments{2}",
 				pass->GetName(),
 				colorTextures.size(),
 				depthTexture ? " and depth" : "");

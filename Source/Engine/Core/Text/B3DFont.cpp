@@ -18,7 +18,7 @@
 
 #include FT_FREETYPE_H
 
-B3D_LOG_CATEGORY_STATIC(Font, Log)
+B3D_LOG_CATEGORY_STATIC(LogFont, Log)
 
 using namespace b3d;
 
@@ -137,7 +137,7 @@ bool Font::InitializeFontRenderer()
 
 	if(mInformation.FontData == nullptr)
 	{
-		B3D_LOG(Error, Font, "Failed to initialize font renderer. Font data is null.");
+		B3D_LOG(Error, LogFont, "Failed to initialize font renderer. Font data is null.");
 		return false;
 	}
 
@@ -147,7 +147,7 @@ bool Font::InitializeFontRenderer()
 		error = FT_Init_FreeType(&library);
 		if(error)
 		{
-			B3D_LOG(Error, Font, "Failed to initialize font renderer. Error occurred during FreeType library initialization.");
+			B3D_LOG(Error, LogFont, "Failed to initialize font renderer. Error occurred during FreeType library initialization.");
 			return false;
 		}
 	}
@@ -157,11 +157,11 @@ bool Font::InitializeFontRenderer()
 
 	if(error == FT_Err_Unknown_File_Format)
 	{
-		B3D_LOG(Error, Font, "Failed to initialize font renderer. Unsupported file format.");
+		B3D_LOG(Error, LogFont, "Failed to initialize font renderer. Unsupported file format.");
 	}
 	else if(error)
 	{
-		B3D_LOG(Error, Font, "Failed to initialize font renderer. Unknown error.");
+		B3D_LOG(Error, LogFont, "Failed to initialize font renderer. Unknown error.");
 	}
 
 	return true;
@@ -180,7 +180,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 {
 	if(mImplementation->Face == nullptr)
 	{
-		B3D_LOG(Error, Font, "Failed to render font glyphs. Font renderer is not initialized.");
+		B3D_LOG(Error, LogFont, "Failed to render font glyphs. Font renderer is not initialized.");
 		return nullptr;
 	}
 
@@ -192,7 +192,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 
 	if(!B3D_ENSURE(FT_Set_Char_Size(mImplementation->Face, ConvertFloatToFixed26Dot6(quantizedFontSizeInPoints), 0, mInformation.DPI, mInformation.DPI) == 0))
 	{
-		B3D_LOG(Error, Font, "Failed to render font glyphs. Failed to set character size.");
+		B3D_LOG(Error, LogFont, "Failed to render font glyphs. Failed to set character size.");
 		return nullptr;
 	}
 
@@ -235,7 +235,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 
 		if(error)
 		{
-			B3D_LOG(Error, Font, "Failed to render font glyph '{0}'. Failed to load character.", characterId);
+			B3D_LOG(Error, LogFont, "Failed to render font glyph '{0}'. Failed to load character.", characterId);
 			continue;
 		}
 
@@ -243,7 +243,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 
 		if(error)
 		{
-			B3D_LOG(Error, Font, "Failed to render font glyph '{0}'. Failed to render character.", characterId);
+			B3D_LOG(Error, LogFont, "Failed to render font glyph '{0}'. Failed to render character.", characterId);
 			continue;
 		}
 
@@ -271,7 +271,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 				const FT_Error error = FT_Get_Kerning(face, leftCharacterInformation.CharId, rightCharacterId, FT_KERNING_UNFITTED, &kerning);
 				if(error)
 				{
-					B3D_LOG(Error, Font, "Failed to get kerning information for glyphs '{0}', '{1}'.",  leftCharacterInformation.CharId, rightCharacterId);
+					B3D_LOG(Error, LogFont, "Failed to get kerning information for glyphs '{0}', '{1}'.",  leftCharacterInformation.CharId, rightCharacterId);
 					return;
 				}
 
@@ -293,7 +293,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 		// Read pixels
 		if(glyph->bitmap.buffer == nullptr && glyph->bitmap.rows > 0 && glyph->bitmap.width > 0)
 		{
-			B3D_LOG(Error, Font, "Failed to render glyph '{0}. Bitmap is empty.", characterId);
+			B3D_LOG(Error, LogFont, "Failed to render glyph '{0}. Bitmap is empty.", characterId);
 			continue;
 		}
 
@@ -342,7 +342,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 		}
 		else
 		{
-			B3D_LOG(Error, Font, "Failed to render glyph '{0}'. Unsupported pixel mode.", characterId);
+			B3D_LOG(Error, LogFont, "Failed to render glyph '{0}'. Unsupported pixel mode.", characterId);
 			continue;
 		}
 
@@ -395,7 +395,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 
 		if(!layoutAllocation || !B3D_ENSURE(targetPageIndex != ~0u))
 		{
-			B3D_LOG(Error, Font, "Failed to render glyph '{0}'. Failed to allocate a slot in the texture atlas.", characterId);
+			B3D_LOG(Error, LogFont, "Failed to render glyph '{0}'. Failed to allocate a slot in the texture atlas.", characterId);
 			continue;
 		}
 
@@ -595,7 +595,7 @@ float Font::GetPointSizeForGlyphThatFitsArea(u32 glyphId, const Size2I& size) co
 
 	if(mImplementation->Face == nullptr)
 	{
-		B3D_LOG(Error, Font, "Failed to get glyph size. Font renderer is not initialized.");
+		B3D_LOG(Error, LogFont, "Failed to get glyph size. Font renderer is not initialized.");
 		return approximateWidthInPoints;
 	}
 
@@ -603,7 +603,7 @@ float Font::GetPointSizeForGlyphThatFitsArea(u32 glyphId, const Size2I& size) co
 	FT_Error error = FT_Set_Char_Size(face, ConvertFloatToFixed26Dot6(approximateWidthInPoints), 0, mInformation.DPI, mInformation.DPI);
 	if (error)
 	{
-		B3D_LOG(Error, Font, "Failed to get glyph size. Failed to set character size.");
+		B3D_LOG(Error, LogFont, "Failed to get glyph size. Failed to set character size.");
 		return approximateWidthInPoints;
 	}
 
@@ -611,7 +611,7 @@ float Font::GetPointSizeForGlyphThatFitsArea(u32 glyphId, const Size2I& size) co
 	error = FT_Load_Char(face, (FT_ULong)glyphId, loadFlags);
 	if (error)
 	{
-		B3D_LOG(Error, Font, "Failed to get glyph size. Failed to load character.");
+		B3D_LOG(Error, LogFont, "Failed to get glyph size. Failed to load character.");
 		return approximateWidthInPoints;
 	}
 

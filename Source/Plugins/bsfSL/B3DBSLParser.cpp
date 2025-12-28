@@ -23,14 +23,14 @@ using namespace b3d;
 // Print out the FX AST, only for debug purposes
 void SLFXDebugPrint(ASTFXNode* node, String indent)
 {
-	B3D_LOG(Info, BSLCompiler, indent + "NODE {0}", node->Type);
+	B3D_LOG(Info, LogBSLCompiler, indent + "NODE {0}", node->Type);
 
 	for(int i = 0; i < node->Options->Count; i++)
 	{
 		OptionDataType odt = OPTION_LOOKUP[(int)node->Options->Entries[i].Type].DataType;
 		if(odt == ODT_Complex)
 		{
-			B3D_LOG(Info, BSLCompiler, "{0}{1}. {2}", indent, i, node->Options->Entries[i].Type);
+			B3D_LOG(Info, LogBSLCompiler, "{0}{1}. {2}", indent, i, node->Options->Entries[i].Type);
 			SLFXDebugPrint(node->Options->Entries[i].Value.NodePtr, indent + "\t");
 			continue;
 		}
@@ -60,7 +60,7 @@ void SLFXDebugPrint(ASTFXNode* node, String indent)
 			break;
 		}
 
-		B3D_LOG(Info, BSLCompiler, "{0}{1}. {2} = {3}", indent, i, node->Options->Entries[i].Type, value);
+		B3D_LOG(Info, LogBSLCompiler, "{0}{1}. {2} = {3}", indent, i, node->Options->Entries[i].Type, value);
 	}
 }
 

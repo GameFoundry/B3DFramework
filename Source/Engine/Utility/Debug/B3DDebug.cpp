@@ -41,13 +41,13 @@ static void LogToIdeConsole(const b3d::String& message, const char* channel)
 
 namespace b3d
 {
-	B3D_LOG_CATEGORY(Uncategorized)
-	B3D_LOG_CATEGORY(FileSystem)
-	B3D_LOG_CATEGORY(RTTI)
-	B3D_LOG_CATEGORY(Generic)
-	B3D_LOG_CATEGORY(Platform)
-	B3D_LOG_CATEGORY(Serialization)
-	B3D_LOG_CATEGORY(UnitTest)
+	B3D_LOG_CATEGORY(LogUncategorized)
+	B3D_LOG_CATEGORY(LogFileSystem)
+	B3D_LOG_CATEGORY(LogRTTI)
+	B3D_LOG_CATEGORY(LogGeneric)
+	B3D_LOG_CATEGORY(LogPlatform)
+	B3D_LOG_CATEGORY(LogSerialization)
+	B3D_LOG_CATEGORY(LogUnitTest)
 } // namespace b3d
 
 using namespace b3d;

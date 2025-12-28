@@ -24,7 +24,7 @@ const Path& Paths::GetDataPath()
 	if(!initialized)
 	{
 		if(FileSystem::Exists(kFrameworkDataPath))
-			path = FileSystem::GetWorkingDirectoryPath() + kFrameworkDataPath;
+			path = FileSystem::GetWorkingFolderPath() + kFrameworkDataPath;
 		else
 #if B3D_IS_ENGINE
 			path = Path(kRawAppRoot) + Path("Framework") + kFrameworkDataPath;
@@ -45,7 +45,7 @@ const Path& Paths::GetBinariesPath()
 
 	if(!initialized)
 	{
-		path = FileSystem::GetWorkingDirectoryPath();
+		path = FileSystem::GetWorkingFolderPath();
 
 		// Look for bsf library to find the right path
 		Path anchorFile = path;
@@ -77,11 +77,11 @@ const Path& Paths::GetEditorDataPath()
 		Path editorDataPath = Path("../../") + FRAMEWORK_DATA_PATH;
 
 		if(FileSystem::Exists(editorDataPath))
-			path = FileSystem::GetWorkingDirectoryPath() + editorDataPath;
+			path = FileSystem::GetWorkingFolderPath() + editorDataPath;
 #	else
 		// Otherwise, look for the folder in the direct descendant of the working directory
 		if(FileSystem::Exists(kEditorDataPath))
-			path = FileSystem::GetWorkingDirectoryPath() + kEditorDataPath;
+			path = FileSystem::GetWorkingFolderPath() + kEditorDataPath;
 #	endif
 		// Then check the source distribution itself, in case we're running directly from the build directory
 		else
@@ -89,7 +89,7 @@ const Path& Paths::GetEditorDataPath()
 			path = Path(kRawAppRoot) + kFrameworkDataPath;
 
 			if(!FileSystem::Exists(path))
-				B3D_LOG(Error, FileSystem, "Cannot find builtin assets for the editor at path '{0}'.", path);
+				B3D_LOG(Error, LogFileSystem, "Cannot find builtin assets for the editor at path '{0}'.", path);
 		}
 
 		initialized = true;
@@ -119,7 +119,7 @@ Path Paths::FindPath(const Path& path)
 	Path output = path;
 	if(FileSystem::Exists(path))
 	{
-		output.MakeAbsolute(FileSystem::GetWorkingDirectoryPath());
+		output.MakeAbsolute(FileSystem::GetWorkingFolderPath());
 		return output;
 	}
 

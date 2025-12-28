@@ -14,13 +14,13 @@ const String CrashHandler::kSFatalErrorMsg =
 
 const Path& CrashHandler::GetCrashFolder()
 {
-	static const Path kPath = FileSystem::GetWorkingDirectoryPath() + kSCrashReportFolder +
+	static const Path kPath = FileSystem::GetWorkingFolderPath() + kSCrashReportFolder +
 		GetCrashTimestamp();
 
 	static bool first = true;
 	if(first)
 	{
-		FileSystem::CreateDir(kPath);
+		FileSystem::CreateFolder(kPath);
 		first = false;
 	}
 

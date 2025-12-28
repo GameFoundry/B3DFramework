@@ -456,7 +456,7 @@ namespace b3d
 					if(fixedSize.Bytes > 255)
 					{
 						B3D_ASSERT(false);
-						B3D_LOG(Error, RTTI, "Trying to create a plain RTTI field with size larger than 255. In order to use larger sizes for plain types please specialize RTTIPlainType, set hasDynamicSize to true.");
+						B3D_LOG(Error, LogRTTI, "Trying to create a plain RTTI field with size larger than 255. In order to use larger sizes for plain types please specialize RTTIPlainType, set hasDynamicSize to true.");
 					}
 				}
 

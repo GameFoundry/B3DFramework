@@ -249,7 +249,7 @@ int x11ErrorHandler(::Display* display, XErrorEvent* event)
 
 	char buffer[256];
 	XGetErrorText(display, event->error_code, buffer, sizeof(buffer));
-	B3D_LOG(Warning, Platform, "X11 error: " + String(buffer));
+	B3D_LOG(Warning, LogPlatform, "X11 error: " + String(buffer));
 
 	return 0;
 }

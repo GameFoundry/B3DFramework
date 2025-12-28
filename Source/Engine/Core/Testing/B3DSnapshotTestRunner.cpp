@@ -156,7 +156,7 @@ void SnapshotTestRunner::Finalize()
 
 	// Ensure output directory exists
 	if(!FileSystem::Exists(mConfiguration.OutputPath))
-		FileSystem::CreateDir(mConfiguration.OutputPath);
+		FileSystem::CreateFolder(mConfiguration.OutputPath);
 
 	// Write result files
 	WriteResultJson();

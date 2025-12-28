@@ -54,7 +54,7 @@ void TCamera<IsRenderProxy>::SetNearClipDistance(float nearPlane)
 {
 	if(nearPlane <= 0)
 	{
-		B3D_LOG(Error, Renderer, "Near clip distance must be greater than zero.");
+		B3D_LOG(Error, LogRenderer, "Near clip distance must be greater than zero.");
 		return;
 	}
 
@@ -761,7 +761,7 @@ TAsyncOp<SPtr<PixelData>> Camera::RequestCapture()
 	SPtr<Viewport> viewport = GetViewport();
 	if (viewport == nullptr || viewport->GetTarget() == nullptr)
 	{
-		B3D_LOG(Warning, Renderer, "RequestCapture called on camera with no viewport");
+		B3D_LOG(Warning, LogRenderer, "RequestCapture called on camera with no viewport");
 		TAsyncOp<SPtr<PixelData>> op;
 		op.CompleteOperation(nullptr);
 		return op;

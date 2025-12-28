@@ -29,7 +29,7 @@ Gamepad::Gamepad(const String& name, const GamepadInfo& gamepadInfo, Input* owne
 	m->fileHandle = open(eventPath.c_str(), O_RDWR | O_NONBLOCK);
 
 	if(m->fileHandle == -1)
-		B3D_LOG(Error, Platform, "Failed to open input event file handle for device: {0}", gamepadInfo.name);
+		B3D_LOG(Error, LogPlatform, "Failed to open input event file handle for device: {0}", gamepadInfo.name);
 }
 
 Gamepad::~Gamepad()
