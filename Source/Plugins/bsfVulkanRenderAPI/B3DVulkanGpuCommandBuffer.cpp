@@ -74,7 +74,7 @@ void VulkanGpuCommandBufferPool::Destroy()
 	bool areAnyCommandBuffersStillExecuting = false;
 	for(const auto& commandBufferPair : mCommandBuffers)
 	{
-		if(commandBufferPair.second->GetState() != CommandBufferState::Ready)
+		if(commandBufferPair.second->GetState() != GpuCommandBufferState::Ready)
 		{
 			areAnyCommandBuffersStillExecuting = true;
 			break;
@@ -98,7 +98,7 @@ SPtr<GpuCommandBuffer> VulkanGpuCommandBufferPool::FindOrCreate(const GpuCommand
 
 	for(const auto& commandBufferPair : mCommandBuffers)
 	{
-		if (commandBufferPair.second->GetState() != CommandBufferState::Ready)
+		if (commandBufferPair.second->GetState() != GpuCommandBufferState::Ready)
 			continue;
 
 		commandBufferPair.second->SetName(createInformation.Name);
@@ -151,10 +151,10 @@ void VulkanGpuCommandBufferPool::Reset()
 	for(const auto& entry : mCommandBuffers)
 	{
 		// Already reset and was not used since
-		if(entry.second->GetState() == CommandBufferState::Ready)
+		if(entry.second->GetState() == GpuCommandBufferState::Ready)
 			continue;
 
-		B3D_ASSERT(entry.second->GetState() == CommandBufferState::Done);
+		B3D_ASSERT(entry.second->GetState() == GpuCommandBufferState::Done);
 		entry.second->NotifyParentPoolReset();
 	}
 
@@ -209,7 +209,7 @@ VulkanGpuCommandBuffer::~VulkanGpuCommandBuffer()
 
 	VkDevice device = GetVulkanGpuDevice().GetLogical();
 
-	if(mState == State::Submitted)
+	if(mState == GpuCommandBufferState::Executing)
 	{
 		// Wait 1s
 		u64 waitTime = 1000 * 1000 * 1000;
@@ -222,7 +222,7 @@ VulkanGpuCommandBuffer::~VulkanGpuCommandBuffer()
 		// Resources have been marked as used, make sure to notify them we're done with them
 		Reset();
 	}
-	else if(mState != State::Ready)
+	else if(mState != GpuCommandBufferState::Ready)
 		mResourceTracker.NotifyUnbound();
 
 	if(mIntraQueueSemaphore != nullptr)
@@ -241,7 +241,7 @@ VulkanGpuCommandBuffer::~VulkanGpuCommandBuffer()
 void VulkanGpuCommandBuffer::Begin()
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Ready);
+	B3D_ASSERT(mState == GpuCommandBufferState::Ready);
 
 	VkCommandBufferBeginInfo beginInfo;
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -252,13 +252,13 @@ void VulkanGpuCommandBuffer::Begin()
 	VkResult result = vkBeginCommandBuffer(mCommandBufferHandle, &beginInfo);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	mState = State::Recording;
+	mState = GpuCommandBufferState::Recording;
 }
 
 void VulkanGpuCommandBuffer::End()
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Recording);
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording);
 
 	if(mIsDebugLabelOpen)
 		EndLabel();
@@ -267,13 +267,13 @@ void VulkanGpuCommandBuffer::End()
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	mRenderTarget = nullptr;
-	mState = State::RecordingDone;
+	mState = GpuCommandBufferState::RecordingDone;
 }
 
 void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Recording);
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording);
 
 	const SPtr<RenderTarget>& renderTarget = createInformation.Target;
 	if(!B3D_ENSURE(renderTarget != nullptr))
@@ -483,7 +483,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 
 	vkCmdBeginRenderPass(mCommandBufferHandle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	mState = State::RecordingRenderPass;
+	mState = GpuCommandBufferState::RecordingRenderPass;
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumRenderTargetChanges);
 }
@@ -1244,7 +1244,7 @@ void VulkanGpuCommandBuffer::InsertLabel(const StringView& name)
 
 void VulkanGpuCommandBuffer::BeginRenderPass()
 {
-	B3D_ASSERT(mState == State::Recording);
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording);
 
 	if(mFramebuffer == nullptr)
 	{
@@ -1256,7 +1256,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass()
 
 void VulkanGpuCommandBuffer::EndRenderPass()
 {
-	B3D_ASSERT(mState == State::RecordingRenderPass);
+	B3D_ASSERT(mState == GpuCommandBufferState::RecordingRenderPass);
 
 	vkCmdEndRenderPass(mCommandBufferHandle);
 
@@ -1290,7 +1290,7 @@ void VulkanGpuCommandBuffer::EndRenderPass()
 		}
 	}
 
-	mState = State::Recording;
+	mState = GpuCommandBufferState::Recording;
 	mRenderTarget = nullptr;
 	mRenderTargetModified = false;
 	mRenderTargetReadOnlyMask = RT_NONE;
@@ -1588,7 +1588,7 @@ bool VulkanGpuCommandBuffer::UpdateExecutionStatus(bool block)
 
 void VulkanGpuCommandBuffer::Cleanup()
 {
-	const bool wasSubmitted = mState == State::Submitted || mState == State::Done;
+	const bool wasSubmitted = mState == GpuCommandBufferState::Executing || mState == GpuCommandBufferState::Done;
 
 	if(wasSubmitted)
 		mResourceTracker.NotifyDone(mSubmittedQueueId);
@@ -1616,14 +1616,14 @@ void VulkanGpuCommandBuffer::Reset()
 	if(!mPool.GetUsePoolReset())
 	{
 		vkResetCommandBuffer(mCommandBufferHandle, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
-		mState = State::Ready;
+		mState = GpuCommandBufferState::Ready;
 	}
 }
 
 void VulkanGpuCommandBuffer::NotifyParentPoolReset()
 {
 	Cleanup();
-	mState = State::Ready;
+	mState = GpuCommandBufferState::Ready;
 }
 
 Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> VulkanGpuCommandBuffer::BuildClearValues(RenderSurfaceMask clearMask, const Color& color, float depth, u16 stencil)
@@ -2327,23 +2327,3 @@ void VulkanGpuCommandBuffer::SetName(const StringView& name)
 
 	vkSetDebugUtilsObjectNameEXT(GetVulkanGpuDevice().GetLogical(), &objectNameInfo);
 }
-
-CommandBufferState VulkanGpuCommandBuffer::GetState() const
-{
-	switch(mState)
-	{
-	default:
-	case State::Ready:
-		return CommandBufferState::Ready;
-	case State::Recording:
-	case State::RecordingRenderPass:
-	case State::RecordingDone:
-		return CommandBufferState::Recording;
-	case State::Submitted:
-		return CommandBufferState::Executing;
-	case State::Done:
-		return CommandBufferState::Done;
-	}
-}
-
-

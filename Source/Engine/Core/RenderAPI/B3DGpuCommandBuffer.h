@@ -23,22 +23,25 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Possible states that a CommandBuffer can be in. */
-		enum class CommandBufferState
+		/** Possible states that a command buffer can be in. The transitions generally happen in the order they are listed. */
+		enum class GpuCommandBufferState
 		{
-			/** Command buffer doesn't have any commands recorded, nor has it been queued for execution. */
+			/** Command buffer is ready to start recording new commands. */
 			Ready,
 
-			/** Command buffer has one or multiple commands recorded, but they haven't been queued for execution. */
+			/** Commands can be recorded to the buffer. This state is entered after calling Begin() on the command buffer. */
 			Recording,
 
-			/**
-			 * Command buffer has been queued for execution, but still hasn't finished executing. Buffer that is
-			 * executing cannot be modified or re-submitted for execution until done executing.
-			 */
+			/** Command buffer is currently recording and is within render pass. This state is entered when calling BeginRenderPass(), and exited after calling EndRenderPass(). */
+			RecordingRenderPass,
+
+			/** Command buffer is done recording but hasn't been submitted. This state is entered after calling End(). */
+			RecordingDone,
+
+			/** Command buffer has been submitted for execution on the GPU, but still hasn't finished executing. */
 			Executing,
 
-			/** Command buffer has been queued for execution and has finished executing. */
+			/** Command buffer has finished executing on the GPU, but has not yet been reset. After reset the command buffer will go back to ready state. */
 			Done
 		};
 
@@ -465,11 +468,11 @@ namespace b3d
 			/** Returns the queue type that determines on which queue is the command buffer allowed to be submitted on, and which commands may be recorded. */
 			GpuQueueType GetQueueType() const { return mQueueType; }
 
+			/** Returns the current state of the command buffer. */
+			GpuCommandBufferState GetState() const { return mState; }
+
 			/** Assigns an name to the command buffer, primarily used for easier debugging. */
 			virtual void SetName(const StringView& name) { mName = name; }
-
-			/** Returns the current state of the command buffer. */
-			virtual CommandBufferState GetState() const = 0;
 
 			/**
 			 * Binds the parameters so that the following draw or dispatch call uses the provided parameters
@@ -823,6 +826,7 @@ namespace b3d
 			const GpuQueueType mQueueType;
 			const ThreadId mOwnerThread;
 			String mName;
+			GpuCommandBufferState mState = GpuCommandBufferState::Ready;
 			bool mIsSubmitted = false;
 			GpuQueueMask mQueueSyncMask;
 

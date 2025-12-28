@@ -93,30 +93,10 @@ namespace b3d
 		/** CommandBuffer implementation for Vulkan. */
 		class VulkanGpuCommandBuffer final : public GpuCommandBuffer
 		{
-		private:
-			/** Possible states a command buffer can be in. */
-			enum class State
-			{
-				/** Buffer is ready to be re-used. */
-				Ready,
-				/** Buffer is currently recording commands, but isn't recording a render pass. */
-				Recording,
-				/** Buffer is currently recording render pass commands. */
-				RecordingRenderPass,
-				/** Buffer is done recording but hasn't been submitted. */
-				RecordingDone,
-				/** Buffer is done recording and is currently submitted on a queue. */
-				Submitted,
-				/** Buffer is done executing on the device. */
-				Done
-			};
-
 		public:
 			~VulkanGpuCommandBuffer() override;
 
 			void SetName(const StringView& name) override;
-			CommandBufferState GetState() const override;
-
 			void SetGpuParameterSet(const SPtr<GpuParameterSet>& parameterSet) override;
 			void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) override;
 			void SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState) override;
@@ -130,7 +110,7 @@ namespace b3d
 			void DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ) override;
 			void BeginRenderPass(const RenderPassCreateInformation& createInformation) override;
 			void EndRenderPass() override;
-			bool IsInRenderPass() const override { return mState == State::RecordingRenderPass; }
+			bool IsInRenderPass() const override { return mState == GpuCommandBufferState::RecordingRenderPass; }
 			void SetViewport(const Area2& area) override;
 			void ClearRenderTarget(RenderSurfaceMask mask, const Color& color, float depth, u16 stencil) override;
 			void ClearViewport(RenderSurfaceMask mask, const Color& color, float depth, u16 stencil) override;
@@ -202,16 +182,16 @@ namespace b3d
 			u32 AllocateSignalSemaphores(TInlineArray<VkSemaphore, 8>& outSemaphores);
 
 			/** Returns true if the command buffer is currently being processed by the device. */
-			bool IsSubmitted() const { return mState == State::Submitted; }
+			bool IsSubmitted() const { return mState == GpuCommandBufferState::Executing; }
 
 			/** Returns true if the command buffer is currently recording (but not within a render pass). */
-			bool IsRecording() const { return mState == State::Recording || mState == State::RecordingRenderPass; }
+			bool IsRecording() const { return mState == GpuCommandBufferState::Recording || mState == GpuCommandBufferState::RecordingRenderPass; }
 
 			/** Returns true if the command buffer is ready to be submitted to a queue. */
-			bool IsReadyForSubmit() const { return mState == State::RecordingDone; }
+			bool IsReadyForSubmit() const { return mState == GpuCommandBufferState::RecordingDone; }
 
 			/** Returns true if the command buffer is done executing on the device. */
-			bool IsDone() const { return mState == State::Done; }
+			bool IsDone() const { return mState == GpuCommandBufferState::Done; }
 
 			/**
 			 * Checks is the command buffer still executing on the GPU. Internal state will be updated if execution finishes.
@@ -428,7 +408,7 @@ namespace b3d
 			bool IsReadyForRender();
 
 			/** Marks the command buffer as submitted on a queue. */
-			void SetIsSubmitted() { mState = State::Submitted; }
+			void SetIsSubmitted() { mState = GpuCommandBufferState::Executing; }
 
 			/** Binds the current graphics pipeline to the command buffer. Returns true if bind was successful. */
 			bool BindGraphicsPipeline();
@@ -485,7 +465,6 @@ namespace b3d
 			void RebuildFlatDynamicOffsets();
 
 			u32 mId;
-			State mState = State::Ready;
 			VkCommandBuffer mCommandBufferHandle;
 			VulkanGpuCommandBufferPool& mPool;
 			VkFence mFence;

@@ -29,7 +29,7 @@ void VulkanGpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBu
 	if (!B3D_ENSURE(vulkanCommandBuffer.GetQueueType() == mType))
 		return;
 
-	if (vulkanCommandBuffer.GetState() == CommandBufferState::Executing)
+	if (vulkanCommandBuffer.GetState() == GpuCommandBufferState::Executing)
 	{
 		B3D_LOG(Error, RenderBackend, "Cannot submit a command buffer that's still executing.");
 		return;
@@ -349,7 +349,7 @@ void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool q
 				{
 					messageBackQueue.PostCommand([commandBuffer = queueSubmissionInformation.CommandBuffer, waitGroup = forceWait ? &waitGroup : nullptr]()
 					{
-						commandBuffer->mState = VulkanGpuCommandBuffer::State::Done;
+						commandBuffer->mState = GpuCommandBufferState::Done;
 						commandBuffer->OnDidComplete();
 						commandBuffer->Reset();
 
