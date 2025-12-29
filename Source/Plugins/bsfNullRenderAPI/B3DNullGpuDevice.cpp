@@ -129,21 +129,37 @@ namespace b3d
 			return B3DMakeSharedFromExisting(new(B3DAllocate<NullGpuCommandBufferPool>()) NullGpuCommandBufferPool(*this, createInformation));
 		}
 
-		SPtr<Texture> NullGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, bool deferredInitialize)
+		SPtr<Texture> NullGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
-			SPtr<NullTexture> texture = B3DMakeShared<NullTexture>(*this, createInformation);
+			NullTexture* rawTexture = new(B3DAllocate<NullTexture>()) NullTexture(*this, createInformation);
 
-			if (!deferredInitialize)
+			// Default: standalone (calling-thread deletion)
+			// With RenderProxy flag: forward destruction to render thread
+			SPtr<NullTexture> texture = flags.IsSet(GpuObjectCreateFlag::RenderProxy)
+				? B3DMakeSharedFromExisting(rawTexture)
+				: MakeSharedStandalone<NullTexture>(rawTexture);
+
+			texture->SetShared(texture);
+
+			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 				texture->Initialize();
 
 			return texture;
 		}
 
-		SPtr<GpuBuffer> NullGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, bool deferredInitialize)
+		SPtr<GpuBuffer> NullGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
-			SPtr<NullGpuBuffer> buffer = B3DMakeShared<NullGpuBuffer>(*this, createInformation);
+			NullGpuBuffer* rawBuffer = new(B3DAllocate<NullGpuBuffer>()) NullGpuBuffer(*this, createInformation);
 
-			if (!deferredInitialize)
+			// Default: standalone (calling-thread deletion)
+			// With RenderProxy flag: forward destruction to render thread
+			SPtr<NullGpuBuffer> buffer = flags.IsSet(GpuObjectCreateFlag::RenderProxy)
+				? B3DMakeSharedFromExisting(rawBuffer)
+				: MakeSharedStandalone<NullGpuBuffer>(rawBuffer);
+
+			buffer->SetShared(buffer);
+
+			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 				buffer->Initialize();
 
 			return buffer;

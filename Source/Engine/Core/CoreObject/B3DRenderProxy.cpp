@@ -16,8 +16,6 @@ RenderProxy::RenderProxy()
 
 RenderProxy::~RenderProxy()
 {
-	EnsureRenderThread();
-
 	B3D_ENSURE(IsDestroyed());
 	B3D_ENSURE(mThis.expired());
 }

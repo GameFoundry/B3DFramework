@@ -204,6 +204,17 @@ namespace b3d
 		static const GpuQueueMask kAll;
 	};
 
+	/** Flags that control creation of GPU objects via GpuDevice factory methods. */
+	enum class GpuObjectCreateFlag
+	{
+		None = 0,
+		DeferredInitialize = 1 << 0, /**< Don't call Initialize() automatically. Caller must ensure it gets called after creation. */
+		RenderThreadDestroy = 1 << 1 /**< Ensures the object will always get destroyed on the render thread. Only relevant for render proxy objects. */
+	};
+
+	using GpuObjectCreateFlags = Flags<GpuObjectCreateFlag>;
+	B3D_FLAGS_OPERATORS(GpuObjectCreateFlag)
+
 	/**
 	 * Specifies a queue on which command buffers can be submitted on.
 	 *
@@ -353,18 +364,18 @@ namespace b3d
 		/**
 		 * Creates a new GPU texture.
 		 *
-		 * @param	createInformation		Object describing the texture to create.
-		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
+		 * @param	createInformation	Object describing the texture to create.
+		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
 		 */
-		virtual SPtr<render::Texture> CreateTexture(const TextureCreateInformation& createInformation, bool deferredInitialize = false) = 0;
+		virtual SPtr<render::Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
 
 		/**
 		 * Creates a new GPU buffer.
 		 *
-		 * @param	createInformation		Object describing the buffer to create.
-		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
+		 * @param	createInformation	Object describing the buffer to create.
+		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
 		 */
-		virtual SPtr<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, bool deferredInitialize = false) = 0;
+		virtual SPtr<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
 
 		/**
 		 * Creates a new sampler state, or returns an existing one if one with the same create information was already created.
@@ -467,6 +478,25 @@ namespace b3d
 		 */
 		virtual float ConvertTimestampToMilliseconds(u64 timestamp) = 0;
 	protected:
+		/**
+		 * Explicit deleter for objects that derive from RenderProxy. By default render proxy objects provide a custom deleter that
+		 * ensure they always get deleted on the render thread. But this behaviour is not always wanted (i.e. if creating a GPU object
+		 * on a worker thread), in which case this deleter will be used.
+		 */
+		template <typename Type, typename MainAllocatorTag = DefaultAllocatorTag, typename PointerDataAllocatorTag = DefaultAllocatorTag>
+		static SPtr<Type> MakeSharedStandalone(Type* data)
+		{
+			auto fnStandaloneDeleter = [](render::RenderProxy* object)
+			{
+				if(!object->IsDestroyed())
+					object->Destroy();
+
+				B3DDelete<Type, MainAllocatorTag>((Type*)object);
+			};
+
+			return SPtr<Type>(data, fnStandaloneDeleter, StdAlloc<Type, PointerDataAllocatorTag>());
+		}
+
 		UPtr<GpuTransferBufferHelper> mTransferBufferHelper;
 
 		mutable UnorderedMap<SamplerStateCreateInformation, SPtr<SamplerState>> mCachedSamplerStates;

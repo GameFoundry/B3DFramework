@@ -485,23 +485,33 @@ SPtr<GpuCommandBufferPool> VulkanGpuDevice::CreateGpuCommandBufferPool(const ren
 	return B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuCommandBufferPool>()) VulkanGpuCommandBufferPool(*this, createInformation));
 }
 
-SPtr<render::Texture> VulkanGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, bool deferredInitialize)
+SPtr<render::Texture> VulkanGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<Texture> output = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanTexture>()) VulkanTexture(*this, createInformation));
+	VulkanTexture* rawTexture = new(B3DAllocate<VulkanTexture>()) VulkanTexture(*this, createInformation);
+
+	SPtr<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+		? B3DMakeSharedFromExisting(rawTexture)
+		: MakeSharedStandalone<Texture>(rawTexture);
+
 	output->SetShared(output);
 
-	if(!deferredInitialize)
+	if(!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 		output->Initialize();
 
 	return output;
 }
 
-SPtr<render::GpuBuffer> VulkanGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, bool deferredInitialize)
+SPtr<render::GpuBuffer> VulkanGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<GpuBuffer> output = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuBuffer>()) VulkanGpuBuffer(*this, createInformation));
+	VulkanGpuBuffer* rawBuffer = new(B3DAllocate<VulkanGpuBuffer>()) VulkanGpuBuffer(*this, createInformation);
+
+	SPtr<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+		? B3DMakeSharedFromExisting(rawBuffer)
+		: MakeSharedStandalone<GpuBuffer>(rawBuffer);
+
 	output->SetShared(output);
 
-	if(!deferredInitialize)
+	if(!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 		output->Initialize();
 
 	return output;

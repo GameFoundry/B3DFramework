@@ -119,7 +119,7 @@ SPtr<render::RenderProxy> GpuBuffer::CreateRenderProxy() const
 		return nullptr;
 
 	const GpuBufferCreateInformation createInformation = mInformation;
-	return gpuDevice->CreateGpuBuffer(createInformation, true);
+	return gpuDevice->CreateGpuBuffer(createInformation, GpuObjectCreateFlag::DeferredInitialize | GpuObjectCreateFlag::RenderThreadDestroy);
 }
 
 namespace b3d

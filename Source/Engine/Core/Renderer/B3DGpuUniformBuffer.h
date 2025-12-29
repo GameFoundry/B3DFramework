@@ -166,7 +166,7 @@ namespace b3d
 			{
 				const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 				if(gpuDevice)
-					return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, flags, 1));
+					return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, flags, 1), GpuObjectCreateFlag::RenderThreadDestroy);
 
 				return nullptr;
 			}
@@ -180,7 +180,7 @@ namespace b3d
 			{
 				const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 				if(gpuDevice)
-					return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, flags, count));
+					return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, flags, count), GpuObjectCreateFlag::RenderThreadDestroy);
 
 				return nullptr;
 			}

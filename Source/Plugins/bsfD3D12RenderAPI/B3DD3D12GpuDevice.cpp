@@ -163,23 +163,37 @@ SPtr<GpuCommandBufferPool> D3D12GpuDevice::CreateGpuCommandBufferPool(const rend
 	return B3DMakeSharedFromExisting(new (B3DAllocate<D3D12GpuCommandBufferPool>()) D3D12GpuCommandBufferPool(*this, createInformation));
 }
 
-SPtr<render::Texture> D3D12GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, bool deferredInitialize)
+SPtr<render::Texture> D3D12GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<Texture> output = B3DMakeSharedFromExisting(new (B3DAllocate<D3D12Texture>()) D3D12Texture(createInformation, *this));
+	D3D12Texture* rawTexture = new (B3DAllocate<D3D12Texture>()) D3D12Texture(createInformation, *this);
+
+	// Default: standalone (calling-thread deletion)
+	// With RenderProxy flag: forward destruction to render thread
+	SPtr<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderProxy)
+		? B3DMakeSharedFromExisting(rawTexture)
+		: MakeSharedStandalone<Texture>(rawTexture);
+
 	output->SetShared(output);
 
-	if (!deferredInitialize)
+	if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 		output->Initialize();
 
 	return output;
 }
 
-SPtr<render::GpuBuffer> D3D12GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, bool deferredInitialize)
+SPtr<render::GpuBuffer> D3D12GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<GpuBuffer> output = B3DMakeSharedFromExisting(new (B3DAllocate<D3D12GpuBuffer>()) D3D12GpuBuffer(createInformation, *this));
+	D3D12GpuBuffer* rawBuffer = new (B3DAllocate<D3D12GpuBuffer>()) D3D12GpuBuffer(createInformation, *this);
+
+	// Default: standalone (calling-thread deletion)
+	// With RenderProxy flag: forward destruction to render thread
+	SPtr<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderProxy)
+		? B3DMakeSharedFromExisting(rawBuffer)
+		: MakeSharedStandalone<GpuBuffer>(rawBuffer);
+
 	output->SetShared(output);
 
-	if (!deferredInitialize)
+	if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 		output->Initialize();
 
 	return output;

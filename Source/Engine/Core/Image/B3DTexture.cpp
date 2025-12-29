@@ -117,7 +117,7 @@ SPtr<render::RenderProxy> Texture::CreateRenderProxy() const
 	createInformation.InitialData = mInitData;
 	mInitData = nullptr;
 
-	return gpuDevice->CreateTexture(createInformation, true);
+	return gpuDevice->CreateTexture(createInformation, GpuObjectCreateFlag::DeferredInitialize | GpuObjectCreateFlag::RenderThreadDestroy);
 }
 
 TAsyncOp<void> Texture::WriteData(const SPtr<PixelData>& data, u32 face, u32 mipLevel, bool discardEntireBuffer)
