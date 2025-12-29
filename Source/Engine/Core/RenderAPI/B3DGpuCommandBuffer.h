@@ -827,7 +827,6 @@ namespace b3d
 			const ThreadId mOwnerThread;
 			String mName;
 			GpuCommandBufferState mState = GpuCommandBufferState::Ready;
-			bool mIsSubmitted = false;
 			GpuQueueMask mQueueSyncMask;
 
 #if B3D_PROFILING_ENABLED

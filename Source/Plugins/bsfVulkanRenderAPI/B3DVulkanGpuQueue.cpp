@@ -43,7 +43,6 @@ void VulkanGpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBu
 
 	vulkanCommandBuffer.SetIsSubmitted();
 	GetVulkanSubmitThread().QueueSubmit(std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBuffer), *this, syncMask);
-	vulkanCommandBuffer.mIsSubmitted = true;
 }
 
 void VulkanGpuQueue::PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask)

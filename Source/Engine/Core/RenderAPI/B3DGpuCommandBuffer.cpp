@@ -36,7 +36,7 @@ GpuCommandBuffer::GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, G
 
 GpuCommandBuffer::~GpuCommandBuffer()
 {
-	OnDestroyed(mIsSubmitted);
+	OnDestroyed(mState == GpuCommandBufferState::Executing);
 }
 
 #if B3D_PROFILING_ENABLED
