@@ -1,6 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Renderer/B3DRenderer.h"
+
+#include "B3DGpuUniformBuffer.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "Mesh/B3DMesh.h"
 #include "Material/B3DMaterial.h"
@@ -19,9 +21,6 @@ using namespace b3d;
 
 namespace b3d { namespace render
 {
-Renderer::Renderer()
-{}
-
 void Renderer::Initialize(const SPtr<GpuDevice>& gpuDevice)
 {
 	mDevice = gpuDevice;
@@ -38,10 +37,13 @@ void Renderer::InitializeOnRenderThread()
 	GpuParameterSetPoolCreateInformation parameterSetPoolCreateInformation;
 	parameterSetPoolCreateInformation.Mode = GpuParameterSetPoolMode::Persistent;
 	mParameterSetPool = mDevice->CreateParameterSetPool(parameterSetPoolCreateInformation);
+
+	GpuUniformBufferManager::StartUp();
 }
 
 void Renderer::DestroyOnRenderThread()
 {
+	GpuUniformBufferManager::ShutDown();
 	GpuProfiler::Instance().Clear();
 
 	mParameterSetPool = nullptr;

@@ -23,6 +23,12 @@ GpuUniformBufferManager::GpuUniformBufferManager()
 	GetToInitializeList().clear();
 }
 
+GpuUniformBufferManager::~GpuUniformBufferManager()
+{
+	for(auto& entry : mActiveBuffers)
+		entry->Destroy();
+}
+
 void GpuUniformBufferManager::AdvanceFrame()
 {
 	for(auto& entry : mActiveBuffers)
@@ -32,14 +38,17 @@ void GpuUniformBufferManager::AdvanceFrame()
 void GpuUniformBufferManager::RegisterBuffer(GpuUniformBuffer* buffer)
 {
 	if(IsStarted())
+	{
 		buffer->Initialize();
+		Instance().mActiveBuffers.Add(buffer);
+	}
 	else
 		GetToInitializeList().Add(buffer);
 }
 
 void GpuUniformBufferManager::UnregisterBuffer(GpuUniformBuffer* buffer)
 {
-	auto found = std::find(GetToInitializeList().Begin(), GetToInitializeList().End(), buffer);
-	if(found != GetToInitializeList().End())
-		GetToInitializeList().Erase(found);
+	auto found = std::find(mActiveBuffers.begin(), mActiveBuffers.end(), buffer);
+	if(found != mActiveBuffers.end())
+		mActiveBuffers.erase(found);
 }

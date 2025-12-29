@@ -150,7 +150,7 @@ namespace b3d
 		class B3D_EXPORT Renderer
 		{
 		public:
-			Renderer();
+			Renderer() = default;
 			virtual ~Renderer() = default;
 
 			/** Returns the command buffer pool for the current frame. */

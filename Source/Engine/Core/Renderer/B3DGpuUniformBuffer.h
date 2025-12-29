@@ -150,6 +150,10 @@ namespace b3d
 		{
 			virtual ~GpuUniformBuffer();
 			virtual void Initialize() = 0;
+			virtual void Destroy()
+			{
+				mTransientAllocationPool.Destroy();
+			}
 
 			/** Returns the size of the uniform buffer, in bytes. */
 			u32 GetSize() const { return mBufferSize; }
@@ -205,11 +209,14 @@ namespace b3d
 		/**
 		 * Takes care of initializing uniform buffers definitions in a delayed manner since they depend on engine systems yet
 		 * are usually used as global variables which are initialized before engine systems are ready.
+		 *
+		 * Render thread only.
 		 */
 		class B3D_EXPORT GpuUniformBufferManager : public Module<GpuUniformBufferManager>
 		{
 		public:
 			GpuUniformBufferManager();
+			~GpuUniformBufferManager();
 
 			/** Notifies the uniform buffer pools that a new frame has begun. */
 			void AdvanceFrame();
