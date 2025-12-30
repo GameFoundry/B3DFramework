@@ -58,6 +58,9 @@ namespace b3d
 		/** Checks if the GameObject with the specified ID exists. */
 		bool ObjectExists(const UUID& id) const;
 
+		/** Returns the number of game objects registered with this collection. */
+		u32 GetObjectCount() const { return (u32)mObjects.size(); }
+
 		/**
 		 * Call this method after you clone/copy/deserialize a new instance of an existing game object. It will ensure that
 		 * any existing handles are updated so they point to the newly created object. The old object is expected to be

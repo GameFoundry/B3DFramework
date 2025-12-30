@@ -52,7 +52,8 @@ void Component::DestroyImmediate(bool removeFromParent)
 			HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
 
 			const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
-			scene->NotifyComponentDestroyed(thisComponentHandle, true);
+			if(B3D_ENSURE(scene != nullptr))
+				scene->NotifyComponentDestroyed(thisComponentHandle, true);
 		}
 	}
 
@@ -77,9 +78,10 @@ void Component::QueueForDestroy(bool removeFromParent)
 	if(HasGameObjectFlag(GameObjectTransientFlag::Initialized))
 	{
 		HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
-		
+
 		const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
-		scene->NotifyComponentDestroyed(thisComponentHandle, true);
+		if(B3D_ENSURE(scene != nullptr))
+			scene->NotifyComponentDestroyed(thisComponentHandle, true);
 	}
 
 	if(removeFromParent)

@@ -853,10 +853,10 @@ void CoreTestSuite::TestPrefabScenario3()
 	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
 
 	// Create prefab 2
-	HSceneObject prefab2NewHierarchy = UnitTestSceneB::PopulateNewSceneInstance("Prefab #2 Scene Instance");
-	mPrefabTestInformation[1].Prefab = Prefab::Create(prefab2NewHierarchy);
+	NewSceneInstanceResult prefab2NewScene = UnitTestSceneB::PopulateNewSceneInstance("Prefab #2 Scene Instance");
+	mPrefabTestInformation[1].Prefab = Prefab::Create(prefab2NewScene.Root);
 	mPrefabTestInformation[1].PrefabInternalsScene = B3DMakeShared<UnitTestSceneB>(mPrefabTestInformation[1].Prefab->GetRoot());
-	prefab2NewHierarchy->Destroy();
+	prefab2NewScene.Root->Destroy();
 
 	// Add Prefab #2 Instance Root #1 in the scene, as child of Prefab 1 Instance Root/SceneObject_0
 	HSceneObject prefab2Instance1 = mScene.SetUnitTestSceneBChildPrefab_0_0(*mPrefabTestInformation[1].Prefab);
@@ -1067,10 +1067,10 @@ void CoreTestSuite::TestPrefabScenario7()
 	// PFB2 Instance [Game Object ID = OB21, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
 
 	// Create prefab 3
-	HSceneObject prefab3NewHierarchy = UnitTestSceneB::PopulateNewSceneInstance("Prefab #3 Scene Instance");
-	mPrefabTestInformation[2].Prefab = Prefab::Create(prefab3NewHierarchy);
+	NewSceneInstanceResult prefab3NewScene = UnitTestSceneB::PopulateNewSceneInstance("Prefab #3 Scene Instance");
+	mPrefabTestInformation[2].Prefab = Prefab::Create(prefab3NewScene.Root);
 	mPrefabTestInformation[2].PrefabInternalsScene = B3DMakeShared<UnitTestSceneB>(mPrefabTestInformation[2].Prefab->GetRoot());
-	prefab3NewHierarchy->Destroy();
+	prefab3NewScene.Root->Destroy();
 
 	// Add Prefab #3 Instance Root in the scene, as child of Prefab 2 Instance Root/SceneObject_0
 	HSceneObject prefab3Instance = mScene.OptionalPrefabInstance_0_0->SetUnitTestSceneBChildPrefab_0_0(*mPrefabTestInformation[2].Prefab);
@@ -1132,10 +1132,10 @@ void CoreTestSuite::TestPrefabScenario8()
 	// PFB2 Instance [Game Object ID = OB21, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
 
 	// Create prefab 4
-	HSceneObject prefab4NewHierarchy = UnitTestSceneB::PopulateNewSceneInstance("Prefab #4 Scene Instance");
-	mPrefabTestInformation[3].Prefab = Prefab::Create(prefab4NewHierarchy);
+	NewSceneInstanceResult prefab4NewScene = UnitTestSceneB::PopulateNewSceneInstance("Prefab #4 Scene Instance");
+	mPrefabTestInformation[3].Prefab = Prefab::Create(prefab4NewScene.Root);
 	mPrefabTestInformation[3].PrefabInternalsScene = B3DMakeShared<UnitTestSceneB>(mPrefabTestInformation[3].Prefab->GetRoot());
-	prefab4NewHierarchy->Destroy();
+	prefab4NewScene.Root->Destroy();
 
 	// Add Prefab #4 Instance Root in the scene, as child of Prefab 2 Instance Root/SceneObject_1
 	HSceneObject prefab4Instance = mScene.OptionalPrefabInstance_0_0->SetUnitTestSceneBChildPrefab_1_1(*mPrefabTestInformation[3].Prefab);

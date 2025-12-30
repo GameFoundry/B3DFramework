@@ -93,6 +93,13 @@ namespace b3d
 		UnitTestSceneObjectFlags Flags;
 	};
 
+	/** Result of creating a new scene instance with PopulateNewSceneInstance. */
+	struct NewSceneInstanceResult
+	{
+		SPtr<class SceneInstance> SceneInstance;
+		HSceneObject Root;
+	};
+
 	/**
 	 * Allows you to easily set up the following scene object hierarchy:
 	 * Root
@@ -112,7 +119,7 @@ namespace b3d
 
 		virtual ~UnitTestSceneB() = default;
 
-		static HSceneObject PopulateNewSceneInstance(const char* name);
+		static NewSceneInstanceResult PopulateNewSceneInstance(const char* name);
 		static UnitTestSceneB PopulateParent(const HSceneObject& parent);
 
 		HSceneObject SetUnitTestSceneAChildPrefab_0_0(const Prefab& prefab);

@@ -62,12 +62,12 @@ UnitTestSceneB::UnitTestSceneB(const HSceneObject& root)
 	 });
 }
 
-HSceneObject UnitTestSceneB::PopulateNewSceneInstance(const char* name)
+NewSceneInstanceResult UnitTestSceneB::PopulateNewSceneInstance(const char* name)
 {
 	SPtr<class SceneInstance> sceneInstance = SceneInstance::Create(name);
 	UnitTestSceneB wrapper = PopulateParent(sceneInstance->GetRoot());
 
-	return sceneInstance->GetRoot();
+	return { sceneInstance, sceneInstance->GetRoot() };
 }
 
 UnitTestSceneB UnitTestSceneB::PopulateParent(const HSceneObject& parent)
