@@ -111,14 +111,14 @@ namespace b3d
 		B3D_SCRIPT_EXPORT(InteropOnly(true))
 		HResource Load(const UUID& resourceId, const ResourceLoadOptions& loadOptions);
 
-		/** @copydoc Load(const Path&, const ResourceLoadOptions&) */
+		/** @copydoc LoadFromPackage(const Path&, const ResourceLoadOptions&) */
 		template <class T>
 		TResourceHandle<T> Load(const Path& resourcePath, const ResourceLoadOptions& loadOptions)
 		{
 			return B3DStaticResourceCast<T>(Load(resourcePath, loadOptions));
 		}
 
-		/** @copydoc Load(const UUID&, const ResourceLoadOptions&) */
+		/** @copydoc LoadFromPackage(const UUID&, const ResourceLoadOptions&) */
 		template <class T>
 		TResourceHandle<T> Load(const UUID& resourceId, const ResourceLoadOptions& loadOptions)
 		{
@@ -293,7 +293,7 @@ namespace b3d
 		 *
 		 * This is an internal method to be shared by public Load() overloads.
 		 */
-		HResource Load(UPtr<PackageReadLock> packageReadLock, const UUID& resourceId, const ResourceLoadOptions& loadOptions);
+		HResource LoadFromPackage(UPtr<PackageReadLock> packageReadLock, const UUID& resourceId, const ResourceLoadOptions& loadOptions);
 
 		/**
 		 * Checks if the provided in-progress load has completed any finalizes the operation. Operation is deemed complete once its primary resource and
@@ -307,7 +307,7 @@ namespace b3d
 		void Destroy(ResourceHandleData& handleData);
 
 	private:
-		Mutex mLoadedResourceMutex;
+		mutable Mutex mLoadedResourceMutex;
 		Mutex mResourceHandleMutex;
 
 		UnorderedMap<UUID, ResourceHandleData*> mHandles;

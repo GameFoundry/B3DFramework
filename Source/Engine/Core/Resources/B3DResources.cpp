@@ -90,29 +90,56 @@ HResource Resources::Load(const Path& resourcePath, const ResourceLoadOptions& l
 		return nullptr;
 	}
 
-	return Load(std::move(packageReadLock), resourceId, loadOptions);
+	return LoadFromPackage(std::move(packageReadLock), resourceId, loadOptions);
 }
 
 HResource Resources::Load(const UUID& resourceId, const ResourceLoadOptions& loadOptions)
 {
-	// Look up the loaded resource list first because:
-	// 1. It avoids expensive steps for already loaded packages.
-	// 2. It looks up resources that were registered at runtime but are not saved in a package
+	Function<TOptional<HResource>(bool)> fnTryGetLoadedResource = [this, &resourceId, &loadOptions](bool allowUnloadedDependencies) -> TOptional<HResource>
 	{
 		Lock lock(mLoadedResourceMutex);
 		if(auto found = mLoadedResourceInformation.find(resourceId); found != mLoadedResourceInformation.end())
+		{
+			LoadedResourceInformation* const loadedResourceInformation = found->second.get();
+			B3D_ASSERT(loadedResourceInformation != nullptr);
+
+			if(!allowUnloadedDependencies && loadOptions.LoadDependencies && !loadedResourceInformation->DependenciesLoaded)
+				return {};
+
+			if(loadOptions.KeepInternalReference)
+			{
+				loadedResourceInformation->InternalReferenceCount++;
+				loadedResourceInformation->ResourceHandle.IncrementStrongReferenceCount();
+			}
+
 			return found->second->ResourceHandle.Lock();
+		}
+
+		return {};
+	};
+
+	// Try the quick path first by checking loaded resources. This will check for any runtime resources (i.e. resources without a package), or previously loaded
+	// package resources. But only if we don't need to load dependencies, in which case we fall back to the package load path to ensure dependencies are handled.
+	{
+		auto result = fnTryGetLoadedResource(false);
+		if(result.has_value())
+			return *result;
 	}
 
 	UPtr<PackageReadLock> packageReadLock;
 	Path packagePath;
 	if(!TryAcquirePackageLockForResourceLoad(resourceId, "Load resource", packageReadLock, packagePath))
 	{
+		// Package cannot be found, look up the loaded resources again as this could be a runtime created resource. This time ignore dependency loads.
+		auto result = fnTryGetLoadedResource(true);
+		if(result.has_value())
+			return *result;
+
 		B3D_LOG(Warning, LogResources, "Cannot load resource. Resource with ID '{0}' doesn't exist.", resourceId);
 		return nullptr;
 	}
 
-	return Load(std::move(packageReadLock), resourceId, loadOptions);
+	return LoadFromPackage(std::move(packageReadLock), resourceId, loadOptions);
 }
 
 bool Resources::Exists(const Path& resourcePath) const
@@ -124,12 +151,20 @@ bool Resources::Exists(const Path& resourcePath) const
 
 bool Resources::Exists(const UUID& resourceId) const
 {
+	// Check loaded resources first. This includes any runtime created resources (without a package), and is also a quick
+	// way to avoid package lookups for already loaded resources.
+	{
+		Lock lock(mLoadedResourceMutex);
+		if(auto found = mLoadedResourceInformation.find(resourceId); found != mLoadedResourceInformation.end())
+			return found->second->ResourceHandle.Lock();
+	}
+
 	UPtr<PackageReadLock> packageReadLock;
 	Path packagePath;
 	return TryAcquirePackageLockForResourceLoad(resourceId, "Check resource exists", packageReadLock, packagePath);
 }
 
-HResource Resources::Load(UPtr<PackageReadLock> packageReadLock, const UUID& resourceId, const ResourceLoadOptions& loadOptions)
+HResource Resources::LoadFromPackage(UPtr<PackageReadLock> packageReadLock, const UUID& resourceId, const ResourceLoadOptions& loadOptions)
 {
 	const SPtr<Package>& package = packageReadLock->GetPackage();
 	const SPtr<const PackageResourceMetaData>& metaData = package->GetResourceMetaData(resourceId);
