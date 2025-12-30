@@ -70,7 +70,7 @@ namespace b3d
 
 	MonoObject* ScriptSceneInstance::InternalGetRoot(ScriptSceneInstance* self)
 	{
-		GameObjectHandle<SceneObject> tmp__output;
+		TGameObjectHandle<SceneObject> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -129,7 +129,7 @@ namespace b3d
 
 	MonoObject* ScriptSceneInstance::InternalGetMainCamera(ScriptSceneInstance* self)
 	{
-		GameObjectHandle<Camera> tmp__output;
+		TGameObjectHandle<Camera> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -168,7 +168,7 @@ namespace b3d
 
 	MonoObject* ScriptSceneInstance::InternalCreateSceneObject(ScriptSceneInstance* self, MonoString* name, uint32_t flags)
 	{
-		GameObjectHandle<SceneObject> tmp__output;
+		TGameObjectHandle<SceneObject> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -211,7 +211,7 @@ namespace b3d
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		GameObjectHandle<SceneObject> tmproot;
+		TGameObjectHandle<SceneObject> tmproot;
 		ScriptSceneObject* scriptObjectWrapperroot;
 		scriptObjectWrapperroot = ScriptSceneObject::GetScriptObjectWrapper(root);
 		if(scriptObjectWrapperroot != nullptr)

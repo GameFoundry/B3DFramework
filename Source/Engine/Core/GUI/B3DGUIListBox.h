@@ -120,7 +120,7 @@ namespace b3d
 	private:
 		Vector<HString> mElements;
 		Vector<bool> mElementStates;
-		GameObjectHandle<GUIDropDownMenu> mDropDownBox;
+		TGameObjectHandle<GUIDropDownMenu> mDropDownBox;
 
 		ImageSprite* mArrowSprite = nullptr;
 		ImageSpriteInformation mArrowSpriteInformation;

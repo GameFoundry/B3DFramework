@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptDistanceJoint::ScriptDistanceJoint(const GameObjectHandle<DistanceJoint>& nativeObject)
+	ScriptDistanceJoint::ScriptDistanceJoint(const TGameObjectHandle<DistanceJoint>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

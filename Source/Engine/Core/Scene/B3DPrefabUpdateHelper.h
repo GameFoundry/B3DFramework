@@ -144,7 +144,7 @@ namespace b3d
 		};
 
 		/** Looks up a counterpart of the provided game object in the specified prefab. Under the hood loads the prefab as required. */
-		static TOptional<ObjectInPrefab> FindInstanceInPrefab(const GameObjectHandleBase& gameObject, const UUID& prefabResourceId);
+		static TOptional<ObjectInPrefab> FindInstanceInPrefab(const GameObjectHandle& gameObject, const UUID& prefabResourceId);
 
 		/** Looks up a counterpart of the provided scene object in the prefab it is an instance of. Under the hood loads the prefab as required. */
 		static TOptional<ObjectInPrefab> FindInstanceInPrefab(const HSceneObject& sceneObject);

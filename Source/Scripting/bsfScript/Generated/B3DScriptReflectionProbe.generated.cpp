@@ -12,7 +12,7 @@
 
 namespace b3d
 {
-	ScriptReflectionProbe::ScriptReflectionProbe(const GameObjectHandle<ReflectionProbe>& nativeObject)
+	ScriptReflectionProbe::ScriptReflectionProbe(const TGameObjectHandle<ReflectionProbe>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

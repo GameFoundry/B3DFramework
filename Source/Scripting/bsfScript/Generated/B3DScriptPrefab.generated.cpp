@@ -49,7 +49,7 @@ namespace b3d
 
 	MonoObject* ScriptPrefab::InternalInstantiate(ScriptPrefab* self, MonoObject* sceneInstance)
 	{
-		GameObjectHandle<SceneObject> tmp__output;
+		TGameObjectHandle<SceneObject> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -71,7 +71,7 @@ namespace b3d
 
 	void ScriptPrefab::InternalCreate(MonoObject* scriptObject, MonoObject* sceneObject)
 	{
-		GameObjectHandle<SceneObject> tmpsceneObject;
+		TGameObjectHandle<SceneObject> tmpsceneObject;
 		ScriptSceneObject* scriptObjectWrappersceneObject;
 		scriptObjectWrappersceneObject = ScriptSceneObject::GetScriptObjectWrapper(sceneObject);
 		if(scriptObjectWrappersceneObject != nullptr)

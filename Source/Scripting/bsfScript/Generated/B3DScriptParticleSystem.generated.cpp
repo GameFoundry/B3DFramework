@@ -13,7 +13,7 @@
 
 namespace b3d
 {
-	ScriptParticleSystem::ScriptParticleSystem(const GameObjectHandle<ParticleSystem>& nativeObject)
+	ScriptParticleSystem::ScriptParticleSystem(const TGameObjectHandle<ParticleSystem>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

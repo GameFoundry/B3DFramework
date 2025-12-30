@@ -19,7 +19,7 @@ void GUIContextMenu::Open(const GUIPhysicalPoint& position, GUIWidget& widget)
 	desc.Placement = TDropDownAreaPlacement<GUIPhysicalUnit>::AroundPosition(position);
 	desc.DropDownData = GetDropDownData();
 
-	GameObjectHandle<GUIDropDownMenu> dropDownBox = GUIDropDownBoxManager::Instance().OpenDropDownBox(
+	TGameObjectHandle<GUIDropDownMenu> dropDownBox = GUIDropDownBoxManager::Instance().OpenDropDownBox(
 		desc, GUIDropDownType::ContextMenu, [this]() { OnMenuClosed(); });
 
 	mContextMenuOpen = true;

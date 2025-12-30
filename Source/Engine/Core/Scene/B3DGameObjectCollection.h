@@ -32,10 +32,10 @@ namespace b3d
 		 * @param[in]	object			Constructed GameObject to wrap in the handle and initialize.
 		 * @return						Handle to the GameObject.
 		 */
-		GameObjectHandleBase RegisterNewObject(const SPtr<GameObject>& object);
+		GameObjectHandle RegisterNewObject(const SPtr<GameObject>& object);
 
 		/** Registers a game object that already has a handle. */
-		void RegisterExistingObject(const GameObjectHandleBase& object);
+		void RegisterExistingObject(const GameObjectHandle& object);
 
 		/**
 		 * Unregisters the game object. Handles to this object will no longer be valid after this call. 
@@ -44,16 +44,16 @@ namespace b3d
 		 * @param	triggerDestroyEvent		If true, will trigger OnDestroyed event. Should be true if the object was instantiated
 		 *									and is being destroyed.
 		 */
-		void UnregisterObject(GameObjectHandleBase& object, bool triggerDestroyEvent);
+		void UnregisterObject(GameObjectHandle& object, bool triggerDestroyEvent);
 
 		/** Attempts to find a game object based on the provided ID. Returns empty handle if ID cannot be found. */
-		GameObjectHandleBase GetObject(const UUID& id) const;
+		GameObjectHandle GetObject(const UUID& id) const;
 
 		/**
 		 * Attempts to find a game object handle based on the provided ID. Returns true if object with the
 		 * specified ID is found, false otherwise.
 		 */
-		bool TryGetObject(const UUID& id, GameObjectHandleBase& outObject) const;
+		bool TryGetObject(const UUID& id, GameObjectHandle& outObject) const;
 
 		/** Checks if the GameObject with the specified ID exists. */
 		bool ObjectExists(const UUID& id) const;
@@ -80,10 +80,10 @@ namespace b3d
 		 * created during a single clone/deserialization operation share the same handle data, so it's enough to just patch
 		 * this handle.
 		 */
-		void ReplaceGameObjectInstance(GameObjectHandleBase& newObjectHandle, const SPtr<GameObjectInstanceData>& originalObjectInstanceData);
+		void ReplaceGameObjectInstance(GameObjectHandle& newObjectHandle, const SPtr<GameObjectInstanceData>& originalObjectInstanceData);
 
 		/** Changes the instance ID of the provided game object. */
-		void ChangeGameObjectId(GameObjectHandleBase& gameObject, const UUID& newId);
+		void ChangeGameObjectId(GameObjectHandle& gameObject, const UUID& newId);
 
 		/**
 		 * Notifies the collection that we are about to register game objects whose handle might not be immediately valid. This
@@ -107,7 +107,7 @@ namespace b3d
 		 * Registers a handle to be resolved when EndHandleResolve() is called. Unresolved handles are generated during deserialization,
 		 * as the objects they are pointing to might not be deserialized yet.
 		 */
-		void RegisterUnresolvedHandle(GameObjectHandleBase& handle);
+		void RegisterUnresolvedHandle(GameObjectHandle& handle);
 
 		/**
 		 * Notifies the system that id of the object an resolved handle is pointing to has changed. Useful if you are generating new IDs
@@ -119,7 +119,7 @@ namespace b3d
 		void RegisterUnresolvedHandleIdRemapping(const UUID& originalId, const UUID& newId);
 
 		/**	Queues the object to be destroyed at the end of a GameObject update cycle. */
-		void QueueForDestroy(const GameObjectHandleBase& object);
+		void QueueForDestroy(const GameObjectHandle& object);
 
 		/**	Destroys any GameObjects that were queued for destruction. */
 		void DestroyQueuedObjects();
@@ -134,11 +134,11 @@ namespace b3d
 		bool mHandleResolveActive = false;
 
 		UnorderedMap<UUID, UUID> mUUIDRemapping;
-		UnorderedMap<UUID, GameObjectHandleBase> mObjects;
-		UnorderedMap<UUID, GameObjectHandleBase> mQueuedForDestroy;
+		UnorderedMap<UUID, GameObjectHandle> mObjects;
+		UnorderedMap<UUID, GameObjectHandle> mQueuedForDestroy;
 		Vector<UUID> mOrderedQueuedForDestroy;
 		UnorderedMap<UUID, SPtr<GameObjectHandleData>> mUnresolvedHandleSharedHandleData;
-		Vector<GameObjectHandleBase> mUnresolvedHandles;
+		Vector<GameObjectHandle> mUnresolvedHandles;
 	};
 
 	/** @} */

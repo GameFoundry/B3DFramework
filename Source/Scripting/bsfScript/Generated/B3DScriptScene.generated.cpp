@@ -63,7 +63,7 @@ namespace b3d
 
 	void ScriptScene::InternalCreate(MonoObject* scriptObject, MonoObject* sceneObject)
 	{
-		GameObjectHandle<SceneObject> tmpsceneObject;
+		TGameObjectHandle<SceneObject> tmpsceneObject;
 		ScriptSceneObject* scriptObjectWrappersceneObject;
 		scriptObjectWrappersceneObject = ScriptSceneObject::GetScriptObjectWrapper(sceneObject);
 		if(scriptObjectWrappersceneObject != nullptr)

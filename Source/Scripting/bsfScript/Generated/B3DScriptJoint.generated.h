@@ -31,7 +31,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Joint")
 
-		ScriptJoint(const GameObjectHandle<Joint>& nativeObject);
+		ScriptJoint(const TGameObjectHandle<Joint>& nativeObject);
 		~ScriptJoint();
 
 		static void SetupScriptBindings();

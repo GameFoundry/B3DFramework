@@ -37,7 +37,7 @@ namespace b3d
 		output.Distance = value.Distance;
 		output.TriangleIdx = value.TriangleIdx;
 		output.UnmappedTriangleIdx = value.UnmappedTriangleIdx;
-		GameObjectHandle<Collider> tmpCollider;
+		TGameObjectHandle<Collider> tmpCollider;
 		ScriptColliderWrapperBase* scriptObjectWrapperCollider;
 		scriptObjectWrapperCollider = (ScriptColliderWrapperBase*)ScriptCollider::GetScriptObjectWrapper(value.Collider);
 		if(scriptObjectWrapperCollider != nullptr)

@@ -125,7 +125,7 @@ namespace b3d
 	class ScriptReflectableBase;
 	struct ScriptTypeMetaData;
 
-	typedef GameObjectHandle<ManagedComponent> HManagedComponent;
+	typedef TGameObjectHandle<ManagedComponent> HManagedComponent;
 	typedef TResourceHandle<ManagedResource> HManagedResource;
 
 	enum TypeID_bsfScript

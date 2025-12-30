@@ -27,7 +27,7 @@ namespace b3d
 	ControllerControllerCollision ScriptControllerControllerCollision::FromInterop(const __ControllerControllerCollisionInterop& value)
 	{
 		ControllerControllerCollision output;
-		GameObjectHandle<CharacterController> tmpController;
+		TGameObjectHandle<CharacterController> tmpController;
 		ScriptCharacterController* scriptObjectWrapperController;
 		scriptObjectWrapperController = ScriptCharacterController::GetScriptObjectWrapper(value.Controller);
 		if(scriptObjectWrapperController != nullptr)

@@ -28,7 +28,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "D6Joint")
 
-		ScriptD6Joint(const GameObjectHandle<D6Joint>& nativeObject);
+		ScriptD6Joint(const TGameObjectHandle<D6Joint>& nativeObject);
 		~ScriptD6Joint();
 
 		static void SetupScriptBindings();

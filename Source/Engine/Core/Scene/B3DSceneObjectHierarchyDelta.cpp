@@ -18,7 +18,7 @@ using namespace b3d;
  * Returns either the prefab or instance id of the object, depending on @p returnPrefabId parameter.
  * If object has no valid prefab object id, returns instance id in either case.
  */
-static UUID GetPrefabOrInstanceId(const GameObjectHandleBase& object, bool returnPrefabId)
+static UUID GetPrefabOrInstanceId(const GameObjectHandle& object, bool returnPrefabId)
 {
 	if(returnPrefabId && !object->GetPrefabObjectId().Empty())
 		return object->GetPrefabObjectId();

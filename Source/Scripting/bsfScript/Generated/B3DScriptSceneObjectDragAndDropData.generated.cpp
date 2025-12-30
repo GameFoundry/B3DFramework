@@ -47,7 +47,7 @@ namespace b3d
 
 	void ScriptSceneObjectDragAndDropData::InternalSceneObjectDragAndDropData0(MonoObject* scriptObject, MonoObject* sceneObject)
 	{
-		GameObjectHandle<SceneObject> tmpsceneObject;
+		TGameObjectHandle<SceneObject> tmpsceneObject;
 		ScriptSceneObject* scriptObjectWrappersceneObject;
 		scriptObjectWrappersceneObject = ScriptSceneObject::GetScriptObjectWrapper(sceneObject);
 		if(scriptObjectWrappersceneObject != nullptr)
@@ -58,14 +58,14 @@ namespace b3d
 
 	void ScriptSceneObjectDragAndDropData::InternalSceneObjectDragAndDropData1(MonoObject* scriptObject, MonoArray* sceneObjects)
 	{
-		Vector<GameObjectHandle<SceneObject>> nativeArraysceneObjects;
+		Vector<TGameObjectHandle<SceneObject>> nativeArraysceneObjects;
 		if(sceneObjects != nullptr)
 		{
 			ScriptArray scriptArraysceneObjects(sceneObjects);
 			nativeArraysceneObjects.resize(scriptArraysceneObjects.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArraysceneObjects.Size(); elementIndex++)
 			{
-				GameObjectHandle<SceneObject> arrayElementPointersceneObjects;
+				TGameObjectHandle<SceneObject> arrayElementPointersceneObjects;
 				ScriptSceneObject* scriptObjectWrappersceneObjects;
 				scriptObjectWrappersceneObjects = ScriptSceneObject::GetScriptObjectWrapper(scriptArraysceneObjects.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrappersceneObjects != nullptr)
@@ -81,7 +81,7 @@ namespace b3d
 
 	MonoArray* ScriptSceneObjectDragAndDropData::InternalGetSceneObjects(ScriptSceneObjectDragAndDropData* self)
 	{
-		Vector<GameObjectHandle<SceneObject>> nativeArray__output;
+		Vector<TGameObjectHandle<SceneObject>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -107,14 +107,14 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		Vector<GameObjectHandle<SceneObject>> nativeArrayvalue;
+		Vector<TGameObjectHandle<SceneObject>> nativeArrayvalue;
 		if(value != nullptr)
 		{
 			ScriptArray scriptArrayvalue(value);
 			nativeArrayvalue.resize(scriptArrayvalue.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				GameObjectHandle<SceneObject> arrayElementPointervalue;
+				TGameObjectHandle<SceneObject> arrayElementPointervalue;
 				ScriptSceneObject* scriptObjectWrappervalue;
 				scriptObjectWrappervalue = ScriptSceneObject::GetScriptObjectWrapper(scriptArrayvalue.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrappervalue != nullptr)

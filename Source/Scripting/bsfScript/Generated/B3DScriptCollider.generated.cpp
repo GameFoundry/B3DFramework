@@ -57,7 +57,7 @@ namespace b3d
 		OnCollisionEndConnection.Disconnect();
 		ScriptGameObjectWrapper::UnregisterEvents();
 	}
-	ScriptCollider::ScriptCollider(const GameObjectHandle<Collider>& nativeObject)
+	ScriptCollider::ScriptCollider(const TGameObjectHandle<Collider>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

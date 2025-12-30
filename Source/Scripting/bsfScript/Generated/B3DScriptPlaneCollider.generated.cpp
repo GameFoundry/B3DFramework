@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptPlaneCollider::ScriptPlaneCollider(const GameObjectHandle<PlaneCollider>& nativeObject)
+	ScriptPlaneCollider::ScriptPlaneCollider(const TGameObjectHandle<PlaneCollider>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

@@ -12,7 +12,7 @@
 
 namespace b3d
 {
-	ScriptRenderable::ScriptRenderable(const GameObjectHandle<Renderable>& nativeObject)
+	ScriptRenderable::ScriptRenderable(const TGameObjectHandle<Renderable>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

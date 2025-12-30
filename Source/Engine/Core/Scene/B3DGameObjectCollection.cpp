@@ -18,7 +18,7 @@ GameObjectCollection::~GameObjectCollection()
 	GameObjectManager::Instance().UnregisterGameObjectCollection(*this);
 }
 
-GameObjectHandleBase GameObjectCollection::RegisterNewObject(const SPtr<GameObject>& object)
+GameObjectHandle GameObjectCollection::RegisterNewObject(const SPtr<GameObject>& object)
 {
 	if(!B3D_ENSURE(object != nullptr))
 		return nullptr;
@@ -31,7 +31,7 @@ GameObjectHandleBase GameObjectCollection::RegisterNewObject(const SPtr<GameObje
 	if(auto found = mObjects.find(id); !B3D_ENSURE(found == mObjects.end()))
 		return nullptr;
 
-	GameObjectHandleBase handle(object);
+	GameObjectHandle handle(object);
 
 	if(mHandleResolveActive)
 	{
@@ -39,7 +39,7 @@ GameObjectHandleBase GameObjectCollection::RegisterNewObject(const SPtr<GameObje
 		// All handles created during a single resolve operation must use the same shared handle data, so we can patch the single instance of it during resolve.
 		if(auto found = mUnresolvedHandleSharedHandleData.find(handle.GetId()); found != mUnresolvedHandleSharedHandleData.end())
 		{
-			handle = GameObjectHandleBase(found->second);
+			handle = GameObjectHandle(found->second);
 			handle.SetObjectInstanceData(object);
 		}
 		// Handle hasn't been registered yet, store its shared handle data for when it does get registered.
@@ -60,7 +60,7 @@ GameObjectHandleBase GameObjectCollection::RegisterNewObject(const SPtr<GameObje
 	return handle;
 }
 
-void GameObjectCollection::RegisterExistingObject(const GameObjectHandleBase& handle)
+void GameObjectCollection::RegisterExistingObject(const GameObjectHandle& handle)
 {
 	if(!B3D_ENSURE(handle.IsValid()))
 		return;
@@ -77,7 +77,7 @@ void GameObjectCollection::RegisterExistingObject(const GameObjectHandleBase& ha
 	B3D_ENSURE(mQueuedForDestroy.find(handle->GetId()) == mQueuedForDestroy.end());
 }
 
-void GameObjectCollection::UnregisterObject(GameObjectHandleBase& object, bool triggerDestroyEvent)
+void GameObjectCollection::UnregisterObject(GameObjectHandle& object, bool triggerDestroyEvent)
 {
 	if(!B3D_ENSURE(!object.IsDestroyed(false)))
 		return;
@@ -92,7 +92,7 @@ void GameObjectCollection::UnregisterObject(GameObjectHandleBase& object, bool t
 		OnDestroyed(B3DStaticGameObjectCast<GameObject>(object));
 }
 
-GameObjectHandleBase GameObjectCollection::GetObject(const UUID& id) const
+GameObjectHandle GameObjectCollection::GetObject(const UUID& id) const
 {
 	if(const auto found = mObjects.find(id); found != mObjects.end())
 		return found->second;
@@ -100,7 +100,7 @@ GameObjectHandleBase GameObjectCollection::GetObject(const UUID& id) const
 	return nullptr;
 }
 
-bool GameObjectCollection::TryGetObject(const UUID& uuid, GameObjectHandleBase& object) const
+bool GameObjectCollection::TryGetObject(const UUID& uuid, GameObjectHandle& object) const
 {
 	const auto iterFind = mObjects.find(uuid);
 	if(iterFind != mObjects.end())
@@ -117,7 +117,7 @@ bool GameObjectCollection::ObjectExists(const UUID& uuid) const
 	return mObjects.find(uuid) != mObjects.end();
 }
 
-void GameObjectCollection::ReplaceGameObjectInstance(GameObjectHandleBase& newObjectHandle, const SPtr<GameObjectInstanceData>& originalObjectInstanceData)
+void GameObjectCollection::ReplaceGameObjectInstance(GameObjectHandle& newObjectHandle, const SPtr<GameObjectInstanceData>& originalObjectInstanceData)
 {
 	B3D_ASSERT(originalObjectInstanceData != nullptr);
 
@@ -132,7 +132,7 @@ void GameObjectCollection::ReplaceGameObjectInstance(GameObjectHandleBase& newOb
 	{
 		if(auto found = mObjects.find(originalObjectId); found != mObjects.end())
 		{
-			GameObjectHandleBase handle = found->second;
+			GameObjectHandle handle = found->second;
 
 			mObjects.erase(found);
 			mObjects[newObjectId] = handle;
@@ -143,7 +143,7 @@ void GameObjectCollection::ReplaceGameObjectInstance(GameObjectHandleBase& newOb
 	}
 }
 
-void GameObjectCollection::ChangeGameObjectId(GameObjectHandleBase& gameObject, const UUID& newId)
+void GameObjectCollection::ChangeGameObjectId(GameObjectHandle& gameObject, const UUID& newId)
 {
 	const UUID originalObjectId = gameObject.GetId();
 
@@ -156,7 +156,7 @@ void GameObjectCollection::ChangeGameObjectId(GameObjectHandleBase& gameObject, 
 
 		if(auto found = mObjects.find(originalObjectId); found != mObjects.end())
 		{
-			GameObjectHandleBase handle = found->second;
+			GameObjectHandle handle = found->second;
 
 			mObjects.erase(found);
 			mObjects[newId] = handle;
@@ -167,7 +167,7 @@ void GameObjectCollection::ChangeGameObjectId(GameObjectHandleBase& gameObject, 
 	}
 }
 
-void GameObjectCollection::QueueForDestroy(const GameObjectHandleBase& object)
+void GameObjectCollection::QueueForDestroy(const GameObjectHandle& object)
 {
 	if(object.IsDestroyed(false))
 		return;
@@ -185,7 +185,7 @@ void GameObjectCollection::DestroyQueuedObjects()
 		if(!B3D_ENSURE(found != mQueuedForDestroy.end()))
 			continue;
 
-		GameObjectHandleBase handle = found->second;
+		GameObjectHandle handle = found->second;
 		mQueuedForDestroy.erase(found);
 
 		if(handle.IsDestroyed(false))
@@ -198,7 +198,7 @@ void GameObjectCollection::DestroyQueuedObjects()
 	mOrderedQueuedForDestroy.clear();
 }
 
-void GameObjectCollection::RegisterUnresolvedHandle(GameObjectHandleBase& handle)
+void GameObjectCollection::RegisterUnresolvedHandle(GameObjectHandle& handle)
 {
 	if(!B3D_ENSURE(mHandleResolveActive))
 		return;

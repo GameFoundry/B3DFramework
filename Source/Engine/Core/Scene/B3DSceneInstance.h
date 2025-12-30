@@ -51,7 +51,7 @@ namespace b3d
 		 * @return					A list of all matching components in the scene.
 		 */
 		template <class T>
-		Vector<GameObjectHandle<T>> FindComponents(bool activeOnly = true);
+		Vector<TGameObjectHandle<T>> FindComponents(bool activeOnly = true);
 
 		/** Called every frame. Calls update methods on all active components. */
 		void Update();
@@ -134,11 +134,11 @@ namespace b3d
 	};
 
 	template <class T>
-	Vector<GameObjectHandle<T>> SceneInstanceComponents::FindComponents(bool activeOnly)
+	Vector<TGameObjectHandle<T>> SceneInstanceComponents::FindComponents(bool activeOnly)
 	{
 		u32 rttiId = T::GetRttiStatic()->GetRttiId();
 
-		Vector<GameObjectHandle<T>> output;
+		Vector<TGameObjectHandle<T>> output;
 		for(auto& entry : mActiveComponents)
 		{
 			if(IsComponentOfType(entry, rttiId))

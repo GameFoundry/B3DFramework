@@ -15,7 +15,7 @@ namespace b3d
 	ScriptRigidbody::OnCollisionStayThunkDefinition ScriptRigidbody::OnCollisionStayThunk; 
 	ScriptRigidbody::OnCollisionEndThunkDefinition ScriptRigidbody::OnCollisionEndThunk; 
 
-	ScriptRigidbody::ScriptRigidbody(const GameObjectHandle<Rigidbody>& nativeObject)
+	ScriptRigidbody::ScriptRigidbody(const TGameObjectHandle<Rigidbody>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

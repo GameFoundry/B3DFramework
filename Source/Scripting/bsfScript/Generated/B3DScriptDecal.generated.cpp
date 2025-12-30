@@ -12,7 +12,7 @@
 
 namespace b3d
 {
-	ScriptDecal::ScriptDecal(const GameObjectHandle<Decal>& nativeObject)
+	ScriptDecal::ScriptDecal(const TGameObjectHandle<Decal>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

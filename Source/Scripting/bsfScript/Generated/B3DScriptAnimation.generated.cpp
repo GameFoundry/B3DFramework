@@ -20,7 +20,7 @@ namespace b3d
 	ScriptAnimation::ScriptUpdateFloatPropertiesInternalThunkDefinition ScriptAnimation::ScriptUpdateFloatPropertiesInternalThunk; 
 	ScriptAnimation::ScriptOnEventTriggeredInternalThunkDefinition ScriptAnimation::ScriptOnEventTriggeredInternalThunk; 
 
-	ScriptAnimation::ScriptAnimation(const GameObjectHandle<Animation>& nativeObject)
+	ScriptAnimation::ScriptAnimation(const TGameObjectHandle<Animation>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

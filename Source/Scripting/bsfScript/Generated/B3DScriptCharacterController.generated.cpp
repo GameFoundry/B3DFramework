@@ -14,7 +14,7 @@ namespace b3d
 	ScriptCharacterController::OnColliderHitThunkDefinition ScriptCharacterController::OnColliderHitThunk; 
 	ScriptCharacterController::OnControllerHitThunkDefinition ScriptCharacterController::OnControllerHitThunk; 
 
-	ScriptCharacterController::ScriptCharacterController(const GameObjectHandle<CharacterController>& nativeObject)
+	ScriptCharacterController::ScriptCharacterController(const TGameObjectHandle<CharacterController>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

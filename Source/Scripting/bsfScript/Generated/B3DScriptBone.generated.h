@@ -13,7 +13,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Bone")
 
-		ScriptBone(const GameObjectHandle<Bone>& nativeObject);
+		ScriptBone(const TGameObjectHandle<Bone>& nativeObject);
 		~ScriptBone();
 
 		static void SetupScriptBindings();

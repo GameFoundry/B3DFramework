@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptSliderJoint::ScriptSliderJoint(const GameObjectHandle<SliderJoint>& nativeObject)
+	ScriptSliderJoint::ScriptSliderJoint(const TGameObjectHandle<SliderJoint>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

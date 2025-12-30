@@ -19,7 +19,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "HingeJoint")
 
-		ScriptHingeJoint(const GameObjectHandle<HingeJoint>& nativeObject);
+		ScriptHingeJoint(const TGameObjectHandle<HingeJoint>& nativeObject);
 		~ScriptHingeJoint();
 
 		static void SetupScriptBindings();

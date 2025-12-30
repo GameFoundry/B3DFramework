@@ -165,7 +165,7 @@ namespace b3d
 		 * @param rootPrefabResourceId			ID of the prefab resource that the resulting hierarchy will be stored in.
 		 * @param nestingLevel					Current depth of nested prefab we are at. 0 for root, 1 for first nested prefab, etc.
 		 */
-		void AssignInternalPrefabIds(GameObjectHandleBase& gameObject, const UUID& gameObjectIdInPrefab, const PrefabLinkInformation& linkInformationInPrefab, const UUID& rootPrefabResourceId, i32 nestingLevel);
+		void AssignInternalPrefabIds(GameObjectHandle& gameObject, const UUID& gameObjectIdInPrefab, const PrefabLinkInformation& linkInformationInPrefab, const UUID& rootPrefabResourceId, i32 nestingLevel);
 
 		UnorderedMap<UUID, PrefabInformation> mPrefabCache;
 		UUID mPrefabId; /**< ID of the prefab we're restoring IDs for. */

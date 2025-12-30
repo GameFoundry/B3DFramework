@@ -517,7 +517,7 @@ namespace b3d
 	public:
 		/** Constructs a new component of the specified type and adds it to the internal component list. */
 		template <class T, class... Args>
-		GameObjectHandle<T> AddComponent(Args&&... args)
+		TGameObjectHandle<T> AddComponent(Args&&... args)
 		{
 			static_assert((std::is_base_of<b3d::Component, T>::value), "Specified type is not a valid Component.");
 
@@ -547,7 +547,7 @@ namespace b3d
 		 * for further use.
 		 */
 		template <typename T>
-		GameObjectHandle<T> GetComponent()
+		TGameObjectHandle<T> GetComponent()
 		{
 			static_assert((std::is_base_of<b3d::Component, T>::value), "Specified type is not a valid Component.");
 
@@ -565,11 +565,11 @@ namespace b3d
 		 * for further use.
 		 */
 		template <typename T>
-		Vector<GameObjectHandle<T>> GetComponents()
+		Vector<TGameObjectHandle<T>> GetComponents()
 		{
 			static_assert((std::is_base_of<b3d::Component, T>::value), "Specified type is not a valid Component.");
 
-			Vector<GameObjectHandle<T>> output;
+			Vector<TGameObjectHandle<T>> output;
 
 			for(auto entry : mComponents)
 			{

@@ -16,7 +16,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "DistanceJoint")
 
-		ScriptDistanceJoint(const GameObjectHandle<DistanceJoint>& nativeObject);
+		ScriptDistanceJoint(const TGameObjectHandle<DistanceJoint>& nativeObject);
 		~ScriptDistanceJoint();
 
 		static void SetupScriptBindings();

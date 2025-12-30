@@ -248,7 +248,7 @@ namespace b3d
 
 	/** Returns associated render proxy object, or null if the object is null or has no render proxy. */
 	template<class Type>
-	SPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(const GameObjectHandle<Type>& object)
+	SPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(const TGameObjectHandle<Type>& object)
 	{
 		return !object.IsValid() ? nullptr : std::static_pointer_cast<CoreVariantType<Type, true>>(object->GetRenderProxy());
 	}

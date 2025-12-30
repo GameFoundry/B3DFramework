@@ -423,7 +423,7 @@ namespace b3d
 
 	MonoArray* ScriptPhysicsScene::InternalBoxOverlap(ScriptPhysicsScene* self, __TAABox_float_Interop* box, TQuaternion<float>* rotation, uint64_t layer)
 	{
-		Vector<GameObjectHandle<Collider>> nativeArray__output;
+		Vector<TGameObjectHandle<Collider>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -448,7 +448,7 @@ namespace b3d
 
 	MonoArray* ScriptPhysicsScene::InternalSphereOverlap(ScriptPhysicsScene* self, __TSphere_float_Interop* sphere, uint64_t layer)
 	{
-		Vector<GameObjectHandle<Collider>> nativeArray__output;
+		Vector<TGameObjectHandle<Collider>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -473,7 +473,7 @@ namespace b3d
 
 	MonoArray* ScriptPhysicsScene::InternalCapsuleOverlap(ScriptPhysicsScene* self, TCapsule<float>* capsule, TQuaternion<float>* rotation, uint64_t layer)
 	{
-		Vector<GameObjectHandle<Collider>> nativeArray__output;
+		Vector<TGameObjectHandle<Collider>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -496,7 +496,7 @@ namespace b3d
 
 	MonoArray* ScriptPhysicsScene::InternalConvexOverlap(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, TQuaternion<float>* rotation, uint64_t layer)
 	{
-		Vector<GameObjectHandle<Collider>> nativeArray__output;
+		Vector<TGameObjectHandle<Collider>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 

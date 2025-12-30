@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	ScriptSkybox::ScriptSkybox(const GameObjectHandle<Skybox>& nativeObject)
+	ScriptSkybox::ScriptSkybox(const TGameObjectHandle<Skybox>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

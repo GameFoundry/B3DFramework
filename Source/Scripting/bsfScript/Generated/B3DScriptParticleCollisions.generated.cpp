@@ -88,14 +88,14 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		Vector<GameObjectHandle<SceneObject>> nativeArrayobjects;
+		Vector<TGameObjectHandle<SceneObject>> nativeArrayobjects;
 		if(objects != nullptr)
 		{
 			ScriptArray scriptArrayobjects(objects);
 			nativeArrayobjects.resize(scriptArrayobjects.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayobjects.Size(); elementIndex++)
 			{
-				GameObjectHandle<SceneObject> arrayElementPointerobjects;
+				TGameObjectHandle<SceneObject> arrayElementPointerobjects;
 				ScriptSceneObject* scriptObjectWrapperobjects;
 				scriptObjectWrapperobjects = ScriptSceneObject::GetScriptObjectWrapper(scriptArrayobjects.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrapperobjects != nullptr)
@@ -110,7 +110,7 @@ namespace b3d
 
 	MonoArray* ScriptParticleCollisions::InternalGetPlaneObjects(ScriptParticleCollisions* self)
 	{
-		Vector<GameObjectHandle<SceneObject>> nativeArray__output;
+		Vector<TGameObjectHandle<SceneObject>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 

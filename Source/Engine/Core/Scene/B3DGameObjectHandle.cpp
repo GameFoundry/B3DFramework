@@ -8,7 +8,7 @@
 
 using namespace b3d;
 
-GameObjectHandleBase::GameObjectHandleBase(const SPtr<GameObject>& object)
+GameObjectHandle::GameObjectHandle(const SPtr<GameObject>& object)
 {
 	B3D_ASSERT(object != nullptr);
 
@@ -21,14 +21,14 @@ GameObjectHandleBase::GameObjectHandleBase(const SPtr<GameObject>& object)
 	mSharedHandleData = B3DMakeShared<GameObjectHandleData>(instanceData, id);
 }
 
-bool GameObjectHandleBase::IsDestroyed(bool checkQueued) const
+bool GameObjectHandle::IsDestroyed(bool checkQueued) const
 {
 	return mSharedHandleData->InstanceData == nullptr ||
 		mSharedHandleData->InstanceData->Object == nullptr ||
 		(checkQueued && mSharedHandleData->InstanceData->Object->HasGameObjectFlag(GameObjectTransientFlag::QueuedForDestroy));
 }
 
-void GameObjectHandleBase::SetObjectInstanceData(const SPtr<GameObject>& object)
+void GameObjectHandle::SetObjectInstanceData(const SPtr<GameObject>& object)
 {
 	B3D_ASSERT(mSharedHandleData != nullptr);
 	B3D_ASSERT(object != nullptr);
@@ -43,12 +43,12 @@ void GameObjectHandleBase::SetObjectInstanceData(const SPtr<GameObject>& object)
 	mSharedHandleData->Id = id;
 }
 
-RTTIType* GameObjectHandleBase::GetRttiStatic()
+RTTIType* GameObjectHandle::GetRttiStatic()
 {
 	return GameObjectHandleRTTI::Instance();
 }
 
-RTTIType* GameObjectHandleBase::GetRtti() const
+RTTIType* GameObjectHandle::GetRtti() const
 {
-	return GameObjectHandleBase::GetRttiStatic();
+	return GameObjectHandle::GetRttiStatic();
 }

@@ -39,7 +39,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Collider")
 
-		ScriptCollider(const GameObjectHandle<Collider>& nativeObject);
+		ScriptCollider(const TGameObjectHandle<Collider>& nativeObject);
 		~ScriptCollider();
 
 		static void SetupScriptBindings();

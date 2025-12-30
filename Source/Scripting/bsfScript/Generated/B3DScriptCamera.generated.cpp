@@ -14,7 +14,7 @@
 
 namespace b3d
 {
-	ScriptCamera::ScriptCamera(const GameObjectHandle<Camera>& nativeObject)
+	ScriptCamera::ScriptCamera(const TGameObjectHandle<Camera>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

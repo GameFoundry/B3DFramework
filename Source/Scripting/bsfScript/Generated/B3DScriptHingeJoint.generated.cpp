@@ -10,7 +10,7 @@
 
 namespace b3d
 {
-	ScriptHingeJoint::ScriptHingeJoint(const GameObjectHandle<HingeJoint>& nativeObject)
+	ScriptHingeJoint::ScriptHingeJoint(const TGameObjectHandle<HingeJoint>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

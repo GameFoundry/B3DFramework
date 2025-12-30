@@ -15,7 +15,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CapsuleCollider")
 
-		ScriptCapsuleCollider(const GameObjectHandle<CapsuleCollider>& nativeObject);
+		ScriptCapsuleCollider(const TGameObjectHandle<CapsuleCollider>& nativeObject);
 		~ScriptCapsuleCollider();
 
 		static void SetupScriptBindings();

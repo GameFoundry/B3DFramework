@@ -14,7 +14,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Decal")
 
-		ScriptDecal(const GameObjectHandle<Decal>& nativeObject);
+		ScriptDecal(const TGameObjectHandle<Decal>& nativeObject);
 		~ScriptDecal();
 
 		static void SetupScriptBindings();

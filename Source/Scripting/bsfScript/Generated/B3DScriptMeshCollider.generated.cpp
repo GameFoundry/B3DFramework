@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	ScriptMeshCollider::ScriptMeshCollider(const GameObjectHandle<MeshCollider>& nativeObject)
+	ScriptMeshCollider::ScriptMeshCollider(const TGameObjectHandle<MeshCollider>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

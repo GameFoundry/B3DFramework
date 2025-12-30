@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptSphericalJoint::ScriptSphericalJoint(const GameObjectHandle<SphericalJoint>& nativeObject)
+	ScriptSphericalJoint::ScriptSphericalJoint(const TGameObjectHandle<SphericalJoint>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

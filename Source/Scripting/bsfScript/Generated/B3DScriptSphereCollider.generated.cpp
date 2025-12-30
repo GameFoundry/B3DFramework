@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptSphereCollider::ScriptSphereCollider(const GameObjectHandle<SphereCollider>& nativeObject)
+	ScriptSphereCollider::ScriptSphereCollider(const TGameObjectHandle<SphereCollider>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

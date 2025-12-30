@@ -49,7 +49,7 @@ namespace b3d
 	class TScriptGameObjectWrapper : public TScriptObjectWrapper<SelfType, BaseType>
 	{
 	public:
-		TScriptGameObjectWrapper(const GameObjectHandle<NativeType>& nativeObject)
+		TScriptGameObjectWrapper(const TGameObjectHandle<NativeType>& nativeObject)
 			: TScriptObjectWrapper<SelfType, BaseType>(nativeObject.Get())
 		{
 			mNativeObjectStrongHandle = nativeObject;
@@ -62,7 +62,7 @@ namespace b3d
 		SPtr<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(mNativeObjectStrongHandle.GetShared()); }
 
 		/** Returns the wrapped native object as a handle. */
-		GameObjectHandle<NativeType> GetNativeObjectAsHandle() const { return B3DStaticGameObjectCast<NativeType>(mNativeObjectStrongHandle); }
+		TGameObjectHandle<NativeType> GetNativeObjectAsHandle() const { return B3DStaticGameObjectCast<NativeType>(mNativeObjectStrongHandle); }
 
 		/**
 		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject
@@ -86,7 +86,7 @@ namespace b3d
 		 * Attempts to retrieve an existing associated script object from the provided native object. If one doesn't exist, a new script
 		 * object and the associated script wrapper will be created.
 		 */
-		static MonoObject* GetOrCreateScriptObject(const GameObjectHandle<NativeType>& nativeObject)
+		static MonoObject* GetOrCreateScriptObject(const TGameObjectHandle<NativeType>& nativeObject)
 		{
 			if(!nativeObject.IsValid())
 				return nullptr;

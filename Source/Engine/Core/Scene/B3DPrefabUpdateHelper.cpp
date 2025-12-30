@@ -24,7 +24,7 @@ struct PrefabInstanceRoot
 	HPrefab PrefabToUpdateFrom;
 };
 
-TOptional<PrefabUpdateHelper::ObjectInPrefab> PrefabUpdateHelper::FindInstanceInPrefab(const GameObjectHandleBase& gameObject, const UUID& prefabResourceId)
+TOptional<PrefabUpdateHelper::ObjectInPrefab> PrefabUpdateHelper::FindInstanceInPrefab(const GameObjectHandle& gameObject, const UUID& prefabResourceId)
 {
 	const HPrefab prefab = GetResources().Load<Prefab>(prefabResourceId, ResourceLoadOptions(false, false, false));
 

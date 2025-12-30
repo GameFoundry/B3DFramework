@@ -30,7 +30,7 @@ namespace b3d
 		if(B3D_ENSURE(original == nullptr && modified != nullptr))
 			return nullptr;
 
-		auto fnGetOrDecodeHandle = [&context](IReflectable* object, SPtr<GameObjectHandleBase>& outDecodedHandle) -> GameObjectHandleBase*
+		auto fnGetOrDecodeHandle = [&context](IReflectable* object, SPtr<GameObjectHandle>& outDecodedHandle) -> GameObjectHandle*
 		{
 			if(object->GetTypeId() == TID_SerializedObject)
 			{
@@ -38,20 +38,20 @@ namespace b3d
 				if(!B3D_ENSURE(serializedObject->GetRootTypeId() == TID_GameObjectHandleBase))
 					return nullptr;
 
-				outDecodedHandle = B3DRTTICast<GameObjectHandleBase>(serializedObject->Decode(context));
+				outDecodedHandle = B3DRTTICast<GameObjectHandle>(serializedObject->Decode(context));
 				return outDecodedHandle.get();
 			}
 
-			return B3DRTTICast<GameObjectHandleBase>(object);
+			return B3DRTTICast<GameObjectHandle>(object);
 		};
 
-		SPtr<GameObjectHandleBase> originalHandleShared;
-		GameObjectHandleBase* const originalHandle = fnGetOrDecodeHandle(original, originalHandleShared);
+		SPtr<GameObjectHandle> originalHandleShared;
+		GameObjectHandle* const originalHandle = fnGetOrDecodeHandle(original, originalHandleShared);
 		if(!B3D_ENSURE(originalHandle != nullptr))
 			return nullptr;
 
-		SPtr<GameObjectHandleBase> modifiedHandleShared;
-		GameObjectHandleBase* const modifiedHandle = fnGetOrDecodeHandle(modified, modifiedHandleShared);
+		SPtr<GameObjectHandle> modifiedHandleShared;
+		GameObjectHandle* const modifiedHandle = fnGetOrDecodeHandle(modified, modifiedHandleShared);
 		if(!B3D_ENSURE(modifiedHandle != nullptr))
 			return nullptr;
 
@@ -73,7 +73,7 @@ namespace b3d
 		return SerializedObject::Create(*modifiedHandle);
 	}
 
-	class B3D_EXPORT GameObjectHandleRTTI : public TRTTIType<GameObjectHandleBase, IReflectable, GameObjectHandleRTTI>
+	class B3D_EXPORT GameObjectHandleRTTI : public TRTTIType<GameObjectHandle, IReflectable, GameObjectHandleRTTI>
 	{
 		UUID mId;
 
@@ -88,7 +88,7 @@ namespace b3d
 			return kDeltaHandler;
 		}
 
-		void OnOperationStarted(GameObjectHandleBase& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		void OnOperationStarted(GameObjectHandle& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
@@ -111,7 +111,7 @@ namespace b3d
 			}
 		}
 
-		void OnOperationEnded(GameObjectHandleBase& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		void OnOperationEnded(GameObjectHandle& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
@@ -139,7 +139,7 @@ namespace b3d
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return B3DMakeSharedFromExisting<GameObjectHandleBase>(new(B3DAllocate<GameObjectHandleBase>()) GameObjectHandleBase());
+			return B3DMakeSharedFromExisting<GameObjectHandle>(new(B3DAllocate<GameObjectHandle>()) GameObjectHandle());
 		}
 	};
 

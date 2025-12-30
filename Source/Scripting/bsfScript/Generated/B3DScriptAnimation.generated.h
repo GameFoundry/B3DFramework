@@ -22,7 +22,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Animation")
 
-		ScriptAnimation(const GameObjectHandle<Animation>& nativeObject);
+		ScriptAnimation(const TGameObjectHandle<Animation>& nativeObject);
 		~ScriptAnimation();
 
 		static void SetupScriptBindings();

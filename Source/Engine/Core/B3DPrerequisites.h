@@ -884,38 +884,38 @@ namespace b3d
 	 */
 
 	// Game object handles
-	typedef GameObjectHandle<GameObject> HGameObject;
-	typedef GameObjectHandle<SceneObject> HSceneObject;
-	typedef GameObjectHandle<Component> HComponent;
-	typedef GameObjectHandle<Camera> HCamera;
-	typedef GameObjectHandle<Renderable> HRenderable;
-	typedef GameObjectHandle<Light> HLight;
-	typedef GameObjectHandle<Animation> HAnimation;
-	typedef GameObjectHandle<Bone> HBone;
-	typedef GameObjectHandle<Rigidbody> HRigidbody;
-	typedef GameObjectHandle<Collider> HCollider;
-	typedef GameObjectHandle<BoxCollider> HBoxCollider;
-	typedef GameObjectHandle<SphereCollider> HSphereCollider;
-	typedef GameObjectHandle<CapsuleCollider> HCapsuleCollider;
-	typedef GameObjectHandle<PlaneCollider> HPlaneCollider;
-	typedef GameObjectHandle<MeshCollider> HMeshCollider;
-	typedef GameObjectHandle<Joint> HJoint;
-	typedef GameObjectHandle<HingeJoint> HHingeJoint;
-	typedef GameObjectHandle<SliderJoint> HSliderJoint;
-	typedef GameObjectHandle<DistanceJoint> HDistanceJoint;
-	typedef GameObjectHandle<SphericalJoint> HSphericalJoint;
-	typedef GameObjectHandle<FixedJoint> HFixedJoint;
-	typedef GameObjectHandle<D6Joint> HD6Joint;
-	typedef GameObjectHandle<CharacterController> HCharacterController;
-	typedef GameObjectHandle<ReflectionProbe> HReflectionProbe;
-	typedef GameObjectHandle<Skybox> HSkybox;
-	typedef GameObjectHandle<LightProbeVolume> HLightProbeVolume;
-	typedef GameObjectHandle<AudioSource> HAudioSource;
-	typedef GameObjectHandle<AudioListener> HAudioListener;
-	typedef GameObjectHandle<ParticleSystem> HParticleSystem;
-	typedef GameObjectHandle<Decal> HDecal;
-	typedef GameObjectHandle<GUIWidget> HGUIWidget;
-	typedef GameObjectHandle<CProfilerOverlay> HProfilerOverlay;
+	typedef TGameObjectHandle<GameObject> HGameObject;
+	typedef TGameObjectHandle<SceneObject> HSceneObject;
+	typedef TGameObjectHandle<Component> HComponent;
+	typedef TGameObjectHandle<Camera> HCamera;
+	typedef TGameObjectHandle<Renderable> HRenderable;
+	typedef TGameObjectHandle<Light> HLight;
+	typedef TGameObjectHandle<Animation> HAnimation;
+	typedef TGameObjectHandle<Bone> HBone;
+	typedef TGameObjectHandle<Rigidbody> HRigidbody;
+	typedef TGameObjectHandle<Collider> HCollider;
+	typedef TGameObjectHandle<BoxCollider> HBoxCollider;
+	typedef TGameObjectHandle<SphereCollider> HSphereCollider;
+	typedef TGameObjectHandle<CapsuleCollider> HCapsuleCollider;
+	typedef TGameObjectHandle<PlaneCollider> HPlaneCollider;
+	typedef TGameObjectHandle<MeshCollider> HMeshCollider;
+	typedef TGameObjectHandle<Joint> HJoint;
+	typedef TGameObjectHandle<HingeJoint> HHingeJoint;
+	typedef TGameObjectHandle<SliderJoint> HSliderJoint;
+	typedef TGameObjectHandle<DistanceJoint> HDistanceJoint;
+	typedef TGameObjectHandle<SphericalJoint> HSphericalJoint;
+	typedef TGameObjectHandle<FixedJoint> HFixedJoint;
+	typedef TGameObjectHandle<D6Joint> HD6Joint;
+	typedef TGameObjectHandle<CharacterController> HCharacterController;
+	typedef TGameObjectHandle<ReflectionProbe> HReflectionProbe;
+	typedef TGameObjectHandle<Skybox> HSkybox;
+	typedef TGameObjectHandle<LightProbeVolume> HLightProbeVolume;
+	typedef TGameObjectHandle<AudioSource> HAudioSource;
+	typedef TGameObjectHandle<AudioListener> HAudioListener;
+	typedef TGameObjectHandle<ParticleSystem> HParticleSystem;
+	typedef TGameObjectHandle<Decal> HDecal;
+	typedef TGameObjectHandle<GUIWidget> HGUIWidget;
+	typedef TGameObjectHandle<CProfilerOverlay> HProfilerOverlay;
 
 	/** @} */
 } // namespace b3d
@@ -1021,7 +1021,7 @@ namespace b3d
 
 	/** Checks if the object is not null. */
 	template<class T>
-	bool IsValid(const GameObjectHandle<T>& object) { return object.IsValid(); }
+	bool IsValid(const TGameObjectHandle<T>& object) { return object.IsValid(); }
 
 	/** Flags that are provided to the serialization system to control serialization/deserialization. */
 	enum SerializationFlags

@@ -10,7 +10,7 @@
 
 namespace b3d
 {
-	ScriptLight::ScriptLight(const GameObjectHandle<Light>& nativeObject)
+	ScriptLight::ScriptLight(const TGameObjectHandle<Light>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

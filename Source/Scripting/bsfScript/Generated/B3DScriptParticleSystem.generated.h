@@ -15,7 +15,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleSystem")
 
-		ScriptParticleSystem(const GameObjectHandle<ParticleSystem>& nativeObject);
+		ScriptParticleSystem(const TGameObjectHandle<ParticleSystem>& nativeObject);
 		~ScriptParticleSystem();
 
 		static void SetupScriptBindings();

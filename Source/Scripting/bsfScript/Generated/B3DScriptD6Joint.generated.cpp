@@ -14,7 +14,7 @@
 
 namespace b3d
 {
-	ScriptD6Joint::ScriptD6Joint(const GameObjectHandle<D6Joint>& nativeObject)
+	ScriptD6Joint::ScriptD6Joint(const TGameObjectHandle<D6Joint>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

@@ -22,7 +22,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CharacterController")
 
-		ScriptCharacterController(const GameObjectHandle<CharacterController>& nativeObject);
+		ScriptCharacterController(const TGameObjectHandle<CharacterController>& nativeObject);
 		~ScriptCharacterController();
 
 		static void SetupScriptBindings();

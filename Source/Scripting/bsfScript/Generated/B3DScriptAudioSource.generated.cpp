@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	ScriptAudioSource::ScriptAudioSource(const GameObjectHandle<AudioSource>& nativeObject)
+	ScriptAudioSource::ScriptAudioSource(const TGameObjectHandle<AudioSource>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

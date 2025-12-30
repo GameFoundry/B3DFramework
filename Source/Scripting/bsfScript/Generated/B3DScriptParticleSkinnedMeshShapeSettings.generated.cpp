@@ -27,7 +27,7 @@ namespace b3d
 		ParticleSkinnedMeshShapeSettings output;
 		output.Type = value.Type;
 		output.Sequential = value.Sequential;
-		GameObjectHandle<Renderable> tmpRenderable;
+		TGameObjectHandle<Renderable> tmpRenderable;
 		ScriptRenderable* scriptObjectWrapperRenderable;
 		scriptObjectWrapperRenderable = ScriptRenderable::GetScriptObjectWrapper(value.Renderable);
 		if(scriptObjectWrapperRenderable != nullptr)

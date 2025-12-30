@@ -15,7 +15,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ReflectionProbe")
 
-		ScriptReflectionProbe(const GameObjectHandle<ReflectionProbe>& nativeObject);
+		ScriptReflectionProbe(const TGameObjectHandle<ReflectionProbe>& nativeObject);
 		~ScriptReflectionProbe();
 
 		static void SetupScriptBindings();

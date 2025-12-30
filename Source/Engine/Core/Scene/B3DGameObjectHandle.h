@@ -12,7 +12,7 @@ namespace b3d
 	class GameObjectManager;
 
 	template <typename T>
-	class GameObjectHandle;
+	class TGameObjectHandle;
 
 	/**	Contains instance data that is held by all GameObject handles. */
 	struct GameObjectInstanceData
@@ -42,10 +42,10 @@ namespace b3d
 	 * be able to reference another one without the other one knowing. But if that is the case I also need to handle the
 	 * case when the other object we're referencing has been deleted, and that is the main purpose of this class.
 	 */
-	class B3D_EXPORT GameObjectHandleBase : public IReflectable
+	class B3D_EXPORT GameObjectHandle : public IReflectable
 	{
 	public:
-		GameObjectHandleBase()
+		GameObjectHandle()
 			: mSharedHandleData(B3DMakeShared<GameObjectHandleData>(nullptr, UUID::kEmpty))
 		{}
 
@@ -124,7 +124,7 @@ namespace b3d
 		 *
 		 * Note this will affect any other handles sharing the handle data.
 		 */
-		void SetObjectInstanceData(const GameObjectHandleBase& other)
+		void SetObjectInstanceData(const GameObjectHandle& other)
 		{
 			B3D_ASSERT(mSharedHandleData != nullptr);
 			B3D_ASSERT(other.mSharedHandleData != nullptr);
@@ -140,15 +140,15 @@ namespace b3d
 		friend class GameObjectCollection;
 
 		template <class _Ty1, class _Ty2>
-		friend bool operator==(const GameObjectHandle<_Ty1>& lhs, const GameObjectHandle<_Ty2>& rhs);
+		friend bool operator==(const TGameObjectHandle<_Ty1>& lhs, const TGameObjectHandle<_Ty2>& rhs);
 
-		GameObjectHandleBase(const SPtr<GameObject>& object);
+		GameObjectHandle(const SPtr<GameObject>& object);
 
-		GameObjectHandleBase(SPtr<GameObjectHandleData> sharedHandleData)
+		GameObjectHandle(SPtr<GameObjectHandleData> sharedHandleData)
 			: mSharedHandleData(std::move(sharedHandleData))
 		{}
 
-		GameObjectHandleBase(std::nullptr_t)
+		GameObjectHandle(std::nullptr_t)
 			: mSharedHandleData(B3DMakeShared<GameObjectHandleData>(nullptr, UUID::kEmpty))
 		{}
 
@@ -171,46 +171,46 @@ namespace b3d
 	 */
 
 	/**
-	 * @copydoc	GameObjectHandleBase
+	 * @copydoc	GameObjectHandle
 	 *
 	 * @note	It is important this class contains no data since we often value cast it to its base.
 	 */
 	template <typename T>
-	class GameObjectHandle : public GameObjectHandleBase
+	class TGameObjectHandle : public GameObjectHandle
 	{
 	public:
 		/**	Constructs a new empty handle. */
-		GameObjectHandle()
+		TGameObjectHandle()
 		{
 			mSharedHandleData = B3DMakeShared<GameObjectHandleData>();
 		}
 
 		/**	Constructs a new empty handle. */
-		GameObjectHandle(std::nullptr_t)
+		TGameObjectHandle(std::nullptr_t)
 		{
 			mSharedHandleData = B3DMakeShared<GameObjectHandleData>();
 		}
 
 		/**	Copy constructor from another handle of the same type. */
-		GameObjectHandle(const GameObjectHandle<T>& other) = default;
+		TGameObjectHandle(const TGameObjectHandle<T>& other) = default;
 
 		/**	Move constructor from another handle of the same type. */
-		GameObjectHandle(GameObjectHandle<T>&& other) = default;
+		TGameObjectHandle(TGameObjectHandle<T>&& other) = default;
 
 		/** Casting of derived type to base. */
 		template <typename DerivedType, typename = std::enable_if_t<std::is_base_of_v<T, DerivedType>>>
-		GameObjectHandle(const GameObjectHandle<DerivedType>& other)
-			: GameObjectHandle(other.GetSharedHandleData())
+		TGameObjectHandle(const TGameObjectHandle<DerivedType>& other)
+			: TGameObjectHandle(other.GetSharedHandleData())
 		{ }
 
 		/** Casting of derived type to base. */
 		template <typename DerivedType, typename = std::enable_if_t<std::is_base_of_v<T, DerivedType>>>
-		GameObjectHandle(GameObjectHandle<DerivedType>&& other)
-			: GameObjectHandle(std::move(other.GetSharedHandleData()))
+		TGameObjectHandle(TGameObjectHandle<DerivedType>&& other)
+			: TGameObjectHandle(std::move(other.GetSharedHandleData()))
 		{ }
 
 		/**	Invalidates the handle. */
-		GameObjectHandle<T>& operator=(std::nullptr_t)
+		TGameObjectHandle<T>& operator=(std::nullptr_t)
 		{
 			mSharedHandleData = B3DMakeShared<GameObjectHandleData>();
 
@@ -218,10 +218,10 @@ namespace b3d
 		}
 
 		/** Copy assignment */
-		GameObjectHandle<T>& operator=(const GameObjectHandle<T>& other) = default;
+		TGameObjectHandle<T>& operator=(const TGameObjectHandle<T>& other) = default;
 
 		/** Move assignment */
-		GameObjectHandle<T>& operator=(GameObjectHandle<T>&& other) = default;
+		TGameObjectHandle<T>& operator=(TGameObjectHandle<T>&& other) = default;
 
 		/** Returns a pointer to the referenced GameObject. */
 		T* Get() const
@@ -243,13 +243,13 @@ namespace b3d
 
 		/** Attempts to cast the handle to another type. Returns nullptr if cast is not valid. */
 		template<class CastType>
-		GameObjectHandle<CastType> As() const
+		TGameObjectHandle<CastType> As() const
 		{
 			RTTIType* const CastTypeRTTI = CastType::GetRttiStatic();
 			RTTIType* const MyTypeRTTI = T::GetRttiStatic();
 
 			if(CastTypeRTTI->IsDerivedFrom(MyTypeRTTI))
-				return GameObjectHandle<CastType>(GetSharedHandleData());
+				return TGameObjectHandle<CastType>(GetSharedHandleData());
 
 			return nullptr;
 		}
@@ -287,33 +287,33 @@ namespace b3d
 
 	protected:
 		template <class _Ty1, class _Ty2>
-		friend GameObjectHandle<_Ty1> B3DStaticGameObjectCast(const GameObjectHandle<_Ty2>& other);
+		friend TGameObjectHandle<_Ty1> B3DStaticGameObjectCast(const TGameObjectHandle<_Ty2>& other);
 
 		template <class _Ty1>
-		friend GameObjectHandle<_Ty1> B3DStaticGameObjectCast(const GameObjectHandleBase& other);
+		friend TGameObjectHandle<_Ty1> B3DStaticGameObjectCast(const GameObjectHandle& other);
 
-		GameObjectHandle(SPtr<GameObjectHandleData> data)
-			: GameObjectHandleBase(std::move(data))
+		TGameObjectHandle(SPtr<GameObjectHandleData> data)
+			: GameObjectHandle(std::move(data))
 		{}
 	};
 
 	/**	Casts one GameObject handle type to another. */
 	template <class _Ty1, class _Ty2>
-	GameObjectHandle<_Ty1> B3DStaticGameObjectCast(const GameObjectHandle<_Ty2>& other)
+	TGameObjectHandle<_Ty1> B3DStaticGameObjectCast(const TGameObjectHandle<_Ty2>& other)
 	{
-		return GameObjectHandle<_Ty1>(other.GetSharedHandleData());
+		return TGameObjectHandle<_Ty1>(other.GetSharedHandleData());
 	}
 
 	/**	Casts a generic GameObject handle to a specific one . */
 	template <class T>
-	GameObjectHandle<T> B3DStaticGameObjectCast(const GameObjectHandleBase& other)
+	TGameObjectHandle<T> B3DStaticGameObjectCast(const GameObjectHandle& other)
 	{
-		return GameObjectHandle<T>(other.GetSharedHandleData());
+		return TGameObjectHandle<T>(other.GetSharedHandleData());
 	}
 
 	/**	Compares if two handles point to the same GameObject. */
 	template <class _Ty1, class _Ty2>
-	bool operator==(const GameObjectHandle<_Ty1>& lhs, const GameObjectHandle<_Ty2>& rhs)
+	bool operator==(const TGameObjectHandle<_Ty1>& lhs, const TGameObjectHandle<_Ty2>& rhs)
 	{
 		if(lhs.GetId() != rhs.GetId())
 			return false;
@@ -332,7 +332,7 @@ namespace b3d
 
 	/**	Compares if two handles point to different GameObject%s. */
 	template <class _Ty1, class _Ty2>
-	bool operator!=(const GameObjectHandle<_Ty1>& lhs, const GameObjectHandle<_Ty2>& rhs)
+	bool operator!=(const TGameObjectHandle<_Ty1>& lhs, const TGameObjectHandle<_Ty2>& rhs)
 	{
 		return (!(lhs == rhs));
 	}

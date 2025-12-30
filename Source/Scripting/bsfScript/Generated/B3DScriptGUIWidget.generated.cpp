@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	ScriptGUIWidget::ScriptGUIWidget(const GameObjectHandle<GUIWidget>& nativeObject)
+	ScriptGUIWidget::ScriptGUIWidget(const TGameObjectHandle<GUIWidget>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

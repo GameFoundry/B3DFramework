@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SphericalJoint")
 
-		ScriptSphericalJoint(const GameObjectHandle<SphericalJoint>& nativeObject);
+		ScriptSphericalJoint(const TGameObjectHandle<SphericalJoint>& nativeObject);
 		~ScriptSphericalJoint();
 
 		static void SetupScriptBindings();

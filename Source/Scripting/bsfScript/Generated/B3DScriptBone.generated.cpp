@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	ScriptBone::ScriptBone(const GameObjectHandle<Bone>& nativeObject)
+	ScriptBone::ScriptBone(const TGameObjectHandle<Bone>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

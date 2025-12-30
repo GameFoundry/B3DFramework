@@ -160,7 +160,7 @@ namespace b3d
 		/** @} */
 
 	protected:
-		friend class GameObjectHandleBase;
+		friend class GameObjectHandle;
 		friend class GameObjectManager;
 		friend class GameObjectCollection;
 		friend class SceneObjectHierarchyDelta;

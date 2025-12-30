@@ -174,7 +174,7 @@ PrefabIdRemapper::PrefabObjectIdAndLinkInformation PrefabIdRemapper::DeduceInter
 	return output;
 }
 
-void PrefabIdRemapper::AssignInternalPrefabIds(GameObjectHandleBase& gameObject, const UUID& gameObjectIdInPrefab, const PrefabLinkInformation& linkInformationInPrefab, const UUID& rootPrefabResourceId, i32 nestingLevel)
+void PrefabIdRemapper::AssignInternalPrefabIds(GameObjectHandle& gameObject, const UUID& gameObjectIdInPrefab, const PrefabLinkInformation& linkInformationInPrefab, const UUID& rootPrefabResourceId, i32 nestingLevel)
 {
 	mNewGameObjectCollection->ChangeGameObjectId(gameObject, gameObjectIdInPrefab);
 

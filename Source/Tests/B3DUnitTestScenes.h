@@ -181,7 +181,7 @@ namespace b3d
 		void AddNewObjectIds(HSceneObject object) { AddOrUpdateIds(object, true, true, true); }
 		void AddNewObjectIds() { AddNewObjectIds(Root); }
 
-		void SetFlagOnObject(const GameObjectHandleBase& object, UnitTestSceneObjectFlags flags);
+		void SetFlagOnObject(const GameObjectHandle& object, UnitTestSceneObjectFlags flags);
 
 		/** Check if all current game object match the original recorded IDs. */
 		void TestAssertHierarchyMatchesOriginalIds(TestSuite& testSuite);

@@ -18,7 +18,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIWidget")
 
-		ScriptGUIWidget(const GameObjectHandle<GUIWidget>& nativeObject);
+		ScriptGUIWidget(const TGameObjectHandle<GUIWidget>& nativeObject);
 		~ScriptGUIWidget();
 
 		static void SetupScriptBindings();

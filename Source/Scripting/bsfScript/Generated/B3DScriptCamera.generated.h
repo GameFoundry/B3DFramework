@@ -22,7 +22,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Camera")
 
-		ScriptCamera(const GameObjectHandle<Camera>& nativeObject);
+		ScriptCamera(const TGameObjectHandle<Camera>& nativeObject);
 		~ScriptCamera();
 
 		static void SetupScriptBindings();

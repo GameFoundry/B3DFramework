@@ -12,7 +12,7 @@
 
 namespace b3d
 {
-	ScriptLightProbeVolume::ScriptLightProbeVolume(const GameObjectHandle<LightProbeVolume>& nativeObject)
+	ScriptLightProbeVolume::ScriptLightProbeVolume(const TGameObjectHandle<LightProbeVolume>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();

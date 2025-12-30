@@ -21,7 +21,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Rigidbody")
 
-		ScriptRigidbody(const GameObjectHandle<Rigidbody>& nativeObject);
+		ScriptRigidbody(const TGameObjectHandle<Rigidbody>& nativeObject);
 		~ScriptRigidbody();
 
 		static void SetupScriptBindings();

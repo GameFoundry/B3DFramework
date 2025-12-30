@@ -61,6 +61,6 @@ namespace b3d
 		UnitTestComponentB() {} // Serialization only
 	};
 
-	using HUnitTestComponentA = GameObjectHandle<UnitTestComponentA>;
-	using HUnitTestComponentB = GameObjectHandle<UnitTestComponentB>;
+	using HUnitTestComponentA = TGameObjectHandle<UnitTestComponentA>;
+	using HUnitTestComponentB = TGameObjectHandle<UnitTestComponentB>;
 } // namespace b3d

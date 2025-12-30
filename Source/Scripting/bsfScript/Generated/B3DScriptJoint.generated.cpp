@@ -29,7 +29,7 @@ namespace b3d
 		OnJointBreakConnection.Disconnect();
 		ScriptGameObjectWrapper::UnregisterEvents();
 	}
-	ScriptJoint::ScriptJoint(const GameObjectHandle<Joint>& nativeObject)
+	ScriptJoint::ScriptJoint(const TGameObjectHandle<Joint>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -72,7 +72,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		GameObjectHandle<Rigidbody> tmpvalue;
+		TGameObjectHandle<Rigidbody> tmpvalue;
 		ScriptRigidbody* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRigidbody::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -82,7 +82,7 @@ namespace b3d
 
 	MonoObject* ScriptJoint::InternalGetBody(ScriptJointWrapperBase* self, JointBody body)
 	{
-		GameObjectHandle<Rigidbody> tmp__output;
+		TGameObjectHandle<Rigidbody> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 

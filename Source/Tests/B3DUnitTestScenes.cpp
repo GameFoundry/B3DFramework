@@ -299,7 +299,7 @@ void UnitTestSceneB::AddOrUpdateIds(HSceneObject object, bool updatePrefabObject
 	}, nullptr, true);
 }
 
-void UnitTestSceneB::SetFlagOnObject(const GameObjectHandleBase& object, UnitTestSceneObjectFlags flags)
+void UnitTestSceneB::SetFlagOnObject(const GameObjectHandle& object, UnitTestSceneObjectFlags flags)
 {
 	auto found = ObjectInformation.find(object.GetId());
 	if(!B3D_ENSURE(found != ObjectInformation.end()))
