@@ -745,7 +745,7 @@ namespace b3d::render
 
 		// Create uniform buffers
 		renderBuffers.RenderUniformBuffer = gVectorGraphicsRenderUniforms.CreateBuffer(uniformBlockCount);
-		B3D_ASSERT(render::gVectorGraphicsRenderUniforms.GetSize() == sizeof(NVGRenderUniforms)); // TODO - I need a way to assign parameter block entries into a particular uniform block, so I don't just do a memcpy (it might not work everywhere)
+		B3D_ASSERT(render::gVectorGraphicsRenderUniforms.GetSize() == sizeof(NVGRenderUniforms)); // TODO - I need a way to assign uniforms into a particular uniform buffer, so I don't just do a memcpy (it might not work everywhere)
 
 		NVGRenderUniforms simplePassUniforms;
 		B3DZeroOut(simplePassUniforms);

@@ -208,10 +208,10 @@ void RendererParticles::PopulateAndBindParticlesUniformBuffer(i32 texSize, i32 b
 	// Set UV parameters from sprite image if available
 	const SPtr<Shader> shader = RenderElement.Material->GetShader();
 	SpriteImage* spriteImage = nullptr;
-	if(shader->HasTextureParam("gTexture"))
+	if(shader->HasTextureParameter("gTexture"))
 		spriteImage = RenderElement.Material->GetSpriteImage("gTexture").get();
 
-	if(!spriteImage && shader->HasTextureParam("gAlbedoTex"))
+	if(!spriteImage && shader->HasTextureParameter("gAlbedoTex"))
 		spriteImage = RenderElement.Material->GetSpriteImage("gAlbedoTex").get();
 
 	if(spriteImage)

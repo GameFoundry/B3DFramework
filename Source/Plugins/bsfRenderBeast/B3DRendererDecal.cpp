@@ -11,7 +11,7 @@
 namespace b3d {
 namespace render {
 
-DecalParamDef gDecalParamDef;
+DecalUniformDefinition gDecalUniformDefinition;
 
 void DecalRenderElement::Draw(GpuCommandBuffer& commandBuffer) const
 {

@@ -224,7 +224,7 @@ void VulkanGpuParameterSet::Initialize()
 
 				if(!useView)
 				{
-					const bool isParameterBlock =
+					const bool isUniformBuffer =
 						writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
 						writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 
@@ -237,7 +237,7 @@ void VulkanGpuParameterSet::Initialize()
 						bufferInfos[arrayIndex].offset = 0;
 						bufferInfos[arrayIndex].range = VK_WHOLE_SIZE;
 
-						if(isParameterBlock)
+						if(isUniformBuffer)
 						{
 							VulkanGpuBuffer* const buffer = builtinResources.DummyUniformBuffer.get();
 							bufferInfos[arrayIndex].buffer = buffer->GetVulkanResource()->GetVulkanHandle();

@@ -944,26 +944,26 @@ void VulkanGpuDevice::InitializeCapabilities()
 	mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Down;
 	mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;
 
-	mCapabilities.MaxBoundVertexBuffers = deviceLimits.maxVertexInputBindings;
-	mCapabilities.NumMultiRenderTargets = deviceLimits.maxColorAttachments;
+	mCapabilities.VertexBufferCount = deviceLimits.maxVertexInputBindings;
+	mCapabilities.RenderTargetCount = deviceLimits.maxColorAttachments;
 
-	mCapabilities.NumTextureUnitsPerStage[GPT_FRAGMENT_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
-	mCapabilities.NumTextureUnitsPerStage[GPT_VERTEX_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
-	mCapabilities.NumTextureUnitsPerStage[GPT_COMPUTE_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+	mCapabilities.SampledTexturesPerStage[GPT_FRAGMENT_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+	mCapabilities.SampledTexturesPerStage[GPT_VERTEX_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+	mCapabilities.SampledTexturesPerStage[GPT_COMPUTE_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
 
-	mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_FRAGMENT_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
-	mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_VERTEX_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
-	mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_COMPUTE_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+	mCapabilities.UniformBufferCountPerStage[GPT_FRAGMENT_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+	mCapabilities.UniformBufferCountPerStage[GPT_VERTEX_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+	mCapabilities.UniformBufferCountPerStage[GPT_COMPUTE_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
 
-	mCapabilities.NumLoadStoreTextureUnitsPerStage[GPT_FRAGMENT_PROGRAM] = deviceLimits.maxPerStageDescriptorStorageImages;
-	mCapabilities.NumLoadStoreTextureUnitsPerStage[GPT_COMPUTE_PROGRAM] = deviceLimits.maxPerStageDescriptorStorageImages;
+	mCapabilities.StorageTexturesPerStage[GPT_FRAGMENT_PROGRAM] = deviceLimits.maxPerStageDescriptorStorageImages;
+	mCapabilities.StorageTexturesPerStage[GPT_COMPUTE_PROGRAM] = deviceLimits.maxPerStageDescriptorStorageImages;
 
 	if(deviceFeatures.geometryShader)
 	{
 		mCapabilities.SetCapability(RSC_GEOMETRY_PROGRAM);
 		mCapabilities.AddShaderProfile("gs_5_0");
-		mCapabilities.NumTextureUnitsPerStage[GPT_GEOMETRY_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
-		mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_GEOMETRY_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+		mCapabilities.SampledTexturesPerStage[GPT_GEOMETRY_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+		mCapabilities.UniformBufferCountPerStage[GPT_GEOMETRY_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
 		mCapabilities.GeometryProgramNumOutputVertices = deviceLimits.maxGeometryOutputVertices;
 	}
 
@@ -971,18 +971,18 @@ void VulkanGpuDevice::InitializeCapabilities()
 	{
 		mCapabilities.SetCapability(RSC_TESSELLATION_PROGRAM);
 
-		mCapabilities.NumTextureUnitsPerStage[GPT_HULL_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
-		mCapabilities.NumTextureUnitsPerStage[GPT_DOMAIN_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+		mCapabilities.SampledTexturesPerStage[GPT_HULL_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+		mCapabilities.SampledTexturesPerStage[GPT_DOMAIN_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
 
-		mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_HULL_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
-		mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_DOMAIN_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+		mCapabilities.UniformBufferCountPerStage[GPT_HULL_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+		mCapabilities.UniformBufferCountPerStage[GPT_DOMAIN_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
 	}
 
-	mCapabilities.NumCombinedTextureUnits = mCapabilities.NumTextureUnitsPerStage[GPT_FRAGMENT_PROGRAM] + mCapabilities.NumTextureUnitsPerStage[GPT_VERTEX_PROGRAM] + mCapabilities.NumTextureUnitsPerStage[GPT_GEOMETRY_PROGRAM] + mCapabilities.NumTextureUnitsPerStage[GPT_HULL_PROGRAM] + mCapabilities.NumTextureUnitsPerStage[GPT_DOMAIN_PROGRAM] + mCapabilities.NumTextureUnitsPerStage[GPT_COMPUTE_PROGRAM];
+	mCapabilities.TotalSampledTexturesCount = mCapabilities.SampledTexturesPerStage[GPT_FRAGMENT_PROGRAM] + mCapabilities.SampledTexturesPerStage[GPT_VERTEX_PROGRAM] + mCapabilities.SampledTexturesPerStage[GPT_GEOMETRY_PROGRAM] + mCapabilities.SampledTexturesPerStage[GPT_HULL_PROGRAM] + mCapabilities.SampledTexturesPerStage[GPT_DOMAIN_PROGRAM] + mCapabilities.SampledTexturesPerStage[GPT_COMPUTE_PROGRAM];
 
-	mCapabilities.NumCombinedParamBlockBuffers = mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_FRAGMENT_PROGRAM] + mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_VERTEX_PROGRAM] + mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_GEOMETRY_PROGRAM] + mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_HULL_PROGRAM] + mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_DOMAIN_PROGRAM] + mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_COMPUTE_PROGRAM];
+	mCapabilities.TotalUniformBuffersCount = mCapabilities.UniformBufferCountPerStage[GPT_FRAGMENT_PROGRAM] + mCapabilities.UniformBufferCountPerStage[GPT_VERTEX_PROGRAM] + mCapabilities.UniformBufferCountPerStage[GPT_GEOMETRY_PROGRAM] + mCapabilities.UniformBufferCountPerStage[GPT_HULL_PROGRAM] + mCapabilities.UniformBufferCountPerStage[GPT_DOMAIN_PROGRAM] + mCapabilities.UniformBufferCountPerStage[GPT_COMPUTE_PROGRAM];
 
-	mCapabilities.NumCombinedLoadStoreTextureUnits = mCapabilities.NumLoadStoreTextureUnitsPerStage[GPT_FRAGMENT_PROGRAM] + mCapabilities.NumLoadStoreTextureUnitsPerStage[GPT_COMPUTE_PROGRAM];
+	mCapabilities.TotalStorageTexturesCount = mCapabilities.StorageTexturesPerStage[GPT_FRAGMENT_PROGRAM] + mCapabilities.StorageTexturesPerStage[GPT_COMPUTE_PROGRAM];
 	mCapabilities.MinimumUniformBufferOffsetAlignment = (u32)deviceLimits.minUniformBufferOffsetAlignment;
 	mCapabilities.OptimalBufferToBufferCopyOffsetAlignment = (u32)deviceLimits.optimalBufferCopyOffsetAlignment;
 	mCapabilities.OptimalBufferToImageCopyOffsetAlignment = (u32)deviceLimits.optimalBufferCopyRowPitchAlignment;

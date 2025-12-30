@@ -64,7 +64,7 @@ void SpriteMaterial::Initialize()
 	fnPrepareVariation(mWithoutClippingVariationIndex);
 
 	SPtr<render::Shader> shader = mMaterial->GetShader();
-	if(shader->HasTextureParam("gMainTexture"))
+	if(shader->HasTextureParameter("gMainTexture"))
 	{
 		mTextureParameter = mMaterial->GetParamTexture("gMainTexture");
 		mSamplerParameter = mMaterial->GetParamSamplerState("gMainTexSamp");

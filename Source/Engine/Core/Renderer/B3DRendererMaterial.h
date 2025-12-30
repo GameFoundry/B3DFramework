@@ -293,7 +293,7 @@ namespace b3d
 					return;
 				}
 
-				const Vector<SPtr<Variation>> variations = mMetaData.Shader->GetCompatibleTechniques();
+				const Vector<SPtr<Variation>> variations = mMetaData.Shader->GetCompatibleVariations();
 
 				static TInlineArray<RendererMaterialVariationInformation, 4> newVariationInformation;
 				static ShaderVariations newVariationParameterSet;
@@ -498,7 +498,7 @@ namespace b3d
 			mGpuParameterSet = CreateGpuParameterSet();
 
 			// Assign default values from the shader
-			const auto& textureParams = mShader->GetTextureParams();
+			const auto& textureParams = mShader->GetTextureParameters();
 			for(auto& param : textureParams)
 			{
 				u32 defaultValueIdx = param.second.DefaultValueIndex;
@@ -515,7 +515,7 @@ namespace b3d
 				}
 			}
 
-			const auto& samplerParams = mShader->GetSamplerParams();
+			const auto& samplerParams = mShader->GetSamplerParameters();
 			for(auto& param : samplerParams)
 			{
 				u32 defaultValueIdx = param.second.DefaultValueIndex;

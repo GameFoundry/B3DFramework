@@ -573,7 +573,7 @@ namespace b3d
 		TID_BlendStateInformation = 1034,
 		TID_ShaderDataParameterInformation = 1035,
 		TID_ShaderObjectParameterInformation = 1036,
-		TID_ShaderParameterBlockInformation = 1047,
+		TID_ShaderUniformBufferInformation = 1047,
 		TID_ImportOptions = 1048,
 		TID_Font = 1051,
 		//TID_FONT_DESC = 1052,

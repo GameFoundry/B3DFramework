@@ -166,7 +166,7 @@ bool AreParamsEqual(const GpuUniformBufferMemberInformation& paramA, const GpuUn
 	return equal;
 }
 
-Vector<ShaderUniformBuffer> DetermineValidShareableUniformBuffers(const Vector<SPtr<GpuProgramParameterDescription>>& paramDescs, const Map<String, ShaderParameterBlockInformation>& shaderDesc)
+Vector<ShaderUniformBuffer> DetermineValidShareableUniformBuffers(const Vector<SPtr<GpuProgramParameterDescription>>& paramDescs, const Map<String, ShaderUniformBufferInformation>& shaderUniformInformation)
 {
 	struct UniformBufferInfo
 	{
@@ -259,8 +259,8 @@ Vector<ShaderUniformBuffer> DetermineValidShareableUniformBuffers(const Vector<S
 		shaderBlockDesc.Set = curBlock.Set;
 		shaderBlockDesc.Slot = curBlock.Slot;
 
-		auto iterFind = shaderDesc.find(entry.first);
-		if(iterFind != shaderDesc.end())
+		auto iterFind = shaderUniformInformation.find(entry.first);
+		if(iterFind != shaderUniformInformation.end())
 		{
 			shaderBlockDesc.External = iterFind->second.Shared || iterFind->second.RendererSemantic != StringID::kNone;
 			shaderBlockDesc.Flags = iterFind->second.Flags;
@@ -348,33 +348,33 @@ Vector<const GpuObjectParameterInformation*> DetermineValidObjectParameters(cons
 	return validParams;
 }
 
-Map<String, String> DetermineParameterToBlockMapping(const Vector<SPtr<GpuProgramParameterDescription>>& paramDescs)
+Map<String, String> DetermineMemberToUniformBufferMapping(const Vector<SPtr<GpuProgramParameterDescription>>& memberDescriptors)
 {
-	Map<String, String> paramToParamBlock;
+	Map<String, String> memberToUniformBuffer;
 
-	for(auto iter = paramDescs.begin(); iter != paramDescs.end(); ++iter)
+	for(auto iter = memberDescriptors.begin(); iter != memberDescriptors.end(); ++iter)
 	{
 		const GpuProgramParameterDescription& curDesc = **iter;
 		for(auto iter2 = curDesc.UniformBufferMembers.begin(); iter2 != curDesc.UniformBufferMembers.end(); ++iter2)
 		{
 			const GpuUniformBufferMemberInformation& curParam = iter2->second;
 
-			auto iterFind = paramToParamBlock.find(curParam.Name);
-			if(iterFind != paramToParamBlock.end())
+			auto iterFind = memberToUniformBuffer.find(curParam.Name);
+			if(iterFind != memberToUniformBuffer.end())
 				continue;
 
 			for(auto iterBlock = curDesc.UniformBuffers.begin(); iterBlock != curDesc.UniformBuffers.end(); ++iterBlock)
 			{
 				if(iterBlock->second.Set == curParam.ParentUniformBufferSet && iterBlock->second.Slot == curParam.ParentUniformBufferSlot)
 				{
-					paramToParamBlock[curParam.Name] = iterBlock->second.Name;
+					memberToUniformBuffer[curParam.Name] = iterBlock->second.Name;
 					break;
 				}
 			}
 		}
 	}
 
-	return paramToParamBlock;
+	return memberToUniformBuffer;
 }
 
 UnorderedMap<ValidParamKey, String> DetermineValidParameters(const Vector<SPtr<GpuProgramParameterDescription>>& paramDescs, const Map<String, ShaderDataParameterInformation>& dataParams, const Map<String, ShaderObjectParameterInformation>& textureParams, const Map<String, ShaderObjectParameterInformation>& bufferParams, const Map<String, ShaderObjectParameterInformation>& samplerParams)
@@ -383,7 +383,7 @@ UnorderedMap<ValidParamKey, String> DetermineValidParameters(const Vector<SPtr<G
 
 	Map<String, const GpuUniformBufferMemberInformation*> validDataParameters = DetermineValidDataParameters(paramDescs);
 	Vector<const GpuObjectParameterInformation*> validObjectParameters = DetermineValidObjectParameters(paramDescs);
-	Map<String, String> paramToParamBlockMap = DetermineParameterToBlockMapping(paramDescs);
+	Map<String, String> memberToUniformBuffer = DetermineMemberToUniformBufferMapping(paramDescs);
 
 	// Create data param mappings
 	for(auto iter = dataParams.begin(); iter != dataParams.end(); ++iter)
@@ -403,9 +403,9 @@ UnorderedMap<ValidParamKey, String> DetermineValidParameters(const Vector<SPtr<G
 			continue;
 		}
 
-		auto findBlockIter = paramToParamBlockMap.find(iter->second.GpuVariableName);
+		auto findBlockIter = memberToUniformBuffer.find(iter->second.GpuVariableName);
 
-		if(findBlockIter == paramToParamBlockMap.end())
+		if(findBlockIter == memberToUniformBuffer.end())
 			B3D_EXCEPT(InternalErrorException, "Parameter doesn't exist in param to uniform buffer map but exists in valid param map.");
 
 		ValidParamKey key(iter->second.GpuVariableName, MaterialParameters::ParamType::Data);
@@ -528,13 +528,13 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 
 	// Create and assign uniform buffers
 	//// Fill out various helper structures
-	Vector<ShaderUniformBuffer> uniformBufferData = DetermineValidShareableUniformBuffers(allParameterDescriptions, shader->GetParamBlocks());
+	Vector<ShaderUniformBuffer> uniformBufferData = DetermineValidShareableUniformBuffers(allParameterDescriptions, shader->GetUniformBuffers());
 	UnorderedMap<ValidParamKey, String> validParams = DetermineValidParameters(
 		allParameterDescriptions,
-		shader->GetDataParams(),
-		shader->GetTextureParams(),
-		shader->GetBufferParams(),
-		shader->GetSamplerParams());
+		shader->GetDataParameters(),
+		shader->GetTextureParameters(),
+		shader->GetBufferParameters(),
+		shader->GetSamplerParameters());
 
 	Map<String, UniformBufferPointerType> uniformBuffers;
 
@@ -563,14 +563,14 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 			// Assign shareable buffers to all GpuParameterSet objects that have them
 			for(auto& buffer : uniformBufferData)
 			{
-				const String& paramBlockName = buffer.Name;
-				UniformBufferPointerType uniformBuffer = uniformBuffers[paramBlockName];
+				const String& uniformBufferName = buffer.Name;
+				UniformBufferPointerType uniformBuffer = uniformBuffers[uniformBufferName];
 
 				for(u32 setIndex = 0; setIndex < gpuParametersForPass.Size(); setIndex++)
 				{
 					SPtr<GpuParametersType>& gpuParameters = gpuParametersForPass[setIndex];
-					if(gpuParameters && gpuParameters->HasUniformBuffer(paramBlockName))
-						gpuParameters->SetUniformBuffer(paramBlockName, uniformBuffer);
+					if(gpuParameters && gpuParameters->HasUniformBuffer(uniformBufferName))
+						gpuParameters->SetUniformBuffer(uniformBufferName, uniformBuffer);
 				}
 			}
 
@@ -638,8 +638,8 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 
 	// Add buffers defined in shader but not actually used by GPU programs (so we can check if user is providing a
 	// valid buffer name)
-	auto& allParamBlocks = shader->GetParamBlocks();
-	for(auto& entry : allParamBlocks)
+	auto& allUniformBuffers = shader->GetUniformBuffers();
+	for(auto& entry : allUniformBuffers)
 	{
 		auto iterFind = std::find_if(mUniformBuffers.begin(), mUniformBuffers.end(), [&](auto& x)
 									 { return x.Name == entry.first; });

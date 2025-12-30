@@ -27,7 +27,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_UNIFORM_BUFFER_BEGIN(PerCameraParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(PerCameraUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gViewDir)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gViewOrigin)
 			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gMatViewProj)
@@ -48,7 +48,7 @@ namespace b3d
 			B3D_UNIFORM_BUFFER_MEMBER(float, gAmbientFactor)
 		B3D_UNIFORM_BUFFER_END
 
-		extern PerCameraParamDef gPerCameraUniformDefinition;
+		extern PerCameraUniformDefinition gPerCameraUniformDefinition;
 
 		B3D_UNIFORM_BUFFER_BEGIN(SkyboxUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Color, gClearColor)

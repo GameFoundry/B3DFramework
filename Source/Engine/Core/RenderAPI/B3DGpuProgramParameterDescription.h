@@ -55,7 +55,7 @@ namespace b3d
 		GpuProgramStageBits Stages = GpuProgramStageBit::None; /**< Stages in which the parameter is used in. */
 	};
 
-	/**	Describes a GPU program parameter block (collection of GPU program data parameters). */
+	/**	Describes a GPU program uniform buffer (collection of GPU program data parameters). */
 	struct GpuUniformBufferInformation
 	{
 		String Name;
@@ -66,7 +66,7 @@ namespace b3d
 		bool IsShareable; /** True for blocks that can be shared between different GPU pipeline stages. */
 	};
 
-	/** Contains information about all parameters (i.e. uniforms) for a single GPU program, including data/object parameters and parameter blocks. */
+	/** Contains information about all parameters (i.e. uniforms) for a single GPU program, including data/object parameters and uniform buffers. */
 	struct B3D_EXPORT GpuProgramParameterDescription : IReflectable
 	{
 		Map<String, GpuUniformBufferInformation> UniformBuffers;

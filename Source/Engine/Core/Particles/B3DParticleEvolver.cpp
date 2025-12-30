@@ -74,14 +74,14 @@ void ParticleTextureAnimation::Evolve(Random& random, const ParticleSystemState&
 	if(material.IsLoaded(false))
 	{
 		const HShader& shader = material->GetShader();
-		if(shader->HasTextureParam("gTexture"))
+		if(shader->HasTextureParameter("gTexture"))
 		{
 			const HSpriteImage& spriteImage = material->GetSpriteImage("gTexture");
 			if(spriteImage.IsLoaded(true))
 				image = spriteImage.Get();
 		}
 
-		if(shader->HasTextureParam("gAlbedoTex"))
+		if(shader->HasTextureParameter("gAlbedoTex"))
 		{
 			const HSpriteImage& spriteImage = material->GetSpriteImage("gAlbedoTex");
 			if(spriteImage.IsLoaded(true))

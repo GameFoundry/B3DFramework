@@ -20,7 +20,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		B3D_UNIFORM_BUFFER_BEGIN(DecalParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(DecalUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Matrix4, gWorldToDecal)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gDecalNormal)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gNormalTolerance)
@@ -28,7 +28,7 @@ namespace b3d
 			B3D_UNIFORM_BUFFER_MEMBER(i32, gLayerMask)
 		B3D_UNIFORM_BUFFER_END
 
-		extern DecalParamDef gDecalParamDef;
+		extern DecalUniformDefinition gDecalUniformDefinition;
 
 		struct MaterialSamplerOverrides;
 

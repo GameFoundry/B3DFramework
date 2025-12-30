@@ -285,7 +285,7 @@ namespace b3d
 		/**	Checks if sampler state parameter with the specified name exists. */
 		bool HasSamplerState(const StringView& name) const;
 
-		/** Checks if a parameter block with the specified name exists for the specific GPU program type. */
+		/** Checks if a uniform buffer with the specified name exists for the specific GPU program type. */
 		bool HasUniformBuffer(const StringView& name) const;
 
 		/** Marks the main thread object as dirty, causing it to sync its contents with its render thread counterpart. */
@@ -397,7 +397,7 @@ namespace b3d
 
 		/**
 		 * Sets an uniform buffer with the specified name in all GPU programs containing a buffer with that name. It is up to the caller to guarantee the provided buffer matches
-		 * parameter block descriptor for this slot.
+		 * uniform buffer descriptor for this slot.
 		 *
 		 * @param	name		Name of the buffer to bind.
 		 * @param	buffer		Buffer to bind.
@@ -407,8 +407,8 @@ namespace b3d
 		 */
 		bool SetUniformBuffer(const StringView& name, const UniformBufferType& buffer, u32 arrayIndex = 0, u32 offset = 0);
 
-		/** Equivalent to SetParamBlockBuffer(const String&, const UniformBufferType&, u32, u32), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
-		bool TrySetUniformBuffer(const StringView& name, const UniformBufferType& parameterBlockBuffer, u32 arrayIndex = 0, u32 offset = 0);
+		/** Equivalent to SetUniformBuffer(const String&, const UniformBufferType&, u32, u32), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
+		bool TrySetUniformBuffer(const StringView& name, const UniformBufferType& uniformBuffer, u32 arrayIndex = 0, u32 offset = 0);
 
 		/**
 		 * Sets a texture at the specified slot.

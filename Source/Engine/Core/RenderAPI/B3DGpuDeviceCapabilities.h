@@ -148,29 +148,29 @@ namespace b3d
 		/** Vendor of the GPU device. */
 		GPUVendor DeviceVendor = GPU_UNKNOWN; // TODO - Move outside of capabilities into a separate structure
 
-		/** The number of texture units available per stage. */
-		u16 NumTextureUnitsPerStage[GPT_COUNT]{ 0 };
+		/** The number of sampled textures that can be bound per stage. */
+		u16 SampledTexturesPerStage[GPT_COUNT]{ 0 };
 
-		/** Total number of texture units available. */
-		u16 NumCombinedTextureUnits = 0;
+		/** Total number of sampled textures that can be bound. */
+		u16 TotalSampledTexturesCount = 0;
 
-		/** The number of parameter block buffers available per stage. */
-		u16 NumGpuParamBlockBuffersPerStage[GPT_COUNT]{ 0 };
+		/** The number of uniform buffers that can be bound per stage. */
+		u16 UniformBufferCountPerStage[GPT_COUNT]{ 0 };
 
-		/** Total number of parameter block buffers available. */
-		u16 NumCombinedParamBlockBuffers = 0;
+		/** Total number of uniform buffers that can be bound. */
+		u16 TotalUniformBuffersCount = 0;
 
-		/** The number of load-store texture unitss available per stage. */
-		u16 NumLoadStoreTextureUnitsPerStage[GPT_COUNT]{ 0 };
+		/** The number of storage (load/store, UAV) textures that can be bound. */
+		u16 StorageTexturesPerStage[GPT_COUNT]{ 0 };
 
-		/** Total number of load-store texture units available. */
-		u16 NumCombinedLoadStoreTextureUnits = 0;
+		/** Total number of storage (load/store, UAV) textures that can be bound. */
+		u16 TotalStorageTexturesCount = 0;
 
 		/** Maximum number of vertex buffers we can bind at once. */
-		u32 MaxBoundVertexBuffers = 0;
+		u32 VertexBufferCount = 0;
 
 		/** The number of simultaneous render targets supported. */
-		u16 NumMultiRenderTargets = 0;
+		u16 RenderTargetCount = 0;
 
 		/** The number of vertices a geometry program can emit in a single run. */
 		u32 GeometryProgramNumOutputVertices = 0;

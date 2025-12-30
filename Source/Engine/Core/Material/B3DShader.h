@@ -72,9 +72,7 @@ namespace b3d
 
 		ShaderDataParameterInformation(String name, String gpuVariableName, GpuDataParameterType type, StringID rendererSemantic = StringID::kNone, u32 arraySize = 1, u32 elementSize = 0)
 			: ShaderParameterInformation(std::move(name), std::move(gpuVariableName), rendererSemantic)
-			, Type(type)
-			, ArraySize(arraySize)
-			, ElementSize(elementSize)
+			, Type(type) , ArraySize(arraySize) , ElementSize(elementSize)
 		{}
 
 		/** The type of the parameter, must be the same as the type in GpuProgram. */
@@ -110,8 +108,8 @@ namespace b3d
 		Vector<String> GpuVariableNames; /**< Names of all GPU variables this shader parameter maps to. */
 	};
 
-	/** Describes a shader parameter block. */
-	struct ShaderParameterBlockInformation
+	/** Describes a shader uniform buffer. */
+	struct ShaderUniformBufferInformation
 	{
 		String Name;
 		bool Shared = false;
@@ -202,15 +200,15 @@ namespace b3d
 		 * Registers a new data (int, Vector2, etc.) parameter you that you may then use via Material by providing the
 		 * parameter name. All parameters internally map to variables defined in GPU programs.
 		 *
-		 * @param[in]	paramDesc			Structure describing the parameter to add.
-		 * @param[in]	defaultValue		(optional) Pointer to the buffer containing the default value for this parameter
+		 * @param	parameterInformation	Structure describing the parameter to add.
+		 * @param	defaultValue			(optional) Pointer to the buffer containing the default value for this parameter
 		 *									(initial value that will be set when a material is initialized with this shader).
 		 *									The provided buffer must be of the correct size (depending on the element type
 		 *									and array size).
 		 *
 		 * @note	If multiple parameters are given with the same name but different types behavior is undefined.
 		 */
-		void AddParameter(ShaderDataParameterInformation paramDesc, u8* defaultValue = nullptr);
+		void AddParameter(ShaderDataParameterInformation parameterInformation, u8* defaultValue = nullptr);
 
 		/**
 		 * Registers a new object (texture, sampler state, etc.) parameter you that you may then use via Material by
@@ -218,7 +216,7 @@ namespace b3d
 		 * variables may be mapped to a single parameter in which case the first variable actually found in the program will
 		 * be used while others will be ignored.
 		 *
-		 * @param[in]	paramDesc			Structure describing the parameter to add.
+		 * @param	parameterInformation	Structure describing the parameter to add.
 		 *
 		 * @note
 		 * If multiple parameters are given with the same name but different types behavior is undefined. You are allowed
@@ -227,53 +225,53 @@ namespace b3d
 		 * parameter is useful when you are defining a shader that supports techniques across different render systems
 		 * where GPU variable names for the same parameters might differ.
 		 */
-		void AddParameter(ShaderObjectParameterInformation paramDesc);
+		void AddParameter(ShaderObjectParameterInformation parameterInformation);
 
 		/**
-		 * @see	SHADER_DESC::addParameter(SHADER_OBJECT_PARAM_DESC)
+		 * @see	ShaderInformationBase::AddParameter(ShaderObjectParameterInformation)
 		 *
 		 * @note
-		 * Specialized version of addParameter that accepts a default sampler value that will be used for initializing the
+		 * Specialized version of AddParameter that accepts a default sampler value that will be used for initializing the
 		 * object parameter upon Material creation. Default sampler value is only valid if the object type is one of the
 		 * sampler types.
 		 */
-		void AddParameter(ShaderObjectParameterInformation paramDesc, const SamplerStateCreateInformation& defaultValue);
+		void AddParameter(ShaderObjectParameterInformation parameterInformation, const SamplerStateCreateInformation& defaultValue);
 
 		/**
-		 * @see	SHADER_DESC::addParameter(SHADER_OBJECT_PARAM_DESC)
+		 * @see	ShaderInformationBase::AddParameter(ShaderObjectParameterInformation)
 		 *
 		 * @note
-		 * Specialized version of addParameter that accepts a default texture value that will be used for initializing the
+		 * Specialized version of AddParameter that accepts a default texture value that will be used for initializing the
 		 * object parameter upon Material creation. Default texture value is only valid if the object type is one of the
 		 * texture types.
 		 */
-		void AddParameter(ShaderObjectParameterInformation paramDesc, ShaderDefaultTextureType defaultValue);
+		void AddParameter(ShaderObjectParameterInformation parameterInformation, ShaderDefaultTextureType defaultValue);
 
 		/**
 		 * Applies an attribute to the parameter with the specified name.
 		 *
-		 * @param[in]	name	Name of an object or data parameter to apply the attribute to.
-		 * @param[in]	attrib	Structure describing the attribute to apply.
+		 * @param	name		Name of an object or data parameter to apply the attribute to.
+		 * @param	attribute	Structure describing the attribute to apply.
 		 */
-		void SetParameterAttribute(const String& name, const ShaderParameterAttribute& attrib);
+		void SetParameterAttribute(const String& name, const ShaderParameterAttribute& attribute);
 
 		/**
-		 * Changes parameters of a parameter block with the specified name.
+		 * Changes parameters of a uniform buffer with the specified name.
 		 *
-		 * @param	name				Name of the parameter block. This should correspond with the name specified in
+		 * @param	name				Name of the uniform buffer. This should correspond with the name specified in
 		 *								the GPU program code.
-		 * @param	shared				If parameter block is marked as shared it will not be automatically created by
+		 * @param	shared				If uniform buffer is marked as shared it will not be automatically created by
 		 *								the Material. You will need to create it elsewhere and then assign it manually.
-		 * @param	flags				Flags that control the behaviour of the parameter block buffer.
-		 * @param	rendererSemantic	(optional) Semantic that allows you to specify the use of this parameter block
+		 * @param	flags				Flags that control the behaviour of the uniform buffer.
+		 * @param	rendererSemantic	(optional) Semantic that allows you to specify the use of this uniform buffer
 		 *								in the renderer. The actual value of the semantic depends on the current
 		 *								Renderer and its supported list of semantics. Elements with a renderer semantic
-		 *								will not have their parameter block automatically created (similar to "shared"
+		 *								will not have their uniform buffer automatically created (similar to "shared"
 		 *								argument), but instead a Renderer will create an assign it instead. Be aware
 		 *								that renderers have strict policies on what and how are parameters stored in the
 		 *								buffer and you will need to respect them. If you don't respect them your shader
-		 *								will be deemed incompatible and won't be used. Value of 0 signifies the parameter
-		 *								block is not used by the renderer.
+		 *								will be deemed incompatible and won't be used. Value of 0 signifies the uniform
+		 *								buffer is not used by the renderer.
 		 */
 		void SetUniformBufferAttributes(const String& name, bool shared, GpuBufferFlags flags, StringID rendererSemantic = StringID::kNone);
 
@@ -314,7 +312,7 @@ namespace b3d
 		 * Information about all variation parameters and their possible values. Each permutation of variation parameters
 		 * represents a separate shader technique.
 		 */
-		Vector<ShaderVariationParameterInformation> VariationParams;
+		Vector<ShaderVariationParameterInformation> VariationParameters;
 
 		/** Meta-data required by the shader compiler when compiling shader variations on demand. Can be null if the shader is being initialized with precompiled variations. */
 		SPtr<ShaderCompilerMetaData> CompilerMetaData;
@@ -323,20 +321,20 @@ namespace b3d
 		Map<String, ShaderObjectParameterInformation> TextureParameters;
 		Map<String, ShaderObjectParameterInformation> BufferParameters;
 		Map<String, ShaderObjectParameterInformation> SamplerParameters;
-		Map<String, ShaderParameterBlockInformation> DataParameterBlocks;
+		Map<String, ShaderUniformBufferInformation> UniformBuffers;
 
 		Vector<u8> DataDefaultValues;
 		Vector<SamplerStateInformation> SamplerDefaultValues;
 		Vector<ShaderDefaultTextureType> TextureDefaultValues;
-		Vector<ShaderParameterAttribute> ParamAttributes;
+		Vector<ShaderParameterAttribute> ParameterAttributes;
 
 	private:
 		/**
-		 * @copydoc	AddParameter(SHADER_OBJECT_PARAM_DESC)
+		 * @copydoc	AddParameter(ShaderObjectParameterInformation)
 		 *
 		 * @note	Common method shared by different addParameter overloads.
 		 */
-		void AddParameterInternal(ShaderObjectParameterInformation paramDesc, u32 defaultValueIdx);
+		void AddParameterInternal(ShaderObjectParameterInformation parameterInformation, u32 defaultValueIndex);
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -356,7 +354,7 @@ namespace b3d
 		ShaderInformation() = default;
 
 		/** Techniques to initialize the shader with. */
-		Vector<SPtr<Variation>> Techniques;
+		Vector<SPtr<Variation>> Variations;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -385,7 +383,7 @@ namespace b3d
 		static render::ShaderInformation ConvertToRenderProxy(const ShaderInformation& other);
 
 		/** Techniques to initialize the shader with. */
-		Vector<SPtr<Variation>> Techniques;
+		Vector<SPtr<Variation>> Variations;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -410,7 +408,7 @@ namespace b3d
 	class B3D_EXPORT TShader
 	{
 	public:
-		using TechniqueType = CoreVariantType<Variation, IsRenderProxy>;
+		using VariationType = CoreVariantType<Variation, IsRenderProxy>;
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 		using ShaderInformationType = CoreVariantType<ShaderInformation, IsRenderProxy>;
 		using ShaderCreateInformationType = CoreVariantType<ShaderCreateInformation, IsRenderProxy>;
@@ -419,33 +417,33 @@ namespace b3d
 		TShader(const ShaderCreateInformationType& createInformation, u32 id);
 		virtual ~TShader();
 
-		/** Returns the total number of techniques in this shader. */
-		u32 GetTechniqueCount() const { return (u32)mInformation.Techniques.size(); }
+		/** Returns the total number of variations in this shader. */
+		u32 GetVariationCount() const { return (u32)mInformation.Variations.size(); }
 
-		/** Returns the list of all supported techniques based on current render API and renderer. */
-		Vector<SPtr<TechniqueType>> GetCompatibleTechniques() const;
+		/** Returns the list of all supported variations based on current render API and renderer. */
+		Vector<SPtr<VariationType>> GetCompatibleVariations() const;
 
 		/**
-		 * Returns the list of all supported techniques based on current render API and renderer, and limits the techniques
-		 * to only those implementing the specified variation.
+		 * Returns the list of all supported variations based on current render API and renderer, and limits the variations
+		 * to only those implementing the specified variation parameters.
 		 *
-		 * @param[in]		variation	Object containing variation parameters to compare to technique variation.
-		 * @param[in]		exact		When true the technique variation needs to have the exact number of parameters with
-		 *								identical contents to the provided variation. When false, only the provided subset
-		 *								of parameters is used for comparison, while any extra parameters present in
-		 *								the technique are not compared.
+		 * @param		variationParameters		Object containing variation parameters to compare to check.
+		 * @param		exact					When true the variation needs to have the exact number of parameters with
+		 *										identical contents to the provided parameters. When false, only the provided subset
+		 *										of parameters is used for comparison, while any extra parameters present in
+		 *										the variation are not compared.
 		 */
-		Vector<SPtr<TechniqueType>> GetCompatibleTechniques(const ShaderVariationParameters& variation, bool exact) const;
+		Vector<SPtr<VariationType>> GetCompatibleVariations(const ShaderVariationParameters& variationParameters, bool exact) const;
 
-		/** Returns a list of all techniques in this shader. */
-		const Vector<SPtr<TechniqueType>>& GetTechniques() const { return mInformation.Techniques; }
+		/** Returns a list of all variations in this shader. */
+		const Vector<SPtr<VariationType>>& GetVariations() const { return mInformation.Variations; }
 
 		/**
 		 * Returns the list of all variation parameters supported by this shader, possible values of each parameter and
 		 * other meta-data.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(VariationParams), Property(Getter))
-		const Vector<ShaderVariationParameterInformation> GetVariationParams() const { return mInformation.VariationParams; }
+		const Vector<ShaderVariationParameterInformation>& GetVariationParameters() const { return mInformation.VariationParameters; }
 
 		/**
 		 * Returns currently active queue sort type.
@@ -474,61 +472,50 @@ namespace b3d
 		 */
 		ShaderFlags GetFlags() const { return mInformation.Flags; }
 
-		/**
-		 * Returns description for a data parameter with the specified name. Throws exception if the parameter doesn't exist.
-		 */
-		const ShaderDataParameterInformation& GetDataParamDesc(const String& name) const;
+		/** Returns description for a data parameter with the specified name. Returns null if it doesn't exist. */
+		const ShaderDataParameterInformation* GetDataParameterDescription(const String& name) const;
 
-		/**
-		 * Returns description for a texture parameter with the specified name. Throws exception if the parameter doesn't
-		 * exist.
-		 */
-		const ShaderObjectParameterInformation& GetTextureParamDesc(const String& name) const;
+		/** Returns description for a texture parameter with the specified name. Returns null if it doesn't exist. */
+		const ShaderObjectParameterInformation* GetTextureParameterDescription(const String& name) const;
 
-		/**
-		 * Returns description for a sampler parameter with the specified name. Throws exception if the parameter doesn't
-		 * exist.
-		 */
-		const ShaderObjectParameterInformation& GetSamplerParamDesc(const String& name) const;
+		/** Returns description for a sampler parameter with the specified name. Returns null if it doesn't exist. */
+		const ShaderObjectParameterInformation* GetSamplerParameterDescription(const String& name) const;
 
-		/**
-		 * Returns description for a buffer parameter with the specified name. Throws exception if the parameter doesn't
-		 * exist.
-		 */
-		const ShaderObjectParameterInformation& GetBufferParamDesc(const String& name) const;
+		/** Returns description for a buffer parameter with the specified name. Returns null if it doesn't exist. */
+		const ShaderObjectParameterInformation* GetBufferParameterInformation(const String& name) const;
 
 		/** Checks if the parameter with the specified name exists, and is a data parameter. */
-		bool HasDataParam(const String& name) const;
+		bool HasDataParameter(const String& name) const;
 
 		/**	Checks if the parameter with the specified name exists, and is a texture parameter. */
-		bool HasTextureParam(const String& name) const;
+		bool HasTextureParameter(const String& name) const;
 
 		/** Checks if the parameter with the specified name exists, and is a sampler parameter. */
-		bool HasSamplerParam(const String& name) const;
+		bool HasSamplerParameter(const String& name) const;
 
 		/** Checks if the parameter with the specified name exists, and is a buffer parameter. */
-		bool HasBufferParam(const String& name) const;
+		bool HasBufferParameter(const String& name) const;
 
-		/** Checks if the parameter block with the specified name exists. */
-		bool HasParamBlock(const String& name) const;
+		/** Checks if the uniform buffer with the specified name exists. */
+		bool HasUniformBuffer(const String& name) const;
 
 		/**	Returns a map of all data parameters in the shader. */
-		const Map<String, ShaderDataParameterInformation>& GetDataParams() const { return mInformation.DataParameters; }
+		const Map<String, ShaderDataParameterInformation>& GetDataParameters() const { return mInformation.DataParameters; }
 
 		/**	Returns a map of all texture parameters in the shader. */
-		const Map<String, ShaderObjectParameterInformation>& GetTextureParams() const { return mInformation.TextureParameters; }
+		const Map<String, ShaderObjectParameterInformation>& GetTextureParameters() const { return mInformation.TextureParameters; }
 
 		/**	Returns a map of all buffer parameters in the shader. */
-		const Map<String, ShaderObjectParameterInformation>& GetBufferParams() const { return mInformation.BufferParameters; }
+		const Map<String, ShaderObjectParameterInformation>& GetBufferParameters() const { return mInformation.BufferParameters; }
 
 		/** Returns a map of all sampler parameters in the shader. */
-		const Map<String, ShaderObjectParameterInformation>& GetSamplerParams() const { return mInformation.SamplerParameters; }
+		const Map<String, ShaderObjectParameterInformation>& GetSamplerParameters() const { return mInformation.SamplerParameters; }
 
-		/** Returns a map of all parameter blocks. */
-		const Map<String, ShaderParameterBlockInformation>& GetParamBlocks() const { return mInformation.DataParameterBlocks; }
+		/** Returns a map of all uniform buffers. */
+		const Map<String, ShaderUniformBufferInformation>& GetUniformBuffers() const { return mInformation.UniformBuffers; }
 
 		/** Returns a list of all parameter attributes, as referenced by individual parameters. */
-		const Vector<ShaderParameterAttribute>& GetParamAttributes() const { return mInformation.ParamAttributes; }
+		const Vector<ShaderParameterAttribute>& GetParameterAttributes() const { return mInformation.ParameterAttributes; }
 
 		/**
 		 * Returns a default 2D texture for a parameter that has the specified default value index (retrieved from the
@@ -580,12 +567,12 @@ namespace b3d
 
 	/**
 	 * @native
-	 * Shader represents a collection of techniques that control object rendering. They are used in Material%s, which can be
+	 * Shader represents a collection of variations that control object rendering. They are used in Material%s, which can be
 	 * considered as instances of a Shader. Multiple materials may share the same shader but provide different parameters to
 	 * it.
 	 *
-	 * Shader will always choose the first supported technique based on the current render system, render manager and other
-	 * properties. So make sure to add most important techniques first so you make sure they are used if they are supported.
+	 * Shader will always choose the first supported variation based on the current render backend, render manager and other
+	 * properties. So make sure to add most important variations first so you make sure they are used if they are supported.
 	 * @endnative
 	 *
 	 * @script
@@ -625,7 +612,7 @@ namespace b3d
 		 *
 		 * @note	Returns 0 for variable size types like structures.
 		 */
-		static u32 GetDataParamSize(GpuDataParameterType type);
+		static u32 GetDataParameterSize(GpuDataParameterType type);
 
 		/**	Creates a new shader resource using the provided descriptor and techniques. */
 		static HShader Create(const String& name, const ShaderCreateInformation& createInformation);

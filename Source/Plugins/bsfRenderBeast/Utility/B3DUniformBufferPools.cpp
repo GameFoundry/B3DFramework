@@ -38,7 +38,7 @@ void UniformBufferPools::Initialize(GpuDevice& device)
 
 	// Initialize decal param staging pool
 	{
-		const u32 decalParamSize = gDecalParamDef.GetSize();
+		const u32 decalParamSize = gDecalUniformDefinition.GetSize();
 		GpuBufferCreateInformation stagingCreateInfo;
 		stagingCreateInfo.Type = GpuBufferType::StagingWrite;
 		stagingCreateInfo.Staging.Size = decalParamSize;
@@ -278,11 +278,11 @@ void UniformBufferPools::UpdateDecalParamBuffer(const RendererDecal& decal, cons
 
 	GpuBufferMappedScope staging = mDecalStagingPool.Allocate().Map();
 
-	gDecalParamDef.gWorldToDecal.Set(staging, worldToDecal);
-	gDecalParamDef.gDecalNormal.Set(staging, decalNormal);
-	gDecalParamDef.gNormalTolerance.Set(staging, normalTolerance);
-	gDecalParamDef.gFlipDerivatives.Set(staging, flipDerivatives);
-	gDecalParamDef.gLayerMask.Set(staging, (i32)decal.Decal->GetLayerMask());
+	gDecalUniformDefinition.gWorldToDecal.Set(staging, worldToDecal);
+	gDecalUniformDefinition.gDecalNormal.Set(staging, decalNormal);
+	gDecalUniformDefinition.gNormalTolerance.Set(staging, normalTolerance);
+	gDecalUniformDefinition.gFlipDerivatives.Set(staging, flipDerivatives);
+	gDecalUniformDefinition.gLayerMask.Set(staging, (i32)decal.Decal->GetLayerMask());
 
 	staging.Unmap();
 

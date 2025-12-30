@@ -18,7 +18,7 @@
 namespace b3d {
 namespace render {
 
-PerCameraParamDef gPerCameraUniformDefinition;
+PerCameraUniformDefinition gPerCameraUniformDefinition;
 SkyboxUniformDefinition gSkyboxUniformDefinition;
 
 void SkyboxMaterial::Initialize()

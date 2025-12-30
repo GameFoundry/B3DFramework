@@ -51,7 +51,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		nativeArray__output = static_cast<Shader*>(self->GetNativeObject())->GetVariationParams();
+		nativeArray__output = static_cast<Shader*>(self->GetNativeObject())->GetVariationParameters();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();

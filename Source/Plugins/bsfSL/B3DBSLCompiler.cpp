@@ -78,7 +78,7 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 			const String languageName = ShaderCompilers::GetShadingLanguageName(requiredLanguageSet[languageIndex]);
 			SPtr<CoreVariantType<Variation, IsRenderProxy>> variation = CoreVariantType<Variation, IsRenderProxy>::Create(shader, languageName, variationParameters);
 
-			shaderCreateInformation.Techniques.push_back(std::move(variation));
+			shaderCreateInformation.Variations.push_back(std::move(variation));
 		}
 	}
 
@@ -123,7 +123,7 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 			}
 
 			const String languageName = ShaderCompilers::GetShadingLanguageName(requiredLanguageSet[languageIndex]);
-			const SPtr<CoreVariantType<Variation, IsRenderProxy>>& variation = shaderCreateInformation.Techniques[variationIndex];
+			const SPtr<CoreVariantType<Variation, IsRenderProxy>>& variation = shaderCreateInformation.Variations[variationIndex];
 
 			if(compileVariations)
 			{

@@ -179,12 +179,12 @@ bool TGpuParameterSet<IsRenderProxy>::SetUniformBuffer(const StringView& name, c
 }
 
 template<bool IsRenderProxy>
-bool TGpuParameterSet<IsRenderProxy>::TrySetUniformBuffer(const StringView& name, const UniformBufferType& parameterBlockBuffer, u32 arrayIndex, u32 offset)
+bool TGpuParameterSet<IsRenderProxy>::TrySetUniformBuffer(const StringView& name, const UniformBufferType& uniformBuffer, u32 arrayIndex, u32 offset)
 {
 	if (!HasUniformBuffer(name))
 		return false;
 
-	return SetUniformBuffer(name, parameterBlockBuffer, arrayIndex, offset);
+	return SetUniformBuffer(name, uniformBuffer, arrayIndex, offset);
 }
 
 template <bool IsRenderProxy>

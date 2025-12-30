@@ -362,7 +362,7 @@ void TMaterial<IsRenderProxy>::InitializeVariations()
 	if(IsShaderValid(mShader))
 	{
 		mParameters = B3DMakeShared<MaterialParametersType>(mShader);
-		mVariations = mShader->GetCompatibleTechniques();
+		mVariations = mShader->GetCompatibleVariations();
 
 		if(mVariations.empty())
 			return;
@@ -390,8 +390,8 @@ void TMaterial<IsRenderProxy>::SetParamValue(const String& name, u8* buffer, u32
 template <bool IsRenderProxy>
 void TMaterial<IsRenderProxy>::InitializeDefaultParameters()
 {
-	const Map<String, ShaderDataParameterInformation>& dataParams = mShader->GetDataParams();
-	for(auto& paramData : dataParams)
+	const Map<String, ShaderDataParameterInformation>& dataParameters = mShader->GetDataParameters();
+	for(auto& paramData : dataParameters)
 	{
 		if(paramData.second.DefaultValueIndex == (u32)-1)
 			continue;
@@ -489,20 +489,20 @@ void TMaterial<IsRenderProxy>::InitializeDefaultParameters()
 		}
 	}
 
-	const Map<String, ShaderObjectParameterInformation>& textureParams = mShader->GetTextureParams();
-	for(auto& param : textureParams)
+	const Map<String, ShaderObjectParameterInformation>& textureParameters = mShader->GetTextureParameters();
+	for(auto& param : textureParameters)
 	{
-		if(param.second.DefaultValueIndex == (u32)-1)
+		if(param.second.DefaultValueIndex == ~0u)
 			continue;
 
 		const TextureType texture = param.second.Type == GPOT_TEXTURE3D ? mShader->GetDefault3DTexture(param.second.DefaultValueIndex) : mShader->GetDefault2DTexture(param.second.DefaultValueIndex);
 		GetParamTexture(param.first).Set(texture);
 	}
 
-	const Map<String, ShaderObjectParameterInformation>& samplerParams = mShader->GetSamplerParams();
+	const Map<String, ShaderObjectParameterInformation>& samplerParams = mShader->GetSamplerParameters();
 	for(auto& param : samplerParams)
 	{
-		if(param.second.DefaultValueIndex == (u32)-1)
+		if(param.second.DefaultValueIndex == ~0u)
 			continue;
 
 		SPtr<SamplerState> defaultSampler = mShader->GetDefaultSampler(param.second.DefaultValueIndex);
@@ -824,7 +824,7 @@ void Material::SetParams(const SPtr<MaterialParameters>& params)
 	copyParamLookup[GPDT_BOOL] = &CopyParam<int>;
 	copyParamLookup[GPDT_COLOR] = &CopyParam<Color>;
 
-	auto& dataParams = mShader->GetDataParams();
+	auto& dataParams = mShader->GetDataParameters();
 	for(auto& param : dataParams)
 	{
 		u32 arraySize = param.second.ArraySize > 1 ? param.second.ArraySize : 1;
@@ -880,7 +880,7 @@ void Material::SetParams(const SPtr<MaterialParameters>& params)
 		}
 	}
 
-	auto& textureParams = mShader->GetTextureParams();
+	auto& textureParams = mShader->GetTextureParameters();
 	for(auto& param : textureParams)
 	{
 		const MaterialParameters::ParamData* paramData = nullptr;
@@ -925,7 +925,7 @@ void Material::SetParams(const SPtr<MaterialParameters>& params)
 		}
 	}
 
-	auto& bufferParams = mShader->GetBufferParams();
+	auto& bufferParams = mShader->GetBufferParameters();
 	for(auto& param : bufferParams)
 	{
 		const MaterialParameters::ParamData* paramData = nullptr;
@@ -941,7 +941,7 @@ void Material::SetParams(const SPtr<MaterialParameters>& params)
 		curParam.Set(buffer);
 	}
 
-	auto& samplerParams = mShader->GetSamplerParams();
+	auto& samplerParams = mShader->GetSamplerParameters();
 	for(auto& param : samplerParams)
 	{
 		const MaterialParameters::ParamData* paramData = nullptr;

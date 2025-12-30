@@ -171,11 +171,11 @@ namespace b3d
 	};
 
 	template <>
-	struct RTTIPlainType<ShaderParameterBlockInformation>
+	struct RTTIPlainType<ShaderUniformBufferInformation>
 	{
 		enum
 		{
-			id = TID_ShaderParameterBlockInformation
+			id = TID_ShaderUniformBufferInformation
 		};
 
 		enum
@@ -183,7 +183,7 @@ namespace b3d
 			hasDynamicSize = 1
 		};
 
-		static BitLength ToMemory(const ShaderParameterBlockInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength ToMemory(const ShaderUniformBufferInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
@@ -196,7 +196,7 @@ namespace b3d
 				return size; });
 		}
 
-		static BitLength FromMemory(ShaderParameterBlockInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength FromMemory(ShaderUniformBufferInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
 			B3DRTTIReadSizeHeader(stream, compress, size);
@@ -209,7 +209,7 @@ namespace b3d
 			return size;
 		}
 
-		static BitLength GetSize(const ShaderParameterBlockInformation& data, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength GetSize(const ShaderUniformBufferInformation& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = B3DRTTISize(data.Shared) + B3DRTTISize(data.Flags) +
 				B3DRTTISize(data.Name) + B3DRTTISize(data.RendererSemantic);
@@ -405,14 +405,14 @@ namespace b3d
 			B3D_RTTI_MEMBER_CONTAINER(TextureParameters, 5)
 			B3D_RTTI_MEMBER_CONTAINER(SamplerParameters, 6)
 			B3D_RTTI_MEMBER_CONTAINER(BufferParameters, 7)
-			B3D_RTTI_MEMBER_CONTAINER(DataParameterBlocks, 8)
+			B3D_RTTI_MEMBER_CONTAINER(UniformBuffers, 8)
 
 			B3D_RTTI_MEMBER_CONTAINER(DataDefaultValues, 9)
 			B3D_RTTI_MEMBER_CONTAINER(TextureDefaultValues, 10)
 			B3D_RTTI_MEMBER_CONTAINER(SamplerDefaultValues, 11)
 
-			B3D_RTTI_MEMBER_CONTAINER(ParamAttributes, 12)
-			B3D_RTTI_MEMBER_CONTAINER(VariationParams, 13)
+			B3D_RTTI_MEMBER_CONTAINER(ParameterAttributes, 12)
+			B3D_RTTI_MEMBER_CONTAINER(VariationParameters, 13)
 
 			B3D_RTTI_MEMBER(CompilerMetaData, 14)
 		B3D_RTTI_END_MEMBERS
@@ -439,7 +439,7 @@ namespace b3d
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_CONTAINER(Techniques, 0)
+			B3D_RTTI_MEMBER_CONTAINER(Variations, 0)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -464,7 +464,7 @@ namespace b3d
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_CONTAINER(Techniques, 0)
+			B3D_RTTI_MEMBER_CONTAINER(Variations, 0)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -501,7 +501,7 @@ namespace b3d
 				object.Initialize();
 
 				// Note: Important to call Initialize before the call below, because it will trigger a sync to render thread, and shaders render thread representation only gets created once Initialize() is called.
-				for(const auto& technique : object.mInformation.Techniques)
+				for(const auto& technique : object.mInformation.Variations)
 					technique->SetOwner(std::static_pointer_cast<Shader>(object.GetShared()));
 			}
 		}
@@ -537,7 +537,7 @@ namespace b3d
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit) && !operationType.IsSet(RTTIOperationType::PreExistingObjectBit))
 			{
-				for(const auto& technique : object.mInformation.Techniques)
+				for(const auto& technique : object.mInformation.Variations)
 					technique->SetOwner(std::static_pointer_cast<render::Shader>(object.GetShared()));
 
 				object.Initialize();

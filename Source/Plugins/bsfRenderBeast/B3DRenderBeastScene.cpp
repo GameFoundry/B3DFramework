@@ -24,7 +24,7 @@
 
 namespace b3d { namespace render {
 
-PerFrameParamDef gPerFrameParamDef;
+PerFrameUniformDefinition gPerFrameUniformDefinition;
 
 static const ShaderVariationParameters* DECAL_VAR_LOOKUP[2][3] = {
 	{ &GetDecalShaderVariation<false, MSAAMode::None>(),
@@ -403,7 +403,7 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 			const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
 			bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 
-			const Vector<ShaderVariationParameterInformation>& variationParams = shader->GetVariationParams();
+			const Vector<ShaderVariationParameterInformation>& variationParams = shader->GetVariationParameters();
 			const bool shaderCanWriteVelocity = std::find_if(variationParams.begin(), variationParams.end(), [](const ShaderVariationParameterInformation& x)
 															 { return x.Identifier == "WRITE_VELOCITY"; }) != variationParams.end();
 
@@ -918,10 +918,10 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 	{
 		// Get sprite image for animation curve generation
 		SpriteImage* spriteImage = nullptr;
-		if(shader->HasTextureParam("gTexture"))
+		if(shader->HasTextureParameter("gTexture"))
 			spriteImage = renElement.Material->GetSpriteImage("gTexture").get();
 
-		if(!spriteImage && shader->HasTextureParam("gAlbedoTex"))
+		if(!spriteImage && shader->HasTextureParameter("gAlbedoTex"))
 			spriteImage = renElement.Material->GetSpriteImage("gAlbedoTex").get();
 
 		// Allocate curves
@@ -1409,14 +1409,14 @@ void RenderBeastScene::RefreshSamplerOverrides(bool force)
 void RenderBeastScene::SetParamFrameParams(float time)
 {
 	// Allocate a new transient buffer for this frame
-	mPerFrameSuballocation = gPerFrameParamDef.AllocateTransient();
+	mPerFrameSuballocation = gPerFrameUniformDefinition.AllocateTransient();
 
 	// Update SceneInfo pointer for compositor access
 	mInfo.PerFrameSuballocation = &mPerFrameSuballocation;
 
 	// Map and set the time parameter
 	GpuBufferMappedScope mappedScope = mPerFrameSuballocation.Map();
-	gPerFrameParamDef.gTime.Set(mappedScope, time);
+	gPerFrameUniformDefinition.gTime.Set(mappedScope, time);
 }
 
 void RenderBeastScene::PrepareRenderable(u32 idx, const FrameInfo& frameInfo)

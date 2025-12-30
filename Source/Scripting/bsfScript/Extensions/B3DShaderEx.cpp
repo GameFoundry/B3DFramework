@@ -9,10 +9,10 @@ Vector<ShaderParameter> ShaderEx::GetParameters(const HShader& thisPtr)
 	if(!thisPtr.IsLoaded())
 		return Vector<ShaderParameter>();
 
-	const Map<String, ShaderDataParameterInformation>& dataParams = thisPtr->GetDataParams();
-	const Map<String, ShaderObjectParameterInformation>& textureParams = thisPtr->GetTextureParams();
-	const Map<String, ShaderObjectParameterInformation>& samplerParams = thisPtr->GetSamplerParams();
-	const Vector<ShaderParameterAttribute> attributes = thisPtr->GetParamAttributes();
+	const Map<String, ShaderDataParameterInformation>& dataParams = thisPtr->GetDataParameters();
+	const Map<String, ShaderObjectParameterInformation>& textureParams = thisPtr->GetTextureParameters();
+	const Map<String, ShaderObjectParameterInformation>& samplerParams = thisPtr->GetSamplerParameters();
+	const Vector<ShaderParameterAttribute> attributes = thisPtr->GetParameterAttributes();
 
 	Vector<ShaderParameter> paramInfos;
 	auto parseParam = [&paramInfos, &attributes](const String& identifier, ShaderParameterType type, bool isInternal, u32 attribIdx)

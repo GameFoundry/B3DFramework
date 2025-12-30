@@ -219,11 +219,11 @@ namespace b3d
 			SPtr<RenderBeastOptions> mOptions;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(PerFrameParamDef)
+		B3D_UNIFORM_BUFFER_BEGIN(PerFrameUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gTime)
 		B3D_UNIFORM_BUFFER_END
 
-		extern PerFrameParamDef gPerFrameParamDef;
+		extern PerFrameUniformDefinition gPerFrameUniformDefinition;
 
 		/** Basic shader that is used when no other is available. */
 		class DefaultMaterial : public RendererMaterial<DefaultMaterial>

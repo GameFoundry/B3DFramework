@@ -342,10 +342,10 @@ RTTIType* MaterialParamSamplerStateData::GetRtti() const
 template <bool IsRenderProxy>
 TMaterialParameters<IsRenderProxy>::TMaterialParameters(const ShaderType& shader, u64 initialParamVersion)
 	: MaterialParametersBase(
-		  shader->GetDataParams(),
-		  shader->GetTextureParams(),
-		  shader->GetBufferParams(),
-		  shader->GetSamplerParams(),
+		  shader->GetDataParameters(),
+		  shader->GetTextureParameters(),
+		  shader->GetBufferParameters(),
+		  shader->GetSamplerParameters(),
 		  initialParamVersion)
 {
 	mTextureParameters.resize(mTextureParameterCount);
@@ -354,7 +354,7 @@ TMaterialParameters<IsRenderProxy>::TMaterialParameters(const ShaderType& shader
 	mDefaultTextureParams = mAlloc.Construct<TextureType>(mTextureParameterCount);
 	mDefaultSamplerStateParams = mAlloc.Construct<SPtr<SamplerState>>(mSamplerParameterCount);
 
-	auto& textureParams = shader->GetTextureParams();
+	auto& textureParams = shader->GetTextureParameters();
 	u32 textureIdx = 0;
 	for(auto& entry : textureParams)
 	{
@@ -370,7 +370,7 @@ TMaterialParameters<IsRenderProxy>::TMaterialParameters(const ShaderType& shader
 		textureIdx++;
 	}
 
-	auto& samplerParams = shader->GetSamplerParams();
+	auto& samplerParams = shader->GetSamplerParameters();
 	u32 samplerIdx = 0;
 	for(auto& entry : samplerParams)
 	{
@@ -381,8 +381,8 @@ TMaterialParameters<IsRenderProxy>::TMaterialParameters(const ShaderType& shader
 	}
 
 	// Note: Make sure to process data parameters after textures, in order to handle SpriteUV data parameters
-	auto& dataParams = shader->GetDataParams();
-	auto& paramAttributes = shader->GetParamAttributes();
+	auto& dataParams = shader->GetDataParameters();
+	auto& paramAttributes = shader->GetParameterAttributes();
 	for(auto& entry : dataParams)
 	{
 		if(entry.second.Type != GPDT_STRUCT)

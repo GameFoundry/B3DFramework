@@ -228,7 +228,7 @@ namespace b3d
 			static void RegisterBuffer(GpuUniformBuffer* buffer);
 
 		private:
-			/** Retrieves the list of parameter blocks to initialize when the module is started. */
+			/** Retrieves the list of uniform buffers to initialize when the module is started. */
 			static TArray<GpuUniformBuffer*>& GetToInitializeList()
 			{
 				static TArray<GpuUniformBuffer*> sToInitialize;
@@ -314,7 +314,7 @@ private:                                                                        
 	typedef META_NextEntry_##Name_
 
 /**
- * Registers a new entry in a parameter block. Must be called in between B3D_UNIFORM_BUFFER_BEGIN and B3D_UNIFORM_BUFFER_END calls.
+ * Registers a new entry in a uniform buffer. Must be called in between B3D_UNIFORM_BUFFER_BEGIN and B3D_UNIFORM_BUFFER_END calls.
  */
 #define B3D_UNIFORM_BUFFER_MEMBER(Type, Name) B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Type, Name, 1)
 

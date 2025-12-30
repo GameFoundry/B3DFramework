@@ -27,7 +27,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 		FrameUnorderedMap<String, u32> overrideLookup;
 		Vector<SamplerOverride> overrides;
 
-		auto& samplerParams = shader->GetSamplerParams();
+		auto& samplerParams = shader->GetSamplerParameters();
 		for(auto& samplerParam : samplerParams)
 		{
 			u32 paramIdx;

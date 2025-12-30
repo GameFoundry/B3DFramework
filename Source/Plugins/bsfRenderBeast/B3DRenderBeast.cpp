@@ -120,7 +120,7 @@ void RenderBeast::InitializeOnRenderThread(const LoadedRendererTextures& rendere
 			decalInfo.Name = "DecalParams";
 			decalInfo.Set = GpuPipelineSet::kPerObject;
 			decalInfo.Slot = 1;
-			decalInfo.Size = Math::CeilToMultiple(gDecalParamDef.GetSize() / 4u, 4u);
+			decalInfo.Size = Math::CeilToMultiple(gDecalUniformDefinition.GetSize() / 4u, 4u);
 			decalInfo.Stages = GpuProgramStageBit::Fragment;
 			decalInfo.IsShareable = true;
 			decalDescription.UniformBuffers["DecalParams"] = decalInfo;
@@ -183,7 +183,7 @@ void RenderBeast::InitializeOnRenderThread(const LoadedRendererTextures& rendere
 			config.EntriesPerBuffer = 256;
 			config.Layout = mDecalParameterSetInfo.Layout;
 			config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", gPerObjectUniformDefinition.GetSize(), GpuBufferFlag::StoreOnGPU});
-			config.Buffers.Add({UniformBufferPools::DecalBuffer, "DecalParams", gDecalParamDef.GetSize(), GpuBufferFlag::StoreOnGPU});
+			config.Buffers.Add({UniformBufferPools::DecalBuffer, "DecalParams", gDecalUniformDefinition.GetSize(), GpuBufferFlag::StoreOnGPU});
 			mTypeConfigurations.Add(config);
 		}
 

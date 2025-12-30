@@ -234,10 +234,10 @@ namespace b3d
 			/** Texture containing the shadow map. */
 			const SPtr<Texture>& ShadowMap;
 
-			/** Parameter block containing parameters specific for shadow projection. */
+			/** Uniform buffer containing parameters specific for shadow projection. */
 			const SPtr<GpuBuffer> ShadowParams;
 
-			/** Parameter block containing parameters specific to this view. */
+			/** Uniform buffer containing parameters specific to this view. */
 			const SPtr<GpuBuffer>& PerCamera;
 
 			/** Contains the GBuffer textures. */

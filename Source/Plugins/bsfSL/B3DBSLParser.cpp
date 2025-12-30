@@ -1063,7 +1063,7 @@ void BSLParser::TPopulateVariationParameters(const BSLParsedShaderMetaData& shad
 			paramInfo.Values.Add(paramValue);
 		}
 
-		shaderCreateInformation.VariationParams.push_back(paramInfo);
+		shaderCreateInformation.VariationParameters.push_back(paramInfo);
 	}
 }
 

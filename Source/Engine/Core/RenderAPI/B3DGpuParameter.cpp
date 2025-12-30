@@ -64,8 +64,8 @@ T TGpuParameterPrimitive<T, IsRenderProxy>::Get(u32 arrayIdx) const
 	if(mParent == nullptr)
 		return T();
 
-	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParameterInformation->ParentUniformBufferSlot);
-	if(paramBlock == nullptr)
+	GpuParamBufferType uniformBuffer = mParent->GetUniformBuffer(mParameterInformation->ParentUniformBufferSlot);
+	if(uniformBuffer == nullptr)
 		return T();
 
 #if B3D_DEBUG
@@ -79,7 +79,7 @@ T TGpuParameterPrimitive<T, IsRenderProxy>::Get(u32 arrayIdx) const
 	u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T));
 
 	T value;
-	paramBlock->Read((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32), sizeBytes, &value);
+	uniformBuffer->Read((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32), sizeBytes, &value);
 
 	return value;
 }
@@ -101,8 +101,8 @@ void TGpuParameterStruct<IsRenderProxy>::Set(const void* value, u32 sizeBytes, u
 	if(mParent == nullptr)
 		return;
 
-	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParameterInformation->ParentUniformBufferSlot);
-	if(paramBlock == nullptr)
+	GpuParamBufferType uniformBuffer = mParent->GetUniformBuffer(mParameterInformation->ParentUniformBufferSlot);
+	if(uniformBuffer == nullptr)
 		return;
 
 	u32 elementSizeBytes = mParameterInformation->ElementSize * sizeof(u32);
@@ -123,13 +123,13 @@ void TGpuParameterStruct<IsRenderProxy>::Set(const void* value, u32 sizeBytes, u
 
 	sizeBytes = std::min(elementSizeBytes, sizeBytes);
 
-	paramBlock->Write((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32), sizeBytes, value);
+	uniformBuffer->Write((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32), sizeBytes, value);
 
 	// Set unused bytes to 0
 	if(sizeBytes < elementSizeBytes)
 	{
 		u32 diffSize = elementSizeBytes - sizeBytes;
-		paramBlock->ZeroOut((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32) + sizeBytes, diffSize);
+		uniformBuffer->ZeroOut((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32) + sizeBytes, diffSize);
 	}
 
 	mParent->MarkRenderProxyDataDirtyInternal();
@@ -141,8 +141,8 @@ void TGpuParameterStruct<IsRenderProxy>::Get(void* value, u32 sizeBytes, u32 arr
 	if(mParent == nullptr)
 		return;
 
-	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParameterInformation->ParentUniformBufferSlot);
-	if(paramBlock == nullptr)
+	GpuParamBufferType uniformBuffer = mParent->GetUniformBuffer(mParameterInformation->ParentUniformBufferSlot);
+	if(uniformBuffer == nullptr)
 		return;
 
 	u32 elementSizeBytes = mParameterInformation->ElementSize * sizeof(u32);
@@ -162,7 +162,7 @@ void TGpuParameterStruct<IsRenderProxy>::Get(void* value, u32 sizeBytes, u32 arr
 #endif
 	sizeBytes = std::min(elementSizeBytes, sizeBytes);
 
-	paramBlock->Read((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32), sizeBytes, value);
+	uniformBuffer->Read((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32), sizeBytes, value);
 }
 
 template <bool IsRenderProxy>
