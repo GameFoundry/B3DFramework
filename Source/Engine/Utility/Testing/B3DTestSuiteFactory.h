@@ -4,6 +4,8 @@
 
 #include "B3DUtilityPrerequisites.h"
 #include "Testing/B3DTestSuite.h"
+#include "Utility/B3DFlags.h"
+#include "FileSystem/B3DPath.h"
 
 namespace b3d
 {
@@ -17,28 +19,43 @@ namespace b3d
 	 */
 	enum class TestLayer
 	{
-		Utility, /**< Only Utility layer needed (no Application startup). */
-		Core, /**< Requires Application startup (rendering, input, etc.). */
-		Editor /**< Requires EditorApplication startup (editor systems). */
+		Utility = 1 << 0, /**< Utility layer tests (no Application required). */
+		Core    = 1 << 1, /**< Core layer tests (requires Application). */
+		Editor  = 1 << 2  /**< Editor layer tests (requires EditorApplication). */
+	};
+
+	using TestLayers = Flags<TestLayer>;
+	B3D_FLAGS_OPERATORS(TestLayer)
+
+	/** Specifies the output format for test results. */
+	enum class TestOutputFormat
+	{
+		Console, /**< Output to console. */
+		JSON     /**< Output to JSON file. */
 	};
 
 	/**
-	 * Factory interface for creating test suites. Allows test suites to be registered at runtime via dynamic library loading,
-	 * which allows the framework test runner to run tests defined in e.g. editor layer.
+	 * Factory interface for running tests. The factory handles the full test lifecycle including
+	 * Application startup/shutdown if required. Implementations should be provided for different
+	 * application types (Framework vs Editor).
 	 */
-	class B3D_EXPORT ITestSuiteFactory
+	class ITestSuiteFactory
 	{
 	public:
 		virtual ~ITestSuiteFactory() = default;
 
-		/** Returns the name of this test suite collection. */
-		virtual const char* GetName() const = 0;
+		/**
+		 * Runs tests for the specified layers. Handles all Application lifecycle internally.
+		 *
+		 * @param	layers			Combination of test layers to run.
+		 * @param	outputFormat	Output format for test results.
+		 * @param	outputPath		Path for output file (used with JSON format).
+		 * @return					Exit code (0 for success, non-zero for failures).
+		 */
+		virtual i32 Run(TestLayers layers, TestOutputFormat outputFormat, const Path& outputPath) = 0;
 
-		/** Creates and returns all test suites provided by this factory. */
-		virtual Vector<SPtr<TestSuite>> CreateTestSuites() = 0;
-
-		/** Returns which layer this test suite belongs to. */
-		virtual TestLayer GetLayer() const = 0;
+		/** Returns which layers this factory can handle. */
+		virtual TestLayers GetSupportedLayers() const = 0;
 	};
 
 	/** @} */

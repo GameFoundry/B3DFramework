@@ -4,28 +4,7 @@
 
 using namespace b3d;
 
-void TestSuiteRegistry::RegisterFactory(const SPtr<ITestSuiteFactory>& factory)
+void TestSuiteRegistry::RegisterSuite(const SPtr<TestSuite>& suite)
 {
-	mFactories.push_back(factory);
-}
-
-Vector<SPtr<ITestSuiteFactory>> TestSuiteRegistry::GetFactoriesByLayer(TestLayer layer) const
-{
-	Vector<SPtr<ITestSuiteFactory>> result;
-	for (const auto& factory : mFactories)
-	{
-		if (factory->GetLayer() == layer)
-			result.push_back(factory);
-	}
-	return result;
-}
-
-SPtr<ITestSuiteFactory> TestSuiteRegistry::GetFactoryByName(const String& name) const
-{
-	for (const auto& factory : mFactories)
-	{
-		if (factory->GetName() == name)
-			return factory;
-	}
-	return nullptr;
+	mSuites.push_back(suite);
 }

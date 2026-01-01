@@ -4,7 +4,7 @@
 
 #include "B3DUtilityPrerequisites.h"
 #include "Utility/B3DModule.h"
-#include "Testing/B3DTestSuiteFactory.h"
+#include "Testing/B3DTestSuite.h"
 
 namespace b3d
 {
@@ -12,24 +12,21 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Keeps track of all registered test suite factories. */
+	/** Keeps track of all registered test suites. */
 	class B3D_EXPORT TestSuiteRegistry : public Module<TestSuiteRegistry>
 	{
 	public:
-		/** Register a test suite factory. */
-		void RegisterFactory(const SPtr<ITestSuiteFactory>& factory);
+		/** Register a test suite. */
+		void RegisterSuite(const SPtr<TestSuite>& suite);
 
-		/** Get all registered factories. */
-		const Vector<SPtr<ITestSuiteFactory>>& GetFactories() const { return mFactories; }
+		/** Get all registered suites. */
+		const Vector<SPtr<TestSuite>>& GetSuites() const { return mSuites; }
 
-		/** Get factories filtered by layer. */
-		Vector<SPtr<ITestSuiteFactory>> GetFactoriesByLayer(TestLayer layer) const;
-
-		/** Get factories filtered by name. */
-		SPtr<ITestSuiteFactory> GetFactoryByName(const String& name) const;
+		/** Clear all registered suites. */
+		void Clear() { mSuites.clear(); }
 
 	private:
-		Vector<SPtr<ITestSuiteFactory>> mFactories;
+		Vector<SPtr<TestSuite>> mSuites;
 	};
 
 	/** @} */

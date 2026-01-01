@@ -1,61 +1,54 @@
 //************************************ B3D Framework - Copyright 2025 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Testing/B3DConsoleTestOutput.h"
-#include "Testing/B3DJSONTestOutput.h"
+#include "Testing/B3DTestSuiteFactory.h"
 #include "Testing/B3DTestSuiteRegistry.h"
 #include "Utility/B3DCommandLine.h"
-#include "B3DApplication.h"
+#include "Utility/B3DDynamicLibrary.h"
+#include "String/B3DString.h"
+#include "B3DFrameworkTestSuiteFactory.h"
 
-#include "Factories/B3DUtilityTestFactory.h"
-#include "Factories/B3DCoreTestFactory.h"
+#include <iostream>
 
 using namespace b3d;
 
-/**
- * Runs tests for a specific layer using the provided test output.
- * @param	layer		The layer to run tests for.
- * @param	output		The test output handler.
- * @return				True if all tests passed.
- */
-static bool RunTestsForLayer(TestLayer layer, TestOutput& output)
+typedef ITestSuiteFactory* (*FnCreateFactory)();
+typedef void (*FnDestroyFactory)(ITestSuiteFactory*);
+
+/** Parses layer string into TestLayers flags. */
+static TestLayers ParseLayers(const String& layerStr)
 {
-	Vector<SPtr<ITestSuiteFactory>> factories = TestSuiteRegistry::Instance().GetFactoriesByLayer(layer);
+	if (layerStr == "all")
+		return TestLayer::Utility | TestLayer::Core | TestLayer::Editor;
+	if (layerStr == "utility")
+		return TestLayer::Utility;
+	if (layerStr == "core")
+		return TestLayer::Core;
+	if (layerStr == "editor")
+		return TestLayer::Editor;
 
-	bool allPassed = true;
-	for (const auto& factory : factories)
+	// Support comma-separated: "utility,core"
+	TestLayers result;
+	Vector<String> parts = StringUtility::Split(layerStr, ",");
+	for (const String& part : parts)
 	{
-		Vector<SPtr<TestSuite>> suites = factory->CreateTestSuites();
-		for (const auto& suite : suites)
-			suite->Run(output);
+		String trimmed = StringUtility::Trim(part);
+		if (trimmed == "utility")
+			result.Set(TestLayer::Utility);
+		else if (trimmed == "core")
+			result.Set(TestLayer::Core);
+		else if (trimmed == "editor")
+			result.Set(TestLayer::Editor);
 	}
-
-	return allPassed;
+	return result;
 }
 
-/**
- * Runs tests for a specific layer with the configured output format.
- * @param	layer			The layer to run tests for.
- * @param	outputFormat	Output format ("console" or "json").
- * @param	outputPath		Path for json output.
- * @param	exitCode		Running exit code to accumulate failures.
- */
-static void RunTestsForLayerWithOutput(TestLayer layer, const String& outputFormat, const String& outputPath, i32& exitCode)
+/** Parses output format string into TestOutputFormat enum. */
+static TestOutputFormat ParseOutputFormat(const String& formatStr)
 {
-	if (outputFormat == "json")
-	{
-		Path jsonPath = outputPath.empty() ? Path("test_results.json") : Path(outputPath);
-		JSONTestOutput testOutput(jsonPath);
-		RunTestsForLayer(layer, testOutput);
-		if (testOutput.GetExitCode() != 0)
-			exitCode = testOutput.GetExitCode();
-	}
-	else
-	{
-		ConsoleTestOutput testOutput;
-		RunTestsForLayer(layer, testOutput);
-		if (testOutput.GetExitCode() != 0)
-			exitCode = testOutput.GetExitCode();
-	}
+	if (formatStr == "json")
+		return TestOutputFormat::JSON;
+
+	return TestOutputFormat::Console;
 }
 
 int main(int argc, char* argv[])
@@ -63,52 +56,64 @@ int main(int argc, char* argv[])
 	CrashHandler::StartUp();
 	CommandLine::Initialize(argc, argv);
 
-	String outputFormat = CommandLine::GetParameterValue("test-output-format", "console");
-	String outputPath = CommandLine::GetParameterValue("test-output-path", "");
-	String testLayer = CommandLine::GetParameterValue("test-layer", "all");
+	String formatStr = CommandLine::GetParameterValue("test-output-format", "console");
+	String outputPathStr = CommandLine::GetParameterValue("test-output-path", "");
+	String layerStr = CommandLine::GetParameterValue("test-layer", "all");
 
-	bool runUtility = (testLayer == "all" || testLayer == "utility");
-	bool runCore = (testLayer == "all" || testLayer == "core");
-	bool runEditor = (testLayer == "editor");
+	TestLayers layers = ParseLayers(layerStr);
+	TestOutputFormat outputFormat = ParseOutputFormat(formatStr);
+	Path outputPath = outputPathStr.empty() ? Path() : Path(outputPathStr);
 
-	i32 exitCode = 0;
-
-	// Start registry once and register all relevant factories
 	TestSuiteRegistry::StartUp();
 
-	if (runUtility)
-		TestSuiteRegistry::Instance().RegisterFactory(B3DMakeShared<UtilityTestFactory>());
+	ITestSuiteFactory* factory = nullptr;
+	FnDestroyFactory fnDestroyFactory = nullptr;
+	DynamicLibrary* editorLibrary = nullptr;
 
-	if (runCore)
-		TestSuiteRegistry::Instance().RegisterFactory(B3DMakeShared<CoreTestFactory>());
+	// Try to load EditorTestSuiteFactory if editor tests requested
+	bool needsEditor = layers.IsSet(TestLayer::Editor);
 
-	// Phase 1: Run Utility-layer tests (no Application needed)
-	if (runUtility)
-		RunTestsForLayerWithOutput(TestLayer::Utility, outputFormat, outputPath, exitCode);
-
-	// Phase 2: Run Core-layer tests (requires Application)
-	if (runCore)
+	if (needsEditor)
 	{
-		VideoMode videoMode(1280, 720);
-		Application::StartUp(videoMode, "UnitTestRunner", false);
+		editorLibrary = B3DNew<DynamicLibrary>("EditorCore");
+		editorLibrary->Load();
 
-		RunTestsForLayerWithOutput(TestLayer::Core, outputFormat, outputPath, exitCode);
+		auto fnCreateFactory = reinterpret_cast<FnCreateFactory>(editorLibrary->GetSymbol("CreateEditorTestSuiteFactory"));
+		fnDestroyFactory = reinterpret_cast<FnDestroyFactory>(editorLibrary->GetSymbol("DestroyTestSuiteFactory"));
 
-		Application::ShutDown();
+		if (fnCreateFactory != nullptr && fnDestroyFactory != nullptr)
+			factory = fnCreateFactory();
 	}
 
-	// Phase 3: Editor-layer tests would be loaded via plugins
-	// This requires loading EditorCore plugin which registers EditorTestFactory
-	// For now, this is a placeholder for future implementation
-	if (runEditor)
+	// Fallback to framework factory
+	if (!factory)
 	{
-		// TODO: Load editor test plugins
-		// Application::Instance().LoadPlugin("EditorCore");
-		// RunTestsForLayerWithOutput(TestLayer::Editor, outputFormat, outputPath, exitCode);
-		// Application::ShutDown();
+		if (needsEditor && layerStr == "editor")
+		{
+			std::cerr << "Error: EditorCore not available for editor tests." << std::endl;
+			TestSuiteRegistry::ShutDown();
+			CrashHandler::ShutDown();
+			return 1;
+		}
+
+		factory = B3DNew<FrameworkTestSuiteFactory>();
+		fnDestroyFactory = [](ITestSuiteFactory* factory) { B3DDelete(factory); };
+
+		// Remove editor layer if not available
+		layers = layers & (TestLayer::Utility | TestLayer::Core);
+	}
+
+	const i32 exitCode = factory->Run(layers, outputFormat, outputPath);
+
+	fnDestroyFactory(factory);
+	if (editorLibrary)
+	{
+		editorLibrary->Unload();
+		B3DDelete(editorLibrary);
 	}
 
 	TestSuiteRegistry::ShutDown();
 	CrashHandler::ShutDown();
+
 	return exitCode;
 }
