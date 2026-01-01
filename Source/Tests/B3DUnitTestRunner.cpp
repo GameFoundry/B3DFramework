@@ -66,50 +66,59 @@ int main(int argc, char* argv[])
 
 	TestSuiteRegistry::StartUp();
 
-	ITestSuiteFactory* factory = nullptr;
-	FnDestroyFactory fnDestroyFactory = nullptr;
-	DynamicLibrary* editorLibrary = nullptr;
+	i32 exitCode = 0;
 
-	// Try to load EditorTestSuiteFactory if editor tests requested
-	bool needsEditor = layers.IsSet(TestLayer::Editor);
-
-	if (needsEditor)
+	// Run utility+core tests using FrameworkTestSuiteFactory
+	TestLayers frameworkLayers = layers & (TestLayer::Utility | TestLayer::Core);
+	if (frameworkLayers)
 	{
-		editorLibrary = B3DNew<DynamicLibrary>("EditorCore");
-		editorLibrary->Load();
-
-		auto fnCreateFactory = reinterpret_cast<FnCreateFactory>(editorLibrary->GetSymbol("CreateEditorTestSuiteFactory"));
-		fnDestroyFactory = reinterpret_cast<FnDestroyFactory>(editorLibrary->GetSymbol("DestroyTestSuiteFactory"));
-
-		if (fnCreateFactory != nullptr && fnDestroyFactory != nullptr)
-			factory = fnCreateFactory();
+		FrameworkTestSuiteFactory frameworkFactory;
+		exitCode = frameworkFactory.Run(frameworkLayers, outputFormat, outputPath);
 	}
 
-	// Fallback to framework factory
-	if (!factory)
+	// Run editor tests using EditorTestSuiteFactory (if available)
+	if (layers.IsSet(TestLayer::Editor))
 	{
-		if (needsEditor && layerStr == "editor")
+		DynamicLibrary* editorLibrary = nullptr;
+		ITestSuiteFactory* editorFactory = nullptr;
+		FnDestroyFactory fnDestroyFactory = nullptr;
+
+		try
 		{
-			std::cerr << "Error: EditorCore not available for editor tests." << std::endl;
-			TestSuiteRegistry::ShutDown();
-			CrashHandler::ShutDown();
-			return 1;
+			editorLibrary = B3DNew<DynamicLibrary>("EditorCore");
+			editorLibrary->Load();
+
+			auto fnCreateFactory = reinterpret_cast<FnCreateFactory>(
+				editorLibrary->GetSymbol("CreateEditorTestSuiteFactory"));
+			fnDestroyFactory = reinterpret_cast<FnDestroyFactory>(
+				editorLibrary->GetSymbol("DestroyTestSuiteFactory"));
+
+			if (fnCreateFactory && fnDestroyFactory)
+				editorFactory = fnCreateFactory();
+		}
+		catch (...)
+		{
+			// EditorCore not available
 		}
 
-		factory = B3DNew<FrameworkTestSuiteFactory>();
-		fnDestroyFactory = [](ITestSuiteFactory* factory) { B3DDelete(factory); };
+		if (editorFactory)
+		{
+			i32 editorExitCode = editorFactory->Run(TestLayer::Editor, outputFormat, outputPath);
+			if (editorExitCode != 0)
+				exitCode = editorExitCode;
 
-		// Remove editor layer if not available
-		layers = layers & (TestLayer::Utility | TestLayer::Core);
-	}
+			fnDestroyFactory(editorFactory);
+		}
+		else
+		{
+			std::cerr << "Warning: EditorCore not available, skipping editor tests." << std::endl;
+		}
 
-	const i32 exitCode = factory->Run(layers, outputFormat, outputPath);
-
-	fnDestroyFactory(factory);
-	if (editorLibrary)
-	{
-		editorLibrary->Unload();
-		B3DDelete(editorLibrary);
+		if (editorLibrary)
+		{
+			editorLibrary->Unload();
+			B3DDelete(editorLibrary);
+		}
 	}
 
 	TestSuiteRegistry::ShutDown();
