@@ -130,6 +130,7 @@ Application::~Application()
 
 	FontAtlasRenderer::ShutDown();
 	StringTableManager::ShutDown();
+	ResourceListenerManager::ShutDown(); // Release before Resources is shut-down, as it may be holding resource handles internally
 	Resources::ShutDown();
 	PackageManager::ShutDown();
 	GameObjectManager::ShutDown();
@@ -137,7 +138,6 @@ Application::~Application()
 	// Audio manager must be released before the ResourceListenerManager, as any one-shot audio sources need to be
 	// destroyed since they implement the IResourceListener interface
 	AudioManager::ShutDown();
-	ResourceListenerManager::ShutDown();
 
 	// This must be done after all resources are released since it will unload the physics plugin, and some resources
 	// might be instances of types from that plugin.
