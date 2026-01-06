@@ -119,6 +119,8 @@ void Platform::CaptureMouse(const RenderWindow& window)
 {
 	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
+	if(hwnd == 0)
+		return; // No-op in headless mode
 
 	PostMessage((HWND)hwnd, WM_BS_SETCAPTURE, WPARAM((HWND)hwnd), 0);
 }
@@ -127,19 +129,21 @@ void Platform::ReleaseMouseCapture()
 {
 	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
+	if(hwnd == 0)
+		return; // No-op in headless mode
 
 	PostMessage((HWND)hwnd, WM_BS_RELEASECAPTURE, WPARAM((HWND)hwnd), 0);
 }
 
 bool Platform::IsPointOverWindow(const RenderWindow& window, const Vector2I& screenPos)
 {
-	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+	const u64 hwndToCheck = window.GetPlatformWindowHandle();
+	if(hwndToCheck == 0)
+		return false; // No window in headless mode
 
 	POINT point;
 	point.x = screenPos.X;
 	point.y = screenPos.Y;
-
-	const u64 hwndToCheck = window.GetPlatformWindowHandle();
 
 	HWND hwndUnderPos = WindowFromPoint(point);
 	return hwndUnderPos == (HWND)hwndToCheck;
@@ -157,6 +161,8 @@ void Platform::HideCursor()
 
 	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
+	if(hwnd == 0)
+		return; // No-op in headless mode
 
 	PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
 }
@@ -173,6 +179,8 @@ void Platform::ShowCursor()
 
 	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
+	if(hwnd == 0)
+		return; // No-op in headless mode
 
 	PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
 }
@@ -185,6 +193,8 @@ bool Platform::IsCursorHidden()
 void Platform::ClipCursorToWindow(const RenderWindow& window)
 {
 	const u64 hwnd = window.GetPlatformWindowHandle();
+	if(hwnd == 0)
+		return; // No-op in headless mode
 
 	mData->CursorClipping = true;
 	mData->ClipWindow = (HWND)hwnd;
@@ -249,12 +259,19 @@ void Platform::SetCursor(PixelData& pixelData, const Vector2I& hotSpot)
 	// Make sure we notify the message loop to perform the actual cursor update
 	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
+	if(hwnd == 0)
+		return; // No-op in headless mode
 
 	PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
 }
 
 void Platform::SetIcon(const PixelData& pixelData)
 {
+	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
+	if(hwnd == 0)
+		return; // No-op in headless mode
+
 	Vector<Color> pixels = pixelData.GetColors();
 	u32 width = pixelData.GetWidth();
 	u32 height = pixelData.GetHeight();
@@ -275,9 +292,6 @@ void Platform::SetIcon(const PixelData& pixelData)
 	DeleteObject(hMonoBitmap);
 
 	// Make sure we notify the message loop to perform the actual cursor update
-	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
-	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
-
 	PostMessage((HWND)hwnd, WM_SETICON, WPARAM(ICON_BIG), (LPARAM)icon);
 }
 
@@ -313,13 +327,14 @@ void Platform::Sleep(u32 duration)
 void Win32Platform::RegisterDropTarget(DropTarget* target)
 {
 	const RenderWindow* window = target->GetOwnerWindowInternal();
+	const u64 hwnd = window->GetPlatformWindowHandle();
+	if(hwnd == 0)
+		return; // No drag-drop in headless mode
 
 	Win32DropTarget* win32DropTarget = nullptr;
 	auto iterFind = mData->DropTargets.DropTargetsPerWindow.find(window);
 	if(iterFind == mData->DropTargets.DropTargetsPerWindow.end())
 	{
-		const u64 hwnd = window->GetPlatformWindowHandle();
-
 		win32DropTarget = B3DNew<Win32DropTarget>((HWND)hwnd);
 		mData->DropTargets.DropTargetsPerWindow[window] = win32DropTarget;
 

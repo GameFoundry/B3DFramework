@@ -116,6 +116,13 @@ namespace b3d
 
 		/** If true the window render surface will be created, which internally provides a swap chain and allows the GPU to render to the window. */
 		bool CreateRenderSurface = true;
+
+		/**
+		 * When true, no OS window is created. Instead, the window renders to internal GPU textures that mimic a swap chain.
+		 * All window-handle-dependent operations (focus, input capture, cursor, etc.) become no-ops.
+		 * Use this for headless rendering in automated testing or offscreen rendering scenarios.
+		 */
+		bool Headless = false;
 	};
 
 	/**	Contains various properties that describe a render window. */

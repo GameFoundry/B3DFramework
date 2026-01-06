@@ -4,6 +4,7 @@
 
 #include "B3DApplication.h"
 #include "Platform/B3DPlatform.h"
+#include "RenderAPI/B3DHeadlessRenderWindow.h"
 
 #if B3D_PLATFORM_WIN32
 #	include "Private/Win32/B3DWin32RenderWindow.h"
@@ -20,13 +21,22 @@ SPtr<RenderWindow> RenderWindowManager::CreateRenderWindow(const RenderWindowCre
 	const u32 id = mNextWindowId++;
 
 	SPtr<RenderWindow> renderWindow;
+
+	// Check if headless mode is requested
+	if(createInformation.Headless)
+	{
+		renderWindow = B3DMakeShared<HeadlessRenderWindow>(createInformation, id, parentWindow);
+	}
+	else
+	{
 #if B3D_PLATFORM_WIN32
-	renderWindow = B3DMakeShared<Win32RenderWindow>(createInformation, id, parentWindow);
+		renderWindow = B3DMakeShared<Win32RenderWindow>(createInformation, id, parentWindow);
 #elif B3D_PLATFORM_LINUX
-	renderWindow = B3DMakeShared<LinuxRenderWindow>(createInformation, id, parentWindow);
+		renderWindow = B3DMakeShared<LinuxRenderWindow>(createInformation, id, parentWindow);
 #elif B3D_PLATFORM_MACOS
-	renderWindow = B3DMakeShared<MacOSRenderWindow>(createInformation, id, parentWindow);
+		renderWindow = B3DMakeShared<MacOSRenderWindow>(createInformation, id, parentWindow);
 #endif
+	}
 
 	renderWindow->SetShared(renderWindow);
 	mWindows[renderWindow->mWindowId] = renderWindow.get();

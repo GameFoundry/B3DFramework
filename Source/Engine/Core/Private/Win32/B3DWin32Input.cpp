@@ -159,7 +159,7 @@ void Input::InitRawInput()
 
 	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
-	const bool isHeadless = gpuDevice == nullptr || gpuDevice->GetCapabilities().DeviceName == "Null";
+	const bool isHeadless = gpuDevice == nullptr || gpuDevice->GetCapabilities().DeviceName == "Null" || mWindowHandle == 0;
 	if(isHeadless)
 		return;
 

@@ -228,7 +228,8 @@ Gamepad::Gamepad(const String& name, const GamepadInfo& gamepadInfo, Input* owne
 	B3DZeroOut(m->AxisState);
 	B3DZeroOut(m->ButtonState);
 
-	if(!m->Info.IsXInput)
+	// Don't initialize DirectInput for XInput devices or in headless mode (window handle == 0)
+	if(!m->Info.IsXInput && m->HWnd != nullptr)
 		InitializeDirectInput(m, m->HWnd);
 }
 
@@ -241,7 +242,8 @@ Gamepad::~Gamepad()
 
 void Gamepad::Capture()
 {
-	if(m->HWnd == (HWND)-1 || m->Gamepad == nullptr)
+	// Skip capture in headless mode or when focus is lost
+	if(m->HWnd == nullptr || m->Gamepad == nullptr)
 		return;
 
 	if(m->Info.IsXInput)
@@ -438,7 +440,8 @@ void Gamepad::ChangeCaptureContext(u64 windowHandle)
 	{
 		ReleaseDirectInput(m);
 
-		if(!m->Info.IsXInput && windowHandle != (u64)-1)
+		// Don't initialize DirectInput for invalid handles (headless mode or lost focus)
+		if(!m->Info.IsXInput && windowHandle != 0)
 			InitializeDirectInput(m, newWindowHandle);
 		else
 			m->HWnd = newWindowHandle;

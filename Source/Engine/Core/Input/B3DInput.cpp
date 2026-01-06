@@ -281,13 +281,13 @@ void Input::InputWindowChanged(RenderWindow& win)
 void Input::InputFocusLost()
 {
 	if(mKeyboard != nullptr)
-		mKeyboard->ChangeCaptureContext((u64)-1);
+		mKeyboard->ChangeCaptureContext(0);
 
 	if(mMouse != nullptr)
-		mMouse->ChangeCaptureContext((u64)-1);
+		mMouse->ChangeCaptureContext(0);
 
 	for(auto& gamepad : mGamepads)
-		gamepad->ChangeCaptureContext((u64)-1);
+		gamepad->ChangeCaptureContext(0);
 }
 
 void Input::NotifyMouseMovedInternal(i32 relativeX, i32 relativeY, i32 relativeZ)

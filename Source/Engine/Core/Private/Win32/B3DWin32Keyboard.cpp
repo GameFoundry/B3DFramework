@@ -89,9 +89,13 @@ Keyboard::Keyboard(const String& name, Input* owner)
 	m->DirectInput = pvtData->DirectInput;
 	m->CoopSettings = pvtData->KbSettings;
 	m->Keyboard = nullptr;
+	m->HWnd = nullptr;
 	B3DZeroOut(m->KeyBuffer);
 
-	InitializeDirectInput(m, (HWND)owner->GetWindowHandle());
+	// Don't initialize DirectInput in headless mode (window handle == 0)
+	const u64 windowHandle = owner->GetWindowHandle();
+	if(windowHandle != 0)
+		InitializeDirectInput(m, (HWND)windowHandle);
 }
 
 Keyboard::~Keyboard()
@@ -183,9 +187,10 @@ void Keyboard::ChangeCaptureContext(u64 windowHandle)
 	{
 		ReleaseDirectInput(m);
 
-		if(windowHandle != (u64)-1)
+		// Don't initialize DirectInput for invalid handles (headless mode or lost focus)
+		if(windowHandle != 0)
 			InitializeDirectInput(m, newWindowHandle);
 		else
-			m->HWnd = (HWND)-1;
+			m->HWnd = newWindowHandle;
 	}
 }
