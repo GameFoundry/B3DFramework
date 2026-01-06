@@ -5,3 +5,6 @@
 [submodule "Tools/BansheeCodeGenerator"]
 	path = Tools/BansheeCodeGenerator
 	url = https://github.com/BearishSun/BansheeCodeGenerator
+[submodule "Tools/BansheeForge"]
+	path = Tools/BansheeForge
+	url = https://github.com/BearishSun/BansheeForge.git
