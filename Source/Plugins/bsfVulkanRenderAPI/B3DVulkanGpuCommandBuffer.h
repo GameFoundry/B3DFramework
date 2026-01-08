@@ -9,6 +9,7 @@
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanResourceTracker.h"
 #include "B3DVulkanUtility.h"
+#include "B3DIVulkanRenderWindowSurface.h"
 #include "Allocators/B3DPoolAlloc.h"
 #include "Math/B3DArea2.h"
 #include "Math/B3DArea2.h"
@@ -367,13 +368,6 @@ namespace b3d
 				VkPipelineStageFlags Stages = 0;
 			};
 
-			/** Information an acquires swap chain image. */
-			struct SwapChainImageInformation
-			{
-				VulkanSwapChain* SwapChain = nullptr;
-				u32 ImageIndex = ~0u;
-			};
-
 			/** Information about queries recorded on the command buffer. */
 			struct QueryInformation
 			{
@@ -509,7 +503,7 @@ namespace b3d
 			VkDescriptorSet* mDescriptorSetsTemp;
 			TransitionInfo mTransitionInfoTemp[GQT_COUNT];
 			Vector<VulkanEvent*> mQueuedEvents;
-			Vector<SwapChainImageInformation> mAcquiredSwapChainImages;
+			Vector<IVulkanRenderWindowSurface*> mAcquiredSurfaces;
 			TInlineArray<TInlineArray<u32, 4>, 4> mDynamicOffsetsPerSet;
 			TInlineArray<UnorderedMap<u32, u32>, 4> mDynamicOffsetsOverridesPerSet;
 			TInlineArray<u32, 16> mFlatDynamicOffsets;

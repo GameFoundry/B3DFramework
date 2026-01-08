@@ -7,7 +7,6 @@
 #include "CoreObject/B3DRenderThread.h"
 #include "Managers/B3DRenderWindowManager.h"
 #include "RenderAPI/B3DViewport.h"
-#include "RenderAPI/B3DHeadlessRenderWindowSurface.h"
 #include "Platform/B3DPlatform.h"
 #include "RTTI/B3DRenderTargetRTTI.h"
 
@@ -205,12 +204,10 @@ void RenderWindow::Initialize()
 		renderWindowSurfaceCreateInformation.UseHardwareSRGB = mCreateInformation.Gamma;
 		renderWindowSurfaceCreateInformation.VSync = mCreateInformation.Vsync;
 		renderWindowSurfaceCreateInformation.PlatformWindowHandle = mPlatformWindowHandle;
+		renderWindowSurfaceCreateInformation.Headless = mCreateInformation.Headless;
 
-		// In headless mode, create the headless surface directly instead of using the GPU backend
-		if(mCreateInformation.Headless)
-			mRenderWindowSurface = B3DMakeShared<HeadlessRenderWindowSurface>(renderWindowSurfaceCreateInformation);
-		else
-			mRenderWindowSurface = b3d::RenderWindowManager::Instance().CreateRenderWindowSurface(renderWindowSurfaceCreateInformation);
+		// Let the backend create the appropriate surface type (windowed or headless)
+		mRenderWindowSurface = b3d::RenderWindowManager::Instance().CreateRenderWindowSurface(renderWindowSurfaceCreateInformation);
 	}
 
 	Super::Initialize();

@@ -2,12 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "B3DGpuDevice.h"
 #include "B3DPrerequisites.h"
 #include "RenderAPI/B3DRenderTarget.h"
 #include "RenderAPI/B3DVideoModeInfo.h"
 
 namespace b3d
 {
+	class GpuQueue;
 	class RenderWindowManager;
 
 	/** @addtogroup RenderAPI-Internal
@@ -379,6 +381,7 @@ namespace b3d
 			bool VSync = false;
 			bool CreateDepthBuffer = false;
 			bool UseHardwareSRGB = false;
+			bool Headless = false; /**< When true, creates a headless surface for offscreen rendering (no OS window is created). */
 		};
 
 		/**
@@ -393,6 +396,9 @@ namespace b3d
 
 			/** Rebuilds the swap chain with new properties. */
 			virtual void RebuildSwapChain(u32 width, u32 height, bool vsync) = 0;
+
+			/** Presents the current back-buffer image, and acquires the next swap chain image for rendering. */
+			virtual void SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask) = 0;
 
 			/** Marks the swap chain as invalid, so the systems knows to rebuild it on the next occasion. */
 			virtual void MarkSwapChainAsInvalid() = 0;

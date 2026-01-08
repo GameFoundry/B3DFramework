@@ -2,9 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanRenderWindowSurface.h"
 #include "B3DVulkanGpuBackend.h"
+#include "B3DVulkanGpuQueue.h"
 #include "B3DVulkanSubmitThread.h"
 #include "B3DVulkanSwapChain.h"
 
+using namespace b3d;
 using namespace b3d::render;
 
 VulkanRenderWindowSurface::VulkanRenderWindowSurface(const RenderWindowSurfaceCreateInformation& createInformation)
@@ -129,3 +131,56 @@ void VulkanRenderWindowSurface::Destroy()
 
 	mIsDestroyed = true;
 }
+
+void VulkanRenderWindowSurface::SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask)
+{
+	VulkanGpuQueue& vulkanGpuQueue = static_cast<VulkanGpuQueue&>(queue);
+
+	GetVulkanSubmitThread().QueuePresent(vulkanGpuQueue, *mSwapChain, syncMask);
+
+	// Ensure the acquire operation we queued the previous frame has finished. This also means the old image was presented.
+	mSwapChain->WaitUntilFirstImageAcquired();
+
+	GetVulkanSubmitThread().QueueImageAcquire(*mSwapChain);
+}
+
+VulkanFramebuffer* VulkanRenderWindowSurface::GetActiveFramebuffer(bool acquireIfUnavailable)
+{
+	B3D_ASSERT(mSwapChain != nullptr);
+
+	// Try to get already-acquired image
+	bool isImageAcquired = mSwapChain->TryGetFirstAcquiredImageIndex(mActiveImageIndex);
+
+	// It's possible this is a fresh swap chain we haven't acquired any images for yet
+	if(!isImageAcquired && acquireIfUnavailable)
+	{
+		const u32 maximumColorImageCount = mSwapChain->GetColorImageCount();
+		const u32 acquireableColorImageCount = maximumColorImageCount > 0 ? maximumColorImageCount - 1 : 0; // One is reserved for OS compositor
+
+		for(u32 imageIndex = 0; imageIndex < acquireableColorImageCount; imageIndex++)
+			GetVulkanSubmitThread().QueueImageAcquire(*mSwapChain);
+
+		mSwapChain->WaitUntilFirstImageAcquired();
+		isImageAcquired = mSwapChain->TryGetFirstAcquiredImageIndex(mActiveImageIndex);
+	}
+
+	if(!isImageAcquired)
+		return nullptr;
+
+	return mSwapChain->GetFramebufferForImage(mActiveImageIndex);
+}
+
+bool VulkanRenderWindowSurface::AppendWaitSemaphoresIfRequired(TInlineArray<VulkanSemaphore*, 8>& outSemaphores)
+{
+	B3D_ASSERT(mSwapChain != nullptr);
+
+	return mSwapChain->AppendWaitSemaphoreIfRequired(mActiveImageIndex, outSemaphores);
+}
+
+bool VulkanRenderWindowSurface::IsSwapChainValid() const
+{
+	B3D_ASSERT(mSwapChain != nullptr);
+
+	return mSwapChain->IsValid();
+}
+

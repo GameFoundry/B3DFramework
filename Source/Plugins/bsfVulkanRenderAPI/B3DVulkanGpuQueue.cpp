@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanGpuQueue.h"
 #include "B3DVulkanGpuCommandBuffer.h"
-#include "B3DVulkanRenderWindowSurface.h"
+#include "B3DIVulkanRenderWindowSurface.h"
 #include "B3DVulkanSubmitThread.h"
 #include "B3DVulkanSwapChain.h"
 #include "Profiling/B3DRenderStats.h"
@@ -50,20 +50,12 @@ void VulkanGpuQueue::PresentRenderWindow(const SPtr<RenderWindow>& renderWindow,
 	if(renderWindow == nullptr)
 		return;
 
-	VulkanRenderWindowSurface* renderWindowSurface = static_cast<VulkanRenderWindowSurface*>(renderWindow->GetRenderWindowSurface().get());
-	if(renderWindowSurface == nullptr)
+	IVulkanRenderWindowSurface* surface = static_cast<IVulkanRenderWindowSurface*>(renderWindow->GetRenderWindowSurface().get());
+	if(surface == nullptr)
 		return;
 
-	// Retrieve the swap chain before command buffer submit, as the submit might internally rebuild the swap chain.
-	VulkanSwapChain* const swapChain = renderWindowSurface->GetSwapChain();
 	renderWindow->NotifySwapBuffersRequested();
-
-	GetVulkanSubmitThread().QueuePresent(*this, *swapChain, syncMask);
-
-	// Ensure the acquire operation we queued the previous frame has finished. This also means the old image was presented.
-	swapChain->WaitUntilFirstImageAcquired();
-
-	GetVulkanSubmitThread().QueueImageAcquire(*swapChain);
+	surface->SwapBuffers(*this, syncMask);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumPresents);
 }

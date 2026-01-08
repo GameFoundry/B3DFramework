@@ -10,11 +10,10 @@
 #include "B3DVulkanFramebuffer.h"
 #include "Managers/B3DVulkanVertexInputManager.h"
 #include "B3DVulkanEventQuery.h"
-#include "B3DVulkanSwapChain.h"
 #include "B3DVulkanRenderPass.h"
 #include "B3DVulkanRenderTexture.h"
 #include "B3DVulkanGpuBackend.h"
-#include "B3DVulkanRenderWindowSurface.h"
+#include "B3DIVulkanRenderWindowSurface.h"
 #include "Managers/B3DVulkanQueries.h"
 #include "Profiling/B3DRenderStats.h"
 #include "Image/B3DPixelUtility.h"
@@ -293,52 +292,27 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	{
 		RenderWindow* const renderWindow = static_cast<RenderWindow*>(renderTarget.get());
 
-		VulkanRenderWindowSurface* renderWindowSurface = static_cast<VulkanRenderWindowSurface*>(renderWindow->GetRenderWindowSurface().get());
+		IVulkanRenderWindowSurface* const renderWindowSurface = static_cast<IVulkanRenderWindowSurface*>(renderWindow->GetRenderWindowSurface().get());
 		if(!B3D_ENSURE(renderWindowSurface != nullptr))
 			return;
 
-		swapChain = renderWindowSurface->GetSwapChain();
-
-		if(!swapChain->IsValid())
-		{
+		if(!renderWindowSurface->IsSwapChainValid())
 			renderWindow->RebuildSwapChain();
-			swapChain = renderWindowSurface->GetSwapChain();
-		}
 
-		u32 acquiredImageIndex;
-		bool isImageAcquired = swapChain->TryGetFirstAcquiredImageIndex(acquiredImageIndex);
-
-		// It's possible this is a fresh swap chain we haven't acquired any images for yet
-		if(!isImageAcquired)
+		newFramebuffer = renderWindowSurface->GetActiveFramebuffer();
+		if(newFramebuffer != nullptr)
 		{
-			const u32 maximumColorImageCount = swapChain->GetColorImageCount();
-			const u32 acquireableColorImageCount = maximumColorImageCount > 0 ? maximumColorImageCount - 1 : 0; // One is reserved for OS compositor
-			for(u32 imageIndex = 0; imageIndex < acquireableColorImageCount; imageIndex++)
-				GetVulkanSubmitThread().QueueImageAcquire(*swapChain);
-
-			swapChain->WaitUntilFirstImageAcquired();
-			isImageAcquired = swapChain->TryGetFirstAcquiredImageIndex(acquiredImageIndex);
-		}
-
-		if(isImageAcquired)
-		{
-			SwapChainImageInformation swapChainImageInformation;
-			swapChainImageInformation.SwapChain = swapChain;
-			swapChainImageInformation.ImageIndex = acquiredImageIndex;
-
-			const auto found = std::find_if(mAcquiredSwapChainImages.begin(), mAcquiredSwapChainImages.end(), [swapChain](const SwapChainImageInformation& info) { return info.SwapChain == swapChain; });
-			if(found == mAcquiredSwapChainImages.end())
-				mAcquiredSwapChainImages.push_back(swapChainImageInformation);
-
-			newFramebuffer = swapChain->GetFramebufferForImage(swapChainImageInformation.ImageIndex);
+			// Track surface (only add if not already tracked)
+			auto found = std::find(mAcquiredSurfaces.begin(), mAcquiredSurfaces.end(), renderWindowSurface);
+			if(found == mAcquiredSurfaces.end())
+				mAcquiredSurfaces.push_back(renderWindowSurface);
 		}
 		else
 		{
 			B3D_LOG(Error, LogRenderBackend, "Binding render target failed. Unable to acquire swap chain image.");
-
-			swapChain = nullptr;
-			newFramebuffer = nullptr;
 		}
+
+		swapChain = renderWindowSurface->GetSwapChain();
 	}
 	else
 	{
@@ -1503,11 +1477,9 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 		submitInformation.SourceQueueTransitionCommandBuffer[transitionQueueType] = sourceTransitionCommandBuffer;
 	}
 
-	// Wait on present (i.e. until the back buffer becomes available) for any swap chains
-	for(auto& entry : mAcquiredSwapChainImages)
-	{
-		entry.SwapChain->AppendWaitSemaphoreIfRequired(entry.ImageIndex, submitInformation.Semaphores);
-	}
+	// Wait on present (i.e. until the back buffer becomes available) for any surfaces
+	for(IVulkanRenderWindowSurface* surface : mAcquiredSurfaces)
+		surface->AppendWaitSemaphoresIfRequired(submitInformation.Semaphores);
 
 	// Issue second part of transition pipeline barriers (on this queue)
 	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
@@ -1566,7 +1538,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 	mIndexBuffer = nullptr;
 	mVertexBuffers.clear();
 	mVertexInputsDirty = true;
-	mAcquiredSwapChainImages.clear();
+	mAcquiredSurfaces.clear();
 
 	return submitInformation;
 }
@@ -2225,20 +2197,16 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		VulkanFramebuffer* framebuffer = nullptr;
 		if(barrier.Object->GetProperties().IsWindow)
 		{
-			// Handle RenderWindow - need to get the acquired swap chain image
+			// Handle RenderWindow - get the active framebuffer from the surface if it was acquired
 			RenderWindow* const renderWindow = static_cast<RenderWindow*>(barrier.Object.get());
-			VulkanRenderWindowSurface* renderWindowSurface = static_cast<VulkanRenderWindowSurface*>(renderWindow->GetRenderWindowSurface().get());
+			IVulkanRenderWindowSurface* surface = static_cast<IVulkanRenderWindowSurface*>(renderWindow->GetRenderWindowSurface().get());
 
-			if(renderWindowSurface != nullptr)
+			if(surface != nullptr)
 			{
-				VulkanSwapChain* swapChain = renderWindowSurface->GetSwapChain();
-
-				// Find the acquired image index for this swap chain
-				const auto found = std::find_if(mAcquiredSwapChainImages.begin(), mAcquiredSwapChainImages.end(),
-					[swapChain](const SwapChainImageInformation& info) { return info.SwapChain == swapChain; });
-
-				if(found != mAcquiredSwapChainImages.end())
-					framebuffer = swapChain->GetFramebufferForImage(found->ImageIndex);
+				// Only get framebuffer if this surface was acquired (tracked in mAcquiredSurfaces)
+				const auto found = std::find(mAcquiredSurfaces.begin(), mAcquiredSurfaces.end(), surface);
+				if(found != mAcquiredSurfaces.end())
+					framebuffer = surface->GetActiveFramebuffer(false);
 			}
 		}
 		else

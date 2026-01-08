@@ -142,12 +142,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<Vulkan
 
 	VulkanImageCreateInformation imageDesc;
 	imageDesc.Format = colorFormat;
-	imageDesc.Type = TEX_TYPE_2D;
 	imageDesc.Usage = TextureUsageFlag::RenderTarget;
-	imageDesc.Layout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageDesc.FaceCount = 1;
-	imageDesc.MipLevelCount = 1;
-	imageDesc.DepthSliceCount = 1;
 
 	mSurfaces.resize(imageCount);
 	for(u32 imageIndex = 0; imageIndex < imageCount; imageIndex++)
@@ -212,21 +207,21 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<Vulkan
 		mDepthStencilImage = nullptr;
 
 	// Create a render pass
-	VulkanRenderPassCreateInformation rpDesc;
-	rpDesc.SampleCount = 1;
-	rpDesc.IsOffscreenSurface = false;
-	rpDesc.ColorAttachments[0].Format = colorFormat;
-	rpDesc.ColorAttachments[0].IsShaderReadAllowed = false;
-	rpDesc.ColorAttachments[0].IsEnabled = true;
+	VulkanRenderPassCreateInformation renderPassCreateInformation;
+	renderPassCreateInformation.SampleCount = 1;
+	renderPassCreateInformation.IsOffscreenSurface = false;
+	renderPassCreateInformation.ColorAttachments[0].Format = colorFormat;
+	renderPassCreateInformation.ColorAttachments[0].IsShaderReadAllowed = false;
+	renderPassCreateInformation.ColorAttachments[0].IsEnabled = true;
 
 	if(mDepthStencilImage)
 	{
-		rpDesc.DepthAttachment.Format = depthFormat;
-		rpDesc.DepthAttachment.IsShaderReadAllowed = false;
-		rpDesc.DepthAttachment.IsEnabled = true;
+		renderPassCreateInformation.DepthAttachment.Format = depthFormat;
+		renderPassCreateInformation.DepthAttachment.IsShaderReadAllowed = false;
+		renderPassCreateInformation.DepthAttachment.IsEnabled = true;
 	}
 
-	VulkanRenderPass* renderPass = VulkanRenderPassCache::Instance().FindOrCreateRenderPass(mDevice, rpDesc);
+	VulkanRenderPass* renderPass = VulkanRenderPassCache::Instance().FindOrCreateRenderPass(mDevice, renderPassCreateInformation);
 
 	// Create a framebuffer for each swap chain buffer
 	const u32 framebufferCount = (u32)mSurfaces.size();

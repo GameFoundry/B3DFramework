@@ -3,7 +3,8 @@
 #pragma once
 
 #include "B3DVulkanPrerequisites.h"
-#include "RenderAPI/B3DRenderWindow.h"
+#include "B3DIVulkanRenderWindowSurface.h"
+#include "B3DVulkanGpuQueue.h"
 
 namespace b3d::render
 {
@@ -13,19 +14,24 @@ namespace b3d::render
 
 	class VulkanSurface;
 
-	/** Interface that acts a bridge between Win32RenderWindow and VulkanSurface/VulkanSwapChain. */
-	class VulkanRenderWindowSurface : public IRenderWindowSurface
+	/** Vulkan render window surface implementation that manages a VkSwapChain. */
+	class VulkanRenderWindowSurface : public IVulkanRenderWindowSurface
 	{
 	public:
 		VulkanRenderWindowSurface(const RenderWindowSurfaceCreateInformation& createInformation);
 		~VulkanRenderWindowSurface();
 
+		// IRenderWindowSurface
 		void RebuildSwapChain(u32 width, u32 height, bool vsync) override;
 		void MarkSwapChainAsInvalid() override;
+		void SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask) override;
 		void Destroy() override;
 
-		/** Returns the swap chain owned by the surface. */
-		VulkanSwapChain* GetSwapChain() const { return mSwapChain; }
+		// IVulkanRenderWindowSurface
+		VulkanFramebuffer* GetActiveFramebuffer(bool acquireIfUnavailable = true) override;
+		bool AppendWaitSemaphoresIfRequired(TInlineArray<VulkanSemaphore*, 8>& outSemaphores) override;
+		bool IsSwapChainValid() const override;
+		VulkanSwapChain* GetSwapChain() const override { return mSwapChain; }
 
 	private:
 		SPtr<VulkanSurface> mSurface;
@@ -37,6 +43,7 @@ namespace b3d::render
 		VulkanSwapChain* mSwapChain = nullptr;
 		u64 mPlatformWindowHandle = 0;
 		bool mIsDestroyed = false;
+		u32 mActiveImageIndex = 0;
 	};
 
 	/** @} */
