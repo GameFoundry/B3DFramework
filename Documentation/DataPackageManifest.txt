@@ -1,0 +1,3 @@
+Manuals/docs/Images
+.version
+Timestamp.asset

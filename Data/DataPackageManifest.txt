@@ -1,0 +1,8 @@
+Cursors/
+Icons/
+Meshes/
+Skin/
+Textures/
+.version
+Timestamp.asset
+ResourceManifest.asset

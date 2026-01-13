@@ -11,11 +11,12 @@
 #   ./B3DUploadBinaries.sh <package-name> [options]
 #
 # Options:
-#   --no-upload     Create archive but skip FTP upload
-#   --dry-run       Print actions without executing
-#   --credentials   Path to FTP credentials file
-#   --list          List available packages
-#   --help          Show help message
+#   --no-upload       Create archive but skip FTP upload
+#   --dry-run         Print actions without executing
+#   --credentials     Path to FTP credentials file
+#   --list            List available packages
+#   --check-outdated  Check which packages need to be re-uploaded (slow)
+#   --help            Show help message
 #
 # Environment variables (checked if no --credentials file):
 #   B3D_FTP_URL      FTP server URL
@@ -35,6 +36,7 @@ NoUpload=false
 DryRun=false
 CredentialsFile=""
 ListPackages=false
+CheckOutdated=false
 PackageName=""
 
 # -----------------------------------------------
@@ -46,11 +48,12 @@ show_usage() {
 	echo "Usage: $0 <package-name> [options]"
 	echo ""
 	echo "Options:"
-	echo "  --no-upload     Create archive but skip FTP upload"
-	echo "  --dry-run       Print actions without executing"
-	echo "  --credentials   Path to FTP credentials file"
-	echo "  --list          List available packages"
-	echo "  --help          Show this help message"
+	echo "  --no-upload       Create archive but skip FTP upload"
+	echo "  --dry-run         Print actions without executing"
+	echo "  --credentials     Path to FTP credentials file"
+	echo "  --list            List available packages"
+	echo "  --check-outdated  Check which packages need to be re-uploaded (slow)"
+	echo "  --help            Show this help message"
 	echo ""
 	echo "Environment variables (checked if no --credentials file):"
 	echo "  B3D_FTP_URL     FTP server URL"
@@ -112,6 +115,40 @@ list_packages() {
 
 	# List all directories in Dependencies folder
 	if [ -d "$FrameworkDir/Dependencies" ]; then
+		for dir in "$FrameworkDir/Dependencies"/*/; do
+			if [ -d "$dir" ]; then
+				name=$(basename "$dir")
+				# Skip hidden directories
+				if [[ "$name" != .* ]]; then
+					echo "  $name"
+				fi
+			fi
+		done
+	else
+		echo "  (No dependencies folder found)"
+	fi
+
+	echo ""
+	echo "=== Data Packages (platform-independent) ==="
+	printf "  %-22s -> %s\n" "FrameworkData" "Framework/Data/"
+	printf "  %-22s -> %s\n" "FrameworkDataRaw" "Framework/Data/Raw/"
+	printf "  %-22s -> %s\n" "FrameworkDocumentation" "Framework/Documentation/"
+	printf "  %-22s -> %s\n" "ExampleData" "Framework/Examples/Data/"
+	printf "  %-22s -> %s\n" "EditorData" "Data/"
+	printf "  %-22s -> %s\n" "EditorDataRaw" "Data/Raw/"
+}
+
+# -----------------------------------------------
+# Check Outdated Packages
+# -----------------------------------------------
+check_outdated() {
+	echo "Checking for outdated packages (this may take a while)..."
+	echo ""
+
+	local foundOutdated=false
+
+	echo "=== Dependency Packages ==="
+	if [ -d "$FrameworkDir/Dependencies" ]; then
 		# First pass: find longest name for alignment
 		local maxLen=0
 		for dir in "$FrameworkDir/Dependencies"/*/; do
@@ -123,54 +160,51 @@ list_packages() {
 			fi
 		done
 
-		# Second pass: print with alignment
+		# Second pass: check and print outdated
 		for dir in "$FrameworkDir/Dependencies"/*/; do
 			if [ -d "$dir" ]; then
 				name=$(basename "$dir")
-				# Skip hidden directories
 				if [[ "$name" != .* ]]; then
 					if is_package_outdated "$dir"; then
 						printf "  %-${maxLen}s  [OUTDATED]\n" "$name"
-					else
-						echo "  $name"
+						foundOutdated=true
 					fi
 				fi
 			fi
 		done
-	else
-		echo "  (No dependencies folder found)"
 	fi
 
 	echo ""
-	echo "=== Data Packages (platform-independent) ==="
-	# Check data packages for outdated status
-	local fwDataStatus=""
-	local fwDataRawStatus=""
-	local edDataStatus=""
-	local edDataRawStatus=""
-	local docStatus=""
-
+	echo "=== Data Packages ==="
 	if is_package_outdated "$FrameworkDir/Data"; then
-		fwDataStatus="[OUTDATED]"
+		printf "  %-22s  [OUTDATED]\n" "FrameworkData"
+		foundOutdated=true
 	fi
 	if is_package_outdated "$FrameworkDir/Data/Raw"; then
-		fwDataRawStatus="[OUTDATED]"
-	fi
-	if is_package_outdated "$RootDir/Data"; then
-		edDataStatus="[OUTDATED]"
-	fi
-	if is_package_outdated "$RootDir/Data/Raw"; then
-		edDataRawStatus="[OUTDATED]"
+		printf "  %-22s  [OUTDATED]\n" "FrameworkDataRaw"
+		foundOutdated=true
 	fi
 	if is_package_outdated "$FrameworkDir/Documentation"; then
-		docStatus="[OUTDATED]"
+		printf "  %-22s  [OUTDATED]\n" "FrameworkDocumentation"
+		foundOutdated=true
+	fi
+	if is_package_outdated "$FrameworkDir/Examples/Data"; then
+		printf "  %-22s  [OUTDATED]\n" "ExampleData"
+		foundOutdated=true
+	fi
+	if is_package_outdated "$RootDir/Data"; then
+		printf "  %-22s  [OUTDATED]\n" "EditorData"
+		foundOutdated=true
+	fi
+	if is_package_outdated "$RootDir/Data/Raw"; then
+		printf "  %-22s  [OUTDATED]\n" "EditorDataRaw"
+		foundOutdated=true
 	fi
 
-	printf "  %-18s -> %-30s %s\n" "FrameworkData" "Framework/Data/" "$fwDataStatus"
-	printf "  %-18s -> %-30s %s\n" "FrameworkDataRaw" "Framework/Data/Raw/" "$fwDataRawStatus"
-	printf "  %-18s -> %-30s %s\n" "EditorData" "Data/" "$edDataStatus"
-	printf "  %-18s -> %-30s %s\n" "EditorDataRaw" "Data/Raw/" "$edDataRawStatus"
-	printf "  %-18s -> %-30s %s\n" "Documentation" "Framework/Documentation/" "$docStatus"
+	echo ""
+	if [ "$foundOutdated" = false ]; then
+		echo "All packages are up to date."
+	fi
 }
 
 # -----------------------------------------------
@@ -192,6 +226,10 @@ while [[ $# -gt 0 ]]; do
 			;;
 		--list)
 			ListPackages=true
+			shift
+			;;
+		--check-outdated)
+			CheckOutdated=true
 			shift
 			;;
 		--help|-h)
@@ -219,6 +257,12 @@ done
 # If --list flag, show available packages
 if [ "$ListPackages" = true ]; then
 	list_packages
+	exit 0
+fi
+
+# If --check-outdated flag, check for outdated packages
+if [ "$CheckOutdated" = true ]; then
+	check_outdated
 	exit 0
 fi
 
@@ -260,6 +304,16 @@ case "$PackageName" in
 		ArchivePrefix="FrameworkDataRaw"
 		IsPlatformSpecific=false
 		;;
+	FrameworkDocumentation)
+		PackageFolder="$FrameworkDir/Documentation"
+		ArchivePrefix="FrameworkDocumentation"
+		IsPlatformSpecific=false
+		;;
+	ExampleData)
+		PackageFolder="$FrameworkDir/Examples/Data"
+		ArchivePrefix="ExampleData"
+		IsPlatformSpecific=false
+		;;
 	EditorData)
 		PackageFolder="$RootDir/Data"
 		ArchivePrefix="EditorData"
@@ -268,11 +322,6 @@ case "$PackageName" in
 	EditorDataRaw)
 		PackageFolder="$RootDir/Data/Raw"
 		ArchivePrefix="EditorDataRaw"
-		IsPlatformSpecific=false
-		;;
-	Documentation)
-		PackageFolder="$FrameworkDir/Documentation"
-		ArchivePrefix="Documentation"
 		IsPlatformSpecific=false
 		;;
 	*)

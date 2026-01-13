@@ -14,6 +14,7 @@ Builds
 Data/.version
 Data/*
 !Data/.reqversion
+!Data/DataPackageManifest.txt
 !Data/Raw/
 Data/Raw/*
 !Data/Raw/ShaderDependencies.json
@@ -23,7 +24,7 @@ Data/Raw/*
 !Data/Raw/Shaders/
 !Data/Raw/Shaders/Includes/
 !Data/Raw/.reqversion
-!Data/Raw/DataPackageContents.txt
+!Data/Raw/DataPackageManifest.txt
 Documentation/Generated
 Documentation/Manuals/docs/Images
 Documentation/Manuals/static

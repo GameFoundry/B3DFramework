@@ -4,8 +4,6 @@ set (B3D_FRAMEWORK_VERSION_MINOR 0)
 set (B3D_FRAMEWORK_VERSION_PATCH 0)
 set (B3D_FRAMEWORK_CURRENT_RELEASE_YEAR 2025)
 
-set (B3D_FRAMEWORK_BUILTIN_ASSETS_VERSION 7)
-
 # Options
 set(B3D_AUDIO_BACKEND "OpenAudio" CACHE STRING "Audio backend to use.")
 set_property(CACHE B3D_AUDIO_BACKEND PROPERTY STRINGS OpenAudio FMOD Null)
@@ -42,10 +40,6 @@ set(B3D_BUILD_ALL_RENDER_BACKENDS OFF CACHE BOOL "If true, all supported render 
 set(B3D_BUILD_TYPE "Development" CACHE STRING "Determines the purpose of the build. 'Development' contains features to make debugging easier, but has overhead compared to other types - this should be your build type in most cases. 'Shipping' strips all development features.")
 set_property(CACHE B3D_BUILD_TYPE PROPERTY STRINGS Development Shipping)
 
-set(B3D_INCLUDE_ASSET_PACKAGING_SCRIPTS OFF CACHE BOOL "If true, generate helper targets that allow you to import built-in assets as well as upload new package versions.")
-
-set(B3D_UPLOAD_ASSETS OFF CACHE BOOL "Only relevant if BUILD_ASSETS is true. When enabled the system will upload a package with the latest assets whenever assets are built, provided valid server and credentials are present.")
-
 set(B3D_USE_DOTNETCORE ON CACHE BOOL "If enabled, uses new .NET Core 9.0 with support for C# 12. Otherwise uses .NET Framework 4.5 with support for C# 5.")
 
 set(B3D_ENABLE_NETWORKING OFF CACHE BOOL "If true, enable networking support.")
@@ -54,7 +48,8 @@ set(B3D_USE_BUNDLED_LIBRARIES ON CACHE BOOL "Use and install bundled libraries")
 
 # Ensure dependencies are up to date
 ## Check data dependencies
-B3DUpdateBuiltinAssetsIfNeeded(bsf ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data/Raw Raw ${B3D_FRAMEWORK_BUILTIN_ASSETS_VERSION})
+B3DCheckAndUpdateAssetPackage(FrameworkData)
+B3DCheckAndUpdateAssetPackage(FrameworkDataRaw)
 
 # Config file
 ## Note: Must happen before script binding generation
@@ -199,23 +194,6 @@ set_property(TARGET bsfImportTool PROPERTY FOLDER Tools)
 if(NOT B3D_IS_ENGINE)
 	install(TARGETS bsfImportTool RUNTIME DESTINATION bin)	
 endif()
-	
-set(B3D_FTP_CREDENTIALS_FILE "${PROJECT_SOURCE_DIR}/../ftp_credentials" CACHE STRING "The location containing the FTP server credentials to use for uploading packages. The file is expected to contain three lines: URL/Username/Password, in that order.")
-mark_as_advanced(B3D_FTP_CREDENTIALS_FILE)
-
-if(${B3D_INCLUDE_ASSET_PACKAGING_SCRIPTS})
-	B3DAddRunAssetImportTarget(bsfBuiltinAssets ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data/Raw ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data "")
-	B3DAddUploadAssetsTarget(bsfBuiltinAssets ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data Raw/DataPackageContents.txt)
-	B3DAddUploadAssetsTarget(bsfDocImages ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Documentation DataPackageContents.txt)
-endif()
-
-set(B3D_FRAMEWORK_COMPILED_ASSETS_VERSION_FILE ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data/.reqversion)
-file (STRINGS ${B3D_FRAMEWORK_COMPILED_ASSETS_VERSION_FILE} B3D_FRAMEWORK_COMPILED_ASSETS_VERSION)
-B3DUpdateBuiltinAssetsIfNeeded(bsfCompiled ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data Data ${B3D_FRAMEWORK_COMPILED_ASSETS_VERSION})
-
-set(B3D_DOCUMENTATION_ASSETS_VERSION_FILE ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Documentation/.reqversion)
-file (STRINGS ${B3D_DOCUMENTATION_ASSETS_VERSION_FILE} B3D_DOCUMENTATION_ASSETS_VERSION)
-B3DUpdateBuiltinAssetsIfNeeded(bsfDocImages ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Documentation Documentation ${B3D_DOCUMENTATION_ASSETS_VERSION})
 
 if(NOT B3D_IS_ENGINE)
 	set(B3D_ASSETS_INSTALL_FOLDER bin)

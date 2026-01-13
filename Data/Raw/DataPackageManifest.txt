@@ -1,0 +1,7 @@
+Cursors/
+Fonts/
+Icons/
+Skin/
+Textures/
+UnitTestData/
+.version

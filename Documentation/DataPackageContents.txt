@@ -1,3 +1,0 @@
-Documentation/Manuals/docs/Images
-Documentation/.version
-Documentation/Timestamp.asset
