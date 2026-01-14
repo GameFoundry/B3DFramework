@@ -65,21 +65,23 @@ function(B3DDownloadPackageIfNeeded targetFolder archivePrefix extractedFolderNa
 			WORKING_DIRECTORY ${tempFolder}
 	)
 
-	# Remove old contents (preserve .reqversion)
-	file(GLOB targetContents "${targetFolder}/*")
-	foreach(item ${targetContents})
+	# Get list of items in the extracted package
+	file(GLOB extractedContents "${tempFolder}/${extractedFolderName}/*")
+
+	# Only remove items that exist in the new package (preserve .reqversion and other unrelated items)
+	foreach(item ${extractedContents})
 		get_filename_component(itemName ${item} NAME)
-		if(NOT itemName STREQUAL ".reqversion")
-			if(IS_DIRECTORY ${item})
-				execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${item})
+		set(targetItem ${targetFolder}/${itemName})
+		if(EXISTS ${targetItem} AND NOT itemName STREQUAL ".reqversion")
+			if(IS_DIRECTORY ${targetItem})
+				execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${targetItem})
 			else()
-				execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${item})
+				execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${targetItem})
 			endif()
 		endif()
 	endforeach()
 
 	# Copy new contents
-	file(GLOB extractedContents "${tempFolder}/${extractedFolderName}/*")
 	foreach(item ${extractedContents})
 		get_filename_component(itemName ${item} NAME)
 		if(IS_DIRECTORY ${item})

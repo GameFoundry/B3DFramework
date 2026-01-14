@@ -409,7 +409,7 @@ echo "Creating archive: $ArchiveName"
 
 if [ "$DryRun" = false ]; then
 	cd "$PackageFolder"
-	tar -czf "$ArchivePath" -T "$FileListPath"
+	tar -czf "$ArchivePath" --transform "s,^,${ArchivePrefix}/," -T "$FileListPath"
 
 	if [ $? -ne 0 ]; then
 		echo "[Error] Failed to create archive"

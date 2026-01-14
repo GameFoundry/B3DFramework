@@ -5,4 +5,3 @@ Skin/
 Textures/
 .version
 Timestamp.asset
-ResourceManifest.asset
