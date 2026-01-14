@@ -5,7 +5,7 @@
 #  bison_FOUND
 
 if(B3D_USE_BUNDLED_LIBRARIES)
-	set(bison_INSTALL_DIRS ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/tools/bison CACHE PATH "")
+	set(bison_INSTALL_DIRS ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/bison CACHE PATH "")
 endif()
 
 message(STATUS "Looking for bison installation...")
