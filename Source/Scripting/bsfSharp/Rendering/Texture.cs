@@ -25,7 +25,7 @@ namespace b3d
         ///                               converted back to linear space when sampled on GPU, and converted to gamma space
         ///                               before being written by the GPU.</param>
         public static Texture Create2D(int width, int height, PixelFormat format = PixelFormat.RGBA8,
-            TextureUsage usage = TextureUsage.Default, int numSamples = 1, bool hasMipmaps = false,
+            TextureUsageFlag usage = TextureUsageFlag.Default, int numSamples = 1, bool hasMipmaps = false,
             bool gammaCorrection = false)
         {
             Texture texture = new Texture(true);
@@ -46,7 +46,7 @@ namespace b3d
         /// <param name="hasMipmaps">Should the texture allocate memory for the entire mip-map chain or only the top level.
         ///                          </param>
         public static Texture Create3D(int width, int height, int depth, PixelFormat format = PixelFormat.RGBA8,
-            TextureUsage usage = TextureUsage.Default, bool hasMipmaps = false)
+            TextureUsageFlag usage = TextureUsageFlag.Default, bool hasMipmaps = false)
         {
             Texture texture = new Texture(true);
             Internal_Create(texture, format, width, height, depth, TextureType.Texture3D, usage, 1,
@@ -67,7 +67,7 @@ namespace b3d
         ///                               converted back to linear space when sampled on GPU, and converted to gamma space
         ///                               before being written by the GPU.</param>
         public static Texture CreateCube(int size, PixelFormat format = PixelFormat.RGBA8,
-            TextureUsage usage = TextureUsage.Default, bool hasMipmaps = false, bool gammaCorrection = false)
+            TextureUsageFlag usage = TextureUsageFlag.Default, bool hasMipmaps = false, bool gammaCorrection = false)
         {
             Texture texture = new Texture(true);
             Internal_Create(texture, format, size, size, 1, TextureType.TextureCube, usage, 1,
