@@ -128,7 +128,7 @@ namespace b3d
 
 		const String& GetRttiName()
 		{
-			static String name = "GameObjectHandleBase";
+			static String name = "GameObjectHandle";
 			return name;
 		}
 

@@ -25,8 +25,8 @@ function(B3DRegisterCodeGenTarget)
 		return()
 	endif()
 
-	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_FOLDER}/Foundation/Utility)
-	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_FOLDER}/Foundation/Core)
+	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_FOLDER}/Engine/Utility)
+	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_FOLDER}/Engine/Core)
 	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_FOLDER}/Scripting/bsfScript)
 
 	if(B3D_IS_ENGINE)
@@ -37,11 +37,11 @@ function(B3DRegisterCodeGenTarget)
 	set(B3D_CODEGEN_HEADER_FOLDERS
 		${B3D_CODEGEN_HEADER_FOLDERS}
 		"-I${B3D_FRAMEWORK_SOURCE_FOLDER}/Scripting/bsfMono"
-		"-I${B3D_FRAMEWORK_SOURCE_FOLDER}/Foundation/Utility/ThirdParty"
+		"-I${B3D_FRAMEWORK_SOURCE_FOLDER}/Engine/Utility/ThirdParty"
 		"-I${PROJECT_BINARY_DIR}/Generated/Utility/")
 
 	set(B3D_CODEGEN_HEADER_FILES
-		"${B3D_FRAMEWORK_SOURCE_FOLDER}/Foundation/Utility/B3DUtilityPrerequisites.h"
+		"${B3D_FRAMEWORK_SOURCE_FOLDER}/Engine/Utility/B3DUtilityPrerequisites.h"
 		${B3D_CODEGEN_HEADER_FILES})
 
 	list(REMOVE_DUPLICATES B3D_CODEGEN_HEADER_FOLDERS)
