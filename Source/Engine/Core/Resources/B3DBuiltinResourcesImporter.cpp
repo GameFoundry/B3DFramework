@@ -15,6 +15,7 @@
 #include "Serialization/B3DFileSerializer.h"
 #include "Importer/B3DImporter.h"
 #include "Importer/B3DTextureImportOptions.h"
+#include "Utility/B3DCommandLine.h"
 
 #define B3D_IMPORT_TOOL_WAIT_FOR_DEBUGGER 0
 #if B3D_IMPORT_TOOL_WAIT_FOR_DEBUGGER

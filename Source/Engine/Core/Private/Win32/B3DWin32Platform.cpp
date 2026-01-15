@@ -14,6 +14,8 @@
 #include <shellapi.h>
 #include <WinUser.h>
 
+#include "Utility/B3DCommandLine.h"
+
 using namespace b3d;
 
 /** Encapsulate native cursor data so we can avoid including windows.h as it pollutes the global namespace. */
