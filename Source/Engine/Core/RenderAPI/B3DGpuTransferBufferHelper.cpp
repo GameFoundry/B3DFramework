@@ -39,8 +39,11 @@ GpuTransferBufferHelper::~GpuTransferBufferHelper()
 		{
 			ownerSchedulerThread->Post(SchedulerTask([&waitGroup, poolRing = threadData->PoolRing.get(), currentCommandBuffer = threadData->CurrentCommandBuffer]() mutable
 			{
-				currentCommandBuffer->End();
-				currentCommandBuffer = nullptr;
+				if(currentCommandBuffer != nullptr)
+				{
+					currentCommandBuffer->End();
+					currentCommandBuffer = nullptr;
+				}
 
 				poolRing->Destroy();
 				waitGroup.NotifyDone();
