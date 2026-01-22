@@ -96,8 +96,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<Vulkan
 
 	B3DStackFree(presentModes);
 
-	// Note: Ideally we refactor the submit thread so it can work properly with two images
-	constexpr u32 kPreferredImageCount = 3; // One extra required due to the separate submit thread.
+	constexpr u32 kPreferredImageCount = 2;
 	u32 imageCount = Math::Clamp(kPreferredImageCount, surfaceCaps.minImageCount, surfaceCaps.maxImageCount);
 
 	if(imageCount < kPreferredImageCount)
@@ -159,8 +158,15 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<Vulkan
 		}
 	}
 
-	mSemaphores.Resize(imageCount);
-	for(u32 imageIndex = 0; imageIndex < imageCount; imageIndex++)
+	// One extra semaphore because we perform the acquire operation right after presenting an image. For 2 image swap chain this means
+	// three semaphores will be in use:
+	// - One for frame being executed on the GPU
+	// - One for the image we're queuing a present for this frame
+	// - One for the image we're queuing an acquire for, to present the next frame
+	const u32 semaphoreCount = imageCount  + 1;
+
+	mSemaphores.Resize(semaphoreCount);
+	for(u32 imageIndex = 0; imageIndex < semaphoreCount; imageIndex++)
 	{
 		mSemaphores[imageIndex] = owner->Create<VulkanSemaphore>();
 	}
