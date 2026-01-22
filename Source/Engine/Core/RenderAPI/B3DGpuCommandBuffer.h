@@ -818,6 +818,12 @@ namespace b3d
 			 */
 			virtual void Cleanup() {}
 
+			/** Destroys command buffer. Command buffer must not be used after this is called. */
+			virtual void Destroy() { mIsDestroyed = true; }
+
+			/** Returns true if the command buffer has been destroyed. */
+			bool IsDestroyed() const { return mIsDestroyed; }
+
 			/** Reports an error if the current thread is not the thread associated with the object. */
 			void EnsureValidThread() const { B3D_DEBUG_ONLY(B3D_ENSURE(B3D_CURRENT_THREAD_ID == mOwnerThread)); }
 	
@@ -828,6 +834,7 @@ namespace b3d
 			String mName;
 			GpuCommandBufferState mState = GpuCommandBufferState::Ready;
 			GpuQueueMask mQueueSyncMask;
+			bool mIsDestroyed = false;
 
 #if B3D_PROFILING_ENABLED
 			SPtr<GpuCommandBufferProfiler> mProfiler;

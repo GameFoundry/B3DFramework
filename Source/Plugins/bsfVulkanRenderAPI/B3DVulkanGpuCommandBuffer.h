@@ -62,6 +62,9 @@ namespace b3d
 			void Reset() override;
 			void Destroy() override;
 
+			/** Returns the native Vulkan command pool handle. */
+			VkCommandPool GetVulkanPool() const { return mVulkanPool; }
+
 		private:
 			VkCommandPool mVulkanPool = VK_NULL_HANDLE;
 			u32 mQueueFamily = ~0u;
@@ -212,8 +215,8 @@ namespace b3d
 			/** Notifies the command buffer that the pool it was allocated from has been reset. */
 			void NotifyParentPoolReset();
 
-			/** @copydoc GpuCommandBuffer::Cleanup */
 			void Cleanup() override;
+			void Destroy() override;
 
 			/************************************************************************/
 			/* 								COMMANDS	                     		*/

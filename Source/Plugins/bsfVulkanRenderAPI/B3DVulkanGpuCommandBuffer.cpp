@@ -89,6 +89,10 @@ void VulkanGpuCommandBufferPool::Destroy()
 
 	mMessageQueue.PostRequestShutdownCommand(true);
 
+	// Destroy all command buffers before destroying the pool
+	for(const auto& commandBufferPair : mCommandBuffers)
+		commandBufferPair.second->Destroy();
+
 	mCommandBuffers.clear();
 	vkDestroyCommandPool(static_cast<VulkanGpuDevice&>(mGpuDevice).GetLogical(), mVulkanPool, gVulkanAllocator);
 
@@ -129,11 +133,9 @@ SPtr<GpuCommandBuffer> VulkanGpuCommandBufferPool::Create(const GpuCommandBuffer
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	SPtr<VulkanGpuCommandBuffer> commandBuffer = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuCommandBuffer>()) VulkanGpuCommandBuffer(static_cast<VulkanGpuDevice&>(mGpuDevice), *this, mNextCommandBufferId++, commandBufferHandle, mInformation.Thread, mInformation.Type, createInformation),
-		[this](VulkanGpuCommandBuffer* commandBuffer)
+		[](VulkanGpuCommandBuffer* commandBuffer)
 		{
-			VkCommandBuffer commandBufferHandle = commandBuffer->GetVulkanHandle();
-			vkFreeCommandBuffers(static_cast<VulkanGpuDevice&>(mGpuDevice).GetLogical(), mVulkanPool, 1, &commandBufferHandle);
-
+			commandBuffer->Destroy();
 			B3DDelete(commandBuffer);
 		});
 
@@ -1565,6 +1567,17 @@ bool VulkanGpuCommandBuffer::UpdateExecutionStatus(bool block)
 	B3D_ASSERT(result == VK_SUCCESS || result == VK_TIMEOUT);
 
 	return result == VK_SUCCESS;
+}
+
+void VulkanGpuCommandBuffer::Destroy()
+{
+	if(mIsDestroyed)
+		return;
+
+	VkCommandBuffer commandBufferHandle = GetVulkanHandle();
+	vkFreeCommandBuffers(GetVulkanGpuDevice().GetLogical(), mPool.GetVulkanPool(), 1, &commandBufferHandle);
+
+	GpuCommandBuffer::Destroy();
 }
 
 void VulkanGpuCommandBuffer::Cleanup()
