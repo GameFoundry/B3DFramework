@@ -849,26 +849,43 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 	SPtr<GpuParameterSet> gpuParameterSet = renElement.ParameterAdapter->GetGpuParameterSet();
 
 	// Allocate from the uniform buffer manager after ParameterAdapter is created
+	// Only allocate if no allocation exists or if the particle type changed (GPU to CPU or vice-versa)
+	const bool typeChanged = rendererParticles.PerObjectBufferAllocationHandle.IsValid() && (gpu != renElement.IsGpuSimulated);
+
+	// If the type changed, release the old allocation first
+	if(typeChanged)
+		mUniformBufferPools.Release(rendererParticles.PerObjectBufferAllocationHandle);
+
+	// Allocate if no allocation exists or if type changed
+	if(!rendererParticles.PerObjectBufferAllocationHandle.IsValid() || typeChanged)
+	{
+		if(gpu)
+		{
+			// GPU particles use GpuParticlesPool (PerObject + GpuParticleParams)
+			UniformBufferPools::AllocationResult result = mUniformBufferPools.Allocate(UniformBufferPools::GpuParticlesPool);
+			rendererParticles.PerObjectBufferAllocationHandle = result.Handle;
+			rendererParticles.PerObjectParameterSet = result.ParameterSet;
+			rendererParticles.PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
+			rendererParticles.GpuParticlesParamSuballocation = result.GetSuballocation(UniformBufferPools::GpuParticlesBuffer);
+		}
+		else
+		{
+			// CPU particles use RenderablePool (PerObject only)
+			UniformBufferPools::AllocationResult result = mUniformBufferPools.Allocate(UniformBufferPools::RenderablePool);
+			rendererParticles.PerObjectBufferAllocationHandle = result.Handle;
+			rendererParticles.PerObjectParameterSet = result.ParameterSet;
+			rendererParticles.PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
+		}
+	}
+
+	// Update GPU-specific fields based on current state
 	if(gpu)
 	{
-		// GPU particles use GpuParticlesPool (PerObject + GpuParticleParams)
-		UniformBufferPools::AllocationResult result = mUniformBufferPools.Allocate(UniformBufferPools::GpuParticlesPool);
-		rendererParticles.PerObjectBufferAllocationHandle = result.Handle;
-		rendererParticles.PerObjectParameterSet = result.ParameterSet;
-		rendererParticles.PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
-		rendererParticles.GpuParticlesParamSuballocation = result.GetSuballocation(UniformBufferPools::GpuParticlesBuffer);
-
 		renElement.GpuParticlesParamBufferOffset = rendererParticles.GpuParticlesParamSuballocation.GetSuballocationOffset();
 		renElement.IsGpuSimulated = true;
 	}
 	else
-	{
-		// CPU particles use RenderablePool (PerObject only)
-		UniformBufferPools::AllocationResult result = mUniformBufferPools.Allocate(UniformBufferPools::RenderablePool);
-		rendererParticles.PerObjectBufferAllocationHandle = result.Handle;
-		rendererParticles.PerObjectParameterSet = result.ParameterSet;
-		rendererParticles.PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
-	}
+		renElement.IsGpuSimulated = false;
 
 	// Store shared parameter set and buffer offset for render-time binding
 	renElement.SharedPerObjectParameterSet = rendererParticles.PerObjectParameterSet;
