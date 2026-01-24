@@ -179,7 +179,6 @@ mixin TemporalResolve
 		
 		float3 findNearestCross(_TEX2D(sceneDepth), float2 uv, int sampleIdx)
 		{
-			int r = TEMPORAL_SEARCH_RADIUS;
 			float3 dmin = float3(0, 0, 1);
 			
 			{
@@ -188,23 +187,23 @@ mixin TemporalResolve
 			}
 			
 			{
-				float depth = _SAMPLEOFF(sceneDepth, uv, int2(-r, 0)).x;
-				dmin = depth < dmin.z ? float3(-r, 0, depth) : dmin;	
+				float depth = _SAMPLEOFF(sceneDepth, uv, int2(-TEMPORAL_SEARCH_RADIUS, 0)).x;
+				dmin = depth < dmin.z ? float3(-TEMPORAL_SEARCH_RADIUS, 0, depth) : dmin;
 			}
 			
 			{
-				float depth = _SAMPLEOFF(sceneDepth, uv, int2(r, 0)).x;
-				dmin = depth < dmin.z ? float3(r, 0, depth) : dmin;	
+				float depth = _SAMPLEOFF(sceneDepth, uv, int2(TEMPORAL_SEARCH_RADIUS, 0)).x;
+				dmin = depth < dmin.z ? float3(TEMPORAL_SEARCH_RADIUS, 0, depth) : dmin;
 			}
 
 			{
-				float depth = _SAMPLEOFF(sceneDepth, uv, int2(0, -r)).x;
-				dmin = depth < dmin.z ? float3(0, -r, depth) : dmin;	
+				float depth = _SAMPLEOFF(sceneDepth, uv, int2(0, -TEMPORAL_SEARCH_RADIUS)).x;
+				dmin = depth < dmin.z ? float3(0, -TEMPORAL_SEARCH_RADIUS, depth) : dmin;
 			}
 
 			{
-				float depth = _SAMPLEOFF(sceneDepth, uv, int2(0, r)).x;
-				dmin = depth < dmin.z ? float3(0, r, depth) : dmin;	
+				float depth = _SAMPLEOFF(sceneDepth, uv, int2(0, TEMPORAL_SEARCH_RADIUS)).x;
+				dmin = depth < dmin.z ? float3(0, TEMPORAL_SEARCH_RADIUS, depth) : dmin;
 			}			
 			
 			return float3(uv + dmin.xy * _PIXSIZE(sceneDepth), dmin.z);
