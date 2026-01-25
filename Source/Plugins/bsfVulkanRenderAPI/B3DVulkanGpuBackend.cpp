@@ -13,6 +13,7 @@
 #include "B3DVulkanRenderPass.h"
 #include "B3DVulkanSubmitThread.h"
 #include "CoreObject/B3DRenderThread.h"
+#include "Utility/B3DCommandLine.h"
 #include "Win32/B3DRenderDocFrameCapture.h"
 
 #if B3D_PLATFORM_WIN32
@@ -57,17 +58,11 @@ PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR = nullptr;
 PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR = nullptr;
 PFN_vkQueuePresentKHR vkQueuePresentKHR = nullptr;
 
-/** When enabled the Vulkan backend will prefer an integrated GPU over a discrete one. */
-static const bool kVulkanPreferIntegratedGPU = false;
-
 /** Enables Vulkan validation layers. Ignored if the backend or platform does not support them. */
 static const bool kEnableVulkanValidationLayers = B3D_DEBUG;
 
 /** Enabled Vulkan debug labels for objects. */
 static const bool kEnableVulkanDebugLabels = B3D_DEBUG;
-
-/** If specified, allows you to select which is the primary GPU to use. If ~0u system will pick the best GPU according to other options. */
-static const u32 kPreferredGPUIndex = ~0u;
 
 } // namespace b3d
 
@@ -366,17 +361,19 @@ void VulkanGpuBackend::OnStartUp()
 	// Find primary device
 	uint32_t primaryDeviceIndex = ~0u;
 
-	if(kPreferredGPUIndex != ~0u && kPreferredGPUIndex < physicalDeviceCount)
-		primaryDeviceIndex = kPreferredGPUIndex;
+	const i32 preferredGpuIndex = CommandLine::GetParameterValueAsInt("preferred-gpu", -1);
+	if(preferredGpuIndex >= 0 && preferredGpuIndex < (i32)physicalDeviceCount)
+		primaryDeviceIndex = (u32)preferredGpuIndex;
 
 	if(primaryDeviceIndex == ~0u)
 	{
+		const bool preferIntegratedGpu = CommandLine::HasParameter("integrated-gpu");
 		for(uint32_t deviceIndex = 0; deviceIndex < physicalDeviceCount; deviceIndex++)
 		{
 			VkPhysicalDeviceProperties deviceProperties;
 			vkGetPhysicalDeviceProperties(physicalDevices[deviceIndex], &deviceProperties);
 
-			const bool isPrimary = kVulkanPreferIntegratedGPU ? deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU : deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+			const bool isPrimary = preferIntegratedGpu ? deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU : deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 
 			if(isPrimary)
 			{
