@@ -568,7 +568,7 @@ const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const 
 	// Bind transient uniform buffers to GPU parameters
 	mSimulateParameters->SetUniformBuffer("Params", simulationUniforms);
 	mSimulateParameters->SetUniformBuffer("VectorFieldParams", vectorFieldUniforms);
-	mSimulateParameters->SetUniformBuffer("DepthCollisionParams", depthCollisionUniforms);
+	mSimulateParameters->TrySetUniformBuffer("DepthCollisionParams", depthCollisionUniforms);
 
 	return mSimulateParameters;
 }
