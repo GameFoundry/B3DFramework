@@ -489,15 +489,15 @@ void ShapeMeshes3D::WireAaBox(const AABox& box, u8* outVertices, u32 vertexOffse
 {
 	outVertices += vertexOffset * vertexStride;
 
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_TOP));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_TOP));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearLeftBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearRightBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearRightTop));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearLeftTop));
 
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_TOP));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_TOP));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarRightBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarLeftBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarLeftTop));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarRightTop));
 
 	outIndices += indexOffset;
 
@@ -546,40 +546,40 @@ void ShapeMeshes3D::SolidAaBox(const AABox& box, u8* outVertices, u8* outNormals
 	outVertices += (vertexOffset * vertexStride);
 
 	// Front face
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_TOP));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_TOP));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearLeftBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearRightBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearRightTop));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearLeftTop));
 
 	// Back face
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_TOP));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_TOP));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarRightBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarLeftBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarLeftTop));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarRightTop));
 
 	// Left face
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_TOP));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_TOP));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarLeftBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearLeftBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearLeftTop));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarLeftTop));
 
 	// Right face
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_TOP));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_TOP));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearRightBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarRightBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarRightTop));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearRightTop));
 
 	// Top face
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_TOP));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_TOP));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_TOP));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_TOP));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarLeftTop));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearLeftTop));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearRightTop));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarRightTop));
 
 	// Bottom face
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_BOTTOM));
-	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_BOTTOM));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarLeftBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::FarRightBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearRightBottom));
+	outVertices = WriteVector3(outVertices, vertexStride, box.GetCorner(AABox::NearLeftBottom));
 
 	// Normals
 	static const Vector3 kFaceNormals[6] = {

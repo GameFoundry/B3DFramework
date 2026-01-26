@@ -36,21 +36,21 @@ TVector3<T> TAABox<T>::GetCorner(Corner cornerToGet) const
 {
 	switch(cornerToGet)
 	{
-	case FAR_LEFT_BOTTOM:
+	case FarLeftBottom:
 		return Minimum;
-	case FAR_LEFT_TOP:
+	case FarLeftTop:
 		return TVector3<T>(Minimum.X, Maximum.Y, Minimum.Z);
-	case FAR_RIGHT_TOP:
+	case FarRightTop:
 		return TVector3<T>(Maximum.X, Maximum.Y, Minimum.Z);
-	case FAR_RIGHT_BOTTOM:
+	case FarRightBottom:
 		return TVector3<T>(Maximum.X, Minimum.Y, Minimum.Z);
-	case NEAR_RIGHT_BOTTOM:
+	case NearRightBottom:
 		return TVector3<T>(Maximum.X, Minimum.Y, Maximum.Z);
-	case NEAR_LEFT_BOTTOM:
+	case NearLeftBottom:
 		return TVector3<T>(Minimum.X, Minimum.Y, Maximum.Z);
-	case NEAR_LEFT_TOP:
+	case NearLeftTop:
 		return TVector3<T>(Minimum.X, Maximum.Y, Maximum.Z);
-	case NEAR_RIGHT_TOP:
+	case NearRightTop:
 		return Maximum;
 	default:
 		return TVector3<T>(BsZero);

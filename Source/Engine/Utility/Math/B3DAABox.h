@@ -29,14 +29,14 @@ namespace b3d
 		*/
 		enum Corner
 		{
-			FAR_LEFT_BOTTOM = 0,
-			FAR_LEFT_TOP = 1,
-			FAR_RIGHT_TOP = 2,
-			FAR_RIGHT_BOTTOM = 3,
-			NEAR_RIGHT_BOTTOM = 7,
-			NEAR_LEFT_BOTTOM = 6,
-			NEAR_LEFT_TOP = 5,
-			NEAR_RIGHT_TOP = 4
+			FarLeftBottom = 0,
+			FarLeftTop = 1,
+			FarRightTop = 2,
+			FarRightBottom = 3,
+			NearRightBottom = 7,
+			NearLeftBottom = 6,
+			NearLeftTop = 5,
+			NearRightTop = 4
 		};
 
 		TVector3<T> Minimum;
@@ -176,54 +176,54 @@ namespace b3d
 
 	template<> const u32 TAABox<float>::kCubeIndices[36] = {
 		// Near
-		NEAR_LEFT_BOTTOM, NEAR_LEFT_TOP, NEAR_RIGHT_TOP,
-		NEAR_LEFT_BOTTOM, NEAR_RIGHT_TOP, NEAR_RIGHT_BOTTOM,
+		NearLeftBottom, NearLeftTop, NearRightTop,
+		NearLeftBottom, NearRightTop, NearRightBottom,
 
 		// Far
-		FAR_RIGHT_BOTTOM, FAR_RIGHT_TOP, FAR_LEFT_TOP,
-		FAR_RIGHT_BOTTOM, FAR_LEFT_TOP, FAR_LEFT_BOTTOM,
+		FarRightBottom, FarRightTop, FarLeftTop,
+		FarRightBottom, FarLeftTop, FarLeftBottom,
 
 		// Left
-		FAR_LEFT_BOTTOM, FAR_LEFT_TOP, NEAR_LEFT_TOP,
-		FAR_LEFT_BOTTOM, NEAR_LEFT_TOP, NEAR_LEFT_BOTTOM,
+		FarLeftBottom, FarLeftTop, NearLeftTop,
+		FarLeftBottom, NearLeftTop, NearLeftBottom,
 
 		// Right
-		NEAR_RIGHT_BOTTOM, NEAR_RIGHT_TOP, FAR_RIGHT_TOP,
-		NEAR_RIGHT_BOTTOM, FAR_RIGHT_TOP, FAR_RIGHT_BOTTOM,
+		NearRightBottom, NearRightTop, FarRightTop,
+		NearRightBottom, FarRightTop, FarRightBottom,
 
 		// Top
-		FAR_LEFT_TOP, FAR_RIGHT_TOP, NEAR_RIGHT_TOP,
-		FAR_LEFT_TOP, NEAR_RIGHT_TOP, NEAR_LEFT_TOP,
+		FarLeftTop, FarRightTop, NearRightTop,
+		FarLeftTop, NearRightTop, NearLeftTop,
 
 		// Bottom
-		NEAR_LEFT_BOTTOM, NEAR_RIGHT_BOTTOM, FAR_RIGHT_BOTTOM,
-		NEAR_LEFT_BOTTOM, FAR_RIGHT_BOTTOM, FAR_LEFT_BOTTOM
+		NearLeftBottom, NearRightBottom, FarRightBottom,
+		NearLeftBottom, FarRightBottom, FarLeftBottom
 	};
 
 	template<> const u32 TAABox<double>::kCubeIndices[36] = {
 		// Near
-		NEAR_LEFT_BOTTOM, NEAR_LEFT_TOP, NEAR_RIGHT_TOP,
-		NEAR_LEFT_BOTTOM, NEAR_RIGHT_TOP, NEAR_RIGHT_BOTTOM,
+		NearLeftBottom, NearLeftTop, NearRightTop,
+		NearLeftBottom, NearRightTop, NearRightBottom,
 
 		// Far
-		FAR_RIGHT_BOTTOM, FAR_RIGHT_TOP, FAR_LEFT_TOP,
-		FAR_RIGHT_BOTTOM, FAR_LEFT_TOP, FAR_LEFT_BOTTOM,
+		FarRightBottom, FarRightTop, FarLeftTop,
+		FarRightBottom, FarLeftTop, FarLeftBottom,
 
 		// Left
-		FAR_LEFT_BOTTOM, FAR_LEFT_TOP, NEAR_LEFT_TOP,
-		FAR_LEFT_BOTTOM, NEAR_LEFT_TOP, NEAR_LEFT_BOTTOM,
+		FarLeftBottom, FarLeftTop, NearLeftTop,
+		FarLeftBottom, NearLeftTop, NearLeftBottom,
 
 		// Right
-		NEAR_RIGHT_BOTTOM, NEAR_RIGHT_TOP, FAR_RIGHT_TOP,
-		NEAR_RIGHT_BOTTOM, FAR_RIGHT_TOP, FAR_RIGHT_BOTTOM,
+		NearRightBottom, NearRightTop, FarRightTop,
+		NearRightBottom, FarRightTop, FarRightBottom,
 
 		// Top
-		FAR_LEFT_TOP, FAR_RIGHT_TOP, NEAR_RIGHT_TOP,
-		FAR_LEFT_TOP, NEAR_RIGHT_TOP, NEAR_LEFT_TOP,
+		FarLeftTop, FarRightTop, NearRightTop,
+		FarLeftTop, NearRightTop, NearLeftTop,
 
 		// Bottom
-		NEAR_LEFT_BOTTOM, NEAR_RIGHT_BOTTOM, FAR_RIGHT_BOTTOM,
-		NEAR_LEFT_BOTTOM, FAR_RIGHT_BOTTOM, FAR_LEFT_BOTTOM
+		NearLeftBottom, NearRightBottom, FarRightBottom,
+		NearLeftBottom, FarRightBottom, FarLeftBottom
 	};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(AABox)) TAABox<float>;

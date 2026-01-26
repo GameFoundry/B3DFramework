@@ -65,15 +65,15 @@ bool CookConvex(PxCooking* cooking, const SPtr<MeshData>& meshData, u8** data, u
 	while(vertIter.MoveNext());
 
 	Vector3 aabbVerts[8];
-	aabbVerts[0] = box.GetCorner(AABox::FAR_LEFT_BOTTOM);
-	aabbVerts[1] = box.GetCorner(AABox::FAR_RIGHT_BOTTOM);
-	aabbVerts[2] = box.GetCorner(AABox::FAR_RIGHT_TOP);
-	aabbVerts[3] = box.GetCorner(AABox::FAR_LEFT_TOP);
+	aabbVerts[0] = box.GetCorner(AABox::FarLeftBottom);
+	aabbVerts[1] = box.GetCorner(AABox::FarRightBottom);
+	aabbVerts[2] = box.GetCorner(AABox::FarRightTop);
+	aabbVerts[3] = box.GetCorner(AABox::FarLeftTop);
 
-	aabbVerts[4] = box.GetCorner(AABox::NEAR_LEFT_BOTTOM);
-	aabbVerts[5] = box.GetCorner(AABox::NEAR_RIGHT_BOTTOM);
-	aabbVerts[6] = box.GetCorner(AABox::NEAR_RIGHT_TOP);
-	aabbVerts[7] = box.GetCorner(AABox::NEAR_LEFT_TOP);
+	aabbVerts[4] = box.GetCorner(AABox::NearLeftBottom);
+	aabbVerts[5] = box.GetCorner(AABox::NearRightBottom);
+	aabbVerts[6] = box.GetCorner(AABox::NearRightTop);
+	aabbVerts[7] = box.GetCorner(AABox::NearLeftTop);
 
 	convexDesc.points.count = 8;
 	convexDesc.points.stride = sizeof(Vector3);

@@ -1060,12 +1060,12 @@ namespace b3d
 			}
 
 			Vector<Plane> planes(6);
-			planes[FRUSTUM_PLANE_NEAR] = Plane(output[AABox::NEAR_LEFT_BOTTOM], output[AABox::NEAR_RIGHT_BOTTOM], output[AABox::NEAR_RIGHT_TOP]);
-			planes[FRUSTUM_PLANE_FAR] = Plane(output[AABox::FAR_LEFT_BOTTOM], output[AABox::FAR_LEFT_TOP], output[AABox::FAR_RIGHT_TOP]);
-			planes[FRUSTUM_PLANE_LEFT] = Plane(output[AABox::NEAR_LEFT_BOTTOM], output[AABox::NEAR_LEFT_TOP], output[AABox::FAR_LEFT_TOP]);
-			planes[FRUSTUM_PLANE_RIGHT] = Plane(output[AABox::FAR_RIGHT_TOP], output[AABox::NEAR_RIGHT_TOP], output[AABox::NEAR_RIGHT_BOTTOM]);
-			planes[FRUSTUM_PLANE_TOP] = Plane(output[AABox::NEAR_LEFT_TOP], output[AABox::NEAR_RIGHT_TOP], output[AABox::FAR_RIGHT_TOP]);
-			planes[FRUSTUM_PLANE_BOTTOM] = Plane(output[AABox::NEAR_LEFT_BOTTOM], output[AABox::FAR_LEFT_BOTTOM], output[AABox::FAR_RIGHT_BOTTOM]);
+			planes[FRUSTUM_PLANE_NEAR] = Plane(output[AABox::NearLeftBottom], output[AABox::NearRightBottom], output[AABox::NearRightTop]);
+			planes[FRUSTUM_PLANE_FAR] = Plane(output[AABox::FarLeftBottom], output[AABox::FarLeftTop], output[AABox::FarRightTop]);
+			planes[FRUSTUM_PLANE_LEFT] = Plane(output[AABox::NearLeftBottom], output[AABox::NearLeftTop], output[AABox::FarLeftTop]);
+			planes[FRUSTUM_PLANE_RIGHT] = Plane(output[AABox::FarRightTop], output[AABox::NearRightTop], output[AABox::NearRightBottom]);
+			planes[FRUSTUM_PLANE_TOP] = Plane(output[AABox::NearLeftTop], output[AABox::NearRightTop], output[AABox::FarRightTop]);
+			planes[FRUSTUM_PLANE_BOTTOM] = Plane(output[AABox::NearLeftBottom], output[AABox::FarLeftBottom], output[AABox::FarRightBottom]);
 
 			worldFrustum = ConvexVolume(planes);
 			return output;
