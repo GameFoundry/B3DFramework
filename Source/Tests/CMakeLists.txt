@@ -66,5 +66,8 @@ set_property(TARGET UnitTestRunner PROPERTY FOLDER Tests)
 # Ensure FrameworkTests is built when UnitTestRunner is built
 add_dependencies(UnitTestRunner FrameworkTests)
 
+# Install
+B3DSetUpPostBuildAndInstallSteps(UnitTestRunner)
+
 # Register test (runs all layers by default)
 add_test(NAME UnitTests COMMAND $<TARGET_FILE:UnitTestRunner>)
