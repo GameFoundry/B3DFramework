@@ -212,13 +212,17 @@ install(
 	PATTERN ".reqversion" EXCLUDE
 )
 
-# TODO: These should be moved into their own folder for easier copy
 install(
-	DIRECTORY ../Data/Raw/Shaders
-	DESTINATION ${B3D_ASSETS_INSTALL_FOLDER}/Data/Raw
+		DIRECTORY ../Data/Raw/UnitTestData
+		DESTINATION ${B3D_ASSETS_INSTALL_FOLDER}/Data/Raw
 )
 
 install(
-	FILES ../Data/Raw/GUI.css
-	DESTINATION ${B3D_ASSETS_INSTALL_FOLDER}/Data/Raw
+	DIRECTORY ../Data/Shaders
+	DESTINATION ${B3D_ASSETS_INSTALL_FOLDER}/Data
+)
+
+install(
+	FILES ../Data/GUI.css
+	DESTINATION ${B3D_ASSETS_INSTALL_FOLDER}/Data
 )

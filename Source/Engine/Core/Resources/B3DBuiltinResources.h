@@ -162,13 +162,10 @@ namespace b3d
 		static HTexture GetTexture(BuiltinTexture type);
 
 		/**	Returns absolute path to the builtin shader folder where raw shader files are located. */
-		static Path GetRawShaderFolder();
+		static Path GetShaderFolder();
 
 		/** Returns the folder holding unit test resources. */
 		static Path GetUnitTestDataFolder();
-
-		/**	Returns absolute path to the builtin shader folder where raw shader include files are located. */
-		static Path GetRawShaderIncludeFolder();
 
 		/**	Returns absolute path to the builtin shader include folder. */
 		static Path GetShaderIncludeFolder();
@@ -179,9 +176,6 @@ namespace b3d
 #if B3D_WITH_EDITOR
 		/**	Returns absolute path to the editor builtin shader include folder. */
 		static Path GetEditorShaderIncludeFolder();
-
-		/**	Returns absolute path to the editor builtin raw shader include folder. */
-		static Path GetEditorRawShaderIncludeFolder();
 #endif
 
 		/** Virtual path prefix that may be used for accessing all builtin resources managed by this class. */
@@ -264,7 +258,6 @@ namespace b3d
 
 		Path mBuiltinRawDataFolder;
 		Path mBuiltinDataFolder;
-		Path mEngineShaderFolder;
 
 		static const String kWhiteTex;
 

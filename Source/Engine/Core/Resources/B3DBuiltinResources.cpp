@@ -93,12 +93,10 @@ void BuiltinResources::OnStartUp()
 {
 	// Set up paths
 	mBuiltinRawDataFolder = Paths::GetDataPath() + "Raw/";
-
 	mBuiltinDataFolder = Paths::GetDataPath();
-	mEngineShaderFolder = mBuiltinDataFolder + kShaderFolder;
 
 	GetPackageManager().LoadPackages(mBuiltinDataFolder, true, kVirtualPathPrefix);
-	ShaderCompilers::Instance().RegisterSearchPath(GetRawShaderFolder());
+	ShaderCompilers::Instance().RegisterSearchPath(GetShaderFolder());
 
 	// Load basic resources
 	mShaderSpriteText = GetShader(kShaderSpriteTextFile);
@@ -130,7 +128,7 @@ void BuiltinResources::OnStartUp()
 
 	mFont = GetResources().Load<Font>(defaultFontVirtualPath, ResourceLoadOptions(false));
 
-	mDefaultGUIStyleSheet = GUIStyleSheet::Parse(mBuiltinRawDataFolder + "GUI.css");
+	mDefaultGUIStyleSheet = GUIStyleSheet::Parse(mBuiltinDataFolder + "GUI.css");
 	mDefaultGUIStyleSheetCascade = B3DMakeShared<GUIStyleSheetCascade>();
 	mDefaultGUIStyleSheetCascade->RegisterStyleSheet(mDefaultGUIStyleSheet, GUIStyleSheet::kBuiltinImportance);
 
@@ -224,7 +222,7 @@ HSpriteTexture BuiltinResources::GetSkinTexture(const String& name) const
 
 HShader BuiltinResources::GetShader(const Path& path) const
 {
-	const Path fullShaderPath = GetRawShaderFolder() + path;
+	const Path fullShaderPath = GetShaderFolder() + path;
 	return GetOrCompileShader(fullShaderPath);
 }
 
@@ -352,19 +350,14 @@ const PixelData& BuiltinResources::GetFrameworkIcon()
 	return *mFrameworkIcon.get();
 }
 
-Path BuiltinResources::GetRawShaderFolder()
+Path BuiltinResources::GetShaderFolder()
 {
-	return Paths::GetDataPath() + "Raw/" + kShaderFolder;
+	return Paths::GetDataPath() + kShaderFolder;
 }
 
 Path BuiltinResources::GetUnitTestDataFolder()
 {
 	return Paths::GetDataPath() + "Raw/" + kUnitTestDataFolder;
-}
-
-Path BuiltinResources::GetRawShaderIncludeFolder()
-{
-	return Paths::GetDataPath() + "Raw/" + kShaderIncludeFolder;
 }
 
 Path BuiltinResources::GetShaderIncludeFolder()
@@ -381,11 +374,6 @@ Path BuiltinResources::GetIconFolder()
 Path BuiltinResources::GetEditorShaderIncludeFolder()
 {
 	return Paths::GetEditorDataPath() + kShaderIncludeFolder;
-}
-
-Path BuiltinResources::GetEditorRawShaderIncludeFolder()
-{
-	return Paths::GetEditorDataPath() + "Raw/" + kShaderIncludeFolder;
 }
 #endif
 

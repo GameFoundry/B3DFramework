@@ -40,7 +40,7 @@ Path EngineShaderIncludeHandler::DetermineFullPath(const String& name) const
 {
 	if(name.size() >= 8 && name.substr(0, 8) == "$ENGINE$")
 	{
-		Path fullPath = BuiltinResources::GetRawShaderIncludeFolder();
+		Path fullPath = BuiltinResources::GetShaderIncludeFolder();
 		if(name.size() > 8)
 		{
 			Path includePath = name.substr(9, name.size() - 9);
