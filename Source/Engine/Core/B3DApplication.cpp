@@ -63,6 +63,12 @@
 #include "Utility/B3DDynamicLibrary.h"
 #include "Utility/B3DPersistentCache.h"
 
+#define B3D_WAIT_FOR_DEBUGGER 0
+#if B3D_WAIT_FOR_DEBUGGER 
+#include <windows.h>
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 namespace b3d
 {
 	B3D_LOG_CATEGORY(LogRenderThread)
@@ -93,6 +99,13 @@ using namespace b3d;
 Application::Application(const ApplicationCreateInformation& createInformation)
 	: mPrimaryWindow(nullptr), mInformation(createInformation), mFrameRenderingFinishedSignal(SignalEvent::Mode::AutomaticallyReset, true), mSimThreadId(B3D_CURRENT_THREAD_ID), mRunMainLoop(false), mMainThreadScheduler(SchedulerCreateInformation())
 {
+#if B3D_WAIT_FOR_DEBUGGER
+	while (!::IsDebuggerPresent())
+		::Sleep(100);
+
+	::DebugBreak();
+#endif
+
 	// Ensure all errors are reported properly
 	CrashHandler::StartUp(createInformation.CrashHandling);
 	if(createInformation.LogCallback)
