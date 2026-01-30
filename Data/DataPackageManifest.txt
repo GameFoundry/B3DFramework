@@ -1,4 +1,5 @@
 Cursors/
+Fonts/
 Icons/
 Meshes/
 Skin/
