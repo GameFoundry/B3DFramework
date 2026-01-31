@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Testing/B3DTestSuiteFactory.h"
+#include "Testing/B3DTestOutput.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_WIN32
 #	if B3D_COMPILER == B3D_COMPILER_MSVC
@@ -41,7 +42,7 @@ namespace b3d
 		/** Override to register additional test suites. Called before tests run for a specific layer. */
 		virtual void RegisterTestSuites(TestLayer layer);
 
-		/** Runs all registered tests with the configured output. */
-		void RunTests(TestOutputFormat outputFormat, const Path& outputPath, i32& exitCode);
+		/** Runs all registered tests through the provided output. */
+		void RunTests(TestOutput& output);
 	};
 } // namespace b3d

@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2025 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DFrameworkTestSuiteFactory.h"
-#include "Testing/B3DConsoleTestOutput.h"
-#include "Testing/B3DJSONTestOutput.h"
+#include "Testing/B3DTestResultCollector.h"
+#include "Testing/B3DTestResultWriter.h"
 #include "Testing/B3DTestSuiteRegistry.h"
 #include "B3DApplication.h"
 
@@ -42,47 +42,28 @@ namespace b3d
 		}
 	}
 
-	void FrameworkTestSuiteFactory::RunTests(TestOutputFormat outputFormat, const Path& outputPath, i32& exitCode)
+	void FrameworkTestSuiteFactory::RunTests(TestOutput& output)
 	{
 		const Vector<SPtr<TestSuite>>& suites = TestSuiteRegistry::Instance().GetSuites();
 
-		auto fnRunTests = [&suites](TestOutput& output)
-		{
-			for (const auto& suite : suites)
-				suite->Run(output);
-		};
-
-		if (outputFormat == TestOutputFormat::JSON)
-		{
-			Path jsonPath = outputPath.IsEmpty() ? Path("test_results.json") : outputPath;
-			JSONTestOutput testOutput(jsonPath);
-			fnRunTests(testOutput);
-			if (testOutput.GetExitCode() != 0)
-				exitCode = testOutput.GetExitCode();
-		}
-		else
-		{
-			ConsoleTestOutput testOutput;
-			fnRunTests(testOutput);
-			if (testOutput.GetExitCode() != 0)
-				exitCode = testOutput.GetExitCode();
-		}
+		for (const auto& suite : suites)
+			suite->Run(output);
 
 		TestSuiteRegistry::Instance().Clear();
 	}
 
 	i32 FrameworkTestSuiteFactory::Run(TestLayers layers, TestOutputFormat outputFormat, const Path& outputPath)
 	{
-		i32 exitCode = 0;
+		TestResultCollector collector;
 
-		// Utility tests don't need Application
+		// Phase 1: Utility tests (no Application needed)
 		if (layers.IsSet(TestLayer::Utility))
 		{
 			RegisterTestSuites(TestLayer::Utility);
-			RunTests(outputFormat, outputPath, exitCode);
+			RunTests(collector);
 		}
 
-		// Core (and Editor in subclass) tests need Application
+		// Phase 2: Core/Editor tests (need Application)
 		TestLayers appLayers = layers & (TestLayer::Core | TestLayer::Editor);
 		if (appLayers)
 		{
@@ -94,11 +75,20 @@ namespace b3d
 			if (appLayers.IsSet(TestLayer::Editor))
 				RegisterTestSuites(TestLayer::Editor);
 
-			RunTests(outputFormat, outputPath, exitCode);
+			RunTests(collector);
 			ShutdownApplication();
 		}
 
-		return exitCode;
+		// Write results once at end
+		if (outputFormat == TestOutputFormat::JSON)
+		{
+			Path jsonPath = outputPath.IsEmpty() ? Path("test_results.json") : outputPath;
+			TestResultWriter::WriteToJSON(jsonPath, collector.GetResults());
+		}
+		else
+			TestResultWriter::WriteToConsole(collector.GetResults());
+
+		return collector.GetExitCode();
 	}
 } // namespace b3d
 
