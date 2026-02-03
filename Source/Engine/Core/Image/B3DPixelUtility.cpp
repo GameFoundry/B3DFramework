@@ -3269,7 +3269,8 @@ Vector<SPtr<PixelData>> PixelUtility::GenerateMipmaps(const SPtr<PixelData>& sou
 	return output;
 }
 
-bool PixelUtility::SaveImage(const SPtr<PixelData>& pixelData, const Path& outputPath, ImageFormat format)
+bool PixelUtility::SaveImage(const SPtr<PixelData>& pixelData, const Path& outputPath, ImageFormat format,
+	bool ignoreAlpha)
 {
 	if (pixelData == nullptr)
 	{
@@ -3339,17 +3340,18 @@ bool PixelUtility::SaveImage(const SPtr<PixelData>& pixelData, const Path& outpu
 
 	const u32 rowPitch = pixelData->GetRowPitch();
 
-	// Prepare data for export (convert BGR to RGB if needed)
+	// Prepare data for export (convert BGR to RGB if needed, or force opaque alpha)
 	u8* exportData = sourceData;
 	u8* tempBuffer = nullptr;
 
-	if (needsConversion)
+	bool forceOpaqueAlpha = ignoreAlpha && componentCount == 4;
+	if (needsConversion || forceOpaqueAlpha)
 	{
-		// Allocate temporary buffer for BGR -> RGB conversion
+		// Allocate temporary buffer for conversion
 		u32 dataSize = height * rowPitch;
 		tempBuffer = (u8*)B3DStackAllocate(dataSize);
 
-		// Convert BGR/BGRA to RGB/RGBA
+		// Convert BGR/BGRA to RGB/RGBA and/or set alpha to opaque
 		for (u32 y = 0; y < height; y++)
 		{
 			u8* srcRow = sourceData + y * rowPitch;
@@ -3360,14 +3362,24 @@ bool PixelUtility::SaveImage(const SPtr<PixelData>& pixelData, const Path& outpu
 				u32 srcOffset = x * componentCount;
 				u32 dstOffset = x * componentCount;
 
-				// Swap R and B channels
-				dstRow[dstOffset + 0] = srcRow[srcOffset + 2]; // R = B
-				dstRow[dstOffset + 1] = srcRow[srcOffset + 1]; // G = G
-				dstRow[dstOffset + 2] = srcRow[srcOffset + 0]; // B = R
+				if (needsConversion)
+				{
+					// Swap R and B channels
+					dstRow[dstOffset + 0] = srcRow[srcOffset + 2]; // R = B
+					dstRow[dstOffset + 1] = srcRow[srcOffset + 1]; // G = G
+					dstRow[dstOffset + 2] = srcRow[srcOffset + 0]; // B = R
+				}
+				else
+				{
+					// Copy RGB as-is
+					dstRow[dstOffset + 0] = srcRow[srcOffset + 0];
+					dstRow[dstOffset + 1] = srcRow[srcOffset + 1];
+					dstRow[dstOffset + 2] = srcRow[srcOffset + 2];
+				}
 
-				// Copy alpha if present
+				// Handle alpha channel
 				if (componentCount == 4)
-					dstRow[dstOffset + 3] = srcRow[srcOffset + 3]; // A = A
+					dstRow[dstOffset + 3] = forceOpaqueAlpha ? 255 : srcRow[srcOffset + 3];
 			}
 		}
 

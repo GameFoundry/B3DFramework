@@ -106,7 +106,7 @@ namespace b3d
 		void Finalize();
 
 	private:
-		/** Request a screenshot capture from the main camera. */
+		/** Request a screenshot capture from the primary render window. */
 		void RequestScreenCapture();
 
 		/** Save the captured screenshot to disk. */

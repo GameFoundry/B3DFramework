@@ -1,13 +1,16 @@
 //************************************ B3D Framework - Copyright 2025 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Testing/B3DSnapshotTestRunner.h"
-#include "Components/B3DCamera.h"
+#include "B3DApplication.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "Debug/B3DDebug.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
 #include "Image/B3DPixelUtility.h"
-#include "Scene/B3DSceneManager.h"
-#include "Scene/B3DSceneInstance.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "RenderAPI/B3DRenderWindow.h"
+#include "Renderer/B3DRenderer.h"
 #include "Utility/B3DTime.h"
 #include "Utility/B3DCommandLine.h"
 #include "ThirdParty/json.hpp"
@@ -170,31 +173,48 @@ void SnapshotTestRunner::RequestScreenCapture()
 
 	mCaptureRequested = true;
 
-	// Get main camera from main scene
-	const SPtr<SceneInstance>& mainScene = GetSceneManager().GetMainScene();
-	if(!mainScene)
+	// Get the primary window
+	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+	if(!primaryWindow)
 	{
-		mResult.Errors.push_back("No main scene available for screenshot capture");
+		mResult.Errors.push_back("No primary render window available for screenshot capture");
 		mScreenCaptureOp.CompleteOperation(nullptr);
 		return;
 	}
 
-	HCamera mainCamera = mainScene->GetMainCamera();
-	if(!mainCamera.IsValid())
-	{
-		const UnorderedMap<UUID, HCamera> cameras = mainScene->GetAllCameras();
-		if(!cameras.empty())
-			mainCamera = cameras.begin()->second;
-	}
+	// Create the async operation that will be completed on the render thread
+	TAsyncOp<SPtr<PixelData>> asyncOp;
+	mScreenCaptureOp = asyncOp;
 
-	if(!mainCamera.IsValid())
+	// Get render proxy and capture in lambda (following codebase pattern - see Texture::ReadData)
+	auto fnCaptureWindow = [windowProxy = B3DGetRenderProxy(primaryWindow), asyncOp]() mutable
 	{
-		mResult.Errors.push_back("No main camera available for screenshot capture");
-		mScreenCaptureOp.CompleteOperation(nullptr);
-		return;
-	}
+		// Get the command buffer pool from renderer
+		SPtr<render::Renderer> renderer = render::GetRenderer();
+		if(!renderer)
+		{
+			asyncOp.CompleteOperation(nullptr);
+			return;
+		}
 
-	mScreenCaptureOp = mainCamera->RequestCapture();
+		render::GpuCommandBufferPool& pool = renderer->GetCurrentCommandBufferPool();
+		SPtr<render::GpuCommandBuffer> commandBuffer = pool.Create(
+			render::GpuCommandBufferCreateInformation::Create("SnapshotCapture"));
+
+		// Request async read from the window
+		TAsyncOp<SPtr<PixelData>> readOp = windowProxy->ReadAsync(*commandBuffer);
+
+		// Submit the command buffer
+		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		gpuDevice->SubmitCommandBuffer(commandBuffer);
+
+		// Chain completion - when the read completes, complete our async op
+		readOp.DoWhenComplete([asyncOp, readOp]() mutable {
+			asyncOp.CompleteOperation(readOp.GetReturnValue());
+		});
+	};
+
+	GetRenderThread().PostCommand(std::move(fnCaptureWindow), "SnapshotTestRunner::RequestScreenCapture");
 }
 
 bool SnapshotTestRunner::SaveScreenshot(const SPtr<PixelData>& pixelData)
@@ -212,7 +232,7 @@ bool SnapshotTestRunner::SaveScreenshot(const SPtr<PixelData>& pixelData)
 	if(!FileSystem::Exists(mConfiguration.OutputPath))
 		FileSystem::CreateFolder(mConfiguration.OutputPath);
 
-	bool success = PixelUtility::SaveImage(pixelData, screenshotPath, ImageFormat::PNG);
+	bool success = PixelUtility::SaveImage(pixelData, screenshotPath, ImageFormat::PNG, true);
 	if(!success)
 		mResult.Errors.push_back("Failed to save screenshot to: " + screenshotPath.ToString());
 
