@@ -387,16 +387,13 @@ namespace b3d
 		 * @param outputPath	Output file path. Extension will be set based on format.
 		 * @param format		Image format to save as (PNG, JPG, BMP, TGA).
 		 * @param ignoreAlpha	If true, alpha channel will be set to fully opaque (255) in the output.
-		 *						Useful for screenshots where alpha should not affect the image.
-		 *
 		 * @return				True if save succeeded, false on error (with log message).
 		 *
 		 * @note				Only supports 8-bit normalized formats: R8, RGB8, BGR8, RGBA8, BGRA8.
 		 *						Compressed, float, depth, and integer formats will return false.
 		 */
 		B3D_SCRIPT_EXPORT()
-		static bool SaveImage(const SPtr<PixelData>& pixelData, const Path& outputPath, ImageFormat format,
-			bool ignoreAlpha = false);
+		static bool SaveImage(const SPtr<PixelData>& pixelData, const Path& outputPath, ImageFormat format, bool ignoreAlpha = false);
 	};
 
 	/** @} */

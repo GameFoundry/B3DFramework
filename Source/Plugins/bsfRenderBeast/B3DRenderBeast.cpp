@@ -572,8 +572,6 @@ void RenderBeast::RenderView(GpuCommandBuffer& commandBuffer, RenderBeastScene& 
 	const SceneInfo& sceneInfo = scene.GetSceneInfo();
 	auto& viewProps = view.GetProperties();
 
-	const GpuBufferSuballocation& perCameraBuffer = view.GetPerViewBuffer();
-
 	// Make sure light probe data is up to date
 	if(view.GetRenderSettings().EnableIndirectLighting)
 		scene.UpdateLightProbes(commandBuffer);
@@ -664,7 +662,7 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 	const Set<RendererExtension*, RendererExtension::SortFunction>& rendererExtensions = scene.GetCombinedRendererExtensions();
 
 	// Trigger overlay callbacks
-	bool needsRedraw = view.HasPendingSceneCaptures();
+	bool needsRedraw = view.ShouldRedrawOverlay();
 	if(!rendererExtensions.empty())
 	{
 		view.NotifyCompositorTargetChangedInternal(target);

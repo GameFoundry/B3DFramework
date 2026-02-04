@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Testing/B3DSnapshotTestRunner.h"
 #include "B3DApplication.h"
+#include "Components/B3DCamera.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "Debug/B3DDebug.h"
 #include "FileSystem/B3DFileSystem.h"
@@ -11,6 +12,8 @@
 #include "RenderAPI/B3DGpuDevice.h"
 #include "RenderAPI/B3DRenderWindow.h"
 #include "Renderer/B3DRenderer.h"
+#include "Scene/B3DSceneInstance.h"
+#include "Scene/B3DSceneManager.h"
 #include "Utility/B3DTime.h"
 #include "Utility/B3DCommandLine.h"
 #include "ThirdParty/json.hpp"
@@ -85,9 +88,9 @@ SnapshotTestRunner::~SnapshotTestRunner()
 	GetDebug().SetLogCallback(nullptr);
 }
 
-void SnapshotTestRunner::Update()
+void SnapshotTestRunner::PrepareForScreenCapture()
 {
-	if(mFinalized || mCaptureRequested)
+	if(mCaptureState != CaptureState::NotRequested)
 		return;
 
 	const u64 currentFrame = GetTime().GetCurrentFrameIndex();
@@ -97,81 +100,26 @@ void SnapshotTestRunner::Update()
 	if(captureFrame == 0 && mExitAfterNFrames > 2)
 		captureFrame = mExitAfterNFrames - 2;
 
-	if(currentFrame >= captureFrame && !mCaptureRequested)
-		RequestScreenCapture();
-}
-
-void SnapshotTestRunner::Finalize()
-{
-	if(mFinalized)
-		return;
-
-	mFinalized = true;
-
-	// Clear log callback before finalization
-	GetDebug().SetLogCallback(nullptr);
-
-	// Calculate execution time and total frames
-	const u64 executionTimeUs = GetTime().GetTimePrecise() - mStartTimeUs;
-	mResult.ExecutionTimeSeconds = (float)((double)(executionTimeUs) * 1e-6);
-	mResult.TotalFrames = GetTime().GetCurrentFrameIndex() - mStartFrame;
-
-	// Wait for capture to complete if in progress
-	if(mScreenCaptureOp != nullptr)
+	if(currentFrame >= captureFrame)
 	{
-		mScreenCaptureOp.BlockUntilComplete();
-		SPtr<PixelData> pixelData = mScreenCaptureOp.GetReturnValue();
-		if(pixelData)
+		// Force all the cameras to redraw this frame
+		for(const auto& pair : GetSceneManager().GetAllScenes())
 		{
-			if(!SaveScreenshot(pixelData))
-				mResult.Status = SnapshotTestStatus::Failed;
+			const SPtr<SceneInstance>& sceneInstance = pair.second.lock();
+			for(const auto& camera : sceneInstance->GetAllCameras())
+				camera.second->NotifyNeedsRedraw();
 		}
-		else
-		{
-			mResult.Errors.push_back("Failed to capture screenshot: capture returned null");
-			mResult.Status = SnapshotTestStatus::Failed;
-		}
-	}
-	else if(!mCaptureRequested)
-	{
-		// No capture was requested (maybe exit frame is too short), try to capture now
-		RequestScreenCapture();
-		if(mScreenCaptureOp != nullptr)
-		{
-			mScreenCaptureOp.BlockUntilComplete();
-			SPtr<PixelData> pixelData = mScreenCaptureOp.GetReturnValue();
-			if(pixelData)
-			{
-				if(!SaveScreenshot(pixelData))
-					mResult.Status = SnapshotTestStatus::Failed;
-			}
-		}
-	}
 
-	// Check for errors/warnings in logs
-	if(!mResult.Errors.empty())
-		mResult.Status = SnapshotTestStatus::Failed;
-	else if(!mResult.Warnings.empty())
-	{
-		if(mResult.Status == SnapshotTestStatus::Passed)
-			mResult.Status = SnapshotTestStatus::PassedWithWarnings;
+		mCaptureState = CaptureState::Requested;
 	}
-
-	// Ensure output directory exists
-	if(!FileSystem::Exists(mConfiguration.OutputPath))
-		FileSystem::CreateFolder(mConfiguration.OutputPath);
-
-	// Write result files
-	WriteResultJson();
-	WriteLogFile();
 }
 
 void SnapshotTestRunner::RequestScreenCapture()
 {
-	if(mCaptureRequested)
+	if(mCaptureState != CaptureState::Requested)
 		return;
 
-	mCaptureRequested = true;
+	mCaptureState = CaptureState::Queued;
 
 	// Get the primary window
 	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
@@ -215,6 +163,72 @@ void SnapshotTestRunner::RequestScreenCapture()
 	};
 
 	GetRenderThread().PostCommand(std::move(fnCaptureWindow), "SnapshotTestRunner::RequestScreenCapture");
+}
+
+void SnapshotTestRunner::Finalize()
+{
+	if(mCaptureState == CaptureState::Captured)
+		return;
+
+	// Clear log callback before finalization
+	GetDebug().SetLogCallback(nullptr);
+
+	// Calculate execution time and total frames
+	const u64 executionTimeUs = GetTime().GetTimePrecise() - mStartTimeUs;
+	mResult.ExecutionTimeSeconds = (float)((double)(executionTimeUs) * 1e-6);
+	mResult.TotalFrames = GetTime().GetCurrentFrameIndex() - mStartFrame;
+
+	// Wait for capture to complete if in progress
+	if(mScreenCaptureOp != nullptr)
+	{
+		mScreenCaptureOp.BlockUntilComplete();
+		SPtr<PixelData> pixelData = mScreenCaptureOp.GetReturnValue();
+		if(pixelData)
+		{
+			if(!SaveScreenshot(pixelData))
+				mResult.Status = SnapshotTestStatus::Failed;
+		}
+		else
+		{
+			mResult.Errors.push_back("Failed to capture screenshot: capture returned null");
+			mResult.Status = SnapshotTestStatus::Failed;
+		}
+	}
+	else if(mCaptureState != CaptureState::Queued)
+	{
+		// No capture was requested (maybe exit frame is too short), try to capture now
+		mCaptureState = CaptureState::Requested;
+		RequestScreenCapture();
+		if(mScreenCaptureOp != nullptr)
+		{
+			mScreenCaptureOp.BlockUntilComplete();
+			SPtr<PixelData> pixelData = mScreenCaptureOp.GetReturnValue();
+			if(pixelData)
+			{
+				if(!SaveScreenshot(pixelData))
+					mResult.Status = SnapshotTestStatus::Failed;
+			}
+		}
+	}
+
+	mCaptureState = CaptureState::Captured;
+
+	// Check for errors/warnings in logs
+	if(!mResult.Errors.empty())
+		mResult.Status = SnapshotTestStatus::Failed;
+	else if(!mResult.Warnings.empty())
+	{
+		if(mResult.Status == SnapshotTestStatus::Passed)
+			mResult.Status = SnapshotTestStatus::PassedWithWarnings;
+	}
+
+	// Ensure output directory exists
+	if(!FileSystem::Exists(mConfiguration.OutputPath))
+		FileSystem::CreateFolder(mConfiguration.OutputPath);
+
+	// Write result files
+	WriteResultJson();
+	WriteLogFile();
 }
 
 bool SnapshotTestRunner::SaveScreenshot(const SPtr<PixelData>& pixelData)

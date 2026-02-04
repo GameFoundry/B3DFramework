@@ -188,10 +188,18 @@ void VulkanHeadlessRenderWindowSurface::Destroy()
 
 void VulkanHeadlessRenderWindowSurface::SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask)
 {
-	mCurrentImageIndex = (mCurrentImageIndex + 1) % kImageCount;
+	// We don't modify mCurrentImageIndex there in order to match the non-headless surface behaviour, which changes the active image index during the first subsequent GetActiveFramebuffer call.
+	// This is important for scene captures that run /after/ the end of the frame (i.e. after SwapBuffers has been called). This way they will perform capture on the last image we rendered to, rather than a new empty one.
+	mIsSwapQueued = true;
 }
 
 VulkanFramebuffer* VulkanHeadlessRenderWindowSurface::GetActiveFramebuffer(bool acquireIfUnavailable)
 {
+	if(mIsSwapQueued)
+	{
+		mCurrentImageIndex = (mCurrentImageIndex + 1) % kImageCount;
+		mIsSwapQueued = false;
+	}
+
 	return mFramebuffers[mCurrentImageIndex];
 }

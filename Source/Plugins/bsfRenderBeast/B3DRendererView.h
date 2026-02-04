@@ -432,6 +432,15 @@ namespace b3d
 			/** Determines if view's 3D geometry should be rendered this frame. */
 			bool ShouldDraw3D() const { return !mRenderSettings->OverlayOnly && ShouldDraw(); }
 
+			/**
+			 * Determines if overlay (GUI) should be fully redrawn this frame.
+			 *
+			 * Normally GUI updates on-demand even if the view itself is not set to render on-demand.
+			 * This method returns true when the overlay needs a full update, such as when a screen
+			 * capture is pending.
+			 */
+			bool ShouldRedrawOverlay() const { return mRedrawThisFrame || !mRequestedScreenCaptures.empty(); }
+
 			/** Returns true if the view should write to the velocity buffer. */
 			bool RequiresVelocityWrites() const;
 
@@ -483,9 +492,6 @@ namespace b3d
 
 			/** Processes pending captures after rendering completes. */
 			void ResolveSceneCaptures(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& target) const;
-
-			/** Returns true if any scene captures are pending this frame. */
-			bool HasPendingSceneCaptures() const { return mRequestedScreenCaptures.size() > 0; }
 
 			/**
 			 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]

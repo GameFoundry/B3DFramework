@@ -48,6 +48,7 @@ namespace b3d::render
 		bool mVSync = false;
 		bool mCreateDepthBuffer = false;
 		bool mUseHardwareSRGB = false;
+		bool mIsSwapQueued = false;
 		bool mIsValid = true;
 		bool mIsDestroyed = false;
 		u32 mCurrentImageIndex = 0;

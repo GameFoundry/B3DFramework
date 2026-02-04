@@ -464,6 +464,11 @@ void Application::RunMainLoopFrame()
 
 	PostUpdate();
 
+#if B3D_ENABLE_TESTS
+	if(mSnapshotTestRunner != nullptr)
+		mSnapshotTestRunner->PrepareForScreenCapture();
+#endif
+
 	mApplicationCache->Update();
 
 	PerFrameData perFrameData;
@@ -509,6 +514,11 @@ void Application::RunMainLoopFrame()
 
 	PROFILE_CALL(RendererManager::Instance().GetActive()->RenderAll(perFrameData), "Render");
 
+#if B3D_ENABLE_TESTS
+	if(mSnapshotTestRunner != nullptr)
+		mSnapshotTestRunner->RequestScreenCapture();
+#endif
+
 	GetRenderThread().PostCommand([this] { FrameRenderingFinishedCallback(); }, "FrameRenderingFinishedCallback");
 	GetRenderThread().PostCommand([this] { EndRenderThreadProfiling(); }, "EndRenderThreadProfiling");
 
@@ -547,11 +557,6 @@ void Application::PostUpdate()
 
 	PROFILE_CALL(GUIManager::Instance().Update(), "GUI");
 	DebugDraw::Instance().UpdateInternal();
-
-#if B3D_ENABLE_TESTS
-	if(mSnapshotTestRunner != nullptr)
-		mSnapshotTestRunner->Update();
-#endif
 }
 
 void Application::ShowProfilerOverlay(ProfilerOverlayType type, const HCamera& camera)

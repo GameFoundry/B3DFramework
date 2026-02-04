@@ -90,6 +90,14 @@ namespace b3d
 	 */
 	class B3D_EXPORT SnapshotTestRunner
 	{
+		/** Determines current state of the test runner state machine. */
+		enum class CaptureState
+		{
+			NotRequested,
+			Requested,
+			Queued,
+			Captured
+		};
 	public:
 		/**
 		 * Creates and initializes a snapshot test runner.
@@ -99,16 +107,25 @@ namespace b3d
 		SnapshotTestRunner(const SnapshotTestConfiguration& configuration);
 		~SnapshotTestRunner();
 
-		/** Called each frame from Application::PostUpdate(). */
-		void Update();
+		/**
+		 * If redraw is required this frame, prepares all cameras for screen capture by forcing a redraw.
+		 *
+		 * Must be called before rendering when a capture is pending to ensure
+		 * on-demand cameras produce a fresh frame for the screenshot.
+		 */
+		void PrepareForScreenCapture();
+
+		/**
+		 * If redraw is required this frame, queues a screen capture request.
+		 *
+		 * Must be called after rendering to ensure the screenshot captures the latest frame.
+		 */
+		void RequestScreenCapture();
 
 		/** Called from Application::EndMainLoop() to finalize results. */
 		void Finalize();
 
 	private:
-		/** Request a screenshot capture from the primary render window. */
-		void RequestScreenCapture();
-
 		/** Save the captured screenshot to disk. */
 		bool SaveScreenshot(const SPtr<PixelData>& pixelData);
 
@@ -131,8 +148,7 @@ namespace b3d
 		u64 mStartFrame = 0;
 		u64 mExitAfterNFrames = 0;
 		u64 mStartTimeUs = 0;
-		bool mCaptureRequested = false;
-		bool mFinalized = false;
+		CaptureState mCaptureState = CaptureState::NotRequested;
 	};
 
 	/** @} */
