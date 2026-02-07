@@ -203,7 +203,7 @@ namespace b3d::ecs
 		template<typename Type, typename... Arguments>
 		Type& AddOrReplaceComponent(Entity entity, Arguments&&... arguments)
 		{
-			auto storage = GetOrCreateStorage<Type>();
+			auto& storage = GetOrCreateStorage<Type>();
 			if(storage.Contains(entity))
 			{
 				Type& component = storage.Get(entity);
