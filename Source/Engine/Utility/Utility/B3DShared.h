@@ -232,7 +232,7 @@ namespace b3d
 		template<typename... ArgumentType>
 		explicit TSharedControlBlockWithObject(ArgumentType&&... argument)
 		{
-			new ((void*)&Object) ObjectType(std::forward<ArgumentType>(argument)...);
+			new (&Object) ObjectType(std::forward<ArgumentType>(argument)...);
 		}
 
 		~TSharedControlBlockWithObject() override { }
