@@ -656,17 +656,12 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene, bool recursive)
 			mECSRegistry->AddComponent<ecs::LocalTransform>(mECSEntity, ecs::LocalTransform(localTfrm));
 			mECSRegistry->AddComponent<ecs::WorldTransform>(mECSEntity, ecs::WorldTransform(worldTfrm));
 		}
-		// else: already in correct registry (e.g. entity created via CreateInternal with same collection)
 	}
 	else
 	{
-		// Leaving scene: destroy entity
-		if(mECSRegistry != nullptr && mECSEntity != ecs::kNullEntity)
-		{
-			mECSRegistry->EraseEntity(mECSEntity);
-			mECSEntity = ecs::kNullEntity;
-			mECSRegistry = nullptr;
-		}
+		// Note: We purposefully don't destroy the ECS entity here, as the scene object still belongs to the
+		// original game object collection. We don't clear the original game object collection because the
+		// scene object must belong to one. Scene object without a parent is only valid as a temporary state.
 	}
 
 	if(recursive)
