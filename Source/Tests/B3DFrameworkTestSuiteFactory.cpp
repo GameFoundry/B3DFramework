@@ -76,10 +76,9 @@ namespace b3d
 				RegisterTestSuites(TestLayer::Editor);
 
 			RunTests(collector);
-			ShutdownApplication();
 		}
 
-		// Write results once at end
+		// Write results before shutting down, as the console is freed during shutdown
 		if (outputFormat == TestOutputFormat::JSON)
 		{
 			Path jsonPath = outputPath.IsEmpty() ? Path("test_results.json") : outputPath;
@@ -87,6 +86,9 @@ namespace b3d
 		}
 		else
 			TestResultWriter::WriteToConsole(collector.GetResults());
+
+		if (appLayers)
+			ShutdownApplication();
 
 		return collector.GetExitCode();
 	}
