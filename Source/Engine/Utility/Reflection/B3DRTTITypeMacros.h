@@ -137,24 +137,26 @@ namespace b3d
 #define B3D_RTTI_GENERATED_MEMBER_CONTAINER_INFO(name, id, info) B3D_RTTI_GENERATED_MEMBER_IMPL(name, name, id, info, true)
 
 /**
- * Registers an ECS fragment as an RTTI field. The fragment is read/written directly from/to the ECS registry.
- * Owner must implement IECSEntityOwner interface. Fragment is expected to be in ecs:: namespace.
+ * Registers an ECS type as an RTTI field. Automatically detects whether the type is a
+ * data component (fragment) or a TagGroup and serializes accordingly. For fragments, the
+ * component data is serialized directly. For tag groups, tags are packed into a single
+ * integer bitfield. Owner must implement IECSEntityOwner. Type is expected to be in ecs:: namespace.
  *
- * @param	name	Fragment type name (without ecs:: prefix). Used as both the field name and type identifier.
+ * @param	name	ECS type name (without ecs:: prefix). Used as both the field name and type identifier.
  * @param	id		Unique field ID for serialization.
  */
-#define B3D_RTTI_MEMBER_FRAGMENT(name, id)                                                                \
-	META_Entry_##name;                                                                                    \
-                                                                                                          \
-	struct META_NextEntry_##name                                                                          \
-	{};                                                                                                   \
-	void META_InitPrevEntry(META_NextEntry_##name typeId)                                                 \
-	{                                                                                                     \
-		auto field = B3DNew<TRTTIECSField<ecs::name, OwnerType>>(#name, id, b3d::RTTIFieldInfo::DEFAULT); \
-		AddNewField(field);                                                                               \
-		META_InitPrevEntry(META_Entry_##name());                                                          \
-	}                                                                                                     \
-                                                                                                          \
+#define B3D_RTTI_MEMBER_ECS(name, id)                                                                      \
+	META_Entry_##name;                                                                                     \
+                                                                                                           \
+	struct META_NextEntry_##name                                                                           \
+	{};                                                                                                    \
+	void META_InitPrevEntry(META_NextEntry_##name typeId)                                                  \
+	{                                                                                                      \
+		auto field = B3DNew<TRTTIECSField<ecs::name, OwnerType>>(#name, id, b3d::RTTIFieldInfo::DEFAULT);  \
+		AddNewField(field);                                                                                \
+		META_InitPrevEntry(META_Entry_##name());                                                           \
+	}                                                                                                      \
+                                                                                                           \
 	typedef META_NextEntry_##name
 
 /** Ends definitions for member fields with a RTTI type. Must follow B3D_RTTI_BEGIN_MEMBERS. */

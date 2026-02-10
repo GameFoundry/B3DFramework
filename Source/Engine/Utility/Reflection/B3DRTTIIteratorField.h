@@ -19,7 +19,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Shared helper functions used by both TRTTIIteratorField and TRTTIECSField. */
+	/** Shared helper functions used by TRTTIIteratorField and TRTTIECSField. */
 	namespace detail
 	{
 		/** Checks is the provided type a value type deriving from IReflectable. */

@@ -34,10 +34,11 @@ namespace b3d
 			B3D_RTTI_MEMBER(mFlags, 3)
 			B3D_RTTI_MEMBER(mPrefabDelta, 4)
 			B3D_RTTI_MEMBER(mPrefabVersion, 5)
-			B3D_RTTI_MEMBER(mMobility, 10)
-			B3D_RTTI_MEMBER_FRAGMENT(WorldTransform, 11)
-			B3D_RTTI_MEMBER_FRAGMENT(LocalTransform, 12)
+			B3D_RTTI_MEMBER(mMobility, 10) // TODO - To remove
+			B3D_RTTI_MEMBER_ECS(WorldTransform, 11)
+			B3D_RTTI_MEMBER_ECS(LocalTransform, 12)
 			B3D_RTTI_MEMBER_INFO(mPrefabResourceId, 13, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy))
+			B3D_RTTI_MEMBER_ECS(MobilityTags, 14)
 		B3D_RTTI_END_MEMBERS
 
 	public:

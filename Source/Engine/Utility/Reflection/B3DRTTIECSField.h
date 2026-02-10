@@ -18,20 +18,27 @@ namespace b3d
 	 */
 
 	/**
-	 * RTTI field type that reads/writes a single ECS fragment directly from/to an ecs::Registry.
-	 * Behaves as a faux single-element iterator, matching the semantics of TRTTIIteratorField with IsDataTypeContainer=false.
+	 * RTTI field type that reads/writes ECS data directly from/to an ecs::Registry.
+	 *
+	 * Auto-detects whether DataType is a TagGroup or a data component at compile time
+	 * and selects the appropriate iterator. For tag groups, the serialized element is the
+	 * StorageType bitfield. For fragments, it is the component type itself.
+	 *
 	 * The owner type must implement ecs::IECSEntityOwner to provide registry and entity access.
 	 *
-	 * @tparam FragmentType		ECS fragment type to serialize.
-	 * @tparam OwnerType		Type of the object that owns the ECS entity (must implement ecs::IECSEntityOwner).
+	 * @tparam DataType     ECS data type -- either a component struct (e.g. ecs::WorldTransform)
+	 *                      or a TagGroup<Storage, Tags...> specialization (e.g. ecs::MobilityTags).
+	 * @tparam OwnerType    Type of the object that owns the ECS entity.
 	 */
-	template<typename FragmentType, typename OwnerType>
+	template<typename DataType, typename OwnerType>
 	struct TRTTIECSField : public RTTIIteratorField
 	{
 		static_assert(std::is_base_of_v<ecs::IECSEntityOwner, OwnerType>, "OwnerType must implement ecs::IECSEntityOwner interface");
 
-		using IteratorType = TRTTIECSIterator<FragmentType>;
-		using ElementType = FragmentType;
+		using IteratorType = std::conditional_t<ecs::IsTagGroup<DataType>::value,
+			TRTTIECSTagGroupIterator<DataType>,
+			TRTTIECSFragmentIterator<DataType>>;
+		using ElementType = typename IteratorType::ElementType;
 
 		TRTTIECSField(String name, u16 uniqueId, const RTTIFieldInfo& info)
 		{
@@ -48,7 +55,7 @@ namespace b3d
 		{
 			OwnerType* owner = static_cast<OwnerType*>(object);
 			auto* it = frameAllocator.Construct<IteratorType>(owner->GetECSRegistry(), owner->GetECSEntity());
-			return B3DMakeSharedFromExisting<IteratorType>(it, TRTTIECSIteratorDeleter<FragmentType>(&frameAllocator));
+			return B3DMakeSharedFromExisting<IteratorType>(it, TRTTIECSIteratorDeleter<IteratorType>(&frameAllocator));
 		}
 
 		bool IteratorSupportsSeekToIndex() const override { return false; }
@@ -66,7 +73,7 @@ namespace b3d
 
 		void SetIteratorValue(b3d::RTTIType* rttiTypeInstance, void* object, FrameAllocator& frameAllocator, IRTTIIterator& iterator, void* value) override
 		{
-			static_cast<IteratorType&>(iterator).WriteComponent(*static_cast<const ElementType*>(value));
+			static_cast<IteratorType&>(iterator).WriteValue(*static_cast<const ElementType*>(value));
 		}
 
 		void* CreateEmptyFieldValue(FrameAllocator& frameAllocator) override

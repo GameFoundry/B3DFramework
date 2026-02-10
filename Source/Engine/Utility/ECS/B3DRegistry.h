@@ -214,6 +214,33 @@ namespace b3d::ecs
 			return storage.template Add<Type>(entity, std::forward<Arguments>(arguments)...);
 		}
 
+		/**
+		 * Adds a tag to an entity. Tags are empty components that track only presence/absence.
+		 * Does nothing if the tag is already present.
+		 *
+		 * @tparam TagType  Empty struct type representing the tag. Must satisfy std::is_empty_v.
+		 */
+		template<typename TagType>
+		void AddTag(Entity entity)
+		{
+			static_assert(std::is_empty_v<TagType>, "AddTag only works with empty tag types. Use AddComponent for data components.");
+			auto& storage = GetOrCreateStorage<TagType>();
+			if(!storage.Contains(entity))
+				storage.Add(entity);
+		}
+
+		/**
+		 * Removes a tag from an entity if present. Convenience wrapper around RemoveComponents for tag types.
+		 *
+		 * @tparam TagType  Empty struct type representing the tag. Must satisfy std::is_empty_v.
+		 */
+		template<typename TagType>
+		void RemoveTag(Entity entity)
+		{
+			static_assert(std::is_empty_v<TagType>, "RemoveTag only works with empty tag types. Use RemoveComponents for data components.");
+			RemoveComponents<TagType>(entity);
+		}
+
 		/** Removes one or multiple components from an entity. */
 		template<typename FirstComponentType, typename... OtherComponentType>
 		u64 RemoveComponents(Entity entity)

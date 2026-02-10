@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "Scene/B3DTransform.h"
+#include "ECS/B3DECSTagGroup.h"
 
 namespace b3d::ecs
 {
@@ -28,6 +29,18 @@ namespace b3d::ecs
 			: Transform(transform)
 		{ }
 	};
+
+	/** Tag indicating the scene object can be freely moved. */
+	struct Movable {};
+
+	/** Tag indicating the scene object is not allowed to move but may change visually. */
+	struct Immovable {};
+
+	/** Tag indicating the scene object is fully static and may not change in any way. */
+	struct Static {};
+
+	/** Groups mobility-related tags for serialization. */
+	using MobilityTags = TagGroup<u8, Movable, Immovable, Static>;
 
 	/** @} */
 } // namespace b3d::ecs
