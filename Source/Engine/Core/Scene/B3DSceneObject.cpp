@@ -45,6 +45,7 @@ HSceneObject SceneObject::CreateInternal(const SPtr<GameObjectCollection>& owner
 	sceneObject->mId = UUIDGenerator::GenerateRandom();
 
 	sceneObject->CreateECSEntity(&ownerCollection->GetECSRegistry());
+	sceneObject->mECSRegistry->AddTag<ecs::Movable>(sceneObject->mECSEntity);
 
 	return CreateInternal(ownerCollection, sceneObject);
 }
@@ -266,6 +267,11 @@ void SceneObject::Initialize()
 /* 								Transform	                     		*/
 /************************************************************************/
 
+bool SceneObject::IsMovable() const
+{
+	return mECSRegistry->HasAllOf<ecs::Movable>(mECSEntity);
+}
+
 Transform& SceneObject::GetMutableLocalTransform()
 {
 	B3D_ASSERT(mECSRegistry != nullptr);
@@ -296,7 +302,7 @@ const Transform& SceneObject::GetTransform() const
 
 void SceneObject::SetLocalTransform(const Transform& transform)
 {
-	if(mMobility != ObjectMobility::Movable)
+	if(!mECSRegistry->HasAllOf<ecs::Movable>(mECSEntity))
 		return;
 
 	GetMutableLocalTransform() = transform;
@@ -305,7 +311,7 @@ void SceneObject::SetLocalTransform(const Transform& transform)
 
 void SceneObject::SetPosition(const Vector3& position)
 {
-	if(mMobility == ObjectMobility::Movable)
+	if(IsMovable())
 	{
 		GetMutableLocalTransform().SetPosition(position);
 		NotifyTransformChanged(TCF_Transform);
@@ -314,7 +320,7 @@ void SceneObject::SetPosition(const Vector3& position)
 
 void SceneObject::SetRotation(const Quaternion& rotation)
 {
-	if(mMobility == ObjectMobility::Movable)
+	if(IsMovable())
 	{
 		GetMutableLocalTransform().SetRotation(rotation);
 		NotifyTransformChanged(TCF_Transform);
@@ -323,7 +329,7 @@ void SceneObject::SetRotation(const Quaternion& rotation)
 
 void SceneObject::SetScale(const Vector3& scale)
 {
-	if(mMobility == ObjectMobility::Movable)
+	if(IsMovable())
 	{
 		GetMutableLocalTransform().SetScale(scale);
 		NotifyTransformChanged(TCF_Transform);
@@ -332,7 +338,7 @@ void SceneObject::SetScale(const Vector3& scale)
 
 void SceneObject::SetWorldPosition(const Vector3& position)
 {
-	if(mMobility != ObjectMobility::Movable)
+	if(!IsMovable())
 		return;
 
 	Transform& localTfrm = GetMutableLocalTransform();
@@ -346,7 +352,7 @@ void SceneObject::SetWorldPosition(const Vector3& position)
 
 void SceneObject::SetWorldRotation(const Quaternion& rotation)
 {
-	if(mMobility != ObjectMobility::Movable)
+	if(!IsMovable())
 		return;
 
 	Transform& localTfrm = GetMutableLocalTransform();
@@ -360,7 +366,7 @@ void SceneObject::SetWorldRotation(const Quaternion& rotation)
 
 void SceneObject::SetWorldScale(const Vector3& scale)
 {
-	if(mMobility != ObjectMobility::Movable)
+	if(!IsMovable())
 		return;
 
 	Transform& localTfrm = GetMutableLocalTransform();
@@ -400,7 +406,7 @@ Matrix4 SceneObject::GetLocalMatrix() const
 
 void SceneObject::Move(const Vector3& vec)
 {
-	if(mMobility == ObjectMobility::Movable)
+	if(IsMovable())
 	{
 		GetMutableLocalTransform().Move(vec);
 		NotifyTransformChanged(TCF_Transform);
@@ -409,7 +415,7 @@ void SceneObject::Move(const Vector3& vec)
 
 void SceneObject::MoveRelative(const Vector3& vec)
 {
-	if(mMobility == ObjectMobility::Movable)
+	if(IsMovable())
 	{
 		GetMutableLocalTransform().MoveRelative(vec);
 		NotifyTransformChanged(TCF_Transform);
@@ -418,7 +424,7 @@ void SceneObject::MoveRelative(const Vector3& vec)
 
 void SceneObject::Rotate(const Vector3& axis, const Radian& angle)
 {
-	if(mMobility == ObjectMobility::Movable)
+	if(IsMovable())
 	{
 		GetMutableLocalTransform().Rotate(axis, angle);
 		NotifyTransformChanged(TCF_Transform);
@@ -427,7 +433,7 @@ void SceneObject::Rotate(const Vector3& axis, const Radian& angle)
 
 void SceneObject::Rotate(const Quaternion& q)
 {
-	if(mMobility == ObjectMobility::Movable)
+	if(IsMovable())
 	{
 		GetMutableLocalTransform().Rotate(q);
 		NotifyTransformChanged(TCF_Transform);
@@ -436,7 +442,7 @@ void SceneObject::Rotate(const Quaternion& q)
 
 void SceneObject::Roll(const Radian& angle)
 {
-	if(mMobility == ObjectMobility::Movable)
+	if(IsMovable())
 	{
 		GetMutableLocalTransform().Roll(angle);
 		NotifyTransformChanged(TCF_Transform);
@@ -445,7 +451,7 @@ void SceneObject::Roll(const Radian& angle)
 
 void SceneObject::Yaw(const Radian& angle)
 {
-	if(mMobility == ObjectMobility::Movable)
+	if(IsMovable())
 	{
 		GetMutableLocalTransform().Yaw(angle);
 		NotifyTransformChanged(TCF_Transform);
@@ -454,7 +460,7 @@ void SceneObject::Yaw(const Radian& angle)
 
 void SceneObject::Pitch(const Radian& angle)
 {
-	if(mMobility == ObjectMobility::Movable)
+	if(mECSRegistry->HasAllOf<ecs::Movable>(mECSEntity))
 	{
 		GetMutableLocalTransform().Pitch(angle);
 		NotifyTransformChanged(TCF_Transform);
@@ -474,7 +480,7 @@ void SceneObject::NotifyTransformChanged(TransformChangedFlags flags) const
 {
 	// If object is immovable, don't send transform changed events nor mark the transform dirty
 	TransformChangedFlags componentFlags = flags;
-	if(mMobility != ObjectMobility::Movable)
+	if(!IsMovable())
 		componentFlags = (TransformChangedFlags)(componentFlags & ~TCF_Transform);
 	else
 	{
@@ -514,7 +520,7 @@ void SceneObject::UpdateWorldTfrm() const
 	worldTfrm = GetLocalTransform();
 
 	// Don't allow movement from parent when not movable
-	if(mParent != nullptr && mMobility == ObjectMobility::Movable)
+	if(mParent != nullptr && mECSRegistry->HasAllOf<ecs::Movable>(mECSEntity))
 		worldTfrm.MakeWorld(mParent->GetTransform());
 
 	mECSRegistry->RemoveTag<ecs::TransformDirty>(mECSEntity);
@@ -533,7 +539,7 @@ void SceneObject::SetParent(const HSceneObject& parent, bool keepWorldTransform)
 	UUID originalPrefabResourceId = GetPrefabResourceId();
 #endif
 
-	if(mMobility != ObjectMobility::Movable)
+	if(!mECSRegistry->HasAllOf<ecs::Movable>(mECSEntity))
 		keepWorldTransform = true;
 
 	SetParentInternal(parent, keepWorldTransform);
@@ -615,18 +621,23 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene, bool recursive)
 
 		ecs::Registry* sceneRegistry = &sceneCollection->GetECSRegistry();
 		if(mECSRegistry == nullptr)
+		{
 			CreateECSEntity(sceneRegistry);
+			AddMobilityTag(ObjectMobility::Movable);
+		}
 		else if(mECSRegistry != sceneRegistry)
 		{
 			// Migrate entity to new registry (e.g. persistent object moving between scenes)
 			Transform localTfrm = GetLocalTransform();
 			Transform worldTfrm = GetTransform();
+			ObjectMobility mobility = GetMobility();
 			mECSRegistry->EraseEntity(mECSEntity);
 
 			mECSRegistry = sceneRegistry;
 			mECSEntity = mECSRegistry->CreateEntity();
 			mECSRegistry->AddComponent<ecs::LocalTransform>(mECSEntity, ecs::LocalTransform(localTfrm));
 			mECSRegistry->AddComponent<ecs::WorldTransform>(mECSEntity, ecs::WorldTransform(worldTfrm));
+			AddMobilityTag(mobility);
 		}
 	}
 	else
@@ -839,18 +850,49 @@ bool SceneObject::GetActive(bool self) const
 		return !HasGameObjectFlag(GameObjectTransientFlag::Disabled);
 }
 
+ObjectMobility SceneObject::GetMobility() const
+{
+	if(mECSRegistry->HasAllOf<ecs::Immovable>(mECSEntity))
+		return ObjectMobility::Immovable;
+
+	if(mECSRegistry->HasAllOf<ecs::Static>(mECSEntity))
+		return ObjectMobility::Static;
+
+	return ObjectMobility::Movable;
+}
+
+void SceneObject::AddMobilityTag(ObjectMobility mobility)
+{
+	switch (mobility)
+	{
+	case ObjectMobility::Movable:
+		mECSRegistry->AddTag<ecs::Movable>(mECSEntity);
+		break;
+	case ObjectMobility::Immovable:
+		mECSRegistry->AddTag<ecs::Immovable>(mECSEntity);
+		break;
+	case ObjectMobility::Static:
+		mECSRegistry->AddTag<ecs::Static>(mECSEntity);
+		break;
+	}
+}
+
 void SceneObject::SetMobility(ObjectMobility mobility)
 {
-	if(mMobility != mobility)
-	{
-		mMobility = mobility;
+	ObjectMobility currentMobility = GetMobility();
+	if(currentMobility == mobility)
+		return;
 
-		// If mobility changed to movable, update both the mobility flag and transform, otherwise just mobility
-		if(mMobility == ObjectMobility::Movable)
-			NotifyTransformChanged((TransformChangedFlags)(TCF_Transform | TCF_Mobility));
-		else
-			NotifyTransformChanged(TCF_Mobility);
-	}
+	mECSRegistry->RemoveTag<ecs::Movable>(mECSEntity);
+	mECSRegistry->RemoveTag<ecs::Immovable>(mECSEntity);
+	mECSRegistry->RemoveTag<ecs::Static>(mECSEntity);
+	AddMobilityTag(mobility);
+
+	// If mobility changed to movable, update both the mobility flag and transform, otherwise just mobility
+	if(mobility == ObjectMobility::Movable)
+		NotifyTransformChanged((TransformChangedFlags)(TCF_Transform | TCF_Mobility));
+	else
+		NotifyTransformChanged(TCF_Mobility);
 }
 
 HSceneObject SceneObject::Clone()

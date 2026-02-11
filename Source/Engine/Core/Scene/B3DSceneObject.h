@@ -287,11 +287,16 @@ namespace b3d
 		void CreateECSEntity(ecs::Registry* registry) override;
 
 	private:
-
 		mutable u32 mDirtyHash = 0;
 
 		ecs::Registry* mECSRegistry = nullptr;
 		ecs::Entity mECSEntity = ecs::kNullEntity;
+
+		/** Adds the ECS mobility tag for the given mobility. For fresh entities with no existing tags. */
+		void AddMobilityTag(ObjectMobility mobility);
+
+		/** Returns true if the scene object can be moved. This is true if the object has ObjectMobility::Movable mobility. */
+		bool IsMovable() const;
 
 		/** Returns a mutable reference to the local transform stored in the ECS registry. */
 		Transform& GetMutableLocalTransform();
@@ -410,17 +415,15 @@ namespace b3d
 		bool GetActive(bool self = false) const;
 
 		/**
-		 * Sets the mobility of a scene object. This is used primarily as a performance hint to engine systems. Objects
+		 * Determines the mobility of a scene object. This is used primarily as a performance hint to engine systems. Objects
 		 * with more restricted mobility will result in higher performance. Some mobility constraints will be enforced by
 		 * the engine itself, while for others the caller must be sure not to break the promise he made when mobility was
 		 * set. By default scene object's mobility is unrestricted.
 		 */
 		void SetMobility(ObjectMobility mobility);
 
-		/**
-		 * Gets the mobility setting for this scene object. See setMobility();
-		 */
-		ObjectMobility GetMobility() const { return mMobility; }
+		/** @copydoc SetMobility */
+		ObjectMobility GetMobility() const;
 
 		/** Makes a deep copy of this object (including all its children). Cloned object will be parented to the same parent as this object. */
 		HSceneObject Clone();
@@ -465,7 +468,6 @@ namespace b3d
 		WeakSPtr<SceneInstance> mParentScene;
 		HSceneObject mParent;
 		Vector<HSceneObject> mChildren;
-		ObjectMobility mMobility = ObjectMobility::Movable;
 
 		/**
 		 * Internal version of setParent() that allows you to set a null parent.
