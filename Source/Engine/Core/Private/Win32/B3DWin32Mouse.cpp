@@ -3,9 +3,23 @@
 #include "Input/B3DMouse.h"
 #include "Input/B3DInput.h"
 #include "Private/Win32/B3DWin32Input.h"
-#include "Error/B3DException.h"
 
 using namespace b3d;
+
+namespace
+{
+	constexpr DWORD kMouseOffsetX = static_cast<DWORD>(offsetof(DIMOUSESTATE2, lX));
+	constexpr DWORD kMouseOffsetY = static_cast<DWORD>(offsetof(DIMOUSESTATE2, lY));
+	constexpr DWORD kMouseOffsetZ = static_cast<DWORD>(offsetof(DIMOUSESTATE2, lZ));
+	constexpr DWORD kMouseOffsetButton0 = static_cast<DWORD>(offsetof(DIMOUSESTATE2, rgbButtons[0]));
+	constexpr DWORD kMouseOffsetButton1 = static_cast<DWORD>(offsetof(DIMOUSESTATE2, rgbButtons[1]));
+	constexpr DWORD kMouseOffsetButton2 = static_cast<DWORD>(offsetof(DIMOUSESTATE2, rgbButtons[2]));
+	constexpr DWORD kMouseOffsetButton3 = static_cast<DWORD>(offsetof(DIMOUSESTATE2, rgbButtons[3]));
+	constexpr DWORD kMouseOffsetButton4 = static_cast<DWORD>(offsetof(DIMOUSESTATE2, rgbButtons[4]));
+	constexpr DWORD kMouseOffsetButton5 = static_cast<DWORD>(offsetof(DIMOUSESTATE2, rgbButtons[5]));
+	constexpr DWORD kMouseOffsetButton6 = static_cast<DWORD>(offsetof(DIMOUSESTATE2, rgbButtons[6]));
+	constexpr DWORD kMouseOffsetButton7 = static_cast<DWORD>(offsetof(DIMOUSESTATE2, rgbButtons[7]));
+}
 
 /** Contains private data for the Win32 Mouse implementation. */
 struct Mouse::Pimpl
@@ -140,39 +154,39 @@ void Mouse::Capture()
 	{
 		switch(diBuff[entryIndex].dwOfs)
 		{
-		case DIMOFS_BUTTON0:
+		case kMouseOffsetButton0:
 			DoMouseClick(mOwner, ButtonCode::MouseLeft, diBuff[entryIndex]);
 			break;
-		case DIMOFS_BUTTON1:
+		case kMouseOffsetButton1:
 			DoMouseClick(mOwner, ButtonCode::MouseRight, diBuff[entryIndex]);
 			break;
-		case DIMOFS_BUTTON2:
+		case kMouseOffsetButton2:
 			DoMouseClick(mOwner, ButtonCode::MouseMiddle, diBuff[entryIndex]);
 			break;
-		case DIMOFS_BUTTON3:
+		case kMouseOffsetButton3:
 			DoMouseClick(mOwner, ButtonCode::MouseButton4, diBuff[entryIndex]);
 			break;
-		case DIMOFS_BUTTON4:
+		case kMouseOffsetButton4:
 			DoMouseClick(mOwner, ButtonCode::MouseButton5, diBuff[entryIndex]);
 			break;
-		case DIMOFS_BUTTON5:
+		case kMouseOffsetButton5:
 			DoMouseClick(mOwner, ButtonCode::MouseButton6, diBuff[entryIndex]);
 			break;
-		case DIMOFS_BUTTON6:
+		case kMouseOffsetButton6:
 			DoMouseClick(mOwner, ButtonCode::MouseButton7, diBuff[entryIndex]);
 			break;
-		case DIMOFS_BUTTON7:
+		case kMouseOffsetButton7:
 			DoMouseClick(mOwner, ButtonCode::MouseButton8, diBuff[entryIndex]);
 			break;
-		case DIMOFS_X:
+		case kMouseOffsetX:
 			relativeX += diBuff[entryIndex].dwData;
 			axesMoved = true;
 			break;
-		case DIMOFS_Y:
+		case kMouseOffsetY:
 			relativeY += diBuff[entryIndex].dwData;
 			axesMoved = true;
 			break;
-		case DIMOFS_Z:
+		case kMouseOffsetZ:
 			relativeZ += diBuff[entryIndex].dwData;
 			axesMoved = true;
 			break;
