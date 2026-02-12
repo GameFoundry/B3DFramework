@@ -42,6 +42,18 @@ namespace b3d::ecs
 	/** Tag indicating the scene object's world transform needs recalculation. */
 	struct TransformDirty {};
 
+	/** Holds a parent entity reference for hierarchy traversal. */
+	struct Parent
+	{
+		Entity Entity;
+	};
+
+	/** Holds children entity references for hierarchy traversal. */
+	struct Children
+	{
+		TArray<Entity> Entities;
+	};
+
 	/** Groups mobility-related tags for serialization. */
 	using MobilityTags = TagGroup<u8, Movable, Immovable, Static>;
 

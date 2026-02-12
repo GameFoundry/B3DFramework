@@ -171,8 +171,7 @@ void PrefabUtility::RevertToPrefab(const HSceneObject& sceneObject)
 	HSceneObject newInstance = linkedPrefab->Instantiate(sceneInstance);
 
 	// Remove default parent, and replace with original one
-	newInstance->mParent->RemoveChild(newInstance);
-	newInstance->mParent = parent;
+	newInstance->SetParent(parent);
 
 	RestorePrefabInstanceData(newInstance, instanceData);
 }

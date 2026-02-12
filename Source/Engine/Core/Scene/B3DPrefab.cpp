@@ -89,7 +89,6 @@ UnorderedMap<UUID, UUID> Prefab::ReplaceInternalHierarchy(const HSceneObject& sc
 {
 	const SPtr<GameObjectCollection> newGameObjectCollection = GameObjectCollection::Create();
 	HSceneObject newRoot = sceneObject->Clone(newGameObjectCollection, true);
-	newRoot->mParent = nullptr;
 
 	// Remove objects that should not be saved
 	FrameAllocatorScope frameScope;

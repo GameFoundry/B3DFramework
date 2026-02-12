@@ -599,7 +599,7 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name)
 	HSceneObject root = SceneObject::CreateInternal(gameObjectCollection, "Root");
 
 	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, UUID::kEmpty);
-	root->SetScene(sceneInstance, false);
+	root->SetScene(sceneInstance);
 
 	SceneManager::Instance().NotifySceneInstanceCreated(sceneInstance);
 	root->Initialize();
@@ -626,7 +626,7 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject
 		return nullptr;
 
 	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, associatedResourceId);
-	root->SetScene(sceneInstance, true);
+	root->SetScene(sceneInstance);
 
 	SceneManager::Instance().NotifySceneInstanceCreated(sceneInstance);
 

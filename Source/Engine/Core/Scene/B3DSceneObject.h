@@ -58,16 +58,16 @@ namespace b3d
 		/**
 		 * Creates a new SceneObject with the specified name. Object will be placed in the top of the scene hierarchy.
 		 *
-		 * @param[in]	name	Name of the scene object.
-		 * @param[in]	flags	Optional flags that control object behavior. See SceneObjectFlags.
+		 * @param	name	Name of the scene object.
+		 * @param	flags	Optional flags that control object behavior. See SceneObjectFlags.
 		 */
 		static HSceneObject Create(const String& name, u32 flags = 0);
 
 		/**
 		 * Destroys this object and any of its held components.
 		 *
-		 * @param[in]	immediate	If true, the object will be deallocated and become unusable right away. Otherwise the
-		 *							deallocation will be delayed to the end of frame (preferred method).
+		 * @param	immediate	If true, the object will be deallocated and become unusable right away. Otherwise the
+		 *						deallocation will be delayed to the end of frame (preferred method).
 		 */
 		void Destroy(bool immediate = false);
 
@@ -316,7 +316,7 @@ namespace b3d
 		 *
 		 * @note	If parent transforms are dirty they will be updated.
 		 */
-		void UpdateWorldTfrm() const;
+		void UpdateWorldTransform() const;
 
 		/************************************************************************/
 		/* 								Hierarchy	                     		*/
@@ -478,8 +478,8 @@ namespace b3d
 		 */
 		void SetParentInternal(const HSceneObject& parent, bool keepWorldTransform = true);
 
-		/** Changes the owning scene of the scene object and optionally all children if @p recursive is true. */
-		void SetScene(const SPtr<SceneInstance>& scene, bool recursive = true);
+		/** Changes the owning scene of the scene object and all children. */
+		void SetScene(const SPtr<SceneInstance>& scene);
 
 		/**
 		 * Adds a child to the child array. This method doesn't check for null or duplicate values.

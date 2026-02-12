@@ -269,6 +269,7 @@ void SceneObject::Initialize()
 
 bool SceneObject::IsMovable() const
 {
+	B3D_ASSERT(mECSRegistry != nullptr);
 	return mECSRegistry->HasAllOf<ecs::Movable>(mECSEntity);
 }
 
@@ -295,14 +296,16 @@ const Transform& SceneObject::GetTransform() const
 	B3D_ASSERT(mECSRegistry != nullptr);
 
 	if(mECSRegistry->HasAllOf<ecs::TransformDirty>(mECSEntity))
-		UpdateWorldTfrm();
+		UpdateWorldTransform();
 
 	return mECSRegistry->GetComponents<ecs::WorldTransform>(mECSEntity);
 }
 
 void SceneObject::SetLocalTransform(const Transform& transform)
 {
-	if(!mECSRegistry->HasAllOf<ecs::Movable>(mECSEntity))
+	B3D_ASSERT(mECSRegistry != nullptr);
+
+	if(!IsMovable())
 		return;
 
 	GetMutableLocalTransform() = transform;
@@ -460,7 +463,7 @@ void SceneObject::Yaw(const Radian& angle)
 
 void SceneObject::Pitch(const Radian& angle)
 {
-	if(mECSRegistry->HasAllOf<ecs::Movable>(mECSEntity))
+	if(IsMovable())
 	{
 		GetMutableLocalTransform().Pitch(angle);
 		NotifyTransformChanged(TCF_Transform);
@@ -512,7 +515,7 @@ void SceneObject::NotifyTransformChanged(TransformChangedFlags flags) const
 	}
 }
 
-void SceneObject::UpdateWorldTfrm() const
+void SceneObject::UpdateWorldTransform() const
 {
 	B3D_ASSERT(mECSRegistry != nullptr);
 
@@ -575,13 +578,25 @@ void SceneObject::SetParentInternal(const HSceneObject& parent, bool keepWorldTr
 
 		if(parent != nullptr)
 		{
+			SetScene(parent->GetScene());
 			parent->AddChild(GetHandle());
-			SetScene(parent->GetScene(), true);
 		}
 		else
-			SetScene(nullptr, true);
+			SetScene(nullptr);
 
 		mParent = parent;
+
+		if(parent != nullptr)
+		{
+			ecs::Parent& parentFragment = mECSRegistry->GetOrAddComponent<ecs::Parent>(mECSEntity);
+
+			B3D_ASSERT(parent->mECSEntity != ecs::kNullEntity);
+			parentFragment.Entity = parent->mECSEntity;
+		}
+		else
+		{
+			mECSRegistry->RemoveComponents<ecs::Parent>(mECSEntity);
+		}
 
 		if(keepWorldTransform && parent != nullptr)
 		{
@@ -602,11 +617,13 @@ void SceneObject::ClearParent()
 	if(mParent != nullptr)
 		mParent->RemoveChild(GetHandle());
 
-	SetScene(nullptr, true);
+	SetScene(nullptr);
 	mParent = nullptr;
+
+	mECSRegistry->RemoveComponents<ecs::Parent>(mECSEntity);
 }
 
-void SceneObject::SetScene(const SPtr<SceneInstance>& scene, bool recursive)
+void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
 {
 	const SPtr<SceneInstance> currentScene = mParentScene.lock();
 	if(currentScene == scene)
@@ -623,7 +640,7 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene, bool recursive)
 		if(mECSRegistry == nullptr)
 		{
 			CreateECSEntity(sceneRegistry);
-			AddMobilityTag(ObjectMobility::Movable);
+			mECSRegistry->AddTag<ecs::Movable>(mECSEntity);
 		}
 		else if(mECSRegistry != sceneRegistry)
 		{
@@ -639,6 +656,15 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene, bool recursive)
 			mECSRegistry->AddComponent<ecs::WorldTransform>(mECSEntity, ecs::WorldTransform(worldTfrm));
 			AddMobilityTag(mobility);
 		}
+
+		// Update reference to the parent entity in the new registry
+		if(mParent != nullptr)
+		{
+			ecs::Parent& parent = mECSRegistry->AddComponent<ecs::Parent>(mECSEntity);
+
+			B3D_ASSERT(mParent->mECSEntity != ecs::kNullEntity);
+			parent.Entity = mParent->mECSEntity;
+		}
 	}
 	else
 	{
@@ -647,10 +673,22 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene, bool recursive)
 		// scene object must belong to one. Scene object without a parent is only valid as a temporary state.
 	}
 
-	if(recursive)
+	for(auto& child : mChildren)
+		child->SetScene(scene);
+
+	// Update child entities after they are registered in the new scene's registry
+	if(scene != nullptr)
 	{
+		ecs::Children& children = mECSRegistry->AddComponent<ecs::Children>(mECSEntity);
+		B3D_ASSERT(children.Entities.Empty());
+
+		children.Entities.Reserve(mChildren.size());
+
 		for(auto& child : mChildren)
-			child->SetScene(scene, true);
+		{
+			B3D_ASSERT(child->mECSEntity != ecs::kNullEntity);
+			children.Entities.Add(child->mECSEntity);
+		}
 	}
 }
 
@@ -717,16 +755,33 @@ void SceneObject::AddChild(const HSceneObject& object)
 	mChildren.push_back(object);
 
 	object->SetFlags(mFlags);
+
+	ecs::Children& children = mECSRegistry->GetOrAddComponent<ecs::Children>(mECSEntity);
+
+	B3D_ASSERT(object->mECSEntity != ecs::kNullEntity);
+	children.Entities.Add(object->mECSEntity);
 }
 
 void SceneObject::RemoveChild(const HSceneObject& object)
 {
-	auto result = find(mChildren.begin(), mChildren.end(), object);
+	{
+		auto result = find(mChildren.begin(), mChildren.end(), object);
 
-	if(result != mChildren.end())
-		mChildren.erase(result);
-	else
-		B3D_LOG(Warning, LogScene, "Trying to remove a child but it's not a child of the transform.");
+		if(B3D_ENSURE(result != mChildren.end()))
+			mChildren.erase(result);
+	}
+
+	// Remove from ECS
+	{
+		ecs::Children& children = mECSRegistry->GetComponents<ecs::Children>(mECSEntity);
+		auto result = std::find(children.Entities.begin(), children.Entities.end(), object->mECSEntity);
+
+		if(B3D_ENSURE(result != children.Entities.end()))
+			children.Entities.erase(result);
+
+		if(children.Entities.Empty())
+			mECSRegistry->RemoveComponents<ecs::Children>(mECSEntity);
+	}
 }
 
 HSceneObject SceneObject::FindPath(const String& path) const
@@ -937,6 +992,10 @@ HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerColl
 
 	stream->Seek(0);
 	SPtr<SceneObject> clone = std::static_pointer_cast<SceneObject>(serializer.Decode(stream, (u32)stream->Size(), rttiOperationContext));
+
+	// Clear the parent of the clone, as it will belong to the original game object collection, which is not valid
+	clone->mParent = nullptr;
+	clone->mECSRegistry->RemoveComponents<ecs::Parent>(clone->mECSEntity);
 
 	return clone->GetHandle();
 }
