@@ -54,6 +54,12 @@ namespace b3d::ecs
 		TArray<Entity> Entities;
 	};
 
+	/** Stores hierarchy depth for breadth-first traversal grouping. */
+	struct HierarchyDepth
+	{
+		u16 Depth = 0;
+	};
+
 	/** Groups mobility-related tags for serialization. */
 	using MobilityTags = TagGroup<u8, Movable, Immovable, Static>;
 

@@ -791,11 +791,12 @@ namespace b3d
 		TID_CapsuleColliderShape = 1268,
 		TID_MeshColliderShape = 1269,
 		TID_Scene = 1270,
-		TID_LocalTransform = 1271,
-		TID_WorldTransform = 1272,
 #if B3D_WITH_EDITOR
 		TID_IEditorSceneInstance = 1271,
 #endif
+		TID_LocalTransform = 1272,
+		TID_WorldTransform = 1273,
+		TID_HierarchyDepth = 1274,
 
 		// Moved from Engine layer
 		TID_Camera = 30000,

@@ -38,6 +38,7 @@ namespace b3d
 			B3D_RTTI_MEMBER_ECS(LocalTransform, 12)
 			B3D_RTTI_MEMBER_INFO(mPrefabResourceId, 13, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy))
 			B3D_RTTI_MEMBER_ECS(MobilityTags, 14)
+			B3D_RTTI_MEMBER_ECS(HierarchyDepth, 15)
 		B3D_RTTI_END_MEMBERS
 
 	public:

@@ -105,6 +105,7 @@ void SceneObject::CreateECSEntity(ecs::Registry* registry)
 	mECSEntity = mECSRegistry->CreateEntity();
 	mECSRegistry->AddComponent<ecs::LocalTransform>(mECSEntity, ecs::LocalTransform());
 	mECSRegistry->AddComponent<ecs::WorldTransform>(mECSEntity, ecs::WorldTransform());
+	mECSRegistry->AddComponent<ecs::HierarchyDepth>(mECSEntity, ecs::HierarchyDepth());
 }
 
 void SceneObject::DestroyImmediate()
@@ -283,6 +284,29 @@ Transform& SceneObject::GetMutableWorldTransform()
 {
 	B3D_ASSERT(mECSRegistry != nullptr);
 	return mECSRegistry->GetComponents<ecs::WorldTransform>(mECSEntity);
+}
+
+void SceneObject::UpdateHierarchyDepthFromParent()
+{
+	u16 hierarchyDepth = 0;
+	if(mParent != nullptr)
+	{
+		B3D_ASSERT(mParent->mECSRegistry != nullptr);
+		const ecs::HierarchyDepth& parentDepth = mParent->mECSRegistry->GetComponents<ecs::HierarchyDepth>(mParent->mECSEntity);
+		hierarchyDepth = (u16)(parentDepth.Depth + 1);
+	}
+
+	UpdateHierarchyDepthRecursive(hierarchyDepth);
+}
+
+void SceneObject::UpdateHierarchyDepthRecursive(u16 hierarchyDepth)
+{
+	B3D_ASSERT(mECSRegistry != nullptr);
+	mECSRegistry->GetComponents<ecs::HierarchyDepth>(mECSEntity).Depth = hierarchyDepth;
+
+	const u16 childDepth = hierarchyDepth == 0xFFFF ? 0xFFFF : (u16)(hierarchyDepth + 1);
+	for(auto& child : mChildren)
+		child->UpdateHierarchyDepthRecursive(childDepth);
 }
 
 const Transform& SceneObject::GetLocalTransform() const
@@ -598,6 +622,8 @@ void SceneObject::SetParentInternal(const HSceneObject& parent, bool keepWorldTr
 			mECSRegistry->RemoveComponents<ecs::Parent>(mECSEntity);
 		}
 
+		UpdateHierarchyDepthFromParent();
+
 		if(keepWorldTransform && parent != nullptr)
 		{
 			Transform& localTfrm = GetMutableLocalTransform();
@@ -621,6 +647,7 @@ void SceneObject::ClearParent()
 	mParent = nullptr;
 
 	mECSRegistry->RemoveComponents<ecs::Parent>(mECSEntity);
+	UpdateHierarchyDepthFromParent();
 }
 
 void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
@@ -648,12 +675,14 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
 			Transform localTfrm = GetLocalTransform();
 			Transform worldTfrm = GetTransform();
 			ObjectMobility mobility = GetMobility();
+			ecs::HierarchyDepth hierarchyDepth = mECSRegistry->GetComponents<ecs::HierarchyDepth>(mECSEntity);
 			mECSRegistry->EraseEntity(mECSEntity);
 
 			mECSRegistry = sceneRegistry;
 			mECSEntity = mECSRegistry->CreateEntity();
 			mECSRegistry->AddComponent<ecs::LocalTransform>(mECSEntity, ecs::LocalTransform(localTfrm));
 			mECSRegistry->AddComponent<ecs::WorldTransform>(mECSEntity, ecs::WorldTransform(worldTfrm));
+			mECSRegistry->AddComponent<ecs::HierarchyDepth>(mECSEntity, hierarchyDepth);
 			AddMobilityTag(mobility);
 		}
 

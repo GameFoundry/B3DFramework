@@ -33,6 +33,16 @@ namespace b3d
 		}
 	};
 
+	template<>
+	struct RTTIPlainType<ecs::HierarchyDepth> : RTTIPlainTypeHelper<ecs::HierarchyDepth, TID_HierarchyDepth, 255, 0>
+	{
+		template <class Processor>
+		static void RTTIEnumerateFields(ecs::HierarchyDepth& object, Processor& processor)
+		{
+			processor(object.Depth);
+		}
+	};
+
 	/** @} */
 	/** @endcond */
 } // namespace b3d

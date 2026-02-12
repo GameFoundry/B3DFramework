@@ -304,6 +304,12 @@ namespace b3d
 		/** Returns a mutable reference to the world transform stored in the ECS registry. */
 		Transform& GetMutableWorldTransform();
 
+		/** Recomputes hierarchy depth based on current parent and propagates to all descendants. */
+		void UpdateHierarchyDepthFromParent();
+
+		/** Assigns hierarchy depth to this object and descendants, increasing by one per hierarchy level. */
+		void UpdateHierarchyDepthRecursive(u16 hierarchyDepth);
+
 		/**
 		 * Notifies components and child scene object that a transform has been changed.
 		 *
