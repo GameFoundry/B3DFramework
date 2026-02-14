@@ -46,6 +46,8 @@ namespace b3d
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
+				object.UpdateWorldTransformIfDirty();
+
 				mChildren.clear();
 				mChildren.reserve(object.mChildren.size());
 				for(const auto& entry : object.mChildren)

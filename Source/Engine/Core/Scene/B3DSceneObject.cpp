@@ -326,6 +326,14 @@ const Transform& SceneObject::GetTransform() const
 	return mECSRegistry->GetComponents<ecs::WorldTransform>(mECSEntity);
 }
 
+void SceneObject::UpdateWorldTransformIfDirty() const
+{
+	B3D_ASSERT(mECSRegistry != nullptr);
+
+	if(mECSRegistry->HasAllOf<ecs::TransformDirty>(mECSEntity))
+		UpdateWorldTransform();
+}
+
 void SceneObject::SetLocalTransform(const Transform& transform)
 {
 	B3D_ASSERT(mECSRegistry != nullptr);
@@ -658,6 +666,7 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
 
 	mParentScene = scene;
 
+	bool updatedRegistry = false;
 	if(scene != nullptr)
 	{
 		const SPtr<GameObjectCollection>& sceneCollection = scene->GetGameObjectCollection();
@@ -668,6 +677,8 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
 		{
 			CreateECSEntity(sceneRegistry);
 			mECSRegistry->AddTag<ecs::Movable>(mECSEntity);
+
+			updatedRegistry = true;
 		}
 		else if(mECSRegistry != sceneRegistry)
 		{
@@ -684,17 +695,22 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
 			mECSRegistry->AddComponent<ecs::WorldTransform>(mECSEntity, ecs::WorldTransform(worldTfrm));
 			mECSRegistry->AddComponent<ecs::HierarchyDepth>(mECSEntity, hierarchyDepth);
 			AddMobilityTag(mobility);
+
+			updatedRegistry = true;
 		}
 
 		// Update reference to the parent entity in the new registry
-		ecs::Parent& parent = mECSRegistry->GetOrAddComponent<ecs::Parent>(mECSEntity);
-		if(mParent != nullptr)
+		if(updatedRegistry)
 		{
-			B3D_ASSERT(mParent->mECSEntity != ecs::kNullEntity);
-			parent.Entity = mParent->mECSEntity;
+			ecs::Parent& parent = mECSRegistry->AddComponent<ecs::Parent>(mECSEntity);
+			if(mParent != nullptr)
+			{
+				B3D_ASSERT(mParent->mECSEntity != ecs::kNullEntity);
+				parent.Entity = mParent->mECSEntity;
+			}
+			else
+				parent.Entity = ecs::kNullEntity;
 		}
-		else
-			parent.Entity = ecs::kNullEntity;
 	}
 	else
 	{
@@ -707,7 +723,7 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
 		child->SetScene(scene);
 
 	// Update child entities after they are registered in the new scene's registry
-	if(scene != nullptr)
+	if(scene != nullptr && updatedRegistry)
 	{
 		ecs::Children& children = mECSRegistry->AddComponent<ecs::Children>(mECSEntity);
 		B3D_ASSERT(children.Entities.Empty());
@@ -1026,7 +1042,7 @@ HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerColl
 	// Clear the parent of the clone, as it will belong to the original game object collection, which is not valid
 	clone->mParent = nullptr;
 
-	ecs::Parent& parentFragment = mECSRegistry->GetOrAddComponent<ecs::Parent>(mECSEntity);
+	ecs::Parent& parentFragment = clone->mECSRegistry->GetOrAddComponent<ecs::Parent>(clone->mECSEntity);
 	parentFragment.Entity = ecs::kNullEntity;
 
 	return clone->GetHandle();

@@ -181,6 +181,9 @@ namespace b3d
 		/** Gets the transform object representing object's position/rotation/scale in world space. */
 		const Transform& GetTransform() const;
 
+		/** Updates the world transform if it is dirty. */
+		void UpdateWorldTransformIfDirty() const;
+
 		/** Gets the transform object representing object's position/rotation/scale relative to its parent. */
 		const Transform& GetLocalTransform() const;
 
