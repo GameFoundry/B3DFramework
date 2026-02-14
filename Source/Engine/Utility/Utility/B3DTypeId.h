@@ -46,12 +46,7 @@ namespace b3d
 	template <typename T>
 	constexpr TypeId B3DGetRuntimeTypeId()
 	{
-		if constexpr(std::is_base_of_v<IReflectable, std::remove_reference_t<std::remove_cv_t<T>>>)
-			return (TypeId)T::GetRttiStatic()->GetRttiId();
-		else if constexpr(B3DHasRTTIPlainTypeSpecialization<std::remove_reference_t<std::remove_cv_t<T>>>::value)
-			return (TypeId)RTTIPlainType<T>::id;
-		else
-			return B3DGetTypeHash<T>();
+		return B3DGetTypeHash<T>();
 	}
 
 	/** @} */
