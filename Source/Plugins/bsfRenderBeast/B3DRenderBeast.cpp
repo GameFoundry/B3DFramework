@@ -326,6 +326,9 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 {
 	// Sync all dirty main thread CoreObject data to the render thread
 	PROFILE_CALL(CoreObjectManager::Instance().SyncToRenderThread(true), "Sync to render thread")
+
+	// Note: ECS synchronization does not handle dependencies with CoreObject synchronization, therefore it is important all dependencies are
+	// still CoreObject synchronized, which runs before above. This way dependencies can mark their dependants as dirty.
 	PROFILE_CALL(RenderProxySyncManager::Instance().SyncToRenderThread(true), "ECS sync to render thread")
 
 	if(mOptionsDirty)

@@ -328,27 +328,6 @@ SPtr<render::RenderProxy> Renderable::CreateRenderProxy() const
 	return renderProxyShared;
 }
 
-RenderProxySyncPacket* Renderable::CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags)
-{
-	if(flags != (u32)ComponentDirtyFlag::Transform)
-	{
-		FullSyncPacket* const syncPacket = allocator.Construct<FullSyncPacket>(*this, allocator, flags);
-		syncPacket->mActive = GetEnabled();
-		syncPacket->mAnimationId = mAnimation.IsValid() ? mAnimation->GetAnimationId() : (u64)-1;
-		syncPacket->mSceneInstance = B3DGetRenderProxy(SceneObject()->GetScene());
-		syncPacket->mTransform = SceneObject()->GetTransform();
-
-		return syncPacket;
-	}
-	else
-	{
-		TransformSyncPacket* const syncPacket = allocator.Construct<TransformSyncPacket>(*this, allocator, flags);
-		syncPacket->mTransform = SceneObject()->GetTransform();
-
-		return syncPacket;
-	}
-}
-
 Bounds Renderable::GetBounds() const
 {
 	if(mUseOverrideBounds)
@@ -500,7 +479,6 @@ void Renderable::DoOnMeshChanged()
 
 void Renderable::MarkRenderProxyDataDirty(ComponentDirtyFlag flag)
 {
-	// Skip CoreObject::MarkRenderProxyDataDirty — migrated to ECS batch sync
 	if(!SceneObject().IsValid())
 		return; // Not yet attached to scene (e.g. during deserialization)
 
@@ -707,58 +685,6 @@ void Renderable::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
 			GpuBufferUtility::Write(mMorphShapeBuffer, 0, bufferSize, data, GpuBufferWriteFlag::Discard);
 			mMorphShapeVersion = animInfo->MorphShapeInfo.Version;
 		}
-	}
-}
-
-void Renderable::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator)
-{
-	RenderProxySyncPacket* const syncPacket = data.GetSyncPacket();
-	if(syncPacket == nullptr)
-		return;
-
-	bool oldIsActive = mActive;
-	syncPacket->ApplySyncData(this);
-
-	mWorldTransformMatrix = mTransform.GetMatrix();
-	mWorldTransformMatrixWithoutScale = Matrix4::TRS(mTransform.GetPosition(), mTransform.GetRotation(), Vector3::kOne);
-
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
-
-	const u32 flags = syncPacket->Flags;
-	const u32 updateEverythingFlag = ~(u32)ComponentDirtyFlag::Transform;
-	if((flags & updateEverythingFlag) != 0)
-	{
-		CreateAnimationBuffers();
-
-		// Create special vertex declaration if using morph shapes
-		if(mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
-		{
-			TInlineArray<VertexElement, 8> vertexElements = mMesh->GetVertexDescription()->GetElements();
-			vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
-			vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
-
-			mMorphVertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
-		}
-		else
-			mMorphVertexDescription = nullptr;
-
-		if(oldIsActive != mActive)
-		{
-			if(mActive)
-				rendererScene->RegisterRenderable(this);
-			else
-				rendererScene->UnregisterRenderable(this);
-		}
-		else
-		{
-			rendererScene->UnregisterRenderable(this);
-			rendererScene->RegisterRenderable(this);
-		}
-	}
-	else
-	{
-		if(mActive)
-			rendererScene->UpdateRenderable(this);
 	}
 }
 }}

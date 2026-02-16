@@ -205,7 +205,6 @@ namespace b3d
 		void RefreshAnimation();
 		
 		SPtr<render::RenderProxy> CreateRenderProxy() const override;
-		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 		void OnDependencyDirty(CoreObject* dependency, u32 dirtyFlags) override;
@@ -304,7 +303,6 @@ namespace b3d
 			Renderable() = default;
 
 			void Initialize() override;
-			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 
 			/** Creates any buffers required for renderable animation. Should be called whenever animation properties change. */
 			void CreateAnimationBuffers();
