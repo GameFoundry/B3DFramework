@@ -13,6 +13,7 @@
 namespace b3d
 {
 	struct EvaluatedAnimationData;
+	class RenderableSyncHandler;
 
 	/** @addtogroup Components
 	 *  @{
@@ -139,7 +140,7 @@ namespace b3d
 
 	protected:
 		/** @copydoc CoreObject::MarkRenderProxyDataDirty */
-		void MarkRenderProxyDataDirty(ComponentDirtyFlag flag = ComponentDirtyFlag::Everything);
+		virtual void MarkRenderProxyDataDirty(ComponentDirtyFlag flag = ComponentDirtyFlag::Everything);
 
 		/** @copydoc CoreObject::MarkDependenciesDirty */
 		void MarkCoreObjectDependenciesDirty();
@@ -220,8 +221,13 @@ namespace b3d
 		/************************************************************************/
 
 	protected:
+		void MarkRenderProxyDataDirty(ComponentDirtyFlag flag = ComponentDirtyFlag::Everything) override;
+
 		friend class SceneObject;
 		friend class render::Renderable;
+		friend class RenderableSyncHandler;
+		friend struct RenderableSyncBatch;
+
 		struct FullSyncPacket;
 		struct TransformSyncPacket;
 
@@ -292,6 +298,7 @@ namespace b3d
 
 		protected:
 			friend class b3d::Renderable;
+			friend class b3d::RenderableSyncHandler;
 
 			Renderable(const SPtr<SceneInstance>& scene);
 			Renderable() = default;

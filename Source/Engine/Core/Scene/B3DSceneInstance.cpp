@@ -18,6 +18,7 @@
 #include "Physics/B3DPhysics.h"
 #include "Renderer/B3DRendererScene.h"
 #include "Particles/B3DParticleScene.h"
+#include "CoreObject/B3DRenderProxySyncManager.h"
 #include "Profiling/B3DProfilerCPU.h"
 
 #if B3D_WITH_EDITOR
@@ -404,8 +405,11 @@ SceneInstance::~SceneInstance()
 void SceneInstance::Initialize()
 {
 	CoreObject::Initialize();
-	
+
 	mAnimationScene->SetOwner(std::static_pointer_cast<SceneInstance>(GetShared()));
+
+	if(mGameObjectCollection != nullptr)
+		RenderProxySyncManager::Instance().NotifySceneCreated(&mGameObjectCollection->GetECSRegistry());
 }
 
 void SceneInstance::Destroy()
@@ -415,6 +419,9 @@ void SceneInstance::Destroy()
 
 	if(mGameObjectCollection != nullptr)
 		mGameObjectCollection->DestroyQueuedObjects();
+
+	if(RenderProxySyncManager::IsStarted() && mGameObjectCollection != nullptr)
+		RenderProxySyncManager::Instance().NotifySceneDestroyed(&mGameObjectCollection->GetECSRegistry());
 
 	CoreObject::Destroy();
 }

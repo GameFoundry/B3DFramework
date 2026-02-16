@@ -16,6 +16,7 @@
 #include "Importer/B3DImporter.h"
 #include "GUI/B3DShortcutManager.h"
 #include "CoreObject/B3DCoreObjectManager.h"
+#include "CoreObject/B3DRenderProxySyncManager.h"
 #include "Renderer/B3DRendererManager.h"
 #include "Renderer/B3DRendererMaterialManager.h"
 #include "Debug/B3DDebugDraw.h"
@@ -171,6 +172,7 @@ Application::~Application()
 	// All CoreObject related modules should be shut down now. They have likely queued CoreObjects for destruction, so
 	// we need to wait for those objects to get destroyed before continuing.
 	CoreObjectManager::Instance().SyncToRenderThread(true);
+	RenderProxySyncManager::Instance().SyncToRenderThread(true);
 	GetRenderThread().PostCommand([] {}, "SyncToRenderThread before shutdown", true);
 
 	// Destroy profiler after render thread is shut down, because we rely on it to clear the profiler resources

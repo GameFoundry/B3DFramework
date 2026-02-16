@@ -3,6 +3,7 @@
 #include "B3DRenderBeast.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "CoreObject/B3DCoreObjectManager.h"
+#include "CoreObject/B3DRenderProxySyncManager.h"
 #include "Material/B3DMaterial.h"
 #include "Material/B3DShader.h"
 #include "Material/B3DPass.h"
@@ -325,6 +326,7 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 {
 	// Sync all dirty main thread CoreObject data to the render thread
 	PROFILE_CALL(CoreObjectManager::Instance().SyncToRenderThread(true), "Sync to render thread")
+	PROFILE_CALL(RenderProxySyncManager::Instance().SyncToRenderThread(true), "ECS sync to render thread")
 
 	if(mOptionsDirty)
 	{

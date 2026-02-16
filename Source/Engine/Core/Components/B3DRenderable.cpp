@@ -1,6 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Components/B3DRenderable.h"
+#include "CoreObject/B3DRenderProxySyncManager.h"
 #include "B3DApplication.h"
 #include "Animation/B3DMorphShapes.h"
 #include "Scene/B3DSceneObject.h"
@@ -8,6 +9,7 @@
 #include "Material/B3DMaterial.h"
 #include "Components/B3DAnimation.h"
 #include "CoreObject/B3DCoreObjectSync.h"
+#include "ECS/B3DRegistry.h"
 #include "Math/B3DBounds.h"
 #include "RenderAPI/B3DGpuBuffer.h"
 #include "RenderAPI/B3DGpuDevice.h"
@@ -16,6 +18,71 @@
 #include "RTTI/B3DRenderableRTTI.h"
 
 using namespace b3d;
+
+namespace b3d::ecs
+{
+	/** Tag indicating a Renderable needs to sync all of its properties to its render proxy. */
+	struct RenderableDirty {};
+
+	/** Tag indicating a Renderable needs to sync transform to its render proxy. */
+	struct RenderableTransformDirty {};
+
+	/** Holds a shared pointer to the render-side Renderable proxy. */
+	struct RenderableProxy
+	{
+		SPtr<render::Renderable> Proxy;
+	};
+
+	// TODO: Temporary — storing a raw Component pointer is inefficient and will be
+	// removed when Renderable's syncable fields migrate into ECS fragments. At that
+	// point the B3D_SYNC_BLOCK constructor will read directly from fragments instead
+	// of through this back-pointer.
+	struct RenderableComponent
+	{
+		b3d::Renderable* Component = nullptr;
+	};
+} // namespace b3d::ecs
+
+namespace b3d
+{
+	B3D_SYNC_BLOCK_BEGIN(Renderable, FullSyncPacket)
+		B3D_SYNC_BLOCK_ENTRY(mLayer)
+		B3D_SYNC_BLOCK_ENTRY(mOverrideBounds)
+		B3D_SYNC_BLOCK_ENTRY(mUseOverrideBounds)
+		B3D_SYNC_BLOCK_ENTRY(mWriteVelocity)
+		B3D_SYNC_BLOCK_ENTRY(mAnimType)
+		B3D_SYNC_BLOCK_ENTRY(mCullDistanceFactor)
+		B3D_SYNC_BLOCK_ENTRY(mMesh)
+		B3D_SYNC_BLOCK_ENTRY(mMaterials)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(bool, mActive)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(u64, mAnimationId)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(SPtr<SceneInstance>, mSceneInstance)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
+	B3D_SYNC_BLOCK_END
+
+	B3D_SYNC_BLOCK_BEGIN(Renderable, TransformSyncPacket)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
+	B3D_SYNC_BLOCK_END
+
+	struct RenderableSyncBatch
+	{
+		TBatchSyncBuffer<Renderable::FullSyncPacket, render::Renderable> Full;
+		TBatchSyncBuffer<Renderable::TransformSyncPacket, render::Renderable> Transform;
+	};
+
+	class RenderableSyncHandler : public TRenderProxySyncHandler<RenderableSyncHandler>
+	{
+	public:
+		RenderableSyncHandler() { }
+
+		void* SyncRead(ecs::Registry& registry, FrameAllocator& allocator) override;
+		void SyncWrite(void* batchData, FrameAllocator& allocator) override;
+
+	private:
+		static void PopulatePacket(Renderable::FullSyncPacket& packet, Renderable& renderable);
+		static void ApplyPacket(Renderable::FullSyncPacket& packet, render::Renderable& proxy);
+	};
+} // namespace b3d
 
 template <bool IsRenderProxy>
 TRenderable<IsRenderProxy>::TRenderable()
@@ -155,28 +222,6 @@ void TRenderable<IsRenderProxy>::MarkReferencedResourcesDirty()
 template class TRenderable<false>;
 template class TRenderable<true>;
 
-namespace b3d
-{
-	B3D_SYNC_BLOCK_BEGIN(Renderable, FullSyncPacket)
-		B3D_SYNC_BLOCK_ENTRY(mLayer)
-		B3D_SYNC_BLOCK_ENTRY(mOverrideBounds)
-		B3D_SYNC_BLOCK_ENTRY(mUseOverrideBounds)
-		B3D_SYNC_BLOCK_ENTRY(mWriteVelocity)
-		B3D_SYNC_BLOCK_ENTRY(mAnimType)
-		B3D_SYNC_BLOCK_ENTRY(mCullDistanceFactor)
-		B3D_SYNC_BLOCK_ENTRY(mMesh)
-		B3D_SYNC_BLOCK_ENTRY(mMaterials)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(bool, mActive)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(u64, mAnimationId)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(SPtr<SceneInstance>, mSceneInstance)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
-	B3D_SYNC_BLOCK_END
-
-	B3D_SYNC_BLOCK_BEGIN(Renderable, TransformSyncPacket)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
-	B3D_SYNC_BLOCK_END
-}
-
 Renderable::Renderable(const HSceneObject& parent)
 	: Component(parent)
 {
@@ -193,8 +238,22 @@ void Renderable::Initialize()
 {
 	SetShared(B3DStaticGameObjectCast<Renderable>(mThisHandle).GetShared());
 
+	// Set up ECS fragments BEFORE Component/CoreObject::Initialize
+	// (MarkRenderProxyDataDirty may be called during init)
+	ecs::Registry* registry = SceneObject()->GetECSRegistry();
+	ecs::Entity entity = SceneObject()->GetECSEntity();
+	registry->AddComponent<ecs::RenderableProxy>(entity, ecs::RenderableProxy{});
+	registry->AddComponent<ecs::RenderableComponent>(entity, ecs::RenderableComponent{this});
+
 	Component::Initialize();
-	CoreObject::Initialize();
+	CoreObject::Initialize(); // Creates render proxy
+
+	// Fill in the proxy reference (now that render proxy exists)
+	auto proxy = std::static_pointer_cast<render::Renderable>(GetRenderProxy());
+	registry->GetComponents<ecs::RenderableProxy>(entity).Proxy = proxy;
+
+	// Tag dirty for initial state sync
+	registry->AddTag<ecs::RenderableDirty>(entity);
 }
 
 void Renderable::OnCreated()
@@ -227,6 +286,14 @@ void Renderable::OnDestroyed()
 {
 	if(mAnimation != nullptr)
 		mAnimation->UnregisterRenderable();
+
+	// Remove all sync-handler-owned tags and fragments
+	ecs::Registry* registry = SceneObject()->GetECSRegistry();
+	ecs::Entity entity = SceneObject()->GetECSEntity();
+	registry->RemoveComponents<ecs::RenderableDirty>(entity);
+	registry->RemoveComponents<ecs::RenderableTransformDirty>(entity);
+	registry->RemoveComponents<ecs::RenderableProxy>(entity);
+	registry->RemoveComponents<ecs::RenderableComponent>(entity);
 
 	CoreObject::Destroy();
 }
@@ -330,12 +397,16 @@ void Renderable::OnDependencyDirty(CoreObject* dependency, u32 dirtyFlags)
 {
 	if(mMesh.IsLoaded(false) && mMesh.Get() == dependency)
 	{
-		CoreObject::OnDependencyDirty(dependency, dirtyFlags);
+		ecs::Registry* registry = SceneObject()->GetECSRegistry();
+		registry->AddTag<ecs::RenderableDirty>(SceneObject()->GetECSEntity());
 		return;
 	}
 
 	if(((u32)MaterialDirtyFlags::Shader & dirtyFlags) != 0)
-		CoreObject::OnDependencyDirty(dependency, dirtyFlags);
+	{
+		ecs::Registry* registry = SceneObject()->GetECSRegistry();
+		registry->AddTag<ecs::RenderableDirty>(SceneObject()->GetECSEntity());
+	}
 }
 
 void Renderable::GetListenerResources(Vector<HResource>& resources)
@@ -425,6 +496,24 @@ void Renderable::DoOnMeshChanged()
 		mAnimation->UpdateBounds(false);
 		RefreshAnimation();
 	}
+}
+
+void Renderable::MarkRenderProxyDataDirty(ComponentDirtyFlag flag)
+{
+	// Skip CoreObject::MarkRenderProxyDataDirty — migrated to ECS batch sync
+	if(!SceneObject().IsValid())
+		return; // Not yet attached to scene (e.g. during deserialization)
+
+	ecs::Registry* registry = SceneObject()->GetECSRegistry();
+	ecs::Entity entity = SceneObject()->GetECSEntity();
+
+	if(flag == ComponentDirtyFlag::Transform)
+	{
+		if(!registry->HasAllOf<ecs::RenderableDirty>(entity))
+			registry->AddTag<ecs::RenderableTransformDirty>(entity);
+	}
+	else
+		registry->AddTag<ecs::RenderableDirty>(entity);
 }
 
 RTTIType* Renderable::GetRttiStatic()
@@ -673,3 +762,131 @@ void Renderable::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& al
 	}
 }
 }}
+
+void RenderableSyncHandler::PopulatePacket(Renderable::FullSyncPacket& packet, Renderable& renderable)
+{
+	packet.mActive = renderable.GetEnabled();
+	packet.mAnimationId = renderable.GetAnimation().IsValid() ? renderable.GetAnimation()->GetAnimationId() : (u64)-1;
+	packet.mSceneInstance = B3DGetRenderProxy(renderable.SceneObject()->GetScene());
+	packet.mTransform = renderable.SceneObject()->GetTransform();
+}
+
+void RenderableSyncHandler::ApplyPacket(Renderable::FullSyncPacket& packet, render::Renderable& proxy)
+{
+	bool oldIsActive = proxy.mActive;
+	packet.ApplySyncData(&proxy);
+
+	proxy.mWorldTransformMatrix = proxy.mTransform.GetMatrix();
+	proxy.mWorldTransformMatrixWithoutScale = Matrix4::TRS(proxy.mTransform.GetPosition(), proxy.mTransform.GetRotation(), Vector3::kOne);
+
+	proxy.CreateAnimationBuffers();
+
+	if(proxy.mAnimType == RenderableAnimType::Morph || proxy.mAnimType == RenderableAnimType::SkinnedMorph)
+	{
+		TInlineArray<VertexElement, 8> vertexElements = proxy.mMesh->GetVertexDescription()->GetElements();
+		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
+		vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
+
+		proxy.mMorphVertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
+	}
+	else
+		proxy.mMorphVertexDescription = nullptr;
+
+	const SPtr<render::RendererScene>& rendererScene = proxy.mSceneInstance->GetRendererScene();
+
+	if(oldIsActive != proxy.mActive)
+	{
+		if(proxy.mActive)
+			rendererScene->RegisterRenderable(&proxy);
+		else
+			rendererScene->UnregisterRenderable(&proxy);
+	}
+	else
+	{
+		rendererScene->UnregisterRenderable(&proxy);
+		rendererScene->RegisterRenderable(&proxy);
+	}
+}
+
+void* RenderableSyncHandler::SyncRead(ecs::Registry& registry, FrameAllocator& allocator)
+{
+	auto* fullStorage = registry.TryGetStorage<ecs::RenderableDirty>();
+	auto* transformStorage = registry.TryGetStorage<ecs::RenderableTransformDirty>();
+
+	u32 fullCount = fullStorage ? (u32)fullStorage->Size() : 0;
+	u32 transformCount = transformStorage ? (u32)transformStorage->Size() : 0;
+
+	if(fullCount == 0 && transformCount == 0)
+		return nullptr;
+
+	auto* batchData = allocator.Construct<RenderableSyncBatch>();
+
+	if(fullCount > 0)
+	{
+		batchData->Full.Allocate(allocator, fullCount);
+
+		auto view = registry.CreateView<ecs::RenderableDirty, ecs::RenderableComponent, ecs::RenderableProxy>();
+		view.SetLeadingType<ecs::RenderableDirty>();
+
+		for(auto entity : view)
+		{
+			auto& compRef = view.Get<ecs::RenderableComponent>(entity);
+			auto& proxyRef = view.Get<ecs::RenderableProxy>(entity);
+
+			auto& packet = batchData->Full.Add(proxyRef.Proxy, *compRef.Component, allocator, 0);
+			PopulatePacket(packet, *compRef.Component);
+		}
+	}
+
+	if(transformCount > 0)
+	{
+		batchData->Transform.Allocate(allocator, transformCount);
+
+		auto view = registry.CreateView<ecs::RenderableTransformDirty, ecs::RenderableComponent, ecs::RenderableProxy>(ecs::TExcludedTypes<ecs::RenderableDirty>{});
+		view.SetLeadingType<ecs::RenderableTransformDirty>();
+
+		for(auto entity : view)
+		{
+			auto& compRef = view.Get<ecs::RenderableComponent>(entity);
+			auto& proxyRef = view.Get<ecs::RenderableProxy>(entity);
+
+			auto& packet = batchData->Transform.Add(proxyRef.Proxy, *compRef.Component, allocator, 0);
+			packet.mTransform = compRef.Component->SceneObject()->GetTransform();
+		}
+	}
+
+	registry.ClearStorage<ecs::RenderableDirty>();
+	registry.ClearStorage<ecs::RenderableTransformDirty>();
+
+	return batchData;
+}
+
+void RenderableSyncHandler::SyncWrite(void* rawData, FrameAllocator& allocator)
+{
+	auto* batch = static_cast<RenderableSyncBatch*>(rawData);
+
+	batch->Full.Each(
+		[](Renderable::FullSyncPacket& packet, render::Renderable& proxy)
+		{
+			ApplyPacket(packet, proxy);
+		});
+
+	batch->Transform.Each(
+		[](Renderable::TransformSyncPacket& packet, render::Renderable& proxy)
+		{
+			packet.ApplySyncData(&proxy);
+
+			proxy.mWorldTransformMatrix = proxy.mTransform.GetMatrix();
+			proxy.mWorldTransformMatrixWithoutScale = Matrix4::TRS(proxy.mTransform.GetPosition(), proxy.mTransform.GetRotation(), Vector3::kOne);
+
+			if(proxy.mActive)
+			{
+				const SPtr<render::RendererScene>& rendererScene = proxy.mSceneInstance->GetRendererScene();
+				rendererScene->UpdateRenderable(&proxy);
+			}
+		});
+
+	batch->Full.Free(allocator);
+	batch->Transform.Free(allocator);
+	allocator.Destruct(batch);
+}
