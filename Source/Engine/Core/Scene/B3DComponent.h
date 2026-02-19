@@ -11,6 +11,7 @@ namespace b3d::ecs { class Registry; }
 
 namespace b3d
 {
+	class SceneInstance;
 	/** @addtogroup Scene
 	 *  @{
 	 */
@@ -193,10 +194,10 @@ namespace b3d
 
 		/**
 		 * Called when the parent SceneObject's ECS entity is migrated to a new registry (e.g. when moving between
-		 * scenes). The old registry and entity are provided so that components can read any data stored only in ECS
-		 * fragments. 
+		 * scenes). The old scene and entity are provided so that components can access sub-systems (renderer, physics,
+		 * etc.) and read any data stored only in ECS fragments.
 		 */
-		virtual void OnSceneChanged(ecs::Registry* oldRegistry, ecs::Entity oldEntity) {}
+		virtual void OnSceneChanged(SceneInstance* oldScene, ecs::Entity oldEntity) {}
 
 		/**
 		 * Destroys the component without delay. Object will be removed from its game object collection, and reference to the object

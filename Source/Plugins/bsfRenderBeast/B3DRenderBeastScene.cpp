@@ -349,16 +349,37 @@ void RenderBeastScene::UnregisterLight(Light* light)
 	}
 }
 
+void RenderBeastScene::UpdateRenderableSlotIds(const SlotCommand* commands, u32 count)
+{
+	ReplaySlotCommands(commands, count,
+		[this](SlotId slotId)
+		{
+			RendererRenderable* rendererRenderable = mInfo.Renderables[slotId];
+			if(rendererRenderable != nullptr && rendererRenderable->Renderable != nullptr)
+				UnregisterRenderable(rendererRenderable->Renderable);
+		},
+		[this](SlotId slotId)
+		{
+			RendererRenderable* swapped = mInfo.Renderables[slotId];
+			if(swapped != nullptr && swapped->Renderable != nullptr)
+				swapped->Renderable->SetRendererId(slotId);
+		},
+		mInfo.Renderables,
+		mInfo.RenderableCullInfos);
+}
+
 void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 {
-	u32 renderableId = (u32)mInfo.Renderables.size();
+	SlotId renderableId = renderable->GetRendererId();
 
-	renderable->SetRendererId(renderableId);
+	// Slot was pre-allocated by ReplayRenderableSlotCommands — populate it
+	B3D_ASSERT(renderableId < (SlotId)mInfo.Renderables.size());
+	B3D_ASSERT(mInfo.Renderables[renderableId] == nullptr);
 
-	mInfo.Renderables.push_back(B3DNew<RendererRenderable>());
-	mInfo.RenderableCullInfos.push_back(CullInfo(renderable->GetBounds(), renderable->GetLayer(), renderable->GetCullDistanceFactor()));
+	mInfo.Renderables[renderableId] = B3DNew<RendererRenderable>();
+	mInfo.RenderableCullInfos[renderableId] = CullInfo(renderable->GetBounds(), renderable->GetLayer(), renderable->GetCullDistanceFactor());
 
-	RendererRenderable* rendererRenderable = mInfo.Renderables.back();
+	RendererRenderable* rendererRenderable = mInfo.Renderables[renderableId];
 	rendererRenderable->Renderable = renderable;
 	rendererRenderable->UpdatePerObjectData();
 	rendererRenderable->PrevWorldTransform = rendererRenderable->WorldTransform;
@@ -490,7 +511,7 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 
 void RenderBeastScene::UpdateRenderable(Renderable* renderable)
 {
-	u32 renderableId = renderable->GetRendererId();
+	SlotId renderableId = renderable->GetRendererId();
 
 	RendererRenderable* rendererRenderable = mInfo.Renderables[renderableId];
 
@@ -508,11 +529,11 @@ void RenderBeastScene::UpdateRenderable(Renderable* renderable)
 
 void RenderBeastScene::UnregisterRenderable(Renderable* renderable)
 {
-	u32 renderableId = renderable->GetRendererId();
-	Renderable* lastRenerable = mInfo.Renderables.back()->Renderable;
-	u32 lastRenderableId = lastRenerable->GetRendererId();
+	SlotId slotId = renderable->GetRendererId();
+	renderable->SetRendererId(kInvalidSlotId);
 
-	RendererRenderable* rendererRenderable = mInfo.Renderables[renderableId];
+	RendererRenderable* rendererRenderable = mInfo.Renderables[slotId];
+
 	Vector<RenderableElement>& elements = rendererRenderable->Elements;
 	for(auto& element : elements)
 	{
@@ -520,21 +541,7 @@ void RenderBeastScene::UnregisterRenderable(Renderable* renderable)
 		element.SamplerOverrides = nullptr;
 	}
 
-	// Release the buffer allocation
 	mUniformBufferPools.Release(rendererRenderable->PerObjectBufferAllocationHandle);
-
-	if(renderableId != lastRenderableId)
-	{
-		// Swap current last element with the one we want to erase
-		std::swap(mInfo.Renderables[renderableId], mInfo.Renderables[lastRenderableId]);
-		std::swap(mInfo.RenderableCullInfos[renderableId], mInfo.RenderableCullInfos[lastRenderableId]);
-
-		lastRenerable->SetRendererId(renderableId);
-	}
-
-	// Last element is the one we want to erase
-	mInfo.Renderables.erase(mInfo.Renderables.end() - 1);
-	mInfo.RenderableCullInfos.erase(mInfo.RenderableCullInfos.end() - 1);
 
 	B3DDelete(rendererRenderable);
 }
@@ -1436,7 +1443,7 @@ void RenderBeastScene::SetParamFrameParams(float time)
 	gPerFrameUniformDefinition.gTime.Set(mappedScope, time);
 }
 
-void RenderBeastScene::PrepareRenderable(u32 idx, const FrameInfo& frameInfo)
+void RenderBeastScene::PrepareRenderable(SlotId idx, const FrameInfo& frameInfo)
 {
 	RendererRenderable* rendererRenderable = mInfo.Renderables[idx];
 
@@ -1457,7 +1464,7 @@ void RenderBeastScene::PrepareRenderable(u32 idx, const FrameInfo& frameInfo)
 	}
 }
 
-void RenderBeastScene::PrepareVisibleRenderable(u32 idx, const FrameInfo& frameInfo)
+void RenderBeastScene::PrepareVisibleRenderable(SlotId idx, const FrameInfo& frameInfo)
 {
 	if(mInfo.RenderableReady[idx])
 		return;

@@ -703,7 +703,7 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
 			// Notify components so they can migrate their ECS fragments
 			// (old entity is still alive — components can read from it)
 			for(auto& entry : mComponents)
-				entry->OnSceneChanged(oldRegistry, oldEntity);
+				entry->OnSceneChanged(currentScene.get(), oldEntity);
 
 			// Old entity no longer needed
 			oldRegistry->EraseEntity(oldEntity);

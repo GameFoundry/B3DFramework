@@ -211,13 +211,15 @@ namespace b3d
 		/** Information used for culling an object against a view. */
 		struct CullInfo
 		{
+			CullInfo() = default;
+
 			CullInfo(const Bounds& bounds, u64 layer = -1, float cullDistanceFactor = 1.0f)
 				: Layer(layer), Bounds(bounds), CullDistanceFactor(cullDistanceFactor)
 			{}
 
-			u64 Layer;
+			u64 Layer = ~0ull;
 			Bounds Bounds;
-			float CullDistanceFactor;
+			float CullDistanceFactor = 1.0f;
 		};
 
 		/**	Renderer information specific to a single render target. */

@@ -6,6 +6,7 @@
 #include "CoreObject/B3DCoreObject.h"
 #include "CoreObject/B3DRenderProxy.h"
 #include "Math/B3DBounds.h"
+#include "Renderer/B3DPackedSlotAllocator.h"
 #include "Resources/B3DIResourceListener.h"
 #include "Scene/B3DComponent.h"
 #include "Scene/B3DTransform.h"
@@ -14,6 +15,15 @@ namespace b3d
 {
 	struct EvaluatedAnimationData;
 	class RenderableSyncHandler;
+
+	namespace ecs
+	{
+		/** ECS fragment storing the packed renderable slot ID. */
+		struct RenderableSlotId
+		{
+			SlotId Id = kInvalidSlotId;
+		};
+	}
 
 	/** @addtogroup Components
 	 *  @{
@@ -238,7 +248,7 @@ namespace b3d
 		void OnEnabled() override;
 		void OnDisabled() override;
 		void OnDestroyed() override;
-		void OnSceneChanged(ecs::Registry* oldRegistry, ecs::Entity oldEntity) override;
+		void OnSceneChanged(SceneInstance* oldScene, ecs::Entity oldEntity) override;
 		void OnTransformChanged(TransformChangedFlags flags) override;
 
 		void DoOnMeshChanged() override;
@@ -267,10 +277,10 @@ namespace b3d
 			Bounds GetBounds() const;
 
 			/**	Sets an ID that can be used for uniquely identifying this object by the renderer. */
-			void SetRendererId(u32 id) { mRendererId = id; }
+			void SetRendererId(SlotId id) { mRendererId = id; }
 
 			/**	Retrieves an ID that can be used for uniquely identifying this object by the renderer. */
-			u32 GetRendererId() const { return mRendererId; }
+			SlotId GetRendererId() const { return mRendererId; }
 
 			/** Returns the type of animation influencing this renderable, if any. */
 			RenderableAnimType GetAnimType() const { return mAnimType; }
@@ -308,7 +318,7 @@ namespace b3d
 			/** Creates any buffers required for renderable animation. Should be called whenever animation properties change. */
 			void CreateAnimationBuffers();
 
-			u32 mRendererId = 0;
+			SlotId mRendererId = 0;
 			u64 mAnimationId = (u64)-1;
 			u32 mMorphShapeVersion = 0;
 

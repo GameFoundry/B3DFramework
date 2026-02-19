@@ -3,7 +3,7 @@
 #include "CoreObject/B3DCoreObjectManager.h"
 #include "CoreObject/B3DCoreObject.h"
 #include "CoreObject/B3DRenderProxy.h"
-#include "CoreObject/B3DRenderProxySyncManager.h"
+#include "Renderer/B3DRendererSyncManager.h"
 #include "Error/B3DException.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "CoreObject/B3DCoreObjectSync.h"
@@ -17,12 +17,12 @@ CoreObjectManager::CoreObjectManager()
 	for(u32 allocatorIndex = 0; allocatorIndex < B3DSize(mSyncAllocators); allocatorIndex++)
 		mSyncAllocators[allocatorIndex] = B3DNew<FrameAllocator>();
 
-	RenderProxySyncManager::StartUp();
+	RendererSyncManager::StartUp();
 }
 
 CoreObjectManager::~CoreObjectManager()
 {
-	RenderProxySyncManager::ShutDown();
+	RendererSyncManager::ShutDown();
 
 #if B3D_DEBUG
 	Lock lock(mObjectsMutex);

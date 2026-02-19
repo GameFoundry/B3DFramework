@@ -8,6 +8,7 @@
 #include "Utility/B3DModule.h"
 #include "Scene/B3DGameObject.h"
 #include "Utility/B3DTime.h"
+#include "Scene/B3DGameObjectCollection.h"
 
 namespace b3d
 {
@@ -278,6 +279,12 @@ namespace b3d
 		 * @name Internal
 		 * @{
 		 */
+
+		/** Returns the ECS registry for this scene. */
+		ecs::Registry& GetECSRegistry() { return mGameObjectCollection->GetECSRegistry(); }
+
+		/** @copydoc GetECSRegistry() */
+		const ecs::Registry& GetECSRegistry() const { return mGameObjectCollection->GetECSRegistry(); }
 
 		/** Returns the game object collection storing all the scene's game objects. */
 		const SPtr<GameObjectCollection>& GetGameObjectCollection() const { return mGameObjectCollection; }

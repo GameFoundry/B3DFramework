@@ -3,7 +3,7 @@
 #include "B3DRenderBeast.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "CoreObject/B3DCoreObjectManager.h"
-#include "CoreObject/B3DRenderProxySyncManager.h"
+#include "Renderer/B3DRendererSyncManager.h"
 #include "Material/B3DMaterial.h"
 #include "Material/B3DShader.h"
 #include "Material/B3DPass.h"
@@ -329,7 +329,7 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 
 	// Note: ECS synchronization does not handle dependencies with CoreObject synchronization, therefore it is important all dependencies are
 	// still CoreObject synchronized, which runs before above. This way dependencies can mark their dependants as dirty.
-	PROFILE_CALL(RenderProxySyncManager::Instance().SyncToRenderThread(true), "ECS sync to render thread")
+	PROFILE_CALL(RendererSyncManager::Instance().SyncToRenderThread(true), "ECS sync to render thread")
 
 	if(mOptionsDirty)
 	{

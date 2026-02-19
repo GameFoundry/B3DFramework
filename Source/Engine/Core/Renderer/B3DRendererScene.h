@@ -6,9 +6,12 @@
 #include "B3DRendererExtension.h"
 #include "CoreObject/B3DCoreObject.h"
 #include "CoreObject/B3DRenderProxy.h"
+#include "Components/B3DRenderable.h"
 
 namespace b3d
 {
+	class IRendererObjectSyncHandler;
+
 	namespace render
 	{
 		class RendererScene;
@@ -22,13 +25,26 @@ namespace b3d
 	class RendererScene : public CoreObject
 	{
 	public:
-		~RendererScene() override = default;
+		~RendererScene() override;
 
 		/** Creates a new renderer scene. */
 		static SPtr<RendererScene> Create();
+
+		/** Returns the allocator used for assigning packed renderable slot IDs on the main thread. */
+		TPackedSlotAllocator<ecs::RenderableSlotId>& GetRenderableSlotAllocator() { return mRenderableSlotAllocator; }
+
+		/** Returns the sync handlers owned by this scene. */
+		const Vector<UPtr<IRendererObjectSyncHandler>>& GetSyncHandlers() const { return mSyncHandlers; }
+
 	protected:
 		friend class render::RendererScene;
+
+		void Initialize() override;
 		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+
+	private:
+		TPackedSlotAllocator<ecs::RenderableSlotId> mRenderableSlotAllocator;
+		Vector<UPtr<IRendererObjectSyncHandler>> mSyncHandlers;
 	};
 
 	/** @} */
@@ -62,6 +78,13 @@ namespace b3d
 
 			/** Removes a light from the scene. */
 			virtual void UnregisterLight(Light* light) = 0;
+
+			/**
+			 * Replays slot allocate/deallocate commands recorded by the main-thread, which re-orders
+			 * the internal packed arrays to match the current state on the main thread. Must be called
+			 * at the start of the frame before any Register/Unregister/Update calls.
+			 */
+			virtual void UpdateRenderableSlotIds(const SlotCommand* commands, u32 count) {}
 
 			/** Registers a new renderable object in the scene. */
 			virtual void RegisterRenderable(Renderable* renderable) = 0;

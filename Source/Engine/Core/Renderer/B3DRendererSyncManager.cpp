@@ -1,7 +1,8 @@
 //************************************ B3D Framework - Copyright 2026 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "CoreObject/B3DRenderProxySyncManager.h"
+#include "Renderer/B3DRendererSyncManager.h"
 #include "CoreObject/B3DRenderThread.h"
+#include "Renderer/B3DRendererScene.h"
 #include "Scene/B3DSceneManager.h"
 #include "Scene/B3DSceneInstance.h"
 #include "Scene/B3DGameObjectCollection.h"
@@ -10,14 +11,14 @@ using namespace b3d;
 
 namespace
 {
-	Vector<RenderProxySyncManager::HandlerFactory>& GetPendingRegistrations()
+	Vector<RendererSyncManager::HandlerFactory>& GetPendingRegistrations()
 	{
-		static Vector<RenderProxySyncManager::HandlerFactory> registrations;
+		static Vector<RendererSyncManager::HandlerFactory> registrations;
 		return registrations;
 	}
 }
 
-RenderProxySyncManager::RenderProxySyncManager()
+RendererSyncManager::RendererSyncManager()
 {
 	for(u32 allocatorIndex = 0; allocatorIndex < B3DSize(mSyncAllocators); allocatorIndex++)
 		mSyncAllocators[allocatorIndex] = B3DNew<FrameAllocator>();
@@ -28,38 +29,33 @@ RenderProxySyncManager::RenderProxySyncManager()
 	GetPendingRegistrations().clear();
 }
 
-RenderProxySyncManager::~RenderProxySyncManager()
+RendererSyncManager::~RendererSyncManager()
 {
-	mPerSceneHandlers.clear();
-
 	for(u32 allocatorIndex = 0; allocatorIndex < B3DSize(mSyncAllocators); allocatorIndex++)
 		B3DDelete(mSyncAllocators[allocatorIndex]);
 }
 
-void RenderProxySyncManager::RegisterHandlerFactoryAtLoadTime(HandlerFactory factory)
+void RendererSyncManager::RegisterHandlerFactoryAtLoadTime(HandlerFactory factory)
 {
 	GetPendingRegistrations().push_back(std::move(factory));
 }
 
-void RenderProxySyncManager::NotifySceneCreated(ecs::Registry* registry)
+Vector<UPtr<IRendererObjectSyncHandler>> RendererSyncManager::CreateHandlers(RendererScene& rendererScene)
 {
-	auto& handlers = mPerSceneHandlers[registry];
+	Vector<UPtr<IRendererObjectSyncHandler>> handlers;
 	for(auto& factory : mHandlerFactories)
-		handlers.push_back(factory());
+		handlers.push_back(factory(rendererScene));
+
+	return handlers;
 }
 
-void RenderProxySyncManager::NotifySceneDestroyed(ecs::Registry* registry)
-{
-	mPerSceneHandlers.erase(registry);
-}
-
-void RenderProxySyncManager::SyncToRenderThread(bool swapBuffers)
+void RendererSyncManager::SyncToRenderThread(bool swapBuffers)
 {
 	Lock lock(mSyncDataMutex);
 
 	SyncRead(mSyncAllocators[mActiveFrameAllocatorIndex]);
 
-	GetRenderThread().PostCommand([this] { SyncWrite(); }, "RenderProxySyncManager::SyncWrite");
+	GetRenderThread().PostCommand([this] { SyncWrite(); }, "RendererSyncManager::SyncWrite");
 
 	if(swapBuffers)
 	{
@@ -68,7 +64,7 @@ void RenderProxySyncManager::SyncToRenderThread(bool swapBuffers)
 	}
 }
 
-void RenderProxySyncManager::SyncRead(FrameAllocator* allocator)
+void RendererSyncManager::SyncRead(FrameAllocator* allocator)
 {
 	PerFrameSyncData syncData;
 	syncData.Allocator = allocator;
@@ -80,11 +76,9 @@ void RenderProxySyncManager::SyncRead(FrameAllocator* allocator)
 			continue;
 
 		ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
-		auto sceneIt = mPerSceneHandlers.find(&registry);
-		if(sceneIt == mPerSceneHandlers.end())
-			continue;
+		const auto& handlers = scene->GetRendererScene()->GetSyncHandlers();
 
-		for(auto& handler : sceneIt->second)
+		for(auto& handler : handlers)
 		{
 			void* batchData = handler->SyncRead(registry, *allocator);
 			if(batchData != nullptr)
@@ -95,7 +89,7 @@ void RenderProxySyncManager::SyncRead(FrameAllocator* allocator)
 	mPerFrameSyncData.emplace_back(std::move(syncData));
 }
 
-void RenderProxySyncManager::SyncWrite()
+void RendererSyncManager::SyncWrite()
 {
 	PerFrameSyncData syncData;
 	{

@@ -16,7 +16,7 @@
 #include "Importer/B3DImporter.h"
 #include "GUI/B3DShortcutManager.h"
 #include "CoreObject/B3DCoreObjectManager.h"
-#include "CoreObject/B3DRenderProxySyncManager.h"
+#include "Renderer/B3DRendererSyncManager.h"
 #include "Renderer/B3DRendererManager.h"
 #include "Renderer/B3DRendererMaterialManager.h"
 #include "Debug/B3DDebugDraw.h"

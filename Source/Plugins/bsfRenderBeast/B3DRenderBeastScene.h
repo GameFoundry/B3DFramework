@@ -7,6 +7,7 @@
 #include "B3DRendererView.h"
 #include "B3DRendererParticles.h"
 #include "Renderer/B3DRendererScene.h"
+#include "Renderer/B3DPackedSlotAllocator.h"
 #include "Shading/B3DLightProbes.h"
 #include "Utility/B3DSamplerOverrides.h"
 #include "Utility/B3DUniformBufferPools.h"
@@ -89,6 +90,7 @@ namespace b3d
 			void UpdateLight(Light* light) override;
 			void UnregisterLight(Light* light) override;
 
+			void UpdateRenderableSlotIds(const SlotCommand* commands, u32 count) override;
 			void RegisterRenderable(Renderable* renderable) override;
 			void UpdateRenderable(Renderable* renderable) override;
 			void UnregisterRenderable(Renderable* renderable) override;
@@ -152,7 +154,7 @@ namespace b3d
 			 * @param[in]	idx			Index of the renderable to prepare.
 			 * @param[in]	frameInfo	Global information describing the current frame.
 			 */
-			void PrepareRenderable(u32 idx, const FrameInfo& frameInfo);
+			void PrepareRenderable(SlotId idx, const FrameInfo& frameInfo);
 
 			/**
 			 * Performs necessary steps to make a renderable ready for rendering. This must be called at least once every frame
@@ -162,7 +164,7 @@ namespace b3d
 			 * @param[in]	idx			Index of the renderable to prepare.
 			 * @param[in]	frameInfo	Global information describing the current frame.
 			 */
-			void PrepareVisibleRenderable(u32 idx, const FrameInfo& frameInfo);
+			void PrepareVisibleRenderable(SlotId idx, const FrameInfo& frameInfo);
 
 			/**
 			 * Performs necessary steps to make a particle system ready for rendering. This must be called at least once every
