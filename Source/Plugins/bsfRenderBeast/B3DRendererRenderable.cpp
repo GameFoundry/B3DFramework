@@ -19,11 +19,11 @@ void RenderableElement::Draw(GpuCommandBuffer& commandBuffer) const
 		GetRendererUtility().DrawMorph(commandBuffer, Mesh, SubMesh, MorphShapeBuffer, MorphVertexDefinition);
 }
 
-void RendererRenderable::UpdatePerObjectData()
+void RendererRenderable::UpdatePerObjectData(const RenderableProxy& proxy)
 {
-	WorldTransform = Renderable->GetWorldTransformMatrix();
-	WorldNoScale = Renderable->GetWorldTransformMatrixWithoutScale();
-	Layer = Bitwise::MostSignificantBit(Renderable->GetLayer());
+	WorldTransform = proxy.GetWorldTransformMatrix();
+	WorldNoScale = proxy.GetWorldTransformMatrixWithoutScale();
+	Layer = Bitwise::MostSignificantBit(proxy.GetLayer());
 }
 
 }} // namespace b3d::render

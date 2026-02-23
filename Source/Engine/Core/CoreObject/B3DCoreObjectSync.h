@@ -226,6 +226,52 @@ namespace b3d
 	} // namespace implementation
 
 	/**
+	 * Begins the sync packet definition with explicit source and destination types. Use this when the destination type
+	 * cannot be deduced via CoreVariantType (e.g. when using a custom proxy class instead of a CoreObject render-thread variant).
+	 *
+	 * @param SourceType	Type of the source (main-thread) object. Type must own the packet (the struct will be ClassType::Name).
+	 * @param Name			Name of the packet structure.
+	 * @param DestType		Type of the destination (render-thread) object.
+	 */
+#define B3D_SYNC_BLOCK_BEGIN_CUSTOM(SourceType, Name, DestType)                      \
+	struct SourceType::Name : RenderProxySyncPacket                                  \
+	{                                                                                \
+		Name(SourceType& object, FrameAllocator& allocator, u32 flags = 0)           \
+			: RenderProxySyncPacket(allocator, flags)                                \
+		{                                                                            \
+			PopulateSyncData(object);                                                \
+		}                                                                            \
+                                                                                     \
+		~Name() override                                                             \
+		{                                                                            \
+			FreeEntries();                                                           \
+		}                                                                            \
+                                                                                     \
+		typedef SourceType _Type;                                                    \
+		typedef SourceType _SourceType;                                              \
+		typedef DestType _DestType;                                                  \
+                                                                                     \
+		void ApplySyncData(void* object) override                                    \
+		{                                                                            \
+			ApplySyncData(*static_cast<_DestType*>(object));                         \
+		}                                                                            \
+                                                                                     \
+	private:                                                                         \
+		struct META_FirstEntry                                                       \
+		{};                                                                          \
+                                                                                     \
+		void META_PopulateSyncDataPrevEntry(_SourceType& object, META_FirstEntry id) \
+		{}                                                                           \
+                                                                                     \
+		void META_ApplySyncDataPrevEntry(_DestType& object, META_FirstEntry id)      \
+		{}                                                                           \
+                                                                                     \
+		void META_FreePrevEntry(META_FirstEntry id)                                  \
+		{}                                                                           \
+                                                                                     \
+		typedef META_FirstEntry
+
+	/**
 	 * Begins a new object sync packet definition. All specified entries will be gathered from the source object on construction of the packet,
 	 * and can be applied to a destination object by calling ApplySyncData(). All packet data is internally allocated using a frame allocator.
 	 *
@@ -238,41 +284,7 @@ namespace b3d
 	 *						CoreVariantType<Type, Core> helper.
 	 * @param Name			Name of the packet structure.
 	 */
-#define B3D_SYNC_BLOCK_BEGIN(ClassType, Name)                                                          \
-	struct ClassType::Name : RenderProxySyncPacket                                                     \
-	{                                                                                                  \
-		Name(ClassType& object, FrameAllocator& allocator, u32 flags = 0)                              \
-			: RenderProxySyncPacket(allocator, flags)                                                  \
-		{                                                                                              \
-			PopulateSyncData(object);                                                                  \
-		}                                                                                              \
-                                                                                                       \
-		~Name() override                                                                               \
-		{                                                                                              \
-			FreeEntries();                                                                             \
-		}                                                                                              \
-                                                                                                       \
-		typedef ClassType _Type;                                                                       \
-                                                                                                       \
-		void ApplySyncData(void* object) override                                                      \
-		{                                                                                              \
-			ApplySyncData(*static_cast<CoreVariantType<_Type, true>*>(object));                        \
-		}                                                                                              \
-                                                                                                       \
-	private:                                                                                           \
-		struct META_FirstEntry                                                                         \
-		{};                                                                                            \
-                                                                                                       \
-		void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_FirstEntry id) \
-		{}                                                                                             \
-                                                                                                       \
-		void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_FirstEntry id)     \
-		{}                                                                                             \
-                                                                                                       \
-		void META_FreePrevEntry(META_FirstEntry id)                                                    \
-		{}                                                                                             \
-                                                                                                       \
-		typedef META_FirstEntry
+#define B3D_SYNC_BLOCK_BEGIN(ClassType, Name) B3D_SYNC_BLOCK_BEGIN_CUSTOM(ClassType, Name, RenderProxyType<ClassType>)
 
 	/**
 	 * Specifies an entry in the object sync packet definition. Both source and destination objects must have a field matching
@@ -287,13 +299,13 @@ namespace b3d
 	struct META_NextEntry_##EntryName                                                                                                      \
 	{};                                                                                                                                    \
                                                                                                                                            \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id)                              \
+	void META_PopulateSyncDataPrevEntry(_SourceType& object, META_NextEntry_##EntryName id)                                                \
 	{                                                                                                                                      \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                                  \
 		implementation::RenderProxySyncField<false>(EntryName, object.EntryName);                                                          \
 	}                                                                                                                                      \
                                                                                                                                            \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)                                  \
+	void META_ApplySyncDataPrevEntry(_DestType& object, META_NextEntry_##EntryName id)                                                     \
 	{                                                                                                                                      \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                                     \
 		implementation::RenderProxySyncField<true>(EntryName, object.EntryName);                                                           \
@@ -324,12 +336,12 @@ private:                                                                        
 	struct META_NextEntry_##EntryName                                                                                                      \
 	{};                                                                                                                                    \
                                                                                                                                            \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id)                              \
+	void META_PopulateSyncDataPrevEntry(_SourceType& object, META_NextEntry_##EntryName id)                                                \
 	{                                                                                                                                      \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                                  \
 	}                                                                                                                                      \
                                                                                                                                            \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)                                  \
+	void META_ApplySyncDataPrevEntry(_DestType& object, META_NextEntry_##EntryName id)                                                     \
 	{                                                                                                                                      \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                                     \
 		implementation::RenderProxySyncField<true>(EntryName, object.EntryName);                                                           \
@@ -360,13 +372,13 @@ private:                                                                        
 	struct META_NextEntry_##EntryName                                                                                                      \
 	{};                                                                                                                                    \
                                                                                                                                            \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id)                              \
+	void META_PopulateSyncDataPrevEntry(_SourceType& object, META_NextEntry_##EntryName id)                                                \
 	{                                                                                                                                      \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                                  \
 		implementation::RenderProxySyncField<false>(EntryName, object.EntryName);                                                          \
 	}                                                                                                                                      \
                                                                                                                                            \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)                                  \
+	void META_ApplySyncDataPrevEntry(_DestType& object, META_NextEntry_##EntryName id)                                                     \
 	{                                                                                                                                      \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                                     \
 	}                                                                                                                                      \
@@ -398,12 +410,12 @@ private:                                                                        
 	struct META_NextEntry_##EntryName                                                                                                      \
 	{};                                                                                                                                    \
                                                                                                                                            \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id)                              \
+	void META_PopulateSyncDataPrevEntry(_SourceType& object, META_NextEntry_##EntryName id)                                                \
 	{                                                                                                                                      \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                                  \
 	}                                                                                                                                      \
                                                                                                                                            \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)                                  \
+	void META_ApplySyncDataPrevEntry(_DestType& object, META_NextEntry_##EntryName id)                                                     \
 	{                                                                                                                                      \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                                     \
 	}                                                                                                                                      \
@@ -434,12 +446,12 @@ private:                                                                        
 	struct META_NextEntry_##EntryName                                                                         \
 	{};                                                                                                       \
                                                                                                               \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id) \
+	void META_PopulateSyncDataPrevEntry(_SourceType& object, META_NextEntry_##EntryName id) \
 	{                                                                                                         \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                     \
 	}                                                                                                         \
                                                                                                               \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)     \
+	void META_ApplySyncDataPrevEntry(_DestType& object, META_NextEntry_##EntryName id)     \
 	{                                                                                                         \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                        \
 		if(EntryName) EntryName->ApplySyncData(&static_cast<CoreVariantType<ClassType, true>&>(object));      \
@@ -471,13 +483,13 @@ private:                                                                        
 	struct META_NextEntry_##EntryName                                                                               \
 	{};                                                                                                             \
                                                                                                                     \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id)       \
+	void META_PopulateSyncDataPrevEntry(_SourceType& object, META_NextEntry_##EntryName id)       \
 	{                                                                                                               \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                           \
 		EntryName = mAllocator.Construct<decltype(_Type::EntryName)::SyncPacketType>(object.EntryName, mAllocator); \
 	}                                                                                                               \
                                                                                                                     \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)           \
+	void META_ApplySyncDataPrevEntry(_DestType& object, META_NextEntry_##EntryName id)           \
 	{                                                                                                               \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                              \
 		if(EntryName) EntryName->ApplySyncData(&object.EntryName);                                                  \
@@ -499,12 +511,12 @@ private:                                                                        
 #define B3D_SYNC_BLOCK_END                                        \
 	META_LastEntry;                                               \
                                                                   \
-	void PopulateSyncData(CoreVariantType<_Type, false>& object)  \
+	void PopulateSyncData(_SourceType& object)  \
 	{                                                             \
 		META_PopulateSyncDataPrevEntry(object, META_LastEntry()); \
 	}                                                             \
                                                                   \
-	void ApplySyncData(CoreVariantType<_Type, true>& object)      \
+	void ApplySyncData(_DestType& object)      \
 	{                                                             \
 		META_ApplySyncDataPrevEntry(object, META_LastEntry());    \
 	}                                                             \

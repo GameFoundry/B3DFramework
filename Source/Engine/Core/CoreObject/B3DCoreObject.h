@@ -253,6 +253,15 @@ namespace b3d
 		return !object.IsValid() ? nullptr : std::static_pointer_cast<CoreVariantType<Type, true>>(object->GetRenderProxy());
 	}
 
+	/** Returns a render proxy type associated with the provided type. */
+	template <class T>
+	struct RenderProxyTypeHelper
+	{
+		using Type = CoreVariantType<T, true>;
+	};
+
+	template <class T>
+	using RenderProxyType = typename RenderProxyTypeHelper<T>::Type;
 
 	/** @} */
 } // namespace b3d

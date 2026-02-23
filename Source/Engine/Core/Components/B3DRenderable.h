@@ -4,7 +4,6 @@
 
 #include "B3DPrerequisites.h"
 #include "CoreObject/B3DCoreObject.h"
-#include "CoreObject/B3DRenderProxy.h"
 #include "Math/B3DBounds.h"
 #include "Renderer/B3DPackedSlotAllocator.h"
 #include "Renderer/B3DRendererObjectStorage.h"
@@ -40,9 +39,77 @@ namespace b3d
 		Count // Keep at end
 	};
 
+	/** Common data and related getters used by both main and render thread variants of Renderable. */
+	template <bool IsRenderProxy>
+	class B3D_EXPORT TRenderableData
+	{
+		using MeshType = CoreVariantHandleType<Mesh, IsRenderProxy>;
+		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
+		
+	public:
+		/**
+		 * Determines the mesh to render. All sub-meshes of the mesh will be rendered, and you may set individual materials
+		 * for each sub-mesh.
+		 */
+		B3D_SCRIPT_EXPORT(ExportName(Mesh), Property(Getter))
+		MeshType GetMesh() const { return mMesh; }
+
+		/**	Returns the material used for rendering a sub-mesh with the specified index. */
+		B3D_SCRIPT_EXPORT(ExportName(GetMaterial))
+		MaterialType GetMaterial(u32 index) const;
+
+		/**
+		 * Determines all materials used for rendering this renderable. Each of the materials is used for rendering a single
+		 * sub-mesh. If number of materials is larger than number of sub-meshes, they will be ignored. If lower, the
+		 * remaining materials will be removed.
+		 */
+		B3D_SCRIPT_EXPORT(ExportName(Materials), Property(Getter))
+		const Vector<MaterialType>& GetMaterials() { return mMaterials; }
+
+		/**
+		 * If enabled this renderable will write per-pixel velocity information when rendered. This is required for effects
+		 * such as temporal anti-aliasing and motion blur, but comes with a minor performance overhead. If you are not using
+		 * those effects you can disable this for a performance gain.
+		 */
+		B3D_SCRIPT_EXPORT(ExportName(WriteVelocity), Property(Getter))
+		bool GetWriteVelocity() const { return mWriteVelocity; }
+
+		/** Factor to be applied to the cull distance set in the camera's render settings.  */
+		B3D_SCRIPT_EXPORT(ExportName(CullDistance), Property(Getter))
+		float GetCullDistanceFactor() const { return mCullDistanceFactor; }
+
+		/**
+		 * Determines the layer bitfield that controls whether a renderable is considered visible in a specific camera.
+		 * Renderable layer must match camera layer in order for the camera to render the component.
+		 */
+		B3D_SCRIPT_EXPORT(ExportName(Layers), Property(Getter))
+		u64 GetLayer() const { return mLayer; }
+
+		/**	Returns the transform matrix that is applied to the object when its being rendered. */
+		Matrix4 GetWorldTransformMatrix() const { return mWorldTransformMatrix; }
+
+		/**
+		 * Returns the transform matrix that is applied to the object when its being rendered. This transform matrix does
+		 * not include scale values.
+		 */
+		Matrix4 GetWorldTransformMatrixWithoutScale() const { return mWorldTransformMatrixWithoutScale; }
+
+	protected:
+		MeshType mMesh;
+		Vector<MaterialType> mMaterials;
+		u64 mLayer = 1;
+		AABox mOverrideBounds;
+		bool mUseOverrideBounds = false;
+		bool mWriteVelocity = true;
+		float mCullDistanceFactor = 1.0f;
+		Matrix4 mWorldTransformMatrix = BsIdentity;
+		Matrix4 mWorldTransformMatrixWithoutScale = BsIdentity;
+		RenderableAnimType mAnimType = RenderableAnimType::None;
+	};
+
 	/** Common code used both by main and render thread variants of Renderable. */
 	template <bool IsRenderProxy>
-	class B3D_EXPORT TRenderable : public CoreVariantType<CoreObject, IsRenderProxy>, public std::conditional_t<IsRenderProxy, EmptyBase, IResourceListener>
+	class B3D_EXPORT TRenderable : public TRenderableData<IsRenderProxy>, public CoreVariantType<CoreObject, IsRenderProxy>, public std::conditional_t<IsRenderProxy, EmptyBase, IResourceListener>
 	{
 		using MeshType = CoreVariantHandleType<Mesh, IsRenderProxy>;
 		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
@@ -52,16 +119,9 @@ namespace b3d
 		TRenderable();
 		virtual ~TRenderable() = default;
 
-		/**
-		 * Determines the mesh to render. All sub-meshes of the mesh will be rendered, and you may set individual materials
-		 * for each sub-mesh.
-		 */
+		/** @copydoc GetMesh */
 		B3D_SCRIPT_EXPORT(ExportName(Mesh), Property(Setter))
 		void SetMesh(const MeshType& mesh);
-
-		/** @copydoc SetMesh */
-		B3D_SCRIPT_EXPORT(ExportName(Mesh), Property(Getter))
-		MeshType GetMesh() const { return mMesh; }
 
 		/**
 		 * Sets a material that will be used for rendering a sub-mesh with the specified index. If a sub-mesh doesn't have
@@ -69,10 +129,6 @@ namespace b3d
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(SetMaterial))
 		void SetMaterial(u32 index, const MaterialType& material);
-
-		/**	Returns the material used for rendering a sub-mesh with the specified index. */
-		B3D_SCRIPT_EXPORT(ExportName(GetMaterial))
-		MaterialType GetMaterial(u32 index) const;
 
 		/**
 		 * Sets the primary material to use for rendering. Any sub-mesh that doesn't have an explicit material set will use
@@ -83,22 +139,11 @@ namespace b3d
 		B3D_SCRIPT_EXPORT(ExportName(SetMaterial))
 		void SetMaterial(const MaterialType& material) { SetMaterial(0, material); }
 
-		/** @copydoc SetMaterials() */
-		B3D_SCRIPT_EXPORT(ExportName(Materials), Property(Getter))
-		const Vector<MaterialType>& GetMaterials() { return mMaterials; }
-
-		/**
-		 * Determines all materials used for rendering this renderable. Each of the materials is used for rendering a single
-		 * sub-mesh. If number of materials is larger than number of sub-meshes, they will be ignored. If lower, the
-		 * remaining materials will be removed.
-		 */
+		/** @copydoc GetMaterials() */
 		B3D_SCRIPT_EXPORT(ExportName(Materials), Property(Setter))
 		void SetMaterials(const Vector<MaterialType>& materials);
 
-		/**
-		 * Determines the layer bitfield that controls whether a renderable is considered visible in a specific camera.
-		 * Renderable layer must match camera layer in order for the camera to render the component.
-		 */
+		/** @copydoc GetLayer() */
 		B3D_SCRIPT_EXPORT(ExportName(Layers), Property(Setter))
 		void SetLayer(u64 layer);
 
@@ -116,39 +161,13 @@ namespace b3d
 		 */
 		void SetUseOverrideBounds(bool enable);
 
-		/**
-		 * If enabled this renderable will write per-pixel velocity information when rendered. This is required for effects
-		 * such as temporal anti-aliasing and motion blur, but comes with a minor performance overhead. If you are not using
-		 * those effects you can disable this for a performance gain.
-		 */
+		/** @copydoc GetWriteVelocity */
 		B3D_SCRIPT_EXPORT(ExportName(WriteVelocity), Property(Setter))
 		void SetWriteVelocity(bool enable);
 
-		/** @copydoc SetWriteVelocity */
-		B3D_SCRIPT_EXPORT(ExportName(WriteVelocity), Property(Getter))
-		bool GetWriteVelocity() const { return mWriteVelocity; }
-
-		/** Factor to be applied to the cull distance set in the camera's render settings.  */
+		/** @copydoc GetCullDistanceFactor() */
 		B3D_SCRIPT_EXPORT(ExportName(CullDistance), Property(Setter))
 		void SetCullDistanceFactor(float factor);
-
-		/** @copydoc SetCullDistanceFactor() */
-		B3D_SCRIPT_EXPORT(ExportName(CullDistance), Property(Getter))
-		float GetCullDistanceFactor() const { return mCullDistanceFactor; }
-
-		/** @copydoc SetLayer() */
-		B3D_SCRIPT_EXPORT(ExportName(Layers), Property(Getter))
-		u64 GetLayer() const { return mLayer; }
-
-		/**	Returns the transform matrix that is applied to the object when its being rendered. */
-		Matrix4 GetWorldTransformMatrix() const { return mWorldTransformMatrix; }
-
-		/**
-		 * Returns the transform matrix that is applied to the object when its being rendered. This transform matrix does
-		 * not include scale values.
-		 */
-		Matrix4 GetWorldTransformMatrixWithoutScale() const { return mWorldTransformMatrixWithoutScale; }
-
 	protected:
 		/** @copydoc CoreObject::MarkRenderProxyDataDirty */
 		virtual void MarkRenderProxyDataDirty(ComponentDirtyFlag flag = ComponentDirtyFlag::Everything);
@@ -161,17 +180,6 @@ namespace b3d
 
 		/** Triggered whenever the renderable's mesh changes. */
 		virtual void DoOnMeshChanged() {}
-
-		MeshType mMesh;
-		Vector<MaterialType> mMaterials;
-		u64 mLayer = 1;
-		AABox mOverrideBounds;
-		bool mUseOverrideBounds = false;
-		bool mWriteVelocity = true;
-		float mCullDistanceFactor = 1.0f;
-		Matrix4 mWorldTransformMatrix = BsIdentity;
-		Matrix4 mWorldTransformMatrixWithoutScale = BsIdentity;
-		RenderableAnimType mAnimType = RenderableAnimType::None;
 	};
 
 	/**
@@ -214,8 +222,6 @@ namespace b3d
 	protected:
 		/** Updates animation properties depending on the current mesh. */
 		void RefreshAnimation();
-		
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
 
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 		void OnDependencyDirty(CoreObject* dependency, u32 dirtyFlags) override;
@@ -234,7 +240,6 @@ namespace b3d
 		void MarkRenderProxyDataDirty(ComponentDirtyFlag flag = ComponentDirtyFlag::Everything) override;
 
 		friend class SceneObject;
-		friend class render::Renderable;
 		friend class RenderableObjectStorageBase;
 		friend struct RenderableSyncBatch;
 
@@ -268,12 +273,10 @@ namespace b3d
 
 	namespace render
 	{
-		/** @copydoc TRenderable */
-		class B3D_EXPORT Renderable : public TRenderable<true>
+		/** Contains data and functionality for the render-side representation of a Renderable object. */
+		class B3D_EXPORT RenderableProxy : public TRenderableData<true>
 		{
 		public:
-			~Renderable();
-
 			/**	Gets world bounds of the mesh rendered by this object. */
 			Bounds GetBounds() const;
 
@@ -311,11 +314,6 @@ namespace b3d
 			friend class b3d::Renderable;
 			friend class b3d::RenderableObjectStorageBase;
 
-			Renderable(const SPtr<SceneInstance>& scene);
-			Renderable() = default;
-
-			void Initialize() override;
-
 			/** Creates any buffers required for renderable animation. Should be called whenever animation properties change. */
 			void CreateAnimationBuffers();
 
@@ -330,7 +328,6 @@ namespace b3d
 
 			Transform mTransform;
 			bool mActive = true;
-			SPtr<SceneInstance> mSceneInstance;
 		};
 	} // namespace render
 
@@ -341,20 +338,32 @@ namespace b3d
 		void* SyncRead(ecs::Registry& registry, FrameAllocator& allocator) override;
 		void SyncWrite(void* batchData, FrameAllocator& allocator) override;
 
+		/** Returns the renderable proxy at the given slot. */
+		render::RenderableProxy& GetRenderableProxy(SlotId slotId) { return mRenderableProxies[slotId]; }
+
+		/** Returns the renderable proxy at the given slot (const). */
+		const render::RenderableProxy& GetRenderableProxy(SlotId slotId) const { return mRenderableProxies[slotId]; }
+
+		/** Returns the total number of renderables. */
+		u32 GetRenderableCount() const { return (u32)mRenderableProxies.size(); }
+
 		/** Registers a new object on the render thread. */
-		virtual void Register(render::Renderable* renderProxy) = 0;
+		virtual void Register(render::RenderableProxy& proxy, SlotId rendererId) = 0;
 
 		/** Updates an existing object on the render thread. */
-		virtual void Update(render::Renderable* renderProxy) = 0;
+		virtual void Update(render::RenderableProxy& proxy, SlotId rendererId) = 0;
 
 		/** Unregisters an object from the render thread. */
-		virtual void Unregister(render::Renderable* renderProxy) = 0;
+		virtual void Unregister(render::RenderableProxy& proxy, SlotId rendererId) = 0;
+
+	protected:
+		Vector<render::RenderableProxy> mRenderableProxies;
 
 	private:
 		static void PopulatePacket(Renderable::FullSyncPacket& packet, Renderable& renderable);
 
-		/** Applies sync packet data to the render proxy. Non-static because it dispatches to Register/Unregister. */
-		void ApplyPacket(Renderable::FullSyncPacket& packet, render::Renderable& proxy, SlotId rendererId);
+		/** Applies sync packet data to the renderable proxy. Non-static because it dispatches to Register/Unregister. */
+		void ApplyPacket(Renderable::FullSyncPacket& packet, render::RenderableProxy& proxy, SlotId rendererId);
 	};
 
 	/** @} */

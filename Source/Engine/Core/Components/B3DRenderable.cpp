@@ -29,13 +29,6 @@ namespace b3d::ecs
 	/** Tag indicating a Renderable needs to sync transform to its render proxy. */
 	struct RenderableTransformDirty {};
 
-	/** Holds a shared pointer to the render-side Renderable proxy. */
-	// TODO - To be removed and replaced with SlotId
-	struct RenderableProxy
-	{
-		SPtr<render::Renderable> Proxy;
-	};
-
 	// TODO: Temporary — storing a raw Component pointer is inefficient and will be
 	// removed when Renderable's syncable fields migrate into ECS fragments. At that
 	// point the B3D_SYNC_BLOCK constructor will read directly from fragments instead
@@ -48,7 +41,7 @@ namespace b3d::ecs
 
 namespace b3d
 {
-	B3D_SYNC_BLOCK_BEGIN(Renderable, FullSyncPacket)
+	B3D_SYNC_BLOCK_BEGIN_CUSTOM(Renderable, FullSyncPacket, render::RenderableProxy)
 		B3D_SYNC_BLOCK_ENTRY(mLayer)
 		B3D_SYNC_BLOCK_ENTRY(mOverrideBounds)
 		B3D_SYNC_BLOCK_ENTRY(mUseOverrideBounds)
@@ -59,23 +52,31 @@ namespace b3d
 		B3D_SYNC_BLOCK_ENTRY(mMaterials)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(bool, mActive)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(u64, mAnimationId)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(SPtr<SceneInstance>, mSceneInstance)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
 	B3D_SYNC_BLOCK_END
 
-	B3D_SYNC_BLOCK_BEGIN(Renderable, TransformSyncPacket)
+	B3D_SYNC_BLOCK_BEGIN_CUSTOM(Renderable, TransformSyncPacket, render::RenderableProxy)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
 	B3D_SYNC_BLOCK_END
 
 	struct RenderableSyncBatch
 	{
-		TBatchSyncBuffer<Renderable::FullSyncPacket, render::Renderable> Full;
-		TBatchSyncBuffer<Renderable::TransformSyncPacket, render::Renderable> Transform;
+		TBatchSyncBuffer<Renderable::FullSyncPacket> Full;
+		TBatchSyncBuffer<Renderable::TransformSyncPacket> Transform;
 
 		SlotCommand* Commands = nullptr;
 		u32 CommandCount = 0;
 	};
 } // namespace b3d
+
+template <bool IsRenderProxy>
+typename TRenderableData<IsRenderProxy>::MaterialType TRenderableData<IsRenderProxy>::GetMaterial(u32 index) const
+{
+	if(index >= (u32)mMaterials.size())
+		return nullptr;
+
+	return mMaterials[index];
+}
 
 template <bool IsRenderProxy>
 TRenderable<IsRenderProxy>::TRenderable()
@@ -132,15 +133,6 @@ void TRenderable<IsRenderProxy>::SetMaterials(const Vector<MaterialType>& materi
 }
 
 template <bool IsRenderProxy>
-typename TRenderable<IsRenderProxy>::MaterialType TRenderable<IsRenderProxy>::GetMaterial(u32 index) const
-{
-	if(index >= (u32)mMaterials.size())
-		return nullptr;
-
-	return mMaterials[index];
-}
-
-template <bool IsRenderProxy>
 void TRenderable<IsRenderProxy>::SetLayer(u64 layer)
 {
 	const bool isPow2 = layer && !((layer - 1) & layer);
@@ -151,43 +143,43 @@ void TRenderable<IsRenderProxy>::SetLayer(u64 layer)
 		return;
 	}
 
-	mLayer = layer;
+	this->mLayer = layer;
 	MarkRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
 void TRenderable<IsRenderProxy>::SetOverrideBounds(const AABox& bounds)
 {
-	mOverrideBounds = bounds;
+	this->mOverrideBounds = bounds;
 
-	if(mUseOverrideBounds)
+	if(this->mUseOverrideBounds)
 		MarkRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
 void TRenderable<IsRenderProxy>::SetUseOverrideBounds(bool enable)
 {
-	if(mUseOverrideBounds == enable)
+	if(this->mUseOverrideBounds == enable)
 		return;
 
-	mUseOverrideBounds = enable;
+	this->mUseOverrideBounds = enable;
 	MarkRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
 void TRenderable<IsRenderProxy>::SetWriteVelocity(bool enable)
 {
-	if(mWriteVelocity == enable)
+	if(this->mWriteVelocity == enable)
 		return;
 
-	mWriteVelocity = enable;
+	this->mWriteVelocity = enable;
 	MarkRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
 void TRenderable<IsRenderProxy>::SetCullDistanceFactor(float factor)
 {
-	mCullDistanceFactor = factor;
+	this->mCullDistanceFactor = factor;
 	MarkRenderProxyDataDirty();
 }
 
@@ -212,8 +204,8 @@ void TRenderable<IsRenderProxy>::MarkReferencedResourcesDirty()
 		IResourceListener::MarkListenerResourcesDirty(); // TODO - Rename the base class method
 }
 
+template class TRenderableData<true>;
 template class TRenderable<false>;
-template class TRenderable<true>;
 
 Renderable::Renderable(const HSceneObject& parent)
 	: Component(parent)
@@ -239,7 +231,6 @@ void Renderable::Initialize()
 	ecs::Entity entity = sceneObject->GetECSEntity();
 
 	registry->AddComponent<ecs::RenderableComponent>(entity, ecs::RenderableComponent{this});
-	registry->AddComponent<ecs::RenderableProxy>(entity, ecs::RenderableProxy{ B3DGetRenderProxy(this) });
 
 	// Allocate a packed renderable slot
 	const SPtr<RendererScene>& rendererScene = sceneObject->GetScene()->GetRendererScene();
@@ -299,7 +290,6 @@ void Renderable::OnDestroyed()
 
 	registry->RemoveComponents<ecs::RenderableDirty>(entity);
 	registry->RemoveComponents<ecs::RenderableTransformDirty>(entity);
-	registry->RemoveComponents<ecs::RenderableProxy>(entity);
 	registry->RemoveComponents<ecs::RenderableComponent>(entity);
 
 	CoreObject::Destroy();
@@ -319,8 +309,7 @@ void Renderable::OnSceneChanged(SceneInstance* oldScene, ecs::Entity oldEntity)
 			oldScene->GetRendererScene()->DeallocateRenderableSlot(oldEntity, *oldRegistry);
 	}
 
-	// Migrate RenderableProxy — write to new
-	registry->AddComponent<ecs::RenderableProxy>(entity, ecs::RenderableProxy{ B3DGetRenderProxy(this) });
+	// Migrate RenderableComponent to new registry
 	registry->AddComponent<ecs::RenderableComponent>(entity, ecs::RenderableComponent{ this });
 
 	// Allocate from new scene's allocator
@@ -349,17 +338,6 @@ void Renderable::OnTransformChanged(TransformChangedFlags flags)
 	mWorldTransformMatrixWithoutScale = Matrix4::TRS(transform.GetPosition(), transform.GetRotation(), Vector3::kOne);
 
 	MarkRenderProxyDataDirty(ComponentDirtyFlag::Transform);
-}
-
-SPtr<render::RenderProxy> Renderable::CreateRenderProxy() const
-{
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
-
-	render::Renderable* renderProxy = new(B3DAllocate<render::Renderable>()) render::Renderable(B3DGetRenderProxy(scene));
-	SPtr<render::Renderable> renderProxyShared = B3DMakeSharedFromExisting<render::Renderable>(renderProxy);
-	renderProxyShared->SetShared(renderProxyShared);
-
-	return renderProxyShared;
 }
 
 Bounds Renderable::GetBounds() const
@@ -564,19 +542,7 @@ static SPtr<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
 	return buffer;
 }
 
-Renderable::Renderable(const SPtr<SceneInstance>& sceneInstance)
-	: mSceneInstance(sceneInstance)
-{ }
-
-Renderable::~Renderable()
-{ }
-
-void Renderable::Initialize()
-{
-	RenderProxy::Initialize();
-}
-
-Bounds Renderable::GetBounds() const
+Bounds RenderableProxy::GetBounds() const
 {
 	if(mUseOverrideBounds)
 	{
@@ -601,7 +567,7 @@ Bounds Renderable::GetBounds() const
 	}
 }
 
-void Renderable::CreateAnimationBuffers()
+void RenderableProxy::CreateAnimationBuffers()
 {
 	if(mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
 	{
@@ -660,7 +626,7 @@ void Renderable::CreateAnimationBuffers()
 	mMorphShapeVersion = 0;
 }
 
-void Renderable::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
+void RenderableProxy::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
 {
 	if(mAnimationId == (u64)-1)
 		return;
@@ -718,11 +684,10 @@ void RenderableObjectStorageBase::PopulatePacket(Renderable::FullSyncPacket& pac
 {
 	packet.mActive = renderable.GetEnabled();
 	packet.mAnimationId = renderable.GetAnimation().IsValid() ? renderable.GetAnimation()->GetAnimationId() : (u64)-1;
-	packet.mSceneInstance = B3DGetRenderProxy(renderable.SceneObject()->GetScene());
 	packet.mTransform = renderable.SceneObject()->GetTransform();
 }
 
-void RenderableObjectStorageBase::ApplyPacket(Renderable::FullSyncPacket& packet, render::Renderable& proxy, SlotId rendererId)
+void RenderableObjectStorageBase::ApplyPacket(Renderable::FullSyncPacket& packet, render::RenderableProxy& proxy, SlotId rendererId)
 {
 	// Skip packets for renderables that were destroyed (slot already deallocated by command replay)
 	// TODO - Can this even happen?
@@ -752,14 +717,14 @@ void RenderableObjectStorageBase::ApplyPacket(Renderable::FullSyncPacket& packet
 	if(oldIsActive != proxy.mActive)
 	{
 		if(proxy.mActive)
-			Register(&proxy);
+			Register(proxy, rendererId);
 		else
-			Unregister(&proxy);
+			Unregister(proxy, rendererId);
 	}
 	else if(proxy.mActive)
 	{
-		Unregister(&proxy);
-		Register(&proxy);
+		Unregister(proxy, rendererId);
+		Register(proxy, rendererId);
 	}
 }
 
@@ -786,16 +751,15 @@ void* RenderableObjectStorageBase::SyncRead(ecs::Registry& registry, FrameAlloca
 	{
 		batchData->Full.Allocate(allocator, fullCount);
 
-		auto view = registry.CreateView<ecs::RenderableDirty, ecs::RenderableComponent, ecs::RenderableProxy, ecs::RenderableSlotId>();
+		auto view = registry.CreateView<ecs::RenderableDirty, ecs::RenderableComponent, ecs::RenderableSlotId>();
 		view.SetLeadingType<ecs::RenderableDirty>();
 
 		for(auto entity : view)
 		{
 			auto& compRef = view.Get<ecs::RenderableComponent>(entity);
-			auto& proxyRef = view.Get<ecs::RenderableProxy>(entity);
 			SlotId rendererId = view.Get<ecs::RenderableSlotId>(entity).Id;
 
-			auto& packet = batchData->Full.Add(proxyRef.Proxy, rendererId, *compRef.Component, allocator, 0);
+			auto& packet = batchData->Full.Add(rendererId, *compRef.Component, allocator, 0);
 			PopulatePacket(packet, *compRef.Component);
 		}
 	}
@@ -804,16 +768,15 @@ void* RenderableObjectStorageBase::SyncRead(ecs::Registry& registry, FrameAlloca
 	{
 		batchData->Transform.Allocate(allocator, transformCount);
 
-		auto view = registry.CreateView<ecs::RenderableTransformDirty, ecs::RenderableComponent, ecs::RenderableProxy, ecs::RenderableSlotId>(ecs::TExcludedTypes<ecs::RenderableDirty>{});
+		auto view = registry.CreateView<ecs::RenderableTransformDirty, ecs::RenderableComponent, ecs::RenderableSlotId>(ecs::TExcludedTypes<ecs::RenderableDirty>{});
 		view.SetLeadingType<ecs::RenderableTransformDirty>();
 
 		for(auto entity : view)
 		{
 			auto& compRef = view.Get<ecs::RenderableComponent>(entity);
-			auto& proxyRef = view.Get<ecs::RenderableProxy>(entity);
 			SlotId rendererId = view.Get<ecs::RenderableSlotId>(entity).Id;
 
-			auto& packet = batchData->Transform.Add(proxyRef.Proxy, rendererId, *compRef.Component, allocator, 0);
+			auto& packet = batchData->Transform.Add(rendererId, *compRef.Component, allocator, 0);
 			packet.mTransform = compRef.Component->SceneObject()->GetTransform();
 		}
 	}
@@ -835,21 +798,23 @@ void RenderableObjectStorageBase::SyncWrite(void* rawData, FrameAllocator& alloc
 	}
 
 	batch->Full.Each(
-		[this](Renderable::FullSyncPacket& packet, render::Renderable& proxy, SlotId rendererId)
+		[this](Renderable::FullSyncPacket& packet, SlotId rendererId)
 		{
+			render::RenderableProxy& proxy = mRenderableProxies[rendererId];
 			ApplyPacket(packet, proxy, rendererId);
 		});
 
 	batch->Transform.Each(
-		[this](Renderable::TransformSyncPacket& packet, render::Renderable& proxy, SlotId /*rendererId*/)
+		[this](Renderable::TransformSyncPacket& packet, SlotId rendererId)
 		{
+			render::RenderableProxy& proxy = mRenderableProxies[rendererId];
 			packet.ApplySyncData(&proxy);
 
 			proxy.mWorldTransformMatrix = proxy.mTransform.GetMatrix();
 			proxy.mWorldTransformMatrixWithoutScale = Matrix4::TRS(proxy.mTransform.GetPosition(), proxy.mTransform.GetRotation(), Vector3::kOne);
 
 			if(proxy.mActive)
-				Update(&proxy);
+				Update(proxy, rendererId);
 		});
 
 	batch->Full.Free(allocator);

@@ -26,68 +26,56 @@ namespace b3d
 	 * Stores a contiguous array of packets containing the data to synchronize, as well as render slots which determine to which
 	 * entries in the packed renderer arrays those packets should be applied to.
 	 *
-	 * TODO: While in transition state the system is working with RenderProxy's, but will eventually operate purely on data.
-	 *
 	 * @tparam DataType		Data type that is being synced.
-	 * @tparam ProxyType	Type of the render proxy (e.g. render::Renderable). TODO - Temporary
 	 */
-	template<typename DataType, typename ProxyType>
+	template<typename DataType>
 	struct TBatchSyncBuffer
 	{
-		using ProxyShared = SPtr<ProxyType>;
-
 		u32 Count = 0;
 		u32 Maximum = 0;
 		DataType* Packets = nullptr;
-		ProxyShared* Proxies = nullptr; // TODO - Temporary
 		SlotId* RendererIds = nullptr;
 
 		/** Allocate internal arrays for @p count entries using @p allocator. */
 		void Allocate(FrameAllocator& allocator, u32 count)
 		{
 			Packets = reinterpret_cast<DataType*>(allocator.AllocateAligned(sizeof(DataType) * count, alignof(DataType)));
-			Proxies = reinterpret_cast<ProxyShared*>(allocator.AllocateAligned(sizeof(ProxyShared) * count, alignof(ProxyShared)));
 			RendererIds = reinterpret_cast<SlotId*>(allocator.AllocateAligned(sizeof(SlotId) * count, alignof(SlotId)));
 
 			Maximum = count;
 		}
 
-		/** Construct a new PacketType in-place and store the associated proxy and renderer ID. Returns a reference to the constructed packet. */
+		/** Construct a new DataType in-place and store the associated renderer ID. Returns a reference to the constructed packet. */
 		template<typename... Args>
-		DataType& Add(const ProxyShared& proxy, SlotId rendererId, Args&&... args)
+		DataType& Add(SlotId rendererId, Args&&... args)
 		{
 			B3D_ASSERT(Count < Maximum);
 
 			auto* packet = new(&Packets[Count]) DataType(std::forward<Args>(args)...);
-			new(&Proxies[Count]) ProxyShared(proxy);
 			RendererIds[Count] = rendererId;
 			++Count;
 			return *packet;
 		}
 
 		/**
-		 * Iterates entries, calling @p fn(PacketType&, ProxyType&, SlotId rendererId) for each.
-		 * Destructs the buffer data for this entry after the callback finishes.
+		 * Iterates entries, calling @p fn(DataType&, SlotId rendererId) for each.
+		 * Destructs the packet after the callback finishes.
 		 */
 		template<typename Fn>
 		void Each(Fn&& fn)
 		{
 			for(u32 entryIndex = 0; entryIndex < Count; ++entryIndex)
 			{
-				fn(Packets[entryIndex], *Proxies[entryIndex], RendererIds[entryIndex]);
+				fn(Packets[entryIndex], RendererIds[entryIndex]);
 				Packets[entryIndex].~DataType();
-				Proxies[entryIndex].~ProxyShared();
 			}
 		}
 
-		/** Frees the frame-allocated Packets, Proxies, and RendererIds arrays. Must be called after Each(). */
+		/** Frees the frame-allocated Packets and RendererIds arrays. Must be called after Each(). */
 		void Free(FrameAllocator& allocator)
 		{
 			if(Packets)
 				allocator.Free((u8*)Packets);
-
-			if(Proxies)
-				allocator.Free((u8*)Proxies);
 
 			if(RendererIds)
 				allocator.Free((u8*)RendererIds);

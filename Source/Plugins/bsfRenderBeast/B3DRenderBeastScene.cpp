@@ -362,61 +362,57 @@ void RenderableObjectStorage::UpdateSlotIds(const SlotCommand* commands, u32 cou
 		[this](SlotId slotId)
 		{
 			RendererRenderable* rendererRenderable = mRenderables[slotId];
-			if(rendererRenderable != nullptr && rendererRenderable->Renderable != nullptr)
-				Unregister(rendererRenderable->Renderable);
+			if(rendererRenderable != nullptr)
+				Unregister(mRenderableProxies[slotId], slotId);
 		},
 		[this](SlotId slotId)
 		{
-			RendererRenderable* swapped = mRenderables[slotId];
-			if(swapped != nullptr && swapped->Renderable != nullptr)
-				swapped->Renderable->SetRendererId(slotId);
+			mRenderableProxies[slotId].SetRendererId(slotId);
 		},
 		mRenderables,
-		mRenderableCullInfos);
+		mRenderableCullInfos,
+		mRenderableProxies);
 }
 
-void RenderableObjectStorage::Register(Renderable* renderable)
+void RenderableObjectStorage::Register(RenderableProxy& proxy, SlotId renderableId)
 {
-	SlotId renderableId = renderable->GetRendererId();
-
 	// Slot was pre-allocated by ReplaySlotCommands — populate it
 	B3D_ASSERT(renderableId < (SlotId)mRenderables.size());
 	B3D_ASSERT(mRenderables[renderableId] == nullptr);
 
 	mRenderables[renderableId] = B3DNew<RendererRenderable>();
-	mRenderableCullInfos[renderableId] = CullInfo(renderable->GetBounds(), renderable->GetLayer(), renderable->GetCullDistanceFactor());
+	mRenderableCullInfos[renderableId] = CullInfo(proxy.GetBounds(), proxy.GetLayer(), proxy.GetCullDistanceFactor());
 
 	RendererRenderable* rendererRenderable = mRenderables[renderableId];
-	rendererRenderable->Renderable = renderable;
-	rendererRenderable->UpdatePerObjectData();
+	rendererRenderable->UpdatePerObjectData(proxy);
 	rendererRenderable->PrevWorldTransform = rendererRenderable->WorldTransform;
 	rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Clean;
 
 	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
 
-	SPtr<Mesh> mesh = renderable->GetMesh();
+	SPtr<Mesh> mesh = proxy.GetMesh();
 	if(mesh != nullptr)
 	{
 		const MeshProperties& meshProps = mesh->GetProperties();
 		SPtr<VertexDescription> vertexDescription = mesh->GetVertexData()->VertexDescription;
 
-		for(u32 i = 0; i < (u32)meshProps.SubMeshes.size(); i++)
+		for(u32 subMeshIndex = 0; subMeshIndex < (u32)meshProps.SubMeshes.size(); subMeshIndex++)
 		{
 			rendererRenderable->Elements.push_back(RenderableElement());
 			RenderableElement& renElement = rendererRenderable->Elements.back();
 
 			renElement.Type = (u32)RenderElementType::Renderable;
 			renElement.Mesh = mesh;
-			renElement.SubMesh = meshProps.SubMeshes[i];
-			renElement.AnimType = renderable->GetAnimType();
-			renElement.AnimationId = renderable->GetAnimationId();
+			renElement.SubMesh = meshProps.SubMeshes[subMeshIndex];
+			renElement.AnimType = proxy.GetAnimType();
+			renElement.AnimationId = proxy.GetAnimationId();
 			renElement.MorphShapeVersion = 0;
-			renElement.MorphShapeBuffer = renderable->GetMorphShapeBuffer();
-			renElement.MorphVertexDefinition = renderable->GetMorphVertexDescription();
+			renElement.MorphShapeBuffer = proxy.GetMorphShapeBuffer();
+			renElement.MorphVertexDefinition = proxy.GetMorphVertexDescription();
 
-			renElement.Material = renderable->GetMaterial(i);
+			renElement.Material = proxy.GetMaterial(subMeshIndex);
 			if(renElement.Material == nullptr)
-				renElement.Material = renderable->GetMaterial(0);
+				renElement.Material = proxy.GetMaterial(0);
 
 			if(renElement.Material != nullptr && renElement.Material->GetShader() == nullptr)
 				renElement.Material = nullptr;
@@ -437,13 +433,11 @@ void RenderableObjectStorage::Register(Renderable* renderable)
 			const bool shaderCanWriteVelocity = std::find_if(variationParams.begin(), variationParams.end(), [](const ShaderVariationParameterInformation& x)
 															 { return x.Identifier == "WRITE_VELOCITY"; }) != variationParams.end();
 
-			const bool writeVelocity = shaderCanWriteVelocity && renderable->GetWriteVelocity();
+			const bool writeVelocity = shaderCanWriteVelocity && proxy.GetWriteVelocity();
 
-			RenderableAnimType animType = renderable->GetAnimType();
+			RenderableAnimType animType = proxy.GetAnimType();
 
 			renElement.DefaultVariationIndex = InitAndRetrieveBasePassVariation(*renElement.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, false, animType);
-
-
 
 #if B3D_DEBUG
 			ValidateBasePassMaterial(*renElement.Material, animType, renElement.DefaultVariationIndex, *vertexDescription);
@@ -518,10 +512,8 @@ void RenderableObjectStorage::Register(Renderable* renderable)
 	}
 }
 
-void RenderableObjectStorage::Update(Renderable* renderable)
+void RenderableObjectStorage::Update(RenderableProxy& proxy, SlotId renderableId)
 {
-	SlotId renderableId = renderable->GetRendererId();
-
 	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
 
 	RendererRenderable* rendererRenderable = mRenderables[renderableId];
@@ -529,19 +521,18 @@ void RenderableObjectStorage::Update(Renderable* renderable)
 	if(rendererRenderable->PrevFrameDirtyState != PrevFrameDirtyState::Updated)
 		rendererRenderable->PrevWorldTransform = rendererRenderable->WorldTransform;
 
-	rendererRenderable->UpdatePerObjectData();
+	rendererRenderable->UpdatePerObjectData(proxy);
 	rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Updated;
 
 	uniformBufferPools.UpdatePerObjectBuffer(*rendererRenderable);
 
-	mRenderableCullInfos[renderableId].Bounds = renderable->GetBounds();
-	mRenderableCullInfos[renderableId].CullDistanceFactor = renderable->GetCullDistanceFactor();
+	mRenderableCullInfos[renderableId].Bounds = proxy.GetBounds();
+	mRenderableCullInfos[renderableId].CullDistanceFactor = proxy.GetCullDistanceFactor();
 }
 
-void RenderableObjectStorage::Unregister(Renderable* renderable)
+void RenderableObjectStorage::Unregister(RenderableProxy& proxy, SlotId slotId)
 {
-	SlotId slotId = renderable->GetRendererId();
-	renderable->SetRendererId(kInvalidSlotId);
+	proxy.SetRendererId(kInvalidSlotId);
 
 	RendererRenderable* rendererRenderable = mRenderables[slotId];
 
@@ -1490,6 +1481,7 @@ void RenderableObjectStorage::PrepareVisibleRenderable(SlotId id, const FrameInf
 		return;
 
 	RendererRenderable* rendererRenderable = mRenderables[id];
+	RenderableProxy& proxy = GetRenderableProxy(id);
 
 	// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
 	SPtr<GpuBuffer> boneMatrixBuffer;
@@ -1497,13 +1489,13 @@ void RenderableObjectStorage::PrepareVisibleRenderable(SlotId id, const FrameInf
 	bool isAnimated = false;
 	if(frameInfo.PerSceneFrameData.Animation != nullptr)
 	{
-		isAnimated = rendererRenderable->Renderable->GetAnimationId() != (u64)-1;
+		isAnimated = proxy.GetAnimationId() != (u64)-1;
 
 		if(isAnimated)
 		{
-			rendererRenderable->Renderable->UpdateAnimationBuffers(*frameInfo.PerSceneFrameData.Animation);
-			boneMatrixBuffer = rendererRenderable->Renderable->GetBoneMatrixBuffer();
-			previousBoneMatrixBuffer = rendererRenderable->Renderable->GetPreviousBoneMatrixBuffer();
+			proxy.UpdateAnimationBuffers(*frameInfo.PerSceneFrameData.Animation);
+			boneMatrixBuffer = proxy.GetBoneMatrixBuffer();
+			previousBoneMatrixBuffer = proxy.GetPreviousBoneMatrixBuffer();
 		}
 	}
 

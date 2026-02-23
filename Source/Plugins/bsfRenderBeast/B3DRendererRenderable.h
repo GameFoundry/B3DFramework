@@ -54,6 +54,7 @@ namespace b3d
 
 			/** Parameter for binding the per-camera uniform buffer. */
 			GpuParameterUniformBuffer PerCameraUniformBufferParameter;
+
 			/** Parameter for binding the per-frame uniform buffer. */
 			GpuParameterUniformBuffer PerFrameUniformBufferParameter;
 
@@ -87,10 +88,9 @@ namespace b3d
 		/** Contains information about a Renderable, used by the Renderer. */
 		struct RendererRenderable : RendererObject
 		{
-			/** Updates the per-object data from the current Renderable state. */
-			void UpdatePerObjectData();
+			/** Updates the per-object data from the provided renderable proxy. */
+			void UpdatePerObjectData(const RenderableProxy& proxy);
 
-			Renderable* Renderable = nullptr;
 			Vector<RenderableElement> Elements;
 		};
 

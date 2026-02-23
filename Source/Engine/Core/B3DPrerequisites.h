@@ -293,7 +293,6 @@ namespace b3d
 	B3D_CORE_OBJECT_FORWARD_DECLARE(MaterialParameters)
 	B3D_CORE_OBJECT_FORWARD_DECLARE(Light)
 	B3D_CORE_OBJECT_FORWARD_DECLARE(Camera)
-	B3D_CORE_OBJECT_FORWARD_DECLARE(Renderable)
 	B3D_CORE_OBJECT_FORWARD_DECLARE(Decal)
 	B3D_CORE_OBJECT_FORWARD_DECLARE(ReflectionProbe)
 	B3D_CORE_OBJECT_FORWARD_DECLARE(ParticleSystem)
@@ -328,6 +327,7 @@ namespace b3d
 	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(ShaderInformation)
 	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(ShaderCreateInformation)
 
+	class Renderable;
 	class Collider;
 	class SamplerState;
 	class Rigidbody;

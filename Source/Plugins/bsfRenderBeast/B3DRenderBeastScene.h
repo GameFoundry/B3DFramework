@@ -44,12 +44,9 @@ namespace b3d
 			RenderableObjectStorage();
 
 			void UpdateSlotIds(const SlotCommand* commands, u32 count) override;
-			void Register(Renderable* renderable) override;
-			void Update(Renderable* renderable) override;
-			void Unregister(Renderable* renderable) override;
-
-			/** Returns total number of renderables currently stored. */
-			u32 GetRenderableCount() const { return (u32)mRenderables.size(); }
+			void Register(RenderableProxy& proxy, SlotId rendererId) override;
+			void Update(RenderableProxy& proxy, SlotId rendererId) override;
+			void Unregister(RenderableProxy& proxy, SlotId rendererId) override;
 
 			/** Returns renderable at the provided index. Valid index is range [0, GetRenderableCount()). */
 			RendererRenderable* GetRenderable(u32 index) const { return mRenderables[index]; }
