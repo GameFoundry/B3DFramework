@@ -8,42 +8,57 @@ namespace b3d
 	RendererId RendererObjectStorage::AllocateRendererId()
 	{
 		RendererId objectId = mObjectIdAllocator.Allocate();
-
-		RendererIdCommand command;
-		command.Type = RendererIdCommandType::Allocate;
-		command.ObjectId = objectId;
-		mCommandBuffers[mActiveBuffer].Add(command);
-
+		mPendingAllocations.insert(objectId);
 		return objectId;
 	}
 
 	void RendererObjectStorage::DeallocateRendererId(RendererId objectId)
 	{
-		RendererIdCommand command;
-		command.Type = RendererIdCommandType::Deallocate;
-		command.ObjectId = objectId;
-		mCommandBuffers[mActiveBuffer].Add(command);
+		auto found = mPendingAllocations.find(objectId);
+		if(found != mPendingAllocations.end())
+			mPendingAllocations.erase(found);
+		else
+			mDeallocations.Add(objectId);
 
 		mObjectIdAllocator.Deallocate(objectId);
 	}
 
-	u32 RendererObjectStorage::FlushCommands(FrameAllocator& allocator, RendererIdCommand*& outCommands)
+	RendererObjectStorage::FlushedCommands RendererObjectStorage::FlushCommands(FrameAllocator& allocator)
 	{
-		const u32 flushedBufferIndex = mActiveBuffer;
-		mActiveBuffer = 1 - mActiveBuffer;
-		mCommandBuffers[mActiveBuffer].clear();
+		const u32 deallocationCount = (u32)mDeallocations.size();
+		const u32 allocationCount = (u32)mPendingAllocations.size();
 
-		const auto& commands = mCommandBuffers[flushedBufferIndex];
-		u32 commandCount = (u32)commands.size();
-		if(commandCount == 0)
+		if(deallocationCount == 0 && allocationCount == 0)
+			return {};
+
+		FlushedCommands result;
+		if(deallocationCount > 0)
 		{
-			outCommands = nullptr;
-			return 0;
+			RendererIdCommand* commands = reinterpret_cast<RendererIdCommand*>(allocator.AllocateAligned(sizeof(RendererIdCommand) * deallocationCount, alignof(RendererIdCommand)));
+			for(u32 index = 0; index < deallocationCount; ++index)
+			{
+				commands[index].Type = RendererIdCommandType::Deallocate;
+				commands[index].ObjectId = mDeallocations[index];
+			}
+			result.Deallocations = TArrayView<const RendererIdCommand>(commands, deallocationCount);
 		}
 
-		outCommands = reinterpret_cast<RendererIdCommand*>(allocator.AllocateAligned(sizeof(RendererIdCommand) * commandCount, alignof(RendererIdCommand)));
-		memcpy(outCommands, commands.data(), sizeof(RendererIdCommand) * commandCount);
+		if(allocationCount > 0)
+		{
+			RendererIdCommand* commands = reinterpret_cast<RendererIdCommand*>(allocator.AllocateAligned(sizeof(RendererIdCommand) * allocationCount, alignof(RendererIdCommand)));
+			u32 commandIndex = 0;
+			for(const RendererId& pendingId : mPendingAllocations)
+			{
+				commands[commandIndex].Type = RendererIdCommandType::Allocate;
+				commands[commandIndex].ObjectId = pendingId;
+				++commandIndex;
+			}
+			result.Allocations = TArrayView<const RendererIdCommand>(commands, allocationCount);
+		}
 
-		return commandCount;
+		mDeallocations.clear();
+		mPendingAllocations.clear();
+
+		return result;
 	}
 } // namespace b3d

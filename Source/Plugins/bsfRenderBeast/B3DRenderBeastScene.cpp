@@ -352,204 +352,231 @@ void RenderBeastScene::UnregisterLight(Light* light)
 	}
 }
 
-// ---- RenderableObjectStorage ----
-
 RenderableObjectStorage::RenderableObjectStorage() = default;
 
-void RenderableObjectStorage::ProcessCommands(const RendererIdCommand* commands, u32 count)
+void RenderableObjectStorage::ProcessCommands(TArrayView<const RendererIdCommand> deallocations, TArrayView<const RendererIdCommand> allocations)
 {
-	ReplayRendererIdCommands(commands, count,
-		mSparseSlots, mDenseToSparse,
-		[this](PackedRendererId slotId)
-		{
-			RendererRenderable* rendererRenderable = mRenderables[slotId];
-			if(rendererRenderable != nullptr)
-			{
-				Unregister(mRenderableProxies[slotId], slotId);
-				mRenderables[slotId] = nullptr;
-			}
-		},
-		[this](PackedRendererId slotId)
-		{
-			mRenderableProxies[slotId].SetRendererId(slotId);
-		},
-		mRenderables,
-		mRenderableCullInfos,
-		mRenderableProxies);
+	if(deallocations.Size() > 0)
+	{
+		const PackedRendererId originalSize = (PackedRendererId)mDenseToSparse.size();
+
+		// First move all deallocations to the end of the arrays
+		PackedRendererId logicalSize = ProcessRenderObjectDeallocations(deallocations, mSparseSlots, mDenseToSparse,
+			[this](PackedRendererId slot) { mRenderableProxies[slot].SetRendererId(slot); },
+			mRenderableProxies, mRenderables, mRenderableCullInfos);
+
+		const u32 removedCount = originalSize - logicalSize;
+
+		// Destroy render state for all deallocated entries
+		FrameAllocatorScope frameAllocatorScope;
+		FrameVector<PackedRendererId> deallocSlotIds(removedCount);
+		for(u32 slotIndex = 0; slotIndex < removedCount; ++slotIndex)
+			deallocSlotIds[slotIndex] = logicalSize + slotIndex;
+
+		DestroyRenderState(TArrayView<const PackedRendererId>(deallocSlotIds.data(), removedCount));
+
+		// Resize the arrays to remove the deallocated entries
+		mRenderables.resize(logicalSize);
+		mRenderableCullInfos.resize(logicalSize);
+		mRenderableProxies.resize(logicalSize);
+		mDenseToSparse.resize(logicalSize);
+	}
+
+	if(allocations.Size() > 0)
+		ProcessRenderObjectAllocations(allocations, mSparseSlots, mDenseToSparse, mRenderableProxies, mRenderables, mRenderableCullInfos);
 }
 
-void RenderableObjectStorage::Register(RenderableProxy& proxy, PackedRendererId renderableId)
+void RenderableObjectStorage::DestroyRenderState(TArrayView<const PackedRendererId> slotIds)
 {
-	// Slot was pre-allocated by ReplayObjectCommands — populate it
-	B3D_ASSERT(renderableId < (PackedRendererId)mRenderables.size());
-	B3D_ASSERT(mRenderables[renderableId] == nullptr);
-
-	mRenderables[renderableId] = B3DNew<RendererRenderable>();
-	mRenderableCullInfos[renderableId] = CullInfo(proxy.GetBounds(), proxy.GetLayer(), proxy.GetCullDistanceFactor());
-
-	RendererRenderable* rendererRenderable = mRenderables[renderableId];
-	rendererRenderable->UpdatePerObjectData(proxy);
-	rendererRenderable->PrevWorldTransform = rendererRenderable->WorldTransform;
-	rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Clean;
-
 	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
 
-	SPtr<Mesh> mesh = proxy.GetMesh();
-	if(mesh != nullptr)
+	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
 	{
-		const MeshProperties& meshProps = mesh->GetProperties();
-		SPtr<VertexDescription> vertexDescription = mesh->GetVertexData()->VertexDescription;
+		PackedRendererId slotId = slotIds[slotIndex];
+		RendererRenderable* rendererRenderable = mRenderables[slotId];
+		if(rendererRenderable == nullptr)
+			continue;
 
-		for(u32 subMeshIndex = 0; subMeshIndex < (u32)meshProps.SubMeshes.size(); subMeshIndex++)
+		for(auto& element : rendererRenderable->Elements)
 		{
-			rendererRenderable->Elements.push_back(RenderableElement());
-			RenderableElement& renElement = rendererRenderable->Elements.back();
+			mRenderBeastScene->FreeSamplerStateOverrides(element);
+			element.SamplerOverrides = nullptr;
+		}
 
-			renElement.Type = (u32)RenderElementType::Renderable;
-			renElement.Mesh = mesh;
-			renElement.SubMesh = meshProps.SubMeshes[subMeshIndex];
-			renElement.AnimType = proxy.GetAnimType();
-			renElement.AnimationId = proxy.GetAnimationId();
-			renElement.MorphShapeVersion = 0;
-			renElement.MorphShapeBuffer = proxy.GetMorphShapeBuffer();
-			renElement.MorphVertexDefinition = proxy.GetMorphVertexDescription();
+		uniformBufferPools.Release(rendererRenderable->PerObjectBufferAllocationHandle);
+		B3DDelete(rendererRenderable);
 
-			renElement.Material = proxy.GetMaterial(subMeshIndex);
-			if(renElement.Material == nullptr)
-				renElement.Material = proxy.GetMaterial(0);
+		mRenderables[slotId] = nullptr;
+		mRenderableProxies[slotId].SetRendererId(kInvalidPackedRendererId);
+	}
+}
 
-			if(renElement.Material != nullptr && renElement.Material->GetShader() == nullptr)
-				renElement.Material = nullptr;
+void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> slotIds)
+{
+	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
 
-			// If no material use the default material
-			if(renElement.Material == nullptr)
-				renElement.Material = Material::Create(DefaultMaterial::Get()->GetShader());
+	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
+	{
+		PackedRendererId renderableId = slotIds[slotIndex];
+		RenderableProxy& proxy = mRenderableProxies[renderableId];
 
-			// Determine which variation to use
-			static_assert((u32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
+		proxy.SetRendererId(renderableId);
 
-			const SPtr<Shader>& shader = renElement.Material->GetShader();
+		B3D_ASSERT(renderableId < (PackedRendererId)mRenderables.size());
+		B3D_ASSERT(mRenderables[renderableId] == nullptr);
+
+		mRenderables[renderableId] = B3DNew<RendererRenderable>();
+		mRenderableCullInfos[renderableId] = CullInfo(proxy.GetBounds(), proxy.GetLayer(), proxy.GetCullDistanceFactor());
+
+		RendererRenderable* rendererRenderable = mRenderables[renderableId];
+		rendererRenderable->UpdatePerObjectData(proxy);
+		rendererRenderable->PrevWorldTransform = rendererRenderable->WorldTransform;
+		rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Clean;
+
+		SPtr<Mesh> mesh = proxy.GetMesh();
+		if(mesh != nullptr)
+		{
+			const MeshProperties& meshProps = mesh->GetProperties();
+			SPtr<VertexDescription> vertexDescription = mesh->GetVertexData()->VertexDescription;
+
+			for(u32 subMeshIndex = 0; subMeshIndex < (u32)meshProps.SubMeshes.size(); subMeshIndex++)
+			{
+				rendererRenderable->Elements.push_back(RenderableElement());
+				RenderableElement& renElement = rendererRenderable->Elements.back();
+
+				renElement.Type = (u32)RenderElementType::Renderable;
+				renElement.Mesh = mesh;
+				renElement.SubMesh = meshProps.SubMeshes[subMeshIndex];
+				renElement.AnimType = proxy.GetAnimType();
+				renElement.AnimationId = proxy.GetAnimationId();
+				renElement.MorphShapeVersion = 0;
+				renElement.MorphShapeBuffer = proxy.GetMorphShapeBuffer();
+				renElement.MorphVertexDefinition = proxy.GetMorphVertexDescription();
+
+				renElement.Material = proxy.GetMaterial(subMeshIndex);
+				if(renElement.Material == nullptr)
+					renElement.Material = proxy.GetMaterial(0);
+
+				if(renElement.Material != nullptr && renElement.Material->GetShader() == nullptr)
+					renElement.Material = nullptr;
+
+				// If no material use the default material
+				if(renElement.Material == nullptr)
+					renElement.Material = Material::Create(DefaultMaterial::Get()->GetShader());
+
+				// Determine which variation to use
+				static_assert((u32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
+
+				const SPtr<Shader>& shader = renElement.Material->GetShader();
+				ShaderFlags shaderFlags = shader->GetFlags();
+				const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
+				bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+
+				const Vector<ShaderVariationParameterInformation>& variationParams = shader->GetVariationParameters();
+				const bool shaderCanWriteVelocity = std::find_if(variationParams.begin(), variationParams.end(), [](const ShaderVariationParameterInformation& x)
+																 { return x.Identifier == "WRITE_VELOCITY"; }) != variationParams.end();
+
+				const bool writeVelocity = shaderCanWriteVelocity && proxy.GetWriteVelocity();
+
+				RenderableAnimType animType = proxy.GetAnimType();
+
+				renElement.DefaultVariationIndex = InitAndRetrieveBasePassVariation(*renElement.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, false, animType);
+
+#if B3D_DEBUG
+				ValidateBasePassMaterial(*renElement.Material, animType, renElement.DefaultVariationIndex, *vertexDescription);
+#endif
+
+				// Generate or assigned renderer specific data for the material
+				renElement.ParameterAdapter = renElement.Material->CreateParameterAdapter(renElement.DefaultVariationIndex);
+				renElement.ParameterAdapter->Update(renElement.Material, 0.0f, true);
+
+				if(writeVelocity)
+				{
+					renElement.WriteVelocityVariationIndex = InitAndRetrieveBasePassVariation(*renElement.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, true, animType);
+
+#if B3D_DEBUG
+					ValidateBasePassMaterial(*renElement.Material, animType, renElement.WriteVelocityVariationIndex, *vertexDescription);
+#endif
+
+					// Note: Using the same params as the non-velocity variation. There are assumed to be no differences
+				}
+				else
+					renElement.WriteVelocityVariationIndex = (u32)-1;
+
+				// Generate or assign sampler state overrides
+				renElement.SamplerOverrides = mRenderBeastScene->AllocSamplerStateOverrides(renElement);
+			}
+		}
+
+		// Allocate from the uniform buffer manager
+		if(!rendererRenderable->Elements.empty())
+		{
+			auto result = uniformBufferPools.Allocate();
+			rendererRenderable->PerObjectBufferAllocationHandle = result.Handle;
+			rendererRenderable->PerObjectParameterSet = result.ParameterSet;
+			rendererRenderable->PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
+		}
+
+		uniformBufferPools.UpdatePerObjectBuffer(*rendererRenderable);
+
+		// Prepare all parameter bindings
+		for(auto& element : rendererRenderable->Elements)
+		{
+			SPtr<Shader> shader = element.Material->GetShader();
+			if(shader == nullptr)
+			{
+				B3D_LOG(Warning, LogRenderer, "Missing shader on material.");
+				continue;
+			}
+
+			// Store shared parameter set and buffer offset for render-time binding
+			element.SharedPerObjectParameterSet = rendererRenderable->PerObjectParameterSet;
+			element.PerObjectBufferOffset = rendererRenderable->PerObjectSuballocation.GetSuballocationOffset();
+
+			SPtr<GpuParameterSet> gpuParameterSet = element.ParameterAdapter->GetGpuParameterSet();
+
+			// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
+			// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
+			gpuParameterSet->TryGetUniformBufferParameter("PerFrame", element.PerFrameUniformBufferParameter);
+			gpuParameterSet->TryGetUniformBufferParameter("PerCamera", element.PerCameraUniformBufferParameter);
+			gpuParameterSet->TryGetStorageBufferParameter("boneMatrices", element.BoneMatrixBufferParameter);
+			gpuParameterSet->TryGetStorageBufferParameter("prevBoneMatrices", element.PreviousBoneMatrixBufferParameter);
+
 			ShaderFlags shaderFlags = shader->GetFlags();
 			const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
-			bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 
-			const Vector<ShaderVariationParameterInformation>& variationParams = shader->GetVariationParameters();
-			const bool shaderCanWriteVelocity = std::find_if(variationParams.begin(), variationParams.end(), [](const ShaderVariationParameterInformation& x)
-															 { return x.Identifier == "WRITE_VELOCITY"; }) != variationParams.end();
-
-			const bool writeVelocity = shaderCanWriteVelocity && proxy.GetWriteVelocity();
-
-			RenderableAnimType animType = proxy.GetAnimType();
-
-			renElement.DefaultVariationIndex = InitAndRetrieveBasePassVariation(*renElement.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, false, animType);
-
-#if B3D_DEBUG
-			ValidateBasePassMaterial(*renElement.Material, animType, renElement.DefaultVariationIndex, *vertexDescription);
-#endif
-
-			// Generate or assigned renderer specific data for the material
-			renElement.ParameterAdapter = renElement.Material->CreateParameterAdapter(renElement.DefaultVariationIndex);
-			renElement.ParameterAdapter->Update(renElement.Material, 0.0f, true);
-
-			if(writeVelocity)
+			if(useForwardRendering)
 			{
-				renElement.WriteVelocityVariationIndex = InitAndRetrieveBasePassVariation(*renElement.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, true, animType);
+				const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 
-#if B3D_DEBUG
-				ValidateBasePassMaterial(*renElement.Material, animType, renElement.WriteVelocityVariationIndex, *vertexDescription);
-#endif
-
-				// Note: Using the same params as the non-velocity variation. There are assumed to be no differences
+				element.ForwardLightingParams.Populate(gpuParameterSet, supportsClusteredForward);
+				element.ImageBasedParams.Initialize(gpuParameterSet, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
 			}
-			else
-				renElement.WriteVelocityVariationIndex = (u32)-1;
-
-			// Generate or assign sampler state overrides
-			renElement.SamplerOverrides = mRenderBeastScene->AllocSamplerStateOverrides(renElement);
-		}
-	}
-
-	// Allocate from the uniform buffer manager
-	if(!rendererRenderable->Elements.empty())
-	{
-		auto result = uniformBufferPools.Allocate();
-		rendererRenderable->PerObjectBufferAllocationHandle = result.Handle;
-		rendererRenderable->PerObjectParameterSet = result.ParameterSet;
-		rendererRenderable->PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
-	}
-
-	uniformBufferPools.UpdatePerObjectBuffer(*rendererRenderable);
-
-	// Prepare all parameter bindings
-	for(auto& element : rendererRenderable->Elements)
-	{
-		SPtr<Shader> shader = element.Material->GetShader();
-		if(shader == nullptr)
-		{
-			B3D_LOG(Warning, LogRenderer, "Missing shader on material.");
-			continue;
-		}
-
-		// Store shared parameter set and buffer offset for render-time binding
-		element.SharedPerObjectParameterSet = rendererRenderable->PerObjectParameterSet;
-		element.PerObjectBufferOffset = rendererRenderable->PerObjectSuballocation.GetSuballocationOffset();
-
-		SPtr<GpuParameterSet> gpuParameterSet = element.ParameterAdapter->GetGpuParameterSet();
-
-		// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
-		// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-		gpuParameterSet->TryGetUniformBufferParameter("PerFrame", element.PerFrameUniformBufferParameter);
-		gpuParameterSet->TryGetUniformBufferParameter("PerCamera", element.PerCameraUniformBufferParameter);
-		gpuParameterSet->TryGetStorageBufferParameter("boneMatrices", element.BoneMatrixBufferParameter);
-		gpuParameterSet->TryGetStorageBufferParameter("prevBoneMatrices", element.PreviousBoneMatrixBufferParameter);
-
-		ShaderFlags shaderFlags = shader->GetFlags();
-		const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
-
-		if(useForwardRendering)
-		{
-			const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
-
-			element.ForwardLightingParams.Populate(gpuParameterSet, supportsClusteredForward);
-			element.ImageBasedParams.Initialize(gpuParameterSet, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
 		}
 	}
 }
 
-void RenderableObjectStorage::Update(RenderableProxy& proxy, PackedRendererId renderableId)
+void RenderableObjectStorage::UpdateRenderState(TArrayView<const PackedRendererId> slotIds)
 {
 	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
 
-	RendererRenderable* rendererRenderable = mRenderables[renderableId];
-
-	if(rendererRenderable->PrevFrameDirtyState != PrevFrameDirtyState::Updated)
-		rendererRenderable->PrevWorldTransform = rendererRenderable->WorldTransform;
-
-	rendererRenderable->UpdatePerObjectData(proxy);
-	rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Updated;
-
-	uniformBufferPools.UpdatePerObjectBuffer(*rendererRenderable);
-
-	mRenderableCullInfos[renderableId].Bounds = proxy.GetBounds();
-	mRenderableCullInfos[renderableId].CullDistanceFactor = proxy.GetCullDistanceFactor();
-}
-
-void RenderableObjectStorage::Unregister(RenderableProxy& proxy, PackedRendererId slotId)
-{
-	proxy.SetRendererId(kInvalidPackedRendererId);
-
-	RendererRenderable* rendererRenderable = mRenderables[slotId];
-
-	Vector<RenderableElement>& elements = rendererRenderable->Elements;
-	for(auto& element : elements)
+	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
 	{
-		mRenderBeastScene->FreeSamplerStateOverrides(element);
-		element.SamplerOverrides = nullptr;
+		PackedRendererId renderableId = slotIds[slotIndex];
+		RenderableProxy& proxy = mRenderableProxies[renderableId];
+		RendererRenderable* rendererRenderable = mRenderables[renderableId];
+
+		if(rendererRenderable->PrevFrameDirtyState != PrevFrameDirtyState::Updated)
+			rendererRenderable->PrevWorldTransform = rendererRenderable->WorldTransform;
+
+		rendererRenderable->UpdatePerObjectData(proxy);
+		rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Updated;
+
+		uniformBufferPools.UpdatePerObjectBuffer(*rendererRenderable);
+
+		mRenderableCullInfos[renderableId].Bounds = proxy.GetBounds();
+		mRenderableCullInfos[renderableId].CullDistanceFactor = proxy.GetCullDistanceFactor();
 	}
-
-	mRenderBeastScene->GetUniformBufferPools().Release(rendererRenderable->PerObjectBufferAllocationHandle);
-
-	B3DDelete(rendererRenderable);
 }
 
 void RenderBeastScene::RegisterReflectionProbe(ReflectionProbe* probe)

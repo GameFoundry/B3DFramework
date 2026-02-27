@@ -103,6 +103,12 @@ namespace b3d::ecs
 		{
 			return TEntity(GetIdentifier(), GetVersion() + 1);
 		}
+
+		/** Returns a hash value for this entity. */
+		u64 GenerateHash() const
+		{
+			return (u64)IdentifierAndVersion;
+		}
 		
 		union
 		{

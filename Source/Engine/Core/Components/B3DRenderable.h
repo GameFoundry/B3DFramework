@@ -326,9 +326,15 @@ namespace b3d
 			SPtr<VertexDescription> mMorphVertexDescription;
 
 			Transform mTransform;
-			bool mActive = true;
 		};
 	} // namespace render
+
+	/** Action determined by ApplyPacket for a dirty renderable during SyncWrite. */
+	enum class RenderableAction : u8
+	{
+		Register,
+		Reregister
+	};
 
 	/**
 	 * Contains render thread representation of renderable objects, stored in packed arrays accessible by PackedRendererId.
@@ -349,23 +355,33 @@ namespace b3d
 		/** Returns the total number of renderables. */
 		u32 GetRenderableCount() const { return (u32)mRenderableProxies.size(); }
 
-		/** Registers a new object on the render thread. */
-		virtual void Register(render::RenderableProxy& proxy, PackedRendererId rendererId) = 0;
+		/**
+		 * Called once per frame for each new renderable being added, or a renderable whose data needs to be rebuilt
+		 * after a significant update (in which DestroyRenderState will be called first).
+		 */
+		virtual void CreateRenderState(TArrayView<const PackedRendererId> slotIds) = 0;
 
-		/** Updates an existing object on the render thread. */
-		virtual void Update(render::RenderableProxy& proxy, PackedRendererId rendererId) = 0;
+		/**
+		 * Called once per frame for each renderable that is being removed, or a renderable that needs to be rebuilt
+		 * after a significant update (in which CreateRenderState will be called right after).
+		 */
+		virtual void DestroyRenderState(TArrayView<const PackedRendererId> slotIds) = 0;
 
-		/** Unregisters an object from the render thread. */
-		virtual void Unregister(render::RenderableProxy& proxy, PackedRendererId rendererId) = 0;
+		/**
+		 * Called once per frame for each renderable that needs to be updated after a minor update (e.g. one that doesn't
+		 * require a full render state rebuild, such as a transform change).
+		 */
+		virtual void UpdateRenderState(TArrayView<const PackedRendererId> slotIds) = 0;
 
 	protected:
 		Vector<render::RenderableProxy> mRenderableProxies;
 
 	private:
+		/** Populates the provided packet with data from the renderable. */
 		static void PopulatePacket(Renderable::FullSyncPacket& packet, Renderable& renderable);
 
-		/** Applies sync packet data to the renderable proxy. Non-static because it dispatches to Register/Unregister. */
-		void ApplyPacket(Renderable::FullSyncPacket& packet, render::RenderableProxy& proxy, PackedRendererId rendererId);
+		/** Applies sync packet data to the renderable proxy. Returns the action needed for this renderable. */
+		RenderableAction ApplyPacket(Renderable::FullSyncPacket& packet, render::RenderableProxy& proxy, PackedRendererId rendererId);
 	};
 
 	/** @} */

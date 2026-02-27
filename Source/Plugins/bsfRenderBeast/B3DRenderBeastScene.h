@@ -42,10 +42,10 @@ namespace b3d
 		public:
 			RenderableObjectStorage();
 
-			void ProcessCommands(const RendererIdCommand* commands, u32 count) override;
-			void Register(RenderableProxy& proxy, PackedRendererId rendererId) override;
-			void Update(RenderableProxy& proxy, PackedRendererId rendererId) override;
-			void Unregister(RenderableProxy& proxy, PackedRendererId rendererId) override;
+			void ProcessCommands(TArrayView<const RendererIdCommand> deallocations, TArrayView<const RendererIdCommand> allocations) override;
+			void CreateRenderState(TArrayView<const PackedRendererId> slotIds) override;
+			void DestroyRenderState(TArrayView<const PackedRendererId> slotIds) override;
+			void UpdateRenderState(TArrayView<const PackedRendererId> slotIds) override;
 
 			/** Returns renderable at the provided index. Valid index is range [0, GetRenderableCount()). */
 			RendererRenderable* GetRenderable(u32 index) const { return mRenderables[index]; }

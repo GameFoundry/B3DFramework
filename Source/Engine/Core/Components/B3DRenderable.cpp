@@ -50,7 +50,6 @@ namespace b3d
 		B3D_SYNC_BLOCK_ENTRY(mCullDistanceFactor)
 		B3D_SYNC_BLOCK_ENTRY(mMesh)
 		B3D_SYNC_BLOCK_ENTRY(mMaterials)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(bool, mActive)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(u64, mAnimationId)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
 	B3D_SYNC_BLOCK_END
@@ -64,8 +63,7 @@ namespace b3d
 		TBatchSyncBuffer<Renderable::FullSyncPacket> Full;
 		TBatchSyncBuffer<Renderable::TransformSyncPacket> Transform;
 
-		RendererIdCommand* Commands = nullptr;
-		u32 CommandCount = 0;
+		RendererObjectStorage::FlushedCommands Commands;
 	};
 } // namespace b3d
 
@@ -232,12 +230,6 @@ void Renderable::Initialize()
 	ecs::Entity entity = sceneObject->GetECSEntity();
 
 	registry->AddComponent<ecs::RenderableComponent>(entity, ecs::RenderableComponent{this});
-
-	// Allocate a persistent render object ID and add the ECS fragment
-	const SPtr<RendererScene>& rendererScene = sceneObject->GetScene()->GetRendererScene();
-	rendererScene->AllocateRenderableId(*registry, entity);
-
-	registry->AddTag<ecs::RenderableDirty>(entity);
 }
 
 void Renderable::OnCreated()
@@ -258,12 +250,27 @@ void Renderable::OnBeginPlay()
 
 void Renderable::OnEnabled()
 {
-	MarkRenderProxyDataDirty(ComponentDirtyFlag::Active);
+	const HSceneObject& sceneObject = SceneObject();
+	ecs::Registry* registry = sceneObject->GetECSRegistry();
+	ecs::Entity entity = sceneObject->GetECSEntity();
+
+	const SPtr<RendererScene>& rendererScene = sceneObject->GetScene()->GetRendererScene();
+	rendererScene->AllocateRenderableId(*registry, entity);
+
+	registry->AddTag<ecs::RenderableDirty>(entity);
 }
 
 void Renderable::OnDisabled()
 {
-	MarkRenderProxyDataDirty(ComponentDirtyFlag::Active);
+	const HSceneObject& sceneObject = SceneObject();
+	ecs::Registry* registry = sceneObject->GetECSRegistry();
+	ecs::Entity entity = sceneObject->GetECSEntity();
+
+	const SPtr<RendererScene>& rendererScene = sceneObject->GetScene()->GetRendererScene();
+	rendererScene->DeallocateRenderableId(*registry, entity);
+
+	registry->RemoveComponents<ecs::RenderableDirty>(entity);
+	registry->RemoveComponents<ecs::RenderableTransformDirty>(entity);
 }
 
 void Renderable::OnDestroyed()
@@ -271,13 +278,15 @@ void Renderable::OnDestroyed()
 	if(mAnimation != nullptr)
 		mAnimation->UnregisterRenderable();
 
-	// Remove all sync-handler-owned tags and fragments
 	ecs::Registry* registry = SceneObject()->GetECSRegistry();
 	ecs::Entity entity = SceneObject()->GetECSEntity();
 
-	// Deallocate the persistent render object ID and remove the ECS fragment
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
-	rendererScene->DeallocateRenderableId(*registry, entity);
+	// Deallocate only if currently active (has a RenderableId fragment)
+	if(registry->HasAllOf<ecs::RenderableId>(entity))
+	{
+		const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+		rendererScene->DeallocateRenderableId(*registry, entity);
+	}
 
 	registry->RemoveComponents<ecs::RenderableDirty>(entity);
 	registry->RemoveComponents<ecs::RenderableTransformDirty>(entity);
@@ -292,19 +301,21 @@ void Renderable::OnSceneChanged(SceneInstance* oldScene, ecs::Entity oldEntity)
 	ecs::Registry* registry = SceneObject()->GetECSRegistry();
 	ecs::Entity entity = SceneObject()->GetECSEntity();
 
-	// Deallocate from old scene's storage and remove the ECS fragment
-	if(oldRegistry != nullptr)
+	// Deallocate from old scene only if was active
+	if(oldRegistry != nullptr && oldRegistry->HasAllOf<ecs::RenderableId>(oldEntity))
 		oldScene->GetRendererScene()->DeallocateRenderableId(*oldRegistry, oldEntity);
 
 	// Migrate RenderableComponent to new registry
 	registry->AddComponent<ecs::RenderableComponent>(entity, ecs::RenderableComponent{ this });
 
-	// Allocate from new scene's storage and add the ECS fragment
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
-	rendererScene->AllocateRenderableId(*registry, entity);
+	// Allocate in new scene only if currently active
+	if(GetEnabled())
+	{
+		const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+		rendererScene->AllocateRenderableId(*registry, entity);
 
-	// Full sync needed after migration
-	registry->AddTag<ecs::RenderableDirty>(entity);
+		registry->AddTag<ecs::RenderableDirty>(entity);
+	}
 }
 
 void Renderable::OnTransformChanged(TransformChangedFlags flags)
@@ -668,19 +679,13 @@ void RenderableProxy::UpdateAnimationBuffers(const EvaluatedAnimationData& animD
 
 void RenderableObjectStorageBase::PopulatePacket(Renderable::FullSyncPacket& packet, Renderable& renderable)
 {
-	packet.mActive = renderable.GetEnabled();
 	packet.mAnimationId = renderable.GetAnimation().IsValid() ? renderable.GetAnimation()->GetAnimationId() : (u64)-1;
 	packet.mTransform = renderable.SceneObject()->GetTransform();
 }
 
-void RenderableObjectStorageBase::ApplyPacket(Renderable::FullSyncPacket& packet, render::RenderableProxy& proxy, PackedRendererId rendererId)
+RenderableAction RenderableObjectStorageBase::ApplyPacket(Renderable::FullSyncPacket& packet, render::RenderableProxy& proxy, PackedRendererId rendererId)
 {
-	// Skip packets for renderables that were destroyed (slot already deallocated by command replay)
-	// TODO - Can this even happen?
-	if(rendererId == kInvalidPackedRendererId)
-		return;
-
-	bool oldIsActive = proxy.mActive;
+	bool wasRegistered = proxy.mRendererId != kInvalidPackedRendererId;
 	proxy.mRendererId = rendererId;
 	packet.ApplySyncData(&proxy);
 
@@ -700,25 +705,17 @@ void RenderableObjectStorageBase::ApplyPacket(Renderable::FullSyncPacket& packet
 	else
 		proxy.mMorphVertexDescription = nullptr;
 
-	if(oldIsActive != proxy.mActive)
-	{
-		if(proxy.mActive)
-			Register(proxy, rendererId);
-		else
-			Unregister(proxy, rendererId);
-	}
-	else if(proxy.mActive)
-	{
-		Unregister(proxy, rendererId);
-		Register(proxy, rendererId);
-	}
+	if(wasRegistered)
+		return RenderableAction::Reregister;
+
+	return RenderableAction::Register;
 }
 
 void* RenderableObjectStorageBase::SyncRead(ecs::Registry& registry, FrameAllocator& allocator)
 {
 	// Consume structural commands from the allocator
-	RendererIdCommand* objectCommands = nullptr;
-	u32 commandCount = FlushCommands(allocator, objectCommands);
+	RendererObjectStorage::FlushedCommands flushedCommands = FlushCommands(allocator);
+	const u32 commandCount = (u32)flushedCommands.Deallocations.Size() + (u32)flushedCommands.Allocations.Size();
 
 	auto* fullStorage = registry.TryGetStorage<ecs::RenderableDirty>();
 	auto* transformStorage = registry.TryGetStorage<ecs::RenderableTransformDirty>();
@@ -730,8 +727,7 @@ void* RenderableObjectStorageBase::SyncRead(ecs::Registry& registry, FrameAlloca
 		return nullptr;
 
 	auto* batchData = allocator.Construct<RenderableSyncBatch>();
-	batchData->Commands = objectCommands;
-	batchData->CommandCount = commandCount;
+	batchData->Commands = flushedCommands;
 
 	if(fullCount > 0)
 	{
@@ -775,43 +771,113 @@ void* RenderableObjectStorageBase::SyncRead(ecs::Registry& registry, FrameAlloca
 
 void RenderableObjectStorageBase::SyncWrite(void* rawData, FrameAllocator& allocator)
 {
-	auto* batch = static_cast<RenderableSyncBatch*>(rawData);
+	RenderableSyncBatch* batch = static_cast<RenderableSyncBatch*>(rawData);
 
-	if(batch->CommandCount > 0)
+	const RendererObjectStorage::FlushedCommands& commands = batch->Commands;
+
+	if(commands.Deallocations.Size() > 0 || commands.Allocations.Size() > 0)
+		ProcessCommands(commands.Deallocations, commands.Allocations);
+
+	if(commands.Deallocations.Data())
+		allocator.Free(reinterpret_cast<u8*>(const_cast<RendererIdCommand*>(commands.Deallocations.Data())));
+
+	if(commands.Allocations.Data())
+		allocator.Free(reinterpret_cast<u8*>(const_cast<RendererIdCommand*>(commands.Allocations.Data())));
+
+	// Upper-bound counts for batch arrays
+	const u32 fullUpdateCount = batch->Full.Count;
+	const u32 transformUpdateCount = batch->Transform.Count;
+
+	// Allocate batch arrays from the FrameAllocator
+	PackedRendererId* createRenderStateList = nullptr;
+	u32 createRenderStateCount = 0;
+
+	PackedRendererId* destroyRenderStateList = nullptr;
+	u32 destroyRenderStateCount = 0;
+
+	PackedRendererId* updateRenderStateList = nullptr;
+	u32 updateRenderStateCount = 0;
+
+	if(fullUpdateCount > 0)
 	{
-		ProcessCommands(batch->Commands, batch->CommandCount);
-		allocator.Free(reinterpret_cast<u8*>(batch->Commands));
+		createRenderStateList = reinterpret_cast<PackedRendererId*>(allocator.AllocateAligned(sizeof(PackedRendererId) * fullUpdateCount, alignof(PackedRendererId)));
+		destroyRenderStateList = reinterpret_cast<PackedRendererId*>(allocator.AllocateAligned(sizeof(PackedRendererId) * fullUpdateCount, alignof(PackedRendererId)));
 	}
 
-	batch->Full.Each(
-		[this](Renderable::FullSyncPacket& packet, RendererId objectId)
+	if(transformUpdateCount > 0)
+	{
+		updateRenderStateList = reinterpret_cast<PackedRendererId*>(allocator.AllocateAligned(sizeof(PackedRendererId) * transformUpdateCount, alignof(PackedRendererId)));
+	}
+
+	// Apply full sync packets, collect render state create/destroy actions
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	u32 fullUpdateForNewlyAddedObjectCount = 0;
+#endif
+
+	batch->Full.Each([this, createRenderStateList, &createRenderStateCount, destroyRenderStateList, &destroyRenderStateCount, &fullUpdateForNewlyAddedObjectCount](Renderable::FullSyncPacket& packet, RendererId objectId)
+	{
+		PackedRendererId rendererId = GetPackedRendererId(objectId);
+		if(rendererId == kInvalidPackedRendererId)
+			return;
+
+		RenderableAction action = ApplyPacket(packet, mRenderableProxies[rendererId], rendererId);
+		switch(action)
 		{
-			PackedRendererId rendererId = GetPackedRendererId(objectId);
-			if(rendererId == kInvalidPackedRendererId)
-				return;
+		case RenderableAction::Register:
+			createRenderStateList[createRenderStateCount++] = rendererId;
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			++fullUpdateForNewlyAddedObjectCount;
+#endif
+			break;
+		case RenderableAction::Reregister:
+			destroyRenderStateList[destroyRenderStateCount++] = rendererId;
+			createRenderStateList[createRenderStateCount++] = rendererId;
+			break;
+		}
+	});
 
-			render::RenderableProxy& proxy = mRenderableProxies[rendererId];
-			ApplyPacket(packet, proxy, rendererId);
-		});
+	// Apply transform packets, collect render update actions
+	batch->Transform.Each([&](Renderable::TransformSyncPacket& packet, RendererId objectId)
+	{
+		PackedRendererId rendererId = GetPackedRendererId(objectId);
+		if(rendererId == kInvalidPackedRendererId)
+			return;
 
-	batch->Transform.Each(
-		[this](Renderable::TransformSyncPacket& packet, RendererId objectId)
-		{
-			PackedRendererId rendererId = GetPackedRendererId(objectId);
-			if(rendererId == kInvalidPackedRendererId)
-				return;
+		render::RenderableProxy& proxy = mRenderableProxies[rendererId];
+		packet.ApplySyncData(&proxy);
 
-			render::RenderableProxy& proxy = mRenderableProxies[rendererId];
-			packet.ApplySyncData(&proxy);
+		proxy.mWorldTransformMatrix = proxy.mTransform.GetMatrix();
+		proxy.mWorldTransformMatrixWithoutScale = Matrix4::TRS(proxy.mTransform.GetPosition(), proxy.mTransform.GetRotation(), Vector3::kOne);
 
-			proxy.mWorldTransformMatrix = proxy.mTransform.GetMatrix();
-			proxy.mWorldTransformMatrixWithoutScale = Matrix4::TRS(proxy.mTransform.GetPosition(), proxy.mTransform.GetRotation(), Vector3::kOne);
+		updateRenderStateList[updateRenderStateCount++] = rendererId;
+	});
 
-			if(proxy.mActive)
-				Update(proxy, rendererId);
-		});
+	// Update render state in batches
+	if(destroyRenderStateCount > 0)
+		DestroyRenderState(TArrayView<const PackedRendererId>(destroyRenderStateList, destroyRenderStateCount));
+
+	if(createRenderStateCount > 0)
+		CreateRenderState(TArrayView<const PackedRendererId>(createRenderStateList, createRenderStateCount));
+
+	if(updateRenderStateCount > 0)
+		UpdateRenderState(TArrayView<const PackedRendererId>(updateRenderStateList, updateRenderStateCount));
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// Every new renderable must have also received a full sync packet
+	B3D_ASSERT(fullUpdateForNewlyAddedObjectCount == commands.Allocations.Size() && "Newly allocated RendererId missing full sync packet");
+#endif
+
+	if(updateRenderStateList)
+		allocator.Free(reinterpret_cast<u8*>(updateRenderStateList));
+
+	if(destroyRenderStateList)
+		allocator.Free(reinterpret_cast<u8*>(destroyRenderStateList));
+
+	if(createRenderStateList)
+		allocator.Free(reinterpret_cast<u8*>(createRenderStateList));
 
 	batch->Full.Free(allocator);
 	batch->Transform.Free(allocator);
+
 	allocator.Destruct(batch);
 }

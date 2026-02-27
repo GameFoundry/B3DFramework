@@ -26,6 +26,7 @@ namespace b3d
 		RendererId ObjectId;
 	};
 
+
 	/**
 	 * Replays renderer object ID allocation/deallocation commands on the render thread. This ensures the render thread can maintain packed arrays
 	 * of renderer objects, while the main thread can freely allocate/deallocate RendererId values without needing to know about slots or packed array management.
@@ -88,6 +89,83 @@ namespace b3d
 	}
 
 	/**
+	 * Processes provided Deallocate commands. Swaps the provided arrays so that all removed entries are moved to the tail of the arrays,
+	 * and returns the index past the last non-deallocated entry (logical size). This allows the caller to batch-notify and resize arrays
+	 * after processing all deallocations.
+	 *
+	 * @param commands			Array of deallocation commands to process.
+	 * @param sparseSlots		Sparse array mapping RendererId identifiers to PackedRendererId slots. This will be updated to point to new slots after swapping, and invalidated for removed entries.
+	 * @param denseToSparse		Dense array mapping PackedRendererId slots to RendererId values. This will be updated to point to new slots after swapping, and have removed entries swapped to the tail.
+	 * @param fnSwapped			Callable(PackedRendererId) — Called on each entry that was swapped into a new slot.
+	 * @param arrays			One or multiple packed arrays to swap. Must support operator[] and std::swap. These will be swapped according to the new slot positions.
+	 * @return					Index past the last non-deallocated entry (logical size). All entries at and past this index are deallocated and can be popped from @p sparseSlots and @p arrays.
+	 */
+	template<typename SwappedFn, typename... Arrays>
+	PackedRendererId ProcessRenderObjectDeallocations(TArrayView<const RendererIdCommand> commands, Vector<RendererId>& sparseSlots, Vector<RendererId>& denseToSparse, SwappedFn&& fnSwapped, Arrays&... arrays)
+	{
+		PackedRendererId logicalSize = (PackedRendererId)denseToSparse.size();
+
+		for(u32 commandIndex = 0; commandIndex < commands.Size(); ++commandIndex)
+		{
+			const RendererIdCommand& command = commands[commandIndex];
+			const u32 identifier = command.ObjectId.GetIdentifier();
+
+			B3D_ASSERT(identifier < (u32)sparseSlots.size());
+			B3D_ASSERT(sparseSlots[identifier].GetVersion() == command.ObjectId.GetVersion());
+
+			const PackedRendererId slotToRemove = (PackedRendererId)sparseSlots[identifier].GetIdentifier();
+
+			--logicalSize;
+			if(slotToRemove != logicalSize)
+			{
+				// Swap into the "to-be-removed" zone at the tail
+				(std::swap(arrays[slotToRemove], arrays[logicalSize]), ...);
+				std::swap(denseToSparse[slotToRemove], denseToSparse[logicalSize]);
+
+				// Update the swapped element's sparse entry to point to its new slot
+				const u32 swappedIdentifier = denseToSparse[slotToRemove].GetIdentifier();
+				sparseSlots[swappedIdentifier].Identifier = slotToRemove;
+
+				fnSwapped(slotToRemove);
+			}
+
+			// Invalidate the removed element's sparse entry
+			sparseSlots[identifier] = kInvalidRendererId;
+		}
+
+		return logicalSize;
+	}
+
+	/**
+	 * Processes provided Allocate commands, growing sparse/dense arrays and pushing default-constructed entries to the provided packed arrays.
+	 *
+	 * @param commands			Array of allocation commands to process.
+	 * @param sparseSlots		Sparse array mapping RendererId identifiers to PackedRendererId slots. This will be updated to point to new slots for allocated entries.
+	 * @param denseToSparse		Dense array mapping PackedRendererId slots to RendererId values. This will be appended with new entries for allocated objects.
+	 * @param arrays			One or multiple packed arrays to grow. Must support push_back with default-constructed value_type. These will be appended with default-constructed entries for allocated objects.
+	 */
+	template<typename... Arrays>
+	void ProcessRenderObjectAllocations(TArrayView<const RendererIdCommand> commands, Vector<RendererId>& sparseSlots, Vector<RendererId>& denseToSparse, Arrays&... arrays)
+	{
+		for(u32 commandIndex = 0; commandIndex < commands.Size(); ++commandIndex)
+		{
+			const RendererIdCommand& command = commands[commandIndex];
+			const u32 identifier = command.ObjectId.GetIdentifier();
+
+			const PackedRendererId newSlot = (PackedRendererId)denseToSparse.size();
+
+			// Grow sparse array if needed
+			if(identifier >= (u32)sparseSlots.size())
+				sparseSlots.resize(identifier + 1);
+
+			sparseSlots[identifier] = RendererId((RendererId::IdentifierType)newSlot, (RendererId::VersionType)command.ObjectId.GetVersion());
+
+			denseToSparse.push_back(command.ObjectId);
+			(arrays.push_back(typename std::remove_reference_t<decltype(arrays)>::value_type{}), ...);
+		}
+	}
+
+	/**
 	 * Provides render thread storage for renderer objects, and synchronization of object data from the main thread into that storage.
 	 *
 	 * On the main thread renderer objects are represented as ECS entities, with ECS fragments for storing data. On the render thread the objects are stored
@@ -95,10 +173,10 @@ namespace b3d
 	 * resolved on the render thread to packed PackedRendererId values for array access.
 	 *
 	 * # Allocating renderer object IDs
-	 * Renderer object IDs are allocated / deallocated from the main thread using AllocateRendererId / DeallocateRendererId. 
+	 * Renderer object IDs are allocated / deallocated from the main thread using AllocateRendererId / DeallocateRendererId.
 	 *
 	 * Since RendererId values are allocated/deallocated from the main thread, the render thread needs to be informed about which IDs were allocated/deallocated
-	 * so it can update its packed arrays to match. This is done via FLushCommands/ProcessCommands(), which replays the allocation/deallocation commands recorded by the main
+	 * so it can update its packed arrays to match. This is done via FlushCommands/ProcessCommands(), which replays the allocation/deallocation commands recorded by the main
 	 * thread on the render thread.
 	 *
 	 * It is expected for the main thread to call FlushCommands during SyncRead(), and render thread to call ProcessCommands during SyncWrite()
@@ -115,6 +193,13 @@ namespace b3d
 	{
 	public:
 		virtual ~RendererObjectStorage() = default;
+
+		/** Result of FlushCommands — views into FrameAllocator-backed deallocation and allocation command arrays. */
+		struct FlushedCommands
+		{
+			TArrayView<const RendererIdCommand> Deallocations;
+			TArrayView<const RendererIdCommand> Allocations;
+		};
 
 		/**
 		 * Allocates a persistent renderer object ID.
@@ -150,19 +235,24 @@ namespace b3d
 		}
 
 	protected:
-		/** Replays renderer object commands on the render thread, updating packed arrays. */
-		virtual void ProcessCommands(const RendererIdCommand* commands, u32 count) = 0;
-
 		/**
-		 * Consumes commands from the allocator and allocates a copy using the provided allocator.
-		 * Copy is to be passed to the render thread, to be replayed using ReplayRendererIdCommands.
+		 * Replays renderer object commands on the render thread, updating packed arrays.
+		 *
+		 * @param deallocations	Commands for objects deallocated this frame.
+		 * @param allocations	Commands for objects allocated this frame.
 		 */
-		u32 FlushCommands(FrameAllocator& allocator, RendererIdCommand*& outCommands);
+		virtual void ProcessCommands(TArrayView<const RendererIdCommand> deallocations, TArrayView<const RendererIdCommand> allocations) = 0;
 
+		/** Consumes pending allocations and deallocations, returning views into FrameAllocator-backed arrays. */
+		FlushedCommands FlushCommands(FrameAllocator& allocator);
+
+		// Main thread
 		RendererIdAllocator mObjectIdAllocator;
-		TArray<RendererIdCommand> mCommandBuffers[2];
-		u32 mActiveBuffer = 0;
 
+		TUnorderedSet<RendererId> mPendingAllocations; /**< Allocations this frame, not yet flushed. */
+		TArray<RendererId> mDeallocations; /**< Deallocations this frame, not yet flushed. */
+
+		// Render thread
 		Vector<RendererId> mSparseSlots; /**< RendererId -> PackedRendererId. */
 		Vector<RendererId> mDenseToSparse; /**< PackedRendererId -> RendererId. */
 	};
