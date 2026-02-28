@@ -15,8 +15,8 @@ void GUIMouseEvent::SetMouseOverData(const GUIPhysicalPoint& position)
 	mType = GUIMouseEventType::MouseOver;
 	mPosition = position;
 	mButton = GUIMouseButton::Left;
-	mDragAmount = GUIPhysicalPoint(BsZero);
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = 0.0f;
 }
 
@@ -25,8 +25,8 @@ void GUIMouseEvent::SetMouseOutData(const GUIPhysicalPoint& position)
 	mType = GUIMouseEventType::MouseOut;
 	mPosition = position;
 	mButton = GUIMouseButton::Left;
-	mDragAmount = GUIPhysicalPoint(BsZero);
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = 0.0f;
 }
 
@@ -35,18 +35,18 @@ void GUIMouseEvent::SetMouseMoveData(const GUIPhysicalPoint& position)
 	mType = GUIMouseEventType::MouseMove;
 	mPosition = position;
 	mButton = GUIMouseButton::Left;
-	mDragAmount = GUIPhysicalPoint(BsZero);
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = 0.0f;
 }
 
 void GUIMouseEvent::SetMouseWheelScrollData(float scrollAmount)
 {
 	mType = GUIMouseEventType::MouseWheelScroll;
-	mPosition = GUIPhysicalPoint(BsZero);
+	mPosition = GUIPhysicalPoint(kZeroTag);
 	mButton = GUIMouseButton::Left;
-	mDragAmount = GUIPhysicalPoint(BsZero);
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = scrollAmount;
 }
 
@@ -55,8 +55,8 @@ void GUIMouseEvent::SetMouseUpData(const GUIPhysicalPoint& position, GUIMouseBut
 	mType = GUIMouseEventType::MouseUp;
 	mPosition = position;
 	mButton = button;
-	mDragAmount = GUIPhysicalPoint(BsZero);
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = 0.0f;
 }
 
@@ -65,8 +65,8 @@ void GUIMouseEvent::SetMouseDownData(const GUIPhysicalPoint& position, GUIMouseB
 	mType = GUIMouseEventType::MouseDown;
 	mPosition = position;
 	mButton = button;
-	mDragAmount = GUIPhysicalPoint(BsZero);
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = 0.0f;
 }
 
@@ -75,8 +75,8 @@ void GUIMouseEvent::SetMouseDoubleClickData(const GUIPhysicalPoint& position, GU
 	mType = GUIMouseEventType::MouseDoubleClick;
 	mPosition = position;
 	mButton = button;
-	mDragAmount = GUIPhysicalPoint(BsZero);
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = 0.0f;
 }
 
@@ -86,7 +86,7 @@ void GUIMouseEvent::SetMouseDragData(const GUIPhysicalPoint& position, const GUI
 	mPosition = position;
 	mButton = GUIMouseButton::Left;
 	mDragAmount = dragAmount;
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = 0.0f;
 }
 
@@ -95,7 +95,7 @@ void GUIMouseEvent::SetMouseDragStartData(const GUIPhysicalPoint& position, cons
 	mType = GUIMouseEventType::MouseDragStart;
 	mPosition = position;
 	mButton = GUIMouseButton::Left;
-	mDragAmount = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
 	mDragStartPosition = dragStartPosition;
 	mWheelScrollAmount = 0.0f;
 }
@@ -105,8 +105,8 @@ void GUIMouseEvent::SetMouseDragEndData(const GUIPhysicalPoint& position)
 	mType = GUIMouseEventType::MouseDragEnd;
 	mPosition = position;
 	mButton = GUIMouseButton::Left;
-	mDragAmount = GUIPhysicalPoint(BsZero);
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = 0.0f;
 }
 
@@ -115,8 +115,8 @@ void GUIMouseEvent::SetDragAndDropDroppedData(const GUIPhysicalPoint& position, 
 	mType = GUIMouseEventType::MouseDragAndDropDropped;
 	mPosition = position;
 	mButton = GUIMouseButton::Left;
-	mDragAmount = GUIPhysicalPoint(BsZero);
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = 0.0f;
 	mDragAndDropData = dragAndDropData;
 }
@@ -126,8 +126,8 @@ void GUIMouseEvent::SetDragAndDropDraggedData(const GUIPhysicalPoint& position, 
 	mType = GUIMouseEventType::MouseDragAndDropDragged;
 	mPosition = position;
 	mButton = GUIMouseButton::Left;
-	mDragAmount = GUIPhysicalPoint(BsZero);
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = 0.0f;
 	mDragAndDropData = dragAndDropData;
 }
@@ -137,8 +137,8 @@ void GUIMouseEvent::SetDragAndDropLeftData(const GUIPhysicalPoint& position, con
 	mType = GUIMouseEventType::MouseDragAndDropLeft;
 	mPosition = position;
 	mButton = GUIMouseButton::Left;
-	mDragAmount = GUIPhysicalPoint(BsZero);
-	mDragStartPosition = GUIPhysicalPoint(BsZero);
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
 	mWheelScrollAmount = 0.0f;
 	mDragAndDropData = dragAndDropData;
 }

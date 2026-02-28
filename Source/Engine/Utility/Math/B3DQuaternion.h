@@ -32,12 +32,12 @@ namespace b3d
 		constexpr TQuaternion& operator=(const TQuaternion&) = default;
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		constexpr TQuaternion(BS_ZERO zero)
+		constexpr TQuaternion(ZeroTag zero)
 			: X((T)0.0), Y((T)0.0), Z((T)0.0), W((T)0.0)
 		{}
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		constexpr TQuaternion(BS_IDENTITY)
+		constexpr TQuaternion(IdentityTag)
 			: X((T)0.0), Y((T)0.0), Z((T)0.0), W((T)1.0)
 		{}
 

@@ -485,7 +485,7 @@ void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, con
 			B3D_ASSERT(layer.StateCount > 0);
 		}
 
-		Matrix4 invRootTransform(BsIdentity);
+		Matrix4 invRootTransform(kIdentityTag);
 		for(u32 sceneObjectIndex = 0; sceneObjectIndex < SceneObjectCount; sceneObjectIndex++)
 		{
 			if(sceneObjects[sceneObjectIndex].CurveName.empty())
@@ -588,7 +588,7 @@ void AnimationProxy::UpdateMorphChannelWeights(const Vector<float>& weights)
 
 void AnimationProxy::UpdateTransforms(const Vector<SceneObjectMappingCurveInfo>& sceneObjects)
 {
-	Matrix4 invRootTransform(BsIdentity);
+	Matrix4 invRootTransform(kIdentityTag);
 	for(u32 sceneObjectIndex = 0; sceneObjectIndex < SceneObjectCount; sceneObjectIndex++)
 	{
 		if(sceneObjects[sceneObjectIndex].CurveName.empty())

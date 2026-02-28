@@ -53,7 +53,7 @@ TVector3<T> TAABox<T>::GetCorner(Corner cornerToGet) const
 	case NearRightTop:
 		return Maximum;
 	default:
-		return TVector3<T>(BsZero);
+		return TVector3<T>(kZeroTag);
 	}
 }
 
@@ -213,7 +213,7 @@ std::pair<bool, T> TAABox<T>::Intersects(const TRay<T>& ray) const
 	T lowt = (T)0.0;
 	T t;
 	bool hit = false;
-	TVector3<T> hitpoint(BsZero);
+	TVector3<T> hitpoint(kZeroTag);
 	const TVector3<T>& min = Minimum;
 	const TVector3<T>& max = Maximum;
 	const TVector3<T>& rayorig = ray.Origin;

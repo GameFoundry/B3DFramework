@@ -28,7 +28,7 @@ namespace b3d
 		HWND Parent = nullptr; /**< Optional handle to the parent window if this window is to be a child of an existing window. */
 		HWND External = nullptr; /**< Optional external window handle if the window was created externally. */
 		void* CreationParams = nullptr; /**< Parameter that will be passed through the WM_CREATE message. */
-		Size2I Size{BsZero}; /**< Size of the window area in pixels. This is client area if OuterDimensions if false, otherwise full window area. */
+		Size2I Size{kZeroTag}; /**< Size of the window area in pixels. This is client area if OuterDimensions if false, otherwise full window area. */
 		bool Fullscreen = false; /**< Should the window be opened in fullscreen mode. */
 		bool Hidden = false; /**< Should the window be hidden initially. */
 		Vector2I Position{-1, -1}; /**< Position of the top-left corner of the window in pixels. -1 == screen center. Relative to provided monitor. This is position of the client area if OuterDimensions is false, otherwise position of the full window area. */

@@ -124,8 +124,8 @@ void GUIContentSprites::BuildRenderElements(const GUIContentSpriteCreateInformat
 	Area2 textBounds;
 	Area2 imageBounds;
 
-	Area2I textSpriteBounds = isContentTextAvailable ? mContentTextSprite.GetBounds(Vector2I(BsZero), Area2I()) : Area2I();
-	Area2I contentImageSpriteBounds = isContentImageAvailable ? mContentImageSprite.GetBounds(Vector2I(BsZero), Area2I()) : Area2I();
+	Area2I textSpriteBounds = isContentTextAvailable ? mContentTextSprite.GetBounds(Vector2I(kZeroTag), Area2I()) : Area2I();
+	Area2I contentImageSpriteBounds = isContentImageAvailable ? mContentImageSprite.GetBounds(Vector2I(kZeroTag), Area2I()) : Area2I();
 
 	CalculateContentBounds(contentArea, Size2UI(contentImageSpriteBounds.Width, contentImageSpriteBounds.Height), Size2UI(textSpriteBounds.Width, textSpriteBounds.Height), GUIImagePosition::Left, textBounds, imageBounds);
 

@@ -93,15 +93,15 @@ namespace b3d
 	};
 
 	/** Enum used for object construction specifying the object should be zero initialized. */
-	enum BS_ZERO
+	enum ZeroTag
 	{
-		BsZero
+		kZeroTag
 	};
 
 	/** Enum used for matrix/quaternion constructor specifying it should be initialized with an identity value. */
-	enum BS_IDENTITY
+	enum IdentityTag
 	{
-		BsIdentity
+		kIdentityTag
 	};
 
 	template<typename T> struct TVector3I;

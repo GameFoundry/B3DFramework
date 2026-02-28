@@ -101,8 +101,8 @@ namespace b3d
 		bool mUseOverrideBounds = false;
 		bool mWriteVelocity = true;
 		float mCullDistanceFactor = 1.0f;
-		Matrix4 mWorldTransformMatrix = BsIdentity;
-		Matrix4 mWorldTransformMatrixWithoutScale = BsIdentity;
+		Matrix4 mWorldTransformMatrix = kIdentityTag;
+		Matrix4 mWorldTransformMatrixWithoutScale = kIdentityTag;
 		RenderableAnimType mAnimType = RenderableAnimType::None;
 	};
 

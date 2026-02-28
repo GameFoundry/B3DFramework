@@ -45,7 +45,7 @@ void GUISliderHandle::UpdateRenderElements()
 {
 	mRenderElements.Clear();
 
-	Vector2I offset(BsZero);
+	Vector2I offset(kZeroTag);
 	Size2UI size;
 
 	GUIPhysicalUnit handleSize = GetHandleSizeInPixels();

@@ -189,8 +189,8 @@ namespace b3d
 		HRigidbody mParentRigidbody;
 
 		// TODO - Remove. Just directly use SO position/rotation and remove special handling for rigibodies in CCollider & ColliderShape UpdateTransform
-		Vector3 mAdjustedPosition{BsZero};
-		Quaternion mAdjustedRotation{BsIdentity};
+		Vector3 mAdjustedPosition{kZeroTag};
+		Quaternion mAdjustedRotation{kIdentityTag};
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

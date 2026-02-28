@@ -21,7 +21,7 @@ namespace b3d
 		constexpr TVector2() = default;
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		constexpr TVector2(BS_ZERO)
+		constexpr TVector2(ZeroTag)
 			: X(static_cast<T>(0)), Y(static_cast<T>(0))
 		{}
 
@@ -374,10 +374,10 @@ namespace b3d
 		static const TVector2 kUnitY;
 	};
 
-	template<> const TVector2<float> TVector2<float>::kZero{BsZero};
-	template<> const TVector2<double> TVector2<double>::kZero{BsZero};
-	template<> const TVector2<i32> TVector2<i32>::kZero{BsZero};
-	template<> const TVector2<u32> TVector2<u32>::kZero{BsZero};
+	template<> const TVector2<float> TVector2<float>::kZero{kZeroTag};
+	template<> const TVector2<double> TVector2<double>::kZero{kZeroTag};
+	template<> const TVector2<i32> TVector2<i32>::kZero{kZeroTag};
+	template<> const TVector2<u32> TVector2<u32>::kZero{kZeroTag};
 
 	template<> const TVector2<float> TVector2<float>::kOne{1.0f, 1.0f};
 	template<> const TVector2<double> TVector2<double>::kOne{1.0, 1.0};

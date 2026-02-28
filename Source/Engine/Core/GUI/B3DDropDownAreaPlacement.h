@@ -104,7 +104,7 @@ namespace b3d
 	private:
 		Type mType;
 		TArea2<PositionType, SizeType> mBounds;
-		TVector2<PositionType> mPosition{BsZero};
+		TVector2<PositionType> mPosition{kZeroTag};
 	};
 
 	/** @} */

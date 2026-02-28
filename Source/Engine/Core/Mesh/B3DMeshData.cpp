@@ -340,7 +340,7 @@ u32 MeshData::GetStreamSize() const
 
 Bounds MeshData::CalculateBounds() const
 {
-	Bounds bounds(BsZero);
+	Bounds bounds(kZeroTag);
 
 	SPtr<VertexDescription> vertexDescription = GetVertexDescription();
 	for(u32 elementIndex = 0; elementIndex < vertexDescription->GetElementCount(); elementIndex++)

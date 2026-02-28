@@ -1526,7 +1526,7 @@ namespace b3d
 
 			ShadowCascadedMap& shadowMap = mCascadedShadowMaps[shadowInfo.TextureIdx];
 
-			Quaternion lightRotation(BsIdentity);
+			Quaternion lightRotation(kIdentityTag);
 			lightRotation.LookRotation(lightDir, Vector3::kUnitY);
 
 			ProfileGPUBlock profileSample(commandBuffer, "Project directional light shadow");

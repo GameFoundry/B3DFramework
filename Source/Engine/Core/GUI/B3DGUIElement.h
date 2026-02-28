@@ -522,13 +522,13 @@ namespace b3d
 		GUILayoutData mLayoutData; /**< Relative position (to parent), size, depth and other information, calculated during a layout update. */
 
 		// Data calculated by absolute coordinate pass
-		GUIPhysicalPoint mAbsolutePosition{BsZero}; /**< Absolute position of the GUI element (relative to parent GUI widget). Only valid after layout update & absolute coordinate update. */
-		GUIPhysicalSize mAbsoluteSize{BsZero}; /**< Final size to use for the element. Same as GUILayoutData::Size, scaled by GUI element scale. */
+		GUIPhysicalPoint mAbsolutePosition{kZeroTag}; /**< Absolute position of the GUI element (relative to parent GUI widget). Only valid after layout update & absolute coordinate update. */
+		GUIPhysicalSize mAbsoluteSize{kZeroTag}; /**< Final size to use for the element. Same as GUILayoutData::Size, scaled by GUI element scale. */
 		float mAbsoluteScale = 1.0f; /**< Combined local and parent scale. */
 		GUIPhysicalArea mAbsoluteClippedArea; /**< Absolute area of the GUI element as clipped by the parent visible bounds (e.g. if a parent is a scroll area). Only valid after layout update & absolute coordinate update. */
 
 		// Keep floating point copies of absolute position & clipped area in case we need to update child absolute positions, so we don't lose precision from converting to integer at every child
-		GUIPhysicalPointF mIntermediateAbsolutePosition{BsZero};
+		GUIPhysicalPointF mIntermediateAbsolutePosition{kZeroTag};
 		GUIPhysicalAreaF mIntermediateAbsoluteClippedArea;
 
 		/************************************************************************/

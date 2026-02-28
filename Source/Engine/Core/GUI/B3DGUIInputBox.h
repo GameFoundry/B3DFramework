@@ -152,7 +152,7 @@ namespace b3d
 		GUIBackgroundSprite mBackgroundSprite;
 		GUIContentSprites mTextSprite;
 		bool mIsMultiline;
-		GUIPhysicalPoint mTextOffset{BsZero};
+		GUIPhysicalPoint mTextOffset{kZeroTag};
 		bool mHasFocus = false;
 		u64 mFocusGainedFrame = (u64)-1;
 		bool mIsMouseOver = false;

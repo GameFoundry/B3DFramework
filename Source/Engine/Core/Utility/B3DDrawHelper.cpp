@@ -154,7 +154,7 @@ void DrawHelper::LineList(const Vector<Vector3>& lines)
 	mLineListData.push_back(LineListData());
 	LineListData& lineListData = mLineListData.back();
 
-	Vector3 center(BsZero);
+	Vector3 center(kZeroTag);
 	for(auto& point : lines)
 		center += point;
 

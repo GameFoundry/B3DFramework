@@ -129,7 +129,7 @@ namespace b3d
 		constexpr TSize3() = default;
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		constexpr TSize3(BS_ZERO)
+		constexpr TSize3(ZeroTag)
 			: Width((T)0), Height((T)0), Depth((T)0)
 		{}
 
@@ -140,8 +140,8 @@ namespace b3d
 		static const TSize3 kZero;
 	};
 
-	template<> const TSize3<u32> TSize3<u32>::kZero{BsZero};
-	template<> const TSize3<float> TSize3<float>::kZero{BsZero};
+	template<> const TSize3<u32> TSize3<u32>::kZero{kZeroTag};
+	template<> const TSize3<float> TSize3<float>::kZero{kZeroTag};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Size3)) TSize3<float>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Size3UI)) TSize3<u32>;

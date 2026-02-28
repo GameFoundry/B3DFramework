@@ -801,7 +801,7 @@ void GUIInputBox::ScrollTextToCaret()
 	GUIPhysicalUnit caretRight = caretPos.X + caretWidth;
 	GUIPhysicalUnit caretBottom = caretPos.Y + caretHeight;
 
-	GUIPhysicalPoint offset{BsZero};
+	GUIPhysicalPoint offset{kZeroTag};
 	if(caretPos.X < left)
 	{
 		offset.X = left - caretPos.X;

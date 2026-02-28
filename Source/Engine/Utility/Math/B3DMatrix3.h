@@ -30,13 +30,13 @@ namespace b3d
 		constexpr TMatrix3(const TMatrix3&) = default;
 		constexpr TMatrix3& operator=(const TMatrix3&) = default;
 
-		constexpr TMatrix3(BS_ZERO)
+		constexpr TMatrix3(ZeroTag)
 			: m{ { (T)0.0, (T)0.0, (T)0.0 },
 				 { (T)0.0, (T)0.0, (T)0.0 },
 				 { (T)0.0, (T)0.0, (T)0.0 } }
 		{}
 
-		constexpr TMatrix3(BS_IDENTITY)
+		constexpr TMatrix3(IdentityTag)
 			: m{ { (T)1.0, (T)0.0, (T)0.0 },
 				 { (T)0.0, (T)1.0, (T)0.0 },
 				 { (T)0.0, (T)0.0, (T)1.0 } }
@@ -287,10 +287,10 @@ namespace b3d
 		T m[3][3];
 	};
 
-	template<> const TMatrix3<float> TMatrix3<float>::kZero{BsZero};
-	template<> const TMatrix3<double> TMatrix3<double>::kZero{BsZero};
-	template<> const TMatrix3<float> TMatrix3<float>::kIdentity{BsIdentity};
-	template<> const TMatrix3<double> TMatrix3<double>::kIdentity{BsIdentity};
+	template<> const TMatrix3<float> TMatrix3<float>::kZero{kZeroTag};
+	template<> const TMatrix3<double> TMatrix3<double>::kZero{kZeroTag};
+	template<> const TMatrix3<float> TMatrix3<float>::kIdentity{kIdentityTag};
+	template<> const TMatrix3<double> TMatrix3<double>::kIdentity{kIdentityTag};
 
 	/** @} */
 } // namespace b3d

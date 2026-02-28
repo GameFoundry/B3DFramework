@@ -41,7 +41,7 @@ GUIElementContainer::GUIElementContainer(const GUISizeConstraints& dimensions, c
 
 GUILogicalSize GUIElementContainer::CalculateUnconstrainedOptimalSize() const
 {
-	return GUILogicalSize(BsZero);
+	return GUILogicalSize(kZeroTag);
 }
 
 void GUIElementContainer::SetFocus(bool enabled, bool clear)

@@ -496,10 +496,10 @@ namespace b3d
 
 		bool mFrustumExtentsManuallySet = false; /**< Are frustum extents manually set. */
 
-		mutable Matrix4 mProjMatrixRS = BsZero; /**< Cached render-system specific projection matrix. */
-		mutable Matrix4 mProjMatrix = BsZero; /**< Cached projection matrix that determines how are 3D points projected to a 2D viewport. */
+		mutable Matrix4 mProjMatrixRS = kZeroTag; /**< Cached render-system specific projection matrix. */
+		mutable Matrix4 mProjMatrix = kZeroTag; /**< Cached projection matrix that determines how are 3D points projected to a 2D viewport. */
 
-		mutable Matrix4 mViewMatrix = BsZero; /**< Cached view matrix that determines camera position/orientation. */
+		mutable Matrix4 mViewMatrix = kZeroTag; /**< Cached view matrix that determines camera position/orientation. */
 		mutable bool mRecalcView : 1; /**< Should view matrix be recalculated. */
 
 		mutable ConvexVolume mFrustum; /**< Main clipping planes describing cameras visible area. */

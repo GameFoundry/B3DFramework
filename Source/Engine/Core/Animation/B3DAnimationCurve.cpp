@@ -206,19 +206,19 @@ static float GetZero<float>()
 template <>
 static Vector3 GetZero<Vector3>()
 {
-	return Vector3(BsZero);
+	return Vector3(kZeroTag);
 }
 
 template <>
 static Vector2 GetZero<Vector2>()
 {
-	return Vector2(BsZero);
+	return Vector2(kZeroTag);
 }
 
 template <>
 static Quaternion GetZero<Quaternion>()
 {
-	return Quaternion(BsZero);
+	return Quaternion(kZeroTag);
 }
 
 template <>

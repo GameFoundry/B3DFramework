@@ -373,11 +373,11 @@ namespace b3d
 		GUIInputCaret* mInputCaret = nullptr;
 		GUIInputSelection* mInputSelection = nullptr;
 
-		Vector2I mLastPointerScreenPos{BsZero};
+		Vector2I mLastPointerScreenPos{kZeroTag};
 
 		DragState mDragState = DragState::NoDrag;
-		GUIPhysicalPoint mLastPointerClickPos{BsZero};
-		GUIPhysicalPoint mDragStartPos{BsZero};
+		GUIPhysicalPoint mLastPointerClickPos{kZeroTag};
+		GUIPhysicalPoint mDragStartPos{kZeroTag};
 
 		GUIMouseEvent mMouseEvent;
 		GUITextInputEvent mTextInputEvent;

@@ -21,8 +21,8 @@ namespace b3d
 		constexpr TBounds() = default;
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		constexpr TBounds(BS_ZERO)
-			: mCenter(BsZero), mBoxExtents(BsZero), mSphereRadius((T)0.0)
+		constexpr TBounds(ZeroTag)
+			: mCenter(kZeroTag), mBoxExtents(kZeroTag), mSphereRadius((T)0.0)
 		{}
 
 		constexpr TBounds(const TVector3<T>& center, const TVector3<T>& boxExtents, T sphereRadius)
@@ -63,13 +63,13 @@ namespace b3d
 		static const TBounds<T> kUnit;
 		static const TBounds<T> kInfinite;
 	protected:
-		TVector3<T> mCenter = BsZero;
-		TVector3<T> mBoxExtents = BsZero;
+		TVector3<T> mCenter = kZeroTag;
+		TVector3<T> mBoxExtents = kZeroTag;
 		T mSphereRadius = (T)0.0;
 	};
 
-	template<> const TBounds<float> TBounds<float>::kEmpty = TBounds(BsZero);
-	template<> const TBounds<double> TBounds<double>::kEmpty = TBounds(BsZero);
+	template<> const TBounds<float> TBounds<float>::kEmpty = TBounds(kZeroTag);
+	template<> const TBounds<double> TBounds<double>::kEmpty = TBounds(kZeroTag);
 
 	template<> const TBounds<float> TBounds<float>::kUnit = TBounds(TVector3<float>::kZero, TVector3<float>::kOne / 2.0f, 1.0f);
 	template<> const TBounds<double> TBounds<double>::kUnit = TBounds(TVector3<double>::kZero, TVector3<double>::kOne / 2.0, 1.0);

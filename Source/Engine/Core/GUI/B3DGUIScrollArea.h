@@ -190,11 +190,11 @@ namespace b3d
 		bool mRecalculateVerticalOffset = false;
 		bool mRecalculateHorizontalOffset = false;
 		bool mDragInProgress = false;
-		GUIPhysicalPoint mDragStartPosition{BsZero};
-		GUIPhysicalPoint mDragStartOffset{BsZero};
+		GUIPhysicalPoint mDragStartPosition{kZeroTag};
+		GUIPhysicalPoint mDragStartOffset{kZeroTag};
 
-		GUILogicalSize mVisibleSize{BsZero};
-		GUILogicalSize mContentSize{BsZero};
+		GUILogicalSize mVisibleSize{kZeroTag};
+		GUILogicalSize mContentSize{kZeroTag};
 
 		Vector<GUIConstrainedSizeRange> mChildSizeRanges;
 		GUIConstrainedSizeRange mSizeRange;

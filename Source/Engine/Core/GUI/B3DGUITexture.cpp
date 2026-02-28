@@ -67,7 +67,7 @@ void GUITexture::UpdateRenderElements()
 	mRenderElements.clear();
 	GUISpriteHelper::BuildSpriteRenderElements(*this, GUIElementState::Normal, mBackgroundSprite);
 
-	Size2I textureSize(BsZero);
+	Size2I textureSize(kZeroTag);
 	if(mActiveImage.IsLoaded())
 	{
 		mImageSpriteInformation.Image = mActiveImage;
@@ -103,7 +103,7 @@ void GUITexture::UpdateRenderElements()
 			((i32)mAbsoluteSize.Height - destinationSize.Height) / 2);
 	}
 	else
-		imageSpriteOffset = Vector2I(BsZero);
+		imageSpriteOffset = Vector2I(kZeroTag);
 
 	mImageSpriteInformation.Size = destinationSize;
 	mImageSpriteInformation.Transparent = mTransparent;

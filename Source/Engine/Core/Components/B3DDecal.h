@@ -113,8 +113,8 @@ namespace b3d
 		void MarkCoreObjectDependenciesDirty();
 
 		MaterialType mMaterial;
-		Matrix4 mWorldTransformMatrix = BsIdentity;
-		Matrix4 mWorldTransformMatrixWithoutScale = BsIdentity;
+		Matrix4 mWorldTransformMatrix = kIdentityTag;
+		Matrix4 mWorldTransformMatrixWithoutScale = kIdentityTag;
 
 		Vector2 mSize = Vector2::kOne;
 		float mMaxDistance = 10.0f;

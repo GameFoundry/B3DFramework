@@ -397,7 +397,7 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 
 		const Tetrahedron& volume = mTetrahedronInfos[i].Volume;
 
-		Vector3 center(BsZero);
+		Vector3 center(kZeroTag);
 		for(u32 j = 0; j < 4; j++)
 			center += mTempTetrahedronPositions[volume.Vertices[j]];
 
@@ -497,7 +497,7 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 		static const u32 kPermutations[2][3] = { { 0, 1, 2 }, { 3, 4, 5 } };
 
 		// Make sure the triangle is clockwise, facing away from the center
-		Vector3 center(BsZero);
+		Vector3 center(kZeroTag);
 		for(u32 k = 0; k < 3; k++)
 		{
 			center += mTempTetrahedronPositions[entry.InnerVertices[k]];
@@ -556,7 +556,7 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 			const TetrahedronFaceData& face = outerFaces[edge.Face[i]];
 
 			// Make sure the triangle is clockwise, facing away from the center
-			Vector3 center(BsZero);
+			Vector3 center(kZeroTag);
 			for(u32 k = 0; k < 3; k++)
 			{
 				center += mTempTetrahedronPositions[face.InnerVertices[k]];
@@ -622,7 +622,7 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 		// Make sure the triangle is clockwise, facing toward the center
 		const Tetrahedron& tet = mTetrahedronInfos[entry.Tetrahedron].Volume;
 
-		Vector3 center(BsZero);
+		Vector3 center(kZeroTag);
 		for(u32 j = 0; j < 4; j++)
 			center += mTempTetrahedronPositions[tet.Vertices[j]];
 
@@ -887,7 +887,7 @@ void LightProbes::GenerateTetrahedronData(Vector<Vector3>& positions, Vector<Tet
 				// Make sure the normal is facing away from the center
 				const Tetrahedron& tet = volume.Tetrahedra[volume.OuterFaces[i].Tetrahedron];
 
-				Vector3 center(BsZero);
+				Vector3 center(kZeroTag);
 				for(u32 j = 0; j < 4; j++)
 					center += positions[tet.Vertices[j]];
 

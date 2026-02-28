@@ -82,8 +82,8 @@ namespace b3d
 		void ApplyClip();
 
 		TResourceHandle<OAAudioClip> mAudioClip;
-		Vector3 mPosition = BsZero;
-		Vector3 mVelocity = BsZero;
+		Vector3 mPosition = kZeroTag;
+		Vector3 mVelocity = kZeroTag;
 		float mVolume = 1.0f;
 		float mPitch = 1.0f;
 		bool mLoop = false;

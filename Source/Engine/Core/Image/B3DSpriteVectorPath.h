@@ -115,7 +115,7 @@ namespace b3d
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		HVectorPath mVectorPath;
-		Size2I mDefaultSize{BsZero};
+		Size2I mDefaultSize{kZeroTag};
 		VectorGraphicsRasterizationScaling mScalingMode = VectorGraphicsRasterizationScaling::StretchToFit;
 
 		/************************************************************************/

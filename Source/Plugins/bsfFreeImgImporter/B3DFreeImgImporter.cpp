@@ -429,7 +429,7 @@ SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
  */
 void ReadCubemapList(const SPtr<PixelData>& source, std::array<SPtr<PixelData>, 6>& output, u32 faceSize, bool vertical)
 {
-	Vector2I faceStart(BsZero);
+	Vector2I faceStart(kZeroTag);
 	for(u32 i = 0; i < 6; i++)
 	{
 		output[i] = PixelData::Create(faceSize, faceSize, 1, source->GetFormat());

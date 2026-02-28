@@ -34,8 +34,8 @@ namespace b3d
 		/** Returns the center point along the line segment. */
 		TVector3<T> GetCenter() const { return Start + (End - Start) * (T)0.5; }
 
-		TVector3<T> Start = BsZero;
-		TVector3<T> End = BsZero;
+		TVector3<T> Start = kZeroTag;
+		TVector3<T> End = kZeroTag;
 	};
 
 	/** @} */

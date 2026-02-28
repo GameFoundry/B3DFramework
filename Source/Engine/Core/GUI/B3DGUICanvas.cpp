@@ -367,7 +367,7 @@ void GUICanvas::FillBuffer(
 			u8* uvDestination = uvs + startVertex * vertexStride;
 			u32* indexDestination = indices + startIndex;
 
-			Vector2 zeroUV(BsZero);
+			Vector2 zeroUV(kZeroTag);
 			for(u32 vertexIndex = 0; vertexIndex < element.ClippedVertexCount; vertexIndex++)
 			{
 				memcpy(vertexDestination, &mClippedVertices[element.ClippedVertexStart + vertexIndex], sizeof(Vector2));
@@ -424,7 +424,7 @@ void GUICanvas::BuildImageElement(const CanvasElement& element)
 	imageSpriteInformation.Transparent = true;
 	imageSpriteInformation.Color = element.Color;
 
-	Size2I textureSize(BsZero);
+	Size2I textureSize(kZeroTag);
 	if(imageData.Image.IsLoaded())
 	{
 		imageSpriteInformation.Image = imageData.Image;

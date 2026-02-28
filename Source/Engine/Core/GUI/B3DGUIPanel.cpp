@@ -77,8 +77,8 @@ void GUIPanel::UpdateOptimalLayoutSizes()
 	if(mChildren.size() != mChildConstrainedSizeRanges.size())
 		mChildConstrainedSizeRanges.resize(mChildren.size());
 
-	GUILogicalSize optimalSize(BsZero);
-	GUILogicalSize minimumSize(BsZero);
+	GUILogicalSize optimalSize(kZeroTag);
+	GUILogicalSize minimumSize(kZeroTag);
 
 	u32 childIndex = 0;
 	for(auto& child : mChildren)

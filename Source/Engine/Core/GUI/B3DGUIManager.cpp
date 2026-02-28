@@ -429,7 +429,7 @@ void GUIManager::OnMouseDragEnded(const PointerEvent& event, DragCallbackInfo& d
 		const GUIPhysicalPoint screenPosition = event.ScreenPos.To<GUIPhysicalUnit>();
 		for(auto& elementInfo : mElementsUnderPointer)
 		{
-			GUIPhysicalPoint localPos(BsZero);
+			GUIPhysicalPoint localPos(kZeroTag);
 
 			if(elementInfo.Widget != nullptr)
 				localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
@@ -1267,7 +1267,7 @@ void GUIManager::OnMouseLeftWindow(RenderWindow& win)
 		// Send MouseOut event
 		if(mActiveElements.size() == 0 || found != mActiveElements.end())
 		{
-			GUIPhysicalPoint localPos = GetWidgetRelativePos(widget, GUIPhysicalPoint(BsZero));
+			GUIPhysicalPoint localPos = GetWidgetRelativePos(widget, GUIPhysicalPoint(kZeroTag));
 
 			mMouseEvent.SetMouseOutData(localPos);
 			SendMouseEvent(element, mMouseEvent);
@@ -1355,7 +1355,7 @@ GUIPhysicalPoint GUIManager::GetWidgetRelativePos(const GUIWidget* widget, const
 
 	const RenderWindow* window = GetWidgetWindow(*widget);
 	if(window == nullptr)
-		return GUIPhysicalPoint(BsZero);
+		return GUIPhysicalPoint(kZeroTag);
 
 	GUIPhysicalPoint windowPos = window->ScreenToWindowPosition(screenPos.To<i32>()).To<GUIPhysicalUnit>();
 	windowPos = WindowToBridgedCoords(widget->GetTarget()->GetTarget(), windowPos);

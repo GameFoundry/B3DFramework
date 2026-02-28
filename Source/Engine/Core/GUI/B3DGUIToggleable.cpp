@@ -137,7 +137,7 @@ GUILogicalSize GUIToggleable::CalculateCheckmarkContentAreaSize(const GUILogical
 	const GUILogicalArea elementContentArea = GUIUtility::RemovePaddingAndBorder(elementConstrainedOptimalSize, elementStyleSheetRules);
 
 	// Determine the size of the area in which to fit the checkmark. Actual checkmark will be scaled to fit (without cropping/stretching) in this area
-	GUILogicalSize checkmarkAreaSize(BsZero);
+	GUILogicalSize checkmarkAreaSize(kZeroTag);
 	if(!elementContentArea.IsEmpty())
 	{
 		// If background image is provided, derive the checkbox area in a way so that aspect ratio matches the image

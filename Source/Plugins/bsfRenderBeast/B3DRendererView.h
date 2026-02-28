@@ -191,7 +191,7 @@ namespace b3d
 			Matrix4 ViewProjTransform;
 			Matrix4 PrevViewProjTransform;
 			Matrix4 ProjTransformNoAa;
-			Vector2 TemporalJitter{ BsZero };
+			Vector2 TemporalJitter{ kZeroTag };
 			u32 FrameIdx;
 
 			RendererViewTargetInformation Target;

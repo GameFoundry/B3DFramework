@@ -24,14 +24,14 @@ namespace b3d
 		constexpr TMatrix4(const TMatrix4&) = default;
 		constexpr TMatrix4& operator=(const TMatrix4&) = default;
 
-		constexpr TMatrix4(BS_ZERO)
+		constexpr TMatrix4(ZeroTag)
 			: m{ { (T)0.0, (T)0.0, (T)0.0, (T)0.0 },
 				 { (T)0.0, (T)0.0, (T)0.0, (T)0.0 },
 				 { (T)0.0, (T)0.0, (T)0.0, (T)0.0 },
 				 { (T)0.0, (T)0.0, (T)0.0, (T)0.0 } }
 		{}
 
-		constexpr TMatrix4(BS_IDENTITY)
+		constexpr TMatrix4(IdentityTag)
 			: m{ { (T)1.0, (T)0.0, (T)0.0, (T)0.0 },
 				 { (T)0.0, (T)1.0, (T)0.0, (T)0.0 },
 				 { (T)0.0, (T)0.0, (T)1.0, (T)0.0 },
@@ -404,7 +404,7 @@ namespace b3d
 		 */
 		TVector3<T> Multiply(const TVector3<T>& v) const
 		{
-			TVector3<T> r(BsZero);
+			TVector3<T> r(kZeroTag);
 
 			T fInvW = (T)1.0 / (m[3][0] * v.X + m[3][1] * v.Y + m[3][2] * v.Z + m[3][3]);
 
@@ -490,10 +490,10 @@ namespace b3d
 		T m[4][4];
 	};
 
-	template<> const TMatrix4<float> TMatrix4<float>::kZero{BsZero};
-	template<> const TMatrix4<double> TMatrix4<double>::kZero{BsZero};
-	template<> const TMatrix4<float> TMatrix4<float>::kIdentity{BsIdentity};
-	template<> const TMatrix4<double> TMatrix4<double>::kIdentity{BsIdentity};
+	template<> const TMatrix4<float> TMatrix4<float>::kZero{kZeroTag};
+	template<> const TMatrix4<double> TMatrix4<double>::kZero{kZeroTag};
+	template<> const TMatrix4<float> TMatrix4<float>::kIdentity{kIdentityTag};
+	template<> const TMatrix4<double> TMatrix4<double>::kIdentity{kIdentityTag};
 
 	/** @} */
 } // namespace b3d

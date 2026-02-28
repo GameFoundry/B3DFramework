@@ -29,7 +29,7 @@ namespace b3d
 	{
 		B3D_SCRIPT_EXPORT(Exclude(true))
 		TPlane()
-			: Normal(BsZero), D((T)0.0)
+			: Normal(kZeroTag), D((T)0.0)
 		{ }
 
 		B3D_SCRIPT_EXPORT(Exclude(true))

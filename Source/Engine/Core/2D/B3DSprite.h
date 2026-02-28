@@ -63,7 +63,7 @@ namespace b3d
 	/** Common information for all sprite types. */
 	struct SpriteInformation
 	{
-		Size2I Size{BsZero}; /**< Size of the sprite in pixels. */
+		Size2I Size{kZeroTag}; /**< Size of the sprite in pixels. */
 		bool Transparent = true; /**< Should the sprite be rendered with transparency. */
 		Color Color; /**< Color tint to apply to the sprite. */
 	};

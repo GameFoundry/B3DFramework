@@ -18,9 +18,9 @@ namespace b3d
 	/**	Contains valid size range for a GUI element, based on element's optimal size and size constraints. */
 	struct B3D_EXPORT GUIConstrainedSizeRange
 	{
-		GUILogicalSize Optimal{BsZero}; /**< Optimal GUI element size, constrained by the size constraints. */
-		GUILogicalSize Minimum{BsZero}; /**< In case of flexible size, minimum allowed size. Equivalent to Optimal if size is fixed. */
-		GUILogicalSize Maximum{BsZero}; /**< In case of flexible size, maximum allowed size. Equivalent to Optimal if size is fixed. If 0, the dimension has no maximum limit. */
+		GUILogicalSize Optimal{kZeroTag}; /**< Optimal GUI element size, constrained by the size constraints. */
+		GUILogicalSize Minimum{kZeroTag}; /**< In case of flexible size, minimum allowed size. Equivalent to Optimal if size is fixed. */
+		GUILogicalSize Maximum{kZeroTag}; /**< In case of flexible size, maximum allowed size. Equivalent to Optimal if size is fixed. If 0, the dimension has no maximum limit. */
 
 		/**
 		 * Calculates GUI element size constrained by parent size. For example, if a GUI element optimal width is 100 units, but parent is only 50 units wide, then the optimal

@@ -226,7 +226,7 @@ namespace b3d
 
 		mutable Vector<Vector2> mClippedVertices;
 		mutable Vector<Vector2> mClippedLineVertices;
-		mutable Vector2 mLastOffset = BsZero;
+		mutable Vector2 mLastOffset = kZeroTag;
 		mutable Area2I mLastClipRect;
 		mutable bool mForceTriangleBuild = false;
 

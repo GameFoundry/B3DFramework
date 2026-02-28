@@ -517,7 +517,7 @@ void TriangleClipperBase::GetOrderedVertices(const ClipFace& face, u32* sortedVe
 
 Vector3 TriangleClipperBase::GetNormal(u32* sortedVertices, u32 numVertices)
 {
-	Vector3 normal(BsZero);
+	Vector3 normal(kZeroTag);
 	for(u32 i = 0; i <= numVertices - 2; i++)
 		normal += Vector3::Cross(mesh.Verts[sortedVertices[i]].Point, mesh.Verts[sortedVertices[i + 1]].Point);
 

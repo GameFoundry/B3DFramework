@@ -20,7 +20,7 @@ namespace b3d
 		TVector4() = default;
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		constexpr TVector4(BS_ZERO)
+		constexpr TVector4(ZeroTag)
 			: X((T)0.0), Y((T)0.0), Z((T)0.0), W((T)0.0)
 		{}
 
@@ -255,8 +255,8 @@ namespace b3d
 		static const TVector4 kZero;
 	};
 
-	template<> const TVector4<float> TVector4<float>::kZero{BsZero};
-	template<> const TVector4<double> TVector4<double>::kZero{BsZero};
+	template<> const TVector4<float> TVector4<float>::kZero{kZeroTag};
+	template<> const TVector4<double> TVector4<double>::kZero{kZeroTag};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector4)) TVector4<float>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector4D)) TVector4<double>;

@@ -129,9 +129,9 @@ namespace b3d
 		void SetDragAndDropLeftData(const GUIPhysicalPoint& position, const SPtr<DragAndDropData>& dragAndDropData);
 
 		bool mButtonStates[(int)GUIMouseButton::Count];
-		GUIPhysicalPoint mPosition{BsZero};
-		GUIPhysicalPoint mDragStartPosition{BsZero};
-		GUIPhysicalPoint mDragAmount{BsZero};
+		GUIPhysicalPoint mPosition{kZeroTag};
+		GUIPhysicalPoint mDragStartPosition{kZeroTag};
+		GUIPhysicalPoint mDragAmount{kZeroTag};
 		float mWheelScrollAmount = 0.0f;
 		GUIMouseEventType mType = GUIMouseEventType::MouseMove;
 		GUIMouseButton mButton = GUIMouseButton::Left;

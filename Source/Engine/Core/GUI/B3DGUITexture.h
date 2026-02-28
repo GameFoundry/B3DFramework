@@ -62,7 +62,7 @@ namespace b3d
 		GUIBackgroundSprite mBackgroundSprite;
 		ImageSprite* mImageSprite;
 		HSpriteImage mActiveImage;
-		GUILogicalSize mActiveImageSize{BsZero};
+		GUILogicalSize mActiveImageSize{kZeroTag};
 		ImageSpriteInformation mImageSpriteInformation;
 		TextureScaleMode mScaleMode;
 		bool mTransparent;

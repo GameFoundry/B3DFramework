@@ -26,8 +26,8 @@ void GUILayoutY::UpdateOptimalLayoutSizes()
 	if(mChildren.size() != mChildConstrainedSizeRanges.size())
 		mChildConstrainedSizeRanges.resize(mChildren.size());
 
-	GUILogicalSize optimalSize(BsZero);
-	GUILogicalSize minSize(BsZero);
+	GUILogicalSize optimalSize(kZeroTag);
+	GUILogicalSize minSize(kZeroTag);
 
 	u32 childIndex = 0;
 	for(auto& child : mChildren)

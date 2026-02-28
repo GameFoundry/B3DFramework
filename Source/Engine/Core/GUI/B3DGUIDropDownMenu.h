@@ -187,8 +187,8 @@ namespace b3d
 			GUIDropDownType Type;
 			GUIDropDownData Data;
 			u32 Page;
-			GUILogicalPoint Position{BsZero};
-			GUILogicalSize Size{BsZero};
+			GUILogicalPoint Position{kZeroTag};
+			GUILogicalSize Size{kZeroTag};
 			GUIPhysicalArea VisibleBounds;
 			GUIPhysicalArea AvailableBounds;
 			u32 DepthOffset;

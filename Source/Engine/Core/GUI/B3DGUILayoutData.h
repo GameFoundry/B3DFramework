@@ -48,8 +48,8 @@ namespace b3d
 			return (((i32)Depth >> 8) & 0xFFFF) - 32768;
 		}
 
-		GUILogicalPoint RelativePosition{BsZero}; /**< Coordinates relative to the parent GUI element. Set during UpdateLayout pass. */
-		GUILogicalSize Size{BsZero}; /**< Size of the GUI element in pixels. */
+		GUILogicalPoint RelativePosition{kZeroTag}; /**< Coordinates relative to the parent GUI element. Set during UpdateLayout pass. */
+		GUILogicalSize Size{kZeroTag}; /**< Size of the GUI element in pixels. */
 		u32 Depth = 0;
 		u16 DepthRangeMin = -1;
 		u16 DepthRangeMax = -1;

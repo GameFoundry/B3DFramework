@@ -308,14 +308,14 @@ namespace b3d
 		Mutex mMutex;
 
 		Vector<DeviceData> mDevices;
-		Vector2I mLastPointerPosition{BsZero};
-		Vector2I mPointerDelta{BsZero};
+		Vector2I mLastPointerPosition{kZeroTag};
+		Vector2I mPointerDelta{kZeroTag};
 		ButtonState mPointerButtonStates[3];
 		bool mPointerDoubleClicked = false;
 		bool mLastPositionSet = false;
 
 		// Thread safe
-		Vector2I mPointerPosition{BsZero};
+		Vector2I mPointerPosition{kZeroTag};
 		float mMouseScroll = 0.0f;
 		OSPointerButtonStates mPointerState;
 

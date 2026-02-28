@@ -85,7 +85,7 @@ void RendererLight::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index) co
 
 	const Transform& tfrm = Internal->GetWorldTransform();
 
-	Quaternion lightRotation(BsIdentity);
+	Quaternion lightRotation(kIdentityTag);
 	lightRotation.LookRotation(-tfrm.GetRotation().ZAxis());
 
 	Matrix4 transform = Matrix4::TRS(lightData.ShiftedLightPosition, lightRotation, Vector3::kOne);

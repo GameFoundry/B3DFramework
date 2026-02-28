@@ -280,7 +280,7 @@ void ScriptSceneObject::InternalGetPosition(ScriptSceneObject* self, Vector3* va
 	if(self->IsNativeObjectValid())
 		*value = self->GetNativeObject()->GetTransform().GetPosition();
 	else
-		*value = Vector3(BsZero);
+		*value = Vector3(kZeroTag);
 }
 
 void ScriptSceneObject::InternalGetLocalPosition(ScriptSceneObject* self, Vector3* value)
@@ -288,7 +288,7 @@ void ScriptSceneObject::InternalGetLocalPosition(ScriptSceneObject* self, Vector
 	if(self->IsNativeObjectValid())
 		*value = self->GetNativeObject()->GetLocalTransform().GetPosition();
 	else
-		*value = Vector3(BsZero);
+		*value = Vector3(kZeroTag);
 }
 
 void ScriptSceneObject::InternalGetRotation(ScriptSceneObject* self, Quaternion* value)
@@ -296,7 +296,7 @@ void ScriptSceneObject::InternalGetRotation(ScriptSceneObject* self, Quaternion*
 	if(self->IsNativeObjectValid())
 		*value = self->GetNativeObject()->GetTransform().GetRotation();
 	else
-		*value = Quaternion(BsIdentity);
+		*value = Quaternion(kIdentityTag);
 }
 
 void ScriptSceneObject::InternalGetLocalRotation(ScriptSceneObject* self, Quaternion* value)
@@ -304,7 +304,7 @@ void ScriptSceneObject::InternalGetLocalRotation(ScriptSceneObject* self, Quater
 	if(self->IsNativeObjectValid())
 		*value = self->GetNativeObject()->GetLocalTransform().GetRotation();
 	else
-		*value = Quaternion(BsIdentity);
+		*value = Quaternion(kIdentityTag);
 }
 
 void ScriptSceneObject::InternalGetScale(ScriptSceneObject* self, Vector3* value)
@@ -358,7 +358,7 @@ void ScriptSceneObject::InternalGetLocalTransform(ScriptSceneObject* self, Matri
 	if(self->IsNativeObjectValid())
 		*value = self->GetNativeObject()->GetLocalMatrix();
 	else
-		*value = Matrix4(BsIdentity);
+		*value = Matrix4(kIdentityTag);
 }
 
 void ScriptSceneObject::InternalGetWorldTransform(ScriptSceneObject* self, Matrix4* value)
@@ -366,7 +366,7 @@ void ScriptSceneObject::InternalGetWorldTransform(ScriptSceneObject* self, Matri
 	if(self->IsNativeObjectValid())
 		*value = self->GetNativeObject()->GetWorldMatrix();
 	else
-		*value = Matrix4(BsIdentity);
+		*value = Matrix4(kIdentityTag);
 }
 
 void ScriptSceneObject::InternalLookAt(ScriptSceneObject* self, Vector3* direction, Vector3* up)

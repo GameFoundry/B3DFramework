@@ -2027,7 +2027,7 @@ void SSAOBlurMaterial::Prepare(const RendererView& view, const SPtr<Texture>& ao
 	pixelSize.X = 1.0f / texProps.Width;
 	pixelSize.Y = 1.0f / texProps.Height;
 
-	Vector2 pixelOffset(BsZero);
+	Vector2 pixelOffset(kZeroTag);
 	if(mVariationParameters.GetBool("DIR_HORZ"))
 		pixelOffset.X = pixelSize.X;
 	else

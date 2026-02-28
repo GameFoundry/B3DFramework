@@ -183,7 +183,7 @@ namespace b3d
 		{
 			u32 NodeId = ~0u;
 			u32 PageId = ~0u;
-			Vector2I Position{BsZero};
+			Vector2I Position{kZeroTag};
 		};
 
 		TreeTextureAtlasLayout(const TreeTextureAtlasLayoutSettings& settings = TreeTextureAtlasLayoutSettings());

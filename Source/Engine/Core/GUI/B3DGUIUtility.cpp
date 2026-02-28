@@ -42,7 +42,7 @@ GUILogicalSize GUIUtility::CalculateOptimalContentSizeWithPaddingAndBorder(const
 
 GUILogicalSize GUIUtility::CalculateOptimalContentSizeWithPaddingAndBorder(const String& text, const GUIStyleSheetRules& styleSheetRule, GUILogicalUnit wordWrapWidth)
 {
-	GUILogicalSize contentSize(BsZero);
+	GUILogicalSize contentSize(kZeroTag);
 
 	if(styleSheetRule.WordWrap != GUIWordWrapMode::WrapWord)
 		wordWrapWidth = 0;
@@ -85,7 +85,7 @@ GUILogicalArea GUIUtility::RemovePaddingAndBorder(const GUILogicalSize& layoutSi
 
 Size2I GUIUtility::CalculateTextBounds(const String& text, const HFont& font, float fontSize)
 {
-	Size2I size{BsZero};
+	Size2I size{kZeroTag};
 	if(font != nullptr)
 	{
 		FrameAllocatorScope frameScope;

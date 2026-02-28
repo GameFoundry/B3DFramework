@@ -133,7 +133,7 @@ HAnimationClip animationClip = static_resource_cast<AnimationClip>(resources[1].
 SPtr<RootMotion> rootMotion = animationClip->GetRootMotion();
 
 // Move a character using root motion
-Vector3 characterPosition(BsZero);
+Vector3 characterPosition(kZeroTag);
 
 // Get initial root translation
 Vector3 lastRootMotion = rootMotion->Position.Evaluate(0.0f);

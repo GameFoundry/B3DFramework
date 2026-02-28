@@ -105,8 +105,8 @@ SPtr<TAnimationCurve<Quaternion>> AnimationUtility::EulerToQuaternionCurve(
 	};
 
 	// Calculate key values
-	Quaternion lastQuat(BsZero);
-	Vector3 lastAngles(BsZero);
+	Quaternion lastQuat(kZeroTag);
+	Vector3 lastAngles(kZeroTag);
 	float lastTime = 0.0f;
 	for(i32 i = 0; i < numKeys; i++)
 	{
