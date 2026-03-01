@@ -5,7 +5,6 @@
 #include "GUI/B3DGUIPanel.h"
 #include "GUI/B3DGUISpace.h"
 #include "GUI/B3DGUIInteractable.h"
-#include "Error/B3DException.h"
 #include "GUI/B3DGUIWidget.h"
 #include "B3DGUIManager.h"
 #include "B3DGUIUtility.h"

@@ -78,8 +78,8 @@ MonoClass* MonoMethod::GetParameterType(u32 paramIdx) const
 	if(!mHasCachedSignature)
 		CacheSignature();
 
-	if(paramIdx >= mCachedNumParameters)
-		B3D_EXCEPT(InvalidParametersException, "Parameter index out of range. Valid range is [0, " + ToString(mCachedNumParameters - 1) + "]");
+	if(!B3D_ENSURE_LOG(paramIdx < mCachedNumParameters, "Parameter index out of range. Valid range is [0, {0}]", mCachedNumParameters - 1))
+		return nullptr;
 
 	return mCachedParameters[paramIdx];
 }

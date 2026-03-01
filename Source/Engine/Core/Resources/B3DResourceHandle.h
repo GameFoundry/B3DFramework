@@ -206,7 +206,7 @@ namespace b3d
 		static Mutex mResourceCreatedMutex;
 
 	protected:
-		void ThrowIfNotLoaded() const;
+		void ReportIfNotLoaded() const;
 	};
 
 	/**	Implementation of ResourceHandle for weak handles. Weak handles do no reference counting. */
@@ -354,7 +354,7 @@ namespace b3d
 		 */
 		ResourceType* Get() const
 		{
-			this->ThrowIfNotLoaded();
+			this->ReportIfNotLoaded();
 
 			return reinterpret_cast<ResourceType*>(this->mData->Object.get());
 		}
@@ -366,7 +366,7 @@ namespace b3d
 		 */
 		SPtr<ResourceType> GetShared() const
 		{
-			this->ThrowIfNotLoaded();
+			this->ReportIfNotLoaded();
 
 			return std::static_pointer_cast<ResourceType>(this->mData->Object);
 		}

@@ -147,7 +147,7 @@ namespace b3d
 
 		private:
 			/**	Throws an exception of the color and depth/stencil buffers aren't compatible. */
-			void ThrowIfBuffersDontMatch() const;
+			void ReportIfBuffersDontMatch() const;
 
 		protected:
 			friend class b3d::RenderTexture;

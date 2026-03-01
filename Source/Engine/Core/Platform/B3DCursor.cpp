@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Platform/B3DCursor.h"
 #include "Platform/B3DPlatform.h"
-#include "Error/B3DException.h"
 #include "Resources/B3DBuiltinResources.h"
 #include "Debug/B3DDebug.h"
 
@@ -165,7 +164,7 @@ void Cursor::RestoreCursorIcon(CursorType type)
 		break;
 	}
 
-	B3D_EXCEPT(InvalidParametersException, "Invalid cursor type: " + ToString((u32)type));
+	B3D_LOG(Error, LogPlatform,"Invalid cursor type: {0}", ToString((u32)type));
 }
 
 void Cursor::UpdateCursorImage()

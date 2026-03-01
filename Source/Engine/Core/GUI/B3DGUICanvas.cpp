@@ -7,7 +7,6 @@
 #include "Utility/B3DShapeMeshes2D.h"
 #include "2D/B3DSpriteManager.h"
 #include "Mesh/B3DMeshUtility.h"
-#include "Error/B3DException.h"
 
 using namespace b3d;
 
@@ -583,5 +582,5 @@ const GUICanvas::CanvasElement& GUICanvas::FindElement(u32 renderElementIdx) con
 			start = middle + 1;
 	}
 
-	B3D_EXCEPT(InvalidParametersException, "Cannot find requested GUI render element.");
+	B3D_LOG(Fatal, LogGUI, "Cannot find requested GUI render element.");
 }

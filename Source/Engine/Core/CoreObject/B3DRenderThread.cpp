@@ -92,13 +92,11 @@ RenderThread& GetRenderThread()
 
 void AssertIfNotRenderThread()
 {
-	if(B3D_CURRENT_THREAD_ID != RenderThread::Instance().GetThreadId())
-		B3D_EXCEPT(InternalErrorException, "This method can only be accessed from the render thread.");
+	B3D_ASSERT(B3D_CURRENT_THREAD_ID == RenderThread::Instance().GetThreadId(), "This method can only be accessed from the render thread.");
 }
 
 void AssertIfRenderThread()
 {
-	if(B3D_CURRENT_THREAD_ID == RenderThread::Instance().GetThreadId())
-		B3D_EXCEPT(InternalErrorException, "This method cannot be accessed from the render thread.");
+	B3D_ASSERT(B3D_CURRENT_THREAD_ID != RenderThread::Instance().GetThreadId(), "This method cannot be accessed from the render thread.");
 }
 } // namespace b3d

@@ -218,7 +218,8 @@ SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
 		SPtr<DataStream> fileData = FileSystem::OpenFile(filePath, true);
 		if(fileData->Size() > std::numeric_limits<u32>::max())
 		{
-			B3D_EXCEPT(InternalErrorException, "File size larger than supported!");
+			B3D_ENSURE_LOG(false, "File size larger than supported!");
+			return nullptr;
 		}
 
 		u32 magicLen = std::min((u32)fileData->Size(), 32u);
@@ -230,7 +231,8 @@ SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
 		auto findFormat = mExtensionToFID.find(fileExtension);
 		if(findFormat == mExtensionToFID.end())
 		{
-			B3D_EXCEPT(InvalidParametersException, "Type of the file provided is not supported by this importer. File type: " + fileExtension);
+			B3D_ENSURE_LOG(false, "Type of the file provided is not supported by this importer. File type: {0}", fileExtension);
+			return nullptr;
 		}
 
 		imageFormat = (FREE_IMAGE_FORMAT)findFormat->second;
@@ -252,7 +254,8 @@ SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
 		(FREE_IMAGE_FORMAT)imageFormat, fiMem);
 	if(!fiBitmap)
 	{
-		B3D_EXCEPT(InternalErrorException, "Error decoding image");
+		B3D_ENSURE_LOG(false, "Error decoding image");
+		return nullptr;
 	}
 
 	u32 width = FreeImage_GetWidth(fiBitmap);
@@ -274,9 +277,8 @@ SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
 	case FIT_INT32:
 	case FIT_DOUBLE:
 	default:
-		B3D_EXCEPT(InternalErrorException, "Unknown or unsupported image format");
-
-		break;
+		B3D_ENSURE_LOG(false, "Unknown or unsupported image format");
+		return nullptr;
 	case FIT_BITMAP:
 		// Standard image type
 		// Perform any colour conversions for greyscale

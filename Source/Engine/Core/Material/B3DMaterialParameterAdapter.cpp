@@ -405,8 +405,8 @@ UnorderedMap<ValidParamKey, String> DetermineValidParameters(const Vector<SPtr<G
 
 		auto findBlockIter = memberToUniformBuffer.find(iter->second.GpuVariableName);
 
-		if(findBlockIter == memberToUniformBuffer.end())
-			B3D_EXCEPT(InternalErrorException, "Parameter doesn't exist in param to uniform buffer map but exists in valid param map.");
+		if(!B3D_ENSURE_LOG(findBlockIter != memberToUniformBuffer.end(), "Parameter doesn't exist in param to uniform buffer map but exists in valid param map."))
+			continue;
 
 		ValidParamKey key(iter->second.GpuVariableName, MaterialParameters::ParamType::Data);
 		validParams.insert(std::make_pair(key, iter->first));

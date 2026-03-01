@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Serialization/B3DFileSerializer.h"
 
-#include "Error/B3DException.h"
 #include "Reflection/B3DIReflectable.h"
 #include "Serialization/B3DBinarySerializer.h"
 #include "FileSystem/B3DFileSystem.h"
@@ -59,9 +58,7 @@ FileDecoder::FileDecoder(const Path& fileLocation)
 		return;
 
 	if(mInputStream->Size() > std::numeric_limits<u32>::max())
-	{
-		B3D_EXCEPT(InternalErrorException, "File size is larger that u32 can hold. Ask a programmer to use a bigger data type.");
-	}
+		B3D_LOG(Fatal, LogSerialization, "File size is larger that u32 can hold. Ask a programmer to use a bigger data type.");
 }
 
 FileDecoder::FileDecoder(const SPtr<DataStream>& stream)

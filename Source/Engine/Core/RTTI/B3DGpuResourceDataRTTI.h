@@ -5,7 +5,6 @@
 #include "B3DPrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Resources/B3DGpuResourceData.h"
-#include "Error/B3DException.h"
 
 namespace b3d
 {
@@ -30,7 +29,7 @@ namespace b3d
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			B3D_EXCEPT(InternalErrorException, "Cannot instantiate an abstract class.");
+			B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 			return nullptr;
 		}
 	};

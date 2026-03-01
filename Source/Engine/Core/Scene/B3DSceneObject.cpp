@@ -6,7 +6,6 @@
 #include "Scene/B3DComponent.h"
 #include "Scene/B3DSceneManager.h"
 #include "Scene/B3DSceneInstance.h"
-#include "Error/B3DException.h"
 #include "Debug/B3DDebug.h"
 #include "RTTI/B3DSceneObjectRTTI.h"
 #include "Serialization/B3DBinarySerializer.h"
@@ -752,10 +751,8 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
 
 HSceneObject SceneObject::GetChild(u32 idx) const
 {
-	if(idx >= mChildren.size())
-	{
-		B3D_EXCEPT(InternalErrorException, "Child index out of range.");
-	}
+	if(!B3D_ENSURE_LOG(idx < mChildren.size(), "Child index out of range."))
+		return HSceneObject();
 
 	return mChildren[idx];
 }

@@ -324,8 +324,8 @@ void ScriptAssemblyManager::ClearAssemblyInfo()
 
 SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 {
-	if(!mBaseTypesInitialized)
-		B3D_EXCEPT(InvalidStateException, "Calling getTypeInfo without previously initializing base types.");
+	if(!B3D_ENSURE_LOG(mBaseTypesInitialized, "Calling GetTypeInfo without previously initializing base types."))
+		return nullptr;
 
 	MonoPrimitiveType monoPrimitiveType = MonoUtil::GetPrimitiveType(monoClass->GetInternalClass());
 
@@ -610,133 +610,133 @@ void ScriptAssemblyManager::InitializeBaseTypes()
 {
 	// Get necessary classes for detecting needed class & field information
 	MonoAssembly* corlib = MonoManager::Instance().GetAssembly("corlib");
-	if(corlib == nullptr)
-		B3D_EXCEPT(InvalidStateException, "corlib assembly is not loaded.");
+	if(!B3D_ENSURE_LOG(corlib != nullptr, "corlib assembly is not loaded."))
+		return;
 
 	MonoAssembly* engineAssembly = MonoManager::Instance().GetAssembly(kEngineAssembly);
-	if(engineAssembly == nullptr)
-		B3D_EXCEPT(InvalidStateException, String(kEngineAssembly) + " assembly is not loaded.");
+	if(!B3D_ENSURE_LOG(engineAssembly != nullptr, "{0} assembly is not loaded.", kEngineAssembly))
+		return;
 
 	mBuiltin.SystemArrayClass = corlib->GetClass("System", "Array");
-	if(mBuiltin.SystemArrayClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find System.Array managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.SystemArrayClass != nullptr, "Cannot find System.Array managed class."))
+		return;
 
 	mBuiltin.SystemGenericListClass = corlib->GetClass("System.Collections.Generic", "List`1");
-	if(mBuiltin.SystemGenericListClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find List<T> managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.SystemGenericListClass != nullptr, "Cannot find List<T> managed class."))
+		return;
 
 	mBuiltin.SystemGenericDictionaryClass = corlib->GetClass("System.Collections.Generic", "Dictionary`2");
-	if(mBuiltin.SystemGenericDictionaryClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find Dictionary<TKey, TValue> managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.SystemGenericDictionaryClass != nullptr, "Cannot find Dictionary<TKey, TValue> managed class."))
+		return;
 
 	mBuiltin.SystemTypeClass = corlib->GetClass("System", "Type");
-	if(mBuiltin.SystemTypeClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find Type managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.SystemTypeClass != nullptr, "Cannot find Type managed class."))
+		return;
 
 	mBuiltin.SerializeObjectAttribute = engineAssembly->GetClass(kEngineNs, "SerializeObject");
-	if(mBuiltin.SerializeObjectAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find SerializableObject managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.SerializeObjectAttribute != nullptr, "Cannot find SerializableObject managed class."))
+		return;
 
 	mBuiltin.DontSerializeFieldAttribute = engineAssembly->GetClass(kEngineNs, "DontSerializeField");
-	if(mBuiltin.DontSerializeFieldAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find DontSerializeField managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.DontSerializeFieldAttribute != nullptr, "Cannot find DontSerializeField managed class."))
+		return;
 
 	mBuiltin.RangeAttribute = engineAssembly->GetClass(kEngineNs, "Range");
-	if(mBuiltin.RangeAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find Range managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.RangeAttribute != nullptr, "Cannot find Range managed class."))
+		return;
 
 	mBuiltin.StepAttribute = engineAssembly->GetClass(kEngineNs, "Step");
-	if(mBuiltin.StepAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find Step managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.StepAttribute != nullptr, "Cannot find Step managed class."))
+		return;
 
 	mBuiltin.LayerMaskAttribute = engineAssembly->GetClass(kEngineNs, "LayerMask");
-	if(mBuiltin.LayerMaskAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find LayerMask managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.LayerMaskAttribute != nullptr, "Cannot find LayerMask managed class."))
+		return;
 
 	mBuiltin.AsQuaternionAttribute = engineAssembly->GetClass(kEngineNs, "AsQuaternion");
-	if(mBuiltin.AsQuaternionAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find AsQuaternion managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.AsQuaternionAttribute != nullptr, "Cannot find AsQuaternion managed class."))
+		return;
 
 	mBuiltin.NativeWrapperAttribute = engineAssembly->GetClass(kEngineNs, "NativeWrapper");
-	if(mBuiltin.NativeWrapperAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find NativeWrapper managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.NativeWrapperAttribute != nullptr, "Cannot find NativeWrapper managed class."))
+		return;
 
 	mBuiltin.NotNullAttribute = engineAssembly->GetClass(kEngineNs, "NotNull");
-	if(mBuiltin.NotNullAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find NotNull managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.NotNullAttribute != nullptr, "Cannot find NotNull managed class."))
+		return;
 
 	mBuiltin.PassByCopyAttribute = engineAssembly->GetClass(kEngineNs, "PassByCopy");
-	if(mBuiltin.PassByCopyAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find PassByCopy managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.PassByCopyAttribute != nullptr, "Cannot find PassByCopy managed class."))
+		return;
 
 	mBuiltin.ApplyOnDirtyAttribute = engineAssembly->GetClass(kEngineNs, "ApplyOnDirty");
-	if(mBuiltin.ApplyOnDirtyAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find ApplyOnDirty managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.ApplyOnDirtyAttribute != nullptr, "Cannot find ApplyOnDirty managed class."))
+		return;
 
 	mBuiltin.ComponentClass = engineAssembly->GetClass(kEngineNs, "Component");
-	if(mBuiltin.ComponentClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find Component managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.ComponentClass != nullptr, "Cannot find Component managed class."))
+		return;
 
 	mBuiltin.ManagedComponentClass = engineAssembly->GetClass(kEngineNs, "ManagedComponent");
-	if(mBuiltin.ManagedComponentClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find ManagedComponent managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.ManagedComponentClass != nullptr, "Cannot find ManagedComponent managed class."))
+		return;
 
 	mBuiltin.MissingComponentClass = engineAssembly->GetClass(kEngineNs, "MissingComponent");
-	if(mBuiltin.MissingComponentClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find MissingComponent managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.MissingComponentClass != nullptr, "Cannot find MissingComponent managed class."))
+		return;
 
 	mBuiltin.MissingResourceClass = engineAssembly->GetClass(kEngineNs, "MissingResource");
-	if(mBuiltin.MissingResourceClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find MissingResource managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.MissingResourceClass != nullptr, "Cannot find MissingResource managed class."))
+		return;
 
 	mBuiltin.SceneObjectClass = engineAssembly->GetClass(kEngineNs, "SceneObject");
-	if(mBuiltin.SceneObjectClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find SceneObject managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.SceneObjectClass != nullptr, "Cannot find SceneObject managed class."))
+		return;
 
 	mBuiltin.RrefBaseClass = engineAssembly->GetClass(kEngineNs, "RRefBase");
-	if(mBuiltin.RrefBaseClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find RRefBase managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.RrefBaseClass != nullptr, "Cannot find RRefBase managed class."))
+		return;
 
 	mBuiltin.GenericRRefClass = engineAssembly->GetClass(kEngineNs, "RRef`1");
-	if(mBuiltin.GenericRRefClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find RRef<T> managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.GenericRRefClass != nullptr, "Cannot find RRef<T> managed class."))
+		return;
 
 	mBuiltin.GenericAsyncOpClass = engineAssembly->GetClass(kEngineNs, "AsyncOp`1");
-	if(mBuiltin.GenericAsyncOpClass == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find AsyncOp<T> managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.GenericAsyncOpClass != nullptr, "Cannot find AsyncOp<T> managed class."))
+		return;
 
 	mBuiltin.SerializeFieldAttribute = engineAssembly->GetClass(kEngineNs, "SerializeField");
-	if(mBuiltin.SerializeFieldAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find SerializeField managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.SerializeFieldAttribute != nullptr, "Cannot find SerializeField managed class."))
+		return;
 
 	mBuiltin.HideInInspectorAttribute = engineAssembly->GetClass(kEngineNs, "HideInInspector");
-	if(mBuiltin.HideInInspectorAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find HideInInspector managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.HideInInspectorAttribute != nullptr, "Cannot find HideInInspector managed class."))
+		return;
 
 	mBuiltin.ShowInInspectorAttribute = engineAssembly->GetClass(kEngineNs, "ShowInInspector");
-	if(mBuiltin.ShowInInspectorAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find ShowInInspector managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.ShowInInspectorAttribute != nullptr, "Cannot find ShowInInspector managed class."))
+		return;
 
 	mBuiltin.CategoryAttribute = engineAssembly->GetClass(kEngineNs, "Category");
-	if(mBuiltin.CategoryAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find Category managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.CategoryAttribute != nullptr, "Cannot find Category managed class."))
+		return;
 
 	mBuiltin.OrderAttribute = engineAssembly->GetClass(kEngineNs, "Order");
-	if(mBuiltin.OrderAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find Order managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.OrderAttribute != nullptr, "Cannot find Order managed class."))
+		return;
 
 	mBuiltin.InlineAttribute = engineAssembly->GetClass(kEngineNs, "Inline");
-	if(mBuiltin.InlineAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find Inline managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.InlineAttribute != nullptr, "Cannot find Inline managed class."))
+		return;
 
 	mBuiltin.LoadOnAssignAttribute = engineAssembly->GetClass(kEngineNs, "LoadOnAssign");
-	if(mBuiltin.LoadOnAssignAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find LoadOnAssign managed class.");
+	if(!B3D_ENSURE_LOG(mBuiltin.LoadOnAssignAttribute != nullptr, "Cannot find LoadOnAssign managed class."))
+		return;
 
 	mBuiltin.HdrAttribute = engineAssembly->GetClass(kEngineNs, "HDR");
-	if(mBuiltin.HdrAttribute == nullptr)
-		B3D_EXCEPT(InvalidStateException, "Cannot find HDR managed class.");
-
+	if(!B3D_ENSURE_LOG(mBuiltin.HdrAttribute != nullptr, "Cannot find HDR managed class."))
+		return;
+	
 	mBaseTypesInitialized = true;
 }
 

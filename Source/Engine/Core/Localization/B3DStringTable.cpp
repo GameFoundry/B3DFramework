@@ -1,7 +1,6 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Localization/B3DStringTable.h"
-#include "Error/B3DException.h"
 #include "Resources/B3DResources.h"
 #include "RTTI/B3DStringTableRTTI.h"
 
@@ -263,7 +262,7 @@ SPtr<LocalizedStringData> StringTable::GetStringData(const String& identifier, L
 			return defaultFound->second;
 	}
 
-	B3D_EXCEPT(InvalidParametersException, "There is no string data for the provided identifier.");
+	B3D_ENSURE_LOG(false, "There is no string data for the provided identifier.");
 	return nullptr;
 }
 

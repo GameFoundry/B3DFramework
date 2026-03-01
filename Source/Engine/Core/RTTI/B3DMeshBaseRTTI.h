@@ -6,7 +6,6 @@
 #include "Reflection/B3DRTTIType.h"
 #include "Reflection/B3DRTTIPlain.h"
 #include "Mesh/B3DMeshBase.h"
-#include "Error/B3DException.h"
 #include "RTTI/B3DSubMeshRTTI.h"
 
 namespace b3d
@@ -26,13 +25,6 @@ namespace b3d
 		B3D_RTTI_END_MEMBERS
 
 	public:
-
-		SPtr<IReflectable> NewRttiObject()
-		{
-			B3D_EXCEPT(InternalErrorException, "Cannot instantiate an abstract class.");
-			return nullptr;
-		}
-
 		const String& GetRttiName()
 		{
 			static String name = "MeshBase";
@@ -42,6 +34,12 @@ namespace b3d
 		u32 GetRttiId() const override
 		{
 			return TID_MeshBase;
+		}
+
+		SPtr<IReflectable> NewRttiObject() override
+		{
+			B3D_ASSERT(false && "Cannot instantiate an abstract class.");
+			return nullptr;
 		}
 	};
 

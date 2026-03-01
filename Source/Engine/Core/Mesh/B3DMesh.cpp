@@ -140,8 +140,8 @@ void Mesh::UpdateCpuBuffer(u32 subresourceIndex, const MeshData& pixelData)
 		return;
 	}
 
-	if(mCPUData->GetSize() != pixelData.GetSize())
-		B3D_EXCEPT(InternalErrorException, "Buffer sizes don't match.");
+	if(!B3D_ENSURE_LOG(mCPUData->GetSize() == pixelData.GetSize(), "Buffer sizes don't match."))
+		return;
 
 	u8* dest = mCPUData->GetData();
 	u8* src = pixelData.GetData();

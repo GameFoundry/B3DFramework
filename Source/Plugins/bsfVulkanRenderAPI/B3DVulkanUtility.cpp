@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanUtility.h"
 #include "B3DVulkanGpuDevice.h"
-#include "Error/B3DException.h"
 #include "Image/B3DTexture.h"
 #include "Math/B3DArea2.h"
 #include "RenderAPI/B3DGpuParameterSet.h"

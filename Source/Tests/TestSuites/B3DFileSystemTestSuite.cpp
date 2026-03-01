@@ -3,7 +3,6 @@
 #include "B3DFileSystemTestSuite.h"
 
 #include "Debug/B3DDebug.h"
-#include "Error/B3DException.h"
 #include "FileSystem/B3DFileSystem.h"
 
 #include <algorithm>
@@ -41,7 +40,8 @@ void FileSystemTestSuite::StartUp()
 	mTestDirectory = FileSystem::GetExecutableFolderPath() + kTestDirectoryName;
 	if(FileSystem::Exists(mTestDirectory))
 	{
-		B3D_EXCEPT(InternalErrorException, String("Directory '") + kTestDirectoryName + "' should not already exist; you should remove it manually.");
+		if(!B3D_ENSURE_LOG(false, "Directory '{0}' should not already exist; you should remove it manually.", kTestDirectoryName))
+			return;
 	}
 	else
 	{

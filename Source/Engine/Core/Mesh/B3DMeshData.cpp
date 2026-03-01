@@ -7,7 +7,6 @@
 #include "Math/B3DAABox.h"
 #include "RTTI/B3DMeshDataRTTI.h"
 #include "RenderAPI/B3DVertexDescription.h"
-#include "Error/B3DException.h"
 #include "Debug/B3DDebug.h"
 
 using namespace b3d;
@@ -27,8 +26,8 @@ MeshData::~MeshData()
 
 u16* MeshData::GetIndices16() const
 {
-	if(mIndexType != IT_16BIT)
-		B3D_EXCEPT(InternalErrorException, "Attempting to get 16bit index buffer, but internally allocated buffer is 32 bit.");
+	if(!B3D_ENSURE_LOG(mIndexType == IT_16BIT, "Attempting to get 16bit index buffer, but internally allocated buffer is 32 bit."))
+		return nullptr;
 
 	u32 indexBufferOffset = GetIndexBufferOffset();
 
@@ -37,8 +36,8 @@ u16* MeshData::GetIndices16() const
 
 u32* MeshData::GetIndices32() const
 {
-	if(mIndexType != IT_32BIT)
-		B3D_EXCEPT(InternalErrorException, "Attempting to get 32bit index buffer, but internally allocated buffer is 16 bit.");
+	if(!B3D_ENSURE_LOG(mIndexType == IT_32BIT, "Attempting to get 32bit index buffer, but internally allocated buffer is 16 bit."))
+		return nullptr;
 
 	u32 indexBufferOffset = GetIndexBufferOffset();
 
@@ -77,10 +76,7 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 			{
 				if(newElement.GetSemantic() == existingElement.GetSemantic() && newElement.GetSemanticIndex() == existingElement.GetSemanticIndex() && newElement.GetStreamIndex() == existingElement.GetStreamIndex())
 				{
-					if(newElement.GetType() != existingElement.GetType())
-					{
-						B3D_EXCEPT(NotImplementedException, "Two elements have same semantics but different types. This is not supported.");
-					}
+					B3D_ENSURE_LOG(newElement.GetType() == existingElement.GetType(), "Two elements have same semantics but different types. This is not supported.");
 
 					alreadyExistsIndex = existingElementIndex;
 					break;
@@ -190,10 +186,8 @@ void MeshData::SetVertexData(VertexElementSemantic semantic, void* data, u32 siz
 	u32 elementSize = mVertexDescription->GetElementSize(semantic, semanticIndex, streamIndex);
 	u32 totalSize = elementSize * mVertexCount;
 
-	if(totalSize != size)
-	{
-		B3D_EXCEPT(InvalidParametersException, "Buffer sizes don't match. Expected: " + ToString(totalSize) + ". Got: " + ToString(size));
-	}
+	if(!B3D_ENSURE_LOG(totalSize == size, "Buffer sizes don't match. Expected: {0}. Got: {1}", totalSize, size))
+		return;
 
 	u32 indexBufferOffset = GetIndexBufferSize();
 
@@ -225,10 +219,8 @@ void MeshData::GetVertexData(VertexElementSemantic semantic, void* data, u32 siz
 	u32 elementSize = mVertexDescription->GetElementSize(semantic, semanticIndex, streamIndex);
 	u32 totalSize = elementSize * mVertexCount;
 
-	if(totalSize != size)
-	{
-		B3D_EXCEPT(InvalidParametersException, "Buffer sizes don't match. Expected: " + ToString(totalSize) + ". Got: " + ToString(size));
-	}
+	if(!B3D_ENSURE_LOG(totalSize == size, "Buffer sizes don't match. Expected: {0}. Got: {1}", totalSize, size))
+		return;
 
 	u32 indexBufferOffset = GetIndexBufferSize();
 
@@ -283,10 +275,8 @@ VertexElemIter<u32> MeshData::GetDwordDataIter(VertexElementSemantic semantic, u
 
 void MeshData::GetDataForIterator(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex, u8*& data, u32& stride) const
 {
-	if(!mVertexDescription->HasElement(semantic, semanticIndex, streamIndex))
-	{
-		B3D_EXCEPT(InvalidParametersException, "MeshData doesn't contain an element of specified type: Semantic: " + ToString(semantic) + ", Semantic index: " + ToString(semanticIndex) + ", Stream index: " + ToString(streamIndex));
-	}
+	if(!B3D_ENSURE_LOG(mVertexDescription->HasElement(semantic, semanticIndex, streamIndex), "MeshData doesn't contain an element of specified type: Semantic: {0}, Semantic index: {1}, Stream index: {2}", semantic, semanticIndex, streamIndex))
+		return;
 
 	u32 indexBufferOffset = GetIndexBufferSize();
 

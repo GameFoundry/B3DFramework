@@ -6,7 +6,6 @@
 #include "Reflection/B3DRTTIType.h"
 #include "RTTI/B3DStringRTTI.h"
 #include "Serialization/B3DManagedSerializableField.h"
-#include "Error/B3DException.h"
 
 namespace b3d
 {
@@ -57,7 +56,7 @@ namespace b3d
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			B3D_EXCEPT(InvalidStateException, "Cannot instantiate an abstract class.");
+			B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 			return nullptr;
 		}
 	};

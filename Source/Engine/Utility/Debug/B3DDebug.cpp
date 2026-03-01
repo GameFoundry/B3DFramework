@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Debug/B3DDebug.h"
 #include "Debug/B3DLog.h"
-#include "Error/B3DException.h"
 #include "Debug/B3DBitmapWriter.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
@@ -101,7 +100,10 @@ void Debug::WriteAsBmp(u8* rawPixels, u32 bytesPerPixel, u32 width, u32 height, 
 		if(overwrite)
 			FileSystem::Remove(filePath);
 		else
-			B3D_EXCEPT(FileNotFoundException, "File already exists at specified location: " + filePath.ToString());
+		{
+			if(!B3D_ENSURE_LOG(false, "File already exists at specified location: {0}", filePath.ToString()))
+				return;
+		}
 	}
 
 	SPtr<DataStream> ds = FileSystem::CreateAndOpenFile(filePath);

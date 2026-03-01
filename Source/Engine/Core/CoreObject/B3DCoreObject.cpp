@@ -16,20 +16,8 @@ CoreObject::CoreObject(bool createRenderProxy)
 
 CoreObject::~CoreObject()
 {
-	if(!IsDestroyed())
-	{
-		// Object must be released with Destroy() otherwise engine can still try to use it, even if it was destructed
-		// (e.g. if an object has one of its methods queued in a command queue, and is destructed, you will be accessing invalid memory)
-		B3D_EXCEPT(InternalErrorException, "Destructor called but object is not destroyed. This will result in nasty issues.");
-	}
-
-#if B3D_DEBUG
-	if(!mThis.expired())
-	{
-		B3D_EXCEPT(InternalErrorException, "Shared pointer to this object still has active references but "
-										  "the object is being deleted? You shouldn't delete CoreObjects manually.");
-	}
-#endif
+	B3D_ASSERT(IsDestroyed(), "Destructor called but object is not destroyed. This means the object was not cleaned up properly..");
+	B3D_ASSERT(mThis.expired(), "Shared pointer to this object still has active references but the object is being deleted. You shouldn't delete CoreObjects manually.");
 }
 
 void CoreObject::Destroy()

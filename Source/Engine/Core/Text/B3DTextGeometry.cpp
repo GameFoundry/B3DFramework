@@ -236,8 +236,8 @@ u32 TextGeometry::Line::FillBuffer(u32 page, Vector2* outVertices, Vector2* outU
 				offset++;
 				quadCount++;
 
-				if(offset > size)
-					B3D_EXCEPT(InternalErrorException, "Out of buffer bounds. Buffer size: " + ToString(size));
+				if(!B3D_ENSURE_LOG(offset <= size, "Out of buffer bounds. Buffer size: {0}", ToString(size)))
+					return quadCount;
 			}
 
 			penX += word.GetWidth();
@@ -300,8 +300,8 @@ u32 TextGeometry::Line::FillBuffer(u32 page, Vector2* outVertices, Vector2* outU
 				offset++;
 				quadCount++;
 
-				if(offset > size)
-					B3D_EXCEPT(InternalErrorException, "Out of buffer bounds. Buffer size: " + ToString(size));
+				if(!B3D_ENSURE_LOG(offset <= size, "Out of buffer bounds. Buffer size: {0}", ToString(size)))
+					return quadCount;
 			}
 		}
 	}

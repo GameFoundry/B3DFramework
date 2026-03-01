@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Serialization/B3DBinarySerializer.h"
 
-#include "Error/B3DException.h"
 #include "Debug/B3DDebug.h"
 #include "Reflection/B3DIReflectable.h"
 #include "Reflection/B3DRTTIType.h"
@@ -327,9 +326,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 		objectTypeId = outputObjectSchema->TypeId;
 
 	if(objectIsBaseClass)
-	{
-		B3D_EXCEPT(InternalErrorException, "Encountered a base-class object while looking for a new object. Base class objects are only supposed to be parts of a larger object.");
-	}
+		B3D_LOG(Fatal, LogSerialization, "Encountered a base-class object while looking for a new object. Base class objects are only supposed to be parts of a larger object.");
 
 	RTTIType* rtti = nullptr;
 	if(output)
@@ -619,7 +616,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 								break;
 							}
 						default:
-							B3D_EXCEPT(InternalErrorException, "Error decoding data. Encountered a type I don't know how to decode. Type: " + ToString(u32(decodedFieldTypeSchema.Type)) + ", Is array: " + ToString(decodedFieldSchema.IsContainer));
+							B3D_LOG(Fatal, LogSerialization, "Error decoding data. Encountered a type I don't know how to decode. Type: {0}, Is array: {1}", (u32)decodedFieldTypeSchema.Type, decodedFieldSchema.IsContainer);
 						}
 					}
 
@@ -786,9 +783,7 @@ RTTIFieldSchema BinaryDeserializationContext::ReadFieldMetaData(BufferedBitstrea
 	stream.ReadBytes(fieldMetaData);
 
 	if(IsObjectMetaData(fieldMetaData))
-	{
-		B3D_EXCEPT(InternalErrorException, "Meta data represents an object description but is trying to be decoded as a field descriptor.");
-	}
+		B3D_LOG(Fatal, LogSerialization, "Meta data represents an object description but is trying to be decoded as a field descriptor.");
 
 	RTTIFieldSchema fieldSchema;
 	fieldSchema.Id = (u16)((fieldMetaData >> 16) & 0xFFFF);
@@ -854,9 +849,7 @@ void BinaryDeserializationContext::SkipBuiltinType(u32 fieldType, BufferedBitstr
 bool BinaryDeserializationContext::IsFieldTerminator(u8 data)
 {
 	if(IsObjectMetaData(data))
-	{
-		B3D_EXCEPT(InternalErrorException, "Meta data represents an object description but is trying to be decoded as a field descriptor.");
-	}
+		B3D_LOG(Fatal, LogSerialization, "Meta data represents an object description but is trying to be decoded as a field descriptor.");
 
 	return (data & 0x40) != 0;
 }
@@ -864,9 +857,7 @@ bool BinaryDeserializationContext::IsFieldTerminator(u8 data)
 void BinaryDeserializationContext::DecodeObjectMetaData(ObjectMetaData encodedData, u32& objId, u32& objTypeId, bool& isBaseClass)
 {
 	if(!IsObjectMetaData(encodedData.ObjectMeta))
-	{
-		B3D_EXCEPT(InternalErrorException, "Meta data represents a field description but is trying to be decoded as an object descriptor.");
-	}
+		B3D_LOG(Fatal, LogSerialization, "Meta data represents a field description but is trying to be decoded as an object descriptor.");
 
 	DecodeObjectMetaData(encodedData.ObjectMeta, objId, isBaseClass);
 	objTypeId = encodedData.TypeId;
@@ -875,9 +866,7 @@ void BinaryDeserializationContext::DecodeObjectMetaData(ObjectMetaData encodedDa
 void BinaryDeserializationContext::DecodeObjectMetaData(u32 encodedData, u32& objId, bool& isBaseClass)
 {
 	if(!IsObjectMetaData(encodedData))
-	{
-		B3D_EXCEPT(InternalErrorException, "Meta data represents a field description but is trying to be decoded as an object descriptor.");
-	}
+		B3D_LOG(Fatal, LogSerialization, "Meta data represents a field description but is trying to be decoded as an object descriptor.");
 
 	objId = (encodedData >> 2) & 0x3FFFFFFF;
 	isBaseClass = (encodedData & 0x02) != 0;
@@ -897,7 +886,7 @@ u32 BinaryDeserializationContext::ReadObjectMetaData(BufferedBitstreamReader& st
 		objectMetaData.TypeId = 0;
 
 		if(stream.ReadBytes(objectMetaData) != sizeof(ObjectMetaData))
-			B3D_EXCEPT(InternalErrorException, "Error decoding data.");
+			B3D_LOG(Fatal, LogSerialization, "Error decoding data.");
 
 		DecodeObjectMetaData(objectMetaData, objId, objTypeId, isBaseType);
 		return sizeof(ObjectMetaData) * 8;
@@ -912,7 +901,7 @@ u32 BinaryDeserializationContext::ReadObjectMetaData(BufferedBitstreamReader& st
 		else
 		{
 			if(stream.ReadBytes(objectMetaData) != sizeof(objectMetaData))
-				B3D_EXCEPT(InternalErrorException, "Error decoding data.");
+				B3D_LOG(Fatal, LogSerialization, "Error decoding data.");
 
 			bitsRead = sizeof(objectMetaData) * 8;
 		}
@@ -1255,9 +1244,7 @@ ObjectMetaData BinarySerializationContext::EncodeObjectMetaData(u32 objId, u32 o
 	//// B - Base class indicator
 
 	if(objId > 1073741823)
-	{
-		B3D_EXCEPT(InvalidParametersException, "Object ID is larger than we can store (max 30 bits): " + ToString(objId));
-	}
+		B3D_LOG(Fatal, LogSerialization, "Object ID is larger than we can store (max 30 bits): {0}", objId);
 
 	ObjectMetaData metaData;
 	metaData.ObjectMeta = EncodeObjectMetaData(objId, isBaseClass);
@@ -1274,9 +1261,7 @@ u32 BinarySerializationContext::EncodeObjectMetaData(u32 objId, bool isBaseClass
 	//// B - Base class indicator
 
 	if(objId > 1073741823)
-	{
-		B3D_EXCEPT(InvalidParametersException, "Object ID is larger than we can store (max 30 bits): " + ToString(objId));
-	}
+		B3D_LOG(Fatal, LogSerialization, "Object ID is larger than we can store (max 30 bits): {0}", objId);
 
 	return (objId << 2) | (isBaseClass ? 0x02 : 0) | 0x01;
 }
@@ -1466,8 +1451,8 @@ SPtr<IReflectable> BinarySerializer::Decode(const SPtr<DataStream>& stream, u32 
 
 		if(objectIsBaseClass)
 		{
-			B3D_EXCEPT(InternalErrorException, "Encountered a base-class object while looking for a new object. "
-											  "Base class objects are only supposed to be parts of a larger object.");
+			B3D_LOG(Fatal, LogSerialization, "Encountered a base-class object while looking for a new object. "
+				"Base class objects are only supposed to be parts of a larger object.");
 		}
 
 		if(curSchema)

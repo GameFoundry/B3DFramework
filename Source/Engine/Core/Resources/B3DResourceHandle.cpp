@@ -106,14 +106,9 @@ void ResourceHandle::NotifyLoadComplete()
 	}
 }
 
-void ResourceHandle::ThrowIfNotLoaded() const
+void ResourceHandle::ReportIfNotLoaded() const
 {
-#if B3D_DEBUG
-	if(!IsLoaded(false))
-	{
-		B3D_EXCEPT(InternalErrorException, "Trying to access a resource that hasn't been loaded yet.");
-	}
-#endif
+	B3D_ENSURE_LOG(IsLoaded(false), "Trying to access a resource that hasn't been loaded yet.");
 }
 
 RTTIType* WeakResourceHandle::GetRttiStatic()

@@ -4,7 +4,6 @@
 
 #include "B3DShaderManager.h"
 #include "Material/B3DVariation.h"
-#include "Error/B3DException.h"
 #include "Debug/B3DDebug.h"
 #include "RTTI/B3DShaderRTTI.h"
 #include "Resources/B3DResources.h"

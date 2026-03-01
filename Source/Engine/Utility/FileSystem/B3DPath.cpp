@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Debug/B3DDebug.h"
 #include "B3DUtilityPrerequisites.h"
-#include "Error/B3DException.h"
 #include "String/B3DUnicode.h"
 
 using namespace b3d;
@@ -378,10 +377,8 @@ String Path::GetExtension() const
 
 const String& Path::GetDirectory(u32 index) const
 {
-	if(index >= (u32)mDirectories.size())
-	{
-		B3D_EXCEPT(InvalidParametersException, "Index out of range: " + b3d::ToString(index) + ". Valid range: [0, " + b3d::ToString((u32)mDirectories.size() - 1) + "]");
-	}
+	if(!B3D_ENSURE_LOG(index < (u32)mDirectories.size(), "Index out of range: {0}. Valid range: [0, {1}]", ::b3d::ToString(index), ::b3d::ToString((u32)mDirectories.size() - 1)))
+		return StringUtility::kBlank;
 
 	return mDirectories[index];
 }
@@ -439,9 +436,9 @@ void Path::Clear()
 	mIsAbsolute = false;
 }
 
-void Path::ThrowInvalidPathException(const String& path) const
+void Path::ReportInvalidPath(const String& path) const
 {
-	B3D_EXCEPT(InvalidParametersException, "Incorrectly formatted path provided: " + path);
+	B3D_LOG(Fatal, LogFileSystem, "Incorrectly formatted path provided: {0}", path);
 }
 
 String Path::BuildWindows() const

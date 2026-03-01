@@ -6,7 +6,6 @@
 #include "Components/B3DCamera.h"
 #include "RenderAPI/B3DViewport.h"
 #include "RenderAPI/B3DRenderTarget.h"
-#include "Error/B3DException.h"
 
 using namespace b3d;
 
@@ -78,7 +77,6 @@ void GUIViewport::ChangeParentWidget(GUIWidget* widget)
 		SPtr<RenderTarget> guiRenderTarget = widget->GetTarget()->GetTarget();
 		SPtr<RenderTarget> cameraRenderTarget = mCamera->GetViewport()->GetTarget();
 
-		if(guiRenderTarget != cameraRenderTarget)
-			B3D_EXCEPT(InvalidParametersException, "Camera provided to GUIViewport must use the same render target as the GUIWidget this element is located on.")
+		B3D_ENSURE_LOG(guiRenderTarget == cameraRenderTarget, "Camera provided to GUIViewport must use the same render target as the GUIWidget this element is located on.");
 	}
 }

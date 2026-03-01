@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DUtilityPrerequisites.h"
-#include "Error/B3DException.h"
+#include "Debug/B3DDebug.h"
 
 namespace b3d
 {
@@ -26,14 +26,10 @@ namespace b3d
 		static T& Instance()
 		{
 			if(!IsStartedUp())
-			{
-				B3D_EXCEPT(InternalErrorException, "Trying to access a module but it hasn't been started up yet.");
-			}
+				B3D_LOG(Fatal, LogGeneric, "Trying to access a module but it hasn't been started up yet.");
 
 			if(IsDestroyed())
-			{
-				B3D_EXCEPT(InternalErrorException, "Trying to access a destroyed module.");
-			}
+				B3D_LOG(Fatal, LogGeneric, "Trying to access a destroyed module.");
 
 			return *InstanceInternal();
 		}
@@ -45,14 +41,10 @@ namespace b3d
 		static T* InstancePtr()
 		{
 			if(!IsStartedUp())
-			{
-				B3D_EXCEPT(InternalErrorException, "Trying to access a module but it hasn't been started up yet.");
-			}
+				B3D_LOG(Fatal, LogGeneric, "Trying to access a module but it hasn't been started up yet.");
 
 			if(IsDestroyed())
-			{
-				B3D_EXCEPT(InternalErrorException, "Trying to access a destroyed module.");
-			}
+				B3D_LOG(Fatal, LogGeneric, "Trying to access a destroyed module.");
 
 			return InstanceInternal();
 		}
@@ -62,7 +54,7 @@ namespace b3d
 		static void StartUp(Args&&... args)
 		{
 			if(IsStartedUp())
-				B3D_EXCEPT(InternalErrorException, "Trying to start an already started module.");
+				B3D_LOG(Fatal, LogGeneric, "Trying to start an already started module.");
 
 			InstanceInternal() = B3DNew<T>(std::forward<Args>(args)...);
 			IsStartedUp() = true;
@@ -80,7 +72,7 @@ namespace b3d
 			static_assert(std::is_base_of<T, SubType>::value, "Provided type is not derived from type the Module is initialized with.");
 
 			if(IsStartedUp())
-				B3D_EXCEPT(InternalErrorException, "Trying to start an already started module.");
+				B3D_LOG(Fatal, LogGeneric, "Trying to start an already started module.");
 
 			InstanceInternal() = B3DNew<SubType>(std::forward<Args>(args)...);
 			IsStartedUp() = true;
@@ -92,14 +84,10 @@ namespace b3d
 		static void ShutDown()
 		{
 			if(IsDestroyed())
-			{
-				B3D_EXCEPT(InternalErrorException, "Trying to shut down an already shut down module.");
-			}
+				B3D_LOG(Fatal, LogGeneric, "Trying to shut down an already shut down module.");
 
 			if(!IsStartedUp())
-			{
-				B3D_EXCEPT(InternalErrorException, "Trying to shut down a module which was never started.");
-			}
+				B3D_LOG(Fatal, LogGeneric, "Trying to shut down a module which was never started.");
 
 			((Module*)InstanceInternal())->OnShutDown();
 

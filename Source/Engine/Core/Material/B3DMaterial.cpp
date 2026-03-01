@@ -287,7 +287,7 @@ SPtr<typename TMaterial<IsRenderProxy>::PassType> TMaterial<IsRenderProxy>::GetP
 template <bool IsRenderProxy>
 TMaterialParameterStruct<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamStruct(const String& name) const
 {
-	ThrowIfNotInitialized();
+	ReportIfNotInitialized();
 
 	return TMaterialParameterStruct<IsRenderProxy>(name, GetMaterialPtr(this));
 }
@@ -295,7 +295,7 @@ TMaterialParameterStruct<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamStruct
 template <bool IsRenderProxy>
 TMaterialParameterColorGradient<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamColorGradient(const String& name) const
 {
-	ThrowIfNotInitialized();
+	ReportIfNotInitialized();
 
 	return TMaterialParameterColorGradient<IsRenderProxy>(name, GetMaterialPtr(this));
 }
@@ -303,7 +303,7 @@ TMaterialParameterColorGradient<IsRenderProxy> TMaterial<IsRenderProxy>::GetPara
 template <bool IsRenderProxy>
 TMaterialParameterCurve<float, IsRenderProxy> TMaterial<IsRenderProxy>::GetParamFloatCurve(const String& name) const
 {
-	ThrowIfNotInitialized();
+	ReportIfNotInitialized();
 
 	return TMaterialParameterCurve<float, IsRenderProxy>(name, GetMaterialPtr(this));
 }
@@ -311,7 +311,7 @@ TMaterialParameterCurve<float, IsRenderProxy> TMaterial<IsRenderProxy>::GetParam
 template <bool IsRenderProxy>
 TMaterialParameterSampledTexture<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamTexture(const String& name) const
 {
-	ThrowIfNotInitialized();
+	ReportIfNotInitialized();
 
 	return TMaterialParameterSampledTexture<IsRenderProxy>(name, GetMaterialPtr(this));
 }
@@ -319,7 +319,7 @@ TMaterialParameterSampledTexture<IsRenderProxy> TMaterial<IsRenderProxy>::GetPar
 template <bool IsRenderProxy>
 TMaterialParamSpriteImage<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamSpriteImage(const String& name) const
 {
-	ThrowIfNotInitialized();
+	ReportIfNotInitialized();
 
 	return TMaterialParamSpriteImage<IsRenderProxy>(name, GetMaterialPtr(this));
 }
@@ -327,7 +327,7 @@ TMaterialParamSpriteImage<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamSprit
 template <bool IsRenderProxy>
 TMaterialParameterStorageTexture<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamLoadStoreTexture(const String& name) const
 {
-	ThrowIfNotInitialized();
+	ReportIfNotInitialized();
 
 	return TMaterialParameterStorageTexture<IsRenderProxy>(name, GetMaterialPtr(this));
 }
@@ -335,7 +335,7 @@ TMaterialParameterStorageTexture<IsRenderProxy> TMaterial<IsRenderProxy>::GetPar
 template <bool IsRenderProxy>
 TMaterialParameterBuffer<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamBuffer(const String& name) const
 {
-	ThrowIfNotInitialized();
+	ReportIfNotInitialized();
 
 	return TMaterialParameterBuffer<IsRenderProxy>(name, GetMaterialPtr(this));
 }
@@ -343,7 +343,7 @@ TMaterialParameterBuffer<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamBuffer
 template <bool IsRenderProxy>
 TMaterialParameterSampler<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamSamplerState(const String& name) const
 {
-	ThrowIfNotInitialized();
+	ReportIfNotInitialized();
 
 	return TMaterialParameterSampler<IsRenderProxy>(name, GetMaterialPtr(this));
 }
@@ -514,19 +514,16 @@ template <bool IsRenderProxy>
 template <typename T>
 void TMaterial<IsRenderProxy>::GetParam(const String& name, TMaterialParameterPrimitive<T, IsRenderProxy>& output) const
 {
-	ThrowIfNotInitialized();
+	ReportIfNotInitialized();
 
 	output = TMaterialParameterPrimitive<T, IsRenderProxy>(name, GetMaterialPtr(this));
 }
 
 template <bool IsRenderProxy>
-void TMaterial<IsRenderProxy>::ThrowIfNotInitialized() const
+void TMaterial<IsRenderProxy>::ReportIfNotInitialized() const
 {
-	if(mShader == nullptr)
-		B3D_EXCEPT(InternalErrorException, "Material does not have shader set.");
-
-	if(mVariations.empty())
-		B3D_EXCEPT(InternalErrorException, "Shader does not contain a supported variation.");
+	B3D_ENSURE_LOG(mShader != nullptr, "Material does not have shader set.");
+	B3D_ENSURE_LOG(!mVariations.empty(), "Shader does not contain a supported variation.");
 }
 
 template class TMaterial<false>;

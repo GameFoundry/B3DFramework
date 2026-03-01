@@ -12,7 +12,6 @@
 #include "Math/B3DVector2.h"
 #include "Math/B3DVector3.h"
 #include "Math/B3DVector4.h"
-#include "Error/B3DException.h"
 #include "Debug/B3DLog.h"
 
 using namespace b3d;
@@ -885,10 +884,5 @@ bool IsNumber(const WString& val)
 	float tst;
 	str >> tst;
 	return !str.fail() && str.eof();
-}
-
-void StringThrowDataOverflowException()
-{
-	B3D_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
 }
 } // namespace b3d

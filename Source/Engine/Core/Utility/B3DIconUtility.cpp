@@ -3,7 +3,6 @@
 #include "Utility/B3DIconUtility.h"
 #include "Image/B3DPixelData.h"
 #include "Image/B3DColor.h"
-#include "Error/B3DException.h"
 
 #define MSDOS_SIGNATURE 0x5A4D
 #define PE_SIGNATURE 0x00004550
@@ -206,8 +205,8 @@ void IconUtility::UpdateIconExe(const Path& path, const Map<u32, SPtr<PixelData>
 	// First check magic number to ensure file is even an executable
 	u16 magicNum;
 	stream.read((char*)&magicNum, sizeof(magicNum));
-	if(magicNum != MSDOS_SIGNATURE)
-		B3D_EXCEPT(InvalidStateException, "Provided file is not a valid executable.");
+	if(!B3D_ENSURE_LOG(magicNum == MSDOS_SIGNATURE, "Provided file is not a valid executable."))
+		return;
 
 	// Read the MSDOS header and skip over it
 	stream.seekg(0);
@@ -221,15 +220,15 @@ void IconUtility::UpdateIconExe(const Path& path, const Map<u32, SPtr<PixelData>
 	u32 peSignature;
 	stream.read((char*)&peSignature, sizeof(peSignature));
 
-	if(peSignature != PE_SIGNATURE)
-		B3D_EXCEPT(InvalidStateException, "Provided file is not in PE format.");
+	if(!B3D_ENSURE_LOG(peSignature == PE_SIGNATURE, "Provided file is not in PE format."))
+		return;
 
 	// Read COFF header
 	COFFHeader coffHeader;
 	stream.read((char*)&coffHeader, sizeof(COFFHeader));
 
-	if(coffHeader.SizeOptHeader == 0) // .exe files always have an optional header
-		B3D_EXCEPT(InvalidStateException, "Provided file is not a valid executable.");
+	if(!B3D_ENSURE_LOG(coffHeader.SizeOptHeader != 0, "Provided file is not a valid executable."))
+		return;
 
 	u32 numSectionHeaders = coffHeader.NumSections;
 
@@ -256,7 +255,10 @@ void IconUtility::UpdateIconExe(const Path& path, const Map<u32, SPtr<PixelData>
 		dataDirectory = optionalHeader.DataDirectory + PE_IMAGE_DIRECTORY_ENTRY_RESOURCE;
 	}
 	else
-		B3D_EXCEPT(InvalidStateException, "Unrecognized PE format.");
+	{
+		if(!B3D_ENSURE_LOG(false, "Unrecognized PE format."))
+			return;
+	}
 
 	// Read section headers
 	auto sectionHeaderPos = optionalHeaderPos + (std::ifstream::pos_type)coffHeader.SizeOptHeader;

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "B3DUtilityPrerequisites.h"
-#include "Error/B3DException.h"
 
 namespace b3d
 {

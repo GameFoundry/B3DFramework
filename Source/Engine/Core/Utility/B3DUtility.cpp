@@ -5,7 +5,6 @@
 #include "Reflection/B3DRTTIObjectWrapper.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Scene/B3DSceneObject.h"
-#include "Error/B3DException.h"
 
 using namespace b3d;
 
@@ -169,7 +168,7 @@ class RTTIOperationEngineContextRTTI : public TRTTIType<RTTIOperationEngineConte
 
 	SPtr<IReflectable> NewRttiObject() override
 	{
-		B3D_EXCEPT(InternalErrorException, "Cannot instantiate an abstract class.");
+		B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 		return nullptr;
 	}
 };

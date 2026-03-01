@@ -7,7 +7,6 @@
 #include "Math/B3DVector2.h"
 #include "Math/B3DMath.h"
 #include "Debug/B3DDebug.h"
-#include "Error/B3DException.h"
 
 using namespace b3d;
 
@@ -81,13 +80,12 @@ PixelData PixelData::GetSubVolume(const PixelVolume& volume) const
 			return *this;
 		}
 
-		B3D_EXCEPT(InvalidParametersException, "Cannot return subvolume of compressed PixelBuffer");
+		if(!B3D_ENSURE_LOG(false, "Cannot return subvolume of compressed PixelBuffer"))
+			return *this;
 	}
 
-	if(!mExtents.Contains(volume))
-	{
-		B3D_EXCEPT(InvalidParametersException, "Bounds out of range");
-	}
+	if(!B3D_ENSURE_LOG(mExtents.Contains(volume), "Bounds out of range"))
+		return *this;
 
 	const size_t elemSize = PixelUtility::GetElementByteCount(mFormat);
 	PixelData rval(volume.GetWidth(), volume.GetHeight(), volume.GetDepth(), mFormat);

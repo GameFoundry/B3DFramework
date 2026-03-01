@@ -46,7 +46,7 @@ namespace b3d
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			B3D_EXCEPT(InternalErrorException, "Cannot instantiate an abstract class.");
+			B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 			return nullptr;
 		}
 	};

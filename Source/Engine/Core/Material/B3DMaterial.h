@@ -694,8 +694,8 @@ namespace b3d
 		/** Assigns all the default parameters specified in the shader to the material. */
 		void InitializeDefaultParameters();
 
-		/** Throw an exception if no shader is set, or no acceptable variation was found. */
-		void ThrowIfNotInitialized() const;
+		/** Reports an error if no shader is set, or no acceptable variation was found. */
+		void ReportIfNotInitialized() const;
 
 		ShaderType mShader;
 		SPtr<MaterialParametersType> mParameters;

@@ -6,7 +6,6 @@
 #include "B3DUtilityPrerequisites.h"
 #include "Utility/B3DBitstream.h"
 #include "FileSystem/B3DDataStream.h"
-#include "Error/B3DException.h"
 
 namespace b3d
 {
@@ -241,7 +240,7 @@ namespace b3d
 
 		mDataStream->Seek((size_t)(mBufferedRangeEnd / 8));
 		if(mDataStream->Read(mBitstream->Cursor(), byteCountToPreload) != byteCountToPreload)
-			B3D_EXCEPT(InternalErrorException, "Error reading data.");
+			B3D_LOG(Fatal, LogSerialization, "Error reading data.");
 
 		mBitstream->Seek(orgPos);
 		mBufferedRangeEnd += byteCountToPreload * 8;

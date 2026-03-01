@@ -3,7 +3,6 @@
 #include "Input/B3DGamepad.h"
 #include "Input/B3DInput.h"
 #include "Private/Win32/B3DWin32Input.h"
-#include "Error/B3DException.h"
 
 #undef DIJOFS_BUTTON
 #define DIJOFS_BUTTON(n) (FIELD_OFFSET(DIJOYSTATE2, rgbButtons) + (n))

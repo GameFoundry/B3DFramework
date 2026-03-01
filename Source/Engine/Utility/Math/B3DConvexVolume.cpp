@@ -5,7 +5,7 @@
 #include "Math/B3DSphere.h"
 #include "Math/B3DPlane.h"
 #include "Math/B3DMath.h"
-#include "Error/B3DException.h"
+#include "Debug/B3DDebug.h"
 
 using namespace b3d;
 
@@ -149,9 +149,10 @@ bool TConvexVolume<T>::Contains(const TVector3<T>& p, T expand) const
 template<typename T>
 const TPlane<T>& TConvexVolume<T>::GetPlane(FrustumPlane whichPlane) const
 {
-	if(whichPlane >= mPlanes.size())
+	if(!B3D_ENSURE_LOG(whichPlane < mPlanes.size(), "Requested plane does not exist in this volume."))
 	{
-		B3D_EXCEPT(InvalidParametersException, "Requested plane does not exist in this volume.");
+		static TPlane<T> kDefault;
+		return kDefault;
 	}
 
 	return mPlanes[whichPlane];

@@ -1,7 +1,6 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/B3DRenderTexture.h"
-#include "Error/B3DException.h"
 #include "Image/B3DTexture.h"
 #include "Managers/B3DTextureManager.h"
 #include "RenderAPI/B3DGpuCommandBuffer.h"
@@ -190,8 +189,7 @@ void RenderTexture::Initialize()
 		{
 			SPtr<Texture> texture = mInformation.ColorSurfaces[i].Texture;
 
-			if(!texture->GetProperties().Usage.IsSet(TextureUsageFlag::RenderTarget))
-				B3D_EXCEPT(InvalidParametersException, "Provided texture is not created with render target usage.");
+			B3D_ENSURE_LOG(texture->GetProperties().Usage.IsSet(TextureUsageFlag::RenderTarget), "Provided texture is not created with render target usage.");
 
 			const TextureSurface textureSurface(mInformation.ColorSurfaces[i].MipLevel, 1, mInformation.ColorSurfaces[i].Face, mInformation.ColorSurfaces[i].FaceCount);
 			mColorSurfaces[i] = texture->RequestView(textureSurface, GVU_RENDERTARGET);
@@ -202,14 +200,13 @@ void RenderTexture::Initialize()
 	{
 		SPtr<Texture> texture = mInformation.DepthStencilSurface.Texture;
 
-		if(!texture->GetProperties().Usage.IsSet(TextureUsageFlag::DepthStencil))
-			B3D_EXCEPT(InvalidParametersException, "Provided texture is not created with depth stencil usage.");
+		B3D_ENSURE_LOG(texture->GetProperties().Usage.IsSet(TextureUsageFlag::DepthStencil), "Provided texture is not created with depth stencil usage.");
 
 		const TextureSurface textureSurface(mInformation.DepthStencilSurface.MipLevel, 1, mInformation.DepthStencilSurface.Face, mInformation.DepthStencilSurface.FaceCount);
 		mDepthStencilSurface = texture->RequestView(textureSurface, GVU_DEPTHSTENCIL);
 	}
 
-	ThrowIfBuffersDontMatch();
+	ReportIfBuffersDontMatch();
 }
 
 SPtr<RenderTexture> RenderTexture::Create(const RenderTextureCreateInformation& createInformation)
@@ -226,7 +223,7 @@ void RenderTexture::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator&
 	syncPacket->ApplySyncData(this);
 }
 
-void RenderTexture::ThrowIfBuffersDontMatch() const
+void RenderTexture::ReportIfBuffersDontMatch() const
 {
 	u32 firstSurfaceIdx = (u32)-1;
 	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
@@ -267,7 +264,7 @@ void RenderTexture::ThrowIfBuffersDontMatch() const
 			errorInfo += "\nNum. slices: " + ToString(curNumSlices) + "/" + ToString(firstNumSlices);
 			errorInfo += "\nMultisample Count: " + ToString(curMsCount) + "/" + ToString(firstMsCount);
 
-			B3D_EXCEPT(InvalidParametersException, "Provided color textures don't match!" + errorInfo);
+			B3D_ENSURE_LOG(false, "Provided color textures don't match! {0}", errorInfo);
 		}
 	}
 
@@ -285,12 +282,13 @@ void RenderTexture::ThrowIfBuffersDontMatch() const
 
 		if((firstViewSurface.Face + firstViewSurface.FaceCount) > numSlices)
 		{
-			B3D_EXCEPT(InvalidParametersException, "Provided number of faces is out of range. Face: " + ToString(firstViewSurface.Face + firstViewSurface.FaceCount) + ". Max num faces: " + ToString(numSlices));
+			B3D_ENSURE_LOG(false, "Provided number of faces is out of range. Face: {0}. Max num faces: {1}", firstViewSurface.Face + firstViewSurface.FaceCount, numSlices);
+			return;
 		}
 
 		if(firstViewSurface.MipLevel > firstTexProps.MipMapCount)
 		{
-			B3D_EXCEPT(InvalidParametersException, "Provided number of mip maps is out of range. Mip level: " + ToString(firstViewSurface.MipLevel) + ". Max num mipmaps: " + ToString(firstTexProps.MipMapCount));
+			B3D_ENSURE_LOG(false, "Provided number of mip maps is out of range. Mip level: {0}. Max num mipmaps: {1}", firstViewSurface.MipLevel, firstTexProps.MipMapCount);
 		}
 
 		if(mDepthStencilSurface == nullptr)
@@ -314,7 +312,7 @@ void RenderTexture::ThrowIfBuffersDontMatch() const
 			errorInfo += "\nHeight: " + ToString(depthTexProps.Height) + "/" + ToString(firstTexProps.Height);
 			errorInfo += "\nMultisample Count: " + ToString(depthMsCount) + "/" + ToString(colorMsCount);
 
-			B3D_EXCEPT(InvalidParametersException, "Provided texture and depth stencil buffer don't match!" + errorInfo);
+			B3D_ENSURE_LOG(false, "Provided texture and depth stencil buffer don't match! {0}", errorInfo);
 		}
 	}
 }

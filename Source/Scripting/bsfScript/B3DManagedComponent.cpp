@@ -245,12 +245,12 @@ void ManagedComponent::SetupScriptBindings(const SPtr<ManagedObjectInfo>& object
 	if(mManagedClass != nullptr)
 	{
 		MonoAssembly* engineAssembly = MonoManager::Instance().GetAssembly(kEngineAssembly);
-		if(engineAssembly == nullptr)
-			B3D_EXCEPT(InvalidStateException, String(kEngineAssembly) + " assembly is not loaded.");
+		if(!B3D_ENSURE_LOG(engineAssembly != nullptr, "{0} assembly is not loaded.", String(kEngineAssembly)))
+			return;
 
 		MonoClass* runInEditorAttrib = engineAssembly->GetClass(kEngineNs, "RunInEditor");
-		if(runInEditorAttrib == nullptr)
-			B3D_EXCEPT(InvalidStateException, "Cannot find RunInEditor managed class.");
+		if(!B3D_ENSURE_LOG(runInEditorAttrib != nullptr, "Cannot find RunInEditor managed class."))
+			return;
 
 		bool runInEditor = mManagedClass->GetAttribute(runInEditorAttrib) != nullptr;
 		if(runInEditor)

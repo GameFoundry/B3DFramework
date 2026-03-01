@@ -45,8 +45,8 @@ void GUILayout::AddElement(GUIElement* element)
 
 void GUILayout::InsertElement(u32 index, GUIElement* element)
 {
-	if(index > (u32)mChildren.size())
-		B3D_EXCEPT(InvalidParametersException, "Index out of range: " + ToString(index) + ". Valid range: 0 .. " + ToString((u32)mChildren.size()));
+	if(!B3D_ENSURE_LOG(index <= (u32)mChildren.size(), "Index out of range: {0}. Valid range: 0 .. {1}", index, (u32)mChildren.size()))
+		return;
 
 	if(element->IsPendingDestroy())
 		return;
@@ -77,8 +77,8 @@ void GUILayout::RemoveElement(GUIElement* element)
 
 void GUILayout::RemoveElementAt(u32 index)
 {
-	if(index >= (u32)mChildren.size())
-		B3D_EXCEPT(InvalidParametersException, "Index out of range: " + ToString(index) + ". Valid range: 0 .. " + ToString((u32)mChildren.size()));
+	if(!B3D_ENSURE_LOG(index < (u32)mChildren.size(), "Index out of range: {0}. Valid range: 0 .. {1}", index, (u32)mChildren.size()))
+		return;
 
 	GUIElement* child = mChildren[index];
 	mChildren.erase(mChildren.begin() + index);

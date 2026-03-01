@@ -5,7 +5,6 @@
 #include "B3DApplication.h"
 #include "B3DShaderCompiler.h"
 #include "CoreObject/B3DCoreObjectSync.h"
-#include "Error/B3DException.h"
 #include "Renderer/B3DRendererManager.h"
 #include "Material/B3DPass.h"
 #include "Renderer/B3DRenderer.h"

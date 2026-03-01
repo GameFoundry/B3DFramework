@@ -43,16 +43,14 @@ void RenderProxy::BlockUntilInitialized()
 {
 	if(!IsInitialized())
 	{
-#if B3D_DEBUG
-		if(B3D_CURRENT_THREAD_ID == RenderThread::Instance().GetThreadId())
-			B3D_EXCEPT(InternalErrorException, "You cannot call this method on the render thread. It will cause a deadlock.");
-#endif
+		if(!B3D_CHECK_LOG(B3D_CURRENT_THREAD_ID != RenderThread::Instance().GetThreadId(), "You cannot call this method on the render thread. It will cause a deadlock."))
+			return;
 
 		GetRenderThread().PostCommand([] {}, "RenderProxy::BlockUntilInitialized", true);
 
 		Lock lock(mRenderProxyInitializedMutex);
-		if(!IsInitialized() && !mFlags.IsSet(RenderProxyFlag::ScheduledForInitialization))
-			B3D_EXCEPT(InternalErrorException, "Attempting to wait until initialization finishes but object is not scheduled to be initialized.");
+		if(!B3D_CHECK_LOG(IsInitialized() || mFlags.IsSet(RenderProxyFlag::ScheduledForInitialization), "Attempting to wait until initialization finishes but object is not scheduled to be initialized."))
+			return;
 
 		mRenderProxyInitializedCondition.Wait(lock, [this] { return IsInitialized(); });
 	}

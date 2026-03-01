@@ -6,7 +6,6 @@
 #include "Reflection/B3DRTTIPlain.h"
 #include "RTTI/B3DColorRTTI.h"
 #include "Image/B3DColorGradient.h"
-#include "Error/B3DException.h"
 #include "Debug/B3DDebug.h"
 
 namespace b3d

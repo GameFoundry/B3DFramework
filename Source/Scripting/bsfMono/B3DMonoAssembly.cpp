@@ -6,7 +6,6 @@
 #include "B3DMonoUtil.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
-#include "Error/B3DException.h"
 
 #if B3D_USE_DOTNETCORE
 #include "B3DMonoLoader.h"
@@ -113,7 +112,8 @@ void MonoAssembly::Load()
 	mMonoImage = image;
 	if(mMonoImage == nullptr)
 	{
-		B3D_EXCEPT(InvalidParametersException, "Cannot get script assembly image.");
+		B3D_LOG(Error, LogGeneric, "Cannot get script assembly image.");
+		return;
 	}
 
 	mIsLoaded = true;
@@ -125,7 +125,8 @@ void MonoAssembly::LoadFromImage(MonoImage* image)
 	::MonoAssembly* monoAssembly = mono_image_get_assembly(image);
 	if(monoAssembly == nullptr)
 	{
-		B3D_EXCEPT(InvalidParametersException, "Cannot get assembly from image.");
+		B3D_LOG(Error, LogGeneric, "Cannot get assembly from image.");
+		return;
 	}
 
 	mMonoAssembly = monoAssembly;
@@ -191,8 +192,8 @@ void MonoAssembly::Invoke(const String& functionName)
 
 MonoClass* MonoAssembly::GetClass(const String& namespaceName, const String& name) const
 {
-	if(!mIsLoaded)
-		B3D_EXCEPT(InvalidStateException, "Trying to use an unloaded assembly.");
+	if(!B3D_ENSURE_LOG(mIsLoaded, "Trying to use an unloaded assembly."))
+		return nullptr;
 
 	MonoAssembly::ClassId classId(namespaceName, name);
 	auto iterFind = mClasses.find(classId);
@@ -213,8 +214,8 @@ MonoClass* MonoAssembly::GetClass(const String& namespaceName, const String& nam
 
 MonoClass* MonoAssembly::GetClass(::MonoClass* rawMonoClass) const
 {
-	if(!mIsLoaded)
-		B3D_EXCEPT(InvalidStateException, "Trying to use an unloaded assembly.");
+	if(!B3D_ENSURE_LOG(mIsLoaded, "Trying to use an unloaded assembly."))
+		return nullptr;
 
 	if(rawMonoClass == nullptr)
 		return nullptr;
@@ -244,8 +245,8 @@ MonoClass* MonoAssembly::GetClass(::MonoClass* rawMonoClass) const
 
 MonoClass* MonoAssembly::GetClass(const String& ns, const String& typeName, ::MonoClass* rawMonoClass) const
 {
-	if(!mIsLoaded)
-		B3D_EXCEPT(InvalidStateException, "Trying to use an unloaded assembly.");
+	if(!B3D_ENSURE_LOG(mIsLoaded, "Trying to use an unloaded assembly."))
+		return nullptr;
 
 	if(rawMonoClass == nullptr)
 		return nullptr;

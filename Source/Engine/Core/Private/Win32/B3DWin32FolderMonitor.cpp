@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Platform/B3DFolderMonitor.h"
 #include "FileSystem/B3DFileSystem.h"
-#include "Error/B3DException.h"
 
 #include <windows.h>
 #include "String/B3DUnicode.h"

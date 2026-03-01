@@ -838,14 +838,6 @@ namespace b3d
 		}
 	};
 
-	/** @name Internal
-	 *  @{
-	 */
-
-	/** Helper method that throws an exception regarding a data overflow. */
-	void B3D_EXPORT StringThrowDataOverflowException();
-
-	/** @} */
 	/** @} */
 } // namespace b3d
 

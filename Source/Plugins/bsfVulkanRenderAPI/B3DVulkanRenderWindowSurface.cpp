@@ -85,7 +85,7 @@ VulkanRenderWindowSurface::VulkanRenderWindowSurface(const RenderWindowSurfaceCr
 		// Note: Not supporting present only queues at the moment
 		// Note: Also present device can only return one family of graphics queue, while there could be more (some of
 		// which support present)
-		B3D_EXCEPT(RenderingAPIException, "Cannot find a graphics queue that also supports present operations.");
+		B3D_ENSURE_LOG(false, "Cannot find a graphics queue that also supports present operations.");
 	}
 
 	SurfaceFormat format = presentDevice->GetSurfaceFormat(vkSurface, createInformation.UseHardwareSRGB);

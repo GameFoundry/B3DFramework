@@ -14,7 +14,6 @@
 #include "Platform/B3DPlatform.h"
 #include "Math/B3DArea2.h"
 #include "B3DGUIMeshBatches.h"
-#include "Error/B3DException.h"
 #include "Input/B3DInput.h"
 #include "GUI/B3DGUIInputCaret.h"
 #include "GUI/B3DGUIInputSelection.h"
@@ -949,11 +948,8 @@ bool GUIManager::FindElementUnderPointer(const GUIPhysicalPoint& pointerScreenPo
 
 		auto found = std::find(begin(activeWindows), end(activeWindows), window);
 
-		if(found == activeWindows.end())
-		{
-			B3D_EXCEPT(InternalErrorException, "GUI manager has a reference to a window that doesn't exist. \
+		B3D_ENSURE_LOG(found != activeWindows.end(), "GUI manager has a reference to a window that doesn't exist. \
 												  Please detach all GUIWidgets from windows before destroying a window.");
-		}
 	}
 #endif
 
@@ -1344,7 +1340,7 @@ GUIMouseButton GUIManager::ButtonToGuiButton(PointerEventButton pointerButton) c
 	else if(pointerButton == PointerEventButton::Right)
 		return GUIMouseButton::Right;
 
-	B3D_EXCEPT(InvalidParametersException, "Provided button is not a GUI supported mouse button.");
+	B3D_ENSURE_LOG(false, "Provided button is not a GUI supported mouse button.");
 	return GUIMouseButton::Left;
 }
 

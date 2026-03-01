@@ -4,7 +4,6 @@
 #include "RenderAPI/B3DViewport.h"
 #include "Image/B3DTexture.h"
 #include "RTTI/B3DRenderTargetRTTI.h"
-#include "Error/B3DException.h"
 #include "CoreObject/B3DRenderThread.h"
 
 using namespace b3d;

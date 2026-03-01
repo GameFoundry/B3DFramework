@@ -3,7 +3,6 @@
 #include "Debug/B3DLog.h"
 
 #include "B3DDebug.h"
-#include "Error/B3DException.h"
 
 using namespace b3d;
 

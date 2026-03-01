@@ -2,17 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Reflection/B3DIReflectable.h"
 #include "Reflection/B3DRTTIType.h"
-#include "Error/B3DException.h"
 #include "RTTI/B3DIReflectableRTTI.h"
 
 using namespace b3d;
 
 void IReflectable::RegisterRTTITypeInternal(RTTIType* rttiType)
 {
-	if(IsTypeIdDuplicateInternal(rttiType->GetRttiId()))
-	{
-		B3D_EXCEPT(InternalErrorException, "RTTI type \"" + rttiType->GetRttiName() + "\" has a duplicate ID: " + ToString(rttiType->GetRttiId()));
-	}
+	if(!B3D_CHECK_LOG(!IsTypeIdDuplicateInternal(rttiType->GetRttiId()), "RTTI type has a duplicate ID."))
+		return;
 
 	GetAllRttiTypes()[rttiType->GetRttiId()] = rttiType;
 }

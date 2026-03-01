@@ -1,7 +1,6 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Input/B3DInput.h"
-#include "Error/B3DException.h"
 #include "Private/Win32/B3DWin32Input.h"
 
 #include "B3DApplication.h"
@@ -164,13 +163,13 @@ void Input::InitRawInput()
 		return;
 
 	if(IsWindow((HWND)mWindowHandle) == 0)
-		B3D_EXCEPT(InvalidStateException, "RawInputManager failed to initialized. Invalid HWND provided.")
+		B3D_LOG(Fatal, LogPlatform, "RawInputManager failed to initialized. Invalid HWND provided.");
 
 	HINSTANCE hInst = GetModuleHandle(0);
 
 	HRESULT hr = DirectInput8Create(hInst, DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&mPlatformData->DirectInput, nullptr);
 	if(FAILED(hr))
-		B3D_EXCEPT(InternalErrorException, "Unable to initialize DirectInput.");
+		B3D_LOG(Fatal, LogPlatform, "Unable to initialize DirectInput.");
 
 	mPlatformData->KbSettings = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
 	mPlatformData->MouseSettings = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;

@@ -159,7 +159,12 @@ namespace b3d
 		using namespace ::b3d;                                                                                                                                                                                                \
 		if((i32)LogVerbosity::Verbosity <= (i32)LogCategory##Category::kCompileTimeVerbosity && !LogCategory##Category##Instance.IsVerbositySupressed(LogVerbosity::Verbosity))                                              \
 		{                                                                                                                                                                                                                    \
-			GetDebug().Log(StringUtility::Format(Message "\n\t\t in ", ##__VA_ARGS__) + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + ToString(__LINE__) + "]\n", LogVerbosity::Verbosity, LogCategory##Category##Instance.GetName());	 \
+			GetDebug().Log(StringUtility::Format(Message "\n\t\t in ", ##__VA_ARGS__) + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + ::b3d::ToString(__LINE__) + "]\n", LogVerbosity::Verbosity, LogCategory##Category##Instance.GetName());	 \
+		}                                                                                                                                                                                                                    \
+		if constexpr ((i32)LogVerbosity::Verbosity == (i32)LogVerbosity::Fatal)                                                                                                                                              \
+		{                                                                                                                                                                                                                    \
+			GetCrashHandler().ReportCrash(LogCategory##Category##Instance.GetName(), "Fatal error - see log for details", __PRETTY_FUNCTION__, __FILE__, __LINE__);                                                          \
+			PlatformUtility::Terminate(true);                                                                                                                                                                                \
 		}                                                                                                                                                                                                                    \
 	}                                                                                                                                                                                                                        \
 	while(0)
@@ -171,7 +176,12 @@ namespace b3d
 		using namespace ::b3d;                                                                                                                                                                                                \
 		if((i32)LogVerbosity::Verbosity <= (i32)LogCategory##Category::kCompileTimeVerbosity && !LogCategory##Category##Instance.IsVerbositySupressed(LogVerbosity::Verbosity))                                              \
 		{                                                                                                                                                                                                                    \
-			GetDebug().Log(StringUtility::Format(Message + "\n\t\t in ", ##__VA_ARGS__) + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + ToString(__LINE__) + "]\n", LogVerbosity::Verbosity, LogCategory##Category##Instance.GetName());	 \
+			GetDebug().Log(StringUtility::Format(Message + "\n\t\t in ", ##__VA_ARGS__) + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + ::b3d::ToString(__LINE__) + "]\n", LogVerbosity::Verbosity, LogCategory##Category##Instance.GetName());	 \
+		}                                                                                                                                                                                                                    \
+		if constexpr ((i32)LogVerbosity::Verbosity == (i32)LogVerbosity::Fatal)                                                                                                                                              \
+		{                                                                                                                                                                                                                    \
+			GetCrashHandler().ReportCrash(LogCategory##Category##Instance.GetName(), "Fatal error - see log for details", __PRETTY_FUNCTION__, __FILE__, __LINE__);                                                          \
+			PlatformUtility::Terminate(true);                                                                                                                                                                                \
 		}                                                                                                                                                                                                                    \
 	}                                                                                                                                                                                                                        \
 	while(0)
@@ -191,13 +201,18 @@ namespace b3d
 		return function();
 	}
 
+	// Workaround for MSVC traditional preprocessor not splitting __VA_ARGS__
+	// correctly when passed to another variadic macro. The extra indirection
+	// forces a rescan that properly separates the arguments.
+	#define B3D_EXPAND_VA(x) x
+
 	#define B3D_ENSURE_IMPLEMENTATION(captureScope, alwaysCheck, expression, ...) \
 	(B3D_LIKELY(!!(expression)) || (ExecuteEnsureCallback<bool>([captureScope]() B3D_FORCENOINLINE B3D_CODE_SECTION(".debug.") { \
 			static bool sHasFailureBeenReported = false; \
 			if (!sHasFailureBeenReported || alwaysCheck) \
 			{ \
 				sHasFailureBeenReported = true; \
-				B3D_LOG(Error, LogUncategorized, ##__VA_ARGS__); \
+				B3D_EXPAND_VA(B3D_LOG(Error, LogUncategorized, __VA_ARGS__)); \
 				return true; \
 			} \
 			return false; }) && ([]() { B3D_BREAK(); }(), false)))

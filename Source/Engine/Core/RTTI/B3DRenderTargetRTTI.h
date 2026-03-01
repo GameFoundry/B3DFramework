@@ -19,12 +19,6 @@ namespace b3d
 	class RenderTargetRTTI : public TRTTIType<RenderTarget, IReflectable, RenderTargetRTTI>
 	{
 	public:
-		SPtr<IReflectable> NewRttiObject()
-		{
-			B3D_EXCEPT(InvalidStateException, "Unable to instantiate abstract class.");
-			return nullptr;
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "RenderTarget";
@@ -35,17 +29,18 @@ namespace b3d
 		{
 			return TID_RenderTarget;
 		}
+
+		SPtr<IReflectable> NewRttiObject() override
+		{
+			B3D_ASSERT(false && "Unable to instantiate abstract class.");
+			return nullptr;
+		}
+
 	};
 
 	class RenderTextureRTTI : public TRTTIType<RenderTexture, RenderTarget, RenderTextureRTTI>
 	{
 	public:
-		SPtr<IReflectable> NewRttiObject()
-		{
-			B3D_EXCEPT(InvalidStateException, "This object cannot be instantiated using reflection.");
-			return nullptr;
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "RenderTexture";
@@ -56,17 +51,18 @@ namespace b3d
 		{
 			return TID_RenderTexture;
 		}
+
+		SPtr<IReflectable> NewRttiObject() override
+		{
+			B3D_ASSERT(false && "This object cannot be instantiated using reflection.");
+			return nullptr;
+		}
+
 	};
 
 	class RenderWindowRTTI : public TRTTIType<RenderWindow, RenderTarget, RenderWindowRTTI>
 	{
 	public:
-		SPtr<IReflectable> NewRttiObject()
-		{
-			B3D_EXCEPT(InvalidStateException, "This object cannot be instantiated using reflection.");
-			return nullptr;
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "RenderWindow";
@@ -76,6 +72,12 @@ namespace b3d
 		u32 GetRttiId() const override
 		{
 			return TID_RenderWindow;
+		}
+
+		SPtr<IReflectable> NewRttiObject() override
+		{
+			B3D_ASSERT(false && "This object cannot be instantiated using reflection.");
+			return nullptr;
 		}
 	};
 

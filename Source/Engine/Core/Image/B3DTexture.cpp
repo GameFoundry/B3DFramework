@@ -5,7 +5,6 @@
 #include "B3DApplication.h"
 #include "RTTI/B3DTextureRTTI.h"
 #include "FileSystem/B3DDataStream.h"
-#include "Error/B3DException.h"
 #include "Debug/B3DDebug.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "Threading/B3DAsyncOp.h"
@@ -226,8 +225,8 @@ void Texture::UpdateCpuBuffers(u32 subresourceIdx, const PixelData& pixelData)
 		return;
 	}
 
-	if(mCPUSubresourceData[subresourceIdx]->GetSize() != pixelData.GetSize())
-		B3D_EXCEPT(InternalErrorException, "Buffer sizes don't match.");
+	if(!B3D_ENSURE_LOG(mCPUSubresourceData[subresourceIdx]->GetSize() == pixelData.GetSize(), "Buffer sizes don't match."))
+		return;
 
 	u8* dest = mCPUSubresourceData[subresourceIdx]->GetData();
 	u8* src = pixelData.GetData();
@@ -260,8 +259,8 @@ void Texture::ReadCachedData(PixelData& dest, u32 face, u32 mipLevel)
 		return;
 	}
 
-	if(mCPUSubresourceData[subresourceIdx]->GetSize() != dest.GetSize())
-		B3D_EXCEPT(InternalErrorException, "Buffer sizes don't match.");
+	if(!B3D_ENSURE_LOG(mCPUSubresourceData[subresourceIdx]->GetSize() == dest.GetSize(), "Buffer sizes don't match."))
+		return;
 
 	u8* sourcePointer = mCPUSubresourceData[subresourceIdx]->GetData();
 	u8* destinationPointer = dest.GetData();

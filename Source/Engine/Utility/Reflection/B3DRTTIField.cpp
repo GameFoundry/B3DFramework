@@ -3,7 +3,6 @@
 #include "Reflection/B3DRTTIField.h"
 #include "Reflection/B3DRTTIPlain.h"
 #include "RTTI/B3DRTTISchemaRTTI.h"
-#include "Error/B3DException.h"
 
 using namespace b3d;
 
@@ -32,12 +31,8 @@ RTTIFieldInfo RTTIFieldInfo::DEFAULT;
 void RTTIField::CheckIsArray(bool array) const
 {
 	if(array && !Schema.IsContainer)
-	{
-		B3D_EXCEPT(InternalErrorException, "Invalid field type. Needed an array type but got a single type.");
-	}
+		B3D_ASSERT(false && "Invalid field type. Needed an array type but got a single type.");
 
 	if(!array && Schema.IsContainer)
-	{
-		B3D_EXCEPT(InternalErrorException, "Invalid field type. Needed a single type but got an array type.");
-	}
+		B3D_ASSERT(false && "Invalid field type. Needed a single type but got an array type.");
 }

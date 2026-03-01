@@ -4,7 +4,6 @@
 
 #include "CoreObject/B3DRenderThread.h"
 #include "Renderer/B3DRenderer.h"
-#include "Error/B3DException.h"
 #include "Renderer/B3DRendererFactory.h"
 
 using namespace b3d;
@@ -32,10 +31,7 @@ void RendererManager::SetActive(const String& name)
 		}
 	}
 
-	if(mActiveRenderer == nullptr)
-	{
-		B3D_EXCEPT(InternalErrorException, "Cannot initialize renderer. Renderer with the name '" + name + "' cannot be found.")
-	}
+	B3D_ENSURE_LOG(mActiveRenderer != nullptr, "Cannot initialize renderer. Renderer with the name '{0}' cannot be found.", name);
 }
 
 void RendererManager::Initialize(const SPtr<GpuDevice>& gpuDevice)

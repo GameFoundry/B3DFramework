@@ -55,7 +55,7 @@ namespace b3d
 			}
 		}
 
-		const String& GetRttiName()
+		const String& GetRttiName() override
 		{
 			static String name = "GameObject";
 			return name;
@@ -66,9 +66,9 @@ namespace b3d
 			return TID_GameObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		SPtr<IReflectable> NewRttiObject() override
 		{
-			B3D_EXCEPT(InternalErrorException, "Cannot instantiate an abstract class.");
+			B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 			return nullptr;
 		}
 	};

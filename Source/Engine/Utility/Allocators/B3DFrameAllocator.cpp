@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DUtilityPrerequisites.h"
 #include "Allocators/B3DFrameAllocator.h"
-#include "Error/B3DException.h"
 
 using namespace b3d;
 

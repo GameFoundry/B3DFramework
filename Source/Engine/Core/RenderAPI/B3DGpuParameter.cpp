@@ -9,7 +9,6 @@
 #include "RenderAPI/B3DGpuBuffer.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "Debug/B3DDebug.h"
-#include "Error/B3DException.h"
 
 using namespace b3d;
 
@@ -34,12 +33,8 @@ void TGpuParameterPrimitive<T, IsRenderProxy>::Set(const T& value, u32 arrayIdx)
 	if(uniformBuffer == nullptr)
 		return;
 
-#if B3D_DEBUG
-	if(arrayIdx >= mParameterInformation->ArraySize)
-	{
-		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParameterInformation->ArraySize) + ". Requested size: " + ToString(arrayIdx));
-	}
-#endif
+	if(!B3D_ENSURE_LOG(arrayIdx < mParameterInformation->ArraySize, "Array index out of range. Array size: {0}. Requested size: {1}", mParameterInformation->ArraySize, arrayIdx))
+		return;
 
 	const GpuDataParameterTypeInformation& typeInformation = b3d::GpuParameterSet::kParamSizes.Lookup[mParameterInformation->Type];
 
@@ -68,12 +63,8 @@ T TGpuParameterPrimitive<T, IsRenderProxy>::Get(u32 arrayIdx) const
 	if(uniformBuffer == nullptr)
 		return T();
 
-#if B3D_DEBUG
-	if(arrayIdx >= mParameterInformation->ArraySize)
-	{
-		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParameterInformation->ArraySize) + ". Requested size: " + ToString(arrayIdx));
-	}
-#endif
+	if(!B3D_ENSURE_LOG(arrayIdx < mParameterInformation->ArraySize, "Array index out of range. Array size: {0}. Requested size: {1}", mParameterInformation->ArraySize, arrayIdx))
+		return T();
 
 	u32 elementSizeBytes = mParameterInformation->ElementSize * sizeof(u32);
 	u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T));
@@ -107,19 +98,11 @@ void TGpuParameterStruct<IsRenderProxy>::Set(const void* value, u32 sizeBytes, u
 
 	u32 elementSizeBytes = mParameterInformation->ElementSize * sizeof(u32);
 
-#if B3D_DEBUG
-	if(sizeBytes > elementSizeBytes)
-	{
-		B3D_LOG(Warning, LogRenderBackend, "Provided element size larger than maximum element size. Maximum size: {0}."
-									   " Supplied size: {1}",
-			   elementSizeBytes, sizeBytes);
-	}
+	if(!B3D_ENSURE_LOG(sizeBytes <= elementSizeBytes, "Provided element size larger than maximum element size. Maximum size: {0}. Supplied size: {1}", elementSizeBytes, sizeBytes))
+		return;
 
-	if(arrayIdx >= mParameterInformation->ArraySize)
-	{
-		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParameterInformation->ArraySize) + ". Requested size: " + ToString(arrayIdx));
-	}
-#endif
+	if(!B3D_ENSURE_LOG(arrayIdx < mParameterInformation->ArraySize, "Array index out of range. Array size: {0}. Requested size: {1}", mParameterInformation->ArraySize, arrayIdx))
+		return;
 
 	sizeBytes = std::min(elementSizeBytes, sizeBytes);
 
@@ -147,19 +130,12 @@ void TGpuParameterStruct<IsRenderProxy>::Get(void* value, u32 sizeBytes, u32 arr
 
 	u32 elementSizeBytes = mParameterInformation->ElementSize * sizeof(u32);
 
-#if B3D_DEBUG
-	if(sizeBytes > elementSizeBytes)
-	{
-		B3D_LOG(Warning, LogRenderBackend, "Provided element size larger than maximum element size. Maximum size: {0}."
-									   " Supplied size: {1}",
-			   elementSizeBytes, sizeBytes);
-	}
+	if(!B3D_ENSURE_LOG(sizeBytes <= elementSizeBytes, "Provided element size larger than maximum element size. Maximum size: {0}. Supplied size: {1}", elementSizeBytes, sizeBytes))
+		return;
 
-	if(arrayIdx >= mParameterInformation->ArraySize)
-	{
-		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParameterInformation->ArraySize) + ". Requested size: " + ToString(arrayIdx));
-	}
-#endif
+	if(!B3D_ENSURE_LOG(arrayIdx < mParameterInformation->ArraySize, "Array index out of range. Array size: {0}. Requested size: {1}", mParameterInformation->ArraySize, arrayIdx))
+		return;
+
 	sizeBytes = std::min(elementSizeBytes, sizeBytes);
 
 	uniformBuffer->Read((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32), sizeBytes, value);

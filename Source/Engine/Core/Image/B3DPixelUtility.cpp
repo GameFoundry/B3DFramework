@@ -4,7 +4,6 @@
 #include "Utility/B3DBitwise.h"
 #include "Image/B3DColor.h"
 #include "Math/B3DMath.h"
-#include "Error/B3DException.h"
 #include "Image/B3DTexture.h"
 #include "FileSystem/B3DPath.h"
 #include <nvtt.h>

@@ -10,7 +10,6 @@
 #include "Importer/B3DImportOptions.h"
 #include "Debug/B3DDebug.h"
 #include "FileSystem/B3DDataStream.h"
-#include "Error/B3DException.h"
 #include "Utility/B3DUUID.h"
 #include "Resources/B3DResources.h"
 #include "Threading/B3DSingleConsumerQueue.h"
@@ -162,12 +161,8 @@ SpecificImporter* Importer::PrepareForImport(const Path& filePath, SPtr<const Im
 	else
 	{
 		SPtr<const ImportOptions> defaultImportOptions = importer->GetDefaultImportOptions();
-		if(importOptions->GetTypeId() != defaultImportOptions->GetTypeId())
-		{
-			B3D_EXCEPT(InvalidParametersException, "Provided import options is not of valid type. "
-												  "Expected: " +
-						  defaultImportOptions->GetTypeName() + ". Got: " + importOptions->GetTypeName() + ".");
-		}
+		if(!B3D_ENSURE_LOG(importOptions->GetTypeId() == defaultImportOptions->GetTypeId(), "Provided import options is not of valid type. Expected: {0}, Got: {1}", defaultImportOptions->GetTypeName(), importOptions->GetTypeName()))
+			return nullptr;
 	}
 
 	return importer;

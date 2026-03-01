@@ -68,12 +68,5 @@ namespace b3d
 		virtual void DoOnTestEnd(const String& testName, bool passed, u64 durationUs) {}
 	};
 
-	/** Outputs unit test results so that failures are reported as exceptions. Success is not reported. */
-	class B3D_EXPORT ExceptionTestOutput : public TestOutput
-	{
-	public:
-		void DoOnOutputFail(const String& desc, const String& function, const String& file, long line) final;
-	};
-
 	/** @} */
 } // namespace b3d

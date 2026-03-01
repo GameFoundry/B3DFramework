@@ -1259,12 +1259,12 @@ void Platform::StartUpInternal()
 	int firstEvent;
 	int firstError;
 	if(!XQueryExtension(mData->xDisplay, "XInputExtension", &mData->xInput2Opcode, &firstEvent, &firstError))
-		B3D_EXCEPT(InternalErrorException, "X Server doesn't support the XInput extension");
+		B3D_LOG(Fatal, LogPlatform "X Server doesn't support the XInput extension");
 
 	int majorVersion = 2;
 	int minorVersion = 0;
 	if(XIQueryVersion(mData->xDisplay, &majorVersion, &minorVersion) != Success)
-		B3D_EXCEPT(InternalErrorException, "X Server doesn't support at least the XInput 2.0 extension");
+		B3D_LOG(Fatal, LogPlatform "X Server doesn't support at least the XInput 2.0 extension");
 
 	// Let XInput know we are interested in raw mouse movement events
 	constexpr int maskLen = XIMaskLen(XI_LASTEVENT);

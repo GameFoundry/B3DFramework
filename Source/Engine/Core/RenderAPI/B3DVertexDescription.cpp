@@ -111,7 +111,7 @@ unsigned short VertexElement::GetComponentCountForType(VertexElementType type)
 		break;
 	}
 
-	B3D_EXCEPT(InvalidParametersException, "Invalid type");
+	B3D_ENSURE_LOG(false, "Invalid type");
 	return 0;
 }
 

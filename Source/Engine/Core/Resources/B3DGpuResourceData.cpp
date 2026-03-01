@@ -3,7 +3,6 @@
 #include "Resources/B3DGpuResourceData.h"
 #include "RTTI/B3DGpuResourceDataRTTI.h"
 #include "CoreObject/B3DRenderThread.h"
-#include "Error/B3DException.h"
 
 namespace
 {
@@ -12,11 +11,10 @@ void VerifyLockAndThread(const b3d::GpuResourceData* data)
 	using namespace b3d;
 	if(data->IsLocked())
 	{
-		if(B3D_CURRENT_THREAD_ID != RenderThread::Instance().GetThreadId())
-			B3D_EXCEPT(InternalErrorException, "You are not allowed to access buffer data from non-render thread when the buffer is locked.");
+		B3D_ENSURE_LOG(B3D_CURRENT_THREAD_ID == RenderThread::Instance().GetThreadId(), "You are not allowed to access buffer data from non-render thread when the buffer is locked.");
 	}
 }
-} // end of anonymous namespace
+}
 
 using namespace b3d;
 

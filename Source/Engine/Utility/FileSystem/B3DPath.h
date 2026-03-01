@@ -343,7 +343,7 @@ namespace b3d
 					if(idx < numChars && pathStr[idx] == ':')
 					{
 						if(mIsAbsolute || !((drive >= 'a' && drive <= 'z') || (drive >= 'A' && drive <= 'Z')))
-							ThrowInvalidPathException(BasicString<T>(pathStr, numChars));
+							ReportInvalidPath(BasicString<T>(pathStr, numChars));
 
 						mIsAbsolute = true;
 						SetDevice(String(1, drive));
@@ -351,7 +351,7 @@ namespace b3d
 						idx++;
 
 						if(idx >= numChars || (pathStr[idx] != '\\' && pathStr[idx] != '/'))
-							ThrowInvalidPathException(BasicString<T>(pathStr, numChars));
+							ReportInvalidPath(BasicString<T>(pathStr, numChars));
 
 						idx++;
 					}
@@ -457,8 +457,8 @@ namespace b3d
 		/** Build a Unix path string from internal path data. */
 		String BuildUnix() const;
 
-		/** Helper method that throws invalid path exception. */
-		void ThrowInvalidPathException(const String& path) const;
+		/** Logs a fatal error for an incorrectly formatted path. */
+		void ReportInvalidPath(const String& path) const;
 
 	private:
 		friend struct RTTIPlainType<Path>; // For serialization

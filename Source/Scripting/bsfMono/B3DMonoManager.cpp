@@ -175,7 +175,7 @@ void MonoManager::LoadMonoLibrary()
 #endif
 
 	if(mRootDomain == nullptr)
-		B3D_EXCEPT(InternalErrorException, "Cannot initialize Mono runtime.");
+		B3D_LOG(Fatal, LogGeneric, "Cannot initialize Mono runtime.");
 
 	mono_thread_set_main(mono_thread_current());
 
@@ -207,10 +207,10 @@ b3d::MonoAssembly& MonoManager::LoadAssembly(const Path& path, const String& nam
 
 		mScriptDomain = mono_domain_create_appdomain(const_cast<char*>(appDomainName.c_str()), nullptr);
 		if(mScriptDomain == nullptr)
-			B3D_EXCEPT(InternalErrorException, "Cannot create script app domain.");
+			B3D_LOG(Fatal, LogGeneric, "Cannot create script app domain.");
 
 		if(!mono_domain_set(mScriptDomain, true))
-			B3D_EXCEPT(InternalErrorException, "Cannot set script app domain.");
+			B3D_LOG(Fatal, LogGeneric, "Cannot set script app domain.");
 	}
 #endif
 

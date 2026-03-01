@@ -220,8 +220,8 @@ void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>
 		u32 startSlot = B3D_MAX_BOUND_VERTEX_BUFFERS;
 		for(auto iter = vertexBuffers.begin(); iter != vertexBuffers.end(); ++iter)
 		{
-			if(iter->first >= B3D_MAX_BOUND_VERTEX_BUFFERS)
-				B3D_EXCEPT(InvalidParametersException, "Buffer index out of range");
+			if(!B3D_ENSURE_LOG(iter->first < B3D_MAX_BOUND_VERTEX_BUFFERS, "Buffer index out of range"))
+				return;
 
 			startSlot = std::min(iter->first, startSlot);
 			endSlot = std::max(iter->first, endSlot);
@@ -259,8 +259,8 @@ void RendererUtility::DrawMorph(GpuCommandBuffer& commandBuffer, const SPtr<Mesh
 	u32 startSlot = B3D_MAX_BOUND_VERTEX_BUFFERS;
 	for(auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
 	{
-		if(iter->first >= B3D_MAX_BOUND_VERTEX_BUFFERS)
-			B3D_EXCEPT(InvalidParametersException, "Buffer index out of range");
+		if(!B3D_ENSURE_LOG(iter->first < B3D_MAX_BOUND_VERTEX_BUFFERS, "Buffer index out of range"))
+			return;
 
 		startSlot = std::min(iter->first, startSlot);
 		endSlot = std::max(iter->first, endSlot);

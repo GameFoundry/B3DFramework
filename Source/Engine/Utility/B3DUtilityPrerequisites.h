@@ -201,11 +201,13 @@
 #if B3D_DEBUG
 #	define B3D_DEBUG_ONLY(x) x
 #	define B3D_ASSERT(x) assert(x)
-#	define B3D_CHECK(x) assert(x)
+#	define B3D_CHECK(x) (B3D_LIKELY(!!(x)) || ([]() { assert(false); }(), false))
+#	define B3D_CHECK_LOG(x, message, ...) (B3D_LIKELY(!!(x)) || ([]() { assert(false && message); }(), false))
 #else
 #	define B3D_DEBUG_ONLY(x)
 #	define B3D_ASSERT(x)
-#	define B3D_CHECK(x) (x)
+#	define B3D_CHECK(x) (!!(x))
+#	define B3D_CHECK_LOG(x, ...) (!!(x))
 #endif
 
 // Short-hand names for various built-in types

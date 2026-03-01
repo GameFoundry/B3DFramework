@@ -207,8 +207,8 @@ u32 ManagedSerializableArray::ToSequentialIdx(const Vector<u32>& idx) const
 {
 	u32 mNumDims = (u32)mNumElements.size();
 
-	if(idx.size() != mNumDims)
-		B3D_EXCEPT(InvalidParametersException, "Provided index doesn't have the correct number of dimensions");
+	if(!B3D_ENSURE_LOG(idx.size() == mNumDims, "Provided index doesn't have the correct number of dimensions"))
+		return 0;
 
 	if(mNumElements.size() == 0)
 		return 0;

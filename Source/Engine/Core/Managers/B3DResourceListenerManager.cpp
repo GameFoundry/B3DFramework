@@ -9,17 +9,10 @@
 
 using namespace b3d;
 
-#if B3D_DEBUG
-void throwIfNotSimThread()
+static void AssertIfNotMainThread()
 {
-	if(B3D_CURRENT_THREAD_ID != Application::Instance().GetMainThreadId())
-		B3D_EXCEPT(InternalErrorException, "This method can only be accessed from the simulation thread.");
+	B3D_ASSERT(B3D_CURRENT_THREAD_ID == Application::Instance().GetMainThreadId(), "This method can only be accessed from the simulation thread.");
 }
-
-#	define THROW_IF_NOT_SIM_THREAD throwIfNotSimThread();
-#else
-#	define THROW_IF_NOT_SIM_THREAD
-#endif
 
 ResourceListenerManager::ResourceListenerManager()
 {
@@ -77,7 +70,7 @@ void ResourceListenerManager::MarkListenerDirty(IResourceListener* listener)
 
 void ResourceListenerManager::Update()
 {
-	THROW_IF_NOT_SIM_THREAD
+	AssertIfNotMainThread();	
 	UpdateListeners();
 
 	{
@@ -116,7 +109,7 @@ void ResourceListenerManager::UpdateListeners()
 
 void ResourceListenerManager::NotifyListeners(const UUID& resourceUUID)
 {
-	THROW_IF_NOT_SIM_THREAD
+	AssertIfNotMainThread();	
 	UpdateListeners();
 
 	HResource loadedResource;
