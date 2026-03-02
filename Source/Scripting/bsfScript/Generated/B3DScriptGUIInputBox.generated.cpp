@@ -62,8 +62,8 @@ namespace b3d
 
 	void ScriptGUIInputBox::RegisterEvents()
 	{
-		OnValueChangedConnection = static_cast<GUIInputBox*>(GetNativeObject())->OnValueChanged.Connect([this](const String& p0) { OnValueChanged(p0); }));
-		OnConfirmConnection = static_cast<GUIInputBox*>(GetNativeObject())->OnConfirm.Connect([this]() { OnConfirm(); }));
+		OnValueChangedConnection = static_cast<GUIInputBox*>(GetNativeObject())->OnValueChanged.Connect([this](const String& p0) { OnValueChanged(p0); });
+		OnConfirmConnection = static_cast<GUIInputBox*>(GetNativeObject())->OnConfirm.Connect([this]() { OnConfirm(); });
 		ScriptGUIInteractableWrapperBase::RegisterEvents();
 	}
 	void ScriptGUIInputBox::UnregisterEvents()

@@ -45,9 +45,9 @@ namespace b3d
 
 	void ScriptColliderWrapperBase::RegisterEvents()
 	{
-		OnCollisionBeginConnection = static_cast<Collider*>(GetNativeObject())->OnCollisionBegin.Connect([this](const CollisionData& p0) { OnCollisionBegin(p0); }));
-		OnCollisionStayConnection = static_cast<Collider*>(GetNativeObject())->OnCollisionStay.Connect([this](const CollisionData& p0) { OnCollisionStay(p0); }));
-		OnCollisionEndConnection = static_cast<Collider*>(GetNativeObject())->OnCollisionEnd.Connect([this](const CollisionData& p0) { OnCollisionEnd(p0); }));
+		OnCollisionBeginConnection = static_cast<Collider*>(GetNativeObject())->OnCollisionBegin.Connect([this](const CollisionData& p0) { OnCollisionBegin(p0); });
+		OnCollisionStayConnection = static_cast<Collider*>(GetNativeObject())->OnCollisionStay.Connect([this](const CollisionData& p0) { OnCollisionStay(p0); });
+		OnCollisionEndConnection = static_cast<Collider*>(GetNativeObject())->OnCollisionEnd.Connect([this](const CollisionData& p0) { OnCollisionEnd(p0); });
 		ScriptGameObjectWrapper::RegisterEvents();
 	}
 	void ScriptColliderWrapperBase::UnregisterEvents()

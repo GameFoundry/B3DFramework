@@ -17,7 +17,7 @@ namespace b3d
 
 	void ScriptGUIScrollBarWrapperBase::RegisterEvents()
 	{
-		OnScrollOrResizeConnection = static_cast<GUIScrollBar*>(GetNativeObject())->OnScrollOrResize.Connect([this](float p0, float p1) { OnScrollOrResize(p0, p1); }));
+		OnScrollOrResizeConnection = static_cast<GUIScrollBar*>(GetNativeObject())->OnScrollOrResize.Connect([this](float p0, float p1) { OnScrollOrResize(p0, p1); });
 		ScriptGUIInteractableWrapperBase::RegisterEvents();
 	}
 	void ScriptGUIScrollBarWrapperBase::UnregisterEvents()

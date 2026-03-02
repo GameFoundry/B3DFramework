@@ -114,9 +114,9 @@ namespace b3d
 
 	void ScriptRigidbody::RegisterEvents()
 	{
-		OnCollisionBeginConnection = static_cast<Rigidbody*>(GetNativeObject())->OnCollisionBegin.Connect([this](const CollisionData& p0) { OnCollisionBegin(p0); }));
-		OnCollisionStayConnection = static_cast<Rigidbody*>(GetNativeObject())->OnCollisionStay.Connect([this](const CollisionData& p0) { OnCollisionStay(p0); }));
-		OnCollisionEndConnection = static_cast<Rigidbody*>(GetNativeObject())->OnCollisionEnd.Connect([this](const CollisionData& p0) { OnCollisionEnd(p0); }));
+		OnCollisionBeginConnection = static_cast<Rigidbody*>(GetNativeObject())->OnCollisionBegin.Connect([this](const CollisionData& p0) { OnCollisionBegin(p0); });
+		OnCollisionStayConnection = static_cast<Rigidbody*>(GetNativeObject())->OnCollisionStay.Connect([this](const CollisionData& p0) { OnCollisionStay(p0); });
+		OnCollisionEndConnection = static_cast<Rigidbody*>(GetNativeObject())->OnCollisionEnd.Connect([this](const CollisionData& p0) { OnCollisionEnd(p0); });
 	}
 	void ScriptRigidbody::UnregisterEvents()
 	{

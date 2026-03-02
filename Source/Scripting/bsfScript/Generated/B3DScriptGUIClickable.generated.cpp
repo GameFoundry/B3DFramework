@@ -36,10 +36,10 @@ namespace b3d
 
 	void ScriptGUIClickableWrapperBase::RegisterEvents()
 	{
-		OnClickConnection = static_cast<GUIClickable*>(GetNativeObject())->OnClick.Connect([this]() { OnClick(); }));
-		OnHoverConnection = static_cast<GUIClickable*>(GetNativeObject())->OnHover.Connect([this]() { OnHover(); }));
-		OnOutConnection = static_cast<GUIClickable*>(GetNativeObject())->OnOut.Connect([this]() { OnOut(); }));
-		OnDoubleClickConnection = static_cast<GUIClickable*>(GetNativeObject())->OnDoubleClick.Connect([this]() { OnDoubleClick(); }));
+		OnClickConnection = static_cast<GUIClickable*>(GetNativeObject())->OnClick.Connect([this]() { OnClick(); });
+		OnHoverConnection = static_cast<GUIClickable*>(GetNativeObject())->OnHover.Connect([this]() { OnHover(); });
+		OnOutConnection = static_cast<GUIClickable*>(GetNativeObject())->OnOut.Connect([this]() { OnOut(); });
+		OnDoubleClickConnection = static_cast<GUIClickable*>(GetNativeObject())->OnDoubleClick.Connect([this]() { OnDoubleClick(); });
 		ScriptGUIInteractableWrapperBase::RegisterEvents();
 	}
 	void ScriptGUIClickableWrapperBase::UnregisterEvents()

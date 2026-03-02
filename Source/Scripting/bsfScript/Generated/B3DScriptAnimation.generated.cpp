@@ -111,9 +111,9 @@ namespace b3d
 
 	void ScriptAnimation::RegisterEvents()
 	{
-		static_cast<Animation*>(GetNativeObject())->ScriptRebuildFloatPropertiesInternal = [this](const TResourceHandle<AnimationClip>& p0) { ScriptRebuildFloatPropertiesInternal(p0); });
-		static_cast<Animation*>(GetNativeObject())->ScriptUpdateFloatPropertiesInternal = [this]() { ScriptUpdateFloatPropertiesInternal(); });
-		static_cast<Animation*>(GetNativeObject())->ScriptOnEventTriggeredInternal = [this](const TResourceHandle<AnimationClip>& p0, const String& p1) { ScriptOnEventTriggeredInternal(p0, p1); });
+		static_cast<Animation*>(GetNativeObject())->ScriptRebuildFloatPropertiesInternal = [this](const TResourceHandle<AnimationClip>& p0) { ScriptRebuildFloatPropertiesInternal(p0); };
+		static_cast<Animation*>(GetNativeObject())->ScriptUpdateFloatPropertiesInternal = [this]() { ScriptUpdateFloatPropertiesInternal(); };
+		static_cast<Animation*>(GetNativeObject())->ScriptOnEventTriggeredInternal = [this](const TResourceHandle<AnimationClip>& p0, const String& p1) { ScriptOnEventTriggeredInternal(p0, p1); };
 	}
 	void ScriptAnimation::UnregisterEvents()
 	{
