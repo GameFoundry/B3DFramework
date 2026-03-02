@@ -2,8 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Extensions/B3DSkeletonEx.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 SkeletonBoneInfoEx SkeletonEx::GetBoneInfo(const SPtr<Skeleton>& thisPtr, int boneIdx)
 {

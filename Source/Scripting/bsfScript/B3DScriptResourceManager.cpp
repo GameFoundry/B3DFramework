@@ -11,13 +11,11 @@
 #include "Wrappers/B3DScriptManagedResource.h"
 #include "Wrappers/B3DScriptRRefBase.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 ScriptResourceManager::ScriptResourceManager()
 {
-	mResourceDestroyedConn = GetResources().OnResourceDestroyed.Connect(std::bind(&ScriptResourceManager::OnResourceDestroyed, this, _1));
-	mOnWillUnloadAssembliesConnection = ScriptObjectManager::Instance().OnWillUnloadAssemblies.Connect(std::bind(&ScriptResourceManager::ClearRRefs, this));
+	mResourceDestroyedConn = GetResources().OnResourceDestroyed.Connect([this](const UUID& uuid) { OnResourceDestroyed(uuid); });
+	mOnWillUnloadAssembliesConnection = ScriptObjectManager::Instance().OnWillUnloadAssemblies.Connect([this]() { ClearRRefs(); });
 }
 
 ScriptResourceManager::~ScriptResourceManager()

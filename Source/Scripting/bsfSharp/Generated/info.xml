@@ -7177,17 +7177,17 @@ The particle system requires you to specify at least one ParticleEmitter, which 
 			<param name="material" type="RRef&lt;Material&gt;">
 			</param>
 		</method>
+		<method native="SetMaterial" script="SetMaterial" static="false">
+			<doc>Sets the primary material to use for rendering. Any sub-mesh that doesn&apos;t have an explicit material set will use this material.</doc>
+			<param name="material" type="RRef&lt;Material&gt;">
+			</param>
+		</method>
 		<method native="GetMaterial" script="GetMaterial" static="false">
 			<doc>Returns the material used for rendering a sub-mesh with the specified index.</doc>
 			<param name="index" type="int">
 			</param>
 			<returns type="RRef&lt;Material&gt;">
 			</returns>
-		</method>
-		<method native="SetMaterial" script="SetMaterial" static="false">
-			<doc>Sets the primary material to use for rendering. Any sub-mesh that doesn&apos;t have an explicit material set will use this material.</doc>
-			<param name="material" type="RRef&lt;Material&gt;">
-			</param>
 		</method>
 		<property name="Bounds" type="Bounds" getter="GetBounds" setter="" static="false">
 			<doc>Gets world bounds of the mesh rendered by this object.</doc>

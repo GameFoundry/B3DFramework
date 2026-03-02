@@ -2,8 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Extensions/B3DAnimationEx.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 Vector<TNamedAnimationCurve<Vector3>> AnimationCurvesEx::GetPositionCurves(const SPtr<AnimationCurves>& thisPtr)
 {

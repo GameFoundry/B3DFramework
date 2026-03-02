@@ -8,8 +8,6 @@
 #include "B3DMonoUtil.h"
 #include "Resources/B3DPlainText.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 ScriptPlainText::ScriptPlainText(const HPlainText& nativeObject)
 	: TScriptResourceWrapper(nativeObject)

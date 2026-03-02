@@ -22,8 +22,6 @@
 #include "StyleSheet/B3DGUIStyleSheet.h"
 #include "Text/B3DStockIcons.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 const GUILogicalUnit GUIDropDownMenu::kDropDownBoxWidth = 250;

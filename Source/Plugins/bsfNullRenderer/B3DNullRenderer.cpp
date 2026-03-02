@@ -5,8 +5,6 @@
 #include "Renderer/B3DRendererManager.h"
 #include "CoreThread/B3DCoreObjectManager.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 using namespace b3d::render;
 

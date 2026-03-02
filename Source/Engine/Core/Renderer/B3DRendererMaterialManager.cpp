@@ -15,7 +15,7 @@ RendererMaterialManager::RendererMaterialManager()
 
 RendererMaterialManager::~RendererMaterialManager()
 {
-	GetRenderThread().PostCommand(std::bind(&RendererMaterialManager::DestroyOnRenderThread), "RendererMaterialManager::Destroy");
+	GetRenderThread().PostCommand([]() { DestroyOnRenderThread(); }, "RendererMaterialManager::Destroy");
 }
 
 void RendererMaterialManager::RegisterMaterial(render::RendererMaterialMetaData* metaData, const char* shaderPath)

@@ -14,7 +14,6 @@
 #include "Text/B3DStockIcons.h"
 #include <climits>
 
-using namespace std::placeholders;
 using namespace b3d;
 
 GUIDropDownContent::GUIDropDownContent(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const String& style, const GUISizeConstraints& dimensions)

@@ -7,8 +7,6 @@
 #include "Material/B3DMaterial.h"
 #include "Renderer/B3DRenderElement.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 namespace b3d { namespace render
@@ -90,7 +88,7 @@ void RenderQueue::Sort()
 	}
 
 	// Sort only indices since we generate an entirely new data set anyway, it doesn't make sense to move sortable elements
-	std::sort(mSortableElementIdx.begin(), mSortableElementIdx.end(), std::bind(sortMethod, _1, _2, mSortableElements));
+	std::sort(mSortableElementIdx.begin(), mSortableElementIdx.end(), [&sortMethod, this](u32 a, u32 b) { return sortMethod(a, b, mSortableElements); });
 
 	u32 previousShaderId = ~0u;
 	u32 previousVariationIndex = ~0u;

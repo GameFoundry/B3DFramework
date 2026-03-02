@@ -13,8 +13,6 @@
 #include "Generated/B3DScriptHString.generated.h"
 #include "Generated/B3DScriptGUILayout.generated.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 ScriptContextMenu::OnEntryTriggeredThunkDef ScriptContextMenu::onEntryTriggered;
 
@@ -70,7 +68,7 @@ void ScriptContextMenu::InternalAddItem(ScriptContextMenu* self, MonoString* pat
 	String nativePath = MonoUtil::MonoToString(path);
 
 	SPtr<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
-	contextMenu->AddMenuItem(nativePath, std::bind(&ScriptContextMenu::OnContextMenuItemTriggered, self, callbackIdx), 0, *shortcut);
+	contextMenu->AddMenuItem(nativePath, [self, callbackIdx]() { self->OnContextMenuItemTriggered(callbackIdx); }, 0, *shortcut);
 }
 
 void ScriptContextMenu::InternalAddSeparator(ScriptContextMenu* self, MonoString* path)

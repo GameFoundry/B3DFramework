@@ -11,8 +11,6 @@
 #include "GUI/B3DGUIMouseEvent.h"
 #include "GUI/B3DGUIUtility.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 /** @cond RTTI */

@@ -17,7 +17,7 @@ namespace b3d
 
 	void ScriptGUIToggleableWrapperBase::RegisterEvents()
 	{
-		OnToggledConnection = static_cast<GUIToggleable*>(GetNativeObject())->OnToggled.Connect(std::bind(&ScriptGUIToggleableWrapperBase::OnToggled, this, std::placeholders::_1));
+		OnToggledConnection = static_cast<GUIToggleable*>(GetNativeObject())->OnToggled.Connect([this](bool p0) { OnToggled(p0); }));
 		ScriptGUIClickableWrapperBase::RegisterEvents();
 	}
 	void ScriptGUIToggleableWrapperBase::UnregisterEvents()

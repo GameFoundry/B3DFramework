@@ -24,16 +24,16 @@ namespace b3d
 	private:
 		static void InternalGetBounds(ScriptRenderable* self, TBounds<float>* __output);
 		static void InternalSetMesh(ScriptRenderable* self, MonoObject* mesh);
-		static MonoObject* InternalGetMesh(ScriptRenderable* self);
 		static void InternalSetMaterial(ScriptRenderable* self, uint32_t index, MonoObject* material);
-		static MonoObject* InternalGetMaterial(ScriptRenderable* self, uint32_t index);
 		static void InternalSetMaterial0(ScriptRenderable* self, MonoObject* material);
-		static MonoArray* InternalGetMaterials(ScriptRenderable* self);
 		static void InternalSetMaterials(ScriptRenderable* self, MonoArray* materials);
 		static void InternalSetLayer(ScriptRenderable* self, uint64_t layer);
 		static void InternalSetWriteVelocity(ScriptRenderable* self, bool enable);
-		static bool InternalGetWriteVelocity(ScriptRenderable* self);
 		static void InternalSetCullDistanceFactor(ScriptRenderable* self, float factor);
+		static MonoObject* InternalGetMesh(ScriptRenderable* self);
+		static MonoObject* InternalGetMaterial(ScriptRenderable* self, uint32_t index);
+		static MonoArray* InternalGetMaterials(ScriptRenderable* self);
+		static bool InternalGetWriteVelocity(ScriptRenderable* self);
 		static float InternalGetCullDistanceFactor(ScriptRenderable* self);
 		static uint64_t InternalGetLayer(ScriptRenderable* self);
 	};

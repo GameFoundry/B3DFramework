@@ -100,12 +100,6 @@ namespace b3d
 			Internal_SetMaterial(mCachedPtr, index, material);
 		}
 
-		/// <summary>Returns the material used for rendering a sub-mesh with the specified index.</summary>
-		public RRef<Material> GetMaterial(int index)
-		{
-			return Internal_GetMaterial(mCachedPtr, index);
-		}
-
 		/// <summary>
 		/// Sets the primary material to use for rendering. Any sub-mesh that doesn&apos;t have an explicit material set will use 
 		/// this material.
@@ -115,20 +109,20 @@ namespace b3d
 			Internal_SetMaterial0(mCachedPtr, material);
 		}
 
+		/// <summary>Returns the material used for rendering a sub-mesh with the specified index.</summary>
+		public RRef<Material> GetMaterial(int index)
+		{
+			return Internal_GetMaterial(mCachedPtr, index);
+		}
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_GetBounds(IntPtr thisPtr, out Bounds __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetMesh(IntPtr thisPtr, RRef<Mesh> mesh);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern RRef<Mesh> Internal_GetMesh(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetMaterial(IntPtr thisPtr, int index, RRef<Material> material);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern RRef<Material> Internal_GetMaterial(IntPtr thisPtr, int index);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetMaterial0(IntPtr thisPtr, RRef<Material> material);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern RRef<Material>[] Internal_GetMaterials(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetMaterials(IntPtr thisPtr, RRef<Material>[] materials);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -136,9 +130,15 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetWriteVelocity(IntPtr thisPtr, bool enable);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_GetWriteVelocity(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetCullDistanceFactor(IntPtr thisPtr, float factor);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern RRef<Mesh> Internal_GetMesh(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern RRef<Material> Internal_GetMaterial(IntPtr thisPtr, int index);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern RRef<Material>[] Internal_GetMaterials(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_GetWriteVelocity(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_GetCullDistanceFactor(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

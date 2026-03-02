@@ -10,8 +10,6 @@
 #include "Serialization/B3DManagedTypeInfo.h"
 #include <regex>
 
-using namespace std::placeholders;
-
 using namespace b3d;
 ScriptScriptCode::ScriptScriptCode(const HScriptCode& nativeObject)
 	: TScriptResourceWrapper(nativeObject)

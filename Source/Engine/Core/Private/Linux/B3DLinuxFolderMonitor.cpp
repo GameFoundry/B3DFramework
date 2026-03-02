@@ -238,7 +238,7 @@ FolderMonitor::FolderMonitor(const Path& folderPath, bool monitorSubdirectories,
 	}
 
 	// Start the worker thread
-	m->WorkerThread = B3DNew<Thread>(std::bind(&FolderMonitor::WorkerThreadMain, this));
+	m->WorkerThread = B3DNew<Thread>([this]() { WorkerThreadMain(); });
 
 	if(m->WorkerThread == nullptr)
 	{

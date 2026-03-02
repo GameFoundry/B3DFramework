@@ -42,8 +42,6 @@
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "Math/B3DMath.h"
 
-using namespace std::placeholders;
-
 namespace b3d {
 namespace render {
 

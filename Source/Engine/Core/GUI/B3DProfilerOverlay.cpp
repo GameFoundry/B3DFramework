@@ -320,7 +320,7 @@ void ProfilerOverlay::SetTarget(const HCamera& camera)
 
 	mTarget = camera->GetViewport();
 
-	mTargetResizedConn = mTarget->GetTarget()->OnResized.Connect(std::bind(&ProfilerOverlay::TargetResized, this));
+	mTargetResizedConn = mTarget->GetTarget()->OnResized.Connect([this]() { TargetResized(); });
 
 	if(mWidgetSO)
 		mWidgetSO->Destroy();

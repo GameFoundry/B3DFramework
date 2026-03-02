@@ -21,7 +21,7 @@ namespace b3d
 
 	void ScriptJointWrapperBase::RegisterEvents()
 	{
-		OnJointBreakConnection = static_cast<Joint*>(GetNativeObject())->OnJointBreak.Connect(std::bind(&ScriptJointWrapperBase::OnJointBreak, this));
+		OnJointBreakConnection = static_cast<Joint*>(GetNativeObject())->OnJointBreak.Connect([this]() { OnJointBreak(); }));
 		ScriptGameObjectWrapper::RegisterEvents();
 	}
 	void ScriptJointWrapperBase::UnregisterEvents()

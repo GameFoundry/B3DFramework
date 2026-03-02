@@ -59,7 +59,7 @@ namespace b3d
 
 	void ScriptGUIListBox::RegisterEvents()
 	{
-		OnSelectionToggledConnection = static_cast<GUIListBox*>(GetNativeObject())->OnSelectionToggled.Connect(std::bind(&ScriptGUIListBox::OnSelectionToggled, this, std::placeholders::_1, std::placeholders::_2));
+		OnSelectionToggledConnection = static_cast<GUIListBox*>(GetNativeObject())->OnSelectionToggled.Connect([this](uint32_t p0, bool p1) { OnSelectionToggled(p0, p1); }));
 		ScriptGUIClickableWrapperBase::RegisterEvents();
 	}
 	void ScriptGUIListBox::UnregisterEvents()

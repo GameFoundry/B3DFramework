@@ -10,8 +10,6 @@
 #include <freetype/freetype.h>
 #include FT_FREETYPE_H
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 FontImporter::FontImporter()

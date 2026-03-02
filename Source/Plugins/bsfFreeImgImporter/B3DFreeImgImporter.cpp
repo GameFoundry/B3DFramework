@@ -16,8 +16,6 @@
 #include "Utility/B3DBitwise.h"
 #include "Renderer/B3DRenderer.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 void FreeImageLoadErrorHandler(FREE_IMAGE_FORMAT fif, const char* message)

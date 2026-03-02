@@ -3,13 +3,11 @@
 #include "GUI/B3DShortcutManager.h"
 #include "Input/B3DInput.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 ShortcutManager::ShortcutManager()
 {
-	mOnButtonDownConn = Input::Instance().OnButtonDown.Connect(std::bind(&::b3d::ShortcutManager::OnButtonDown, this, _1));
+	mOnButtonDownConn = Input::Instance().OnButtonDown.Connect([this](const ButtonEvent& event) { OnButtonDown(event); });
 }
 
 ShortcutManager::~ShortcutManager()

@@ -17,7 +17,7 @@ namespace b3d
 
 	void ScriptGUISliderWrapperBase::RegisterEvents()
 	{
-		OnChangedConnection = static_cast<GUISlider*>(GetNativeObject())->OnChanged.Connect(std::bind(&ScriptGUISliderWrapperBase::OnChanged, this, std::placeholders::_1));
+		OnChangedConnection = static_cast<GUISlider*>(GetNativeObject())->OnChanged.Connect([this](float p0) { OnChanged(p0); }));
 		ScriptGUIInteractableWrapperBase::RegisterEvents();
 	}
 	void ScriptGUISliderWrapperBase::UnregisterEvents()

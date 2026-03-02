@@ -24,8 +24,8 @@ namespace b3d
 
 	void ScriptGUIInteractableWrapperBase::RegisterEvents()
 	{
-		OnFocusGainedConnection = static_cast<GUIInteractable*>(GetNativeObject())->OnFocusGained.Connect(std::bind(&ScriptGUIInteractableWrapperBase::OnFocusGained, this));
-		OnFocusLostConnection = static_cast<GUIInteractable*>(GetNativeObject())->OnFocusLost.Connect(std::bind(&ScriptGUIInteractableWrapperBase::OnFocusLost, this));
+		OnFocusGainedConnection = static_cast<GUIInteractable*>(GetNativeObject())->OnFocusGained.Connect([this]() { OnFocusGained(); }));
+		OnFocusLostConnection = static_cast<GUIInteractable*>(GetNativeObject())->OnFocusLost.Connect([this]() { OnFocusLost(); }));
 		ScriptGUIRenderableWrapperBase::RegisterEvents();
 	}
 	void ScriptGUIInteractableWrapperBase::UnregisterEvents()

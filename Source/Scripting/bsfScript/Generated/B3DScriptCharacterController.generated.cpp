@@ -85,8 +85,8 @@ namespace b3d
 
 	void ScriptCharacterController::RegisterEvents()
 	{
-		OnColliderHitConnection = static_cast<CharacterController*>(GetNativeObject())->OnColliderHit.Connect(std::bind(&ScriptCharacterController::OnColliderHit, this, std::placeholders::_1));
-		OnControllerHitConnection = static_cast<CharacterController*>(GetNativeObject())->OnControllerHit.Connect(std::bind(&ScriptCharacterController::OnControllerHit, this, std::placeholders::_1));
+		OnColliderHitConnection = static_cast<CharacterController*>(GetNativeObject())->OnColliderHit.Connect([this](const ControllerColliderCollision& p0) { OnColliderHit(p0); }));
+		OnControllerHitConnection = static_cast<CharacterController*>(GetNativeObject())->OnControllerHit.Connect([this](const ControllerControllerCollision& p0) { OnControllerHit(p0); }));
 	}
 	void ScriptCharacterController::UnregisterEvents()
 	{
