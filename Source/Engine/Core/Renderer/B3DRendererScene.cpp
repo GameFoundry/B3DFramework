@@ -3,6 +3,7 @@
 #include "Renderer/B3DRendererScene.h"
 #include "Allocators/B3DFrameAllocator.h"
 #include "Components/B3DRenderable.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "ECS/B3DRegistry.h"
 #include "B3DRenderer.h"
 
@@ -51,6 +52,21 @@ namespace b3d
 	SPtr<render::RenderProxy> RendererScene::CreateRenderProxy() const
 	{
 		return render::GetRenderer()->CreateScene();
+	}
+
+	void RendererScene::SyncToRenderThread(ecs::Registry& registry, FrameAllocator& allocator)
+	{
+		RendererSceneSyncData* syncData = SyncRead(registry, allocator);
+		if(syncData == nullptr)
+			return;
+
+		SPtr<render::RendererScene> renderScene = B3DGetRenderProxy(this);
+		GetRenderThread().PostCommand(
+			[renderScene = std::move(renderScene), syncData, &allocator]
+			{
+				renderScene->SyncWrite(*syncData, allocator);
+			},
+			"RendererScene::SyncWrite");
 	}
 
 	RendererSceneSyncData* RendererScene::SyncRead(ecs::Registry& registry, FrameAllocator& allocator)

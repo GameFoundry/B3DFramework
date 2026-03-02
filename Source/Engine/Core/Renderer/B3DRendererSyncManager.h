@@ -7,14 +7,10 @@
 #include "Renderer/B3DRendererId.h"
 #include "Utility/B3DModule.h"
 #include "Allocators/B3DFrameAllocator.h"
-#include "CoreObject/B3DCoreObject.h"
 
 namespace b3d
 {
-	struct RendererSceneSyncData;
-	class RendererScene;
 	namespace ecs { class Registry; }
-	namespace render { class RendererScene; }
 
 	/** @addtogroup Renderer-Internal
 	 *  @{
@@ -112,43 +108,22 @@ namespace b3d
 
 	/**
 	 * Module that orchestrates ECS-based batch sync between main thread objects and their renderer-side representations.
-	 * Different types can register their own sync handlers, which are then ran every frame before kicking off
-	 * render thread work.
-	 *
-	 * Handler registration is global (type → factory). Handler instances are owned per-scene by RendererScene,
-	 * and created via CreateHandlers() during RendererScene::Initialize().
+	 * Iterates all active scenes each frame and triggers their synchronization. Manages ring-buffered frame allocators
+	 * to ensure data survives until the render thread consumes it.
 	 */
 	class B3D_EXPORT RendererSyncManager : public Module<RendererSyncManager>
 	{
 	public:
-		using HandlerFactory = Function<UPtr<IRendererObjectSyncHandler>(RendererScene&)>;
-
 		RendererSyncManager();
 		~RendererSyncManager();
 
 		/**
-		 * Run the full sync pipeline: SyncRead on main thread, queue SyncWrite operation on the render thread.
-		 * If @p swapBuffers is true, rotate the frame allocator ring buffer.
+		 * Run the full sync pipeline: for each active scene, reads dirty data on the main thread and posts a command
+		 * to apply it on the render thread. If @p swapBuffers is true, rotate the frame allocator ring buffer.
 		 */
 		void SyncToRenderThread(bool swapBuffers);
+
 	private:
-		struct SceneSyncFrameData
-		{
-			render::RendererScene* RenderScene;
-			RendererSceneSyncData* BatchData;
-		};
-
-		struct PerFrameSyncData
-		{
-			FrameAllocator* Allocator = nullptr;
-			TInlineArray<SceneSyncFrameData, 4> SceneData;
-		};
-
-		void SyncRead(FrameAllocator* allocator);
-		void SyncWrite();
-
-		List<PerFrameSyncData> mPerFrameSyncData;
-		Mutex mSyncDataMutex;
 		FrameAllocator* mSyncAllocators[RenderThread::kSyncBufferCount + 1];
 		u32 mActiveFrameAllocatorIndex = 0;
 	};

@@ -172,7 +172,6 @@ Application::~Application()
 	// All CoreObject related modules should be shut down now. They have likely queued CoreObjects for destruction, so
 	// we need to wait for those objects to get destroyed before continuing.
 	CoreObjectManager::Instance().SyncToRenderThread(true);
-	// Note: On purpose not doing ECS sync here, as that is done per-scene, and the scene manager is shut down at this point
 
 	GetRenderThread().PostCommand([] {}, "SyncToRenderThread before shutdown", true);
 
@@ -338,6 +337,11 @@ void Application::OnShutDown()
 
 		scene->Clear(true);
 	}
+
+	// Flush to render thread, before we shut down the scene manager (otherwise the sync operation won't run for those scenes,
+	// and deallocation requests will never reach the render thread)
+	CoreObjectManager::Instance().SyncToRenderThread(true);
+	GetRenderThread().PostCommand([]{}, "SyncToRenderThread() before SceneManager shutdown", true);
 
 	// Resources too (Prefabs especially, since they hold the same data as a scene)
 	Resources::Instance().UnloadAll();

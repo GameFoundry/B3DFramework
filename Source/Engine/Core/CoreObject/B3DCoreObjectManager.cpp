@@ -243,6 +243,10 @@ void CoreObjectManager::SyncToRenderThread(bool swapBuffers)
 		mActiveFrameAllocatorIndex = (mActiveFrameAllocatorIndex + 1) % B3DSize(mSyncAllocators);
 		mSyncAllocators[mActiveFrameAllocatorIndex]->Clear();
 	}
+
+	// Note: ECS synchronization does not handle dependencies with CoreObject synchronization, therefore it is important all dependencies are
+	// still CoreObject synchronized, which runs before above. This way dependencies can mark their dependants as dirty.
+	RendererSyncManager::Instance().SyncToRenderThread(swapBuffers);
 }
 
 void CoreObjectManager::SyncToRenderThread(CoreObject* object)

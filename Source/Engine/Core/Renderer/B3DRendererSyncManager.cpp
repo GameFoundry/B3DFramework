@@ -1,7 +1,6 @@
 //************************************ B3D Framework - Copyright 2026 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Renderer/B3DRendererSyncManager.h"
-#include "CoreObject/B3DRenderThread.h"
 #include "Renderer/B3DRendererScene.h"
 #include "Scene/B3DSceneManager.h"
 #include "Scene/B3DSceneInstance.h"
@@ -23,59 +22,25 @@ RendererSyncManager::~RendererSyncManager()
 
 void RendererSyncManager::SyncToRenderThread(bool swapBuffers)
 {
-	Lock lock(mSyncDataMutex);
+	// Can happen when this is called during shutdown
+	if(!SceneManager::IsStarted())
+		return;
 
-	SyncRead(mSyncAllocators[mActiveFrameAllocatorIndex]);
+	FrameAllocator* allocator = mSyncAllocators[mActiveFrameAllocatorIndex];
 
-	GetRenderThread().PostCommand([this] { SyncWrite(); }, "RendererSyncManager::SyncWrite");
-
-	if(swapBuffers)
-	{
-		mActiveFrameAllocatorIndex = (mActiveFrameAllocatorIndex + 1) % B3DSize(mSyncAllocators);
-		mSyncAllocators[mActiveFrameAllocatorIndex]->Clear();
-	}
-}
-
-void RendererSyncManager::SyncRead(FrameAllocator* allocator)
-{
-	PerFrameSyncData syncData;
-	syncData.Allocator = allocator;
-
-	for(auto& [scenePtr, weakScene] : SceneManager::Instance().GetAllScenes())
+	for(auto& [key, weakScene] : SceneManager::Instance().GetAllScenes())
 	{
 		SPtr<SceneInstance> scene = weakScene.lock();
 		if(!scene)
 			continue;
 
 		ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
-		RendererScene* rendererScene = scene->GetRendererScene().get();
-		RendererSceneSyncData* sceneSyncData = rendererScene->SyncRead(registry, *allocator);
-		if(sceneSyncData != nullptr)
-		{
-			auto renderScene = B3DGetRenderProxy(rendererScene);
-			syncData.SceneData.Add({renderScene.get(), sceneSyncData});
-		}
+		scene->GetRendererScene()->SyncToRenderThread(registry, *allocator);
 	}
 
-	mPerFrameSyncData.emplace_back(std::move(syncData));
-}
-
-void RendererSyncManager::SyncWrite()
-{
-	PerFrameSyncData syncData;
+	if(swapBuffers)
 	{
-		Lock lock(mSyncDataMutex);
-
-		if(mPerFrameSyncData.empty())
-			return;
-
-		syncData = std::move(mPerFrameSyncData.front());
-		mPerFrameSyncData.pop_front();
-	}
-
-	for(u32 sceneIndex = 0; sceneIndex < (u32)syncData.SceneData.Size(); ++sceneIndex)
-	{
-		auto& sceneData = syncData.SceneData[sceneIndex];
-		sceneData.RenderScene->SyncWrite(*sceneData.BatchData, *syncData.Allocator);
+		mActiveFrameAllocatorIndex = (mActiveFrameAllocatorIndex + 1) % B3DSize(mSyncAllocators);
+		mSyncAllocators[mActiveFrameAllocatorIndex]->Clear();
 	}
 }

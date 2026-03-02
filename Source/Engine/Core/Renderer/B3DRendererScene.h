@@ -46,15 +46,20 @@ namespace b3d
 		void DeallocateRenderableId(ecs::Registry& registry, ecs::Entity entity);
 
 		/**
-		 * Reads dirty ECS data for all sync handlers in this scene into a frame-allocated RendererSceneSyncData.
-		 * Returns nullptr if no data is dirty.
+		 * Reads dirty ECS data on the main thread and posts a command to write the changes to the render thread,
+		 * for all RenderableObjectStorage objects.
 		 */
-		RendererSceneSyncData* SyncRead(ecs::Registry& registry, FrameAllocator& allocator);
+		void SyncToRenderThread(ecs::Registry& registry, FrameAllocator& allocator);
 
 	protected:
 		void Initialize() override;
 		SPtr<render::RenderProxy> CreateRenderProxy() const override;
 
+		/**
+		 * Reads dirty ECS data for all sync handlers in this scene into a frame-allocated RendererSceneSyncData.
+		 * Returns nullptr if no data is dirty.
+		 */
+		RendererSceneSyncData* SyncRead(ecs::Registry& registry, FrameAllocator& allocator);
 	private:
 		SPtr<RenderableObjectStorageBase> mRenderableStorage;
 	};
