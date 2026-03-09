@@ -4,8 +4,49 @@
 
 #include "B3DPrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
+#include "Reflection/B3DRTTIECSField.h"
 #include "Components/B3DRenderable.h"
 #include "RTTI/B3DGameObjectRTTI.h"
+
+namespace b3d::ecs
+{
+	/** @cond RTTI */
+	/** @addtogroup RTTI-Impl-Engine
+	 *  @{
+	 */
+
+	class B3D_EXPORT ECSRenderableRTTI : public TRTTIType<Renderable, IReflectable, ECSRenderableRTTI>
+	{
+	private:
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(Mesh, 0)
+			B3D_RTTI_MEMBER(Layer, 1)
+			B3D_RTTI_MEMBER_CONTAINER(Materials, 2)
+			B3D_RTTI_MEMBER(CullDistanceFactor, 3)
+			B3D_RTTI_MEMBER(WriteVelocity, 4)
+		B3D_RTTI_END_MEMBERS
+
+	public:
+		const String& GetRttiName() override
+		{
+			static String name = "ECSRenderable";
+			return name;
+		}
+
+		u32 GetRttiId() const override
+		{
+			return TID_ECSRenderable;
+		}
+
+		SPtr<IReflectable> NewRttiObject() override
+		{
+			return B3DMakeShared<Renderable>();
+		}
+	};
+
+	/** @} */
+	/** @endcond */
+} // namespace b3d::ecs
 
 namespace b3d
 {
@@ -18,11 +59,7 @@ namespace b3d
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER(mMesh, 0)
-			B3D_RTTI_MEMBER(mLayer, 1)
-			B3D_RTTI_MEMBER_CONTAINER(mMaterials, 2)
-			B3D_RTTI_MEMBER(mCullDistanceFactor, 3)
-			B3D_RTTI_MEMBER(mWriteVelocity, 4)
+			B3D_RTTI_MEMBER_ECS(Renderable, 0)
 		B3D_RTTI_END_MEMBERS
 
 	public:

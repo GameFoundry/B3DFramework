@@ -6,6 +6,7 @@
 #include "Scene/B3DGameObject.h"
 #include "Math/B3DBounds.h"
 #include "ECS/B3DEntity.h"
+#include "ECS/B3DIECSEntityOwner.h"
 
 namespace b3d::ecs { class Registry; }
 
@@ -69,7 +70,7 @@ namespace b3d
 	 *    inactive, then the component is considered to be in Stopped state, regardless whether the ComponentFlag::AlwaysRun
 	 *    flag is set or not.
 	 **/
-	class B3D_EXPORT Component : public GameObject
+	class B3D_EXPORT Component : public GameObject, public ecs::IECSEntityOwner
 	{
 	public:
 		virtual ~Component() = default;
@@ -130,14 +131,19 @@ namespace b3d
 		 */
 		bool GetEnabled(bool self = false) const;
 
+		// IECSEntityOwner interface
+		ecs::Registry* GetECSRegistry() const override;
+		ecs::Entity GetECSEntity() const override;
+		void CreateECSEntity(ecs::Registry*) override {} // Components don't create entities
+
 		/** @name Internal
 		 *  @{
 		 */
 
 		/**
 		 * Construct any resources the component needs before use. Called when the parent scene object is initialized.
-		 * A non-initialized component shouldn't be used in a live scene (i.e. it should not receive any of the 
-		 * component logic updates or events). 
+		 * A non-initialized component shouldn't be used in a live scene (i.e. it should not receive any of the
+		 * component logic updates or events).
 		 */
 		virtual void Initialize();
 

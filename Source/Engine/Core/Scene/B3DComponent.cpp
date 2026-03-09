@@ -3,6 +3,7 @@
 #include "Scene/B3DComponent.h"
 #include "Scene/B3DSceneInstance.h"
 #include "Scene/B3DSceneObject.h"
+#include "ECS/B3DRegistry.h"
 #include "RTTI/B3DComponentRTTI.h"
 
 using namespace b3d;
@@ -11,6 +12,16 @@ Component::Component(HSceneObject parent)
 	: mParent(std::move(parent))
 {
 	SetName("Component");
+}
+
+ecs::Registry* Component::GetECSRegistry() const
+{
+	return SceneObject()->GetECSRegistry();
+}
+
+ecs::Entity Component::GetECSEntity() const
+{
+	return SceneObject()->GetECSEntity();
 }
 
 bool Component::TypeEquals(const Component& other)

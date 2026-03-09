@@ -38,24 +38,48 @@ namespace b3d
 		Count // Keep at end
 	};
 
-	/** Common data and related getters used by both main and render thread variants of Renderable. */
+	/** Common data used by both main and render thread variants of Renderable. */
 	template <bool IsRenderProxy>
-	class B3D_EXPORT TRenderableData
+	struct B3D_EXPORT TRenderableData
 	{
 		using MeshType = CoreVariantHandleType<Mesh, IsRenderProxy>;
 		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
-		
+
+		MeshType Mesh;
+		Vector<MaterialType> Materials;
+		u64 Layer = 1;
+		AABox OverrideBounds;
+		bool UseOverrideBounds = false;
+		bool WriteVelocity = true;
+		float CullDistanceFactor = 1.0f;
+		RenderableAnimType AnimType = RenderableAnimType::None;
+	};
+
+	/** CRTP getter interface providing shared read access for both Renderable and RenderableProxy. */
+	template <typename Derived, bool IsRenderProxy>
+	class TRenderableGetters
+	{
+		using MeshType = CoreVariantHandleType<Mesh, IsRenderProxy>;
+		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
+
 	public:
 		/**
 		 * Determines the mesh to render. All sub-meshes of the mesh will be rendered, and you may set individual materials
 		 * for each sub-mesh.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(Mesh), Property(Getter))
-		MeshType GetMesh() const { return mMesh; }
+		MeshType GetMesh() const { return GetData().Mesh; }
 
 		/**	Returns the material used for rendering a sub-mesh with the specified index. */
 		B3D_SCRIPT_EXPORT(ExportName(GetMaterial))
-		MaterialType GetMaterial(u32 index) const;
+		MaterialType GetMaterial(u32 index) const
+		{
+			const auto& materials = GetData().Materials;
+			if(index >= (u32)materials.size())
+				return nullptr;
+
+			return materials[index];
+		}
 
 		/**
 		 * Determines all materials used for rendering this renderable. Each of the materials is used for rendering a single
@@ -63,7 +87,7 @@ namespace b3d
 		 * remaining materials will be removed.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(Materials), Property(Getter))
-		const Vector<MaterialType>& GetMaterials() { return mMaterials; }
+		const Vector<MaterialType>& GetMaterials() const { return GetData().Materials; }
 
 		/**
 		 * If enabled this renderable will write per-pixel velocity information when rendered. This is required for effects
@@ -71,38 +95,61 @@ namespace b3d
 		 * those effects you can disable this for a performance gain.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(WriteVelocity), Property(Getter))
-		bool GetWriteVelocity() const { return mWriteVelocity; }
+		bool GetWriteVelocity() const { return GetData().WriteVelocity; }
 
 		/** Factor to be applied to the cull distance set in the camera's render settings.  */
 		B3D_SCRIPT_EXPORT(ExportName(CullDistance), Property(Getter))
-		float GetCullDistanceFactor() const { return mCullDistanceFactor; }
+		float GetCullDistanceFactor() const { return GetData().CullDistanceFactor; }
 
 		/**
 		 * Determines the layer bitfield that controls whether a renderable is considered visible in a specific camera.
 		 * Renderable layer must match camera layer in order for the camera to render the component.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(Layers), Property(Getter))
-		u64 GetLayer() const { return mLayer; }
+		u64 GetLayer() const { return GetData().Layer; }
 
-	protected:
-		MeshType mMesh;
-		Vector<MaterialType> mMaterials;
-		u64 mLayer = 1;
-		AABox mOverrideBounds;
-		bool mUseOverrideBounds = false;
-		bool mWriteVelocity = true;
-		float mCullDistanceFactor = 1.0f;
-		RenderableAnimType mAnimType = RenderableAnimType::None;
+		/** Returns the type of animation influencing this renderable, if any. */
+		RenderableAnimType GetAnimType() const { return GetData().AnimType; }
+
+	private:
+		const TRenderableData<IsRenderProxy>& GetData() const
+		{
+			return static_cast<const Derived*>(this)->GetRenderableData();
+		}
 	};
+
+	namespace ecs
+	{
+		class ECSRenderableRTTI;
+
+		/** ECS fragment storing renderable visual data (mesh, materials, layer, etc.). */
+		struct B3D_EXPORT Renderable : TRenderableData<false>, IReflectable
+		{
+			u64 AnimationId = (u64)-1;
+
+			struct FullSyncPacket;
+			struct TransformSyncPacket;
+
+			friend class ECSRenderableRTTI;
+			static RTTIType* GetRttiStatic();
+			RTTIType* GetRtti() const override;
+		};
+	}
 
 	/**
 	 * Renderable represents any visible object in the scene. It has a mesh, bounds and a set of materials. Renderer will
 	 * render any Renderable objects visible by a camera.
 	 */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Renderable : public Component, public TRenderableData<false>, public CoreObject, public IResourceListener
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Renderable : public Component, public TRenderableGetters<Renderable, false>, public CoreObject, public IResourceListener
 	{
+		friend class TRenderableGetters<Renderable, false>;
+
+		/** Returns the renderable data from the ECS fragment. Used by the CRTP getter interface. */
+		const TRenderableData<false>& GetRenderableData() const { return GetFragment(); }
+
 	public:
-		/** @copydoc TRenderableData::GetMesh */
+
+		/** @copydoc TRenderableGetters::GetMesh */
 		B3D_SCRIPT_EXPORT(ExportName(Mesh), Property(Setter))
 		void SetMesh(const HMesh& mesh);
 
@@ -122,11 +169,11 @@ namespace b3d
 		B3D_SCRIPT_EXPORT(ExportName(SetMaterial))
 		void SetMaterial(const HMaterial& material) { SetMaterial(0, material); }
 
-		/** @copydoc TRenderableData::GetMaterials() */
+		/** @copydoc TRenderableGetters::GetMaterials() */
 		B3D_SCRIPT_EXPORT(ExportName(Materials), Property(Setter))
 		void SetMaterials(const Vector<HMaterial>& materials);
 
-		/** @copydoc TRenderableData::GetLayer() */
+		/** @copydoc TRenderableGetters::GetLayer() */
 		B3D_SCRIPT_EXPORT(ExportName(Layers), Property(Setter))
 		void SetLayer(u64 layer);
 
@@ -144,11 +191,11 @@ namespace b3d
 		 */
 		void SetUseOverrideBounds(bool enable);
 
-		/** @copydoc TRenderableData::GetWriteVelocity */
+		/** @copydoc TRenderableGetters::GetWriteVelocity */
 		B3D_SCRIPT_EXPORT(ExportName(WriteVelocity), Property(Setter))
 		void SetWriteVelocity(bool enable);
 
-		/** @copydoc TRenderableData::GetCullDistanceFactor() */
+		/** @copydoc TRenderableGetters::GetCullDistanceFactor() */
 		B3D_SCRIPT_EXPORT(ExportName(CullDistance), Property(Setter))
 		void SetCullDistanceFactor(float factor);
 
@@ -195,6 +242,12 @@ namespace b3d
 	private:
 		HAnimation mAnimation;
 
+		/** Returns the ECS fragment storing renderable data. */
+		ecs::Renderable& GetFragment();
+
+		/** Returns the ECS fragment storing renderable data (const). */
+		const ecs::Renderable& GetFragment() const;
+
 		/************************************************************************/
 		/* 							COMPONENT OVERRIDES                    		*/
 		/************************************************************************/
@@ -211,9 +264,6 @@ namespace b3d
 		friend class SceneObject;
 		friend class RenderableObjectStorageBase;
 		friend struct RenderableSyncBatch;
-
-		struct FullSyncPacket;
-		struct TransformSyncPacket;
 
 		Renderable(const HSceneObject& parent);
 
@@ -244,8 +294,15 @@ namespace b3d
 	namespace render
 	{
 		/** Contains data and functionality for the render-side representation of a Renderable object. */
-		class B3D_EXPORT RenderableProxy : public TRenderableData<true>
+		class B3D_EXPORT RenderableProxy : public TRenderableGetters<RenderableProxy, true>
 		{
+			friend class TRenderableGetters<RenderableProxy, true>;
+			friend class b3d::Renderable;
+			friend class b3d::RenderableObjectStorageBase;
+
+			/** Returns the renderable data. Used by the CRTP getter interface. */
+			const TRenderableData<true>& GetRenderableData() const { return mData; }
+
 		public:
 			/**	Gets world bounds of the mesh rendered by this object. */
 			Bounds GetBounds() const;
@@ -255,9 +312,6 @@ namespace b3d
 
 			/**	Retrieves an ID that can be used for uniquely identifying this object by the renderer. */
 			PackedRendererId GetRendererId() const { return mRendererId; }
-
-			/** Returns the type of animation influencing this renderable, if any. */
-			RenderableAnimType GetAnimType() const { return mAnimType; }
 
 			/** Returns the identifier of the animation, if this object is animated using skeleton or blend shape animation. */
 			u64 GetAnimationId() const { return mAnimationId; }
@@ -290,8 +344,8 @@ namespace b3d
 			Matrix4 GetWorldTransformMatrixWithoutScale() const { return mWorldTransformMatrixWithoutScale; }
 
 		protected:
-			friend class b3d::Renderable;
-			friend class b3d::RenderableObjectStorageBase;
+			/** Renderable data (mesh, materials, layer, etc.). */
+			TRenderableData<true> mData;
 
 			/** Creates any buffers required for renderable animation. Should be called whenever animation properties change. */
 			void CreateAnimationBuffers();
@@ -359,11 +413,8 @@ namespace b3d
 		Vector<render::RenderableProxy> mRenderableProxies;
 
 	private:
-		/** Populates the provided packet with data from the renderable. */
-		static void PopulatePacket(Renderable::FullSyncPacket& packet, Renderable& renderable);
-
 		/** Applies sync packet data to the renderable proxy. Returns the action needed for this renderable. */
-		RenderableAction ApplyPacket(Renderable::FullSyncPacket& packet, render::RenderableProxy& proxy, PackedRendererId rendererId);
+		RenderableAction ApplyPacket(ecs::Renderable::FullSyncPacket& packet, render::RenderableProxy& proxy, PackedRendererId rendererId);
 	};
 
 	/** @} */

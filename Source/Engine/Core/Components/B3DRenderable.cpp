@@ -16,6 +16,7 @@
 #include "Renderer/B3DRendererScene.h"
 #include "Scene/B3DSceneInstance.h"
 #include "Scene/B3DSceneManager.h"
+#include "Scene/B3DSceneObjectFragments.h"
 #include "Scene/B3DGameObjectCollection.h"
 #include "RTTI/B3DRenderableRTTI.h"
 
@@ -29,65 +30,60 @@ namespace b3d::ecs
 	/** Tag indicating a Renderable needs to sync transform to its render proxy. */
 	struct RenderableTransformDirty {};
 
-	// TODO: Temporary — storing a raw Component pointer is inefficient and will be
-	// removed when Renderable's syncable fields migrate into ECS fragments. At that
-	// point the B3D_SYNC_BLOCK constructor will read directly from fragments instead
-	// of through this back-pointer.
-	struct RenderableComponent
-	{
-		b3d::Renderable* Component = nullptr;
-	};
 } // namespace b3d::ecs
 
 namespace b3d
 {
-	B3D_SYNC_BLOCK_BEGIN_CUSTOM(Renderable, FullSyncPacket, render::RenderableProxy)
-		B3D_SYNC_BLOCK_ENTRY(mLayer)
-		B3D_SYNC_BLOCK_ENTRY(mOverrideBounds)
-		B3D_SYNC_BLOCK_ENTRY(mUseOverrideBounds)
-		B3D_SYNC_BLOCK_ENTRY(mWriteVelocity)
-		B3D_SYNC_BLOCK_ENTRY(mAnimType)
-		B3D_SYNC_BLOCK_ENTRY(mCullDistanceFactor)
-		B3D_SYNC_BLOCK_ENTRY(mMesh)
-		B3D_SYNC_BLOCK_ENTRY(mMaterials)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(u64, mAnimationId)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
+	B3D_SYNC_BLOCK_BEGIN_CUSTOM(ecs::Renderable, FullSyncPacket, TRenderableData<true>)
+		B3D_SYNC_BLOCK_ENTRY(Layer)
+		B3D_SYNC_BLOCK_ENTRY(OverrideBounds)
+		B3D_SYNC_BLOCK_ENTRY(UseOverrideBounds)
+		B3D_SYNC_BLOCK_ENTRY(WriteVelocity)
+		B3D_SYNC_BLOCK_ENTRY(AnimType)
+		B3D_SYNC_BLOCK_ENTRY(CullDistanceFactor)
+		B3D_SYNC_BLOCK_ENTRY(Mesh)
+		B3D_SYNC_BLOCK_ENTRY(Materials)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM(u64, AnimationId)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Transform, TransformData)
 	B3D_SYNC_BLOCK_END
 
-	B3D_SYNC_BLOCK_BEGIN_CUSTOM(Renderable, TransformSyncPacket, render::RenderableProxy)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
+	B3D_SYNC_BLOCK_BEGIN_CUSTOM(ecs::Renderable, TransformSyncPacket, TRenderableData<true>)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Transform, TransformData)
 	B3D_SYNC_BLOCK_END
 
 	struct RenderableSyncBatch
 	{
-		TBatchSyncBuffer<Renderable::FullSyncPacket> Full;
-		TBatchSyncBuffer<Renderable::TransformSyncPacket> Transform;
+		TBatchSyncBuffer<ecs::Renderable::FullSyncPacket> Full;
+		TBatchSyncBuffer<ecs::Renderable::TransformSyncPacket> Transform;
 
 		RendererObjectStorage::FlushedCommands Commands;
 	};
 } // namespace b3d
 
-template <bool IsRenderProxy>
-typename TRenderableData<IsRenderProxy>::MaterialType TRenderableData<IsRenderProxy>::GetMaterial(u32 index) const
+ecs::Renderable& Renderable::GetFragment()
 {
-	if(index >= (u32)mMaterials.size())
-		return nullptr;
-
-	return mMaterials[index];
+	ecs::Registry* registry = SceneObject()->GetECSRegistry();
+	ecs::Entity entity = SceneObject()->GetECSEntity();
+	return registry->GetComponents<ecs::Renderable>(entity);
 }
 
-template class TRenderableData<false>;
-template class TRenderableData<true>;
+const ecs::Renderable& Renderable::GetFragment() const
+{
+	ecs::Registry* registry = SceneObject()->GetECSRegistry();
+	ecs::Entity entity = SceneObject()->GetECSEntity();
+	return registry->GetComponents<ecs::Renderable>(entity);
+}
 
 void Renderable::SetMesh(const HMesh& mesh)
 {
-	mMesh = mesh;
+	ecs::Renderable& fragment = GetFragment();
+	fragment.Mesh = mesh;
 
 	u32 subMeshCount = 0;
 	if(IsValid(mesh))
 		subMeshCount = (u32)mesh->GetProperties().SubMeshes.size();
 
-	mMaterials.resize(subMeshCount);
+	fragment.Materials.resize(subMeshCount);
 
 	DoOnMeshChanged();
 
@@ -98,10 +94,11 @@ void Renderable::SetMesh(const HMesh& mesh)
 
 void Renderable::SetMaterial(u32 index, const HMaterial& material)
 {
-	if(index >= (u32)mMaterials.size())
+	ecs::Renderable& fragment = GetFragment();
+	if(index >= (u32)fragment.Materials.size())
 		return;
 
-	mMaterials[index] = material;
+	fragment.Materials[index] = material;
 
 	MarkCoreObjectDependenciesDirty();
 	MarkReferencedResourcesDirty();
@@ -110,14 +107,15 @@ void Renderable::SetMaterial(u32 index, const HMaterial& material)
 
 void Renderable::SetMaterials(const Vector<HMaterial>& materials)
 {
-	const u32 materialCount = (u32)mMaterials.size();
+	ecs::Renderable& fragment = GetFragment();
+	const u32 materialCount = (u32)fragment.Materials.size();
 	const u32 materialCountToAssign = std::min(materialCount, (u32)materials.size());
 
 	for(u32 materialIndex = 0; materialIndex < materialCountToAssign; ++materialIndex)
-		mMaterials[materialIndex] = materials[materialIndex];
+		fragment.Materials[materialIndex] = materials[materialIndex];
 
 	for(u32 materialIndex = materialCountToAssign; materialIndex < materialCount; ++materialIndex)
-		mMaterials[materialIndex] = nullptr;
+		fragment.Materials[materialIndex] = nullptr;
 
 	MarkCoreObjectDependenciesDirty();
 	MarkReferencedResourcesDirty();
@@ -134,39 +132,42 @@ void Renderable::SetLayer(u64 layer)
 		return;
 	}
 
-	mLayer = layer;
+	GetFragment().Layer = layer;
 	MarkRenderProxyDataDirty();
 }
 
 void Renderable::SetOverrideBounds(const AABox& bounds)
 {
-	mOverrideBounds = bounds;
+	ecs::Renderable& fragment = GetFragment();
+	fragment.OverrideBounds = bounds;
 
-	if(mUseOverrideBounds)
+	if(fragment.UseOverrideBounds)
 		MarkRenderProxyDataDirty();
 }
 
 void Renderable::SetUseOverrideBounds(bool enable)
 {
-	if(mUseOverrideBounds == enable)
+	ecs::Renderable& fragment = GetFragment();
+	if(fragment.UseOverrideBounds == enable)
 		return;
 
-	mUseOverrideBounds = enable;
+	fragment.UseOverrideBounds = enable;
 	MarkRenderProxyDataDirty();
 }
 
 void Renderable::SetWriteVelocity(bool enable)
 {
-	if(mWriteVelocity == enable)
+	ecs::Renderable& fragment = GetFragment();
+	if(fragment.WriteVelocity == enable)
 		return;
 
-	mWriteVelocity = enable;
+	fragment.WriteVelocity = enable;
 	MarkRenderProxyDataDirty();
 }
 
 void Renderable::SetCullDistanceFactor(float factor)
 {
-	mCullDistanceFactor = factor;
+	GetFragment().CullDistanceFactor = factor;
 	MarkRenderProxyDataDirty();
 }
 
@@ -186,7 +187,6 @@ Renderable::Renderable(const HSceneObject& parent)
 	SetName("Renderable");
 	SetFlag(ComponentFlag::AlwaysRun, true);
 	mNotifyFlags = (TransformChangedFlags)(TCF_Parent | TCF_Transform);
-	mMaterials.resize(1);
 }
 
 Renderable::Renderable()
@@ -197,14 +197,19 @@ void Renderable::Initialize()
 {
 	SetShared(B3DStaticGameObjectCast<Renderable>(mThisHandle).GetShared());
 
-	Component::Initialize();
-	CoreObject::Initialize();
-
 	const HSceneObject& sceneObject = SceneObject();
 	ecs::Registry* registry = sceneObject->GetECSRegistry();
 	ecs::Entity entity = sceneObject->GetECSEntity();
 
-	registry->AddComponent<ecs::RenderableComponent>(entity, ecs::RenderableComponent{this});
+	if(!registry->HasAllOf<ecs::Renderable>(entity))
+	{
+		ecs::Renderable fragmentData;
+		fragmentData.Materials.resize(1);
+		registry->AddComponent<ecs::Renderable>(entity, std::move(fragmentData));
+	}
+	// Initialize after adding everything to the registry, as initialize might require the ECS fragments
+	Component::Initialize();
+	CoreObject::Initialize();
 }
 
 void Renderable::OnCreated()
@@ -265,7 +270,7 @@ void Renderable::OnDestroyed()
 
 	registry->RemoveComponents<ecs::RenderableDirty>(entity);
 	registry->RemoveComponents<ecs::RenderableTransformDirty>(entity);
-	registry->RemoveComponents<ecs::RenderableComponent>(entity);
+	registry->RemoveComponents<ecs::Renderable>(entity);
 
 	CoreObject::Destroy();
 }
@@ -280,8 +285,12 @@ void Renderable::OnSceneChanged(SceneInstance* oldScene, ecs::Entity oldEntity)
 	if(oldRegistry != nullptr && oldRegistry->HasAllOf<ecs::RenderableId>(oldEntity))
 		oldScene->GetRendererScene()->DeallocateRenderableId(*oldRegistry, oldEntity);
 
-	// Migrate RenderableComponent to new registry
-	registry->AddComponent<ecs::RenderableComponent>(entity, ecs::RenderableComponent{ this });
+	// Migrate ecs::Renderable fragment to new entity
+	if(oldRegistry != nullptr && oldRegistry->HasAllOf<ecs::Renderable>(oldEntity))
+	{
+		ecs::Renderable fragmentCopy = oldRegistry->GetComponents<ecs::Renderable>(oldEntity);
+		registry->AddComponent<ecs::Renderable>(entity, std::move(fragmentCopy));
+	}
 
 	// Allocate in new scene only if currently active
 	if(GetEnabled())
@@ -295,9 +304,11 @@ void Renderable::OnSceneChanged(SceneInstance* oldScene, ecs::Entity oldEntity)
 
 void Renderable::OnTransformChanged(TransformChangedFlags flags)
 {
+	const ecs::Renderable& fragment = GetFragment();
+
 	// If skinned animation, don't include own transform since that will be handled by root bone animation
 	bool ignoreOwnTransform;
-	if(mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
+	if(fragment.AnimType == RenderableAnimType::Skinned || fragment.AnimType == RenderableAnimType::SkinnedMorph)
 		ignoreOwnTransform = mAnimation.IsValid() ? mAnimation->GetAnimatesRoot() : false;
 	else
 		ignoreOwnTransform = false;
@@ -311,10 +322,11 @@ void Renderable::OnTransformChanged(TransformChangedFlags flags)
 Bounds Renderable::GetBounds() const
 {
 	const Transform& transform = SceneObject()->GetTransform();
+	const ecs::Renderable& fragment = GetFragment();
 
-	if(mUseOverrideBounds)
+	if(fragment.UseOverrideBounds)
 	{
-		Bounds bounds(mOverrideBounds);
+		Bounds bounds(fragment.OverrideBounds);
 		bounds.TransformAffine(transform);
 		return bounds;
 	}
@@ -339,10 +351,12 @@ bool Renderable::CalculateBounds(Bounds& bounds)
 
 void Renderable::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 {
-	if(mMesh.IsLoaded())
-		dependencies.push_back(mMesh.Get());
+	const ecs::Renderable& fragment = GetFragment();
 
-	for(const auto& material : mMaterials)
+	if(fragment.Mesh.IsLoaded())
+		dependencies.push_back(fragment.Mesh.Get());
+
+	for(const auto& material : fragment.Materials)
 	{
 		if(material.IsLoaded())
 			dependencies.push_back(material.Get());
@@ -351,7 +365,9 @@ void Renderable::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 
 void Renderable::OnDependencyDirty(CoreObject* dependency, u32 dirtyFlags)
 {
-	if(mMesh.IsLoaded(false) && mMesh.Get() == dependency)
+	const ecs::Renderable& fragment = GetFragment();
+
+	if(fragment.Mesh.IsLoaded(false) && fragment.Mesh.Get() == dependency)
 	{
 		ecs::Registry* registry = SceneObject()->GetECSRegistry();
 		registry->AddTag<ecs::RenderableDirty>(SceneObject()->GetECSEntity());
@@ -367,10 +383,12 @@ void Renderable::OnDependencyDirty(CoreObject* dependency, u32 dirtyFlags)
 
 void Renderable::GetListenerResources(Vector<HResource>& resources)
 {
-	if(mMesh != nullptr)
-		resources.push_back(mMesh);
+	const ecs::Renderable& fragment = GetFragment();
 
-	for(const auto& material : mMaterials)
+	if(fragment.Mesh != nullptr)
+		resources.push_back(fragment.Mesh);
+
+	for(const auto& material : fragment.Materials)
 	{
 		if(material != nullptr)
 			resources.push_back(material);
@@ -379,7 +397,7 @@ void Renderable::GetListenerResources(Vector<HResource>& resources)
 
 void Renderable::NotifyResourceLoaded(const HResource& resource)
 {
-	if(resource == mMesh)
+	if(resource == GetFragment().Mesh)
 		DoOnMeshChanged();
 
 	MarkCoreObjectDependenciesDirty();
@@ -388,7 +406,7 @@ void Renderable::NotifyResourceLoaded(const HResource& resource)
 
 void Renderable::NotifyResourceChanged(const HResource& resource)
 {
-	if(resource == mMesh)
+	if(resource == GetFragment().Mesh)
 		DoOnMeshChanged();
 
 	MarkCoreObjectDependenciesDirty();
@@ -397,32 +415,34 @@ void Renderable::NotifyResourceChanged(const HResource& resource)
 
 void Renderable::RefreshAnimation()
 {
+	ecs::Renderable& fragment = GetFragment();
+
 	if(!mAnimation.IsValid())
 	{
-		mAnimType = RenderableAnimType::None;
+		fragment.AnimType = RenderableAnimType::None;
 		return;
 	}
 
-	if(mMesh.IsLoaded(false))
+	if(fragment.Mesh.IsLoaded(false))
 	{
-		SPtr<Skeleton> skeleton = mMesh->GetSkeleton();
-		SPtr<MorphShapes> morphShapes = mMesh->GetMorphShapes();
+		SPtr<Skeleton> skeleton = fragment.Mesh->GetSkeleton();
+		SPtr<MorphShapes> morphShapes = fragment.Mesh->GetMorphShapes();
 
 		if(skeleton != nullptr && morphShapes != nullptr)
-			mAnimType = RenderableAnimType::SkinnedMorph;
+			fragment.AnimType = RenderableAnimType::SkinnedMorph;
 		else if(skeleton != nullptr)
-			mAnimType = RenderableAnimType::Skinned;
+			fragment.AnimType = RenderableAnimType::Skinned;
 		else if(morphShapes != nullptr)
-			mAnimType = RenderableAnimType::Morph;
+			fragment.AnimType = RenderableAnimType::Morph;
 		else
-			mAnimType = RenderableAnimType::None;
+			fragment.AnimType = RenderableAnimType::None;
 
-		mAnimation->SetSkeleton(mMesh->GetSkeleton());
-		mAnimation->SetMorphShapes(mMesh->GetMorphShapes());
+		mAnimation->SetSkeleton(fragment.Mesh->GetSkeleton());
+		mAnimation->SetMorphShapes(fragment.Mesh->GetMorphShapes());
 	}
 	else
 	{
-		mAnimType = RenderableAnimType::None;
+		fragment.AnimType = RenderableAnimType::None;
 
 		mAnimation->SetSkeleton(nullptr);
 		mAnimation->SetMorphShapes(nullptr);
@@ -434,6 +454,7 @@ void Renderable::RegisterAnimation(const HAnimation& animation)
 	mAnimation = animation;
 
 	RefreshAnimation();
+	GetFragment().AnimationId = animation->GetAnimationId();
 	MarkRenderProxyDataDirty();
 }
 
@@ -442,6 +463,7 @@ void Renderable::UnregisterAnimation()
 	mAnimation = nullptr;
 
 	RefreshAnimation();
+	GetFragment().AnimationId = (u64)-1;
 	MarkRenderProxyDataDirty();
 }
 
@@ -469,6 +491,16 @@ void Renderable::MarkRenderProxyDataDirty(ComponentDirtyFlag flag)
 	}
 	else
 		registry->AddTag<ecs::RenderableDirty>(entity);
+}
+
+RTTIType* ecs::Renderable::GetRttiStatic()
+{
+	return ecs::ECSRenderableRTTI::Instance();
+}
+
+RTTIType* ecs::Renderable::GetRtti() const
+{
+	return ecs::Renderable::GetRttiStatic();
 }
 
 RTTIType* Renderable::GetRttiStatic()
@@ -509,9 +541,9 @@ static SPtr<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
 
 Bounds RenderableProxy::GetBounds() const
 {
-	if(mUseOverrideBounds)
+	if(mData.UseOverrideBounds)
 	{
-		Bounds bounds(mOverrideBounds);
+		Bounds bounds(mData.OverrideBounds);
 		bounds.TransformAffine(mWorldTransformMatrix);
 
 		return bounds;
@@ -520,9 +552,7 @@ Bounds RenderableProxy::GetBounds() const
 	SPtr<Mesh> mesh = GetMesh();
 
 	if(mesh == nullptr)
-	{
 		return Bounds(mTransform.GetPosition(), Vector3::kZero, 0.0f);
-	}
 	else
 	{
 		Bounds bounds = mesh->GetProperties().Bounds;
@@ -534,16 +564,16 @@ Bounds RenderableProxy::GetBounds() const
 
 void RenderableProxy::CreateAnimationBuffers()
 {
-	if(mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
+	if(mData.AnimType == RenderableAnimType::Skinned || mData.AnimType == RenderableAnimType::SkinnedMorph)
 	{
-		SPtr<Skeleton> skeleton = mMesh->GetSkeleton();
+		SPtr<Skeleton> skeleton = mData.Mesh->GetSkeleton();
 		u32 boneCount = skeleton != nullptr ? skeleton->GetBoneCount() : 0;
 
 		if(boneCount > 0)
 		{
 			mBoneMatrixBuffer = CreateBoneMatrixBuffer(boneCount);
 
-			if(mWriteVelocity)
+			if(mData.WriteVelocity)
 				mPreviousBoneMatrixBuffer = CreateBoneMatrixBuffer(boneCount);
 			else
 				mPreviousBoneMatrixBuffer = nullptr;
@@ -560,11 +590,11 @@ void RenderableProxy::CreateAnimationBuffers()
 		mPreviousBoneMatrixBuffer = nullptr;
 	}
 
-	if(mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
+	if(mData.AnimType == RenderableAnimType::Morph || mData.AnimType == RenderableAnimType::SkinnedMorph)
 	{
 		// Note: Not handling velocity writing for morph animations
 
-		SPtr<MorphShapes> morphShapes = mMesh->GetMorphShapes();
+		SPtr<MorphShapes> morphShapes = mData.Mesh->GetMorphShapes();
 
 		const u32 vertexSize = sizeof(Vector3) + sizeof(u32);
 		const u32 vertexCount = morphShapes->GetVertexCount();
@@ -605,11 +635,11 @@ void RenderableProxy::UpdateAnimationBuffers(const EvaluatedAnimationData& animD
 	if(animInfo == nullptr)
 		return;
 
-	if(mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
+	if(mData.AnimType == RenderableAnimType::Skinned || mData.AnimType == RenderableAnimType::SkinnedMorph)
 	{
 		const EvaluatedAnimationData::PoseInfo& poseInfo = animInfo->PoseInfo;
 
-		if(mWriteVelocity)
+		if(mData.WriteVelocity)
 			std::swap(mBoneMatrixBuffer, mPreviousBoneMatrixBuffer);
 
 		// Note: If multiple elements are using the same animation (not possible atm), this buffer should be shared by
@@ -629,7 +659,7 @@ void RenderableProxy::UpdateAnimationBuffers(const EvaluatedAnimationData& animD
 		B3DStackFree(temporaryBuffer);
 	}
 
-	if(mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
+	if(mData.AnimType == RenderableAnimType::Morph || mData.AnimType == RenderableAnimType::SkinnedMorph)
 	{
 		if(mMorphShapeVersion != animInfo->MorphShapeInfo.Version)
 		{
@@ -645,26 +675,23 @@ void RenderableProxy::UpdateAnimationBuffers(const EvaluatedAnimationData& animD
 }
 }}
 
-void RenderableObjectStorageBase::PopulatePacket(Renderable::FullSyncPacket& packet, Renderable& renderable)
-{
-	packet.mAnimationId = renderable.GetAnimation().IsValid() ? renderable.GetAnimation()->GetAnimationId() : (u64)-1;
-	packet.mTransform = renderable.SceneObject()->GetTransform();
-}
-
-RenderableAction RenderableObjectStorageBase::ApplyPacket(Renderable::FullSyncPacket& packet, render::RenderableProxy& proxy, PackedRendererId rendererId)
+RenderableAction RenderableObjectStorageBase::ApplyPacket(ecs::Renderable::FullSyncPacket& packet, render::RenderableProxy& proxy, PackedRendererId rendererId)
 {
 	bool wasRegistered = proxy.mRendererId != kInvalidPackedRendererId;
 	proxy.mRendererId = rendererId;
-	packet.ApplySyncData(&proxy);
+	packet.ApplySyncData(&proxy.mData);
+
+	proxy.mAnimationId = packet.AnimationId;
+	proxy.mTransform = packet.TransformData;
 
 	proxy.mWorldTransformMatrix = proxy.mTransform.GetMatrix();
 	proxy.mWorldTransformMatrixWithoutScale = Matrix4::TRS(proxy.mTransform.GetPosition(), proxy.mTransform.GetRotation(), Vector3::kOne);
 
 	proxy.CreateAnimationBuffers();
 
-	if(proxy.mAnimType == RenderableAnimType::Morph || proxy.mAnimType == RenderableAnimType::SkinnedMorph)
+	if(proxy.mData.AnimType == RenderableAnimType::Morph || proxy.mData.AnimType == RenderableAnimType::SkinnedMorph)
 	{
-		TInlineArray<VertexElement, 8> vertexElements = proxy.mMesh->GetVertexDescription()->GetElements();
+		TInlineArray<VertexElement, 8> vertexElements = proxy.mData.Mesh->GetVertexDescription()->GetElements();
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
 		vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
 
@@ -701,16 +728,21 @@ void* RenderableObjectStorageBase::SyncRead(ecs::Registry& registry, FrameAlloca
 	{
 		batchData->Full.Allocate(allocator, fullCount);
 
-		auto view = registry.CreateView<ecs::RenderableDirty, ecs::RenderableComponent, ecs::RenderableId>();
+		auto view = registry.CreateView<ecs::RenderableDirty, ecs::Renderable, ecs::WorldTransform, ecs::RenderableId>();
 		view.SetLeadingType<ecs::RenderableDirty>();
 
 		for(auto entity : view)
 		{
-			auto& compRef = view.Get<ecs::RenderableComponent>(entity);
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			B3D_ASSERT(!registry.HasAllOf<ecs::TransformDirty>(entity) && "WorldTransform is stale during SyncRead — TransformSystem must flush before renderer sync");
+#endif
+			auto& renderableData = view.Get<ecs::Renderable>(entity);
+			auto& worldTransform = view.Get<ecs::WorldTransform>(entity);
 			RendererId objectId = view.Get<ecs::RenderableId>(entity).Id;
 
-			auto& packet = batchData->Full.Add(objectId, *compRef.Component, allocator, 0);
-			PopulatePacket(packet, *compRef.Component);
+			auto& packet = batchData->Full.Add(objectId, renderableData, allocator, 0);
+			packet.AnimationId = renderableData.AnimationId;
+			packet.TransformData = worldTransform;
 		}
 	}
 
@@ -718,16 +750,20 @@ void* RenderableObjectStorageBase::SyncRead(ecs::Registry& registry, FrameAlloca
 	{
 		batchData->Transform.Allocate(allocator, transformCount);
 
-		auto view = registry.CreateView<ecs::RenderableTransformDirty, ecs::RenderableComponent, ecs::RenderableId>(ecs::TExcludedTypes<ecs::RenderableDirty>{});
+		auto view = registry.CreateView<ecs::RenderableTransformDirty, ecs::Renderable, ecs::WorldTransform, ecs::RenderableId>(ecs::TExcludedTypes<ecs::RenderableDirty>{});
 		view.SetLeadingType<ecs::RenderableTransformDirty>();
 
 		for(auto entity : view)
 		{
-			auto& compRef = view.Get<ecs::RenderableComponent>(entity);
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			B3D_ASSERT(!registry.HasAllOf<ecs::TransformDirty>(entity) && "WorldTransform is stale during SyncRead — TransformSystem must flush before renderer sync");
+#endif
+			auto& renderableData = view.Get<ecs::Renderable>(entity);
+			auto& worldTransform = view.Get<ecs::WorldTransform>(entity);
 			RendererId objectId = view.Get<ecs::RenderableId>(entity).Id;
 
-			auto& packet = batchData->Transform.Add(objectId, *compRef.Component, allocator, 0);
-			packet.mTransform = compRef.Component->SceneObject()->GetTransform();
+			auto& packet = batchData->Transform.Add(objectId, renderableData, allocator, 0);
+			packet.TransformData = worldTransform;
 		}
 	}
 
@@ -782,7 +818,7 @@ void RenderableObjectStorageBase::SyncWrite(void* rawData, FrameAllocator& alloc
 	u32 fullUpdateForNewlyAddedObjectCount = 0;
 #endif
 
-	batch->Full.Each([this, createRenderStateList, &createRenderStateCount, destroyRenderStateList, &destroyRenderStateCount, &fullUpdateForNewlyAddedObjectCount](Renderable::FullSyncPacket& packet, RendererId objectId)
+	batch->Full.Each([this, createRenderStateList, &createRenderStateCount, destroyRenderStateList, &destroyRenderStateCount, &fullUpdateForNewlyAddedObjectCount](ecs::Renderable::FullSyncPacket& packet, RendererId objectId)
 	{
 		PackedRendererId rendererId = GetPackedRendererId(objectId);
 		if(rendererId == kInvalidPackedRendererId)
@@ -805,15 +841,14 @@ void RenderableObjectStorageBase::SyncWrite(void* rawData, FrameAllocator& alloc
 	});
 
 	// Apply transform packets, collect render update actions
-	batch->Transform.Each([&](Renderable::TransformSyncPacket& packet, RendererId objectId)
+	batch->Transform.Each([&](ecs::Renderable::TransformSyncPacket& packet, RendererId objectId)
 	{
 		PackedRendererId rendererId = GetPackedRendererId(objectId);
 		if(rendererId == kInvalidPackedRendererId)
 			return;
 
 		render::RenderableProxy& proxy = mRenderableProxies[rendererId];
-		packet.ApplySyncData(&proxy);
-
+		proxy.mTransform = packet.TransformData;
 		proxy.mWorldTransformMatrix = proxy.mTransform.GetMatrix();
 		proxy.mWorldTransformMatrixWithoutScale = Matrix4::TRS(proxy.mTransform.GetPosition(), proxy.mTransform.GetRotation(), Vector3::kOne);
 
