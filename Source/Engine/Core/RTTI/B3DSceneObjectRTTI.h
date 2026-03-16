@@ -86,6 +86,12 @@ namespace b3d
 						ecs::Registry& registry = serializationContext->GameObjectCollection->GetECSRegistry();
 						object.CreateECSEntity(&registry);
 					}
+
+					if(serializationContext->GameObjectCollection != nullptr)
+					{
+						mParentSceneObjectEntity = serializationContext->CurrentSceneObjectEntity;
+						serializationContext->CurrentSceneObjectEntity = object.mECSEntity;
+					}
 				}
 			}
 		}
@@ -150,6 +156,8 @@ namespace b3d
 						object.Initialize();
 				}
 
+				serializationContext->CurrentSceneObjectEntity = mParentSceneObjectEntity;
+
 				object.mRTTIData = nullptr;
 			}
 		}
@@ -175,6 +183,7 @@ namespace b3d
 
 	private:
 		bool mIsDeserializationParent = false;
+		ecs::Entity mParentSceneObjectEntity = ecs::kNullEntity;
 	};
 
 	/** @} */

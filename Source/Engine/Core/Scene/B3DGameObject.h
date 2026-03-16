@@ -5,6 +5,10 @@
 #include "B3DPrerequisites.h"
 #include "Reflection/B3DIReflectable.h"
 #include "Script/B3DIScriptExportable.h"
+#include "ECS/B3DEntity.h"
+#include "ECS/B3DIECSEntityOwner.h"
+
+namespace b3d::ecs { class Registry; }
 
 namespace b3d
 {
@@ -71,7 +75,7 @@ namespace b3d
 	 * Type of object that can be referenced by a GameObject handle. Each object has an unique ID and is registered with
 	 * the GameObjectManager.
 	 */
-	class B3D_EXPORT GameObject : public IReflectable, public IScriptExportable
+	class B3D_EXPORT GameObject : public IReflectable, public IScriptExportable, public ecs::IECSEntityOwner
 	{
 	public:
 		GameObject() = default;
@@ -113,6 +117,8 @@ namespace b3d
 		 */
 		bool IsPrefabInstance() const { return !mPrefabObjectId.Empty(); }
 
+		ecs::Registry* GetECSRegistry() const override { return mECSRegistry; }
+		ecs::Entity GetECSEntity() const override { return mECSEntity; }
 	public: // ***** INTERNAL ******
 		/** @name Internal
 		 *  @{
@@ -179,6 +185,10 @@ namespace b3d
 		GameObjectPersistentFlags mPersistentGameObjectFlags;
 
 		Any mRTTIData; // RTTI only
+
+		ecs::Registry* mECSRegistry = nullptr;
+		ecs::Entity mECSEntity = ecs::kNullEntity;
+
 	private:
 		friend class Prefab;
 		SPtr<GameObjectInstanceData> mInstanceData;

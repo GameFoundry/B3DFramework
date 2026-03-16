@@ -19,6 +19,25 @@ namespace b3d
 	class B3D_EXPORT ComponentRTTI : public TRTTIType<Component, GameObject, ComponentRTTI>
 	{
 	public:
+		void OnOperationStarted(Component& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		{
+			if(!operationType.IsSet(RTTIOperationType::WriteBit))
+				return;
+
+			if(object.mRTTIData.Empty())
+				return;
+
+			auto* const serializationContext = context.As<RTTIOperationEngineContext>();
+			if(serializationContext == nullptr)
+				return;
+
+			if(serializationContext->GameObjectCollection != nullptr && serializationContext->CurrentSceneObjectEntity != ecs::kNullEntity)
+			{
+				object.mECSRegistry = &serializationContext->GameObjectCollection->GetECSRegistry();
+				object.mECSEntity = serializationContext->CurrentSceneObjectEntity;
+			}
+		}
+
 		void OnOperationEnded(Component& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(!operationType.IsSet(RTTIOperationType::WriteBit))

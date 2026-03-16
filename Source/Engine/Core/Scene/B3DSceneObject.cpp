@@ -1154,6 +1154,8 @@ void SceneObject::InternalAddComponent(const SPtr<Component>& component, bool in
 void SceneObject::InternalAddComponent(const HComponent& component, bool initialize)
 {
 	component->mParent = GetHandle();
+	component->mECSRegistry = mECSRegistry;
+	component->mECSEntity = mECSEntity;
 	component->mThisHandle = component;
 
 	if(component->mId.Empty())

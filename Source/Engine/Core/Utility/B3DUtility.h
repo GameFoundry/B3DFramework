@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
+#include "ECS/B3DEntity.h"
 
 namespace b3d
 {
@@ -61,6 +62,8 @@ namespace b3d
 		/** Determines should any newly deserialized game object should be initialized. See SceneObject::Initialize(). */
 		bool InitializeNewGameObjects = false;
 		SPtr<GameObjectCollection> GameObjectCollection; /**< If deserializing game objects, collection to place them in. */
+
+		ecs::Entity CurrentSceneObjectEntity = ecs::kNullEntity; /** Current scene object ECS entity for component deserialization. Set by SceneObjectRTTI, read by ComponentRTTI. */
 		UnorderedMap<UUID, UUID> GameObjectIdRemapping; /**< If provided, game object IDs will be remapped to provided values. */
 
 		static RTTIType* GetRttiStatic();

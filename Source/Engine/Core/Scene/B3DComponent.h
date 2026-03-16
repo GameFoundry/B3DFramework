@@ -70,7 +70,7 @@ namespace b3d
 	 *    inactive, then the component is considered to be in Stopped state, regardless whether the ComponentFlag::AlwaysRun
 	 *    flag is set or not.
 	 **/
-	class B3D_EXPORT Component : public GameObject, public ecs::IECSEntityOwner
+	class B3D_EXPORT Component : public GameObject
 	{
 	public:
 		virtual ~Component() = default;
@@ -132,8 +132,6 @@ namespace b3d
 		bool GetEnabled(bool self = false) const;
 
 		// IECSEntityOwner interface
-		ecs::Registry* GetECSRegistry() const override;
-		ecs::Entity GetECSEntity() const override;
 		void CreateECSEntity(ecs::Registry*) override {} // Components don't create entities
 
 		/** @name Internal

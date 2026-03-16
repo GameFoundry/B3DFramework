@@ -44,7 +44,7 @@ namespace b3d
 	 * Each scene object can have one or multiple Component%s attached to it, where the components inherit the scene
 	 * object's transform, and receive updates about transform and hierarchy changes.
 	 */
-	class B3D_EXPORT SceneObject : public GameObject, public ecs::IECSEntityOwner
+	class B3D_EXPORT SceneObject : public GameObject
 	{
 		friend class SceneManager;
 		friend class Scene;
@@ -285,15 +285,10 @@ namespace b3d
 
 	public:
 		// IECSEntityOwner interface
-		ecs::Registry* GetECSRegistry() const override { return mECSRegistry; }
-		ecs::Entity GetECSEntity() const override { return mECSEntity; }
 		void CreateECSEntity(ecs::Registry* registry) override;
 
 	private:
 		mutable u32 mDirtyHash = 0;
-
-		ecs::Registry* mECSRegistry = nullptr;
-		ecs::Entity mECSEntity = ecs::kNullEntity;
 
 		/** Adds the ECS mobility tag for the given mobility. For fresh entities with no existing tags. */
 		void AddMobilityTag(ObjectMobility mobility);

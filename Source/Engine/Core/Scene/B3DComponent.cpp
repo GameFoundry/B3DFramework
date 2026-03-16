@@ -14,16 +14,6 @@ Component::Component(HSceneObject parent)
 	SetName("Component");
 }
 
-ecs::Registry* Component::GetECSRegistry() const
-{
-	return SceneObject()->GetECSRegistry();
-}
-
-ecs::Entity Component::GetECSEntity() const
-{
-	return SceneObject()->GetECSEntity();
-}
-
 bool Component::TypeEquals(const Component& other)
 {
 	return GetRtti()->GetRttiId() == other.GetRtti()->GetRttiId();
