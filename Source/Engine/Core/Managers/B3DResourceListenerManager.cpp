@@ -11,7 +11,7 @@ using namespace b3d;
 
 static void AssertIfNotMainThread()
 {
-	B3D_ASSERT(B3D_CURRENT_THREAD_ID == Application::Instance().GetMainThreadId(), "This method can only be accessed from the simulation thread.");
+	B3D_ASSERT(B3D_CURRENT_THREAD_ID == Application::Instance().GetMainThreadId() && "This method can only be accessed from the simulation thread.");
 }
 
 ResourceListenerManager::ResourceListenerManager()
