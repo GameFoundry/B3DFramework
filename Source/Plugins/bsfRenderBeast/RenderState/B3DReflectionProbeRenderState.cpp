@@ -1,6 +1,6 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "B3DRendererReflectionProbe.h"
+#include "B3DReflectionProbeRenderState.h"
 #include "Material/B3DMaterial.h"
 #include "Components/B3DReflectionProbe.h"
 #include "B3DRenderBeast.h"
@@ -72,7 +72,7 @@ void VisibleReflectionProbeData::Update(const SceneInfo& sceneInfo, const Render
 	}
 }
 
-RendererReflectionProbe::RendererReflectionProbe(ReflectionProbe* probe)
+ReflectionProbeRenderState::ReflectionProbeRenderState(ReflectionProbe* probe)
 	: Probe(probe)
 {
 	ArrayIdx = -1;
@@ -80,7 +80,7 @@ RendererReflectionProbe::RendererReflectionProbe(ReflectionProbe* probe)
 	ErrorFlagged = false;
 }
 
-void RendererReflectionProbe::GetParameters(ReflectioneProbeData& output) const
+void ReflectionProbeRenderState::GetParameters(ReflectioneProbeData& output) const
 {
 	output.Type = Probe->GetType() == ReflectionProbeType::Sphere ? 0
 		: Probe->GetType() == ReflectionProbeType::Box			  ? 1
@@ -142,18 +142,18 @@ void ImageBasedLightingParameterBinding::SetReflectionProbeCubemaps(const SPtr<G
 		parameters->SetSampledTexture(kReflectionProbeCubemapsTextureName, cubemaps);
 }
 
-void RendererReflectionProbe::PopulateGlobalReflectionProbeUniformBuffer(const GpuBufferSuballocation& uniformBuffer, const Skybox* sky, u32 numProbes, const SPtr<Texture>& reflectionCubemaps, bool capturingReflections)
+void ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(const GpuBufferSuballocation& uniformBuffer, const Skybox* sky, u32 probeCount, const SPtr<Texture>& reflectionCubemaps, bool capturingReflections)
 {
 	float brightness = 1.0f;
 	u32 skyReflectionsAvailable = 0;
-	u32 numSkyMips = 0;
+	u32 skyMipCount = 0;
 
 	if(sky != nullptr)
 	{
 		SPtr<Texture> filteredReflections = sky->GetFilteredRadiance();
 		if(filteredReflections)
 		{
-			numSkyMips = filteredReflections->GetProperties().MipMapCount + 1;
+			skyMipCount = filteredReflections->GetProperties().MipMapCount + 1;
 			skyReflectionsAvailable = 1;
 		}
 
@@ -161,15 +161,15 @@ void RendererReflectionProbe::PopulateGlobalReflectionProbeUniformBuffer(const G
 	}
 
 	GpuBufferMappedScope uniforms = uniformBuffer.Map();
-	gGlobalReflectionProbeUniformBufferDefinition.gSkyCubemapNumMips.Set(uniforms, numSkyMips);
+	gGlobalReflectionProbeUniformBufferDefinition.gSkyCubemapNumMips.Set(uniforms, skyMipCount);
 	gGlobalReflectionProbeUniformBufferDefinition.gSkyCubemapAvailable.Set(uniforms, skyReflectionsAvailable);
-	gGlobalReflectionProbeUniformBufferDefinition.gNumProbes.Set(uniforms, numProbes);
+	gGlobalReflectionProbeUniformBufferDefinition.gNumProbes.Set(uniforms, probeCount);
 
-	u32 numReflProbeMips = 0;
+	u32 reflecionProbeMipCount = 0;
 	if(reflectionCubemaps != nullptr)
-		numReflProbeMips = reflectionCubemaps->GetProperties().MipMapCount + 1;
+		reflecionProbeMipCount = reflectionCubemaps->GetProperties().MipMapCount + 1;
 
-	gGlobalReflectionProbeUniformBufferDefinition.gReflCubemapNumMips.Set(uniforms, numReflProbeMips);
+	gGlobalReflectionProbeUniformBufferDefinition.gReflCubemapNumMips.Set(uniforms, reflecionProbeMipCount);
 	gGlobalReflectionProbeUniformBufferDefinition.gUseReflectionMaps.Set(uniforms, capturingReflections ? 0 : 1);
 	gGlobalReflectionProbeUniformBufferDefinition.gSkyBrightness.Set(uniforms, brightness);
 }

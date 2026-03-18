@@ -75,10 +75,10 @@ namespace b3d
 		extern GlobalReflectionProbeUniformBufferDefinition gGlobalReflectionProbeUniformBufferDefinition;
 
 		/**	Renderer information specific to a single reflection probe. */
-		class RendererReflectionProbe
+		class ReflectionProbeRenderState
 		{
 		public:
-			RendererReflectionProbe(ReflectionProbe* probe);
+			ReflectionProbeRenderState(ReflectionProbe* probe);
 
 			/** Populates the structure with reflection probe parameters. */
 			void GetParameters(ReflectioneProbeData& output) const;
@@ -88,11 +88,11 @@ namespace b3d
 			 *
 			 * @param uniformBuffer			Buffer suballocation to populate.
 			 * @param sky					Skybox to use for sky reflections (can be null).
-			 * @param numProbes				Number of reflection probes.
+			 * @param probeCount			Number of reflection probes.
 			 * @param reflectionCubemaps	Texture array containing reflection probe cubemaps.
 			 * @param capturingReflections	True if currently capturing reflections (disables reflection map usage).
 			 */
-			static void PopulateGlobalReflectionProbeUniformBuffer(const GpuBufferSuballocation& uniformBuffer, const Skybox* sky, u32 numProbes, const SPtr<Texture>& reflectionCubemaps, bool capturingReflections);
+			static void PopulateGlobalReflectionProbeUniformBuffer(const GpuBufferSuballocation& uniformBuffer, const Skybox* sky, u32 probeCount, const SPtr<Texture>& reflectionCubemaps, bool capturingReflections);
 
 			ReflectionProbe* Probe;
 			u32 ArrayIdx;

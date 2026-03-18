@@ -647,8 +647,8 @@ void RenderBeastScene::RegisterReflectionProbe(ReflectionProbe* probe)
 	u32 probeId = (u32)mInfo.ReflProbes.size();
 	probe->SetRendererId(probeId);
 
-	mInfo.ReflProbes.push_back(RendererReflectionProbe(probe));
-	RendererReflectionProbe& probeInfo = mInfo.ReflProbes.back();
+	mInfo.ReflProbes.push_back(ReflectionProbeRenderState(probe));
+	ReflectionProbeRenderState& probeInfo = mInfo.ReflProbes.back();
 
 	mInfo.ReflProbeWorldBounds.push_back(probe->GetBounds());
 
@@ -686,7 +686,7 @@ void RenderBeastScene::UpdateReflectionProbe(ReflectionProbe* probe, bool textur
 
 	if(texture)
 	{
-		RendererReflectionProbe& probeInfo = mInfo.ReflProbes[probeId];
+		ReflectionProbeRenderState& probeInfo = mInfo.ReflProbes[probeId];
 		probeInfo.ArrayDirty = true;
 	}
 }
@@ -750,7 +750,7 @@ void RenderBeastScene::UpdateReflectionProbes(GpuCommandBuffer& commandBuffer)
 		FrameQueue<u32> emptySlots;
 		for(u32 i = 0; i < probeCount; i++)
 		{
-			const RendererReflectionProbe& probeInfo = sceneInfo.ReflProbes[i];
+			const ReflectionProbeRenderState& probeInfo = sceneInfo.ReflProbes[i];
 
 			if(probeInfo.ArrayIdx > kMaxReflectionCubemaps)
 				continue;
@@ -806,7 +806,7 @@ void RenderBeastScene::UpdateReflectionProbes(GpuCommandBuffer& commandBuffer)
 
 void RenderBeastScene::SetReflectionProbeArrayIndex(u32 probeIdx, u32 arrayIdx, bool markAsClean)
 {
-	RendererReflectionProbe* probe = &mInfo.ReflProbes[probeIdx];
+	ReflectionProbeRenderState* probe = &mInfo.ReflProbes[probeIdx];
 	probe->ArrayIdx = arrayIdx;
 
 	if(markAsClean)

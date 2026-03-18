@@ -360,7 +360,7 @@ void TiledDeferredImageBasedLightingMaterial::Execute(GpuCommandBuffer& commandB
 		skybox = sceneInfo.Skybox;
 
 	GpuBufferSuballocation reflProbeParamsBuffer = gGlobalReflectionProbeUniformBufferDefinition.AllocateTransient();
-	RendererReflectionProbe::PopulateGlobalReflectionProbeUniformBuffer(reflProbeParamsBuffer, skybox, probeData.GetProbeCount(), sceneInfo.ReflProbeCubemapsTex, viewProps.CapturingReflections);
+	ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(reflProbeParamsBuffer, skybox, probeData.GetProbeCount(), sceneInfo.ReflProbeCubemapsTex, viewProps.CapturingReflections);
 	mReflProbeParamsUniformBufferParameter.Set(reflProbeParamsBuffer);
 
 	mGBufferA.Set(inputs.Gbuffer.Albedo);

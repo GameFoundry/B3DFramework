@@ -13,7 +13,7 @@
 #include "Utility/B3DTextureRowAllocator.h"
 #include "B3DRenderState.h"
 #include "B3DLightRenderState.h"
-#include "B3DRendererReflectionProbe.h"
+#include "B3DReflectionProbeRenderState.h"
 #include "Shading/B3DGpuParticleSimulation.h"
 
 namespace b3d

@@ -8,7 +8,7 @@
 #include "Renderer/B3DGpuUniformBuffer.h"
 #include "Material/B3DMaterialParam.h"
 #include "RenderAPI/B3DGpuPipelineParameterLayout.h"
-#include "B3DRendererReflectionProbe.h"
+#include "B3DReflectionProbeRenderState.h"
 #include "B3DRenderState.h"
 
 namespace b3d

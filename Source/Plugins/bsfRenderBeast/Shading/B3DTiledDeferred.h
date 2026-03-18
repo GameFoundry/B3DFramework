@@ -7,7 +7,7 @@
 #include "Renderer/B3DGpuUniformBuffer.h"
 #include "RenderAPI/B3DGpuPipelineParameterLayout.h"
 #include "RenderState/B3DLightRenderState.h"
-#include "B3DRendererReflectionProbe.h"
+#include "RenderState/B3DReflectionProbeRenderState.h"
 
 namespace b3d
 {

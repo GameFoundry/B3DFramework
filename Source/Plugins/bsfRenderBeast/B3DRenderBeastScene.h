@@ -113,7 +113,7 @@ namespace b3d
 			Vector<Sphere> SpotLightWorldBounds;
 
 			// Reflection probes
-			Vector<RendererReflectionProbe> ReflProbes;
+			Vector<ReflectionProbeRenderState> ReflProbes;
 			Vector<Sphere> ReflProbeWorldBounds;
 			Vector<bool> ReflProbeCubemapArrayUsedSlots;
 			SPtr<Texture> ReflProbeCubemapsTex;

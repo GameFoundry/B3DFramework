@@ -1314,7 +1314,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 
 		// Prepare buffers and parameters for rendering
 		GpuBufferSuballocation reflProbeParamsBuffer = gGlobalReflectionProbeUniformBufferDefinition.AllocateTransient();
-		RendererReflectionProbe::PopulateGlobalReflectionProbeUniformBuffer(reflProbeParamsBuffer, skybox, probeData.GetProbeCount(), inputs.Scene.ReflProbeCubemapsTex, viewProps.CapturingReflections);
+		ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(reflProbeParamsBuffer, skybox, probeData.GetProbeCount(), inputs.Scene.ReflProbeCubemapsTex, viewProps.CapturingReflections);
 
 		RenderPassCreateInformation mainPassCreateInformation(iblRadianceRT, RT_DEPTH_STENCIL, RT_DEPTH_STENCIL);
 		{
@@ -1475,7 +1475,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 
 	// Prepare refl. probe param buffer
 	GpuBufferSuballocation reflProbeParamBuffer = gGlobalReflectionProbeUniformBufferDefinition.AllocateTransient();
-	RendererReflectionProbe::PopulateGlobalReflectionProbeUniformBuffer(reflProbeParamBuffer, skybox, visibleReflProbeData.GetProbeCount(), sceneInfo.ReflProbeCubemapsTex, viewProps.CapturingReflections);
+	ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(reflProbeParamBuffer, skybox, visibleReflProbeData.GetProbeCount(), sceneInfo.ReflProbeCubemapsTex, viewProps.CapturingReflections);
 
 	SPtr<Texture> skyFilteredRadiance;
 	if(skybox)

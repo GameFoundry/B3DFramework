@@ -6,7 +6,7 @@
 #include "Utility/B3DModule.h"
 #include "Renderer/B3DRendererMaterial.h"
 #include "RenderState/B3DLightRenderState.h"
-#include "B3DRendererReflectionProbe.h"
+#include "RenderState/B3DReflectionProbeRenderState.h"
 
 namespace b3d
 {
