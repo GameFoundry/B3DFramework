@@ -1600,9 +1600,9 @@ void RenderBeastScene::UpdateParticleSystemBounds(const EvaluatedParticleData* p
 	}
 }
 
-MaterialSamplerOverrides* RenderBeastScene::AllocSamplerStateOverrides(DrawCommand& elem)
+MaterialSamplerOverrides* RenderBeastScene::AllocSamplerStateOverrides(DrawCommand& drawCommand)
 {
-	SamplerOverrideKey samplerKey(elem.Material, elem.DefaultVariationIndex);
+	SamplerOverrideKey samplerKey(drawCommand.Material, drawCommand.DefaultVariationIndex);
 	auto iterFind = mSamplerOverrides.find(samplerKey);
 	if(iterFind != mSamplerOverrides.end())
 	{
@@ -1611,8 +1611,8 @@ MaterialSamplerOverrides* RenderBeastScene::AllocSamplerStateOverrides(DrawComma
 	}
 	else
 	{
-		SPtr<Shader> shader = elem.Material->GetShader();
-		MaterialSamplerOverrides* samplerOverrides = SamplerOverrideUtility::GenerateSamplerOverrides(*mGpuDevice, shader, elem.Material->GetMaterialParameters(), elem.ParameterAdapter, mOptions);
+		SPtr<Shader> shader = drawCommand.Material->GetShader();
+		MaterialSamplerOverrides* samplerOverrides = SamplerOverrideUtility::GenerateSamplerOverrides(*mGpuDevice, shader, drawCommand.Material->GetMaterialParameters(), drawCommand.ParameterAdapter, mOptions);
 
 		mSamplerOverrides[samplerKey] = samplerOverrides;
 
@@ -1621,9 +1621,9 @@ MaterialSamplerOverrides* RenderBeastScene::AllocSamplerStateOverrides(DrawComma
 	}
 }
 
-void RenderBeastScene::FreeSamplerStateOverrides(DrawCommand& elem)
+void RenderBeastScene::FreeSamplerStateOverrides(DrawCommand& drawCommand)
 {
-	SamplerOverrideKey samplerKey(elem.Material, elem.DefaultVariationIndex);
+	SamplerOverrideKey samplerKey(drawCommand.Material, drawCommand.DefaultVariationIndex);
 
 	auto iterFind = mSamplerOverrides.find(samplerKey);
 	B3D_ASSERT(iterFind != mSamplerOverrides.end());

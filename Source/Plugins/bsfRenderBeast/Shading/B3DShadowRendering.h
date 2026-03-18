@@ -573,10 +573,10 @@ namespace b3d
 			void RenderCascadedShadowMaps(GpuCommandBuffer& commandBuffer, const RendererView& view, u32 lightIdx, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/** Renders shadow maps for the provided spot light. */
-			void RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, const LightRenderState& light, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
+			void RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, const LightRenderState& lightRenderState, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/** Renders shadow maps for the provided radial light. */
-			void RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, const LightRenderState& light, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
+			void RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, const LightRenderState& lightRenderState, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/**
 			 * Calculates optimal shadow map size, taking into account all views in the scene. Also calculates a fade value

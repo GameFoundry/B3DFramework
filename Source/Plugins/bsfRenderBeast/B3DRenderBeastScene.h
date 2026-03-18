@@ -239,10 +239,10 @@ namespace b3d
 			 * Generates sampler state overrides for the provided render element, or returns existing ones if they
 			 * already exist for the element's material. Shared between renderables and decals.
 			 */
-			MaterialSamplerOverrides* AllocSamplerStateOverrides(DrawCommand& elem);
+			MaterialSamplerOverrides* AllocSamplerStateOverrides(DrawCommand& drawCommand);
 
 			/** Releases sampler state overrides for the provided render element. */
-			void FreeSamplerStateOverrides(DrawCommand& elem);
+			void FreeSamplerStateOverrides(DrawCommand& drawCommand);
 
 			/**
 			 * Checks all sampler overrides in case material sampler states changed, and updates them.

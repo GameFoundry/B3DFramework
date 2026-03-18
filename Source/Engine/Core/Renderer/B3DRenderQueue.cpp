@@ -22,7 +22,7 @@ void RenderQueue::Clear()
 	mSortableElementIndex.clear();
 	mCommands.clear();
 
-	mSortedRenderElements.clear();
+	mSortedEntries.clear();
 }
 
 void RenderQueue::Add(const DrawCommand* drawCommand, float distFromCamera, u32 variationIndex)
@@ -97,16 +97,16 @@ void RenderQueue::Sort()
 	{
 		const u32 idx = mSortableElementIndex[i];
 		const SortableElement& elem = mSortableElements[idx];
-		const DrawCommand* renderElem = mCommands[idx];
+		const DrawCommand* drawCommand = mCommands[idx];
 
-		const bool separablePasses = renderElem->Material->GetShader()->GetAllowSeparablePasses();
+		const bool separablePasses = drawCommand->Material->GetShader()->GetAllowSeparablePasses();
 
 		if(separablePasses)
 		{
-			mSortedRenderElements.push_back(RenderQueueEntry());
+			mSortedEntries.push_back(RenderQueueEntry());
 
-			RenderQueueEntry& sortedElem = mSortedRenderElements.back();
-			sortedElem.DrawCommand = renderElem;
+			RenderQueueEntry& sortedElem = mSortedEntries.back();
+			sortedElem.DrawCommand = drawCommand;
 			sortedElem.VariationIndex = elem.VariationIndex;
 			sortedElem.PassIndex = elem.PassIndex;
 
@@ -122,13 +122,13 @@ void RenderQueue::Sort()
 		}
 		else
 		{
-			const u32 numPasses = renderElem->Material->GetPassCount(elem.VariationIndex);
+			const u32 numPasses = drawCommand->Material->GetPassCount(elem.VariationIndex);
 			for(u32 j = 0; j < numPasses; j++)
 			{
-				mSortedRenderElements.push_back(RenderQueueEntry());
+				mSortedEntries.push_back(RenderQueueEntry());
 
-				RenderQueueEntry& sortedElem = mSortedRenderElements.back();
-				sortedElem.DrawCommand = renderElem;
+				RenderQueueEntry& sortedElem = mSortedEntries.back();
+				sortedElem.DrawCommand = drawCommand;
 				sortedElem.VariationIndex = elem.VariationIndex;
 				sortedElem.PassIndex = j;
 
@@ -208,6 +208,6 @@ bool RenderQueue::CommandSortPreferDistance(u32 aIdx, u32 bIdx, const Vector<Sor
 
 const Vector<RenderQueueEntry>& RenderQueue::GetSortedEntries() const
 {
-	return mSortedRenderElements;
+	return mSortedEntries;
 }
 }}

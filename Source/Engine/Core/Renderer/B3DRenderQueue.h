@@ -90,7 +90,7 @@ namespace b3d
 			Vector<u32> mSortableElementIndex;
 			Vector<const DrawCommand*> mCommands;
 
-			Vector<RenderQueueEntry> mSortedRenderElements;
+			Vector<RenderQueueEntry> mSortedEntries;
 			StateReduction mStateReductionMode;
 		};
 

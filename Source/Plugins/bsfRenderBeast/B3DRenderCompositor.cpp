@@ -1082,8 +1082,8 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 
 			for(u32 shadowedLightIndex = 0; shadowedLightIndex < lightCount; shadowedLightIndex++)
 			{
-				u32 rendererLightId = offset + shadowedLightIndex;
-				const LightRenderState& lightRenderState = *lights[rendererLightId];
+				u32 lightId = offset + shadowedLightIndex;
+				const LightRenderState& lightRenderState = *lights[lightId];
 
 				ShadowRendering::ProjectedShadowRenderingBatchInformation shadowProjectionRenderingBatch =
 					shadowRenderer.PrepareParametersForRenderShadowProjection(commandBuffer.GetGpuDevice(), inputs.View, lightRenderState, gbuffer);

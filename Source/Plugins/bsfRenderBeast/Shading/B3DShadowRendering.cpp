@@ -458,19 +458,19 @@ namespace b3d
 				Command()
 				{}
 
-				Command(RenderableDrawCommand* element)
-					: Element(element), IsElement(true)
+				Command(RenderableDrawCommand* drawCommand)
+					: DrawCommand(drawCommand), IsDrawCommand(true)
 				{}
 
 				union
 				{
-					RenderableDrawCommand* Element;
+					RenderableDrawCommand* DrawCommand;
 					RenderableRenderState* Renderable;
 				};
 
 				SPtr<GpuParameterSet> GpuParameterSet;
 
-				bool IsElement : 1;
+				bool IsDrawCommand : 1;
 			};
 
 			template <class Options>
@@ -514,7 +514,7 @@ namespace b3d
 						}
 
 						Command renderableCommand;
-						renderableCommand.IsElement = false;
+						renderableCommand.IsDrawCommand = false;
 						renderableCommand.Renderable = renderable;
 
 						bool renderableBound[4];
@@ -546,14 +546,14 @@ namespace b3d
 					{
 						for(auto& command : commands[i])
 						{
-							if(command.IsElement)
+							if(command.IsDrawCommand)
 							{
-								const RenderableDrawCommand& element = *command.Element;
+								const RenderableDrawCommand& drawCommand = *command.DrawCommand;
 
-								if(element.MorphVertexDefinition == nullptr)
-									GetRendererUtility().Draw(commandBuffer, element.Mesh, element.SubMesh);
+								if(drawCommand.MorphVertexDefinition == nullptr)
+									GetRendererUtility().Draw(commandBuffer, drawCommand.Mesh, drawCommand.SubMesh);
 								else
-									GetRendererUtility().DrawMorph(commandBuffer, element.Mesh, element.SubMesh, element.MorphShapeBuffer, element.MorphVertexDefinition);
+									GetRendererUtility().DrawMorph(commandBuffer, drawCommand.Mesh, drawCommand.SubMesh, drawCommand.MorphShapeBuffer, drawCommand.MorphVertexDefinition);
 							}
 							else
 							{
