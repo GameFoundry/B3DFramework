@@ -1,6 +1,6 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "B3DRendererParticles.h"
+#include "B3DParticleRenderState.h"
 #include "B3DRenderBeast.h"
 #include "Particles/B3DParticleScene.h"
 #include "Renderer/B3DRendererUtility.h"
@@ -99,7 +99,7 @@ void WriteIndices(const SPtr<GpuBuffer>& buffer, const Vector<u32>& input, u32 t
 	B3DStackFree(indices);
 }
 
-void ParticlesRenderElement::Draw(GpuCommandBuffer& commandBuffer) const
+void ParticlesDrawCommand::Draw(GpuCommandBuffer& commandBuffer) const
 {
 	if(NumParticles > 0)
 	{
@@ -116,7 +116,7 @@ void ParticlesRenderElement::Draw(GpuCommandBuffer& commandBuffer) const
 	}
 }
 
-void RendererParticles::BindCpuSimulatedInputs(const ParticleRenderData* renderData, const RendererView& view) const
+void ParticleRenderState::BindCpuSimulatedInputs(const ParticleRenderData* renderData, const RendererView& view) const
 {
 	ParticleTexturePool& particlesTexPool = ParticleRenderer::Instance().GetTexturePool();
 
@@ -130,11 +130,11 @@ void RendererParticles::BindCpuSimulatedInputs(const ParticleRenderData* renderD
 			const auto billboardRenderData = static_cast<const ParticleBillboardRenderData*>(renderData);
 			const ParticleBillboardTextures* textures = particlesTexPool.Alloc(*billboardRenderData);
 
-			RenderElement.ParamsCpuBillboard.PositionAndRotTexture.Set(textures->PositionAndRotation);
-			RenderElement.ParamsCpuBillboard.ColorTexture.Set(textures->Color);
-			RenderElement.ParamsCpuBillboard.SizeAndFrameIdxTexture.Set(textures->SizeAndFrameIdx);
+			DrawCommand.ParamsCpuBillboard.PositionAndRotTexture.Set(textures->PositionAndRotation);
+			DrawCommand.ParamsCpuBillboard.ColorTexture.Set(textures->Color);
+			DrawCommand.ParamsCpuBillboard.SizeAndFrameIdxTexture.Set(textures->SizeAndFrameIdx);
 
-			RenderElement.IndicesBuffer.Set(textures->Indices);
+			DrawCommand.IndicesBuffer.Set(textures->Indices);
 			texSize = textures->PositionAndRotation->GetProperties().Width;
 		}
 		break;
@@ -143,52 +143,52 @@ void RendererParticles::BindCpuSimulatedInputs(const ParticleRenderData* renderD
 			const auto meshRenderData = static_cast<const ParticleMeshRenderData*>(renderData);
 			const ParticleMeshTextures* textures = particlesTexPool.Alloc(*meshRenderData);
 
-			RenderElement.ParamsCpuMesh.PositionTexture.Set(textures->Position);
-			RenderElement.ParamsCpuMesh.ColorTexture.Set(textures->Color);
-			RenderElement.ParamsCpuMesh.RotationTexture.Set(textures->Rotation);
-			RenderElement.ParamsCpuMesh.SizeTexture.Set(textures->Size);
+			DrawCommand.ParamsCpuMesh.PositionTexture.Set(textures->Position);
+			DrawCommand.ParamsCpuMesh.ColorTexture.Set(textures->Color);
+			DrawCommand.ParamsCpuMesh.RotationTexture.Set(textures->Rotation);
+			DrawCommand.ParamsCpuMesh.SizeTexture.Set(textures->Size);
 
-			RenderElement.IndicesBuffer.Set(textures->Indices);
+			DrawCommand.IndicesBuffer.Set(textures->Indices);
 			texSize = textures->Position->GetProperties().Width;
 		}
 		break;
 	}
 
-	RenderElement.NumParticles = renderData->NumParticles;
+	DrawCommand.NumParticles = renderData->NumParticles;
 
 	PopulateAndBindParticlesUniformBuffer(texSize, 0);
-	RenderElement.PerCameraUniformBufferParameter.Set(view.GetPerViewBuffer());
+	DrawCommand.PerCameraUniformBufferParameter.Set(view.GetPerViewBuffer());
 }
 
-void RendererParticles::BindGpuSimulatedInputs(const GpuParticleResources& gpuSimResources, const RendererView& view) const
+void ParticleRenderState::BindGpuSimulatedInputs(const GpuParticleResources& gpuSimResources, const RendererView& view) const
 {
 	const GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.GetCurrentState();
 	const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.GetStaticTextures();
 	const GpuParticleCurves& gpuCurves = gpuSimResources.GetCurveTexture();
 	const SPtr<GpuBuffer>& sortedIndices = gpuSimResources.GetSortedIndices();
 
-	RenderElement.ParamsGpu.PositionTimeTexture.Set(gpuSimStateTextures.PositionAndTimeTex);
-	RenderElement.ParamsGpu.SizeRotationTexture.Set(gpuSimStaticTextures.SizeAndRotationTex);
-	RenderElement.ParamsGpu.CurvesTexture.Set(gpuCurves.GetTexture());
-	RenderElement.NumParticles = GpuParticleSystem->GetTileCount() * GpuParticleConstants::kParticlesPerTile;
+	DrawCommand.ParamsGpu.PositionTimeTexture.Set(gpuSimStateTextures.PositionAndTimeTex);
+	DrawCommand.ParamsGpu.SizeRotationTexture.Set(gpuSimStaticTextures.SizeAndRotationTex);
+	DrawCommand.ParamsGpu.CurvesTexture.Set(gpuCurves.GetTexture());
+	DrawCommand.NumParticles = GpuParticleSystem->GetTileCount() * GpuParticleConstants::kParticlesPerTile;
 
 	i32 bufferOffset;
 	if(GpuParticleSystem->HasSortInfo())
 	{
-		RenderElement.IndicesBuffer.Set(sortedIndices);
+		DrawCommand.IndicesBuffer.Set(sortedIndices);
 		bufferOffset = GpuParticleSystem->GetSortOffset();
 	}
 	else
 	{
-		RenderElement.IndicesBuffer.Set(GpuParticleSystem->GetParticleIndices());
+		DrawCommand.IndicesBuffer.Set(GpuParticleSystem->GetParticleIndices());
 		bufferOffset = 0;
 	}
 
 	PopulateAndBindParticlesUniformBuffer(GpuParticleConstants::kTexSize, bufferOffset);
-	RenderElement.PerCameraUniformBufferParameter.Set(view.GetPerViewBuffer());
+	DrawCommand.PerCameraUniformBufferParameter.Set(view.GetPerViewBuffer());
 }
 
-void RendererParticles::PopulateAndBindParticlesUniformBuffer(i32 texSize, i32 bufferOffset) const
+void ParticleRenderState::PopulateAndBindParticlesUniformBuffer(i32 texSize, i32 bufferOffset) const
 {
 	GpuBufferMappedScope uniforms = gParticlesUniformDefinition.AllocateTransient().Map();
 
@@ -206,13 +206,13 @@ void RendererParticles::PopulateAndBindParticlesUniformBuffer(i32 texSize, i32 b
 	gParticlesUniformDefinition.gAxisRight.Set(uniforms, axisRight);
 
 	// Set UV parameters from sprite image if available
-	const SPtr<Shader> shader = RenderElement.Material->GetShader();
+	const SPtr<Shader> shader = DrawCommand.Material->GetShader();
 	SpriteImage* spriteImage = nullptr;
 	if(shader->HasTextureParameter("gTexture"))
-		spriteImage = RenderElement.Material->GetSpriteImage("gTexture").get();
+		spriteImage = DrawCommand.Material->GetSpriteImage("gTexture").get();
 
 	if(!spriteImage && shader->HasTextureParameter("gAlbedoTex"))
-		spriteImage = RenderElement.Material->GetSpriteImage("gAlbedoTex").get();
+		spriteImage = DrawCommand.Material->GetSpriteImage("gAlbedoTex").get();
 
 	if(spriteImage)
 	{
@@ -233,7 +233,7 @@ void RendererParticles::PopulateAndBindParticlesUniformBuffer(i32 texSize, i32 b
 	gParticlesUniformDefinition.gTexSize.Set(uniforms, texSize);
 	gParticlesUniformDefinition.gBufferOffset.Set(uniforms, bufferOffset);
 
-	RenderElement.ParticlesUniformBufferParameter.Set(uniforms);
+	DrawCommand.ParticlesUniformBufferParameter.Set(uniforms);
 }
 
 ParticleTexturePool::~ParticleTexturePool()
@@ -513,7 +513,7 @@ void ParticleRenderer::SortByDistance(const Vector3& refPoint, const PixelData& 
 	B3DClearAllocatorFrame();
 }
 
-void RendererParticles::UpdatePerObjectData()
+void ParticleRenderState::UpdatePerObjectData()
 {
 	const ParticleSystemSettings& settings = ParticleSystem->GetSettings();
 	if(settings.SimulationSpace == ParticleSimulationSpace::Local)

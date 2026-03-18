@@ -3,13 +3,13 @@
 #pragma once
 
 #include "B3DRenderBeastPrerequisites.h"
-#include "Renderer/B3DRenderElement.h"
+#include "Renderer/B3DDrawCommand.h"
 #include "Components/B3DRenderable.h"
 #include "Renderer/B3DGpuUniformBuffer.h"
 #include "Material/B3DMaterialParam.h"
 #include "RenderAPI/B3DGpuPipelineParameterLayout.h"
 #include "B3DRendererReflectionProbe.h"
-#include "B3DRendererObject.h"
+#include "B3DRenderState.h"
 
 namespace b3d
 {
@@ -33,11 +33,8 @@ namespace b3d
 
 		struct MaterialSamplerOverrides;
 
-		/**
-		 * Contains information required for rendering a single Renderable sub-mesh, representing a generic static or animated
-		 * 3D model.
-		 */
-		class RenderableElement final : public RenderElement
+		/** Contains information required for drawing a single Renderable sub-mesh, representing a generic static or animated 3D model. */
+		class RenderableDrawCommand final : public DrawCommand
 		{
 		public:
 			/**
@@ -85,13 +82,13 @@ namespace b3d
 			void Draw(GpuCommandBuffer& commandBuffer) const override;
 		};
 
-		/** Contains information about a Renderable, used by the Renderer. */
-		struct RenderableRenderState : RendererObject
+		/** Renderer-specific state for a renderable. */
+		struct RenderableRenderState : RenderState
 		{
 			/** Updates the per-object data from the provided renderable proxy. */
 			void UpdatePerObjectData(const RenderableProxy& proxy);
 
-			Vector<RenderableElement> Elements;
+			Vector<RenderableDrawCommand> DrawCommands;
 		};
 
 		/** @} */

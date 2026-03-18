@@ -3,9 +3,9 @@
 #pragma once
 
 #include "B3DRenderBeastPrerequisites.h"
-#include "B3DRendererLight.h"
+#include "RenderState/B3DLightRenderState.h"
 #include "B3DRendererView.h"
-#include "B3DRendererParticles.h"
+#include "RenderState/B3DParticleRenderState.h"
 #include "Renderer/B3DRendererScene.h"
 #include "Renderer/B3DRendererObjectStorage.h"
 #include "Shading/B3DLightProbes.h"
@@ -22,7 +22,7 @@ namespace b3d
 	namespace render
 	{
 		class RenderableObjectStorage;
-		struct RendererDecal;
+		struct DecalRenderState;
 		class Decal;
 		struct FrameInfo;
 
@@ -106,9 +106,9 @@ namespace b3d
 			const Vector<CullInfo>* RenderableCullInfos = nullptr;
 
 			// Lights
-			Vector<RendererLight> DirectionalLights;
-			Vector<RendererLight> RadialLights;
-			Vector<RendererLight> SpotLights;
+			Vector<LightRenderState> DirectionalLights;
+			Vector<LightRenderState> RadialLights;
+			Vector<LightRenderState> SpotLights;
 			Vector<Sphere> RadialLightWorldBounds;
 			Vector<Sphere> SpotLightWorldBounds;
 
@@ -122,11 +122,11 @@ namespace b3d
 			LightProbes LightProbes;
 
 			// Particles
-			Vector<RendererParticles> ParticleSystems;
+			Vector<ParticleRenderState> ParticleSystems;
 			Vector<CullInfo> ParticleSystemCullInfos;
 
 			// Decals
-			Vector<RendererDecal> Decals;
+			Vector<DecalRenderState> Decals;
 			Vector<CullInfo> DecalCullInfos;
 
 			// Sky
@@ -239,10 +239,10 @@ namespace b3d
 			 * Generates sampler state overrides for the provided render element, or returns existing ones if they
 			 * already exist for the element's material. Shared between renderables and decals.
 			 */
-			MaterialSamplerOverrides* AllocSamplerStateOverrides(RenderElement& elem);
+			MaterialSamplerOverrides* AllocSamplerStateOverrides(DrawCommand& elem);
 
 			/** Releases sampler state overrides for the provided render element. */
-			void FreeSamplerStateOverrides(RenderElement& elem);
+			void FreeSamplerStateOverrides(DrawCommand& elem);
 
 			/**
 			 * Checks all sampler overrides in case material sampler states changed, and updates them.

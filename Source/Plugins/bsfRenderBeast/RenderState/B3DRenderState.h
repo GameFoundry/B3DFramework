@@ -12,8 +12,8 @@ namespace b3d::render
 	 *  @{
 	 */
 
-	/** Base class for all renderable objects. */
-	struct RendererObject
+	/** Contains renderer-specific state for main thread objects such as renderables, decals, particle systems, etc. */
+	struct RenderState
 	{
 		/** Handle for releasing the per-object uniform buffer allocation. */
 		UniformBufferPools::AllocationHandle PerObjectBufferAllocationHandle;

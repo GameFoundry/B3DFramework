@@ -37,11 +37,11 @@ namespace b3d
 			float Padding;
 		};
 
-		/**	Renderer information specific to a single light. */
-		class RendererLight
+		/** Renderer-specific state for a light. */
+		class LightRenderState
 		{
 		public:
-			RendererLight(Light* light);
+			LightRenderState(Light* light);
 
 			/** Populates the structure with light parameters. */
 			void GetParameters(LightData& output) const;
@@ -59,7 +59,7 @@ namespace b3d
 			 */
 			Vector3 GetShiftedLightPosition() const;
 
-			Light* Internal;
+			Light* Light;
 		};
 
 		/** Container for all GBuffer textures. */
@@ -196,7 +196,7 @@ namespace b3d
 			u32 GetUnshadowedLightCount(LightType type) const { return mLightCounts[(u32)type] - mShadowedLightCounts[(u32)type]; }
 
 			/** Returns a list of all visible lights of the specified type. */
-			const Vector<const RendererLight*>& GetLights(LightType type) const { return mVisibleLights[(u32)type]; }
+			const Vector<const LightRenderState*>& GetLights(LightType type) const { return mVisibleLights[(u32)type]; }
 
 		private:
 			SPtr<GpuBuffer> mLightBuffer;
@@ -205,7 +205,7 @@ namespace b3d
 			u32 mShadowedLightCounts[(u32)LightType::Count];
 
 			// These are rebuilt every call to update()
-			Vector<const RendererLight*> mVisibleLights[(u32)LightType::Count];
+			Vector<const LightRenderState*> mVisibleLights[(u32)LightType::Count];
 			Vector<LightData> mVisibleLightData;
 		};
 

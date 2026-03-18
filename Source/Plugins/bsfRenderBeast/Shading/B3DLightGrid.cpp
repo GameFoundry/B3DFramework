@@ -4,7 +4,7 @@
 #include "Material/B3DMaterialParameterAdapter.h"
 #include "Renderer/B3DRendererUtility.h"
 #include "B3DRendererView.h"
-#include "B3DRendererLight.h"
+#include "RenderState/B3DLightRenderState.h"
 #include "B3DRendererReflectionProbe.h"
 #include "B3DTiledDeferred.h"
 #include "RenderAPI/B3DGpuCommandBuffer.h"

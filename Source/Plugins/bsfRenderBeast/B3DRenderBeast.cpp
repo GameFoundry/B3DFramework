@@ -37,8 +37,8 @@
 #include "Shading/B3DGpuParticleSimulation.h"
 #include "Resources/B3DBuiltinResources.h"
 #include "RenderState/B3DRenderableRenderState.h"
-#include "B3DRendererDecal.h"
-#include "B3DRendererParticles.h"
+#include "RenderState/B3DDecalRenderState.h"
+#include "RenderState/B3DParticleRenderState.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "Math/B3DMath.h"
 

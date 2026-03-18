@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2025 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DUniformBufferPools.h"
-#include "B3DRendererObject.h"
+#include "RenderState/B3DRenderState.h"
 #include "RenderState/B3DRenderableRenderState.h"
-#include "B3DRendererDecal.h"
-#include "B3DRendererParticles.h"
+#include "RenderState/B3DDecalRenderState.h"
+#include "RenderState/B3DParticleRenderState.h"
 #include "Components/B3DDecal.h"
 #include "RenderAPI/B3DGpuBackend.h"
 #include "RenderAPI/B3DGpuDevice.h"
@@ -229,31 +229,31 @@ void UniformBufferPools::ReleaseParameterSet(PoolGroup& group, const AllocationE
 		group.ParameterSetsByBuffer.erase(iter);
 }
 
-void UniformBufferPools::UpdatePerObjectBuffer(const RendererObject& object, const SPtr<GpuCommandBuffer>& commandBuffer)
+void UniformBufferPools::UpdatePerObjectBuffer(const RenderState& renderState, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
-	if (!object.PerObjectSuballocation.IsValid())
+	if (!renderState.PerObjectSuballocation.IsValid())
 		return;
 
 	GpuBufferMappedScope staging = mPerObjectStagingPool.Allocate().Map();
 
-	gPerObjectUniformDefinition.gMatWorld.Set(staging, object.WorldTransform);
-	gPerObjectUniformDefinition.gMatInvWorld.Set(staging, object.WorldTransform.InverseAffine());
-	gPerObjectUniformDefinition.gMatWorldNoScale.Set(staging, object.WorldNoScale);
-	gPerObjectUniformDefinition.gMatInvWorldNoScale.Set(staging, object.WorldNoScale.InverseAffine());
-	gPerObjectUniformDefinition.gMatPrevWorld.Set(staging, object.PrevWorldTransform);
-	gPerObjectUniformDefinition.gWorldDeterminantSign.Set(staging, object.WorldTransform.Determinant3x3() >= 0.0f ? 1.0f : -1.0f);
-	gPerObjectUniformDefinition.gLayer.Set(staging, (i32)object.Layer);
+	gPerObjectUniformDefinition.gMatWorld.Set(staging, renderState.WorldTransform);
+	gPerObjectUniformDefinition.gMatInvWorld.Set(staging, renderState.WorldTransform.InverseAffine());
+	gPerObjectUniformDefinition.gMatWorldNoScale.Set(staging, renderState.WorldNoScale);
+	gPerObjectUniformDefinition.gMatInvWorldNoScale.Set(staging, renderState.WorldNoScale.InverseAffine());
+	gPerObjectUniformDefinition.gMatPrevWorld.Set(staging, renderState.PrevWorldTransform);
+	gPerObjectUniformDefinition.gWorldDeterminantSign.Set(staging, renderState.WorldTransform.Determinant3x3() >= 0.0f ? 1.0f : -1.0f);
+	gPerObjectUniformDefinition.gLayer.Set(staging, (i32)renderState.Layer);
 
 	staging.Unmap();
 
 	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetOrCreateTransferCommandBuffer();
 
 	const GpuBufferSuballocation& source = staging.GetSuballocation();
-	const GpuBufferSuballocation& destination = object.PerObjectSuballocation;
+	const GpuBufferSuballocation& destination = renderState.PerObjectSuballocation;
 	actualCommandBuffer->CopyBufferToBuffer(source.GetBuffer(), destination.GetBuffer(), source.GetSuballocationOffset(), destination.GetSuballocationOffset(), source.GetSize());
 }
 
-void UniformBufferPools::UpdateDecalParamBuffer(const RendererDecal& decal, const SPtr<GpuCommandBuffer>& commandBuffer)
+void UniformBufferPools::UpdateDecalParamBuffer(const DecalRenderState& decal, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	if (!decal.DecalParamSuballocation.IsValid())
 		return;
@@ -293,7 +293,7 @@ void UniformBufferPools::UpdateDecalParamBuffer(const RendererDecal& decal, cons
 	actualCommandBuffer->CopyBufferToBuffer(source.GetBuffer(), destination.GetBuffer(), source.GetSuballocationOffset(), destination.GetSuballocationOffset(), source.GetSize());
 }
 
-void UniformBufferPools::UpdateGpuParticlesParamBuffer(const RendererParticles& particles, const SPtr<GpuCommandBuffer>& commandBuffer)
+void UniformBufferPools::UpdateGpuParticlesParamBuffer(const ParticleRenderState& particles, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	if (!particles.GpuParticlesParamSuballocation.IsValid())
 		return;

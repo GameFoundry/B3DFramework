@@ -33,17 +33,17 @@ namespace b3d { namespace render {
 UnorderedMap<StringID, RenderCompositor::NodeDescriptor*> RenderCompositor::mNodeDescriptors;
 
 /** Prepares a render pass by registering all required parameter sets from the render queue elements. */
-void PrepareRenderQueuePass(RenderPassCreateInformation& passInfo, const Vector<RenderQueueElement>& elements)
+void PrepareRenderQueuePass(RenderPassCreateInformation& passInfo, const Vector<RenderQueueEntry>& entries)
 {
 	TInlineArray<SPtr<GpuParameterSet>, 4> perObjectParameterSets;
 
-	for(const auto& element : elements)
+	for(const auto& entry : entries)
 	{
-		SPtr<GpuParameterSet> parameterSet0 = element.RenderElem->ParameterAdapter->GetGpuParameterSet(element.PassIndex);
+		SPtr<GpuParameterSet> parameterSet0 = entry.DrawCommand->ParameterAdapter->GetGpuParameterSet(entry.PassIndex);
 		if(parameterSet0 != nullptr)
 			passInfo.Parameters.Add(parameterSet0);
 
-		const SPtr<GpuParameterSet>& parameterSet1 = element.RenderElem->SharedPerObjectParameterSet;
+		const SPtr<GpuParameterSet>& parameterSet1 = entry.DrawCommand->SharedPerObjectParameterSet;
 		auto found = std::find(perObjectParameterSets.begin(), perObjectParameterSets.end(), parameterSet1);
 		if(found == perObjectParameterSets.end())
 		{
@@ -54,7 +54,7 @@ void PrepareRenderQueuePass(RenderPassCreateInformation& passInfo, const Vector<
 }
 
 /** Renders all elements in a render queue. */
-void RenderQueueElements(GpuCommandBuffer& commandBuffer, const Vector<RenderQueueElement>& elements)
+void RenderQueueEntries(GpuCommandBuffer& commandBuffer, const Vector<RenderQueueEntry>& entries)
 {
 	// TODO: Consider sorting elements by SharedPerObjectParameterSet to minimize parameter set rebinds.
 	// Currently respecting existing RenderQueue sorting rules (material, distance, etc.).
@@ -62,27 +62,27 @@ void RenderQueueElements(GpuCommandBuffer& commandBuffer, const Vector<RenderQue
 	const u32 perObjectDynamicOffsetIndex = GetRenderBeast()->GetRenderableParameterSetInfo().PerObjectDynamicOffsetIndex;
 	SPtr<GpuParameterSet> lastBoundPerObjectSet;
 
-	for(auto& entry : elements)
+	for(auto& entry : entries)
 	{
 		if(entry.ApplyPass)
-			GetRendererUtility().SetPass(commandBuffer, entry.RenderElem->Material, entry.PassIndex, entry.VariationIndex);
+			GetRendererUtility().SetPass(commandBuffer, entry.DrawCommand->Material, entry.PassIndex, entry.VariationIndex);
 
 		// Bind shared per-object parameter set if changed (using SetGpuParameterSet directly, not SetPassParams)
-		if(entry.RenderElem->SharedPerObjectParameterSet != lastBoundPerObjectSet)
+		if(entry.DrawCommand->SharedPerObjectParameterSet != lastBoundPerObjectSet)
 		{
-			if(entry.RenderElem->SharedPerObjectParameterSet)
+			if(entry.DrawCommand->SharedPerObjectParameterSet)
 			{
-				commandBuffer.SetGpuParameterSet(entry.RenderElem->SharedPerObjectParameterSet);
-				lastBoundPerObjectSet = entry.RenderElem->SharedPerObjectParameterSet;
+				commandBuffer.SetGpuParameterSet(entry.DrawCommand->SharedPerObjectParameterSet);
+				lastBoundPerObjectSet = entry.DrawCommand->SharedPerObjectParameterSet;
 			}
 		}
 
 		// Set the dynamic buffer offset for this element's per-object data
-		commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObject, perObjectDynamicOffsetIndex, entry.RenderElem->PerObjectBufferOffset);
+		commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObject, perObjectDynamicOffsetIndex, entry.DrawCommand->PerObjectBufferOffset);
 
-		GetRendererUtility().SetPassParams(commandBuffer, entry.RenderElem->ParameterAdapter, entry.PassIndex);
+		GetRendererUtility().SetPassParams(commandBuffer, entry.DrawCommand->ParameterAdapter, entry.PassIndex);
 
-		entry.RenderElem->Draw(commandBuffer);
+		entry.DrawCommand->Draw(commandBuffer);
 	}
 }
 
@@ -410,10 +410,10 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		if(!visibility.Renderables[i])
 			continue;
 
-		for(auto& element : inputs.Scene.GetRenderable(i)->Elements)
+		for(auto& drawCommand : inputs.Scene.GetRenderable(i)->DrawCommands)
 		{
-			element.PerFrameUniformBufferParameter.Set(*inputs.Scene.PerFrameSuballocation);
-			element.PerCameraUniformBufferParameter.Set(inputs.View.GetPerViewBuffer());
+			drawCommand.PerFrameUniformBufferParameter.Set(*inputs.Scene.PerFrameSuballocation);
+			drawCommand.PerCameraUniformBufferParameter.Set(inputs.View.GetPerViewBuffer());
 		}
 	}
 
@@ -430,27 +430,27 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 			if(!visibility.ParticleSystems[i])
 				continue;
 
-			const RendererParticles& rendererParticles = inputs.Scene.ParticleSystems[i];
-			ParticlesRenderElement& renderElement = rendererParticles.RenderElement;
+			const ParticleRenderState& renderState = inputs.Scene.ParticleSystems[i];
+			ParticlesDrawCommand& drawCommand = renderState.DrawCommand;
 
-			if(!renderElement.IsValid())
+			if(!drawCommand.IsValid())
 				continue;
 
-			ParticleSystem* particleSystem = rendererParticles.ParticleSystem;
+			ParticleSystem* particleSystem = renderState.ParticleSystem;
 
 			// Bind textures/buffers from CPU simulation
 			const auto iterFind = particleData->CpuData.find(particleSystem->GetId());
 			if(iterFind != particleData->CpuData.end())
 			{
 				ParticleRenderData* renderData = iterFind->second;
-				rendererParticles.BindCpuSimulatedInputs(renderData, inputs.View);
+				renderState.BindCpuSimulatedInputs(renderData, inputs.View);
 			}
 			// Bind textures/buffers from GPU simulation
-			else if(rendererParticles.GpuParticleSystem)
+			else if(renderState.GpuParticleSystem)
 			{
-				rendererParticles.BindGpuSimulatedInputs(gpuSimResources, inputs.View);
+				renderState.BindGpuSimulatedInputs(gpuSimResources, inputs.View);
 
-				if(rendererParticles.GpuParticleSystem->HasSortInfo())
+				if(renderState.GpuParticleSystem->HasSortInfo())
 					isGpuSortingUsed = true;
 			}
 		}
@@ -463,13 +463,13 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		if(!visibility.Decals[i])
 			continue;
 
-		const RendererDecal& rendererDecal = inputs.Scene.Decals[i];
-		DecalRenderElement& renderElement = rendererDecal.RenderElement;
+		const DecalRenderState& renderState = inputs.Scene.Decals[i];
+		DecalDrawCommand& drawCommand = renderState.DrawCommand;
 
-		renderElement.PerFrameUniformBufferParameter.Set(*inputs.Scene.PerFrameSuballocation);
-		renderElement.PerCameraUniformBufferParameter.Set(inputs.View.GetPerViewBuffer());
-		renderElement.DepthInputTexture.Set(sceneDepthTex->Texture);
-		renderElement.MaskInputTexture.Set(IdTex->Texture);
+		drawCommand.PerFrameUniformBufferParameter.Set(*inputs.Scene.PerFrameSuballocation);
+		drawCommand.PerCameraUniformBufferParameter.Set(inputs.View.GetPerViewBuffer());
+		drawCommand.DepthInputTexture.Set(sceneDepthTex->Texture);
+		drawCommand.MaskInputTexture.Set(IdTex->Texture);
 	}
 
 	Camera* sceneCamera = inputs.View.GetSceneCamera();
@@ -516,14 +516,14 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	}
 
 	// Collect all GpuParameters that will be used in the base pass
-	const Vector<RenderQueueElement>& opaqueElements = inputs.View.GetOpaqueQueue(false)->GetSortedElements();
+	const Vector<RenderQueueEntry>& opaqueEntries = inputs.View.GetOpaqueQueue(false)->GetSortedEntries();
 	RenderPassCreateInformation basePassInfo(RenderTarget, RT_NONE, RT_ALL);
-	PrepareRenderQueuePass(basePassInfo, opaqueElements);
+	PrepareRenderQueuePass(basePassInfo, opaqueEntries);
 
 	commandBuffer.BeginRenderPass(basePassInfo);
 
 	// Render all visible opaque elements that use the deferred pipeline
-	RenderQueueElements(commandBuffer, opaqueElements);
+	RenderQueueEntries(commandBuffer, opaqueEntries);
 
 	commandBuffer.EndRenderPass();
 
@@ -556,13 +556,13 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	}
 
 	// Render decals after all normal objects, using a read-only depth buffer
-	const Vector<RenderQueueElement>& decalElements = inputs.View.GetDecalQueue()->GetSortedElements();
+	const Vector<RenderQueueEntry>& decalEntries = inputs.View.GetDecalQueue()->GetSortedEntries();
 	RenderPassCreateInformation decalPassInfo(RenderTargetNoMask, RT_DEPTH, RT_ALL);
-	PrepareRenderQueuePass(decalPassInfo, decalElements);
+	PrepareRenderQueuePass(decalPassInfo, decalEntries);
 
 	commandBuffer.BeginRenderPass(decalPassInfo);
 
-	RenderQueueElements(commandBuffer, decalElements);
+	RenderQueueEntries(commandBuffer, decalEntries);
 
 	// Trigger post-base-pass callbacks
 	if(sceneCamera != nullptr)
@@ -762,7 +762,7 @@ void RCNodeParticleSort::Render(const RenderCompositorNodeInputs& inputs)
 
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 	const VisibilityInfo& visibility = inputs.View.GetVisibilityMasks();
-	const auto numParticleSystems = (u32)inputs.Scene.ParticleSystems.size();
+	const auto particleSystemCount = (u32)inputs.Scene.ParticleSystems.size();
 
 	// Sort particles
 	B3DMarkAllocatorFrame();
@@ -774,14 +774,14 @@ void RCNodeParticleSort::Render(const RenderCompositorNodeInputs& inputs)
 		};
 
 		FrameVector<SortData> systemsToSort;
-		for(u32 i = 0; i < numParticleSystems; i++)
+		for(u32 particleSystemIndex = 0; particleSystemIndex < particleSystemCount; particleSystemIndex++)
 		{
-			if(!visibility.ParticleSystems[i])
+			if(!visibility.ParticleSystems[particleSystemIndex])
 				continue;
 
-			const RendererParticles& rendererParticles = inputs.Scene.ParticleSystems[i];
+			const ParticleRenderState& renderState = inputs.Scene.ParticleSystems[particleSystemIndex];
 
-			ParticleSystem* particleSystem = rendererParticles.ParticleSystem;
+			ParticleSystem* particleSystem = renderState.ParticleSystem;
 			const auto iterFind = particleData->CpuData.find(particleSystem->GetId());
 			if(iterFind == particleData->CpuData.end())
 				continue;
@@ -1011,7 +1011,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 		ProfileGPUBlock sampleBlock(commandBuffer, "Standard deferred unshadowed lights");
 
 		// Collect all unshadowed lights
-		Vector<const RendererLight*> unshadowedLights;
+		Vector<const LightRenderState*> unshadowedLightRenderStates;
 		for(u32 i = 0; i < (u32)LightType::Count; i++)
 		{
 			LightType lightType = (LightType)i;
@@ -1019,11 +1019,11 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 			u32 count = lightData.GetUnshadowedLightCount(lightType);
 
 			for(u32 j = 0; j < count; j++)
-				unshadowedLights.push_back(lights[j]);
+				unshadowedLightRenderStates.push_back(lights[j]);
 		}
 
 		// Prepare batch (groups lights and creates instanced uniform buffers)
-		StandardDeferred::LightBatches baches = StandardDeferred::Instance().PrepareLightBatches(unshadowedLights, inputs.View, gbuffer, Texture::kBlack);
+		StandardDeferred::LightBatches baches = StandardDeferred::Instance().PrepareLightBatches(unshadowedLightRenderStates, inputs.View, gbuffer, Texture::kBlack);
 
 		// Begin render pass with pre-declared parameters
 		RenderPassCreateInformation passInfo(Output->RenderTarget, RT_DEPTH_STENCIL, RT_DEPTH_STENCIL);
@@ -1083,10 +1083,10 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 			for(u32 shadowedLightIndex = 0; shadowedLightIndex < lightCount; shadowedLightIndex++)
 			{
 				u32 rendererLightId = offset + shadowedLightIndex;
-				const RendererLight& light = *lights[rendererLightId];
+				const LightRenderState& lightRenderState = *lights[rendererLightId];
 
 				ShadowRendering::ProjectedShadowRenderingBatchInformation shadowProjectionRenderingBatch =
-					shadowRenderer.PrepareParametersForRenderShadowProjection(commandBuffer.GetGpuDevice(), inputs.View, light, gbuffer);
+					shadowRenderer.PrepareParametersForRenderShadowProjection(commandBuffer.GetGpuDevice(), inputs.View, lightRenderState, gbuffer);
 
 				RenderPassCreateInformation shadowProjectionPassInfo(mLightOcclusionRT, RT_DEPTH, RT_DEPTH_STENCIL);
 				for(const auto& shadowProjectionRenderingInfo : shadowProjectionRenderingBatch.Shadows)
@@ -1105,10 +1105,10 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 				Area2 area(0.0f, 0.0f, 1.0f, 1.0f);
 				commandBuffer.SetViewport(area);
 
-				shadowRenderer.RenderShadowProjectionBatch(commandBuffer, inputs.View, light, shadowProjectionRenderingBatch);
+				shadowRenderer.RenderShadowProjectionBatch(commandBuffer, inputs.View, lightRenderState, shadowProjectionRenderingBatch);
 				commandBuffer.EndRenderPass();
 
-				StandardDeferred::LightBatches batches = StandardDeferred::Instance().PrepareLightBatches({ &light }, inputs.View, gbuffer, lightOcclusionTex->Texture);
+				StandardDeferred::LightBatches batches = StandardDeferred::Instance().PrepareLightBatches({ &lightRenderState }, inputs.View, gbuffer, lightOcclusionTex->Texture);
 
 				RenderPassCreateInformation lightingPassInfo(Output->RenderTarget, RT_DEPTH_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
 				for(const auto& [key, value] : batches.Batches)
@@ -1588,9 +1588,9 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		if(!visibility.Renderables[renderableIndex])
 			continue;
 
-		for(auto& element : sceneInfo.GetRenderable(renderableIndex)->Elements)
+		for(auto& drawCommand : sceneInfo.GetRenderable(renderableIndex)->DrawCommands)
 		{
-			ShaderFlags shaderFlags = element.Material->GetShader()->GetFlags();
+			ShaderFlags shaderFlags = drawCommand.Material->GetShader()->GetFlags();
 
 			const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
 			if(!useForwardRendering)
@@ -1599,15 +1599,15 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 			// Note: It would be nice to be able to set this once and keep it, only updating if the buffers actually
 			// change (e.g. when growing).
 			if(supportsClusteredForward)
-				fnBindClusteredForwardParameters(*element.ParameterAdapter, element.ForwardLightingParams, element.ImageBasedParams);
+				fnBindClusteredForwardParameters(*drawCommand.ParameterAdapter, drawCommand.ForwardLightingParams, drawCommand.ImageBasedParams);
 			else
 			{
 				// Populate light & probe buffers
 				const Bounds& bounds = sceneInfo.GetRenderableCullInfo(renderableIndex).Bounds;
-				fnBindStandardDeferredParameters(*element.ParameterAdapter, bounds, element.ForwardLightingParams, element.ImageBasedParams);
+				fnBindStandardDeferredParameters(*drawCommand.ParameterAdapter, bounds, drawCommand.ForwardLightingParams, drawCommand.ImageBasedParams);
 			}
 
-			fnBindCommonIBLParameters(*element.ParameterAdapter, element.ImageBasedParams);
+			fnBindCommonIBLParameters(*drawCommand.ParameterAdapter, drawCommand.ImageBasedParams);
 		}
 	}
 
@@ -1622,33 +1622,33 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 			if(!visibility.ParticleSystems[i])
 				continue;
 
-			const RendererParticles& rendererParticles = inputs.Scene.ParticleSystems[i];
-			ParticlesRenderElement& renderElement = rendererParticles.RenderElement;
+			const ParticleRenderState& particleRenderState = inputs.Scene.ParticleSystems[i];
+			ParticlesDrawCommand& drawCommand = particleRenderState.DrawCommand;
 
-			ShaderFlags shaderFlags = renderElement.Material->GetShader()->GetFlags();
+			ShaderFlags shaderFlags = drawCommand.Material->GetShader()->GetFlags();
 
 			if(shaderFlags.IsSet(ShaderFlag::Transparent))
-				renderElement.DepthInputTexture.Set(resolvedSceneDepthNode->Output->Texture);
+				drawCommand.DepthInputTexture.Set(resolvedSceneDepthNode->Output->Texture);
 
 			const bool requiresForwardLighting = shaderFlags.IsSet(ShaderFlag::Forward);
 			if(!requiresForwardLighting)
 				continue;
 
-			if(!renderElement.IsValid())
+			if(!drawCommand.IsValid())
 				continue;
 
 			// Note: It would be nice to be able to set this once and keep it, only updating if the buffers actually
 			// change (e.g. when growing).
 			if(supportsClusteredForward)
-				fnBindClusteredForwardParameters(*renderElement.ParameterAdapter, renderElement.ForwardLightingParams, renderElement.ImageBasedParams);
+				fnBindClusteredForwardParameters(*drawCommand.ParameterAdapter, drawCommand.ForwardLightingParams, drawCommand.ImageBasedParams);
 			else
 			{
 				// Populate light & probe buffers
 				const Bounds& bounds = sceneInfo.ParticleSystemCullInfos[i].Bounds;
-				fnBindStandardDeferredParameters(*renderElement.ParameterAdapter, bounds, renderElement.ForwardLightingParams, renderElement.ImageBasedParams);
+				fnBindStandardDeferredParameters(*drawCommand.ParameterAdapter, bounds, drawCommand.ForwardLightingParams, drawCommand.ImageBasedParams);
 			}
 
-			fnBindCommonIBLParameters(*renderElement.ParameterAdapter, renderElement.ImageBasedParams);
+			fnBindCommonIBLParameters(*drawCommand.ParameterAdapter, drawCommand.ImageBasedParams);
 		}
 	}
 
@@ -1663,21 +1663,21 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	RenderQueue* transparentQueue = inputs.View.GetTransparentQueue().get();
 
 	// Collect all GpuParameters that will be used in the opaque pass
-	const Vector<RenderQueueElement>& opaqueElements = opaqueQueue->GetSortedElements();
+	const Vector<RenderQueueEntry>& opaqueElements = opaqueQueue->GetSortedEntries();
 	RenderPassCreateInformation opaquePassInfo(renderTarget, RT_NONE, RT_ALL);
 	PrepareRenderQueuePass(opaquePassInfo, opaqueElements);
 
 	commandBuffer.BeginRenderPass(opaquePassInfo);
-	RenderQueueElements(commandBuffer, opaqueElements);
+	RenderQueueEntries(commandBuffer, opaqueElements);
 	commandBuffer.EndRenderPass();
 
 	// Collect all GpuParameters that will be used in the transparent pass
-	const Vector<RenderQueueElement>& transparentElements = transparentQueue->GetSortedElements();
+	const Vector<RenderQueueEntry>& transparentElements = transparentQueue->GetSortedEntries();
 	RenderPassCreateInformation transparentPassInfo(renderTarget, RT_DEPTH, RT_ALL);
 	PrepareRenderQueuePass(transparentPassInfo, transparentElements);
 
 	commandBuffer.BeginRenderPass(transparentPassInfo);
-	RenderQueueElements(commandBuffer, transparentElements);
+	RenderQueueEntries(commandBuffer, transparentElements);
 	commandBuffer.EndRenderPass();
 
 	// Note: Perhaps delay clearing this one frame, so previous frame textures have a better chance of being done

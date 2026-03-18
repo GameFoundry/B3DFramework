@@ -8,9 +8,9 @@
 
 namespace b3d::render
 {
-	struct RendererObject;
-	struct RendererDecal;
-	struct RendererParticles;
+	struct RenderState;
+	struct DecalRenderState;
+	struct ParticleRenderState;
 
 	/** @addtogroup RenderBeast
 	 *  @{
@@ -122,28 +122,28 @@ namespace b3d::render
 		void Release(AllocationHandle handle);
 
 		/**
-		 * Updates per-object buffer using transform data stored in a renderer object.
+		 * Updates per-object buffer using transform data stored in the render state.
 		 *
-		 * @param object		Renderer object whose per-object buffer should be updated.
+		 * @param renderState	Render state whose per-object buffer should be updated.
 		 * @param commandBuffer	Command buffer to queue the copy on. If null, uses the transfer command buffer.
 		 */
-		void UpdatePerObjectBuffer(const RendererObject& object, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
+		void UpdatePerObjectBuffer(const RenderState& renderState, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
 
 		/**
-		 * Updates decal parameter buffer using data from a renderer decal.
+		 * Updates decal parameter buffer using data from a decal render state.
 		 *
-		 * @param decal			Renderer decal whose decal param buffer should be updated.
+		 * @param decal			Decal render state whose decal param buffer should be updated.
 		 * @param commandBuffer	Command buffer to queue the copy on. If null, uses the transfer command buffer.
 		 */
-		void UpdateDecalParamBuffer(const RendererDecal& decal, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
+		void UpdateDecalParamBuffer(const DecalRenderState& decal, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
 
 		/**
-		 * Updates GPU particle parameter buffer using data from renderer particles.
+		 * Updates GPU particle parameter buffer using data from particles render state.
 		 *
-		 * @param particles		Renderer particles whose GPU particle param buffer should be updated.
+		 * @param particles		Particle render state whose GPU particle param buffer should be updated.
 		 * @param commandBuffer	Command buffer to queue the copy on. If null, uses the transfer command buffer.
 		 */
-		void UpdateGpuParticlesParamBuffer(const RendererParticles& particles, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
+		void UpdateGpuParticlesParamBuffer(const ParticleRenderState& particles, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
 
 		/**
 		 * Advances the staging pool frame counters. Call at end of each render frame.

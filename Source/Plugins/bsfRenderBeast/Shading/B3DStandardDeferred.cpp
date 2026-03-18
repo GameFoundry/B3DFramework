@@ -215,7 +215,7 @@ DeferredIBLFinalizeMaterial* DeferredIBLFinalizeMaterial::GetVariation(bool msaa
 	}
 }
 
-StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArrayView<const RendererLight*>& lights, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion)
+StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArrayView<const LightRenderState*>& lights, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion)
 {
 	LightBatches batches;
 
@@ -223,9 +223,9 @@ StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArra
 	const bool isMSAA = viewProperties.Target.NumSamples > 1;
 
 	// Group lights by material variation
-	for(const RendererLight* light : lights)
+	for(const LightRenderState* lightRenderState : lights)
 	{
-		const LightType lightType = light->Internal->GetType();
+		const LightType lightType = lightRenderState->Light->GetType();
 
 		// Determine material variation
 		LightMaterialVariationKey key;
@@ -237,8 +237,8 @@ StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArra
 		// For point/spot lights, determine if viewer is inside
 		if(lightType != LightType::Directional)
 		{
-			float distSqrd = (light->Internal->GetBounds().Center - viewProperties.ViewOrigin).SquaredLength();
-			float boundRadius = light->Internal->GetBounds().Radius + viewProperties.NearPlane * 3.0f;
+			float distSqrd = (lightRenderState->Light->GetBounds().Center - viewProperties.ViewOrigin).SquaredLength();
+			float boundRadius = lightRenderState->Light->GetBounds().Radius + viewProperties.NearPlane * 3.0f;
 			key.IsInside = distSqrd < (boundRadius * boundRadius);
 		}
 
@@ -246,7 +246,7 @@ StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArra
 		LightBatch& batch = batches.Batches[key];
 
 		BatchedLightInstance instance;
-		instance.Light = light;
+		instance.Light = lightRenderState;
 		instance.UniformBufferOffset = 0; // Will be set later
 
 		batch.Lights.Add(instance);

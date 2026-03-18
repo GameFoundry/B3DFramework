@@ -3,12 +3,12 @@
 #pragma once
 
 #include "B3DRenderBeastPrerequisites.h"
-#include "Renderer/B3DRenderElement.h"
+#include "Renderer/B3DDrawCommand.h"
 #include "Renderer/B3DGpuUniformBuffer.h"
 #include "Material/B3DMaterialParam.h"
 #include "RenderAPI/B3DGpuPipelineParameterLayout.h"
 #include "Renderer/B3DRendererMaterial.h"
-#include "B3DRendererObject.h"
+#include "B3DRenderState.h"
 
 namespace b3d
 {
@@ -33,7 +33,7 @@ namespace b3d
 		struct MaterialSamplerOverrides;
 
 		/** Default material used for rendering decals, when no other is available. */
-		class DefaultDecalMat : public RendererMaterial<DefaultDecalMat>
+		class DefaultDecalMaterial : public RendererMaterial<DefaultDecalMaterial>
 		{
 			RMAT_DEF("Decal.bsl");
 		};
@@ -64,8 +64,8 @@ namespace b3d
 			return variation;
 		}
 
-		/** Contains information required for rendering a single Decal. */
-		class DecalRenderElement : public RenderElement
+		/** Contains information required for drawing a decal. */
+		class DecalDrawCommand : public DrawCommand
 		{
 		public:
 			/**
@@ -97,17 +97,17 @@ namespace b3d
 			void Draw(GpuCommandBuffer& commandBuffer) const override;
 		};
 
-		/** Contains information about a Decal, used by the Renderer. */
-		struct RendererDecal : RendererObject
+		/** Renderer-specific state for a decal. */
+		struct DecalRenderState : RenderState
 		{
 			/** Updates the per-object data from the current Decal state. */
 			void UpdatePerObjectData();
 
 			Decal* Decal;
-			mutable DecalRenderElement RenderElement;
+			mutable DecalDrawCommand DrawCommand;
 
 			/** Suballocation for decal-specific uniform buffer data. */
-		GpuBufferSuballocation DecalParamSuballocation;
+			GpuBufferSuballocation DecalParamSuballocation;
 		};
 
 		/** @} */

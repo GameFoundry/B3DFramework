@@ -7,10 +7,10 @@
 #include "Material/B3DMaterial.h"
 #include "Material/B3DShader.h"
 #include "Material/B3DMaterialParameterAdapter.h"
-#include "B3DRendererLight.h"
+#include "RenderState/B3DLightRenderState.h"
 #include "B3DRenderBeastScene.h"
 #include "B3DRenderBeast.h"
-#include "B3DRendererDecal.h"
+#include "RenderState/B3DDecalRenderState.h"
 #include "Animation/B3DAnimationScene.h"
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "RenderAPI/B3DRenderTarget.h"
@@ -418,7 +418,7 @@ void RendererView::DetermineVisible(const Vector<RenderableRenderState*>& render
 	}
 }
 
-void RendererView::DetermineVisible(const Vector<RendererParticles>& particleSystems, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility)
+void RendererView::DetermineVisible(const Vector<ParticleRenderState>& particleSystems, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility)
 {
 	mVisibility.ParticleSystems.clear();
 	mVisibility.ParticleSystems.resize(particleSystems.size(), false);
@@ -439,7 +439,7 @@ void RendererView::DetermineVisible(const Vector<RendererParticles>& particleSys
 	}
 }
 
-void RendererView::DetermineVisible(const Vector<RendererDecal>& decals, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility)
+void RendererView::DetermineVisible(const Vector<DecalRenderState>& decals, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility)
 {
 	mVisibility.Decals.clear();
 	mVisibility.Decals.resize(decals.size(), false);
@@ -460,7 +460,7 @@ void RendererView::DetermineVisible(const Vector<RendererDecal>& decals, const V
 	}
 }
 
-void RendererView::DetermineVisible(const Vector<RendererLight>& lights, const Vector<Sphere>& bounds, LightType lightType, Vector<bool>* visibility)
+void RendererView::DetermineVisible(const Vector<LightRenderState>& lights, const Vector<Sphere>& bounds, LightType lightType, Vector<bool>* visibility)
 {
 	// Special case for directional lights, they're always visible
 	if(lightType == LightType::Directional)
@@ -562,12 +562,12 @@ void RendererView::CalculateVisibility(const Vector<AABox>& bounds, Vector<bool>
 	}
 }
 
-void RendererView::QueueRenderElements(const SceneInfo& sceneInfo)
+void RendererView::QueueDrawCommands(const SceneInfo& sceneInfo)
 {
-	B3D_ENSURE(mDeferredOpaqueQueue->GetSortedElements().empty());
-	B3D_ENSURE(mForwardOpaqueQueue->GetSortedElements().empty());
-	B3D_ENSURE(mDecalQueue->GetSortedElements().empty());
-	B3D_ENSURE(mTransparentQueue->GetSortedElements().empty());
+	B3D_ENSURE(mDeferredOpaqueQueue->GetSortedEntries().empty());
+	B3D_ENSURE(mForwardOpaqueQueue->GetSortedEntries().empty());
+	B3D_ENSURE(mDecalQueue->GetSortedEntries().empty());
+	B3D_ENSURE(mTransparentQueue->GetSortedEntries().empty());
 	
 	// Queue renderables
 	for(u32 i = 0; i < sceneInfo.GetRenderableCount(); i++)
@@ -579,27 +579,27 @@ void RendererView::QueueRenderElements(const SceneInfo& sceneInfo)
 		const float distanceToCamera = (mProperties.ViewOrigin - boundingBox.GetCenter()).Length();
 
 		bool needsVelocity = RequiresVelocityWrites();
-		for(auto& renderElem : sceneInfo.GetRenderable(i)->Elements)
+		for(auto& drawCommand : sceneInfo.GetRenderable(i)->DrawCommands)
 		{
 			u32 variationIndex;
 			if(needsVelocity)
 			{
-				variationIndex = renderElem.WriteVelocityVariationIndex != (u32)-1
-					? renderElem.WriteVelocityVariationIndex
-					: renderElem.DefaultVariationIndex;
+				variationIndex = drawCommand.WriteVelocityVariationIndex != (u32)-1
+					? drawCommand.WriteVelocityVariationIndex
+					: drawCommand.DefaultVariationIndex;
 			}
 			else
-				variationIndex = renderElem.DefaultVariationIndex;
+				variationIndex = drawCommand.DefaultVariationIndex;
 
-			ShaderFlags shaderFlags = renderElem.Material->GetShader()->GetFlags();
+			ShaderFlags shaderFlags = drawCommand.Material->GetShader()->GetFlags();
 
 			// Note: I could keep renderables in multiple separate arrays, so I don't need to do the check here
 			if(shaderFlags.IsSet(ShaderFlag::Transparent))
-				mTransparentQueue->Add(&renderElem, distanceToCamera, variationIndex);
+				mTransparentQueue->Add(&drawCommand, distanceToCamera, variationIndex);
 			else if(shaderFlags.IsSet(ShaderFlag::Forward))
-				mForwardOpaqueQueue->Add(&renderElem, distanceToCamera, variationIndex);
+				mForwardOpaqueQueue->Add(&drawCommand, distanceToCamera, variationIndex);
 			else
-				mDeferredOpaqueQueue->Add(&renderElem, distanceToCamera, variationIndex);
+				mDeferredOpaqueQueue->Add(&drawCommand, distanceToCamera, variationIndex);
 		}
 	}
 
@@ -609,21 +609,21 @@ void RendererView::QueueRenderElements(const SceneInfo& sceneInfo)
 		if(!mVisibility.ParticleSystems[i])
 			continue;
 
-		const ParticlesRenderElement& renderElem = sceneInfo.ParticleSystems[i].RenderElement;
-		if(!renderElem.IsValid())
+		const ParticlesDrawCommand& drawCommand = sceneInfo.ParticleSystems[i].DrawCommand;
+		if(!drawCommand.IsValid())
 			continue;
 
 		const AABox& boundingBox = sceneInfo.ParticleSystemCullInfos[i].Bounds.GetBox();
 		const float distanceToCamera = (mProperties.ViewOrigin - boundingBox.GetCenter()).Length();
 
-		ShaderFlags shaderFlags = renderElem.Material->GetShader()->GetFlags();
+		ShaderFlags shaderFlags = drawCommand.Material->GetShader()->GetFlags();
 
 		if(shaderFlags.IsSet(ShaderFlag::Transparent))
-			mTransparentQueue->Add(&renderElem, distanceToCamera, renderElem.DefaultVariationIndex);
+			mTransparentQueue->Add(&drawCommand, distanceToCamera, drawCommand.DefaultVariationIndex);
 		else if(shaderFlags.IsSet(ShaderFlag::Forward))
-			mForwardOpaqueQueue->Add(&renderElem, distanceToCamera, renderElem.DefaultVariationIndex);
+			mForwardOpaqueQueue->Add(&drawCommand, distanceToCamera, drawCommand.DefaultVariationIndex);
 		else
-			mDeferredOpaqueQueue->Add(&renderElem, distanceToCamera, renderElem.DefaultVariationIndex);
+			mDeferredOpaqueQueue->Add(&drawCommand, distanceToCamera, drawCommand.DefaultVariationIndex);
 	}
 
 	// Queue decals
@@ -633,10 +633,10 @@ void RendererView::QueueRenderElements(const SceneInfo& sceneInfo)
 		if(!mVisibility.Decals[i])
 			continue;
 
-		const DecalRenderElement& renderElem = sceneInfo.Decals[i].RenderElement;
+		const DecalDrawCommand& drawCommand = sceneInfo.Decals[i].DrawCommand;
 
 		// Note: I could keep renderables in multiple separate arrays, so I don't need to do the check here
-		ShaderFlags shaderFlags = renderElem.Material->GetShader()->GetFlags();
+		ShaderFlags shaderFlags = drawCommand.Material->GetShader()->GetFlags();
 
 		// Decals are only supported using deferred rendering
 		if(shaderFlags.IsSetAny(ShaderFlag::Transparent | ShaderFlag::Forward))
@@ -651,14 +651,14 @@ void RendererView::QueueRenderElements(const SceneInfo& sceneInfo)
 		// the decal bounds. We need to be conservative since the material for rendering outside will not properly
 		// render the inside of the decal volume.
 		const bool isInside = boundingBox.Contains(mProperties.ViewOrigin, mProperties.NearPlane * 3.0f);
-		const u32* variationIndices = renderElem.VariationIndices[(i32)isInside];
+		const u32* variationIndices = drawCommand.VariationIndices[(i32)isInside];
 
 		// No MSAA evaluation, or same value for all samples (no divergence between samples)
-		mDecalQueue->Add(&renderElem, distanceToCamera, variationIndices[(i32)(isMSAA ? MSAAMode::Single : MSAAMode::None)]);
+		mDecalQueue->Add(&drawCommand, distanceToCamera, variationIndices[(i32)(isMSAA ? MSAAMode::Single : MSAAMode::None)]);
 
 		// Evaluates all MSAA samples for pixels that are marked as divergent
 		if(isMSAA)
-			mDecalQueue->Add(&renderElem, distanceToCamera, variationIndices[(i32)MSAAMode::Full]);
+			mDecalQueue->Add(&drawCommand, distanceToCamera, variationIndices[(i32)MSAAMode::Full]);
 	}
 
 	mForwardOpaqueQueue->Sort();
@@ -910,13 +910,13 @@ void RendererViewGroup::SetViews(RendererView** views, u32 numViews)
 
 void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, const SceneInfo& sceneInfo)
 {
-	const auto numViews = (u32)mViews.size();
+	const auto viewCount = (u32)mViews.size();
 
 	// Early exit if no views render scene geometry
 	bool anyViewsNeed3DDrawing = false;
-	for(u32 i = 0; i < numViews; i++)
+	for(u32 viewIndex = 0; viewIndex < viewCount; viewIndex++)
 	{
-		if(mViews[i]->ShouldDraw3D())
+		if(mViews[viewIndex]->ShouldDraw3D())
 		{
 			anyViewsNeed3DDrawing = true;
 			break;
@@ -936,7 +936,7 @@ void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, con
 	mVisibility.Decals.resize(sceneInfo.Decals.size(), false);
 	mVisibility.Decals.assign(sceneInfo.Decals.size(), false);
 
-	for(u32 i = 0; i < numViews; i++)
+	for(u32 i = 0; i < viewCount; i++)
 	{
 		mViews[i]->DetermineVisible(*sceneInfo.Renderables, *sceneInfo.RenderableCullInfos, &mVisibility.Renderables);
 		mViews[i]->DetermineVisible(sceneInfo.ParticleSystems, sceneInfo.ParticleSystemCullInfos, &mVisibility.ParticleSystems);
@@ -944,46 +944,46 @@ void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, con
 	}
 
 	// Generate render queues per camera
-	for(u32 i = 0; i < numViews; i++)
+	for(u32 i = 0; i < viewCount; i++)
 	{
 		if(mViews[i]->ShouldDraw3D())
-			mViews[i]->QueueRenderElements(sceneInfo);
+			mViews[i]->QueueDrawCommands(sceneInfo);
 	}
 
 	// Calculate light visibility for all views
-	const auto numRadialLights = (u32)sceneInfo.RadialLights.size();
-	mVisibility.RadialLights.resize(numRadialLights, false);
-	mVisibility.RadialLights.assign(numRadialLights, false);
+	const auto radialLightCount = (u32)sceneInfo.RadialLights.size();
+	mVisibility.RadialLights.resize(radialLightCount, false);
+	mVisibility.RadialLights.assign(radialLightCount, false);
 
-	const auto numSpotLights = (u32)sceneInfo.SpotLights.size();
-	mVisibility.SpotLights.resize(numSpotLights, false);
-	mVisibility.SpotLights.assign(numSpotLights, false);
+	const auto spotLightCount = (u32)sceneInfo.SpotLights.size();
+	mVisibility.SpotLights.resize(spotLightCount, false);
+	mVisibility.SpotLights.assign(spotLightCount, false);
 
-	for(u32 i = 0; i < numViews; i++)
+	for(u32 viewIndex = 0; viewIndex < viewCount; viewIndex++)
 	{
-		if(!mViews[i]->ShouldDraw3D())
+		if(!mViews[viewIndex]->ShouldDraw3D())
 			continue;
 
-		mViews[i]->DetermineVisible(sceneInfo.RadialLights, sceneInfo.RadialLightWorldBounds, LightType::Radial, &mVisibility.RadialLights);
+		mViews[viewIndex]->DetermineVisible(sceneInfo.RadialLights, sceneInfo.RadialLightWorldBounds, LightType::Radial, &mVisibility.RadialLights);
 
-		mViews[i]->DetermineVisible(sceneInfo.SpotLights, sceneInfo.SpotLightWorldBounds, LightType::Spot, &mVisibility.SpotLights);
+		mViews[viewIndex]->DetermineVisible(sceneInfo.SpotLights, sceneInfo.SpotLightWorldBounds, LightType::Spot, &mVisibility.SpotLights);
 	}
 
 	// Calculate refl. probe visibility for all views
-	const auto numProbes = (u32)sceneInfo.ReflProbes.size();
-	mVisibility.ReflProbes.resize(numProbes, false);
-	mVisibility.ReflProbes.assign(numProbes, false);
+	const auto reflectionProbeCount = (u32)sceneInfo.ReflProbes.size();
+	mVisibility.ReflProbes.resize(reflectionProbeCount, false);
+	mVisibility.ReflProbes.assign(reflectionProbeCount, false);
 
 	// Note: Per-view visibility for refl. probes currently isn't calculated
-	for(u32 i = 0; i < numViews; i++)
+	for(u32 viewIndex = 0; viewIndex < viewCount; viewIndex++)
 	{
-		const auto& viewProps = mViews[i]->GetProperties();
+		const auto& viewProps = mViews[viewIndex]->GetProperties();
 
 		// Don't recursively render reflection probes when generating reflection probe maps
 		if(viewProps.CapturingReflections)
 			continue;
 
-		mViews[i]->CalculateVisibility(sceneInfo.ReflProbeWorldBounds, mVisibility.ReflProbes);
+		mViews[viewIndex]->CalculateVisibility(sceneInfo.ReflProbeWorldBounds, mVisibility.ReflProbes);
 	}
 
 	// Organize light and refl. probe visibility information in a more GPU friendly manner
@@ -997,7 +997,7 @@ void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, con
 	const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 	if(supportsClusteredForward)
 	{
-		for(u32 i = 0; i < numViews; i++)
+		for(u32 i = 0; i < viewCount; i++)
 		{
 			if(!mViews[i]->ShouldDraw3D())
 				continue;

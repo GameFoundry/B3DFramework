@@ -5,7 +5,7 @@
 #include "Material/B3DShader.h"
 #include "Mesh/B3DMesh.h"
 #include "Material/B3DMaterial.h"
-#include "Renderer/B3DRenderElement.h"
+#include "Renderer/B3DDrawCommand.h"
 
 using namespace b3d;
 
@@ -19,15 +19,15 @@ RenderQueue::RenderQueue(StateReduction mode)
 void RenderQueue::Clear()
 {
 	mSortableElements.clear();
-	mSortableElementIdx.clear();
-	mElements.clear();
+	mSortableElementIndex.clear();
+	mCommands.clear();
 
 	mSortedRenderElements.clear();
 }
 
-void RenderQueue::Add(const RenderElement* element, float distFromCamera, u32 variationIndex)
+void RenderQueue::Add(const DrawCommand* drawCommand, float distFromCamera, u32 variationIndex)
 {
-	SPtr<Material> material = element->Material;
+	SPtr<Material> material = drawCommand->Material;
 	SPtr<Shader> shader = material->GetShader();
 
 	u32 queuePriority = shader->GetQueuePriority();
@@ -53,20 +53,20 @@ void RenderQueue::Add(const RenderElement* element, float distFromCamera, u32 va
 
 	for(u32 i = 0; i < passCount; i++)
 	{
-		u32 idx = (u32)mSortableElementIdx.size();
-		mSortableElementIdx.push_back(idx);
+		u32 idx = (u32)mSortableElementIndex.size();
+		mSortableElementIndex.push_back(idx);
 
 		mSortableElements.push_back(SortableElement());
 		SortableElement& sortableElem = mSortableElements.back();
 
-		sortableElem.SeqIdx = idx;
+		sortableElem.SequentialIndex = idx;
 		sortableElem.Priority = queuePriority;
 		sortableElem.ShaderId = shaderId;
 		sortableElem.VariationIndex = variationIndex;
 		sortableElem.PassIndex = i;
 		sortableElem.DistFromCamera = distFromCamera;
 
-		mElements.push_back(element);
+		mCommands.push_back(drawCommand);
 	}
 }
 
@@ -77,36 +77,36 @@ void RenderQueue::Sort()
 	switch(mStateReductionMode)
 	{
 	case StateReduction::None:
-		sortMethod = &ElementSorterNoGroup;
+		sortMethod = &CommandSortNoGroup;
 		break;
 	case StateReduction::Material:
-		sortMethod = &ElementSorterPreferGroup;
+		sortMethod = &CommandSortPreferGroup;
 		break;
 	case StateReduction::Distance:
-		sortMethod = &ElementSorterPreferDistance;
+		sortMethod = &CommandSortPreferDistance;
 		break;
 	}
 
 	// Sort only indices since we generate an entirely new data set anyway, it doesn't make sense to move sortable elements
-	std::sort(mSortableElementIdx.begin(), mSortableElementIdx.end(), [&sortMethod, this](u32 a, u32 b) { return sortMethod(a, b, mSortableElements); });
+	std::sort(mSortableElementIndex.begin(), mSortableElementIndex.end(), [&sortMethod, this](u32 a, u32 b) { return sortMethod(a, b, mSortableElements); });
 
 	u32 previousShaderId = ~0u;
 	u32 previousVariationIndex = ~0u;
 	u32 previousPassIndex = ~0u;
-	for(u32 i = 0; i < (u32)mSortableElementIdx.size(); i++)
+	for(u32 i = 0; i < (u32)mSortableElementIndex.size(); i++)
 	{
-		const u32 idx = mSortableElementIdx[i];
+		const u32 idx = mSortableElementIndex[i];
 		const SortableElement& elem = mSortableElements[idx];
-		const RenderElement* renderElem = mElements[idx];
+		const DrawCommand* renderElem = mCommands[idx];
 
 		const bool separablePasses = renderElem->Material->GetShader()->GetAllowSeparablePasses();
 
 		if(separablePasses)
 		{
-			mSortedRenderElements.push_back(RenderQueueElement());
+			mSortedRenderElements.push_back(RenderQueueEntry());
 
-			RenderQueueElement& sortedElem = mSortedRenderElements.back();
-			sortedElem.RenderElem = renderElem;
+			RenderQueueEntry& sortedElem = mSortedRenderElements.back();
+			sortedElem.DrawCommand = renderElem;
 			sortedElem.VariationIndex = elem.VariationIndex;
 			sortedElem.PassIndex = elem.PassIndex;
 
@@ -125,10 +125,10 @@ void RenderQueue::Sort()
 			const u32 numPasses = renderElem->Material->GetPassCount(elem.VariationIndex);
 			for(u32 j = 0; j < numPasses; j++)
 			{
-				mSortedRenderElements.push_back(RenderQueueElement());
+				mSortedRenderElements.push_back(RenderQueueEntry());
 
-				RenderQueueElement& sortedElem = mSortedRenderElements.back();
-				sortedElem.RenderElem = renderElem;
+				RenderQueueEntry& sortedElem = mSortedRenderElements.back();
+				sortedElem.DrawCommand = renderElem;
 				sortedElem.VariationIndex = elem.VariationIndex;
 				sortedElem.PassIndex = j;
 
@@ -146,23 +146,23 @@ void RenderQueue::Sort()
 	}
 }
 
-bool RenderQueue::ElementSorterNoGroup(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup)
+bool RenderQueue::CommandSortNoGroup(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup)
 {
 	const SortableElement& a = lookup[aIdx];
 	const SortableElement& b = lookup[bIdx];
 
 	u8 isHigher = (a.Priority > b.Priority) << 2 |
 		(a.DistFromCamera < b.DistFromCamera) << 1 |
-		(a.SeqIdx < b.SeqIdx);
+		(a.SequentialIndex < b.SequentialIndex);
 
 	u8 isLower = (a.Priority < b.Priority) << 2 |
 		(a.DistFromCamera > b.DistFromCamera) << 1 |
-		(a.SeqIdx > b.SeqIdx);
+		(a.SequentialIndex > b.SequentialIndex);
 
 	return isHigher > isLower;
 }
 
-bool RenderQueue::ElementSorterPreferGroup(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup)
+bool RenderQueue::CommandSortPreferGroup(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup)
 {
 	const SortableElement& a = lookup[aIdx];
 	const SortableElement& b = lookup[bIdx];
@@ -172,19 +172,19 @@ bool RenderQueue::ElementSorterPreferGroup(u32 aIdx, u32 bIdx, const Vector<Sort
 		(a.VariationIndex < b.VariationIndex) << 3 |
 		(a.PassIndex < b.PassIndex) << 2 |
 		(a.DistFromCamera < b.DistFromCamera) << 1 |
-		(a.SeqIdx < b.SeqIdx);
+		(a.SequentialIndex < b.SequentialIndex);
 
 	u8 isLower = (a.Priority < b.Priority) << 5 |
 		(a.ShaderId > b.ShaderId) << 4 |
 		(a.VariationIndex > b.VariationIndex) << 3 |
 		(a.PassIndex > b.PassIndex) << 2 |
 		(a.DistFromCamera > b.DistFromCamera) << 1 |
-		(a.SeqIdx > b.SeqIdx);
+		(a.SequentialIndex > b.SequentialIndex);
 
 	return isHigher > isLower;
 }
 
-bool RenderQueue::ElementSorterPreferDistance(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup)
+bool RenderQueue::CommandSortPreferDistance(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup)
 {
 	const SortableElement& a = lookup[aIdx];
 	const SortableElement& b = lookup[bIdx];
@@ -194,19 +194,19 @@ bool RenderQueue::ElementSorterPreferDistance(u32 aIdx, u32 bIdx, const Vector<S
 		(a.ShaderId < b.ShaderId) << 3 |
 		(a.VariationIndex < b.VariationIndex) << 2 |
 		(a.PassIndex < b.PassIndex) << 1 |
-		(a.SeqIdx < b.SeqIdx);
+		(a.SequentialIndex < b.SequentialIndex);
 
 	u8 isLower = (a.Priority < b.Priority) << 5 |
 		(a.DistFromCamera > b.DistFromCamera) << 4 |
 		(a.ShaderId > b.ShaderId) << 3 |
 		(a.VariationIndex > b.VariationIndex) << 2 |
 		(a.PassIndex > b.PassIndex) << 1 |
-		(a.SeqIdx > b.SeqIdx);
+		(a.SequentialIndex > b.SequentialIndex);
 
 	return isHigher > isLower;
 }
 
-const Vector<RenderQueueElement>& RenderQueue::GetSortedElements() const
+const Vector<RenderQueueEntry>& RenderQueue::GetSortedEntries() const
 {
 	return mSortedRenderElements;
 }

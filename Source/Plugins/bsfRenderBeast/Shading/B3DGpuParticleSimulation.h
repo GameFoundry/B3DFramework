@@ -15,7 +15,7 @@ namespace b3d
 {
 	namespace render
 	{
-		struct RendererParticles;
+		struct ParticleRenderState;
 		class GpuParticleSimulateMaterial;
 		struct GBufferTextures;
 		struct SceneInfo;
@@ -119,7 +119,7 @@ namespace b3d
 			u32 GetSortOffset() const { return mSortOffset; }
 
 			/** Prepares simulation parameter buffers for this system. */
-			const SPtr<GpuParameterSet>& PrepareSimulateParameters(const RendererParticles& rendererInfo, float dt);
+			const SPtr<GpuParameterSet>& PrepareSimulateParameters(const ParticleRenderState& particleRenderState, float dt);
 
 			/** Returns GPU parameters used for simulation. Parameters must have been prepared via a previous call to PrepareSimulationParameters. */
 			const SPtr<GpuParameterSet>& GetSimulateParameters() const { return mSimulateParameters; }
@@ -223,7 +223,7 @@ namespace b3d
 			};
 
 			/** Prepares buffer necessary for simulating the provided particle system. */
-			void PrepareBuffers(const GpuParticleSystem* system, const RendererParticles& rendererInfo);
+			void PrepareBuffers(const GpuParticleSystem* system, const ParticleRenderState& particleRenderState);
 
 			/**
 			 * Prepares scratch buffers for clearing tiles. Allocates parameters from the pool, populates buffers with tile data,

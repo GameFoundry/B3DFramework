@@ -14,7 +14,7 @@ namespace b3d
 		 */
 
 		/** Contains all information needed for rendering a single sub-mesh. Closely tied with Renderer. */
-		class B3D_EXPORT RenderElement
+		class B3D_EXPORT DrawCommand
 		{
 		public:
 			/**	Reference to the mesh to render. */
@@ -48,7 +48,7 @@ namespace b3d
 			virtual void Draw(GpuCommandBuffer& commandBuffer) const = 0;
 
 		protected:
-			~RenderElement() = default;
+			virtual ~DrawCommand() = default;
 		};
 
 		/** @} */

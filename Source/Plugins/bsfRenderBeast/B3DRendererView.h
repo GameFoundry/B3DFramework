@@ -11,8 +11,8 @@
 #include "Shading/B3DShadowRendering.h"
 #include "RenderState/B3DRenderableRenderState.h"
 #include "B3DRenderCompositor.h"
-#include "B3DRendererParticles.h"
-#include "B3DRendererDecal.h"
+#include "RenderState/B3DParticleRenderState.h"
+#include "RenderState/B3DDecalRenderState.h"
 #include "Renderer/B3DRenderer.h"
 #include "RenderAPI/B3DGpuBufferPool.h"
 
@@ -21,7 +21,7 @@ namespace b3d
 	namespace render
 	{
 		struct SceneInfo;
-		class RendererLight;
+		class LightRenderState;
 
 		/** @addtogroup RenderBeast
 		 *  @{
@@ -312,7 +312,7 @@ namespace b3d
 			 *									renderer views. Must be the same size as the @p renderables array.
 			 *
 			 *									As a side-effect, per-view visibility data is also calculated and can be
-			 *									retrieved by calling getVisibilityMask().
+			 *									retrieved by calling GetVisibilityMasks().
 			 */
 			void DetermineVisible(const Vector<RenderableRenderState*>& renderables, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility = nullptr);
 
@@ -328,9 +328,9 @@ namespace b3d
 			 *									renderer views. Must be the same size as the @p particleSystems array.
 			 *
 			 *									As a side-effect, per-view visibility data is also calculated and can be
-			 *									retrieved by calling getVisibilityMask().
+			 *									retrieved by calling GetVisibilityMasks().
 			 */
-			void DetermineVisible(const Vector<RendererParticles>& particleSystems, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility = nullptr);
+			void DetermineVisible(const Vector<ParticleRenderState>& particleSystems, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility = nullptr);
 
 			/**
 			 * Populates view render queues by determining visible decals.
@@ -344,9 +344,9 @@ namespace b3d
 			 *									renderer views. Must be the same size as the @p decals array.
 			 *
 			 *									As a side-effect, per-view visibility data is also calculated and can be
-			 *									retrieved by calling getVisibilityMask().
+			 *									retrieved by calling GetVisibilityMasks().
 			 */
-			void DetermineVisible(const Vector<RendererDecal>& decals, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility = nullptr);
+			void DetermineVisible(const Vector<DecalRenderState>& decals, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility = nullptr);
 
 			/**
 			 * Calculates the visibility masks for all the lights of the provided type.
@@ -361,9 +361,9 @@ namespace b3d
 			 *									be the same size as the @p lights array.
 			 *
 			 *									As a side-effect, per-view visibility data is also calculated and can be
-			 *									retrieved by calling getVisibilityMask().
+			 *									retrieved by calling GetVisibilityMasks().
 			 */
-			void DetermineVisible(const Vector<RendererLight>& lights, const Vector<Sphere>& bounds, LightType type, Vector<bool>* visibility = nullptr);
+			void DetermineVisible(const Vector<LightRenderState>& lights, const Vector<Sphere>& bounds, LightType type, Vector<bool>* visibility = nullptr);
 
 			/**
 			 * Culls the provided set of bounds against the current frustum and outputs a set of visibility flags determining
@@ -384,11 +384,11 @@ namespace b3d
 			void CalculateVisibility(const Vector<AABox>& bounds, Vector<bool>& visibility) const;
 
 			/**
-			 * Inserts all visible renderable elements into render queues. Assumes visibility has been calculated beforehand
-			 * by calling determineVisible(). After the call render elements can be retrieved from the queues using
-			 * getOpaqueQueue or getTransparentQueue() calls.
+			 * Inserts all draw commands for all visible objects into render queues. Assumes visibility has been calculated beforehand
+			 * by calling DetermineVisible(). After the call render elements can be retrieved from the queues using
+			 * GetOpaqueQueue or GetTransparentQueue() calls.
 			 */
-			void QueueRenderElements(const SceneInfo& sceneInfo);
+			void QueueDrawCommands(const SceneInfo& sceneInfo);
 
 			/** Returns the visibility mask calculated with the last call to determineVisible(). */
 			const VisibilityInfo& GetVisibilityMasks() const { return mVisibility; }

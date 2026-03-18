@@ -45,14 +45,14 @@ namespace b3d
 			DesktopMacOS
 		};
 
-		/** Available implementation of the RenderElement class. */
-		enum class RenderElementType
+		/** Available implementation of the DrawCommand class. */
+		enum class DrawCommandType
 		{
-			/** See RenderableElement. */
+			/** See RenderableDrawCommand. */
 			Renderable,
-			/** See ParticlesRenderElement. */
+			/** See ParticlesDrawCommand. */
 			Particle,
-			/** See DecalRenderElement. */
+			/** See DecalDrawCommand. */
 			Decal
 		};
 

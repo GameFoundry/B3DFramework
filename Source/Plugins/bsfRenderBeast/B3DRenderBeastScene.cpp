@@ -14,7 +14,7 @@
 #include "Utility/B3DSamplerOverrides.h"
 #include "B3DRenderBeastOptions.h"
 #include "B3DRenderBeast.h"
-#include "B3DRendererDecal.h"
+#include "RenderState/B3DDecalRenderState.h"
 #include "Image/B3DSpriteTexture.h"
 #include "RenderAPI/B3DVertexDescription.h"
 #include "Shading/B3DGpuParticleSimulation.h"
@@ -165,6 +165,296 @@ static void ValidateBasePassMaterial(Material& material, RenderableAnimType anim
 	}
 }
 
+RenderableObjectStorage::RenderableObjectStorage() = default;
+
+void RenderableObjectStorage::ProcessCommands(TArrayView<const RendererIdCommand> deallocations, TArrayView<const RendererIdCommand> allocations)
+{
+	if(deallocations.Size() > 0)
+	{
+		const PackedRendererId originalSize = (PackedRendererId)mDenseToSparse.size();
+
+		// First move all deallocations to the end of the arrays
+		PackedRendererId logicalSize = ProcessRenderObjectDeallocations(deallocations, mSparseSlots, mDenseToSparse,
+			[this](PackedRendererId slot) { mRenderableProxies[slot].SetRendererId(slot); },
+			mRenderableProxies, mRenderables, mRenderableCullInfos);
+
+		const u32 removedCount = originalSize - logicalSize;
+
+		// Destroy render state for all deallocated entries
+		FrameAllocatorScope frameAllocatorScope;
+		FrameVector<PackedRendererId> deallocSlotIds(removedCount);
+		for(u32 slotIndex = 0; slotIndex < removedCount; ++slotIndex)
+			deallocSlotIds[slotIndex] = logicalSize + slotIndex;
+
+		DestroyRenderState(TArrayView<const PackedRendererId>(deallocSlotIds.data(), removedCount));
+
+		// Resize the arrays to remove the deallocated entries
+		mRenderables.resize(logicalSize);
+		mRenderableCullInfos.resize(logicalSize);
+		mRenderableProxies.resize(logicalSize);
+		mDenseToSparse.resize(logicalSize);
+	}
+
+	if(allocations.Size() > 0)
+		ProcessRenderObjectAllocations(allocations, mSparseSlots, mDenseToSparse, mRenderableProxies, mRenderables, mRenderableCullInfos);
+}
+
+void RenderableObjectStorage::DestroyRenderState(TArrayView<const PackedRendererId> slotIds)
+{
+	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
+
+	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
+	{
+		PackedRendererId slotId = slotIds[slotIndex];
+		RenderableRenderState* renderState = mRenderables[slotId];
+		if(renderState == nullptr)
+			continue;
+
+		for(auto& element : renderState->DrawCommands)
+		{
+			mRenderBeastScene->FreeSamplerStateOverrides(element);
+			element.SamplerOverrides = nullptr;
+		}
+
+		uniformBufferPools.Release(renderState->PerObjectBufferAllocationHandle);
+		B3DDelete(renderState);
+
+		mRenderables[slotId] = nullptr;
+		mRenderableProxies[slotId].SetRendererId(kInvalidPackedRendererId);
+	}
+}
+
+void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> slotIds)
+{
+	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
+
+	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
+	{
+		PackedRendererId renderableId = slotIds[slotIndex];
+		RenderableProxy& proxy = mRenderableProxies[renderableId];
+
+		proxy.SetRendererId(renderableId);
+
+		B3D_ASSERT(renderableId < (PackedRendererId)mRenderables.size());
+		B3D_ASSERT(mRenderables[renderableId] == nullptr);
+
+		mRenderables[renderableId] = B3DNew<RenderableRenderState>();
+		mRenderableCullInfos[renderableId] = CullInfo(proxy.GetBounds(), proxy.GetLayer(), proxy.GetCullDistanceFactor());
+
+		RenderableRenderState* renderState = mRenderables[renderableId];
+		renderState->UpdatePerObjectData(proxy);
+		renderState->PrevWorldTransform = renderState->WorldTransform;
+		renderState->PrevFrameDirtyState = PrevFrameDirtyState::Clean;
+
+		SPtr<Mesh> mesh = proxy.GetMesh();
+		if(mesh != nullptr)
+		{
+			const MeshProperties& meshProps = mesh->GetProperties();
+			SPtr<VertexDescription> vertexDescription = mesh->GetVertexData()->VertexDescription;
+
+			for(u32 subMeshIndex = 0; subMeshIndex < (u32)meshProps.SubMeshes.size(); subMeshIndex++)
+			{
+				renderState->DrawCommands.push_back(RenderableDrawCommand());
+				RenderableDrawCommand& drawCommand = renderState->DrawCommands.back();
+
+				drawCommand.Type = (u32)DrawCommandType::Renderable;
+				drawCommand.Mesh = mesh;
+				drawCommand.SubMesh = meshProps.SubMeshes[subMeshIndex];
+				drawCommand.AnimType = proxy.GetAnimType();
+				drawCommand.AnimationId = proxy.GetAnimationId();
+				drawCommand.MorphShapeVersion = 0;
+				drawCommand.MorphShapeBuffer = proxy.GetMorphShapeBuffer();
+				drawCommand.MorphVertexDefinition = proxy.GetMorphVertexDescription();
+
+				drawCommand.Material = proxy.GetMaterial(subMeshIndex);
+				if(drawCommand.Material == nullptr)
+					drawCommand.Material = proxy.GetMaterial(0);
+
+				if(drawCommand.Material != nullptr && drawCommand.Material->GetShader() == nullptr)
+					drawCommand.Material = nullptr;
+
+				// If no material use the default material
+				if(drawCommand.Material == nullptr)
+					drawCommand.Material = Material::Create(DefaultMaterial::Get()->GetShader());
+
+				// Determine which variation to use
+				static_assert((u32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
+
+				const SPtr<Shader>& shader = drawCommand.Material->GetShader();
+				ShaderFlags shaderFlags = shader->GetFlags();
+				const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
+				bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+
+				const Vector<ShaderVariationParameterInformation>& variationParams = shader->GetVariationParameters();
+				const bool shaderCanWriteVelocity = std::find_if(variationParams.begin(), variationParams.end(), [](const ShaderVariationParameterInformation& x)
+																 { return x.Identifier == "WRITE_VELOCITY"; }) != variationParams.end();
+
+				const bool writeVelocity = shaderCanWriteVelocity && proxy.GetWriteVelocity();
+
+				RenderableAnimType animType = proxy.GetAnimType();
+
+				drawCommand.DefaultVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, false, animType);
+
+#if B3D_DEBUG
+				ValidateBasePassMaterial(*drawCommand.Material, animType, drawCommand.DefaultVariationIndex, *vertexDescription);
+#endif
+
+				// Generate or assigned renderer specific data for the material
+				drawCommand.ParameterAdapter = drawCommand.Material->CreateParameterAdapter(drawCommand.DefaultVariationIndex);
+				drawCommand.ParameterAdapter->Update(drawCommand.Material, 0.0f, true);
+
+				if(writeVelocity)
+				{
+					drawCommand.WriteVelocityVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, true, animType);
+
+#if B3D_DEBUG
+					ValidateBasePassMaterial(*drawCommand.Material, animType, drawCommand.WriteVelocityVariationIndex, *vertexDescription);
+#endif
+
+					// Note: Using the same params as the non-velocity variation. There are assumed to be no differences
+				}
+				else
+					drawCommand.WriteVelocityVariationIndex = (u32)-1;
+
+				// Generate or assign sampler state overrides
+				drawCommand.SamplerOverrides = mRenderBeastScene->AllocSamplerStateOverrides(drawCommand);
+			}
+		}
+
+		// Allocate from the uniform buffer manager
+		if(!renderState->DrawCommands.empty())
+		{
+			auto result = uniformBufferPools.Allocate();
+			renderState->PerObjectBufferAllocationHandle = result.Handle;
+			renderState->PerObjectParameterSet = result.ParameterSet;
+			renderState->PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
+		}
+
+		uniformBufferPools.UpdatePerObjectBuffer(*renderState);
+
+		// Prepare all parameter bindings
+		for(auto& drawCommand : renderState->DrawCommands)
+		{
+			SPtr<Shader> shader = drawCommand.Material->GetShader();
+			if(shader == nullptr)
+			{
+				B3D_LOG(Warning, LogRenderer, "Missing shader on material.");
+				continue;
+			}
+
+			// Store shared parameter set and buffer offset for render-time binding
+			drawCommand.SharedPerObjectParameterSet = renderState->PerObjectParameterSet;
+			drawCommand.PerObjectBufferOffset = renderState->PerObjectSuballocation.GetSuballocationOffset();
+
+			SPtr<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
+
+			// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
+			// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
+			gpuParameterSet->TryGetUniformBufferParameter("PerFrame", drawCommand.PerFrameUniformBufferParameter);
+			gpuParameterSet->TryGetUniformBufferParameter("PerCamera", drawCommand.PerCameraUniformBufferParameter);
+			gpuParameterSet->TryGetStorageBufferParameter("boneMatrices", drawCommand.BoneMatrixBufferParameter);
+			gpuParameterSet->TryGetStorageBufferParameter("prevBoneMatrices", drawCommand.PreviousBoneMatrixBufferParameter);
+
+			ShaderFlags shaderFlags = shader->GetFlags();
+			const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
+
+			if(useForwardRendering)
+			{
+				const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+
+				drawCommand.ForwardLightingParams.Populate(gpuParameterSet, supportsClusteredForward);
+				drawCommand.ImageBasedParams.Initialize(gpuParameterSet, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
+			}
+		}
+	}
+}
+
+void RenderableObjectStorage::UpdateRenderState(TArrayView<const PackedRendererId> slotIds)
+{
+	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
+
+	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
+	{
+		PackedRendererId renderableId = slotIds[slotIndex];
+		RenderableProxy& proxy = mRenderableProxies[renderableId];
+		RenderableRenderState* renderState = mRenderables[renderableId];
+
+		if(renderState->PrevFrameDirtyState != PrevFrameDirtyState::Updated)
+			renderState->PrevWorldTransform = renderState->WorldTransform;
+
+		renderState->UpdatePerObjectData(proxy);
+		renderState->PrevFrameDirtyState = PrevFrameDirtyState::Updated;
+
+		uniformBufferPools.UpdatePerObjectBuffer(*renderState);
+
+		mRenderableCullInfos[renderableId].Bounds = proxy.GetBounds();
+		mRenderableCullInfos[renderableId].CullDistanceFactor = proxy.GetCullDistanceFactor();
+	}
+}
+
+void RenderableObjectStorage::PrepareRenderable(PackedRendererId id, const FrameInfo& frameInfo)
+{
+	RenderableRenderState* renderState = mRenderables[id];
+
+	for(auto& drawCommand : renderState->DrawCommands)
+		drawCommand.MaterialAnimationTime += frameInfo.Timings.TimeDelta;
+
+	if(renderState->PrevFrameDirtyState != PrevFrameDirtyState::Clean)
+	{
+		if(renderState->PrevFrameDirtyState == PrevFrameDirtyState::Updated)
+			renderState->PrevFrameDirtyState = PrevFrameDirtyState::CopyMostRecent;
+		else if(renderState->PrevFrameDirtyState == PrevFrameDirtyState::CopyMostRecent)
+		{
+			renderState->PrevWorldTransform = mRenderables[id]->WorldTransform;
+			renderState->PrevFrameDirtyState = PrevFrameDirtyState::Clean;
+
+			mRenderBeastScene->GetUniformBufferPools().UpdatePerObjectBuffer(*renderState);
+		}
+	}
+}
+
+void RenderableObjectStorage::PrepareVisibleRenderable(PackedRendererId id, const FrameInfo& frameInfo)
+{
+	SceneInfo& sceneInfo = mRenderBeastScene->GetSceneInfo();
+	if(sceneInfo.RenderableReady[id])
+		return;
+
+	RenderableRenderState* renderState = mRenderables[id];
+	RenderableProxy& proxy = GetRenderableProxy(id);
+
+	// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
+	SPtr<GpuBuffer> boneMatrixBuffer;
+	SPtr<GpuBuffer> previousBoneMatrixBuffer;
+	bool isAnimated = false;
+	if(frameInfo.PerSceneFrameData.Animation != nullptr)
+	{
+		isAnimated = proxy.GetAnimationId() != (u64)-1;
+
+		if(isAnimated)
+		{
+			proxy.UpdateAnimationBuffers(*frameInfo.PerSceneFrameData.Animation);
+			boneMatrixBuffer = proxy.GetBoneMatrixBuffer();
+			previousBoneMatrixBuffer = proxy.GetPreviousBoneMatrixBuffer();
+		}
+	}
+
+	// Note: Could this step be moved in notifyRenderableUpdated, so it only triggers when material actually gets
+	// changed? Although it shouldn't matter much because if the internal versions keeping track of dirty params.
+	for(auto& element : renderState->DrawCommands)
+	{
+		element.ParameterAdapter->Update(element.Material, element.MaterialAnimationTime);
+
+		// Note: If renderable is not writing to velocity, then these buffer don't have to be rebound every frame. Potential optimization for future.
+		if(isAnimated)
+		{
+			element.BoneMatrixBufferParameter.Set(boneMatrixBuffer);
+			element.PreviousBoneMatrixBufferParameter.Set(previousBoneMatrixBuffer);
+		}
+	}
+
+	sceneInfo.RenderableReady[id] = true;
+}
+
 RenderBeastScene::RenderBeastScene(const SPtr<RenderBeastOptions>& options)
 	: mOptions(options)
 {
@@ -260,7 +550,7 @@ void RenderBeastScene::RegisterLight(Light* light)
 		u32 lightId = (u32)mInfo.DirectionalLights.size();
 		light->SetRendererId(lightId);
 
-		mInfo.DirectionalLights.push_back(RendererLight(light));
+		mInfo.DirectionalLights.push_back(LightRenderState(light));
 	}
 	else
 	{
@@ -269,7 +559,7 @@ void RenderBeastScene::RegisterLight(Light* light)
 			u32 lightId = (u32)mInfo.RadialLights.size();
 			light->SetRendererId(lightId);
 
-			mInfo.RadialLights.push_back(RendererLight(light));
+			mInfo.RadialLights.push_back(LightRenderState(light));
 			mInfo.RadialLightWorldBounds.push_back(light->GetBounds());
 		}
 		else // Spot
@@ -277,7 +567,7 @@ void RenderBeastScene::RegisterLight(Light* light)
 			u32 lightId = (u32)mInfo.SpotLights.size();
 			light->SetRendererId(lightId);
 
-			mInfo.SpotLights.push_back(RendererLight(light));
+			mInfo.SpotLights.push_back(LightRenderState(light));
 			mInfo.SpotLightWorldBounds.push_back(light->GetBounds());
 		}
 	}
@@ -298,7 +588,7 @@ void RenderBeastScene::UnregisterLight(Light* light)
 	u32 lightId = light->GetRendererId();
 	if(light->GetType() == LightType::Directional)
 	{
-		Light* lastLight = mInfo.DirectionalLights.back().Internal;
+		Light* lastLight = mInfo.DirectionalLights.back().Light;
 		u32 lastLightId = lastLight->GetRendererId();
 
 		if(lightId != lastLightId)
@@ -315,7 +605,7 @@ void RenderBeastScene::UnregisterLight(Light* light)
 	{
 		if(light->GetType() == LightType::Radial)
 		{
-			Light* lastLight = mInfo.RadialLights.back().Internal;
+			Light* lastLight = mInfo.RadialLights.back().Light;
 			u32 lastLightId = lastLight->GetRendererId();
 
 			if(lightId != lastLightId)
@@ -333,7 +623,7 @@ void RenderBeastScene::UnregisterLight(Light* light)
 		}
 		else // Spot
 		{
-			Light* lastLight = mInfo.SpotLights.back().Internal;
+			Light* lastLight = mInfo.SpotLights.back().Light;
 			u32 lastLightId = lastLight->GetRendererId();
 
 			if(lightId != lastLightId)
@@ -349,233 +639,6 @@ void RenderBeastScene::UnregisterLight(Light* light)
 			mInfo.SpotLights.erase(mInfo.SpotLights.end() - 1);
 			mInfo.SpotLightWorldBounds.erase(mInfo.SpotLightWorldBounds.end() - 1);
 		}
-	}
-}
-
-RenderableObjectStorage::RenderableObjectStorage() = default;
-
-void RenderableObjectStorage::ProcessCommands(TArrayView<const RendererIdCommand> deallocations, TArrayView<const RendererIdCommand> allocations)
-{
-	if(deallocations.Size() > 0)
-	{
-		const PackedRendererId originalSize = (PackedRendererId)mDenseToSparse.size();
-
-		// First move all deallocations to the end of the arrays
-		PackedRendererId logicalSize = ProcessRenderObjectDeallocations(deallocations, mSparseSlots, mDenseToSparse,
-			[this](PackedRendererId slot) { mRenderableProxies[slot].SetRendererId(slot); },
-			mRenderableProxies, mRenderables, mRenderableCullInfos);
-
-		const u32 removedCount = originalSize - logicalSize;
-
-		// Destroy render state for all deallocated entries
-		FrameAllocatorScope frameAllocatorScope;
-		FrameVector<PackedRendererId> deallocSlotIds(removedCount);
-		for(u32 slotIndex = 0; slotIndex < removedCount; ++slotIndex)
-			deallocSlotIds[slotIndex] = logicalSize + slotIndex;
-
-		DestroyRenderState(TArrayView<const PackedRendererId>(deallocSlotIds.data(), removedCount));
-
-		// Resize the arrays to remove the deallocated entries
-		mRenderables.resize(logicalSize);
-		mRenderableCullInfos.resize(logicalSize);
-		mRenderableProxies.resize(logicalSize);
-		mDenseToSparse.resize(logicalSize);
-	}
-
-	if(allocations.Size() > 0)
-		ProcessRenderObjectAllocations(allocations, mSparseSlots, mDenseToSparse, mRenderableProxies, mRenderables, mRenderableCullInfos);
-}
-
-void RenderableObjectStorage::DestroyRenderState(TArrayView<const PackedRendererId> slotIds)
-{
-	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
-
-	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
-	{
-		PackedRendererId slotId = slotIds[slotIndex];
-		RenderableRenderState* rendererRenderable = mRenderables[slotId];
-		if(rendererRenderable == nullptr)
-			continue;
-
-		for(auto& element : rendererRenderable->Elements)
-		{
-			mRenderBeastScene->FreeSamplerStateOverrides(element);
-			element.SamplerOverrides = nullptr;
-		}
-
-		uniformBufferPools.Release(rendererRenderable->PerObjectBufferAllocationHandle);
-		B3DDelete(rendererRenderable);
-
-		mRenderables[slotId] = nullptr;
-		mRenderableProxies[slotId].SetRendererId(kInvalidPackedRendererId);
-	}
-}
-
-void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> slotIds)
-{
-	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
-
-	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
-	{
-		PackedRendererId renderableId = slotIds[slotIndex];
-		RenderableProxy& proxy = mRenderableProxies[renderableId];
-
-		proxy.SetRendererId(renderableId);
-
-		B3D_ASSERT(renderableId < (PackedRendererId)mRenderables.size());
-		B3D_ASSERT(mRenderables[renderableId] == nullptr);
-
-		mRenderables[renderableId] = B3DNew<RenderableRenderState>();
-		mRenderableCullInfos[renderableId] = CullInfo(proxy.GetBounds(), proxy.GetLayer(), proxy.GetCullDistanceFactor());
-
-		RenderableRenderState* rendererRenderable = mRenderables[renderableId];
-		rendererRenderable->UpdatePerObjectData(proxy);
-		rendererRenderable->PrevWorldTransform = rendererRenderable->WorldTransform;
-		rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Clean;
-
-		SPtr<Mesh> mesh = proxy.GetMesh();
-		if(mesh != nullptr)
-		{
-			const MeshProperties& meshProps = mesh->GetProperties();
-			SPtr<VertexDescription> vertexDescription = mesh->GetVertexData()->VertexDescription;
-
-			for(u32 subMeshIndex = 0; subMeshIndex < (u32)meshProps.SubMeshes.size(); subMeshIndex++)
-			{
-				rendererRenderable->Elements.push_back(RenderableElement());
-				RenderableElement& renElement = rendererRenderable->Elements.back();
-
-				renElement.Type = (u32)RenderElementType::Renderable;
-				renElement.Mesh = mesh;
-				renElement.SubMesh = meshProps.SubMeshes[subMeshIndex];
-				renElement.AnimType = proxy.GetAnimType();
-				renElement.AnimationId = proxy.GetAnimationId();
-				renElement.MorphShapeVersion = 0;
-				renElement.MorphShapeBuffer = proxy.GetMorphShapeBuffer();
-				renElement.MorphVertexDefinition = proxy.GetMorphVertexDescription();
-
-				renElement.Material = proxy.GetMaterial(subMeshIndex);
-				if(renElement.Material == nullptr)
-					renElement.Material = proxy.GetMaterial(0);
-
-				if(renElement.Material != nullptr && renElement.Material->GetShader() == nullptr)
-					renElement.Material = nullptr;
-
-				// If no material use the default material
-				if(renElement.Material == nullptr)
-					renElement.Material = Material::Create(DefaultMaterial::Get()->GetShader());
-
-				// Determine which variation to use
-				static_assert((u32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
-
-				const SPtr<Shader>& shader = renElement.Material->GetShader();
-				ShaderFlags shaderFlags = shader->GetFlags();
-				const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
-				bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
-
-				const Vector<ShaderVariationParameterInformation>& variationParams = shader->GetVariationParameters();
-				const bool shaderCanWriteVelocity = std::find_if(variationParams.begin(), variationParams.end(), [](const ShaderVariationParameterInformation& x)
-																 { return x.Identifier == "WRITE_VELOCITY"; }) != variationParams.end();
-
-				const bool writeVelocity = shaderCanWriteVelocity && proxy.GetWriteVelocity();
-
-				RenderableAnimType animType = proxy.GetAnimType();
-
-				renElement.DefaultVariationIndex = InitAndRetrieveBasePassVariation(*renElement.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, false, animType);
-
-#if B3D_DEBUG
-				ValidateBasePassMaterial(*renElement.Material, animType, renElement.DefaultVariationIndex, *vertexDescription);
-#endif
-
-				// Generate or assigned renderer specific data for the material
-				renElement.ParameterAdapter = renElement.Material->CreateParameterAdapter(renElement.DefaultVariationIndex);
-				renElement.ParameterAdapter->Update(renElement.Material, 0.0f, true);
-
-				if(writeVelocity)
-				{
-					renElement.WriteVelocityVariationIndex = InitAndRetrieveBasePassVariation(*renElement.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, true, animType);
-
-#if B3D_DEBUG
-					ValidateBasePassMaterial(*renElement.Material, animType, renElement.WriteVelocityVariationIndex, *vertexDescription);
-#endif
-
-					// Note: Using the same params as the non-velocity variation. There are assumed to be no differences
-				}
-				else
-					renElement.WriteVelocityVariationIndex = (u32)-1;
-
-				// Generate or assign sampler state overrides
-				renElement.SamplerOverrides = mRenderBeastScene->AllocSamplerStateOverrides(renElement);
-			}
-		}
-
-		// Allocate from the uniform buffer manager
-		if(!rendererRenderable->Elements.empty())
-		{
-			auto result = uniformBufferPools.Allocate();
-			rendererRenderable->PerObjectBufferAllocationHandle = result.Handle;
-			rendererRenderable->PerObjectParameterSet = result.ParameterSet;
-			rendererRenderable->PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
-		}
-
-		uniformBufferPools.UpdatePerObjectBuffer(*rendererRenderable);
-
-		// Prepare all parameter bindings
-		for(auto& element : rendererRenderable->Elements)
-		{
-			SPtr<Shader> shader = element.Material->GetShader();
-			if(shader == nullptr)
-			{
-				B3D_LOG(Warning, LogRenderer, "Missing shader on material.");
-				continue;
-			}
-
-			// Store shared parameter set and buffer offset for render-time binding
-			element.SharedPerObjectParameterSet = rendererRenderable->PerObjectParameterSet;
-			element.PerObjectBufferOffset = rendererRenderable->PerObjectSuballocation.GetSuballocationOffset();
-
-			SPtr<GpuParameterSet> gpuParameterSet = element.ParameterAdapter->GetGpuParameterSet();
-
-			// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
-			// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-			gpuParameterSet->TryGetUniformBufferParameter("PerFrame", element.PerFrameUniformBufferParameter);
-			gpuParameterSet->TryGetUniformBufferParameter("PerCamera", element.PerCameraUniformBufferParameter);
-			gpuParameterSet->TryGetStorageBufferParameter("boneMatrices", element.BoneMatrixBufferParameter);
-			gpuParameterSet->TryGetStorageBufferParameter("prevBoneMatrices", element.PreviousBoneMatrixBufferParameter);
-
-			ShaderFlags shaderFlags = shader->GetFlags();
-			const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
-
-			if(useForwardRendering)
-			{
-				const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
-
-				element.ForwardLightingParams.Populate(gpuParameterSet, supportsClusteredForward);
-				element.ImageBasedParams.Initialize(gpuParameterSet, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
-			}
-		}
-	}
-}
-
-void RenderableObjectStorage::UpdateRenderState(TArrayView<const PackedRendererId> slotIds)
-{
-	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
-
-	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
-	{
-		PackedRendererId renderableId = slotIds[slotIndex];
-		RenderableProxy& proxy = mRenderableProxies[renderableId];
-		RenderableRenderState* rendererRenderable = mRenderables[renderableId];
-
-		if(rendererRenderable->PrevFrameDirtyState != PrevFrameDirtyState::Updated)
-			rendererRenderable->PrevWorldTransform = rendererRenderable->WorldTransform;
-
-		rendererRenderable->UpdatePerObjectData(proxy);
-		rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Updated;
-
-		uniformBufferPools.UpdatePerObjectBuffer(*rendererRenderable);
-
-		mRenderableCullInfos[renderableId].Bounds = proxy.GetBounds();
-		mRenderableCullInfos[renderableId].CullDistanceFactor = proxy.GetCullDistanceFactor();
 	}
 }
 
@@ -786,31 +849,31 @@ void RenderBeastScene::RegisterParticleSystem(ParticleSystem* particleSystem)
 	const auto rendererId = (u32)mInfo.ParticleSystems.size();
 	particleSystem->SetRendererId(rendererId);
 
-	mInfo.ParticleSystems.push_back(RendererParticles());
+	mInfo.ParticleSystems.push_back(ParticleRenderState());
 	mInfo.ParticleSystemCullInfos.push_back(CullInfo(Bounds(kZeroTag), particleSystem->GetLayer()));
 
-	RendererParticles& rendererParticles = mInfo.ParticleSystems.back();
-	rendererParticles.ParticleSystem = particleSystem;
+	ParticleRenderState& renderState = mInfo.ParticleSystems.back();
+	renderState.ParticleSystem = particleSystem;
 
 	UpdateParticleSystem(particleSystem, false);
 
-	rendererParticles.PrevWorldTransform = rendererParticles.WorldTransform;
-	rendererParticles.PrevFrameDirtyState = PrevFrameDirtyState::Clean;
+	renderState.PrevWorldTransform = renderState.WorldTransform;
+	renderState.PrevFrameDirtyState = PrevFrameDirtyState::Clean;
 }
 
 void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tfrmOnly)
 {
 	const u32 rendererId = particleSystem->GetRendererId();
-	RendererParticles& rendererParticles = mInfo.ParticleSystems[rendererId];
+	ParticleRenderState& renderState = mInfo.ParticleSystems[rendererId];
 
-	rendererParticles.PrevWorldTransform = rendererParticles.WorldTransform;
-	rendererParticles.PrevFrameDirtyState = PrevFrameDirtyState::Updated;
+	renderState.PrevWorldTransform = renderState.WorldTransform;
+	renderState.PrevFrameDirtyState = PrevFrameDirtyState::Updated;
 
-	rendererParticles.UpdatePerObjectData();
+	renderState.UpdatePerObjectData();
 
 	if(tfrmOnly)
 	{
-		mUniformBufferPools.UpdatePerObjectBuffer(rendererParticles);
+		mUniformBufferPools.UpdatePerObjectBuffer(renderState);
 		return;
 	}
 
@@ -819,31 +882,31 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 	// Initialize the variant of the particle system for GPU simulation, if needed
 	if(settings.GpuSimulation)
 	{
-		if(!rendererParticles.GpuParticleSystem)
-			rendererParticles.GpuParticleSystem = B3DPoolNew<GpuParticleSystem>(particleSystem);
+		if(!renderState.GpuParticleSystem)
+			renderState.GpuParticleSystem = B3DPoolNew<GpuParticleSystem>(particleSystem);
 	}
 	else
 	{
-		if(rendererParticles.GpuParticleSystem)
+		if(renderState.GpuParticleSystem)
 		{
-			B3DPoolDelete(rendererParticles.GpuParticleSystem);
-			rendererParticles.GpuParticleSystem = nullptr;
+			B3DPoolDelete(renderState.GpuParticleSystem);
+			renderState.GpuParticleSystem = nullptr;
 		}
 	}
 
-	ParticlesRenderElement& renElement = rendererParticles.RenderElement;
-	renElement.Type = (u32)RenderElementType::Particle;
+	ParticlesDrawCommand& drawCommand = renderState.DrawCommand;
+	drawCommand.Type = (u32)DrawCommandType::Particle;
 
-	renElement.Material = settings.Material;
+	drawCommand.Material = settings.Material;
 
-	if(renElement.Material != nullptr && renElement.Material->GetShader() == nullptr)
-		renElement.Material = nullptr;
+	if(drawCommand.Material != nullptr && drawCommand.Material->GetShader() == nullptr)
+		drawCommand.Material = nullptr;
 
 	// If no material use the default material
-	if(renElement.Material == nullptr)
-		renElement.Material = Material::Create(DefaultParticlesMat::Get()->GetShader());
+	if(drawCommand.Material == nullptr)
+		drawCommand.Material = Material::Create(DefaultParticleMaterial::Get()->GetShader());
 
-	const SPtr<Shader> shader = renElement.Material->GetShader();
+	const SPtr<Shader> shader = drawCommand.Material->GetShader();
 
 	const ParticleOrientation orientation = settings.Orientation;
 	const bool lockY = settings.OrientationLockY;
@@ -870,121 +933,121 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 	findVariationInformation.VariationParameters = variationParameters;
 	findVariationInformation.Override = true;
 
-	u32 variationIndex = renElement.Material->FindVariation(findVariationInformation);
+	u32 variationIndex = drawCommand.Material->FindVariation(findVariationInformation);
 
 	if(variationIndex == (u32)-1)
-		variationIndex = renElement.Material->GetDefaultVariation();
+		variationIndex = drawCommand.Material->GetDefaultVariation();
 
-	renElement.DefaultVariationIndex = variationIndex;
+	drawCommand.DefaultVariationIndex = variationIndex;
 
 	// Make sure the variation is compiled
-	const SPtr<Variation>& variation = renElement.Material->GetVariation(variationIndex);
+	const SPtr<Variation>& variation = drawCommand.Material->GetVariation(variationIndex);
 	if(variation)
 		variation->Compile();
 
 	// Generate or assigned renderer specific data for the material
-	renElement.ParameterAdapter = renElement.Material->CreateParameterAdapter(variationIndex);
-	renElement.ParameterAdapter->Update(renElement.Material, 0.0f, true);
+	drawCommand.ParameterAdapter = drawCommand.Material->CreateParameterAdapter(variationIndex);
+	drawCommand.ParameterAdapter->Update(drawCommand.Material, 0.0f, true);
 
-	SPtr<GpuParameterSet> gpuParameterSet = renElement.ParameterAdapter->GetGpuParameterSet();
+	SPtr<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
 
 	// Allocate from the uniform buffer manager after ParameterAdapter is created
 	// Only allocate if no allocation exists or if the particle type changed (GPU to CPU or vice-versa)
-	const bool typeChanged = rendererParticles.PerObjectBufferAllocationHandle.IsValid() && (gpu != renElement.IsGpuSimulated);
+	const bool typeChanged = renderState.PerObjectBufferAllocationHandle.IsValid() && (gpu != drawCommand.IsGpuSimulated);
 
 	// If the type changed, release the old allocation first
 	if(typeChanged)
-		mUniformBufferPools.Release(rendererParticles.PerObjectBufferAllocationHandle);
+		mUniformBufferPools.Release(renderState.PerObjectBufferAllocationHandle);
 
 	// Allocate if no allocation exists or if type changed
-	if(!rendererParticles.PerObjectBufferAllocationHandle.IsValid() || typeChanged)
+	if(!renderState.PerObjectBufferAllocationHandle.IsValid() || typeChanged)
 	{
 		if(gpu)
 		{
 			// GPU particles use GpuParticlesPool (PerObject + GpuParticleParams)
 			UniformBufferPools::AllocationResult result = mUniformBufferPools.Allocate(UniformBufferPools::GpuParticlesPool);
-			rendererParticles.PerObjectBufferAllocationHandle = result.Handle;
-			rendererParticles.PerObjectParameterSet = result.ParameterSet;
-			rendererParticles.PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
-			rendererParticles.GpuParticlesParamSuballocation = result.GetSuballocation(UniformBufferPools::GpuParticlesBuffer);
+			renderState.PerObjectBufferAllocationHandle = result.Handle;
+			renderState.PerObjectParameterSet = result.ParameterSet;
+			renderState.PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
+			renderState.GpuParticlesParamSuballocation = result.GetSuballocation(UniformBufferPools::GpuParticlesBuffer);
 		}
 		else
 		{
 			// CPU particles use RenderablePool (PerObject only)
 			UniformBufferPools::AllocationResult result = mUniformBufferPools.Allocate(UniformBufferPools::RenderablePool);
-			rendererParticles.PerObjectBufferAllocationHandle = result.Handle;
-			rendererParticles.PerObjectParameterSet = result.ParameterSet;
-			rendererParticles.PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
+			renderState.PerObjectBufferAllocationHandle = result.Handle;
+			renderState.PerObjectParameterSet = result.ParameterSet;
+			renderState.PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
 		}
 	}
 
 	// Update GPU-specific fields based on current state
 	if(gpu)
 	{
-		renElement.GpuParticlesParamBufferOffset = rendererParticles.GpuParticlesParamSuballocation.GetSuballocationOffset();
-		renElement.IsGpuSimulated = true;
+		drawCommand.GpuParticlesParamBufferOffset = renderState.GpuParticlesParamSuballocation.GetSuballocationOffset();
+		drawCommand.IsGpuSimulated = true;
 	}
 	else
-		renElement.IsGpuSimulated = false;
+		drawCommand.IsGpuSimulated = false;
 
 	// Store shared parameter set and buffer offset for render-time binding
-	renElement.SharedPerObjectParameterSet = rendererParticles.PerObjectParameterSet;
-	renElement.PerObjectBufferOffset = rendererParticles.PerObjectSuballocation.GetSuballocationOffset();
+	drawCommand.SharedPerObjectParameterSet = renderState.PerObjectParameterSet;
+	drawCommand.PerObjectBufferOffset = renderState.PerObjectSuballocation.GetSuballocationOffset();
 
 	// Now update the per-object buffer (allocation is ready)
-	mUniformBufferPools.UpdatePerObjectBuffer(rendererParticles);
+	mUniformBufferPools.UpdatePerObjectBuffer(renderState);
 
 	if(gpu)
 	{
-		gpuParameterSet->GetSampledTextureParameter("gPositionTimeTex", renElement.ParamsGpu.PositionTimeTexture);
-		gpuParameterSet->GetSampledTextureParameter("gSizeRotationTex", renElement.ParamsGpu.SizeRotationTexture);
-		gpuParameterSet->GetSampledTextureParameter("gCurvesTex", renElement.ParamsGpu.CurvesTexture);
+		gpuParameterSet->GetSampledTextureParameter("gPositionTimeTex", drawCommand.ParamsGpu.PositionTimeTexture);
+		gpuParameterSet->GetSampledTextureParameter("gSizeRotationTex", drawCommand.ParamsGpu.SizeRotationTexture);
+		gpuParameterSet->GetSampledTextureParameter("gCurvesTex", drawCommand.ParamsGpu.CurvesTexture);
 
-		renElement.Is3D = false;
+		drawCommand.Is3D = false;
 	}
 	else
 	{
 		switch(settings.RenderMode)
 		{
 		case ParticleRenderMode::Billboard:
-			gpuParameterSet->GetSampledTextureParameter("gPositionAndRotTex", renElement.ParamsCpuBillboard.PositionAndRotTexture);
-			gpuParameterSet->GetSampledTextureParameter("gColorTex", renElement.ParamsCpuBillboard.ColorTexture);
-			gpuParameterSet->GetSampledTextureParameter("gSizeAndFrameIdxTex", renElement.ParamsCpuBillboard.SizeAndFrameIdxTexture);
+			gpuParameterSet->GetSampledTextureParameter("gPositionAndRotTex", drawCommand.ParamsCpuBillboard.PositionAndRotTexture);
+			gpuParameterSet->GetSampledTextureParameter("gColorTex", drawCommand.ParamsCpuBillboard.ColorTexture);
+			gpuParameterSet->GetSampledTextureParameter("gSizeAndFrameIdxTex", drawCommand.ParamsCpuBillboard.SizeAndFrameIdxTexture);
 
-			renElement.Is3D = false;
+			drawCommand.Is3D = false;
 			break;
 		case ParticleRenderMode::Mesh:
-			gpuParameterSet->GetSampledTextureParameter("gPositionTex", renElement.ParamsCpuMesh.PositionTexture);
-			gpuParameterSet->GetSampledTextureParameter("gColorTex", renElement.ParamsCpuMesh.ColorTexture);
-			gpuParameterSet->GetSampledTextureParameter("gSizeTex", renElement.ParamsCpuMesh.SizeTexture);
-			gpuParameterSet->GetSampledTextureParameter("gRotationTex", renElement.ParamsCpuMesh.RotationTexture);
+			gpuParameterSet->GetSampledTextureParameter("gPositionTex", drawCommand.ParamsCpuMesh.PositionTexture);
+			gpuParameterSet->GetSampledTextureParameter("gColorTex", drawCommand.ParamsCpuMesh.ColorTexture);
+			gpuParameterSet->GetSampledTextureParameter("gSizeTex", drawCommand.ParamsCpuMesh.SizeTexture);
+			gpuParameterSet->GetSampledTextureParameter("gRotationTex", drawCommand.ParamsCpuMesh.RotationTexture);
 
-			renElement.Is3D = true;
-			renElement.Mesh = settings.Mesh;
+			drawCommand.Is3D = true;
+			drawCommand.Mesh = settings.Mesh;
 			break;
 		default:
 			break;
 		}
 	}
 
-	gpuParameterSet->GetStorageBufferParameter("gIndices", renElement.IndicesBuffer);
-	gpuParameterSet->TryGetUniformBufferParameter("PerCamera", renElement.PerCameraUniformBufferParameter);
-	gpuParameterSet->TryGetUniformBufferParameter("ParticleParams", renElement.ParticlesUniformBufferParameter);
+	gpuParameterSet->GetStorageBufferParameter("gIndices", drawCommand.IndicesBuffer);
+	gpuParameterSet->TryGetUniformBufferParameter("PerCamera", drawCommand.PerCameraUniformBufferParameter);
+	gpuParameterSet->TryGetUniformBufferParameter("ParticleParams", drawCommand.ParticlesUniformBufferParameter);
 
 	if(gpu)
 	{
 		// Get sprite image for animation curve generation
 		SpriteImage* spriteImage = nullptr;
 		if(shader->HasTextureParameter("gTexture"))
-			spriteImage = renElement.Material->GetSpriteImage("gTexture").get();
+			spriteImage = drawCommand.Material->GetSpriteImage("gTexture").get();
 
 		if(!spriteImage && shader->HasTextureParameter("gAlbedoTex"))
-			spriteImage = renElement.Material->GetSpriteImage("gAlbedoTex").get();
+			spriteImage = drawCommand.Material->GetSpriteImage("gAlbedoTex").get();
 
 		// Allocate curves
 		GpuParticleCurves& curves = GpuParticleSimulation::Instance().GetResources().GetCurveTexture();
-		curves.Free(rendererParticles.ColorCurveAlloc);
-		curves.Free(rendererParticles.SizeScaleFrameIdxCurveAlloc);
+		curves.Free(renderState.ColorCurveAlloc);
+		curves.Free(renderState.SizeScaleFrameIdxCurveAlloc);
 
 		static constexpr u32 kNumCurveSamples = 128;
 		Color samples[kNumCurveSamples];
@@ -1000,7 +1063,7 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 			samples[i] = Color(sample[0], sample[1], sample[2], sample[3]);
 		}
 
-		rendererParticles.ColorCurveAlloc = curves.Alloc(samples, kNumCurveSamples);
+		renderState.ColorCurveAlloc = curves.Alloc(samples, kNumCurveSamples);
 
 		// Write size over lifetime / sprite animation curve
 		LookupTable sizeLookup = gpuSimSettings.SizeScaleOverLifetime.ToLookupTable(kNumCurveSamples, true);
@@ -1024,18 +1087,18 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 			samples[i] = Color(sample[0], sample[1], frameSamples[i], 0.0f);
 		}
 
-		rendererParticles.SizeScaleFrameIdxCurveAlloc = curves.Alloc(samples, kNumCurveSamples);
+		renderState.SizeScaleFrameIdxCurveAlloc = curves.Alloc(samples, kNumCurveSamples);
 
 		// Update the GPU particles param buffer via staging
-		mUniformBufferPools.UpdateGpuParticlesParamBuffer(rendererParticles);
+		mUniformBufferPools.UpdateGpuParticlesParamBuffer(renderState);
 	}
 
 	// Set up buffers for lighting
 	const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward);
 	if(useForwardRendering)
 	{
-		renElement.ForwardLightingParams.Populate(gpuParameterSet, supportsClusteredForward);
-		renElement.ImageBasedParams.Initialize(gpuParameterSet, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
+		drawCommand.ForwardLightingParams.Populate(gpuParameterSet, supportsClusteredForward);
+		drawCommand.ImageBasedParams.Initialize(gpuParameterSet, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
 	}
 
 	const bool isTransparent = shaderFlags.IsSet(ShaderFlag::Transparent);
@@ -1043,28 +1106,28 @@ void RenderBeastScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool
 	{
 		// Optional depth buffer input if requested
 		if(gpuParameterSet->HasSampledTexture("gDepthBufferTex"))
-			gpuParameterSet->GetSampledTextureParameter("gDepthBufferTex", renElement.DepthInputTexture);
+			gpuParameterSet->GetSampledTextureParameter("gDepthBufferTex", drawCommand.DepthInputTexture);
 	}
 }
 
 void RenderBeastScene::UnregisterParticleSystem(ParticleSystem* particleSystem)
 {
 	const u32 rendererId = particleSystem->GetRendererId();
-	RendererParticles& rendererParticles = mInfo.ParticleSystems[rendererId];
+	ParticleRenderState& renderState = mInfo.ParticleSystems[rendererId];
 
 	// Free curves
 	GpuParticleCurves& curves = GpuParticleSimulation::Instance().GetResources().GetCurveTexture();
-	curves.Free(rendererParticles.ColorCurveAlloc);
-	curves.Free(rendererParticles.SizeScaleFrameIdxCurveAlloc);
+	curves.Free(renderState.ColorCurveAlloc);
+	curves.Free(renderState.SizeScaleFrameIdxCurveAlloc);
 
-	if(rendererParticles.GpuParticleSystem)
+	if(renderState.GpuParticleSystem)
 	{
-		B3DPoolDelete(rendererParticles.GpuParticleSystem);
-		rendererParticles.GpuParticleSystem = nullptr;
+		B3DPoolDelete(renderState.GpuParticleSystem);
+		renderState.GpuParticleSystem = nullptr;
 	}
 
 	// Release the buffer allocation
-	mUniformBufferPools.Release(rendererParticles.PerObjectBufferAllocationHandle);
+	mUniformBufferPools.Release(renderState.PerObjectBufferAllocationHandle);
 
 	ParticleSystem* lastSystem = mInfo.ParticleSystems.back().ParticleSystem;
 	const u32 lastRendererId = lastSystem->GetRendererId();
@@ -1091,22 +1154,22 @@ void RenderBeastScene::RegisterDecal(Decal* decal)
 	mInfo.Decals.emplace_back();
 	mInfo.DecalCullInfos.push_back(CullInfo(decal->GetBounds(), decal->GetLayer()));
 
-	RendererDecal& rendererDecal = mInfo.Decals.back();
-	rendererDecal.Decal = decal;
+	DecalRenderState& renderState = mInfo.Decals.back();
+	renderState.Decal = decal;
 
-	DecalRenderElement& renElement = rendererDecal.RenderElement;
-	renElement.Type = (u32)RenderElementType::Decal;
-	renElement.Mesh = RendererUtility::Instance().GetBoxStencil();
-	renElement.SubMesh = renElement.Mesh->GetProperties().SubMeshes[0];
+	DecalDrawCommand& drawCommand = renderState.DrawCommand;
+	drawCommand.Type = (u32)DrawCommandType::Decal;
+	drawCommand.Mesh = RendererUtility::Instance().GetBoxStencil();
+	drawCommand.SubMesh = drawCommand.Mesh->GetProperties().SubMeshes[0];
 
-	renElement.Material = decal->GetMaterial();
+	drawCommand.Material = decal->GetMaterial();
 
-	if(renElement.Material != nullptr && renElement.Material->GetShader() == nullptr)
-		renElement.Material = nullptr;
+	if(drawCommand.Material != nullptr && drawCommand.Material->GetShader() == nullptr)
+		drawCommand.Material = nullptr;
 
 	// If no material use the default material
-	if(renElement.Material == nullptr)
-		renElement.Material = Material::Create(DefaultDecalMat::Get()->GetShader());
+	if(drawCommand.Material == nullptr)
+		drawCommand.Material = Material::Create(DefaultDecalMaterial::Get()->GetShader());
 
 	for(u32 i = 0; i < 2; i++)
 	{
@@ -1116,64 +1179,64 @@ void RenderBeastScene::RegisterDecal(Decal* decal)
 			findVariationINformation.VariationParameters = kDecalVariationParameterLookup[i][j];
 			findVariationINformation.Override = true;
 
-			u32 variationIndex = renElement.Material->FindVariation(findVariationINformation);
+			u32 variationIndex = drawCommand.Material->FindVariation(findVariationINformation);
 			if(variationIndex == ~0u)
 				variationIndex = 0;
 
-			const SPtr<Variation>& variation = renElement.Material->GetVariation(variationIndex);
+			const SPtr<Variation>& variation = drawCommand.Material->GetVariation(variationIndex);
 			if(variation)
 				variation->Compile();
 
-			renElement.VariationIndices[i][j] = variationIndex;
+			drawCommand.VariationIndices[i][j] = variationIndex;
 		}
 	}
 
-	renElement.DefaultVariationIndex = renElement.VariationIndices[0][0];
+	drawCommand.DefaultVariationIndex = drawCommand.VariationIndices[0][0];
 
 	// Generate or assigned renderer specific data for the material
 	// Note: This makes the assumption that all variations of the material share the same parameter set
-	renElement.ParameterAdapter = renElement.Material->CreateParameterAdapter(renElement.DefaultVariationIndex);
-	renElement.ParameterAdapter->Update(renElement.Material, 0.0f, true);
+	drawCommand.ParameterAdapter = drawCommand.Material->CreateParameterAdapter(drawCommand.DefaultVariationIndex);
+	drawCommand.ParameterAdapter->Update(drawCommand.Material, 0.0f, true);
 
 	// Generate or assign sampler state overrides
-	renElement.SamplerOverrides = AllocSamplerStateOverrides(renElement);
+	drawCommand.SamplerOverrides = AllocSamplerStateOverrides(drawCommand);
 
 	// Prepare all parameter bindings
-	SPtr<GpuParameterSet> gpuParameterSet = renElement.ParameterAdapter->GetGpuParameterSet();
+	SPtr<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
 
 	// Allocate from the uniform buffer manager after ParameterAdapter is created
 	{
 		UniformBufferPools::AllocationResult result = mUniformBufferPools.Allocate(UniformBufferPools::DecalPool);
-		rendererDecal.PerObjectBufferAllocationHandle = result.Handle;
-		rendererDecal.PerObjectParameterSet = result.ParameterSet;
-		rendererDecal.PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
-		rendererDecal.DecalParamSuballocation = result.GetSuballocation(UniformBufferPools::DecalBuffer);
+		renderState.PerObjectBufferAllocationHandle = result.Handle;
+		renderState.PerObjectParameterSet = result.ParameterSet;
+		renderState.PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
+		renderState.DecalParamSuballocation = result.GetSuballocation(UniformBufferPools::DecalBuffer);
 	}
 
 	// Store shared parameter set and buffer offsets for render-time binding
-	renElement.SharedPerObjectParameterSet = rendererDecal.PerObjectParameterSet;
-	renElement.PerObjectBufferOffset = rendererDecal.PerObjectSuballocation.GetSuballocationOffset();
-	renElement.DecalParamBufferOffset = rendererDecal.DecalParamSuballocation.GetSuballocationOffset();
+	drawCommand.SharedPerObjectParameterSet = renderState.PerObjectParameterSet;
+	drawCommand.PerObjectBufferOffset = renderState.PerObjectSuballocation.GetSuballocationOffset();
+	drawCommand.DecalParamBufferOffset = renderState.DecalParamSuballocation.GetSuballocationOffset();
 
 	// Now update the uniform buffers (allocation is ready)
-	rendererDecal.UpdatePerObjectData();
-	mUniformBufferPools.UpdatePerObjectBuffer(rendererDecal);
-	mUniformBufferPools.UpdateDecalParamBuffer(rendererDecal);
+	renderState.UpdatePerObjectData();
+	mUniformBufferPools.UpdatePerObjectBuffer(renderState);
+	mUniformBufferPools.UpdateDecalParamBuffer(renderState);
 
-	gpuParameterSet->TryGetUniformBufferParameter("PerFrame", renElement.PerFrameUniformBufferParameter);
-	gpuParameterSet->TryGetUniformBufferParameter("PerCamera", renElement.PerCameraUniformBufferParameter);
-	gpuParameterSet->TryGetSampledTextureParameter("gDepthBufferTex", renElement.DepthInputTexture);
-	gpuParameterSet->TryGetSampledTextureParameter("gMaskTex", renElement.MaskInputTexture);
+	gpuParameterSet->TryGetUniformBufferParameter("PerFrame", drawCommand.PerFrameUniformBufferParameter);
+	gpuParameterSet->TryGetUniformBufferParameter("PerCamera", drawCommand.PerCameraUniformBufferParameter);
+	gpuParameterSet->TryGetSampledTextureParameter("gDepthBufferTex", drawCommand.DepthInputTexture);
+	gpuParameterSet->TryGetSampledTextureParameter("gMaskTex", drawCommand.MaskInputTexture);
 }
 
 void RenderBeastScene::UpdateDecal(Decal* decal)
 {
 	const u32 rendererId = decal->GetRendererId();
-	RendererDecal& rendererDecal = mInfo.Decals[rendererId];
+	DecalRenderState& renderState = mInfo.Decals[rendererId];
 
-	rendererDecal.UpdatePerObjectData();
-	mUniformBufferPools.UpdatePerObjectBuffer(rendererDecal);
-	mUniformBufferPools.UpdateDecalParamBuffer(rendererDecal);
+	renderState.UpdatePerObjectData();
+	mUniformBufferPools.UpdatePerObjectBuffer(renderState);
+	mUniformBufferPools.UpdateDecalParamBuffer(renderState);
 
 	mInfo.DecalCullInfos[rendererId].Bounds = decal->GetBounds();
 }
@@ -1184,15 +1247,15 @@ void RenderBeastScene::UnregisterDecal(Decal* decal)
 	Decal* lastDecal = mInfo.Decals.back().Decal;
 	const u32 lastDecalId = lastDecal->GetRendererId();
 
-	RendererDecal& rendererDecal = mInfo.Decals[rendererId];
-	DecalRenderElement& renElement = rendererDecal.RenderElement;
+	DecalRenderState& renderState = mInfo.Decals[rendererId];
+	DecalDrawCommand& drawCommand = renderState.DrawCommand;
 
 	// Unregister sampler overrides
-	FreeSamplerStateOverrides(renElement);
-	renElement.SamplerOverrides = nullptr;
+	FreeSamplerStateOverrides(drawCommand);
+	drawCommand.SamplerOverrides = nullptr;
 
 	// Release the buffer allocation
-	mUniformBufferPools.Release(rendererDecal.PerObjectBufferAllocationHandle);
+	mUniformBufferPools.Release(renderState.PerObjectBufferAllocationHandle);
 
 	if(rendererId != lastDecalId)
 	{
@@ -1434,20 +1497,20 @@ void RenderBeastScene::RefreshSamplerOverrides(bool force)
 
 	// Rebind sampler overrides for renderables
 	RenderableObjectStorage& renderableStorage = GetRenderableStorage();
-	for(const auto& renderable : renderableStorage.GetRenderables())
+	for(const auto& renderState : renderableStorage.GetRenderables())
 	{
-		for(auto& renderableElement : renderable->Elements)
+		for(auto& drawCommand : renderState->DrawCommands)
 		{
-			MaterialSamplerOverrides* overrides = renderableElement.SamplerOverrides;
+			MaterialSamplerOverrides* overrides = drawCommand.SamplerOverrides;
 			if(overrides != nullptr && overrides->IsDirty)
 			{
-				const u32 passCount = renderableElement.Material->GetPassCount(renderableElement.DefaultVariationIndex);
+				const u32 passCount = drawCommand.Material->GetPassCount(drawCommand.DefaultVariationIndex);
 				for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 				{
-					const u32 setCount = renderableElement.ParameterAdapter->GetSetCount(passIndex);
+					const u32 setCount = drawCommand.ParameterAdapter->GetSetCount(passIndex);
 					for(u32 setIndex = 0; setIndex < setCount; setIndex++)
 					{
-						const SPtr<GpuParameterSet>& parameterSet = renderableElement.ParameterAdapter->GetGpuParameterSet(passIndex, setIndex);
+						const SPtr<GpuParameterSet>& parameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet(passIndex, setIndex);
 						const SPtr<GpuPipelineParameterSetLayout>& uniformLayoutSet = parameterSet->GetLayout();
 
 						const u32 samplerCount = uniformLayoutSet->GetBindingCount(GpuParameterType::Sampler);
@@ -1484,95 +1547,32 @@ void RenderBeastScene::SetParamFrameParams(float time)
 	gPerFrameUniformDefinition.gTime.Set(mappedScope, time);
 }
 
-void RenderableObjectStorage::PrepareRenderable(PackedRendererId id, const FrameInfo& frameInfo)
-{
-	RenderableRenderState* rendererRenderable = mRenderables[id];
-
-	for(auto& element : rendererRenderable->Elements)
-		element.MaterialAnimationTime += frameInfo.Timings.TimeDelta;
-
-	if(rendererRenderable->PrevFrameDirtyState != PrevFrameDirtyState::Clean)
-	{
-		if(rendererRenderable->PrevFrameDirtyState == PrevFrameDirtyState::Updated)
-			rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::CopyMostRecent;
-		else if(rendererRenderable->PrevFrameDirtyState == PrevFrameDirtyState::CopyMostRecent)
-		{
-			rendererRenderable->PrevWorldTransform = mRenderables[id]->WorldTransform;
-			rendererRenderable->PrevFrameDirtyState = PrevFrameDirtyState::Clean;
-
-			mRenderBeastScene->GetUniformBufferPools().UpdatePerObjectBuffer(*rendererRenderable);
-		}
-	}
-}
-
-void RenderableObjectStorage::PrepareVisibleRenderable(PackedRendererId id, const FrameInfo& frameInfo)
-{
-	SceneInfo& sceneInfo = mRenderBeastScene->GetSceneInfo();
-	if(sceneInfo.RenderableReady[id])
-		return;
-
-	RenderableRenderState* rendererRenderable = mRenderables[id];
-	RenderableProxy& proxy = GetRenderableProxy(id);
-
-	// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
-	SPtr<GpuBuffer> boneMatrixBuffer;
-	SPtr<GpuBuffer> previousBoneMatrixBuffer;
-	bool isAnimated = false;
-	if(frameInfo.PerSceneFrameData.Animation != nullptr)
-	{
-		isAnimated = proxy.GetAnimationId() != (u64)-1;
-
-		if(isAnimated)
-		{
-			proxy.UpdateAnimationBuffers(*frameInfo.PerSceneFrameData.Animation);
-			boneMatrixBuffer = proxy.GetBoneMatrixBuffer();
-			previousBoneMatrixBuffer = proxy.GetPreviousBoneMatrixBuffer();
-		}
-	}
-
-	// Note: Could this step be moved in notifyRenderableUpdated, so it only triggers when material actually gets
-	// changed? Although it shouldn't matter much because if the internal versions keeping track of dirty params.
-	for(auto& element : rendererRenderable->Elements)
-	{
-		element.ParameterAdapter->Update(element.Material, element.MaterialAnimationTime);
-
-		// Note: If renderable is not writing to velocity, then these buffer don't have to be rebound every frame. Potential optimization for future.
-		if(isAnimated)
-		{
-			element.BoneMatrixBufferParameter.Set(boneMatrixBuffer);
-			element.PreviousBoneMatrixBufferParameter.Set(previousBoneMatrixBuffer);
-		}
-	}
-
-	sceneInfo.RenderableReady[id] = true;
-}
-
 void RenderBeastScene::PrepareParticleSystem(u32 idx, const FrameInfo& frameInfo)
 {
-	RendererParticles& rendererParticles = mInfo.ParticleSystems[idx];
+	ParticleRenderState& renderState = mInfo.ParticleSystems[idx];
 
-	if(rendererParticles.PrevFrameDirtyState != PrevFrameDirtyState::Clean)
+	if(renderState.PrevFrameDirtyState != PrevFrameDirtyState::Clean)
 	{
-		if(rendererParticles.PrevFrameDirtyState == PrevFrameDirtyState::Updated)
-			rendererParticles.PrevFrameDirtyState = PrevFrameDirtyState::CopyMostRecent;
-		else if(rendererParticles.PrevFrameDirtyState == PrevFrameDirtyState::CopyMostRecent)
+		if(renderState.PrevFrameDirtyState == PrevFrameDirtyState::Updated)
+			renderState.PrevFrameDirtyState = PrevFrameDirtyState::CopyMostRecent;
+		else if(renderState.PrevFrameDirtyState == PrevFrameDirtyState::CopyMostRecent)
 		{
-			rendererParticles.PrevWorldTransform = rendererParticles.WorldTransform;
-			rendererParticles.PrevFrameDirtyState = PrevFrameDirtyState::Clean;
+			renderState.PrevWorldTransform = renderState.WorldTransform;
+			renderState.PrevFrameDirtyState = PrevFrameDirtyState::Clean;
 
-			mUniformBufferPools.UpdatePerObjectBuffer(rendererParticles);
+			mUniformBufferPools.UpdatePerObjectBuffer(renderState);
 		}
 	}
 
-	ParticlesRenderElement& renElement = mInfo.ParticleSystems[idx].RenderElement;
-	renElement.ParameterAdapter->Update(renElement.Material, 0.0f);
+	ParticlesDrawCommand& drawCommand = mInfo.ParticleSystems[idx].DrawCommand;
+	drawCommand.ParameterAdapter->Update(drawCommand.Material, 0.0f);
 }
 
 void RenderBeastScene::PrepareDecal(u32 idx, const FrameInfo& frameInfo)
 {
-	DecalRenderElement& renElement = mInfo.Decals[idx].RenderElement;
-	renElement.MaterialAnimationTime += frameInfo.Timings.TimeDelta;
-	renElement.ParameterAdapter->Update(renElement.Material, renElement.MaterialAnimationTime);
+	DecalDrawCommand& drawCommand = mInfo.Decals[idx].DrawCommand;
+	drawCommand.MaterialAnimationTime += frameInfo.Timings.TimeDelta;
+	drawCommand.ParameterAdapter->Update(drawCommand.Material, drawCommand.MaterialAnimationTime);
 }
 
 void RenderBeastScene::UpdateParticleSystemBounds(const EvaluatedParticleData* particleRenderData)
@@ -1600,7 +1600,7 @@ void RenderBeastScene::UpdateParticleSystemBounds(const EvaluatedParticleData* p
 	}
 }
 
-MaterialSamplerOverrides* RenderBeastScene::AllocSamplerStateOverrides(RenderElement& elem)
+MaterialSamplerOverrides* RenderBeastScene::AllocSamplerStateOverrides(DrawCommand& elem)
 {
 	SamplerOverrideKey samplerKey(elem.Material, elem.DefaultVariationIndex);
 	auto iterFind = mSamplerOverrides.find(samplerKey);
@@ -1621,7 +1621,7 @@ MaterialSamplerOverrides* RenderBeastScene::AllocSamplerStateOverrides(RenderEle
 	}
 }
 
-void RenderBeastScene::FreeSamplerStateOverrides(RenderElement& elem)
+void RenderBeastScene::FreeSamplerStateOverrides(DrawCommand& elem)
 {
 	SamplerOverrideKey samplerKey(elem.Material, elem.DefaultVariationIndex);
 

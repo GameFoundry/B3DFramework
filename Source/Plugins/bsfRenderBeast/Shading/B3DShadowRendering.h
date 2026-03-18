@@ -10,14 +10,14 @@
 #include "Renderer/B3DRendererMaterial.h"
 #include "RenderAPI/B3DGpuPipelineParameterLayout.h"
 #include "Image/B3DTextureAtlasLayout.h"
-#include "B3DRendererLight.h"
+#include "RenderState/B3DLightRenderState.h"
 
 namespace b3d
 {
 	namespace render
 	{
 		struct FrameInfo;
-		class RendererLight;
+		class LightRenderState;
 		class RenderBeastScene;
 		struct ShadowInfo;
 
@@ -554,13 +554,13 @@ namespace b3d
 			void RenderShadowMaps(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, const RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 			/** Prepares all the GpuParameterSet objects required for rendering projected shadows for the specified light. Should be followed by RenderShadowProjectionBatch. */
-			ProjectedShadowRenderingBatchInformation PrepareParametersForRenderShadowProjection(GpuDevice& gpuDevice, const RendererView& view, const RendererLight& rendererLight, GBufferTextures gbuffer) const;
+			ProjectedShadowRenderingBatchInformation PrepareParametersForRenderShadowProjection(GpuDevice& gpuDevice, const RendererView& view, const LightRenderState& lightRenderState, GBufferTextures gbuffer) const;
 
 			/**
 			 * Renders shadow occlusion values for the specified light, through the provided view, into the currently bound
 			 * render target. User must have started a render pass externally. The system uses shadow maps rendered by RenderShadowMaps().
 			 */
-			void RenderShadowProjectionBatch(GpuCommandBuffer& commandBuffer, const RendererView& view, const RendererLight& rendererLight, const ProjectedShadowRenderingBatchInformation& batch) const;
+			void RenderShadowProjectionBatch(GpuCommandBuffer& commandBuffer, const RendererView& view, const LightRenderState& lightRenderState, const ProjectedShadowRenderingBatchInformation& batch) const;
 
 			/** Changes the default shadow map size. Will cause all shadow maps to be rebuilt. */
 			void SetShadowMapSize(u32 size);
@@ -573,16 +573,16 @@ namespace b3d
 			void RenderCascadedShadowMaps(GpuCommandBuffer& commandBuffer, const RendererView& view, u32 lightIdx, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/** Renders shadow maps for the provided spot light. */
-			void RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, const RendererLight& light, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
+			void RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, const LightRenderState& light, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/** Renders shadow maps for the provided radial light. */
-			void RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, const RendererLight& light, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
+			void RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, const LightRenderState& light, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/**
 			 * Calculates optimal shadow map size, taking into account all views in the scene. Also calculates a fade value
 			 * that can be used for fading out small shadow maps.
 			 *
-			 * @param[in]	light			Light for which to calculate the shadow map properties. Cannot be a directional light.
+			 * @param[in]	lightRenderState			Light for which to calculate the shadow map properties. Cannot be a directional light.
 			 * @param[in]	viewGroup		All the views the shadow will (potentially) be seen through.
 			 * @param[in]	border			Border to reduce the shadow map size by, in pixels.
 			 * @param[out]	size			Optimal size of the shadow map, in pixels.
@@ -590,7 +590,7 @@ namespace b3d
 			 *								entry corresponds to a single view.
 			 * @param[out]	maxFadePercent	Maximum value in the @p fadePercents array.
 			 */
-			void CalcShadowMapProperties(const RendererLight& light, const RendererViewGroup& viewGroup, u32 border, u32& size, TInlineArray<float, 6>& fadePercents, float& maxFadePercent) const;
+			void CalcShadowMapProperties(const LightRenderState& lightRenderState, const RendererViewGroup& viewGroup, u32 border, u32& size, TInlineArray<float, 6>& fadePercents, float& maxFadePercent) const;
 
 			/**
 			 * Draws a mesh representing near and far planes at the provided coordinates. The mesh is constructed using

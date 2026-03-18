@@ -462,7 +462,6 @@ namespace b3d
 	class GUIContextMenu;
 	class GUIDropDownHitBox;
 	class GUIDropDownContent;
-	class RenderElement;
 	class GUISlider;
 	class GUIVerticalSlider;
 	class GUIHorizontalSlider;
@@ -538,7 +537,7 @@ namespace b3d
 		class TimerQuery;
 		class OcclusionQuery;
 		class TextureView;
-		class RenderElement;
+		class DrawCommand;
 		class RenderWindowManager;
 		class GpuBuffer;
 	} // namespace render

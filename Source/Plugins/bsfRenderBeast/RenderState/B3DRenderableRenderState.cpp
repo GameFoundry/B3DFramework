@@ -11,7 +11,7 @@ namespace render {
 
 PerObjectUniformDefinition gPerObjectUniformDefinition;
 
-void RenderableElement::Draw(GpuCommandBuffer& commandBuffer) const
+void RenderableDrawCommand::Draw(GpuCommandBuffer& commandBuffer) const
 {
 	if(MorphVertexDefinition == nullptr)
 		GetRendererUtility().Draw(commandBuffer, Mesh, SubMesh);

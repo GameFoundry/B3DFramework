@@ -9,7 +9,7 @@
 #include "Particles/B3DVectorField.h"
 #include "Particles/B3DParticleDistribution.h"
 #include "Math/B3DVector3.h"
-#include "B3DRendererParticles.h"
+#include "RenderState/B3DParticleRenderState.h"
 #include "B3DRenderBeastScene.h"
 #include "B3DRenderBeast.h"
 #include "RenderAPI/B3DGpuCommandBuffer.h"
@@ -467,7 +467,7 @@ AABox GpuParticleSystem::GetBounds() const
 	return settings.CustomBounds;
 }
 
-const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const RendererParticles& rendererInfo, float dt)
+const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const ParticleRenderState& particleRenderState, float dt)
 {
 	// Note: Many of those could only be updated when relevant settings change, but for simplicity we update them every frame.
 
@@ -530,7 +530,7 @@ const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const 
 		const Vector3 scale = vfDesc.Bounds.GetSize() * simSettings.VectorField.Scale;
 
 		Matrix4 fieldToWorld = Matrix4::TRS(offset, rotation, scale);
-		fieldToWorld = rendererInfo.WorldTransform * fieldToWorld;
+		fieldToWorld = particleRenderState.WorldTransform * fieldToWorld;
 
 		const Matrix3 fieldToWorld3x3 = fieldToWorld.Get3x3();
 
@@ -546,7 +546,7 @@ const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const 
 	const ParticleDepthCollisionSettings& depthCollisionSettings = simSettings.DepthCollision;
 	if(depthCollisionSettings.Enabled)
 	{
-		Vector3 scale3D = rendererInfo.ParticleSystem->GetWorldTransform().GetScale();
+		Vector3 scale3D = particleRenderState.ParticleSystem->GetWorldTransform().GetScale();
 		float uniformScale = std::max(std::max(scale3D.X, scale3D.Y), scale3D.Z);
 
 		gGpuParticleDepthCollisionUniformDefinition.gCollisionRange.Set(depthCollisionUniforms, 2.0f);
@@ -556,9 +556,9 @@ const SPtr<GpuParameterSet>& GpuParticleSystem::PrepareSimulateParameters(const 
 		gGpuParticleDepthCollisionUniformDefinition.gRestitution.Set(depthCollisionUniforms, depthCollisionSettings.Restitution);
 
 		const Vector2 sizeScaleUVOffset =
-			GpuParticleCurves::GetUvOffset(rendererInfo.SizeScaleFrameIdxCurveAlloc);
+			GpuParticleCurves::GetUvOffset(particleRenderState.SizeScaleFrameIdxCurveAlloc);
 		const float sizeScaleUVScale =
-			GpuParticleCurves::GetUvScale(rendererInfo.SizeScaleFrameIdxCurveAlloc);
+			GpuParticleCurves::GetUvScale(particleRenderState.SizeScaleFrameIdxCurveAlloc);
 
 		gGpuParticleDepthCollisionUniformDefinition.gSizeScaleCurveOffset.Set(depthCollisionUniforms, sizeScaleUVOffset);
 		gGpuParticleDepthCollisionUniformDefinition.gSizeScaleCurveScale.Set(
@@ -698,7 +698,7 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 			continue;
 
 		ParticleSystem* parentSystem = entry->GetParent();
-		const RendererParticles& rendererParticles = sceneInfo.ParticleSystems[parentSystem->GetRendererId()];
+		const ParticleRenderState& particleRenderState = sceneInfo.ParticleSystems[parentSystem->GetRendererId()];
 
 		// Get vector field texture if any
 		SPtr<Texture> vectorFieldTexture;
@@ -709,11 +709,11 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 
 		const bool supportsDepthCollisions = gpuSimulationSettings.DepthCollision.Enabled;
 
-		const SPtr<GpuParameterSet>& systemParams = entry->PrepareSimulateParameters(rendererParticles, dt);
+		const SPtr<GpuParameterSet>& systemParams = entry->PrepareSimulateParameters(particleRenderState, dt);
 
 		// Populate remaining parameters (textures and other buffers)
 		GpuParticleSimulateMaterial::PopulateParameters(systemParams, m->Resources, m->ParticleVertexInputBuffer, viewParams,
-			gbuffer.Depth, gbuffer.Normals, entry->GetTileUVs(), rendererParticles.PerObjectSuballocation, vectorFieldTexture, supportsDepthCollisions
+			gbuffer.Depth, gbuffer.Normals, entry->GetTileUVs(), particleRenderState.PerObjectSuballocation, vectorFieldTexture, supportsDepthCollisions
 		);
 
 		simulatePass.Parameters.Add(systemParams);

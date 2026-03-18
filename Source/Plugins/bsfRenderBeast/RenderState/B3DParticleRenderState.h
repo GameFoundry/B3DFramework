@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DRenderBeastPrerequisites.h"
-#include "Renderer/B3DRenderElement.h"
+#include "Renderer/B3DDrawCommand.h"
 #include "Renderer/B3DGpuUniformBuffer.h"
 #include "RenderAPI/B3DGpuPipelineParameterLayout.h"
 #include "RenderAPI/B3DGpuBufferPool.h"
@@ -11,8 +11,8 @@
 #include "Allocators/B3DPoolAlloc.h"
 #include "Renderer/B3DRendererMaterial.h"
 #include "Utility/B3DTextureRowAllocator.h"
-#include "B3DRendererObject.h"
-#include "B3DRendererLight.h"
+#include "B3DRenderState.h"
+#include "B3DLightRenderState.h"
 #include "B3DRendererReflectionProbe.h"
 #include "Shading/B3DGpuParticleSimulation.h"
 
@@ -123,8 +123,8 @@ namespace b3d
 		 */
 		const ShaderVariationParameters& GetParticleShaderVariationParameters(ParticleOrientation orient, bool lockY, bool gpu, bool is3d, ParticleForwardLightingType forwardLighting);
 
-		/** Contains information required for rendering a single particle system. */
-		class ParticlesRenderElement : public RenderElement
+		/** Contains information required for drawing a particle system. */
+		class ParticlesDrawCommand : public DrawCommand
 		{
 		public:
 			/** Parameters relevant for billboard rendering of the outputs of the particle CPU simulation. */
@@ -214,8 +214,8 @@ namespace b3d
 			void Draw(GpuCommandBuffer& commandBuffer) const override;
 		};
 
-		/** Contains information about a ParticleSystem, used by the Renderer. */
-		struct RendererParticles : RendererObject
+		/** Renderer-specific state for a decal. */
+		struct ParticleRenderState : RenderState
 		{
 			/** Owner particle system. */
 			ParticleSystem* ParticleSystem = nullptr;
@@ -224,7 +224,7 @@ namespace b3d
 			GpuParticleSystem* GpuParticleSystem = nullptr;
 
 			/** Element used for sorting and rendering the particle system. */
-			mutable ParticlesRenderElement RenderElement;
+			mutable ParticlesDrawCommand DrawCommand;
 
 			/** Suballocation for GPU particle parameters (GPU-simulated only). */
 			GpuBufferSuballocation GpuParticlesParamSuballocation;
@@ -265,7 +265,7 @@ namespace b3d
 		};
 
 		/** Default material used for rendering particles, when no other is available. */
-		class DefaultParticlesMat : public RendererMaterial<DefaultParticlesMat>
+		class DefaultParticleMaterial : public RendererMaterial<DefaultParticleMaterial>
 		{
 			RMAT_DEF("ParticlesUnlit.bsl");
 		};
