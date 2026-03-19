@@ -411,13 +411,13 @@ namespace b3d
 
 	protected:
 		/**
-		 * Replays renderer object allocation/deallocation commands on the render thread, updating packed arrays.
-		 * Subclasses must call RendererObjectStorage::ProcessAllocationsAndDeallocations with their specific arrays.
+		 * Applies flushed renderer object commands on the render thread, updating packed arrays and freeing command buffers.
+		 * Subclasses must call RendererObjectStorage::ApplyCommands with their specific arrays.
 		 *
-		 * @param deallocations	Commands for objects deallocated this frame.
-		 * @param allocations	Commands for objects allocated this frame.
+		 * @param commands		Flushed allocation/deallocation commands to apply.
+		 * @param allocator		FrameAllocator used to free the command buffers.
 		 */
-		virtual void ProcessAllocationsAndDeallocations(TArrayView<const RendererIdCommand> deallocations, TArrayView<const RendererIdCommand> allocations) = 0;
+		virtual void ApplyCommands(const FlushedCommands& commands, FrameAllocator& allocator) = 0;
 
 		Vector<render::RenderableProxy> mRenderableProxies;
 

@@ -780,13 +780,7 @@ void RenderableObjectStorageBase::SyncWrite(void* rawData, FrameAllocator& alloc
 	const FlushedCommands& commands = batch->Commands;
 
 	if(commands.Deallocations.Size() > 0 || commands.Allocations.Size() > 0)
-		ProcessAllocationsAndDeallocations(commands.Deallocations, commands.Allocations);
-
-	if(commands.Deallocations.Data())
-		allocator.Free(reinterpret_cast<u8*>(const_cast<RendererIdCommand*>(commands.Deallocations.Data())));
-
-	if(commands.Allocations.Data())
-		allocator.Free(reinterpret_cast<u8*>(const_cast<RendererIdCommand*>(commands.Allocations.Data())));
+		ApplyCommands(commands, allocator);
 
 	// Upper-bound counts for batch arrays
 	const u32 fullUpdateCount = batch->Full.Count;

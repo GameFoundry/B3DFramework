@@ -167,11 +167,11 @@ static void ValidateBasePassMaterial(Material& material, RenderableAnimType anim
 
 RenderableObjectStorage::RenderableObjectStorage() = default;
 
-void RenderableObjectStorage::ProcessAllocationsAndDeallocations(TArrayView<const RendererIdCommand> deallocations, TArrayView<const RendererIdCommand> allocations)
+void RenderableObjectStorage::ApplyCommands(const FlushedCommands& commands, FrameAllocator& allocator)
 {
-	RendererObjectStorage::ProcessAllocationsAndDeallocations(
-		deallocations,
-		allocations,
+	RendererObjectStorage::ApplyCommands(
+		commands,
+		allocator,
 		[this](PackedRendererId slot) { mRenderableProxies[slot].SetRendererId(slot); },
 		[this](TArrayView<const PackedRendererId> slotIds) { DestroyRenderState(slotIds); },
 		mRenderableProxies, mRenderables, mRenderableCullInfos);
