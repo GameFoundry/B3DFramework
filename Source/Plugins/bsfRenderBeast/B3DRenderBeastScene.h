@@ -34,8 +34,8 @@ namespace b3d
 		constexpr u32 kMaxReflectionCubemaps = 2048 / 6;
 
 		/**
-		 * Concrete renderable object storage for RenderBeast. Owns the packed renderable and cull-info arrays,
-		 * and implements register/unregister/update/slot-replay operations.
+		 * Maintains packed arrays containing renderer-specific data for renderables. Allows fast iteration over
+		 * all renderables in a scene and provides data needed for their rendering and culling.
 		 */
 		class RenderableObjectStorage final : public RenderableObjectStorageBase
 		{
@@ -43,9 +43,9 @@ namespace b3d
 			RenderableObjectStorage();
 
 			void ApplyCommands(const CommandBatch& commands, FrameAllocator& allocator) override;
-			void CreateRenderState(TArrayView<const PackedRendererId> slotIds) override;
-			void DestroyRenderState(TArrayView<const PackedRendererId> slotIds) override;
-			void UpdateRenderState(TArrayView<const PackedRendererId> slotIds) override;
+			void CreateRenderState(TArrayView<const PackedRendererId> ids) override;
+			void DestroyRenderState(TArrayView<const PackedRendererId> ids) override;
+			void UpdateRenderState(TArrayView<const PackedRendererId> ids) override;
 
 			/** Returns renderable at the provided index. Valid index is range [0, GetRenderableCount()). */
 			RenderableRenderState* GetRenderable(u32 index) const { return mRenderables[index]; }
@@ -56,7 +56,7 @@ namespace b3d
 			/**
 			 * Performs necessary per-frame updates to a renderable. This must be called once every frame for every renderable.
 			 *
-			 * @param	id			Slot ID of the renderable to prepare.
+			 * @param	id			Packed id of the renderable to prepare.
 			 * @param	frameInfo	Global information describing the current frame.
 			 */
 			void PrepareRenderable(PackedRendererId id, const FrameInfo& frameInfo);
@@ -66,7 +66,7 @@ namespace b3d
 			 * for every renderable that will be drawn. Multiple calls for the same renderable during a single frame will result
 			 * in a no-op.
 			 *
-			 * @param	id			Slot ID of the renderable to prepare.
+			 * @param	id			Packed id of the renderable to prepare.
 			 * @param	frameInfo	Global information describing the current frame.
 			 */
 			void PrepareVisibleRenderable(PackedRendererId id, const FrameInfo& frameInfo);
@@ -93,6 +93,62 @@ namespace b3d
 			RenderBeastScene* mRenderBeastScene = nullptr;
 		};
 
+		/**
+		 * Maintains packed arrays containing renderer-specific data for lights. Allows fast iteration over
+		 * all lights in a scene, provides iteration over different light types, and provides data needed for
+		 * their rendering and culling.
+		 */
+		class LightObjectStorage final : public LightObjectStorageBase
+		{
+		public:
+			LightObjectStorage();
+
+			void ApplyCommands(const CommandBatch& commands, FrameAllocator& allocator) override;
+			void CreateRenderState(TArrayView<const PackedRendererId> ids) override;
+			void DestroyRenderState(TArrayView<const PackedRendererId> ids) override;
+			void UpdateRenderState(TArrayView<const PackedRendererId> ids) override;
+
+			/** Returns an array of all directional lights in the scene. */
+			const Vector<LightRenderState>& GetDirectionalLights() const { return mDirectionalLights; }
+
+			/** Returns an array of all radial lights in the scene. */
+			const Vector<LightRenderState>& GetRadialLights() const { return mRadialLights; }
+
+			/** Returns an array of all spot lights in the scene. */
+			const Vector<LightRenderState>& GetSpotLights() const { return mSpotLights; }
+
+			/** Returns an array holding the world space bounds of all radial lights. */
+			const Vector<Sphere>& GetRadialLightWorldBounds() const { return mRadialLightWorldBounds; }
+
+			/** Returns an array holding the world space bounds of all spot lights. */
+			const Vector<Sphere>& GetSpotLightWorldBounds() const { return mSpotLightWorldBounds; }
+
+			/** Returns mutable per-type arrays. Used by old RegisterLight/UpdateLight/UnregisterLight path during transition. */
+			Vector<LightRenderState>& GetDirectionalLights() { return mDirectionalLights; }
+			Vector<LightRenderState>& GetRadialLights() { return mRadialLights; }
+			Vector<LightRenderState>& GetSpotLights() { return mSpotLights; }
+			Vector<Sphere>& GetRadialLightWorldBounds() { return mRadialLightWorldBounds; }
+			Vector<Sphere>& GetSpotLightWorldBounds() { return mSpotLightWorldBounds; }
+
+		private:
+			/** Maps a PackedRendererId in LightObjectStorage to its per-type array location. */
+			struct TypeArrayMapping
+			{
+				LightType Type = LightType::Radial;
+				u32 TypeArrayIndex = 0;
+			};
+
+			Vector<LightRenderState> mDirectionalLights;
+			Vector<LightRenderState> mRadialLights;
+			Vector<LightRenderState> mSpotLights;
+			Vector<Sphere> mRadialLightWorldBounds;
+			Vector<Sphere> mSpotLightWorldBounds;
+			Vector<PackedRendererId> mDirectionalLightPackedIds;
+			Vector<PackedRendererId> mRadialLightPackedIds;
+			Vector<PackedRendererId> mSpotLightPackedIds;
+			Vector<TypeArrayMapping> mPackedIndexToTypeArrayIndex;
+		};
+
 		/** Contains most scene objects relevant to the renderer. */
 		struct SceneInfo
 		{
@@ -105,12 +161,12 @@ namespace b3d
 			const Vector<RenderableRenderState*>* Renderables = nullptr;
 			const Vector<CullInfo>* RenderableCullInfos = nullptr;
 
-			// Lights
-			Vector<LightRenderState> DirectionalLights;
-			Vector<LightRenderState> RadialLights;
-			Vector<LightRenderState> SpotLights;
-			Vector<Sphere> RadialLightWorldBounds;
-			Vector<Sphere> SpotLightWorldBounds;
+			// Lights — pointers to arrays in LightObjectStorage
+			const Vector<LightRenderState>* DirectionalLights = nullptr;
+			const Vector<LightRenderState>* RadialLights = nullptr;
+			const Vector<LightRenderState>* SpotLights = nullptr;
+			const Vector<Sphere>* RadialLightWorldBounds = nullptr;
+			const Vector<Sphere>* SpotLightWorldBounds = nullptr;
 
 			// Reflection probes
 			Vector<ReflectionProbeRenderState> ReflProbes;
@@ -231,9 +287,13 @@ namespace b3d
 			/** Returns the object for managing uniform buffer allocations. */
 			UniformBufferPools& GetUniformBufferPools() { return mUniformBufferPools; }
 
-			/** Returns the concrete renderable object storage. */
+			/** Returns the renderable object storage. */
 			RenderableObjectStorage& GetRenderableStorage() { return static_cast<RenderableObjectStorage&>(*mRenderableStorage.get()); }
 			const RenderableObjectStorage& GetRenderableStorage() const { return static_cast<const RenderableObjectStorage&>(*mRenderableStorage.get()); }
+
+			/** Returns the light object storage. */
+			LightObjectStorage& GetLightStorage() { return static_cast<LightObjectStorage&>(*mLightStorage.get()); }
+			const LightObjectStorage& GetLightStorage() const { return static_cast<const LightObjectStorage&>(*mLightStorage.get()); }
 
 			/**
 			 * Generates sampler state overrides for the provided render element, or returns existing ones if they
@@ -254,6 +314,7 @@ namespace b3d
 
 		private:
 			friend class RenderableObjectStorage;
+			friend class LightObjectStorage;
 
 			/** Creates a renderer view descriptor for the particular camera. */
 			RendererViewCreateInformation CreateViewDesc(Camera* camera) const;

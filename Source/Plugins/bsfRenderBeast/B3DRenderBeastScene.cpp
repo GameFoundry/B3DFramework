@@ -172,54 +172,28 @@ void RenderableObjectStorage::ApplyCommands(const CommandBatch& commands, FrameA
 	RendererObjectStorage::ApplyCommandsHelper(
 		commands,
 		allocator,
-		[this](PackedRendererId slot) { mRenderableProxies[slot].SetRendererId(slot); },
-		[this](TArrayView<const PackedRendererId> slotIds) { DestroyRenderState(slotIds); },
+		[this](PackedRendererId id) { mRenderableProxies[id].SetRendererId(id); },
+		[this](TArrayView<const PackedRendererId> ids) { DestroyRenderState(ids); },
 		mRenderableProxies, mRenderables, mRenderableCullInfos);
 }
 
-void RenderableObjectStorage::DestroyRenderState(TArrayView<const PackedRendererId> slotIds)
+void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> ids)
 {
 	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
 
-	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
+	for(const PackedRendererId packedId : ids)
 	{
-		PackedRendererId slotId = slotIds[slotIndex];
-		RenderableRenderState* renderState = mRenderables[slotId];
-		if(renderState == nullptr)
-			continue;
+		RenderableProxy& proxy = mRenderableProxies[packedId];
 
-		for(auto& element : renderState->DrawCommands)
-		{
-			mRenderBeastScene->FreeSamplerStateOverrides(element);
-			element.SamplerOverrides = nullptr;
-		}
-
-		uniformBufferPools.Release(renderState->PerObjectBufferAllocationHandle);
-		B3DDelete(renderState);
-
-		mRenderables[slotId] = nullptr;
-		mRenderableProxies[slotId].SetRendererId(kInvalidPackedRendererId);
-	}
-}
-
-void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> slotIds)
-{
-	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
-
-	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
-	{
-		PackedRendererId renderableId = slotIds[slotIndex];
-		RenderableProxy& proxy = mRenderableProxies[renderableId];
-
-		proxy.SetRendererId(renderableId);
+		proxy.SetRendererId(packedId);
 
 		B3D_ASSERT(renderableId < (PackedRendererId)mRenderables.size());
 		B3D_ASSERT(mRenderables[renderableId] == nullptr);
 
-		mRenderables[renderableId] = B3DNew<RenderableRenderState>();
-		mRenderableCullInfos[renderableId] = CullInfo(proxy.GetBounds(), proxy.GetLayer(), proxy.GetCullDistanceFactor());
+		mRenderables[packedId] = B3DNew<RenderableRenderState>();
+		mRenderableCullInfos[packedId] = CullInfo(proxy.GetBounds(), proxy.GetLayer(), proxy.GetCullDistanceFactor());
 
-		RenderableRenderState* renderState = mRenderables[renderableId];
+		RenderableRenderState* renderState = mRenderables[packedId];
 		renderState->UpdatePerObjectData(proxy);
 		renderState->PrevWorldTransform = renderState->WorldTransform;
 		renderState->PrevFrameDirtyState = PrevFrameDirtyState::Clean;
@@ -347,15 +321,38 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 	}
 }
 
-void RenderableObjectStorage::UpdateRenderState(TArrayView<const PackedRendererId> slotIds)
+void RenderableObjectStorage::DestroyRenderState(TArrayView<const PackedRendererId> ids)
 {
 	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
 
-	for(u32 slotIndex = 0; slotIndex < slotIds.Size(); ++slotIndex)
+	for(const PackedRendererId packedId : ids)
 	{
-		PackedRendererId renderableId = slotIds[slotIndex];
-		RenderableProxy& proxy = mRenderableProxies[renderableId];
-		RenderableRenderState* renderState = mRenderables[renderableId];
+		RenderableRenderState* renderState = mRenderables[packedId];
+		if(renderState == nullptr)
+			continue;
+
+		for(auto& element : renderState->DrawCommands)
+		{
+			mRenderBeastScene->FreeSamplerStateOverrides(element);
+			element.SamplerOverrides = nullptr;
+		}
+
+		uniformBufferPools.Release(renderState->PerObjectBufferAllocationHandle);
+		B3DDelete(renderState);
+
+		mRenderables[packedId] = nullptr;
+		mRenderableProxies[packedId].SetRendererId(kInvalidPackedRendererId);
+	}
+}
+
+void RenderableObjectStorage::UpdateRenderState(TArrayView<const PackedRendererId> ids)
+{
+	UniformBufferPools& uniformBufferPools = mRenderBeastScene->GetUniformBufferPools();
+
+	for(const PackedRendererId packedId : ids)
+	{
+		RenderableProxy& proxy = mRenderableProxies[packedId];
+		RenderableRenderState* renderState = mRenderables[packedId];
 
 		if(renderState->PrevFrameDirtyState != PrevFrameDirtyState::Updated)
 			renderState->PrevWorldTransform = renderState->WorldTransform;
@@ -365,8 +362,8 @@ void RenderableObjectStorage::UpdateRenderState(TArrayView<const PackedRendererI
 
 		uniformBufferPools.UpdatePerObjectBuffer(*renderState);
 
-		mRenderableCullInfos[renderableId].Bounds = proxy.GetBounds();
-		mRenderableCullInfos[renderableId].CullDistanceFactor = proxy.GetCullDistanceFactor();
+		mRenderableCullInfos[packedId].Bounds = proxy.GetBounds();
+		mRenderableCullInfos[packedId].CullDistanceFactor = proxy.GetCullDistanceFactor();
 	}
 }
 
@@ -433,10 +430,145 @@ void RenderableObjectStorage::PrepareVisibleRenderable(PackedRendererId id, cons
 	sceneInfo.RenderableReady[id] = true;
 }
 
+// ---- LightObjectStorage ----
+
+LightObjectStorage::LightObjectStorage() = default;
+
+void LightObjectStorage::ApplyCommands(const CommandBatch& commands, FrameAllocator& allocator)
+{
+	RendererObjectStorage::ApplyCommandsHelper(
+		commands,
+		allocator,
+		[this](PackedRendererId id)
+		{
+			mLightProxies[id].SetRendererId(id);
+
+			const TypeArrayMapping& mapping = mPackedIndexToTypeArrayIndex[id];
+			if(mapping.Type == LightType::Directional)
+				mDirectionalLightPackedIds[mapping.TypeArrayIndex] = id;
+			else if(mapping.Type == LightType::Radial)
+				mRadialLightPackedIds[mapping.TypeArrayIndex] = id;
+			else
+				mSpotLightPackedIds[mapping.TypeArrayIndex] = id;
+		},
+		[this](TArrayView<const PackedRendererId> ids) { DestroyRenderState(ids); },
+		mLightProxies, mPackedIndexToTypeArrayIndex);
+}
+
+void LightObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> ids)
+{
+	for(const PackedRendererId packedId : ids)
+	{
+		const LightProxy& proxy = mLightProxies[packedId];
+		const LightType type = proxy.GetType();
+
+		LightRenderState renderState;
+
+		TypeArrayMapping perTypeArrayMapping;
+		perTypeArrayMapping.Type = type;
+
+		if(type == LightType::Directional)
+		{
+			perTypeArrayMapping.TypeArrayIndex = (u32)mDirectionalLights.size();
+			mDirectionalLights.push_back(renderState);
+			mDirectionalLightPackedIds.push_back(packedId);
+		}
+		else if(type == LightType::Radial)
+		{
+			perTypeArrayMapping.TypeArrayIndex = (u32)mRadialLights.size();
+			mRadialLights.push_back(renderState);
+			mRadialLightPackedIds.push_back(packedId);
+			mRadialLightWorldBounds.push_back(proxy.GetBounds());
+		}
+		else // Spot
+		{
+			perTypeArrayMapping.TypeArrayIndex = (u32)mSpotLights.size();
+			mSpotLights.push_back(renderState);
+			mSpotLightPackedIds.push_back(packedId);
+			mSpotLightWorldBounds.push_back(proxy.GetBounds());
+		}
+
+		mPackedIndexToTypeArrayIndex[packedId] = perTypeArrayMapping;
+	}
+}
+
+void LightObjectStorage::DestroyRenderState(TArrayView<const PackedRendererId> ids)
+{
+	for(const PackedRendererId packedId : ids)
+	{
+		const TypeArrayMapping& info = mPackedIndexToTypeArrayIndex[packedId];
+		const u32 indexInTypeArray = info.TypeArrayIndex;
+
+		if(info.Type == LightType::Directional)
+		{
+			const u32 lastIndex = (u32)mDirectionalLights.size() - 1;
+			if(indexInTypeArray != lastIndex)
+			{
+				std::swap(mDirectionalLights[indexInTypeArray], mDirectionalLights[lastIndex]);
+				std::swap(mDirectionalLightPackedIds[indexInTypeArray], mDirectionalLightPackedIds[lastIndex]);
+
+				PackedRendererId swappedPackedId = mDirectionalLightPackedIds[indexInTypeArray];
+				mPackedIndexToTypeArrayIndex[swappedPackedId].TypeArrayIndex = indexInTypeArray;
+			}
+			mDirectionalLights.pop_back();
+			mDirectionalLightPackedIds.pop_back();
+		}
+		else if(info.Type == LightType::Radial)
+		{
+			const u32 lastIndex = (u32)mRadialLights.size() - 1;
+			if(indexInTypeArray != lastIndex)
+			{
+				std::swap(mRadialLights[indexInTypeArray], mRadialLights[lastIndex]);
+				std::swap(mRadialLightWorldBounds[indexInTypeArray], mRadialLightWorldBounds[lastIndex]);
+				std::swap(mRadialLightPackedIds[indexInTypeArray], mRadialLightPackedIds[lastIndex]);
+
+				PackedRendererId swappedPackedId = mRadialLightPackedIds[indexInTypeArray];
+				mPackedIndexToTypeArrayIndex[swappedPackedId].TypeArrayIndex = indexInTypeArray;
+			}
+			mRadialLights.pop_back();
+			mRadialLightWorldBounds.pop_back();
+			mRadialLightPackedIds.pop_back();
+		}
+		else // Spot
+		{
+			const u32 lastIndex = (u32)mSpotLights.size() - 1;
+			if(indexInTypeArray != lastIndex)
+			{
+				std::swap(mSpotLights[indexInTypeArray], mSpotLights[lastIndex]);
+				std::swap(mSpotLightWorldBounds[indexInTypeArray], mSpotLightWorldBounds[lastIndex]);
+				std::swap(mSpotLightPackedIds[indexInTypeArray], mSpotLightPackedIds[lastIndex]);
+
+				PackedRendererId swappedPackedId = mSpotLightPackedIds[indexInTypeArray];
+				mPackedIndexToTypeArrayIndex[swappedPackedId].TypeArrayIndex = indexInTypeArray;
+			}
+			mSpotLights.pop_back();
+			mSpotLightWorldBounds.pop_back();
+			mSpotLightPackedIds.pop_back();
+		}
+	}
+}
+
+void LightObjectStorage::UpdateRenderState(TArrayView<const PackedRendererId> ids)
+{
+	for(const PackedRendererId packedId : ids)
+	{
+		const LightProxy& proxy = mLightProxies[packedId];
+		const TypeArrayMapping& info = mPackedIndexToTypeArrayIndex[packedId];
+
+		if(info.Type == LightType::Radial)
+			mRadialLightWorldBounds[info.TypeArrayIndex] = proxy.GetBounds();
+		else if(info.Type == LightType::Spot)
+			mSpotLightWorldBounds[info.TypeArrayIndex] = proxy.GetBounds();
+	}
+}
+
+// ---- RenderBeastScene ----
+
 RenderBeastScene::RenderBeastScene(const SPtr<RenderBeastOptions>& options)
 	: mOptions(options)
 {
 	mRenderableStorage = B3DMakeShared<RenderableObjectStorage>();
+	mLightStorage = B3DMakeShared<LightObjectStorage>();
 }
 
 void RenderBeastScene::RegisterCamera(Camera* camera)
@@ -523,100 +655,96 @@ void RenderBeastScene::UnregisterCamera(Camera* camera)
 
 void RenderBeastScene::RegisterLight(Light* light)
 {
+	LightObjectStorage& lightStorage = GetLightStorage();
+
 	if(light->GetType() == LightType::Directional)
 	{
-		u32 lightId = (u32)mInfo.DirectionalLights.size();
+		u32 lightId = (u32)lightStorage.GetDirectionalLights().size();
 		light->SetRendererId(lightId);
 
-		mInfo.DirectionalLights.push_back(LightRenderState(light));
+		lightStorage.GetDirectionalLights().push_back(LightRenderState(light));
 	}
-	else
+	else if(light->GetType() == LightType::Radial)
 	{
-		if(light->GetType() == LightType::Radial)
-		{
-			u32 lightId = (u32)mInfo.RadialLights.size();
-			light->SetRendererId(lightId);
+		u32 lightId = (u32)lightStorage.GetRadialLights().size();
+		light->SetRendererId(lightId);
 
-			mInfo.RadialLights.push_back(LightRenderState(light));
-			mInfo.RadialLightWorldBounds.push_back(light->GetBounds());
-		}
-		else // Spot
-		{
-			u32 lightId = (u32)mInfo.SpotLights.size();
-			light->SetRendererId(lightId);
+		lightStorage.GetRadialLights().push_back(LightRenderState(light));
+		lightStorage.GetRadialLightWorldBounds().push_back(light->GetBounds());
+	}
+	else // Spot
+	{
+		u32 lightId = (u32)lightStorage.GetSpotLights().size();
+		light->SetRendererId(lightId);
 
-			mInfo.SpotLights.push_back(LightRenderState(light));
-			mInfo.SpotLightWorldBounds.push_back(light->GetBounds());
-		}
+		lightStorage.GetSpotLights().push_back(LightRenderState(light));
+		lightStorage.GetSpotLightWorldBounds().push_back(light->GetBounds());
 	}
 }
 
 void RenderBeastScene::UpdateLight(Light* light)
 {
+	LightObjectStorage& lightStorage = GetLightStorage();
 	u32 lightId = light->GetRendererId();
 
 	if(light->GetType() == LightType::Radial)
-		mInfo.RadialLightWorldBounds[lightId] = light->GetBounds();
+		lightStorage.GetRadialLightWorldBounds()[lightId] = light->GetBounds();
 	else if(light->GetType() == LightType::Spot)
-		mInfo.SpotLightWorldBounds[lightId] = light->GetBounds();
+		lightStorage.GetSpotLightWorldBounds()[lightId] = light->GetBounds();
 }
 
 void RenderBeastScene::UnregisterLight(Light* light)
 {
+	LightObjectStorage& lightStorage = GetLightStorage();
 	u32 lightId = light->GetRendererId();
+
 	if(light->GetType() == LightType::Directional)
 	{
-		Light* lastLight = mInfo.DirectionalLights.back().Light;
+		auto& dirLights = lightStorage.GetDirectionalLights();
+		Light* lastLight = dirLights.back().Light;
 		u32 lastLightId = lastLight->GetRendererId();
 
 		if(lightId != lastLightId)
 		{
-			// Swap current last element with the one we want to erase
-			std::swap(mInfo.DirectionalLights[lightId], mInfo.DirectionalLights[lastLightId]);
+			std::swap(dirLights[lightId], dirLights[lastLightId]);
 			lastLight->SetRendererId(lightId);
 		}
 
-		// Last element is the one we want to erase
-		mInfo.DirectionalLights.erase(mInfo.DirectionalLights.end() - 1);
+		dirLights.pop_back();
 	}
-	else
+	else if(light->GetType() == LightType::Radial)
 	{
-		if(light->GetType() == LightType::Radial)
+		auto& radialLights = lightStorage.GetRadialLights();
+		auto& radialBounds = lightStorage.GetRadialLightWorldBounds();
+		Light* lastLight = radialLights.back().Light;
+		u32 lastLightId = lastLight->GetRendererId();
+
+		if(lightId != lastLightId)
 		{
-			Light* lastLight = mInfo.RadialLights.back().Light;
-			u32 lastLightId = lastLight->GetRendererId();
-
-			if(lightId != lastLightId)
-			{
-				// Swap current last element with the one we want to erase
-				std::swap(mInfo.RadialLights[lightId], mInfo.RadialLights[lastLightId]);
-				std::swap(mInfo.RadialLightWorldBounds[lightId], mInfo.RadialLightWorldBounds[lastLightId]);
-
-				lastLight->SetRendererId(lightId);
-			}
-
-			// Last element is the one we want to erase
-			mInfo.RadialLights.erase(mInfo.RadialLights.end() - 1);
-			mInfo.RadialLightWorldBounds.erase(mInfo.RadialLightWorldBounds.end() - 1);
+			std::swap(radialLights[lightId], radialLights[lastLightId]);
+			std::swap(radialBounds[lightId], radialBounds[lastLightId]);
+			lastLight->SetRendererId(lightId);
 		}
-		else // Spot
+
+		radialLights.pop_back();
+		radialBounds.pop_back();
+	}
+	else // Spot
+	{
+		auto& spotLights = lightStorage.GetSpotLights();
+		auto& spotBounds = lightStorage.GetSpotLightWorldBounds();
+		Light* lastLight = spotLights.back().Light;
+		u32 lastLightId = lastLight->GetRendererId();
+
+		if(lightId != lastLightId)
 		{
-			Light* lastLight = mInfo.SpotLights.back().Light;
-			u32 lastLightId = lastLight->GetRendererId();
-
-			if(lightId != lastLightId)
-			{
-				// Swap current last element with the one we want to erase
-				std::swap(mInfo.SpotLights[lightId], mInfo.SpotLights[lastLightId]);
-				std::swap(mInfo.SpotLightWorldBounds[lightId], mInfo.SpotLightWorldBounds[lastLightId]);
-
-				lastLight->SetRendererId(lightId);
-			}
-
-			// Last element is the one we want to erase
-			mInfo.SpotLights.erase(mInfo.SpotLights.end() - 1);
-			mInfo.SpotLightWorldBounds.erase(mInfo.SpotLightWorldBounds.end() - 1);
+			std::swap(spotLights[lightId], spotLights[lastLightId]);
+			std::swap(spotBounds[lightId], spotBounds[lastLightId]);
+			lastLight->SetRendererId(lightId);
 		}
+
+		spotLights.pop_back();
+		spotBounds.pop_back();
 	}
 }
 
@@ -1260,6 +1388,13 @@ void RenderBeastScene::Initialize()
 
 	mInfo.Renderables = &renderableStorage.GetRenderables();
 	mInfo.RenderableCullInfos = &renderableStorage.GetRenderableCullInfos();
+
+	LightObjectStorage& lightStorage = GetLightStorage();
+	mInfo.DirectionalLights = &lightStorage.GetDirectionalLights();
+	mInfo.RadialLights = &lightStorage.GetRadialLights();
+	mInfo.SpotLights = &lightStorage.GetSpotLights();
+	mInfo.RadialLightWorldBounds = &lightStorage.GetRadialLightWorldBounds();
+	mInfo.SpotLightWorldBounds = &lightStorage.GetSpotLightWorldBounds();
 
 	// Register all types
 	for (const auto& config : GetRenderBeast()->GetPerObjectUniformTypeConfigurations())

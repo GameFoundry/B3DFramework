@@ -12,6 +12,7 @@
 namespace b3d
 {
 	class FrameAllocator;
+	class LightObjectStorageBase;
 	class RenderableObjectStorageBase;
 
 	namespace ecs { class Registry; }
@@ -28,6 +29,7 @@ namespace b3d
 	struct RendererSceneSyncData
 	{
 		void* RenderableBatchData = nullptr;
+		void* LightBatchData = nullptr;
 	};
 
 	/** Contains information about the scene (e.g. renderables, lights, cameras) required by the renderer. */
@@ -44,6 +46,12 @@ namespace b3d
 
 		/** Removes the ecs::RenderableId fragment and deallocates the persistent render object ID. */
 		void DeallocateRenderableId(ecs::Registry& registry, ecs::Entity entity);
+
+		/** Allocates a persistent render object ID for a light and adds the ecs::LightId fragment. */
+		RendererId AllocateLightId(ecs::Registry& registry, ecs::Entity entity);
+
+		/** Removes the ecs::LightId fragment and deallocates the persistent render object ID. */
+		void DeallocateLightId(ecs::Registry& registry, ecs::Entity entity);
 
 		/**
 		 * Reads dirty ECS data on the main thread and posts a command to write the changes to the render thread,
@@ -62,6 +70,7 @@ namespace b3d
 		RendererSceneSyncData* SyncRead(ecs::Registry& registry, FrameAllocator& allocator);
 	private:
 		SPtr<RenderableObjectStorageBase> mRenderableStorage;
+		SPtr<LightObjectStorageBase> mLightStorage;
 	};
 
 	/** @} */
@@ -87,6 +96,9 @@ namespace b3d
 		public:
 			/** Returns the renderable object storage for this scene. */
 			const SPtr<RenderableObjectStorageBase>& GetRenderableStorage() const { return mRenderableStorage; }
+
+			/** Returns the light object storage for this scene. */
+			const SPtr<LightObjectStorageBase>& GetLightStorage() const { return mLightStorage; }
 
 			/** Applies sync data from SyncRead to render-thread representations and frees frame-allocated memory. */
 			void SyncWrite(RendererSceneSyncData& batchData, FrameAllocator& allocator);
@@ -175,6 +187,7 @@ namespace b3d
 
 		protected:
 			SPtr<RenderableObjectStorageBase> mRenderableStorage;
+			SPtr<LightObjectStorageBase> mLightStorage;
 
 			Set<RendererExtension*, RendererExtension::SortFunction> mRendererExtensions;
 			Set<RendererExtension*, RendererExtension::SortFunction> mCombinedRendererExtensions; /**< Transient set of per-scene and global renderer extensions. */

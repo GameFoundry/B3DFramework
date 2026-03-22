@@ -951,11 +951,11 @@ void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, con
 	}
 
 	// Calculate light visibility for all views
-	const auto radialLightCount = (u32)sceneInfo.RadialLights.size();
+	const auto radialLightCount = (u32)sceneInfo.RadialLights->size();
 	mVisibility.RadialLights.resize(radialLightCount, false);
 	mVisibility.RadialLights.assign(radialLightCount, false);
 
-	const auto spotLightCount = (u32)sceneInfo.SpotLights.size();
+	const auto spotLightCount = (u32)sceneInfo.SpotLights->size();
 	mVisibility.SpotLights.resize(spotLightCount, false);
 	mVisibility.SpotLights.assign(spotLightCount, false);
 
@@ -964,9 +964,9 @@ void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, con
 		if(!mViews[viewIndex]->ShouldDraw3D())
 			continue;
 
-		mViews[viewIndex]->DetermineVisible(sceneInfo.RadialLights, sceneInfo.RadialLightWorldBounds, LightType::Radial, &mVisibility.RadialLights);
+		mViews[viewIndex]->DetermineVisible(*sceneInfo.RadialLights, *sceneInfo.RadialLightWorldBounds, LightType::Radial, &mVisibility.RadialLights);
 
-		mViews[viewIndex]->DetermineVisible(sceneInfo.SpotLights, sceneInfo.SpotLightWorldBounds, LightType::Spot, &mVisibility.SpotLights);
+		mViews[viewIndex]->DetermineVisible(*sceneInfo.SpotLights, *sceneInfo.SpotLightWorldBounds, LightType::Spot, &mVisibility.SpotLights);
 	}
 
 	// Calculate refl. probe visibility for all views

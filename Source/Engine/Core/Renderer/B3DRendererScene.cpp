@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Renderer/B3DRendererScene.h"
 #include "Allocators/B3DFrameAllocator.h"
+#include "Components/B3DLight.h"
 #include "Components/B3DRenderable.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "ECS/B3DRegistry.h"
@@ -27,6 +28,7 @@ namespace b3d
 
 		SPtr<render::RendererScene> renderProxy = B3DGetRenderProxy(this);
 		mRenderableStorage = renderProxy->GetRenderableStorage();
+		mLightStorage = renderProxy->GetLightStorage();
 	}
 
 	RendererId RendererScene::AllocateRenderableId(ecs::Registry& registry, ecs::Entity entity)
@@ -47,6 +49,26 @@ namespace b3d
 			mRenderableStorage->DeallocateRendererId(objectId);
 
 		registry.RemoveComponents<ecs::RenderableId>(entity);
+	}
+
+	RendererId RendererScene::AllocateLightId(ecs::Registry& registry, ecs::Entity entity)
+	{
+		RendererId objectId = mLightStorage->AllocateRendererId();
+		registry.AddComponent<ecs::LightId>(entity, ecs::LightId{objectId});
+
+		return objectId;
+	}
+
+	void RendererScene::DeallocateLightId(ecs::Registry& registry, ecs::Entity entity)
+	{
+		if(!registry.HasAllOf<ecs::LightId>(entity))
+			return;
+
+		RendererId objectId = registry.GetComponents<ecs::LightId>(entity).Id;
+		if(objectId != kInvalidRendererId)
+			mLightStorage->DeallocateRendererId(objectId);
+
+		registry.RemoveComponents<ecs::LightId>(entity);
 	}
 
 	SPtr<render::RenderProxy> RendererScene::CreateRenderProxy() const
@@ -85,6 +107,18 @@ namespace b3d
 			}
 		}
 
+		if(mLightStorage != nullptr)
+		{
+			void* lightBatchData = mLightStorage->SyncRead(registry, allocator);
+			if(lightBatchData != nullptr)
+			{
+				if(batch == nullptr)
+					batch = allocator.Construct<RendererSceneSyncData>();
+
+				batch->LightBatchData = lightBatchData;
+			}
+		}
+
 		return batch;
 	}
 
@@ -94,6 +128,9 @@ namespace b3d
 		{
 			if(batchData.RenderableBatchData != nullptr)
 				mRenderableStorage->SyncWrite(batchData.RenderableBatchData, allocator);
+
+			if(batchData.LightBatchData != nullptr)
+				mLightStorage->SyncWrite(batchData.LightBatchData, allocator);
 
 			allocator.Destruct(&batchData);
 		}

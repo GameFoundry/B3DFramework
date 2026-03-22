@@ -898,9 +898,9 @@ namespace b3d
 			mShadowInfos.clear();
 			mCubemapShadowParameterSets.clear();
 
-			mSpotLightShadows.resize(sceneInfo.SpotLights.size());
-			mRadialLightShadows.resize(sceneInfo.RadialLights.size());
-			mDirectionalLightShadows.resize(sceneInfo.DirectionalLights.size());
+			mSpotLightShadows.resize(sceneInfo.SpotLights->size());
+			mRadialLightShadows.resize(sceneInfo.RadialLights->size());
+			mDirectionalLightShadows.resize(sceneInfo.DirectionalLights->size());
 
 			mSpotLightShadowOptions.clear();
 			mRadialLightShadowOptions.clear();
@@ -917,9 +917,9 @@ namespace b3d
 
 			// Determine shadow map sizes and sort them
 			u32 shadowInfoCount = 0;
-			for(u32 i = 0; i < (u32)sceneInfo.SpotLights.size(); ++i)
+			for(u32 i = 0; i < (u32)sceneInfo.SpotLights->size(); ++i)
 			{
-				const LightRenderState& lightRenderState = sceneInfo.SpotLights[i];
+				const LightRenderState& lightRenderState = (*sceneInfo.SpotLights)[i];
 				mSpotLightShadows[i].StartIndex = shadowInfoCount;
 				mSpotLightShadows[i].ShadowCount = 0;
 
@@ -942,9 +942,9 @@ namespace b3d
 				shadowInfoCount++; // For now, always a single fully dynamic shadow for a single light, but that may change
 			}
 
-			for(u32 i = 0; i < (u32)sceneInfo.RadialLights.size(); ++i)
+			for(u32 i = 0; i < (u32)sceneInfo.RadialLights->size(); ++i)
 			{
-				const LightRenderState& lightRenderState = sceneInfo.RadialLights[i];
+				const LightRenderState& lightRenderState = (*sceneInfo.RadialLights)[i];
 				mRadialLightShadows[i].StartIndex = shadowInfoCount;
 				mRadialLightShadows[i].ShadowCount = 0;
 
@@ -1003,9 +1003,9 @@ namespace b3d
 			}
 
 			// Render shadow maps
-			for(u32 i = 0; i < (u32)sceneInfo.DirectionalLights.size(); ++i)
+			for(u32 i = 0; i < (u32)sceneInfo.DirectionalLights->size(); ++i)
 			{
-				const LightRenderState& lightRenderState = sceneInfo.DirectionalLights[i];
+				const LightRenderState& lightRenderState = (*sceneInfo.DirectionalLights)[i];
 
 				if(!lightRenderState.Light->GetCastsShadow())
 					continue;
@@ -1020,13 +1020,13 @@ namespace b3d
 			for(auto& entry : mSpotLightShadowOptions)
 			{
 				u32 lightIdx = entry.LightIdx;
-				RenderSpotShadowMap(commandBuffer, sceneInfo.SpotLights[lightIdx], entry, scene, frameInfo);
+				RenderSpotShadowMap(commandBuffer, (*sceneInfo.SpotLights)[lightIdx], entry, scene, frameInfo);
 			}
 
 			for(auto& entry : mRadialLightShadowOptions)
 			{
 				u32 lightIdx = entry.LightIdx;
-				RenderRadialShadowMap(commandBuffer, sceneInfo.RadialLights[lightIdx], entry, scene, frameInfo);
+				RenderRadialShadowMap(commandBuffer, (*sceneInfo.RadialLights)[lightIdx], entry, scene, frameInfo);
 			}
 		}
 
@@ -1486,7 +1486,7 @@ namespace b3d
 			//  - Note2: Actually both of these will likely have serious negative impact on shadow stability.
 			const SceneInfo& sceneInfo = scene.GetSceneInfo();
 
-			const LightRenderState& lightRenderState = sceneInfo.DirectionalLights[lightIdx];
+			const LightRenderState& lightRenderState = (*sceneInfo.DirectionalLights)[lightIdx];
 			Light* light = lightRenderState.Light;
 
 			const Transform& tfrm = light->GetWorldTransform();

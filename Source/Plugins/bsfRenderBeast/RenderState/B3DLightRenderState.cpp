@@ -7,6 +7,7 @@
 #include "Components/B3DLight.h"
 #include "Renderer/B3DRendererUtility.h"
 #include "B3DRenderBeast.h"
+#include "B3DRenderBeastScene.h"
 #include "Shading/B3DStandardDeferred.h"
 
 namespace b3d {
@@ -73,8 +74,8 @@ void LightRenderState::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index)
 	gPerLightUniformDefinition.gShiftedLightPositionAndType.Set(uniforms, Vector4(lightData.ShiftedLightPosition, type), 0, index);
 
 	Vector4 lightGeometry;
-	lightGeometry.X = Light->GetType() == LightType::Spot ? (float)Light::kLightConeSideCount : 0;
-	lightGeometry.Y = (float)Light::kLightConeSliceCount;
+	lightGeometry.X = Light->GetType() == LightType::Spot ? (float)kLightConeSideCount : 0;
+	lightGeometry.Y = (float)kLightConeSliceCount;
 	lightGeometry.Z = Light->GetBounds().Radius;
 
 	float extraRadius = lightData.SrcRadius / Math::Tan(lightData.SpotAngles.X * 0.5f);
@@ -194,26 +195,26 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 		mVisibleLights[i].clear();
 
 	// Generate a list of lights and their GPU buffers
-	u32 numDirLights = (u32)sceneInfo.DirectionalLights.size();
+	u32 numDirLights = (u32)sceneInfo.DirectionalLights->size();
 	for(u32 i = 0; i < numDirLights; i++)
-		mVisibleLights[(u32)LightType::Directional].push_back(&sceneInfo.DirectionalLights[i]);
+		mVisibleLights[(u32)LightType::Directional].push_back(&(*sceneInfo.DirectionalLights)[i]);
 
-	u32 numRadialLights = (u32)sceneInfo.RadialLights.size();
+	u32 numRadialLights = (u32)sceneInfo.RadialLights->size();
 	for(u32 i = 0; i < numRadialLights; i++)
 	{
 		if(!visibility.RadialLights[i])
 			continue;
 
-		mVisibleLights[(u32)LightType::Radial].push_back(&sceneInfo.RadialLights[i]);
+		mVisibleLights[(u32)LightType::Radial].push_back(&(*sceneInfo.RadialLights)[i]);
 	}
 
-	u32 numSpotLights = (u32)sceneInfo.SpotLights.size();
+	u32 numSpotLights = (u32)sceneInfo.SpotLights->size();
 	for(u32 i = 0; i < numSpotLights; i++)
 	{
 		if(!visibility.SpotLights[i])
 			continue;
 
-		mVisibleLights[(u32)LightType::Spot].push_back(&sceneInfo.SpotLights[i]);
+		mVisibleLights[(u32)LightType::Spot].push_back(&(*sceneInfo.SpotLights)[i]);
 	}
 
 	for(u32 i = 0; i < (u32)LightType::Count; i++)

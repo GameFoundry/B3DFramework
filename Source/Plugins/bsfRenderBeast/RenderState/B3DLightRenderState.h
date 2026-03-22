@@ -22,6 +22,12 @@ namespace b3d
 		/** Maximum number of lights that can influence an object when basic forward rendering is used. */
 		static constexpr u32 kStandardForwardMaxNumLights = 8;
 
+		/** Number of sides in the cone mesh used for spot light volumes. */
+		constexpr u32 kLightConeSideCount = 20;
+
+		/** Number of slices in the cone mesh used for spot light volumes. */
+		constexpr u32 kLightConeSliceCount = 10;
+
 		/** Information about a single light, as seen by the lighting shader. */
 		struct LightData
 		{
@@ -41,7 +47,11 @@ namespace b3d
 		class LightRenderState
 		{
 		public:
+			/** Constructs from an old-style render::Light pointer (backward compatibility, will be removed in Phase 7). */
 			LightRenderState(Light* light);
+
+			/** Default constructor for array pre-allocation. */
+			LightRenderState() = default;
 
 			/** Populates the structure with light parameters. */
 			void GetParameters(LightData& output) const;
@@ -59,7 +69,8 @@ namespace b3d
 			 */
 			Vector3 GetShiftedLightPosition() const;
 
-			Light* Light;
+			/** Old-style render::Light pointer. Set when constructed via the Light* path. Will be removed in Phase 7. */
+			Light* Light = nullptr;
 		};
 
 		/** Container for all GBuffer textures. */
