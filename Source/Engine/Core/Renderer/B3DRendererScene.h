@@ -112,15 +112,6 @@ namespace b3d
 			/** Removes a camera from the scene. */
 			virtual void UnregisterCamera(Camera* camera) = 0;
 
-			/** Registers a new light in the scene. */
-			virtual void RegisterLight(Light* light) = 0;
-
-			/** Updates information about a previously registered light. */
-			virtual void UpdateLight(Light* light) = 0;
-
-			/** Removes a light from the scene. */
-			virtual void UnregisterLight(Light* light) = 0;
-
 			/** Registers a new reflection probe in the scene. */
 			virtual void RegisterReflectionProbe(ReflectionProbe* probe) = 0;
 

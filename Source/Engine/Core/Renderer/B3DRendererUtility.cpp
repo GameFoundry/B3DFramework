@@ -97,8 +97,8 @@ RendererUtility::RendererUtility()
 	}
 
 	{
-		u32 sideCount = Light::kLightConeSideCount;
-		u32 sliceCount = Light::kLightConeSliceCount;
+		constexpr u32 sideCount = RendererUtility::kSpotLightStencilSideCount;
+		constexpr u32 sliceCount = RendererUtility::kSpotLightStencilSliceCount;
 
 		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));

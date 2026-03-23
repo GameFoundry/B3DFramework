@@ -331,7 +331,7 @@ namespace b3d
 			 * @param gpuParameters The GPU parameters object to set parameters on.
 			 * @param gpuDevice     The GPU device used to retrieve the sampler state.
 			 */
-			static void BindOmnidirectionalProjectionParameters(const SPtr<GpuParameterSet>& gpuParameters, GpuDevice& gpuDevice, const Light& light, const SPtr<Texture>& shadowMap, const SPtr<GpuBuffer>& shadowParameterBuffer, const GpuBufferSuballocation& perCameraBuffer, const SPtr<GpuBuffer>& vertexParameterBuffer, const GBufferTextures& gbuffer)
+			static void BindOmnidirectionalProjectionParameters(const SPtr<GpuParameterSet>& gpuParameters, GpuDevice& gpuDevice, const LightProxy& light, const SPtr<Texture>& shadowMap, const SPtr<GpuBuffer>& shadowParameterBuffer, const GpuBufferSuballocation& perCameraBuffer, const SPtr<GpuBuffer>& vertexParameterBuffer, const GBufferTextures& gbuffer)
 			{
 				// Bind common parameters (VertParams, PerCamera, Params)
 				// Set light position and radius for omnidirectional light
@@ -891,16 +891,20 @@ namespace b3d
 			// Note: Add support for per-object shadows and a way to force a renderable to use per-object shadows. This can be
 			// used for adding high quality shadows on specific objects (e.g. important characters during cinematics).
 
-			const SceneInfo& sceneInfo = scene.GetSceneInfo();
+			const LightObjectStorage& lightStorage = scene.GetLightStorage();
 			const VisibilityInfo& visibility = viewGroup.GetVisibilityInfo();
+
+			const Vector<PackedRendererId>& spotLights = lightStorage.GetSpotLights();
+			const Vector<PackedRendererId>& radialLights = lightStorage.GetRadialLights();
+			const Vector<PackedRendererId>& directionalLights = lightStorage.GetDirectionalLights();
 
 			// Clear all transient data from last frame
 			mShadowInfos.clear();
 			mCubemapShadowParameterSets.clear();
 
-			mSpotLightShadows.resize(sceneInfo.SpotLights->size());
-			mRadialLightShadows.resize(sceneInfo.RadialLights->size());
-			mDirectionalLightShadows.resize(sceneInfo.DirectionalLights->size());
+			mSpotLightShadows.resize(spotLights.size());
+			mRadialLightShadows.resize(radialLights.size());
+			mDirectionalLightShadows.resize(directionalLights.size());
 
 			mSpotLightShadowOptions.clear();
 			mRadialLightShadowOptions.clear();
@@ -917,22 +921,23 @@ namespace b3d
 
 			// Determine shadow map sizes and sort them
 			u32 shadowInfoCount = 0;
-			for(u32 i = 0; i < (u32)sceneInfo.SpotLights->size(); ++i)
+			for(u32 lightIndex = 0; lightIndex < (u32)spotLights.size(); ++lightIndex)
 			{
-				const LightRenderState& lightRenderState = (*sceneInfo.SpotLights)[i];
-				mSpotLightShadows[i].StartIndex = shadowInfoCount;
-				mSpotLightShadows[i].ShadowCount = 0;
+				PackedRendererId lightPackedId = spotLights[lightIndex];
+				const LightProxy& lightProxy = lightStorage.GetLightProxy(lightPackedId);
+				mSpotLightShadows[lightIndex].StartIndex = shadowInfoCount;
+				mSpotLightShadows[lightIndex].ShadowCount = 0;
 
 				// Note: I'm using visibility across all views, while I could be using visibility for every view individually,
 				// if I kept that information somewhere
-				if(!lightRenderState.Light->GetCastsShadow() || !visibility.SpotLights[i])
+				if(!lightProxy.GetCastsShadow() || !visibility.SpotLights[lightIndex])
 					continue;
 
 				ShadowMapOptions options;
-				options.LightIdx = i;
+				options.LightIdx = lightIndex;
 
 				float maxFadePercent;
-				CalcShadowMapProperties(lightRenderState, viewGroup, kShadowMapBorder, options.MapSize, options.FadePercents, maxFadePercent);
+				CalcShadowMapProperties(lightProxy, viewGroup, kShadowMapBorder, options.MapSize, options.FadePercents, maxFadePercent);
 
 				// Don't render shadow maps that will end up nearly completely faded out
 				if(maxFadePercent < 0.005f)
@@ -942,22 +947,23 @@ namespace b3d
 				shadowInfoCount++; // For now, always a single fully dynamic shadow for a single light, but that may change
 			}
 
-			for(u32 i = 0; i < (u32)sceneInfo.RadialLights->size(); ++i)
+			for(u32 lightIndex = 0; lightIndex < (u32)radialLights.size(); ++lightIndex)
 			{
-				const LightRenderState& lightRenderState = (*sceneInfo.RadialLights)[i];
-				mRadialLightShadows[i].StartIndex = shadowInfoCount;
-				mRadialLightShadows[i].ShadowCount = 0;
+				PackedRendererId lightPackedId = radialLights[lightIndex];
+				const LightProxy& lightProxy = lightStorage.GetLightProxy(lightPackedId);
+				mRadialLightShadows[lightIndex].StartIndex = shadowInfoCount;
+				mRadialLightShadows[lightIndex].ShadowCount = 0;
 
 				// Note: I'm using visibility across all views, while I could be using visibility for every view individually,
 				// if I kept that information somewhere
-				if(!lightRenderState.Light->GetCastsShadow() || !visibility.RadialLights[i])
+				if(!lightProxy.GetCastsShadow() || !visibility.RadialLights[lightIndex])
 					continue;
 
 				ShadowMapOptions options;
-				options.LightIdx = i;
+				options.LightIdx = lightIndex;
 
 				float maxFadePercent;
-				CalcShadowMapProperties(lightRenderState, viewGroup, 0, options.MapSize, options.FadePercents, maxFadePercent);
+				CalcShadowMapProperties(lightProxy, viewGroup, 0, options.MapSize, options.FadePercents, maxFadePercent);
 
 				// Don't render shadow maps that will end up nearly completely faded out
 				if(maxFadePercent < 0.005f)
@@ -1003,30 +1009,31 @@ namespace b3d
 			}
 
 			// Render shadow maps
-			for(u32 i = 0; i < (u32)sceneInfo.DirectionalLights->size(); ++i)
+			for(u32 lightIndex = 0; lightIndex < (u32)directionalLights.size(); ++lightIndex)
 			{
-				const LightRenderState& lightRenderState = (*sceneInfo.DirectionalLights)[i];
+				PackedRendererId lightPackedId = directionalLights[lightIndex];
+				const LightProxy& lightProxy = lightStorage.GetLightProxy(lightPackedId);
 
-				if(!lightRenderState.Light->GetCastsShadow())
+				if(!lightProxy.GetCastsShadow())
 					continue;
 
 				u32 numViews = viewGroup.GetViewCount();
-				mDirectionalLightShadows[i].ViewShadows.Resize(numViews);
+				mDirectionalLightShadows[lightIndex].ViewShadows.Resize(numViews);
 
 				for(u32 j = 0; j < numViews; ++j)
-					RenderCascadedShadowMaps(commandBuffer, *viewGroup.GetView(j), i, scene, frameInfo);
+					RenderCascadedShadowMaps(commandBuffer, *viewGroup.GetView(j), lightIndex, scene, frameInfo);
 			}
 
 			for(auto& entry : mSpotLightShadowOptions)
 			{
 				u32 lightIdx = entry.LightIdx;
-				RenderSpotShadowMap(commandBuffer, (*sceneInfo.SpotLights)[lightIdx], entry, scene, frameInfo);
+				RenderSpotShadowMap(commandBuffer, spotLights[lightIdx], entry, scene, frameInfo);
 			}
 
 			for(auto& entry : mRadialLightShadowOptions)
 			{
 				u32 lightIdx = entry.LightIdx;
-				RenderRadialShadowMap(commandBuffer, (*sceneInfo.RadialLights)[lightIdx], entry, scene, frameInfo);
+				RenderRadialShadowMap(commandBuffer, radialLights[lightIdx], entry, scene, frameInfo);
 			}
 		}
 
@@ -1109,12 +1116,12 @@ namespace b3d
 			return shadowMapTfrm * mixedToShadow;
 		}
 
-		ShadowRendering::ProjectedShadowRenderingBatchInformation ShadowRendering::PrepareParametersForRenderShadowProjection(GpuDevice& gpuDevice, const RendererView& view, const LightRenderState& lightRenderState, GBufferTextures gbuffer) const
+		ShadowRendering::ProjectedShadowRenderingBatchInformation ShadowRendering::PrepareParametersForRenderShadowProjection(GpuDevice& gpuDevice, const RendererView& view, PackedRendererId lightId, const SceneInfo& sceneInfo, GBufferTextures gbuffer) const
 		{
 			const u32 shadowQuality = view.GetRenderSettings().ShadowSettings.ShadowFilteringQuality;
 
-			const Light* light = lightRenderState.Light;
-			const u32 lightRendererId = light->GetRendererId();
+			const LightProxy& light = sceneInfo.GetLightProxy(lightId);
+			const u32 lightIndexInTypeArray = sceneInfo.GetLightRenderState(lightId).TypeArrayIndex;
 
 			const auto& viewProperties = view.GetProperties();
 			const GpuBufferSuballocation& perViewBuffer = view.GetPerViewBuffer();
@@ -1129,14 +1136,14 @@ namespace b3d
 
 			const u32 viewIndex = view.GetViewIdx();
 			// Prepare parameters
-			if(light->GetType() == LightType::Radial)
+			if(light.GetType() == LightType::Radial)
 			{
-				const LocalLightShadows& shadows = mRadialLightShadows[lightRendererId];
-				const Transform& lightTransform = light->GetWorldTransform();
+				const LocalLightShadows& shadows = mRadialLightShadows[lightIndexInTypeArray];
+				const Transform& lightTransform = light.GetWorldTransform();
 
 				// Check if viewer is inside the light bounds
 				//// Expand the light bounds slightly to handle the case when the near plane is intersecting the light volume
-				float lightRadius = light->GetAttenuationRadius() + viewProperties.NearPlane * 3.0f;
+				float lightRadius = light.GetAttenuationRadius() + viewProperties.NearPlane * 3.0f;
 				const bool viewerInsideVolume = (lightTransform.GetPosition() - viewProperties.ViewOrigin).Length() < lightRadius;
 
 				for(u32 localShadowIndex = 0; localShadowIndex < shadows.ShadowCount; ++localShadowIndex)
@@ -1170,10 +1177,10 @@ namespace b3d
 					gShadowProjectOmniUniformDefinition.gFadePercent.Set(omnidirectionalShadowUniforms, shadowInfo.FadePerView[viewIndex], 0, visibleShadowIndex);
 					gShadowProjectOmniUniformDefinition.gInvResolution.Set(omnidirectionalShadowUniforms, 1.0f / shadowInfo.Area.Width, 0, visibleShadowIndex);
 
-					Vector4 lightPosAndRadius(lightTransform.GetPosition(), light->GetAttenuationRadius());
+					Vector4 lightPosAndRadius(lightTransform.GetPosition(), light.GetAttenuationRadius());
 					gShadowProjectOmniUniformDefinition.gLightPosAndRadius.Set(omnidirectionalShadowUniforms, lightPosAndRadius, 0, visibleShadowIndex);
 
-					Vector4 lightPosAndScale(lightTransform.GetPosition(), light->GetAttenuationRadius());
+					Vector4 lightPosAndScale(lightTransform.GetPosition(), light.GetAttenuationRadius());
 					gShadowProjectVertUniformDefinition.gPositionAndScale.Set(shadowProjectVertexUniforms, lightPosAndScale, 0, visibleShadowIndex);
 
 					// Reduce shadow quality based on shadow map resolution for spot lights
@@ -1191,7 +1198,7 @@ namespace b3d
 					shadowRenderingInfo.IsViewerInsideLightVolume = viewerInsideVolume;
 					shadowRenderingInfo.PrimaryGpuParameters = gpuParameters;
 
-					ShadowProjectionParameterBinding::BindOmnidirectionalProjectionParameters(gpuParameters, gpuDevice, *light, shadowMap, shadowOmniParamBuffer, perViewBuffer, shadowProjectVertBuffer, gbuffer);
+					ShadowProjectionParameterBinding::BindOmnidirectionalProjectionParameters(gpuParameters, gpuDevice, light, shadowMap, shadowOmniParamBuffer, perViewBuffer, shadowProjectVertBuffer, gbuffer);
 
 					const SPtr<GpuPipelineParameterSetLayout>& pipelineParameterSetLayout = gpuParameters->GetLayout();
 					shadowRenderingInfo.PrimaryUniformBufferDynamicIndex = pipelineParameterSetLayout->GetDynamicOffsetIndex("Params");
@@ -1202,10 +1209,10 @@ namespace b3d
 			}
 			else // Directional & spot
 			{
-				bool isCSM = light->GetType() == LightType::Directional;
+				bool isCSM = light.GetType() == LightType::Directional;
 				if(!isCSM)
 				{
-					const LocalLightShadows& shadows = mSpotLightShadows[lightRendererId];
+					const LocalLightShadows& shadows = mSpotLightShadows[lightIndexInTypeArray];
 					for(u32 localShadowIndex = 0; localShadowIndex < shadows.ShadowCount; ++localShadowIndex)
 					{
 						const u32 shadowIndex = shadows.StartIndex + localShadowIndex;
@@ -1219,7 +1226,7 @@ namespace b3d
 				}
 				else // Directional
 				{
-					const LocalLightShadows& shadows = mDirectionalLightShadows[lightRendererId].ViewShadows[viewIndex];
+					const LocalLightShadows& shadows = mDirectionalLightShadows[lightIndexInTypeArray].ViewShadows[viewIndex];
 					if(shadows.ShadowCount > 0)
 					{
 						u32 shadowMapIndex = shadows.StartIndex;
@@ -1281,7 +1288,7 @@ namespace b3d
 					auto shadowMapProps = shadowMap->GetProperties();
 
 					Vector2 shadowMapSize((float)shadowMapProps.Width, (float)shadowMapProps.Height);
-					float transitionScale = GetFadeTransition(*light, shadowInfo->SubjectBounds.Radius, shadowInfo->DepthRange, shadowInfo->Area.Width);
+					float transitionScale = GetFadeTransition(light, shadowInfo->SubjectBounds.Radius, shadowInfo->DepthRange, shadowInfo->Area.Width);
 
 					gShadowProjectUniformDefinition.gFadePlaneDepth.Set(shadowUniforms, shadowInfo->DepthFade, 0, shadowIndex);
 					gShadowProjectUniformDefinition.gMixedToShadowSpace.Set(shadowUniforms, mixedToShadowUV, 0, shadowIndex);
@@ -1366,16 +1373,16 @@ namespace b3d
 			return batchRenderingInfo;
 		}
 
-		void ShadowRendering::RenderShadowProjectionBatch(GpuCommandBuffer& commandBuffer, const RendererView& view, const LightRenderState& lightRenderState, const ProjectedShadowRenderingBatchInformation& batch) const
+		void ShadowRendering::RenderShadowProjectionBatch(GpuCommandBuffer& commandBuffer, const RendererView& view, PackedRendererId lightId, const SceneInfo& sceneInfo, const ProjectedShadowRenderingBatchInformation& batch) const
 		{
-			const Light* light = lightRenderState.Light;
+			const LightProxy& light = sceneInfo.GetLightProxy(lightId);
 			const auto& viewProperties = view.GetProperties();
 
 			// TODO - Calculate and set a scissor rectangle for the light
 
 			ProfileGPUBlock sampleBlock(commandBuffer, "Render shadow occlusion");
 
-			if(light->GetType() == LightType::Radial)
+			if(light.GetType() == LightType::Radial)
 			{
 				for(u32 visibleShadowIndex = 0; visibleShadowIndex < (u32)batch.Shadows.Size(); ++visibleShadowIndex)
 				{
@@ -1400,7 +1407,7 @@ namespace b3d
 			}
 			else // Directional & spot
 			{
-				bool isCSM = light->GetType() == LightType::Directional;
+				bool isCSM = light.GetType() == LightType::Directional;
 
 				for(u32 visibleShadowIndex = 0; visibleShadowIndex < (u32)batch.Shadows.Size(); ++visibleShadowIndex)
 				{
@@ -1484,12 +1491,12 @@ namespace b3d
 			// ratio (and therefore dimensions) of the shadow map, as well as rotate the camera so the visible area best fits
 			// in the map. It remains to be seen if this is viable.
 			//  - Note2: Actually both of these will likely have serious negative impact on shadow stability.
-			const SceneInfo& sceneInfo = scene.GetSceneInfo();
+			const LightObjectStorage& lightStorage = scene.GetLightStorage();
 
-			const LightRenderState& lightRenderState = (*sceneInfo.DirectionalLights)[lightIdx];
-			Light* light = lightRenderState.Light;
+			PackedRendererId lightPackedId = lightStorage.GetDirectionalLights()[lightIdx];
+			const LightProxy& light = lightStorage.GetLightProxy(lightPackedId);
 
-			const Transform& tfrm = light->GetWorldTransform();
+			const Transform& tfrm = light.GetWorldTransform();
 			Vector3 lightDir = -tfrm.GetRotation().ZAxis();
 			GpuBufferMappedScope shadowUniforms = gShadowUniformDefinition.AllocateTransient().Map();
 
@@ -1582,7 +1589,7 @@ namespace b3d
 					shadowInfo.FadeRange = 0.0f;
 
 				shadowInfo.DepthFar = shadowInfo.DepthFade + shadowInfo.FadeRange;
-				shadowInfo.DepthBias = GetDepthBias(*light, frustumBounds.Radius, shadowInfo.DepthRange, mapSize);
+				shadowInfo.DepthBias = GetDepthBias(light, frustumBounds.Radius, shadowInfo.DepthRange, mapSize);
 
 				gShadowUniformDefinition.gDepthBias.Set(shadowUniforms, shadowInfo.DepthBias);
 				gShadowUniformDefinition.gInvDepthRange.Set(shadowUniforms, 1.0f / shadowInfo.DepthRange);
@@ -1604,9 +1611,9 @@ namespace b3d
 			lightShadows.ShadowCount = 1;
 		}
 
-		void ShadowRendering::RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, const LightRenderState& lightRenderState, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo)
+		void ShadowRendering::RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, PackedRendererId lightId, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo)
 		{
-			Light* light = lightRenderState.Light;
+			const LightProxy& light = scene.GetLightStorage().GetLightProxy(lightId);
 
 			GpuBufferMappedScope shadowUniforms = gShadowUniformDefinition.AllocateTransient().Map();
 
@@ -1644,17 +1651,17 @@ namespace b3d
 			ProfileGPUBlock profileSample(commandBuffer, "Project spot light shadows");
 
 			mapInfo.DepthNear = 0.05f;
-			mapInfo.DepthFar = light->GetAttenuationRadius();
+			mapInfo.DepthFar = light.GetAttenuationRadius();
 			mapInfo.DepthFade = mapInfo.DepthFar;
 			mapInfo.FadeRange = 0.0f;
 			mapInfo.DepthRange = mapInfo.DepthFar - mapInfo.DepthNear;
-			mapInfo.DepthBias = GetDepthBias(*light, light->GetBounds().Radius, mapInfo.DepthRange, options.MapSize);
-			mapInfo.SubjectBounds = light->GetBounds();
+			mapInfo.DepthBias = GetDepthBias(light, light.GetBounds().Radius, mapInfo.DepthRange, options.MapSize);
+			mapInfo.SubjectBounds = light.GetBounds();
 
-			Quaternion lightRotation = light->GetWorldTransform().GetRotation();
+			Quaternion lightRotation = light.GetWorldTransform().GetRotation();
 
-			Matrix4 view = Matrix4::View(lightRenderState.GetShiftedLightPosition(), lightRotation);
-			Matrix4 proj = Matrix4::ProjectionPerspective(light->GetSpotAngle(), 1.0f, 0.05f, light->GetAttenuationRadius());
+			Matrix4 view = Matrix4::View(GetShiftedLightPosition(light), lightRotation);
+			Matrix4 proj = Matrix4::ProjectionPerspective(light.GetSpotAngle(), 1.0f, 0.05f, light.GetAttenuationRadius());
 
 			ConvexVolume localFrustum = ConvexVolume(proj);
 
@@ -1699,9 +1706,9 @@ namespace b3d
 			lightShadows.ShadowCount++;
 		}
 
-		void ShadowRendering::RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, const LightRenderState& lightRenderState, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo)
+		void ShadowRendering::RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, PackedRendererId lightId, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo)
 		{
-			Light* const light = lightRenderState.Light;
+			const LightProxy& light = scene.GetLightStorage().GetLightProxy(lightId);
 
 			GpuBufferMappedScope shadowUniforms = gShadowUniformDefinition.AllocateTransient().Map();
 
@@ -1738,15 +1745,15 @@ namespace b3d
 			ShadowCubemap& cubemap = mShadowCubemaps[shadowInfo.TextureIdx];
 
 			shadowInfo.DepthNear = 0.05f;
-			shadowInfo.DepthFar = light->GetAttenuationRadius();
+			shadowInfo.DepthFar = light.GetAttenuationRadius();
 			shadowInfo.DepthFade = shadowInfo.DepthFar;
 			shadowInfo.FadeRange = 0.0f;
 			shadowInfo.DepthRange = shadowInfo.DepthFar - shadowInfo.DepthNear;
-			shadowInfo.DepthBias = GetDepthBias(*light, light->GetBounds().Radius, shadowInfo.DepthRange, options.MapSize);
-			shadowInfo.SubjectBounds = light->GetBounds();
+			shadowInfo.DepthBias = GetDepthBias(light, light.GetBounds().Radius, shadowInfo.DepthRange, options.MapSize);
+			shadowInfo.SubjectBounds = light.GetBounds();
 
 			// Note: Projecting on positive Z axis, because cubemaps use a left-handed coordinate system
-			Matrix4 proj = Matrix4::ProjectionPerspective(Degree(90.0f), 1.0f, 0.05f, light->GetAttenuationRadius(), true);
+			Matrix4 proj = Matrix4::ProjectionPerspective(Degree(90.0f), 1.0f, 0.05f, light.GetAttenuationRadius(), true);
 			ConvexVolume localFrustum(proj);
 
 			ProfileGPUBlock profileSample(commandBuffer, "Project radial light shadows");
@@ -1815,7 +1822,7 @@ namespace b3d
 				Vector3 right = Vector3::Cross(up, forward);
 				Matrix3 viewRotationMat = Matrix3(right, up, forward);
 
-				Vector3 lightPos = light->GetWorldTransform().GetPosition();
+				Vector3 lightPos = light.GetWorldTransform().GetPosition();
 				Matrix4 viewOffsetMat = Matrix4::Translation(-lightPos);
 
 				Matrix4 view = Matrix4(viewRotationMat.Transpose()) * viewOffsetMat;
@@ -1890,13 +1897,13 @@ namespace b3d
 			lightShadows.ShadowCount++;
 		}
 
-		void ShadowRendering::CalcShadowMapProperties(const LightRenderState& lightRenderState, const RendererViewGroup& viewGroup, u32 border, u32& size, TInlineArray<float, 6>& fadePercents, float& maxFadePercent) const
+		void ShadowRendering::CalcShadowMapProperties(const LightProxy& lightProxy, const RendererViewGroup& viewGroup, u32 border, u32& outSize, TInlineArray<float, 6>& outFadePercents, float& outMaxFadePercent) const
 		{
 			const static float kShadowTexelsPerPixel = 1.0f;
 
 			// Find a view in which the light has the largest radius
 			float maxMapSize = 0.0f;
-			maxFadePercent = 0.0f;
+			outMaxFadePercent = 0.0f;
 			for(int i = 0; i < (int)viewGroup.GetViewCount(); ++i)
 			{
 				const RendererView& view = *viewGroup.GetView(i);
@@ -1904,14 +1911,14 @@ namespace b3d
 				const RenderSettings& viewSettings = view.GetRenderSettings();
 
 				if(!viewSettings.EnableShadows)
-					fadePercents.Add(0.0f);
+					outFadePercents.Add(0.0f);
 				else
 				{
 					// Approximation for screen space sphere radius: screenSize * 0.5 * cot(fov) * radius / Z, where FOV is the
 					// largest one
 					//// First get sphere depth
 					const Matrix4& viewVP = viewProps.ViewProjTransform;
-					float depth = viewVP.Multiply(Vector4(lightRenderState.Light->GetWorldTransform().GetPosition(), 1.0f)).W;
+					float depth = viewVP.Multiply(Vector4(lightProxy.GetWorldTransform().GetPosition(), 1.0f)).W;
 
 					// This is just 1/tan(fov), for both horz. and vert. FOV
 					float viewScaleX = viewProps.ProjTransform[0][0];
@@ -1923,7 +1930,7 @@ namespace b3d
 					float screenScale = std::max(screenScaleX, screenScaleY);
 
 					//// Calc radius (clamp if too close to avoid massive numbers)
-					float radiusNDC = lightRenderState.Light->GetBounds().Radius / std::max(depth, 1.0f);
+					float radiusNDC = lightProxy.GetBounds().Radius / std::max(depth, 1.0f);
 
 					//// Radius of light bounds in percent of the view surface, multiplied by screen size in pixels
 					float radiusScreen = radiusNDC * screenScale;
@@ -1933,8 +1940,8 @@ namespace b3d
 
 					// Determine if the shadow should fade out
 					float fadePercent = Math::InvLerp(optimalMapSize, (float)kMinShadowMapSize, (float)kShadowMapFadeSize);
-					fadePercents.Add(fadePercent);
-					maxFadePercent = std::max(maxFadePercent, fadePercent);
+					outFadePercents.Add(fadePercent);
+					outMaxFadePercent = std::max(outMaxFadePercent, fadePercent);
 				}
 			}
 
@@ -1944,7 +1951,7 @@ namespace b3d
 			effectiveMapSize = Math::Clamp(effectiveMapSize, kMinShadowMapSize, mShadowMapSize);
 
 			// Leave room for border
-			size = std::max(effectiveMapSize - 2 * border, 1u);
+			outSize = std::max(effectiveMapSize - 2 * border, 1u);
 		}
 
 		void ShadowRendering::DrawNearFarPlanes(GpuCommandBuffer& commandBuffer, float near, float far, bool drawNear) const
@@ -2177,7 +2184,7 @@ namespace b3d
 			return near + (far - near) * scale;
 		}
 
-		float ShadowRendering::GetDepthBias(const Light& light, float radius, float depthRange, u32 mapSize)
+		float ShadowRendering::GetDepthBias(const LightProxy& light, float radius, float depthRange, u32 mapSize)
 		{
 			const static float kRadialLightBias = 0.005f;
 			const static float kSpotDepthBias = 0.01f;
@@ -2221,7 +2228,7 @@ namespace b3d
 			return defaultBias * light.GetShadowBias() * resolutionScale * rangeScale;
 		}
 
-		float ShadowRendering::GetFadeTransition(const Light& light, float radius, float depthRange, u32 mapSize)
+		float ShadowRendering::GetFadeTransition(const LightProxy& light, float radius, float depthRange, u32 mapSize)
 		{
 			const static float kSpotLightScale = 1000.0f;
 			const static float kDirLightScale = 50000000.0f;

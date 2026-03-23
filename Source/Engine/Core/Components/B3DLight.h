@@ -45,12 +45,12 @@ namespace b3d
 		Color LightColor = Color::kWhite; /**< Color of the light. */
 		float AttRadius = 10.0f; /**< Radius at which light intensity falls off to zero. */
 		float SourceRadius = 0.0f; /**< Radius of the light source. If > 0 the light is an area light. */
-		float Intensity = 100.0f; /**< Power of the light source. @see TLight::SetIntensity. */
+		float Intensity = 100.0f; /**< Power of the light source. @see Light::SetIntensity. */
 		Degree SpotAngle { 45 }; /**< Total angle covered by a spot light. */
 		Degree SpotFalloffAngle { 35.0f }; /**< Spot light angle at which falloff starts. Must be smaller than total angle. */
 		bool AutoAttenuation = false; /**< Determines is attenuation radius is automatically determined. */
 		Sphere Bounds; /**< Sphere that bounds the light area of influence. */
-		float ShadowBias = 0.5f; /**< See TLight::SetShadowBias() */
+		float ShadowBias = 0.5f; /**< See Light::SetShadowBias() */
 
 		/** Computes the world space bounding sphere for a light and updates the Bounds field. */
 		void ComputeBounds(const Transform& transform);
@@ -68,7 +68,7 @@ namespace b3d
 		void ComputeAttenuationRange(const Transform& transform);
 	};
 
-	/** CRTP getter interface providing shared read access for light data to both Light and render::Light. */
+	/** CRTP getter interface providing shared read access for light data to both Light and render::LightProxy. */
 	template <typename Derived, bool IsRenderProxy>
 	class TLightGetters
 	{
@@ -155,105 +155,6 @@ namespace b3d
 		{
 			return static_cast<const Derived*>(this)->GetLightData();
 		}
-	};
-
-	/** Base class for the render thread Light implementation. */
-	template<bool IsRenderProxy>
-	class B3D_EXPORT TLight : public CoreVariantType<CoreObject, IsRenderProxy>, public TLightData<IsRenderProxy>, public TLightGetters<TLight<IsRenderProxy>, IsRenderProxy>
-	{
-		using Super = CoreVariantType<CoreObject, IsRenderProxy>;
-
-		friend class TLightGetters<TLight<IsRenderProxy>, IsRenderProxy>;
-	public:
-		TLight();
-		TLight(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
-		virtual ~TLight() = default;
-
-		/** @copydoc TLightGetters::GetType */
-		B3D_SCRIPT_EXPORT(ExportName(Type), Property(Setter))
-		void SetType(LightType type)
-		{
-			this->Type = type;
-			MarkRenderProxyDataDirty();
-			UpdateBounds();
-		}
-
-		/** @copydoc TLightGetters::GetCastsShadow */
-		B3D_SCRIPT_EXPORT(ExportName(CastsShadow), Property(Setter))
-		void SetCastsShadow(bool castsShadow)
-		{
-			this->CastsShadows = castsShadow;
-			MarkRenderProxyDataDirty();
-		}
-
-		/** @copydoc TLightGetters::GetShadowBias */
-		B3D_SCRIPT_EXPORT(ExportName(ShadowBias), Property(Setter), UIValueRange([ -1, 1 ]), UI(AsSlider))
-		void SetShadowBias(float bias)
-		{
-			this->ShadowBias = bias;
-			MarkRenderProxyDataDirty();
-		}
-
-		/** @copydoc TLightGetters::GetColor */
-		B3D_SCRIPT_EXPORT(ExportName(Color), Property(Setter))
-		void SetColor(const Color& color)
-		{
-			this->LightColor = color;
-			MarkRenderProxyDataDirty();
-		}
-
-		/** @copydoc TLightGetters::GetAttenuationRadius */
-		B3D_SCRIPT_EXPORT(ExportName(AttenuationRadius), Property(Setter))
-		void SetAttenuationRadius(float radius);
-
-		/** @copydoc TLightGetters::GetSourceRadius */
-		B3D_SCRIPT_EXPORT(ExportName(SourceRadius), Property(Setter))
-		void SetSourceRadius(float radius);
-
-		/** @copydoc TLightGetters::GetUseAutoAttenuation */
-		B3D_SCRIPT_EXPORT(ExportName(UseAutoAttenuation), Property(Setter))
-		void SetUseAutoAttenuation(bool enabled);
-
-		/** @copydoc TLightGetters::GetIntensity */
-		B3D_SCRIPT_EXPORT(ExportName(Intensity), Property(Setter))
-		void SetIntensity(float intensity);
-
-		/** @copydoc TLightGetters::GetSpotAngle */
-		B3D_SCRIPT_EXPORT(ExportName(SpotAngle), Property(Setter), UIValueRange([ 1, 180 ]), UI(AsSlider))
-		void SetSpotAngle(const Degree& spotAngle)
-		{
-			this->SpotAngle = spotAngle;
-			MarkRenderProxyDataDirty();
-			UpdateBounds();
-		}
-
-		/** @copydoc TLightGetters::GetSpotFalloffAngle */
-		B3D_SCRIPT_EXPORT(ExportName(SpotAngleFalloff), Property(Setter), UIValueRange([ 1, 180 ]), UI(AsSlider))
-		void SetSpotFalloffAngle(const Degree& spotFallofAngle)
-		{
-			this->SpotFalloffAngle = spotFallofAngle;
-			MarkRenderProxyDataDirty();
-			UpdateBounds();
-		}
-
-		/** @copydoc TLightData::ComputeLuminance */
-		float GetLuminance() const { return this->ComputeLuminance(); }
-
-	protected:
-		/** Returns a reference to the light data for the CRTP getter interface. */
-		const TLightData<IsRenderProxy>& GetLightData() const { return *this; }
-
-		/** Updates the internal bounds for the light. Call this whenever a property affecting the bounds changes. */
-		void UpdateBounds();
-
-		/** Calculates maximum light range based on light intensity. */
-		void UpdateAttenuationRange();
-
-		/** @copydoc CoreObject::MarkRenderProxyDataDirty */
-		void MarkRenderProxyDataDirty(ComponentDirtyFlag flag = ComponentDirtyFlag::Everything);
-
-		/** Returns the world space transform of the object. */
-		const Transform& GetTransform() const;
 	};
 
 	/** @} */
@@ -344,12 +245,6 @@ namespace b3d
 		/** @copydoc TLightData::ComputeLuminance */
 		float GetLuminance() const;
 
-	protected:
-		friend class render::Light;
-
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
-		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
-
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/
 		/************************************************************************/
@@ -376,6 +271,9 @@ namespace b3d
 		Light(); // Serialization only
 
 	private:
+		/** @copydoc CoreObject::MarkRenderProxyDataDirty */
+		void MarkRenderProxyDataDirty(ComponentDirtyFlag flag = ComponentDirtyFlag::Everything);
+
 		/** Returns a reference to the light data for the CRTP getter interface. */
 		const TLightData<false>& GetLightData() const;
 
@@ -397,44 +295,6 @@ namespace b3d
 	/** @addtogroup Renderer-Internal
 	 *  @{
 	 */
-
-	namespace render
-	{
-		/** Render thread counterpart of b3d::Light. */
-		class B3D_EXPORT Light : public TLight<true>
-		{
-		public:
-			~Light();
-
-			/**	Sets an ID that can be used for uniquely identifying this object by the renderer. */
-			void SetRendererId(u32 id) { mRendererId = id; }
-
-			/**	Retrieves an ID that can be used for uniquely identifying this object by the renderer. */
-			u32 GetRendererId() const { return mRendererId; }
-
-			/** Returns the world space transform for the decal. */
-			const Transform& GetWorldTransform() const { return mTransform; }
-
-			static const u32 kLightConeSideCount;
-			static const u32 kLightConeSliceCount;
-
-		protected:
-			friend class b3d::Light;
-			friend struct ecs::Light::FullSyncPacket;
-			friend struct ecs::Light::TransformSyncPacket;
-
-			Light(const SPtr<SceneInstance>& scene, LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
-
-			void Initialize() override;
-			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
-
-			u32 mRendererId;
-			Transform mTransform;
-			bool mActive = true;
-			SPtr<SceneInstance> mSceneInstance;
-		};
-	} // namespace render
-
 
 	namespace render
 	{

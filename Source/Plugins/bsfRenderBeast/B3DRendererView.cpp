@@ -460,13 +460,15 @@ void RendererView::DetermineVisible(const Vector<DecalRenderState>& decals, cons
 	}
 }
 
-void RendererView::DetermineVisible(const Vector<LightRenderState>& lights, const Vector<Sphere>& bounds, LightType lightType, Vector<bool>* visibility)
+void RendererView::DetermineVisible(TArrayView<const Sphere> bounds, LightType lightType, Vector<bool>* outVisibility)
 {
+	const u32 lightCount = bounds.size();
+
 	// Special case for directional lights, they're always visible
 	if(lightType == LightType::Directional)
 	{
-		if(visibility)
-			visibility->assign(lights.size(), true);
+		if(outVisibility)
+			outVisibility->assign(lightCount, true);
 
 		return;
 	}
@@ -475,14 +477,14 @@ void RendererView::DetermineVisible(const Vector<LightRenderState>& lights, cons
 	if(lightType == LightType::Radial)
 	{
 		mVisibility.RadialLights.clear();
-		mVisibility.RadialLights.resize(lights.size(), false);
+		mVisibility.RadialLights.resize(lightCount, false);
 
 		perViewVisibility = &mVisibility.RadialLights;
 	}
 	else // Spot
 	{
 		mVisibility.SpotLights.clear();
-		mVisibility.SpotLights.resize(lights.size(), false);
+		mVisibility.SpotLights.resize(lightCount, false);
 
 		perViewVisibility = &mVisibility.SpotLights;
 	}
@@ -492,13 +494,13 @@ void RendererView::DetermineVisible(const Vector<LightRenderState>& lights, cons
 
 	CalculateVisibility(bounds, *perViewVisibility);
 
-	if(visibility != nullptr)
+	if(outVisibility != nullptr)
 	{
-		for(u32 i = 0; i < (u32)lights.size(); i++)
+		for(u32 i = 0; i < lightCount; i++)
 		{
-			bool visible = (*visibility)[i];
+			bool visible = (*outVisibility)[i];
 
-			(*visibility)[i] = visible || (*perViewVisibility)[i];
+			(*outVisibility)[i] = visible || (*perViewVisibility)[i];
 		}
 	}
 }
@@ -540,7 +542,7 @@ void RendererView::CalculateVisibility(const Vector<CullInfo>& cullInfos, Vector
 	}
 }
 
-void RendererView::CalculateVisibility(const Vector<Sphere>& bounds, Vector<bool>& visibility) const
+void RendererView::CalculateVisibility(TArrayView<const Sphere> bounds, Vector<bool>& visibility) const
 {
 	const ConvexVolume& worldFrustum = mProperties.CullFrustum;
 
@@ -951,11 +953,11 @@ void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, con
 	}
 
 	// Calculate light visibility for all views
-	const auto radialLightCount = (u32)sceneInfo.RadialLights->size();
+	const auto radialLightCount = (u32)sceneInfo.GetRadialLights().size();
 	mVisibility.RadialLights.resize(radialLightCount, false);
 	mVisibility.RadialLights.assign(radialLightCount, false);
 
-	const auto spotLightCount = (u32)sceneInfo.SpotLights->size();
+	const auto spotLightCount = (u32)sceneInfo.GetSpotLights().size();
 	mVisibility.SpotLights.resize(spotLightCount, false);
 	mVisibility.SpotLights.assign(spotLightCount, false);
 
@@ -964,9 +966,9 @@ void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, con
 		if(!mViews[viewIndex]->ShouldDraw3D())
 			continue;
 
-		mViews[viewIndex]->DetermineVisible(*sceneInfo.RadialLights, *sceneInfo.RadialLightWorldBounds, LightType::Radial, &mVisibility.RadialLights);
+		mViews[viewIndex]->DetermineVisible(sceneInfo.GetRadialLightWorldBounds(), LightType::Radial, &mVisibility.RadialLights);
 
-		mViews[viewIndex]->DetermineVisible(*sceneInfo.SpotLights, *sceneInfo.SpotLightWorldBounds, LightType::Spot, &mVisibility.SpotLights);
+		mViews[viewIndex]->DetermineVisible(sceneInfo.GetSpotLightWorldBounds(), LightType::Spot, &mVisibility.SpotLights);
 	}
 
 	// Calculate refl. probe visibility for all views

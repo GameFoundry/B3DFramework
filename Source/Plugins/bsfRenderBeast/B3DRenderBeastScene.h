@@ -108,14 +108,14 @@ namespace b3d
 			void DestroyRenderState(TArrayView<const PackedRendererId> ids) override;
 			void UpdateRenderState(TArrayView<const PackedRendererId> ids) override;
 
-			/** Returns an array of all directional lights in the scene. */
-			const Vector<LightRenderState>& GetDirectionalLights() const { return mDirectionalLights; }
+			/** Returns packed IDs of all directional lights in the scene. */
+			const Vector<PackedRendererId>& GetDirectionalLights() const { return mDirectionalLightIds; }
 
-			/** Returns an array of all radial lights in the scene. */
-			const Vector<LightRenderState>& GetRadialLights() const { return mRadialLights; }
+			/** Returns packed IDs of all radial lights in the scene. */
+			const Vector<PackedRendererId>& GetRadialLights() const { return mRadialLightIds; }
 
-			/** Returns an array of all spot lights in the scene. */
-			const Vector<LightRenderState>& GetSpotLights() const { return mSpotLights; }
+			/** Returns packed IDs of all spot lights in the scene. */
+			const Vector<PackedRendererId>& GetSpotLights() const { return mSpotLightIds; }
 
 			/** Returns an array holding the world space bounds of all radial lights. */
 			const Vector<Sphere>& GetRadialLightWorldBounds() const { return mRadialLightWorldBounds; }
@@ -123,30 +123,16 @@ namespace b3d
 			/** Returns an array holding the world space bounds of all spot lights. */
 			const Vector<Sphere>& GetSpotLightWorldBounds() const { return mSpotLightWorldBounds; }
 
-			/** Returns mutable per-type arrays. Used by old RegisterLight/UpdateLight/UnregisterLight path during transition. */
-			Vector<LightRenderState>& GetDirectionalLights() { return mDirectionalLights; }
-			Vector<LightRenderState>& GetRadialLights() { return mRadialLights; }
-			Vector<LightRenderState>& GetSpotLights() { return mSpotLights; }
-			Vector<Sphere>& GetRadialLightWorldBounds() { return mRadialLightWorldBounds; }
-			Vector<Sphere>& GetSpotLightWorldBounds() { return mSpotLightWorldBounds; }
+			/** Returns the render state for the light at the given packed ID. */
+			const LightRenderState& GetLightRenderState(PackedRendererId packedId) const { return mLightRenderStates[packedId]; }
 
 		private:
-			/** Maps a PackedRendererId in LightObjectStorage to its per-type array location. */
-			struct TypeArrayMapping
-			{
-				LightType Type = LightType::Radial;
-				u32 TypeArrayIndex = 0;
-			};
-
-			Vector<LightRenderState> mDirectionalLights;
-			Vector<LightRenderState> mRadialLights;
-			Vector<LightRenderState> mSpotLights;
 			Vector<Sphere> mRadialLightWorldBounds;
 			Vector<Sphere> mSpotLightWorldBounds;
-			Vector<PackedRendererId> mDirectionalLightPackedIds;
-			Vector<PackedRendererId> mRadialLightPackedIds;
-			Vector<PackedRendererId> mSpotLightPackedIds;
-			Vector<TypeArrayMapping> mPackedIndexToTypeArrayIndex;
+			Vector<PackedRendererId> mDirectionalLightIds;
+			Vector<PackedRendererId> mRadialLightIds;
+			Vector<PackedRendererId> mSpotLightIds;
+			Vector<LightRenderState> mLightRenderStates;
 		};
 
 		/** Contains most scene objects relevant to the renderer. */
@@ -161,12 +147,18 @@ namespace b3d
 			const Vector<RenderableRenderState*>* Renderables = nullptr;
 			const Vector<CullInfo>* RenderableCullInfos = nullptr;
 
-			// Lights — pointers to arrays in LightObjectStorage
-			const Vector<LightRenderState>* DirectionalLights = nullptr;
-			const Vector<LightRenderState>* RadialLights = nullptr;
-			const Vector<LightRenderState>* SpotLights = nullptr;
-			const Vector<Sphere>* RadialLightWorldBounds = nullptr;
-			const Vector<Sphere>* SpotLightWorldBounds = nullptr;
+			// Light accessors — delegate to LightObjectStorage
+			const LightObjectStorage& GetLightStorage() const { return *mLightStorage; }
+			LightObjectStorage& GetLightStorage() { return *mLightStorage; }
+
+			TArrayView<const PackedRendererId> GetDirectionalLights() const;
+			TArrayView<const PackedRendererId> GetRadialLights() const;
+			TArrayView<const PackedRendererId> GetSpotLights() const;
+			TArrayView<const Sphere> GetRadialLightWorldBounds() const;
+			TArrayView<const Sphere> GetSpotLightWorldBounds() const;
+
+			const LightProxy& GetLightProxy(PackedRendererId packedId) const;
+			const LightRenderState& GetLightRenderState(PackedRendererId packedId) const;
 
 			// Reflection probes
 			Vector<ReflectionProbeRenderState> ReflProbes;
@@ -198,6 +190,10 @@ namespace b3d
 			u32 GetRenderableCount() const { return (u32)Renderables->size(); }
 			RenderableRenderState* GetRenderable(u32 idx) const { return (*Renderables)[idx]; }
 			const CullInfo& GetRenderableCullInfo(u32 idx) const { return (*RenderableCullInfos)[idx]; }
+
+		private:
+			friend class RenderBeastScene;
+			LightObjectStorage* mLightStorage = nullptr;
 		};
 
 		/** Contains information about the scene (e.g. renderables, lights, cameras) required by the renderer. */
@@ -209,10 +205,6 @@ namespace b3d
 			void RegisterCamera(Camera* camera) override;
 			void UpdateCamera(Camera* camera, u32 updateFlag) override;
 			void UnregisterCamera(Camera* camera) override;
-
-			void RegisterLight(Light* light) override;
-			void UpdateLight(Light* light) override;
-			void UnregisterLight(Light* light) override;
 
 			void RegisterReflectionProbe(ReflectionProbe* probe) override;
 			void UpdateReflectionProbe(ReflectionProbe* probe, bool texture) override;

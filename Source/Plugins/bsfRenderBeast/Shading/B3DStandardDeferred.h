@@ -12,7 +12,7 @@ namespace b3d
 {
 	namespace render
 	{
-		class LightRenderState;
+		struct SceneInfo;
 
 		B3D_UNIFORM_BUFFER_BEGIN(PerLightUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gLightPositionAndSrcRadius)
@@ -296,7 +296,7 @@ namespace b3d
 			/** Information about a single light instance in a batch. */
 			struct BatchedLightInstance
 			{
-				const LightRenderState* Light;
+				PackedRendererId LightId;
 				u32 UniformBufferOffset; /**< Byte offset in the instanced uniform buffer. */
 			};
 
@@ -340,7 +340,7 @@ namespace b3d
 			 * @param lightOcclusion    Shadow occlusion texture (or Texture::kBlack if no shadows).
 			 * @return                  Prepared batch containing grouped lights and GPU resources.
 			 */
-			LightBatches PrepareLightBatches(const TArrayView<const LightRenderState*>& lights, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion);
+			LightBatches PrepareLightBatches(TArrayView<const PackedRendererId> lights, const SceneInfo& sceneInfo, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion);
 
 			/**
 			 * Renders a prepared light batch using dynamic offsets.

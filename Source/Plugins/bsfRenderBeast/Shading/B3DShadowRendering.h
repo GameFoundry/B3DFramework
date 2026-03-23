@@ -16,8 +16,9 @@ namespace b3d
 {
 	namespace render
 	{
+		struct SceneInfo;
 		struct FrameInfo;
-		class LightRenderState;
+
 		class RenderBeastScene;
 		struct ShadowInfo;
 
@@ -224,12 +225,12 @@ namespace b3d
 		/** Common parameters used by the shadow projection materials. */
 		struct ShadowProjectParams
 		{
-			ShadowProjectParams(const Light& light, const SPtr<Texture>& shadowMap, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& perCameraParams, GBufferTextures gbuffer)
+			ShadowProjectParams(const LightProxy& light, const SPtr<Texture>& shadowMap, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& perCameraParams, GBufferTextures gbuffer)
 				: Light(light), ShadowMap(shadowMap), ShadowParams(shadowParams), PerCamera(perCameraParams), Gbuffer(gbuffer)
 			{}
 
 			/** Light which is casting the shadow. */
-			const Light& Light;
+			const LightProxy& Light;
 
 			/** Texture containing the shadow map. */
 			const SPtr<Texture>& ShadowMap;
@@ -554,13 +555,13 @@ namespace b3d
 			void RenderShadowMaps(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, const RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 			/** Prepares all the GpuParameterSet objects required for rendering projected shadows for the specified light. Should be followed by RenderShadowProjectionBatch. */
-			ProjectedShadowRenderingBatchInformation PrepareParametersForRenderShadowProjection(GpuDevice& gpuDevice, const RendererView& view, const LightRenderState& lightRenderState, GBufferTextures gbuffer) const;
+			ProjectedShadowRenderingBatchInformation PrepareParametersForRenderShadowProjection(GpuDevice& gpuDevice, const RendererView& view, PackedRendererId lightId, const SceneInfo& sceneInfo, GBufferTextures gbuffer) const;
 
 			/**
 			 * Renders shadow occlusion values for the specified light, through the provided view, into the currently bound
 			 * render target. User must have started a render pass externally. The system uses shadow maps rendered by RenderShadowMaps().
 			 */
-			void RenderShadowProjectionBatch(GpuCommandBuffer& commandBuffer, const RendererView& view, const LightRenderState& lightRenderState, const ProjectedShadowRenderingBatchInformation& batch) const;
+			void RenderShadowProjectionBatch(GpuCommandBuffer& commandBuffer, const RendererView& view, PackedRendererId lightId, const SceneInfo& sceneInfo, const ProjectedShadowRenderingBatchInformation& batch) const;
 
 			/** Changes the default shadow map size. Will cause all shadow maps to be rebuilt. */
 			void SetShadowMapSize(u32 size);
@@ -573,24 +574,24 @@ namespace b3d
 			void RenderCascadedShadowMaps(GpuCommandBuffer& commandBuffer, const RendererView& view, u32 lightIdx, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/** Renders shadow maps for the provided spot light. */
-			void RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, const LightRenderState& lightRenderState, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
+			void RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, PackedRendererId lightId, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/** Renders shadow maps for the provided radial light. */
-			void RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, const LightRenderState& lightRenderState, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
+			void RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, PackedRendererId lightId, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/**
 			 * Calculates optimal shadow map size, taking into account all views in the scene. Also calculates a fade value
 			 * that can be used for fading out small shadow maps.
 			 *
-			 * @param[in]	lightRenderState			Light for which to calculate the shadow map properties. Cannot be a directional light.
-			 * @param[in]	viewGroup		All the views the shadow will (potentially) be seen through.
-			 * @param[in]	border			Border to reduce the shadow map size by, in pixels.
-			 * @param[out]	size			Optimal size of the shadow map, in pixels.
-			 * @param[out]	fadePercents	Value in range [0, 1] determining how much should the shadow map be faded out. Each
+			 * @param	lightProxy			Light for which to calculate the shadow map properties. Cannot be a directional light.
+			 * @param	viewGroup			All the views the shadow will (potentially) be seen through.
+			 * @param	border				Border to reduce the shadow map size by, in pixels.
+			 * @param	outSize				Optimal size of the shadow map, in pixels.
+			 * @param	outFadePercents		Value in range [0, 1] determining how much should the shadow map be faded out. Each
 			 *								entry corresponds to a single view.
-			 * @param[out]	maxFadePercent	Maximum value in the @p fadePercents array.
+			 * @param	outMaxFadePercent	Maximum value in the @p fadePercents array.
 			 */
-			void CalcShadowMapProperties(const LightRenderState& lightRenderState, const RendererViewGroup& viewGroup, u32 border, u32& size, TInlineArray<float, 6>& fadePercents, float& maxFadePercent) const;
+			void CalcShadowMapProperties(const LightProxy& lightProxy, const RendererViewGroup& viewGroup, u32 border, u32& outSize, TInlineArray<float, 6>& outFadePercents, float& outMaxFadePercent) const;
 
 			/**
 			 * Draws a mesh representing near and far planes at the provided coordinates. The mesh is constructed using
@@ -649,7 +650,7 @@ namespace b3d
 			 * @param[in]	mapSize		Size of the shadow map, in pixels.
 			 * @return					Depth bias that can be passed to shadow depth rendering shader.
 			 */
-			static float GetDepthBias(const Light& light, float radius, float depthRange, u32 mapSize);
+			static float GetDepthBias(const LightProxy& light, float radius, float depthRange, u32 mapSize);
 
 			/**
 			 * Calculates a fade transition value that can be used for slowly fading-in the shadow, in order to avoid or reduce
@@ -661,7 +662,7 @@ namespace b3d
 			 * @param[in]	mapSize		Size of the shadow map, in pixels.
 			 * @return					Value that determines the size of the fade transition region.
 			 */
-			static float GetFadeTransition(const Light& light, float radius, float depthRange, u32 mapSize);
+			static float GetFadeTransition(const LightProxy& light, float radius, float depthRange, u32 mapSize);
 
 			/** Size of a single shadow map atlas, in pixels. */
 			static const u32 kMaxAtlasSize;

@@ -19,14 +19,14 @@ namespace b3d
 		 *  @{
 		 */
 
+		/** Render-thread state for a single light, indexed by PackedRendererId. */
+		struct LightRenderState
+		{
+			u32 TypeArrayIndex = 0;
+		};
+
 		/** Maximum number of lights that can influence an object when basic forward rendering is used. */
 		static constexpr u32 kStandardForwardMaxNumLights = 8;
-
-		/** Number of sides in the cone mesh used for spot light volumes. */
-		constexpr u32 kLightConeSideCount = 20;
-
-		/** Number of slices in the cone mesh used for spot light volumes. */
-		constexpr u32 kLightConeSliceCount = 10;
 
 		/** Information about a single light, as seen by the lighting shader. */
 		struct LightData
@@ -43,35 +43,21 @@ namespace b3d
 			float Padding;
 		};
 
-		/** Renderer-specific state for a light. */
-		class LightRenderState
-		{
-		public:
-			/** Constructs from an old-style render::Light pointer (backward compatibility, will be removed in Phase 7). */
-			LightRenderState(Light* light);
+		/** Populates the structure with light parameters. */
+		void GetLightParameters(const LightProxy& proxy, LightData& output);
 
-			/** Default constructor for array pre-allocation. */
-			LightRenderState() = default;
+		/**
+		 * Populates the provided uniform buffer with information about the light. Provided buffer's structure
+		 * must match PerLightUniformDefinition.
+		 */
+		void PopulateLightUniformBuffer(const LightProxy& proxy, SPtr<GpuBuffer>& buffer, u32 index = 0);
 
-			/** Populates the structure with light parameters. */
-			void GetParameters(LightData& output) const;
-
-			/**
-			 * Populates the provided uniform buffer with information about the light. Provided buffer's structure
-			 * must match PerLightUniformDefinition.
-			 */
-			void PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index = 0) const;
-
-			/**
-			 * Calculates the light position that is shifted in order to account for area spot lights. For non-spot lights
-			 * this method will return normal light position. The position will be shifted back from the light direction,
-			 * magnitude of the shift depending on the source radius.
-			 */
-			Vector3 GetShiftedLightPosition() const;
-
-			/** Old-style render::Light pointer. Set when constructed via the Light* path. Will be removed in Phase 7. */
-			Light* Light = nullptr;
-		};
+		/**
+		 * Calculates the light position that is shifted in order to account for area spot lights. For non-spot lights
+		 * this method will return normal light position. The position will be shifted back from the light direction,
+		 * magnitude of the shift depending on the source radius.
+		 */
+		Vector3 GetShiftedLightPosition(const LightProxy& proxy);
 
 		/** Container for all GBuffer textures. */
 		struct GBufferTextures
@@ -206,8 +192,8 @@ namespace b3d
 			/** Returns the number of visible unshadowed lights of the specified type. */
 			u32 GetUnshadowedLightCount(LightType type) const { return mLightCounts[(u32)type] - mShadowedLightCounts[(u32)type]; }
 
-			/** Returns a list of all visible lights of the specified type. */
-			const Vector<const LightRenderState*>& GetLights(LightType type) const { return mVisibleLights[(u32)type]; }
+			/** Returns a list of all visible light packed IDs of the specified type. */
+			const Vector<PackedRendererId>& GetLights(LightType type) const { return mVisibleLights[(u32)type]; }
 
 		private:
 			SPtr<GpuBuffer> mLightBuffer;
@@ -216,7 +202,7 @@ namespace b3d
 			u32 mShadowedLightCounts[(u32)LightType::Count];
 
 			// These are rebuilt every call to update()
-			Vector<const LightRenderState*> mVisibleLights[(u32)LightType::Count];
+			Vector<PackedRendererId> mVisibleLights[(u32)LightType::Count];
 			Vector<LightData> mVisibleLightData;
 		};
 

@@ -15,42 +15,38 @@ namespace render {
 
 static const u32 kLightDataBufferIncrement = 16 * sizeof(LightData);
 
-LightRenderState::LightRenderState(class Light* light)
-	: Light(light)
-{}
-
-void LightRenderState::GetParameters(LightData& output) const
+void GetLightParameters(const LightProxy& proxy, LightData& output)
 {
-	Radian spotAngle = Math::Clamp(Light->GetSpotAngle() * 0.5f, Degree(0), Degree(89));
-	Radian spotFalloffAngle = Math::Clamp(Light->GetSpotFalloffAngle() * 0.5f, Degree(0), (Degree)spotAngle);
-	Color color = Light->GetColor();
+	Radian spotAngle = Math::Clamp(proxy.GetSpotAngle() * 0.5f, Degree(0), Degree(89));
+	Radian spotFalloffAngle = Math::Clamp(proxy.GetSpotFalloffAngle() * 0.5f, Degree(0), (Degree)spotAngle);
+	Color color = proxy.GetColor();
 
-	const Transform& tfrm = Light->GetWorldTransform();
+	const Transform& tfrm = proxy.GetWorldTransform();
 	output.Position = tfrm.GetPosition();
-	output.BoundsRadius = Light->GetBounds().Radius;
-	output.SrcRadius = Light->GetSourceRadius();
+	output.BoundsRadius = proxy.GetBounds().Radius;
+	output.SrcRadius = proxy.GetSourceRadius();
 	output.Direction = -tfrm.GetRotation().ZAxis();
-	output.Luminance = Light->GetLuminance();
+	output.Luminance = proxy.GetLuminance();
 	output.SpotAngles.X = spotAngle.GetValueInRadians();
 	output.SpotAngles.Y = Math::Cos(output.SpotAngles.X);
 	output.SpotAngles.Z = 1.0f / std::max(Math::Cos(spotFalloffAngle) - output.SpotAngles.Y, 0.001f);
-	output.AttRadiusSqrdInv = 1.0f / (Light->GetAttenuationRadius() * Light->GetAttenuationRadius());
+	output.AttRadiusSqrdInv = 1.0f / (proxy.GetAttenuationRadius() * proxy.GetAttenuationRadius());
 	output.Color = Vector3(color.R, color.G, color.B);
 
 	// If directional lights, convert angular radius in degrees to radians
-	if(Light->GetType() == LightType::Directional)
+	if(proxy.GetType() == LightType::Directional)
 		output.SrcRadius *= Math::kDeG2Rad;
 
-	output.ShiftedLightPosition = GetShiftedLightPosition();
+	output.ShiftedLightPosition = GetShiftedLightPosition(proxy);
 }
 
-void LightRenderState::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index) const
+void PopulateLightUniformBuffer(const LightProxy& proxy, SPtr<GpuBuffer>& buffer, u32 index)
 {
 	LightData lightData;
-	GetParameters(lightData);
+	GetLightParameters(proxy, lightData);
 
 	float type = 0.0f;
-	switch(Light->GetType())
+	switch(proxy.GetType())
 	{
 	case LightType::Directional:
 		type = 0;
@@ -74,17 +70,17 @@ void LightRenderState::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index)
 	gPerLightUniformDefinition.gShiftedLightPositionAndType.Set(uniforms, Vector4(lightData.ShiftedLightPosition, type), 0, index);
 
 	Vector4 lightGeometry;
-	lightGeometry.X = Light->GetType() == LightType::Spot ? (float)kLightConeSideCount : 0;
-	lightGeometry.Y = (float)kLightConeSliceCount;
-	lightGeometry.Z = Light->GetBounds().Radius;
+	lightGeometry.X = proxy.GetType() == LightType::Spot ? (float)RendererUtility::kSpotLightStencilSideCount : 0;
+	lightGeometry.Y = (float)RendererUtility::kSpotLightStencilSliceCount;
+	lightGeometry.Z = proxy.GetBounds().Radius;
 
 	float extraRadius = lightData.SrcRadius / Math::Tan(lightData.SpotAngles.X * 0.5f);
-	float coneRadius = Math::Sin(lightData.SpotAngles.X) * (Light->GetAttenuationRadius() + extraRadius);
+	float coneRadius = Math::Sin(lightData.SpotAngles.X) * (proxy.GetAttenuationRadius() + extraRadius);
 	lightGeometry.W = coneRadius;
 
 	gPerLightUniformDefinition.gLightGeometry.Set(uniforms, lightGeometry, 0, index);
 
-	const Transform& tfrm = Light->GetWorldTransform();
+	const Transform& tfrm = proxy.GetWorldTransform();
 
 	Quaternion lightRotation(kIdentityTag);
 	lightRotation.LookRotation(-tfrm.GetRotation().ZAxis());
@@ -93,14 +89,14 @@ void LightRenderState::PopulateUniformBuffer(SPtr<GpuBuffer>& buffer, u32 index)
 	gPerLightUniformDefinition.gMatConeTransform.Set(uniforms, transform, 0, index);
 }
 
-Vector3 LightRenderState::GetShiftedLightPosition() const
+Vector3 GetShiftedLightPosition(const LightProxy& proxy)
 {
-	const Transform& tfrm = Light->GetWorldTransform();
+	const Transform& tfrm = proxy.GetWorldTransform();
 	Vector3 direction = -tfrm.GetRotation().ZAxis();
 
 	// Create position for fake attenuation for area spot lights (with disc center)
-	if(Light->GetType() == LightType::Spot)
-		return tfrm.GetPosition() - direction * (Light->GetSourceRadius() / Math::Tan(Light->GetSpotAngle() * 0.5f));
+	if(proxy.GetType() == LightType::Spot)
+		return tfrm.GetPosition() - direction * (proxy.GetSourceRadius() / Math::Tan(proxy.GetSpotAngle() * 0.5f));
 	else
 		return tfrm.GetPosition();
 }
@@ -194,40 +190,40 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 	for(u32 i = 0; i < (u32)LightType::Count; i++)
 		mVisibleLights[i].clear();
 
-	// Generate a list of lights and their GPU buffers
-	u32 numDirLights = (u32)sceneInfo.DirectionalLights->size();
-	for(u32 i = 0; i < numDirLights; i++)
-		mVisibleLights[(u32)LightType::Directional].push_back(&(*sceneInfo.DirectionalLights)[i]);
+	// Generate a list of visible light packed IDs
+	TArrayView<const PackedRendererId> directionalLights = sceneInfo.GetDirectionalLights();
+	for(u32 i = 0; i < (u32)directionalLights.size(); i++)
+		mVisibleLights[(u32)LightType::Directional].push_back(directionalLights[i]);
 
-	u32 numRadialLights = (u32)sceneInfo.RadialLights->size();
-	for(u32 i = 0; i < numRadialLights; i++)
+	TArrayView<const PackedRendererId> radialLights = sceneInfo.GetRadialLights();
+	for(u32 i = 0; i < (u32)radialLights.size(); i++)
 	{
 		if(!visibility.RadialLights[i])
 			continue;
 
-		mVisibleLights[(u32)LightType::Radial].push_back(&(*sceneInfo.RadialLights)[i]);
+		mVisibleLights[(u32)LightType::Radial].push_back(radialLights[i]);
 	}
 
-	u32 numSpotLights = (u32)sceneInfo.SpotLights->size();
-	for(u32 i = 0; i < numSpotLights; i++)
+	TArrayView<const PackedRendererId> spotLights = sceneInfo.GetSpotLights();
+	for(u32 i = 0; i < (u32)spotLights.size(); i++)
 	{
 		if(!visibility.SpotLights[i])
 			continue;
 
-		mVisibleLights[(u32)LightType::Spot].push_back(&(*sceneInfo.SpotLights)[i]);
+		mVisibleLights[(u32)LightType::Spot].push_back(spotLights[i]);
 	}
 
 	for(u32 i = 0; i < (u32)LightType::Count; i++)
 		mLightCounts[i] = (u32)mVisibleLights[i].size();
 
 	// Partition all visible lights so that unshadowed ones come first
-	auto partition = [](Vector<const LightRenderState*>& entries)
+	auto partition = [&sceneInfo](Vector<PackedRendererId>& entries)
 	{
 		u32 numUnshadowed = 0;
 		int first = -1;
 		for(u32 i = 0; i < (u32)entries.size(); ++i)
 		{
-			if(entries[i]->Light->GetCastsShadow())
+			if(sceneInfo.GetLightProxy(entries[i]).GetCastsShadow())
 			{
 				first = i;
 				break;
@@ -240,7 +236,7 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 		{
 			for(u32 i = first + 1; i < (u32)entries.size(); ++i)
 			{
-				if(!entries[i]->Light->GetCastsShadow())
+				if(!sceneInfo.GetLightProxy(entries[i]).GetCastsShadow())
 				{
 					std::swap(entries[i], entries[first]);
 					++numUnshadowed;
@@ -258,10 +254,10 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 	mVisibleLightData.clear();
 	for(auto& lightsPerType : mVisibleLights)
 	{
-		for(auto& entry : lightsPerType)
+		for(PackedRendererId lightId : lightsPerType)
 		{
 			mVisibleLightData.push_back(LightData());
-			entry->GetParameters(mVisibleLightData.back());
+			GetLightParameters(sceneInfo.GetLightProxy(lightId), mVisibleLightData.back());
 		}
 	}
 

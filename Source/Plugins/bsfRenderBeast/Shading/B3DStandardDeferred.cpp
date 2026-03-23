@@ -215,7 +215,7 @@ DeferredIBLFinalizeMaterial* DeferredIBLFinalizeMaterial::GetVariation(bool msaa
 	}
 }
 
-StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArrayView<const LightRenderState*>& lights, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion)
+StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(TArrayView<const PackedRendererId> lights, const SceneInfo& sceneInfo, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion)
 {
 	LightBatches batches;
 
@@ -223,9 +223,10 @@ StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArra
 	const bool isMSAA = viewProperties.Target.NumSamples > 1;
 
 	// Group lights by material variation
-	for(const LightRenderState* lightRenderState : lights)
+	for(PackedRendererId lightId : lights)
 	{
-		const LightType lightType = lightRenderState->Light->GetType();
+		const LightProxy& proxy = sceneInfo.GetLightProxy(lightId);
+		const LightType lightType = proxy.GetType();
 
 		// Determine material variation
 		LightMaterialVariationKey key;
@@ -237,8 +238,8 @@ StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArra
 		// For point/spot lights, determine if viewer is inside
 		if(lightType != LightType::Directional)
 		{
-			float distSqrd = (lightRenderState->Light->GetBounds().Center - viewProperties.ViewOrigin).SquaredLength();
-			float boundRadius = lightRenderState->Light->GetBounds().Radius + viewProperties.NearPlane * 3.0f;
+			float distSqrd = (proxy.GetBounds().Center - viewProperties.ViewOrigin).SquaredLength();
+			float boundRadius = proxy.GetBounds().Radius + viewProperties.NearPlane * 3.0f;
 			key.IsInside = distSqrd < (boundRadius * boundRadius);
 		}
 
@@ -246,7 +247,7 @@ StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArra
 		LightBatch& batch = batches.Batches[key];
 
 		BatchedLightInstance instance;
-		instance.Light = lightRenderState;
+		instance.LightId = lightId;
 		instance.UniformBufferOffset = 0; // Will be set later
 
 		batch.Lights.Add(instance);
@@ -268,7 +269,8 @@ StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(const TArra
 		// Write light parameters to buffer
 		for(u32 lightIndex = 0; lightIndex < lightCount; lightIndex++)
 		{
-			batch.Lights[lightIndex].Light->PopulateUniformBuffer(batch.PerLightUniformBuffer, lightIndex);
+			const LightProxy& lightProxy = sceneInfo.GetLightProxy(batch.Lights[lightIndex].LightId);
+			PopulateLightUniformBuffer(lightProxy, batch.PerLightUniformBuffer, lightIndex);
 			batch.Lights[lightIndex].UniformBufferOffset = lightIndex * uniformBlockStride;
 		}
 

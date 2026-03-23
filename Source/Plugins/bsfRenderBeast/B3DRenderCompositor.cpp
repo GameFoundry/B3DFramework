@@ -1011,7 +1011,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 		ProfileGPUBlock sampleBlock(commandBuffer, "Standard deferred unshadowed lights");
 
 		// Collect all unshadowed lights
-		Vector<const LightRenderState*> unshadowedLightRenderStates;
+		Vector<PackedRendererId> unshadowedLightIds;
 		for(u32 i = 0; i < (u32)LightType::Count; i++)
 		{
 			LightType lightType = (LightType)i;
@@ -1019,11 +1019,11 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 			u32 count = lightData.GetUnshadowedLightCount(lightType);
 
 			for(u32 j = 0; j < count; j++)
-				unshadowedLightRenderStates.push_back(lights[j]);
+				unshadowedLightIds.push_back(lights[j]);
 		}
 
 		// Prepare batch (groups lights and creates instanced uniform buffers)
-		StandardDeferred::LightBatches baches = StandardDeferred::Instance().PrepareLightBatches(unshadowedLightRenderStates, inputs.View, gbuffer, Texture::kBlack);
+		StandardDeferred::LightBatches baches = StandardDeferred::Instance().PrepareLightBatches(unshadowedLightIds, inputs.Scene, inputs.View, gbuffer, Texture::kBlack);
 
 		// Begin render pass with pre-declared parameters
 		RenderPassCreateInformation passInfo(Output->RenderTarget, RT_DEPTH_STENCIL, RT_DEPTH_STENCIL);
@@ -1082,11 +1082,11 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 
 			for(u32 shadowedLightIndex = 0; shadowedLightIndex < lightCount; shadowedLightIndex++)
 			{
-				u32 lightId = offset + shadowedLightIndex;
-				const LightRenderState& lightRenderState = *lights[lightId];
+				u32 visibleLightIndex = offset + shadowedLightIndex;
+				PackedRendererId packedLightId = lights[visibleLightIndex];
 
 				ShadowRendering::ProjectedShadowRenderingBatchInformation shadowProjectionRenderingBatch =
-					shadowRenderer.PrepareParametersForRenderShadowProjection(commandBuffer.GetGpuDevice(), inputs.View, lightRenderState, gbuffer);
+					shadowRenderer.PrepareParametersForRenderShadowProjection(commandBuffer.GetGpuDevice(), inputs.View, packedLightId, inputs.Scene, gbuffer);
 
 				RenderPassCreateInformation shadowProjectionPassInfo(mLightOcclusionRT, RT_DEPTH, RT_DEPTH_STENCIL);
 				for(const auto& shadowProjectionRenderingInfo : shadowProjectionRenderingBatch.Shadows)
@@ -1105,10 +1105,10 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 				Area2 area(0.0f, 0.0f, 1.0f, 1.0f);
 				commandBuffer.SetViewport(area);
 
-				shadowRenderer.RenderShadowProjectionBatch(commandBuffer, inputs.View, lightRenderState, shadowProjectionRenderingBatch);
+				shadowRenderer.RenderShadowProjectionBatch(commandBuffer, inputs.View, packedLightId, inputs.Scene, shadowProjectionRenderingBatch);
 				commandBuffer.EndRenderPass();
 
-				StandardDeferred::LightBatches batches = StandardDeferred::Instance().PrepareLightBatches({ &lightRenderState }, inputs.View, gbuffer, lightOcclusionTex->Texture);
+				StandardDeferred::LightBatches batches = StandardDeferred::Instance().PrepareLightBatches({ &packedLightId, 1 }, inputs.Scene, inputs.View, gbuffer, lightOcclusionTex->Texture);
 
 				RenderPassCreateInformation lightingPassInfo(Output->RenderTarget, RT_DEPTH_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
 				for(const auto& [key, value] : batches.Batches)

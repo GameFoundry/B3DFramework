@@ -443,16 +443,17 @@ void LightObjectStorage::ApplyCommands(const CommandBatch& commands, FrameAlloca
 		{
 			mLightProxies[id].SetRendererId(id);
 
-			const TypeArrayMapping& mapping = mPackedIndexToTypeArrayIndex[id];
-			if(mapping.Type == LightType::Directional)
-				mDirectionalLightPackedIds[mapping.TypeArrayIndex] = id;
-			else if(mapping.Type == LightType::Radial)
-				mRadialLightPackedIds[mapping.TypeArrayIndex] = id;
+			const LightType type = mLightProxies[id].GetType();
+			const u32 typeArrayIndex = mLightRenderStates[id].TypeArrayIndex;
+			if(type == LightType::Directional)
+				mDirectionalLightIds[typeArrayIndex] = id;
+			else if(type == LightType::Radial)
+				mRadialLightIds[typeArrayIndex] = id;
 			else
-				mSpotLightPackedIds[mapping.TypeArrayIndex] = id;
+				mSpotLightIds[typeArrayIndex] = id;
 		},
 		[this](TArrayView<const PackedRendererId> ids) { DestroyRenderState(ids); },
-		mLightProxies, mPackedIndexToTypeArrayIndex);
+		mLightProxies, mLightRenderStates);
 }
 
 void LightObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> ids)
@@ -462,33 +463,25 @@ void LightObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> id
 		const LightProxy& proxy = mLightProxies[packedId];
 		const LightType type = proxy.GetType();
 
-		LightRenderState renderState;
-
-		TypeArrayMapping perTypeArrayMapping;
-		perTypeArrayMapping.Type = type;
+		LightRenderState& renderState = mLightRenderStates[packedId];
 
 		if(type == LightType::Directional)
 		{
-			perTypeArrayMapping.TypeArrayIndex = (u32)mDirectionalLights.size();
-			mDirectionalLights.push_back(renderState);
-			mDirectionalLightPackedIds.push_back(packedId);
+			renderState.TypeArrayIndex = (u32)mDirectionalLightIds.size();
+			mDirectionalLightIds.push_back(packedId);
 		}
 		else if(type == LightType::Radial)
 		{
-			perTypeArrayMapping.TypeArrayIndex = (u32)mRadialLights.size();
-			mRadialLights.push_back(renderState);
-			mRadialLightPackedIds.push_back(packedId);
+			renderState.TypeArrayIndex = (u32)mRadialLightIds.size();
+			mRadialLightIds.push_back(packedId);
 			mRadialLightWorldBounds.push_back(proxy.GetBounds());
 		}
 		else // Spot
 		{
-			perTypeArrayMapping.TypeArrayIndex = (u32)mSpotLights.size();
-			mSpotLights.push_back(renderState);
-			mSpotLightPackedIds.push_back(packedId);
+			renderState.TypeArrayIndex = (u32)mSpotLightIds.size();
+			mSpotLightIds.push_back(packedId);
 			mSpotLightWorldBounds.push_back(proxy.GetBounds());
 		}
-
-		mPackedIndexToTypeArrayIndex[packedId] = perTypeArrayMapping;
 	}
 }
 
@@ -496,54 +489,48 @@ void LightObjectStorage::DestroyRenderState(TArrayView<const PackedRendererId> i
 {
 	for(const PackedRendererId packedId : ids)
 	{
-		const TypeArrayMapping& info = mPackedIndexToTypeArrayIndex[packedId];
-		const u32 indexInTypeArray = info.TypeArrayIndex;
+		const LightType type = mLightProxies[packedId].GetType();
+		const u32 indexInTypeArray = mLightRenderStates[packedId].TypeArrayIndex;
 
-		if(info.Type == LightType::Directional)
+		if(type == LightType::Directional)
 		{
-			const u32 lastIndex = (u32)mDirectionalLights.size() - 1;
+			const u32 lastIndex = (u32)mDirectionalLightIds.size() - 1;
 			if(indexInTypeArray != lastIndex)
 			{
-				std::swap(mDirectionalLights[indexInTypeArray], mDirectionalLights[lastIndex]);
-				std::swap(mDirectionalLightPackedIds[indexInTypeArray], mDirectionalLightPackedIds[lastIndex]);
+				std::swap(mDirectionalLightIds[indexInTypeArray], mDirectionalLightIds[lastIndex]);
 
-				PackedRendererId swappedPackedId = mDirectionalLightPackedIds[indexInTypeArray];
-				mPackedIndexToTypeArrayIndex[swappedPackedId].TypeArrayIndex = indexInTypeArray;
+				PackedRendererId swappedPackedId = mDirectionalLightIds[indexInTypeArray];
+				mLightRenderStates[swappedPackedId].TypeArrayIndex = indexInTypeArray;
 			}
-			mDirectionalLights.pop_back();
-			mDirectionalLightPackedIds.pop_back();
+			mDirectionalLightIds.pop_back();
 		}
-		else if(info.Type == LightType::Radial)
+		else if(type == LightType::Radial)
 		{
-			const u32 lastIndex = (u32)mRadialLights.size() - 1;
+			const u32 lastIndex = (u32)mRadialLightIds.size() - 1;
 			if(indexInTypeArray != lastIndex)
 			{
-				std::swap(mRadialLights[indexInTypeArray], mRadialLights[lastIndex]);
 				std::swap(mRadialLightWorldBounds[indexInTypeArray], mRadialLightWorldBounds[lastIndex]);
-				std::swap(mRadialLightPackedIds[indexInTypeArray], mRadialLightPackedIds[lastIndex]);
+				std::swap(mRadialLightIds[indexInTypeArray], mRadialLightIds[lastIndex]);
 
-				PackedRendererId swappedPackedId = mRadialLightPackedIds[indexInTypeArray];
-				mPackedIndexToTypeArrayIndex[swappedPackedId].TypeArrayIndex = indexInTypeArray;
+				PackedRendererId swappedPackedId = mRadialLightIds[indexInTypeArray];
+				mLightRenderStates[swappedPackedId].TypeArrayIndex = indexInTypeArray;
 			}
-			mRadialLights.pop_back();
 			mRadialLightWorldBounds.pop_back();
-			mRadialLightPackedIds.pop_back();
+			mRadialLightIds.pop_back();
 		}
 		else // Spot
 		{
-			const u32 lastIndex = (u32)mSpotLights.size() - 1;
+			const u32 lastIndex = (u32)mSpotLightIds.size() - 1;
 			if(indexInTypeArray != lastIndex)
 			{
-				std::swap(mSpotLights[indexInTypeArray], mSpotLights[lastIndex]);
 				std::swap(mSpotLightWorldBounds[indexInTypeArray], mSpotLightWorldBounds[lastIndex]);
-				std::swap(mSpotLightPackedIds[indexInTypeArray], mSpotLightPackedIds[lastIndex]);
+				std::swap(mSpotLightIds[indexInTypeArray], mSpotLightIds[lastIndex]);
 
-				PackedRendererId swappedPackedId = mSpotLightPackedIds[indexInTypeArray];
-				mPackedIndexToTypeArrayIndex[swappedPackedId].TypeArrayIndex = indexInTypeArray;
+				PackedRendererId swappedPackedId = mSpotLightIds[indexInTypeArray];
+				mLightRenderStates[swappedPackedId].TypeArrayIndex = indexInTypeArray;
 			}
-			mSpotLights.pop_back();
 			mSpotLightWorldBounds.pop_back();
-			mSpotLightPackedIds.pop_back();
+			mSpotLightIds.pop_back();
 		}
 	}
 }
@@ -553,14 +540,25 @@ void LightObjectStorage::UpdateRenderState(TArrayView<const PackedRendererId> id
 	for(const PackedRendererId packedId : ids)
 	{
 		const LightProxy& proxy = mLightProxies[packedId];
-		const TypeArrayMapping& info = mPackedIndexToTypeArrayIndex[packedId];
+		const LightType type = proxy.GetType();
+		const u32 typeArrayIndex = mLightRenderStates[packedId].TypeArrayIndex;
 
-		if(info.Type == LightType::Radial)
-			mRadialLightWorldBounds[info.TypeArrayIndex] = proxy.GetBounds();
-		else if(info.Type == LightType::Spot)
-			mSpotLightWorldBounds[info.TypeArrayIndex] = proxy.GetBounds();
+		if(type == LightType::Radial)
+			mRadialLightWorldBounds[typeArrayIndex] = proxy.GetBounds();
+		else if(type == LightType::Spot)
+			mSpotLightWorldBounds[typeArrayIndex] = proxy.GetBounds();
 	}
 }
+
+// ---- SceneInfo ----
+
+TArrayView<const PackedRendererId> SceneInfo::GetDirectionalLights() const { return mLightStorage->GetDirectionalLights(); }
+TArrayView<const PackedRendererId> SceneInfo::GetRadialLights() const { return mLightStorage->GetRadialLights(); }
+TArrayView<const PackedRendererId> SceneInfo::GetSpotLights() const { return mLightStorage->GetSpotLights(); }
+TArrayView<const Sphere> SceneInfo::GetRadialLightWorldBounds() const { return mLightStorage->GetRadialLightWorldBounds(); }
+TArrayView<const Sphere> SceneInfo::GetSpotLightWorldBounds() const { return mLightStorage->GetSpotLightWorldBounds(); }
+const LightProxy& SceneInfo::GetLightProxy(PackedRendererId packedId) const { return mLightStorage->GetLightProxy(packedId); }
+const LightRenderState& SceneInfo::GetLightRenderState(PackedRendererId packedId) const { return mLightStorage->GetLightRenderState(packedId); }
 
 // ---- RenderBeastScene ----
 
@@ -653,100 +651,6 @@ void RenderBeastScene::UnregisterCamera(Camera* camera)
 	UpdateCameraRenderTargets(camera, true);
 }
 
-void RenderBeastScene::RegisterLight(Light* light)
-{
-	LightObjectStorage& lightStorage = GetLightStorage();
-
-	if(light->GetType() == LightType::Directional)
-	{
-		u32 lightId = (u32)lightStorage.GetDirectionalLights().size();
-		light->SetRendererId(lightId);
-
-		lightStorage.GetDirectionalLights().push_back(LightRenderState(light));
-	}
-	else if(light->GetType() == LightType::Radial)
-	{
-		u32 lightId = (u32)lightStorage.GetRadialLights().size();
-		light->SetRendererId(lightId);
-
-		lightStorage.GetRadialLights().push_back(LightRenderState(light));
-		lightStorage.GetRadialLightWorldBounds().push_back(light->GetBounds());
-	}
-	else // Spot
-	{
-		u32 lightId = (u32)lightStorage.GetSpotLights().size();
-		light->SetRendererId(lightId);
-
-		lightStorage.GetSpotLights().push_back(LightRenderState(light));
-		lightStorage.GetSpotLightWorldBounds().push_back(light->GetBounds());
-	}
-}
-
-void RenderBeastScene::UpdateLight(Light* light)
-{
-	LightObjectStorage& lightStorage = GetLightStorage();
-	u32 lightId = light->GetRendererId();
-
-	if(light->GetType() == LightType::Radial)
-		lightStorage.GetRadialLightWorldBounds()[lightId] = light->GetBounds();
-	else if(light->GetType() == LightType::Spot)
-		lightStorage.GetSpotLightWorldBounds()[lightId] = light->GetBounds();
-}
-
-void RenderBeastScene::UnregisterLight(Light* light)
-{
-	LightObjectStorage& lightStorage = GetLightStorage();
-	u32 lightId = light->GetRendererId();
-
-	if(light->GetType() == LightType::Directional)
-	{
-		auto& dirLights = lightStorage.GetDirectionalLights();
-		Light* lastLight = dirLights.back().Light;
-		u32 lastLightId = lastLight->GetRendererId();
-
-		if(lightId != lastLightId)
-		{
-			std::swap(dirLights[lightId], dirLights[lastLightId]);
-			lastLight->SetRendererId(lightId);
-		}
-
-		dirLights.pop_back();
-	}
-	else if(light->GetType() == LightType::Radial)
-	{
-		auto& radialLights = lightStorage.GetRadialLights();
-		auto& radialBounds = lightStorage.GetRadialLightWorldBounds();
-		Light* lastLight = radialLights.back().Light;
-		u32 lastLightId = lastLight->GetRendererId();
-
-		if(lightId != lastLightId)
-		{
-			std::swap(radialLights[lightId], radialLights[lastLightId]);
-			std::swap(radialBounds[lightId], radialBounds[lastLightId]);
-			lastLight->SetRendererId(lightId);
-		}
-
-		radialLights.pop_back();
-		radialBounds.pop_back();
-	}
-	else // Spot
-	{
-		auto& spotLights = lightStorage.GetSpotLights();
-		auto& spotBounds = lightStorage.GetSpotLightWorldBounds();
-		Light* lastLight = spotLights.back().Light;
-		u32 lastLightId = lastLight->GetRendererId();
-
-		if(lightId != lastLightId)
-		{
-			std::swap(spotLights[lightId], spotLights[lastLightId]);
-			std::swap(spotBounds[lightId], spotBounds[lastLightId]);
-			lastLight->SetRendererId(lightId);
-		}
-
-		spotLights.pop_back();
-		spotBounds.pop_back();
-	}
-}
 
 void RenderBeastScene::RegisterReflectionProbe(ReflectionProbe* probe)
 {
@@ -1390,11 +1294,7 @@ void RenderBeastScene::Initialize()
 	mInfo.RenderableCullInfos = &renderableStorage.GetRenderableCullInfos();
 
 	LightObjectStorage& lightStorage = GetLightStorage();
-	mInfo.DirectionalLights = &lightStorage.GetDirectionalLights();
-	mInfo.RadialLights = &lightStorage.GetRadialLights();
-	mInfo.SpotLights = &lightStorage.GetSpotLights();
-	mInfo.RadialLightWorldBounds = &lightStorage.GetRadialLightWorldBounds();
-	mInfo.SpotLightWorldBounds = &lightStorage.GetSpotLightWorldBounds();
+	mInfo.mLightStorage = &lightStorage;
 
 	// Register all types
 	for (const auto& config : GetRenderBeast()->GetPerObjectUniformTypeConfigurations())

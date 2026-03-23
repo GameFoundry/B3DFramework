@@ -449,6 +449,12 @@ namespace b3d
 			/** Returns a unit axis aligned box stencil mesh. */
 			SPtr<Mesh> GetBoxStencil() const { return mUnitBoxStencilMesh; }
 
+			/** Number of sides in the cone mesh used for spot light stencil volumes. */
+			static constexpr u32 kSpotLightStencilSideCount = 20;
+
+			/** Number of slices in the cone mesh used for spot light stencil volumes. */
+			static constexpr u32 kSpotLightStencilSliceCount = 10;
+
 			/**
 			 * Returns a stencil mesh used for a spot light. Actual vertex positions need to be computed in shader as this
 			 * method will return uninitialized vertex positions.

@@ -21,7 +21,7 @@ namespace b3d
 	namespace render
 	{
 		struct SceneInfo;
-		class LightRenderState;
+
 
 		/** @addtogroup RenderBeast
 		 *  @{
@@ -351,19 +351,17 @@ namespace b3d
 			/**
 			 * Calculates the visibility masks for all the lights of the provided type.
 			 *
-			 * @param[in]	lights				A set of lights to determine visibility for.
-			 * @param[in]	bounds				Bounding sphere for each provided light. Must be the same size as the @p lights
-			 *									array.
-			 * @param[in]	type				Type of all the lights in the @p lights array.
-			 * @param[out]	visibility			Output parameter that will have the true bit set for any visible light. If the
-			 *									bit for a light is already set to true, the method will never change it to false
-			 *									which allows the same bitfield to be provided to multiple renderer views. Must
-			 *									be the same size as the @p lights array.
+			 * @param	bounds				Bounding sphere for each light. 
+			 * @param	type				Type of lights to check visibility for.
+			 * @param	outVisibility		Output parameter that will have the true bit set for any visible light. If the
+			 *								bit for a light is already set to true, the method will never change it to false
+			 *								which allows the same bitfield to be provided to multiple renderer views. Must
+			 *								be the same size as the @p lights array.
 			 *
-			 *									As a side-effect, per-view visibility data is also calculated and can be
-			 *									retrieved by calling GetVisibilityMasks().
+			 *								As a side-effect, per-view visibility data is also calculated and can be
+			 *								retrieved by calling GetVisibilityMasks().
 			 */
-			void DetermineVisible(const Vector<LightRenderState>& lights, const Vector<Sphere>& bounds, LightType type, Vector<bool>* visibility = nullptr);
+			void DetermineVisible(TArrayView<const Sphere> bounds, LightType type, Vector<bool>* outVisibility = nullptr);
 
 			/**
 			 * Culls the provided set of bounds against the current frustum and outputs a set of visibility flags determining
@@ -375,7 +373,7 @@ namespace b3d
 			 * Culls the provided set of bounds against the current frustum and outputs a set of visibility flags determining
 			 * which entry is or isn't visible by this view. Both inputs must be arrays of the same size.
 			 */
-			void CalculateVisibility(const Vector<Sphere>& bounds, Vector<bool>& visibility) const;
+			void CalculateVisibility(TArrayView<const Sphere> bounds, Vector<bool>& visibility) const;
 
 			/**
 			 * Culls the provided set of bounds against the current frustum and outputs a set of visibility flags determining
