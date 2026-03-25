@@ -462,7 +462,7 @@ void RendererView::DetermineVisible(const Vector<DecalRenderState>& decals, cons
 
 void RendererView::DetermineVisible(TArrayView<const Sphere> bounds, LightType lightType, Vector<bool>* outVisibility)
 {
-	const u32 lightCount = bounds.size();
+	const u32 lightCount = (u32)bounds.size();
 
 	// Special case for directional lights, they're always visible
 	if(lightType == LightType::Directional)

@@ -10,6 +10,19 @@
 
 using namespace b3d;
 
+Bounds b3d::ComputeDecalBounds(const Vector2& size, float maxDistance, const Matrix4& worldTransform)
+{
+	const Vector2& extents = size * 0.5f;
+
+	AABox localAABB(
+		Vector3(-extents.X, -extents.Y, -maxDistance),
+		Vector3(extents.X, extents.Y, 0.0f));
+
+	localAABB.TransformAffine(worldTransform);
+
+	return Bounds(localAABB);
+}
+
 template<bool IsRenderProxy>
 TDecal<IsRenderProxy>::TDecal()
 {
@@ -27,22 +40,14 @@ void TDecal<IsRenderProxy>::SetLayer(u64 layer)
 		return;
 	}
 
-	mLayer = layer;
+	this->Layer = layer;
 	MarkRenderProxyDataDirty();
 }
 
 template<bool IsRenderProxy>
 void TDecal<IsRenderProxy>::UpdateBounds()
 {
-	const Vector2& extents = mSize * 0.5f;
-
-	AABox localAABB(
-		Vector3(-extents.X, -extents.Y, -mMaxDistance),
-		Vector3(extents.X, extents.Y, 0.0f));
-
-	localAABB.TransformAffine(mWorldTransformMatrix);
-
-	mBounds = Bounds(localAABB);
+	mBounds = ComputeDecalBounds(this->Size, this->MaxDistance, mWorldTransformMatrix);
 }
 
 template <bool IsRenderProxy>
@@ -65,12 +70,12 @@ template class TDecal<false>;
 namespace b3d
 {
 	B3D_SYNC_BLOCK_BEGIN(Decal, FullSyncPacket)
-		B3D_SYNC_BLOCK_ENTRY(mSize)
-		B3D_SYNC_BLOCK_ENTRY(mMaxDistance)
-		B3D_SYNC_BLOCK_ENTRY(mMaterial)
+		B3D_SYNC_BLOCK_ENTRY(Size)
+		B3D_SYNC_BLOCK_ENTRY(MaxDistance)
+		B3D_SYNC_BLOCK_ENTRY(Material)
 		B3D_SYNC_BLOCK_ENTRY(mBounds)
-		B3D_SYNC_BLOCK_ENTRY(mLayer)
-		B3D_SYNC_BLOCK_ENTRY(mLayerMask)
+		B3D_SYNC_BLOCK_ENTRY(Layer)
+		B3D_SYNC_BLOCK_ENTRY(LayerMask)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(bool, mActive)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(SPtr<SceneInstance>, mSceneInstance)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
@@ -118,7 +123,7 @@ void Decal::OnDestroyed()
 
 void Decal::OnTransformChanged(TransformChangedFlags flags)
 {
-	const Transform& transform = SceneObject()->GetLocalTransform();
+	const Transform& transform = SceneObject()->GetTransform();
 	mWorldTransformMatrix = transform.GetMatrix();
 	mWorldTransformMatrixWithoutScale = Matrix4::TRS(transform.GetPosition(), transform.GetRotation(), Vector3::kOne);
 
@@ -138,8 +143,8 @@ SPtr<render::RenderProxy> Decal::CreateRenderProxy() const
 
 void Decal::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 {
-	if(mMaterial.IsLoaded())
-		dependencies.push_back(mMaterial.Get());
+	if(Material.IsLoaded())
+		dependencies.push_back(Material.Get());
 }
 
 RenderProxySyncPacket* Decal::CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags)

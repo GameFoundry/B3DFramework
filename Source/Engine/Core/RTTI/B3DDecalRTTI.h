@@ -19,11 +19,11 @@ namespace b3d
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER(mSize, 0)
-			B3D_RTTI_MEMBER(mMaxDistance, 1)
-			B3D_RTTI_MEMBER(mMaterial, 2)
-			B3D_RTTI_MEMBER(mLayer, 3)
-			B3D_RTTI_MEMBER(mLayerMask, 4)
+			B3D_RTTI_MEMBER(Size, 0)
+			B3D_RTTI_MEMBER(MaxDistance, 1)
+			B3D_RTTI_MEMBER(Material, 2)
+			B3D_RTTI_MEMBER(Layer, 3)
+			B3D_RTTI_MEMBER(LayerMask, 4)
 		B3D_RTTI_END_MEMBERS
 
 	public:

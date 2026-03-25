@@ -13,82 +13,116 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Common code used both by main and render thread variants of Decal. */
+	/** Shared decal property data used by both main and render thread variants. */
 	template <bool IsRenderProxy>
-	class B3D_EXPORT TDecal : public CoreVariantType<CoreObject, IsRenderProxy>
+	struct B3D_EXPORT TDecalData
 	{
-	public:
 		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
-		using SceneInstanceType = CoreVariantType<SceneInstance, IsRenderProxy>;
-		using Super = CoreVariantType<CoreObject, IsRenderProxy>;
 
-		TDecal();
-		virtual ~TDecal() = default;
+		MaterialType Material;
+		Vector2 Size = Vector2::kOne;
+		float MaxDistance = 10.0f;
+		u64 Layer = 1;
+		u32 LayerMask = 0xFFFFFFFF;
+	};
 
+	/** CRTP getter interface providing shared read access for decal data to both Decal and render::DecalProxy. */
+	template <typename Derived, bool IsRenderProxy>
+	class TDecalGetters
+	{
+		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
+
+	public:
 		/** Width and height of the decal. */
-		B3D_SCRIPT_EXPORT(ExportName(Size), Property(Setter))
-		void SetSize(const Vector2& size)
-		{
-			mSize = Vector2::Max(Vector2::kZero, size);
-			MarkRenderProxyDataDirty();
-			UpdateBounds();
-		}
-
-		/** @copydoc SetSize */
 		B3D_SCRIPT_EXPORT(ExportName(Size), Property(Getter))
-		Vector2 GetSize() const { return mSize; }
+		Vector2 GetSize() const { return GetData().Size; }
 
 		/** Determines the material to use when rendering the decal. */
-		B3D_SCRIPT_EXPORT(ExportName(Material), Property(Setter))
-		void SetMaterial(const MaterialType& material)
-		{
-			mMaterial = material;
-			MarkRenderProxyDataDirty();
-		}
-
-		/** @copydoc SetMaterial */
 		B3D_SCRIPT_EXPORT(ExportName(Material), Property(Getter))
-		const MaterialType& GetMaterial() const { return mMaterial; }
+		const MaterialType& GetMaterial() const { return GetData().Material; }
 
 		/** Determines the maximum distance (from its origin) at which the decal is displayed. */
-		B3D_SCRIPT_EXPORT(ExportName(MaxDistance), Property(Setter))
-		void SetMaxDistance(float distance)
-		{
-			mMaxDistance = Math::Max(0.0f, distance);
-			MarkRenderProxyDataDirty();
-			UpdateBounds();
-		}
-
-		/** @copydoc SetMaxDistance */
 		B3D_SCRIPT_EXPORT(ExportName(MaxDistance), Property(Getter))
-		float GetMaxDistance() const { return mMaxDistance; }
+		float GetMaxDistance() const { return GetData().MaxDistance; }
 
 		/**
 		 * Bitfield that allows you to mask on which objects will the decal be projected onto. Only objects with the
 		 * matching layers will be projected onto. Note that decal layer mask only supports 32-bits and objects with
 		 * layers in bits >= 32 will always be projected onto.
 		 */
-		B3D_SCRIPT_EXPORT(ExportName(LayerMask), Property(Setter))
-		void SetLayerMask(u32 mask)
-		{
-			mLayerMask = mask;
-			MarkRenderProxyDataDirty();
-		}
-
-		/** @copydoc SetLayerMask */
 		B3D_SCRIPT_EXPORT(ExportName(LayerMask), Property(Getter))
-		u32 GetLayerMask() const { return mLayerMask; }
+		u32 GetLayerMask() const { return GetData().LayerMask; }
 
 		/**
 		 * Determines the layer that controls whether a system is considered visible in a specific camera. Layer must match
 		 * camera layer bitfield in order for the camera to render the decal.
 		 */
+		B3D_SCRIPT_EXPORT(ExportName(Layer), Property(Getter))
+		u64 GetLayer() const { return GetData().Layer; }
+
+	private:
+		const TDecalData<IsRenderProxy>& GetData() const
+		{
+			return static_cast<const Derived*>(this)->GetDecalData();
+		}
+	};
+
+	/** Computes world-space bounds for a decal. */
+	Bounds ComputeDecalBounds(const Vector2& size, float maxDistance, const Matrix4& worldTransform);
+
+	/** Common code used both by main and render thread variants of Decal. */
+	template <bool IsRenderProxy>
+	class B3D_EXPORT TDecal : public CoreVariantType<CoreObject, IsRenderProxy>,
+		public TDecalData<IsRenderProxy>,
+		public TDecalGetters<TDecal<IsRenderProxy>, IsRenderProxy>
+	{
+	public:
+		using typename TDecalData<IsRenderProxy>::MaterialType;
+		using SceneInstanceType = CoreVariantType<SceneInstance, IsRenderProxy>;
+		using Super = CoreVariantType<CoreObject, IsRenderProxy>;
+
+		friend class TDecalGetters<TDecal<IsRenderProxy>, IsRenderProxy>;
+
+		TDecal();
+		virtual ~TDecal() = default;
+
+		/** @copydoc TDecalGetters::GetSize */
+		B3D_SCRIPT_EXPORT(ExportName(Size), Property(Setter))
+		void SetSize(const Vector2& size)
+		{
+			this->Size = Vector2::Max(Vector2::kZero, size);
+			MarkRenderProxyDataDirty();
+			UpdateBounds();
+		}
+
+		/** @copydoc TDecalGetters::GetMaterial */
+		B3D_SCRIPT_EXPORT(ExportName(Material), Property(Setter))
+		void SetMaterial(const MaterialType& material)
+		{
+			this->Material = material;
+			MarkRenderProxyDataDirty();
+		}
+
+		/** @copydoc TDecalGetters::GetMaxDistance */
+		B3D_SCRIPT_EXPORT(ExportName(MaxDistance), Property(Setter))
+		void SetMaxDistance(float distance)
+		{
+			this->MaxDistance = Math::Max(0.0f, distance);
+			MarkRenderProxyDataDirty();
+			UpdateBounds();
+		}
+
+		/** @copydoc TDecalGetters::GetLayerMask */
+		B3D_SCRIPT_EXPORT(ExportName(LayerMask), Property(Setter))
+		void SetLayerMask(u32 mask)
+		{
+			this->LayerMask = mask;
+			MarkRenderProxyDataDirty();
+		}
+
+		/** @copydoc TDecalGetters::GetLayer */
 		B3D_SCRIPT_EXPORT(ExportName(Layer), Property(Setter))
 		void SetLayer(u64 layer);
-
-		/** @copydoc SetLayer() */
-		B3D_SCRIPT_EXPORT(ExportName(Layer), Property(Getter))
-		u64 GetLayer() const { return mLayer; }
 
 		/**	Gets world bounds of this object. */
 		Bounds GetBounds() const { return mBounds; }
@@ -102,6 +136,9 @@ namespace b3d
 		 */
 		Matrix4 GetWorldTransformMatrixWithoutScale() const { return mWorldTransformMatrixWithoutScale; }
 
+		/** Returns the decal data struct. */
+		const TDecalData<IsRenderProxy>& GetDecalData() const { return *this; }
+
 	protected:
 		/** Updates the internal bounds for the decal. Call this whenever a property affecting the bounds changes. */
 		void UpdateBounds();
@@ -112,15 +149,8 @@ namespace b3d
 		/** @copydoc CoreObject::MarkDependenciesDirty */
 		void MarkCoreObjectDependenciesDirty();
 
-		MaterialType mMaterial;
 		Matrix4 mWorldTransformMatrix = kIdentityTag;
 		Matrix4 mWorldTransformMatrixWithoutScale = kIdentityTag;
-
-		Vector2 mSize = Vector2::kOne;
-		float mMaxDistance = 10.0f;
-		u64 mLayer = 1;
-		u32 mLayerMask = 0xFFFFFFFF;
-
 		Bounds mBounds = Bounds::kEmpty;
 	};
 
@@ -187,11 +217,11 @@ namespace b3d
 			/** Returns width and height of the decal, scaled by decal's transform. */
 			Vector2 GetWorldSize() const
 			{
-				return Vector2(mSize.X * mTransform.GetScale().X, mSize.Y * mTransform.GetScale().Y);
+				return Vector2(Size.X * mTransform.GetScale().X, Size.Y * mTransform.GetScale().Y);
 			}
 
 			/** Maximum distance (from its origin) at which the decal is displayed, scaled by decal's transform. */
-			float GetWorldMaxDistance() const { return mMaxDistance * mTransform.GetScale().Z; }
+			float GetWorldMaxDistance() const { return MaxDistance * mTransform.GetScale().Z; }
 
 		protected:
 			friend class b3d::Decal;
