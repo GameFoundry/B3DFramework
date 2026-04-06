@@ -115,7 +115,7 @@ Using custom bounds saves the potentially expensive per-frame recalculation of b
 ~~~~~~~~~~~~~{.cpp}
 ParticleSystemSettings particleSystemSettings;
 particleSystemSettings.UseAutomaticBounds = false;
-particleSystemSettings.CustomBounds = AABox::UNIT_BOX;
+particleSystemSettings.CustomBounds = AABox::kUnit;
 ~~~~~~~~~~~~~
 
 # Maximum particle count

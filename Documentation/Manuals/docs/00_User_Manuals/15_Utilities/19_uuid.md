@@ -15,7 +15,7 @@ UUID resourceId = UUIDGenerator::GenerateRandom();
 UUID entityId = UUIDGenerator::GenerateRandom();
 UUID sessionId = UUIDGenerator::GenerateRandom();
 
-B3D_LOG(Info, Generic, "Resource ID: {0}", resourceId.ToString());
+B3D_LOG(Info, LogGeneric, "Resource ID: {0}", resourceId.ToString());
 ~~~~~~~~~~~~~
 
 Random UUIDs are generated using cryptographically secure random number generation, ensuring uniqueness even across different machines and processes.
@@ -39,7 +39,7 @@ UUID parsedId(uuidString);
 if(!parsedId.Empty())
 {
 	// Successfully parsed
-	B3D_LOG(Info, Generic, "Parsed UUID: {0}", parsedId.ToString());
+	B3D_LOG(Info, LogGeneric, "Parsed UUID: {0}", parsedId.ToString());
 }
 ~~~~~~~~~~~~~
 
@@ -53,7 +53,7 @@ UUID emptyId2 = UUID::kEmpty; // Explicit empty UUID constant
 
 if(emptyId.Empty())
 {
-	B3D_LOG(Warning, Generic, "UUID is not initialized");
+	B3D_LOG(Warning, LogGeneric, "UUID is not initialized");
 }
 ~~~~~~~~~~~~~
 
@@ -66,7 +66,7 @@ UUID resourceId = UUIDGenerator::GenerateRandom();
 String uuidString = resourceId.ToString();
 
 // Example output: "550e8400-e29b-41d4-a716-446655440000"
-B3D_LOG(Info, Generic, "UUID: {0}", uuidString);
+B3D_LOG(Info, LogGeneric, "UUID: {0}", uuidString);
 ~~~~~~~~~~~~~
 
 # Comparison

@@ -1031,7 +1031,7 @@ u32 fieldCount = rttiType->GetFieldCount();
 for (u32 i = 0; i < fieldCount; i++)
 {
 	RTTIField* field = rttiType->GetField(i);
-	B3D_LOG(Info, Generic, "Field: {0}", field->GetName());
+	B3D_LOG(Info, LogGeneric, "Field: {0}", field->GetName());
 }
 
 // Find specific field
@@ -1188,3 +1188,87 @@ class AudioClipRTTI : public TRTTIType<AudioClip, Resource, AudioClipRTTI>
 ~~~~~~~~~~~~~
 
 This approach is particularly useful for resources that don't need all data in memory at once (streaming audio, texture mipmaps, large meshes). The cloned stream can be read from incrementally during runtime without blocking deserialization.
+
+# ECS fragment fields
+
+The RTTI system supports native serialization of ECS fragments through @b3d::TRTTIECSField. This field type allows RTTI to read and write ECS component data directly from the registry, without requiring the owning object to store a separate copy.
+
+The field works with two kinds of ECS data:
+ - **Data fragments** — Regular component structs stored per-entity (e.g., `ecs::Renderable`, `ecs::Light`)
+ - **Tag groups** — Compact bitfield types that represent sets of boolean tags on an entity (e.g., mobility tags)
+
+The distinction is detected at compile time — you use the same field type for both.
+
+## Requirements
+
+The owning RTTI type must implement the @b3d::ecs::IECSEntityOwner interface, which provides access to the ECS registry and entity handle:
+
+~~~~~~~~~~~~~{.cpp}
+class MyObject : public IReflectable, public ecs::IECSEntityOwner
+{
+	Registry* GetECSRegistry() const override { return mRegistry; }
+	Entity GetECSEntity() const override { return mEntity; }
+	void CreateECSEntity(Registry* registry) override
+	{
+		mRegistry = registry;
+		mEntity = registry->CreateEntity();
+		// Add default fragments here
+	}
+
+	// ... other members ...
+
+private:
+	Registry* mRegistry = nullptr;
+	Entity mEntity;
+};
+~~~~~~~~~~~~~
+
+## Registering ECS fields
+
+Use the @B3D_RTTI_MEMBER_ECS macro in your RTTI type to register an ECS fragment field:
+
+~~~~~~~~~~~~~{.cpp}
+class MyObjectRTTI : public TRTTIType<MyObject, IReflectable, MyObjectRTTI>
+{
+	B3D_RTTI_MEMBER_ECS(Renderable, 0)
+	B3D_RTTI_MEMBER_ECS(MobilityTags, 1)
+
+	// ... standard RTTI boilerplate ...
+};
+~~~~~~~~~~~~~
+
+The first parameter is the ECS fragment type (looked up in the `ecs` namespace), and the second is the unique field ID. The framework handles serialization and deserialization automatically — data fragments are serialized in full, while tag groups are serialized as a single integer bitfield.
+
+## Entity creation during deserialization
+
+ECS fragment fields write directly into the registry, so the entity must exist before the fields are deserialized. Your RTTI type must call @b3d::ecs::IECSEntityOwner::CreateECSEntity in its `OnOperationStarted` override for the deserialization operation. This ensures the entity and its default fragments are ready before the deserializer writes field data into them.
+
+This is the same pattern used by `SceneObjectRTTI`, which creates the ECS entity early so that fragment fields can be populated during deserialization:
+
+~~~~~~~~~~~~~{.cpp}
+class MyObjectRTTI : public TRTTIType<MyObject, IReflectable, MyObjectRTTI>
+{
+	B3D_RTTI_MEMBER_ECS(Renderable, 0)
+	B3D_RTTI_MEMBER_ECS(MobilityTags, 1)
+
+	void OnOperationStarted(MyObject& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+	{
+		if(operationType.IsSet(RTTIOperationType::Deserialize))
+		{
+			if(auto* engineContext = context.As<RTTIOperationEngineContext>())
+			{
+				// Create the ECS entity before fragment fields are deserialized
+				if(engineContext->GameObjectCollection != nullptr)
+				{
+					ecs::Registry& registry = engineContext->GameObjectCollection->GetECSRegistry();
+					object.CreateECSEntity(&registry);
+				}
+			}
+		}
+	}
+
+	// ... standard RTTI boilerplate ...
+};
+~~~~~~~~~~~~~
+
+If the entity is not created before deserialization, the ECS fragment fields will have no valid entity to write to and deserialization will fail.

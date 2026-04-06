@@ -192,8 +192,8 @@ You are now ready to build the project. From your project's root folder execute 
  - `mkdir build`
  - `cd build`
  - `cmake -G "$generator" ..`
-   - Where *$generator$* should be replaced with any of the supported generators. Some common ones:
-     - `Visual Studio 15 2022 Win64` - Visual Studio 2022 (64-bit build)
+   - Where *$generator* should be replaced with any of the supported generators. Some common ones:
+     - `Visual Studio 17 2022` - Visual Studio 2022 (64-bit build)
 	 - `Unix Makefiles`
 	 - `Ninja`
 	 - `Xcode`

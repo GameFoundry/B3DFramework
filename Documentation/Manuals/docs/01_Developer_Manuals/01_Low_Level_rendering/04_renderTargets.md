@@ -13,7 +13,8 @@ Use @b3d::render::GpuCommandBuffer::BeginRenderPass to bind a render target for 
 SPtr<RenderTarget> target = ...; // Create a RenderTexture or RenderWindow as described in earlier chapters
 SPtr<GpuCommandBuffer> commandBuffer = ...; // Obtain a command buffer from a command buffer pool
 
-commandBuffer->BeginRenderPass(target);
+RenderPassCreateInformation renderPassInfo(target);
+commandBuffer->BeginRenderPass(renderPassInfo);
 
 // ... perform rendering operations ...
 
@@ -28,23 +29,55 @@ commandBuffer->SetViewport(Area2(0.25f, 0.25f, 0.5f, 0.5f));
 ~~~~~~~~~~~~~
 
 ## Advanced binding
-**render::GpuCommandBuffer::BeginRenderPass()** also has a couple of parameters to control more advanced behaviour:
- - `readOnlyFlags` - Combination of one or more elements of @b3d::FrameBufferType denoting which buffers will be bound for read-only operations. This is useful for depth or stencil buffers which might need to be bound both for depth/stencil tests, as well as shader reads. If you don't specify this the render backend will assume you will be writing to the render target which will result in undefined behaviour if you also try reading from that same texture.
- - `loadMask` - Mask described by @b3d::RenderSurfaceMaskBits which controls if current contents of any of the render target surfaces should be preserved. By default the system doesn't guarantee the contents will be preserved and data is instead undefined. In certain cases (like blending operations) you want to preserve the contents, in which case specify the necessary flags to tell the system which surfaces need their contents preserved.
+**render::GpuCommandBuffer::BeginRenderPass()** accepts a @b3d::RenderPassCreateInformation structure with parameters to control more advanced behaviour:
+ - `ReadOnlyMask` - Combination of one or more elements of @b3d::RenderSurfaceMaskBits denoting which surfaces will be bound for read-only operations. This is useful for depth or stencil surfaces which might need to be bound both for depth/stencil tests, as well as shader reads. If you don't specify this the render backend will assume you will be writing to the render target which will result in undefined behaviour if you also try reading from that same texture.
+ - `LoadMask` - Mask described by @b3d::RenderSurfaceMaskBits which controls if current contents of any of the render target surfaces should be preserved. By default the system doesn't guarantee the contents will be preserved and data is instead undefined. In certain cases (like blending operations) you want to preserve the contents, in which case specify the necessary flags to tell the system which surfaces need their contents preserved.
+ - `Parameters` - Array of @b3d::GpuParameterSet objects that will be bound during this render pass. You must pre-declare all GPU parameter sets you plan to use within the render pass. This allows the render backend to inspect the resources referenced by those parameter sets (textures, buffers) and issue the correct resource transitions and barriers before the render pass begins. Failing to declare a parameter set that is later bound during the render pass can lead to incorrect resource states and undefined behaviour.
 
 ~~~~~~~~~~~~~{.cpp}
 // Bind a render target with read-only depth/stencil, and preserve the existing contents of depth-stencil buffer on bind
-commandBuffer->BeginRenderPass(target, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
+RenderPassCreateInformation renderPassInfo(target, RT_DEPTH_STENCIL, RT_DEPTH_STENCIL);
+commandBuffer->BeginRenderPass(renderPassInfo);
+~~~~~~~~~~~~~
+
+## Declaring GPU parameter sets
+
+When beginning a render pass you should declare all @b3d::GpuParameterSet objects that will be used during the pass. This is done through the `Parameters` field of @b3d::RenderPassCreateInformation. The render backend uses this information to transition resources (textures, buffers) into the correct layout and insert any necessary pipeline barriers before the render pass starts.
+
+~~~~~~~~~~~~~{.cpp}
+SPtr<GpuParameterSet> materialParams = ...;
+SPtr<GpuParameterSet> lightingParams = ...;
+
+RenderPassCreateInformation renderPassInfo(target);
+renderPassInfo.Parameters.Add(materialParams);
+renderPassInfo.Parameters.Add(lightingParams);
+
+commandBuffer->BeginRenderPass(renderPassInfo);
+
+// Now safe to bind and use these parameter sets during the render pass
+commandBuffer->SetGpuParameterSet(materialParams);
+// ... draw calls ...
+commandBuffer->SetGpuParameterSet(lightingParams);
+// ... more draw calls ...
+
+commandBuffer->EndRenderPass();
+~~~~~~~~~~~~~
+
+You can also pass a single parameter set using the convenience constructor:
+
+~~~~~~~~~~~~~{.cpp}
+RenderPassCreateInformation renderPassInfo(target, parameterSet);
+commandBuffer->BeginRenderPass(renderPassInfo);
 ~~~~~~~~~~~~~
 
 # Clearing
 Usually a render target will be re-used many times. Unless you are sure that every use will completely overwrite the render target contents, it can be beneficial (and in some cases necessary) to clear the render target to some value. Call @b3d::render::GpuCommandBuffer::ClearRenderTarget to clear the currently bound render target.
 
-The first parameter represents a **FrameBufferType** of which portions of the target to clear. Second, third and fourth parameters represent the clear values for the color, depth and stencil surfaces, respectively. In case you want to clear only a specific color surface (in case they are multiple), you can use the fifth parameter as a bitmask of which color surfaces to clear.
+The first parameter represents a @b3d::RenderSurfaceMaskBits of which surfaces of the target to clear. The second, third and fourth parameters represent the clear values for the color, depth and stencil surfaces, respectively.
 
 ~~~~~~~~~~~~~{.cpp}
 // Clear color and depth surfaces. All color surfaces are cleared to blue color, while depth is cleared to the value of 1
-commandBuffer->ClearRenderTarget(FBT_COLOR | FBT_DEPTH, Color::kBlue, 1, 0, 0xFF);
+commandBuffer->ClearRenderTarget(RT_COLOR_ALL | RT_DEPTH, Color::kBlue, 1.0f, 0);
 ~~~~~~~~~~~~~
 
 You can also call @b3d::render::GpuCommandBuffer::ClearViewport to clear only the viewport portion of the render target. The parameters are identical to **render::GpuCommandBuffer::ClearRenderTarget()**.
@@ -60,7 +93,8 @@ You can present a render window by calling @b3d::GpuDevice::PresentRenderWindow 
 SPtr<RenderWindow> window = ...; // Create a render window
 SPtr<GpuCommandBuffer> commandBuffer = ...; // Obtain a command buffer
 
-commandBuffer->BeginRenderPass(window);
+RenderPassCreateInformation renderPassInfo(window);
+commandBuffer->BeginRenderPass(renderPassInfo);
 
 // ... draw something ...
 

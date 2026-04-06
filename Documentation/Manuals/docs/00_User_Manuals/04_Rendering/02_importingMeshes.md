@@ -30,9 +30,9 @@ Once a mesh has been imported, you can retrieve its properties like vertex & ind
 // Retrieve and print out various mesh properties
 const auto& properties = mesh->GetProperties();
 
-B3D_LOG(Info, Generic, "Num. vertices: {0}", properties.GetVertexCount());
-B3D_LOG(Info, Generic, "Num. indices: {0}", properties.GetIndexCount());
-B3D_LOG(Info, Generic, "Radius: {0}", properties.GetBounds().GetSphere().GetRadius());
+B3D_LOG(Info, LogGeneric, "Num. vertices: {0}", properties.VertexCount);
+B3D_LOG(Info, LogGeneric, "Num. indices: {0}", properties.IndexCount);
+B3D_LOG(Info, LogGeneric, "Radius: {0}", properties.Bounds.GetSphere().GetRadius());
 ~~~~~~~~~~~~~
 
 > The debug logging functionality is explained in the [logging](../15_Utilities/07_logging.md) manual.
@@ -41,21 +41,21 @@ Additional mesh property information:
 
 ~~~~~~~~~~~~~{.cpp}
 // Get number of sub-meshes
-u32 subMeshCount = properties.GetSubMeshCount();
+u32 subMeshCount = (u32)properties.SubMeshes.size();
 
 // Get bounds
-const Bounds& bounds = properties.GetBounds();
+const Bounds& bounds = properties.Bounds;
 AABox box = bounds.GetBox();
 Sphere sphere = bounds.GetSphere();
 
 // Check if mesh has skeleton (for skeletal animation)
 if (mesh->GetSkeleton() != nullptr)
-    B3D_LOG(Info, Generic, "Mesh has skeleton with {0} bones",
+    B3D_LOG(Info, LogGeneric, "Mesh has skeleton with {0} bones",
         mesh->GetSkeleton()->GetNumBones());
 
 // Check if mesh has morph shapes (for blend shape animation)
 if (mesh->GetMorphShapes() != nullptr)
-    B3D_LOG(Info, Generic, "Mesh has {0} morph shapes",
+    B3D_LOG(Info, LogGeneric, "Mesh has {0} morph shapes",
         mesh->GetMorphShapes()->GetNumShapes());
 ~~~~~~~~~~~~~
 
@@ -161,7 +161,7 @@ auto positionIterator = meshData->GetVec3DataIter(VES_POSITION);
 while (positionIterator.MoveNext())
 {
     Vector3 position = positionIterator.GetValue();
-    B3D_LOG(Info, Generic, "Vertex: ({0}, {1}, {2})",
+    B3D_LOG(Info, LogGeneric, "Vertex: ({0}, {1}, {2})",
         position.x, position.y, position.z);
 }
 

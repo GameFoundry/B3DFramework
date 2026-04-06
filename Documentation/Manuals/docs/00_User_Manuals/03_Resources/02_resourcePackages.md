@@ -102,7 +102,7 @@ To create a package with multiple resources, you need to work with the @b3d::Pac
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a new package
-SPtr<Package> package = Package::Create();
+SPtr<Package> package = B3DMakeShared<Package>();
 
 // Add resources to the package
 package->AddResource("BrickAlbedo", brickAlbedoTexture);
@@ -232,8 +232,8 @@ TOptional<ResourcePackagePath> packagePath =
 
 if (packagePath)
 {
-	B3D_LOG(Info, Generic, "Package: {0}", packagePath->PhysicalPackagePath);
-	B3D_LOG(Info, Generic, "Resource: {0}", packagePath->ResourcePathWithinPackage);
+	B3D_LOG(Info, LogGeneric, "Package: {0}", packagePath->PhysicalPackagePath);
+	B3D_LOG(Info, LogGeneric, "Resource: {0}", packagePath->ResourcePathWithinPackage);
 }
 
 // Resolve physical path to package components

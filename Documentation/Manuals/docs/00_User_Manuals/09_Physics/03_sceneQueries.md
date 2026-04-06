@@ -24,7 +24,7 @@ if (physicsScene->RayCast(ray, hitInfo))
 	String hitSceneObjectName = hitCollider->SO()->GetName();
 
 	Vector3 contactPoint = hitInfo.Point;
-	B3D_LOG(Info, Physics, "Hit {0} at point {1}", hitSceneObjectName, contactPoint);
+	B3D_LOG(Info, LogPhysics, "Hit {0} at point {1}", hitSceneObjectName, contactPoint);
 }
 ~~~~~~~~~~~~~
 
@@ -76,7 +76,7 @@ for (auto& entry : hits)
 	String hitSceneObjectName = hitCollider->SO()->GetName();
 
 	Vector3 contactPoint = entry.Point;
-	B3D_LOG(Info, Physics, "Found hit with {0} at point {1}", hitSceneObjectName, contactPoint);
+	B3D_LOG(Info, LogPhysics, "Found hit with {0} at point {1}", hitSceneObjectName, contactPoint);
 }
 ~~~~~~~~~~~~~
 
@@ -120,8 +120,8 @@ if (physicsScene->BoxCast(box, direction, hitInfo))
 	Vector3 contactNormal = hitInfo.Normal;
 	float distance = hitInfo.Distance;
 
-	B3D_LOG(Info, Physics, "Found hit with {0} at point {1}", hitSceneObjectName, contactPoint);
-	B3D_LOG(Info, Physics, "Normal: {0}, Distance: {1}", contactNormal, distance);
+	B3D_LOG(Info, LogPhysics, "Found hit with {0} at point {1}", hitSceneObjectName, contactPoint);
+	B3D_LOG(Info, LogPhysics, "Normal: {0}, Distance: {1}", contactNormal, distance);
 }
 ~~~~~~~~~~~~~
 
@@ -144,7 +144,7 @@ Ray ray(origin, direction);
 // See if the ray intersects anything while traveling in the specified direction
 const SPtr<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
 if (physicsScene->RayCastAny(ray))
-	B3D_LOG(Info, Physics, "Found hit!");
+	B3D_LOG(Info, LogPhysics, "Found hit!");
 ~~~~~~~~~~~~~
 
 # Overlaps
@@ -180,7 +180,7 @@ Vector<HCollider> overlaps = physicsScene->SphereOverlap(sphere);
 for (auto& entry : overlaps)
 {
 	String overlappingSceneObjectName = entry->SO()->GetName();
-	B3D_LOG(Info, Physics, "Found overlap with {0}", overlappingSceneObjectName);
+	B3D_LOG(Info, LogPhysics, "Found overlap with {0}", overlappingSceneObjectName);
 }
 ~~~~~~~~~~~~~
 
@@ -198,5 +198,5 @@ Sphere sphere(Vector3::kZero, 0.5f);
 // Check if sphere overlaps anything
 const SPtr<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
 if (physicsScene->SphereOverlapAny(sphere))
-	B3D_LOG(Info, Physics, "Found overlap!");
+	B3D_LOG(Info, LogPhysics, "Found overlap!");
 ~~~~~~~~~~~~~

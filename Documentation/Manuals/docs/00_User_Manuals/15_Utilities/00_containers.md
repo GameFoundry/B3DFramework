@@ -44,6 +44,7 @@ The following containers are custom implementations provided by the framework:
  - @b3d::TQueue - Lock-free queue implemented as a linked list. Supports multiple producer/single consumer, single producer/single consumer, and thread-unsafe modes.
  - @b3d::TDenseMap - Hash-map with densely stored values, using quadratic probing for lookup.
  - @b3d::TBitfield - Dynamically sized field that contains a sequential list of bits. The bits are compactly stored and allow for quick sequential searches.
+ - @b3d::TChunkedArray - Dynamically-growing array that stores elements in fixed-size pages (chunks). Growth only allocates a new page — existing data is never copied or moved, making it ideal for large arrays that grow incrementally.
 
 # TArray
 @b3d::TArray is a dynamically sized array similar to `std::vector`, but implemented without relying on the standard library. It provides efficient random access and supports custom allocators.
@@ -71,8 +72,8 @@ int lastNumber = numbers.Back(); // 7
 numbers.Insert(numbers.Begin() + 1, 50); // Insert 50 at index 1
 
 // Remove elements
-numbers.RemoveAt(2); // Remove element at index 2
-numbers.RemoveLast(); // Remove last element
+numbers.Remove(2); // Remove element at index 2
+numbers.Pop(); // Remove last element
 
 // Append multiple elements
 TArray<int> moreNumbers = { 10, 20, 30 };
@@ -122,7 +123,7 @@ for(int i = 10; i < 50; i++)
 	smallNumbers.Add(i);
 
 // All TArray operations are available
-smallNumbers.RemoveAt(5);
+smallNumbers.Remove(5);
 u64 size = smallNumbers.Size();
 
 // Common use case: avoiding allocations for temporary collections
@@ -313,4 +314,47 @@ for(auto bit : bitfield)
 // Clear the bitfield
 bitfield.Clear(); // Removes all bits but keeps allocated memory
 bitfield.Clear(true); // Removes all bits and frees memory
+~~~~~~~~~~~~~
+
+# TChunkedArray
+@b3d::TChunkedArray is a dynamically-growing array that stores elements in fixed-size pages (chunks) rather than a single contiguous buffer. When the array grows, only a new page is allocated — existing data is never copied or moved. This makes it ideal for large arrays that grow incrementally, where avoiding reallocation overhead is important.
+
+The `PageSize` template parameter (default 1024) controls how many elements fit in each page. It must be a power of two.
+
+~~~~~~~~~~~~~{.cpp}
+// Create a chunked array with default page size (1024 elements per page)
+TChunkedArray<int> numbers;
+
+// Create with custom page size (must be power of two)
+TChunkedArray<Vector3, 256> positions;
+
+// Add elements — never triggers reallocation of existing data
+numbers.Add(42);
+numbers.Add(100);
+
+// Emplace elements in-place
+numbers.EmplaceBack(7);
+
+// Random access by index
+int firstNumber = numbers[0]; // 42
+
+// Remove the last element
+numbers.Pop();
+
+// Resize the array
+numbers.Resize(50); // Grow to 50 elements (default-constructed)
+numbers.Resize(100, 0); // Grow to 100 elements, new elements initialized to 0
+
+// Get array properties
+u64 size = numbers.Size();
+bool isEmpty = numbers.Empty();
+
+// Iterate over all elements (random-access iterators supported)
+for(auto& number : numbers)
+{
+	// Process each number
+}
+
+// Clear the array
+numbers.Clear();
 ~~~~~~~~~~~~~

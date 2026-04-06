@@ -6,7 +6,7 @@ When making changes or additions that you plan on contributing to `bsf`, you mus
 
 **Spacing**
  - Use tabs instead of spaces for indentation
- - Always put a space after a semicolon (e.g. `for(int i = 0; i < 5; i++)`).
+ - Always put a space after a semicolon (e.g. `for(i32 i = 0; i < 5; i++)`).
  - Always put a space between operators (e.g. `5 + 2`).
  - Separate meaningful parts of the code with empty lines
  - Always put a blank line after a block `{ }`
@@ -19,16 +19,17 @@ When making changes or additions that you plan on contributing to `bsf`, you mus
   
 **Naming**
  - Methods and functions must use Capital case with first letter as uppercase (e.g. `void MyMethod(); int GetValue();`).
- - Local variables must be in camelCase with first letter as lowercase (e.g. `int myVar; const T squaredLength;`).
- - Public fields in classes/structs must use Capital case with first letter as uppercase (e.g. `int X; bool IsCompleted;`).
+ - Local variables must be in camelCase with first letter as lowercase (e.g. `i32 myVar; const T squaredLength;`).
+ - Public fields in classes/structs must use Capital case with first letter as uppercase (e.g. `i32 X; bool IsCompleted;`).
  - Class/struct/enum names must be in PascalCase with first letter as uppercase (e.g. `class MyClass`).
- - Non-public class/struct fields should be prefixed with `m`, followed by a capital first letter (e.g. `int mClassMemberField;`).
+ - Non-public class/struct fields should be prefixed with `m`, followed by a capital first letter (e.g. `i32 mClassMemberField;`).
  - Non-constant global variables and methods should be prefixed with `g`, followed by a capital first letter (e.g. `const Application& GetApplication();`).
- - Constant variables (both global and class members) should be prefixed with `k`, followed by a capital first letter (e.g. `static const Vector3 kZero; const T kSquareZero = 1e-06;`).
- - Macros should be written in all caps with underscores separating the words, and prefixed with `B3D_` (e.g. `#define B3D_EXCEPT`).
+ - Constant variables (both global and class members) should be prefixed with `k`, followed by a capital first letter (e.g. `static const Vector3 kZero;`).
+ - Macros should be written in all caps with underscores separating the words, and prefixed with `B3D_` (e.g. `#define B3D_LOG`).
  - Static non-constant variables should be prefixed with `s`, followed by a capital first letter (e.g. `bool sIsInitialized;`).
  - Everything needs to be part of the `b3d` namespace
    - Types used primarily on the render thread should be part of the `b3d::render` namespace
+   - ECS fragments should be part of the `b3d::ecs` namespace
  - Use `Base` suffix to mark base classes unless a more generalized name is more appropriate (e.g. `MeshBase`)
  - Prefix templated base classes/structs with a `T` unless a more generalized name is more appropriate (e.g. `TAsyncOp<...>`)
  - Use `H` prefix for component and resource handles (e.g. `HMyComponent`)
@@ -38,7 +39,7 @@ When making changes or additions that you plan on contributing to `bsf`, you mus
  - Public fields should be avoided (except for simple structures) and getter/setter methods should be provided instead
  - If a class needs to communicate with another class within a sub-system, but the functionality isn't something a normal user is meant to use, provide "internal" methods. Those may be (depending on what is more convenient):
    - Private methods that are exposed to the other class using the `friend` syntax
-   - Public methods that are prefixed with `_` (e.g. `void _internalMethod();`).
+   - Public methods that are surrounded with `@name Internal @{ @}` documentation block.
  - Class entries should be listed in this order:
    - typedefs
    - nested classes/structures
@@ -54,14 +55,14 @@ When making changes or additions that you plan on contributing to `bsf`, you mus
    - If helper types are required, they can belong to the same file, but prefer to list them after the main class when possible
  
 **Function/method interface**
- - If method doesn't modify data, always mark it as `const` (getters especially) (e.g. `int getValue() const;`)
- - Always pass non-primitive parameters by reference unless `null` is a valid value in which case use a pointer (e.g. `void myMethod(int a, const SomeStruct& b)`)
- - Reference/pointer parameters that won't be modified by a function should always be `const` (e.g. `bool processData(const SomeStruct& input, SomeStruct& output)`)
+ - If method doesn't modify data, always mark it as `const` (getters especially) (e.g. `i32 GetValue() const;`)
+ - Always pass non-primitive parameters by reference unless `null` is a valid value in which case use a pointer (e.g. `void MyMethod(i32 a, const SomeStruct& b)`)
+ - Reference/pointer parameters that won't be modified by a function should always be `const` (e.g. `bool ProcessData(const SomeStruct& input, SomeStruct& outData)`)
  
 **Implementation**
  - Avoid the use of `auto` except for:
    - Very long type names (like iterators), in which case include indication of the type in variable name (e.g. `auto iter = ...;`)
-   - Variables where type can be otherwise deduced (e.g. casts, `auto var = (UINT32)otherVar;`)
+   - Variables where type can be otherwise deduced (e.g. casts, `auto var = (u32)otherVar;`)
  - Use built-in typedefs for standard library containers (e.g. `Vector`) and shared pointers (`SPtr`).
  - Don't allocate memory using `new/delete` or `malloc/free`, instead use `bsf` allocators
  - No code warnings under default compiler warning settings are allowed. Fix all your warnings or if absolutely not possible isolate that bit of code and disable that specific warning (but only in that bit of code).
@@ -70,7 +71,7 @@ When making changes or additions that you plan on contributing to `bsf`, you mus
 **Documentation**
  - Documentation must be in JavaDoc format
  - Write **meaningful** documentation
-   - Avoid writing documentation that provides information that can be deduced from class/method name and instead try to provide the reader with deeper understanding. For example `/** Gets value */ getValue(); ` is pointless documentation
+   - Avoid writing documentation that provides information that can be deduced from class/method name and instead try to provide the reader with deeper understanding. For example `/** Gets value */ GetValue(); ` is pointless documentation
    - Avoid giving away implementation details in documentation. Implementation should be allowed to change, and as long as the interface remains the same, the documentation should remain the same
  - Document every class/structure/enum with a short description on what their purpose is
    - Optionally provide a use-case example

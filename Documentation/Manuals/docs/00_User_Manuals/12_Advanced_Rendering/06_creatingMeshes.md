@@ -170,6 +170,6 @@ u32 vertexCount = meshData->GetVertexCount();
 u32 indexCount = meshData->GetIndexCount();
 u32 indexElementSize = meshData->GetIndexElementSize();
 
-B3D_LOG(Info, Generic, "Mesh has {0} vertices and {1} indices", vertexCount, indexCount);
-B3D_LOG(Info, Generic, "Index element size: {0} bytes", indexElementSize);
+B3D_LOG(Info, LogRenderer, "Mesh has {0} vertices and {1} indices", vertexCount, indexCount);
+B3D_LOG(Info, LogRenderer, "Index element size: {0} bytes", indexElementSize);
 ~~~~~~~~~~~~~

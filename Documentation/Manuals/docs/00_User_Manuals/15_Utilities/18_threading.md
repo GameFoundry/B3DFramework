@@ -24,7 +24,7 @@ Create a task by constructing a @b3d::SchedulerTask with a worker function:
 void WorkerFunction()
 {
 	// This runs on a scheduler fiber
-	B3D_LOG(Info, Generic, "Task executing");
+	B3D_LOG(Info, LogGeneric, "Task executing");
 }
 
 Scheduler* scheduler = Scheduler::Get();
@@ -80,7 +80,7 @@ Lock lock(mutex);
 signal.Wait(lock, [&isComplete] { return isComplete; });
 
 // result is now ready to use
-B3D_LOG(Info, Generic, "Result: {0}", result);
+B3D_LOG(Info, LogGeneric, "Result: {0}", result);
 ~~~~~~~~~~~~~
 
 ## Fiber yielding
@@ -200,7 +200,7 @@ Lock lock(mutex);
 signal.Wait(lock, [&isReady] { return isReady; });
 
 // result is now ready to use
-B3D_LOG(Info, Generic, "Result: {0}", result);
+B3D_LOG(Info, LogGeneric, "Result: {0}", result);
 ~~~~~~~~~~~~~
 
 **Signal** provides several notification methods:
@@ -270,7 +270,7 @@ waitGroup.Wait();
 // All results are now ready
 for(int result : results)
 {
-	B3D_LOG(Info, Generic, "Result: {0}", result);
+	B3D_LOG(Info, LogGeneric, "Result: {0}", result);
 }
 ~~~~~~~~~~~~~
 
@@ -299,7 +299,7 @@ waitGroup.Wait();
 ~~~~~~~~~~~~~{.cpp}
 // Get number of CPU cores
 u32 coreCount = B3D_THREAD_HARDWARE_CONCURRENCY;
-B3D_LOG(Info, Generic, "System has {0} CPU cores", coreCount);
+B3D_LOG(Info, LogGeneric, "System has {0} CPU cores", coreCount);
 
 // Get current thread ID
 ThreadId currentThread = B3D_CURRENT_THREAD_ID;
@@ -322,12 +322,12 @@ commandQueue.ScheduleRunUntilShutdown(*scheduler, false, 10ms);
 // From any thread or fiber, post commands
 commandQueue.PostCommand([]()
 {
-	B3D_LOG(Info, Generic, "Command 1 executed");
+	B3D_LOG(Info, LogGeneric, "Command 1 executed");
 }, "Command1");
 
 commandQueue.PostCommand([]()
 {
-	B3D_LOG(Info, Generic, "Command 2 executed");
+	B3D_LOG(Info, LogGeneric, "Command 2 executed");
 }, "Command2");
 
 // Commands execute sequentially in the order they were posted
@@ -343,7 +343,7 @@ commandQueue.PostCommand([&result]()
 	result = 42 * 100;
 }, "Calculation", true); // Wait until complete
 
-B3D_LOG(Info, Generic, "Result: {0}", result);
+B3D_LOG(Info, LogGeneric, "Result: {0}", result);
 ~~~~~~~~~~~~~
 
 Process commands manually using @b3d::SingleConsumerQueue::RunUntilIdle:
@@ -382,7 +382,7 @@ Check if the queue is empty:
 ~~~~~~~~~~~~~{.cpp}
 if(commandQueue.IsEmpty())
 {
-	B3D_LOG(Info, Generic, "All commands processed");
+	B3D_LOG(Info, LogGeneric, "All commands processed");
 }
 ~~~~~~~~~~~~~
 
@@ -400,7 +400,7 @@ Instead of creating threads directly, you can use the @b3d::ThreadPool module fo
 void WorkerFunction()
 {
 	// This runs on a pooled thread
-	B3D_LOG(Info, Generic, "Pooled thread executing");
+	B3D_LOG(Info, LogGeneric, "Pooled thread executing");
 }
 
 // Get the thread pool instance
@@ -421,7 +421,7 @@ void IOWorkerFunction()
 {
 	// This runs on a dedicated OS thread
 	// Use for blocking I/O or third-party library integration
-	B3D_LOG(Info, Generic, "Dedicated thread executing");
+	B3D_LOG(Info, LogGeneric, "Dedicated thread executing");
 }
 
 Thread ioThread(&IOWorkerFunction);

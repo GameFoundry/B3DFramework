@@ -184,18 +184,18 @@ The Resources system provides events you can subscribe to for monitoring resourc
 // Called when a resource has been loaded
 GetResources().OnResourceLoaded.Connect([](const HResource& resource)
 {
-	B3D_LOG(Info, Generic, "Resource loaded: {0}", resource.GetId());
+	B3D_LOG(Info, LogGeneric, "Resource loaded: {0}", resource.GetId());
 });
 
 // Called when a resource has been destroyed
 GetResources().OnResourceDestroyed.Connect([](const UUID& resourceId)
 {
-	B3D_LOG(Info, Generic, "Resource destroyed: {0}", resourceId);
+	B3D_LOG(Info, LogGeneric, "Resource destroyed: {0}", resourceId);
 });
 
 // Called when a resource has been modified
 GetResources().OnResourceModified.Connect([](const HResource& resource)
 {
-	B3D_LOG(Info, Generic, "Resource modified: {0}", resource.GetId());
+	B3D_LOG(Info, LogGeneric, "Resource modified: {0}", resource.GetId());
 });
 ~~~~~~~~~~~~~

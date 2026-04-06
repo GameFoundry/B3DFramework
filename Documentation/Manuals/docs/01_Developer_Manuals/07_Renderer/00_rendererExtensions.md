@@ -8,7 +8,7 @@ In this chapter we'll show how to create extensions to the renderer, which are p
 
 # Creating extensions
 
-To create a renderer extensions implement your own class deriving from @b3d::RendererExtension. Note it is a core thread class, as all rendering is executed on the core thread.
+To create a renderer extensions implement your own class deriving from @b3d::RendererExtension. Note it is a render thread class, as all rendering is executed on the render thread.
 
 ~~~~~~~~~~~~~{.cpp}
 class MyRendererExtension : public RendererExtension
@@ -19,6 +19,7 @@ public:
 ~~~~~~~~~~~~~
 
 Your implementation needs to pass two parameters to the base **RendererExtension** class. The first parameter is of type @b3d::RenderLocation which determines at which point during rendering will your extension be triggered. It can be any of the following values, which are executed in the order specified:
+ - @b3d::RenderLocation::Prepare - Triggered before any rendering begins. Useful for preparing data or resources before the main render passes.
  - @b3d::RenderLocation::PreBasePass - Triggered before any scene objects are rendered. The renderer guarantees the render targets used for rendering scene objects will be bound (e.g. GBuffer).
  - @b3d::RenderLocation::PostBasePass - Triggered after scene objects are rendered, but before they are lit. The renderer guarantees the render targets used for rendering scene objects will be bound (e.g. GBuffer).
  - @b3d::RenderLocation::PostLightPass - Triggered after all scene objects have been rendered and their final information has been written to the final scene color buffer, without any post-processing. The renderer guarantees the final scene color render target will be bound.
@@ -38,11 +39,11 @@ public:
 ~~~~~~~~~~~~~
  
 Finally the implementation needs to implement the following methods:
- - @b3d::RendererExtension::check() - Called every frame for every camera in the scene. The methods accepts a camera as a parameter and returns @b3d::RendererExtensionRequest that signals the renderer if and under which circumstances should **RendererExtension::render()** be called.
- - @b3d::RendererExtension::render() - Called every frame for every camera that the **render::RendererExtension::check()** method returned true for. This is the method where you place the bulk of extension code and perform actual rendering. The rendering is performed using the low level rendering API as described previously. Note that this is the only method in the extension that you should be rendering from.
+ - @b3d::RendererExtension::Check() - Called every frame for every camera in the scene. The method accepts a camera as a parameter and returns @b3d::RendererExtensionRequest that signals the renderer if and under which circumstances should **RendererExtension::Render()** be called.
+ - @b3d::RendererExtension::Render() - Called every frame for every camera that the **RendererExtension::Check()** method returned `RendererExtensionRequest::ForceRender` for. This is the method where you place the bulk of extension code and perform actual rendering. The rendering is performed using the low level rendering API as described previously. Note that this is the only method in the extension that you should be rendering from.
  
 ~~~~~~~~~~~~~{.cpp}
-// Renderer extension with check() and render() methods
+// Renderer extension with Check() and Render() methods
 class MyRendererExtension : public RendererExtension
 {
 public:
@@ -50,40 +51,40 @@ public:
 		: RendererExtension(RenderLocation::PostLightPass, 0)
 	{ }
 	
-	bool check(const Camera& camera, bool& canSkip) override
+	RendererExtensionRequest Check(const render::Camera& camera) override
 	{
 		// Render on any camera
-		return true;
+		return RendererExtensionRequest::ForceRender;
 	}
 
-	void render(const Camera& camera, const RendererViewContext& viewContext)) override
+	void Render(const render::Camera& camera, const render::RendererViewContext& viewContext) override
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 		
 		// bind pipeline state, vertex/index buffers, etc.
-		rapi.drawIndexed(0, numIndices, 0, numVertices);
+		rapi.DrawIndexed(0, numIndices, 0, numVertices);
 	}
 }
 ~~~~~~~~~~~~~
 
-@b3d::RendererViewContext is an additional parameter provided to the **render()** method, that gives you insight in the current state of the renderer. In particular it contains the current render target set by the renderer. If you ever change the render target inside the extension (through a call to **RenderAPI::setRenderTarget()**) you must ensure to restore the original render target before exiting the method.
+@b3d::RendererViewContext is an additional parameter provided to the **Render()** method, that gives you insight in the current state of the renderer. In particular it contains the current render target set by the renderer. If you ever change the render target inside the extension (through a call to **RenderAPI::SetRenderTarget()**) you must ensure to restore the original render target before exiting the method.
 
 # Registering an extension
-Once extension is implemented you need to register it with the renderer by calling @b3d::RendererExtension::create<T>, where the template parameter is the type of your extension. You must also provide initialization data that will be passed to the extension - this can be null.
+Once extension is implemented you need to register it with the renderer by calling @b3d::RendererExtension::Create<T>, where the template parameter is the type of your extension. You must also provide initialization data that will be passed to the extension - this can be null.
 
-Note that while extensions are executed on the core thread, they are started from the sim (main) thread.
+Note that while extensions are executed on the render thread, they are started from the main thread.
 
 ~~~~~~~~~~~~~{.cpp}
-// Calling from sim thread
-SPtr<render::MyRendererExtension> rendererExt = RendererExtension::create<render::MyRendererExtension>(nullptr);
+// Calling from main thread
+SPtr<render::MyRendererExtension> rendererExt = RendererExtension::Create<render::MyRendererExtension>(nullptr);
 ~~~~~~~~~~~~~
 
 # Initialization
-When implementing your extension you may optionally override the @b3d::RendererExtension::initialize() method. This method will be called on the core thread once the extension is created.
+When implementing your extension you may optionally override the @b3d::RendererExtension::Initialize() method. This method will be called on the render thread once the extension is created.
 
-Note that you shouldn't use the constructor for initialization, since the constructor will trigger on the simulation thread, which is not a valid thread for rendering operations.
+Note that you shouldn't use the constructor for initialization, since the constructor will trigger on the main thread, which is not a valid thread for rendering operations.
 
-**RendererExtension::initialize()** additionally also accepts the data passed to the **RendererExtension::create<T>()** method. The data is passed as **Any** type, meaning you can bind whatever you wish to it. Normally it is some kind of a *struct* containing the necessary initialization parameters.
+**RendererExtension::Initialize()** additionally also accepts the data passed to the **RendererExtension::Create<T>()** method. The data is passed as **Any** type, meaning you can bind whatever you wish to it. Normally it is some kind of a *struct* containing the necessary initialization parameters.
 
 ~~~~~~~~~~~~~{.cpp}
 struct MyInitData
@@ -93,32 +94,32 @@ struct MyInitData
 	SPtr<render::Texture> c;
 }
 
-// Core thread
+// Render thread
 class MyRendererExtension : public RendererExtension
 {
 public:
 	// ... other extension code
 	
-	void initialize(const Any& data) override
+	void Initialize(const Any& data) override
 	{
-		const MyInitData& initData = any_cast_ref<MyInitData>(data);
+		const MyInitData& initData = AnyCastRef<MyInitData>(data);
 		// initialize whatever is required
 	}
 }
 
-// Sim thread
+// Main thread
 HTexture tex = ...;
 
 MyInitData initData;
 initData.a = 5;
 initData.b = 30.0f;
-initData.c = tex->getCore(); // Get version of texture usable on core thread
+initData.c = B3DGetRenderProxy(tex); // Get version of texture usable on render thread
 
-SPtr<render::MyRendererExtension> rendererExt = RendererExtension::create<render::MyRendererExtension>(initData);
+SPtr<render::MyRendererExtension> rendererExt = RendererExtension::Create<render::MyRendererExtension>(initData);
 ~~~~~~~~~~~~~
 
 # Destruction
-Similar to how you shouldn't use the constructor for initializing the extension, neither should you use the destructor for destruction. Instead if you need to perform cleanup before the extension is destroyed, override the @b3d::RendererExtension::destroy() method.
+Similar to how you shouldn't use the constructor for initializing the extension, neither should you use the destructor for destruction. Instead if you need to perform cleanup before the extension is destroyed, override the @b3d::RendererExtension::Destroy() method.
 
 ~~~~~~~~~~~~~{.cpp}
 class MyRendererExtension : public RendererExtension
@@ -126,7 +127,7 @@ class MyRendererExtension : public RendererExtension
 public:
 	// ... other extension code
 	
-	void destroy() override
+	void Destroy() override
 	{
 		// clean up
 	}
@@ -134,26 +135,26 @@ public:
 ~~~~~~~~~~~~~
 
 # Communicating with the extension
-If you need further communication with your extension from the sim thread, you should use the command queue as described in the [core thread](../Low_Level_rendering/coreThread) manual. If not using the command queue then you must ensure to use some other form of thread primitives to ensure safe communication between the two threads.
+If you need further communication with your extension from the main thread, you should use the command queue as described in the [render thread](../Low_Level_rendering/renderThread) manual. If not using the command queue then you must ensure to use some other form of thread primitives to ensure safe communication between the two threads.
 
 ~~~~~~~~~~~~~{.cpp}
 class MyRendererExtension : public RendererExtension
 {
 public:
-	void myCustomUpdateMethod(float newValue)
+	void MyCustomUpdateMethod(float newValue)
 	{
 		// respond to change in value
 	}
 }
 
-// Sim thread
+// Main thread
 render::MyRendererExtension myExtension = ...;
 float newValue = 15.0f;
 
-auto executeOnCore = [&]()
+auto fnExecuteOnRender = [myExtension, newValue]()
 {
-	myExtension->myCustomUpdateMethod(newValue);
+	myExtension->MyCustomUpdateMethod(newValue);
 };
 
-GetCoreThread().queueCommand(executeOnCore);
+GetRenderThread().PostCommand(std::move(fnExecuteOnRender));
 ~~~~~~~~~~~~~

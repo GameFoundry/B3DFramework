@@ -30,7 +30,7 @@ commandBuffer->SetGpuParameterSet(parameterSet);
 commandBuffer->DispatchCompute(32, 32, 1);
 
 // Log completion
-B3D_LOG(Info, RenderAPI, "Compute dispatch completed with 32x32 thread groups");
+B3D_LOG(Info, LogRenderBackend, "Compute dispatch completed with 32x32 thread groups");
 ~~~~~~~~~~~~~
 
 Note that compute operations are recorded in a **GpuCommandBuffer** which must then be submitted to a queue for execution. You can set up parameters using **GpuParameterSet** and bind them before dispatching the compute shader.

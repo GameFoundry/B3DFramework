@@ -18,15 +18,25 @@ public:
 private:
 	void myTest()
 	{
-		BS_TEST_ASSERT_MSG(2 + 2 == 4, "Something really bad is going on.");
+		B3D_TEST_ASSERT_MSG(2 + 2 == 4, "Something really bad is going on.");
 	}
 };
 ~~~~~~~~~~~~~
 
-To run all tests in a test suite create an instance of the **TestSuite** and run it, like so:
-~~~~~~~~~~~~~{.cpp}
-SPtr<TestSuite> tests = MyTestSuite::create<MyTestSuite>();
-tests->run(ExceptionTestOutput());
-~~~~~~~~~~~~~
+Tests are executed through the **UnitTestRunner** executable, which dynamically loads test suite plugins (`FrameworkTests.dll`, `EditorTests.dll`). Each test suite is organized into layers:
 
-When running the test we provide @b3d::ExceptionTestOutput which tells the test runner to terminate the application when a test fails. You can implement your own @b3d::TestOutput class to handle test failure more gracefully.
+ - **Utility** - Tests that don't require application initialization
+ - **Core** - Tests requiring **Application** to be running
+ - **Editor** - Tests requiring **EditorApplication** to be running
+
+You can control test execution via command-line arguments:
+
+ - `--test-layer` - Run only tests from a specific layer
+ - `--test-output-format` - Output format: `console` (default) or `json`
+ - `--test-output-path` - Path for test output file
+
+The runner also supports snapshot testing for visual validation:
+
+ - `--enable-test-snapshot` - Enable snapshot capture
+ - `--test-name` - Name of the test to snapshot
+ - `--capture-frame` - Frame number to capture

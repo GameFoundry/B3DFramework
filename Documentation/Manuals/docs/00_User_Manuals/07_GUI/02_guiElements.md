@@ -82,11 +82,11 @@ Change element position by calling @b3d::GUIElement::SetPosition. Position is in
 label->SetPosition(GUILogicalPoint(50, 50));
 ~~~~~~~~~~~~~
 
-Query current position with @b3d::GUIElement::GetPosition:
+Query current position relative to parent with @b3d::GUIElement::CalculatePositionRelativeTo:
 
 ~~~~~~~~~~~~~{.cpp}
-GUILogicalPoint currentPosition = label->GetPosition();
-B3D_LOG(Info, GUI, "Label position: X={0}, Y={1}", currentPosition.X, currentPosition.Y);
+GUILogicalPoint currentPosition = label->CalculatePositionRelativeTo();
+B3D_LOG(Info, LogGUI, "Label position: X={0}, Y={1}", currentPosition.X, currentPosition.Y);
 ~~~~~~~~~~~~~
 
 ## Changing size
@@ -102,11 +102,11 @@ label->SetWidth(100);
 label->SetHeight(30);
 ~~~~~~~~~~~~~
 
-Query current size with @b3d::GUIElement::GetWidth, @b3d::GUIElement::GetHeight, or @b3d::GUIElement::GetSize:
+Query current size with @b3d::GUIElement::CalculateSizeInLayout:
 
 ~~~~~~~~~~~~~{.cpp}
-GUILogicalSize currentSize = label->GetSize();
-B3D_LOG(Info, GUI, "Label size: {0}x{1}", currentSize.Width, currentSize.Height);
+GUILogicalSize currentSize = label->CalculateSizeInLayout();
+B3D_LOG(Info, LogGUI, "Label size: {0}x{1}", currentSize.Width, currentSize.Height);
 ~~~~~~~~~~~~~
 
 For flexible sizing based on content and layout constraints, use @b3d::GUIElement::SetFlexibleWidth and @b3d::GUIElement::SetFlexibleHeight:
@@ -125,6 +125,20 @@ Reset to fixed size behavior:
 label->SetWidth(100);  // Removes flexible width
 label->SetHeight(30);  // Removes flexible height
 ~~~~~~~~~~~~~
+
+## Scaling
+
+Scale the contents of a GUI element without affecting its layout size by calling @b3d::GUIElement::SetScale:
+
+~~~~~~~~~~~~~{.cpp}
+// Scale contents to 150%
+label->SetScale(1.5f);
+
+// Reset to normal scale
+label->SetScale(1.0f);
+~~~~~~~~~~~~~
+
+Note that scaling affects how the element's contents are rendered, but the layout system will still use the element's original size for positioning and spacing calculations.
 
 ## Hiding and disabling
 
@@ -178,20 +192,17 @@ label->SetTint(Color(1.0f, 1.0f, 1.0f, 0.5f));
 
 ## Bounds and clipping
 
-Query element bounds in both logical and physical coordinates:
+Query element bounds in physical coordinates:
 
 ~~~~~~~~~~~~~{.cpp}
-// Bounds in logical pixels
-GUILogicalArea logicalBounds = label->GetBounds();
-
 // Bounds in physical pixels (for hit testing)
-GUIPhysicalArea physicalBounds = label->GetPhysicalBounds();
+GUIPhysicalArea physicalBounds = label->CalculateAbsoluteBounds();
 ~~~~~~~~~~~~~
 
 Elements outside their parent's bounds are automatically clipped. Retrieve the clipping rectangle:
 
 ~~~~~~~~~~~~~{.cpp}
-GUIPhysicalArea clipRect = label->GetClipRect();
+GUIPhysicalArea clipRect = label->GetAbsoluteClippedArea();
 ~~~~~~~~~~~~~
 
 # GUI element types
@@ -211,12 +222,6 @@ Change the displayed text with @b3d::GUILabel::SetContent:
 
 ~~~~~~~~~~~~~{.cpp}
 label->SetContent(HString("New text!"));
-~~~~~~~~~~~~~
-
-Retrieve current text:
-
-~~~~~~~~~~~~~{.cpp}
-HString currentText = label->GetContent();
 ~~~~~~~~~~~~~
 
 Labels automatically size to fit their content unless you explicitly set a fixed size. They support multi-line text that wraps according to the style sheet's word-wrap property.
@@ -246,7 +251,7 @@ Change the displayed sprite:
 
 ~~~~~~~~~~~~~{.cpp}
 HSpriteTexture newSprite = SpriteTexture::Create(newTexture);
-guiTexture->SetSprite(newSprite);
+guiTexture->SetImage(newSprite);
 ~~~~~~~~~~~~~
 
 Texture elements work with all sprite types including **SpriteTexture**, **SpriteVectorPath**, and **SpriteGlyph**. They preserve aspect ratio by default but can be stretched to fill their bounds.
@@ -267,17 +272,17 @@ Subscribe to button events:
 ~~~~~~~~~~~~~{.cpp}
 auto buttonClicked = []()
 {
-	B3D_LOG(Info, GUI, "Button clicked!");
+	B3D_LOG(Info, LogGUI, "Button clicked!");
 };
 
 button->OnClick.Connect(buttonClicked);
 ~~~~~~~~~~~~~
 
 Available button events include:
-- @b3d::GUIButton::OnClick - Triggered when button is clicked
-- @b3d::GUIButton::OnHover - Triggered when mouse hovers over button
-- @b3d::GUIButton::OnOut - Triggered when mouse leaves button area
-- @b3d::GUIButton::OnDoubleClick - Triggered on double-click
+- @b3d::GUIClickable::OnClick - Triggered when button is clicked
+- @b3d::GUIClickable::OnHover - Triggered when mouse hovers over button
+- @b3d::GUIClickable::OnOut - Triggered when mouse leaves button area
+- @b3d::GUIClickable::OnDoubleClick - Triggered on double-click
 
 Change button content:
 
@@ -285,11 +290,12 @@ Change button content:
 button->SetContent(HString("New label"));
 ~~~~~~~~~~~~~
 
-Create image buttons by providing a **SpriteImage** instead of text:
+Create image buttons by providing sprite content:
 
 ~~~~~~~~~~~~~{.cpp}
 HSpriteTexture icon = SpriteTexture::Create(iconTexture);
-GUIButton* imageButton = GUIButton::Create(icon);
+GUIContentImages images(icon);
+GUIButton* imageButton = GUIButton::Create(GUIContent(images));
 mainPanel->AddElement(imageButton);
 ~~~~~~~~~~~~~
 
@@ -309,7 +315,7 @@ mainPanel->AddElement(toggle);
 For radio button groups where only one button can be active, create a toggle group:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GUIToggleGroup> group = GUIToggle::CreateToggleGroup();
+SPtr<GUIToggleGroup> group = GUIToggleGroup::Create();
 
 GUIToggle* radio0 = GUIToggle::Create(HString("Option 1"), group);
 GUIToggle* radio1 = GUIToggle::Create(HString("Option 2"), group);
@@ -320,15 +326,15 @@ mainPanel->AddElement(radio1);
 mainPanel->AddElement(radio2);
 ~~~~~~~~~~~~~
 
-Subscribe to toggle state changes with @b3d::GUIToggle::OnToggled:
+Subscribe to toggle state changes with @b3d::GUIToggleable::OnToggled:
 
 ~~~~~~~~~~~~~{.cpp}
 auto elementToggled = [](bool toggled)
 {
 	if (toggled)
-		B3D_LOG(Info, GUI, "Toggled on!");
+		B3D_LOG(Info, LogGUI, "Toggled on!");
 	else
-		B3D_LOG(Info, GUI, "Toggled off!");
+		B3D_LOG(Info, LogGUI, "Toggled off!");
 };
 
 toggle->OnToggled.Connect(elementToggled);
@@ -338,14 +344,10 @@ Query and set toggle state:
 
 ~~~~~~~~~~~~~{.cpp}
 bool isToggled = toggle->IsToggled();
-toggle->SetToggled(true);  // Programmatically toggle on
+toggle->SetIsToggled(true);  // Programmatically toggle on
 ~~~~~~~~~~~~~
 
-For radio button groups, only one toggle can be active at a time. When a toggle in the group is activated, all others are automatically deactivated. Query the active toggle:
-
-~~~~~~~~~~~~~{.cpp}
-GUIToggle* activeToggle = group->GetActiveToggle();
-~~~~~~~~~~~~~
+For radio button groups, only one toggle can be active at a time. When a toggle in the group is activated, all others are automatically deactivated.
 
 ![GUI toggle](../../Images/guiToggle.png)
 
@@ -378,7 +380,7 @@ Subscribe to text changes with @b3d::GUIInputBox::OnValueChanged:
 ~~~~~~~~~~~~~{.cpp}
 auto respondToInput = [](const String& text)
 {
-	B3D_LOG(Info, GUI, "New input: {0}", text);
+	B3D_LOG(Info, LogGUI, "New input: {0}", text);
 };
 
 multiLineInput->OnValueChanged.Connect(respondToInput);
@@ -396,13 +398,6 @@ auto integerFilter = [](const String& text)
 singleLineInput->SetFilter(integerFilter);
 ~~~~~~~~~~~~~
 
-Control input focus:
-
-~~~~~~~~~~~~~{.cpp}
-bool hasFocus = singleLineInput->HasFocus();
-singleLineInput->SetFocus(true);  // Give keyboard focus
-~~~~~~~~~~~~~
-
 Additional input box methods:
 
 ~~~~~~~~~~~~~{.cpp}
@@ -412,9 +407,6 @@ singleLineInput->SetText("");
 // Set as password field (displays asterisks)
 GUIInputBox* passwordInput = GUIInputBox::Create(false);
 // Note: Password mode is typically controlled by style sheet
-
-// Get character limit
-u32 maxLength = singleLineInput->GetMaxLength();
 ~~~~~~~~~~~~~
 
 Input boxes support text selection, copy/paste, and undo/redo operations automatically. Multi-line input boxes support vertical scrolling when content exceeds their bounds.
@@ -453,8 +445,7 @@ for (bool isSelected : selection)
 {
 	if (isSelected)
 	{
-		String selectedValue = listElements[index].GetValue();
-		B3D_LOG(Info, GUI, "Selected: {0}", selectedValue);
+		B3D_LOG(Info, LogGUI, "Selected: {0}", listElements[index]);
 	}
 	index++;
 }
@@ -465,12 +456,10 @@ Subscribe to selection changes with @b3d::GUIListBox::OnSelectionToggled:
 ~~~~~~~~~~~~~{.cpp}
 auto selectionToggled = [=](u32 index, bool enabled)
 {
-	String value = listElements[index].GetValue();
-
 	if (enabled)
-		B3D_LOG(Info, GUI, "Selected: {0}", value);
+		B3D_LOG(Info, LogGUI, "Selected: {0}", listElements[index]);
 	else
-		B3D_LOG(Info, GUI, "Deselected: {0}", value);
+		B3D_LOG(Info, LogGUI, "Deselected: {0}", listElements[index]);
 };
 
 listBox->OnSelectionToggled.Connect(selectionToggled);
@@ -479,28 +468,8 @@ listBox->OnSelectionToggled.Connect(selectionToggled);
 Modify list contents:
 
 ~~~~~~~~~~~~~{.cpp}
-// Add new element
-listBox->AddElement(HString("Grape"));
-
-// Remove element by index
-listBox->RemoveElement(0);
-
-// Clear all elements
-listBox->ClearElements();
-
-// Set all elements at once
 Vector<HString> newElements = { HString("Item 1"), HString("Item 2") };
 listBox->SetElements(newElements);
-~~~~~~~~~~~~~
-
-Query list state:
-
-~~~~~~~~~~~~~{.cpp}
-// Get total number of elements
-u32 count = listBox->GetElementCount();
-
-// Check if specific index is selected
-bool isSelected = listBox->IsElementSelected(2);
 ~~~~~~~~~~~~~
 
 List boxes automatically provide scrollbars when content exceeds visible area. Elements can be styled differently based on selection state through style sheets.
@@ -522,10 +491,10 @@ mainPanel->AddElement(sliderVertical);
 mainPanel->AddElement(sliderHorizontal);
 ~~~~~~~~~~~~~
 
-Retrieve slider position with @b3d::GUISlider::GetPercent (returns value in range [0, 1]):
+Retrieve slider position with @b3d::GUISlider::GetHandlePositionInPercent (returns value in range [0, 1]):
 
 ~~~~~~~~~~~~~{.cpp}
-float currentPosition = sliderHorizontal->GetPercent();
+float currentPosition = sliderHorizontal->GetHandlePositionInPercent();
 ~~~~~~~~~~~~~
 
 Subscribe to position changes with @b3d::GUISlider::OnChanged:
@@ -533,7 +502,7 @@ Subscribe to position changes with @b3d::GUISlider::OnChanged:
 ~~~~~~~~~~~~~{.cpp}
 auto sliderChanged = [](float percent)
 {
-	B3D_LOG(Info, GUI, "Slider at: {0}", percent);
+	B3D_LOG(Info, LogGUI, "Slider at: {0}", percent);
 };
 
 sliderHorizontal->OnChanged.Connect(sliderChanged);
@@ -546,7 +515,7 @@ Set custom range with @b3d::GUISlider::SetRange:
 sliderHorizontal->SetRange(0.0f, 360.0f);
 
 // Get value in custom range
-float value = sliderHorizontal->GetValue();
+float value = sliderHorizontal->GetHandlePositionInRange();
 ~~~~~~~~~~~~~
 
 Set step increment with @b3d::GUISlider::SetStep:
@@ -560,10 +529,10 @@ Set value directly:
 
 ~~~~~~~~~~~~~{.cpp}
 // Set to 50% position
-sliderHorizontal->SetPercent(0.5f);
+sliderHorizontal->SetHandlePositionInPercent(0.5f);
 
 // Set to specific value in custom range
-sliderHorizontal->SetValue(180.0f);  // Middle of 0-360 range
+sliderHorizontal->SetHandlePositionInRange(180.0f);  // Middle of 0-360 range
 ~~~~~~~~~~~~~
 
 Handle range with @b3d::GUISlider::GetRangeMaximum and @b3d::GUISlider::GetRangeMinimum:
@@ -657,10 +626,10 @@ Elements can show context menus on right-click:
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<GUIContextMenu> contextMenu = GUIContextMenu::Create();
-contextMenu->AddMenuItem(HString("Copy"), []() { B3D_LOG(Info, GUI, "Copy selected"); });
-contextMenu->AddMenuItem(HString("Paste"), []() { B3D_LOG(Info, GUI, "Paste selected"); });
+contextMenu->AddMenuItem(HString("Copy"), []() { B3D_LOG(Info, LogGUI, "Copy selected"); });
+contextMenu->AddMenuItem(HString("Paste"), []() { B3D_LOG(Info, LogGUI, "Paste selected"); });
 contextMenu->AddSeparator();
-contextMenu->AddMenuItem(HString("Delete"), []() { B3D_LOG(Info, GUI, "Delete selected"); });
+contextMenu->AddMenuItem(HString("Delete"), []() { B3D_LOG(Info, LogGUI, "Delete selected"); });
 
 button->SetContextMenu(contextMenu);
 ~~~~~~~~~~~~~
@@ -678,6 +647,26 @@ listBox->SetTabIndex(2);
 // Allow or prevent receiving focus
 button->SetAcceptsFocus(true);
 ~~~~~~~~~~~~~
+
+## Focus events
+
+Interactable GUI elements provide events for tracking when they gain or lose focus. These are useful for highlighting active fields or triggering actions on focus changes:
+
+~~~~~~~~~~~~~{.cpp}
+GUIInputBox* inputBox = GUIInputBox::Create();
+
+inputBox->OnFocusGained.Connect([]()
+{
+	B3D_LOG(Info, LogGUI, "Input box gained focus");
+});
+
+inputBox->OnFocusLost.Connect([]()
+{
+	B3D_LOG(Info, LogGUI, "Input box lost focus");
+});
+~~~~~~~~~~~~~
+
+These events are available on all @b3d::GUIInteractable elements (buttons, input boxes, toggles, sliders, etc.).
 
 ## Parent and hierarchy
 

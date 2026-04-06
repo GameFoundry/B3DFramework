@@ -232,12 +232,12 @@ ColliderShapeType shapeType = shape->GetType();
 if (shapeType == ColliderShapeType::Box)
 {
 	BoxColliderShapeInformation boxInfo = shape->GetBoxShapeInformation();
-	B3D_LOG(Info, Physics, "Box extents: {0}", boxInfo.Extents);
+	B3D_LOG(Info, LogPhysics, "Box extents: {0}", boxInfo.Extents);
 }
 else if (shapeType == ColliderShapeType::Sphere)
 {
 	SphereColliderShapeInformation sphereInfo = shape->GetSphereShapeInformation();
-	B3D_LOG(Info, Physics, "Sphere radius: {0}", sphereInfo.Radius);
+	B3D_LOG(Info, LogPhysics, "Sphere radius: {0}", sphereInfo.Radius);
 }
 ~~~~~~~~~~~~~
 

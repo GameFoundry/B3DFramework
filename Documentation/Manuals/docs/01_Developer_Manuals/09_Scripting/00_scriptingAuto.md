@@ -4,12 +4,12 @@ title: Exposing code to script API (automated)
 
 When you've added a new feature, system or just extended an existing one you might want to expose that functionality to the scripting API. The framework makes this process easier through its automated script binding generator tool. All you need to do is to decorate the C++ types and methods you wish to export and run the tool.
 
-This manual will teach you how to decorate the C++ code in order to expose it to the script API. To learn how to run the script binding generator tool visit the [Generating script bindings](../Build/generatingScriptBindings) manual.
+The script binding generator tool (BansheeCodeGenerator) is a standalone Clang-based tool that parses the decorated C++ headers and generates the corresponding C# script code and C++ interop wrappers.
 
-Entirety of automated script export is handled through the **B3D_SCRIPT_EXPORT** macro. The macro supports a variety of parameters used for customizing how will the type/method be exported.
+Entirety of automated script export is handled through the **B3D_SCRIPT_EXPORT** macro. The macro supports a variety of parameters used for customizing how will the type/method be exported. Parameters use the `ParameterName(Value)` syntax, separated by commas.
 
 # Exporting classes
-In order to export a class to script code you need to decorate the class and one or multiple methods with **B3D_SCRIPT_EXPORT** macro. 
+In order to export a class to script code you need to decorate the class and one or more methods with **B3D_SCRIPT_EXPORT** macro. 
 
 ~~~~~~~~~~~~~{.cpp}
 // Decorate the class and the methods with B3D_SCRIPT_EXPORT modifier
@@ -20,7 +20,7 @@ public:
 	MyClass(); // Constructor
 
 	B3D_SCRIPT_EXPORT()
-	UINT32 getSomeData();
+	u32 GetSomeData();
 };
 ~~~~~~~~~~~~~
 
@@ -30,7 +30,7 @@ public partial class MyClass : ScriptObject
 {
 	public MyClass() { ... }
 
-	public int getSomeData() { ... }
+	public int GetSomeData() { ... }
 }
 ~~~~~~~~~~~~~
 
@@ -64,55 +64,55 @@ public:
 	MyClass(); // Constructor
 
 	B3D_SCRIPT_EXPORT()
-	UINT32 getPlainType();
+	u32 GetPlainType();
 	
 	B3D_SCRIPT_EXPORT()
-	void getPlainTypeAsParam(UINT32& output);	
+	void GetPlainTypeAsParam(u32& output);	
 	
 	B3D_SCRIPT_EXPORT()
-	void setPlainType(UINT32 value);	
+	void SetPlainType(u32 value);	
 	
 	B3D_SCRIPT_EXPORT()
-	String getString();
+	String GetString();
 	
 	B3D_SCRIPT_EXPORT()
-	void setString(const String& value);	
+	void SetString(const String& value);	
 	
 	B3D_SCRIPT_EXPORT()
-	HMesh getResource();
+	HMesh GetResource();
 	
 	B3D_SCRIPT_EXPORT()
-	void setResource(const HMesh& mesh);
+	void SetResource(const HMesh& mesh);
 	
 	B3D_SCRIPT_EXPORT()
-	HRenderable getComponent();
+	HRenderable GetComponent();
 	
 	B3D_SCRIPT_EXPORT()
-	void setComponent(const HRenderable& renderable);
+	void SetComponent(const HRenderable& renderable);
 	
 	B3D_SCRIPT_EXPORT()
-	SPtr<MyOtherClass> getNormalObject();
+	SPtr<MyOtherClass> GetNormalObject();
 	
 	B3D_SCRIPT_EXPORT()
-	void setNormalObject(const SPtr<MyOtherClass>& value);
+	void SetNormalObject(const SPtr<MyOtherClass>& value);
 	
 	B3D_SCRIPT_EXPORT()
-	Vector<HMesh> getArray(); // HMesh could have also been a normal class or a component
+	Vector<HMesh> GetArray(); // HMesh could have also been a normal class or a component
 	
 	B3D_SCRIPT_EXPORT()
-	void setArray(const Vector<HMesh>& value); // HMesh could have also been a normal class or a component
+	void SetArray(const Vector<HMesh>& value); // HMesh could have also been a normal class or a component
 };
 ~~~~~~~~~~~~~ 
 
 ## Renaming
-**B3D_SCRIPT_EXPORT** accepts a variety of comma separated parameters in the format "param1:value1,param2:value2". Parameter named "n" allows you to specify a different name for a type or a method, so when exported it uses the specified name rather than the same name as in C++.
+**B3D_SCRIPT_EXPORT** accepts a variety of comma separated parameters in the `ParameterName(Value)` format. The `ExportName` parameter allows you to specify a different name for a type or a method, so when exported it uses the specified name rather than the same name as in C++.
 
 ~~~~~~~~~~~~~{.cpp}
-class B3D_SCRIPT_EXPORT(n:MyRenamedClass) MyClass
+class B3D_SCRIPT_EXPORT(ExportName(MyRenamedClass)) MyClass
 {
 public:
-	B3D_SCRIPT_EXPORT(n:GetSomeData)
-	UINT32 getSomeData();
+	B3D_SCRIPT_EXPORT(ExportName(GetSomeData))
+	u32 GetSomeData();
 };
 ~~~~~~~~~~~~~
 
@@ -125,39 +125,39 @@ public partial class MyRenamedClass : ScriptObject
 ~~~~~~~~~~~~~
 
 ## Visibility
-You can make a type or a method *public*, *internal* or *private* by specifying the "v" parameter. Accepted values are "public", "internal" and "private". By default all types and methods are public.
+You can make a type or a method *public*, *internal* or *private* by specifying the `Visibility` parameter. Accepted values are `Public`, `Internal` and `Private`. By default all types and methods are public.
 
 ~~~~~~~~~~~~~{.cpp}
 class B3D_SCRIPT_EXPORT() MyClass
 {
 public:
 	// Exported as a private method
-	B3D_SCRIPT_EXPORT(n:GetSomeData,v:private)
-	UINT32 getSomeData();
+	B3D_SCRIPT_EXPORT(ExportName(GetSomeData), Visibility(Private))
+	u32 GetSomeData();
 };
 ~~~~~~~~~~~~~
 
 The example above results in the following script interface (C#):
 ~~~~~~~~~~~~~{.cs}
-public partial class MyRenamedClass : ScriptObject
+public partial class MyClass : ScriptObject
 {
 	private int GetSomeData() { ... }
 }
 ~~~~~~~~~~~~~
 
 ## Exporting as properties
-Parameter named "pr" allows you to specify that a method should be exported as a property. The supported values for the parameter are "getter" or "setter". When exposing a method as a property the name ("n") parameter is required and should be the name of the property.
+The `Property` parameter allows you to specify that a method should be exported as a property. The supported values are `Getter` or `Setter`. When exposing a method as a property the `ExportName` parameter is required and should be the name of the property.
 
 ~~~~~~~~~~~~~{.cpp}
 // Decorate the class and the methods with B3D_SCRIPT_EXPORT modifier
 class B3D_SCRIPT_EXPORT() MyClass
 {
 public:
-	B3D_SCRIPT_EXPORT(pr:getter,n:SomeData)
-	UINT32 getSomeData();
+	B3D_SCRIPT_EXPORT(Property(Getter), ExportName(SomeData))
+	u32 GetSomeData();
 	
-	B3D_SCRIPT_EXPORT(pr:setter,n:SomeData)
-	void setSomeData(UINT32 value);
+	B3D_SCRIPT_EXPORT(Property(Setter), ExportName(SomeData))
+	void SetSomeData(u32 value);
 };
 ~~~~~~~~~~~~~
 
@@ -184,24 +184,24 @@ Getter/setter methods must follow a specific template otherwise they will be ign
 Sometimes automatic code generation just isn't good enough. For that reason all exported C# classes are marked with the *partial* keyword, meaning you can extend their interface with manually written code in a separate file, as required. 
  
 # Exporting structures
-A data type can be exported as a C# *struct* by using the "pl" parameter, accepting values "true" or "false" (default being false). When exported all of the fields of the data type will be exported as a C# *struct*. Any constructors will also be exported, but no other methods. This is meant to be used on simple types that will be used for passing data around. Such types are passed by value and will be copied when crossing the C++/C# boundary.
+A data type can be exported as a C# *struct* by using the `ExportAsStruct` parameter, accepting values `true` or `false` (default being false). When exported all of the fields of the data type will be exported as a C# *struct*. Any constructors will also be exported, but no other methods. This is meant to be used on simple types that will be used for passing data around. Such types are passed by value and will be copied when crossing the C++/C# boundary.
 
 ~~~~~~~~~~~~~{.cpp}
-struct B3D_SCRIPT_EXPORT(pl:true) Volume
+struct B3D_SCRIPT_EXPORT(ExportAsStruct(true)) Volume
 {
 	Volume()
 		: left(0), top(0), right(1), bottom(1), front(0), back(1)
 	{ }
 
-	Volume(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom):
+	Volume(u32 left, u32 top, u32 right, u32 bottom):
 		left(left), top(top), right(right), bottom(bottom), front(0), back(1)
 	{ }
 
-	Volume(UINT32 left, UINT32 top, UINT32 front, UINT32 right, UINT32 bottom, UINT32 back):
+	Volume(u32 left, u32 top, u32 front, u32 right, u32 bottom, u32 back):
 		left(left), top(top), right(right), bottom(bottom), front(front), back(back)
 	{ }
 		
-	UINT32 left, top, right, bottom, front, back;
+	u32 left, top, right, bottom, front, back;
 };
 ~~~~~~~~~~~~~
 
@@ -254,7 +254,7 @@ public partial struct Volume
 
 Note when generating constructors the system is only able to parse class member initializers and constructor initializers defined in the header file and will ignore any in the .cpp file.
 
-Structs support rename & visibility parameters same as normal class export.
+Structs support `ExportName` & `Visibility` parameters same as normal class export.
 
 # Exporting enums
 Enums can be exported with no additional parameters, just by specifying **B3D_SCRIPT_EXPORT**.
@@ -278,10 +278,10 @@ public enum MyEnum
 }
 ~~~~~~~~~~~~~
 
-Enums support rename & visibility parameters same as normal class and struct export.
+Enums support `ExportName` & `Visibility` parameters same as normal class and struct export.
 
 ## Excluding enum entries
-By default when exporting enums all of their entries will be exported. You can ignore a certain enum entry by using the "ex" parameter. Supported values are "true" or "false".
+By default when exporting enums all of their entries will be exported. You can ignore a certain enum entry by using the `Exclude` parameter. Supported values are `true` or `false`.
 
 ~~~~~~~~~~~~~{.cpp}
 // Exclude the third enum entry from script code
@@ -289,7 +289,7 @@ enum B3D_SCRIPT_EXPORT() class MyEnum
 {
 	Value1 										= 1,
 	Value2 										= 10,
-	Value3 		B3D_SCRIPT_EXPORT(ex:true)		= 100
+	Value3 		B3D_SCRIPT_EXPORT(Exclude(true))	= 100
 };
 ~~~~~~~~~~~~~
 
@@ -303,14 +303,14 @@ public enum MyEnum
 ~~~~~~~~~~~~~
 
 ## Renaming enum entries
-Individual enum entries can also be renamed using the "n" parameter.
+Individual enum entries can also be renamed using the `ExportName` parameter.
 
 ~~~~~~~~~~~~~{.cpp}
 enum B3D_SCRIPT_EXPORT() MyEnum
 {
-	ME_VAL1 	B3D_SCRIPT_EXPORT(n:Value1) 		= 1,
-	ME_VAL2 	B3D_SCRIPT_EXPORT(n:Value2) 		= 10,
-	ME_VAL3 	B3D_SCRIPT_EXPORT(n:Value3) 		= 100
+	ME_VAL1 	B3D_SCRIPT_EXPORT(ExportName(Value1)) 		= 1,
+	ME_VAL2 	B3D_SCRIPT_EXPORT(ExportName(Value2)) 		= 10,
+	ME_VAL3 	B3D_SCRIPT_EXPORT(ExportName(Value3)) 		= 100
 };
 ~~~~~~~~~~~~~
 
@@ -332,8 +332,9 @@ Sometimes the C++ interface just isn't suitable for export to script code as-is.
 
 External methods allow you to extend functionality of some class, **Resource** or a **Component** by defining static methods which are then exported as if they were part of the original class. Note these types of methods are not relevant for struct or enum export.
 
-Use the "e" parameter to mark a method as external. Value of the parameter should be the name of the class it is extending.
-Use the "ec" parameter to mark a constructor as external. Value of the parameter should be the name of the class it is extending.
+Use the `ExtensionMethodForType` parameter to mark a method as external. Value of the parameter should be the name of the class it is extending.
+Use the `ExtensionConstructorForType` parameter to mark a constructor as external. Value of the parameter should be the name of the class it is extending.
+The class containing external methods must be marked with the `ExtensionClassForType` parameter.
 
 ~~~~~~~~~~~~~{.cpp}
 struct MY_CLASS_DESC
@@ -348,16 +349,16 @@ class B3D_SCRIPT_EXPORT() MyClass
 public:
 	MyClass(const MY_CLASS_DESC& desc);
 
-	UINT32* getArrayData(UINT32& count) const;
+	u32* GetArrayData(u32& count) const;
 };
 
 // Extension class for MyClass
-class B3D_SCRIPT_EXPORT(e:MyClass) MyClassEx
+class B3D_SCRIPT_EXPORT(ExtensionClassForType(MyClass)) MyClassEx
 {
 public:
 	// External constructor because we don't want to expose MY_CLASS_DESC to script code
-	B3D_SCRIPT_EXPORT(ec:MyClass)
-	static SPtr<MyClass> create(int val1, float val2)
+	B3D_SCRIPT_EXPORT(ExtensionConstructorForType(MyClass))
+	static SPtr<MyClass> Create(int val1, float val2)
 	{
 		MY_CLASS_DESC desc;
 		desc.val1 = val1;
@@ -367,14 +368,14 @@ public:
 	}
 
 	// External method because MyClass returns an array in raw form, but we need it in a Vector
-	B3D_SCRIPT_EXPORT(e:MyClass)
-	static Vector<UINT32> getArrayData(const SPtr<MyClass>& thisPtr)
+	B3D_SCRIPT_EXPORT(ExtensionMethodForType(MyClass))
+	static Vector<u32> GetArrayData(const SPtr<MyClass>& thisPtr)
 	{
-		UINT32 numEntries;
-		UINT32* entries = thisPtr->getArrayData(numEntries);
+		u32 numEntries;
+		u32* entries = thisPtr->GetArrayData(numEntries);
 		
-		Vector<UINT32> output;
-		for(UINT32 i = 0; i < numEntries; i++)
+		Vector<u32> output;
+		for(u32 i = 0; i < numEntries; i++)
 			output.push_back(entries[i]);
 			
 		return output;
@@ -393,10 +394,97 @@ public partial class MyClass : ScriptObject
 ~~~~~~~~~~~~~
 
 External methods must follow these rules:
- - They must be part of a class that is also exported and marked with the "e" parameter
+ - They must be part of a class that is also exported and marked with the `ExtensionClassForType` parameter
  - They must be static
  - External constructors must return a value of the type they're external to
  - External methods must accept the type they're external to as the first parameter 
- 
+
+# Additional options
+
+## Assembly targeting
+The `API` parameter specifies which assembly a type should be exported to. Supported values are `Framework`, `Engine` and `Editor`. Multiple `API` parameters can be specified to export to multiple assemblies.
+
+~~~~~~~~~~~~~{.cpp}
+// Export to both Framework and Editor assemblies
+class B3D_SCRIPT_EXPORT(API(Framework), API(Editor)) ImportOptions
+{
+	...
+};
+~~~~~~~~~~~~~
+
+## Documentation group
+The `DocumentationGroup` parameter specifies which module a type belongs to. This determines the documentation group and may also affect the placement in the generated code.
+
+~~~~~~~~~~~~~{.cpp}
+class B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationClipState
+{
+	...
+};
+~~~~~~~~~~~~~
+
+## Output file
+The `ExportFile` parameter overrides the name of the output file(s) for the generated script object and its wrappers. If not specified the name of the type will be used.
+
+## Interop-only methods
+The `InteropOnly` parameter causes only the internal interop method to be generated, without a public wrapper method. This is useful when you need to manually implement the public-facing method in C# (e.g. for custom marshalling or additional logic). Set to `true` to enable.
+
+~~~~~~~~~~~~~{.cpp}
+class B3D_SCRIPT_EXPORT() MyClass
+{
+public:
+	// Only the interop stub is generated; you must write the public C# method manually
+	B3D_SCRIPT_EXPORT(InteropOnly(true))
+	Vector<HMesh> GetComplexData();
+};
+~~~~~~~~~~~~~
+
+## Singletons
+The `Singleton` parameter marks a class as a singleton. The value should be the name of the getter function used to retrieve the singleton instance.
+
+~~~~~~~~~~~~~{.cpp}
+class B3D_SCRIPT_EXPORT(Singleton(GetDebug)) Debug
+{
+	...
+};
+~~~~~~~~~~~~~
+
+## Pass by copy
+The `PassByCopy` parameter causes a struct to be passed by copy instead of by reference when crossing the C++/C# boundary. Set to `true` to enable.
+
+~~~~~~~~~~~~~{.cpp}
+B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Settings), PassByCopy(true))
+const ParticleSystemSettings& GetSettings() const;
+~~~~~~~~~~~~~
+
+## Inspector UI hints
+Several parameters control how exported fields and properties appear in the editor inspector:
+
+ - `UI(Hide)` - Hide the field from the inspector.
+ - `UI(Show)` - Force show the field in the inspector.
+ - `UI(AsSlider)` - Render as a slider control.
+ - `UI(AsLayerMask)` - Render as a layer mask selector.
+ - `UI(IsHDRColor)` - Mark as an HDR color field.
+ - `UI(AsQuaternion)` - Display rotation as Euler angles.
+ - `UI(Inline)` - Inline the struct fields directly in the parent inspector.
+ - `UIValueRange([min, max])` - Clamp the value to a range.
+ - `UIIncrementStep(value)` - Set the increment step for the inspector control.
+ - `UIOrder(value)` - Control the display order in the inspector.
+ - `UICategory(name)` - Group the field under a collapsible category.
+ - `ApplyOnDirty(true)` - Apply changes when the property is marked dirty.
+ - `LoadOnAssign(true)` - Automatically load a resource when it is assigned.
+ - `NotNullable(true)` - Mark a parameter or field as non-nullable.
+
+~~~~~~~~~~~~~{.cpp}
+class B3D_SCRIPT_EXPORT() MySettings
+{
+public:
+	B3D_SCRIPT_EXPORT(UIValueRange([0, 1]), UI(AsSlider))
+	float Intensity = 0.5f;
+
+	B3D_SCRIPT_EXPORT(UICategory(Advanced), UIOrder(1))
+	bool UseHighQuality = false;
+};
+~~~~~~~~~~~~~
+
 # Running the code generator
-Once you have decorated the C++ classes with necessary export parameters you can run the code generator simply by enabling *GENERATE_SCRIPT_BINDINGS* and regenerating the CMake build. The generator will run automatically over all the framework code and generate relevant script code.
+The code generator (BansheeCodeGenerator) is a standalone tool located in `Framework/Tools/BansheeCodeGenerator`. Once you have decorated the C++ classes with necessary export parameters, build and run the code generator. It will parse all the framework headers and generate the corresponding C# script code and C++ interop wrappers into the `Generated` folders.

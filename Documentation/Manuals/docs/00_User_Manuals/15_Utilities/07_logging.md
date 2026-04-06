@@ -10,10 +10,10 @@ To log a new message, you can use two of the following methods:
 ~~~~~~~~~~~~~{.cpp}
 u32 variableX = 5;
 
-B3D_LOG(Info, Uncategorized, "Value of x is: {0}", variableX);
+B3D_LOG(Info, LogGeneric, "Value of x is: {0}", variableX);
 
 if(variableX != 5)
-	B3D_LOG(Error, Uncategorized, "X must equal 5!");
+	B3D_LOG(Error, LogGeneric, "X must equal 5!");
 ~~~~~~~~~~~~~
 
 All logged messages will be output to the standard console output, as well as the attached debugger output (if any).

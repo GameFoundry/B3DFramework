@@ -41,7 +41,7 @@ To evaluate a curve call @b3d::TAnimationCurve<T>::Evaluate.
 
 ~~~~~~~~~~~~~{.cpp}
 float value = curve.Evaluate(0.25f);
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Curve value at t=0.25: {0}", value);
+B3D_LOG(Info, LogGeneric, "Curve value at t=0.25: {0}", value);
 ~~~~~~~~~~~~~
 
 # More about tangents

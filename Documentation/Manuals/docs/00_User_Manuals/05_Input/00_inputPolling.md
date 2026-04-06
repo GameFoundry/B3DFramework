@@ -18,7 +18,7 @@ These methods work on any kind of input device buttons, including keyboard, game
 Vector3 position(Vector3::kZero);
 
 // Move 5 units forward for every frame while W key is pressed
-if (GetInput().IsButtonHeld(BC_W))
+if (GetInput().IsButtonHeld(ButtonCode::W))
 	position.z += 5.0f;
 ~~~~~~~~~~~~~
 
@@ -49,5 +49,5 @@ You can also check if the left mouse button has been double-clicked by checking 
 
 ~~~~~~~~~~~~~{.cpp}
 if (GetInput().IsPointerDoubleClicked())
-	B3D_LOG(Info, Generic, "Mouse double-clicked!");
+	B3D_LOG(Info, LogGeneric, "Mouse double-clicked!");
 ~~~~~~~~~~~~~

@@ -444,7 +444,7 @@ AddressV			 | WRAP, MIRROR, CLAMP, BORDER, MIRROR_ONCE   | @b3d::SAMPLER_STATE_D
 AddressW			 | WRAP, MIRROR, CLAMP, BORDER, MIRROR_ONCE   | @b3d::SAMPLER_STATE_DESC::addressMode
 BorderColor			 | float4									  | @b3d::SAMPLER_STATE_DESC::borderColor
 Filter				 | See table below							  | @b3d::SAMPLER_STATE_DESC::minFilter, @b3d::SAMPLER_STATE_DESC::magFilter, @b3d::SAMPLER_STATE_DESC::mipFilter
-MaxAnisotropy		 | uint										  | @b3d::SAMPLER_STATE_DESC::maxAniso
+MaxAnisotropy		 | u32										  | @b3d::SAMPLER_STATE_DESC::maxAniso
 MaxLOD				 | float									  | @b3d::SAMPLER_STATE_DESC::mipMax
 MinLOD				 | float									  | @b3d::SAMPLER_STATE_DESC::mipMin
 MipLODBias			 | float									  | @b3d::SAMPLER_STATE_DESC::mipmapBias

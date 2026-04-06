@@ -14,14 +14,14 @@ Use @b3d::Time::GetRealTimeInSeconds() to get the current time (since applicatio
 
 ~~~~~~~~~~~~~{.cpp}
 float curTime = GetTime().GetRealTimeInSeconds();
-B3D_LOG(Info, Generic, "Application was started {0} seconds ago.", curTime);
+B3D_LOG(Info, LogGeneric, "Application was started {0} seconds ago.", curTime);
 ~~~~~~~~~~~~~
 
 This value is only updated once per frame (i.e., it stays constant throughout a frame). For millisecond precision, use @b3d::Time::GetRealTimeInMilliseconds():
 
 ~~~~~~~~~~~~~{.cpp}
 u64 curTimeMs = GetTime().GetRealTimeInMilliseconds();
-B3D_LOG(Info, Generic, "Application was started {0} ms ago.", curTimeMs);
+B3D_LOG(Info, LogGeneric, "Application was started {0} ms ago.", curTimeMs);
 ~~~~~~~~~~~~~
 
 ## Precise time measurements
@@ -39,7 +39,7 @@ u64 preciseTimeEnd = GetTime().GetTimePrecise();
 u64 timeElapsed = preciseTimeEnd - preciseTimeStart;
 
 float secondsElapsed = (float)(timeElapsed * Time::kMicrosecToSec);
-B3D_LOG(Info, Generic, "Operation took {0} seconds.", secondsElapsed);
+B3D_LOG(Info, LogGeneric, "Operation took {0} seconds.", secondsElapsed);
 ~~~~~~~~~~~~~
 
 > @b3d::Time::kMicrosecToSec is a constant to convert between microseconds and seconds.
@@ -52,7 +52,7 @@ Often it is useful to know how much time has passed since the last frame. Use @b
 
 ~~~~~~~~~~~~~{.cpp}
 float elapsedTime = GetTime().GetFrameDelta();
-B3D_LOG(Info, Generic, "Last frame was {0} seconds ago.", elapsedTime);
+B3D_LOG(Info, LogGeneric, "Last frame was {0} seconds ago.", elapsedTime);
 ~~~~~~~~~~~~~
 
 > **Note:** This is the real-time frame delta, unaffected by scene time scale. For gameplay that should respect time scaling and pausing, use scene time instead (see below).
@@ -63,7 +63,7 @@ Sometimes, often for debugging purposes, it is useful to know the index of the c
 
 ~~~~~~~~~~~~~{.cpp}
 u64 frameIdx = GetTime().GetCurrentFrameIndex();
-B3D_LOG(Info, Generic, "This is frame #{0}", frameIdx);
+B3D_LOG(Info, LogGeneric, "This is frame #{0}", frameIdx);
 ~~~~~~~~~~~~~
 
 ## Date and time strings
@@ -214,7 +214,7 @@ u64 microseconds = timer.GetMicroseconds();
 u64 milliseconds = timer.GetMilliseconds();
 
 float secondsElapsed = (float)(microseconds * Time::kMicrosecToSec);
-B3D_LOG(Info, Generic, "Operation took {0} seconds.", secondsElapsed);
+B3D_LOG(Info, LogGeneric, "Operation took {0} seconds.", secondsElapsed);
 ~~~~~~~~~~~~~
 
 Timer starts counting as soon as it's constructed. You can use:
@@ -238,5 +238,5 @@ PerformTask2();
 
 u64 task2Time = timer.GetMicroseconds();
 
-B3D_LOG(Info, Generic, "Task 1: {0}μs, Task 2: {1}μs", task1Time, task2Time);
+B3D_LOG(Info, LogGeneric, "Task 1: {0}μs, Task 2: {1}μs", task1Time, task2Time);
 ~~~~~~~~~~~~~

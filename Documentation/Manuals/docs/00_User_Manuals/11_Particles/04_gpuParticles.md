@@ -39,8 +39,8 @@ Equivalent to the **ParticleColor** evolver, modifies the particle color over it
 // Transition particle colors from white to black during their lifetime
 gpuSimulationSettings.ColorOverLifetime = ColorGradient(
 {
-    ColorGradientKey(Color::White, 0.0f),
-    ColorGradientKey(Color::Black, 1.0f)
+    ColorGradientKey(Color::kWhite, 0.0f),
+    ColorGradientKey(Color::kBlack, 1.0f)
 });
 ~~~~~~~~~~~~~
 

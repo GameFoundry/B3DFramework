@@ -217,3 +217,83 @@ if (bounds.Contains(point))
     // Point is lit by this light
 }
 ~~~~~~~~~~~~~
+
+# ECS fragments
+
+The **Light** component stores its data internally as ECS fragments, enabling the renderer to batch-process all lights in the scene efficiently.
+
+## Data fragment
+
+The primary fragment is @b3d::ecs::Light, which stores all the light's visual properties:
+ - **Type** - Light type (directional, radial, or spot)
+ - **CastsShadows** - Whether the light casts shadows
+ - **LightColor** - Color emitted by the light
+ - **AttRadius** - Attenuation radius (range of influence)
+ - **SourceRadius** - Radius of the light source for area lights
+ - **Intensity** - Power of the light source
+ - **SpotAngle** - Total angle covered by a spot light
+ - **SpotFalloffAngle** - Angle at which spot light falloff begins
+ - **AutoAttenuation** - Whether attenuation radius is computed automatically
+ - **Bounds** - World-space bounding sphere of the light's influence
+ - **ShadowBias** - Shadow rendering offset to reduce artifacts
+
+When you call setter methods like @b3d::Light::SetColor or @b3d::Light::SetIntensity, the component modifies this fragment and marks the entity as dirty for synchronization with the render thread.
+
+## ID fragment
+
+Each light also has an @b3d::ecs::LightId fragment that stores a persistent renderer ID used by the @b3d::RendererObjectStorage system for mapping to the packed render-thread representation.
+
+## Dirty tags
+
+The renderer uses two ECS tag types to track which lights need synchronization:
+ - `ecs::LightDirty` - Added when any light property changes. Triggers a full sync.
+ - `ecs::LightTransformDirty` - Added when only the transform changes.
+
+## Using raw ECS fragments
+
+You can bypass the **Light** component and create `ecs::Light` fragments directly for maximum performance. You must manage the renderer ID, world transform, and dirty tags manually.
+
+~~~~~~~~~~~~~{.cpp}
+const SPtr<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
+ecs::Registry& registry = scene->GetECSRegistry();
+const SPtr<RendererScene>& rendererScene = scene->GetRendererScene();
+
+// Create an entity with the light data fragment
+ecs::Entity entity = registry.CreateEntity();
+ecs::Light& fragment = registry.AddComponent<ecs::Light>(entity);
+fragment.Type = LightType::Radial;
+fragment.LightColor = Color::kWhite;
+fragment.Intensity = 100.0f;
+fragment.AttRadius = 10.0f;
+
+// Add a world transform — the renderer reads this to position the light
+registry.AddComponent<ecs::WorldTransform>(entity, ecs::WorldTransform(myTransform));
+
+// Allocate a persistent renderer ID
+rendererScene->AllocateLightId(registry, entity);
+
+// Mark dirty for initial sync
+registry.AddTag<ecs::LightDirty>(entity);
+~~~~~~~~~~~~~
+
+When modifying the fragment, add the appropriate dirty tag:
+
+~~~~~~~~~~~~~{.cpp}
+ecs::Light& fragment = registry.GetComponents<ecs::Light>(entity);
+fragment.Intensity = 200.0f;
+registry.AddTag<ecs::LightDirty>(entity);
+
+// For transform-only changes
+registry.GetComponents<ecs::WorldTransform>(entity) = ecs::WorldTransform(newTransform);
+registry.AddTag<ecs::LightTransformDirty>(entity);
+~~~~~~~~~~~~~
+
+When destroying the entity, deallocate the renderer ID first:
+
+~~~~~~~~~~~~~{.cpp}
+rendererScene->DeallocateLightId(registry, entity);
+registry.RemoveComponents<ecs::LightDirty>(entity);
+registry.RemoveComponents<ecs::LightTransformDirty>(entity);
+registry.RemoveComponents<ecs::Light>(entity);
+registry.EraseEntity(entity);
+~~~~~~~~~~~~~

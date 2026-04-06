@@ -20,7 +20,7 @@ Vector3 position(Vector3::kZero);
 auto handleButtonDown = [&](const ButtonEvent& event)
 {
 	// If user presses space, "jump"
-	if (event.ButtonCode == BC_SPACE)
+	if (event.ButtonCode == ButtonCode::Space)
 		position.y += 5.0f;
 };
 

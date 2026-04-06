@@ -36,7 +36,7 @@ Once the GPU program has been created it is not guaranteed to be usable. The com
 
 ~~~~~~~~~~~~~{.cpp}
 if(!myProgram->IsCompiled())
-	B3D_LOG(Error, Uncategorized, "GPU program compilation failed with error: {0}", myProgram->GetCompileErrorMessage());
+	B3D_LOG(Error, LogUncategorized, "GPU program compilation failed with error: {0}", myProgram->GetCompileErrorMessage());
 ~~~~~~~~~~~~~
 
 Be aware that shader compilation happens on the render thread. Therefore if calling these methods on the simulation thread GPU program, you must first ensure the GPU program's render proxy is initialized by calling @b3d::CoreObject::BlockUntilRenderProxyInitialized.
@@ -46,7 +46,7 @@ Be aware that shader compilation happens on the render thread. Therefore if call
 myProgram->BlockUntilRenderProxyInitialized();
 
 if(!myProgram->IsCompiled())
-	B3D_LOG(Error, Uncategorized, "GPU program compilation failed with error: {0}", myProgram->GetCompileErrorMessage());
+	B3D_LOG(Error, LogUncategorized, "GPU program compilation failed with error: {0}", myProgram->GetCompileErrorMessage());
 ~~~~~~~~~~~~~
 
 # Using GPU programs for rendering

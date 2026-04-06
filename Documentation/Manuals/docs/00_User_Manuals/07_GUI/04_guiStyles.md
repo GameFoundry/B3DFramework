@@ -13,7 +13,7 @@ HSceneObject guiSceneObject = SceneObject::Create("GUI");
 HGUIWidget guiWidget = guiSceneObject->AddComponent<GUIWidget>(camera);
 
 // Assign the default style sheet
-guiWidget->SetStyleSheetCascade(GetBuiltinResources().GetDefaultGUIStyleSheet());
+guiWidget->SetStyleSheetCascade(GetBuiltinResources().GetDefaultGUIStyleSheetCascade());
 ~~~~~~~~~~~~~
 
 Style sheets use standard CSS syntax with selectors, properties, and values. Here is an example of a simple button style:
@@ -65,11 +65,11 @@ button.DangerButton
 }
 ~~~~~~~~~~~~~
 
-Assign a class to a GUI element by calling @b3d::GUIElement::SetElementClass:
+Assign a class to a GUI element by calling @b3d::GUIRenderable::SetStyleSheetClass:
 
 ~~~~~~~~~~~~~{.cpp}
 GUIButton* primaryButton = GUIButton::Create(HString("Save"));
-primaryButton->SetElementClass("PrimaryButton");
+primaryButton->SetStyleSheetClass("PrimaryButton");
 ~~~~~~~~~~~~~
 
 ## ID selectors

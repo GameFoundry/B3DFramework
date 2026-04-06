@@ -10,9 +10,9 @@ Stack allocator allows you to allocate memory quickly and with zero fragmentatio
 Use @b3d::B3DStackAllocate / @b3d::B3DStackFree or @b3d::B3DStackNew / @b3d::B3DStackDelete to allocate/free memory using the stack allocator.
 
 ~~~~~~~~~~~~~{.cpp}
-UINT8* buffer = B3DStackAllocate(1024);
+u8* buffer = B3DStackAllocate(1024);
 ... do something with buffer ...
-UINT8* buffer2 = B3DStackAllocate(512);
+u8* buffer2 = B3DStackAllocate(512);
 ... do something with buffer2 ...
 B3DStackFree(buffer2); // Must free buffer2 first!
 B3DStackFree(buffer);
@@ -28,9 +28,9 @@ Once you have started a frame use @b3d::B3DFrameAllocate / @b3d::B3DFrameFree or
 ~~~~~~~~~~~~~{.cpp}
 // Mark a new frame
 B3DMarkAllocatorFrame();
-UINT8* buffer = B3DFrameAllocate(1024);
+u8* buffer = B3DFrameAllocate(1024);
 ... do something with buffer ...
-UINT8* buffer2 = B3DFrameAllocate(512);
+u8* buffer2 = B3DFrameAllocate(512);
 ... do something with buffer2 ...
 B3DFrameFree(buffer); // Only does some checks in debug mode, doesn't actually free anything
 B3DFrameFree(buffer2); // Only does some checks in debug mode, doesn't actually free anything
@@ -39,20 +39,20 @@ B3DClearAllocatorFrame(); // Frees memory for both buffers
 
 ## Local frame allocators
 
-You can also create your own frame allocators by constructing a @b3d::FrameAlloc object and calling memory management methods on it directly. While the global frame allocator methods are mostly useful for temporary allocations within a single method, creating your own frame allocator allows you to share frame allocated memory between different objects and persist it for a longer period of time.
+You can also create your own frame allocators by constructing a @b3d::FrameAllocator object and calling memory management methods on it directly. While the global frame allocator methods are mostly useful for temporary allocations within a single method, creating your own frame allocator allows you to share frame allocated memory between different objects and persist it for a longer period of time.
 
 For example if you are running some complex algorithm involving multiple classes you might create a frame allocator to be used throughout the algorithm, and then just free all the memory at once when the algorithm finishes.
 
 ~~~~~~~~~~~~~{.cpp}
-FrameAlloc alloc;
-alloc.markFrame();
-UINT8* buffer = alloc.alloc(1024);
+FrameAllocator alloc;
+alloc.MarkFrame();
+u8* buffer = alloc.Allocate(1024);
 ... do something with buffer ...
-UINT8* buffer2 = alloc.alloc(512);
+u8* buffer2 = alloc.Allocate(512);
 ... do something with buffer2 ...
-alloc.dealloc(buffer);
-alloc.dealloc(buffer2);
-alloc.clear();
+alloc.Free(buffer);
+alloc.Free(buffer2);
+alloc.Clear();
 ~~~~~~~~~~~~~
 
 ## Container allocators
@@ -63,7 +63,7 @@ You may also use frame allocator to allocate containers like **String**, **Vecto
 // Mark a new frame
 B3DMarkAllocatorFrame();
 {
-	FrameVector<UINT8> vector;
+	FrameVector<u8> vector;
 	... populate the vector ... // No dynamic memory allocation cost as with a normal Vector
 } // Block making sure the vector is deallocated before calling B3DClearAllocatorFrame
 B3DClearAllocatorFrame(); // Frees memory for the vector
@@ -85,12 +85,12 @@ struct MyData
 PoolAlloc<sizeof(MyData), 128> allocator;
 
 // Allocate a single object from the pool
-MyData* obj = (MyData*)allocator.alloc();
+MyData* obj = (MyData*)allocator.Allocate();
 
 // ... do something with the data ...
 
 // When done return the memory back to the pool
-allocator.free(obj);
+allocator.Free(obj);
 ~~~~~~~~~~~~~
 
 # Static allocator
@@ -102,17 +102,17 @@ The downside of this allocator is that the pre-allocated buffer will be using up
 class MyObj
 {
 	StaticAlloc<512> mAlloc; // Ensures that every instance of this object has 512 bytes pre-allocated
-	UINT8* mData = nullptr;
+	u8* mData = nullptr;
 	
 	MyObj(int size)
 	{
 		// As long as size doesn't go over 512 bytes, no dynamic allocations will be made
-		mData = mAlloc.alloc(size);
+		mData = mAlloc.Allocate(size);
 	}
 	
 	~MyObj()
 	{
-		mAlloc.free(mData);
+		mAlloc.Free(mData);
 	}
 }
 ~~~~~~~~~~~~~

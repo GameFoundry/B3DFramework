@@ -128,6 +128,40 @@ By default, different GUI element types might have either a fixed or a flexible 
 
 ![Layout with flexibly sized elements](../../Images/layoutFlexible.png)
 
+## Expanding size
+
+In addition to flexible sizing, elements can be set to **expanding** mode. An expanding element will attempt to fill all available space in the layout, rather than using its optimal size. This is useful when you want an element to take up as much room as possible.
+
+Set expanding size by using @b3d::GUIOption::ExpandingWidth and @b3d::GUIOption::ExpandingHeight when creating the element:
+
+~~~~~~~~~~~~~{.cpp}
+GUIPanel* mainPanel = guiWidget->GetPanel();
+GUILayoutX* layout = mainPanel->AddNewElement<GUILayoutX>();
+
+// This button will expand to fill all available horizontal space
+GUIButton* expandingButton = layout->AddNewElement<GUIButton>(
+	GUIContent(HString("I expand!")),
+	GUIOptions(GUIOption::ExpandingWidth())
+);
+
+// This button stays at its optimal size
+GUIButton* normalButton = layout->AddNewElement<GUIButton>(
+	GUIContent(HString("Normal"))
+);
+~~~~~~~~~~~~~
+
+You can also provide optional minimum and maximum constraints:
+
+~~~~~~~~~~~~~{.cpp}
+// Expand to fill available space, but not less than 100 or more than 500 pixels
+GUIButton* constrainedButton = layout->AddNewElement<GUIButton>(
+	GUIContent(HString("Constrained expand")),
+	GUIOptions(GUIOption::ExpandingWidth(100, 500))
+);
+~~~~~~~~~~~~~
+
+The difference between flexible and expanding is that a flexible element will use its optimal size when there is enough space, while an expanding element will always try to grow to the maximum available space.
+
 ## Spaces
 
 When a GUI element is part of a vertical or horizontal layout, you can no longer control its position manually. Calling **GUIElement::SetPosition()** will have no effect.

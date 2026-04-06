@@ -51,12 +51,12 @@ An external object can register itself with an event by calling @b3d::Event<RetT
 // Define a couple of methods that trigger when events are triggered
 auto playerJumpedCallback = [&]()
 {
-	B3D_LOG(Info, General, "Player jumped!");
+	B3D_LOG(Info, LogGeneric, "Player jumped!");
 };
 
 auto playerCollectedCoinsCallback = [&](u32 numberOfCoins)
 {
-	B3D_LOG(Info, General, "Player collected: {0} coins!", numberOfCoins);
+	B3D_LOG(Info, LogGeneric, "Player collected: {0} coins!", numberOfCoins);
 };
 
 MyPlayerController playerController;
@@ -92,49 +92,14 @@ class MyEventSubscriber
 };
 ~~~~~~~~~~~~~
 
-When setting up event callbacks we must therefore provide the *this* pointer manually. However since the event owner has no idea which class will subscribe to its event, it cannot provide the *this* pointer to the object of that class. By using **std::bind** the event subscriber can instead permanently bind its *this* pointer when subscribing to an event.
-
-If you are unfamiliar with *std::bind*, it basically transforms a function signature by permanently *binding* one of its parameters. Here's a simple example:
-~~~~~~~~~~~~~{.cpp}
-auto myFunction = [&](u32 parameter)
-{ };
-
-// Permanently binds 5 as the function parameter
-auto myFunctionWithoutParameters = std::bind(myFunction, 5);
-
-// Call the function with parameter 5
-myFunctionWithoutParameters();
-~~~~~~~~~~~~~
-
-Using this same logic, we can permanently bind the *this* pointer when subscribing to an event:
-~~~~~~~~~~~~~{.cpp}
-class MyEventSubscriber
-{
-	void PlayerJumpedCallback() // Has a hidden "this" pointer parameter
-	{
-		B3D_LOG(Info, General, "Player jumped!");
-	}
-
-	// Assuming the same player controller class we defined earlier
-	void SubscribeToEvents(MyPlayerController& playerController)
-	{
-		// Bind the "this" pointer
-		auto callback = std::bind(&MyEventSubscriber::PlayerJumpedCallback, this);
-
-		// Register the callback without the event needing to know about "this" pointer parameter
-		playerController.OnPlayerJumped.Connect(callback);
-	}
-};
-~~~~~~~~~~~~~
-
-Alternatively, you can wrap the class function call in a lambda function while capturing *this*.
+When setting up event callbacks we must therefore provide the *this* pointer manually. However since the event owner has no idea which class will subscribe to its event, it cannot provide the *this* pointer to the object of that class. The recommended way to handle this is to wrap the class method call in a lambda function while capturing *this*.
 ~~~~~~~~~~~~~{.cpp}
 // Alternative version of the above example, using lambda instead of std::bind
 class MyEventSubscriber
 {
 	void PlayerJumpedCallback() // Has a hidden "this" pointer parameter
 	{
-		B3D_LOG(Info, General, "Player jumped!");
+		B3D_LOG(Info, LogGeneric, "Player jumped!");
 	}
 
 	void SubscribeToEvents(MyPlayerController& playerController)

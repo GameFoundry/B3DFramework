@@ -5,17 +5,13 @@ title: Creating a renderer plugin
 If your project requires a very specific form of rendering you might decide you want to write your own renderer from scratch. In the framework renderers are built as plugins, and this manual will show you how to create one. This manual can also be useful if trying to understand how the renderer works, even if you are not implementing your own.
 
 # Components and the renderer
-We've already shown how to render scene objects. You create a **SceneObject** on which you then attach components such as **CCamera**, **CRenderable** or **CLight**. These components will then register themselves with the renderer, when takes care of everything else rendering-wise.
+We've already shown how to render scene objects. You create a **SceneObject** on which you then attach components such as **Camera**, **Renderable** or **Light**. These components will then register themselves with the renderer, which takes care of everything else rendering-wise.
 
-Renderer isn't actually aware of scene objects and components, and instead operates on lower level objects owned by those components. For example **CCamera** component internally owns a @b3d::Camera object, and **CRenderable** component internally owns a @b3d::Renderable object. As a general rule the non-component versions are named the same, without the "C" prefix. Their interface is very similar to their component versions.
-
-All such lower level objects used by the renderer are also **CoreObject**%s, meaning they have both a simulation and a core thread counterparts. 
- 
 # Renderer plugin interface
-To create your own renderer you must implement the @b3d::render::Renderer interface. Renderer executes on the core thread, although there are a few simulation thread methods we'll note specifically.
+To create your own renderer you must implement the @b3d::render::Renderer interface. Renderer executes on the render thread, although there are a few simulation thread methods we'll note specifically.
 
-## Scene state notifications
-Majority of the renderer interface consists of methods that notify the renderer when certain objects are added, updated or removed from the scene. The types of objects that the renderer cares about are:
+## Scene state management
+The renderer receives scene state through the @b3d::render::RendererScene object. The RendererScene contains data about various types of objects in the scene, such as:
  - @b3d::Camera
  - @b3d::Renderable
  - @b3d::Light
@@ -24,53 +20,42 @@ Majority of the renderer interface consists of methods that notify the renderer 
  - @b3d::LightProbeVolume
  - @b3d::ParticleSystem
  - @b3d::Decal
-  
-Whenever such objects are created, destroyed or some property on them is updated, one of the following methods is called:
- - @b3d::render::Renderer::notifyCameraAdded - Called when a new **Camera** is created (e.g. when a **CCamera** component is added to the scene).
- - @b3d::render::Renderer::notifyCameraUpdated - Called when **Camera** position, rotation or scale changes.
- - @b3d::render::Renderer::notifyCameraRemoved - Called when a **Camera** is destroyed.
- - @b3d::render::Renderer::notifyRenderableAdded - Called when a new **Renderable** is created (e.g. when a **CRenderable** component is added to the scene).
- - @b3d::render::Renderer::notifyRenderableUpdated - Called when **Renderable** position, rotation or scale changes.
- - @b3d::render::Renderer::notifyRenderableRemoved - Called when a **Renderable** is destroyed.
- - @b3d::render::Renderer::notifyLightAdded - Called when a new **Light** is created (e.g. when a **CLight** component is added to the scene).
- - @b3d::render::Renderer::notifyLightUpdated - Called when **Light** position, rotation or scale changes.
- - @b3d::render::Renderer::notifyLightRemoved - Called when a **Light** is destroyed.
- - @b3d::render::Renderer::notifyReflectionProbeAdded - Called when a new **ReflectionProbe** is created (e.g. when a **CReflectionProbe** component is added to the scene).
- - @b3d::render::Renderer::notifyReflectionProbeUpdated - Called when **ReflectionProbe** position, rotation or scale changes.
- - @b3d::render::Renderer::notifyReflectionProbeRemoved - Called when a **ReflectionProbe** is destroyed.
- - @b3d::render::Renderer::notifySkyboxAdded - Called when a new **Skybox** is created (e.g. when a **CSkybox** component is added to the scene).
- - @b3d::render::Renderer::notifySkyboxRemoved - Called when a **Skybox** is destroyed. 
- - @b3d::render::Renderer::notifyLightProbeVolumeAdded - Called when a new **LightProbeVolume** is created (e.g. when a **CLightProbeVolume** component is added to the scene).
- - @b3d::render::Renderer::notifyLightProbeVolumeUpdated - Called when probes are added or modified in a **LightProbeVolume**. 
- - @b3d::render::Renderer::notifyLightProbeVolumeRemoved - Called when a **LightProbeVolume** is destroyed.
- - @b3d::render::Renderer::notifyParticleSystemAdded - Called when a new **ParticleSystem** is created (e.g. when a **CParticleSystem** component is added to the scene).
- - @b3d::render::Renderer::notifyParticleSystemUpdated - Called when particle system transform changes or when its settings are modified. 
- - @b3d::render::Renderer::notifyParticleSystemRemoved - Called when a **ParticleSystem** is destroyed.
- - @b3d::render::Renderer::notifyDecalAdded - Called when a new **Decal** is created (e.g. when a **CDecal** component is added to the scene).
- - @b3d::render::Renderer::notifyDecalUpdated - Called when decal position, rotation or scale changes.
- - @b3d::render::Renderer::notifyDecalRemoved - Called when a **Decal** is destroyed.
- 
-Your renderer implementation can choose to implement some or all of those methods. By implementing these methods your renderer implementation is expected to keep track of the scene state, and then use that scene state for rendering. For example most renderers will at least need to keep track of all active cameras and renderable objects.
- 
-Note that *Added/*Removed methods don't only get called on object creation/destruction. If some major property of the object changes (e.g. a mesh or a material on a **Renderable**), the system will call **render::Renderer::notifyRenderableRemoved()** followed by a call to **render::Renderer::notifyRenderableAdded()**.
+
+These objects use two different mechanisms for synchronizing data to the renderer:
+
+### RendererObjectStorage
+**Renderable**, **Light**, **Decal**, **ReflectionProbe** and **ParticleSystem** objects use @b3d::RendererObjectStorage. This system maintains packed data arrays on the render thread and synchronizes changes from the main thread in batches each frame, for best performance. Each object allocates a persistent @b3d::RendererId on the main thread, which is resolved to a packed array index on the render thread. Synchronization happens via paired `SyncRead()` (main thread) and `SyncWrite()` (render thread) calls. These object storages can be accessed through the **RendererScene**.
+
+### Direct registration
+**Camera**, **Skybox** and **LightProbeVolume** use a simpler registration approach where the renderer is notified directly when objects are added, updated or removed:
+ - @b3d::render::RendererScene::RegisterCamera - Registers a new **Camera** in the scene.
+ - @b3d::render::RendererScene::UpdateCamera - Updates information about a previously registered **Camera**.
+ - @b3d::render::RendererScene::UnregisterCamera - Removes a **Camera** from the scene.
+ - @b3d::render::RendererScene::RegisterLightProbeVolume - Registers a new **LightProbeVolume** in the scene.
+ - @b3d::render::RendererScene::UpdateLightProbeVolume - Updates information about a previously registered **LightProbeVolume**.
+ - @b3d::render::RendererScene::UnregisterLightProbeVolume - Removes a **LightProbeVolume** from the scene.
+ - @b3d::render::RendererScene::RegisterSkybox - Registers a new **Skybox** in the scene.
+ - @b3d::render::RendererScene::UnregisterSkybox - Removes a **Skybox** from the scene.
+
+By implementing these methods your renderer implementation is expected to keep track of the scene state, and then use that scene state for rendering. For example most renderers will at least need to keep track of all active cameras and renderable objects.
  
 ## Rendering
-Aside from keeping track of the state of the scene your renderer must also implement @b3d::render::Renderer::renderAll. This method will be called every frame and it is the starting point for all rendering. Note that this method gets called from the simulation thread, and you are expected to manually launch rendering on the core thread.
+Aside from keeping track of the state of the scene your renderer must also implement @b3d::render::Renderer::RenderAll. This method will be called every frame and it is the starting point for all rendering. Note that this method gets called from the simulation thread, and you are expected to manually launch rendering on the render thread.
 
 ~~~~~~~~~~~~~{.cpp}
 class MyRenderer : public Renderer
 {
 	// ... other renderer methods
 	
-	void renderAll() 
+	void RenderAll() 
 	{
 		// ... do any sim thread operations if required ...
 		
 		// Queue rendering
-		GetCoreThread().queueCommand(std::bind(&MyRenderer::renderAllCore, this));
+		GetRenderThread().PostCommand([this]() { RenderAllCore(); });
 	}
 	
-	void renderAllCore()
+	void RenderAllCore()
 	{
 		// ... iterate over all cameras and renderables, call RenderAPI and other low-level rendering methods to actually render something ...
 	}
@@ -80,12 +65,12 @@ class MyRenderer : public Renderer
 The implementation of your rendering method should iterate over all renderable objects, cameras, lights or other provided objects (depending on what kind of rendering you wish to do). The rendering happens through the low-level rendering API as described in earlier manuals. At the end of rendering, every render target in every active camera should be filled with an image of the rendered scene. During rendering you should consider mesh and material set on renderable objects, and optionally apply lighting, special or post-processing effects as needed. 
 
 ## Name
-You are required to give your renderer a name by overriding @b3d::render::Renderer::getName. 
+You are required to give your renderer a name by overriding @b3d::render::Renderer::GetName. 
 
 ~~~~~~~~~~~~~{.cpp}
 class MyRenderer : public Renderer
 {
-	const StringID& MyRenderer::getName() const
+	const StringID& GetName() const
 	{
 		static StringID name = "MyRenderer";
 		return name;
@@ -100,26 +85,26 @@ At this point your renderer is ready for use, but there is still various optiona
 ## Extensions
 We talked about how to implement renderer extensions in the previous chapter. But if you are implementing your own renderer you need to process those extensions during the rendering process. You may also choose to ignore extensions and not render them at all.
 
-All registered extensions are part of the **Renderer::mCallbacks** field. You can choose to iterate over them and execute them as needed.
+All registered extensions are part of the **Renderer::mRendererExtensions** field. You can choose to iterate over them and execute them as needed.
 
 ~~~~~~~~~~~~~{.cpp}
 class MyRenderer : public Renderer
 {
 	// ... other renderer methods
 
-	// Performs rendering for a single camera, on the core thread
-	void render(const SPtr<Camera>& camera)
+	// Performs rendering for a single camera, on the render thread
+	void Render(const SPtr<Camera>& camera)
 	{
 		// Render pre-base pass extensions
-		auto iter = mCallbacks.begin();
-		while (iter != mCallbacks.end())
+		auto iter = mRendererExtensions.begin();
+		while (iter != mRendererExtensions.end())
 		{
 			RendererExtension* extension = *iter;
-			if (extension->getLocation() != RenderLocation::PreBasePass)
+			if (extension->GetLocation() != RenderLocation::PreBasePass)
 				break;
 
-			if (extension->check(*camera))
-				extension->render(*camera);
+			if (extension->Check(*camera))
+				extension->Render(*camera, viewContext);
 
 			++iter;
 		}
@@ -134,34 +119,34 @@ While what we have shown so far is enough to create a custom renderer, there are
 
 ## RendererUtility
 @b3d::render::RendererUtility provides some commonly required functionality for rendering. For the most part it provides methods that are wrappers around various **RenderAPI** methods described previously. It can be accessed globally through @b3d::render::GetRendererUtility() and the relevant methods are:
- - @b3d::render::RendererUtility::setPass - Binds a pass from a specific **Material** for rendering. Any further draw calls will be rendered using this pass.
- - @b3d::render::RendererUtility::setPassParams - Binds parameters (textures, samplers, etc.) from a **Material**, in the form of **GpuParamsSet**. Any further draw calls will be rendered using these parameters.
- - @b3d::render::RendererUtility::draw - Draws a specific sub-mesh of the provided **render::Mesh**, using the currently bound pass.
- - @b3d::render::RendererUtility::blit - Copies the contents of the provided texture into the currently bound render target.
- - @b3d::render::RendererUtility::drawScreenQuad - Draws a quad covering the screen using the currently bound pass.
+ - @b3d::render::RendererUtility::SetPass - Binds a pass from a specific **Material** for rendering. Any further draw calls will be rendered using this pass.
+ - @b3d::render::RendererUtility::SetPassParams - Binds parameters (textures, samplers, etc.) from a **Material**, in the form of **MaterialParameterAdapter**. Any further draw calls will be rendered using these parameters.
+ - @b3d::render::RendererUtility::Draw - Draws a specific sub-mesh of the provided **render::Mesh**, using the currently bound pass.
+ - @b3d::render::RendererUtility::Blit - Copies the contents of the provided texture into the currently bound render target.
+ - @b3d::render::RendererUtility::DrawScreenQuad - Draws a quad covering the screen using the currently bound pass.
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<Material> material = ...;
 SPtr<Mesh> mesh = ...;
-SPtr<GpuParamsSet> paramsSet = material->createParamsSet();
+SPtr<MaterialParameterAdapter> paramsSet = material->CreateParameterAdapter();
 
-GetRendererUtility().setPass(material);
+GetRendererUtility().SetPass(cmdBuffer, material);
 ... set material parameters as normal ...
-GetRendererUtility().setPassParams(paramsSet);
-GetRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
+GetRendererUtility().SetPassParams(cmdBuffer, paramsSet);
+GetRendererUtility().Draw(cmdBuffer, mesh, mesh->GetProperties().GetSubMesh(0));
 ~~~~~~~~~~~~~
 
 ## Render queue
 @b3d::render::RenderQueue allows you to sort and group scene objects for rendering. For example transparent objects might need to be sorted back to front based on their distance from the camera. It is also often useful to group objects if they share the same material, to reduce state switching which can improve performance.
 
-Use @b3d::render::RenderQueue::add to add new objects to the queue. It expects a @b3d::render::RenderableElement which you can create from information provided by **Renderable** when **render::Renderer::notifyRenderableAdded()** is called. Normally you wish to have a single **render::RenderableElement** for each sub-mesh present in the renderable object's mesh.
+Use @b3d::render::RenderQueue::Add to add new objects to the queue. It expects a @b3d::render::DrawCommand which you can create from information provided by the object storages in **RendererScene**. Normally you wish to have a single **render::DrawCommand** for each sub-mesh present in the renderable object's mesh.
 
-Once all elements are in the queue, you can call @b3d::render::RenderQueue::setStateReduction to select how to sort the objects:
+Once all elements are in the queue, you can call @b3d::render::RenderQueue::SetStateReduction to select how to sort the objects:
  - @b3d::render::StateReduction::None - Elements will be sorted by distance but no state reduction by material will occurr.
  - @b3d::render::StateReduction::Material - Elements will be sorted by material first, then by distance.
  - @b3d::render::StateReduction::Distance - Elements will be sorted by distance first, then by material.
  
-Once the state reduction mode is set call @b3d::render::RenderQueue::sort, and then @b3d::render::RenderQueue::getSortedElements to retrieve a sorted list of render elements. The returned list contains a list of @b3d::render::RenderQueueElement which lets you know exactly which render element to render using which pass, and also tells you when a new pass needs to be applied.
+Once the state reduction mode is set call @b3d::render::RenderQueue::Sort, and then @b3d::render::RenderQueue::GetSortedEntries to retrieve a sorted list of render elements. The returned list contains a list of @b3d::render::RenderQueueEntry which lets you know exactly which render element to render using which pass, and also tells you when a new pass needs to be applied.
 
 For example:
 ~~~~~~~~~~~~~{.cpp}
@@ -171,11 +156,11 @@ SPtr<RenderQueue> queue = B3DMakeShared<RenderQueue>(StateReduction::Distance);
 for(auto& element : elements)
 {
 	float distance = ...; // Calculate distance from element to camera, for sorting
-	queue->add(element, distance);
+	queue->Add(element, distance);
 }
 
-queue->sort();
-const Vector<RenderQueueElement>& sortedElements = queue->getSortedElements();
+queue->Sort();
+const Vector<RenderQueueElement>& sortedElements = queue->GetSortedEntries();
 ... render sorted elements using the low level rendering API ...
 ~~~~~~~~~~~~~
 
@@ -196,10 +181,10 @@ class DownsampleMat : public RendererMaterial<DownsampleMat>
 Once defined the renderer material can be accessed through the static @b3d::render::RendererMaterial::get<T>() method.
 
 ~~~~~~~~~~~~~{.cpp}
-DownsampleMat* renderMat = DownsampleMat::get():
+DownsampleMat* renderMat = DownsampleMat::Get();
 ~~~~~~~~~~~~~
 
-Once retrieved the object will contain the instance of the shader in the path you provided. Internally the material will provide you with a reference to either a graphics or compute pipeline state as *mGfxPipeline* and *mComputePipeline*, depending on the type of shader that was loaded. It will also provide you with **GpuParams** in the *mParams* field.
+Once retrieved the object will contain the instance of the shader in the path you provided. Internally the material will provide you with a reference to either a graphics or compute pipeline state as *mGfxPipeline* and *mComputePipeline*, depending on the type of shader that was loaded. It will also provide you with **GpuParameterSet** in the *mParams* field.
 
 When the material is first created you will likely want to add a constructor in which you look up any necessary parameters the material might require, so they can be set more easily when rendering.
 ~~~~~~~~~~~~~{.cpp}
@@ -211,7 +196,7 @@ public:
 	DownsampleMat()
 	{
 		// Retrieve material parameters, and optionally perform other set-up
-		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
 	GpuParamTexture mInputTexture;
@@ -226,32 +211,32 @@ class DownsampleMat : public RendererMaterial<DownsampleMat>
 	// ... other DownsampleMat code ...
 	
 	// Set up parameters and render a full screen quad using the material
-	void execute(const SPtr<Texture>& input)
+	void execute(GpuCommandBuffer& cmdBuffer, const SPtr<Texture>& input)
 	{
 		// Assign parameters before rendering
-		mInputTexture.set(input);
+		mInputTexture.Set(input);
 		
-		bind();
-		GetRendererUtility().drawScreenQuad();
+		Bind(cmdBuffer);
+		GetRendererUtility().DrawScreenQuad(cmdBuffer);
 	}
 
 	// ... other DownsampleMat code ...
 };
 ~~~~~~~~~~~~~
 
-Note that a helper method @b3d::render::RendererMaterial::bind() is provided, which will bind both the GPU pipeline and parameters.
+Note that a helper method @b3d::render::RendererMaterial::Bind() is provided, which will bind both the GPU pipeline and parameters.
 
 ~~~~~~~~~~~~~{.cpp}
 // External code wanting to run the material
 SPtr<Texture> inputTex = ...;
 
-DownsampleMat* renderMat = DownsampleMat::get():
-renderMat->execute(inputTex);
+DownsampleMat* renderMat = DownsampleMat::Get();
+renderMat->Execute(inputTex);
 ~~~~~~~~~~~~~
 
 ### Variations
 
-If your BSL file contains shader variations, then you can call @b3d::render::RendererMaterial::get<T>(const ShaderVariation&) to retrieve a specific variation. Variations were explained in more detail in the BSL manual.
+If your BSL file contains shader variations, then you can call @b3d::render::RendererMaterial::Get<T>(const ShaderVariationParameters&) to retrieve a specific variation. Variations were explained in more detail in the BSL manual.
 
 ~~~~~~~~~~~~~{.cpp}
 // External code wanting to run a specific variation of the material
@@ -262,8 +247,8 @@ ShaderVariation variation = ShaderVariation({
 	ShaderVariation::Param("HIGH_QUALITY", true)
 });
 
-DownsampleMat* renderMat = DownsampleMat::get(variation):
-renderMat->execute(inputTex);
+DownsampleMat* renderMat = DownsampleMat::Get(variation);
+renderMat->Execute(inputTex);
 ~~~~~~~~~~~~~
 
 Normally you will want to handle creation of various @b3d::ShaderVariations structures through a templated method, like so:
@@ -272,10 +257,10 @@ Normally you will want to handle creation of various @b3d::ShaderVariations stru
 class DownsampleMat : public RendererMaterial<DownsampleMat>
 {
 	template<bool highQuality>
-	static const ShaderVariation& getVariation()
+	static const ShaderVariationParameters& GetVariation()
 	{
-		static ShaderVariation variation = ShaderVariation({
-			ShaderVariation::Param("HIGH_QUALITY", highQuality)
+		static ShaderVariationParameters variation = ShaderVariationParameters({
+			ShaderVariationParameter("HIGH_QUALITY", highQuality)
 		});
 
 		return variation;
@@ -285,7 +270,7 @@ class DownsampleMat : public RendererMaterial<DownsampleMat>
 };
 ~~~~~~~~~~~~~
 
-Then you can also add a static **getVariation** method to hide these internals from the caller.
+Then you can also add a static **GetVariation** method to hide these internals from the caller.
 
 ~~~~~~~~~~~~~{.cpp}
 class DownsampleMat : public RendererMaterial<DownsampleMat>
@@ -293,12 +278,12 @@ class DownsampleMat : public RendererMaterial<DownsampleMat>
 	// ... other DownsampleMat code ...
 	
 public:
-	static DownsampleMat* getVariation(bool highQuality)
+	static DownsampleMat* GetVariation(bool highQuality)
 	{
 		if(highQuality)
-			return get(getVariation<true>());
+			return Get(GetVariation<true>());
 			
-		return get(getVariation<false>());
+		return Get(GetVariation<false>());
 	}
 };
 ~~~~~~~~~~~~~
@@ -309,26 +294,26 @@ Now the calling code can simply retrieve the variation it requires.
 // External code wanting to run the high quality version of the material
 SPtr<Texture> inputTex = ...;
 
-DownsampleMat* renderMat = DownsampleMat::getVariation(true):
-renderMat->execute(inputTex);
+DownsampleMat* renderMat = DownsampleMat::GetVariation(true);
+renderMat->Execute(inputTex);
 ~~~~~~~~~~~~~
 
 ### Defines
 
-Sometimes you wish to be able to dynamically control defines that are used to compile the shader code. This is particularily useful if you want to make sure your C++ code and shader code use the same value. To do this you need to create your material using the @RMAT_DEF_CUSTOMIZED macro, instead of **RMAT_DEF**. It has the exact same signature as **RMAT_DEF** but it provides an *_initDefines* method you must implement.
+Sometimes you wish to be able to dynamically control defines that are used to compile the shader code. This is particularily useful if you want to make sure your C++ code and shader code use the same value. To do this you need to create your material using the @RMAT_DEF_CUSTOMIZED macro, instead of **RMAT_DEF**. It has the exact same signature as **RMAT_DEF** but it provides an *InitDefinesInternal* method you must implement.
 
 The method receives a @b3d::ShaderDefines object which you can then populate with relevant values. Those values will then be used when compiling the shader.
 
 ~~~~~~~~~~~~~{.cpp}
-constxpr static UINT32 TILE_WIDTH = 8;
-constxpr static UINT32 TILE_HEIGHT = 8;
-constxpr static UINT32 PIXELS_PER_THREAD = 4;
+constexpr static u32 TILE_WIDTH = 8;
+constexpr static u32 TILE_HEIGHT = 8;
+constexpr static u32 PIXELS_PER_THREAD = 4;
 
-void IrradianceComputeSHMat::_initDefines(ShaderDefines& defines)
+void IrradianceComputeSHMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.set("TILE_WIDTH", TILE_WIDTH);
-	defines.set("TILE_HEIGHT", TILE_HEIGHT);
-	defines.set("PIXELS_PER_THREAD", PIXELS_PER_THREAD);
+	defines.Set("TILE_WIDTH", TILE_WIDTH);
+	defines.Set("TILE_HEIGHT", TILE_HEIGHT);
+	defines.Set("PIXELS_PER_THREAD", PIXELS_PER_THREAD);
 }
 ~~~~~~~~~~~~~
 
@@ -419,14 +404,14 @@ The semantics for each parameter can be accessed through the **Shader** object, 
 StringID RPS_ViewProjTfrm = "VP"; // Define semantic identifier
 
 SPtr<Material> material = ...;
-SPtr<Shader> shader = material->getShader();
-auto& dataParams = shader->getDataParams();
+SPtr<Shader> shader = material->GetShader();
+auto& dataParams = shader->GetDataParams();
 for (auto& entry : texParams)
 {
 	if (entry.second.rendererSemantic == RPS_ViewProjTfrm)
 	{
 		// Found it, assign some value to the parameter
-		mMaterial->setMat4(entry.second.name, Matrix4::IDENTITY);
+		mMaterial->SetMat4(entry.second.name, Matrix4::kIdentity);
 		break;
 	}
 }
@@ -435,26 +420,77 @@ for (auto& entry : texParams)
 ## GpuResourcePool
 Although you can create textures and buffers manually as described in the low level rendering API manual, @b3d::render::GpuResourcePool provides a simpler and more efficient way of doing it. It will keep alive any referenced textures and buffers, so that other systems may re-use them if their size/formats match. This can improve performance when using many temporary/intermediary render textures (like in post-processing) or load-store buffers.
 
-To request a render texture, first populate the @b3d::render::POOLED_RENDER_TEXTURE_DESC descriptor, by calling any of @b3d::render::POOLED_RENDER_TEXTURE_DESC::create2D, @b3d::render::POOLED_RENDER_TEXTURE_DESC::create3D or @b3d::render::POOLED_RENDER_TEXTURE_DESC::createCube.
+To request a render texture, first populate the @b3d::render::PooledRenderTextureCreateInformation descriptor, by calling any of @b3d::render::PooledRenderTextureCreateInformation::Create2D, @b3d::render::PooledRenderTextureCreateInformation::Create3D or @b3d::render::PooledRenderTextureCreateInformation::CreateCube.
 
 To request a buffer, populate the @b3d::render::POOLED_STORAGE_BUFFER_DESC descriptor by calling either @b3d::render::POOLED_STORAGE_BUFFER_DESC::createStandard or @b3d::render::POOLED_STORAGE_BUFFER_DESC::createStructured.
 
-Then call @b3d::render::GpuResourcePool::get with the provided descriptor. This will either create a new render texture/buffer, or return one from the pool. The returned object is @b3d::render::PooledRenderTexture for textures and @b3d::render::PooledStorageBuffer for buffers.
+Then call @b3d::render::GpuResourcePool::Get with the provided descriptor. This will either create a new render texture/buffer, or return one from the pool. The returned object is @b3d::render::PooledRenderTexture for textures and @b3d::render::PooledStorageBuffer for buffers.
 
-Once you are done using the texture or buffer, call @b3d::render::GpuResourcePool::release to return the object to the pool, and make it available for other systems. If you plan on using this object again, make sure to keep a reference to the **render::PooledRenderTexture** / **render::PooledStorageBuffer** object. This will prevent the pool from fully destroying the object so it may be reused.
+Once you are done using the texture or buffer, it will be automatically returned to the pool when your reference goes out of scope. If you plan on using this object again, make sure to keep a reference to the **render::PooledRenderTexture** / **render::PooledStorageBuffer** object. This will prevent the pool from fully destroying the object so it may be reused.
 
 ~~~~~~~~~~~~~{.cpp}
 // An example creating a pooled render texture
-POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8G8B8A8, 1024, 1024, TextureUsageFlag::RenderTarget);
-SPtr<PooledRenderTexture> pooledRT = GpuResourcePool::instance().get(desc);
+PooledRenderTextureCreateInformation desc = PooledRenderTextureCreateInformation::Create2D(PF_R8G8B8A8, 1024, 1024, TextureUsageFlag::RenderTarget);
+SPtr<PooledRenderTexture> pooledRT = GpuResourcePool::Instance().Get(desc);
 
-RenderAPI::instance().setRenderTarget(pooledRT->renderTexture);
+RenderAPI::instance().SetRenderTarget(pooledRT->RenderTexture);
 ... render to target ...
-GpuResourcePool::instance().release(pooledRT);
-// Keep a reference to pooledRT if we plan on re-using it, then next time just call get() using the same descriptor
+// Keep a reference to pooledRT if we plan on re-using it, then next time just call Get() using the same descriptor
+~~~~~~~~~~~~~
+
+## UniformBufferPools
+@b3d::render::UniformBufferPools is a high-level manager used by the renderer to efficiently handle per-object uniform buffer allocations. It suballocates from large **GpuBuffer** objects via @b3d::render::GpuBufferPool, and shares **GpuParameterSet** instances across objects that happen to land in the same underlying buffer. At draw time only the dynamic buffer offset changes between draws, while the parameter set binding stays the same — minimizing descriptor set switches.
+
+The pool supports different allocation types through @b3d::render::UniformBufferPools::PoolType:
+ - @b3d::render::UniformBufferPools::RenderablePool - Per-object transform data only.
+ - @b3d::render::UniformBufferPools::DecalPool - Per-object transform data plus decal-specific parameters.
+ - @b3d::render::UniformBufferPools::GpuParticlesPool - Per-object transform data plus GPU particle simulation parameters.
+
+### Configuration
+Before use, you register pool configurations via @b3d::render::UniformBufferPools::RegisterType, then call @b3d::render::UniformBufferPools::Initialize. Each @b3d::render::UniformBufferPools::PoolConfiguration specifies the pool type, number of entries per underlying buffer, the buffer configurations (size, name, flags), and a **GpuPipelineParameterSetLayout**.
+
+~~~~~~~~~~~~~{.cpp}
+UniformBufferPools::PoolConfiguration config;
+config.Type = UniformBufferPools::RenderablePool;
+config.EntriesPerBuffer = 1024;
+config.Layout = perObjectParameterSetLayout;
+config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", perObjectBufferSize, GpuBufferFlag::StoreOnCPUWithGPUAccess});
+
+uniformBufferPools.RegisterType(config);
+uniformBufferPools.Initialize(gpuDevice);
+~~~~~~~~~~~~~
+
+### Allocating and releasing
+@b3d::render::UniformBufferPools::Allocate returns an @b3d::render::UniformBufferPools::AllocationResult containing a handle, a shared **GpuParameterSet**, and the suballocations for each buffer type. When an object is removed, call @b3d::render::UniformBufferPools::Release with the handle.
+
+~~~~~~~~~~~~~{.cpp}
+// Allocate for a renderable
+auto result = uniformBufferPools.Allocate();
+renderState->PerObjectBufferAllocationHandle = result.Handle;
+renderState->PerObjectParameterSet = result.ParameterSet;
+renderState->PerObjectSuballocation = result.GetSuballocation(UniformBufferPools::PerObjectBuffer);
+
+// Later, when the object is removed:
+uniformBufferPools.Release(renderState->PerObjectBufferAllocationHandle);
+~~~~~~~~~~~~~
+
+### Updating data
+Update methods write uniform data through a transient staging buffer and issue a copy to the persistent GPU-resident suballocation:
+ - @b3d::render::UniformBufferPools::UpdatePerObjectBuffer - Writes world transform, inverse, no-scale transform, determinant sign, and layer.
+ - @b3d::render::UniformBufferPools::UpdateDecalParamBuffer - Writes world-to-decal matrix, normal, tolerance, and other decal properties.
+ - @b3d::render::UniformBufferPools::UpdateGpuParticlesParamBuffer - Writes color curve and size/frame-index curve offsets and scales.
+
+At the end of each frame, call @b3d::render::UniformBufferPools::AdvanceFrame to recycle transient staging allocations.
+
+### Draw-time binding
+At draw time the shared parameter set is bound once, and only the dynamic offset changes per draw call to select the correct suballocation within the large buffer:
+
+~~~~~~~~~~~~~{.cpp}
+drawCommand.SharedPerObjectParameterSet = renderState->PerObjectParameterSet;
+drawCommand.PerObjectBufferOffset = renderState->PerObjectSuballocation.GetSuballocationOffset();
 ~~~~~~~~~~~~~
 
 ## Renderer options
-You can customize your rendering at runtime by implementing the @b3d::render::RendererOptions class. Your **render::RendererOptions** implementation can then be assigned to the renderer by calling @b3d::render::Renderer::setOptions, and accessed within the renderer via the **Renderer::mOptions** field. No default options are provided and it's up to your renderer to decide what it requires.
+You can customize your rendering at runtime by implementing the @b3d::render::RendererOptions class. Your **render::RendererOptions** implementation can then be assigned to the renderer by calling @b3d::render::Renderer::SetOptions, and accessed within the renderer via the **Renderer::mOptions** field. No default options are provided and it's up to your renderer to decide what it requires.
 
 Be aware that options are set from the simulation thread, and if you want to use them on the core thread you need to either properly synchronize the access, or send a copy of the options to the core thread.

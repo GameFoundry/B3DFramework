@@ -16,12 +16,12 @@ importOptions->CollisionMeshType = CollisionMeshType::Normal;
 
 To perform the actual import, call @b3d::Importer::ImportAll instead of **Importer::Import<T>()** we have been calling so far. **Importer::ImportAll()** should be used when the import operation can return more than one resource (since **Importer::Import<T>()** will only return the default resource, i.e. a **Mesh**).
 
-**Importer::ImportAll()** will return an array of resources as @b3d::SubResource objects. In our case there are two sub-resources: the first one is the normal **Mesh**, and the second one will be the physics mesh we requested.
+**Importer::ImportAll()** will return a @b3d::MultiResource object containing an array of @b3d::SubResource objects. In our case there are two sub-resources: the first one is the normal **Mesh**, and the second one will be the physics mesh we requested.
 
 ~~~~~~~~~~~~~{.cpp}
-Vector<SubResource> resources = GetImporter().ImportAll("dragon.fbx", importOptions);
+SPtr<MultiResource> resources = GetImporter().ImportAll("dragon.fbx", importOptions);
 
-HPhysicsMesh physicsMesh = static_resource_cast<PhysicsMesh>(resources[1].Value);
+HPhysicsMesh physicsMesh = B3DStaticResourceCast<PhysicsMesh>(resources->Entries[1].Value);
 ~~~~~~~~~~~~~
 
 Query physics mesh properties:

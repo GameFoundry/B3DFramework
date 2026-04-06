@@ -14,14 +14,14 @@ Before we explain individual aspects, let's see a quick working example to give 
 SPtr<InputConfiguration> inputConfiguration = GetVirtualInput().GetConfiguration();
 
 // Virtual button named "Forward" maps to W and Up arrow keys
-inputConfiguration->RegisterButton("Forward", BC_W);
-inputConfiguration->RegisterButton("Forward", BC_UP);
+inputConfiguration->RegisterButton("Forward", ButtonCode::W);
+inputConfiguration->RegisterButton("Forward", ButtonCode::ArrowUp);
 
 // (Somewhere else in the app) Use the virtual key
-VirtualButton forwardKey("Forward");
+VirtualButton forwardKey = VirtualInput::GetOrCreateVirtualButton("Forward");
 
 if (GetVirtualInput().IsButtonDown(forwardKey))
-	B3D_LOG(Info, Generic, "Moving forward...");
+	B3D_LOG(Info, LogGeneric, "Moving forward...");
 ~~~~~~~~~~~~~
 
 # Input configuration
@@ -37,8 +37,8 @@ Virtual buttons can be registered by giving them a unique name, and a hardware b
 
 ~~~~~~~~~~~~~{.cpp}
 // Register a virtual button named "Forward" that maps to W and Up arrow keys
-inputConfiguration->RegisterButton("Forward", BC_W);
-inputConfiguration->RegisterButton("Forward", BC_UP);
+inputConfiguration->RegisterButton("Forward", ButtonCode::W);
+inputConfiguration->RegisterButton("Forward", ButtonCode::ArrowUp);
 ~~~~~~~~~~~~~
 
 You can also unregister an existing button by calling @b3d::InputConfiguration::UnregisterButton.
@@ -50,10 +50,10 @@ inputConfiguration->UnregisterButton("Forward");
 These mappings can be registered/unregistered during runtime, meaning you should use this functionality to provide input remapping for your users.
 
 ## Usage
-Once your virtual button has been registered you can use it by creating a @b3d::VirtualButton object. This object expects the button name you provided when registering the button.
+Once your virtual button has been registered you can use it by creating a @b3d::VirtualButton object using the @b3d::VirtualInput::GetOrCreateVirtualButton method with the button name you provided when registering the button.
 
 ~~~~~~~~~~~~~{.cpp}
-VirtualButton forwardKey("Forward");
+VirtualButton forwardKey = VirtualInput::GetOrCreateVirtualButton("Forward");
 ~~~~~~~~~~~~~
 
 > It is preferable you create virtual buttons during start-up and save them for later use, instead of creating them every time you use them.
@@ -95,17 +95,17 @@ if (GetVirtualInput().IsButtonHeld(forwardKey))
 ## Registration
 Virtual axes allow you to map hardware axes (e.g. gamepad analog stick or mouse movement) to virtual axes. They are registered similarly to buttons, through **InputConfiguration** by calling @b3d::InputConfiguration::RegisterAxis.
 
-You are required to give it a unique name, and fill out @b3d::VirtualAxisDescription structure that describes the axis. The structure allows you to choose which hardware axes to reference, as well as set other properties like sensitivity, inversion or dead zones.
+You are required to give it a unique name, and fill out @b3d::VirtualAxisCreateInformation structure that describes the axis. The structure allows you to choose which hardware axes to reference, as well as set other properties like sensitivity, inversion or dead zones.
 
 ~~~~~~~~~~~~~{.cpp}
 // Map gamepad right stick X axis and mouse X axis to a virtual axis for looking left/right
-VirtualAxisDescription axisDescription;
+VirtualAxisCreateInformation axisDescription;
 axisDescription.Type = (int)InputAxis::RightStickX | (int)InputAxis::MouseX;
 
 inputConfiguration->RegisterAxis("LookLeftRight", axisDescription);
 ~~~~~~~~~~~~~
 
-> Note that unlike with buttons you shouldn't call **InputConfiguration::RegisterAxis** multiple times for the same virtual axis. Instead provide all hardware axes in the **VirtualAxisDescription::Type** by ORing them together.
+> Note that unlike with buttons you shouldn't call **InputConfiguration::RegisterAxis** multiple times for the same virtual axis. Instead provide all hardware axes in the **VirtualAxisCreateInformation::Type** by ORing them together.
 
 Existing virtual axes can be unmapped by calling @b3d::InputConfiguration::UnregisterAxis.
 
@@ -114,9 +114,9 @@ inputConfiguration->UnregisterAxis("LookLeftRight");
 ~~~~~~~~~~~~~
 
 ## Usage
-Once you wish to use the virtual axis you construct a @b3d::VirtualAxis object by providing it with the name of the axis.
+Once you wish to use the virtual axis you construct a @b3d::VirtualAxis object using the @b3d::VirtualInput::GetOrCreateVirtualAxis method by providing it with the name of the axis.
 ~~~~~~~~~~~~~{.cpp}
-VirtualAxis lookLeftRightAxis("LookLeftRight");
+VirtualAxis lookLeftRightAxis = VirtualInput::GetOrCreateVirtualAxis("LookLeftRight");
 ~~~~~~~~~~~~~
 
 Then you can use @b3d::VirtualInput::GetAxisValue to retrieve the current value of the axis.

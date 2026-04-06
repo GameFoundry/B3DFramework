@@ -18,7 +18,7 @@ The example performs the following operations:
 
 # Setup phase
 
-During setup, all necessary rendering resources are initialized on the render thread.
+During setup, all necessary rendering resources are initialized on the render thread (see @b3d::RenderThread for details on executing code on the render thread).
 
 ## Creating GPU programs
 
@@ -30,7 +30,7 @@ const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 GpuProgramCreateInformation vertexProgramCreateInformation;
 vertexProgramCreateInformation.Type = GPT_VERTEX_PROGRAM;
 vertexProgramCreateInformation.EntryPoint = "main";
-vertexProgramCreateInformation.Language = "hlsl"; // or "glsl4_1" or "vksl"
+vertexProgramCreateInformation.Language = "hlsl"; // or "glsl" or "vksl"
 vertexProgramCreateInformation.Source = vertexShaderSource;
 
 SPtr<GpuProgram> vertexProgram = gpuDevice->CreateGpuProgram(vertexProgramCreateInformation);
@@ -105,7 +105,7 @@ vertexBufferCreateInformation.Vertex.ElementSize = vertexStride;
 SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
 // Write vertex data
-vertexBuffer->WriteData(0, vertexStride * numVertices, vertexData, BWT_DISCARD);
+GpuBufferUtility::Write(vertexBuffer, 0, vertexStride * numVertices, vertexData, GpuBufferWriteFlag::Discard);
 
 // Create index buffer
 u32 numIndices = 36;
@@ -118,7 +118,7 @@ indexBufferCreateInformation.Index.Type = IT_32BIT;
 SPtr<GpuBuffer> indexBuffer = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
 
 // Write index data
-indexBuffer->WriteData(0, numIndices * sizeof(u32), indexData, BWT_DISCARD);
+GpuBufferUtility::Write(indexBuffer, 0, numIndices * sizeof(u32), indexData, GpuBufferWriteFlag::Discard);
 ~~~~~~~~~~~~~
 
 ## Creating textures and samplers
@@ -222,8 +222,11 @@ parameterSet->SetSamplerState("gMainTexture", surfaceSampler);
 A render pass is started with the render target and the target is cleared:
 
 ~~~~~~~~~~~~~{.cpp}
-commandBuffer->BeginRenderPass(renderTarget, 0, RT_NONE);
-commandBuffer->ClearRenderTarget(FBT_COLOR | FBT_DEPTH, Color::kBlue, 1, 0, 0xFF);
+render::RenderPassCreateInformation renderPassInformation(renderTarget);
+renderPassInformation.ClearMask = RT_COLOR_ALL | RT_DEPTH;
+renderPassInformation.ClearColor = Color::kBlue;
+renderPassInformation.Parameters.Add(parameterSet);
+commandBuffer->BeginRenderPass(renderPassInformation);
 ~~~~~~~~~~~~~
 
 ## Binding pipeline and geometry
@@ -254,18 +257,35 @@ An indexed draw call is issued:
 commandBuffer->DrawIndexed(0, numIndices, 0, numVertices, 1, 0);
 ~~~~~~~~~~~~~
 
-## Ending render pass and presenting
+## Ending render pass
 
-The render pass is ended and the result is blitted to the window:
+The render pass is ended after all draw calls have been issued:
 
 ~~~~~~~~~~~~~{.cpp}
 commandBuffer->EndRenderPass();
-commandBuffer->BeginRenderPass(renderWindow);
+~~~~~~~~~~~~~
 
+## Blitting to the window
+
+Since the rendering was done to an offscreen render target, the result must be copied (blitted) to the render window's back buffer before presenting. Use @b3d::render::RendererUtility::Blit with a @b3d::render::BlitInformation to copy the color attachment to the render window. The static helper @b3d::render::BlitInformation::BlitColor creates a blit descriptor with commonly used settings (no blending, no filtering):
+
+~~~~~~~~~~~~~{.cpp}
+// Get the color attachment from the offscreen render target
 SPtr<Texture> colorTexture = renderTarget->GetColorTexture(0);
-GetRendererUtility().Blit(*commandBuffer, colorTexture);
 
-commandBuffer->EndRenderPass();
+// Blit the offscreen color attachment to the render window
+SPtr<RenderWindow> renderWindow = ...;
+GetRendererUtility().Blit(*commandBuffer, BlitInformation::BlitColor(colorTexture, renderWindow));
+~~~~~~~~~~~~~
+
+## Submitting and presenting
+
+Finally, the command buffer is submitted for GPU execution and the render window is presented:
+
+~~~~~~~~~~~~~{.cpp}
+// Submit the command buffer for GPU execution
 gpuDevice->SubmitCommandBuffer(commandBuffer);
+
+// Present the rendered result to the window
 gpuDevice->PresentRenderWindow(renderWindow);
 ~~~~~~~~~~~~~

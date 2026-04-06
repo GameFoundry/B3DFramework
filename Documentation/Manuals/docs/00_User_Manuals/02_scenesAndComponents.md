@@ -71,7 +71,7 @@ By default, object destruction is delayed until the end of the current frame. If
 sceneObject->Destroy(true);
 ~~~~~~~~~~~~~
 
-Handles provide safety when referencing game objects. If the referenced object is destroyed, the handle automatically becomes invalid and you can check this using the @b3d::GameObjectHandleBase::IsDestroyed method or by comparing with nullptr.
+Handles provide safety when referencing game objects. If the referenced object is destroyed, the handle automatically becomes invalid and you can check this using the @b3d::GameObjectHandle::IsDestroyed method or by comparing with nullptr.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject sceneObject = SceneObject::Create("My Object");
@@ -248,7 +248,7 @@ You can also check if a component is enabled including its parent hierarchy:
 bool selfEnabled = renderable->GetEnabled(true);
 
 // Check if component is enabled and all parents are active (default)
-bool fullyEnabled = renderable->GetEnabled(false);
+bool fullyEnabled = renderable->GetEnabled();
 ~~~~~~~~~~~~~
 
 # Scenes and Scene Instances

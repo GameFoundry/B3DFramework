@@ -21,8 +21,6 @@ startUpDesc.renderAPI = "bsfD3D11RenderAPI";
 startUpDesc.renderer = "bsfRenderBeast";
 startUpDesc.audio = "bsfOpenAudio";
 startUpDesc.physics = "bsfPhysX";
-startUpDesc.input = "bsfOISInput";
-
 // List of importer plugins we plan on using for importing various resources
 startUpDesc.importers.push_back("bsfFreeImgImporter"); // For importing textures
 startUpDesc.importers.push_back("bsfFBXImporter"); // For importing meshes
@@ -31,7 +29,7 @@ startUpDesc.importers.push_back("bsfSL"); // For importing shaders
 
 // ... also set up primary window in startUpDesc ...
 
-Application::startUp(startUpDesc);
+Application::StartUp(startUpDesc);
 
 // ... create scene, run main loop, shutdown
 ~~~~~~~~~~~~~ 
@@ -82,24 +80,24 @@ class MyPlugin : Module<MyPlugin>
 {
 };
 
-extern "C" BS_MYPLUGIN_EXPORT void* loadPlugin()
+extern "C" B3D_MYPLUGIN_EXPORT void* loadPlugin()
 {
-	MyPlugin::startUp();
+	MyPlugin::StartUp();
 
 	return nullptr; // Not used
 }
 
-extern "C" BS_MYPLUGIN_EXPORT void updatePlugin()
+extern "C" B3D_MYPLUGIN_EXPORT void updatePlugin()
 {
 	// Do something every frame
 }
 
-extern "C" BS_MYPLUGIN_EXPORT void unloadPlugin()
+extern "C" B3D_MYPLUGIN_EXPORT void unloadPlugin()
 {
-	MyPlugin::shutDown();
+	MyPlugin::ShutDown();
 }
 
-// BS_MYPLUGIN_EXPORT is a macro for a compiler-specific export attribute
+// B3D_MYPLUGIN_EXPORT is a macro for a compiler-specific export attribute
 // (e.g. __declspec(dllexport) for Visual Studio (MSVC))
 ~~~~~~~~~~~~~
 
@@ -111,23 +109,23 @@ After you have your plugin interface, all you need to do is to pass the name of 
 You can also create a fully customized plugin that doesn't implement functionality for any existing engine system. The engine has no interface expectations for such plugins, and it's up to you to manually load/unload them, as well as to manually call their functions.
 
 To load a custom plugin you can use:
- - @b3d::CoreApplication::loadPlugin - Accepts the name of the plugin library and outputs the library object. Optionally you may also pass a parameter to the **loadPlugin** method, if your plugin defines one.
- - @b3d::CoreApplication::unloadPlugin - Unloads a previously loaded plugin. 
+ - @b3d::Application::LoadPlugin - Accepts the name of the plugin library and outputs the library object. Optionally you may also pass a parameter to the **LoadPlugin** method, if your plugin defines one.
+ - @b3d::Application::UnloadPlugin - Unloads a previously loaded plugin. 
 
 ~~~~~~~~~~~~~{.cpp}
-DynLib* pluginLib;
-GetApplication()::loadPlugin("MyPlugin", &pluginLib);
+DynamicLibrary* pluginLib;
+GetApplication()->LoadPlugin("MyPlugin", &pluginLib);
 // Do something
-GetApplication()::unloadPlugin(pluginLib);
+GetApplication()->UnloadPlugin("MyPlugin");
 ~~~~~~~~~~~~~ 
  
-Both of those methods internally call **DynLibManager** which we described earlier. In fact you can also use it directly for loading plugins, as an alternative to this approach.
+Both of those methods internally call **DynamicLibraryManager** which we described earlier. In fact you can also use it directly for loading plugins, as an alternative to this approach.
 
-Once the library is loaded you can use the @b3d::DynLib object, and its @b3d::DynLib::getSymbol method to retrieve a function pointer within the dynamic library, and call into it. 
+Once the library is loaded you can use the @b3d::DynamicLibrary object, and its @b3d::DynamicLibrary::GetSymbol method to retrieve a function pointer within the dynamic library, and call into it. 
 ~~~~~~~~~~~~~{.cpp}
 // Retrieve function pointer (symbol)
 typedef void* (*LoadPluginFunc)();
-LoadPluginFunc loadPluginFunc = (LoadPluginFunc)pluginLib->getSymbol("loadPlugin");
+LoadPluginFunc loadPluginFunc = (LoadPluginFunc)pluginLib->GetSymbol("loadPlugin");
 
 // Call the function
 loadPluginFunc();

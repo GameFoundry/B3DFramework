@@ -31,8 +31,8 @@ Finally you can now draw the object by calling @b3d::render::GpuCommandBuffer::D
 SPtr<GpuBuffer> indexBuffer = ...;
 SPtr<GpuBuffer> vertexBuffer = ...;
 
-UINT32 numIndices = indexBuffer->GetProperties().IndexCount;
-UINT32 numVertices = vertexBuffer->GetProperties().ElementCount;
+u32 numIndices = indexBuffer->GetProperties().IndexCount;
+u32 numVertices = vertexBuffer->GetProperties().ElementCount;
 
 SPtr<GpuCommandBuffer> commandBuffer = ...;
 commandBuffer->DrawIndexed(0, numIndices, 0, numVertices);
@@ -43,7 +43,7 @@ If drawing without an index buffer you can call @b3d::render::GpuCommandBuffer::
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<GpuBuffer> vertexBuffer = ...;
-UINT32 numVertices = vertexBuffer->GetProperties().ElementCount;
+u32 numVertices = vertexBuffer->GetProperties().ElementCount;
 
 SPtr<GpuCommandBuffer> commandBuffer = ...;
 commandBuffer->Draw(0, numVertices);
@@ -78,7 +78,7 @@ VertexElement instancePositionElement(VET_FLOAT3, VES_POSITION, 1, 1, 1);
 
 // Create vertex description
 TInlineArray<VertexElement, 4> elements = { positionElement, normalElement, texcoordElement, instancePositionElement };
-SPtr<VertexDescription> vertexDescription = B3DNew<VertexDescription>(elements);
+SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(elements.data(), elements.size());
 
 SPtr<GpuCommandBuffer> commandBuffer = ...;
 

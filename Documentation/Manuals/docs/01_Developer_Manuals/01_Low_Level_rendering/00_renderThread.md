@@ -62,7 +62,7 @@ GetRenderThread().PostCommand([asyncOperation]()
 if(asyncOperation.HasCompleted())
 {
 	String valueString = ToString(asyncOperation.GetReturnValue<int>());
-	B3D_LOG(Warning, Uncategorized, "Returned value: {0}", valueString);
+	B3D_LOG(Warning, LogUncategorized, "Returned value: {0}", valueString);
 }
 ~~~~~~~~~~~~~
 

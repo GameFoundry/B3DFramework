@@ -66,8 +66,8 @@ Color is provided through @b3d::ParticleColorSettings::Color in the form of a **
 ParticleColorSettings settings;
 settings.Color = ColorGradient(
 {
-    ColorGradientKey(Color::White, 0.0f),
-    ColorGradientKey(Color::Black, 1.0f)
+    ColorGradientKey(Color::kWhite, 0.0f),
+    ColorGradientKey(Color::kBlack, 1.0f)
 });
 
 SPtr<ParticleColor> evolver = ParticleColor::Create(settings);
@@ -208,7 +208,7 @@ Represented with the @b3d::ParticleTextureAnimation and initialization options p
 
 Texture animation evolver only works if you have provided a **SpriteTexture** with animation to the **Material** the particle is rendered with. You can find more about sprite texture animation in [material](../Rendering/simpleMaterial) manual.
 
-Use @b3d::ParticleTextureAnimationSettings::NumCycles to specify how many times should the animation loop during particle's lifetime. Enable @b3d::ParticleTextureAnimationSettings::RandomizeRow if you want every particle to pick a random row from the relevant sprite texture. This allows you to provide different textures and animations to different particles.
+Use @b3d::ParticleTextureAnimationSettings::CycleCount to specify how many times should the animation loop during particle's lifetime. Enable @b3d::ParticleTextureAnimationSettings::RandomizeRow if you want every particle to pick a random row from the relevant sprite texture. This allows you to provide different textures and animations to different particles.
 
 ~~~~~~~~~~~~~{.cpp}
 HTexture texture = ...; // Import a texture (or create one)
@@ -235,7 +235,7 @@ particleSystem->SetSettings(particleSystemSettings);
 
 // Create and add a texture animation evolver
 ParticleTextureAnimationSettings settings;
-settings.NumCycles = 5;
+settings.CycleCount = 5;
 
 SPtr<ParticleTextureAnimation> evolver = ParticleTextureAnimation::Create(settings);
 particleSystem->SetEvolvers({evolver});

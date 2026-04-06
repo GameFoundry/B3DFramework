@@ -41,8 +41,8 @@ auto collisionStarted = [](const CollisionData& data)
 	Vector3 contactNormal = data.ContactPoints[0].Normal;
 	float impulse = data.ContactPoints[0].Impulse;
 
-	B3D_LOG(Info, Physics, "Started colliding with {0} at point {1}", otherSceneObjectName, contactPoint);
-	B3D_LOG(Info, Physics, "Contact normal: {0}, Impulse: {1}", contactNormal, impulse);
+	B3D_LOG(Info, LogPhysics, "Started colliding with {0} at point {1}", otherSceneObjectName, contactPoint);
+	B3D_LOG(Info, LogPhysics, "Contact normal: {0}, Impulse: {1}", contactNormal, impulse);
 };
 
 boxCollider->SetCollisionReportMode(CollisionReportMode::Report);
@@ -55,14 +55,14 @@ Handle collision end and stay events:
 auto collisionEnded = [](const CollisionData& data)
 {
 	HCollider otherCollider = data.Collider[1];
-	B3D_LOG(Info, Physics, "Stopped colliding with {0}", otherCollider->SO()->GetName());
+	B3D_LOG(Info, LogPhysics, "Stopped colliding with {0}", otherCollider->SO()->GetName());
 };
 
 auto collisionStay = [](const CollisionData& data)
 {
 	// Called every frame while colliding
 	u32 contactCount = static_cast<u32>(data.ContactPoints.size());
-	B3D_LOG(Info, Physics, "Still colliding with {0} contact points", contactCount);
+	B3D_LOG(Info, LogPhysics, "Still colliding with {0} contact points", contactCount);
 };
 
 boxCollider->OnCollisionEnd.Connect(collisionEnded);
@@ -110,7 +110,7 @@ triggerZone->SetExtents(Vector3(5.0f, 2.0f, 5.0f));
 auto onTriggerEnter = [](const CollisionData& data)
 {
 	HCollider other = data.Collider[1];
-	B3D_LOG(Info, Physics, "Object entered trigger zone: {0}", other->SO()->GetName());
+	B3D_LOG(Info, LogPhysics, "Object entered trigger zone: {0}", other->SO()->GetName());
 };
 
 triggerZone->SetCollisionReportMode(CollisionReportMode::Report);

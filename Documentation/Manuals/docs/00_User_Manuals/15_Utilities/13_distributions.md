@@ -72,7 +72,7 @@ Random randomNumberGenerator;
 // Evaluate half-way along the curve, and use a random number to evaluate the range
 float valueFloat = curveRangeFloat.Evaluate(0.5f, randomNumberGenerator);
 RGBA valueColor = curveRangeColor.Evaluate(0.5f, randomNumberGenerator);
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Distribution value: {0}", valueFloat);
+B3D_LOG(Info, LogGeneric, "Distribution value: {0}", valueFloat);
 ~~~~~~~~~~~~~
 
 Normally you will not need to evaluate distributions manually, but rather pass them along to other systems such as the particle system.

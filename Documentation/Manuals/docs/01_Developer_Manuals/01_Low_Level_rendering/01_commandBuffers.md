@@ -103,6 +103,6 @@ CommandBufferState state = commandBuffer->GetState();
 
 if (state == CommandBufferState::Done)
 {
-	B3D_LOG(Info, Rendering, "Command buffer has finished executing");
+	B3D_LOG(Info, LogRenderer, "Command buffer has finished executing");
 }
 ~~~~~~~~~~~~~

@@ -36,17 +36,17 @@ Each sampling entry is represented either by @b3d::CPUProfilerBasicSamplingEntry
 ~~~~~~~~~~~~~{.cpp}
 CPUProfilerReport report = GetProfilerCPU().GenerateReport();
 const CPUProfilerBasicSamplingEntry& basicEntry = report.GetBasicSamplingData();
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Basic sampling - Calls: {0}, Avg time: {1}ms",
+B3D_LOG(Info, LogGeneric, "Basic sampling - Calls: {0}, Avg time: {1}ms",
 	basicEntry.Data.NumCalls, basicEntry.Data.AvgTimeMs);
 
 // Process child entries
 for(const CPUProfilerBasicSamplingEntry& childEntry : basicEntry.ChildEntries)
 {
-	B3D_LOG(LogVerbosity::Info, LogGeneral, "{0} took {1}ms", childEntry.Data.Name, childEntry.Data.TotalTimeMs);
+	B3D_LOG(Info, LogGeneric, "{0} took {1}ms", childEntry.Data.Name, childEntry.Data.TotalTimeMs);
 }
 
 const CPUProfilerPreciseSamplingEntry& preciseEntry = report.GetPreciseSamplingData();
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Precise sampling - Calls: {0}, Avg cycles: {1}",
+B3D_LOG(Info, LogGeneric, "Precise sampling - Calls: {0}, Avg cycles: {1}",
 	preciseEntry.Data.NumCalls, preciseEntry.Data.AvgCycles);
 ~~~~~~~~~~~~~
 

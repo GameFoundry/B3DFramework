@@ -66,7 +66,7 @@ TAsyncOp<void> operation = SaveGameAsync(saveData);
 // Wait for completion
 operation.BlockUntilComplete();
 
-B3D_LOG(Info, Generic, "Save completed");
+B3D_LOG(Info, LogGeneric, "Save completed");
 ~~~~~~~~~~~~~
 
 # Checking completion status
@@ -80,11 +80,11 @@ TAsyncOp<HMesh> loadOperation = LoadMeshAsync("Models/Character.fbx");
 if(loadOperation.HasCompleted())
 {
 	HMesh mesh = loadOperation.GetReturnValue();
-	B3D_LOG(Info, Generic, "Mesh loaded successfully");
+	B3D_LOG(Info, LogGeneric, "Mesh loaded successfully");
 }
 else
 {
-	B3D_LOG(Info, Generic, "Still loading...");
+	B3D_LOG(Info, LogGeneric, "Still loading...");
 }
 ~~~~~~~~~~~~~
 
@@ -120,12 +120,12 @@ TAsyncOp<HTexture> loadOperation = LoadTextureAsync("Textures/UI_Button.png");
 loadOperation.DoWhenComplete([loadOperation]()
 {
 	HTexture texture = loadOperation.GetReturnValue();
-	B3D_LOG(Info, Generic, "Texture loaded: {0}", texture->GetName());
+	B3D_LOG(Info, LogGeneric, "Texture loaded: {0}", texture->GetName());
 });
 
 // The callback will execute on the same thread that registered it
 // Your code continues executing immediately
-B3D_LOG(Info, Generic, "Load initiated, callback registered");
+B3D_LOG(Info, LogGeneric, "Load initiated, callback registered");
 ~~~~~~~~~~~~~
 
 Callbacks are guaranteed to execute on the thread that registered them. You can register multiple callbacks:
@@ -136,7 +136,7 @@ TAsyncOp<HMesh> loadOperation = LoadMeshAsync("Models/Weapon.fbx");
 // Register first callback for logging
 loadOperation.DoWhenComplete([]()
 {
-	B3D_LOG(Info, Generic, "Mesh load completed");
+	B3D_LOG(Info, LogGeneric, "Mesh load completed");
 });
 
 // Register second callback for processing
@@ -160,7 +160,7 @@ operation.BlockUntilComplete();
 // This callback executes immediately since the operation is already complete
 operation.DoWhenComplete([]()
 {
-	B3D_LOG(Info, Generic, "Callback executed immediately");
+	B3D_LOG(Info, LogGeneric, "Callback executed immediately");
 });
 ~~~~~~~~~~~~~
 
@@ -179,7 +179,7 @@ Vector<String> files = searchOperation.GetReturnValue();
 
 for(const String& file : files)
 {
-	B3D_LOG(Info, Generic, "Found: {0}", file);
+	B3D_LOG(Info, LogGeneric, "Found: {0}", file);
 }
 ~~~~~~~~~~~~~
 

@@ -12,7 +12,7 @@ Skybox is represented by the @b3d::Skybox component, which requires only a textu
 SPtr<TextureImportOptions> textureImportOptions = TextureImportOptions::Create();
 textureImportOptions->Cubemap = true;
 textureImportOptions->CubemapSourceType = CubemapSourceType::Cylindrical;
-textureImportOptions->Format = PF_FLOAT_R11G11B10; // Or the 16-bit floating point format
+textureImportOptions->Format = PF_RG11B10F; // Or the 16-bit floating point format
 
 HTexture skyTexture = GetImporter().Import<Texture>("MySkybox.hdr", textureImportOptions);
 
@@ -50,7 +50,7 @@ HSkybox skybox = ...;
 
 // Get the current brightness value
 float brightness = skybox->GetBrightness();
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Skybox brightness: {0}", brightness);
+B3D_LOG(Info, LogGeneric, "Skybox brightness: {0}", brightness);
 
 // Get the current skybox texture
 HTexture currentTexture = skybox->GetTexture();

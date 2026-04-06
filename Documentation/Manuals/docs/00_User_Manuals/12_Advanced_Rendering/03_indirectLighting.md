@@ -56,7 +56,7 @@ lightProbeVolume->SetProbePosition(probeHandle, Vector3(0.0f, 2.0f, 0.0f));
 
 // Get the current probe position
 Vector3 probePosition = lightProbeVolume->GetProbePosition(probeHandle);
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Probe position: {0}", probePosition);
+B3D_LOG(Info, LogRenderer, "Probe position: {0}", probePosition);
 
 // Remove the probe
 lightProbeVolume->RemoveProbe(probeHandle);
@@ -72,7 +72,7 @@ Vector<LightProbeInfo> probes = lightProbeVolume->GetProbes();
 
 for (const LightProbeInfo& probeInfo : probes)
 {
-    B3D_LOG(LogVerbosity::Info, LogGeneral, "Probe handle: {0}, Position: {1}",
+    B3D_LOG(Info, LogRenderer, "Probe handle: {0}, Position: {1}",
         probeInfo.Handle, probeInfo.Position);
 }
 ~~~~~~~~~~~~~
@@ -97,11 +97,11 @@ HLightProbeVolume lightProbeVolume = ...;
 
 // Get the current grid volume
 AABox gridVolume = lightProbeVolume->GetGridVolume();
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Grid volume: {0}", gridVolume);
+B3D_LOG(Info, LogRenderer, "Grid volume: {0}", gridVolume);
 
 // Get the current cell count
 Vector3I cellCount = lightProbeVolume->GetCellCount();
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Cell count: {0}", cellCount);
+B3D_LOG(Info, LogRenderer, "Cell count: {0}", cellCount);
 ~~~~~~~~~~~~~
 
 If you want to remove any probes outside of the current grid volume, call @b3d::LightProbeVolume::Clip().

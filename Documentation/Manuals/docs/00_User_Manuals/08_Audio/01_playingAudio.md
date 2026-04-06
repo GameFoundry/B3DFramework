@@ -50,11 +50,11 @@ Query current playback state with @b3d::AudioSource::GetState:
 AudioSourceState state = audioSource->GetState();
 
 if (state == AudioSourceState::Playing)
-	B3D_LOG(Info, Audio, "Audio is playing");
+	B3D_LOG(Info, LogAudio, "Audio is playing");
 else if (state == AudioSourceState::Paused)
-	B3D_LOG(Info, Audio, "Audio is paused");
+	B3D_LOG(Info, LogAudio, "Audio is paused");
 else if (state == AudioSourceState::Stopped)
-	B3D_LOG(Info, Audio, "Audio is stopped");
+	B3D_LOG(Info, LogAudio, "Audio is stopped");
 ~~~~~~~~~~~~~
 
 This is all you need to play basic audio clips. But let's investigate a few more options that let you control the audio in more detail.
@@ -221,9 +221,9 @@ if (devices.size() > 1)
 
 // Get current active device
 AudioDevice activeDevice = GetAudio().GetActiveDevice();
-B3D_LOG(Info, Audio, "Active device: {0}", activeDevice.Name);
+B3D_LOG(Info, LogAudio, "Active device: {0}", activeDevice.Name);
 
 // Get default device
 AudioDevice defaultDevice = GetAudio().GetDefaultDevice();
-B3D_LOG(Info, Audio, "Default device: {0}", defaultDevice.Name);
+B3D_LOG(Info, LogAudio, "Default device: {0}", defaultDevice.Name);
 ~~~~~~~~~~~~~

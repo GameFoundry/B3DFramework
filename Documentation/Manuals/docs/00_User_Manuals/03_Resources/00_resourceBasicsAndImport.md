@@ -82,7 +82,7 @@ SPtr<MultiResource> multiResource = GetImporter().ImportAll("character.fbx");
 // Access individual resources
 for (const SubResource& subResource : multiResource->Entries)
 {
-	B3D_LOG(Info, Generic, "Imported resource: {0}", subResource.Name);
+	B3D_LOG(Info, LogGeneric, "Imported resource: {0}", subResource.Name);
 
 	// Each sub-resource has a name and a handle
 	HResource resource = subResource.Value;

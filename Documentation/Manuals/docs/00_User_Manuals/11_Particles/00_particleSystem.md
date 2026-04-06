@@ -46,7 +46,7 @@ As we see in the example above the basic system needs two things at minimum:
  - A single particle emitter
  
 # Material
-You can set the material used to render the particles through the @b3d::ParticleSystemSettings object. The settings can be applied to the particle system by calling @b3d::ParticleSystem. We'll cover all the settings available eventually, but for now you can focus only on setting the material.
+You can set the material used to render the particles through the @b3d::ParticleSystemSettings object. The settings can be applied to the particle system by calling @b3d::ParticleSystem::SetSettings(). We'll cover all the settings available eventually, but for now you can focus only on setting the material.
 
 Multiple built-in shaders exist for the purpose of rendering particle systems:
  - @b3d::BuiltinShader::ParticlesUnlit - Renders particles without any lighting, and supports transparent particles. This is the most commonly used shader for rendering particles. Use the **gTexture** property to assign a texture to the material.
@@ -292,4 +292,100 @@ ParticleSystemSettings particleSystemSettings = particleSystem->GetSettings();
 particleSystemSettings.Duration = 10.0f; // Evaluates time-varying distributions over the course of 10 seconds
 
 particleSystem->SetSettings(particleSystemSettings);
+~~~~~~~~~~~~~
+
+# ECS fragments
+
+The **ParticleSystem** component stores its data internally as ECS fragments, enabling the renderer and simulation systems to batch-process all particle systems in the scene efficiently. Particle systems use more fragments than other components due to the complexity of particle simulation.
+
+## Data fragment
+
+The primary fragment is @b3d::ecs::ParticleSystem, which stores the particle system's configuration:
+ - **Settings** - General purpose particle system settings (material, orientation, render mode, duration, etc.)
+ - **GpuSimulationSettings** - Settings for GPU-based particle simulation
+ - **Layer** - Layer bitfield for camera visibility filtering
+ - **Emitters** - Array of particle emitters that control particle generation
+ - **Evolvers** - Array of particle evolvers that modify particles during their lifetime, sorted by priority
+ - **Id** - Unique identifier for this particle system instance
+
+## Simulation fragment
+
+In addition to the configuration data, each particle system has an @b3d::ecs::ParticleSimulation fragment that stores the runtime simulation state:
+ - **Particles** - Active particle data set, lazily allocated on the first simulation frame
+ - **Time** - Current simulation time
+ - **Seed** - Random seed for deterministic simulation
+ - **Rng** - Random number generator seeded with the seed value
+ - **State** - Current simulation state (uninitialized, stopped, paused, or playing)
+
+When using raw ECS fragments, you must add this fragment yourself. The **ParticleSystem** component adds it automatically, but bypassing the component requires manual creation.
+
+## ID fragment
+
+Each particle system also has an @b3d::ecs::ParticleSystemId fragment that stores a persistent renderer ID used by the @b3d::RendererObjectStorage system for mapping to the packed render-thread representation.
+
+## Dirty tags
+
+The renderer uses two ECS tag types to track which particle systems need synchronization:
+ - `ecs::ParticleSystemDirty` - Added when any configuration property changes. Triggers a full sync.
+ - `ecs::ParticleSystemTransformDirty` - Added when only the transform changes.
+
+## Using raw ECS fragments
+
+You can bypass the **ParticleSystem** component and create `ecs::ParticleSystem` fragments directly for maximum performance. You must manage the renderer ID, world transform, simulation fragment, and dirty tags manually.
+
+~~~~~~~~~~~~~{.cpp}
+const SPtr<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
+ecs::Registry& registry = scene->GetECSRegistry();
+const SPtr<RendererScene>& rendererScene = scene->GetRendererScene();
+
+// Create an entity with the particle system data fragment
+ecs::Entity entity = registry.CreateEntity();
+ecs::ParticleSystem& fragment = registry.AddComponent<ecs::ParticleSystem>(entity);
+
+ParticleSystemSettings settings;
+settings.Material = myParticleMaterial;
+fragment.Settings = settings;
+fragment.Layer = 1;
+
+// Set up emitters
+SPtr<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
+ParticleSphereShapeSettings sphereShape;
+sphereShape.Radius = 0.3f;
+emitter->SetShape(ParticleEmitterSphereShape::Create(sphereShape));
+fragment.Emitters = { emitter };
+
+// Add the simulation fragment — required for particle simulation to run
+registry.AddComponent<ecs::ParticleSimulation>(entity);
+
+// Add a world transform
+registry.AddComponent<ecs::WorldTransform>(entity, ecs::WorldTransform(myTransform));
+
+// Allocate a persistent renderer ID
+rendererScene->AllocateParticleSystemId(registry, entity);
+
+// Mark dirty for initial sync
+registry.AddTag<ecs::ParticleSystemDirty>(entity);
+~~~~~~~~~~~~~
+
+When modifying the fragment, add the appropriate dirty tag:
+
+~~~~~~~~~~~~~{.cpp}
+ecs::ParticleSystem& fragment = registry.GetComponents<ecs::ParticleSystem>(entity);
+fragment.Settings.Material = newMaterial;
+registry.AddTag<ecs::ParticleSystemDirty>(entity);
+
+// For transform-only changes
+registry.GetComponents<ecs::WorldTransform>(entity) = ecs::WorldTransform(newTransform);
+registry.AddTag<ecs::ParticleSystemTransformDirty>(entity);
+~~~~~~~~~~~~~
+
+When destroying the entity, deallocate the renderer ID first:
+
+~~~~~~~~~~~~~{.cpp}
+rendererScene->DeallocateParticleSystemId(registry, entity);
+registry.RemoveComponents<ecs::ParticleSystemDirty>(entity);
+registry.RemoveComponents<ecs::ParticleSystemTransformDirty>(entity);
+registry.RemoveComponents<ecs::ParticleSimulation>(entity);
+registry.RemoveComponents<ecs::ParticleSystem>(entity);
+registry.EraseEntity(entity);
 ~~~~~~~~~~~~~

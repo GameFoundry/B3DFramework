@@ -20,7 +20,7 @@ RGBA color32 = gradient.Evaluate(0.75f);
 
 // Optionally, convert to Color
 Color color = Color::FromRgba(color32);
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Gradient color at t=0.75: {0}", color);
+B3D_LOG(Info, LogGeneric, "Gradient color at t=0.75: {0}", color);
 ~~~~~~~~~~~~~
 
 In most cases you will not be evaluating the gradient yourself, but rather passing it to various systems, such as the **Material** or **ParticleEmitter**.

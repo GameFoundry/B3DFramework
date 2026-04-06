@@ -81,7 +81,7 @@ You can also query the depth/stencil texture to check the depth information:
 
 ~~~~~~~~~~~~~{.cpp}
 HTexture depthStencilTexture = renderTexture->GetDepthStencilTexture();
-B3D_LOG(Info, Generic, "Depth/stencil texture format: {0}", depthStencilTexture->GetProperties().Format);
+B3D_LOG(Info, LogGeneric, "Depth/stencil texture format: {0}", depthStencilTexture->GetProperties().Format);
 ~~~~~~~~~~~~~
 
 Please note that a render texture must not be bound for rendering at the same time you are trying to read from it (either from shader of from the CPU). This will result in undefined behaviour.
@@ -94,5 +94,5 @@ renderTexture->SetPriority(50);
 
 // Query the current priority
 i32 currentPriority = renderTexture->GetProperties().Priority;
-B3D_LOG(Info, Generic, "Render texture priority: {0}", currentPriority);
+B3D_LOG(Info, LogGeneric, "Render texture priority: {0}", currentPriority);
 ~~~~~~~~~~~~~

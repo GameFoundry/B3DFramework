@@ -8,33 +8,33 @@ To implement your own importer you need to implement the @b3d::SpecificImporter 
 
 # Implementing SpecificImporter
 Implementing this interface involves implementation of the following methods:
- * @b3d::SpecificImporter::isExtensionSupported - Receives a file extension and returns true or false depending if the importer can process that file. Used by the importer to find which importer plugin to use for import of a specific file.
- * @b3d::SpecificImporter::isMagicNumberSupported - Similar to the method above, but receives a magic number (first few bytes of a file) instead of the extension, as this is the more common way of identifying files on non-Windows systems.
- * @b3d::SpecificImporter::import - Receives a path to a file, as well as a set of import options. This is the meat of the importer where you will read the file and convert it into engine ready format. When done the method returns a @b3d::Resource of a valid type, or null if it failed. The method should take into account the import options it was provided (if your importer supports any).
+ * @b3d::SpecificImporter::IsExtensionSupported - Receives a file extension and returns true or false depending if the importer can process that file. Used by the importer to find which importer plugin to use for import of a specific file.
+ * @b3d::SpecificImporter::IsMagicNumberSupported - Similar to the method above, but receives a magic number (first few bytes of a file) instead of the extension, as this is the more common way of identifying files on non-Windows systems.
+ * @b3d::SpecificImporter::Import - Receives a path to a file, as well as a set of import options. This is the meat of the importer where you will read the file and convert it into engine ready format. When done the method returns a @b3d::Resource of a valid type, or null if it failed. The method should take into account the import options it was provided (if your importer supports any).
  
 ~~~~~~~~~~~~~{.cpp}
 //	Simple importer for plain text types.
 class PlainTextImporter : public SpecificImporter
 {
 public:
-	bool isExtensionSupported(const String& ext) const override
+	bool IsExtensionSupported(const String& ext) const override
 	{
 		String lowerCaseExt = ext;
-		StringUtil::toLowerCase(lowerCaseExt);
+		StringUtility::ToLowerCase(lowerCaseExt);
 
 		return lowerCaseExt == "txt";
 	}
 
-	bool isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const override
+	bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const override
 	{
 		// Magic numbers don't make sense for plain text files, so we rely on extension checking
 		return true;
 	}
 
-	SPtr<Resource> import(const Path& filePath, SPtr<const ImportOptions> importOptions) override
+	SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override
 	{
-		SPtr<DataStream> stream = FileSystem::openFile(filePath);
-		String textData = stream->getAsString();
+		SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
+		String textData = stream->GetAsString();
 
 		// ... initialize some resource with the text and return
 	}
@@ -42,13 +42,13 @@ public:
 ~~~~~~~~~~~~~ 
  
 # Registering SpecificImporter
-To register your **SpecificImporter** implementation with the importer system you must call @b3d::Importer::_registerAssetImporter. You can do this after application start-up, or during by implementing your own **Application** class as described in the [non-component approach](User_Manuals/Gameplay/nonComponentApproach) manual.
+To register your **SpecificImporter** implementation with the importer system you must call @b3d::Importer::RegisterAssetImporterInternal. You can do this after application start-up, or during by implementing your own **Application** class as described in the [non-component approach](User_Manuals/Gameplay/nonComponentApproach) manual.
 
 ~~~~~~~~~~~~~{.cpp}
-Application::startUp(...);
+Application::StartUp(...);
 
 PlainTextImporter* myImporter = B3DNew<PlainTextImporter>();
-GetImporter()._registerAssetImporter(myImporter);
+GetImporter().RegisterAssetImporterInternal(myImporter);
 ~~~~~~~~~~~~~ 
 
 > Your importer must be allocated using a general purpose allocator (**B3DNew**) because the importer system automatically frees it on shutdown, and it doesn't expect any special memory types.
@@ -72,14 +72,14 @@ public:
 	bool convertToLowercase = false;
 	
 	friend class PlainTextImportOptionsRTTI;
-	static RTTITypeBase* getRTTIStatic() { return PlainTextImportOptionsRTTI::instance(); }
-	RTTITypeBase* getRTTI() const override { return getRTTIStatic(); }
+	static RTTITypeBase* GetRTTIStatic() { return PlainTextImportOptionsRTTI::instance(); }
+	RTTITypeBase* GetRTTI() const override { return GetRTTIStatic(); }
 };
 ~~~~~~~~~~~~~ 
 
 The RTTI is implemented as normal, as described in the [serializing objects](User_Manuals/Gameplay/serializingObjects) manual.
 
-You can then instantiate import options and provide them to the call of @b3d::Importer::import and they will be passed through all the way to your **SpecificImporter** implementation. After that you can read the relevant options and perform the import accordingly.
+You can then instantiate import options and provide them to the call of @b3d::Importer::Import and they will be passed through all the way to your **SpecificImporter** implementation. After that you can read the relevant options and perform the import accordingly.
 
 ~~~~~~~~~~~~~{.cpp}
 class PlainTextImporter : public SpecificImporter
@@ -87,7 +87,7 @@ class PlainTextImporter : public SpecificImporter
 public:
 	// ... other importer code
 
-	SPtr<Resource> import(const Path& filePath, SPtr<const ImportOptions> importOptions) override
+	SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override
 	{
 		const PlainTextImportOptions* myIO = static_cast<const PlainTextImportOptions*>(importOptions.get());
 	
@@ -106,9 +106,9 @@ public:
 ~~~~~~~~~~~~~ 
 
 ## Multiple resources
-If a single external file can be interpreted as multiple engine resources you should override the @b3d::SpecificImporter::importAll method. For example this is the case with FBX format which can contain a mesh and one or multiple animations.
+If a single external file can be interpreted as multiple engine resources you should override the @b3d::SpecificImporter::ImportAll method. For example this is the case with FBX format which can contain a mesh and one or multiple animations.
 
-**SpecificImporter::importAll()** method will return a list of resources, each with a unique identifier which allows external code to know what those resources are. One of the resources must always be considered primary, and that's the resource that should be returned by **SpecificImporter::import()** (others should be ignored). The primary resource must have the "primary" identifier, while you are free to add custom identifiers for every other resource.
+**SpecificImporter::ImportAll()** method will return a list of resources, each with a unique identifier which allows external code to know what those resources are. One of the resources must always be considered primary, and that's the resource that should be returned by **SpecificImporter::Import()** (others should be ignored). The primary resource must have the "primary" identifier, while you are free to add custom identifiers for every other resource.
  
 ~~~~~~~~~~~~~{.cpp}
 class PlainTextImporter : public SpecificImporter
@@ -116,7 +116,7 @@ class PlainTextImporter : public SpecificImporter
 public:
 	// ... other importer code
 
-	Vector<SubResourceRaw> importAll(const Path& filePath, SPtr<const ImportOptions> importOptions) override
+	Vector<SubResourceRaw> ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions) override
 	{
 		Vector<SubResourceRaw> output;
 	
@@ -130,4 +130,4 @@ public:
 };
 ~~~~~~~~~~~~~ 
 
-Then you can call @b3d::Importer::importAll to import multiple resources from a file.
+Then you can call @b3d::Importer::ImportAll to import multiple resources from a file.

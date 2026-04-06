@@ -29,7 +29,7 @@ To check if animation is currently playing call @b3d::Animation::IsPlaying.
 
 ~~~~~~~~~~~~~{.cpp}
 bool isPlaying = animation->IsPlaying();
-B3D_LOG(Info, Generic, "Animation is playing: {0}", isPlaying);
+B3D_LOG(Info, LogGeneric, "Animation is playing: {0}", isPlaying);
 ~~~~~~~~~~~~~
 
 > While animation is playing the **SceneObject** will be updated with transform from the animation root bone. This means any transform values you have set manually will get overriden. If you require custom transform on the animated **SceneObject** you should instead create a parent **SceneObject** that you can apply your custom transform to.
@@ -40,7 +40,7 @@ You can control the speed of the playback through @b3d::Animation::SetSpeed. The
 animation->SetSpeed(2.0f);
 
 float currentSpeed = animation->GetSpeed();
-B3D_LOG(Info, Generic, "Animation speed: {0}", currentSpeed);
+B3D_LOG(Info, LogGeneric, "Animation speed: {0}", currentSpeed);
 ~~~~~~~~~~~~~
 
 Finally, you can decide what happens when the animation clip reaches the end. By calling @b3d::Animation::SetWrapMode with the parameter of type @b3d::AnimationWrapMode you can choose:
@@ -51,7 +51,7 @@ Finally, you can decide what happens when the animation clip reaches the end. By
 animation->SetWrapMode(AnimationWrapMode::Loop);
 
 AnimationWrapMode currentWrapMode = animation->GetWrapMode();
-B3D_LOG(Info, Generic, "Wrap mode: {0}", (int)currentWrapMode);
+B3D_LOG(Info, LogGeneric, "Wrap mode: {0}", (int)currentWrapMode);
 ~~~~~~~~~~~~~
 
 ## Play on wake
@@ -63,7 +63,7 @@ To do this call @b3d::Animation::SetDefaultClip. The system will then keep a per
 animation->SetDefaultClip(animationClip);
 
 HAnimationClip defaultClip = animation->GetDefaultClip();
-B3D_LOG(Info, Generic, "Default clip set: {0}", defaultClip != nullptr);
+B3D_LOG(Info, LogGeneric, "Default clip set: {0}", defaultClip != nullptr);
 ~~~~~~~~~~~~~
 
 # Morph shapes
@@ -89,12 +89,12 @@ You can find out how many channels a morph shape animation has by retrieving a @
 SPtr<MorphShapes> morphShapes = mesh->GetMorphShapes();
 
 u32 channelCount = morphShapes->GetChannelCount();
-B3D_LOG(Info, Generic, "Number of morph channels: {0}", numChannels);
+B3D_LOG(Info, LogGeneric, "Number of morph channels: {0}", channelCount);
 
 for(u32 i = 0; i < channelCount; i++)
 {
 	SPtr<MorphChannel> channel = morphShapes->GetChannel(i);
-	B3D_LOG(Info, Generic, "Found morph channel: {0}", channel->GetName());
+	B3D_LOG(Info, LogGeneric, "Found morph channel: {0}", channel->GetName());
 }
 ~~~~~~~~~~~~~
 
@@ -112,5 +112,5 @@ AABox customBounds(Vector3(-1, -1, -1), Vector3(1, 1, 1));
 animation->SetCustomBounds(customBounds);
 
 AABox currentBounds = animation->GetCustomBounds();
-B3D_LOG(Info, Generic, "Custom bounds min: ({0}, {1}, {2})", currentBounds.GetMin().x, currentBounds.GetMin().y, currentBounds.GetMin().z);
+B3D_LOG(Info, LogGeneric, "Custom bounds min: ({0}, {1}, {2})", currentBounds.GetMin().x, currentBounds.GetMin().y, currentBounds.GetMin().z);
 ~~~~~~~~~~~~~

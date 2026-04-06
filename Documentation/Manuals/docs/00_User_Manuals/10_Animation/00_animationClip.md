@@ -45,10 +45,10 @@ Once imported the animation clip provides a few properties you can query. Use @b
 
 ~~~~~~~~~~~~~{.cpp}
 float animationLength = animationClip->GetLength();
-B3D_LOG(Info, Generic, "Animation length: {0} seconds", animationLength);
+B3D_LOG(Info, LogGeneric, "Animation length: {0} seconds", animationLength);
 
 SPtr<AnimationCurves> animationCurves = animationClip->GetCurves();
-B3D_LOG(Info, Generic, "Position curves: {0}", animationCurves->Position.size());
+B3D_LOG(Info, LogGeneric, "Position curves: {0}", animationCurves->Position.size());
 ~~~~~~~~~~~~~
 
 These aren't properties you need to access manually for normal animation playback, but it can be useful to know they're there. You can also manually assign custom animation curves by calling @b3d::AnimationClip::SetCurves. This allows you to create fully customized animations within the engine. Creation of animation curves is out of the scope of this manual but you can look up documentation for @b3d::AnimationCurves and related classes for more information.

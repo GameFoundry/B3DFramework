@@ -230,7 +230,7 @@ SPtr<PixelData> pixelData = ...;
 
 // Read pixel at 50x50
 Color color = pixelData->GetColorAt(50, 50);
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Pixel color: {0}", color);
+B3D_LOG(Info, LogGeneric, "Pixel color: {0}", color);
 
 // Read all pixels
 Vector<Color> allColors = pixelData->GetColors();

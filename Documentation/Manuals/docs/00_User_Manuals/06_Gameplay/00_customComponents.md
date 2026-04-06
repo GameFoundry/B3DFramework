@@ -102,10 +102,10 @@ private:
 		mCamera = SO()->GetComponent<Camera>();
 
 		// Create virtual buttons we'll be using for movement (assuming we registered them previously)
-		mMoveForward = VirtualButton("Forward");
-		mMoveBack = VirtualButton("Back");
-		mMoveLeft = VirtualButton("Left");
-		mMoveRight = VirtualButton("Right");
+		mMoveForward = VirtualInput::GetOrCreateVirtualButton("Forward");
+		mMoveBack = VirtualInput::GetOrCreateVirtualButton("Back");
+		mMoveLeft = VirtualInput::GetOrCreateVirtualButton("Left");
+		mMoveRight = VirtualInput::GetOrCreateVirtualButton("Right");
 	}
 
 	// Called every frame while the component is active and in Running state
@@ -119,10 +119,10 @@ private:
 
 		// If the movement button is pressed, determine direction to move in
 		Vector3 direction = Vector3::kZero;
-		if (goingForward) direction += SceneObject()->GetForward();
-		if (goingBack) direction -= SceneObject()->GetForward();
-		if (goingRight) direction += SceneObject()->GetRight();
-		if (goingLeft) direction -= SceneObject()->GetRight();
+		if (goingForward) direction += SceneObject()->GetTransform().GetForward();
+		if (goingBack) direction -= SceneObject()->GetTransform().GetForward();
+		if (goingRight) direction += SceneObject()->GetTransform().GetRight();
+		if (goingLeft) direction -= SceneObject()->GetTransform().GetRight();
 
 		// Multiply direction with speed and move in the direction
 		float frameDelta = GetTime().GetFrameDelta();
@@ -199,12 +199,12 @@ class CameraFlyer : public Component
 
 	void OnDisabled() override
 	{
-		B3D_LOG(Info, Generic, "Component disabled.");
+		B3D_LOG(Info, LogGeneric, "Component disabled.");
 	}
 
 	void OnEnabled() override
 	{
-		B3D_LOG(Info, Generic, "Component enabled.");
+		B3D_LOG(Info, LogGeneric, "Component enabled.");
 	}
 
 	...
@@ -225,10 +225,10 @@ class CameraFlyer : public Component
 	void OnTransformChanged(TransformChangedFlags flags) override
 	{
 		if ((flags & TCF_Transform) != 0)
-			B3D_LOG(Debug, Generic, "Parent SO moved.");
+			B3D_LOG(Debug, LogGeneric, "Parent SO moved.");
 
 		if ((flags & TCF_Parent) != 0)
-			B3D_LOG(Debug, Generic, "Scene object parent changed.");
+			B3D_LOG(Debug, LogGeneric, "Scene object parent changed.");
 	}
 
 	...

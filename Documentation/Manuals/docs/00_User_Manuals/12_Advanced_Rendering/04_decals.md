@@ -97,7 +97,7 @@ HDecal decal = ...;
 
 // Get the current decal size
 Vector2 decalSize = decal->GetSize();
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Decal size: {0}", decalSize);
+B3D_LOG(Info, LogRenderer, "Decal size: {0}", decalSize);
 ~~~~~~~~~~~~~
 
 For performance reasons decal will not project infinitely. You can set the maximum projection distance by calling @b3d::Decal::SetMaxDistance. You want to keep this as low as possible in order to reduce the rendering cost of the decal. For example if a decal is projecting onto a flat surface (e.g. a floor or wall) you'll want to position it close to the surface and keep the maximum distance low.
@@ -116,7 +116,7 @@ HDecal decal = ...;
 
 // Get the current maximum projection distance
 float maxDistance = decal->GetMaxDistance();
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Max distance: {0}", maxDistance);
+B3D_LOG(Info, LogRenderer, "Max distance: {0}", maxDistance);
 ~~~~~~~~~~~~~
 
 # Layers and masking
@@ -145,7 +145,7 @@ HDecal decal = ...;
 
 // Get the current layer mask
 u32 layerMask = decal->GetLayerMask();
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Layer mask: {0}", layerMask);
+B3D_LOG(Info, LogRenderer, "Layer mask: {0}", layerMask);
 ~~~~~~~~~~~~~
 
 Additionally, decals have their own layer that determines whether they are visible to a specific camera. Use @b3d::Decal::SetLayer to set the decal's layer, which must match the camera's layer bitfield for the decal to be rendered.
@@ -164,7 +164,80 @@ HDecal decal = ...;
 
 // Get the current layer
 u64 layer = decal->GetLayer();
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Decal layer: {0}", layer);
+B3D_LOG(Info, LogRenderer, "Decal layer: {0}", layer);
 ~~~~~~~~~~~~~
 
 ![Decal with masking](../../Images/DecalMask.png)
+
+# ECS fragments
+
+The **Decal** component stores its data internally as ECS fragments, enabling the renderer to batch-process all decals in the scene efficiently.
+
+## Data fragment
+
+The primary fragment is @b3d::ecs::Decal, which stores the decal's visual properties:
+ - **Material** - Material used to render the decal
+ - **Size** - Width and height of the projected decal in world space
+ - **MaxDistance** - Maximum projection distance from the decal's origin
+ - **Layer** - Layer bitfield for camera visibility filtering
+ - **LayerMask** - Bitfield controlling which surfaces the decal projects onto
+
+When you call setter methods like @b3d::Decal::SetMaterial or @b3d::Decal::SetSize, the component modifies this fragment and marks the entity as dirty for synchronization with the render thread.
+
+## ID fragment
+
+Each decal also has an @b3d::ecs::DecalId fragment that stores a persistent renderer ID used by the @b3d::RendererObjectStorage system for mapping to the packed render-thread representation.
+
+## Dirty tags
+
+The renderer uses two ECS tag types to track which decals need synchronization:
+ - `ecs::DecalDirty` - Added when any decal property changes. Triggers a full sync.
+ - `ecs::DecalTransformDirty` - Added when only the transform changes.
+
+## Using raw ECS fragments
+
+You can bypass the **Decal** component and create `ecs::Decal` fragments directly for maximum performance. You must manage the renderer ID, world transform, and dirty tags manually.
+
+~~~~~~~~~~~~~{.cpp}
+const SPtr<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
+ecs::Registry& registry = scene->GetECSRegistry();
+const SPtr<RendererScene>& rendererScene = scene->GetRendererScene();
+
+// Create an entity with the decal data fragment
+ecs::Entity entity = registry.CreateEntity();
+ecs::Decal& fragment = registry.AddComponent<ecs::Decal>(entity);
+fragment.Material = myDecalMaterial;
+fragment.Size = Vector2(2.0f, 2.0f);
+fragment.MaxDistance = 0.2f;
+
+// Add a world transform — the renderer reads this to position and orient the decal
+registry.AddComponent<ecs::WorldTransform>(entity, ecs::WorldTransform(myTransform));
+
+// Allocate a persistent renderer ID
+rendererScene->AllocateDecalId(registry, entity);
+
+// Mark dirty for initial sync
+registry.AddTag<ecs::DecalDirty>(entity);
+~~~~~~~~~~~~~
+
+When modifying the fragment, add the appropriate dirty tag:
+
+~~~~~~~~~~~~~{.cpp}
+ecs::Decal& fragment = registry.GetComponents<ecs::Decal>(entity);
+fragment.Size = Vector2(4.0f, 4.0f);
+registry.AddTag<ecs::DecalDirty>(entity);
+
+// For transform-only changes
+registry.GetComponents<ecs::WorldTransform>(entity) = ecs::WorldTransform(newTransform);
+registry.AddTag<ecs::DecalTransformDirty>(entity);
+~~~~~~~~~~~~~
+
+When destroying the entity, deallocate the renderer ID first:
+
+~~~~~~~~~~~~~{.cpp}
+rendererScene->DeallocateDecalId(registry, entity);
+registry.RemoveComponents<ecs::DecalDirty>(entity);
+registry.RemoveComponents<ecs::DecalTransformDirty>(entity);
+registry.RemoveComponents<ecs::Decal>(entity);
+registry.EraseEntity(entity);
+~~~~~~~~~~~~~

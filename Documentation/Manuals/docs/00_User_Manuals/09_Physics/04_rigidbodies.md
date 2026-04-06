@@ -250,7 +250,7 @@ In general, this process is automatic and isn't something you need to worry abou
 ~~~~~~~~~~~~~{.cpp}
 // Check if rigidbody is sleeping
 if (rigidbody->IsSleeping())
-	B3D_LOG(Info, Physics, "Rigidbody is sleeping");
+	B3D_LOG(Info, LogPhysics, "Rigidbody is sleeping");
 
 // Force the rigidbody to sleep
 rigidbody->Sleep();

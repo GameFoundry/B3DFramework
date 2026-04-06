@@ -27,7 +27,7 @@ HMesh mesh = ...;
 bone->SetBoneName("Hand");
 
 String boneName = bone->GetBoneName();
-B3D_LOG(Info, Generic, "Bone name: {0}", boneName);
+B3D_LOG(Info, LogGeneric, "Bone name: {0}", boneName);
 
 // Or query the skeleton information and search for the bone you need
 // SPtr<Skeleton> skeleton = mesh->GetSkeleton();

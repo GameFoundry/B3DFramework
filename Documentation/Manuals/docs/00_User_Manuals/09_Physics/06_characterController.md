@@ -49,11 +49,11 @@ if (GetInput().IsButtonHeld(BC_W))
 CharacterCollisionFlags collisionFlags = characterController->Move(Vector3(0.0f, 0.0f, 1.0f));
 
 if (collisionFlags & CharacterCollisionFlag::Sides)
-	B3D_LOG(Info, Physics, "Collided with sides");
+	B3D_LOG(Info, LogPhysics, "Collided with sides");
 if (collisionFlags & CharacterCollisionFlag::Up)
-	B3D_LOG(Info, Physics, "Collided with ceiling");
+	B3D_LOG(Info, LogPhysics, "Collided with ceiling");
 if (collisionFlags & CharacterCollisionFlag::Down)
-	B3D_LOG(Info, Physics, "Collided with ground");
+	B3D_LOG(Info, LogPhysics, "Collided with ground");
 ~~~~~~~~~~~~~
 
 This is similar to collision events reported by colliders and rigidbodies, but as the controller move is executed immediately, its collision is also reported right away, meaning you can respond to the event with no delay so there is less input latency (which is important for objects controlled directly by the player).
@@ -116,7 +116,7 @@ auto colliderHit = [](const ControllerColliderCollision& data)
 	String hitSceneObjectName = hitCollider->SO()->GetName();
 
 	Vector3 contactPoint = data.Position;
-	B3D_LOG(Info, Physics, "Hit {0} at point {1}", hitSceneObjectName, contactPoint);
+	B3D_LOG(Info, LogPhysics, "Hit {0} at point {1}", hitSceneObjectName, contactPoint);
 };
 
 characterController->OnColliderHit.Connect(colliderHit);
@@ -133,7 +133,7 @@ auto controllerHit = [](const ControllerControllerCollision& data)
 	String otherSceneObjectName = otherController->SO()->GetName();
 
 	Vector3 contactPoint = data.Position;
-	B3D_LOG(Info, Physics, "Hit {0} at point {1}", otherSceneObjectName, contactPoint);
+	B3D_LOG(Info, LogPhysics, "Hit {0} at point {1}", otherSceneObjectName, contactPoint);
 };
 
 characterController->OnControllerHit.Connect(controllerHit);

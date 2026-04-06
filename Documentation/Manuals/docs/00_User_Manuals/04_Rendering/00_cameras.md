@@ -264,7 +264,7 @@ Each camera can have custom render settings that control post-processing and vis
 
 ~~~~~~~~~~~~~{.cpp}
 // Create custom render settings
-SPtr<RenderSettings> settings = CreateSPtr<RenderSettings>();
+SPtr<RenderSettings> settings = B3DMakeShared<RenderSettings>();
 // ... configure settings (covered in rendering manuals)
 
 camera->SetRenderSettings(settings);

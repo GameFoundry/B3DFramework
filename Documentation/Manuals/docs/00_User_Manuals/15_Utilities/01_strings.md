@@ -71,24 +71,24 @@ i32 parsedInteger = Parsei32(integerString, 0);
 If the system cannot properly parse the string, it will instead assign the default value provided.
 
 # Manipulating strings
-Various forms of string manipulations can be performed via @b3d::StringUtil, including but not limited to: making a string upper or lower case, replacing string elements, matching string elements, splitting strings based on delimiters and more.
+Various forms of string manipulations can be performed via @b3d::StringUtility, including but not limited to: making a string upper or lower case, replacing string elements, matching string elements, splitting strings based on delimiters and more.
 
 ~~~~~~~~~~~~~{.cpp}
 String commaDelimitedString = "124,355,banana,954";
 
 // Split string into entries separated by ,
-Vector<String> stringEntries = StringUtil::Split(commaDelimitedString, ",");
+Vector<String> stringEntries = StringUtility::Split(commaDelimitedString, ",");
 
 // Replace all occurrences of "banana" within the string, with "643"
-commaDelimitedString = StringUtil::ReplaceAll(commaDelimitedString, "banana", "643");
+commaDelimitedString = StringUtility::ReplaceAll(commaDelimitedString, "banana", "643");
 ~~~~~~~~~~~~~
 
 # Formatting strings
-Often you need to construct larger strings from other strings. Use @b3d::StringUtil::Format to construct such strings by providing a template string, which contains special identifiers for inserting other strings. The identifiers are represented like "{0}, {1}" in the source string, where the number represents the position of the parameter that will be used for replacing the identifier.
+Often you need to construct larger strings from other strings. Use @b3d::StringUtility::Format to construct such strings by providing a template string, which contains special identifiers for inserting other strings. The identifiers are represented like "{0}, {1}" in the source string, where the number represents the position of the parameter that will be used for replacing the identifier.
 
 ~~~~~~~~~~~~~{.cpp}
 String templateString = "Hello, my name is {0}.";
-String formattedString = StringUtil::Format(templateString, "B3D Framework");
+String formattedString = StringUtility::Format(templateString, "B3D Framework");
 
 // formattedString now contains the string "Hello, my name is B3D Framework."
 ~~~~~~~~~~~~~

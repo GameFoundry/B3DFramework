@@ -75,6 +75,11 @@ render::TextureUtility::Write(texture, pixelData, 0, 0, TextureWriteFlag::Normal
 - For directly mappable textures (StoreOnCPUWithGPUAccess with LINEAR tiling): Uses **Map()** + **BulkPixelConversion**
 - For non-mappable textures: Uses staging buffer + **CopyBufferToTexture**
 
+The @b3d::render::TextureWriteFlag flags control behavior when writing to a texture that is in GPU use:
+ - @b3d::render::TextureWriteFlag::Normal - Default. Expects the subresource is not in GPU use. Caller must provide a command buffer if it is, otherwise the write fails.
+ - @b3d::render::TextureWriteFlag::Discard - Internally allocates new memory for the subresource, leaving old memory for the GPU to finish with. Anything not written by the caller is undefined.
+ - @b3d::render::TextureWriteFlag::NoOverwrite - Allows writing while the GPU is using the texture. The caller is responsible for not overlapping GPU regions and issuing appropriate barriers.
+
 ## Reading data
 
 To read pixel data from a texture subresource:
@@ -111,7 +116,7 @@ if (asyncOp.HasCompleted())
 
 ## Direct memory mapping
 
-For textures that support direct mapping (StoreOnCPUWithGPUAccess textures with LINEAR tiling), you can use @b3d::render::Texture::Map for direct CPU access:
+For textures that support direct mapping (StoreOnCPUWithGPUAccess textures with LINEAR tiling), you can use @b3d::render::Texture::Map for direct CPU access. The **Map()** method takes a mip level, array layer, and @b3d::GpuMapOptions, and returns a @b3d::render::GpuTextureMappedScope RAII wrapper. Unlike **GpuBufferMappedScope** which provides a raw `void*`, the texture mapped scope contains a @b3d::PixelData with format, dimensions, and pitch information, enabling format-aware pixel access.
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<render::Texture> texture = ...; // Must be StoreOnCPUWithGPUAccess
@@ -126,6 +131,33 @@ SPtr<render::Texture> texture = ...; // Must be StoreOnCPUWithGPUAccess
 		pixelData.SetColorAt(0, 0, Color::kRed);
 	}
 } // Automatically flushes when scope exits
+~~~~~~~~~~~~~
+
+You can also access the raw persistently-mapped memory pointer via @b3d::render::Texture::GetMappedMemory, which returns `nullptr` if the texture is not mappable.
+
+## Flushing and invalidation
+
+For non-coherent memory, render-thread textures provide @b3d::render::Texture::Flush and @b3d::render::Texture::Invalidate to synchronize between CPU and GPU. Unlike buffer flush/invalidate which takes byte offset and size, texture flush/invalidate operates on whole subresources specified by mip level and array layer:
+ - @b3d::render::Texture::Flush - Makes CPU writes visible to the GPU.
+ - @b3d::render::Texture::Invalidate - Makes GPU writes visible to the CPU. Must be called after issuing execution and memory barriers, before reading GPU-written data.
+
+These are called automatically when using **GpuTextureMappedScope** — Flush on write-mapped scope destruction, Invalidate before read-mapped scope creation.
+
+## Staging buffers
+
+@b3d::render::TextureUtility::CreateStagingBuffer creates a @b3d::render::GpuBuffer (not a staging texture) sized to hold the pixel data for a given mip level. This is used internally by **TextureUtility::Write** and **TextureUtility::Read**, but can also be used directly for explicit buffer-to-texture or texture-to-buffer copies:
+
+~~~~~~~~~~~~~{.cpp}
+SPtr<render::Texture> texture = ...;
+
+// Create a CPU-writable staging buffer for mip level 0
+SPtr<render::GpuBuffer> stagingBuffer = render::TextureUtility::CreateStagingBuffer(texture, 0, false);
+
+// Write data into the staging buffer, then copy to texture
+render::GpuBufferMappedScope scope = stagingBuffer->Map(GpuMapOption::Write);
+memcpy(scope.GetMappedMemory(), pixelData, stagingBuffer->GetTotalSize());
+scope.Unmap();
+commandBuffer->CopyBufferToTexture(stagingBuffer, texture, 0, 0, 0);
 ~~~~~~~~~~~~~
 
 ## Buffer-texture copies

@@ -59,7 +59,7 @@ You can access current properties of the window, like its size and position, by 
 ~~~~~~~~~~~~~{.cpp}
 const RenderWindowProperties& windowProperties = helperWindow->GetRenderWindowProperties();
 
-B3D_LOG(Info, Generic, "Window size: {0} x {1}", windowProperties.Width, windowProperties.Height);
+B3D_LOG(Info, LogRenderer, "Window size: {0} x {1}", windowProperties.Width, windowProperties.Height);
 ~~~~~~~~~~~~~
 
 You can also query the window's position and focus state:
@@ -67,9 +67,9 @@ You can also query the window's position and focus state:
 ~~~~~~~~~~~~~{.cpp}
 const RenderWindowProperties& windowProperties = helperWindow->GetRenderWindowProperties();
 
-B3D_LOG(Info, Generic, "Window position: ({0}, {1})", windowProperties.Left, windowProperties.Top);
-B3D_LOG(Info, Generic, "Window has focus: {0}", windowProperties.HasFocus);
-B3D_LOG(Info, Generic, "Window is fullscreen: {0}", windowProperties.IsFullScreen);
+B3D_LOG(Info, LogRenderer, "Window position: ({0}, {1})", windowProperties.Left, windowProperties.Top);
+B3D_LOG(Info, LogRenderer, "Window has focus: {0}", windowProperties.HasFocus);
+B3D_LOG(Info, LogRenderer, "Window is fullscreen: {0}", windowProperties.IsFullScreen);
 ~~~~~~~~~~~~~
 
 # Window events
@@ -78,7 +78,7 @@ Sometimes you might want to be notified if the user resizes the window externall
 ~~~~~~~~~~~~~{.cpp}
 void NotifyResized()
 {
-	B3D_LOG(Info, Generic, "Window was resized.");
+	B3D_LOG(Info, LogRenderer, "Window was resized.");
 }
 
 helperWindow->OnResized.Connect(&NotifyResized);
@@ -122,6 +122,6 @@ for (u32 i = 0; i < videoModeCount; i++)
 {
 	const VideoMode& currentVideoMode = primaryMonitorInfo.GetVideoMode(i);
 
-	B3D_LOG(Info, Generic, "Video mode: {0} x {1} at {2}Hz", currentVideoMode.Width, currentVideoMode.Height, currentVideoMode.RefreshRate);
+	B3D_LOG(Info, LogRenderer, "Video mode: {0} x {1} at {2}Hz", currentVideoMode.Width, currentVideoMode.Height, currentVideoMode.RefreshRate);
 }
 ~~~~~~~~~~~~~

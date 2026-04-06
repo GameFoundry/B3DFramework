@@ -289,8 +289,8 @@ public:
 		if (operationType.IsSet(RTTIOperationType::ReadBit))
 		{
 			mChildren.clear();
-			for (const auto& child : object.GetChildren())
-				mChildren.push_back(child.GetShared());
+			for (const auto& entry : object.mChildren)
+				mChildren.push_back(entry.GetShared());
 		}
 	}
 };

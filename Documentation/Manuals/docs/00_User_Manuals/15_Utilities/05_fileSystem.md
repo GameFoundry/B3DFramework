@@ -44,7 +44,7 @@ File system operations like opening, creating, deleting, moving, copying files/f
 
 An example creating a folder and a file:
 ~~~~~~~~~~~~~{.cpp}
-FileSystem::CreateDir("C:/Path/To/");
+FileSystem::CreateFolder("C:/Path/To/");
 
 SPtr<DataStream> fileStream = FileSystem::CreateAndOpenFile("C:/Path/To/File.txt");
 // Write to data stream (see below)

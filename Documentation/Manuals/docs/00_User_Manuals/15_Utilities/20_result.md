@@ -32,11 +32,11 @@ Result SaveConfiguration(const String& filename)
 Result result = SaveConfiguration("config.json");
 if(result.IsSuccessful())
 {
-	B3D_LOG(Info, Generic, "Configuration saved successfully");
+	B3D_LOG(Info, LogGeneric, "Configuration saved successfully");
 }
 else
 {
-	B3D_LOG(Error, Generic, "Save failed: {0}", result.GetFullErrorMessage());
+	B3D_LOG(Error, LogGeneric, "Save failed: {0}", result.GetFullErrorMessage());
 }
 ~~~~~~~~~~~~~
 
@@ -67,7 +67,7 @@ if(result.IsSuccessful())
 }
 else
 {
-	B3D_LOG(Error, Generic, "Failed to load texture: {0}", result.GetFullErrorMessage());
+	B3D_LOG(Error, LogGeneric, "Failed to load texture: {0}", result.GetFullErrorMessage());
 }
 ~~~~~~~~~~~~~
 
@@ -110,7 +110,7 @@ if(!result.IsSuccessful())
 {
 	// Get combined error message
 	String fullError = result.GetFullErrorMessage();
-	B3D_LOG(Error, Generic, "Mesh loading failed: {0}", fullError);
+	B3D_LOG(Error, LogGeneric, "Mesh loading failed: {0}", fullError);
 }
 ~~~~~~~~~~~~~
 
@@ -151,6 +151,6 @@ Result result = SaveConfiguration(config);
 if(!result.IsSuccessful())
 {
 	// Will show: "Configuration validation failed: Configuration name is required"
-	B3D_LOG(Error, Generic, "{0}", result.GetFullErrorMessage());
+	B3D_LOG(Error, LogGeneric, "{0}", result.GetFullErrorMessage());
 }
 ~~~~~~~~~~~~~

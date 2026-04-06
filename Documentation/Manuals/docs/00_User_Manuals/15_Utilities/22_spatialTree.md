@@ -112,7 +112,7 @@ TOctTree<GameObject, MyTreeOptions>::TreeIterator iterator(tree);
 while(iterator.MoveNext())
 {
 	const GameObject& element = iterator.GetElement();
-	B3D_LOG(Info, Generic, "Element at: {0}", element.GetPosition());
+	B3D_LOG(Info, LogGeneric, "Element at: {0}", element.GetPosition());
 }
 ~~~~~~~~~~~~~
 

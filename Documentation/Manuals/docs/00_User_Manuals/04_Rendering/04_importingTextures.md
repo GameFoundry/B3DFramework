@@ -36,10 +36,10 @@ Once a texture has been imported, you can retrieve its properties like width, he
 // Retrieve and print out various texture properties
 const auto& properties = texture->GetProperties();
 
-B3D_LOG(Info, Generic, "Width: {0}", properties.GetWidth());
-B3D_LOG(Info, Generic, "Height: {0}", properties.GetHeight());
-B3D_LOG(Info, Generic, "Format: {0}", (u32)properties.GetFormat());
-B3D_LOG(Info, Generic, "Num. mip maps: {0}", properties.GetMipMapCount());
+B3D_LOG(Info, LogGeneric, "Width: {0}", properties.GetWidth());
+B3D_LOG(Info, LogGeneric, "Height: {0}", properties.GetHeight());
+B3D_LOG(Info, LogGeneric, "Format: {0}", (u32)properties.GetFormat());
+B3D_LOG(Info, LogGeneric, "Num. mip maps: {0}", properties.GetMipMapCount());
 ~~~~~~~~~~~~~
 
 Additional texture properties:
@@ -173,7 +173,7 @@ texture->GetCachedData(*pixelData);
 // Get pixel at specific coordinates
 Color color = pixelData->GetColorAt(100, 200);
 
-B3D_LOG(Info, Generic, "Pixel color: R={0}, G={1}, B={2}, A={3}",
+B3D_LOG(Info, LogGeneric, "Pixel color: R={0}, G={1}, B={2}, A={3}",
     color.r, color.g, color.b, color.a);
 
 // Set pixel color
@@ -277,15 +277,15 @@ const auto& properties = texture->GetProperties();
 TextureType type = properties.GetTextureType();
 
 if (type == TEX_TYPE_2D)
-    B3D_LOG(Info, Generic, "2D texture");
+    B3D_LOG(Info, LogGeneric, "2D texture");
 else if (type == TEX_TYPE_3D)
-    B3D_LOG(Info, Generic, "3D texture");
+    B3D_LOG(Info, LogGeneric, "3D texture");
 else if (type == TEX_TYPE_CUBE_MAP)
-    B3D_LOG(Info, Generic, "Cube map texture");
+    B3D_LOG(Info, LogGeneric, "Cube map texture");
 else if (type == TEX_TYPE_2D_ARRAY)
-    B3D_LOG(Info, Generic, "2D texture array");
+    B3D_LOG(Info, LogGeneric, "2D texture array");
 else if (type == TEX_TYPE_CUBE_MAP_ARRAY)
-    B3D_LOG(Info, Generic, "Cube map texture array");
+    B3D_LOG(Info, LogGeneric, "Cube map texture array");
 ~~~~~~~~~~~~~
 
 # Texture usage flags

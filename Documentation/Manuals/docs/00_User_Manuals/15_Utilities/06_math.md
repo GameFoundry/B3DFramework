@@ -50,7 +50,7 @@ SphereD preciseSphere(Vector3D(0.0, 0.0, 0.0), 10.0);
 RayD preciseRay(Vector3D(0.0, 0.0, 0.0), Vector3D(0.0, 1.0, 0.0));
 AABoxD preciseBox(Vector3D(-5.0, -5.0, -5.0), Vector3D(5.0, 5.0, 5.0));
 
-B3D_LOG(LogVerbosity::Info, LogGeneral, "Float vector: {0}, Double vector: {1}",
+B3D_LOG(Info, LogGeneric, "Float vector: {0}, Double vector: {1}",
 	floatVector, doubleVector);
 ~~~~~~~~~~~~~
 
@@ -100,7 +100,7 @@ Radian secondAngle = firstAngle;
 void PrintAngle(Degree angle)
 {
 	float angleValue = angle.ValueDegrees();
-	B3D_LOG(Info, Uncategorized, "Angle is {0}", angleValue);
+	B3D_LOG(Info, LogGeneric, "Angle is {0}", angleValue);
 }
 
 // Caller doesn't need to care if the method accepts radians or degrees
@@ -254,7 +254,7 @@ Matrices can be inverted by calling @b3d::Matrix3::Inverse. Not all matrices hav
 ~~~~~~~~~~~~~{.cpp}
 Matrix3 inverseMatrix;
 if(originalMatrix.Inverse(inverseMatrix))
-	B3D_LOG(Info, Uncategorized, "Inverse found!");
+	B3D_LOG(Info, LogGeneric, "Inverse found!");
 ~~~~~~~~~~~~~
 
 You can decompose a matrix back into rotation & scale components by calling @b3d::Matrix3::Decomposition. Note that this is only able to work if the matrix contains rotation and/or uniform scale, without any other transformations. Otherwise returned values will likely not be accurate.
@@ -341,7 +341,7 @@ Matrices can be inverted by calling @b3d::Matrix4::Inverse. Not all matrices hav
 ~~~~~~~~~~~~~{.cpp}
 Matrix4 inverseMatrix;
 if(originalMatrix.Inverse(inverseMatrix))
-	B3D_LOG(Info, Uncategorized, "Inverse found!");
+	B3D_LOG(Info, LogGeneric, "Inverse found!");
 ~~~~~~~~~~~~~
 
 You can decompose a matrix back into rotation, scale and translation components by calling @b3d::Matrix4::Decomposition. Note that this is only able to work if the matrix contains rotation, translation and uniform scale, without any other transformations. Otherwise returned values will likely not be accurate.

@@ -14,7 +14,7 @@ class MyModule : public Module<MyModule>
 public:
 	void DoSomething()
 	{
-		B3D_LOG(Info, Generic, "Module is doing something!");
+		B3D_LOG(Info, LogGeneric, "Module is doing something!");
 	}
 
 	int GetValue() const { return mValue; }
@@ -84,13 +84,13 @@ public:
 	ConfigurableModule(const String& configPath, bool enableLogging)
 		: mConfigPath(configPath), mLoggingEnabled(enableLogging)
 	{
-		B3D_LOG(Info, Generic, "Module initialized with config: {0}", mConfigPath);
+		B3D_LOG(Info, LogGeneric, "Module initialized with config: {0}", mConfigPath);
 	}
 
 	void Process()
 	{
 		if(mLoggingEnabled)
-			B3D_LOG(Info, Generic, "Processing...");
+			B3D_LOG(Info, LogGeneric, "Processing...");
 	}
 
 private:
@@ -116,14 +116,14 @@ protected:
 	{
 		// Initialize resources
 		mResourcePool.Reserve(1000);
-		B3D_LOG(Info, Generic, "Resource module started");
+		B3D_LOG(Info, LogGeneric, "Resource module started");
 	}
 
 	void OnShutDown() override
 	{
 		// Clean up resources
 		mResourcePool.Clear(true);
-		B3D_LOG(Info, Generic, "Resource module shut down");
+		B3D_LOG(Info, LogGeneric, "Resource module shut down");
 	}
 
 private:

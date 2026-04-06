@@ -2,96 +2,152 @@
 title: Script objects
 ---
 
-What we have shown in the previous manual is enough to expose an object to C# and communicate with it. However framework provides another API built on top of that functionality in the form of script objects. This API handles some of the boilerplate code required for exposing an object to C#, provides a common interface all script objects need to implement, handles assembly refresh (due to script hot-swap) and gracefully handles managed object lifetime and destruction.
+What we have shown in the previous manual is enough to expose an object to C# and communicate with it. However the framework provides another API built on top of that functionality in the form of script objects. This API handles some of the boilerplate code required for exposing an object to C#, provides a common interface all script objects need to implement, handles assembly refresh (due to script hot-swap) and gracefully handles managed object lifetime and destruction.
 
 To implement the script object interface for a particular type you need two classes:
  - A native interop class (C++)
  - Managed wrapper class for the type (C#)
 
+# Architecture overview
+The script binding system has a layered architecture:
+
+ - @b3d::IScriptExportable - Interface implemented by native types that are exported to script. Provides the link from the native object to its script wrapper, and participates in script reload.
+ - @b3d::IScriptObjectWrapper - Base interface for all script object wrappers. Tracks the bidirectional link between a native object and its script object, and handles lifetime notifications.
+ - @b3d::ScriptObjectWrapper - Extends **IScriptObjectWrapper** with GC handle management, script reload support, and the factory method for creating wrappers.
+ - @b3d::TScriptTypeDefinition - Template that provides per-type meta-data (`sInteropMetaData`), auto-registration with **MonoManager**, and detection of optional `SetupScriptBindings()` and `InitializeAdditionalMetaData()` methods.
+ - @b3d::TScriptObjectWrapper - Template combining **ScriptObjectWrapper** (or a custom base) with **TScriptTypeDefinition**. This is the primary base class for most script interop objects.
+
+## Specialized wrappers
+Several specialized wrapper templates are provided for common native object categories. These handle type-specific concerns like reference counting, handle management and RTTI-based type lookup:
+
+ - @b3d::TScriptReflectableWrapper - For **IReflectable**-derived types passed as shared pointers (e.g. render settings, collider shapes). Inherits from **ScriptReflectableWrapper**.
+ - @b3d::TScriptResourceWrapper - For **Resource**-derived types passed as resource handles (e.g. **Mesh**, **Texture**). Inherits from **ScriptResourceWrapper**.
+ - @b3d::TScriptGameObjectWrapper - For **GameObject**-derived types passed as game object handles (e.g. **Component**, **SceneObject**). Inherits from **ScriptGameObjectWrapper**.
+ - @b3d::TScriptNonReflectableWrapper - For non-**IReflectable** types passed as shared pointers. Inherits from **TScriptNonReflectableWrapperBase**.
+ - @b3d::TScriptValueTypeWrapper - For value types that are copied when crossing the C++/C# boundary. Uses weak handle lifetime tracking.
+
+Each specialized wrapper provides:
+ - A constructor accepting the appropriate native handle/pointer type
+ - `CreateScriptObjectAndWrapper()` - Creates both the managed object and the wrapper, and associates them with a native object
+ - `GetOrCreateScriptObject()` - Returns the existing managed object for a native object, or creates a new one if none exists
+ - `GetNativeObjectAsShared()` or `GetNativeObjectAsHandle()` - Retrieves the wrapped native object
+
 # Native interop class
-This class is intended as a wrapper for the C++ class you're exposing to the scripting API. It will contain all the code needed for C++/C# interop. All such native interop objects must implement the @b3d::ScriptObject<T> interface. The template parameter should be the type of the interop class itself. The implementation of the class must begin with @SCRIPT_OBJ macro. The macro accepts (in order): 
- - the name of the assembly (.dll) the managed wrapper class is in, this is usually `ENGINE_ASSEMBLY` or `EDITOR_ASSEMBLY`
- - the namespace the managed wrapper class
+This class is intended as a wrapper for the C++ class you're exposing to the scripting API. It will contain all the code needed for C++/C# interop. Which base class to use depends on the type of native object being wrapped:
+
+| Native object type | Base class template | Constructor parameter |
+|---|---|---|
+| **IReflectable** subclass (shared ptr) | `TScriptReflectableWrapper<NativeType, SelfType>` | `const SPtr<NativeType>&` |
+| **Resource** subclass (handle) | `TScriptResourceWrapper<NativeType, SelfType>` | `const TResourceHandle<NativeType>&` |
+| **GameObject** subclass (handle) | `TScriptGameObjectWrapper<NativeType, SelfType>` | `const TGameObjectHandle<NativeType>&` |
+| Non-reflectable (shared ptr) | `TScriptNonReflectableWrapper<NativeType, SelfType>` | `const SPtr<NativeType>&` |
+| Value type (by value) | `TScriptValueTypeWrapper<NativeType, SelfType>` | `const NativeType&` |
+| Other / manual | `TScriptObjectWrapper<SelfType>` | `IScriptExportable*` |
+
+The implementation of the class must include the @B3D_SCRIPT_TYPE_DEFINITION macro. The macro accepts (in order):
+ - the assembly constant for the managed wrapper class, usually `kEngineAssembly` or `kEditorAssembly`
+ - the namespace constant for the managed wrapper class, usually `kEngineNs` or `kEditorNs`
  - the name of the managed wrapper class
- 
-**ScriptObject** constructor accepts a **MonoObject** which must contain the managed instance of the object and should be provided when the script object is created. If a script object is wrapping a static class, then the constructor is of no relevance as the script object will never be constructed (but still needs to be present).
+
+Each wrapper must also provide a static `CreateScriptObject(bool construct)` method that creates the managed object instance.
 
 ~~~~~~~~~~~~~{.cpp}
-class ScriptMyObject : public ScriptObject <ScriptMyObject>
+// Example: wrapping an IReflectable-derived type
+class ScriptMyObject : public TScriptReflectableWrapper<MyObject, ScriptMyObject>
 {
 public:
-	SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "MyObject")
+	B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MyObject")
 
-	ScriptMyObject(MonoObject* instance)
-		:ScriptObject(instance)
+	ScriptMyObject(const SPtr<MyObject>& nativeObject)
+		: TScriptReflectableWrapper(nativeObject)
 	{ }
+
+	static MonoObject* CreateScriptObject(bool construct);
+	static void SetupScriptBindings();
 };
-~~~~~~~~~~~~~	
+~~~~~~~~~~~~~
 
-**SCRIPT_OBJ** macro defines a static **initRuntimeData()** method you need to implement. In this method you want to take care of hooking up managed internal methods to C++ functions. It gets called automatically on startup and whenever the assembly containing the related managed class is loaded. 
+## SetupScriptBindings
+**B3D_SCRIPT_TYPE_DEFINITION** works together with @b3d::TScriptTypeDefinition to auto-detect an optional static `SetupScriptBindings()` method on your class. If present, it gets called automatically on startup and whenever the assembly containing the related managed class is loaded.
 
-Every **ScriptObject** provides a static @b3d::ScriptObject::getMetaData structure you can use for retrieving the **MonoClass** of the related managed class. You can use that **MonoClass** to register internal methods to it (as described earlier). 
+Every **TScriptTypeDefinition** provides a static `sInteropMetaData` field (of type @b3d::ScriptTypeMetaData) you can use for retrieving the **MonoClass** of the related managed class. You can use that **MonoClass** to register internal methods to it (as described in the previous manual).
+
 ~~~~~~~~~~~~~{.cpp}
-class ScriptMyObject : public ScriptObject <ScriptMyObject>
+class ScriptMyObject : public TScriptReflectableWrapper<MyObject, ScriptMyObject>
 {
 	// Other code ...
-	
-	static void internal_CreateInstance(MonoObject* obj);
-	static float internal_GetSomeValue(MonoObject* obj);
-	static void internal_SetSomeObject(MonoObject* obj);
+
+	static float internal_GetSomeValue(ScriptMyObject* self);
+	static void internal_SetSomeValue(ScriptMyObject* self, float value);
 };
 
-void ScriptMyObject::initRuntimeData()
+void ScriptMyObject::SetupScriptBindings()
 {
-	metaData.scriptClass->addInternalCall("Internal_CreateInstance", &ScriptMyObject::internal_CreateInstance);
-	metaData.scriptClass->addInternalCall("Internal_GetSomeValue", &ScriptMyObject::internal_GetSomeValue);
-	metaData.scriptClass->addInternalCall("Internal_SetSomeObject", &ScriptMyObject::internal_SetSomeObject);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSomeValue", &ScriptMyObject::internal_GetSomeValue);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSomeValue", &ScriptMyObject::internal_SetSomeValue);
 }
 ~~~~~~~~~~~~~
 
-**initRuntimeData()** is also a good spot to retrieve **MonoMethod**%s (or thunks) for managed methods that needed to be called by the script interop object, if any.
+**SetupScriptBindings()** is also a good spot to retrieve **MonoMethod**%s (or thunks) for managed methods that need to be called by the script interop object, if any.
 
-## Creating script object instances	
-If your class is not static you will need to eventually create an instance of the script object. This can be done either from C# or C++, depending on what is needed. For example script interop objects for GUI will be created from managed code because user can add GUI elements himself, but a resource like **Font** will have its script interop object (and managed instance) created purely from C++ because such an object cannot be created directly in managed code.
+## Creating script object instances
+If your class is not static you will need to eventually create an instance of the script object. The specialized wrappers provide `CreateScriptObjectAndWrapper()` and `GetOrCreateScriptObject()` static methods for this purpose.
 
-For the first case you should set up an internal method that accepts the managed object instance, and is called in the managed constructor. This way the method gets called whenever the managed object gets created and you can create the related script interop object.
+`GetOrCreateScriptObject()` is the preferred entry point — it first checks if the native object already has an associated script object (via @b3d::IScriptExportable::GetScriptObjectWrapper), and only creates a new one if needed. For **IReflectable** and **GameObject** types, it also performs RTTI-based lookup to find the correct wrapper type for derived classes.
+
 ~~~~~~~~~~~~~{.cpp}
-// This method should be called from the managed object's constructor, with "this" object as the parameter
-void ScriptMyObject::internal_CreateInstance(MonoObject* obj)
-{
-	// No need to store the created value anywhere, the system will clean it up automatically when the managed object is destroyed
-	B3DNew<ScriptMyObject>(obj);
-}
+// From C++: get or create the managed object for a native object
+SPtr<MyObject> nativeObject = ...;
+MonoObject* managedObj = ScriptMyObject::GetOrCreateScriptObject(nativeObject);
 ~~~~~~~~~~~~~
-	
-For the second case where you want to create the interop object from C++ you can create a static *create()* method like so:
+
+If the managed object is created from C# (e.g. via a constructor), you should set up an internal method that accepts the managed object instance and creates the wrapper:
 ~~~~~~~~~~~~~{.cpp}
-MonoObject* ScriptMyObject::create()
+void ScriptMyObject::internal_CreateInstance(MonoObject* scriptObject)
 {
-	MonoObject* managedObj = metaData.scriptClass->createInstance();
-	B3DNew<ScriptMyObject>(managedObj);
-	
-	return managedObj;
+	SPtr<MyObject> nativeObject = B3DMakeShared<MyObject>();
+	ScriptObjectWrapper::Create<ScriptMyObject>(nativeObject, scriptObject);
 }
 ~~~~~~~~~~~~~
-	
-If you ever receive a **MonoObject** of the type you know that has a **ScriptObject** implemented, you can retrieve it by calling @b3d::ScriptObject::toNative(MonoObject*) static method. 
+
+@b3d::ScriptObjectWrapper::Create is the factory method for creating wrappers. It takes the native object and the managed object as parameters:
+~~~~~~~~~~~~~{.cpp}
+template<typename ScriptWrapperType, typename NativeType>
+static ScriptWrapperType* Create(NativeType&& nativeObject, MonoObject* scriptObject);
+~~~~~~~~~~~~~
+
+If you ever receive a **MonoObject** of the type you know that has a **TScriptObjectWrapper** implemented, you can retrieve it by calling the static `GetScriptObjectWrapper(MonoObject*)` method.
 ~~~~~~~~~~~~~{.cpp}
 void ScriptMyObject::internal_SetSomeObject(MonoObject* obj)
 {
-	ScriptSomeObject* someObj = ScriptSomeObject::toNative(obj);
+	ScriptSomeObject* someObj = ScriptSomeObject::GetScriptObjectWrapper(obj);
 }
 ~~~~~~~~~~~~~
 
-## Destroying script object instances ###
-When the managed object is destroyed (e.g. goes out of scope and gets garbage collected) the system will automatically take care of freeing the related **ScriptObject**. If you need to add onto or replace that functionality you can override @b3d::ScriptObjectBase::_onManagedInstanceDeleted method. This is useful if you need to perform some additional cleanup.
+## Lifetime tracking
+Script object wrappers manage the link between the native object and the managed object using GC handles. The @b3d::ScriptObjectLifetimeTrackingMode enum controls the behavior:
 
-# Managed wrapper object ##
+ - `StrongHandleWithGarbageCollection` (default) - The wrapper holds a strong GC handle. Periodically, the system checks if the native object's reference count has dropped to 1 (only the wrapper holds it). If so, the handle transitions to weak, allowing garbage collection to destroy both the managed and native objects.
+ - `StrongHandleWithExplicitDestroy` - The wrapper holds a strong GC handle that is released when the native object is explicitly destroyed. Used by **GameObject** and **Resource** types.
+ - `WeakHandle` - The wrapper holds a weak GC handle. The native object is freed when the managed object is garbage collected. Used by value types.
+
+## Destroying script object instances
+When the managed object is destroyed (e.g. goes out of scope and gets garbage collected) the system will automatically take care of freeing the related **TScriptObjectWrapper**. You can override `NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload)` if you need to perform additional cleanup. Similarly, `NotifyNativeObjectDestroyed()` is called when the native object is destroyed first.
+
+# IScriptExportable
+Native types that are exported to script should implement the @b3d::IScriptExportable interface. This provides the native-side link to the script world:
+
+ - `GetScriptObjectWrapper()` - Returns the associated **IScriptObjectWrapper**, or null if no script object exists yet.
+ - Script reload callbacks (mirroring those on **ScriptObjectWrapper**) - `ShouldPersistScriptReload()`, `BackupDataBeforeScriptReload()`, `RecreateScriptObjectAfterScriptReload()`, `RestoreDataAfterScriptReload()`, `NotifyScriptReloadFinished()`.
+
+The association between a native object and its wrapper is set up automatically when `ScriptObjectWrapper::Create()` is called.
+
+# Managed wrapper object
 Creating the script interop class is one half of the job done. You also need to create the managed counterpart, however that is significantly simpler.
 
 Every managed script object must implement the **ScriptObject** interface. For example a C# version of the class we're using in this example would look like:
 ~~~~~~~~~~~~~{.cs}
-namespace BansheeEngine
+namespace b3d
 {
 	public class MyObject : ScriptObject
 	{
@@ -99,50 +155,32 @@ namespace BansheeEngine
 		{
 			Internal_CreateInstance(this)
 		}
-		
+
 		public float SomeValue
 		{
-			get { return Internal_GetSomeValue(this); }
+			get { return Internal_GetSomeValue(GetCachedPtr()); }
+			set { Internal_SetSomeValue(GetCachedPtr(), value); }
 		}
-		
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_CreateInstance(MyObject obj);
-		
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern float Internal_GetSomeValue(MyObject obj);
-		
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void internal_SetSomeObject(SomeObject obj);
-	}
-}
-~~~~~~~~~~~~~
 
-That's all that needs to be done. You can now create the object in C# and use its property to retrieve the value from C++ code.
-
-All managed **ScriptObject**%s provide a **ScriptObject::GetCachedPtr()** method which returns an **IntPtr** which points to the script interop object described in previous sections. This can be used for passing a reference to the **ScriptObject** directly, rather than passing a **MonoObject** which then needs to be converted to **ScriptObject**.
-
-For example, if we change the *Internal_GetSomeValue()* method in the example above to use this approach, it would look like so:
-~~~~~~~~~~~~~{.cs}
-namespace BansheeEngine
-{
-	public float SomeValue
-	{
-		get { return Internal_GetSomeValue(GetCachedPtr()); }
-	}
-
-	public class MyObject : ScriptObject
-	{
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_GetSomeValue(IntPtr obj);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_SetSomeValue(IntPtr obj, float value);
 	}
 }
 ~~~~~~~~~~~~~
 
-And the corresponding C++ function would then accept the script object directly:
+All managed **ScriptObject**%s provide a **ScriptObject::GetCachedPtr()** method which returns an **IntPtr** which points to the script interop object. This is the preferred approach for passing a reference to the native wrapper — the corresponding C++ function then accepts the script object wrapper directly:
+
 ~~~~~~~~~~~~~{.cpp}
-float ScriptMyObject::internal_GetSomeValue(ScriptMyObject* obj)
+float ScriptMyObject::internal_GetSomeValue(ScriptMyObject* self)
 {
-	// No need to convert from MonoObject to ScriptMyObject
+	// Access the native object directly through the wrapper
+	return self->GetNativeObjectAsShared()->GetSomeValue();
 }
 ~~~~~~~~~~~~~
 
@@ -151,64 +189,69 @@ Assembly refresh is the process that happens when managed code is recompiled and
 
 By default any script objects of such managed objects are destroyed as well. In many cases this is okay, for example GUI elements don't persist refresh, because they're just rebuilt from the managed code every time the refresh happens. However objects like resources, scene objects and components are persistent - we don't wish to reload the entire scene and all resources every time assembly refresh happens.
 
-In order to make your script objects persist through refresh you need to inherit from a variation of **ScriptObject** that as its second template parameter takes a @b3d::PersistentScriptObjectBase.
+Specialized wrappers like **TScriptGameObjectWrapper** and **TScriptResourceWrapper** automatically persist through reload (their `ShouldPersistScriptReload()` returns `true`). For other wrapper types, override the method:
 
 ~~~~~~~~~~~~~{.cpp}
-class MyScriptObject : public ScriptObject<MyScriptObject, PersistentScriptObjectBase>
+class ScriptMyObject : public TScriptReflectableWrapper<MyObject, ScriptMyObject>
 {
+	bool ShouldPersistScriptReload() const override { return true; }
 	...
 };
-~~~~~~~~~~~~~	
-	
-This ensures that your object is treated properly during assembly refresh. Persistent object then needs to handle four different actions, represented by overrideable methods. These methods are called in order specified, during assembly refresh.
- - @b3d::ScriptObjectBase::beginRefresh() - Called just before the refresh starts. The object is still alive here and you can use this time to save the contents of the managed object before it is destroyed.
- - @b3d::ScriptObjectBase::_onManagedInstanceDeleted - Called after assembly unload happened and the managed object was destroyed. You should override this to prevent the **ScriptObject** itself from being deleted if the assembly refresh is in progress. If assembly refresh is not in progress this method should delete the **ScriptObject** as it likely got called due to standard reasons (managed object went out of scope).
- - @b3d::ScriptObject::_createManagedInstance - Creates the managed instance after new assemblies are loaded. You should override this if your managed class is constructed using a constructor with parameters. By default this will call **MonoClass::createInstance()** using the parameterless constructor.
- - @b3d::ScriptObjectBase::endRefresh() - Called after all assemblies are loaded, and after all script interop objects were either destroyed (non-persistent) or had their managed instances re-created (persistent). If you stored any data during **ScriptObject::beginRefresh()**, you should restore it here.
+~~~~~~~~~~~~~
+
+This ensures that your object is treated properly during assembly refresh. Persistent objects then need to handle four different actions, represented by overrideable methods. These methods are called in the order specified, during assembly refresh.
+ - `BackupDataBeforeScriptReload()` - Called just before the refresh starts. The object is still alive here and you can use this time to save the contents of the managed object before it is destroyed. Returns a `TOptional<ScriptObjectReloadPersistentData>` containing any data to carry across the reload.
+ - `NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload)` - Called after assembly unload happened and the managed object was destroyed. Override this to prevent the **TScriptObjectWrapper** itself from being deleted when `isDestroyedDueToScriptReload` is `true`. If a reload is not in progress, clean up normally.
+ - `RecreateScriptObjectAfterScriptReload()` - Creates the managed instance after new assemblies are loaded. By default this calls `CreateScriptObject(true)` and binds it. The native object's **IScriptExportable** interface is also given an opportunity to handle recreation.
+ - `RestoreDataAfterScriptReload(const ScriptObjectReloadPersistentData& data)` - Called after all assemblies are loaded, and after all script interop objects were either destroyed (non-persistent) or had their managed instances re-created (persistent). Restore here any data saved during `BackupDataBeforeScriptReload()`.
+
+Note that both **ScriptObjectWrapper** and **IScriptExportable** have reload callbacks. The wrapper-side callbacks manage the script object lifecycle, while the native-side callbacks on **IScriptExportable** allow the native object to participate in the reload process independently of the wrapper.
  
-# Deriving from ScriptObject
+# Deriving from TScriptObjectWrapper
 Sometimes script objects are polymorphic. For example a **GUIElement** is derived from **ScriptObject** in managed code, and **GUIButton** is derived from **GUIElement**, however they both have script interop objects of their own.
 
-Due to the nature of how our script interop objects are defined we cannot follow the same simple chain of inheritance in C++ code. For example class definition for script interop object for **GUIElement** would be:
+Due to the nature of how script interop objects are defined we cannot follow the same simple chain of inheritance in C++ code. For example class definition for the script interop object for **GUIElement** would be:
 ~~~~~~~~~~~~~{.cpp}
-class ScriptGUIElement : public ScriptObject<ScriptGUIElement>
+class ScriptGUIElement : public TScriptObjectWrapper<ScriptGUIElement>
 {
 public:
-	SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "GUIElement")
+	B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIElement")
 ...
 }
-~~~~~~~~~~~~~	
-	
-But what would it be for **GUIButton**? It also needs to implement **ScriptObject** with its own **SCRIPT_OBJ** macro so we cannot just inherit from **ScriptGUIElement** directly as it would clash.
+~~~~~~~~~~~~~
 
-The solution is to create a third class that will serve as a base for both. This third class will be a base class for **ScriptObject** (its second template parameter allows us to override its default **ScriptObjectBase** base class). The third class will need to inherit @b3d::ScriptObjectBase and can implement any functionality common to all GUI elements (e.g. it might store a pointer to a native **GUIElement**).
+But what would it be for **GUIButton**? It also needs to implement **TScriptObjectWrapper** with its own **B3D_SCRIPT_TYPE_DEFINITION** macro so we cannot just inherit from **ScriptGUIElement** directly as it would clash.
+
+The solution is to create a third class that will serve as a base for both. This third class will be a base class for **TScriptObjectWrapper** (its second template parameter allows us to override its default **ScriptObjectWrapper** base class). The third class will need to inherit @b3d::ScriptObjectWrapper and can implement any functionality common to all GUI elements (e.g. it might store a pointer to a native **GUIElement**).
 
 Provided our common base class is defined as such:
 ~~~~~~~~~~~~~{.cpp}
-class ScriptGUIElementBase : public ScriptObjectBase
+class ScriptGUIElementBase : public ScriptObjectWrapper
 {
 	// Functionality common to all GUI elements
 };
 ~~~~~~~~~~~~~
 
-Then we can define script interop object for **GUIElement** as:
+Then we can define the script interop object for **GUIElement** as:
 ~~~~~~~~~~~~~{.cpp}
-class ScriptGUIElement : public ScriptObject<ScriptGUIElement, ScriptGUIElementBase>
+class ScriptGUIElement : public TScriptObjectWrapper<ScriptGUIElement, ScriptGUIElementBase>
 {
 public:
-	SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "GUIElement")
+	B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIElement")
 ...
 };
 ~~~~~~~~~~~~~
 
-And interop object for **GUIButton** would then be:
+And the interop object for **GUIButton** would then be:
 ~~~~~~~~~~~~~{.cpp}
-class ScriptGUIButton : public ScriptObject<ScriptGUIButton, ScriptGUIElementBase>
+class ScriptGUIButton : public TScriptObjectWrapper<ScriptGUIButton, ScriptGUIElementBase>
 {
 public:
-	SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "GUIButton")
+	B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIButton")
 ...
 };
-~~~~~~~~~~~~~	
-	
-This ensures that all GUI elements can now be accessed through the common **ScriptGUIElementBase** interface. Which is important if **GUIElement** provides some internal method calls shared between all GUI element types, otherwise we wouldn't know what to cast the interop object held by its managed object to.
+~~~~~~~~~~~~~
+
+This ensures that all GUI elements can now be accessed through the common **ScriptGUIElementBase** interface. This is important if **GUIElement** provides some internal method calls shared between all GUI element types, otherwise we wouldn't know what to cast the interop object held by its managed object to.
+
+Note that the specialized wrappers (**TScriptReflectableWrapper**, **TScriptResourceWrapper**, etc.) already follow this pattern — they use their non-template base class (e.g. **ScriptReflectableWrapper**) as the common base, and all derived types share it via the third template parameter.

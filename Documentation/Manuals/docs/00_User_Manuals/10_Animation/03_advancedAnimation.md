@@ -103,9 +103,9 @@ AnimationClipState state;
 // Returns true if the clip was queued for playback (in any way) on the component
 if(animation->GetState(animationClip, state))
 {
-	B3D_LOG(Info, Generic, "Animation is currently at time: {0}", state.Time);
-	B3D_LOG(Info, Generic, "Animation speed: {0}", state.Speed);
-	B3D_LOG(Info, Generic, "Animation weight: {0}", state.Weight);
+	B3D_LOG(Info, LogGeneric, "Animation is currently at time: {0}", state.Time);
+	B3D_LOG(Info, LogGeneric, "Animation speed: {0}", state.Speed);
+	B3D_LOG(Info, LogGeneric, "Animation weight: {0}", state.Weight);
 }
 ~~~~~~~~~~~~~
 

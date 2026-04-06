@@ -34,4 +34,4 @@ If the method provides a return value, you can use the provided **AsyncOp** obje
 
 Note that blocking is a very expensive operation and should not be done in performance critical code. If you need to wait until an async method completes, it is preferable to keep querying **AsyncOp::hasCompleted()** and do something else until it returns true.
 
-If you wish to learn more about how core thread works, visit the [core thread manual](@ref coreThread).
+If you wish to learn more about how core thread works, visit the [render thread manual](@ref renderThread).

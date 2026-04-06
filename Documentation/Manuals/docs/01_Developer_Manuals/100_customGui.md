@@ -6,9 +6,10 @@ Even though bsf provides fully skinnable and very customizable GUI elements, som
 
 You are expected to have read the user-facing GUI manuals before proceeding, and as such familiarized yourself with the basics.
 
-All GUI elements derive from the base @b3d::GUIElementBase type. The elements can be categorized into two major groups:
+All GUI elements derive from the base @b3d::GUIElement type. The elements can be categorized into two major groups:
  - *Layouts* - They derive from @b3d::GUILayout and do not have any graphics, but instead they control the placement of all elements attached to them.
- - *Elements* - They derive from @b3d::GUIElement, and they're standard GUI elements like buttons, input boxes, sliders and such.
+ - *Renderable* - They derive from @b3d::GUIRenderable, and provide graphics rendering capabilities.
+ - *Interactable* - They derive from @b3d::GUIInteractable, and they're standard GUI elements like buttons, input boxes, sliders and such that support user interaction.
  
 It's unlikely you will have the need to create **GUILayout** types, so we will instead focus on creating custom GUI elements. 
  
@@ -24,49 +25,45 @@ class GUITexture : public GUIElement
 ~~~~~~~~~~~~~ 
 
 ## Construction
-In its constructor **GUIElement** expects two parameters:
- - `styleName` - Name of the style to use for rendering the element. This will be looked up in the currently active **GUISkin** and relevant @b3d::GUIElementStyle objects will be used for determining object's textures, fonts, colors, borders, margins and similar. Each GUI element type should have a unique default style name, but you also might want to allow the user to override the default style name if he desires. 
- - `dimensions` - Initial set of dimensions determining GUI element's position and size, represented by @b3d::GUIDimensions. You can create an empty set of dimensions by calling @b3d::GUIDimensions::create, in which case the system will use whichever dimensions are provided by the **GUIElementStyle**. Other overload of **GUIDimensions::create()** accepts a @b3d::GUIOptions object, in which you can specify an arbitrary sized array of various dimension related options.
+In its constructor **GUIRenderable** expects two parameters:
+ - `styleClass` - Name of the style class to use for rendering the element. This will be looked up in the currently active style sheet and relevant style rules will be used for determining object's textures, fonts, colors, borders, margins and similar. Each GUI element type should have a unique default style class name, but you also might want to allow the user to override it if desired. 
+ - `sizeConstraints` - Initial set of size constraints determining GUI element's size constraints, represented by @b3d::GUISizeConstraints. You can create empty constraints by calling @b3d::GUISizeConstraints::Create(), in which case the system will use whichever constraints are provided by the style sheet. Another overload of **GUISizeConstraints::Create()** accepts a @b3d::GUIOptions object, in which you can specify an arbitrary sized array of various size constraint related options.
 
 As a rule of thumb in order to aid construction GUI elements should provide a set of static `create()` methods (but aren't required to). You usually want to provide a few overloads of `create()` that allow the user to use custom style/dimensions or stick with the default one.
 
 ~~~~~~~~~~~~~{.cpp}
-class GUITexture : public GUIElement
+class GUITexture : public GUIRenderable
 {
 public:
-	static const String& getGUITypeName()
+	static const String& GetGuiTypeName()
 	{
-		// Returns the name of this GUI element, used for looking up the default style
+		// Returns the name of this GUI element, used for looking up the style class
 		static String name = "Texture";
 		return name;
 	}
 	
-	GUITexture(const String& styleName, const GUIDimensions& dimensions)
-		:GUIElement(styleName, dimensions)
+	GUITexture(PrivatelyConstruct, const String& styleClass, const GUISizeConstraints& sizeConstraints)
+		:GUIRenderable(styleClass, sizeConstraints)
 	{ }
 
-	// create() overload accepting custom dimensions in the form of GUIOptions
-	static GUITexture* create(const GUIOptions& options, const String& styleName = StringUtil::BLANK)
+	// Create() overload accepting custom size constraints in the form of GUIOptions
+	static GUITexture* Create(const GUIOptions& options, const String& styleClass = StringUtility::kBlank)
 	{
-		// If user didn't provide a style name, use the default
-		String finalStyleName = styleName;
-		if(styleName == StringUtil::BLANK)
-			finalStyleName = getGUITypeName();
+		// If user didn't provide a style class, use the default
+		String finalStyleClass = GetStyleClass<GUITexture>(styleClass);
 
-		// Pass style name, and construct dimensions from the provided list of options
-		return B3DNew<GUITexture>(finalStyleName, GUIDimensions::create(options));
+		// Pass style class, and construct size constraints from the provided list of options
+		return B3DNew<GUITexture>(PrivatelyConstruct(), finalStyleClass, GUISizeConstraints::Create(options));
 	}
 	
-	// create() overload using default dimensions
-	static GUITexture* create(const String& styleName = StringUtil::BLANK)
+	// Create() overload using default size constraints
+	static GUITexture* Create(const String& styleClass = StringUtility::kBlank)
 	{
 		// Same as above
-		String finalStyleName = styleName;
-		if(styleName == StringUtil::BLANK)
-			finalStyleName = getGUITypeName();
+		String finalStyleClass = GetStyleClass<GUITexture>(styleClass);
 
-		// Pass style name, and construct default dimensions object
-		return B3DNew<GUITexture>(finalStyleName, GUIDimensions::create());
+		// Pass style class, and construct default size constraints object
+		return B3DNew<GUITexture>(PrivatelyConstruct(), finalStyleClass, GUISizeConstraints::Create());
 	}
 
 	// ... remaining GUITexture implementation
@@ -78,63 +75,48 @@ In order for your GUI element to be visible you need to define its graphics. Thi
  - Creating a set of vertices and indices that represent your GUI element
  - Create the material to render the GUI element with, and bind required textures and other properties to it
 
-This is done by implementing @b3d::GUIElement::updateRenderElementsInternal() and @b3d::GUIElement::_fillBuffer() methods.
+This is done by implementing @b3d::GUIRenderable::UpdateRenderElements() and @b3d::GUIRenderable::FillBuffer() methods.
 
-### GUIElement::updateRenderElementsInternal()
+### GUIRenderable::UpdateRenderElements()
 
-Called whenever the element's size or style changes. This is the method where you should rebuild the GUI element's mesh. Your main goal is to populate the `mRenderElements` array with information about your GUI element and its renderable elements. 
+Called whenever the element's size or style changes. This is the method where you should rebuild the GUI element's mesh. Your main goal is to populate the internal render elements with information about your GUI element and its renderable elements. 
 
 Your GUI element can output multiple render elements. Each element corresponds to a mesh and a material to render the mesh with. For most GUI elements there will be only one element, but you will need multiple elements in case your GUI element uses multiple textures or materials.
 
-Each entry in the `mRenderElements` array is of @b3d::GUIRenderElement type and it contains:
+Each render element is of @b3d::GUIRenderElement type and it contains:
  - Information about the mesh. This includes number of mesh vertices and indices, as well as the mesh type (triangle or line).
  - Material used, as well as material specific data such as texture and tint. You can grab built-in materials used by the GUI system from @b3d::SpriteManager. We'll talk more about materials below.
  - Depth of the render element. You can overlay different render elements and this controls which element gets shown on top/bottom. Elements with higher depth are shown below elements with lower depth.
 
 ~~~~~~~~~~~~~{.cpp}
-class GUITexture : public GUIElement
+class GUITexture : public GUIRenderable
 {
-	void updateRenderElementsInternal()
+	void UpdateRenderElements() override
 	{		
-		if(mRenderElements.size() < 1)
-			mRenderElements.resize(1);
-	
-		GUIRenderElement& element = mRenderElements[0];
-		
-		// Render element's mesh will use 4 vertices and 6 indices (a quad)
-		element.numVertices = 4;
-		element.numIndices = 6;
-		
-		// We'll use the built-in transparent image material
-		element.material = SpriteManager::instance().getImageMaterial(true);
-		
-		// Populate the material parameters (normally you want to populate this when properties change and just return it here)
-		element.matInfo = &mMatInfo;
-		
-		//// Use the normal texture as provided in GUIElementStyle
-		mMatInfo.texture = _getStyle().normal.texture;
-		
-		//// No tint
-		mMatInfo.tint = Color::White;
-		
-		GUIElement::updateRenderElementsInternal();
+		// Create render element helper with sprite information
+		Sprite* sprite = mSprite.GetPtr();
+		if(sprite)
+		{
+			GUIRenderElementHelper::SpriteInfo spriteInfo(sprite, 0); // depth 0
+			GUIRenderElementHelper::Populate(spriteInfo, mRenderElements);
+		}
 	}
 	
 	private:
-		SpriteMaterialInfo mMatInfo;
+		SPtr<Sprite> mSprite;
 };
 ~~~~~~~~~~~~~
 
 #### Materials
-GUI materials are represented by the @b3d::SpriteMaterial type and you can use @b3d::SpriteManager to retrieve the built-in materials. You can also create your own sprite materials by implementing the **SpriteMaterial** class and registering them with the **SpriteManager** by calling @b3d::SpriteManager::registerMaterial. 
+GUI materials are represented by the @b3d::SpriteMaterial type and you can use @b3d::SpriteManager to retrieve the built-in materials. You can also create your own sprite materials by implementing the **SpriteMaterial** class and registering them with the **SpriteManager** by calling @b3d::SpriteManager::RegisterMaterial(). 
 
-Material parameters are represented by the @b3d::SpriteMaterialInfo structure, which contains the texture and color to render the element with. It also contains a `groupId` identifier which tells the external systems with which other GUI elements is this element allowed to be grouped with. Grouped elements are rendered together (batched) for better performance, but sometimes this is not wanted. Generally you want to provide the memory address of the parent **GUIWidget** for the `groupId` field, and don't need to worry about it further. You can retrieve the element's **GUIWidget** by calling @b3d::GUIElement::_getParentWidget().
+Material parameters are represented by the @b3d::SpriteMaterialInfo structure, which contains the texture and color to render the element with. It also contains a `groupId` identifier which tells the external systems with which other GUI elements is this element allowed to be grouped with. Grouped elements are rendered together (batched) for better performance, but sometimes this is not wanted. Generally you want to provide the memory address of the parent **GUIWidget** for the `groupId` field, and don't need to worry about it further. You can retrieve the element's **GUIWidget** by calling @b3d::GUIElement::GetParentWidget().
 
-Textures used by the material parameter can be retrieved from the current **GUIElementStyle**, or provided directly to the GUI element by user-specified means. It is preferred to use the **GUIElementStyle** approach as this allows the user to customize the element look through **GUISkin**s, or by providing a custom style name. To retrieve the currently active style call @b3d::GUIElement::_getStyle(). 
+Textures used by the material parameter can be retrieved from the current style, or provided directly to the GUI element by user-specified means. It is preferred to use the style sheet approach as this allows the user to customize the element look through custom style sheets, or by providing a custom style class name.
 
-### GUIElement::_fillBuffer()
+### GUIRenderable::FillBuffer()
 
-This method allows you to provide the actual vertex and index data that will be used for rendering the GUI element. Note that number of vertices and indices provided must match the number you specified in **updateRenderElementsInternal()**. The method will be called once for each present render element, with the render element index as one of the parameters.
+This method allows you to provide the actual vertex and index data that will be used for rendering the GUI element. Note that number of vertices and indices provided must match the number you specified in **UpdateRenderElements()**. The method will be called once for each present render element, with the render element index as one of the parameters.
 
 The method receives pointers to the index and vertex memory that must be populated by the function, offsets at which memory location should the function output its data at, offset to apply to vertex positions and external buffer sizes (used for overflow checking if needed).
 
@@ -149,19 +131,19 @@ The vertices are always in a specific format depending on @b3d::GUIMeshType set 
  - Vertex size is `sizeof(Vector2)`
  
 ~~~~~~~~~~~~~{.cpp}
-class GUITexture : public GUIElement
+class GUITexture : public GUIRenderable
 {
 	// ... remaining GUITexture implementation
 
-	void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		const Vector2I& offset, UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
+	void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset,
+		const Vector2I& offset, u32 maxVertexCount, u32 maxIndexCount, u32 renderElementIndex) const override
 	{
-		UINT32 vertexStride = sizeof(Vector2) * 2;
-		UINT32 indexStride = sizeof(UINT32);
+		u32 vertexStride = sizeof(Vector2) * 2;
+		u32 indexStride = sizeof(u32);
 
 		// Get location of this element in the provided buffers
 		vertices += vertexStride * vertexOffset;
-		UINT8* uvs = vertices + sizeof(Vector2);
+		u8* uvs = vertices + sizeof(Vector2);
 		
 		indices += indexStride * indexOffset;
 		
@@ -173,26 +155,27 @@ class GUITexture : public GUIElement
 
 The framework also provides a set of helper classes for generating required geometry in the form of @b3d::ImageSprite and @b3d::TextSprite classes. **ImageSprite** can easily generate image geometry of specified size, whether a simple quad or a scale-9-grid image (scalable image with fixed borders). And **TextSprite** will take a text string, font and additional options as input, and output a set of quads required for text rendering. It is suggested that you use these unless you require non-quad meshes.
 
-Note that it is suggested that you generate the actual mesh geometry in **updateRenderElementsInternal()**, and then just return the generated data in **_fillBuffer()**. This is beneficial as the geometry only needs to change when render elements are updated, and **_fillBuffer()** will be called more often than **updateRenderElementsInternal()**.
+Note that it is suggested that you generate the actual mesh geometry in **UpdateRenderElements()**, and then just return the generated data in **FillBuffer()**. This is beneficial as the geometry only needs to change when render elements are updated, and **FillBuffer()** will be called more often than **UpdateRenderElements()**.
 
 ## Layout
-In order for the GUI element to work well with the automatic positioning performed by GUI layouts, you must override the @b3d::GUIElement::_getOptimalSize method. As the name implies the method should return the optimal size of your GUI element. For example if your element was displaying a texture 64x64 in size, then the optimal size should probably return 64x64. If you element is displaying text you can use @b3d::GUIHelper to help you calculate the bounds of the text. If displaying something else then it's up to you to determine what constitutes an optimal size.
+In order for the GUI element to work well with the automatic positioning performed by GUI layouts, you must override the @b3d::GUIElement::CalculateUnconstrainedOptimalSize method. As the name implies the method should return the optimal size of your GUI element. For example if your element was displaying a texture 64x64 in size, then the optimal size should probably return 64x64. If your element is displaying text you can use @b3d::GUIUtility to help you calculate the bounds of the text. If displaying something else then it's up to you to determine what constitutes an optimal size.
 
 ~~~~~~~~~~~~~{.cpp}
-class GUITexture : public GUIElement
+class GUITexture : public GUIRenderable
 {
 	// ... remaining GUITexture implementation
 
-	Vector2I _getOptimalSize() const
+	GUILogicalSize CalculateUnconstrainedOptimalSize() const override
 	{
-		Vector2I optimalSize;
+		GUILogicalSize optimalSize{kZeroTag};
 		
 		// Retrieve the size of the main texture, if one is provided
-		HSpriteTexture tex = _getStyle().normal.texture;
+		const HSpriteTexture& tex = GetTextureFromStyle();
 		if(tex != nullptr)
 		{
-			optimalSize.x = tex->getWidth();
-			optimalSize.y = tex->getHeight();
+			// SpriteTexture has width/height accessible via its content bounds
+			optimalSize.Width = GUILogicalUnit(tex->GetWidth());
+			optimalSize.Height = GUILogicalUnit(tex->GetHeight());
 		}
 		
 		return optimalSize;
@@ -203,65 +186,55 @@ class GUITexture : public GUIElement
 This concludes the minimal set of functionality required for implementing a **GUIElement**. At this point you will have a static GUI element that allows no user interaction. In next sections we expand on this by adding support for user input and dynamic graphics.
 
 # Redrawing
-If your element allows the user to update certain contents of it after creation (i.e. it's not static), you need to notify the GUI system so it knows when to rebuild the element. For example if your GUI element displays a text string you might provide a `setText()` method that allows the user to change what is displayed. When text is changed the GUI system will need to update the batched GUI mesh, update the GUI element's mesh and/or update the layout position/size of the element.
+If your element allows the user to update certain contents of it after creation (i.e. it's not static), you need to notify the GUI system so it knows when to rebuild the element. For example if your GUI element displays a text string you might provide a `SetText()` method that allows the user to change what is displayed. When text is changed the GUI system will need to update the batched GUI mesh, update the GUI element's mesh and/or update the layout position/size of the element.
 
 There are three ways to notify the GUI system the element is dirty, each more expensive in performance than the previous:
- - @b3d::GUIElement::_markMeshAsDirty() - Causes the batched GUI mesh to be re-assembled. Will cause a call to **GUIElement::_fillBuffer()**. Call this if element's contents and size didn't change (e.g. when its position, or depth changes). Batched GUI mesh is a mesh managed by the GUI system that consists of multiple GUI elements sharing the same material properties (used to improve rendering performance).
- - @b3d::GUIElement::_markContentAsDirty() - Has the same effect as **GUIElement::_markMeshDirty()**, but will also trigger a **GUIElement::updateRenderElementsInternal()** call so the GUI element mesh will be fully rebuilt. Call this when contents of the GUI element change, but not its size (e.g. changing a texture but it is the same dimensions as the old one.)
- - @b3d::GUIElement::_markLayoutAsDirty() - Has the same effect as **GUIElement::_markContentDirty()**, but will also cause the layout system to recalculate the element's position and size. This can be expensive as this will generally trigger layout updates for all siblings and children, potentially even parent GUI elements. Call this when element changes and no other dirty calls are appropriate. Normally you have to call this whenever the element's size changes.
+ - @b3d::GUIElement::MarkMeshAsDirty() - Causes the batched GUI mesh to be re-assembled. Will cause a call to **GUIRenderable::FillBuffer()**. Call this if element's contents and size didn't change (e.g. when its position, or depth changes). Batched GUI mesh is a mesh managed by the GUI system that consists of multiple GUI elements sharing the same material properties (used to improve rendering performance).
+ - @b3d::GUIElement::MarkContentAsDirty() - Has the same effect as **GUIElement::MarkMeshAsDirty()**, but will also trigger a **GUIRenderable::UpdateRenderElements()** call so the GUI element mesh will be fully rebuilt. Call this when contents of the GUI element change, but not its size (e.g. changing a texture but it is the same dimensions as the old one.)
+ - @b3d::GUIElement::MarkLayoutAsDirty() - Has the same effect as **GUIElement::MarkContentAsDirty()**, but will also cause the layout system to recalculate the element's position and size. This can be expensive as this will generally trigger layout updates for all siblings and children, potentially even parent GUI elements. Call this when element changes and no other dirty calls are appropriate. Normally you have to call this whenever the element's size changes.
  
 ~~~~~~~~~~~~~{.cpp}
-class GUITexture : public GUIElement
+class GUITexture : public GUIRenderable
 {
 	// ... remaining GUITexture implementation
 
 	// Changes the look of the GUI element by fading it out when enabled
-	void setFadeOut(bool fadeOut)
+	void SetFadeOut(bool fadeOut)
 	{
 		if(fadeOut)
-			mMatParams.tint = Color(1.0f, 1.0f, 1.0f, 0.5f);
+			mTintColor = Color(1.0f, 1.0f, 1.0f, 0.5f);
 		else
-			mMatParams.tint = Color::White;
+			mTintColor = Color::kWhite;
 		
-		// Ensure the system redraws the mesh. Since neither the size or contents changed we can call the cheapest redraw method, '_markMeshAsDirty()'
-		_markMeshAsDirty();
+		// Ensure the system redraws the mesh. Since neither the size or contents changed we can call the cheapest redraw method
+		MarkMeshAsDirty();
 	}
 	
-	// Updated version of _getMaterial()
-	const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const
-	{
-		// Get material for rendering opaque images
-		*material = SpriteManager::instance().getImageOpaqueMaterial();
-		
-		// Assuming remaining mMatParams contents are populated elsewhere
-		return mMatParams;
-	}
-	
-	SpriteMaterialInfo mMatParams;
+	Color mTintColor = Color::kWhite;
 };
 ~~~~~~~~~~~~~
  
 # Input
 In order for the GUI element to accept input from the user you can implement any or all of the following methods:
- - @b3d::GUIElement::_mouseEvent - Triggered when the mouse moves and/or is clicked. See @b3d::GUIMouseEventType for a list of events. Receives @b3d::GUIMouseEvent structure as input.
- - @b3d::GUIElement::_textInputEvent - Triggered when the user inputs some text on the keyboard, while the GUI element is in focus. Receives @b3d::GUITextInputEvent structure as input.
- - @b3d::GUIElement::_virtualButtonEvent - Triggered when a certain virtual button is pressed, while the GUI element is in focus. Receives @b3d::GUIVirtualButtonEvent structure as input.
- - @b3d::GUIElement::_commandEvent - Triggers when some kind of a specialized event happens, like losing/gaining focus, deleting text, selecting text, forcing redraw and similar. See @b3d::GUICommandEventType for an explanation of what each event type does. Receives @b3d::GUICommandEvent structure as input.
+ - @b3d::GUIInteractable::DoOnMouseEvent - Triggered when the mouse moves and/or is clicked. See @b3d::GUIMouseEventType for a list of events. Receives @b3d::GUIMouseEvent structure as input.
+ - @b3d::GUIInteractable::DoOnTextInputEvent - Triggered when the user inputs some text on the keyboard, while the GUI element is in focus. Receives @b3d::GUITextInputEvent structure as input.
+ - @b3d::GUIInteractable::DoOnVirtualButtonEvent - Triggered when a certain virtual button is pressed, while the GUI element is in focus. Receives @b3d::GUIVirtualButtonEvent structure as input.
+ - @b3d::GUIInteractable::DoOnCommandEvent - Triggers when some kind of a specialized event happens, like losing/gaining focus, deleting text, selecting text, forcing redraw and similar. See @b3d::GUICommandEventType for an explanation of what each event type does. Receives @b3d::GUICommandEvent structure as input.
  
-Each of the methods should return false if other GUI elements are allowed to receive the same event. If true is returned the GUI element will consume the event and it wont be visible to others.
+Each of the methods should return false if other GUI elements are allowed to receive the same event. If true is returned the GUI element will consume the event and it won't be visible to others.
  
 ~~~~~~~~~~~~~{.cpp}
-class GUITexture : public GUIElement
+class GUITexture : public GUIInteractable
 {
 	// ... remaining GUITexture implementation
 
-	bool _mouseEvent(const GUIMouseEvent& ev)
+	bool DoOnMouseEvent(const GUIMouseEvent& ev) override
 	{
 		// Fade out the texture when user mouses over the element
-		if(ev.getType() == GUIMouseEventType::MouseOver)
-			setFadeOut(true);
-		else if(ev.getType() == GUIMouseEventType::MouseOut)
-			setFadeOut(false);
+		if(ev.GetType() == GUIMouseEventType::MouseOver)
+			SetFadeOut(true);
+		else if(ev.GetType() == GUIMouseEventType::MouseOut)
+			SetFadeOut(false);
 
 		return false;
 	}

@@ -12,37 +12,42 @@ namespace b3d
 	 * @page scriptBindingMacro Script binding exports
 	 *
 	 * Marks the specific type or a method to be exported to the scripting API. Supports a variety of options which can
-	 * be specified in the "option:value" format, where multiple options are separated by commas, with no whitespace.
+	 * be specified in the "ParameterName(Value)" format, where multiple options are separated by commas.
 	 *
 	 * Supported options:
-	 *  - n - Specify a different name for the type in the scripting API (e.g. "n:MyName"). Usable on types and methods.
-	 *  - v - Specify a different visibility (default is public). Supported values are "public", "internal" and "private".
-	 *		  Usable on types and methods.
-	 *  - f - Specify the name of the output file(s) for the script object and its potential wrappers. If not specified
-	 *		  the name of the type will be used for the file. Usable on types only.
-	 *	- pl - Specify whether the type is plain or not (default is false). Supported values are "true" or "false". Plain
+	 *  - ExportName(Name) - Specify a different name for the type in the scripting API. Usable on types and methods.
+	 *  - Visibility(Public|Internal|Private) - Specify a different visibility (default is Public). Usable on types and methods.
+	 *  - ExportFile(Name) - Specify the name of the output file(s) for the script object and its potential wrappers. If not
+	 *		  specified the name of the type will be used for the file. Usable on types only.
+	 *  - ExportAsStruct(true|false) - Specify whether the type should be exported as a plain struct (default is false). Plain
 	 *		  types don't have script interop objects generated, instead they are generated in script code as plain data
 	 *		  types. No methods are exposed, but all data members and constructors are copied. Usable on types only.
-	 *	- e - Specify that a method is external and is to be appended to some script class. Such methods must be static
-	 *		  and as the first parameter accept the instance of the class they operate on. Value of this option should be
-	 *		  the name of the class to attach this method to. Methods with this parameter must also be part of a class
-	 *		  with this option. Usable on types and methods.
-	 *	- ec - Similar to "e", but specifies an external constructor. Such method must have a return value that returns
-	 *		   an instance of the class its registered for. Value of this option should be the name of the class to attach
-	 *		   this method to. Methods with this parameter must also be part of a class with the "e" option. Usable on methods
-	 *		   only.
-	 *	- pr - Specify the method should be exported as a property in script code. Supported values are "getter" or "setter".
-	 *		  Getter methods must return a single value and accept no parameters, while setter methods must accept one
-	 *		  parameter and return no values. Usable on methods only.
-	 *	- ed - Specify that a type should be exported for use in the editor only. Supported values are "true" or "false".
-	 *		   Usable on types only.
-	 *  - ex - Excludes an enum or struct member from being generated in script code. Supported values are "true" or "false".
-	 *		   By default all struct & enum members are exported.
-	 *  - in - When enabled ensures only the interop C# method is generated, but not a public one. It is instead expected
-	 *		   the user will manually implement the public method. Supported values are "true" or "false". Default is "false".
-	 *		   Only supported on methods.
-	 *  - m  - Specifies the name of the module to place the entry in. This determines the documentation group, and may also
-	 *		   determine namespace and/or module (e.g. m:Animation to place it in the Animation module). Usable on types.
+	 *  - ExtensionMethodForType(TypeName) - Specify that a method is external and is to be appended to the named script class.
+	 *		  Such methods must be static and as the first parameter accept the instance of the class they operate on.
+	 *		  Usable on methods. Methods with this parameter must also be part of a class with ExtensionClassForType.
+	 *  - ExtensionConstructorForType(TypeName) - Similar to ExtensionMethodForType, but specifies an external constructor.
+	 *		  Such method must have a return value that returns an instance of the class it is registered for. Usable on methods only.
+	 *  - ExtensionClassForType(TypeName) - Marks a class as containing extension methods/constructors for the named type.
+	 *		  Usable on types only.
+	 *  - Property(Getter|Setter) - Specify the method should be exported as a property in script code. Getter methods must
+	 *		  return a single value and accept no parameters, while setter methods must accept one parameter and return no values.
+	 *		  Usable on methods only.
+	 *  - API(Framework|Engine|Editor) - Specify which assembly to export to. Multiple API parameters can be specified. Usable on types only.
+	 *  - Exclude(true|false) - Excludes an enum or struct member from being generated in script code. By default all
+	 *		  struct & enum members are exported.
+	 *  - InteropOnly(true|false) - When enabled ensures only the interop C# method is generated, but not a public one.
+	 *		  It is instead expected the user will manually implement the public method. Default is false. Only supported on methods.
+	 *  - DocumentationGroup(Name) - Specifies the documentation group/module to place the entry in. Usable on types.
+	 *  - Singleton(GetterName) - Marks a class as a singleton with the specified getter function. Usable on types only.
+	 *  - PassByCopy(true|false) - Pass struct by copy instead of by reference when crossing the C++/C# boundary.
+	 *  - LoadOnAssign(true|false) - Automatically load a resource when it is assigned. Usable on fields.
+	 *  - ApplyOnDirty(true|false) - Apply changes when the property is marked dirty. Usable on properties.
+	 *  - NotNullable(true|false) - Mark a parameter or field as non-nullable.
+	 *  - UI(Hide|Show|AsSlider|AsLayerMask|IsHDRColor|AsQuaternion|Inline) - Inspector UI hints for the field.
+	 *  - UIValueRange([min, max]) - Clamp value to a range in the inspector.
+	 *  - UIIncrementStep(value) - Inspector increment step size.
+	 *  - UIOrder(value) - Inspector display order.
+	 *  - UICategory(name) - Inspector category grouping.
 	 */
 
 #if B3D_COMPILER_CLANG

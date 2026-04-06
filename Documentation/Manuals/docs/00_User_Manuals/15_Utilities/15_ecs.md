@@ -38,12 +38,12 @@ The version number allows the system to detect when an entity has been destroyed
 // Null entity (invalid identifier, any version)
 Entity nullEntity = kNullEntity;
 if (entity == kNullEntity)
-    B3D_LOG(Info, Generic, "Entity is null");
+    B3D_LOG(Info, LogGeneric, "Entity is null");
 
 // Invalid entity (any identifier, invalid version)
 Entity invalidEntity = kInvalidEntity;
 if (entity == kInvalidEntity)
-    B3D_LOG(Info, Generic, "Entity was destroyed");
+    B3D_LOG(Info, LogGeneric, "Entity was destroyed");
 ~~~~~~~~~~~~~
 
 # Registry
@@ -124,10 +124,10 @@ registry.RemoveComponents<Position, Velocity>(player);
 
 // Check if entity has components
 if (registry.HasAllOf<Position, Velocity>(player))
-    B3D_LOG(Info, Generic, "Entity has position and velocity");
+    B3D_LOG(Info, LogGeneric, "Entity has position and velocity");
 
 if (registry.HasAnyOf<Health, Shield>(player))
-    B3D_LOG(Info, Generic, "Entity has health or shield");
+    B3D_LOG(Info, LogGeneric, "Entity has health or shield");
 ~~~~~~~~~~~~~
 
 # Views
@@ -188,7 +188,7 @@ u64 estimatedSize = view.GetSizeEstimate();
 
 // Check if entity is in view
 if (view.Contains(entity))
-    B3D_LOG(Info, Generic, "Entity matches view filter");
+    B3D_LOG(Info, LogGeneric, "Entity matches view filter");
 
 // Get specific components for entity
 auto [pos, vel] = view.Get<Position, Velocity>(entity);
@@ -200,7 +200,7 @@ Entity last = view.Back();
 // Find entity in view
 auto it = view.Find(entity);
 if (it != view.End())
-    B3D_LOG(Info, Generic, "Found entity");
+    B3D_LOG(Info, LogGeneric, "Found entity");
 ~~~~~~~~~~~~~
 
 # Groups
@@ -617,3 +617,4 @@ ThreadPool::Execute([&registry]()
     view.DoForEach([](Velocity& vel) { vel.dx *= 0.99f; });
 });
 ~~~~~~~~~~~~~
+

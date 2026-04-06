@@ -58,7 +58,7 @@ if(results.HasValue())
 {
 	for(const GpuProfilerSample& sample : results.Value().Samples)
 	{
-		B3D_LOG(Verbose, Uncategorized, "Sample {0} took {1}ms to execute {2} draw calls.", sample.Name, sample.TimeMs, sample.DrawCallCount);
+		B3D_LOG(Verbose, LogUncategorized, "Sample {0} took {1}ms to execute {2} draw calls.", sample.Name, sample.TimeMs, sample.DrawCallCount);
 	}
 }
 ~~~~~~~~~~~~~

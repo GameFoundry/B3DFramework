@@ -81,7 +81,7 @@ bool success = cache->SetEntry("Cache/Data.dat", data, PersistentCachePriority::
 
 if(!success)
 {
-	B3D_LOG(Warning, Generic, "Entry is currently in use, cannot update");
+	B3D_LOG(Warning, LogGeneric, "Entry is currently in use, cannot update");
 }
 ~~~~~~~~~~~~~
 
@@ -105,12 +105,12 @@ SPtr<IReflectable> data = cache->TryGetEntry(entryPath);
 
 if(data)
 {
-	B3D_LOG(Info, Generic, "Cache hit");
+	B3D_LOG(Info, LogGeneric, "Cache hit");
 	ProcessData(data);
 }
 else
 {
-	B3D_LOG(Info, Generic, "Cache miss");
+	B3D_LOG(Info, LogGeneric, "Cache miss");
 	// Compute and cache the data
 }
 ~~~~~~~~~~~~~
@@ -126,7 +126,7 @@ SPtr<MyData> data = cache->TryGetEntry<MyData>("MyCache/ComputedResult.dat");
 
 if(data)
 {
-	B3D_LOG(Info, Generic, "Value: {0}", data->Value);
+	B3D_LOG(Info, LogGeneric, "Value: {0}", data->Value);
 }
 ~~~~~~~~~~~~~
 
