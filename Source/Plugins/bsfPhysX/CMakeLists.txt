@@ -2,7 +2,7 @@
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_PHYSX_SRC)
 
 # Packages
-if(B3D_PHYSICS_BACKEND MATCHES "PhysX" OR B3D_INCLUDE_ALL_IN_WORKFLOW)
+if(B3D_PHYSICS_BACKEND MATCHES "PhysX" OR B3D_BUILD_ALL_PLUGINS)
 	# Ensure pre-built binary dependencies are up to date
 	if(B3D_USE_BUNDLED_LIBRARIES)
 		B3DCheckAndUpdatePrebuiltDependency(PhysX)
@@ -35,6 +35,6 @@ target_link_libraries(bsfPhysX PRIVATE bsf)
 set_property(TARGET bsfPhysX PROPERTY FOLDER Plugins)
 
 # Install
-if(B3D_PHYSICS_BACKEND MATCHES "PhysX")
+if(B3D_PHYSICS_BACKEND MATCHES "PhysX" OR B3D_BUILD_ALL_PLUGINS)
 	B3DSetUpPostBuildAndInstallSteps(bsfPhysX)
 endif()

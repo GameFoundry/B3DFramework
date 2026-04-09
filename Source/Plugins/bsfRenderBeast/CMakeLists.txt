@@ -18,6 +18,6 @@ target_link_libraries(bsfRenderBeast bsf)
 set_property(TARGET bsfRenderBeast PROPERTY FOLDER Plugins)
 
 # Install
-if(B3D_RENDERER MATCHES "RenderBeast")
+if(B3D_RENDERER MATCHES "RenderBeast" OR B3D_BUILD_ALL_PLUGINS)
 	B3DSetUpPostBuildAndInstallSteps(bsfRenderBeast)
 endif()

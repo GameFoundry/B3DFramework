@@ -29,13 +29,11 @@ set(B3D_BUILD_EXAMPLES ON CACHE BOOL "If true, framework example projects will b
 
 set(B3D_BUILD_CODEGEN OFF CACHE BOOL "If true, code-generator project will be included as part of the main project.")
 
-set(B3D_INCLUDE_ALL_IN_WORKFLOW OFF CACHE BOOL "If true, all libraries (even those not selected) will be included in the generated workflow (e.g. Visual Studio solution). This is useful when working on engine internals with a need for easy access to all parts of it. Only relevant for workflow generators like Visual Studio or XCode.")
+set(B3D_BUILD_ALL_PLUGINS OFF CACHE BOOL "If true, all plugins will be built regardless of backend selection. Also includes all plugins in the generated workflow.")
 
 set(B3D_BUILD_TESTS OFF CACHE BOOL "If true, build targets for running unit tests will be included in the output.")
 
 set(B3D_BUILD_BSL_PARSER OFF CACHE BOOL "If true, build lexer & parser for BSL. Requires flex & bison dependencies.")
-
-set(B3D_BUILD_ALL_RENDER_BACKENDS OFF CACHE BOOL "If true, all supported render backends will be built, regardless of choice in B3D_RENDER_BACKEND. Choice in B3D_RENDER_BACKEND will still be used as the default.")
 
 set(B3D_BUILD_TYPE "Development" CACHE STRING "Determines the purpose of the build. 'Development' contains features to make debugging easier, but has overhead compared to other types - this should be your build type in most cases. 'Shipping' strips all development features.")
 set_property(CACHE B3D_BUILD_TYPE PROPERTY STRINGS Development Shipping)
@@ -108,11 +106,10 @@ configure_file("${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DFrameworkConfig.h.in" "$
 add_subdirectory(Engine)
 
 ## Plugins
-### If using MSVC include all plugins in the solution (which ones actually build is controlled by dependencies)
-if(B3D_INCLUDE_ALL_IN_WORKFLOW AND MSVC)
+### If building all plugins, include all in the solution
+if(B3D_BUILD_ALL_PLUGINS)
 	add_subdirectory(Plugins/bsfVulkanRenderAPI)
 	add_subdirectory(Plugins/bsfNullRenderAPI)
-	add_subdirectory(Plugins/bsfFMOD)
 	add_subdirectory(Plugins/bsfOpenAudio)
 	add_subdirectory(Plugins/bsfNullAudio)
 	add_subdirectory(Plugins/bsfPhysX)
@@ -125,15 +122,10 @@ if(B3D_INCLUDE_ALL_IN_WORKFLOW AND MSVC)
 	add_subdirectory(Scripting/bsfScript)
 	add_subdirectory(Scripting/bsfSharp)
 else() # Otherwise include only chosen ones
-	if(B3D_BUILD_ALL_RENDER_BACKENDS)
+	if(B3D_RENDER_BACKEND MATCHES "Vulkan")
 		add_subdirectory(Plugins/bsfVulkanRenderAPI)
-		add_subdirectory(Plugins/bsfNullRenderAPI)
 	else()
-		if(B3D_RENDER_BACKEND MATCHES "Vulkan")
-			add_subdirectory(Plugins/bsfVulkanRenderAPI)
-		else()
-			add_subdirectory(Plugins/bsfNullRenderAPI)
-		endif()
+		add_subdirectory(Plugins/bsfNullRenderAPI)
 	endif()
 
 	if(B3D_AUDIO_BACKEND MATCHES "FMOD")

@@ -18,6 +18,6 @@ target_link_libraries(bsfNullRenderer bsf)
 set_property(TARGET bsfNullRenderer PROPERTY FOLDER Plugins)
 
 # Install
-if(B3D_RENDERER MATCHES "Null")
+if(B3D_RENDERER MATCHES "Null" OR B3D_BUILD_ALL_PLUGINS)
 	B3DSetUpPostBuildAndInstallSteps(bsfNullRenderer)
 endif()

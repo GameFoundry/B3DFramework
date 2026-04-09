@@ -18,6 +18,6 @@ target_link_libraries(bsfNullAudio PRIVATE bsf)
 set_property(TARGET bsfNullAudio PROPERTY FOLDER Plugins)
 
 # Install
-if(B3D_AUDIO_BACKEND MATCHES "Null")
+if(B3D_AUDIO_BACKEND MATCHES "Null" OR B3D_BUILD_ALL_PLUGINS)
 	B3DSetUpPostBuildAndInstallSteps(bsfNullAudio)
 endif()

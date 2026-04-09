@@ -2,7 +2,7 @@
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_OPENAUDIO_SRC)
 
 # Find packages
-if(B3D_AUDIO_BACKEND MATCHES "OpenAudio")
+if(B3D_AUDIO_BACKEND MATCHES "OpenAudio" OR B3D_BUILD_ALL_PLUGINS)
 	# Ensure pre-built binary dependencies are up to date
 	if(B3D_USE_BUNDLED_LIBRARIES)
 		B3DCheckAndUpdatePrebuiltDependency(OpenAL)
@@ -47,6 +47,6 @@ target_link_libraries(bsfOpenAudio PRIVATE bsf)
 set_property(TARGET bsfOpenAudio PROPERTY FOLDER Plugins)
 
 # Install
-if(B3D_AUDIO_BACKEND MATCHES "OpenAudio")
+if(B3D_AUDIO_BACKEND MATCHES "OpenAudio" OR B3D_BUILD_ALL_PLUGINS)
 	B3DSetUpPostBuildAndInstallSteps(bsfOpenAudio)
 endif()

@@ -18,6 +18,6 @@ target_link_libraries(bsfNullRenderAPI PRIVATE bsf)
 set_property(TARGET bsfNullRenderAPI PROPERTY FOLDER Plugins)
 
 # Install
-if(B3D_RENDER_BACKEND MATCHES "Null")
+if(B3D_RENDER_BACKEND MATCHES "Null" OR B3D_BUILD_ALL_PLUGINS)
 	B3DSetUpPostBuildAndInstallSteps(bsfNullRenderAPI)
 endif()
