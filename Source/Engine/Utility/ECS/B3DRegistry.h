@@ -208,6 +208,7 @@ namespace b3d::ecs
 			{
 				Type& component = storage.Get(entity);
 				component = Type{std::forward<Arguments>(arguments)...};
+				storage.OnWasUpdated(entity);
 				return component;
 			}
 
@@ -481,6 +482,69 @@ namespace b3d::ecs
 		bool HasAnyOf(Entity entity) const
 		{
 			return (HasAllOf<ComponentType>(entity) || ...);
+		}
+
+		/**
+		 * Returns the event that is triggered when a component of type @p Type is added to an entity.
+		 * Creates the storage if it doesn't already exist.
+		 */
+		template<typename Type>
+		Event<void(Entity)>& OnComponentAdded()
+		{
+			return GetOrCreateStorage<Type>().OnWasAdded;
+		}
+
+		/**
+		 * Returns the event that is triggered right before a component of type @p Type is removed from an entity.
+		 * Creates the storage if it doesn't already exist.
+		 */
+		template<typename Type>
+		Event<void(Entity)>& OnComponentRemoved()
+		{
+			return GetOrCreateStorage<Type>().OnWillRemove;
+		}
+
+		/**
+		 * Returns the event that is triggered when a component of type @p Type is updated on an entity.
+		 * This event fires when PatchComponent, ReplaceComponent, or AddOrReplaceComponent (replacement path) is used.
+		 * Creates the storage if it doesn't already exist.
+		 */
+		template<typename Type>
+		Event<void(Entity)>& OnComponentUpdated()
+		{
+			return GetOrCreateStorage<Type>().OnWasUpdated;
+		}
+
+		/**
+		 * Replaces an existing component on an entity by constructing a new one in-place with the provided arguments, then fires the
+		 * update event. Entity must already have a component of this type.
+		 */
+		template<typename Type, typename... Arguments>
+		Type& ReplaceComponent(Entity entity, Arguments&&... arguments)
+		{
+			auto& storage = GetOrCreateStorage<Type>();
+			Type& component = storage.Get(entity);
+			component = Type{std::forward<Arguments>(arguments)...};
+			storage.OnWasUpdated(entity);
+			return component;
+		}
+
+		/**
+		 * Modifies an existing component on an entity in-place using the provided function(s), then fires the update event.
+		 * Entity must already have a component of this type. Each function receives a reference to the component.
+		 *
+		 * @code
+		 * registry.PatchComponent<Position>(entity, [](Position& pos) { pos.x += 10; });
+		 * @endcode
+		 */
+		template<typename Type, typename... Func>
+		Type& PatchComponent(Entity entity, Func&&... func)
+		{
+			auto& storage = GetOrCreateStorage<Type>();
+			Type& component = storage.Get(entity);
+			(std::forward<Func>(func)(component), ...);
+			storage.OnWasUpdated(entity);
+			return component;
 		}
 
 	private:

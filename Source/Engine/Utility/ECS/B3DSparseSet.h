@@ -445,6 +445,7 @@ namespace b3d::ecs
 
 		Event<void(Entity)> OnWasAdded; /**< Triggers any time a new entity is added to the set. */
 		Event<void(Entity)> OnWillRemove; /**< Triggers right before an entity is removed from the set. */
+		Event<void(Entity)> OnWasUpdated; /**< Triggers when an existing component is updated or replaced. Must be explicitly triggered by the caller. */
 	protected:
 		/**
 		 * Adds a new entity to the set.
