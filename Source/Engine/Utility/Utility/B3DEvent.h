@@ -330,6 +330,11 @@ namespace b3d
 		/** Trigger the event, notifying all register callback methods. */
 		void operator()(ArgumentType... arguments)
 		{
+			// Fast path: skip locking when no connections exist. The pointer is only modified under the
+			// mutex so the worst case of a benign race is entering the lock unnecessarily.
+			if(mControlBlock->ActiveConnections == nullptr && mControlBlock->NewConnections == nullptr)
+				return;
+
 			// Increase ref count to ensure this event data isn't destroyed if one of the callbacks deletes the event itself.
 			TShared<EventControlBlock> hoistedControlBlock = mControlBlock;
 
