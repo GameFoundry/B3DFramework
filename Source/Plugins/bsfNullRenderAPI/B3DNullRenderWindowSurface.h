@@ -21,7 +21,12 @@ namespace b3d::render
 		void SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask) override {}
 		void RebuildSwapChain(u32 width, u32 height, bool vsync) override;
 		void MarkSwapChainAsInvalid() override;
+		TAsyncOp<SPtr<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer) override;
 		void Destroy() override;
+
+	private:
+		u32 mWidth = 0;
+		u32 mHeight = 0;
 	};
 
 	/** @} */
