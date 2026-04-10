@@ -130,6 +130,17 @@ namespace b3d
 		if(!registry.HasAllOf<ecs::ReflectionProbeId>(entity))
 			return;
 
+		// Cancel any in-flight capture task before deallocating
+		if(registry.HasAllOf<ecs::ReflectionProbe>(entity))
+		{
+			ecs::ReflectionProbe& fragment = registry.GetComponents<ecs::ReflectionProbe>(entity);
+			if(fragment.PendingTask != nullptr)
+			{
+				fragment.PendingTask->Cancel();
+				fragment.PendingTask = nullptr;
+			}
+		}
+
 		RendererId objectId = registry.GetComponents<ecs::ReflectionProbeId>(entity).Id;
 		if(objectId != kInvalidRendererId)
 			mReflectionProbeStorage->DeallocateRendererId(objectId);

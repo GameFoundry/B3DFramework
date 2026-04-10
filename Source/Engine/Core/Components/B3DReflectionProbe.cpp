@@ -205,24 +205,19 @@ Vector3 ReflectionProbe::GetWorldExtents() const
 
 void ReflectionProbe::SetCustomTexture(const HTexture& texture)
 {
-	mCustomTexture = texture;
-	Filter();
+	GetFragment().CustomTexture = texture;
+
+	if(texture != nullptr)
+	{
+		const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+		ReflectionProbeUtility::Filter(*GetECSRegistry(), GetECSEntity(), rendererScene);
+	}
 }
 
 void ReflectionProbe::Capture()
 {
-	if(mCustomTexture != nullptr)
-		return;
-
-	CaptureAndFilter();
-}
-
-void ReflectionProbe::Filter()
-{
-	if(mCustomTexture == nullptr)
-		return;
-
-	CaptureAndFilter();
+	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	ReflectionProbeUtility::Capture(*GetECSRegistry(), GetECSEntity(), rendererScene);
 }
 
 void ReflectionProbe::UpdateBounds()
@@ -247,105 +242,130 @@ void ReflectionProbe::MarkRenderProxyDataDirty(ComponentDirtyFlag flag)
 		registry->AddTag<ecs::ReflectionProbeDirty>(entity);
 }
 
-void ReflectionProbe::CaptureAndFilter()
+// ReflectionProbeUtility
+
+namespace ReflectionProbeUtility
 {
-	// If previous rendering task exists, cancel it
-	if(mRendererTask != nullptr)
-		mRendererTask->Cancel();
-
-	TextureCreateInformation cubemapDesc;
-	cubemapDesc.Name = "ReflectionProbe Cubemap";
-	cubemapDesc.Type = TEX_TYPE_CUBE_MAP;
-	cubemapDesc.Format = PF_RG11B10F;
-	cubemapDesc.Width = render::IBLUtility::kReflectionCubemapSize;
-	cubemapDesc.Height = render::IBLUtility::kReflectionCubemapSize;
-	cubemapDesc.MipMapCount = PixelUtility::GetMipmapCount(cubemapDesc.Width, cubemapDesc.Height, 1, cubemapDesc.Format);
-	cubemapDesc.Usage = TextureUsageFlag::StoreOnGPU | TextureUsageFlag::RenderTarget;
-
-	GetFragment().FilteredTexture = Texture::CreateShared(cubemapDesc);
-
-	auto fnRenderComplete = [this]()
+	/**
+	 * Performs the actual capture and/or filter operation, creating a RendererTask.
+	 * Cancels any existing in-flight task for this probe via RendererScene::SetPendingCaptureTask.
+	 */
+	static void CaptureAndFilter(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene)
 	{
-		mRendererTask = nullptr;
-	};
+		ecs::ReflectionProbe& fragment = registry.GetComponents<ecs::ReflectionProbe>(entity);
+		RendererId probeId = registry.HasAllOf<ecs::ReflectionProbeId>(entity)
+			? registry.GetComponents<ecs::ReflectionProbeId>(entity).Id : kInvalidRendererId;
 
-	SPtr<render::Texture> textureRenderProxy = B3DGetRenderProxy(GetFragment().FilteredTexture);
+		// Cancel any previous in-flight task
+		if(fragment.PendingTask != nullptr)
+			fragment.PendingTask->Cancel();
 
-	ecs::Registry* registry = GetECSRegistry();
-	ecs::Entity entity = GetECSEntity();
-	RendererId probeId = registry->HasAllOf<ecs::ReflectionProbeId>(entity) ? registry->GetComponents<ecs::ReflectionProbeId>(entity).Id : kInvalidRendererId;
+		TextureCreateInformation cubemapDesc;
+		cubemapDesc.Name = "ReflectionProbe Cubemap";
+		cubemapDesc.Type = TEX_TYPE_CUBE_MAP;
+		cubemapDesc.Format = PF_RG11B10F;
+		cubemapDesc.Width = render::IBLUtility::kReflectionCubemapSize;
+		cubemapDesc.Height = render::IBLUtility::kReflectionCubemapSize;
+		cubemapDesc.MipMapCount = PixelUtility::GetMipmapCount(cubemapDesc.Width, cubemapDesc.Height, 1, cubemapDesc.Format);
+		cubemapDesc.Usage = TextureUsageFlag::StoreOnGPU | TextureUsageFlag::RenderTarget;
 
-	const SPtr<render::RendererScene> rendererScene = B3DGetRenderProxy(SceneObject()->GetScene()->GetRendererScene());
-	if(mCustomTexture == nullptr)
-	{
-		auto fnRenderReflectionProbe = [textureRenderProxy, rendererScene, probeId](render::GpuCommandBufferPool& commandBufferPool)
+		fragment.FilteredTexture = Texture::CreateShared(cubemapDesc);
+
+		SPtr<render::Texture> textureRenderProxy = B3DGetRenderProxy(fragment.FilteredTexture);
+		const SPtr<render::RendererScene> renderSceneProxy = B3DGetRenderProxy(rendererScene);
+
+		SPtr<render::RendererTask> task;
+		if(fragment.CustomTexture == nullptr)
 		{
-			const SPtr<ReflectionProbeObjectStorageBase>& reflProbeStorage = rendererScene->GetReflectionProbeStorage();
-			PackedRendererId packedId = reflProbeStorage->GetPackedRendererId(probeId);
-			if(packedId == kInvalidPackedRendererId)
+			auto fnRenderReflectionProbe = [textureRenderProxy, renderSceneProxy, probeId](render::GpuCommandBufferPool& commandBufferPool)
+			{
+				const SPtr<ReflectionProbeObjectStorageBase>& reflProbeStorage = renderSceneProxy->GetReflectionProbeStorage();
+				PackedRendererId packedId = reflProbeStorage->GetPackedRendererId(probeId);
+				if(packedId == kInvalidPackedRendererId)
+					return true;
+
+				render::ReflectionProbeProxy& proxy = reflProbeStorage->GetReflectionProbeProxy(packedId);
+				float probeRadius = proxy.GetType() == ReflectionProbeType::Sphere ? proxy.GetRadius() : proxy.GetExtents().Length();
+				Vector3 probePosition = proxy.GetWorldTransform().GetPosition();
+
+				const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("RenderAndFilterReflectionProbe"));
+				SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
+
+				commandBufferProfiler->BeginSample(*commandBuffer, "RenderAndFilterReflectionProbe");
+
+				render::CaptureSettings settings;
+				settings.EncodeDepth = true;
+				settings.DepthEncodeNear = probeRadius;
+				settings.DepthEncodeFar = probeRadius + 1; // + 1 arbitrary, make it a customizable value?
+
+				render::GetRenderer()->CaptureSceneCubeMap(*renderSceneProxy, *commandBuffer, textureRenderProxy, probePosition, settings);
+				render::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, textureRenderProxy, nullptr);
+
+				reflProbeStorage->UpdateFilteredTexture(probeId, textureRenderProxy);
+
+				commandBufferProfiler->EndSample(*commandBuffer);
+
+				GetGpuProfiler().ResolveProfileWhenReady("RenderAndFilterReflectionProbe", commandBufferProfiler);
+
+				const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+				gpuDevice->SubmitCommandBuffer(commandBuffer);
+
 				return true;
+			};
 
-			render::ReflectionProbeProxy& proxy = reflProbeStorage->GetReflectionProbeProxy(packedId);
-			float probeRadius = proxy.GetType() == ReflectionProbeType::Sphere ? proxy.GetRadius() : proxy.GetExtents().Length();
-			Vector3 probePosition = proxy.GetWorldTransform().GetPosition();
-
-			const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("RenderAndFilterReflectionProbe"));
-			SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
-
-			commandBufferProfiler->BeginSample(*commandBuffer, "RenderAndFilterReflectionProbe");
-
-			render::CaptureSettings settings;
-			settings.EncodeDepth = true;
-			settings.DepthEncodeNear = probeRadius;
-			settings.DepthEncodeFar = probeRadius + 1; // + 1 arbitrary, make it a customizable value?
-
-			render::GetRenderer()->CaptureSceneCubeMap(*rendererScene, *commandBuffer, textureRenderProxy, probePosition, settings);
-			render::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, textureRenderProxy, nullptr);
-
-			reflProbeStorage->UpdateFilteredTexture(probeId, textureRenderProxy);
-
-			commandBufferProfiler->EndSample(*commandBuffer);
-
-			GetGpuProfiler().ResolveProfileWhenReady("RenderAndFilterReflectionProbe", commandBufferProfiler);
-
-			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-			gpuDevice->SubmitCommandBuffer(commandBuffer);
-
-			return true;
-		};
-
-		mRendererTask = render::RendererTask::Create("ReflProbeRender", fnRenderReflectionProbe);
-	}
-	else
-	{
-		SPtr<render::Texture> customTextureRenderProxy = B3DGetRenderProxy(mCustomTexture);
-		auto fnFilterReflectionProbe = [customTextureRenderProxy, textureRenderProxy, rendererScene, probeId](render::GpuCommandBufferPool& commandBufferPool)
+			task = render::RendererTask::Create("ReflProbeRender", fnRenderReflectionProbe);
+		}
+		else
 		{
-			const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("FilterReflectionProbe"));
-			SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
+			SPtr<render::Texture> customTextureRenderProxy = B3DGetRenderProxy(fragment.CustomTexture);
+			auto fnFilterReflectionProbe = [customTextureRenderProxy, textureRenderProxy, renderSceneProxy, probeId](render::GpuCommandBufferPool& commandBufferPool)
+			{
+				const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("FilterReflectionProbe"));
+				SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
-			commandBufferProfiler->BeginSample(*commandBuffer, "FilterReflectionProbe");
+				commandBufferProfiler->BeginSample(*commandBuffer, "FilterReflectionProbe");
 
-			render::GetIBLUtility().ScaleCubemap(*commandBuffer, customTextureRenderProxy, 0, textureRenderProxy, 0);
-			render::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, textureRenderProxy, nullptr);
+				render::GetIBLUtility().ScaleCubemap(*commandBuffer, customTextureRenderProxy, 0, textureRenderProxy, 0);
+				render::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, textureRenderProxy, nullptr);
 
-			rendererScene->GetReflectionProbeStorage()->UpdateFilteredTexture(probeId, textureRenderProxy);
+				renderSceneProxy->GetReflectionProbeStorage()->UpdateFilteredTexture(probeId, textureRenderProxy);
 
-			commandBufferProfiler->EndSample(*commandBuffer);
+				commandBufferProfiler->EndSample(*commandBuffer);
 
-			GetGpuProfiler().ResolveProfileWhenReady("FilterReflectionProbe", commandBufferProfiler);
+				GetGpuProfiler().ResolveProfileWhenReady("FilterReflectionProbe", commandBufferProfiler);
 
-			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-			gpuDevice->SubmitCommandBuffer(commandBuffer);
+				const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+				gpuDevice->SubmitCommandBuffer(commandBuffer);
 
-			return true;
-		};
+				return true;
+			};
 
-		mRendererTask = render::RendererTask::Create("ReflProbeRender", fnFilterReflectionProbe);
+			task = render::RendererTask::Create("ReflProbeRender", fnFilterReflectionProbe);
+		}
+
+		fragment.PendingTask = task;
+		render::GetRenderer()->AddTask(task);
 	}
+}
 
-	mRendererTask->OnComplete.Connect(fnRenderComplete);
-	render::GetRenderer()->AddTask(mRendererTask);
+void ReflectionProbeUtility::Capture(ecs::Registry& registry, ecs::Entity entity,
+	const SPtr<RendererScene>& rendererScene)
+{
+	ecs::ReflectionProbe& fragment = registry.GetComponents<ecs::ReflectionProbe>(entity);
+	if(fragment.CustomTexture != nullptr)
+		return;
+
+	ReflectionProbeUtility::CaptureAndFilter(registry, entity, rendererScene);
+}
+
+void ReflectionProbeUtility::Filter(ecs::Registry& registry, ecs::Entity entity,
+	const SPtr<RendererScene>& rendererScene)
+{
+	ecs::ReflectionProbe& fragment = registry.GetComponents<ecs::ReflectionProbe>(entity);
+	if(fragment.CustomTexture == nullptr)
+		return;
+
+	ReflectionProbeUtility::CaptureAndFilter(registry, entity, rendererScene);
 }
 
 // b3d::ReflectionProbe lifecycle
@@ -394,13 +414,13 @@ void ReflectionProbe::OnEnabled()
 	registry->AddTag<ecs::ReflectionProbeDirty>(entity);
 
 	// If filtered texture doesn't exist, ensure it is generated
-	const SPtr<Texture>& filteredTexture = GetFragment().FilteredTexture;
-	if(filteredTexture == nullptr)
+	ecs::ReflectionProbe& fragment = GetFragment();
+	if(fragment.FilteredTexture == nullptr)
 	{
-		if(GetCustomTexture())
-			Filter();
+		if(fragment.CustomTexture != nullptr)
+			ReflectionProbeUtility::Filter(*registry, entity, rendererScene);
 		else
-			Capture();
+			ReflectionProbeUtility::Capture(*registry, entity, rendererScene);
 	}
 }
 
@@ -418,13 +438,11 @@ void ReflectionProbe::OnDisabled()
 
 void ReflectionProbe::OnDestroyed()
 {
-	if(mRendererTask)
-		mRendererTask->Cancel();
-
 	ecs::Registry* registry = GetECSRegistry();
 	ecs::Entity entity = GetECSEntity();
 
 	// Deallocate only if currently active (has a ReflectionProbeId fragment)
+	// DeallocateReflectionProbeId also cancels any pending capture task
 	if(registry->HasAllOf<ecs::ReflectionProbeId>(entity))
 	{
 		const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();

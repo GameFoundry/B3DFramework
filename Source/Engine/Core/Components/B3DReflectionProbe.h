@@ -16,10 +16,7 @@ namespace b3d
 	struct ReflectionProbeFullUpdateChannel;
 	struct ReflectionProbeTransformUpdateChannel;
 
-	namespace render
-	{
-		class RendererTask;
-	}
+	namespace render { class RendererTask; }
 
 	/** @addtogroup Implementation
 	 *  @{
@@ -109,6 +106,9 @@ namespace b3d
 			struct FullSyncPacket;
 			struct TransformSyncPacket;
 
+			HTexture CustomTexture; /**< Optional custom cubemap texture. When set, this is filtered instead of capturing the scene. */
+			SPtr<render::RendererTask> PendingTask; /**< Transient (not serialized). In-flight capture/filter task, if any. */
+
 			friend class ECSReflectionProbeRTTI;
 			static RTTIType* GetRttiStatic();
 			RTTIType* GetRtti() const override;
@@ -120,6 +120,25 @@ namespace b3d
 			RendererId Id = kInvalidRendererId;
 		};
 	} // namespace ecs
+
+	class RendererScene;
+
+	/** Free utility functions for managing reflection probe capture and filtering without requiring a Component. */
+	namespace ReflectionProbeUtility
+	{
+		/**
+		 * Captures the scene at the probe's position and generates a filtered reflection cubemap.
+		 * No action if the fragment has a custom texture set. Requires ecs::ReflectionProbe,
+		 * ecs::WorldTransform, and ecs::ReflectionProbeId on the entity.
+		 */
+		void Capture(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene);
+
+		/**
+		 * Filters the custom texture set on the fragment. No action if no custom texture is set.
+		 * Requires ecs::ReflectionProbe, ecs::WorldTransform, and ecs::ReflectionProbeId on the entity.
+		 */
+		void Filter(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene);
+	}
 
 	/** @} */
 
@@ -164,7 +183,7 @@ namespace b3d
 
 		/** @copydoc SetCustomTexture */
 		B3D_SCRIPT_EXPORT(ExportName(CustomTexture), Property(Getter))
-		HTexture GetCustomTexture() const { return mCustomTexture; }
+		HTexture GetCustomTexture() const { return GetFragment().CustomTexture; }
 
 		/** Returns the radius of a sphere reflection probe, scaled by scene object transform. */
 		B3D_SCRIPT_EXPORT(ExportName(WorldRadius), Property(Getter))
@@ -180,22 +199,6 @@ namespace b3d
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(Capture))
 		void Capture();
-
-	protected:
-		/**
-		 * Captures the scene color at current probe location and generates a filtered map. If a custom texture is set then
-		 * it will be filtered, instead of capturing scene color.
-		 */
-		void CaptureAndFilter();
-
-		/**
-		 * Filters the custom texture, making it usable for rendering. Called automatically when custom texture changes. If
-		 * no custom texture is set, no action is taken.
-		 */
-		void Filter();
-
-		HTexture mCustomTexture;
-		SPtr<render::RendererTask> mRendererTask;
 
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/

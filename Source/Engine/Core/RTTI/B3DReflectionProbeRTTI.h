@@ -8,6 +8,7 @@
 #include "Components/B3DReflectionProbe.h"
 #include "RTTI/B3DGameObjectRTTI.h"
 #include "Renderer/B3DRenderer.h"
+#include "ECS/B3DRegistry.h"
 #include "RTTI/B3DMathRTTI.h"
 
 namespace b3d::ecs
@@ -26,6 +27,7 @@ namespace b3d::ecs
 			B3D_RTTI_MEMBER(Extents, 2)
 			B3D_RTTI_MEMBER(TransitionDistance, 3)
 			B3D_RTTI_MEMBER(FilteredTexture, 4)
+			B3D_RTTI_MEMBER(CustomTexture, 5)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -62,7 +64,6 @@ namespace b3d
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_ECS(ReflectionProbe, 0)
-			B3D_RTTI_MEMBER(mCustomTexture, 1)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -70,9 +71,16 @@ namespace b3d
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
-				// Force the renderer task to complete, so the filtered texture is up to date
-				if(object.mRendererTask != nullptr)
-					object.mRendererTask->Wait();
+				// Force any pending capture task to complete, so the filtered texture is up to date
+				ecs::Registry* registry = object.GetECSRegistry();
+				ecs::Entity entity = object.GetECSEntity();
+
+				if(registry->HasAllOf<ecs::ReflectionProbe>(entity))
+				{
+					ecs::ReflectionProbe& fragment = registry->GetComponents<ecs::ReflectionProbe>(entity);
+					if(fragment.PendingTask != nullptr)
+						fragment.PendingTask->Wait();
+				}
 			}
 		}
 

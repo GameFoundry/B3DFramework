@@ -125,7 +125,10 @@ void Renderer::ProcessTasks(bool forceAll, u64 upToFrame)
 			if(!complete)
 				mRemainingTasks.push_back(entry);
 			else
+			{
 				entry->mState.store(2);
+				entry->mTaskWorker = nullptr;
+			}
 		}
 
 		mRunningTasks.clear();
@@ -164,7 +167,10 @@ void Renderer::ProcessTask(RendererTask& task, bool forceAll)
 		GetProfilerCPU().EndThread();
 
 		if(complete)
+		{
 			task.mState.store(2);
+			task.mTaskWorker = nullptr;
+		}
 
 		if(!forceAll)
 			break;

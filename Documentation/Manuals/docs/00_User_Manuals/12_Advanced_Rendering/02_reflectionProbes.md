@@ -116,6 +116,7 @@ The primary fragment is @b3d::ecs::ReflectionProbe, which stores the probe's vis
  - **TransitionDistance** - Extra distance used for fading out box probes at the edges
  - **Bounds** - World-space bounding sphere of the probe's area of influence
  - **FilteredTexture** - Pre-filtered cubemap texture generated from a custom texture or scene capture
+ - **CustomTexture** - Optional custom cubemap texture; when set, this is filtered instead of capturing the scene
 
 When you call setter methods like @b3d::ReflectionProbe::SetType or @b3d::ReflectionProbe::SetExtents, the component modifies this fragment and marks the entity as dirty for synchronization with the render thread.
 
@@ -152,7 +153,26 @@ rendererScene->AllocateReflectionProbeId(registry, entity);
 
 // Mark dirty for initial sync
 registry.AddTag<ecs::ReflectionProbeDirty>(entity);
+
+// Trigger initial scene capture
+ReflectionProbeUtility::Capture(registry, entity, rendererScene);
 ~~~~~~~~~~~~~
+
+## Capture and filter utilities
+
+The @b3d::ReflectionProbeUtility namespace provides free functions for capturing and filtering reflection probes without requiring a **ReflectionProbe** component. These are the same operations the component uses internally.
+
+~~~~~~~~~~~~~{.cpp}
+// Capture the scene at the probe's position (no-op if a custom texture is set)
+ReflectionProbeUtility::Capture(registry, entity, rendererScene);
+
+// Set a custom texture on the fragment and filter it
+ecs::ReflectionProbe& fragment = registry.GetComponents<ecs::ReflectionProbe>(entity);
+fragment.CustomTexture = customCubemap;
+ReflectionProbeUtility::Filter(registry, entity, rendererScene);
+~~~~~~~~~~~~~
+
+Pending capture tasks are stored on @b3d::RendererScene and are automatically cancelled when the probe is deallocated via @b3d::RendererScene::DeallocateReflectionProbeId.
 
 When modifying the fragment, add the appropriate dirty tag:
 
