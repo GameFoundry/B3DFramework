@@ -443,8 +443,9 @@ namespace b3d::ecs
 		reverse_iterator rend() const { return Rend(); }
 		const_reverse_iterator crend() const { return Crend(); }
 
-		Event<void(Entity)> OnWasAdded; /**< Triggers any time a new entity is added to the set. */
-		Event<void(Entity)> OnWillRemove; /**< Triggers right before an entity is removed from the set. */
+		Event<void(Entity), ThreadUnsafe> OnWasAdded; /**< Triggers any time a new entity is added to the set. */
+		Event<void(Entity), ThreadUnsafe> OnWillRemove; /**< Triggers right before an entity is removed from the set. */
+		Event<void(Entity), ThreadUnsafe> OnWasUpdated; /**< Triggers when an existing component is updated or replaced. Must be explicitly triggered by the caller. */
 	protected:
 		/**
 		 * Adds a new entity to the set.

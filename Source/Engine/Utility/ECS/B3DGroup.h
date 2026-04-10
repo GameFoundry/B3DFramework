@@ -226,7 +226,7 @@ namespace b3d::ecs
 
 		std::array<SparseSet*, OwnedTypeCount + IncludedTypeCount> mIncludedTypeStorage { };
 		std::array<SparseSet*, ExcludedTypeCount> mExcludedTypeStorage { };
-		std::array<HEvent, (OwnedTypeCount + IncludedTypeCount + ExcludedTypeCount) * 2> mEventHandles;
+		std::array<THEvent<ThreadUnsafe>, (OwnedTypeCount + IncludedTypeCount + ExcludedTypeCount) * 2> mEventHandles;
 		u64 mNextIndex = 0;
 	};
 
@@ -316,7 +316,7 @@ namespace b3d::ecs
 
 		std::array<SparseSet*, IncludedTypeCount> mIncludedTypeStorage { };
 		std::array<SparseSet*, ExcludedTypeCount> mExcludedTypeStorage { };
-		std::array<HEvent, (IncludedTypeCount + ExcludedTypeCount) * 2> mEventHandles;
+		std::array<THEvent<ThreadUnsafe>, (IncludedTypeCount + ExcludedTypeCount) * 2> mEventHandles;
 		TSparseSet<SparseSetDeletePolicy::SwapAndErase> mGroupEntities;
 	};
 
