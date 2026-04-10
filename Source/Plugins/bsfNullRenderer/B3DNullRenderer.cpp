@@ -1,6 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DNullRenderer.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "Renderer/B3DRendererManager.h"
 
 using namespace b3d;
@@ -22,6 +23,20 @@ const StringID& render::NullRenderer::GetName() const
 {
 	static StringID name = "NullRenderer";
 	return name;
+}
+
+void render::NullRenderer::Initialize(const SPtr<GpuDevice>& gpuDevice)
+{
+	Renderer::Initialize(gpuDevice);
+
+	GetRenderThread().PostCommand([this]() { InitializeOnRenderThread(); }, "NullRenderer::InitializeOnRenderThread");
+}
+
+void render::NullRenderer::Destroy()
+{
+	Renderer::Destroy();
+
+	GetRenderThread().PostCommand([this]() { DestroyOnRenderThread(); }, "NullRenderer::DestroyOnRenderThread", true);
 }
 
 void render::NullRenderer::RenderAll(PerFrameData perFrameData)

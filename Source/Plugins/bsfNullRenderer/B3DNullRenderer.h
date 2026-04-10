@@ -49,6 +49,8 @@ namespace b3d
 			NullRenderer() = default;
 
 			const StringID& GetName() const override;
+			void Initialize(const SPtr<GpuDevice>& gpuDevice) override;
+			void Destroy() override;
 			void RenderAll(PerFrameData perFrameData) override;
 			void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override {}
 			SPtr<RendererScene> CreateScene() override;
