@@ -629,7 +629,7 @@ namespace b3d
 			return this->mOwnedObject != nullptr;
 		}
 
-		template <typename Type2, typename... ArgumentType, ThreadSafetyPolicy ThreadSafety2>
+		template <typename Type2, ThreadSafetyPolicy ThreadSafety2, typename... ArgumentType>
 		friend TShared<Type2, ThreadSafety2> B3DMakeShared2(ArgumentType&&... argument);
 	};
 
@@ -710,12 +710,12 @@ namespace b3d
 	}
 
 	/** Constructs a shared pointer where the referenced object and the shader pointer control block are both allocated via a single memory allocation. */
-	template <typename Type, typename... ArgumentType, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
+	template <typename Type, ThreadSafetyPolicy ThreadSafety = ThreadSafe, typename... ArgumentType>
 	TShared<Type, ThreadSafety> B3DMakeShared2(ArgumentType&&... argument)
 	{
 		TSharedControlBlockWithObject<Type, ThreadSafety>* controlBlock = B3DNew<TSharedControlBlockWithObject<Type, ThreadSafety>>(std::forward<ArgumentType>(argument)...);
 
-		TShared<Type> shared;
+		TShared<Type, ThreadSafety> shared;
 		shared.Construct(&controlBlock->Object, controlBlock);
 		return shared;
 	}
