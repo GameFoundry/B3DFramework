@@ -291,7 +291,7 @@ namespace b3d
 
 		/** Constructs a new shared pointer referencing the provided object and control block. */
 		template<typename OtherType>
-		void Construct(OtherType* pointer, TSharedControlBlock<ThreadSafe>* controlBlock)
+		void Construct(OtherType* pointer, TSharedControlBlock<ThreadSafety>* controlBlock)
 		{
 			mOwnedObject = pointer;
 			mControlBlock = controlBlock;
