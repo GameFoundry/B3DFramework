@@ -45,7 +45,7 @@ namespace b3d
 		/** Ensures all data fragments exist on the entity. Returns true if any fragment was newly created. */
 		static bool CreateFragmentsIfMissing(ecs::Registry& registry, ecs::Entity entity)
 		{
-			return (AddIfMissing<DataFragments>(registry, entity) || ...);
+			return (AddIfMissing<DataFragments>(registry, entity) | ...);
 		}
 
 		/**
