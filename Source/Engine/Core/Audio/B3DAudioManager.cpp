@@ -1,41 +1,24 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Audio/B3DAudioManager.h"
-#include "Utility/B3DDynamicLibraryManager.h"
-#include "Utility/B3DDynamicLibrary.h"
+#include "Plugin/B3DPluginLoader.h"
 
 using namespace b3d;
 
 AudioManager::AudioManager(const String& pluginName)
 {
-	mPlugin = DynamicLibraryManager::Instance().Load(pluginName);
+	mPlugin = PluginLoader::Load(pluginName);
+	mFactory = static_cast<AudioFactory*>(mPlugin.ReturnValue);
 
-	if(mPlugin != nullptr)
-	{
-		typedef AudioFactory* (*LoadPluginFunc)();
-
-		LoadPluginFunc loadPluginFunc = (LoadPluginFunc)mPlugin->GetSymbol("LoadPlugin");
-		mFactory = loadPluginFunc();
-
-		if(mFactory != nullptr)
-			mFactory->StartUp();
-	}
+	if(mFactory != nullptr)
+		mFactory->StartUp();
 }
 
 AudioManager::~AudioManager()
 {
-	if(mPlugin != nullptr)
-	{
-		if(mFactory != nullptr)
-		{
-			typedef void (*UnloadPluginFunc)(AudioFactory*);
+	if(mFactory != nullptr)
+		mFactory->ShutDown();
 
-			UnloadPluginFunc unloadPluginFunc = (UnloadPluginFunc)mPlugin->GetSymbol("UnloadPlugin");
-
-			mFactory->ShutDown();
-			unloadPluginFunc(mFactory);
-		}
-
-		DynamicLibraryManager::Instance().Unload(mPlugin);
-	}
+	PluginLoader::Unload(mPlugin);
+	mFactory = nullptr;
 }

@@ -22,6 +22,19 @@ public:
 	}
 };
 
+extern "C" void* LoadPlugin_bsfOpenAudio()
+{
+	OAImporter* importer = B3DNew<OAImporter>();
+	Importer::Instance().RegisterAssetImporter(importer);
+
+	return static_cast<void*>(B3DNew<OAFactory>());
+}
+
+extern "C" void UnloadPlugin_bsfOpenAudio(void* instance)
+{
+	B3DDelete(static_cast<AudioFactory*>(instance));
+}
+
 /**	Returns a name of the plugin. */
 extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 {
@@ -32,14 +45,11 @@ extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 /**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
 extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
 {
-	OAImporter* importer = B3DNew<OAImporter>();
-	Importer::Instance().RegisterAssetImporterInternal(importer);
-
-	return B3DNew<OAFactory>();
+	return LoadPlugin_bsfOpenAudio();
 }
 
 /**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
 extern "C" B3D_PLUGIN_EXPORT void UnloadPlugin(OAFactory* instance)
 {
-	B3DDelete(instance);
+	UnloadPlugin_bsfOpenAudio(static_cast<void*>(instance));
 }

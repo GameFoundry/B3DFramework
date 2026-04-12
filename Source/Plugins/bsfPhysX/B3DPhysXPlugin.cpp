@@ -23,12 +23,22 @@ public:
 	}
 };
 
-extern "C" B3D_PLUGIN_EXPORT PhysXFactory* LoadPlugin()
+extern "C" void* LoadPlugin_bsfPhysX()
 {
-	return B3DNew<PhysXFactory>();
+	return static_cast<void*>(B3DNew<PhysXFactory>());
+}
+
+extern "C" void UnloadPlugin_bsfPhysX(void* instance)
+{
+	B3DDelete(static_cast<PhysicsFactory*>(instance));
+}
+
+extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
+{
+	return LoadPlugin_bsfPhysX();
 }
 
 extern "C" B3D_PLUGIN_EXPORT void UnloadPlugin(PhysXFactory* instance)
 {
-	B3DDelete(instance);
+	UnloadPlugin_bsfPhysX(static_cast<void*>(instance));
 }

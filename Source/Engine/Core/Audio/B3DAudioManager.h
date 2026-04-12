@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "Plugin/B3DPluginLoader.h"
 #include "Utility/B3DModule.h"
 
 namespace b3d
@@ -29,15 +30,15 @@ namespace b3d
 	{
 	public:
 		/**
-		 * Initializes the physics manager and a particular audio system implementation.
+		 * Initializes the audio manager and a particular audio system implementation.
 		 *
-		 * @param	pluginName	Name of the plugin containing a audio system implementation.
+		 * @param	pluginName	Name of the plugin containing an audio system implementation.
 		 */
 		AudioManager(const String& pluginName);
 		~AudioManager();
 
 	private:
-		DynamicLibrary* mPlugin = nullptr;
+		LoadedPlugin mPlugin;
 		AudioFactory* mFactory = nullptr;
 	};
 

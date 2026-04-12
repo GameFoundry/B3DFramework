@@ -19,7 +19,7 @@ using namespace b3d;
 
 Importer::Importer()
 {
-	RegisterAssetImporterInternal(B3DNew<ShaderIncludeImporter>());
+	RegisterAssetImporter(B3DNew<ShaderIncludeImporter>());
 }
 
 Importer::~Importer()
@@ -296,7 +296,7 @@ SPtr<ImportOptions> Importer::CreateImportOptions(const Path& inputFilePath)
 	return importer->CreateImportOptions();
 }
 
-void Importer::RegisterAssetImporterInternal(SpecificImporter* importer)
+void Importer::RegisterAssetImporter(SpecificImporter* importer)
 {
 	if(!importer)
 	{

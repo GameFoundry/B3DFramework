@@ -14,7 +14,7 @@ extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
 {
 	FreeImgImporter* importer = B3DNew<FreeImgImporter>();
-	Importer::Instance().RegisterAssetImporterInternal(importer);
+	Importer::Instance().RegisterAssetImporter(importer);
 
 	return nullptr;
 }

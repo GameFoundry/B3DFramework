@@ -15,7 +15,7 @@ if(B3D_AUDIO_BACKEND MATCHES "FMOD")
 endif()
 	
 # Target
-add_library(bsfFMOD SHARED ${BS_FMOD_SRC})
+B3DAddPlugin(bsfFMOD ENGINE ${BS_FMOD_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfFMOD)

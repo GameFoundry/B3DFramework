@@ -157,7 +157,7 @@ namespace b3d
 		 * @note	This method should only be called by asset importers themselves on startup. Importer takes ownership
 		 *			of the provided pointer and will release it. Assumes it is allocated using the general allocator.
 		 */
-		void RegisterAssetImporterInternal(SpecificImporter* importer);
+		void RegisterAssetImporter(SpecificImporter* importer);
 
 		/** Alternative to import() which doesn't create a resource handle, but instead returns a raw resource pointer. */
 		SPtr<Resource> ImportInternal(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);

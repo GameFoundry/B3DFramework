@@ -29,7 +29,7 @@ if(B3D_RENDER_BACKEND MATCHES "Vulkan" OR B3D_BUILD_ALL_PLUGINS)
 endif()
 	
 # Target
-add_library(bsfVulkanRenderAPI SHARED ${BS_VULKANRENDERAPI_SRC})
+B3DAddPlugin(bsfVulkanRenderAPI ENGINE ${BS_VULKANRENDERAPI_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfVulkanRenderAPI)

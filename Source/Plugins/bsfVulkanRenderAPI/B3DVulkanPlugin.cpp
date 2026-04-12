@@ -5,7 +5,27 @@
 
 using namespace b3d;
 
+extern "C" void* LoadPlugin_bsfVulkanRenderAPI()
+{
+	return static_cast<void*>(B3DNew<render::VulkanGpuBackendFactory>());
+}
+
+extern "C" void UnloadPlugin_bsfVulkanRenderAPI(void* instance)
+{
+	B3DDelete(static_cast<GpuBackendFactory*>(instance));
+}
+
 extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 {
 	return render::VulkanGpuBackendFactory::SystemName;
+}
+
+extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
+{
+	return LoadPlugin_bsfVulkanRenderAPI();
+}
+
+extern "C" B3D_PLUGIN_EXPORT void UnloadPlugin(render::VulkanGpuBackendFactory* instance)
+{
+	UnloadPlugin_bsfVulkanRenderAPI(instance);
 }

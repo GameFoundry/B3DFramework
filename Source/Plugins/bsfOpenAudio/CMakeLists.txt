@@ -18,7 +18,7 @@ if(B3D_AUDIO_BACKEND MATCHES "OpenAudio" OR B3D_BUILD_ALL_PLUGINS)
 endif()
 	
 # Target
-add_library(bsfOpenAudio SHARED ${BS_OPENAUDIO_SRC})
+B3DAddPlugin(bsfOpenAudio ENGINE ${BS_OPENAUDIO_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfOpenAudio)

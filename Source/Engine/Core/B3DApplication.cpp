@@ -178,8 +178,6 @@ Application::~Application()
 	// Destroy profiler after render thread is shut down, because we rely on it to clear the profiler resources
 	GpuProfiler::ShutDown();
 
-	UnloadPlugin(mInformation.Renderer);
-
 	mPrimaryGpu = nullptr;
 	GpuBackendManager::ShutDown();
 
@@ -280,8 +278,6 @@ void Application::OnStartUp()
 	Input::StartUp();
 	RendererManager::StartUp();
 
-	LoadPlugin(mInformation.Renderer);
-
 	// Must be initialized before the scene manager, as game scene creation triggers physics scene creation
 	PhysicsManager::StartUp(mInformation.Physics, mInformation.PhysicsCooking);
 	PrefabManager::StartUp();
@@ -299,10 +295,10 @@ void Application::OnStartUp()
 
 	// Built-in importers
 	FGAImporter* fgaImporter = B3DNew<FGAImporter>();
-	Importer::Instance().RegisterAssetImporterInternal(fgaImporter);
+	Importer::Instance().RegisterAssetImporter(fgaImporter);
 
 	PlainTextImporter* importer = B3DNew<PlainTextImporter>();
-	Importer::Instance().RegisterAssetImporterInternal(importer);
+	Importer::Instance().RegisterAssetImporter(importer);
 
 	VirtualInput::StartUp();
 	StockIcons::StartUp();
@@ -465,8 +461,8 @@ void Application::RunMainLoopFrame()
 	// Update plugins
 	for(const auto& pair : mLoadedPlugins)
 	{
-		if(pair.second.UpdateCallback != nullptr)
-			pair.second.UpdateCallback();
+		if(pair.second.UpdateFn != nullptr)
+			pair.second.UpdateFn();
 	}
 
 	PostUpdate();
@@ -627,45 +623,14 @@ void Application::EndRenderThreadProfiling()
 	GetProfiler().UpdateRenderThreadInternal();
 }
 
-void* Application::LoadPlugin(const String& pluginName, DynamicLibrary** outLibrary, void* passThrough)
+void* Application::LoadPlugin(const String& pluginName, void* passThrough)
 {
 	B3D_ASSERT(mLoadedPlugins.find(pluginName) == mLoadedPlugins.end());
 
-	DynamicLibrary* loadedLibrary = GetDynamicLibraryManager().Load(pluginName);
-	if(outLibrary != nullptr)
-		*outLibrary = loadedLibrary;
+	LoadedPlugin plugin = PluginLoader::Load(pluginName, passThrough);
+	mLoadedPlugins[pluginName] = plugin;
 
-	void* returnValue = nullptr;
-	if(loadedLibrary != nullptr)
-	{
-		if(passThrough == nullptr)
-		{
-			typedef void* (*LoadPluginFunctionPointer)();
-
-			LoadPluginFunctionPointer loadFunction = (LoadPluginFunctionPointer)loadedLibrary->GetSymbol("LoadPlugin");
-
-			if(loadFunction != nullptr)
-				returnValue = loadFunction();
-		}
-		else
-		{
-			typedef void* (*LoadPluginFunctionPointer)(void*);
-
-			LoadPluginFunctionPointer loadFunction = (LoadPluginFunctionPointer)loadedLibrary->GetSymbol("LoadPlugin");
-
-			if(loadFunction != nullptr)
-				returnValue = loadFunction(passThrough);
-		}
-
-		LoadedPlugin loadedPlugin;
-		loadedPlugin.Library = loadedLibrary;
-		loadedPlugin.UpdateCallback = (UpdatePluginFunctionPointer)loadedLibrary->GetSymbol("UpdatePlugin");
-		loadedPlugin.UnloadCallback = (UnloadPluginFunctionPointer)loadedLibrary->GetSymbol("UnloadPlugin");
-
-		mLoadedPlugins[pluginName] = loadedPlugin;
-	}
-
-	return returnValue;
+	return plugin.ReturnValue;
 }
 
 void Application::UnloadPlugin(const String& pluginName)
@@ -674,22 +639,14 @@ void Application::UnloadPlugin(const String& pluginName)
 	if(found == mLoadedPlugins.end())
 		return;
 
-	if(found->second.UnloadCallback != nullptr)
-		found->second.UnloadCallback();
-
-	GetDynamicLibraryManager().Unload(found->second.Library);
+	PluginLoader::Unload(found->second);
 	mLoadedPlugins.erase(found);
 }
 
 void Application::UnloadAllPlugins()
 {
 	for(auto& entryPair : mLoadedPlugins)
-	{
-		if(entryPair.second.UnloadCallback != nullptr)
-			entryPair.second.UnloadCallback();
-
-		GetDynamicLibraryManager().Unload(entryPair.second.Library);
-	}
+		PluginLoader::Unload(entryPair.second);
 
 	mLoadedPlugins.clear();
 }

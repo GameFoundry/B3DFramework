@@ -160,7 +160,10 @@
 #endif
 
 // DLL export for plugins
-#if B3D_PLATFORM_WIN32 // Windows
+#if B3D_MONOLITHIC_BUILD
+#	define B3D_PLUGIN_EXPORT
+#	define B3D_PLUGIN_HIDDEN
+#elif B3D_PLATFORM_WIN32 // Windows
 #	if B3D_COMPILER_MSVC
 #		define B3D_PLUGIN_EXPORT __declspec(dllexport)
 #	else

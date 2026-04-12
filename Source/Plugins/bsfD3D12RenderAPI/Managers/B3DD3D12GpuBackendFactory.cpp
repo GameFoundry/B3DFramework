@@ -1,33 +1,14 @@
-//************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
+//************************************ B3D Framework - Copyright 2026 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12GpuBackendFactory.h"
 #include "B3DD3D12GpuBackend.h"
+#include "CoreObject/B3DRenderThread.h"
 
-namespace b3d
+using namespace b3d;
+
+constexpr const char* D3D12GpuBackendFactory::SystemName;
+
+void D3D12GpuBackendFactory::Create()
 {
-	/** Implementation of GpuBackendFactory for DirectX 12. */
-	class D3D12GpuBackendFactoryImpl : public GpuBackendFactory
-	{
-	public:
-		void Create() override
-		{
-			// Start up the D3D12 GPU backend
-			D3D12GpuBackend::StartUp();
-		}
-
-		const char* Name() const override
-		{
-			return "DirectX 12";
-		}
-	};
-
-	void D3D12GpuBackendFactory::Create()
-	{
-		// Create the factory implementation and register it with the GpuBackendManager
-		SPtr<GpuBackendFactory> factory = B3DMakeShared<D3D12GpuBackendFactoryImpl>();
-		GpuBackendManager::Instance().RegisterFactory(factory);
-
-		// Immediately create the backend
-		factory->Create();
-	}
-} // namespace b3d
+	D3D12GpuBackend::StartUp();
+}

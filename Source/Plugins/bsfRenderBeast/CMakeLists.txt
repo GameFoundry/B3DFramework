@@ -2,7 +2,7 @@
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_RENDERBEAST_SRC)
 
 # Target
-add_library(bsfRenderBeast SHARED ${BS_RENDERBEAST_SRC})
+B3DAddPlugin(bsfRenderBeast ENGINE ${BS_RENDERBEAST_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfRenderBeast)

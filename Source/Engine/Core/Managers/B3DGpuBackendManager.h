@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "Plugin/B3DPluginLoader.h"
 #include "Utility/B3DModule.h"
 
 namespace b3d
@@ -34,11 +35,9 @@ namespace b3d
 		/** Loads a plugin with the provided name and initializes the GpuBackend from the plugin. */
 		void Initialize(const String& pluginFilename);
 
-		/**	Registers a new GPU backend factory responsible for creating a specific GpuBackend. */
-		void RegisterFactory(SPtr<GpuBackendFactory> factory);
-
 	private:
-		Vector<SPtr<GpuBackendFactory>> mAvailableFactories;
+		LoadedPlugin mPlugin;
+		GpuBackendFactory* mFactory = nullptr;
 		bool mRenderAPIInitialized = false;
 	};
 

@@ -22,6 +22,19 @@ public:
 	}
 };
 
+extern "C" void* LoadPlugin_bsfFMOD()
+{
+	FMODImporter* importer = B3DNew<FMODImporter>();
+	Importer::Instance().RegisterAssetImporter(importer);
+
+	return static_cast<void*>(B3DNew<FMODFactory>());
+}
+
+extern "C" void UnloadPlugin_bsfFMOD(void* instance)
+{
+	B3DDelete(static_cast<AudioFactory*>(instance));
+}
+
 /**	Returns a name of the plugin. */
 extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 {
@@ -32,14 +45,11 @@ extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 /**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
 extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
 {
-	FMODImporter* importer = B3DNew<FMODImporter>();
-	Importer::Instance().RegisterAssetImporterInternal(importer);
-
-	return B3DNew<FMODFactory>();
+	return LoadPlugin_bsfFMOD();
 }
 
 /**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
 extern "C" B3D_PLUGIN_EXPORT void UnloadPlugin(FMODFactory* instance)
 {
-	B3DDelete(instance);
+	UnloadPlugin_bsfFMOD(static_cast<void*>(instance));
 }

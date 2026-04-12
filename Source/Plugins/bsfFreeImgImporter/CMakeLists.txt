@@ -9,7 +9,7 @@ endif()
 find_package(freeimg REQUIRED)
 	
 # Target
-add_library(bsfFreeImgImporter SHARED ${BS_FREEIMGIMPORTER_SRC})
+B3DAddPlugin(bsfFreeImgImporter IMPORTER ${BS_FREEIMGIMPORTER_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfFreeImgImporter)

@@ -5,7 +5,27 @@
 
 using namespace b3d;
 
+extern "C" void* LoadPlugin_bsfNullRenderAPI()
+{
+	return static_cast<void*>(B3DNew<NullGpuBackendFactory>());
+}
+
+extern "C" void UnloadPlugin_bsfNullRenderAPI(void* instance)
+{
+	B3DDelete(static_cast<GpuBackendFactory*>(instance));
+}
+
 extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 {
 	return NullGpuBackendFactory::SystemName;
+}
+
+extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
+{
+	return LoadPlugin_bsfNullRenderAPI();
+}
+
+extern "C" B3D_PLUGIN_EXPORT void UnloadPlugin(NullGpuBackendFactory* instance)
+{
+	UnloadPlugin_bsfNullRenderAPI(instance);
 }

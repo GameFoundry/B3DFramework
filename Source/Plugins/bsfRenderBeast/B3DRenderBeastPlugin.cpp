@@ -2,9 +2,18 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DRenderBeastPrerequisites.h"
 #include "B3DRenderBeastFactory.h"
-#include "Renderer/B3DRendererManager.h"
 
 using namespace b3d;
+
+extern "C" void* LoadPlugin_bsfRenderBeast()
+{
+	return static_cast<void*>(B3DNew<RenderBeastFactory>());
+}
+
+extern "C" void UnloadPlugin_bsfRenderBeast(void* instance)
+{
+	B3DDelete(static_cast<RendererFactory*>(instance));
+}
 
 /**	Returns a name of the plugin. */
 extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
@@ -15,7 +24,11 @@ extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 /**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
 extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
 {
-	RendererManager::Instance().RegisterFactoryInternal(B3DMakeShared<RenderBeastFactory>());
+	return LoadPlugin_bsfRenderBeast();
+}
 
-	return nullptr;
+/**	Exit point from the plugin. Called by the engine when the plugin is unloaded. */
+extern "C" B3D_PLUGIN_EXPORT void UnloadPlugin(RenderBeastFactory* instance)
+{
+	UnloadPlugin_bsfRenderBeast(instance);
 }

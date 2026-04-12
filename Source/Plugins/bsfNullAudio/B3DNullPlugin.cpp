@@ -21,6 +21,16 @@ public:
 	}
 };
 
+extern "C" void* LoadPlugin_bsfNullAudio()
+{
+	return static_cast<void*>(B3DNew<NullFactory>());
+}
+
+extern "C" void UnloadPlugin_bsfNullAudio(void* instance)
+{
+	B3DDelete(static_cast<AudioFactory*>(instance));
+}
+
 /**	Returns a name of the plugin. */
 extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 {
@@ -31,11 +41,11 @@ extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 /**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
 extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
 {
-	return B3DNew<NullFactory>();
+	return LoadPlugin_bsfNullAudio();
 }
 
 /**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
 extern "C" B3D_PLUGIN_EXPORT void UnloadPlugin(NullFactory* instance)
 {
-	B3DDelete(instance);
+	UnloadPlugin_bsfNullAudio(static_cast<void*>(instance));
 }

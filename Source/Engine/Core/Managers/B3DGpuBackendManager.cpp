@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Managers/B3DGpuBackendManager.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "RenderAPI/B3DGpuBackend.h"
-#include "Utility/B3DDynamicLibrary.h"
-#include "Utility/B3DDynamicLibraryManager.h"
+#include "Plugin/B3DPluginLoader.h"
 
 using namespace b3d;
 
@@ -11,37 +11,27 @@ GpuBackendManager::~GpuBackendManager()
 {
 	if(mRenderAPIInitialized)
 		GpuBackend::ShutDown();
+
+	// Flush any pending render thread work before unloading the plugin DLL,
+	// since GPU backend code referenced by the render thread lives in it.
+	if(mPlugin.Library != nullptr || mPlugin.ReturnValue != nullptr)
+		GetRenderThread().PostCommand([] {}, "GpuBackendManager plugin unload flush", true);
+
+	PluginLoader::Unload(mPlugin);
+	mFactory = nullptr;
 }
 
 void GpuBackendManager::Initialize(const String& pluginFilename)
 {
-	if (!B3D_ENSURE(!mRenderAPIInitialized))
+	if(!B3D_ENSURE(!mRenderAPIInitialized))
 		return;
 
-	DynamicLibrary* loadedLibrary = GetDynamicLibraryManager().Load(pluginFilename);
-	const char* name = "";
+	mPlugin = PluginLoader::Load(pluginFilename);
+	mFactory = static_cast<GpuBackendFactory*>(mPlugin.ReturnValue);
 
-	if(loadedLibrary != nullptr)
+	if(mFactory != nullptr)
 	{
-		typedef const char* (*FnGetPluginName)();
-
-		FnGetPluginName fnGetPluginName = (FnGetPluginName)loadedLibrary->GetSymbol("GetPluginName");
-		name = fnGetPluginName();
+		mFactory->Create();
+		mRenderAPIInitialized = true;
 	}
-
-	for(auto iter = mAvailableFactories.begin(); iter != mAvailableFactories.end(); ++iter)
-	{
-		if(strcmp((*iter)->Name(), name) == 0)
-		{
-			(*iter)->Create();
-			mRenderAPIInitialized = true;
-		}
-	}
-}
-
-void GpuBackendManager::RegisterFactory(SPtr<GpuBackendFactory> factory)
-{
-	B3D_ASSERT(factory != nullptr);
-
-	mAvailableFactories.push_back(factory);
 }

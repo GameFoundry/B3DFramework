@@ -90,6 +90,18 @@ function(B3DGlobSourceFiles parentPath path foldersToIgnore outSourceFiles)
 	set(${outSourceFiles} ${sourceFiles} PARENT_SCOPE)
 endfunction()
 
+# Determines library type based on monolithic mode and plugin category.
+# PLUGIN_CATEGORY: ENGINE (goes static in monolithic) or IMPORTER (always shared)
+macro(B3DAddPlugin TARGET_NAME PLUGIN_CATEGORY)
+	if(B3D_MONOLITHIC_BUILD AND NOT "${PLUGIN_CATEGORY}" STREQUAL "IMPORTER")
+		add_library(${TARGET_NAME} STATIC ${ARGN})
+		list(APPEND B3D_STATIC_PLUGIN_TARGETS ${TARGET_NAME})
+		set(B3D_STATIC_PLUGIN_TARGETS ${B3D_STATIC_PLUGIN_TARGETS} PARENT_SCOPE)
+	else()
+		add_library(${TARGET_NAME} SHARED ${ARGN})
+	endif()
+endmacro()
+
 # Registers optional subdirectories based on selected properties.
 function(B3DRegisterOptionalFrameworkSubdirectories)
 	# Grab examples projects

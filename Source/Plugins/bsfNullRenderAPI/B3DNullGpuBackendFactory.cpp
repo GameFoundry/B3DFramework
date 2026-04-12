@@ -16,5 +16,3 @@ void NullGpuBackendFactory::Create()
 
 	RenderThread::Instance().PostCommand(fnStartUp, "NullGpuBackend::StartUp", true);
 }
-
-NullGpuBackendFactory::InitOnStart NullGpuBackendFactory::initOnStart;

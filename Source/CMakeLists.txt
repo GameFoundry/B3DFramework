@@ -44,6 +44,8 @@ set(B3D_ENABLE_NETWORKING OFF CACHE BOOL "If true, enable networking support.")
 
 set(B3D_USE_BUNDLED_LIBRARIES ON CACHE BOOL "Use and install bundled libraries")
 
+set(B3D_MONOLITHIC_BUILD OFF CACHE BOOL "Link non-importer plugins statically into a single bsf library.")
+
 # Ensure dependencies are up to date
 ## Check data dependencies
 B3DCheckAndUpdateAssetPackage(FrameworkData)
@@ -163,6 +165,47 @@ add_subdirectory(Plugins/bsfFBXImporter)
 add_subdirectory(Plugins/bsfFontImporter)
 add_subdirectory(Plugins/bsfFreeImgImporter)
 add_subdirectory(Plugins/bsfSL)
+
+## Generate static plugin registry for monolithic builds
+if(B3D_MONOLITHIC_BUILD)
+	# B3D_STATIC_PLUGIN_TARGETS is accumulated by B3DAddPlugin calls
+	set(B3D_STATIC_PLUGIN_DECLARATIONS "")
+	set(B3D_STATIC_PLUGIN_ENTRIES "")
+	set(B3D_STATIC_PLUGIN_FORCE_SYMBOLS "")
+
+	foreach(PLUGIN_TARGET ${B3D_STATIC_PLUGIN_TARGETS})
+		string(APPEND B3D_STATIC_PLUGIN_DECLARATIONS
+			"extern \"C\" void* LoadPlugin_${PLUGIN_TARGET}();\nextern \"C\" void  UnloadPlugin_${PLUGIN_TARGET}(void*);\n"
+		)
+		string(APPEND B3D_STATIC_PLUGIN_ENTRIES
+			"\t{ \"${PLUGIN_TARGET}\", LoadPlugin_${PLUGIN_TARGET}, UnloadPlugin_${PLUGIN_TARGET}, nullptr },\n"
+		)
+
+		if(MSVC)
+			string(APPEND B3D_STATIC_PLUGIN_FORCE_SYMBOLS
+				"#pragma comment(linker, \"/include:LoadPlugin_${PLUGIN_TARGET}\")\n"
+			)
+		else()
+			string(APPEND B3D_STATIC_PLUGIN_FORCE_SYMBOLS
+				"__attribute__((used)) static void* (*kForceKeep_${PLUGIN_TARGET})() = LoadPlugin_${PLUGIN_TARGET};\n"
+			)
+		endif()
+	endforeach()
+
+	# Wrap GCC/Clang force symbols in extern "C"
+	if(NOT MSVC AND B3D_STATIC_PLUGIN_FORCE_SYMBOLS)
+		set(B3D_STATIC_PLUGIN_FORCE_SYMBOLS
+			"extern \"C\" {\n${B3D_STATIC_PLUGIN_FORCE_SYMBOLS}}\n"
+		)
+	endif()
+
+	configure_file(
+		${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DStaticPluginRegistry.h.in
+		${PROJECT_BINARY_DIR}/Generated/Core/B3DStaticPluginRegistry.h
+	)
+
+	target_link_libraries(bsf PRIVATE ${B3D_STATIC_PLUGIN_TARGETS})
+endif()
 
 ## Tests
 if(B3D_BUILD_TESTS)

@@ -13,7 +13,7 @@ if(B3D_RENDER_BACKEND MATCHES "DirectX12" OR B3D_BUILD_ALL_PLUGINS)
 endif()
 
 # Target
-add_library(bsfD3D12RenderAPI SHARED ${BS_D3D12RENDERAPI_SRC})
+B3DAddPlugin(bsfD3D12RenderAPI ENGINE ${BS_D3D12RENDERAPI_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfD3D12RenderAPI)

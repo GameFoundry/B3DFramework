@@ -2,7 +2,7 @@
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_NULLRENDERER_SRC)
 
 # Target
-add_library(bsfNullRenderer SHARED ${BS_NULLRENDERER_SRC})
+B3DAddPlugin(bsfNullRenderer ENGINE ${BS_NULLRENDERER_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfNullRenderer)

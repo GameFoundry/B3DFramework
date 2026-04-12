@@ -20,7 +20,7 @@ extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
 {
 	SLImporter* importer = B3DNew<SLImporter>();
-	Importer::Instance().RegisterAssetImporterInternal(importer);
+	Importer::Instance().RegisterAssetImporter(importer);
 
 	const SPtr<IShaderCompiler> compiler = B3DMakeShared<BSLCompiler>();
 	ShaderCompilers::Instance().RegisterCompiler(SLImporter::kShaderExtensionWithoutLeadingDot, compiler);

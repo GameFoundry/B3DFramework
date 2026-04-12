@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "Plugin/B3DPluginLoader.h"
 #include "Utility/B3DModule.h"
 
 namespace b3d
@@ -39,8 +40,8 @@ namespace b3d
 		~PhysicsManager();
 
 	private:
-		DynamicLibrary* mPlugin;
-		PhysicsFactory* mFactory;
+		LoadedPlugin mPlugin;
+		PhysicsFactory* mFactory = nullptr;
 	};
 
 	/** @} */

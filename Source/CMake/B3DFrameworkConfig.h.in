@@ -37,3 +37,6 @@
 
 // Testing support
 #cmakedefine01 B3D_ENABLE_TESTS
+
+// Monolithic build: non-importer plugins are statically linked into bsf
+#cmakedefine01 B3D_MONOLITHIC_BUILD

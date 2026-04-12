@@ -10,7 +10,7 @@ endif()
 find_package(FBXSDK REQUIRED)
 	
 # Target
-add_library(bsfFBXImporter SHARED ${BS_FBXIMPORTER_SRC})
+B3DAddPlugin(bsfFBXImporter IMPORTER ${BS_FBXIMPORTER_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfFBXImporter)

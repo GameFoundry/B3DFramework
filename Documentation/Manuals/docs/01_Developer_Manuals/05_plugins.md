@@ -2,7 +2,7 @@
 title: Plugins
 ---
 
-Many systems in framwork are implemented through plugins, libraries that are separate from the core of the engine and can be dynamically loaded or unloaded. If possible, it is the prefered way of extending the engine.
+Many systems in the framework are implemented through plugins. Plugins can be built as dynamic libraries (loaded at runtime) or statically linked into a monolithic build, controlled by the `B3D_MONOLITHIC_BUILD` CMake option. If possible, it is the preferred way of extending the engine.
 
 Framework supports plugins for the following systems:
  - Audio - Systems for providing audio playback.
@@ -48,8 +48,9 @@ set(SOURCE_FILES
 )
 
 # Target
-## Registers our plugin a specific name (MyPlugin) and with the relevant source files
-add_library(MyPlugin SHARED ${SOURCE_FILES})
+## Registers our plugin with a specific name (MyPlugin) and with the relevant source files
+## Use ENGINE for plugins that can be statically linked, or IMPORTER for plugins that always remain dynamic
+B3DAddPlugin(MyPlugin ENGINE ${SOURCE_FILES})
 
 # Include directories
 ## Including just the current folder
@@ -69,36 +70,51 @@ add_subdirectory(Plugins/MyPlugin)
 ~~~~~~~~~~~~~
 
 # Plugin interface
-If you wish to create a plugin for any of the systems listed above, you will need to implement an informal interface through global "extern" methods. The interface supports three functions:
- - **loadPlugin()** - Called when the plugin is initially loaded
- - **updatePlugin()** - Called every frame
- - **unloadPlugin()** - Called just before the plugin is unloaded
- 
-You may choose to implement some, or none of these, although usually at least **loadPlugin()** method is needed so the plugin can register itself with the necessary system.
+If you wish to create a plugin for any of the systems listed above, you will need to implement an informal interface through global "extern" methods. Each plugin exposes named registration functions following a consistent naming convention based on the CMake target name:
+
+ - **LoadPlugin_\<TARGET\>()** - Called when the plugin is loaded (the core registration function)
+ - **UnloadPlugin_\<TARGET\>(void*)** - Called when the plugin is unloaded
+ - **UpdatePlugin_\<TARGET\>()** - Called every frame (optional)
+
+Additionally, the existing dynamic-mode trampolines call the named functions:
+ - **LoadPlugin()** - Trampoline that calls LoadPlugin_\<TARGET\>()
+ - **UnloadPlugin()** - Trampoline that calls UnloadPlugin_\<TARGET\>()
+
+All non-importer plugins follow the same pattern: **LoadPlugin_\<TARGET\>()** allocates a factory object and returns it as a `void*`, and **UnloadPlugin_\<TARGET\>(void*)** receives that same pointer and deletes it. The factory is the object that owns the plugin's lifecycle — the matching manager (PhysicsManager, AudioManager, GpuBackendManager, RendererManager) stores it and invokes its StartUp/ShutDown (or Create) methods.
+
 ~~~~~~~~~~~~~{.cpp}
-class MyPlugin : Module<MyPlugin>
+class MyPluginFactory : public SomeFactoryBase
 {
+public:
+	void StartUp() override { /* start MyPlugin's module */ }
+	void ShutDown() override { /* stop MyPlugin's module */ }
 };
 
-extern "C" B3D_MYPLUGIN_EXPORT void* loadPlugin()
+// Named registration function — called directly in monolithic mode, and via
+// the trampoline below in dynamic mode. Returns a factory pointer that the
+// matching manager takes ownership of.
+extern "C" void* LoadPlugin_MyPlugin()
 {
-	MyPlugin::StartUp();
-
-	return nullptr; // Not used
+	return static_cast<void*>(B3DNew<MyPluginFactory>());
 }
 
-extern "C" B3D_MYPLUGIN_EXPORT void updatePlugin()
+extern "C" void UnloadPlugin_MyPlugin(void* instance)
 {
-	// Do something every frame
+	B3DDelete(static_cast<SomeFactoryBase*>(instance));
 }
 
-extern "C" B3D_MYPLUGIN_EXPORT void unloadPlugin()
+// Dynamic-mode trampolines — the engine's PluginLoader looks up the symbols
+// "LoadPlugin" and "UnloadPlugin" by name in the plugin DLL, so both
+// trampolines must be present.
+extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
 {
-	MyPlugin::ShutDown();
+	return LoadPlugin_MyPlugin();
 }
 
-// B3D_MYPLUGIN_EXPORT is a macro for a compiler-specific export attribute
-// (e.g. __declspec(dllexport) for Visual Studio (MSVC))
+extern "C" B3D_PLUGIN_EXPORT void UnloadPlugin(MyPluginFactory* instance)
+{
+	UnloadPlugin_MyPlugin(instance);
+}
 ~~~~~~~~~~~~~
 
 After you have your plugin interface, all you need to do is to pass the name of your plugin (as defined in CMake) to one of the entries in **START_UP_DESC** for it to be loaded.
@@ -109,24 +125,13 @@ After you have your plugin interface, all you need to do is to pass the name of 
 You can also create a fully customized plugin that doesn't implement functionality for any existing engine system. The engine has no interface expectations for such plugins, and it's up to you to manually load/unload them, as well as to manually call their functions.
 
 To load a custom plugin you can use:
- - @b3d::Application::LoadPlugin - Accepts the name of the plugin library and outputs the library object. Optionally you may also pass a parameter to the **LoadPlugin** method, if your plugin defines one.
+ - @b3d::Application::LoadPlugin - Accepts the name of the plugin. Optionally you may also pass a parameter to the **LoadPlugin** method, if your plugin defines one.
  - @b3d::Application::UnloadPlugin - Unloads a previously loaded plugin. 
 
 ~~~~~~~~~~~~~{.cpp}
-DynamicLibrary* pluginLib;
-GetApplication()->LoadPlugin("MyPlugin", &pluginLib);
+GetApplication().LoadPlugin("MyPlugin");
 // Do something
-GetApplication()->UnloadPlugin("MyPlugin");
+GetApplication().UnloadPlugin("MyPlugin");
 ~~~~~~~~~~~~~ 
  
-Both of those methods internally call **DynamicLibraryManager** which we described earlier. In fact you can also use it directly for loading plugins, as an alternative to this approach.
-
-Once the library is loaded you can use the @b3d::DynamicLibrary object, and its @b3d::DynamicLibrary::GetSymbol method to retrieve a function pointer within the dynamic library, and call into it. 
-~~~~~~~~~~~~~{.cpp}
-// Retrieve function pointer (symbol)
-typedef void* (*LoadPluginFunc)();
-LoadPluginFunc loadPluginFunc = (LoadPluginFunc)pluginLib->GetSymbol("loadPlugin");
-
-// Call the function
-loadPluginFunc();
-~~~~~~~~~~~~~
+Both of those methods internally use **PluginLoader** which transparently handles both dynamic and monolithic build modes.

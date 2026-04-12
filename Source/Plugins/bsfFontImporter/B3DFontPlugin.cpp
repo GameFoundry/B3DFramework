@@ -17,7 +17,7 @@ extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
 {
 	FontImporter* importer = B3DNew<FontImporter>();
-	Importer::Instance().RegisterAssetImporterInternal(importer);
+	Importer::Instance().RegisterAssetImporter(importer);
 
 	return nullptr;
 }

@@ -12,7 +12,7 @@ if(B3D_PHYSICS_BACKEND MATCHES "PhysX" OR B3D_BUILD_ALL_PLUGINS)
 endif()
 	
 # Target
-add_library(bsfPhysX SHARED ${BS_PHYSX_SRC})
+B3DAddPlugin(bsfPhysX ENGINE ${BS_PHYSX_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfPhysX)

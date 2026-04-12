@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "Plugin/B3DPluginLoader.h"
 #include "RenderAPI/B3DRenderWindow.h"
 #include "Utility/B3DEvent.h"
 #include "Utility/B3DModule.h"
@@ -149,11 +150,10 @@ namespace b3d
 		 * Loads a plugin.
 		 *
 		 * @param[in]	pluginName	Name of the plugin to load, without extension.
-		 * @param[out]	outLibrary	Specify as not null to receive a reference to the loaded library.
 		 * @param[in]	passThrough	Optional parameter that will be passed to the loadPlugin function.
 		 * @return					Value returned from the plugin start-up method.
 		 */
-		void* LoadPlugin(const String& pluginName, DynamicLibrary** outLibrary = nullptr, void* passThrough = nullptr);
+		void* LoadPlugin(const String& pluginName, void* passThrough = nullptr);
 
 		/**	Unloads a previously loaded plugin. */
 		void UnloadPlugin(const String& pluginName);
@@ -197,17 +197,6 @@ namespace b3d
 
 		/**	Called by the render thread to end profiling. */
 		void EndRenderThreadProfiling();
-
-		typedef void (*UpdatePluginFunctionPointer)();
-		typedef void (*UnloadPluginFunctionPointer)();
-
-		/** Information about a loaded plugin. */
-		struct LoadedPlugin
-		{
-			DynamicLibrary* Library = nullptr;
-			UpdatePluginFunctionPointer UpdateCallback = nullptr;
-			UnloadPluginFunctionPointer UnloadCallback = nullptr;
-		};
 
 		SPtr<RenderWindow> mPrimaryWindow;
 		SPtr<GpuDevice> mPrimaryGpu;

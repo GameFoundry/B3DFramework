@@ -17,7 +17,7 @@ extern "C" B3D_PLUGIN_EXPORT const char* GetPluginName()
 extern "C" B3D_PLUGIN_EXPORT void* LoadPlugin()
 {
 	FBXImporter* importer = B3DNew<FBXImporter>();
-	Importer::Instance().RegisterAssetImporterInternal(importer);
+	Importer::Instance().RegisterAssetImporter(importer);
 
 	return nullptr;
 }

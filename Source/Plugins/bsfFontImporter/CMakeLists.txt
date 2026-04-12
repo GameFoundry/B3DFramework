@@ -9,7 +9,7 @@ endif()
 find_package(freetype REQUIRED)
 	
 # Target
-add_library(bsfFontImporter SHARED ${BS_FONTIMPORTER_SRC})
+B3DAddPlugin(bsfFontImporter IMPORTER ${BS_FONTIMPORTER_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfFontImporter)

@@ -2,7 +2,7 @@
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_NULLAUDIO_SRC)
 
 # Target
-add_library(bsfNullAudio SHARED ${BS_NULLAUDIO_SRC})
+B3DAddPlugin(bsfNullAudio ENGINE ${BS_NULLAUDIO_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfNullAudio)

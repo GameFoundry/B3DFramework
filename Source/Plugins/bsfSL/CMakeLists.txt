@@ -33,7 +33,7 @@ endif()
 find_package(XShaderCompiler)
 
 # Target
-add_library(bsfSL SHARED ${BS_SL_SRC})
+B3DAddPlugin(bsfSL IMPORTER ${BS_SL_SRC})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfSL)

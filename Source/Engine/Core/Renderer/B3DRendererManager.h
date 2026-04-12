@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "Plugin/B3DPluginLoader.h"
 #include "Utility/B3DModule.h"
 
 namespace b3d
@@ -23,11 +24,10 @@ namespace b3d
 		~RendererManager();
 
 		/**
-		 * Attempts to find a renderer with the specified name and makes it active. Exception is thrown if renderer with
-		 * the specified name doesn't exist. You must call Initialize() after setting the active renderer to properly
-		 * activate it.
+		 * Loads the renderer plugin with the provided name and makes it the active renderer. You must call Initialize()
+		 * after setting the active renderer to properly activate it.
 		 */
-		void SetActive(const String& name);
+		void SetActive(const String& pluginName);
 
 		/** Initializes the currently active renderer on the provided GPU device, making it ready to render. */
 		void Initialize(const SPtr<GpuDevice>& gpuDevice);
@@ -39,15 +39,9 @@ namespace b3d
 		/**	Returns the currently active renderer. Null if no renderer is active. */
 		SPtr<render::Renderer> GetActive() { return mActiveRenderer; }
 
-		/**
-		 * Registers a new renderer factory. Any renderer you try to make active with setActive() you will need to have
-		 * previously registered here.
-		 */
-		void RegisterFactoryInternal(SPtr<RendererFactory> factory);
-
 	private:
-		Vector<SPtr<RendererFactory>> mAvailableFactories;
-
+		LoadedPlugin mPlugin;
+		RendererFactory* mFactory = nullptr;
 		SPtr<render::Renderer> mActiveRenderer;
 	};
 
