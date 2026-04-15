@@ -7,12 +7,13 @@
 #include "CoreObject/B3DCoreObject.h"
 
 namespace b3d
-{namespace render
+{
+	namespace render
 	{
 		class RendererTask;
 	}
 
-	/** @addtogroup Implementation
+	/** @addtogroup Rendering-Internal
 	 *  @{
 	 */
 
@@ -58,7 +59,8 @@ namespace b3d
 	};
 
 	/** @} */
-	/** @addtogroup Components
+
+	/** @addtogroup Rendering
 	 *  @{
 	 */
 

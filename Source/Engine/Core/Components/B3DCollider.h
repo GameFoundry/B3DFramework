@@ -11,7 +11,7 @@ namespace b3d
 	class PhysicsScene;
 	class IColliderImplementation;
 
-	/** @addtogroup Components
+	/** @addtogroup Physics
 	 *  @{
 	 */
 
@@ -203,6 +203,13 @@ namespace b3d
 	protected:
 		Collider(); // Serialization only
 	};
+
+	/** @} */
+
+	/**
+	 * @addtogroup Physics-Internal
+	 * @{
+	 */
 
 	/** Low-level interface for a collider used by the Collider component. Should be implemented by the physics plugin to provide collider functionality. */
 	class B3D_EXPORT IColliderImplementation

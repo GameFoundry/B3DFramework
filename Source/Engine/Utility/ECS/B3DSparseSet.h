@@ -13,7 +13,7 @@
 
 namespace b3d::ecs
 {
-	/** @addtogroup General
+	/** @addtogroup ECS-Internal
 	 *  @{
 	 */
 
@@ -128,6 +128,12 @@ namespace b3d::ecs
 		return !(lhs < rhs);
 	}
 
+	/** @} */
+
+	/** @addtogroup ECS
+	 *  @{
+	 */
+
 	/** Determines how are entries treated when they are removed from a sparse set. */
 	enum class SparseSetDeletePolicy
 	{
@@ -152,6 +158,12 @@ namespace b3d::ecs
 		 */
 		SwapOnly
 	};
+
+	/** @} */
+
+	/** @addtogroup ECS-Internal
+	 *  @{
+	 */
 
 	/**
 	 * Similar to an array, but saves memory by not allocating data if there are large gaps in the stored indices. i.e. while a regular array would
@@ -580,6 +592,12 @@ namespace b3d::ecs
 		TypeHash mElementTypeHash = 0;
 	};
 
+	/** @} */
+
+	/** @addtogroup ECS
+	 *  @{
+	 */
+
 	/** Implements features of SparseSet that depend on a particular deletion policy. */
 	template<SparseSetDeletePolicy DeletePolicy>
 	class TSparseSet : public SparseSet
@@ -923,6 +941,12 @@ namespace b3d::ecs
 		 */
 		u64 mFreeListHead = DeletePolicy != SparseSetDeletePolicy::SwapOnly ? Super::kMaximumEntryCount : 0;
 	};
+
+	/** @} */
+
+	/** @addtogroup ECS-Internal
+	 *  @{
+	 */
 
 	/** Checks that all provided ECS storage types use InPlace deletion policy. */
 	template<typename... StorageType>

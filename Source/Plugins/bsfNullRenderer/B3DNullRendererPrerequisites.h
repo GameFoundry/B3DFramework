@@ -8,7 +8,7 @@
  *  @{
  */
 
-/** @defgroup NullRendererNullRenderer
+/** @defgroup NullRenderer NullRenderer
  *	Null renderer implementation.
  */
 

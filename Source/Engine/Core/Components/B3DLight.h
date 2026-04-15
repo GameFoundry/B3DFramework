@@ -17,7 +17,7 @@ namespace b3d
 	struct LightFullUpdateChannel;
 	struct LightTransformUpdateChannel;
 
-	/** @addtogroup Renderer-Internal
+	/** @addtogroup Rendering
 	 *  @{
 	 */
 
@@ -33,7 +33,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Implementation
+	/** @addtogroup Rendering-Internal
 	 *  @{
 	 */
 
@@ -158,12 +158,6 @@ namespace b3d
 		}
 	};
 
-	/** @} */
-
-	/** @addtogroup Renderer-Internal
-	 *  @{
-	 */
-
 	class RendererScene;
 
 	namespace ecs
@@ -209,7 +203,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Components
+	/** @addtogroup Rendering
 	 *  @{
 	 */
 
@@ -314,7 +308,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Renderer-Internal
+	/** @addtogroup Rendering-Internal
 	 *  @{
 	 */
 

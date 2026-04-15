@@ -7,7 +7,7 @@
 
 namespace b3d::render
 {
-	/** @addtogroup Null
+	/** @addtogroup NullGpuBackend 
 	 *  @{
 	 */
 

@@ -24,7 +24,7 @@ namespace b3d
 		class RendererScene;
 	}
 
-	/** @addtogroup Renderer
+	/** @addtogroup Renderer-Internal
 	 *  @{
 	 */
 
@@ -121,7 +121,7 @@ namespace b3d
 
 	namespace render
 	{
-		/** @addtogroup Renderere
+		/** @addtogroup Renderer-Internal
 		 *  @{
 		 */
 

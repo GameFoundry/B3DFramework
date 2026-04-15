@@ -14,7 +14,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Implementation
+	/** @addtogroup Rendering-Internal
 	 *  @{
 	 */
 
@@ -127,7 +127,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup RenderAPI
+	/** @addtogroup Rendering
 	 *  @{
 	 */
 
@@ -188,7 +188,7 @@ namespace b3d
 
 	namespace render
 	{
-		/** @addtogroup RenderAPI-Internal
+		/** @addtogroup Renderer-Internal
 		 *  @{
 		 */
 

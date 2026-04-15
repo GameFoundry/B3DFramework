@@ -16,7 +16,7 @@ namespace b3d
 	struct GUIStyleSheetStateRulesets;
 	class IGUIVectorPathBuilder;
 
-	/** @addtogroup Implementation
+	/** @addtogroup GUI-Internal
 	 *  @{
 	 */
 
@@ -54,6 +54,12 @@ namespace b3d
 
 		static const GUIStyleSheetRuleInformation kInvalid;
 	};
+
+	/** @} */
+
+	/** @addtogroup GUI
+	 *  @{
+	 */
 
 	/**
 	 * Base class for all GUI elements. Provides general functionality such as element size/position, as well as handling child/parent relationships.

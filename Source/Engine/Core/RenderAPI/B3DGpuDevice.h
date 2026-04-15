@@ -39,7 +39,7 @@ namespace b3d
 	struct GpuComputePipelineStateCreateInformation;
 	struct GpuGraphicsPipelineStateCreateInformation;
 
-	/** @addtogroup RenderAPI
+	/** @addtogroup GpuBackend
 	 *  @{
 	 */
 

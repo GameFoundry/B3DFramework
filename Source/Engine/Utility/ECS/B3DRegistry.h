@@ -14,7 +14,7 @@
 
 namespace b3d::ecs
 {
-	/** @addtogroup General
+	/** @addtogroup ECS
 	 *  @{
 	 */
 

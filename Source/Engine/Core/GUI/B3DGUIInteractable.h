@@ -14,7 +14,7 @@ namespace b3d
 {
 	class GUINavGroup;
 
-	/** @addtogroup Implementation
+	/** @addtogroup GUI
 	 *  @{
 	 */
 

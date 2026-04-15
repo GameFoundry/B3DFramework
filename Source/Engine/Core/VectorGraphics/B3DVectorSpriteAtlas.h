@@ -16,7 +16,8 @@ namespace b3d
 	}
 
 	struct VectorGraphicsSettings;
-	/** @addtogroup 2D
+
+	/** @addtogroup 2D-Internal
 	 *  @{
 	 */
 

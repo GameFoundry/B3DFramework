@@ -32,7 +32,7 @@
  *  @{
  */
 
-/** @defgroup Vulkan bsfVulkanRenderAPI
+/** @defgroup Vulkan Vulkan
  *	Wrapper around the Vulkan render API.
  */
 

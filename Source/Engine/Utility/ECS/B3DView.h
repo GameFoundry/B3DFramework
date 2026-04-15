@@ -12,7 +12,7 @@
 
 namespace b3d::ecs
 {
-	/** @addtogroup General
+	/** @addtogroup ECS-Internal
 	 *  @{
 	 */
 
@@ -423,6 +423,12 @@ namespace b3d::ecs
 		u32 mLeadingTypeIndex = IncludedTypeCount;
 	};
 
+	/** @} */
+
+	/** @addtogroup ECS
+	 *  @{
+	 */
+
 	template<typename, typename, typename = void>
 	class TView;
 
@@ -629,6 +635,12 @@ namespace b3d::ecs
 		}
 	};
 
+	/** @} */
+
+	/** @addtogroup ECS-Internal
+	 *  @{
+	 */
+
 	/** Provides helper functionality for a view containing single include types, and no excluded types. */
 	template<typename StorageType>
 	class TSingleStorageViewCommon
@@ -773,6 +785,12 @@ namespace b3d::ecs
 	protected:
 		const StorageType* mStorage = nullptr;
 	};
+
+	/** @} */
+
+	/** @addtogroup ECS
+	 *  @{
+	 */
 
 	/** Specialization of TView that is used when only a single type is provided for the included type filter. */
 	template<typename StorageType>

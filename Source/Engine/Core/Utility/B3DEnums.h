@@ -4,7 +4,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Utility-Engine
+	/** @addtogroup Platform
 	 *  @{
 	 */
 
@@ -26,6 +26,12 @@ namespace b3d
 		Count
 	};
 
+	/** @} */
+
+	/** @addtogroup 2D
+	 *  @{
+	 */
+
 	/**	Type of scaling modes for GUI images. */
 	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) TextureScaleMode
 	{
@@ -35,6 +41,12 @@ namespace b3d
 		RepeatToFit /**< Image will keep its original size, but will repeat in order to fill the assigned area. */
 	};
 
+	/** @} */
+
+	/** @addtogroup GUI-Internal
+	 *  @{
+	 */
+
 	/** Types of GUI meshes that can be output by GUI elements. */
 	enum class GUIMeshType
 	{
@@ -43,6 +55,12 @@ namespace b3d
 		/** Mesh containing a set of vertices as 2D position followed by vertex indices. */
 		Line
 	};
+
+	/** @} */
+
+	/** @addtogroup Profiling
+	 *  @{
+	 */
 
 	/**	Determines type of data to display on the profiler overlay. */
 	enum class ProfilerOverlayType

@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Components
+	/** @addtogroup Physics
 	 *  @{
 	 */
 
@@ -54,6 +54,12 @@ namespace b3d
 	protected:
 		FixedJoint(); // Serialization only
 	};
+
+	/** @} */
+
+	/** @addtogroup Physics-Internal
+	 *  @{
+	 */
 
 	/** Low-level interface for a joint used by the FixedJoint component. Should be implemented by the physics plugin to provide joint functionality. */
 	class B3D_EXPORT IFixedJointImplementation : public IJointImplementation

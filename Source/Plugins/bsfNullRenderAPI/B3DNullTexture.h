@@ -11,7 +11,7 @@ namespace b3d
 	namespace render
 	{
 
-		/** @addtogroup Null
+		/** @addtogroup NullGpuBackend 
 		 *  @{
 		 */
 

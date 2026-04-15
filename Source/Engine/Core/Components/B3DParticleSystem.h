@@ -129,7 +129,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Implementation
+	/** @addtogroup Particles-Internal
 	 *  @{
 	 */
 
@@ -344,7 +344,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Implementation
+	/** @addtogroup Particles-Internal
 	 *  @{
 	 */
 
@@ -484,12 +484,6 @@ namespace b3d
 		}
 	};
 
-	/** @} */
-
-	/** @addtogroup Renderer-Internal
-	 *  @{
-	 */
-
 	class RendererScene;
 
 	namespace ecs
@@ -572,7 +566,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Components
+	/** @addtogroup Particles
 	 *  @{
 	 */
 
@@ -736,7 +730,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Particles-Internal
+	/** @addtogroup Renderer-Internal
 	 *  @{
 	 */
 

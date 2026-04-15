@@ -12,7 +12,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Renderer
+	/** @addtogroup Rendering
 	 *  @{
 	 */
 

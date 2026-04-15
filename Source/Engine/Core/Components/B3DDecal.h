@@ -16,7 +16,7 @@ namespace b3d
 	struct DecalFullUpdateChannel;
 	struct DecalTransformUpdateChannel;
 
-	/** @addtogroup Implementation
+	/** @addtogroup Rendering-Internal
 	 *  @{
 	 */
 
@@ -77,12 +77,6 @@ namespace b3d
 	/** Computes world-space bounds for a decal. */
 	Bounds ComputeDecalBounds(const Vector2& size, float maxDistance, const Transform& transform);
 
-	/** @} */
-
-	/** @addtogroup Renderer-Internal
-	 *  @{
-	 */
-
 	class RendererScene;
 
 	namespace ecs
@@ -128,7 +122,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Components
+	/** @addtogroup Rendering
 	 *  @{
 	 */
 
@@ -207,6 +201,12 @@ namespace b3d
 
 		Bounds mBounds = Bounds::kEmpty;
 	};
+
+	/** @} */
+
+	/**
+	 * @addtogroup Renderer-Internal
+	 */
 
 	namespace render
 	{

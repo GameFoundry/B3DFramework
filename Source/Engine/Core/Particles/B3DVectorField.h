@@ -37,7 +37,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Implementation
+	/** @addtogroup Particles-Internal
 	 *  @{
 	 */
 

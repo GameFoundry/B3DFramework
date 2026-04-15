@@ -12,7 +12,7 @@
 
 namespace b3d
 {
-	/** @addtogroup RenderAPI
+	/** @addtogroup GpuBackend
 	 *  @{
 	 */
 
@@ -141,7 +141,7 @@ namespace b3d
 
 	namespace render
 	{
-		/** @addtogroup RenderAPI-Internal
+		/** @addtogroup GpuBackend-Internal
 		 *  @{
 		 */
 

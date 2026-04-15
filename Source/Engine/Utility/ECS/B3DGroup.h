@@ -13,7 +13,7 @@
 
 namespace b3d::ecs
 {
-	/** @addtogroup General
+	/** @addtogroup ECS-Internal
 	 *  @{
 	 */
 
@@ -319,6 +319,12 @@ namespace b3d::ecs
 		std::array<THEvent<ThreadUnsafe>, (IncludedTypeCount + ExcludedTypeCount) * 2> mEventHandles;
 		TSparseSet<SparseSetDeletePolicy::SwapAndErase> mGroupEntities;
 	};
+
+	/** @} */
+
+	/** @addtogroup ECS
+	 *  @{
+	 */
 
 	template<typename, typename, typename>
 	class TGroup;

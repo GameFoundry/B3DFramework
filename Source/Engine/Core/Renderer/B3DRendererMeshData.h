@@ -8,8 +8,7 @@
 
 namespace b3d
 {
-	/** cond INTERNAL */
-	/** @addtogroup Renderer
+	/** @addtogroup Renderer-Internal
 	 *  @{
 	 */
 
@@ -230,5 +229,4 @@ namespace b3d
 	};
 
 	/** @} */
-	/** @endcond */
 } // namespace b3d

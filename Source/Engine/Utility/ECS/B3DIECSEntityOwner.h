@@ -9,7 +9,7 @@ namespace b3d::ecs
 {
 	class Registry;
 
-	/** @addtogroup General
+	/** @addtogroup ECS
 	 *  @{
 	 */
 

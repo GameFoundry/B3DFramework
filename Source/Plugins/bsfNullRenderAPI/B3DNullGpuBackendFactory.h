@@ -6,7 +6,7 @@
 
 namespace b3d
 {
-	/** @addtogroup NullRenderAPI
+	/** @addtogroup NullGpuBackend 
 	 *  @{
 	 */
 

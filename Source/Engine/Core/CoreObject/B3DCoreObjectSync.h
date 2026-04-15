@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Implementation
+	/** @addtogroup Implementation-Internal
 	 *  @{
 	 */
 
@@ -104,7 +104,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup RenderProxy
+	/** @addtogroup RenderThread 
 	 *  @{
 	 */
 

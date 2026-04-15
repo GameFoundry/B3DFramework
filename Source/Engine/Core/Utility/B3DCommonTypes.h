@@ -9,7 +9,7 @@ namespace b3d
 #undef None
 #undef Convex
 
-	/** @addtogroup Utility-Engine
+	/** @addtogroup GpuBackend
 	 *  @{
 	 */
 
@@ -303,28 +303,6 @@ namespace b3d
 		GPDT_UNKNOWN = 0xffff
 	};
 
-	/**	Available texture types. */
-	enum B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TextureType
-	{
-		/** One dimensional texture. Just a row of pixels. */
-		TEX_TYPE_1D B3D_SCRIPT_EXPORT(ExportName(Texture1D)) = 1,
-		/** Two dimensional texture. */
-		TEX_TYPE_2D B3D_SCRIPT_EXPORT(ExportName(Texture2D)) = 2,
-		/** Three dimensional texture. */
-		TEX_TYPE_3D B3D_SCRIPT_EXPORT(ExportName(Texture3D)) = 3,
-		/** Texture consisting out of six 2D textures describing an inside of a cube. Allows special sampling. */
-		TEX_TYPE_CUBE_MAP B3D_SCRIPT_EXPORT(ExportName(TextureCube)) = 4
-	};
-
-	/**	Projection type to use by the camera. */
-	enum B3D_SCRIPT_EXPORT() ProjectionType
-	{
-		/** Projection type where object size remains constant and parallel lines remain parallel. */
-		PT_ORTHOGRAPHIC B3D_SCRIPT_EXPORT(ExportName(Orthographic)),
-		/** Projection type that emulates human vision. Objects farther away appear smaller. */
-		PT_PERSPECTIVE B3D_SCRIPT_EXPORT(ExportName(Perspective))
-	};
-
 	/**	Contains data about a type used for GPU data parameters. */
 	struct GpuDataParameterTypeInformation
 	{
@@ -501,111 +479,6 @@ namespace b3d
 	};
 
 	/**
-	 * Suggested queue priority numbers used for sorting objects in the render queue. Objects with higher priority will
-	 * be renderer sooner.
-	 */
-	enum class QueuePriority
-	{
-		Opaque = 100000,
-		Transparent = 90000,
-		Skybox = 80000,
-		Overlay = 70000
-	};
-
-	/** Type of sorting to perform on an object when added to a render queue. */
-	enum class QueueSortType
-	{
-		FrontToBack, /**< All objects with the same priority will be rendered front to back based on their center. */
-		BackToFront, /**< All objects with the same priority will be rendered back to front based on their center. */
-		None /**< Objects will not be sorted and will be processed in the order they were added to the queue. */
-	};
-
-	/**	Flags that may be assigned to a shader that let the renderer know how to interpret the shader. */
-	enum class ShaderFlag
-	{
-		Transparent = 0x1, /**< Signifies that the shader is rendering a transparent object. */
-		Forward = 0x2 /**< Signifies the shader should use the forward rendering pipeline, if relevant. */
-	};
-
-	typedef Flags<ShaderFlag> ShaderFlags;
-	B3D_FLAGS_OPERATORS(ShaderFlag)
-
-	/** Valid types of a mesh used for physics. */
-	enum class B3D_SCRIPT_EXPORT() PhysicsMeshType
-	{
-		/**
-		 * A regular triangle mesh. Mesh can be of arbitrary size but cannot be used for triggers and non-kinematic
-		 * objects. Incurrs a significantly larger performance impact than convex meshes.
-		 */
-		Triangle,
-		/**
-		 * Mesh representing a convex shape. Mesh will not have more than 256 vertices. Incurrs a significantly lower
-		 * performance impact than triangle meshes.
-		 */
-		Convex
-	};
-
-	/** Determines the type of the source image for generating cubemaps. */
-	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility), API(Framework), API(Editor)) CubemapSourceType
-	{
-		/** Source is a single image that will be replicated on all cubemap faces. */
-		Single,
-
-		/**
-		 * Source is a list of 6 images, either sequentially next to each other or in a cross format. The system will
-		 * automatically guess the layout and orientation based on the aspect ratio.
-		 */
-		Faces,
-
-		/** Source is a single spherical panoramic image. */
-		Spherical,
-
-		/** Source is a single cylindrical panoramic image. */
-		Cylindrical
-	};
-
-	/** Names of individual components of a vector. */
-	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) VectorComponent
-	{
-		X,
-		Y,
-		Z,
-		W
-	};
-
-	/** Names of individual components of a color. */
-	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) ColorComponent
-	{
-		R,
-		G,
-		B,
-		A
-	};
-
-	/** Identifiers representing a range of values. */
-	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) RangeComponent
-	{
-		Min,
-		Max
-	};
-
-	/** Names of individual components of an area. */
-	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) AreaComponent
-	{
-		X,
-		Y,
-		Width,
-		Height
-	};
-
-	/** Names of individual components of a size. */
-	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) SizeComponent
-	{
-		Width,
-		Height
-	};
-
-	/**
 	 * Bits that map to a specific surface of a render target. Combine the bits to generate a mask that references
 	 * only specific render target surfaces.
 	 */
@@ -629,23 +502,6 @@ namespace b3d
 
 	typedef Flags<RenderSurfaceMaskBits> RenderSurfaceMask;
 	B3D_FLAGS_OPERATORS(RenderSurfaceMaskBits);
-
-	/**
-	 * Controls what kind of mobility restrictions a scene object has. This is used primarily as a performance hint to
-	 * other systems. Generally the more restricted the mobility the higher performance can be achieved.
-	 */
-	enum class B3D_SCRIPT_EXPORT() ObjectMobility
-	{
-		/** Scene object can be moved and has no mobility restrictions. */
-		Movable,
-		/**
-		 * Scene object isn't allowed to be moved but is allowed to be visually changed in other ways (e.g. changing the
-		 * displayed mesh or light intensity (depends on attached components).
-		 */
-		Immovable,
-		/** Scene object isn't allowed to be moved nor is it allowed to be visually changed. Object must be fully static. */
-		Static
-	};
 
 	/**	Texture addressing mode, per component. */
 	struct UVWAddressingMode
@@ -699,6 +555,198 @@ namespace b3d
 		static B3D_EXPORT const TextureSurface kComplete;
 	};
 
+	/** @} */
+
+	/** @addtogroup Image
+	 *  @{
+	 */
+
+	/**	Available texture types. */
+	enum B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TextureType
+	{
+		/** One dimensional texture. Just a row of pixels. */
+		TEX_TYPE_1D B3D_SCRIPT_EXPORT(ExportName(Texture1D)) = 1,
+		/** Two dimensional texture. */
+		TEX_TYPE_2D B3D_SCRIPT_EXPORT(ExportName(Texture2D)) = 2,
+		/** Three dimensional texture. */
+		TEX_TYPE_3D B3D_SCRIPT_EXPORT(ExportName(Texture3D)) = 3,
+		/** Texture consisting out of six 2D textures describing an inside of a cube. Allows special sampling. */
+		TEX_TYPE_CUBE_MAP B3D_SCRIPT_EXPORT(ExportName(TextureCube)) = 4
+	};
+
+	/** @} */
+
+	/** @addtogroup Rendering
+	 *  @{
+	 */
+
+	/**	Projection type to use by the camera. */
+	enum B3D_SCRIPT_EXPORT() ProjectionType
+	{
+		/** Projection type where object size remains constant and parallel lines remain parallel. */
+		PT_ORTHOGRAPHIC B3D_SCRIPT_EXPORT(ExportName(Orthographic)),
+		/** Projection type that emulates human vision. Objects farther away appear smaller. */
+		PT_PERSPECTIVE B3D_SCRIPT_EXPORT(ExportName(Perspective))
+	};
+
+	/** @} */
+
+	/** @addtogroup Renderer
+	 *  @{
+	 */
+
+	/**
+	 * Suggested queue priority numbers used for sorting objects in the render queue. Objects with higher priority will
+	 * be renderer sooner.
+	 */
+	enum class QueuePriority
+	{
+		Opaque = 100000,
+		Transparent = 90000,
+		Skybox = 80000,
+		Overlay = 70000
+	};
+
+	/** Type of sorting to perform on an object when added to a render queue. */
+	enum class QueueSortType
+	{
+		FrontToBack, /**< All objects with the same priority will be rendered front to back based on their center. */
+		BackToFront, /**< All objects with the same priority will be rendered back to front based on their center. */
+		None /**< Objects will not be sorted and will be processed in the order they were added to the queue. */
+	};
+
+	/** Determines the type of the source image for generating cubemaps. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility), API(Framework), API(Editor)) CubemapSourceType
+	{
+		/** Source is a single image that will be replicated on all cubemap faces. */
+		Single,
+
+		/**
+		 * Source is a list of 6 images, either sequentially next to each other or in a cross format. The system will
+		 * automatically guess the layout and orientation based on the aspect ratio.
+		 */
+		Faces,
+
+		/** Source is a single spherical panoramic image. */
+		Spherical,
+
+		/** Source is a single cylindrical panoramic image. */
+		Cylindrical
+	};
+
+	/** @} */
+
+	/** @addtogroup Material
+	 *  @{
+	 */
+
+	/**	Flags that may be assigned to a shader that let the renderer know how to interpret the shader. */
+	enum class ShaderFlag
+	{
+		Transparent = 0x1, /**< Signifies that the shader is rendering a transparent object. */
+		Forward = 0x2 /**< Signifies the shader should use the forward rendering pipeline, if relevant. */
+	};
+
+	typedef Flags<ShaderFlag> ShaderFlags;
+	B3D_FLAGS_OPERATORS(ShaderFlag)
+
+	/** @} */
+
+	/** @addtogroup Physics
+	 *  @{
+	 */
+
+	/** Valid types of a mesh used for physics. */
+	enum class B3D_SCRIPT_EXPORT() PhysicsMeshType
+	{
+		/**
+		 * A regular triangle mesh. Mesh can be of arbitrary size but cannot be used for triggers and non-kinematic
+		 * objects. Incurrs a significantly larger performance impact than convex meshes.
+		 */
+		Triangle,
+		/**
+		 * Mesh representing a convex shape. Mesh will not have more than 256 vertices. Incurrs a significantly lower
+		 * performance impact than triangle meshes.
+		 */
+		Convex
+	};
+
+	/** @} */
+
+	/** @addtogroup Utility-Engine
+	 *  @{
+	 */
+
+	/** Names of individual components of a vector. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) VectorComponent
+	{
+		X,
+		Y,
+		Z,
+		W
+	};
+
+	/** Names of individual components of a color. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) ColorComponent
+	{
+		R,
+		G,
+		B,
+		A
+	};
+
+	/** Identifiers representing a range of values. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) RangeComponent
+	{
+		Min,
+		Max
+	};
+
+	/** Names of individual components of an area. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) AreaComponent
+	{
+		X,
+		Y,
+		Width,
+		Height
+	};
+
+	/** Names of individual components of a size. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) SizeComponent
+	{
+		Width,
+		Height
+	};
+
+	/** @} */
+
+	/** @addtogroup Scene
+	 *  @{
+	 */
+
+	/**
+	 * Controls what kind of mobility restrictions a scene object has. This is used primarily as a performance hint to
+	 * other systems. Generally the more restricted the mobility the higher performance can be achieved.
+	 */
+	enum class B3D_SCRIPT_EXPORT() ObjectMobility
+	{
+		/** Scene object can be moved and has no mobility restrictions. */
+		Movable,
+		/**
+		 * Scene object isn't allowed to be moved but is allowed to be visually changed in other ways (e.g. changing the
+		 * displayed mesh or light intensity (depends on attached components).
+		 */
+		Immovable,
+		/** Scene object isn't allowed to be moved nor is it allowed to be visually changed. Object must be fully static. */
+		Static
+	};
+
+	/** @} */
+
+	/** @addtogroup Audio
+	 *  @{
+	 */
+
 	/** Meta-data describing a chunk of audio. */
 	struct AudioDataInfo
 	{
@@ -707,6 +755,12 @@ namespace b3d
 		u32 ChannelCount; /**< Number of channels. Each channel has its own set of samples. */
 		u32 BitDepth; /**< Number of bits per sample. */
 	};
+
+	/** @} */
+
+	/** @addtogroup RenderThread
+	 *  @{
+	 */
 
 	/** Helper class for syncing dirty data from CoreObject to RenderProxy. */
 	class CoreSyncData

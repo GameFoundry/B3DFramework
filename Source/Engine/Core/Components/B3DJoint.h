@@ -9,7 +9,7 @@ namespace b3d
 {
 	class IJointImplementation;
 
-	/** @addtogroup Components
+	/** @addtogroup Physics
 	 *  @{
 	 */
 
@@ -383,6 +383,13 @@ namespace b3d
 
 		Joint(JointCreateInformation& createInformation); // Serialization only
 	};
+
+	/** @} */
+
+	/**
+	 * @addtogroup Physics-Internal
+	 * @{
+	 */
 
 	/** Low-level interface for a joint used by the Joint component. Should be implemented by the physics plugin to provide joint functionality. */
 	class B3D_EXPORT IJointImplementation

@@ -19,7 +19,7 @@ namespace b3d
 
 	namespace render { class RendererTask; }
 
-	/** @addtogroup Implementation
+	/** @addtogroup Rendering
 	 *  @{
 	 */
 
@@ -37,6 +37,12 @@ namespace b3d
 		 */
 		Sphere
 	};
+
+	/** @} */
+
+	/** @addtogroup Rendering-Internal
+	 *  @{
+	 */
 
 	/** Common data used by both main and render thread variants of ReflectionProbe. */
 	template <bool IsRenderProxy>
@@ -90,12 +96,6 @@ namespace b3d
 			return static_cast<const Derived*>(this)->GetReflectionProbeData();
 		}
 	};
-
-	/** @} */
-
-	/** @addtogroup Renderer-Internal
-	 *  @{
-	 */
 
 	class RendererScene;
 
@@ -170,7 +170,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Components
+	/** @addtogroup Rendering
 	 *  @{
 	 */
 
@@ -270,6 +270,13 @@ namespace b3d
 		/** Updates the internal bounds for the probe. Call this whenever a property affecting the bounds changes. */
 		void UpdateBounds();
 	};
+
+	/** @} */
+
+	/**
+	 * @addtogroup Renderer-Internal
+	 * @{
+	 */
 
 	namespace render
 	{

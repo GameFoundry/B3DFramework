@@ -10,7 +10,7 @@
 namespace b3d
 {
 	class GpuQueue;
-	/** @addtogroup RenderAPI-Internal
+	/** @addtogroup GpuBackend-Internal
 	 *  @{
 	 */
 

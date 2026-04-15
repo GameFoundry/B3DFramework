@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Renderer
+	/** @addtogroup Rendering
 	 *  @{
 	 */
 
@@ -30,7 +30,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Renderer-Internal
+	/** @addtogroup Rendering-Internal
 	 *  @{
 	 */
 
@@ -42,12 +42,6 @@ namespace b3d
 		Redraw = 1 << 5,
 		Viewport = 1 << 31
 	};
-
-	/** @} */
-
-	/** @addtogroup Implementation
-	 *  @{
-	 */
 
 	/** Templated common base class for both main and render thread implementations of Camera. */
 	template <bool IsRenderProxy>
@@ -513,7 +507,7 @@ namespace b3d
 	};
 
 	/** @} */
-	/** @addtogroup Components
+	/** @addtogroup Rendering
 	 *  @{
 	 */
 

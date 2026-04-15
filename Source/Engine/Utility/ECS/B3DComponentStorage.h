@@ -12,7 +12,7 @@
 
 namespace b3d::ecs
 {
-	/** @addtogroup General
+	/** @addtogroup ECS-Internal
 	 *  @{
 	 */
 
@@ -135,6 +135,12 @@ namespace b3d::ecs
 	{
 		return !(lhs < rhs);
 	}
+
+	/** @} */
+
+	/** @addtogroup ECS
+	 *  @{
+	 */
 
 	/**
 	 * Storage used for storing components associated with entities.

@@ -13,7 +13,7 @@ namespace b3d
 	class TAnimationCurve;
 	class ColorGradientHDR;
 
-	/** @addtogroup Implementation
+	/** @addtogroup Material-Internal
 	 *  @{
 	 */
 

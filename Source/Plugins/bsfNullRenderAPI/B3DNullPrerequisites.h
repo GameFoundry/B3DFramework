@@ -8,7 +8,7 @@
  *  @{
  */
 
-/** @defgroup NullRenderAPI bsfNullRenderAPI
+/** @defgroup NullGpuBackend NullGpuBackend 
  *	Null (no-op) render API implementation.
  */
 

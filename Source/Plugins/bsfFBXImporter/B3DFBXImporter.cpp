@@ -236,7 +236,7 @@ SPtr<RendererMeshData> FBXImporter::ImportMeshData(const Path& filePath, SPtr<co
 
 SPtr<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool sharedRoot)
 {
-	Vector<BONE_DESC> allBones;
+	Vector<BoneInformation> allBones;
 	UnorderedMap<FBXImportNode*, u32> boneMap;
 
 	for(auto& mesh : scene.Meshes)
@@ -252,8 +252,8 @@ SPtr<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool sha
 
 			boneMap[fbxBone.Node] = boneIdx;
 
-			allBones.push_back(BONE_DESC());
-			BONE_DESC& bone = allBones.back();
+			allBones.push_back(BoneInformation());
+			BoneInformation& bone = allBones.back();
 
 			bone.Name = fbxBone.Node->Name;
 			bone.LocalTfrm = fbxBone.LocalTfrm;
@@ -273,8 +273,8 @@ SPtr<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool sha
 		{
 			rootBoneIdx = (u32)allBones.size();
 
-			allBones.push_back(BONE_DESC());
-			BONE_DESC& bone = allBones.back();
+			allBones.push_back(BoneInformation());
+			BoneInformation& bone = allBones.back();
 
 			bone.Name = "MultiMeshRoot";
 			bone.LocalTfrm = Transform();
@@ -310,8 +310,8 @@ SPtr<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool sha
 				// it directly influence any vertices, but its transform must be applied to any child bones.
 				u32 boneIdx = (u32)allBones.size();
 
-				allBones.push_back(BONE_DESC());
-				BONE_DESC& bone = allBones.back();
+				allBones.push_back(BoneInformation());
+				BoneInformation& bone = allBones.back();
 
 				bone.Name = node->Name;
 				bone.LocalTfrm = node->LocalTransform;

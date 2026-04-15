@@ -72,7 +72,7 @@ LocalSkeletonPose& LocalSkeletonPose::operator=(LocalSkeletonPose&& other)
 	return *this;
 }
 
-Skeleton::Skeleton(BONE_DESC* bones, u32 boneCount)
+Skeleton::Skeleton(BoneInformation* bones, u32 boneCount)
 	: mNumBones(boneCount)
 {
 	mBoneTransforms.Resize(boneCount);
@@ -88,7 +88,7 @@ Skeleton::Skeleton(BONE_DESC* bones, u32 boneCount)
 	}
 }
 
-SPtr<Skeleton> Skeleton::Create(BONE_DESC* bones, u32 boneCount)
+SPtr<Skeleton> Skeleton::Create(BoneInformation* bones, u32 boneCount)
 {
 	Skeleton* rawPtr = new(B3DAllocate<Skeleton>()) Skeleton(bones, boneCount);
 

@@ -13,7 +13,7 @@ namespace b3d
 	class PhysicsScene;
 	class IRigidbodyImplementation;
 
-	/** @addtogroup Components
+	/** @addtogroup Physics
 	 *  @{
 	 */
 
@@ -379,6 +379,13 @@ namespace b3d
 	protected:
 		Rigidbody(); // Serialization only
 	};
+
+	/** @} */
+
+	/**
+	 * @addtogroup Physics-Internal
+	 * @{
+	 */
 
 	/** Low-level interface for a rigidbody used by the Rigidbody component. Should be implemented by the physics plugin to provide rigidbody functionality. */
 	class B3D_EXPORT IRigidbodyImplementation

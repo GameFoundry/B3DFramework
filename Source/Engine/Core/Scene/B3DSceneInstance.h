@@ -181,6 +181,12 @@ namespace b3d
 	};
 #endif
 
+	/** @} */
+
+	/** @addtogroup Scene
+	 *  @{
+	 */
+
 	/** Contains information about an instantiated scene. */
 	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance : public CoreObject, public IScriptExportable, public SceneInstanceComponents
 	{
@@ -355,6 +361,12 @@ namespace b3d
 		WeakSPtr<IEditorSceneInstance> mEditorSceneInstance;
 #endif
 	};
+
+	/** @} */
+
+	/** @addtogroup Scene-Internal
+	 *  @{
+	 */
 
 	namespace render
 	{

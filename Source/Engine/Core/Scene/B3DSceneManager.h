@@ -13,7 +13,7 @@ namespace b3d
 	class LightProbeVolume;
 	class PhysicsScene;
 
-	/** @addtogroup Scene-Internal
+	/** @addtogroup Scene
 	 *  @{
 	 */
 

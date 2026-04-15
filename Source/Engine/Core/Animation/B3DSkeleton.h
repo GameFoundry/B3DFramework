@@ -31,7 +31,7 @@ namespace b3d
 	};
 
 	/** Information about a single bone used for constructing a skeleton. */
-	struct BONE_DESC
+	struct BoneInformation
 	{
 		String Name; /**< Unique name of the bone. */
 		u32 Parent; /**< Index of the parent bone, if any. -1 if root bone. */
@@ -173,11 +173,11 @@ namespace b3d
 		 * @param	bones		An array of bones to initialize the skeleton with. Data will be copied.
 		 * @param	boneCount	Number of bones in the @p bones array.
 		 */
-		static SPtr<Skeleton> Create(BONE_DESC* bones, u32 boneCount);
+		static SPtr<Skeleton> Create(BoneInformation* bones, u32 boneCount);
 
 	private:
 		Skeleton() = default;
-		Skeleton(BONE_DESC* bones, u32 boneCount);
+		Skeleton(BoneInformation* bones, u32 boneCount);
 
 		u32 mNumBones = 0;
 		TArray<Transform> mBoneTransforms;

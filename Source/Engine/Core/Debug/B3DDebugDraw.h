@@ -17,7 +17,7 @@ namespace b3d
 		class DebugDrawRenderer;
 	}
 
-	/** @addtogroup Utility-Engine
+	/** @addtogroup Debug-Engine
 	 *  @{
 	 */
 
@@ -178,7 +178,7 @@ namespace b3d
 
 	namespace render
 	{
-		/** @addtogroup Utility-Engine-Internal
+		/** @addtogroup Renderer-Internal
 		 *  @{
 		 */
 

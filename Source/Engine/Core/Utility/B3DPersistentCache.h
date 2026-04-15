@@ -23,12 +23,12 @@ namespace b3d
 		Critical = 3
 	};
 
-	/** @addtogroup Internal
-	 *	@{
-	 */
-
 	class PersistentCacheObject;
 	typedef TResourceHandle<PersistentCacheObject> HPersistentCacheObject;
+
+	/** @addtogroup Utility-Internal
+	 *  @{
+	 */
 
 	/** Resource used for storing data within a PersistentCache. */
 	class PersistentCacheObject : public Resource
@@ -81,6 +81,10 @@ namespace b3d
 	};
 
 	/** @} */
+
+	/** @addtogroup Utility
+	 *  @{
+	 */
 
 	/** Cache that will persist between application runs. */
 	class B3D_EXPORT PersistentCache : public std::enable_shared_from_this<PersistentCache>

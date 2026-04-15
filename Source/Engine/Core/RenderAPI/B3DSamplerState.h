@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	/** @addtogroup RenderAPI
+	/** @addtogroup GpuBackend
 	 *  @{
 	 */
 
@@ -99,7 +99,7 @@ namespace b3d
 } // namespace b3d
 
 /** @cond STDLIB */
-/** @addtogroup RenderAPI
+/** @addtogroup GpuBackend
  *  @{
  */
 

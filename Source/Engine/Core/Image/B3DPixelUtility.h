@@ -10,7 +10,7 @@ namespace b3d
 	// Undefine conflicting defines from other libs
 #undef None
 
-	/** @addtogroup Utility-Engine
+	/** @addtogroup Image
 	 *  @{
 	 */
 

@@ -14,7 +14,7 @@ namespace b3d
 		class GpuCommandBufferPool;
 		struct GpuCommandBufferPoolCreateInformation;
 
-		/** @addtogroup RenderAPI-Internal
+		/** @addtogroup GpuBackend-Internal
 		 *  @{
 		 */
 

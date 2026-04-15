@@ -12,7 +12,7 @@ namespace b3d
 		class NullGpuDevice;
 		class NullGpuCommandBufferPool;
 
-		/** @addtogroup Null
+		/** @addtogroup NullGpuBackend 
 		 *  @{
 		 */
 

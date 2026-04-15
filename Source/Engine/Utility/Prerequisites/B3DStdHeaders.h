@@ -445,7 +445,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Time
+	/** @addtogroup Utility
 	 *  @{
 	 */
 

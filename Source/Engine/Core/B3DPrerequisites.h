@@ -4,10 +4,6 @@
 
 #include "B3DUtilityPrerequisites.h"
 
-/** @addtogroup Layers
- *  @{
- */
-
 /** @defgroup Engine Engine
  *	Core engine functionality. Shared between editor and standalone applications.
  *  @{
@@ -41,6 +37,10 @@
  *	%Input (mouse, keyboard, gamepad, etc.).
  */
 
+/** @defgroup Image Image
+ *	Functionality for dealing with images/texures.
+ */
+
 /** @defgroup Localization Localization
  *	GUI localization.
  */
@@ -57,12 +57,12 @@
  *	Measuring CPU and GPU execution times and memory usage.
  */
 
-/** @defgroup RenderAPI RenderAPI
- *	Interface for interacting with the render API (DirectX, OpenGL, etc.).
+/** @defgroup GpuBackend GpuBackend 
+ *	Interface for interacting with the GPU backend (Vulkan, DirectX, etc.).
  */
 
-/** @defgroup Renderer Renderer
- *	Abstract interface and helper functionality for rendering scene objects.
+/** @defgroup Rendering Rendering 
+ *	Components and related functionality for rendering scene objects.
  */
 
 /** @defgroup Resources Resources
@@ -94,15 +94,27 @@
  */
 
 /** @defgroup Platform Platform
- *  %Platform specific functionality.
+ *  Platform (OS) specific functionality.
  */
 
-/** @defgroup Components Components
- *	Built-in components (elements that may be attached to scene objects).
+/** @defgroup VectorGraphics Vector Graphics
+ *  Vector shape rendering.
+ */
+
+/** @defgroup Mesh Mesh
+ *  Mesh (vertex, index) management related.
  */
 
 /** @defgroup Resources Resources
   *	Builtin engine resource types and a manager for such resources.
+  */
+
+/** @defgroup Renderer Renderer
+  *	Base API for renderer plugins, provides a way to render renderable scene objects by issuing GpuBackend commands.
+  */
+
+/** @defgroup Debug-Engine Debug
+  *	Various debugging helpers.
   */
 
 /** @cond RTTI */
@@ -115,7 +127,6 @@
  *  Various utility methods and types used by the engine layer.
  */
 
-/** @} */
 /** @} */
 
 /** @addtogroup Internals
@@ -135,8 +146,12 @@
   *	Graphical user interface, including elements, styles, events and GUI manager.
   */
 
+/** @defgroup Rendering-Internal Rendering
+  *	Components and related functionality for rendering scene objects.
+  */
+
 /** @defgroup Renderer-Internal Renderer
-  *	Abstract interface and helper functionality for rendering scene objects and other geometry.
+  *	Base API for renderer plugins, provides a way to render renderable scene objects by issuing GpuBackend commands.
   */
 
 /** @defgroup Script-Internal Script
@@ -195,8 +210,8 @@
  *	Measuring CPU and GPU execution times and memory usage.
  */
 
-/** @defgroup RenderAPI-Internal RenderAPI
- *	Interface for interacting with the render API (DirectX, OpenGL, etc.).
+/** @defgroup GpuBackend-Internal GpuBackend 
+ *	Interface for interacting with the GPU backend (Vulkan, DirectX, etc.).
  */
 
 /** @defgroup Resources-Internal Resources

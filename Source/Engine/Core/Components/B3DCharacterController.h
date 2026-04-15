@@ -10,7 +10,7 @@ namespace b3d
 	class ColliderShape;
 	class ICharacterControllerImplementation;
 
-	/** @addtogroup Components
+	/** @addtogroup Physics
 	 *  @{
 	 */
 
@@ -293,6 +293,13 @@ namespace b3d
 	protected:
 		CharacterController(); // Serialization only
 	};
+
+	/** @} */
+
+	/**
+	 * @addtogroup Physics-Internal
+	 * @{
+	 */
 
 	/** Low-level interface for a character controller. Should be implemented by the physics plugin to provide functionality. */
 	class B3D_EXPORT ICharacterControllerImplementation

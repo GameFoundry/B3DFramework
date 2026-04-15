@@ -27,7 +27,7 @@ Supported formats are:
  - TIFF
 
 # Creating a texture
-Textures can also be created manually, which we cover later in the [creating textures](../12_Advanced_Rendering/07_advancedTextures.md) manual.
+Textures can also be created manually, which we cover later in the [creating textures](../12_Advanced_Rendering/05_advancedTextures.md) manual.
 
 # Texture properties
 Once a texture has been imported, you can retrieve its properties like width, height and format by calling @b3d::Texture::GetProperties, which returns a @b3d::TextureProperties object.
@@ -161,7 +161,7 @@ texture->GetCachedData(*pixelData);
 Color color = pixelData->GetColorAt(50, 50);
 ~~~~~~~~~~~~~
 
-> **PixelData** is explained in detail in the [creating textures](../12_Advanced_Rendering/07_advancedTextures.md) manual.
+> **PixelData** is explained in detail in the [creating textures](../12_Advanced_Rendering/05_advancedTextures.md) manual.
 
 # Reading pixel data
 When you have CPU-cached texture data, you can read and manipulate individual pixels:

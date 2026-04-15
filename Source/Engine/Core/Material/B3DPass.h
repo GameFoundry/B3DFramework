@@ -33,7 +33,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Implementation
+	/** @addtogroup Material-Internal
 	 *  @{
 	 */
 

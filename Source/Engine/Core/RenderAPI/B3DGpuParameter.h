@@ -17,7 +17,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Implementation
+	/** @addtogroup Implementation-Internal
 	 *  @{
 	 */
 
@@ -60,6 +60,12 @@ namespace b3d
 
 		static bool TransposeEnabled(bool enabled) { return enabled; }
 	};
+
+	/** @} */
+
+	/** @addtogroup GpuBackend
+	 *  @{
+	 */
 
 	/** Information that controls how is the buffer viewed when bound to a GPU pipeline. */
 	struct GpuBufferViewInformation
@@ -327,12 +333,6 @@ namespace b3d
 		GpuParamsType mParent;
 		GpuParameterBinding mBinding;
 	};
-
-	/** @} */
-
-	/** @addtogroup RenderAPI
-	 *  @{
-	 */
 
 	typedef TGpuParameterPrimitive<float, false> GpuParameterFloat;
 	typedef TGpuParameterPrimitive<double, false> GpuParameterDouble;

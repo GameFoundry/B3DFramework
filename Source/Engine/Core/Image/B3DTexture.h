@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Resources
+	/** @addtogroup Image
 	 *  @{
 	 */
 
@@ -471,7 +471,7 @@ namespace b3d
 
 	namespace render
 	{
-		/** @addtogroup Resources-Internal
+		/** @addtogroup Renderer-Internal
 		 *  @{
 		 */
 

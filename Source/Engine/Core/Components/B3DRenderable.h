@@ -20,7 +20,7 @@ namespace b3d
 
 	class RendererScene;
 
-	/** @addtogroup Components
+	/** @addtogroup Rendering-Internal
 	 *  @{
 	 */
 
@@ -153,6 +153,12 @@ namespace b3d
 		using RenderableECSUtility = TRendererObjectECSUtility<RenderableId, RenderableDirty, RenderableTransformDirty,
 			&RendererScene::AllocateRenderableId, &RendererScene::DeallocateRenderableId, Renderable>;
 	}
+
+	/** @} */
+
+	/** @addtogroup Rendering
+	 *  @{
+	 */
 
 	/**
 	 * Renderable represents any visible object in the scene. It has a mesh, bounds and a set of materials. Renderer will
@@ -308,6 +314,12 @@ namespace b3d
 		Renderable(); // Serialization only
 	};
 
+	/** @} */
+
+	/** @addtogroup Renderer-Internal
+	 *  @{
+	 */
+
 	namespace render
 	{
 		/** Contains data and functionality for the render-side representation of a Renderable object. */
@@ -382,7 +394,6 @@ namespace b3d
 			Matrix4 mWorldTransformMatrixWithoutScale = kIdentityTag;
 		};
 	} // namespace render
-
 
 	/**
 	 * Contains render thread representation of renderable objects, stored in packed arrays accessible by PackedRendererId.

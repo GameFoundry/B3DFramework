@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Implementation
+	/** @addtogroup Containers-Internal
 	 *  @{
 	 */
 
@@ -144,7 +144,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup General
+	/** @addtogroup Containers
 	 *  @{
 	 */
 
@@ -477,7 +477,7 @@ namespace b3d
 } // namespace b3d
 
 /** @cond SPECIALIZATIONS */
-/** @addtogroup Implementation
+/** @addtogroup Implementation-Internal
  *  @{
  */
 

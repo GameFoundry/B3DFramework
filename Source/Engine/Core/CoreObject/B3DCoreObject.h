@@ -11,7 +11,7 @@ namespace b3d
 {
 	struct RenderProxySyncPacket;
 
-	/** @addtogroup CoreObject
+	/** @addtogroup RenderThread
 	 *  @{
 	 */
 

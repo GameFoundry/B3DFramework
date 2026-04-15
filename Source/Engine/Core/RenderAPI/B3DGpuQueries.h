@@ -8,7 +8,7 @@ namespace b3d
 {
 	namespace render
 	{
-		/** @addtogroup RenderAPI
+		/** @addtogroup GpuBackend
 		 *  @{
 		 */
 

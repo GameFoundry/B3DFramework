@@ -12,7 +12,7 @@
 
 namespace b3d::ecs
 {
-	/** @addtogroup General
+	/** @addtogroup ECS
 	 *  @{
 	 */
 
@@ -71,6 +71,12 @@ namespace b3d::ecs
 		ReverseIteratorRange ReverseEach() { return ReverseIteratorRange({ Rbegin() }, { Rend() }); }
 		ConstReverseIteratorRange ReverseEach() const { return ConstReverseIteratorRange({ Crbegin() }, { Crend() }); }
 	};
+
+	/** @} */
+
+	/** @addtogroup ECS-Internal
+	 *  @{
+	 */
 
 	template<typename Type>
 	struct StorageForType<Type, std::enable_if_t<std::is_empty_v<Type>>>

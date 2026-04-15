@@ -14,7 +14,7 @@ namespace b3d
 		class MeshBase;
 	}
 
-	/** @addtogroup Resources
+	/** @addtogroup Mesh
 	 *  @{
 	 */
 
@@ -66,7 +66,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Implementation
+	/** @addtogroup Mesh-Internal
 	 *  @{
 	 */
 

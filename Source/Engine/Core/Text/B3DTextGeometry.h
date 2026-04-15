@@ -8,7 +8,7 @@ namespace b3d
 {
 	struct CharacterInformation;
 
-	/** @addtogroup Implementation
+	/** @addtogroup Text-Internal
 	 *  @{
 	 */
 

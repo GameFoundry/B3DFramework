@@ -16,7 +16,7 @@ namespace b3d
 		class GpuCommandBufferPoolRing;
 	}
 
-	/** @addtogroup RenderAPI-Internal
+	/** @addtogroup GpuBackend-Internal
 	 *  @{
 	 */
 

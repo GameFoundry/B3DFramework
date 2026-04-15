@@ -11,7 +11,7 @@ namespace b3d
 	{
 		class NullGpuDevice;
 
-		/** @addtogroup Null
+		/** @addtogroup NullGpuBackend
 		 *  @{
 		 */
 

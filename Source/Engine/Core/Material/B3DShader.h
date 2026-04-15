@@ -12,7 +12,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Implementation
+	/** @addtogroup Material
 	 *  @{
 	 */
 
@@ -54,12 +54,6 @@ namespace b3d
 		/** Index to a set of optional attributes attached to the parameter. Should not be set externally by the user. */
 		u32 AttributeIndex = ~0u;
 	};
-
-	/** @} */
-
-	/** @addtogroup Material
-	 *  @{
-	 */
 
 	/**
 	 * Describes a single data (int, Vector2, etc.) shader parameter.
@@ -178,7 +172,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Implementation
+	/** @addtogroup Material-Internal
 	 *  @{
 	 */
 
@@ -662,11 +656,6 @@ namespace b3d
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
-
-	/** @} */
-	/** @addtogroup Material
-	 *  @{
-	 */
 
 	/** Shader specific resource meta-data containing information about referenced include files. */
 	class B3D_EXPORT B3D_SCRIPT_EXPORT() ShaderMetaData : public ResourceMetaData

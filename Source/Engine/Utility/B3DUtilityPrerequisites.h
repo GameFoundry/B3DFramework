@@ -4,11 +4,6 @@
 
 #include <assert.h>
 
-/** @defgroup Layers Layers
- *	User facing API for the engine core, categorized per layer.
- *  @{
- */
-
 /** @defgroup Utility Utility
  *	Lowest layer of the engine containing various utility and helper classes.
  *  @{
@@ -76,7 +71,10 @@
  *  Thread manipulation and synchronization.
  */
 
-/** @} */
+/** @defgroup ECS ECS
+  *	All low-level functionality for creating and using the entity component system.
+  */
+
 /** @} */
 
 /** @defgroup Internals Internals
@@ -128,7 +126,7 @@
  *	Reference documentation for implementations of various plugins, useful primarily to those extending the engine.
  */
 
-/** @defgroup Implementation [IMPLEMENTATION]
+/** @defgroup Implementation-Internal Implementation
  *	Very specialized base classes, templates and helper code used for construction of more concrete types.
  */
 

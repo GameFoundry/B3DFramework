@@ -15,7 +15,7 @@ namespace b3d
 		class RendererTask;
 	}
 
-	/** @addtogroup Implementation
+	/** @addtogroup Rendering-Internal 
 	 *  @{
 	 */
 
@@ -27,12 +27,6 @@ namespace b3d
 		Dirty,
 		Removed
 	};
-
-	/** @} */
-
-	/** @addtogroup Renderer-Internal
-	 *  @{
-	 */
 
 	/** Vector representing spherical harmonic coefficients for a light probe. */
 	struct LightProbeSHCoefficients
@@ -65,7 +59,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Components
+	/** @addtogroup Rendering
 	 *  @{
 	 */
 

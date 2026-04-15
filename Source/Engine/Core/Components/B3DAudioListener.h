@@ -9,7 +9,7 @@ namespace b3d
 {
 	class IAudioListenerImplementation;
 
-	/** @addtogroup Components
+	/** @addtogroup Audio
 	 *  @{
 	 */
 
@@ -66,7 +66,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Audio
+	/** @addtogroup Audio-Internal
 	 *  @{
 	 */
 

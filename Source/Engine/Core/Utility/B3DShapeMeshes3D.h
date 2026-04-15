@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Utility-Engine
+	/** @addtogroup Mesh-Internal
 	 *  @{
 	 */
 

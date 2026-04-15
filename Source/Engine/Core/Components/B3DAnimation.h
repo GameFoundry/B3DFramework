@@ -40,6 +40,30 @@ namespace b3d
 		bool Stopped = false;
 	};
 
+	/** Represents an animation clip used in 1D blending. Each clip has a position on the number line. */
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Animation)) BlendClipInfo
+	{
+		BlendClipInfo() = default;
+
+		HAnimationClip Clip;
+		float Position = 0.0f;
+	};
+
+	/** Defines a 1D blend where multiple animation clips are blended between each other using linear interpolation. */
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Animation)) Blend1DInfo
+	{
+		Vector<BlendClipInfo> Clips;
+	};
+
+	/** Defines a 2D blend where two animation clips are blended between each other using bilinear interpolation. */
+	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Animation)) Blend2DInfo
+	{
+		HAnimationClip TopLeftClip;
+		HAnimationClip TopRightClip;
+		HAnimationClip BottomLeftClip;
+		HAnimationClip BottomRightClip;
+	};
+
 	/** @} */
 
 	/** @addtogroup Animation-Internal
@@ -105,30 +129,6 @@ namespace b3d
 		u64 CurveVersion = 0;
 		u32 LayerIndex = ~0u; /**< Layer index this clip belongs to in AnimationProxy structure. */
 		u32 StateIndex = ~0u; /**< State index this clip belongs to in AnimationProxy structure. */
-	};
-
-	/** Represents an animation clip used in 1D blending. Each clip has a position on the number line. */
-	struct B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Animation)) BlendClipInfo
-	{
-		BlendClipInfo() = default;
-
-		HAnimationClip Clip;
-		float Position = 0.0f;
-	};
-
-	/** Defines a 1D blend where multiple animation clips are blended between each other using linear interpolation. */
-	struct B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Animation)) Blend1DInfo
-	{
-		Vector<BlendClipInfo> Clips;
-	};
-
-	/** Defines a 2D blend where two animation clips are blended between each other using bilinear interpolation. */
-	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Animation)) Blend2DInfo
-	{
-		HAnimationClip TopLeftClip;
-		HAnimationClip TopRightClip;
-		HAnimationClip BottomLeftClip;
-		HAnimationClip BottomRightClip;
 	};
 
 	/** Contains a mapping between a scene object and an animation curve it is animated with. */
@@ -276,7 +276,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Components
+	/** @addtogroup Animation
 	 *  @{
 	 */
 

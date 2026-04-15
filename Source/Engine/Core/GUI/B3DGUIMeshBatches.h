@@ -11,7 +11,7 @@ namespace b3d
 {
 	class GUIRenderable;
 
-	/** @addtogroup Implementation
+	/** @addtogroup GUI-Internal
 	 *  @{
 	 */
 

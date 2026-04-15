@@ -12,7 +12,7 @@
 
 namespace b3d::ecs
 {
-	/** @addtogroup General
+	/** @addtogroup ECS-Internal
 	 *  @{
 	 */
 
@@ -137,6 +137,12 @@ namespace b3d::ecs
 	{
 		return !(lhs.mUnderlyingIterator == rhs.mUnderlyingIterator);
 	}
+
+	/** @} */
+
+	/** @addtogroup ECS
+	 *  @{
+	 */
 
 	/**
 	 * Creates a view that allows you to iterate over all entities that match included & excluded type filter. Unlike TView,

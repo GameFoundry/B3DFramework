@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Implementation
+	/** @addtogroup ScriptInteropEngine-Internal 
 	 * @{
 	 */
 
@@ -90,7 +90,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Implementation
+	/** @addtogroup ScriptInteropEngine-Internal
 	 * @{
 	 */
 

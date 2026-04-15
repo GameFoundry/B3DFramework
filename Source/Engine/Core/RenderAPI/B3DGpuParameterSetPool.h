@@ -13,7 +13,7 @@ namespace b3d
 		class GpuParameterSet;
 	}
 
-	/** @addtogroup RenderAPI
+	/** @addtogroup GpuBackend
 	 *  @{
 	 */
 

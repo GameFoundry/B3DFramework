@@ -7,7 +7,7 @@
 
 namespace b3d::ecs
 {
-	/** @addtogroup General
+	/** @addtogroup ECS-Internal
 	 *  @{
 	 */
 
@@ -38,6 +38,12 @@ namespace b3d::ecs
 		static constexpr u32 kIdentifierBitCount = 32;
 		static constexpr u32 kVersionBitCount  = 32;
 	};
+
+	/** @} */
+
+	/** @addtogroup ECS
+	 *  @{
+	 */
 
 	/**
 	 * Represents a single entity in the ECS system. Each entity can have zero or multiple components associated with it. Each entity has a unique

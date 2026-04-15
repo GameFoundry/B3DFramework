@@ -10,7 +10,7 @@ namespace b3d
 	class GpuFrameCapture;
 	class GpuDevice;
 
-	/** @addtogroup RenderAPI
+	/** @addtogroup GpuBackend
 	 *  @{
 	 */
 
