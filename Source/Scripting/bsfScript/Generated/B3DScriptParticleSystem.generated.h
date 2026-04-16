@@ -24,15 +24,15 @@ namespace b3d
 
 	private:
 		static void InternalSetSettings(ScriptParticleSystem* self, MonoObject* settings);
-		static MonoObject* InternalGetSettings(ScriptParticleSystem* self);
 		static void InternalSetGpuSimulationSettings(ScriptParticleSystem* self, MonoObject* settings);
-		static MonoObject* InternalGetGpuSimulationSettings(ScriptParticleSystem* self);
 		static void InternalSetEmitters(ScriptParticleSystem* self, MonoArray* emitters);
 		static MonoArray* InternalGetEmitters(ScriptParticleSystem* self);
 		static void InternalSetEvolvers(ScriptParticleSystem* self, MonoArray* evolvers);
 		static MonoArray* InternalGetEvolvers(ScriptParticleSystem* self);
 		static void InternalSetLayer(ScriptParticleSystem* self, uint64_t layer);
-		static uint64_t InternalGetLayer(ScriptParticleSystem* self);
 		static bool InternalTogglePreviewMode(ScriptParticleSystem* self, bool enabled);
+		static MonoObject* InternalGetSettings(ScriptParticleSystem* self);
+		static MonoObject* InternalGetGpuSimulationSettings(ScriptParticleSystem* self);
+		static uint64_t InternalGetLayer(ScriptParticleSystem* self);
 	};
 }

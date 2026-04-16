@@ -23,10 +23,12 @@ namespace b3d
 		HLSL = 1,
 		/// <summary>Metal shading language.</summary>
 		MSL = 8,
+		/// <summary>Null shading language for the null render backend. Produces no actual shader code.</summary>
+		NullSL = 16,
 		/// <summary>Helper entry that includes all languages.</summary>
 		All = 15,
-		/// <summary>Metal shading language.</summary>
-		Count = 4
+		/// <summary>Null shading language for the null render backend. Produces no actual shader code.</summary>
+		Count = 5
 	}
 
 	/** @} */

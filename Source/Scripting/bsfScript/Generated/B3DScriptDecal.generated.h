@@ -23,14 +23,14 @@ namespace b3d
 
 	private:
 		static void InternalSetSize(ScriptDecal* self, TVector2<float>* size);
-		static void InternalGetSize(ScriptDecal* self, TVector2<float>* __output);
 		static void InternalSetMaterial(ScriptDecal* self, MonoObject* material);
-		static MonoObject* InternalGetMaterial(ScriptDecal* self);
 		static void InternalSetMaxDistance(ScriptDecal* self, float distance);
-		static float InternalGetMaxDistance(ScriptDecal* self);
 		static void InternalSetLayerMask(ScriptDecal* self, uint32_t mask);
-		static uint32_t InternalGetLayerMask(ScriptDecal* self);
 		static void InternalSetLayer(ScriptDecal* self, uint64_t layer);
+		static void InternalGetSize(ScriptDecal* self, TVector2<float>* __output);
+		static MonoObject* InternalGetMaterial(ScriptDecal* self);
+		static float InternalGetMaxDistance(ScriptDecal* self);
+		static uint32_t InternalGetLayerMask(ScriptDecal* self);
 		static uint64_t InternalGetLayer(ScriptDecal* self);
 	};
 }

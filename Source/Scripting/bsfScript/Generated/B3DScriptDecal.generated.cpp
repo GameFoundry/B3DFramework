@@ -26,14 +26,14 @@ namespace b3d
 	void ScriptDecal::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSize", (void*)&ScriptDecal::InternalSetSize);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSize", (void*)&ScriptDecal::InternalGetSize);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterial", (void*)&ScriptDecal::InternalSetMaterial);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaterial", (void*)&ScriptDecal::InternalGetMaterial);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaxDistance", (void*)&ScriptDecal::InternalSetMaxDistance);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaxDistance", (void*)&ScriptDecal::InternalGetMaxDistance);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLayerMask", (void*)&ScriptDecal::InternalSetLayerMask);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLayerMask", (void*)&ScriptDecal::InternalGetLayerMask);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptDecal::InternalSetLayer);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSize", (void*)&ScriptDecal::InternalGetSize);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaterial", (void*)&ScriptDecal::InternalGetMaterial);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaxDistance", (void*)&ScriptDecal::InternalGetMaxDistance);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLayerMask", (void*)&ScriptDecal::InternalGetLayerMask);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptDecal::InternalGetLayer);
 
 	}
@@ -56,6 +56,43 @@ namespace b3d
 		static_cast<Decal*>(self->GetNativeObject())->SetSize(*size);
 	}
 
+	void ScriptDecal::InternalSetMaterial(ScriptDecal* self, MonoObject* material)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		TResourceHandle<Material> tmpmaterial;
+		ScriptRRefBase* scriptObjectWrappermaterial;
+		scriptObjectWrappermaterial = ScriptRRefBase::GetScriptObjectWrapper(material);
+		if(scriptObjectWrappermaterial != nullptr)
+			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetNativeObject());
+		static_cast<Decal*>(self->GetNativeObject())->SetMaterial(tmpmaterial);
+	}
+
+	void ScriptDecal::InternalSetMaxDistance(ScriptDecal* self, float distance)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<Decal*>(self->GetNativeObject())->SetMaxDistance(distance);
+	}
+
+	void ScriptDecal::InternalSetLayerMask(ScriptDecal* self, uint32_t mask)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<Decal*>(self->GetNativeObject())->SetLayerMask(mask);
+	}
+
+	void ScriptDecal::InternalSetLayer(ScriptDecal* self, uint64_t layer)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<Decal*>(self->GetNativeObject())->SetLayer(layer);
+	}
+
 	void ScriptDecal::InternalGetSize(ScriptDecal* self, TVector2<float>* __output)
 	{
 		if(!self->IsNativeObjectValid())
@@ -68,19 +105,6 @@ namespace b3d
 		tmp__output = static_cast<Decal*>(self->GetNativeObject())->GetSize();
 
 		*__output = tmp__output;
-	}
-
-	void ScriptDecal::InternalSetMaterial(ScriptDecal* self, MonoObject* material)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		TResourceHandle<Material> tmpmaterial;
-		ScriptRRefBase* scriptObjectWrappermaterial;
-		scriptObjectWrappermaterial = ScriptRRefBase::GetScriptObjectWrapper(material);
-		if(scriptObjectWrappermaterial != nullptr)
-			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetNativeObject());
-		static_cast<Decal*>(self->GetNativeObject())->SetMaterial(tmpmaterial);
 	}
 
 	MonoObject* ScriptDecal::InternalGetMaterial(ScriptDecal* self)
@@ -102,14 +126,6 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptDecal::InternalSetMaxDistance(ScriptDecal* self, float distance)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		static_cast<Decal*>(self->GetNativeObject())->SetMaxDistance(distance);
-	}
-
 	float ScriptDecal::InternalGetMaxDistance(ScriptDecal* self)
 	{
 		float tmp__output;
@@ -124,14 +140,6 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptDecal::InternalSetLayerMask(ScriptDecal* self, uint32_t mask)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		static_cast<Decal*>(self->GetNativeObject())->SetLayerMask(mask);
-	}
-
 	uint32_t ScriptDecal::InternalGetLayerMask(ScriptDecal* self)
 	{
 		uint32_t tmp__output;
@@ -144,14 +152,6 @@ namespace b3d
 		__output = tmp__output;
 
 		return __output;
-	}
-
-	void ScriptDecal::InternalSetLayer(ScriptDecal* self, uint64_t layer)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		static_cast<Decal*>(self->GetNativeObject())->SetLayer(layer);
 	}
 
 	uint64_t ScriptDecal::InternalGetLayer(ScriptDecal* self)

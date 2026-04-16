@@ -85,7 +85,7 @@ namespace b3d
 		}
 
 		/// <summary>
-		/// Enables or disabled preview mode. Preview mode allows the particle system to play while the game is not running, 
+		/// Enables or disables preview mode. Preview mode allows the particle system to play while the game is not running, 
 		/// primarily for preview purposes in the editor. Returns true if the preview mode was enabled, false if it was disabled 
 		/// or enabling preview failed.
 		/// </summary>
@@ -97,11 +97,7 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetSettings(IntPtr thisPtr, ParticleSystemSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ParticleSystemSettings Internal_GetSettings(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetGpuSimulationSettings(IntPtr thisPtr, ParticleGpuSimulationSettings settings);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ParticleGpuSimulationSettings Internal_GetGpuSimulationSettings(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetEmitters(IntPtr thisPtr, ParticleEmitter[] emitters);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -113,9 +109,13 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetLayer(IntPtr thisPtr, ulong layer);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ulong Internal_GetLayer(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_TogglePreviewMode(IntPtr thisPtr, bool enabled);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern ParticleSystemSettings Internal_GetSettings(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern ParticleGpuSimulationSettings Internal_GetGpuSimulationSettings(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern ulong Internal_GetLayer(IntPtr thisPtr);
 	}
 
 	/** @} */

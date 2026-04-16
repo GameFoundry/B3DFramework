@@ -27,24 +27,24 @@ namespace b3d
 
 	private:
 		static void InternalSetType(ScriptLight* self, LightType type);
-		static LightType InternalGetType(ScriptLight* self);
 		static void InternalSetCastsShadow(ScriptLight* self, bool castsShadow);
-		static bool InternalGetCastsShadow(ScriptLight* self);
 		static void InternalSetShadowBias(ScriptLight* self, float bias);
-		static float InternalGetShadowBias(ScriptLight* self);
 		static void InternalSetColor(ScriptLight* self, Color* color);
-		static void InternalGetColor(ScriptLight* self, Color* __output);
 		static void InternalSetAttenuationRadius(ScriptLight* self, float radius);
-		static float InternalGetAttenuationRadius(ScriptLight* self);
 		static void InternalSetSourceRadius(ScriptLight* self, float radius);
-		static float InternalGetSourceRadius(ScriptLight* self);
 		static void InternalSetUseAutoAttenuation(ScriptLight* self, bool enabled);
-		static bool InternalGetUseAutoAttenuation(ScriptLight* self);
 		static void InternalSetIntensity(ScriptLight* self, float intensity);
-		static float InternalGetIntensity(ScriptLight* self);
 		static void InternalSetSpotAngle(ScriptLight* self, TDegree<float>* spotAngle);
-		static void InternalGetSpotAngle(ScriptLight* self, TDegree<float>* __output);
 		static void InternalSetSpotFalloffAngle(ScriptLight* self, TDegree<float>* spotFallofAngle);
+		static LightType InternalGetType(ScriptLight* self);
+		static bool InternalGetCastsShadow(ScriptLight* self);
+		static float InternalGetShadowBias(ScriptLight* self);
+		static void InternalGetColor(ScriptLight* self, Color* __output);
+		static float InternalGetAttenuationRadius(ScriptLight* self);
+		static float InternalGetSourceRadius(ScriptLight* self);
+		static bool InternalGetUseAutoAttenuation(ScriptLight* self);
+		static float InternalGetIntensity(ScriptLight* self);
+		static void InternalGetSpotAngle(ScriptLight* self, TDegree<float>* __output);
 		static void InternalGetSpotFalloffAngle(ScriptLight* self, TDegree<float>* __output);
 		static void InternalGetBounds(ScriptLight* self, __TSphere_float_Interop* __output);
 	};

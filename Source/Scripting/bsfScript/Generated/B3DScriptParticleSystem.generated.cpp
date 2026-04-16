@@ -27,16 +27,16 @@ namespace b3d
 	void ScriptParticleSystem::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSettings", (void*)&ScriptParticleSystem::InternalSetSettings);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSettings", (void*)&ScriptParticleSystem::InternalGetSettings);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetGpuSimulationSettings", (void*)&ScriptParticleSystem::InternalSetGpuSimulationSettings);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetGpuSimulationSettings", (void*)&ScriptParticleSystem::InternalGetGpuSimulationSettings);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetEmitters", (void*)&ScriptParticleSystem::InternalSetEmitters);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetEmitters", (void*)&ScriptParticleSystem::InternalGetEmitters);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetEvolvers", (void*)&ScriptParticleSystem::InternalSetEvolvers);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetEvolvers", (void*)&ScriptParticleSystem::InternalGetEvolvers);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptParticleSystem::InternalSetLayer);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptParticleSystem::InternalGetLayer);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_TogglePreviewMode", (void*)&ScriptParticleSystem::InternalTogglePreviewMode);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSettings", (void*)&ScriptParticleSystem::InternalGetSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetGpuSimulationSettings", (void*)&ScriptParticleSystem::InternalGetGpuSimulationSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptParticleSystem::InternalGetLayer);
 
 	}
 
@@ -63,20 +63,6 @@ namespace b3d
 		static_cast<ParticleSystem*>(self->GetNativeObject())->SetSettings(*tmpsettings);
 	}
 
-	MonoObject* ScriptParticleSystem::InternalGetSettings(ScriptParticleSystem* self)
-	{
-		SPtr<ParticleSystemSettings> tmp__output = B3DMakeShared<ParticleSystemSettings>();
-		if(!self->IsNativeObjectValid())
-			return {};
-
-		*tmp__output = static_cast<ParticleSystem*>(self->GetNativeObject())->GetSettings();
-
-		MonoObject* __output;
-		__output = ScriptParticleSystemSettings::GetOrCreateScriptObject(tmp__output);
-
-		return __output;
-	}
-
 	void ScriptParticleSystem::InternalSetGpuSimulationSettings(ScriptParticleSystem* self, MonoObject* settings)
 	{
 		if(!self->IsNativeObjectValid())
@@ -88,20 +74,6 @@ namespace b3d
 		if(scriptObjectWrappersettings != nullptr)
 			tmpsettings = std::static_pointer_cast<ParticleGpuSimulationSettings>(scriptObjectWrappersettings->GetBaseNativeObjectAsShared());
 		static_cast<ParticleSystem*>(self->GetNativeObject())->SetGpuSimulationSettings(*tmpsettings);
-	}
-
-	MonoObject* ScriptParticleSystem::InternalGetGpuSimulationSettings(ScriptParticleSystem* self)
-	{
-		SPtr<ParticleGpuSimulationSettings> tmp__output = B3DMakeShared<ParticleGpuSimulationSettings>();
-		if(!self->IsNativeObjectValid())
-			return {};
-
-		*tmp__output = static_cast<ParticleSystem*>(self->GetNativeObject())->GetGpuSimulationSettings();
-
-		MonoObject* __output;
-		__output = ScriptParticleGpuSimulationSettings::GetOrCreateScriptObject(tmp__output);
-
-		return __output;
 	}
 
 	void ScriptParticleSystem::InternalSetEmitters(ScriptParticleSystem* self, MonoArray* emitters)
@@ -208,20 +180,6 @@ namespace b3d
 		static_cast<ParticleSystem*>(self->GetNativeObject())->SetLayer(layer);
 	}
 
-	uint64_t ScriptParticleSystem::InternalGetLayer(ScriptParticleSystem* self)
-	{
-		uint64_t tmp__output;
-		if(!self->IsNativeObjectValid())
-			return {};
-
-		tmp__output = static_cast<ParticleSystem*>(self->GetNativeObject())->GetLayer();
-
-		uint64_t __output;
-		__output = tmp__output;
-
-		return __output;
-	}
-
 	bool ScriptParticleSystem::InternalTogglePreviewMode(ScriptParticleSystem* self, bool enabled)
 	{
 		bool tmp__output;
@@ -231,6 +189,48 @@ namespace b3d
 		tmp__output = static_cast<ParticleSystem*>(self->GetNativeObject())->TogglePreviewMode(enabled);
 
 		bool __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	MonoObject* ScriptParticleSystem::InternalGetSettings(ScriptParticleSystem* self)
+	{
+		SPtr<ParticleSystemSettings> tmp__output = B3DMakeShared<ParticleSystemSettings>();
+		if(!self->IsNativeObjectValid())
+			return {};
+
+		*tmp__output = static_cast<ParticleSystem*>(self->GetNativeObject())->GetSettings();
+
+		MonoObject* __output;
+		__output = ScriptParticleSystemSettings::GetOrCreateScriptObject(tmp__output);
+
+		return __output;
+	}
+
+	MonoObject* ScriptParticleSystem::InternalGetGpuSimulationSettings(ScriptParticleSystem* self)
+	{
+		SPtr<ParticleGpuSimulationSettings> tmp__output = B3DMakeShared<ParticleGpuSimulationSettings>();
+		if(!self->IsNativeObjectValid())
+			return {};
+
+		*tmp__output = static_cast<ParticleSystem*>(self->GetNativeObject())->GetGpuSimulationSettings();
+
+		MonoObject* __output;
+		__output = ScriptParticleGpuSimulationSettings::GetOrCreateScriptObject(tmp__output);
+
+		return __output;
+	}
+
+	uint64_t ScriptParticleSystem::InternalGetLayer(ScriptParticleSystem* self)
+	{
+		uint64_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
+		tmp__output = static_cast<ParticleSystem*>(self->GetNativeObject())->GetLayer();
+
+		uint64_t __output;
 		__output = tmp__output;
 
 		return __output;

@@ -169,41 +169,41 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetType(IntPtr thisPtr, LightType type);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern LightType Internal_GetType(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetCastsShadow(IntPtr thisPtr, bool castsShadow);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_GetCastsShadow(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetShadowBias(IntPtr thisPtr, float bias);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern float Internal_GetShadowBias(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetColor(IntPtr thisPtr, ref Color color);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetColor(IntPtr thisPtr, out Color __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetAttenuationRadius(IntPtr thisPtr, float radius);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern float Internal_GetAttenuationRadius(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetSourceRadius(IntPtr thisPtr, float radius);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern float Internal_GetSourceRadius(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetUseAutoAttenuation(IntPtr thisPtr, bool enabled);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_GetUseAutoAttenuation(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetIntensity(IntPtr thisPtr, float intensity);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern float Internal_GetIntensity(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetSpotAngle(IntPtr thisPtr, ref Degree spotAngle);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetSpotAngle(IntPtr thisPtr, out Degree __output);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetSpotFalloffAngle(IntPtr thisPtr, ref Degree spotFallofAngle);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern LightType Internal_GetType(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_GetCastsShadow(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern float Internal_GetShadowBias(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_GetColor(IntPtr thisPtr, out Color __output);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern float Internal_GetAttenuationRadius(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern float Internal_GetSourceRadius(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_GetUseAutoAttenuation(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern float Internal_GetIntensity(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_GetSpotAngle(IntPtr thisPtr, out Degree __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_GetSpotFalloffAngle(IntPtr thisPtr, out Degree __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]

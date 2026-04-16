@@ -6087,6 +6087,64 @@ Angular degrees of freedom are partitioned as twist (around X axis) and swing (a
 			<doc>Returns the drive&apos;s target angular velocity.</doc>
 		</property>
 	</class>
+	<class native="IEditorSceneInstance" script="IEditorSceneInstance">
+		<doc>Interface that provides editor-specific information about a scene instance.</doc>
+	</class>
+	<class native="SceneInstance" script="SceneInstance">
+		<doc>Contains information about an instantiated scene.</doc>
+		<method native="Clear" script="Clear" static="false">
+			<doc>Removes all scene objects from the scene, except for persistent objects. If <paramref name="forceAll"/> is true, removes even the persistent objects.</doc>
+			<param name="forceAll" type="bool">
+			</param>
+		</method>
+		<method native="CreateSceneObject" script="CreateSceneObject" static="false">
+			<doc>Creates a new scene object in the scene instance.</doc>
+			<param name="name" type="string">
+				<doc>Name of the scene object.</doc>
+			</param>
+			<param name="flags" type="int">
+				<doc>Optional flags that control object behavior. See SceneObjectFlags.</doc>
+			</param>
+			<returns type="SceneObject">
+			</returns>
+		</method>
+		<ctor>
+			<doc>Creates a new empty scene instance.</doc>
+			<param name="name" type="string">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new scene instance with an existing hierarchy.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="root" type="SceneObject">
+			</param>
+		</ctor>
+		<property name="Name" type="string" getter="GetName" setter="" static="false">
+			<doc>Name of the scene.</doc>
+		</property>
+		<property name="Root" type="SceneObject" getter="GetRoot" setter="" static="false">
+			<doc>Root object of the scene.</doc>
+		</property>
+		<property name="IsActive" type="bool" getter="IsActive" setter="" static="false">
+			<doc>Checks is the scene currently active. IF inactive the scene properties aside from the name are undefined.</doc>
+		</property>
+		<property name="Physics" type="PhysicsScene" getter="GetPhysicsScene" setter="" static="false">
+			<doc>Representation of the scene used by the physics sub-system. Contains all the objects that can be physically interacted with. Exact implementation depends on the physics plugin used.</doc>
+		</property>
+		<property name="AssociatedResourceId" type="UUID" getter="GetAssociatedResourceId" setter="" static="false">
+			<doc>Returns the ID of the resource that the scene instance is associated with (e.g. resource the scene was loaded from.).</doc>
+		</property>
+		<property name="MainCamera" type="Camera" getter="GetMainCamera" setter="" static="false">
+			<doc>Returns the camera in the scene marked as main. Main camera controls the final render surface that is displayed to the user. If there are multiple main cameras, the first one found returned.</doc>
+		</property>
+		<property name="EditorSceneInstance" type="IEditorSceneInstance" getter="GetEditorSceneInstance" setter="" static="false">
+			<doc>Editor scene instance, if running from within the editor.</doc>
+		</property>
+		<property name="IsRunning" type="bool" getter="IsRunning" setter="" static="false">
+			<doc>Checks are the components currently in the Running state.</doc>
+		</property>
+	</class>
 	<class native="Decal" script="Decal">
 		<doc>Wraps Decal as a Component.</doc>
 		<property name="Size" type="TVector2&lt;float&gt;" getter="GetSize" setter="SetSize" static="false">
@@ -7110,7 +7168,7 @@ Resize will not change the positions of current light probes. If you wish to res
 		<doc>Controls spawning, evolution and rendering of particles. Particles can be 2D or 3D, with a variety of rendering options. Particle system should be used for rendering objects that cannot properly be represented using static or animated meshes, like liquids, smoke or flames.
 The particle system requires you to specify at least one ParticleEmitter, which controls how are new particles generated. You will also want to specify one or more ParticleEvolver%s, which change particle properties over time.</doc>
 		<method native="TogglePreviewMode" script="TogglePreviewMode" static="false">
-			<doc>Enables or disabled preview mode. Preview mode allows the particle system to play while the game is not running, primarily for preview purposes in the editor. Returns true if the preview mode was enabled, false if it was disabled or enabling preview failed.</doc>
+			<doc>Enables or disables preview mode. Preview mode allows the particle system to play while the game is not running, primarily for preview purposes in the editor. Returns true if the preview mode was enabled, false if it was disabled or enabling preview failed.</doc>
 			<param name="enabled" type="bool">
 			</param>
 			<returns type="bool">
@@ -7155,17 +7213,23 @@ The particle system requires you to specify at least one ParticleEmitter, which 
 		<method native="Capture" script="Capture" static="false">
 			<doc>Captures the scene at the current location and generates a filtered reflection cubemap. No action is taken if a custom texture is set.</doc>
 		</method>
+		<property name="Type" type="ReflectionProbeType" getter="GetType" setter="SetType" static="false">
+			<doc>Determines the type of the probe.</doc>
+		</property>
+		<property name="Radius" type="float" getter="" setter="SetRadius" static="false">
+			<doc>Determines the radius of a sphere reflection probe.</doc>
+		</property>
+		<property name="Extents" type="Vector3" getter="" setter="SetExtents" static="false">
+			<doc>Determines the extents of a box reflection probe. Determines range of influence.</doc>
+		</property>
 		<property name="CustomTexture" type="RRef&lt;Texture&gt;" getter="GetCustomTexture" setter="SetCustomTexture" static="false">
 			<doc>Allows you assign a custom texture to use as a reflection map. This will disable automatic generation of reflections. To re-enable auto-generation call this with a null parameter.</doc>
 		</property>
-		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
-			<doc>Determines the radius of a sphere reflection probe.</doc>
+		<property name="WorldRadius" type="float" getter="GetWorldRadius" setter="" static="false">
+			<doc>Returns the radius of a sphere reflection probe, scaled by scene object transform.</doc>
 		</property>
-		<property name="Extents" type="Vector3" getter="GetExtents" setter="SetExtents" static="false">
-			<doc>Determines the extents of a box reflection probe. Determines range of influence.</doc>
-		</property>
-		<property name="Type" type="ReflectionProbeType" getter="GetType" setter="SetType" static="false">
-			<doc>Determines the type of the probe.</doc>
+		<property name="WorldExtents" type="Vector3" getter="GetWorldExtents" setter="" static="false">
+			<doc>Returns the extents of a box reflection probe, scaled by scene object transform.</doc>
 		</property>
 	</class>
 	<class native="Renderable" script="Renderable">
@@ -7189,9 +7253,6 @@ The particle system requires you to specify at least one ParticleEmitter, which 
 			<returns type="RRef&lt;Material&gt;">
 			</returns>
 		</method>
-		<property name="Bounds" type="Bounds" getter="GetBounds" setter="" static="false">
-			<doc>Gets world bounds of the mesh rendered by this object.</doc>
-		</property>
 		<property name="Mesh" type="RRef&lt;Mesh&gt;" getter="GetMesh" setter="SetMesh" static="false">
 			<doc>Determines the mesh to render. All sub-meshes of the mesh will be rendered, and you may set individual materials for each sub-mesh.</doc>
 		</property>
@@ -7206,6 +7267,9 @@ The particle system requires you to specify at least one ParticleEmitter, which 
 		</property>
 		<property name="CullDistance" type="float" getter="GetCullDistanceFactor" setter="SetCullDistanceFactor" static="false">
 			<doc>Factor to be applied to the cull distance set in the camera&apos;s render settings.</doc>
+		</property>
+		<property name="Bounds" type="Bounds" getter="GetBounds" setter="" static="false">
+			<doc>Gets world bounds of the mesh rendered by this object.</doc>
 		</property>
 	</class>
 	<enum native="ForceMode" script="ForceMode">
@@ -7814,11 +7878,14 @@ Optionally if the parameter is an array you may provide an array index you which
 		<enumentry native="MSL" script="MSL">
 			<doc>Metal shading language.</doc>
 		</enumentry>
+		<enumentry native="NullSL" script="NullSL">
+			<doc>Null shading language for the null render backend. Produces no actual shader code.</doc>
+		</enumentry>
 		<enumentry native="All" script="All">
 			<doc>Helper entry that includes all languages.</doc>
 		</enumentry>
 		<enumentry native="Count" script="Count">
-			<doc>Metal shading language.</doc>
+			<doc>Null shading language for the null render backend. Produces no actual shader code.</doc>
 		</enumentry>
 	</enum>
 	<class native="RendererManager" script="RendererManager">
@@ -9914,61 +9981,6 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>Determines how should the source texture be interpreted when generating a cubemap. Only relevant when <see cref="Cubemap"/> is set to true.</doc>
 		</property>
 	</class>
-	<class native="SceneInstance" script="SceneInstance">
-		<doc>Contains information about an instantiated scene.</doc>
-		<method native="Clear" script="Clear" static="false">
-			<doc>Removes all scene objects from the scene, except for persistent objects. If <paramref name="forceAll"/> is true, removes even the persistent objects.</doc>
-			<param name="forceAll" type="bool">
-			</param>
-		</method>
-		<method native="CreateSceneObject" script="CreateSceneObject" static="false">
-			<doc>Creates a new scene object in the scene instance.</doc>
-			<param name="name" type="string">
-				<doc>Name of the scene object.</doc>
-			</param>
-			<param name="flags" type="int">
-				<doc>Optional flags that control object behavior. See SceneObjectFlags.</doc>
-			</param>
-			<returns type="SceneObject">
-			</returns>
-		</method>
-		<ctor>
-			<doc>Creates a new empty scene instance.</doc>
-			<param name="name" type="string">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new scene instance with an existing hierarchy.</doc>
-			<param name="name" type="string">
-			</param>
-			<param name="root" type="SceneObject">
-			</param>
-		</ctor>
-		<property name="Name" type="string" getter="GetName" setter="" static="false">
-			<doc>Name of the scene.</doc>
-		</property>
-		<property name="Root" type="SceneObject" getter="GetRoot" setter="" static="false">
-			<doc>Root object of the scene.</doc>
-		</property>
-		<property name="IsActive" type="bool" getter="IsActive" setter="" static="false">
-			<doc>Checks is the scene currently active. IF inactive the scene properties aside from the name are undefined.</doc>
-		</property>
-		<property name="Physics" type="PhysicsScene" getter="GetPhysicsScene" setter="" static="false">
-			<doc>Representation of the scene used by the physics sub-system. Contains all the objects that can be physically interacted with. Exact implementation depends on the physics plugin used.</doc>
-		</property>
-		<property name="AssociatedResourceId" type="UUID" getter="GetAssociatedResourceId" setter="" static="false">
-			<doc>Returns the ID of the resource that the scene instance is associated with (e.g. resource the scene was loaded from.).</doc>
-		</property>
-		<property name="MainCamera" type="Camera" getter="GetMainCamera" setter="" static="false">
-			<doc>Returns the camera in the scene marked as main. Main camera controls the final render surface that is displayed to the user. If there are multiple main cameras, the first one found returned.</doc>
-		</property>
-		<property name="EditorSceneInstance" type="IEditorSceneInstance" getter="GetEditorSceneInstance" setter="" static="false">
-			<doc>Editor scene instance, if running from within the editor.</doc>
-		</property>
-		<property name="IsRunning" type="bool" getter="IsRunning" setter="" static="false">
-			<doc>Checks are the components currently in the Running state.</doc>
-		</property>
-	</class>
 	<enum native="Language" script="Language">
 		<doc>A set of all languages that localized strings can be translated to. Loosely based on ISO 639-1 two letter language codes.</doc>
 		<enumentry native="Afrikaans" script="Afrikaans">
@@ -11858,9 +11870,6 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 			<param name="sceneObject" type="SceneObject">
 			</param>
 		</ctor>
-	</class>
-	<class native="IEditorSceneInstance" script="IEditorSceneInstance">
-		<doc>Interface that provides editor-specific information about a scene instance.</doc>
 	</class>
 	<class native="SceneManager" script="SceneManager">
 		<doc>Keeps track of all active SceneObject%s and their components. Keeps track of component state and triggers their events. Updates the transforms of objects as SceneObject%s move.</doc>

@@ -20,18 +20,6 @@ namespace b3d
 		private Renderable(bool __dummy0) { }
 		protected Renderable() { }
 
-		/// <summary>Gets world bounds of the mesh rendered by this object.</summary>
-		[NativeWrapper]
-		public Bounds Bounds
-		{
-			get
-			{
-				Bounds temp;
-				Internal_GetBounds(mCachedPtr, out temp);
-				return temp;
-			}
-		}
-
 		/// <summary>
 		/// Determines the mesh to render. All sub-meshes of the mesh will be rendered, and you may set individual materials for 
 		/// each sub-mesh.
@@ -91,6 +79,18 @@ namespace b3d
 			set { Internal_SetCullDistanceFactor(mCachedPtr, value); }
 		}
 
+		/// <summary>Gets world bounds of the mesh rendered by this object.</summary>
+		[NativeWrapper]
+		public Bounds Bounds
+		{
+			get
+			{
+				Bounds temp;
+				Internal_GetBounds(mCachedPtr, out temp);
+				return temp;
+			}
+		}
+
 		/// <summary>
 		/// Sets a material that will be used for rendering a sub-mesh with the specified index. If a sub-mesh doesn&apos;t have 
 		/// a specific material set then the primary material will be used.
@@ -116,8 +116,6 @@ namespace b3d
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetBounds(IntPtr thisPtr, out Bounds __output);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetMesh(IntPtr thisPtr, RRef<Mesh> mesh);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetMaterial(IntPtr thisPtr, int index, RRef<Material> material);
@@ -131,6 +129,8 @@ namespace b3d
 		private static extern void Internal_SetWriteVelocity(IntPtr thisPtr, bool enable);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetCullDistanceFactor(IntPtr thisPtr, float factor);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_GetBounds(IntPtr thisPtr, out Bounds __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Mesh> Internal_GetMesh(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

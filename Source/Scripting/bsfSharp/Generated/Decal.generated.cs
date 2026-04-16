@@ -77,21 +77,21 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetSize(IntPtr thisPtr, ref TVector2<float> size);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetSize(IntPtr thisPtr, out TVector2<float> __output);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetMaterial(IntPtr thisPtr, RRef<Material> material);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern RRef<Material> Internal_GetMaterial(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetMaxDistance(IntPtr thisPtr, float distance);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern float Internal_GetMaxDistance(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetLayerMask(IntPtr thisPtr, int mask);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern int Internal_GetLayerMask(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetLayer(IntPtr thisPtr, ulong layer);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_GetSize(IntPtr thisPtr, out TVector2<float> __output);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern RRef<Material> Internal_GetMaterial(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern float Internal_GetMaxDistance(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern int Internal_GetLayerMask(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern ulong Internal_GetLayer(IntPtr thisPtr);
 	}

@@ -25,7 +25,6 @@ namespace b3d
 
 	void ScriptRenderable::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptRenderable::InternalGetBounds);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptRenderable::InternalSetMesh);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterial", (void*)&ScriptRenderable::InternalSetMaterial);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterial0", (void*)&ScriptRenderable::InternalSetMaterial0);
@@ -33,6 +32,7 @@ namespace b3d
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptRenderable::InternalSetLayer);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetWriteVelocity", (void*)&ScriptRenderable::InternalSetWriteVelocity);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetCullDistanceFactor", (void*)&ScriptRenderable::InternalSetCullDistanceFactor);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptRenderable::InternalGetBounds);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptRenderable::InternalGetMesh);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaterial", (void*)&ScriptRenderable::InternalGetMaterial);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaterials", (void*)&ScriptRenderable::InternalGetMaterials);
@@ -52,20 +52,6 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptRenderable::InternalGetBounds(ScriptRenderable* self, TBounds<float>* __output)
-	{
-		if(!self->IsNativeObjectValid())
-		{
-			*__output = {};
-			return;
-		}
-
-		TBounds<float> tmp__output;
-		tmp__output = static_cast<Renderable*>(self->GetNativeObject())->GetBounds();
-
-		*__output = tmp__output;
-	}
-
 	void ScriptRenderable::InternalSetMesh(ScriptRenderable* self, MonoObject* mesh)
 	{
 		if(!self->IsNativeObjectValid())
@@ -152,6 +138,20 @@ namespace b3d
 			return;
 
 		static_cast<Renderable*>(self->GetNativeObject())->SetCullDistanceFactor(factor);
+	}
+
+	void ScriptRenderable::InternalGetBounds(ScriptRenderable* self, TBounds<float>* __output)
+	{
+		if(!self->IsNativeObjectValid())
+		{
+			*__output = {};
+			return;
+		}
+
+		TBounds<float> tmp__output;
+		tmp__output = static_cast<Renderable*>(self->GetNativeObject())->GetBounds();
+
+		*__output = tmp__output;
 	}
 
 	MonoObject* ScriptRenderable::InternalGetMesh(ScriptRenderable* self)
