@@ -16,7 +16,13 @@ namespace b3d
 	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUILayoutX final : public GUILayout, public TGUIConstructionMethodsWithoutContent<GUILayoutX>
 	{
 	public:
+		/** @name Internal
+		 *  @{
+		 */
+
 		struct PrivatelyConstruct { };
+
+		/** @} */
 
 		GUILayoutX() = default;
 		GUILayoutX(PrivatelyConstruct, const String& styleClass, const GUISizeConstraints& sizeConstraints);

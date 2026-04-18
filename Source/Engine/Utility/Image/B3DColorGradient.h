@@ -76,6 +76,12 @@ namespace b3d
 		float Time = 0.0f;
 	};
 
+	/** @} */
+
+	/** @addtogroup Image-Internal
+	 *  @{
+	 */
+
 	/** Common templated class for different color gradient implementations. */
 	template <class COLOR, class TIME>
 	class B3D_EXPORT TColorGradient
@@ -138,6 +144,12 @@ namespace b3d
 		uint32_t mNumKeys = 0;
 		float mDuration = 0.0f;
 	};
+
+	/** @} */
+
+	/** @addtogroup Image-Internal
+	 *  @{
+	 */
 
 	/**
 	 * Represents a range of color values over some parameters, similar to a curve. Internally represented as a set of

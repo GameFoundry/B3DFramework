@@ -9,7 +9,7 @@ namespace b3d
 {
 	struct GUIStyleSheetRules;
 
-	/** @addtogroup GUI
+	/** @addtogroup GUI-Internal
 	 *  @{
 	 */
 

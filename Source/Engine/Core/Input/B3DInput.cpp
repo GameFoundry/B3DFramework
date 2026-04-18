@@ -30,13 +30,13 @@ Input::Input()
 	mWindowHandle = primaryWindow->GetPlatformWindowHandle();
 
 	// Subscribe to events
-	mCharInputConn = Platform::onCharInput.Connect([this](u32 character) { CharInput(character); });
-	mCursorMovedConn = Platform::onCursorMoved.Connect([this](const Vector2I& cursorPosition, const OSPointerButtonStates& buttonStates) { CursorMoved(cursorPosition, buttonStates); });
-	mCursorPressedConn = Platform::onCursorButtonPressed.Connect([this](const Vector2I& cursorPosition, OSMouseButton button, const OSPointerButtonStates& buttonStates) { CursorPressed(cursorPosition, button, buttonStates); });
-	mCursorReleasedConn = Platform::onCursorButtonReleased.Connect([this](const Vector2I& cursorPosition, OSMouseButton button, const OSPointerButtonStates& buttonStates) { CursorReleased(cursorPosition, button, buttonStates); });
-	mCursorDoubleClickConn = Platform::onCursorDoubleClick.Connect([this](const Vector2I& cursorPosition, const OSPointerButtonStates& buttonStates) { CursorDoubleClick(cursorPosition, buttonStates); });
-	mInputCommandConn = Platform::onInputCommand.Connect([this](InputCommandType commandType) { InputCommandEntered(commandType); });
-	mMouseWheelScrolledConn = Platform::onMouseWheelScrolled.Connect([this](float scrollPosition) { MouseWheelScrolled(scrollPosition); });
+	mCharInputConn = Platform::OnCharInput.Connect([this](u32 character) { CharInput(character); });
+	mCursorMovedConn = Platform::OnPointerMoved.Connect([this](const Vector2I& cursorPosition, const OSPointerButtonStates& buttonStates) { CursorMoved(cursorPosition, buttonStates); });
+	mCursorPressedConn = Platform::OnPointerButtonPressed.Connect([this](const Vector2I& cursorPosition, OSMouseButton button, const OSPointerButtonStates& buttonStates) { CursorPressed(cursorPosition, button, buttonStates); });
+	mCursorReleasedConn = Platform::OnPointerButtonReleased.Connect([this](const Vector2I& cursorPosition, OSMouseButton button, const OSPointerButtonStates& buttonStates) { CursorReleased(cursorPosition, button, buttonStates); });
+	mCursorDoubleClickConn = Platform::OnPointerDoubleClick.Connect([this](const Vector2I& cursorPosition, const OSPointerButtonStates& buttonStates) { CursorDoubleClick(cursorPosition, buttonStates); });
+	mInputCommandConn = Platform::OnInputCommand.Connect([this](InputCommandType commandType) { InputCommandEntered(commandType); });
+	mMouseWheelScrolledConn = Platform::OnMouseWheelScrolled.Connect([this](float scrollPosition) { MouseWheelScrolled(scrollPosition); });
 
 	RenderWindowManager::Instance().OnFocusGained.Connect([this](RenderWindow& window) { InputWindowChanged(window); });
 	RenderWindowManager::Instance().OnFocusLost.Connect([this](RenderWindow&) { InputFocusLost(); });

@@ -11,21 +11,21 @@
 
 namespace b3d
 {
-	/** @addtogroup Resources
+	/** @addtogroup Mesh
 	 *  @{
 	 */
 
 	/** Iterator that allows you to easily populate or read vertex elements in MeshData. */
 	template <class T>
-	class VertexElemIter
+	class VertexElemIterator
 	{
 	public:
-		VertexElemIter()
+		VertexElemIterator()
 			: mData(nullptr), mEnd(nullptr), mByteStride(0), mNumElements(0)
 		{
 		}
 
-		VertexElemIter(u8* data, u32 byteStride, u32 numElements)
+		VertexElemIterator(u8* data, u32 byteStride, u32 numElements)
 			: mData(data), mByteStride(byteStride), mNumElements(numElements)
 		{
 			mEnd = mData + byteStride * numElements;
@@ -138,7 +138,7 @@ namespace b3d
 		 *
 		 * @note	If vertex data of this type/semantic/index/stream doesn't exist and exception will be thrown.
 		 */
-		VertexElemIter<Vector2> GetVec2DataIter(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0);
+		VertexElemIterator<Vector2> GetVec2DataIter(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0);
 
 		/**
 		 * Returns an iterator you can use for easily retrieving or setting Vector3 vertex elements. This is the preferred
@@ -146,7 +146,7 @@ namespace b3d
 		 *
 		 * @note	If vertex data of this type/semantic/index/stream doesn't exist and exception will be thrown.
 		 */
-		VertexElemIter<Vector3> GetVec3DataIter(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0);
+		VertexElemIterator<Vector3> GetVec3DataIter(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0);
 
 		/**
 		 * Returns an iterator you can use for easily retrieving or setting Vector4 vertex elements. This is the preferred
@@ -154,7 +154,7 @@ namespace b3d
 		 *
 		 * @note	If vertex data of this type/semantic/index/stream doesn't exist and exception will be thrown.
 		 */
-		VertexElemIter<Vector4> GetVec4DataIter(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0);
+		VertexElemIterator<Vector4> GetVec4DataIter(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0);
 
 		/**
 		 * Returns an iterator you can use for easily retrieving or setting DWORD vertex elements. This is the preferred
@@ -162,7 +162,7 @@ namespace b3d
 		 *
 		 * @note	If vertex data of this type/semantic/index/stream doesn't exist and exception will be thrown.
 		 */
-		VertexElemIter<u32> GetDwordDataIter(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0);
+		VertexElemIterator<u32> GetDwordDataIter(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0);
 
 		/**
 		 * Returns an iterator you can use for easily retrieving or setting vertex elements. This is the preferred
@@ -171,13 +171,13 @@ namespace b3d
 		 * @note	If vertex data of this type/semantic/index/stream doesn't exist and exception will be thrown.
 		 */
 		template<class T>
-		VertexElemIter<T> GetVertexIterator(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0)
+		VertexElemIterator<T> GetVertexIterator(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0)
 		{
 				u8* data;
 				u32 vertexStride;
 				GetDataForIterator(semantic, semanticIndex, streamIndex, data, vertexStride);
 
-				return VertexElemIter<T>(data, vertexStride, mVertexCount);
+				return VertexElemIterator<T>(data, vertexStride, mVertexCount);
 		}
 
 		/** Returns the total number of vertices this object can hold. */

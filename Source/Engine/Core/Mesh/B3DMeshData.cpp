@@ -237,40 +237,40 @@ void MeshData::GetVertexData(VertexElementSemantic semantic, void* data, u32 siz
 	}
 }
 
-VertexElemIter<Vector2> MeshData::GetVec2DataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
+VertexElemIterator<Vector2> MeshData::GetVec2DataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
 {
 	u8* data;
 	u32 vertexStride;
 	GetDataForIterator(semantic, semanticIndex, streamIndex, data, vertexStride);
 
-	return VertexElemIter<Vector2>(data, vertexStride, mVertexCount);
+	return VertexElemIterator<Vector2>(data, vertexStride, mVertexCount);
 }
 
-VertexElemIter<Vector3> MeshData::GetVec3DataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
+VertexElemIterator<Vector3> MeshData::GetVec3DataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
 {
 	u8* data;
 	u32 vertexStride;
 	GetDataForIterator(semantic, semanticIndex, streamIndex, data, vertexStride);
 
-	return VertexElemIter<Vector3>(data, vertexStride, mVertexCount);
+	return VertexElemIterator<Vector3>(data, vertexStride, mVertexCount);
 }
 
-VertexElemIter<Vector4> MeshData::GetVec4DataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
+VertexElemIterator<Vector4> MeshData::GetVec4DataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
 {
 	u8* data;
 	u32 vertexStride;
 	GetDataForIterator(semantic, semanticIndex, streamIndex, data, vertexStride);
 
-	return VertexElemIter<Vector4>(data, vertexStride, mVertexCount);
+	return VertexElemIterator<Vector4>(data, vertexStride, mVertexCount);
 }
 
-VertexElemIter<u32> MeshData::GetDwordDataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
+VertexElemIterator<u32> MeshData::GetDwordDataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
 {
 	u8* data;
 	u32 vertexStride;
 	GetDataForIterator(semantic, semanticIndex, streamIndex, data, vertexStride);
 
-	return VertexElemIter<u32>(data, vertexStride, mVertexCount);
+	return VertexElemIterator<u32>(data, vertexStride, mVertexCount);
 }
 
 void MeshData::GetDataForIterator(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex, u8*& data, u32& stride) const

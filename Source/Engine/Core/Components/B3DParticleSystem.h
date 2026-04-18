@@ -333,6 +333,12 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 	};
 
+	/** @} */
+
+	/** @addtogroup Particles-Internal
+	 *  @{
+	 */
+
 	namespace render
 	{
 		/** Render thread counterpart of b3d::ParticleVectorFieldSettings. */
@@ -341,12 +347,6 @@ namespace b3d
 			friend struct b3d::ParticleVectorFieldSettings;
 		};
 	} // namespace render
-
-	/** @} */
-
-	/** @addtogroup Particles-Internal
-	 *  @{
-	 */
 
 	/** Common base for both main and render thread variants of ParticleGpuSimulationSettings. */
 	struct ParticleGpuSimulationSettingsBase
@@ -730,7 +730,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Renderer-Internal
+	/** @addtogroup Renderer
 	 *  @{
 	 */
 
@@ -769,6 +769,12 @@ namespace b3d
 			PackedRendererId mRendererId = kInvalidPackedRendererId;
 		};
 	} // namespace render
+
+	/** @} */
+
+	/** @addtogroup Renderer-Internal
+	 *  @{
+	 */
 
 	/**
 	 * Contains render thread representation of particle system objects, stored in packed arrays accessible by PackedRendererId.

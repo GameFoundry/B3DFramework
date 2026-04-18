@@ -253,7 +253,7 @@ namespace b3d
 
 	namespace render
 	{
-		/** @addtogroup Renderer-Internal
+		/** @addtogroup Renderer
 		 *  @{
 		 */
 

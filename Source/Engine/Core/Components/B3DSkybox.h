@@ -117,7 +117,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Renderer-Internal
+	/** @addtogroup Renderer
 	 *  @{
 	 */
 

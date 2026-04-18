@@ -6,7 +6,7 @@
 
 namespace b3d
 {
-	/** @addtogroup ScriptInteropEngine
+	/** @addtogroup bsfScript
 	 *  @{
 	 */
 

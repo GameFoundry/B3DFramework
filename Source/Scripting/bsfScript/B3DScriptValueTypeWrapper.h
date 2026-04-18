@@ -8,7 +8,8 @@
 namespace b3d
 {
 	class ScriptResourceWrapper;
-	/** @addtogroup ScriptInteropEngine
+
+	/** @addtogroup bsfScript
 	 *  @{
 	 */
 

@@ -38,6 +38,12 @@ namespace b3d
 		void* ReflectionProbeBatchData = nullptr;
 	};
 
+	/** @} */
+
+	/** @addtogroup Renderer
+	 *  @{
+	 */
+
 	/** Contains information about the scene (e.g. renderables, lights, cameras) required by the renderer. */
 	class RendererScene : public CoreObject
 	{
@@ -121,7 +127,7 @@ namespace b3d
 
 	namespace render
 	{
-		/** @addtogroup Renderer-Internal
+		/** @addtogroup Renderer
 		 *  @{
 		 */
 

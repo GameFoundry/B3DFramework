@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Resources-Internal
+	/** @addtogroup Image-Internal
 	 *  @{
 	 */
 
@@ -58,6 +58,10 @@ namespace b3d
 
 	namespace render
 	{
+		/** @addtogroup Renderer-Internal
+		 *  @{
+		 */
+
 		/**
 		 * Defines interface for creation of textures. Render systems provide their own implementations.
 		 *
@@ -87,6 +91,8 @@ namespace b3d
 
 			GpuDevice& mGpuDevice;
 		};
+
+		/** @} */
 	} // namespace render
 
 	/** @} */

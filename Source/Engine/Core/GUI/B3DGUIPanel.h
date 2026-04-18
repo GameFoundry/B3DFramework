@@ -44,7 +44,13 @@ namespace b3d
 	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIPanel final : public GUILayout, public TGUIConstructionMethods<GUIPanel, GUIPanelContent>
 	{
 	public:
+		/** @name Internal
+		 *  @{
+		 */
+
 		struct PrivatelyConstruct { };
+
+		/** @} */
 
 		GUIPanel() = default;
 		GUIPanel(PrivatelyConstruct, const GUIPanelContent& content, const String& styleClass, const GUISizeConstraints& sizeConstraints);

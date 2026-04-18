@@ -478,14 +478,26 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 	};
 
+	/** @} */
+
 	namespace render
 	{
+		/** @addtogroup Rendering-Internal
+		 *  @{
+		 */
+
 		/** Render thread variant of DepthOfFieldSettings. */
 		struct B3D_EXPORT B3D_SCRIPT_EXPORT() DepthOfFieldSettings : TDepthOfFieldSettings<true>
 		{
 			DepthOfFieldSettings() = default;
 		};
+
+		/** @} */
 	} // namespace render
+
+	/** @addtogroup Rendering 
+	 *  @{
+	 */
 
 	/** Determines which parts of the scene will trigger motion blur. */
 	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) MotionBlurDomain
@@ -898,14 +910,26 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 	};
 
+	/** @} */
+
 	namespace render
 	{
+		/** @addtogroup Rendering-Internal
+		 *  @{
+		 */
+
 		/** Render thread variant of ChromaticAberrationSettings. */
 		struct B3D_EXPORT ChromaticAberrationSettings : TChromaticAberrationSettings<true>
 		{
 			ChromaticAberrationSettings() = default;
 		};
+
+		/** @} */
 	} // namespace render
+
+	/** @addtogroupRendering 
+	 *  @{
+	 */
 
 	/** Settings that control the film grain effect. Film grains adds a time-varying noise effect over the entire image. */
 	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) FilmGrainSettings : IReflectable, IScriptExportable
@@ -985,6 +1009,12 @@ namespace b3d
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
+
+	/** @} */
+
+	/** @addtogroup Rendering-Internal
+	 *  @{
+	 */
 
 	/** Base class for both main and render thread variants of RenderSettings. */
 	struct B3D_EXPORT RenderSettingsBase
@@ -1167,6 +1197,12 @@ namespace b3d
 		~TRenderSettings() = default;
 	};
 
+	/** @} */
+
+	/** @addtogroup Rendering
+	 *  @{
+	 */
+
 	/** Settings that control rendering for a specific camera (view). */
 	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderSettings : TRenderSettings<false>, IReflectable, IScriptExportable
 	{
@@ -1186,15 +1222,21 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 	};
 
+	/** @} */
+
 	namespace render
 	{
+		/** @addtogroup Rendering-Internal
+		 *  @{
+		 */
+
 		/** Render thread variant of RenderSettings. */
 		struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderSettings : TRenderSettings<true>
 		{
 			RenderSettings() = default;
 			virtual ~RenderSettings() = default;
 		};
-	} // namespace render
 
-	/** @} */
+		/** @} */
+	} // namespace render
 } // namespace b3d

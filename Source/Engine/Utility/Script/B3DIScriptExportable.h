@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Script
+	/** @addtogroup ScriptExport
 	 *  @{
 	 */
 

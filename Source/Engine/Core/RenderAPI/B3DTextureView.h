@@ -8,7 +8,7 @@ namespace b3d
 {
 	namespace render
 	{
-		/** @addtogroup GpuBackend-Internal
+		/** @addtogroup GpuBackend
 		 *  @{
 		 */
 
@@ -33,6 +33,11 @@ namespace b3d
 		class B3D_EXPORT TextureView
 		{
 		public:
+
+			/** @name Internal
+			 *  @{
+			 */
+
 			class HashFunction
 			{
 			public:
@@ -44,6 +49,8 @@ namespace b3d
 			public:
 				bool operator()(const TextureViewInformation& a, const TextureViewInformation& b) const;
 			};
+
+			/** @} */
 
 			virtual ~TextureView() = default;
 

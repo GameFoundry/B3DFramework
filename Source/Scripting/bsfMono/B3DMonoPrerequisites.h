@@ -33,11 +33,11 @@
 #	define BS_MONO_HIDDEN __attribute__((visibility("hidden")))
 #endif
 
-/** @addtogroup Plugins
+/** @addtogroup Script
  *  @{
  */
 
-/** @defgroup Mono bsfMono
+/** @defgroup Mono Mono
  *	Scripting language backend using Mono's CLR.
  */
 

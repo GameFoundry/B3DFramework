@@ -57,15 +57,15 @@ struct Platform::Private
 	Mutex Sync;
 };
 
-Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::onCursorMoved;
-Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::onCursorButtonPressed;
-Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::onCursorButtonReleased;
-Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::onCursorDoubleClick;
-Event<void(InputCommandType)> Platform::onInputCommand;
-Event<void(float)> Platform::onMouseWheelScrolled;
-Event<void(u32)> Platform::onCharInput;
+Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::OnPointerMoved;
+Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::OnPointerButtonPressed;
+Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::OnPointerButtonReleased;
+Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::OnPointerDoubleClick;
+Event<void(InputCommandType)> Platform::OnInputCommand;
+Event<void(float)> Platform::OnMouseWheelScrolled;
+Event<void(u32)> Platform::OnCharInput;
 
-Event<void()> Platform::onMouseCaptureChanged;
+Event<void()> Platform::OnMouseCaptureChanged;
 
 Platform::Private* Platform::mData = B3DNew<Platform::Private>();
 
@@ -467,7 +467,7 @@ void Platform::OpenFolder(const Path& path)
 	ShellExecuteW(nullptr, L"open", pathString.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 }
 
-void Platform::MessagePumpInternal()
+void Platform::MessagePump()
 {
 	MSG msg;
 	while(PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
@@ -477,7 +477,7 @@ void Platform::MessagePumpInternal()
 	}
 }
 
-void Platform::StartUpInternal()
+void Platform::StartUp()
 {
 	const bool isHeadless = CommandLine::HasParameter("headless");
 	if(isHeadless)
@@ -525,7 +525,7 @@ void Platform::StartUpInternal()
 	mData->RequiresStartUp = true;
 }
 
-void Platform::UpdateInternal()
+void Platform::Update()
 {
 	for(auto& dropTarget : mData->DropTargets.DropTargetsPerWindow)
 	{
@@ -563,7 +563,7 @@ void Platform::UpdateInternal()
 		mData->DropTargets.DropTargetsToInitialize.clear();
 	}
 
-	MessagePumpInternal();
+	MessagePump();
 
 	{
 		Lock lock(mData->Sync);
@@ -575,7 +575,7 @@ void Platform::UpdateInternal()
 	}
 }
 
-void Platform::ShutDownInternal()
+void Platform::ShutDown()
 {
 	if(gAllocatedConsole)
 	{
@@ -902,8 +902,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 
 			GetMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-			if(!onCursorButtonReleased.Empty())
-				onCursorButtonReleased(intMousePos, OSMouseButton::Left, btnStates);
+			if(!OnPointerButtonReleased.Empty())
+				OnPointerButtonReleased(intMousePos, OSMouseButton::Left, btnStates);
 
 			return 0;
 		}
@@ -916,8 +916,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 
 			GetMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-			if(!onCursorButtonReleased.Empty())
-				onCursorButtonReleased(intMousePos, OSMouseButton::Middle, btnStates);
+			if(!OnPointerButtonReleased.Empty())
+				OnPointerButtonReleased(intMousePos, OSMouseButton::Middle, btnStates);
 
 			return 0;
 		}
@@ -930,8 +930,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 
 			GetMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-			if(!onCursorButtonReleased.Empty())
-				onCursorButtonReleased(intMousePos, OSMouseButton::Right, btnStates);
+			if(!OnPointerButtonReleased.Empty())
+				OnPointerButtonReleased(intMousePos, OSMouseButton::Right, btnStates);
 
 			return 0;
 		}
@@ -944,8 +944,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 
 			GetMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-			if(!onCursorButtonPressed.Empty())
-				onCursorButtonPressed(intMousePos, OSMouseButton::Left, btnStates);
+			if(!OnPointerButtonPressed.Empty())
+				OnPointerButtonPressed(intMousePos, OSMouseButton::Left, btnStates);
 		}
 		return 0;
 	case WM_MBUTTONDOWN:
@@ -957,8 +957,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 
 			GetMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-			if(!onCursorButtonPressed.Empty())
-				onCursorButtonPressed(intMousePos, OSMouseButton::Middle, btnStates);
+			if(!OnPointerButtonPressed.Empty())
+				OnPointerButtonPressed(intMousePos, OSMouseButton::Middle, btnStates);
 		}
 		return 0;
 	case WM_RBUTTONDOWN:
@@ -970,8 +970,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 
 			GetMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-			if(!onCursorButtonPressed.Empty())
-				onCursorButtonPressed(intMousePos, OSMouseButton::Right, btnStates);
+			if(!OnPointerButtonPressed.Empty())
+				OnPointerButtonPressed(intMousePos, OSMouseButton::Right, btnStates);
 		}
 		return 0;
 	case WM_LBUTTONDBLCLK:
@@ -981,8 +981,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 
 			GetMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-			if(!onCursorDoubleClick.Empty())
-				onCursorDoubleClick(intMousePos, btnStates);
+			if(!OnPointerDoubleClick.Empty())
+				OnPointerDoubleClick(intMousePos, btnStates);
 		}
 		return 0;
 	case WM_NCMOUSEMOVE:
@@ -1005,8 +1005,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 
 			GetMouseData(hWnd, wParam, lParam, uMsg == WM_NCMOUSEMOVE, intMousePos, btnStates);
 
-			if(!onCursorMoved.Empty())
-				onCursorMoved(intMousePos, btnStates);
+			if(!OnPointerMoved.Empty())
+				OnPointerMoved(intMousePos, btnStates);
 
 			return 0;
 		}
@@ -1015,8 +1015,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 			i16 wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 
 			float wheelDeltaFlt = wheelDelta / (float)WHEEL_DELTA;
-			if(!onMouseWheelScrolled.Empty())
-				onMouseWheelScrolled(wheelDeltaFlt);
+			if(!OnMouseWheelScrolled.Empty())
+				OnMouseWheelScrolled(wheelDeltaFlt);
 
 			return true;
 		}
@@ -1026,8 +1026,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 			InputCommandType command = InputCommandType::Backspace;
 			if(GetCommand((unsigned int)wParam, command))
 			{
-				if(!onInputCommand.Empty())
-					onInputCommand(command);
+				if(!OnInputCommand.Empty())
+					OnInputCommand(command);
 
 				return 0;
 			}
@@ -1058,8 +1058,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 				{
 					u32 finalChar = (u32)wParam;
 
-					if(!onCharInput.Empty())
-						onCharInput(finalChar);
+					if(!OnCharInput.Empty())
+						OnCharInput(finalChar);
 
 					return 0;
 				}
@@ -1074,8 +1074,8 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 		ReleaseCapture();
 		break;
 	case WM_CAPTURECHANGED:
-		if(!onMouseCaptureChanged.Empty())
-			onMouseCaptureChanged();
+		if(!OnMouseCaptureChanged.Empty())
+			OnMouseCaptureChanged();
 		return 0;
 	}
 

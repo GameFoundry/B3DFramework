@@ -8,7 +8,7 @@ namespace b3d
 {
 	class IScriptExportable;
 
-	/** @addtogroup Script
+	/** @addtogroup ScriptExport 
 	 *  @{
 	 */
 

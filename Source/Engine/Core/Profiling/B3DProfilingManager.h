@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Profiling-Internal
+	/** @addtogroup Profiling
 	 *  @{
 	 */
 

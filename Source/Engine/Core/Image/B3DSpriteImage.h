@@ -10,7 +10,7 @@
 namespace b3d
 {
 	class SpriteImageBase;
-	/** @addtogroup Image
+	/** @addtogroup 2D
 	 *  @{
 	 */
 
@@ -315,7 +315,7 @@ namespace b3d
 
 	namespace render
 	{
-		/** @addtogroup RenderThread
+		/** @addtogroup Renderer
 		 *  @{
 		 */
 

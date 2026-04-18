@@ -36,6 +36,12 @@ namespace b3d
 		Shader = 2 << 2
 	};
 
+	/** @} */
+
+	/** @addtogroup Material
+	 *  @{
+	 */
+
 	/** Structure used when searching for a specific variation in a Material. */
 	struct FindVariationInformation
 	{
@@ -51,6 +57,8 @@ namespace b3d
 		 */
 		bool Override = false;
 	};
+
+	/** @} */
 
 	/**
 	 * Material that controls how objects are rendered. It is represented by a shader and parameters used to set up that

@@ -12,7 +12,7 @@ namespace b3d
 {
 	class GUINavGroup;
 
-	/** @addtogroup GUI
+	/** @addtogroup GUI-Internal
 	 *  @{
 	 */
 
@@ -40,6 +40,12 @@ namespace b3d
 		Area2 ClipRectangle = Area2::kEmpty; /**< Area of the clip rectangle, relative to the parent GUI element. Any vertices outside of this area will be clipped. Clipping is done before @p Offset is applied. */
 		bool UseNewFillBuffer = false;
 	};
+
+	/** @} */
+
+	/** @addtogroup GUI
+	 *  @{
+	 */
 
 	/**
 	 * Represents a GUI element that can be rendered (i.e. has a visual representation). Renderable element can have a particular style, and provides

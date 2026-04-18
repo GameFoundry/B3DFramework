@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Scene
+	/** @addtogroup Scene-Internal
 	 *  @{
 	 */
 
@@ -29,6 +29,12 @@ namespace b3d
 
 		UnorderedSet<Prefab*> mLivePrefabs;
 	};
+
+	/** @} */
+
+	/** @addtogroup Scene
+	 *  @{
+	 */
 
 	/**
 	 * Prefab is a saveable hierarchy of scene objects. It can be instanced, and instances will maintain a link to the

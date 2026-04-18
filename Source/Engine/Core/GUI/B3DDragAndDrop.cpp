@@ -40,7 +40,7 @@ RTTIType* ResourceDragAndDropData::GetRtti() const
 
 DragAndDrop::DragAndDrop()
 {
-	mMouseCaptureChangedConn = Platform::onMouseCaptureChanged.Connect([this]() { MouseCaptureChanged(); });
+	mMouseCaptureChangedConn = Platform::OnMouseCaptureChanged.Connect([this]() { MouseCaptureChanged(); });
 	Input::Instance().OnPointerReleased.Connect([this](const PointerEvent& event) { CursorReleased(event); });
 }
 

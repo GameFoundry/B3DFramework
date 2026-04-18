@@ -242,6 +242,12 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 	};
 
+	/** @} */
+
+	/** @addtogroup Resources
+	 *  @{
+	 */
+
 	/** @copydoc ResourceHandle */
 	template <typename ResourceType, bool IsWeakHandle = false>
 	class TResourceHandle : public std::conditional_t<IsWeakHandle, WeakResourceHandle, StrongResourceHandle>

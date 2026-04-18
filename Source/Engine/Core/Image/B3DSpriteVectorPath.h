@@ -10,7 +10,7 @@
 namespace b3d
 {
 	class GUIVectorSpriteAtlasAllocation;
-	/** @addtogroup Image
+	/** @addtogroup 2D
 	 *  @{
 	 */
 
@@ -55,7 +55,7 @@ namespace b3d
 
 	namespace render
 	{
-		/** @addtogroup RenderThread
+		/** @addtogroup Renderer
 		 *  @{
 		 */
 
@@ -75,7 +75,7 @@ namespace b3d
 		/** @} */
 	} // namespace render
 
-	/** @addtogroup Image
+	/** @addtogroup 2D
 	 *  @{
 	 */
 
@@ -135,7 +135,7 @@ namespace b3d
 
 	namespace render
 	{
-		/** @addtogroup RenderThread
+		/** @addtogroup Renderer
 		 *  @{
 		 */
 

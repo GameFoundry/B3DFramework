@@ -201,7 +201,7 @@ Application::~Application()
 
 	ThreadPool::ShutDown();
 	MemStack::EndThread();
-	Platform::ShutDownInternal();
+	Platform::ShutDown();
 
 	ConfigVariableManager::ShutDown();
 	CrashHandler::ShutDown();
@@ -209,7 +209,7 @@ Application::~Application()
 
 void Application::OnStartUp()
 {
-	Platform::StartUpInternal();
+	Platform::StartUp();
 	MemStack::BeginThread();
 	ThreadPool::StartUp<TThreadPool<ThreadDefaultPolicy>>((Thread::GetLogicalCoreCount()));
 
@@ -417,7 +417,7 @@ void Application::RunMainLoopFrame()
 {
 	GetProfilerCPU().BeginThread("Main");
 
-	Platform::UpdateInternal();
+	Platform::Update();
 	DeferredCallManager::Instance().UpdateInternal();
 	GetTime().Update();
 	{

@@ -13,7 +13,7 @@
 
 namespace b3d
 {
-	/** @addtogroup GUI
+	/** @addtogroup GUI-Internal
 	 *  @{
 	 */
 
@@ -306,6 +306,12 @@ namespace b3d
 
 		mutable TUnorderedMap<RulesetKey, SPtr<GUIStyleSheetRuleset>> mCachedRulesets;
 	};
+
+	/** @} */
+
+	/** @addtogroup GUI
+	 *  @{
+	 */
 
 	/**
 	 * Contains rulesets that determine how are GUI elements displayed. GUI elements will perform lookup into the style sheet

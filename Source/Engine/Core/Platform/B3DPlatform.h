@@ -9,24 +9,9 @@
 
 namespace b3d
 {
-	/** @addtogroup Platform-Internal
+	/** @addtogroup Platform
 	 *  @{
 	 */
-
-	/** Contains values representing default mouse cursor types. */
-	enum class PlatformCursorType
-	{
-		Arrow,
-		Wait,
-		IBeam,
-		Help,
-		Hand,
-		SizeAll,
-		SizeNESW,
-		SizeNS,
-		SizeNWSE,
-		SizeWE
-	};
 
 	/**
 	 * Contains values reprenting window non client areas.
@@ -92,7 +77,6 @@ namespace b3d
 		struct Private;
 
 		Platform() {}
-
 		virtual ~Platform();
 
 		/**
@@ -267,77 +251,51 @@ namespace b3d
 		 */
 		static String KeyCodeToUnicode(u32 keyCode);
 
+		/** @name Internal
+		 *  @{
+		 */
+
 		/**
 		 * Message pump. Processes OS messages and returns when it's free.
 		 *
 		 * @note	Render thread only.
 		 */
-		static void MessagePumpInternal();
+		static void MessagePump();
 
 		/** Called during application start up from the main thread. Must be called before any other operations are done. */
-		static void StartUpInternal();
+		static void StartUp();
 
 		/** Called once per frame from the main thread. */
-		static void UpdateInternal();
+		static void Update();
 
 		/** Called during application shut down from the main thread. */
-		static void ShutDownInternal();
+		static void ShutDown();
 
-		/**
-		 * Triggered whenever the pointer moves.
-		 *
-		 * @note	Render  thread only.
-		 */
-		static Event<void(const Vector2I&, const OSPointerButtonStates&)> onCursorMoved;
+		/** @} */
 
-		/**
-		 * Triggered whenever a pointer button is pressed.
-		 *
-		 * @note	Render  thread only.
-		 */
-		static Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> onCursorButtonPressed;
+		/** Triggered whenever the pointer moves. */
+		static Event<void(const Vector2I&, const OSPointerButtonStates&)> OnPointerMoved;
 
-		/**
-		 * Triggered whenever pointer button is released.
-		 *
-		 * @note	Render  thread only.
-		 */
-		static Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> onCursorButtonReleased;
+		/** Triggered whenever a pointer button is pressed. */
+		static Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> OnPointerButtonPressed;
 
-		/**
-		 * Triggered whenever a pointer button is double clicked.
-		 *
-		 * @note	Render  thread only.
-		 */
-		static Event<void(const Vector2I&, const OSPointerButtonStates&)> onCursorDoubleClick;
+		/** Triggered whenever pointer button is released. */
+		static Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> OnPointerButtonReleased;
 
-		/**
-		 * Triggered whenever an input command is entered.
-		 *
-		 * @note	Render  thread only.
-		 */
-		static Event<void(InputCommandType)> onInputCommand;
+		/** Triggered whenever a pointer button is double clicked. */
+		static Event<void(const Vector2I&, const OSPointerButtonStates&)> OnPointerDoubleClick;
 
-		/**
-		 * Triggered whenever the mouse wheel is scolled.
-		 *
-		 * @note	Render  thread only.
-		 */
-		static Event<void(float)> onMouseWheelScrolled;
+		/** Triggered whenever an input command is entered. */
+		static Event<void(InputCommandType)> OnInputCommand;
 
-		/**
-		 * Triggered whenever a character is entered.
-		 *
-		 * @note	Render  thread only.
-		 */
-		static Event<void(u32)> onCharInput;
+		/** Triggered whenever the mouse wheel is scolled. */
+		static Event<void(float)> OnMouseWheelScrolled;
 
-		/**
-		 * Triggered whenever mouse capture state for the window is changed (it receives or loses it).
-		 *
-		 * @note	Render  thread only.
-		 */
-		static Event<void()> onMouseCaptureChanged;
+		/** Triggered whenever a character is entered. */
+		static Event<void(u32)> OnCharInput;
+
+		/** Triggered whenever mouse capture state for the window is changed (it receives or loses it). */
+		static Event<void()> OnMouseCaptureChanged;
 
 	protected:
 		static Private* mData;

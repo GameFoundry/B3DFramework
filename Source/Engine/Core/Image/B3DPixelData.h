@@ -10,7 +10,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Resources
+	/** @addtogroup Image
 	 *  @{
 	 */
 

@@ -11,7 +11,7 @@ namespace b3d
 		struct RendererViewContext;
 	}
 
-	/** @addtogroup Renderer-Internal
+	/** @addtogroup Renderer
 	 *  @{
 	 */
 

@@ -316,7 +316,7 @@ namespace b3d
 
 	/** @} */
 
-	/** @addtogroup Renderer-Internal
+	/** @addtogroup Renderer
 	 *  @{
 	 */
 
@@ -394,6 +394,12 @@ namespace b3d
 			Matrix4 mWorldTransformMatrixWithoutScale = kIdentityTag;
 		};
 	} // namespace render
+
+	/** @} */
+
+	/** @addtogroup Renderer-Internal
+	 *  @{
+	 */
 
 	/**
 	 * Contains render thread representation of renderable objects, stored in packed arrays accessible by PackedRendererId.

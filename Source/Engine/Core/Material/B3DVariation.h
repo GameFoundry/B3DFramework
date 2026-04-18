@@ -100,7 +100,7 @@ namespace b3d
 		/** Sets the shader that owns this variation. */
 		void SetOwner(const WeakSPtr<ShaderType>& owner);
 
-		/***/
+		/** @} */
 
 	protected:
 		/** Returns a reference to itself using the most derived type. */

@@ -20,6 +20,12 @@ namespace b3d
 		bool operator()(const GUIMenuItem* const& a, const GUIMenuItem* const& b) const;
 	};
 
+	/** @} */
+
+	/** @addtogroup GUI-Internal
+	 *  @{
+	 */
+
 	/** Holds information about a single element in a GUI menu. */
 	class B3D_EXPORT GUIMenuItem
 	{

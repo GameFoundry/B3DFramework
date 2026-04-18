@@ -16,7 +16,7 @@ namespace b3d::ecs
 
 namespace b3d
 {
-	/** @addtogroup Renderer-Internal
+	/** @addtogroup Renderer
 	 *  @{
 	 */
 
@@ -249,6 +249,12 @@ namespace b3d
 		if(commands.AllocatedIds.Data())
 			allocator.Free(reinterpret_cast<u8*>(const_cast<RendererId*>(commands.AllocatedIds.Data())));
 	}
+
+	/** @} */
+
+	/** @addtogroup Renderer-Internal
+	 *  @{
+	 */
 
 	/**
 	 * CRTP interface that serves as a helper to synchronize data between the main and render thread. A single channel

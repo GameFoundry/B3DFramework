@@ -113,10 +113,6 @@
   *	Base API for renderer plugins, provides a way to render renderable scene objects by issuing GpuBackend commands.
   */
 
-/** @defgroup Script Script
-  *	Helper and utility functionality for exporting native types to scripting.
-  */
-
 /** @defgroup Debug-Engine Debug
   *	Various debugging helpers.
   */
@@ -157,10 +153,6 @@
 /** @defgroup Renderer-Internal Renderer
   *	Base API for renderer plugins, provides a way to render renderable scene objects by issuing GpuBackend commands.
   */
-
-/** @defgroup Script-Internal Script
- *  Interaction with scripting languages and libraries.
- */
 
 /** @defgroup Utility-Engine-Internal Utility
  *  Various utility methods and types used by the engine layer.

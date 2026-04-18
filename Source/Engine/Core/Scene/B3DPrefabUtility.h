@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Scene
+	/** @addtogroup Scene-Internal
 	 *  @{
 	 */
 
@@ -38,6 +38,12 @@ namespace b3d
 		FrameUnorderedMap<UUID, HPrefab> mPrefabs;
 	};
 
+	/** @} */
+
+	/** @addtogroup Scene
+	 *  @{
+	 */
+
 	/** Performs various prefab specific operations. */
 	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene), API(Editor), Static) PrefabUtility
 	{
@@ -58,7 +64,9 @@ namespace b3d
 		B3D_SCRIPT_EXPORT()
 		static void UpdatePrefab(B3D_NO_RREF const HPrefab& prefabToUpdate, const HSceneObject& sceneObjectToUpdateWith);
 
-		// TODO - Everything below should be internal
+		/** @name Internal
+		 *  @{
+		 */
 
 		/**
 		 * Assigns the provided prefab resource ID to the provided scene object hierarchy recursively. If a scene object
@@ -114,6 +122,8 @@ namespace b3d
 		 * @return							Generated prefab object id -> game object id map.
 		 */
 		static UnorderedMap<UUID, UUID> GetPrefabToInstanceIdMap(const HSceneObject& sceneObject, bool visitChildPrefabs);
+
+		/** @} */
 	private:
 		friend class Prefab;
 		friend class PrefabUpdateHelper;

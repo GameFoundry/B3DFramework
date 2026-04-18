@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Material-Internal
+	/** @addtogroup Material
 	 *  @{
 	 */
 

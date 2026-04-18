@@ -887,8 +887,8 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 	u32 vertexOffset[4] = { 0, 0, 0, 0 };
 	u32 indexOffset[4] = { 0, 0, 0, 0 };
 
-	VertexElemIter<Vector3> positionIter[4];
-	VertexElemIter<u32> colorIter[4];
+	VertexElemIterator<Vector3> positionIter[4];
+	VertexElemIterator<u32> colorIter[4];
 
 	for(u32 i = 0; i < 4; i++)
 	{
@@ -899,11 +899,11 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 		colorIter[i] = meshData[i]->GetDwordDataIter(VES_COLOR);
 	}
 
-	VertexElemIter<Vector3> solidNormalIter;
+	VertexElemIterator<Vector3> solidNormalIter;
 	if(meshData[0])
 		solidNormalIter = meshData[0]->GetVec3DataIter(VES_NORMAL);
 
-	VertexElemIter<Vector2> textUVIter;
+	VertexElemIterator<Vector2> textUVIter;
 
 	if(meshData[3])
 		textUVIter = meshData[3]->GetVec2DataIter(VES_TEXCOORD);

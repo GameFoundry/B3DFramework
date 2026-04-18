@@ -205,7 +205,7 @@ namespace b3d
 	/** @} */
 
 	/**
-	 * @addtogroup Renderer-Internal
+	 * @addtogroup Renderer
 	 */
 
 	namespace render
@@ -253,6 +253,12 @@ namespace b3d
 			PackedRendererId mRendererId = kInvalidPackedRendererId;
 		};
 	} // namespace render
+
+	/** @} */
+
+	/** @addtogroup Renderer-Internal
+	 *  @{
+	 */
 
 	/**
 	 * Contains render thread representation of decal objects, stored in packed arrays accessible by PackedRendererId.

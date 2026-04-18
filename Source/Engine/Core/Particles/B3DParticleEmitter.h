@@ -631,6 +631,10 @@ namespace b3d
 		HMesh Mesh;
 	};
 
+	/** @addtogroup Particles-Internal
+	 *  @{
+	 */
+
 	/**
 	 * Calculates and stores per-triangle weights that can be used for easily picking a random triangle on a mesh, ensuring
 	 * larger triangles are picked more likely.
@@ -708,6 +712,8 @@ namespace b3d
 		// Transient
 		mutable u32 mNextSequentialIdx = 0;
 	};
+
+	/** @} */
 
 	/**
 	 * Particle emitter shape that emits particles from a surface of a static (non-animated) mesh. Particles can be

@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	/** @addtogroup GUI
+	/** @addtogroup GUI-Internal
 	 *  @{
 	 */
 

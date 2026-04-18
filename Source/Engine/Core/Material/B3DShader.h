@@ -388,6 +388,12 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 	};
 
+	/** @} */
+
+	/** @name Material
+	 *  @{
+	 */
+
 	/** Descriptor structure used for initialization of a Shader. */
 	struct ShaderCreateInformation : ShaderInformation
 	{
@@ -396,6 +402,8 @@ namespace b3d
 			:ShaderInformation(other)
 		{ }
 	};
+
+	/** @} */
 
 	/**	Templated version of Shader used for implementing both main and render thread counterparts. */
 	template <bool IsRenderProxy>

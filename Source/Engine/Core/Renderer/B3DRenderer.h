@@ -72,6 +72,12 @@ namespace b3d
 			}
 		}
 
+		/** @} */
+
+		/** @addtogroup Renderer
+		 *  @{
+		 */
+
 		/**	Set of options that can be used for controlling the renderer. */
 		struct B3D_EXPORT RendererOptions
 		{
@@ -138,6 +144,12 @@ namespace b3d
 		{
 			Vector<ExtensionShaderInfo> Shaders;
 		};
+
+		/** @} */
+
+		/** @addtogroup Renderer
+		 *  @{
+		 */
 
 		/**
 		 * Primarily rendering class that allows you to specify how to render objects that exist in the scene graph. You need
@@ -306,7 +318,6 @@ namespace b3d
 			Vector<SPtr<RendererTask>> mRunningTasks; // Render thread
 			Vector<SPtr<RendererTask>> mRemainingTasks; // Render thread
 			Mutex mTaskMutex;
-
 		};
 
 		/**	Provides easy access to Renderer. */

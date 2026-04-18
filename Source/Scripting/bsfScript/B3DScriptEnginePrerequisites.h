@@ -33,11 +33,11 @@
 #	define BS_SCR_BE_HIDDEN __attribute__((visibility("hidden")))
 #endif
 
-/** @addtogroup Plugins
+/** @addtogroup Script
  *  @{
  */
 
-/** @defgroup bsfScript bsfScript
+/** @defgroup bsfScript EngineScript
  *	Contains script interop objects and other scripting functionality for the engine layer.
  *  @{
  */

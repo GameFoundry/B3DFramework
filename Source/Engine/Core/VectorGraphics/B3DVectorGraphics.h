@@ -646,8 +646,14 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 	};
 
+	/** @} */
+
 	namespace render
 	{
+		/** @addtogroup VectorGraphics-Internal
+		 *  @{
+		 */
+
 		/** Allows a vector path to be rasterized into pixels. */
 		class B3D_EXPORT VectorPathRenderable : public IReflectable
 		{
@@ -682,9 +688,9 @@ namespace b3d
 			static RTTIType* GetRttiStatic();
 			RTTIType* GetRtti() const override;
 		};
-	} // namespace render
 
-	/** @} */
+		/** @} */
+	} // namespace render
 
 } // namespace b3d
 

@@ -15,7 +15,7 @@ namespace b3d
 {
 	namespace render
 	{
-		/** @addtogroup Renderer-Internal
+		/** @addtogroup Renderer
 		 *  @{
 		 */
 
@@ -205,6 +205,12 @@ namespace b3d
 
 			TransientGpuBufferPool mTransientAllocationPool;
 		};
+
+		/** @} */
+
+		/** @addtogroup Renderer-Internal
+		 *  @{
+		 */
 
 		/**
 		 * Takes care of initializing uniform buffers definitions in a delayed manner since they depend on engine systems yet

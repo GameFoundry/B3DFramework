@@ -91,6 +91,10 @@
   *	All low-level functionality for creating and using the entity component system.
   */
 
+/** @defgroup ScriptExport Script
+  *	Helper and utility functionality for exporting native types to scripting.
+  */
+
 /** @} */
 
 /** @defgroup Internals Internals

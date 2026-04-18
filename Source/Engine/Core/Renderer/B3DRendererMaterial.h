@@ -176,6 +176,12 @@ namespace b3d
 			void Instantiate() {}
 		};
 
+		/** @} */
+
+		/** @addtogroup Renderer
+		 *  @{
+		 */
+
 		/** Wrapper class around Material that allows a simple way to load and set up materials used by the renderer. */
 		template <class T>
 		class RendererMaterial : public RendererMaterialBase

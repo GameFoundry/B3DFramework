@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Platform-Internal
+	/** @addtogroup Platform
 	 *  @{
 	 */
 
@@ -83,6 +83,12 @@ namespace b3d
 
 		Pimpl* m;
 	};
+
+	/** @} */
+
+	/** @addtogroup Platform-Internal
+	 *  @{
+	 */
 
 	/**	Manages all active managed folder monitor objects. */
 	class B3D_EXPORT FolderMonitorManager : public Module<FolderMonitorManager>

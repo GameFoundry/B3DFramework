@@ -316,7 +316,7 @@ namespace b3d
 
 	namespace render
 	{
-		/** @addtogroup GpuBackend-Internal
+		/** @addtogroup GpuBackend
 		 *  @{
 		 */
 

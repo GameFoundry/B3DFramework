@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Image
+	/** @addtogroup Image-Internal
 	 *  @{
 	 */
 

@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Renderer-Internal
+	/** @addtogroup Renderer
 	 *  @{
 	 */
 
@@ -26,6 +26,12 @@ namespace b3d
 
 	/** Sentinel value representing an invalid PackedRendererId. */
 	constexpr PackedRendererId kInvalidPackedRendererId = ~PackedRendererId(0);
+
+	/** @} */
+
+	/** @addtogroup Renderer-Internal
+	 *  @{
+	 */
 
 	/** Allocator for RendererId values. Deallocated IDs may be re-used. Increments version on reuse. */
 	class RendererIdAllocator
