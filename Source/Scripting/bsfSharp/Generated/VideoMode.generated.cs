@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace b3d
 {
 #if !IS_B3D
-	/** @addtogroup GpuBackend
+	/** @addtogroup RenderAPI
 	 *  @{
 	 */
 

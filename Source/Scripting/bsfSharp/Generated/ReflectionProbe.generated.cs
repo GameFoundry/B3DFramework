@@ -34,6 +34,7 @@ namespace b3d
 		[NativeWrapper]
 		public float Radius
 		{
+			get { return Internal_GetRadius(mCachedPtr); }
 			set { Internal_SetRadius(mCachedPtr, value); }
 		}
 
@@ -42,6 +43,12 @@ namespace b3d
 		[NativeWrapper]
 		public Vector3 Extents
 		{
+			get
+			{
+				Vector3 temp;
+				Internal_GetExtents(mCachedPtr, out temp);
+				return temp;
+			}
 			set { Internal_SetExtents(mCachedPtr, ref value); }
 		}
 
@@ -103,6 +110,10 @@ namespace b3d
 		private static extern void Internal_Capture(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern ReflectionProbeType Internal_GetType(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern float Internal_GetRadius(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_GetExtents(IntPtr thisPtr, out Vector3 __output);
 	}
 
 	/** @} */

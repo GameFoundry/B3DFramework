@@ -2459,15 +2459,42 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			</param>
 		</method>
 	</class>
-	<enum native="PhysicsMeshType" script="PhysicsMeshType">
-		<doc>Valid types of a mesh used for physics.</doc>
-		<enumentry native="Triangle" script="Triangle">
-			<doc>A regular triangle mesh. Mesh can be of arbitrary size but cannot be used for triggers and non-kinematic objects. Incurrs a significantly larger performance impact than convex meshes.</doc>
-		</enumentry>
-		<enumentry native="Convex" script="Convex">
-			<doc>Mesh representing a convex shape. Mesh will not have more than 256 vertices. Incurrs a significantly lower performance impact than triangle meshes.</doc>
-		</enumentry>
-	</enum>
+	<struct native="TextureSurface" script="TextureSurface">
+		<doc>References a subset of surfaces within a texture.</doc>
+		<ctor>
+			<param name="mipLevel" type="int">
+			</param>
+			<param name="mipLevelCount" type="int">
+			</param>
+			<param name="face" type="int">
+			</param>
+			<param name="faceCount" type="int">
+			</param>
+			<param name="isBoundAs2DArray" type="bool">
+			</param>
+		</ctor>
+		<field name="MipLevel" type="int">
+			<doc>First mip level to reference.</doc>
+		</field>
+		<field name="MipLevelCount" type="int">
+			<doc>Number of mip levels to reference. Must be greater than zero.</doc>
+		</field>
+		<field name="Face" type="int">
+			<doc>First face to reference. Face can represent a single cubemap face, or a single array entry in a texture array. If cubemaps are laid out in a texture array then every six sequential faces represent a single array entry.</doc>
+		</field>
+		<field name="FaceCount" type="int">
+			<doc>Number of faces to reference, if the texture has more than one.</doc>
+		</field>
+		<field name="IsBoundAs2DArray" type="bool">
+			<doc>Forces a cubemap or a 3D texture to be bound as a 2D texture array.</doc>
+		</field>
+	</struct>
+	<class native="MorphShapes" script="MorphShapes">
+		<doc>Contains a set of morph channels used for morph target animation. Each morph channel contains one or multiple shapes which are blended together depending on frame animation. Each channel is then additively blended together depending on some weight.</doc>
+		<property name="Channels" type="MorphChannel" getter="GetChannels" setter="" static="false">
+			<doc>Returns a list of all morph channels in the morph animation.</doc>
+		</property>
+	</class>
 	<enum native="ScaleFilter" script="ScaleFilter">
 		<doc>Filtering types to use when scaling images.</doc>
 		<enumentry native="Nearest" script="Nearest">
@@ -2505,6 +2532,15 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 	<class native="ManagedFieldInfo" script="ManagedFieldInfo">
 		<doc>Contains data about a single field in a managed object (class or struct).</doc>
 	</class>
+	<enum native="PhysicsMeshType" script="PhysicsMeshType">
+		<doc>Valid types of a mesh used for physics.</doc>
+		<enumentry native="Triangle" script="Triangle">
+			<doc>A regular triangle mesh. Mesh can be of arbitrary size but cannot be used for triggers and non-kinematic objects. Incurrs a significantly larger performance impact than convex meshes.</doc>
+		</enumentry>
+		<enumentry native="Convex" script="Convex">
+			<doc>Mesh representing a convex shape. Mesh will not have more than 256 vertices. Incurrs a significantly lower performance impact than triangle meshes.</doc>
+		</enumentry>
+	</enum>
 	<class native="ParticleEmitterStaticMeshShape" script="ParticleEmitterStaticMeshShape">
 		<doc>Particle emitter shape that emits particles from a surface of a static (non-animated) mesh. Particles can be emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit the normals.</doc>
 		<ctor>
@@ -2734,42 +2770,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</property>
 		<property name="Rotation" type="QuaternionCurve" getter="GetRotationCurves" setter="" static="false">
 			<doc>Animation curve representing the rotation of the root bone.</doc>
-		</property>
-	</class>
-	<struct native="TextureSurface" script="TextureSurface">
-		<doc>References a subset of surfaces within a texture.</doc>
-		<ctor>
-			<param name="mipLevel" type="int">
-			</param>
-			<param name="mipLevelCount" type="int">
-			</param>
-			<param name="face" type="int">
-			</param>
-			<param name="faceCount" type="int">
-			</param>
-			<param name="isBoundAs2DArray" type="bool">
-			</param>
-		</ctor>
-		<field name="MipLevel" type="int">
-			<doc>First mip level to reference.</doc>
-		</field>
-		<field name="MipLevelCount" type="int">
-			<doc>Number of mip levels to reference. Must be greater than zero.</doc>
-		</field>
-		<field name="Face" type="int">
-			<doc>First face to reference. Face can represent a single cubemap face, or a single array entry in a texture array. If cubemaps are laid out in a texture array then every six sequential faces represent a single array entry.</doc>
-		</field>
-		<field name="FaceCount" type="int">
-			<doc>Number of faces to reference, if the texture has more than one.</doc>
-		</field>
-		<field name="IsBoundAs2DArray" type="bool">
-			<doc>Forces a cubemap or a 3D texture to be bound as a 2D texture array.</doc>
-		</field>
-	</struct>
-	<class native="MorphShapes" script="MorphShapes">
-		<doc>Contains a set of morph channels used for morph target animation. Each morph channel contains one or multiple shapes which are blended together depending on frame animation. Each channel is then additively blended together depending on some weight.</doc>
-		<property name="Channels" type="MorphChannel" getter="GetChannels" setter="" static="false">
-			<doc>Returns a list of all morph channels in the morph animation.</doc>
 		</property>
 	</class>
 	<enum native="TextureUsageFlag" script="TextureUsageFlag">
@@ -7216,10 +7216,10 @@ The particle system requires you to specify at least one ParticleEmitter, which 
 		<property name="Type" type="ReflectionProbeType" getter="GetType" setter="SetType" static="false">
 			<doc>Determines the type of the probe.</doc>
 		</property>
-		<property name="Radius" type="float" getter="" setter="SetRadius" static="false">
+		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
 			<doc>Determines the radius of a sphere reflection probe.</doc>
 		</property>
-		<property name="Extents" type="Vector3" getter="" setter="SetExtents" static="false">
+		<property name="Extents" type="Vector3" getter="GetExtents" setter="SetExtents" static="false">
 			<doc>Determines the extents of a box reflection probe. Determines range of influence.</doc>
 		</property>
 		<property name="CustomTexture" type="RRef&lt;Texture&gt;" getter="GetCustomTexture" setter="SetCustomTexture" static="false">

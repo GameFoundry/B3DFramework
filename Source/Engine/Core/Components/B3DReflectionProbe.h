@@ -73,9 +73,11 @@ namespace b3d
 		ReflectionProbeType GetType() const { return GetData().Type; }
 
 		/** Returns the radius of a sphere reflection probe (unscaled). */
+		B3D_SCRIPT_EXPORT(ExportName(Radius), Property(Getter))
 		float GetRadius() const { return GetData().Radius; }
 
 		/** Returns the extents of a box reflection probe (unscaled). */
+		B3D_SCRIPT_EXPORT(ExportName(Extents), Property(Getter))
 		const Vector3& GetExtents() const { return GetData().Extents; }
 
 		/**	Returns world space bounds that completely encompass the probe's area of influence. */

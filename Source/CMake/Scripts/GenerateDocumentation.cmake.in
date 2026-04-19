@@ -16,10 +16,19 @@ execute_process(
 	COMMAND ${runCodegenCommand}
 	WORKING_DIRECTORY @GenDocGen_WORKING_DIR@
 	RESULT_VARIABLE codegenReturnValue
+	OUTPUT_VARIABLE codegenStdout
+	ERROR_VARIABLE codegenStderr
 )
 
+if(codegenStdout)
+	message(STATUS "${codegenStdout}")
+endif()
+if(codegenStderr)
+	message(STATUS "${codegenStderr}")
+endif()
+
 if (NOT codegenReturnValue EQUAL 0)
-	message(FATAL_ERROR "Failed to generate documentation.")
+	message(FATAL_ERROR "Failed to generate documentation (exit code ${codegenReturnValue}).")
 endif()
 
 set(pythonExecutable "@B3D_DOCGEN_PYTHON_EXECUTABLE@")

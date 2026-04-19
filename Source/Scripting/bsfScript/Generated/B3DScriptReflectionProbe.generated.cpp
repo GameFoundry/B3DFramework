@@ -34,6 +34,8 @@ namespace b3d
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetWorldExtents", (void*)&ScriptReflectionProbe::InternalGetWorldExtents);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Capture", (void*)&ScriptReflectionProbe::InternalCapture);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetType", (void*)&ScriptReflectionProbe::InternalGetType);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRadius", (void*)&ScriptReflectionProbe::InternalGetRadius);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetExtents", (void*)&ScriptReflectionProbe::InternalGetExtents);
 
 	}
 
@@ -151,5 +153,33 @@ namespace b3d
 		__output = tmp__output;
 
 		return __output;
+	}
+
+	float ScriptReflectionProbe::InternalGetRadius(ScriptReflectionProbe* self)
+	{
+		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
+		tmp__output = static_cast<ReflectionProbe*>(self->GetNativeObject())->GetRadius();
+
+		float __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptReflectionProbe::InternalGetExtents(ScriptReflectionProbe* self, TVector3<float>* __output)
+	{
+		if(!self->IsNativeObjectValid())
+		{
+			*__output = {};
+			return;
+		}
+
+		TVector3<float> tmp__output;
+		tmp__output = static_cast<ReflectionProbe*>(self->GetNativeObject())->GetExtents();
+
+		*__output = tmp__output;
 	}
 }

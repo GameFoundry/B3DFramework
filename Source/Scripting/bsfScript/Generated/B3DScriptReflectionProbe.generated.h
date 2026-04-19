@@ -32,5 +32,7 @@ namespace b3d
 		static void InternalGetWorldExtents(ScriptReflectionProbe* self, TVector3<float>* __output);
 		static void InternalCapture(ScriptReflectionProbe* self);
 		static ReflectionProbeType InternalGetType(ScriptReflectionProbe* self);
+		static float InternalGetRadius(ScriptReflectionProbe* self);
+		static void InternalGetExtents(ScriptReflectionProbe* self, TVector3<float>* __output);
 	};
 }
