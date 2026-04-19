@@ -1,5 +1,5 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
-//**************** Copyright (c) 2023 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
+//**************** Copyright (c) 2026 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Resources/B3DPackage.h"
 #include "RTTI/B3DPackageRTTI.h"
 #include "B3DResource.h"

@@ -1,4 +1,4 @@
-//************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
+//************************************ B3D Framework - Copyright 2026 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/StyleSheet/B3DGUIStyleSheet.h"
 #include "B3DGUIStyleSheetParser.h"

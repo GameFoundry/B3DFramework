@@ -1,5 +1,5 @@
-﻿//********************************** Banshee Engine (www.banshee3d.com) **************************************************//
-//**************** Copyright (c) 2024 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
+//********************************** Banshee Engine (www.banshee3d.com) **************************************************//
+//**************** Copyright (c) 2026 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
