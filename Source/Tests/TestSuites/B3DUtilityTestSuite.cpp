@@ -15,7 +15,6 @@
 #include "Utility/B3DMinHeap.h"
 #include "Utility/B3DSpatialTree.h"
 #include "Utility/B3DBitstream.h"
-#include "Utility/B3DUSPtr.h"
 #include "Utility/B3DQueue.h"
 #include "Threading/B3DThread.h"
 
