@@ -211,7 +211,7 @@ u32 passIndex = 0;
 u32 variationIndex = 0;
 SPtr<MaterialParameterAdapter> parameterAdapter = material->CreateParameterAdapter(variationIndex);
 
-CommandBuffer& commandBuffer = ...;
+GpuCommandBuffer& commandBuffer = ...;
 commandBuffer.SetGpuParameterSet(parameterAdapter->GetGpuParameterSet(passIndex, 0));
 ~~~~~~~~~~~~~
 

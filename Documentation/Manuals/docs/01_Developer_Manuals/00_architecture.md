@@ -36,9 +36,9 @@ Code running on the main thread lives in the `b3d::` namespace. Code that runs o
 Framework provides a wide variety of plugins out of the box. The plugins are loaded dynamically and allow you to change engine functionality completely transparently to other systems (e.g. you can choose to load a DirectX 12 renderer instead of a Vulkan one). Some plugins are completely optional and you can choose to ignore them (e.g. importer plugins can usually be ignored for game builds). Most importantly the plugins segregate the code, ensuring the design of the engine is decoupled and clean. Each plugin is based on an abstract interface defined in the engine layers.
 
 ## Render backend ##		
-Render backend plugins allow you to use a different backend for performing hardware accelerated rendering. Its interface is provided primarily though @b3d::GpuBackend, which handles low level rendering, including features like vertex/index buffers, creating rasterizer/depth/blend states, shader programs, render targets, textures, draw calls and similar. 
+Render backend plugins allow you to use a different backend for performing hardware accelerated rendering. Its interface is provided through @b3d::GpuBackend (device enumeration and debugging/profiling), @b3d::GpuDevice (resource creation), and @b3d::render::GpuCommandBuffer (recording rendering commands like draw calls, state changes, and resource barriers). 
 
-The following plugins all have their own implementations of the @b3d::GpuBackend interface, as well as any related types (e.g. @b3d::VertexBuffer, @b3d::IndexBuffer):
+The following plugins all have their own implementations of the @b3d::GpuBackend interface, as well as any related types (e.g. @b3d::GpuBuffer, @b3d::Texture):
  - **bsfVulkanGpuBackend** - Provides a render backend using Vulkan.
  - **bsfNullGpuBackend** - Provides a render backend that perform no operations
 
