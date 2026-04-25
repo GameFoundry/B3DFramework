@@ -979,11 +979,18 @@ void UtilityTestSuite::TestMPSCQueue()
 		{
 			TOptional<u32> maybeValue = queue.Dequeue();
 			if(maybeValue.has_value())
-				readValues.Add(maybeValue.value());
-			else
 			{
-				if(finishedProducerThreads >= kProducerThreadCount)
-					break;
+				readValues.Add(maybeValue.value());
+				continue;
+			}
+
+			// All producers finished: drain any items enqueued between the last
+			// failed Dequeue and observing the counter, then exit.
+			if(finishedProducerThreads >= kProducerThreadCount)
+			{
+				while((maybeValue = queue.Dequeue()).has_value())
+					readValues.Add(maybeValue.value());
+				break;
 			}
 		}
 	});
@@ -1030,11 +1037,18 @@ void UtilityTestSuite::TestSPSCQueue()
 		{
 			TOptional<u32> maybeValue = queue.Dequeue();
 			if(maybeValue.has_value())
-				readValues.Add(maybeValue.value());
-			else
 			{
-				if(producerThreadFinished)
-					break;
+				readValues.Add(maybeValue.value());
+				continue;
+			}
+
+			// Producer finished: drain any items enqueued between the last
+			// failed Dequeue and observing the flag, then exit.
+			if(producerThreadFinished)
+			{
+				while((maybeValue = queue.Dequeue()).has_value())
+					readValues.Add(maybeValue.value());
+				break;
 			}
 		}
 	});
