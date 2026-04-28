@@ -69,5 +69,13 @@ add_dependencies(UnitTestRunner FrameworkTests)
 # Install
 B3DSetUpPostBuildAndInstallSteps(UnitTestRunner)
 
+# Plugin test DLLs self-register in B3D_PLUGIN_TEST_TARGETS as their own subdirectories are
+# processed (mirrors B3D_STATIC_PLUGIN_TARGETS). Wire UnitTestRunner -> each plugin test DLL here,
+# now that the runner exe target exists. This file knows nothing about specific plugins.
+get_property(B3D_PLUGIN_TEST_TARGETS GLOBAL PROPERTY B3D_PLUGIN_TEST_TARGETS)
+foreach(pluginTestTarget ${B3D_PLUGIN_TEST_TARGETS})
+	add_dependencies(UnitTestRunner ${pluginTestTarget})
+endforeach()
+
 # Register test (runs all layers by default)
 add_test(NAME UnitTests COMMAND $<TARGET_FILE:UnitTestRunner>)

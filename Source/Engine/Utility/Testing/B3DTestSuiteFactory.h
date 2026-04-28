@@ -21,7 +21,8 @@ namespace b3d
 	{
 		Utility = 1 << 0, /**< Utility layer tests (no Application required). */
 		Core    = 1 << 1, /**< Core layer tests (requires Application). */
-		Editor  = 1 << 2  /**< Editor layer tests (requires EditorApplication). */
+		Editor  = 1 << 2, /**< Editor layer tests (requires EditorApplication). */
+		Plugins = 1 << 3  /**< Discover and load plugin test DLLs (e.g. @c bsfVulkanGpuBackendTests.dll) and run their suites alongside Core/Editor tests. Plugin suites are registered into the Core phase, so they require an @c Application. */
 	};
 
 	using TestLayers = Flags<TestLayer>;

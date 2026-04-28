@@ -17,15 +17,17 @@ typedef void (*FnDestroyFactory)(ITestSuiteFactory*);
 static TestLayers ParseLayers(const String& layerStr)
 {
 	if (layerStr == "all")
-		return TestLayer::Utility | TestLayer::Core | TestLayer::Editor;
+		return TestLayer::Utility | TestLayer::Core | TestLayer::Editor | TestLayer::Plugins;
 	if (layerStr == "utility")
 		return TestLayer::Utility;
 	if (layerStr == "core")
 		return TestLayer::Core;
 	if (layerStr == "editor")
 		return TestLayer::Editor;
+	if (layerStr == "plugins")
+		return TestLayer::Plugins;
 
-	// Support comma-separated: "utility,core"
+	// Support comma-separated: "utility,core,plugins"
 	TestLayers result;
 	Vector<String> parts = StringUtility::Split(layerStr, ",");
 	for (const String& part : parts)
@@ -37,6 +39,8 @@ static TestLayers ParseLayers(const String& layerStr)
 			result.Set(TestLayer::Core);
 		else if (trimmed == "editor")
 			result.Set(TestLayer::Editor);
+		else if (trimmed == "plugins")
+			result.Set(TestLayer::Plugins);
 	}
 	return result;
 }
