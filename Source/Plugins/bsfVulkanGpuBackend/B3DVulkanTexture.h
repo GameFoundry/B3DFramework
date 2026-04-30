@@ -290,8 +290,8 @@ namespace b3d
 			GpuTextureMappedScope Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options) override;
 			GpuDevice& GetDevice() const override { return mGpuDevice; }
 			GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags) const override;
-			u32 GetBoundCount(u32 mipLevel, u32 arrayLayer) const override;
-			u32 GetUseCount(u32 mipLevel, u32 arrayLayer) const override;
+			u32 GetBoundCount(u32 subresourceIdx = 0) const override;
+			u32 GetUseCount(u32 subresourceIdx = 0) const override;
 			void Flush(u32 mipLevel, u32 arrayLayer) override;
 			void Invalidate(u32 mipLevel, u32 arrayLayer) override;
 			void RecreateInternalTexture() override;

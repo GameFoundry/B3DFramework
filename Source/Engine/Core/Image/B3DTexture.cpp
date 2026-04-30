@@ -61,15 +61,15 @@ u32 TextureProperties::GetFaceCount() const
 	return facesPerSlice * ArraySliceCount;
 }
 
-void TextureProperties::MapFromSubresourceIdx(u32 subresourceIdx, u32& face, u32& mip) const
+void TextureProperties::MapFromSubresourceIndex(u32 subresourceIndex, u32& outFace, u32& outMip) const
 {
 	u32 mipmapCount = MipMapCount + 1;
 
-	face = Math::FloorToInt((subresourceIdx) / (float)mipmapCount);
-	mip = subresourceIdx % mipmapCount;
+	outFace = Math::FloorToInt((subresourceIndex) / (float)mipmapCount);
+	outMip = subresourceIndex % mipmapCount;
 }
 
-u32 TextureProperties::MapToSubresourceIdx(u32 face, u32 mip) const
+u32 TextureProperties::MapToSubresourceIndex(u32 face, u32 mip) const
 {
 	return face * (MipMapCount + 1) + mip;
 }
@@ -134,7 +134,7 @@ SPtr<render::RenderProxy> Texture::CreateRenderProxy() const
 
 TAsyncOp<void> Texture::WriteData(const SPtr<PixelData>& data, u32 face, u32 mipLevel, bool discardEntireBuffer)
 {
-	u32 subresourceIdx = mProperties.MapToSubresourceIdx(face, mipLevel);
+	u32 subresourceIdx = mProperties.MapToSubresourceIndex(face, mipLevel);
 	UpdateCpuBuffers(subresourceIdx, *data);
 
 	data->LockInternal();
@@ -213,7 +213,7 @@ void Texture::UpdateCpuBuffers(u32 subresourceIdx, const PixelData& pixelData)
 
 	u32 mipLevel;
 	u32 face;
-	mProperties.MapFromSubresourceIdx(subresourceIdx, face, mipLevel);
+	mProperties.MapFromSubresourceIndex(subresourceIdx, face, mipLevel);
 
 	u32 mipWidth, mipHeight, mipDepth;
 	PixelUtility::GetSizeForMipLevel(mProperties.Width, mProperties.Height, mProperties.Depth, mipLevel, mipWidth, mipHeight, mipDepth);
@@ -252,7 +252,7 @@ void Texture::ReadCachedData(PixelData& dest, u32 face, u32 mipLevel)
 		return;
 	}
 
-	u32 subresourceIdx = mProperties.MapToSubresourceIdx(face, mipLevel);
+	u32 subresourceIdx = mProperties.MapToSubresourceIndex(face, mipLevel);
 	if(subresourceIdx >= (u32)mCPUSubresourceData.size())
 	{
 		B3D_LOG(Error, LogTexture, "Invalid subresource index: {0}. Supported range: 0 .. {1}", subresourceIdx, (u32)mCPUSubresourceData.size());
@@ -284,7 +284,7 @@ void Texture::CreateCpuBuffers()
 
 		for(u32 mipIndex = 0; mipIndex < numMips; mipIndex++)
 		{
-			u32 subresourceIdx = mProperties.MapToSubresourceIdx(faceIndex, mipIndex);
+			u32 subresourceIdx = mProperties.MapToSubresourceIndex(faceIndex, mipIndex);
 
 			mCPUSubresourceData[subresourceIdx] = B3DMakeShared<PixelData>(curWidth, curHeight, curDepth, mProperties.Format);
 			mCPUSubresourceData[subresourceIdx]->AllocateInternalBuffer();
@@ -457,8 +457,9 @@ void TextureUtility::Write(const SPtr<Texture>& texture, const PixelData& source
 
 	// Check is the GPU currently reading or writing from the image
 	const GpuQueueMask subresourceUseMask = texture->GetUseMask(mipLevel, arrayLayer, GpuAccessFlag::Read | GpuAccessFlag::Write);
-	const u32 subresourceUseCount = texture->GetUseCount(mipLevel, arrayLayer);
-	const u32 subresourceBoundCount = texture->GetBoundCount(mipLevel, arrayLayer);
+	const u32 subresourceIndex = textureProperties.MapToSubresourceIndex(arrayLayer, mipLevel);
+	const u32 subresourceUseCount = texture->GetUseCount(subresourceIndex);
+	const u32 subresourceBoundCount = texture->GetBoundCount(subresourceIndex);
 
 	// Try direct mapping if texture supports it
 	void* mappedMemory = texture->GetMappedMemory();

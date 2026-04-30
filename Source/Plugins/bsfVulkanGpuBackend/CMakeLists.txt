@@ -1,6 +1,6 @@
 # Source files and their filters
-B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_VULKANGPUBACKEND_SRC)
-B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "" BS_VULKANGPUBACKEND_SRC)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "Tests" B3D_VULKANGPUBACKEND_SOURCE_FILES)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "" B3D_VULKANGPUBACKEND_SOURCE_FILES)
 
 # Packages
 if(B3D_GPU_BACKEND MATCHES "Vulkan" OR B3D_BUILD_ALL_PLUGINS)
@@ -29,7 +29,7 @@ if(B3D_GPU_BACKEND MATCHES "Vulkan" OR B3D_BUILD_ALL_PLUGINS)
 endif()
 	
 # Target
-B3DAddPlugin(bsfVulkanGpuBackend ENGINE ${BS_VULKANGPUBACKEND_SRC})
+B3DAddPlugin(bsfVulkanGpuBackend ENGINE ${B3D_VULKANGPUBACKEND_SOURCE_FILES})
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfVulkanGpuBackend)
@@ -55,9 +55,6 @@ endif()
 
 if(WIN32)
 	target_link_libraries(bsfVulkanGpuBackend PRIVATE ${RenderDoc_LIBRARIES})
-
-	#install(IMPORTED_RUNTIME_ARTIFACTS bsfVulkanGpuBackend RUNTIME)
-
 endif()
 
 ## OS libs
@@ -78,4 +75,9 @@ set_property(TARGET bsfVulkanGpuBackend PROPERTY FOLDER Plugins)
 # Install
 if(B3D_GPU_BACKEND MATCHES "Vulkan" OR B3D_BUILD_ALL_PLUGINS)
 	B3DSetUpPostBuildAndInstallSteps(bsfVulkanGpuBackend)
+endif()
+
+# Tests
+if(B3D_BUILD_TESTS)
+	add_subdirectory(Tests)
 endif()

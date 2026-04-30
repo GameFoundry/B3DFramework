@@ -3,6 +3,8 @@
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanGpuQueue.h"
 #include "B3DVulkanGpuCommandBuffer.h"
+#include "B3DVulkanGpuTimelineFence.h"
+#include "B3DVulkanHeapBackend.h"
 #include "B3DVulkanUtility.h"
 #include "B3DVulkanGpuBackend.h"
 #include "B3DVulkanSubmitThread.h"
@@ -130,8 +132,10 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	if(transferQueueFamilyIndex != ~0u)
 		fnPopulateQueueInfo(GQT_TRANSFER, transferQueueFamilyIndex);
 
-	// Set up extensions
-	const char* extensions[6];
+	// Set up extensions. Slots: swapchain, maintenance1, maintenance2, timeline_semaphore (optional),
+	// plus up to three more discovered below (dedicated_allocation, get_memory_requirements_2,
+	// shader_viewport_index_layer).
+	const char* extensions[8];
 	uint32_t extensionCount = 0;
 
 	extensions[extensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
@@ -165,13 +169,43 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 				{
 					extensions[extensionCount++] = VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME;
 				}
+				else if(strcmp(entry.extensionName, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME) == 0)
+				{
+					extensions[extensionCount++] = VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME;
+					mSupportsTimelineSemaphore = true;
+				}
 			}
 		}
 	}
 
+#if !B3D_PLATFORM_MACOS
+	if(mSupportsTimelineSemaphore)
+	{
+		VkPhysicalDeviceTimelineSemaphoreFeaturesKHR timelineFeatureProbe = {};
+		timelineFeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES_KHR;
+
+		VkPhysicalDeviceFeatures2 features2 = {};
+		features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		features2.pNext = &timelineFeatureProbe;
+
+		vkGetPhysicalDeviceFeatures2(device, &features2);
+
+		if(timelineFeatureProbe.timelineSemaphore != VK_TRUE)
+			mSupportsTimelineSemaphore = false;
+	}
+#endif
+
+	VkPhysicalDeviceTimelineSemaphoreFeaturesKHR timelineFeatures = {};
+	if(mSupportsTimelineSemaphore)
+	{
+		timelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES_KHR;
+		timelineFeatures.pNext = nullptr;
+		timelineFeatures.timelineSemaphore = VK_TRUE;
+	}
+
 	VkDeviceCreateInfo deviceInfo;
 	deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	deviceInfo.pNext = nullptr;
+	deviceInfo.pNext = mSupportsTimelineSemaphore ? &timelineFeatures : nullptr;
 	deviceInfo.flags = 0;
 	deviceInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size();
 	deviceInfo.pQueueCreateInfos = queueCreateInfos.data();
@@ -183,6 +217,9 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 
 	VkResult result = vkCreateDevice(device, &deviceInfo, gVulkanAllocator, &mLogicalDevice);
 	B3D_ASSERT(result == VK_SUCCESS);
+
+	if(mSupportsTimelineSemaphore)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, GetSemaphoreCounterValueKHR)
 
 	// Retrieve queues
 	for(u32 i = 0; i < GQT_COUNT; i++)
@@ -208,6 +245,9 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 		allocatorCI.flags |= VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
 
 	vmaCreateAllocator(&allocatorCI, &mAllocator);
+
+	mDefaultSubmissionFence = B3DMakeShared<VulkanGpuTimelineFence>(*this);
+	mHeapBackend = B3DMakeUnique<VulkanHeapBackend>(*this);
 
 	// Initialize capabilities
 	InitializeCapabilities();
@@ -248,6 +288,9 @@ VulkanGpuDevice::~VulkanGpuDevice()
 
 	// Needs to happen after query pool & command buffer pool shutdown, to ensure their resources are destroyed
 	B3DDelete(mResourceManager);
+
+	mHeapBackend.reset();
+	mDefaultSubmissionFence.reset();
 
 	vmaDestroyAllocator(mAllocator);
 	vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
@@ -584,6 +627,19 @@ SPtr<GpuPipelineParameterSetLayout> VulkanGpuDevice::CreateGpuPipelineParameterS
 UPtr<GpuParameterSetPool> VulkanGpuDevice::CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation)
 {
 	return B3DMakeUnique<VulkanGpuParameterSetPool>(*this, createInformation);
+}
+
+SPtr<GpuTimelineFence> VulkanGpuDevice::CreateTimelineFence()
+{
+	return B3DMakeShared<VulkanGpuTimelineFence>(*this);
+}
+
+bool VulkanGpuDevice::IsSubmissionComplete(u64 index) const
+{
+	if (!mSupportsTimelineSemaphore)
+		return true;
+
+	return GpuDevice::IsSubmissionComplete(index);
 }
 
 void VulkanGpuDevice::WaitUntilIdle()

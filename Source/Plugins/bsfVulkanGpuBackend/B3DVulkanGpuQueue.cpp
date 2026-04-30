@@ -2,13 +2,23 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanGpuQueue.h"
 #include "B3DVulkanGpuCommandBuffer.h"
+#include "B3DVulkanGpuTimelineFence.h"
 #include "B3DIVulkanRenderWindowSurface.h"
+#include "B3DVulkanHeapBackend.h"
 #include "B3DVulkanSubmitThread.h"
 #include "B3DVulkanSwapChain.h"
 #include "Profiling/B3DRenderStats.h"
 
 using namespace b3d;
 using namespace b3d::render;
+
+void VulkanGpuQueue::SubmitWorkBuffer::Clear()
+{
+	SignalSemaphores.Clear();
+	SignalValues.Clear();
+	WaitSemaphores.Clear();
+	CommandBuffers.Clear();
+}
 
 VulkanGpuQueue::VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueType type, u32 index, VkQueue vulkanQueue)
 	: GpuQueue(device, type, index), mQueue(vulkanQueue)
@@ -17,15 +27,15 @@ VulkanGpuQueue::VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueType type, u32 i
 		mSubmitDstWaitMask[i] = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 }
 
-void VulkanGpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, bool flushTransferCommandBuffer)
+void VulkanGpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& information, bool flushTransferCommandBuffer)
 {
 	if(flushTransferCommandBuffer)
 		mGpuDevice.SubmitTransferCommandBuffers();
 
-	if (!B3D_ENSURE(commandBuffer))
+	if (!B3D_ENSURE(information.CommandBuffer))
 		return;
 
-	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*commandBuffer);
+	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*information.CommandBuffer);
 	if (!B3D_ENSURE(vulkanCommandBuffer.GetQueueType() == mType))
 		return;
 
@@ -42,7 +52,7 @@ void VulkanGpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBu
 		vulkanCommandBuffer.End();
 
 	vulkanCommandBuffer.SetIsSubmitted();
-	GetVulkanSubmitThread().QueueSubmit(std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBuffer), *this, syncMask);
+	GetVulkanSubmitThread().QueueSubmit(std::static_pointer_cast<VulkanGpuCommandBuffer>(information.CommandBuffer), *this, information.SyncMask, information.SignalFences);
 }
 
 void VulkanGpuQueue::PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask)
@@ -74,8 +84,8 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 {
 	AssertIfNotVulkanSubmitThread();
 
-	B3D_ENSURE(mWaitSemaphoreHandleBuffer.Empty());
-	RegisterSemaphoresAndGetHandles(waitSemaphores, mWaitSemaphoreHandleBuffer);
+	SubmitWorkBuffer& workBuffer = AcquireSubmitWorkBuffer();
+	RegisterSemaphoresAndGetHandles(waitSemaphores, workBuffer.WaitSemaphores);
 
 	VkSwapchainKHR vkSwapChain = swapChain->GetHandle();
 
@@ -88,10 +98,11 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 	presentInfo.pResults = nullptr;
 
 	// Wait before presenting, if required
-	if(mWaitSemaphoreHandleBuffer.Size() > 0)
+	const u32 waitSemaphoreCount = (u32)workBuffer.WaitSemaphores.Size();
+	if(waitSemaphoreCount > 0)
 	{
-		presentInfo.pWaitSemaphores = mWaitSemaphoreHandleBuffer.data();
-		presentInfo.waitSemaphoreCount = (u32)mWaitSemaphoreHandleBuffer.Size();
+		presentInfo.pWaitSemaphores = workBuffer.WaitSemaphores.Data();
+		presentInfo.waitSemaphoreCount = waitSemaphoreCount;
 	}
 	else
 	{
@@ -103,9 +114,9 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 	B3D_ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR);
 
 	mActiveSubmissions.push_back(QueueSubmissionInformation(swapChain, mNextSubmitIndex++, 1));
-	mActiveCommandBuffers.push(QueueSubmissionEntryInformation(nullptr, (u32)mWaitSemaphoreHandleBuffer.Size()));
+	mActiveCommandBuffers.push(QueueSubmissionEntryInformation(nullptr, waitSemaphoreCount));
 
-	mWaitSemaphoreHandleBuffer.Clear();
+	ReleaseAllSubmitWorkBuffers();
 	return result;
 }
 
@@ -114,20 +125,18 @@ void VulkanGpuQueue::WaitUntilIdle()
 	GetVulkanSubmitThread().WaitUntilIdle(*this);
 }
 
-VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const TArrayView<VulkanSemaphore*>& waitSemaphores)
+VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	TInlineArray<SPtr<VulkanGpuCommandBuffer>, 1> commandBuffers = { commandBuffer };
-	return RegisterSubmissionAndGenerateSubmitInfo(commandBuffers, waitSemaphores);
+	return RegisterSubmissionAndGenerateSubmitInfo(commandBuffers, waitSemaphores, signalFences);
 }
 
-VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TArrayView<SPtr<VulkanGpuCommandBuffer>>& commandBuffers, const TArrayView<VulkanSemaphore*>& waitSemaphores)
+VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TArrayView<SPtr<VulkanGpuCommandBuffer>>& commandBuffers, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
-	const u32 commandBufferOffset = (u32)mCommandBufferHandleBuffer.Size();
-	const u32 waitSemaphoreOffset = (u32)mWaitSemaphoreHandleBuffer.Size();
-	const u32 signalSemaphoreOffset = (u32)mSignalSemaphoreHandleBuffer.Size();
+	SubmitWorkBuffer& workBuffer = AcquireSubmitWorkBuffer();
 
-	RegisterSemaphoresAndGetHandles(waitSemaphores, mWaitSemaphoreHandleBuffer);
-	const u32 waitSemaphoreCount = ((u32)mWaitSemaphoreHandleBuffer.Size()) - waitSemaphoreOffset;
+	RegisterSemaphoresAndGetHandles(waitSemaphores, workBuffer.WaitSemaphores);
+	const u32 waitSemaphoreCount = (u32)workBuffer.WaitSemaphores.Size();
 
 	u32 commandBufferCount = 0;
 	for (const auto& entry : commandBuffers)
@@ -136,32 +145,54 @@ VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TArra
 			continue;
 
 		entry->SetIsSubmitted();
-		mCommandBufferHandleBuffer.Add(entry->GetVulkanHandle());
+		workBuffer.CommandBuffers.Add(entry->GetVulkanHandle());
 		mActiveCommandBuffers.push(QueueSubmissionEntryInformation(entry, waitSemaphoreCount));
 		commandBufferCount++;
 	}
 
-	u32 signalSemaphoreCount = 0;
+	u32 binarySignalCount = 0;
 	if (!commandBuffers.IsEmpty())
 	{
-		signalSemaphoreCount = commandBuffers.back()->AllocateSignalSemaphores(mSignalSemaphoreHandleBuffer);
+		binarySignalCount = commandBuffers.back()->AllocateSignalSemaphores(workBuffer.SignalSemaphores);
+		for (u32 i = 0; i < binarySignalCount; ++i)
+			workBuffer.SignalValues.Add(0);
 
 		mLastSubmittedCommandBuffer = commandBuffers.back(); // Needs to be set because GetSubmitInfo depends on it
 		mLastCBSemaphoreUsed = false;
 	}
 
+	const bool hasTimelineSignals = !signalFences.IsEmpty();
+	if (hasTimelineSignals)
+	{
+		for (const GpuTimelineFenceAndValue& entry : signalFences)
+		{
+			B3D_ASSERT(entry.Fence != nullptr);
+
+			VulkanGpuTimelineFence* vulkanFence = static_cast<VulkanGpuTimelineFence*>(entry.Fence.get());
+			const VkSemaphore semaphore = vulkanFence->GetTimelineSemaphore();
+
+			if (semaphore == VK_NULL_HANDLE)
+				continue;
+
+			workBuffer.SignalSemaphores.Add(semaphore);
+			workBuffer.SignalValues.Add(entry.Value);
+		}
+	}
+
+	B3D_ASSERT(workBuffer.SignalSemaphores.Size() == workBuffer.SignalValues.Size());
+
+	const u32 totalSignalCount = (u32)workBuffer.SignalSemaphores.Size();
+
 	VkSubmitInfo vkSubmitInfo;
 	vkSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	vkSubmitInfo.pNext = nullptr;
 	vkSubmitInfo.commandBufferCount = commandBufferCount;
-	vkSubmitInfo.pCommandBuffers = commandBufferCount > 0 ? &mCommandBufferHandleBuffer[commandBufferOffset] : nullptr;
-	vkSubmitInfo.signalSemaphoreCount = signalSemaphoreCount;
-	vkSubmitInfo.pSignalSemaphores = signalSemaphoreCount > 0 ? &mSignalSemaphoreHandleBuffer[signalSemaphoreOffset] : nullptr;
+	vkSubmitInfo.pCommandBuffers = commandBufferCount > 0 ? workBuffer.CommandBuffers.Data() : nullptr;
 	vkSubmitInfo.waitSemaphoreCount = waitSemaphoreCount;
 
 	if(waitSemaphoreCount != 0)
 	{
-		vkSubmitInfo.pWaitSemaphores = &mWaitSemaphoreHandleBuffer[waitSemaphoreOffset];
+		vkSubmitInfo.pWaitSemaphores = workBuffer.WaitSemaphores.Data();
 		vkSubmitInfo.pWaitDstStageMask = mSubmitDstWaitMask;
 	}
 	else
@@ -170,10 +201,26 @@ VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TArra
 		vkSubmitInfo.pWaitDstStageMask = nullptr;
 	}
 
+	vkSubmitInfo.signalSemaphoreCount = totalSignalCount;
+	vkSubmitInfo.pSignalSemaphores = totalSignalCount > 0 ? workBuffer.SignalSemaphores.Data() : nullptr;
+
+	if (hasTimelineSignals)
+	{
+		workBuffer.TimelineSubmitInfo = {};
+		workBuffer.TimelineSubmitInfo.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO_KHR;
+		workBuffer.TimelineSubmitInfo.pNext = nullptr;
+		workBuffer.TimelineSubmitInfo.waitSemaphoreValueCount = 0;
+		workBuffer.TimelineSubmitInfo.pWaitSemaphoreValues = nullptr;
+		workBuffer.TimelineSubmitInfo.signalSemaphoreValueCount = totalSignalCount;
+		workBuffer.TimelineSubmitInfo.pSignalSemaphoreValues = totalSignalCount > 0 ? workBuffer.SignalValues.Data() : nullptr;
+
+		vkSubmitInfo.pNext = &workBuffer.TimelineSubmitInfo;
+	}
+
 	return vkSubmitInfo;
 }
 
-void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask)
+void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -193,7 +240,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 			continue;
 
 		const GpuQueueType transitionQueueType = (GpuQueueType)queueTypeIndex;
-		
+
 		// Find an appropriate queue to execute on
 		u32 transitionQueueIndex = 0;
 		SPtr<VulkanGpuQueue> transitionQueue = nullptr;
@@ -222,7 +269,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 		GpuCommandBufferSubmitInformation transitionSubmitInformation;
 		transitionSubmitInformation.PrimaryCommandBuffer = submitInformation.SourceQueueTransitionCommandBuffer[queueTypeIndex];
 
-		transitionQueue->ExecuteSubmitOnSubmitThread(transitionSubmitInformation, GpuQueueMask::kNone);
+		transitionQueue->ExecuteSubmitOnSubmitThread(transitionSubmitInformation, GpuQueueMask::kNone, {});
 	}
 
 	B3D_ENSURE(mWaitSemaphoreBuffer.Empty());
@@ -230,9 +277,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 
 	device.GetSyncSemaphores(syncMask, mWaitSemaphoreBuffer);
 
-	B3D_ENSURE(mSignalSemaphoreHandleBuffer.Empty());
-	B3D_ENSURE(mWaitSemaphoreHandleBuffer.Empty());
-	B3D_ENSURE(mCommandBufferHandleBuffer.Empty());
+	B3D_ASSERT(mActiveSubmitWorkBufferCount == 0);
 
 	TInlineArray<VkSubmitInfo, 3> submitInfos;
 
@@ -242,7 +287,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 		mWaitSemaphoreBuffer.Clear(); // No need to wait on these again with later submissions
 	}
 
-	submitInfos.Add(RegisterSubmissionAndGenerateSubmitInfo(submitInformation.PrimaryCommandBuffer , mWaitSemaphoreBuffer));
+	submitInfos.Add(RegisterSubmissionAndGenerateSubmitInfo(submitInformation.PrimaryCommandBuffer, mWaitSemaphoreBuffer, signalFences));
 	mWaitSemaphoreBuffer.Clear();
 
 	mActiveSubmissions.push_back(QueueSubmissionInformation(mLastSubmittedCommandBuffer, mNextSubmitIndex++, (u32)submitInfos.Size()));
@@ -250,9 +295,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 	VkResult result = vkQueueSubmit(mQueue, (u32)submitInfos.Size(), submitInfos.Data(), mLastSubmittedCommandBuffer->GetFence());
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	mSignalSemaphoreHandleBuffer.Clear();
-	mWaitSemaphoreHandleBuffer.Clear();
-	mCommandBufferHandleBuffer.Clear();
+	ReleaseAllSubmitWorkBuffers();
 }
 
 void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool queueEmpty, u32 lastSubmitIndex)
@@ -394,4 +437,22 @@ u32 VulkanGpuQueue::RegisterSemaphoresAndGetHandles(const TArrayView<VulkanSemap
 	}
 
 	return count;
+}
+
+VulkanGpuQueue::SubmitWorkBuffer& VulkanGpuQueue::AcquireSubmitWorkBuffer()
+{
+	AssertIfNotVulkanSubmitThread();
+
+	if (mActiveSubmitWorkBufferCount >= mSubmitWorkBufferPool.size())
+		mSubmitWorkBufferPool.push_back(B3DMakeUnique<SubmitWorkBuffer>());
+
+	SubmitWorkBuffer& buffer = *mSubmitWorkBufferPool[mActiveSubmitWorkBufferCount++];
+	buffer.Clear();
+	return buffer;
+}
+
+void VulkanGpuQueue::ReleaseAllSubmitWorkBuffers()
+{
+	AssertIfNotVulkanSubmitThread();
+	mActiveSubmitWorkBufferCount = 0;
 }

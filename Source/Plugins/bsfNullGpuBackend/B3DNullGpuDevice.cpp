@@ -18,12 +18,27 @@
 #include "B3DNullGpuQueryPool.h"
 #include "GpuBackend/B3DVideoModeInfo.h"
 #include "GpuBackend/B3DGpuTransferBufferHelper.h"
+#include "GpuBackend/B3DGpuTimelineFence.h"
 #include "Math/B3DMatrix4.h"
 
 namespace b3d
 {
 	namespace render
 	{
+		namespace
+		{
+			/**
+			 * Always-signaled timeline-fence used by the null backend. There is no GPU work, so any
+			 * value the caller asks about is "done". Lets allocator deferred-delete cycles complete
+			 * instantly without blocking anything.
+			 */
+			class NullGpuTimelineFence final : public GpuTimelineFence
+			{
+			public:
+				u64 GetCompletedValue() const final { return ~u64(0); }
+			};
+		}
+
 		NullGpuDevice::NullGpuDevice()
 		{
 			mVideoModeInfo = B3DMakeShared<VideoModeInfo>();
@@ -48,6 +63,8 @@ namespace b3d
 
 			// Initialize capabilities with reasonable defaults for a null backend
 			InitializeCapabilities();
+
+			mDefaultSubmissionFence = B3DMakeShared<NullGpuTimelineFence>();
 
 			mTransferBufferHelper = B3DMakeUnique<GpuTransferBufferHelper>(*this, GpuQueueId(GQT_GRAPHICS, 0));
 
@@ -233,6 +250,11 @@ namespace b3d
 		UPtr<GpuParameterSetPool> NullGpuDevice::CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation)
 		{
 			return B3DMakeUnique<NullGpuParameterSetPool>(*this, createInformation);
+		}
+
+		SPtr<GpuTimelineFence> NullGpuDevice::CreateTimelineFence()
+		{
+			return B3DMakeShared<NullGpuTimelineFence>();
 		}
 
 		void NullGpuDevice::ConvertProjectionMatrix(const Matrix4& input, Matrix4& output)

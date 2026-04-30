@@ -832,15 +832,21 @@ GpuQueueMask VulkanTexture::GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFl
 	return subresource->GetUseInfo(accessFlags);
 }
 
-u32 VulkanTexture::GetBoundCount(u32 mipLevel, u32 arrayLayer) const
+u32 VulkanTexture::GetBoundCount(u32 subresourceIdx) const
 {
-	VulkanImageSubresource* subresource = mImage->GetSubresource(arrayLayer, mipLevel);
+	u32 face, mip;
+	mProperties.MapFromSubresourceIndex(subresourceIdx, face, mip);
+
+	VulkanImageSubresource* subresource = mImage->GetSubresource(face, mip);
 	return subresource->GetBoundCount();
 }
 
-u32 VulkanTexture::GetUseCount(u32 mipLevel, u32 arrayLayer) const
+u32 VulkanTexture::GetUseCount(u32 subresourceIdx) const
 {
-	VulkanImageSubresource* subresource = mImage->GetSubresource(arrayLayer, mipLevel);
+	u32 face, mip;
+	mProperties.MapFromSubresourceIndex(subresourceIdx, face, mip);
+
+	VulkanImageSubresource* subresource = mImage->GetSubresource(face, mip);
 	return subresource->GetUseCount();
 }
 

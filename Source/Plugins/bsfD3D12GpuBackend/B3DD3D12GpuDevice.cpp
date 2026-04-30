@@ -279,6 +279,13 @@ UPtr<GpuParameterSetPool> D3D12GpuDevice::CreateParameterSetPool(const GpuParame
 	return nullptr;
 }
 
+SPtr<GpuTimelineFence> D3D12GpuDevice::CreateTimelineFence()
+{
+	// TODO: Implement D3D12-backed GpuTimelineFence on top of ID3D12Fence. Until then a real
+	// allocator path won't function on this backend; this stub keeps the abstract base satisfied.
+	return nullptr;
+}
+
 void D3D12GpuDevice::WaitUntilIdle()
 {
 	// Wait for all queues to finish

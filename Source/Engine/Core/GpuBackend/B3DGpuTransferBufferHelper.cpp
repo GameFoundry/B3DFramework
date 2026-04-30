@@ -144,8 +144,13 @@ void GpuTransferBufferHelper::SubmitTransferCommandBuffer(bool wait)
 		commandBufferToSubmit->End();
 
 		SPtr<GpuQueue> queue = mGpuDevice.GetQueue(mTargetQueueType, mTargetQueueIndex);
-		if(queue)
-			queue->SubmitCommandBuffer(commandBufferToSubmit, 0xFFFFFFFF);
+		if(queue != nullptr)
+		{
+			GpuSubmissionInformation submissionInfo;
+			submissionInfo.CommandBuffer = commandBufferToSubmit;
+			submissionInfo.SyncMask = GpuQueueMask::kAll;
+			queue->SubmitCommandBuffer(submissionInfo, false);
+		}
 	}
 
 	if(wait)

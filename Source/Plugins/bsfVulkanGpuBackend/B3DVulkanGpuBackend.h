@@ -50,7 +50,7 @@ namespace b3d
 	};
 
 	/**	Provides easy access to the VulkanGpuBackend. */
-	VulkanGpuBackend& GetVulkanGpuBackend();
+	B3D_EXPORT VulkanGpuBackend& GetVulkanGpuBackend();
 
 	extern PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT;
 	extern PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT;
@@ -67,6 +67,9 @@ namespace b3d
 	extern PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
 	extern PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR;
 	extern PFN_vkQueuePresentKHR vkQueuePresentKHR;
+
+	extern PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR;
+
 
 	/** @} */
 } // namespace b3d

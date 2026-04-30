@@ -428,7 +428,7 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, GpuQueueMas
 
 		GpuCommandBufferSubmitInformation submitInformation;
 		submitInformation.PrimaryCommandBuffer = commandBuffer;
-		queue.ExecuteSubmitOnSubmitThread(submitInformation, GpuQueueMask::kNone);
+		queue.ExecuteSubmitOnSubmitThread(submitInformation, GpuQueueMask::kNone, {});
 
 		imageSubresource->SetLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}

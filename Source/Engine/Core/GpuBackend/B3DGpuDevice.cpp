@@ -16,20 +16,41 @@ GpuQueue::GpuQueue(GpuDevice& gpuDevice, GpuQueueType type, u32 index)
 {
 }
 
+u64 GpuDevice::SubmitCommandBuffer(const GpuSubmissionInformation& information, u32 queueIndex, bool flushTransferCommandBuffer)
+{
+	if (!B3D_ENSURE(information.CommandBuffer))
+		return 0;
+
+	const u32 queueCount = GetQueueCount(information.CommandBuffer->GetQueueType());
+	if (!B3D_ENSURE(queueIndex < queueCount))
+		return 0;
+
+	const SPtr<GpuQueue>& queue = GetQueue(information.CommandBuffer->GetQueueType(), queueIndex);
+	if (!B3D_ENSURE(queue))
+		return 0;
+
+	const u64 submissionIndex = mSubmissionCounter.fetch_add(1, std::memory_order_acq_rel) + 1;
+
+	GpuSubmissionInformation augmentedInformation = information;
+	augmentedInformation.SignalFences.Add(GpuTimelineFenceAndValue{ mDefaultSubmissionFence, submissionIndex });
+
+	queue->SubmitCommandBuffer(augmentedInformation, flushTransferCommandBuffer);
+	return submissionIndex;
+}
+
 void GpuDevice::SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, u32 queueIndex)
 {
-	if (!B3D_ENSURE(commandBuffer))
-		return;
+	GpuSubmissionInformation information;
+	information.CommandBuffer = commandBuffer;
+	information.SyncMask = syncMask;
 
-	const u32 queueCount = GetQueueCount(commandBuffer->GetQueueType());
-	if (!B3D_ENSURE(queueIndex < queueCount))
-		return;
+	(void)SubmitCommandBuffer(information, queueIndex);
+}
 
-	const SPtr<GpuQueue>& queue = GetQueue(commandBuffer->GetQueueType(), queueIndex);
-	if (!B3D_ENSURE(queue))
-		return;
-
-	queue->SubmitCommandBuffer(commandBuffer, syncMask);
+bool GpuDevice::IsSubmissionComplete(u64 index) const
+{
+	B3D_ASSERT(mDefaultSubmissionFence != nullptr);
+	return mDefaultSubmissionFence->IsSignaled(index);
 }
 
 SPtr<SamplerState> GpuDevice::FindOrCreateSamplerState(const SamplerStateCreateInformation& createInformation)
@@ -47,11 +68,6 @@ SPtr<SamplerState> GpuDevice::FindOrCreateSamplerState(const SamplerStateCreateI
 	mCachedSamplerStates[createInformation] = newSamplerState;
 
 	return newSamplerState;
-}
-
-void GpuQueue::SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask)
-{
-	SubmitCommandBuffer(commandBuffer, syncMask, true);
 }
 
 const SPtr<render::GpuCommandBuffer>& GpuDevice::GetOrCreateTransferCommandBuffer()

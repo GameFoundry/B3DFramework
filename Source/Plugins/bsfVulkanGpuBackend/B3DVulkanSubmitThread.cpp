@@ -66,14 +66,14 @@ VulkanSubmitThread::~VulkanSubmitThread()
 	mCommandQueue.PostRequestShutdownCommand(true);
 }
 
-void VulkanSubmitThread::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, GpuQueueMask syncMask, bool blocking)
+void VulkanSubmitThread::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking)
 {
-	auto fnCommand = [this, commandBuffer, &queue, syncMask]() mutable
+	auto fnCommand = [this, commandBuffer, &queue, syncMask, signalFences = std::move(signalFences)]() mutable
 	{
 		GpuCommandBufferSubmitInformation submitInformation = commandBuffer->PrepareForSubmitOnSubmitThread(queue.GetType(), queue.GetIndex());
 
 		syncMask |= commandBuffer->GetQueueSyncMask();
-		queue.ExecuteSubmitOnSubmitThread(submitInformation, syncMask);
+		queue.ExecuteSubmitOnSubmitThread(submitInformation, syncMask, signalFences);
 
 		// Track this as the last submitted command buffer for the current frame
 		mCurrentFrameLastCommandBuffer = commandBuffer;

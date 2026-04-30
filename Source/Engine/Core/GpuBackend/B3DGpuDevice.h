@@ -5,6 +5,7 @@
 #include "B3DPrerequisites.h"
 #include "B3DGpuParameterSetPool.h"
 #include "B3DGpuQueries.h"
+#include "B3DGpuTimelineFence.h"
 #include "B3DPrerequisites.h"
 #include "B3DSamplerState.h"
 #include "B3DGpuTransferBufferHelper.h"
@@ -215,6 +216,27 @@ namespace b3d
 	using GpuObjectCreateFlags = Flags<GpuObjectCreateFlag>;
 	B3D_FLAGS_OPERATORS(GpuObjectCreateFlag)
 
+	/** Command buffer to submit and any timeline fences to signal. */
+	struct GpuSubmissionInformation
+	{
+		/** Command buffer to submit  */
+		SPtr<render::GpuCommandBuffer> CommandBuffer;
+		
+		/**
+		 * Optional synchronization mask that determines if the submitted command buffer
+		 * depends on any other command buffers submitted on other queues.
+		 *
+		 * This mask is only relevant if your command buffers are executing on different
+		 * queues, and are dependent. If they are executing on the same queue then they will
+		 * execute sequentially in the order they are submitted. Otherwise, if there is a
+		 * dependency you must make state it explicitly here.
+		 */
+		GpuQueueMask SyncMask = GpuQueueMask::kAll;
+
+		/** Fence(s) to signal when execution completes. */
+		TInlineArray<GpuTimelineFenceAndValue, 2> SignalFences;
+	};
+
 	/**
 	 * Specifies a queue on which command buffers can be submitted on.
 	 *
@@ -235,18 +257,12 @@ namespace b3d
 		GpuQueueId GetId() const { return GpuQueueId(mType, mIndex); }
 
 		/**
-		 * Submits the command buffer for execution on the specified queue.
+		 * Submits a command buffer on this queue. 
 		 *
-		 * @param	commandBuffer	Command buffer to submit.
-		 * @param	syncMask		Optional synchronization mask that determines if the submitted command buffer
-		 *							depends on any other command buffers submitted on other queues.
-		 *
-		 *							This mask is only relevant if your command buffers are executing on different
-		 *							queues, and are dependent. If they are executing on the same queue then they will
-		 *							execute sequentially in the order they are submitted. Otherwise, if there is a
-		 *							dependency you must make state it explicitly here.
+		 * @param	information					Command buffer + signal fences to submit.
+		 * @param	flushTransferCommandBuffer	When true, any pending transfer command buffer on the calling thread is submitted first.
 		 */
-		void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask = GpuQueueMask::kAll);
+		virtual void SubmitCommandBuffer(const GpuSubmissionInformation& information, bool flushTransferCommandBuffer = true) = 0;
 
 		/**
 		 * Presents the back-buffer image from the provided window onto the window, using the appropriate queue that supports present operations.
@@ -263,9 +279,6 @@ namespace b3d
 	protected:
 		GpuQueue(GpuDevice& gpuDevice, GpuQueueType type, u32 index);
 
-		/** Provides the same functionality as SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>&, GpuQueueMask), but makes the command buffer flush optional. */
-		virtual void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, bool flushTransferCommandBuffer) = 0;
-
 		GpuDevice& mGpuDevice;
 		GpuQueueType mType;
 		u32 mIndex;
@@ -276,10 +289,10 @@ namespace b3d
 	 *
 	 * @note	Thread safe.
 	 */
-	class B3D_EXPORT GpuDevice
+	class B3D_EXPORT GpuDevice : public IGpuSubmissionTracker
 	{
 	public:
-		virtual ~GpuDevice() = default;
+		~GpuDevice() override = default;
 
 		/** Initializes the GpuDevice. Should be called after construction but before any other operations. */
 		virtual bool Initialize() = 0;
@@ -302,7 +315,22 @@ namespace b3d
 		virtual SPtr<GpuQueue> GetQueue(GpuQueueType type, u32 index) const = 0;
 
 		/**
-		 * Submits the command buffer for execution on an automatically retrieved queue.
+		 * Submits a command buffer on a queue matching its type.
+		 *
+		 * @param	information					Command buffer + signal fences to submit.
+		 * @param	queueIndex					Index of the queue (within the command buffer's queue type) to submit on.
+		 * @param	flushTransferCommandBuffer	When true, any pending transfer command buffer on the calling thread is submitted first.
+		 *
+		 * @return	Index that can be used to check if submission completed executing on the GPU, using IsSubmissionComplete(). If your submissions
+		 *			are sequential all on all queue, it's guaranteed if submission N+1 finishes that submission N is also finished. If your submissions
+		 *			are across multiple queues, that is only true if you insert dependencies between the queues, otherwise submission N on queue A,
+		 *			can finish after submission N+1 on queue B.
+		 */
+		u64 SubmitCommandBuffer(const GpuSubmissionInformation& information, u32 queueIndex = 0, bool flushTransferCommandBuffer = true);
+
+		/**
+		 * Convenience overload equivalent to building a @c GpuSubmissionInformation with no extra
+		 * signal fences and discarding the returned submission index.
 		 *
 		 * @param	commandBuffer	Command buffer to submit. Usage of the command buffer determines the queue to execute on.
 		 * @param	syncMask		Optional synchronization mask that determines if the submitted command buffer
@@ -450,6 +478,9 @@ namespace b3d
 		 */
 		virtual UPtr<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) = 0;
 
+		/** Creates a timeline fence that can be signaled when command buffer execution finishes. */
+		virtual SPtr<GpuTimelineFence> CreateTimelineFence() = 0;
+
 		/************************************************************************/
 		/* 								UTILITY METHODS                    		*/
 		/************************************************************************/
@@ -477,6 +508,17 @@ namespace b3d
 		 * @return				Time in milliseconds.
 		 */
 		virtual float ConvertTimestampToMilliseconds(u64 timestamp) = 0;
+
+		/************************************************************************/
+		/* 						SUBMISSION TRACKING / FENCES                    */
+		/************************************************************************/
+
+		/** Returns the most recent device-wide submission index. Zero means no submit has happened. */
+		u64 GetLatestSubmissionIndex() const override { return mSubmissionCounter.load(std::memory_order_acquire); }
+
+		/** Returns true once the GPU has finished executing the submit with @p index. */
+		bool IsSubmissionComplete(u64 index) const override;
+
 	protected:
 		/**
 		 * Explicit deleter for objects that derive from RenderProxy. By default render proxy objects provide a custom deleter that
@@ -497,10 +539,15 @@ namespace b3d
 			return SPtr<Type>(data, fnStandaloneDeleter, StdAlloc<Type, PointerDataAllocatorTag>());
 		}
 
+		SPtr<GpuTimelineFence> mDefaultSubmissionFence;
+
 		UPtr<GpuTransferBufferHelper> mTransferBufferHelper;
 
 		mutable UnorderedMap<SamplerStateCreateInformation, SPtr<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;
+
+	private:
+		std::atomic<u64> mSubmissionCounter{0};
 	};
 
 	/** @} */

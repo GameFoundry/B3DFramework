@@ -165,8 +165,8 @@ namespace b3d
 
 			void SetName(const StringView& name) override;
 			GpuQueueMask GetUseMask(GpuAccessFlags accessFlags) override;
-			u32 GetBoundCount() const override { return mBuffer->GetBoundCount(); }
-			u32 GetUseCount() const override { return mBuffer->GetUseCount(); }
+			u32 GetBoundCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return mBuffer->GetBoundCount(); }
+			u32 GetUseCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return mBuffer->GetUseCount(); }
 
 			void Flush(u32 offset, u32 size) override;
 			void Invalidate(u32 offset, u32 size) override;

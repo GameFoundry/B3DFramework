@@ -4,6 +4,7 @@
 
 #include "B3DVulkanPrerequisites.h"
 #include "B3DVulkanGpuQueue.h"
+#include "GpuBackend/B3DGpuTimelineFence.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "Threading/B3DSignalEvent.h"
 #include "Threading/B3DSingleConsumerQueue.h"
@@ -42,10 +43,11 @@ namespace b3d::render
 		 * @param	commandBuffer	Command buffer to submit.
 		 * @param	queue			Queue to submit the command buffer on.
 		 * @param	syncMask		Mask that controls which other command buffers does this command buffer depend upon
-		 *							(if any). 
+		 *							(if any).
+		 * @param	signalFences	Explicit list of timeline-fence + value pairs to signal when the submit completes.
 		 * @param	blocking		If true the calling thread will wait until the GPU completes the operation.
 		 */
-		void QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, GpuQueueMask syncMask, bool blocking = false);
+		void QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking = false);
 
 		/**
 		 * Queues an operation that acquires a swap chain image. Acquired images can be written to and eventually presented to the screen.

@@ -5,6 +5,7 @@
 #include "B3DPrerequisites.h"
 #include "Resources/B3DResource.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "Image/B3DPixelUtility.h"
 #include "GpuBackend/B3DTextureView.h"
 #include "Math/B3DVector3I.h"
@@ -168,20 +169,18 @@ namespace b3d
 		 */
 		SPtr<PixelData> AllocBuffer(u32 face, u32 mipLevel) const;
 
-	protected:
-		friend class TextureRTTI;
-		friend class Texture;
-
 		/**
 		 * Maps a sub-resource index to an exact face and mip level. Sub-resource indexes are used when reading or writing
 		 * to the resource.
 		 */
-		void MapFromSubresourceIdx(u32 subresourceIdx, u32& face, u32& mip) const;
+		void MapFromSubresourceIndex(u32 subresourceIndex, u32& outFace, u32& outMip) const;
 
-		/**
-		 * Map a face and a mip level to a sub-resource index you can use for updating or reading a specific sub-resource.
-		 */
-		u32 MapToSubresourceIdx(u32 face, u32 mip) const;
+		/** Map a face and a mip level to a sub-resource index you can use for updating or reading a specific sub-resource. */
+		u32 MapToSubresourceIndex(u32 face, u32 mip) const;
+
+	protected:
+		friend class TextureRTTI;
+		friend class Texture;
 	};
 
 	/** Represents a part of a texture. */
@@ -482,7 +481,7 @@ namespace b3d
 		 *
 		 * @note	Render thread.
 		 */
-		class B3D_EXPORT Texture : public RenderProxy
+		class B3D_EXPORT Texture : public RenderProxy, public b3d::IGpuResource
 		{
 		public:
 			Texture(const TextureCreateInformation& createInformation);
@@ -546,12 +545,6 @@ namespace b3d
 			 * @param accessFlags	Filter by read/write access type.
 			 */
 			virtual GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags = GpuAccessFlag::Read | GpuAccessFlag::Write) const = 0;
-
-			/** Returns how many command buffers the specified subresource is bound to. */
-			virtual u32 GetBoundCount(u32 mipLevel, u32 arrayLevel) const = 0;
-
-			/** Returns how many submitted command buffers are using the specified subresource. */
-			virtual u32 GetUseCount(u32 mipLevel, u32 arrayLevel) const = 0;
 
 			/**	Returns properties that contain information about the texture. */
 			const TextureProperties& GetProperties() const { return mProperties; }

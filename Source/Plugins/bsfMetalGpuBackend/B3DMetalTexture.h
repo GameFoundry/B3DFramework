@@ -32,8 +32,8 @@ namespace b3d
 			void SetName(const StringView& name) override;
 			GpuDevice& GetDevice() const override { return mGpuDevice; }
 			GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags = GpuAccessFlag::Read | GpuAccessFlag::Write) const override { return GpuQueueMask(); }
-			u32 GetBoundCount(u32 mipLevel, u32 arrayLayer) const override { return 0; }
-			u32 GetUseCount(u32 mipLevel, u32 arrayLayer) const override { return 0; }
+			u32 GetBoundCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return 0; }
+			u32 GetUseCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return 0; }
 			void Flush(u32 mipLevel, u32 arrayLayer) override;
 
 #ifdef __OBJC__

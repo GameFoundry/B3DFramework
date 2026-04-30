@@ -1083,5 +1083,5 @@ void UtilityTestSuite::TestHashedString()
 	B3D_TEST_ASSERT(strlen(a.GetCharacters()) == 11)
 	B3D_TEST_ASSERT(a.GetLength() == 12)
 
-	
+
 }

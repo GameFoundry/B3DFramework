@@ -23,6 +23,7 @@
 #include "B3DMetalGpuQueryPool.h"
 #include "GpuBackend/B3DVideoModeInfo.h"
 #include "GpuBackend/B3DGpuTransferBufferHelper.h"
+#include "GpuBackend/B3DGpuTimelineFence.h"
 #include "Math/B3DMatrix4.h"
 #include "Utility/B3DCommonTypes.h"
 #include "FileSystem/B3DFileSystem.h"
@@ -41,6 +42,22 @@ namespace b3d
 {
 	namespace render
 	{
+		namespace
+		{
+			/**
+			 * Stub timeline-fence used until the Metal backend wires the framework allocator and
+			 * GpuTimelineFence into its MTLSharedEvent submit signal path. Reports completion
+			 * for any value, mirroring the null backend's behaviour. Sufficient because the Metal
+			 * backend does not currently route allocations through TGpuAllocator; nothing reads
+			 * the device's submission fence yet.
+			 */
+			class MetalGpuTimelineFenceStub final : public GpuTimelineFence
+			{
+			public:
+				u64 GetCompletedValue() const final { return ~u64(0); }
+			};
+		}
+
 		/** Holds all Metal/Objective-C handles owned by the device. */
 		struct MetalGpuDevice::Impl
 		{
@@ -540,6 +557,8 @@ namespace b3d
 			// resources do not outlive their parent heap.
 			mHeapAllocator = B3DMakeUnique<MetalHeapAllocator>(*this);
 
+			mDefaultSubmissionFence = B3DMakeShared<MetalGpuTimelineFenceStub>();
+
 			mTransferBufferHelper = B3DMakeUnique<GpuTransferBufferHelper>(*this, GpuQueueId(GQT_GRAPHICS, 0));
 
 			mIsInitialized = true;
@@ -1015,6 +1034,11 @@ namespace b3d
 		UPtr<GpuParameterSetPool> MetalGpuDevice::CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation)
 		{
 			return B3DMakeUnique<MetalGpuParameterSetPool>(*this, createInformation);
+		}
+
+		SPtr<GpuTimelineFence> MetalGpuDevice::CreateTimelineFence()
+		{
+			return B3DMakeShared<MetalGpuTimelineFenceStub>();
 		}
 
 		void MetalGpuDevice::ConvertProjectionMatrix(const Matrix4& input, Matrix4& output)

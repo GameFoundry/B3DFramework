@@ -4,6 +4,7 @@
 
 #include "B3DVulkanPrerequisites.h"
 #include "B3DVulkanGpuDevice.h"
+#include "GpuBackend/B3DGpuTimelineFence.h"
 
 namespace b3d
 {
@@ -20,16 +21,21 @@ namespace b3d
 		public:
 			VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueType type, u32 index, VkQueue vulkanQueue);
 
-			void SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, bool flushTransferCommandBuffer) override;
+			void SubmitCommandBuffer(const GpuSubmissionInformation& information, bool flushTransferCommandBuffer = true) override;
 			void WaitUntilIdle() override;
 			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 
 			/**
 			 * Submits a command buffer on the queue using information prepared by the command buffer.
 			 *
+			 * @param	submitInformation	Vulkan-specific per-CB submit info (transitions, semaphores).
+			 * @param	syncMask			Inter-queue sync mask.
+			 * @param	signalFences		Explicit list of GpuTimelineFence + value pairs to signal when the command buffer
+			 *								finishes executing.
+			 *
 			 * @note	Submit thread only.
 			 */
-			void ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask);
+			void ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences);
 
 			/** Returns the internal handle to the Vulkan queue object. */
 			VkQueue GetVulkanHandle() const { return mQueue; }
@@ -116,20 +122,54 @@ namespace b3d
 			};
 
 			/**
+			 * Per-submit scratch storage backing a single VkSubmitInfo (or VkPresentInfoKHR). Each submit owns
+			 * its own SubmitWorkBuffer pulled from a pool.
+			 */
+			struct SubmitWorkBuffer
+			{
+				TInlineArray<VkSemaphore, 8> SignalSemaphores;
+				TInlineArray<u64, 8> SignalValues;
+				TInlineArray<VkSemaphore, 8> WaitSemaphores;
+				TInlineArray<VkCommandBuffer, 8> CommandBuffers;
+				VkTimelineSemaphoreSubmitInfo TimelineSubmitInfo = {};
+
+				void Clear();
+			};
+
+			/**
 			 * Registers the command buffer for submission and generates the VkSubmitInfo structure that can be submitted to the queue.
 			 *
 			 * @param	commandBuffer		Command buffer to be submitted.
 			 * @param	waitSemaphores		Set of semaphores that should be waited on before the command buffers start executing.
+			 * @param	signalFences		Optional timeline-fence + value pairs to also signal when this submit finishes.
 			 */
-			VkSubmitInfo RegisterSubmissionAndGenerateSubmitInfo(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const TArrayView<VulkanSemaphore*>& waitSemaphores);
+			VkSubmitInfo RegisterSubmissionAndGenerateSubmitInfo(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences = {});
 
 			/**
 			 * Registers the set of command buffers for submission and generates the VkSubmitInfo structure that can be submitted to the queue.
 			 *
 			 * @param	commandBuffers		One or multiple command buffers to be submitted.
 			 * @param	waitSemaphores		Set of semaphores that should be waited on before the command buffers start executing.
+			 * @param	signalFences		Optional timeline-fence + value pairs to also signal when this submit finishes.
 			 */
-			VkSubmitInfo RegisterSubmissionAndGenerateSubmitInfo(const TArrayView<SPtr<VulkanGpuCommandBuffer>>& commandBuffers, const TArrayView<VulkanSemaphore*>& waitSemaphores);
+			VkSubmitInfo RegisterSubmissionAndGenerateSubmitInfo(const TArrayView<SPtr<VulkanGpuCommandBuffer>>& commandBuffers, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences = {});
+
+			/**
+			 * Acquires a SubmitWorkBuffer for a new submit. Grows the pool on first use, but reuses existing
+			 * heap-allocated buffers across frames (their previously grown capacity is retained). 
+			 *
+			 * @note	Submit thread only.
+			 */
+			SubmitWorkBuffer& AcquireSubmitWorkBuffer();
+
+			/**
+			 * Releases all currently acquired SubmitWorkBuffers back to the pool for reuse. Call after the
+			 * submitted VkSubmitInfo array has been handed to vkQueueSubmit (or vkQueuePresentKHR), at which
+			 * point Vulkan no longer references the buffers' data pointers.
+			 *
+			 * @note	Submit thread only.
+			 */
+			void ReleaseAllSubmitWorkBuffers();
 
 			VkQueue mQueue;
 			VkPipelineStageFlags mSubmitDstWaitMask[B3D_MAX_UNIQUE_QUEUES];
@@ -144,10 +184,10 @@ namespace b3d
 			bool mLastCBSemaphoreUsed = false;
 			u32 mNextSubmitIndex = 1;
 
-			TInlineArray<VkSemaphore, 8> mSignalSemaphoreHandleBuffer; // Helper to avoid re-allocating memory
-			TInlineArray<VkSemaphore, 8> mWaitSemaphoreHandleBuffer; // Helper to avoid re-allocating memory
-			TInlineArray<VulkanSemaphore*, 8> mWaitSemaphoreBuffer; // Helper to avoid re-allocating memory
-			TInlineArray<VkCommandBuffer, 8> mCommandBufferHandleBuffer; // Helper to avoid re-allocating memory
+			Vector<UPtr<SubmitWorkBuffer>> mSubmitWorkBufferPool;
+			u32 mActiveSubmitWorkBufferCount = 0;
+
+			TInlineArray<VulkanSemaphore*, 8> mWaitSemaphoreBuffer; // Input wrapper for ExecuteSubmitOnSubmitThread; cleared between adjacent submits.
 		};
 
 		/** @} */

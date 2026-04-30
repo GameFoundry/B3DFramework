@@ -21,7 +21,7 @@ namespace b3d
 		public:
 			NullGpuQueue(GpuDevice& device, GpuQueueType type, u32 index);
 
-			void SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, bool flushTransferCommandBuffer) override {}
+			void SubmitCommandBuffer(const GpuSubmissionInformation& information, bool flushTransferCommandBuffer = true) override {}
 			void WaitUntilIdle() override {}
 			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override {}
 		};

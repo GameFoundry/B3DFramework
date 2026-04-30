@@ -144,16 +144,15 @@ namespace b3d
 			}
 		}
 
-		void MetalGpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, bool flushTransferCommandBuffer)
+		void MetalGpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& information, bool flushTransferCommandBuffer)
 		{
+			if(flushTransferCommandBuffer)
+				mGpuDevice.SubmitTransferCommandBuffers();
+
+			(void)information.SignalFences; // Metal fence signaling is a TODO; framework default fence is always-signaled stub on this backend.
+			const SPtr<GpuCommandBuffer>& commandBuffer = information.CommandBuffer;
 			if (!commandBuffer)
 				return;
-
-			// Transfer flush, if requested, must land on the queue before this command buffer so any
-			// previously recorded transfer work is visible to it. The device's helper submits on
-			// GQT_TRANSFER / GQT_GRAPHICS queues depending on platform.
-			if (flushTransferCommandBuffer)
-				mGpuDevice.SubmitTransferCommandBuffers();
 
 			auto metalCB = std::static_pointer_cast<MetalGpuCommandBuffer>(commandBuffer);
 
@@ -162,6 +161,7 @@ namespace b3d
 			// with existing mask ... utilized at the time the command buffer is submitted to a queue."
 			// The Vulkan backend does the same fold in VulkanSubmitThread::QueueSubmit (see
 			// B3DVulkanSubmitThread.cpp: "syncMask |= commandBuffer->GetQueueSyncMask();").
+			GpuQueueMask syncMask = information.SyncMask;
 			syncMask |= metalCB->GetQueueSyncMask();
 
 			// Encode cross-queue waits *before* the command buffer's own work, then append a signal on

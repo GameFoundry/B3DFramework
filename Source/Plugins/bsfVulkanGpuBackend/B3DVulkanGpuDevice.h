@@ -13,6 +13,8 @@
 namespace b3d
 {
 	class VulkanGpuBackend;
+	class VulkanHeapBackend;
+	class VulkanGpuTimelineFence;
 
 	namespace render
 	{
@@ -82,6 +84,10 @@ namespace b3d
 			SPtr<GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation) override;
 			SPtr<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription) override;
 			UPtr<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) override;
+			SPtr<GpuTimelineFence> CreateTimelineFence() override;
+
+			/** Checks if submission with the specified index has finished executing on the GPU. This index is returned by SubmitCommandBuffer. */
+			bool IsSubmissionComplete(u64 index) const override;
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
 			GpuUniformBufferInformation GenerateUniformBufferInformation(const String& name, TArray<GpuUniformBufferMemberInformation>& inOutUniforms) override;
@@ -209,6 +215,12 @@ namespace b3d
 
 			/** @} */
 
+			/** Returns @c true if timeline semaphores are available on this device. */
+			bool SupportsTimelineSemaphores() const { return mSupportsTimelineSemaphore; }
+
+			/** Returns the device heap backend. */
+			VulkanHeapBackend& GetHeapBackend() const { return *mHeapBackend; }
+
 		private:
 			friend class b3d::VulkanGpuBackend;
 
@@ -248,6 +260,9 @@ namespace b3d
 			QueueInfo mQueueInfos[GQT_COUNT];
 			GpuDeviceCapabilities mCapabilities;
 			SPtr<VideoModeInfo> mVideoModeInfo;
+
+			bool mSupportsTimelineSemaphore = false;
+			UPtr<VulkanHeapBackend> mHeapBackend;
 		};
 
 		/** @} */
