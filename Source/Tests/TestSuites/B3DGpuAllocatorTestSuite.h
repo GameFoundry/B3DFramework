@@ -53,5 +53,29 @@ namespace b3d
 		 * observable via IsSignaled once the GPU has caught up.
 		 */
 		void TestUserCreatedFence_ExplicitSignal();
+
+		/** Compiles the TLSF allocator against the mock backend, asserts trait validation, instantiates with a fresh heap. */
+		void TestTlsf_ContractAndInitialState();
+
+		/** Single allocate / deallocate round-trip with deferred-fence drain. */
+		void TestTlsf_SingleAllocateDeallocate();
+
+		/** Multiple allocations land at non-overlapping offsets aligned to the requested alignment. */
+		void TestTlsf_NonOverlappingAlignedOffsets();
+
+		/** Three adjacent allocations free in different orders all coalesce to a single trailing free range. */
+		void TestTlsf_CoalesceAllOrders();
+
+		/** Large alignment forces leading-padding split — the allocator must remain consistent across alloc/free cycles. */
+		void TestTlsf_LargeAlignmentSplitsLeadingPadding();
+
+		/** Heap grows when an allocation doesn't fit; freed empties beyond the spare budget are returned to the backend. */
+		void TestTlsf_HeapGrowthAndEmptyRelease();
+
+		/** Allocations exceeding @c MaxHeapSize land in dedicated heaps sized to fit them. */
+		void TestTlsf_OversizedAllocationGetsDedicatedHeap();
+
+		/** Random alloc/free workload — proves no leak, no overlap, full reclaim after clear. */
+		void TestTlsf_RandomStressNoLeak();
 	};
 } // namespace b3d

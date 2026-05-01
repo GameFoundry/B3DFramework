@@ -8,7 +8,10 @@
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuCommandBufferPoolRing.h"
 #include "GpuBackend/Allocators/B3DGpuAllocator.h"
+#include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
+
+#include <random>
 
 using namespace b3d;
 using namespace b3d::render;
@@ -21,6 +24,14 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestSubmissionFence_InitialState)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestSubmissionFence_AdvancesAfterSubmit)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestUserCreatedFence_ExplicitSignal)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_ContractAndInitialState)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_SingleAllocateDeallocate)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_NonOverlappingAlignedOffsets)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_CoalesceAllOrders)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_LargeAlignmentSplitsLeadingPadding)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_HeapGrowthAndEmptyRelease)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_OversizedAllocationGetsDedicatedHeap)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_RandomStressNoLeak)
 }
 
 namespace
@@ -106,6 +117,7 @@ namespace
 
 		u32 DestroyCount() const { return mDestroyCount; }
 		u32 LiveHeapCount() const { return mLiveCount; }
+		u32 CreateCount() const { return (u32)mHeaps.size(); }
 
 	private:
 		struct Storage
@@ -150,6 +162,9 @@ namespace
 			mCompleted = index;
 		}
 
+		/** Simulates the GPU catching up to the most recently assigned submission. */
+		void SignalAll() { mCompleted = mLatest; }
+
 		u64 LatestSubmissionIndex() const { return mLatest; }
 		u64 CompletedSubmissionIndex() const { return mCompleted; }
 
@@ -159,6 +174,31 @@ namespace
 	};
 
 	using MockLocation = TGpuResourceLocation<MockHeapBackend>;
+	using TlsfAllocator = TGpuTlsfAllocator<MockHeapBackend>;
+
+	/** Helper: simulates a submit, deallocates, signals, flushes — drives a single retire entry to completion. */
+	void DeallocateAndDrain(TlsfAllocator& allocator, MockGpuSubmissionTracker& tracker, MockLocation& location)
+	{
+		tracker.Submit();
+		allocator.Deallocate(location);
+		tracker.SignalAll();
+		allocator.Flush();
+	}
+
+	/**
+	 * Default TLSF configuration: 1 MB heaps, capped at 4 MB, no warm-spare retention beyond 1.
+	 * The tests override individual fields as needed.
+	 */
+	TlsfAllocator::Configuration MakeDefaultTlsfConfig(u64 initial = 1 * 1024 * 1024, u64 maxHeap = 4 * 1024 * 1024)
+	{
+		TlsfAllocator::Configuration configuration;
+		configuration.InitialHeapSize = initial;
+		configuration.MaxHeapSize = maxHeap;
+		configuration.GrowthFactor = 2;
+		configuration.MaxEmptyHeapCount = 1;
+		configuration.MinAllocationSize = 16;
+		return configuration;
+	}
 
 	/** Identifier the deferred-free queue forwards to a strategy's FreeImmediateImpl. */
 	struct FreedSlot
@@ -458,4 +498,326 @@ void GpuAllocatorTestSuite::TestUserCreatedFence_ExplicitSignal()
 	// submit, so the explicit value-7 signal must be observable via IsSignaled.
 	device->WaitUntilIdle();
 	B3D_TEST_ASSERT(fence->IsSignaled(7))
+}
+
+void GpuAllocatorTestSuite::TestTlsf_ContractAndInitialState()
+{
+	// Compile-time proof: the trait-check macro accepts the mock backend.
+	B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID(MockHeapBackend);
+
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+
+	// No heap creation on construction — heaps are created lazily on first allocation.
+	TlsfAllocator allocator(&backend, &tracker, MakeDefaultTlsfConfig());
+	B3D_TEST_ASSERT(allocator.GetHeapCount() == 0)
+	B3D_TEST_ASSERT(allocator.GetCommittedBytes() == 0)
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == 0)
+
+	// First TryAllocate creates the initial heap.
+	MockLocation location;
+	const bool ok = allocator.TryAllocate(1024, 16, location);
+	B3D_TEST_ASSERT(ok)
+	B3D_TEST_ASSERT(allocator.GetHeapCount() == 1)
+	B3D_TEST_ASSERT(allocator.GetCommittedBytes() == 1 * 1024 * 1024)
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == 1)
+	B3D_TEST_ASSERT(location.IsValid())
+	B3D_TEST_ASSERT(location.Size >= 1024)
+	B3D_TEST_ASSERT((location.Offset & 15) == 0)
+
+	DeallocateAndDrain(allocator, tracker, location);
+}
+
+void GpuAllocatorTestSuite::TestTlsf_SingleAllocateDeallocate()
+{
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+	TlsfAllocator allocator(&backend, &tracker, MakeDefaultTlsfConfig());
+
+	MockLocation location;
+	B3D_TEST_ASSERT(allocator.TryAllocate(2048, 64, location))
+	B3D_TEST_ASSERT(location.Allocator == &allocator)
+	B3D_TEST_ASSERT((location.Offset & 63) == 0)
+
+	const u64 usedAfterAlloc = allocator.GetUsedBytes();
+	B3D_TEST_ASSERT(usedAfterAlloc >= 2048)
+
+	// Deferred drain: Deallocate stamps the retire entry but doesn't actually return memory until
+	// the submission has been signaled and Flush() runs.
+	const u64 retireSubmission = tracker.Submit();
+	allocator.Deallocate(location);
+	B3D_TEST_ASSERT(!location.IsValid())
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == usedAfterAlloc) // Still accounted for — fence pending.
+
+	tracker.Signal(retireSubmission);
+	allocator.Flush();
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_NonOverlappingAlignedOffsets()
+{
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+	TlsfAllocator allocator(&backend, &tracker, MakeDefaultTlsfConfig());
+
+	struct Alloc { MockLocation Location; u64 Begin; u64 End; };
+	Vector<Alloc> allocs;
+
+	const u32 allocCount = 64;
+	const u64 allocSize = 4096;
+	const u32 alignment = 256;
+
+	for (u32 allocIndex = 0; allocIndex < allocCount; allocIndex++)
+	{
+		Alloc record;
+		B3D_TEST_ASSERT(allocator.TryAllocate(allocSize, alignment, record.Location))
+		B3D_TEST_ASSERT((record.Location.Offset & (alignment - 1)) == 0)
+		record.Begin = record.Location.Offset;
+		record.End = record.Location.Offset + record.Location.Size;
+		allocs.push_back(record);
+	}
+
+	// Verify all (Heap, Begin, End) ranges are non-overlapping.
+	for (u32 outerIndex = 0; outerIndex < allocs.size(); outerIndex++)
+	{
+		for (u32 innerIndex = outerIndex + 1; innerIndex < allocs.size(); innerIndex++)
+		{
+			if (allocs[outerIndex].Location.Heap.Id != allocs[innerIndex].Location.Heap.Id)
+				continue;
+			const bool disjoint = allocs[outerIndex].End <= allocs[innerIndex].Begin
+				|| allocs[innerIndex].End <= allocs[outerIndex].Begin;
+			B3D_TEST_ASSERT(disjoint)
+		}
+	}
+
+	// Drain everything.
+	tracker.Submit();
+	for (Alloc& record : allocs)
+		allocator.Deallocate(record.Location);
+	tracker.SignalAll();
+	allocator.Flush();
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_CoalesceAllOrders()
+{
+	// Allocate three sequential blocks; free in different permutations and assert each ends up
+	// fully coalesced. The "fully coalesced" assertion is indirect: after each pass we re-allocate
+	// the entire heap as one block, which can only succeed if coalescing actually merged everything.
+	const u32 forwardOrder[3] = { 0, 1, 2 };
+	const u32 reverseOrder[3] = { 2, 1, 0 };
+	const u32 middleFirstOrder[3] = { 1, 0, 2 };
+	const u32 middleLastOrder[3] = { 0, 2, 1 };
+
+	const u32* patterns[4] = { forwardOrder, reverseOrder, middleFirstOrder, middleLastOrder };
+
+	for (u32 patternIndex = 0; patternIndex < 4; patternIndex++)
+	{
+		const u32* freeOrder = patterns[patternIndex];
+
+		MockHeapBackend backend;
+		MockGpuSubmissionTracker tracker;
+
+		TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+		configuration.InitialHeapSize = 64 * 1024;
+		configuration.MaxHeapSize = 64 * 1024;
+		TlsfAllocator allocator(&backend, &tracker, configuration);
+
+		const u64 blockSize = 16 * 1024;
+		MockLocation locations[3];
+		for (u32 blockIndex = 0; blockIndex < 3; blockIndex++)
+			B3D_TEST_ASSERT(allocator.TryAllocate(blockSize, 16, locations[blockIndex]))
+
+		// All three live in the same heap (heap is 64KB, allocations total 48KB).
+		B3D_TEST_ASSERT(locations[0].Heap.Id == locations[1].Heap.Id)
+		B3D_TEST_ASSERT(locations[0].Heap.Id == locations[2].Heap.Id)
+
+		tracker.Submit();
+		for (u32 freeIndex = 0; freeIndex < 3; freeIndex++)
+			allocator.Deallocate(locations[freeOrder[freeIndex]]);
+		tracker.SignalAll();
+		allocator.Flush();
+		B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
+
+		// Coalescing proof: a single allocation equal to the entire usable heap must succeed. If any
+		// of the original three blocks didn't merge with neighbors, a 48 KB allocation would fragment
+		// across two free ranges and fail.
+		MockLocation reuse;
+		B3D_TEST_ASSERT(allocator.TryAllocate(blockSize * 3, 16, reuse))
+		B3D_TEST_ASSERT(allocator.GetHeapCount() == 1)
+		DeallocateAndDrain(allocator, tracker, reuse);
+	}
+}
+
+void GpuAllocatorTestSuite::TestTlsf_LargeAlignmentSplitsLeadingPadding()
+{
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 1 * 1024 * 1024;
+	configuration.MaxHeapSize = 1 * 1024 * 1024;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	// Pin the start of the heap with a small allocation so the next allocation's natural offset is
+	// non-zero — this forces leading-padding handling when alignment is large.
+	MockLocation pin;
+	B3D_TEST_ASSERT(allocator.TryAllocate(64, 16, pin))
+
+	MockLocation aligned;
+	B3D_TEST_ASSERT(allocator.TryAllocate(8192, 4096, aligned))
+	B3D_TEST_ASSERT((aligned.Offset & 4095) == 0)
+	B3D_TEST_ASSERT(aligned.Offset >= pin.Offset + pin.Size)
+
+	// Free in reverse order — exercises both the leading-padding-was-folded path and the natural
+	// coalesce-on-free.
+	tracker.Submit();
+	allocator.Deallocate(aligned);
+	allocator.Deallocate(pin);
+	tracker.SignalAll();
+	allocator.Flush();
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
+
+	// After draining, the allocator should once again be able to fit a single allocation that
+	// occupies the entire usable heap.
+	MockLocation full;
+	B3D_TEST_ASSERT(allocator.TryAllocate(configuration.InitialHeapSize - 1024, 16, full))
+	B3D_TEST_ASSERT(allocator.GetHeapCount() == 1)
+	DeallocateAndDrain(allocator, tracker, full);
+}
+
+void GpuAllocatorTestSuite::TestTlsf_HeapGrowthAndEmptyRelease()
+{
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 64 * 1024;
+	configuration.MaxHeapSize = 64 * 1024;
+	configuration.GrowthFactor = 1; // Subsequent heaps stay the same size for predictability.
+	configuration.MaxEmptyHeapCount = 1;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	// Each allocation is 32 KB; the 64 KB heap fits two before grow.
+	const u64 allocSize = 32 * 1024;
+	Vector<MockLocation> allocs;
+
+	for (u32 allocIndex = 0; allocIndex < 6; allocIndex++)
+	{
+		MockLocation location;
+		B3D_TEST_ASSERT(allocator.TryAllocate(allocSize, 16, location))
+		allocs.push_back(location);
+	}
+
+	// 6 allocations / 2-per-heap = 3 heaps minimum. Single-allocation heaps may have been used too.
+	const u32 heapsAfterFill = allocator.GetHeapCount();
+	B3D_TEST_ASSERT(heapsAfterFill >= 3)
+	B3D_TEST_ASSERT(backend.CreateCount() == heapsAfterFill)
+
+	// Free everything.
+	tracker.Submit();
+	for (MockLocation& location : allocs)
+		allocator.Deallocate(location);
+	tracker.SignalAll();
+	allocator.Flush();
+
+	// MaxEmptyHeapCount = 1, so all but one heap must be returned to the backend.
+	B3D_TEST_ASSERT(allocator.GetHeapCount() == 1)
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == 1)
+	B3D_TEST_ASSERT(backend.DestroyCount() == heapsAfterFill - 1)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_OversizedAllocationGetsDedicatedHeap()
+{
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 64 * 1024;
+	configuration.MaxHeapSize = 64 * 1024;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	// Request a 128 KB block — twice the configured max heap size. The allocator must create a
+	// dedicated heap of at least the requested size (rather than failing) so that single-resource
+	// allocations larger than the typical heap budget still succeed.
+	MockLocation oversized;
+	B3D_TEST_ASSERT(allocator.TryAllocate(128 * 1024, 16, oversized))
+	B3D_TEST_ASSERT(oversized.Size >= 128 * 1024)
+	B3D_TEST_ASSERT(allocator.GetCommittedBytes() >= 128 * 1024)
+
+	DeallocateAndDrain(allocator, tracker, oversized);
+}
+
+void GpuAllocatorTestSuite::TestTlsf_RandomStressNoLeak()
+{
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 4 * 1024 * 1024;
+	configuration.MaxHeapSize = 16 * 1024 * 1024;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	std::mt19937 rng(0xB3D7B5Fu);
+	std::uniform_int_distribution<u32> sizeDistribution(16, 64 * 1024);
+	std::uniform_int_distribution<u32> alignmentBitDistribution(4, 12); // 16..4096
+	std::uniform_int_distribution<u32> opDistribution(0, 100);
+
+	struct Live { MockLocation Location; u64 Begin; u64 End; };
+	Vector<Live> live;
+	const u32 iterationCount = 4000;
+
+	for (u32 iteration = 0; iteration < iterationCount; iteration++)
+	{
+		const bool wantAlloc = live.empty() || opDistribution(rng) < 60;
+		if (wantAlloc)
+		{
+			Live record;
+			const u64 size = sizeDistribution(rng);
+			const u32 alignment = 1u << alignmentBitDistribution(rng);
+			if (allocator.TryAllocate(size, alignment, record.Location))
+			{
+				B3D_TEST_ASSERT((record.Location.Offset & (alignment - 1)) == 0)
+				record.Begin = record.Location.Offset;
+				record.End = record.Location.Offset + record.Location.Size;
+
+				// Verify non-overlap against every live entry on the same heap. The O(N) cost is
+				// negligible at the 4000-iteration / sub-1KB-live workload of this stress test.
+				for (const Live& other : live)
+				{
+					if (other.Location.Heap.Id != record.Location.Heap.Id)
+						continue;
+					const bool disjoint = record.End <= other.Begin || other.End <= record.Begin;
+					B3D_TEST_ASSERT(disjoint)
+				}
+				live.push_back(record);
+			}
+		}
+		else
+		{
+			std::uniform_int_distribution<u32> indexDistribution(0, (u32)live.size() - 1);
+			const u32 victimIndex = indexDistribution(rng);
+			tracker.Submit();
+			allocator.Deallocate(live[victimIndex].Location);
+			live[victimIndex] = live.back();
+			live.pop_back();
+		}
+
+		// Periodically advance the submission counter so retire queue drains.
+		if ((iteration % 32) == 0)
+		{
+			tracker.SignalAll();
+			allocator.Flush();
+		}
+	}
+
+	// Drain the rest.
+	tracker.Submit();
+	for (Live& record : live)
+		allocator.Deallocate(record.Location);
+	tracker.SignalAll();
+	allocator.Flush();
+
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
 }
