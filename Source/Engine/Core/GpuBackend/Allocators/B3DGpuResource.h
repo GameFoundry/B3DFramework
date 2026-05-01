@@ -11,6 +11,17 @@ namespace b3d
 	 */
 
 	/**
+	 * Memory-layout category of a GPU allocation. Some APIs require different allocation granularity when
+	 * linear and non-linear entries overlap (i.e. buffer image granularity), and this is used by the allocator 
+	 * to respect that.
+	 */
+	enum class GpuResourceKind : u8
+	{
+		Linear		= 0,
+		NonLinear	= 1
+	};
+
+	/**
 	 * Common interface for a resource that can be stored on the GPU. Provides the use/bound counts
 	 * that can be queried whether a resource is currently in flight, plus a relocation hook fired
 	 * after an allocator has moved the resource allocation (i.e. during defragmentation).

@@ -49,6 +49,12 @@ namespace b3d
 		/** Bit set in TlsfBlockNode::Flags when the node is the trailing null block of its heap. */
 		constexpr u32 kBlockFlagNullBlock	= 1u << 1;
 
+		/** Bit set in TlsfBlockNode::Flags when a live allocation is non-linear (optimally-tiled image). */
+		constexpr u32 kBlockFlagNonLinear	= 1u << 2;
+
+		/** Sentinel category for an empty granularity page (no live allocations touch it). */
+		constexpr u8  kCategoryFree			= 0xFF;
+
 		/**
 		 * Maps an allocation size to a (firstLevel, secondLevel) bucket. The first-level class is the MSB-derived 
 		 * size order, the second-level class linearly subdivides each first-level range into kSecondLevelCount sub-buckets.
@@ -100,6 +106,77 @@ namespace b3d
 			bool IsNullNode() const { return (Flags & kBlockFlagNullBlock) != 0; }
 		};
 
+		/**
+		 * Helper that is used for ensuring that non-linear images are placed at correct alignment (granularity).
+		 * Some backends have different alignment requirements if a non-linear image follows or trails 
+		 * a linear memory allocation, which this object helps to track.
+		 *
+		 * One entry per granularity-aligned page. Only the start and end pages of each allocation are ever referenced.
+		 *
+		 * Default-constructed instances are inert (no allocation). Non-copyable.
+		 */
+		class GranularityTracker
+		{
+		public:
+			GranularityTracker() = default;
+			~GranularityTracker()										{ Destroy(); }
+
+			GranularityTracker(const GranularityTracker&)				= delete;
+			GranularityTracker& operator=(const GranularityTracker&)	= delete;
+
+			/**
+			 * Allocate the page table sized for @p heapSize. When @p granularity is <= 1 or
+			 * <= @p disableThreshold the tracker stays inert — every call below short-circuits. 
+			 * @p disableThreshold is useful if allocations are guaranteed to be aligned to this
+			 * value regardless of buffer-image granularity.
+			 */
+			void Initialize(u64 heapSize, u64 granularity, u64 disableThreshold);
+
+			/** Releases the page table. Safe to call on an inert tracker. */
+			void Destroy();
+
+			/** True when the page table is allocated and the conflict checks are live. */
+			bool IsEnabled() const { return mPages != nullptr; }
+
+			/** Bumps the refcounts for the start + end pages of @p [offset, offset+size). */
+			void MarkPages(u64 offset, u64 size, GpuResourceKind kind);
+
+			/** Decrements the refcounts for the start + end pages; resets category to Free at zero. */
+			void UnmarkPages(u64 offset, u64 size);
+
+			/**
+			 * Adjust @p inOutOffset upward to clear any granularity conflict at the start page;
+			 * return false if the adjusted range overruns @p blockEnd or the end page holds
+			 * a conflicting allocation. Returns true (no-op) when the tracker is inert.
+			 */
+			bool CheckAndAlignUp(u64& inOutOffset, u64 size, GpuResourceKind kind, u64 blockEnd) const;
+
+#if B3D_DEBUG
+			/** Asserts every page has zero LiveCount — sanity check when a heap goes empty. */
+			void AssertEmpty() const;
+#endif
+
+		private:
+			struct Page
+			{
+				u8	Category;	// GpuResourceKind value, or kCategoryFree when empty.
+				u16	LiveCount;	// refcount of allocations touching this page.
+			};
+
+			static bool IsConflict(u8 a, u8 b)
+			{
+				if (a == kCategoryFree || b == kCategoryFree)
+					return false;
+
+				return a != b;
+			}
+
+			Page*	mPages			= nullptr;
+			u32		mPageCount		= 0;
+			u64		mGranularity	= 1;
+			u32		mPageShift		= 0;
+		};
+
 		/** Per-heap TLSF metadata. */
 		template <typename HeapBackend>
 		struct TlsfHeapState
@@ -111,14 +188,11 @@ namespace b3d
 			u32 PhysicalListHead	= kInvalidIndex;
 			u32 NullNodeIndex		= kInvalidIndex;
 
-			// Free-list head per (firstLevel, secondLevel) bucket. Updated alongside the bitmaps.
-			u32 FreeListHead[kFreeListCount];
+			u32 FreeListHead[kFreeListCount]; /**< Free-list head per (firstLevel, secondLevel) bucket. Updated alongside the bitmaps. */
+			u32 FirstLevelFreeBitmask = 0; /**< Bit set if any entry in SecondLevelFreeBitmask[firstLevel] is non-zero. */
+			u32 SecondLevelFreeBitmask[kFirstLevelClassCount]; /**< Bit set when FreeListHead[(firstLevel, secondLevel)] is non-empty. */
 
-			// Bit set if any entry in SecondLevelFreeBitmask[firstLevel] is non-zero.
-			u32 FirstLevelFreeBitmask = 0;
-
-			// Bit set when FreeListHead[(firstLevel, secondLevel)] is non-empty.
-			u32 SecondLevelFreeBitmask[kFirstLevelClassCount];
+			GranularityTracker Granularity; /**< Buffer-image granularity tracker — inert when the allocator is configured with granularity <= 1 or below the threshold. */
 
 			TlsfHeapState()
 			{
@@ -129,6 +203,114 @@ namespace b3d
 					SecondLevelFreeBitmask[firstLevel] = 0;
 			}
 		};
+
+		inline void GranularityTracker::Initialize(u64 heapSize, u64 granularity, u64 disableThreshold)
+		{
+			// Idempotent — covers the "Init twice" sanity case.
+			Destroy();
+
+			if (granularity <= 1 || granularity <= disableThreshold)
+				return;
+
+			B3D_ASSERT(Bitwise::IsPow2(granularity));
+			mGranularity = granularity;
+			mPageShift = (u32)Bitwise::MostSignificantBit(granularity);
+			mPageCount = (u32)((heapSize + granularity - 1) >> mPageShift);
+			mPages = (Page*)B3DAllocate(mPageCount * sizeof(Page));
+			for (u32 pageIndex = 0; pageIndex < mPageCount; pageIndex++)
+			{
+				mPages[pageIndex].Category = kCategoryFree;
+				mPages[pageIndex].LiveCount = 0;
+			}
+		}
+
+		inline void GranularityTracker::Destroy()
+		{
+			if (mPages != nullptr)
+				B3DFree(mPages);
+
+			mPages = nullptr;
+			mPageCount = 0;
+			mGranularity = 1;
+			mPageShift = 0;
+		}
+
+		inline void GranularityTracker::MarkPages(u64 offset, u64 size, GpuResourceKind kind)
+		{
+			if (mPages == nullptr)
+				return;
+
+			const u32 startPage = (u32)(offset >> mPageShift);
+			const u32 endPage = (u32)((offset + size - 1) >> mPageShift);
+			const u8 category = (u8)kind;
+
+			if (mPages[startPage].LiveCount == 0 || mPages[startPage].Category == kCategoryFree)
+				mPages[startPage].Category = category;
+
+			mPages[startPage].LiveCount++;
+
+			if (endPage != startPage)
+			{
+				if (mPages[endPage].LiveCount == 0 || mPages[endPage].Category == kCategoryFree)
+					mPages[endPage].Category = category;
+
+				mPages[endPage].LiveCount++;
+			}
+		}
+
+		inline void GranularityTracker::UnmarkPages(u64 offset, u64 size)
+		{
+			if (mPages == nullptr)
+				return;
+
+			const u32 startPage = (u32)(offset >> mPageShift);
+			const u32 endPage = (u32)((offset + size - 1) >> mPageShift);
+
+			B3D_ASSERT(mPages[startPage].LiveCount > 0);
+			if (--mPages[startPage].LiveCount == 0)
+				mPages[startPage].Category = kCategoryFree;
+
+			if (endPage != startPage)
+			{
+				B3D_ASSERT(mPages[endPage].LiveCount > 0);
+				if (--mPages[endPage].LiveCount == 0)
+					mPages[endPage].Category = kCategoryFree;
+			}
+		}
+
+		inline bool GranularityTracker::CheckAndAlignUp(u64& inOutOffset, u64 size, GpuResourceKind kind, u64 blockEnd) const
+		{
+			if (mPages == nullptr)
+				return true;
+
+			const u8 category = (u8)kind;
+			u32 startPage = (u32)(inOutOffset >> mPageShift);
+			if (mPages[startPage].LiveCount > 0 && IsConflict(mPages[startPage].Category, category))
+			{
+				inOutOffset = (inOutOffset + mGranularity - 1) & ~(mGranularity - 1);
+				if (inOutOffset + size > blockEnd)
+					return false;
+
+				startPage++;
+			}
+
+			const u32 endPage = (u32)((inOutOffset + size - 1) >> mPageShift);
+			if (endPage != startPage && mPages[endPage].LiveCount > 0 && IsConflict(mPages[endPage].Category, category))
+				return false;
+
+			return true;
+		}
+
+#if B3D_DEBUG
+		inline void GranularityTracker::AssertEmpty() const
+		{
+			if (mPages == nullptr)
+				return;
+
+			for (u32 pageIndex = 0; pageIndex < mPageCount; pageIndex++)
+				B3D_ASSERT(mPages[pageIndex].LiveCount == 0);
+		}
+#endif
 	} // namespace tlsf_detail
 
 	/**
@@ -137,14 +319,14 @@ namespace b3d
 	 * a list of backend heaps; allocations report back to the consumer via TGpuResourceLocation, with 
 	 * the heap index and pool node index stored in the location's two strategy-private slots.
 	 *
-	 * **Threading.** Single-threaded by contract —  Caller is responsible for external synchronization 
+	 * **Threading.** Single-threaded by contract —  Caller is responsible for external synchronization
 	 * if the same instance is shared between threads.
 	 *
-	 * TODO:
-	 * **Resource-type homogeneity.** Each allocator instance is expected to be dedicated to a single
-	 * resource kind (buffers OR images, not mixed) so that Vulkan's bufferImageGranularity does not
-	 * apply between sub-allocations. Engine-side factories should construct one allocator per
-	 * @c (memoryType, resourceKind) combination.
+	 * **Buffer-image granularity.** A single allocator instance can host mixed linear (buffer / linear image)
+	 * and non-linear (optimally-tiled image) allocations safely; pass the appropriate GpuResourceKind to
+	 * TryAllocate. The configured BufferImageGranularity  drives the mandatory padding between conflicting
+	 * neighbors. When the configured granularity is at or below GranularityDisableThreshold the tracker
+	 * is fully inert and adds zero per-allocation overhead.
 	 *
 	 * TODO:
 	 * **Defragmentation.** Not exposed in this first pass. The data structures (per-heap physical
@@ -185,6 +367,21 @@ namespace b3d
 			/** Allocations smaller than this are rounded up — keeps tiny allocations from over-fragmenting the small bucket. */
 			u64 MinAllocationSize = 16;
 
+			/**
+			 * Buffer-image granularity in bytes (e.g. Vulkan VkPhysicalDeviceLimits). Linear and
+			 * non-linear allocations sharing one heap are guaranteed to be separated by at least this
+			 * many bytes. Default 1 disables buffer image granularity handling at zero cost. 
+			 * Must be a power of two when > 1.
+			 */
+			u64 BufferImageGranularity = 1;
+
+			/**
+			 * Skip the per-heap region table when BufferImageGranularity is at or below this threshold.
+			 * At small granularities the natural alignment of typical buffers (>= 256 B for UBO/SSBO bindings) 
+			 * implicitly satisfies the constraint, so the tracker's memory cost is wasted. Set to 0 to track every granularity > 1.
+			 */
+			u64 GranularityDisableThreshold = 256;
+
 			/** Backend create-info forwarded verbatim to  HeapBackend::CreateHeap on each grow. */
 			typename HeapBackend::HeapCreateInformation HeapCreateInfo{};
 		};
@@ -196,6 +393,7 @@ namespace b3d
 			B3D_ASSERT(mConfig.InitialHeapSize > 0);
 			B3D_ASSERT(mConfig.MaxHeapSize >= mConfig.InitialHeapSize);
 			B3D_ASSERT(mConfig.MinAllocationSize > 0);
+			B3D_ASSERT(mConfig.BufferImageGranularity == 1 || Bitwise::IsPow2(mConfig.BufferImageGranularity));
 			// Guards the bitmap-width constraint — sizes whose MSB exceeds this cap can't be bucketed.
 			B3D_ASSERT(mConfig.MaxHeapSize < (1ull << (tlsf_detail::kFirstLevelClassCount + tlsf_detail::kMemoryClassShift)));
 		}
@@ -225,7 +423,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		bool TryAllocateImpl(u64 size, u32 alignment, Location& out)
+		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, Location& out)
 		{
 			B3D_ASSERT(out.Allocator == nullptr);
 			B3D_ASSERT(alignment > 0);
@@ -240,7 +438,7 @@ namespace b3d
 				if (heap == nullptr)
 					continue;
 
-				if (TryAllocateInHeap(*heap, heapIndex, requestedSize, alignment, out))
+				if (TryAllocateInHeap(*heap, heapIndex, requestedSize, alignment, kind, out))
 					return true;
 			}
 
@@ -251,7 +449,7 @@ namespace b3d
 				return false;
 
 			HeapState& fresh = *mHeaps[newHeapIndex];
-			const bool ok = TryAllocateInHeap(fresh, newHeapIndex, requestedSize, alignment, out);
+			const bool ok = TryAllocateInHeap(fresh, newHeapIndex, requestedSize, alignment, kind, out);
 			B3D_ASSERT(ok); // A fresh heap big enough for the request must satisfy it.
 
 			return ok;
@@ -273,6 +471,8 @@ namespace b3d
 
 			Node& node = mNodes[nodeIndex];
 			B3D_ASSERT(!node.IsFree());
+
+			heap->Granularity.UnmarkPages(node.Offset, node.Size);
 
 			heap->FreeSize += node.Size;
 			heap->LiveAllocCount--;
@@ -339,6 +539,8 @@ namespace b3d
 			// Release a fully-empty heap if we're already over the spare budget.
 			if (heap->LiveAllocCount == 0)
 			{
+				B3D_DEBUG_ONLY(heap->Granularity.AssertEmpty());
+
 				if (mEmptyHeapCount < mConfig.MaxEmptyHeapCount)
 					mEmptyHeapCount++;
 				else
@@ -480,11 +682,12 @@ namespace b3d
 		}
 
 		/**
-		 * Find a free node in @p heap that can satisfy a (size, alignment) request. Searches the natural
-		 * bucket first (best-fit candidates live there) and walks larger buckets via the bitmaps if needed.
-		 * Returns kInvalidIndex on miss.
+		 * Find a free node in @p heap that can satisfy a (size, alignment, kind) request. Searches the
+		 * natural bucket first (best-fit candidates live there) and walks larger buckets via the bitmaps
+		 * if needed. The returned @p outAlignedOffset folds in both natural alignment and any buffer image granularity
+		 * inflation, so the carver doesn't have to recompute either. Returns kInvalidIndex on miss.
 		 */
-		u32 FindFreeNode(const HeapState& heap, u64 size, u32 alignment) const
+		u32 FindFreeNode(const HeapState& heap, u64 size, u32 alignment, GpuResourceKind kind, u64& outAlignedOffset) const
 		{
 			u32 firstLevel = 0;
 			u32 secondLevel = 0;
@@ -494,7 +697,7 @@ namespace b3d
 			if ((heap.SecondLevelFreeBitmask[firstLevel] & (1u << secondLevel)) != 0)
 			{
 				const u32 listIndex = tlsf_detail::GetListIndex(firstLevel, secondLevel);
-				const u32 candidateNodeIndex = WalkBucketForFit(heap, listIndex, size, alignment);
+				const u32 candidateNodeIndex = WalkBucketForFit(heap, listIndex, size, alignment, kind, outAlignedOffset);
 				if (candidateNodeIndex != tlsf_detail::kInvalidIndex)
 					return candidateNodeIndex;
 			}
@@ -517,7 +720,7 @@ namespace b3d
 				{
 					const u32 chosenSecondLevel = (u32)Bitwise::LeastSignificantBit(secondLevelBitmask);
 					const u32 listIndex = tlsf_detail::GetListIndex(nextFirstLevel, chosenSecondLevel);
-					const u32 candidateNodeIndex = WalkBucketForFit(heap, listIndex, size, alignment);
+					const u32 candidateNodeIndex = WalkBucketForFit(heap, listIndex, size, alignment, kind, outAlignedOffset);
 					if (candidateNodeIndex != tlsf_detail::kInvalidIndex)
 						return candidateNodeIndex;
 
@@ -541,10 +744,10 @@ namespace b3d
 				{
 					const u32 chosenSecondLevel = (u32)Bitwise::LeastSignificantBit(secondLevelBitmask);
 					const u32 listIndex = tlsf_detail::GetListIndex(chosenFirstLevel, chosenSecondLevel);
-					const u32 candidate = WalkBucketForFit(heap, listIndex, size, alignment);
+					const u32 candidate = WalkBucketForFit(heap, listIndex, size, alignment, kind, outAlignedOffset);
 					if (candidate != tlsf_detail::kInvalidIndex)
 						return candidate;
-	
+
 					secondLevelBitmask &= ~(1u << chosenSecondLevel);
 				}
 
@@ -555,24 +758,36 @@ namespace b3d
 			if (heap.NullNodeIndex != tlsf_detail::kInvalidIndex)
 			{
 				const Node& nullBlock = mNodes[heap.NullNodeIndex];
-				const u64 alignedOffset = AlignUp(nullBlock.Offset, alignment);
-				if (alignedOffset + size <= nullBlock.Offset + nullBlock.Size)
+				u64 alignedOffset = AlignUp(nullBlock.Offset, alignment);
+				if (heap.Granularity.CheckAndAlignUp(alignedOffset, size, kind, nullBlock.Offset + nullBlock.Size) && alignedOffset + size <= nullBlock.Offset + nullBlock.Size)
+				{
+					outAlignedOffset = alignedOffset;
 					return heap.NullNodeIndex;
+				}
 			}
 
 			return tlsf_detail::kInvalidIndex;
 		}
 
-		/** Walk a bucket's free list and return the first node large enough to satisfy (size, alignment). */
-		u32 WalkBucketForFit(const HeapState& heap, u32 listIndex, u64 size, u32 alignment) const
+		/**
+		 * Walk a bucket's free list and return the first node large enough to satisfy (size, alignment, kind).
+		 * The returned @p outAlignedOffset contains any buffer image granularity past natural alignment.
+		 */
+		u32 WalkBucketForFit(const HeapState& heap, u32 listIndex, u64 size, u32 alignment, GpuResourceKind kind, u64& outAlignedOffset) const
 		{
 			u32 cursor = heap.FreeListHead[listIndex];
 			while (cursor != tlsf_detail::kInvalidIndex)
 			{
 				const Node& node = mNodes[cursor];
-				const u64 alignedOffset = AlignUp(node.Offset, alignment);
-				if (alignedOffset + size <= node.Offset + node.Size)
+				u64 alignedOffset = AlignUp(node.Offset, alignment);
+
+				// Buffer image granularity: adjust the offset if the start page holds a conflicting allocation. Reject the
+				// candidate when the inflated range would overrun the block or end-page conflict can't be avoided.
+				if (heap.Granularity.CheckAndAlignUp(alignedOffset, size, kind, node.Offset + node.Size) && alignedOffset + size <= node.Offset + node.Size)
+				{
+					outAlignedOffset = alignedOffset;
 					return cursor;
+				}
 
 				cursor = node.NextFree;
 			}
@@ -580,16 +795,17 @@ namespace b3d
 		}
 
 		/**
-		 * Carve a (size, alignment) allocation out of the candidate node, splitting any leading padding
-		 * and trailing remainder into separate free nodes. Returns the node-index of the allocated block.
+		 * Carve a @p size byte allocation starting at @p alignedOffset out of the candidate node, splitting
+		 * any leading padding and trailing remainder into separate free nodes. Returns the node-index of the allocated block.
 		 */
-		u32 CarveAllocation(HeapState& heap, u32 candidateIndex, u64 size, u32 alignment)
+		u32 CarveAllocation(HeapState& heap, u32 candidateIndex, u64 alignedOffset, u64 size)
 		{
 			Node* candidateNode = &mNodes[candidateIndex];
 			B3D_ASSERT(candidateNode->IsFree());
+			B3D_ASSERT(alignedOffset >= candidateNode->Offset);
+			B3D_ASSERT(alignedOffset + size <= candidateNode->Offset + candidateNode->Size);
 
 			const bool wasNullNode = candidateNode->IsNullNode();
-			const u64 alignedOffset = AlignUp(candidateNode->Offset, alignment);
 			const u64 leadingPadding = alignedOffset - candidateNode->Offset;
 
 			if (!wasNullNode)
@@ -699,7 +915,7 @@ namespace b3d
 		}
 
 		/** Search-and-carve combined: returns true on hit and populates @p out, false on miss. */
-		bool TryAllocateInHeap(HeapState& heap, u32 heapIndex, u64 size, u32 alignment, Location& out)
+		bool TryAllocateInHeap(HeapState& heap, u32 heapIndex, u64 size, u32 alignment, GpuResourceKind kind, Location& out)
 		{
 			// Cheap fast-fail: a heap whose total free size is less than the bare request can never fit.
 			// Don't include alignment slack here — the natural-bucket walk in FindFreeNode rejects misaligned
@@ -707,13 +923,18 @@ namespace b3d
 			if (heap.FreeSize < size)
 				return false;
 
-			const u32 candidateNodeIndex = FindFreeNode(heap, size, alignment);
+			u64 alignedOffset = 0;
+			const u32 candidateNodeIndex = FindFreeNode(heap, size, alignment, kind, alignedOffset);
 			if (candidateNodeIndex == tlsf_detail::kInvalidIndex)
 				return false;
 
 			const bool heapWasEmpty = (heap.LiveAllocCount == 0);
-			const u32 allocatedNodeIndex = CarveAllocation(heap, candidateNodeIndex, size, alignment);
-			const Node& allocated = mNodes[allocatedNodeIndex];
+			const u32 allocatedNodeIndex = CarveAllocation(heap, candidateNodeIndex, alignedOffset, size);
+			Node& allocated = mNodes[allocatedNodeIndex];
+			if (kind == GpuResourceKind::NonLinear)
+				allocated.Flags |= tlsf_detail::kBlockFlagNonLinear;
+
+			heap.Granularity.MarkPages(allocated.Offset, allocated.Size, kind);
 
 			heap.FreeSize -= allocated.Size;
 			heap.LiveAllocCount++;
@@ -740,6 +961,7 @@ namespace b3d
 			heapState->Heap = handle;
 			heapState->TotalSize = sizeInBytes;
 			heapState->FreeSize = sizeInBytes;
+			heapState->Granularity.Initialize(sizeInBytes, mConfig.BufferImageGranularity, mConfig.GranularityDisableThreshold);
 
 			const u32 nullNodeIndex = AllocateNode();
 			Node& nullNode = mNodes[nullNodeIndex];

@@ -121,10 +121,19 @@ namespace b3d
 
 		using Location = TGpuResourceLocation<HeapBackend>;
 
-		/** Attempts to allocate @p size bytes with @p alignment. Returns @c false on failure. */
+		/** Attempts to allocate @p size bytes with @p alignment. Resource kind defaults to @c Linear. */
 		bool TryAllocate(u64 size, u32 alignment, Location& out)
 		{
-			return static_cast<Derived*>(this)->TryAllocateImpl(size, alignment, out);
+			return TryAllocate(size, alignment, GpuResourceKind::Linear, out);
+		}
+
+		/**
+		 * Attempts to allocate @p size bytes with @p alignment, tagged with @p kind so the strategy
+		 * can honor buffer-image granularity.
+		 */
+		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, Location& out)
+		{
+			return static_cast<Derived*>(this)->TryAllocateImpl(size, alignment, kind, out);
 		}
 
 		/**

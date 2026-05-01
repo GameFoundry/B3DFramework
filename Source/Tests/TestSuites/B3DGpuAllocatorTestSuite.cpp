@@ -32,6 +32,11 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_HeapGrowthAndEmptyRelease)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_OversizedAllocationGetsDedicatedHeap)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_RandomStressNoLeak)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_GranularityDisabled)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_GranularityHomogeneousNoPadding)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_GranularityLinearVsNonLinearInflatesPadding)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_GranularityRejectAndRetryAcrossHeaps)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_GranularityFreeReleasesRegion)
 }
 
 namespace
@@ -200,6 +205,15 @@ namespace
 		return configuration;
 	}
 
+	/** TLSF configuration with BIG enabled — disables the "small granularity" early-out so the tracker is always live. */
+	TlsfAllocator::Configuration MakeTlsfConfigWithGranularity(u64 granularity)
+	{
+		TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+		configuration.BufferImageGranularity = granularity;
+		configuration.GranularityDisableThreshold = 0;
+		return configuration;
+	}
+
 	/** Identifier the deferred-free queue forwards to a strategy's FreeImmediateImpl. */
 	struct FreedSlot
 	{
@@ -226,7 +240,7 @@ namespace
 			: Base(backend, tracker)
 		{}
 
-		bool TryAllocateImpl(u64 /*size*/, u32 /*alignment*/, MockLocation& /*out*/)
+		bool TryAllocateImpl(u64 /*size*/, u32 /*alignment*/, GpuResourceKind /*kind*/, MockLocation& /*out*/)
 		{
 			return false;
 		}
@@ -820,4 +834,124 @@ void GpuAllocatorTestSuite::TestTlsf_RandomStressNoLeak()
 	allocator.Flush();
 
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_GranularityDisabled()
+{
+	// Default config: BufferImageGranularity = 1 → tracker is fully inert. Linear / NonLinear
+	// allocations should pack contiguously without any BIG-driven padding.
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+	TlsfAllocator allocator(&backend, &tracker, MakeDefaultTlsfConfig());
+
+	MockLocation linearLocation;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1000, 16, GpuResourceKind::Linear, linearLocation))
+
+	MockLocation nonLinearLocation;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1000, 16, GpuResourceKind::NonLinear, nonLinearLocation))
+
+	// With granularity disabled the second allocation must fall immediately after the first
+	// (rounded up only by natural alignment to 16). 1000 → 16-aligned end is 1008.
+	B3D_TEST_ASSERT(linearLocation.Offset == 0)
+	B3D_TEST_ASSERT(nonLinearLocation.Offset == 1008)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_GranularityHomogeneousNoPadding()
+{
+	// All-Linear workload — no conflicting neighbors anywhere, so BIG inflation never fires.
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+	TlsfAllocator allocator(&backend, &tracker, MakeTlsfConfigWithGranularity(4096));
+
+	MockLocation a, b, c;
+	B3D_TEST_ASSERT(allocator.TryAllocate(3000, 16, GpuResourceKind::Linear, a))
+	B3D_TEST_ASSERT(allocator.TryAllocate(3000, 16, GpuResourceKind::Linear, b))
+	B3D_TEST_ASSERT(allocator.TryAllocate(3000, 16, GpuResourceKind::Linear, c))
+
+	// 3000 → 16-aligned end is 3008. Allocations pack tightly even though they all straddle
+	// the 4 KB granularity boundary, because there's no Linear-vs-NonLinear conflict.
+	B3D_TEST_ASSERT(a.Offset == 0)
+	B3D_TEST_ASSERT(b.Offset == 3008)
+	B3D_TEST_ASSERT(c.Offset == 6016)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_GranularityLinearVsNonLinearInflatesPadding()
+{
+	// The first allocation occupies the start of page 0; the second is NonLinear and would
+	// naturally land at offset 1008 but that's still inside page 0 (which now holds Linear),
+	// so BIG inflation must bump it past the granularity boundary to offset 4096.
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+	TlsfAllocator allocator(&backend, &tracker, MakeTlsfConfigWithGranularity(4096));
+
+	MockLocation linearLocation;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1000, 16, GpuResourceKind::Linear, linearLocation))
+	B3D_TEST_ASSERT(linearLocation.Offset == 0)
+
+	MockLocation nonLinearLocation;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1000, 16, GpuResourceKind::NonLinear, nonLinearLocation))
+	B3D_TEST_ASSERT(nonLinearLocation.Offset == 4096)
+
+	// Sanity: a Linear-Linear sequence in the same starting state would *not* be bumped.
+	MockHeapBackend baselineBackend;
+	MockGpuSubmissionTracker baselineTracker;
+	TlsfAllocator baselineAllocator(&baselineBackend, &baselineTracker, MakeTlsfConfigWithGranularity(4096));
+
+	MockLocation baselineFirst;
+	MockLocation baselineSecond;
+	B3D_TEST_ASSERT(baselineAllocator.TryAllocate(1000, 16, GpuResourceKind::Linear, baselineFirst))
+	B3D_TEST_ASSERT(baselineAllocator.TryAllocate(1000, 16, GpuResourceKind::Linear, baselineSecond))
+	B3D_TEST_ASSERT(baselineSecond.Offset == 1008)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_GranularityRejectAndRetryAcrossHeaps()
+{
+	// Single 8 KB heap with two Linear allocations that fill all but the trailing 1 KB.
+	// A NonLinear request that would land in the trailing slot is rejected by the BIG check
+	// (start page holds a Linear allocation; bump-up overruns the heap), forcing the allocator
+	// to fall through and create a fresh heap for the NonLinear.
+	TlsfAllocator::Configuration configuration = MakeTlsfConfigWithGranularity(4096);
+	configuration.InitialHeapSize = 8192;
+	configuration.MaxHeapSize = 8192;
+
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	MockLocation firstLinear;
+	MockLocation secondLinear;
+	B3D_TEST_ASSERT(allocator.TryAllocate(4096, 16, GpuResourceKind::Linear, firstLinear))
+	B3D_TEST_ASSERT(allocator.TryAllocate(3072, 16, GpuResourceKind::Linear, secondLinear))
+	B3D_TEST_ASSERT(backend.CreateCount() == 1)
+
+	// 1 KB free remaining at heap-tail (offset 7168) — but BIG forces the NonLinear past 8192,
+	// which doesn't fit. The allocator must spin up a second heap.
+	MockLocation nonLinear;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, GpuResourceKind::NonLinear, nonLinear))
+	B3D_TEST_ASSERT(backend.CreateCount() == 2)
+	B3D_TEST_ASSERT(nonLinear.AllocatorData0 != firstLinear.AllocatorData0)
+	B3D_TEST_ASSERT(nonLinear.Offset == 0)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_GranularityFreeReleasesRegion()
+{
+	// Reserve page 0 with a Linear allocation, force a NonLinear past the boundary, then free
+	// the Linear and confirm a fresh NonLinear can land at offset 0 — the page-table refcount
+	// has dropped to zero so the page reverts to Free and no longer conflicts.
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+	TlsfAllocator allocator(&backend, &tracker, MakeTlsfConfigWithGranularity(4096));
+
+	MockLocation linearLocation;
+	MockLocation firstNonLinear;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1000, 16, GpuResourceKind::Linear, linearLocation))
+	B3D_TEST_ASSERT(allocator.TryAllocate(1000, 16, GpuResourceKind::NonLinear, firstNonLinear))
+	B3D_TEST_ASSERT(linearLocation.Offset == 0)
+	B3D_TEST_ASSERT(firstNonLinear.Offset == 4096)
+
+	DeallocateAndDrain(allocator, tracker, linearLocation);
+
+	MockLocation freshNonLinear;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1000, 16, GpuResourceKind::NonLinear, freshNonLinear))
+	B3D_TEST_ASSERT(freshNonLinear.Offset == 0)
 }
