@@ -64,50 +64,6 @@ namespace b3d
 	#define B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID(T) static_assert(::b3d::detail::CheckHeapBackend<T>::kValid, "Heap backend does not satisfy the GpuHeapBackend trait.")
 
 	/**
-	 * GPU memory allocation as returned by a GPU memory allocator. Used for freeing the allocation, as well
-	 * as tracking the allocation during defragmentation. Each IGpuResource should own their location.
-	 * Allocators may update its fields in place when moving the allocation, after which they will call
-	 * IGpuResource::OnAllocationMoved.
-	 *
-	 * @tparam HeapBackend	Backend trait satisfying the GpuHeapBackend contract.
-	 */
-	template <typename HeapBackend>
-	struct TGpuResourceLocation
-	{
-		using HeapHandle = typename HeapBackend::HeapHandle;
-
-		HeapHandle Heap{};
-		u64 Offset = 0;
-		u64 Size = 0;
-
-		// Used at allocation, free and defrag time.
-		void* Allocator = nullptr; /**< Type-erased pointer to the allocator strategy that owns this allocation. */
-		IGpuResource* Owner = nullptr;
-
-		// Strategy-private bookkeeping. Interpretation is private to the owning allocator.
-		u32 AllocatorData0 = 0;
-		u32 AllocatorData1 = 0;
-
-		/** Returns @c true if the location currently refers to a live allocation owned by some allocator. */
-		bool IsValid() const
-		{
-			return Allocator != nullptr;
-		}
-
-		/** Resets the location to the empty state. */
-		void Reset()
-		{
-			Heap = HeapHandle{};
-			Offset = 0;
-			Size = 0;
-			Allocator = nullptr;
-			Owner = nullptr;
-			AllocatorData0 = 0;
-			AllocatorData1 = 0;
-		}
-	};
-
-	/**
 	 * CRTP base for GPU allocation strategies. Provides deferred-free and owner-relocation logic.
 	 *
 	 * @tparam Derived		Allocator strategy implementing TryAllocateImpl, DeallocateImpl and FreeImmediateImpl.
@@ -121,19 +77,29 @@ namespace b3d
 
 		using Location = TGpuResourceLocation<HeapBackend>;
 
-		/** Attempts to allocate @p size bytes with @p alignment. Resource kind defaults to @c Linear. */
+		/** Attempts to allocate @p size bytes with @p alignment. Resource kind defaults to @c Linear. The allocation is untracked (won't participate in defragmentation). */
 		bool TryAllocate(u64 size, u32 alignment, Location& out)
 		{
-			return TryAllocate(size, alignment, GpuResourceKind::Linear, out);
+			return TryAllocate(size, alignment, GpuResourceKind::Linear, nullptr, out);
 		}
 
 		/**
 		 * Attempts to allocate @p size bytes with @p alignment, tagged with @p kind so the strategy
-		 * can honor buffer-image granularity.
+		 * can honor buffer-image granularity (if needed by the backend). The allocation is untracked (won't participate in defragmentation).
 		 */
 		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, Location& out)
 		{
-			return static_cast<Derived*>(this)->TryAllocateImpl(size, alignment, kind, out);
+			return TryAllocate(size, alignment, kind, nullptr, out);
+		}
+
+		/**
+		 * Attempts to allocate @p size bytes with @p alignment, tagged with @p kind, and registers
+		 * @p owner as the resource the allocator will call back during defragmentation. Pass
+		 * nullptr if the allocation is untracked (won't participate in defragmentation).
+		 */
+		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out)
+		{
+			return static_cast<Derived*>(this)->TryAllocateImpl(size, alignment, kind, owner, out);
 		}
 
 		/**
@@ -178,21 +144,24 @@ namespace b3d
 		TGpuAllocator(const TGpuAllocator&) = delete;
 		TGpuAllocator& operator=(const TGpuAllocator&) = delete;
 
-		/** Captures @p allocation's allocator-private slot identity for deferred release. */
-		void RetireAllocation(Location& allocation)
+		/** Schedule deferred-free of @p allocation against the allocator's latest submission index. */
+		void RetireAllocation(const Location& allocation)
+		{
+			RetireAllocation(allocation, mSubmissionTracker->GetLatestSubmissionIndex());
+		}
+
+		/**
+		 * Schedule deferred-free of @p allocation against the explicit @p submissionIndex. Used by
+		 * defragmentation, where the source slot rides the next-not-yet-issued submission index
+		 * instead of the latest already-issued one.
+		 */
+		void RetireAllocation(const Location& allocation, u64 submissionIndex)
 		{
 			RetiredEntry entry;
 			entry.AllocatorData0 = allocation.AllocatorData0;
 			entry.AllocatorData1 = allocation.AllocatorData1;
-			entry.SubmissionIndex = mSubmissionTracker->GetLatestSubmissionIndex();
+			entry.SubmissionIndex = submissionIndex;
 			mRetiredQueue.Add(entry);
-		}
-
-		/** Invokes the registered owner callback after an allocation has moved. */
-		void NotifyOwnerMoved(Location& location)
-		{
-			if (location.Owner != nullptr)
-				location.Owner->OnAllocationMoved();
 		}
 
 		/** Entry in the deferred-free FIFO queue. */

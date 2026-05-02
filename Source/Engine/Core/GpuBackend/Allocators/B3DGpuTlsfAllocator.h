@@ -110,11 +110,6 @@ namespace b3d
 	 * neighbors. When the configured granularity is at or below GranularityDisableThreshold the tracker
 	 * is fully inert and adds zero per-allocation overhead.
 	 *
-	 * TODO:
-	 * **Defragmentation.** Not exposed in this first pass. The data structures (per-heap physical
-	 * doubly-linked list, @c Owner / @c OnAllocationMoved hooks in the location) are designed not to
-	 * preclude a future @c Defrag pass.
-	 *
 	 * @tparam HeapBackend	Backend trait satisfying the GpuHeapBackend contract.
 	 *
 	 * @see TGpuAllocator
@@ -187,7 +182,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, Location& out);
+		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out);
 		void DeallocateImpl(Location& allocation);
 		void FreeImmediateImpl(u32 heapIndex, u32 nodeIndex);
 
@@ -208,6 +203,62 @@ namespace b3d
 
 		/** Number of fully-empty heaps currently retained as spares. */
 		u32 GetEmptyHeapCount() const;
+
+		/** @} */
+
+		/** @name Defragmentation.
+		 *  @{
+		 */
+
+		/** Per-call budget for Defrag. Soft caps that stop the walk early when exceeded. */
+		struct DefragmentationInfo
+		{
+			/** Maximum number of bytes copied per call. 0 = unlimited. */
+			u64 MaxBytesPerCall = 32ull * 1024 * 1024;
+
+			/** Maximum number of moves per call. 0 = unlimited. */
+			u32 MaxAllocationsPerCall = 0;
+		};
+
+		/** Counters reported by Defrag. */
+		struct DefragmentationStats
+		{
+			/** Number of candidate slots that passed eligibility filtering and where a move was attempted. */
+			u32 MovesAttempted = 0;
+
+			/** Number of moves where a destination slot was successfully reserved. */
+			u32 MovesCompleted = 0;
+
+			/** Total bytes covered by completed moves. */
+			u64 BytesMoved = 0;
+
+			/** True if either of the DefragmentationInfo budgets aborted the walk early. */
+			bool BudgetExhausted = false;
+		};
+
+		/**
+		 * Compacts live allocations by moving them into lower-offset / lower-index slots. The pass
+		 * walks heaps high-index → low-index and within each heap follows the per-heap physical
+		 * chain offset-high → offset-low. Every tracked allocation (non-null owner) is a candidate.
+		 *
+		 * For each successful move the consumer's IGpuResource::OnAllocationMoved is invoked with
+		 * the next-not-yet-issued submission index, @p commandBuffer, and a fresh
+		 * TGpuResourceLocation<HeapBackend> for the destination slot; the consumer records the
+		 * GPU copy from its still-intact source location to the destination via @p commandBuffer,
+		 * queues the old backend object for deferred-destroy on the supplied submission index,
+		 * replaces its own TGpuResourceLocation with the new one, and recreates the placed
+		 * backend object at the new memory range. The source slot is retired against the upcoming
+		 * submission index and freed when the deferred-free queue drains.
+		 *
+		 * **Submission-ordering contract.** The caller must submit @p commandBuffer next with no
+		 * intervening submissions. Pre-recorded command buffers that reference the OLD backend
+		 * object must already have been submitted before Defrag() is called.
+		 *
+		 * @param commandBuffer	Command buffer the consumer's recreate-and-copy path records into.
+		 * @param info			Soft per-call budgets.
+		 * @return				Counters for moves attempted / completed and budget-exhausted state.
+		 */
+		DefragmentationStats Defrag(render::GpuCommandBuffer& commandBuffer, const DefragmentationInfo& info = {});
 
 		/** @} */
 
@@ -239,9 +290,10 @@ namespace b3d
 		/** State bits stored on each pool node. */
 		enum class NodeFlag : u32
 		{
-			Free		= 1u << 0, /**< Set when the node is on a free list (or is the trailing null node). */
-			NullNode	= 1u << 1, /**< Set when the node is the trailing null node of its heap. */
-			NonLinear	= 1u << 2, /**< Set when a live allocation is non-linear (optimally-tiled image). */
+			Free				= 1u << 0, /**< Set when the node is on a free list (or is the trailing null node). */
+			NullNode			= 1u << 1, /**< Set when the node is the trailing null node of its heap. */
+			NonLinear			= 1u << 2, /**< Set when a live allocation is non-linear (optimally-tiled image). */
+			DefragDestination	= 1u << 3, /**< Set on slots reserved as defrag destinations within the current Defrag() pass; cleared at end of Defrag(). */
 		};
 
 		using NodeFlags = Flags<NodeFlag, u32>;
@@ -265,8 +317,11 @@ namespace b3d
 
 			NodeFlags Flags;
 
+			IGpuResource* Owner; /**< Owning resource for defragmentation. nullptr when the slot is untracked or free. */
+
 			bool IsFree() const { return Flags.IsSet(NodeFlag::Free); }
 			bool IsNullNode() const { return Flags.IsSet(NodeFlag::NullNode); }
+			bool IsDefragDestination() const { return Flags.IsSet(NodeFlag::DefragDestination); }
 		};
 
 		/** Per-heap TLSF metadata. */
@@ -293,6 +348,14 @@ namespace b3d
 				for (u32 firstLevel = 0; firstLevel < kFirstLevelClassCount; firstLevel++)
 					SecondLevelFreeBitmask[firstLevel] = 0;
 			}
+		};
+
+		/** Destination slot reserved by TryAllocateInHeapsAtMost for a single defrag move. */
+		struct DefragDestinationSlot
+		{
+			u32 HeapIndex = kInvalidIndex;
+			u32 NodeIndex = kInvalidIndex;
+			u64 Offset = 0;
 		};
 
 		/**
@@ -343,14 +406,45 @@ namespace b3d
 		 */
 		u32 CarveAllocation(HeapState& heap, u32 candidateIndex, u64 alignedOffset, u64 size);
 
-		/** Search-and-carve combined: returns true on hit and populates @p out, false on miss. */
-		bool TryAllocateInHeap(HeapState& heap, u32 heapIndex, u64 size, u32 alignment, GpuResourceKind kind, Location& out);
+		/**
+		 * Reserves a slot of @p size bytes within @p heap: fast-fail on insufficient size, walk
+		 * the TLSF buckets for a fitting free node, carve, mark the granularity pages, update heap
+		 * bookkeeping (FreeSize, LiveAllocCount, mEmptyHeapCount). On success writes the carved
+		 * node's index to @p outNodeIndex; the caller reads mNodes[outNodeIndex] for offset and
+		 * final size. Shared by the Location-writing overload below and by TryAllocateInHeapsAtMost;
+		 * neither stamps additional state (Owner, Location-typed output) — the caller is responsible for that.
+		 */
+		bool TryAllocateInHeap(HeapState& heap, u64 size, u32 alignment, GpuResourceKind kind, u32& outNodeIndex);
+
+		/**
+		 * Search-and-carve combined: returns true on hit and populates @p out, false on miss. Stamps
+		 * @p owner onto the carved node for defragmentation tracking; pass nullptr for an untracked
+		 * allocation that won't participate in defrag.
+		 */
+		bool TryAllocateInHeap(HeapState& heap, u32 heapIndex, u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out);
 
 		/** Create a fresh heap and install it into @c mHeaps, reusing a vacated slot if one is available. */
 		u32 CreateNewHeap(u64 sizeInBytes);
 
 		/** Destroy heap @p heapIndex and vacate its slot. Caller has verified LiveAllocCount == 0. */
 		void DestroyHeap(u32 heapIndex);
+
+		/**
+		 * Variant of TryAllocateImpl that limits heap iteration to indices @p maxHeapIndexInclusive
+		 * and below, and never grows a fresh heap. Used during defrag so destinations can land in the
+		 * same heap as the source (within-heap compaction) or any lower-index heap (drain), but never
+		 * cause the allocator to expand committed memory.
+		 */
+		bool TryAllocateInHeapsAtMost(u64 size, u32 alignment, GpuResourceKind kind, u32 maxHeapIndexInclusive, DefragDestinationSlot& out);
+
+		/**
+		 * Reserves a destination slot for the live allocation at @p sourceNodeIndex, dispatches the
+		 * consumer's OnAllocationMoved with the typed move context, and retires the source slot
+		 * against @p submissionIndex. Returns true on a successful move and writes the chosen
+		 * destination node index to @p outDestinationNodeIndex; false if no destination slot was
+		 * available within @p sourceHeapIndex inclusive.
+		 */
+		bool TryMoveAllocation(u32 sourceNodeIndex, u32 sourceHeapIndex, render::GpuCommandBuffer& commandBuffer, u64 submissionIndex, u32& outDestinationNodeIndex);
 
 		Configuration mConfig;
 		Vector<HeapState*> mHeaps;
@@ -392,7 +486,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend>
-	bool TGpuTlsfAllocator<HeapBackend>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, Location& out)
+	bool TGpuTlsfAllocator<HeapBackend>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out)
 	{
 		B3D_ASSERT(out.Allocator == nullptr);
 		B3D_ASSERT(alignment > 0);
@@ -407,7 +501,7 @@ namespace b3d
 			if (heap == nullptr)
 				continue;
 
-			if (TryAllocateInHeap(*heap, heapIndex, requestedSize, alignment, kind, out))
+			if (TryAllocateInHeap(*heap, heapIndex, requestedSize, alignment, kind, owner, out))
 				return true;
 		}
 
@@ -418,7 +512,7 @@ namespace b3d
 			return false;
 
 		HeapState& fresh = *mHeaps[newHeapIndex];
-		const bool ok = TryAllocateInHeap(fresh, newHeapIndex, requestedSize, alignment, kind, out);
+		const bool ok = TryAllocateInHeap(fresh, newHeapIndex, requestedSize, alignment, kind, owner, out);
 		B3D_ASSERT(ok); // A fresh heap big enough for the request must satisfy it.
 
 		return ok;
@@ -447,6 +541,7 @@ namespace b3d
 
 		heap->FreeSize += node.Size;
 		heap->LiveAllocCount--;
+		node.Owner = nullptr;
 
 		// Coalesce with the previous physical neighbor when it's free and not the null block.
 		u32 mergedNodeIndex = nodeIndex;
@@ -891,7 +986,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend>
-	bool TGpuTlsfAllocator<HeapBackend>::TryAllocateInHeap(HeapState& heap, u32 heapIndex, u64 size, u32 alignment, GpuResourceKind kind, Location& out)
+	bool TGpuTlsfAllocator<HeapBackend>::TryAllocateInHeap(HeapState& heap, u64 size, u32 alignment, GpuResourceKind kind, u32& outNodeIndex)
 	{
 		// Cheap fast-fail: a heap whose total free size is less than the bare request can never fit.
 		// Don't include alignment slack here — the natural-bucket walk in FindFreeNode rejects misaligned
@@ -918,9 +1013,26 @@ namespace b3d
 		if (heapWasEmpty && mEmptyHeapCount > 0)
 			mEmptyHeapCount--;
 
+		outNodeIndex = allocatedNodeIndex;
+		return true;
+	}
+
+	template <typename HeapBackend>
+	bool TGpuTlsfAllocator<HeapBackend>::TryAllocateInHeap(HeapState& heap, u32 heapIndex, u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out)
+	{
+		u32 allocatedNodeIndex = kInvalidIndex;
+		if (!TryAllocateInHeap(heap, size, alignment, kind, allocatedNodeIndex))
+			return false;
+
+		// Capture the owner pointer onto the node so defragmentation can later look up the resource
+		// without consulting the consumer's location. Untracked allocations (owner == nullptr) remain
+		// ineligible for defrag.
+		Node& allocatedNode = mNodes[allocatedNodeIndex];
+		allocatedNode.Owner = owner;
+
 		out.Heap = heap.Heap;
-		out.Offset = allocated.Offset;
-		out.Size = allocated.Size;
+		out.Offset = allocatedNode.Offset;
+		out.Size = allocatedNode.Size;
 		out.Allocator = this;
 		out.AllocatorData0 = heapIndex;
 		out.AllocatorData1 = allocatedNodeIndex;
@@ -983,6 +1095,206 @@ namespace b3d
 		Base::mBackend->DestroyHeap(heap->Heap);
 		B3DDelete(heap);
 		mHeaps[heapIndex] = nullptr;
+	}
+
+	template <typename HeapBackend>
+	bool TGpuTlsfAllocator<HeapBackend>::TryAllocateInHeapsAtMost(u64 size, u32 alignment, GpuResourceKind kind, u32 maxHeapIndexInclusive, DefragDestinationSlot& out)
+	{
+		const u64 requestedSize = std::max(size, mConfig.MinAllocationSize);
+
+		// Walk heaps oldest-first (matches TryAllocateImpl's order) but bounded — defragmentation
+		// must never grow committed memory.
+		const u32 maxIndex = std::min(maxHeapIndexInclusive, (u32)mHeaps.size() - 1);
+		for (u32 heapIndex = 0; heapIndex <= maxIndex; heapIndex++)
+		{
+			HeapState* heap = mHeaps[heapIndex];
+			if (heap == nullptr)
+				continue;
+
+			u32 allocatedNodeIndex = kInvalidIndex;
+			if (!TryAllocateInHeap(*heap, requestedSize, alignment, kind, allocatedNodeIndex))
+				continue;
+
+			// Owner is set by the caller (TryMoveAllocation) after this returns.
+
+			out.HeapIndex = heapIndex;
+			out.NodeIndex = allocatedNodeIndex;
+			out.Offset = mNodes[allocatedNodeIndex].Offset;
+			return true;
+		}
+
+		return false;
+	}
+
+	template <typename HeapBackend>
+	bool TGpuTlsfAllocator<HeapBackend>::TryMoveAllocation(u32 sourceNodeIndex, u32 sourceHeapIndex, render::GpuCommandBuffer& commandBuffer, u64 submissionIndex, u32& outDestinationNodeIndex)
+	{
+		// Snapshot source state before TryAllocateInHeapsAtMost — CarveAllocation may push_back
+		// onto mNodes which would invalidate any held Node& references.
+		const u64 sourceOffset = mNodes[sourceNodeIndex].Offset;
+		const u64 sourceSize = mNodes[sourceNodeIndex].Size;
+		IGpuResource* owner = mNodes[sourceNodeIndex].Owner;
+		const GpuResourceKind sourceKind = mNodes[sourceNodeIndex].Flags.IsSet(NodeFlag::NonLinear)
+			? GpuResourceKind::NonLinear : GpuResourceKind::Linear;
+
+		// 1. Reserve a destination slot in the same heap (within-heap compaction) or any lower-index
+		//    heap (multi-heap drain). TryAllocateInHeapsAtMost never grows a fresh heap.
+		DefragDestinationSlot destination;
+		if (!TryAllocateInHeapsAtMost(sourceSize, /*alignment=*/1u, sourceKind, sourceHeapIndex, destination))
+			return false;
+
+		// 2. Reject within-heap destinations that don't compact (offset >= source's). The TLSF
+		//    best-fit picks the smallest fitting free block irrespective of offset, so the
+		//    destination might land at a higher offset than the source — that would be anti-defrag.
+		//    Cross-heap moves (lower heap index) need no such constraint; the goal there is to
+		//    drain the source heap.
+		if (destination.HeapIndex == sourceHeapIndex && destination.Offset >= sourceOffset)
+		{
+			FreeImmediateImpl(destination.HeapIndex, destination.NodeIndex);
+			return false;
+		}
+
+		// 3. Stamp the destination with the owner pointer so the slot is tracked from the moment
+		//    the consumer's recreate-and-record path observes it, and so future Defrag() calls
+		//    treat it as an eligible candidate.
+		mNodes[destination.NodeIndex].Owner = owner;
+
+		// 4. Build the destination Location. The consumer assigns this onto its own location field
+		//    instead of patching individual hot fields. Heap handles are read out of mHeaps directly
+		//    — slots are stable (DestroyHeap nulls the slot but never repacks indices).
+		Location newLocation;
+		newLocation.Heap = mHeaps[destination.HeapIndex]->Heap;
+		newLocation.Offset = destination.Offset;
+		newLocation.Size = sourceSize;
+		newLocation.Allocator = this;
+		newLocation.AllocatorData0 = destination.HeapIndex;
+		newLocation.AllocatorData1 = destination.NodeIndex;
+
+		// 5. Notify the owner: it records the GPU copy from its still-intact source location to
+		//    the destination via the command buffer, queues the old backend object for
+		//    deferred-destroy on submissionIndex, replaces its location with newLocation, and
+		//    recreates the placed backend object at the new memory range. The owner downcasts the
+		//    GpuResourceLocation reference back to TGpuResourceLocation<HeapBackend>.
+		owner->OnAllocationMoved(submissionIndex, commandBuffer, newLocation);
+
+		// 6. Retire the source slot against submissionIndex; the deferred-free queue releases it
+		//    once that submission completes. The retire path keys on Allocator-private slot
+		//    fields, so synthesise a Location snapshot identifying the source slot. Clear the
+		//    source node's Owner now so any defrag pass issued before the deferred-free drains
+		//    observes the slot as untracked rather than as a phantom candidate.
+		Location sourceSnapshot;
+		sourceSnapshot.Allocator = this;
+		sourceSnapshot.AllocatorData0 = sourceHeapIndex;
+		sourceSnapshot.AllocatorData1 = sourceNodeIndex;
+		Base::RetireAllocation(sourceSnapshot, submissionIndex);
+		mNodes[sourceNodeIndex].Owner = nullptr;
+
+		outDestinationNodeIndex = destination.NodeIndex;
+		return true;
+	}
+
+	template <typename HeapBackend>
+	typename TGpuTlsfAllocator<HeapBackend>::DefragmentationStats
+	TGpuTlsfAllocator<HeapBackend>::Defrag(render::GpuCommandBuffer& commandBuffer, const DefragmentationInfo& info)
+	{
+		DefragmentationStats stats{};
+
+		// Tracks destination nodes stamped with NodeFlag::DefragDestination so we can clear the
+		// flag at end of pass. Bounded by stats.MovesCompleted ≤ info.MaxAllocationsPerCall.
+		Vector<u32> destinationNodes;
+		if (info.MaxAllocationsPerCall != 0)
+			destinationNodes.reserve(info.MaxAllocationsPerCall);
+
+		// All moves recorded inside this Defrag() call ride the next-not-yet-issued submission
+		// index. The caller is contractually required to submit @p commandBuffer next, with no
+		// intervening submissions, so the deferred-destroy of source slots and old backend handles
+		// drains in lockstep with the GPU completing the move.
+		const u64 submissionIndex = Base::mSubmissionTracker->GetLatestSubmissionIndex() + 1;
+
+		// Walk heaps high-index → low-index — newer (typically sparser) heaps drain first.
+		// Destinations land in the same heap (within-heap compaction) or any lower-index heap
+		// (multi-heap drain); both placements rely on NodeFlag::DefragDestination to keep the
+		// destination invisible to subsequent iteration in the same pass.
+		for (i32 outerIndex = (i32)mHeaps.size() - 1; outerIndex >= 0; outerIndex--)
+		{
+			const u32 heapIndex = (u32)outerIndex;
+			if (mHeaps[heapIndex] == nullptr)
+				continue;
+
+			HeapState& heap = *mHeaps[heapIndex];
+			if (heap.NullNodeIndex == kInvalidIndex)
+				continue;
+
+			// Walk the physical chain backwards (highest offset → lowest) starting just before
+			// the trailing null block. Compaction is more productive draining high-offset
+			// allocations into freshly-vacated low-offset slots.
+			u32 nodeIndex = mNodes[heap.NullNodeIndex].PrevPhysical;
+			while (nodeIndex != kInvalidIndex)
+			{
+				// Capture the chain link before any state change — TryMoveAllocation may modify
+				// the source node's NextPhysical/PrevPhysical pointers via CarveAllocation when
+				// the destination lands in the same heap.
+				const u32 prevIndex = mNodes[nodeIndex].PrevPhysical;
+
+				if (mNodes[nodeIndex].IsFree() ||
+					mNodes[nodeIndex].IsNullNode() ||
+					mNodes[nodeIndex].IsDefragDestination())
+				{
+					nodeIndex = prevIndex;
+					continue;
+				}
+
+				// Untracked slots (Owner left null at TryAllocate time) cannot be relocated — there
+				// is no consumer to invoke OnAllocationMoved on. Any other tracked allocation is a
+				// candidate, regardless of in-flight / bound state: correctness follows from submission
+				// ordering, not from filtering. The caller's contract requires submitting @p commandBuffer
+				// next with no intervening submissions, which guarantees pre-recorded CBs that reference
+				// the OLD backend object are submitted at index < submissionIndex (and run before the
+				// move on the GPU queue), and any newly recorded CBs reference the NEW location post-patch.
+				IGpuResource* owner = mNodes[nodeIndex].Owner;
+				if (owner == nullptr)
+				{
+					nodeIndex = prevIndex;
+					continue;
+				}
+
+				const u64 sourceSize = mNodes[nodeIndex].Size;
+
+				if (info.MaxBytesPerCall != 0 && stats.BytesMoved + sourceSize > info.MaxBytesPerCall)
+				{
+					stats.BudgetExhausted = true;
+					break;
+				}
+				if (info.MaxAllocationsPerCall != 0 && stats.MovesAttempted >= info.MaxAllocationsPerCall)
+				{
+					stats.BudgetExhausted = true;
+					break;
+				}
+
+				stats.MovesAttempted++;
+				u32 destinationNodeIndex = kInvalidIndex;
+				if (TryMoveAllocation(nodeIndex, heapIndex, commandBuffer, submissionIndex, destinationNodeIndex))
+				{
+					stats.MovesCompleted++;
+					stats.BytesMoved += sourceSize;
+					mNodes[destinationNodeIndex].Flags |= NodeFlag::DefragDestination;
+					destinationNodes.push_back(destinationNodeIndex);
+				}
+
+				nodeIndex = prevIndex;
+			}
+
+			if (stats.BudgetExhausted)
+				break;
+		}
+
+		// Clear destination markers — destinations are now ordinary live allocations and become
+		// valid candidates for future Defrag() calls. The marker is in effect only inside this
+		// single Defrag() invocation.
+		for (u32 dstIndex : destinationNodes)
+			mNodes[dstIndex].Flags.Unset(NodeFlag::DefragDestination);
+
+		return stats;
 	}
 
 	inline void TlsfGranularityTracker::Initialize(u64 heapSize, u64 granularity, u64 disableThreshold)

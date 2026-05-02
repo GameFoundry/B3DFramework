@@ -37,6 +37,12 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_GranularityLinearVsNonLinearInflatesPadding)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_GranularityRejectAndRetryAcrossHeaps)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_GranularityFreeReleasesRegion)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_Defrag_DrainsHighestHeap)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_Defrag_SingleHeapWithinHeapCompaction)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_Defrag_RespectsBudget)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_Defrag_OnlySkipsUntrackedSlots)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_Defrag_MovesInFlightResource)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_Defrag_OnAllocationMovedReceivesContext)
 }
 
 namespace
@@ -231,16 +237,15 @@ namespace
 	public:
 		using Base = TGpuAllocator<MockAllocator, MockHeapBackend>;
 
-		// Surface the protected strategy hooks so the contract tests can drive them directly without
+		// Surface the protected retire hook so the contract test can drive it directly without
 		// having to round-trip through the public Deallocate path (which auto-resets the location).
 		using Base::RetireAllocation;
-		using Base::NotifyOwnerMoved;
 
 		MockAllocator(MockHeapBackend* backend, MockGpuSubmissionTracker* tracker)
 			: Base(backend, tracker)
 		{}
 
-		bool TryAllocateImpl(u64 /*size*/, u32 /*alignment*/, GpuResourceKind /*kind*/, MockLocation& /*out*/)
+		bool TryAllocateImpl(u64 /*size*/, u32 /*alignment*/, GpuResourceKind /*kind*/, IGpuResource* /*owner*/, MockLocation& /*out*/)
 		{
 			return false;
 		}
@@ -258,15 +263,44 @@ namespace
 		Vector<FreedSlot> FreedSlots;
 	};
 
-	/** Minimal @c IGpuResource implementation used to verify the migration-callback dispatch path. */
+	/**
+	 * Minimal IGpuResource implementation used to verify the migration-callback dispatch path.
+	 * Records the source offset captured at entry plus the new Location supplied by the
+	 * allocator, then assigns it onto the externally-held MockLocation pointed to by LocationPtr
+	 * to model the consumer-owned location-replacement contract.
+	 */
 	class MockResource : public IGpuResource
 	{
 	public:
-		u32 GetBoundCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return 0; }
-		u32 GetUseCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return 0; }
-		void OnAllocationMoved() override { MovedCount++; }
+		u32 GetBoundCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return BoundCount; }
+		u32 GetUseCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return UseCount; }
+		void OnAllocationMoved(u64 submissionIndex, render::GpuCommandBuffer& /*cb*/, const GpuResourceLocation& newLocation) override
+		{
+			MovedCount++;
+			LastSubmissionIndex = submissionIndex;
+
+			// Capture the source range from the still-intact location before we overwrite it. This
+			// mirrors what production consumers do: they read the source heap / offset / size off
+			// their own location to record the GPU copy.
+			if (LocationPtr != nullptr)
+				LastSourceOffset = LocationPtr->Offset;
+
+			const auto& typedNewLocation = static_cast<const MockLocation&>(newLocation);
+			LastNewLocation = typedNewLocation;
+
+			// Mirror the production consumer contract: the consumer is the sole writer of its own
+			// location and replaces it wholesale with the supplied newLocation.
+			if (LocationPtr != nullptr)
+				*LocationPtr = typedNewLocation;
+		}
 
 		u32 MovedCount = 0;
+		u32 UseCount = 0;
+		u32 BoundCount = 0;
+		u64 LastSubmissionIndex = 0;
+		u64 LastSourceOffset = 0;
+		MockLocation LastNewLocation{};
+		MockLocation* LocationPtr = nullptr;
 	};
 }
 
@@ -310,17 +344,6 @@ void GpuAllocatorTestSuite::TestGpuAllocatorContract()
 	B3D_TEST_ASSERT(allocator.FreedSlots.size() == 1)
 	B3D_TEST_ASSERT(allocator.FreedSlots[0].AllocatorData0 == 5)
 	B3D_TEST_ASSERT(allocator.FreedSlots[0].AllocatorData1 == 7)
-
-	// IGpuResource dispatch: the allocator should fire OnAllocationMoved exactly once when an owner is
-	// registered, and skip the call entirely otherwise.
-	MockResource owner;
-	location.Owner = &owner;
-	allocator.NotifyOwnerMoved(location);
-	B3D_TEST_ASSERT(owner.MovedCount == 1)
-
-	location.Owner = nullptr;
-	allocator.NotifyOwnerMoved(location);
-	B3D_TEST_ASSERT(owner.MovedCount == 1)
 
 	location.Reset();
 	B3D_TEST_ASSERT(!location.IsValid())
@@ -954,4 +977,360 @@ void GpuAllocatorTestSuite::TestTlsf_GranularityFreeReleasesRegion()
 	MockLocation freshNonLinear;
 	B3D_TEST_ASSERT(allocator.TryAllocate(1000, 16, GpuResourceKind::NonLinear, freshNonLinear))
 	B3D_TEST_ASSERT(freshNonLinear.Offset == 0)
+}
+
+namespace
+{
+	/**
+	 * Forms a typed null reference to GpuCommandBuffer for unit tests that don't actually issue
+	 * GPU commands. The MockResource implementations below never dereference the command buffer
+	 * passed to OnAllocationMoved, so the underlying nullptr is never accessed; this hack lets the
+	 * test reach Defrag's signature without dragging in a full command-buffer mock.
+	 */
+	render::GpuCommandBuffer& NullCommandBuffer()
+	{
+		render::GpuCommandBuffer* nullPtr = nullptr;
+		return *nullPtr;
+	}
+}
+
+void GpuAllocatorTestSuite::TestTlsf_Defrag_DrainsHighestHeap()
+{
+	// 64 KB heaps that hold 4 * 16 KB allocations each. Allocate 6 holders to force a second heap
+	// (4 in heap 0, 2 in heap 1), then free 2 in heap 0 so it has 32 KB free to receive the heap 1
+	// migrants. Defrag should drain heap 1 into heap 0 and the empty heap 1 should be released
+	// once the deferred-free queue settles.
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 64 * 1024;
+	configuration.MaxHeapSize = 64 * 1024;
+	configuration.GrowthFactor = 1;
+	configuration.MaxEmptyHeapCount = 0;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	struct Holder { MockResource Resource; MockLocation Location; };
+	const u32 kAllocCount = 6;
+	const u64 kAllocSize = 16 * 1024;
+
+	Vector<UPtr<Holder>> holders;
+	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex++)
+	{
+		auto holder = B3DMakeUnique<Holder>();
+		holder->Resource.LocationPtr = &holder->Location;
+		B3D_TEST_ASSERT(allocator.TryAllocate(kAllocSize, 16, GpuResourceKind::Linear, &holder->Resource, holder->Location))
+		holders.push_back(std::move(holder));
+	}
+
+	// First 4 land in heap 0, last 2 spill to heap 1.
+	B3D_TEST_ASSERT(allocator.GetHeapCount() == 2)
+	const u32 heap0Slot = holders[0]->Location.AllocatorData0;
+	const u32 heap1Slot = holders[4]->Location.AllocatorData0;
+	B3D_TEST_ASSERT(heap0Slot != heap1Slot)
+	B3D_TEST_ASSERT(holders[5]->Location.AllocatorData0 == heap1Slot)
+
+	// Free 2 allocations in heap 0 so it has room to receive heap 1's migrants.
+	tracker.Submit();
+	allocator.Deallocate(holders[0]->Location);
+	allocator.Deallocate(holders[1]->Location);
+	tracker.SignalAll();
+	allocator.Flush(0, false);
+
+	const TlsfAllocator::DefragmentationStats stats = allocator.Defrag(NullCommandBuffer());
+
+	// The 2 holders in heap 1 should have moved to heap 0.
+	B3D_TEST_ASSERT(stats.MovesCompleted == 2)
+	B3D_TEST_ASSERT(holders[4]->Location.AllocatorData0 == heap0Slot)
+	B3D_TEST_ASSERT(holders[5]->Location.AllocatorData0 == heap0Slot)
+
+	// Drain the deferred-free queue: source slots in heap 1 are retired on submissionIndex
+	// latest+1, so submitting and signaling drains them. With MaxEmptyHeapCount=0 the now-empty
+	// heap 1 is released back to the backend.
+	tracker.Submit();
+	tracker.SignalAll();
+	allocator.Flush(0, false);
+
+	B3D_TEST_ASSERT(allocator.GetHeapCount() == 1)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_Defrag_SingleHeapWithinHeapCompaction()
+{
+	// Single-heap configuration: a sawtooth pattern frees every other allocation, leaving holes
+	// at low offsets. Defrag must compact higher-offset survivors down into those holes within
+	// the same heap. This proves the NodeFlag::DefragDestination marker mechanism (destination
+	// lands in the heap being walked) and that single-heap setups can defrag at all.
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 1 * 1024 * 1024;
+	configuration.MaxHeapSize = 1 * 1024 * 1024;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	struct Holder { MockResource Resource; MockLocation Location; u64 OriginalOffset; };
+	const u32 kAllocCount = 16;
+	const u64 kAllocSize = 16 * 1024;
+
+	Vector<UPtr<Holder>> holders;
+	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex++)
+	{
+		auto holder = B3DMakeUnique<Holder>();
+		holder->Resource.LocationPtr = &holder->Location;
+		B3D_TEST_ASSERT(allocator.TryAllocate(kAllocSize, 16, GpuResourceKind::Linear, &holder->Resource, holder->Location))
+		holder->OriginalOffset = holder->Location.Offset;
+		holders.push_back(std::move(holder));
+	}
+
+	// Free every-other allocation. The remaining survivors live at original offsets that
+	// alternate with newly-vacated holes.
+	tracker.Submit();
+	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex += 2)
+		allocator.Deallocate(holders[holderIndex]->Location);
+	tracker.SignalAll();
+	allocator.Flush(0, false);
+
+	const TlsfAllocator::DefragmentationStats stats = allocator.Defrag(NullCommandBuffer());
+
+	// At least one survivor must have moved to a strictly lower offset. (We accept the move only
+	// when destination offset < source offset within the same heap, so any completed move proves
+	// productive within-heap compaction.)
+	B3D_TEST_ASSERT(stats.MovesCompleted > 0)
+	B3D_TEST_ASSERT(allocator.GetHeapCount() == 1) // No new heap created.
+
+	bool sawCompaction = false;
+	for (u32 holderIndex = 1; holderIndex < kAllocCount; holderIndex += 2)
+	{
+		if (holders[holderIndex]->Location.Offset < holders[holderIndex]->OriginalOffset)
+		{
+			sawCompaction = true;
+			break;
+		}
+	}
+	B3D_TEST_ASSERT(sawCompaction)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_Defrag_RespectsBudget()
+{
+	// Single-heap setup where multiple compaction moves are possible. Budget = single-allocation
+	// size aborts after the first attempt that would exceed.
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 1 * 1024 * 1024;
+	configuration.MaxHeapSize = 1 * 1024 * 1024;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	struct Holder { MockResource Resource; MockLocation Location; };
+	const u32 kAllocCount = 8;
+	const u64 kAllocSize = 16 * 1024;
+
+	Vector<UPtr<Holder>> holders;
+	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex++)
+	{
+		auto holder = B3DMakeUnique<Holder>();
+		holder->Resource.LocationPtr = &holder->Location;
+		B3D_TEST_ASSERT(allocator.TryAllocate(kAllocSize, 16, GpuResourceKind::Linear, &holder->Resource, holder->Location))
+		holders.push_back(std::move(holder));
+	}
+
+	tracker.Submit();
+	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex += 2)
+		allocator.Deallocate(holders[holderIndex]->Location);
+	tracker.SignalAll();
+	allocator.Flush(0, false);
+
+	TlsfAllocator::DefragmentationInfo info{};
+	info.MaxBytesPerCall = kAllocSize; // One allocation worth.
+	info.MaxAllocationsPerCall = 0;
+
+	const TlsfAllocator::DefragmentationStats stats = allocator.Defrag(NullCommandBuffer(), info);
+
+	B3D_TEST_ASSERT(stats.BudgetExhausted)
+	B3D_TEST_ASSERT(stats.BytesMoved <= info.MaxBytesPerCall)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_Defrag_OnlySkipsUntrackedSlots()
+{
+	// One heap with mixed tracked and untracked allocations. Untracked slots (Owner == nullptr at
+	// TryAllocate time) are the only ones Defrag should skip — they have no consumer to relocate
+	// against. Tracked slots in the same workload should still be moved.
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 1 * 1024 * 1024;
+	configuration.MaxHeapSize = 1 * 1024 * 1024;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	struct Holder { MockResource Resource; MockLocation Location; bool Tracked; };
+	const u32 kAllocCount = 8;
+	const u64 kAllocSize = 16 * 1024;
+
+	Vector<UPtr<Holder>> holders;
+	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex++)
+	{
+		auto holder = B3DMakeUnique<Holder>();
+		// Even-indexed allocations are tracked, odd-indexed are untracked (owner == nullptr).
+		holder->Tracked = ((holderIndex & 1) == 0);
+		IGpuResource* owner = nullptr;
+		if (holder->Tracked)
+		{
+			holder->Resource.LocationPtr = &holder->Location;
+			owner = &holder->Resource;
+		}
+		B3D_TEST_ASSERT(allocator.TryAllocate(kAllocSize, 16, GpuResourceKind::Linear, owner, holder->Location))
+		holders.push_back(std::move(holder));
+	}
+
+	// Free a couple of mid-heap allocations to create holes that downstream survivors could move
+	// into. Free indices 2 and 4 — both happen to be tracked / untracked respectively, so the
+	// resulting holes are arbitrary and the surviving tracked allocation at index 6 has somewhere
+	// lower-offset to migrate to.
+	tracker.Submit();
+	allocator.Deallocate(holders[2]->Location);
+	allocator.Deallocate(holders[4]->Location);
+	tracker.SignalAll();
+	allocator.Flush(0, false);
+
+	const TlsfAllocator::DefragmentationStats stats = allocator.Defrag(NullCommandBuffer());
+
+	// Only the surviving tracked allocations were eligible for movement. The untracked ones could
+	// not have been touched even if iteration reached them.
+	B3D_TEST_ASSERT(stats.MovesCompleted > 0)
+	for (UPtr<Holder>& holder : holders)
+	{
+		if (!holder->Tracked)
+			B3D_TEST_ASSERT(holder->Resource.MovedCount == 0)
+	}
+}
+
+void GpuAllocatorTestSuite::TestTlsf_Defrag_MovesInFlightResource()
+{
+	// All survivors report UseCount = 1 and BoundCount = 1 — i.e. they look "in flight" and
+	// "bound to a recording command buffer". With the relaxed in-flight filter Defrag must move
+	// them anyway; correctness comes from submission ordering, not from skipping the candidates.
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 1 * 1024 * 1024;
+	configuration.MaxHeapSize = 1 * 1024 * 1024;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	struct Holder { MockResource Resource; MockLocation Location; };
+	const u32 kAllocCount = 4;
+	const u64 kAllocSize = 16 * 1024;
+
+	Vector<UPtr<Holder>> holders;
+	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex++)
+	{
+		auto holder = B3DMakeUnique<Holder>();
+		holder->Resource.LocationPtr = &holder->Location;
+		holder->Resource.UseCount = 1;
+		holder->Resource.BoundCount = 1;
+		B3D_TEST_ASSERT(allocator.TryAllocate(kAllocSize, 16, GpuResourceKind::Linear, &holder->Resource, holder->Location))
+		holders.push_back(std::move(holder));
+	}
+
+	tracker.Submit();
+	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex += 2)
+		allocator.Deallocate(holders[holderIndex]->Location);
+	tracker.SignalAll();
+	allocator.Flush(0, false);
+
+	const u64 latestBeforeDefrag = tracker.LatestSubmissionIndex();
+	const TlsfAllocator::DefragmentationStats stats = allocator.Defrag(NullCommandBuffer());
+
+	// At least one in-flight survivor was moved — the relaxed filter no longer blocks them.
+	B3D_TEST_ASSERT(stats.MovesAttempted > 0)
+	B3D_TEST_ASSERT(stats.MovesCompleted > 0)
+
+	// The move context handed to a moved holder has the expected submission index — i.e. the move
+	// rode the next-not-yet-issued submission as documented.
+	bool sawMove = false;
+	for (u32 holderIndex = 1; holderIndex < kAllocCount; holderIndex += 2)
+	{
+		const Holder& holder = *holders[holderIndex];
+		if (holder.Resource.MovedCount == 0)
+			continue;
+
+		sawMove = true;
+		B3D_TEST_ASSERT(holder.Resource.LastSubmissionIndex == latestBeforeDefrag + 1)
+	}
+	B3D_TEST_ASSERT(sawMove)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_Defrag_OnAllocationMovedReceivesContext()
+{
+	// Confirms the OnAllocationMoved arguments the consumer needs: submissionIndex (for
+	// deferred-destroy of old backend handles) and the typed new Location that identifies a live
+	// destination slot in the allocator. The mock captures the new Location at OnAllocationMoved
+	// time and assigns it onto its externally-held location, mirroring the production consumer
+	// contract (replace location wholesale, no field-by-field patching).
+	MockHeapBackend backend;
+	MockGpuSubmissionTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 1 * 1024 * 1024;
+	configuration.MaxHeapSize = 1 * 1024 * 1024;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	struct Holder { MockResource Resource; MockLocation Location; };
+	const u32 kAllocCount = 4;
+	const u64 kAllocSize = 16 * 1024;
+
+	Vector<UPtr<Holder>> holders;
+	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex++)
+	{
+		auto holder = B3DMakeUnique<Holder>();
+		holder->Resource.LocationPtr = &holder->Location;
+		B3D_TEST_ASSERT(allocator.TryAllocate(kAllocSize, 16, GpuResourceKind::Linear, &holder->Resource, holder->Location))
+		holders.push_back(std::move(holder));
+	}
+
+	tracker.Submit();
+	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex += 2)
+		allocator.Deallocate(holders[holderIndex]->Location);
+	tracker.SignalAll();
+	allocator.Flush(0, false);
+
+	const u64 latestBeforeDefrag = tracker.LatestSubmissionIndex();
+
+	// Capture original offsets for survivors before Defrag rewrites their locations.
+	Vector<u64> originalOffsetForSurvivor;
+	for (u32 holderIndex = 1; holderIndex < kAllocCount; holderIndex += 2)
+		originalOffsetForSurvivor.push_back(holders[holderIndex]->Location.Offset);
+
+	const TlsfAllocator::DefragmentationStats stats = allocator.Defrag(NullCommandBuffer());
+	B3D_TEST_ASSERT(stats.MovesCompleted > 0)
+
+	// At least one survivor's MovedCount went up. For every moved survivor, validate the recorded
+	// context and confirm the consumer's location was overwritten with NewLocation.
+	bool sawMove = false;
+	u32 originalIndex = 0;
+	for (u32 holderIndex = 1; holderIndex < kAllocCount; holderIndex += 2)
+	{
+		const Holder& holder = *holders[holderIndex];
+		const u64 originalOffset = originalOffsetForSurvivor[originalIndex++];
+		if (holder.Resource.MovedCount == 0)
+			continue;
+
+		sawMove = true;
+		B3D_TEST_ASSERT(holder.Resource.LastSubmissionIndex == latestBeforeDefrag + 1)
+		B3D_TEST_ASSERT(holder.Resource.LastSourceOffset == originalOffset)
+
+		const MockLocation& newLocation = holder.Resource.LastNewLocation;
+		B3D_TEST_ASSERT(newLocation.IsValid())
+		B3D_TEST_ASSERT(newLocation.Offset != originalOffset)
+		B3D_TEST_ASSERT(newLocation.Size == kAllocSize)
+
+		// The mock replaces its location with NewLocation, so the externally-held location now
+		// identifies the destination slot.
+		B3D_TEST_ASSERT(holder.Location.Offset == newLocation.Offset)
+		B3D_TEST_ASSERT(holder.Location.AllocatorData0 == newLocation.AllocatorData0)
+		B3D_TEST_ASSERT(holder.Location.AllocatorData1 == newLocation.AllocatorData1)
+	}
+	B3D_TEST_ASSERT(sawMove)
 }

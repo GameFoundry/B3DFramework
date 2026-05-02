@@ -92,5 +92,23 @@ namespace b3d
 
 		/** Freeing a Linear allocation lets a subsequent NonLinear allocation reclaim the page without padding. */
 		void TestTlsf_GranularityFreeReleasesRegion();
+
+		/** Multi-heap drain: live allocations in a higher-index heap migrate to a lower-index heap and the vacated heap is released. */
+		void TestTlsf_Defrag_DrainsHighestHeap();
+
+		/** Single-heap configuration with a sawtooth pattern compacts allocations toward lower offsets within the same heap. */
+		void TestTlsf_Defrag_SingleHeapWithinHeapCompaction();
+
+		/** Per-call byte budget aborts the walk early and reports BudgetExhausted. */
+		void TestTlsf_Defrag_RespectsBudget();
+
+		/** Allocations whose Owner was left null at TryAllocate time are skipped; tracked allocations are not. */
+		void TestTlsf_Defrag_OnlySkipsUntrackedSlots();
+
+		/** A tracked allocation whose owner reports GetUseCount > 0 / GetBoundCount > 0 is still moved. */
+		void TestTlsf_Defrag_MovesInFlightResource();
+
+		/** OnAllocationMoved is invoked with the upcoming submission index and a populated new Location identifying a live destination slot. */
+		void TestTlsf_Defrag_OnAllocationMovedReceivesContext();
 	};
 } // namespace b3d
