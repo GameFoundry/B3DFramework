@@ -272,8 +272,8 @@ namespace
 	class MockResource : public IGpuResource
 	{
 	public:
-		u32 GetBoundCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return BoundCount; }
-		u32 GetUseCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return UseCount; }
+		u32 GetBoundCount() const override { return BoundCount; }
+		u32 GetUseCount() const override { return UseCount; }
 		void OnAllocationMoved(u64 submissionIndex, render::GpuCommandBuffer& /*cb*/, const GpuResourceLocation& newLocation) override
 		{
 			MovedCount++;

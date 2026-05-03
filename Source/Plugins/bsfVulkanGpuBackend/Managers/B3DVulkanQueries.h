@@ -40,7 +40,7 @@ namespace b3d
 			template <class T, class AllocatorTag>
 			static void SharedDeleter(VulkanGpuQueryPool* object)
 			{
-				if(!object->IsDestroyed())
+				if(!object->IsDestroyRequested())
 					object->Destroy();
 			}
 		private:

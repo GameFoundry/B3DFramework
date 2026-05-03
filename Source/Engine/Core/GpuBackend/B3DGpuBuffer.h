@@ -6,7 +6,6 @@
 #include "B3DGpuDevice.h"
 #include "CoreObject/B3DCoreObject.h"
 #include "CoreObject/B3DRenderProxy.h"
-#include "GpuBackend/Allocators/B3DGpuResource.h"
 
 namespace b3d
 {
@@ -535,7 +534,7 @@ namespace b3d::render
 	using GpuBufferMappedScope = TGpuBufferMappedScope<true>;
 
 	/** Defines a buffer that can be used for operations on the GPU. */
-	class B3D_EXPORT GpuBuffer : public RenderProxy, public b3d::IGpuResource
+	class B3D_EXPORT GpuBuffer : public RenderProxy
 	{
 	public:
 		virtual ~GpuBuffer();
@@ -663,6 +662,12 @@ namespace b3d::render
 		 * execution after buffer is done being used.
 		 */
 		virtual GpuQueueMask GetUseMask(GpuAccessFlags accessFlags = GpuAccessFlag::Read | GpuAccessFlag::Write) = 0;
+
+		/** Number of recorded-but-not-yet-submitted command buffers currently referencing this buffer. */
+		virtual u32 GetBoundCount() const = 0;
+
+		/** Number of in-flight submissions currently referencing this buffer. */
+		virtual u32 GetUseCount() const = 0;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/** Checks if any suballocation overlapping the given byte range is bound. */

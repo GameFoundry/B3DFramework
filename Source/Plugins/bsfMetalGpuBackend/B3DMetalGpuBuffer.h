@@ -32,8 +32,8 @@ namespace b3d
 
 			void SetName(const StringView& name) override;
 			GpuQueueMask GetUseMask(GpuAccessFlags accessFlags) override { return GpuQueueMask::kNone; }
-			u32 GetBoundCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return 0; }
-			u32 GetUseCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return 0; }
+			u32 GetBoundCount() const override { return 0; }
+			u32 GetUseCount() const override { return 0; }
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			bool IsRangeBound(u32 offset, u32 size) const override { return false; }

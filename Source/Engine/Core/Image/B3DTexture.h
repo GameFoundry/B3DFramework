@@ -5,7 +5,6 @@
 #include "B3DPrerequisites.h"
 #include "Resources/B3DResource.h"
 #include "GpuBackend/B3DGpuBuffer.h"
-#include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "Image/B3DPixelUtility.h"
 #include "GpuBackend/B3DTextureView.h"
 #include "Math/B3DVector3I.h"
@@ -481,7 +480,7 @@ namespace b3d
 		 *
 		 * @note	Render thread.
 		 */
-		class B3D_EXPORT Texture : public RenderProxy, public b3d::IGpuResource
+		class B3D_EXPORT Texture : public RenderProxy
 		{
 		public:
 			Texture(const TextureCreateInformation& createInformation);
@@ -545,6 +544,15 @@ namespace b3d
 			 * @param accessFlags	Filter by read/write access type.
 			 */
 			virtual GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags = GpuAccessFlag::Read | GpuAccessFlag::Write) const = 0;
+
+			/**
+			 * Number of recorded-but-not-yet-submitted command buffers currently referencing the given subresource.
+			 * Subresource index can be retrieved via TextureProperties::MapToSubresourceIndex.
+			 */
+			virtual u32 GetBoundCount(u32 subresourceIdx = 0) const = 0;
+
+			/** Number of in-flight submissions currently referencing the given subresource. */
+			virtual u32 GetUseCount(u32 subresourceIdx = 0) const = 0;
 
 			/**	Returns properties that contain information about the texture. */
 			const TextureProperties& GetProperties() const { return mProperties; }

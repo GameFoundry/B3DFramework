@@ -3,21 +3,27 @@
 #pragma once
 
 #include "B3DD3D12Prerequisites.h"
+#include "GpuBackend/Allocators/B3DGpuResource.h"
 
 namespace b3d
 {
 	namespace render
 	{
+		class D3D12ResourceManager;
+
 		/** @addtogroup D3D12GpuBackend
 		 *  @{
 		 */
 
-		/** Base class for all D3D12 GPU resources that need to be tracked for synchronization purposes. */
-		class D3D12Resource
+		/**
+		 * Base class for all D3D12 GPU resources that need to be tracked for synchronization purposes. Inherits the
+		 * cross-backend lifetime state machine (Notify*/Destroy/deferred-destroy) from IGpuResource and adds
+		 * D3D12-specific state-tracking on top.
+		 */
+		class D3D12Resource : public IGpuResource
 		{
 		public:
-			D3D12Resource();
-			virtual ~D3D12Resource();
+			D3D12Resource(D3D12ResourceManager* owner, const StringView& name = "");
 
 			/** Returns the D3D12 resource. */
 			virtual ID3D12Resource* GetD3D12Resource() const = 0;
