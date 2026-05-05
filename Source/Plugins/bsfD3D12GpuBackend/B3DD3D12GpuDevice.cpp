@@ -306,7 +306,7 @@ void D3D12GpuDevice::BeginFrame()
 	// TODO: Implement frame begin logic (descriptor heap management, etc.)
 }
 
-void D3D12GpuDevice::EndFrame()
+void D3D12GpuDevice::EndFrameImpl()
 {
 	SubmitTransferCommandBuffers();
 

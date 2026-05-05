@@ -40,18 +40,5 @@ namespace b3d
 		u64 Value = 0;
 	};
 
-	/** Interface used by allocators to query device submission progress. Implementers of the interface are expected to internally own a GpuTimelineFence. */
-	class B3D_EXPORT IGpuSubmissionTracker
-	{
-	public:
-		virtual ~IGpuSubmissionTracker() = default;
-
-		/** Returns the most recent device-wide submission index. Zero means no submit has happened. */
-		virtual u64 GetLatestSubmissionIndex() const = 0;
-
-		/** Returns @c true once the GPU has finished the submit with device-wide @p index. */
-		virtual bool IsSubmissionComplete(u64 index) const = 0;
-	};
-
 	/** @} */
 } // namespace b3d

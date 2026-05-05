@@ -55,17 +55,15 @@ void VulkanHeadlessRenderWindowSurface::CreateSwapChainImages()
 		vkImageCreateInfo.format = colorFormat;
 		vkImageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
-		VkImage vkImage;
-		VkResult result = vkCreateImage(device, &vkImageCreateInfo, gVulkanAllocator, &vkImage);
-		B3D_ASSERT(result == VK_SUCCESS);
-
 		VulkanImageCreateInformation imageCreateInformation;
-		imageCreateInformation.Image = vkImage;
 		imageCreateInformation.Usage = TextureUsageFlag::RenderTarget;
 		imageCreateInformation.Format = colorFormat;
-		imageCreateInformation.Allocation = presentDevice->AllocateMemory(vkImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, GpuResourceKind::NonLinear);
+		imageCreateInformation.CreateInfo = vkImageCreateInfo;
+		imageCreateInformation.OwnsImage = true;
+		imageCreateInformation.IsShaderReadAllowed = false;
 
-		mColorImages[imageIndex] = resourceManager->Create<VulkanImage>(imageCreateInformation, true, false);
+		// Purposefully not setting parent so these images don't participate in defragmentation
+		mColorImages[imageIndex] = presentDevice->CreateImage(imageCreateInformation, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, GpuResourceKind::NonLinear, nullptr);
 		if(mColorImages[imageIndex] != nullptr)
 			mColorImages[imageIndex]->SetName("HeadlessSwapChainColor" + ToString(imageIndex));
 	}
@@ -76,17 +74,15 @@ void VulkanHeadlessRenderWindowSurface::CreateSwapChainImages()
 		vkImageCreateInfo.format = depthFormat;
 		vkImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
-		VkImage depthVkImage;
-		VkResult result = vkCreateImage(device, &vkImageCreateInfo, gVulkanAllocator, &depthVkImage);
-		B3D_ASSERT(result == VK_SUCCESS);
-
 		VulkanImageCreateInformation imageCreateInformation;
-		imageCreateInformation.Image = depthVkImage;
 		imageCreateInformation.Usage = TextureUsageFlag::DepthStencil;
 		imageCreateInformation.Format = depthFormat;
-		imageCreateInformation.Allocation = presentDevice->AllocateMemory(depthVkImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, GpuResourceKind::NonLinear);
+		imageCreateInformation.CreateInfo = vkImageCreateInfo;
+		imageCreateInformation.OwnsImage = true;
+		imageCreateInformation.IsShaderReadAllowed = false;
 
-		mDepthImage = resourceManager->Create<VulkanImage>(imageCreateInformation, true, false);
+		// Purposefully not setting parent so these images don't participate in defragmentation
+		mDepthImage = presentDevice->CreateImage(imageCreateInformation, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, GpuResourceKind::NonLinear, nullptr);
 		if(mDepthImage != nullptr)
 			mDepthImage->SetName("HeadlessSwapChainDepth");
 	}

@@ -285,11 +285,30 @@ namespace b3d
 	};
 
 	/**
+	 * Interface used by GPU allocators (and other deferred-cleanup consumers) to schedule work against
+	 * frame boundaries. Frames are natural cross-queue sync points: at end-of-frame the device blocks
+	 * until the previous frame's resources are safe to reuse, so once a frame is "complete" the GPU is
+	 * guaranteed to have drained every submission tagged with that frame's index regardless of which
+	 * queue it ran on.
+	 */
+	class B3D_EXPORT IGpuFrameTracker
+	{
+	public:
+		virtual ~IGpuFrameTracker() = default;
+
+		/** Index of the frame currently being recorded. Monotonic; starts at 0. */
+		virtual u64 GetCurrentFrameIndex() const = 0;
+
+		/** Returns true once the GPU has caught up such that frame @p index is no longer in flight on any queue. */
+		virtual bool IsFrameComplete(u64 index) const = 0;
+	};
+
+	/**
 	 * Provides access to a particular GPU device.
 	 *
 	 * @note	Thread safe.
 	 */
-	class B3D_EXPORT GpuDevice : public IGpuSubmissionTracker
+	class B3D_EXPORT GpuDevice : public IGpuFrameTracker
 	{
 	public:
 		~GpuDevice() override = default;
@@ -315,22 +334,17 @@ namespace b3d
 		virtual SPtr<GpuQueue> GetQueue(GpuQueueType type, u32 index) const = 0;
 
 		/**
-		 * Submits a command buffer on a queue matching its type.
+		 * Submits a command buffer on a queue matching its type. 
 		 *
 		 * @param	information					Command buffer + signal fences to submit.
 		 * @param	queueIndex					Index of the queue (within the command buffer's queue type) to submit on.
 		 * @param	flushTransferCommandBuffer	When true, any pending transfer command buffer on the calling thread is submitted first.
-		 *
-		 * @return	Index that can be used to check if submission completed executing on the GPU, using IsSubmissionComplete(). If your submissions
-		 *			are sequential all on all queue, it's guaranteed if submission N+1 finishes that submission N is also finished. If your submissions
-		 *			are across multiple queues, that is only true if you insert dependencies between the queues, otherwise submission N on queue A,
-		 *			can finish after submission N+1 on queue B.
 		 */
-		u64 SubmitCommandBuffer(const GpuSubmissionInformation& information, u32 queueIndex = 0, bool flushTransferCommandBuffer = true);
+		void SubmitCommandBuffer(const GpuSubmissionInformation& information, u32 queueIndex = 0, bool flushTransferCommandBuffer = true);
 
 		/**
-		 * Convenience overload equivalent to building a @c GpuSubmissionInformation with no extra
-		 * signal fences and discarding the returned submission index.
+		 * Convenience overload equivalent to building a GpuSubmissionInformation with no extra
+		 * signal fences. 
 		 *
 		 * @param	commandBuffer	Command buffer to submit. Usage of the command buffer determines the queue to execute on.
 		 * @param	syncMask		Optional synchronization mask that determines if the submitted command buffer
@@ -357,10 +371,14 @@ namespace b3d
 		/** Blocks the calling thread until all operations on the device finish. */
 		virtual void WaitUntilIdle() = 0;
 
+		/** Notifies the device the rendering for the current frame will start. See EndFrame(). */
 		virtual void BeginFrame() = 0;
 
 		/** Notifies the device the rendering for the current frame has ended. See BeginFrame(). */
-		virtual void EndFrame() = 0;
+		virtual void EndFrame()
+		{
+			mFrameIndex.fetch_add(1, std::memory_order_acq_rel);
+		}
 
 		/**
 		 * Retrieves or creates a transfer command buffer for the current thread.
@@ -509,15 +527,26 @@ namespace b3d
 		 */
 		virtual float ConvertTimestampToMilliseconds(u64 timestamp) = 0;
 
-		/************************************************************************/
-		/* 						SUBMISSION TRACKING / FENCES                    */
-		/************************************************************************/
+		/** @name Frame tracking
+		 *  @{
+		 */
 
-		/** Returns the most recent device-wide submission index. Zero means no submit has happened. */
-		u64 GetLatestSubmissionIndex() const override { return mSubmissionCounter.load(std::memory_order_acquire); }
+		/** Returns this device as the IGpuFrameTracker interface. */
+		IGpuFrameTracker& GetFrameTracker() { return *this; }
 
-		/** Returns true once the GPU has finished executing the submit with @p index. */
-		bool IsSubmissionComplete(u64 index) const override;
+		/** Index of the frame currently being recorded. Monotonic; starts at 0. Incremented inside EndFrame. */
+		u64 GetCurrentFrameIndex() const override { return mFrameIndex.load(std::memory_order_acquire); }
+
+		/**
+		 * Returns true once the GPU has caught up such that frame @p index is no longer in flight on
+		 * any queue. Implementation: an @p index is complete once the current frame index has advanced
+		 * by at least RenderThread::kMaximumFramesInFlight beyond it — at end-of-frame the device
+		 * blocks until the previous frame's resources are safe to reuse, so once @c kMaximumFramesInFlight
+		 * frame ticks pass, the GPU has drained everything from frame @p index.
+		 */
+		bool IsFrameComplete(u64 index) const override;
+
+		/** @} */
 
 	protected:
 		/**
@@ -539,15 +568,13 @@ namespace b3d
 			return SPtr<Type>(data, fnStandaloneDeleter, StdAlloc<Type, PointerDataAllocatorTag>());
 		}
 
-		SPtr<GpuTimelineFence> mDefaultSubmissionFence;
-
 		UPtr<GpuTransferBufferHelper> mTransferBufferHelper;
 
 		mutable UnorderedMap<SamplerStateCreateInformation, SPtr<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;
 
 	private:
-		std::atomic<u64> mSubmissionCounter{0};
+		std::atomic<u64> mFrameIndex{0};
 	};
 
 	/** @} */

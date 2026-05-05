@@ -542,8 +542,6 @@ namespace b3d
 			// resources do not outlive their parent heap.
 			mHeapAllocator = B3DMakeUnique<MetalHeapAllocator>(*this);
 
-			mDefaultSubmissionFence = B3DMakeShared<MetalGpuTimelineFence>(*this);
-
 			mTransferBufferHelper = B3DMakeUnique<GpuTransferBufferHelper>(*this, GpuQueueId(GQT_GRAPHICS, 0));
 
 			mIsInitialized = true;
@@ -1150,7 +1148,7 @@ namespace b3d
 			mTransferBufferHelper->SubmitTransferCommandBuffer(wait);
 		}
 
-		void MetalGpuDevice::EndFrame()
+		void MetalGpuDevice::EndFrameImpl()
 		{
 			SubmitTransferCommandBuffers();
 

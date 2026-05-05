@@ -7,8 +7,8 @@
 namespace b3d
 {
 	/**
-	 * End-to-end self-tests for the per-memory-type @c TGpuTlsfAllocator pool wired into @c VulkanGpuDevice
-	 * and the underlying @c VulkanHeapBackend. Tests bail out gracefully when no Vulkan device is available
+	 * End-to-end self-tests for the per-memory-type TGpuTlsfAllocator pool wired into VulkanGpuDevice
+	 * and the underlying VulkanHeapBackend. Tests bail out gracefully when no Vulkan device is available
 	 * so the suite stays runnable on headless CI without a Vulkan-capable GPU.
 	 */
 	class VulkanAllocatorTestSuite : public TestSuite

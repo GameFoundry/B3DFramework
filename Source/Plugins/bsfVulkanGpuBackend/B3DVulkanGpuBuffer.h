@@ -25,20 +25,33 @@ namespace b3d
 		};
 #endif
 
+		class VulkanGpuBuffer;
+
+		/** Descriptor used to create a VulkanBuffer. */
+		struct VulkanBufferCreateInformation
+		{
+			VkBufferCreateInfo VkCreateInfo{}; /**< Vulkan-level descriptor used to create the underlying VkBuffer. */
+			GpuBufferType Type = GpuBufferType::Vertex; /**< Type of the buffer being created. */
+			GpuBufferFlags Flags; /**< Flags that specify how the buffer is intended to be used. */
+			StringView DebugName; /**< Optional name of the resource, for debugging purposes. */
+		};
+
 		/** Wrapper around a Vulkan buffer object that manages its usage and lifetime. */
 		class VulkanBuffer : public VulkanResource
 		{
 		public:
 			/**
-			 * @param	owner		Manager that takes care of tracking and releasing of this object.
-			 * @param	type		Type of the buffer being created.
-			 * @param	flags		Flags that specify how is the buffer intended to be used.
-			 * @param	buffer		Actual low-level Vulkan buffer handle.
-			 * @param	allocation	Information about memory mapped to the buffer.
-			 * @param	name		Optional name of the resource, for debugging purposes.
+			 * @param	owner				Manager that takes care of tracking and releasing of this object.
+			 * @param	createInformation	Describes the buffer being wrapped.
+			 * @param	buffer				Internal Vulkan buffer handle that the wrapper takes ownership of.
+			 * @param	allocation			Memory binding for this buffer.
+			 * @param	parent				High-level VulkanTexture proxy that owns this wrapper, or nullptr for transient staging images / unowned wrappers. 
+			 *								Required for the wrapper to participate in defragmentation.
 			 */
-			VulkanBuffer(VulkanResourceManager* owner, GpuBufferType type, GpuBufferFlags flags, VkBuffer buffer, VulkanAllocationResult allocation, const StringView& name = "");
+			VulkanBuffer(VulkanResourceManager* owner, const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation, VulkanGpuBuffer* parent = nullptr);
 			~VulkanBuffer();
+
+			IGpuResource* MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuResourceLocation& newLocation) override;
 
 			/** Returns the internal handle to the Vulkan object. */
 			VkBuffer GetVulkanHandle() const { return mBuffer; }
@@ -144,6 +157,7 @@ namespace b3d
 			VkBuffer mBuffer;
 			TInlineArray<ViewInformation, 2> mViews;
 			VulkanAllocationResult mAllocation;
+			VulkanGpuBuffer* mParent = nullptr;
 			void* mMappedMemory = nullptr;
 
 			mutable VkDeviceSize mMappedOffset = 0;
@@ -184,6 +198,7 @@ namespace b3d
 
 		protected:
 			friend class VulanGpuDevice;
+			friend class VulkanBuffer;
 
 			/** Information about a created buffer view. */
 			struct ViewInformation
@@ -199,15 +214,20 @@ namespace b3d
 			void RecreateInternalBuffer() override;
 
 			/** Creates a new buffer for the specified device, matching the current buffer properties. */
-			VulkanBuffer* CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable);
+			VulkanBuffer* CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable, const VulkanAllocationResult* preAllocatedMemory = nullptr);
+
+			/**
+			 * Recreates this proxy's internal VulkanBuffer at the provided pre-reserved allocation slot,
+			 * records a GPU-side copy from the current buffer into the new one on @p commandBuffer. The caller
+			 * is responsible for queuing the old wrapper for destroy.
+			 */
+			VulkanBuffer* RelocateInternalBuffer(const VulkanAllocationResult& preReserved, render::GpuCommandBuffer& commandBuffer);
 
 			/** Gets the GPU device the buffer is created on. */
 			VulkanGpuDevice& GetVulkanDevice() const { return static_cast<VulkanGpuDevice&>(mDevice); }
 
 			VulkanBuffer* mBuffer = nullptr;
 
-			VkBufferCreateInfo mBufferCI;
-			VkBufferUsageFlags mUsageFlags;
 			bool mDirectlyMappable : 1;
 			bool mSupportsGPUWrites : 1;
 		};

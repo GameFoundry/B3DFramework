@@ -6,6 +6,7 @@
 #include "B3DVulkanPrerequisites.h"
 #include "B3DVulkanHeapBackend.h"
 #include "Managers/B3DVulkanDescriptorManager.h"
+#include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
@@ -23,6 +24,13 @@ namespace b3d
 		/** @addtogroup Vulkan
 		 *  @{
 		 */
+
+		class VulkanBuffer;
+		class VulkanGpuBuffer;
+		class VulkanImage;
+		class VulkanTexture;
+		struct VulkanBufferCreateInformation;
+		struct VulkanImageCreateInformation;
 
 		/** Contains format describing a Vulkan surface. */
 		struct SurfaceFormat
@@ -95,9 +103,6 @@ namespace b3d
 			UPtr<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) override;
 			SPtr<GpuTimelineFence> CreateTimelineFence() override;
 
-			/** Checks if submission with the specified index has finished executing on the GPU. This index is returned by SubmitCommandBuffer. */
-			bool IsSubmissionComplete(u64 index) const override;
-
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
 			GpuUniformBufferInformation GenerateUniformBufferInformation(const String& name, TArray<GpuUniformBufferMemberInformation>& inOutUniforms) override;
 			float ConvertTimestampToMilliseconds(u64 timestamp) override;
@@ -155,33 +160,51 @@ namespace b3d
 			void GetSyncSemaphores(GpuQueueMask syncMask, TInlineArray<VulkanSemaphore*, 8> outSemaphores) const;
 
 			/**
-			 * @name Memory Allocation
+			 * @name Resource Creation
 			 * @{
 			 */
 
 			/**
-			 * Allocates memory for @p image and binds it. Picks the best memory type satisfying @p requiredFlags
-			 * and (where possible) the @p preferredFlags hint, then suballocates from the per-memory-type
-			 * allocator. @p kind controls buffer-image granularity placement: Non-linear for optimally-tiled 
-			 * images, linear for linearly-tiled images and buffers.
-			 *
-			 * TODO: TLSF allocator not currently thread safe, VMA used to be
+			 * Creates a VkBuffer described by @p info, suballocates compatible memory and binds the two 
+			 * together, and wraps the result in a VulkanBuffer. Memory-type selection picks the best match 
+			 * satisfying @p requiredFlags with a preference scoring against @p preferredFlags. 
+
+			 * Provide @p parent so the buffer can participate in defragmentation - the parent will be notified
+			 * when it needs to re-allocate the buffer in the new destination.
 			 *
 			 * Thread safe.
 			 */
-			VulkanAllocationResult AllocateMemory(VkImage image, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, GpuResourceKind kind);
+			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, VulkanGpuBuffer* parent);
 
 			/**
-			 * Allocates memory for @p buffer and binds it. Picks the best memory type satisfying @p requiredFlags
-			 * and (where possible) the @p preferredFlags hint, then suballocates from the per-memory-type allocator.
+			 * Same as the other overload, but binds the VkBuffer to externally allocated @p allocation slot instead of allocating new memory.
 			 *
 			 * Thread safe.
 			 */
-			VulkanAllocationResult AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags);
+			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, const VulkanAllocationResult& allocation, VulkanGpuBuffer* parent);
+
+			/**
+			 * Creates a VkImage described by @p info, suballocates compatible memory and binds the 
+			 * two together, and wraps the result in a VulkanImage. @p kind controls buffer-image 
+			 * granularity placement (Non-linear for optimally-tiled images, Linear for linearly-tiled).
+			 *
+			 * Provide @p parent so the buffer can participate in defragmentation - the parent will be notified
+			 * when it needs to re-allocate the image in the new destination.
+			 *
+			 * Thread safe.
+			 */
+			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, GpuResourceKind kind, VulkanTexture* parent);
+
+			/**
+			 * Same as the other overload, but binds the VkImage to externally allocated @p allocation slot instead of allocating new memory.
+			 *
+			 * Thread safe.
+			 */
+			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, const VulkanAllocationResult& allocation, VulkanTexture* parent);
 
 			/**
 			 * Returns @p allocation to its allocator's free pool synchronously. The slot becomes
-			 * immediately available for reuse on the very next AllocateMemory call.
+			 * immediately available for reuse.
 			 *
 			 * Caller must guarantee the GPU is no longer using the underlying memory range.
 			 *
@@ -198,7 +221,7 @@ namespace b3d
 			u8* MapMemory(const VulkanAllocationResult& allocation, VkDeviceSize offset = 0) const;
 
 			/**
-			 * No-op for persistently-mapped heaps; retained for symmetry with @c MapMemory.
+			 * No-op for persistently-mapped heaps; retained for symmetry with MapMemory.
 			 *
 			 * Thread safe.
 			 */
@@ -222,7 +245,7 @@ namespace b3d
 
 			/** @} */
 
-			/** Returns @c true if timeline semaphores are available on this device. */
+			/** Returns true if timeline semaphores are available on this device. */
 			bool SupportsTimelineSemaphores() const { return mSupportsTimelineSemaphore; }
 
 			/** Returns the device heap backend. */
@@ -239,6 +262,44 @@ namespace b3d
 			void InitializeCapabilities();
 
 			/**
+			 * Allocates a memory slot for @p image. Picks the best memory type satisfying @p requiredFlags and
+			 * (where possible) the @p preferredFlags hint, then suballocates from the per-memory-type allocator.
+			 * @p kind controls buffer-image granularity placement. The caller is responsible for binding via
+			 * vkBindImageMemory; this method does not bind.
+			 *
+			 * Internal — invoked only by CreateImage. External callers route through CreateImage so the wrapper
+			 * registration with the allocator (owner stamping for defragmentation) cannot be skipped.
+			 */
+			VulkanAllocationResult AllocateMemory(VkImage image, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, GpuResourceKind kind);
+
+			/**
+			 * Allocates a memory slot for @p buffer. Picks the best memory type satisfying @p requiredFlags and
+			 * (where possible) the @p preferredFlags hint, then suballocates from the per-memory-type allocator.
+			 * The caller is responsible for binding via vkBindBufferMemory; this method does not bind.
+			 *
+			 * Internal — invoked only by CreateBuffer.
+			 */
+			VulkanAllocationResult AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags);
+
+			/**
+			 * Common bind-and-wrap helper for buffers. Binds @p buffer to @p allocation, constructs the
+			 * VulkanBuffer wrapper, and stamps the allocator owner when @p parent is non-null.
+			 */
+			VulkanBuffer* BindBufferToAllocation(const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation, VulkanGpuBuffer* parent);
+
+			/**
+			 * Common bind-and-wrap helper for images. Binds @p image to @p allocation, constructs the
+			 * VulkanImage wrapper, and stamps the allocator owner when @p parent is non-null. 
+			 */
+			VulkanImage* BindBufferToAllocation(const VulkanImageCreateInformation& info, VkImage image, VulkanAllocationResult allocation, VulkanTexture* parent);
+
+			/**
+			 * Associates a IGpuResource owner onto an existing allocation, so the allocation participates
+			 * in defragmentation. Untracked wrappers (parent == nullptr) skip this call and stay ineligible.
+			 */
+			void SetAllocationOwner(const VulkanAllocationResult& allocation, IGpuResource* owner);
+
+			/**
 			 * Picks a memory-type index satisfying @p typeBits and the @p required flags, with a preference
 			 * scoring against @p preferred. Returns VK_MAX_MEMORY_TYPES on failure.
 			 */
@@ -250,6 +311,14 @@ namespace b3d
 			 * and is locked to a single memory-type index.
 			 */
 			TGpuTlsfAllocator<VulkanHeapBackend>& GetOrCreateGpuMemoryAllocator(u32 memoryTypeIndex);
+
+			/**
+			 * Runs an opportunistic defragmentation pass across every GPU allocators that support it.
+			 *
+			 * No-op when mDefragEnabled is false. Bounded by mDefragBudgetBytes / mDefragBudgetAllocations
+			 * so a single frame can't stall on copying many GBs of memory.
+			 */
+			void RunDefragPass();
 
 			/** Marks the device as a primary device. */
 			void SetIsPrimary() { mIsPrimary = true; }
@@ -283,8 +352,12 @@ namespace b3d
 			/** Per-memory-type TLSF allocator pool. Slots are lazily populated on first allocation. */
 			UPtr<TGpuTlsfAllocator<VulkanHeapBackend>> mGpuMemoryAllocators[VK_MAX_MEMORY_TYPES];
 
-			/** Guards lazy creation of @c mTlsfAllocators entries. */
+			/** Guards lazy creation of mTlsfAllocators entries. */
 			mutable Mutex mGpuMemoryAllocatorMutex;
+
+			u64 mDefragBudgetBytes = 8ull * 1024 * 1024;
+			u32 mDefragBudgetAllocations = 8;
+			bool mDefragEnabled = false;
 		};
 
 		/** @} */

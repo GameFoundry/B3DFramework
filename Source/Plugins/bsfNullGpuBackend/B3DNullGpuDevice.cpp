@@ -64,8 +64,6 @@ namespace b3d
 			// Initialize capabilities with reasonable defaults for a null backend
 			InitializeCapabilities();
 
-			mDefaultSubmissionFence = B3DMakeShared<NullGpuTimelineFence>();
-
 			mTransferBufferHelper = B3DMakeUnique<GpuTransferBufferHelper>(*this, GpuQueueId(GQT_GRAPHICS, 0));
 
 			mIsInitialized = true;

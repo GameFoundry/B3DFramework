@@ -941,11 +941,17 @@ namespace b3d
 			 */
 			u64 GranularityDisableThreshold = 256;
 
+			/**
+			 * Controls how the allocator tracks when allocations are no longer used on the GPU, so it may safely
+			 * free them.
+			 */
+			GpuAllocatorFreeDeferralMode DeferralMode = GpuAllocatorFreeDeferralMode::FrameTracker;
+
 			/** Backend create-info forwarded verbatim to HeapBackend::CreateHeap on each grow. */
 			typename HeapBackend::HeapCreateInformation HeapCreateInfo{};
 		};
 
-		TGpuTlsfAllocator(HeapBackend* backend, IGpuSubmissionTracker* submissionTracker, const Configuration& configuration);
+		TGpuTlsfAllocator(HeapBackend* backend, IGpuFrameTracker* frameTracker, const Configuration& configuration);
 		~TGpuTlsfAllocator();
 
 		// Non-copyable — node pool and heap state are not safe to duplicate.
@@ -959,6 +965,14 @@ namespace b3d
 		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out);
 		void FreeImpl(Location& allocation);
 		void FreeImmediateImpl(u32 heapIndex, u32 nodeIndex);
+
+		/**
+		 * Stamps an IGpuResource owner onto a previously-allocated slot. Used by callers that can't
+		 * pass the owner at TryAllocate time (e.g. backends where the allocation is performed before
+		 * the IGpuResource wrapper exists, then the wrapper registers itself post-construction).
+		 * Pass nullptr to clear the owner — the slot remains live but becomes ineligible for defrag.
+		 */
+		void SetAllocationOwner(const Location& allocation, IGpuResource* owner);
 
 		/** @} */
 
@@ -1011,22 +1025,8 @@ namespace b3d
 		};
 
 		/**
-		 * Compacts live allocations by moving them into lower-offset / lower-index slots. The pass
-		 * walks heaps high-index → low-index and within each heap follows the per-heap physical
-		 * chain offset-high → offset-low. Every tracked allocation (non-null owner) is a candidate.
-		 *
-		 * For each successful move the consumer's IGpuResource::OnAllocationMoved is invoked with
-		 * the next-not-yet-issued submission index, @p commandBuffer, and a fresh
-		 * TGpuResourceLocation<HeapBackend> for the destination slot; the consumer records the
-		 * GPU copy from its still-intact source location to the destination via @p commandBuffer,
-		 * queues the old backend object for deferred-destroy on the supplied submission index,
-		 * replaces its own TGpuResourceLocation with the new one, and recreates the placed
-		 * backend object at the new memory range. The source slot is retired against the upcoming
-		 * submission index and freed when the deferred-free queue drains.
-		 *
-		 * **Submission-ordering contract.** The caller must submit @p commandBuffer next with no
-		 * intervening submissions. Pre-recorded command buffers that reference the OLD backend
-		 * object must already have been submitted before Defrag() is called.
+		 * Compacts live allocations by moving them into lower-offset / lower-index slots. 
+		 * Every tracked allocation (non-null owner) is a candidate.
 		 *
 		 * @param commandBuffer	Command buffer the consumer's recreate-and-copy path records into.
 		 * @param info			Soft per-call budgets.
@@ -1054,7 +1054,7 @@ namespace b3d
 			u32 NodeIndex;
 		};
 
-		/** Create a fresh heap and install it into @c mHeaps, reusing a vacated slot if one is available. */
+		/** Create a fresh heap and install it into mHeaps, reusing a vacated slot if one is available. */
 		u32 CreateNewHeap(u64 sizeInBytes);
 
 		/** Destroy heap @p heapIndex and vacate its slot. Caller has verified LiveAllocCount == 0. */
@@ -1070,12 +1070,13 @@ namespace b3d
 
 		/**
 		 * Reserves a destination slot for the live allocation at @p sourceNodeIndex, dispatches the
-		 * consumer's OnAllocationMoved with the typed move context, and retires the source slot
-		 * against @p submissionIndex. Returns true on a successful move and writes the chosen
-		 * destination heap and node indices to the out parameters; false if no destination slot was
-		 * available within @p sourceHeapIndex inclusive.
+		 * consumer's MoveAllocation, and (under FreeDeferralMode::FrameTracker) retires the source 
+		 * allocation against the current frame index. Under FreeDeferralMode::ResourceLifecycle the 
+		 * source slot is left untracked and freed by the consumer's destructor. Returns true on a 
+		 * successful move and writes the chosen destination heap and node indices to the out 
+		 * parameters; false if no destination slot was available within @p sourceHeapIndex inclusive.
 		 */
-		bool TryMoveAllocation(u32 sourceNodeIndex, u32 sourceHeapIndex, render::GpuCommandBuffer& commandBuffer, u64 submissionIndex, u32& outDestinationHeapIndex, u32& outDestinationNodeIndex);
+		bool TryMoveAllocation(u32 sourceNodeIndex, u32 sourceHeapIndex, render::GpuCommandBuffer& commandBuffer, u32& outDestinationHeapIndex, u32& outDestinationNodeIndex);
 
 		Configuration mConfig;
 		Vector<Heap*> mHeaps;
@@ -1084,8 +1085,8 @@ namespace b3d
 	};
 
 	template <typename HeapBackend>
-	TGpuTlsfAllocator<HeapBackend>::TGpuTlsfAllocator(HeapBackend* backend, IGpuSubmissionTracker* submissionTracker, const Configuration& configuration)
-		: Base(backend, submissionTracker), mConfig(configuration), mNextHeapSize(configuration.InitialHeapSize)
+	TGpuTlsfAllocator<HeapBackend>::TGpuTlsfAllocator(HeapBackend* backend, IGpuFrameTracker* frameTracker, const Configuration& configuration)
+		: Base(backend, frameTracker), mConfig(configuration), mNextHeapSize(configuration.InitialHeapSize)
 	{
 		B3D_ASSERT(mConfig.GrowthFactor >= 1);
 		B3D_ASSERT(mConfig.InitialHeapSize > 0);
@@ -1094,6 +1095,7 @@ namespace b3d
 		B3D_ASSERT(mConfig.BufferImageGranularity == 1 || Bitwise::IsPow2(mConfig.BufferImageGranularity));
 		// Guards the bitmap-width constraint — sizes whose MSB exceeds this cap can't be bucketed.
 		B3D_ASSERT(mConfig.MaxHeapSize < (1ull << (detail::tlsf::Utility::kFirstLevelClassCount + detail::tlsf::Utility::kMemoryClassShift)));
+		B3D_ASSERT((mConfig.DeferralMode != GpuAllocatorFreeDeferralMode::FrameTracker) || frameTracker != nullptr);
 	}
 
 	template <typename HeapBackend>
@@ -1181,6 +1183,15 @@ namespace b3d
 	{
 		B3D_ASSERT(allocation.Allocator == this);
 		B3D_ASSERT(allocation.AllocatorData0 < (u32)mHeaps.size());
+
+		if (mConfig.DeferralMode == GpuAllocatorFreeDeferralMode::ResourceLifecycle)
+		{
+			// Caller has gated GPU completion through IGpuResource::Destroy + Notify* — no need to
+			// queue the slot. Release synchronously so a subsequent allocation can reuse it.
+			FreeImmediateImpl(allocation.AllocatorData0, allocation.AllocatorData1);
+			return;
+		}
+
 		Base::RetireAllocation(allocation);
 	}
 
@@ -1201,6 +1212,16 @@ namespace b3d
 			else
 				DestroyHeap(heapIndex);
 		}
+	}
+
+	template <typename HeapBackend>
+	void TGpuTlsfAllocator<HeapBackend>::SetAllocationOwner(const Location& allocation, IGpuResource* owner)
+	{
+		B3D_ASSERT(allocation.Allocator == this);
+		B3D_ASSERT(allocation.AllocatorData0 < (u32)mHeaps.size());
+		Heap* heap = mHeaps[allocation.AllocatorData0];
+		B3D_ASSERT(heap != nullptr);
+		heap->SetNodeOwner(allocation.AllocatorData1, owner);
 	}
 
 	template <typename HeapBackend>
@@ -1322,7 +1343,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend>
-	bool TGpuTlsfAllocator<HeapBackend>::TryMoveAllocation(u32 sourceNodeIndex, u32 sourceHeapIndex, render::GpuCommandBuffer& commandBuffer, u64 submissionIndex, u32& outDestinationHeapIndex, u32& outDestinationNodeIndex)
+	bool TGpuTlsfAllocator<HeapBackend>::TryMoveAllocation(u32 sourceNodeIndex, u32 sourceHeapIndex, render::GpuCommandBuffer& commandBuffer, u32& outDestinationHeapIndex, u32& outDestinationNodeIndex)
 	{
 		Heap* sourceHeap = mHeaps[sourceHeapIndex];
 
@@ -1332,20 +1353,14 @@ namespace b3d
 		const u64 sourceOffset = sourceSnapshotRef.Offset;
 		const u64 sourceSize = sourceSnapshotRef.Size;
 		IGpuResource* owner = sourceSnapshotRef.Owner;
-		const GpuResourceKind sourceKind = sourceSnapshotRef.Flags.IsSet(detail::tlsf::NodeFlag::NonLinear)
-			? GpuResourceKind::NonLinear : GpuResourceKind::Linear;
+		const GpuResourceKind sourceKind = sourceSnapshotRef.Flags.IsSet(detail::tlsf::NodeFlag::NonLinear) ? GpuResourceKind::NonLinear : GpuResourceKind::Linear;
 
-		// 1. Reserve a destination slot in the same heap (within-heap compaction) or any lower-index
-		//    heap (multi-heap drain). TryAllocateInHeapsAtMost never grows a fresh heap.
+		// 1. Reserve a destination slot in the same heap or any lower-index heap
 		DefragDestinationSlot destination;
 		if (!TryAllocateInHeapsAtMost(sourceSize, /*alignment=*/1u, sourceKind, sourceHeapIndex, destination))
 			return false;
 
-		// 2. Reject within-heap destinations that don't compact (offset >= source's). The TLSF
-		//    best-fit picks the smallest fitting free block irrespective of offset, so the
-		//    destination might land at a higher offset than the source — that would be anti-defrag.
-		//    Cross-heap moves (lower heap index) need no such constraint; the goal there is to
-		//    drain the source heap.
+		// 2. Ensure destination is at a lower offset than the source
 		if (destination.HeapIndex == sourceHeapIndex && destination.Offset >= sourceOffset)
 		{
 			FreeImmediateImpl(destination.HeapIndex, destination.NodeIndex);
@@ -1354,14 +1369,7 @@ namespace b3d
 
 		Heap* destHeap = mHeaps[destination.HeapIndex];
 
-		// 3. Stamp the destination with the owner pointer so the slot is tracked from the moment
-		//    the consumer's recreate-and-record path observes it, and so future Defrag() calls
-		//    treat it as an eligible candidate.
-		destHeap->SetNodeOwner(destination.NodeIndex, owner);
-
-		// 4. Build the destination Location. The consumer assigns this onto its own location field
-		//    instead of patching individual hot fields. Heap handles are read out of mHeaps directly
-		//    — slots are stable (DestroyHeap nulls the slot but never repacks indices).
+		// 3. Build the destination Location
 		Location newLocation;
 		newLocation.Heap = destHeap->Handle();
 		newLocation.Offset = destination.Offset;
@@ -1370,23 +1378,36 @@ namespace b3d
 		newLocation.AllocatorData0 = destination.HeapIndex;
 		newLocation.AllocatorData1 = destination.NodeIndex;
 
-		// 5. Notify the owner: it records the GPU copy from its still-intact source location to
-		//    the destination via the command buffer, queues the old backend object for
-		//    deferred-destroy on submissionIndex, replaces its location with newLocation, and
-		//    recreates the placed backend object at the new memory range. The owner downcasts the
-		//    GpuResourceLocation reference back to TGpuResourceLocation<HeapBackend>.
-		owner->OnAllocationMoved(submissionIndex, commandBuffer, newLocation);
+		// 4. Notify the owner: depending on DeferralMode it will either re-allocate a brand new IGpuResource
+		//    at the destination location (if resource tracking is used), or patch the existing
+		//    resource (if frame tracking is used).
+		IGpuResource* newOwner = owner->MoveAllocation(commandBuffer, newLocation);
 
-		// 6. Retire the source slot against submissionIndex; the deferred-free queue releases it
-		//    once that submission completes. The retire path keys on Allocator-private slot
-		//    fields, so synthesise a Location snapshot identifying the source slot. Clear the
-		//    source node's Owner now so any defrag pass issued before the deferred-free drains
-		//    observes the slot as untracked rather than as a phantom candidate.
-		Location sourceSnapshot;
-		sourceSnapshot.Allocator = this;
-		sourceSnapshot.AllocatorData0 = sourceHeapIndex;
-		sourceSnapshot.AllocatorData1 = sourceNodeIndex;
-		Base::RetireAllocation(sourceSnapshot, submissionIndex);
+		// 5. Mark the destination with the new owner
+		destHeap->SetNodeOwner(destination.NodeIndex, newOwner);
+
+		// 6. Dispose of the original memory. This depends on deferral mode:
+		//    - ResourceLifecycle - Consumer is tasked with disposing the memory. He should call
+		//      Free() when the old IGpuResource is done being used on the GPU.
+		//    - FrameTracker - The allocator is tasked with disposing the memory. The allocator
+		//      waits for kMaximumFramesInFlight and then releases the memory.
+		//
+		//    In both cases, clear the source node's Owner so any defrag pass issued before the
+		//    source is freed observes the slot as untracked rather than as a phantom candidate.
+		if (mConfig.DeferralMode == GpuAllocatorFreeDeferralMode::FrameTracker)
+		{
+			B3D_ASSERT(newOwner == owner &&
+				"FreeDeferralMode::FrameTracker requires MoveAllocation to return the same IGpuResource it was called on. "
+				"Wrapper-swap patterns require FreeDeferralMode::ResourceLifecycle.");
+
+			Location sourceSnapshot;
+			sourceSnapshot.Allocator = this;
+			sourceSnapshot.AllocatorData0 = sourceHeapIndex;
+			sourceSnapshot.AllocatorData1 = sourceNodeIndex;
+
+			Base::RetireAllocation(sourceSnapshot);
+		}
+
 		sourceHeap->SetNodeOwner(sourceNodeIndex, nullptr);
 
 		outDestinationHeapIndex = destination.HeapIndex;
@@ -1405,12 +1426,6 @@ namespace b3d
 		Vector<DefragDestinationKey> destinationNodes;
 		if (info.MaxAllocationsPerCall != 0)
 			destinationNodes.reserve(info.MaxAllocationsPerCall);
-
-		// All moves recorded inside this Defrag() call ride the next-not-yet-issued submission
-		// index. The caller is contractually required to submit @p commandBuffer next, with no
-		// intervening submissions, so the deferred-destroy of source slots and old backend handles
-		// drains in lockstep with the GPU completing the move.
-		const u64 submissionIndex = Base::mSubmissionTracker->GetLatestSubmissionIndex() + 1;
 
 		// Walk heaps high-index → low-index — newer (typically sparser) heaps drain first.
 		// Destinations land in the same heap (within-heap compaction) or any lower-index heap
@@ -1444,13 +1459,7 @@ namespace b3d
 					continue;
 				}
 
-				// Untracked slots (Owner left null at TryAllocate time) cannot be relocated — there
-				// is no consumer to invoke OnAllocationMoved on. Any other tracked allocation is a
-				// candidate, regardless of in-flight / bound state: correctness follows from submission
-				// ordering, not from filtering. The caller's contract requires submitting @p commandBuffer
-				// next with no intervening submissions, which guarantees pre-recorded CBs that reference
-				// the OLD backend object are submitted at index < submissionIndex (and run before the
-				// move on the GPU queue), and any newly recorded CBs reference the NEW location post-patch.
+				// Untracked slots (owner is null) cannot be relocated - there is no consumer to invoke MoveAllocation on.
 				IGpuResource* owner = node.Owner;
 				if (owner == nullptr)
 				{
@@ -1474,7 +1483,7 @@ namespace b3d
 				stats.MovesAttempted++;
 				u32 destinationHeapIndex = detail::tlsf::Utility::kInvalidIndex;
 				u32 destinationNodeIndex = detail::tlsf::Utility::kInvalidIndex;
-				if (TryMoveAllocation(nodeIndex, heapIndex, commandBuffer, submissionIndex, destinationHeapIndex, destinationNodeIndex))
+				if (TryMoveAllocation(nodeIndex, heapIndex, commandBuffer, destinationHeapIndex, destinationNodeIndex))
 				{
 					stats.MovesCompleted++;
 					stats.BytesMoved += sourceSize;
@@ -1492,8 +1501,8 @@ namespace b3d
 		// Clear destination markers — destinations are now ordinary live allocations and become
 		// valid candidates for future Defrag() calls. The marker is in effect only inside this
 		// single Defrag() invocation.
-		for (const DefragDestinationKey& dst : destinationNodes)
-			mHeaps[dst.HeapIndex]->ClearDefragDestinationFlag(dst.NodeIndex);
+		for (const DefragDestinationKey& key : destinationNodes)
+			mHeaps[key.HeapIndex]->ClearDefragDestinationFlag(key.NodeIndex);
 
 		return stats;
 	}

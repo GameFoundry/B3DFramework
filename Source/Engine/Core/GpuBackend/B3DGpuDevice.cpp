@@ -3,6 +3,7 @@
 #include "B3DGpuDevice.h"
 #include "B3DGpuCommandBuffer.h"
 #include "B3DGpuTransferBufferHelper.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "Image/B3DTexture.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 
@@ -16,26 +17,20 @@ GpuQueue::GpuQueue(GpuDevice& gpuDevice, GpuQueueType type, u32 index)
 {
 }
 
-u64 GpuDevice::SubmitCommandBuffer(const GpuSubmissionInformation& information, u32 queueIndex, bool flushTransferCommandBuffer)
+void GpuDevice::SubmitCommandBuffer(const GpuSubmissionInformation& information, u32 queueIndex, bool flushTransferCommandBuffer)
 {
 	if (!B3D_ENSURE(information.CommandBuffer))
-		return 0;
+		return;
 
 	const u32 queueCount = GetQueueCount(information.CommandBuffer->GetQueueType());
 	if (!B3D_ENSURE(queueIndex < queueCount))
-		return 0;
+		return;
 
 	const SPtr<GpuQueue>& queue = GetQueue(information.CommandBuffer->GetQueueType(), queueIndex);
 	if (!B3D_ENSURE(queue))
-		return 0;
+		return;
 
-	const u64 submissionIndex = mSubmissionCounter.fetch_add(1, std::memory_order_acq_rel) + 1;
-
-	GpuSubmissionInformation augmentedInformation = information;
-	augmentedInformation.SignalFences.Add(GpuTimelineFenceAndValue{ mDefaultSubmissionFence, submissionIndex });
-
-	queue->SubmitCommandBuffer(augmentedInformation, flushTransferCommandBuffer);
-	return submissionIndex;
+	queue->SubmitCommandBuffer(information, flushTransferCommandBuffer);
 }
 
 void GpuDevice::SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, u32 queueIndex)
@@ -44,13 +39,13 @@ void GpuDevice::SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& comman
 	information.CommandBuffer = commandBuffer;
 	information.SyncMask = syncMask;
 
-	(void)SubmitCommandBuffer(information, queueIndex);
+	SubmitCommandBuffer(information, queueIndex);
 }
 
-bool GpuDevice::IsSubmissionComplete(u64 index) const
+bool GpuDevice::IsFrameComplete(u64 index) const
 {
-	B3D_ASSERT(mDefaultSubmissionFence != nullptr);
-	return mDefaultSubmissionFence->IsSignaled(index);
+	const u64 currentFrame = mFrameIndex.load(std::memory_order_acquire);
+	return index + RenderThread::kMaximumFramesInFlight <= currentFrame;
 }
 
 SPtr<SamplerState> GpuDevice::FindOrCreateSamplerState(const SamplerStateCreateInformation& createInformation)

@@ -163,7 +163,6 @@ namespace b3d
 			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 			void WaitUntilIdle() override;
 			void BeginFrame() override;
-			void EndFrame() override;
 
 			SPtr<render::GpuCommandBufferPool> CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation) override;
 			SPtr<Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
@@ -183,6 +182,9 @@ namespace b3d
 			float ConvertTimestampToMilliseconds(u64 timestamp) override;
 
 			/** @} */
+
+		protected:
+			void EndFrameImpl() override;
 
 		private:
 			/** Contains data about a set of queues of a specific type. */

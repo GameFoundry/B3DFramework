@@ -11,8 +11,8 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, GpuBufferType type, GpuBufferFlags flags, VkBuffer buffer, VulkanAllocationResult allocation, const StringView& name)
-	: VulkanResource(owner, false, name), mType(type), mFlags(flags), mBuffer(buffer), mAllocation(allocation), mMappedMemory(allocation.MappedMemory)
+VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation, VulkanGpuBuffer* parent)
+	: VulkanResource(owner, false, createInformation.DebugName), mType(createInformation.Type), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory)
 {
 }
 
@@ -27,7 +27,28 @@ VulkanBuffer::~VulkanBuffer()
 	}
 
 	vkDestroyBuffer(device.GetLogical(), mBuffer, gVulkanAllocator);
-	device.FreeMemory(mAllocation);
+
+	if (mAllocation.IsValid())
+		device.FreeMemory(mAllocation);
+}
+
+IGpuResource* VulkanBuffer::MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuResourceLocation& newLocationBase)
+{
+	B3D_ASSERT(mParent != nullptr && "VulkanBuffer::MoveAllocation invoked on an untracked wrapper (no parent VulkanGpuBuffer).");
+	B3D_ASSERT(mParent->GetVulkanResource() == this && "Parent's mBuffer no longer points at this wrapper — proxy invariant broken.");
+
+	const auto& newLocation = static_cast<const TGpuResourceLocation<VulkanHeapBackend>&>(newLocationBase);
+
+	VulkanAllocationResult preReserved;
+	preReserved.Location = newLocation;
+	preReserved.MappedMemory = newLocation.Heap.Mapped != nullptr ? static_cast<u8*>(newLocation.Heap.Mapped) + newLocation.Offset : nullptr;
+
+	VulkanBuffer* newBuffer = mParent->RelocateInternalBuffer(preReserved, commandBuffer);
+
+	// Destroy self
+	Destroy();
+
+	return newBuffer;
 }
 
 void VulkanBuffer::SetName(const StringView& name)
@@ -242,6 +263,24 @@ VulkanGpuBuffer::~VulkanGpuBuffer()
 
 void VulkanGpuBuffer::Initialize()
 {
+	RecreateInternalBuffer();
+}
+
+VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable, const VulkanAllocationResult* preAllocatedMemory)
+{
+	// Not allowed to have size 0 buffer
+	if(size == 0)
+		size = 64;
+
+	const GpuBufferType newBufferType = staging ? readable ? GpuBufferType::StagingRead : GpuBufferType::StagingWrite : mInformation.Type;
+	const GpuBufferFlags newBufferFlags = staging ? (GpuBufferFlags)0 : mInformation.Flags;
+
+	// Staging sub-buffers are transient (no proxy back-pointer, so untracked / ineligible for defrag).
+	// Persistent buffers pass `this` as the proxy parent so defrag can recreate them in place.
+	VulkanGpuBuffer* const proxyParent = staging ? nullptr : this;
+
+	const String debugName = staging ? StringUtility::Format("Staging buffer ({0})", mName) : mName;
+
 	VkBufferUsageFlags usageFlags = 0;
 	switch(mInformation.Type)
 	{
@@ -276,44 +315,28 @@ void VulkanGpuBuffer::Initialize()
 			usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 	}
 
-	mBufferCI.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	mBufferCI.pNext = nullptr;
-	mBufferCI.flags = 0;
-	mBufferCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	mBufferCI.usage = usageFlags;
-	mBufferCI.queueFamilyIndexCount = 0;
-	mBufferCI.pQueueFamilyIndices = nullptr;
-
-	// TODO - Should all buffer really be readable by default?
-	mBuffer = CreateBuffer(GetVulkanDevice(), mTotalSize, mInformation.Type == GpuBufferType::StagingRead || mInformation.Type == GpuBufferType::StagingWrite, mInformation.Type != GpuBufferType::StagingWrite);
-	mMappedMemory = mBuffer->GetMappedMemory();
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	// Initialize suballocation tracking for debug builds
-	if(mBuffer != nullptr)
-		mBuffer->InitializeSuballocationTracking(mInformation.SuballocationCount, mSuballocationSize);
-#endif
-}
-
-VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable)
-{
-	// Not allowed to have size 0 buffer
-	if(size == 0)
-		size = 64;
-
-	VkBufferUsageFlags usage = mBufferCI.usage;
+	VulkanBufferCreateInformation info;
+	info.VkCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	info.VkCreateInfo.pNext = nullptr;
+	info.VkCreateInfo.flags = 0;
+	info.VkCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	info.VkCreateInfo.usage = usageFlags;
+	info.VkCreateInfo.queueFamilyIndexCount = 0;
+	info.VkCreateInfo.pQueueFamilyIndices = nullptr;
+	info.Type = newBufferType;
+	info.Flags = newBufferFlags;
+	info.DebugName = debugName;
+	info.VkCreateInfo.size = size;
 	if(staging)
 	{
-		mBufferCI.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		info.VkCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
 		// Staging buffers are used as a destination for reads
 		if(readable)
-			mBufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+			info.VkCreateInfo.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 	}
 	else if(readable) // Non-staging readable
-		mBufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
-	mBufferCI.size = size;
+		info.VkCreateInfo.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
 	// Map the engine's high-level buffer-usage hint to (required, preferred) memory-property flags. The
 	// PickMemoryTypeIndex picker prefers the lowest-index type that has all required bits and the most
@@ -359,27 +382,12 @@ VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, b
 		preferredFlags = 0;
 	}
 
-	VkDevice vkDevice = device.GetLogical();
-
-	VkBuffer buffer;
-	VkResult result = vkCreateBuffer(vkDevice, &mBufferCI, gVulkanAllocator, &buffer);
-	B3D_ASSERT(result == VK_SUCCESS);
-
-	VulkanAllocationResult allocation = device.AllocateMemory(buffer, requiredFlags, preferredFlags);
-	mBufferCI.usage = usage; // Restore original usage
-
-	const GpuBufferType newBufferType = staging ? readable ? GpuBufferType::StagingRead : GpuBufferType::StagingWrite : mInformation.Type;
-	const GpuBufferFlags newBufferFlags = staging ? (GpuBufferFlags)0 : mInformation.Flags;
-
-	VulkanBuffer *const vulkanBuffer = device.GetResourceManager().Create<VulkanBuffer>(newBufferType, newBufferFlags, buffer, allocation);
+	VulkanBuffer* const vulkanBuffer = preAllocatedMemory != nullptr 
+		? device.CreateBuffer(info, *preAllocatedMemory, proxyParent)
+		: device.CreateBuffer(info, requiredFlags, preferredFlags, proxyParent);
 
 	if(vulkanBuffer != nullptr)
-	{
-		if(staging)
-			vulkanBuffer->SetName(StringUtility::Format("Staging buffer ({0})", mName));
-		else
-			vulkanBuffer->SetName(mName);
-	}
+		vulkanBuffer->SetName(debugName);
 
 	return vulkanBuffer;
 }
@@ -424,7 +432,10 @@ VkBufferView VulkanGpuBuffer::GetOrCreateView(GpuBufferFormat format) const
 void VulkanGpuBuffer::RecreateInternalBuffer()
 {
 	VulkanBuffer* newBuffer = CreateBuffer(GetVulkanDevice(), mTotalSize, false, true);
-	mBuffer->Destroy();
+
+	if (mBuffer != nullptr)
+		mBuffer->Destroy();
+
 	mBuffer = newBuffer;
 	mMappedMemory = newBuffer->GetMappedMemory();
 
@@ -433,4 +444,32 @@ void VulkanGpuBuffer::RecreateInternalBuffer()
 	if(mBuffer != nullptr)
 		mBuffer->InitializeSuballocationTracking(mInformation.SuballocationCount, mSuballocationSize);
 #endif
+}
+
+VulkanBuffer* VulkanGpuBuffer::RelocateInternalBuffer(const VulkanAllocationResult& preReserved, render::GpuCommandBuffer& commandBuffer)
+{
+	VulkanBuffer* const oldBuffer = mBuffer;
+
+	const bool isStaging = mInformation.Type == GpuBufferType::StagingRead || mInformation.Type == GpuBufferType::StagingWrite;
+
+	// TODO - Should all buffer really be readable by default?
+	const bool isReadable = mInformation.Type != GpuBufferType::StagingWrite;
+
+	VulkanBuffer* newBuffer = CreateBuffer(GetVulkanDevice(), mTotalSize, isStaging, isReadable, &preReserved);
+
+	if(oldBuffer != nullptr)
+	{
+		auto& vulkanCb = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
+		vulkanCb.CopyBufferToBuffer(oldBuffer, newBuffer, 0, 0, mTotalSize);
+	}
+
+	mBuffer = newBuffer;
+	mMappedMemory = newBuffer->GetMappedMemory();
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(mBuffer != nullptr)
+		mBuffer->InitializeSuballocationTracking(mInformation.SuballocationCount, mSuballocationSize);
+#endif
+
+	return newBuffer;
 }

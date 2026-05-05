@@ -16,7 +16,7 @@ namespace b3d
 
 	/**
 	 * Documentation-only specification for backend heap traits. Concrete backends satisfy this
-	 * contract and allocator templates validate it with @c B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID.
+	 * contract and allocator templates validate it with B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID.
 	 *
 	 * Required typedefs
 	 * - HeapHandle: Backend heap handle type.
@@ -60,8 +60,29 @@ namespace b3d
 		};
 	} // namespace detail
 
-	/** Compile-time assertion that @p T satisfies the @c GpuHeapBackend trait. */
+	/** Compile-time assertion that @p T satisfies the GpuHeapBackend trait. */
 	#define B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID(T) static_assert(::b3d::detail::CheckHeapBackend<T>::kValid, "Heap backend does not satisfy the GpuHeapBackend trait.")
+
+	/** Controls how a GPU allocator handles allocation release on Free and on defragmentation moves. */
+	enum class GpuAllocatorFreeDeferralMode : u8
+	{
+		/**
+		 * Default for backends without proper IGpuResource lifecycle wiring, and for the 
+		 * linear / transient allocators. Free queues the allocation against the current frame index; 
+		 * the queue drains when IFrameTracker::IsFrameComplete(frameIndex) is true. Defrag
+		 * retires the source slot the same way. Requires a non-null IGpuFrameTracker.
+		 */
+		FrameTracker,
+
+		/**
+		 * Used by backends that fully implement IGpuResource::Notify* events. Free routes straight to 
+		 * FreeImmediateImpl - as its assumed the caller will free memory only after the lifecycle
+		 * reports the resource is no longer being used on the GPU. Similarly, defragment operation
+		 * will not free memory internally, it relies on the tracking to release the resource from
+		 * the old memory location.
+		 */
+		ResourceLifecycle
+	};
 
 	/**
 	 * CRTP base for GPU allocation strategies. Provides deferred-free and owner-relocation logic.
@@ -77,7 +98,7 @@ namespace b3d
 
 		using Location = TGpuResourceLocation<HeapBackend>;
 
-		/** Attempts to allocate @p size bytes with @p alignment. Resource kind defaults to @c Linear. The allocation is untracked (won't participate in defragmentation). */
+		/** Attempts to allocate @p size bytes with @p alignment. Resource kind defaults to Linear. The allocation is untracked (won't participate in defragmentation). */
 		bool TryAllocate(u64 size, u32 alignment, Location& out)
 		{
 			return TryAllocate(size, alignment, GpuResourceKind::Linear, nullptr, out);
@@ -127,14 +148,15 @@ namespace b3d
 		}
 
 		/**
-		 * Releases retired allocations whose submission fences have completed.
+		 * Releases retired allocations whose recorded frame index is no longer in flight on the GPU.
 		 *
 		 * @param frameLag       Strategy-specific retention policy: drain only entries that have been
 		 *                       queued for at least @p frameLag frames. Honored by individual strategies
 		 *                       that need it (e.g. transient page pools that hold a slot one extra frame
 		 *                       to avoid thrash).
-		 * @param forceComplete  When @c true, fence checks are skipped and every retired entry is freed
-		 *                       unconditionally. Use only at shutdown after a @c WaitUntilIdle.
+		 * @param forceComplete  When true, frame-completion checks are skipped and every retired entry
+		 *                       is freed unconditionally. Use only at shutdown after ensuring all
+		 *                       GPU work has completed.
 		 */
 		void Flush(u32 frameLag = 3, bool forceComplete = false)
 		{
@@ -143,13 +165,14 @@ namespace b3d
 		}
 
 	protected:
-		/** Constructs the allocator base. @p backend and @p submissionTracker must outlive this object. */
-		TGpuAllocator(HeapBackend* backend, IGpuSubmissionTracker* submissionTracker)
-			: mBackend(backend)
-			, mSubmissionTracker(submissionTracker)
+		/**
+		 * Constructs the allocator base. @p backend must outlive this object. @p frameTracker may be
+		 * null if the allocator is using ResourceLifecycle free deferral mode.
+		 */
+		TGpuAllocator(HeapBackend* backend, IGpuFrameTracker* frameTracker)
+			: mBackend(backend), mFrameTracker(frameTracker)
 		{
 			B3D_ASSERT(backend != nullptr);
-			B3D_ASSERT(submissionTracker != nullptr);
 		}
 
 		~TGpuAllocator() = default;
@@ -158,23 +181,16 @@ namespace b3d
 		TGpuAllocator(const TGpuAllocator&) = delete;
 		TGpuAllocator& operator=(const TGpuAllocator&) = delete;
 
-		/** Schedule deferred-free of @p allocation against the allocator's latest submission index. */
+		/** Schedule deferred-free of @p allocation against the allocator's current frame index. */
 		void RetireAllocation(const Location& allocation)
 		{
-			RetireAllocation(allocation, mSubmissionTracker->GetLatestSubmissionIndex());
-		}
+			B3D_ASSERT(mFrameTracker != nullptr);
 
-		/**
-		 * Schedule deferred-free of @p allocation against the explicit @p submissionIndex. Used by
-		 * defragmentation, where the source slot rides the next-not-yet-issued submission index
-		 * instead of the latest already-issued one.
-		 */
-		void RetireAllocation(const Location& allocation, u64 submissionIndex)
-		{
 			RetiredEntry entry;
 			entry.AllocatorData0 = allocation.AllocatorData0;
 			entry.AllocatorData1 = allocation.AllocatorData1;
-			entry.SubmissionIndex = submissionIndex;
+			entry.FrameIndex = mFrameTracker->GetCurrentFrameIndex();
+
 			mRetiredQueue.Add(entry);
 		}
 
@@ -183,11 +199,11 @@ namespace b3d
 		{
 			u32 AllocatorData0;
 			u32 AllocatorData1;
-			u64 SubmissionIndex;
+			u64 FrameIndex;
 		};
 
 		HeapBackend* mBackend = nullptr;
-		IGpuSubmissionTracker* mSubmissionTracker = nullptr;
+		IGpuFrameTracker* mFrameTracker = nullptr;
 		TInlineArray<RetiredEntry, 64> mRetiredQueue;
 
 	private:
@@ -199,7 +215,7 @@ namespace b3d
 			for (u32 entryIndex = 0; entryIndex < size; entryIndex++)
 			{
 				const RetiredEntry& entry = mRetiredQueue[entryIndex];
-				if (!forceComplete && !mSubmissionTracker->IsSubmissionComplete(entry.SubmissionIndex))
+				if (!forceComplete && !mFrameTracker->IsFrameComplete(entry.FrameIndex))
 					break;
 
 				static_cast<Derived*>(this)->FreeImmediateImpl(entry.AllocatorData0, entry.AllocatorData1);

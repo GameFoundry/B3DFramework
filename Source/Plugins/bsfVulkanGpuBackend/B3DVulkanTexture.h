@@ -20,15 +20,17 @@ namespace b3d
 		/** Descriptor used for initializing a VulkanImage. */
 		struct VulkanImageCreateInformation
 		{
-			VkImage Image = VK_NULL_HANDLE; /**< Internal Vulkan image object */
-			VulkanAllocationResult Allocation; /** Information about the memory allocated for this image. */
+			VkImageCreateInfo CreateInfo{}; /**< Vulkan-level descriptor used to create the underlying VkImage. */
 			VkImageLayout Layout = VK_IMAGE_LAYOUT_UNDEFINED; /**< Initial layout of the image. */
 			TextureType Type = TEX_TYPE_2D; /**< Type of the image. */
 			VkFormat Format = VK_FORMAT_UNDEFINED; /**< Pixel format of the image. */
 			u32 FaceCount = 1; /**< Number of faces (array slices, or cube-map faces). */
 			u32 DepthSliceCount = 1; /**< Number of depth slices (only relevant for 3D textures). */
 			u32 MipLevelCount = 1; /**< Number of mipmap levels per face. */
+			StringView DebugName; /**< Optional name of the resource, for debugging purposes. */
 			TextureUsageFlags Usage; /** Determines how will the image be used. */
+			bool OwnsImage = true; /**< If true, the wrapper releases the image and its memory on destruction. */
+			bool IsShaderReadAllowed = true; /**< True if the image is allowed to be read in the shader. */
 		};
 
 		/** Wrapper around VkImageView. */
@@ -38,32 +40,26 @@ namespace b3d
 			VkImageViewType Type = VK_IMAGE_VIEW_TYPE_MAX_ENUM;
 		};
 
+		class VulkanTexture;
+
 		/** Wrapper around a Vulkan image object that manages its usage and lifetime. */
 		class VulkanImage : public VulkanResource
 		{
 		public:
 			/**
 			 * @param	owner					Resource manager that keeps track of lifetime of this resource.
-			 * @param	image					Internal image Vulkan object.
-			 * @param	allocation				Information about the memory bound to the image.
-			 * @param	layout					Initial layout of the image.
-			 * @param	actualFormat			Actual format the image was created with (rather than the requested format).
-			 * @param	textureProperties		Properties describing the image.
-			 * @param	ownsImage				If true, this object will take care of releasing the image and its memory, otherwise it is expected they will be released externally.
-			 * @param	isShaderReadAllowed		True if the image is allowed to be read in the shader. If not, it can only be used as a framebuffer attachment.
+			 * @param	createInformation		Describes the image being wrapped.
+			 * @param	image					Internal Vulkan image handle that the wrapper takes ownership of (or refers to, if createInformation.OwnsImage is false).
+			 * @param	allocation				Memory binding for this image, or a default-constructed VulkanAllocationResult for unowned 
+			 *									wrappers (swapchain backbuffers etc.) whose memory is managed externally.
+			 * @param	parent					High-level VulkanTexture proxy that owns this wrapper, or nullptr for transient staging images / unowned wrappers. 
+			 *									Required for the wrapper to participate in defragmentation.
 			 */
-			VulkanImage(VulkanResourceManager* owner, VkImage image, VulkanAllocationResult allocation, VkImageLayout layout, VkFormat actualFormat, const TextureProperties& textureProperties, bool ownsImage = true, bool isShaderReadAllowed = true, const StringView& name = "");
-
-			/**
-			 * @param	owner					Resource manager that keeps track of lifetime of this resource.
-			 * @param	createInformation		Describes the image to assign.
-			 * @param	ownsImage				If true, this object will take care of releasing the image and its memory, otherwise it is expected they will be released externally.
-			 * @param	isShaderReadAllowed		True if the image is allowed to be read in the shader. If not, it can only be used as a framebuffer attachment.
-			 */
-			VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, bool ownsImage = true, bool isShaderReadAllowed = true, const StringView& name = "");
+			VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, VkImage image, VulkanAllocationResult allocation, VulkanTexture* parent = nullptr);
 			~VulkanImage();
 
 			void Destroy() override;
+			IGpuResource* MoveAllocation(GpuCommandBuffer& commandBuffer, const GpuResourceLocation& newLocation) override;
 
 			/** Returns the internal handle to the Vulkan object. */
 			VkImage GetVulkanHandle() const { return mImage; }
@@ -217,6 +213,7 @@ namespace b3d
 
 			VkImage mImage;
 			VulkanAllocationResult mAllocation;
+			VulkanTexture* mParent = nullptr;
 			VulkanImageView mMainView;
 			VulkanImageView mFramebufferMainView;
 			TextureUsageFlags mUsage;
@@ -318,6 +315,7 @@ namespace b3d
 
 		protected:
 			friend class VulkanGpuDevice;
+			friend class VulkanImage;
 
 			VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation);
 
@@ -326,6 +324,19 @@ namespace b3d
 		private:
 			/** Creates a new image for the specified device, matching the current properties. */
 			VulkanImage* CreateImage(PixelFormat format);
+
+			/**
+			 * Recreates this proxy's internal VulkanImage at the provided pre-reserved allocation slot,
+			 * records a GPU-side copy from the current image into the new one on @p commandBuffer. The caller
+			 * is responsible for queuing the old wrapper for destroy.
+			 */
+			VulkanImage* RelocateInternalTexture(const VulkanAllocationResult& preReserved, render::GpuCommandBuffer& commandBuffer);
+
+			/**
+			 * Builds a VulkanImageCreateInformation reflecting this texture's current shape (CreateInfo, Layout,
+			 * Type, Format, etc.). 
+			 */
+			VulkanImageCreateInformation BuildImageCreateInformation() const;
 
 			/**
 			 * Copies all sub-resources from the source image to the destination image. Caller must ensure the images

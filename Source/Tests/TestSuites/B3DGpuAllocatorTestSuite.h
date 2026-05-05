@@ -8,9 +8,9 @@ namespace b3d
 {
 	/**
 	 * Core-layer GPU allocator + timeline-fence tests. The allocator-contract / deferred-delete cases
-	 * exercise the framework-level @c TGpuAllocator surface against a mock backend, while the fence
-	 * cases run directly against the active @c GpuDevice. Backend-private heap-creation self-tests
-	 * live in sibling plugin test DLLs (e.g. @c bsfVulkanGpuBackendTests.dll).
+	 * exercise the framework-level TGpuAllocator surface against a mock backend, while the fence
+	 * cases run directly against the active GpuDevice. Backend-private heap-creation self-tests
+	 * live in sibling plugin test DLLs (e.g. bsfVulkanGpuBackendTests.dll).
 	 *
 	 * @see  TGpuAllocator
 	 * @see  GpuTimelineFence
@@ -36,16 +36,17 @@ namespace b3d
 		void TestGpuAllocatorDeferredDelete();
 
 		/**
-		 * Newly-constructed device reports a zero submission counter and the predicate accepts
-		 * IsSubmissionComplete(0) trivially.
+		 * Newly-observed device reports a stable current frame index. The current frame is never
+		 * marked complete (it is by definition still being recorded), and any frame at least
+		 * kMaximumFramesInFlight ticks behind the current one is reported complete.
 		 */
-		void TestSubmissionFence_InitialState();
+		void TestFrameTracker_InitialState();
 
 		/**
-		 * Submitting an empty transfer command buffer advances the device's submission counter
-		 * and the resulting index is reported complete after the device idles.
+		 * Calling EndFrame advances the device's frame index by one. After kMaximumFramesInFlight
+		 * further ticks the original frame is reported complete by the IGpuFrameTracker interface.
 		 */
-		void TestSubmissionFence_AdvancesAfterSubmit();
+		void TestFrameTracker_AdvancesOnEndFrame();
 
 		/**
 		 * A user-created fence carries explicit caller-supplied values: submitting with an
@@ -72,7 +73,7 @@ namespace b3d
 		/** Heap grows when an allocation doesn't fit; freed empties beyond the spare budget are returned to the backend. */
 		void TestTlsf_HeapGrowthAndEmptyRelease();
 
-		/** Allocations exceeding @c MaxHeapSize land in dedicated heaps sized to fit them. */
+		/** Allocations exceeding MaxHeapSize land in dedicated heaps sized to fit them. */
 		void TestTlsf_OversizedAllocationGetsDedicatedHeap();
 
 		/** Random alloc/free workload — proves no leak, no overlap, full reclaim after clear. */
@@ -108,7 +109,28 @@ namespace b3d
 		/** A tracked allocation whose owner reports GetUseCount > 0 / GetBoundCount > 0 is still moved. */
 		void TestTlsf_Defrag_MovesInFlightResource();
 
-		/** OnAllocationMoved is invoked with the upcoming submission index and a populated new Location identifying a live destination slot. */
-		void TestTlsf_Defrag_OnAllocationMovedReceivesContext();
+		/** MoveAllocation is invoked with a populated new Location identifying a live destination slot. */
+		void TestTlsf_Defrag_MoveAllocationReceivesContext();
+
+		/**
+		 * Under FreeDeferralMode::ResourceLifecycle, Free routes straight to FreeImmediate;
+		 * the slot is returned to the pool synchronously without going through the deferred-free queue.
+		 */
+		void TestTlsf_ResourceLifecyclePolicy_FreesImmediately();
+
+		/**
+		 * Under FreeDeferralMode::FrameTracker, Free queues the slot against the current frame
+		 * index. The entry is held until kMaximumFramesInFlight further AdvanceFrame ticks pass
+		 * and the queue is flushed.
+		 */
+		void TestTlsf_FrameTrackerPolicy_DefersAcrossFrames();
+
+		/**
+		 * Under FreeDeferralMode::ResourceLifecycle, MoveAllocation may return a different
+		 * IGpuResource than the one it was called on (wrapper-swap pattern). The destination slot
+		 * is owned by the returned pointer; the source slot is left for the consumer's destructor to
+		 * free via FreeImmediate.
+		 */
+		void TestTlsf_Defrag_LifecycleAllowsSwap();
 	};
 } // namespace b3d

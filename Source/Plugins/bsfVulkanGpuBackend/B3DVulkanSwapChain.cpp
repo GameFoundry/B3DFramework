@@ -139,18 +139,21 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<Vulkan
 	result = vkGetSwapchainImagesKHR(mDevice, mSwapChain, &imageCount, images);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	VulkanImageCreateInformation imageDesc;
-	imageDesc.Format = colorFormat;
-	imageDesc.Usage = TextureUsageFlag::RenderTarget;
+	VulkanImageCreateInformation colorImageCreateInformation;
+	colorImageCreateInformation.Format = colorFormat;
+	colorImageCreateInformation.Usage = TextureUsageFlag::RenderTarget;
+	colorImageCreateInformation.OwnsImage = false; // Owned by VkSwapchainKHR.
+	colorImageCreateInformation.IsShaderReadAllowed = false;
+	colorImageCreateInformation.DebugName = "SwapChainSurface";
 
 	mSurfaces.resize(imageCount);
 	for(u32 imageIndex = 0; imageIndex < imageCount; imageIndex++)
 	{
-		imageDesc.Image = images[imageIndex];
-
 		mSurfaces[imageIndex].Acquired = false;
 		mSurfaces[imageIndex].NeedsWait = false;
-		mSurfaces[imageIndex].Image = owner->Create<VulkanImage>(imageDesc, false, false, "SwapChainSurface");
+
+		// Purposefully not setting parent so these images don't participate in defragmentation
+		mSurfaces[imageIndex].Image = owner->Create<VulkanImage>(colorImageCreateInformation, images[imageIndex], VulkanAllocationResult{}, nullptr);
 
 		if(mSurfaces[imageIndex].Image != nullptr)
 		{
@@ -176,33 +179,32 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<Vulkan
 	// Create depth stencil image
 	if(createDepth)
 	{
-		VkImageCreateInfo depthStencilImageCI;
-		depthStencilImageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		depthStencilImageCI.pNext = nullptr;
-		depthStencilImageCI.flags = 0;
-		depthStencilImageCI.imageType = VK_IMAGE_TYPE_2D;
-		depthStencilImageCI.format = depthFormat;
-		depthStencilImageCI.extent = { mWidth, mHeight, 1 };
-		depthStencilImageCI.mipLevels = 1;
-		depthStencilImageCI.arrayLayers = 1;
-		depthStencilImageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		depthStencilImageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		depthStencilImageCI.samples = VK_SAMPLE_COUNT_1_BIT;
-		depthStencilImageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
-		depthStencilImageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-		depthStencilImageCI.pQueueFamilyIndices = nullptr;
-		depthStencilImageCI.queueFamilyIndexCount = 0;
+		VkImageCreateInfo depthImageVkCreateInformation;
+		depthImageVkCreateInformation.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		depthImageVkCreateInformation.pNext = nullptr;
+		depthImageVkCreateInformation.flags = 0;
+		depthImageVkCreateInformation.imageType = VK_IMAGE_TYPE_2D;
+		depthImageVkCreateInformation.format = depthFormat;
+		depthImageVkCreateInformation.extent = { mWidth, mHeight, 1 };
+		depthImageVkCreateInformation.mipLevels = 1;
+		depthImageVkCreateInformation.arrayLayers = 1;
+		depthImageVkCreateInformation.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthImageVkCreateInformation.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		depthImageVkCreateInformation.samples = VK_SAMPLE_COUNT_1_BIT;
+		depthImageVkCreateInformation.tiling = VK_IMAGE_TILING_OPTIMAL;
+		depthImageVkCreateInformation.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		depthImageVkCreateInformation.pQueueFamilyIndices = nullptr;
+		depthImageVkCreateInformation.queueFamilyIndexCount = 0;
 
-		VkImage depthStencilImage;
-		result = vkCreateImage(mDevice, &depthStencilImageCI, gVulkanAllocator, &depthStencilImage);
-		B3D_ASSERT(result == VK_SUCCESS);
+		VulkanImageCreateInformation depthImageCreateInformation;
+		depthImageCreateInformation.Usage = TextureUsageFlag::DepthStencil;
+		depthImageCreateInformation.Format = depthFormat;
+		depthImageCreateInformation.CreateInfo = depthImageVkCreateInformation;
+		depthImageCreateInformation.OwnsImage = true;
+		depthImageCreateInformation.IsShaderReadAllowed = false;
 
-		imageDesc.Image = depthStencilImage;
-		imageDesc.Usage = TextureUsageFlag::DepthStencil;
-		imageDesc.Format = depthFormat;
-		imageDesc.Allocation = device.AllocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, GpuResourceKind::NonLinear);
-
-		mDepthStencilImage = owner->Create<VulkanImage>(imageDesc, true, false);
+		// Purposefully not setting parent so these images don't participate in defragmentation
+		mDepthStencilImage = device.CreateImage(depthImageCreateInformation, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, GpuResourceKind::NonLinear, nullptr);
 
 		if(mDepthStencilImage != nullptr)
 		{

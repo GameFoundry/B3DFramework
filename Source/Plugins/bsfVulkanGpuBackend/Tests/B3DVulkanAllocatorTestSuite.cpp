@@ -24,7 +24,7 @@ namespace
 	/**
 	 * Builds a configuration matching the device's per-memory-type allocator default — initial heap
 	 * size depends on whether the type is purely DEVICE_LOCAL or also HOST_VISIBLE, with the same
-	 * sizes used in @c VulkanGpuDevice::GetOrCreateGpuMemoryAllocator. Tests build their own allocator
+	 * sizes used in VulkanGpuDevice::GetOrCreateGpuMemoryAllocator. Tests build their own allocator
 	 * (rather than invoking the device's lazy slot) so they can run without depending on the
 	 * device's internal symbol exports.
 	 */
@@ -49,7 +49,7 @@ namespace
 		return configuration;
 	}
 
-	/** Returns the first memory type index satisfying both @p typeBits and @p required, or @c VK_MAX_MEMORY_TYPES on miss. */
+	/** Returns the first memory type index satisfying both @p typeBits and @p required, or VK_MAX_MEMORY_TYPES on miss. */
 	u32 PickMemoryType(const VkPhysicalDeviceMemoryProperties& memProps, u32 typeBits, VkMemoryPropertyFlags required)
 	{
 		for (u32 typeIndex = 0; typeIndex < memProps.memoryTypeCount; typeIndex++)
