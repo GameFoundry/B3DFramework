@@ -12,7 +12,10 @@
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 
+#include <atomic>
+#include <chrono>
 #include <random>
+#include <thread>
 
 using namespace b3d;
 using namespace b3d::render;
@@ -47,6 +50,9 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_ResourceLifecyclePolicy_FreesImmediately)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_FrameTrackerPolicy_DefersAcrossFrames)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_Defrag_LifecycleAllowsSwap)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_ConcurrentAllocateAndFree)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_ConcurrentDefragWithAllocateAndFree)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_ThreadUnsafePolicyOptOut)
 }
 
 namespace
@@ -1512,4 +1518,220 @@ void GpuAllocatorTestSuite::TestTlsf_Defrag_LifecycleAllowsSwap()
 
 	// Heap 1 was vacated by the immediate-free path; with MaxEmptyHeapCount=0 it gets released.
 	B3D_TEST_ASSERT(allocator.GetHeapCount() == 1)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_ConcurrentAllocateAndFree()
+{
+	// Drives several worker threads through tight allocate / free loops against a single allocator.
+	// Random sizes maximize contention on the free-list bitmaps and bucket heads. Final used-bytes
+	// goes to zero only if every allocate/free pair was correctly serialized through the recursive
+	// mutex — torn writes to the bucket heads would manifest as either an assertion failure inside
+	// FreeNode (e.g. corrupted physical chain) or a non-zero used-bytes count at teardown.
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 4 * 1024 * 1024;
+	configuration.MaxHeapSize = 16 * 1024 * 1024;
+	configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
+	TlsfAllocator allocator(&backend, nullptr, configuration);
+
+	constexpr u32 kWorkerCount = 4;
+	constexpr u32 kIterationsPerWorker = 500;
+
+	auto fnWorker = [&](u32 seed)
+	{
+		std::mt19937 rng(seed);
+		std::uniform_int_distribution<u32> sizeDistribution(64, 16 * 1024);
+		std::uniform_int_distribution<u32> alignmentBitDistribution(4, 10); // 16..1024
+		std::uniform_int_distribution<u32> liveCountDistribution(1, 8);
+
+		Vector<MockLocation> live;
+		live.reserve(8);
+
+		for (u32 iteration = 0; iteration < kIterationsPerWorker; iteration++)
+		{
+			const bool wantAllocate = live.empty() || ((u32)live.size() < liveCountDistribution(rng));
+			if (wantAllocate)
+			{
+				MockLocation loc;
+				const u64 size = sizeDistribution(rng);
+				const u32 alignment = 1u << alignmentBitDistribution(rng);
+				if (allocator.TryAllocate(size, alignment, loc))
+					live.push_back(loc);
+			}
+			else
+			{
+				std::uniform_int_distribution<u32> indexDistribution(0, (u32)live.size() - 1);
+				const u32 victimIndex = indexDistribution(rng);
+				allocator.Free(live[victimIndex]);
+				live[victimIndex] = live.back();
+				live.pop_back();
+			}
+		}
+
+		// Drain the worker's remaining live set so the post-join used-bytes assertion is valid.
+		for (MockLocation& loc : live)
+			allocator.Free(loc);
+	};
+
+	Vector<std::thread> workers;
+	workers.reserve(kWorkerCount);
+	for (u32 workerIndex = 0; workerIndex < kWorkerCount; workerIndex++)
+		workers.emplace_back(fnWorker, 0xB3D7B5Fu + workerIndex);
+
+	for (std::thread& worker : workers)
+		worker.join();
+
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_ConcurrentDefragWithAllocateAndFree()
+{
+	// Several worker threads churn allocations against a fixed pool of resources while a defrag
+	// thread runs Defrag() in a tight loop. Defrag's MoveAllocation callback rewrites slot.Location
+	// in place; the recursive mutex serializes that write against concurrent worker access. The
+	// custom mock captures every source location handed to MoveAllocation so the test can release
+	// them at teardown — under ResourceLifecycle the allocator does not retire the source itself.
+	MockHeapBackend backend;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 256 * 1024;
+	configuration.MaxHeapSize = 1024 * 1024;
+	configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
+	TlsfAllocator allocator(&backend, nullptr, configuration);
+
+	// MoveAllocation captures the source location so the orchestrator can release it after the run.
+	// Defrag is single-threaded against any given resource, so the SourceLocations vector is mutated
+	// only by the defrag thread for this resource — no per-resource synchronization needed.
+	struct TrackingMockResource : public MockResource
+	{
+		Vector<MockLocation> SourceLocations;
+
+		IGpuResource* MoveAllocation(render::GpuCommandBuffer& /*cb*/, const GpuResourceLocation& newLocation) override
+		{
+			MovedCount++;
+			const auto& typedNewLocation = static_cast<const MockLocation&>(newLocation);
+			LastNewLocation = typedNewLocation;
+			if (LocationPtr != nullptr)
+			{
+				SourceLocations.push_back(*LocationPtr);
+				*LocationPtr = typedNewLocation;
+			}
+			return this;
+		}
+	};
+
+	struct Slot
+	{
+		TrackingMockResource Resource;
+		MockLocation Location;
+		std::atomic<bool> InUse{ false };
+	};
+
+	constexpr u32 kSlotCount = 32;
+	constexpr u32 kIterationsPerWorker = 400;
+	constexpr u32 kWorkerCount = 4;
+
+	Vector<UPtr<Slot>> slots;
+	slots.reserve(kSlotCount);
+	for (u32 slotIndex = 0; slotIndex < kSlotCount; slotIndex++)
+	{
+		auto slot = B3DMakeUnique<Slot>();
+		slot->Resource.LocationPtr = &slot->Location;
+		const bool ok = allocator.TryAllocate(4096, 16, GpuResourceKind::Linear, &slot->Resource, slot->Location);
+		B3D_TEST_ASSERT(ok)
+		slot->InUse.store(true, std::memory_order_relaxed);
+		slots.push_back(std::move(slot));
+	}
+
+	std::atomic<bool> stop{ false };
+
+	auto fnWorker = [&](u32 seed)
+	{
+		std::mt19937 rng(seed);
+		std::uniform_int_distribution<u32> indexDistribution(0, kSlotCount - 1);
+		std::uniform_int_distribution<u32> sizeDistribution(256, 8 * 1024);
+
+		for (u32 iteration = 0; iteration < kIterationsPerWorker; iteration++)
+		{
+			if (stop.load(std::memory_order_relaxed))
+				break;
+
+			const u32 victimIndex = indexDistribution(rng);
+			Slot& slot = *slots[victimIndex];
+
+			// Claim the slot; only one worker mutates a given slot at a time.
+			bool expected = true;
+			if (!slot.InUse.compare_exchange_strong(expected, false, std::memory_order_acquire))
+				continue;
+
+			allocator.Free(slot.Location);
+
+			const u64 newSize = sizeDistribution(rng);
+			if (allocator.TryAllocate(newSize, 16, GpuResourceKind::Linear, &slot.Resource, slot.Location))
+				slot.InUse.store(true, std::memory_order_release);
+		}
+	};
+
+	auto fnDefragWorker = [&]()
+	{
+		while (!stop.load(std::memory_order_relaxed))
+			allocator.Defrag(NullCommandBuffer());
+	};
+
+	Vector<std::thread> workers;
+	workers.reserve(kWorkerCount);
+	for (u32 workerIndex = 0; workerIndex < kWorkerCount; workerIndex++)
+		workers.emplace_back(fnWorker, 0xC0FFEEu + workerIndex);
+	std::thread defragThread(fnDefragWorker);
+
+	for (std::thread& worker : workers)
+		worker.join();
+	stop.store(true, std::memory_order_release);
+	defragThread.join();
+
+	// Free every live destination plus every captured defrag source. ResourceLifecycle does not
+	// retire source slots automatically — the consumer (this test) plays the role of the
+	// destructor that would normally call FreeMemory on the old wrapper.
+	for (UPtr<Slot>& slot : slots)
+	{
+		if (slot->InUse.load(std::memory_order_relaxed))
+			allocator.Free(slot->Location);
+
+		for (MockLocation& sourceLocation : slot->Resource.SourceLocations)
+			allocator.FreeImmediate(sourceLocation);
+	}
+
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_ThreadUnsafePolicyOptOut()
+{
+	// Smoke-test the ThreadUnsafe specialization: GpuAllocatorMutex<false> / GpuAllocatorScopedLock<false>
+	// are empty types, so the mutex member is empty-base-optimizable and every ScopedLock is a no-op
+	// at the machine level. The test verifies the template instantiates and the public surface behaves
+	// identically to the thread-safe variant for a single-threaded round-trip.
+	using ThreadUnsafeAllocator = TGpuTlsfAllocator<MockHeapBackend, ThreadUnsafe>;
+
+	MockHeapBackend backend;
+
+	ThreadUnsafeAllocator::Configuration configuration;
+	configuration.InitialHeapSize = 64 * 1024;
+	configuration.MaxHeapSize = 256 * 1024;
+	configuration.GrowthFactor = 2;
+	configuration.MaxEmptyHeapCount = 1;
+	configuration.MinAllocationSize = 16;
+	configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
+	ThreadUnsafeAllocator allocator(&backend, nullptr, configuration);
+
+	MockLocation locA;
+	MockLocation locB;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, locA))
+	B3D_TEST_ASSERT(allocator.TryAllocate(2048, 16, locB))
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() >= 1024 + 2048)
+
+	allocator.Free(locA);
+	allocator.Free(locB);
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
 }

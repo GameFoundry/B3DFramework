@@ -132,5 +132,27 @@ namespace b3d
 		 * free via FreeImmediate.
 		 */
 		void TestTlsf_Defrag_LifecycleAllowsSwap();
+
+		/**
+		 * Multiple threads driving concurrent TryAllocate / Free against a single allocator instance
+		 * complete without data races and leave the allocator in a consistent post-flush state. Asserts
+		 * that the recursive-mutex protection of the public surface is sufficient under contention.
+		 */
+		void TestTlsf_ConcurrentAllocateAndFree();
+
+		/**
+		 * Concurrent allocate/free workers running alongside a defragmentation thread. The defrag
+		 * thread invokes MoveAllocation under the recursive lock; the allocator must not deadlock,
+		 * lose track of slots, or corrupt the heap when a worker re-enters the lock through a freshly
+		 * allocated location. Final state is verified to be coherent after all threads join.
+		 */
+		void TestTlsf_ConcurrentDefragWithAllocateAndFree();
+
+		/**
+		 * Compile-time + runtime smoke test for the ThreadUnsafe policy: instantiating the allocator
+		 * with ThreadSafetyPolicy::ThreadUnsafe compiles, all locking primitives optimize out, and
+		 * a simple allocate / free round-trip behaves identically to the thread-safe instantiation.
+		 */
+		void TestTlsf_ThreadUnsafePolicyOptOut();
 	};
 } // namespace b3d

@@ -5,6 +5,7 @@
 #include "B3DPrerequisites.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "GpuBackend/B3DGpuTimelineFence.h"
+#include "Threading/B3DThreading.h"
 
 #include <type_traits>
 
@@ -58,6 +59,42 @@ namespace b3d
 
 			static constexpr bool kValid = true;
 		};
+
+		/**
+		 * Internal mutex holder for GPU allocators. The thread-safe specialization wraps a
+		 * RecursiveMutex; the thread-unsafe specialization is empty. RecursiveMutex is required
+		 * because some derived strategies (e.g. defragmentation) re-enter the allocator through
+		 * the IGpuResource::MoveAllocation callback, which calls SetAllocationOwner under the
+		 * same lock.
+		 */
+		template <bool ThreadSafe>
+		struct GpuAllocatorMutex { };
+
+		template <>
+		struct GpuAllocatorMutex<true>
+		{
+			mutable ::b3d::RecursiveMutex Mutex;
+		};
+
+		/**
+		 * Internal RAII scoped lock that pairs with GpuAllocatorMutex. The thread-unsafe
+		 * specialization compiles down to nothing; the thread-safe specialization holds a
+		 * unique_lock on the recursive mutex for the scope of the guard.
+		 */
+		template <bool ThreadSafe>
+		struct GpuAllocatorScopedLock
+		{
+			GpuAllocatorScopedLock(const GpuAllocatorMutex<ThreadSafe>&) {}
+		};
+
+		template <>
+		struct GpuAllocatorScopedLock<true>
+		{
+			GpuAllocatorScopedLock(const GpuAllocatorMutex<true>& holder) : mLock(holder.Mutex) {}
+
+		private:
+			::b3d::RecursiveLock mLock;
+		};
 	} // namespace detail
 
 	/** Compile-time assertion that @p T satisfies the GpuHeapBackend trait. */
@@ -87,10 +124,17 @@ namespace b3d
 	/**
 	 * CRTP base for GPU allocation strategies. Provides deferred-free and owner-relocation logic.
 	 *
+	 * **Threading.** Public entry points (TryAllocate, Free, FreeImmediate, Flush) acquire an
+	 * allocator-wide RecursiveMutex when @p ThreadPolicy is ThreadSafe (the default).
+	 * When @p ThreadPolicy is ThreadUnsafe, locking compiles out entirely and
+	 * the caller is responsible for external synchronization.
+	 *
 	 * @tparam Derived		Allocator strategy implementing TryAllocateImpl, FreeImpl and FreeImmediateImpl.
 	 * @tparam HeapBackend	Backend trait satisfying the GpuHeapBackend contract.
+	 * @tparam ThreadPolicy	Compile-time thread-safety policy. ThreadSafe (default) wraps state with a
+	 * 						RecursiveMutex; ThreadUnsafe compiles out all locking.
 	 */
-	template <typename Derived, typename HeapBackend>
+	template <typename Derived, typename HeapBackend, ThreadSafetyPolicy ThreadPolicy = ThreadSafe>
 	class TGpuAllocator
 	{
 	public:
@@ -120,6 +164,7 @@ namespace b3d
 		 */
 		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out)
 		{
+			ScopedLock lock(mMutex);
 			return static_cast<Derived*>(this)->TryAllocateImpl(size, alignment, kind, owner, out);
 		}
 
@@ -129,6 +174,7 @@ namespace b3d
 		 */
 		void Free(Location& allocation)
 		{
+			ScopedLock lock(mMutex);
 			static_cast<Derived*>(this)->FreeImpl(allocation);
 			allocation.Reset();
 		}
@@ -143,6 +189,7 @@ namespace b3d
 		 */
 		void FreeImmediate(Location& allocation)
 		{
+			ScopedLock lock(mMutex);
 			static_cast<Derived*>(this)->FreeImmediateImpl(allocation.AllocatorData0, allocation.AllocatorData1);
 			allocation.Reset();
 		}
@@ -161,10 +208,26 @@ namespace b3d
 		void Flush(u32 frameLag = 3, bool forceComplete = false)
 		{
 			(void)frameLag;
+			ScopedLock lock(mMutex);
 			DrainRetired(forceComplete);
 		}
 
 	protected:
+		/** True when the allocator was instantiated with the thread-safe policy. */
+		static constexpr bool kThreadSafe = (ThreadPolicy == ThreadSafe);
+
+		/** Internal mutex holder; empty struct when @p ThreadPolicy is ThreadUnsafe. */
+		using MutexHolder = detail::GpuAllocatorMutex<kThreadSafe>;
+
+		/** RAII scoped lock; no-op when @p ThreadPolicy is ThreadUnsafe. */
+		using ScopedLock = detail::GpuAllocatorScopedLock<kThreadSafe>;
+
+		/**
+		 * Returns the allocator-wide mutex holder. Derived strategies acquire a ScopedLock on it
+		 * for paths the base doesn't already wrap (e.g. Defrag, SetAllocationOwner, stats).
+		 */
+		const MutexHolder& GetMutex() const { return mMutex; }
+
 		/**
 		 * Constructs the allocator base. @p backend must outlive this object. @p frameTracker may be
 		 * null if the allocator is using ResourceLifecycle free deferral mode.
@@ -181,7 +244,10 @@ namespace b3d
 		TGpuAllocator(const TGpuAllocator&) = delete;
 		TGpuAllocator& operator=(const TGpuAllocator&) = delete;
 
-		/** Schedule deferred-free of @p allocation against the allocator's current frame index. */
+		/**
+		 * Schedule deferred-free of @p allocation against the allocator's current frame index.
+		 * Caller must hold the allocator mutex when @p ThreadPolicy is ThreadSafe.
+		 */
 		void RetireAllocation(const Location& allocation)
 		{
 			B3D_ASSERT(mFrameTracker != nullptr);
@@ -207,7 +273,10 @@ namespace b3d
 		TInlineArray<RetiredEntry, 64> mRetiredQueue;
 
 	private:
-		/** Drains completed retired entries from the front of the FIFO queue. */
+		/**
+		 * Drains completed retired entries from the front of the FIFO queue. Caller must hold
+		 * the allocator mutex when @p ThreadPolicy is ThreadSafe.
+		 */
 		void DrainRetired(bool forceComplete)
 		{
 			u32 drainCount = 0;
@@ -225,6 +294,8 @@ namespace b3d
 			if (drainCount > 0)
 				mRetiredQueue.Erase(mRetiredQueue.Begin(), mRetiredQueue.Begin() + drainCount);
 		}
+
+		mutable MutexHolder mMutex;
 	};
 
 	/** @} */

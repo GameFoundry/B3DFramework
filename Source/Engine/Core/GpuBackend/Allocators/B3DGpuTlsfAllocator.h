@@ -883,8 +883,10 @@ namespace b3d
 	 * a list of backend heaps; allocations report back to the consumer via TGpuResourceLocation, with
 	 * the heap index and pool node index stored in the location's two strategy-private slots.
 	 *
-	 * **Threading.** Single-threaded by contract —  Caller is responsible for external synchronization
-	 * if the same instance is shared between threads.
+	 * **Threading.** When ThreadPolicy is ThreadSafe (the default), every public entry point — including
+	 * TryAllocate, Free, FreeImmediate, Flush, Defrag, SetAllocationOwner and the diagnostic accessors —
+	 * acquires the allocator-wide mutex inherited from TGpuAllocator. When ThreadPolicy is ThreadUnsafe, 
+	 * the locking compiles out and the caller is responsible for external synchronization.
 	 *
 	 * **Buffer-image granularity.** A single allocator instance can host mixed linear (buffer / linear image)
 	 * and non-linear (optimally-tiled image) allocations safely; pass the appropriate GpuResourceKind to
@@ -893,14 +895,16 @@ namespace b3d
 	 * is fully inert and adds zero per-allocation overhead.
 	 *
 	 * @tparam HeapBackend	Backend trait satisfying the GpuHeapBackend contract.
+	 * @tparam ThreadPolicy	Compile-time thread-safety policy. ThreadSafe (default) wraps state with a
+	 * 						RecursiveMutex; ThreadUnsafe compiles out all locking.
 	 *
 	 * @see TGpuAllocator
 	 */
-	template <typename HeapBackend>
-	class TGpuTlsfAllocator : public TGpuAllocator<TGpuTlsfAllocator<HeapBackend>, HeapBackend>
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy = ThreadSafe>
+	class TGpuTlsfAllocator : public TGpuAllocator<TGpuTlsfAllocator<HeapBackend, ThreadPolicy>, HeapBackend, ThreadPolicy>
 	{
 	public:
-		using Base = TGpuAllocator<TGpuTlsfAllocator<HeapBackend>, HeapBackend>;
+		using Base = TGpuAllocator<TGpuTlsfAllocator<HeapBackend, ThreadPolicy>, HeapBackend, ThreadPolicy>;
 		using Location = typename Base::Location;
 		using HeapHandle = typename HeapBackend::HeapHandle;
 
@@ -1084,8 +1088,8 @@ namespace b3d
 		u64 mNextHeapSize = 0;
 	};
 
-	template <typename HeapBackend>
-	TGpuTlsfAllocator<HeapBackend>::TGpuTlsfAllocator(HeapBackend* backend, IGpuFrameTracker* frameTracker, const Configuration& configuration)
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TGpuTlsfAllocator(HeapBackend* backend, IGpuFrameTracker* frameTracker, const Configuration& configuration)
 		: Base(backend, frameTracker), mConfig(configuration), mNextHeapSize(configuration.InitialHeapSize)
 	{
 		B3D_ASSERT(mConfig.GrowthFactor >= 1);
@@ -1098,8 +1102,8 @@ namespace b3d
 		B3D_ASSERT((mConfig.DeferralMode != GpuAllocatorFreeDeferralMode::FrameTracker) || frameTracker != nullptr);
 	}
 
-	template <typename HeapBackend>
-	TGpuTlsfAllocator<HeapBackend>::~TGpuTlsfAllocator()
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::~TGpuTlsfAllocator()
 	{
 		// Drain unconditionally — any submissions still in flight at destructor time are the caller's
 		// responsibility to wait for via WaitUntilIdle, matching the convention from TGpuAllocator.
@@ -1116,8 +1120,8 @@ namespace b3d
 		}
 	}
 
-	template <typename HeapBackend>
-	bool TGpuTlsfAllocator<HeapBackend>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out)
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out)
 	{
 		B3D_ASSERT(out.Allocator == nullptr);
 		B3D_ASSERT(alignment > 0);
@@ -1178,8 +1182,8 @@ namespace b3d
 		return ok;
 	}
 
-	template <typename HeapBackend>
-	void TGpuTlsfAllocator<HeapBackend>::FreeImpl(Location& allocation)
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::FreeImpl(Location& allocation)
 	{
 		B3D_ASSERT(allocation.Allocator == this);
 		B3D_ASSERT(allocation.AllocatorData0 < (u32)mHeaps.size());
@@ -1195,8 +1199,8 @@ namespace b3d
 		Base::RetireAllocation(allocation);
 	}
 
-	template <typename HeapBackend>
-	void TGpuTlsfAllocator<HeapBackend>::FreeImmediateImpl(u32 heapIndex, u32 nodeIndex)
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::FreeImmediateImpl(u32 heapIndex, u32 nodeIndex)
 	{
 		B3D_ASSERT(heapIndex < (u32)mHeaps.size());
 		Heap* heap = mHeaps[heapIndex];
@@ -1214,9 +1218,10 @@ namespace b3d
 		}
 	}
 
-	template <typename HeapBackend>
-	void TGpuTlsfAllocator<HeapBackend>::SetAllocationOwner(const Location& allocation, IGpuResource* owner)
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::SetAllocationOwner(const Location& allocation, IGpuResource* owner)
 	{
+		typename Base::ScopedLock lock(this->GetMutex());
 		B3D_ASSERT(allocation.Allocator == this);
 		B3D_ASSERT(allocation.AllocatorData0 < (u32)mHeaps.size());
 		Heap* heap = mHeaps[allocation.AllocatorData0];
@@ -1224,9 +1229,10 @@ namespace b3d
 		heap->SetNodeOwner(allocation.AllocatorData1, owner);
 	}
 
-	template <typename HeapBackend>
-	u64 TGpuTlsfAllocator<HeapBackend>::GetCommittedBytes() const
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	u64 TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::GetCommittedBytes() const
 	{
+		typename Base::ScopedLock lock(this->GetMutex());
 		u64 total = 0;
 		for (Heap* heap : mHeaps)
 		{
@@ -1237,9 +1243,10 @@ namespace b3d
 		return total;
 	}
 
-	template <typename HeapBackend>
-	u64 TGpuTlsfAllocator<HeapBackend>::GetUsedBytes() const
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	u64 TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::GetUsedBytes() const
 	{
+		typename Base::ScopedLock lock(this->GetMutex());
 		u64 used = 0;
 		for (Heap* heap : mHeaps)
 		{
@@ -1250,9 +1257,10 @@ namespace b3d
 		return used;
 	}
 
-	template <typename HeapBackend>
-	u32 TGpuTlsfAllocator<HeapBackend>::GetHeapCount() const
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	u32 TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::GetHeapCount() const
 	{
+		typename Base::ScopedLock lock(this->GetMutex());
 		u32 count = 0;
 		for (Heap* heap : mHeaps)
 		{
@@ -1263,14 +1271,15 @@ namespace b3d
 		return count;
 	}
 
-	template <typename HeapBackend>
-	u32 TGpuTlsfAllocator<HeapBackend>::GetEmptyHeapCount() const
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	u32 TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::GetEmptyHeapCount() const
 	{
+		typename Base::ScopedLock lock(this->GetMutex());
 		return mEmptyHeapCount;
 	}
 
-	template <typename HeapBackend>
-	u32 TGpuTlsfAllocator<HeapBackend>::CreateNewHeap(u64 sizeInBytes)
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	u32 TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::CreateNewHeap(u64 sizeInBytes)
 	{
 		const HeapHandle handle = Base::mBackend->CreateHeap(sizeInBytes, mConfig.HeapCreateInfo);
 
@@ -1297,8 +1306,8 @@ namespace b3d
 		return newIndex;
 	}
 
-	template <typename HeapBackend>
-	void TGpuTlsfAllocator<HeapBackend>::DestroyHeap(u32 heapIndex)
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::DestroyHeap(u32 heapIndex)
 	{
 		Heap* heap = mHeaps[heapIndex];
 		B3D_ASSERT(heap != nullptr);
@@ -1309,8 +1318,8 @@ namespace b3d
 		mHeaps[heapIndex] = nullptr;
 	}
 
-	template <typename HeapBackend>
-	bool TGpuTlsfAllocator<HeapBackend>::TryAllocateInHeapsAtMost(u64 size, u32 alignment, GpuResourceKind kind, u32 maxHeapIndexInclusive, DefragDestinationSlot& out)
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateInHeapsAtMost(u64 size, u32 alignment, GpuResourceKind kind, u32 maxHeapIndexInclusive, DefragDestinationSlot& out)
 	{
 		const u64 requestedSize = std::max(size, mConfig.MinAllocationSize);
 
@@ -1342,8 +1351,8 @@ namespace b3d
 		return false;
 	}
 
-	template <typename HeapBackend>
-	bool TGpuTlsfAllocator<HeapBackend>::TryMoveAllocation(u32 sourceNodeIndex, u32 sourceHeapIndex, render::GpuCommandBuffer& commandBuffer, u32& outDestinationHeapIndex, u32& outDestinationNodeIndex)
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryMoveAllocation(u32 sourceNodeIndex, u32 sourceHeapIndex, render::GpuCommandBuffer& commandBuffer, u32& outDestinationHeapIndex, u32& outDestinationNodeIndex)
 	{
 		Heap* sourceHeap = mHeaps[sourceHeapIndex];
 
@@ -1415,10 +1424,11 @@ namespace b3d
 		return true;
 	}
 
-	template <typename HeapBackend>
-	typename TGpuTlsfAllocator<HeapBackend>::DefragmentationStats
-	TGpuTlsfAllocator<HeapBackend>::Defrag(render::GpuCommandBuffer& commandBuffer, const DefragmentationInfo& info)
+	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
+	typename TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::DefragmentationStats
+	TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::Defrag(render::GpuCommandBuffer& commandBuffer, const DefragmentationInfo& info)
 	{
+		typename Base::ScopedLock lock(this->GetMutex());
 		DefragmentationStats stats{};
 
 		// Tracks destination (heap, node) pairs stamped with NodeFlag::DefragDestination so we can
