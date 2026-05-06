@@ -670,14 +670,11 @@ void VulkanGpuDevice::EndFrame()
 	RunDefragPass();
 	SubmitTransferCommandBuffers();
 
-	// Advance transfer buffer helper pools to next frame
-	mTransferBufferHelper->EndFrame();
-
-	// No per-frame deferred-free drain is required: VulkanBuffer / VulkanImage destruction is gated
-	// by VulkanResource::mUsedCount and FreeMemory returns each slot to its allocator synchronously.
-
 	// Signal end-of-frame to submit thread. This blocks until the previous frame's resources are safe to reuse.
 	GetVulkanSubmitThread().QueueEndFrameAndWaitForPreviousFrame();
+
+	// Advance transfer buffer helper pools to next frame. Important this is done after the wait above.
+	mTransferBufferHelper->EndFrame();
 
 	GpuDevice::EndFrame();
 }
