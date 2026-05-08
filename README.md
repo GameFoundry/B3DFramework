@@ -1,29 +1,28 @@
 <p align="center"><img src="https://data.banshee3d.com/web/bsfLogoHeaderLarge.png" /></p>
 
-B3D Framework is a C++17 library intended as a foundation for high-performance game engines, games and other real-time graphical applications. It targets zero-compromise performance capable of running the largest open-world projects, paired with a clean, intuitive API and a modular internal architecture that's easy to understand, modify and extend. It aims to support all major platforms and modern rendering technologies, and while major features are still in active development it already serves as a solid basis for building custom game engines.
+B3D Framework is a C++17 library intended as a foundation for high-performance game engines, games and other real-time graphical applications. It targets zero-compromise performance capable of running the largest open-world projects, paired with a clean, intuitive API and a modular internal architecture that's easy to understand, modify and extend.
 
 **Highlights**
- * Built from the ground up with modern C++ and a clean user-facing API
- * Clean, highly modular architecture that can be easily understood, modified and built upon
- * Cross-platform, highly optimized, multi-threaded core capable of running demanding projects
- * Focus on modern technologies and high-fidelity graphics
- * Fully documented codebase with an extensive API reference
+ * High performance: an ECS that scales to massive object counts, fiber-based task scheduling across all systems, and cache-aware data layouts
+ * Modern rendering: physically based shading, a hybrid tiled deferred / clustered forward renderer, and a robust Vulkan backend
+ * Feature rich: integrated UI system, C# scripting, physics, animation, audio and asset import for all popular formats
+ * Clean architecture: highly modular, fully documented, and cross-platform across Windows, Linux and macOS
 
-Current feature-set includes a wide range of high level systems, ranging from math and utility libraries, to an ECS that scales to massive object counts, a physically based renderer backed by Vulkan, a fiber-based scheduler, a UI system with CSS-like stylesheets, an advanced serialization system, a built-in C# scripting system, and input, physics, audio and animation systems, with asset support for most popular resource formats, and a lot more.
- 
+The framework is still in active development, but can already serve as a solid foundation for custom game engines. Ongoing work targets first-class support across every major desktop and console platform, and aims to keep pace with the leading edge of real-time rendering — including a Metal backend for macOS, PlayStation 5 support, meshlet-style rendering with LOD and streaming over a persistent GPU scene, real-time global illumination, physical camera, light and material controls, and a transition to the Slang shading language.
+
 # Features
-* [Features](https://github.com/GameFoundry/B3DFramework/blob/master/Documentation/GitHub/features.md) - A detailed list of all currently available features.
-* [Roadmap](https://github.com/GameFoundry/B3DFramework/blob/master/Documentation/GitHub/roadmap.md) - A list of features to be implemented in both near and far future. 
+* [Features](Documentation/GitHub/features.md) - A detailed list of all currently available features.
+* [Roadmap](Documentation/GitHub/roadmap.md) - A list of features to be implemented in both near and far future. 
 
 # Get started
 * [Documentation](https://github.com/GameFoundry/B3DFrameworkDocumentation) - Head over to the "Manuals" section to learn how to use the framework from the ground up. Use the API reference to look up what a particular class/method does.
 * [Examples](https://github.com/GameFoundry/B3DFrameworkExamples) - Grab a set of working examples and start tinkering and analyzing them to figure out how things work. They are well documented and can be used for quickly learning the framework.
-* [Building](https://github.com/GameFoundry/B3DFramework/blob/master/Documentation/GitHub/compiling.md) - Learn how to build the framework from the source code. 
+* [Building](Documentation/GitHub/compiling.md) - Learn how to build the framework from the source code. 
 
 # Screenshots
 
-[![1](https://data.banshee3d.com/web/1thumb.png)](https://data.banshee3d.com/web/1.png) [![2](https://data.banshee3d.com/web/2thumb.png)](https://data.banshee3d.com/web/2.png)
+[![1](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/1thumb.png)](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/1.png) [![2](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/2thumb.png)](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/2.png)
 
-[![3](https://data.banshee3d.com/web/3thumb.gif)](https://data.banshee3d.com/web/3.gif) [![4](https://data.banshee3d.com/web/4thumb.gif)](https://data.banshee3d.com/web/4.gif)
+[![3](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/3thumb.gif)](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/3.gif) [![4](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/4thumb.gif)](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/4.gif)
 
-[![5](https://data.banshee3d.com/web/5thumb.png)](https://data.banshee3d.com/web/5.png) [![6](https://data.banshee3d.com/web/6thumb.png)](https://data.banshee3d.com/web/6.png)
+[![5](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/5thumb.png)](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/5.png) [![6](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/6thumb.gif)](https://raw.githubusercontent.com/GameFoundry/B3DFrameworkWeb/refs/heads/master/images/6.gif)
