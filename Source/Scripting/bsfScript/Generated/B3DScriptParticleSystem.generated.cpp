@@ -55,7 +55,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ParticleSystemSettings> tmpsettings;
+		TShared<ParticleSystemSettings> tmpsettings;
 		ScriptParticleSystemSettings* scriptObjectWrappersettings;
 		scriptObjectWrappersettings = ScriptParticleSystemSettings::GetScriptObjectWrapper(settings);
 		if(scriptObjectWrappersettings != nullptr)
@@ -68,7 +68,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ParticleGpuSimulationSettings> tmpsettings;
+		TShared<ParticleGpuSimulationSettings> tmpsettings;
 		ScriptParticleGpuSimulationSettings* scriptObjectWrappersettings;
 		scriptObjectWrappersettings = ScriptParticleGpuSimulationSettings::GetScriptObjectWrapper(settings);
 		if(scriptObjectWrappersettings != nullptr)
@@ -81,14 +81,14 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		Vector<SPtr<ParticleEmitter>> nativeArrayemitters;
+		Vector<TShared<ParticleEmitter>> nativeArrayemitters;
 		if(emitters != nullptr)
 		{
 			ScriptArray scriptArrayemitters(emitters);
 			nativeArrayemitters.resize(scriptArrayemitters.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayemitters.Size(); elementIndex++)
 			{
-				SPtr<ParticleEmitter> arrayElementPointeremitters;
+				TShared<ParticleEmitter> arrayElementPointeremitters;
 				ScriptParticleEmitter* scriptObjectWrapperemitters;
 				scriptObjectWrapperemitters = ScriptParticleEmitter::GetScriptObjectWrapper(scriptArrayemitters.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrapperemitters != nullptr)
@@ -103,7 +103,7 @@ namespace b3d
 
 	MonoArray* ScriptParticleSystem::InternalGetEmitters(ScriptParticleSystem* self)
 	{
-		Vector<SPtr<ParticleEmitter>> nativeArray__output;
+		Vector<TShared<ParticleEmitter>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -114,7 +114,7 @@ namespace b3d
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptParticleEmitter>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<ParticleEmitter> arrayElementPointer__output = nativeArray__output[elementIndex];
+			TShared<ParticleEmitter> arrayElementPointer__output = nativeArray__output[elementIndex];
 			MonoObject* arrayElement__output;
 			arrayElement__output = ScriptParticleEmitter::GetOrCreateScriptObject(arrayElementPointer__output);
 			scriptArray__output.Set(elementIndex, arrayElement__output);
@@ -129,14 +129,14 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		Vector<SPtr<ParticleEvolver>> nativeArrayevolvers;
+		Vector<TShared<ParticleEvolver>> nativeArrayevolvers;
 		if(evolvers != nullptr)
 		{
 			ScriptArray scriptArrayevolvers(evolvers);
 			nativeArrayevolvers.resize(scriptArrayevolvers.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayevolvers.Size(); elementIndex++)
 			{
-				SPtr<ParticleEvolver> arrayElementPointerevolvers;
+				TShared<ParticleEvolver> arrayElementPointerevolvers;
 				ScriptParticleEvolverWrapperBase* scriptObjectWrapperevolvers;
 				scriptObjectWrapperevolvers = (ScriptParticleEvolverWrapperBase*)ScriptParticleEvolver::GetScriptObjectWrapper(scriptArrayevolvers.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrapperevolvers != nullptr)
@@ -151,7 +151,7 @@ namespace b3d
 
 	MonoArray* ScriptParticleSystem::InternalGetEvolvers(ScriptParticleSystem* self)
 	{
-		Vector<SPtr<ParticleEvolver>> nativeArray__output;
+		Vector<TShared<ParticleEvolver>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -162,7 +162,7 @@ namespace b3d
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptParticleEvolver>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<ParticleEvolver> arrayElementPointer__output = nativeArray__output[elementIndex];
+			TShared<ParticleEvolver> arrayElementPointer__output = nativeArray__output[elementIndex];
 			MonoObject* arrayElement__output;
 			arrayElement__output = ScriptParticleEvolver::GetOrCreateScriptObject(arrayElementPointer__output);
 			scriptArray__output.Set(elementIndex, arrayElement__output);
@@ -196,7 +196,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleSystem::InternalGetSettings(ScriptParticleSystem* self)
 	{
-		SPtr<ParticleSystemSettings> tmp__output = B3DMakeShared<ParticleSystemSettings>();
+		TShared<ParticleSystemSettings> tmp__output = B3DMakeShared<ParticleSystemSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -210,7 +210,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleSystem::InternalGetGpuSimulationSettings(ScriptParticleSystem* self)
 	{
-		SPtr<ParticleGpuSimulationSettings> tmp__output = B3DMakeShared<ParticleGpuSimulationSettings>();
+		TShared<ParticleGpuSimulationSettings> tmp__output = B3DMakeShared<ParticleGpuSimulationSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 

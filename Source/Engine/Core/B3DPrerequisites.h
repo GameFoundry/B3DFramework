@@ -1018,7 +1018,7 @@ namespace b3d
 	template <class T>
 	struct CoreVariantHandle<T, true>
 	{
-		typedef SPtr<typename RenderThreadType<T>::Type> Type;
+		typedef TShared<typename RenderThreadType<T>::Type> Type;
 	};
 
 	/**
@@ -1030,7 +1030,7 @@ namespace b3d
 
 	/** Checks if the object is not null. */
 	template<class T>
-	bool IsValid(const SPtr<T>& object) { return object != nullptr; }
+	bool IsValid(const TShared<T>& object) { return object != nullptr; }
 
 	/** Checks if the object is not null. */
 	template<class T>

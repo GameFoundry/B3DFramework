@@ -36,7 +36,7 @@ namespace b3d
 			return TID_PackageMetaData;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<PackageMetaData>();
 		}
@@ -68,7 +68,7 @@ namespace b3d
 			return TID_PackageResourceMetaData;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<PackageResourceMetaData>();
 		}
@@ -88,7 +88,7 @@ namespace b3d
 			return TID_PackageResourceUserMetaData;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<PackageResourceUserMetaData>();
 		}
@@ -96,7 +96,7 @@ namespace b3d
 
 	class B3D_EXPORT PackageRTTI : public TRTTIType<Package, IReflectable, PackageRTTI>
 	{
-		Vector<SPtr<PackageResourceMetaData>> mResourceMetaData;
+		Vector<TShared<PackageResourceMetaData>> mResourceMetaData;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mName, 0)
@@ -142,7 +142,7 @@ namespace b3d
 			return TID_Package;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<Package>();
 		}

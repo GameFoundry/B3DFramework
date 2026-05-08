@@ -33,7 +33,7 @@ namespace b3d
 			return TID_ScriptCodeImportOptions;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ScriptCodeImportOptions>();
 		}

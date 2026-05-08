@@ -20,13 +20,13 @@ namespace b3d
 		using GpuParametersType = CoreVariantType<GpuParameterSet, IsRenderProxy>;
 		using MaterialParametersType = CoreVariantType<MaterialParameters, IsRenderProxy>;
 		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
-		using UniformBufferPointerType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using UniformBufferPointerType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 		using VariationType = CoreVariantType<Variation, IsRenderProxy>;
 		using ShaderType = CoreVariantHandleType<Shader, IsRenderProxy>;
 		using PassType = CoreVariantType<Pass, IsRenderProxy>;
 		using UniformBufferType = CoreVariantType<GpuBuffer, IsRenderProxy>;
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using BufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 		/** Information about how a data parameter maps from a material parameter into a uniform buffer. */
 		struct DataParamInfo
@@ -66,7 +66,7 @@ namespace b3d
 
 	public:
 		TMaterialParameterAdapter() = default;
-		TMaterialParameterAdapter(const SPtr<VariationType>& variation, const ShaderType& shader, const SPtr<MaterialParametersType>& materialParameters);
+		TMaterialParameterAdapter(const TShared<VariationType>& variation, const ShaderType& shader, const TShared<MaterialParametersType>& materialParameters);
 		~TMaterialParameterAdapter();
 
 		/**
@@ -77,7 +77,7 @@ namespace b3d
 		 * @return				GPU parameters object that can be used for setting parameters of all GPU programs
 		 *						in a pass. Returns null if pass or set doesn't exist.
 		 */
-		SPtr<GpuParametersType> GetGpuParameterSet(u32 passIndex = 0, u32 setIndex = 0);
+		TShared<GpuParametersType> GetGpuParameterSet(u32 passIndex = 0, u32 setIndex = 0);
 
 		/**
 		 * Searches for a parameter uniform buffer with the specified name, and returns an index you can use for accessing it.
@@ -163,7 +163,7 @@ namespace b3d
 			PassUniformBufferBindings* PassData;
 		};
 
-		Vector<TInlineArray<SPtr<GpuParametersType>, 4>> mGpuParametersPerPass;
+		Vector<TInlineArray<TShared<GpuParametersType>, 4>> mGpuParametersPerPass;
 		Vector<UniformBufferInfo> mUniformBuffers;
 		Vector<DataParamInfo> mDataParamInfos;
 		PassParamInfo* mPassParamInfos;
@@ -178,7 +178,7 @@ namespace b3d
 	public:
 		MaterialParameterAdapter() = default;
 
-		MaterialParameterAdapter(const SPtr<Variation>& variation, const HShader& shader, const SPtr<MaterialParameters>& params)
+		MaterialParameterAdapter(const TShared<Variation>& variation, const HShader& shader, const TShared<MaterialParameters>& params)
 			: TMaterialParameterAdapter(variation, shader, params)
 		{}
 	};
@@ -191,7 +191,7 @@ namespace b3d
 		public:
 			MaterialParameterAdapter() = default;
 
-			MaterialParameterAdapter(const SPtr<Variation>& variation, const SPtr<Shader>& shader, const SPtr<MaterialParameters>& materialParameters)
+			MaterialParameterAdapter(const TShared<Variation>& variation, const TShared<Shader>& shader, const TShared<MaterialParameters>& materialParameters)
 				: TMaterialParameterAdapter(variation, shader, materialParameters)
 			{}
 

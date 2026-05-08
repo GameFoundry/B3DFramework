@@ -39,25 +39,25 @@ bool IsShaderValid(const HShader& shader)
 }
 
 template <>
-bool IsShaderValid(const SPtr<render::Shader>& shader)
+bool IsShaderValid(const TShared<render::Shader>& shader)
 {
 	return shader != nullptr;
 }
 
 template <bool IsRenderProxy>
-SPtr<CoreVariantType<Material, IsRenderProxy>> GetMaterialPtr(const TMaterial<IsRenderProxy>* material)
+TShared<CoreVariantType<Material, IsRenderProxy>> GetMaterialPtr(const TMaterial<IsRenderProxy>* material)
 {
 	return std::static_pointer_cast<CoreVariantType<Material, IsRenderProxy>>(
 		static_cast<const CoreVariantType<Material, IsRenderProxy>*>(material)->GetShared());
 }
 
 template <bool IsRenderProxy>
-SPtr<typename TMaterial<IsRenderProxy>::MaterialParameterAdapterType> TMaterial<IsRenderProxy>::CreateParameterAdapter(u32 variationIndex)
+TShared<typename TMaterial<IsRenderProxy>::MaterialParameterAdapterType> TMaterial<IsRenderProxy>::CreateParameterAdapter(u32 variationIndex)
 {
 	if(variationIndex >= (u32)mVariations.size())
 		return nullptr;
 
-	SPtr<VariationType> variation = mVariations[variationIndex];
+	TShared<VariationType> variation = mVariations[variationIndex];
 	return B3DMakeShared<MaterialParameterAdapterType>(variation, mShader, mParameters);
 }
 
@@ -270,7 +270,7 @@ u32 TMaterial<IsRenderProxy>::GetPassCount(u32 variationIndex) const
 }
 
 template <bool IsRenderProxy>
-SPtr<typename TMaterial<IsRenderProxy>::PassType> TMaterial<IsRenderProxy>::GetPass(u32 passIndex, u32 variationIndex) const
+TShared<typename TMaterial<IsRenderProxy>::PassType> TMaterial<IsRenderProxy>::GetPass(u32 passIndex, u32 variationIndex) const
 {
 	if(mShader == nullptr)
 		return nullptr;
@@ -505,7 +505,7 @@ void TMaterial<IsRenderProxy>::InitializeDefaultParameters()
 		if(param.second.DefaultValueIndex == ~0u)
 			continue;
 
-		SPtr<SamplerState> defaultSampler = mShader->GetDefaultSampler(param.second.DefaultValueIndex);
+		TShared<SamplerState> defaultSampler = mShader->GetDefaultSampler(param.second.DefaultValueIndex);
 		GetParamSamplerState(param.first).Set(defaultSampler);
 	}
 }
@@ -629,20 +629,20 @@ void Material::MarkResourcesDirtyInternal()
 	MarkListenerResourcesDirty();
 }
 
-SPtr<render::RenderProxy> Material::CreateRenderProxy() const
+TShared<render::RenderProxy> Material::CreateRenderProxy() const
 {
 	render::Material* renderProxy = nullptr;
 
-	SPtr<render::Shader> shader;
+	TShared<render::Shader> shader;
 	if(mShader.IsLoaded())
 	{
 		shader = B3DGetRenderProxy(mShader);
 
-		Vector<SPtr<render::Variation>> variations(mVariations.size());
+		Vector<TShared<render::Variation>> variations(mVariations.size());
 		for(u32 i = 0; i < (u32)mVariations.size(); i++)
 			variations[i] = B3DGetRenderProxy(mVariations[i]);
 
-		SPtr<render::MaterialParameters> materialParams = B3DMakeShared<render::MaterialParameters>(shader, mParameters);
+		TShared<render::MaterialParameters> materialParams = B3DMakeShared<render::MaterialParameters>(shader, mParameters);
 
 		renderProxy = new(B3DAllocate<render::Material>()) render::Material(shader, variations, materialParams, mVariationParameters);
 	}
@@ -650,7 +650,7 @@ SPtr<render::RenderProxy> Material::CreateRenderProxy() const
 	if(renderProxy == nullptr)
 		renderProxy = new(B3DAllocate<render::Material>()) render::Material(shader, mVariationParameters);
 
-	SPtr<render::Material> renderProxyShared = B3DMakeSharedFromExisting<render::Material>(renderProxy);
+	TShared<render::Material> renderProxyShared = B3DMakeSharedFromExisting<render::Material>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -707,7 +707,7 @@ void Material::InitializeIfLoaded()
 			mLoadFlags = Load_All;
 
 			// Shader about to change, so save parameters, rebuild material and restore parameters
-			SPtr<MaterialParameters> oldParams = mParameters;
+			TShared<MaterialParameters> oldParams = mParameters;
 
 			InitializeVariations();
 			MarkRenderProxyDataDirty();
@@ -758,18 +758,18 @@ void Material::NotifyResourceChanged(const HResource& resource)
 
 HMaterial Material::Clone()
 {
-	SPtr<MemoryDataStream> outputStream = B3DMakeShared<MemoryDataStream>();
+	TShared<MemoryDataStream> outputStream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer serializer;
 
 	serializer.Encode(this, outputStream);
 	outputStream->Seek(0);
-	SPtr<Material> cloneObj = std::static_pointer_cast<Material>(serializer.Decode(outputStream, (u32)outputStream->Size()));
+	TShared<Material> cloneObj = std::static_pointer_cast<Material>(serializer.Decode(outputStream, (u32)outputStream->Size()));
 
 	return B3DStaticResourceCast<Material>(GetResources().CreateResourceHandle(cloneObj));
 }
 
 template <class T>
-void CopyParam(const SPtr<MaterialParameters>& from, Material* to, const String& name, const MaterialParameters::ParamData& paramRef, u32 arraySize)
+void CopyParam(const TShared<MaterialParameters>& from, Material* to, const String& name, const MaterialParameters::ParamData& paramRef, u32 arraySize)
 {
 	TMaterialParameterPrimitive<T, false> param;
 	to->GetParam(name, param);
@@ -782,13 +782,13 @@ void CopyParam(const SPtr<MaterialParameters>& from, Material* to, const String&
 	}
 }
 
-void Material::SetParams(const SPtr<MaterialParameters>& params)
+void Material::SetParams(const TShared<MaterialParameters>& params)
 {
 	if(params == nullptr)
 		return;
 
 	std::function<
-		void(const SPtr<MaterialParameters>&, Material*, const String&, const MaterialParameters::ParamData&, u32)>
+		void(const TShared<MaterialParameters>&, Material*, const String&, const MaterialParameters::ParamData&, u32)>
 		copyParamLookup[GPDT_COUNT];
 
 	copyParamLookup[GPDT_FLOAT1] = &CopyParam<float>;
@@ -933,7 +933,7 @@ void Material::SetParams(const SPtr<MaterialParameters>& params)
 
 		TMaterialParameterBuffer<false> curParam = GetParamBuffer(param.first);
 
-		SPtr<GpuBuffer> buffer;
+		TShared<GpuBuffer> buffer;
 		params->GetBuffer(*paramData, buffer);
 		curParam.Set(buffer);
 	}
@@ -949,7 +949,7 @@ void Material::SetParams(const SPtr<MaterialParameters>& params)
 
 		TMaterialParameterSampler<false> curParam = GetParamSamplerState(param.first);
 
-		SPtr<SamplerState> samplerState;
+		TShared<SamplerState> samplerState;
 		params->GetSamplerState(*paramData, samplerState);
 		curParam.Set(samplerState);
 	}
@@ -957,7 +957,7 @@ void Material::SetParams(const SPtr<MaterialParameters>& params)
 
 HMaterial Material::Create()
 {
-	const SPtr<Material> materialPtr = CreateEmpty();
+	const TShared<Material> materialPtr = CreateEmpty();
 	materialPtr->Initialize();
 
 	return B3DStaticResourceCast<Material>(GetResources().CreateResourceHandle(materialPtr));
@@ -970,16 +970,16 @@ HMaterial Material::Create(const HShader& shader)
 
 HMaterial Material::Create(const HShader& shader, const ShaderVariationParameters& variation)
 {
-	SPtr<Material> materialPtr = B3DMakeSharedFromExisting<Material>(new(B3DAllocate<Material>()) Material(shader, variation));
+	TShared<Material> materialPtr = B3DMakeSharedFromExisting<Material>(new(B3DAllocate<Material>()) Material(shader, variation));
 	materialPtr->SetShared(materialPtr);
 	materialPtr->Initialize();
 
 	return B3DStaticResourceCast<Material>(GetResources().CreateResourceHandle(materialPtr));
 }
 
-SPtr<Material> Material::CreateEmpty()
+TShared<Material> Material::CreateEmpty()
 {
-	SPtr<Material> newMat = B3DMakeSharedFromExisting<Material>(new(B3DAllocate<Material>()) Material());
+	TShared<Material> newMat = B3DMakeSharedFromExisting<Material>(new(B3DAllocate<Material>()) Material());
 	newMat->SetShared(newMat);
 
 	return newMat;
@@ -997,13 +997,13 @@ RTTIType* Material::GetRtti() const
 
 namespace b3d { namespace render
 {
-Material::Material(const SPtr<Shader>& shader, const ShaderVariationParameters& variation)
+Material::Material(const TShared<Shader>& shader, const ShaderVariationParameters& variation)
 {
 	mVariationParameters = variation;
 	mShader = shader;
 }
 
-Material::Material(const SPtr<Shader>& shader, const Vector<SPtr<Variation>>& variations, const SPtr<MaterialParameters>& materialParameters, const ShaderVariationParameters& variation)
+Material::Material(const TShared<Shader>& shader, const Vector<TShared<Variation>>& variations, const TShared<MaterialParameters>& materialParameters, const ShaderVariationParameters& variation)
 {
 	mShader = shader;
 	mParameters = materialParameters;
@@ -1018,7 +1018,7 @@ void Material::Initialize()
 	RenderProxy::Initialize();
 }
 
-void Material::SetShader(const SPtr<Shader>& shader)
+void Material::SetShader(const TShared<Shader>& shader)
 {
 	mShader = shader;
 
@@ -1052,10 +1052,10 @@ void Material::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allo
 	mVariationParameters.SetIndex(originalVariationIndex);
 }
 
-SPtr<Material> Material::Create(const SPtr<Shader>& shader)
+TShared<Material> Material::Create(const TShared<Shader>& shader)
 {
 	Material* material = new(B3DAllocate<Material>()) Material(shader, ShaderVariationParameters::kEmpty);
-	SPtr<Material> materialPtr = B3DMakeSharedFromExisting<Material>(material);
+	TShared<Material> materialPtr = B3DMakeSharedFromExisting<Material>(material);
 	materialPtr->SetShared(materialPtr);
 	materialPtr->Initialize();
 

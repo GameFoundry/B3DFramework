@@ -65,7 +65,7 @@ namespace b3d
 	};
 
 	/**
-	 * Common based class for TShared/TWeak control blocks. Control blocks maintains a reference count of the shared pointer and will release
+	 * Common based class for TShared2/TWeak control blocks. Control blocks maintains a reference count of the shared pointer and will release
 	 * the object after the reference count reaches zero.
 	 */
 	template<ThreadSafetyPolicy ThreadSafety>
@@ -264,13 +264,13 @@ namespace b3d
 	};
 
 	template <typename Type, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	class TShared;
+	class TShared2;
 
 	template <typename Type, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
 	class TWeak;
 
 	template <typename Type, typename AllocatorTag, typename DeleterType>
-	class TUnique;
+	class TUnique2;
 
 	template <class Type, class = void>
 	struct TSupportsSharedFromThis : std::false_type {};
@@ -280,7 +280,7 @@ namespace b3d
 		: std::is_convertible<std::remove_cv_t<Type>*, typename Type::SharedFromThisType*>::type {
 	};
 
-	/** Base class class for TShared/TWeak. */
+	/** Base class class for TShared2/TWeak. */
 	template <typename Type, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
 	class TSharedCommon
 	{
@@ -313,7 +313,7 @@ namespace b3d
 			{
 				if(pointer != nullptr && pointer->mWeakThis.IsExpired())
 				{
-					pointer->mWeakThis = TShared<std::remove_cv_t<OtherType>>(*this, const_cast<std::remove_cv_t<OtherType>*>(pointer));
+					pointer->mWeakThis = TShared2<std::remove_cv_t<OtherType>>(*this, const_cast<std::remove_cv_t<OtherType>*>(pointer));
 				}
 			}
 		}
@@ -491,60 +491,60 @@ namespace b3d
 	 *							Non-thread safe version is faster.
 	 */
 	template <typename Type, ThreadSafetyPolicy ThreadSafety>
-	class TShared : public TSharedCommon<Type, ThreadSafety>
+	class TShared2 : public TSharedCommon<Type, ThreadSafety>
 	{
 	public:
-		constexpr TShared() = default;
-		constexpr TShared(nullptr_t) {}
+		constexpr TShared2() = default;
+		constexpr TShared2(nullptr_t) {}
 
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
-		explicit TShared(OtherType* pointer)
+		explicit TShared2(OtherType* pointer)
 		{
 			this->Construct(pointer, B3DNew<TSharedControlBlockWithDefaultDeleter<OtherType, ThreadSafety>>(pointer));
 		}
 
 		template<typename OtherType, typename DeleterType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
-		explicit TShared(OtherType* pointer, DeleterType deleter)
+		explicit TShared2(OtherType* pointer, DeleterType deleter)
 		{
 			this->Construct(pointer, B3DNew<TSharedControlBlockWithCustomDeleter<Type, DeleterType, ThreadSafety>>(pointer, std::move(deleter)));
 		}
 
 		template<typename OtherType>
-		TShared(const TShared<OtherType>& other, Type* object)
+		TShared2(const TShared2<OtherType>& other, Type* object)
 		{
 			AliasCopyConstructFrom(other, object);
 		}
 
 		template<typename OtherType>
-		TShared(const TShared<OtherType>&& other, Type* object)
+		TShared2(const TShared2<OtherType>&& other, Type* object)
 		{
 			AliasMoveConstructFrom(std::move(other), object);
 		}
 
-		TShared(const TShared& other)
+		TShared2(const TShared2& other)
 		{
 			this->CopyConstructFrom(other);
 		}
 
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
-		TShared(const TShared<OtherType>& other)
+		TShared2(const TShared2<OtherType>& other)
 		{
 			CopyConstructFrom(other);
 		}
 
-		TShared(TShared&& other)
+		TShared2(TShared2&& other)
 		{
 			this->MoveConstructFrom(std::move(other));
 		}
 
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
-		TShared(TShared<OtherType>&& other)
+		TShared2(TShared2<OtherType>&& other)
 		{
 			MoveConstructFrom(std::move(other));
 		}
 
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
-		TShared(const TWeak<OtherType>& other)
+		TShared2(const TWeak<OtherType>& other)
 		{
 			B3D_ENSURE(this->ConstructFromWeak(other));
 		}
@@ -552,7 +552,7 @@ namespace b3d
 		template <typename OtherType, typename DeleterType,
         std::enable_if_t<std::conjunction_v<std::is_convertible<OtherType, Type>,
                         std::is_convertible<typename std::unique_ptr<OtherType, DeleterType>::pointer, Type*>>, int> = 0>
-		TShared(std::unique_ptr<OtherType, DeleterType>&& other)
+		TShared2(std::unique_ptr<OtherType, DeleterType>&& other)
 		{
 			using PointerType = typename std::unique_ptr<OtherType, DeleterType>::pointer;
 
@@ -564,10 +564,10 @@ namespace b3d
 			}
 		}
 
-		/** Adopt ownership of the object held by a TUnique. The unique pointer's deleter is preserved on the shared control block. */
+		/** Adopt ownership of the object held by a TUnique2. The unique pointer's deleter is preserved on the shared control block. */
 		template <typename OtherType, typename OtherAllocatorTag, typename OtherDeleterType,
 			std::enable_if_t<std::conjunction_v<std::is_convertible<OtherType*, Type*>>, int> = 0>
-		TShared(TUnique<OtherType, OtherAllocatorTag, OtherDeleterType>&& other)
+		TShared2(TUnique2<OtherType, OtherAllocatorTag, OtherDeleterType>&& other)
 		{
 			OtherType* pointer = other.Get();
 			if(pointer != nullptr)
@@ -577,54 +577,54 @@ namespace b3d
 			}
 		}
 
-		~TShared()
+		~TShared2()
 		{
 			this->DecrementStrongReferenceCount();
 		}
 
-		TShared& operator=(const TShared& rhs)
+		TShared2& operator=(const TShared2& rhs)
 		{
-			TShared(rhs).Swap(*this);
+			TShared2(rhs).Swap(*this);
 			return *this;
 		}
 
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
-		TShared& operator=(const TShared<OtherType>& rhs)
+		TShared2& operator=(const TShared2<OtherType>& rhs)
 		{
-			TShared(rhs).Swap(*this);
+			TShared2(rhs).Swap(*this);
 			return *this;
 		}
 
-		TShared& operator=(TShared&& rhs)
+		TShared2& operator=(TShared2&& rhs)
 		{
-			TShared(std::move(rhs)).Swap(*this);
+			TShared2(std::move(rhs)).Swap(*this);
 			return *this;
 		}
 
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
-		TShared& operator=(TShared<OtherType>&& rhs)
+		TShared2& operator=(TShared2<OtherType>&& rhs)
 		{
-			TShared(std::move(rhs)).Swap(*this);
+			TShared2(std::move(rhs)).Swap(*this);
 			return *this;
 		}
 
 		template<typename OtherType, typename DeleterType, std::enable_if_t<std::conjunction_v<std::is_convertible<OtherType, Type>, std::is_convertible<typename std::unique_ptr<OtherType, DeleterType>::pointer, Type*>>, int> = 0>
-		TShared& operator=(std::unique_ptr<OtherType, DeleterType>&& rhs)
+		TShared2& operator=(std::unique_ptr<OtherType, DeleterType>&& rhs)
 		{
-			TShared(std::move(rhs)).Swap(*this);
+			TShared2(std::move(rhs)).Swap(*this);
 			return *this;
 		}
 
 		template <typename OtherType, typename OtherAllocatorTag, typename OtherDeleterType,
 			std::enable_if_t<std::conjunction_v<std::is_convertible<OtherType*, Type*>>, int> = 0>
-		TShared& operator=(TUnique<OtherType, OtherAllocatorTag, OtherDeleterType>&& rhs)
+		TShared2& operator=(TUnique2<OtherType, OtherAllocatorTag, OtherDeleterType>&& rhs)
 		{
-			TShared(std::move(rhs)).Swap(*this);
+			TShared2(std::move(rhs)).Swap(*this);
 			return *this;
 		}
 
 		/** Swaps the shared pointer with another. */
-		void Swap(TShared& other)
+		void Swap(TShared2& other)
 		{
 			TSharedCommon<Type, ThreadSafety>::Swap(other);
 		}
@@ -632,21 +632,21 @@ namespace b3d
 		/** Clears the strong reference and the pointed object. */
 		void Reset()
 		{
-			TShared().Swap(*this);
+			TShared2().Swap(*this);
 		}
 
 		/** Clears the strong reference and existing pointed object, and assigns a new pointed object. */
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
 		void Reset(OtherType* other)
 		{
-			TShared(other).Swap(*this);
+			TShared2(other).Swap(*this);
 		}
 
 		/** Clears the strong reference and existing pointed object, and assigns a new pointed object and deleter. */
 		template<typename OtherType, typename DeleterType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
 		void Reset(OtherType* other, DeleterType deleter)
 		{
-			TShared(other, deleter).Swap(*this);
+			TShared2(other, deleter).Swap(*this);
 		}
 
 		/** Accesses the underlying object as a reference */
@@ -670,99 +670,99 @@ namespace b3d
 		}
 
 		template <typename Type2, ThreadSafetyPolicy ThreadSafety2, typename... ArgumentType>
-		friend TShared<Type2, ThreadSafety2> B3DMakeShared2(ArgumentType&&... argument);
+		friend TShared2<Type2, ThreadSafety2> B3DMakeShared2(ArgumentType&&... argument);
 	};
 
 	template <class T, class U, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	bool operator==(const TShared<T, ThreadSafety>& lhs, const TShared<U, ThreadSafety>& rhs)
+	bool operator==(const TShared2<T, ThreadSafety>& lhs, const TShared2<U, ThreadSafety>& rhs)
 	{
 		return lhs.Get() == rhs.Get();
 	}
 
 	template <class T, class U, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	bool operator!=(const TShared<T, ThreadSafety>& lhs, const TShared<U, ThreadSafety>& rhs)
+	bool operator!=(const TShared2<T, ThreadSafety>& lhs, const TShared2<U, ThreadSafety>& rhs)
 	{
 		return lhs.Get() != rhs.Get();
 	}
 
 	template <class T, class U, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	bool operator<=(const TShared<T, ThreadSafety>& lhs, const TShared<U, ThreadSafety>& rhs)
+	bool operator<=(const TShared2<T, ThreadSafety>& lhs, const TShared2<U, ThreadSafety>& rhs)
 	{
 		return lhs.Get() <= rhs.Get();
 	}
 
 	template <class T, class U, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	bool operator<(const TShared<T, ThreadSafety>& lhs, const TShared<U, ThreadSafety>& rhs)
+	bool operator<(const TShared2<T, ThreadSafety>& lhs, const TShared2<U, ThreadSafety>& rhs)
 	{
 		return lhs.Get() < rhs.Get();
 	}
 
 	template <class T, class U, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	bool operator>=(const TShared<T, ThreadSafety>& lhs, const TShared<U, ThreadSafety>& rhs)
+	bool operator>=(const TShared2<T, ThreadSafety>& lhs, const TShared2<U, ThreadSafety>& rhs)
 	{
 		return lhs.Get() >= rhs.Get();
 	}
 
 	template <class T, class U, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	bool operator>(const TShared<T, ThreadSafety>& lhs, const TShared<U, ThreadSafety>& rhs)
+	bool operator>(const TShared2<T, ThreadSafety>& lhs, const TShared2<U, ThreadSafety>& rhs)
 	{
 		return lhs.Get() > rhs.Get();
 	}
 
 	template <class T, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	bool operator==(nullptr_t, const TShared<T, ThreadSafety>& rhs)
+	bool operator==(nullptr_t, const TShared2<T, ThreadSafety>& rhs)
 	{
 		return nullptr == rhs.Get();
 	}
 
 	template <class T, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	bool operator==(const TShared<T, ThreadSafety>& lhs, nullptr_t)
+	bool operator==(const TShared2<T, ThreadSafety>& lhs, nullptr_t)
 	{
 		return lhs.Get() == nullptr;
 	}
 
 	template <class T, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	bool operator!=(nullptr_t, const TShared<T, ThreadSafety>& rhs)
+	bool operator!=(nullptr_t, const TShared2<T, ThreadSafety>& rhs)
 	{
 		return nullptr != rhs.Get();
 	}
 
 	template <class T, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	bool operator!=(const TShared<T, ThreadSafety>& lhs, nullptr_t)
+	bool operator!=(const TShared2<T, ThreadSafety>& lhs, nullptr_t)
 	{
 		return lhs.Get() != nullptr;
 	}
 
 	/** Cast a shared pointer from one type to another. */
 	template <class T, class U, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	TShared<T, ThreadSafety> B3DStaticPointerCast(const TShared<U, ThreadSafety>& other)
+	TShared2<T, ThreadSafety> B3DStaticPointerCast(const TShared2<U, ThreadSafety>& other)
 	{
-		const auto object = static_cast<typename TShared<T>::ElementType*>(other.Get());
-		return TShared<T, ThreadSafety>(other, object);
+		const auto object = static_cast<typename TShared2<T>::ElementType*>(other.Get());
+		return TShared2<T, ThreadSafety>(other, object);
 	}
 
 	/** Cast a shared pointer from one type to another. */
 	template <class T, class U, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
-	TShared<T, ThreadSafety> B3DStaticPointerCast(TShared<U, ThreadSafety>&& other)
+	TShared2<T, ThreadSafety> B3DStaticPointerCast(TShared2<U, ThreadSafety>&& other)
 	{
-		const auto object = static_cast<typename TShared<T>::ElementType*>(other.Get());
-		return TShared<T, ThreadSafety>(std::move(other), object);
+		const auto object = static_cast<typename TShared2<T>::ElementType*>(other.Get());
+		return TShared2<T, ThreadSafety>(std::move(other), object);
 	}
 
 	/** Constructs a shared pointer where the referenced object and the shader pointer control block are both allocated via a single memory allocation. */
 	template <typename Type, ThreadSafetyPolicy ThreadSafety = ThreadSafe, typename... ArgumentType>
-	TShared<Type, ThreadSafety> B3DMakeShared2(ArgumentType&&... argument)
+	TShared2<Type, ThreadSafety> B3DMakeShared2(ArgumentType&&... argument)
 	{
 		TSharedControlBlockWithObject<Type, ThreadSafety>* controlBlock = B3DNew<TSharedControlBlockWithObject<Type, ThreadSafety>>(std::forward<ArgumentType>(argument)...);
 
-		TShared<Type, ThreadSafety> shared;
+		TShared2<Type, ThreadSafety> shared;
 		shared.Construct(&controlBlock->Object, controlBlock);
 		return shared;
 	}
 
 	/**
-	 * References an object owned by a TShared. Unlike TShared, this type of pointer will not keep the object alive, and the referenced object may or may not
-	 * still be live. Weak pointer must be converted to a strong pointer (TShared) before use.
+	 * References an object owned by a TShared2. Unlike TShared2, this type of pointer will not keep the object alive, and the referenced object may or may not
+	 * still be live. Weak pointer must be converted to a strong pointer (TShared2) before use.
 	 *
 	 * @tparam	Type			Object type to reference by the pointer.
 	 * @tparam	ThreadSafety	If ThreadSafe, shared pointer can be safely accessed from multiple threads, otherwise it is only safe to access from a single thread.
@@ -785,7 +785,7 @@ namespace b3d
 		}
 
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
-		explicit TWeak(const TShared<OtherType>& other)
+		explicit TWeak(const TShared2<OtherType>& other)
 		{
 			this->ConstructWeakFrom(other);
 		}
@@ -840,7 +840,7 @@ namespace b3d
 		}
 
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
-		TWeak& operator=(const TShared<OtherType>&& rhs)
+		TWeak& operator=(const TShared2<OtherType>&& rhs)
 		{
 			TWeak(rhs).Swap(*this);
 			return *this;
@@ -865,9 +865,9 @@ namespace b3d
 		}
 
 		/** Converts a weak pointer to a strong pointer. */
-		TShared<Type> Pin() const
+		TShared2<Type> Pin() const
 		{
-			TShared<Type> shared;
+			TShared2<Type> shared;
 			shared.ConstructFromWeak(*this);
 			return shared;
 		}
@@ -880,8 +880,8 @@ namespace b3d
 	public:
 		using SharedFromThisType = ISharedFromThis;
 
-		TShared<Type> GetSharedFromThis() { return TShared<Type>(mWeakThis); }
-		TShared<const Type> GetSharedFromThis() const { return TShared<const Type>(mWeakThis); }
+		TShared2<Type> GetSharedFromThis() { return TShared2<Type>(mWeakThis); }
+		TShared2<const Type> GetSharedFromThis() const { return TShared2<const Type>(mWeakThis); }
 
 		TWeak<Type> GetWeakFromThis() { return mWeakThis; }
 		TWeak<const Type> GetWeakFromThis() const { return mWeakThis; }
@@ -895,7 +895,7 @@ namespace b3d
 
 	private:
 		template <typename OtherType, ThreadSafetyPolicy ThreadPolicy>
-		friend class TShared;
+		friend class TShared2;
 
 		mutable TWeak<Type> mWeakThis;
 	};

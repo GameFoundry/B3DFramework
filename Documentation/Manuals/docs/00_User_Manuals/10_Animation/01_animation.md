@@ -86,14 +86,14 @@ You can find out how many channels a morph shape animation has by retrieving a @
 
 ~~~~~~~~~~~~~{.cpp}
 // Assuming we have a mesh imported with morph shapes
-SPtr<MorphShapes> morphShapes = mesh->GetMorphShapes();
+TShared<MorphShapes> morphShapes = mesh->GetMorphShapes();
 
 u32 channelCount = morphShapes->GetChannelCount();
 B3D_LOG(Info, LogGeneric, "Number of morph channels: {0}", channelCount);
 
 for(u32 i = 0; i < channelCount; i++)
 {
-	SPtr<MorphChannel> channel = morphShapes->GetChannel(i);
+	TShared<MorphChannel> channel = morphShapes->GetChannel(i);
 	B3D_LOG(Info, LogGeneric, "Found morph channel: {0}", channel->GetName());
 }
 ~~~~~~~~~~~~~

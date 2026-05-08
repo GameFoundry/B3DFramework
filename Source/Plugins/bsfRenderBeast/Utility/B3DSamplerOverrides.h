@@ -24,7 +24,7 @@ namespace b3d
 		{
 			u32 ParamIdx;
 			u64 OriginalStateHash;
-			SPtr<SamplerState> State;
+			TShared<SamplerState> State;
 			u32 Set;
 			u32 Slot;
 		};
@@ -43,7 +43,7 @@ namespace b3d
 		/** Key used for uniquely identifying a sampler override entry. */
 		struct SamplerOverrideKey
 		{
-			SamplerOverrideKey(const SPtr<Material>& material, u32 variationIndex)
+			SamplerOverrideKey(const TShared<Material>& material, u32 variationIndex)
 				: Material(material), VariationIndex(variationIndex)
 			{}
 
@@ -57,7 +57,7 @@ namespace b3d
 				return !(*this == rhs);
 			}
 
-			SPtr<Material> Material;
+			TShared<Material> Material;
 			u32 VariationIndex;
 		};
 
@@ -69,7 +69,7 @@ namespace b3d
 			 * Generates a set of sampler overrides for the specified set of GPU program parameters. Overrides are generates
 			 * according to the provided render options.
 			 */
-			static MaterialSamplerOverrides* GenerateSamplerOverrides(GpuDevice& gpuDevice, const SPtr<Shader>& shader, const SPtr<MaterialParameters>& params, const SPtr<MaterialParameterAdapter>& materialParameterAdapter, const SPtr<RenderBeastOptions>& options);
+			static MaterialSamplerOverrides* GenerateSamplerOverrides(GpuDevice& gpuDevice, const TShared<Shader>& shader, const TShared<MaterialParameters>& params, const TShared<MaterialParameterAdapter>& materialParameterAdapter, const TShared<RenderBeastOptions>& options);
 
 			/**	Destroys sampler overrides previously generated with generateSamplerOverrides(). */
 			static void DestroySamplerOverrides(MaterialSamplerOverrides* overrides);
@@ -78,13 +78,13 @@ namespace b3d
 			 * Checks if the provided sampler state requires an override, in case the render options have requirements not
 			 * fulfilled by current sampler state (for example filtering type).
 			 */
-			static bool CheckNeedsOverride(const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options);
+			static bool CheckNeedsOverride(const TShared<SamplerState>& samplerState, const TShared<RenderBeastOptions>& options);
 
 			/**
 			 * Generates a new sampler state override using the provided state as the basis. Overridden properties are taken
 			 * from the provided render options.
 			 */
-			static SPtr<SamplerState> GenerateSamplerOverride(GpuDevice& gpuDevice, const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options);
+			static TShared<SamplerState> GenerateSamplerOverride(GpuDevice& gpuDevice, const TShared<SamplerState>& samplerState, const TShared<RenderBeastOptions>& options);
 		};
 
 		/** @} */

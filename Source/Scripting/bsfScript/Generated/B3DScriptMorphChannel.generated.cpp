@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	ScriptMorphChannel::ScriptMorphChannel(const SPtr<MorphChannel>& nativeObject)
+	ScriptMorphChannel::ScriptMorphChannel(const TShared<MorphChannel>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -52,7 +52,7 @@ namespace b3d
 
 	MonoArray* ScriptMorphChannel::InternalGetShapes(ScriptMorphChannel* self)
 	{
-		Vector<SPtr<MorphShape>> nativeArray__output;
+		Vector<TShared<MorphShape>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -63,7 +63,7 @@ namespace b3d
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptMorphShape>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<MorphShape> arrayElementPointer__output = nativeArray__output[elementIndex];
+			TShared<MorphShape> arrayElementPointer__output = nativeArray__output[elementIndex];
 			MonoObject* arrayElement__output;
 			arrayElement__output = ScriptMorphShape::GetOrCreateScriptObject(arrayElementPointer__output);
 			scriptArray__output.Set(elementIndex, arrayElement__output);

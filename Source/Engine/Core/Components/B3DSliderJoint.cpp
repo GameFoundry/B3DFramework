@@ -63,7 +63,7 @@ void SliderJoint::SetFlag(SliderJointFlag flag, bool enabled)
 
 UPtr<IJointImplementation> SliderJoint::CreateImplementation()
 {
-	const SPtr<SceneInstance>& scene = SO()->GetScene();
+	const TShared<SceneInstance>& scene = SO()->GetScene();
 	return scene->GetPhysicsScene()->CreateSliderJoint(*this, mInformation);
 }
 

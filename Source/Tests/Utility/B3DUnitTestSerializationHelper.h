@@ -22,6 +22,6 @@ namespace b3d
 		static void TestAssertMapsMatch(TestSuite& testSuite, const T& lhs, const T& rhs);
 
 		/** Asserts that provided maps contain an exact match set of keys (and no other), and all element's match (based on their equality operators). Values are assumed to be pointers and will be dereferenced before comparison. */
-		static void TestAssertObjectsMatch(TestSuite& testSuite, const SPtr<UnitTestSerializationObjectA>& lhs, const SPtr<UnitTestSerializationObjectA>& rhs, bool isDelta);
+		static void TestAssertObjectsMatch(TestSuite& testSuite, const TShared<UnitTestSerializationObjectA>& lhs, const TShared<UnitTestSerializationObjectA>& rhs, bool isDelta);
 	};
 } // namespace b3d

@@ -30,7 +30,7 @@ void MeshWeightedTriangles::Calculate(const MeshData& meshData)
 
 	u8* vertices = meshData.GetElementData(VES_POSITION);
 
-	const SPtr<VertexDescription>& vertexDesc = meshData.GetVertexDescription();
+	const TShared<VertexDescription>& vertexDesc = meshData.GetVertexDescription();
 	const u32 stride = vertexDesc->GetVertexStride();
 
 	float totalArea = 0.0f;
@@ -271,12 +271,12 @@ void ParticleEmitterConeShape::GetPointInCone(const Vector2& pos2D, float distan
 		position += normal * distance;
 }
 
-SPtr<ParticleEmitterConeShape> ParticleEmitterConeShape::Create(const ParticleConeShapeSettings& settings)
+TShared<ParticleEmitterConeShape> ParticleEmitterConeShape::Create(const ParticleConeShapeSettings& settings)
 {
 	return B3DMakeShared<ParticleEmitterConeShape>(settings);
 }
 
-SPtr<ParticleEmitterConeShape> ParticleEmitterConeShape::Create()
+TShared<ParticleEmitterConeShape> ParticleEmitterConeShape::Create()
 {
 	return B3DMakeShared<ParticleEmitterConeShape>();
 }
@@ -340,12 +340,12 @@ void ParticleEmitterSphereShape::CalcBounds(AABox& shape, AABox& velocity) const
 	velocity.Maximum = Vector3::kOne;
 }
 
-SPtr<ParticleEmitterSphereShape> ParticleEmitterSphereShape::Create(const ParticleSphereShapeSettings& settings)
+TShared<ParticleEmitterSphereShape> ParticleEmitterSphereShape::Create(const ParticleSphereShapeSettings& settings)
 {
 	return B3DMakeShared<ParticleEmitterSphereShape>(settings);
 }
 
-SPtr<ParticleEmitterSphereShape> ParticleEmitterSphereShape::Create()
+TShared<ParticleEmitterSphereShape> ParticleEmitterSphereShape::Create()
 {
 	return B3DMakeShared<ParticleEmitterSphereShape>();
 }
@@ -388,12 +388,12 @@ void ParticleEmitterHemisphereShape::CalcBounds(AABox& shape, AABox& velocity) c
 	velocity.Maximum = Vector3::kOne;
 }
 
-SPtr<ParticleEmitterHemisphereShape> ParticleEmitterHemisphereShape::Create(const ParticleHemisphereShapeSettings& settings)
+TShared<ParticleEmitterHemisphereShape> ParticleEmitterHemisphereShape::Create(const ParticleHemisphereShapeSettings& settings)
 {
 	return B3DMakeShared<ParticleEmitterHemisphereShape>(settings);
 }
 
-SPtr<ParticleEmitterHemisphereShape> ParticleEmitterHemisphereShape::Create()
+TShared<ParticleEmitterHemisphereShape> ParticleEmitterHemisphereShape::Create()
 {
 	return B3DMakeShared<ParticleEmitterHemisphereShape>();
 }
@@ -561,12 +561,12 @@ void ParticleEmitterBoxShape::CalcBounds(AABox& shape, AABox& velocity) const
 	velocity.Maximum = Vector3::kUnitZ;
 }
 
-SPtr<ParticleEmitterBoxShape> ParticleEmitterBoxShape::Create(const ParticleBoxShapeSettings& settings)
+TShared<ParticleEmitterBoxShape> ParticleEmitterBoxShape::Create(const ParticleBoxShapeSettings& settings)
 {
 	return B3DMakeShared<ParticleEmitterBoxShape>(settings);
 }
 
-SPtr<ParticleEmitterBoxShape> ParticleEmitterBoxShape::Create()
+TShared<ParticleEmitterBoxShape> ParticleEmitterBoxShape::Create()
 {
 	return B3DMakeShared<ParticleEmitterBoxShape>();
 }
@@ -611,12 +611,12 @@ void ParticleEmitterLineShape::CalcBounds(AABox& shape, AABox& velocity) const
 	velocity.Maximum = Vector3::kUnitZ;
 }
 
-SPtr<ParticleEmitterLineShape> ParticleEmitterLineShape::Create(const ParticleLineShapeSettings& settings)
+TShared<ParticleEmitterLineShape> ParticleEmitterLineShape::Create(const ParticleLineShapeSettings& settings)
 {
 	return B3DMakeShared<ParticleEmitterLineShape>(settings);
 }
 
-SPtr<ParticleEmitterLineShape> ParticleEmitterLineShape::Create()
+TShared<ParticleEmitterLineShape> ParticleEmitterLineShape::Create()
 {
 	return B3DMakeShared<ParticleEmitterLineShape>();
 }
@@ -669,12 +669,12 @@ void ParticleEmitterCircleShape::CalcBounds(AABox& shape, AABox& velocity) const
 	velocity.Maximum = Vector3::kUnitZ;
 }
 
-SPtr<ParticleEmitterCircleShape> ParticleEmitterCircleShape::Create(const ParticleCircleShapeSettings& settings)
+TShared<ParticleEmitterCircleShape> ParticleEmitterCircleShape::Create(const ParticleCircleShapeSettings& settings)
 {
 	return B3DMakeShared<ParticleEmitterCircleShape>(settings);
 }
 
-SPtr<ParticleEmitterCircleShape> ParticleEmitterCircleShape::Create()
+TShared<ParticleEmitterCircleShape> ParticleEmitterCircleShape::Create()
 {
 	return B3DMakeShared<ParticleEmitterCircleShape>();
 }
@@ -716,12 +716,12 @@ void ParticleEmitterRectShape::CalcBounds(AABox& shape, AABox& velocity) const
 	velocity.Maximum = Vector3::kUnitZ;
 }
 
-SPtr<ParticleEmitterRectShape> ParticleEmitterRectShape::Create(const ParticleRectangleShapeSettings& settings)
+TShared<ParticleEmitterRectShape> ParticleEmitterRectShape::Create(const ParticleRectangleShapeSettings& settings)
 {
 	return B3DMakeShared<ParticleEmitterRectShape>(settings);
 }
 
-SPtr<ParticleEmitterRectShape> ParticleEmitterRectShape::Create()
+TShared<ParticleEmitterRectShape> ParticleEmitterRectShape::Create()
 {
 	return B3DMakeShared<ParticleEmitterRectShape>();
 }
@@ -760,7 +760,7 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 		return false;
 	}
 
-	const SPtr<VertexDescription>& vertexDesc = mMeshData->GetVertexDescription();
+	const TShared<VertexDescription>& vertexDesc = mMeshData->GetVertexDescription();
 	const VertexElement* positionElement = vertexDesc->GetElement(VES_POSITION);
 	if(positionElement == nullptr)
 	{
@@ -1040,12 +1040,12 @@ void ParticleEmitterStaticMeshShape::CalcBounds(AABox& shape, AABox& velocity) c
 	velocity.Maximum = Vector3::kOne;
 }
 
-SPtr<ParticleEmitterStaticMeshShape> ParticleEmitterStaticMeshShape::Create(const ParticleStaticMeshShapeSettings& settings)
+TShared<ParticleEmitterStaticMeshShape> ParticleEmitterStaticMeshShape::Create(const ParticleStaticMeshShapeSettings& settings)
 {
 	return B3DMakeShared<ParticleEmitterStaticMeshShape>(settings);
 }
 
-SPtr<ParticleEmitterStaticMeshShape> ParticleEmitterStaticMeshShape::Create()
+TShared<ParticleEmitterStaticMeshShape> ParticleEmitterStaticMeshShape::Create()
 {
 	return B3DMakeShared<ParticleEmitterStaticMeshShape>();
 }
@@ -1210,12 +1210,12 @@ void ParticleEmitterSkinnedMeshShape::CalcBounds(AABox& shape, AABox& velocity) 
 	velocity.Maximum = Vector3::kOne;
 }
 
-SPtr<ParticleEmitterSkinnedMeshShape> ParticleEmitterSkinnedMeshShape::Create(const ParticleSkinnedMeshShapeSettings& settings)
+TShared<ParticleEmitterSkinnedMeshShape> ParticleEmitterSkinnedMeshShape::Create(const ParticleSkinnedMeshShapeSettings& settings)
 {
 	return B3DMakeShared<ParticleEmitterSkinnedMeshShape>(settings);
 }
 
-SPtr<ParticleEmitterSkinnedMeshShape> ParticleEmitterSkinnedMeshShape::Create()
+TShared<ParticleEmitterSkinnedMeshShape> ParticleEmitterSkinnedMeshShape::Create()
 {
 	return B3DMakeShared<ParticleEmitterSkinnedMeshShape>();
 }
@@ -1427,7 +1427,7 @@ u32 ParticleEmitter::Spawn(u32 count, Random& random, const ParticleSystemState&
 	return count;
 }
 
-SPtr<ParticleEmitter> ParticleEmitter::Create()
+TShared<ParticleEmitter> ParticleEmitter::Create()
 {
 	return B3DMakeShared<ParticleEmitter>();
 }

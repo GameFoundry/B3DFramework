@@ -10,7 +10,7 @@
 
 namespace b3d
 {
-	ScriptRenderTexture::ScriptRenderTexture(const SPtr<RenderTexture>& nativeObject)
+	ScriptRenderTexture::ScriptRenderTexture(const TShared<RenderTexture>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -46,7 +46,7 @@ namespace b3d
 	}
 	void ScriptRenderTexture::InternalCreate(MonoObject* scriptObject, PixelFormat format, int32_t width, int32_t height, int32_t numSamples, bool gammaCorrection, bool createDepth, PixelFormat depthStencilFormat)
 	{
-		SPtr<RenderTexture> nativeObject = RenderTextureEx::Create(format, width, height, numSamples, gammaCorrection, createDepth, depthStencilFormat);
+		TShared<RenderTexture> nativeObject = RenderTextureEx::Create(format, width, height, numSamples, gammaCorrection, createDepth, depthStencilFormat);
 		ScriptObjectWrapper::Create<ScriptRenderTexture>(nativeObject, scriptObject);
 	}
 
@@ -57,7 +57,7 @@ namespace b3d
 		scriptObjectWrappercolorSurface = ScriptTexture::GetScriptObjectWrapper(colorSurface);
 		if(scriptObjectWrappercolorSurface != nullptr)
 			tmpcolorSurface = B3DStaticResourceCast<Texture>(scriptObjectWrappercolorSurface->GetBaseNativeObjectAsHandle());
-		SPtr<RenderTexture> nativeObject = RenderTextureEx::Create(tmpcolorSurface);
+		TShared<RenderTexture> nativeObject = RenderTextureEx::Create(tmpcolorSurface);
 		ScriptObjectWrapper::Create<ScriptRenderTexture>(nativeObject, scriptObject);
 	}
 
@@ -73,7 +73,7 @@ namespace b3d
 		scriptObjectWrapperdepthStencilSurface = ScriptTexture::GetScriptObjectWrapper(depthStencilSurface);
 		if(scriptObjectWrapperdepthStencilSurface != nullptr)
 			tmpdepthStencilSurface = B3DStaticResourceCast<Texture>(scriptObjectWrapperdepthStencilSurface->GetBaseNativeObjectAsHandle());
-		SPtr<RenderTexture> nativeObject = RenderTextureEx::Create(tmpcolorSurface, tmpdepthStencilSurface);
+		TShared<RenderTexture> nativeObject = RenderTextureEx::Create(tmpcolorSurface, tmpdepthStencilSurface);
 		ScriptObjectWrapper::Create<ScriptRenderTexture>(nativeObject, scriptObject);
 	}
 
@@ -96,7 +96,7 @@ namespace b3d
 				}
 			}
 		}
-		SPtr<RenderTexture> nativeObject = RenderTextureEx::Create(nativeArraycolorSurface);
+		TShared<RenderTexture> nativeObject = RenderTextureEx::Create(nativeArraycolorSurface);
 		ScriptObjectWrapper::Create<ScriptRenderTexture>(nativeObject, scriptObject);
 	}
 
@@ -125,7 +125,7 @@ namespace b3d
 		scriptObjectWrapperdepthStencilSurface = ScriptTexture::GetScriptObjectWrapper(depthStencilSurface);
 		if(scriptObjectWrapperdepthStencilSurface != nullptr)
 			tmpdepthStencilSurface = B3DStaticResourceCast<Texture>(scriptObjectWrapperdepthStencilSurface->GetBaseNativeObjectAsHandle());
-		SPtr<RenderTexture> nativeObject = RenderTextureEx::Create(nativeArraycolorSurface, tmpdepthStencilSurface);
+		TShared<RenderTexture> nativeObject = RenderTextureEx::Create(nativeArraycolorSurface, tmpdepthStencilSurface);
 		ScriptObjectWrapper::Create<ScriptRenderTexture>(nativeObject, scriptObject);
 	}
 

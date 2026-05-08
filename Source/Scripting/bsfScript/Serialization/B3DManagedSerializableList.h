@@ -34,7 +34,7 @@ namespace b3d
 		{};
 
 	public:
-		ManagedSerializableList(const ConstructPrivately& dummy, const SPtr<ManagedTypeInfoList>& typeInfo, MonoObject* managedInstance);
+		ManagedSerializableList(const ConstructPrivately& dummy, const TShared<ManagedTypeInfoList>& typeInfo, MonoObject* managedInstance);
 		ManagedSerializableList(const ConstructPrivately& dummy);
 		~ManagedSerializableList();
 
@@ -42,7 +42,7 @@ namespace b3d
 		MonoObject* GetManagedInstance() const;
 
 		/**	Returns the type information for the internal list. */
-		SPtr<ManagedTypeInfoList> GetTypeInfo() const { return mListTypeInfo; }
+		TShared<ManagedTypeInfoList> GetTypeInfo() const { return mListTypeInfo; }
 
 		/** Changes the size of the list. Operates on managed object if in linked state, or on cached data otherwise. */
 		void Resize(u32 newSize);
@@ -54,7 +54,7 @@ namespace b3d
 		 * @param[in]	arrayIdx	Index at which to set the value.
 		 * @param[in]	val			Wrapper around the value to store in the list. Must be of the list element type.
 		 */
-		void SetFieldData(u32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val);
+		void SetFieldData(u32 arrayIdx, const TShared<ManagedSerializableFieldData>& val);
 
 		/**
 		 * Returns the element value at the specified list index. Operates on managed object if in linked state, or on
@@ -63,7 +63,7 @@ namespace b3d
 		 * @param[in]	arrayIdx	Index at which to retrieve the value.
 		 * @return					A wrapper around the element value in the list.
 		 */
-		SPtr<ManagedSerializableFieldData> GetFieldData(u32 arrayIdx);
+		TShared<ManagedSerializableFieldData> GetFieldData(u32 arrayIdx);
 
 		/** Returns the size of the list. Operates on managed object if in linked state, or on cached data otherwise. */
 		u32 GetLength() const { return mNumElements; }
@@ -91,7 +91,7 @@ namespace b3d
 		 *								the provided type info.
 		 * @param[in]	typeInfo		Type information for the list and its elements.
 		 */
-		static SPtr<ManagedSerializableList> CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedTypeInfoList>& typeInfo);
+		static TShared<ManagedSerializableList> CreateFromExisting(MonoObject* managedInstance, const TShared<ManagedTypeInfoList>& typeInfo);
 
 		/**
 		 * Creates a managed serializable list that creates and references a brand new managed list instance.
@@ -99,7 +99,7 @@ namespace b3d
 		 * @param[in]	typeInfo	Type of the list to create.
 		 * @param[in]	size		Initial size of the list.
 		 */
-		static SPtr<ManagedSerializableList> CreateNew(const SPtr<ManagedTypeInfoList>& typeInfo, u32 size);
+		static TShared<ManagedSerializableList> CreateNew(const TShared<ManagedTypeInfoList>& typeInfo, u32 size);
 
 		/**
 		 * Creates a managed list instance.
@@ -107,7 +107,7 @@ namespace b3d
 		 * @param[in]	typeInfo	Type of the list to create.
 		 * @param[in]	size		Initial size of the list.
 		 */
-		static MonoObject* CreateManagedInstance(const SPtr<ManagedTypeInfoList>& typeInfo, u32 size);
+		static MonoObject* CreateManagedInstance(const TShared<ManagedTypeInfoList>& typeInfo, u32 size);
 
 	protected:
 		/**
@@ -126,10 +126,10 @@ namespace b3d
 		 * @param[in]	arrayIdx	Index at which to set the value.
 		 * @param[in]	val			Wrapper around the value to store in the array. Must be of the array element type.
 		 */
-		void SetFieldData(MonoObject* obj, u32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val);
+		void SetFieldData(MonoObject* obj, u32 arrayIdx, const TShared<ManagedSerializableFieldData>& val);
 
 		/** Appends data to the end of the list. Operates on the internal managed object. */
-		void AddFieldDataInternal(const SPtr<ManagedSerializableFieldData>& val);
+		void AddFieldDataInternal(const TShared<ManagedSerializableFieldData>& val);
 
 		uint32_t mGCHandle = 0;
 
@@ -140,8 +140,8 @@ namespace b3d
 		MonoProperty* mItemProp = nullptr;
 		MonoProperty* mCountProp = nullptr;
 
-		SPtr<ManagedTypeInfoList> mListTypeInfo;
-		Vector<SPtr<ManagedSerializableFieldData>> mCachedEntries;
+		TShared<ManagedTypeInfoList> mListTypeInfo;
+		Vector<TShared<ManagedSerializableFieldData>> mCachedEntries;
 		u32 mNumElements = 0;
 
 		/************************************************************************/
@@ -149,7 +149,7 @@ namespace b3d
 		/************************************************************************/
 
 		/**	Creates an empty and uninitialized object used for serialization purposes. */
-		static SPtr<ManagedSerializableList> CreateEmpty();
+		static TShared<ManagedSerializableList> CreateEmpty();
 
 	public:
 		friend class ManagedSerializableListRTTI;

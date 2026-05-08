@@ -23,15 +23,15 @@ namespace b3d
 
 		bool IsExtensionSupported(const String& ext) const override;
 		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const override;
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
-		SPtr<ImportOptions> CreateImportOptions() const override;
+		TShared<Resource> Import(const Path& filePath, TShared<const ImportOptions> importOptions) override;
+		TShared<ImportOptions> CreateImportOptions() const override;
 
 	private:
 		/**	Converts a magic number into an extension name. */
 		String MagicNumToExtension(const u8* magic, u32 maxBytes) const;
 
 		/**	Imports an image from the provided data stream. */
-		SPtr<PixelData> ImportRawImage(const Path& fileData);
+		TShared<PixelData> ImportRawImage(const Path& fileData);
 
 		/**
 		 * Generates six cubemap faces from the provided source texture. *
@@ -42,7 +42,7 @@ namespace b3d
 		 *							same order as presented in the CubemapFace enum.
 		 * @return					True if the cubemap faces were successfully generated, false otherwise.
 		 */
-		bool GenerateCubemap(const SPtr<PixelData>& source, CubemapSourceType sourceType, std::array<SPtr<PixelData>, 6>& output);
+		bool GenerateCubemap(const TShared<PixelData>& source, CubemapSourceType sourceType, std::array<TShared<PixelData>, 6>& output);
 
 		Vector<String> mExtensions;
 		UnorderedMap<String, int> mExtensionToFID;

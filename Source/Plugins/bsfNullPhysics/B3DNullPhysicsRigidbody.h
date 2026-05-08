@@ -51,8 +51,8 @@ namespace b3d
 		void SetSolverIterationCounts(u32 positionCount, u32 velocityCount) override {}
 		void AddToScene(PhysicsScene& scene) override {}
 		void RemoveFromScene() override {}
-		void AttachShape(const SPtr<ColliderShape>& shape) override {}
-		void DetachShape(const SPtr<ColliderShape>& shape) override {}
+		void AttachShape(const TShared<ColliderShape>& shape) override {}
+		void DetachShape(const TShared<ColliderShape>& shape) override {}
 
 	private:
 		Vector3 mPosition = Vector3::kZero;

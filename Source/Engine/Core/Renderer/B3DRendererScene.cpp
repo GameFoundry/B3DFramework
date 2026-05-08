@@ -23,10 +23,10 @@ namespace b3d
 		mReflectionProbeRemovedHandle.Disconnect();
 	}
 
-	SPtr<RendererScene> RendererScene::Create()
+	TShared<RendererScene> RendererScene::Create()
 	{
 		RendererScene* rendererScene = new (B3DAllocate<RendererScene>()) RendererScene();
-		SPtr<RendererScene> rendererSceneShared = B3DMakeSharedFromExisting(rendererScene);
+		TShared<RendererScene> rendererSceneShared = B3DMakeSharedFromExisting(rendererScene);
 		rendererSceneShared->SetShared(rendererSceneShared);
 		rendererSceneShared->Initialize();
 
@@ -37,7 +37,7 @@ namespace b3d
 	{
 		CoreObject::Initialize();
 
-		SPtr<render::RendererScene> renderProxy = B3DGetRenderProxy(this);
+		TShared<render::RendererScene> renderProxy = B3DGetRenderProxy(this);
 		mDecalStorage = renderProxy->GetDecalStorage();
 		mRenderableStorage = renderProxy->GetRenderableStorage();
 		mLightStorage = renderProxy->GetLightStorage();
@@ -45,7 +45,7 @@ namespace b3d
 		mReflectionProbeStorage = renderProxy->GetReflectionProbeStorage();
 	}
 
-	void RendererScene::SetOwner(const SPtr<SceneInstance>& scene)
+	void RendererScene::SetOwner(const TShared<SceneInstance>& scene)
 	{
 		mOwner = scene;
 		ecs::Registry& registry = scene->GetECSRegistry();
@@ -198,7 +198,7 @@ namespace b3d
 		registry.RemoveComponents<ecs::ReflectionProbeId>(entity);
 	}
 
-	SPtr<render::RenderProxy> RendererScene::CreateRenderProxy() const
+	TShared<render::RenderProxy> RendererScene::CreateRenderProxy() const
 	{
 		return render::GetRenderer()->CreateScene();
 	}
@@ -209,7 +209,7 @@ namespace b3d
 		if(syncData == nullptr)
 			return;
 
-		SPtr<render::RendererScene> renderScene = B3DGetRenderProxy(this);
+		TShared<render::RendererScene> renderScene = B3DGetRenderProxy(this);
 		GetRenderThread().PostCommand(
 			[renderScene = std::move(renderScene), syncData, &allocator]
 			{

@@ -17,7 +17,7 @@ namespace b3d
 	struct SubResourceRaw
 	{
 		String Name; /**< Unique name of the sub-resource. */
-		SPtr<Resource> Value; /**< Contents of the sub-resource. */
+		TShared<Resource> Value; /**< Contents of the sub-resource. */
 
 		static constexpr const char* kPrimaryResourceName = "primary";
 	};
@@ -66,7 +66,7 @@ namespace b3d
 		 * @param	importOptions		Options that can control how is the resource imported.
 		 * @return						null if it fails, otherwise the loaded object.
 		 */
-		virtual SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) = 0;
+		virtual TShared<Resource> Import(const Path& filePath, TShared<const ImportOptions> importOptions) = 0;
 
 		/**
 		 * Imports the given file. This method returns all imported resources, which is relevant for files that can contain
@@ -77,23 +77,23 @@ namespace b3d
 		 * @return						Empty array if it fails, otherwise the loaded objects. First element is always the
 		 *								primary resource.
 		 */
-		virtual Vector<SubResourceRaw> ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions);
+		virtual Vector<SubResourceRaw> ImportAll(const Path& filePath, TShared<const ImportOptions> importOptions);
 
 		/**
 		 * Creates import options specific for this importer. Import options are provided when calling import() in order
 		 * to customize the import, and provide additional information.
 		 */
-		virtual SPtr<ImportOptions> CreateImportOptions() const;
+		virtual TShared<ImportOptions> CreateImportOptions() const;
 
 		/**
 		 * Gets the default import options.
 		 *
 		 * @return	The default import options.
 		 */
-		SPtr<const ImportOptions> GetDefaultImportOptions() const;
+		TShared<const ImportOptions> GetDefaultImportOptions() const;
 
 	private:
-		mutable SPtr<const ImportOptions> mDefaultImportOptions;
+		mutable TShared<const ImportOptions> mDefaultImportOptions;
 	};
 
 	/** @} */

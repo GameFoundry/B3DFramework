@@ -36,7 +36,7 @@ namespace b3d
 			return TID_PlaneCollider;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<PlaneCollider>();
 		}

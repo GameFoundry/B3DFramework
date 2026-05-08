@@ -18,7 +18,7 @@ namespace b3d
 	public:
 		/** Returns managed type of the resource described by the meta-data. */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(PackageResourceMetaData), Property(Getter), ExportName(ResourceType))
-		static MonoReflectionType* GetResourceType(const SPtr<PackageResourceMetaData>& self);
+		static MonoReflectionType* GetResourceType(const TShared<PackageResourceMetaData>& self);
 	};
 
 	/** @endcond */

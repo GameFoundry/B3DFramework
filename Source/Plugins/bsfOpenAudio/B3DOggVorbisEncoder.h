@@ -59,7 +59,7 @@ namespace b3d
 		 * @param[out]	size		Number of bytes written to the output buffer.
 		 * @return					Memory data stream containing the encoded samples.
 		 */
-		static SPtr<MemoryDataStream> PCMToOggVorbis(u8* samples, const AudioDataInfo& info, u32& size);
+		static TShared<MemoryDataStream> PCMToOggVorbis(u8* samples, const AudioDataInfo& info, u32& size);
 
 	private:
 		/** Writes Vorbis blocks into Ogg packets. */

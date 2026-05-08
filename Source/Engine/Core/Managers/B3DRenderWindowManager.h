@@ -21,10 +21,10 @@ namespace b3d
 		~RenderWindowManager() = default;
 
 		/** Creates a new render window using the specified options. Optionally makes the created window a child of another window. */
-		SPtr<RenderWindow> CreateRenderWindow(const RenderWindowCreateInformation& createInformation, const SPtr<RenderWindow>& parentWindow);
+		TShared<RenderWindow> CreateRenderWindow(const RenderWindowCreateInformation& createInformation, const TShared<RenderWindow>& parentWindow);
 
 		/** Creates a render window surface that is appropriate for the currently active platform & GPU backend combination. Thread safe. */
-		virtual SPtr<render::IRenderWindowSurface> CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation) = 0;
+		virtual TShared<render::IRenderWindowSurface> CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation) = 0;
 
 		/** Called once per frame. Dispatches events. */
 		void Update();

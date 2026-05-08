@@ -27,7 +27,7 @@ namespace b3d
 	GUIContent ScriptGUIContent::FromInterop(const __GUIContentInterop& value)
 	{
 		GUIContent output;
-		SPtr<HString> tmpText;
+		TShared<HString> tmpText;
 		ScriptLocString* scriptObjectWrapperText;
 		scriptObjectWrapperText = ScriptLocString::GetScriptObjectWrapper(value.Text);
 		if(scriptObjectWrapperText != nullptr)
@@ -37,7 +37,7 @@ namespace b3d
 		GUIContentImages tmpImages;
 		tmpImages = ScriptGUIContentImages::FromInterop(value.Images);
 		output.Images = tmpImages;
-		SPtr<HString> tmpTooltip;
+		TShared<HString> tmpTooltip;
 		ScriptLocString* scriptObjectWrapperTooltip;
 		scriptObjectWrapperTooltip = ScriptLocString::GetScriptObjectWrapper(value.Tooltip);
 		if(scriptObjectWrapperTooltip != nullptr)
@@ -52,7 +52,7 @@ namespace b3d
 	{
 		__GUIContentInterop output;
 		MonoObject* tmpText;
-		SPtr<HString> tmpTextcopy;
+		TShared<HString> tmpTextcopy;
 		tmpTextcopy = B3DMakeShared<HString>(value.Text);
 		tmpText = ScriptLocString::GetOrCreateScriptObject(tmpTextcopy);
 		output.Text = tmpText;
@@ -60,7 +60,7 @@ namespace b3d
 		tmpImages = ScriptGUIContentImages::ToInterop(value.Images);
 		output.Images = tmpImages;
 		MonoObject* tmpTooltip;
-		SPtr<HString> tmpTooltipcopy;
+		TShared<HString> tmpTooltipcopy;
 		tmpTooltipcopy = B3DMakeShared<HString>(value.Tooltip);
 		tmpTooltip = ScriptLocString::GetOrCreateScriptObject(tmpTooltipcopy);
 		output.Tooltip = tmpTooltip;

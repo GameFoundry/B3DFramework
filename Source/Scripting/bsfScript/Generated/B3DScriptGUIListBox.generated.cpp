@@ -93,7 +93,7 @@ namespace b3d
 			nativeArrayelements.resize(scriptArrayelements.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayelements.Size(); elementIndex++)
 			{
-				SPtr<HString> arrayElementPointerelements;
+				TShared<HString> arrayElementPointerelements;
 				ScriptLocString* scriptObjectWrapperelements;
 				scriptObjectWrapperelements = ScriptLocString::GetScriptObjectWrapper(scriptArrayelements.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrapperelements != nullptr)

@@ -28,7 +28,7 @@ inline u8* WriteVector2(u8* buffer, u32 stride, const Vector2& value)
 	return buffer + stride;
 }
 
-void ShapeMeshes3D::WireAaBox(const AABox& box, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes3D::WireAaBox(const AABox& box, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -39,9 +39,9 @@ void ShapeMeshes3D::WireAaBox(const AABox& box, const SPtr<MeshData>& meshData, 
 	WireAaBox(box, positionData, vertexOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, indexOffset);
 }
 
-void ShapeMeshes3D::SolidAaBox(const AABox& box, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes3D::SolidAaBox(const AABox& box, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
-	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
+	const TShared<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -67,7 +67,7 @@ void ShapeMeshes3D::SolidAaBox(const AABox& box, const SPtr<MeshData>& meshData,
 	}
 }
 
-void ShapeMeshes3D::WireSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
+void ShapeMeshes3D::WireSphere(const Sphere& sphere, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
 	u32 requiredNumVertices, requiredNumIndices;
 	GetNumElementsWireSphere(quality, requiredNumVertices, requiredNumIndices);
@@ -85,7 +85,7 @@ void ShapeMeshes3D::WireSphere(const Sphere& sphere, const SPtr<MeshData>& meshD
 	WireDisc(sphere.Center, sphere.Radius, Vector3::kUnitZ, meshData, vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
 }
 
-void ShapeMeshes3D::WireHemisphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
+void ShapeMeshes3D::WireHemisphere(const Sphere& sphere, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
 	u32 requiredNumVertices, requiredNumIndices;
 	GetNumElementsWireHemisphere(quality, requiredNumVertices, requiredNumIndices);
@@ -103,9 +103,9 @@ void ShapeMeshes3D::WireHemisphere(const Sphere& sphere, const SPtr<MeshData>& m
 	WireDisc(sphere.Center, sphere.Radius, Vector3::kUnitZ, meshData, vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
 }
 
-void ShapeMeshes3D::SolidSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
+void ShapeMeshes3D::SolidSphere(const Sphere& sphere, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
-	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
+	const TShared<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -134,17 +134,17 @@ void ShapeMeshes3D::SolidSphere(const Sphere& sphere, const SPtr<MeshData>& mesh
 	}
 }
 
-void ShapeMeshes3D::WireDisc(const Vector3& center, float radius, const Vector3& normal, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
+void ShapeMeshes3D::WireDisc(const Vector3& center, float radius, const Vector3& normal, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
 	WireArc(center, radius, normal, Degree(0), Degree(360), meshData, vertexOffset, indexOffset, quality);
 }
 
-void ShapeMeshes3D::SolidDisc(const Vector3& center, float radius, const Vector3& normal, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
+void ShapeMeshes3D::SolidDisc(const Vector3& center, float radius, const Vector3& normal, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
 	SolidArc(center, radius, normal, Degree(0), Degree(360), meshData, vertexOffset, indexOffset, quality);
 }
 
-void ShapeMeshes3D::WireArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
+void ShapeMeshes3D::WireArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -158,9 +158,9 @@ void ShapeMeshes3D::WireArc(const Vector3& center, float radius, const Vector3& 
 	WireArc(center, radius, normal, startAngle, amountAngle, positionData, vertexOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, indexOffset, quality);
 }
 
-void ShapeMeshes3D::SolidArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
+void ShapeMeshes3D::SolidArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
-	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
+	const TShared<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -189,7 +189,7 @@ void ShapeMeshes3D::SolidArc(const Vector3& center, float radius, const Vector3&
 	}
 }
 
-void ShapeMeshes3D::WireFrustum(const Vector3& position, float aspect, Degree FOV, float near, float far, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes3D::WireFrustum(const Vector3& position, float aspect, Degree FOV, float near, float far, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -200,9 +200,9 @@ void ShapeMeshes3D::WireFrustum(const Vector3& position, float aspect, Degree FO
 	WireFrustum(position, aspect, FOV, near, far, positionData, vertexOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, indexOffset);
 }
 
-void ShapeMeshes3D::SolidCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
+void ShapeMeshes3D::SolidCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
-	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
+	const TShared<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -231,7 +231,7 @@ void ShapeMeshes3D::SolidCone(const Vector3& base, const Vector3& normal, float 
 	}
 }
 
-void ShapeMeshes3D::WireCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
+void ShapeMeshes3D::WireCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -245,9 +245,9 @@ void ShapeMeshes3D::WireCone(const Vector3& base, const Vector3& normal, float h
 	WireCone(base, normal, height, radius, scale, positionData, vertexOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, indexOffset, quality);
 }
 
-void ShapeMeshes3D::SolidCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
+void ShapeMeshes3D::SolidCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
-	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
+	const TShared<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -276,7 +276,7 @@ void ShapeMeshes3D::SolidCylinder(const Vector3& base, const Vector3& normal, fl
 	}
 }
 
-void ShapeMeshes3D::WireCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
+void ShapeMeshes3D::WireCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -290,9 +290,9 @@ void ShapeMeshes3D::WireCylinder(const Vector3& base, const Vector3& normal, flo
 	WireCylinder(base, normal, height, radius, scale, positionData, vertexOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, indexOffset, quality);
 }
 
-void ShapeMeshes3D::SolidQuad(const Rect3& area, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes3D::SolidQuad(const Rect3& area, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
-	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
+	const TShared<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -318,7 +318,7 @@ void ShapeMeshes3D::SolidQuad(const Rect3& area, const SPtr<MeshData>& meshData,
 	}
 }
 
-void ShapeMeshes3D::PixelLine(const Vector3& a, const Vector3& b, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes3D::PixelLine(const Vector3& a, const Vector3& b, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -329,7 +329,7 @@ void ShapeMeshes3D::PixelLine(const Vector3& a, const Vector3& b, const SPtr<Mes
 	PixelLine(a, b, positionData, vertexOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, indexOffset);
 }
 
-void ShapeMeshes3D::PixelLineList(const Vector<Vector3>& linePoints, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes3D::PixelLineList(const Vector<Vector3>& linePoints, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	B3D_ASSERT(linePoints.size() % 2 == 0);
 
@@ -352,7 +352,7 @@ void ShapeMeshes3D::PixelLineList(const Vector<Vector3>& linePoints, const SPtr<
 	}
 }
 
-void ShapeMeshes3D::AntialiasedLine(const Vector3& a, const Vector3& b, const Vector3& up, float width, float borderWidth, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes3D::AntialiasedLine(const Vector3& a, const Vector3& b, const Vector3& up, float width, float borderWidth, const Color& color, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -364,7 +364,7 @@ void ShapeMeshes3D::AntialiasedLine(const Vector3& a, const Vector3& b, const Ve
 	AntialiasedLine(a, b, up, width, borderWidth, color, positionData, colorData, vertexOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, indexOffset);
 }
 
-void ShapeMeshes3D::AntialiasedLineList(const Vector<Vector3>& linePoints, const Vector3& up, float width, float borderWidth, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes3D::AntialiasedLineList(const Vector<Vector3>& linePoints, const Vector3& up, float width, float borderWidth, const Color& color, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	B3D_ASSERT(linePoints.size() % 2 == 0);
 

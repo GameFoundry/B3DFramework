@@ -14,7 +14,7 @@
 namespace b3d {
 namespace render {
 
-MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDevice& gpuDevice, const SPtr<Shader>& shader, const SPtr<MaterialParameters>& params, const SPtr<MaterialParameterAdapter>& materialParameterAdapter, const SPtr<RenderBeastOptions>& options)
+MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDevice& gpuDevice, const TShared<Shader>& shader, const TShared<MaterialParameters>& params, const TShared<MaterialParameterAdapter>& materialParameterAdapter, const TShared<RenderBeastOptions>& options)
 {
 	MaterialSamplerOverrides* output = nullptr;
 
@@ -41,7 +41,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 			overrides.push_back(SamplerOverride());
 			SamplerOverride& override = overrides.back();
 
-			SPtr<SamplerState> samplerState;
+			TShared<SamplerState> samplerState;
 			params->GetSamplerState(*materialParamData, samplerState);
 
 			if (samplerState == nullptr)
@@ -70,10 +70,10 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 
 		for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 		{
-			SPtr<GpuParameterSet> gpuParameters = materialParameterAdapter->GetGpuParameterSet(passIndex);
+			TShared<GpuParameterSet> gpuParameters = materialParameterAdapter->GetGpuParameterSet(passIndex);
 			B3D_ASSERT(gpuParameters->GetSet() == 0 && "Materials should only use set 0");
 
-			const SPtr<GpuPipelineParameterSetLayout> layoutSet = gpuParameters->GetLayout();
+			const TShared<GpuPipelineParameterSetLayout> layoutSet = gpuParameters->GetLayout();
 			const u32 samplerCount = layoutSet->GetBindingCount(GpuParameterType::Sampler);
 
 			for(u32 samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)
@@ -104,8 +104,8 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 
 		for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 		{
-			SPtr<GpuParameterSet> paramsPtr = materialParameterAdapter->GetGpuParameterSet(passIndex);
-			const SPtr<GpuPipelineParameterSetLayout> layoutSet = paramsPtr->GetLayout();
+			TShared<GpuParameterSet> paramsPtr = materialParameterAdapter->GetGpuParameterSet(passIndex);
+			const TShared<GpuPipelineParameterSetLayout> layoutSet = paramsPtr->GetLayout();
 
 			PassSamplerOverrides& passOverrides = output->Passes[passIndex];
 			passOverrides.NumSets = 1; // All materials use only set 0
@@ -138,7 +138,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 
 		for(u32 i = 0; i < output->NumOverrides; i++)
 		{
-			new(&output->Overrides[i].State) SPtr<SamplerState>();
+			new(&output->Overrides[i].State) TShared<SamplerState>();
 			output->Overrides[i] = overrides[i];
 		}
 
@@ -154,14 +154,14 @@ void SamplerOverrideUtility::DestroySamplerOverrides(MaterialSamplerOverrides* o
 	if(overrides != nullptr)
 	{
 		for(u32 i = 0; i < overrides->NumOverrides; i++)
-			overrides->Overrides[i].State.~SPtr<SamplerState>();
+			overrides->Overrides[i].State.~TShared<SamplerState>();
 
 		B3DFree(overrides);
 		overrides = nullptr;
 	}
 }
 
-bool SamplerOverrideUtility::CheckNeedsOverride(const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options)
+bool SamplerOverrideUtility::CheckNeedsOverride(const TShared<SamplerState>& samplerState, const TShared<RenderBeastOptions>& options)
 {
 	const SamplerStateInformation& samplerStateInformation = samplerState->GetInformation();
 
@@ -211,7 +211,7 @@ bool SamplerOverrideUtility::CheckNeedsOverride(const SPtr<SamplerState>& sample
 	return false;
 }
 
-SPtr<SamplerState> SamplerOverrideUtility::GenerateSamplerOverride(GpuDevice& gpuDevice, const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options)
+TShared<SamplerState> SamplerOverrideUtility::GenerateSamplerOverride(GpuDevice& gpuDevice, const TShared<SamplerState>& samplerState, const TShared<RenderBeastOptions>& options)
 {
 	SamplerStateCreateInformation samplerStateCreateInformation = samplerState->GetInformation();
 

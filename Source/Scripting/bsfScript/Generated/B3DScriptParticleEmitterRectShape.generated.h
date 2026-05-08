@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEmitterRectShape")
 
-		ScriptParticleEmitterRectShape(const SPtr<ParticleEmitterRectShape>& nativeObject);
+		ScriptParticleEmitterRectShape(const TShared<ParticleEmitterRectShape>& nativeObject);
 		~ScriptParticleEmitterRectShape();
 
 		static void SetupScriptBindings();

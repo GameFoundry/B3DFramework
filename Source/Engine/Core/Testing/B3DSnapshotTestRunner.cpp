@@ -59,7 +59,7 @@ namespace
 		root["warnings"] = warningsArray;
 
 		String jsonString(root.dump(2).c_str());
-		SPtr<DataStream> fileStream = FileSystem::CreateAndOpenFile(outputPath);
+		TShared<DataStream> fileStream = FileSystem::CreateAndOpenFile(outputPath);
 		if(fileStream)
 			fileStream->WriteString(jsonString);
 	}
@@ -105,7 +105,7 @@ void SnapshotTestRunner::PrepareForScreenCapture()
 		// Force all the cameras to redraw this frame
 		for(const auto& pair : GetSceneManager().GetAllScenes())
 		{
-			const SPtr<SceneInstance>& sceneInstance = pair.second.lock();
+			const TShared<SceneInstance>& sceneInstance = pair.second.lock();
 			for(const auto& camera : sceneInstance->GetAllCameras())
 				camera.second->NotifyNeedsRedraw();
 		}
@@ -122,7 +122,7 @@ void SnapshotTestRunner::RequestScreenCapture()
 	mCaptureState = CaptureState::Queued;
 
 	// Get the primary window
-	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+	TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	if(!primaryWindow)
 	{
 		mResult.Errors.push_back("No primary render window available for screenshot capture");
@@ -131,14 +131,14 @@ void SnapshotTestRunner::RequestScreenCapture()
 	}
 
 	// Create the async operation that will be completed on the render thread
-	TAsyncOp<SPtr<PixelData>> asyncOp;
+	TAsyncOp<TShared<PixelData>> asyncOp;
 	mScreenCaptureOp = asyncOp;
 
 	// Get render proxy and capture in lambda (following codebase pattern - see Texture::ReadData)
 	auto fnCaptureWindow = [windowProxy = B3DGetRenderProxy(primaryWindow), asyncOp]() mutable
 	{
 		// Get the command buffer pool from renderer
-		SPtr<render::Renderer> renderer = render::GetRenderer();
+		TShared<render::Renderer> renderer = render::GetRenderer();
 		if(!renderer)
 		{
 			asyncOp.CompleteOperation(nullptr);
@@ -146,14 +146,14 @@ void SnapshotTestRunner::RequestScreenCapture()
 		}
 
 		render::GpuCommandBufferPool& pool = renderer->GetCurrentCommandBufferPool();
-		SPtr<render::GpuCommandBuffer> commandBuffer = pool.Create(
+		TShared<render::GpuCommandBuffer> commandBuffer = pool.Create(
 			render::GpuCommandBufferCreateInformation::Create("SnapshotCapture"));
 
 		// Request async read from the window
-		TAsyncOp<SPtr<PixelData>> readOp = windowProxy->ReadAsync(*commandBuffer);
+		TAsyncOp<TShared<PixelData>> readOp = windowProxy->ReadAsync(*commandBuffer);
 
 		// Submit the command buffer
-		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		gpuDevice->SubmitCommandBuffer(commandBuffer);
 
 		// Chain completion - when the read completes, complete our async op
@@ -182,7 +182,7 @@ void SnapshotTestRunner::Finalize()
 	if(mScreenCaptureOp != nullptr)
 	{
 		mScreenCaptureOp.BlockUntilComplete();
-		SPtr<PixelData> pixelData = mScreenCaptureOp.GetReturnValue();
+		TShared<PixelData> pixelData = mScreenCaptureOp.GetReturnValue();
 		if(pixelData)
 		{
 			if(!SaveScreenshot(pixelData))
@@ -202,7 +202,7 @@ void SnapshotTestRunner::Finalize()
 		if(mScreenCaptureOp != nullptr)
 		{
 			mScreenCaptureOp.BlockUntilComplete();
-			SPtr<PixelData> pixelData = mScreenCaptureOp.GetReturnValue();
+			TShared<PixelData> pixelData = mScreenCaptureOp.GetReturnValue();
 			if(pixelData)
 			{
 				if(!SaveScreenshot(pixelData))
@@ -231,7 +231,7 @@ void SnapshotTestRunner::Finalize()
 	WriteLogFile();
 }
 
-bool SnapshotTestRunner::SaveScreenshot(const SPtr<PixelData>& pixelData)
+bool SnapshotTestRunner::SaveScreenshot(const TShared<PixelData>& pixelData)
 {
 	if(!pixelData)
 		return false;

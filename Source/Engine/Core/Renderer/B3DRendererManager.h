@@ -30,19 +30,19 @@ namespace b3d
 		void SetActive(const String& pluginName);
 
 		/** Initializes the currently active renderer on the provided GPU device, making it ready to render. */
-		void Initialize(const SPtr<GpuDevice>& gpuDevice);
+		void Initialize(const TShared<GpuDevice>& gpuDevice);
 
 		/** Queues GPU command capture of the next frame, if a frame capture is set up. */
 		B3D_SCRIPT_EXPORT()
 		void RequestFrameCapture();
 
 		/**	Returns the currently active renderer. Null if no renderer is active. */
-		SPtr<render::Renderer> GetActive() { return mActiveRenderer; }
+		TShared<render::Renderer> GetActive() { return mActiveRenderer; }
 
 	private:
 		LoadedPlugin mPlugin;
 		RendererFactory* mFactory = nullptr;
-		SPtr<render::Renderer> mActiveRenderer;
+		TShared<render::Renderer> mActiveRenderer;
 	};
 
 	/** @} */

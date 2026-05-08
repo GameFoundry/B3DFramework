@@ -32,9 +32,9 @@ namespace b3d
 	private:
 		friend class NullAudioSource;
 
-		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation) override;
-		SPtr<IAudioListenerImplementation> CreateListener() override;
-		SPtr<IAudioSourceImplementation> CreateSource() override;
+		TShared<AudioClip> CreateClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation) override;
+		TShared<IAudioListenerImplementation> CreateListener() override;
+		TShared<IAudioSourceImplementation> CreateSource() override;
 
 		float mVolume = 1.0f;
 		bool mIsPaused = false;
@@ -48,16 +48,16 @@ namespace b3d
 	class NullAudioClip final : public AudioClip
 	{
 	public:
-		NullAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
+		NullAudioClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
 
 	protected:
 		void Initialize() override;
-		SPtr<DataStream> GetSourceStream(u32& outSize) override;
+		TShared<DataStream> GetSourceStream(u32& outSize) override;
 
 	private:
 		// These streams exist to save original audio data in case it's needed later (usually for saving with the editor, or
 		// manual data manipulation). In normal usage (in-game) these will be null so no memory is wasted.
-		SPtr<DataStream> mSourceStreamData;
+		TShared<DataStream> mSourceStreamData;
 		u32 mSourceStreamSize;
 	};
 

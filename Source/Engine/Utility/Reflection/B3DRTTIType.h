@@ -26,7 +26,7 @@ namespace b3d
 	{
 		u32 TypeId = 0;
 
-		SPtr<RTTISchema> BaseTypeSchema;
+		TShared<RTTISchema> BaseTypeSchema;
 		Vector<RTTIFieldSchema> FieldSchemas;
 
 		static RTTIType* GetRttiStatic();
@@ -142,7 +142,7 @@ namespace b3d
 		virtual bool IsDerivedFrom(const RTTIType* base) const = 0;
 
 		/** Creates a new instance of the class owning this RTTI type. */
-		virtual SPtr<IReflectable> NewRttiObject() = 0;
+		virtual TShared<IReflectable> NewRttiObject() = 0;
 
 		/** Returns the name of the class owning this RTTI type. */
 		virtual const String& GetRttiName() = 0;
@@ -194,7 +194,7 @@ namespace b3d
 		RTTIField* FindField(int uniqueFieldId);
 
 		/** Returns a set of serializable meta-data describing the RTTI type. */
-		const SPtr<RTTISchema>& GetSchema() const { return mSchema; }
+		const TShared<RTTISchema>& GetSchema() const { return mSchema; }
 
 		/** @name Internal
 		 *  @{
@@ -227,7 +227,7 @@ namespace b3d
 		 */
 		void AddNewField(RTTIField* field);
 
-		SPtr<RTTISchema> mSchema;
+		TShared<RTTISchema> mSchema;
 
 	private:
 		Vector<RTTIField*> mFields;
@@ -430,7 +430,7 @@ namespace b3d
 
 		/** Registers a field referencing a blob of memory. */
 		template <class InterfaceType, class ObjectType>
-		void AddDataBlockField(const String& name, u32 uniqueId, SPtr<DataStream> (InterfaceType::*getter)(ObjectType*, u32&), void (InterfaceType::*setter)(ObjectType*, const SPtr<DataStream>&, u32), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
+		void AddDataBlockField(const String& name, u32 uniqueId, TShared<DataStream> (InterfaceType::*getter)(ObjectType*, u32&), void (InterfaceType::*setter)(ObjectType*, const TShared<DataStream>&, u32), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
 		{
 			auto newField = B3DNew<RTTIDataBlockField<InterfaceType, u8*, ObjectType>>();
 			newField->InitSingle(name, uniqueId, getter, setter, info);
@@ -493,7 +493,7 @@ namespace b3d
 
 	/** Returns true if the provided object can be safely cast into type T. */
 	template <class T>
-	bool B3DRTTIIsOfType(SPtr<IReflectable> object)
+	bool B3DRTTIIsOfType(TShared<IReflectable> object)
 	{
 		static_assert((std::is_base_of<b3d::IReflectable, T>::value), "Invalid data type for type checking. It needs to derive from b3d::IReflectable.");
 
@@ -501,7 +501,7 @@ namespace b3d
 	}
 
 	/** Creates a new object just from its type ID. */
-	B3D_EXPORT SPtr<IReflectable> B3DRTTICreate(u32 rttiId);
+	B3D_EXPORT TShared<IReflectable> B3DRTTICreate(u32 rttiId);
 
 	/** Checks is the current object a subclass of some type. */
 	template <class T>
@@ -514,7 +514,7 @@ namespace b3d
 
 	/** Checks is the current object a subclass of some type. */
 	template <class T>
-	bool B3DRTTIIsSubclass(const SPtr<IReflectable>& object)
+	bool B3DRTTIIsSubclass(const TShared<IReflectable>& object)
 	{
 		static_assert((std::is_base_of<b3d::IReflectable, T>::value), "Invalid data type for type checking. It needs to derive from b3d::IReflectable.");
 
@@ -533,7 +533,7 @@ namespace b3d
 
 	/** Attempts to cast the object to the provided type, or returns null if cast is not valid. */
 	template <class T>
-	SPtr<T> B3DRTTICast(const SPtr<IReflectable> object)
+	TShared<T> B3DRTTICast(const TShared<IReflectable> object)
 	{
 		if(B3DRTTIIsSubclass<T>(object))
 			return std::static_pointer_cast<T>(object);

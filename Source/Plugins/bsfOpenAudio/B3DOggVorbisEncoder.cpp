@@ -204,7 +204,7 @@ void OggVorbisEncoder::Close()
 	mClosed = true;
 }
 
-SPtr<MemoryDataStream> OggVorbisEncoder::PCMToOggVorbis(u8* samples, const AudioDataInfo& info, u32& size)
+TShared<MemoryDataStream> OggVorbisEncoder::PCMToOggVorbis(u8* samples, const AudioDataInfo& info, u32& size)
 {
 	struct EncodedBlock
 	{

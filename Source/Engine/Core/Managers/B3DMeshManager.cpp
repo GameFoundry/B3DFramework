@@ -12,7 +12,7 @@ void MeshManager::OnStartUp()
 	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-	SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
+	TShared<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
 
 	mDummyMeshData = B3DMakeShared<MeshData>(1, 3, vertexDesc);
 

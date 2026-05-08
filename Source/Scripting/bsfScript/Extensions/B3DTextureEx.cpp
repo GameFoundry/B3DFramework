@@ -76,15 +76,15 @@ u32 TextureEx::GetMipmapCount(const HTexture& thisPtr)
 	return thisPtr->GetProperties().MipMapCount;
 }
 
-SPtr<PixelData> TextureEx::GetPixels(const HTexture& thisPtr, u32 face, u32 mipLevel)
+TShared<PixelData> TextureEx::GetPixels(const HTexture& thisPtr, u32 face, u32 mipLevel)
 {
-	SPtr<PixelData> pixelData = thisPtr->GetProperties().AllocBuffer(face, mipLevel);
+	TShared<PixelData> pixelData = thisPtr->GetProperties().AllocBuffer(face, mipLevel);
 	thisPtr->ReadCachedData(*pixelData, face, mipLevel);
 
 	return pixelData;
 }
 
-void TextureEx::SetPixels(const HTexture& thisPtr, const SPtr<PixelData>& data, u32 face, u32 mipLevel)
+void TextureEx::SetPixels(const HTexture& thisPtr, const TShared<PixelData>& data, u32 face, u32 mipLevel)
 {
 	if(data != nullptr)
 		thisPtr->WriteData(data, face, mipLevel, false);
@@ -103,7 +103,7 @@ void TextureEx::SetPixelsArray(const HTexture& thisPtr, const Vector<Color>& col
 		return;
 	}
 
-	SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(props.Width, props.Height, props.Depth, props.Format);
+	TShared<PixelData> pixelData = B3DMakeShared<PixelData>(props.Width, props.Height, props.Depth, props.Format);
 	pixelData->AllocateInternalBuffer();
 	pixelData->SetColors(colors);
 

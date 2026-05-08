@@ -122,7 +122,7 @@ namespace b3d::render
 		/** Entry in the suballocation pool with intrusive free-list link. */
 		struct SuballocationEntry
 		{
-			SPtr<GpuBuffer> Buffer;
+			TShared<GpuBuffer> Buffer;
 			u32 SuballocationOffset;
 			u64 LastUsedFrameNumber;
 			u32 NextFreeIndex;
@@ -143,7 +143,7 @@ namespace b3d::render
 		u32 mFreeListHead = ~0u;
 
 		TInlineArray<SuballocationEntry, 4> mSuballocations;
-		TInlineArray<SPtr<GpuBuffer>, 1> mBuffers;
+		TInlineArray<TShared<GpuBuffer>, 1> mBuffers;
 	};
 
 	/**
@@ -238,7 +238,7 @@ namespace b3d::render
 		/** Entry for a GPU buffer. */
 		struct BufferEntry
 		{
-			SPtr<GpuBuffer> Buffer;
+			TShared<GpuBuffer> Buffer;
 			u32 AllocatedCount; /**< Number of currently allocated suballocations. */
 			u32 FreeListHead; /**< Head of this buffer's free-list (~0u = empty). */
 		};

@@ -30,7 +30,7 @@ void SkyboxMaterial::Initialize()
 	mGpuParameterSet->TryGetUniformBufferParameter("Params", mUniformBufferParameter);
 }
 
-void SkyboxMaterial::Bind(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
+void SkyboxMaterial::Bind(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& perCamera, const TShared<Texture>& texture, const Color& solidColor)
 {
 	mGpuParameterSet->SetUniformBuffer("PerCamera", perCamera);
 
@@ -66,14 +66,14 @@ RendererViewProperties::RendererViewProperties(const RendererViewCreateInformati
 RendererView::RendererView()
 	: mCamera(nullptr), mRenderSettingsHash(0), mViewIdx(-1)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	mPerCameraBufferPool.Initialize(*gpuDevice, GpuBufferCreateInformation::CreateUniform(gPerCameraUniformDefinition.GetSize()), 4);
 }
 
 RendererView::RendererView(const RendererViewCreateInformation& desc)
 	: mProperties(desc), mCamera(desc.SceneCamera), mRenderSettingsHash(0), mViewIdx(-1)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	mPerCameraBufferPool.Initialize(*gpuDevice, GpuBufferCreateInformation::CreateUniform(gPerCameraUniformDefinition.GetSize()), 4);
 	mProperties.PrevViewProjTransform = mProperties.ViewProjTransform;
 
@@ -99,7 +99,7 @@ void RendererView::SetStateReductionMode(StateReduction reductionMode)
 	mDecalQueue = B3DMakeShared<RenderQueue>(StateReduction::Material);
 }
 
-void RendererView::SetRenderSettings(const SPtr<RenderSettings>& settings)
+void RendererView::SetRenderSettings(const TShared<RenderSettings>& settings)
 {
 	if(mRenderSettings == nullptr)
 		mRenderSettings = B3DMakeShared<RenderSettings>();
@@ -185,7 +185,7 @@ void RendererView::BeginFrame(const FrameInfo& frameInfo)
 	bool perViewBufferDirty = false;
 	if(mCamera)
 	{
-		const SPtr<Viewport>& viewport = mCamera->GetViewport();
+		const TShared<Viewport>& viewport = mCamera->GetViewport();
 		if(viewport)
 		{
 			u32 newTargetWidth = 0;
@@ -353,7 +353,7 @@ void RendererView::UpdateAsyncOperations()
 		// Get new luminance value
 		mPreviousEyeAdaptation = mCurrentEyeAdaptation;
 
-		const SPtr<PixelData> pixelData = lastFinishedIter->ReadbackAsyncOp.GetReturnValue();
+		const TShared<PixelData> pixelData = lastFinishedIter->ReadbackAsyncOp.GetReturnValue();
 		mCurrentEyeAdaptation = pixelData->GetColorAt(0, 0).R;
 
 		// We've received information about eye adaptation, use that to determine if redrawing
@@ -385,7 +385,7 @@ float RendererView::GetCurrentExposure() const
 	return Math::RaiseToPower(2.0f, mRenderSettings->ExposureScale);
 }
 
-void RendererView::NotifyLuminanceUpdated(u64 frameIdx, SPtr<GpuCommandBuffer> cb, SPtr<PooledRenderTexture> texture) const
+void RendererView::NotifyLuminanceUpdated(u64 frameIdx, TShared<GpuCommandBuffer> cb, TShared<PooledRenderTexture> texture) const
 {
 	if(cb == nullptr)
 	{
@@ -393,7 +393,7 @@ void RendererView::NotifyLuminanceUpdated(u64 frameIdx, SPtr<GpuCommandBuffer> c
 		return;
 	}
 
-	TAsyncOp<SPtr<PixelData>> readbackAsyncOp = TextureUtility::ReadAsync(texture->Texture, *cb);
+	TAsyncOp<TShared<PixelData>> readbackAsyncOp = TextureUtility::ReadAsync(texture->Texture, *cb);
 	mLuminanceUpdates.emplace_back(frameIdx, std::move(readbackAsyncOp), std::move(texture));
 }
 
@@ -710,7 +710,7 @@ Vector2 RendererView::GetDeviceZToViewZ(const Matrix4& projMatrix)
 	// Are we reorganize it because it needs to fit the "(1.0f / (depth + y)) * x" format used in the shader:
 	// z = 1.0f / (depth + minDepth/(maxDepth - minDepth) - A/((maxDepth - minDepth) * C)) * B/((maxDepth - minDepth) * C)
 
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuDeviceCapabilities& gpuDeviceCapabilities = gpuDevice->GetCapabilities();
 
 	float depthRange = gpuDeviceCapabilities.MaxDepth - gpuDeviceCapabilities.MinDepth;
@@ -774,7 +774,7 @@ Vector2 RendererView::GetNdczToViewZ(const Matrix4& projMatrix)
 
 Vector2 RendererView::GetNdczToDeviceZ()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuDeviceCapabilities& gpuDeviceCapabilities = gpuDevice->GetCapabilities();
 
 	Vector2 ndcZToDeviceZ;
@@ -885,7 +885,7 @@ void RendererView::UpdatePerViewBuffer()
 
 Vector4 RendererView::GetNdcToUv() const
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuDeviceCapabilities& caps = gpuDevice->GetCapabilities();
 	const Area2I& viewRect = mProperties.Target.ViewRect;
 
@@ -1029,12 +1029,12 @@ void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, con
 	}
 }
 
-void RendererView::RequestScreenCapture(TAsyncOp<SPtr<PixelData>> asyncOp)
+void RendererView::RequestScreenCapture(TAsyncOp<TShared<PixelData>> asyncOp)
 {
 	mRequestedScreenCaptures.push_back(std::move(asyncOp));
 }
 
-void RendererView::ResolveSceneCaptures(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& target) const
+void RendererView::ResolveSceneCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& target) const
 {
 	if(mRequestedScreenCaptures.empty())
 		return;
@@ -1048,10 +1048,10 @@ void RendererView::ResolveSceneCaptures(GpuCommandBuffer& commandBuffer, const S
 		return;
 	}
 
-	Vector<TAsyncOp<SPtr<PixelData>>> captureOps = std::move(mRequestedScreenCaptures);
+	Vector<TAsyncOp<TShared<PixelData>>> captureOps = std::move(mRequestedScreenCaptures);
 	mRequestedScreenCaptures.clear();
 
-	TAsyncOp<SPtr<PixelData>> readOp = target->ReadAsync(commandBuffer);
+	TAsyncOp<TShared<PixelData>> readOp = target->ReadAsync(commandBuffer);
 
 	auto fnOnReadOpCompleted = [captureOps = std::move(captureOps), readOp]() mutable
 	{

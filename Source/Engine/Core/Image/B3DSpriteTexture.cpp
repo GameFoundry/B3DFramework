@@ -34,14 +34,14 @@ void SpriteTexture::Initialize()
 	SpriteImage::Initialize();
 }
 
-SPtr<render::RenderProxy> SpriteTexture::CreateRenderProxy() const
+TShared<render::RenderProxy> SpriteTexture::CreateRenderProxy() const
 {
-	SPtr<render::Texture> atlasRenderProxy = B3DGetRenderProxy(mAtlasTexture);
+	TShared<render::Texture> atlasRenderProxy = B3DGetRenderProxy(mAtlasTexture);
 
 	render::SpriteTextureCreateInformation createInformation(mInformation, std::move(atlasRenderProxy));
 	render::SpriteTexture* const renderProxy = new(B3DAllocate<render::SpriteTexture>()) render::SpriteTexture(createInformation, B3DGetRenderProxy(mDefaultAllocatedImage));
 
-	SPtr<render::SpriteTexture> renderProxyShared = B3DMakeSharedFromExisting<render::SpriteTexture>(renderProxy);
+	TShared<render::SpriteTexture> renderProxyShared = B3DMakeSharedFromExisting<render::SpriteTexture>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -64,19 +64,19 @@ void SpriteTexture::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 
 HSpriteTexture SpriteTexture::Create(const HTexture& texture)
 {
-	SPtr<SpriteTexture> texturePtr = CreateShared(texture);
+	TShared<SpriteTexture> texturePtr = CreateShared(texture);
 
 	return B3DStaticResourceCast<SpriteTexture>(GetResources().CreateResourceHandle(texturePtr));
 }
 
 HSpriteTexture SpriteTexture::Create(const SpriteTextureCreateInformation& createInformation)
 {
-	SPtr<SpriteTexture> texture = CreateShared(createInformation);
+	TShared<SpriteTexture> texture = CreateShared(createInformation);
 
 	return B3DStaticResourceCast<SpriteTexture>(GetResources().CreateResourceHandle(texture));
 }
 
-SPtr<SpriteTexture> SpriteTexture::CreateShared(const HTexture& texture)
+TShared<SpriteTexture> SpriteTexture::CreateShared(const HTexture& texture)
 {
 	SpriteTextureCreateInformation createInformation;
 	createInformation.AtlasTexture = texture;
@@ -84,9 +84,9 @@ SPtr<SpriteTexture> SpriteTexture::CreateShared(const HTexture& texture)
 	return CreateShared(createInformation);
 }
 
-SPtr<SpriteTexture> SpriteTexture::CreateShared(const SpriteTextureCreateInformation& createInformation)
+TShared<SpriteTexture> SpriteTexture::CreateShared(const SpriteTextureCreateInformation& createInformation)
 {
-	SPtr<SpriteTexture> texture = B3DMakeSharedFromExisting<SpriteTexture>(new(B3DAllocate<SpriteTexture>()) SpriteTexture(createInformation));
+	TShared<SpriteTexture> texture = B3DMakeSharedFromExisting<SpriteTexture>(new(B3DAllocate<SpriteTexture>()) SpriteTexture(createInformation));
 
 	texture->SetShared(texture);
 	texture->Initialize();
@@ -94,9 +94,9 @@ SPtr<SpriteTexture> SpriteTexture::CreateShared(const SpriteTextureCreateInforma
 	return texture;
 }
 
-SPtr<SpriteTexture> SpriteTexture::CreateEmpty()
+TShared<SpriteTexture> SpriteTexture::CreateEmpty()
 {
-	SPtr<SpriteTexture> texture = B3DMakeSharedFromExisting<SpriteTexture>(new(B3DAllocate<SpriteTexture>()) SpriteTexture(SpriteTextureCreateInformation()));
+	TShared<SpriteTexture> texture = B3DMakeSharedFromExisting<SpriteTexture>(new(B3DAllocate<SpriteTexture>()) SpriteTexture(SpriteTextureCreateInformation()));
 	texture->SetShared(texture);
 
 	return texture;
@@ -114,7 +114,7 @@ RTTIType* SpriteTexture::GetRtti() const
 
 namespace b3d { namespace render
 {
-SpriteTexture::SpriteTexture(const SpriteTextureCreateInformation& createInformation, const SPtr<SpriteImageAllocation>& defaultAllocatedImage)
+SpriteTexture::SpriteTexture(const SpriteTextureCreateInformation& createInformation, const TShared<SpriteImageAllocation>& defaultAllocatedImage)
 	: SpriteImage(createInformation, defaultAllocatedImage)
 {
 	mAtlasTexture = createInformation.AtlasTexture;

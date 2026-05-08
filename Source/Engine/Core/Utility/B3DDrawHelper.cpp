@@ -310,7 +310,7 @@ void DrawHelper::Text(const Vector3& position, const String& text, const HFont& 
 	textData.Size = size;
 }
 
-void DrawHelper::WireMesh(const SPtr<MeshData>& meshData)
+void DrawHelper::WireMesh(const TShared<MeshData>& meshData)
 {
 	if(meshData == nullptr)
 		return;
@@ -733,7 +733,7 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 	struct TextRenderData
 	{
 		u32 Page;
-		SPtr<TTextGeometry<>> TextGeometry;
+		TShared<TTextGeometry<>> TextGeometry;
 	};
 
 	UnorderedMap<u32, TextRenderData> textRenderData;
@@ -749,7 +749,7 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 		}
 
 		U32String utf32text = UTF8::ToUtF32(shapeData.Text);
-		SPtr<TTextGeometry<>> textData = B3DMakeShared<TTextGeometry<>>(utf32text, shapeData.Font, shapeData.Size);
+		TShared<TTextGeometry<>> textData = B3DMakeShared<TTextGeometry<>>(utf32text, shapeData.Font, shapeData.Size);
 
 		u32 numPages = textData->GetPageCount();
 		for(u32 j = 0; j < numPages; j++)
@@ -873,8 +873,8 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 		indexCount[typeIdx] += batch.NumIndices;
 	}
 
-	SPtr<VertexDescription> vertexDesc[4] = { mSolidVertexDesc, mWireVertexDesc, mLineVertexDesc, mTextVertexDesc };
-	SPtr<MeshData> meshData[4];
+	TShared<VertexDescription> vertexDesc[4] = { mSolidVertexDesc, mWireVertexDesc, mLineVertexDesc, mTextVertexDesc };
+	TShared<MeshData> meshData[4];
 	for(u32 i = 0; i < 4; i++)
 	{
 		if(vertexCount[i] > 0 && indexCount[i] > 0)
@@ -1249,7 +1249,7 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 		}
 	}
 
-	SPtr<Mesh> meshes[4];
+	TShared<Mesh> meshes[4];
 	for(u32 i = 0; i < 4; i++)
 	{
 		if(meshData[i])

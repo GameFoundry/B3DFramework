@@ -21,7 +21,7 @@ MeshCollider::MeshCollider()
 
 void MeshCollider::OnCreated()
 {
-	SPtr<ColliderShape> colliderShape = ColliderShape::CreateMesh(mMesh);
+	TShared<ColliderShape> colliderShape = ColliderShape::CreateMesh(mMesh);
 
 	mShapes = { colliderShape };
 

@@ -26,18 +26,18 @@ namespace b3d
 	struct RTTIDataBlockFieldBase : public RTTIField
 	{
 		/** Retrieves a data block from the specified instance. */
-		virtual SPtr<DataStream> GetValue(RTTIType* rtti, void* object, u32& size) = 0;
+		virtual TShared<DataStream> GetValue(RTTIType* rtti, void* object, u32& size) = 0;
 
 		/** Sets a data block on the specified instance. */
-		virtual void SetValue(RTTIType* rtti, void* object, const SPtr<DataStream>& data, u32 size) = 0;
+		virtual void SetValue(RTTIType* rtti, void* object, const TShared<DataStream>& data, u32 size) = 0;
 	};
 
 	/** Class containing a data block field containing a specific type. */
 	template <class InterfaceType, class DataType, class ObjectType>
 	struct RTTIDataBlockField : public RTTIDataBlockFieldBase
 	{
-		typedef SPtr<DataStream> (InterfaceType::*GetterType)(ObjectType*, u32&);
-		typedef void (InterfaceType::*SetterType)(ObjectType*, const SPtr<DataStream>&, u32);
+		typedef TShared<DataStream> (InterfaceType::*GetterType)(ObjectType*, u32&);
+		typedef void (InterfaceType::*SetterType)(ObjectType*, const TShared<DataStream>&, u32);
 
 		/**
 		 * Initializes a field that returns a block of bytes. Can be used for serializing pretty much anything.
@@ -71,7 +71,7 @@ namespace b3d
 			Schema.FieldDataTypes.Add(fieldTypeSchema);
 		}
 
-		SPtr<DataStream> GetValue(RTTIType* rtti, void* object, u32& size) override
+		TShared<DataStream> GetValue(RTTIType* rtti, void* object, u32& size) override
 		{
 			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObj = static_cast<ObjectType*>(object);
@@ -79,7 +79,7 @@ namespace b3d
 			return (rttiObject->*getter)(castObj, size);
 		}
 
-		void SetValue(RTTIType* rtti, void* object, const SPtr<DataStream>& value, u32 size) override
+		void SetValue(RTTIType* rtti, void* object, const TShared<DataStream>& value, u32 size) override
 		{
 			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObj = static_cast<ObjectType*>(object);

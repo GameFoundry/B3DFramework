@@ -11,7 +11,7 @@ createInformation.RasterizerState = ...;
 createInformation.DepthStencilState = ...;
 createInformation.BlendState = ...;
 
-SPtr<GpuGraphicsPipelineState> graphicsPipeline = device->CreateGpuGraphicsPipelineState(createInformation);
+TShared<GpuGraphicsPipelineState> graphicsPipeline = device->CreateGpuGraphicsPipelineState(createInformation);
 ~~~~~~~~~~~~~
 
 There are three non-programmable state descriptors in total:
@@ -30,7 +30,7 @@ GpuGraphicsPipelineStateCreateInformation createInformation;
 createInformation.RasterizerState.PolygonMode = PM_WIREFRAME; // Draw wireframe instead of solid
 createInformation.RasterizerState.CullMode = CULL_NONE; // Disable backface culling
 
-SPtr<GpuGraphicsPipelineState> graphicsPipeline = device->CreateGpuGraphicsPipelineState(createInformation);
+TShared<GpuGraphicsPipelineState> graphicsPipeline = device->CreateGpuGraphicsPipelineState(createInformation);
 ~~~~~~~~~~~~~
 
 # Depth-stencil state
@@ -45,7 +45,7 @@ createInformation.DepthStencilState.StencilEnable = true; // Enable stencil oper
 createInformation.DepthStencilState.FrontStencilPassOp = SOP_INCREMENT; // Increment by one whenever a front-face stencil operation passes
 createInformation.DepthStencilState.FrontStencilComparisonFunc = CMPF_ALWAYS_PASS; // Always pass the stencil operation
 
-SPtr<GpuGraphicsPipelineState> graphicsPipeline = device->CreateGpuGraphicsPipelineState(createInformation);
+TShared<GpuGraphicsPipelineState> graphicsPipeline = device->CreateGpuGraphicsPipelineState(createInformation);
 ~~~~~~~~~~~~~
 
 # Blend state
@@ -59,5 +59,5 @@ createInformation.BlendState.RenderTargets[0].ColorSourceFactor = BF_SOURCE_ALPH
 createInformation.BlendState.RenderTargets[0].ColorDestinationFactor = BF_INV_SOURCE_ALPHA; // Use the inverse of the current alpha value to blend the destination (stored value)
 createInformation.BlendState.RenderTargets[0].ColorBlendOperation = BO_ADD; // Add the source and destination together
 
-SPtr<GpuGraphicsPipelineState> graphicsPipeline = device->CreateGpuGraphicsPipelineState(createInformation);
+TShared<GpuGraphicsPipelineState> graphicsPipeline = device->CreateGpuGraphicsPipelineState(createInformation);
 ~~~~~~~~~~~~~

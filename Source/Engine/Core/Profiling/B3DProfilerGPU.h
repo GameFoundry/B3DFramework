@@ -65,7 +65,7 @@ namespace b3d
 
 			render::GpuQueryId TimestampBeginQueryId;
 			render::GpuQueryId TimestampEndQueryId;
-			SPtr<render::GpuQueryPool> TimestampQueryPool;
+			TShared<render::GpuQueryPool> TimestampQueryPool;
 
 			TArray<Sample*> Children;
 		};
@@ -112,7 +112,7 @@ namespace b3d
 		/** Converts all command buffer profiler samples into report samples. Caller must ensure that query pool has resolved the queries before calling. */
 		GpuProfilerResults GetResults();
 
-		SPtr<render::GpuQueryPool> mTimestampQueryPool;
+		TShared<render::GpuQueryPool> mTimestampQueryPool;
 
 		TArray<Sample*> mRootSamples;
 		TArray<Sample*> mActiveSampleChain;
@@ -134,7 +134,7 @@ namespace b3d
 		 * Creates a profiler that can be used for profiling commands on the provided command buffer. Query pool reset
 		 * command will be issued on the provided command buffer. Command buffer cannot be in render pass.
 		 */
-		SPtr<GpuCommandBufferProfiler> CreateCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer);
+		TShared<GpuCommandBufferProfiler> CreateCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer);
 
 		/**
 		 * Notifies the GPU profiler that we're done recording samples into the provided command buffer profiler. The systems
@@ -143,7 +143,7 @@ namespace b3d
 		 * @param	name		Name you can use to retrieve the results when ready.
 		 * @param	profiler	Profiler holding the samples to resolve.
 		 */
-		void ResolveProfileWhenReady(const ProfilerString& name, const SPtr<GpuCommandBufferProfiler>& profiler);
+		void ResolveProfileWhenReady(const ProfilerString& name, const TShared<GpuCommandBufferProfiler>& profiler);
 
 		/**
 		 * Returns latest profiling results, if available. Profiling results are consumed once retrieved and
@@ -176,10 +176,10 @@ namespace b3d
 		friend class GpuCommandBufferProfiler;
 
 		/**	Attempts to find an existing free pool, or creates a new one if free one cannot be found. */
-		SPtr<render::GpuQueryPool> FindOrCreateQueryPool() const;
+		TShared<render::GpuQueryPool> FindOrCreateQueryPool() const;
 
 		/** Notifies the system that the query pool is no longer used and can be re-used. */
-		void ReleaseQueryPool(const SPtr<render::GpuQueryPool>& queryPool);
+		void ReleaseQueryPool(const TShared<render::GpuQueryPool>& queryPool);
 
 	private:
 		static constexpr u32 kMaxQueuedEntries = 3;
@@ -187,20 +187,20 @@ namespace b3d
 		/** Information about all unresolved command buffer profilers with the same identifier. */
 		struct ResolvedCommandBufferProfilerData
 		{
-			SPtr<GpuCommandBufferProfiler> LastResolved;
+			TShared<GpuCommandBufferProfiler> LastResolved;
 		};
 
 		/** Information about all unresolved command buffer profilers with the same identifier. */
 		struct UnresolvedCommandBufferProfilerData
 		{
-			TInlineArray<SPtr<GpuCommandBufferProfiler>, kMaxQueuedEntries> Queued;
+			TInlineArray<TShared<GpuCommandBufferProfiler>, kMaxQueuedEntries> Queued;
 		};
 
 		UnorderedMap<ProfilerString, UnresolvedCommandBufferProfilerData> mUnresolvedProfilerData;
 		UnorderedMap<ProfilerString, ResolvedCommandBufferProfilerData> mResolvedProfilerData;
 
-		mutable TArray<SPtr<GpuCommandBufferProfiler>> mFreeCommandBufferProfilers;
-		mutable TArray<SPtr<render::GpuQueryPool>> mFreeTimestampQueryPools;
+		mutable TArray<TShared<GpuCommandBufferProfiler>> mFreeCommandBufferProfilers;
+		mutable TArray<TShared<render::GpuQueryPool>> mFreeTimestampQueryPools;
 		mutable Mutex mMutex;
 	};
 
@@ -217,7 +217,7 @@ namespace b3d
 		ProfileGPUBlock(render::GpuCommandBuffer& commandBuffer, ProfilerString name)
 			: mCommandBuffer(commandBuffer)
 		{
-			const SPtr<GpuCommandBufferProfiler>& commandBufferProfiler = commandBuffer.GetProfiler();
+			const TShared<GpuCommandBufferProfiler>& commandBufferProfiler = commandBuffer.GetProfiler();
 
 			if(commandBufferProfiler != nullptr)
 				commandBufferProfiler->BeginSample(commandBuffer, name);
@@ -230,7 +230,7 @@ namespace b3d
 #if B3D_PROFILING_ENABLED
 		~ProfileGPUBlock()
 		{
-			const SPtr<GpuCommandBufferProfiler>& commandBufferProfiler = mCommandBuffer.GetProfiler();
+			const TShared<GpuCommandBufferProfiler>& commandBufferProfiler = mCommandBuffer.GetProfiler();
 
 			if(commandBufferProfiler != nullptr)
 				commandBufferProfiler->EndSample(mCommandBuffer);

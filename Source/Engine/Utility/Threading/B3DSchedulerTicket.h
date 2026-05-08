@@ -45,9 +45,9 @@ namespace b3d
 	private:
 		friend class SchedulerTicketQueue;
 
-		SchedulerTicket(SPtr<SchedulerTicketData>&& record);
+		SchedulerTicket(TShared<SchedulerTicketData>&& record);
 
-		SPtr<SchedulerTicketData> mData;
+		TShared<SchedulerTicketData> mData;
 	};
 
 	/** Linked list entry storing information about one ticket, and links a ticket to its previous/next ticket. */
@@ -71,7 +71,7 @@ namespace b3d
 		/** Unlinks the record from the linked list. This call must be guarded by a lock from the ticket queue's mutex. */
 		void RemoveFromLinkedList();
 
-		SPtr<SchedulerTicketQueueData> SharedData;
+		TShared<SchedulerTicketQueueData> SharedData;
 		SchedulerTicketData* Next = nullptr;
 		SchedulerTicketData* Previous = nullptr;
 		Function<void()> Callback;
@@ -108,7 +108,7 @@ namespace b3d
 		void TakeTickets(u32 count, const Function& callback);
 
 	private:
-		SPtr<SchedulerTicketQueueData> mSharedData = B3DMakeShared<SchedulerTicketQueueData>();
+		TShared<SchedulerTicketQueueData> mSharedData = B3DMakeShared<SchedulerTicketQueueData>();
 	};
 
 	B3D_IMPLEMENT_GLOBAL_POOL(SchedulerTicketData, 512)

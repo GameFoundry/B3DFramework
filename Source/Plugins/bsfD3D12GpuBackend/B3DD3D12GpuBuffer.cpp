@@ -302,7 +302,7 @@ void D3D12GpuBuffer::WriteData(u32 offset, u32 length, const void* source, GpuBu
 		uploadBuffer->Unmap(0, &writtenRange);
 
 		// Get or create transfer command buffer for the current thread
-		SPtr<render::GpuCommandBuffer> transferCommandBuffer = device.GetOrCreateTransferCommandBuffer();
+		TShared<render::GpuCommandBuffer> transferCommandBuffer = device.GetOrCreateTransferCommandBuffer();
 		D3D12GpuCommandBuffer* d3d12CommandBuffer = static_cast<D3D12GpuCommandBuffer*>(transferCommandBuffer.get());
 
 		// Record copy commands on the transfer command buffer
@@ -390,7 +390,7 @@ void D3D12GpuBuffer::ReadData(u32 offset, u32 length, void* dest)
 		}
 
 		// Get or create transfer command buffer for the current thread
-		SPtr<render::GpuCommandBuffer> transferCommandBuffer = device.GetOrCreateTransferCommandBuffer();
+		TShared<render::GpuCommandBuffer> transferCommandBuffer = device.GetOrCreateTransferCommandBuffer();
 		D3D12GpuCommandBuffer* d3d12CommandBuffer = static_cast<D3D12GpuCommandBuffer*>(transferCommandBuffer.get());
 
 		// Record copy commands on the transfer command buffer

@@ -43,7 +43,7 @@ namespace b3d
 		if(scriptObjectWrapperCollider != nullptr)
 			tmpCollider = B3DStaticGameObjectCast<Collider>(scriptObjectWrapperCollider->GetBaseNativeObjectAsHandle());
 		output.Collider = tmpCollider;
-		SPtr<ColliderShape> tmpColliderShape;
+		TShared<ColliderShape> tmpColliderShape;
 		ScriptColliderShape* scriptObjectWrapperColliderShape;
 		scriptObjectWrapperColliderShape = ScriptColliderShape::GetScriptObjectWrapper(value.ColliderShape);
 		if(scriptObjectWrapperColliderShape != nullptr)

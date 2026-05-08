@@ -361,7 +361,7 @@ namespace b3d::render
 	}
 
 	/** Populates the per-view uniform buffer that is shared by all path elements of a single VectorPath object. */
-	static void PopulateNVGViewUniformBuffer(const SPtr<render::GpuBuffer>& uniformBuffer, const Area2I& viewRegion)
+	static void PopulateNVGViewUniformBuffer(const TShared<render::GpuBuffer>& uniformBuffer, const Area2I& viewRegion)
 	{
 		GpuBufferMappedScope uniforms = uniformBuffer->Map(GpuMapOption::Write);
 
@@ -369,7 +369,7 @@ namespace b3d::render
 		render::gVectorGraphicsViewUniforms.gInverseViewportHalfSize.Set(uniforms, Vector2(1.0f / ((float)viewRegion.Width * 0.5f), 1.0f / ((float)viewRegion.Height * 0.5f)));
 
 		bool viewportYFlip = true;
-		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if(gpuDevice != nullptr)
 		{
 			const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
@@ -693,7 +693,7 @@ namespace b3d::render
 		if(vertexCount == 0 || indexCount == 0)
 			return renderBuffers;
 
-		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if(!gpuDevice)
 			return renderBuffers;
 
@@ -789,7 +789,7 @@ namespace b3d::render
 		return renderBuffers;
 	}
 
-	SPtr<GpuParameterSet> NVGVectorPathRenderable::Prepare()
+	TShared<GpuParameterSet> NVGVectorPathRenderable::Prepare()
 	{
 		// Cook render buffers if not already done
 		if(!mRenderBuffersCooked)
@@ -819,14 +819,14 @@ namespace b3d::render
 
 		commandBuffer.BeginLabel("VectorPathRenderable::Render");
 
-		SPtr<GpuBuffer> vertexBuffers[] = { mRenderBuffers.VertexBuffer };
+		TShared<GpuBuffer> vertexBuffers[] = { mRenderBuffers.VertexBuffer };
 		commandBuffer.SetVertexDescription(mRenderBuffers.VertexDescription);
 		commandBuffer.SetVertexBuffers(0, vertexBuffers, 1);
 		commandBuffer.SetIndexBuffer(mRenderBuffers.IndexBuffer); // TODO - We shouldn't need one at all actually
 		commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);
 
 		// Use stored GPU parameters from mRenderBuffers
-		const SPtr<GpuParameterSet>& gpuParameterSet = mRenderBuffers.GpuParameterSet;
+		const TShared<GpuParameterSet>& gpuParameterSet = mRenderBuffers.GpuParameterSet;
 
 		const u32 renderUniformBufferDynamicIndex = gpuParameterSet->GetLayout()->GetDynamicOffsetIndex("RenderUniforms");
 		B3D_ENSURE(renderUniformBufferDynamicIndex != ~0u);
@@ -837,7 +837,7 @@ namespace b3d::render
 		const u32 vertexCount = (u32)mRawRenderData.Vertices.size();
 
 		u32 uniformBlockStride = gVectorGraphicsRenderUniforms.GetSize();
-		if(const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice())
+		if(const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice())
 			uniformBlockStride = Math::CeilToMultiple(uniformBlockStride, gpuDevice->GetCapabilities().MinimumUniformBufferOffsetAlignment);
 
 		// Execute draw commands

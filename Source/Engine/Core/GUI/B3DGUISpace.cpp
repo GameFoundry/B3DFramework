@@ -25,7 +25,7 @@ namespace b3d
 
 		u32 GetRttiId() const override { return TID_GUIFixedSpace; }
 
-		SPtr<IReflectable> NewRttiObject() { return nullptr; }
+		TShared<IReflectable> NewRttiObject() { return nullptr; }
 	};
 
 	class B3D_EXPORT GUIFlexibleSpaceRTTI : public TRTTIType<GUIFlexibleSpace, GUIElement, GUIFlexibleSpaceRTTI>
@@ -39,7 +39,7 @@ namespace b3d
 
 		u32 GetRttiId() const override { return TID_GUIFlexibleSpace; }
 
-		SPtr<IReflectable> NewRttiObject() { return nullptr; }
+		TShared<IReflectable> NewRttiObject() { return nullptr; }
 	};
 } // namespace b3d
 

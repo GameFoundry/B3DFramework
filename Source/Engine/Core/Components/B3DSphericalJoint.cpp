@@ -47,7 +47,7 @@ void SphericalJoint::SetFlag(SphericalJointFlag flag, bool isEnabled)
 
 UPtr<IJointImplementation> SphericalJoint::CreateImplementation()
 {
-	const SPtr<SceneInstance>& scene = SO()->GetScene();
+	const TShared<SceneInstance>& scene = SO()->GetScene();
 	return scene->GetPhysicsScene()->CreateSphericalJoint(*this, mInformation);
 }
 

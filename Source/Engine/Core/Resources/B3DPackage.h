@@ -60,10 +60,10 @@ namespace b3d
 		PackageResourceFlags Flags = PackageResourceFlag::None; /**< Flags to provide additional information about the resource. */
 
 		B3D_SCRIPT_EXPORT()
-		SPtr<PackageResourceUserMetaData> AdditionalMetaData; /**< Optional additional meta-data set explicitly by the user. This can be anything, but should be kept small. */
+		TShared<PackageResourceUserMetaData> AdditionalMetaData; /**< Optional additional meta-data set explicitly by the user. This can be anything, but should be kept small. */
 
 		B3D_SCRIPT_EXPORT()
-		SPtr<ResourceMetaData> ResourceMetaData; /**< Meta-data that is inherited from the Resource object. */
+		TShared<ResourceMetaData> ResourceMetaData; /**< Meta-data that is inherited from the Resource object. */
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -127,7 +127,7 @@ namespace b3d
 			Type(type)
 			{ }
 
-			Entry(EntryType type, String name, Path path, SPtr<PackageResourceMetaData> resourceMetaData = nullptr) :
+			Entry(EntryType type, String name, Path path, TShared<PackageResourceMetaData> resourceMetaData = nullptr) :
 			Name(std::move(name)), Path(std::move(path)), Type(type), ResourceMetaData(std::move(resourceMetaData))
 			{ }
 
@@ -137,7 +137,7 @@ namespace b3d
 			Path Path; /**< Path of the entry in the package. */
 			EntryType Type; /**< Type of the entry. */
 			Vector<Entry*> Children; /**< Child entries, only relevant for folders. */
-			SPtr<PackageResourceMetaData> ResourceMetaData; /**< Resource meta-data. Only relevant for resources. */
+			TShared<PackageResourceMetaData> ResourceMetaData; /**< Resource meta-data. Only relevant for resources. */
 
 		};
 
@@ -220,8 +220,8 @@ namespace b3d
 		/** Runtime information about a resource stored in the package. */
 		struct ResourceInformation
 		{
-			SPtr<PackageResourceMetaData> MetaData; /**< Meta-data for the resource. This will be loaded independently of the resource data, and is always available if a package is loaded. */
-			SPtr<Resource> LoadedResource; /**< Resource if loaded, or null otherwise. */
+			TShared<PackageResourceMetaData> MetaData; /**< Meta-data for the resource. This will be loaded independently of the resource data, and is always available if a package is loaded. */
+			TShared<Resource> LoadedResource; /**< Resource if loaded, or null otherwise. */
 			bool IsLoadedResourceDirty = false; /**< True if the loaded resource was changed and requires to be re-serialized. */
 
 			u64 OffsetInDataStream = 0; /**< Offset in bytes at which the resource data starts in the serialized data stream. */
@@ -255,10 +255,10 @@ namespace b3d
 		void SetPackageId(const UUID& id);
 
 		/** User-settable meta-data for the package as a whole. */
-		const SPtr<PackageMetaData>& GetPackageMetaData() const;
+		const TShared<PackageMetaData>& GetPackageMetaData() const;
 
 		/** @copydoc GetPackageMetaData(). */
-		void SetPackageMetaData(const SPtr<PackageMetaData>& metaData);
+		void SetPackageMetaData(const TShared<PackageMetaData>& metaData);
 
 		/** Returns the total number of resources in the package. */
 		u32 GetResourceCount() const { return (u32)mResourceInformationByUUID.size(); }
@@ -293,16 +293,16 @@ namespace b3d
 		bool Contains(const Path& path) const;
 
 		/** Returns resource meta-data for resource with the specified identifier. Returns null if not found. */
-		SPtr<const PackageResourceMetaData> GetResourceMetaData(const UUID& id) const;
+		TShared<const PackageResourceMetaData> GetResourceMetaData(const UUID& id) const;
 
 		/** Returns resource meta-data for resource at the specified path. Returns null if not found. Paths are case sensitive. */
-		SPtr<const PackageResourceMetaData> GetResourceMetaData(const Path& path) const;
+		TShared<const PackageResourceMetaData> GetResourceMetaData(const Path& path) const;
 
 		/** Assigns additional meta-data for the resource with the specified identifier. */
-		void SetResourceMetaData(const UUID& id, const SPtr<PackageResourceUserMetaData>& data);
+		void SetResourceMetaData(const UUID& id, const TShared<PackageResourceUserMetaData>& data);
 
 		/** Assigns additional meta-data for the resource at the specified path. Paths are case sensitive. */
-		void SetResourceMetaData(const Path& path, const SPtr<PackageResourceUserMetaData>& data);
+		void SetResourceMetaData(const Path& path, const TShared<PackageResourceUserMetaData>& data);
 
 		/** Check if the resource is unloaded, loaded or in progress of being loaded. */
 		PackageResourceLoadState GetResourceLoadState(const UUID& id) const;
@@ -314,7 +314,7 @@ namespace b3d
 		void AddResource(const Path& path, const HResource& resource);
 
 		/** Registers a new resource with the package at the specified path. Paths are case sensitive. Empty entries are treated as folders. */
-		void AddResource(const Path& path, const SPtr<Resource>& resource);
+		void AddResource(const Path& path, const TShared<Resource>& resource);
 
 		/** Removes one or multiple resources from the provided path. Paths are case sensitive. If the path represents a folder and @p recursive is true, all resources within the folder will be removed. */
 		void RemoveResource(const Path& path, bool recursive);
@@ -328,7 +328,7 @@ namespace b3d
 		 * @param	resource		Resource to assign. Id of the resource will be used for determining which resource to update.
 		 * @param	markAsDirty		If true the resource will be serialized during the next SerializePackage call. Non-dirty resources will just have their source data copied without re-serializing.
 		 */
-		void SetResource( const SPtr<Resource>& resource, bool markAsDirty = true);
+		void SetResource( const TShared<Resource>& resource, bool markAsDirty = true);
 
 		/**
 		 * Changes the path of one or multiple resources within the package.
@@ -356,7 +356,7 @@ namespace b3d
 		 * @param	id			Unique id of the resource.
 		 * @return				Resource if successful, or null otherwise.
 		 */
-		SPtr<Resource> LoadResource(const UUID& id);
+		TShared<Resource> LoadResource(const UUID& id);
 
 		/**
 		 * Loads the resource with the specified id into memory, or returns an already loaded resource if previously loaded. Resource will remain loaded for future calls, unless explicitly unloaded or destroyed.
@@ -364,7 +364,7 @@ namespace b3d
 		 * @param	path		Path to the resource. Paths are case sensitive.
 		 * @return				Resource if successful, or null otherwise.
 		 */
-		SPtr<Resource> LoadResource(const Path& path);
+		TShared<Resource> LoadResource(const Path& path);
 
 		/**
 		 * Deserializes a new instance of the resource with the specified id. This is similar to LoadResource(), but it does not cache the loaded resource internally, instead it always returns a fresh instance.
@@ -372,7 +372,7 @@ namespace b3d
 		 * @param	id			Unique id of the resource.
 		 * @return				Resource if successful, or null otherwise.
 		 */
-		SPtr<Resource> DeserializeResource(const UUID& id) const;
+		TShared<Resource> DeserializeResource(const UUID& id) const;
 
 		/**
 		 * Deserializes a new instance of the resource with the specified path. This is similar to LoadResource(), but it does not cache the loaded resource internally, instead it always returns a fresh instance.
@@ -380,7 +380,7 @@ namespace b3d
 		 * @param	path		Path to the resource. Paths are case sensitive.
 		 * @return				Resource if successful, or null otherwise.
 		 */
-		SPtr<Resource> DeserializeResource(const Path& path) const;
+		TShared<Resource> DeserializeResource(const Path& path) const;
 
 		/**
 		 * Returns a previously loaded resource.
@@ -388,7 +388,7 @@ namespace b3d
 		 * @param	id			Unique id of the resource.
 		 * @return				Resource if present and loaded, null otherwise.
 		 */
-		SPtr<Resource> GetResource(const UUID& id) const;
+		TShared<Resource> GetResource(const UUID& id) const;
 
 		/**
 		 * Returns a previously loaded resource.
@@ -396,7 +396,7 @@ namespace b3d
 		 * @param	path		Path to the resource. Paths are case sensitive.
 		 * @return				Resource if present and loaded, null otherwise.
 		 */
-		SPtr<Resource> GetResource(const Path& path) const;
+		TShared<Resource> GetResource(const Path& path) const;
 
 		/** Unloads the resource with specified id. */
 		void UnloadResource(const UUID& id);
@@ -425,16 +425,16 @@ namespace b3d
 		 * @return 				True if successful, false otherwise. If saving meta-data only, if false it returned it means the meta-data doesn't fit
 		 *						and you must attempt to re-save the entire package.
 		 */
-		bool Save(const SPtr<DataStream>& stream, const SavePackageOptions& options);
+		bool Save(const TShared<DataStream>& stream, const SavePackageOptions& options);
 
 		/** Creates a new empty package. */
-		static SPtr<Package> Create(const String& name = StringUtility::kBlank, const UUID& id = UUID::kEmpty);
+		static TShared<Package> Create(const String& name = StringUtility::kBlank, const UUID& id = UUID::kEmpty);
 
 		/** Loads the package from the provided path. */
-		static SPtr<Package> Load(const Path& path);
+		static TShared<Package> Load(const Path& path);
 
 		/** Loads the package from the provided data stream. */
-		static SPtr<Package> Load(const SPtr<DataStream>& strean);
+		static TShared<Package> Load(const TShared<DataStream>& strean);
 
 		/** @} */
 
@@ -457,7 +457,7 @@ namespace b3d
 		 *
 		 * Note that in this scenario it's important to call CopyResourceLoadStatesFrom() before the package is replaced, as the original package's resource load states could have been modified.
 		 */
-		SPtr<Package> Clone() const;
+		TShared<Package> Clone() const;
 
 		/** Copies the resource load states from a clone of this package. Caller must ensure no in-progress loads are happening in @p otherPackage. See @p Clone(). */
 		void CopyResourceLoadStatesFromClone(const Package& otherPackage);
@@ -474,7 +474,7 @@ namespace b3d
 		 * @param	outProgress				Parameter in which to report the load progress, ranging [0, 1].
 		 * @return							Loaded resource if successful.
 		 */
-		SPtr<Resource> LoadAndDeserializeResource(const UUID& id, u64 offsetInStream, u64 sizeInStream, CompressionType compressionType, std::atomic<float>& outProgress) const;
+		TShared<Resource> LoadAndDeserializeResource(const UUID& id, u64 offsetInStream, u64 sizeInStream, CompressionType compressionType, std::atomic<float>& outProgress) const;
 
 		/** Unloads the resource with the associated resource information. */
 		void UnloadResource(ResourceInformation* resourceInfo);
@@ -500,7 +500,7 @@ namespace b3d
 		String mName;
 		UUID mId;
 		Path mAssociatedPackageFilePath; /**< Path to the file in which the package data has been saved. Empty if package hasn't been saved yet. */
-		SPtr<PackageMetaData> mPackageMetaData;
+		TShared<PackageMetaData> mPackageMetaData;
 		size_t mSerializedMetaDataEnd = 0;
 		size_t mMetaDataPaddingByteCount = 0; /**< Extra empty bytes in the file after meta-data. Allows meta-data to grow without having to re-write the whole file. */
 

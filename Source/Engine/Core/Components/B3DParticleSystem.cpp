@@ -29,7 +29,7 @@ RTTIType* ecs::ParticleSystem::GetRtti() const
 	return GetRttiStatic();
 }
 
-ecs::ParticleSystem& ecs::CreateParticleSystem(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene, const Transform& transform)
+ecs::ParticleSystem& ecs::CreateParticleSystem(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform)
 {
 	ecs::ParticleSystemECSUtility::CreateFragmentsIfMissing(registry, entity);
 	registry.AddComponent<ecs::WorldTransform>(entity, ecs::WorldTransform(transform));
@@ -297,12 +297,12 @@ void ParticleSystem::SetGpuSimulationSettings(const ParticleGpuSimulationSetting
 	MarkRenderProxyDataDirty();
 }
 
-void ParticleSystem::SetEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers)
+void ParticleSystem::SetEvolvers(const Vector<TShared<ParticleEvolver>>& evolvers)
 {
 	ecs::ParticleSystem& config = GetFragment();
 	config.Evolvers = evolvers;
 
-	std::sort(config.Evolvers.begin(), config.Evolvers.end(), [](const SPtr<ParticleEvolver>& a, const SPtr<ParticleEvolver>& b)
+	std::sort(config.Evolvers.begin(), config.Evolvers.end(), [](const TShared<ParticleEvolver>& a, const TShared<ParticleEvolver>& b)
 			  {
 			const i32 priorityA = a ? a->GetProperties().Priority : 0;
 			const i32 priorityB = b ? b->GetProperties().Priority : 0;
@@ -315,18 +315,18 @@ void ParticleSystem::SetEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers)
 	MarkRenderProxyDataDirty();
 }
 
-const Vector<SPtr<ParticleEvolver>>& ParticleSystem::GetEvolvers() const
+const Vector<TShared<ParticleEvolver>>& ParticleSystem::GetEvolvers() const
 {
 	return GetFragment().Evolvers;
 }
 
-void ParticleSystem::SetEmitters(const Vector<SPtr<ParticleEmitter>>& emitters)
+void ParticleSystem::SetEmitters(const Vector<TShared<ParticleEmitter>>& emitters)
 {
 	GetFragment().Emitters = emitters;
 	MarkRenderProxyDataDirty();
 }
 
-const Vector<SPtr<ParticleEmitter>>& ParticleSystem::GetEmitters() const
+const Vector<TShared<ParticleEmitter>>& ParticleSystem::GetEmitters() const
 {
 	return GetFragment().Emitters;
 }
@@ -347,25 +347,25 @@ void ParticleSystem::SetLayer(u64 layer)
 
 void ParticleSystem::Play()
 {
-	const SPtr<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
+	const TShared<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
 	particleScene->Play(GetSimulationFragment(), GetSettings());
 }
 
 void ParticleSystem::Pause()
 {
-	const SPtr<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
+	const TShared<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
 	particleScene->Pause(GetSimulationFragment());
 }
 
 void ParticleSystem::Stop()
 {
-	const SPtr<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
+	const TShared<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
 	particleScene->Stop(GetSimulationFragment());
 }
 
 void ParticleSystem::Simulate(float timeDelta, const EvaluatedAnimationData* animData)
 {
-	const SPtr<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
+	const TShared<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
 	const ecs::WorldTransform& worldTransformFragment = GetECSRegistry()->GetComponents<ecs::WorldTransform>(GetECSEntity());
 
 	particleScene->AdvanceSimulation(GetSimulationFragment(), GetFragment(), worldTransformFragment, timeDelta, animData);
@@ -373,7 +373,7 @@ void ParticleSystem::Simulate(float timeDelta, const EvaluatedAnimationData* ani
 
 AABox ParticleSystem::CalculateBounds() const
 {
-	const SPtr<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
+	const TShared<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
 	return particleScene->CalculateBounds(GetSimulationFragment());
 }
 
@@ -438,7 +438,7 @@ void ParticleSystem::Initialize()
 
 void ParticleSystem::OnCreated()
 {
-	const SPtr<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
+	const TShared<ParticleScene>& particleScene = SceneObject()->GetScene()->GetParticleScene();
 	GetFragment().Id = particleScene->AllocateId();
 
 	ecs::ParticleSimulation& simulation = GetSimulationFragment();
@@ -453,7 +453,7 @@ void ParticleSystem::OnDestroyed()
 
 void ParticleSystem::OnDisabled()
 {
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 	ecs::ParticleSystemECSUtility::UnregisterFromRenderer(*GetECSRegistry(), GetECSEntity(), rendererScene);
 	Stop();
 }
@@ -466,10 +466,10 @@ void ParticleSystem::OnEnabled()
 		mPreviewMode = false;
 	}
 
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 	ecs::ParticleSystemECSUtility::RegisterWithRenderer(*GetECSRegistry(), GetECSEntity(), rendererScene);
 
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 	if(scene->IsRunning())
 		Play();
 }
@@ -497,7 +497,7 @@ void ParticleSystem::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 
 bool ParticleSystem::TogglePreviewMode(bool enabled)
 {
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 	const bool isRunning = scene->IsRunning();
 
 	if(enabled)

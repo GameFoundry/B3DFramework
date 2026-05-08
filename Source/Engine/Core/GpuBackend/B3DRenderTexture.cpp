@@ -68,7 +68,7 @@ static RenderTargetProperties CreateRenderTextureProperties(const render::Render
 	bool useHardwareSRGB = false;
 	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
-		SPtr<render::Texture> texture = createInformation.ColorSurfaces[i].Texture;
+		TShared<render::Texture> texture = createInformation.ColorSurfaces[i].Texture;
 
 		if(texture == nullptr)
 			continue;
@@ -81,7 +81,7 @@ static RenderTargetProperties CreateRenderTextureProperties(const render::Render
 
 	if(firstIndex == ~0u)
 	{
-		SPtr<render::Texture> texture = createInformation.DepthStencilSurface.Texture;
+		TShared<render::Texture> texture = createInformation.DepthStencilSurface.Texture;
 		if(texture != nullptr)
 		{
 			return CreateRenderTextureProperties(texture->GetProperties(), createInformation.DepthStencilSurface.FaceCount, createInformation.DepthStencilSurface.MipLevel, requiresFlipping, false);
@@ -89,7 +89,7 @@ static RenderTargetProperties CreateRenderTextureProperties(const render::Render
 	}
 	else
 	{
-		SPtr<render::Texture> texture = createInformation.ColorSurfaces[firstIndex].Texture;
+		TShared<render::Texture> texture = createInformation.ColorSurfaces[firstIndex].Texture;
 
 		return CreateRenderTextureProperties(texture->GetProperties(), createInformation.ColorSurfaces[firstIndex].FaceCount, createInformation.ColorSurfaces[firstIndex].MipLevel, requiresFlipping, useHardwareSRGB);
 	}
@@ -97,12 +97,12 @@ static RenderTargetProperties CreateRenderTextureProperties(const render::Render
 	return RenderTargetProperties();
 }
 
-SPtr<RenderTexture> RenderTexture::Create(const TextureCreateInformation& textureCreateInformation, bool createDepth, PixelFormat depthStencilFormat)
+TShared<RenderTexture> RenderTexture::Create(const TextureCreateInformation& textureCreateInformation, bool createDepth, PixelFormat depthStencilFormat)
 {
 	return TextureManager::Instance().CreateRenderTexture(textureCreateInformation, createDepth, depthStencilFormat);
 }
 
-SPtr<RenderTexture> RenderTexture::Create(const RenderTextureCreateInformation& createInformation)
+TShared<RenderTexture> RenderTexture::Create(const RenderTextureCreateInformation& createInformation)
 {
 	return TextureManager::Instance().CreateRenderTexture(createInformation);
 }
@@ -122,7 +122,7 @@ RenderTexture::RenderTexture(const RenderTextureCreateInformation& createInforma
 	mRenderTargetProperties = CreateRenderTextureProperties(createInformation, false);
 }
 
-SPtr<render::RenderProxy> RenderTexture::CreateRenderProxy() const
+TShared<render::RenderProxy> RenderTexture::CreateRenderProxy() const
 {
 	render::RenderTextureCreateInformation renderProxyCreateInformation;
 
@@ -187,7 +187,7 @@ void RenderTexture::Initialize()
 	{
 		if(mInformation.ColorSurfaces[i].Texture != nullptr)
 		{
-			SPtr<Texture> texture = mInformation.ColorSurfaces[i].Texture;
+			TShared<Texture> texture = mInformation.ColorSurfaces[i].Texture;
 
 			B3D_ENSURE_LOG(texture->GetProperties().Usage.IsSet(TextureUsageFlag::RenderTarget), "Provided texture is not created with render target usage.");
 
@@ -198,7 +198,7 @@ void RenderTexture::Initialize()
 
 	if(mInformation.DepthStencilSurface.Texture != nullptr)
 	{
-		SPtr<Texture> texture = mInformation.DepthStencilSurface.Texture;
+		TShared<Texture> texture = mInformation.DepthStencilSurface.Texture;
 
 		B3D_ENSURE_LOG(texture->GetProperties().Usage.IsSet(TextureUsageFlag::DepthStencil), "Provided texture is not created with depth stencil usage.");
 
@@ -209,7 +209,7 @@ void RenderTexture::Initialize()
 	ReportIfBuffersDontMatch();
 }
 
-SPtr<RenderTexture> RenderTexture::Create(const RenderTextureCreateInformation& createInformation)
+TShared<RenderTexture> RenderTexture::Create(const RenderTextureCreateInformation& createInformation)
 {
 	return TextureManager::Instance().CreateRenderTexture(createInformation);
 }
@@ -271,7 +271,7 @@ void RenderTexture::ReportIfBuffersDontMatch() const
 	if(firstSurfaceIdx != (u32)-1)
 	{
 		const TextureProperties& firstTexProps = mInformation.ColorSurfaces[firstSurfaceIdx].Texture->GetProperties();
-		const SPtr<TextureView> firstSurfaceView = mColorSurfaces[firstSurfaceIdx];
+		const TShared<TextureView> firstSurfaceView = mColorSurfaces[firstSurfaceIdx];
 		const TextureSurface& firstViewSurface = firstSurfaceView->GetInformation().Surface;
 
 		u32 numSlices;
@@ -317,9 +317,9 @@ void RenderTexture::ReportIfBuffersDontMatch() const
 	}
 }
 
-TAsyncOp<SPtr<PixelData>> RenderTexture::ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex, u32 mipLevel, u32 arrayLayer)
+TAsyncOp<TShared<PixelData>> RenderTexture::ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex, u32 mipLevel, u32 arrayLayer)
 {
-	SPtr<Texture> colorTexture = GetColorTexture(colorSurfaceIndex);
+	TShared<Texture> colorTexture = GetColorTexture(colorSurfaceIndex);
 	if(colorTexture == nullptr)
 		return RenderTarget::ReadAsync(commandBuffer, colorSurfaceIndex, mipLevel, arrayLayer);
 

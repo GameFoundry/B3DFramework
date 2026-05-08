@@ -114,7 +114,7 @@ namespace b3d
 		 * @param	data					Some operation specific data that is just passed through to however needs it.
 		 */
 		B3D_SCRIPT_EXPORT()
-		void StartDrag(const SPtr<DragAndDropData>& data) { StartDrag(data, nullptr); }
+		void StartDrag(const TShared<DragAndDropData>& data) { StartDrag(data, nullptr); }
 
 		/**
 		 * Starts a drag operation with the specified data. This means GUI elements will start receiving drag and drop
@@ -131,7 +131,7 @@ namespace b3d
 		 * 									Additionally this will determine the cursor displayed (whether or not it
 		 *									can have a "denied" state).
 		 */
-		void StartDrag(const SPtr<DragAndDropData>& data, Function<void(bool)>&& dropCallback, bool needsValidDropTarget = false);
+		void StartDrag(const TShared<DragAndDropData>& data, Function<void(bool)>&& dropCallback, bool needsValidDropTarget = false);
 
 		/**	Returns true if drag is currently in progress. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(IsDragInProgress))
@@ -149,11 +149,11 @@ namespace b3d
 
 		/**	Gets drag specific data specified when the drag started. Only valid if drag is in progress. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(DragData))
-		SPtr<DragAndDropData> GetDragData() const { return mDragData; }
+		TShared<DragAndDropData> GetDragData() const { return mDragData; }
 
 		/**	Gets drag specific data specified when the drag started. Only valid if drop is in progress. This is only valid for a single frame when a drop happens. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(DropData))
-		SPtr<DragAndDropData> GetDropData() const { return mDropData; }
+		TShared<DragAndDropData> GetDropData() const { return mDropData; }
 
 		/**
 		 * Determines whether the drop operation may happen anywhere or does the GUI element need to specifically accept the
@@ -198,8 +198,8 @@ namespace b3d
 		void CursorReleased(const PointerEvent& event);
 
 	private:
-		SPtr<DragAndDropData> mDragData;
-		SPtr<DragAndDropData> mDropData;
+		TShared<DragAndDropData> mDragData;
+		TShared<DragAndDropData> mDropData;
 		Vector<Function<void(bool)>> mDropCallbacks;
 		bool mNeedsValidDropTarget = false;
 		bool mIsDropActiveThisFrame = false;

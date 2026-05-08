@@ -15,7 +15,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ManagedFieldInfo")
 
-		ScriptManagedFieldInfo(const SPtr<ManagedFieldInfo>& nativeObject);
+		ScriptManagedFieldInfo(const TShared<ManagedFieldInfo>& nativeObject);
 		~ScriptManagedFieldInfo();
 
 		static void SetupScriptBindings();

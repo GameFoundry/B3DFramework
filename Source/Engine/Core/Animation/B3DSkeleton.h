@@ -43,7 +43,7 @@ namespace b3d
 	/** Contains information about a single playing animation clip. */
 	struct AnimationState
 	{
-		SPtr<AnimationCurves> Curves; /**< All curves in the animation clip. */
+		TShared<AnimationCurves> Curves; /**< All curves in the animation clip. */
 		float Length; /**< Total length of the animation clip in seconds (same as the length of the longest animation curve). */
 		AnimationCurveMapping* BoneToCurveMapping; /**< Mapping of bone indices to curve indices for quick lookup .*/
 		AnimationCurveMapping* SceneObjectToCurveMapping; /**< Mapping of scene object indices to curve indices for quick lookup. */
@@ -172,7 +172,7 @@ namespace b3d
 		 * @param	bones		An array of bones to initialize the skeleton with. Data will be copied.
 		 * @param	boneCount	Number of bones in the @p bones array.
 		 */
-		static SPtr<Skeleton> Create(BoneInformation* bones, u32 boneCount);
+		static TShared<Skeleton> Create(BoneInformation* bones, u32 boneCount);
 
 	private:
 		Skeleton() = default;
@@ -196,7 +196,7 @@ namespace b3d
 		 *
 		 * @note	For serialization use only.
 		 */
-		static SPtr<Skeleton> CreateEmpty();
+		static TShared<Skeleton> CreateEmpty();
 	};
 
 	/** @} */

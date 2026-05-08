@@ -74,7 +74,7 @@ namespace b3d
 		 *								is expected to call it themselves before first using the object.
 		 * @return						The created parameter set, or nullptr if allocation failed (e.g., pool exhausted).
 		 */
-		virtual SPtr<render::GpuParameterSet> Create(const SPtr<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize = false) = 0;
+		virtual TShared<render::GpuParameterSet> Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize = false) = 0;
 
 		/**
 		 * Resets the pool, freeing all allocated sets at once. Only relevant for transient mode pools.

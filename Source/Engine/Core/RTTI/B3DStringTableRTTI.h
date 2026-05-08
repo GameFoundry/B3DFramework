@@ -43,7 +43,7 @@ namespace b3d
 			return TID_StringTable;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return StringTable::CreateShared();
 		}
@@ -99,7 +99,7 @@ namespace b3d
 				String identifier;
 				B3DRTTIRead(identifier, stream);
 
-				SPtr<LocalizedStringData> entryData = B3DMakeShared<LocalizedStringData>();
+				TShared<LocalizedStringData> entryData = B3DMakeShared<LocalizedStringData>();
 				B3DRTTIRead(*entryData, stream);
 
 				data.Strings[identifier] = entryData;

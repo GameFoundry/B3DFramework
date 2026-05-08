@@ -175,7 +175,7 @@ namespace b3d
 			// descriptor directly from SetVertexDescription().
 			if (mData.VertexProgram)
 			{
-				SPtr<VertexDescription> inputDesc = mData.VertexProgram->GetVertexInputDescription();
+				TShared<VertexDescription> inputDesc = mData.VertexProgram->GetVertexInputDescription();
 				if (inputDesc)
 				{
 					mImpl->VertexDescriptor = [[MTLVertexDescriptor alloc] init];

@@ -35,24 +35,24 @@ namespace b3d
 	{
 	public:
 		/** Returns all stored objects. */
-		const TInlineArray<SPtr<IReflectable>, 1>& GetObjects() const { return mObjects; }
+		const TInlineArray<TShared<IReflectable>, 1>& GetObjects() const { return mObjects; }
 
 		/** Creates the resource holding a single object. */
-		static SPtr<PersistentCacheObject> Create(const SPtr<IReflectable>& object);
+		static TShared<PersistentCacheObject> Create(const TShared<IReflectable>& object);
 
 		/** Creates the resource holding multiple objects. */
-		static SPtr<PersistentCacheObject> Create(const TInlineArray<SPtr<IReflectable>, 1>& objects);
+		static TShared<PersistentCacheObject> Create(const TInlineArray<TShared<IReflectable>, 1>& objects);
 
 	private:
-		PersistentCacheObject(const SPtr<IReflectable>& object)
+		PersistentCacheObject(const TShared<IReflectable>& object)
 			: Resource(false), mObjects({ object })
 		{ }
 
-		PersistentCacheObject(const TInlineArray<SPtr<IReflectable>, 1>& objects)
+		PersistentCacheObject(const TInlineArray<TShared<IReflectable>, 1>& objects)
 			: Resource(false), mObjects(objects)
 		{ }
 
-		TInlineArray<SPtr<IReflectable>, 1> mObjects;
+		TInlineArray<TShared<IReflectable>, 1> mObjects;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -177,7 +177,7 @@ namespace b3d
 		 *						Otherwise we will block the calling until the locks are released, and then update the entry.
 		 * @return				True if the entry was added to the cache, or false if the operation failed. Failure can happen if the entry exceeds the size of the cache.
 		 */
-		bool SetEntry(const Path& path, const SPtr<IReflectable>& data, PersistentCachePriority priority = PersistentCachePriority::Normal, bool blocking = true);
+		bool SetEntry(const Path& path, const TShared<IReflectable>& data, PersistentCachePriority priority = PersistentCachePriority::Normal, bool blocking = true);
 
 		/**
 		 * Attempts to retrieve an entry at the specified path.
@@ -185,17 +185,17 @@ namespace b3d
 		 * @param	path		Path of the entry relative to the cache folder.
 		 * @return				Data at the provided path if found or null otherwise.
 		 */
-		SPtr<IReflectable> TryGetEntry(const Path& path);
+		TShared<IReflectable> TryGetEntry(const Path& path);
 
 		/** @copydoc TryGetEntry */
 		template<typename T>
-		SPtr<T> TryGetEntry(const Path& path)
+		TShared<T> TryGetEntry(const Path& path)
 		{
 			return B3DRTTICast<T>(TryGetEntry(path));
 		}
 
 		/** Creates a new persistent cache object. */
-		static SPtr<PersistentCache> Create();
+		static TShared<PersistentCache> Create();
 
 	private:
 		static constexpr const char* kCacheRootFolderName = "PersistentCache";
@@ -228,10 +228,10 @@ namespace b3d
 		TOptional<CacheOperation> AcquireWriteOperation(const Path& path, bool createNewIfMissing, PersistentCachePriority priority, bool blocking = true);
 
 		/** Retrieves a package in which the cache entry is stored. Caller must acquire a read operation for the entry beforehand. */
-		SPtr<Package> GetPackageForEntry(const CacheOperation& operation) const;
+		TShared<Package> GetPackageForEntry(const CacheOperation& operation) const;
 
 		/** Adds a new package to the cache. Caller must acquire a write operation for the entry beforehand. Will trigger eviction if the cache is full. Returns false if the entry doesn't fit into the cache. */
-		bool SetPackageForEntry(const CacheOperation& operation, const SPtr<Package>& package);
+		bool SetPackageForEntry(const CacheOperation& operation, const TShared<Package>& package);
 
 		/** Converts a path of a cache entry (relative to the cache) to an absolute path the package is being stored at in the file system. */
 		Path GetPackagePathForEntry(const Path& path) const;

@@ -34,7 +34,7 @@ GpuTransferBufferHelper::~GpuTransferBufferHelper()
 
 		// It's important we queue the destroy on the thread the command buffer pool was created on, as command buffers are bound to a single thread. We don't use the command buffer pool message queue directly
 		// as the destroy operation may wait on the queue to complete, which would result in a deadlock.
-		const SPtr<SchedulerThread> ownerSchedulerThread = firstPool.GetMessageQueue().GetSchedulerThread();
+		const TShared<SchedulerThread> ownerSchedulerThread = firstPool.GetMessageQueue().GetSchedulerThread();
 		if(B3D_ENSURE(ownerSchedulerThread))
 		{
 			ownerSchedulerThread->Post(SchedulerTask([&waitGroup, poolRing = threadData->PoolRing.get(), currentCommandBuffer = threadData->CurrentCommandBuffer]() mutable
@@ -103,7 +103,7 @@ GpuTransferBufferHelper::ThreadData* GpuTransferBufferHelper::RegisterCurrentThr
 	return threadDataPtr;
 }
 
-const SPtr<render::GpuCommandBuffer>& GpuTransferBufferHelper::GetOrCreateTransferCommandBuffer()
+const TShared<render::GpuCommandBuffer>& GpuTransferBufferHelper::GetOrCreateTransferCommandBuffer()
 {
 	ThreadData* threadData = RegisterCurrentThreadIfNeeded();
 
@@ -136,14 +136,14 @@ void GpuTransferBufferHelper::SubmitTransferCommandBuffer(bool wait)
 	if(threadData == nullptr)
 		return;
 
-	SPtr<render::GpuCommandBuffer> commandBufferToSubmit = threadData->CurrentCommandBuffer;
+	TShared<render::GpuCommandBuffer> commandBufferToSubmit = threadData->CurrentCommandBuffer;
 	threadData->CurrentCommandBuffer = nullptr;
 
 	if(commandBufferToSubmit != nullptr)
 	{
 		commandBufferToSubmit->End();
 
-		SPtr<GpuQueue> queue = mGpuDevice.GetQueue(mTargetQueueType, mTargetQueueIndex);
+		TShared<GpuQueue> queue = mGpuDevice.GetQueue(mTargetQueueType, mTargetQueueIndex);
 		if(queue != nullptr)
 		{
 			GpuSubmissionInformation submissionInfo;
@@ -155,7 +155,7 @@ void GpuTransferBufferHelper::SubmitTransferCommandBuffer(bool wait)
 
 	if(wait)
 	{
-		SPtr<GpuQueue> queue = mGpuDevice.GetQueue(mTargetQueueType, mTargetQueueIndex);
+		TShared<GpuQueue> queue = mGpuDevice.GetQueue(mTargetQueueType, mTargetQueueIndex);
 		if(queue)
 			queue->WaitUntilIdle();
 	}

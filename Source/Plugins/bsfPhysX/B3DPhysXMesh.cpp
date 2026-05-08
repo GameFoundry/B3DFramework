@@ -22,9 +22,9 @@ using namespace b3d;
  * data buffer, and its size in @p size. The data buffer will be allocated used the generic allocator and is up to the
  * caller to free it.
  */
-bool CookConvex(PxCooking* cooking, const SPtr<MeshData>& meshData, u8** data, u32& size)
+bool CookConvex(PxCooking* cooking, const TShared<MeshData>& meshData, u8** data, u32& size)
 {
-	SPtr<VertexDescription> vertexDesc = meshData->GetVertexDescription();
+	TShared<VertexDescription> vertexDesc = meshData->GetVertexDescription();
 
 	// Try to create hull from points
 	PxConvexMeshDesc convexDesc;
@@ -98,7 +98,7 @@ bool CookConvex(PxCooking* cooking, const SPtr<MeshData>& meshData, u8** data, u
  * and its size in @p size. The data buffer will be allocated used the generic allocator and is up to the caller to
  * free it.
  */
-bool CookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u32& size)
+bool CookMesh(const TShared<MeshData>& meshData, PhysicsMeshType type, u8** data, u32& size)
 {
 	if(meshData == nullptr)
 		return false;
@@ -110,7 +110,7 @@ bool CookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u
 		return false;
 	}
 
-	SPtr<VertexDescription> vertexDesc = meshData->GetVertexDescription();
+	TShared<VertexDescription> vertexDesc = meshData->GetVertexDescription();
 	if(!vertexDesc->HasElement(VES_POSITION))
 	{
 		B3D_LOG(Warning, LogPhysics, "Provided PhysicsMesh mesh data has no vertex positions.");
@@ -162,7 +162,7 @@ bool CookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u
 	return true;
 }
 
-PhysXMesh::PhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+PhysXMesh::PhysXMesh(const TShared<MeshData>& meshData, PhysicsMeshType type)
 	: mType(type)
 {
 	// Perform cooking if needed
@@ -209,12 +209,12 @@ void PhysXMesh::Initialize()
 	}
 }
 
-SPtr<MeshData> PhysXMesh::GetMeshData() const
+TShared<MeshData> PhysXMesh::GetMeshData() const
 {
 	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-	SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
+	TShared<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 	if(mConvexMesh == nullptr && mTriangleMesh == nullptr)
 		return MeshData::Create(0, 0, vertexDescription);
@@ -242,7 +242,7 @@ SPtr<MeshData> PhysXMesh::GetMeshData() const
 		numIndices = mTriangleMesh->getNbTriangles() * 3;
 	}
 
-	SPtr<MeshData> meshData = MeshData::Create(numVertices, numIndices, vertexDescription);
+	TShared<MeshData> meshData = MeshData::Create(numVertices, numIndices, vertexDescription);
 
 	auto posIter = meshData->GetVec3DataIter(VES_POSITION);
 	u32* outIndices = meshData->GetIndices32();

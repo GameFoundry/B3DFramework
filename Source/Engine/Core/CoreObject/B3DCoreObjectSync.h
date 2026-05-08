@@ -40,7 +40,7 @@ namespace b3d
 	template <typename T>
 	using decay_all_t = typename B3DDecaySharedPointer<typename B3DDecayResourceHandle<std::decay_t<T>>::value>::value;
 
-	// Converts a ResourceHandle to an underlying SPtr, or if the type is not a ResourceHandle it just passes it
+	// Converts a ResourceHandle to an underlying TShared, or if the type is not a ResourceHandle it just passes it
 	// through as is.
 
 	/** Pass non-resource-handle types as is. */
@@ -50,7 +50,7 @@ namespace b3d
 		return std::forward<T>(value);
 	}
 
-	/** Convert a resource handle to the underlying resource SPtr. */
+	/** Convert a resource handle to the underlying resource TShared. */
 	template <class T>
 	decltype(((std::decay_t<T>*)nullptr)->GetShared()) RemoveHandle(T&& handle, std::enable_if_t<B3DIsResourceHandle<std::decay_t<T>>::value>* = 0)
 	{

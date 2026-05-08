@@ -78,7 +78,7 @@ const ShaderVariationParameters& GetParticleShaderVariationParameters(ParticleOr
 ParticlesUniformDefinition gParticlesUniformDefinition;
 GpuParticlesUniformDefinition gGpuParticlesUniformDefinition;
 
-void WriteIndices(const SPtr<GpuBuffer>& buffer, const Vector<u32>& input, u32 texSize)
+void WriteIndices(const TShared<GpuBuffer>& buffer, const Vector<u32>& input, u32 texSize)
 {
 	const auto numParticles = (u32)input.size();
 	if(numParticles == 0)
@@ -165,7 +165,7 @@ void ParticleRenderState::BindGpuSimulatedInputs(const ParticleSystemProxy& prox
 	const GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.GetCurrentState();
 	const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.GetStaticTextures();
 	const GpuParticleCurves& gpuCurves = gpuSimResources.GetCurveTexture();
-	const SPtr<GpuBuffer>& sortedIndices = gpuSimResources.GetSortedIndices();
+	const TShared<GpuBuffer>& sortedIndices = gpuSimResources.GetSortedIndices();
 
 	DrawCommand.ParamsGpu.PositionTimeTexture.Set(gpuSimStateTextures.PositionAndTimeTex);
 	DrawCommand.ParamsGpu.SizeRotationTexture.Set(gpuSimStaticTextures.SizeAndRotationTex);
@@ -206,7 +206,7 @@ void ParticleRenderState::PopulateAndBindParticlesUniformBuffer(const ParticleSy
 	gParticlesUniformDefinition.gAxisRight.Set(uniforms, axisRight);
 
 	// Set UV parameters from sprite image if available
-	const SPtr<Shader> shader = DrawCommand.Material->GetShader();
+	const TShared<Shader> shader = DrawCommand.Material->GetShader();
 	SpriteImage* spriteImage = nullptr;
 	if(shader->HasTextureParameter("gTexture"))
 		spriteImage = DrawCommand.Material->GetSpriteImage("gTexture").get();
@@ -321,7 +321,7 @@ void ParticleTexturePool::Clear()
 
 ParticleBillboardTextures* ParticleTexturePool::CreateNewBillboardTextures(u32 size)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	ParticleBillboardTextures* output = mBillboardAlloc.Construct<ParticleBillboardTextures>();
 
 	TextureCreateInformation textureCreateInformation;
@@ -355,7 +355,7 @@ ParticleBillboardTextures* ParticleTexturePool::CreateNewBillboardTextures(u32 s
 
 ParticleMeshTextures* ParticleTexturePool::CreateNewMeshTextures(u32 size)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	ParticleMeshTextures* output = mMeshAlloc.Construct<ParticleMeshTextures>();
 
 	TextureCreateInformation texDesc;
@@ -393,14 +393,14 @@ ParticleMeshTextures* ParticleTexturePool::CreateNewMeshTextures(u32 size)
 
 struct ParticleRenderer::Members
 {
-	SPtr<GpuBuffer> BillboardVb;
-	SPtr<VertexDescription> BillboardVertexDescription;
+	TShared<GpuBuffer> BillboardVb;
+	TShared<VertexDescription> BillboardVertexDescription;
 };
 
 ParticleRenderer::ParticleRenderer()
 	: m(B3DNew<Members>())
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
@@ -458,7 +458,7 @@ ParticleRenderer::~ParticleRenderer()
 
 void ParticleRenderer::DrawBillboards(GpuCommandBuffer& commandBuffer, u32 count)
 {
-	SPtr<GpuBuffer> vertexBuffers[] = { m->BillboardVb };
+	TShared<GpuBuffer> vertexBuffers[] = { m->BillboardVb };
 
 	commandBuffer.SetVertexDescription(m->BillboardVertexDescription);
 	commandBuffer.SetVertexBuffers(0, vertexBuffers, 1);

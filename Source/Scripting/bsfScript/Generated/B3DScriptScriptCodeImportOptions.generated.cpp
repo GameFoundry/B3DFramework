@@ -9,7 +9,7 @@
 namespace b3d
 {
 #if !B3D_IS_ENGINE
-	ScriptScriptCodeImportOptions::ScriptScriptCodeImportOptions(const SPtr<ScriptCodeImportOptions>& nativeObject)
+	ScriptScriptCodeImportOptions::ScriptScriptCodeImportOptions(const TShared<ScriptCodeImportOptions>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -40,7 +40,7 @@ namespace b3d
 	}
 	void ScriptScriptCodeImportOptions::InternalCreate(MonoObject* scriptObject)
 	{
-		SPtr<ScriptCodeImportOptions> nativeObject = ScriptCodeImportOptions::Create();
+		TShared<ScriptCodeImportOptions> nativeObject = ScriptCodeImportOptions::Create();
 		ScriptObjectWrapper::Create<ScriptScriptCodeImportOptions>(nativeObject, scriptObject);
 	}
 	bool ScriptScriptCodeImportOptions::InternalGetEditorScript(ScriptScriptCodeImportOptions* self)

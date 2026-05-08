@@ -42,7 +42,7 @@ namespace b3d
 		static HManagedResource CreateUninitialized();
 
 		/** Creates an empty managed resource without calling Initialize(), as a shared pointer. */
-		static SPtr<ManagedResource> CreateUninitializedAsShared();
+		static TShared<ManagedResource> CreateUninitializedAsShared();
 
 	private:
 		friend class ScriptManagedResource;
@@ -50,7 +50,7 @@ namespace b3d
 		void Initialize() override;
 
 		/** Sets up script bindings between native and managed class. Must be called after creating the script object wrapper, or after assembly is reloaded. */
-		void SetupScriptBindings(const SPtr<ManagedObjectInfo>& objectInformation);
+		void SetupScriptBindings(const TShared<ManagedObjectInfo>& objectInformation);
 
 		/**
 		 * Creates the script object of the correct type.
@@ -58,11 +58,11 @@ namespace b3d
 		 * @param	outObjectInformation	Information about the resource type. Can be null in case the type does no longer exist.
 		 * @return							Creates script object of the correct resource type, or if type cannot be found, script object of missing type.
 		 */
-		MonoObject* CreateScriptObject(SPtr<ManagedObjectInfo>& outObjectInformation) const;
+		MonoObject* CreateScriptObject(TShared<ManagedObjectInfo>& outObjectInformation) const;
 
 		bool mMissingType = false;
-		SPtr<ManagedSerializableObject> mSerializedObjectData;
-		SPtr<ManagedObjectInfo> mObjectInformation; // Transient
+		TShared<ManagedSerializableObject> mSerializedObjectData;
+		TShared<ManagedObjectInfo> mObjectInformation; // Transient
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptInputConfiguration::ScriptInputConfiguration(const SPtr<InputConfiguration>& nativeObject)
+	ScriptInputConfiguration::ScriptInputConfiguration(const TShared<InputConfiguration>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -44,7 +44,7 @@ namespace b3d
 	}
 	void ScriptInputConfiguration::InternalInputConfiguration(MonoObject* scriptObject)
 	{
-		SPtr<InputConfiguration> nativeObject = B3DMakeShared<InputConfiguration>();
+		TShared<InputConfiguration> nativeObject = B3DMakeShared<InputConfiguration>();
 		ScriptObjectWrapper::Create<ScriptInputConfiguration>(nativeObject, scriptObject);
 	}
 

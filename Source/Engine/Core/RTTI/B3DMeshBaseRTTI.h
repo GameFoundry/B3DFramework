@@ -36,7 +36,7 @@ namespace b3d
 			return TID_MeshBase;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 			return nullptr;

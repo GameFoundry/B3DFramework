@@ -23,7 +23,7 @@ using namespace b3d;
 
 const TextureSurface TextureSurface::kComplete = TextureSurface(0, 0, 0, 0);
 
-GpuParametersSetBase::GpuParametersSetBase(const SPtr<GpuPipelineParameterSetLayout>& parameterLayout, u32 setIndex)
+GpuParametersSetBase::GpuParametersSetBase(const TShared<GpuPipelineParameterSetLayout>& parameterLayout, u32 setIndex)
 	: mParameterSetLayout(parameterLayout), mSet(setIndex)
 {}
 
@@ -58,7 +58,7 @@ bool GpuParametersSetBase::HasUniformBuffer(const StringView& name) const
 }
 
 template <bool IsRenderProxy>
-TGpuParameterSet<IsRenderProxy>::TGpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
+TGpuParameterSet<IsRenderProxy>::TGpuParameterSet(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
 	: GpuParametersSetBase(parameterSetLayout, setIndex)
 {
 	const u32 uniformBufferCount = mParameterSetLayout->GetResourceCount(GpuParameterType::UniformBuffer);
@@ -70,7 +70,7 @@ TGpuParameterSet<IsRenderProxy>::TGpuParameterSet(const SPtr<GpuPipelineParamete
 	const u32 uniformBufferEntrySize = Math::RoundToMultiple((u32)sizeof(UniformBufferData), 16u);
 	const u32 textureEntrySize = Math::RoundToMultiple((u32)sizeof(TextureData), 16u);
 	const u32 storageBufferEntrySize = Math::RoundToMultiple((u32)sizeof(StorageBufferData), 16u);
-	const u32 samplerStateEntrySize = Math::RoundToMultiple((u32)sizeof(SPtr<SamplerState>), 16u);
+	const u32 samplerStateEntrySize = Math::RoundToMultiple((u32)sizeof(TShared<SamplerState>), 16u);
 
 	const u32 uniformBufferBufferSize = uniformBufferEntrySize * uniformBufferCount;
 	const u32 sampledTexturesBufferSize = textureEntrySize * sampledTextureCount;
@@ -107,9 +107,9 @@ TGpuParameterSet<IsRenderProxy>::TGpuParameterSet(const SPtr<GpuPipelineParamete
 		new(&mStorageBufferData[i]) StorageBufferData();
 
 	data += storageBufferBufferSize;
-	mSamplerStates = (SPtr<SamplerState>*)data;
+	mSamplerStates = (TShared<SamplerState>*)data;
 	for(u32 i = 0; i < samplerCount; i++)
-		new(&mSamplerStates[i]) SPtr<SamplerState>();
+		new(&mSamplerStates[i]) TShared<SamplerState>();
 
 	data += samplerStatesBufferSize;
 }
@@ -142,7 +142,7 @@ TGpuParameterSet<IsRenderProxy>::~TGpuParameterSet()
 		mStorageBufferData[i].~StorageBufferData();
 
 	for(u32 i = 0; i < samplerCount; i++)
-		mSamplerStates[i].~SPtr<SamplerState>();
+		mSamplerStates[i].~TShared<SamplerState>();
 
 	// Everything is allocated in a single block, so it's enough to free the first element
 	B3DFree(mUniformBufferData);
@@ -377,7 +377,7 @@ typename TGpuParameterSet<IsRenderProxy>::BufferType TGpuParameterSet<IsRenderPr
 }
 
 template <bool IsRenderProxy>
-SPtr<SamplerState> TGpuParameterSet<IsRenderProxy>::GetSamplerState(u32 slot, u32 arrayIndex) const
+TShared<SamplerState> TGpuParameterSet<IsRenderProxy>::GetSamplerState(u32 slot, u32 arrayIndex) const
 {
 	const u32 sequentialArrayIndex = mParameterSetLayout->GetSequentialResourceIndex(slot, arrayIndex);
 	if(sequentialArrayIndex == ~0u)
@@ -468,7 +468,7 @@ bool TGpuParameterSet<IsRenderProxy>::SetStorageBuffer(u32 slot, const BufferTyp
 }
 
 template <bool IsRenderProxy>
-bool TGpuParameterSet<IsRenderProxy>::SetSamplerState(u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex)
+bool TGpuParameterSet<IsRenderProxy>::SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex)
 {
 	const u32 sequentialArrayIndex = mParameterSetLayout->GetSequentialResourceIndex(slot, arrayIndex);
 	if (sequentialArrayIndex == ~0u)
@@ -533,26 +533,26 @@ namespace b3d
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<TextureSurface>, SampledTextureSurfaces)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<HTexture>, StorageTextures)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<TextureSurface>, StorageTextureSurfaces)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<SPtr<GpuBuffer>>, UniformBuffers)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<TShared<GpuBuffer>>, UniformBuffers)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<u32>, UniformBufferOffsets)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<SPtr<GpuBuffer>>, StorageBuffers)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<TShared<GpuBuffer>>, StorageBuffers)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<GpuBufferViewInformation>, StorageBufferViews)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<SPtr<SamplerState>>, SamplerStates)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<TShared<SamplerState>>, SamplerStates)
 	B3D_SYNC_BLOCK_END
 }
 const GpuDataParameterTypeInformationLookup GpuParameterSet::kParamSizes;
 
-GpuParameterSet::GpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
+GpuParameterSet::GpuParameterSet(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
 	: TGpuParameterSet(parameterSetLayout, setIndex)
 {
 }
 
-SPtr<GpuParameterSet> GpuParameterSet::GetSelf() const
+TShared<GpuParameterSet> GpuParameterSet::GetSelf() const
 {
 	return std::static_pointer_cast<GpuParameterSet>(GetShared());
 }
 
-SPtr<render::RenderProxy> GpuParameterSet::CreateRenderProxy() const
+TShared<render::RenderProxy> GpuParameterSet::CreateRenderProxy() const
 {
 	GpuParameterSetPool& pool = render::GetRenderer()->GetParameterSetPool();
 	return pool.Create(mParameterSetLayout, mSet, true);
@@ -568,10 +568,10 @@ void GpuParameterSet::MarkResourcesDirtyInternal()
 	MarkListenerResourcesDirty();
 }
 
-SPtr<GpuParameterSet> GpuParameterSet::Create(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
+TShared<GpuParameterSet> GpuParameterSet::Create(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
 {
 	GpuParameterSet* const output = new(B3DAllocate<GpuParameterSet>()) GpuParameterSet(parameterSetLayout, setIndex);
-	SPtr<GpuParameterSet> shared = B3DMakeSharedFromExisting<GpuParameterSet>(output);
+	TShared<GpuParameterSet> shared = B3DMakeSharedFromExisting<GpuParameterSet>(output);
 	shared->SetShared(shared);
 	shared->Initialize();
 
@@ -651,12 +651,12 @@ void GpuParameterSet::GetListenerResources(Vector<HResource>& resources)
 
 namespace b3d { namespace render
 {
-GpuParameterSet::GpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
+GpuParameterSet::GpuParameterSet(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
 	: TGpuParameterSet(parameterSetLayout, setIndex)
 {
 }
 
-SPtr<GpuParameterSet> GpuParameterSet::GetSelf() const
+TShared<GpuParameterSet> GpuParameterSet::GetSelf() const
 {
 	return std::static_pointer_cast<GpuParameterSet>(GetShared());
 }

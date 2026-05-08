@@ -31,9 +31,9 @@ public:
 		return true;
 	}
 
-	SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override
+	TShared<Resource> Import(const Path& filePath, TShared<const ImportOptions> importOptions) override
 	{
-		SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
+		TShared<DataStream> stream = FileSystem::OpenFile(filePath);
 		String textData = stream->GetAsString();
 
 		// ... initialize some resource with the text and return
@@ -87,7 +87,7 @@ class PlainTextImporter : public SpecificImporter
 public:
 	// ... other importer code
 
-	SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override
+	TShared<Resource> Import(const Path& filePath, TShared<const ImportOptions> importOptions) override
 	{
 		const PlainTextImportOptions* myIO = static_cast<const PlainTextImportOptions*>(importOptions.get());
 	
@@ -116,7 +116,7 @@ class PlainTextImporter : public SpecificImporter
 public:
 	// ... other importer code
 
-	Vector<SubResourceRaw> ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions) override
+	Vector<SubResourceRaw> ImportAll(const Path& filePath, TShared<const ImportOptions> importOptions) override
 	{
 		Vector<SubResourceRaw> output;
 	

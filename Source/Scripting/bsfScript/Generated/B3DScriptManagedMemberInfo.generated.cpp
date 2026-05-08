@@ -10,7 +10,7 @@
 
 namespace b3d
 {
-	ScriptManagedMemberInfo::ScriptManagedMemberInfo(const SPtr<ManagedMemberInfo>& nativeObject)
+	ScriptManagedMemberInfo::ScriptManagedMemberInfo(const TShared<ManagedMemberInfo>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -130,7 +130,7 @@ namespace b3d
 
 	MonoObject* ScriptManagedMemberInfo::InternalGetTypeInfo(ScriptManagedMemberInfoWrapperBase* self)
 	{
-		SPtr<ManagedTypeInfo> tmp__output;
+		TShared<ManagedTypeInfo> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -147,7 +147,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ManagedTypeInfo> tmpvalue;
+		TShared<ManagedTypeInfo> tmpvalue;
 		ScriptManagedTypeInfoWrapperBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = (ScriptManagedTypeInfoWrapperBase*)ScriptManagedTypeInfo::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)

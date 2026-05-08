@@ -110,7 +110,7 @@ void GUIMouseEvent::SetMouseDragEndData(const GUIPhysicalPoint& position)
 	mWheelScrollAmount = 0.0f;
 }
 
-void GUIMouseEvent::SetDragAndDropDroppedData(const GUIPhysicalPoint& position, const SPtr<DragAndDropData>& dragAndDropData)
+void GUIMouseEvent::SetDragAndDropDroppedData(const GUIPhysicalPoint& position, const TShared<DragAndDropData>& dragAndDropData)
 {
 	mType = GUIMouseEventType::MouseDragAndDropDropped;
 	mPosition = position;
@@ -121,7 +121,7 @@ void GUIMouseEvent::SetDragAndDropDroppedData(const GUIPhysicalPoint& position, 
 	mDragAndDropData = dragAndDropData;
 }
 
-void GUIMouseEvent::SetDragAndDropDraggedData(const GUIPhysicalPoint& position, const SPtr<DragAndDropData>& dragAndDropData)
+void GUIMouseEvent::SetDragAndDropDraggedData(const GUIPhysicalPoint& position, const TShared<DragAndDropData>& dragAndDropData)
 {
 	mType = GUIMouseEventType::MouseDragAndDropDragged;
 	mPosition = position;
@@ -132,7 +132,7 @@ void GUIMouseEvent::SetDragAndDropDraggedData(const GUIPhysicalPoint& position, 
 	mDragAndDropData = dragAndDropData;
 }
 
-void GUIMouseEvent::SetDragAndDropLeftData(const GUIPhysicalPoint& position, const SPtr<DragAndDropData>& dragAndDropData)
+void GUIMouseEvent::SetDragAndDropLeftData(const GUIPhysicalPoint& position, const TShared<DragAndDropData>& dragAndDropData)
 {
 	mType = GUIMouseEventType::MouseDragAndDropLeft;
 	mPosition = position;

@@ -11,7 +11,7 @@
 namespace b3d
 {
 #if !B3D_IS_ENGINE
-	ScriptMeshImportOptions::ScriptMeshImportOptions(const SPtr<MeshImportOptions>& nativeObject)
+	ScriptMeshImportOptions::ScriptMeshImportOptions(const TShared<MeshImportOptions>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -64,7 +64,7 @@ namespace b3d
 	}
 	void ScriptMeshImportOptions::InternalCreate(MonoObject* scriptObject)
 	{
-		SPtr<MeshImportOptions> nativeObject = MeshImportOptions::Create();
+		TShared<MeshImportOptions> nativeObject = MeshImportOptions::Create();
 		ScriptObjectWrapper::Create<ScriptMeshImportOptions>(nativeObject, scriptObject);
 	}
 	bool ScriptMeshImportOptions::InternalGetCpuCached(ScriptMeshImportOptions* self)
@@ -300,7 +300,7 @@ namespace b3d
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptAnimationSplitInfo>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<AnimationSplitInfo> arrayElementPointer__output = B3DMakeShared<AnimationSplitInfo>();
+			TShared<AnimationSplitInfo> arrayElementPointer__output = B3DMakeShared<AnimationSplitInfo>();
 			*arrayElementPointer__output = nativeArray__output[elementIndex];
 			MonoObject* arrayElement__output;
 			arrayElement__output = ScriptAnimationSplitInfo::GetOrCreateScriptObject(arrayElementPointer__output);
@@ -323,7 +323,7 @@ namespace b3d
 			nativeArrayvalue.resize(scriptArrayvalue.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				SPtr<AnimationSplitInfo> arrayElementPointervalue;
+				TShared<AnimationSplitInfo> arrayElementPointervalue;
 				ScriptAnimationSplitInfo* scriptObjectWrappervalue;
 				scriptObjectWrappervalue = ScriptAnimationSplitInfo::GetScriptObjectWrapper(scriptArrayvalue.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrappervalue != nullptr)
@@ -351,7 +351,7 @@ namespace b3d
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptImportedAnimationEvents>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<ImportedAnimationEvents> arrayElementPointer__output = B3DMakeShared<ImportedAnimationEvents>();
+			TShared<ImportedAnimationEvents> arrayElementPointer__output = B3DMakeShared<ImportedAnimationEvents>();
 			*arrayElementPointer__output = nativeArray__output[elementIndex];
 			MonoObject* arrayElement__output;
 			arrayElement__output = ScriptImportedAnimationEvents::GetOrCreateScriptObject(arrayElementPointer__output);
@@ -374,7 +374,7 @@ namespace b3d
 			nativeArrayvalue.resize(scriptArrayvalue.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				SPtr<ImportedAnimationEvents> arrayElementPointervalue;
+				TShared<ImportedAnimationEvents> arrayElementPointervalue;
 				ScriptImportedAnimationEvents* scriptObjectWrappervalue;
 				scriptObjectWrappervalue = ScriptImportedAnimationEvents::GetScriptObjectWrapper(scriptArrayvalue.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrappervalue != nullptr)

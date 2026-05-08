@@ -520,25 +520,25 @@ PhysX::~PhysX()
 	mFoundation->release();
 }
 
-SPtr<PhysicsMaterial> PhysX::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
+TShared<PhysicsMaterial> PhysX::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
 {
 	return B3DMakeShared<PhysXMaterial>(mPhysics, staticFriction, dynamicFriction, restitution);
 }
 
-UPtr<IPhysicsMeshImplementation> PhysX::CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+UPtr<IPhysicsMeshImplementation> PhysX::CreateMesh(const TShared<MeshData>& meshData, PhysicsMeshType type)
 {
 	return B3DMakeUnique<PhysXMesh>(meshData, type);
 }
 
-SPtr<PhysicsScene> PhysX::CreatePhysicsScene()
+TShared<PhysicsScene> PhysX::CreatePhysicsScene()
 {
-	SPtr<PhysXScene> scene = B3DMakeShared<PhysXScene>(mPhysics, mInitDesc, mScale);
+	TShared<PhysXScene> scene = B3DMakeShared<PhysXScene>(mPhysics, mInitDesc, mScale);
 	mScenes.push_back(scene.get());
 
 	return scene;
 }
 
-SPtr<ColliderShape> PhysX::CreateColliderShape()
+TShared<ColliderShape> PhysX::CreateColliderShape()
 {
 	return B3DMakeShared<PhysXColliderShape>();
 }
@@ -587,7 +587,7 @@ bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const C
 	const Transform& transform = collider.SceneObject()->GetTransform();
 	const PxTransform colliderTransform = ToPxTransform(transform.GetPosition(), transform.GetRotation());
 
-	const TInlineArray<SPtr<ColliderShape>, 1>& shapes = collider.GetShapes();
+	const TInlineArray<TShared<ColliderShape>, 1>& shapes = collider.GetShapes();
 	for(const auto& entry : shapes)
 	{
 		const PhysXColliderShape& physxColliderShape = static_cast<const PhysXColliderShape&>(*entry);

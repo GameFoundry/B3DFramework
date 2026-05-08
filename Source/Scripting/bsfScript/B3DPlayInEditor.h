@@ -24,7 +24,7 @@ namespace b3d
 	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT(API(Editor), DocumentationGroup(Editor - General)) PlayInEditor : public IScriptExportable
 	{
 	public:
-		PlayInEditor(const SPtr<SceneInstance>& sceneInstance);
+		PlayInEditor(const TShared<SceneInstance>& sceneInstance);
 
 		/**	Returns the current play state of the game. */
 		B3D_SCRIPT_EXPORT(InteropOnly(true))
@@ -40,7 +40,7 @@ namespace b3d
 
 		/** Returns the scene that will be played when entering PIE. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Scene))
-		SPtr<SceneInstance> GetScene() const { return mAssociatedScene; }
+		TShared<SceneInstance> GetScene() const { return mAssociatedScene; }
 
 		/**	Runs the game for a single frame and then pauses it. */
 		B3D_SCRIPT_EXPORT()
@@ -48,7 +48,7 @@ namespace b3d
 
 		/** Creates a new play in editor object associated with the provided scene instance. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(PlayInEditor))
-		static SPtr<PlayInEditor> Create(const SPtr<SceneInstance>& sceneInstance) { return B3DMakeShared<PlayInEditor>(sceneInstance); }
+		static TShared<PlayInEditor> Create(const TShared<SceneInstance>& sceneInstance) { return B3DMakeShared<PlayInEditor>(sceneInstance); }
 
 		/** Triggered right after the play mode is entered. */
 		B3D_SCRIPT_EXPORT()
@@ -89,16 +89,16 @@ namespace b3d
 		/** Pauses or unpauses all pausable engine systems. */
 		void SetSystemsPauseState(bool paused);
 
-		SPtr<SceneInstance> mAssociatedScene;
+		TShared<SceneInstance> mAssociatedScene;
 
 		PlayInEditorState mState;
 		PlayInEditorState mNextState;
 		bool mFrameStepActive;
 		bool mScheduledStateChange;
 
-		SPtr<GameObjectCollection> mSavedSceneGameObjectCollection;
+		TShared<GameObjectCollection> mSavedSceneGameObjectCollection;
 		HSceneObject mSavedScene;
-		UnorderedMap<UUID, SPtr<GameObjectInstanceData>> mSavedSceneInstanceData;
+		UnorderedMap<UUID, TShared<GameObjectInstanceData>> mSavedSceneInstanceData;
 		UUID mSavedSceneResourceId;
 	};
 

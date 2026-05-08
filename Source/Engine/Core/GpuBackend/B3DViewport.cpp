@@ -85,12 +85,12 @@ namespace b3d
 	B3D_SYNC_BLOCK_END
 }
 
-Viewport::Viewport(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
+Viewport::Viewport(const TShared<RenderTarget>& target, float x, float y, float width, float height)
 	: TViewport(target, x, y, width, height)
 {
 }
 
-void Viewport::SetTarget(const SPtr<RenderTarget>& target)
+void Viewport::SetTarget(const TShared<RenderTarget>& target)
 {
 	mTarget = target;
 
@@ -119,14 +119,14 @@ u32 Viewport::GetTargetHeight() const
 	return 0;
 }
 
-SPtr<render::RenderProxy> Viewport::CreateRenderProxy() const
+TShared<render::RenderProxy> Viewport::CreateRenderProxy() const
 {
-	SPtr<render::RenderTarget> targetRenderProxy = B3DGetRenderProxy(mTarget);
+	TShared<render::RenderTarget> targetRenderProxy = B3DGetRenderProxy(mTarget);
 
 	render::Viewport* renderProxy = new(B3DAllocate<render::Viewport>())
 		render::Viewport(targetRenderProxy, mNormArea.X, mNormArea.Y, mNormArea.Width, mNormArea.Height);
 
-	SPtr<render::Viewport> renderProxyShared = B3DMakeSharedFromExisting<render::Viewport>(renderProxy);
+	TShared<render::Viewport> renderProxyShared = B3DMakeSharedFromExisting<render::Viewport>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -143,20 +143,20 @@ void Viewport::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 		dependencies.push_back(mTarget.get());
 }
 
-SPtr<Viewport> Viewport::Create(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
+TShared<Viewport> Viewport::Create(const TShared<RenderTarget>& target, float x, float y, float width, float height)
 {
 	Viewport* viewport = new(B3DAllocate<Viewport>()) Viewport(target, x, y, width, height);
-	SPtr<Viewport> viewportPtr = B3DMakeSharedFromExisting<Viewport>(viewport);
+	TShared<Viewport> viewportPtr = B3DMakeSharedFromExisting<Viewport>(viewport);
 	viewportPtr->SetShared(viewportPtr);
 	viewportPtr->Initialize();
 
 	return viewportPtr;
 }
 
-SPtr<Viewport> Viewport::CreateEmpty()
+TShared<Viewport> Viewport::CreateEmpty()
 {
 	Viewport* viewport = new(B3DAllocate<Viewport>()) Viewport();
-	SPtr<Viewport> viewportPtr = B3DMakeSharedFromExisting<Viewport>(viewport);
+	TShared<Viewport> viewportPtr = B3DMakeSharedFromExisting<Viewport>(viewport);
 	viewportPtr->SetShared(viewportPtr);
 
 	return viewportPtr;
@@ -174,15 +174,15 @@ RTTIType* Viewport::GetRtti() const
 
 namespace b3d { namespace render
 {
-Viewport::Viewport(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
+Viewport::Viewport(const TShared<RenderTarget>& target, float x, float y, float width, float height)
 	: TViewport(target, x, y, width, height)
 {}
 
-SPtr<Viewport> Viewport::Create(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
+TShared<Viewport> Viewport::Create(const TShared<RenderTarget>& target, float x, float y, float width, float height)
 {
 	Viewport* viewport = new(B3DAllocate<Viewport>()) Viewport(target, x, y, width, height);
 
-	SPtr<Viewport> viewportPtr = B3DMakeSharedFromExisting<Viewport>(viewport);
+	TShared<Viewport> viewportPtr = B3DMakeSharedFromExisting<Viewport>(viewport);
 	viewportPtr->SetShared(viewportPtr);
 	viewportPtr->Initialize();
 

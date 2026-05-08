@@ -110,7 +110,7 @@ void TransientGpuBufferPool::AddNewBufferToPool()
 	B3D_ASSERT(mDevice != nullptr && "GpuBufferPool not initialized");
 
 	// Create new GpuBuffer with suballocations
-	SPtr<GpuBuffer> newBuffer = mDevice->CreateGpuBuffer(mBufferCreateInformation);
+	TShared<GpuBuffer> newBuffer = mDevice->CreateGpuBuffer(mBufferCreateInformation);
 	mBuffers.Add(newBuffer);
 
 	// Get the actual aligned stride
@@ -202,7 +202,7 @@ void GpuBufferPool::Release(const GpuBufferSuballocation& allocation)
 	B3D_ASSERT(allocation.IsValid() && "Cannot release invalid allocation");
 
 	// Find the buffer entry. Not using a map since number of buffers is expected to be small (increase suballocation count if that's not the case).
-	const SPtr<GpuBuffer>& buffer = allocation.GetBuffer();
+	const TShared<GpuBuffer>& buffer = allocation.GetBuffer();
 	u32 foundBufferIndex = ~0u;
 
 	for (u32 bufferIndex = 0; bufferIndex < mBuffers.size(); bufferIndex++)
@@ -244,7 +244,7 @@ void GpuBufferPool::AddNewBufferToPool()
 	B3D_ASSERT(mDevice != nullptr && "GpuBufferPool not initialized");
 
 	// Create new GpuBuffer with suballocations
-	SPtr<GpuBuffer> newBuffer = mDevice->CreateGpuBuffer(mBufferCreateInformation);
+	TShared<GpuBuffer> newBuffer = mDevice->CreateGpuBuffer(mBufferCreateInformation);
 
 	// Lambda to initialize suballocations for a buffer entry
 	auto fnInitializeBufferEntry = [this, &newBuffer](u32 bufferIndex)

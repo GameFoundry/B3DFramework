@@ -33,12 +33,12 @@ bool FontImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) c
 	return false;
 }
 
-SPtr<ImportOptions> FontImporter::CreateImportOptions() const
+TShared<ImportOptions> FontImporter::CreateImportOptions() const
 {
 	return B3DMakeShared<FontImportOptions>();
 }
 
-SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+TShared<Resource> FontImporter::Import(const Path& filePath, TShared<const ImportOptions> importOptions)
 {
 	const FontImportOptions* fontImportOptions = static_cast<const FontImportOptions*>(importOptions.get());
 
@@ -52,7 +52,7 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 	fontCreateInformation.DPI = fontImportOptions->Dpi;
 	fontCreateInformation.RenderMode = fontImportOptions->RenderMode;
 
-	SPtr<DataStream> fontDataStream = FileSystem::OpenFile(filePath);
+	TShared<DataStream> fontDataStream = FileSystem::OpenFile(filePath);
 	if(fontDataStream == nullptr)
 		return nullptr;
 
@@ -61,7 +61,7 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 	FrameAllocatorScope frameScope;
 	FrameVector<u32> charactersToRender;
 
-	SPtr<Font> font = Font::CreateShared(fontCreateInformation);
+	TShared<Font> font = Font::CreateShared(fontCreateInformation);
 	for(size_t sizeIndex = 0; sizeIndex < fontSizes.size(); sizeIndex++)
 	{
 		for(const auto& characterIndexRange : charIndexRanges)

@@ -77,7 +77,7 @@ namespace b3d
 		struct RendererMaterialVariationInformation
 		{
 			RendererMaterialBase* RendererMaterialInstance = nullptr; /**< Instance of the material to be created once the shader variation has been created. */
-			SPtr<Variation> ShaderVariation; /**< Shader variation used by the material. */
+			TShared<Variation> ShaderVariation; /**< Shader variation used by the material. */
 			RendererMaterialVariationState State = RendererMaterialVariationState::NotCompiled;
 
 			TAsyncOp<RendererMaterialBase*> VariationCompileOperation{ AsyncOpEmpty() }; /**< Operation tracking variation creation as a whole. */
@@ -88,9 +88,9 @@ namespace b3d
 		struct RendererMaterialMetaData
 		{
 			Path ShaderPath;
-			SPtr<Shader> Shader;
+			TShared<Shader> Shader;
 			std::atomic<RendererMaterialShaderState> ShaderState = RendererMaterialShaderState::NotInitialized;
-			TAsyncOp<SPtr<render::Shader>> ShaderInitializeOperation{ AsyncOpEmpty() };
+			TAsyncOp<TShared<render::Shader>> ShaderInitializeOperation{ AsyncOpEmpty() };
 
 			ShaderVariations VariationParameterSet;
 			ShaderDefines Defines;
@@ -125,19 +125,19 @@ namespace b3d
 			virtual void Initialize() {}
 
 			/** Returns the shader used by the material. */
-			SPtr<Shader> GetShader() const { return mShader; }
+			TShared<Shader> GetShader() const { return mShader; }
 
 			/** Returns the internal parameter set containing GPU bindable parameters. */
-			SPtr<GpuParameterSet> GetGpuParameterSet() const { return mGpuParameterSet; }
+			TShared<GpuParameterSet> GetGpuParameterSet() const { return mGpuParameterSet; }
 
 			/** Creates a new instance of GPU parameters for this material. */
-			virtual SPtr<GpuParameterSet> CreateGpuParameterSet(u32 set = 0) const = 0;
+			virtual TShared<GpuParameterSet> CreateGpuParameterSet(u32 set = 0) const = 0;
 
 			/** Returns the material's graphics pipeline state. This will be null if the material is a compute material. */
-			SPtr<GpuGraphicsPipelineState> GetGraphicsPipeline() const { return mGraphicsPipeline; }
+			TShared<GpuGraphicsPipelineState> GetGraphicsPipeline() const { return mGraphicsPipeline; }
 
 			/** Returns the material's compute pipeline state. This will be null if the material is a graphics material. */
-			SPtr<GpuComputePipelineState> GetComputePipeline() const { return mComputePipeline; }
+			TShared<GpuComputePipelineState> GetComputePipeline() const { return mComputePipeline; }
 
 			/**
 			 * Binds the materials and its parameters to the pipeline. This material will be used for rendering any subsequent
@@ -152,14 +152,14 @@ namespace b3d
 		protected:
 			friend class b3d::RendererMaterialManager;
 
-			SPtr<GpuParameterSet> mGpuParameterSet;
-			SPtr<GpuGraphicsPipelineState> mGraphicsPipeline;
-			SPtr<GpuComputePipelineState> mComputePipeline;
+			TShared<GpuParameterSet> mGpuParameterSet;
+			TShared<GpuGraphicsPipelineState> mGraphicsPipeline;
+			TShared<GpuComputePipelineState> mComputePipeline;
 			u32 mStencilReferenceValue = 0;
 
 			ShaderVariationParameters mVariationParameters;
-			SPtr<Shader> mShader;
-			SPtr<GpuDevice> mGpuDevice;
+			TShared<Shader> mShader;
+			TShared<GpuDevice> mGpuDevice;
 		};
 
 		/**	Helper class to initialize all renderer materials as soon as the library is loaded. */
@@ -205,7 +205,7 @@ namespace b3d
 			static ShaderDefines GetShaderDefines() { return mMetaData.Defines; }
 
 			/** Creates a new instance of GPU parameters for this material. */
-			SPtr<GpuParameterSet> CreateGpuParameterSet(u32 set = 0) const override;
+			TShared<GpuParameterSet> CreateGpuParameterSet(u32 set = 0) const override;
 
 		protected:
 			RendererMaterial();
@@ -220,7 +220,7 @@ namespace b3d
 			static bool IsRendereMaterialVariationCompiled(u32 variationIndex);
 
 			/** Initializes the Shader object. This needs to be done before attempting to compile any instances for the material. */
-			static TAsyncOp<SPtr<Shader>> InitializeShader();
+			static TAsyncOp<TShared<Shader>> InitializeShader();
 
 			/** Compiles and initializes a particular variation of the renderer material. */
 			static TAsyncOp<RendererMaterialBase*> CompileRendererMaterialVariation(const ShaderVariationParameters& variationParameters);
@@ -242,7 +242,7 @@ namespace b3d
 		{
 			if(!IsShaderInitialized())
 			{
-				TAsyncOp<SPtr<Shader>> operation = InitializeShader();
+				TAsyncOp<TShared<Shader>> operation = InitializeShader();
 				operation.BlockUntilComplete();
 			}
 
@@ -260,7 +260,7 @@ namespace b3d
 		{
 			if(!IsShaderInitialized())
 			{
-				TAsyncOp<SPtr<Shader>> operation = InitializeShader();
+				TAsyncOp<TShared<Shader>> operation = InitializeShader();
 				operation.BlockUntilComplete();
 			}
 
@@ -281,7 +281,7 @@ namespace b3d
 		}
 
 		template <class T>
-		TAsyncOp<SPtr<Shader>> RendererMaterial<T>::InitializeShader()
+		TAsyncOp<TShared<Shader>> RendererMaterial<T>::InitializeShader()
 		{
 			B3D_ASSERT(!IsShaderInitialized());
 
@@ -299,7 +299,7 @@ namespace b3d
 					return;
 				}
 
-				const Vector<SPtr<Variation>> variations = mMetaData.Shader->GetCompatibleVariations();
+				const Vector<TShared<Variation>> variations = mMetaData.Shader->GetCompatibleVariations();
 
 				static TInlineArray<RendererMaterialVariationInformation, 4> newVariationInformation;
 				static ShaderVariations newVariationParameterSet;
@@ -312,7 +312,7 @@ namespace b3d
 
 				for(u32 variationIndex = 0; variationIndex < (u32)variations.size(); ++variationIndex)
 				{
-					const SPtr<Variation>& shaderVariation = variations[variationIndex];
+					const TShared<Variation>& shaderVariation = variations[variationIndex];
 
 					for(u32 preliminaryVariationIndex = 0; preliminaryVariationIndex < mMetaData.VariationInformation.size(); ++preliminaryVariationIndex)
 					{
@@ -341,7 +341,7 @@ namespace b3d
 
 				mMetaData.ShaderState = RendererMaterialShaderState::Initialized;
 				mMetaData.ShaderInitializeOperation.CompleteOperation(mMetaData.Shader);
-				mMetaData.ShaderInitializeOperation = TAsyncOp<SPtr<Shader>>(AsyncOpEmpty());
+				mMetaData.ShaderInitializeOperation = TAsyncOp<TShared<Shader>>(AsyncOpEmpty());
 
 				u32 variationIndex = 0;
 				for(const auto& entry : mMetaData.VariationInformation)
@@ -365,7 +365,7 @@ namespace b3d
 				initializeAsyncOp.CompleteOperation();
 			};
 
-			mMetaData.ShaderInitializeOperation = TAsyncOp<SPtr<Shader>>();
+			mMetaData.ShaderInitializeOperation = TAsyncOp<TShared<Shader>>();
 			GetApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnInitializeShader), "Compile shader meta-data"));
 
 			return mMetaData.ShaderInitializeOperation;
@@ -490,11 +490,11 @@ namespace b3d
 			mShader = mMetaData.Shader;
 			mVariationParameters = mMetaData.VariationParameterSet.Get(variationIndex);
 
-			const SPtr<Variation>& shaderVariation = mMetaData.VariationInformation[variationIndex].ShaderVariation;
+			const TShared<Variation>& shaderVariation = mMetaData.VariationInformation[variationIndex].ShaderVariation;
 			B3D_ASSERT(shaderVariation->IsSupported());
 			B3D_ASSERT(shaderVariation->GetVariationParameters() == mVariationParameters);
 
-			const SPtr<Pass> pass = shaderVariation->GetPass(0);
+			const TShared<Pass> pass = shaderVariation->GetPass(0);
 			pass->Compile();
 
 			mGraphicsPipeline = pass->GetGraphicsPipelineState();
@@ -515,7 +515,7 @@ namespace b3d
 				{
 					if(mGpuParameterSet->HasSampledTexture(varName))
 					{
-						const SPtr<Texture> texture = param.second.Type == GPOT_TEXTURE3D ? mShader->GetDefault3DTexture(defaultValueIdx) : mShader->GetDefault2DTexture(defaultValueIdx);
+						const TShared<Texture> texture = param.second.Type == GPOT_TEXTURE3D ? mShader->GetDefault3DTexture(defaultValueIdx) : mShader->GetDefault2DTexture(defaultValueIdx);
 						mGpuParameterSet->SetSampledTexture(varName, texture);
 					}
 				}
@@ -532,7 +532,7 @@ namespace b3d
 				{
 					if(mGpuParameterSet->HasSamplerState(varName))
 					{
-						SPtr<SamplerState> samplerState = mShader->GetDefaultSampler(defaultValueIdx);
+						TShared<SamplerState> samplerState = mShader->GetDefaultSampler(defaultValueIdx);
 						mGpuParameterSet->SetSamplerState(varName, samplerState);
 					}
 				}
@@ -550,7 +550,7 @@ namespace b3d
 		InitRendererMaterialStart<T> RendererMaterial<T>::mInitOnStart;
 
 		template <class T>
-		SPtr<GpuParameterSet> RendererMaterial<T>::CreateGpuParameterSet(u32 set) const
+		TShared<GpuParameterSet> RendererMaterial<T>::CreateGpuParameterSet(u32 set) const
 		{
 			GpuParameterSetPool& pool = GetRenderer()->GetParameterSetPool();
 

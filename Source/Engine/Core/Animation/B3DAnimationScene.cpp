@@ -87,7 +87,7 @@ const EvaluatedAnimationData* AnimationScene::Update(bool async)
 	// Build frustums for culling
 	mCullFrustums.clear();
 
-	const SPtr<SceneInstance>& scene  = mOwner.lock();
+	const TShared<SceneInstance>& scene  = mOwner.lock();
 
 	auto& allCameras = scene->GetAllCameras();
 	for(auto& entry : allCameras)
@@ -430,7 +430,7 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& outBoneIndex)
 		// Generate morph shape vertices
 		if(anim->MorphChannelWeightsDirty || hasMorphCurves)
 		{
-			SPtr<MeshData> meshData = B3DMakeShared<MeshData>(anim->MorphVertexCount, 0, mBlendShapeVertexDescription);
+			TShared<MeshData> meshData = B3DMakeShared<MeshData>(anim->MorphVertexCount, 0, mBlendShapeVertexDescription);
 
 			u8* bufferData = meshData->GetData();
 			memset(bufferData, 0, meshData->GetSize());

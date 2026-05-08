@@ -17,14 +17,14 @@ namespace b3d
 	class PhysXMeshRTTI : public TRTTIType<PhysXMesh, IPhysicsMeshImplementation, PhysXMeshRTTI>
 	{
 	private:
-		SPtr<DataStream> GetCookedData(PhysXMesh* obj, u32& size)
+		TShared<DataStream> GetCookedData(PhysXMesh* obj, u32& size)
 		{
 			size = obj->mCookedDataSize;
 
 			return B3DMakeShared<MemoryDataStream>(obj->mCookedData, obj->mCookedDataSize);
 		}
 
-		void SetCookedData(PhysXMesh* obj, const SPtr<DataStream>& value, u32 size)
+		void SetCookedData(PhysXMesh* obj, const TShared<DataStream>& value, u32 size)
 		{
 			obj->mCookedData = (u8*)B3DAllocate(size);
 			obj->mCookedDataSize = size;
@@ -55,7 +55,7 @@ namespace b3d
 			return TID_PhysXMesh;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<PhysXMesh>();
 		}

@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ColorGradient")
 
-		ScriptColorGradient(const SPtr<ColorGradient>& nativeObject);
+		ScriptColorGradient(const TShared<ColorGradient>& nativeObject);
 		~ScriptColorGradient();
 
 		static void SetupScriptBindings();

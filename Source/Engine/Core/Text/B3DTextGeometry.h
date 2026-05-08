@@ -288,7 +288,7 @@ namespace b3d
 		u32 mPageCount;
 
 		HFont mFont;
-		SPtr<const FontBitmapInformation> mFontBitmapInformation;
+		TShared<const FontBitmapInformation> mFontBitmapInformation;
 
 		// Static buffers used to reduce runtime memory allocation
 	protected:

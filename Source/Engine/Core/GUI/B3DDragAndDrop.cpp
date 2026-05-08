@@ -54,7 +54,7 @@ void DragAndDrop::AddDropCallback(Function<void(bool)>&& dropCallback)
 	mDropCallbacks.emplace_back(std::move(dropCallback));
 }
 
-void DragAndDrop::StartDrag(const SPtr<DragAndDropData>& data, Function<void(bool)>&& dropCallback, bool needsValidDropTarget)
+void DragAndDrop::StartDrag(const TShared<DragAndDropData>& data, Function<void(bool)>&& dropCallback, bool needsValidDropTarget)
 {
 	if(IsDropInProgress())
 		EndDrag(false);

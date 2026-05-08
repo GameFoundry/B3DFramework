@@ -327,7 +327,7 @@ void Application::OnShutDown()
 	const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>> allScenes = GetSceneManager().GetAllScenes();
 	for(const auto& entry : allScenes)
 	{
-		const SPtr<SceneInstance>& scene = entry.second.lock();
+		const TShared<SceneInstance>& scene = entry.second.lock();
 		if(scene == nullptr)
 			continue;
 
@@ -426,7 +426,7 @@ void Application::RunMainLoopFrame()
 		// Note: Can we do this as part of SceneInstance::Update? Would clean up this bit of code
 		for(const auto& entry : allScenes)
 		{
-			const SPtr<SceneInstance>& scene = entry.second.lock();
+			const TShared<SceneInstance>& scene = entry.second.lock();
 			scene->GetTime().Update();
 		}
 	}
@@ -447,7 +447,7 @@ void Application::RunMainLoopFrame()
 		const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>> allScenes = GetSceneManager().GetAllScenes();
 		for(const auto& entry : allScenes)
 		{
-			const SPtr<SceneInstance>& scene = entry.second.lock();
+			const TShared<SceneInstance>& scene = entry.second.lock();
 			if(scene == nullptr)
 				continue;
 
@@ -483,7 +483,7 @@ void Application::RunMainLoopFrame()
 		// Note: Can we do this as part of SceneInstance::Update? Would clean up this bit of code
 		for(const auto& entry : allScenes)
 		{
-			const SPtr<SceneInstance>& scene = entry.second.lock();
+			const TShared<SceneInstance>& scene = entry.second.lock();
 			render::RendererScene* const rendererSceneProxy = B3DGetRenderProxy(scene->GetRendererScene()).get();
 
 			// Evaluate animation after scene and plugin updates because the renderer will just now be displaying the
@@ -564,7 +564,7 @@ void Application::PostUpdate()
 
 void Application::ShowProfilerOverlay(ProfilerOverlayType type, const HCamera& camera)
 {
-	const SPtr<SceneInstance>& scene = camera ? camera->SceneObject()->GetScene() : GetSceneManager().GetMainScene();
+	const TShared<SceneInstance>& scene = camera ? camera->SceneObject()->GetScene() : GetSceneManager().GetMainScene();
 	const HCamera& overlayCamera = camera ? camera : scene->GetMainCamera();
 	if(!overlayCamera.IsValid())
 		return;
@@ -673,7 +673,7 @@ ApplicationCreateInformation Application::BuildCreateInformation(VideoMode video
 	return desc;
 }
 
-SPtr<IShaderIncludeHandler> Application::GetShaderIncludeHandler() const
+TShared<IShaderIncludeHandler> Application::GetShaderIncludeHandler() const
 {
 	return B3DMakeShared<EngineShaderIncludeHandler>();
 }

@@ -242,7 +242,7 @@ namespace b3d
 	/** Data for a single language in the string table. */
 	struct LanguageData
 	{
-		UnorderedMap<String, SPtr<LocalizedStringData>> Strings;
+		UnorderedMap<String, TShared<LocalizedStringData>> Strings;
 	};
 
 	/** @} */
@@ -297,7 +297,7 @@ namespace b3d
 		 *								identifier as the translation string.
 		 * @return						The string data. Don't store reference to this data as it may get deleted.
 		 */
-		SPtr<LocalizedStringData> GetStringData(const String& identifier, bool insertIfNonExisting = true);
+		TShared<LocalizedStringData> GetStringData(const String& identifier, bool insertIfNonExisting = true);
 
 		/**
 		 * Gets a string data for the specified string identifier and language.
@@ -309,7 +309,7 @@ namespace b3d
 		 *								identifier as the translation string.
 		 * @return						The string data. Don't store reference to this data as it may get deleted.
 		 */
-		SPtr<LocalizedStringData> GetStringData(const String& identifier, Language language, bool insertIfNonExisting = true);
+		TShared<LocalizedStringData> GetStringData(const String& identifier, Language language, bool insertIfNonExisting = true);
 
 		/** Creates a new empty string table resource. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(StringTable))
@@ -327,7 +327,7 @@ namespace b3d
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<StringTable> CreateShared();
+		static TShared<StringTable> CreateShared();
 
 		/** @} */
 	private:

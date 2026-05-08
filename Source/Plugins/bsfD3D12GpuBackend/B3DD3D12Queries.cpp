@@ -267,7 +267,7 @@ D3D12EventQuery::~D3D12EventQuery()
 	mFence.Reset();
 }
 
-void D3D12EventQuery::Begin(const SPtr<render::GpuCommandBuffer>& commandBuffer)
+void D3D12EventQuery::Begin(const TShared<render::GpuCommandBuffer>& commandBuffer)
 {
 	// Increment fence value and signal from the command buffer
 	mFenceValue++;
@@ -295,13 +295,13 @@ D3D12TimerQuery::~D3D12TimerQuery()
 {
 }
 
-void D3D12TimerQuery::Begin(const SPtr<render::GpuCommandBuffer>& commandBuffer)
+void D3D12TimerQuery::Begin(const TShared<render::GpuCommandBuffer>& commandBuffer)
 {
 	// TODO: Implement using query pools
 	mIsReady = false;
 }
 
-void D3D12TimerQuery::End(const SPtr<render::GpuCommandBuffer>& commandBuffer)
+void D3D12TimerQuery::End(const TShared<render::GpuCommandBuffer>& commandBuffer)
 {
 	// TODO: Implement using query pools
 }
@@ -328,13 +328,13 @@ D3D12OcclusionQuery::~D3D12OcclusionQuery()
 {
 }
 
-void D3D12OcclusionQuery::Begin(const SPtr<render::GpuCommandBuffer>& commandBuffer)
+void D3D12OcclusionQuery::Begin(const TShared<render::GpuCommandBuffer>& commandBuffer)
 {
 	// TODO: Implement using query pools
 	mIsReady = false;
 }
 
-void D3D12OcclusionQuery::End(const SPtr<render::GpuCommandBuffer>& commandBuffer)
+void D3D12OcclusionQuery::End(const TShared<render::GpuCommandBuffer>& commandBuffer)
 {
 	// TODO: Implement using query pools
 }

@@ -130,17 +130,17 @@ void FMODAudio::SetActiveDevice(const AudioDevice& device)
 	B3D_LOG(Warning, LogAudio, "Failed changing audio device to: {0}", device.Name);
 }
 
-SPtr<AudioClip> FMODAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
+TShared<AudioClip> FMODAudio::CreateClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
 {
 	return B3DMakeShared<FMODAudioClip>(samples, streamSize, sampleCount, createInformation);
 }
 
-SPtr<IAudioListenerImplementation> FMODAudio::CreateListener()
+TShared<IAudioListenerImplementation> FMODAudio::CreateListener()
 {
 	return B3DMakeShared<FMODAudioListener>();
 }
 
-SPtr<IAudioSourceImplementation> FMODAudio::CreateSource()
+TShared<IAudioSourceImplementation> FMODAudio::CreateSource()
 {
 	return B3DMakeShared<FMODAudioSource>();
 }

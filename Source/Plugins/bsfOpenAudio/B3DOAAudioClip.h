@@ -16,7 +16,7 @@ namespace b3d
 	class OAAudioClip : public AudioClip
 	{
 	public:
-		OAAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
+		OAAudioClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
 		virtual ~OAAudioClip();
 
 		/**
@@ -43,7 +43,7 @@ namespace b3d
 		/** @} */
 	protected:
 		void Initialize() override;
-		SPtr<DataStream> GetSourceStream(u32& outSize) override;
+		TShared<DataStream> GetSourceStream(u32& outSize) override;
 
 	private:
 		mutable Mutex mMutex;
@@ -53,7 +53,7 @@ namespace b3d
 
 		// These streams exist to save original audio data in case it's needed later (usually for saving with the editor, or
 		// manual data manipulation). In normal usage (in-game) these will be null so no memory is wasted.
-		SPtr<DataStream> mSourceStreamData;
+		TShared<DataStream> mSourceStreamData;
 		u32 mSourceStreamSize = 0;
 	};
 

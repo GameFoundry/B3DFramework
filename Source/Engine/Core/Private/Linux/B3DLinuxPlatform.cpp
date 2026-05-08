@@ -379,7 +379,7 @@ void Platform::clipCursorDisable()
 
 void Platform::setCursor(PixelData& pixelData, const Vector2I& hotSpot)
 {
-	SPtr<PixelData> bgraData = PixelData::Create(pixelData.GetWidth(), pixelData.GetHeight(), 1, PF_BGRA8);
+	TShared<PixelData> bgraData = PixelData::Create(pixelData.GetWidth(), pixelData.GetHeight(), 1, PF_BGRA8);
 	PixelUtil::bulkPixelConversion(pixelData, *bgraData);
 
 	Lock lock(mData->lock);
@@ -1470,7 +1470,7 @@ Pixmap LinuxPlatform::createPixmap(const PixelData& data, u32 depth)
 	}
 
 	// Convert to BGRA
-	SPtr<PixelData> bgraData = PixelData::Create(data.GetWidth(), data.GetHeight(), 1, PF_BGRA8);
+	TShared<PixelData> bgraData = PixelData::Create(data.GetWidth(), data.GetHeight(), 1, PF_BGRA8);
 	bgraData->SetColors(colors);
 
 	XImage* image = XCreateImage(mData->xDisplay, CopyFromParent, depth, ZPixmap, 0, (char*)bgraData->GetData(), data.GetWidth(), data.GetHeight(), 32, 0);

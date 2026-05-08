@@ -32,10 +32,10 @@ namespace b3d
 		const GUIStyleSheetCascade& GetStyleSheetCascade() const;
 
 		/** @copydoc SetStyleSheetCascade */
-		const SPtr<const GUIStyleSheetCascade>& GetStyleSheetCascadeAsShared() const { return mStyleSheetCascade; }
+		const TShared<const GUIStyleSheetCascade>& GetStyleSheetCascadeAsShared() const { return mStyleSheetCascade; }
 
 		/** @copydoc SetStyleSheetCascade */
-		void SetStyleSheetCascade(const SPtr<const GUIStyleSheetCascade>& styleSheetCascade);
+		void SetStyleSheetCascade(const TShared<const GUIStyleSheetCascade>& styleSheetCascade);
 
 		/** Returns the root GUI panel for the widget. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Panel))
@@ -108,7 +108,7 @@ namespace b3d
 		 * Returns the default navigation group assigned to all elements of this widget that don't have an explicit nav-
 		 * group. See GUIElement::setNavGroup().
 		 */
-		SPtr<GUINavGroup> GetDefaultNavGroupInternal() const { return mDefaultNavGroup; }
+		TShared<GUINavGroup> GetDefaultNavGroupInternal() const { return mDefaultNavGroup; }
 
 		/**
 		 * Marks the widget mesh dirty requiring a mesh rebuild. Provided element is the one that requested the mesh update.
@@ -196,7 +196,7 @@ namespace b3d
 		GUIMeshBatches mBatches;
 		GUIPanel* mPanel = nullptr;
 		u8 mDepth = 128;
-		SPtr<GUINavGroup> mDefaultNavGroup;
+		TShared<GUINavGroup> mDefaultNavGroup;
 
 		float mDPIScale = 1.0f; // TODO - This should be grabbed from the destination render target
 
@@ -209,7 +209,7 @@ namespace b3d
 		mutable bool mWidgetIsDirty = false;
 		mutable GUIPhysicalArea mBounds;
 
-		SPtr<const GUIStyleSheetCascade> mStyleSheetCascade;
+		TShared<const GUIStyleSheetCascade> mStyleSheetCascade;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

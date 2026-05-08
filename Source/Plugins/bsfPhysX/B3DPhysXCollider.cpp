@@ -43,7 +43,7 @@ void PhysXCollider::RemoveFromScene()
 	mPxScene = nullptr;
 }
 
-void PhysXCollider::AttachShape(const SPtr<ColliderShape>& shape)
+void PhysXCollider::AttachShape(const TShared<ColliderShape>& shape)
 {
 	if(!B3D_ENSURE(shape != nullptr))
 		return;
@@ -52,7 +52,7 @@ void PhysXCollider::AttachShape(const SPtr<ColliderShape>& shape)
 	mPxRigidStatic->attachShape(*physxShape.GetPxShape());
 }
 
-void PhysXCollider::DetachShape(const SPtr<ColliderShape>& shape)
+void PhysXCollider::DetachShape(const TShared<ColliderShape>& shape)
 {
 	if(!B3D_ENSURE(shape != nullptr))
 		return;

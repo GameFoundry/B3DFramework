@@ -17,10 +17,10 @@ namespace b3d
 	{
 		ManagedSerializableDictionaryKeyValue() {}
 
-		ManagedSerializableDictionaryKeyValue(const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableFieldData>& value);
+		ManagedSerializableDictionaryKeyValue(const TShared<ManagedSerializableFieldData>& key, const TShared<ManagedSerializableFieldData>& value);
 
-		SPtr<ManagedSerializableFieldData> Key;
-		SPtr<ManagedSerializableFieldData> Value;
+		TShared<ManagedSerializableFieldData> Key;
+		TShared<ManagedSerializableFieldData> Value;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -55,7 +55,7 @@ namespace b3d
 		{};
 
 	public:
-		typedef UnorderedMap<SPtr<ManagedSerializableFieldData>, SPtr<ManagedSerializableFieldData>> CachedEntriesMap;
+		typedef UnorderedMap<TShared<ManagedSerializableFieldData>, TShared<ManagedSerializableFieldData>> CachedEntriesMap;
 
 		/**
 		 * Helper class that enumerates over all entires in a managed dictionary. Operates on managed object if the parent
@@ -79,13 +79,13 @@ namespace b3d
 			 * Returns the wrapped key data at the current enumerator position. Only valid to call this if enumerator is
 			 * valid (meaning last call to moveNext() returned true).
 			 */
-			SPtr<ManagedSerializableFieldData> GetKey() const;
+			TShared<ManagedSerializableFieldData> GetKey() const;
 
 			/**
 			 * Returns the wrapped value data at the current enumerator position. Only valid to call this if enumerator is
 			 * valid (meaning last call to moveNext() returned true).
 			 */
-			SPtr<ManagedSerializableFieldData> GetValue() const;
+			TShared<ManagedSerializableFieldData> GetValue() const;
 
 			/**
 			 * Moves the enumerator to the next position. Initially enumerator is at an invalid position and must be called
@@ -111,7 +111,7 @@ namespace b3d
 		};
 
 	public:
-		ManagedSerializableDictionary(const ConstructPrivately& dummy, const SPtr<ManagedTypeInfoDictionary>& typeInfo, MonoObject* managedInstance);
+		ManagedSerializableDictionary(const ConstructPrivately& dummy, const TShared<ManagedTypeInfoDictionary>& typeInfo, MonoObject* managedInstance);
 		ManagedSerializableDictionary(const ConstructPrivately& dummy);
 		~ManagedSerializableDictionary();
 
@@ -122,7 +122,7 @@ namespace b3d
 		MonoObject* GetManagedInstance() const;
 
 		/**	Returns the type information for the internal dictionary. */
-		SPtr<ManagedTypeInfoDictionary> GetTypeInfo() const { return mDictionaryTypeInfo; }
+		TShared<ManagedTypeInfoDictionary> GetTypeInfo() const { return mDictionaryTypeInfo; }
 
 		/**
 		 * Returns the dictionary value at the specified key. If the key doesn't exist the default value for the type is
@@ -131,7 +131,7 @@ namespace b3d
 		 * @param[in]	key		Wrapper around the key data at which to retrieve the value.
 		 * @return				A wrapper around the value in the dictionary at the specified key.
 		 */
-		SPtr<ManagedSerializableFieldData> GetFieldData(const SPtr<ManagedSerializableFieldData>& key);
+		TShared<ManagedSerializableFieldData> GetFieldData(const TShared<ManagedSerializableFieldData>& key);
 
 		/**
 		 * Sets the dictionary value at the specified key. Operates on managed object if in linked state, or on cached data
@@ -140,7 +140,7 @@ namespace b3d
 		 * @param[in]	key		Wrapper around the key data at which to set the value.
 		 * @param[in]	val		Wrapper around the value to set at the specified key.
 		 */
-		void SetFieldData(const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableFieldData>& val);
+		void SetFieldData(const TShared<ManagedSerializableFieldData>& key, const TShared<ManagedSerializableFieldData>& val);
 
 		/**
 		 * Deletes the key/value pair at the specified key. If the key doesn't exist this operation does nothing. Operates
@@ -148,7 +148,7 @@ namespace b3d
 		 *
 		 * @param[in]	key		Wrapper around the key data at which to delete the value.
 		 */
-		void RemoveFieldData(const SPtr<ManagedSerializableFieldData>& key);
+		void RemoveFieldData(const TShared<ManagedSerializableFieldData>& key);
 
 		/**
 		 * Checks if the dictionary contains the specified key. Operates on managed object if in linked state, or on cached
@@ -156,7 +156,7 @@ namespace b3d
 		 *
 		 * @param[in]	key		Wrapper around the key data which to check.
 		 */
-		bool Contains(const SPtr<ManagedSerializableFieldData>& key) const;
+		bool Contains(const TShared<ManagedSerializableFieldData>& key) const;
 
 		/** Returns an enumerator object that allows you to iterate over all key/value pairs in the dictionary. */
 		Enumerator GetEnumerator() const;
@@ -184,21 +184,21 @@ namespace b3d
 		 *									correspond with the provided type info.
 		 * @param[in]	typeInfo			Type information for the dictionary and its key/value pair.
 		 */
-		static SPtr<ManagedSerializableDictionary> CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedTypeInfoDictionary>& typeInfo);
+		static TShared<ManagedSerializableDictionary> CreateFromExisting(MonoObject* managedInstance, const TShared<ManagedTypeInfoDictionary>& typeInfo);
 
 		/**
 		 * Creates a managed serializable dictionary that creates and references a brand new managed dictionary instance.
 		 *
 		 * @param[in]	typeInfo	Type of the dictionary to create.
 		 */
-		static SPtr<ManagedSerializableDictionary> CreateNew(const SPtr<ManagedTypeInfoDictionary>& typeInfo);
+		static TShared<ManagedSerializableDictionary> CreateNew(const TShared<ManagedTypeInfoDictionary>& typeInfo);
 
 		/**
 		 * Creates a managed dictionary instance.
 		 *
 		 * @param[in]	typeInfo	Type of the dictionary to create.
 		 */
-		static MonoObject* CreateManagedInstance(const SPtr<ManagedTypeInfoDictionary>& typeInfo);
+		static MonoObject* CreateManagedInstance(const TShared<ManagedTypeInfoDictionary>& typeInfo);
 
 	protected:
 		/**
@@ -214,7 +214,7 @@ namespace b3d
 		 * @param[in]	key		Wrapper around the key data at which to set the value.
 		 * @param[in]	val		Wrapper around the value to set at the specified key.
 		 */
-		void SetFieldData(MonoObject* obj, const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableFieldData>& val);
+		void SetFieldData(MonoObject* obj, const TShared<ManagedSerializableFieldData>& key, const TShared<ManagedSerializableFieldData>& val);
 
 		uint32_t mGCHandle = 0;
 
@@ -228,7 +228,7 @@ namespace b3d
 		MonoProperty* mValuesProp = nullptr;
 		MonoMethod* mValuesCopyTo = nullptr;
 
-		SPtr<ManagedTypeInfoDictionary> mDictionaryTypeInfo;
+		TShared<ManagedTypeInfoDictionary> mDictionaryTypeInfo;
 		CachedEntriesMap mCachedEntries;
 
 		/************************************************************************/
@@ -236,7 +236,7 @@ namespace b3d
 		/************************************************************************/
 
 		/**	Creates an empty and uninitialized object used for serialization purposes. */
-		static SPtr<ManagedSerializableDictionary> CreateEmpty();
+		static TShared<ManagedSerializableDictionary> CreateEmpty();
 
 	public:
 		friend class ManagedSerializableDictionaryRTTI;

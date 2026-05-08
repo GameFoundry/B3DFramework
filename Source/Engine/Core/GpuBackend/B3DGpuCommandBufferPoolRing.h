@@ -45,7 +45,7 @@ namespace b3d
 			void AdvanceFrame();
 
 		private:
-			Array<SPtr<GpuCommandBufferPool>, kPoolCount> mPools;
+			Array<TShared<GpuCommandBufferPool>, kPoolCount> mPools;
 			u32 mCurrentPoolIndex = 0;
 		};
 

@@ -56,7 +56,7 @@ const StringID& RenderBeast::GetName() const
 	return name;
 }
 
-void RenderBeast::Initialize(const SPtr<GpuDevice>& gpuDevice)
+void RenderBeast::Initialize(const TShared<GpuDevice>& gpuDevice)
 {
 	Renderer::Initialize(gpuDevice);
 
@@ -272,7 +272,7 @@ void RenderBeast::DestroyOnRenderThread()
 	Renderer::DestroyOnRenderThread();
 }
 
-void RenderBeast::NotifySceneCreated(const SPtr<RenderBeastScene>& scene)
+void RenderBeast::NotifySceneCreated(const TShared<RenderBeastScene>& scene)
 {
 	mScenes.push_back(scene.get());
 }
@@ -288,13 +288,13 @@ void RenderBeast::NotifySceneDestroyed(const RenderBeastScene* scene)
 		mScenes.erase(found);
 }
 
-void RenderBeast::SetOptions(const SPtr<RendererOptions>& options)
+void RenderBeast::SetOptions(const TShared<RendererOptions>& options)
 {
 	mOptions = std::static_pointer_cast<RenderBeastOptions>(options);
 	mOptionsDirty = true;
 }
 
-SPtr<RendererOptions> RenderBeast::GetOptions() const
+TShared<RendererOptions> RenderBeast::GetOptions() const
 {
 	return mOptions;
 }
@@ -390,7 +390,7 @@ void RenderBeast::RenderAllOnRenderThread(FrameTimings timings, PerFrameData per
 
 bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInfo)
 {
-	SPtr<GpuCommandBuffer> commandBuffer = mCommandBufferPoolRing->GetCurrentPool().Create(GpuCommandBufferCreateInformation::Create("Main"));
+	TShared<GpuCommandBuffer> commandBuffer = mCommandBufferPoolRing->GetCurrentPool().Create(GpuCommandBufferCreateInformation::Create("Main"));
 #if B3D_PROFILING_ENABLED
 	commandBuffer->BeginProfiling("RenderScene");
 #endif
@@ -434,11 +434,11 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 	for(auto& rtInfo : scene.GetRenderTargets())
 	{
 		Vector<RendererView*> views;
-		SPtr<RenderTarget> target = rtInfo.Target;
+		TShared<RenderTarget> target = rtInfo.Target;
 		const Vector<Camera*>& cameras = rtInfo.Cameras;
 
 		const bool isWindow = target->GetProperties().IsWindow;
-		const SPtr<RenderWindow> window = std::static_pointer_cast<RenderWindow>(rtInfo.Target);
+		const TShared<RenderWindow> window = std::static_pointer_cast<RenderWindow>(rtInfo.Target);
 		const bool renderTargetNeedsRedraw = window != nullptr ? window->IsRedrawRequested() : false;
 
 		const u32 cameraCount = (u32)cameras.size();
@@ -532,7 +532,7 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene&
 			continue;
 
 #if B3D_PROFILING_ENABLED
-		const SPtr<GpuCommandBufferProfiler>& commandBufferProfiler = commandBuffer.GetProfiler();
+		const TShared<GpuCommandBufferProfiler>& commandBufferProfiler = commandBuffer.GetProfiler();
 		if(commandBufferProfiler != nullptr)
 		{
 			const String title = StringUtility::Format("View ({0} x {1})", viewTarget.TargetWidth, viewTarget.TargetHeight);
@@ -631,8 +631,8 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 
 	auto& viewProps = view.GetProperties();
 	const Camera* camera = view.GetSceneCamera();
-	SPtr<RenderTarget> target = viewProps.Target.Target;
-	SPtr<Viewport> viewport = camera->GetViewport();
+	TShared<RenderTarget> target = viewProps.Target.Target;
+	TShared<Viewport> viewport = camera->GetViewport();
 
 	ClearFlags clearFlags = viewport->GetClearFlags();
 	RenderSurfaceMask clearMask = RT_NONE;
@@ -702,7 +702,7 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 	return needsRedraw;
 }
 
-void RenderBeast::CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings)
+void RenderBeast::CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings)
 {
 	RenderBeastScene& renderBeastScene = static_cast<RenderBeastScene&>(scene);
 
@@ -747,7 +747,7 @@ void RenderBeast::CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& co
 	viewDesc.StateReduction = mRenderThreadOptions->StateReductionMode;
 	viewDesc.SceneCamera = nullptr;
 
-	SPtr<RenderSettings> renderSettings = B3DMakeShared<RenderSettings>();
+	TShared<RenderSettings> renderSettings = B3DMakeShared<RenderSettings>();
 	renderSettings->EnableHdr = settings.Hdr;
 	renderSettings->EnableShadows = true;
 	renderSettings->EnableIndirectLighting = false;
@@ -840,15 +840,15 @@ void RenderBeast::CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& co
 	commandBuffer.EndRenderPass();
 }
 
-SPtr<RendererScene> RenderBeast::CreateScene()
+TShared<RendererScene> RenderBeast::CreateScene()
 {
-	SPtr<RenderBeastScene> scene = B3DMakeShared<RenderBeastScene>(mOptions);
+	TShared<RenderBeastScene> scene = B3DMakeShared<RenderBeastScene>(mOptions);
 	scene->SetShared(scene);
 
 	return scene;
 }
 
-void RenderBeast::RequestScreenCapture(Camera* camera, TAsyncOp<SPtr<PixelData>> asyncOp)
+void RenderBeast::RequestScreenCapture(Camera* camera, TAsyncOp<TShared<PixelData>> asyncOp)
 {
 	for (RenderBeastScene* scene : mScenes)
 	{
@@ -864,7 +864,7 @@ void RenderBeast::RequestScreenCapture(Camera* camera, TAsyncOp<SPtr<PixelData>>
 	asyncOp.CompleteOperation(nullptr);
 }
 
-SPtr<RenderBeast> GetRenderBeast()
+TShared<RenderBeast> GetRenderBeast()
 {
 	return std::static_pointer_cast<RenderBeast>(RendererManager::Instance().GetActive());
 }

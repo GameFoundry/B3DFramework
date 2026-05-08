@@ -27,14 +27,14 @@ namespace b3d
 	ParticleRotationSettings ScriptParticleRotationSettings::FromInterop(const __ParticleRotationSettingsInterop& value)
 	{
 		ParticleRotationSettings output;
-		SPtr<TDistribution<float>> tmpRotation;
+		TShared<TDistribution<float>> tmpRotation;
 		ScriptFloatDistribution* scriptObjectWrapperRotation;
 		scriptObjectWrapperRotation = ScriptFloatDistribution::GetScriptObjectWrapper(value.Rotation);
 		if(scriptObjectWrapperRotation != nullptr)
 			tmpRotation = std::static_pointer_cast<TDistribution<float>>(scriptObjectWrapperRotation->GetBaseNativeObjectAsShared());
 		if(tmpRotation != nullptr)
 		output.Rotation = *tmpRotation;
-		SPtr<TDistribution<TVector3<float>>> tmpRotation3D;
+		TShared<TDistribution<TVector3<float>>> tmpRotation3D;
 		ScriptVector3Distribution* scriptObjectWrapperRotation3D;
 		scriptObjectWrapperRotation3D = ScriptVector3Distribution::GetScriptObjectWrapper(value.Rotation3D);
 		if(scriptObjectWrapperRotation3D != nullptr)
@@ -50,12 +50,12 @@ namespace b3d
 	{
 		__ParticleRotationSettingsInterop output;
 		MonoObject* tmpRotation;
-		SPtr<TDistribution<float>> tmpRotationcopy;
+		TShared<TDistribution<float>> tmpRotationcopy;
 		tmpRotationcopy = B3DMakeShared<TDistribution<float>>(value.Rotation);
 		tmpRotation = ScriptFloatDistribution::GetOrCreateScriptObject(tmpRotationcopy);
 		output.Rotation = tmpRotation;
 		MonoObject* tmpRotation3D;
-		SPtr<TDistribution<TVector3<float>>> tmpRotation3Dcopy;
+		TShared<TDistribution<TVector3<float>>> tmpRotation3Dcopy;
 		tmpRotation3Dcopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Rotation3D);
 		tmpRotation3D = ScriptVector3Distribution::GetOrCreateScriptObject(tmpRotation3Dcopy);
 		output.Rotation3D = tmpRotation3D;

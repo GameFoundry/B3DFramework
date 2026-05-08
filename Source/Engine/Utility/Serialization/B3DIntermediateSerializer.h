@@ -23,10 +23,10 @@ namespace b3d
 		IntermediateSerializer(FrameAllocator* allocator, RTTIOperationContext& context);
 
 		/** Encodes an IReflectable object into an intermediate representation. */
-		SPtr<SerializedObject> Encode(IReflectable* object, SerializedObjectEncodeFlags flags);
+		TShared<SerializedObject> Encode(IReflectable* object, SerializedObjectEncodeFlags flags);
 
 		/** Decodes an intermediate representation of a serialized object into the actual object. */
-		SPtr<IReflectable> Decode(const SerializedObject* serializedObject);
+		TShared<IReflectable> Decode(const SerializedObject* serializedObject);
 
 		/**
 		 * @name Internal
@@ -42,10 +42,10 @@ namespace b3d
 		 * @param	flags				Flags controlling the serialization process.
 		 * @return						Serialized field, or null if the field data is null.
 		 */
-		SPtr<ISerialized> SerializeIterableField(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, SerializedObjectEncodeFlags flags);
+		TShared<ISerialized> SerializeIterableField(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, SerializedObjectEncodeFlags flags);
 
 		/** Serializes a data block field entry from a reflectable object into a SerializedInstance. */
-		SPtr<ISerialized> SerializeDataBlockField(IReflectable* object, RTTIType* rtti, RTTIField* field, SerializedObjectEncodeFlags flags);
+		TShared<ISerialized> SerializeDataBlockField(IReflectable* object, RTTIType* rtti, RTTIField* field, SerializedObjectEncodeFlags flags);
 
 		/**
 		 * Serializes an element at the provided iterator location.
@@ -57,7 +57,7 @@ namespace b3d
 		 * @param	flags				Flags controlling the serialization process.
 		 * @return						Serialized element, or null if the source element is null.
 		 */
-		SPtr<ISerialized> SerializeElement(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, SerializedObjectEncodeFlags flags);
+		TShared<ISerialized> SerializeElement(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, SerializedObjectEncodeFlags flags);
 
 		/**
 		 * Serializes a single tuple element from the provided iterator location.
@@ -70,16 +70,16 @@ namespace b3d
 		 * @param	flags				Flags controlling the serialization process.
 		 * @return						Serialized tuple element, or null if the source element is null.
 		 */
-		SPtr<ISerialized> SerializeTupleElement(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, u32 tupleElementIndex, SerializedObjectEncodeFlags flags);
+		TShared<ISerialized> SerializeTupleElement(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, u32 tupleElementIndex, SerializedObjectEncodeFlags flags);
 
 		/** Deserializes a single field, array or map entry from the provided field, at the provided iterator location. */
-		void DeserializeElement(RTTIType& rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<IRTTIIterator>& iterator, const SPtr<ISerialized>& entry);
+		void DeserializeElement(RTTIType& rttiInstance, const TShared<IReflectable>& object, RTTIIteratorField& field, const TShared<IRTTIIterator>& iterator, const TShared<ISerialized>& entry);
 
 		/** Similar to DeserializeElement overload accepting an iterator, except accepts a pre-allocated output field value in which to write to. */
-		void DeserializeElement(RTTIIteratorField& field, void* outFieldValue, const SPtr<ISerialized>& entry);
+		void DeserializeElement(RTTIIteratorField& field, void* outFieldValue, const TShared<ISerialized>& entry);
 
 		/** Decodes @p entry and writes it into @p outFieldValue at the specified tuple element index. */
-		void DeserializeTupleElement(RTTIIteratorField& field, void* outFieldValue, u32 tupleElementIndex, const SPtr<ISerialized>& entry);
+		void DeserializeTupleElement(RTTIIteratorField& field, void* outFieldValue, u32 tupleElementIndex, const TShared<ISerialized>& entry);
 
 		/** @} */
 	private:
@@ -87,33 +87,33 @@ namespace b3d
 
 		struct ObjectDeserializationData
 		{
-			ObjectDeserializationData(const SPtr<IReflectable>& object, const SerializedObject* serializedObject)
+			ObjectDeserializationData(const TShared<IReflectable>& object, const SerializedObject* serializedObject)
 				: Object(object), SerializedObject(serializedObject)
 			{}
 
-			SPtr<IReflectable> Object;
+			TShared<IReflectable> Object;
 			const SerializedObject* SerializedObject;
 			bool IsDeserialized = false;
 			bool DeserializationInProgress = false; // Used for error reporting circular references
 		};
 
 		/**	Deserializes a single IReflectable object. */
-		void DeserializeReflectableObject(const SPtr<IReflectable>& object, const SerializedObject* serializableObject);
+		void DeserializeReflectableObject(const TShared<IReflectable>& object, const SerializedObject* serializableObject);
 
 		/** Attempts to retrieve a previously deserialized reflectable object from the deserialized object map. If not present, deserializes the object and adds it to the deserializes object map, and returns the new object. */
-		SPtr<IReflectable> GetOrDeserializeReflectableObject(const SPtr<SerializedObject>& serializedObject);
+		TShared<IReflectable> GetOrDeserializeReflectableObject(const TShared<SerializedObject>& serializedObject);
 
 		/** Attempts to retrieve a previously deserialized reflectable object. */
-		SPtr<IReflectable> GetReflectableObject(const SPtr<SerializedObject>& serializedObject);
+		TShared<IReflectable> GetReflectableObject(const TShared<SerializedObject>& serializedObject);
 
 		/** Serializes a single IReflectable object. */
-		SPtr<SerializedObject> SerializeReflectableObject(const IReflectable& object, SerializedObjectEncodeFlags flags);
+		TShared<SerializedObject> SerializeReflectableObject(const IReflectable& object, SerializedObjectEncodeFlags flags);
 
 		/** Attempts to retrieve a previously serialized object for the provided reflectable object, or if not found, serializes the object. */
-		SPtr<SerializedObject> GetOrSerializeReflectableObject(const IReflectable& object, SerializedObjectEncodeFlags flags);
+		TShared<SerializedObject> GetOrSerializeReflectableObject(const IReflectable& object, SerializedObjectEncodeFlags flags);
 
 		UnorderedMap<const SerializedObject*, ObjectDeserializationData> mDeserializedObjectMap;
-		UnorderedMap<const IReflectable*, SPtr<SerializedObject>> mSerializedObjectMap;
+		UnorderedMap<const IReflectable*, TShared<SerializedObject>> mSerializedObjectMap;
 		RTTIOperationContext& mContext;
 		FrameAllocator* mAllocator = nullptr;
 	};

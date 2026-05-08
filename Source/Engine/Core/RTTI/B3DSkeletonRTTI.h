@@ -37,7 +37,7 @@ namespace b3d
 			return TID_Skeleton;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return Skeleton::CreateEmpty();
 		}

@@ -18,7 +18,7 @@ namespace b3d
 		NullRenderWindowManager() = default;
 		~NullRenderWindowManager() = default;
 
-		SPtr<render::IRenderWindowSurface> CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation) override;
+		TShared<render::IRenderWindowSurface> CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation) override;
 	};
 
 	/** @} */

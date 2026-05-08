@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptResourceDragAndDropData::ScriptResourceDragAndDropData(const SPtr<ResourceDragAndDropData>& nativeObject)
+	ScriptResourceDragAndDropData::ScriptResourceDragAndDropData(const TShared<ResourceDragAndDropData>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -40,7 +40,7 @@ namespace b3d
 	}
 	void ScriptResourceDragAndDropData::InternalResourceDragAndDropData(MonoObject* scriptObject)
 	{
-		SPtr<ResourceDragAndDropData> nativeObject = B3DMakeShared<ResourceDragAndDropData>();
+		TShared<ResourceDragAndDropData> nativeObject = B3DMakeShared<ResourceDragAndDropData>();
 		ScriptObjectWrapper::Create<ScriptResourceDragAndDropData>(nativeObject, scriptObject);
 	}
 
@@ -48,7 +48,7 @@ namespace b3d
 	{
 		Path tmprelativeResourcePath;
 		tmprelativeResourcePath = MonoUtil::MonoToString(relativeResourcePath);
-		SPtr<ResourceDragAndDropData> nativeObject = B3DMakeShared<ResourceDragAndDropData>(tmprelativeResourcePath);
+		TShared<ResourceDragAndDropData> nativeObject = B3DMakeShared<ResourceDragAndDropData>(tmprelativeResourcePath);
 		ScriptObjectWrapper::Create<ScriptResourceDragAndDropData>(nativeObject, scriptObject);
 	}
 
@@ -64,7 +64,7 @@ namespace b3d
 				nativeArrayrelativeResourcePaths[elementIndex] = scriptArrayrelativeResourcePaths.Get<Path>(elementIndex);
 			}
 		}
-		SPtr<ResourceDragAndDropData> nativeObject = B3DMakeShared<ResourceDragAndDropData>(nativeArrayrelativeResourcePaths);
+		TShared<ResourceDragAndDropData> nativeObject = B3DMakeShared<ResourceDragAndDropData>(nativeArrayrelativeResourcePaths);
 		ScriptObjectWrapper::Create<ScriptResourceDragAndDropData>(nativeObject, scriptObject);
 	}
 

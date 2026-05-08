@@ -21,15 +21,15 @@ createInformation.Height = 128;
 createInformation.Format = PF_RGBA32F;
 createInformation.Usage = TextureUsageFlag::AllowUnorderedAccessOnTheGPU;
 
-SPtr<GpuDevice> gpuDevice = ...;
-SPtr<Texture> texture = gpuDevice->CreateTexture(createInformation);
+TShared<GpuDevice> gpuDevice = ...;
+TShared<Texture> texture = gpuDevice->CreateTexture(createInformation);
 ~~~~~~~~~~~~~
 
 You can then bind a load-store texture to a GPU program by calling @b3d::render::GpuParameterSet::SetStorageTexture as was described in an earlier chapter.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuParameterSet> parameterSet = ...;
-SPtr<Texture> texture = ...;
+TShared<GpuParameterSet> parameterSet = ...;
+TShared<Texture> texture = ...;
 
 TextureSurface surface = TextureSurface::kComplete;
 parameterSet->SetStorageTexture("myLoadStoreTex", texture, surface);
@@ -38,8 +38,8 @@ parameterSet->SetStorageTexture("myLoadStoreTex", texture, surface);
 Load-store textures do not support sampling using sampler states, you can only read-write their pixels directly. They also do not support mip-maps, and if your texture has multiple mip-maps you must provide a @b3d::TextureSurface struct to **render::GpuParameterSet::SetStorageTexture()** in order to specify which mip-level to bind (by default it is the first).
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuParameterSet> parameterSet = ...;
-SPtr<Texture> texture = ...;
+TShared<GpuParameterSet> parameterSet = ...;
+TShared<Texture> texture = ...;
 
 TextureSurface surface;
 surface.MipLevel = 5; // Bind 5th mip-level for load-store operations
@@ -57,7 +57,7 @@ For reading and writing texture data on the render thread, use the @b3d::render:
 To write pixel data to a texture subresource:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<render::Texture> texture = ...;
+TShared<render::Texture> texture = ...;
 PixelData pixelData = ...;
 
 // Write data to mip level 0, array layer 0
@@ -67,7 +67,7 @@ render::TextureUtility::Write(texture, pixelData);
 render::TextureUtility::Write(texture, pixelData, 2, 0); // mip 2, layer 0
 
 // Use staging buffer via a command buffer for non-mappable textures
-SPtr<GpuCommandBuffer> commandBuffer = ...;
+TShared<GpuCommandBuffer> commandBuffer = ...;
 render::TextureUtility::Write(texture, pixelData, 0, 0, TextureWriteFlag::Normal, commandBuffer);
 ~~~~~~~~~~~~~
 
@@ -85,7 +85,7 @@ The @b3d::render::TextureWriteFlag flags control behavior when writing to a text
 To read pixel data from a texture subresource:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<render::Texture> texture = ...;
+TShared<render::Texture> texture = ...;
 PixelData destination = texture->GetProperties().AllocBuffer(0, 0);
 
 // Blocking read - waits for GPU to finish if texture is in use
@@ -98,18 +98,18 @@ render::TextureUtility::Read(texture, destination, 2, 0); // mip 2, layer 0
 For non-blocking reads that integrate with your rendering pipeline:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<render::Texture> texture = ...;
-SPtr<GpuCommandBuffer> commandBuffer = ...;
+TShared<render::Texture> texture = ...;
+TShared<GpuCommandBuffer> commandBuffer = ...;
 
 // Queue async read operation
-TAsyncOp<SPtr<PixelData>> asyncOp = render::TextureUtility::ReadAsync(texture, *commandBuffer, 0, 0);
+TAsyncOp<TShared<PixelData>> asyncOp = render::TextureUtility::ReadAsync(texture, *commandBuffer, 0, 0);
 
 // ... submit command buffer and continue other work ...
 
 // Later, check if complete and get result
 if (asyncOp.HasCompleted())
 {
-	SPtr<PixelData> result = asyncOp.GetResult();
+	TShared<PixelData> result = asyncOp.GetResult();
 	// Use the pixel data
 }
 ~~~~~~~~~~~~~
@@ -119,7 +119,7 @@ if (asyncOp.HasCompleted())
 For textures that support direct mapping (StoreOnCPUWithGPUAccess textures with LINEAR tiling), you can use @b3d::render::Texture::Map for direct CPU access. The **Map()** method takes a mip level, array layer, and @b3d::GpuMapOptions, and returns a @b3d::render::GpuTextureMappedScope RAII wrapper. Unlike **GpuBufferMappedScope** which provides a raw `void*`, the texture mapped scope contains a @b3d::PixelData with format, dimensions, and pitch information, enabling format-aware pixel access.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<render::Texture> texture = ...; // Must be StoreOnCPUWithGPUAccess
+TShared<render::Texture> texture = ...; // Must be StoreOnCPUWithGPUAccess
 
 // Map returns RAII scope that auto-flushes on destruction
 {
@@ -148,10 +148,10 @@ These are called automatically when using **GpuTextureMappedScope** — Flush on
 @b3d::render::TextureUtility::CreateStagingBuffer creates a @b3d::render::GpuBuffer (not a staging texture) sized to hold the pixel data for a given mip level. This is used internally by **TextureUtility::Write** and **TextureUtility::Read**, but can also be used directly for explicit buffer-to-texture or texture-to-buffer copies:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<render::Texture> texture = ...;
+TShared<render::Texture> texture = ...;
 
 // Create a CPU-writable staging buffer for mip level 0
-SPtr<render::GpuBuffer> stagingBuffer = render::TextureUtility::CreateStagingBuffer(texture, 0, false);
+TShared<render::GpuBuffer> stagingBuffer = render::TextureUtility::CreateStagingBuffer(texture, 0, false);
 
 // Write data into the staging buffer, then copy to texture
 render::GpuBufferMappedScope scope = stagingBuffer->Map(GpuMapOption::Write);
@@ -165,9 +165,9 @@ commandBuffer->CopyBufferToTexture(stagingBuffer, texture, 0, 0, 0);
 For explicit control over buffer-to-texture transfers, use the command buffer methods:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuCommandBuffer> commandBuffer = ...;
-SPtr<GpuBuffer> stagingBuffer = ...;
-SPtr<render::Texture> texture = ...;
+TShared<GpuCommandBuffer> commandBuffer = ...;
+TShared<GpuBuffer> stagingBuffer = ...;
+TShared<render::Texture> texture = ...;
 
 // Copy from buffer to texture
 commandBuffer->CopyBufferToTexture(stagingBuffer, texture, 0, 0, 0); // buffer offset, face, mip
@@ -181,7 +181,7 @@ commandBuffer->CopyTextureToBuffer(texture, stagingBuffer, 0, 0, 0); // face, mi
 To clear all pixels of a texture subresource to a specific color:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<render::Texture> texture = ...;
+TShared<render::Texture> texture = ...;
 
 // Clear to black
 render::TextureUtility::Clear(texture, Color::kBlack);

@@ -34,13 +34,13 @@ SceneObject::~SceneObject()
 
 HSceneObject SceneObject::Create(const String& name, u32 flags)
 {
-	const SPtr<SceneInstance>& mainScene = SceneManager::Instance().GetMainScene();
+	const TShared<SceneInstance>& mainScene = SceneManager::Instance().GetMainScene();
 	return mainScene->CreateSceneObject(name, flags);
 }
 
-HSceneObject SceneObject::CreateInternal(const SPtr<GameObjectCollection>& ownerCollection, const String& name, u32 flags)
+HSceneObject SceneObject::CreateInternal(const TShared<GameObjectCollection>& ownerCollection, const String& name, u32 flags)
 {
-	const SPtr<SceneObject> sceneObject = SPtr<SceneObject>(new(B3DAllocate<SceneObject>()) SceneObject(name, flags), &B3DDelete<SceneObject>, StdAlloc<SceneObject>());
+	const TShared<SceneObject> sceneObject = TShared<SceneObject>(new(B3DAllocate<SceneObject>()) SceneObject(name, flags), &B3DDelete<SceneObject>, StdAlloc<SceneObject>());
 	sceneObject->mId = UUIDGenerator::GenerateRandom();
 
 	sceneObject->CreateECSEntity(&ownerCollection->GetECSRegistry());
@@ -49,7 +49,7 @@ HSceneObject SceneObject::CreateInternal(const SPtr<GameObjectCollection>& owner
 	return CreateInternal(ownerCollection, sceneObject);
 }
 
-HSceneObject SceneObject::CreateInternal(const SPtr<GameObjectCollection>& ownerCollection, const SPtr<SceneObject>& sceneObject)
+HSceneObject SceneObject::CreateInternal(const TShared<GameObjectCollection>& ownerCollection, const TShared<SceneObject>& sceneObject)
 {
 	if(!B3D_ENSURE(ownerCollection != nullptr))
 		return HSceneObject();
@@ -143,7 +143,7 @@ void SceneObject::DestroyImmediate()
 	GameObject::DestroyImmediate();
 }
 
-void SceneObject::SetOwnerCollection(const SPtr<GameObjectCollection>& collection)
+void SceneObject::SetOwnerCollection(const TShared<GameObjectCollection>& collection)
 {
 	for(const auto& component : mComponents)
 		component->SetOwnerCollection(collection);
@@ -247,7 +247,7 @@ void SceneObject::Initialize()
 			fnInitialize(child.Get());
 	};
 
-	const SPtr<SceneInstance>& scene = GetScene();
+	const TShared<SceneInstance>& scene = GetScene();
 	Function<void(SceneObject*)> fnTriggerComponentCreatedEvents = [&fnTriggerComponentCreatedEvents, &scene](SceneObject* sceneObject)
 	{
 		if(!sceneObject->HasGameObjectFlag(GameObjectTransientFlag::Initialized))
@@ -526,7 +526,7 @@ void SceneObject::NotifyTransformChanged(TransformChangedFlags flags) const
 	// Only send component flags if we haven't removed them all
 	if(componentFlags != 0)
 	{
-		const SPtr<SceneInstance>& scene = GetScene();
+		const TShared<SceneInstance>& scene = GetScene();
 		for(auto& entry : mComponents)
 		{
 			if(entry->SupportsNotify(flags))
@@ -657,9 +657,9 @@ void SceneObject::ClearParent()
 	UpdateHierarchyDepthFromParent();
 }
 
-void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
+void SceneObject::SetScene(const TShared<SceneInstance>& scene)
 {
-	const SPtr<SceneInstance> currentScene = mParentScene.lock();
+	const TShared<SceneInstance> currentScene = mParentScene.lock();
 	if(currentScene == scene)
 		return;
 
@@ -668,7 +668,7 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
 	bool updatedRegistry = false;
 	if(scene != nullptr)
 	{
-		const SPtr<GameObjectCollection>& sceneCollection = scene->GetGameObjectCollection();
+		const TShared<GameObjectCollection>& sceneCollection = scene->GetGameObjectCollection();
 		SetOwnerCollection(sceneCollection);
 
 		ecs::Registry* sceneRegistry = &sceneCollection->GetECSRegistry();
@@ -1010,7 +1010,7 @@ HSceneObject SceneObject::Clone()
 	HSceneObject cloneParent = GetParent();
 	if(!cloneParent.IsValid())
 	{
-		const SPtr<SceneInstance>& sceneInstance = mParentScene.lock();
+		const TShared<SceneInstance>& sceneInstance = mParentScene.lock();
 		if(sceneInstance != nullptr)
 			cloneParent = sceneInstance->GetRoot();
 	}
@@ -1030,12 +1030,12 @@ HSceneObject SceneObject::Clone()
 	return clone;
 }
 
-HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool preserveIds)
+HSceneObject SceneObject::Clone(const TShared<GameObjectCollection>& cloneOwnerCollection, bool preserveIds)
 {
 	if(!B3D_ENSURE(cloneOwnerCollection))
 		return HSceneObject();
 
-	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+	TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer serializer;
 	serializer.Encode(this, stream);
 
@@ -1046,7 +1046,7 @@ HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerColl
 	rttiOperationContext.GameObjectCollection = cloneOwnerCollection;
 
 	stream->Seek(0);
-	SPtr<SceneObject> clone = std::static_pointer_cast<SceneObject>(serializer.Decode(stream, (u32)stream->Size(), rttiOperationContext));
+	TShared<SceneObject> clone = std::static_pointer_cast<SceneObject>(serializer.Decode(stream, (u32)stream->Size(), rttiOperationContext));
 
 	// Clear the parent of the clone, as it will belong to the original game object collection, which is not valid
 	clone->mParent = nullptr;
@@ -1057,12 +1057,12 @@ HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerColl
 	return clone->GetHandle();
 }
 
-HSceneObject SceneObject::Clone(const SPtr<SceneInstance>& cloneSceneInstance, bool initialize, bool preserveIds)
+HSceneObject SceneObject::Clone(const TShared<SceneInstance>& cloneSceneInstance, bool initialize, bool preserveIds)
 {
 	if(!B3D_ENSURE(cloneSceneInstance))
 		return HSceneObject();
 
-	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+	TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer serializer;
 	serializer.Encode(this, stream);
 
@@ -1073,7 +1073,7 @@ HSceneObject SceneObject::Clone(const SPtr<SceneInstance>& cloneSceneInstance, b
 	rttiOperationContext.GameObjectCollection = cloneSceneInstance->GetGameObjectCollection();
 
 	stream->Seek(0);
-	SPtr<SceneObject> clone = std::static_pointer_cast<SceneObject>(serializer.Decode(stream, (u32)stream->Size(), rttiOperationContext));
+	TShared<SceneObject> clone = std::static_pointer_cast<SceneObject>(serializer.Decode(stream, (u32)stream->Size(), rttiOperationContext));
 	clone->SetParent(cloneSceneInstance->GetRoot());
 
 	if(initialize)
@@ -1112,7 +1112,7 @@ void SceneObject::RemoveComponent(const HComponent& component)
 
 HComponent SceneObject::AddComponent(u32 typeId)
 {
-	SPtr<IReflectable> newObj = B3DRTTICreate(typeId);
+	TShared<IReflectable> newObj = B3DRTTICreate(typeId);
 
 	if(!B3DRTTIIsSubclass<Component>(newObj.get()))
 	{
@@ -1120,7 +1120,7 @@ HComponent SceneObject::AddComponent(u32 typeId)
 		return HComponent();
 	}
 
-	SPtr<Component> component = std::static_pointer_cast<Component>(newObj);
+	TShared<Component> component = std::static_pointer_cast<Component>(newObj);
 
 	// Clean up the self-reference assigned by the RTTI system
 	component->mRTTIData = nullptr;
@@ -1130,20 +1130,20 @@ HComponent SceneObject::AddComponent(u32 typeId)
 	return componentHandle;
 }
 
-HComponent SceneObject::RegisterComponentWithOwnerCollection(const SPtr<Component>& component)
+HComponent SceneObject::RegisterComponentWithOwnerCollection(const TShared<Component>& component)
 {
 	component->SetId(UUIDGenerator::GenerateRandom());
 
-	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
+	const TShared<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
 	if(!B3D_ENSURE(ownerCollection != nullptr))
 		return HComponent();
 
 	return B3DStaticGameObjectCast<Component>(ownerCollection->RegisterNewObject(component));
 }
 
-void SceneObject::InternalAddComponent(const SPtr<Component>& component, bool initialize)
+void SceneObject::InternalAddComponent(const TShared<Component>& component, bool initialize)
 {
-	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
+	const TShared<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
 	if(!B3D_ENSURE(ownerCollection != nullptr))
 		return;
 
@@ -1167,7 +1167,7 @@ void SceneObject::InternalAddComponent(const HComponent& component, bool initial
 	{
 		component->Initialize();
 
-		const SPtr<SceneInstance>& scene = GetScene();
+		const TShared<SceneInstance>& scene = GetScene();
 		scene->NotifyComponentCreated(component, GetActive());
 	}
 }

@@ -166,7 +166,7 @@ class RTTIOperationEngineContextRTTI : public TRTTIType<RTTIOperationEngineConte
 		return TID_RTTIOperationEngineContext;
 	}
 
-	SPtr<IReflectable> NewRttiObject() override
+	TShared<IReflectable> NewRttiObject() override
 	{
 		B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 		return nullptr;

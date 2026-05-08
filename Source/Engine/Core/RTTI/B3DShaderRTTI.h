@@ -429,7 +429,7 @@ namespace b3d
 			return TID_ShaderInformationBase;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ShaderInformationBase>();
 		}
@@ -454,7 +454,7 @@ namespace b3d
 			return TID_ShaderInformation;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ShaderInformation>();
 		}
@@ -479,7 +479,7 @@ namespace b3d
 			return TID_ShaderInformationRenderProxy;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<render::ShaderInformation>();
 		}
@@ -518,7 +518,7 @@ namespace b3d
 			return TID_Shader;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return Shader::CreateEmpty();
 		}
@@ -555,7 +555,7 @@ namespace b3d
 			return TID_ShaderRenderProxy;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return render::Shader::CreateEmpty();
 		}
@@ -580,7 +580,7 @@ namespace b3d
 			return TID_ShaderMetaData;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ShaderMetaData>();
 		}

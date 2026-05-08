@@ -18,7 +18,7 @@ namespace b3d
 
 	class B3D_EXPORT SceneRTTI : public TRTTIType<Scene, Resource, SceneRTTI>
 	{
-		SPtr<SceneObject> mRootSceneObject;
+		TShared<SceneObject> mRootSceneObject;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_GENERATED_MEMBER(mRootSceneObject, 0)
@@ -63,7 +63,7 @@ namespace b3d
 			return TID_Scene;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return Scene::CreateEmpty();
 		}

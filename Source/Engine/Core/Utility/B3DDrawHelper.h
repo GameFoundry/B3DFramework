@@ -41,7 +41,7 @@ namespace b3d
 		/**	Container for mesh of a specific type output by the DrawHelper. */
 		struct ShapeMeshData
 		{
-			SPtr<Mesh> Mesh;
+			TShared<Mesh> Mesh;
 			SubMesh SubMesh;
 			MeshType Type;
 			HTexture Texture;
@@ -104,7 +104,7 @@ namespace b3d
 		void WireArc(const Vector3& position, const Vector3& normal, float radius, Degree startAngle, Degree amountAngle, u32 quality = 10);
 
 		/** Records a 3D mesh to be drawn as wireframe in the internal draw queue. */
-		void WireMesh(const SPtr<MeshData>& meshData);
+		void WireMesh(const TShared<MeshData>& meshData);
 
 		/**	Records a solid rectangle with the specified properties in the internal draw queue. */
 		void Rectangle(const Rect3& area);
@@ -220,7 +220,7 @@ namespace b3d
 
 		struct WireMeshData : CommonData
 		{
-			SPtr<MeshData> MeshData;
+			TShared<MeshData> MeshData;
 		};
 
 		static const u32 kVertexBufferGrowth;
@@ -248,10 +248,10 @@ namespace b3d
 		Vector<Text2DData> mText2DData;
 		Vector<WireMeshData> mWireMeshData;
 
-		SPtr<VertexDescription> mSolidVertexDesc;
-		SPtr<VertexDescription> mWireVertexDesc;
-		SPtr<VertexDescription> mLineVertexDesc;
-		SPtr<VertexDescription> mTextVertexDesc;
+		TShared<VertexDescription> mSolidVertexDesc;
+		TShared<VertexDescription> mWireVertexDesc;
+		TShared<VertexDescription> mLineVertexDesc;
+		TShared<VertexDescription> mTextVertexDesc;
 	};
 
 	/** @} */

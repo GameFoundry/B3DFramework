@@ -17,16 +17,16 @@ namespace b3d
 	public:
 		WaveDecoder() = default;
 
-		bool Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset = 0) override;
+		bool Open(const TShared<DataStream>& stream, AudioDataInfo& info, u32 offset = 0) override;
 		u32 Read(u8* samples, u32 numSamples) override;
 		void Seek(u32 offset) override;
-		bool IsValid(const SPtr<DataStream>& stream, u32 offset = 0) override;
+		bool IsValid(const TShared<DataStream>& stream, u32 offset = 0) override;
 
 	private:
 		/** Parses the WAVE header and output audio file meta-data. Returns false if the header is not valid. */
 		bool ParseHeader(AudioDataInfo& info);
 
-		SPtr<DataStream> mStream;
+		TShared<DataStream> mStream;
 		u32 mDataOffset = 0;
 		u32 mBytesPerSample = 0;
 

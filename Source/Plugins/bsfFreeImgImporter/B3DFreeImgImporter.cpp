@@ -114,27 +114,27 @@ String FreeImgImporter::MagicNumToExtension(const u8* magic, u32 maxBytes) const
 	}
 }
 
-SPtr<ImportOptions> FreeImgImporter::CreateImportOptions() const
+TShared<ImportOptions> FreeImgImporter::CreateImportOptions() const
 {
 	return B3DMakeShared<TextureImportOptions>();
 }
 
-SPtr<Resource> FreeImgImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+TShared<Resource> FreeImgImporter::Import(const Path& filePath, TShared<const ImportOptions> importOptions)
 {
 	const TextureImportOptions* textureImportOptions = static_cast<const TextureImportOptions*>(importOptions.get());
 
-	SPtr<PixelData> imgData = ImportRawImage(filePath);
+	TShared<PixelData> imgData = ImportRawImage(filePath);
 	if(imgData == nullptr || imgData->GetData() == nullptr)
 		return nullptr;
 
-	Vector<SPtr<PixelData>> faceData;
+	Vector<TShared<PixelData>> faceData;
 
 	TextureType texType;
 	if(textureImportOptions->Cubemap)
 	{
 		texType = TEX_TYPE_CUBE_MAP;
 
-		std::array<SPtr<PixelData>, 6> cubemapFaces;
+		std::array<TShared<PixelData>, 6> cubemapFaces;
 		if(GenerateCubemap(imgData, textureImportOptions->CubemapSourceType, cubemapFaces))
 		{
 			faceData.insert(faceData.begin(), cubemapFaces.begin(), cubemapFaces.end());
@@ -180,12 +180,12 @@ SPtr<Resource> FreeImgImporter::Import(const Path& filePath, SPtr<const ImportOp
 	texDesc.Usage = usage;
 	texDesc.UseHardwareSRGB = sRGB;
 
-	SPtr<Texture> newTexture = Texture::CreateShared(texDesc);
+	TShared<Texture> newTexture = Texture::CreateShared(texDesc);
 
 	u32 numFaces = (u32)faceData.size();
 	for(u32 i = 0; i < numFaces; i++)
 	{
-		Vector<SPtr<PixelData>> mipLevels;
+		Vector<TShared<PixelData>> mipLevels;
 		if(numMips > 0)
 		{
 			MipMapGenOptions mipOptions;
@@ -198,7 +198,7 @@ SPtr<Resource> FreeImgImporter::Import(const Path& filePath, SPtr<const ImportOp
 
 		for(u32 mip = 0; mip < (u32)mipLevels.size(); ++mip)
 		{
-			SPtr<PixelData> dst = newTexture->GetProperties().AllocBuffer(0, mip);
+			TShared<PixelData> dst = newTexture->GetProperties().AllocBuffer(0, mip);
 
 			PixelUtility::BulkPixelConversion(*mipLevels[mip], *dst);
 			newTexture->WriteData(dst, i, mip);
@@ -208,12 +208,12 @@ SPtr<Resource> FreeImgImporter::Import(const Path& filePath, SPtr<const ImportOp
 	return newTexture;
 }
 
-SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
+TShared<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
 {
 	UPtr<MemoryDataStream> memStream;
 	FREE_IMAGE_FORMAT imageFormat;
 	{
-		SPtr<DataStream> fileData = FileSystem::OpenFile(filePath, true);
+		TShared<DataStream> fileData = FileSystem::OpenFile(filePath, true);
 		if(fileData->Size() > std::numeric_limits<u32>::max())
 		{
 			B3D_ENSURE_LOG(false, "File size larger than supported!");
@@ -383,7 +383,7 @@ SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
 	u32 dstPitch = width * PixelUtility::GetElementByteCount(format);
 
 	// Bind output buffer
-	SPtr<PixelData> texData = B3DMakeShared<PixelData>(width, height, 1, format);
+	TShared<PixelData> texData = B3DMakeShared<PixelData>(width, height, 1, format);
 	texData->AllocateInternalBuffer();
 	u8* output = texData->GetData();
 
@@ -427,7 +427,7 @@ SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
  * @param[in]	faceSize	Size of a single face, in pixels. Both width & height must match.
  * @param[in]	vertical	True if the faces are laid out vertically, false if horizontally.
  */
-void ReadCubemapList(const SPtr<PixelData>& source, std::array<SPtr<PixelData>, 6>& output, u32 faceSize, bool vertical)
+void ReadCubemapList(const TShared<PixelData>& source, std::array<TShared<PixelData>, 6>& output, u32 faceSize, bool vertical)
 {
 	Vector2I faceStart(kZeroTag);
 	for(u32 i = 0; i < 6; i++)
@@ -463,7 +463,7 @@ void ReadCubemapList(const SPtr<PixelData>& source, std::array<SPtr<PixelData>, 
  * @param[in]	faceSize	Size of a single face, in pixels. Both width & height must match.
  * @param[in]	vertical	True if the faces are laid out vertically, false if horizontally.
  */
-void ReadCubemapCross(const SPtr<PixelData>& source, std::array<SPtr<PixelData>, 6>& output, u32 faceSize, bool vertical)
+void ReadCubemapCross(const TShared<PixelData>& source, std::array<TShared<PixelData>, 6>& output, u32 faceSize, bool vertical)
 {
 	const static u32 kVertFaceIndices[] = { 5, 3, 1, 7, 4, 10 };
 	const static u32 kHorzFaceIndices[] = { 6, 4, 1, 9, 5, 7 };
@@ -517,7 +517,7 @@ Vector2 MapCubemapDirToCylindrical(const Vector3& dir)
 }
 
 /** Resizes the provided cubemap faces and outputs a new set of resized faces. */
-void DownsampleCubemap(const std::array<SPtr<PixelData>, 6>& input, std::array<SPtr<PixelData>, 6>& output, u32 size)
+void DownsampleCubemap(const std::array<TShared<PixelData>, 6>& input, std::array<TShared<PixelData>, 6>& output, u32 size)
 {
 	for(u32 i = 0; i < 6; i++)
 	{
@@ -534,7 +534,7 @@ void DownsampleCubemap(const std::array<SPtr<PixelData>, 6>& input, std::array<S
  * @param[in]	faceSize	Width/height of each individual face, in pixels.
  * @param[in]	remap		Function to use for remapping the cubemap direction to UV.
  */
-void ReadCubemapUvRemap(const SPtr<PixelData>& source, std::array<SPtr<PixelData>, 6>& output, u32 faceSize, const std::function<Vector2(Vector3)>& remap)
+void ReadCubemapUvRemap(const TShared<PixelData>& source, std::array<TShared<PixelData>, 6>& output, u32 faceSize, const std::function<Vector2(Vector3)>& remap)
 {
 	struct RemapInfo
 	{
@@ -586,7 +586,7 @@ void ReadCubemapUvRemap(const SPtr<PixelData>& source, std::array<SPtr<PixelData
 	}
 }
 
-bool FreeImgImporter::GenerateCubemap(const SPtr<PixelData>& source, CubemapSourceType sourceType, std::array<SPtr<PixelData>, 6>& output)
+bool FreeImgImporter::GenerateCubemap(const TShared<PixelData>& source, CubemapSourceType sourceType, std::array<TShared<PixelData>, 6>& output)
 {
 	// Note: Expose this as a parameter if needed:
 	u32 cubemapSupersampling = 1; // Set to amount of samples
@@ -676,7 +676,7 @@ bool FreeImgImporter::GenerateCubemap(const SPtr<PixelData>& source, CubemapSour
 		{
 			u32 superSampledFaceSize = faceSize.X * cubemapSupersampling;
 
-			std::array<SPtr<PixelData>, 6> superSampledOutput;
+			std::array<TShared<PixelData>, 6> superSampledOutput;
 			ReadCubemapUvRemap(source, superSampledOutput, superSampledFaceSize, &MapCubemapDirToCylindrical);
 
 			if(faceSize.X != (i32)superSampledFaceSize)
@@ -689,7 +689,7 @@ bool FreeImgImporter::GenerateCubemap(const SPtr<PixelData>& source, CubemapSour
 		{
 			u32 superSampledFaceSize = faceSize.X * cubemapSupersampling;
 
-			std::array<SPtr<PixelData>, 6> superSampledOutput;
+			std::array<TShared<PixelData>, 6> superSampledOutput;
 			ReadCubemapUvRemap(source, superSampledOutput, superSampledFaceSize, &MapCubemapDirToSpherical);
 
 			if(faceSize.X != (i32)superSampledFaceSize)

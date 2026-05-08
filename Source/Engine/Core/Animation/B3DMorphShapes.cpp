@@ -10,7 +10,7 @@ MorphShape::MorphShape(const String& name, float weight, const Vector<MorphVerte
 {}
 
 /** Creates a new morph shape from the provided set of vertices. */
-SPtr<MorphShape> MorphShape::Create(const String& name, float weight, const Vector<MorphVertex>& vertices)
+TShared<MorphShape> MorphShape::Create(const String& name, float weight, const Vector<MorphVertex>& vertices)
 {
 	return B3DMakeShared<MorphShape>(name, weight, vertices);
 }
@@ -25,20 +25,20 @@ RTTIType* MorphShape::GetRtti() const
 	return GetRttiStatic();
 }
 
-MorphChannel::MorphChannel(const String& name, const Vector<SPtr<MorphShape>>& shapes)
+MorphChannel::MorphChannel(const String& name, const Vector<TShared<MorphShape>>& shapes)
 	: mName(name), mShapes(shapes)
 {
 	std::sort(mShapes.begin(), mShapes.end(), [](auto& x, auto& y)
 			  { return x->GetWeight() < y->GetWeight(); });
 }
 
-SPtr<MorphChannel> MorphChannel::Create(const String& name, const Vector<SPtr<MorphShape>>& shapes)
+TShared<MorphChannel> MorphChannel::Create(const String& name, const Vector<TShared<MorphShape>>& shapes)
 {
 	MorphChannel* raw = new(B3DAllocate<MorphChannel>()) MorphChannel(name, shapes);
 	return B3DMakeSharedFromExisting(raw);
 }
 
-SPtr<MorphChannel> MorphChannel::CreateEmpty()
+TShared<MorphChannel> MorphChannel::CreateEmpty()
 {
 	MorphChannel* raw = new(B3DAllocate<MorphChannel>()) MorphChannel();
 	return B3DMakeSharedFromExisting(raw);
@@ -54,18 +54,18 @@ RTTIType* MorphChannel::GetRtti() const
 	return GetRttiStatic();
 }
 
-MorphShapes::MorphShapes(const Vector<SPtr<MorphChannel>>& channels, u32 numVertices)
+MorphShapes::MorphShapes(const Vector<TShared<MorphChannel>>& channels, u32 numVertices)
 	: mChannels(channels), mVertexCount(numVertices)
 {
 }
 
-SPtr<MorphShapes> MorphShapes::Create(const Vector<SPtr<MorphChannel>>& channels, u32 numVertices)
+TShared<MorphShapes> MorphShapes::Create(const Vector<TShared<MorphChannel>>& channels, u32 numVertices)
 {
 	MorphShapes* raw = new(B3DAllocate<MorphShapes>()) MorphShapes(channels, numVertices);
 	return B3DMakeSharedFromExisting(raw);
 }
 
-SPtr<MorphShapes> MorphShapes::CreateEmpty()
+TShared<MorphShapes> MorphShapes::CreateEmpty()
 {
 	MorphShapes* raw = new(B3DAllocate<MorphShapes>()) MorphShapes();
 	return B3DMakeSharedFromExisting(raw);

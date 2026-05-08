@@ -20,7 +20,7 @@ namespace b3d
 	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) PhysicsMesh : public Resource
 	{
 	public:
-		PhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type);
+		PhysicsMesh(const TShared<MeshData>& meshData, PhysicsMeshType type);
 		virtual ~PhysicsMesh() = default;
 
 		/** Returns the type of the physics mesh. */
@@ -28,7 +28,7 @@ namespace b3d
 		PhysicsMeshType GetType() const { return mType; }
 
 		/** Returns the mesh's indices and vertices. */
-		SPtr<MeshData> GetMeshData() const;
+		TShared<MeshData> GetMeshData() const;
 
 		/**
 		 * Creates a new physics mesh.
@@ -37,7 +37,7 @@ namespace b3d
 		 * @param	type		Type of the mesh. If convex the provided mesh geometry will be converted into a convex
 		 *							mesh (that might not be the same as the provided mesh data).
 		 */
-		static HPhysicsMesh Create(const SPtr<MeshData>& meshData, PhysicsMeshType type = PhysicsMeshType::Convex);
+		static HPhysicsMesh Create(const TShared<MeshData>& meshData, PhysicsMeshType type = PhysicsMeshType::Convex);
 
 		/** @name Internal
 		 *  @{
@@ -51,10 +51,10 @@ namespace b3d
 		 *
 		 * For internal use. Requires manual initialization after creation.
 		 */
-		static SPtr<PhysicsMesh> CreateShared(const SPtr<MeshData>& meshData, PhysicsMeshType type);
+		static TShared<PhysicsMesh> CreateShared(const TShared<MeshData>& meshData, PhysicsMeshType type);
 
 		/** Creates an empty and uninitialized object instance. To be used by serialization. */
-		static SPtr<PhysicsMesh> CreateEmpty();
+		static TShared<PhysicsMesh> CreateEmpty();
 
 		/** @} */
 
@@ -62,8 +62,8 @@ namespace b3d
 		void Initialize() override;
 		void Destroy() override;
 
-		SPtr<IPhysicsMeshImplementation> mImplementation;
-		SPtr<MeshData> mInitMeshData; // Transient, only used during initalization
+		TShared<IPhysicsMeshImplementation> mImplementation;
+		TShared<MeshData> mInitMeshData; // Transient, only used during initalization
 		PhysicsMeshType mType; // Transient, only used during initalization
 
 		/************************************************************************/
@@ -87,7 +87,7 @@ namespace b3d
 		virtual ~IPhysicsMeshImplementation() = default;
 
 		/** Returns the mesh's indices and vertices. */
-		virtual SPtr<MeshData> GetMeshData() const = 0;
+		virtual TShared<MeshData> GetMeshData() const = 0;
 
 	protected:
 		friend class PhysicsMesh;

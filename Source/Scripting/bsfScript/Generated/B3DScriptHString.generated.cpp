@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	ScriptLocString::ScriptLocString(const SPtr<HString>& nativeObject)
+	ScriptLocString::ScriptLocString(const TShared<HString>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -44,7 +44,7 @@ namespace b3d
 	{
 		String tmpidentifier;
 		tmpidentifier = MonoUtil::MonoToString(identifier);
-		SPtr<HString> nativeObject = B3DMakeShared<HString>(tmpidentifier, stringTableId);
+		TShared<HString> nativeObject = B3DMakeShared<HString>(tmpidentifier, stringTableId);
 		ScriptObjectWrapper::Create<ScriptLocString>(nativeObject, scriptObject);
 	}
 
@@ -54,19 +54,19 @@ namespace b3d
 		tmpidentifier = MonoUtil::MonoToString(identifier);
 		String tmpdefaultString;
 		tmpdefaultString = MonoUtil::MonoToString(defaultString);
-		SPtr<HString> nativeObject = B3DMakeShared<HString>(tmpidentifier, tmpdefaultString, stringTableId);
+		TShared<HString> nativeObject = B3DMakeShared<HString>(tmpidentifier, tmpdefaultString, stringTableId);
 		ScriptObjectWrapper::Create<ScriptLocString>(nativeObject, scriptObject);
 	}
 
 	void ScriptLocString::InternalHString1(MonoObject* scriptObject, uint32_t stringTableId)
 	{
-		SPtr<HString> nativeObject = B3DMakeShared<HString>(stringTableId);
+		TShared<HString> nativeObject = B3DMakeShared<HString>(stringTableId);
 		ScriptObjectWrapper::Create<ScriptLocString>(nativeObject, scriptObject);
 	}
 
 	void ScriptLocString::InternalHString2(MonoObject* scriptObject)
 	{
-		SPtr<HString> nativeObject = B3DMakeShared<HString>();
+		TShared<HString> nativeObject = B3DMakeShared<HString>();
 		ScriptObjectWrapper::Create<ScriptLocString>(nativeObject, scriptObject);
 	}
 

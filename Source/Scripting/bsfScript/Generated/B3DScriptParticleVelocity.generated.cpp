@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptParticleVelocity::ScriptParticleVelocity(const SPtr<ParticleVelocity>& nativeObject)
+	ScriptParticleVelocity::ScriptParticleVelocity(const TShared<ParticleVelocity>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -69,13 +69,13 @@ namespace b3d
 	{
 		ParticleVelocitySettings tmpsettings;
 		tmpsettings = ScriptParticleVelocitySettings::FromInterop(*settings);
-		SPtr<ParticleVelocity> nativeObject = ParticleVelocity::Create(tmpsettings);
+		TShared<ParticleVelocity> nativeObject = ParticleVelocity::Create(tmpsettings);
 		ScriptObjectWrapper::Create<ScriptParticleVelocity>(nativeObject, scriptObject);
 	}
 
 	void ScriptParticleVelocity::InternalCreate0(MonoObject* scriptObject)
 	{
-		SPtr<ParticleVelocity> nativeObject = ParticleVelocity::Create();
+		TShared<ParticleVelocity> nativeObject = ParticleVelocity::Create();
 		ScriptObjectWrapper::Create<ScriptParticleVelocity>(nativeObject, scriptObject);
 	}
 }

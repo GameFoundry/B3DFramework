@@ -23,7 +23,7 @@ namespace b3d
 
 	void ScriptSceneManager::InternalSetMainScene(MonoObject* scene)
 	{
-		SPtr<SceneInstance> tmpscene;
+		TShared<SceneInstance> tmpscene;
 		ScriptSceneInstance* scriptObjectWrapperscene;
 		scriptObjectWrapperscene = ScriptSceneInstance::GetScriptObjectWrapper(scene);
 		if(scriptObjectWrapperscene != nullptr)
@@ -33,7 +33,7 @@ namespace b3d
 
 	MonoObject* ScriptSceneManager::InternalGetMainScene()
 	{
-		SPtr<SceneInstance> tmp__output;
+		TShared<SceneInstance> tmp__output;
 		tmp__output = SceneManager::Instance().GetMainScene();
 
 		MonoObject* __output;

@@ -80,7 +80,7 @@ GUIStyleSheetParser::GUIStyleSheetParser()
 	mPropertyKeywords["border-bottom-right-radius"] = { GUIStyleSheetPropertyType::BorderBottomRightRadius, ValueType::Pixel };
 }
 
-SPtr<GUIStyleSheet> GUIStyleSheetParser::Parse(const SPtr<SourceCode>& sourceCode)
+TShared<GUIStyleSheet> GUIStyleSheetParser::Parse(const TShared<SourceCode>& sourceCode)
 {
 	mLexer.StartScanning(sourceCode);
 
@@ -96,7 +96,7 @@ SPtr<GUIStyleSheet> GUIStyleSheetParser::Parse(const SPtr<SourceCode>& sourceCod
 			return nullptr;
 	}
 
-	SPtr<GUIStyleSheet> stylesheet = GUIStyleSheet::CreateShared(std::move(mParsedRulesets));
+	TShared<GUIStyleSheet> stylesheet = GUIStyleSheet::CreateShared(std::move(mParsedRulesets));
 	mParsedRulesets.Clear();
 
 	return stylesheet;

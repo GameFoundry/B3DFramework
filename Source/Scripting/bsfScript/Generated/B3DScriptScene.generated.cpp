@@ -49,7 +49,7 @@ namespace b3d
 
 	MonoObject* ScriptScene::InternalInstantiate(ScriptScene* self)
 	{
-		SPtr<SceneInstance> tmp__output;
+		TShared<SceneInstance> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 

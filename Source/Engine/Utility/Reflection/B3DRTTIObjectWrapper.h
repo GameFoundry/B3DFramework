@@ -216,7 +216,7 @@ namespace b3d::RTTIObjectWrapper
 	{
 	public:
 		Field() = default;
-		Field(u32 fieldId, const SPtr<ISerialized>& value, FrameAllocator* frameAllocator);
+		Field(u32 fieldId, const TShared<ISerialized>& value, FrameAllocator* frameAllocator);
 
 		/** Returns the unique identifier of the field within a RTTIType. */
 		u32 GetId() const;
@@ -225,13 +225,13 @@ namespace b3d::RTTIObjectWrapper
 		ValueIterator<false> GetValueIterator() const;
 
 		/** Clones the contents of this field and returns them as intermediate serialized data. */
-		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const;
+		TShared<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const;
 
 	private:
 		friend struct Field<true>;
 
 		u32 mId = 0;
-		SPtr<ISerialized> mValue;
+		TShared<ISerialized> mValue;
 
 		FrameAllocator* mFrameAllocator = nullptr;
 	};
@@ -251,7 +251,7 @@ namespace b3d::RTTIObjectWrapper
 		ValueIterator<true> GetValueIterator() const;
 
 		/** Clones the contents of this field and returns them as intermediate serialized data. */
-		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const;
+		TShared<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const;
 
 	private:
 		friend struct Field<false>;
@@ -316,7 +316,7 @@ namespace b3d::RTTIObjectWrapper
 	template <>
 	struct ValueIterator<false>
 	{
-		ValueIterator(const SPtr<ISerialized>& value, FrameAllocator* allocator);
+		ValueIterator(const TShared<ISerialized>& value, FrameAllocator* allocator);
 
 		/**
 		 * Moves to the next value and return false if no value was available (end was reached).
@@ -346,11 +346,11 @@ namespace b3d::RTTIObjectWrapper
 		friend struct ValueIterator<true>;
 
 		u64 mArrayIndex = 0;
-		UnorderedMap<SPtr<ISerialized>, SPtr<ISerialized>>::iterator mMapIterator;
+		UnorderedMap<TShared<ISerialized>, TShared<ISerialized>>::iterator mMapIterator;
 		bool mIsIteratorSet = false;
-		SPtr<SerializedArray> mArrayContainerValue;
-		SPtr<SerializedMap> mMapContainerValue;
-		SPtr<ISerialized> mValue;
+		TShared<SerializedArray> mArrayContainerValue;
+		TShared<SerializedMap> mMapContainerValue;
+		TShared<ISerialized> mValue;
 
 		FrameAllocator* mFrameAllocator = nullptr;
 	};
@@ -359,7 +359,7 @@ namespace b3d::RTTIObjectWrapper
 	template <>
 	struct ValueIterator<true>
 	{
-		ValueIterator(RTTIField* field, RTTIType* rttiType, IReflectable* object, const SPtr<IRTTIIterator>& iterator, FrameAllocator* allocator);
+		ValueIterator(RTTIField* field, RTTIType* rttiType, IReflectable* object, const TShared<IRTTIIterator>& iterator, FrameAllocator* allocator);
 		ValueIterator(RTTIField* field, RTTIType* rttiType, IReflectable* object, u32 elementCount, FrameAllocator* allocator);
 
 		/**
@@ -389,7 +389,7 @@ namespace b3d::RTTIObjectWrapper
 	private:
 		friend struct ValueIterator<false>;
 
-		SPtr<IRTTIIterator> mIterator; /**< Iterator in case the field is an iterator field. */
+		TShared<IRTTIIterator> mIterator; /**< Iterator in case the field is an iterator field. */
 		bool mIsIteratorSet = false; /**< True if the iterator has been advanced to the first element. */
 
 		u32 mElementIndex = 0;
@@ -411,7 +411,7 @@ namespace b3d::RTTIObjectWrapper
 	{
 	public:
 		Value() = default;
-		Value(u32 tupleElementIndex, const SPtr<ISerialized>& value, FrameAllocator* allocator);
+		Value(u32 tupleElementIndex, const TShared<ISerialized>& value, FrameAllocator* allocator);
 
 		/** If the value represents a tuple (e.g. std::pair<K, V>), represents the index within the tuple. */
 		u32 GetTupleElementIndex() const { return mTupleElementIndex; }
@@ -429,7 +429,7 @@ namespace b3d::RTTIObjectWrapper
 		Object<false> GetObject() const;
 
 		/** Returns a data stream held by the field. Only valid if the field is a data block field. */
-		SPtr<DataStream> GetDataStream(u32& size, u32& offset) const;
+		TShared<DataStream> GetDataStream(u32& size, u32& offset) const;
 
 		/** Returns the size of the plain data in a field, in bytes. Only valid if the field holds a plain type. */
 		u32 GetPlainSize() const;
@@ -441,13 +441,13 @@ namespace b3d::RTTIObjectWrapper
 		bool ComparePlain(const Value<true>& other) const;
 
 		/** Clones the contents of this value and returns them as intermediate serialized data. */
-		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const;
+		TShared<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const;
 
 	private:
 		friend struct Value<true>;
 
 		u32 mTupleElementIndex = 0;
-		SPtr<ISerialized> mValue;
+		TShared<ISerialized> mValue;
 
 		FrameAllocator* mFrameAllocator = nullptr;
 	};
@@ -461,7 +461,7 @@ namespace b3d::RTTIObjectWrapper
 	{
 	public:
 		Value() = default;
-		Value(RTTIField* field, u32 tupleElementIndex, const SPtr<IRTTIIterator>& iterator, RTTIType* rttiTypeInstance, IReflectable* object, FrameAllocator* allocator);
+		Value(RTTIField* field, u32 tupleElementIndex, const TShared<IRTTIIterator>& iterator, RTTIType* rttiTypeInstance, IReflectable* object, FrameAllocator* allocator);
 		Value(RTTIField* field, u32 tupleElementIndex, u32 arrayIndex, RTTIType* rttiTypeInstance, IReflectable* object, FrameAllocator* allocator);
 
 		/** If the value represents a tuple (e.g. std::pair<K, V>), represents the index within the tuple. */
@@ -480,7 +480,7 @@ namespace b3d::RTTIObjectWrapper
 		Object<true> GetObject() const;
 
 		/** Returns a data stream held by the field. Only valid if the field is a data block field. */
-		SPtr<DataStream> GetDataStream(u32& size, u32& offset) const;
+		TShared<DataStream> GetDataStream(u32& size, u32& offset) const;
 
 		/** Returns the size of the plain data in a field, in bytes. Only valid if the field holds a plain type. */
 		u32 GetPlainSize() const;
@@ -499,13 +499,13 @@ namespace b3d::RTTIObjectWrapper
 		bool ComparePlain(const Value<true>& other) const;
 
 		/** Clones the contents of this value and returns them as intermediate serialized data. */
-		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const;
+		TShared<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const;
 
 	private:
 		friend struct Value<false>;
 
 		u32 mTupleElementIndex = 0;
-		SPtr<IRTTIIterator> mIterator;
+		TShared<IRTTIIterator> mIterator;
 		u32 mArrayIndex = ~0u;
 
 		IReflectable* mObject = nullptr;

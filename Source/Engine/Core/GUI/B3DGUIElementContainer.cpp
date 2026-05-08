@@ -23,7 +23,7 @@ namespace b3d
 
 		u32 GetRttiId() const override { return TID_GUIElementContainer; }
 
-		SPtr<IReflectable> NewRttiObject() { return nullptr; }
+		TShared<IReflectable> NewRttiObject() { return nullptr; }
 	};
 } // namespace b3d
 

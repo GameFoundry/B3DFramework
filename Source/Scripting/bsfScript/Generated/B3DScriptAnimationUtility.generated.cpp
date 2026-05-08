@@ -12,7 +12,7 @@
 
 namespace b3d
 {
-	ScriptAnimationUtility::ScriptAnimationUtility(const SPtr<AnimationUtility>& nativeObject)
+	ScriptAnimationUtility::ScriptAnimationUtility(const TShared<AnimationUtility>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -47,8 +47,8 @@ namespace b3d
 	}
 	MonoObject* ScriptAnimationUtility::InternalEulerToQuaternionCurve(MonoObject* eulerCurve, EulerAngleOrder order)
 	{
-		SPtr<TAnimationCurve<TQuaternion<float>>> tmp__output;
-		SPtr<TAnimationCurve<TVector3<float>>> tmpeulerCurve;
+		TShared<TAnimationCurve<TQuaternion<float>>> tmp__output;
+		TShared<TAnimationCurve<TVector3<float>>> tmpeulerCurve;
 		ScriptVector3Curve* scriptObjectWrappereulerCurve;
 		scriptObjectWrappereulerCurve = ScriptVector3Curve::GetScriptObjectWrapper(eulerCurve);
 		if(scriptObjectWrappereulerCurve != nullptr)
@@ -63,8 +63,8 @@ namespace b3d
 
 	MonoObject* ScriptAnimationUtility::InternalQuaternionToEulerCurve(MonoObject* quatCurve)
 	{
-		SPtr<TAnimationCurve<TVector3<float>>> tmp__output;
-		SPtr<TAnimationCurve<TQuaternion<float>>> tmpquatCurve;
+		TShared<TAnimationCurve<TVector3<float>>> tmp__output;
+		TShared<TAnimationCurve<TQuaternion<float>>> tmpquatCurve;
 		ScriptQuaternionCurve* scriptObjectWrapperquatCurve;
 		scriptObjectWrapperquatCurve = ScriptQuaternionCurve::GetScriptObjectWrapper(quatCurve);
 		if(scriptObjectWrapperquatCurve != nullptr)
@@ -79,8 +79,8 @@ namespace b3d
 
 	MonoArray* ScriptAnimationUtility::InternalSplitCurve3D(MonoObject* compoundCurve)
 	{
-		Vector<SPtr<TAnimationCurve<float>>> nativeArray__output;
-		SPtr<TAnimationCurve<TVector3<float>>> tmpcompoundCurve;
+		Vector<TShared<TAnimationCurve<float>>> nativeArray__output;
+		TShared<TAnimationCurve<TVector3<float>>> tmpcompoundCurve;
 		ScriptVector3Curve* scriptObjectWrappercompoundCurve;
 		scriptObjectWrappercompoundCurve = ScriptVector3Curve::GetScriptObjectWrapper(compoundCurve);
 		if(scriptObjectWrappercompoundCurve != nullptr)
@@ -92,7 +92,7 @@ namespace b3d
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptAnimationCurve>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<TAnimationCurve<float>> arrayElementPointer__output = nativeArray__output[elementIndex];
+			TShared<TAnimationCurve<float>> arrayElementPointer__output = nativeArray__output[elementIndex];
 			MonoObject* arrayElement__output;
 			arrayElement__output = ScriptAnimationCurve::GetOrCreateScriptObject(arrayElementPointer__output);
 			scriptArray__output.Set(elementIndex, arrayElement__output);
@@ -104,15 +104,15 @@ namespace b3d
 
 	MonoObject* ScriptAnimationUtility::InternalCombineCurve3D(MonoArray* curveComponents)
 	{
-		SPtr<TAnimationCurve<TVector3<float>>> tmp__output;
-		Vector<SPtr<TAnimationCurve<float>>> nativeArraycurveComponents;
+		TShared<TAnimationCurve<TVector3<float>>> tmp__output;
+		Vector<TShared<TAnimationCurve<float>>> nativeArraycurveComponents;
 		if(curveComponents != nullptr)
 		{
 			ScriptArray scriptArraycurveComponents(curveComponents);
 			nativeArraycurveComponents.resize(scriptArraycurveComponents.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArraycurveComponents.Size(); elementIndex++)
 			{
-				SPtr<TAnimationCurve<float>> arrayElementPointercurveComponents;
+				TShared<TAnimationCurve<float>> arrayElementPointercurveComponents;
 				ScriptAnimationCurve* scriptObjectWrappercurveComponents;
 				scriptObjectWrappercurveComponents = ScriptAnimationCurve::GetScriptObjectWrapper(scriptArraycurveComponents.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrappercurveComponents != nullptr)
@@ -132,8 +132,8 @@ namespace b3d
 
 	MonoArray* ScriptAnimationUtility::InternalSplitCurve2D(MonoObject* compoundCurve)
 	{
-		Vector<SPtr<TAnimationCurve<float>>> nativeArray__output;
-		SPtr<TAnimationCurve<TVector2<float>>> tmpcompoundCurve;
+		Vector<TShared<TAnimationCurve<float>>> nativeArray__output;
+		TShared<TAnimationCurve<TVector2<float>>> tmpcompoundCurve;
 		ScriptVector2Curve* scriptObjectWrappercompoundCurve;
 		scriptObjectWrappercompoundCurve = ScriptVector2Curve::GetScriptObjectWrapper(compoundCurve);
 		if(scriptObjectWrappercompoundCurve != nullptr)
@@ -145,7 +145,7 @@ namespace b3d
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptAnimationCurve>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<TAnimationCurve<float>> arrayElementPointer__output = nativeArray__output[elementIndex];
+			TShared<TAnimationCurve<float>> arrayElementPointer__output = nativeArray__output[elementIndex];
 			MonoObject* arrayElement__output;
 			arrayElement__output = ScriptAnimationCurve::GetOrCreateScriptObject(arrayElementPointer__output);
 			scriptArray__output.Set(elementIndex, arrayElement__output);
@@ -157,15 +157,15 @@ namespace b3d
 
 	MonoObject* ScriptAnimationUtility::InternalCombineCurve2D(MonoArray* curveComponents)
 	{
-		SPtr<TAnimationCurve<TVector2<float>>> tmp__output;
-		Vector<SPtr<TAnimationCurve<float>>> nativeArraycurveComponents;
+		TShared<TAnimationCurve<TVector2<float>>> tmp__output;
+		Vector<TShared<TAnimationCurve<float>>> nativeArraycurveComponents;
 		if(curveComponents != nullptr)
 		{
 			ScriptArray scriptArraycurveComponents(curveComponents);
 			nativeArraycurveComponents.resize(scriptArraycurveComponents.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArraycurveComponents.Size(); elementIndex++)
 			{
-				SPtr<TAnimationCurve<float>> arrayElementPointercurveComponents;
+				TShared<TAnimationCurve<float>> arrayElementPointercurveComponents;
 				ScriptAnimationCurve* scriptObjectWrappercurveComponents;
 				scriptObjectWrappercurveComponents = ScriptAnimationCurve::GetScriptObjectWrapper(scriptArraycurveComponents.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrappercurveComponents != nullptr)
@@ -185,14 +185,14 @@ namespace b3d
 
 	void ScriptAnimationUtility::InternalCalculateRange(MonoArray* curves, float* outXMin, float* outXMax, float* outYMin, float* outYMax)
 	{
-		Vector<SPtr<TAnimationCurve<float>>> nativeArraycurves;
+		Vector<TShared<TAnimationCurve<float>>> nativeArraycurves;
 		if(curves != nullptr)
 		{
 			ScriptArray scriptArraycurves(curves);
 			nativeArraycurves.resize(scriptArraycurves.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArraycurves.Size(); elementIndex++)
 			{
-				SPtr<TAnimationCurve<float>> arrayElementPointercurves;
+				TShared<TAnimationCurve<float>> arrayElementPointercurves;
 				ScriptAnimationCurve* scriptObjectWrappercurves;
 				scriptObjectWrappercurves = ScriptAnimationCurve::GetScriptObjectWrapper(scriptArraycurves.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrappercurves != nullptr)

@@ -21,7 +21,7 @@ namespace b3d
 			: Id(id)
 		{ }
 
-		ResourceHandleData(const SPtr<Resource>& object, const UUID& id)
+		ResourceHandleData(const TShared<Resource>& object, const UUID& id)
 			: Object(object), Id(id), IsCreated(true)
 		{ }
 
@@ -79,7 +79,7 @@ namespace b3d
 		/** Destroys the handle data. */
 		void DestroySelf();
 
-		SPtr<Resource> Object;
+		TShared<Resource> Object;
 		UUID Id;
 		bool IsCreated = false;
 		std::atomic<std::uint32_t> StrongReferenceCount{ 1 }; /**< References keeping the resource alive (strong handles). */
@@ -150,7 +150,7 @@ namespace b3d
 		 * @note
 		 * Internal method.
 		 */
-		void AssociateResourceWithHandle(const SPtr<Resource>& resource, const UUID& resourceId);
+		void AssociateResourceWithHandle(const TShared<Resource>& resource, const UUID& resourceId);
 
 		/** Increments the strong reference count. As long as strong reference count is non-zero the handle will keep the managed resource alive. */
 		void IncrementStrongReferenceCount() const
@@ -370,7 +370,7 @@ namespace b3d
 		 *
 		 * @note	Throws exception if handle is invalid.
 		 */
-		SPtr<ResourceType> GetShared() const
+		TShared<ResourceType> GetShared() const
 		{
 			this->ReportIfNotLoaded();
 
@@ -413,7 +413,7 @@ namespace b3d
 		}
 
 		/**	Constructs a new valid handle for the provided resource with the provided ID. */
-		TResourceHandle(const SPtr<ResourceType> object, const UUID& resourceId)
+		TResourceHandle(const TShared<ResourceType> object, const UUID& resourceId)
 		{
 			this->mData = B3DNew<ResourceHandleData>(object, resourceId);
 		}

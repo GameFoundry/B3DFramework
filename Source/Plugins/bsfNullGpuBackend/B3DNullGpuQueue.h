@@ -23,7 +23,7 @@ namespace b3d
 
 			void SubmitCommandBuffer(const GpuSubmissionInformation& information, bool flushTransferCommandBuffer = true) override {}
 			void WaitUntilIdle() override {}
-			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override {}
+			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override {}
 		};
 
 		/** @} */

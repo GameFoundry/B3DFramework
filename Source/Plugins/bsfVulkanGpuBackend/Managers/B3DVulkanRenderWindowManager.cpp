@@ -6,7 +6,7 @@
 
 using namespace b3d;
 
-SPtr<render::IRenderWindowSurface> VulkanRenderWindowManager::CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation)
+TShared<render::IRenderWindowSurface> VulkanRenderWindowManager::CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation)
 {
 	if(createInformation.Headless)
 		return B3DMakeShared<render::VulkanHeadlessRenderWindowSurface>(createInformation);

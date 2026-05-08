@@ -10,7 +10,7 @@
 
 namespace b3d
 {
-	ScriptRandom::ScriptRandom(const SPtr<Random>& nativeObject)
+	ScriptRandom::ScriptRandom(const TShared<Random>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -53,7 +53,7 @@ namespace b3d
 	}
 	void ScriptRandom::InternalRandom(MonoObject* scriptObject, uint32_t seed)
 	{
-		SPtr<Random> nativeObject = B3DMakeShared<Random>(seed);
+		TShared<Random> nativeObject = B3DMakeShared<Random>(seed);
 		ScriptObjectWrapper::Create<ScriptRandom>(nativeObject, scriptObject);
 	}
 

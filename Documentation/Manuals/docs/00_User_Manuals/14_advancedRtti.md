@@ -83,7 +83,7 @@ public:
 		return TID_MyComponent;
 	}
 
-	SPtr<IReflectable> NewRttiObject() override
+	TShared<IReflectable> NewRttiObject() override
 	{
 		return SceneObject::CreateEmptyComponent<MyComponent>();
 	}
@@ -230,7 +230,7 @@ B3D_ALLOW_MEMCPY_SERIALIZATION(PlayerStats)
 // This will NOT work correctly with plain types:
 struct BrokenExample
 {
-    SPtr<Texture> texture; // BROKEN - shared pointer not handled
+    TShared<Texture> texture; // BROKEN - shared pointer not handled
     HMesh mesh;            // BROKEN - resource handle not preserved
     HRenderable component; // BROKEN - component handle not preserved
 };
@@ -266,14 +266,14 @@ public:
     Vector3 position;
 
     // Can contain shared pointers - properly tracked
-    SPtr<Material> material;
+    TShared<Material> material;
 
     // Can contain resource handles - properly preserved
     HMesh mesh;
     HTexture texture;
 
     // Can contain other IReflectable objects
-    SPtr<PhysicsData> physics;
+    TShared<PhysicsData> physics;
 
     // References are maintained after deserialization!
     static RTTIType* GetRttiStatic();
@@ -322,13 +322,13 @@ class MyComponent : public Component
 // ✗ BROKEN - Plain type containing IReflectable
 struct BrokenStruct
 {
-    SPtr<MyComponent> component; // Will NOT work - reference lost!
+    TShared<MyComponent> component; // Will NOT work - reference lost!
 };
 
 // ✓ OK - Use IReflectable wrapper instead
 class WorkingWrapper : public IReflectable
 {
-    SPtr<MyComponent> component; // Works correctly
+    TShared<MyComponent> component; // Works correctly
 };
 ~~~~~~~~~~~~~
 
@@ -614,8 +614,8 @@ The basic serialization manual showed how to use @b3d::FileEncoder and @b3d::Bin
 
 ~~~~~~~~~~~~~{.cpp}
 BinarySerializer bs;
-SPtr<IReflectable> myObject = B3DMakeShared<MyClass>();
-SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+TShared<IReflectable> myObject = B3DMakeShared<MyClass>();
+TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 
 // Shallow serialization - don't encode referenced objects
 // Referenced objects will become null when deserialized
@@ -641,7 +641,7 @@ Use **Shallow** when you want to serialize an object without its referenced obje
 ~~~~~~~~~~~~~{.cpp}
 class MyClass : public IReflectable
 {
-	SPtr<Texture> texture; // Won't be serialized with Shallow flag
+	TShared<Texture> texture; // Won't be serialized with Shallow flag
 	i32 someValue; // Will be serialized
 };
 
@@ -659,7 +659,7 @@ Use **Compress** for network transmission or to reduce file size:
 bs.Encode(myObject.get(), stream, BinarySerializerFlag::Compress);
 
 // Must decode with the same flag
-SPtr<IReflectable> decoded = bs.Decode(stream, stream->Size(), BinarySerializerFlag::Compress);
+TShared<IReflectable> decoded = bs.Decode(stream, stream->Size(), BinarySerializerFlag::Compress);
 ~~~~~~~~~~~~~
 
 When **Compress** is true, the `compress` parameter in **RTTIPlainType::ToMemory()/FromMemory()** will be true, allowing those types to use bit-level encoding.
@@ -673,7 +673,7 @@ Use **NoMeta** when you need minimal serialization size and can guarantee RTTI t
 bs.Encode(myObject.get(), stream, BinarySerializerFlag::NoMeta);
 
 // Decode without metadata - RTTI types must match exactly
-SPtr<IReflectable> decoded = bs.Decode(stream, stream->Size(), BinarySerializerFlag::NoMeta);
+TShared<IReflectable> decoded = bs.Decode(stream, stream->Size(), BinarySerializerFlag::NoMeta);
 ~~~~~~~~~~~~~
 
 > **Warning**: NoMeta is fragile. If you add, remove, or reorder fields in the RTTI type, deserialization will fail or produce corrupted data. Only use this for temporary serialization (e.g., networking within the same game version).
@@ -689,10 +689,10 @@ BinarySerializer bs;
 bs.Encode(myObject.get(), stream, BinarySerializerFlag::NoMeta);
 
 // Save the current RTTI schema
-SPtr<RTTISchema> schema = myObject->GetRtti()->GetSchema();
+TShared<RTTISchema> schema = myObject->GetRtti()->GetSchema();
 
 // Later, decode using the saved schema
-SPtr<IReflectable> decoded = bs.Decode(stream, stream->Size(),
+TShared<IReflectable> decoded = bs.Decode(stream, stream->Size(),
 	BinarySerializerFlag::NoMeta, nullptr, schema);
 ~~~~~~~~~~~~~
 
@@ -706,7 +706,7 @@ struct MySerializationContext : RTTIOperationContext
 {
 	bool SomeFlag = true;
 	String SharedData = "test";
-	UnorderedMap<UUID, SPtr<Resource>> ResourceCache;
+	UnorderedMap<UUID, TShared<Resource>> ResourceCache;
 };
 
 MySerializationContext context;
@@ -724,7 +724,7 @@ class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI
 		if (myContext && myContext->SomeFlag)
 		{
 			// Access shared data, caches, etc.
-			SPtr<Resource> resource = myContext->ResourceCache[someId];
+			TShared<Resource> resource = myContext->ResourceCache[someId];
 		}
 	}
 };
@@ -747,7 +747,7 @@ encoder.Encode(myObject.get());
 
 // Decode from file
 FileDecoder decoder("Path/To/My/File.asset");
-SPtr<IReflectable> myObjectCopy = decoder.Decode();
+TShared<IReflectable> myObjectCopy = decoder.Decode();
 ~~~~~~~~~~~~~
 
 FileEncoder doesn't support the same flag system as BinarySerializer, but it automatically handles file creation, buffering, and error checking.
@@ -831,21 +831,21 @@ During operation notifications and field getter/setter calls, your **RTTIType** 
 class TextureRTTI : public TRTTIType<Texture, Resource, TextureRTTI>
 {
 	// Temporary storage
-	SPtr<PixelData> mPixelData;
+	TShared<PixelData> mPixelData;
 
-	UPtrRTTIIterator<SPtr<PixelData>, false> GetPixelDataIterator(Texture& object, FrameAllocator& allocator)
+	UPtrRTTIIterator<TShared<PixelData>, false> GetPixelDataIterator(Texture& object, FrameAllocator& allocator)
 	{
-		return CreateRTTIIterator<SPtr<PixelData>, false>(allocator, mPixelData);
+		return CreateRTTIIterator<TShared<PixelData>, false>(allocator, mPixelData);
 	}
 
-	const SPtr<PixelData>& GetPixelDataValue(Texture& object, FrameAllocator& allocator, TRTTIIterator<SPtr<PixelData>, false>& iterator)
+	const TShared<PixelData>& GetPixelDataValue(Texture& object, FrameAllocator& allocator, TRTTIIterator<TShared<PixelData>, false>& iterator)
 	{
 		// Read from actual texture
 		mPixelData = object.GetPixelData();
 		return mPixelData;
 	}
 
-	void SetPixelDataValue(Texture& obj, FrameAllocator& allocator, TRTTIIterator<SPtr<PixelData>, false>& iterator, const SPtr<PixelData>& value)
+	void SetPixelDataValue(Texture& obj, FrameAllocator& allocator, TRTTIIterator<TShared<PixelData>, false>& iterator, const TShared<PixelData>& value)
 	{
 		// Store in temporary field, not directly in texture
 		mPixelData = value;
@@ -857,7 +857,7 @@ class TextureRTTI : public TRTTIType<Texture, Resource, TextureRTTI>
 public:
 	TextureRTTI()
 	{
-		AddField<TextureRTTI, Texture, SPtr<PixelData>>(
+		AddField<TextureRTTI, Texture, TShared<PixelData>>(
 			"mPixelData", 0,
 			&TextureRTTI::GetPixelDataIterator,
 			&TextureRTTI::GetPixelDataValue,
@@ -1095,7 +1095,7 @@ if (B3DRTTIIsSubclass<Resource>(myObject))
 }
 
 // Create object from type ID
-SPtr<IReflectable> newObject = B3DRTTICreate(TID_Texture);
+TShared<IReflectable> newObject = B3DRTTICreate(TID_Texture);
 
 // Safe casting
 Texture* texture = B3DRTTICast<Texture>(newObject);
@@ -1141,13 +1141,13 @@ public:
 
 class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
-	SPtr<DataStream> GetRawData(MyComponent* object, u32& size)
+	TShared<DataStream> GetRawData(MyComponent* object, u32& size)
 	{
 		size = (u32)object->RawData.size();
 		return B3DMakeShared<MemoryDataStream>(object->RawData.data(), size);
 	}
 
-	void SetRawData(MyComponent* object, const SPtr<DataStream>& data, u32 size)
+	void SetRawData(MyComponent* object, const TShared<DataStream>& data, u32 size)
 	{
 		obj->RawData.resize(size);
 		data->Read(obj->RawData.data(), size);
@@ -1173,7 +1173,7 @@ The setter receives a @b3d::DataStream that can be read from or cloned for later
 ~~~~~~~~~~~~~{.cpp}
 class AudioClipRTTI : public TRTTIType<AudioClip, Resource, AudioClipRTTI>
 {
-	void SetData(AudioClip* object, const SPtr<DataStream>& stream, u32 size)
+	void SetData(AudioClip* object, const TShared<DataStream>& stream, u32 size)
 	{
 		// Clone the stream to avoid modifying the deserializer's stream
 		object->StreamData = stream->Clone();

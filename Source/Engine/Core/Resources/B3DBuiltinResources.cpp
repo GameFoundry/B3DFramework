@@ -109,7 +109,7 @@ void BuiltinResources::OnStartUp()
 	mShaderParticlesLitOpaque = GetShader(kShaderParticlesLitOpaqueFile);
 	mShaderDecal = GetShader(kShaderDecalFile);
 
-	SPtr<PixelData> dummyPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
+	TShared<PixelData> dummyPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 
 	dummyPixelData->SetColorAt(Color::kRed, 0, 0);
 	dummyPixelData->SetColorAt(Color::kRed, 0, 1);
@@ -263,7 +263,7 @@ HShader BuiltinResources::GetOrCompileShader(const Path& path) const
 	if(shader == nullptr)
 	{
 		static const String kBuiltinShaderCachePrefix = "BuiltinShaders/";
-		const SPtr<Shader> shaderShared = ShaderCompilers::Instance().GetOrCompileShader<false>(path, kBuiltinShaderCachePrefix, {});
+		const TShared<Shader> shaderShared = ShaderCompilers::Instance().GetOrCompileShader<false>(path, kBuiltinShaderCachePrefix, {});
 
 		if(shaderShared != nullptr)
 		{

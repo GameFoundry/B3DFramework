@@ -22,7 +22,7 @@ namespace b3d
 		 * @param[in]	icons   	Pixels of images to replace. Each entry maps an icon width (and height, since they're
 		 *							square) to its pixels.
 		 */
-		static void UpdateIconExe(const Path& filePath, const Map<u32, SPtr<PixelData>>& icons);
+		static void UpdateIconExe(const Path& filePath, const Map<u32, TShared<PixelData>>& icons);
 
 	private:
 		/**
@@ -32,7 +32,7 @@ namespace b3d
 		 * @param[in]	icons		Pixels of images to replace. Each entry maps an icon width (and height, since they're
 		 *							square) to its pixels.
 		 */
-		static void UpdateIconData(u8* iconData, const Map<u32, SPtr<PixelData>>& icons);
+		static void UpdateIconData(u8* iconData, const Map<u32, TShared<PixelData>>& icons);
 	};
 
 	/** @} */

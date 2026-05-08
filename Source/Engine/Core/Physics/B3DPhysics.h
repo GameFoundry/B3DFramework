@@ -98,16 +98,16 @@ namespace b3d
 		/******************************************************************************************************************/
 
 		/** @copydoc PhysicsMaterial::Create */
-		virtual SPtr<PhysicsMaterial> CreateMaterial(float staticFriction, float dynamicFriction, float restitution) = 0;
+		virtual TShared<PhysicsMaterial> CreateMaterial(float staticFriction, float dynamicFriction, float restitution) = 0;
 
 		/** Creates a physics mesh implementation. See PhysicsMesh::Create. */
-		virtual UPtr<IPhysicsMeshImplementation> CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type) = 0;
+		virtual UPtr<IPhysicsMeshImplementation> CreateMesh(const TShared<MeshData>& meshData, PhysicsMeshType type) = 0;
 
 		/** Creates an object representing the physics scene. Must be manually released via destroyPhysicsScene(). */
-		virtual SPtr<PhysicsScene> CreatePhysicsScene() = 0;
+		virtual TShared<PhysicsScene> CreatePhysicsScene() = 0;
 
 		/** Creates a new empty collider shape. Note you must set the shape information after creation. */
-		virtual SPtr<ColliderShape> CreateColliderShape() = 0;
+		virtual TShared<ColliderShape> CreateColliderShape() = 0;
 
 		/** Creates an object that provides low-level functionality required for a Collider. */
 		virtual UPtr<IColliderImplementation> CreateColliderImplementation() = 0;

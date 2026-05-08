@@ -57,7 +57,7 @@ namespace b3d::render
 			PoolType Type;
 			u32 EntriesPerBuffer; /**< Shared across all buffers in this type. */
 			TInlineArray<BufferConfiguration, 4> Buffers; /**< Buffer configurations. */
-			SPtr<GpuPipelineParameterSetLayout> Layout; /**< Parameter set layout for this type. */
+			TShared<GpuPipelineParameterSetLayout> Layout; /**< Parameter set layout for this type. */
 		};
 
 		/** Tracks a single allocation. Used for releasing the allocation once no longer needed. */
@@ -77,7 +77,7 @@ namespace b3d::render
 		struct AllocationResult
 		{
 			AllocationHandle Handle;
-			SPtr<GpuParameterSet> ParameterSet;
+			TShared<GpuParameterSet> ParameterSet;
 			TInlineArray<GpuBufferSuballocation, 4> Suballocations; /**< Indexed by BufferType. */
 
 			/** Checks if this result is valid. */
@@ -128,7 +128,7 @@ namespace b3d::render
 		 * @param renderState	Render state whose per-object buffer should be updated.
 		 * @param commandBuffer	Command buffer to queue the copy on. If null, uses the transfer command buffer.
 		 */
-		void UpdatePerObjectBuffer(const RenderState& renderState, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
+		void UpdatePerObjectBuffer(const RenderState& renderState, const TShared<GpuCommandBuffer>& commandBuffer = nullptr);
 
 		/**
 		 * Updates decal parameter buffer using data from a decal render state and proxy.
@@ -137,7 +137,7 @@ namespace b3d::render
 		 * @param proxy			DecalProxy providing transform and property data.
 		 * @param commandBuffer	Command buffer to queue the copy on. If null, uses the transfer command buffer.
 		 */
-		void UpdateDecalParamBuffer(const DecalRenderState& decal, const DecalProxy& proxy, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
+		void UpdateDecalParamBuffer(const DecalRenderState& decal, const DecalProxy& proxy, const TShared<GpuCommandBuffer>& commandBuffer = nullptr);
 
 		/**
 		 * Updates GPU particle parameter buffer using data from particles render state.
@@ -145,7 +145,7 @@ namespace b3d::render
 		 * @param particles		Particle render state whose GPU particle param buffer should be updated.
 		 * @param commandBuffer	Command buffer to queue the copy on. If null, uses the transfer command buffer.
 		 */
-		void UpdateGpuParticlesParamBuffer(const ParticleRenderState& particles, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
+		void UpdateGpuParticlesParamBuffer(const ParticleRenderState& particles, const TShared<GpuCommandBuffer>& commandBuffer = nullptr);
 
 		/**
 		 * Advances the staging pool frame counters. Call at end of each render frame.
@@ -200,7 +200,7 @@ namespace b3d::render
 		/** Tracks GpuParameterSets shared by objects using the same underlying buffer combination. */
 		struct BufferParameterSetEntry
 		{
-			SPtr<GpuParameterSet> ParameterSet;
+			TShared<GpuParameterSet> ParameterSet;
 			u32 RefCount = 0;
 		};
 
@@ -222,7 +222,7 @@ namespace b3d::render
 			u32 EntriesPerBuffer = 0;
 			Vector<AllocationEntry> Entries;             /**< Per-type allocation entries. */
 			u32 FreeListHead = kInvalidIndex;
-			SPtr<GpuPipelineParameterSetLayout> ParameterSetLayout;
+			TShared<GpuPipelineParameterSetLayout> ParameterSetLayout;
 			UnorderedMap<BufferKey, BufferParameterSetEntry, BufferKeyHash> ParameterSetsByBuffer;
 
 			static constexpr u32 kInvalidIndex = ~0u;
@@ -235,7 +235,7 @@ namespace b3d::render
 		 * @param entry		Allocation entry with suballocations.
 		 * @return			Shared GpuParameterSet for set #1.
 		 */
-		SPtr<GpuParameterSet> GetOrCreateParameterSet(PoolGroup& group, const AllocationEntry& entry);
+		TShared<GpuParameterSet> GetOrCreateParameterSet(PoolGroup& group, const AllocationEntry& entry);
 
 		/**
 		 * Decrements ref count for a buffer combination's shared parameter set, removing if zero.

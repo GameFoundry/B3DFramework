@@ -16,7 +16,7 @@ VulkanSurface::~VulkanSurface()
 	vkDestroySurfaceKHR(GetVulkanGpuBackend().GetVkInstance(), mSurface, gVulkanAllocator);
 }
 
-VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain, const StringView& name)
+VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const TShared<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain, const StringView& name)
 	: VulkanResource(owner, false, name), mSurface(surface)
 {
 	// Process messages related to this swap chain on this thread. Mostly these are notifies when a swap chain is done being used for a present operation. */
@@ -403,7 +403,7 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, GpuQueueMas
 	{
 		VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(queue.GetType());
 
-		const SPtr<VulkanGpuCommandBuffer> commandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("SwapChainImageLayoutTransition")));
+		const TShared<VulkanGpuCommandBuffer> commandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("SwapChainImageLayoutTransition")));
 		commandBuffer->SetName("Swap chain image layout transition");
 
 		VkCommandBuffer vkCommandBuffer = commandBuffer->GetVulkanHandle();

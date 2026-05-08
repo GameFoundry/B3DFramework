@@ -63,7 +63,7 @@ When making changes or additions that you plan on contributing to `bsf`, you mus
  - Avoid the use of `auto` except for:
    - Very long type names (like iterators), in which case include indication of the type in variable name (e.g. `auto iter = ...;`)
    - Variables where type can be otherwise deduced (e.g. casts, `auto var = (u32)otherVar;`)
- - Use built-in typedefs for standard library containers (e.g. `Vector`) and shared pointers (`SPtr`).
+ - Use built-in typedefs for standard library containers (e.g. `Vector`) and shared pointers (`TShared`).
  - Don't allocate memory using `new/delete` or `malloc/free`, instead use `bsf` allocators
  - No code warnings under default compiler warning settings are allowed. Fix all your warnings or if absolutely not possible isolate that bit of code and disable that specific warning (but only in that bit of code).
  - Never use `using namespace` in a header

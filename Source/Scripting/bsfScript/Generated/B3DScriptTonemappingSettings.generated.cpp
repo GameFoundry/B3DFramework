@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptTonemappingSettings::ScriptTonemappingSettings(const SPtr<TonemappingSettings>& nativeObject)
+	ScriptTonemappingSettings::ScriptTonemappingSettings(const TShared<TonemappingSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -50,7 +50,7 @@ namespace b3d
 	}
 	void ScriptTonemappingSettings::InternalTonemappingSettings(MonoObject* scriptObject)
 	{
-		SPtr<TonemappingSettings> nativeObject = B3DMakeShared<TonemappingSettings>();
+		TShared<TonemappingSettings> nativeObject = B3DMakeShared<TonemappingSettings>();
 		ScriptObjectWrapper::Create<ScriptTonemappingSettings>(nativeObject, scriptObject);
 	}
 

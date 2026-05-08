@@ -22,7 +22,7 @@
 
 using namespace b3d;
 
-ecs::Renderable& ecs::CreateRenderable(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene, const Transform& transform)
+ecs::Renderable& ecs::CreateRenderable(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform)
 {
 	ecs::RenderableECSUtility::CreateFragmentsIfMissing(registry, entity);
 	registry.AddComponent<ecs::WorldTransform>(entity, ecs::WorldTransform(transform));
@@ -198,13 +198,13 @@ void Renderable::OnBeginPlay()
 
 void Renderable::OnEnabled()
 {
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 	ecs::RenderableECSUtility::RegisterWithRenderer(*GetECSRegistry(), GetECSEntity(), rendererScene);
 }
 
 void Renderable::OnDisabled()
 {
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 	ecs::RenderableECSUtility::UnregisterFromRenderer(*GetECSRegistry(), GetECSEntity(), rendererScene);
 }
 
@@ -341,8 +341,8 @@ void Renderable::RefreshAnimation()
 
 	if(fragment.Mesh.IsLoaded(false))
 	{
-		SPtr<Skeleton> skeleton = fragment.Mesh->GetSkeleton();
-		SPtr<MorphShapes> morphShapes = fragment.Mesh->GetMorphShapes();
+		TShared<Skeleton> skeleton = fragment.Mesh->GetSkeleton();
+		TShared<MorphShapes> morphShapes = fragment.Mesh->GetMorphShapes();
 
 		if(skeleton != nullptr && morphShapes != nullptr)
 			fragment.AnimType = RenderableAnimType::SkinnedMorph;
@@ -550,7 +550,7 @@ void RenderableObjectStorageBase::SyncWrite(void* rawData, FrameAllocator& alloc
 
 namespace b3d { namespace render
 {
-static SPtr<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
+static TShared<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
 {
 	GpuBufferCreateInformation bufferCreateInformation;
 	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
@@ -558,8 +558,8 @@ static SPtr<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
 	bufferCreateInformation.SimpleStorage.Count = boneCount * 3;
 	bufferCreateInformation.SimpleStorage.Format = BF_32X4F;
 
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-	SPtr<GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	TShared<GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 
 	GpuBufferMappedScope mapping = buffer->Map(GpuMapOption::Write);
 	u8* currentWriteLocation = (u8*)mapping.GetMappedMemory();
@@ -584,7 +584,7 @@ Bounds RenderableProxy::GetBounds() const
 		return bounds;
 	}
 
-	SPtr<Mesh> mesh = GetMesh();
+	TShared<Mesh> mesh = GetMesh();
 
 	if(mesh == nullptr)
 		return Bounds(mTransform.GetPosition(), Vector3::kZero, 0.0f);
@@ -601,7 +601,7 @@ void RenderableProxy::CreateAnimationBuffers()
 {
 	if(mData.AnimType == RenderableAnimType::Skinned || mData.AnimType == RenderableAnimType::SkinnedMorph)
 	{
-		SPtr<Skeleton> skeleton = mData.Mesh->GetSkeleton();
+		TShared<Skeleton> skeleton = mData.Mesh->GetSkeleton();
 		u32 boneCount = skeleton != nullptr ? skeleton->GetBoneCount() : 0;
 
 		if(boneCount > 0)
@@ -629,7 +629,7 @@ void RenderableProxy::CreateAnimationBuffers()
 	{
 		// Note: Not handling velocity writing for morph animations
 
-		SPtr<MorphShapes> morphShapes = mData.Mesh->GetMorphShapes();
+		TShared<MorphShapes> morphShapes = mData.Mesh->GetMorphShapes();
 
 		const u32 vertexSize = sizeof(Vector3) + sizeof(u32);
 		const u32 vertexCount = morphShapes->GetVertexCount();
@@ -640,8 +640,8 @@ void RenderableProxy::CreateAnimationBuffers()
 		vertexBufferCreateInformation.Vertex.ElementSize = vertexSize;
 		vertexBufferCreateInformation.Vertex.Count = vertexCount;
 
-		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-		SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
+		const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		TShared<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
 		u32 totalSize = vertexSize * vertexCount;
 
@@ -698,7 +698,7 @@ void RenderableProxy::UpdateAnimationBuffers(const EvaluatedAnimationData& animD
 	{
 		if(mMorphShapeVersion != animInfo->MorphShapeInfo.Version)
 		{
-			SPtr<MeshData> meshData = animInfo->MorphShapeInfo.MeshData;
+			TShared<MeshData> meshData = animInfo->MorphShapeInfo.MeshData;
 
 			u32 bufferSize = meshData->GetSize();
 			u8* data = meshData->GetData();

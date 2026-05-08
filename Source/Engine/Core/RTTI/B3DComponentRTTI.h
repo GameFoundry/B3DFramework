@@ -71,7 +71,7 @@ namespace b3d
 			{
 				// Register the newly created SO with the GameObjectManager and provide it with the original ID so that
 				// deserialized handles pointing to this object can be resolved.
-				SPtr<Component> componentShared = std::static_pointer_cast<Component>(deserializationData.Ptr);
+				TShared<Component> componentShared = std::static_pointer_cast<Component>(deserializationData.Ptr);
 
 				if(B3D_ENSURE(serializationContext->GameObjectCollection != nullptr))
 					GameObjectHandle handle = serializationContext->GameObjectCollection->RegisterNewObject(componentShared);
@@ -91,7 +91,7 @@ namespace b3d
 			return TID_Component;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 			return nullptr;

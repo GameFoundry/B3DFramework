@@ -84,7 +84,7 @@ namespace b3d
 		static Mutex sAppStartedMutex;
 		static Signal sAppStartedCondition;
 #else
-		SPtr<PooledThread> mRenderThread;
+		TShared<PooledThread> mRenderThread;
 #endif
 
 		SingleConsumerQueue mCommandQueue;

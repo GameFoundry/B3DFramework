@@ -25,11 +25,11 @@ namespace b3d::render
 		// No-op implementation
 	}
 
-	TAsyncOp<SPtr<PixelData>> NullRenderWindowSurface::ReadAsync(GpuCommandBuffer& commandBuffer)
+	TAsyncOp<TShared<PixelData>> NullRenderWindowSurface::ReadAsync(GpuCommandBuffer& commandBuffer)
 	{
-		SPtr<PixelData> pixelData = PixelData::Create(mWidth, mHeight, 1, PF_RGBA8);
+		TShared<PixelData> pixelData = PixelData::Create(mWidth, mHeight, 1, PF_RGBA8);
 
-		TAsyncOp<SPtr<PixelData>> op;
+		TAsyncOp<TShared<PixelData>> op;
 		op.CompleteOperation(pixelData);
 
 		return op;

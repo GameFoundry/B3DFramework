@@ -22,7 +22,7 @@ namespace b3d
 	class B3D_EXPORT MacOSRenderWindow : public RenderWindow
 	{
 	public:
-		MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
+		MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow);
 
 		void Initialize() override;
 		void Destroy() override;
@@ -46,7 +46,7 @@ namespace b3d
 	protected:
 		friend class render::MacOSRenderWindow;
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		void DoOnWindowMovedOrResized() override;
 
 		/** Changes the display mode (resolution, refresh rate) of the specified output device. */
@@ -63,7 +63,7 @@ namespace b3d
 		class MacOSRenderWindow : public RenderWindow
 		{
 		public:
-			MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const SPtr<RenderWindow>& parentWindow);
+			MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const TShared<RenderWindow>& parentWindow);
 
 		protected:
 			friend class b3d::MacOSRenderWindow;

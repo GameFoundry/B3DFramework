@@ -6,7 +6,7 @@ using namespace b3d;
 
 // Note: Code ported from marl library (https://github.com/google/marl)
 
-SchedulerTicket::SchedulerTicket(SPtr<SchedulerTicketData>&& record)
+SchedulerTicket::SchedulerTicket(TShared<SchedulerTicketData>&& record)
 	: mData(std::move(record))
 { }
 
@@ -69,7 +69,7 @@ void SchedulerTicketQueue::TakeTickets(u32 count, const F& callback)
 
 	for(u32 ticketIndex = 0; ticketIndex < count; ++ticketIndex)
 	{
-		SPtr<SchedulerTicketData> record = B3DMakeSharedFromExisting(B3DPoolNew<SchedulerTicketData>(), [](SchedulerTicketData* object)
+		TShared<SchedulerTicketData> record = B3DMakeSharedFromExisting(B3DPoolNew<SchedulerTicketData>(), [](SchedulerTicketData* object)
 		{
 			B3DPoolDelete(object);
 		});

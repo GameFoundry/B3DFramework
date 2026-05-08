@@ -156,7 +156,7 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 	// Build root parameters from uniform information
 	for (u32 setIndex = 0; setIndex < setCount; setIndex++)
 	{
-		const SPtr<GpuPipelineParameterSetLayout>& setLayout = mSets[setIndex];
+		const TShared<GpuPipelineParameterSetLayout>& setLayout = mSets[setIndex];
 		const u32 bindingCount = setLayout->GetBindingCount();
 
 		// Iterate through all parameter types to find all uniforms

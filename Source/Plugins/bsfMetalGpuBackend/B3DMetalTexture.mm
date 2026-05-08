@@ -34,7 +34,7 @@ namespace b3d
 		MetalTexture::~MetalTexture()
 		{
 			// A'10: the MTLTexture (and any cached reinterpret views) may still be referenced by
-			// in-flight command buffers when the last SPtr<MetalTexture> is dropped. Mirror
+			// in-flight command buffers when the last TShared<MetalTexture> is dropped. Mirror
 			// @c RecreateInternalTexture's deferred-release pattern — queue the backing handles
 			// against the graphics queue's last-committed watermark so they survive until any
 			// in-flight command buffer that referenced them retires, then fall out of scope.
@@ -61,7 +61,7 @@ namespace b3d
 				return;
 			}
 
-			SPtr<GpuQueue> gfxQueue = mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
+			TShared<GpuQueue> gfxQueue = mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
 			MetalGpuQueue* metalQueue = gfxQueue ? static_cast<MetalGpuQueue*>(gfxQueue.get()) : nullptr;
 			const u64 lastCommitted = metalQueue != nullptr ? metalQueue->GetLastCommittedEventValue() : 0;
 
@@ -69,7 +69,7 @@ namespace b3d
 			{
 				// Transfer the strong refs into the deferred-release list. Move the local handles into
 				// locals first so @c mImpl fields are nil'd synchronously — anyone still holding the
-				// SPtr (shouldn't happen, we're in the dtor) won't see a half-released state.
+				// TShared (shouldn't happen, we're in the dtor) won't see a half-released state.
 				id<MTLTexture> prior = mImpl->Texture;
 				UnorderedMap<u32, id<MTLTexture>> priorViews;
 				priorViews.swap(mImpl->ShaderReadViews);
@@ -218,7 +218,7 @@ namespace b3d
 
 			if (prior != nil)
 			{
-				SPtr<GpuQueue> gfxQueue = mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
+				TShared<GpuQueue> gfxQueue = mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
 				MetalGpuQueue* metalQueue = gfxQueue ? static_cast<MetalGpuQueue*>(gfxQueue.get()) : nullptr;
 				const u64 lastCommitted = metalQueue != nullptr ? metalQueue->GetLastCommittedEventValue() : 0;
 

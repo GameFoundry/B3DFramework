@@ -9,7 +9,7 @@ Skybox is represented by the @b3d::Skybox component, which requires only a textu
 
 ~~~~~~~~~~~~~{.cpp}
 // Import a sky cubemap from a cylindrical (panoramic) image
-SPtr<TextureImportOptions> textureImportOptions = TextureImportOptions::Create();
+TShared<TextureImportOptions> textureImportOptions = TextureImportOptions::Create();
 textureImportOptions->Cubemap = true;
 textureImportOptions->CubemapSourceType = CubemapSourceType::Cylindrical;
 textureImportOptions->Format = PF_RG11B10F; // Or the 16-bit floating point format

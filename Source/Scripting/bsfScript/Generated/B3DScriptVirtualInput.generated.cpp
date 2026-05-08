@@ -76,7 +76,7 @@ namespace b3d
 
 	void ScriptVirtualInput::InternalSetConfiguration(MonoObject* input)
 	{
-		SPtr<InputConfiguration> tmpinput;
+		TShared<InputConfiguration> tmpinput;
 		ScriptInputConfiguration* scriptObjectWrapperinput;
 		scriptObjectWrapperinput = ScriptInputConfiguration::GetScriptObjectWrapper(input);
 		if(scriptObjectWrapperinput != nullptr)
@@ -86,7 +86,7 @@ namespace b3d
 
 	MonoObject* ScriptVirtualInput::InternalGetConfiguration()
 	{
-		SPtr<InputConfiguration> tmp__output;
+		TShared<InputConfiguration> tmp__output;
 		tmp__output = VirtualInput::Instance().GetConfiguration();
 
 		MonoObject* __output;

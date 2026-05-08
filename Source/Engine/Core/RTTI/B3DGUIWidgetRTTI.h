@@ -28,7 +28,7 @@ namespace b3d
 			return TID_GUIWidget;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return SceneObject::CreateEmptyComponent<GUIWidget>();
 		}

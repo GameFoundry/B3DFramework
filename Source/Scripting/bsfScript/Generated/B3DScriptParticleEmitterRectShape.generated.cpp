@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptParticleEmitterRectShape::ScriptParticleEmitterRectShape(const SPtr<ParticleEmitterRectShape>& nativeObject)
+	ScriptParticleEmitterRectShape::ScriptParticleEmitterRectShape(const TShared<ParticleEmitterRectShape>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -69,13 +69,13 @@ namespace b3d
 	{
 		ParticleRectangleShapeSettings tmpsettings;
 		tmpsettings = ScriptParticleRectShapeSettings::FromInterop(*settings);
-		SPtr<ParticleEmitterRectShape> nativeObject = ParticleEmitterRectShape::Create(tmpsettings);
+		TShared<ParticleEmitterRectShape> nativeObject = ParticleEmitterRectShape::Create(tmpsettings);
 		ScriptObjectWrapper::Create<ScriptParticleEmitterRectShape>(nativeObject, scriptObject);
 	}
 
 	void ScriptParticleEmitterRectShape::InternalCreate0(MonoObject* scriptObject)
 	{
-		SPtr<ParticleEmitterRectShape> nativeObject = ParticleEmitterRectShape::Create();
+		TShared<ParticleEmitterRectShape> nativeObject = ParticleEmitterRectShape::Create();
 		ScriptObjectWrapper::Create<ScriptParticleEmitterRectShape>(nativeObject, scriptObject);
 	}
 }

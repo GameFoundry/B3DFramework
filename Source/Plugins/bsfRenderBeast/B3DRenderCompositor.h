@@ -33,9 +33,9 @@ namespace b3d
 				: Scene(scene), ViewGroup(viewGroup), View(view), Options(options), FrameInfo(frameInfo), FeatureSet(featureSet)
 			{}
 
-			SPtr<GpuCommandBuffer> ActiveCommandBuffer;
+			TShared<GpuCommandBuffer> ActiveCommandBuffer;
 #if B3D_PROFILING_ENABLED
-			SPtr<GpuCommandBufferProfiler> CommandBufferProfiler;
+			TShared<GpuCommandBufferProfiler> CommandBufferProfiler;
 #endif
 
 			RenderBeastScene& Scene;
@@ -318,7 +318,7 @@ namespace b3d
 		{
 		public:
 			// Outputs
-			SPtr<PooledRenderTexture> DepthTex;
+			TShared<PooledRenderTexture> DepthTex;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<>;
 
@@ -339,14 +339,14 @@ namespace b3d
 		{
 		public:
 			// Outputs
-			SPtr<PooledRenderTexture> AlbedoTex;
-			SPtr<PooledRenderTexture> NormalTex;
-			SPtr<PooledRenderTexture> RoughMetalTex;
-			SPtr<PooledRenderTexture> IdTex;
-			SPtr<PooledRenderTexture> VelocityTex;
+			TShared<PooledRenderTexture> AlbedoTex;
+			TShared<PooledRenderTexture> NormalTex;
+			TShared<PooledRenderTexture> RoughMetalTex;
+			TShared<PooledRenderTexture> IdTex;
+			TShared<PooledRenderTexture> VelocityTex;
 
-			SPtr<RenderTexture> RenderTarget;
-			SPtr<RenderTexture> RenderTargetNoMask;
+			TShared<RenderTexture> RenderTarget;
+			TShared<RenderTexture> RenderTargetNoMask;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneDepth, RCNodeSceneColor, RCNodeParticleSort, RCNodeMSAACoverage>;
 
@@ -368,15 +368,15 @@ namespace b3d
 			 * Contains scene color. If MSAA is used this texture will be null until the texture array data is first resolved
 			 * into this texture.
 			 */
-			SPtr<PooledRenderTexture> SceneColorTex;
+			TShared<PooledRenderTexture> SceneColorTex;
 
 			/**
 			 * Texture array version of sceneColorTex. Only available when MSAA is used, since random writes to
 			 * multisampled texture aren't supported on all render backends.
 			 */
-			SPtr<PooledRenderTexture> SceneColorTexArray;
+			TShared<PooledRenderTexture> SceneColorTexArray;
 
-			SPtr<RenderTexture> RenderTarget;
+			TShared<RenderTexture> RenderTarget;
 
 			/** Converts MSAA data from the texture array into the MSAA texture. */
 			void MsaaTexArrayToTexture(GpuCommandBuffer& commandBuffer);
@@ -385,7 +385,7 @@ namespace b3d
 			 * Updates the internal scene color texture with the provided texture. MSAA scene color texture array must have
 			 * been resolved before this call. This will not update the render target.
 			 */
-			void SetExternalTexture(const SPtr<PooledRenderTexture>& texture);
+			void SetExternalTexture(const TShared<PooledRenderTexture>& texture);
 
 			/** Swaps the render textures between this node and the light accumulation nodes. */
 			void Swap(RCNodeLightAccumulation* lightAccumNode);
@@ -410,7 +410,7 @@ namespace b3d
 		{
 		public:
 			// Outputs
-			SPtr<PooledRenderTexture> Output;
+			TShared<PooledRenderTexture> Output;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<>;
 
@@ -470,15 +470,15 @@ namespace b3d
 			 * Contains lighting information accumulated from multiple lights. If MSAA is used this texture will be null until
 			 * the texture array data is first resolved into this texture.
 			 */
-			SPtr<PooledRenderTexture> LightAccumulationTex;
+			TShared<PooledRenderTexture> LightAccumulationTex;
 
 			/**
 			 * Texture array version of lightAccumulationTex. Only available when MSAA is used, since random writes to
 			 * multisampled texture aren't supported on all render backends.
 			 */
-			SPtr<PooledRenderTexture> LightAccumulationTexArray;
+			TShared<PooledRenderTexture> LightAccumulationTexArray;
 
-			SPtr<RenderTexture> RenderTarget;
+			TShared<RenderTexture> RenderTarget;
 
 			/** Converts MSAA data from the texture array into the MSAA texture. */
 			void MsaaTexArrayToTexture(GpuCommandBuffer& commandBuffer);
@@ -514,7 +514,7 @@ namespace b3d
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
 
-			SPtr<RenderTexture> mLightOcclusionRT;
+			TShared<RenderTexture> mLightOcclusionRT;
 		};
 
 		/**
@@ -576,7 +576,7 @@ namespace b3d
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
 
-			SPtr<RenderTexture> renderTarget;
+			TShared<RenderTexture> renderTarget;
 		};
 
 		/**
@@ -627,10 +627,10 @@ namespace b3d
 			 * Returns a texture that can be used for rendering a post-process effect, and the result of the previous
 			 * output. Switches these textures so the next call they are returned in the opposite parameters.
 			 */
-			void GetAndSwitch(const RendererView& view, SPtr<RenderTexture>& output, SPtr<Texture>& lastFrame) const;
+			void GetAndSwitch(const RendererView& view, TShared<RenderTexture>& output, TShared<Texture>& lastFrame) const;
 
 			/** Returns a texture that contains the last rendererd post process output. */
-			SPtr<Texture> GetLastOutput() const;
+			TShared<Texture> GetLastOutput() const;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<>;
 
@@ -642,7 +642,7 @@ namespace b3d
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
 
-			mutable SPtr<PooledRenderTexture> mOutput[2];
+			mutable TShared<PooledRenderTexture> mOutput[2];
 			mutable u32 mCurrentIdx = 0;
 		};
 
@@ -650,7 +650,7 @@ namespace b3d
 		class RCNodeEyeAdaptation : public RenderCompositorNode
 		{
 		public:
-			SPtr<PooledRenderTexture> Output;
+			TShared<PooledRenderTexture> Output;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeClusteredForward, RCNodeHalfSceneColor>;
 
@@ -668,7 +668,7 @@ namespace b3d
 			 */
 			bool UseHistogramEyeAdapatation(const RenderCompositorNodeInputs& inputs);
 
-			SPtr<PooledRenderTexture> previous;
+			TShared<PooledRenderTexture> previous;
 		};
 
 		/**
@@ -688,7 +688,7 @@ namespace b3d
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
 
-			SPtr<PooledRenderTexture> mTonemapLUT;
+			TShared<PooledRenderTexture> mTonemapLUT;
 			u64 mTonemapLastUpdateHash = -1;
 		};
 
@@ -764,7 +764,7 @@ namespace b3d
 		class RCNodeHalfSceneColor : public RenderCompositorNode
 		{
 		public:
-			SPtr<PooledRenderTexture> Output;
+			TShared<PooledRenderTexture> Output;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor>;
 
@@ -786,7 +786,7 @@ namespace b3d
 		public:
 			static constexpr u32 kMaxNumDownsamples = 6;
 
-			SPtr<PooledRenderTexture> Output[kMaxNumDownsamples];
+			TShared<PooledRenderTexture> Output[kMaxNumDownsamples];
 			u32 AvailableDownsamples = 0;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeHalfSceneColor>;
@@ -804,7 +804,7 @@ namespace b3d
 		class RCNodeResolvedSceneDepth : public RenderCompositorNode
 		{
 		public:
-			SPtr<PooledRenderTexture> Output;
+			TShared<PooledRenderTexture> Output;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneDepth, RCNodeBasePass>;
 
@@ -821,7 +821,7 @@ namespace b3d
 		class RCNodeHiZ : public RenderCompositorNode
 		{
 		public:
-			SPtr<PooledRenderTexture> Output;
+			TShared<PooledRenderTexture> Output;
 
 			// Note: This doesn't actually use any gbuffer textures, but node is a dependency because it renders to the depth
 			// buffer. In order to avoid keeping gbuffer textures alive I could separate out the base pass into its own node
@@ -843,7 +843,7 @@ namespace b3d
 		public:
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeResolvedSceneDepth, RCNodeBasePass>;
 
-			SPtr<Texture> Output;
+			TShared<Texture> Output;
 
 			static StringID GetNodeId() { return "SSAO"; }
 			static DependencyDefinition GetDependencyDefinition();
@@ -853,14 +853,14 @@ namespace b3d
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
 
-			SPtr<PooledRenderTexture> mPooledOutput;
+			TShared<PooledRenderTexture> mPooledOutput;
 		};
 
 		/** Renders screen space reflections. */
 		class RCNodeSSR : public RenderCompositorNode
 		{
 		public:
-			SPtr<Texture> Output;
+			TShared<Texture> Output;
 
 			~RCNodeSSR();
 
@@ -877,8 +877,8 @@ namespace b3d
 			/** Cleans up any outputs. */
 			void DeallocOutputs();
 
-			SPtr<PooledRenderTexture> mPooledOutput;
-			SPtr<PooledRenderTexture> mPrevFrame;
+			TShared<PooledRenderTexture> mPooledOutput;
+			TShared<PooledRenderTexture> mPrevFrame;
 			bool mUsingTemporalAA = false;
 		};
 
@@ -889,7 +889,7 @@ namespace b3d
 		class RCNodeTemporalAA : public RenderCompositorNode
 		{
 		public:
-			SPtr<Texture> Output;
+			TShared<Texture> Output;
 
 			~RCNodeTemporalAA();
 
@@ -906,15 +906,15 @@ namespace b3d
 			/** Cleans up any outputs. */
 			void DeallocOutputs();
 
-			SPtr<PooledRenderTexture> mPooledOutput;
-			SPtr<PooledRenderTexture> mPrevFrame;
+			TShared<PooledRenderTexture> mPooledOutput;
+			TShared<PooledRenderTexture> mPrevFrame;
 		};
 
 		/** Renders the bloom effect. */
 		class RCNodeBloom : public RenderCompositorNode
 		{
 		public:
-			SPtr<Texture> Output;
+			TShared<Texture> Output;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeClusteredForward, RCNodeSceneColorDownsamples, RCNodeEyeAdaptation>;
 
@@ -926,7 +926,7 @@ namespace b3d
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
 
-			SPtr<PooledRenderTexture> mPooledOutput;
+			TShared<PooledRenderTexture> mPooledOutput;
 		};
 
 		/** Renders the screen-space lens flare effect. */

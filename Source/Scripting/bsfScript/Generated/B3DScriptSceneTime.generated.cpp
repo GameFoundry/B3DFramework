@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	ScriptSceneTime::ScriptSceneTime(const SPtr<SceneTime>& nativeObject)
+	ScriptSceneTime::ScriptSceneTime(const TShared<SceneTime>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

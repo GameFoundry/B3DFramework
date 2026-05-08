@@ -59,7 +59,7 @@ namespace b3d
 			return TID_StrongResourceHandle;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeSharedFromExisting<StrongResourceHandle>(new(B3DAllocate<StrongResourceHandle>()) StrongResourceHandle());
 		}
@@ -107,7 +107,7 @@ namespace b3d
 			return TID_WeakResourceHandle;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeSharedFromExisting<WeakResourceHandle>(new(B3DAllocate<WeakResourceHandle>()) WeakResourceHandle());
 		}

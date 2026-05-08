@@ -393,13 +393,13 @@ namespace b3d
 		 * Constructs a new object with an internal buffer capable of holding "extents" volume of pixels, where each pixel
 		 * is of the specified pixel format. Extent offsets are also stored, but are not used internally.
 		 */
-		static SPtr<PixelData> Create(const PixelVolume& extents, PixelFormat pixelFormat);
+		static TShared<PixelData> Create(const PixelVolume& extents, PixelFormat pixelFormat);
 
 		/**
 		 * Constructs a new object with an internal buffer capable of holding volume of pixels described by provided width,
 		 * height and depth, where each pixel is of the specified pixel format.
 		 */
-		static SPtr<PixelData> Create(u32 width, u32 height, u32 depth, PixelFormat pixelFormat);
+		static TShared<PixelData> Create(u32 width, u32 height, u32 depth, PixelFormat pixelFormat);
 
 	private:
 		/**

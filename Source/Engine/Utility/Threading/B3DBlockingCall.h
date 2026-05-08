@@ -23,7 +23,7 @@ namespace b3d
 				SignalEvent event;
 				Scheduler* const scheduler = Scheduler::Get();
 
-				const SPtr<PooledThread> thread = ThreadPool::Instance().Run("BlockingCall",
+				const TShared<PooledThread> thread = ThreadPool::Instance().Run("BlockingCall",
 					[&result, &f, &args..., scheduler, &event]()
 					{
 						if (scheduler != nullptr)
@@ -53,7 +53,7 @@ namespace b3d
 				SignalEvent event;
 				Scheduler* const scheduler = Scheduler::Get();
 
-				const SPtr<PooledThread> thread = ThreadPool::Instance().Run("BlockingCall",
+				const TShared<PooledThread> thread = ThreadPool::Instance().Run("BlockingCall",
 					[&f, &args..., scheduler, &event]()
 					{
 						if (scheduler != nullptr)

@@ -16,7 +16,7 @@
 using namespace b3d;
 ScriptContextMenu::OnEntryTriggeredThunkDef ScriptContextMenu::onEntryTriggered;
 
-ScriptContextMenu::ScriptContextMenu(const SPtr<GUIContextMenu>& nativeObject)
+ScriptContextMenu::ScriptContextMenu(const TShared<GUIContextMenu>& nativeObject)
 	: TScriptNonReflectableWrapper(nativeObject)
 { }
 
@@ -56,7 +56,7 @@ void ScriptContextMenu::InternalOpen(ScriptContextMenu* self, __TVector2_TUnitVa
 	GUIPhysicalArea bounds = layout->CalculateAbsoluteBounds();
 	GUIPhysicalPoint windowPosition = ScriptTVector2_TUnitValue_int32_t__PhysicalPixel__::FromInterop(*position) + bounds.GetPosition();
 
-	SPtr<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
+	TShared<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
 	contextMenu->Open(windowPosition, *widget);
 }
 
@@ -67,7 +67,7 @@ void ScriptContextMenu::InternalAddItem(ScriptContextMenu* self, MonoString* pat
 
 	String nativePath = MonoUtil::MonoToString(path);
 
-	SPtr<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
+	TShared<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
 	contextMenu->AddMenuItem(nativePath, [self, callbackIdx]() { self->OnContextMenuItemTriggered(callbackIdx); }, 0, *shortcut);
 }
 
@@ -78,7 +78,7 @@ void ScriptContextMenu::InternalAddSeparator(ScriptContextMenu* self, MonoString
 
 	String nativePath = MonoUtil::MonoToString(path);
 
-	SPtr<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
+	TShared<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
 	contextMenu->AddSeparator(nativePath, 0);
 }
 
@@ -91,7 +91,7 @@ void ScriptContextMenu::InternalSetLocalizedName(ScriptContextMenu* self, MonoSt
 		return;
 
 	String nativeLabel = MonoUtil::MonoToString(label);
-	SPtr<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
+	TShared<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
 	contextMenu->SetLocalizedName(nativeLabel, *name->GetNativeObjectAsShared());
 }
 

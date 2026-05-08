@@ -28,7 +28,7 @@ namespace b3d
 		 *							buffered data. In bytes.
 		 * @param	maxBufferSize	Maximum size of the buffer before it is cleared.
 		 */
-		BufferedBitstreamReader(Bitstream* bitstream, const SPtr<DataStream>& dataStream, uint32_t preloadSize, uint32_t maxBufferSize);
+		BufferedBitstreamReader(Bitstream* bitstream, const TShared<DataStream>& dataStream, uint32_t preloadSize, uint32_t maxBufferSize);
 
 		// Note: Perhaps allow reads with no chunk preload (i.e. just the requested count)
 
@@ -72,7 +72,7 @@ namespace b3d
 		void ClearBuffered(bool force);
 
 		/** Returns the underlying data stream. */
-		const SPtr<DataStream>& GetDataStream() const { return mDataStream; }
+		const TShared<DataStream>& GetDataStream() const { return mDataStream; }
 
 		/** Returns the underlying bitstream. */
 		Bitstream& GetBitstream() const { return *mBitstream; }
@@ -82,7 +82,7 @@ namespace b3d
 		uint64_t mBufferedRangeStart = 0;
 		uint64_t mBufferedRangeEnd = 0;
 		Bitstream* mBitstream;
-		SPtr<DataStream> mDataStream;
+		TShared<DataStream> mDataStream;
 		Bitstream mMemBitstream;
 		uint64_t mLength;
 		uint64_t mPreloadSize;
@@ -105,7 +105,7 @@ namespace b3d
 		 * @param	bufferSize		Initial size of the write buffer, in bytes.
 		 * @param	flushAfter		Number of bytes after which the write buffer will be flushed to the data stream.
 		 */
-		BufferedBitstreamWriter(Bitstream* bitstream, const SPtr<DataStream>& dataStream, uint32_t bufferSize, uint32_t flushAfter);
+		BufferedBitstreamWriter(Bitstream* bitstream, const TShared<DataStream>& dataStream, uint32_t bufferSize, uint32_t flushAfter);
 
 		/** @copydoc Bitstream::WriteBits(const Bitstream::QuantType*, uint32_t) */
 		uint64_t WriteBits(const Bitstream::QuantType* data, uint64_t count);
@@ -127,20 +127,20 @@ namespace b3d
 		void Flush(bool force);
 
 		/** Returns the underlying data stream. */
-		const SPtr<DataStream>& GetDataStream() const { return mDataStream; }
+		const TShared<DataStream>& GetDataStream() const { return mDataStream; }
 
 		/** Returns the underlying bitstream. */
 		Bitstream& GetBitstream() const { return *mBitstream; }
 
 	private:
 		Bitstream* mBitstream;
-		SPtr<DataStream> mDataStream;
+		TShared<DataStream> mDataStream;
 		uint64_t mFlushAfter;
 	};
 
 	/** @} */
 
-	inline BufferedBitstreamReader::BufferedBitstreamReader(Bitstream* bitstream, const SPtr<DataStream>& dataStream, uint32_t preloadSize, uint32_t maxBufferSize)
+	inline BufferedBitstreamReader::BufferedBitstreamReader(Bitstream* bitstream, const TShared<DataStream>& dataStream, uint32_t preloadSize, uint32_t maxBufferSize)
 		: mCursor((uint64_t)dataStream->Tell() * 8), mBufferedRangeStart(mCursor), mBufferedRangeEnd(mCursor), mBitstream(bitstream), mDataStream(dataStream), mLength((uint32_t)dataStream->Size()), mPreloadSize(preloadSize), mMaxBufferSize(maxBufferSize), mIsMapped(!dataStream->IsFile())
 	{
 		// Special case for memory streams, we can just map the memory directly
@@ -280,7 +280,7 @@ namespace b3d
 			B3DStackFree(remainingData);
 	}
 
-	inline BufferedBitstreamWriter::BufferedBitstreamWriter(Bitstream* bitstream, const SPtr<DataStream>& dataStream, uint32_t bufferSize, uint32_t flushAfter)
+	inline BufferedBitstreamWriter::BufferedBitstreamWriter(Bitstream* bitstream, const TShared<DataStream>& dataStream, uint32_t bufferSize, uint32_t flushAfter)
 		: mBitstream(bitstream), mDataStream(dataStream), mFlushAfter(flushAfter)
 	{
 		if(mBitstream->Capacity() < (uint64_t)bufferSize * 8)

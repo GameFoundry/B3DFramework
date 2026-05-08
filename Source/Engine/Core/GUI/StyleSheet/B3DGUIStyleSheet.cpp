@@ -173,7 +173,7 @@ const String& GUIStyleSheetSelectorList::GetUniqueName() const
 	return mCachedUniqueName;
 }
 
-SPtr<GUIStyleSheetRules> GUIStyleSheetRules::kDefault = B3DMakeShared<GUIStyleSheetRules>();
+TShared<GUIStyleSheetRules> GUIStyleSheetRules::kDefault = B3DMakeShared<GUIStyleSheetRules>();
 
 GUIStyleSheetRules::GUIStyleSheetRules()
 {
@@ -254,7 +254,7 @@ RTTIType* GUIStyleSheetRules::GetRtti() const
 	return GetRttiStatic();
 }
 
-SPtr<const GUIStyleSheetRuleset> GUIStyleSheetRuleset::kDefault = B3DMakeShared<GUIStyleSheetRuleset>();
+TShared<const GUIStyleSheetRuleset> GUIStyleSheetRuleset::kDefault = B3DMakeShared<GUIStyleSheetRuleset>();
 
 RTTIType* GUIStyleSheetRuleset::GetRttiStatic()
 {
@@ -266,7 +266,7 @@ RTTIType* GUIStyleSheetRuleset::GetRtti() const
 	return GetRttiStatic();
 }
 
-SPtr<const GUIStyleSheetStateRulesets> GUIStyleSheetStateRulesets::kDefault = B3DMakeShared<GUIStyleSheetStateRulesets>();
+TShared<const GUIStyleSheetStateRulesets> GUIStyleSheetStateRulesets::kDefault = B3DMakeShared<GUIStyleSheetStateRulesets>();
 
 u64 GUIStyleSheetStateRulesets::RulesetKey::GenerateHash() const
 {
@@ -284,8 +284,8 @@ bool GUIStyleSheetStateRulesets::operator==(const GUIStyleSheetStateRulesets& ot
 
 	for(u32 styleSheetIndex = 0; styleSheetIndex < (u32)StyleSheets.Size(); ++styleSheetIndex)
 	{
-		const SPtr<const GUIStyleSheet> myStyleSheet = StyleSheets[styleSheetIndex].StyleSheet.lock();
-		const SPtr<const GUIStyleSheet> otherStyleSheet = other.StyleSheets[styleSheetIndex].StyleSheet.lock();
+		const TShared<const GUIStyleSheet> myStyleSheet = StyleSheets[styleSheetIndex].StyleSheet.lock();
+		const TShared<const GUIStyleSheet> otherStyleSheet = other.StyleSheets[styleSheetIndex].StyleSheet.lock();
 
 		const TArray<u32>& myRulesetIndices = StyleSheets[styleSheetIndex].RulesetIndices;
 		const TArray<u32>& otherRulesetIndices = other.StyleSheets[styleSheetIndex].RulesetIndices;
@@ -312,7 +312,7 @@ u64 GUIStyleSheetStateRulesets::GenerateHash() const
 
 	for(const auto& entry : StyleSheets)
 	{
-		const SPtr<const GUIStyleSheet> styleSheet = entry.StyleSheet.lock();
+		const TShared<const GUIStyleSheet> styleSheet = entry.StyleSheet.lock();
 
 		B3DCombineHash(hash, (u64)styleSheet.get());
 
@@ -323,7 +323,7 @@ u64 GUIStyleSheetStateRulesets::GenerateHash() const
 	return hash;
 }
 
-SPtr<const GUIStyleSheetRuleset> GUIStyleSheetStateRulesets::BuildStateRuleset(GUIElementStateFlags state, const GUIStyleSheetRules* inheritedRules) const
+TShared<const GUIStyleSheetRuleset> GUIStyleSheetStateRulesets::BuildStateRuleset(GUIElementStateFlags state, const GUIStyleSheetRules* inheritedRules) const
 {
 	RulesetKey key(state, (u64)inheritedRules);
 
@@ -331,13 +331,13 @@ SPtr<const GUIStyleSheetRuleset> GUIStyleSheetStateRulesets::BuildStateRuleset(G
 	if(found != mCachedRulesets.end())
 		return found->second;
 
-	SPtr<GUIStyleSheetRuleset> outputRuleset = B3DMakeShared<GUIStyleSheetRuleset>();
+	TShared<GUIStyleSheetRuleset> outputRuleset = B3DMakeShared<GUIStyleSheetRuleset>();
 	if(inheritedRules)
 		outputRuleset->Rules = *inheritedRules;
 
 	for(const auto& entry : StyleSheets)
 	{
-		SPtr<const GUIStyleSheet> styleSheet = entry.StyleSheet.lock();
+		TShared<const GUIStyleSheet> styleSheet = entry.StyleSheet.lock();
 		if(styleSheet == nullptr)
 			continue;
 
@@ -440,12 +440,12 @@ void GUIStyleSheet::Initialize()
 
 HGUIStyleSheet GUIStyleSheet::Parse(const Path& file)
 {
-	const SPtr<DataStream> fileStream = FileSystem::OpenFile(file);
+	const TShared<DataStream> fileStream = FileSystem::OpenFile(file);
 	if(!fileStream)
 		return nullptr;
 
 	GUIStyleSheetParser parser;
-	SPtr<GUIStyleSheet> styleSheet = parser.Parse(B3DMakeShared<SourceCode>(fileStream->GetAsString()));
+	TShared<GUIStyleSheet> styleSheet = parser.Parse(B3DMakeShared<SourceCode>(fileStream->GetAsString()));
 
 	return B3DStaticResourceCast<GUIStyleSheet>(GetResources().CreateResourceHandle(styleSheet));
 }
@@ -589,22 +589,22 @@ void GUIStyleSheet::PopulatePotentialRulesetIndices(const StringView& elementSel
 
 HGUIStyleSheet GUIStyleSheet::Create(TArray<GUIStyleSheetRuleset> rulesets)
 {
-	const SPtr<GUIStyleSheet> newStyleSheet = CreateShared(std::move(rulesets));
+	const TShared<GUIStyleSheet> newStyleSheet = CreateShared(std::move(rulesets));
 
 	return B3DStaticResourceCast<GUIStyleSheet>(GetResources().CreateResourceHandle(newStyleSheet));
 }
 
-SPtr<GUIStyleSheet> GUIStyleSheet::CreateShared(TArray<GUIStyleSheetRuleset> rulesets)
+TShared<GUIStyleSheet> GUIStyleSheet::CreateShared(TArray<GUIStyleSheetRuleset> rulesets)
 {
-	SPtr<GUIStyleSheet> newStyleSheet = CreateUninitialized(rulesets);
+	TShared<GUIStyleSheet> newStyleSheet = CreateUninitialized(rulesets);
 	newStyleSheet->Initialize();
 
 	return newStyleSheet;
 }
 
-SPtr<GUIStyleSheet> GUIStyleSheet::CreateUninitialized(TArray<GUIStyleSheetRuleset> rulesets)
+TShared<GUIStyleSheet> GUIStyleSheet::CreateUninitialized(TArray<GUIStyleSheetRuleset> rulesets)
 {
-	SPtr<GUIStyleSheet> newStyleSheet = B3DMakeSharedFromExisting<GUIStyleSheet>(new(B3DAllocate<GUIStyleSheet>()) GUIStyleSheet(std::move(rulesets)));
+	TShared<GUIStyleSheet> newStyleSheet = B3DMakeSharedFromExisting<GUIStyleSheet>(new(B3DAllocate<GUIStyleSheet>()) GUIStyleSheet(std::move(rulesets)));
 	newStyleSheet->SetShared(newStyleSheet);
 
 	return newStyleSheet;
@@ -652,10 +652,10 @@ GUIStyleSheetRules GUIStyleSheetCascade::BuildRules(const GUIRenderable& guiElem
 	return combinedRules;
 }
 
-SPtr<const GUIStyleSheetStateRulesets> GUIStyleSheetCascade::BuildStateRulesets(const GUIRenderable& guiElement, StringView pseudoElement) const
+TShared<const GUIStyleSheetStateRulesets> GUIStyleSheetCascade::BuildStateRulesets(const GUIRenderable& guiElement, StringView pseudoElement) const
 {
-	thread_local SPtr<GUIStyleSheetStateRulesets> tlLookupValue = B3DMakeShared<GUIStyleSheetStateRulesets>();
-	const static SPtr<GUIStyleSheetStateRulesets> kEmpty = B3DMakeShared<GUIStyleSheetStateRulesets>();
+	thread_local TShared<GUIStyleSheetStateRulesets> tlLookupValue = B3DMakeShared<GUIStyleSheetStateRulesets>();
+	const static TShared<GUIStyleSheetStateRulesets> kEmpty = B3DMakeShared<GUIStyleSheetStateRulesets>();
 
 	tlLookupValue->StyleSheets.Clear();
 
@@ -673,7 +673,7 @@ SPtr<const GUIStyleSheetStateRulesets> GUIStyleSheetCascade::BuildStateRulesets(
 	if(foundCacheEntry != mCachedStateRulesets.end())
 		return *foundCacheEntry;
 
-	SPtr<GUIStyleSheetStateRulesets> newStateRulesets = B3DMakeShared<GUIStyleSheetStateRulesets>();
+	TShared<GUIStyleSheetStateRulesets> newStateRulesets = B3DMakeShared<GUIStyleSheetStateRulesets>();
 	newStateRulesets->StyleSheets = std::move(tlLookupValue->StyleSheets);
 
 	mCachedStateRulesets.insert(newStateRulesets);

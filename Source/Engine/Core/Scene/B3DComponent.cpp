@@ -52,7 +52,7 @@ void Component::DestroyImmediate(bool removeFromParent)
 		{
 			HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
 
-			const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+			const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 			if(B3D_ENSURE(scene != nullptr))
 				scene->NotifyComponentDestroyed(thisComponentHandle, true);
 		}
@@ -80,7 +80,7 @@ void Component::QueueForDestroy(bool removeFromParent)
 	{
 		HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
 
-		const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+		const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 		if(B3D_ENSURE(scene != nullptr))
 			scene->NotifyComponentDestroyed(thisComponentHandle, true);
 	}
@@ -137,7 +137,7 @@ void Component::RefreshEnabledState(bool triggerEvents)
 
 			if(triggerEvents) // Note: Not sure this check makes sense, but keeping it to maintain behaviour from SceneObject. Same for below.
 			{
-				const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+				const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 				scene->NotifyComponentActivated(thisComponentHandle, triggerEvents);
 			}
 		}
@@ -147,7 +147,7 @@ void Component::RefreshEnabledState(bool triggerEvents)
 
 			if(triggerEvents)
 			{
-				const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+				const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 				scene->NotifyComponentDeactivated(thisComponentHandle, triggerEvents);
 			}
 			

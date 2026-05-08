@@ -15,7 +15,7 @@ To create a vertex buffer call @b3d::render::GpuDevice::CreateGpuBuffer with a p
 ~~~~~~~~~~~~~{.cpp}
 // Create a vertex buffer containing 8 vertices with just a vertex position (3D float)
 GpuBufferCreateInformation createInformation = GpuBufferCreateInformation::CreateVertex(sizeof(Vector3), 8);
-SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(createInformation);
+TShared<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(createInformation);
 ~~~~~~~~~~~~~
 
 Once the vertex buffer is created you will want to populate it with some data. For this you can use any of the following methods:
@@ -37,7 +37,7 @@ Once a vertex buffer is created and populated with data, you can bind it to the 
 
 ~~~~~~~~~~~~~{.cpp}
 // Bind a single vertex buffer
-SPtr<GpuBuffer> buffers[] = { vertexBuffer };
+TShared<GpuBuffer> buffers[] = { vertexBuffer };
 commandBuffer->SetVertexBuffers(0, buffers, 1);
 ~~~~~~~~~~~~~
 
@@ -54,7 +54,7 @@ VertexElement elements[] = {
 	VertexElement(VET_FLOAT2, VES_TEXCOORD, 0, 0, 0)
 };
 
-SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(TArrayView<VertexElement>(elements, 3));
+TShared<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(TArrayView<VertexElement>(elements, 3));
 ~~~~~~~~~~~~~
 
 If you are binding multiple vertex buffers, then make use of the `streamIndex` parameter when constructing **VertexElement** objects. This index will let the pipeline know in which vertex buffer to find the provided element.
@@ -80,7 +80,7 @@ To create an index buffer call @b3d::render::GpuBuffer::Create with a populated 
 ~~~~~~~~~~~~~{.cpp}
 // Create an index buffer containing 36 16-bit indices
 GpuBufferCreateInformation createInformation = GpuBufferCreateInformation::CreateIndex(IT_16BIT, 36);
-SPtr<GpuBuffer> indexBuffer = gpuDevice->CreateGpuBuffer(createInformation);
+TShared<GpuBuffer> indexBuffer = gpuDevice->CreateGpuBuffer(createInformation);
 ~~~~~~~~~~~~~
 
 Reading and writing from/to the index buffer has the identical interface to the vertex buffer, so we won't show it again.
@@ -100,9 +100,9 @@ This fact can also be exploited for easier vertex/index buffer and description c
 To retrieve an index buffer from a **render::Mesh** call @b3d::render::Mesh::GetIndexBuffer(). Vertex buffer(s) and vertex description can be retrieved from a @b3d::render::VertexData structure returned by @b3d::render::Mesh::GetVertexData(). **render::VertexDescription** can then be retrieved from @b3d::render::VertexData::VertexDescription, and vertex buffers from @b3d::render::VertexData::GetBuffer.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<Mesh> mesh = ...;
-SPtr<GpuBuffer> meshIndexBuffer = mesh->GetIndexBuffer();
-SPtr<VertexData> vertexData = mesh->GetVertexData();
-SPtr<VertexDescription> meshVertexDescription = vertexData->VertexDescription;
-SPtr<GpuBuffer> meshVertexBuffer = vertexData->GetBuffer(0);
+TShared<Mesh> mesh = ...;
+TShared<GpuBuffer> meshIndexBuffer = mesh->GetIndexBuffer();
+TShared<VertexData> vertexData = mesh->GetVertexData();
+TShared<VertexDescription> meshVertexDescription = vertexData->VertexDescription;
+TShared<GpuBuffer> meshVertexBuffer = vertexData->GetBuffer(0);
 ~~~~~~~~~~~~~

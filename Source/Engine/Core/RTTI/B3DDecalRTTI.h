@@ -39,7 +39,7 @@ namespace b3d::ecs
 			return TID_ECSDecal;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<Decal>();
 		}
@@ -75,7 +75,7 @@ namespace b3d
 			return TID_Decal;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<Decal>();
 		}

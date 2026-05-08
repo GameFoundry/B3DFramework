@@ -82,7 +82,7 @@ namespace b3d
 		bool DoOnVirtualButtonEvent(const GUIVirtualButtonEvent& ev) override;
 		u32 GetRenderElementDepthRange() const override;
 		bool HasCustomCursor(const GUIPhysicalPoint& position, CursorType& type) const override;
-		SPtr<GUIContextMenu> GetContextMenu() const override;
+		TShared<GUIContextMenu> GetContextMenu() const override;
 
 	private:
 		/** Inserts a new string into the current text at the specified index. */

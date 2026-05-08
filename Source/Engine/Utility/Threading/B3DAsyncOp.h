@@ -207,11 +207,11 @@ namespace b3d
 	protected:
 		AsyncOp() = default;
 
-		explicit AsyncOp(SPtr<AsyncOpDataBase> data)
+		explicit AsyncOp(TShared<AsyncOpDataBase> data)
 			: mData(std::move(data))
 		{}
 
-		SPtr<AsyncOpDataBase> mData;
+		TShared<AsyncOpDataBase> mData;
 	};
 
 	/**
@@ -326,12 +326,12 @@ namespace b3d
 
 	private:
 		/** Creates typed data with custom deleter and sets up type-erased value extractor. */
-		static SPtr<AsyncOpDataBase> CreateData()
+		static TShared<AsyncOpDataBase> CreateData()
 		{
 			auto* data = B3DNew<TAsyncOpData<ReturnType>>();
 			data->GetValueFn = &TAsyncOpData<ReturnType>::ExtractValue;
 
-			return SPtr<AsyncOpDataBase>(
+			return TShared<AsyncOpDataBase>(
 				data,
 				[](AsyncOpDataBase* p) { B3DDelete(static_cast<TAsyncOpData<ReturnType>*>(p)); }
 			);
@@ -393,12 +393,12 @@ namespace b3d
 
 	private:
 		/** Creates typed data with custom deleter and sets up type-erased value extractor. */
-		static SPtr<AsyncOpDataBase> CreateData()
+		static TShared<AsyncOpDataBase> CreateData()
 		{
 			auto* data = B3DNew<TAsyncOpData<void>>();
 			data->GetValueFn = &TAsyncOpData<void>::ExtractValue;
 
-			return SPtr<AsyncOpDataBase>(
+			return TShared<AsyncOpDataBase>(
 				data,
 				[](AsyncOpDataBase* p) { B3DDelete(static_cast<TAsyncOpData<void>*>(p)); }
 			);

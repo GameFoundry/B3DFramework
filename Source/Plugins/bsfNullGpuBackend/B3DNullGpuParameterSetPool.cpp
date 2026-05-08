@@ -12,7 +12,7 @@ namespace b3d::render
 	{
 	}
 
-	SPtr<GpuParameterSet> NullGpuParameterSetPool::Create(const SPtr<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
+	TShared<GpuParameterSet> NullGpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
 	{
 		if (mAllocatedSetCount >= mInformation.MaxSets)
 			return nullptr;

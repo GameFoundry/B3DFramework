@@ -17,8 +17,8 @@ namespace b3d
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedDeltaHandler : public IDeltaHandler
 	{
 	protected:
-		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) override;
-		void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context) override;
+		TShared<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) override;
+		void GenerateDeltaApplyCommands(const TShared<IReflectable>& object, const TShared<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context) override;
 	};
 
 	/** @} */

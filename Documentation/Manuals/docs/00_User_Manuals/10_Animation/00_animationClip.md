@@ -47,7 +47,7 @@ Once imported the animation clip provides a few properties you can query. Use @b
 float animationLength = animationClip->GetLength();
 B3D_LOG(Info, LogGeneric, "Animation length: {0} seconds", animationLength);
 
-SPtr<AnimationCurves> animationCurves = animationClip->GetCurves();
+TShared<AnimationCurves> animationCurves = animationClip->GetCurves();
 B3D_LOG(Info, LogGeneric, "Position curves: {0}", animationCurves->Position.size());
 ~~~~~~~~~~~~~
 
@@ -130,7 +130,7 @@ importOptions->ImportRootMotion = true;
 auto resources = GetImporter().ImportAll("humanAnimated.fbx", importOptions);
 HAnimationClip animationClip = static_resource_cast<AnimationClip>(resources[1].Value);
 
-SPtr<RootMotion> rootMotion = animationClip->GetRootMotion();
+TShared<RootMotion> rootMotion = animationClip->GetRootMotion();
 
 // Move a character using root motion
 Vector3 characterPosition(kZeroTag);

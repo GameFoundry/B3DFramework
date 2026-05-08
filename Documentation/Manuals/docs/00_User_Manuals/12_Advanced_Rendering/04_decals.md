@@ -193,9 +193,9 @@ Each decal also has an @b3d::ecs::DecalId fragment that stores a persistent rend
 You can bypass the **Decal** component and create `ecs::Decal` fragments directly for maximum performance. Helper functions @b3d::ecs::CreateDecal and @b3d::ecs::DestroyDecal handle fragment creation, world transform, renderer ID allocation, and cleanup. Use @b3d::ecs::DecalECSUtility to mark dirty after property changes.
 
 ~~~~~~~~~~~~~{.cpp}
-const SPtr<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
+const TShared<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
 ecs::Registry& registry = scene->GetECSRegistry();
-const SPtr<RendererScene>& rendererScene = scene->GetRendererScene();
+const TShared<RendererScene>& rendererScene = scene->GetRendererScene();
 
 // Create an entity with all decal fragments, a world transform, and a renderer ID
 ecs::Entity entity = registry.CreateEntity();

@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	ScriptRenderTarget::ScriptRenderTarget(const SPtr<RenderTarget>& nativeObject)
+	ScriptRenderTarget::ScriptRenderTarget(const TShared<RenderTarget>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

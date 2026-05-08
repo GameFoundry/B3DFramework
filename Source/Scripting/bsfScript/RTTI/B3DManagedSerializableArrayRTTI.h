@@ -20,7 +20,7 @@ namespace b3d
 
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableArrayRTTI : public TRTTIType<ManagedSerializableArray, IReflectable, ManagedSerializableArrayRTTI>
 	{
-		TArray<SPtr<ManagedSerializableFieldData>> mArrayEntries;
+		TArray<TShared<ManagedSerializableFieldData>> mArrayEntries;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mArrayTypeInfo, 0)
@@ -65,7 +65,7 @@ namespace b3d
 			return TID_ScriptSerializableArray;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return ManagedSerializableArray::CreateNew();
 		}

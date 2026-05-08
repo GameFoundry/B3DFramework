@@ -72,7 +72,7 @@ VulkanRenderWindowSurface::VulkanRenderWindowSurface(const RenderWindowSurfaceCr
 
 	mSurface = B3DMakeShared<VulkanSurface>(vkSurface);
 
-	SPtr<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
+	TShared<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
 	VkPhysicalDevice physicalDevice = presentDevice->GetPhysical();
 
 	mPresentQueueFamily = presentDevice->GetQueueFamily(GQT_GRAPHICS);
@@ -107,7 +107,7 @@ void VulkanRenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsy
 {
 	GetVulkanSubmitThread().WaitUntilIdle();
 
-	SPtr<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
+	TShared<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
 	VulkanSwapChain* oldSwapChain = mSwapChain;
 	oldSwapChain->MarkAsRetired();
 

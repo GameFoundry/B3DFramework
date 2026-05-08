@@ -25,7 +25,7 @@ namespace b3d
 	ParticleVelocitySettings ScriptParticleVelocitySettings::FromInterop(const __ParticleVelocitySettingsInterop& value)
 	{
 		ParticleVelocitySettings output;
-		SPtr<TDistribution<TVector3<float>>> tmpVelocity;
+		TShared<TDistribution<TVector3<float>>> tmpVelocity;
 		ScriptVector3Distribution* scriptObjectWrapperVelocity;
 		scriptObjectWrapperVelocity = ScriptVector3Distribution::GetScriptObjectWrapper(value.Velocity);
 		if(scriptObjectWrapperVelocity != nullptr)
@@ -41,7 +41,7 @@ namespace b3d
 	{
 		__ParticleVelocitySettingsInterop output;
 		MonoObject* tmpVelocity;
-		SPtr<TDistribution<TVector3<float>>> tmpVelocitycopy;
+		TShared<TDistribution<TVector3<float>>> tmpVelocitycopy;
 		tmpVelocitycopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Velocity);
 		tmpVelocity = ScriptVector3Distribution::GetOrCreateScriptObject(tmpVelocitycopy);
 		output.Velocity = tmpVelocity;

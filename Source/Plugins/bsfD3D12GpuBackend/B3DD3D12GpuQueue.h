@@ -22,7 +22,7 @@ namespace b3d
 
 			void SubmitCommandBuffer(const GpuSubmissionInformation& information, bool flushTransferCommandBuffer = true) override;
 			void WaitUntilIdle() override;
-			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) override;
+			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) override;
 
 			/** Returns the internal handle to the D3D12 queue object. */
 			ID3D12CommandQueue* GetD3D12Handle() const { return mQueue.Get(); }

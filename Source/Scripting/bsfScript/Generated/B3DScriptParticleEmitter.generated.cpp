@@ -14,7 +14,7 @@
 
 namespace b3d
 {
-	ScriptParticleEmitter::ScriptParticleEmitter(const SPtr<ParticleEmitter>& nativeObject)
+	ScriptParticleEmitter::ScriptParticleEmitter(const TShared<ParticleEmitter>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -76,7 +76,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ParticleEmitterShape> tmpshape;
+		TShared<ParticleEmitterShape> tmpshape;
 		ScriptParticleEmitterShapeWrapperBase* scriptObjectWrappershape;
 		scriptObjectWrappershape = (ScriptParticleEmitterShapeWrapperBase*)ScriptParticleEmitterShape::GetScriptObjectWrapper(shape);
 		if(scriptObjectWrappershape != nullptr)
@@ -86,7 +86,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleEmitter::InternalGetShape(ScriptParticleEmitter* self)
 	{
-		SPtr<ParticleEmitterShape> tmp__output;
+		TShared<ParticleEmitterShape> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -103,7 +103,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TDistribution<float>> tmpvalue;
+		TShared<TDistribution<float>> tmpvalue;
 		ScriptFloatDistribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptFloatDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -113,7 +113,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleEmitter::InternalGetEmissionRate(ScriptParticleEmitter* self)
 	{
-		SPtr<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
+		TShared<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -168,7 +168,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TDistribution<float>> tmpvalue;
+		TShared<TDistribution<float>> tmpvalue;
 		ScriptFloatDistribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptFloatDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -178,7 +178,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleEmitter::InternalGetInitialLifetime(ScriptParticleEmitter* self)
 	{
-		SPtr<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
+		TShared<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -195,7 +195,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TDistribution<float>> tmpvalue;
+		TShared<TDistribution<float>> tmpvalue;
 		ScriptFloatDistribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptFloatDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -205,7 +205,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleEmitter::InternalGetInitialSpeed(ScriptParticleEmitter* self)
 	{
-		SPtr<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
+		TShared<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -222,7 +222,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TDistribution<float>> tmpvalue;
+		TShared<TDistribution<float>> tmpvalue;
 		ScriptFloatDistribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptFloatDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -232,7 +232,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleEmitter::InternalGetInitialSize(ScriptParticleEmitter* self)
 	{
-		SPtr<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
+		TShared<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -249,7 +249,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TDistribution<TVector3<float>>> tmpvalue;
+		TShared<TDistribution<TVector3<float>>> tmpvalue;
 		ScriptVector3Distribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptVector3Distribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -259,7 +259,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleEmitter::InternalGetInitialSize3D(ScriptParticleEmitter* self)
 	{
-		SPtr<TDistribution<TVector3<float>>> tmp__output = B3DMakeShared<TDistribution<TVector3<float>>>();
+		TShared<TDistribution<TVector3<float>>> tmp__output = B3DMakeShared<TDistribution<TVector3<float>>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -298,7 +298,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TDistribution<float>> tmpvalue;
+		TShared<TDistribution<float>> tmpvalue;
 		ScriptFloatDistribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptFloatDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -308,7 +308,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleEmitter::InternalGetInitialRotation(ScriptParticleEmitter* self)
 	{
-		SPtr<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
+		TShared<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -325,7 +325,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TDistribution<TVector3<float>>> tmpvalue;
+		TShared<TDistribution<TVector3<float>>> tmpvalue;
 		ScriptVector3Distribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptVector3Distribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -335,7 +335,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleEmitter::InternalGetInitialRotation3D(ScriptParticleEmitter* self)
 	{
-		SPtr<TDistribution<TVector3<float>>> tmp__output = B3DMakeShared<TDistribution<TVector3<float>>>();
+		TShared<TDistribution<TVector3<float>>> tmp__output = B3DMakeShared<TDistribution<TVector3<float>>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -374,7 +374,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TColorDistribution<ColorGradient>> tmpvalue;
+		TShared<TColorDistribution<ColorGradient>> tmpvalue;
 		ScriptColorDistribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptColorDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -384,7 +384,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleEmitter::InternalGetInitialColor(ScriptParticleEmitter* self)
 	{
-		SPtr<TColorDistribution<ColorGradient>> tmp__output = B3DMakeShared<TColorDistribution<ColorGradient>>();
+		TShared<TColorDistribution<ColorGradient>> tmp__output = B3DMakeShared<TColorDistribution<ColorGradient>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -464,7 +464,7 @@ namespace b3d
 
 	void ScriptParticleEmitter::InternalCreate(MonoObject* scriptObject)
 	{
-		SPtr<ParticleEmitter> nativeObject = ParticleEmitter::Create();
+		TShared<ParticleEmitter> nativeObject = ParticleEmitter::Create();
 		ScriptObjectWrapper::Create<ScriptParticleEmitter>(nativeObject, scriptObject);
 	}
 }

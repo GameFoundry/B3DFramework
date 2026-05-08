@@ -14,7 +14,7 @@
 
 using namespace b3d;
 
-LinuxRenderWindow::LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow)
+LinuxRenderWindow::LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow)
 	: RenderWindow(createInformation, windowId, parentWindow)
 {}
 
@@ -50,7 +50,7 @@ void LinuxRenderWindow::Initialize()
 	windowCreateInformation.Parent = 0;
 	if(!B3DIsWeakUnassigned(mParentWindow))
 	{
-		const SPtr<LinuxRenderWindow> parentWindow = std::static_pointer_cast<LinuxRenderWindow>(mParentWindow.lock());
+		const TShared<LinuxRenderWindow> parentWindow = std::static_pointer_cast<LinuxRenderWindow>(mParentWindow.lock());
 		if(B3D_ENSURE(parentWindow != nullptr))
 			windowCreateInformation.Parent = (::Window)parentWindow->GetPlatformWindowHandle();
 	}
@@ -446,13 +446,13 @@ u64 LinuxRenderWindow::GetPlatformWindowHandle() const
 	return (u64)mWindow->GetXWindowInternal();
 }
 
-SPtr<render::RenderProxy> LinuxRenderWindow::CreateRenderProxy() const
+TShared<render::RenderProxy> LinuxRenderWindow::CreateRenderProxy() const
 {
-	SPtr<RenderWindow> parentWindow = mParentWindow.lock();
+	TShared<RenderWindow> parentWindow = mParentWindow.lock();
 	B3D_ENSURE(B3DIsWeakUnassigned(mParentWindow) || !mParentWindow.expired()); // If parent window is assigned, it must not be expired
 
 	RenderWindowCreateInformation createInformation = mCreateInformation;
-	SPtr<render::RenderProxy> renderProxy = B3DMakeShared<render::LinuxRenderWindow>(createInformation, mWindowId, GetPlatformWindowHandle(), B3DGetRenderProxy(parentWindow));
+	TShared<render::RenderProxy> renderProxy = B3DMakeShared<render::LinuxRenderWindow>(createInformation, mWindowId, GetPlatformWindowHandle(), B3DGetRenderProxy(parentWindow));
 	renderProxy->SetShared(renderProxy);
 
 	return renderProxy;
@@ -479,6 +479,6 @@ void LinuxRenderWindow::DoOnWindowMovedOrResized()
 
 using namespace b3d::render;
 
-LinuxRenderWindow::LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const SPtr<RenderWindow>& parentWindow)
+LinuxRenderWindow::LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const TShared<RenderWindow>& parentWindow)
 	: RenderWindow(createInformation, windowId, platformWindowHandle, parentWindow)
 {}

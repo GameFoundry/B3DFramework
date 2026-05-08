@@ -26,7 +26,7 @@ VulkanHeadlessRenderWindowSurface::~VulkanHeadlessRenderWindowSurface()
 
 void VulkanHeadlessRenderWindowSurface::CreateSwapChainImages()
 {
-	SPtr<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
+	TShared<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
 	VulkanResourceManager* resourceManager = &presentDevice->GetResourceManager();
 	VkDevice device = presentDevice->GetLogical();
 

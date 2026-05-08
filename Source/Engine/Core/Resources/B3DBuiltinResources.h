@@ -73,7 +73,7 @@ namespace b3d
 		const HGUIStyleSheet& GetDefaultGUIStyleSheet() const { return mDefaultGUIStyleSheet; }
 
 		/** Returns the default style sheet for GUI elements. */
-		SPtr<const GUIStyleSheetCascade> GetDefaultGUIStyleSheetCascade() const { return mDefaultGUIStyleSheetCascade; }
+		TShared<const GUIStyleSheetCascade> GetDefaultGUIStyleSheetCascade() const { return mDefaultGUIStyleSheetCascade; }
 
 		/**	Returns a small entirely white texture. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(WhiteSpriteTexture))
@@ -225,20 +225,20 @@ namespace b3d
 		HTexture GetCursorTexture(const String& name) const;
 
 		HGUIStyleSheet mDefaultGUIStyleSheet;
-		SPtr<GUIStyleSheetCascade> mDefaultGUIStyleSheetCascade;
+		TShared<GUIStyleSheetCascade> mDefaultGUIStyleSheetCascade;
 		HFont mFont;
 
-		SPtr<PixelData> mCursorArrow;
-		SPtr<PixelData> mCursorArrowDrag;
-		SPtr<PixelData> mCursorArrowLeftRight;
-		SPtr<PixelData> mCursorIBeam;
-		SPtr<PixelData> mCursorDeny;
-		SPtr<PixelData> mCursorWait;
-		SPtr<PixelData> mCursorSizeNESW;
-		SPtr<PixelData> mCursorSizeNS;
-		SPtr<PixelData> mCursorSizeNWSE;
-		SPtr<PixelData> mCursorSizeWE;
-		SPtr<PixelData> mFrameworkIcon;
+		TShared<PixelData> mCursorArrow;
+		TShared<PixelData> mCursorArrowDrag;
+		TShared<PixelData> mCursorArrowLeftRight;
+		TShared<PixelData> mCursorIBeam;
+		TShared<PixelData> mCursorDeny;
+		TShared<PixelData> mCursorWait;
+		TShared<PixelData> mCursorSizeNESW;
+		TShared<PixelData> mCursorSizeNS;
+		TShared<PixelData> mCursorSizeNWSE;
+		TShared<PixelData> mCursorSizeWE;
+		TShared<PixelData> mFrameworkIcon;
 
 		HSpriteTexture mWhiteSpriteTexture;
 
@@ -303,11 +303,11 @@ namespace b3d
 		class B3D_EXPORT BuiltinResources : public Module<BuiltinResources>
 		{
 		public:
-			SPtr<Texture> WhiteTexture2D;
-			SPtr<Texture> BlackTexture2D;
-			SPtr<Texture> NormalTexture2D;
-			SPtr<Texture> WhiteTexture3D;
-			SPtr<Texture> BlackTexture3D;
+			TShared<Texture> WhiteTexture2D;
+			TShared<Texture> BlackTexture2D;
+			TShared<Texture> NormalTexture2D;
+			TShared<Texture> WhiteTexture3D;
+			TShared<Texture> BlackTexture3D;
 
 		private:
 			friend class b3d::BuiltinResources;

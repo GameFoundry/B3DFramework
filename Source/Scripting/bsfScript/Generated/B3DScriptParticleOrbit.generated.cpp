@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptParticleOrbit::ScriptParticleOrbit(const SPtr<ParticleOrbit>& nativeObject)
+	ScriptParticleOrbit::ScriptParticleOrbit(const TShared<ParticleOrbit>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -69,13 +69,13 @@ namespace b3d
 	{
 		ParticleOrbitSettings tmpsettings;
 		tmpsettings = ScriptParticleOrbitSettings::FromInterop(*settings);
-		SPtr<ParticleOrbit> nativeObject = ParticleOrbit::Create(tmpsettings);
+		TShared<ParticleOrbit> nativeObject = ParticleOrbit::Create(tmpsettings);
 		ScriptObjectWrapper::Create<ScriptParticleOrbit>(nativeObject, scriptObject);
 	}
 
 	void ScriptParticleOrbit::InternalCreate0(MonoObject* scriptObject)
 	{
-		SPtr<ParticleOrbit> nativeObject = ParticleOrbit::Create();
+		TShared<ParticleOrbit> nativeObject = ParticleOrbit::Create();
 		ScriptObjectWrapper::Create<ScriptParticleOrbit>(nativeObject, scriptObject);
 	}
 }

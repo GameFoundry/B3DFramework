@@ -28,7 +28,7 @@ namespace b3d
 			return TID_FixedJoint;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<FixedJoint>();
 		}

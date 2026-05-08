@@ -17,7 +17,7 @@ namespace b3d
 	{
 		OggDecoderData() = default;
 
-		SPtr<DataStream> Stream;
+		TShared<DataStream> Stream;
 		u32 Offset = 0;
 	};
 
@@ -28,10 +28,10 @@ namespace b3d
 		OggVorbisDecoder();
 		~OggVorbisDecoder();
 
-		bool Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset = 0) override;
+		bool Open(const TShared<DataStream>& stream, AudioDataInfo& info, u32 offset = 0) override;
 		u32 Read(u8* samples, u32 numSamples) override;
 		void Seek(u32 offset) override;
-		bool IsValid(const SPtr<DataStream>& stream, u32 offset = 0) override;
+		bool IsValid(const TShared<DataStream>& stream, u32 offset = 0) override;
 
 	private:
 		OggDecoderData mDecoderData;

@@ -22,7 +22,7 @@ namespace b3d
 	class B3D_EXPORT TMaterialDataCommon
 	{
 	protected:
-		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialPtrType = TShared<CoreVariantType<Material, IsRenderProxy>>;
 		using MaterialParamsType = CoreVariantType<MaterialParameters, IsRenderProxy>;
 
 	public:
@@ -127,7 +127,7 @@ namespace b3d
 	template <bool IsRenderProxy>
 	class B3D_EXPORT TMaterialParameterSampledTexture
 	{
-		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialPtrType = TShared<CoreVariantType<Material, IsRenderProxy>>;
 		using MaterialParamsType = CoreVariantType<MaterialParameters, IsRenderProxy>;
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
@@ -157,7 +157,7 @@ namespace b3d
 	template <bool IsRenderProxy>
 	class B3D_EXPORT TMaterialParamSpriteImage
 	{
-		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialPtrType = TShared<CoreVariantType<Material, IsRenderProxy>>;
 		using MaterialParamsType = CoreVariantType<MaterialParameters, IsRenderProxy>;
 		using SpriteImageType = CoreVariantHandleType<SpriteImage, IsRenderProxy>;
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
@@ -188,7 +188,7 @@ namespace b3d
 	template <bool IsRenderProxy>
 	class B3D_EXPORT TMaterialParameterStorageTexture
 	{
-		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialPtrType = TShared<CoreVariantType<Material, IsRenderProxy>>;
 		using MaterialParamsType = CoreVariantType<MaterialParameters, IsRenderProxy>;
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
@@ -218,9 +218,9 @@ namespace b3d
 	template <bool IsRenderProxy>
 	class B3D_EXPORT TMaterialParameterBuffer
 	{
-		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialPtrType = TShared<CoreVariantType<Material, IsRenderProxy>>;
 		using MaterialParamsType = CoreVariantType<MaterialParameters, IsRenderProxy>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using BufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 	public:
 		TMaterialParameterBuffer(const String& name, const MaterialPtrType& material);
@@ -248,7 +248,7 @@ namespace b3d
 	template <bool IsRenderProxy>
 	class B3D_EXPORT TMaterialParameterSampler
 	{
-		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialPtrType = TShared<CoreVariantType<Material, IsRenderProxy>>;
 		using MaterialParamsType = CoreVariantType<MaterialParameters, IsRenderProxy>;
 
 	public:
@@ -257,10 +257,10 @@ namespace b3d
 		TMaterialParameterSampler() {}
 
 		/** @copydoc GpuParamSampState::Set */
-		void Set(const SPtr<SamplerState>& sampState) const;
+		void Set(const TShared<SamplerState>& sampState) const;
 
 		/** @copydoc GpuParamSampState::Get */
-		SPtr<SamplerState> Get() const;
+		TShared<SamplerState> Get() const;
 
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const

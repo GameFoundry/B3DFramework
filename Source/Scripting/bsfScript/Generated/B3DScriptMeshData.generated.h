@@ -14,7 +14,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MeshData")
 
-		ScriptMeshData(const SPtr<MeshData>& nativeObject);
+		ScriptMeshData(const TShared<MeshData>& nativeObject);
 		~ScriptMeshData();
 
 		static void SetupScriptBindings();

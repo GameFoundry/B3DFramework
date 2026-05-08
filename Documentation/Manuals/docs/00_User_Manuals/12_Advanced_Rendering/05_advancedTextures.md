@@ -55,13 +55,13 @@ Once a texture has been created you might want to write some data to it. This is
 
 ~~~~~~~~~~~~~{.cpp}
 // Create pixel data for a 128x128 texture with an 8-bit RGBA format
-SPtr<PixelData> pixelData = PixelData::Create(128, 128, 1, PF_RGBA8);
+TShared<PixelData> pixelData = PixelData::Create(128, 128, 1, PF_RGBA8);
 ~~~~~~~~~~~~~
 
 Once created you can set the color of each pixel by calling @b3d::PixelData::SetColorAt, or set all colors at once by calling @b3d::PixelData::SetColors.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<PixelData> pixelData = PixelData::Create(128, 128, 1, PF_RGBA8);
+TShared<PixelData> pixelData = PixelData::Create(128, 128, 1, PF_RGBA8);
 
 // Generate some arbitrary colors
 Vector<Color> colors;
@@ -76,7 +76,7 @@ Finally you can write the data to the texture. Note that this is an asynchronous
 
 ~~~~~~~~~~~~~{.cpp}
 HTexture texture = ...;
-SPtr<PixelData> pixelData = ...;
+TShared<PixelData> pixelData = ...;
 
 TAsyncOp<void> asyncOp = texture->WriteData(pixelData);
 
@@ -113,7 +113,7 @@ for(u32 face = 0; face < 4; face++)
 		u32 mipWidth, mipHeight, mipDepth;
 		PixelUtility::GetSizeForMipLevel(128, 128, 1, mipLevel, mipWidth, mipHeight, mipDepth);
 
-		SPtr<PixelData> pixelData = PixelData::Create(mipWidth, mipHeight, 1, PF_RGBA8);
+		TShared<PixelData> pixelData = PixelData::Create(mipWidth, mipHeight, 1, PF_RGBA8);
 
 		Vector<Color> colors;
 		for(u32 y = 0; y < mipHeight; y++)
@@ -135,7 +135,7 @@ HTexture texture = ...;
 const TextureProperties& textureProperties = texture->GetProperties();
 
 // Get buffer with enough space and valid format for 0th face and 2nd mip-level
-SPtr<PixelData> pixelData = textureProperties.AllocBuffer(0, 2);
+TShared<PixelData> pixelData = textureProperties.AllocBuffer(0, 2);
 // ... populate the buffer and write
 ~~~~~~~~~~~~~
 
@@ -144,7 +144,7 @@ When you are sure you will overwrite all the contents of a texture, make sure to
 
 ~~~~~~~~~~~~~{.cpp}
 HTexture texture = ...;
-SPtr<PixelData> pixelData = ...;
+TShared<PixelData> pixelData = ...;
 
 // Discard existing texture contents for better performance
 texture->WriteData(pixelData, 0, 0, true);
@@ -154,10 +154,10 @@ texture->WriteData(pixelData, 0, 0, true);
 Mip-maps are generally created automatically from a source texture, rather than by manually setting their pixels. Therefore the framework provides @b3d::PixelUtility::GenerateMipmaps method that accepts a **PixelData** object containing pixels to generate mip levels from. A maximum number of mip-maps levels is then generated and output. You can optionally customize mip-map generation by providing a @b3d::MipMapGenOptions object.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<PixelData> sourcePixelData = PixelData::Create(128, 128, 1, PF_RGBA8);
+TShared<PixelData> sourcePixelData = PixelData::Create(128, 128, 1, PF_RGBA8);
 // ... fill sourcePixelData with some colors
 
-Vector<SPtr<PixelData>> mipMapPixelDataArray = PixelUtility::GenerateMipmaps(sourcePixelData, MipMapGenOptions());
+Vector<TShared<PixelData>> mipMapPixelDataArray = PixelUtility::GenerateMipmaps(sourcePixelData, MipMapGenOptions());
 
 // Write mipmap data to texture...
 HTexture texture = ...;
@@ -171,11 +171,11 @@ for(u32 mipLevel = 0; mipLevel < mipMapPixelDataArray.size(); mipLevel++)
 If a **PixelFormat** chosen for your texture uses one of the compressed pixel formats, you will need to compress the data before writing it to the texture. For this purpose you can use the @b3d::PixelUtility::Compress method. The method accepts a source **PixelData** and a destination **PixelData**, as well as a @b3d::CompressionOptions object that contains the pixel format to compress to, among other options.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<PixelData> sourcePixelData = PixelData::Create(128, 128, 1, PF_RGBA8);
+TShared<PixelData> sourcePixelData = PixelData::Create(128, 128, 1, PF_RGBA8);
 // ... fill up sourcePixelData with some colors
 
 // Container for resulting data
-SPtr<PixelData> destinationPixelData = PixelData::Create(128, 128, 1, PF_BC3);
+TShared<PixelData> destinationPixelData = PixelData::Create(128, 128, 1, PF_BC3);
 
 // Compress into BC3 format
 CompressionOptions compressionOptions;
@@ -191,7 +191,7 @@ texture->WriteData(destinationPixelData);
 If you're creating a texture you wish to immediately populate with data, you can set the **TextureCreateInformation::InitialData** field to provide a **PixelData** object directly, allowing you to skip the call to **Texture::WriteData()**.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<PixelData> pixelData = PixelData::Create(128, 128, 1, PF_RGBA8);
+TShared<PixelData> pixelData = PixelData::Create(128, 128, 1, PF_RGBA8);
 // ... fill up pixelData with some colors
 
 TextureCreateInformation textureCreateInfo;
@@ -219,14 +219,14 @@ Cached CPU data can be read by calling @b3d::Texture::ReadCachedData. It accepts
 HTexture texture = ...;
 const TextureProperties& textureProperties = texture->GetProperties();
 
-SPtr<PixelData> pixelData = textureProperties.AllocBuffer(0, 0);
+TShared<PixelData> pixelData = textureProperties.AllocBuffer(0, 0);
 texture->ReadCachedData(*pixelData);
 ~~~~~~~~~~~~~
 
 After reading the data you can access it through @b3d::PixelData::GetColorAt or @b3d::PixelData::GetColors.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<PixelData> pixelData = ...;
+TShared<PixelData> pixelData = ...;
 
 // Read pixel at 50x50
 Color color = pixelData->GetColorAt(50, 50);
@@ -247,7 +247,7 @@ To perform GPU reads call @b3d::Texture::ReadData. It accepts a shared pointer t
 HTexture texture = ...;
 const TextureProperties& textureProperties = texture->GetProperties();
 
-SPtr<PixelData> pixelData = textureProperties.AllocBuffer(0, 0);
+TShared<PixelData> pixelData = textureProperties.AllocBuffer(0, 0);
 texture->ReadData(pixelData);
 ~~~~~~~~~~~~~
 
@@ -269,11 +269,11 @@ if (asyncOp.HasCompleted())
 Alternatively, you can call @b3d::Texture::ReadData without a PixelData parameter to have the system allocate one for you:
 
 ~~~~~~~~~~~~~{.cpp}
-TAsyncOp<SPtr<PixelData>> asyncOp = texture->ReadData(0, 0); // face 0, mip 0
+TAsyncOp<TShared<PixelData>> asyncOp = texture->ReadData(0, 0); // face 0, mip 0
 
 if (asyncOp.HasCompleted())
 {
-	SPtr<PixelData> pixelData = asyncOp.GetResult();
+	TShared<PixelData> pixelData = asyncOp.GetResult();
 	Color color = pixelData->GetColorAt(50, 50);
 }
 ~~~~~~~~~~~~~

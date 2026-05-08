@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptMorphShape::ScriptMorphShape(const SPtr<MorphShape>& nativeObject)
+	ScriptMorphShape::ScriptMorphShape(const TShared<MorphShape>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

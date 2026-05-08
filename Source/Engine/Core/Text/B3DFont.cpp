@@ -196,7 +196,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 		return nullptr;
 	}
 
-	SPtr<FontBitmapInformation> bitmapInformation;
+	TShared<FontBitmapInformation> bitmapInformation;
 	if(auto found = mCharactersByPointSize.find(quantizedFontSizeInPoints); found != mCharactersByPointSize.end())
 		bitmapInformation = found->second;
 
@@ -312,7 +312,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 		// Note: Probably not efficient creating a new texture for each glyph
 		HTexture texture = Texture::Create(textureCreateInformation);
 
-		const SPtr<PixelData> destinationPixelData = texture->GetProperties().AllocBuffer(0, 0);
+		const TShared<PixelData> destinationPixelData = texture->GetProperties().AllocBuffer(0, 0);
 		u8* destinationBuffer = destinationPixelData->GetData();
 
 		if(glyph->bitmap.pixel_mode == ft_pixel_mode_grays)
@@ -457,7 +457,7 @@ void Font::ClearGlyphs(float size, bool onlyRuntime)
 {
 	const float quantizedFontSize = GetQuantizedFontSize(size);
 
-	SPtr<FontBitmapInformation> bitmapInformation;
+	TShared<FontBitmapInformation> bitmapInformation;
 	if(auto found = mCharactersByPointSize.find(quantizedFontSize); found != mCharactersByPointSize.end())
 		bitmapInformation = found->second;
 
@@ -477,7 +477,7 @@ void Font::ClearGlyphs(bool onlyRuntime)
 {
 	for(auto it = mCharactersByPointSize.begin(); it != mCharactersByPointSize.end();)
 	{
-		SPtr<FontBitmapInformation> bitmapInformation = it->second;
+		TShared<FontBitmapInformation> bitmapInformation = it->second;
 
 		if(bitmapInformation == nullptr)
 		{
@@ -503,7 +503,7 @@ void Font::RemovePage(u32 pageIndex)
 
 	for(const auto& bitmapPair : mCharactersByPointSize)
 	{
-		const SPtr<FontBitmapInformation>& bitmapInformation = bitmapPair.second;
+		const TShared<FontBitmapInformation>& bitmapInformation = bitmapPair.second;
 		if(!B3D_ENSURE(bitmapInformation != nullptr))
 			continue;
 
@@ -520,7 +520,7 @@ void Font::RemovePage(u32 pageIndex)
 	}
 }
 
-SPtr<FontBitmapInformation> Font::GetBitmap(float size) const
+TShared<FontBitmapInformation> Font::GetBitmap(float size) const
 {
 	const float quantizedFontSize = GetQuantizedFontSize(size);
 
@@ -567,7 +567,7 @@ const CharacterInformation* Font::FindCharacterInformation(u32 characterId, floa
 	auto foundBitmapInformation = mCharactersByPointSize.find(sizeInPoints);
 	if(foundBitmapInformation != mCharactersByPointSize.end())
 	{
-		const SPtr<FontBitmapInformation> bitmapInformation = foundBitmapInformation->second;
+		const TShared<FontBitmapInformation> bitmapInformation = foundBitmapInformation->second;
 		const CharacterInformation& characterInformation = foundBitmapInformation->second->GetCharacterInformation(characterId);
 		if(characterInformation.CharId == characterId)
 			return &characterInformation;
@@ -644,23 +644,23 @@ float Font::GetQuantizedFontSize(float size)
 
 HFont Font::Create(const FontCreateInformation& createInformation)
 {
-	SPtr<Font> newFont = CreateShared(createInformation);
+	TShared<Font> newFont = CreateShared(createInformation);
 
 	return B3DStaticResourceCast<Font>(GetResources().CreateResourceHandle(newFont));
 }
 
-SPtr<Font> Font::CreateShared(const FontCreateInformation& createInformation)
+TShared<Font> Font::CreateShared(const FontCreateInformation& createInformation)
 {
-	SPtr<Font> newFont = B3DMakeSharedFromExisting<Font>(new(B3DAllocate<Font>()) Font(createInformation));
+	TShared<Font> newFont = B3DMakeSharedFromExisting<Font>(new(B3DAllocate<Font>()) Font(createInformation));
 	newFont->SetShared(newFont);
 	newFont->Initialize();
 
 	return newFont;
 }
 
-SPtr<Font> Font::CreateEmpty()
+TShared<Font> Font::CreateEmpty()
 {
-	SPtr<Font> newFont = B3DMakeSharedFromExisting<Font>(new(B3DAllocate<Font>()) Font(FontCreateInformation()));
+	TShared<Font> newFont = B3DMakeSharedFromExisting<Font>(new(B3DAllocate<Font>()) Font(FontCreateInformation()));
 	newFont->SetShared(newFont);
 
 	return newFont;
@@ -678,7 +678,7 @@ RTTIType* Font::GetRtti() const
 
 void FontAtlasRenderer::OnStartUp()
 {
-	SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if (!gpuDevice)
 		return;
 
@@ -711,7 +711,7 @@ void FontAtlasRenderer::BlitGlyphs(Vector<GlyphBitmap> glyphBitmaps)
 		if (!B3D_ENSURE(mCommandBufferPool))
 			return;
 
-		const SPtr<render::GpuCommandBuffer> commandBuffer = mCommandBufferPool->Create(render::GpuCommandBufferCreateInformation::Create("BlitGlyphBitmaps"));
+		const TShared<render::GpuCommandBuffer> commandBuffer = mCommandBufferPool->Create(render::GpuCommandBufferCreateInformation::Create("BlitGlyphBitmaps"));
 
 		for(const auto& entry : glyphBitmaps)
 		{
@@ -725,7 +725,7 @@ void FontAtlasRenderer::BlitGlyphs(Vector<GlyphBitmap> glyphBitmaps)
 			commandBuffer->BlitTexture(entry.GlyphTexture, entry.AtlasTexture, blitInformation);
 		}
 
-		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if(!B3D_ENSURE(gpuDevice))
 			return;
 

@@ -35,7 +35,7 @@ namespace b3d
 		 * @param[in]	object			Constructed GameObject to wrap in the handle and initialize.
 		 * @return						Handle to the GameObject.
 		 */
-		GameObjectHandle RegisterNewObject(const SPtr<GameObject>& object);
+		GameObjectHandle RegisterNewObject(const TShared<GameObject>& object);
 
 		/** Registers a game object that already has a handle. */
 		void RegisterExistingObject(const GameObjectHandle& object);
@@ -86,7 +86,7 @@ namespace b3d
 		 * created during a single clone/deserialization operation share the same handle data, so it's enough to just patch
 		 * this handle.
 		 */
-		void ReplaceGameObjectInstance(GameObjectHandle& newObjectHandle, const SPtr<GameObjectInstanceData>& originalObjectInstanceData);
+		void ReplaceGameObjectInstance(GameObjectHandle& newObjectHandle, const TShared<GameObjectInstanceData>& originalObjectInstanceData);
 
 		/** Changes the instance ID of the provided game object. */
 		void ChangeGameObjectId(GameObjectHandle& gameObject, const UUID& newId);
@@ -135,7 +135,7 @@ namespace b3d
 		const ecs::Registry& GetECSRegistry() const { return mECSRegistry; }
 
 		/** Creates a new empty game object collection. */
-		static SPtr<GameObjectCollection> Create();
+		static TShared<GameObjectCollection> Create();
 
 		Event<void(const HGameObject&)> OnDestroyed; /**< Triggered when a game object is being destroyed. */
 
@@ -147,7 +147,7 @@ namespace b3d
 		UnorderedMap<UUID, GameObjectHandle> mObjects;
 		UnorderedMap<UUID, GameObjectHandle> mQueuedForDestroy;
 		Vector<UUID> mOrderedQueuedForDestroy;
-		UnorderedMap<UUID, SPtr<GameObjectHandleData>> mUnresolvedHandleSharedHandleData;
+		UnorderedMap<UUID, TShared<GameObjectHandleData>> mUnresolvedHandleSharedHandleData;
 		Vector<GameObjectHandle> mUnresolvedHandles;
 		ecs::Registry mECSRegistry;
 	};

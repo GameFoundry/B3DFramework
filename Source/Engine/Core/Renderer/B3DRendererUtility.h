@@ -44,7 +44,7 @@ namespace b3d
 			void Initialize() override;
 
 			/** Creates a new GpuParameterSet and assigns the provided texture. */
-			SPtr<GpuParameterSet> Prepare(const SPtr<Texture>& source);
+			TShared<GpuParameterSet> Prepare(const TShared<Texture>& source);
 
 			/**
 			 * Executes the blit operation using pre-configured GPU parameters.
@@ -55,7 +55,7 @@ namespace b3d
 			 *                          this controls the sampled region. For filtered blits, normalized (0,1) UVs are used.
 			 * @param flipUV            If true, vertical texture coordinates are flipped.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameterSet>& gpuParameters, const Area2& area, bool flipUV);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters, const Area2& area, bool flipUV);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -103,7 +103,7 @@ namespace b3d
 			 * @param	target			Render target to blend with and write the results to.
 			 * @param	tint			Optional value to multiply all the values from @p source before blending.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::kWhite);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, const TShared<RenderTarget>& target, const Color& tint = Color::kWhite);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -148,7 +148,7 @@ namespace b3d
 			 *								with the target.
 			 * @param	tint			Optional value to multiply all the values from @p source before blending.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::kWhite);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, const TShared<RenderTarget>& target, const Color& tint = Color::kWhite);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -191,7 +191,7 @@ namespace b3d
 			 * Source texture to blit from. This texture will be sampled and copied to the output render target.
 			 * The texture can be either a color or depth texture, determined by the @p IsDepth parameter.
 			 */
-			SPtr<Texture> InputTexture;
+			TShared<Texture> InputTexture;
 
 			/**
 			 * Area of the source texture to blit from, in pixel coordinates. If set to Area2I::kEmpty (default),
@@ -205,7 +205,7 @@ namespace b3d
 			 * Destination render target to blit to. The blit operation will render into this target's
 			 * color and/or depth surfaces depending on the isDepth parameter.
 			 */
-			SPtr<RenderTarget> OutputRenderTarget;
+			TShared<RenderTarget> OutputRenderTarget;
 
 			/**
 			 * Optional viewport area for the output render target, in normalized coordinates [0,1].
@@ -277,7 +277,7 @@ namespace b3d
 			bool WriteAlpha = false;
 
 			/** Helper to create blit information with commonly used settings for copying a color texture (no blending, no filtering, no UV flip). */
-			static BlitInformation BlitColor(const SPtr<Texture>& inputTexture, const SPtr<RenderTarget>& outputRenderTarget, const Area2I& inputArea = Area2I::kEmpty, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
+			static BlitInformation BlitColor(const TShared<Texture>& inputTexture, const TShared<RenderTarget>& outputRenderTarget, const Area2I& inputArea = Area2I::kEmpty, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
 			{
 				BlitInformation blitInformation;
 				blitInformation.InputTexture = inputTexture;
@@ -290,7 +290,7 @@ namespace b3d
 			}
 
 			/** Helper to create blit information with commonly used settings for copying a depth texture (no blending, no filtering, no UV flip). */
-			static BlitInformation BlitDepth(const SPtr<Texture>& inputTexture, const SPtr<RenderTarget>& outputRenderTarget, const Area2I& inputArea = Area2I::kEmpty, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
+			static BlitInformation BlitDepth(const TShared<Texture>& inputTexture, const TShared<RenderTarget>& outputRenderTarget, const Area2I& inputArea = Area2I::kEmpty, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
 			{
 				BlitInformation blitInformation = BlitColor(inputTexture, outputRenderTarget, inputArea, readOnlyMask, loadMask);
 				blitInformation.IsDepth = true;
@@ -299,7 +299,7 @@ namespace b3d
 			}
 
 			/** Helper to create blit information with commonly used settings for blending a color texture with the currently bound render target (no filtering, no UV flip). */
-			static BlitInformation Blend(const SPtr<Texture>& inputTexture, const SPtr<RenderTarget>& outputRenderTarget, const Area2I& inputArea = Area2I::kEmpty, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
+			static BlitInformation Blend(const TShared<Texture>& inputTexture, const TShared<RenderTarget>& outputRenderTarget, const Area2I& inputArea = Area2I::kEmpty, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
 			{
 				BlitInformation blitInformation = BlitColor(inputTexture, outputRenderTarget, inputArea, readOnlyMask, loadMask);
 				blitInformation.UseBlend = true;
@@ -329,7 +329,7 @@ namespace b3d
 			 *
 			 * @note	Render thread.
 			 */
-			void SetPass(GpuCommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIndex = 0, u32 variationIndex = 0);
+			void SetPass(GpuCommandBuffer& commandBuffer, const TShared<Material>& material, u32 passIndex = 0, u32 variationIndex = 0);
 
 			/**
 			 * Activates the specified material pass for compute. Any further dispatch calls will be executed using this pass.
@@ -340,7 +340,7 @@ namespace b3d
 			 *
 			 * @note	Render thread.
 			 */
-			void SetComputePass(GpuCommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIndex = 0);
+			void SetComputePass(GpuCommandBuffer& commandBuffer, const TShared<Material>& material, u32 passIndex = 0);
 
 			/**
 			 * Sets parameters (textures, samplers, buffers) for the currently active pass.
@@ -351,7 +351,7 @@ namespace b3d
 			 *
 			 * @note	Render thread.
 			 */
-			void SetPassParams(GpuCommandBuffer& commandBuffer, const SPtr<MaterialParameterAdapter>& adapter, u32 passIndex = 0);
+			void SetPassParams(GpuCommandBuffer& commandBuffer, const TShared<MaterialParameterAdapter>& adapter, u32 passIndex = 0);
 
 			/**
 			 * Draws the specified mesh.
@@ -362,7 +362,7 @@ namespace b3d
 			 *
 			 * @note	Render thread.
 			 */
-			void Draw(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>& mesh, u32 instanceCount = 1);
+			void Draw(GpuCommandBuffer& commandBuffer, const TShared<MeshBase>& mesh, u32 instanceCount = 1);
 
 			/**
 			 * Draws the specified mesh.
@@ -374,7 +374,7 @@ namespace b3d
 			 *
 			 * @note	Render thread.
 			 */
-			void Draw(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>& mesh, const SubMesh& subMesh, u32 instanceCount = 1);
+			void Draw(GpuCommandBuffer& commandBuffer, const TShared<MeshBase>& mesh, const SubMesh& subMesh, u32 instanceCount = 1);
 
 			/**
 			 * Draws the specified mesh with an additional vertex buffer containing morph shape vertices.
@@ -389,7 +389,7 @@ namespace b3d
 			 *
 			 * @note	Render thread.
 			 */
-			void DrawMorph(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>& mesh, const SubMesh& subMesh, const SPtr<GpuBuffer>& morphVertices, const SPtr<VertexDescription>& morphVertexDescription);
+			void DrawMorph(GpuCommandBuffer& commandBuffer, const TShared<MeshBase>& mesh, const SubMesh& subMesh, const TShared<GpuBuffer>& morphVertices, const TShared<VertexDescription>& morphVertexDescription);
 
 			/**
 			 * Blits a source texture to a render target with optional filtering, blending, and coordinate transformations.
@@ -444,10 +444,10 @@ namespace b3d
 			void Clear(GpuCommandBuffer& commandBuffer, u32 value);
 
 			/** Returns a unit sphere stencil mesh. */
-			SPtr<Mesh> GetSphereStencil() const { return mUnitSphereStencilMesh; }
+			TShared<Mesh> GetSphereStencil() const { return mUnitSphereStencilMesh; }
 
 			/** Returns a unit axis aligned box stencil mesh. */
-			SPtr<Mesh> GetBoxStencil() const { return mUnitBoxStencilMesh; }
+			TShared<Mesh> GetBoxStencil() const { return mUnitBoxStencilMesh; }
 
 			/** Number of sides in the cone mesh used for spot light stencil volumes. */
 			static constexpr u32 kSpotLightStencilSideCount = 20;
@@ -459,23 +459,23 @@ namespace b3d
 			 * Returns a stencil mesh used for a spot light. Actual vertex positions need to be computed in shader as this
 			 * method will return uninitialized vertex positions.
 			 */
-			SPtr<Mesh> GetSpotLightStencil() const { return mSpotLightStencilMesh; }
+			TShared<Mesh> GetSpotLightStencil() const { return mSpotLightStencilMesh; }
 
 			/** Returns a mesh that can be used for rendering a skybox. */
-			SPtr<Mesh> GetSkyBoxMesh() const { return mSkyBoxMesh; }
+			TShared<Mesh> GetSkyBoxMesh() const { return mSkyBoxMesh; }
 
 		private:
 			static constexpr u32 kNumQuadVbSlots = 1024;
 
-			SPtr<GpuBuffer> mFullScreenQuadIB;
-			SPtr<GpuBuffer> mFullScreenQuadVB;
-			SPtr<VertexDescription> mFullscreenQuadVertexDescription;
+			TShared<GpuBuffer> mFullScreenQuadIB;
+			TShared<GpuBuffer> mFullScreenQuadVB;
+			TShared<VertexDescription> mFullscreenQuadVertexDescription;
 			u32 mNextQuadVBSlot = 0;
 
-			SPtr<Mesh> mUnitSphereStencilMesh;
-			SPtr<Mesh> mUnitBoxStencilMesh;
-			SPtr<Mesh> mSpotLightStencilMesh;
-			SPtr<Mesh> mSkyBoxMesh;
+			TShared<Mesh> mUnitSphereStencilMesh;
+			TShared<Mesh> mUnitBoxStencilMesh;
+			TShared<Mesh> mSpotLightStencilMesh;
+			TShared<Mesh> mSkyBoxMesh;
 		};
 
 		/** Provides easy access to RendererUtility. */

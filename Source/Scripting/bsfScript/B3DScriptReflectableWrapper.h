@@ -21,7 +21,7 @@ namespace b3d
 		using ScriptObjectWrapper::ScriptObjectWrapper;
 
 		/** Returns the root base class of the wrapped native object as a shared pointer. */
-		const SPtr<IReflectable>& GetBaseNativeObjectAsShared() const { return mNativeObjectStrongHandle; }
+		const TShared<IReflectable>& GetBaseNativeObjectAsShared() const { return mNativeObjectStrongHandle; }
 
 		/** Checks is the native object alive and valid. */
 		bool IsNativeObjectValid() const { return mNativeObjectStrongHandle != nullptr; }
@@ -33,7 +33,7 @@ namespace b3d
 		 * Unlike GetOrCreateScriptObject implemented on TScriptReflectableWrapper, this always accepts the object as an IReflectable, and
 		 * needs to perform type lookup to get the exact script wrapper type.
 		 */
-		static MonoObject* GetOrCreateScriptObject(const SPtr<IReflectable>& nativeObject);
+		static MonoObject* GetOrCreateScriptObject(const TShared<IReflectable>& nativeObject);
 
 		/** Returns the script object wrapper associated with the provided script object, and wrapped by a wrapper that owns the provided meta-data. */
 		static ScriptReflectableWrapper* GetScriptObjectWrapper(const ScriptTypeMetaData& wrapperMetaData, MonoObject* scriptObject);
@@ -45,7 +45,7 @@ namespace b3d
 			Super::NotifyNativeObjectDestroyed();
 		}
 
-		SPtr<IReflectable> mNativeObjectStrongHandle;
+		TShared<IReflectable> mNativeObjectStrongHandle;
 	};
 
 	/** Extends TScriptObjectWrapper by providing functionality required for wrapped native types that may be passed along as an IReflectable shared pointer. */
@@ -53,14 +53,14 @@ namespace b3d
 	class TScriptReflectableWrapper : public TScriptObjectWrapper<SelfType, BaseType>
 	{
 	public:
-		TScriptReflectableWrapper(const SPtr<NativeType>& nativeObject)
+		TScriptReflectableWrapper(const TShared<NativeType>& nativeObject)
 			: TScriptObjectWrapper<SelfType, BaseType>(nativeObject.get())
 		{
 			mNativeObjectStrongHandle = nativeObject;
 		}
 
 		/** Returns the wrapped native object as a shared pointer. */
-		SPtr<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(mNativeObjectStrongHandle); }
+		TShared<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(mNativeObjectStrongHandle); }
 
 		u32 GetNativeObjectReferenceCount() const override { return (u32)mNativeObjectStrongHandle.use_count(); }
 
@@ -68,7 +68,7 @@ namespace b3d
 		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject
 		 * already has an associated script object.
 		 */
-		static MonoObject* CreateScriptObjectAndWrapper(const SPtr<IReflectable>& nativeObject)
+		static MonoObject* CreateScriptObjectAndWrapper(const TShared<IReflectable>& nativeObject)
 		{
 			MonoObject* const scriptObject = SelfType::CreateScriptObject(false);
 			ScriptObjectWrapper::Create<SelfType>(B3DRTTICast<NativeType>(nativeObject), scriptObject);
@@ -86,7 +86,7 @@ namespace b3d
 		 * Attempts to retrieve an existing associated script object from the provided native object. If one doesn't exist, a new script
 		 * object and the associated script wrapper will be created.
 		 */
-		static MonoObject* GetOrCreateScriptObject(const SPtr<NativeType>& nativeObject)
+		static MonoObject* GetOrCreateScriptObject(const TShared<NativeType>& nativeObject)
 		{
 			if(nativeObject == nullptr)
 				return nullptr;

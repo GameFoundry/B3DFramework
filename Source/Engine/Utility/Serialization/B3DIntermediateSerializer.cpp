@@ -10,12 +10,12 @@ IntermediateSerializer::IntermediateSerializer(FrameAllocator* allocator, RTTIOp
 	: mAllocator(allocator), mContext(context)
 {}
 
-SPtr<IReflectable> IntermediateSerializer::Decode(const SerializedObject* serializedObject)
+TShared<IReflectable> IntermediateSerializer::Decode(const SerializedObject* serializedObject)
 {
 	mAllocator->MarkFrame();
 	mDeserializedObjectMap.clear();
 
-	SPtr<IReflectable> output;
+	TShared<IReflectable> output;
 	RTTIType* type = IReflectable::GetRTTITypeFromTypeId(serializedObject->GetRootTypeId());
 	if(type != nullptr)
 	{
@@ -48,11 +48,11 @@ SPtr<IReflectable> IntermediateSerializer::Decode(const SerializedObject* serial
 	return output;
 }
 
-SPtr<SerializedObject> IntermediateSerializer::Encode(IReflectable* object, SerializedObjectEncodeFlags flags)
+TShared<SerializedObject> IntermediateSerializer::Encode(IReflectable* object, SerializedObjectEncodeFlags flags)
 {
 	mAllocator->MarkFrame();
 
-	SPtr<SerializedObject> output = SerializeReflectableObject(*object, flags);
+	TShared<SerializedObject> output = SerializeReflectableObject(*object, flags);
 	mSerializedObjectMap.clear();
 
 	mAllocator->Clear();
@@ -60,7 +60,7 @@ SPtr<SerializedObject> IntermediateSerializer::Encode(IReflectable* object, Seri
 	return output;
 }
 
-void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectable>& object, const SerializedObject* serializableObject)
+void IntermediateSerializer::DeserializeReflectableObject(const TShared<IReflectable>& object, const SerializedObject* serializableObject)
 {
 	const u32 subObjectCount = (u32)serializableObject->SubObjects.size();
 	if(subObjectCount == 0)
@@ -88,13 +88,13 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 			if(iterFindFieldData == subObject.FieldEntries.end())
 				continue;
 
-			const SPtr<ISerialized>& serializedFieldValue = iterFindFieldData->second.Value;
+			const TShared<ISerialized>& serializedFieldValue = iterFindFieldData->second.Value;
 			switch(curGenericField->Schema.FieldType)
 			{
 			case RTTIFieldType::Iterable:
 			{
 				RTTIIteratorField* iteratorField = static_cast<RTTIIteratorField*>(curGenericField);
-				SPtr<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object.get(), *mAllocator);
+				TShared<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object.get(), *mAllocator);
 
 				if(iterator != nullptr)
 					iterator->Clear();
@@ -104,18 +104,18 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 
 				if(encodedAsArray)
 				{
-					SPtr<SerializedArray> serializedArray = std::static_pointer_cast<SerializedArray>(serializedFieldValue);
+					TShared<SerializedArray> serializedArray = std::static_pointer_cast<SerializedArray>(serializedFieldValue);
 					const u64 elementCount = serializedArray != nullptr ? serializedArray->Entries.Size() : 0;
 
 					for(u64 arrayIndex = 0; arrayIndex < elementCount; ++arrayIndex)
 					{
-						const SPtr<ISerialized>& serializedEntry = serializedArray->Entries[arrayIndex];
+						const TShared<ISerialized>& serializedEntry = serializedArray->Entries[arrayIndex];
 						DeserializeElement(*rttiInstance, object, *iteratorField, iterator, serializedEntry);
 					}
 				}
 				else if(encodedAsMap)
 				{
-					SPtr<SerializedMap> serializedMap = std::static_pointer_cast<SerializedMap>(serializedFieldValue);
+					TShared<SerializedMap> serializedMap = std::static_pointer_cast<SerializedMap>(serializedFieldValue);
 					if(serializedMap != nullptr)
 					{
 						for(auto it = serializedMap->Entries.begin(); it != serializedMap->Entries.end(); ++it)
@@ -134,7 +134,7 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 			{
 				auto* curField = static_cast<RTTIDataBlockFieldBase*>(curGenericField);
 
-				SPtr<SerializedDataBlock> serializedDataBlock = std::static_pointer_cast<SerializedDataBlock>(serializedFieldValue);
+				TShared<SerializedDataBlock> serializedDataBlock = std::static_pointer_cast<SerializedDataBlock>(serializedFieldValue);
 				if(serializedDataBlock != nullptr)
 				{
 					serializedDataBlock->Stream->Seek(serializedDataBlock->Offset);
@@ -160,7 +160,7 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 	}
 }
 
-void IntermediateSerializer::DeserializeElement(RTTIType& rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<IRTTIIterator>& iterator, const SPtr<ISerialized>& entry)
+void IntermediateSerializer::DeserializeElement(RTTIType& rttiInstance, const TShared<IReflectable>& object, RTTIIteratorField& field, const TShared<IRTTIIterator>& iterator, const TShared<ISerialized>& entry)
 {
 	if(!B3D_ENSURE(iterator != nullptr))
 		return;
@@ -173,9 +173,9 @@ void IntermediateSerializer::DeserializeElement(RTTIType& rttiInstance, const SP
 	field.FreeFieldValue(fieldValue, *mAllocator);
 }
 
-void IntermediateSerializer::DeserializeElement(RTTIIteratorField& field, void* outFieldValue, const SPtr<ISerialized>& entry)
+void IntermediateSerializer::DeserializeElement(RTTIIteratorField& field, void* outFieldValue, const TShared<ISerialized>& entry)
 {
-	SPtr<SerializedTuple> serializedTuple;
+	TShared<SerializedTuple> serializedTuple;
 
 	const bool isTuple = field.Schema.FieldDataTypes.Size() > 1;
 	if(isTuple)
@@ -185,7 +185,7 @@ void IntermediateSerializer::DeserializeElement(RTTIIteratorField& field, void* 
 	{
 		RTTIFieldDataTypeSchema& tupleSchema = field.Schema.FieldDataTypes[fieldTypeIndex];
 
-		SPtr<ISerialized> serializedTupleValue;
+		TShared<ISerialized> serializedTupleValue;
 		if(isTuple)
 		{
 			if(B3D_ENSURE(serializedTuple != nullptr && fieldTypeIndex < serializedTuple->Values.Size()))
@@ -200,7 +200,7 @@ void IntermediateSerializer::DeserializeElement(RTTIIteratorField& field, void* 
 	}
 }
 
-void IntermediateSerializer::DeserializeTupleElement(RTTIIteratorField& field, void* outFieldValue, u32 tupleElementIndex, const SPtr<ISerialized>& entry)
+void IntermediateSerializer::DeserializeTupleElement(RTTIIteratorField& field, void* outFieldValue, u32 tupleElementIndex, const TShared<ISerialized>& entry)
 {
 	if(!B3D_ENSURE(tupleElementIndex < field.Schema.FieldDataTypes.Size()))
 		return;
@@ -210,9 +210,9 @@ void IntermediateSerializer::DeserializeTupleElement(RTTIIteratorField& field, v
 	{
 	case RTTIFieldDataType::ReflectablePointer:
 		{
-			SPtr<SerializedObject> referencedSerializedObject = std::static_pointer_cast<SerializedObject>(entry);
+			TShared<SerializedObject> referencedSerializedObject = std::static_pointer_cast<SerializedObject>(entry);
 
-			SPtr<IReflectable> referencedObject;
+			TShared<IReflectable> referencedObject;
 			if(field.Schema.Info.Flags.IsSet(RTTIFieldFlag::WeakRef))
 				referencedObject = GetReflectableObject(referencedSerializedObject);
 			else
@@ -223,7 +223,7 @@ void IntermediateSerializer::DeserializeTupleElement(RTTIIteratorField& field, v
 		break;
 	case RTTIFieldDataType::Reflectable:
 		{
-			SPtr<SerializedObject> referencedSerializedObject = std::static_pointer_cast<SerializedObject>(entry);
+			TShared<SerializedObject> referencedSerializedObject = std::static_pointer_cast<SerializedObject>(entry);
 			RTTIType* childRtti = nullptr;
 
 			if(referencedSerializedObject != nullptr)
@@ -231,7 +231,7 @@ void IntermediateSerializer::DeserializeTupleElement(RTTIIteratorField& field, v
 
 			if(childRtti != nullptr)
 			{
-				SPtr<IReflectable> newObject = childRtti->NewRttiObject();
+				TShared<IReflectable> newObject = childRtti->NewRttiObject();
 				DeserializeReflectableObject(newObject, referencedSerializedObject.get());
 
 				field.SetReflectable(outFieldValue, tupleElementIndex, *newObject);
@@ -240,7 +240,7 @@ void IntermediateSerializer::DeserializeTupleElement(RTTIIteratorField& field, v
 		}
 	case RTTIFieldDataType::Plain:
 		{
-			SPtr<SerializedPlainData> serializedPlainData = std::static_pointer_cast<SerializedPlainData>(entry);
+			TShared<SerializedPlainData> serializedPlainData = std::static_pointer_cast<SerializedPlainData>(entry);
 			if(serializedPlainData != nullptr)
 			{
 				Bitstream tempStream(serializedPlainData->Value, serializedPlainData->Size);
@@ -253,19 +253,19 @@ void IntermediateSerializer::DeserializeTupleElement(RTTIIteratorField& field, v
 	}
 }
 
-SPtr<SerializedObject> IntermediateSerializer::GetOrSerializeReflectableObject(const IReflectable& object, SerializedObjectEncodeFlags flags)
+TShared<SerializedObject> IntermediateSerializer::GetOrSerializeReflectableObject(const IReflectable& object, SerializedObjectEncodeFlags flags)
 {
 	auto found = mSerializedObjectMap.find(&object);
 	if(found != mSerializedObjectMap.end())
 		return found->second;
 
-	SPtr<SerializedObject> serializedObject = SerializeReflectableObject(object, flags);
+	TShared<SerializedObject> serializedObject = SerializeReflectableObject(object, flags);
 	mSerializedObjectMap[&object] = serializedObject;
 
 	return serializedObject;
 }
 
-SPtr<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const IReflectable& object, SerializedObjectEncodeFlags flags)
+TShared<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const IReflectable& object, SerializedObjectEncodeFlags flags)
 {
 	FrameStack<RTTIType*> rttiInstances;
 	RTTIType* rtti = object.GetRtti();
@@ -285,7 +285,7 @@ SPtr<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const 
 	const bool replicableOnly = flags.IsSet(SerializedObjectEncodeFlag::ReplicableOnly);
 	const bool isDeltaCopy = flags.IsSet(SerializedObjectEncodeFlag::IsDeltaCopy);
 
-	SPtr<SerializedObject> output = B3DMakeShared<SerializedObject>();
+	TShared<SerializedObject> output = B3DMakeShared<SerializedObject>();
 
 	// If an object has base classes, we need to iterate through all of them
 	do
@@ -310,7 +310,7 @@ SPtr<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const 
 			if(isDeltaCopy && field->Schema.Info.Flags.IsSet(RTTIFieldFlag::SkipInDeltaCopy))
 				continue;
 
-			SPtr<ISerialized> serializedEntry;
+			TShared<ISerialized> serializedEntry;
 			switch(field->Schema.FieldType)
 			{
 			case RTTIFieldType::Iterable:
@@ -340,7 +340,7 @@ SPtr<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const 
 	return output;
 }
 
-SPtr<ISerialized> IntermediateSerializer::SerializeDataBlockField(IReflectable* object, RTTIType* rtti, RTTIField* field, SerializedObjectEncodeFlags flags)
+TShared<ISerialized> IntermediateSerializer::SerializeDataBlockField(IReflectable* object, RTTIType* rtti, RTTIField* field, SerializedObjectEncodeFlags flags)
 {
 	if(!B3D_ENSURE(field->Schema.FieldType == RTTIFieldType::DataBlock))
 		return nullptr;
@@ -348,12 +348,12 @@ SPtr<ISerialized> IntermediateSerializer::SerializeDataBlockField(IReflectable* 
 	auto curField = static_cast<RTTIDataBlockFieldBase*>(field);
 
 	u32 dataBlockSize = 0;
-	SPtr<DataStream> blockStream = curField->GetValue(rtti, object, dataBlockSize);
+	TShared<DataStream> blockStream = curField->GetValue(rtti, object, dataBlockSize);
 
-	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>(dataBlockSize);
+	TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>(dataBlockSize);
 	blockStream->Read(stream->Data(), dataBlockSize);
 
-	SPtr<SerializedDataBlock> serializedDataBlock = B3DMakeShared<SerializedDataBlock>();
+	TShared<SerializedDataBlock> serializedDataBlock = B3DMakeShared<SerializedDataBlock>();
 	serializedDataBlock->Stream = stream;
 	serializedDataBlock->Offset = 0;
 
@@ -362,13 +362,13 @@ SPtr<ISerialized> IntermediateSerializer::SerializeDataBlockField(IReflectable* 
 	return serializedDataBlock;
 }
 
-SPtr<ISerialized> IntermediateSerializer::SerializeIterableField(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, SerializedObjectEncodeFlags flags)
+TShared<ISerialized> IntermediateSerializer::SerializeIterableField(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, SerializedObjectEncodeFlags flags)
 {
 	if(!B3D_ENSURE(field.Schema.FieldType == RTTIFieldType::Iterable))
 		return nullptr;
 
-	SPtr<ISerialized> output;
-	const SPtr<IRTTIIterator> iterator = field.GetIterator(&rttiInstance, &object, *mAllocator);
+	TShared<ISerialized> output;
+	const TShared<IRTTIIterator> iterator = field.GetIterator(&rttiInstance, &object, *mAllocator);
 
 	if(iterator == nullptr)
 		return nullptr;
@@ -376,8 +376,8 @@ SPtr<ISerialized> IntermediateSerializer::SerializeIterableField(IReflectable& o
 	const bool encodeAsArray = field.Schema.IsContainer && field.IteratorSupportsSeekToIndex();
 	const bool encodeAsMap = field.Schema.IsContainer && field.IteratorSupportsSeekToKey();
 
-	SPtr<SerializedArray> serializedArray;
-	SPtr<SerializedMap> serializedMap;
+	TShared<SerializedArray> serializedArray;
+	TShared<SerializedMap> serializedMap;
 	if(encodeAsArray)
 	{
 		serializedArray = B3DMakeShared<SerializedArray>();
@@ -393,7 +393,7 @@ SPtr<ISerialized> IntermediateSerializer::SerializeIterableField(IReflectable& o
 
 	for(u32 arrayIndex = 0; iterator->IsValid(); iterator->Increment(), arrayIndex++)
 	{
-		SPtr<ISerialized> serializedEntry = SerializeElement(object, rttiInstance, field, *iterator, flags);
+		TShared<ISerialized> serializedEntry = SerializeElement(object, rttiInstance, field, *iterator, flags);
 
 		if(encodeAsArray)
 		{
@@ -401,7 +401,7 @@ SPtr<ISerialized> IntermediateSerializer::SerializeIterableField(IReflectable& o
 		}
 		else if(encodeAsMap)
 		{
-			if(const SPtr<SerializedTuple>& serializedTuple = B3DRTTICast<SerializedTuple>(serializedEntry))
+			if(const TShared<SerializedTuple>& serializedTuple = B3DRTTICast<SerializedTuple>(serializedEntry))
 			{
 				if(B3D_ENSURE(!serializedTuple->Values.Empty()))
 					serializedMap->Entries[serializedTuple->Values[0]] = serializedEntry;
@@ -420,13 +420,13 @@ SPtr<ISerialized> IntermediateSerializer::SerializeIterableField(IReflectable& o
 	return output;
 }
 
-SPtr<ISerialized> IntermediateSerializer::SerializeElement(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, SerializedObjectEncodeFlags flags)
+TShared<ISerialized> IntermediateSerializer::SerializeElement(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, SerializedObjectEncodeFlags flags)
 {
 	if(!iterator.IsValid())
 		return nullptr;
 
-	SPtr<ISerialized> serializedEntry;
-	SPtr<SerializedTuple> serializedTuple;
+	TShared<ISerialized> serializedEntry;
+	TShared<SerializedTuple> serializedTuple;
 	if(field.Schema.FieldDataTypes.Size() > 1)
 	{
 		serializedTuple = B3DMakeShared<SerializedTuple>();
@@ -435,7 +435,7 @@ SPtr<ISerialized> IntermediateSerializer::SerializeElement(IReflectable& object,
 
 	for(u32 typeIndex = 0; typeIndex < (u32)field.Schema.FieldDataTypes.Size(); ++typeIndex)
 	{
-		SPtr<ISerialized> serializedTupleElement = SerializeTupleElement(object, rttiInstance, field, iterator, typeIndex, flags);
+		TShared<ISerialized> serializedTupleElement = SerializeTupleElement(object, rttiInstance, field, iterator, typeIndex, flags);
 
 		if(serializedTuple != nullptr)
 			serializedTuple->Values.Add(serializedTupleElement);
@@ -449,7 +449,7 @@ SPtr<ISerialized> IntermediateSerializer::SerializeElement(IReflectable& object,
 	return serializedEntry;
 }
 
-SPtr<ISerialized> IntermediateSerializer::SerializeTupleElement(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, u32 tupleElementIndex, SerializedObjectEncodeFlags flags)
+TShared<ISerialized> IntermediateSerializer::SerializeTupleElement(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, u32 tupleElementIndex, SerializedObjectEncodeFlags flags)
 {
 	if(!B3D_ENSURE(iterator.IsValid()))
 		return nullptr;
@@ -468,7 +468,7 @@ SPtr<ISerialized> IntermediateSerializer::SerializeTupleElement(IReflectable& ob
 		{
 			if(!shallow)
 			{
-				const SPtr<IReflectable> referencedObject = field.GetReflectablePointer(fieldValue, tupleElementIndex);
+				const TShared<IReflectable> referencedObject = field.GetReflectablePointer(fieldValue, tupleElementIndex);
 
 				if(referencedObject)
 					return GetOrSerializeReflectableObject(*referencedObject, flags);
@@ -505,7 +505,7 @@ SPtr<ISerialized> IntermediateSerializer::SerializeTupleElement(IReflectable& ob
 	}
 }
 
-SPtr<IReflectable> IntermediateSerializer::GetOrDeserializeReflectableObject(const SPtr<SerializedObject>& serializedObject)
+TShared<IReflectable> IntermediateSerializer::GetOrDeserializeReflectableObject(const TShared<SerializedObject>& serializedObject)
 {
 	if(serializedObject == nullptr)
 		return nullptr;
@@ -521,7 +521,7 @@ SPtr<IReflectable> IntermediateSerializer::GetOrDeserializeReflectableObject(con
 		if(objectRttiType == nullptr)
 			return nullptr;
 
-		SPtr<IReflectable> newObject = objectRttiType->NewRttiObject();
+		TShared<IReflectable> newObject = objectRttiType->NewRttiObject();
 		found = mDeserializedObjectMap.insert(std::make_pair(serializedObject.get(), ObjectDeserializationData(newObject, serializedObject.get()))).first;
 	}
 
@@ -549,7 +549,7 @@ SPtr<IReflectable> IntermediateSerializer::GetOrDeserializeReflectableObject(con
 	return objectDeserializationData.Object;
 }
 
-SPtr<IReflectable> IntermediateSerializer::GetReflectableObject(const SPtr<SerializedObject>& serializedObject)
+TShared<IReflectable> IntermediateSerializer::GetReflectableObject(const TShared<SerializedObject>& serializedObject)
 {
 	auto found = mDeserializedObjectMap.find(serializedObject.get());
 	if(found != mDeserializedObjectMap.end())

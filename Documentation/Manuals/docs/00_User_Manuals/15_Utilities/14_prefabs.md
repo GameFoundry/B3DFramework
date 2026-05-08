@@ -21,7 +21,7 @@ HPrefab renderablePrefab = Prefab::Create(renderableSO);
 Once created you can now instantiate the prefab as many times as you wish by calling @b3d::Prefab::Instantiate. This will return a scene object, which will be parented to the provided scene instance.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<SceneInstance> sceneInstance = GetSceneManager().GetMainScene();
+TShared<SceneInstance> sceneInstance = GetSceneManager().GetMainScene();
 HSceneObject instance1 = renderablePrefab->Instantiate(sceneInstance);
 HSceneObject instance2 = renderablePrefab->Instantiate(sceneInstance);
 ~~~~~~~~~~~~~

@@ -86,7 +86,7 @@ void AnimationProxy::Clear()
 	}
 
 	for(u32 morphShapeIndex = 0; morphShapeIndex < MorphShapeCount; morphShapeIndex++)
-		MorphShapeInfos[morphShapeIndex].Shape.~SPtr<MorphShape>();
+		MorphShapeInfos[morphShapeIndex].Shape.~TShared<MorphShape>();
 
 	// All of the memory is part of the same buffer, so we only need to free the first element
 	B3DFree(Layers);
@@ -99,7 +99,7 @@ void AnimationProxy::Clear()
 	GenericCurveCount = 0;
 }
 
-void AnimationProxy::RebuildFull(const SPtr<b3d::Skeleton>& skeleton, const b3d::SkeletonMask& mask, Vector<AnimationClipInfo>& inOutClipInfos, const Vector<SceneObjectMappingCurveInfo>& sceneObjects, const SPtr<MorphShapes>& morphShapes)
+void AnimationProxy::RebuildFull(const TShared<b3d::Skeleton>& skeleton, const b3d::SkeletonMask& mask, Vector<AnimationClipInfo>& inOutClipInfos, const Vector<SceneObjectMappingCurveInfo>& sceneObjects, const TShared<MorphShapes>& morphShapes)
 {
 	this->Skeleton = skeleton;
 	this->SkeletonMask = mask;
@@ -118,7 +118,7 @@ void AnimationProxy::RebuildFull(const SPtr<b3d::Skeleton>& skeleton, const b3d:
 	RebuildClips(inOutClipInfos, sceneObjects, morphShapes);
 }
 
-void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, const Vector<SceneObjectMappingCurveInfo>& sceneObjects, const SPtr<MorphShapes>& morphShapes)
+void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, const Vector<SceneObjectMappingCurveInfo>& sceneObjects, const TShared<MorphShapes>& morphShapes)
 {
 	Clear();
 
@@ -176,7 +176,7 @@ void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, con
 			if(!isLoaded)
 				continue;
 
-			SPtr<AnimationCurves> curves = clipInfo.Clip->GetCurves();
+			TShared<AnimationCurves> curves = clipInfo.Clip->GetCurves();
 			positionCurveCount += (u32)curves->Position.size();
 			rotationCurveCount += (u32)curves->Rotation.size();
 			scaleCurveCount += (u32)curves->Scale.size();
@@ -185,7 +185,7 @@ void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, con
 		GenericCurveCount = 0;
 		if(!inOutClipInfos.empty() && clipLoadState[0])
 		{
-			SPtr<AnimationCurves> curves = inOutClipInfos[0].Clip->GetCurves();
+			TShared<AnimationCurves> curves = inOutClipInfos[0].Clip->GetCurves();
 			GenericCurveCount = (u32)curves->Generic.size();
 		}
 
@@ -323,7 +323,7 @@ void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, con
 			u32 currentShapeIndex = 0;
 			for(u32 morphChannelIndex = 0; morphChannelIndex < MorphChannelCount; morphChannelIndex++)
 			{
-				SPtr<MorphChannel> morphChannel = morphShapes->GetChannel(morphChannelIndex);
+				TShared<MorphChannel> morphChannel = morphShapes->GetChannel(morphChannelIndex);
 				const u32 shapeCount = morphChannel->GetShapeCount();
 
 				MorphChannelInfo& channelInfo = MorphChannelInfos[morphChannelIndex];
@@ -336,9 +336,9 @@ void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, con
 				for(u32 shapeIndex = 0; shapeIndex < shapeCount; shapeIndex++)
 				{
 					MorphShapeInfo& shapeInfo = MorphShapeInfos[currentShapeIndex];
-					new(&shapeInfo.Shape) SPtr<MorphShape>();
+					new(&shapeInfo.Shape) TShared<MorphShape>();
 
-					SPtr<MorphShape> shape = morphChannel->GetShape(shapeIndex);
+					TShared<MorphShape> shape = morphChannel->GetShape(shapeIndex);
 					shapeInfo.Shape = shape;
 					shapeInfo.FrameWeight = shape->GetWeight();
 					shapeInfo.FinalWeight = 0.0f;
@@ -357,7 +357,7 @@ void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, con
 
 					for(u32 morphChannelIndex = 0; morphChannelIndex < MorphChannelCount; morphChannelIndex++)
 					{
-						SPtr<MorphChannel> morphChannel = morphShapes->GetChannel(morphChannelIndex);
+						TShared<MorphChannel> morphChannel = morphShapes->GetChannel(morphChannelIndex);
 						MorphChannelInfo& channelInfo = MorphChannelInfos[morphChannelIndex];
 
 						clipInfo.Clip->GetMorphMapping(morphChannel->GetName(), channelInfo.FrameCurveIndex, channelInfo.WeightCurveIdx);
@@ -424,7 +424,7 @@ void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, con
 				}
 				else
 				{
-					static SPtr<AnimationCurves> zeroCurves = B3DMakeShared<AnimationCurves>();
+					static TShared<AnimationCurves> zeroCurves = B3DMakeShared<AnimationCurves>();
 					state.Curves = zeroCurves;
 					state.Length = 0.0f;
 					state.Disabled = true;
@@ -1072,13 +1072,13 @@ void Animation::SetState(const HAnimationClip& clip, AnimationClipState state)
 	mDirty |= AnimationDirtyStateFlag::Value;
 }
 
-void Animation::SetSkeleton(const SPtr<Skeleton>& skeleton)
+void Animation::SetSkeleton(const TShared<Skeleton>& skeleton)
 {
 	mSkeleton = skeleton;
 	mDirty |= AnimationDirtyStateFlag::All;
 }
 
-void Animation::SetMorphShapes(const SPtr<MorphShapes>& morphShapes)
+void Animation::SetMorphShapes(const TShared<MorphShapes>& morphShapes)
 {
 	mMorphShapes = morphShapes;
 
@@ -1114,11 +1114,11 @@ void Animation::SetMorphChannelWeight(const String& name, float weight)
 	if(!mesh.IsLoaded())
 		return;
 
-	SPtr<MorphShapes> morphShapes = mesh->GetMorphShapes();
+	TShared<MorphShapes> morphShapes = mesh->GetMorphShapes();
 	if(morphShapes == nullptr)
 		return;
 
-	const Vector<SPtr<MorphChannel>>& channels = morphShapes->GetChannels();
+	const Vector<TShared<MorphChannel>>& channels = morphShapes->GetChannels();
 	for(u32 morphChannelIndex = 0; morphChannelIndex < (u32)channels.size(); morphChannelIndex++)
 	{
 		if(channels[morphChannelIndex]->GetName() == name)
@@ -1143,7 +1143,7 @@ void Animation::SetCustomBounds(const AABox& bounds)
 	{
 		if(mAnimatedRenderable != nullptr)
 		{
-			SPtr<Renderable> renderable = mAnimatedRenderable.GetShared();
+			TShared<Renderable> renderable = mAnimatedRenderable.GetShared();
 			if(renderable != nullptr)
 				renderable->SetOverrideBounds(bounds);
 
@@ -1392,7 +1392,7 @@ void Animation::UpdateFromProxy()
 			Quaternion rotation = mAnimationProxy->SkeletonPose.Rotations[soInfo.BoneIndex];
 			Vector3 scale = mAnimationProxy->SkeletonPose.Scales[soInfo.BoneIndex];
 
-			const SPtr<Skeleton>& skeleton = mAnimationProxy->Skeleton;
+			const TShared<Skeleton>& skeleton = mAnimationProxy->Skeleton;
 
 			u32 parentBoneIndex = skeleton->GetBoneInfo(soInfo.BoneIndex).Parent;
 			if(parentBoneIndex == (u32)-1)
@@ -1572,14 +1572,14 @@ void Animation::OnEnabled()
 		mPreviewMode = false;
 	}
 
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 	if(scene->IsRunning())
 		CreateAnimationProxy(false);
 }
 
 void Animation::Update()
 {
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 	const bool isRunning = scene->IsRunning();
 
 	if(!isRunning && !mPreviewMode)
@@ -1593,7 +1593,7 @@ void Animation::Update()
 			HMesh mesh = animatedRenderable->GetMesh();
 			if(mesh.IsLoaded())
 			{
-				const SPtr<Skeleton>& skeleton = mesh->GetSkeleton();
+				const TShared<Skeleton>& skeleton = mesh->GetSkeleton();
 				if(skeleton)
 				{
 					for(auto& entry : mMappedSceneObjectInfos)
@@ -1652,8 +1652,8 @@ void Animation::CreateAnimationProxy(bool previewMode)
 	if(IsAnimationProxyValid())
 		DestroyAnimationProxy();
 
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
-	const SPtr<AnimationScene>& animationScene = scene->GetAnimationScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<AnimationScene>& animationScene = scene->GetAnimationScene();
 
 	mAnimationId = animationScene->RegisterAnimation(this);
 	mAnimationProxy = B3DMakeShared<AnimationProxy>(mAnimationId);
@@ -1692,8 +1692,8 @@ void Animation::DestroyAnimationProxy()
 
 	mPrimaryPlayingClip = nullptr;
 
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
-	const SPtr<AnimationScene>& animationScene = scene->GetAnimationScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<AnimationScene>& animationScene = scene->GetAnimationScene();
 
 	animationScene->UnregisterAnimation(mAnimationId);
 
@@ -1705,7 +1705,7 @@ void Animation::DestroyAnimationProxy()
 
 bool Animation::TogglePreviewModeInternal(bool enabled)
 {
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 	bool isRunning = scene->IsRunning();
 
 	if(enabled)
@@ -1847,7 +1847,7 @@ void Animation::UnregisterRenderable()
 
 void Animation::UpdateBounds(bool updateRenderable)
 {
-	SPtr<Renderable> renderable;
+	TShared<Renderable> renderable;
 	if(updateRenderable && mAnimatedRenderable != nullptr)
 		renderable = mAnimatedRenderable.GetShared();
 
@@ -1949,7 +1949,7 @@ void Animation::RebuildGenericMappings()
 			}
 		};
 
-		SPtr<AnimationCurves> curves = mPrimaryPlayingClip->GetCurves();
+		TShared<AnimationCurves> curves = mPrimaryPlayingClip->GetCurves();
 		for(auto& curve : curves->Position)
 			fnFindSceneObjectMapping(curve.Name, curve.Flags);
 

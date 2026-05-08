@@ -32,13 +32,13 @@ namespace b3d
 
 		void TestAssertPrefabScenario();
 
-		SPtr<SceneInstance> mSceneHierarchy;
+		TShared<SceneInstance> mSceneHierarchy;
 		UnitTestSceneB mScene;
 
 		struct PrefabTestInformation
 		{
 			HPrefab Prefab;
-			SPtr<UnitTestSceneB> PrefabInternalsScene;
+			TShared<UnitTestSceneB> PrefabInternalsScene;
 		};
 
 		Array<PrefabTestInformation, 4> mPrefabTestInformation;

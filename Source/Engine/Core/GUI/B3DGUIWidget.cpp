@@ -28,7 +28,7 @@ GUIWidget::GUIWidget()
 	:GUIWidget(nullptr, nullptr)
 { }
 
-void GUIWidget::SetStyleSheetCascade(const SPtr<const GUIStyleSheetCascade>& styleSheetCascade)
+void GUIWidget::SetStyleSheetCascade(const TShared<const GUIStyleSheetCascade>& styleSheetCascade)
 {
 	if(!B3D_ENSURE(styleSheetCascade != nullptr))
 		return;
@@ -227,7 +227,7 @@ void GUIWidget::UpdateRootPanel()
 
 void GUIWidget::UpdateRenderTarget()
 {
-	SPtr<RenderTarget> rt;
+	TShared<RenderTarget> rt;
 	u64 newRTId = 0;
 	if(mCamera != nullptr)
 	{
@@ -443,7 +443,7 @@ void GUIWidget::OnCreated()
 
 	if(mCamera != nullptr)
 	{
-		SPtr<RenderTarget> target = mCamera->GetViewport()->GetTarget();
+		TShared<RenderTarget> target = mCamera->GetViewport()->GetTarget();
 
 		if(target != nullptr)
 		{

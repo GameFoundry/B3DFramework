@@ -4,12 +4,12 @@
 #include "Renderer/B3DRendererMeshData.h"
 
 using namespace b3d;
-HPhysicsMesh PhysicsMeshEx::Create(const SPtr<RendererMeshData>& meshData, PhysicsMeshType type)
+HPhysicsMesh PhysicsMeshEx::Create(const TShared<RendererMeshData>& meshData, PhysicsMeshType type)
 {
 	return PhysicsMesh::Create(meshData->GetData(), type);
 }
 
-SPtr<RendererMeshData> PhysicsMeshEx::GetMeshData(const HPhysicsMesh& thisPtr)
+TShared<RendererMeshData> PhysicsMeshEx::GetMeshData(const HPhysicsMesh& thisPtr)
 {
 	return RendererMeshData::Create(thisPtr->GetMeshData());
 }

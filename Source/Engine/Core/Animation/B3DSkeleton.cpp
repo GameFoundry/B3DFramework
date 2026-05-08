@@ -88,7 +88,7 @@ Skeleton::Skeleton(BoneInformation* bones, u32 boneCount)
 	}
 }
 
-SPtr<Skeleton> Skeleton::Create(BoneInformation* bones, u32 boneCount)
+TShared<Skeleton> Skeleton::Create(BoneInformation* bones, u32 boneCount)
 {
 	Skeleton* rawPtr = new(B3DAllocate<Skeleton>()) Skeleton(bones, boneCount);
 
@@ -338,11 +338,11 @@ u32 Skeleton::GetRootBoneIndex() const
 	return (u32)-1;
 }
 
-SPtr<Skeleton> Skeleton::CreateEmpty()
+TShared<Skeleton> Skeleton::CreateEmpty()
 {
 	Skeleton* rawPtr = new(B3DAllocate<Skeleton>()) Skeleton();
 
-	SPtr<Skeleton> newSkeleton = B3DMakeSharedFromExisting<Skeleton>(rawPtr);
+	TShared<Skeleton> newSkeleton = B3DMakeSharedFromExisting<Skeleton>(rawPtr);
 	return newSkeleton;
 }
 

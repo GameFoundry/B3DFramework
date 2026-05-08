@@ -74,7 +74,7 @@ void HingeJoint::SetFlag(HingeJointFlag flag, bool enabled)
 
 UPtr<IJointImplementation> HingeJoint::CreateImplementation()
 {
-	const SPtr<SceneInstance>& scene = SO()->GetScene();
+	const TShared<SceneInstance>& scene = SO()->GetScene();
 	return scene->GetPhysicsScene()->CreateHingeJoint(*this, mInformation);
 }
 

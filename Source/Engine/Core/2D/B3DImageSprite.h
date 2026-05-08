@@ -67,7 +67,7 @@ namespace b3d
 		/**	Clears internal geometry buffers. */
 		void ClearMesh();
 
-		SPtr<SpriteImageAllocation> mSpriteImageAllocations;
+		TShared<SpriteImageAllocation> mSpriteImageAllocations;
 	};
 
 	/** @} */

@@ -106,7 +106,7 @@ namespace b3d
 			return TID_GUIStyleSheetRule;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<GUIStyleSheetRules>();
 		}
@@ -131,7 +131,7 @@ namespace b3d
 			return TID_GUIStyleSheetRuleset;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<GUIStyleSheetRuleset>();
 		}
@@ -161,7 +161,7 @@ namespace b3d
 			return TID_GUIStyleSheet;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return GUIStyleSheet::CreateUninitialized();
 		}

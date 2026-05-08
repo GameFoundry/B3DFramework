@@ -17,7 +17,7 @@ namespace b3d
 	/** Information about a package managed by PackageManager. */
 	struct RuntimePackageInformation
 	{
-		SPtr<Package> LoadedPackage;
+		TShared<Package> LoadedPackage;
 		Path PhysicalPath;
 		Path VirtualPathPrefix;
 		bool AcquiredWriteLock = true;
@@ -94,7 +94,7 @@ namespace b3d
 		~PackageReadLock();
 
 		/** Returns the package this lock is acquired for. */
-		const SPtr<Package>& GetPackage() const { return RuntimePackageInformation.LoadedPackage; }
+		const TShared<Package>& GetPackage() const { return RuntimePackageInformation.LoadedPackage; }
 
 		RuntimePackageInformation& RuntimePackageInformation;
 		Mutex& LockMutex;
@@ -111,7 +111,7 @@ namespace b3d
 		~PackageWriteLock();
 
 		/** Returns the package this lock is acquired for. */
-		const SPtr<Package>& GetPackage() const;
+		const TShared<Package>& GetPackage() const;
 
 		/** Clears the package information. To be called when a package has been deleted while holding the write lock. */
 		void ClearPackageInformation() { RuntimePackageInformation = nullptr; }
@@ -176,7 +176,7 @@ namespace b3d
 		 *			no other operations are being performed on the package.
 		 *			If a read lock for a package is acquired, the save operation at that same location will result in a deadlock.
 		 */
-		UPtr<PackageWriteLock> SavePackage(const SPtr<Package>& package, const Path& destinationPath, const PackageManagerSavePackageOptions& options);
+		UPtr<PackageWriteLock> SavePackage(const TShared<Package>& package, const Path& destinationPath, const PackageManagerSavePackageOptions& options);
 
 		/**
 		 * Unloads a package at the specified path.
@@ -260,7 +260,7 @@ namespace b3d
 		TOptional<Path> TryGetPackagePathForResource(const UUID& resourceId);
 
 		/** Retrieves resource meta-data from the associated (previously loaded) package. Returns null if resource cannot be found. */
-		SPtr<const PackageResourceMetaData> GetResourceMetaData(const UUID& resourceId);
+		TShared<const PackageResourceMetaData> GetResourceMetaData(const UUID& resourceId);
 
 	private:
 		/**
@@ -275,7 +275,7 @@ namespace b3d
 		 */
 		void ClearPackageResourceInformation(Package& package, const Path& virtualPathPrefix);
 
-		UnorderedMap<Path, SPtr<RuntimePackageInformation>> mPackagesByPath;
+		UnorderedMap<Path, TShared<RuntimePackageInformation>> mPackagesByPath;
 		UnorderedMap<UUID, RuntimePackageInformation*> mPackagesById;
 
 		UnorderedMap<UUID, UUID> mResourceIdToPackageId;

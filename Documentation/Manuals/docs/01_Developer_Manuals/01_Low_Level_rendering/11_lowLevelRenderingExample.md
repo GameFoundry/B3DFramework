@@ -25,7 +25,7 @@ During setup, all necessary rendering resources are initialized on the render th
 GPU programs are created using **GpuProgramCreateInformation** and the GPU device:
 
 ~~~~~~~~~~~~~{.cpp}
-const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 GpuProgramCreateInformation vertexProgramCreateInformation;
 vertexProgramCreateInformation.Type = GPT_VERTEX_PROGRAM;
@@ -33,7 +33,7 @@ vertexProgramCreateInformation.EntryPoint = "main";
 vertexProgramCreateInformation.Language = "hlsl"; // or "glsl" or "vksl"
 vertexProgramCreateInformation.Source = vertexShaderSource;
 
-SPtr<GpuProgram> vertexProgram = gpuDevice->CreateGpuProgram(vertexProgramCreateInformation);
+TShared<GpuProgram> vertexProgram = gpuDevice->CreateGpuProgram(vertexProgramCreateInformation);
 
 GpuProgramCreateInformation fragmentProgramCreateInformation;
 fragmentProgramCreateInformation.Type = GPT_FRAGMENT_PROGRAM;
@@ -41,7 +41,7 @@ fragmentProgramCreateInformation.EntryPoint = "main";
 fragmentProgramCreateInformation.Language = "hlsl";
 fragmentProgramCreateInformation.Source = fragmentShaderSource;
 
-SPtr<GpuProgram> fragmentProgram = gpuDevice->CreateGpuProgram(fragmentProgramCreateInformation);
+TShared<GpuProgram> fragmentProgram = gpuDevice->CreateGpuProgram(fragmentProgramCreateInformation);
 ~~~~~~~~~~~~~
 
 ## Creating pipeline state
@@ -66,7 +66,7 @@ pipelineStateInformation.DepthStencilState = depthStencilStateInformation;
 pipelineStateInformation.VertexProgram = vertexProgram;
 pipelineStateInformation.FragmentProgram = fragmentProgram;
 
-SPtr<GpuGraphicsPipelineState> pipelineState = gpuDevice->CreateGpuGraphicsPipelineState(pipelineStateInformation);
+TShared<GpuGraphicsPipelineState> pipelineState = gpuDevice->CreateGpuGraphicsPipelineState(pipelineStateInformation);
 ~~~~~~~~~~~~~
 
 ## Creating GPU parameter sets
@@ -74,7 +74,7 @@ SPtr<GpuGraphicsPipelineState> pipelineState = gpuDevice->CreateGpuGraphicsPipel
 GPU parameter sets are created from the pipeline state's parameter set layout (obtained via `GetParameterLayout()->GetSet()`) and will hold uniform buffers, textures, and samplers for a specific descriptor set:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuParameterSet> parameterSet = gpuDevice->CreateGpuParameterSet(pipelineState->GetParameterLayout()->GetSet(0), 0);
+TShared<GpuParameterSet> parameterSet = gpuDevice->CreateGpuParameterSet(pipelineState->GetParameterLayout()->GetSet(0), 0);
 ~~~~~~~~~~~~~
 
 ## Creating vertex description
@@ -86,7 +86,7 @@ TInlineArray<VertexElement, 8> vertexElements;
 vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
-SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
+TShared<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 ~~~~~~~~~~~~~
 
 ## Creating vertex and index buffers
@@ -102,7 +102,7 @@ vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
 vertexBufferCreateInformation.Vertex.Count = numVertices;
 vertexBufferCreateInformation.Vertex.ElementSize = vertexStride;
 
-SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
+TShared<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
 // Write vertex data
 GpuBufferUtility::Write(vertexBuffer, 0, vertexStride * numVertices, vertexData, GpuBufferWriteFlag::Discard);
@@ -115,7 +115,7 @@ indexBufferCreateInformation.Type = GpuBufferType::Index;
 indexBufferCreateInformation.Index.Count = numIndices;
 indexBufferCreateInformation.Index.Type = IT_32BIT;
 
-SPtr<GpuBuffer> indexBuffer = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
+TShared<GpuBuffer> indexBuffer = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
 
 // Write index data
 GpuBufferUtility::Write(indexBuffer, 0, numIndices * sizeof(u32), indexData, GpuBufferWriteFlag::Discard);
@@ -126,19 +126,19 @@ GpuBufferUtility::Write(indexBuffer, 0, numIndices * sizeof(u32), indexData, Gpu
 A texture is created from pixel data, and a sampler state is created to control texture filtering:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<PixelData> pixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
+TShared<PixelData> pixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 pixelData->SetColorAt(Color::kWhite, 0, 0);
 pixelData->SetColorAt(Color::kBlack, 1, 0);
 pixelData->SetColorAt(Color::kWhite, 1, 1);
 pixelData->SetColorAt(Color::kBlack, 0, 1);
 
-SPtr<Texture> surfaceTexture = gpuDevice->CreateTexture(pixelData);
+TShared<Texture> surfaceTexture = gpuDevice->CreateTexture(pixelData);
 
 SamplerStateCreateInformation samplerStateCreateInformation;
 samplerStateCreateInformation.MinFilter = FO_POINT;
 samplerStateCreateInformation.MagFilter = FO_POINT;
 
-SPtr<SamplerState> surfaceSampler = gpuDevice->FindOrCreateSamplerState(samplerStateCreateInformation);
+TShared<SamplerState> surfaceSampler = gpuDevice->FindOrCreateSamplerState(samplerStateCreateInformation);
 ~~~~~~~~~~~~~
 
 ## Creating render targets
@@ -152,7 +152,7 @@ colorAttachmentInformation.Height = 720;
 colorAttachmentInformation.Format = PF_RGBA8;
 colorAttachmentInformation.Usage = TextureUsageFlag::RenderTarget;
 
-SPtr<Texture> colorAttachment = gpuDevice->CreateTexture(colorAttachmentInformation);
+TShared<Texture> colorAttachment = gpuDevice->CreateTexture(colorAttachmentInformation);
 
 TextureCreateInformation depthAttachmentInformation;
 depthAttachmentInformation.Width = 1280;
@@ -160,13 +160,13 @@ depthAttachmentInformation.Height = 720;
 depthAttachmentInformation.Format = PF_D32;
 depthAttachmentInformation.Usage = TextureUsageFlag::DepthStencil;
 
-SPtr<Texture> depthAttachment = gpuDevice->CreateTexture(depthAttachmentInformation);
+TShared<Texture> depthAttachment = gpuDevice->CreateTexture(depthAttachmentInformation);
 
 RenderTextureCreateInformation renderTextureInformation;
 renderTextureInformation.ColorSurfaces[0].Texture = colorAttachment;
 renderTextureInformation.DepthStencilSurface.Texture = depthAttachment;
 
-SPtr<RenderTexture> renderTarget = RenderTexture::Create(renderTextureInformation);
+TShared<RenderTexture> renderTarget = RenderTexture::Create(renderTextureInformation);
 ~~~~~~~~~~~~~
 
 # Render phase
@@ -178,10 +178,10 @@ Every frame, the following rendering operations are performed using a command bu
 Command buffers are obtained from the command buffer pool:
 
 ~~~~~~~~~~~~~{.cpp}
-const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-const SPtr<GpuCommandBufferPool>& commandBufferPool = RendererManager::Instance().GetActive()->GetCommandBufferPool();
+const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+const TShared<GpuCommandBufferPool>& commandBufferPool = RendererManager::Instance().GetActive()->GetCommandBufferPool();
 
-SPtr<GpuCommandBuffer> commandBuffer = commandBufferPool->Create(GpuCommandBufferCreateInformation::Create("LowLevelRendering"));
+TShared<GpuCommandBuffer> commandBuffer = commandBufferPool->Create(GpuCommandBufferCreateInformation::Create("LowLevelRendering"));
 ~~~~~~~~~~~~~
 
 ## Setting up uniform buffers
@@ -199,7 +199,7 @@ UniformBlock uniformBlock;
 uniformBlock.MatrixWorldViewProjection = CalculateWorldViewProjectionMatrix();
 uniformBlock.Tint = Color(1.0f, 1.0f, 1.0f, 0.5f);
 
-SPtr<GpuBuffer> uniformBuffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(sizeof(UniformBlock)));
+TShared<GpuBuffer> uniformBuffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(sizeof(UniformBlock)));
 {
 	GpuBufferMappedScope mappedScope = uniformBuffer->Map(GpuMapOption::Write);
 	memcpy(mappedScope.GetMappedMemory(), &uniformBlock, sizeof(uniformBlock));
@@ -271,10 +271,10 @@ Since the rendering was done to an offscreen render target, the result must be c
 
 ~~~~~~~~~~~~~{.cpp}
 // Get the color attachment from the offscreen render target
-SPtr<Texture> colorTexture = renderTarget->GetColorTexture(0);
+TShared<Texture> colorTexture = renderTarget->GetColorTexture(0);
 
 // Blit the offscreen color attachment to the render window
-SPtr<RenderWindow> renderWindow = ...;
+TShared<RenderWindow> renderWindow = ...;
 GetRendererUtility().Blit(*commandBuffer, BlitInformation::BlitColor(colorTexture, renderWindow));
 ~~~~~~~~~~~~~
 

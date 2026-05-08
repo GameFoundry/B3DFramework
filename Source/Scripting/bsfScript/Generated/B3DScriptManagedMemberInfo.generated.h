@@ -24,7 +24,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ManagedMemberInfo")
 
-		ScriptManagedMemberInfo(const SPtr<ManagedMemberInfo>& nativeObject);
+		ScriptManagedMemberInfo(const TShared<ManagedMemberInfo>& nativeObject);
 		~ScriptManagedMemberInfo();
 
 		static void SetupScriptBindings();

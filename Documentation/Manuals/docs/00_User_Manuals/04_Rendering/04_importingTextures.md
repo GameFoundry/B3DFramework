@@ -152,7 +152,7 @@ importOptions->CpuCached = true;
 HTexture texture = GetImporter().Import<Texture>("myTexture.jpg", importOptions);
 
 // Allocate a buffer to hold texture contents
-SPtr<PixelData> pixelData = PixelData::Create(1024, 1024, 1, PF_RGBA8);
+TShared<PixelData> pixelData = PixelData::Create(1024, 1024, 1, PF_RGBA8);
 
 // Read cached data
 texture->GetCachedData(*pixelData);
@@ -167,7 +167,7 @@ Color color = pixelData->GetColorAt(50, 50);
 When you have CPU-cached texture data, you can read and manipulate individual pixels:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<PixelData> pixelData = texture->AllocatePixelBuffer();
+TShared<PixelData> pixelData = texture->AllocatePixelBuffer();
 texture->GetCachedData(*pixelData);
 
 // Get pixel at specific coordinates
@@ -193,7 +193,7 @@ PixelFormat format = pixelData->GetFormat();
 
 ~~~~~~~~~~~~~{.cpp}
 // For different formats, you may need to work with raw bytes
-SPtr<PixelData> pixelData = texture->AllocatePixelBuffer();
+TShared<PixelData> pixelData = texture->AllocatePixelBuffer();
 texture->GetCachedData(*pixelData);
 
 u32 pixelSize = PixelUtility::GetFormatSize(pixelData->GetFormat());
@@ -218,7 +218,7 @@ You can write new data to textures. This is an asynchronous operation - the func
 
 ~~~~~~~~~~~~~{.cpp}
 // Create pixel data with new content
-SPtr<PixelData> pixelData = PixelData::Create(512, 512, 1, PF_RGBA8);
+TShared<PixelData> pixelData = PixelData::Create(512, 512, 1, PF_RGBA8);
 
 // Fill with a solid color
 for (u32 y = 0; y < 512; y++)
@@ -237,7 +237,7 @@ asyncOp.BlockUntilComplete();
 For textures with multiple mip levels or array slices, you can specify which subresource to write to:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<PixelData> pixelData = ...;
+TShared<PixelData> pixelData = ...;
 
 // Write to face 0, mip level 2
 texture->WriteData(pixelData, 0, 2);

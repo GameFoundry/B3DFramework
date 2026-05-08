@@ -116,13 +116,13 @@ void Package::SetPackageName(const String& name)
 	mName = name;
 }
 
-const SPtr<PackageMetaData>& Package::GetPackageMetaData() const
+const TShared<PackageMetaData>& Package::GetPackageMetaData() const
 {
 	Lock lock(mMetaDataMutex);
 	return mPackageMetaData;
 }
 
-void Package::SetPackageMetaData(const SPtr<PackageMetaData>& metaData)
+void Package::SetPackageMetaData(const TShared<PackageMetaData>& metaData)
 {
 	Lock lock(mMetaDataMutex);
 	mPackageMetaData = metaData;
@@ -152,7 +152,7 @@ PackageHierarchy Package::CreateHierarchy() const
 	PackageHierarchy output;
 	output.Root = B3DPoolNew<PackageHierarchy::Entry>(PackageHierarchy::EntryType::Folder);
 
-	auto fnCreateEntriesRecursive = [](PackageHierarchy::Entry* parent, const Path& path, u32 pathEntryIndex, u32 pathEntryCount, const SPtr<PackageResourceMetaData>& metaData, const auto& fnCreateEntriesRecursive)
+	auto fnCreateEntriesRecursive = [](PackageHierarchy::Entry* parent, const Path& path, u32 pathEntryIndex, u32 pathEntryCount, const TShared<PackageResourceMetaData>& metaData, const auto& fnCreateEntriesRecursive)
 	{
 		if(!B3D_ENSURE(parent))
 			return;
@@ -195,7 +195,7 @@ PackageHierarchy Package::CreateHierarchy() const
 	{
 		for (const auto& entry : mResourceInformationByUUID)
 		{
-			const SPtr<PackageResourceMetaData>& metaData = entry.second->MetaData;
+			const TShared<PackageResourceMetaData>& metaData = entry.second->MetaData;
 
 			const u32 pathEntryCount = metaData->Path.GetDirectoryCount() + (metaData->Path.IsFile() ? 1 : 0);
 			fnCreateEntriesRecursive(output.Root, metaData->Path, 0, pathEntryCount, metaData, fnCreateEntriesRecursive);
@@ -251,7 +251,7 @@ bool Package::Contains(const Path& path) const
 	return GetResourceInformation(path, false) != nullptr;
 }
 
-SPtr<const PackageResourceMetaData> Package::GetResourceMetaData(const UUID& id) const
+TShared<const PackageResourceMetaData> Package::GetResourceMetaData(const UUID& id) const
 {
 	Lock lock(mMetaDataMutex);
 	const ResourceInformation* const resourceInformation = GetResourceInformation(id);
@@ -259,7 +259,7 @@ SPtr<const PackageResourceMetaData> Package::GetResourceMetaData(const UUID& id)
 	return resourceInformation ? resourceInformation->MetaData : nullptr;
 }
 
-SPtr<const PackageResourceMetaData> Package::GetResourceMetaData(const Path& path) const
+TShared<const PackageResourceMetaData> Package::GetResourceMetaData(const Path& path) const
 {
 	Lock lock(mMetaDataMutex);
 	const ResourceInformation* const resourceInformation = GetResourceInformation(path);
@@ -267,7 +267,7 @@ SPtr<const PackageResourceMetaData> Package::GetResourceMetaData(const Path& pat
 	return resourceInformation ? resourceInformation->MetaData : nullptr;
 }
 
-void Package::SetResourceMetaData(const UUID& id, const SPtr<PackageResourceUserMetaData>& data)
+void Package::SetResourceMetaData(const UUID& id, const TShared<PackageResourceUserMetaData>& data)
 {
 	Lock lock(mMetaDataMutex);
 	ResourceInformation* const resourceInformation = GetResourceInformation(id);
@@ -275,14 +275,14 @@ void Package::SetResourceMetaData(const UUID& id, const SPtr<PackageResourceUser
 	if (resourceInformation)
 	{
 		// Always make a copy and user might be reading from the meta-data, and we cannot modify it in a thread safe way
-		const SPtr<PackageResourceMetaData> metaDataCopy = B3DRTTIClone(resourceInformation->MetaData);
+		const TShared<PackageResourceMetaData> metaDataCopy = B3DRTTIClone(resourceInformation->MetaData);
 
 		metaDataCopy->AdditionalMetaData = data;
 		resourceInformation->MetaData = metaDataCopy;
 	}
 }
 
-void Package::SetResourceMetaData(const Path& path, const SPtr<PackageResourceUserMetaData>& data)
+void Package::SetResourceMetaData(const Path& path, const TShared<PackageResourceUserMetaData>& data)
 {
 	Lock lock(mMetaDataMutex);
 	ResourceInformation* const resourceInformation = GetResourceInformation(path);
@@ -290,7 +290,7 @@ void Package::SetResourceMetaData(const Path& path, const SPtr<PackageResourceUs
 	if (resourceInformation)
 	{
 		// Always make a copy and user might be reading from the meta-data, and we cannot modify it in a thread safe way
-		const SPtr<PackageResourceMetaData> metaDataCopy = B3DRTTIClone(resourceInformation->MetaData);
+		const TShared<PackageResourceMetaData> metaDataCopy = B3DRTTIClone(resourceInformation->MetaData);
 
 		metaDataCopy->AdditionalMetaData = data;
 		resourceInformation->MetaData = metaDataCopy;
@@ -319,7 +319,7 @@ void Package::AddResource(const Path& path, const HResource& resource)
 	AddResource(path, resource.GetShared());
 }
 
-void Package::AddResource(const Path& path, const SPtr<Resource>& resource)
+void Package::AddResource(const Path& path, const TShared<Resource>& resource)
 {
 	UUID id;
 	if (resource != nullptr)
@@ -349,7 +349,7 @@ void Package::AddResource(const Path& path, const SPtr<Resource>& resource)
 		return;
 	}
 
-	SPtr<PackageResourceMetaData> metaData = B3DMakeShared<PackageResourceMetaData>();
+	TShared<PackageResourceMetaData> metaData = B3DMakeShared<PackageResourceMetaData>();
 	metaData->Path = path;
 	metaData->Id = id;
 	metaData->TypeId = resource != nullptr ? resource->GetTypeId() : 0;
@@ -449,7 +449,7 @@ void Package::RemoveResource(const UUID& id, bool recursive)
 	B3D_LOG(Warning, LogResources, "Cannot remove resource {0} from package {1} ({2}). Provided resource is not part of this package.", id, mName, mAssociatedPackageFilePath);
 }
 
-void Package::SetResource(const SPtr<Resource>& resource, bool markAsDirty)
+void Package::SetResource(const TShared<Resource>& resource, bool markAsDirty)
 {
 	if(resource == nullptr)
 	{
@@ -474,7 +474,7 @@ void Package::SetResource(const SPtr<Resource>& resource, bool markAsDirty)
 	resourceInformation->LoadSignal.Wait(lock, [resourceInformation] { return resourceInformation->LoadState != PackageResourceLoadState::InProgress; });
 
 	// Always make a copy and user might be reading from the meta-data, and we cannot modify it in a thread safe way
-	const SPtr<PackageResourceMetaData> metaDataCopy = B3DRTTIClone(resourceInformation->MetaData);
+	const TShared<PackageResourceMetaData> metaDataCopy = B3DRTTIClone(resourceInformation->MetaData);
 	metaDataCopy->TypeId = resource->GetTypeId();
 	metaDataCopy->ResourceMetaData = resource->GetMetaData();
 
@@ -557,7 +557,7 @@ bool Package::SetResourcePath(const Path& path, const Path& newPath, bool recurs
 		}
 
 		// Always make a copy and user might be reading from the meta-data, and we cannot modify it in a thread safe way
-		const SPtr<PackageResourceMetaData> metaDataCopy = B3DRTTIClone(resourceInformation->MetaData);
+		const TShared<PackageResourceMetaData> metaDataCopy = B3DRTTIClone(resourceInformation->MetaData);
 		metaDataCopy->Path = newPath;
 
 		resourceInformation->MetaData = metaDataCopy;
@@ -597,7 +597,7 @@ bool Package::SetResourcePath(const Path& path, const Path& newPath, bool recurs
 	return true;
 }
 
-SPtr<Resource> Package::LoadResource(const Path& path)
+TShared<Resource> Package::LoadResource(const Path& path)
 {
 	UUID id;
 	{
@@ -615,7 +615,7 @@ SPtr<Resource> Package::LoadResource(const Path& path)
 	return LoadResource(id);
 }
 
-SPtr<Resource> Package::LoadResource(const UUID& id)
+TShared<Resource> Package::LoadResource(const UUID& id)
 {
 	u64 offsetInDataStream = 0;
 	u64 sizeInDataStream = 0;
@@ -669,7 +669,7 @@ SPtr<Resource> Package::LoadResource(const UUID& id)
 	if (canStartLoad)
 	{
 		// Note: It's important that associated ResourceInformation is not destroyed while load is in progress, as we're referencing the progress field
-		const SPtr<Resource> resource = LoadAndDeserializeResource(id, offsetInDataStream, sizeInDataStream, compressionType, *progress);
+		const TShared<Resource> resource = LoadAndDeserializeResource(id, offsetInDataStream, sizeInDataStream, compressionType, *progress);
 
 		Lock lock(mMetaDataMutex);
 
@@ -708,7 +708,7 @@ SPtr<Resource> Package::LoadResource(const UUID& id)
 	return LoadResource(id);
 }
 
-SPtr<Resource> Package::DeserializeResource(const Path& path) const
+TShared<Resource> Package::DeserializeResource(const Path& path) const
 {
 	UUID id;
 	{
@@ -726,7 +726,7 @@ SPtr<Resource> Package::DeserializeResource(const Path& path) const
 	return DeserializeResource(id);
 }
 
-SPtr<Resource> Package::DeserializeResource(const UUID& id) const
+TShared<Resource> Package::DeserializeResource(const UUID& id) const
 {
 	u64 offsetInDataStream;
 	u64 sizeInDataStream;
@@ -744,7 +744,7 @@ SPtr<Resource> Package::DeserializeResource(const UUID& id) const
 	}
 
 	std::atomic<float> progress;
-	SPtr<Resource> resource = LoadAndDeserializeResource(id, offsetInDataStream, sizeInDataStream, compressionMethod, progress);
+	TShared<Resource> resource = LoadAndDeserializeResource(id, offsetInDataStream, sizeInDataStream, compressionMethod, progress);
 
 	if (resource == nullptr)
 		return nullptr;
@@ -765,7 +765,7 @@ SPtr<Resource> Package::DeserializeResource(const UUID& id) const
 	return resource;
 }
 
-SPtr<Resource> Package::GetResource(const Path& path) const
+TShared<Resource> Package::GetResource(const Path& path) const
 {
 	UUID id;
 	{
@@ -783,7 +783,7 @@ SPtr<Resource> Package::GetResource(const Path& path) const
 	return GetResource(id);
 }
 
-SPtr<Resource> Package::GetResource(const UUID& id) const
+TShared<Resource> Package::GetResource(const UUID& id) const
 {
 	Lock lock(mMetaDataMutex);
 
@@ -857,11 +857,11 @@ size_t Package::GetResourceSizeInDataStream(const UUID& id) const
 	return resourceInformation ? resourceInformation->SizeInDataStream : 0;
 }
 
-SPtr<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offsetInStream, size_t sizeInStream, CompressionType compressionType, std::atomic<float>& outProgress) const
+TShared<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offsetInStream, size_t sizeInStream, CompressionType compressionType, std::atomic<float>& outProgress) const
 {
 	SharedLock dataLock(mDataMutex);
 
-	const SPtr<DataStream> dataStream = FileSystem::OpenFile(mAssociatedPackageFilePath);
+	const TShared<DataStream> dataStream = FileSystem::OpenFile(mAssociatedPackageFilePath);
 	if (!dataStream)
 	{
 		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). The package has not been serialized or the package file is missing.", mName, mAssociatedPackageFilePath, id, mAssociatedPackageFilePath);
@@ -877,7 +877,7 @@ SPtr<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offset
 	RTTIOperationEngineContext rttiOperationContext;
 
 	// Read resource data
-	SPtr<IReflectable> loadedData;
+	TShared<IReflectable> loadedData;
 	dataStream->Seek(offsetInStream);
 
 	if (dataStream->Eof())
@@ -897,7 +897,7 @@ SPtr<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offset
 		else
 		{
 			constexpr float kCompressionProgressWeight = 0.9f; // Assuming compression will take 90% of the deserialization time.
-			const SPtr<MemoryDataStream> uncompressedStream = B3DMakeShared<MemoryDataStream>();
+			const TShared<MemoryDataStream> uncompressedStream = B3DMakeShared<MemoryDataStream>();
 
 			const bool decompressionSuccessful = Compression::Decompress(*dataStream, *uncompressedStream, sizeInStream, compressionType, [&outProgress, kCompressionProgressWeight](float progress) {
 				outProgress.exchange(progress * kCompressionProgressWeight, std::memory_order_relaxed);
@@ -952,12 +952,12 @@ void Package::UnloadResource(ResourceInformation* resourceInformation)
 	resourceInformation->LoadSignal.NotifyAll();
 }
 
-SPtr<Package> Package::Create(const String& name, const UUID& id)
+TShared<Package> Package::Create(const String& name, const UUID& id)
 {
 	return B3DMakeShared<Package>(name, id);
 }
 
-bool Package::Save(const SPtr<DataStream>& stream, const SavePackageOptions& options)
+bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& options)
 {
 	Lock metaDataLock(mMetaDataMutex);
 
@@ -977,12 +977,12 @@ bool Package::Save(const SPtr<DataStream>& stream, const SavePackageOptions& opt
 	for (auto& entryPair : mResourceInformationByUUID)
 	{
 		ResourceInformation* const resourceInformation = entryPair.second.get();
-		const SPtr<PackageResourceMetaData>& metaData = resourceInformation->MetaData;
+		const TShared<PackageResourceMetaData>& metaData = resourceInformation->MetaData;
 
 		savedCompressionTypesPerResource[resourceIndex] = metaData->CompressionType;
 
 		// Always make a copy and user might be reading from the meta-data, and we cannot modify it in a thread safe way
-		const SPtr<PackageResourceMetaData> metaDataCopy = B3DMakeShared<PackageResourceMetaData>();
+		const TShared<PackageResourceMetaData> metaDataCopy = B3DMakeShared<PackageResourceMetaData>();
 		*metaDataCopy = *resourceInformation->MetaData;
 
 		metaDataCopy->CompressionType = options.CompressResources ? kDefaultCompressionType : CompressionType::Uncompressed;
@@ -994,7 +994,7 @@ bool Package::Save(const SPtr<DataStream>& stream, const SavePackageOptions& opt
 	if(options.SaveMetaDataOnly)
 	{
 		// Check if the new meta-data fits
-		SPtr<MemoryDataStream> metaDataStream = B3DMakeShared<MemoryDataStream>();
+		TShared<MemoryDataStream> metaDataStream = B3DMakeShared<MemoryDataStream>();
 		FileEncoder metaDataEncoder(metaDataStream);
 		metaDataEncoder.Encode(this);	
 
@@ -1028,7 +1028,7 @@ bool Package::Save(const SPtr<DataStream>& stream, const SavePackageOptions& opt
 
 	stream->Skip(resourceHeaderSize);
 
-	const SPtr<DataStream> existingPackageFileStream = !mAssociatedPackageFilePath.IsEmpty() ? FileSystem::OpenFile(mAssociatedPackageFilePath) : nullptr;
+	const TShared<DataStream> existingPackageFileStream = !mAssociatedPackageFilePath.IsEmpty() ? FileSystem::OpenFile(mAssociatedPackageFilePath) : nullptr;
 
 	FrameAllocatorScope frameScope;
 	FrameVector<SerializedResourceHeader> resourceHeaders(resourceCount);
@@ -1036,7 +1036,7 @@ bool Package::Save(const SPtr<DataStream>& stream, const SavePackageOptions& opt
 	resourceIndex = 0;
 	for (auto& entry : mResourceInformationByUUID)
 	{
-		const SPtr<Resource>& loadedResource = entry.second->LoadedResource;
+		const TShared<Resource>& loadedResource = entry.second->LoadedResource;
 		const CompressionType compressionType = options.CompressResources ? kDefaultCompressionType : CompressionType::Uncompressed;
 
 		resourceHeaders[resourceIndex].Id = entry.first;
@@ -1046,7 +1046,7 @@ bool Package::Save(const SPtr<DataStream>& stream, const SavePackageOptions& opt
 		{
 			if (compressionType != CompressionType::Uncompressed)
 			{
-				SPtr<MemoryDataStream> serializedResourceStream = B3DMakeShared<MemoryDataStream>();
+				TShared<MemoryDataStream> serializedResourceStream = B3DMakeShared<MemoryDataStream>();
 				serializer.Encode(loadedResource.get(), serializedResourceStream);
 				serializedResourceStream->Seek(0);
 
@@ -1096,7 +1096,7 @@ bool Package::Save(const SPtr<DataStream>& stream, const SavePackageOptions& opt
 					existingPackageFileStream->Seek(entry.second->OffsetInDataStream);
 
 					u64 uncompressedDataSize;
-					SPtr<DataStream> uncompressedDataStream;
+					TShared<DataStream> uncompressedDataStream;
 					if(savedCompressionTypesPerResource[resourceIndex] != CompressionType::Uncompressed)
 					{
 						uncompressedDataStream = B3DMakeShared<MemoryDataStream>();
@@ -1124,7 +1124,7 @@ bool Package::Save(const SPtr<DataStream>& stream, const SavePackageOptions& opt
 					{
 						B3D_ASSERT(existingPackageFileStream != uncompressedDataStream && !uncompressedDataStream->IsFile()); // Must be a temporary uncompressed memory stream
 
-						const SPtr<MemoryDataStream> uncompressedMemoryDataStream = std::static_pointer_cast<MemoryDataStream>(uncompressedDataStream);
+						const TShared<MemoryDataStream> uncompressedMemoryDataStream = std::static_pointer_cast<MemoryDataStream>(uncompressedDataStream);
 						stream->Write(uncompressedMemoryDataStream->Data(), uncompressedMemoryDataStream->Size());
 						resourceHeaders[resourceIndex].SizeInDataStream = uncompressedMemoryDataStream->Size();
 					}
@@ -1154,11 +1154,11 @@ void Package::AssociateFileWithPackage(const Path& path)
 	mAssociatedPackageFilePath = path;
 }
 
-SPtr<Package> Package::Clone() const
+TShared<Package> Package::Clone() const
 {
 	Lock lock(mMetaDataMutex);
 
-	SPtr<Package> output = Create(mName, mId);
+	TShared<Package> output = Create(mName, mId);
 	output->mAssociatedPackageFilePath = mAssociatedPackageFilePath;
 	output->mPackageMetaData = B3DRTTIClone(mPackageMetaData, false);
 
@@ -1222,23 +1222,23 @@ void Package::CopyResourceLoadStatesFromClone(const Package& otherPackage)
 	}
 }
 
-SPtr<Package> Package::Load(const Path& path)
+TShared<Package> Package::Load(const Path& path)
 {
-	const SPtr<DataStream> stream = FileSystem::OpenFile(path);
+	const TShared<DataStream> stream = FileSystem::OpenFile(path);
 	if (!stream)
 		return nullptr;
 
-	SPtr<Package> package = Load(stream);
+	TShared<Package> package = Load(stream);
 	if(package)
 		package->mAssociatedPackageFilePath = path;
 
 	return package;
 }
 
-SPtr<Package> Package::Load(const SPtr<DataStream>& stream)
+TShared<Package> Package::Load(const TShared<DataStream>& stream)
 {
 	FileDecoder fileDecoder(stream);
-	SPtr<Package> package = B3DRTTICast<Package>(fileDecoder.Decode());
+	TShared<Package> package = B3DRTTICast<Package>(fileDecoder.Decode());
 	if (package == nullptr)
 		return nullptr;
 

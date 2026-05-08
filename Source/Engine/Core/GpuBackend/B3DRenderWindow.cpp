@@ -62,7 +62,7 @@ void RenderWindow::Destroy()
 	RenderTarget::Destroy();
 }
 
-RenderWindow::RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow)
+RenderWindow::RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow)
 	: mCreateInformation(createInformation), mWindowId(windowId), mParentWindow(parentWindow), mRenderWindowProperties(CreateRenderWindowProperties(createInformation))
 {
 	mRenderTargetProperties = CreateRenderTargetProperties(createInformation);
@@ -73,7 +73,7 @@ void RenderWindow::SetFullscreen(const VideoMode& mode)
 	SetFullscreen(mode.Width, mode.Height, mode.RefreshRate, mode.OutputIdx);
 }
 
-SPtr<RenderWindow> RenderWindow::Create(const RenderWindowCreateInformation& createInformation, const SPtr<RenderWindow>& parentWindow)
+TShared<RenderWindow> RenderWindow::Create(const RenderWindowCreateInformation& createInformation, const TShared<RenderWindow>& parentWindow)
 {
 	return RenderWindowManager::Instance().CreateRenderWindow(createInformation, parentWindow);
 }
@@ -156,7 +156,7 @@ void RenderWindow::NotifyWindowEvent(WindowEventType type)
 		}
 	case WindowEventType::CloseRequested:
 		{
-			const SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+			const TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 
 			// Default behaviour for primary window is to quit the app on close
 			if(this == primaryWindow.get() && OnCloseRequested.Empty())
@@ -187,7 +187,7 @@ RTTIType* RenderWindow::GetRtti() const
 
 namespace b3d { namespace render
 {
-RenderWindow::RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const SPtr<RenderWindow>& parentWindow)
+RenderWindow::RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const TShared<RenderWindow>& parentWindow)
 	:  mCreateInformation(createInformation), mWindowId(windowId), mPlatformWindowHandle(platformWindowHandle), mParentWindow(parentWindow), mRenderWindowProperties(CreateRenderWindowProperties(createInformation))
 {
 	mRenderTargetProperties = CreateRenderTargetProperties(createInformation);
@@ -282,7 +282,7 @@ void RenderWindow::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& 
 	Super::SyncFromCoreObject(data, allocator);
 }
 
-TAsyncOp<SPtr<PixelData>> RenderWindow::ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex, u32 mipLevel, u32 arrayLayer)
+TAsyncOp<TShared<PixelData>> RenderWindow::ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex, u32 mipLevel, u32 arrayLayer)
 {
 	if(!B3D_ENSURE(colorSurfaceIndex == 0 && mipLevel == 0 && arrayLayer == 0) || mRenderWindowSurface == nullptr)
 		return RenderTarget::ReadAsync(commandBuffer, colorSurfaceIndex, mipLevel, arrayLayer);

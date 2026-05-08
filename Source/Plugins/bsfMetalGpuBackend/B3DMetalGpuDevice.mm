@@ -705,11 +705,11 @@ namespace b3d
 			mCapabilities.AddShaderProfile(kGpuProgramLanguageName);
 		}
 
-		SPtr<GpuProgramBytecode> MetalGpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
+		TShared<GpuProgramBytecode> MetalGpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
 		{
 			if (!IsGpuProgramLanguageSupported(createInformation.Language))
 			{
-				SPtr<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
+				TShared<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
 				bytecode->CompilerId = METAL_COMPILER_ID;
 				bytecode->CompilerVersion = METAL_COMPILER_VERSION;
 				bytecode->Messages = "Language not supported by Metal backend. Expected 'mvksl'.";
@@ -733,7 +733,7 @@ namespace b3d
 			// Step 1: VKSL/MVKSL -> SPIR-V + reflection, via glslang + SPIRV-Cross. The returned
 			// bytecode is already tagged with METAL_COMPILER_ID / METAL_COMPILER_VERSION; the final MSL
 			// blob replaces the payload below but keeps the tag.
-			SPtr<GpuProgramBytecode> bytecode = GLSLToSPIRV::Instance().Convert(createInformation, METAL_COMPILER_ID, METAL_COMPILER_VERSION);
+			TShared<GpuProgramBytecode> bytecode = GLSLToSPIRV::Instance().Convert(createInformation, METAL_COMPILER_ID, METAL_COMPILER_VERSION);
 
 			// If SPIR-V conversion failed, short-circuit. The message log already explains why.
 			if (bytecode->Instructions.Size == 0 || bytecode->Instructions.Data == nullptr)
@@ -919,7 +919,7 @@ namespace b3d
 			return (u32)mQueueInfos[(u32)type].Queues.size();
 		}
 
-		SPtr<GpuQueue> MetalGpuDevice::GetQueue(GpuQueueType type, u32 index) const
+		TShared<GpuQueue> MetalGpuDevice::GetQueue(GpuQueueType type, u32 index) const
 		{
 			if (index < mQueueInfos[(u32)type].Queues.size())
 				return mQueueInfos[(u32)type].Queues[index];
@@ -927,16 +927,16 @@ namespace b3d
 			return nullptr;
 		}
 
-		SPtr<render::GpuCommandBufferPool> MetalGpuDevice::CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation)
+		TShared<render::GpuCommandBufferPool> MetalGpuDevice::CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation)
 		{
 			return B3DMakeSharedFromExisting(new(B3DAllocate<MetalGpuCommandBufferPool>()) MetalGpuCommandBufferPool(*this, createInformation));
 		}
 
-		SPtr<Texture> MetalGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<Texture> MetalGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
 			MetalTexture* rawTexture = new(B3DAllocate<MetalTexture>()) MetalTexture(*this, createInformation);
 
-			SPtr<MetalTexture> texture = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+			TShared<MetalTexture> texture = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
 				? B3DMakeSharedFromExisting(rawTexture)
 				: MakeSharedStandalone<MetalTexture>(rawTexture);
 
@@ -948,11 +948,11 @@ namespace b3d
 			return texture;
 		}
 
-		SPtr<GpuBuffer> MetalGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<GpuBuffer> MetalGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
 			MetalGpuBuffer* rawBuffer = new(B3DAllocate<MetalGpuBuffer>()) MetalGpuBuffer(*this, createInformation);
 
-			SPtr<MetalGpuBuffer> buffer = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+			TShared<MetalGpuBuffer> buffer = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
 				? B3DMakeSharedFromExisting(rawBuffer)
 				: MakeSharedStandalone<MetalGpuBuffer>(rawBuffer);
 
@@ -964,19 +964,19 @@ namespace b3d
 			return buffer;
 		}
 
-		SPtr<GpuQueryPool> MetalGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
+		TShared<GpuQueryPool> MetalGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
 		{
 			return B3DMakeShared<MetalGpuQueryPool>(*this, createInformation);
 		}
 
-		SPtr<EventQuery> MetalGpuDevice::CreateEventQuery()
+		TShared<EventQuery> MetalGpuDevice::CreateEventQuery()
 		{
 			return B3DMakeShared<MetalEventQuery>(*this);
 		}
 
-		SPtr<GpuProgram> MetalGpuDevice::CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<GpuProgram> MetalGpuDevice::CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
-			SPtr<MetalGpuProgram> program = B3DMakeShared<MetalGpuProgram>(*this, createInformation);
+			TShared<MetalGpuProgram> program = B3DMakeShared<MetalGpuProgram>(*this, createInformation);
 
 			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 				program->Initialize();
@@ -984,9 +984,9 @@ namespace b3d
 			return program;
 		}
 
-		SPtr<GpuGraphicsPipelineState> MetalGpuDevice::CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<GpuGraphicsPipelineState> MetalGpuDevice::CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
-			SPtr<MetalGpuGraphicsPipelineState> pipelineState = B3DMakeShared<MetalGpuGraphicsPipelineState>(*this, createInformation);
+			TShared<MetalGpuGraphicsPipelineState> pipelineState = B3DMakeShared<MetalGpuGraphicsPipelineState>(*this, createInformation);
 
 			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 				pipelineState->Initialize();
@@ -994,9 +994,9 @@ namespace b3d
 			return pipelineState;
 		}
 
-		SPtr<GpuComputePipelineState> MetalGpuDevice::CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<GpuComputePipelineState> MetalGpuDevice::CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
-			SPtr<MetalGpuComputePipelineState> pipelineState = B3DMakeShared<MetalGpuComputePipelineState>(*this, createInformation);
+			TShared<MetalGpuComputePipelineState> pipelineState = B3DMakeShared<MetalGpuComputePipelineState>(*this, createInformation);
 
 			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 				pipelineState->Initialize();
@@ -1004,12 +1004,12 @@ namespace b3d
 			return pipelineState;
 		}
 
-		SPtr<GpuPipelineParameterLayout> MetalGpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
+		TShared<GpuPipelineParameterLayout> MetalGpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
 		{
 			return B3DMakeShared<MetalGpuPipelineParameterLayout>(*this, createInformation);
 		}
 
-		SPtr<GpuPipelineParameterSetLayout> MetalGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
+		TShared<GpuPipelineParameterSetLayout> MetalGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
 		{
 			return B3DMakeShared<MetalGpuPipelineParameterSetLayout>(*this, parameterDescription);
 		}
@@ -1019,7 +1019,7 @@ namespace b3d
 			return B3DMakeUnique<MetalGpuParameterSetPool>(*this, createInformation);
 		}
 
-		SPtr<GpuTimelineFence> MetalGpuDevice::CreateTimelineFence()
+		TShared<GpuTimelineFence> MetalGpuDevice::CreateTimelineFence()
 		{
 			return B3DMakeShared<MetalGpuTimelineFence>(*this);
 		}
@@ -1108,7 +1108,7 @@ namespace b3d
 			return (float)((double)timestamp / ticksPerMillisecond);
 		}
 
-		void MetalGpuDevice::PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask)
+		void MetalGpuDevice::PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask)
 		{
 			if (!renderWindow)
 				return;
@@ -1116,7 +1116,7 @@ namespace b3d
 			// Presents always go through the graphics queue on Metal. Cross-queue dependencies with
 			// compute/transfer work are expressed via the incoming sync mask; the queue encodes the
 			// waits on the presenting command buffer.
-			SPtr<GpuQueue> queue = GetQueue(GQT_GRAPHICS, 0);
+			TShared<GpuQueue> queue = GetQueue(GQT_GRAPHICS, 0);
 			if (!queue)
 				return;
 
@@ -1133,7 +1133,7 @@ namespace b3d
 				const u32 queueCount = GetQueueCount(queueType);
 				for (u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
 				{
-					SPtr<GpuQueue> queue = GetQueue(queueType, queueIndex);
+					TShared<GpuQueue> queue = GetQueue(queueType, queueIndex);
 					if (queue)
 						queue->WaitUntilIdle();
 				}
@@ -1156,9 +1156,9 @@ namespace b3d
 				mTransferBufferHelper->EndFrame();
 		}
 
-		SPtr<SamplerState> MetalGpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<SamplerState> MetalGpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
-			SPtr<MetalSamplerState> samplerState = B3DMakeShared<MetalSamplerState>(*this, createInformation);
+			TShared<MetalSamplerState> samplerState = B3DMakeShared<MetalSamplerState>(*this, createInformation);
 
 			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 				samplerState->Initialize();

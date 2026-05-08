@@ -113,7 +113,7 @@ void D3D12GpuCommandBufferPool::Destroy()
 	Base::Destroy();
 }
 
-SPtr<GpuCommandBuffer> D3D12GpuCommandBufferPool::FindOrCreate(const GpuCommandBufferCreateInformation& createInformation)
+TShared<GpuCommandBuffer> D3D12GpuCommandBufferPool::FindOrCreate(const GpuCommandBufferCreateInformation& createInformation)
 {
 	EnsureValidThread();
 
@@ -132,7 +132,7 @@ SPtr<GpuCommandBuffer> D3D12GpuCommandBufferPool::FindOrCreate(const GpuCommandB
 	return Create(createInformation);
 }
 
-SPtr<GpuCommandBuffer> D3D12GpuCommandBufferPool::Create(const GpuCommandBufferCreateInformation& createInformation)
+TShared<GpuCommandBuffer> D3D12GpuCommandBufferPool::Create(const GpuCommandBufferCreateInformation& createInformation)
 {
 	EnsureValidThread();
 
@@ -171,7 +171,7 @@ SPtr<GpuCommandBuffer> D3D12GpuCommandBufferPool::Create(const GpuCommandBufferC
 	// Command lists are created in recording state, close it for now
 	commandList->Close();
 
-	SPtr<D3D12GpuCommandBuffer> commandBuffer = B3DMakeSharedFromExisting(
+	TShared<D3D12GpuCommandBuffer> commandBuffer = B3DMakeSharedFromExisting(
 		new (B3DAllocate<D3D12GpuCommandBuffer>()) D3D12GpuCommandBuffer(
 			d3d12Device, *this, mNextCommandBufferId++, commandList.Get(),
 			mInformation.Thread, mInformation.Usage, createInformation),
@@ -327,7 +327,7 @@ CommandBufferState D3D12GpuCommandBuffer::GetState() const
 	}
 }
 
-void D3D12GpuCommandBuffer::SetGpuParameterSet(const SPtr<GpuParameterSet>& parameters)
+void D3D12GpuCommandBuffer::SetGpuParameterSet(const TShared<GpuParameterSet>& parameters)
 {
 	mBoundParams = std::static_pointer_cast<D3D12GpuParameters>(parameters);
 	mBoundParamsDirty = true;
@@ -339,19 +339,19 @@ void D3D12GpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32
 	B3D_LOG(Warning, LogRenderBackend, "Dynamic buffer offsets not yet implemented for D3D12");
 }
 
-void D3D12GpuCommandBuffer::SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState)
+void D3D12GpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState)
 {
 	mGraphicsPipeline = std::static_pointer_cast<D3D12GpuGraphicsPipelineState>(pipelineState);
 	mGfxPipelineRequiresBind = true;
 }
 
-void D3D12GpuCommandBuffer::SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& pipelineState)
+void D3D12GpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState)
 {
 	mComputePipeline = std::static_pointer_cast<D3D12GpuComputePipelineState>(pipelineState);
 	mCmpPipelineRequiresBind = true;
 }
 
-void D3D12GpuCommandBuffer::SetVertexBuffers(u32 index, SPtr<GpuBuffer>* buffers, u32 bufferCount)
+void D3D12GpuCommandBuffer::SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount)
 {
 	mVertexBuffers.clear();
 	for (u32 i = 0; i < bufferCount; i++)
@@ -363,13 +363,13 @@ void D3D12GpuCommandBuffer::SetVertexBuffers(u32 index, SPtr<GpuBuffer>* buffers
 	mVertexInputsDirty = true;
 }
 
-void D3D12GpuCommandBuffer::SetIndexBuffer(const SPtr<GpuBuffer>& buffer)
+void D3D12GpuCommandBuffer::SetIndexBuffer(const TShared<GpuBuffer>& buffer)
 {
 	mIndexBuffer = std::static_pointer_cast<D3D12GpuBuffer>(buffer);
 	mVertexInputsDirty = true;
 }
 
-void D3D12GpuCommandBuffer::SetVertexDescription(const SPtr<VertexDescription>& vertexDescription)
+void D3D12GpuCommandBuffer::SetVertexDescription(const TShared<VertexDescription>& vertexDescription)
 {
 	mVertexDescription = vertexDescription;
 }
@@ -428,7 +428,7 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 	mCommandList->Dispatch(groupCountX, groupCountY, groupCountZ);
 }
 
-void D3D12GpuCommandBuffer::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask)
+void D3D12GpuCommandBuffer::SetRenderTarget(const TShared<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask)
 {
 	mRenderTarget = target;
 	mRenderTargetReadOnlyFlags = readOnlyFlags;
@@ -449,7 +449,7 @@ void D3D12GpuCommandBuffer::SetRenderTarget(const SPtr<RenderTarget>& target, u3
 			// For RenderWindow, get framebuffer from the render window surface
 			// The surface/swap chain owns framebuffers for each back buffer
 			const RenderWindow* renderWindow = static_cast<const RenderWindow*>(target.get());
-			const SPtr<IRenderWindowSurface>& surfacePtr = renderWindow->GetRenderWindowSurface();
+			const TShared<IRenderWindowSurface>& surfacePtr = renderWindow->GetRenderWindowSurface();
 
 			if (surfacePtr)
 			{
@@ -526,7 +526,7 @@ void D3D12GpuCommandBuffer::SetStencilReferenceValue(u32 value)
 	mStencilRefRequiresBind = true;
 }
 
-void D3D12GpuCommandBuffer::WriteTimestamp(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool)
+void D3D12GpuCommandBuffer::WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool)
 {
 	EnsureValidThread();
 	B3D_ASSERT(mState == State::Recording || mState == State::RecordingRenderPass);
@@ -549,7 +549,7 @@ void D3D12GpuCommandBuffer::WriteTimestamp(GpuQueryId query, const SPtr<GpuQuery
 	mCommandList->EndQuery(d3d12QueryPool->GetD3D12QueryHeap(), d3d12QueryPool->GetD3D12QueryType(), query.Id);
 }
 
-void D3D12GpuCommandBuffer::BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool, GpuQueryFlags flags)
+void D3D12GpuCommandBuffer::BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags)
 {
 	EnsureValidThread();
 	B3D_ASSERT(mState == State::Recording || mState == State::RecordingRenderPass);
@@ -573,7 +573,7 @@ void D3D12GpuCommandBuffer::BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool
 	mCommandList->BeginQuery(d3d12QueryPool->GetD3D12QueryHeap(), d3d12QueryPool->GetD3D12QueryType(), query.Id);
 }
 
-void D3D12GpuCommandBuffer::EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool)
+void D3D12GpuCommandBuffer::EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool)
 {
 	EnsureValidThread();
 	B3D_ASSERT(mState == State::Recording || mState == State::RecordingRenderPass);
@@ -597,7 +597,7 @@ void D3D12GpuCommandBuffer::EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>&
 	mCommandList->EndQuery(d3d12QueryPool->GetD3D12QueryHeap(), d3d12QueryPool->GetD3D12QueryType(), query.Id);
 }
 
-void D3D12GpuCommandBuffer::ResetQueries(const SPtr<GpuQueryPool>& queryPool)
+void D3D12GpuCommandBuffer::ResetQueries(const TShared<GpuQueryPool>& queryPool)
 {
 	EnsureValidThread();
 	B3D_ASSERT(mState == State::Recording || mState == State::RecordingRenderPass);

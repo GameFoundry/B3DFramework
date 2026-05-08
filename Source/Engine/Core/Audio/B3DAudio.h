@@ -91,20 +91,20 @@ namespace b3d
 		 * @param	createInformation	Descriptor describing the type of the audio stream (format, sample rate, etc.).
 		 * @return						Newly created AudioClip. Must be manually initialized.
 		 */
-		virtual SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation) = 0;
+		virtual TShared<AudioClip> CreateClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation) = 0;
 
 		/** Creates a new AudioListener. */
-		virtual SPtr<IAudioListenerImplementation> CreateListener() = 0;
+		virtual TShared<IAudioListenerImplementation> CreateListener() = 0;
 
 		/** Creates a new AudioSource. */
-		virtual SPtr<IAudioSourceImplementation> CreateSource() = 0;
+		virtual TShared<IAudioSourceImplementation> CreateSource() = 0;
 
 		/** Stops playback of all sources started with Audio::Play calls. */
 		void StopManualSources();
 
 	private:
-		Vector<SPtr<IAudioSourceImplementation>> mManualSources;
-		Vector<SPtr<IAudioSourceImplementation>> mTempSources;
+		Vector<TShared<IAudioSourceImplementation>> mManualSources;
+		Vector<TShared<IAudioSourceImplementation>> mTempSources;
 	};
 
 	/** Provides easier access to Audio. */

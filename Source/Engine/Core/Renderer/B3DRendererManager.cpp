@@ -39,7 +39,7 @@ void RendererManager::SetActive(const String& pluginName)
 
 	if(mFactory != nullptr)
 	{
-		SPtr<render::Renderer> newRenderer = mFactory->Create();
+		TShared<render::Renderer> newRenderer = mFactory->Create();
 		if(newRenderer != nullptr)
 		{
 			if(mActiveRenderer != nullptr)
@@ -52,7 +52,7 @@ void RendererManager::SetActive(const String& pluginName)
 	B3D_ENSURE_LOG(mActiveRenderer != nullptr, "Cannot initialize renderer. Renderer plugin '{0}' cannot be found.", pluginName);
 }
 
-void RendererManager::Initialize(const SPtr<GpuDevice>& gpuDevice)
+void RendererManager::Initialize(const TShared<GpuDevice>& gpuDevice)
 {
 	if(mActiveRenderer != nullptr)
 		mActiveRenderer->Initialize(gpuDevice);

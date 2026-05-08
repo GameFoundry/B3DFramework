@@ -20,7 +20,7 @@ namespace b3d
 
 	class MeshRTTI : public TRTTIType<Mesh, MeshBase, MeshRTTI>
 	{
-		SPtr<MeshData> mMeshData;
+		TShared<MeshData> mMeshData;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mVertexDescription, 0)
@@ -52,7 +52,7 @@ namespace b3d
 			}
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return Mesh::CreateEmptyShared();
 		}

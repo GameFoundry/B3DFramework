@@ -92,7 +92,7 @@ const char* CheckSortBuffer(GpuBuffer& buffer)
 }
 
 /** Creates a helper buffers used for storing intermediate information during GpuSort::sort. */
-SPtr<GpuBuffer> CreateHelperBuffer()
+TShared<GpuBuffer> CreateHelperBuffer()
 {
 	GpuBufferCreateInformation bufferCreateInformation;
 	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
@@ -100,7 +100,7 @@ SPtr<GpuBuffer> CreateHelperBuffer()
 	bufferCreateInformation.SimpleStorage.Count = kMaxNumGroups * kNumDigits;
 	bufferCreateInformation.SimpleStorage.Format = BF_32X1U;
 
-	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	return gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 }
 
@@ -114,7 +114,7 @@ void RadixSortClearMaterial::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortClearMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& outputOffsets)
+void RadixSortClearMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& outputOffsets)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -135,7 +135,7 @@ void RadixSortCountMaterial::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortCountMaterial::Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const SPtr<GpuBuffer>& inputKeys, const SPtr<GpuBuffer>& outputOffsets)
+void RadixSortCountMaterial::Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputKeys, const TShared<GpuBuffer>& outputOffsets)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -159,7 +159,7 @@ void RadixSortPrefixScanMaterial::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortPrefixScanMaterial::Execute(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& params, const SPtr<GpuBuffer>& inputCounts, const SPtr<GpuBuffer>& outputOffsets)
+void RadixSortPrefixScanMaterial::Execute(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputCounts, const TShared<GpuBuffer>& outputOffsets)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -186,7 +186,7 @@ void RadixSortReorderMaterial::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortReorderMaterial::Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const SPtr<GpuBuffer>& inputPrefix, const GpuSortBuffers& buffers, u32 inputBufferIdx)
+void RadixSortReorderMaterial::Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputPrefix, const GpuSortBuffers& buffers, u32 inputBufferIdx)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -278,7 +278,7 @@ u32 GpuSort::Sort(GpuCommandBuffer& commandBuffer, const GpuSortBuffers& buffers
 
 GpuSortBuffers GpuSort::CreateSortBuffers(u32 numElements, bool values)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	GpuSortBuffers output;
 
 	GpuBufferCreateInformation createBufferInformation;
@@ -304,15 +304,15 @@ GpuSortBuffers GpuSort::CreateSortBuffers(u32 numElements, bool values)
 // just make sure to run the test below if you modify any of the GpuSort code.
 void RunSortTest()
 {
-	SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if (!gpuDevice)
 		return;
 
-	const SPtr<GpuCommandBufferPool> commandBufferPool = gpuDevice->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread());
+	const TShared<GpuCommandBufferPool> commandBufferPool = gpuDevice->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread());
 
 	GpuCommandBufferCreateInformation commandBufferCreateInformation;
 	commandBufferCreateInformation.Name = "GpuSort Test";
-	SPtr<GpuCommandBuffer> commandBuffer = commandBufferPool->Create(commandBufferCreateInformation);
+	TShared<GpuCommandBuffer> commandBuffer = commandBufferPool->Create(commandBufferCreateInformation);
 
 	// Generate test keys
 	static constexpr u32 kNumInputKeys = 10000;
@@ -334,7 +334,7 @@ void RunSortTest()
 	GpuSortBuffers sortBuffers = GpuSort::CreateSortBuffers(count);
 	GpuBufferUtility::Write(sortBuffers.Keys[0], 0, sortBuffers.Keys[0]->GetTotalSize(), inputKeys.data(), GpuBufferWriteFlag::Discard);
 
-	SPtr<GpuBuffer> helperBuffers[2];
+	TShared<GpuBuffer> helperBuffers[2];
 	helperBuffers[0] = CreateHelperBuffer();
 	helperBuffers[1] = CreateHelperBuffer();
 

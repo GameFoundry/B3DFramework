@@ -25,8 +25,8 @@ namespace b3d
 
 	class B3D_EXPORT SceneObjectRTTI : public TRTTIType<SceneObject, GameObject, SceneObjectRTTI>
 	{
-		Vector<SPtr<SceneObject>> mChildren;
-		Vector<SPtr<Component>> mComponents;
+		Vector<TShared<SceneObject>> mChildren;
+		Vector<TShared<Component>> mComponents;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_GENERATED_MEMBER_CONTAINER(mChildren, 0)
@@ -110,7 +110,7 @@ namespace b3d
 
 				// Register the newly created SO with the GameObjectManager and provide it with the original ID so that
 				// deserialized handles pointing to this object can be resolved.
-				SPtr<SceneObject> sceneObjectShared = std::static_pointer_cast<SceneObject>(goDeserializationData.Ptr);
+				TShared<SceneObject> sceneObjectShared = std::static_pointer_cast<SceneObject>(goDeserializationData.Ptr);
 
 				if(object.mId.Empty() || !serializationContext->PreserveGameObjectIds)
 				{
@@ -173,9 +173,9 @@ namespace b3d
 			return TID_SceneObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
-			SPtr<SceneObject> sceneObject = SPtr<SceneObject>(new(B3DAllocate<SceneObject>()) SceneObject("", 0), &B3DDelete<SceneObject>, StdAlloc<SceneObject>());
+			TShared<SceneObject> sceneObject = TShared<SceneObject>(new(B3DAllocate<SceneObject>()) SceneObject("", 0), &B3DDelete<SceneObject>, StdAlloc<SceneObject>());
 			sceneObject->mRTTIData = sceneObject;
 
 			return sceneObject;

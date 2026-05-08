@@ -144,7 +144,7 @@ static T take(UnorderedSet<T, H, E>& set) {
 	return out;
 }
 
-thread_local SPtr<SchedulerThread> SchedulerThread::Current{ nullptr };
+thread_local TShared<SchedulerThread> SchedulerThread::Current{ nullptr };
 
 SchedulerThread::SchedulerThread(Scheduler* scheduler, Mode mode, u32 id)
 	: Id(id), mMode(mode), mOwnerScheduler(scheduler)
@@ -601,7 +601,7 @@ u32 Scheduler::BindToCurrentThread()
 	u32 workerId = mNextExternalWorkerId++;
 
 	// Create scheduler thread wrapper for this external thread
-	SPtr<SchedulerThread> schedulerThread = B3DMakeShared<SchedulerThread>(
+	TShared<SchedulerThread> schedulerThread = B3DMakeShared<SchedulerThread>(
 		this, SchedulerThread::Mode::External, workerId);
 	schedulerThread->Start();
 
@@ -613,7 +613,7 @@ u32 Scheduler::BindToCurrentThread()
 
 void Scheduler::ProcessTasksOnCurrentThread()
 {
-	const SPtr<SchedulerThread>& thread = SchedulerThread::Get();
+	const TShared<SchedulerThread>& thread = SchedulerThread::Get();
 	if (!B3D_ENSURE(thread != nullptr))
 	{
 		B3D_LOG(Error, LogGeneric, "ProcessTasks() called on a thread not bound to any scheduler");
@@ -627,7 +627,7 @@ void Scheduler::UnbindFromCurrentThread()
 {
 	B3D_ASSERT(Get() != nullptr && "No scheduler bound to this thread.");
 
-	const SPtr<SchedulerThread> schedulerThread = SchedulerThread::Get();
+	const TShared<SchedulerThread> schedulerThread = SchedulerThread::Get();
 	schedulerThread->Stop();
 
 	{
@@ -724,7 +724,7 @@ void Scheduler::Post(SchedulerTask&& task)
 			continue;
 		}
 
-		const SPtr<SchedulerThread>& worker = mWorkerThreads[workerId];
+		const TShared<SchedulerThread>& worker = mWorkerThreads[workerId];
 		lock.unlock();
 
 		if (worker->TryLockForEnqueue())

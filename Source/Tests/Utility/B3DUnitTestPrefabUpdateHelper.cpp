@@ -64,7 +64,7 @@ namespace b3d
 			B3D_TEST_ASSERT_EXTERNAL(testSuite, sceneObject->GetPrefabResourceId() == prefabId) });
 	}
 
-	void UnitTestPrefabUpdateHelper::TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(TestSuite& testSuite, UnitTestSceneB& instanceScene, const SPtr<UnitTestSceneB>& parentPrefabScene, const UUID& parentPrefabId, const UnorderedMap<UUID, SPtr<UnitTestSceneB>>& prefabSceneLookup)
+	void UnitTestPrefabUpdateHelper::TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(TestSuite& testSuite, UnitTestSceneB& instanceScene, const TShared<UnitTestSceneB>& parentPrefabScene, const UUID& parentPrefabId, const UnorderedMap<UUID, TShared<UnitTestSceneB>>& prefabSceneLookup)
 	{
 		const auto found = instanceScene.ObjectInformation.find(instanceScene.Root.GetId());
 		if(!B3D_ENSURE(found != instanceScene.ObjectInformation.end()))
@@ -73,7 +73,7 @@ namespace b3d
 		const bool isInstanceModification = found->second.Flags.IsSet(UnitTestSceneObjectFlag::IsPrefabRootInstanceModification);
 
 		UUID prefabId;
-		SPtr<UnitTestSceneB> prefabScene;
+		TShared<UnitTestSceneB> prefabScene;
 		if(isInstanceModification || parentPrefabScene == nullptr)
 		{
 			prefabId = instanceScene.Root->GetPrefabResourceId();

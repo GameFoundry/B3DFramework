@@ -239,14 +239,14 @@ namespace b3d
 		 *
 		 * @note	Internal method used primarily be resource factory methods.
 		 */
-		HResource CreateResourceHandle(const SPtr<Resource>& resource);
+		HResource CreateResourceHandle(const TShared<Resource>& resource);
 
 		/**
 		 * Creates a new resource handle from a resource pointer, with a user defined UUID.
 		 *
 		 * @note	Internal method used primarily be resource factory methods.
 		 */
-		HResource CreateResourceHandle(const SPtr<Resource>& resource, const UUID& resourceId);
+		HResource CreateResourceHandle(const TShared<Resource>& resource, const UUID& resourceId);
 
 		/** Returns an existing handle for the specified UUID if one exists, or creates a new one. */
 		HResource GetOrCreateResourceHandle(const UUID& resourceId);
@@ -259,7 +259,7 @@ namespace b3d
 		void UpdateResourcesFromPackage(const UPtr<PackageWriteLock>& packageWriteLock);
 
 		/** Updates an existing resource handle with a new resource. Caller must ensure that new resource type matches the original resource type. */
-		void UpdateHandle(HResource& handle, const SPtr<Resource>& resource);
+		void UpdateHandle(HResource& handle, const TShared<Resource>& resource);
 
 		/** Triggered when the last resource handle for a particular resource goes out of scope. */
 		void DestroyHandleData(ResourceHandleData& handleData);
@@ -301,7 +301,7 @@ namespace b3d
 		 * into the loaded resource map. External code will be notified that load completed, and if any other resource is waiting on this resource to
 		 * finish loading, they will be notified so they may try to finalize their operations as well.
 		 */
-		void TryFinalizeLoad(const SPtr<InProgressLoadInformation>& inProgressLoadInformation);
+		void TryFinalizeLoad(const TShared<InProgressLoadInformation>& inProgressLoadInformation);
 
 		/**	Destroys a resource, freeing its memory. */
 		void Destroy(ResourceHandleData& handleData);
@@ -312,8 +312,8 @@ namespace b3d
 
 		UnorderedMap<UUID, ResourceHandleData*> mHandles;
 		UnorderedMap<UUID, UPtr<LoadedResourceInformation>> mLoadedResourceInformation;
-		UnorderedMap<UUID, TInlineArray<SPtr<InProgressLoadInformation>, 1>> mInProgressLoadInformation;
-		UnorderedMap<UUID, TInlineArray<SPtr<InProgressLoadInformation>, 4>> mDependantResourceLoads;
+		UnorderedMap<UUID, TInlineArray<TShared<InProgressLoadInformation>, 1>> mInProgressLoadInformation;
+		UnorderedMap<UUID, TInlineArray<TShared<InProgressLoadInformation>, 4>> mDependantResourceLoads;
 	};
 
 	/** Provides easier access to Resources manager. */

@@ -10,7 +10,7 @@ using namespace b3d;
 
 namespace b3d
 {
-	bool Equals(const SPtr<ISerialized>& lhs, const SPtr<ISerialized>& rhs)
+	bool Equals(const TShared<ISerialized>& lhs, const TShared<ISerialized>& rhs)
 	{
 		if(lhs == nullptr)
 			return rhs == nullptr;
@@ -22,14 +22,14 @@ namespace b3d
 	}
 } // namespace b3d
 
-SPtr<SerializedObject> SerializedObject::Create(IReflectable& object, SerializedObjectEncodeFlags flags)
+TShared<SerializedObject> SerializedObject::Create(IReflectable& object, SerializedObjectEncodeFlags flags)
 {
 	RTTIOperationContext rttiOperationContext;
 	IntermediateSerializer intermediateSerializer(&GetFrameAllocator(), rttiOperationContext);
 	return intermediateSerializer.Encode(&object, flags);
 }
 
-SPtr<IReflectable> SerializedObject::Decode(RTTIOperationContext& context) const
+TShared<IReflectable> SerializedObject::Decode(RTTIOperationContext& context) const
 {
 	IntermediateSerializer intermediateSerializer(&GetFrameAllocator(), context);
 	return intermediateSerializer.Decode(this);
@@ -43,9 +43,9 @@ u32 SerializedObject::GetRootTypeId() const
 	return 0;
 }
 
-SPtr<ISerialized> SerializedObject::Clone(bool cloneData)
+TShared<ISerialized> SerializedObject::Clone(bool cloneData)
 {
-	SPtr<SerializedObject> copy = B3DMakeShared<SerializedObject>();
+	TShared<SerializedObject> copy = B3DMakeShared<SerializedObject>();
 	copy->SubObjects = Vector<SerializedSubObject>(SubObjects.size());
 
 	u32 subObjectIndex = 0;
@@ -89,9 +89,9 @@ u64 SerializedObject::CalculateHash() const
 	return hash;
 }
 
-bool SerializedObject::Equals(const SPtr<ISerialized>& other) const
+bool SerializedObject::Equals(const TShared<ISerialized>& other) const
 {
-	if(SPtr<SerializedObject> otherObject = B3DRTTICast<SerializedObject>(other))
+	if(TShared<SerializedObject> otherObject = B3DRTTICast<SerializedObject>(other))
 	{
 		if(SubObjects.size() != otherObject->SubObjects.size())
 			return false;
@@ -125,9 +125,9 @@ bool SerializedObject::Equals(const SPtr<ISerialized>& other) const
 	return false;
 }
 
-SPtr<ISerialized> SerializedTuple::Clone(bool cloneData)
+TShared<ISerialized> SerializedTuple::Clone(bool cloneData)
 {
-	SPtr<SerializedTuple> copy = B3DMakeShared<SerializedTuple>();
+	TShared<SerializedTuple> copy = B3DMakeShared<SerializedTuple>();
 
 	for(const auto& entry : Values)
 	{
@@ -153,9 +153,9 @@ u64 SerializedTuple::CalculateHash() const
 	return hash;
 }
 
-bool SerializedTuple::Equals(const SPtr<ISerialized>& other) const
+bool SerializedTuple::Equals(const TShared<ISerialized>& other) const
 {
-	if(SPtr<SerializedTuple> otherTuple = B3DRTTICast<SerializedTuple>(other))
+	if(TShared<SerializedTuple> otherTuple = B3DRTTICast<SerializedTuple>(other))
 	{
 		if(Values.Size() != otherTuple->Values.Size())
 			return false;
@@ -173,9 +173,9 @@ bool SerializedTuple::Equals(const SPtr<ISerialized>& other) const
 	return false;
 }
 
-SPtr<ISerialized> SerializedPlainData::Clone(bool cloneData)
+TShared<ISerialized> SerializedPlainData::Clone(bool cloneData)
 {
-	SPtr<SerializedPlainData> copy = B3DMakeShared<SerializedPlainData>();
+	TShared<SerializedPlainData> copy = B3DMakeShared<SerializedPlainData>();
 	copy->Size = Size;
 
 	if(cloneData)
@@ -198,9 +198,9 @@ u64 SerializedPlainData::CalculateHash() const
 	return CityHash64(reinterpret_cast<char*>(Value), Size);
 }
 
-bool SerializedPlainData::Equals(const SPtr<ISerialized>& other) const
+bool SerializedPlainData::Equals(const TShared<ISerialized>& other) const
 {
-	if(SPtr<SerializedPlainData> otherPlainData = B3DRTTICast<SerializedPlainData>(other))
+	if(TShared<SerializedPlainData> otherPlainData = B3DRTTICast<SerializedPlainData>(other))
 	{
 		if(Size != otherPlainData->Size)
 			return false;
@@ -211,9 +211,9 @@ bool SerializedPlainData::Equals(const SPtr<ISerialized>& other) const
 	return false;
 }
 
-SPtr<ISerialized> SerializedDataBlock::Clone(bool cloneData)
+TShared<ISerialized> SerializedDataBlock::Clone(bool cloneData)
 {
-	SPtr<SerializedDataBlock> copy = B3DMakeShared<SerializedDataBlock>();
+	TShared<SerializedDataBlock> copy = B3DMakeShared<SerializedDataBlock>();
 	copy->Size = Size;
 
 	if(cloneData)
@@ -244,7 +244,7 @@ u64 SerializedDataBlock::CalculateHash() const
 
 	if(Stream != nullptr)
 	{
-		SPtr<DataStream> copy = Stream->Clone(false);
+		TShared<DataStream> copy = Stream->Clone(false);
 		copy->Seek(Offset);
 
 		u64 remainingSize = Size;
@@ -267,9 +267,9 @@ u64 SerializedDataBlock::CalculateHash() const
 	return hash;
 }
 
-bool SerializedDataBlock::Equals(const SPtr<ISerialized>& other) const
+bool SerializedDataBlock::Equals(const TShared<ISerialized>& other) const
 {
-	if(SPtr<SerializedDataBlock> otherDataBlock = B3DRTTICast<SerializedDataBlock>(other))
+	if(TShared<SerializedDataBlock> otherDataBlock = B3DRTTICast<SerializedDataBlock>(other))
 	{
 		if(Offset != otherDataBlock->Offset)
 			return false;
@@ -283,10 +283,10 @@ bool SerializedDataBlock::Equals(const SPtr<ISerialized>& other) const
 		if(otherDataBlock->Stream == nullptr)
 			return false;
 
-		SPtr<DataStream> myStreamCopy = Stream->Clone(false);
+		TShared<DataStream> myStreamCopy = Stream->Clone(false);
 		myStreamCopy->Seek(Offset);
 
-		SPtr<DataStream> otherStreamCopy = otherDataBlock->Stream->Clone(false);
+		TShared<DataStream> otherStreamCopy = otherDataBlock->Stream->Clone(false);
 		otherStreamCopy->Seek(Offset);
 
 		u64 remainingSize = Size;
@@ -318,9 +318,9 @@ bool SerializedDataBlock::Equals(const SPtr<ISerialized>& other) const
 	return false;
 }
 
-SPtr<ISerialized> SerializedArray::Clone(bool cloneData)
+TShared<ISerialized> SerializedArray::Clone(bool cloneData)
 {
-	SPtr<SerializedArray> copy = B3DMakeShared<SerializedArray>();
+	TShared<SerializedArray> copy = B3DMakeShared<SerializedArray>();
 
 	for(const auto& entry : Entries)
 	{
@@ -347,9 +347,9 @@ u64 SerializedArray::CalculateHash() const
 	return hash;
 }
 
-bool SerializedArray::Equals(const SPtr<ISerialized>& other) const
+bool SerializedArray::Equals(const TShared<ISerialized>& other) const
 {
-	if(SPtr<SerializedArray> otherArray = B3DRTTICast<SerializedArray>(other))
+	if(TShared<SerializedArray> otherArray = B3DRTTICast<SerializedArray>(other))
 	{
 		if(Entries.size() != otherArray->Entries.size())
 			return false;
@@ -367,13 +367,13 @@ bool SerializedArray::Equals(const SPtr<ISerialized>& other) const
 	return false;
 }
 
-SPtr<ISerialized> SerializedMap::Clone(bool cloneData)
+TShared<ISerialized> SerializedMap::Clone(bool cloneData)
 {
-	SPtr<SerializedMap> copy = B3DMakeShared<SerializedMap>();
+	TShared<SerializedMap> copy = B3DMakeShared<SerializedMap>();
 
 	for(auto& entryPair : Entries)
 	{
-		std::pair<SPtr<ISerialized>, SPtr<ISerialized>> copiedEntry;
+		std::pair<TShared<ISerialized>, TShared<ISerialized>> copiedEntry;
 		if(entryPair.first != nullptr)
 			copiedEntry.first = entryPair.first->Clone(cloneData);
 
@@ -402,9 +402,9 @@ u64 SerializedMap::CalculateHash() const
 	return hash;
 }
 
-bool SerializedMap::Equals(const SPtr<ISerialized>& other) const
+bool SerializedMap::Equals(const TShared<ISerialized>& other) const
 {
-	if(SPtr<SerializedMap> otherMap = B3DRTTICast<SerializedMap>(other))
+	if(TShared<SerializedMap> otherMap = B3DRTTICast<SerializedMap>(other))
 	{
 		if(Entries.size() != otherMap->Entries.size())
 			return false;

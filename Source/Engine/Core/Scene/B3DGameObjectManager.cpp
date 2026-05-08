@@ -14,7 +14,7 @@ void GameObjectManager::DestroyQueuedObjects()
 {
 	for(const auto& entry : mGameObjectCollections)
 	{
-		const SPtr<GameObjectCollection>& collection = entry.second.lock();
+		const TShared<GameObjectCollection>& collection = entry.second.lock();
 		if(!B3D_ENSURE(collection != nullptr))
 			continue;
 
@@ -22,7 +22,7 @@ void GameObjectManager::DestroyQueuedObjects()
 	}
 }
 
-void GameObjectManager::RegisterGameObjectCollection(const SPtr<GameObjectCollection>& collection)
+void GameObjectManager::RegisterGameObjectCollection(const TShared<GameObjectCollection>& collection)
 {
 	if(!B3D_ENSURE(collection != nullptr))
 		return;

@@ -92,7 +92,7 @@ You can access scene time through a scene instance or from within a component:
 
 ~~~~~~~~~~~~~{.cpp}
 // From scene instance
-SPtr<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
+TShared<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
 SceneTime& time = sceneInstance->GetTime();
 
 // From within a component

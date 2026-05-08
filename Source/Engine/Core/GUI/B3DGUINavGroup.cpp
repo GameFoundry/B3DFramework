@@ -6,7 +6,7 @@
 
 using namespace b3d;
 
-SPtr<GUINavGroup> GUINavGroup::Create()
+TShared<GUINavGroup> GUINavGroup::Create()
 {
 	return B3DMakeShared<GUINavGroup>();
 }

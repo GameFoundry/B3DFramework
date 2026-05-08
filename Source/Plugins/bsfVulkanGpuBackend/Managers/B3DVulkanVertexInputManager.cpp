@@ -54,7 +54,7 @@ VulkanVertexInputManager::~VulkanVertexInputManager()
 	}
 }
 
-SPtr<VulkanVertexInput> VulkanVertexInputManager::GetVertexInfo(const SPtr<VertexDescription>& vertexBufferDescription, const SPtr<VertexDescription>& shaderInputDescription)
+TShared<VulkanVertexInput> VulkanVertexInputManager::GetVertexInfo(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription)
 {
 	Lock lock(mMutex);
 
@@ -77,7 +77,7 @@ SPtr<VulkanVertexInput> VulkanVertexInputManager::GetVertexInfo(const SPtr<Verte
 	return iterFind->second.VertexInput;
 }
 
-void VulkanVertexInputManager::AddNew(const SPtr<VertexDescription>& vertexBufferDescription, const SPtr<VertexDescription>& shaderInputDescription)
+void VulkanVertexInputManager::AddNew(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription)
 {
 	const TInlineArray<VertexElement, 8>& vertexBufferElements = vertexBufferDescription->GetElements();
 	const TInlineArray<VertexElement, 8>& shaderInputElements = shaderInputDescription->GetElements();

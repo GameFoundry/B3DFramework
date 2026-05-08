@@ -91,10 +91,10 @@ namespace b3d
 		struct RendererViewContext
 		{
 			/** Current target the view is rendering to. */
-			SPtr<RenderTarget> CurrentTarget;
+			TShared<RenderTarget> CurrentTarget;
 
 			/** Command buffer that's currently being recorded. */
-			SPtr<GpuCommandBuffer> CommandBuffer;
+			TShared<GpuCommandBuffer> CommandBuffer;
 		};
 
 		/** Settings that control renderer scene capture. */
@@ -176,7 +176,7 @@ namespace b3d
 			GpuParameterSetPool& GetParameterSetPool() { return *mParameterSetPool; }
 
 			/** Initializes the renderer with the provided GPU device. Must be called before using the renderer. */
-			virtual void Initialize(const SPtr<GpuDevice>& gpuDevice);
+			virtual void Initialize(const TShared<GpuDevice>& gpuDevice);
 
 			/** Called every frame. Triggers render task callbacks. */
 			void Update();
@@ -201,9 +201,9 @@ namespace b3d
 			 *
 			 * @note	Render thread.
 			 */
-			virtual void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) = 0;
+			virtual void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) = 0;
 
-			virtual SPtr<RendererScene> CreateScene() = 0;
+			virtual TShared<RendererScene> CreateScene() = 0;
 
 			/**
 			 * Creates a new empty renderer mesh data.
@@ -212,7 +212,7 @@ namespace b3d
 			 *
 			 * @see		RendererMeshData
 			 */
-			virtual SPtr<RendererMeshData> CreateMeshDataInternal(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType = IT_32BIT);
+			virtual TShared<RendererMeshData> CreateMeshDataInternal(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType = IT_32BIT);
 
 			/**
 			 * Creates a new renderer mesh data using an existing generic mesh data buffer.
@@ -221,7 +221,7 @@ namespace b3d
 			 *
 			 * @see		RendererMeshData
 			 */
-			virtual SPtr<RendererMeshData> CreateMeshDataInternal(const SPtr<MeshData>& meshData);
+			virtual TShared<RendererMeshData> CreateMeshDataInternal(const TShared<MeshData>& meshData);
 
 			/** Queues GPU command capture of the next frame, if a frame capture is set up (e.g. RenderDoc capture). */
 			virtual void RequestDebugFrameCapture() { }
@@ -234,7 +234,7 @@ namespace b3d
 
 			 * @note	Render thread.
 			 */
-			virtual void RequestScreenCapture(Camera* camera, TAsyncOp<SPtr<PixelData>> asyncOp) { asyncOp.CompleteOperation(nullptr); }
+			virtual void RequestScreenCapture(Camera* camera, TAsyncOp<TShared<PixelData>> asyncOp) { asyncOp.CompleteOperation(nullptr); }
 
 			/**
 			 * Registers an extension object that will be called every frame, for each scene and view. Allows external code to perform
@@ -256,13 +256,13 @@ namespace b3d
 			 *
 			 * @note	Thread safe.
 			 */
-			void AddTask(const SPtr<RendererTask>& task);
+			void AddTask(const TShared<RendererTask>& task);
 
 			/**	Sets options used for controlling the rendering. */
-			virtual void SetOptions(const SPtr<RendererOptions>& options) {}
+			virtual void SetOptions(const TShared<RendererOptions>& options) {}
 
 			/**	Returns current set of options used for controlling the rendering. */
-			virtual SPtr<RendererOptions> GetOptions() const { return SPtr<RendererOptions>(); }
+			virtual TShared<RendererOptions> GetOptions() const { return TShared<RendererOptions>(); }
 
 		protected:
 			friend class RendererTask;
@@ -270,11 +270,11 @@ namespace b3d
 			/** Information about a renderer task queued to be executed. */
 			struct RendererTaskQueuedInfo
 			{
-				RendererTaskQueuedInfo(const SPtr<RendererTask>& task, u64 frameIdx)
+				RendererTaskQueuedInfo(const TShared<RendererTask>& task, u64 frameIdx)
 					: Task(task), FrameIdx(frameIdx)
 				{}
 
-				SPtr<RendererTask> Task;
+				TShared<RendererTask> Task;
 				u64 FrameIdx;
 			};
 
@@ -305,7 +305,7 @@ namespace b3d
 			 */
 			void ProcessTask(RendererTask& task, bool forceAll);
 
-			SPtr<GpuDevice> mDevice;
+			TShared<GpuDevice> mDevice;
 			UPtr<GpuCommandBufferPoolRing> mCommandBufferPoolRing;
 			UPtr<GpuParameterSetPool> mParameterSetPool;
 
@@ -313,15 +313,15 @@ namespace b3d
 			bool mRendererExtensionsDirty = true;
 
 			Vector<RendererTaskQueuedInfo> mQueuedTasks; // Main & render thread
-			Vector<SPtr<RendererTask>> mUnresolvedTasks; // Main thread
-			Vector<SPtr<RendererTask>> mRemainingUnresolvedTasks; // Main thread
-			Vector<SPtr<RendererTask>> mRunningTasks; // Render thread
-			Vector<SPtr<RendererTask>> mRemainingTasks; // Render thread
+			Vector<TShared<RendererTask>> mUnresolvedTasks; // Main thread
+			Vector<TShared<RendererTask>> mRemainingUnresolvedTasks; // Main thread
+			Vector<TShared<RendererTask>> mRunningTasks; // Render thread
+			Vector<TShared<RendererTask>> mRemainingTasks; // Render thread
 			Mutex mTaskMutex;
 		};
 
 		/**	Provides easy access to Renderer. */
-		SPtr<Renderer> B3D_EXPORT GetRenderer();
+		TShared<Renderer> B3D_EXPORT GetRenderer();
 
 		/**
 		 * Task that represents an asynchonous operation queued for execution on the render thread. All such tasks are executed
@@ -345,7 +345,7 @@ namespace b3d
 			 *							multiple frames, in which case this method should return false (if there's more
 			 *							work to be done), or true (if the task has completed).
 			 */
-			static SPtr<RendererTask> Create(String name, std::function<bool(GpuCommandBufferPool&)> taskWorker);
+			static TShared<RendererTask> Create(String name, std::function<bool(GpuCommandBufferPool&)> taskWorker);
 
 			/** Returns true if the task has completed. */
 			bool IsComplete() const;

@@ -43,10 +43,10 @@ namespace b3d
 		virtual ~RenderTexture() = default;
 
 		/** @copydoc TextureManager::CreateRenderTexture(const TextureCreateInformation&, bool, PixelFormat) */
-		static SPtr<RenderTexture> Create(const TextureCreateInformation& textureCreateInformation, bool createDepth = true, PixelFormat depthStencilFormat = PF_D32);
+		static TShared<RenderTexture> Create(const TextureCreateInformation& textureCreateInformation, bool createDepth = true, PixelFormat depthStencilFormat = PF_D32);
 
 		/** @copydoc TextureManager::CreateRenderTexture(const RenderTextureCreateInformation&) */
-		static SPtr<RenderTexture> Create(const RenderTextureCreateInformation& createInformation);
+		static TShared<RenderTexture> Create(const RenderTextureCreateInformation& createInformation);
 
 		/**
 		 * Returns a color surface texture you may bind as an input to an GPU program.
@@ -69,7 +69,7 @@ namespace b3d
 
 		RenderTexture(const RenderTextureCreateInformation& createInformation);
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 	protected:
@@ -123,24 +123,24 @@ namespace b3d
 			virtual ~RenderTexture() = default;
 
 			void Initialize() override;
-			TAsyncOp<SPtr<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex = 0, u32 mipLevel = 0, u32 arrayLayer = 0) override;
+			TAsyncOp<TShared<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex = 0, u32 mipLevel = 0, u32 arrayLayer = 0) override;
 
 			/** @copydoc TextureManager::CreateRenderTexture(const RenderTextureCreateInformation&, u32) */
-			static SPtr<RenderTexture> Create(const RenderTextureCreateInformation& createInformation);
+			static TShared<RenderTexture> Create(const RenderTextureCreateInformation& createInformation);
 
 			/**
 			 * Returns a color surface texture you may bind as an input to an GPU program.
 			 *
 			 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
 			 */
-			SPtr<Texture> GetColorTexture(u32 idx) const { return mInformation.ColorSurfaces[idx].Texture; }
+			TShared<Texture> GetColorTexture(u32 idx) const { return mInformation.ColorSurfaces[idx].Texture; }
 
 			/**
 			 * Returns a depth/stencil surface texture you may bind as an input to an GPU program.
 			 *
 			 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
 			 */
-			SPtr<Texture> GetDepthStencilTexture() const { return mInformation.DepthStencilSurface.Texture; }
+			TShared<Texture> GetDepthStencilTexture() const { return mInformation.DepthStencilSurface.Texture; }
 
 		protected:
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
@@ -152,8 +152,8 @@ namespace b3d
 		protected:
 			friend class b3d::RenderTexture;
 
-			SPtr<TextureView> mColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
-			SPtr<TextureView> mDepthStencilSurface;
+			TShared<TextureView> mColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
+			TShared<TextureView> mDepthStencilSurface;
 
 			RenderTextureInformation mInformation;
 		};

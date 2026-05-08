@@ -30,7 +30,7 @@ namespace b3d
 		GUIContent tmpGeneralContent;
 		tmpGeneralContent = ScriptGUIContent::FromInterop(value.GeneralContent);
 		output.GeneralContent = tmpGeneralContent;
-		SPtr<GUIToggleGroup> tmpToggleGroup;
+		TShared<GUIToggleGroup> tmpToggleGroup;
 		ScriptGUIToggleGroup* scriptObjectWrapperToggleGroup;
 		scriptObjectWrapperToggleGroup = ScriptGUIToggleGroup::GetScriptObjectWrapper(value.ToggleGroup);
 		if(scriptObjectWrapperToggleGroup != nullptr)

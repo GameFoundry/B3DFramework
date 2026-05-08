@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEmitterSkinnedMeshShape")
 
-		ScriptParticleEmitterSkinnedMeshShape(const SPtr<ParticleEmitterSkinnedMeshShape>& nativeObject);
+		ScriptParticleEmitterSkinnedMeshShape(const TShared<ParticleEmitterSkinnedMeshShape>& nativeObject);
 		~ScriptParticleEmitterSkinnedMeshShape();
 
 		static void SetupScriptBindings();

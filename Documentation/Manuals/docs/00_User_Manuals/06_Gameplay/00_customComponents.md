@@ -36,7 +36,7 @@ public:
 	// Unique integer for the type. Use numbers higher than 200000 to avoid conflicts with built-in types
 	u32 GetRTTIId() override { return 200001; }
 
-	SPtr<IReflectable> NewRTTIObject() override
+	TShared<IReflectable> NewRTTIObject() override
 	{
 		return SceneObject::CreateEmptyComponent<CameraFlyer>();
 	}

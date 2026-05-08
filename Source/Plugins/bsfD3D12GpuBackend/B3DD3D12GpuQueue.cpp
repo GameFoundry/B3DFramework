@@ -57,7 +57,7 @@ void D3D12GpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& informat
 		mGpuDevice.SubmitTransferCommandBuffers();
 
 	(void)information.SignalFences; // TODO: chain ID3D12CommandQueue::Signal calls for each fence once D3D12GpuTimelineFence lands.
-	const SPtr<GpuCommandBuffer>& commandBuffer = information.CommandBuffer;
+	const TShared<GpuCommandBuffer>& commandBuffer = information.CommandBuffer;
 	if (!commandBuffer)
 		return;
 
@@ -129,7 +129,7 @@ void D3D12GpuQueue::WaitUntilIdle()
 	}
 }
 
-void D3D12GpuQueue::PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, u32 syncMask)
+void D3D12GpuQueue::PresentRenderWindow(const TShared<RenderWindow>& renderWindow, u32 syncMask)
 {
 	if (!renderWindow)
 		return;

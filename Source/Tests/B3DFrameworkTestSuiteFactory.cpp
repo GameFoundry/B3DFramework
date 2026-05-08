@@ -139,7 +139,7 @@ namespace b3d
 
 	void FrameworkTestSuiteFactory::RunTests(TestOutput& output)
 	{
-		const Vector<SPtr<TestSuite>>& suites = TestSuiteRegistry::Instance().GetSuites();
+		const Vector<TShared<TestSuite>>& suites = TestSuiteRegistry::Instance().GetSuites();
 
 		for (const auto& suite : suites)
 			suite->Run(output);

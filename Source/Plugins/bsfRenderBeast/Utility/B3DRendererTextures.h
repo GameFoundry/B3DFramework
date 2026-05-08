@@ -16,7 +16,7 @@ namespace b3d
 		struct LoadedRendererTextures
 		{
 			/** Default texture to use for Bokeh flare. */
-			SPtr<Texture> BokehFlare;
+			TShared<Texture> BokehFlare;
 		};
 
 		/** Contains static textures required for various render techniques. */
@@ -37,22 +37,22 @@ namespace b3d
 			 * (u, v) = (NoV, roughness)
 			 * (r, g) = (scale, bias)
 			 */
-			static SPtr<Texture> preintegratedEnvGF;
+			static TShared<Texture> preintegratedEnvGF;
 
 			/** Tileable 4x4 texture to be used for randomization in SSAO rendering. */
-			static SPtr<Texture> ssaoRandomization4x4;
+			static TShared<Texture> ssaoRandomization4x4;
 
 			/** Cubemap containing indirect lighting, when no other is available. */
-			static SPtr<Texture> defaultIndirect;
+			static TShared<Texture> defaultIndirect;
 
 			/** Texture used for coloring the lens flare effect depending on its distance from screen center. */
-			static SPtr<Texture> lensFlareGradient;
+			static TShared<Texture> lensFlareGradient;
 
 			/** Default texture to use for Bokeh flare. */
-			static SPtr<Texture> bokehFlare;
+			static TShared<Texture> bokehFlare;
 
 			/** Texture that controls which color channels to shift in the chromatic aberration effect. */
-			static SPtr<Texture> chromaticAberrationFringe;
+			static TShared<Texture> chromaticAberrationFringe;
 		};
 
 		/** @} */

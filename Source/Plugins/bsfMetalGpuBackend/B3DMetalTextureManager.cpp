@@ -10,7 +10,7 @@ namespace b3d
 		return format;
 	}
 
-	SPtr<RenderTexture> MetalTextureManager::CreateRenderTextureImpl(const RenderTextureCreateInformation& createInformation)
+	TShared<RenderTexture> MetalTextureManager::CreateRenderTextureImpl(const RenderTextureCreateInformation& createInformation)
 	{
 		auto renderTexture = B3DMakeShared<MetalRenderTexture>(createInformation);
 		return renderTexture;
@@ -22,7 +22,7 @@ namespace b3d
 			: TextureManager(gpuDevice)
 		{ }
 
-		SPtr<RenderTexture> MetalTextureManager::CreateRenderTextureInternal(const RenderTextureCreateInformation& createInformation)
+		TShared<RenderTexture> MetalTextureManager::CreateRenderTextureInternal(const RenderTextureCreateInformation& createInformation)
 		{
 			auto renderTexture = B3DMakeShared<MetalRenderTexture>(createInformation);
 			return renderTexture;

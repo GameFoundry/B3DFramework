@@ -55,7 +55,7 @@ GUIVectorSpriteAtlasAllocation GUIVectorSpriteAtlas::Allocate(const VectorPath& 
 
 			// Note the allocation can be destroyed mid-iteration by another thread, make sure to skip such allocations. They will be removed
 			// from the map as soon as the allocation mutex is removed.
-			if(SPtr<GUIVectorSpriteAtlasAllocationHandle> allocationHandle = allocationInformation.AllocationHandle.lock())
+			if(TShared<GUIVectorSpriteAtlasAllocationHandle> allocationHandle = allocationInformation.AllocationHandle.lock())
 				return GUIVectorSpriteAtlasAllocation(allocationInformation.AtlasTexture, allocationInformation.UVRange, allocationHandle);
 		}
 	}
@@ -63,7 +63,7 @@ GUIVectorSpriteAtlasAllocation GUIVectorSpriteAtlas::Allocate(const VectorPath& 
 	const Size2UI requestedSize = Size2UI((u32)settings.Size.Width, (u32)settings.Size.Height);
 	const bool useUniqueTexture = requestedSize.Width >= mSettings.UniqueAllocationSize || requestedSize.Height >= mSettings.UniqueAllocationSize;
 
-	const SPtr<render::VectorPathRenderable> renderable = vectorPath.CreateRenderable(settings);
+	const TShared<render::VectorPathRenderable> renderable = vectorPath.CreateRenderable(settings);
 
 	HTexture atlasTexture;
 	Area2 uvRange;
@@ -108,7 +108,7 @@ GUIVectorSpriteAtlasAllocation GUIVectorSpriteAtlas::Allocate(const VectorPath& 
 	}
 
 	GUIVectorSpriteAtlasAllocationHandle* const allocationHandle = B3DNew<GUIVectorSpriteAtlasAllocationHandle>(this, key.VectorPathId, layoutAllocation, textureId, renderable);
-	SPtr<GUIVectorSpriteAtlasAllocationHandle> allocationHandleShared = B3DMakeSharedFromExisting<GUIVectorSpriteAtlasAllocationHandle>(allocationHandle,
+	TShared<GUIVectorSpriteAtlasAllocationHandle> allocationHandleShared = B3DMakeSharedFromExisting<GUIVectorSpriteAtlasAllocationHandle>(allocationHandle,
 		[](GUIVectorSpriteAtlasAllocationHandle* allocationHandle)
 		{
 			GUIVectorSpriteAtlas* owner = allocationHandle->GetOwner();
@@ -220,14 +220,14 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 	if(dirtySprites.empty())
 		return;
 
-	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	// Create a command buffer
 	render::GpuCommandBufferPool& commandBufferPool = RendererManager::Instance().GetActive()->GetCurrentCommandBufferPool();
-	SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("GUIVectorSpriteAtlas"));
+	TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("GUIVectorSpriteAtlas"));
 
 	FrameAllocatorScope frameScope;
-	FrameUnorderedMap<render::Texture*, SPtr<render::RenderTexture>> atlasRenderTextures;
+	FrameUnorderedMap<render::Texture*, TShared<render::RenderTexture>> atlasRenderTextures;
 
 	for(const auto& entry : dirtySprites)
 	{
@@ -237,7 +237,7 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 		colorTextureCreateInformation.Format = PF_RGBA8;
 		colorTextureCreateInformation.Usage = TextureUsageFlag::RenderTarget;
 
-		const SPtr<render::Texture> colorTexture = gpuDevice->CreateTexture(colorTextureCreateInformation);
+		const TShared<render::Texture> colorTexture = gpuDevice->CreateTexture(colorTextureCreateInformation);
 
 		TextureCreateInformation stencilTextureCreateInformation;
 		stencilTextureCreateInformation.Width = entry.Size.Width;
@@ -245,16 +245,16 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 		stencilTextureCreateInformation.Format = PF_D32_S8X24;
 		stencilTextureCreateInformation.Usage = TextureUsageFlag::DepthStencil;
 
-		const SPtr<render::Texture> stencilTexture = gpuDevice->CreateTexture(stencilTextureCreateInformation);
+		const TShared<render::Texture> stencilTexture = gpuDevice->CreateTexture(stencilTextureCreateInformation);
 
 		render::RenderTextureCreateInformation renderTextureCreateInformation;
 		renderTextureCreateInformation.ColorSurfaces[0].Texture = colorTexture;
 		renderTextureCreateInformation.DepthStencilSurface.Texture = stencilTexture;
 
-		SPtr<render::RenderTexture> renderTarget = render::RenderTexture::Create(renderTextureCreateInformation);
+		TShared<render::RenderTexture> renderTarget = render::RenderTexture::Create(renderTextureCreateInformation);
 
 		// Prepare GPU parameters just before render pass
-		SPtr<render::GpuParameterSet> gpuParameters = entry.Renderable->Prepare();
+		TShared<render::GpuParameterSet> gpuParameters = entry.Renderable->Prepare();
 
 		// Begin render pass WITH GPU parameters
 		render::RenderPassCreateInformation renderPassCreateInformation(renderTarget, gpuParameters, RT_NONE, RT_NONE);
@@ -266,7 +266,7 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 
 		entry.Renderable->Render(*commandBuffer);
 
-		SPtr<render::RenderTexture> atlasRenderTexture;
+		TShared<render::RenderTexture> atlasRenderTexture;
 		if(auto found = atlasRenderTextures.find(entry.Texture.get()); found != atlasRenderTextures.end())
 		{
 			atlasRenderTexture = found->second;

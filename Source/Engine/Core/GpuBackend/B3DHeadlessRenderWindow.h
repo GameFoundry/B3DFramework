@@ -21,7 +21,7 @@ namespace b3d
 		using Super = RenderWindow;
 
 	public:
-		HeadlessRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
+		HeadlessRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow);
 
 		void Initialize() override;
 		void Destroy() override;
@@ -44,7 +44,7 @@ namespace b3d
 		u64 GetPlatformWindowHandle() const override { return 0; }
 
 	protected:
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 	};
 
 	/** @} */
@@ -61,7 +61,7 @@ namespace b3d
 			using Super = RenderWindow;
 
 		public:
-			HeadlessRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
+			HeadlessRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow);
 		};
 
 		/** @} */

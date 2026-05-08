@@ -46,7 +46,7 @@ An example creating a folder and a file:
 ~~~~~~~~~~~~~{.cpp}
 FileSystem::CreateFolder("C:/Path/To/");
 
-SPtr<DataStream> fileStream = FileSystem::CreateAndOpenFile("C:/Path/To/File.txt");
+TShared<DataStream> fileStream = FileSystem::CreateAndOpenFile("C:/Path/To/File.txt");
 // Write to data stream (see below)
 ~~~~~~~~~~~~~
 
@@ -54,7 +54,7 @@ SPtr<DataStream> fileStream = FileSystem::CreateAndOpenFile("C:/Path/To/File.txt
 If you create or open a file you will receive a @b3d::DataStream object. Data streams allow you to easily write to, or read from open files.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<DataStream> fileStream = FileSystem::CreateAndOpenFile("C:/Path/To/File.txt");
+TShared<DataStream> fileStream = FileSystem::CreateAndOpenFile("C:/Path/To/File.txt");
 
 // Write some string data
 fileStream->WriteString("Writing to a file");
@@ -76,7 +76,7 @@ Streams don't need to be read or written to sequentially, use @b3d::DataStream::
 
 ~~~~~~~~~~~~~{.cpp}
 // Open the file we wrote in the previous example
-SPtr<DataStream> fileStream = FileSystem::OpenFile("C:/Path/To/File.txt");
+TShared<DataStream> fileStream = FileSystem::OpenFile("C:/Path/To/File.txt");
 
 // Seek past the string we wrote
 String writtenString = "Writing to a file";

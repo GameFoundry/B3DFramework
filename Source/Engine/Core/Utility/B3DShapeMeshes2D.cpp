@@ -13,7 +13,7 @@ using namespace b3d;
 const u32 ShapeMeshes2D::kNumVerticesAaLine = 4;
 const u32 ShapeMeshes2D::kNumIndicesAaLine = 6;
 
-void ShapeMeshes2D::SolidQuad(const Area2& area, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes2D::SolidQuad(const Area2& area, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -30,7 +30,7 @@ void ShapeMeshes2D::SolidQuad(const Area2& area, const SPtr<MeshData>& meshData,
 	PixelSolidPolygon(points, positionData, vertexOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, indexOffset);
 }
 
-void ShapeMeshes2D::PixelLine(const Vector2& a, const Vector2& b, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes2D::PixelLine(const Vector2& a, const Vector2& b, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -41,13 +41,13 @@ void ShapeMeshes2D::PixelLine(const Vector2& a, const Vector2& b, const SPtr<Mes
 	PixelLine(a, b, positionData, vertexOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, indexOffset);
 }
 
-void ShapeMeshes2D::QuadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes2D::QuadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	Vector<Vector2> linePoints = { a, b };
 	QuadLineList(linePoints, width, border, color, meshData, vertexOffset, indexOffset);
 }
 
-void ShapeMeshes2D::PixelLineList(const Vector<Vector2>& linePoints, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes2D::PixelLineList(const Vector<Vector2>& linePoints, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	B3D_ASSERT(linePoints.size() % 2 == 0);
 
@@ -70,7 +70,7 @@ void ShapeMeshes2D::PixelLineList(const Vector<Vector2>& linePoints, const SPtr<
 	}
 }
 
-void ShapeMeshes2D::QuadLineList(const Vector<Vector2>& linePoints, float width, float border, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes2D::QuadLineList(const Vector<Vector2>& linePoints, float width, float border, const Color& color, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	u32 numPoints = (u32)linePoints.size();
 	B3D_ASSERT(numPoints >= 2);

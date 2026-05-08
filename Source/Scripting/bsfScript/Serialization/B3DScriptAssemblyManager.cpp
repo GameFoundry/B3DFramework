@@ -45,7 +45,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 
 	InitializeScriptWrapperMetaDataLookup(*curAssembly);
 
-	SPtr<ManagedAssemblyInfo> assemblyInfo = B3DMakeShared<ManagedAssemblyInfo>();
+	TShared<ManagedAssemblyInfo> assemblyInfo = B3DMakeShared<ManagedAssemblyInfo>();
 	assemblyInfo->Name = assemblyName;
 
 	mAssemblyInfos[assemblyName] = assemblyInfo;
@@ -69,7 +69,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 		   curClass != mBuiltin.ComponentClass && curClass != resourceClass &&
 		   curClass != mBuiltin.ManagedComponentClass && curClass != managedResourceClass)
 		{
-			SPtr<ManagedTypeInfoObject> typeInfo = B3DMakeShared<ManagedTypeInfoObject>();
+			TShared<ManagedTypeInfoObject> typeInfo = B3DMakeShared<ManagedTypeInfoObject>();
 			typeInfo->TypeNamespace = curClass->GetNamespace();
 			typeInfo->TypeName = curClass->GetTypeName();
 			typeInfo->TypeId = mUniqueTypeId++;
@@ -96,7 +96,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 			else
 				typeInfo->TypeRTTIId = ~0u;
 
-			SPtr<ManagedObjectInfo> objInfo = B3DMakeShared<ManagedObjectInfo>();
+			TShared<ManagedObjectInfo> objInfo = B3DMakeShared<ManagedObjectInfo>();
 
 			objInfo->TypeInfo = typeInfo;
 			objInfo->ScriptClass = curClass;
@@ -109,7 +109,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 	// Populate field & property data
 	for(auto& curClassInfo : assemblyInfo->ObjectInfos)
 	{
-		SPtr<ManagedObjectInfo> objInfo = curClassInfo.second;
+		TShared<ManagedObjectInfo> objInfo = curClassInfo.second;
 
 		u32 nextMemberIndex = 1;
 
@@ -119,7 +119,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 			if(field->IsStatic())
 				continue;
 
-			SPtr<ManagedTypeInfo> typeInfo = GetTypeInfo(field->GetType());
+			TShared<ManagedTypeInfo> typeInfo = GetTypeInfo(field->GetType());
 			if(typeInfo == nullptr)
 				continue;
 
@@ -132,7 +132,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 				typeIsInspectable = typeIsSerializable || objTypeInfo->MetaDataFlags.IsSet(ManagedObjectMetaDataFlag::Inspectable);
 			}
 
-			SPtr<ManagedFieldInfo> fieldInfo = B3DMakeShared<ManagedFieldInfo>();
+			TShared<ManagedFieldInfo> fieldInfo = B3DMakeShared<ManagedFieldInfo>();
 			fieldInfo->FieldId = nextMemberIndex++;
 			fieldInfo->Name = field->GetName();
 			fieldInfo->ScriptField = field;
@@ -206,7 +206,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 		const Vector<MonoProperty*>& properties = objInfo->ScriptClass->GetAllProperties();
 		for(auto& property : properties)
 		{
-			SPtr<ManagedTypeInfo> typeInfo = GetTypeInfo(property->GetReturnType());
+			TShared<ManagedTypeInfo> typeInfo = GetTypeInfo(property->GetReturnType());
 			if(typeInfo == nullptr)
 				continue;
 
@@ -219,7 +219,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 				typeIsInspectable = typeIsSerializable || objTypeInfo->MetaDataFlags.IsSet(ManagedObjectMetaDataFlag::Inspectable);
 			}
 
-			SPtr<ManagedPropertyInfo> propertyInfo = B3DMakeShared<ManagedPropertyInfo>();
+			TShared<ManagedPropertyInfo> propertyInfo = B3DMakeShared<ManagedPropertyInfo>();
 			propertyInfo->FieldId = nextMemberIndex++;
 			propertyInfo->Name = property->GetName();
 			propertyInfo->ScriptProperty = property;
@@ -299,7 +299,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 		MonoClass* base = curClass.second->ScriptClass->GetBaseClass();
 		while(base != nullptr)
 		{
-			SPtr<ManagedObjectInfo> baseObjInfo;
+			TShared<ManagedObjectInfo> baseObjInfo;
 			if(GetSerializableObjectInfo(base->GetNamespace(), base->GetTypeName(), baseObjInfo))
 			{
 				curClass.second->BaseClass = baseObjInfo;
@@ -322,7 +322,7 @@ void ScriptAssemblyManager::ClearAssemblyInfo()
 	mScriptWrapperMetaDataByScriptClass.clear();
 }
 
-SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
+TShared<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 {
 	if(!B3D_ENSURE_LOG(mBaseTypesInitialized, "Calling GetTypeInfo without previously initializing base types."))
 		return nullptr;
@@ -400,13 +400,13 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 	{
 		if(!isEnum)
 		{
-			SPtr<ManagedTypeInfoPrimitive> typeInfo = B3DMakeShared<ManagedTypeInfoPrimitive>();
+			TShared<ManagedTypeInfoPrimitive> typeInfo = B3DMakeShared<ManagedTypeInfoPrimitive>();
 			typeInfo->PrimitiveType = scriptPrimitiveType;
 			return typeInfo;
 		}
 		else
 		{
-			SPtr<ManagedTypeInfoEnum> typeInfo = B3DMakeShared<ManagedTypeInfoEnum>();
+			TShared<ManagedTypeInfoEnum> typeInfo = B3DMakeShared<ManagedTypeInfoEnum>();
 			typeInfo->UnderlyingType = scriptPrimitiveType;
 			typeInfo->TypeNamespace = monoClass->GetNamespace();
 			typeInfo->TypeName = monoClass->GetTypeName();
@@ -420,7 +420,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 	case MonoPrimitiveType::Class:
 		if(monoClass->IsSubClassOf(ScriptResource::GetMetaData()->ScriptClass)) // Resource
 		{
-			SPtr<ManagedTypeInfoReference> typeInfo = B3DMakeShared<ManagedTypeInfoReference>();
+			TShared<ManagedTypeInfoReference> typeInfo = B3DMakeShared<ManagedTypeInfoReference>();
 			typeInfo->TypeNamespace = monoClass->GetNamespace();
 			typeInfo->TypeName = monoClass->GetTypeName();
 			typeInfo->TypeRTTIId = 0;
@@ -452,7 +452,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 			return B3DMakeShared<ManagedTypeInfoResourceReference>();
 		else if(monoClass->IsSubClassOf(mBuiltin.SceneObjectClass) || monoClass->IsSubClassOf(mBuiltin.ComponentClass)) // Game object
 		{
-			SPtr<ManagedTypeInfoReference> typeInfo = B3DMakeShared<ManagedTypeInfoReference>();
+			TShared<ManagedTypeInfoReference> typeInfo = B3DMakeShared<ManagedTypeInfoReference>();
 			typeInfo->TypeNamespace = monoClass->GetNamespace();
 			typeInfo->TypeName = monoClass->GetTypeName();
 			typeInfo->TypeRTTIId = 0;
@@ -490,7 +490,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 			const ScriptTypeMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
 			if(scriptWrapperObjectMetaData != nullptr && scriptWrapperObjectMetaData->TypeId != ~0u)
 			{
-				SPtr<ManagedTypeInfoReference> typeInfo = B3DMakeShared<ManagedTypeInfoReference>();
+				TShared<ManagedTypeInfoReference> typeInfo = B3DMakeShared<ManagedTypeInfoReference>();
 				typeInfo->TypeNamespace = monoClass->GetNamespace();
 				typeInfo->TypeName = monoClass->GetTypeName();
 				typeInfo->TypeRTTIId = scriptWrapperObjectMetaData->TypeId;
@@ -501,7 +501,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 			else
 			{
 				// Finally, it's either a normal managed object, or a non-reflectable type wrapper
-				SPtr<ManagedObjectInfo> objInfo;
+				TShared<ManagedObjectInfo> objInfo;
 				if(GetSerializableObjectInfo(monoClass->GetNamespace(), monoClass->GetTypeName(), objInfo))
 					return objInfo->TypeInfo;
 			}
@@ -510,7 +510,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 		break;
 	case MonoPrimitiveType::ValueType:
 		{
-			SPtr<ManagedObjectInfo> objInfo;
+			TShared<ManagedObjectInfo> objInfo;
 			if(GetSerializableObjectInfo(monoClass->GetNamespace(), monoClass->GetTypeName(), objInfo))
 				return objInfo->TypeInfo;
 		}
@@ -519,7 +519,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 	case MonoPrimitiveType::Generic:
 		if(monoClass->GetFullName() == mBuiltin.SystemGenericListClass->GetFullName()) // Full name is part of CIL spec, so it is just fine to compare like this
 		{
-			SPtr<ManagedTypeInfoList> typeInfo = B3DMakeShared<ManagedTypeInfoList>();
+			TShared<ManagedTypeInfoList> typeInfo = B3DMakeShared<ManagedTypeInfoList>();
 
 			MonoProperty* itemProperty = monoClass->GetProperty("Item");
 			MonoClass* itemClass = itemProperty->GetReturnType();
@@ -534,7 +534,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 		}
 		else if(monoClass->GetFullName() == mBuiltin.SystemGenericDictionaryClass->GetFullName())
 		{
-			SPtr<ManagedTypeInfoDictionary> typeInfo = B3DMakeShared<ManagedTypeInfoDictionary>();
+			TShared<ManagedTypeInfoDictionary> typeInfo = B3DMakeShared<ManagedTypeInfoDictionary>();
 
 			MonoMethod* getEnumerator = monoClass->GetMethod("GetEnumerator");
 			MonoClass* enumClass = getEnumerator->GetReturnType();
@@ -560,7 +560,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 		}
 		else if(monoClass->GetFullName() == mBuiltin.GenericRRefClass->GetFullName())
 		{
-			SPtr<ManagedTypeInfoResourceReference> typeInfo = B3DMakeShared<ManagedTypeInfoResourceReference>();
+			TShared<ManagedTypeInfoResourceReference> typeInfo = B3DMakeShared<ManagedTypeInfoResourceReference>();
 
 			MonoProperty* itemProperty = monoClass->GetProperty("Value");
 			MonoClass* itemClass = itemProperty->GetReturnType();
@@ -576,7 +576,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 		break;
 	case MonoPrimitiveType::Array:
 		{
-			SPtr<ManagedTypeInfoArray> typeInfo = B3DMakeShared<ManagedTypeInfoArray>();
+			TShared<ManagedTypeInfoArray> typeInfo = B3DMakeShared<ManagedTypeInfoArray>();
 
 			::MonoClass* elementClass = ScriptArray::GetElementClass(monoClass->GetInternalClass());
 			if(elementClass != nullptr)
@@ -776,7 +776,7 @@ const ScriptTypeMetaData* ScriptAssemblyManager::GetScriptWrapperMetaData(::Mono
 	return nullptr;
 }
 
-bool ScriptAssemblyManager::GetSerializableObjectInfo(const String& ns, const String& typeName, SPtr<ManagedObjectInfo>& outInfo)
+bool ScriptAssemblyManager::GetSerializableObjectInfo(const String& ns, const String& typeName, TShared<ManagedObjectInfo>& outInfo)
 {
 	String fullName = ns + "." + typeName;
 	for(auto& curAssembly : mAssemblyInfos)
@@ -796,13 +796,13 @@ bool ScriptAssemblyManager::GetSerializableObjectInfo(const String& ns, const St
 	return false;
 }
 
-SPtr<ManagedObjectInfo> ScriptAssemblyManager::GetSerializableObjectInfo(MonoReflectionType* objectType)
+TShared<ManagedObjectInfo> ScriptAssemblyManager::GetSerializableObjectInfo(MonoReflectionType* objectType)
 {
 	String objectNamespace;
 	String objectTypeName;
 	MonoUtil::GetClassName(objectType, objectNamespace, objectTypeName);
 
-	SPtr<ManagedObjectInfo> objectInfo;
+	TShared<ManagedObjectInfo> objectInfo;
 	if(!GetSerializableObjectInfo(objectNamespace, objectTypeName, objectInfo))
 		return nullptr;
 
@@ -822,7 +822,7 @@ bool ScriptAssemblyManager::HasSerializableObjectInfo(const String& ns, const St
 	return false;
 }
 
-SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoObject* value)
+TShared<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoObject* value)
 {
 	if(value != nullptr)
 	{
@@ -864,7 +864,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 					return nullptr;
 
 				MonoObject* managedInstance = resource->GetManagedInstance();
-				SPtr<ManagedSerializableObject> serializedObject = ManagedSerializableObject::CreateFromExisting(managedInstance);
+				TShared<ManagedSerializableObject> serializedObject = ManagedSerializableObject::CreateFromExisting(managedInstance);
 				if(serializedObject == nullptr)
 					return nullptr;
 
@@ -907,7 +907,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 					return nullptr;
 
 				MonoObject* managedInstance = component->GetManagedInstance();
-				SPtr<ManagedSerializableObject> serializedObject = ManagedSerializableObject::CreateFromExisting(managedInstance);
+				TShared<ManagedSerializableObject> serializedObject = ManagedSerializableObject::CreateFromExisting(managedInstance);
 				if(serializedObject == nullptr)
 					return nullptr;
 
@@ -939,7 +939,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 		String elementTypeName;
 		MonoUtil::GetClassName(value, elementNs, elementTypeName);
 
-		SPtr<ManagedObjectInfo> objInfo;
+		TShared<ManagedObjectInfo> objInfo;
 		if(!Instance().GetSerializableObjectInfo(elementNs, elementTypeName, objInfo))
 		{
 			B3D_LOG(Error, LogScript, "Object has no serialization meta-data.");
@@ -963,7 +963,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 		}
 		else
 		{
-			SPtr<ManagedSerializableObject> managedObj = ManagedSerializableObject::CreateFromExisting(value);
+			TShared<ManagedSerializableObject> managedObj = ManagedSerializableObject::CreateFromExisting(value);
 			if(!managedObj)
 			{
 				B3D_LOG(Error, LogScript, "Object failed to serialize due to an internal error.");
@@ -978,7 +978,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 	return nullptr;
 }
 
-MonoObject* ScriptAssemblyManager::GetManagedObjectFromReflectable(const SPtr<IReflectable>& object)
+MonoObject* ScriptAssemblyManager::GetManagedObjectFromReflectable(const TShared<IReflectable>& object)
 {
 	if(auto managedSerializableObject = B3DRTTICast<ManagedSerializableObject>(object))
 		return managedSerializableObject->Deserialize();

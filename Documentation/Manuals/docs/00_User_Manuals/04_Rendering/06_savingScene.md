@@ -39,7 +39,7 @@ When you wish to restore a scene you've saved, load the scene resource and insta
 HScene scene = GetResources().Load<Scene>("D:/MyGame/Scenes/MainLevel.b3d/MainLevel");
 
 // Instantiate the scene into the world
-SPtr<SceneInstance> sceneInstance = scene->Instantiate();
+TShared<SceneInstance> sceneInstance = scene->Instantiate();
 
 // The instantiated hierarchy is now active and will start updating
 ~~~~~~~~~~~~~

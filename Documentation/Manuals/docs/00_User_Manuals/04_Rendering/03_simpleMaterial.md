@@ -164,7 +164,7 @@ description.MinFilter = FO_LINEAR;
 description.MagFilter = FO_LINEAR;
 description.MipFilter = FO_LINEAR;
 
-SPtr<SamplerState> samplerState = SamplerState::Create(description);
+TShared<SamplerState> samplerState = SamplerState::Create(description);
 
 // "gAlbedoSamp" is a sampler state parameter provided by the standard shader we
 // used in the example above. It controls options for the texture set on the gAlbedoTex

@@ -26,16 +26,16 @@ struct GpuParticleHelperBuffers
 
 	GpuParticleHelperBuffers();
 
-	SPtr<GpuBuffer> TileUVs;
-	SPtr<GpuBuffer> ParticleUVs;
-	SPtr<GpuBuffer> SpriteIndices;
-	SPtr<VertexDescription> TileVertexDescription;
-	SPtr<VertexDescription> InjectVertexDescription;
+	TShared<GpuBuffer> TileUVs;
+	TShared<GpuBuffer> ParticleUVs;
+	TShared<GpuBuffer> SpriteIndices;
+	TShared<VertexDescription> TileVertexDescription;
+	TShared<VertexDescription> InjectVertexDescription;
 };
 
 GpuParticleResources::GpuParticleResources()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	// Allocate textures
 	TextureCreateInformation positionAndTimeDesc;
@@ -160,14 +160,14 @@ Vector2 GpuParticleResources::GetParticleCoords(u32 subTileId)
 	return tileOffset / (float)GpuParticleConstants::kTexSize;
 }
 
-const SPtr<GpuBuffer>& GpuParticleResources::GetSortedIndices() const
+const TShared<GpuBuffer>& GpuParticleResources::GetSortedIndices() const
 {
 	return mSortedIndices[mSortedIndicesBufferIdx];
 }
 
 GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	// Prepare vertex declaration for rendering tiles
 	TInlineArray<VertexElement, 8> tileVertexElements;
@@ -379,7 +379,7 @@ bool GpuParticleSystem::FreeInactiveTiles(GpuParticleResources& resources)
 
 void GpuParticleSystem::UpdateGpuBuffers()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	const auto tileCount = (u32)mTiles.size();
 	const u32 tilesToAllocateCount = Math::DivideAndRoundUp(tileCount, GpuParticleConstants::kTilesPerInstance) * GpuParticleConstants::kTilesPerInstance;
@@ -438,7 +438,7 @@ void GpuParticleSystem::UpdateGpuBuffers()
 	}
 }
 
-SPtr<GpuParameterSet> GpuParticleSimulation::PrepareSimulateParameters(const ParticleSystemProxy& proxy, const ParticleRenderState& renderState, const GpuParticleSystem& system, float dt)
+TShared<GpuParameterSet> GpuParticleSimulation::PrepareSimulateParameters(const ParticleSystemProxy& proxy, const ParticleRenderState& renderState, const GpuParticleSystem& system, float dt)
 {
 	// Note: Many of those could only be updated when relevant settings change, but for simplicity we update them every frame.
 
@@ -449,7 +449,7 @@ SPtr<GpuParameterSet> GpuParticleSimulation::PrepareSimulateParameters(const Par
 	const bool localSpace = systemSettings.SimulationSpace == ParticleSimulationSpace::Local;
 
 	GpuParticleSimulateMaterial* const simulateMaterial = GpuParticleSimulateMaterial::GetVariation(supportsDepthCollisions, localSpace);
-	SPtr<GpuParameterSet> simulateParameters = simulateMaterial->CreateGpuParameterSet();
+	TShared<GpuParameterSet> simulateParameters = simulateMaterial->CreateGpuParameterSet();
 
 	const ParticleSystemSettings& settings = proxy.GetSettings();
 	const ParticleGpuSimulationSettings& simSettings = proxy.GetGpuSimulationSettings();
@@ -469,7 +469,7 @@ SPtr<GpuParameterSet> GpuParticleSimulation::PrepareSimulateParameters(const Par
 	gGpuParticleSimulateUniformDefinition.gAcceleration.Set(simulationUniforms, simSettings.Acceleration);
 
 	// Write vector field parameters
-	SPtr<Texture> vfTexture;
+	TShared<Texture> vfTexture;
 	if(simSettings.VectorField.VectorField)
 		vfTexture = simSettings.VectorField.VectorField->GetTexture();
 
@@ -477,7 +477,7 @@ SPtr<GpuParameterSet> GpuParticleSimulation::PrepareSimulateParameters(const Par
 	{
 		gGpuParticleSimulateUniformDefinition.gNumVectorFields.Set(simulationUniforms, 1);
 
-		const SPtr<VectorField>& vectorField = simSettings.VectorField.VectorField;
+		const TShared<VectorField>& vectorField = simSettings.VectorField.VectorField;
 		const VECTOR_FIELD_DESC& vfDesc = vectorField->GetDesc();
 
 		const Vector3 tiling(
@@ -541,15 +541,15 @@ SPtr<GpuParameterSet> GpuParticleSimulation::PrepareSimulateParameters(const Par
 	return simulateParameters;
 }
 
-static SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
+static TShared<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	const u32 size = gGpuParticleTileVertexUniformDefinition.GetSize();
-	SPtr<GpuBuffer> stagingBuffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(size));
+	TShared<GpuBuffer> stagingBuffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(size));
 	GpuBufferMappedScope stagingMemory = stagingBuffer->Map(GpuMapOption::Write);
 
-	SPtr<GpuBuffer> inputBuffer = gGpuParticleTileVertexUniformDefinition.CreateBuffer(GpuBufferFlag::StoreOnGPU);
+	TShared<GpuBuffer> inputBuffer = gGpuParticleTileVertexUniformDefinition.CreateBuffer(GpuBufferFlag::StoreOnGPU);
 
 	// [0, 1] -> [-1, 1] and flip Y
 	Vector4 uvToNdc(2.0f, -2.0f, -1.0f, 1.0f);
@@ -566,7 +566,7 @@ static SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 	gGpuParticleTileVertexUniformDefinition.gUVToNDC.Set(stagingMemory, uvToNdc);
 	stagingMemory.Unmap();
 
-	const SPtr<GpuCommandBuffer>& commandBuffer = gpuDevice->GetOrCreateTransferCommandBuffer();
+	const TShared<GpuCommandBuffer>& commandBuffer = gpuDevice->GetOrCreateTransferCommandBuffer();
 	commandBuffer->CopyBufferToBuffer(stagingBuffer, inputBuffer, 0, 0, size);
 
 	return inputBuffer;
@@ -576,7 +576,7 @@ struct GpuParticleSimulation::Pimpl
 {
 	GpuParticleResources Resources;
 	GpuParticleHelperBuffers HelperBuffers;
-	SPtr<GpuBuffer> ParticleVertexInputBuffer;
+	TShared<GpuBuffer> ParticleVertexInputBuffer;
 
 	TArray<TileClearParameters> TileClearParameterPool;
 	TArray<ParticleInjectParameters> ParticleInjectParameterPool;
@@ -672,7 +672,7 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Rend
 		const ParticleSystemProxy& parentProxy = particleStorage.GetParticleSystemProxy(packedId);
 
 		// Get vector field texture if any
-		SPtr<Texture> vectorFieldTexture;
+		TShared<Texture> vectorFieldTexture;
 
 		const render::ParticleGpuSimulationSettings& gpuSimulationSettings = parentProxy.GetGpuSimulationSettings();
 		if(gpuSimulationSettings.VectorField.VectorField)
@@ -680,7 +680,7 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Rend
 
 		const bool supportsDepthCollisions = gpuSimulationSettings.DepthCollision.Enabled;
 
-		SPtr<GpuParameterSet> systemParams = PrepareSimulateParameters(parentProxy, renderState, *entry, dt);
+		TShared<GpuParameterSet> systemParams = PrepareSimulateParameters(parentProxy, renderState, *entry, dt);
 		entry->SetSimulateParameters(systemParams);
 
 		// Populate remaining parameters (textures and other buffers)
@@ -694,7 +694,7 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Rend
 	commandBuffer.BeginRenderPass(simulatePass);
 	commandBuffer.SetVertexDescription(m->HelperBuffers.TileVertexDescription);
 
-	SPtr<GpuBuffer> buffers[] = { m->HelperBuffers.TileUVs };
+	TShared<GpuBuffer> buffers[] = { m->HelperBuffers.TileUVs };
 	commandBuffer.SetVertexBuffers(0, buffers, (u32)B3DSize(buffers));
 	commandBuffer.SetIndexBuffer(m->HelperBuffers.SpriteIndices);
 	commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);
@@ -739,7 +739,7 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Rend
 				continue;
 
 			// Get the pre-populated parameters
-			SPtr<GpuParameterSet> systemParams = entry->GetSimulateParameters();
+			TShared<GpuParameterSet> systemParams = entry->GetSimulateParameters();
 
 			// Bind parameters and draw
 			commandBuffer.SetGpuParameterSet(systemParams);
@@ -824,7 +824,7 @@ void GpuParticleSimulation::DrawClearTiles(GpuCommandBuffer& commandBuffer)
 
 	commandBuffer.SetVertexDescription(m->HelperBuffers.TileVertexDescription);
 
-	SPtr<GpuBuffer> buffers[] = { m->HelperBuffers.TileUVs };
+	TShared<GpuBuffer> buffers[] = { m->HelperBuffers.TileUVs };
 	commandBuffer.SetVertexBuffers(0, buffers, (u32)B3DSize(buffers));
 	commandBuffer.SetIndexBuffer(m->HelperBuffers.SpriteIndices);
 	commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);
@@ -852,7 +852,7 @@ void GpuParticleSimulation::DrawInjectParticles(GpuCommandBuffer& commandBuffer)
 	{
 		commandBuffer.SetGpuParameterSet(batch.Parameters.GpuParameters);
 
-		SPtr<GpuBuffer> vertexBuffers[] = { batch.Parameters.ScratchBuffer, m->HelperBuffers.ParticleUVs };
+		TShared<GpuBuffer> vertexBuffers[] = { batch.Parameters.ScratchBuffer, m->HelperBuffers.ParticleUVs };
 		commandBuffer.SetVertexBuffers(0, vertexBuffers, (u32)B3DSize(vertexBuffers));
 		commandBuffer.DrawIndexed(0, 6, 0, 4, batch.ParticleCount);
 	}
@@ -865,7 +865,7 @@ GpuParticleResources& GpuParticleSimulation::GetResources() const
 
 GpuParticleSimulation::TileClearParameters GpuParticleSimulation::CreateTileClearParameters()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	GpuBufferCreateInformation tileScratchBufferCreateInformation;
 	tileScratchBufferCreateInformation.Type = GpuBufferType::SimpleStorage;
@@ -884,7 +884,7 @@ GpuParticleSimulation::TileClearParameters GpuParticleSimulation::CreateTileClea
 
 GpuParticleSimulation::ParticleInjectParameters GpuParticleSimulation::CreateParticleInjectParameters()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	GpuBufferCreateInformation injectScratchBufferCreateInformation;
 	injectScratchBufferCreateInformation.Type = GpuBufferType::Vertex;
@@ -1025,7 +1025,7 @@ struct GpuParticleCurveInject
 
 GpuParticleCurves::GpuParticleCurves()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	TextureCreateInformation textureCreateInformation;
 	textureCreateInformation.Name = "GPU Particles Curves";
@@ -1156,7 +1156,7 @@ void GpuParticleCurves::ApplyChanges(GpuCommandBuffer& commandBuffer)
 	commandBuffer.BeginRenderPass(renderPassCreateInformation);
 	commandBuffer.SetVertexDescription(mInjectVertexDescription);
 
-	SPtr<GpuBuffer> buffers[] = { mInjectScratch, mInjectUV };
+	TShared<GpuBuffer> buffers[] = { mInjectScratch, mInjectUV };
 	commandBuffer.SetVertexBuffers(0, buffers, (u32)B3DSize(buffers));
 	commandBuffer.SetIndexBuffer(mInjectIndices);
 	commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);

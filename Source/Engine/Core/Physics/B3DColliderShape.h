@@ -231,26 +231,26 @@ namespace b3d
 
 		/** Creates a new plane collider shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(ColliderShape))
-		static SPtr<ColliderShape> CreatePlane(const PlaneColliderShapeInformation& information);
+		static TShared<ColliderShape> CreatePlane(const PlaneColliderShapeInformation& information);
 
 		/** Creates a new box collider shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(ColliderShape))
-		static SPtr<ColliderShape> CreateBox(const BoxColliderShapeInformation& information);
+		static TShared<ColliderShape> CreateBox(const BoxColliderShapeInformation& information);
 
 		/** Creates a new sphere collider shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(ColliderShape))
-		static SPtr<ColliderShape> CreateSphere(const SphereColliderShapeInformation& information);
+		static TShared<ColliderShape> CreateSphere(const SphereColliderShapeInformation& information);
 
 		/** Creates a new capsule collider shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(ColliderShape))
-		static SPtr<ColliderShape> CreateCapsule(const CapsuleColliderShapeInformation& information);
+		static TShared<ColliderShape> CreateCapsule(const CapsuleColliderShapeInformation& information);
 
 		/** Creates a new mesh collider shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(ColliderShape))
-		static SPtr<ColliderShape> CreateMesh(const MeshColliderShapeInformation& information);
+		static TShared<ColliderShape> CreateMesh(const MeshColliderShapeInformation& information);
 
 		/** Creates a new collider shape without any shape initialized. */
-		static SPtr<ColliderShape> CreateEmpty();
+		static TShared<ColliderShape> CreateEmpty();
 
 		/**
 		 * @name Internal

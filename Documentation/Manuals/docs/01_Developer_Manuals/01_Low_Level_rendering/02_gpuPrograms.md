@@ -28,8 +28,8 @@ createInformation.EntryPoint = "main";
 createInformation.Language = "hlsl";
 
 // Assuming you have a command buffer
-SPtr<GpuCommandBuffer> commandBuffer = ...;
-SPtr<GpuProgram> myProgram = commandBuffer->GetGpuDevice().CreateGpuProgram(createInformation);
+TShared<GpuCommandBuffer> commandBuffer = ...;
+TShared<GpuProgram> myProgram = commandBuffer->GetGpuDevice().CreateGpuProgram(createInformation);
 ~~~~~~~~~~~~~
 
 Once the GPU program has been created it is not guaranteed to be usable. The compilation of the provided source code could have failed, which you can check by calling @b3d::GpuProgram::IsCompiled, and retrieve the error message by calling @b3d::GpuProgram::GetCompileErrorMessage.
@@ -64,8 +64,8 @@ createInformation.GeometryProgram = ...;
 createInformation.HullProgram = ...;
 createInformation.DomainProgram = ...;
 
-SPtr<GpuCommandBuffer> commandBuffer = ...;
-SPtr<GpuGraphicsPipelineState> graphicsPipeline = commandBuffer->GetGpuDevice().CreateGpuGraphicsPipelineState(createInformation);
+TShared<GpuCommandBuffer> commandBuffer = ...;
+TShared<GpuGraphicsPipelineState> graphicsPipeline = commandBuffer->GetGpuDevice().CreateGpuGraphicsPipelineState(createInformation);
 ~~~~~~~~~~~~~
 
 > Note that graphics pipelines also support a set of fixed (non-programmable) states we'll discuss later.
@@ -73,13 +73,13 @@ SPtr<GpuGraphicsPipelineState> graphicsPipeline = commandBuffer->GetGpuDevice().
 Compute pipeline states are simpler, accepting just a single compute GPU program as a parameter to the GPU device's CreateGpuComputePipelineState method.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuProgram> computeProgram = ...;
+TShared<GpuProgram> computeProgram = ...;
 
 GpuComputePipelineStateCreateInformation createInformation;
 createInformation.Program = computeProgram;
 
-SPtr<GpuCommandBuffer> commandBuffer = ...;
-SPtr<GpuComputePipelineState> computePipeline = commandBuffer->GetGpuDevice().CreateGpuComputePipelineState(createInformation);
+TShared<GpuCommandBuffer> commandBuffer = ...;
+TShared<GpuComputePipelineState> computePipeline = commandBuffer->GetGpuDevice().CreateGpuComputePipelineState(createInformation);
 ~~~~~~~~~~~~~
 
 Once created pipelines can be bound for rendering through the @b3d::render::GpuCommandBuffer interface. The command buffer is the primary entry point in the low-level rendering API and it will be used for most low-level rendering operations, as we'll see throughout this set of manuals.
@@ -88,7 +88,7 @@ Call @b3d::render::GpuCommandBuffer::SetGpuGraphicsPipelineState or @b3d::render
 
 ~~~~~~~~~~~~~{.cpp}
 // Bind pipeline for use
-SPtr<GpuCommandBuffer> commandBuffer = ...;
+TShared<GpuCommandBuffer> commandBuffer = ...;
 commandBuffer->SetGpuGraphicsPipelineState(graphicsPipeline);
 // Or: commandBuffer->SetGpuComputePipelineState(computePipeline);
 ~~~~~~~~~~~~~
@@ -117,17 +117,17 @@ This separation allows for efficient parameter binding - you can update only the
 To create a **GpuParameterSet** object, use the GPU device's @b3d::GpuDevice::CreateGpuParameterSet method with the set layout (obtained from the pipeline's parameter layout) and the set index as parameters.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuDevice> device = ...;
-SPtr<GpuGraphicsPipelineState> graphicsPipeline = ...;
+TShared<GpuDevice> device = ...;
+TShared<GpuGraphicsPipelineState> graphicsPipeline = ...;
 
 // Get the parameter layout for the pipeline
-SPtr<GpuPipelineParameterLayout> pipelineLayout = graphicsPipeline->GetParameterLayout();
+TShared<GpuPipelineParameterLayout> pipelineLayout = graphicsPipeline->GetParameterLayout();
 
 // Get the set layout for descriptor set 0
-SPtr<GpuPipelineParameterSetLayout> setLayout = pipelineLayout->GetSet(0);
+TShared<GpuPipelineParameterSetLayout> setLayout = pipelineLayout->GetSet(0);
 
 // Create a parameter set for descriptor set 0
-SPtr<GpuParameterSet> parameterSet = device->CreateGpuParameterSet(setLayout, 0);
+TShared<GpuParameterSet> parameterSet = device->CreateGpuParameterSet(setLayout, 0);
 ~~~~~~~~~~~~~
 
 The created **GpuParameterSet** object will be initialized with parameter layout information for the specified descriptor set, allowing the system to validate parameter assignments and manage internal storage.
@@ -164,11 +164,11 @@ Matrix4 viewProjectionMatrix = ...;
 parameterSet->SetParameter("viewProjMatrix", viewProjectionMatrix);
 
 // Set a sampled texture (no uniform buffer required)
-SPtr<Texture> diffuseTexture = ...;
+TShared<Texture> diffuseTexture = ...;
 parameterSet->SetSampledTexture("mainTexture", diffuseTexture);
 
 // Set a sampler state (no uniform buffer required)
-SPtr<SamplerState> linearSampler = ...;
+TShared<SamplerState> linearSampler = ...;
 parameterSet->SetSamplerState("mainSampler", linearSampler);
 ~~~~~~~~~~~~~
 
@@ -216,7 +216,7 @@ parameterSet->GetSampledTextureParameter("mainTexture", textureParameter);
 
 // Later in performance-critical code, use handles to set values quickly
 Matrix4 viewProjectionMatrix = ...;
-SPtr<Texture> someTexture = ...;
+TShared<Texture> someTexture = ...;
 
 matrixParameter.Set(viewProjectionMatrix);
 textureParameter.Set(someTexture);
@@ -257,7 +257,7 @@ createInformation.Type = GBT_UNIFORM;
 createInformation.Size = sizeof(MyUniformData);
 createInformation.Usage = GBU_DYNAMIC;
 
-SPtr<GpuBuffer> uniformBuffer = device->CreateGpuBuffer(createInformation);
+TShared<GpuBuffer> uniformBuffer = device->CreateGpuBuffer(createInformation);
 
 // Write data to the buffer directly
 MyUniformData data = ...;
@@ -276,7 +276,7 @@ You can also use the **Get*** methods to retrieve currently bound uniform buffer
 
 ~~~~~~~~~~~~~{.cpp}
 // Get uniform buffer bound at slot 0
-SPtr<GpuBuffer> buffer = parameterSet->GetUniformBuffer(0);
+TShared<GpuBuffer> buffer = parameterSet->GetUniformBuffer(0);
 ~~~~~~~~~~~~~
 
 ### Uniform buffer definitions
@@ -302,7 +302,7 @@ For uniform buffers that don't change every frame, you can create persistent buf
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a persistent uniform buffer using the definition
-SPtr<GpuBuffer> uniformBuffer = gMyUniformBufferDef.CreateBuffer();
+TShared<GpuBuffer> uniformBuffer = gMyUniformBufferDef.CreateBuffer();
 
 // Bind the buffer to GpuParameterSet
 parameterSet->SetUniformBuffer("MyUniformBlock", uniformBuffer);
@@ -371,7 +371,7 @@ You can also create multiple instances of the same buffer layout:
 
 ~~~~~~~~~~~~~{.cpp}
 // Create persistent buffer with multiple sub-allocations (useful for instancing)
-SPtr<GpuBuffer> multiInstanceBuffer = gMyUniformBufferDef.CreateBuffer(100); // 100 sub-allocations
+TShared<GpuBuffer> multiInstanceBuffer = gMyUniformBufferDef.CreateBuffer(100); // 100 sub-allocations
 ~~~~~~~~~~~~~
 
 ## Binding GPU parameter sets
@@ -402,21 +402,21 @@ fragmentCreateInfo.Source = fragmentShader;
 fragmentCreateInfo.EntryPoint = "main";
 fragmentCreateInfo.Language = "hlsl";
 
-SPtr<GpuCommandBuffer> commandBuffer = ...;
-SPtr<GpuDevice> gpuDevice = commandBuffer->GetGpuDevice();
+TShared<GpuCommandBuffer> commandBuffer = ...;
+TShared<GpuDevice> gpuDevice = commandBuffer->GetGpuDevice();
 
-SPtr<GpuProgram> vertexProgram = gpuDevice.CreateGpuProgram(vertexCreateInfo);
-SPtr<GpuProgram> fragmentProgram = gpuDevice.CreateGpuProgram(fragmentCreateInfo);
+TShared<GpuProgram> vertexProgram = gpuDevice.CreateGpuProgram(vertexCreateInfo);
+TShared<GpuProgram> fragmentProgram = gpuDevice.CreateGpuProgram(fragmentCreateInfo);
 
 // 2. Create pipeline state
 GpuGraphicsPipelineStateCreateInformation pipelineInfo;
 pipelineInfo.VertexProgram = vertexProgram;
 pipelineInfo.FragmentProgram = fragmentProgram;
 
-SPtr<GpuGraphicsPipelineState> pipeline = gpuDevice.CreateGpuGraphicsPipelineState(pipelineInfo);
+TShared<GpuGraphicsPipelineState> pipeline = gpuDevice.CreateGpuGraphicsPipelineState(pipelineInfo);
 
 // 3. Create GpuParameterSet for the pipeline (set 0)
-SPtr<GpuParameterSet> parameterSet = gpuDevice->CreateGpuParameterSet(pipeline->GetParameterLayout()->GetSet(0), 0);
+TShared<GpuParameterSet> parameterSet = gpuDevice->CreateGpuParameterSet(pipeline->GetParameterLayout()->GetSet(0), 0);
 
 // 4. Set up uniform buffer using uniform buffer definition
 B3D_UNIFORM_BUFFER_BEGIN(PerObjectParamDef)
@@ -426,14 +426,14 @@ B3D_UNIFORM_BUFFER_END
 
 PerObjectParamDef gPerObjectParamDef; // Declare globally
 
-SPtr<GpuBuffer> perObjectBuffer = gPerObjectParamDef.CreateBuffer();
+TShared<GpuBuffer> perObjectBuffer = gPerObjectParamDef.CreateBuffer();
 parameterSet->SetUniformBuffer("PerObjectData", perObjectBuffer);
 
 // 5. Set parameters
 gPerObjectParamDef.worldViewProj.Set(perObjectBuffer, myMatrix);
 gPerObjectParamDef.tintColor.Set(perObjectBuffer, Color::kWhite);
 
-SPtr<Texture> texture = ...;
+TShared<Texture> texture = ...;
 parameterSet->SetSampledTexture("mainTexture", texture);
 
 // 6. Bind pipeline and parameters, then draw
@@ -447,8 +447,8 @@ commandBuffer->SetGpuParameterSet(parameterSet);
 Vertex GPU programs provide information about their inputs in the form of a **VertexDescription**. This is the same structure that we used for describing per-vertex components while creating a mesh. Per-vertex input declaration can be retrieved from a GPU program by calling @b3d::GpuProgram::GetVertexInputDescription.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuProgram> vertexProgram = ...;
-SPtr<VertexDescription> inputs = vertexProgram->GetVertexInputDescription();
+TShared<GpuProgram> vertexProgram = ...;
+TShared<VertexDescription> inputs = vertexProgram->GetVertexInputDescription();
 ~~~~~~~~~~~~~
 
 Input declaration can be used for creating meshes or vertex buffers that provide per-vertex information that a GPU program expects.

@@ -11,7 +11,7 @@
 using namespace b3d;
 using namespace b3d::render;
 
-TAsyncOp<SPtr<PixelData>> IVulkanRenderWindowSurface::ReadAsync(GpuCommandBuffer& commandBuffer)
+TAsyncOp<TShared<PixelData>> IVulkanRenderWindowSurface::ReadAsync(GpuCommandBuffer& commandBuffer)
 {
 	VulkanImage* colorImage = GetCurrentColorImage();
 	if(colorImage == nullptr)
@@ -27,7 +27,7 @@ TAsyncOp<SPtr<PixelData>> IVulkanRenderWindowSurface::ReadAsync(GpuCommandBuffer
 	const PixelFormat pixelFormat = GetColorPixelFormat();
 
 	// Create pixel data for the result
-	const SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(width, height, 1, pixelFormat);
+	const TShared<PixelData> pixelData = B3DMakeShared<PixelData>(width, height, 1, pixelFormat);
 
 	// Calculate buffer size needed
 	const u32 bufferSize = PixelUtility::GetMemorySize(width, height, 1, pixelFormat);
@@ -37,8 +37,8 @@ TAsyncOp<SPtr<PixelData>> IVulkanRenderWindowSurface::ReadAsync(GpuCommandBuffer
 	bufferCreateInfo.Type = GpuBufferType::StagingRead;
 	bufferCreateInfo.Staging.Size = bufferSize;
 
-	SPtr<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
-	SPtr<GpuBuffer> stagingBuffer = presentDevice->CreateGpuBuffer(bufferCreateInfo);
+	TShared<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
+	TShared<GpuBuffer> stagingBuffer = presentDevice->CreateGpuBuffer(bufferCreateInfo);
 	VulkanBuffer* vulkanBuffer = static_cast<VulkanGpuBuffer*>(stagingBuffer.get())->GetVulkanResource();
 
 	// Set up image copy parameters
@@ -63,7 +63,7 @@ TAsyncOp<SPtr<PixelData>> IVulkanRenderWindowSurface::ReadAsync(GpuCommandBuffer
 	vulkanCmdBuffer.CopyImageToBuffer(colorImage, vulkanBuffer, extent, subresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, rowPitch, sliceHeight);
 
 	// Set up async completion
-	TAsyncOp<SPtr<PixelData>> op;
+	TAsyncOp<TShared<PixelData>> op;
 
 	auto fnOnCommandBufferCompleted = [stagingBuffer, op, pixelData]() mutable
 	{

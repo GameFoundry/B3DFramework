@@ -21,7 +21,7 @@ namespace b3d
 		B3D_SYNC_BLOCK_ENTRY(mBrightness)
 		B3D_SYNC_BLOCK_ENTRY(mTexture)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(bool, mActive)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(SPtr<SceneInstance>, mSceneInstance)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(TShared<SceneInstance>, mSceneInstance)
 	B3D_SYNC_BLOCK_END
 }
 
@@ -133,14 +133,14 @@ void Skybox::FilterTexture()
 		mRendererTask = nullptr;
 	};
 
-	SPtr<render::Skybox> skyboxRenderProxy = B3DGetRenderProxy(this);
-	SPtr<render::Texture> filteredRadianceRenderProxy = B3DGetRenderProxy(mFilteredRadiance);
-	SPtr<render::Texture> irradianceRenderProxy = B3DGetRenderProxy(mIrradiance);
+	TShared<render::Skybox> skyboxRenderProxy = B3DGetRenderProxy(this);
+	TShared<render::Texture> filteredRadianceRenderProxy = B3DGetRenderProxy(mFilteredRadiance);
+	TShared<render::Texture> irradianceRenderProxy = B3DGetRenderProxy(mIrradiance);
 
 	auto fnFilterSkybox = [filteredRadianceRenderProxy, irradianceRenderProxy, skyboxRenderProxy](render::GpuCommandBufferPool& commandBufferPool)
 	{
-		const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("FilterSkybox"));
-		SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
+		const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("FilterSkybox"));
+		TShared<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 		commandBufferProfiler->BeginSample(*commandBuffer, "FilterSkybox");
 
@@ -157,7 +157,7 @@ void Skybox::FilterTexture()
 		commandBufferProfiler->EndSample(*commandBuffer);
 		GetGpuProfiler().ResolveProfileWhenReady("FilterSkybox", commandBufferProfiler);
 
-		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		gpuDevice->SubmitCommandBuffer(commandBuffer);
 
 		return true;
@@ -169,15 +169,15 @@ void Skybox::FilterTexture()
 	render::GetRenderer()->AddTask(mRendererTask);
 }
 
-SPtr<render::RenderProxy> Skybox::CreateRenderProxy() const
+TShared<render::RenderProxy> Skybox::CreateRenderProxy() const
 {
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
-	SPtr<render::Texture> radiance = B3DGetRenderProxy(mTexture);
-	SPtr<render::Texture> filteredRadiance = B3DGetRenderProxy(mFilteredRadiance);
-	SPtr<render::Texture> irradiance = B3DGetRenderProxy(mIrradiance);
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
+	TShared<render::Texture> radiance = B3DGetRenderProxy(mTexture);
+	TShared<render::Texture> filteredRadiance = B3DGetRenderProxy(mFilteredRadiance);
+	TShared<render::Texture> irradiance = B3DGetRenderProxy(mIrradiance);
 
 	render::Skybox* renderProxy = new(B3DAllocate<render::Skybox>()) render::Skybox(B3DGetRenderProxy(scene), radiance, filteredRadiance, irradiance);
-	SPtr<render::Skybox> renderProxyShared = B3DMakeSharedFromExisting<render::Skybox>(renderProxy);
+	TShared<render::Skybox> renderProxyShared = B3DMakeSharedFromExisting<render::Skybox>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -204,7 +204,7 @@ RTTIType* Skybox::GetRtti() const
 
 namespace b3d { namespace render
 {
-Skybox::Skybox(const SPtr<SceneInstance>& scene, const SPtr<Texture>& radiance, const SPtr<Texture>& filteredRadiance, const SPtr<Texture>& irradiance)
+Skybox::Skybox(const TShared<SceneInstance>& scene, const TShared<Texture>& radiance, const TShared<Texture>& filteredRadiance, const TShared<Texture>& irradiance)
 	: mSceneInstance(scene), mFilteredRadiance(filteredRadiance), mIrradiance(irradiance)
 {
 	mTexture = radiance;
@@ -212,13 +212,13 @@ Skybox::Skybox(const SPtr<SceneInstance>& scene, const SPtr<Texture>& radiance, 
 
 Skybox::~Skybox()
 {
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 	rendererScene->UnregisterSkybox(this);
 }
 
 void Skybox::Initialize()
 {
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 	rendererScene->RegisterSkybox(this);
 
 	RenderProxy::Initialize();
@@ -233,7 +233,7 @@ void Skybox::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& alloca
 	bool previousIsActive = mActive;
 	syncPacket->ApplySyncData(this);
 
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 	if(previousIsActive != mActive)
 	{
 		if(mActive)

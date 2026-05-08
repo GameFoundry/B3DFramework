@@ -12,7 +12,7 @@
 
 namespace b3d
 {
-	ScriptPackageResourceMetaData::ScriptPackageResourceMetaData(const SPtr<PackageResourceMetaData>& nativeObject)
+	ScriptPackageResourceMetaData::ScriptPackageResourceMetaData(const TShared<PackageResourceMetaData>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -238,7 +238,7 @@ namespace b3d
 
 	MonoObject* ScriptPackageResourceMetaData::InternalGetAdditionalMetaData(ScriptPackageResourceMetaData* self)
 	{
-		SPtr<PackageResourceUserMetaData> tmp__output;
+		TShared<PackageResourceUserMetaData> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -255,7 +255,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<PackageResourceUserMetaData> tmpvalue;
+		TShared<PackageResourceUserMetaData> tmpvalue;
 		ScriptPackageResourceUserMetaDataWrapperBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = (ScriptPackageResourceUserMetaDataWrapperBase*)ScriptPackageResourceUserMetaData::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -265,7 +265,7 @@ namespace b3d
 
 	MonoObject* ScriptPackageResourceMetaData::InternalGetResourceMetaData(ScriptPackageResourceMetaData* self)
 	{
-		SPtr<ResourceMetaData> tmp__output;
+		TShared<ResourceMetaData> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -282,7 +282,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ResourceMetaData> tmpvalue;
+		TShared<ResourceMetaData> tmpvalue;
 		ScriptResourceMetaDataWrapperBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = (ScriptResourceMetaDataWrapperBase*)ScriptResourceMetaData::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)

@@ -77,16 +77,16 @@ namespace b3d
 		 *							otherwise.
 		 * @return					True if the type was found, false otherwise.
 		 */
-		bool GetSerializableObjectInfo(const String& ns, const String& typeName, SPtr<ManagedObjectInfo>& outInfo);
+		bool GetSerializableObjectInfo(const String& ns, const String& typeName, TShared<ManagedObjectInfo>& outInfo);
 
 		/**
 		 * Returns managed serializable object info for a specific managed type. Object must be serializable for this
 		 * information to be present.
 		 */
-		SPtr<ManagedObjectInfo> GetSerializableObjectInfo(MonoReflectionType* objectType);
+		TShared<ManagedObjectInfo> GetSerializableObjectInfo(MonoReflectionType* objectType);
 
 		/**	Generates or retrieves a type info object for the specified managed class, if the class is serializable. */
-		SPtr<ManagedTypeInfo> GetTypeInfo(MonoClass* monoClass);
+		TShared<ManagedTypeInfo> GetTypeInfo(MonoClass* monoClass);
 
 		/** Returns script wrapper object meta-data for the type as specified by the provided RTTI type ID. */
 		const ScriptTypeMetaData* GetScriptWrapperMetaData(u32 typeId) const;
@@ -115,7 +115,7 @@ namespace b3d
 		 * object is serialized and the serialized version of the object is returned. The provided object cannot be an array,
 		 * list, dictionary, component or a resource.
 		 */
-		SPtr<IReflectable> GetReflectableFromManagedObject(MonoObject* value);
+		TShared<IReflectable> GetReflectableFromManagedObject(MonoObject* value);
 
 		/**
 		 * Converts a reflectable object into a managed object. The system first checks if the IReflectable is just
@@ -123,7 +123,7 @@ namespace b3d
 		 * assumes the reflectable type is script exportable and attempts to retrieve or the script object wrapper
 		 * for the object.
 		 */
-		MonoObject* GetManagedObjectFromReflectable(const SPtr<IReflectable>& object);
+		MonoObject* GetManagedObjectFromReflectable(const TShared<IReflectable>& object);
 
 	private:
 		/**	Deletes all stored managed serializable object infos for all assemblies. */
@@ -141,7 +141,7 @@ namespace b3d
 		 */
 		void InitializeScriptWrapperMetaDataLookup(MonoAssembly& assembly);
 
-		UnorderedMap<String, SPtr<ManagedAssemblyInfo>> mAssemblyInfos;
+		UnorderedMap<String, TShared<ManagedAssemblyInfo>> mAssemblyInfos;
 
 		UnorderedMap<u32, ScriptTypeMetaData*> mScriptWrapperMetaDataByTypeId;
 		UnorderedMap<::MonoReflectionType*, ScriptTypeMetaData*> mScriptWrapperMetaDataByScriptClass;

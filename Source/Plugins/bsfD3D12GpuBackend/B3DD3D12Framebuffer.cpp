@@ -63,7 +63,7 @@ void D3D12Framebuffer::CreateViews()
 		// Handle RenderTexture - create views for color and depth-stencil textures
 		for (u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 		{
-			SPtr<Texture> colorTexture = renderTexture->GetColorTexture(i);
+			TShared<Texture> colorTexture = renderTexture->GetColorTexture(i);
 			if (!colorTexture)
 				continue;
 
@@ -113,7 +113,7 @@ void D3D12Framebuffer::CreateViews()
 		}
 
 		// Handle depth-stencil texture
-		SPtr<Texture> depthTexture = renderTexture->GetDepthStencilTexture();
+		TShared<Texture> depthTexture = renderTexture->GetDepthStencilTexture();
 		if (depthTexture)
 		{
 			D3D12Texture* d3d12Texture = static_cast<D3D12Texture*>(depthTexture.get());
@@ -159,7 +159,7 @@ void D3D12Framebuffer::CreateViews()
 		const RenderWindow* renderWindow = static_cast<const RenderWindow*>(mRenderTarget);
 
 		// Get the render window surface which contains the swap chain
-		const SPtr<IRenderWindowSurface>& surfacePtr = renderWindow->GetRenderWindowSurface();
+		const TShared<IRenderWindowSurface>& surfacePtr = renderWindow->GetRenderWindowSurface();
 		if (!surfacePtr)
 		{
 			B3D_LOG(Warning, LogRenderBackend, "RenderWindow has no surface, cannot create framebuffer");

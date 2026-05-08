@@ -48,7 +48,7 @@ SceneObjectTransformTestSuite::SceneObjectTransformTestSuite()
 
 void SceneObjectTransformTestSuite::TestLocalTransformFragment()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestLocalTransform");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestLocalTransform");
 
 	HSceneObject sceneObject = scene->CreateSceneObject("TestObject");
 	ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
@@ -85,7 +85,7 @@ void SceneObjectTransformTestSuite::TestLocalTransformFragment()
 
 void SceneObjectTransformTestSuite::TestWorldTransformFragment()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestWorldTransform");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestWorldTransform");
 
 	HSceneObject parent = scene->CreateSceneObject("Parent");
 	HSceneObject child = scene->CreateSceneObject("Child");
@@ -123,7 +123,7 @@ void SceneObjectTransformTestSuite::TestWorldTransformFragment()
 
 void SceneObjectTransformTestSuite::TestParentChildFragments()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestParentChild");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestParentChild");
 	ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
 
 	HSceneObject root = scene->CreateSceneObject("Root");
@@ -173,7 +173,7 @@ void SceneObjectTransformTestSuite::TestParentChildFragments()
 
 void SceneObjectTransformTestSuite::TestHierarchyDepthFragment()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestHierarchyDepth");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestHierarchyDepth");
 	ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
 
 	HSceneObject root = scene->CreateSceneObject("Root");
@@ -212,7 +212,7 @@ void SceneObjectTransformTestSuite::TestHierarchyDepthFragment()
 
 void SceneObjectTransformTestSuite::TestTransformDirtyTag()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestTransformDirty");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestTransformDirty");
 	ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
 
 	HSceneObject parent = scene->CreateSceneObject("Parent");
@@ -243,7 +243,7 @@ void SceneObjectTransformTestSuite::TestTransformDirtyTag()
 
 void SceneObjectTransformTestSuite::TestMobilityTags()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestMobilityTags");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestMobilityTags");
 	ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
 
 	HSceneObject sceneObject = scene->CreateSceneObject("TestObject");
@@ -279,7 +279,7 @@ void SceneObjectTransformTestSuite::TestMobilityTags()
 
 void SceneObjectTransformTestSuite::TestMobilityAffectsTransformDirty()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestMobilityDirty");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestMobilityDirty");
 	ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
 
 	HSceneObject sceneObject = scene->CreateSceneObject("TestObject");
@@ -314,7 +314,7 @@ void SceneObjectTransformTestSuite::TestMobilityAffectsTransformDirty()
 
 void SceneObjectTransformTestSuite::TestTransformSystemRootOnly()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestSystemRootOnly");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestSystemRootOnly");
 	ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
 
 	HSceneObject objectA = scene->CreateSceneObject("A");
@@ -355,7 +355,7 @@ void SceneObjectTransformTestSuite::TestTransformSystemRootOnly()
 
 void SceneObjectTransformTestSuite::TestTransformSystemHierarchy()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestSystemHierarchy");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestSystemHierarchy");
 	ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
 
 	HSceneObject root = scene->CreateSceneObject("Root");
@@ -395,7 +395,7 @@ void SceneObjectTransformTestSuite::TestTransformSystemHierarchy()
 
 void SceneObjectTransformTestSuite::TestTransformSystemDirtyPropagation()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestSystemDirtyPropagation");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestSystemDirtyPropagation");
 	ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
 
 	HSceneObject objectA = scene->CreateSceneObject("A");
@@ -444,7 +444,7 @@ void SceneObjectTransformTestSuite::TestTransformSystemDirtyPropagation()
 
 void SceneObjectTransformTestSuite::TestTransformSystemPartialDirty()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestSystemPartialDirty");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestSystemPartialDirty");
 	ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
 
 	HSceneObject root = scene->CreateSceneObject("Root");
@@ -495,7 +495,7 @@ void SceneObjectTransformTestSuite::TestTransformSystemPartialDirty()
 
 void SceneObjectTransformTestSuite::TestTransformSystemMultipleUpdates()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestSystemMultipleUpdates");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestSystemMultipleUpdates");
 	ecs::Registry& registry = scene->GetGameObjectCollection()->GetECSRegistry();
 
 	HSceneObject root = scene->CreateSceneObject("Root");
@@ -538,7 +538,7 @@ void SceneObjectTransformTestSuite::TestTransformSystemMultipleUpdates()
 
 void SceneObjectTransformTestSuite::TestSceneObjectSerialization()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestSerialization");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestSerialization");
 
 	HSceneObject root = scene->CreateSceneObject("SerRoot");
 	HSceneObject child = scene->CreateSceneObject("SerChild");
@@ -556,19 +556,19 @@ void SceneObjectTransformTestSuite::TestSceneObjectSerialization()
 	child->UpdateWorldTransformIfDirty();
 
 	// Serialize
-	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+	TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer serializer;
 	serializer.Encode(root.Get(), stream);
 
 	// Create a new collection for deserialization
-	SPtr<GameObjectCollection> destCollection = GameObjectCollection::Create();
+	TShared<GameObjectCollection> destCollection = GameObjectCollection::Create();
 
 	RTTIOperationEngineContext rttiContext;
 	rttiContext.PreserveGameObjectIds = false;
 	rttiContext.GameObjectCollection = destCollection;
 
 	stream->Seek(0);
-	SPtr<SceneObject> deserialized = std::static_pointer_cast<SceneObject>(
+	TShared<SceneObject> deserialized = std::static_pointer_cast<SceneObject>(
 		serializer.Decode(stream, (u32)stream->Size(), rttiContext));
 
 	B3D_TEST_ASSERT(deserialized != nullptr)
@@ -597,7 +597,7 @@ void SceneObjectTransformTestSuite::TestSceneObjectSerialization()
 
 void SceneObjectTransformTestSuite::TestSceneObjectClone()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestClone");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestClone");
 
 	HSceneObject root = scene->CreateSceneObject("CloneRoot");
 	HSceneObject childA = scene->CreateSceneObject("CloneChildA");
@@ -640,7 +640,7 @@ void SceneObjectTransformTestSuite::TestSceneObjectClone()
 
 void SceneObjectTransformTestSuite::TestSceneObjectCloneTransformIndependence()
 {
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestCloneIndependence");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestCloneIndependence");
 
 	HSceneObject root = scene->CreateSceneObject("IndepRoot");
 	HSceneObject child = scene->CreateSceneObject("IndepChild");

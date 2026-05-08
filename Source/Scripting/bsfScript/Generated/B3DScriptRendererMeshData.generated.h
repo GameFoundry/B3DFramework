@@ -21,7 +21,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RendererMeshData")
 
-		ScriptRendererMeshData(const SPtr<RendererMeshData>& nativeObject);
+		ScriptRendererMeshData(const TShared<RendererMeshData>& nativeObject);
 		~ScriptRendererMeshData();
 
 		static void SetupScriptBindings();

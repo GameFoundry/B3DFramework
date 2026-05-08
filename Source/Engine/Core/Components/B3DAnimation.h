@@ -152,7 +152,7 @@ namespace b3d
 	/** Morph shape and its contribution to the final shape. */
 	struct MorphShapeInfo
 	{
-		SPtr<MorphShape> Shape;
+		TShared<MorphShape> Shape;
 		float FrameWeight;
 		float FinalWeight;
 	};
@@ -191,7 +191,7 @@ namespace b3d
 		 *
 		 * @note Should be called from the main thread when the caller is sure the animation thread is not using it.
 		 */
-		void RebuildFull(const SPtr<Skeleton>& skeleton, const SkeletonMask& mask, Vector<AnimationClipInfo>& inOutClipInfos, const Vector<SceneObjectMappingCurveInfo>& sceneObjects, const SPtr<MorphShapes>& morphShapes);
+		void RebuildFull(const TShared<Skeleton>& skeleton, const SkeletonMask& mask, Vector<AnimationClipInfo>& inOutClipInfos, const Vector<SceneObjectMappingCurveInfo>& sceneObjects, const TShared<MorphShapes>& morphShapes);
 
 		/**
 		 * Rebuilds the internal proxy data according to the newly clips. This should be called whenever clips are added
@@ -205,7 +205,7 @@ namespace b3d
 		 *
 		 * @note Should be called from the main thread when the caller is sure the animation thread is not using it.
 		 */
-		void RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, const Vector<SceneObjectMappingCurveInfo>& sceneObjects, const SPtr<MorphShapes>& morphShapes);
+		void RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, const Vector<SceneObjectMappingCurveInfo>& sceneObjects, const TShared<MorphShapes>& morphShapes);
 
 		/**
 		 * Updates the proxy data with new information about the clips. Caller must guarantee that clip layout didn't
@@ -245,7 +245,7 @@ namespace b3d
 		// Skeletal animation
 		AnimationStateLayer* Layers = nullptr;
 		u32 LayerCount = 0;
-		SPtr<Skeleton> Skeleton;
+		TShared<Skeleton> Skeleton;
 		SkeletonMask SkeletonMask;
 		u32 SceneObjectCount = 0;
 		AnimatedSceneObjectInfo* SceneObjectInfos = nullptr;
@@ -492,13 +492,13 @@ namespace b3d
 		 * Changes the skeleton which will the translation/rotation/scale animation values manipulate. If no skeleton is set
 		 * the animation will only evaluate the generic curves, and the root translation/rotation/scale curves.
 		 */
-		void SetSkeleton(const SPtr<Skeleton>& skeleton);
+		void SetSkeleton(const TShared<Skeleton>& skeleton);
 
 		/**
 		 * Sets morph shapes that can be used for per-vertex blending animation. After they're set call
 		 * setMorphShapeWeight() to apply morph shapes.
 		 */
-		void SetMorphShapes(const SPtr<MorphShapes>& morphShapes);
+		void SetMorphShapes(const TShared<MorphShapes>& morphShapes);
 
 		/**
 		 * Sets a mask that allows certain bones from the skeleton to be disabled. Caller must ensure that the mask matches
@@ -674,9 +674,9 @@ namespace b3d
 		AABox mCustomBounds;
 		AABox mCullingBounds;
 		
-		SPtr<Skeleton> mSkeleton;
+		TShared<Skeleton> mSkeleton;
 		SkeletonMask mSkeletonMask;
-		SPtr<MorphShapes> mMorphShapes;
+		TShared<MorphShapes> mMorphShapes;
 		Vector<float> mMorphChannelWeights;
 		Vector<AnimationClipInfo> mClipInfos;
 		Vector<SceneObjectMappingInfo> mMappedSceneObjectInfos;
@@ -686,7 +686,7 @@ namespace b3d
 		AnimationSampleStep mSampleStep = AnimationSampleStep::None;
 
 		// Animation thread only
-		SPtr<AnimationProxy> mAnimationProxy;
+		TShared<AnimationProxy> mAnimationProxy;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

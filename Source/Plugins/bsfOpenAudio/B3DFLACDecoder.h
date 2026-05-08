@@ -15,7 +15,7 @@ namespace b3d
 	/** Data used by the FLAC decoder. */
 	struct FLACDecoderData
 	{
-		SPtr<DataStream> Stream;
+		TShared<DataStream> Stream;
 		u32 StreamOffset = 0;
 		AudioDataInfo Info;
 		u8* Output = nullptr;
@@ -31,10 +31,10 @@ namespace b3d
 		FLACDecoder() = default;
 		~FLACDecoder();
 
-		bool Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset = 0) override;
+		bool Open(const TShared<DataStream>& stream, AudioDataInfo& info, u32 offset = 0) override;
 		void Seek(u32 offset) override;
 		u32 Read(u8* samples, u32 numSamples) override;
-		bool IsValid(const SPtr<DataStream>& stream, u32 offset = 0) override;
+		bool IsValid(const TShared<DataStream>& stream, u32 offset = 0) override;
 
 	private:
 		/** Cleans up the FLAC decoder. */

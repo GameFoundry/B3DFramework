@@ -45,11 +45,11 @@ namespace b3d
 		struct ModifiedField : IReflectable
 		{
 			ModifiedField() = default;
-			ModifiedField(const SPtr<ManagedTypeInfo>& parentType, const SPtr<ManagedMemberInfo>& fieldType, const SPtr<Modification>& modification);
+			ModifiedField(const TShared<ManagedTypeInfo>& parentType, const TShared<ManagedMemberInfo>& fieldType, const TShared<Modification>& modification);
 
-			SPtr<ManagedTypeInfo> ParentType; /**< Type of the parent object the field belongs to. */
-			SPtr<ManagedMemberInfo> FieldType; /**< Data type of the field. */
-			SPtr<Modification> Modification; /**< Recorded modification(s) on the field. */
+			TShared<ManagedTypeInfo> ParentType; /**< Type of the parent object the field belongs to. */
+			TShared<ManagedMemberInfo> FieldType; /**< Data type of the field. */
+			TShared<Modification> Modification; /**< Recorded modification(s) on the field. */
 
 			/************************************************************************/
 			/* 								RTTI		                     		*/
@@ -64,10 +64,10 @@ namespace b3d
 		struct ModifiedArrayEntry : IReflectable
 		{
 			ModifiedArrayEntry() = default;
-			ModifiedArrayEntry(u32 idx, const SPtr<Modification>& modification);
+			ModifiedArrayEntry(u32 idx, const TShared<Modification>& modification);
 
 			u32 Idx; /**< Index of the array/list entry that is modified. */
-			SPtr<Modification> Modification; /**< Recorded modification(s) on the entry. */
+			TShared<Modification> Modification; /**< Recorded modification(s) on the entry. */
 
 			/************************************************************************/
 			/* 								RTTI		                     		*/
@@ -82,10 +82,10 @@ namespace b3d
 		struct ModifiedDictionaryEntry : IReflectable
 		{
 			ModifiedDictionaryEntry() = default;
-			ModifiedDictionaryEntry(const SPtr<ManagedSerializableFieldData>& key, const SPtr<Modification>& modification);
+			ModifiedDictionaryEntry(const TShared<ManagedSerializableFieldData>& key, const TShared<Modification>& modification);
 
-			SPtr<ManagedSerializableFieldData> Key; /**< Serialized value of the key for the modified entry. */
-			SPtr<Modification> Modification; /**< Recorded modification(s) on the dictionary entry value. */
+			TShared<ManagedSerializableFieldData> Key; /**< Serialized value of the key for the modified entry. */
+			TShared<Modification> Modification; /**< Recorded modification(s) on the dictionary entry value. */
 
 			/************************************************************************/
 			/* 								RTTI		                     		*/
@@ -102,7 +102,7 @@ namespace b3d
 		 */
 		struct ModifiedObject : Modification
 		{
-			static SPtr<ModifiedObject> Create();
+			static TShared<ModifiedObject> Create();
 
 			Vector<ModifiedField> Entries; /**< A list of entries containing each modified field in the object. */
 
@@ -118,7 +118,7 @@ namespace b3d
 		/**	Contains data about all modifications in an array or a list. */
 		struct ModifiedArray : Modification
 		{
-			static SPtr<ModifiedArray> Create();
+			static TShared<ModifiedArray> Create();
 
 			Vector<ModifiedArrayEntry> Entries; /**< A list of all modified array/list entries along with their indices. */
 			Vector<u32> OrigSizes; /**< Original size of the array/list (one size per dimension). */
@@ -136,12 +136,12 @@ namespace b3d
 		/**	Contains data about all modifications in a dictionary. */
 		struct ModifiedDictionary : Modification
 		{
-			static SPtr<ModifiedDictionary> Create();
+			static TShared<ModifiedDictionary> Create();
 
 			/** A list of modified entries in the dictionary. */
 			Vector<ModifiedDictionaryEntry> Entries;
 			/** A list of keys for entries that were removed from the dictionary. */
-			Vector<SPtr<ManagedSerializableFieldData>> Removed;
+			Vector<TShared<ManagedSerializableFieldData>> Removed;
 
 			/************************************************************************/
 			/* 								RTTI		                     		*/
@@ -156,11 +156,11 @@ namespace b3d
 		struct ModifiedEntry : Modification
 		{
 			ModifiedEntry() = default;
-			ModifiedEntry(const SPtr<ManagedSerializableFieldData>& value);
+			ModifiedEntry(const TShared<ManagedSerializableFieldData>& value);
 
-			static SPtr<ModifiedEntry> Create(const SPtr<ManagedSerializableFieldData>& value);
+			static TShared<ModifiedEntry> Create(const TShared<ManagedSerializableFieldData>& value);
 
-			SPtr<ManagedSerializableFieldData> Value;
+			TShared<ManagedSerializableFieldData> Value;
 
 			/************************************************************************/
 			/* 								RTTI		                     		*/
@@ -182,22 +182,22 @@ namespace b3d
 		 * @param	modified	Modified object. Any values in this object that differ from the original object will be recorded in the delta.
 		 * @return				Returns null if objects are identical.
 		 */
-		static SPtr<ManagedSerializableDelta> Create(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, RTTIOperationContext* context = nullptr);
+		static TShared<ManagedSerializableDelta> Create(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, RTTIOperationContext* context = nullptr);
 
 		/**
 		 * Applies the delta stored in this object to the specified object, modifying all fields in the object to correspond to the delta.
 		 */
-		void Apply(const SPtr<ManagedSerializableObject>& object);
+		void Apply(const TShared<ManagedSerializableObject>& object);
 
 	private:
 		/** Recursively generates a delta between all fields of the specified objects. Returns null if objects are identical. */
-		SPtr<ModifiedObject> GenerateObjectDelta(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, RTTIOperationContext* context);
+		TShared<ModifiedObject> GenerateObjectDelta(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, RTTIOperationContext* context);
 
 		/**
 		 * Generates a delta between two fields. Fields can be of any type and the system will generate the delta appropriately. Delta is generated recursively on all complex objects.
 		 * Returns null if fields contain identical data.
 		 */
-		SPtr<Modification> GenerateFieldDelta(const SPtr<ManagedSerializableFieldData>& original, const SPtr<ManagedSerializableFieldData>& modified, u32 fieldTypeId, RTTIOperationContext* context);
+		TShared<Modification> GenerateFieldDelta(const TShared<ManagedSerializableFieldData>& original, const TShared<ManagedSerializableFieldData>& modified, u32 fieldTypeId, RTTIOperationContext* context);
 
 		/**
 		 * Applies an object modification to a managed object. Modifications are applied recursively.
@@ -206,7 +206,7 @@ namespace b3d
 		 * @param	object	Object to apply the modification to.
 		 * @return			New field data in the case modification needed the object to be re-created instead of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyObjectDelta(const SPtr<ModifiedObject>& delta, const SPtr<ManagedSerializableObject>& object);
+		TShared<ManagedSerializableFieldData> ApplyObjectDelta(const TShared<ModifiedObject>& delta, const TShared<ManagedSerializableObject>& object);
 
 		/**
 		 * Applies an array modification to a managed array. Modifications are applied recursively.
@@ -215,7 +215,7 @@ namespace b3d
 		 * @param	object	Array to apply the modification to.
 		 * @return			New field data in the case modification needed the array to be re-created instead of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyArrayDelta(const SPtr<ModifiedArray>& delta, const SPtr<ManagedSerializableArray>& object);
+		TShared<ManagedSerializableFieldData> ApplyArrayDelta(const TShared<ModifiedArray>& delta, const TShared<ManagedSerializableArray>& object);
 
 		/**
 		 * Applies an list modification to a managed list. Modifications are applied recursively.
@@ -224,7 +224,7 @@ namespace b3d
 		 * @param	object	List to apply the modification to.
 		 * @return			New field data in the case modification needed the list to be re-created instead of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyListDelta(const SPtr<ModifiedArray>& delta, const SPtr<ManagedSerializableList>& object);
+		TShared<ManagedSerializableFieldData> ApplyListDelta(const TShared<ModifiedArray>& delta, const TShared<ManagedSerializableList>& object);
 
 		/**
 		 * Applies an dictionary modification to a managed dictionary. Modifications are applied recursively.
@@ -233,7 +233,7 @@ namespace b3d
 		 * @param	object	Dictionary to apply the modification to.
 		 * @return			New field data in the case modification needed the dictionary to be re-created instead of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyDictionaryDelta(const SPtr<ModifiedDictionary>& delta, const SPtr<ManagedSerializableDictionary>& object);
+		TShared<ManagedSerializableFieldData> ApplyDictionaryDelta(const TShared<ModifiedDictionary>& delta, const TShared<ManagedSerializableDictionary>& object);
 
 		/**
 		 * Applies a modification to a single field. Field type is determined and the modification is applied to the specific field type as needed. Modifications are applied recursively.
@@ -243,9 +243,9 @@ namespace b3d
 		 * @param	fieldData	Original data of the field, to apply the modification to.
 		 * @return				New field data in the case modification needed the field data to be re-created instead of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyDiff(const SPtr<Modification>& delta, const SPtr<ManagedTypeInfo>& fieldType, const SPtr<ManagedSerializableFieldData>& fieldData);
+		TShared<ManagedSerializableFieldData> ApplyDiff(const TShared<Modification>& delta, const TShared<ManagedTypeInfo>& fieldType, const TShared<ManagedSerializableFieldData>& fieldData);
 
-		SPtr<ModifiedObject> mModificationRoot;
+		TShared<ModifiedObject> mModificationRoot;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

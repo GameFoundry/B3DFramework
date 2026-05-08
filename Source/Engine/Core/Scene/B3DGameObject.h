@@ -137,10 +137,10 @@ namespace b3d
 		 * @note
 		 * No alive objects should ever be sharing the same instance data. This can be used for restoring dead handles.
 		 */
-		void SetInstanceData(const SPtr<GameObjectInstanceData>& other);
+		void SetInstanceData(const TShared<GameObjectInstanceData>& other);
 
 		/** Returns instance data that identifies this GameObject and is used for referencing by game object handles. */
-		virtual const SPtr<GameObjectInstanceData>& GetInstanceData() const { return mInstanceData; }
+		virtual const TShared<GameObjectInstanceData>& GetInstanceData() const { return mInstanceData; }
 
 		/** Returns the collection that this game object is a part of. */
 		const WeakSPtr<GameObjectCollection>& GetOwnerCollection() const { return mOwnerCollection; }
@@ -149,7 +149,7 @@ namespace b3d
 		 * Changes the collection the game object is part of. Game object will be unregistered with the
 		 * old collection (if any) and registered with the new collection.
 		 */
-		virtual void SetOwnerCollection(const SPtr<GameObjectCollection>& collection);
+		virtual void SetOwnerCollection(const TShared<GameObjectCollection>& collection);
 
 		/**
 		 * Destroys the game object without delay. Object will be removed from its game object collection, and reference to the object
@@ -173,7 +173,7 @@ namespace b3d
 		friend class PrefabUtility;
 
 		/**	Initializes instance data and assigns the GameObject after construction. */
-		void InitializeInstanceData(const SPtr<GameObject>& object);
+		void InitializeInstanceData(const TShared<GameObject>& object);
 
 	protected:
 		String mName;
@@ -191,7 +191,7 @@ namespace b3d
 
 	private:
 		friend class Prefab;
-		SPtr<GameObjectInstanceData> mInstanceData;
+		TShared<GameObjectInstanceData> mInstanceData;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

@@ -44,7 +44,7 @@ namespace b3d
 			return TID_Variation;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return Variation::CreateEmpty();
 		}
@@ -78,7 +78,7 @@ namespace b3d
 			return TID_VariationRenderProxy;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return render::Variation::CreateEmpty();
 		}

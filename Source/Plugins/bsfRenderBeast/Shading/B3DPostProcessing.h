@@ -46,10 +46,10 @@ namespace b3d
 			void Initialize() override;
 
 			/** Renders the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& input, const TShared<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
+			static PooledRenderTextureCreateInformation GetOutputDesc(const TShared<Texture>& target);
 
 			/** Returns the downsample material variation matching the provided parameters. */
 			static DownsampleMaterial* GetVariation(u32 quality, bool msaa);
@@ -77,13 +77,13 @@ namespace b3d
 			void Initialize() override;
 
 			/** Executes the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<Texture>& output, const AutoExposureSettings& settings);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& input, const TShared<Texture>& output, const AutoExposureSettings& settings);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
+			static PooledRenderTextureCreateInformation GetOutputDesc(const TShared<Texture>& target);
 
 			/** Calculates the number of thread groups that need to execute to cover the provided texture. */
-			static Vector2I GetThreadGroupCount(const SPtr<Texture>& target);
+			static Vector2I GetThreadGroupCount(const TShared<Texture>& target);
 
 			/**
 			 * Returns a vector containing scale and offset (in that order) that will be applied to luminance values
@@ -121,10 +121,10 @@ namespace b3d
 			void Initialize() override;
 
 			/** Prepares GPU parameters for rendering. Must be called before Execute(). */
-			void Prepare(const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame);
+			void Prepare(const TShared<Texture>& sceneColor, const TShared<Texture>& histogram, const TShared<Texture>& prevFrame);
 
 			/** Executes the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			static PooledRenderTextureCreateInformation GetOutputDesc();
@@ -151,10 +151,10 @@ namespace b3d
 			void Initialize() override;
 
 			/** Prepares GPU parameters before rendering. */
-			void Prepare(const SPtr<Texture>& reducedHistogram, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+			void Prepare(const TShared<Texture>& reducedHistogram, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
 
 			/** Executes the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			static PooledRenderTextureCreateInformation GetOutputDesc();
@@ -186,13 +186,13 @@ namespace b3d
 			void Initialize() override;
 
 			/** Prepares GPU parameters before rendering. */
-			void Prepare(const SPtr<Texture>& input, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+			void Prepare(const TShared<Texture>& input, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
 
 			/** Executes the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& input);
+			static PooledRenderTextureCreateInformation GetOutputDesc(const TShared<Texture>& input);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -218,10 +218,10 @@ namespace b3d
 			void Initialize() override;
 
 			/** Prepares GPU parameters before rendering. */
-			void Prepare(const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+			void Prepare(const TShared<Texture>& curFrame, const TShared<Texture>& prevFrame, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
 
 			/** Executes the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			static PooledRenderTextureCreateInformation GetOutputDesc();
@@ -265,7 +265,7 @@ namespace b3d
 			void Prepare(const RenderSettings& settings);
 
 			/** Executes the post-process effect with the provided parameters, generating an unwrapped 2D LUT using the vertex & fragment shader pipeline. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTexture>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			PooledRenderTextureCreateInformation GetOutputDesc() const;
@@ -294,7 +294,7 @@ namespace b3d
 			void Initialize() override;
 
 			/** Executes the post-process effect with the provided parameters, generating a 3D LUT using a compute shader. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& output, const RenderSettings& settings);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& output, const RenderSettings& settings);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			PooledRenderTextureCreateInformation GetOutputDesc() const;
@@ -348,7 +348,7 @@ namespace b3d
 			 * @param	colorLUT		Color lookup table texture.
 			 * @param	settings		Render settings for the current view.
 			 */
-			void Prepare(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, const SPtr<Texture>& bloom, const SPtr<Texture>& colorLUT, const RenderSettings& settings);
+			void Prepare(const TShared<Texture>& sceneColor, const TShared<Texture>& eyeAdaptation, const TShared<Texture>& bloom, const TShared<Texture>& colorLUT, const RenderSettings& settings);
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the currently bound
@@ -357,7 +357,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Render target to write the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/** Returns the material variation matching the provided parameters. */
 			static TonemappingMaterial* GetVariation(bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA);
@@ -405,7 +405,7 @@ namespace b3d
 			 *								AUTO_EXPOSURE variation of this material.
 			 * @param	settings		Render settings for the current view.
 			 */
-			void Prepare(const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, const RenderSettings& settings);
+			void Prepare(const TShared<Texture>& input, float threshold, const TShared<Texture>& eyeAdaptation, const RenderSettings& settings);
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the currently bound
@@ -414,7 +414,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Render target to write the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -470,7 +470,7 @@ namespace b3d
 			 * @param	input			Texture to process.
 			 * @param	settings		Settings used for customizing the effect.
 			 */
-			void Prepare(const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings);
+			void Prepare(const TShared<Texture>& input, const ScreenSpaceLensFlareSettings& settings);
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
@@ -479,7 +479,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Render target to write the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -533,7 +533,7 @@ namespace b3d
 			 * @param	input			Texture to process.
 			 * @param	settings		Settings used for customizing the effect.
 			 */
-			void Prepare(const SPtr<Texture>& input, const ChromaticAberrationSettings& settings);
+			void Prepare(const TShared<Texture>& input, const ChromaticAberrationSettings& settings);
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
@@ -542,7 +542,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Render target to write the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -580,7 +580,7 @@ namespace b3d
 			 * @param	time			Time of the current frame, in seconds.
 			 * @param	settings		Settings used for customizing the effect.
 			 */
-			void Prepare(const SPtr<Texture>& input, float time, const FilmGrainSettings& settings);
+			void Prepare(const TShared<Texture>& input, float time, const FilmGrainSettings& settings);
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
@@ -589,7 +589,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Render target to write the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -645,7 +645,7 @@ namespace b3d
 			 *							in filtering). Only used if using the variation of this shader that supports additive
 			 *							input.
 			 */
-			void PrepareDirection(Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint = Color::kWhite, const SPtr<Texture>& additive = nullptr);
+			void PrepareDirection(Direction direction, const TShared<Texture>& source, float filterSize, const Color& tint = Color::kWhite, const TShared<Texture>& additive = nullptr);
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
@@ -654,7 +654,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Render target to write the results to.
 			 */
-			void ExecutePass(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void ExecutePass(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/**
 			 * Renders the post-process effect with the provided parameters. This is a convenience method that performs
@@ -669,7 +669,7 @@ namespace b3d
 			 *							in filtering). Only used if using the variation of this shader that supports additive
 			 *							input.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, float filterSize, const SPtr<RenderTexture>& destination, const Color& tint = Color::kWhite, const SPtr<Texture>& additive = nullptr);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, float filterSize, const TShared<RenderTexture>& destination, const Color& tint = Color::kWhite, const TShared<Texture>& additive = nullptr);
 
 			/**
 			 * Populates the provided uniform buffer with parameters required for a shader including gaussian blur.
@@ -680,7 +680,7 @@ namespace b3d
 			 * @param[in]	filterSize		Size of the blurring filter, in percent of the source texture. In range [0, 1].
 			 * @param[in]	tint			Optional tint to apply all filtered pixels.
 			 */
-			static void PopulateUniformBuffer(const GpuBufferMappedScope& uniforms, Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint = Color::kWhite);
+			static void PopulateUniformBuffer(const GpuBufferMappedScope& uniforms, Direction direction, const TShared<Texture>& source, float filterSize, const Color& tint = Color::kWhite);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -695,7 +695,7 @@ namespace b3d
 			static u32 CalcStdDistribution(float filterRadius, std::array<float, kMaxBlurSamples>& weights, std::array<float, kMaxBlurSamples>& offsets);
 
 			/** Calculates the radius of the blur kernel depending on the source texture size and provided scale. */
-			static float CalcKernelRadius(const SPtr<Texture>& source, float scale, Direction filterDir);
+			static float CalcKernelRadius(const TShared<Texture>& source, float scale, Direction filterDir);
 
 			GpuParameterUniformBuffer mUniformBufferParameter;
 			GpuParameterSampledTexture mInputTextureParameter;
@@ -746,7 +746,7 @@ namespace b3d
 			 * @param	view			View through which the depth of field effect is viewed.
 			 * @param	settings		Settings used to control depth of field rendering.
 			 */
-			void Prepare(const SPtr<Texture>& color, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings);
+			void Prepare(const TShared<Texture>& color, const TShared<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings);
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -754,13 +754,13 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	color			Input color texture to process.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& color);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& color);
 
 			/**
 			 * Returns the texture generated after the shader was executed. Only valid to call this in-between calls to
 			 * execute() & release(), with @p idx value 0 or 1.
 			 */
-			SPtr<PooledRenderTexture> GetOutput(u32 idx);
+			TShared<PooledRenderTexture> GetOutput(u32 idx);
 
 			/**
 			 * Releases the interally allocated output render textures. Must be called after each call to execute(), when the
@@ -782,8 +782,8 @@ namespace b3d
 			GpuParameterSampledTexture mColorTextureParameter;
 			GpuParameterSampledTexture mDepthTextureParameter;
 
-			SPtr<PooledRenderTexture> mOutput0;
-			SPtr<PooledRenderTexture> mOutput1;
+			TShared<PooledRenderTexture> mOutput0;
+			TShared<PooledRenderTexture> mOutput1;
 		};
 
 		/**
@@ -823,7 +823,7 @@ namespace b3d
 			 * @param	view			View through which the depth of field effect is viewed.
 			 * @param	settings		Settings used to control depth of field rendering.
 			 */
-			void Prepare(const SPtr<Texture>& focused, const SPtr<Texture>& near, const SPtr<Texture>& far, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings);
+			void Prepare(const TShared<Texture>& focused, const TShared<Texture>& near, const TShared<Texture>& far, const TShared<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings);
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -831,7 +831,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Texture to output the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -901,7 +901,7 @@ namespace b3d
 			 * @param	view			View through which the depth of field effect is viewed.
 			 * @param	settings		Settings used to control depth of field rendering.
 			 */
-			void Prepare(const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings);
+			void Prepare(const TShared<Texture>& input, const TShared<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings);
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -909,10 +909,10 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Texture to output the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
+			static PooledRenderTextureCreateInformation GetOutputDesc(const TShared<Texture>& target);
 
 			/** Returns the material variation matching the provided parameters. */
 			static BokehDOFPrepareMaterial* GetVariation(bool msaa);
@@ -970,7 +970,7 @@ namespace b3d
 			 * @param	settings		Settings used to control depth of field rendering.
 			 * @param	output			Texture to output the results to (needed for size calculations).
 			 */
-			void Prepare(const SPtr<Texture>& input, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output);
+			void Prepare(const TShared<Texture>& input, const RendererView& view, const DepthOfFieldSettings& settings, const TShared<RenderTarget>& output);
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -979,10 +979,10 @@ namespace b3d
 			 * @param	input			Input texture as generated by BokehDOFPrepare material.
 			 * @param	output			Texture to output the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& input, const TShared<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
+			static PooledRenderTextureCreateInformation GetOutputDesc(const TShared<Texture>& target);
 
 			/** Populates the common depth of field uniform buffer memory with values from the provided settings object. */
 			static void PopulateDofCommonParams(const GpuBufferMappedScope& uniforms, const DepthOfFieldSettings& settings, const RendererView& view);
@@ -998,9 +998,9 @@ namespace b3d
 			GpuParameterSampledTexture mBokehTextureParameter;
 			GpuParameterSampledTexture mDepthTextureParameter;
 
-			SPtr<VertexDescription> mTileVertexDescription;
-			SPtr<GpuBuffer> mTileIndexBuffer;
-			SPtr<GpuBuffer> mTileVertexBuffer;
+			TShared<VertexDescription> mTileVertexDescription;
+			TShared<GpuBuffer> mTileIndexBuffer;
+			TShared<GpuBuffer> mTileVertexBuffer;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(BokehDOFCombineUniformDefinition)
@@ -1039,7 +1039,7 @@ namespace b3d
 			 * @param	view			View through which the depth of field effect is viewed.
 			 * @param	settings		Settings used to control depth of field rendering.
 			 */
-			void Prepare(const SPtr<Texture>& unfocused, const SPtr<Texture>& focused, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings);
+			void Prepare(const TShared<Texture>& unfocused, const TShared<Texture>& focused, const TShared<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings);
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1047,7 +1047,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Texture to output the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/** Returns the material variation matching the provided parameters. */
 			static BokehDOFCombineMaterial* GetVariation(MSAAMode msaaMode);
@@ -1083,7 +1083,7 @@ namespace b3d
 			 * @param	view			View through which the depth of field effect is viewed.
 			 * @param	settings		Settings used to control the motion blur effect.
 			 */
-			void Prepare(const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const MotionBlurSettings& settings);
+			void Prepare(const TShared<Texture>& input, const TShared<Texture>& depth, const RendererView& view, const MotionBlurSettings& settings);
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1091,7 +1091,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Texture to output the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -1133,7 +1133,7 @@ namespace b3d
 			 * @param	source			Input depth texture to use as the source.
 			 * @param	srcMip			Mip level to read from the @p source texture.
 			 */
-			void Prepare(const SPtr<Texture>& source, u32 srcMip);
+			void Prepare(const TShared<Texture>& source, u32 srcMip);
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1144,7 +1144,7 @@ namespace b3d
 			 *							texture to read the input.
 			 * @param	dstRect			Destination rectangle to limit the writes to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& output, const Area2& srcRect, const Area2& dstRect);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTexture>& output, const Area2& srcRect, const Area2& dstRect);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -1180,7 +1180,7 @@ namespace b3d
 			 *
 			 * @param	source			Input texture to apply FXAA to.
 			 */
-			void Prepare(const SPtr<Texture>& source);
+			void Prepare(const TShared<Texture>& source);
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
@@ -1189,7 +1189,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Output target to which to write the antialiased image to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -1215,19 +1215,19 @@ namespace b3d
 		struct SSAOTextureInputs
 		{
 			/** Full resolution scene depth. Only used by final SSAO pass. */
-			SPtr<Texture> SceneDepth;
+			TShared<Texture> SceneDepth;
 
 			/** Full resolution buffer containing scene normals. Only used by final SSAO pass. */
-			SPtr<Texture> SceneNormals;
+			TShared<Texture> SceneNormals;
 
 			/** Precalculated texture containing downsampled normals/depth, to be used for AO input. */
-			SPtr<Texture> AoSetup;
+			TShared<Texture> AoSetup;
 
 			/** Texture containing AO from the previous pass. Only used if upsampling is enabled. */
-			SPtr<Texture> AoDownsampled;
+			TShared<Texture> AoDownsampled;
 
 			/** Tileable texture containing random rotations that will be applied to AO samples. */
-			SPtr<Texture> RandomRotations;
+			TShared<Texture> RandomRotations;
 		};
 
 		/** Shader that computes ambient occlusion using screen based methods. */
@@ -1260,7 +1260,7 @@ namespace b3d
 			 * @param	destination		Output texture to which to write the ambient occlusion data to.
 			 * @param	settings		Settings used to control the ambient occlusion effect.
 			 */
-			void Prepare(const RendererView& view, const SSAOTextureInputs& textures, const SPtr<RenderTexture>& destination, const AmbientOcclusionSettings& settings);
+			void Prepare(const RendererView& view, const SSAOTextureInputs& textures, const TShared<RenderTexture>& destination, const AmbientOcclusionSettings& settings);
 
 			/**
 			 * Renders the effect with the provided parameters, using the specified render target.
@@ -1268,7 +1268,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	destination		Output texture to which to write the ambient occlusion data to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& destination);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTexture>& destination);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -1319,7 +1319,7 @@ namespace b3d
 			 * @param	destination		Output texture to which to write the downsampled data to.
 			 * @param	depthRange		Valid depth range (in view space) within which nearby samples will be averaged.
 			 */
-			void Prepare(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Texture>& sceneNormals, const SPtr<RenderTexture>& destination, float depthRange);
+			void Prepare(const RendererView& view, const TShared<Texture>& sceneDepth, const TShared<Texture>& sceneNormals, const TShared<RenderTexture>& destination, float depthRange);
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1327,7 +1327,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	destination		Output texture to which to write the downsampled data to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& destination);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTexture>& destination);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -1372,7 +1372,7 @@ namespace b3d
 			 * @param	sceneDepth		Input texture containing scene depth.
 			 * @param	depthRange		Valid depth range (in view space) within which nearby samples will be averaged.
 			 */
-			void Prepare(const RendererView& view, const SPtr<Texture>& ao, const SPtr<Texture>& sceneDepth, float depthRange);
+			void Prepare(const RendererView& view, const TShared<Texture>& ao, const TShared<Texture>& sceneDepth, float depthRange);
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1380,7 +1380,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	destination		Output texture to which to write the blurred data to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& destination);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTexture>& destination);
 
 			/** Returns the material variation matching the provided parameters. */
 			static SSAOBlurMaterial* GetVariation(bool horizontal);
@@ -1491,7 +1491,7 @@ namespace b3d
 			 * @param	hiZ				Hierarchical Z buffer.
 			 * @param	settings		Parameters used for controling the SSR effect.
 			 */
-			void Prepare(const RendererView& view, GBufferTextures gbuffer, const SPtr<Texture>& sceneColor, const SPtr<Texture>& hiZ, const ScreenSpaceReflectionsSettings& settings);
+			void Prepare(const RendererView& view, GBufferTextures gbuffer, const TShared<Texture>& sceneColor, const TShared<Texture>& hiZ, const ScreenSpaceReflectionsSettings& settings);
 
 			/**
 			 * Renders the effect with the provided parameters.
@@ -1500,7 +1500,7 @@ namespace b3d
 			 * @param	destination		Render target to which to write the results to.
 			 * @param	view			Information about the view we're rendering from.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& destination, const RendererView& view);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& destination, const RendererView& view);
 
 			/**
 			 * Calculates a scale & bias that is used for transforming roughness into a fade out value. Anything that is below
@@ -1587,7 +1587,7 @@ namespace b3d
 			 * @param	jitter			Sub-pixel jitter applied to the projection matrix.
 			 * @param	exposure		Exposure to use when transforming from HDR to LDR image.
 			 */
-			void Prepare(const RendererView& view, const SPtr<Texture>& prevFrame, const SPtr<Texture>& curFrame, const SPtr<Texture>& velocity, const SPtr<Texture>& sceneDepth, const Vector2& jitter, float exposure);
+			void Prepare(const RendererView& view, const TShared<Texture>& prevFrame, const TShared<Texture>& curFrame, const TShared<Texture>& velocity, const TShared<Texture>& sceneDepth, const Vector2& jitter, float exposure);
 
 			/**
 			 * Renders the effect with the provided parameters.
@@ -1596,7 +1596,7 @@ namespace b3d
 			 * @param	view			Information about the view we're rendering from.
 			 * @param	destination		Render target to which to write the results to.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<RenderTarget>& destination);
+			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const TShared<RenderTarget>& destination);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -1649,7 +1649,7 @@ namespace b3d
 			 * @param	far				Far range (in view space) to end encoding the depth. Any depth higher than this will
 			 *							be encoded to 0.
 			 */
-			void Prepare(const SPtr<Texture>& depth, float near, float far);
+			void Prepare(const TShared<Texture>& depth, float near, float far);
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1657,7 +1657,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	output			Output texture to write the results in. Results will be written in the alpha channel.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -1727,7 +1727,7 @@ namespace b3d
 			 *
 			 * @param	coverage		Coverage texture as output by MSAACoverageMaterial.
 			 */
-			void Prepare(const SPtr<Texture>& coverage);
+			void Prepare(const TShared<Texture>& coverage);
 
 			/**
 			 * Renders the effect with the provided parameters, using the currently bound render target.

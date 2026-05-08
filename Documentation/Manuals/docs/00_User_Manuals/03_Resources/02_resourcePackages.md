@@ -102,7 +102,7 @@ To create a package with multiple resources, you need to work with the @b3d::Pac
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a new package
-SPtr<Package> package = B3DMakeShared<Package>();
+TShared<Package> package = B3DMakeShared<Package>();
 
 // Add resources to the package
 package->AddResource("BrickAlbedo", brickAlbedoTexture);
@@ -163,7 +163,7 @@ AcquirePackageLockResult result = GetPackageManager().AcquireReadLock(
 if (result == AcquirePackageLockResult::Acquired)
 {
 	// Can now read from the package
-	const SPtr<Package>& package = readLock->GetPackage();
+	const TShared<Package>& package = readLock->GetPackage();
 }
 ~~~~~~~~~~~~~
 
@@ -185,7 +185,7 @@ AcquirePackageLockResult result = GetPackageManager().AcquireWriteLock(
 if (result == AcquirePackageLockResult::Acquired)
 {
 	// Can now modify the package
-	const SPtr<Package>& package = writeLock->GetPackage();
+	const TShared<Package>& package = writeLock->GetPackage();
 }
 ~~~~~~~~~~~~~
 
@@ -251,7 +251,7 @@ Each resource in a package has associated metadata that can be retrieved without
 ~~~~~~~~~~~~~{.cpp}
 // Get resource metadata
 UUID resourceId = texture.GetId();
-SPtr<const PackageResourceMetaData> metadata =
+TShared<const PackageResourceMetaData> metadata =
 	GetPackageManager().GetResourceMetaData(resourceId);
 
 if (metadata)

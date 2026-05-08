@@ -111,7 +111,7 @@ void TestSuite::Run(TestOutput& output)
 		suite->Run(output);
 }
 
-void TestSuite::Add(const SPtr<TestSuite>& suite)
+void TestSuite::Add(const TShared<TestSuite>& suite)
 {
 	mSuites.push_back(suite);
 }

@@ -35,32 +35,32 @@ namespace b3d
 		 *
 		 * Will return null if there is no difference.
 		 */
-		SPtr<SerializedObject> GenerateDelta(const SPtr<IReflectable>& original, const SPtr<IReflectable>& modified, RTTIOperationContext& context, bool replicableOnly = false);
+		TShared<SerializedObject> GenerateDelta(const TShared<IReflectable>& original, const TShared<IReflectable>& modified, RTTIOperationContext& context, bool replicableOnly = false);
 
 		/**
 		 * Applies a previously generated delta to the provided object. This will essentially transform the
 		 * original object the differences were generated for into the modified version.
 		 */
-		void ApplyDelta(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, RTTIOperationContext& context);
+		void ApplyDelta(const TShared<IReflectable>& object, const TShared<SerializedObject>& delta, RTTIOperationContext& context);
 
 		/**
 		 * @name Internal
 		 * @{
 		 */
 
-		typedef UnorderedMap<IReflectable*, SPtr<SerializedObject>> ObjectMap;
+		typedef UnorderedMap<IReflectable*, TShared<SerializedObject>> ObjectMap;
 
 		/**
-		 * Recursive version of GenerateDelta(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool).
+		 * Recursive version of GenerateDelta(const TShared<IReflectable>&, const TShared<IReflectable>&, bool).
 		 *
-		 * @see		GenerateDelta(const SPtr<IReflectable>&, const SPtr<IReflectable>&, SerializationContext*, bool)
+		 * @see		GenerateDelta(const TShared<IReflectable>&, const TShared<IReflectable>&, SerializationContext*, bool)
 		 */
-		virtual SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) = 0;
+		virtual TShared<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) = 0;
 
 		/** @} */
 
 	protected:
-		typedef UnorderedMap<SPtr<SerializedObject>, SPtr<IReflectable>> DeltaObjectMap;
+		typedef UnorderedMap<TShared<SerializedObject>, TShared<IReflectable>> DeltaObjectMap;
 
 		/** Types of commands that are used when applying difference field values. */
 		enum DeltaCommandType
@@ -88,9 +88,9 @@ namespace b3d
 		{
 			RTTIField* Field;
 			u32 Type;
-			SPtr<IReflectable> Object;
+			TShared<IReflectable> Object;
 			u8* Value;
-			SPtr<DataStream> StreamValue;
+			TShared<DataStream> StreamValue;
 			u32 Size;
 			u32 TupleElementIndex = 0;
 
@@ -107,10 +107,10 @@ namespace b3d
 		 * Generates a set of commands that determine operations that need to be performed on @p object in order to apply all the changes from @p delta. Commands
 		 * are output in @p inOutDeltaCommands.
 		 */
-		virtual void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context) = 0;
+		virtual void GenerateDeltaApplyCommands(const TShared<IReflectable>& object, const TShared<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context) = 0;
 
 		/** Retrieves the appropriate IDeltaHandler from the provided object and calls the other GenerateDeltaApplyCommands overload. */
-		void GenerateDeltaApplyCommands(RTTIType* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context);
+		void GenerateDeltaApplyCommands(RTTIType* rtti, const TShared<IReflectable>& object, const TShared<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context);
 	};
 
 	/**
@@ -122,8 +122,8 @@ namespace b3d
 	class B3D_EXPORT BinaryDeltaHandler : public IDeltaHandler
 	{
 	protected:
-		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) override;
-		void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context) override;
+		TShared<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) override;
+		void GenerateDeltaApplyCommands(const TShared<IReflectable>& object, const TShared<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context) override;
 
 		/**
 		 * Generates delta commands for a single field entry (e.g. a single array or map entry, or the entire field if not a container).
@@ -139,7 +139,7 @@ namespace b3d
 		 * @param context			Serialization context.
 		 * @param allocator			Allocator to perform temporary allocations with.
 		 */
-		void GenerateDeltaCommandForFieldEntry(RTTIType* rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, void* mapKey, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, RTTIOperationContext& context, FrameAllocator& allocator);
+		void GenerateDeltaCommandForFieldEntry(RTTIType* rttiInstance, const TShared<IReflectable>& object, RTTIIteratorField& field, const TShared<ISerialized>& entryDelta, u32 arrayIndex, void* mapKey, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, RTTIOperationContext& context, FrameAllocator& allocator);
 
 		/**
 		 * Generates delta commands for a data block field.
@@ -148,7 +148,7 @@ namespace b3d
 		 * @param entryDelta		Object containing the delta value to apply.
 		 * @param outCommands		List of generated commands into which to output the commands.
 		 */
-		void GenerateDeltaCommandForDataBlockField(RTTIField& field, const SPtr<ISerialized>& entryDelta, FrameVector<DeltaCommand>& outCommands);
+		void GenerateDeltaCommandForDataBlockField(RTTIField& field, const TShared<ISerialized>& entryDelta, FrameVector<DeltaCommand>& outCommands);
 	};
 
 	/** Holds a single tuple element entry in SerializedTupleDelta. */
@@ -157,7 +157,7 @@ namespace b3d
 		SerializedTupleEntryDelta() = default;
 
 		u32 Index = 0; /**< Index of the tuple element. */
-		SPtr<ISerialized> Value; /**< Delta of the tuple element. */
+		TShared<ISerialized> Value; /**< Delta of the tuple element. */
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -173,11 +173,11 @@ namespace b3d
 	{
 		SerializedTupleDelta() = default;
 
-		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		TShared<ISerialized> Clone(bool cloneData = true) override;
 		u64 CalculateHash() const override;
-		bool Equals(const SPtr<ISerialized>& other) const override;
+		bool Equals(const TShared<ISerialized>& other) const override;
 
-		SPtr<ISerialized> Key;
+		TShared<ISerialized> Key;
 		TInlineArray<SerializedTupleEntryDelta, 2> Values;
 
 		/************************************************************************/
@@ -195,7 +195,7 @@ namespace b3d
 		SerializedArrayEntryDelta() = default;
 
 		u32 Index = 0;
-		SPtr<ISerialized> Value;
+		TShared<ISerialized> Value;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -211,9 +211,9 @@ namespace b3d
 	{
 		SerializedArrayDelta() = default;
 
-		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		TShared<ISerialized> Clone(bool cloneData = true) override;
 		u64 CalculateHash() const override;
-		bool Equals(const SPtr<ISerialized>& other) const override;
+		bool Equals(const TShared<ISerialized>& other) const override;
 
 		UnorderedMap<u32, SerializedArrayEntryDelta> Entries;
 		u32 ElementCount = 0;
@@ -232,7 +232,7 @@ namespace b3d
 	{
 		SerializedMapEntryDelta() = default;
 
-		SPtr<ISerialized> Value;
+		TShared<ISerialized> Value;
 		bool IsRemoved = false; /**< Will be set if the entry doesn't exist in the modified object. */
 
 		/************************************************************************/
@@ -249,11 +249,11 @@ namespace b3d
 	{
 		SerializedMapDelta() = default;
 
-		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		TShared<ISerialized> Clone(bool cloneData = true) override;
 		u64 CalculateHash() const override;
-		bool Equals(const SPtr<ISerialized>& other) const override;
+		bool Equals(const TShared<ISerialized>& other) const override;
 
-		UnorderedMap<SPtr<ISerialized>, SerializedMapEntryDelta> Entries;
+		UnorderedMap<TShared<ISerialized>, SerializedMapEntryDelta> Entries;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

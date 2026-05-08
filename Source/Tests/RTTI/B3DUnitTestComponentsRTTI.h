@@ -27,7 +27,7 @@ namespace b3d
 			return TID_UnitTestComponentA;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<UnitTestComponentA>();
 		}
@@ -53,7 +53,7 @@ namespace b3d
 			return TID_UnitTestComponentB;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<UnitTestComponentB>();
 		}

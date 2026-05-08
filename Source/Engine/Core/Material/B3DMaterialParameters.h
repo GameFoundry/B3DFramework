@@ -422,8 +422,8 @@ namespace b3d
 	class B3D_EXPORT MaterialParamTextureDataRenderProxy
 	{
 	public:
-		SPtr<render::Texture> Texture;
-		SPtr<render::SpriteImage> SpriteImage;
+		TShared<render::Texture> Texture;
+		TShared<render::SpriteImage> SpriteImage;
 		bool IsLoadStore;
 		TextureSurface Surface;
 	};
@@ -446,14 +446,14 @@ namespace b3d
 	class B3D_EXPORT MaterialParamBufferDataRenderProxy
 	{
 	public:
-		SPtr<render::GpuBuffer> Value;
+		TShared<render::GpuBuffer> Value;
 	};
 
 	/** Data for a single buffer parameter. */
 	class B3D_EXPORT MaterialParamBufferData : public IReflectable
 	{
 	public:
-		SPtr<GpuBuffer> Value;
+		TShared<GpuBuffer> Value;
 
 		friend class MaterialParamBufferDataRTTI;
 		static RTTIType* GetRttiStatic();
@@ -464,14 +464,14 @@ namespace b3d
 	class B3D_EXPORT MaterialParamSamplerStateDataRenderProxy
 	{
 	public:
-		SPtr<SamplerState> Value;
+		TShared<SamplerState> Value;
 	};
 
 	/** Data for a single sampler state parameter. */
 	class B3D_EXPORT MaterialParamSamplerStateData : public IReflectable
 	{
 	public:
-		SPtr<SamplerState> Value;
+		TShared<SamplerState> Value;
 
 		friend class MaterialParamSamplerStateDataRTTI;
 		static RTTIType* GetRttiStatic();
@@ -508,7 +508,7 @@ namespace b3d
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 		using ShaderType = CoreVariantHandleType<Shader, IsRenderProxy>;
 		using SpriteImageType = CoreVariantHandleType<SpriteImage, IsRenderProxy>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using BufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 		using ParamTextureDataType = typename TMaterialParamsTypes<IsRenderProxy>::TextureParamDataType;
 		using ParamBufferDataType = typename TMaterialParamsTypes<IsRenderProxy>::BufferParamDataType;
@@ -635,7 +635,7 @@ namespace b3d
 		 * @param[in]	name		Name of the shader parameter.
 		 * @param[out]	value		Output value of the parameter.
 		 */
-		void GetSamplerState(const String& name, SPtr<SamplerState>& value) const;
+		void GetSamplerState(const String& name, TShared<SamplerState>& value) const;
 
 		/**
 		 * Sets the value of a shader sampler state parameter with the specified name. If the parameter name or type is not
@@ -644,7 +644,7 @@ namespace b3d
 		 * @param[in]	name		Name of the shader parameter.
 		 * @param[in]	value		New value of the parameter.
 		 */
-		void SetSamplerState(const String& name, const SPtr<SamplerState>& value);
+		void SetSamplerState(const String& name, const TShared<SamplerState>& value);
 
 		/**
 		 * Checks does the data parameter with the specified name currently contains animated data. This could be
@@ -701,14 +701,14 @@ namespace b3d
 		void SetSpriteImage(const ParamData& param, const SpriteImageType& value);
 
 		/**
-		 * Equivalent to getBuffer(const String&, SPtr<GpuBuffer>&) except it uses the internal parameter reference
+		 * Equivalent to getBuffer(const String&, TShared<GpuBuffer>&) except it uses the internal parameter reference
 		 * directly, avoiding the name lookup. Caller must guarantee the parameter reference is valid and belongs to this
 		 * object.
 		 */
 		void GetBuffer(const ParamData& param, BufferType& value) const;
 
 		/**
-		 * Equivalent to setBuffer(const String&, const SPtr<GpuBuffer>&) except it uses the internal parameter reference
+		 * Equivalent to setBuffer(const String&, const TShared<GpuBuffer>&) except it uses the internal parameter reference
 		 * directly, avoiding the name lookup. Caller must guarantee the parameter reference is valid and belongs to this
 		 * object.
 		 */
@@ -749,18 +749,18 @@ namespace b3d
 		SpriteImageType GetOwningSpriteImage(const ParamData& param) const;
 
 		/**
-		 * Equivalent to getSamplerState(const String&, SPtr<SamplerState>&) except it uses the internal parameter reference
+		 * Equivalent to getSamplerState(const String&, TShared<SamplerState>&) except it uses the internal parameter reference
 		 * directly, avoiding the name lookup. Caller must guarantee the parameter reference is valid and belongs to this
 		 * object.
 		 */
-		void GetSamplerState(const ParamData& param, SPtr<SamplerState>& value) const;
+		void GetSamplerState(const ParamData& param, TShared<SamplerState>& value) const;
 
 		/**
-		 * Equivalent to setSamplerState(const String&, const SPtr<SamplerState>&) except it uses the internal parameter
+		 * Equivalent to setSamplerState(const String&, const TShared<SamplerState>&) except it uses the internal parameter
 		 * reference directly, avoiding the name lookup. Caller must guarantee the parameter reference is valid and belongs
 		 * to this object.
 		 */
-		void SetSamplerState(const ParamData& param, const SPtr<SamplerState>& value);
+		void SetSamplerState(const ParamData& param, const TShared<SamplerState>& value);
 
 		/**
 		 * Returns the default texture (one assigned when no other is provided), if available for the specified parameter.
@@ -774,14 +774,14 @@ namespace b3d
 		 * parameter. Parameter is represented using the internal parameter reference and the caller must guarantee the
 		 * parameter reference is valid and belongs to this object.
 		 */
-		void GetDefaultSamplerState(const ParamData& param, SPtr<SamplerState>& value) const;
+		void GetDefaultSamplerState(const ParamData& param, TShared<SamplerState>& value) const;
 
 	protected:
 		TInlineArray<ParamTextureDataType, 8> mTextureParameters;
 		TInlineArray<ParamBufferDataType, 4> mBufferParameters;
 		TInlineArray<ParamSamplerStateDataType, 2> mSamplerParameters;
 		TextureType* mDefaultTextureParams = nullptr;
-		SPtr<SamplerState>* mDefaultSamplerStateParams = nullptr;
+		TShared<SamplerState>* mDefaultSamplerStateParams = nullptr;
 	};
 
 	/**
@@ -845,10 +845,10 @@ namespace b3d
 		{
 		public:
 			/** Initializes the render proxy its main thread counterpart. */
-			MaterialParameters(const SPtr<Shader>& shader, const SPtr<b3d::MaterialParameters>& params);
+			MaterialParameters(const TShared<Shader>& shader, const TShared<b3d::MaterialParameters>& params);
 
 			/** @copydoc TMaterialParameters::TMaterialParameters(const ShaderType&, u64) */
-			MaterialParameters(const SPtr<Shader>& shader, u64 initialParamVersion = 1);
+			MaterialParameters(const TShared<Shader>& shader, u64 initialParamVersion = 1);
 
 			/**
 			 * Updates the stored parameters from the provided sync packet, allowing changes to be transfered between core objects and

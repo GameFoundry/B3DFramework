@@ -20,7 +20,7 @@ Before the camera can render anything, you need to assign the render target to w
 To assign the window, retrieve the @b3d::Viewport object from the camera, and set its target using the @b3d::Viewport::SetTarget method.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 camera->GetViewport()->SetTarget(primaryWindow);
 ~~~~~~~~~~~~~
 
@@ -82,7 +82,7 @@ Aspect ratio allows you to control the ratio of the camera's width and height. I
 Normally you want to set it to the ratio of the render target's width and height, as shown below.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 const auto& windowProperties = primaryWindow->GetRenderWindowProperties();
 
 float aspectRatio = windowProperties.Width / (float)windowProperties.Height;
@@ -102,7 +102,7 @@ camera->SetOrthographicSize(500.0f, 500.0f);
 For example, if you are making a 2D game, your world units are most likely pixels. In which case you will want to set the orthographic size to the same size as the render target size (resolution):
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 const auto& windowProps = primaryWindow->GetRenderWindowProperties();
 
 camera->SetOrthographicSize((float)windowProps.Width, (float)windowProps.Height);
@@ -264,7 +264,7 @@ Each camera can have custom render settings that control post-processing and vis
 
 ~~~~~~~~~~~~~{.cpp}
 // Create custom render settings
-SPtr<RenderSettings> settings = B3DMakeShared<RenderSettings>();
+TShared<RenderSettings> settings = B3DMakeShared<RenderSettings>();
 // ... configure settings (covered in rendering manuals)
 
 camera->SetRenderSettings(settings);

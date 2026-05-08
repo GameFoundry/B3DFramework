@@ -25,7 +25,7 @@ namespace b3d
 	ParticleColorSettings ScriptParticleColorOptions::FromInterop(const __ParticleColorSettingsInterop& value)
 	{
 		ParticleColorSettings output;
-		SPtr<TColorDistribution<ColorGradient>> tmpColor;
+		TShared<TColorDistribution<ColorGradient>> tmpColor;
 		ScriptColorDistribution* scriptObjectWrapperColor;
 		scriptObjectWrapperColor = ScriptColorDistribution::GetScriptObjectWrapper(value.Color);
 		if(scriptObjectWrapperColor != nullptr)
@@ -40,7 +40,7 @@ namespace b3d
 	{
 		__ParticleColorSettingsInterop output;
 		MonoObject* tmpColor;
-		SPtr<TColorDistribution<ColorGradient>> tmpColorcopy;
+		TShared<TColorDistribution<ColorGradient>> tmpColorcopy;
 		tmpColorcopy = B3DMakeShared<TColorDistribution<ColorGradient>>(value.Color);
 		tmpColor = ScriptColorDistribution::GetOrCreateScriptObject(tmpColorcopy);
 		output.Color = tmpColor;

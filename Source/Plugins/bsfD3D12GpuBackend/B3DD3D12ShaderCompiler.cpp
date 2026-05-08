@@ -41,7 +41,7 @@ const char* D3D12ShaderCompiler::GetShaderTarget(GpuProgramType type)
 	}
 }
 
-bool D3D12ShaderCompiler::CompileShader(const GpuProgramCreateInformation& desc, SPtr<GpuProgramBytecode>& bytecode)
+bool D3D12ShaderCompiler::CompileShader(const GpuProgramCreateInformation& desc, TShared<GpuProgramBytecode>& bytecode)
 {
 	const char* target = GetShaderTarget(desc.Type);
 	if (!target)

@@ -26,10 +26,10 @@ namespace b3d
 		void OnShutDown() override;
 
 		u32 GetDeviceCount() const override { return (u32)mDevices.size(); }
-		SPtr<GpuDevice> GetDevice(u32 index) const override { return mDevices[index]; }
+		TShared<GpuDevice> GetDevice(u32 index) const override { return mDevices[index]; }
 
 	private:
-		TInlineArray<SPtr<GpuDevice>, 1> mDevices;
+		TInlineArray<TShared<GpuDevice>, 1> mDevices;
 	};
 
 	/** Provides easy access to the NullGpuBackend. */

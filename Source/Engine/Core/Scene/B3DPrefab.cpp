@@ -44,7 +44,7 @@ Prefab::~Prefab()
 
 HPrefab Prefab::Create(const HSceneObject& sceneObject)
 {
-	SPtr<Prefab> newPrefab = CreateEmpty();
+	TShared<Prefab> newPrefab = CreateEmpty();
 	newPrefab->mUUID = UUIDGenerator::GenerateRandom(); // TODO - This should be done automatically on resource creation
 
 	const UnorderedMap<UUID, UUID>& remappingTable = newPrefab->ReplaceInternalHierarchy(sceneObject);
@@ -54,9 +54,9 @@ HPrefab Prefab::Create(const HSceneObject& sceneObject)
 	return B3DStaticResourceCast<Prefab>(GetResources().CreateResourceHandle(newPrefab, newPrefab->mUUID));
 }
 
-SPtr<Prefab> Prefab::CreateEmpty()
+TShared<Prefab> Prefab::CreateEmpty()
 {
-	SPtr<Prefab> newPrefab = B3DMakeSharedFromExisting<Prefab>(new(B3DAllocate<Prefab>()) Prefab());
+	TShared<Prefab> newPrefab = B3DMakeSharedFromExisting<Prefab>(new(B3DAllocate<Prefab>()) Prefab());
 	newPrefab->SetShared(newPrefab);
 
 	return newPrefab;
@@ -87,7 +87,7 @@ void Prefab::Destroy()
 
 UnorderedMap<UUID, UUID> Prefab::ReplaceInternalHierarchy(const HSceneObject& sceneObject)
 {
-	const SPtr<GameObjectCollection> newGameObjectCollection = GameObjectCollection::Create();
+	const TShared<GameObjectCollection> newGameObjectCollection = GameObjectCollection::Create();
 	HSceneObject newRoot = sceneObject->Clone(newGameObjectCollection, true);
 
 	// Remove objects that should not be saved
@@ -122,29 +122,29 @@ UnorderedMap<UUID, UUID> Prefab::ReplaceInternalHierarchy(const HSceneObject& sc
 	return remappedGameObjectIDs;
 }
 
-HSceneObject Prefab::Instantiate(const SPtr<SceneInstance>& sceneInstance) const
+HSceneObject Prefab::Instantiate(const TShared<SceneInstance>& sceneInstance) const
 {
 	if(!B3D_ENSURE(sceneInstance != nullptr))
 		return HSceneObject();
 
-	SPtr<SceneInstance> sceneInstanceMutableShared = sceneInstance;
+	TShared<SceneInstance> sceneInstanceMutableShared = sceneInstance;
 	return InstantiateInternal(sceneInstanceMutableShared);
 }
 
-SPtr<SceneInstance> Prefab::InstantiateAsScene() const
+TShared<SceneInstance> Prefab::InstantiateAsScene() const
 {
-	SPtr<SceneInstance> sceneInstance;
+	TShared<SceneInstance> sceneInstance;
 	InstantiateInternal(sceneInstance);
 
 	return sceneInstance;
 }
 
-HSceneObject Prefab::InstantiateInternal(SPtr<SceneInstance>& inOutSceneInstance) const
+HSceneObject Prefab::InstantiateInternal(TShared<SceneInstance>& inOutSceneInstance) const
 {
 	if(mRoot == nullptr)
 		return HSceneObject();
 
-	SPtr<GameObjectCollection> gameObjectCollection;
+	TShared<GameObjectCollection> gameObjectCollection;
 	if(inOutSceneInstance != nullptr)
 		gameObjectCollection = inOutSceneInstance->GetGameObjectCollection();
 	else
@@ -162,7 +162,7 @@ HSceneObject Prefab::InstantiateInternal(SPtr<SceneInstance>& inOutSceneInstance
 	return clone;
 }
 
-HSceneObject Prefab::Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection) const
+HSceneObject Prefab::Clone(const TShared<GameObjectCollection>& cloneOwnerCollection) const
 {
 	if(mRoot == nullptr)
 		return HSceneObject();

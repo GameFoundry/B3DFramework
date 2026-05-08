@@ -17,7 +17,7 @@ Ray ray(origin, direction);
 PhysicsQueryHit hitInfo;
 
 // Cast a ray into the scene and return information about first object hit
-const SPtr<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
+const TShared<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
 if (physicsScene->RayCast(ray, hitInfo))
 {
 	HCollider hitCollider = hitInfo.Collider;
@@ -67,7 +67,7 @@ Sphere sphere(Vector3::kZero, 0.5f);
 Vector3 direction(0.0f, 0.0f, -1.0f);
 
 // Find all objects intersecting the sphere traveling in the specified direction
-const SPtr<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
+const TShared<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
 Vector<PhysicsQueryHit> hits = physicsScene->SphereCastAll(sphere, direction);
 
 for (auto& entry : hits)
@@ -110,7 +110,7 @@ Vector3 direction(0.0f, 0.0f, -1.0f);
 
 // Find closest object intersecting the box traveling in the specified direction
 PhysicsQueryHit hitInfo;
-const SPtr<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
+const TShared<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
 if (physicsScene->BoxCast(box, direction, hitInfo))
 {
 	HCollider hitCollider = hitInfo.Collider;
@@ -142,7 +142,7 @@ Vector3 direction(0.0f, 0.0f, -1.0f);
 Ray ray(origin, direction);
 
 // See if the ray intersects anything while traveling in the specified direction
-const SPtr<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
+const TShared<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
 if (physicsScene->RayCastAny(ray))
 	B3D_LOG(Info, LogPhysics, "Found hit!");
 ~~~~~~~~~~~~~
@@ -174,7 +174,7 @@ They all share a common interface. As input they take a shape with its position 
 Sphere sphere(Vector3::kZero, 0.5f);
 
 // Find all objects overlapping the sphere
-const SPtr<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
+const TShared<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
 Vector<HCollider> overlaps = physicsScene->SphereOverlap(sphere);
 
 for (auto& entry : overlaps)
@@ -196,7 +196,7 @@ This is a set of overlap methods that returns only a boolean value indicating if
 Sphere sphere(Vector3::kZero, 0.5f);
 
 // Check if sphere overlaps anything
-const SPtr<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
+const TShared<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
 if (physicsScene->SphereOverlapAny(sphere))
 	B3D_LOG(Info, LogPhysics, "Found overlap!");
 ~~~~~~~~~~~~~

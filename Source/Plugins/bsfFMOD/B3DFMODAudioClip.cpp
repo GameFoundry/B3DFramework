@@ -67,7 +67,7 @@ FMOD_RESULT F_CALLBACK PCMSetPosCallback(FMOD_SOUND* sound, int subsound, unsign
 	return FMOD_OK;
 }
 
-FMODAudioClip::FMODAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
+FMODAudioClip::FMODAudioClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
 	: AudioClip(samples, streamSize, sampleCount, createInformation)
 {}
 
@@ -100,7 +100,7 @@ void FMODAudioClip::Initialize()
 	// If streaming is not required, create the sound right away
 	if(!RequiresStreaming())
 	{
-		SPtr<DataStream> stream;
+		TShared<DataStream> stream;
 		u32 offset = 0;
 		if(mSourceStreamData != nullptr) // If it's already loaded in memory, use it directly
 			stream = mSourceStreamData;
@@ -219,14 +219,14 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 		exInfo.length = mStreamSize;
 		exInfo.fileoffset = mStreamOffset;
 
-		SPtr<FileDataStream> fileStream = std::static_pointer_cast<FileDataStream>(mStreamData);
+		TShared<FileDataStream> fileStream = std::static_pointer_cast<FileDataStream>(mStreamData);
 		pathStr = fileStream->GetPath().ToString();
 
 		streamData = pathStr.c_str();
 	}
 	else
 	{
-		SPtr<MemoryDataStream> memStream = std::static_pointer_cast<MemoryDataStream>(mStreamData);
+		TShared<MemoryDataStream> memStream = std::static_pointer_cast<MemoryDataStream>(mStreamData);
 
 		if(mInformation.ReadMode == AudioReadMode::Stream)
 		{
@@ -326,7 +326,7 @@ void FMODAudioClip::ReleaseStreamingSound(FMOD::Sound* sound)
 	sound->release();
 }
 
-SPtr<DataStream> FMODAudioClip::GetSourceStream(u32& outSize)
+TShared<DataStream> FMODAudioClip::GetSourceStream(u32& outSize)
 {
 	outSize = mSourceStreamSize;
 	mSourceStreamData->Seek(0);

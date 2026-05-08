@@ -51,7 +51,7 @@ namespace b3d
 				const u32 parameterOffset = CalculateParameterOffset(mappedRegion.GetBuffer(), suballocationIndex, arrayIndex);
 				const GpuDataParameterTypeInformation& typeInformation = b3d::GpuParameterSet::kParamSizes.Lookup[mMemberInformation.Type];
 
-				const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+				const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 				const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 				const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 
@@ -84,7 +84,7 @@ namespace b3d
 				const u32 parameterOffset = CalculateParameterOffset(mappedRegion.GetBuffer(), suballocationIndex, arrayIndex);
 				const GpuDataParameterTypeInformation& typeInformation = b3d::GpuParameterSet::kParamSizes.Lookup[mMemberInformation.Type];
 
-				const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+				const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 				const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 				const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 
@@ -101,7 +101,7 @@ namespace b3d
 
 		protected:
 			/** Calculates the byte offset for a parameter accounting for sub-allocations and array indices. */
-			u32 CalculateParameterOffset(const SPtr<GpuBuffer>& buffer, u32 suballocationIndex, u32 arrayIndex) const
+			u32 CalculateParameterOffset(const TShared<GpuBuffer>& buffer, u32 suballocationIndex, u32 arrayIndex) const
 			{
 				// Calculate base parameter offset within a single uniform block
 				const u32 parameterOffset = (mMemberInformation.CpuOffset + arrayIndex * mMemberInformation.ArrayElementStride) * sizeof(u32);
@@ -162,9 +162,9 @@ namespace b3d
 			 * Allocates a new buffer that can store all the members defined in this uniform buffer. For buffers that are modified every frame
 			 * prefer using AllocateTransient() instead.
 			 */
-			SPtr<GpuBuffer> CreateBuffer(GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess) const
+			TShared<GpuBuffer> CreateBuffer(GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess) const
 			{
-				const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+				const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 				if(gpuDevice)
 					return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, flags, 1), GpuObjectCreateFlag::RenderThreadDestroy);
 
@@ -176,9 +176,9 @@ namespace b3d
 			 * it may store multiple instances of the data (e.g. one for each different objects). For buffers that are modified every frame
 			 * prefer using AllocateTransient() instead.
 			 */
-			SPtr<GpuBuffer> CreateBuffer(u32 count, GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess) const
+			TShared<GpuBuffer> CreateBuffer(u32 count, GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess) const
 			{
-				const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+				const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 				if(gpuDevice)
 					return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, flags, count), GpuObjectCreateFlag::RenderThreadDestroy);
 
@@ -262,7 +262,7 @@ namespace b3d
 		void Initialize() override                                                                                                                              \
 		{                                                                                                                                                       \
 			mMembers = GetEntries();                                                                                                                            \
-			const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();                                                                           \
+			const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();                                                                           \
 			if(gpuDevice)                                                                                                                                       \
 			{                                                                                                                                                   \
 				GpuUniformBufferInformation bufferInformation = gpuDevice->GenerateUniformBufferInformation(#Name, mMembers);                                   \

@@ -18,7 +18,7 @@ namespace b3d
 
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableObjectRTTI : public TRTTIType<ManagedSerializableObject, IReflectable, ManagedSerializableObjectRTTI>
 	{
-		TArray<SPtr<ManagedSerializableFieldDataEntry>> mFieldEntries;
+		TArray<TShared<ManagedSerializableFieldDataEntry>> mFieldEntries;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mObjInfo, 0)
@@ -30,15 +30,15 @@ namespace b3d
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
-				SPtr<ManagedObjectInfo> currentTypeObjectInfo = object.mObjInfo;
+				TShared<ManagedObjectInfo> currentTypeObjectInfo = object.mObjInfo;
 				while(currentTypeObjectInfo != nullptr)
 				{
 					for(const auto& memberInfo : currentTypeObjectInfo->Members)
 					{
 						if(memberInfo->IsSerializable())
 						{
-							const SPtr<ManagedSerializableFieldKey> fieldKey = ManagedSerializableFieldKey::Create((u16)memberInfo->ParentTypeId, (u16)memberInfo->FieldId);
-							const SPtr<ManagedSerializableFieldData> fieldData = object.GetFieldData(memberInfo);
+							const TShared<ManagedSerializableFieldKey> fieldKey = ManagedSerializableFieldKey::Create((u16)memberInfo->ParentTypeId, (u16)memberInfo->FieldId);
+							const TShared<ManagedSerializableFieldData> fieldData = object.GetFieldData(memberInfo);
 
 							mFieldEntries.Add(ManagedSerializableFieldDataEntry::Create(fieldKey, fieldData));
 						}
@@ -77,7 +77,7 @@ namespace b3d
 			return TID_ScriptSerializableObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return ManagedSerializableObject::CreateEmpty();
 		}

@@ -19,7 +19,7 @@ namespace b3d
 	public:
 		static constexpr const char* kSystemName = "bsfRenderBeast";
 
-		SPtr<render::Renderer> Create() override;
+		TShared<render::Renderer> Create() override;
 		const String& Name() const override;
 	};
 

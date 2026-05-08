@@ -270,7 +270,7 @@ namespace b3d
 		 * Creates a new render window using the specified options. Optionally makes the created window a child of another
 		 * window.
 		 */
-		static SPtr<RenderWindow> Create(const RenderWindowCreateInformation& createInformation, const SPtr<RenderWindow>& parentWindow = nullptr);
+		static TShared<RenderWindow> Create(const RenderWindowCreateInformation& createInformation, const TShared<RenderWindow>& parentWindow = nullptr);
 
 		/** Triggers when the OS requests that the window is closed (e.g. user clicks on the X button in the title bar). */
 		Event<void()> OnCloseRequested;
@@ -294,7 +294,7 @@ namespace b3d
 		friend class RenderWindowManager;
 		friend class render::RenderWindow;
 
-		RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
+		RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow);
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 	protected:
@@ -327,12 +327,12 @@ namespace b3d
 		{
 			using Super = RenderTarget;
 		public:
-			RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const SPtr<RenderWindow>& parentWindow);
+			RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const TShared<RenderWindow>& parentWindow);
 			~RenderWindow() override = default;
 
 			void Initialize() override;
 			void Destroy() override;
-			TAsyncOp<SPtr<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex = 0, u32 mipLevel = 0, u32 arrayLayer = 0) override;
+			TAsyncOp<TShared<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex = 0, u32 mipLevel = 0, u32 arrayLayer = 0) override;
 
 			/** Called by the GPU backend after it requests swap chain back buffer to be presented. */
 			virtual void NotifySwapBuffersRequested();
@@ -347,7 +347,7 @@ namespace b3d
 			const RenderWindowProperties& GetRenderWindowProperties() const { return mRenderWindowProperties; }
 
 			/** Returns the internal render window surface, if any. */
-			const SPtr<IRenderWindowSurface>& GetRenderWindowSurface() const { return mRenderWindowSurface; }
+			const TShared<IRenderWindowSurface>& GetRenderWindowSurface() const { return mRenderWindowSurface; }
 
 			/** Triggers whenever the window changes properties that are relevant for the swap chain. */
 			virtual void DoOnSwapChainPropertiesModified();
@@ -370,7 +370,7 @@ namespace b3d
 			u64 mPlatformWindowHandle = 0;
 			bool mShowOnSwap = false;
 			bool mIsRedrawRequested = false;
-			SPtr<IRenderWindowSurface> mRenderWindowSurface;
+			TShared<IRenderWindowSurface> mRenderWindowSurface;
 		};
 
 		/** Structure used for initializing an implementation of RenderWindowSurface. */
@@ -415,9 +415,9 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to issue copy commands into.
 			 * @return					Async operation that completes when read is complete.
 			 */
-			virtual TAsyncOp<SPtr<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer)
+			virtual TAsyncOp<TShared<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer)
 			{
-				TAsyncOp<SPtr<PixelData>> op;
+				TAsyncOp<TShared<PixelData>> op;
 				op.CompleteOperation(nullptr);
 
 				return op;

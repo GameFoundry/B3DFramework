@@ -62,8 +62,8 @@ namespace b3d
 	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteTexture : public CoreVariantType<SpriteImage, false>
 	{
 	public:
-		SPtr<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) override { return mDefaultAllocatedImage; }
-		SPtr<SpriteImageAllocation> FindOrAllocateScaledImage(float scale) override { return mDefaultAllocatedImage; }
+		TShared<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) override { return mDefaultAllocatedImage; }
+		TShared<SpriteImageAllocation> FindOrAllocateScaledImage(float scale) override { return mDefaultAllocatedImage; }
 
 		/** Retrieves the atlas texture where the image is stored. */
 		B3D_SCRIPT_EXPORT(ExportName(Texture), Property(Getter))
@@ -82,10 +82,10 @@ namespace b3d
 		static HSpriteTexture Create(const SpriteTextureCreateInformation& createInformation);
 
 		/** Creates a new SpriteTexture without a resource handle. Use Create() for normal use. */
-		static SPtr<SpriteTexture> CreateShared(const HTexture& texture);
+		static TShared<SpriteTexture> CreateShared(const HTexture& texture);
 
 		/** Creates a new SpriteTexture without a resource handle. Use Create() for normal use. */
-		static SPtr<SpriteTexture> CreateShared(const SpriteTextureCreateInformation& createInformation);
+		static TShared<SpriteTexture> CreateShared(const SpriteTextureCreateInformation& createInformation);
 
 	private:
 		friend class SpriteTextureRTTI;
@@ -96,7 +96,7 @@ namespace b3d
 
 		void Initialize() override;
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
@@ -108,7 +108,7 @@ namespace b3d
 		/************************************************************************/
 
 		/**	Creates a new empty and uninitialized sprite texture. */
-		static SPtr<SpriteTexture> CreateEmpty();
+		static TShared<SpriteTexture> CreateEmpty();
 
 	public:
 		friend class SpriteTextureRTTI;
@@ -133,12 +133,12 @@ namespace b3d
 		{
 		public:
 			/**	Sets the atlas texture to utilize. */
-			void SetAtlasTexture(const SPtr<Texture>& texture) { mAtlasTexture = texture; }
+			void SetAtlasTexture(const TShared<Texture>& texture) { mAtlasTexture = texture; }
 
 		private:
 			friend class b3d::SpriteTexture;
 
-			SpriteTexture(const SpriteTextureCreateInformation& createInformation, const SPtr<SpriteImageAllocation>& defaultAllocatedImage);
+			SpriteTexture(const SpriteTextureCreateInformation& createInformation, const TShared<SpriteImageAllocation>& defaultAllocatedImage);
 
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 

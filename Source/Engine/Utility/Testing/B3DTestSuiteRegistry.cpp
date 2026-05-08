@@ -4,7 +4,7 @@
 
 using namespace b3d;
 
-void TestSuiteRegistry::RegisterSuite(const SPtr<TestSuite>& suite)
+void TestSuiteRegistry::RegisterSuite(const TShared<TestSuite>& suite)
 {
 	mSuites.push_back(suite);
 }

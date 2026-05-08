@@ -135,7 +135,7 @@ void CharacterController::OnDisabled()
 
 void CharacterController::OnEnabled()
 {
-	const SPtr<SceneInstance>& scene = SO()->GetScene();
+	const TShared<SceneInstance>& scene = SO()->GetScene();
 
 	mInformation.Position = SO()->GetTransform().GetPosition();
 	mImplementation = scene->GetPhysicsScene()->CreateCharacterController(*this, mInformation);

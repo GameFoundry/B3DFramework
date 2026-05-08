@@ -30,11 +30,11 @@ namespace b3d
 	{
 		using PassType = CoreVariantType<Pass, IsRenderProxy>;
 
-		TPrecompiledVariationData(const TInlineArray<SPtr<PassType>, 1>& precompiledPasses = {})
+		TPrecompiledVariationData(const TInlineArray<TShared<PassType>, 1>& precompiledPasses = {})
 			: PrecompiledPasses(precompiledPasses)
 		{ }
 
-		TInlineArray<SPtr<PassType>, 1> PrecompiledPasses;
+		TInlineArray<TShared<PassType>, 1> PrecompiledPasses;
 	};
 
 	using PrecompiledVariationData = TPrecompiledVariationData<false>;
@@ -78,7 +78,7 @@ namespace b3d
 		virtual ~TVariation() = default;
 
 		/**	Returns a pass with the specified index. */
-		SPtr<PassType> GetPass(u32 passIndex) const;
+		TShared<PassType> GetPass(u32 passIndex) const;
 
 		/**	Returns total number of passes. */
 		u32 GetPassCount() const;
@@ -95,7 +95,7 @@ namespace b3d
 		 */
 
 		/** Assigns a set of compiled passes to the variation. This should be called only when a variation has not been initialized with precompiled pass data, and compilation for the variation finished. */
-		void SetCompiledPassData(TInlineArray<SPtr<PassType>, 1> compiledPasses);
+		void SetCompiledPassData(TInlineArray<TShared<PassType>, 1> compiledPasses);
 
 		/** Sets the shader that owns this variation. */
 		void SetOwner(const WeakSPtr<ShaderType>& owner);
@@ -104,10 +104,10 @@ namespace b3d
 
 	protected:
 		/** Returns a reference to itself using the most derived type. */
-		virtual SPtr<VariationType> GetSelf() = 0;
+		virtual TShared<VariationType> GetSelf() = 0;
 
 		WeakSPtr<ShaderType> mOwner;
-		TInlineArray<SPtr<PassType>, 1> mPasses;
+		TInlineArray<TShared<PassType>, 1> mPasses;
 		bool mHasPassData = false;
 		bool mIsCompiled = false;
 	};
@@ -137,19 +137,19 @@ namespace b3d
 		 * @param precompiledData		Optional set of precompiled variation data. If not provided, you must manually call Compile() on the variation before use.
 		 * @return						Newly creted variation.
 		 */
-		static SPtr<Variation> Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData = {});
+		static TShared<Variation> Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData = {});
 
 	protected:
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 		void MarkRenderProxyDirty(ShaderVariationDirtyFlags flags) override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 		void SyncToRenderProxy() override;
 
-		SPtr<Variation> GetSelf() override { return std::static_pointer_cast<Variation>(GetShared()); }
+		TShared<Variation> GetSelf() override { return std::static_pointer_cast<Variation>(GetShared()); }
 
 		/**	Creates a new variation but doesn't initialize it. */
-		static SPtr<Variation> CreateEmpty();
+		static TShared<Variation> CreateEmpty();
 
 	private:
 		struct SyncPacket;
@@ -185,16 +185,16 @@ namespace b3d
 			Variation(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData);
 
 			/** @copydoc b3d::Variation::Create(const WeakSPtr<Shader>&, const String&, const ShaderVariationParameters&, const Optional<PrecompiledVariationData>&) */
-			static SPtr<Variation> Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData = {});
+			static TShared<Variation> Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData = {});
 
 			/**	Creates a new empty variation. */
-			static SPtr<Variation> CreateEmpty();
+			static TShared<Variation> CreateEmpty();
 
 		protected:
 			friend class b3d::Variation;
 
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
-			SPtr<Variation> GetSelf() override { return std::static_pointer_cast<Variation>(GetShared()); }
+			TShared<Variation> GetSelf() override { return std::static_pointer_cast<Variation>(GetShared()); }
 
 		private:
 			/************************************************************************/

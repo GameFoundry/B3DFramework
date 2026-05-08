@@ -136,7 +136,7 @@ namespace b3d
 
 		/** Data stream containing the .ttf/.otf font data. */
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		SPtr<MemoryDataStream> FontData;
+		TShared<MemoryDataStream> FontData;
 	};
 
 	/** Descriptor structure used for initialization of a Font. */
@@ -164,7 +164,7 @@ namespace b3d
 		 * @return			Bitmap object if it exists, false otherwise.
 		 */
 		B3D_SCRIPT_EXPORT()
-		SPtr<FontBitmapInformation> GetBitmap(float size) const;
+		TShared<FontBitmapInformation> GetBitmap(float size) const;
 
 		/**
 		 * Finds a rendered bitmap closest to the provided size.
@@ -236,10 +236,10 @@ namespace b3d
 		void Destroy() override;
 
 		/** Creates a new font as a pointer instead of a resource handle. */
-		static SPtr<Font> CreateShared(const FontCreateInformation& createInformation);
+		static TShared<Font> CreateShared(const FontCreateInformation& createInformation);
 
 		/** Creates a Font without initializing it. */
-		static SPtr<Font> CreateEmpty();
+		static TShared<Font> CreateEmpty();
 
 		/** Retrieves font size that is quantized in a way we can use it to perform bitmap lookup. */
 		static float GetQuantizedFontSize(float size);
@@ -267,7 +267,7 @@ namespace b3d
 	private:
 		FontInformation mInformation;
 
-		UnorderedMap<float, SPtr<FontBitmapInformation>> mCharactersByPointSize;
+		UnorderedMap<float, TShared<FontBitmapInformation>> mCharactersByPointSize;
 		Vector<FontBitmapPage> mFontPages;
 
 		struct Implementation;
@@ -285,8 +285,8 @@ namespace b3d
 	/** Contains a rendered bitmap for a single glyph. */
 	struct GlyphBitmap
 	{
-		SPtr<render::Texture> GlyphTexture;
-		SPtr<render::Texture> AtlasTexture;
+		TShared<render::Texture> GlyphTexture;
+		TShared<render::Texture> AtlasTexture;
 		Size2UI Size;
 		Vector2I PositionInAtlas;
 	};
@@ -307,7 +307,7 @@ namespace b3d
 		void BlitGlyphs(Vector<GlyphBitmap> glyphBitmaps);
 		
 	private:
-		SPtr<render::GpuCommandBufferPool> mCommandBufferPool;
+		TShared<render::GpuCommandBufferPool> mCommandBufferPool;
 	};
 
 	/** @} */

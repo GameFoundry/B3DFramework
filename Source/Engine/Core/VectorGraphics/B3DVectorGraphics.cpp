@@ -244,14 +244,14 @@ namespace b3d
 		return *this;
 	}
 
-	SPtr<render::VectorPathRenderable> VectorPath::CreateRenderable(const VectorGraphicsSettings& settings) const
+	TShared<render::VectorPathRenderable> VectorPath::CreateRenderable(const VectorGraphicsSettings& settings) const
 	{
 		return B3DMakeShared<render::NVGVectorPathRenderable>(*this, settings);
 	}
 
-	SPtr<VectorPath> VectorPath::CreateShared(const Size2& canvasSize)
+	TShared<VectorPath> VectorPath::CreateShared(const Size2& canvasSize)
 	{
-		SPtr<VectorPath> newVectorPath = B3DMakeSharedFromExisting<VectorPath>(new(B3DAllocate<VectorPath>()) VectorPath(canvasSize));
+		TShared<VectorPath> newVectorPath = B3DMakeSharedFromExisting<VectorPath>(new(B3DAllocate<VectorPath>()) VectorPath(canvasSize));
 		newVectorPath->SetShared(newVectorPath);
 		newVectorPath->Initialize();
 
@@ -260,7 +260,7 @@ namespace b3d
 
 	HVectorPath VectorPath::Create(const Size2& canvasSize)
 	{
-		const SPtr<VectorPath> newVectorPath = CreateShared(canvasSize);
+		const TShared<VectorPath> newVectorPath = CreateShared(canvasSize);
 
 		return B3DStaticResourceCast<VectorPath>(GetResources().CreateResourceHandle(newVectorPath));
 	}

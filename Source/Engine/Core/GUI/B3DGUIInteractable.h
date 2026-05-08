@@ -71,14 +71,14 @@ namespace b3d
 		 * context menu is wanted.
 		 */
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(ContextMenu))
-		void SetContextMenu(const SPtr<GUIContextMenu>& menu) { mContextMenu = menu; }
+		void SetContextMenu(const TShared<GUIContextMenu>& menu) { mContextMenu = menu; }
 
 		/**
 		 * Sets a navigation group that determines in what order are GUI elements visited when using a keyboard or gamepad
 		 * to switch between the elements. If you don't set a navigation group the elements will inherit the default
 		 * navigation group from their parent GUIWidget. Also see setNavGroupIndex().
 		 */
-		void SetNavigationGroup(const SPtr<GUINavGroup>& navGroup);
+		void SetNavigationGroup(const TShared<GUINavGroup>& navGroup);
 
 		/**
 		 * Sets the index that determines in what order is the element visited compared to all the other elements in the
@@ -140,7 +140,7 @@ namespace b3d
 		virtual void NotifyStateFlagsChanged();
 
 		/** Returns the navigation group this element belongs to. See setNavGroup(). */
-		SPtr<GUINavGroup> GetNavigationGroup() const;
+		TShared<GUINavGroup> GetNavigationGroup() const;
 
 		/** Transitions the GUI element into a new state by adding state flags. */
 		void AddStateFlags(GUIElementStateFlags flags);
@@ -155,7 +155,7 @@ namespace b3d
 		virtual bool AcceptDragAndDrop(const GUIPhysicalPoint& position, u32 typeId) const { return false; }
 
 		/**	Returns a context menu if a GUI element has one. Otherwise returns nullptr. */
-		virtual SPtr<GUIContextMenu> GetContextMenu() const;
+		virtual TShared<GUIContextMenu> GetContextMenu() const;
 
 		/**	Returns text to display when hovering over the element. Returns empty string if no tooltip. */
 		virtual String GetTooltip() const { return StringUtility::kBlank; }
@@ -166,8 +166,8 @@ namespace b3d
 		GUIElementOptions mOptionFlags;
 
 	private:
-		SPtr<GUIContextMenu> mContextMenu;
-		SPtr<GUINavGroup> mNavigationGroup;
+		TShared<GUIContextMenu> mContextMenu;
+		TShared<GUINavGroup> mNavigationGroup;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

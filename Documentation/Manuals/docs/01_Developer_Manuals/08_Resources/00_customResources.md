@@ -47,7 +47,7 @@ public:
 	static HMyResource Create()
 	{
 		// Standard core object initialization
-		SPtr<MyResource> sptr = B3DMakeSharedFromExisting<MyResource>(new(B3DAllocate<MyResource>()) MyResource());
+		TShared<MyResource> sptr = B3DMakeSharedFromExisting<MyResource>(new(B3DAllocate<MyResource>()) MyResource());
 		sptr->SetShared(sptr);
 		sptr->Initialize();
 	

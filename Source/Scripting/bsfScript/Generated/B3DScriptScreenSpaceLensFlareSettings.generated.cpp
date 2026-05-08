@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptScreenSpaceLensFlareSettings::ScriptScreenSpaceLensFlareSettings(const SPtr<ScreenSpaceLensFlareSettings>& nativeObject)
+	ScriptScreenSpaceLensFlareSettings::ScriptScreenSpaceLensFlareSettings(const TShared<ScreenSpaceLensFlareSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -66,7 +66,7 @@ namespace b3d
 	}
 	void ScriptScreenSpaceLensFlareSettings::InternalScreenSpaceLensFlareSettings(MonoObject* scriptObject)
 	{
-		SPtr<ScreenSpaceLensFlareSettings> nativeObject = B3DMakeShared<ScreenSpaceLensFlareSettings>();
+		TShared<ScreenSpaceLensFlareSettings> nativeObject = B3DMakeShared<ScreenSpaceLensFlareSettings>();
 		ScriptObjectWrapper::Create<ScriptScreenSpaceLensFlareSettings>(nativeObject, scriptObject);
 	}
 

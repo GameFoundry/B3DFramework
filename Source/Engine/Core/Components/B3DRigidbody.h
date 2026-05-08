@@ -506,10 +506,10 @@ namespace b3d
 		virtual void RemoveFromScene() = 0;
 
 		/** Assigns a new child shape to the rigidbody. */
-		virtual void AttachShape(const SPtr<ColliderShape>& shape) = 0;
+		virtual void AttachShape(const TShared<ColliderShape>& shape) = 0;
 
 		/** Removes a shape that was previously attached to the rigidbody. */
-		virtual void DetachShape(const SPtr<ColliderShape>& shape) = 0;
+		virtual void DetachShape(const TShared<ColliderShape>& shape) = 0;
 	};
 
 	/** @} */

@@ -14,7 +14,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ScreenSpaceLensFlareSettings")
 
-		ScriptScreenSpaceLensFlareSettings(const SPtr<ScreenSpaceLensFlareSettings>& nativeObject);
+		ScriptScreenSpaceLensFlareSettings(const TShared<ScreenSpaceLensFlareSettings>& nativeObject);
 		~ScriptScreenSpaceLensFlareSettings();
 
 		static void SetupScriptBindings();

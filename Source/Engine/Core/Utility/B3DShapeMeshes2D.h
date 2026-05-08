@@ -32,7 +32,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidQuad(const Area2& area, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void SolidQuad(const Area2& area, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing a per-pixel line.
@@ -51,7 +51,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void PixelLine(const Vector2& a, const Vector2& b, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void PixelLine(const Vector2& a, const Vector2& b, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing a line of specific width as a quad.
@@ -76,7 +76,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void QuadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void QuadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing per-pixel lines.
@@ -94,7 +94,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void PixelLineList(const Vector<Vector2>& linePoints, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void PixelLineList(const Vector<Vector2>& linePoints, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing a polyline of specific width as a set of quads.
@@ -118,7 +118,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void QuadLineList(const Vector<Vector2>& linePoints, float width, float border, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void QuadLineList(const Vector<Vector2>& linePoints, float width, float border, const Color& color, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with vertices representing a polyline of specific width as a set of quads

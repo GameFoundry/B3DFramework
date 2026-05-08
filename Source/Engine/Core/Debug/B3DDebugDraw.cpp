@@ -96,7 +96,7 @@ void DebugDraw::DrawWireArc(const Vector3& position, const Vector3& normal, floa
 	mDrawHelper->WireArc(position, normal, radius, startAngle, amountAngle);
 }
 
-void DebugDraw::DrawWireMesh(const SPtr<MeshData>& meshData)
+void DebugDraw::DrawWireMesh(const TShared<MeshData>& meshData)
 {
 	mDrawHelper->WireMesh(meshData);
 }
@@ -143,7 +143,7 @@ namespace b3d { namespace render
 
 DebugDrawUniformDefinition gDebugDrawUniformDefinition;
 
-void DebugDrawMaterial::Execute(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& uniformBuffer, const SPtr<Mesh>& mesh, const SubMesh& subMesh)
+void DebugDrawMaterial::Execute(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& uniformBuffer, const TShared<Mesh>& mesh, const SubMesh& subMesh)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -186,7 +186,7 @@ RendererExtensionRequest DebugDrawRenderer::Check(const Camera& camera)
 
 void DebugDrawRenderer::Render(const Camera& camera, const RendererViewContext& viewContext)
 {
-	SPtr<RenderTarget> renderTarget = camera.GetViewport()->GetTarget();
+	TShared<RenderTarget> renderTarget = camera.GetViewport()->GetTarget();
 	if(renderTarget == nullptr)
 		return;
 

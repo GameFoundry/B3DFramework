@@ -42,7 +42,7 @@ template class TGpuBufferMappedScope<true>;
 GpuBuffer::GpuBuffer(const GpuBufferCreateInformation& createInformation)
 	: mInformation(createInformation)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	mSuballocationSize = CalculateSuballocatedBufferSize(createInformation, gpuDevice);
 	mTotalSize = CalculateTotalBufferSize(createInformation, gpuDevice);
 }
@@ -112,9 +112,9 @@ void GpuBuffer::Read(u32 offset, u32 length, void* destination)
 	memcpy(destination, mCache + offset, length);
 }
 
-SPtr<render::RenderProxy> GpuBuffer::CreateRenderProxy() const
+TShared<render::RenderProxy> GpuBuffer::CreateRenderProxy() const
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if(!gpuDevice)
 		return nullptr;
 
@@ -140,9 +140,9 @@ RenderProxySyncPacket* GpuBuffer::CreateRenderProxySyncPacket(FrameAllocator& al
 	return syncPacket;
 }
 
-SPtr<GpuBuffer> GpuBuffer::Create(const GpuBufferCreateInformation& createInformation)
+TShared<GpuBuffer> GpuBuffer::Create(const GpuBufferCreateInformation& createInformation)
 {
-	SPtr<GpuBuffer> buffer = B3DMakeSharedFromExisting<GpuBuffer>(new(B3DAllocate<GpuBuffer>()) GpuBuffer(createInformation));
+	TShared<GpuBuffer> buffer = B3DMakeSharedFromExisting<GpuBuffer>(new(B3DAllocate<GpuBuffer>()) GpuBuffer(createInformation));
 	buffer->SetShared(buffer);
 	buffer->Initialize();
 
@@ -211,7 +211,7 @@ u32 GpuBuffer::GetFormatSize(GpuBufferFormat format)
 	return lookup[(u32)format];
 }
 
-u32 GpuBuffer::CalculateSuballocatedBufferSize(const GpuBufferInformation& information, const SPtr<GpuDevice>& gpuDevice)
+u32 GpuBuffer::CalculateSuballocatedBufferSize(const GpuBufferInformation& information, const TShared<GpuDevice>& gpuDevice)
 {
 	const u32 unalignedBufferSize = CalculateUnalignedGpuBufferSize(information);
 
@@ -238,7 +238,7 @@ u32 GpuBuffer::CalculateSuballocatedBufferSize(const GpuBufferInformation& infor
 	return unalignedBufferSize;
 }
 
-u32 GpuBuffer::CalculateTotalBufferSize(const GpuBufferInformation& information, const SPtr<GpuDevice>& gpuDevice)
+u32 GpuBuffer::CalculateTotalBufferSize(const GpuBufferInformation& information, const TShared<GpuDevice>& gpuDevice)
 {
 	const u32 stride = CalculateSuballocatedBufferSize(information, gpuDevice);
 	return stride * Math::Max(1u, information.SuballocationCount);
@@ -343,7 +343,7 @@ namespace b3d::render
 		allocator.Free(syncPacket->BufferData);
 	}
 
-	SPtr<GpuBuffer> GpuBufferUtility::CreateStaging(const SPtr<GpuBuffer>& buffer, bool readable)
+	TShared<GpuBuffer> GpuBufferUtility::CreateStaging(const TShared<GpuBuffer>& buffer, bool readable)
 	{
 		if(!B3D_ENSURE(buffer != nullptr))
 			return nullptr;
@@ -356,7 +356,7 @@ namespace b3d::render
 		return device.CreateGpuBuffer(createInformation);
 	}
 
-	void GpuBufferUtility::Write(const SPtr<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags flags, SPtr<GpuCommandBuffer> commandBuffer)
+	void GpuBufferUtility::Write(const TShared<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags flags, TShared<GpuCommandBuffer> commandBuffer)
 	{
 		B3D_ASSERT(buffer != nullptr);
 
@@ -415,7 +415,7 @@ namespace b3d::render
 		// Note: Not supporting staging memory. Not sure if there's a benefit.
 
 		// Create a staging buffer
-		SPtr<GpuBuffer> stagingBuffer = CreateStaging(buffer, false);
+		TShared<GpuBuffer> stagingBuffer = CreateStaging(buffer, false);
 
 		// Copy the source into the staging buffer
 		if(stagingBuffer != nullptr)
@@ -460,7 +460,7 @@ namespace b3d::render
 		// done automatically before next "normal" command buffer submission.
 	}
 
-	void GpuBufferUtility::Read(const SPtr<GpuBuffer>& buffer, u32 offset, u32 length, void* destination, const SPtr<GpuQueue>& gpuQueue)
+	void GpuBufferUtility::Read(const TShared<GpuBuffer>& buffer, u32 offset, u32 length, void* destination, const TShared<GpuQueue>& gpuQueue)
 	{
 		B3D_ASSERT(buffer != nullptr);
 
@@ -491,7 +491,7 @@ namespace b3d::render
 			if(isUsedOnGPU)
 			{
 				GpuDevice& device = buffer->GetDevice();
-				SPtr<GpuCommandBuffer> commandBuffer = device.GetOrCreateTransferCommandBuffer();
+				TShared<GpuCommandBuffer> commandBuffer = device.GetOrCreateTransferCommandBuffer();
 
 				// Make any writes visible before mapping
 				if(supportsGPUWrites)
@@ -512,7 +512,7 @@ namespace b3d::render
 		}
 
 		// Not directly mappable, will need a staging buffer to copy into
-		SPtr<GpuBuffer> stagingBuffer = CreateStaging(buffer, true);
+		TShared<GpuBuffer> stagingBuffer = CreateStaging(buffer, true);
 
 		// If buffer supports GPU writes or is currently being written to, we need to wait on any potential writes to complete
 		GpuQueueMask syncMask;
@@ -523,7 +523,7 @@ namespace b3d::render
 		}
 
 		GpuDevice& device = buffer->GetDevice();
-		SPtr<GpuCommandBuffer> commandBuffer = device.GetOrCreateTransferCommandBuffer();
+		TShared<GpuCommandBuffer> commandBuffer = device.GetOrCreateTransferCommandBuffer();
 
 		// Queue copy command
 		commandBuffer->CopyBufferToBuffer(buffer, stagingBuffer, offset, 0, length);
@@ -540,20 +540,20 @@ namespace b3d::render
 		stagingBuffer->Destroy();
 	}
 
-	TAsyncOp<SPtr<MemoryDataStream>> GpuBufferUtility::ReadAsync(const SPtr<GpuBuffer>& buffer, u32 offset, u32 length, GpuCommandBuffer& commandBuffer)
+	TAsyncOp<TShared<MemoryDataStream>> GpuBufferUtility::ReadAsync(const TShared<GpuBuffer>& buffer, u32 offset, u32 length, GpuCommandBuffer& commandBuffer)
 	{
 		if(buffer == nullptr)
 			return {};
 
 		// TODO - Staging buffer might not be necessary if he texture is directly mappable
-		SPtr<GpuBuffer> stagingBuffer = CreateStaging(buffer, true);
+		TShared<GpuBuffer> stagingBuffer = CreateStaging(buffer, true);
 		commandBuffer.CopyBufferToBuffer(buffer, stagingBuffer, offset, 0, length);
 
-		TAsyncOp<SPtr<MemoryDataStream>> op;
+		TAsyncOp<TShared<MemoryDataStream>> op;
 		auto fnOnCommandBufferCompleted = [stagingBuffer, offset, length, op]() mutable
 		{
 			GpuBufferMappedScope mapping = stagingBuffer->Map(GpuMapOption::Read);
-			const SPtr<MemoryDataStream> dataStream = B3DMakeShared<MemoryDataStream>(stagingBuffer->GetTotalSize());
+			const TShared<MemoryDataStream> dataStream = B3DMakeShared<MemoryDataStream>(stagingBuffer->GetTotalSize());
 			memcpy(dataStream->Data(), mapping.GetMappedMemory(), length);
 
 			op.CompleteOperation(dataStream);

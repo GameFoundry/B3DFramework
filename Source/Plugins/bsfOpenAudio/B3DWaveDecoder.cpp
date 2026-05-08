@@ -8,7 +8,7 @@ using namespace b3d;
 #define WAVE_FORMAT_PCM 0x0001
 #define WAVE_FORMAT_EXTENDED 0xFFFE
 
-bool WaveDecoder::IsValid(const SPtr<DataStream>& stream, u32 offset)
+bool WaveDecoder::IsValid(const TShared<DataStream>& stream, u32 offset)
 {
 	stream->Seek(offset);
 
@@ -19,7 +19,7 @@ bool WaveDecoder::IsValid(const SPtr<DataStream>& stream, u32 offset)
 	return (header[0] == 'R') && (header[1] == 'I') && (header[2] == 'F') && (header[3] == 'F') && (header[8] == 'W') && (header[9] == 'A') && (header[10] == 'V') && (header[11] == 'E');
 }
 
-bool WaveDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset)
+bool WaveDecoder::Open(const TShared<DataStream>& stream, AudioDataInfo& info, u32 offset)
 {
 	if(stream == nullptr)
 		return false;

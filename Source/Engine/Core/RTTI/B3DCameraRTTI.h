@@ -80,7 +80,7 @@ namespace b3d
 			return TID_Camera;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<Camera>();
 		}

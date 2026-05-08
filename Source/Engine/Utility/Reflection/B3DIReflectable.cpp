@@ -14,11 +14,11 @@ void IReflectable::RegisterRTTITypeInternal(RTTIType* rttiType)
 	GetAllRttiTypes()[rttiType->GetRttiId()] = rttiType;
 }
 
-SPtr<IReflectable> IReflectable::CreateInstanceFromTypeId(u32 rttiTypeId)
+TShared<IReflectable> IReflectable::CreateInstanceFromTypeId(u32 rttiTypeId)
 {
 	RTTIType* type = GetRTTITypeFromTypeId(rttiTypeId);
 
-	SPtr<IReflectable> output;
+	TShared<IReflectable> output;
 	if(type != nullptr)
 		output = type->NewRttiObject();
 

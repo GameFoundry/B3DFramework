@@ -25,7 +25,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ColliderShape")
 
-		ScriptColliderShape(const SPtr<ColliderShape>& nativeObject);
+		ScriptColliderShape(const TShared<ColliderShape>& nativeObject);
 		~ScriptColliderShape();
 
 		static void SetupScriptBindings();

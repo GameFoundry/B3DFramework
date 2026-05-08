@@ -108,10 +108,10 @@ At minimum the **CoreObject** implementation requires an implementation of the @
 ~~~~~~~~~~~~~{.cpp}
 class MyCoreObject : public CoreObject
 {
-	SPtr<render::RenderProxy> CreateRenderProxy() const override
+	TShared<render::RenderProxy> CreateRenderProxy() const override
 	{
 		render::MyCoreObject* renderProxy = new (B3DAllocate<render::MyCoreObject>()) render::MyCoreObject();
-		SPtr<render::MyCoreObject> renderProxyShared = B3DMakeSharedFromExisting<render::MyCoreObject>(renderProxy);
+		TShared<render::MyCoreObject> renderProxyShared = B3DMakeSharedFromExisting<render::MyCoreObject>(renderProxy);
 		renderProxyShared->SetShared(renderProxyShared);
 
 		return renderProxyShared;
@@ -124,12 +124,12 @@ When creating your core object it's important to note they require specific init
 For **CoreObject** implementation additional rules apply. Its shared pointer must be created using @b3d::B3DMakeSharedFromExisting<T> method, followed by a call to @b3d::CoreObject::SetShared and finally a call to @b3d::CoreObject::Initialize. Due to the complex initialization procedure it is always suggested that you create a static `Create` method that does these steps automatically. In fact **CoreObject** constructor is by default protected so you cannot accidently create it incorrectly.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MyCoreObject> MyCoreObject::Create()
+TShared<MyCoreObject> MyCoreObject::Create()
 {
 	// Because of the protected constructor we need to use placement new operator
 	MyCoreObject* object = new (B3DAllocate<MyCoreObject>()) MyCoreObject();
 
-	SPtr<MyCoreObject> sharedPointer = B3DMakeSharedFromExisting<MyCoreObject>(object);
+	TShared<MyCoreObject> sharedPointer = B3DMakeSharedFromExisting<MyCoreObject>(object);
 	sharedPointer->SetShared(sharedPointer);
 	sharedPointer->Initialize();
 

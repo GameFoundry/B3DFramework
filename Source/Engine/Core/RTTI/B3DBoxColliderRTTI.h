@@ -34,7 +34,7 @@ namespace b3d
 			return TID_BoxCollider;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<BoxCollider>();
 		}

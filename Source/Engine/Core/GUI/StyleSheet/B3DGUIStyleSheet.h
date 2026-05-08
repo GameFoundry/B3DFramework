@@ -222,7 +222,7 @@ namespace b3d
 		TBitfield<InlineContainerAllocator<kPropertyDWordCount>> OverridenProperties; /**< Bit for each property that is different than the default will be set. Used for determining which properties to override from parent rule. */
 
 		/**	Default style that may be used when no other is available. */
-		static SPtr<GUIStyleSheetRules> kDefault;
+		static TShared<GUIStyleSheetRules> kDefault;
 
 		GUIStyleSheetRules();
 
@@ -250,7 +250,7 @@ namespace b3d
 		GUIStyleSheetRuleset() = default;
 
 		/**	Default value that may be used when no other is available. */
-		static SPtr<const GUIStyleSheetRuleset> kDefault;
+		static TShared<const GUIStyleSheetRuleset> kDefault;
 	private:
 
 		/************************************************************************/
@@ -282,12 +282,12 @@ namespace b3d
 		 * @param	inheritedRules		Optional rules to inherit the initial set of values from.
 		 * @return						Build ruleset, or one returned from the internal cache.
 		 */
-		SPtr<const GUIStyleSheetRuleset> BuildStateRuleset(GUIElementStateFlags state, const GUIStyleSheetRules* inheritedRules = nullptr) const;
+		TShared<const GUIStyleSheetRuleset> BuildStateRuleset(GUIElementStateFlags state, const GUIStyleSheetRules* inheritedRules = nullptr) const;
 
 		TInlineArray<StyleSheetRulesetIndices, 4> StyleSheets;
 
 		/**	Default value that may be used when no other is available. */
-		static SPtr<const GUIStyleSheetStateRulesets> kDefault;
+		static TShared<const GUIStyleSheetStateRulesets> kDefault;
 
 	private:
 		/** Key used for looking up cached rulesets. */
@@ -304,7 +304,7 @@ namespace b3d
 			u64 GenerateHash() const;
 		};
 
-		mutable TUnorderedMap<RulesetKey, SPtr<GUIStyleSheetRuleset>> mCachedRulesets;
+		mutable TUnorderedMap<RulesetKey, TShared<GUIStyleSheetRuleset>> mCachedRulesets;
 	};
 
 	/** @} */
@@ -361,10 +361,10 @@ namespace b3d
 		static HGUIStyleSheet Create(TArray<GUIStyleSheetRuleset> rulesets = {});
 
 		/** Creates a new style sheet. */
-		static SPtr<GUIStyleSheet> CreateShared(TArray<GUIStyleSheetRuleset> rulesets = {});
+		static TShared<GUIStyleSheet> CreateShared(TArray<GUIStyleSheetRuleset> rulesets = {});
 
 		/** Creates a new style sheet without calling Initialize(). Caller must manually call Initialize(). */
-		static SPtr<GUIStyleSheet> CreateUninitialized(TArray<GUIStyleSheetRuleset> rulesets = {});
+		static TShared<GUIStyleSheet> CreateUninitialized(TArray<GUIStyleSheetRuleset> rulesets = {});
 
 		static constexpr i32 kBuiltinImportance = -1000; /**< Style-sheet importance for style-sheets built into the application (engine or editor). */
 		static constexpr i32 kDeveloperImportance = 0; /**< Style-sheet importance for developers modifying the engine, editor, or building their own application. Overrides builtin styles. */
@@ -421,7 +421,7 @@ namespace b3d
 		GUIStyleSheetRules BuildRules(StringView elementType, StringView elementClass = "", StringView elementId = "", StringView pseudoElement = "", StringView pseudoClass = "", const GUIStyleSheetRules* inheritedRules = nullptr) const;
 
 		/** Same as GUIStyleSheet::BuildStateRulesets(const GUIRenderable&, StringView), except it gathers rules for all style sheets in the cascade. */
-		SPtr<const GUIStyleSheetStateRulesets> BuildStateRulesets(const GUIRenderable& guiElement, StringView pseudoElement = "") const;
+		TShared<const GUIStyleSheetStateRulesets> BuildStateRulesets(const GUIRenderable& guiElement, StringView pseudoElement = "") const;
 
 		/**
 		 * Checks if the cascade has any style sheets with a ruleset for this particular class.

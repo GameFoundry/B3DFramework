@@ -93,7 +93,7 @@ class MyRenderer : public Renderer
 	// ... other renderer methods
 
 	// Performs rendering for a single camera, on the render thread
-	void Render(const SPtr<Camera>& camera)
+	void Render(const TShared<Camera>& camera)
 	{
 		// Render pre-base pass extensions
 		auto iter = mRendererExtensions.begin();
@@ -126,9 +126,9 @@ While what we have shown so far is enough to create a custom renderer, there are
  - @b3d::render::RendererUtility::DrawScreenQuad - Draws a quad covering the screen using the currently bound pass.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<Material> material = ...;
-SPtr<Mesh> mesh = ...;
-SPtr<MaterialParameterAdapter> paramsSet = material->CreateParameterAdapter();
+TShared<Material> material = ...;
+TShared<Mesh> mesh = ...;
+TShared<MaterialParameterAdapter> paramsSet = material->CreateParameterAdapter();
 
 GetRendererUtility().SetPass(cmdBuffer, material);
 ... set material parameters as normal ...
@@ -152,7 +152,7 @@ For example:
 ~~~~~~~~~~~~~{.cpp}
 Vector<RenderableElement*> elements = ...; // Fill this up from a list of renderables
 
-SPtr<RenderQueue> queue = B3DMakeShared<RenderQueue>(StateReduction::Distance);
+TShared<RenderQueue> queue = B3DMakeShared<RenderQueue>(StateReduction::Distance);
 for(auto& element : elements)
 {
 	float distance = ...; // Calculate distance from element to camera, for sorting
@@ -211,7 +211,7 @@ class DownsampleMat : public RendererMaterial<DownsampleMat>
 	// ... other DownsampleMat code ...
 	
 	// Set up parameters and render a full screen quad using the material
-	void execute(GpuCommandBuffer& cmdBuffer, const SPtr<Texture>& input)
+	void execute(GpuCommandBuffer& cmdBuffer, const TShared<Texture>& input)
 	{
 		// Assign parameters before rendering
 		mInputTexture.Set(input);
@@ -228,7 +228,7 @@ Note that a helper method @b3d::render::RendererMaterial::Bind() is provided, wh
 
 ~~~~~~~~~~~~~{.cpp}
 // External code wanting to run the material
-SPtr<Texture> inputTex = ...;
+TShared<Texture> inputTex = ...;
 
 DownsampleMat* renderMat = DownsampleMat::Get();
 renderMat->Execute(inputTex);
@@ -240,7 +240,7 @@ If your BSL file contains shader variations, then you can call @b3d::render::Ren
 
 ~~~~~~~~~~~~~{.cpp}
 // External code wanting to run a specific variation of the material
-SPtr<Texture> inputTex = ...;
+TShared<Texture> inputTex = ...;
 
 // Get the variation that has HIGH_QUALITY define enabled
 ShaderVariation variation = ShaderVariation({
@@ -292,7 +292,7 @@ Now the calling code can simply retrieve the variation it requires.
 
 ~~~~~~~~~~~~~{.cpp}
 // External code wanting to run the high quality version of the material
-SPtr<Texture> inputTex = ...;
+TShared<Texture> inputTex = ...;
 
 DownsampleMat* renderMat = DownsampleMat::GetVariation(true);
 renderMat->Execute(inputTex);
@@ -358,14 +358,14 @@ Once your uniform buffer definition is created, you can instantiate a uniform bu
 PerCameraUniformBufferDef def; // Normally you want to make this global so it's instantiated only once
 
 // Instantiates a new uniform buffer from the definition
-SPtr<GpuBuffer> uniformBuffer = def.CreateBuffer();
+TShared<GpuBuffer> uniformBuffer = def.CreateBuffer();
 
 // Assign a value to the gViewDir parameter of the uniform buffer
 def.gViewDir.Set(uniformBuffer, Vector3(0.707f, 0.707f, 0.0f));
 ... set other parameters in buffer ...
 
 // Assign the uniform buffer to the material (optionally, assign to GpuParams if using them directly)
-SPtr<Material> material = ...;
+TShared<Material> material = ...;
 material->SetUniformBuffer("PerCamera", uniformBuffer);
 
 ... render using the material ...
@@ -403,8 +403,8 @@ The semantics for each parameter can be accessed through the **Shader** object, 
 ~~~~~~~~~~~~~{.cpp}
 StringID RPS_ViewProjTfrm = "VP"; // Define semantic identifier
 
-SPtr<Material> material = ...;
-SPtr<Shader> shader = material->GetShader();
+TShared<Material> material = ...;
+TShared<Shader> shader = material->GetShader();
 auto& dataParams = shader->GetDataParams();
 for (auto& entry : texParams)
 {
@@ -431,7 +431,7 @@ Once you are done using the texture or buffer, it will be automatically returned
 ~~~~~~~~~~~~~{.cpp}
 // An example creating a pooled render texture
 PooledRenderTextureCreateInformation desc = PooledRenderTextureCreateInformation::Create2D(PF_R8G8B8A8, 1024, 1024, TextureUsageFlag::RenderTarget);
-SPtr<PooledRenderTexture> pooledRT = GpuResourcePool::Instance().Get(desc);
+TShared<PooledRenderTexture> pooledRT = GpuResourcePool::Instance().Get(desc);
 
 GpuCommandBuffer& commandBuffer = ...;
 commandBuffer.BeginRenderPass(RenderPassCreateInformation(pooledRT->RenderTexture));

@@ -15,7 +15,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ResourceDragAndDropData")
 
-		ScriptResourceDragAndDropData(const SPtr<ResourceDragAndDropData>& nativeObject);
+		ScriptResourceDragAndDropData(const TShared<ResourceDragAndDropData>& nativeObject);
 		~ScriptResourceDragAndDropData();
 
 		static void SetupScriptBindings();

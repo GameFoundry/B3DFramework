@@ -68,7 +68,7 @@ namespace b3d
 		 * @return			A set of pixels for the specified mip level.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(Texture), ExportName(GetPixels))
-		static SPtr<PixelData> GetPixels(const HTexture& thisPtr, u32 face = 0, u32 mipLevel = 0);
+		static TShared<PixelData> GetPixels(const HTexture& thisPtr, u32 face = 0, u32 mipLevel = 0);
 
 		/**
 		 * Sets pixels for the specified mip level and face.
@@ -81,7 +81,7 @@ namespace b3d
 		 *					cubemap array it has to be a multiple of 6).
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(Texture), ExportName(SetPixels))
-		static void SetPixels(const HTexture& thisPtr, const SPtr<PixelData>& data, u32 face = 0, u32 mipLevel = 0);
+		static void SetPixels(const HTexture& thisPtr, const TShared<PixelData>& data, u32 face = 0, u32 mipLevel = 0);
 
 		/**
 		 * Sets pixels for the specified mip level and face.

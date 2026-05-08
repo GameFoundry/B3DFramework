@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	ScriptFontBitmapInformation::ScriptFontBitmapInformation(const SPtr<FontBitmapInformation>& nativeObject)
+	ScriptFontBitmapInformation::ScriptFontBitmapInformation(const TShared<FontBitmapInformation>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

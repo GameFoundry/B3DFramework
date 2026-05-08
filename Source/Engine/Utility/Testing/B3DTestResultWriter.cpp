@@ -206,7 +206,7 @@ namespace b3d
 		};
 
 		String jsonString(root.dump(2).c_str());
-		SPtr<DataStream> fileStream = FileSystem::CreateAndOpenFile(outputPath);
+		TShared<DataStream> fileStream = FileSystem::CreateAndOpenFile(outputPath);
 		if (fileStream)
 			fileStream->WriteString(jsonString);
 	}

@@ -16,11 +16,11 @@ using namespace b3d;
 /** Contains game-object instance data and UUID. */
 struct PrefabInstanceData
 {
-	PrefabInstanceData(const SPtr<GameObjectInstanceData>& instanceData = nullptr, const UUID& id = UUID::kEmpty)
+	PrefabInstanceData(const TShared<GameObjectInstanceData>& instanceData = nullptr, const UUID& id = UUID::kEmpty)
 		: InstanceData(instanceData), Id(id)
 	{ }
 
-	SPtr<GameObjectInstanceData> InstanceData;
+	TShared<GameObjectInstanceData> InstanceData;
 	UUID Id;
 };
 
@@ -62,7 +62,7 @@ static void RecordPrefabInstanceData(const HSceneObject& sceneObject, UnorderedM
  */
 static void RestorePrefabInstanceData(const HSceneObject& sceneObject, const UnorderedMap<UUID, PrefabInstanceData>& instanceData)
 {
-	SPtr<GameObjectCollection> gameObjectCollection = sceneObject->GetOwnerCollection().lock();
+	TShared<GameObjectCollection> gameObjectCollection = sceneObject->GetOwnerCollection().lock();
 	if(!B3D_ENSURE(gameObjectCollection))
 		return;
 
@@ -162,7 +162,7 @@ void PrefabUtility::RevertToPrefab(const HSceneObject& sceneObject)
 	UnorderedMap<UUID, PrefabInstanceData> instanceData;
 	RecordPrefabInstanceData(sceneObject, instanceData);
 
-	SPtr<SceneInstance> sceneInstance = sceneObject->GetScene();
+	TShared<SceneInstance> sceneInstance = sceneObject->GetScene();
 	HSceneObject parent = sceneObject->GetParent();
 
 	// This will destroy the object but keep it in the parent's child list
@@ -201,10 +201,10 @@ HSceneObject PrefabUtility::UpdateInstanceFromPrefab(const HSceneObject& instanc
 	RecordPrefabInstanceData(instance, instanceData);
 
 	HSceneObject parent = instance->GetParent();
-	SPtr<SceneObjectHierarchyDelta> prefabDelta = instance->GetPrefabDelta();
+	TShared<SceneObjectHierarchyDelta> prefabDelta = instance->GetPrefabDelta();
 	Transform transform = instance->GetLocalTransform();
 
-	const SPtr<GameObjectCollection> gameObjectCollection = instance->GetOwnerCollection().lock();
+	const TShared<GameObjectCollection> gameObjectCollection = instance->GetOwnerCollection().lock();
 
 	instance->Destroy(true);
 	HSceneObject newInstance = prefab.Clone(gameObjectCollection);

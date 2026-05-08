@@ -70,7 +70,7 @@ const GpuProgramCreateInformation& TPass<IsRenderProxy>::GetGpuProgramCreateInfo
 template <bool IsRenderProxy>
 void TPass<IsRenderProxy>::CreatePipelineState()
 {
-	const SPtr<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
 
 	if(IsCompute())
 	{
@@ -121,11 +121,11 @@ Pass::Pass(const PassCreateInformation& createInformation)
 	: TPass(createInformation)
 {}
 
-SPtr<render::RenderProxy> Pass::CreateRenderProxy() const
+TShared<render::RenderProxy> Pass::CreateRenderProxy() const
 {
 	render::Pass* renderProxy = new(B3DAllocate<render::Pass>()) render::Pass(mData);
 
-	SPtr<render::Pass> renderProxyShared = B3DMakeSharedFromExisting(renderProxy);
+	TShared<render::Pass> renderProxyShared = B3DMakeSharedFromExisting(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -152,20 +152,20 @@ RenderProxySyncPacket* Pass::CreateRenderProxySyncPacket(FrameAllocator& allocat
 	return allocator.Construct<SyncPacket>(*this, allocator, flags);
 }
 
-SPtr<Pass> Pass::Create(const PassCreateInformation& desc)
+TShared<Pass> Pass::Create(const PassCreateInformation& desc)
 {
 	Pass* newPass = new(B3DAllocate<Pass>()) Pass(desc);
-	SPtr<Pass> newPassPtr = B3DMakeSharedFromExisting<Pass>(newPass);
+	TShared<Pass> newPassPtr = B3DMakeSharedFromExisting<Pass>(newPass);
 	newPassPtr->SetShared(newPassPtr);
 	newPassPtr->Initialize();
 
 	return newPassPtr;
 }
 
-SPtr<Pass> Pass::CreateEmpty()
+TShared<Pass> Pass::CreateEmpty()
 {
 	Pass* newPass = new(B3DAllocate<Pass>()) Pass();
-	SPtr<Pass> newPassPtr = B3DMakeSharedFromExisting<Pass>(newPass);
+	TShared<Pass> newPassPtr = B3DMakeSharedFromExisting<Pass>(newPass);
 	newPassPtr->SetShared(newPassPtr);
 
 	return newPassPtr;
@@ -204,20 +204,20 @@ void Pass::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocato
 	syncPacket->ApplySyncData(this);
 }
 
-SPtr<Pass> Pass::Create(const PassCreateInformation& createInformation)
+TShared<Pass> Pass::Create(const PassCreateInformation& createInformation)
 {
 	Pass* newPass = new(B3DAllocate<Pass>()) Pass(createInformation);
-	SPtr<Pass> newPassPtr = B3DMakeSharedFromExisting<Pass>(newPass);
+	TShared<Pass> newPassPtr = B3DMakeSharedFromExisting<Pass>(newPass);
 	newPassPtr->SetShared(newPassPtr);
 	newPassPtr->Initialize();
 
 	return newPassPtr;
 }
 
-SPtr<Pass> Pass::CreateEmpty()
+TShared<Pass> Pass::CreateEmpty()
 {
 	Pass* const pass = new(B3DAllocate<Pass>()) Pass();
-	SPtr<Pass> passShared = B3DMakeSharedFromExisting(pass);
+	TShared<Pass> passShared = B3DMakeSharedFromExisting(pass);
 	passShared->SetShared(passShared);
 	passShared->Initialize();
 

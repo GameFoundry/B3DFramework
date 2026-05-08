@@ -87,7 +87,7 @@ namespace b3d
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		SPtr<PixelData> tmppixelData;
+		TShared<PixelData> tmppixelData;
 		ScriptPixelData* scriptObjectWrapperpixelData;
 		scriptObjectWrapperpixelData = ScriptPixelData::GetScriptObjectWrapper(pixelData);
 		if(scriptObjectWrapperpixelData != nullptr)
@@ -97,7 +97,7 @@ namespace b3d
 
 	void ScriptCursor::InternalSetCursorIcon0(CursorType type, MonoObject* pixelData, TVector2<int32_t>* hotSpot)
 	{
-		SPtr<PixelData> tmppixelData;
+		TShared<PixelData> tmppixelData;
 		ScriptPixelData* scriptObjectWrapperpixelData;
 		scriptObjectWrapperpixelData = ScriptPixelData::GetScriptObjectWrapper(pixelData);
 		if(scriptObjectWrapperpixelData != nullptr)

@@ -14,7 +14,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MorphChannel")
 
-		ScriptMorphChannel(const SPtr<MorphChannel>& nativeObject);
+		ScriptMorphChannel(const TShared<MorphChannel>& nativeObject);
 		~ScriptMorphChannel();
 
 		static void SetupScriptBindings();

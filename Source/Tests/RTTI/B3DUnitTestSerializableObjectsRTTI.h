@@ -58,7 +58,7 @@ namespace b3d
 			return TID_UnitTestSerializationObjectA;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<UnitTestSerializationObjectA>();
 		}
@@ -84,7 +84,7 @@ namespace b3d
 			return TID_UnitTestSerializationObjectB;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<UnitTestSerializationObjectB>();
 		}

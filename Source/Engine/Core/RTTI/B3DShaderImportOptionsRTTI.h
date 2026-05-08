@@ -35,7 +35,7 @@ namespace b3d
 			return TID_ShaderImportOptions;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ShaderImportOptions>();
 		}

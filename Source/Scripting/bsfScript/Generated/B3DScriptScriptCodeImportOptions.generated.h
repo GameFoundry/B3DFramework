@@ -16,7 +16,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ScriptCodeImportOptions")
 
-		ScriptScriptCodeImportOptions(const SPtr<ScriptCodeImportOptions>& nativeObject);
+		ScriptScriptCodeImportOptions(const TShared<ScriptCodeImportOptions>& nativeObject);
 		~ScriptScriptCodeImportOptions();
 
 		static void SetupScriptBindings();

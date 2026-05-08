@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleVelocity")
 
-		ScriptParticleVelocity(const SPtr<ParticleVelocity>& nativeObject);
+		ScriptParticleVelocity(const TShared<ParticleVelocity>& nativeObject);
 		~ScriptParticleVelocity();
 
 		static void SetupScriptBindings();

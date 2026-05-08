@@ -9,7 +9,7 @@
 namespace b3d
 {
 #if !B3D_IS_ENGINE
-	ScriptShaderImportOptions::ScriptShaderImportOptions(const SPtr<ShaderImportOptions>& nativeObject)
+	ScriptShaderImportOptions::ScriptShaderImportOptions(const TShared<ShaderImportOptions>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -100,7 +100,7 @@ namespace b3d
 
 	void ScriptShaderImportOptions::InternalCreate(MonoObject* scriptObject)
 	{
-		SPtr<ShaderImportOptions> nativeObject = ShaderImportOptions::Create();
+		TShared<ShaderImportOptions> nativeObject = ShaderImportOptions::Create();
 		ScriptObjectWrapper::Create<ScriptShaderImportOptions>(nativeObject, scriptObject);
 	}
 	ShadingLanguageFlag ScriptShaderImportOptions::InternalGetLanguages(ScriptShaderImportOptions* self)

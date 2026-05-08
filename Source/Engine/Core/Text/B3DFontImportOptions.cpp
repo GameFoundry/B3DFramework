@@ -5,7 +5,7 @@
 
 using namespace b3d;
 
-SPtr<FontImportOptions> FontImportOptions::Create()
+TShared<FontImportOptions> FontImportOptions::Create()
 {
 	return B3DMakeShared<FontImportOptions>();
 }

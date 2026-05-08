@@ -15,7 +15,7 @@ namespace b3d
 
 	class B3D_EXPORT MaterialRTTI : public TRTTIType<Material, Resource, MaterialRTTI>
 	{
-		SPtr<MaterialParameters> mMaterialParameters;
+		TShared<MaterialParameters> mMaterialParameters;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mShader, 0)
@@ -59,7 +59,7 @@ namespace b3d
 			return TID_Material;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return Material::CreateEmpty();
 		}

@@ -149,7 +149,7 @@ namespace b3d
 			if(flushTransferCommandBuffer)
 				mGpuDevice.SubmitTransferCommandBuffers();
 
-			const SPtr<GpuCommandBuffer>& commandBuffer = information.CommandBuffer;
+			const TShared<GpuCommandBuffer>& commandBuffer = information.CommandBuffer;
 			if (!commandBuffer)
 				return;
 
@@ -210,12 +210,12 @@ namespace b3d
 #endif
 		}
 
-		void MetalGpuQueue::PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask)
+		void MetalGpuQueue::PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask)
 		{
 			if (!renderWindow)
 				return;
 
-			const SPtr<IRenderWindowSurface>& surface = renderWindow->GetRenderWindowSurface();
+			const TShared<IRenderWindowSurface>& surface = renderWindow->GetRenderWindowSurface();
 			if (!surface)
 				return;
 

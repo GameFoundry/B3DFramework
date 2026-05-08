@@ -102,7 +102,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ShaderVariationParameters> tmpvariation;
+		TShared<ShaderVariationParameters> tmpvariation;
 		ScriptShaderVariationParameters* scriptObjectWrappervariation;
 		scriptObjectWrappervariation = ScriptShaderVariationParameters::GetScriptObjectWrapper(variation);
 		if(scriptObjectWrappervariation != nullptr)
@@ -150,7 +150,7 @@ namespace b3d
 
 	MonoObject* ScriptMaterial::InternalGetVariationParameters(ScriptMaterial* self)
 	{
-		SPtr<ShaderVariationParameters> tmp__output = B3DMakeShared<ShaderVariationParameters>();
+		TShared<ShaderVariationParameters> tmp__output = B3DMakeShared<ShaderVariationParameters>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -179,7 +179,7 @@ namespace b3d
 
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		SPtr<TAnimationCurve<float>> tmpvalue;
+		TShared<TAnimationCurve<float>> tmpvalue;
 		ScriptAnimationCurve* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptAnimationCurve::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -204,7 +204,7 @@ namespace b3d
 
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		SPtr<ColorGradientHDR> tmpvalue;
+		TShared<ColorGradientHDR> tmpvalue;
 		ScriptColorGradientHDR* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptColorGradientHDR::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -280,7 +280,7 @@ namespace b3d
 
 	MonoObject* ScriptMaterial::InternalGetFloatCurve(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx)
 	{
-		SPtr<TAnimationCurve<float>> tmp__output = B3DMakeShared<TAnimationCurve<float>>();
+		TShared<TAnimationCurve<float>> tmp__output = B3DMakeShared<TAnimationCurve<float>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -312,7 +312,7 @@ namespace b3d
 
 	MonoObject* ScriptMaterial::InternalGetColorGradient(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx)
 	{
-		SPtr<ColorGradientHDR> tmp__output = B3DMakeShared<ColorGradientHDR>();
+		TShared<ColorGradientHDR> tmp__output = B3DMakeShared<ColorGradientHDR>();
 		if(!self->IsNativeObjectValid())
 			return {};
 

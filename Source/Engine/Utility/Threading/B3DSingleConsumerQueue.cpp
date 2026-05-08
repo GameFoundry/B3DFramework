@@ -49,7 +49,7 @@ void SingleConsumerQueue::RunUntilShutdown()
 
 void SingleConsumerQueue::ScheduleRunUntilShutdown(Scheduler& scheduler, bool runOnCallingThread, Milliseconds yieldInterval, bool blockUntilDone)
 {
-	SPtr<SignalEvent> isDone = B3DMakeShared<SignalEvent>();
+	TShared<SignalEvent> isDone = B3DMakeShared<SignalEvent>();
 
 	auto fnRun = [this, yieldInterval, &scheduler, isDone](const auto& run)
 	{

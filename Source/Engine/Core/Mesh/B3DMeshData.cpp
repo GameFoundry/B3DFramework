@@ -11,7 +11,7 @@
 
 using namespace b3d;
 
-MeshData::MeshData(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, IndexType indexType)
+MeshData::MeshData(u32 vertexCount, u32 indexCount, const TShared<VertexDescription>& vertexDescription, IndexType indexType)
 	: mVertexCount(vertexCount), mIndexCount(indexCount), mIndexType(indexType), mVertexDescription(vertexDescription)
 {
 	AllocateInternalBuffer();
@@ -50,7 +50,7 @@ u32 MeshData::GetInternalBufferSize() const
 }
 
 // TODO - This doesn't handle the case where multiple elements in same slot have different data types
-SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vector<Vector<SubMesh>>& allSubMeshes, Vector<SubMesh>& subMeshes)
+TShared<MeshData> MeshData::Combine(const Vector<TShared<MeshData>>& meshes, const Vector<Vector<SubMesh>>& allSubMeshes, Vector<SubMesh>& subMeshes)
 {
 	u32 totalVertexCount = 0;
 	u32 totalIndexCount = 0;
@@ -93,8 +93,8 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 		}
 	}
 
-	SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
-	SPtr<MeshData> combinedMeshData = B3DMakeShared<MeshData>(totalVertexCount, totalIndexCount, vertexDescription);
+	TShared<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
+	TShared<MeshData> combinedMeshData = B3DMakeShared<MeshData>(totalVertexCount, totalIndexCount, vertexDescription);
 
 	// Copy indices
 	u32 vertexOffset = 0;
@@ -332,7 +332,7 @@ Bounds MeshData::CalculateBounds() const
 {
 	Bounds bounds(kZeroTag);
 
-	SPtr<VertexDescription> vertexDescription = GetVertexDescription();
+	TShared<VertexDescription> vertexDescription = GetVertexDescription();
 	for(u32 elementIndex = 0; elementIndex < vertexDescription->GetElementCount(); elementIndex++)
 	{
 		const VertexElement& currentElement = vertexDescription->GetElement(elementIndex);

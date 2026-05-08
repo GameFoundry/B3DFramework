@@ -134,7 +134,7 @@ namespace b3d
 
 		/**	Checks if the current type matches the provided type. */
 		B3D_SCRIPT_EXPORT()
-		virtual bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const = 0;
+		virtual bool Matches(const TShared<ManagedTypeInfo>& typeInfo) const = 0;
 
 		/**
 		 * Checks does the managed type this object represents still exists.
@@ -165,7 +165,7 @@ namespace b3d
 	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoPrimitive : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
+		bool Matches(const TShared<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
@@ -185,7 +185,7 @@ namespace b3d
 	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoEnum : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
+		bool Matches(const TShared<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
@@ -211,7 +211,7 @@ namespace b3d
 	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoReference : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
+		bool Matches(const TShared<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
@@ -240,12 +240,12 @@ namespace b3d
 	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoResourceReference : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
+		bool Matches(const TShared<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
 		B3D_SCRIPT_EXPORT()
-		SPtr<ManagedTypeInfo> ResourceType;
+		TShared<ManagedTypeInfo> ResourceType;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -260,7 +260,7 @@ namespace b3d
 	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoObject : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
+		bool Matches(const TShared<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
@@ -294,12 +294,12 @@ namespace b3d
 	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoArray : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
+		bool Matches(const TShared<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
 		B3D_SCRIPT_EXPORT()
-		SPtr<ManagedTypeInfo> ElementType;
+		TShared<ManagedTypeInfo> ElementType;
 
 		B3D_SCRIPT_EXPORT()
 		u32 Rank;
@@ -317,12 +317,12 @@ namespace b3d
 	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoList : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
+		bool Matches(const TShared<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
 		B3D_SCRIPT_EXPORT()
-		SPtr<ManagedTypeInfo> ElementType;
+		TShared<ManagedTypeInfo> ElementType;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -337,15 +337,15 @@ namespace b3d
 	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoDictionary : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
+		bool Matches(const TShared<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
 		B3D_SCRIPT_EXPORT()
-		SPtr<ManagedTypeInfo> KeyType;
+		TShared<ManagedTypeInfo> KeyType;
 
 		B3D_SCRIPT_EXPORT()
-		SPtr<ManagedTypeInfo> ValueType;
+		TShared<ManagedTypeInfo> ValueType;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -430,7 +430,7 @@ namespace b3d
 		String Name;
 
 		B3D_SCRIPT_EXPORT()
-		SPtr<ManagedTypeInfo> TypeInfo;
+		TShared<ManagedTypeInfo> TypeInfo;
 
 		B3D_SCRIPT_EXPORT()
 		ManagedFieldMetaDataFlags MetaDataFlags;
@@ -518,19 +518,19 @@ namespace b3d
 		 *								ensure the current object's type matches.
 		 * @return						Found field info within this object, or null if not found.
 		 */
-		SPtr<ManagedMemberInfo> FindMatchingField(const SPtr<ManagedMemberInfo>& fieldInfo, const SPtr<ManagedTypeInfo>& fieldTypeInfo) const;
+		TShared<ManagedMemberInfo> FindMatchingField(const TShared<ManagedMemberInfo>& fieldInfo, const TShared<ManagedTypeInfo>& fieldTypeInfo) const;
 
 		B3D_SCRIPT_EXPORT()
-		SPtr<ManagedTypeInfoObject> TypeInfo;
+		TShared<ManagedTypeInfoObject> TypeInfo;
 		MonoClass* ScriptClass = nullptr;
 
 		UnorderedMap<String, u32> MemberNameToIndex;
 
 		B3D_SCRIPT_EXPORT()
-		Vector<SPtr<ManagedMemberInfo>> Members;
+		Vector<TShared<ManagedMemberInfo>> Members;
 
 		B3D_SCRIPT_EXPORT()
-		SPtr<ManagedObjectInfo> BaseClass;
+		TShared<ManagedObjectInfo> BaseClass;
 		Vector<std::weak_ptr<ManagedObjectInfo>> DerivedClasses;
 
 		/************************************************************************/
@@ -549,7 +549,7 @@ namespace b3d
 		String Name;
 
 		UnorderedMap<String, u32> TypeNameToId;
-		UnorderedMap<u32, SPtr<ManagedObjectInfo>> ObjectInfos;
+		UnorderedMap<u32, TShared<ManagedObjectInfo>> ObjectInfos;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

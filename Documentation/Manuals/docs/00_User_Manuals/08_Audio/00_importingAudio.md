@@ -30,7 +30,7 @@ HAudioClip audioClip = GetImporter().Import<AudioClip>("myAudioClip.ogg");
 Import can be customized by providing a @b3d::AudioClipImportOptions object to the importer.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<AudioClipImportOptions> importOptions = AudioClipImportOptions::Create();
+TShared<AudioClipImportOptions> importOptions = AudioClipImportOptions::Create();
 // Set required options here (as described below)
 
 HAudioClip audioClip = GetImporter().Import<AudioClip>("myAudioClip.ogg", importOptions);

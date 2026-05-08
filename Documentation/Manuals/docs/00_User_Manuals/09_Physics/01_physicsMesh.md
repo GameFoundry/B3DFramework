@@ -10,7 +10,7 @@ Physics meshes are represented using the @b3d::PhysicsMesh class. They are resou
 The import process is slightly different from other resources because physics meshes are imported from the same file types as normal meshes. First create a **MeshImportOptions** object, and specify that you wish to import a physics mesh along with a normal mesh by setting @b3d::MeshImportOptions::CollisionMeshType.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MeshImportOptions> importOptions = MeshImportOptions::Create();
+TShared<MeshImportOptions> importOptions = MeshImportOptions::Create();
 importOptions->CollisionMeshType = CollisionMeshType::Normal;
 ~~~~~~~~~~~~~
 
@@ -19,7 +19,7 @@ To perform the actual import, call @b3d::Importer::ImportAll instead of **Import
 **Importer::ImportAll()** will return a @b3d::MultiResource object containing an array of @b3d::SubResource objects. In our case there are two sub-resources: the first one is the normal **Mesh**, and the second one will be the physics mesh we requested.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MultiResource> resources = GetImporter().ImportAll("dragon.fbx", importOptions);
+TShared<MultiResource> resources = GetImporter().ImportAll("dragon.fbx", importOptions);
 
 HPhysicsMesh physicsMesh = B3DStaticResourceCast<PhysicsMesh>(resources->Entries[1].Value);
 ~~~~~~~~~~~~~
@@ -31,7 +31,7 @@ Query physics mesh properties:
 PhysicsMeshType meshType = physicsMesh->GetType();
 
 // Get the mesh data (vertices and indices)
-SPtr<MeshData> meshData = physicsMesh->GetMeshData();
+TShared<MeshData> meshData = physicsMesh->GetMeshData();
 ~~~~~~~~~~~~~
 
 > In case there are multiple resources and you're not sure which one is the physics mesh, you can check the **Name** field on the **SubResource** object. Physics meshes are always named "collision".
@@ -63,7 +63,7 @@ You can also create physics meshes programmatically by providing mesh data direc
 
 ~~~~~~~~~~~~~{.cpp}
 // Assuming you have vertex and index data
-SPtr<MeshData> meshData = MeshData::Create(vertexCount, indexCount, vertexLayout);
+TShared<MeshData> meshData = MeshData::Create(vertexCount, indexCount, vertexLayout);
 // ... populate mesh data with vertices and indices ...
 
 // Create a convex physics mesh

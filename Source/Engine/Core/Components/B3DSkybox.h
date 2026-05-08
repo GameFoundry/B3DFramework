@@ -84,12 +84,12 @@ namespace b3d
 		 */
 		void FilterTexture();
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
-		SPtr<Texture> mFilteredRadiance;
-		SPtr<Texture> mIrradiance;
-		SPtr<render::RendererTask> mRendererTask;
+		TShared<Texture> mFilteredRadiance;
+		TShared<Texture> mIrradiance;
+		TShared<render::RendererTask> mRendererTask;
 
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/
@@ -133,25 +133,25 @@ namespace b3d
 			 * Returns a texture containing filtered version of the radiance texture used for reflections. This might not
 			 * be available if it hasn't been generated yet.
 			 */
-			SPtr<Texture> GetFilteredRadiance() const { return mFilteredRadiance; }
+			TShared<Texture> GetFilteredRadiance() const { return mFilteredRadiance; }
 
 			/**
 			 * Returns a texture containing sky irradiance. This might not be available if it hasn't been generated yet.
 			 */
-			SPtr<Texture> GetIrradiance() const { return mIrradiance; }
+			TShared<Texture> GetIrradiance() const { return mIrradiance; }
 
 		protected:
 			friend class b3d::Skybox;
 
-			Skybox(const SPtr<SceneInstance>& scene, const SPtr<Texture>& radiance, const SPtr<Texture>& filteredRadiance, const SPtr<Texture>& irradiance);
+			Skybox(const TShared<SceneInstance>& scene, const TShared<Texture>& radiance, const TShared<Texture>& filteredRadiance, const TShared<Texture>& irradiance);
 
 			void Initialize() override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 
-			SPtr<Texture> mFilteredRadiance;
-			SPtr<Texture> mIrradiance;
+			TShared<Texture> mFilteredRadiance;
+			TShared<Texture> mIrradiance;
 			bool mActive = true;
-			SPtr<SceneInstance> mSceneInstance;
+			TShared<SceneInstance> mSceneInstance;
 		};
 	} // namespace render
 

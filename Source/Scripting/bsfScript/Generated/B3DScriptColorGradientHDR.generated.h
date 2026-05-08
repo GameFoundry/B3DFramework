@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ColorGradientHDR")
 
-		ScriptColorGradientHDR(const SPtr<ColorGradientHDR>& nativeObject);
+		ScriptColorGradientHDR(const TShared<ColorGradientHDR>& nativeObject);
 		~ScriptColorGradientHDR();
 
 		static void SetupScriptBindings();

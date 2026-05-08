@@ -31,7 +31,7 @@ int main(int __argc, char* __argv[])
 	MemStack::beginThread();
 	MonoManager::StartUp();
 
-	SPtr<EngineScriptLibrary> library = B3DMakeShared<EngineScriptLibrary>();
+	TShared<EngineScriptLibrary> library = B3DMakeShared<EngineScriptLibrary>();
 	ScriptManager::SetScriptLibraryInternal(library);
 
 	Path engineAssemblyPath = library->GetEngineAssemblyPath();

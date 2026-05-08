@@ -80,7 +80,7 @@ void CoreObject::MarkDependenciesDirty()
 	CoreObjectManager::Instance().NotifyDependenciesDirty(this);
 }
 
-void CoreObject::SetShared(SPtr<CoreObject> ptrThis)
+void CoreObject::SetShared(TShared<CoreObject> ptrThis)
 {
 	mThis = ptrThis;
 }

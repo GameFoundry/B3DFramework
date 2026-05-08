@@ -64,7 +64,7 @@ namespace b3d
 		friend class ScriptManagedComponent;
 
 		/** Sets up script bindings between native and managed class. Must be called after creating the script object wrapper, or after assembly is reloaded. */
-		void SetupScriptBindings(const SPtr<ManagedObjectInfo>& objectInformation);
+		void SetupScriptBindings(const TShared<ManagedObjectInfo>& objectInformation);
 
 		/**
 		 * Creates the script object of the correct type.
@@ -72,7 +72,7 @@ namespace b3d
 		 * @param	outObjectInformation	Information about the component type. Can be null in case the type does no longer exist.
 		 * @return							Creates script object of the correct component type, or if type cannot be found, script object of missing type.
 		 */
-		MonoObject* CreateScriptObject(SPtr<ManagedObjectInfo>& outObjectInformation) const;
+		MonoObject* CreateScriptObject(TShared<ManagedObjectInfo>& outObjectInformation) const;
 
 		typedef void(B3D_THUNKCALL* OnCreatedThunkDef)(MonoObject*, MonoException**);
 		typedef void(B3D_THUNKCALL* OnInitializedThunkDef)(MonoObject*, MonoException**);
@@ -92,8 +92,8 @@ namespace b3d
 		bool mRequiresReset = true;
 
 		bool mMissingType = false;
-		SPtr<ManagedSerializableObject> mSerializedObjectData;
-		SPtr<ManagedObjectInfo> mObjInfo; // Transient
+		TShared<ManagedSerializableObject> mSerializedObjectData;
+		TShared<ManagedObjectInfo> mObjInfo; // Transient
 
 		OnCreatedThunkDef mOnCreatedThunk = nullptr;
 		OnInitializedThunkDef mOnInitializedThunk = nullptr;

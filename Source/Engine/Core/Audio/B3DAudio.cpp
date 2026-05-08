@@ -11,7 +11,7 @@ void Audio::Play(const HAudioClip& clip, const Vector3& position, float volume)
 	Transform transform;
 	transform.SetPosition(position);
 
-	SPtr<IAudioSourceImplementation> source = CreateSource();
+	TShared<IAudioSourceImplementation> source = CreateSource();
 	source->SetClip(clip);
 	source->SetTransform(transform);
 	source->SetVolume(volume);

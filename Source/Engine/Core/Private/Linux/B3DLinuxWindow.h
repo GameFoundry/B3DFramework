@@ -32,7 +32,7 @@ namespace b3d
 		::Window Parent;
 		::Window External;
 		XVisualInfo VisualInfo;
-		SPtr<PixelData> Background;
+		TShared<PixelData> Background;
 	};
 
 	/**

@@ -39,7 +39,7 @@ namespace b3d
 		~GpuBackend() override = default;
 
 		virtual u32 GetDeviceCount() const = 0;
-		virtual SPtr<GpuDevice> GetDevice(u32 index) const = 0;
+		virtual TShared<GpuDevice> GetDevice(u32 index) const = 0;
 
 		/************************************************************************/
 		/* 								DEBUGGING/PROFILING						*/
@@ -52,7 +52,7 @@ namespace b3d
 		virtual void StopCapture();
 
 	protected:
-		SPtr<GpuFrameCapture> mFrameCapture;
+		TShared<GpuFrameCapture> mFrameCapture;
 	};
 
 	/** @} */

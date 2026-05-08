@@ -21,7 +21,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEvolver")
 
-		ScriptParticleEvolver(const SPtr<ParticleEvolver>& nativeObject);
+		ScriptParticleEvolver(const TShared<ParticleEvolver>& nativeObject);
 		~ScriptParticleEvolver();
 
 		static void SetupScriptBindings();

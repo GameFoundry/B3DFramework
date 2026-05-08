@@ -60,7 +60,7 @@ namespace b3d
 
 	MonoObject* ScriptAnimationClip::InternalGetCurves(ScriptAnimationClip* self)
 	{
-		SPtr<AnimationCurves> tmp__output;
+		TShared<AnimationCurves> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -77,7 +77,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<AnimationCurves> tmpcurves;
+		TShared<AnimationCurves> tmpcurves;
 		ScriptAnimationCurves* scriptObjectWrappercurves;
 		scriptObjectWrappercurves = ScriptAnimationCurves::GetScriptObjectWrapper(curves);
 		if(scriptObjectWrappercurves != nullptr)
@@ -125,7 +125,7 @@ namespace b3d
 
 	MonoObject* ScriptAnimationClip::InternalGetRootMotion(ScriptAnimationClip* self)
 	{
-		SPtr<RootMotion> tmp__output;
+		TShared<RootMotion> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -209,12 +209,12 @@ namespace b3d
 
 	void ScriptAnimationClip::InternalCreate0(MonoObject* scriptObject, MonoObject* curves, bool isAdditive, uint32_t sampleRate, MonoObject* rootMotion)
 	{
-		SPtr<AnimationCurves> tmpcurves;
+		TShared<AnimationCurves> tmpcurves;
 		ScriptAnimationCurves* scriptObjectWrappercurves;
 		scriptObjectWrappercurves = ScriptAnimationCurves::GetScriptObjectWrapper(curves);
 		if(scriptObjectWrappercurves != nullptr)
 			tmpcurves = std::static_pointer_cast<AnimationCurves>(scriptObjectWrappercurves->GetBaseNativeObjectAsShared());
-		SPtr<RootMotion> tmprootMotion;
+		TShared<RootMotion> tmprootMotion;
 		ScriptRootMotion* scriptObjectWrapperrootMotion;
 		scriptObjectWrapperrootMotion = ScriptRootMotion::GetScriptObjectWrapper(rootMotion);
 		if(scriptObjectWrapperrootMotion != nullptr)

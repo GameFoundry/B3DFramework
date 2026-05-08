@@ -32,7 +32,7 @@ namespace b3d
 	void MetalGpuBackend::OnShutDown()
 	{
 		// Drain every initialized device before tearing down engine-side managers or dropping the
-		// device SPtrs. Without this the Metal queues may still hold scheduled @c MTL4CommandBuffers
+		// device TShareds. Without this the Metal queues may still hold scheduled @c MTL4CommandBuffers
 		// that reference resources owned by higher-level managers (textures, render windows) — if we
 		// destroy those managers while the GPU is mid-frame, backing MTLResources get released out
 		// from under in-flight commands and the driver flags a residency hazard at submit time.

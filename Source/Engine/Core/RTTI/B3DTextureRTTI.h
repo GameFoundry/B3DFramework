@@ -22,7 +22,7 @@ namespace b3d
 	class B3D_EXPORT TextureRTTI : public TRTTIType<Texture, Resource, TextureRTTI>
 	{
 	private:
-		Vector<SPtr<PixelData>> mPixelData;
+		Vector<TShared<PixelData>> mPixelData;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			//B3D_RTTI_MEMBER(mSize, 0)
@@ -83,7 +83,7 @@ namespace b3d
 					u32 face = surfaceIndex / mipLevelCount;
 					u32 mipmap = surfaceIndex % mipLevelCount;
 
-					SPtr<PixelData> pixelData = object.GetProperties().AllocBuffer(face, mipmap);
+					TShared<PixelData> pixelData = object.GetProperties().AllocBuffer(face, mipmap);
 
 					object.ReadData(pixelData, face, mipmap);
 					GetRenderThread().PostCommand([] {}, "TextureRTTI::GetPixelData", true, object.GetName());
@@ -111,8 +111,8 @@ namespace b3d
 
 					for(size_t i = 0; i < mPixelData.size(); i++)
 					{
-						SPtr<PixelData> origData = mPixelData[i];
-						SPtr<PixelData> newData = PixelData::Create(origData->GetWidth(), origData->GetHeight(), origData->GetDepth(), validFormat);
+						TShared<PixelData> origData = mPixelData[i];
+						TShared<PixelData> newData = PixelData::Create(origData->GetWidth(), origData->GetHeight(), origData->GetDepth(), validFormat);
 
 						PixelUtility::BulkPixelConversion(*origData, *newData);
 						mPixelData[i] = newData;
@@ -148,7 +148,7 @@ namespace b3d
 			return TID_Texture;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return Texture::CreateEmpty();
 		}

@@ -16,10 +16,10 @@ namespace b3d
 	class PhysXMesh : public IPhysicsMeshImplementation
 	{
 	public:
-		PhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type);
+		PhysXMesh(const TShared<MeshData>& meshData, PhysicsMeshType type);
 		~PhysXMesh() override;
 
-		SPtr<MeshData> GetMeshData() const override;
+		TShared<MeshData> GetMeshData() const override;
 
 		/**
 		 * Returns the internal PhysX representation of a triangle mesh. Caller must ensure the physics mesh type is

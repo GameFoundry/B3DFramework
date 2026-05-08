@@ -39,7 +39,7 @@ void GpuCommandBufferPoolRing::AdvanceFrame()
 	// Move to next pool in ring
 	mCurrentPoolIndex = (mCurrentPoolIndex + 1) % kPoolCount;
 
-	const SPtr<GpuCommandBufferPool>& commandBufferPool = mPools[mCurrentPoolIndex];
+	const TShared<GpuCommandBufferPool>& commandBufferPool = mPools[mCurrentPoolIndex];
 
 	// Ensure the messages sent by the submit thread have been processed by this point. We need this to happen as we're hardcoding
 	// our pool count to kPoolCount, so the last pool must be fully processed before we reuse it again. This needs to happen after

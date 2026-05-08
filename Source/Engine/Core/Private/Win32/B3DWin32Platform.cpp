@@ -137,7 +137,7 @@ void Platform::SetCursorPosition(const Vector2I& screenPos)
 
 void Platform::CaptureMouse(const RenderWindow& window)
 {
-	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+	TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 	if(hwnd == 0)
 		return; // No-op in headless mode
@@ -147,7 +147,7 @@ void Platform::CaptureMouse(const RenderWindow& window)
 
 void Platform::ReleaseMouseCapture()
 {
-	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+	TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 	if(hwnd == 0)
 		return; // No-op in headless mode
@@ -179,7 +179,7 @@ void Platform::HideCursor()
 	// ShowCursor(FALSE) doesn't work. Presumably because we're in the wrong thread, and using
 	// WM_SETCURSOR in message loop to hide the cursor is smarter solution anyway.
 
-	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+	TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 	if(hwnd == 0)
 		return; // No-op in headless mode
@@ -197,7 +197,7 @@ void Platform::ShowCursor()
 	// ShowCursor(FALSE) doesn't work. Presumably because we're in the wrong thread, and using
 	// WM_SETCURSOR in message loop to hide the cursor is smarter solution anyway.
 
-	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+	TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 	if(hwnd == 0)
 		return; // No-op in headless mode
@@ -277,7 +277,7 @@ void Platform::SetCursor(PixelData& pixelData, const Vector2I& hotSpot)
 	DeleteObject(hMonoBitmap);
 
 	// Make sure we notify the message loop to perform the actual cursor update
-	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+	TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 	if(hwnd == 0)
 		return; // No-op in headless mode
@@ -287,7 +287,7 @@ void Platform::SetCursor(PixelData& pixelData, const Vector2I& hotSpot)
 
 void Platform::SetIcon(const PixelData& pixelData)
 {
-	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+	TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 	if(hwnd == 0)
 		return; // No-op in headless mode

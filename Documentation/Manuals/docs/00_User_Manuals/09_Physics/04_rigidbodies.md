@@ -86,7 +86,7 @@ You can also change the strength of gravity by changing its acceleration factor.
 
 ~~~~~~~~~~~~~{.cpp}
 // Set gravity of the main scene to the value on the Moon
-const SPtr<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
+const TShared<PhysicsScene>& physicsScene = GetSceneManager().GetMainScene()->GetPhysicsScene();
 physicsScene->SetGravity(Vector3(0.0f, -1.622f, 0.0f)); // in m/s^2
 ~~~~~~~~~~~~~
 

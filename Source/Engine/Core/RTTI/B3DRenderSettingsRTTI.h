@@ -41,7 +41,7 @@ namespace b3d
 			return TID_AutoExposureSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<AutoExposureSettings>();
 		}
@@ -72,7 +72,7 @@ namespace b3d
 			return TID_TonemappingSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<TonemappingSettings>();
 		}
@@ -98,7 +98,7 @@ namespace b3d
 			return TID_WhiteBalanceSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<WhiteBalanceSettings>();
 		}
@@ -126,7 +126,7 @@ namespace b3d
 			return TID_ColorGradingSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ColorGradingSettings>();
 		}
@@ -167,7 +167,7 @@ namespace b3d
 			return TID_DepthOfFieldSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<DepthOfFieldSettings>();
 		}
@@ -199,7 +199,7 @@ namespace b3d
 			return TID_AmbientOcclusionSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<AmbientOcclusionSettings>();
 		}
@@ -228,7 +228,7 @@ namespace b3d
 			return TID_MotionBlurSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<MotionBlurSettings>();
 		}
@@ -255,7 +255,7 @@ namespace b3d
 			return TID_TemporalAASettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<TemporalAASettings>();
 		}
@@ -283,7 +283,7 @@ namespace b3d
 			return TID_ScreenSpaceReflectionsSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ScreenSpaceReflectionsSettings>();
 		}
@@ -313,7 +313,7 @@ namespace b3d
 			return TID_BloomSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<BloomSettings>();
 		}
@@ -352,7 +352,7 @@ namespace b3d
 			return TID_ScreenSpaceLensFlareSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ScreenSpaceLensFlareSettings>();
 		}
@@ -380,7 +380,7 @@ namespace b3d
 			return TID_ChromaticAberrationSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ChromaticAberrationSettings>();
 		}
@@ -407,7 +407,7 @@ namespace b3d
 			return TID_FilmGrainSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<FilmGrainSettings>();
 		}
@@ -435,7 +435,7 @@ namespace b3d
 			return TID_ShadowSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ShadowSettings>();
 		}
@@ -485,7 +485,7 @@ namespace b3d
 			return TID_RenderSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<RenderSettings>();
 		}

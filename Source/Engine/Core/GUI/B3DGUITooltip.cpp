@@ -31,7 +31,7 @@ void GUITooltip::OnCreated()
 
 	SetDepth(0); // Needs to be in front of everything
 
-	SPtr<Viewport> viewport = GetCamera()->GetViewport();
+	TShared<Viewport> viewport = GetCamera()->GetViewport();
 
 	const GUIPhysicalArea availableBounds = viewport->GetPixelArea().To<GUIPhysicalUnit>();
 

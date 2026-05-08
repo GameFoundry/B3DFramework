@@ -65,11 +65,11 @@ namespace b3d
 		 * @note	Thread safe.
 		 */
 		B3D_SCRIPT_EXPORT()
-		B3D_NO_RREF HResource Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty);
+		B3D_NO_RREF HResource Import(const Path& inputFilePath, TShared<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty);
 
 		/** @copydoc Import */
 		template <class T>
-		TResourceHandle<T> Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty)
+		TResourceHandle<T> Import(const Path& inputFilePath, TShared<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty)
 		{
 			return B3DStaticResourceCast<T>(Import(inputFilePath, importOptions, UUID));
 		}
@@ -79,7 +79,7 @@ namespace b3d
 		 * placed in the returned AsyncOp object when the import ends.
 		 */
 		B3D_SCRIPT_EXPORT()
-		TAsyncOp<HResource> ImportAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty);
+		TAsyncOp<HResource> ImportAsync(const Path& inputFilePath, TShared<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty);
 
 		/**
 		 * Imports a resource at the specified location, and returns the loaded data. This method returns all imported
@@ -96,14 +96,14 @@ namespace b3d
 		 * @note	Thread safe.
 		 */
 		B3D_SCRIPT_EXPORT()
-		SPtr<MultiResource> ImportAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
+		TShared<MultiResource> ImportAll(const Path& inputFilePath, TShared<const ImportOptions> importOptions = nullptr);
 
 		/**
 		 * Same as importAll(), except it imports a resource without blocking the main thread. The returned AsyncOp will
 		 * contain a list of the imported resources, after the import ends.
 		 */
 		B3D_SCRIPT_EXPORT()
-		TAsyncOp<SPtr<MultiResource>> ImportAllAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
+		TAsyncOp<TShared<MultiResource>> ImportAllAsync(const Path& inputFilePath, TShared<const ImportOptions> importOptions = nullptr);
 
 		/**
 		 * Automatically detects the importer needed for the provided file and returns valid type of import options for
@@ -119,11 +119,11 @@ namespace b3d
 		 * expect to be used for this file type. If you don't use a proper import options type, an exception will be thrown
 		 * during import.
 		 */
-		SPtr<ImportOptions> CreateImportOptions(const Path& inputFilePath);
+		TShared<ImportOptions> CreateImportOptions(const Path& inputFilePath);
 
 		/** @copydoc CreateImportOptions */
 		template <class T>
-		SPtr<T> CreateImportOptions(const Path& inputFilePath)
+		TShared<T> CreateImportOptions(const Path& inputFilePath)
 		{
 			return std::static_pointer_cast<T>(CreateImportOptions(inputFilePath));
 		}
@@ -160,13 +160,13 @@ namespace b3d
 		void RegisterAssetImporter(SpecificImporter* importer);
 
 		/** Alternative to import() which doesn't create a resource handle, but instead returns a raw resource pointer. */
-		SPtr<Resource> ImportInternal(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
+		TShared<Resource> ImportInternal(const Path& inputFilePath, TShared<const ImportOptions> importOptions = nullptr);
 
 		/** Alternative to ImportAll() which doesn't create resource handles, but instead returns raw resource pointers. */
-		Vector<SubResourceRaw> ImportAllInternal(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
+		Vector<SubResourceRaw> ImportAllInternal(const Path& inputFilePath, TShared<const ImportOptions> importOptions = nullptr);
 
 		/** Alternative to ImportAllAsync() which doesn't create resource handles, but instead returns raw resource pointers. */
-		TAsyncOp<Vector<SubResourceRaw>> ImportAllAsyncInternal(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
+		TAsyncOp<Vector<SubResourceRaw>> ImportAllAsyncInternal(const Path& inputFilePath, TShared<const ImportOptions> importOptions = nullptr);
 
 		/** @} */
 	private:
@@ -181,14 +181,14 @@ namespace b3d
 		 * and write the resulting resource to the provided @p op object.
 		 */
 		template <class ReturnType>
-		void QueueForImport(SpecificImporter* importer, const Path& inputFilePath, const SPtr<const ImportOptions>& importOptions, const UUID& uuid, TAsyncOp<ReturnType>& op);
+		void QueueForImport(SpecificImporter* importer, const Path& inputFilePath, const TShared<const ImportOptions>& importOptions, const UUID& uuid, TAsyncOp<ReturnType>& op);
 
 		/**
 		 * Prepares for import of a file at the specified path. Returns the type of importer the file can be imported with,
 		 * or null if the file isn't valid or is of unsupported type. Also creates the default set of import options unless
 		 * already provided.
 		 */
-		SpecificImporter* PrepareForImport(const Path& filePath, SPtr<const ImportOptions>& importOptions) const;
+		SpecificImporter* PrepareForImport(const Path& filePath, TShared<const ImportOptions>& importOptions) const;
 
 		/**
 		 * Checks is the specific importer currently importing something asynchronously. If the importer doesn't support

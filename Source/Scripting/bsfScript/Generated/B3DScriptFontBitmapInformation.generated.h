@@ -16,7 +16,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FontBitmapInformation")
 
-		ScriptFontBitmapInformation(const SPtr<FontBitmapInformation>& nativeObject);
+		ScriptFontBitmapInformation(const TShared<FontBitmapInformation>& nativeObject);
 		~ScriptFontBitmapInformation();
 
 		static void SetupScriptBindings();

@@ -16,7 +16,7 @@
 
 namespace b3d
 {
-	ScriptSceneInstance::ScriptSceneInstance(const SPtr<SceneInstance>& nativeObject)
+	ScriptSceneInstance::ScriptSceneInstance(const TShared<SceneInstance>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -101,7 +101,7 @@ namespace b3d
 
 	MonoObject* ScriptSceneInstance::InternalGetPhysicsScene(ScriptSceneInstance* self)
 	{
-		SPtr<PhysicsScene> tmp__output;
+		TShared<PhysicsScene> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -146,7 +146,7 @@ namespace b3d
 
 	MonoObject* ScriptSceneInstance::InternalGetEditorSceneInstance(ScriptSceneInstance* self)
 	{
-		SPtr<IEditorSceneInstance> tmp__output;
+		TShared<IEditorSceneInstance> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -203,7 +203,7 @@ namespace b3d
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		SPtr<SceneInstance> nativeObject = SceneInstance::Create(tmpname);
+		TShared<SceneInstance> nativeObject = SceneInstance::Create(tmpname);
 		ScriptObjectWrapper::Create<ScriptSceneInstance>(nativeObject, scriptObject);
 	}
 
@@ -216,7 +216,7 @@ namespace b3d
 		scriptObjectWrapperroot = ScriptSceneObject::GetScriptObjectWrapper(root);
 		if(scriptObjectWrapperroot != nullptr)
 			tmproot = B3DStaticGameObjectCast<SceneObject>(scriptObjectWrapperroot->GetBaseNativeObjectAsHandle());
-		SPtr<SceneInstance> nativeObject = SceneInstance::Create(tmpname, tmproot);
+		TShared<SceneInstance> nativeObject = SceneInstance::Create(tmpname, tmproot);
 		ScriptObjectWrapper::Create<ScriptSceneInstance>(nativeObject, scriptObject);
 	}
 }

@@ -125,7 +125,7 @@ namespace b3d
 			void Initialize() override;
 
 			/** Prepares material parameters for rendering. */
-			void Prepare(const GBufferTextures& gBufferInput, const GpuBufferSuballocation& perCamera, const SPtr<Texture>& ssr, const SPtr<Texture>& ao, const GpuBufferSuballocation& reflProbeParams);
+			void Prepare(const GBufferTextures& gBufferInput, const GpuBufferSuballocation& perCamera, const TShared<Texture>& ssr, const TShared<Texture>& ao, const GpuBufferSuballocation& reflProbeParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -168,7 +168,7 @@ namespace b3d
 			DeferredIBLProbeMaterial() = default;
 
 			/** Populates the provided GPU parameters with the provided parameters. */
-			static void PopulateParameters(GpuDevice& gpuDevice, const SPtr<GpuParameterSet>& gpuParameters, const GBufferTextures& gBufferInput, const GpuBufferSuballocation& perCamera, const RenderBeastScene& scene, const GpuBufferSuballocation& perProbeUniformBuffer, const GpuBufferSuballocation& globalProbeUniformBuffer);
+			static void PopulateParameters(GpuDevice& gpuDevice, const TShared<GpuParameterSet>& gpuParameters, const GBufferTextures& gBufferInput, const GpuBufferSuballocation& perCamera, const RenderBeastScene& scene, const GpuBufferSuballocation& perProbeUniformBuffer, const GpuBufferSuballocation& globalProbeUniformBuffer);
 
 			/** Creates a new transient uniform buffer containing provided per-probe data. */
 			static GpuBufferSuballocation CreatePerProbeUniformBuffer(const ReflectioneProbeData& probeData);
@@ -254,7 +254,7 @@ namespace b3d
 			void Initialize() override;
 
 			/** Prepares material parameters for rendering. */
-			void Prepare(const GBufferTextures& gBufferInput, const GpuBufferSuballocation& perCamera, const SPtr<Texture>& iblRadiance, const SPtr<Texture>& preintegratedBrdf, const GpuBufferSuballocation& reflProbeParams);
+			void Prepare(const GBufferTextures& gBufferInput, const GpuBufferSuballocation& perCamera, const TShared<Texture>& iblRadiance, const TShared<Texture>& preintegratedBrdf, const GpuBufferSuballocation& reflProbeParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -304,14 +304,14 @@ namespace b3d
 			struct LightBatch
 			{
 				// Material pointers
-				SPtr<Mesh> StencilMesh; // For point/spot lights
+				TShared<Mesh> StencilMesh; // For point/spot lights
 
 				// Lights in this group
 				TArray<BatchedLightInstance> Lights;
 
 				// Shared GPU resources
-				SPtr<GpuBuffer> PerLightUniformBuffer; // Instanced buffer
-				SPtr<GpuParameterSet> GpuParameters; // Single GpuParameters for all lights
+				TShared<GpuBuffer> PerLightUniformBuffer; // Instanced buffer
+				TShared<GpuParameterSet> GpuParameters; // Single GpuParameters for all lights
 				u32 DynamicOffsetIndex; // Index for SetDynamicBufferOffset
 				u32 UniformStride; // Stride between light instances in buffer
 			};
@@ -327,7 +327,7 @@ namespace b3d
 			{
 				bool IsViewerInside = false;
 				u32 Type = 0;
-				SPtr<GpuParameterSet> GpuParameters;
+				TShared<GpuParameterSet> GpuParameters;
 			};
 
 			/**
@@ -340,7 +340,7 @@ namespace b3d
 			 * @param lightOcclusion    Shadow occlusion texture (or Texture::kBlack if no shadows).
 			 * @return                  Prepared batch containing grouped lights and GPU resources.
 			 */
-			LightBatches PrepareLightBatches(TArrayView<const PackedRendererId> lights, const RenderBeastScene& scene, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion);
+			LightBatches PrepareLightBatches(TArrayView<const PackedRendererId> lights, const RenderBeastScene& scene, const RendererView& view, const GBufferTextures& gBufferInput, const TShared<Texture>& lightOcclusion);
 
 			/**
 			 * Renders a prepared light batch using dynamic offsets.

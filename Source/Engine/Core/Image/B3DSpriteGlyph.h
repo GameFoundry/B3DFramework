@@ -52,14 +52,14 @@ namespace b3d
 		struct SyncPacket;
 
 		/** Creates a new sprite glyph allocation. */
-		static SPtr<SpriteGlyphAllocation> Create(const WeakSPtr<SpriteImageType>& owner, const TextureType& texture, const Area2& uvRange, float sizeInPoints);
+		static TShared<SpriteGlyphAllocation> Create(const WeakSPtr<SpriteImageType>& owner, const TextureType& texture, const Area2& uvRange, float sizeInPoints);
 
 	protected:
 		friend class render::SpriteGlyphAllocation;
 
 		using TSpriteGlyphAllocation::TSpriteGlyphAllocation;
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 	};
 
@@ -95,8 +95,8 @@ namespace b3d
 	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteGlyph : public CoreVariantType<SpriteImage, false>
 	{
 	public:
-		SPtr<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) override;
-		SPtr<SpriteImageAllocation> FindOrAllocateScaledImage(float scale) override;
+		TShared<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) override;
+		TShared<SpriteImageAllocation> FindOrAllocateScaledImage(float scale) override;
 
 		/**	Creates a new sprite glyph. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SpriteGlyph))
@@ -107,10 +107,10 @@ namespace b3d
 		static HSpriteGlyph Create(const SpriteGlyphCreateInformation& createInformation);
 
 		/** Creates a new SpriteGlyph without a resource handle. Use Create() for normal use. */
-		static SPtr<SpriteGlyph> CreateShared(const HFont& font, u32 glyph, float size = 8.0f);
+		static TShared<SpriteGlyph> CreateShared(const HFont& font, u32 glyph, float size = 8.0f);
 
 		/** Creates a new SpriteGlyph without a resource handle. Use Create() for normal use. */
-		static SPtr<SpriteGlyph> CreateShared(const SpriteGlyphCreateInformation& createInformation);
+		static TShared<SpriteGlyph> CreateShared(const SpriteGlyphCreateInformation& createInformation);
 
 	private:
 		friend class SpriteGlyphRTTI;
@@ -120,10 +120,10 @@ namespace b3d
 		SpriteGlyph(const SpriteGlyphCreateInformation& createInformation);
 
 		/** Allocates a sprite image using the provided size in points. */
-		SPtr<SpriteGlyphAllocation> AllocateImage(float sizeInPoints);
+		TShared<SpriteGlyphAllocation> AllocateImage(float sizeInPoints);
 
 		void Initialize() override;
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		HFont mFont;
@@ -135,7 +135,7 @@ namespace b3d
 		/************************************************************************/
 
 		/**	Creates a new empty and uninitialized sprite glyph. */
-		static SPtr<SpriteGlyph> CreateEmpty();
+		static TShared<SpriteGlyph> CreateEmpty();
 
 	public:
 		friend class SpriteGlyphRTTI;
@@ -172,7 +172,7 @@ namespace b3d
 		private:
 			friend class b3d::SpriteGlyph;
 
-			SpriteGlyph(const SpriteGlyphCreateInformation& createInformation, const SPtr<SpriteImageAllocation>& defaultAllocatedImage);
+			SpriteGlyph(const SpriteGlyphCreateInformation& createInformation, const TShared<SpriteImageAllocation>& defaultAllocatedImage);
 
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 		};

@@ -16,7 +16,7 @@ HFont font = GetImporter().Import<Font>("lato.ttf");
 Font import can be customized by providing a @b3d::FontImportOptions object to the importer.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<FontImportOptions> importOptions = FontImportOptions::Create();
+TShared<FontImportOptions> importOptions = FontImportOptions::Create();
 // Set required options here (as described below)
 
 HFont font = GetImporter().Import<Font>("lato.ttf", importOptions);
@@ -129,7 +129,7 @@ Retrieve font bitmap information for a specific size using @b3d::Font::GetBitmap
 
 ~~~~~~~~~~~~~{.cpp}
 float sizeInPoints = 12.0f;
-SPtr<FontBitmapInformation> bitmapInformation = font->GetBitmap(sizeInPoints);
+TShared<FontBitmapInformation> bitmapInformation = font->GetBitmap(sizeInPoints);
 
 if (bitmapInformation)
 {

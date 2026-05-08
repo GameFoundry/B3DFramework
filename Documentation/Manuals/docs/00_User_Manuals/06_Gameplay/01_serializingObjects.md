@@ -97,7 +97,7 @@ public:
 		return TID_MyClass;
 	}
 
-	SPtr<IReflectable> NewRttiObject() override
+	TShared<IReflectable> NewRttiObject() override
 	{
 		return B3DMakeShared<MyClass>();
 	}
@@ -117,7 +117,7 @@ public:
 		return TID_MyComponent;
 	}
 
-	SPtr<IReflectable> NewRttiObject() override
+	TShared<IReflectable> NewRttiObject() override
 	{
 		return SceneObject::CreateEmptyComponent<MyComponent>();
 	}
@@ -168,7 +168,7 @@ Field definition portion of the RTTI type always begins with the @B3D_RTTI_BEGIN
 ## Field types
 The main macro for defining fields is @B3D_RTTI_MEMBER, which takes the field name and a unique ID. This macro works for:
  - **Plain types**: Basic types like ints, floats, strings, and POD structs
- - **Reflectable types**: Objects deriving from **IReflectable** (either by value or as SPtr)
+ - **Reflectable types**: Objects deriving from **IReflectable** (either by value or as TShared)
  - **Resource handles**: HMesh, HTexture, etc.
  - **Component handles**: HRenderable, HCamera, etc.
 
@@ -182,7 +182,7 @@ public:
 	u32 myInt;
 	float myFloat;
 	String myString;
-	SPtr<MyClass> myPtrClass;
+	TShared<MyClass> myPtrClass;
 	MyClass myClass;
 	HRenderable renderable; // Component handle
 	HMesh mesh; // Resource handle
@@ -219,7 +219,7 @@ public:
 	// ...
 
 	Vector<u32> myInts;
-	Vector<SPtr<MyClass>> myPtrClasses;
+	Vector<TShared<MyClass>> myPtrClasses;
 	Vector<HMesh> meshes;
 
 	// ...
@@ -270,8 +270,8 @@ Sometimes you need to serialize data that isn't directly stored in the class, bu
 class SceneObjectRTTI : public TRTTIType<SceneObject, GameObject, SceneObjectRTTI>
 {
 	// These members exist in the RTTI class, not the SceneObject
-	Vector<SPtr<SceneObject>> mChildren;
-	Vector<SPtr<Component>> mComponents;
+	Vector<TShared<SceneObject>> mChildren;
+	Vector<TShared<Component>> mComponents;
 
 	B3D_RTTI_BEGIN_MEMBERS
 		// Generated members reference fields in the RTTI class
@@ -310,7 +310,7 @@ To manually serialize an object you can use the @b3d::FileEncoder class or @b3d:
 @b3d::FileEncoder serializes objects to a file:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<IReflectable> myObject = B3DMakeShared<MyClass>();
+TShared<IReflectable> myObject = B3DMakeShared<MyClass>();
 
 FileEncoder encoder("Path/To/My/File.asset");
 encoder.Encode(myObject.get());
@@ -320,7 +320,7 @@ To decode from a file, use @b3d::FileDecoder:
 
 ~~~~~~~~~~~~~{.cpp}
 FileDecoder decoder("Path/To/My/File.asset");
-SPtr<IReflectable> myObjectCopy = decoder.Decode();
+TShared<IReflectable> myObjectCopy = decoder.Decode();
 ~~~~~~~~~~~~~
 
 ### Using BinarySerializer
@@ -328,14 +328,14 @@ SPtr<IReflectable> myObjectCopy = decoder.Decode();
 @b3d::BinarySerializer serializes objects to/from memory streams:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<IReflectable> myObject = B3DMakeShared<MyClass>();
+TShared<IReflectable> myObject = B3DMakeShared<MyClass>();
 
 BinarySerializer binarySerializer;
-SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 binarySerializer.Encode(myObject.get(), stream);
 
 stream->Seek(0);
-SPtr<IReflectable> myObjectCopy = binarySerializer.Decode(stream, stream->Size());
+TShared<IReflectable> myObjectCopy = binarySerializer.Decode(stream, stream->Size());
 ~~~~~~~~~~~~~
 
 > For advanced serialization options, contexts, and detailed control over the serialization process, see the [Advanced RTTI](../14_advancedRtti.md) manual.

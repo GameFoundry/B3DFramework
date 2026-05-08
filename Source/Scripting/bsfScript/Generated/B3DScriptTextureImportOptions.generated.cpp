@@ -9,7 +9,7 @@
 namespace b3d
 {
 #if !B3D_IS_ENGINE
-	ScriptTextureImportOptions::ScriptTextureImportOptions(const SPtr<TextureImportOptions>& nativeObject)
+	ScriptTextureImportOptions::ScriptTextureImportOptions(const TShared<TextureImportOptions>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -52,7 +52,7 @@ namespace b3d
 	}
 	void ScriptTextureImportOptions::InternalCreate(MonoObject* scriptObject)
 	{
-		SPtr<TextureImportOptions> nativeObject = TextureImportOptions::Create();
+		TShared<TextureImportOptions> nativeObject = TextureImportOptions::Create();
 		ScriptObjectWrapper::Create<ScriptTextureImportOptions>(nativeObject, scriptObject);
 	}
 	PixelFormat ScriptTextureImportOptions::InternalGetFormat(ScriptTextureImportOptions* self)

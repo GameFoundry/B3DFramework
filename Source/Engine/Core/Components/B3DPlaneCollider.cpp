@@ -22,7 +22,7 @@ PlaneCollider::PlaneCollider()
 
 void PlaneCollider::OnCreated()
 {
-	SPtr<ColliderShape> colliderShape = ColliderShape::CreatePlane(PlaneColliderShapeInformation());
+	TShared<ColliderShape> colliderShape = ColliderShape::CreatePlane(PlaneColliderShapeInformation());
 	colliderShape->SetPosition(mShapeLocalPosition);
 	colliderShape->SetRotation(mShapeLocalRotation);
 

@@ -8,7 +8,7 @@ using namespace b3d;
 
 constexpr const char* NullRendererFactory::SystemName;
 
-SPtr<render::Renderer> NullRendererFactory::Create()
+TShared<render::Renderer> NullRendererFactory::Create()
 {
 	return B3DMakeShared<render::NullRenderer>();
 }
@@ -25,7 +25,7 @@ const StringID& render::NullRenderer::GetName() const
 	return name;
 }
 
-void render::NullRenderer::Initialize(const SPtr<GpuDevice>& gpuDevice)
+void render::NullRenderer::Initialize(const TShared<GpuDevice>& gpuDevice)
 {
 	Renderer::Initialize(gpuDevice);
 
@@ -43,12 +43,12 @@ void render::NullRenderer::RenderAll(PerFrameData perFrameData)
 {
 }
 
-SPtr<render::RendererScene> render::NullRenderer::CreateScene()
+TShared<render::RendererScene> render::NullRenderer::CreateScene()
 {
 	return B3DMakeShared<render::NullRendererScene>();
 }
 
-SPtr<render::NullRenderer> render::GetNullRenderer()
+TShared<render::NullRenderer> render::GetNullRenderer()
 {
 	return std::static_pointer_cast<render::NullRenderer>(RendererManager::Instance().GetActive());
 }

@@ -103,7 +103,7 @@ class GUITexture : public GUIRenderable
 	}
 	
 	private:
-		SPtr<Sprite> mSprite;
+		TShared<Sprite> mSprite;
 };
 ~~~~~~~~~~~~~
 

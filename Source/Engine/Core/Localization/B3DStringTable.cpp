@@ -200,7 +200,7 @@ void StringTable::SetString(const String& identifier, Language language, const S
 
 	auto found = curLanguage->Strings.find(identifier);
 
-	SPtr<LocalizedStringData> stringData;
+	TShared<LocalizedStringData> stringData;
 	if(found == curLanguage->Strings.end())
 	{
 		stringData = B3DMakeShared<LocalizedStringData>();
@@ -236,12 +236,12 @@ void StringTable::RemoveString(const String& identifier)
 	mIdentifiers.erase(identifier);
 }
 
-SPtr<LocalizedStringData> StringTable::GetStringData(const String& identifier, bool insertIfNonExisting)
+TShared<LocalizedStringData> StringTable::GetStringData(const String& identifier, bool insertIfNonExisting)
 {
 	return GetStringData(identifier, mActiveLanguage, insertIfNonExisting);
 }
 
-SPtr<LocalizedStringData> StringTable::GetStringData(const String& identifier, Language language, bool insertIfNonExisting)
+TShared<LocalizedStringData> StringTable::GetStringData(const String& identifier, Language language, bool insertIfNonExisting)
 {
 	LanguageData* curLanguage = &(mAllLanguages[(u32)language]);
 
@@ -271,9 +271,9 @@ HStringTable StringTable::Create()
 	return B3DStaticResourceCast<StringTable>(GetResources().CreateResourceHandle(CreateShared()));
 }
 
-SPtr<StringTable> StringTable::CreateShared()
+TShared<StringTable> StringTable::CreateShared()
 {
-	SPtr<StringTable> stringTable = B3DMakeSharedFromExisting<StringTable>(new(B3DAllocate<StringTable>()) StringTable());
+	TShared<StringTable> stringTable = B3DMakeSharedFromExisting<StringTable>(new(B3DAllocate<StringTable>()) StringTable());
 	stringTable->SetShared(stringTable);
 	stringTable->Initialize();
 

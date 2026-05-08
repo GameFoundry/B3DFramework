@@ -14,12 +14,12 @@ namespace b3d
 	/** Stores parameter description for all GPU programs used in a particular GPU pipeline. */
 	struct GpuPipelineParameterLayoutInformation
 	{
-		SPtr<GpuProgramParameterDescription> Fragment;
-		SPtr<GpuProgramParameterDescription> Vertex;
-		SPtr<GpuProgramParameterDescription> Geometry;
-		SPtr<GpuProgramParameterDescription> Hull;
-		SPtr<GpuProgramParameterDescription> Domain;
-		SPtr<GpuProgramParameterDescription> Compute;
+		TShared<GpuProgramParameterDescription> Fragment;
+		TShared<GpuProgramParameterDescription> Vertex;
+		TShared<GpuProgramParameterDescription> Geometry;
+		TShared<GpuProgramParameterDescription> Hull;
+		TShared<GpuProgramParameterDescription> Domain;
+		TShared<GpuProgramParameterDescription> Compute;
 	};
 
 	/** Descriptor structure used for initialization of a GpuPipelineParameterLayout. */
@@ -179,12 +179,12 @@ namespace b3d
 		u32 GetSetCount() const { return (u32)mSets.Size(); }
 
 		/** Returns pipeline layout for a particular set. */
-		SPtr<GpuPipelineParameterSetLayout> GetSet(u32 set) const { return mSets[set]; }
+		TShared<GpuPipelineParameterSetLayout> GetSet(u32 set) const { return mSets[set]; }
 
 	protected:
 		GpuPipelineParameterLayout(GpuDevice& device, const GpuPipelineParameterLayoutCreateInformation& createInformation);
 
-		TInlineArray<SPtr<GpuPipelineParameterSetLayout>, 2> mSets;
+		TInlineArray<TShared<GpuPipelineParameterSetLayout>, 2> mSets;
 	};
 
 	/** @} */

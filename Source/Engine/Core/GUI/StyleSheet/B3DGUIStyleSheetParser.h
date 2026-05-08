@@ -25,7 +25,7 @@ namespace b3d
 		GUIStyleSheetParser();
 
 		/** Attempts to parse the provided style sheet file and outputs the parsed style sheet, if successful. */
-		SPtr<GUIStyleSheet> Parse(const SPtr<SourceCode>& sourceCode);
+		TShared<GUIStyleSheet> Parse(const TShared<SourceCode>& sourceCode);
 
 		/** Returns errors in case parsing failed. */
 		const String& GetErrors() const { return mErrors; }
@@ -454,7 +454,7 @@ namespace b3d
 
 		/** @} */
 
-		SPtr<SourceCode> mSourceCode;
+		TShared<SourceCode> mSourceCode;
 		GUIStyleSheetLexer mLexer;
 		TOptional<Token> mCurrentToken;
 		TArray<GUIStyleSheetRuleset> mParsedRulesets;

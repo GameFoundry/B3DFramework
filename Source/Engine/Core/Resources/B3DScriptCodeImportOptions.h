@@ -24,7 +24,7 @@ namespace b3d
 
 		/** Creates a new import options object that allows you to customize how is script code imported. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ScriptCodeImportOptions> Create();
+		static TShared<ScriptCodeImportOptions> Create();
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

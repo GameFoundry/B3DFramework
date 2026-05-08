@@ -22,7 +22,7 @@ namespace b3d
 		 * @param	root	Root object to traverse and record.
 		 * @return			A map of object IDs to instance data. 
 		 */
-		static UnorderedMap<UUID, SPtr<GameObjectInstanceData>> RecordSceneObjectHierarchyInstanceData(const HSceneObject& root);
+		static UnorderedMap<UUID, TShared<GameObjectInstanceData>> RecordSceneObjectHierarchyInstanceData(const HSceneObject& root);
 
 		/**
 		 * Restores instance data in the provided hierarchy, using object ids to determine what data maps to which objects.
@@ -30,7 +30,7 @@ namespace b3d
 		 * @param	root			Root object to traverse and restore.
 		 * @param	instanceData	A map of object IDs to instance data, as output by RecordSceneObjectHierarchyInstanceData() method.
 		 */
-		static void RestoreSceneObjectHierarchyInstanceData(const HSceneObject& root, const UnorderedMap<UUID, SPtr<GameObjectInstanceData>>& instanceData);
+		static void RestoreSceneObjectHierarchyInstanceData(const HSceneObject& root, const UnorderedMap<UUID, TShared<GameObjectInstanceData>>& instanceData);
 	};
 
 	/** @} */

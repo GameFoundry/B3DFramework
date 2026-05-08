@@ -9,7 +9,7 @@
 
 using namespace b3d;
 
-PrefabIdRemapper::PrefabIdRemapper(const HSceneObject& originalPrefabHierarchy, const UUID& rootPrefabId, const SPtr<GameObjectCollection>& newGameObjectCollection)
+PrefabIdRemapper::PrefabIdRemapper(const HSceneObject& originalPrefabHierarchy, const UUID& rootPrefabId, const TShared<GameObjectCollection>& newGameObjectCollection)
 	:mPrefabId(rootPrefabId), mNewGameObjectCollection(newGameObjectCollection)
 {
 	PrefabInformation rootPrefabInformation;

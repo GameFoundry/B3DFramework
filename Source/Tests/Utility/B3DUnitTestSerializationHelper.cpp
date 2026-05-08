@@ -41,7 +41,7 @@ void UnitTestSerializationHelpers::TestAssertMapsMatch(TestSuite& testSuite, con
 	}
 }
 
-void UnitTestSerializationHelpers::TestAssertObjectsMatch(TestSuite& testSuite, const SPtr<UnitTestSerializationObjectA>& lhs, const SPtr<UnitTestSerializationObjectA>& rhs, bool isDelta = false)
+void UnitTestSerializationHelpers::TestAssertObjectsMatch(TestSuite& testSuite, const TShared<UnitTestSerializationObjectA>& lhs, const TShared<UnitTestSerializationObjectA>& rhs, bool isDelta = false)
 {
 	B3D_TEST_ASSERT_EXTERNAL(testSuite, lhs->IntA == rhs->IntA)
 	B3D_TEST_ASSERT_EXTERNAL(testSuite, lhs->StrA == rhs->StrA)

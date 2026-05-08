@@ -309,7 +309,7 @@ namespace b3d
 		Vector<ShaderVariationParameterInformation> VariationParameters;
 
 		/** Meta-data required by the shader compiler when compiling shader variations on demand. Can be null if the shader is being initialized with precompiled variations. */
-		SPtr<ShaderCompilerMetaData> CompilerMetaData;
+		TShared<ShaderCompilerMetaData> CompilerMetaData;
 
 		Map<String, ShaderDataParameterInformation> DataParameters;
 		Map<String, ShaderObjectParameterInformation> TextureParameters;
@@ -348,7 +348,7 @@ namespace b3d
 		ShaderInformation() = default;
 
 		/** Variations to initialize the shader with. */
-		Vector<SPtr<Variation>> Variations;
+		Vector<TShared<Variation>> Variations;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -377,7 +377,7 @@ namespace b3d
 		static render::ShaderInformation ConvertToRenderProxy(const ShaderInformation& other);
 
 		/** Variations to initialize the shader with. */
-		Vector<SPtr<Variation>> Variations;
+		Vector<TShared<Variation>> Variations;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -423,7 +423,7 @@ namespace b3d
 		u32 GetVariationCount() const { return (u32)mInformation.Variations.size(); }
 
 		/** Returns the list of all supported variations based on current render API and renderer. */
-		Vector<SPtr<VariationType>> GetCompatibleVariations() const;
+		Vector<TShared<VariationType>> GetCompatibleVariations() const;
 
 		/**
 		 * Returns the list of all supported variations based on current render API and renderer, and limits the variations
@@ -435,10 +435,10 @@ namespace b3d
 		 *										of parameters is used for comparison, while any extra parameters present in
 		 *										the variation are not compared.
 		 */
-		Vector<SPtr<VariationType>> GetCompatibleVariations(const ShaderVariationParameters& variationParameters, bool exact) const;
+		Vector<TShared<VariationType>> GetCompatibleVariations(const ShaderVariationParameters& variationParameters, bool exact) const;
 
 		/** Returns a list of all variations in this shader. */
-		const Vector<SPtr<VariationType>>& GetVariations() const { return mInformation.Variations; }
+		const Vector<TShared<VariationType>>& GetVariations() const { return mInformation.Variations; }
 
 		/**
 		 * Returns the list of all variation parameters supported by this shader, possible values of each parameter and
@@ -535,7 +535,7 @@ namespace b3d
 		 * Returns a default sampler state for a parameter that has the specified default value index (retrieved from the
 		 * parameters descriptor).
 		 */
-		SPtr<SamplerState> GetDefaultSampler(u32 index) const;
+		TShared<SamplerState> GetDefaultSampler(u32 index) const;
 
 		/**
 		 * Returns a pointer to the internal buffer containing the default value for a data parameter that has the
@@ -552,7 +552,7 @@ namespace b3d
 		 */
 
 		/** Returns the meta-data required by the shader compiler to compile individual shader variations. */
-		const SPtr<ShaderCompilerMetaData>& GetCompilerMetaData() const { return mInformation.CompilerMetaData; }
+		const TShared<ShaderCompilerMetaData>& GetCompilerMetaData() const { return mInformation.CompilerMetaData; }
 
 		/** @} */
 
@@ -620,7 +620,7 @@ namespace b3d
 		static HShader Create(const String& name, const ShaderCreateInformation& createInformation);
 
 		/**	Returns a shader object but doesn't initialize it. */
-		static SPtr<Shader> CreateEmpty();
+		static TShared<Shader> CreateEmpty();
 
 		/** Computes a hash from shader source code. */
 		static Array<u64, 2> ComputeHash(const String& string);
@@ -643,7 +643,7 @@ namespace b3d
 		 *
 		 * @note	Internal method. Use Create() for normal use.
 		 */
-		static SPtr<Shader> CreateShared(const String& name, const ShaderCreateInformation& createInformation);
+		static TShared<Shader> CreateShared(const String& name, const ShaderCreateInformation& createInformation);
 
 		/** @} */
 
@@ -651,7 +651,7 @@ namespace b3d
 		Shader(const String& name, const ShaderCreateInformation& createInformation, u32 id);
 
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 
 	private:
 		/************************************************************************/
@@ -696,10 +696,10 @@ namespace b3d
 		{
 		public:
 			/** @copydoc b3d::Shader::Create */
-			static SPtr<Shader> Create(const String& name, const ShaderCreateInformation& createInformation);
+			static TShared<Shader> Create(const String& name, const ShaderCreateInformation& createInformation);
 
 			/** Creates an empty shader. */
-			static SPtr<Shader> CreateEmpty();
+			static TShared<Shader> CreateEmpty();
 
 			/** Returns the name of the shader. */
 			String GetShaderName() const { return mName; }

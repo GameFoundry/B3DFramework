@@ -105,8 +105,8 @@ namespace b3d
 	class B3D_EXPORT TGpuParameterPrimitive
 	{
 	private:
-		using GpuParamBufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
+		using GpuParamBufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
 
 	public:
 		TGpuParameterPrimitive();
@@ -145,8 +145,8 @@ namespace b3d
 	class B3D_EXPORT TGpuParameterStruct
 	{
 	public:
-		using GpuParamBufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
+		using GpuParamBufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
 
 		TGpuParameterStruct();
 		TGpuParameterStruct(const GpuUniformBufferMemberInformation* parameterInformation, const GpuParamsType& parent);
@@ -179,7 +179,7 @@ namespace b3d
 		friend class GpuParameterSet;
 		friend class render::GpuParameterSet;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
+		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 	public:
@@ -211,7 +211,7 @@ namespace b3d
 		friend class GpuParameterSet;
 		friend class render::GpuParameterSet;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
+		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 	public:
@@ -243,8 +243,8 @@ namespace b3d
 		friend class GpuParameterSet;
 		friend class render::GpuParameterSet;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
+		using BufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 	public:
 		TGpuParameterStorageBuffer();
@@ -275,8 +275,8 @@ namespace b3d
 		friend class GpuParameterSet;
 		friend class render::GpuParameterSet;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
+		using BufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 	public:
 		TGpuParameterUniformBuffer();
@@ -311,17 +311,17 @@ namespace b3d
 		friend class GpuParameterSet;
 		friend class render::GpuParameterSet;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
+		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
 
 	public:
 		TGpuParameterSampler();
 		TGpuParameterSampler(const GpuParameterBinding& binding, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::Set */
-		void Set(const SPtr<SamplerState>& samplerState, u32 arrayIndex = 0) const;
+		void Set(const TShared<SamplerState>& samplerState, u32 arrayIndex = 0) const;
 
 		/** @copydoc TGpuDataParam::Get */
-		SPtr<SamplerState> Get(u32 arrayIndex = 0) const;
+		TShared<SamplerState> Get(u32 arrayIndex = 0) const;
 
 		/**	Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const

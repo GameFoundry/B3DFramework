@@ -37,7 +37,7 @@ namespace b3d
 			return TID_SpriteVectorPath;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return SpriteVectorPath::CreateEmpty();
 		}

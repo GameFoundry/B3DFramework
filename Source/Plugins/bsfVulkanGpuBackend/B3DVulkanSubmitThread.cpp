@@ -66,7 +66,7 @@ VulkanSubmitThread::~VulkanSubmitThread()
 	mCommandQueue.PostRequestShutdownCommand(true);
 }
 
-void VulkanSubmitThread::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking)
+void VulkanSubmitThread::QueueSubmit(const TShared<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking)
 {
 	auto fnCommand = [this, commandBuffer, &queue, syncMask, signalFences = std::move(signalFences)]() mutable
 	{
@@ -136,7 +136,7 @@ void VulkanSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 		mCurrentFrameLastCommandBuffer = nullptr;
 
 		// Wait for that frame's last command buffer to complete
-		const SPtr<VulkanGpuCommandBuffer>& commandBufferToWaitFor = mFrameMarkers[nextFrameIndex].LastCommandBuffer;
+		const TShared<VulkanGpuCommandBuffer>& commandBufferToWaitFor = mFrameMarkers[nextFrameIndex].LastCommandBuffer;
 		if (commandBufferToWaitFor != nullptr)
 		{
 			const bool completed = commandBufferToWaitFor->UpdateExecutionStatus(true);

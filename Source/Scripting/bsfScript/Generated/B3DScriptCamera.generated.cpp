@@ -112,7 +112,7 @@ namespace b3d
 
 	MonoObject* ScriptCamera::InternalRequestCapture(ScriptCamera* self)
 	{
-		TAsyncOp<SPtr<PixelData>> tmp__output;
+		TAsyncOp<TShared<PixelData>> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -121,7 +121,7 @@ namespace b3d
 		MonoObject* __output;
 		auto fnConvertCallback = [](const Any& returnValue)
 		{
-			SPtr<PixelData> nativeObject = AnyCast<SPtr<PixelData>>(returnValue);
+			TShared<PixelData> nativeObject = AnyCast<TShared<PixelData>>(returnValue);
 			MonoObject* scriptObject;
 			scriptObject = ScriptPixelData::GetOrCreateScriptObject(nativeObject);
 			return scriptObject;
@@ -404,7 +404,7 @@ namespace b3d
 
 	MonoObject* ScriptCamera::InternalGetViewport(ScriptCamera* self)
 	{
-		SPtr<Viewport> tmp__output;
+		TShared<Viewport> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -421,7 +421,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<RenderSettings> tmpsettings;
+		TShared<RenderSettings> tmpsettings;
 		ScriptRenderSettings* scriptObjectWrappersettings;
 		scriptObjectWrappersettings = ScriptRenderSettings::GetScriptObjectWrapper(settings);
 		if(scriptObjectWrappersettings != nullptr)
@@ -431,7 +431,7 @@ namespace b3d
 
 	MonoObject* ScriptCamera::InternalGetRenderSettings(ScriptCamera* self)
 	{
-		SPtr<RenderSettings> tmp__output;
+		TShared<RenderSettings> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 

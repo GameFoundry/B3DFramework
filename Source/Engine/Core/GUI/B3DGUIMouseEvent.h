@@ -75,7 +75,7 @@ namespace b3d
 		bool IsButtonDown(GUIMouseButton button) const { return mButtonStates[(int)button]; }
 
 		/** Returns data being dragged by a drag and drop event. Only valid if event is drag and drop related. */
-		const SPtr<DragAndDropData>& GetDragAndDropData() const { return mDragAndDropData; }
+		const TShared<DragAndDropData>& GetDragAndDropData() const { return mDragAndDropData; }
 
 		/**	Checks is the shift button being held. */
 		bool IsShiftDown() const { return mShift; }
@@ -120,13 +120,13 @@ namespace b3d
 		void SetMouseDragEndData(const GUIPhysicalPoint& position);
 
 		/**	Initializes the event with DragAndDropDropped event data. */
-		void SetDragAndDropDroppedData(const GUIPhysicalPoint& position, const SPtr<DragAndDropData>& dragAndDropData);
+		void SetDragAndDropDroppedData(const GUIPhysicalPoint& position, const TShared<DragAndDropData>& dragAndDropData);
 
 		/**	Initializes the event with DragAndDropDragged event data. */
-		void SetDragAndDropDraggedData(const GUIPhysicalPoint& position, const SPtr<DragAndDropData>& dragAndDropData);
+		void SetDragAndDropDraggedData(const GUIPhysicalPoint& position, const TShared<DragAndDropData>& dragAndDropData);
 
 		/**	Initializes the event with DragAndDropLeft event data. */
-		void SetDragAndDropLeftData(const GUIPhysicalPoint& position, const SPtr<DragAndDropData>& dragAndDropData);
+		void SetDragAndDropLeftData(const GUIPhysicalPoint& position, const TShared<DragAndDropData>& dragAndDropData);
 
 		bool mButtonStates[(int)GUIMouseButton::Count];
 		GUIPhysicalPoint mPosition{kZeroTag};
@@ -135,7 +135,7 @@ namespace b3d
 		float mWheelScrollAmount = 0.0f;
 		GUIMouseEventType mType = GUIMouseEventType::MouseMove;
 		GUIMouseButton mButton = GUIMouseButton::Left;
-		SPtr<DragAndDropData> mDragAndDropData;
+		TShared<DragAndDropData> mDragAndDropData;
 
 		bool mShift = false;
 		bool mCtrl = false;

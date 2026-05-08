@@ -36,7 +36,7 @@ PrefabTestSuite::PrefabTestSuite()
 void PrefabTestSuite::TestPrefabSaveLoad()
 {
 	// Create & serialize scene 0
-	SPtr<MemoryDataStream> serializedScene0Stream = B3DMakeShared<MemoryDataStream>();
+	TShared<MemoryDataStream> serializedScene0Stream = B3DMakeShared<MemoryDataStream>();
 	{
 		UnitTestSceneA scene0Wrapper = UnitTestSceneA::CreateInNewSceneInstance("UnitTestScene0Instance");
 
@@ -56,7 +56,7 @@ void PrefabTestSuite::TestPrefabSaveLoad()
 	}
 
 	// Deserialize scene 0 and verify object references remain valid
-	SPtr<Prefab> scene0Prefab;
+	TShared<Prefab> scene0Prefab;
 	{
 		serializedScene0Stream->Seek(0);
 
@@ -108,7 +108,7 @@ void PrefabTestSuite::TestPrefabSaveLoad()
 	}
 
 	// Create and serialize scene 1 that contains an instance of the above prefab, and they reference eachother objects
-	SPtr<MemoryDataStream> serializedScene1Stream = B3DMakeShared<MemoryDataStream>();
+	TShared<MemoryDataStream> serializedScene1Stream = B3DMakeShared<MemoryDataStream>();
 	{
 		UnitTestSceneB scene1Wrapper = UnitTestSceneB::CreateInNewSceneInstance("UnitTestScene1Instance");
 		scene1Wrapper.SetUnitTestSceneAChildPrefab_0_0(*scene0Prefab);
@@ -127,7 +127,7 @@ void PrefabTestSuite::TestPrefabSaveLoad()
 	}
 
 	// Deserialize scene 1 and ensure references remain valid
-	SPtr<Prefab> scene1Prefab;
+	TShared<Prefab> scene1Prefab;
 	{
 		serializedScene1Stream->Seek(0);
 
@@ -504,7 +504,7 @@ void PrefabTestSuite::TestAssertPrefabScenario()
 {
 	B3D_ASSERT(mPrefabTestInformation[0].Prefab != nullptr);
 
-	UnorderedMap<UUID, SPtr<UnitTestSceneB>> prefabSceneLookup;
+	UnorderedMap<UUID, TShared<UnitTestSceneB>> prefabSceneLookup;
 	for(auto& entry : mPrefabTestInformation)
 	{
 		if(entry.Prefab != nullptr)

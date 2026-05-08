@@ -57,7 +57,7 @@ namespace b3d
 		 * @return					Instantiated clone of the prefab's scene object hierarchy.
 		 */
 		B3D_SCRIPT_EXPORT()
-		HSceneObject Instantiate(const SPtr<SceneInstance>& sceneInstance) const;
+		HSceneObject Instantiate(const TShared<SceneInstance>& sceneInstance) const;
 
 		/**
 		 * Returns a version value that gets updated every time the prefab contents update. Can be used for detecting if a prefab instance
@@ -86,7 +86,7 @@ namespace b3d
 		HSceneObject GetRoot() const { return mRoot; }
 
 		/** Returns the game object collection that owns all the game objects in the prefab. */
-		SPtr<GameObjectCollection> GetGameObjectCollection() const { return mGameObjectCollection; }
+		TShared<GameObjectCollection> GetGameObjectCollection() const { return mGameObjectCollection; }
 
 		/**
 		 * Creates the clone of the prefab's current hierarchy but doesn't instantiate it.
@@ -96,7 +96,7 @@ namespace b3d
 		 *									otherwise IDs would conflict.
 		 * @return							Clone of the prefab's scene object hierarchy.
 		 */
-		HSceneObject Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection) const;
+		HSceneObject Clone(const TShared<GameObjectCollection>& cloneOwnerCollection) const;
 
 		/**
 		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy as a brand new scene instance, whose
@@ -104,7 +104,7 @@ namespace b3d
 		 *
 		 * @return					Newly created scene instance.
 		 */
-		SPtr<SceneInstance> InstantiateAsScene() const;
+		TShared<SceneInstance> InstantiateAsScene() const;
 
 		/**
 		 * Replaces the contents of this prefab with new contents from the provided object. Returns a map of @p sceneObject IDs
@@ -122,7 +122,7 @@ namespace b3d
 
 	private:
 		/**	Creates an empty and uninitialized prefab. */
-		static SPtr<Prefab> CreateEmpty();
+		static TShared<Prefab> CreateEmpty();
 
 		/**
 		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy. The returned hierarchy
@@ -133,7 +133,7 @@ namespace b3d
 		 *								scene instance will be created and output through this parameter.
 		 * @return						Instantiated clone of the prefab's scene object hierarchy.
 		 */
-		HSceneObject InstantiateInternal(SPtr<SceneInstance>& inOutSceneInstance) const;
+		HSceneObject InstantiateInternal(TShared<SceneInstance>& inOutSceneInstance) const;
 
 		void Initialize() override;
 		void Destroy() override;
@@ -141,7 +141,7 @@ namespace b3d
 		HSceneObject mRoot;
 		UUID mPrefabVersion = UUID::kEmpty;
 		UUID mUUID;
-		SPtr<GameObjectCollection> mGameObjectCollection; /**< Collection owning the internal hierarchy. */
+		TShared<GameObjectCollection> mGameObjectCollection; /**< Collection owning the internal hierarchy. */
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

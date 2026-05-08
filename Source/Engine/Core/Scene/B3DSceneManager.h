@@ -35,11 +35,11 @@ namespace b3d
 		 * scene will be created internally, as the main scene must always exist.
 		 */
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(MainScene))
-		void SetMainScene(const SPtr<SceneInstance>& scene);
+		void SetMainScene(const TShared<SceneInstance>& scene);
 
 		/** @copydoc SetMainScene */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(MainScene))
-		const SPtr<SceneInstance>& GetMainScene() const { return mMainScene; }
+		const TShared<SceneInstance>& GetMainScene() const { return mMainScene; }
 
 		/** Returns all live scene instances. */
 		const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>>& GetAllScenes() const { return mSceneInstances; }
@@ -48,10 +48,10 @@ namespace b3d
 		 * Sets the render target that the main camera in the scene (if any) will render its view to. This generally means
 		 * the main game window when running standalone, or the Game viewport when running in editor.
 		 */
-		void SetMainCameraRenderTarget(const SPtr<RenderTarget>& renderTarget);
+		void SetMainCameraRenderTarget(const TShared<RenderTarget>& renderTarget);
 
 		/** Notifies the manager that a new scene instance was created. */
-		void NotifySceneInstanceCreated(const SPtr<SceneInstance>& sceneInstance);
+		void NotifySceneInstanceCreated(const TShared<SceneInstance>& sceneInstance);
 
 		/** Notifies the manager that a scene instance was destroyed. */
 		void NotifySceneInstanceDestroyed(SceneInstance* sceneInstance);
@@ -59,7 +59,7 @@ namespace b3d
 	protected:
 		friend class SceneObject;
 
-		SPtr<SceneInstance> mMainScene;
+		TShared<SceneInstance> mMainScene;
 		UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>> mSceneInstances;
 	};
 

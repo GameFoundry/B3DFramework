@@ -5,7 +5,7 @@
 
 using namespace b3d;
 
-SPtr<AudioClipImportOptions> AudioClipImportOptions::Create()
+TShared<AudioClipImportOptions> AudioClipImportOptions::Create()
 {
 	return B3DMakeShared<AudioClipImportOptions>();
 }

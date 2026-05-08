@@ -138,40 +138,40 @@ void CoreTestSuite::TestLookupTable()
 
 void CoreTestSuite::TestBinarySerialization()
 {
-	const SPtr<UnitTestSerializationObjectA> object = UnitTestSerializationObjectA::CreateVariantB();
+	const TShared<UnitTestSerializationObjectA> object = UnitTestSerializationObjectA::CreateVariantB();
 
-	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+	TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer serializer;
 	serializer.Encode(object.get(), stream, BinarySerializerFlag::None);
 
 	stream->Seek(0);
 
-	const SPtr<UnitTestSerializationObjectA> deserializedObject = B3DRTTICast<UnitTestSerializationObjectA>(serializer.Decode(stream, (u32)stream->Size()));
+	const TShared<UnitTestSerializationObjectA> deserializedObject = B3DRTTICast<UnitTestSerializationObjectA>(serializer.Decode(stream, (u32)stream->Size()));
 	UnitTestSerializationHelpers::TestAssertObjectsMatch(*this, object, deserializedObject, false);
 }
 
 void CoreTestSuite::TestSerializedObject()
 {
-	const SPtr<UnitTestSerializationObjectA> object = UnitTestSerializationObjectA::CreateVariantB();
+	const TShared<UnitTestSerializationObjectA> object = UnitTestSerializationObjectA::CreateVariantB();
 
-	const SPtr<SerializedObject> serializedObject = SerializedObject::Create(*object);
+	const TShared<SerializedObject> serializedObject = SerializedObject::Create(*object);
 	RTTIOperationEngineContext rttiOperationContext;
-	const SPtr<UnitTestSerializationObjectA> deserializedObject = B3DRTTICast<UnitTestSerializationObjectA>(serializedObject->Decode(rttiOperationContext));
+	const TShared<UnitTestSerializationObjectA> deserializedObject = B3DRTTICast<UnitTestSerializationObjectA>(serializedObject->Decode(rttiOperationContext));
 
 	UnitTestSerializationHelpers::TestAssertObjectsMatch(*this, object, deserializedObject, false);
 }
 
 void CoreTestSuite::TestBinaryDelta()
 {
-	const SPtr<UnitTestSerializationObjectA> objectA = UnitTestSerializationObjectA::CreateVariantA();
-	const SPtr<UnitTestSerializationObjectA> objectB = UnitTestSerializationObjectA::CreateVariantB();
+	const TShared<UnitTestSerializationObjectA> objectA = UnitTestSerializationObjectA::CreateVariantA();
+	const TShared<UnitTestSerializationObjectA> objectB = UnitTestSerializationObjectA::CreateVariantB();
 
-	const SPtr<SerializedObject> serializedObjectA = SerializedObject::Create(*objectA.get());
-	const SPtr<SerializedObject> serializedObjectB = SerializedObject::Create(*objectB.get());
+	const TShared<SerializedObject> serializedObjectA = SerializedObject::Create(*objectA.get());
+	const TShared<SerializedObject> serializedObjectB = SerializedObject::Create(*objectB.get());
 
 	IDeltaHandler& deltaHandler = objectA->GetRtti()->GetDeltaHandler();
 	RTTIOperationEngineContext generateDeltaRTTIOperationContext;
-	SPtr<SerializedObject> delta = deltaHandler.GenerateDelta(serializedObjectA, serializedObjectB, generateDeltaRTTIOperationContext);
+	TShared<SerializedObject> delta = deltaHandler.GenerateDelta(serializedObjectA, serializedObjectB, generateDeltaRTTIOperationContext);
 
 	RTTIOperationEngineContext applyDeltaRTTIOperationContext;
 	deltaHandler.ApplyDelta(objectA, delta, applyDeltaRTTIOperationContext);

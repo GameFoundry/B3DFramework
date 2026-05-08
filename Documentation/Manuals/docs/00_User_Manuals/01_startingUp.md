@@ -56,7 +56,7 @@ HSceneObject cameraSceneObject = SceneObject::Create("SceneCamera");
 HCamera sceneCamera = cameraSceneObject->AddComponent<Camera>();
 
 // Get the primary window for rendering
-SPtr<RenderWindow> window = GetApplication().GetPrimaryWindow();
+TShared<RenderWindow> window = GetApplication().GetPrimaryWindow();
 
 // Set the camera to render to the primary window
 sceneCamera->GetViewport()->SetTarget(window);
@@ -116,7 +116,7 @@ int B3DMain()
 	HCamera sceneCamera = cameraSceneObject->AddComponent<Camera>();
 
 	// Get the primary window and set the camera to render to it
-	SPtr<RenderWindow> window = GetApplication().GetPrimaryWindow();
+	TShared<RenderWindow> window = GetApplication().GetPrimaryWindow();
 	sceneCamera->GetViewport()->SetTarget(window);
 
 	// Position the camera

@@ -35,7 +35,7 @@ void ImageSprite::Update(const ImageSpriteInformation& information, u64 groupId)
 		quadCount = 9;
 
 	// If not using scale9grid attempt to allocate a sprite image of the exact size
-	const SPtr<SpriteImageAllocation> spriteAllocation = useScale9Grid
+	const TShared<SpriteImageAllocation> spriteAllocation = useScale9Grid
 		? information.Image->GetDefaultAllocatedImageAsShared()
 		: information.Image->FindOrAllocateImageToFitArea(information.Size);
 

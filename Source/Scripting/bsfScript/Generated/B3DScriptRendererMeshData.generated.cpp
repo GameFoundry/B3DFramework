@@ -16,7 +16,7 @@
 
 namespace b3d
 {
-	ScriptRendererMeshData::ScriptRendererMeshData(const SPtr<RendererMeshData>& nativeObject)
+	ScriptRendererMeshData::ScriptRendererMeshData(const TShared<RendererMeshData>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -64,7 +64,7 @@ namespace b3d
 	}
 	MonoObject* ScriptRendererMeshData::InternalGetData(ScriptRendererMeshData* self)
 	{
-		SPtr<MeshData> tmp__output;
+		TShared<MeshData> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -78,7 +78,7 @@ namespace b3d
 
 	void ScriptRendererMeshData::InternalCreate(MonoObject* scriptObject, uint32_t numVertices, uint32_t numIndices, VertexLayout layout, IndexType indexType)
 	{
-		SPtr<RendererMeshData> nativeObject = MeshDataEx::Create(numVertices, numIndices, layout, indexType);
+		TShared<RendererMeshData> nativeObject = MeshDataEx::Create(numVertices, numIndices, layout, indexType);
 		ScriptObjectWrapper::Create<ScriptRendererMeshData>(nativeObject, scriptObject);
 	}
 

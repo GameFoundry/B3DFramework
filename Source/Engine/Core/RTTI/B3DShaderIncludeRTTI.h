@@ -32,7 +32,7 @@ namespace b3d
 			return TID_ShaderInclude;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return ShaderInclude::CreatePtrInternal(""); // Initial string doesn't matter, it'll get overwritten
 		}

@@ -25,7 +25,7 @@ Bounds b3d::ComputeDecalBounds(const Vector2& size, float maxDistance, const Tra
 	return Bounds(localAABB);
 }
 
-ecs::Decal& ecs::CreateDecal(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene, const Transform& transform)
+ecs::Decal& ecs::CreateDecal(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform)
 {
 	ecs::DecalECSUtility::CreateFragmentsIfMissing(registry, entity);
 	registry.AddComponent<ecs::WorldTransform>(entity, ecs::WorldTransform(transform));
@@ -238,13 +238,13 @@ void Decal::Initialize()
 
 void Decal::OnEnabled()
 {
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 	ecs::DecalECSUtility::RegisterWithRenderer(*GetECSRegistry(), GetECSEntity(), rendererScene);
 }
 
 void Decal::OnDisabled()
 {
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 	ecs::DecalECSUtility::UnregisterFromRenderer(*GetECSRegistry(), GetECSEntity(), rendererScene);
 }
 

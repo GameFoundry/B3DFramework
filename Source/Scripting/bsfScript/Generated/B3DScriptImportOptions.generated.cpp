@@ -8,7 +8,7 @@
 namespace b3d
 {
 #if !B3D_IS_ENGINE
-	ScriptImportOptions::ScriptImportOptions(const SPtr<ImportOptions>& nativeObject)
+	ScriptImportOptions::ScriptImportOptions(const TShared<ImportOptions>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

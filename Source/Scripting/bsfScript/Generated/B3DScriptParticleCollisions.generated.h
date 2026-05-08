@@ -18,7 +18,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleCollisions")
 
-		ScriptParticleCollisions(const SPtr<ParticleCollisions>& nativeObject);
+		ScriptParticleCollisions(const TShared<ParticleCollisions>& nativeObject);
 		~ScriptParticleCollisions();
 
 		static void SetupScriptBindings();

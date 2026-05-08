@@ -129,9 +129,9 @@ Each reflection probe also has an @b3d::ecs::ReflectionProbeId fragment that sto
 You can bypass the **ReflectionProbe** component and create `ecs::ReflectionProbe` fragments directly for maximum performance. Helper functions @b3d::ecs::CreateReflectionProbe and @b3d::ecs::DestroyReflectionProbe handle fragment creation, world transform, renderer ID allocation, and cleanup. Use @b3d::ecs::ReflectionProbeECSUtility to mark dirty after property changes.
 
 ~~~~~~~~~~~~~{.cpp}
-const SPtr<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
+const TShared<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
 ecs::Registry& registry = scene->GetECSRegistry();
-const SPtr<RendererScene>& rendererScene = scene->GetRendererScene();
+const TShared<RendererScene>& rendererScene = scene->GetRendererScene();
 
 // Create an entity with all reflection probe fragments, a world transform, and a renderer ID
 ecs::Entity entity = registry.CreateEntity();

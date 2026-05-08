@@ -133,7 +133,7 @@ FLACDecoder::~FLACDecoder()
 	Close();
 }
 
-bool FLACDecoder::IsValid(const SPtr<DataStream>& stream, u32 offset)
+bool FLACDecoder::IsValid(const TShared<DataStream>& stream, u32 offset)
 {
 	stream->Seek(offset);
 
@@ -154,7 +154,7 @@ bool FLACDecoder::IsValid(const SPtr<DataStream>& stream, u32 offset)
 	return valid && !data.Error;
 }
 
-bool FLACDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset)
+bool FLACDecoder::Open(const TShared<DataStream>& stream, AudioDataInfo& info, u32 offset)
 {
 	if(stream == nullptr)
 		return false;

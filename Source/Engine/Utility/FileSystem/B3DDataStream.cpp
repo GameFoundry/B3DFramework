@@ -235,7 +235,7 @@ MemoryDataStream::MemoryDataStream(const MemoryDataStream& sourceStream)
 	B3D_ASSERT(mEnd >= mCursor);
 }
 
-MemoryDataStream::MemoryDataStream(const SPtr<DataStream>& sourceStream)
+MemoryDataStream::MemoryDataStream(const TShared<DataStream>& sourceStream)
 	: DataStream(READ | WRITE)
 {
 	// Copy data from incoming stream
@@ -393,7 +393,7 @@ bool MemoryDataStream::Eof() const
 	return mCursor >= mEnd;
 }
 
-SPtr<DataStream> MemoryDataStream::Clone(bool copyData) const
+TShared<DataStream> MemoryDataStream::Clone(bool copyData) const
 {
 	if(!copyData)
 		return B3DMakeShared<MemoryDataStream>(mData, mSize);
@@ -581,7 +581,7 @@ bool FileDataStream::Eof() const
 	return mFileStream.eof();
 }
 
-SPtr<DataStream> FileDataStream::Clone(bool copyData) const
+TShared<DataStream> FileDataStream::Clone(bool copyData) const
 {
 	return B3DMakeShared<FileDataStream>(mPath, (AccessMode)GetAccessMode());
 }

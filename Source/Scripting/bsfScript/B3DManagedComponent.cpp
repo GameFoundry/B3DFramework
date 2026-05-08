@@ -46,14 +46,14 @@ RawBackupData ManagedComponent::Backup(bool clearExisting)
 		if(scriptObjectWrapper != nullptr)
 			scriptObject = scriptObjectWrapper->GetScriptObject();
 
-		SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::CreateFromExisting(scriptObject);
+		TShared<ManagedSerializableObject> serializableObject = ManagedSerializableObject::CreateFromExisting(scriptObject);
 
 		// Serialize the object information and its fields. We cannot just serialize the entire object because
 		// the managed instance had to be created in a previous step. So we handle creation of the top level object manually.
 
 		if(serializableObject != nullptr)
 		{
-			SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+			TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 			BinarySerializer bs;
 
 			bs.Encode(serializableObject.get(), stream);
@@ -69,7 +69,7 @@ RawBackupData ManagedComponent::Backup(bool clearExisting)
 	}
 	else
 	{
-		SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+		TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 
 		if(mSerializedObjectData != nullptr)
 		{
@@ -131,7 +131,7 @@ void ManagedComponent::Restore(const RawBackupData& data)
 	mRequiresReset = true;
 }
 
-MonoObject* ManagedComponent::CreateScriptObject(SPtr<ManagedObjectInfo>& outObjectInformation) const
+MonoObject* ManagedComponent::CreateScriptObject(TShared<ManagedObjectInfo>& outObjectInformation) const
 {
 	// See if this type even still exists
 	MonoObject* scriptObject;
@@ -143,7 +143,7 @@ MonoObject* ManagedComponent::CreateScriptObject(SPtr<ManagedObjectInfo>& outObj
 	return scriptObject;
 }
 
-void ManagedComponent::SetupScriptBindings(const SPtr<ManagedObjectInfo>& objectInformation)
+void ManagedComponent::SetupScriptBindings(const TShared<ManagedObjectInfo>& objectInformation)
 {
 	mObjInfo = objectInformation;
 
@@ -338,7 +338,7 @@ void ManagedComponent::Initialize()
 {
 	Component::Initialize();
 
-	SPtr<ManagedObjectInfo> objectInformation;
+	TShared<ManagedObjectInfo> objectInformation;
 	MonoObject* const scriptObject = CreateScriptObject(objectInformation);
 
 	ScriptObjectWrapper::Create<ScriptManagedComponent>(B3DStaticGameObjectCast<ManagedComponent>(mThisHandle), scriptObject);

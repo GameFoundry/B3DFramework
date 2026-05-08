@@ -17,7 +17,7 @@ namespace b3d
 	{
 	public:
 		/** Returns some dummy mesh data with one triangle you may use for initializing a mesh. */
-		SPtr<MeshData> GetDummyMeshData() const { return mDummyMeshData; }
+		TShared<MeshData> GetDummyMeshData() const { return mDummyMeshData; }
 
 		/**	Returns a dummy mesh containing one triangle. */
 		HMesh GetDummyMesh() const { return mDummyMesh; }
@@ -27,7 +27,7 @@ namespace b3d
 		void OnStartUp() override;
 
 	private:
-		SPtr<MeshData> mDummyMeshData;
+		TShared<MeshData> mDummyMeshData;
 		HMesh mDummyMesh;
 	};
 

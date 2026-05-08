@@ -63,7 +63,7 @@ namespace b3d
 
 	MonoObject* ScriptTexture::InternalReadData(ScriptTexture* self, uint32_t face, uint32_t mipLevel)
 	{
-		TAsyncOp<SPtr<PixelData>> tmp__output;
+		TAsyncOp<TShared<PixelData>> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -72,7 +72,7 @@ namespace b3d
 		MonoObject* __output;
 		auto fnConvertCallback = [](const Any& returnValue)
 		{
-			SPtr<PixelData> nativeObject = AnyCast<SPtr<PixelData>>(returnValue);
+			TShared<PixelData> nativeObject = AnyCast<TShared<PixelData>>(returnValue);
 			MonoObject* scriptObject;
 			scriptObject = ScriptPixelData::GetOrCreateScriptObject(nativeObject);
 			return scriptObject;
@@ -217,7 +217,7 @@ namespace b3d
 
 	MonoObject* ScriptTexture::InternalGetPixels(ScriptTexture* self, uint32_t face, uint32_t mipLevel)
 	{
-		SPtr<PixelData> tmp__output;
+		TShared<PixelData> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -234,7 +234,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<PixelData> tmpdata;
+		TShared<PixelData> tmpdata;
 		ScriptPixelData* scriptObjectWrapperdata;
 		scriptObjectWrapperdata = ScriptPixelData::GetScriptObjectWrapper(data);
 		if(scriptObjectWrapperdata != nullptr)

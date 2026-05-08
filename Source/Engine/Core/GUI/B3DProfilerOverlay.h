@@ -139,7 +139,7 @@ namespace b3d
 		GpuProfilerResults mLastProfilerResults;
 
 		ProfilerOverlayType mType;
-		SPtr<Viewport> mTarget;
+		TShared<Viewport> mTarget;
 
 		HSceneObject mWidgetSO;
 		HGUIWidget mWidget;

@@ -51,7 +51,7 @@ OggVorbisDecoder::~OggVorbisDecoder()
 		ov_clear(&mOggVorbisFile);
 }
 
-bool OggVorbisDecoder::IsValid(const SPtr<DataStream>& stream, u32 offset)
+bool OggVorbisDecoder::IsValid(const TShared<DataStream>& stream, u32 offset)
 {
 	stream->Seek(offset);
 	mDecoderData.Stream = stream;
@@ -67,7 +67,7 @@ bool OggVorbisDecoder::IsValid(const SPtr<DataStream>& stream, u32 offset)
 	return false;
 }
 
-bool OggVorbisDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset)
+bool OggVorbisDecoder::Open(const TShared<DataStream>& stream, AudioDataInfo& info, u32 offset)
 {
 	if(stream == nullptr)
 		return false;

@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	ScriptSceneObjectDragAndDropData::ScriptSceneObjectDragAndDropData(const SPtr<SceneObjectDragAndDropData>& nativeObject)
+	ScriptSceneObjectDragAndDropData::ScriptSceneObjectDragAndDropData(const TShared<SceneObjectDragAndDropData>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -41,7 +41,7 @@ namespace b3d
 	}
 	void ScriptSceneObjectDragAndDropData::InternalSceneObjectDragAndDropData(MonoObject* scriptObject)
 	{
-		SPtr<SceneObjectDragAndDropData> nativeObject = B3DMakeShared<SceneObjectDragAndDropData>();
+		TShared<SceneObjectDragAndDropData> nativeObject = B3DMakeShared<SceneObjectDragAndDropData>();
 		ScriptObjectWrapper::Create<ScriptSceneObjectDragAndDropData>(nativeObject, scriptObject);
 	}
 
@@ -52,7 +52,7 @@ namespace b3d
 		scriptObjectWrappersceneObject = ScriptSceneObject::GetScriptObjectWrapper(sceneObject);
 		if(scriptObjectWrappersceneObject != nullptr)
 			tmpsceneObject = B3DStaticGameObjectCast<SceneObject>(scriptObjectWrappersceneObject->GetBaseNativeObjectAsHandle());
-		SPtr<SceneObjectDragAndDropData> nativeObject = B3DMakeShared<SceneObjectDragAndDropData>(tmpsceneObject);
+		TShared<SceneObjectDragAndDropData> nativeObject = B3DMakeShared<SceneObjectDragAndDropData>(tmpsceneObject);
 		ScriptObjectWrapper::Create<ScriptSceneObjectDragAndDropData>(nativeObject, scriptObject);
 	}
 
@@ -75,7 +75,7 @@ namespace b3d
 				}
 			}
 		}
-		SPtr<SceneObjectDragAndDropData> nativeObject = B3DMakeShared<SceneObjectDragAndDropData>(nativeArraysceneObjects);
+		TShared<SceneObjectDragAndDropData> nativeObject = B3DMakeShared<SceneObjectDragAndDropData>(nativeArraysceneObjects);
 		ScriptObjectWrapper::Create<ScriptSceneObjectDragAndDropData>(nativeObject, scriptObject);
 	}
 

@@ -17,7 +17,7 @@ namespace b3d
 	/**	Contains instance data that is held by all GameObject handles. */
 	struct GameObjectInstanceData
 	{
-		SPtr<GameObject> Object;
+		TShared<GameObject> Object;
 	};
 
 	/**	Internal data shared between GameObject handles. */
@@ -25,11 +25,11 @@ namespace b3d
 	{
 		GameObjectHandleData() = default;
 
-		GameObjectHandleData(SPtr<GameObjectInstanceData> instanceData, const UUID& id)
+		GameObjectHandleData(TShared<GameObjectInstanceData> instanceData, const UUID& id)
 			: InstanceData(std::move(instanceData)), Id(id)
 		{}
 
-		SPtr<GameObjectInstanceData> InstanceData;
+		TShared<GameObjectInstanceData> InstanceData;
 		UUID Id;
 	};
 
@@ -83,7 +83,7 @@ namespace b3d
 		 *
 		 * @note	Throws exception if the GameObject was destroyed.
 		 */
-		SPtr<GameObject> GetShared() const
+		TShared<GameObject> GetShared() const
 		{
 			if(!B3D_ENSURE(!IsDestroyed()))
 				return nullptr;
@@ -103,7 +103,7 @@ namespace b3d
 		 */
 
 		/** Returns internal handle data. */
-		const SPtr<GameObjectHandleData>& GetSharedHandleData() const { return mSharedHandleData; }
+		const TShared<GameObjectHandleData>& GetSharedHandleData() const { return mSharedHandleData; }
 
 		/** Clears the handle so it doesn't point to any object. Note this will affect any other handles sharing the handle data. */
 		void ClearObjectInstanceData()
@@ -115,7 +115,7 @@ namespace b3d
 		}
 
 		/** Updates the handle so it points to the provided object. Note this will affect any other handles sharing the handle data. */
-		void SetObjectInstanceData(const SPtr<GameObject>& object);
+		void SetObjectInstanceData(const TShared<GameObject>& object);
 
 		/**
 		 * Updates the handle so it points to the same object as the provided object. Compared to the other overload of this method,
@@ -142,9 +142,9 @@ namespace b3d
 		template <class _Ty1, class _Ty2>
 		friend bool operator==(const TGameObjectHandle<_Ty1>& lhs, const TGameObjectHandle<_Ty2>& rhs);
 
-		GameObjectHandle(const SPtr<GameObject>& object);
+		GameObjectHandle(const TShared<GameObject>& object);
 
-		GameObjectHandle(SPtr<GameObjectHandleData> sharedHandleData)
+		GameObjectHandle(TShared<GameObjectHandleData> sharedHandleData)
 			: mSharedHandleData(std::move(sharedHandleData))
 		{}
 
@@ -153,7 +153,7 @@ namespace b3d
 		{}
 
 		/** Data shared between a set of handles pointing the referenced object. */
-		SPtr<GameObjectHandleData> mSharedHandleData;
+		TShared<GameObjectHandleData> mSharedHandleData;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -233,7 +233,7 @@ namespace b3d
 		}
 
 		/** Returns a smart pointer to the referenced GameObject. */
-		SPtr<T> GetShared() const
+		TShared<T> GetShared() const
 		{
 			if(!B3D_ENSURE(!IsDestroyed()))
 				return nullptr;
@@ -292,7 +292,7 @@ namespace b3d
 		template <class _Ty1>
 		friend TGameObjectHandle<_Ty1> B3DStaticGameObjectCast(const GameObjectHandle& other);
 
-		TGameObjectHandle(SPtr<GameObjectHandleData> data)
+		TGameObjectHandle(TShared<GameObjectHandleData> data)
 			: GameObjectHandle(std::move(data))
 		{}
 	};
@@ -324,8 +324,8 @@ namespace b3d
 		if((lhs != nullptr && rhs == nullptr) || (lhs == nullptr && rhs != nullptr))
 			return false;
 
-		const SPtr<GameObjectCollection>& lhsCollection = lhs->GetOwnerCollection().lock();
-		const SPtr<GameObjectCollection>& rhsCollection = rhs->GetOwnerCollection().lock();
+		const TShared<GameObjectCollection>& lhsCollection = lhs->GetOwnerCollection().lock();
+		const TShared<GameObjectCollection>& rhsCollection = rhs->GetOwnerCollection().lock();
 
 		return lhsCollection == rhsCollection;
 	}

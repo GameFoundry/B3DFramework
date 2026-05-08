@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptMeshData::ScriptMeshData(const SPtr<MeshData>& nativeObject)
+	ScriptMeshData::ScriptMeshData(const TShared<MeshData>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

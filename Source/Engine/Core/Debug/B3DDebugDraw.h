@@ -129,7 +129,7 @@ namespace b3d
 		 * @param	meshData	Object containing mesh vertices and indices. Vertices must be Vertex3 and indices
 		 *							32-bit.
 		 */
-		void DrawWireMesh(const SPtr<MeshData>& meshData);
+		void DrawWireMesh(const TShared<MeshData>& meshData);
 
 		/**
 		 * Draws a wireframe frustum.
@@ -156,11 +156,11 @@ namespace b3d
 		/** Data about a mesh rendered by the draw manager. */
 		struct MeshRenderData
 		{
-			MeshRenderData(const SPtr<render::Mesh>& mesh, const SubMesh& subMesh, DebugDrawMaterialType type)
+			MeshRenderData(const TShared<render::Mesh>& mesh, const SubMesh& subMesh, DebugDrawMaterialType type)
 				: Mesh(mesh), SubMesh(subMesh), Type(type)
 			{}
 
-			SPtr<render::Mesh> Mesh;
+			TShared<render::Mesh> Mesh;
 			SubMesh SubMesh;
 			DebugDrawMaterialType Type;
 		};
@@ -171,7 +171,7 @@ namespace b3d
 		DrawHelper* mDrawHelper = nullptr;
 		Vector<DrawHelper::ShapeMeshData> mActiveMeshes;
 
-		SPtr<render::DebugDrawRenderer> mRenderer;
+		TShared<render::DebugDrawRenderer> mRenderer;
 	};
 
 	/** @} */
@@ -210,7 +210,7 @@ namespace b3d
 			DebugDrawMaterial() = default;
 
 			/** Executes the material using the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& uniformBuffer, const SPtr<Mesh>& mesh, const SubMesh& subMesh);
+			void Execute(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& uniformBuffer, const TShared<Mesh>& mesh, const SubMesh& subMesh);
 
 			/** Returns the material variation matching the provided parameters. */
 			static DebugDrawMaterial* GetVariation(DebugDrawMaterialType drawMaterial);

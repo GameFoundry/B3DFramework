@@ -26,7 +26,7 @@ namespace b3d
 	/** Manages lifetime of an allocation in a sprite atlas. When this object goes out of scope the atlas will be notified so it may free the allocation. */
 	struct B3D_EXPORT GUIVectorSpriteAtlasAllocationHandle : public std::enable_shared_from_this<GUIVectorSpriteAtlasAllocationHandle>
 	{
-		GUIVectorSpriteAtlasAllocationHandle(GUIVectorSpriteAtlas* owner, const UUID& vectorPathId, const TOptional<TreeTextureAtlasLayout::Allocation>& layoutAllocation, u32 textureId, const SPtr<render::VectorPathRenderable>& renderable)
+		GUIVectorSpriteAtlasAllocationHandle(GUIVectorSpriteAtlas* owner, const UUID& vectorPathId, const TOptional<TreeTextureAtlasLayout::Allocation>& layoutAllocation, u32 textureId, const TShared<render::VectorPathRenderable>& renderable)
 			: mVectorPathId(vectorPathId), mOwner(owner), mLayoutAllocation(layoutAllocation), mTextureId(textureId), mRenderable(renderable)
 		{ }
 
@@ -61,7 +61,7 @@ namespace b3d
 		UUID mVectorPathId = UUID::kEmpty;
 		const TOptional<TreeTextureAtlasLayout::Allocation> mLayoutAllocation; /**< Allocation in the texture atlas layout, if allocated in the atlas. If null, sprite is allocated as a unique texture. */
 		const u32 mTextureId = ~0u;
-		const SPtr<render::VectorPathRenderable> mRenderable;
+		const TShared<render::VectorPathRenderable> mRenderable;
 	};
 
 	/** Represents a single allocation in a GUIVectorSpriteAtlas. */
@@ -69,13 +69,13 @@ namespace b3d
 	{
 	public:
 		GUIVectorSpriteAtlasAllocation() = default;
-		GUIVectorSpriteAtlasAllocation(const HTexture& atlasTexture, const Area2& uvRange, const SPtr<GUIVectorSpriteAtlasAllocationHandle>& allocationHandle)
+		GUIVectorSpriteAtlasAllocation(const HTexture& atlasTexture, const Area2& uvRange, const TShared<GUIVectorSpriteAtlasAllocationHandle>& allocationHandle)
 			: AtlasTexture(atlasTexture), UVRange(uvRange), AllocationHandle(allocationHandle)
 		{ }
 
 		HTexture AtlasTexture;
 		Area2 UVRange;
-		SPtr<GUIVectorSpriteAtlasAllocationHandle> AllocationHandle;
+		TShared<GUIVectorSpriteAtlasAllocationHandle> AllocationHandle;
 	};
 
 	/** Settings used for initializing GUIVectorSpriteAtlas. */
@@ -153,8 +153,8 @@ namespace b3d
 		/** Information about a vector path that should be re-rendered. */
 		struct DirtySpriteInformation
 		{
-			SPtr<render::VectorPathRenderable> Renderable;
-			SPtr<render::Texture> Texture;
+			TShared<render::VectorPathRenderable> Renderable;
+			TShared<render::Texture> Texture;
 			Area2 UVRegion = Area2::kEmpty;
 			Size2UI Size = Size2UI::kZero;
 		};

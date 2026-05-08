@@ -111,10 +111,10 @@ namespace b3d
 		void WaitUntilFrameFinished();
 
 		/**	Returns the main window that was created on application start-up. */
-		SPtr<RenderWindow> GetPrimaryWindow() const { return mPrimaryWindow; }
+		TShared<RenderWindow> GetPrimaryWindow() const { return mPrimaryWindow; }
 
 		/** Returns the primary GPU on which to perform rendering. */
-		SPtr<GpuDevice> GetPrimaryGpuDevice() const { return mPrimaryGpu; }
+		TShared<GpuDevice> GetPrimaryGpuDevice() const { return mPrimaryGpu; }
 
 		/**
 		 * Returns a unique identifier of the main thread.
@@ -181,7 +181,7 @@ namespace b3d
 		virtual void StartUpRenderer();
 
 		/**	Returns a handler that is used for resolving shader include file paths. */
-		virtual SPtr<IShaderIncludeHandler> GetShaderIncludeHandler() const;
+		virtual TShared<IShaderIncludeHandler> GetShaderIncludeHandler() const;
 
 		/** Initializes the script manager. */
 		virtual void StartUpScriptManager();
@@ -198,10 +198,10 @@ namespace b3d
 		/**	Called by the render thread to end profiling. */
 		void EndRenderThreadProfiling();
 
-		SPtr<RenderWindow> mPrimaryWindow;
-		SPtr<GpuDevice> mPrimaryGpu;
+		TShared<RenderWindow> mPrimaryWindow;
+		TShared<GpuDevice> mPrimaryGpu;
 		Scheduler mMainThreadScheduler;
-		SPtr<Scheduler> mTaskScheduler;
+		TShared<Scheduler> mTaskScheduler;
 		ApplicationCreateInformation mInformation;
 
 		// Frame limiting
@@ -210,8 +210,8 @@ namespace b3d
 
 		u32 mExitAfterNFrames = 0; /**< 0 = unlimited. */
 
-		SPtr<PersistentCache> mApplicationCache;
-		SPtr<ProfilerOverlay> mProfilerOverlay;
+		TShared<PersistentCache> mApplicationCache;
+		TShared<ProfilerOverlay> mProfilerOverlay;
 		UnorderedMap<String, LoadedPlugin> mLoadedPlugins;
 
 		SignalEvent mFrameRenderingFinishedSignal;

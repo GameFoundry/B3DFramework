@@ -36,7 +36,7 @@ GetCursor().SetCursor(CursorType::Wait);
 You can also define your own cursor icons by calling @b3d::Cursor::SetCursorIcon(const String&, const PixelData&, const Vector2I&). You'll need to provide a unique name for your cursor, a **PixelData** object containing the image to use, and a cursor *hot-spot*. Hot spot determines at which part of the image will the user's clicks be registered (e.g. in case of an arrow icon, it would be at the top of the arrow).
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<PixelData> cursorPixelData = ...; // Manually fill or read pixel data from a texture
+TShared<PixelData> cursorPixelData = ...; // Manually fill or read pixel data from a texture
 Vector2I hotSpotPosition(5, 5);
 
 GetCursor().SetCursorIcon("MyCustomCursor", *cursorPixelData, hotSpotPosition);
@@ -57,7 +57,7 @@ Sometimes it is useful to limit the cursor to a specific area of the screen (e.g
 
 ~~~~~~~~~~~~~{.cpp}
 // Limit cursor movement to the primary application window
-SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 GetCursor().ClipToWindow(primaryWindow);
 ~~~~~~~~~~~~~
 

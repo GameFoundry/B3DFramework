@@ -18,7 +18,7 @@ namespace b3d
 	{
 	public:
 		FileEncoder(const Path& fileLocation);
-		FileEncoder(const SPtr<DataStream>& stream);
+		FileEncoder(const TShared<DataStream>& stream);
 
 		/**
 		 * Parses the provided object, serializes all of its data as specified by its RTTIType and saves the serialized
@@ -36,7 +36,7 @@ namespace b3d
 		void Encode(IReflectable* object);
 
 	private:
-		SPtr<DataStream> mOutputStream;
+		TShared<DataStream> mOutputStream;
 	};
 
 	/** Decodes objects from the specified file using the RTTI system. */
@@ -44,7 +44,7 @@ namespace b3d
 	{
 	public:
 		FileDecoder(const Path& fileLocation);
-		FileDecoder(const SPtr<DataStream>& stream);
+		FileDecoder(const TShared<DataStream>& stream);
 
 		/**
 		 * Deserializes an IReflectable object by reading the binary data at the provided file location.
@@ -54,10 +54,10 @@ namespace b3d
 		 *						maintaining state or sharing information between objects during
 		 *						deserialization.
 		 */
-		SPtr<IReflectable> Decode(RTTIOperationContext& context);
+		TShared<IReflectable> Decode(RTTIOperationContext& context);
 
 		/** Deserializes an IReflectable object by reading the binary data at the provided file location. */
-		SPtr<IReflectable> Decode();
+		TShared<IReflectable> Decode();
 
 		/** Gets the size in bytes of the next object in the file. Returns 0 if no next object. */
 		u32 GetSize() const;
@@ -66,7 +66,7 @@ namespace b3d
 		void Skip();
 
 	private:
-		SPtr<DataStream> mInputStream;
+		TShared<DataStream> mInputStream;
 	};
 
 	/** @} */

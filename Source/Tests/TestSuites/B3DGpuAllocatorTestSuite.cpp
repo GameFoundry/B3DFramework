@@ -62,7 +62,7 @@ namespace
 	 * none (e.g. headless CI without a usable GPU). Tests bail out gracefully on nullptr to keep
 	 * the suite usable on machines where the GPU plugin couldn't bring a device up.
 	 */
-	SPtr<GpuDevice> GetActiveDevice()
+	TShared<GpuDevice> GetActiveDevice()
 	{
 		GpuBackend& backend = GpuBackend::Instance();
 		if (backend.GetDeviceCount() == 0)
@@ -481,7 +481,7 @@ void GpuAllocatorTestSuite::TestGpuAllocatorDeferredDelete()
 
 void GpuAllocatorTestSuite::TestFrameTracker_InitialState()
 {
-	SPtr<GpuDevice> device = GetActiveDevice();
+	TShared<GpuDevice> device = GetActiveDevice();
 	if (device == nullptr)
 		return;
 
@@ -499,7 +499,7 @@ void GpuAllocatorTestSuite::TestFrameTracker_InitialState()
 
 void GpuAllocatorTestSuite::TestFrameTracker_AdvancesOnEndFrame()
 {
-	SPtr<GpuDevice> device = GetActiveDevice();
+	TShared<GpuDevice> device = GetActiveDevice();
 	if (device == nullptr || !IsRealBackend(*device))
 		return;
 
@@ -528,11 +528,11 @@ void GpuAllocatorTestSuite::TestFrameTracker_AdvancesOnEndFrame()
 
 void GpuAllocatorTestSuite::TestUserCreatedFence_ExplicitSignal()
 {
-	SPtr<GpuDevice> device = GetActiveDevice();
+	TShared<GpuDevice> device = GetActiveDevice();
 	if (device == nullptr || !IsRealBackend(*device))
 		return;
 
-	SPtr<GpuTimelineFence> fence = device->CreateTimelineFence();
+	TShared<GpuTimelineFence> fence = device->CreateTimelineFence();
 	if (fence == nullptr)
 		return; // Backend has not yet implemented user-created fences (e.g. D3D12 today).
 
@@ -549,8 +549,8 @@ void GpuAllocatorTestSuite::TestUserCreatedFence_ExplicitSignal()
 	// it during a later EndFrame doesn't break — the helper's thread-data slot would otherwise
 	// retain a pointer to the CB after this test submits it.
 	GpuCommandBufferPoolCreateInformation poolCreateInfo = GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS);
-	SPtr<GpuCommandBufferPool> pool = device->CreateGpuCommandBufferPool(poolCreateInfo);
-	SPtr<GpuCommandBuffer> commandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("UserFenceTestCB"));
+	TShared<GpuCommandBufferPool> pool = device->CreateGpuCommandBufferPool(poolCreateInfo);
+	TShared<GpuCommandBuffer> commandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("UserFenceTestCB"));
 	// Pool::Create returns a CB already in the Recording state; SubmitCommandBuffer auto-ends.
 
 	GpuSubmissionInformation info;

@@ -16,7 +16,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "InputConfiguration")
 
-		ScriptInputConfiguration(const SPtr<InputConfiguration>& nativeObject);
+		ScriptInputConfiguration(const TShared<InputConfiguration>& nativeObject);
 		~ScriptInputConfiguration();
 
 		static void SetupScriptBindings();

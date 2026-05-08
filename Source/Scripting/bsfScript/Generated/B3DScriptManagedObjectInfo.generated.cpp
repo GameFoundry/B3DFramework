@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	ScriptManagedObjectInfo::ScriptManagedObjectInfo(const SPtr<ManagedObjectInfo>& nativeObject)
+	ScriptManagedObjectInfo::ScriptManagedObjectInfo(const TShared<ManagedObjectInfo>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -60,7 +60,7 @@ namespace b3d
 
 	MonoObject* ScriptManagedObjectInfo::InternalGetTypeInfo(ScriptManagedObjectInfo* self)
 	{
-		SPtr<ManagedTypeInfoObject> tmp__output;
+		TShared<ManagedTypeInfoObject> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -77,7 +77,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ManagedTypeInfoObject> tmpvalue;
+		TShared<ManagedTypeInfoObject> tmpvalue;
 		ScriptManagedTypeInfoObject* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptManagedTypeInfoObject::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -87,7 +87,7 @@ namespace b3d
 
 	MonoArray* ScriptManagedObjectInfo::InternalGetMembers(ScriptManagedObjectInfo* self)
 	{
-		Vector<SPtr<ManagedMemberInfo>> nativeArray__output;
+		Vector<TShared<ManagedMemberInfo>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -98,7 +98,7 @@ namespace b3d
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptManagedMemberInfo>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<ManagedMemberInfo> arrayElementPointer__output = nativeArray__output[elementIndex];
+			TShared<ManagedMemberInfo> arrayElementPointer__output = nativeArray__output[elementIndex];
 			MonoObject* arrayElement__output;
 			arrayElement__output = ScriptManagedMemberInfo::GetOrCreateScriptObject(arrayElementPointer__output);
 			scriptArray__output.Set(elementIndex, arrayElement__output);
@@ -113,14 +113,14 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		Vector<SPtr<ManagedMemberInfo>> nativeArrayvalue;
+		Vector<TShared<ManagedMemberInfo>> nativeArrayvalue;
 		if(value != nullptr)
 		{
 			ScriptArray scriptArrayvalue(value);
 			nativeArrayvalue.resize(scriptArrayvalue.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				SPtr<ManagedMemberInfo> arrayElementPointervalue;
+				TShared<ManagedMemberInfo> arrayElementPointervalue;
 				ScriptManagedMemberInfoWrapperBase* scriptObjectWrappervalue;
 				scriptObjectWrappervalue = (ScriptManagedMemberInfoWrapperBase*)ScriptManagedMemberInfo::GetScriptObjectWrapper(scriptArrayvalue.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrappervalue != nullptr)
@@ -136,7 +136,7 @@ namespace b3d
 
 	MonoObject* ScriptManagedObjectInfo::InternalGetBaseClass(ScriptManagedObjectInfo* self)
 	{
-		SPtr<ManagedObjectInfo> tmp__output;
+		TShared<ManagedObjectInfo> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -153,7 +153,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ManagedObjectInfo> tmpvalue;
+		TShared<ManagedObjectInfo> tmpvalue;
 		ScriptManagedObjectInfo* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptManagedObjectInfo::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)

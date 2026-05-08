@@ -24,8 +24,8 @@ namespace b3d
 		void AddToScene(PhysicsScene& scene) override;
 		void RemoveFromScene() override;
 
-		void AttachShape(const SPtr<ColliderShape>& shape) override;
-		void DetachShape(const SPtr<ColliderShape>& shape) override;
+		void AttachShape(const TShared<ColliderShape>& shape) override;
+		void DetachShape(const TShared<ColliderShape>& shape) override;
 		void SetTransform(const Vector3& position, const Quaternion& rotation) override;
 
 		/**

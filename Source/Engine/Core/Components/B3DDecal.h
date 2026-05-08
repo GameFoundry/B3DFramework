@@ -107,7 +107,7 @@ namespace b3d
 		struct DecalTransformDirty {};
 
 		/** Creates all Decal data fragments, a world transform, and allocates a renderer ID. Entity is ready for rendering after this call. Returns the Decal data fragment. */
-		Decal& CreateDecal(Registry& registry, Entity entity, const SPtr<RendererScene>& rendererScene, const Transform& transform = Transform::kIdentity);
+		Decal& CreateDecal(Registry& registry, Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform = Transform::kIdentity);
 
 		/** Removes all Decal fragments. Cleanup (ID deallocation, dirty tags) is handled by the associated RendererScene when it is notified the fragment has been removed. */
 		void DestroyDecal(Registry& registry, Entity entity);

@@ -21,7 +21,7 @@
 
 namespace b3d
 {
-	ScriptRenderSettings::ScriptRenderSettings(const SPtr<RenderSettings>& nativeObject)
+	ScriptRenderSettings::ScriptRenderSettings(const TShared<RenderSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -104,13 +104,13 @@ namespace b3d
 	}
 	void ScriptRenderSettings::InternalRenderSettings(MonoObject* scriptObject)
 	{
-		SPtr<RenderSettings> nativeObject = B3DMakeShared<RenderSettings>();
+		TShared<RenderSettings> nativeObject = B3DMakeShared<RenderSettings>();
 		ScriptObjectWrapper::Create<ScriptRenderSettings>(nativeObject, scriptObject);
 	}
 
 	MonoObject* ScriptRenderSettings::InternalGetDepthOfField(ScriptRenderSettings* self)
 	{
-		SPtr<DepthOfFieldSettings> tmp__output = B3DMakeShared<DepthOfFieldSettings>();
+		TShared<DepthOfFieldSettings> tmp__output = B3DMakeShared<DepthOfFieldSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -127,7 +127,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<DepthOfFieldSettings> tmpvalue;
+		TShared<DepthOfFieldSettings> tmpvalue;
 		ScriptDepthOfFieldSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptDepthOfFieldSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -137,7 +137,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetChromaticAberration(ScriptRenderSettings* self)
 	{
-		SPtr<ChromaticAberrationSettings> tmp__output = B3DMakeShared<ChromaticAberrationSettings>();
+		TShared<ChromaticAberrationSettings> tmp__output = B3DMakeShared<ChromaticAberrationSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -154,7 +154,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ChromaticAberrationSettings> tmpvalue;
+		TShared<ChromaticAberrationSettings> tmpvalue;
 		ScriptChromaticAberrationSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptChromaticAberrationSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -186,7 +186,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetAutoExposure(ScriptRenderSettings* self)
 	{
-		SPtr<AutoExposureSettings> tmp__output = B3DMakeShared<AutoExposureSettings>();
+		TShared<AutoExposureSettings> tmp__output = B3DMakeShared<AutoExposureSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -203,7 +203,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<AutoExposureSettings> tmpvalue;
+		TShared<AutoExposureSettings> tmpvalue;
 		ScriptAutoExposureSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptAutoExposureSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -235,7 +235,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetTonemapping(ScriptRenderSettings* self)
 	{
-		SPtr<TonemappingSettings> tmp__output = B3DMakeShared<TonemappingSettings>();
+		TShared<TonemappingSettings> tmp__output = B3DMakeShared<TonemappingSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -252,7 +252,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TonemappingSettings> tmpvalue;
+		TShared<TonemappingSettings> tmpvalue;
 		ScriptTonemappingSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptTonemappingSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -262,7 +262,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetWhiteBalance(ScriptRenderSettings* self)
 	{
-		SPtr<WhiteBalanceSettings> tmp__output = B3DMakeShared<WhiteBalanceSettings>();
+		TShared<WhiteBalanceSettings> tmp__output = B3DMakeShared<WhiteBalanceSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -279,7 +279,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<WhiteBalanceSettings> tmpvalue;
+		TShared<WhiteBalanceSettings> tmpvalue;
 		ScriptWhiteBalanceSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptWhiteBalanceSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -289,7 +289,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetColorGrading(ScriptRenderSettings* self)
 	{
-		SPtr<ColorGradingSettings> tmp__output = B3DMakeShared<ColorGradingSettings>();
+		TShared<ColorGradingSettings> tmp__output = B3DMakeShared<ColorGradingSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -306,7 +306,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ColorGradingSettings> tmpvalue;
+		TShared<ColorGradingSettings> tmpvalue;
 		ScriptColorGradingSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptColorGradingSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -316,7 +316,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetAmbientOcclusion(ScriptRenderSettings* self)
 	{
-		SPtr<AmbientOcclusionSettings> tmp__output = B3DMakeShared<AmbientOcclusionSettings>();
+		TShared<AmbientOcclusionSettings> tmp__output = B3DMakeShared<AmbientOcclusionSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -333,7 +333,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<AmbientOcclusionSettings> tmpvalue;
+		TShared<AmbientOcclusionSettings> tmpvalue;
 		ScriptAmbientOcclusionSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptAmbientOcclusionSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -343,7 +343,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetScreenSpaceReflections(ScriptRenderSettings* self)
 	{
-		SPtr<ScreenSpaceReflectionsSettings> tmp__output = B3DMakeShared<ScreenSpaceReflectionsSettings>();
+		TShared<ScreenSpaceReflectionsSettings> tmp__output = B3DMakeShared<ScreenSpaceReflectionsSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -360,7 +360,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ScreenSpaceReflectionsSettings> tmpvalue;
+		TShared<ScreenSpaceReflectionsSettings> tmpvalue;
 		ScriptScreenSpaceReflectionsSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptScreenSpaceReflectionsSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -370,7 +370,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetBloom(ScriptRenderSettings* self)
 	{
-		SPtr<BloomSettings> tmp__output = B3DMakeShared<BloomSettings>();
+		TShared<BloomSettings> tmp__output = B3DMakeShared<BloomSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -387,7 +387,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<BloomSettings> tmpvalue;
+		TShared<BloomSettings> tmpvalue;
 		ScriptBloomSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptBloomSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -397,7 +397,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetScreenSpaceLensFlare(ScriptRenderSettings* self)
 	{
-		SPtr<ScreenSpaceLensFlareSettings> tmp__output = B3DMakeShared<ScreenSpaceLensFlareSettings>();
+		TShared<ScreenSpaceLensFlareSettings> tmp__output = B3DMakeShared<ScreenSpaceLensFlareSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -414,7 +414,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ScreenSpaceLensFlareSettings> tmpvalue;
+		TShared<ScreenSpaceLensFlareSettings> tmpvalue;
 		ScriptScreenSpaceLensFlareSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptScreenSpaceLensFlareSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -424,7 +424,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetFilmGrain(ScriptRenderSettings* self)
 	{
-		SPtr<FilmGrainSettings> tmp__output = B3DMakeShared<FilmGrainSettings>();
+		TShared<FilmGrainSettings> tmp__output = B3DMakeShared<FilmGrainSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -441,7 +441,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<FilmGrainSettings> tmpvalue;
+		TShared<FilmGrainSettings> tmpvalue;
 		ScriptFilmGrainSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptFilmGrainSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -451,7 +451,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetMotionBlur(ScriptRenderSettings* self)
 	{
-		SPtr<MotionBlurSettings> tmp__output = B3DMakeShared<MotionBlurSettings>();
+		TShared<MotionBlurSettings> tmp__output = B3DMakeShared<MotionBlurSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -468,7 +468,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<MotionBlurSettings> tmpvalue;
+		TShared<MotionBlurSettings> tmpvalue;
 		ScriptMotionBlurSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptMotionBlurSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -478,7 +478,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetTemporalAa(ScriptRenderSettings* self)
 	{
-		SPtr<TemporalAASettings> tmp__output = B3DMakeShared<TemporalAASettings>();
+		TShared<TemporalAASettings> tmp__output = B3DMakeShared<TemporalAASettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -495,7 +495,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TemporalAASettings> tmpvalue;
+		TShared<TemporalAASettings> tmpvalue;
 		ScriptTemporalAASettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptTemporalAASettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -659,7 +659,7 @@ namespace b3d
 
 	MonoObject* ScriptRenderSettings::InternalGetShadowSettings(ScriptRenderSettings* self)
 	{
-		SPtr<ShadowSettings> tmp__output = B3DMakeShared<ShadowSettings>();
+		TShared<ShadowSettings> tmp__output = B3DMakeShared<ShadowSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -676,7 +676,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ShadowSettings> tmpvalue;
+		TShared<ShadowSettings> tmpvalue;
 		ScriptShadowSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptShadowSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)

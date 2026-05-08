@@ -9,7 +9,7 @@
 
 using namespace b3d;
 
-OAAudioClip::OAAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
+OAAudioClip::OAAudioClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
 	: AudioClip(samples, streamSize, sampleCount, createInformation)
 {}
 
@@ -51,7 +51,7 @@ void OAAudioClip::Initialize()
 		if(loadDecompressed)
 		{
 			// Read all data into memory
-			SPtr<DataStream> stream;
+			TShared<DataStream> stream;
 			u32 offset = 0;
 			if(mSourceStreamData != nullptr) // If it's already loaded in memory, use it directly
 				stream = mSourceStreamData;
@@ -172,7 +172,7 @@ void OAAudioClip::GetSamples(u8* samples, u32 offset, u32 count) const
 	B3D_LOG(Warning, LogRenderBackend, "Attempting to read samples while sample data is not available.");
 }
 
-SPtr<DataStream> OAAudioClip::GetSourceStream(u32& outSize)
+TShared<DataStream> OAAudioClip::GetSourceStream(u32& outSize)
 {
 	Lock lock(mMutex);
 

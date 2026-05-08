@@ -41,7 +41,7 @@ renderTextureCreateInformation.DepthStencilSurface.Texture = depthStencilTexture
 renderTextureCreateInformation.DepthStencilSurface.Face = 0;
 renderTextureCreateInformation.DepthStencilSurface.MipLevel = 0;
 
-SPtr<RenderTexture> renderTexture = RenderTexture::Create(renderTextureCreateInformation);
+TShared<RenderTexture> renderTexture = RenderTexture::Create(renderTextureCreateInformation);
 ~~~~~~~~~~~~~
 
 ## Multiple surfaces

@@ -17,17 +17,17 @@ namespace b3d
 			NullGpuCommandBufferPool::Destroy();
 		}
 
-		SPtr<GpuCommandBuffer> NullGpuCommandBufferPool::Create(const GpuCommandBufferCreateInformation& createInformation)
+		TShared<GpuCommandBuffer> NullGpuCommandBufferPool::Create(const GpuCommandBufferCreateInformation& createInformation)
 		{
 			const u32 id = mNextCommandBufferId++;
-			SPtr<NullGpuCommandBuffer> commandBuffer = B3DMakeShared<NullGpuCommandBuffer>(
+			TShared<NullGpuCommandBuffer> commandBuffer = B3DMakeShared<NullGpuCommandBuffer>(
 				static_cast<NullGpuDevice&>(mGpuDevice), *this, id, mInformation.Thread, mInformation.Type, createInformation);
 
 			mCommandBuffers[id] = commandBuffer;
 			return commandBuffer;
 		}
 
-		SPtr<GpuCommandBuffer> NullGpuCommandBufferPool::FindOrCreate(const GpuCommandBufferCreateInformation& createInformation)
+		TShared<GpuCommandBuffer> NullGpuCommandBufferPool::FindOrCreate(const GpuCommandBufferCreateInformation& createInformation)
 		{
 			// For simplicity, always create a new one
 			return Create(createInformation);

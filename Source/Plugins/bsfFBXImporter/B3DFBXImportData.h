@@ -124,15 +124,15 @@ namespace b3d
 	/** All information required for creating an animation clip. */
 	struct FBXAnimationClipData
 	{
-		FBXAnimationClipData(const String& name, bool isAdditive, u32 sampleRate, const SPtr<AnimationCurves>& curves, const SPtr<RootMotion>& rootMotion)
+		FBXAnimationClipData(const String& name, bool isAdditive, u32 sampleRate, const TShared<AnimationCurves>& curves, const TShared<RootMotion>& rootMotion)
 			: Name(name), IsAdditive(isAdditive), SampleRate(sampleRate), Curves(curves), RootMotion(rootMotion)
 		{}
 
 		String Name;
 		bool IsAdditive;
 		u32 SampleRate;
-		SPtr<AnimationCurves> Curves;
-		SPtr<RootMotion> RootMotion;
+		TShared<AnimationCurves> Curves;
+		TShared<RootMotion> RootMotion;
 	};
 
 	/**	Imported mesh data. */
@@ -155,7 +155,7 @@ namespace b3d
 		Vector<FBXBoneInfluence> BoneInfluences;
 		Vector<FBXBone> Bones;
 
-		SPtr<MeshData> MeshData;
+		TShared<MeshData> MeshData;
 		Vector<SubMesh> SubMeshes;
 
 		Vector<FBXImportNode*> ReferencedBy;

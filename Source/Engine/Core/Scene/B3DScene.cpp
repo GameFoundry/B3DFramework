@@ -23,7 +23,7 @@ Scene::~Scene()
 
 HScene Scene::Create(const HSceneObject& root)
 {
-	SPtr<Scene> newScene = CreateEmpty();
+	TShared<Scene> newScene = CreateEmpty();
 	newScene->mUUID = UUIDGenerator::GenerateRandom(); // TODO - This should be done automatically on resource creation
 
 	newScene->ReplaceInternalHierarchy(root);
@@ -32,9 +32,9 @@ HScene Scene::Create(const HSceneObject& root)
 	return B3DStaticResourceCast<Scene>(GetResources().CreateResourceHandle(newScene, newScene->mUUID));
 }
 
-SPtr<Scene> Scene::CreateEmpty()
+TShared<Scene> Scene::CreateEmpty()
 {
-	SPtr<Scene> newScene = B3DMakeSharedFromExisting<Scene>(new(B3DAllocate<Scene>()) Scene());
+	TShared<Scene> newScene = B3DMakeSharedFromExisting<Scene>(new(B3DAllocate<Scene>()) Scene());
 	newScene->SetShared(newScene);
 
 	return newScene;
@@ -42,7 +42,7 @@ SPtr<Scene> Scene::CreateEmpty()
 
 void Scene::ReplaceInternalHierarchy(const HSceneObject& sceneObject)
 {
-	const SPtr<GameObjectCollection> newGameObjectCollection = GameObjectCollection::Create();
+	const TShared<GameObjectCollection> newGameObjectCollection = GameObjectCollection::Create();
 	HSceneObject newRoot = sceneObject->Clone(newGameObjectCollection, true);
 
 	// Remove objects that should not be saved
@@ -70,20 +70,20 @@ void Scene::ReplaceInternalHierarchy(const HSceneObject& sceneObject)
 	// TODO - Might need to record nested prefab instance deltas here
 }
 
-SPtr<SceneInstance> Scene::Instantiate() const
+TShared<SceneInstance> Scene::Instantiate() const
 {
-	SPtr<SceneInstance> sceneInstance;
+	TShared<SceneInstance> sceneInstance;
 	Instantiate(sceneInstance);
 
 	return sceneInstance;
 }
 
-HSceneObject Scene::Instantiate(SPtr<SceneInstance>& inOutSceneInstance) const
+HSceneObject Scene::Instantiate(TShared<SceneInstance>& inOutSceneInstance) const
 {
 	if(mRoot == nullptr)
 		return HSceneObject();
 
-	SPtr<GameObjectCollection> gameObjectCollection;
+	TShared<GameObjectCollection> gameObjectCollection;
 	if(inOutSceneInstance != nullptr)
 		gameObjectCollection = inOutSceneInstance->GetGameObjectCollection();
 	else

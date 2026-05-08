@@ -16,7 +16,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Random")
 
-		ScriptRandom(const SPtr<Random>& nativeObject);
+		ScriptRandom(const TShared<Random>& nativeObject);
 		~ScriptRandom();
 
 		static void SetupScriptBindings();

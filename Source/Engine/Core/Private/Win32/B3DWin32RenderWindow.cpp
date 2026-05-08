@@ -13,7 +13,7 @@
 
 using namespace b3d;
 
-Win32RenderWindow::Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow)
+Win32RenderWindow::Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow)
 	: RenderWindow(createInformation, windowId, parentWindow)
 {}
 
@@ -44,7 +44,7 @@ void Win32RenderWindow::Initialize()
 
 	if(!B3DIsWeakUnassigned(mParentWindow))
 	{
-		const SPtr<Win32RenderWindow> parentWindow = std::static_pointer_cast<Win32RenderWindow>(mParentWindow.lock());
+		const TShared<Win32RenderWindow> parentWindow = std::static_pointer_cast<Win32RenderWindow>(mParentWindow.lock());
 		if(B3D_ENSURE(parentWindow != nullptr))
 			windowCreateInformation.Parent = (HWND)parentWindow->GetPlatformWindowHandle();
 	}
@@ -344,13 +344,13 @@ u64 Win32RenderWindow::GetPlatformWindowHandle() const
 	return (u64)mWindow->GetHWnd();
 }
 
-SPtr<render::RenderProxy> Win32RenderWindow::CreateRenderProxy() const
+TShared<render::RenderProxy> Win32RenderWindow::CreateRenderProxy() const
 {
-	SPtr<RenderWindow> parentWindow = mParentWindow.lock();
+	TShared<RenderWindow> parentWindow = mParentWindow.lock();
 	B3D_ENSURE(B3DIsWeakUnassigned(mParentWindow) || !mParentWindow.expired()); // If parent window is assigned, it must not be expired
 
 	RenderWindowCreateInformation createInformation = mCreateInformation;
-	SPtr<render::RenderProxy> renderProxy = B3DMakeShared<render::Win32RenderWindow>(createInformation, mWindowId, GetPlatformWindowHandle(), B3DGetRenderProxy(parentWindow));
+	TShared<render::RenderProxy> renderProxy = B3DMakeShared<render::Win32RenderWindow>(createInformation, mWindowId, GetPlatformWindowHandle(), B3DGetRenderProxy(parentWindow));
 	renderProxy->SetShared(renderProxy);
 
 	return renderProxy;
@@ -396,7 +396,7 @@ void Win32RenderWindow::DoOnDPIScaleChanged()
 
 namespace b3d::render
 {
-Win32RenderWindow::Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 hWnd, const SPtr<RenderWindow>& parentWindow)
+Win32RenderWindow::Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 hWnd, const TShared<RenderWindow>& parentWindow)
 	: RenderWindow(createInformation, windowId, hWnd, parentWindow)
 { }
 } // namespace b3d::render

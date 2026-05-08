@@ -51,7 +51,7 @@ namespace b3d
 			return TID_Pass;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return Pass::CreateEmpty();
 		}
@@ -92,7 +92,7 @@ namespace b3d
 			return TID_PassRenderProxy;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return render::Pass::CreateEmpty();
 		}

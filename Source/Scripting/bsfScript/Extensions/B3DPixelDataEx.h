@@ -18,10 +18,10 @@ namespace b3d
 	{
 	public:
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(PixelData))
-		static SPtr<PixelData> Create(const PixelVolume& volume, PixelFormat format = PF_BGRA8);
+		static TShared<PixelData> Create(const PixelVolume& volume, PixelFormat format = PF_BGRA8);
 
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(PixelData))
-		static SPtr<PixelData> Create(u32 width, u32 height, u32 depth = 1, PixelFormat pixelFormat = PF_BGRA8);
+		static TShared<PixelData> Create(u32 width, u32 height, u32 depth = 1, PixelFormat pixelFormat = PF_BGRA8);
 
 		/**
 		 * Returns a pixel at the specified location in the buffer.
@@ -32,7 +32,7 @@ namespace b3d
 		 * @return			Value of the pixel, or undefined value if coordinates are out of range.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(GetPixel))
-		static Color GetPixel(const SPtr<PixelData>& thisPtr, int x, int y, int z = 0);
+		static Color GetPixel(const TShared<PixelData>& thisPtr, int x, int y, int z = 0);
 
 		/**
 		 * Sets a pixel at the specified location in the buffer.
@@ -43,7 +43,7 @@ namespace b3d
 		 * @param[in] z			Z coordinate of the pixel.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(SetPixel))
-		static void SetPixel(const SPtr<PixelData>& thisPtr, const Color& value, int x, int y, int z = 0);
+		static void SetPixel(const TShared<PixelData>& thisPtr, const Color& value, int x, int y, int z = 0);
 
 		/**
 		 * Returns values of all pixels.
@@ -52,7 +52,7 @@ namespace b3d
 		 *			each containing "height" rows of "width" pixels.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(GetPixels))
-		static Vector<Color> GetPixels(const SPtr<PixelData>& thisPtr);
+		static Vector<Color> GetPixels(const TShared<PixelData>& thisPtr);
 
 		/**
 		 * Sets all pixels in the buffer.Caller must ensure that number of pixels match the extends of the buffer.
@@ -61,7 +61,7 @@ namespace b3d
 		 *				each containing "height" rows of "width" pixels.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(SetPixels))
-		static void SetPixels(const SPtr<PixelData>& thisPtr, const Vector<Color>& value);
+		static void SetPixels(const TShared<PixelData>& thisPtr, const Vector<Color>& value);
 
 		/**
 		 * Returns all pixels in the buffer as raw bytes.
@@ -70,7 +70,7 @@ namespace b3d
 		 *			row and slice pitch values.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(GetRawPixels))
-		static Vector<char> GetRawPixels(const SPtr<PixelData>& thisPtr);
+		static Vector<char> GetRawPixels(const TShared<PixelData>& thisPtr);
 
 		/**
 		 * Sets all pixels in the buffer as raw bytes.
@@ -79,9 +79,9 @@ namespace b3d
 		 *						potential row and slice pitch values.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(SetRawPixels))
-		static void SetRawPixels(const SPtr<PixelData>& thisPtr, const Vector<char>& value);
+		static void SetRawPixels(const TShared<PixelData>& thisPtr, const Vector<char>& value);
 
-		static bool CheckIsLocked(const SPtr<PixelData>& thisPtr);
+		static bool CheckIsLocked(const TShared<PixelData>& thisPtr);
 	};
 
 	/** @endcond */

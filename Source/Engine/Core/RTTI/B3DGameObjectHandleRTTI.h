@@ -22,15 +22,15 @@ namespace b3d
 	class B3D_EXPORT GameObjectHandleDeltaHandler : public BinaryDeltaHandler
 	{
 	protected:
-		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) override;
+		TShared<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) override;
 	};
 
-	inline SPtr<SerializedObject> GameObjectHandleDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly)
+	inline TShared<SerializedObject> GameObjectHandleDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly)
 	{
 		if(B3D_ENSURE(original == nullptr && modified != nullptr))
 			return nullptr;
 
-		auto fnGetOrDecodeHandle = [&context](IReflectable* object, SPtr<GameObjectHandle>& outDecodedHandle) -> GameObjectHandle*
+		auto fnGetOrDecodeHandle = [&context](IReflectable* object, TShared<GameObjectHandle>& outDecodedHandle) -> GameObjectHandle*
 		{
 			if(object->GetTypeId() == TID_SerializedObject)
 			{
@@ -45,12 +45,12 @@ namespace b3d
 			return B3DRTTICast<GameObjectHandle>(object);
 		};
 
-		SPtr<GameObjectHandle> originalHandleShared;
+		TShared<GameObjectHandle> originalHandleShared;
 		GameObjectHandle* const originalHandle = fnGetOrDecodeHandle(original, originalHandleShared);
 		if(!B3D_ENSURE(originalHandle != nullptr))
 			return nullptr;
 
-		SPtr<GameObjectHandle> modifiedHandleShared;
+		TShared<GameObjectHandle> modifiedHandleShared;
 		GameObjectHandle* const modifiedHandle = fnGetOrDecodeHandle(modified, modifiedHandleShared);
 		if(!B3D_ENSURE(modifiedHandle != nullptr))
 			return nullptr;
@@ -137,7 +137,7 @@ namespace b3d
 			return TID_GameObjectHandleBase;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeSharedFromExisting<GameObjectHandle>(new(B3DAllocate<GameObjectHandle>()) GameObjectHandle());
 		}

@@ -53,7 +53,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		SPtr<SceneInstance> tmpsceneInstance;
+		TShared<SceneInstance> tmpsceneInstance;
 		ScriptSceneInstance* scriptObjectWrappersceneInstance;
 		scriptObjectWrappersceneInstance = ScriptSceneInstance::GetScriptObjectWrapper(sceneInstance);
 		if(scriptObjectWrappersceneInstance != nullptr)

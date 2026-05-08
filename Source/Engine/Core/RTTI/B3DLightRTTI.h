@@ -45,7 +45,7 @@ namespace b3d::ecs
 			return TID_ECSLight;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<Light>();
 		}
@@ -81,7 +81,7 @@ namespace b3d
 			return TID_Light;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<Light>();
 		}

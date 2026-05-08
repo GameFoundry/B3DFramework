@@ -124,7 +124,7 @@ namespace b3d
 			PrefabLinkInformation LinkInformation;
 		};
 
-		PrefabIdRemapper(const HSceneObject& originalPrefabHierarchy, const UUID& rootPrefabId, const SPtr<GameObjectCollection>& newGameObjectCollection);
+		PrefabIdRemapper(const HSceneObject& originalPrefabHierarchy, const UUID& rootPrefabId, const TShared<GameObjectCollection>& newGameObjectCollection);
 
 		/**
 		 * Updates all objects in @p hierarchyRoot with IDs so they match previously stored prefab hierarchy.
@@ -169,7 +169,7 @@ namespace b3d
 
 		UnorderedMap<UUID, PrefabInformation> mPrefabCache;
 		UUID mPrefabId; /**< ID of the prefab we're restoring IDs for. */
-		SPtr<GameObjectCollection> mNewGameObjectCollection; /**< Game object collection to use for remapping the object IDs. */
+		TShared<GameObjectCollection> mNewGameObjectCollection; /**< Game object collection to use for remapping the object IDs. */
 	};
 
 	/** @} */

@@ -21,7 +21,7 @@ namespace b3d
 		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, TextureUsageFlags usage, bool hwGamma) override;
 
 	protected:
-		SPtr<RenderTexture> CreateRenderTextureImpl(const RenderTextureCreateInformation& createInformation) override;
+		TShared<RenderTexture> CreateRenderTextureImpl(const RenderTextureCreateInformation& createInformation) override;
 	};
 
 	namespace render
@@ -34,7 +34,7 @@ namespace b3d
 			~NullTextureManager() = default;
 
 		protected:
-			SPtr<RenderTexture> CreateRenderTextureInternal(const RenderTextureCreateInformation& createInformation) override;
+			TShared<RenderTexture> CreateRenderTextureInternal(const RenderTextureCreateInformation& createInformation) override;
 		};
 	} // namespace render
 

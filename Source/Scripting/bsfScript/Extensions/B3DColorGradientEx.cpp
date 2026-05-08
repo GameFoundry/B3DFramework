@@ -3,12 +3,12 @@
 #include "B3DColorGradientEx.h"
 
 using namespace b3d;
-Color ColorGradientEx::Evaluate(const SPtr<ColorGradient>& thisPtr, float t)
+Color ColorGradientEx::Evaluate(const TShared<ColorGradient>& thisPtr, float t)
 {
 	return Color::FromRgba(thisPtr->Evaluate(t));
 }
 
-Color ColorGradientHDREx::Evaluate(const SPtr<ColorGradientHDR>& thisPtr, float t)
+Color ColorGradientHDREx::Evaluate(const TShared<ColorGradientHDR>& thisPtr, float t)
 {
 	return thisPtr->Evaluate(t);
 }

@@ -33,7 +33,7 @@ namespace b3d
 			void Initialize() override;
 
 			/** Downsamples the provided texture face and outputs it to the provided target. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 mip, const TShared<RenderTarget>& target);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -59,7 +59,7 @@ namespace b3d
 			void Initialize() override;
 
 			/** Importance samples the provided texture face and outputs it to the provided target. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 mip, const TShared<RenderTarget>& target);
 
 		private:
 			static const u32 kNumSamples;
@@ -142,10 +142,10 @@ namespace b3d
 			 * coefficient sets (one set of coefficients for each thread group). Coefficients must be reduced and normalized
 			 * by IrradianceReduceSHMaterial before use. Output buffer should be created by calling createOutputBuffer().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, const SPtr<GpuBuffer>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, const TShared<GpuBuffer>& output);
 
 			/** Creates a buffer of adequate size to be used as output for this material. */
-			SPtr<GpuBuffer> CreateOutputBuffer(const SPtr<Texture>& source, u32& numCoeffSets);
+			TShared<GpuBuffer> CreateOutputBuffer(const TShared<Texture>& source, u32& numCoeffSets);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -195,10 +195,10 @@ namespace b3d
 			 * single set of normalized coefficients. Output texture should be created by calling createOutputTexture(). The
 			 * value will be recorded at the @p outputIdx position in the texture.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& source, u32 numCoeffSets, const SPtr<Texture>& output, u32 outputIdx);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& source, u32 numCoeffSets, const TShared<Texture>& output, u32 outputIdx);
 
 			/** Creates a texture of adequate size to be used as output for this material. */
-			SPtr<Texture> CreateOutputTexture(u32 numCoeffSets);
+			TShared<Texture> CreateOutputTexture(u32 numCoeffSets);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -242,14 +242,14 @@ namespace b3d
 			 * per-texel weight in the alpha channel. Output coefficients must be summed up and normalized before use (using
 			 * IrradianceAccumulateCubeSH).
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 coefficientIdx, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 coefficientIdx, const TShared<RenderTarget>& output);
 
 			/**
 			 * Returns the texture descriptor that can be used for initializing the output render target. Note that the
 			 * output texture is a cubemap but the execute() method expects a render target that is a single face of a
 			 * cubemap.
 			 */
-			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& source);
+			static PooledRenderTextureCreateInformation GetOutputDesc(const TShared<Texture>& source);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -280,13 +280,13 @@ namespace b3d
 			 * Downsamples the provided face and mip level of the source texture and outputs the downsampled (i.e summed up)
 			 * values in the resulting output texture.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 sourceMip, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 sourceMip, const TShared<RenderTarget>& output);
 
 			/**
 			 * Returns the texture descriptor that can be used for initializing the output render target. Note the output
 			 * is a cubemap.
 			 */
-			static PooledRenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& source);
+			static PooledRenderTextureCreateInformation GetOutputDesc(const TShared<Texture>& source);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -310,7 +310,7 @@ namespace b3d
 			 * Sums up all faces of the input cube texture and writes the value to the corresponding index in the output
 			 * texture. The source mip should point to a mip level with size 1x1.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 sourceMip, const Vector2I& outputOffset, u32 coefficientIdx, const SPtr<RenderTarget>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 sourceMip, const Vector2I& outputOffset, u32 coefficientIdx, const TShared<RenderTarget>& output);
 
 			/**
 			 * Returns the texture descriptor that can be used for initializing the output render target. The render target
@@ -345,7 +345,7 @@ namespace b3d
 			 * Projects spherical harmonic coefficients calculated by IrradianceReduceSHMaterial and projects them onto faces of
 			 * a cubemap.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& shCoeffs, u32 face, const SPtr<RenderTarget>& target);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& shCoeffs, u32 face, const TShared<RenderTarget>& target);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -356,10 +356,10 @@ namespace b3d
 		class RenderBeastIBLUtility : public IBLUtility
 		{
 		public:
-			void FilterCubemapForSpecular(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const override;
-			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const override;
-			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const SPtr<Texture>& output, u32 outputIdx) const override;
-			void ScaleCubemap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip) const override;
+			void FilterCubemapForSpecular(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& scratch) const override;
+			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output) const override;
+			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output, u32 outputIdx) const override;
+			void ScaleCubemap(GpuCommandBuffer& commandBuffer, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip) const override;
 
 		private:
 			/**
@@ -370,13 +370,13 @@ namespace b3d
 			 * @param[in]   dst		Desination texture to output the scaled data to. Must be usable as a render target.
 			 * @param[in]   dstMip	Determines which mip level of the destination texture to scale.
 			 */
-			static void DownsampleCubemap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip);
+			static void DownsampleCubemap(GpuCommandBuffer& commandBuffer, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip);
 
 			/**
 			 * Generates irradiance SH coefficients from the input cubemap and writes them to a 1D texture. Does not make
 			 * use of the compute shader.
 			 */
-			static void FilterCubemapForIrradianceNonCompute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, u32 outputIdx, const SPtr<RenderTexture>& output);
+			static void FilterCubemapForIrradianceNonCompute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, u32 outputIdx, const TShared<RenderTexture>& output);
 		};
 
 		/** @} */

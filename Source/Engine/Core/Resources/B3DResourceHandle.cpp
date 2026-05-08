@@ -85,7 +85,7 @@ void ResourceHandle::ReleaseInternalReference()
 	GetResources().ReleaseInternalReference(*this);
 }
 
-void ResourceHandle::AssociateResourceWithHandle(const SPtr<Resource>& resource, const UUID& resourceId)
+void ResourceHandle::AssociateResourceWithHandle(const TShared<Resource>& resource, const UUID& resourceId)
 {
 	mData->Object = resource;
 

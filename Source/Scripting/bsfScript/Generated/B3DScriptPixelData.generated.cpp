@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	ScriptPixelData::ScriptPixelData(const SPtr<PixelData>& nativeObject)
+	ScriptPixelData::ScriptPixelData(const TShared<PixelData>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -137,13 +137,13 @@ namespace b3d
 
 	void ScriptPixelData::InternalCreate(MonoObject* scriptObject, PixelVolume* volume, PixelFormat format)
 	{
-		SPtr<PixelData> nativeObject = PixelDataEx::Create(*volume, format);
+		TShared<PixelData> nativeObject = PixelDataEx::Create(*volume, format);
 		ScriptObjectWrapper::Create<ScriptPixelData>(nativeObject, scriptObject);
 	}
 
 	void ScriptPixelData::InternalCreate0(MonoObject* scriptObject, uint32_t width, uint32_t height, uint32_t depth, PixelFormat pixelFormat)
 	{
-		SPtr<PixelData> nativeObject = PixelDataEx::Create(width, height, depth, pixelFormat);
+		TShared<PixelData> nativeObject = PixelDataEx::Create(width, height, depth, pixelFormat);
 		ScriptObjectWrapper::Create<ScriptPixelData>(nativeObject, scriptObject);
 	}
 

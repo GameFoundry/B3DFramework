@@ -24,8 +24,8 @@ namespace b3d
 		bool IsExtensionSupported(const String& ext) const override;
 		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const override;
 		ImporterAsyncMode GetAsyncMode() const override { return ImporterAsyncMode::Single; }
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
-		SPtr<ImportOptions> CreateImportOptions() const override;
+		TShared<Resource> Import(const Path& filePath, TShared<const ImportOptions> importOptions) override;
+		TShared<ImportOptions> CreateImportOptions() const override;
 
 		static inline constexpr const char* kShaderExtensionWithoutLeadingDot = "bsl";
 	};

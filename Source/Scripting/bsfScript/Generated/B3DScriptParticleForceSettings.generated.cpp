@@ -25,7 +25,7 @@ namespace b3d
 	ParticleForceSettings ScriptParticleForceSettings::FromInterop(const __ParticleForceSettingsInterop& value)
 	{
 		ParticleForceSettings output;
-		SPtr<TDistribution<TVector3<float>>> tmpForce;
+		TShared<TDistribution<TVector3<float>>> tmpForce;
 		ScriptVector3Distribution* scriptObjectWrapperForce;
 		scriptObjectWrapperForce = ScriptVector3Distribution::GetScriptObjectWrapper(value.Force);
 		if(scriptObjectWrapperForce != nullptr)
@@ -41,7 +41,7 @@ namespace b3d
 	{
 		__ParticleForceSettingsInterop output;
 		MonoObject* tmpForce;
-		SPtr<TDistribution<TVector3<float>>> tmpForcecopy;
+		TShared<TDistribution<TVector3<float>>> tmpForcecopy;
 		tmpForcecopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Force);
 		tmpForce = ScriptVector3Distribution::GetOrCreateScriptObject(tmpForcecopy);
 		output.Force = tmpForce;

@@ -62,7 +62,7 @@ namespace b3d
 		 *							then shape A will be displayed first and then be blended towards shape B as time passes.
 		 * @param[in]	vertices	Vertices of the base mesh modified by the shape.
 		 */
-		static SPtr<MorphShape> Create(const String& name, float weight, const Vector<MorphVertex>& vertices);
+		static TShared<MorphShape> Create(const String& name, float weight, const Vector<MorphVertex>& vertices);
 
 	private:
 		String mName;
@@ -96,21 +96,21 @@ namespace b3d
 		u32 GetShapeCount() const { return (u32)mShapes.size(); }
 
 		/** Returns the morph shape at the specified index. */
-		SPtr<MorphShape> GetShape(u32 index) const { return mShapes[index]; }
+		TShared<MorphShape> GetShape(u32 index) const { return mShapes[index]; }
 
 		/** Returns all morph shapes within this channel, in order from lowest to highest. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Shapes))
-		const Vector<SPtr<MorphShape>>& GetShapes() const { return mShapes; }
+		const Vector<TShared<MorphShape>>& GetShapes() const { return mShapes; }
 
 		/** Creates a new channel from a set of morph shapes. */
-		static SPtr<MorphChannel> Create(const String& name, const Vector<SPtr<MorphShape>>& shapes);
+		static TShared<MorphChannel> Create(const String& name, const Vector<TShared<MorphShape>>& shapes);
 
 	private:
 		MorphChannel() = default;
-		MorphChannel(const String& name, const Vector<SPtr<MorphShape>>& shapes);
+		MorphChannel(const String& name, const Vector<TShared<MorphShape>>& shapes);
 
 		String mName;
-		Vector<SPtr<MorphShape>> mShapes;
+		Vector<TShared<MorphShape>> mShapes;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -125,7 +125,7 @@ namespace b3d
 		 *
 		 * @note	For serialization use only.
 		 */
-		static SPtr<MorphChannel> CreateEmpty();
+		static TShared<MorphChannel> CreateEmpty();
 	};
 
 	/**
@@ -140,23 +140,23 @@ namespace b3d
 		u32 GetChannelCount() const { return (u32)mChannels.size(); }
 
 		/** Returns the morph channel at the specified index. */
-		SPtr<MorphChannel> GetChannel(u32 index) const { return mChannels[index]; }
+		TShared<MorphChannel> GetChannel(u32 index) const { return mChannels[index]; }
 
 		/** Returns a list of all morph channels in the morph animation. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Channels))
-		const Vector<SPtr<MorphChannel>>& GetChannels() const { return mChannels; }
+		const Vector<TShared<MorphChannel>>& GetChannels() const { return mChannels; }
 
 		/** Returns the number of vertices per morph shape. */
 		u32 GetVertexCount() const { return mVertexCount; }
 
 		/** Creates a new set of morph shapes. */
-		static SPtr<MorphShapes> Create(const Vector<SPtr<MorphChannel>>& channels, u32 numVertices);
+		static TShared<MorphShapes> Create(const Vector<TShared<MorphChannel>>& channels, u32 numVertices);
 
 	private:
 		MorphShapes() = default;
-		MorphShapes(const Vector<SPtr<MorphChannel>>& channels, u32 numVertices);
+		MorphShapes(const Vector<TShared<MorphChannel>>& channels, u32 numVertices);
 
-		Vector<SPtr<MorphChannel>> mChannels;
+		Vector<TShared<MorphChannel>> mChannels;
 		u32 mVertexCount;
 
 		/************************************************************************/
@@ -172,7 +172,7 @@ namespace b3d
 		 *
 		 * @note	For serialization use only.
 		 */
-		static SPtr<MorphShapes> CreateEmpty();
+		static TShared<MorphShapes> CreateEmpty();
 	};
 
 	/** @} */

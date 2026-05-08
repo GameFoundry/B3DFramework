@@ -91,17 +91,17 @@ bool FBXImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) co
 	return true; // FBX files can be plain-text so I don't even check for magic number
 }
 
-SPtr<ImportOptions> FBXImporter::CreateImportOptions() const
+TShared<ImportOptions> FBXImporter::CreateImportOptions() const
 {
 	return B3DMakeShared<MeshImportOptions>();
 }
 
-SPtr<Resource> FBXImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+TShared<Resource> FBXImporter::Import(const Path& filePath, TShared<const ImportOptions> importOptions)
 {
 	MeshCreateInformation meshCreateInformation;
 
 	Vector<FBXAnimationClipData> dummy;
-	SPtr<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, meshCreateInformation.SubMeshes, dummy, meshCreateInformation.Skeleton, meshCreateInformation.MorphShapes);
+	TShared<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, meshCreateInformation.SubMeshes, dummy, meshCreateInformation.Skeleton, meshCreateInformation.MorphShapes);
 
 	const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
@@ -109,7 +109,7 @@ SPtr<Resource> FBXImporter::Import(const Path& filePath, SPtr<const ImportOption
 	if(meshImportOptions->CpuCached)
 		meshCreateInformation.Flags |= MeshFlag::KeepCPUCopy;
 
-	SPtr<Mesh> mesh = Mesh::CreateShared(rendererMeshData->GetData(), meshCreateInformation);
+	TShared<Mesh> mesh = Mesh::CreateShared(rendererMeshData->GetData(), meshCreateInformation);
 
 	const String fileName = filePath.GetFilename(false);
 	mesh->SetName(fileName);
@@ -117,12 +117,12 @@ SPtr<Resource> FBXImporter::Import(const Path& filePath, SPtr<const ImportOption
 	return mesh;
 }
 
-Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions)
+Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, TShared<const ImportOptions> importOptions)
 {
 	MeshCreateInformation desc;
 
 	Vector<FBXAnimationClipData> animationClips;
-	SPtr<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, desc.SubMeshes, animationClips, desc.Skeleton, desc.MorphShapes);
+	TShared<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, desc.SubMeshes, animationClips, desc.Skeleton, desc.MorphShapes);
 
 	const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
@@ -130,7 +130,7 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, SPtr<const I
 	if(meshImportOptions->CpuCached)
 		desc.Flags |= MeshFlag::KeepCPUCopy;
 
-	SPtr<Mesh> mesh = Mesh::CreateShared(rendererMeshData->GetData(), desc);
+	TShared<Mesh> mesh = Mesh::CreateShared(rendererMeshData->GetData(), desc);
 
 	const String fileName = filePath.GetFilename(false);
 	mesh->SetName(fileName);
@@ -147,7 +147,7 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, SPtr<const I
 			{
 				PhysicsMeshType type = collisionMeshType == CollisionMeshType::Convex ? PhysicsMeshType::Convex : PhysicsMeshType::Triangle;
 
-				SPtr<PhysicsMesh> physicsMesh = PhysicsMesh::CreateShared(rendererMeshData->GetData(), type);
+				TShared<PhysicsMesh> physicsMesh = PhysicsMesh::CreateShared(rendererMeshData->GetData(), type);
 
 				output.push_back({ u8"collision", physicsMesh });
 			}
@@ -160,7 +160,7 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, SPtr<const I
 		Vector<ImportedAnimationEvents> events = meshImportOptions->AnimationEvents;
 		for(auto& entry : animationClips)
 		{
-			SPtr<AnimationClip> clip = AnimationClip::CreatePtrInternal(entry.Curves, entry.IsAdditive, entry.SampleRate, entry.RootMotion);
+			TShared<AnimationClip> clip = AnimationClip::CreatePtrInternal(entry.Curves, entry.IsAdditive, entry.SampleRate, entry.RootMotion);
 			clip->SetName(entry.Name);
 
 			for(auto& eventsEntry : events)
@@ -179,7 +179,7 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, SPtr<const I
 	return output;
 }
 
-SPtr<RendererMeshData> FBXImporter::ImportMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animation, SPtr<Skeleton>& skeleton, SPtr<MorphShapes>& morphShapes)
+TShared<RendererMeshData> FBXImporter::ImportMeshData(const Path& filePath, TShared<const ImportOptions> importOptions, Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animation, TShared<Skeleton>& skeleton, TShared<MorphShapes>& morphShapes)
 {
 	FbxScene* fbxScene = nullptr;
 
@@ -215,7 +215,7 @@ SPtr<RendererMeshData> FBXImporter::ImportMeshData(const Path& filePath, SPtr<co
 	SplitMeshVertices(importedScene);
 	GenerateMissingTangentSpace(importedScene, fbxImportOptions);
 
-	SPtr<RendererMeshData> rendererMeshData = GenerateMeshData(importedScene, fbxImportOptions, subMeshes);
+	TShared<RendererMeshData> rendererMeshData = GenerateMeshData(importedScene, fbxImportOptions, subMeshes);
 
 	skeleton = CreateSkeleton(importedScene, subMeshes.size() > 1);
 	morphShapes = CreateMorphShapes(importedScene);
@@ -234,7 +234,7 @@ SPtr<RendererMeshData> FBXImporter::ImportMeshData(const Path& filePath, SPtr<co
 	return rendererMeshData;
 }
 
-SPtr<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool sharedRoot)
+TShared<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool sharedRoot)
 {
 	Vector<BoneInformation> allBones;
 	UnorderedMap<FBXImportNode*, u32> boneMap;
@@ -336,7 +336,7 @@ SPtr<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool sha
 	return nullptr;
 }
 
-SPtr<MorphShapes> FBXImporter::CreateMorphShapes(const FBXImportScene& scene)
+TShared<MorphShapes> FBXImporter::CreateMorphShapes(const FBXImportScene& scene)
 {
 	// Combine morph shapes from all sub-meshes, and transform them
 	struct RawMorphShape
@@ -412,23 +412,23 @@ SPtr<MorphShapes> FBXImporter::CreateMorphShapes(const FBXImportScene& scene)
 	}
 
 	// Create morph shape object from combined shape data
-	SPtr<MorphShapes> morphShapes;
-	Vector<SPtr<MorphChannel>> allChannels;
+	TShared<MorphShapes> morphShapes;
+	Vector<TShared<MorphChannel>> allChannels;
 	for(auto& channel : allRawMorphShapes)
 	{
-		Vector<SPtr<MorphShape>> channelShapes;
+		Vector<TShared<MorphShape>> channelShapes;
 		for(auto& entry : channel.second)
 		{
 			RawMorphShape& shape = entry.second;
 			shape.Vertices.shrink_to_fit();
 
-			SPtr<MorphShape> morphShape = MorphShape::Create(shape.Name, shape.Weight, shape.Vertices);
+			TShared<MorphShape> morphShape = MorphShape::Create(shape.Name, shape.Weight, shape.Vertices);
 			channelShapes.push_back(morphShape);
 		}
 
 		if(channelShapes.size() > 0)
 		{
-			SPtr<MorphChannel> morphChannel = MorphChannel::Create(channel.first, channelShapes);
+			TShared<MorphChannel> morphChannel = MorphChannel::Create(channel.first, channelShapes);
 			allChannels.push_back(morphChannel);
 		}
 	}
@@ -667,7 +667,7 @@ void FBXImporter::SplitMeshVertices(FBXImportScene& scene)
 	scene.Meshes = splitMeshes;
 }
 
-void FBXImporter::ConvertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits, const SPtr<Skeleton>& skeleton, bool importRootMotion, Vector<FBXAnimationClipData>& output)
+void FBXImporter::ConvertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits, const TShared<Skeleton>& skeleton, bool importRootMotion, Vector<FBXAnimationClipData>& output)
 {
 	UnorderedSet<String> names;
 
@@ -686,8 +686,8 @@ void FBXImporter::ConvertAnimations(const Vector<FBXAnimationClip>& clips, const
 	bool isFirstClip = true;
 	for(auto& clip : clips)
 	{
-		SPtr<AnimationCurves> curves = B3DMakeShared<AnimationCurves>();
-		SPtr<RootMotion> rootMotion;
+		TShared<AnimationCurves> curves = B3DMakeShared<AnimationCurves>();
+		TShared<RootMotion> rootMotion;
 
 		// Find offset so animations start at time 0
 		float animStart = std::numeric_limits<float>::infinity();
@@ -761,8 +761,8 @@ void FBXImporter::ConvertAnimations(const Vector<FBXAnimationClip>& clips, const
 
 			for(auto& split : splits)
 			{
-				SPtr<AnimationCurves> splitClipCurve = B3DMakeShared<AnimationCurves>();
-				SPtr<RootMotion> splitRootMotion;
+				TShared<AnimationCurves> splitClipCurve = B3DMakeShared<AnimationCurves>();
+				TShared<RootMotion> splitRootMotion;
 
 				auto splitCurves = [&](auto& inCurves, auto& outCurves)
 				{
@@ -847,9 +847,9 @@ void FBXImporter::ConvertAnimations(const Vector<FBXAnimationClip>& clips, const
 	}
 }
 
-SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, Vector<SubMesh>& outputSubMeshes)
+TShared<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, Vector<SubMesh>& outputSubMeshes)
 {
-	Vector<SPtr<MeshData>> allMeshData;
+	Vector<TShared<MeshData>> allMeshData;
 	Vector<Vector<SubMesh>> allSubMeshes;
 	u32 boneIndexOffset = 0;
 
@@ -944,7 +944,7 @@ SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene
 			Matrix4 worldTransformIT = worldTransform.Inverse();
 			worldTransformIT = worldTransformIT.Transpose();
 
-			SPtr<RendererMeshData> meshData = RendererMeshData::Create((u32)numVertices, numIndices, (VertexLayout)vertexLayout);
+			TShared<RendererMeshData> meshData = RendererMeshData::Create((u32)numVertices, numIndices, (VertexLayout)vertexLayout);
 
 			// Copy indices
 			if(!node->FlipWinding)
@@ -1836,7 +1836,7 @@ void FBXImporter::ImportAnimations(FbxAnimLayer* layer, FbxNode* node, FBXImport
 			boneAnim.Scale = TAnimationCurve<Vector3>(keyframes);
 		}
 
-		SPtr<TAnimationCurve<Vector3>> eulerAnimation = B3DMakeShared<TAnimationCurve<Vector3>>();
+		TShared<TAnimationCurve<Vector3>> eulerAnimation = B3DMakeShared<TAnimationCurve<Vector3>>();
 		if(hasCurveValues(rotation))
 		{
 			float defaultValues[3];

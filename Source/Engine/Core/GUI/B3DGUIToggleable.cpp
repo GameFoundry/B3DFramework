@@ -33,7 +33,7 @@ GUIToggleable::~GUIToggleable()
 	}
 }
 
-void GUIToggleable::SetToggleGroupInternal(SPtr<GUIToggleGroup> toggleGroup)
+void GUIToggleable::SetToggleGroupInternal(TShared<GUIToggleGroup> toggleGroup)
 {
 	mToggleGroup = toggleGroup;
 

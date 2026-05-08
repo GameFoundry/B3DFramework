@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleForce")
 
-		ScriptParticleForce(const SPtr<ParticleForce>& nativeObject);
+		ScriptParticleForce(const TShared<ParticleForce>& nativeObject);
 		~ScriptParticleForce();
 
 		static void SetupScriptBindings();

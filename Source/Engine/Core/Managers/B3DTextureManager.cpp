@@ -7,7 +7,7 @@
 
 using namespace b3d;
 
-SPtr<RenderTexture> TextureManager::CreateRenderTexture(const TextureCreateInformation& colorDesc, bool createDepth, PixelFormat depthStencilFormat)
+TShared<RenderTexture> TextureManager::CreateRenderTexture(const TextureCreateInformation& colorDesc, bool createDepth, PixelFormat depthStencilFormat)
 {
 	TextureCreateInformation textureDesc = colorDesc;
 	textureDesc.Usage = TextureUsageFlag::RenderTarget;
@@ -36,14 +36,14 @@ SPtr<RenderTexture> TextureManager::CreateRenderTexture(const TextureCreateInfor
 	desc.DepthStencilSurface.FaceCount = 1;
 	desc.DepthStencilSurface.MipLevel = 0;
 
-	SPtr<RenderTexture> newRT = CreateRenderTexture(desc);
+	TShared<RenderTexture> newRT = CreateRenderTexture(desc);
 
 	return newRT;
 }
 
-SPtr<RenderTexture> TextureManager::CreateRenderTexture(const RenderTextureCreateInformation& desc)
+TShared<RenderTexture> TextureManager::CreateRenderTexture(const RenderTextureCreateInformation& desc)
 {
-	SPtr<RenderTexture> newRT = CreateRenderTextureImpl(desc);
+	TShared<RenderTexture> newRT = CreateRenderTextureImpl(desc);
 	newRT->SetShared(newRT);
 	newRT->Initialize();
 
@@ -63,9 +63,9 @@ void TextureManager::OnStartUp()
 
 	// White built-in texture
 	createInformation.Name = "Builtin White";
-	SPtr<Texture> whiteTexture = mGpuDevice.CreateTexture(createInformation);
+	TShared<Texture> whiteTexture = mGpuDevice.CreateTexture(createInformation);
 
-	SPtr<PixelData> whitePixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
+	TShared<PixelData> whitePixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 	whitePixelData->SetColorAt(Color::kWhite, 0, 0);
 	whitePixelData->SetColorAt(Color::kWhite, 0, 1);
 	whitePixelData->SetColorAt(Color::kWhite, 1, 0);
@@ -76,9 +76,9 @@ void TextureManager::OnStartUp()
 
 	// Black built-in texture
 	createInformation.Name = "Builtin Black";
-	SPtr<Texture> blackTexture = mGpuDevice.CreateTexture(createInformation);
+	TShared<Texture> blackTexture = mGpuDevice.CreateTexture(createInformation);
 
-	SPtr<PixelData> blackPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
+	TShared<PixelData> blackPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 	blackPixelData->SetColorAt(Color::kZero, 0, 0);
 	blackPixelData->SetColorAt(Color::kZero, 0, 1);
 	blackPixelData->SetColorAt(Color::kZero, 1, 0);
@@ -90,9 +90,9 @@ void TextureManager::OnStartUp()
 
 	// Pink built-in texture
 	createInformation.Name = "Builtin Pink";
-	SPtr<Texture> pinkTexture = mGpuDevice.CreateTexture(createInformation);
+	TShared<Texture> pinkTexture = mGpuDevice.CreateTexture(createInformation);
 
-	SPtr<PixelData> pinkPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
+	TShared<PixelData> pinkPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 	pinkPixelData->SetColorAt(Color::kPink, 0, 0);
 	pinkPixelData->SetColorAt(Color::kPink, 0, 1);
 	pinkPixelData->SetColorAt(Color::kPink, 1, 0);
@@ -103,8 +103,8 @@ void TextureManager::OnStartUp()
 
 	// Normal (Y = Up) built-in texture
 	createInformation.Name = "Builtin Normal";
-	SPtr<Texture> normalTexture = mGpuDevice.CreateTexture(createInformation);
-	SPtr<PixelData> normalPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
+	TShared<Texture> normalTexture = mGpuDevice.CreateTexture(createInformation);
+	TShared<PixelData> normalPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 
 	Color encodedNormal(0.5f, 0.5f, 1.0f);
 	normalPixelData->SetColorAt(encodedNormal, 0, 0);
@@ -125,9 +125,9 @@ void TextureManager::OnShutDown()
 	Texture::kNormal = nullptr;
 }
 
-SPtr<RenderTexture> TextureManager::CreateRenderTexture(const RenderTextureCreateInformation& desc)
+TShared<RenderTexture> TextureManager::CreateRenderTexture(const RenderTextureCreateInformation& desc)
 {
-	SPtr<RenderTexture> newRT = CreateRenderTextureInternal(desc);
+	TShared<RenderTexture> newRT = CreateRenderTextureInternal(desc);
 	newRT->Initialize();
 
 	return newRT;

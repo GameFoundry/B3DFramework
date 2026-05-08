@@ -497,10 +497,10 @@ namespace b3d
 			u32 Id = 0;
 
 			/** Particle emitters that control how new particles are generated. */
-			Vector<SPtr<ParticleEmitter>> Emitters;
+			Vector<TShared<ParticleEmitter>> Emitters;
 
 			/** Particle evolvers that modify particle properties over time. Stored sorted by priority (descending). */
-			Vector<SPtr<ParticleEvolver>> Evolvers;
+			Vector<TShared<ParticleEvolver>> Evolvers;
 
 			struct FullSyncPacket;
 			struct TransformSyncPacket;
@@ -523,7 +523,7 @@ namespace b3d
 		struct ParticleSimulation
 		{
 			/** Active particle data. Lazily allocated on first simulation frame. */
-			SPtr<ParticleSet> Particles;
+			TShared<ParticleSet> Particles;
 
 			/** Current simulation time. */
 			float Time = 0.0f;
@@ -551,7 +551,7 @@ namespace b3d
 		struct ParticleSystemTransformDirty {};
 
 		/** Creates all ParticleSystem data fragments, a world transform, and allocates a renderer ID. Entity is ready for rendering after this call. Returns the ParticleSystem data fragment. */
-		ParticleSystem& CreateParticleSystem(Registry& registry, Entity entity, const SPtr<RendererScene>& rendererScene, const Transform& transform = Transform::kIdentity);
+		ParticleSystem& CreateParticleSystem(Registry& registry, Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform = Transform::kIdentity);
 
 		/** Removes all ParticleSystem fragments. Cleanup (ID deallocation, dirty tags) is handled by the associated RendererScene when it is notified the fragment has been removed. */
 		void DestroyParticleSystem(Registry& registry, Entity entity);
@@ -599,22 +599,22 @@ namespace b3d
 		 * particle system must have at least one emitter.
 		 */
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Emitters))
-		void SetEmitters(const Vector<SPtr<ParticleEmitter>>& emitters);
+		void SetEmitters(const Vector<TShared<ParticleEmitter>>& emitters);
 
 		/** @copydoc SetEmitters */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Emitters))
-		const Vector<SPtr<ParticleEmitter>>& GetEmitters() const;
+		const Vector<TShared<ParticleEmitter>>& GetEmitters() const;
 
 		/**
 		 * Set of objects that determine how particle properties change during their lifetime. Evolvers only affect
 		 * CPU simulated particles.
 		 */
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Evolvers))
-		void SetEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers);
+		void SetEvolvers(const Vector<TShared<ParticleEvolver>>& evolvers);
 
 		/** @copydoc SetEvolvers */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Evolvers))
-		const Vector<SPtr<ParticleEvolver>>& GetEvolvers() const;
+		const Vector<TShared<ParticleEvolver>>& GetEvolvers() const;
 
 		/** @copydoc TParticleSystemGetters::GetLayer */
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Layer), UI(AsLayerMask))

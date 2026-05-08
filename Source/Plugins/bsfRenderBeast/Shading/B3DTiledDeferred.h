@@ -49,7 +49,7 @@ namespace b3d
 			void Initialize() override;
 
 			/** Binds the material for rendering, sets up parameters and executes it. */
-			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage);
+			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const TShared<Texture>& inputTexture, const TShared<Texture>& lightAccumTex, const TShared<Texture>& lightAccumTexArray, const TShared<Texture>& msaaCoverage);
 
 			/** Returns the material variation matching the provided parameters. */
 			static TiledDeferredLightingMaterial* GetVariation(u32 msaaCount);
@@ -84,10 +84,10 @@ namespace b3d
 			void Initialize() override;
 
 			/** Prepares the material for rendering by setting up parameter. Must be called at least once before Execute. */
-			void Prepare(const SPtr<Texture>& inputArray, const SPtr<Texture>& target);
+			void Prepare(const TShared<Texture>& inputArray, const TShared<Texture>& target);
 
 			/** Binds the material for rendering, sets up parameters and executes it. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& target);
 
 		private:
 			GpuParameterSampledTexture mInputParam;
@@ -130,13 +130,13 @@ namespace b3d
 			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
 			 * this material intended for textures and texture arrays.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const Color& clearValue = Color::kZero, const TextureSurface& surface = TextureSurface::kComplete);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& target, const Color& clearValue = Color::kZero, const TextureSurface& surface = TextureSurface::kComplete);
 
 			/**
 			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
 			 * this material intended for buffers.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& target, const Color& clearValue = Color::kZero);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& target, const Color& clearValue = Color::kZero);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -187,13 +187,13 @@ namespace b3d
 			struct Inputs
 			{
 				GBufferTextures Gbuffer;
-				SPtr<Texture> LightAccumulation;
-				SPtr<Texture> SceneColorTex;
-				SPtr<Texture> SceneColorTexArray;
-				SPtr<Texture> PreIntegratedGf;
-				SPtr<Texture> AmbientOcclusion;
-				SPtr<Texture> Ssr;
-				SPtr<Texture> MsaaCoverage;
+				TShared<Texture> LightAccumulation;
+				TShared<Texture> SceneColorTex;
+				TShared<Texture> SceneColorTexArray;
+				TShared<Texture> PreIntegratedGf;
+				TShared<Texture> AmbientOcclusion;
+				TShared<Texture> Ssr;
+				TShared<Texture> MsaaCoverage;
 			};
 
 			TiledDeferredImageBasedLightingMaterial() = default;

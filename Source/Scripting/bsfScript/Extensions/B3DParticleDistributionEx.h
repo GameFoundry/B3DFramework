@@ -18,11 +18,11 @@ namespace b3d
 	public:
 		/** @copydoc ColorDistribution::Evaluate(float, float) */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(ColorDistribution))
-		static Color Evaluate(const SPtr<ColorDistribution>& thisPtr, float t, float factor);
+		static Color Evaluate(const TShared<ColorDistribution>& thisPtr, float t, float factor);
 
 		/** @copydoc ColorDistribution::Evaluate(float, const Random&) */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(ColorDistribution))
-		static Color Evaluate(const SPtr<ColorDistribution>& thisPtr, float t, Random& factor);
+		static Color Evaluate(const TShared<ColorDistribution>& thisPtr, float t, Random& factor);
 	};
 
 	/** @endcond */

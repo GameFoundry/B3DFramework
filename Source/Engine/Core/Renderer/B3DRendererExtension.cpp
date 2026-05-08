@@ -10,7 +10,7 @@
 
 using namespace b3d;
 
-void RendererExtension::QueueInitializeOnRenderThread(RendererExtension* extension, const Any& data, const SPtr<RendererScene>& scene)
+void RendererExtension::QueueInitializeOnRenderThread(RendererExtension* extension, const Any& data, const TShared<RendererScene>& scene)
 {
 	auto renderThreadInitializer = [extension, data, scene = B3DGetRenderProxy(scene)]()
 	{
@@ -32,7 +32,7 @@ void RendererExtension::QueueDeleteOnRenderThread(RendererExtension* extension)
 	{
 		if(!B3DIsWeakUnassigned(extension->mAssociatedScene))
 		{
-			const SPtr<render::RendererScene>& scene = extension->mAssociatedScene.lock();
+			const TShared<render::RendererScene>& scene = extension->mAssociatedScene.lock();
 			if(scene != nullptr)
 				scene->RemoveExtension(extension);
 		}

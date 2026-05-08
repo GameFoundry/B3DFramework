@@ -15,10 +15,10 @@ namespace b3d
 	class NullPhysicsMeshImplementation : public IPhysicsMeshImplementation
 	{
 	public:
-		NullPhysicsMeshImplementation(const SPtr<MeshData>& meshData, PhysicsMeshType type);
+		NullPhysicsMeshImplementation(const TShared<MeshData>& meshData, PhysicsMeshType type);
 		~NullPhysicsMeshImplementation() override = default;
 
-		SPtr<MeshData> GetMeshData() const override;
+		TShared<MeshData> GetMeshData() const override;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -31,7 +31,7 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 
 	private:
-		SPtr<MeshData> mMeshData;
+		TShared<MeshData> mMeshData;
 	};
 
 	/** @} */

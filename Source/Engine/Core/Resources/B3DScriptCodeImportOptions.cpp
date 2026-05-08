@@ -5,7 +5,7 @@
 
 using namespace b3d;
 
-SPtr<ScriptCodeImportOptions> ScriptCodeImportOptions::Create()
+TShared<ScriptCodeImportOptions> ScriptCodeImportOptions::Create()
 {
 	return B3DMakeShared<ScriptCodeImportOptions>();
 }

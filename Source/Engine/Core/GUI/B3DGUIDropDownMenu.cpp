@@ -96,7 +96,7 @@ void GUIDropDownMenu::OnCreated()
 	mBackHitBox->ChangeParentWidget(this);
 	mBackHitBox->MarkLayoutAsDirty();
 
-	SPtr<Viewport> viewport = mMenuCreateInformation.Camera->GetViewport();
+	TShared<Viewport> viewport = mMenuCreateInformation.Camera->GetViewport();
 
 	GUIPhysicalArea targetBounds(0, 0, (i32)viewport->GetPixelArea().Width, (i32)viewport->GetPixelArea().Height);
 	Vector<GUIPhysicalArea> captureBounds;

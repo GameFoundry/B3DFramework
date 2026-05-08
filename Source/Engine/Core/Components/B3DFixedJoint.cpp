@@ -21,7 +21,7 @@ FixedJoint::FixedJoint()
 
 UPtr<IJointImplementation> FixedJoint::CreateImplementation()
 {
-	const SPtr<SceneInstance>& scene = SO()->GetScene();
+	const TShared<SceneInstance>& scene = SO()->GetScene();
 	return scene->GetPhysicsScene()->CreateFixedJoint(*this, mInformation);
 }
 

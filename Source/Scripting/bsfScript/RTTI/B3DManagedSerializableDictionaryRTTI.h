@@ -32,7 +32,7 @@ namespace b3d
 			return TID_ScriptSerializableDictionaryKeyValue;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ManagedSerializableDictionaryKeyValue>();
 		}
@@ -78,7 +78,7 @@ namespace b3d
 			return TID_ScriptSerializableDictionary;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return ManagedSerializableDictionary::CreateEmpty();
 		}

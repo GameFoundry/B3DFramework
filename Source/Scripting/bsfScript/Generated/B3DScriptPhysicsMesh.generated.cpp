@@ -64,7 +64,7 @@ namespace b3d
 
 	void ScriptPhysicsMesh::InternalCreate(MonoObject* scriptObject, MonoObject* meshData, PhysicsMeshType type)
 	{
-		SPtr<RendererMeshData> tmpmeshData;
+		TShared<RendererMeshData> tmpmeshData;
 		ScriptRendererMeshData* scriptObjectWrappermeshData;
 		scriptObjectWrappermeshData = ScriptRendererMeshData::GetScriptObjectWrapper(meshData);
 		if(scriptObjectWrappermeshData != nullptr)
@@ -75,7 +75,7 @@ namespace b3d
 
 	MonoObject* ScriptPhysicsMesh::InternalGetMeshData(ScriptPhysicsMesh* self)
 	{
-		SPtr<RendererMeshData> tmp__output;
+		TShared<RendererMeshData> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 

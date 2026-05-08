@@ -12,7 +12,7 @@
 
 namespace b3d
 {
-	ScriptParticleGpuSimulationSettings::ScriptParticleGpuSimulationSettings(const SPtr<ParticleGpuSimulationSettings>& nativeObject)
+	ScriptParticleGpuSimulationSettings::ScriptParticleGpuSimulationSettings(const TShared<ParticleGpuSimulationSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -52,7 +52,7 @@ namespace b3d
 	}
 	MonoObject* ScriptParticleGpuSimulationSettings::InternalGetVectorField(ScriptParticleGpuSimulationSettings* self)
 	{
-		SPtr<ParticleVectorFieldSettings> tmp__output = B3DMakeShared<ParticleVectorFieldSettings>();
+		TShared<ParticleVectorFieldSettings> tmp__output = B3DMakeShared<ParticleVectorFieldSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -69,7 +69,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ParticleVectorFieldSettings> tmpvalue;
+		TShared<ParticleVectorFieldSettings> tmpvalue;
 		ScriptParticleVectorFieldSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptParticleVectorFieldSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -79,7 +79,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleGpuSimulationSettings::InternalGetColorOverLifetime(ScriptParticleGpuSimulationSettings* self)
 	{
-		SPtr<TColorDistribution<ColorGradient>> tmp__output = B3DMakeShared<TColorDistribution<ColorGradient>>();
+		TShared<TColorDistribution<ColorGradient>> tmp__output = B3DMakeShared<TColorDistribution<ColorGradient>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -96,7 +96,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TColorDistribution<ColorGradient>> tmpvalue;
+		TShared<TColorDistribution<ColorGradient>> tmpvalue;
 		ScriptColorDistribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptColorDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -106,7 +106,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleGpuSimulationSettings::InternalGetSizeScaleOverLifetime(ScriptParticleGpuSimulationSettings* self)
 	{
-		SPtr<TDistribution<TVector2<float>>> tmp__output = B3DMakeShared<TDistribution<TVector2<float>>>();
+		TShared<TDistribution<TVector2<float>>> tmp__output = B3DMakeShared<TDistribution<TVector2<float>>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -123,7 +123,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TDistribution<TVector2<float>>> tmpvalue;
+		TShared<TDistribution<TVector2<float>>> tmpvalue;
 		ScriptVector2Distribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptVector2Distribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
@@ -179,7 +179,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleGpuSimulationSettings::InternalGetDepthCollision(ScriptParticleGpuSimulationSettings* self)
 	{
-		SPtr<ParticleDepthCollisionSettings> tmp__output = B3DMakeShared<ParticleDepthCollisionSettings>();
+		TShared<ParticleDepthCollisionSettings> tmp__output = B3DMakeShared<ParticleDepthCollisionSettings>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -196,7 +196,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<ParticleDepthCollisionSettings> tmpvalue;
+		TShared<ParticleDepthCollisionSettings> tmpvalue;
 		ScriptParticleDepthCollisionSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptParticleDepthCollisionSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)

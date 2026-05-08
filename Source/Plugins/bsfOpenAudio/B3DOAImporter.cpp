@@ -31,20 +31,20 @@ bool OAImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) con
 	return true;
 }
 
-SPtr<ImportOptions> OAImporter::CreateImportOptions() const
+TShared<ImportOptions> OAImporter::CreateImportOptions() const
 {
 	return B3DMakeShared<AudioClipImportOptions>();
 }
 
-SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+TShared<Resource> OAImporter::Import(const Path& filePath, TShared<const ImportOptions> importOptions)
 {
 	AudioDataInfo info;
 	u32 bytesPerSample;
 	u32 bufferSize;
-	SPtr<MemoryDataStream> sampleStream;
+	TShared<MemoryDataStream> sampleStream;
 	{
 		Lock fileLock = FileScheduler::GetLock(filePath);
-		SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
+		TShared<DataStream> stream = FileSystem::OpenFile(filePath);
 
 		String extension = filePath.GetExtension();
 		StringUtility::ToLowerCase(extension);
@@ -73,7 +73,7 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 		reader->Read(sampleStream->Data(), info.SampleCount);
 	}
 
-	SPtr<const AudioClipImportOptions> clipIO = std::static_pointer_cast<const AudioClipImportOptions>(importOptions);
+	TShared<const AudioClipImportOptions> clipIO = std::static_pointer_cast<const AudioClipImportOptions>(importOptions);
 
 	// If 3D, convert to mono
 	if(clipIO->Is3D && info.ChannelCount > 1)
@@ -123,7 +123,7 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 	clipDesc.ReadMode = clipIO->ReadMode;
 	clipDesc.Is3D = clipIO->Is3D;
 
-	SPtr<AudioClip> clip = AudioClip::CreateShared(sampleStream, bufferSize, info.SampleCount, clipDesc);
+	TShared<AudioClip> clip = AudioClip::CreateShared(sampleStream, bufferSize, info.SampleCount, clipDesc);
 
 	const String fileName = filePath.GetFilename(false);
 	clip->SetName(fileName);

@@ -19,7 +19,7 @@ TOptional<String> DefaultShaderIncludeHandler::FindIncludeSource(const String& n
 	const Path filePath = FileSystem::GetExecutableFolderPath() + name;
 	if(FileSystem::IsFile(filePath))
 	{
-		if(const SPtr<DataStream> stream = FileSystem::OpenFile(filePath))
+		if(const TShared<DataStream> stream = FileSystem::OpenFile(filePath))
 			return stream->GetAsString();
 	}
 

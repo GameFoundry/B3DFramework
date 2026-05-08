@@ -15,7 +15,7 @@
 
 namespace b3d
 {
-	ScriptAnimationCurve::ScriptAnimationCurve(const SPtr<TAnimationCurve<float>>& nativeObject)
+	ScriptAnimationCurve::ScriptAnimationCurve(const TShared<TAnimationCurve<float>>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -56,7 +56,7 @@ namespace b3d
 				nativeArraykeyframes[elementIndex] = scriptArraykeyframes.Get<TKeyframe<float>>(elementIndex);
 			}
 		}
-		SPtr<TAnimationCurve<float>> nativeObject = B3DMakeShared<TAnimationCurve<float>>(nativeArraykeyframes);
+		TShared<TAnimationCurve<float>> nativeObject = B3DMakeShared<TAnimationCurve<float>>(nativeArraykeyframes);
 		ScriptObjectWrapper::Create<ScriptAnimationCurve>(nativeObject, scriptObject);
 	}
 
@@ -94,7 +94,7 @@ namespace b3d
 		return __output;
 	}
 
-	ScriptVector3Curve::ScriptVector3Curve(const SPtr<TAnimationCurve<TVector3<float>>>& nativeObject)
+	ScriptVector3Curve::ScriptVector3Curve(const TShared<TAnimationCurve<TVector3<float>>>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -135,7 +135,7 @@ namespace b3d
 				nativeArraykeyframes[elementIndex] = ScriptKeyFrameVec3::FromInterop(scriptArraykeyframes.Get<__TKeyframe_TVector3_float__Interop>(elementIndex));
 			}
 		}
-		SPtr<TAnimationCurve<TVector3<float>>> nativeObject = B3DMakeShared<TAnimationCurve<TVector3<float>>>(nativeArraykeyframes);
+		TShared<TAnimationCurve<TVector3<float>>> nativeObject = B3DMakeShared<TAnimationCurve<TVector3<float>>>(nativeArraykeyframes);
 		ScriptObjectWrapper::Create<ScriptVector3Curve>(nativeObject, scriptObject);
 	}
 
@@ -173,7 +173,7 @@ namespace b3d
 		return __output;
 	}
 
-	ScriptVector2Curve::ScriptVector2Curve(const SPtr<TAnimationCurve<TVector2<float>>>& nativeObject)
+	ScriptVector2Curve::ScriptVector2Curve(const TShared<TAnimationCurve<TVector2<float>>>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -214,7 +214,7 @@ namespace b3d
 				nativeArraykeyframes[elementIndex] = ScriptKeyFrameVec2::FromInterop(scriptArraykeyframes.Get<__TKeyframe_TVector2_float__Interop>(elementIndex));
 			}
 		}
-		SPtr<TAnimationCurve<TVector2<float>>> nativeObject = B3DMakeShared<TAnimationCurve<TVector2<float>>>(nativeArraykeyframes);
+		TShared<TAnimationCurve<TVector2<float>>> nativeObject = B3DMakeShared<TAnimationCurve<TVector2<float>>>(nativeArraykeyframes);
 		ScriptObjectWrapper::Create<ScriptVector2Curve>(nativeObject, scriptObject);
 	}
 
@@ -252,7 +252,7 @@ namespace b3d
 		return __output;
 	}
 
-	ScriptQuaternionCurve::ScriptQuaternionCurve(const SPtr<TAnimationCurve<TQuaternion<float>>>& nativeObject)
+	ScriptQuaternionCurve::ScriptQuaternionCurve(const TShared<TAnimationCurve<TQuaternion<float>>>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -293,7 +293,7 @@ namespace b3d
 				nativeArraykeyframes[elementIndex] = ScriptKeyFrameQuat::FromInterop(scriptArraykeyframes.Get<__TKeyframe_TQuaternion_float__Interop>(elementIndex));
 			}
 		}
-		SPtr<TAnimationCurve<TQuaternion<float>>> nativeObject = B3DMakeShared<TAnimationCurve<TQuaternion<float>>>(nativeArraykeyframes);
+		TShared<TAnimationCurve<TQuaternion<float>>> nativeObject = B3DMakeShared<TAnimationCurve<TQuaternion<float>>>(nativeArraykeyframes);
 		ScriptObjectWrapper::Create<ScriptQuaternionCurve>(nativeObject, scriptObject);
 	}
 
@@ -331,7 +331,7 @@ namespace b3d
 		return __output;
 	}
 
-	ScriptIntegerCurve::ScriptIntegerCurve(const SPtr<TAnimationCurve<int32_t>>& nativeObject)
+	ScriptIntegerCurve::ScriptIntegerCurve(const TShared<TAnimationCurve<int32_t>>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -372,7 +372,7 @@ namespace b3d
 				nativeArraykeyframes[elementIndex] = scriptArraykeyframes.Get<TKeyframe<int32_t>>(elementIndex);
 			}
 		}
-		SPtr<TAnimationCurve<int32_t>> nativeObject = B3DMakeShared<TAnimationCurve<int32_t>>(nativeArraykeyframes);
+		TShared<TAnimationCurve<int32_t>> nativeObject = B3DMakeShared<TAnimationCurve<int32_t>>(nativeArraykeyframes);
 		ScriptObjectWrapper::Create<ScriptIntegerCurve>(nativeObject, scriptObject);
 	}
 

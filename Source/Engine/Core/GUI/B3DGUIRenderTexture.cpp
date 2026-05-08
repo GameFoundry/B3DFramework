@@ -15,7 +15,7 @@ const String& GUIRenderTexture::GetGuiTypeName()
 	return name;
 }
 
-GUIRenderTexture::GUIRenderTexture(const String& styleName, const SPtr<RenderTexture>& texture, bool transparent, const GUISizeConstraints& dimensions)
+GUIRenderTexture::GUIRenderTexture(const String& styleName, const TShared<RenderTexture>& texture, bool transparent, const GUISizeConstraints& dimensions)
 	: GUITexture(PrivatelyConstruct(), GUITextureContents(nullptr, TextureScaleMode::StretchToFit, false), styleName, dimensions), mTransparent(transparent)
 {
 	SetRenderTexture(texture);
@@ -27,27 +27,27 @@ GUIRenderTexture::~GUIRenderTexture()
 		GUIManager::Instance().SetInputBridge(mSourceTexture, nullptr);
 }
 
-GUIRenderTexture* GUIRenderTexture::Create(const SPtr<RenderTexture>& texture, bool transparent, const String& styleName)
+GUIRenderTexture* GUIRenderTexture::Create(const TShared<RenderTexture>& texture, bool transparent, const String& styleName)
 {
 	return new(B3DAllocate<GUIRenderTexture>()) GUIRenderTexture(styleName, texture, transparent, GUISizeConstraints::Create());
 }
 
-GUIRenderTexture* GUIRenderTexture::Create(const SPtr<RenderTexture>& texture, bool transparent, const GUIOptions& options, const String& styleName)
+GUIRenderTexture* GUIRenderTexture::Create(const TShared<RenderTexture>& texture, bool transparent, const GUIOptions& options, const String& styleName)
 {
 	return new(B3DAllocate<GUIRenderTexture>()) GUIRenderTexture(styleName, texture, transparent, GUISizeConstraints::Create(options));
 }
 
-GUIRenderTexture* GUIRenderTexture::Create(const SPtr<RenderTexture>& texture, const String& styleName)
+GUIRenderTexture* GUIRenderTexture::Create(const TShared<RenderTexture>& texture, const String& styleName)
 {
 	return new(B3DAllocate<GUIRenderTexture>()) GUIRenderTexture(styleName, texture, false, GUISizeConstraints::Create());
 }
 
-GUIRenderTexture* GUIRenderTexture::Create(const SPtr<RenderTexture>& texture, const GUIOptions& options, const String& styleName)
+GUIRenderTexture* GUIRenderTexture::Create(const TShared<RenderTexture>& texture, const GUIOptions& options, const String& styleName)
 {
 	return new(B3DAllocate<GUIRenderTexture>()) GUIRenderTexture(styleName, texture, false, GUISizeConstraints::Create(options));
 }
 
-void GUIRenderTexture::SetRenderTexture(const SPtr<RenderTexture>& texture)
+void GUIRenderTexture::SetRenderTexture(const TShared<RenderTexture>& texture)
 {
 	if(mSourceTexture != nullptr)
 		GUIManager::Instance().SetInputBridge(mSourceTexture, nullptr);

@@ -21,7 +21,7 @@ namespace b3d
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<u32>, RemovedProbes)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<DirtyProbeInfo>, DirtyProbes)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(bool, mActive)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(SPtr<SceneInstance>, mSceneInstance)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(TShared<SceneInstance>, mSceneInstance)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
 	B3D_SYNC_BLOCK_END
 }
@@ -241,18 +241,18 @@ void LightProbeVolume::RunRenderProbeTask()
 		mRendererTask = nullptr;
 	};
 
-	SPtr<render::LightProbeVolume> renderProxy = B3DGetRenderProxy(this);
+	TShared<render::LightProbeVolume> renderProxy = B3DGetRenderProxy(this);
 	auto fnRenderProbes = [renderProxy](render::GpuCommandBufferPool& commandBufferPool)
 	{
-		SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("LightProbeRendering"));
-		SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
+		TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("LightProbeRendering"));
+		TShared<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 		commandBufferProfiler->BeginSample(*commandBuffer, "LightProbeRendering");
 		const bool isDone = renderProxy->RenderProbes(*commandBuffer, 3);
 		commandBufferProfiler->EndSample(*commandBuffer);
 
 		GetGpuProfiler().ResolveProfileWhenReady("LightProbeRendering", commandBufferProfiler);
-		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		gpuDevice->SubmitCommandBuffer(commandBuffer);
 
 		return isDone;
@@ -290,12 +290,12 @@ void LightProbeVolume::UpdateCoefficients()
 	}
 }
 
-SPtr<render::RenderProxy> LightProbeVolume::CreateRenderProxy() const
+TShared<render::RenderProxy> LightProbeVolume::CreateRenderProxy() const
 {
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 
 	render::LightProbeVolume* renderProxy = new(B3DAllocate<render::LightProbeVolume>()) render::LightProbeVolume(B3DGetRenderProxy(scene), mProbes);
-	SPtr<render::LightProbeVolume> renderProxyShared = B3DMakeSharedFromExisting<render::LightProbeVolume>(renderProxy);
+	TShared<render::LightProbeVolume> renderProxyShared = B3DMakeSharedFromExisting<render::LightProbeVolume>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -361,7 +361,7 @@ RTTIType* LightProbeVolume::GetRtti() const
 
 namespace b3d { namespace render
 {
-LightProbeVolume::LightProbeVolume(const SPtr<SceneInstance>& scene, const UnorderedMap<u32, b3d::LightProbeVolume::ProbeInfo>& probes)
+LightProbeVolume::LightProbeVolume(const TShared<SceneInstance>& scene, const UnorderedMap<u32, b3d::LightProbeVolume::ProbeInfo>& probes)
 	: mSceneInstance(scene)
 {
 	mInitCoefficients.resize(probes.size());
@@ -388,7 +388,7 @@ LightProbeVolume::LightProbeVolume(const SPtr<SceneInstance>& scene, const Unord
 
 LightProbeVolume::~LightProbeVolume()
 {
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 	rendererScene->UnregisterLightProbeVolume(this);
 }
 
@@ -400,7 +400,7 @@ void LightProbeVolume::Initialize()
 
 	ResizeCoefficientTexture(std::max(32U, coefficientCount));
 
-	SPtr<PixelData> coeffData = mCoefficients->GetProperties().AllocBuffer(0, 0);
+	TShared<PixelData> coeffData = mCoefficients->GetProperties().AllocBuffer(0, 0);
 	coeffData->SetColors(Color::kZero);
 
 	u32 probesPerRow = coeffData->GetWidth() / 9;
@@ -429,7 +429,7 @@ void LightProbeVolume::Initialize()
 	TextureUtility::Write(mCoefficients, *coeffData, 0, 0, TextureWriteFlag::Discard);
 	mInitCoefficients.clear();
 
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 	rendererScene->RegisterLightProbeVolume(this);
 	RenderProxy::Initialize();
 }
@@ -440,7 +440,7 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 	u32 usedProbeCount = (u32)mProbeMap.size();
 	if (usedProbeCount > mCoeffBufferSize)
 	{
-		const SPtr<Texture> oldTexture = mCoefficients;
+		const TShared<Texture> oldTexture = mCoefficients;
 
 		ResizeCoefficientTexture(std::max(32U, usedProbeCount * 2));
 
@@ -448,8 +448,8 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 			commandBuffer.CopyTexture(oldTexture, mCoefficients);
 	}
 
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 
 	u32 probeUpdateCount = 0;
 	for(; mFirstDirtyProbe < (u32)mProbeInfos.size(); ++mFirstDirtyProbe)
@@ -466,7 +466,7 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 			cubemapDesc.Height = 256;
 			cubemapDesc.Usage = TextureUsageFlag::StoreOnGPU | TextureUsageFlag::RenderTarget;
 
-			SPtr<Texture> cubemap = gpuDevice->CreateTexture(cubemapDesc);
+			TShared<Texture> cubemap = gpuDevice->CreateTexture(cubemapDesc);
 
 			Vector3 localPos = mProbePositions[mFirstDirtyProbe];
 
@@ -593,7 +593,7 @@ void LightProbeVolume::SyncFromCoreObject(const CoreSyncData& data, FrameAllocat
 
 	if(oldIsActive != mActive)
 	{
-		const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+		const TShared<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 		if(mActive)
 			rendererScene->RegisterLightProbeVolume(this);
 		else
@@ -611,7 +611,7 @@ void LightProbeVolume::GetProbeCoefficients(Vector<LightProbeCoefficientInfo>& o
 
 	LightProbeSHCoefficients* coefficients = B3DStackAllocate<LightProbeSHCoefficients>(activeProbeCount);
 
-	SPtr<PixelData> coeffData = mCoefficients->GetProperties().AllocBuffer(0, 0);
+	TShared<PixelData> coeffData = mCoefficients->GetProperties().AllocBuffer(0, 0);
 	TextureUtility::Read(mCoefficients, *coeffData);
 
 	u32 probesPerRow = coeffData->GetWidth() / 9;
@@ -647,7 +647,7 @@ void LightProbeVolume::GetProbeCoefficients(Vector<LightProbeCoefficientInfo>& o
 
 void LightProbeVolume::ResizeCoefficientTexture(u32 count)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	Vector2I texSize = IBLUtility::GetShCoeffTextureSize(count, 3);
 
 	TextureCreateInformation desc;

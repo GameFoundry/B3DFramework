@@ -35,7 +35,7 @@ void TiledDeferredLightingMaterial::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("TILE_SIZE", kTileSize);
 }
 
-void TiledDeferredLightingMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage)
+void TiledDeferredLightingMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const TShared<Texture>& inputTexture, const TShared<Texture>& lightAccumTex, const TShared<Texture>& lightAccumTexArray, const TShared<Texture>& msaaCoverage)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -137,7 +137,7 @@ void TextureArrayToMSAATexture::Initialize()
 	mGpuParameterSet->GetSampledTextureParameter("gInput", mInputParam);
 }
 
-void TextureArrayToMSAATexture::Prepare(const SPtr<Texture>& inputArray, const SPtr<Texture>& target)
+void TextureArrayToMSAATexture::Prepare(const TShared<Texture>& inputArray, const TShared<Texture>& target)
 {
 	const TextureProperties& inputProps = inputArray->GetProperties();
 	const TextureProperties& targetProps = target->GetProperties();
@@ -149,7 +149,7 @@ void TextureArrayToMSAATexture::Prepare(const SPtr<Texture>& inputArray, const S
 	mInputParam.Set(inputArray);
 }
 
-void TextureArrayToMSAATexture::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target)
+void TextureArrayToMSAATexture::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& target)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -181,7 +181,7 @@ void ClearLoadStoreMaterial::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("NUM_THREADS", kNumThreads);
 }
 
-void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const Color& clearValue, const TextureSurface& surface)
+void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& target, const Color& clearValue, const TextureSurface& surface)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -210,7 +210,7 @@ void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr
 	commandBuffer.DispatchCompute(numGroupsX, numGroupsY);
 }
 
-void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& target, const Color& clearValue)
+void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& target, const Color& clearValue)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -368,7 +368,7 @@ void TiledDeferredImageBasedLightingMaterial::Execute(GpuCommandBuffer& commandB
 	mGBufferC.Set(inputs.Gbuffer.RoughMetal);
 	mGBufferDepth.Set(inputs.Gbuffer.Depth);
 
-	SPtr<Texture> skyFilteredRadiance;
+	TShared<Texture> skyFilteredRadiance;
 	if(skybox)
 		skyFilteredRadiance = skybox->GetFilteredRadiance();
 

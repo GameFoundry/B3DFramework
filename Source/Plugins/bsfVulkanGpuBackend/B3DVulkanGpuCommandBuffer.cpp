@@ -99,7 +99,7 @@ void VulkanGpuCommandBufferPool::Destroy()
 	Base::Destroy();
 }
 
-SPtr<GpuCommandBuffer> VulkanGpuCommandBufferPool::FindOrCreate(const GpuCommandBufferCreateInformation& createInformation)
+TShared<GpuCommandBuffer> VulkanGpuCommandBufferPool::FindOrCreate(const GpuCommandBufferCreateInformation& createInformation)
 {
 	EnsureValidThread();
 
@@ -117,7 +117,7 @@ SPtr<GpuCommandBuffer> VulkanGpuCommandBufferPool::FindOrCreate(const GpuCommand
 	return Create(createInformation);
 }
 
-SPtr<GpuCommandBuffer> VulkanGpuCommandBufferPool::Create(const GpuCommandBufferCreateInformation& createInformation)
+TShared<GpuCommandBuffer> VulkanGpuCommandBufferPool::Create(const GpuCommandBufferCreateInformation& createInformation)
 {
 	EnsureValidThread();
 
@@ -132,7 +132,7 @@ SPtr<GpuCommandBuffer> VulkanGpuCommandBufferPool::Create(const GpuCommandBuffer
 	VkResult result = vkAllocateCommandBuffers(static_cast<VulkanGpuDevice&>(mGpuDevice).GetLogical(), &cmdBufferAllocInfo, &commandBufferHandle);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	SPtr<VulkanGpuCommandBuffer> commandBuffer = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuCommandBuffer>()) VulkanGpuCommandBuffer(static_cast<VulkanGpuDevice&>(mGpuDevice), *this, mNextCommandBufferId++, commandBufferHandle, mInformation.Thread, mInformation.Type, createInformation),
+	TShared<VulkanGpuCommandBuffer> commandBuffer = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuCommandBuffer>()) VulkanGpuCommandBuffer(static_cast<VulkanGpuDevice&>(mGpuDevice), *this, mNextCommandBufferId++, commandBufferHandle, mInformation.Thread, mInformation.Type, createInformation),
 		[](VulkanGpuCommandBuffer* commandBuffer)
 		{
 			commandBuffer->Destroy();
@@ -285,7 +285,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	EnsureValidThread();
 	B3D_ASSERT(mState == GpuCommandBufferState::Recording);
 
-	const SPtr<RenderTarget>& renderTarget = createInformation.Target;
+	const TShared<RenderTarget>& renderTarget = createInformation.Target;
 	if(!B3D_ENSURE(renderTarget != nullptr))
 		return;
 
@@ -360,7 +360,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		mResourceTracker.TrackSwapChainUsage(swapChain);
 
 	// Pre-register all GPU parameters before the render pass, so we can automatically issue barriers
-	for(const SPtr<GpuParameterSet>& parameters : createInformation.Parameters)
+	for(const TShared<GpuParameterSet>& parameters : createInformation.Parameters)
 	{
 		if(parameters == nullptr)
 			continue;
@@ -493,7 +493,7 @@ void VulkanGpuCommandBuffer::ClearViewport(RenderSurfaceMask mask, const Color& 
 	B3D_INCREMENT_RENDER_STATISTIC(NumClears);
 }
 
-void VulkanGpuCommandBuffer::SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& state)
+void VulkanGpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& state)
 {
 	EnsureValidThread();
 
@@ -509,7 +509,7 @@ void VulkanGpuCommandBuffer::SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsP
 	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
 
-void VulkanGpuCommandBuffer::SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& state)
+void VulkanGpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& state)
 {
 	EnsureValidThread();
 
@@ -522,7 +522,7 @@ void VulkanGpuCommandBuffer::SetGpuComputePipelineState(const SPtr<GpuComputePip
 	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
 
-void VulkanGpuCommandBuffer::SetGpuParameterSet(const SPtr<GpuParameterSet>& parameterSet)
+void VulkanGpuCommandBuffer::SetGpuParameterSet(const TShared<GpuParameterSet>& parameterSet)
 {
 	EnsureValidThread();
 
@@ -532,7 +532,7 @@ void VulkanGpuCommandBuffer::SetGpuParameterSet(const SPtr<GpuParameterSet>& par
 	if(!B3D_ENSURE(parameterSet->GetSet() < kMaximumBoundDescriptorSets))
 		return;
 
-	const SPtr<VulkanGpuParameterSet>& vulkanParameterSet = std::static_pointer_cast<VulkanGpuParameterSet>(parameterSet);
+	const TShared<VulkanGpuParameterSet>& vulkanParameterSet = std::static_pointer_cast<VulkanGpuParameterSet>(parameterSet);
 	const u32 set = parameterSet->GetSet();
 
 	if(set >= (u32)mBoundGpuParameterSets.Size())
@@ -621,7 +621,7 @@ void VulkanGpuCommandBuffer::SetStencilReferenceValue(u32 value)
 	mStencilRefRequiresBind = true;
 }
 
-void VulkanGpuCommandBuffer::WriteTimestamp(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool)
+void VulkanGpuCommandBuffer::WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool)
 {
 	EnsureValidThread();
 
@@ -631,7 +631,7 @@ void VulkanGpuCommandBuffer::WriteTimestamp(GpuQueryId query, const SPtr<GpuQuer
 	mResourceTracker.TrackResourceUsage(vulkanQueryPool, GpuAccessFlag::Write);
 }
 
-void VulkanGpuCommandBuffer::BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool, GpuQueryFlags flags)
+void VulkanGpuCommandBuffer::BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags)
 {
 	EnsureValidThread();
 
@@ -645,7 +645,7 @@ void VulkanGpuCommandBuffer::BeginQuery(GpuQueryId query, const SPtr<GpuQueryPoo
 	mResourceTracker.TrackResourceUsage(vulkanQueryPool, GpuAccessFlag::Write);
 }
 
-void VulkanGpuCommandBuffer::EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool)
+void VulkanGpuCommandBuffer::EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool)
 {
 	EnsureValidThread();
 
@@ -665,7 +665,7 @@ void VulkanGpuCommandBuffer::EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>
 	mResourceTracker.TrackResourceUsage(vulkanQueryPool, GpuAccessFlag::Write);
 }
 
-void VulkanGpuCommandBuffer::ResetQueries(const SPtr<GpuQueryPool>& queryPool)
+void VulkanGpuCommandBuffer::ResetQueries(const TShared<GpuQueryPool>& queryPool)
 {
 	EnsureValidThread();
 	B3D_ENSURE(!IsInRenderPass());
@@ -691,7 +691,7 @@ void VulkanGpuCommandBuffer::SetDrawOperation(DrawOperationType drawOperation)
 	mVertexInputsDirty = true;
 }
 
-void VulkanGpuCommandBuffer::SetVertexBuffers(u32 startIndex, SPtr<GpuBuffer>* buffers, u32 bufferCount)
+void VulkanGpuCommandBuffer::SetVertexBuffers(u32 startIndex, TShared<GpuBuffer>* buffers, u32 bufferCount)
 {
 	EnsureValidThread();
 
@@ -723,7 +723,7 @@ void VulkanGpuCommandBuffer::SetVertexBuffers(u32 startIndex, SPtr<GpuBuffer>* b
 	B3D_INCREMENT_RENDER_STATISTIC(NumVertexBufferBinds);
 }
 
-void VulkanGpuCommandBuffer::SetIndexBuffer(const SPtr<GpuBuffer>& buffer)
+void VulkanGpuCommandBuffer::SetIndexBuffer(const TShared<GpuBuffer>& buffer)
 {
 	EnsureValidThread();
 
@@ -736,7 +736,7 @@ void VulkanGpuCommandBuffer::SetIndexBuffer(const SPtr<GpuBuffer>& buffer)
 	B3D_INCREMENT_RENDER_STATISTIC(NumIndexBufferBinds);
 }
 
-void VulkanGpuCommandBuffer::SetVertexDescription(const SPtr<VertexDescription>& vertexDescription)
+void VulkanGpuCommandBuffer::SetVertexDescription(const TShared<VertexDescription>& vertexDescription)
 {
 	EnsureValidThread();
 
@@ -911,7 +911,7 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 	B3D_INCREMENT_RENDER_STATISTIC(NumComputeCalls);
 }
 
-void VulkanGpuCommandBuffer::CopyBufferToBuffer(const SPtr<GpuBuffer>& source, const SPtr<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
+void VulkanGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
 {
 	EnsureValidThread();
 
@@ -927,7 +927,7 @@ void VulkanGpuCommandBuffer::CopyBufferToBuffer(const SPtr<GpuBuffer>& source, c
 	CopyBufferToBuffer(sourceBuffer, destinationBuffer, sourceOffset, destinationOffset, length);
 }
 
-void VulkanGpuCommandBuffer::CopyBufferToTexture(const SPtr<GpuBuffer>& source, const SPtr<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
+void VulkanGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
 {
 	B3D_ASSERT(bufferOffset == 0 && "Buffer offset not yet supported for texture copies");
 	EnsureValidThread();
@@ -964,7 +964,7 @@ void VulkanGpuCommandBuffer::CopyBufferToTexture(const SPtr<GpuBuffer>& source, 
 	CopyBufferToImage(sourceBuffer, destinationImage, extent, range, transferLayout, pitch.RowPitch, pitch.SliceHeight);
 }
 
-void VulkanGpuCommandBuffer::CopyTextureToBuffer(const SPtr<Texture>& source, const SPtr<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)
+void VulkanGpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)
 {
 	B3D_ASSERT(bufferOffset == 0 && "Buffer offset not yet supported for texture copies");
 	EnsureValidThread();
@@ -999,7 +999,7 @@ void VulkanGpuCommandBuffer::CopyTextureToBuffer(const SPtr<Texture>& source, co
 	CopyImageToBuffer(sourceImage, destinationBuffer, extent, range, transferLayout, pitch.RowPitch, pitch.SliceHeight);
 }
 
-bool VulkanGpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureCopyInformation& copyInformation)
+bool VulkanGpuCommandBuffer::CopyTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureCopyInformation& copyInformation)
 {
 	if(!GpuCommandBuffer::CopyTexture(source, destination, copyInformation))
 		return false;
@@ -1094,7 +1094,7 @@ bool VulkanGpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr
 	return true;
 }
 
-bool VulkanGpuCommandBuffer::BlitTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureBlitInformation& blitInformation)
+bool VulkanGpuCommandBuffer::BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation)
 {
 	if(!GpuCommandBuffer::BlitTexture(source, destination, blitInformation))
 		return false;
@@ -1465,7 +1465,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 		if(transitionQueueType == GQT_UNKNOWN || transitionQueueType == queueType)
 			continue;
 
-		const SPtr<VulkanGpuCommandBuffer> sourceTransitionCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("Source queue transition")));
+		const TShared<VulkanGpuCommandBuffer> sourceTransitionCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("Source queue transition")));
 		VkCommandBuffer vkCmdBuffer = sourceTransitionCommandBuffer->GetVulkanHandle();
 
 		const u32 imageBarrierCount = (u32)transitionInformation.ImageBarriers.size();
@@ -1500,7 +1500,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 		if(transitionQueueType != GQT_UNKNOWN && transitionQueueType != queueType)
 			continue;
 
-		SPtr<VulkanGpuCommandBuffer> transitionCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("Queue and layout transitions")));
+		TShared<VulkanGpuCommandBuffer> transitionCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("Queue and layout transitions")));
 
 		VkCommandBuffer vkCmdBuffer = transitionCommandBuffer->GetVulkanHandle();
 
@@ -1759,7 +1759,7 @@ bool VulkanGpuCommandBuffer::IsReadyForRender()
 	if(mGraphicsPipeline == nullptr)
 		return false;
 
-	SPtr<VertexDescription> shaderInputVertexDescription = mGraphicsPipeline->GetInputDeclaration();
+	TShared<VertexDescription> shaderInputVertexDescription = mGraphicsPipeline->GetInputDeclaration();
 	if(shaderInputVertexDescription == nullptr)
 		return false;
 
@@ -1768,8 +1768,8 @@ bool VulkanGpuCommandBuffer::IsReadyForRender()
 
 bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 {
-	const SPtr<VertexDescription> vertexShaderInputDescription = mGraphicsPipeline->GetInputDeclaration();
-	const SPtr<VulkanVertexInput> vertexShaderInput = VulkanVertexInputManager::Instance().GetVertexInfo(mVertexDescription, vertexShaderInputDescription);
+	const TShared<VertexDescription> vertexShaderInputDescription = mGraphicsPipeline->GetInputDeclaration();
+	const TShared<VulkanVertexInput> vertexShaderInput = VulkanVertexInputManager::Instance().GetVertexInfo(mVertexDescription, vertexShaderInputDescription);
 
 	VulkanRenderPass *const renderPass = mFramebuffer->GetRenderPass();
 	VulkanPipeline *const pipeline = mGraphicsPipeline->FindOrCreateVulkanResource(renderPass, mRenderTargetReadOnlyMask, mDrawOp, vertexShaderInput);
@@ -1898,7 +1898,7 @@ void VulkanGpuCommandBuffer::BindVertexInputs()
 	B3D_ENSURE(!mBarrierHelper.HasBarriers());
 }
 
-void VulkanGpuCommandBuffer::BindGpuParameters(const SPtr<GpuPipelineParameterLayout>& pipelineParameterLayout, VulkanBarrierHelper& barrierHelper)
+void VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParameterLayout>& pipelineParameterLayout, VulkanBarrierHelper& barrierHelper)
 {
 	B3D_ASSERT(pipelineParameterLayout != nullptr);
 
@@ -1920,7 +1920,7 @@ void VulkanGpuCommandBuffer::BindGpuParameters(const SPtr<GpuPipelineParameterLa
 	{
 		mDynamicOffsetsPerSet[set].clear();
 
-		const SPtr<VulkanGpuParameterSet>& boundGpuParameterSet = mBoundGpuParameterSets[set];
+		const TShared<VulkanGpuParameterSet>& boundGpuParameterSet = mBoundGpuParameterSets[set];
 		if(boundGpuParameterSet != nullptr)
 		{
 			TInlineArray<u32, 4> setDynamicOffsets;

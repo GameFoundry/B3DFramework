@@ -456,18 +456,18 @@ typename TShader<IsRenderProxy>::TextureType TShader<IsRenderProxy>::GetDefault3
 }
 
 template <bool IsRenderProxy>
-SPtr<SamplerState> TShader<IsRenderProxy>::GetDefaultSampler(u32 index) const
+TShared<SamplerState> TShader<IsRenderProxy>::GetDefaultSampler(u32 index) const
 {
 	if (index < (u32)mInformation.SamplerDefaultValues.size())
 	{
-		const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if (!B3D_ENSURE(gpuDevice))
 			return nullptr;
 
 		return gpuDevice->CreateSamplerState(mInformation.SamplerDefaultValues[index]);
 	}
 
-	return SPtr<SamplerState>();
+	return TShared<SamplerState>();
 }
 
 template <bool IsRenderProxy>
@@ -480,9 +480,9 @@ u8* TShader<IsRenderProxy>::GetDefaultValue(u32 index) const
 }
 
 template <bool IsRenderProxy>
-Vector<SPtr<typename TShader<IsRenderProxy>::VariationType>> TShader<IsRenderProxy>::GetCompatibleVariations() const
+Vector<TShared<typename TShader<IsRenderProxy>::VariationType>> TShader<IsRenderProxy>::GetCompatibleVariations() const
 {
-	Vector<SPtr<VariationType>> output;
+	Vector<TShared<VariationType>> output;
 	for(auto& variation : mInformation.Variations)
 	{
 		if(variation->IsSupported())
@@ -493,10 +493,10 @@ Vector<SPtr<typename TShader<IsRenderProxy>::VariationType>> TShader<IsRenderPro
 }
 
 template <bool IsRenderProxy>
-Vector<SPtr<typename TShader<IsRenderProxy>::VariationType>> TShader<IsRenderProxy>::GetCompatibleVariations(
+Vector<TShared<typename TShader<IsRenderProxy>::VariationType>> TShader<IsRenderProxy>::GetCompatibleVariations(
 	const ShaderVariationParameters& variationParameters, bool exact) const
 {
-	Vector<SPtr<VariationType>> output;
+	Vector<TShared<VariationType>> output;
 	for(auto& variation : mInformation.Variations)
 	{
 		if(variation->IsSupported() && variation->GetVariationParameters().Matches(variationParameters, exact))
@@ -521,18 +521,18 @@ Shader::Shader(u32 id)
 
 void Shader::SetIncludeFiles(const Vector<String>& includes)
 {
-	SPtr<ShaderMetaData> meta = std::static_pointer_cast<ShaderMetaData>(GetMetaData());
+	TShared<ShaderMetaData> meta = std::static_pointer_cast<ShaderMetaData>(GetMetaData());
 	meta->Includes = includes;
 }
 
-SPtr<render::RenderProxy> Shader::CreateRenderProxy() const
+TShared<render::RenderProxy> Shader::CreateRenderProxy() const
 {
-	Vector<SPtr<render::Variation>> variations;
+	Vector<TShared<render::Variation>> variations;
 	for(auto& variation : mInformation.Variations)
 		variations.push_back(B3DGetRenderProxy(variation));
 
 	render::Shader* renderProxy = new(B3DAllocate<render::Shader>()) render::Shader(mName, ShaderInformation::ConvertToRenderProxy(mInformation), mShaderId);
-	SPtr<render::Shader> renderProxyShared = B3DMakeSharedFromExisting<render::Shader>(renderProxy);
+	TShared<render::Shader> renderProxyShared = B3DMakeSharedFromExisting<render::Shader>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -626,29 +626,29 @@ u32 Shader::GetDataParameterSize(GpuDataParameterType type)
 
 HShader Shader::Create(const String& name, const ShaderCreateInformation& createInformation)
 {
-	SPtr<Shader> newShader = CreateShared(name, createInformation);
+	TShared<Shader> newShader = CreateShared(name, createInformation);
 
 	return B3DStaticResourceCast<Shader>(GetResources().CreateResourceHandle(newShader));
 }
 
-SPtr<Shader> Shader::CreateShared(const String& name, const ShaderCreateInformation& createInformation)
+TShared<Shader> Shader::CreateShared(const String& name, const ShaderCreateInformation& createInformation)
 {
 	u32 id = render::Shader::mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	B3D_ASSERT(id < std::numeric_limits<u32>::max() && "Created too many shaders, reached maximum id.");
 
-	SPtr<Shader> newShader = B3DMakeSharedFromExisting<Shader>(new(B3DAllocate<Shader>()) Shader(name, createInformation, id));
+	TShared<Shader> newShader = B3DMakeSharedFromExisting<Shader>(new(B3DAllocate<Shader>()) Shader(name, createInformation, id));
 	newShader->SetShared(newShader);
 	newShader->Initialize();
 
 	return newShader;
 }
 
-SPtr<Shader> Shader::CreateEmpty()
+TShared<Shader> Shader::CreateEmpty()
 {
 	u32 id = render::Shader::mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	B3D_ASSERT(id < std::numeric_limits<u32>::max() && "Created too many shaders, reached maximum id.");
 
-	SPtr<Shader> newShader = B3DMakeSharedFromExisting<Shader>(new(B3DAllocate<Shader>()) Shader(id));
+	TShared<Shader> newShader = B3DMakeSharedFromExisting<Shader>(new(B3DAllocate<Shader>()) Shader(id));
 	newShader->SetShared(newShader);
 
 	return newShader;
@@ -701,26 +701,26 @@ Shader::Shader(const String& name, const ShaderCreateInformation& createInformat
 	: TShader(createInformation, id), mName(name)
 { }
 
-SPtr<Shader> Shader::Create(const String& name, const ShaderCreateInformation& createInformation)
+TShared<Shader> Shader::Create(const String& name, const ShaderCreateInformation& createInformation)
 {
 	const u32 id = mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	B3D_ASSERT(id < std::numeric_limits<u32>::max() && "Created too many shaders, reached maximum id.");
 
 	Shader* const shader = new(B3DAllocate<Shader>()) Shader(name, createInformation, id);
-	SPtr<Shader> shaderShared = B3DMakeSharedFromExisting<Shader>(shader);
+	TShared<Shader> shaderShared = B3DMakeSharedFromExisting<Shader>(shader);
 	shaderShared->SetShared(shaderShared);
 	shaderShared->Initialize();
 
 	return shaderShared;
 }
 
-SPtr<Shader> Shader::CreateEmpty()
+TShared<Shader> Shader::CreateEmpty()
 {
 	const uint32 id = mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	B3D_ASSERT(id < std::numeric_limits<uint32>::max() && "Created too many shaders, reached maximum id.");
 
 	Shader* const shader = new(B3DAllocate<Shader>()) Shader(id);
-	SPtr<Shader> shaderShared = B3DMakeSharedFromExisting<Shader>(shader);
+	TShared<Shader> shaderShared = B3DMakeSharedFromExisting<Shader>(shader);
 	shaderShared->SetShared(shaderShared);
 
 	return shaderShared;

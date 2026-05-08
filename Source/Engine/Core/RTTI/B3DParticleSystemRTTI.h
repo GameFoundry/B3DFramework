@@ -47,7 +47,7 @@ namespace b3d
 			return TID_ParticleEmitterConeShape;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleEmitterConeShape>();
 		}
@@ -73,7 +73,7 @@ namespace b3d
 			return TID_ParticleEmitterSphereShape;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleEmitterSphereShape>();
 		}
@@ -99,7 +99,7 @@ namespace b3d
 			return TID_ParticleEmitterHemisphereShape;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleEmitterHemisphereShape>();
 		}
@@ -125,7 +125,7 @@ namespace b3d
 			return TID_ParticleEmitterBoxShape;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleEmitterBoxShape>();
 		}
@@ -153,7 +153,7 @@ namespace b3d
 			return TID_ParticleEmitterLineShape;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleEmitterLineShape>();
 		}
@@ -183,7 +183,7 @@ namespace b3d
 			return TID_ParticleEmitterCircleShape;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleEmitterCircleShape>();
 		}
@@ -208,7 +208,7 @@ namespace b3d
 			return TID_ParticleEmitterRectShape;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleEmitterRectShape>();
 		}
@@ -235,7 +235,7 @@ namespace b3d
 			return TID_ParticleEmitterStaticMeshShape;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleEmitterStaticMeshShape>();
 		}
@@ -261,7 +261,7 @@ namespace b3d
 			return TID_ParticleEmitterSkinnedMeshShape;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleEmitterSkinnedMeshShape>();
 		}
@@ -366,7 +366,7 @@ namespace b3d
 			return TID_ParticleEmitter;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleEmitter>();
 		}
@@ -392,7 +392,7 @@ namespace b3d
 			return TID_ParticleTextureAnimation;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleTextureAnimation>();
 		}
@@ -420,7 +420,7 @@ namespace b3d
 			return TID_ParticleOrbit;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleOrbit>();
 		}
@@ -446,7 +446,7 @@ namespace b3d
 			return TID_ParticleVelocity;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ParticleVelocity>();
 		}
@@ -472,7 +472,7 @@ namespace b3d
 			return TID_ParticleForce;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleForce>();
 		}
@@ -497,7 +497,7 @@ namespace b3d
 			return TID_ParticleGravity;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleGravity>();
 		}
@@ -522,7 +522,7 @@ namespace b3d
 			return TID_ParticleColor;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleColor>();
 		}
@@ -549,7 +549,7 @@ namespace b3d
 			return TID_ParticleSize;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleSize>();
 		}
@@ -576,7 +576,7 @@ namespace b3d
 			return TID_ParticleRotation;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleRotation>();
 		}
@@ -606,7 +606,7 @@ namespace b3d
 			return TID_ParticleCollisions;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleCollisions>();
 		}
@@ -640,7 +640,7 @@ namespace b3d
 			return TID_ParticleVectorFieldSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleVectorFieldSettings>();
 		}
@@ -668,7 +668,7 @@ namespace b3d
 			return TID_ParticleDepthCollisionSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleDepthCollisionSettings>();
 		}
@@ -698,7 +698,7 @@ namespace b3d
 			return TID_ParticleGpuSimulationSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleGpuSimulationSettings>();
 		}
@@ -738,7 +738,7 @@ namespace b3d
 			return TID_ParticleSystemSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ParticleSystemSettings>();
 		}
@@ -763,7 +763,7 @@ namespace b3d
 			return TID_ParticleSystem;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<ParticleSystem>();
 		}
@@ -803,7 +803,7 @@ namespace b3d::ecs
 			return TID_ECSParticleSystem;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ParticleSystem>();
 		}

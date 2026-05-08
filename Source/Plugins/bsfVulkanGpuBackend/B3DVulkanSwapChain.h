@@ -65,7 +65,7 @@ namespace b3d
 			 * Creates the swap chain with the provided properties. Destroys any previously existing swap chain. Caller must
 			 * ensure the swap chain is not used at the device when this is called.
 			 */
-			VulkanSwapChain(VulkanResourceManager* owner, const SPtr<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain = nullptr, const StringView& name = "");
+			VulkanSwapChain(VulkanResourceManager* owner, const TShared<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain = nullptr, const StringView& name = "");
 			~VulkanSwapChain();
 
 			void Destroy() override;
@@ -161,7 +161,7 @@ namespace b3d
 		private:
 			VkDevice mDevice = VK_NULL_HANDLE;
 			VkSwapchainKHR mSwapChain = VK_NULL_HANDLE;
-			SPtr<VulkanSurface> mSurface;
+			TShared<VulkanSurface> mSurface;
 
 			u32 mWidth = 0;
 			u32 mHeight = 0;

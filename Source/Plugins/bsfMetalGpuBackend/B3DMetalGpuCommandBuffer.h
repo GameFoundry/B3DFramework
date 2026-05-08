@@ -37,13 +37,13 @@ namespace b3d
 
 			void SetName(const StringView& name) override;
 
-			void SetGpuParameterSet(const SPtr<GpuParameterSet>& parameters) override;
+			void SetGpuParameterSet(const TShared<GpuParameterSet>& parameters) override;
 			void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) override;
-			void SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState) override;
-			void SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& pipelineState) override;
-			void SetVertexBuffers(u32 index, SPtr<GpuBuffer>* buffers, u32 bufferCount) override;
-			void SetIndexBuffer(const SPtr<GpuBuffer>& buffer) override;
-			void SetVertexDescription(const SPtr<VertexDescription>& vertexDescription) override;
+			void SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState) override;
+			void SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState) override;
+			void SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount) override;
+			void SetIndexBuffer(const TShared<GpuBuffer>& buffer) override;
+			void SetVertexDescription(const TShared<VertexDescription>& vertexDescription) override;
 			void SetDrawOperation(DrawOperationType operation) override;
 			void Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
@@ -57,13 +57,13 @@ namespace b3d
 			void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom) override;
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
-			void CopyBufferToBuffer(const SPtr<GpuBuffer>& source, const SPtr<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) override;
-			void CopyBufferToTexture(const SPtr<GpuBuffer>& source, const SPtr<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
-			void CopyTextureToBuffer(const SPtr<Texture>& source, const SPtr<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
-			void WriteTimestamp(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) override;
-			void BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
-			void EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) override;
-			void ResetQueries(const SPtr<GpuQueryPool>& queryPool) override;
+			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) override;
+			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
+			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
+			void WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
+			void BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
+			void EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
+			void ResetQueries(const TShared<GpuQueryPool>& queryPool) override;
 			void BeginLabel(const StringView& name) override;
 			void EndLabel() override;
 			void InsertLabel(const StringView& name) override;
@@ -82,7 +82,7 @@ namespace b3d
 			 * pointer clears the pending pool. The pending pool is also cleared automatically in
 			 * @c EndRenderPass.
 			 */
-			void SetPendingVisibilityPool(const SPtr<GpuQueryPool>& queryPool);
+			void SetPendingVisibilityPool(const TShared<GpuQueryPool>& queryPool);
 
 #ifdef __OBJC__
 			/**
@@ -169,10 +169,10 @@ namespace b3d
 			u32 mId;
 
 			// Cached pipeline + input state; applied to the render encoder at bind time.
-			SPtr<MetalGpuGraphicsPipelineState> mBoundGraphicsPipeline;
-			SPtr<GpuComputePipelineState> mBoundComputePipeline;
-			SPtr<GpuBuffer> mBoundIndexBuffer;
-			SPtr<VertexDescription> mBoundVertexDescription;
+			TShared<MetalGpuGraphicsPipelineState> mBoundGraphicsPipeline;
+			TShared<GpuComputePipelineState> mBoundComputePipeline;
+			TShared<GpuBuffer> mBoundIndexBuffer;
+			TShared<VertexDescription> mBoundVertexDescription;
 			/**
 			 * A'3: parameter sets indexed by @c GpuParameterSet::GetSet(). Replaces the former single
 			 * @c mBoundParameterSet slot which silently overwrote itself when a pipeline had @c >1
@@ -181,7 +181,7 @@ namespace b3d
 			 * mean "no set bound at this index"; the @c Draw / @c DrawIndexed / @c DispatchCompute
 			 * loops skip them.
 			 */
-			TInlineArray<SPtr<GpuParameterSet>, 4> mBoundParameterSets;
+			TInlineArray<TShared<GpuParameterSet>, 4> mBoundParameterSets;
 			DrawOperationType mDrawOperation = DOT_TRIANGLE_LIST;
 			u32 mStencilReference = 0;
 
@@ -197,7 +197,7 @@ namespace b3d
 			// descriptor's visibilityResultBuffer slot; mUsedQueryPools accumulates every pool that was
 			// touched by this command buffer, and CommitInternal notifies each one with the submission's
 			// event value so TryResolve can check the queue's signaled value without tracking it here.
-			SPtr<MetalGpuQueryPool> mPendingVisibilityPool;
+			TShared<MetalGpuQueryPool> mPendingVisibilityPool;
 
 			/**
 			 * B10: query pools referenced during this command buffer's recording. Typical @p N is @<= 4

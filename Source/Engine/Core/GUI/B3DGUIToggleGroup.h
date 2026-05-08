@@ -25,7 +25,7 @@ namespace b3d
 		 * @param	allowAllOff	If true all of the toggle buttons can be turned off, if false one will always be turned on.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(GUIToggleGroup))
-		static SPtr<GUIToggleGroup> Create(bool allowAllOff = false);
+		static TShared<GUIToggleGroup> Create(bool allowAllOff = false);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -45,7 +45,7 @@ namespace b3d
 		GUIToggleGroup(bool allowAllOff);
 
 		/**	Initializes the toggle group. To be called right after construction. */
-		void Initialize(const SPtr<GUIToggleGroup>& sharedPtr);
+		void Initialize(const TShared<GUIToggleGroup>& sharedPtr);
 
 		Vector<GUIToggleable*> mButtons;
 		bool mAllowAllOff;

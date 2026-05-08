@@ -28,7 +28,7 @@ namespace b3d
 			return TID_ResourceMetaData;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ResourceMetaData>();
 		}

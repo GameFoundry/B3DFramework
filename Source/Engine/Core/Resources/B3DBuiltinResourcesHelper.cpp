@@ -69,12 +69,12 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 
 		Path relativePath = fileName;
 
-		SPtr<ImportOptions> importOptions = GetImporter().CreateImportOptions(filePath);
+		TShared<ImportOptions> importOptions = GetImporter().CreateImportOptions(filePath);
 		if(importOptions != nullptr)
 		{
 			if(B3DRTTIIsOfType<TextureImportOptions>(importOptions))
 			{
-				SPtr<TextureImportOptions> texImportOptions =
+				TShared<TextureImportOptions> texImportOptions =
 					std::static_pointer_cast<TextureImportOptions>(importOptions);
 
 				texImportOptions->GenerateMips = mipmap;
@@ -98,7 +98,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 	{
 		const String spriteName = String("sprite_" + fileName);
 
-		SPtr<SpriteTexture> spriteTextureShared = SpriteTexture::CreateShared(texture);
+		TShared<SpriteTexture> spriteTextureShared = SpriteTexture::CreateShared(texture);
 		spriteTextureShared->SetAnimation(animation);
 		spriteTextureShared->SetAnimationPlayback(playback);
 
@@ -124,7 +124,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 	{
 		String Name;
 		HTexture Source;
-		SPtr<PixelData> SrcData;
+		TShared<PixelData> SrcData;
 		std::string TextureUUIDs[3];
 		std::string SpriteUUIDs[3];
 	};
@@ -219,9 +219,9 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 
 	GetRenderThread().PostCommand([] {}, "Reading back generated icon data", true);
 
-	auto fnSaveTexture = [compress](const SPtr<PixelData>& pixelData, const Path& folder, const String& name, std::string& uuid)
+	auto fnSaveTexture = [compress](const TShared<PixelData>& pixelData, const Path& folder, const String& name, std::string& uuid)
 	{
-		SPtr<Texture> texturePtr = Texture::CreateShared(pixelData);
+		TShared<Texture> texturePtr = Texture::CreateShared(pixelData);
 		HResource texture = GetResources().CreateResourceHandle(texturePtr, UUID(uuid.c_str()));
 
 		GetResources().SaveAsSinglePackage(texture, folder, name, ResourceSaveOptions(true, compress));
@@ -230,15 +230,15 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 
 	for(u32 i = 0; i < (u32)iconsToGenerate.size(); i++)
 	{
-		SPtr<PixelData> src = iconsToGenerate[i].SrcData;
+		TShared<PixelData> src = iconsToGenerate[i].SrcData;
 
-		SPtr<PixelData> scaled48 = PixelData::Create(48, 48, 1, src->GetFormat());
+		TShared<PixelData> scaled48 = PixelData::Create(48, 48, 1, src->GetFormat());
 		PixelUtility::Scale(*src, *scaled48);
 
-		SPtr<PixelData> scaled32 = PixelData::Create(32, 32, 1, src->GetFormat());
+		TShared<PixelData> scaled32 = PixelData::Create(32, 32, 1, src->GetFormat());
 		PixelUtility::Scale(*scaled48, *scaled32);
 
-		SPtr<PixelData> scaled16 = PixelData::Create(16, 16, 1, src->GetFormat());
+		TShared<PixelData> scaled16 = PixelData::Create(16, 16, 1, src->GetFormat());
 		PixelUtility::Scale(*scaled32, *scaled16);
 
 		const String iconName48 = iconsToGenerate[i].Name + "48";
@@ -260,7 +260,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 
 void BuiltinResourcesHelper::ImportFont(const Path& inputFile, const String& outputName, const Path& outputFolder, bool antialiasing, const UUID& UUID)
 {
-	SPtr<ImportOptions> fontImportOptions = Importer::Instance().CreateImportOptions(inputFile);
+	TShared<ImportOptions> fontImportOptions = Importer::Instance().CreateImportOptions(inputFile);
 	if(B3DRTTIIsOfType<FontImportOptions>(fontImportOptions))
 	{
 		FontImportOptions* importOptions = static_cast<FontImportOptions*>(fontImportOptions.get());
@@ -272,7 +272,7 @@ void BuiltinResourcesHelper::ImportFont(const Path& inputFile, const String& out
 
 	HFont font = Importer::Instance().Import<Font>(inputFile, fontImportOptions, UUID);
 
-	const SPtr<Package> package = Package::Create(outputName);
+	const TShared<Package> package = Package::Create(outputName);
 	package->AddResource(outputName, font);
 
 	const String& packageFilename = outputName + Package::kPackageExtension;
@@ -408,7 +408,7 @@ bool BuiltinResourcesHelper::UpdateJson(const Path& folder, AssetType type, nloh
 
 void BuiltinResourcesHelper::WriteTimestamp(const Path& file)
 {
-	SPtr<DataStream> fileStream = FileSystem::CreateAndOpenFile(file);
+	TShared<DataStream> fileStream = FileSystem::CreateAndOpenFile(file);
 
 	time_t currentTime = std::time(nullptr);
 	fileStream->Write(&currentTime, sizeof(currentTime));

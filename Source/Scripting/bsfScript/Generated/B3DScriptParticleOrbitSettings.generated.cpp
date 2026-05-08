@@ -27,21 +27,21 @@ namespace b3d
 	ParticleOrbitSettings ScriptParticleOrbitSettings::FromInterop(const __ParticleOrbitSettingsInterop& value)
 	{
 		ParticleOrbitSettings output;
-		SPtr<TDistribution<TVector3<float>>> tmpCenter;
+		TShared<TDistribution<TVector3<float>>> tmpCenter;
 		ScriptVector3Distribution* scriptObjectWrapperCenter;
 		scriptObjectWrapperCenter = ScriptVector3Distribution::GetScriptObjectWrapper(value.Center);
 		if(scriptObjectWrapperCenter != nullptr)
 			tmpCenter = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptObjectWrapperCenter->GetBaseNativeObjectAsShared());
 		if(tmpCenter != nullptr)
 		output.Center = *tmpCenter;
-		SPtr<TDistribution<TVector3<float>>> tmpVelocity;
+		TShared<TDistribution<TVector3<float>>> tmpVelocity;
 		ScriptVector3Distribution* scriptObjectWrapperVelocity;
 		scriptObjectWrapperVelocity = ScriptVector3Distribution::GetScriptObjectWrapper(value.Velocity);
 		if(scriptObjectWrapperVelocity != nullptr)
 			tmpVelocity = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptObjectWrapperVelocity->GetBaseNativeObjectAsShared());
 		if(tmpVelocity != nullptr)
 		output.Velocity = *tmpVelocity;
-		SPtr<TDistribution<float>> tmpRadial;
+		TShared<TDistribution<float>> tmpRadial;
 		ScriptFloatDistribution* scriptObjectWrapperRadial;
 		scriptObjectWrapperRadial = ScriptFloatDistribution::GetScriptObjectWrapper(value.Radial);
 		if(scriptObjectWrapperRadial != nullptr)
@@ -57,17 +57,17 @@ namespace b3d
 	{
 		__ParticleOrbitSettingsInterop output;
 		MonoObject* tmpCenter;
-		SPtr<TDistribution<TVector3<float>>> tmpCentercopy;
+		TShared<TDistribution<TVector3<float>>> tmpCentercopy;
 		tmpCentercopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Center);
 		tmpCenter = ScriptVector3Distribution::GetOrCreateScriptObject(tmpCentercopy);
 		output.Center = tmpCenter;
 		MonoObject* tmpVelocity;
-		SPtr<TDistribution<TVector3<float>>> tmpVelocitycopy;
+		TShared<TDistribution<TVector3<float>>> tmpVelocitycopy;
 		tmpVelocitycopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Velocity);
 		tmpVelocity = ScriptVector3Distribution::GetOrCreateScriptObject(tmpVelocitycopy);
 		output.Velocity = tmpVelocity;
 		MonoObject* tmpRadial;
-		SPtr<TDistribution<float>> tmpRadialcopy;
+		TShared<TDistribution<float>> tmpRadialcopy;
 		tmpRadialcopy = B3DMakeShared<TDistribution<float>>(value.Radial);
 		tmpRadial = ScriptFloatDistribution::GetOrCreateScriptObject(tmpRadialcopy);
 		output.Radial = tmpRadial;

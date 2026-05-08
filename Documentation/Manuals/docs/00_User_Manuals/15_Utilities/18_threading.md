@@ -129,7 +129,7 @@ Scheduler::Destroy(scheduler);
 Get the scheduler thread bound to the current thread:
 
 ~~~~~~~~~~~~~{.cpp}
-const SPtr<SchedulerThread>& schedulerThread = SchedulerThread::Get();
+const TShared<SchedulerThread>& schedulerThread = SchedulerThread::Get();
 if(schedulerThread)
 {
 	// Post work directly to this thread

@@ -19,12 +19,12 @@ namespace b3d
 	class BSLCompiler : public IShaderCompiler
 	{
 	public:
-		ShaderCompilerResult Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, SPtr<Shader>& outShader) override
+		ShaderCompilerResult Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, TShared<Shader>& outShader) override
 		{
 			return TCompile<false>(name, source, defines, languages, compileVariations, outShader);
 		}
 
-		ShaderCompilerResult Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, SPtr<render::Shader>& outShader) override
+		ShaderCompilerResult Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, TShared<render::Shader>& outShader) override
 		{
 			return TCompile<true>(name, source, defines, languages, compileVariations, outShader);
 		}
@@ -41,7 +41,7 @@ namespace b3d
 	private:
 		/** Templated version of Compile() for both main and render thread. */
 		template <bool IsRenderProxy>
-		ShaderCompilerResult TCompile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, SPtr<CoreVariantType<Shader, IsRenderProxy>>& outShader);
+		ShaderCompilerResult TCompile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, TShared<CoreVariantType<Shader, IsRenderProxy>>& outShader);
 
 		/** Templated version of CompileVariation() for both main and render thread. */
 		template <bool IsRenderProxy>

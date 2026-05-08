@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleVectorFieldSettings")
 
-		ScriptParticleVectorFieldSettings(const SPtr<ParticleVectorFieldSettings>& nativeObject);
+		ScriptParticleVectorFieldSettings(const TShared<ParticleVectorFieldSettings>& nativeObject);
 		~ScriptParticleVectorFieldSettings();
 
 		static void SetupScriptBindings();

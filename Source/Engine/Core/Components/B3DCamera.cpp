@@ -261,7 +261,7 @@ void TCamera<IsRenderProxy>::UpdateFrustum() const
 			}
 		}
 
-		if (const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice())
+		if (const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice())
 			gpuDevice->ConvertProjectionMatrix(mProjMatrix, mProjMatrixRS);
 		else
 			mProjMatrixRS = mProjMatrix;
@@ -513,7 +513,7 @@ Vector2 TCamera<IsRenderProxy>::ScreenToNDCPoint(const Vector2I& screenPoint) co
 	Vector2 ndcPoint;
 	ndcPoint.X = (float)(((screenPoint.X - viewport.X) / (float)viewport.Width) * 2.0f - 1.0f);
 
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	if(gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down)
@@ -566,7 +566,7 @@ Vector2I TCamera<IsRenderProxy>::NDCToScreenPoint(const Vector2& ndcPoint) const
 	Vector2I screenPoint;
 	screenPoint.X = Math::RoundToI32(viewport.X + ((ndcPoint.X + 1.0f) * 0.5f) * viewport.Width);
 
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	if(gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down)
@@ -721,7 +721,7 @@ namespace b3d
 		B3D_SYNC_BLOCK_ENTRY(mCameraFlags)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(RenderProxySyncPacket*, RenderSettingsPacket)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(bool, mActive)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(SPtr<SceneInstance>, mSceneInstance)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(TShared<SceneInstance>, mSceneInstance)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
 	B3D_SYNC_BLOCK_END
 
@@ -752,27 +752,27 @@ void Camera::SetMain(bool main)
 {
 	mMain = main;
 
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 	scene->NotifyMainCameraStateChanged(B3DStaticGameObjectCast<Camera>(GetHandle()));
 }
 
-TAsyncOp<SPtr<PixelData>> Camera::RequestCapture()
+TAsyncOp<TShared<PixelData>> Camera::RequestCapture()
 {
-	SPtr<Viewport> viewport = GetViewport();
+	TShared<Viewport> viewport = GetViewport();
 	if (viewport == nullptr || viewport->GetTarget() == nullptr)
 	{
 		B3D_LOG(Warning, LogRenderer, "RequestCapture called on camera with no viewport");
-		TAsyncOp<SPtr<PixelData>> op;
+		TAsyncOp<TShared<PixelData>> op;
 		op.CompleteOperation(nullptr);
 		return op;
 	}
 
-	TAsyncOp<SPtr<PixelData>> asyncOp;
-	SPtr<render::Camera> renderCamera = B3DGetRenderProxy(this);
+	TAsyncOp<TShared<PixelData>> asyncOp;
+	TShared<render::Camera> renderCamera = B3DGetRenderProxy(this);
 
 	auto fnRequestCapture = [renderCamera, asyncOp]() mutable
 	{
-		SPtr<render::Renderer> renderer = render::GetRenderer();
+		TShared<render::Renderer> renderer = render::GetRenderer();
 		if (renderer != nullptr)
 			renderer->RequestScreenCapture(renderCamera.get(), asyncOp);
 		else
@@ -793,14 +793,14 @@ void Camera::Initialize()
 
 void Camera::OnCreated()
 {
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 	scene->RegisterCamera(B3DStaticGameObjectCast<Camera>(GetHandle()));
 }
 
 void Camera::OnBeginPlay()
 {
 	// Make sure primary RT gets applied if camera gets deserialized with main camera state
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 	scene->NotifyMainCameraStateChanged(B3DStaticGameObjectCast<Camera>(GetHandle()));
 }
 
@@ -817,7 +817,7 @@ void Camera::OnDisabled()
 
 void Camera::OnDestroyed()
 {
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 	scene->UnregisterCamera(B3DStaticGameObjectCast<Camera>(GetHandle()));
 
 	CoreObject::Destroy();
@@ -829,12 +829,12 @@ void Camera::OnTransformChanged(TransformChangedFlags flags)
 	MarkRenderProxyDataDirty(ComponentDirtyFlag::Transform);
 }
 
-SPtr<render::RenderProxy> Camera::CreateRenderProxy() const
+TShared<render::RenderProxy> Camera::CreateRenderProxy() const
 {
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 
 	render::Camera* renderProxy = new(B3DAllocate<render::Camera>()) render::Camera(B3DGetRenderProxy(scene), B3DGetRenderProxy(mViewport));
-	SPtr<render::Camera> renderProxyShared = B3DMakeSharedFromExisting<render::Camera>(renderProxy);
+	TShared<render::Camera> renderProxyShared = B3DMakeSharedFromExisting<render::Camera>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -885,13 +885,13 @@ RTTIType* Camera::GetRtti() const
 
 namespace b3d { namespace render
 {
-Camera::Camera(const SPtr<SceneInstance>& scene, const SPtr<RenderTarget>& target, float left, float top, float width, float height)
+Camera::Camera(const TShared<SceneInstance>& scene, const TShared<RenderTarget>& target, float left, float top, float width, float height)
 	: mRendererId(0), mSceneInstance(scene)
 {
 	mViewport = Viewport::Create(target, left, top, width, height);
 }
 
-Camera::Camera(const SPtr<SceneInstance>& scene, const SPtr<Viewport>& viewport)
+Camera::Camera(const TShared<SceneInstance>& scene, const TShared<Viewport>& viewport)
 	: mRendererId(0), mSceneInstance(scene)
 {
 	mViewport = viewport;
@@ -899,13 +899,13 @@ Camera::Camera(const SPtr<SceneInstance>& scene, const SPtr<Viewport>& viewport)
 
 Camera::~Camera()
 {
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 	rendererScene->UnregisterCamera(this);
 }
 
 void Camera::Initialize()
 {
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 	rendererScene->RegisterCamera(this);
 
 	RenderProxy::Initialize();
@@ -935,7 +935,7 @@ void Camera::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& alloca
 		mRecalcView = true;
 	}
 
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 	rendererScene->UpdateCamera(this, (u32)syncPacket->Flags);
 }
 }}

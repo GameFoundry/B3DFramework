@@ -134,14 +134,14 @@ D3D12GpuDevice::~D3D12GpuDevice()
 	mAdapter.Reset();
 }
 
-SPtr<GpuProgramBytecode> D3D12GpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
+TShared<GpuProgramBytecode> D3D12GpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
 {
 	if (!IsGpuProgramLanguageSupported(createInformation.Language))
 		return nullptr;
 
 	// TODO: Implement HLSL compilation using DXC (DirectX Shader Compiler)
 	// For now, return nullptr to indicate compilation is not yet implemented
-	SPtr<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
+	TShared<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
 	bytecode->compilerId = 0; // TODO: Define D3D12 compiler ID
 	bytecode->compilerVersion = 0;
 
@@ -150,7 +150,7 @@ SPtr<GpuProgramBytecode> D3D12GpuDevice::CompileGpuProgramBytecode(const GpuProg
 	return bytecode;
 }
 
-SPtr<GpuQueue> D3D12GpuDevice::GetQueue(GpuQueueUsage usage, u32 index) const
+TShared<GpuQueue> D3D12GpuDevice::GetQueue(GpuQueueUsage usage, u32 index) const
 {
 	if (index >= GetQueueCount(usage))
 		return nullptr;
@@ -158,18 +158,18 @@ SPtr<GpuQueue> D3D12GpuDevice::GetQueue(GpuQueueUsage usage, u32 index) const
 	return mQueueInfos[(u32)usage].Queues[index];
 }
 
-SPtr<GpuCommandBufferPool> D3D12GpuDevice::CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation)
+TShared<GpuCommandBufferPool> D3D12GpuDevice::CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation)
 {
 	return B3DMakeSharedFromExisting(new (B3DAllocate<D3D12GpuCommandBufferPool>()) D3D12GpuCommandBufferPool(*this, createInformation));
 }
 
-SPtr<render::Texture> D3D12GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<render::Texture> D3D12GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
 	D3D12Texture* rawTexture = new (B3DAllocate<D3D12Texture>()) D3D12Texture(createInformation, *this);
 
 	// Default: standalone (calling-thread deletion)
 	// With RenderProxy flag: forward destruction to render thread
-	SPtr<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderProxy)
+	TShared<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderProxy)
 		? B3DMakeSharedFromExisting(rawTexture)
 		: MakeSharedStandalone<Texture>(rawTexture);
 
@@ -181,13 +181,13 @@ SPtr<render::Texture> D3D12GpuDevice::CreateTexture(const TextureCreateInformati
 	return output;
 }
 
-SPtr<render::GpuBuffer> D3D12GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<render::GpuBuffer> D3D12GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
 	D3D12GpuBuffer* rawBuffer = new (B3DAllocate<D3D12GpuBuffer>()) D3D12GpuBuffer(createInformation, *this);
 
 	// Default: standalone (calling-thread deletion)
 	// With RenderProxy flag: forward destruction to render thread
-	SPtr<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderProxy)
+	TShared<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderProxy)
 		? B3DMakeSharedFromExisting(rawBuffer)
 		: MakeSharedStandalone<GpuBuffer>(rawBuffer);
 
@@ -199,14 +199,14 @@ SPtr<render::GpuBuffer> D3D12GpuDevice::CreateGpuBuffer(const GpuBufferCreateInf
 	return output;
 }
 
-SPtr<GpuQueryPool> D3D12GpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
+TShared<GpuQueryPool> D3D12GpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
 {
 	return B3DMakeShared<D3D12GpuQueryPool>(*this, createInformation);
 }
 
-SPtr<SamplerState> D3D12GpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<SamplerState> D3D12GpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<SamplerState> output = B3DMakeSharedFromExisting(new (B3DAllocate<D3D12SamplerState>()) D3D12SamplerState(createInformation, *this));
+	TShared<SamplerState> output = B3DMakeSharedFromExisting(new (B3DAllocate<D3D12SamplerState>()) D3D12SamplerState(createInformation, *this));
 
 	if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 		output->Initialize();
@@ -214,24 +214,24 @@ SPtr<SamplerState> D3D12GpuDevice::CreateSamplerState(const SamplerStateCreateIn
 	return output;
 }
 
-SPtr<EventQuery> D3D12GpuDevice::CreateEventQuery()
+TShared<EventQuery> D3D12GpuDevice::CreateEventQuery()
 {
 	return B3DMakeSharedFromExisting(new (B3DAllocate<D3D12EventQuery>()) D3D12EventQuery(*this));
 }
 
-SPtr<TimerQuery> D3D12GpuDevice::CreateTimerQuery()
+TShared<TimerQuery> D3D12GpuDevice::CreateTimerQuery()
 {
 	return B3DMakeSharedFromExisting(new (B3DAllocate<D3D12TimerQuery>()) D3D12TimerQuery(*this));
 }
 
-SPtr<OcclusionQuery> D3D12GpuDevice::CreateOcclusionQuery(bool isBinary)
+TShared<OcclusionQuery> D3D12GpuDevice::CreateOcclusionQuery(bool isBinary)
 {
 	return B3DMakeSharedFromExisting(new (B3DAllocate<D3D12OcclusionQuery>()) D3D12OcclusionQuery(isBinary, *this));
 }
 
-SPtr<GpuProgram> D3D12GpuDevice::CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<GpuProgram> D3D12GpuDevice::CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<GpuProgram> output = B3DMakeSharedFromExisting(new (B3DAllocate<D3D12GpuProgram>()) D3D12GpuProgram(createInformation, *this));
+	TShared<GpuProgram> output = B3DMakeSharedFromExisting(new (B3DAllocate<D3D12GpuProgram>()) D3D12GpuProgram(createInformation, *this));
 
 	if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 		output->Initialize();
@@ -239,9 +239,9 @@ SPtr<GpuProgram> D3D12GpuDevice::CreateGpuProgram(const GpuProgramCreateInformat
 	return output;
 }
 
-SPtr<GpuGraphicsPipelineState> D3D12GpuDevice::CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<GpuGraphicsPipelineState> D3D12GpuDevice::CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<D3D12GpuGraphicsPipelineState> output = B3DMakeSharedFromExisting<D3D12GpuGraphicsPipelineState>(
+	TShared<D3D12GpuGraphicsPipelineState> output = B3DMakeSharedFromExisting<D3D12GpuGraphicsPipelineState>(
 		new (B3DAllocate<D3D12GpuGraphicsPipelineState>()) D3D12GpuGraphicsPipelineState(createInformation, *this));
 
 	if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
@@ -250,9 +250,9 @@ SPtr<GpuGraphicsPipelineState> D3D12GpuDevice::CreateGpuGraphicsPipelineState(co
 	return output;
 }
 
-SPtr<GpuComputePipelineState> D3D12GpuDevice::CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<GpuComputePipelineState> D3D12GpuDevice::CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<D3D12GpuComputePipelineState> output = B3DMakeSharedFromExisting<D3D12GpuComputePipelineState>(
+	TShared<D3D12GpuComputePipelineState> output = B3DMakeSharedFromExisting<D3D12GpuComputePipelineState>(
 		new (B3DAllocate<D3D12GpuComputePipelineState>()) D3D12GpuComputePipelineState(createInformation, *this));
 
 	if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
@@ -261,13 +261,13 @@ SPtr<GpuComputePipelineState> D3D12GpuDevice::CreateGpuComputePipelineState(cons
 	return output;
 }
 
-SPtr<GpuPipelineParameterLayout> D3D12GpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
+TShared<GpuPipelineParameterLayout> D3D12GpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
 {
 	return B3DMakeSharedFromExisting<D3D12GpuPipelineParameterLayout>(
 		new (B3DAllocate<D3D12GpuPipelineParameterLayout>()) D3D12GpuPipelineParameterLayout(createInformation, *this));
 }
 
-SPtr<GpuPipelineParameterSetLayout> D3D12GpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
+TShared<GpuPipelineParameterSetLayout> D3D12GpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
 {
 	return B3DMakeShared<GpuPipelineParameterSetLayout>(parameterDescription);
 }
@@ -279,7 +279,7 @@ UPtr<GpuParameterSetPool> D3D12GpuDevice::CreateParameterSetPool(const GpuParame
 	return nullptr;
 }
 
-SPtr<GpuTimelineFence> D3D12GpuDevice::CreateTimelineFence()
+TShared<GpuTimelineFence> D3D12GpuDevice::CreateTimelineFence()
 {
 	// TODO: Implement D3D12-backed GpuTimelineFence on top of ID3D12Fence. Until then a real
 	// allocator path won't function on this backend; this stub keeps the abstract base satisfied.
@@ -294,7 +294,7 @@ void D3D12GpuDevice::WaitUntilIdle()
 		const u32 queueCount = GetQueueCount((GpuQueueUsage)queueTypeIndex);
 		for (u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
 		{
-			SPtr<D3D12GpuQueue> queue = std::static_pointer_cast<D3D12GpuQueue>(GetQueue((GpuQueueUsage)queueTypeIndex, queueIndex));
+			TShared<D3D12GpuQueue> queue = std::static_pointer_cast<D3D12GpuQueue>(GetQueue((GpuQueueUsage)queueTypeIndex, queueIndex));
 			if (queue)
 				queue->WaitUntilIdle();
 		}
@@ -316,9 +316,9 @@ void D3D12GpuDevice::EndFrameImpl()
 	// TODO: Implement frame end logic
 }
 
-void D3D12GpuDevice::PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, u32 syncMask)
+void D3D12GpuDevice::PresentRenderWindow(const TShared<render::RenderWindow>& renderWindow, u32 syncMask)
 {
-	SPtr<GpuQueue> queue = GetQueue(GQT_GRAPHICS, 0);
+	TShared<GpuQueue> queue = GetQueue(GQT_GRAPHICS, 0);
 	if (!B3D_ENSURE(queue))
 		return;
 

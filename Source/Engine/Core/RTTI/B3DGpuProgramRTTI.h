@@ -44,7 +44,7 @@ namespace b3d
 			return TID_GpuProgramBytecode;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<GpuProgramBytecode>();
 		}
@@ -74,7 +74,7 @@ namespace b3d
 			return TID_GpuParameterDescription;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<GpuProgramParameterDescription>();
 		}
@@ -111,9 +111,9 @@ namespace b3d
 			return TID_GpuProgram;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
-			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+			const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			if(!gpuDevice)
 				return nullptr;
 
@@ -146,7 +146,7 @@ namespace b3d
 			return TID_GpuProgramCreateInformation;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<GpuProgramCreateInformation>();
 		}

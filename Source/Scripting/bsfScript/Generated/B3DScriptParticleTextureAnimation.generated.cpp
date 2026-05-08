@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptParticleTextureAnimation::ScriptParticleTextureAnimation(const SPtr<ParticleTextureAnimation>& nativeObject)
+	ScriptParticleTextureAnimation::ScriptParticleTextureAnimation(const TShared<ParticleTextureAnimation>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -63,13 +63,13 @@ namespace b3d
 
 	void ScriptParticleTextureAnimation::InternalCreate(MonoObject* scriptObject, ParticleTextureAnimationSettings* settings)
 	{
-		SPtr<ParticleTextureAnimation> nativeObject = ParticleTextureAnimation::Create(*settings);
+		TShared<ParticleTextureAnimation> nativeObject = ParticleTextureAnimation::Create(*settings);
 		ScriptObjectWrapper::Create<ScriptParticleTextureAnimation>(nativeObject, scriptObject);
 	}
 
 	void ScriptParticleTextureAnimation::InternalCreate0(MonoObject* scriptObject)
 	{
-		SPtr<ParticleTextureAnimation> nativeObject = ParticleTextureAnimation::Create();
+		TShared<ParticleTextureAnimation> nativeObject = ParticleTextureAnimation::Create();
 		ScriptObjectWrapper::Create<ScriptParticleTextureAnimation>(nativeObject, scriptObject);
 	}
 }

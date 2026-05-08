@@ -94,7 +94,7 @@ class RTTIOperationContextRTTI : public TRTTIType<RTTIOperationContext, IReflect
 		return TID_RTTIOperationContext;
 	}
 
-	SPtr<IReflectable> NewRttiObject() override
+	TShared<IReflectable> NewRttiObject() override
 	{
 		B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 		return nullptr;
@@ -113,7 +113,7 @@ RTTIType* RTTIOperationContext::GetRtti() const
 
 namespace b3d
 {
-SPtr<IReflectable> B3DRTTICreate(u32 rttiId)
+TShared<IReflectable> B3DRTTICreate(u32 rttiId)
 {
 	return IReflectable::CreateInstanceFromTypeId(rttiId);
 }

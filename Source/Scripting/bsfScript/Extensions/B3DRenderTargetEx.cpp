@@ -4,37 +4,37 @@
 #include "Generated/B3DScriptShaderParameter.generated.h"
 
 using namespace b3d;
-u32 RenderTargetEx::GetWidth(const SPtr<RenderTarget>& thisPtr)
+u32 RenderTargetEx::GetWidth(const TShared<RenderTarget>& thisPtr)
 {
 	return thisPtr->GetProperties().Width;
 }
 
-u32 RenderTargetEx::GetHeight(const SPtr<RenderTarget>& thisPtr)
+u32 RenderTargetEx::GetHeight(const TShared<RenderTarget>& thisPtr)
 {
 	return thisPtr->GetProperties().Height;
 }
 
-bool RenderTargetEx::GetGammaCorrection(const SPtr<RenderTarget>& thisPtr)
+bool RenderTargetEx::GetGammaCorrection(const TShared<RenderTarget>& thisPtr)
 {
 	return thisPtr->GetProperties().HwGamma;
 }
 
-i32 RenderTargetEx::GetPriority(const SPtr<RenderTarget>& thisPtr)
+i32 RenderTargetEx::GetPriority(const TShared<RenderTarget>& thisPtr)
 {
 	return thisPtr->GetProperties().Priority;
 }
 
-void RenderTargetEx::SetPriority(const SPtr<RenderTarget>& thisPtr, i32 priority)
+void RenderTargetEx::SetPriority(const TShared<RenderTarget>& thisPtr, i32 priority)
 {
 	thisPtr->SetPriority(priority);
 }
 
-u32 RenderTargetEx::GetSampleCount(const SPtr<RenderTarget>& thisPtr)
+u32 RenderTargetEx::GetSampleCount(const TShared<RenderTarget>& thisPtr)
 {
 	return thisPtr->GetProperties().MultisampleCount;
 }
 
-SPtr<RenderTexture> RenderTextureEx::Create(PixelFormat format, int width, int height, int numSamples, bool gammaCorrection, bool createDepth, PixelFormat depthStencilFormat)
+TShared<RenderTexture> RenderTextureEx::Create(PixelFormat format, int width, int height, int numSamples, bool gammaCorrection, bool createDepth, PixelFormat depthStencilFormat)
 {
 	TextureCreateInformation texDesc;
 	texDesc.Name = "Script Render Texture Target";
@@ -48,22 +48,22 @@ SPtr<RenderTexture> RenderTextureEx::Create(PixelFormat format, int width, int h
 	return RenderTexture::Create(texDesc, createDepth, depthStencilFormat);
 }
 
-SPtr<RenderTexture> RenderTextureEx::Create(const HTexture& colorSurface)
+TShared<RenderTexture> RenderTextureEx::Create(const HTexture& colorSurface)
 {
 	return Create(Vector<HTexture>{ colorSurface }, HTexture());
 }
 
-SPtr<RenderTexture> RenderTextureEx::Create(const HTexture& colorSurface, const HTexture& depthStencilSurface)
+TShared<RenderTexture> RenderTextureEx::Create(const HTexture& colorSurface, const HTexture& depthStencilSurface)
 {
 	return Create(Vector<HTexture>{ colorSurface }, depthStencilSurface);
 }
 
-SPtr<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurface)
+TShared<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurface)
 {
 	return Create(Vector<HTexture>{ colorSurface }, HTexture());
 }
 
-SPtr<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurfaces, const HTexture& depthStencilSurface)
+TShared<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurfaces, const HTexture& depthStencilSurface)
 {
 	RenderSurfaceInformation depthStencilSurfaceDesc;
 	if(depthStencilSurface != nullptr)
@@ -101,7 +101,7 @@ SPtr<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurface
 	return RenderTexture::Create(desc);
 }
 
-Vector<HTexture> RenderTextureEx::GetColorSurfaces(const SPtr<RenderTexture>& thisPtr)
+Vector<HTexture> RenderTextureEx::GetColorSurfaces(const TShared<RenderTexture>& thisPtr)
 {
 	u32 numColorSurfaces = B3D_MAXIMUM_RENDER_TARGET_COUNT;
 
@@ -119,12 +119,12 @@ Vector<HTexture> RenderTextureEx::GetColorSurfaces(const SPtr<RenderTexture>& th
 	return output;
 }
 
-HTexture RenderTextureEx::GetColorSurface(const SPtr<RenderTexture>& thisPtr)
+HTexture RenderTextureEx::GetColorSurface(const TShared<RenderTexture>& thisPtr)
 {
 	return thisPtr->GetColorTexture(0);
 }
 
-HTexture RenderTextureEx::GetDepthStencilSurface(const SPtr<RenderTexture>& thisPtr)
+HTexture RenderTextureEx::GetDepthStencilSurface(const TShared<RenderTexture>& thisPtr)
 {
 	return thisPtr->GetDepthStencilTexture();
 }

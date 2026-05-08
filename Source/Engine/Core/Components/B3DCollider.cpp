@@ -174,7 +174,7 @@ void Collider::OnEnabled()
 	}
 	else
 	{
-		const SPtr<SceneInstance>& sceneInstance = SceneObject()->GetScene();
+		const TShared<SceneInstance>& sceneInstance = SceneObject()->GetScene();
 		mImplementation->AddToScene(*sceneInstance->GetPhysicsScene());
 	}
 }
@@ -202,8 +202,8 @@ void Collider::OnTransformChanged(TransformChangedFlags flags)
 	if((flags & TCF_Parent) != 0)
 		RefreshParentRigidbody();
 
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
-	const SPtr<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
 
 	// Don't update the transform if it's due to Physics update since then we can guarantee it will remain at the same
 	// relative transform to its parent
@@ -265,7 +265,7 @@ bool Collider::SetRigidbody(const HRigidbody& rigidbody)
 		B3D_ASSERT(mImplementation == nullptr);
 
 		const Transform& transform = SceneObject()->GetTransform();
-		const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+		const TShared<SceneInstance>& scene = SceneObject()->GetScene();
 
 		mImplementation = GetPhysics().CreateColliderImplementation();
 		mImplementation->SetTransform(transform.GetPosition(), transform.GetRotation());

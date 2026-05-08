@@ -53,7 +53,7 @@ namespace b3d
 		 * @param	area	Area, relative to the window, in which the drop events are allowed.
 		 * @return			Newly created drop target.
 		 */
-		static SPtr<DropTarget> Create(const RenderWindow* window, const Area2I& area);
+		static TShared<DropTarget> Create(const RenderWindow* window, const Area2I& area);
 
 		/**
 		 * Triggered when a pointer is being dragged over the drop area. Provides window coordinates of the pointer position.

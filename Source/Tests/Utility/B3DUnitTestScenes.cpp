@@ -9,7 +9,7 @@
 
 using namespace b3d;
 
-UnitTestSceneA::UnitTestSceneA(const SPtr<SceneInstance>& sceneInstance)
+UnitTestSceneA::UnitTestSceneA(const TShared<SceneInstance>& sceneInstance)
 	: Scene(sceneInstance), mOwnsSceneInstance(true)
 {
 	SceneObject_0 = sceneInstance->CreateSceneObject("SceneA_SceneObject_0");
@@ -58,13 +58,13 @@ UnitTestSceneA::~UnitTestSceneA()
 
 UnitTestSceneA UnitTestSceneA::CreateInNewSceneInstance(const char* name)
 {
-	SPtr<SceneInstance> sceneInstance = SceneInstance::Create(name);
+	TShared<SceneInstance> sceneInstance = SceneInstance::Create(name);
 	return UnitTestSceneA(sceneInstance);
 }
 
-UnitTestSceneA UnitTestSceneA::InstantateFromPrefab(const SPtr<Prefab>& prefab)
+UnitTestSceneA UnitTestSceneA::InstantateFromPrefab(const TShared<Prefab>& prefab)
 {
-	SPtr<SceneInstance> instancedScene = prefab->InstantiateAsScene();
+	TShared<SceneInstance> instancedScene = prefab->InstantiateAsScene();
 	return UnitTestSceneA(instancedScene->GetRoot(), true);
 }
 
@@ -86,7 +86,7 @@ UnitTestSceneB::~UnitTestSceneB()
 
 UnitTestSceneB UnitTestSceneB::CreateInNewSceneInstance(const char* name)
 {
-	SPtr<SceneInstance> sceneInstance = SceneInstance::Create(name);
+	TShared<SceneInstance> sceneInstance = SceneInstance::Create(name);
 	UnitTestSceneB output(sceneInstance->GetRoot(), true);
 	output.PopulateHierarchy();
 
@@ -95,7 +95,7 @@ UnitTestSceneB UnitTestSceneB::CreateInNewSceneInstance(const char* name)
 
 UnitTestSceneB UnitTestSceneB::InstantateFromPrefab(const HPrefab& prefab)
 {
-	SPtr<SceneInstance> instancedScene = prefab->InstantiateAsScene();
+	TShared<SceneInstance> instancedScene = prefab->InstantiateAsScene();
 	UnitTestSceneB output = UnitTestSceneB(instancedScene->GetRoot(), true);
 	output.AddNewObjectIds();
 	output.RefreshHierarchy(output.Root);
@@ -112,10 +112,10 @@ UnitTestSceneB UnitTestSceneB::FromExistingHierarchy(const HSceneObject& root)
 	return output;
 }
 
-SPtr<UnitTestSceneB> UnitTestSceneB::FromExistingHierarchyAsShared(const HSceneObject& root)
+TShared<UnitTestSceneB> UnitTestSceneB::FromExistingHierarchyAsShared(const HSceneObject& root)
 {
 	UnitTestSceneB* output = new(B3DAllocate<UnitTestSceneB>()) UnitTestSceneB(root, false);
-	SPtr<UnitTestSceneB> outputShared = B3DMakeSharedFromExisting(output);
+	TShared<UnitTestSceneB> outputShared = B3DMakeSharedFromExisting(output);
 	outputShared->AddNewObjectIds();
 	outputShared->RefreshHierarchy(outputShared->Root);
 
@@ -409,7 +409,7 @@ void UnitTestSceneB::TestAssertHierarchyMatchesOriginalIds(TestSuite& testSuite)
 }
 
 
-void UnitTestSceneB::TestAssertHierarchyMatchesPrefabLinks(TestSuite& testSuite, const UnorderedMap<UUID, SPtr<UnitTestSceneB>>& prefabSceneLookup, u32 nestingLevel, const UUID& parentPrefabId, const SPtr<UnitTestSceneB>& parentPrefabScene)
+void UnitTestSceneB::TestAssertHierarchyMatchesPrefabLinks(TestSuite& testSuite, const UnorderedMap<UUID, TShared<UnitTestSceneB>>& prefabSceneLookup, u32 nestingLevel, const UUID& parentPrefabId, const TShared<UnitTestSceneB>& parentPrefabScene)
 {
 	if(nestingLevel == 0)
 	{
@@ -427,7 +427,7 @@ void UnitTestSceneB::TestAssertHierarchyMatchesPrefabLinks(TestSuite& testSuite,
 		UnitTestPrefabUpdateHelper::TestAssertPrefabLinkValid(testSuite, *this, *parentPrefabScene, parentPrefabId);
 	}
 
-	auto fnVisitChildPrefabInstance = [&testSuite, &prefabSceneLookup, nestingLevel, parentPrefabId](const SPtr<UnitTestSceneB>& childPrefabInstance, const SPtr<UnitTestSceneB>& otherChildPrefabInstance)
+	auto fnVisitChildPrefabInstance = [&testSuite, &prefabSceneLookup, nestingLevel, parentPrefabId](const TShared<UnitTestSceneB>& childPrefabInstance, const TShared<UnitTestSceneB>& otherChildPrefabInstance)
 	{
 		if(childPrefabInstance == nullptr)
 			return;
@@ -439,7 +439,7 @@ void UnitTestSceneB::TestAssertHierarchyMatchesPrefabLinks(TestSuite& testSuite,
 		const bool isInstanceModification = found->second.Flags.IsSet(UnitTestSceneObjectFlag::IsPrefabRootInstanceModification);
 
 		UUID nestedPrefabId;
-		SPtr<UnitTestSceneB> nestedPrefabScene;
+		TShared<UnitTestSceneB> nestedPrefabScene;
 		if(isInstanceModification || nestingLevel == 0)
 		{
 			nestedPrefabId = childPrefabInstance->Root->GetPrefabResourceId();

@@ -50,7 +50,7 @@ namespace b3d
 			mPersistentBuffers.clear();
 		}
 
-		SPtr<GpuParameterSet> MetalGpuParameterSetPool::Create(const SPtr<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
+		TShared<GpuParameterSet> MetalGpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
 		{
 			// A'6: worker fibers may call Create concurrently. The quota check and the counter
 			// increment must be a single atomic step under mPoolMutex, otherwise two fibers can both

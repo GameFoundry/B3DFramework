@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptParticleDepthCollisionSettings::ScriptParticleDepthCollisionSettings(const SPtr<ParticleDepthCollisionSettings>& nativeObject)
+	ScriptParticleDepthCollisionSettings::ScriptParticleDepthCollisionSettings(const TShared<ParticleDepthCollisionSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -44,7 +44,7 @@ namespace b3d
 	}
 	void ScriptParticleDepthCollisionSettings::InternalParticleDepthCollisionSettings(MonoObject* scriptObject)
 	{
-		SPtr<ParticleDepthCollisionSettings> nativeObject = B3DMakeShared<ParticleDepthCollisionSettings>();
+		TShared<ParticleDepthCollisionSettings> nativeObject = B3DMakeShared<ParticleDepthCollisionSettings>();
 		ScriptObjectWrapper::Create<ScriptParticleDepthCollisionSettings>(nativeObject, scriptObject);
 	}
 

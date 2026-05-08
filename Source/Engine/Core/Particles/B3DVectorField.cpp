@@ -35,7 +35,7 @@ VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& v
 
 	const u32 valuesToCopy = std::min(count, (u32)values.size());
 
-	const SPtr<PixelData> pixelData = PixelData::Create(mDesc.CountX, mDesc.CountY, mDesc.CountZ, PF_RGBA16F);
+	const TShared<PixelData> pixelData = PixelData::Create(mDesc.CountX, mDesc.CountY, mDesc.CountZ, PF_RGBA16F);
 
 	const u32 pixelSize = PixelUtility::GetElementByteCount(PF_RGBA16F);
 	u8* data = pixelData->GetData();
@@ -64,11 +64,11 @@ VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& v
 	mTexture = Texture::CreateShared(pixelData);
 }
 
-SPtr<render::RenderProxy> VectorField::CreateRenderProxy() const
+TShared<render::RenderProxy> VectorField::CreateRenderProxy() const
 {
 	render::VectorField* renderProxy = new(B3DAllocate<render::VectorField>()) render::VectorField(mDesc, B3DGetRenderProxy(mTexture));
 
-	SPtr<render::VectorField> renderProxyShared = B3DMakeSharedFromExisting<render::VectorField>(renderProxy);
+	TShared<render::VectorField> renderProxyShared = B3DMakeSharedFromExisting<render::VectorField>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -93,27 +93,27 @@ RTTIType* VectorField::GetRtti() const
 /************************************************************************/
 HVectorField VectorField::Create(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)
 {
-	SPtr<VectorField> vectorFieldPtr = CreatePtrInternal(desc, values);
+	TShared<VectorField> vectorFieldPtr = CreatePtrInternal(desc, values);
 
 	return B3DStaticResourceCast<VectorField>(GetResources().CreateResourceHandle(vectorFieldPtr));
 }
 
-SPtr<VectorField> VectorField::CreatePtrInternal(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)
+TShared<VectorField> VectorField::CreatePtrInternal(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)
 {
 	auto* vectorField = new(B3DAllocate<VectorField>()) VectorField(desc, values);
 
-	SPtr<VectorField> vectorFieldPtr = B3DMakeSharedFromExisting<VectorField>(vectorField);
+	TShared<VectorField> vectorFieldPtr = B3DMakeSharedFromExisting<VectorField>(vectorField);
 	vectorFieldPtr->SetShared(vectorFieldPtr);
 	vectorFieldPtr->Initialize();
 
 	return vectorFieldPtr;
 }
 
-SPtr<VectorField> VectorField::CreateEmptyInternal()
+TShared<VectorField> VectorField::CreateEmptyInternal()
 {
 	auto* vectorField = new(B3DAllocate<VectorField>()) VectorField();
 
-	SPtr<VectorField> vectorFieldPtr = B3DMakeSharedFromExisting<VectorField>(vectorField);
+	TShared<VectorField> vectorFieldPtr = B3DMakeSharedFromExisting<VectorField>(vectorField);
 	vectorFieldPtr->SetShared(vectorFieldPtr);
 
 	return vectorFieldPtr;
@@ -121,7 +121,7 @@ SPtr<VectorField> VectorField::CreateEmptyInternal()
 
 namespace b3d { namespace render
 {
-VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const SPtr<Texture>& texture)
+VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const TShared<Texture>& texture)
 	: TVectorField(desc)
 {
 	mTexture = texture;
@@ -141,11 +141,11 @@ bool FGAImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) co
 	return true; // Plain-text so we don't even check for magic number
 }
 
-SPtr<Resource> FGAImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+TShared<Resource> FGAImporter::Import(const Path& filePath, TShared<const ImportOptions> importOptions)
 {
 	String data;
 	{
-		SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
+		TShared<DataStream> stream = FileSystem::OpenFile(filePath);
 		data = stream->GetAsString();
 	}
 
@@ -255,7 +255,7 @@ SPtr<Resource> FGAImporter::Import(const Path& filePath, SPtr<const ImportOption
 	}
 
 	const String fileName = filePath.GetFilename(false);
-	SPtr<VectorField> vectorField = VectorField::CreatePtrInternal(desc, values);
+	TShared<VectorField> vectorField = VectorField::CreatePtrInternal(desc, values);
 	vectorField->SetName(fileName);
 
 	return vectorField;

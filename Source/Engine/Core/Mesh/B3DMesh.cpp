@@ -23,7 +23,7 @@ Mesh::Mesh(const MeshCreateInformation& meshCreateInformation)
 {
 }
 
-Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
+Mesh::Mesh(const TShared<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
 	: MeshBase(initialMeshData->GetVertexCount(), initialMeshData->GetIndexCount(), meshCreateInformation.SubMeshes), mCPUData(initialMeshData), mVertexDescription(initialMeshData->GetVertexDescription()), mFlags(meshCreateInformation.Flags), mIndexType(initialMeshData->GetIndexType()), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
 {}
 
@@ -31,14 +31,14 @@ Mesh::Mesh()
 	: MeshBase(0, 0, DOT_TRIANGLE_LIST)
 {}
 
-TAsyncOp<void> Mesh::WriteData(const SPtr<MeshData>& data, bool discardEntireBuffer)
+TAsyncOp<void> Mesh::WriteData(const TShared<MeshData>& data, bool discardEntireBuffer)
 {
 	UpdateBounds(*data);
 	UpdateCpuBuffer(0, *data);
 
 	data->LockInternal();
 
-	auto fnWriteMeshData = [&](const SPtr<render::Mesh>& mesh, const SPtr<MeshData>& meshData, bool shouldDiscardEntireBuffer, TAsyncOp<void>& asyncOp)
+	auto fnWriteMeshData = [&](const TShared<render::Mesh>& mesh, const TShared<MeshData>& meshData, bool shouldDiscardEntireBuffer, TAsyncOp<void>& asyncOp)
 	{
 		mesh->WriteData(*meshData, shouldDiscardEntireBuffer, false);
 		meshData->UnlockInternal();
@@ -51,14 +51,14 @@ TAsyncOp<void> Mesh::WriteData(const SPtr<MeshData>& data, bool discardEntireBuf
 	return asyncOp;
 }
 
-TAsyncOp<void> Mesh::ReadData(const SPtr<MeshData>& data)
+TAsyncOp<void> Mesh::ReadData(const TShared<MeshData>& data)
 {
 	data->LockInternal();
 
-	auto fnReadMeshData = [&](const SPtr<render::Mesh>& mesh, const SPtr<MeshData>& meshData, TAsyncOp<void>& asyncOp)
+	auto fnReadMeshData = [&](const TShared<render::Mesh>& mesh, const TShared<MeshData>& meshData, TAsyncOp<void>& asyncOp)
 	{
 		// TODO - Transfer buffers should be handled by the Renderer
-		const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if(gpuDevice != nullptr)
 			gpuDevice->SubmitTransferCommandBuffers();
 
@@ -73,9 +73,9 @@ TAsyncOp<void> Mesh::ReadData(const SPtr<MeshData>& data)
 	return asyncOp;
 }
 
-SPtr<MeshData> Mesh::AllocBuffer() const
+TShared<MeshData> Mesh::AllocBuffer() const
 {
-	SPtr<MeshData> meshData = B3DMakeShared<MeshData>(mProperties.VertexCount, mProperties.IndexCount, mVertexDescription, mIndexType);
+	TShared<MeshData> meshData = B3DMakeShared<MeshData>(mProperties.VertexCount, mProperties.IndexCount, mVertexDescription, mIndexType);
 
 	return meshData;
 }
@@ -97,7 +97,7 @@ void Mesh::UpdateBounds(const MeshData& meshData)
 	MarkRenderProxyDataDirty();
 }
 
-SPtr<render::RenderProxy> Mesh::CreateRenderProxy() const
+TShared<render::RenderProxy> Mesh::CreateRenderProxy() const
 {
 	MeshCreateInformation meshCreateInformation;
 	meshCreateInformation.VertexCount = mProperties.VertexCount;
@@ -111,7 +111,7 @@ SPtr<render::RenderProxy> Mesh::CreateRenderProxy() const
 
 	render::Mesh* renderProxy = new(B3DAllocate<render::Mesh>()) render::Mesh(mCPUData, meshCreateInformation);
 
-	SPtr<render::RenderProxy> renderProxyShared = B3DMakeSharedFromExisting<render::Mesh>(renderProxy);
+	TShared<render::RenderProxy> renderProxyShared = B3DMakeSharedFromExisting<render::Mesh>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	if(!mFlags.IsSet(MeshFlag::KeepCPUCopy))
@@ -177,7 +177,7 @@ RTTIType* Mesh::GetRtti() const
 /* 								STATICS		                     		*/
 /************************************************************************/
 
-HMesh Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, MeshFlags flags, DrawOperationType primitiveType, IndexType indexType)
+HMesh Mesh::Create(u32 vertexCount, u32 indexCount, const TShared<VertexDescription>& vertexDescription, MeshFlags flags, DrawOperationType primitiveType, IndexType indexType)
 {
 	MeshCreateInformation meshCreateInformation;
 	meshCreateInformation.VertexCount = vertexCount;
@@ -187,62 +187,62 @@ HMesh Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription
 	meshCreateInformation.SubMeshes.push_back(SubMesh(0, indexCount, primitiveType));
 	meshCreateInformation.IndexType = indexType;
 
-	SPtr<Mesh> meshPtr = CreateShared(meshCreateInformation);
+	TShared<Mesh> meshPtr = CreateShared(meshCreateInformation);
 	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandle(meshPtr));
 }
 
 HMesh Mesh::Create(const MeshCreateInformation& meshCreateInformation)
 {
-	SPtr<Mesh> meshPtr = CreateShared(meshCreateInformation);
+	TShared<Mesh> meshPtr = CreateShared(meshCreateInformation);
 	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandle(meshPtr));
 }
 
-HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
+HMesh Mesh::Create(const TShared<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
 {
-	SPtr<Mesh> meshPtr = CreateShared(initialMeshData, meshCreateInformation);
+	TShared<Mesh> meshPtr = CreateShared(initialMeshData, meshCreateInformation);
 	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandle(meshPtr));
 }
 
-HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, MeshFlags flags, DrawOperationType primitiveType)
+HMesh Mesh::Create(const TShared<MeshData>& initialMeshData, MeshFlags flags, DrawOperationType primitiveType)
 {
-	SPtr<Mesh> meshPtr = CreateShared(initialMeshData, flags, primitiveType);
+	TShared<Mesh> meshPtr = CreateShared(initialMeshData, flags, primitiveType);
 	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandle(meshPtr));
 }
 
-SPtr<Mesh> Mesh::CreateShared(const MeshCreateInformation& meshCreateInformation)
+TShared<Mesh> Mesh::CreateShared(const MeshCreateInformation& meshCreateInformation)
 {
-	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(meshCreateInformation));
+	TShared<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(meshCreateInformation));
 	mesh->SetShared(mesh);
 	mesh->Initialize();
 
 	return mesh;
 }
 
-SPtr<Mesh> Mesh::CreateShared(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
+TShared<Mesh> Mesh::CreateShared(const TShared<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
 {
-	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation));
+	TShared<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation));
 	mesh->SetShared(mesh);
 	mesh->Initialize();
 
 	return mesh;
 }
 
-SPtr<Mesh> Mesh::CreateShared(const SPtr<MeshData>& initialMeshData, MeshFlags flags, DrawOperationType primitiveType)
+TShared<Mesh> Mesh::CreateShared(const TShared<MeshData>& initialMeshData, MeshFlags flags, DrawOperationType primitiveType)
 {
 	MeshCreateInformation meshCreateInformation;
 	meshCreateInformation.Flags = flags;
 	meshCreateInformation.SubMeshes.push_back(SubMesh(0, initialMeshData->GetIndexCount(), primitiveType));
 
-	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation));
+	TShared<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation));
 	mesh->SetShared(mesh);
 	mesh->Initialize();
 
 	return mesh;
 }
 
-SPtr<Mesh> Mesh::CreateEmptyShared()
+TShared<Mesh> Mesh::CreateEmptyShared()
 {
-	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh());
+	TShared<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh());
 	mesh->SetShared(mesh);
 
 	return mesh;
@@ -250,7 +250,7 @@ SPtr<Mesh> Mesh::CreateEmptyShared()
 
 namespace b3d { namespace render
 {
-Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
+Mesh::Mesh(const TShared<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
 	: MeshBase(meshCreateInformation.VertexCount, meshCreateInformation.IndexCount, meshCreateInformation.SubMeshes), mVertexData(nullptr), mIndexBuffer(nullptr), mVertexDescription(meshCreateInformation.VertexDescription), mFlags(meshCreateInformation.Flags), mIndexType(meshCreateInformation.IndexType), mTempInitialMeshData(initialMeshData), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
 
 {}
@@ -274,7 +274,7 @@ void Mesh::Initialize()
 	if(mFlags.IsSet(MeshFlag::UnorderedAccess))
 		flags |= GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
 
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	GpuBufferInformation indexBufferCreateInformation;
 	indexBufferCreateInformation.Type = GpuBufferType::Index;
@@ -299,7 +299,7 @@ void Mesh::Initialize()
 		vertexBufferCreateInformation.Vertex.ElementSize = mVertexData->VertexDescription->GetVertexStride(streamIndex);
 		vertexBufferCreateInformation.Vertex.Count = mVertexData->VertexCount;
 
-		SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
+		TShared<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 		mVertexData->SetBuffer(streamIndex, vertexBuffer);
 	}
 
@@ -314,28 +314,28 @@ void Mesh::Initialize()
 	MeshBase::Initialize();
 }
 
-SPtr<VertexData> Mesh::GetVertexData() const
+TShared<VertexData> Mesh::GetVertexData() const
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
 
 	return mVertexData;
 }
 
-SPtr<GpuBuffer> Mesh::GetIndexBuffer() const
+TShared<GpuBuffer> Mesh::GetIndexBuffer() const
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
 
 	return mIndexBuffer;
 }
 
-SPtr<VertexDescription> Mesh::GetVertexDescription() const
+TShared<VertexDescription> Mesh::GetVertexDescription() const
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
 
 	return mVertexDescription;
 }
 
-void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool performUpdateBounds, const SPtr<GpuCommandBuffer>& commandBuffer)
+void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool performUpdateBounds, const TShared<GpuCommandBuffer>& commandBuffer)
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
 
@@ -401,7 +401,7 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 			continue;
 		}
 
-		SPtr<GpuBuffer> vertexBuffer = mVertexData->GetBuffer(streamIndex);
+		TShared<GpuBuffer> vertexBuffer = mVertexData->GetBuffer(streamIndex);
 
 		u32 bufferSize = meshData.GetStreamSize(streamIndex);
 		u8* sourceVertexBufferData = meshData.GetStreamData(streamIndex);
@@ -419,7 +419,7 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 		UpdateBounds(meshData);
 }
 
-void Mesh::ReadData(MeshData& meshData, const SPtr<GpuCommandBuffer>& commandBuffer)
+void Mesh::ReadData(MeshData& meshData, const TShared<GpuCommandBuffer>& commandBuffer)
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
 
@@ -470,7 +470,7 @@ void Mesh::ReadData(MeshData& meshData, const SPtr<GpuCommandBuffer>& commandBuf
 			if(!meshData.GetVertexDescription()->HasStream(streamIndex))
 				continue;
 
-			SPtr<GpuBuffer> vertexBuffer = iterator->second;
+			TShared<GpuBuffer> vertexBuffer = iterator->second;
 
 			const GpuBufferInformation& vertexBufferInformation = vertexBuffer->GetInformation();
 			B3D_ENSURE(vertexBufferInformation.Type == GpuBufferType::Vertex);
@@ -511,7 +511,7 @@ void Mesh::UpdateBounds(const MeshData& meshData)
 	// TODO - Sync this to main-thread possibly?
 }
 
-SPtr<Mesh> Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, MeshFlags flags, DrawOperationType primitiveType, IndexType indexType)
+TShared<Mesh> Mesh::Create(u32 vertexCount, u32 indexCount, const TShared<VertexDescription>& vertexDescription, MeshFlags flags, DrawOperationType primitiveType, IndexType indexType)
 {
 	MeshCreateInformation meshCreateInformation;
 	meshCreateInformation.VertexCount = vertexCount;
@@ -521,16 +521,16 @@ SPtr<Mesh> Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescri
 	meshCreateInformation.Flags = flags;
 	meshCreateInformation.IndexType = indexType;
 
-	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(nullptr, meshCreateInformation));
+	TShared<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(nullptr, meshCreateInformation));
 	mesh->SetShared(mesh);
 	mesh->Initialize();
 
 	return mesh;
 }
 
-SPtr<Mesh> Mesh::Create(const MeshCreateInformation& meshCreateInformation)
+TShared<Mesh> Mesh::Create(const MeshCreateInformation& meshCreateInformation)
 {
-	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(nullptr, meshCreateInformation));
+	TShared<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(nullptr, meshCreateInformation));
 
 	mesh->SetShared(mesh);
 	mesh->Initialize();
@@ -538,7 +538,7 @@ SPtr<Mesh> Mesh::Create(const MeshCreateInformation& meshCreateInformation)
 	return mesh;
 }
 
-SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
+TShared<Mesh> Mesh::Create(const TShared<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
 {
 	MeshCreateInformation meshCreateInformationCopy = meshCreateInformation;
 	meshCreateInformationCopy.VertexCount = initialMeshData->GetVertexCount();
@@ -546,7 +546,7 @@ SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, const MeshCreateI
 	meshCreateInformationCopy.VertexDescription = initialMeshData->GetVertexDescription();
 	meshCreateInformationCopy.IndexType = initialMeshData->GetIndexType();
 
-	SPtr<Mesh> mesh =
+	TShared<Mesh> mesh =
 		B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformationCopy));
 
 	mesh->SetShared(mesh);
@@ -555,7 +555,7 @@ SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, const MeshCreateI
 	return mesh;
 }
 
-SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, MeshFlags flags, DrawOperationType drawOp)
+TShared<Mesh> Mesh::Create(const TShared<MeshData>& initialMeshData, MeshFlags flags, DrawOperationType drawOp)
 {
 	MeshCreateInformation meshCreateInformation;
 	meshCreateInformation.VertexCount = initialMeshData->GetVertexCount();
@@ -565,7 +565,7 @@ SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, MeshFlags flags, 
 	meshCreateInformation.SubMeshes.push_back(SubMesh(0, initialMeshData->GetIndexCount(), drawOp));
 	meshCreateInformation.Flags = flags;
 
-	SPtr<Mesh> mesh =
+	TShared<Mesh> mesh =
 		B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation));
 
 	mesh->SetShared(mesh);

@@ -21,7 +21,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ContextMenu")
 
-		ScriptContextMenu(const SPtr<GUIContextMenu>& nativeObject);
+		ScriptContextMenu(const TShared<GUIContextMenu>& nativeObject);
 
 		static void SetupScriptBindings();
 

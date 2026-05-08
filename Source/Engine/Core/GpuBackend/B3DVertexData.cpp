@@ -7,14 +7,14 @@ using namespace b3d;
 
 namespace b3d { namespace render
 {
-void VertexData::SetBuffer(u32 index, SPtr<GpuBuffer> buffer)
+void VertexData::SetBuffer(u32 index, TShared<GpuBuffer> buffer)
 {
 	mVertexBuffers[index] = buffer;
 
 	RecalculateMaxIndex();
 }
 
-SPtr<GpuBuffer> VertexData::GetBuffer(u32 index) const
+TShared<GpuBuffer> VertexData::GetBuffer(u32 index) const
 {
 	auto iterFind = mVertexBuffers.find(index);
 	if(iterFind != mVertexBuffers.end())

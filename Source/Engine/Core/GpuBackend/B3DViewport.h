@@ -115,14 +115,14 @@ namespace b3d
 	public:
 		using RenderTargetType = CoreVariantType<RenderTarget, IsRenderProxy>;
 
-		TViewport(SPtr<RenderTargetType> target = nullptr, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f)
+		TViewport(TShared<RenderTargetType> target = nullptr, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f)
 			: ViewportBase(x, y, width, height), mTarget(std::move(target))
 		{}
 
 		virtual ~TViewport() = default;
 
 	protected:
-		SPtr<RenderTargetType> mTarget;
+		TShared<RenderTargetType> mTarget;
 	};
 
 	/** @} */
@@ -140,12 +140,12 @@ namespace b3d
 	public:
 		/**	Determines the render target the viewport is associated with. */
 		B3D_SCRIPT_EXPORT(ExportName(Target), Property(Setter))
-		void SetTarget(const SPtr<RenderTarget>& target);
+		void SetTarget(const TShared<RenderTarget>& target);
 
 		/** @copydoc setTarget() */
 		B3D_SCRIPT_EXPORT(ExportName(Target), Property(Getter))
 
-		SPtr<RenderTarget> GetTarget() const { return mTarget; }
+		TShared<RenderTarget> GetTarget() const { return mTarget; }
 
 		/**
 		 * Creates a new viewport.
@@ -153,13 +153,13 @@ namespace b3d
 		 * @note	Viewport coordinates are normalized in [0, 1] range.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(Viewport))
-		static SPtr<Viewport> Create(const SPtr<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
+		static TShared<Viewport> Create(const TShared<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
 
 	protected:
 		friend class render::Viewport;
 		struct SyncPacket;
 
-		Viewport(const SPtr<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
+		Viewport(const TShared<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
 
 		void MarkRenderProxyDataDirtyInternal() override;
 		u32 GetTargetWidth() const override;
@@ -168,7 +168,7 @@ namespace b3d
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -176,7 +176,7 @@ namespace b3d
 		Viewport() = default;
 
 		/** Creates an empty viewport for serialization purposes. */
-		static SPtr<Viewport> CreateEmpty();
+		static TShared<Viewport> CreateEmpty();
 
 	public:
 		friend class ViewportRTTI;
@@ -197,18 +197,18 @@ namespace b3d
 		{
 		public:
 			/**	Returns the render target the viewport is associated with. */
-			SPtr<RenderTarget> GetTarget() const { return mTarget; }
+			TShared<RenderTarget> GetTarget() const { return mTarget; }
 
 			/**	Sets the render target the viewport will be associated with. */
-			void SetTarget(const SPtr<RenderTarget>& target) { mTarget = target; }
+			void SetTarget(const TShared<RenderTarget>& target) { mTarget = target; }
 
 			/** @copydoc b3d::Viewport::Create() */
-			static SPtr<Viewport> Create(const SPtr<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
+			static TShared<Viewport> Create(const TShared<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
 
 		protected:
 			friend class b3d::Viewport;
 
-			Viewport(const SPtr<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
+			Viewport(const TShared<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
 
 			u32 GetTargetWidth() const override;
 			u32 GetTargetHeight() const override;

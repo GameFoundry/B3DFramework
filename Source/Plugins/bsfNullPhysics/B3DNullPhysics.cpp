@@ -20,25 +20,25 @@ NullPhysics::~NullPhysics()
 	B3D_ASSERT(mScenes.empty() && "All scenes must be freed before physics system shutdown");
 }
 
-SPtr<PhysicsMaterial> NullPhysics::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
+TShared<PhysicsMaterial> NullPhysics::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
 {
 	return B3DMakeShared<NullPhysicsMaterial>(staticFriction, dynamicFriction, restitution);
 }
 
-UPtr<IPhysicsMeshImplementation> NullPhysics::CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+UPtr<IPhysicsMeshImplementation> NullPhysics::CreateMesh(const TShared<MeshData>& meshData, PhysicsMeshType type)
 {
 	return B3DMakeUnique<NullPhysicsMeshImplementation>(meshData, type);
 }
 
-SPtr<PhysicsScene> NullPhysics::CreatePhysicsScene()
+TShared<PhysicsScene> NullPhysics::CreatePhysicsScene()
 {
-	SPtr<NullPhysicsScene> scene = B3DMakeShared<NullPhysicsScene>(mInitDesc);
+	TShared<NullPhysicsScene> scene = B3DMakeShared<NullPhysicsScene>(mInitDesc);
 	mScenes.push_back(scene.get());
 
 	return scene;
 }
 
-SPtr<ColliderShape> NullPhysics::CreateColliderShape()
+TShared<ColliderShape> NullPhysics::CreateColliderShape()
 {
 	return B3DMakeShared<NullPhysicsColliderShape>();
 }

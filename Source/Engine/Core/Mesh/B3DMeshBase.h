@@ -142,10 +142,10 @@ namespace b3d
 			virtual ~MeshBase() {}
 
 			/**	Get vertex data used for rendering. */
-			virtual SPtr<VertexData> GetVertexData() const = 0;
+			virtual TShared<VertexData> GetVertexData() const = 0;
 
 			/**	Get index data used for rendering. */
-			virtual SPtr<GpuBuffer> GetIndexBuffer() const = 0;
+			virtual TShared<GpuBuffer> GetIndexBuffer() const = 0;
 
 			/**
 			 * Returns an offset into the vertex buffers that is returned by getVertexData() that signifies where this meshes
@@ -164,7 +164,7 @@ namespace b3d
 			virtual u32 GetIndexOffset() const { return 0; }
 
 			/** Returns a structure that describes how are the vertices stored in the mesh's vertex buffer. */
-			virtual SPtr<VertexDescription> GetVertexDescription() const = 0;
+			virtual TShared<VertexDescription> GetVertexDescription() const = 0;
 
 			/**
 			 * Called whenever this mesh starts being used on the GPU.

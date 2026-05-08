@@ -90,23 +90,23 @@ using namespace b3d;
 
 void GenerateTextures()
 {
-	SPtr<PixelData> blackPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
+	TShared<PixelData> blackPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 	blackPixelData->SetColorAt(Color::kBlack, 0, 0);
 	blackPixelData->SetColorAt(Color::kBlack, 0, 1);
 	blackPixelData->SetColorAt(Color::kBlack, 1, 0);
 	blackPixelData->SetColorAt(Color::kBlack, 1, 1);
 
-	SPtr<Texture> blackTexture = Texture::CreateShared(blackPixelData);
+	TShared<Texture> blackTexture = Texture::CreateShared(blackPixelData);
 
-	SPtr<PixelData> whitePixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
+	TShared<PixelData> whitePixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 	whitePixelData->SetColorAt(Color::kWhite, 0, 0);
 	whitePixelData->SetColorAt(Color::kWhite, 0, 1);
 	whitePixelData->SetColorAt(Color::kWhite, 1, 0);
 	whitePixelData->SetColorAt(Color::kWhite, 1, 1);
 
-	SPtr<Texture> whiteTexture = Texture::CreateShared(whitePixelData);
+	TShared<Texture> whiteTexture = Texture::CreateShared(whitePixelData);
 
-	SPtr<PixelData> normalPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
+	TShared<PixelData> normalPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 
 	Color encodedNormal(0.5f, 0.5f, 1.0f);
 	normalPixelData->SetColorAt(encodedNormal, 0, 0);
@@ -114,9 +114,9 @@ void GenerateTextures()
 	normalPixelData->SetColorAt(encodedNormal, 1, 0);
 	normalPixelData->SetColorAt(encodedNormal, 1, 1);
 
-	SPtr<Texture> normalTexture = Texture::CreateShared(normalPixelData);
+	TShared<Texture> normalTexture = Texture::CreateShared(normalPixelData);
 
-	SPtr<PixelData> black3DPixelData = PixelData::Create(2, 2, 2, PF_RGBA8);
+	TShared<PixelData> black3DPixelData = PixelData::Create(2, 2, 2, PF_RGBA8);
 	black3DPixelData->SetColorAt(Color::kBlack, 0, 0, 0);
 	black3DPixelData->SetColorAt(Color::kBlack, 0, 1, 0);
 	black3DPixelData->SetColorAt(Color::kBlack, 1, 0, 0);
@@ -126,9 +126,9 @@ void GenerateTextures()
 	black3DPixelData->SetColorAt(Color::kBlack, 1, 0, 1);
 	black3DPixelData->SetColorAt(Color::kBlack, 1, 1, 1);
 
-	SPtr<Texture> black3DTexture = Texture::CreateShared(black3DPixelData);
+	TShared<Texture> black3DTexture = Texture::CreateShared(black3DPixelData);
 
-	SPtr<PixelData> white3DPixelData = PixelData::Create(2, 2, 2, PF_RGBA8);
+	TShared<PixelData> white3DPixelData = PixelData::Create(2, 2, 2, PF_RGBA8);
 	white3DPixelData->SetColorAt(Color::kWhite, 0, 0, 0);
 	white3DPixelData->SetColorAt(Color::kWhite, 0, 1, 0);
 	white3DPixelData->SetColorAt(Color::kWhite, 1, 0, 0);
@@ -138,13 +138,13 @@ void GenerateTextures()
 	white3DPixelData->SetColorAt(Color::kWhite, 1, 0, 1);
 	white3DPixelData->SetColorAt(Color::kWhite, 1, 1, 1);
 
-	SPtr<Texture> white3DTexture = Texture::CreateShared(white3DPixelData);
+	TShared<Texture> white3DTexture = Texture::CreateShared(white3DPixelData);
 
 
 	// Save all textures
 	Path outputDir = sOutputFolder + BuiltinResources::kTextureFolder;
 
-	auto fnSaveTexture = [](const Path& folder, const String& name, const SPtr<Texture>& texture, const String& uuid)
+	auto fnSaveTexture = [](const Path& folder, const String& name, const TShared<Texture>& texture, const String& uuid)
 	{
 		HResource textureResource = GetResources().CreateResourceHandle(texture, b3d::UUID(uuid));
 		GetResources().SaveAsSinglePackage(textureResource, folder, name);
@@ -166,64 +166,64 @@ void GenerateMeshes()
 	vertexElements.Add(VertexElement(VET_FLOAT4, VES_TANGENT));
 	vertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
-	SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
+	TShared<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 	u32 boxNumVertices = 0;
 	u32 boxNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsAaBox(boxNumVertices, boxNumIndices);
-	SPtr<MeshData> boxMeshData = MeshData::Create(boxNumVertices, boxNumIndices, vertexDescription);
+	TShared<MeshData> boxMeshData = MeshData::Create(boxNumVertices, boxNumIndices, vertexDescription);
 	AABox box(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
 
 	ShapeMeshes3D::SolidAaBox(box, boxMeshData, 0, 0);
-	SPtr<Mesh> boxMesh = Mesh::CreateShared(RendererMeshData::Convert(boxMeshData));
+	TShared<Mesh> boxMesh = Mesh::CreateShared(RendererMeshData::Convert(boxMeshData));
 
 	u32 sphereNumVertices = 0;
 	u32 sphereNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsSphere(3, sphereNumVertices, sphereNumIndices);
-	SPtr<MeshData> sphereMeshData = B3DMakeShared<MeshData>(sphereNumVertices, sphereNumIndices, vertexDescription);
+	TShared<MeshData> sphereMeshData = B3DMakeShared<MeshData>(sphereNumVertices, sphereNumIndices, vertexDescription);
 
 	ShapeMeshes3D::SolidSphere(Sphere(Vector3::kZero, 1.0f), sphereMeshData, 0, 0, 3);
-	SPtr<Mesh> sphereMesh = Mesh::CreateShared(RendererMeshData::Convert(sphereMeshData));
+	TShared<Mesh> sphereMesh = Mesh::CreateShared(RendererMeshData::Convert(sphereMeshData));
 
 	u32 coneNumVertices = 0;
 	u32 coneNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsCone(10, coneNumVertices, coneNumIndices);
-	SPtr<MeshData> coneMeshData = B3DMakeShared<MeshData>(coneNumVertices, coneNumIndices, vertexDescription);
+	TShared<MeshData> coneMeshData = B3DMakeShared<MeshData>(coneNumVertices, coneNumIndices, vertexDescription);
 
 	ShapeMeshes3D::SolidCone(Vector3::kZero, Vector3::kUnitY, 1.0f, 1.0f, Vector2::kOne, coneMeshData, 0, 0);
-	SPtr<Mesh> coneMesh = Mesh::CreateShared(RendererMeshData::Convert(coneMeshData));
+	TShared<Mesh> coneMesh = Mesh::CreateShared(RendererMeshData::Convert(coneMeshData));
 
 	u32 cylinderNumVertices = 0;
 	u32 cylinderNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsCylinder(10, cylinderNumVertices, cylinderNumIndices);
-	SPtr<MeshData> cylinderMeshData = B3DMakeShared<MeshData>(cylinderNumVertices, cylinderNumIndices, vertexDescription);
+	TShared<MeshData> cylinderMeshData = B3DMakeShared<MeshData>(cylinderNumVertices, cylinderNumIndices, vertexDescription);
 
 	ShapeMeshes3D::SolidCylinder(Vector3::kZero, Vector3::kUnitY, 1.0f, 1.0f, Vector2::kOne, cylinderMeshData, 0, 0);
-	SPtr<Mesh> cylinderMesh = Mesh::CreateShared(RendererMeshData::Convert(cylinderMeshData));
+	TShared<Mesh> cylinderMesh = Mesh::CreateShared(RendererMeshData::Convert(cylinderMeshData));
 
 	u32 quadNumVertices = 8;
 	u32 quadNumIndices = 12;
 	ShapeMeshes3D::GetNumElementsQuad(quadNumVertices, quadNumIndices);
-	SPtr<MeshData> quadMeshData = B3DMakeShared<MeshData>(quadNumVertices, quadNumIndices, vertexDescription);
+	TShared<MeshData> quadMeshData = B3DMakeShared<MeshData>(quadNumVertices, quadNumIndices, vertexDescription);
 
 	std::array<Vector3, 2> axes = { { Vector3::kUnitX, Vector3::kUnitZ } };
 	std::array<float, 2> sizes = { { 1.0f, 1.0f } };
 	Rect3 rect(Vector3::kZero, axes, sizes);
 	ShapeMeshes3D::SolidQuad(rect, quadMeshData, 0, 0);
-	SPtr<Mesh> quadMesh = Mesh::CreateShared(RendererMeshData::Convert(quadMeshData));
+	TShared<Mesh> quadMesh = Mesh::CreateShared(RendererMeshData::Convert(quadMeshData));
 
 	u32 discNumVertices = 0;
 	u32 discNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsDisc(10, discNumVertices, discNumIndices);
-	SPtr<MeshData> discMeshData = B3DMakeShared<MeshData>(discNumVertices, discNumIndices, vertexDescription);
+	TShared<MeshData> discMeshData = B3DMakeShared<MeshData>(discNumVertices, discNumIndices, vertexDescription);
 
 	ShapeMeshes3D::SolidDisc(Vector3::kZero, 1.0f, Vector3::kUnitY, discMeshData, 0, 0);
-	SPtr<Mesh> discMesh = Mesh::CreateShared(RendererMeshData::Convert(discMeshData));
+	TShared<Mesh> discMesh = Mesh::CreateShared(RendererMeshData::Convert(discMeshData));
 
 	// Save all meshes
 	const Path outputDir = sOutputFolder + BuiltinResources::kMeshFolder;
 
-	auto fnSaveMesh = [](const Path& folder, const String& name, const SPtr<Mesh>& mesh, const String& uuid)
+	auto fnSaveMesh = [](const Path& folder, const String& name, const TShared<Mesh>& mesh, const String& uuid)
 	{
 		HResource meshResource = GetResources().CreateResourceHandle(mesh, b3d::UUID(uuid));
 		GetResources().SaveAsSinglePackage(meshResource, folder, name);
@@ -249,7 +249,7 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 	}
 
 	const Path dataListsFilePath = sInputFolder + kDataListJson;
-	SPtr<DataStream> dataListStream = FileSystem::OpenFile(dataListsFilePath);
+	TShared<DataStream> dataListStream = FileSystem::OpenFile(dataListsFilePath);
 	json dataListJSON = json::parse(dataListStream->GetAsString().c_str());
 
 	json skinJSON = dataListJSON["Skin"];
@@ -487,7 +487,7 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 		textureIO->GenerateMips = false;
 		HTexture splashTexture = GetImporter().Import<Texture>(inputPath, textureIO);
 
-		SPtr<PixelData> splashPixelData = splashTexture->GetProperties().AllocBuffer(0, 0);
+		TShared<PixelData> splashPixelData = splashTexture->GetProperties().AllocBuffer(0, 0);
 		splashTexture->ReadCachedData(*splashPixelData);
 
 		FileEncoder fe(outputPath);

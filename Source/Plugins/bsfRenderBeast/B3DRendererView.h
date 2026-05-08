@@ -75,7 +75,7 @@ namespace b3d
 			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& perCamera, const SPtr<Texture>& texture, const Color& solidColor);
+			void Bind(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& perCamera, const TShared<Texture>& texture, const Color& solidColor);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -153,7 +153,7 @@ namespace b3d
 		/** Data shared between RendererViewTargetCreateInformation and RendererViewTargetProperties */
 		struct RendererViewTargetInformation
 		{
-			SPtr<RenderTarget> Target;
+			TShared<RenderTarget> Target;
 
 			Area2I ViewRect;
 			Area2 NrmViewRect;
@@ -224,7 +224,7 @@ namespace b3d
 		/**	Renderer information specific to a single render target. */
 		struct RendererRenderTarget
 		{
-			SPtr<RenderTarget> Target;
+			TShared<RenderTarget> Target;
 			Vector<Camera*> Cameras;
 		};
 
@@ -256,7 +256,7 @@ namespace b3d
 			void SetStateReductionMode(StateReduction reductionMode);
 
 			/** Updates the internal camera render settings. */
-			void SetRenderSettings(const SPtr<RenderSettings>& settings);
+			void SetRenderSettings(const TShared<RenderSettings>& settings);
 
 			/** Updates the internal information with a new view transform. */
 			void SetTransform(const Vector3& origin, const Vector3& direction, const Matrix4& view, const Matrix4& proj, const ConvexVolume& worldFrustum);
@@ -282,19 +282,19 @@ namespace b3d
 			 * forward is true then opaque objects using the forward pipeline are returned, otherwise deferred pipeline objects
 			 * are returned.
 			 */
-			const SPtr<RenderQueue>& GetOpaqueQueue(bool forward) const { return forward ? mForwardOpaqueQueue : mDeferredOpaqueQueue; }
+			const TShared<RenderQueue>& GetOpaqueQueue(bool forward) const { return forward ? mForwardOpaqueQueue : mDeferredOpaqueQueue; }
 
 			/**
 			 * Returns a render queue containing all transparent objects. Make sure to call determineVisible() beforehand if
 			 * view or object transforms changed since the last time it was called.
 			 */
-			const SPtr<RenderQueue>& GetTransparentQueue() const { return mTransparentQueue; }
+			const TShared<RenderQueue>& GetTransparentQueue() const { return mTransparentQueue; }
 
 			/**
 			 * Returns a render queue containing all decal renderable objects. Make sure to call determineVisible() beforehand
 			 * if view or object transforms changed since the last time it was called.
 			 */
-			const SPtr<RenderQueue>& GetDecalQueue() const { return mDecalQueue; }
+			const TShared<RenderQueue>& GetDecalQueue() const { return mDecalQueue; }
 
 			/** Returns the compositor in charge of rendering for this view. */
 			const RenderCompositor& GetCompositor() const { return mCompositor; }
@@ -479,24 +479,24 @@ namespace b3d
 			 * rendering of a single frame. This should be set to null if the renderer is not currently rendering the
 			 * view.
 			 */
-			void NotifyCompositorTargetChangedInternal(const SPtr<RenderTarget>& target) const { mCurrentRenderTarget = target; }
+			void NotifyCompositorTargetChangedInternal(const TShared<RenderTarget>& target) const { mCurrentRenderTarget = target; }
 
 			/**
 			 * Returns the render target that is currently being rendered to by the render compositor.
 			 */
-			SPtr<RenderTarget> GetCompositorRenderTarget() const { return mCurrentRenderTarget; }
+			TShared<RenderTarget> GetCompositorRenderTarget() const { return mCurrentRenderTarget; }
 
 			/**
 			 * Notifies the view that a new average luminance is being calculated on the provided command buffer. The results
 			 * will be read from the provided texture when the command buffer finishes executing.
 			 */
-			void NotifyLuminanceUpdated(u64 frameIdx, SPtr<GpuCommandBuffer> cb, SPtr<PooledRenderTexture> texture) const;
+			void NotifyLuminanceUpdated(u64 frameIdx, TShared<GpuCommandBuffer> cb, TShared<PooledRenderTexture> texture) const;
 
 			/** Queues a screen capture to be resolved the next time the view is rendered. */
-			void RequestScreenCapture(TAsyncOp<SPtr<PixelData>> asyncOp);
+			void RequestScreenCapture(TAsyncOp<TShared<PixelData>> asyncOp);
 
 			/** Processes pending captures after rendering completes. */
-			void ResolveSceneCaptures(GpuCommandBuffer& commandBuffer, const SPtr<RenderTarget>& target) const;
+			void ResolveSceneCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& target) const;
 
 			/**
 			 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]
@@ -527,27 +527,27 @@ namespace b3d
 		private:
 			struct LuminanceUpdate
 			{
-				LuminanceUpdate(u64 frameIdx, TAsyncOp<SPtr<PixelData>> readbackAsyncOp, SPtr<PooledRenderTexture> outputTexture)
+				LuminanceUpdate(u64 frameIdx, TAsyncOp<TShared<PixelData>> readbackAsyncOp, TShared<PooledRenderTexture> outputTexture)
 					: FrameIdx(frameIdx), OutputTexture(std::move(outputTexture)), ReadbackAsyncOp(std::move(readbackAsyncOp))
 				{}
 
 				u64 FrameIdx;
-				SPtr<GpuCommandBuffer> CommandBuffer;
-				SPtr<PooledRenderTexture> OutputTexture;
-				TAsyncOp<SPtr<PixelData>> ReadbackAsyncOp;
+				TShared<GpuCommandBuffer> CommandBuffer;
+				TShared<PooledRenderTexture> OutputTexture;
+				TAsyncOp<TShared<PixelData>> ReadbackAsyncOp;
 			};
 
 			RendererViewProperties mProperties;
-			mutable SPtr<RenderTarget> mCurrentRenderTarget;
+			mutable TShared<RenderTarget> mCurrentRenderTarget;
 			Camera* mCamera;
 
-			SPtr<RenderQueue> mDeferredOpaqueQueue;
-			SPtr<RenderQueue> mForwardOpaqueQueue;
-			SPtr<RenderQueue> mTransparentQueue;
-			SPtr<RenderQueue> mDecalQueue;
+			TShared<RenderQueue> mDeferredOpaqueQueue;
+			TShared<RenderQueue> mForwardOpaqueQueue;
+			TShared<RenderQueue> mTransparentQueue;
+			TShared<RenderQueue> mDecalQueue;
 
 			RenderCompositor mCompositor;
-			SPtr<RenderSettings> mRenderSettings;
+			TShared<RenderSettings> mRenderSettings;
 			u32 mRenderSettingsHash;
 
 			GpuBufferPool mPerCameraBufferPool;
@@ -567,7 +567,7 @@ namespace b3d
 			mutable Vector<LuminanceUpdate> mLuminanceUpdates;
 
 			// Screen capture
-			mutable Vector<TAsyncOp<SPtr<PixelData>>> mRequestedScreenCaptures;
+			mutable Vector<TAsyncOp<TShared<PixelData>>> mRequestedScreenCaptures;
 
 			// Exposure
 			float mPreviousEyeAdaptation = 0.0f;

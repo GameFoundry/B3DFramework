@@ -33,7 +33,7 @@ namespace b3d
 			return TID_SerializedTupleDelta;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedTupleDelta>();
 		}
@@ -59,7 +59,7 @@ namespace b3d
 			return TID_SerializedTupleEntryDelta;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedTupleEntryDelta>();
 		}
@@ -85,7 +85,7 @@ namespace b3d
 			return TID_SerializedArrayDelta;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedArrayDelta>();
 		}
@@ -111,7 +111,7 @@ namespace b3d
 			return TID_SerializedArrayEntryDelta;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedArrayEntryDelta>();
 		}
@@ -136,7 +136,7 @@ namespace b3d
 			return TID_SerializedMapDelta;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedMapDelta>();
 		}
@@ -162,7 +162,7 @@ namespace b3d
 			return TID_SerializedMapEntryDelta;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedMapEntryDelta>();
 		}

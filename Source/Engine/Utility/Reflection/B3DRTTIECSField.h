@@ -51,7 +51,7 @@ namespace b3d
 			this->Schema.FieldDataTypes.Add(detail::CreateFieldTypeSchema<std::remove_cv_t<ElementType>>(this->Schema.Info));
 		}
 
-		SPtr<IRTTIIterator> GetIterator(b3d::RTTIType* rttiTypeInstance, void* object, FrameAllocator& frameAllocator) const override
+		TShared<IRTTIIterator> GetIterator(b3d::RTTIType* rttiTypeInstance, void* object, FrameAllocator& frameAllocator) const override
 		{
 			OwnerType* owner = static_cast<OwnerType*>(object);
 			auto* it = frameAllocator.Construct<IteratorType>(owner->GetECSRegistry(), owner->GetECSEntity());
@@ -119,14 +119,14 @@ namespace b3d
 			return detail::GetReflectableValue(*static_cast<const ElementType*>(fieldValue));
 		}
 
-		void SetReflectablePointer(void* fieldValue, u32 tupleElementIndex, const SPtr<IReflectable>& reflectable) override
+		void SetReflectablePointer(void* fieldValue, u32 tupleElementIndex, const TShared<IReflectable>& reflectable) override
 		{
 			B3D_ASSERT(tupleElementIndex == 0);
 			using MutableType = std::remove_cv_t<ElementType>;
 			detail::SetReflectablePointerValue(const_cast<MutableType&>(*static_cast<MutableType*>(fieldValue)), reflectable);
 		}
 
-		SPtr<IReflectable> GetReflectablePointer(const void* fieldValue, u32 tupleElementIndex) override
+		TShared<IReflectable> GetReflectablePointer(const void* fieldValue, u32 tupleElementIndex) override
 		{
 			B3D_ASSERT(tupleElementIndex == 0);
 			return detail::GetReflectablePointerValue(*static_cast<const ElementType*>(fieldValue));

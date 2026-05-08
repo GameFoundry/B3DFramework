@@ -33,7 +33,7 @@ namespace b3d
 			return TID_PersistentCacheObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return PersistentCacheObject::Create(nullptr);
 		}
@@ -59,7 +59,7 @@ namespace b3d
 			return TID_PersistentCacheMetaData;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<PersistentCacheMetaData>();
 		}

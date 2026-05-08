@@ -6,7 +6,7 @@
 
 using namespace b3d;
 
-MonoObject* ScriptReflectableWrapper::GetOrCreateScriptObject(const SPtr<IReflectable>& nativeObject)
+MonoObject* ScriptReflectableWrapper::GetOrCreateScriptObject(const TShared<IReflectable>& nativeObject)
 {
 	if(nativeObject == nullptr)
 		return nullptr;

@@ -59,7 +59,7 @@ namespace b3d
 			 * @param	view			View that is currently being rendered.
 			 * @param	sceneDepth		Depth of scene objects that should be lit.
 			 */
-			void Prepare(const RendererView& view, const SPtr<Texture>& sceneDepth);
+			void Prepare(const RendererView& view, const TShared<Texture>& sceneDepth);
 
 			/**
 			 * Executes the material using the provided parameters.
@@ -68,7 +68,7 @@ namespace b3d
 			 * @param	mesh			Mesh to render.
 			 * @param	output			Output texture created using the descriptor returned by getOutputDesc().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Mesh>& mesh, const SPtr<RenderTexture>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Mesh>& mesh, const TShared<RenderTexture>& output);
 
 			/**
 			 * Returns the descriptors that can be used for creating the output render texture for this material. The render
@@ -133,7 +133,7 @@ namespace b3d
 			 * @param	output				Output texture to write the radiance to. The evaluated value will be added to
 			 *								existing radiance in the texture, using blending.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const GBufferTextures& gbuffer, const SPtr<Texture>& lightProbeIndices, const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const SPtr<Texture>& ambientOcclusion, const SPtr<RenderTexture>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const GBufferTextures& gbuffer, const TShared<Texture>& lightProbeIndices, const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const TShared<Texture>& ambientOcclusion, const TShared<RenderTexture>& output);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -163,23 +163,23 @@ namespace b3d
 		struct LightProbesInfo
 		{
 			/** Contains a set of spherical harmonic coefficients for every light probe. */
-			SPtr<Texture> ShCoefficients;
+			TShared<Texture> ShCoefficients;
 
 			/**
 			 * Contains information about tetrahedra formed by light probes. First half of the buffer is populated by actual
 			 * tetrahedrons, while the second half is populated by information about outer faces (triangles). @p numTetrahedra
 			 * marks the spot where split happens.
 			 */
-			SPtr<GpuBuffer> Tetrahedra;
+			TShared<GpuBuffer> Tetrahedra;
 
 			/** Contains additional information about outer tetrahedron faces, required for extrapolating tetrahedron data. */
-			SPtr<GpuBuffer> Faces;
+			TShared<GpuBuffer> Faces;
 
 			/**
 			 * Mesh representing the entire light probe volume. Each vertex has an associated tetrahedron (or face) index which
 			 * can be used to map into the tetrahedra array to retrieve probe information.
 			 */
-			SPtr<Mesh> TetrahedraVolume;
+			TShared<Mesh> TetrahedraVolume;
 
 			/** Total number of valid tetrahedra in the @p tetrahedra buffer. */
 			u32 NumTetrahedra;
@@ -276,7 +276,7 @@ namespace b3d
 			 */
 			void ResizeCoefficientTexture(GpuCommandBuffer& commandBuffer, u32 numRows);
 
-			SPtr<GpuDevice> mGpuDevice;
+			TShared<GpuDevice> mGpuDevice;
 			Vector<VolumeInfo> mVolumes;
 			bool mTetrahedronVolumeDirty;
 
@@ -286,10 +286,10 @@ namespace b3d
 
 			Vector<TetrahedronData> mTetrahedronInfos;
 
-			SPtr<Texture> mProbeCoefficientsGPU;
-			SPtr<GpuBuffer> mTetrahedronInfosGPU;
-			SPtr<GpuBuffer> mTetrahedronFaceInfosGPU;
-			SPtr<Mesh> mVolumeMesh;
+			TShared<Texture> mProbeCoefficientsGPU;
+			TShared<GpuBuffer> mTetrahedronInfosGPU;
+			TShared<GpuBuffer> mTetrahedronFaceInfosGPU;
+			TShared<Mesh> mVolumeMesh;
 			u32 mNumValidTetrahedra;
 
 			// Temporary buffers

@@ -129,7 +129,7 @@ namespace b3d
 
 		/** Assigns the reflectable pointer to the provided field value. */
 		template<typename T>
-		void SetReflectablePointerValue(T& value, const SPtr<IReflectable>& reflectable)
+		void SetReflectablePointerValue(T& value, const TShared<IReflectable>& reflectable)
 		{
 			if constexpr(IsReflectableShared<T>())
 				value = std::static_pointer_cast<typename B3DDecaySharedPointer<T>::value>(reflectable);
@@ -137,7 +137,7 @@ namespace b3d
 
 		/** Reads the reflectable pointer from the provided field value. */
 		template<typename T>
-		SPtr<IReflectable> GetReflectablePointerValue(const T& value)
+		TShared<IReflectable> GetReflectablePointerValue(const T& value)
 		{
 			if constexpr(IsReflectableShared<T>())
 				return value;
@@ -151,7 +151,7 @@ namespace b3d
 		virtual ~RTTIIteratorField() = default;
 
 		/** Returns the iterator that can be used for iterating all entries in the field. */
-		virtual SPtr<IRTTIIterator> GetIterator(RTTIType* rttiTypeInstance, void* object, FrameAllocator& frameAllocator) const = 0;
+		virtual TShared<IRTTIIterator> GetIterator(RTTIType* rttiTypeInstance, void* object, FrameAllocator& frameAllocator) const = 0;
 
 		/** Returns true if the iterator is allowed to seek to index. True for iterators over arrays. */
 		virtual bool IteratorSupportsSeekToIndex() const = 0;
@@ -213,7 +213,7 @@ namespace b3d
 		 * @param tupleElementIndex Index of the tuple element in @p fieldValue in which to store the reflectable pointer. If @p fieldValue doesn't represent a tuple, this should be 0.
 		 * @param reflectable		Reflectable pointer to assign to the field value.
 		 */
-		virtual void SetReflectablePointer(void* fieldValue, u32 tupleElementIndex, const SPtr<IReflectable>& reflectable) = 0;
+		virtual void SetReflectablePointer(void* fieldValue, u32 tupleElementIndex, const TShared<IReflectable>& reflectable) = 0;
 
 		/**
 		 * Reads the reflectable pointer from the provided field value. If the field value represents a tuple (i.e. contains multiple sub-types, such as std::pair<K, V>),
@@ -223,7 +223,7 @@ namespace b3d
 		 * @param tupleElementIndex Index of the tuple element in @p fieldValue which contains the reflectable pointer. If @p fieldValue doesn't represent a tuple, this should be 0.
 		 * @return					Reflectable pointer.
 		 */
-		virtual SPtr<IReflectable> GetReflectablePointer(const void* fieldValue, u32 tupleElementIndex) = 0;
+		virtual TShared<IReflectable> GetReflectablePointer(const void* fieldValue, u32 tupleElementIndex) = 0;
 
 		/**
 		 * Assigns the reflectable to the provided field value. If the field value represents a tuple (i.e. contains multiple sub-types, such as std::pair<K, V>),
@@ -303,7 +303,7 @@ namespace b3d
 			}
 		}
 
-		SPtr<IRTTIIterator> GetIterator(RTTIType* rttiTypeInstance, void* object, FrameAllocator& frameAllocator) const override
+		TShared<IRTTIIterator> GetIterator(RTTIType* rttiTypeInstance, void* object, FrameAllocator& frameAllocator) const override
 		{
 			ObjectRTTIType* const exactRttiTypeInstane = static_cast<ObjectRTTIType*>(rttiTypeInstance);
 			ObjectType* const exactObject = static_cast<ObjectType*>(object);
@@ -409,7 +409,7 @@ namespace b3d
 			}
 		}
 
-		void SetReflectablePointer(void* fieldValue, u32 tupleElementIndex, const SPtr<IReflectable>& reflectable) override
+		void SetReflectablePointer(void* fieldValue, u32 tupleElementIndex, const TShared<IReflectable>& reflectable) override
 		{
 			ElementType& value = *static_cast<ElementType*>(fieldValue);
 			if constexpr(B3DIsStdPair<ElementType>::value)
@@ -439,7 +439,7 @@ namespace b3d
 			}
 		}
 
-		SPtr<IReflectable> GetReflectablePointer(const void* fieldValue, u32 tupleElementIndex) override
+		TShared<IReflectable> GetReflectablePointer(const void* fieldValue, u32 tupleElementIndex) override
 		{
 			const ElementType& value = *static_cast<const ElementType*>(fieldValue);
 			if constexpr(B3DIsStdPair<ElementType>::value)

@@ -26,7 +26,7 @@ Input::DeviceData::DeviceData()
 
 Input::Input()
 {
-	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+	TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	mWindowHandle = primaryWindow->GetPlatformWindowHandle();
 
 	// Subscribe to events

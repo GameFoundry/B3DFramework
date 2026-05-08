@@ -27,7 +27,7 @@ namespace b3d
 			return TID_GpuResourceData;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 			return nullptr;

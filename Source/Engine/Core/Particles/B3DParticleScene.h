@@ -132,7 +132,7 @@ namespace b3d
 		~ParticleScene();
 
 		/** Set the owning scene instance. Must be called after construction. */
-		void SetOwner(const SPtr<SceneInstance>& scene) { mOwner = scene; }
+		void SetOwner(const TShared<SceneInstance>& scene) { mOwner = scene; }
 
 		/**
 		 * Advances the simulation for all particle systems using the current frame time delta. Outputs a set of data
@@ -156,7 +156,7 @@ namespace b3d
 		u32 AllocateId() { return mNextId++; }
 
 		/** Creates a new empty particle scene. */
-		static SPtr<ParticleScene> Create() { return B3DMakeShared<ParticleScene>(); }
+		static TShared<ParticleScene> Create() { return B3DMakeShared<ParticleScene>(); }
 
 	private:
 		friend class ParticleSystem;

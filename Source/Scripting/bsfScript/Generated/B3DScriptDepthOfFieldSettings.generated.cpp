@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	ScriptDepthOfFieldSettings::ScriptDepthOfFieldSettings(const SPtr<DepthOfFieldSettings>& nativeObject)
+	ScriptDepthOfFieldSettings::ScriptDepthOfFieldSettings(const TShared<DepthOfFieldSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -74,7 +74,7 @@ namespace b3d
 	}
 	void ScriptDepthOfFieldSettings::InternalDepthOfFieldSettings(MonoObject* scriptObject)
 	{
-		SPtr<DepthOfFieldSettings> nativeObject = B3DMakeShared<DepthOfFieldSettings>();
+		TShared<DepthOfFieldSettings> nativeObject = B3DMakeShared<DepthOfFieldSettings>();
 		ScriptObjectWrapper::Create<ScriptDepthOfFieldSettings>(nativeObject, scriptObject);
 	}
 

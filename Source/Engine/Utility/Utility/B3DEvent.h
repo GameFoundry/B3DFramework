@@ -206,7 +206,7 @@ namespace b3d
 	public:
 		THEvent() = default;
 
-		explicit THEvent(TShared<TEventControlBlock<Policy>, Policy> eventControlBlock, EventConnection* connection)
+		explicit THEvent(TShared2<TEventControlBlock<Policy>, Policy> eventControlBlock, EventConnection* connection)
 			: mConnection(connection), mEventControlBlock(std::move(eventControlBlock))
 		{
 			connection->ActiveHandleCount++;
@@ -263,7 +263,7 @@ namespace b3d
 
 	private:
 		EventConnection* mConnection = nullptr;
-		TShared<TEventControlBlock<Policy>, Policy> mEventControlBlock;
+		TShared2<TEventControlBlock<Policy>, Policy> mEventControlBlock;
 	};
 
 	/** Alias for thread-safe event handles. */
@@ -376,7 +376,7 @@ namespace b3d
 			}
 
 			// Increase ref count to ensure this event data isn't destroyed if one of the callbacks deletes the event itself.
-			TShared<TEventControlBlock<Policy>, Policy> hoistedControlBlock = mControlBlock;
+			TShared2<TEventControlBlock<Policy>, Policy> hoistedControlBlock = mControlBlock;
 
 			LockType lock(hoistedControlBlock->Mutex);
 			hoistedControlBlock->IsCurrentlyTriggering = true;
@@ -440,7 +440,7 @@ namespace b3d
 		}
 
 	private:
-		TShared<TEventControlBlock<Policy>, Policy> mControlBlock;
+		TShared2<TEventControlBlock<Policy>, Policy> mControlBlock;
 	};
 
 	/** @} */

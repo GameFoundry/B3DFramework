@@ -55,9 +55,9 @@ bool Importer::SupportsFileType(const u8* magicNumber, u32 magicNumberSize) cons
 	return false;
 }
 
-HResource Importer::Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID)
+HResource Importer::Import(const Path& inputFilePath, TShared<const ImportOptions> importOptions, const UUID& UUID)
 {
-	SPtr<Resource> importedResource = ImportInternal(inputFilePath, importOptions);
+	TShared<Resource> importedResource = ImportInternal(inputFilePath, importOptions);
 
 	if(UUID.Empty())
 		return GetResources().CreateResourceHandle(importedResource);
@@ -65,7 +65,7 @@ HResource Importer::Import(const Path& inputFilePath, SPtr<const ImportOptions> 
 	return GetResources().CreateResourceHandle(importedResource, UUID);
 }
 
-TAsyncOp<HResource> Importer::ImportAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID)
+TAsyncOp<HResource> Importer::ImportAsync(const Path& inputFilePath, TShared<const ImportOptions> importOptions, const UUID& UUID)
 {
 	TAsyncOp<HResource> output;
 
@@ -80,7 +80,7 @@ TAsyncOp<HResource> Importer::ImportAsync(const Path& inputFilePath, SPtr<const 
 	return output;
 }
 
-SPtr<MultiResource> Importer::ImportAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+TShared<MultiResource> Importer::ImportAll(const Path& inputFilePath, TShared<const ImportOptions> importOptions)
 {
 	Vector<SubResource> output;
 
@@ -94,9 +94,9 @@ SPtr<MultiResource> Importer::ImportAll(const Path& inputFilePath, SPtr<const Im
 	return B3DMakeShared<MultiResource>(output);
 }
 
-TAsyncOp<SPtr<MultiResource>> Importer::ImportAllAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+TAsyncOp<TShared<MultiResource>> Importer::ImportAllAsync(const Path& inputFilePath, TShared<const ImportOptions> importOptions)
 {
-	TAsyncOp<SPtr<MultiResource>> output;
+	TAsyncOp<TShared<MultiResource>> output;
 
 	SpecificImporter* importer = PrepareForImport(inputFilePath, importOptions);
 	if(!importer)
@@ -109,7 +109,7 @@ TAsyncOp<SPtr<MultiResource>> Importer::ImportAllAsync(const Path& inputFilePath
 	return output;
 }
 
-SPtr<Resource> Importer::ImportInternal(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+TShared<Resource> Importer::ImportInternal(const Path& inputFilePath, TShared<const ImportOptions> importOptions)
 {
 	SpecificImporter* importer = PrepareForImport(inputFilePath, importOptions);
 	if(importer == nullptr)
@@ -119,7 +119,7 @@ SPtr<Resource> Importer::ImportInternal(const Path& inputFilePath, SPtr<const Im
 	return importer->Import(inputFilePath, importOptions);
 }
 
-Vector<SubResourceRaw> Importer::ImportAllInternal(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+Vector<SubResourceRaw> Importer::ImportAllInternal(const Path& inputFilePath, TShared<const ImportOptions> importOptions)
 {
 	SpecificImporter* importer = PrepareForImport(inputFilePath, importOptions);
 	if(!importer)
@@ -129,7 +129,7 @@ Vector<SubResourceRaw> Importer::ImportAllInternal(const Path& inputFilePath, SP
 	return importer->ImportAll(inputFilePath, importOptions);
 }
 
-TAsyncOp<Vector<SubResourceRaw>> Importer::ImportAllAsyncInternal(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+TAsyncOp<Vector<SubResourceRaw>> Importer::ImportAllAsyncInternal(const Path& inputFilePath, TShared<const ImportOptions> importOptions)
 {
 	TAsyncOp<Vector<SubResourceRaw>> output;
 
@@ -144,7 +144,7 @@ TAsyncOp<Vector<SubResourceRaw>> Importer::ImportAllAsyncInternal(const Path& in
 	return output;
 }
 
-SpecificImporter* Importer::PrepareForImport(const Path& filePath, SPtr<const ImportOptions>& importOptions) const
+SpecificImporter* Importer::PrepareForImport(const Path& filePath, TShared<const ImportOptions>& importOptions) const
 {
 	if(!FileSystem::IsFile(filePath))
 	{
@@ -160,7 +160,7 @@ SpecificImporter* Importer::PrepareForImport(const Path& filePath, SPtr<const Im
 		importOptions = importer->GetDefaultImportOptions();
 	else
 	{
-		SPtr<const ImportOptions> defaultImportOptions = importer->GetDefaultImportOptions();
+		TShared<const ImportOptions> defaultImportOptions = importer->GetDefaultImportOptions();
 		if(!B3D_ENSURE_LOG(importOptions->GetTypeId() == defaultImportOptions->GetTypeId(), "Provided import options is not of valid type. Expected: {0}, Got: {1}", defaultImportOptions->GetTypeName(), importOptions->GetTypeName()))
 			return nullptr;
 	}
@@ -193,15 +193,15 @@ void Importer::WaitForAsync(SpecificImporter* importer)
 }
 
 template <class ReturnType>
-void DoImport(TAsyncOp<ReturnType> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid, const SPtr<const ImportOptions>& importOptions)
+void DoImport(TAsyncOp<ReturnType> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid, const TShared<const ImportOptions>& importOptions)
 {
 	B3D_ASSERT(false && "Invalid template instantiation called.");
 }
 
 template <>
-void DoImport(TAsyncOp<HResource> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid, const SPtr<const ImportOptions>& importOptions)
+void DoImport(TAsyncOp<HResource> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid, const TShared<const ImportOptions>& importOptions)
 {
-	SPtr<Resource> resourcePtr = importer->Import(filePath, importOptions);
+	TShared<Resource> resourcePtr = importer->Import(filePath, importOptions);
 
 	HResource resource;
 	if(uuid.Empty())
@@ -213,7 +213,7 @@ void DoImport(TAsyncOp<HResource> op, SpecificImporter* importer, const Path& fi
 }
 
 template <>
-void DoImport(TAsyncOp<SPtr<MultiResource>> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid, const SPtr<const ImportOptions>& importOptions)
+void DoImport(TAsyncOp<TShared<MultiResource>> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid, const TShared<const ImportOptions>& importOptions)
 {
 	Vector<SubResourceRaw> rawSubresources = importer->ImportAll(filePath, importOptions);
 
@@ -228,7 +228,7 @@ void DoImport(TAsyncOp<SPtr<MultiResource>> op, SpecificImporter* importer, cons
 }
 
 template <>
-void DoImport(TAsyncOp<Vector<SubResourceRaw>> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid, const SPtr<const ImportOptions>& importOptions)
+void DoImport(TAsyncOp<Vector<SubResourceRaw>> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid, const TShared<const ImportOptions>& importOptions)
 {
 	Vector<SubResourceRaw> rawSubresources = importer->ImportAll(filePath, importOptions);
 
@@ -236,7 +236,7 @@ void DoImport(TAsyncOp<Vector<SubResourceRaw>> op, SpecificImporter* importer, c
 }
 
 template <class ReturnType>
-void Importer::QueueForImport(SpecificImporter* importer, const Path& inputFilePath, const SPtr<const ImportOptions>& importOptions, const UUID& uuid, TAsyncOp<ReturnType>& op)
+void Importer::QueueForImport(SpecificImporter* importer, const Path& inputFilePath, const TShared<const ImportOptions>& importOptions, const UUID& uuid, TAsyncOp<ReturnType>& op)
 {
 	ImporterAsyncMode asyncMode = importer->GetAsyncMode();
 	if (asyncMode == ImporterAsyncMode::Multi)
@@ -277,11 +277,11 @@ void Importer::QueueForImport(SpecificImporter* importer, const Path& inputFileP
 	}
 }
 
-template void Importer::QueueForImport(SpecificImporter*, const Path&, const SPtr<const ImportOptions>&, const UUID&, TAsyncOp<HResource>&);
+template void Importer::QueueForImport(SpecificImporter*, const Path&, const TShared<const ImportOptions>&, const UUID&, TAsyncOp<HResource>&);
 
-template void Importer::QueueForImport(SpecificImporter*, const Path&, const SPtr<const ImportOptions>&, const UUID&, TAsyncOp<SPtr<MultiResource>>&);
+template void Importer::QueueForImport(SpecificImporter*, const Path&, const TShared<const ImportOptions>&, const UUID&, TAsyncOp<TShared<MultiResource>>&);
 
-SPtr<ImportOptions> Importer::CreateImportOptions(const Path& inputFilePath)
+TShared<ImportOptions> Importer::CreateImportOptions(const Path& inputFilePath)
 {
 	if(!FileSystem::IsFile(inputFilePath))
 	{

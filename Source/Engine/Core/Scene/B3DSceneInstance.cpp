@@ -452,7 +452,7 @@ void SceneInstance::SetRoot(const HSceneObject& newRoot)
 		return;
 
 	HSceneObject oldRoot = mRoot;
-	SPtr<GameObjectCollection> oldGameObjectCollection = mGameObjectCollection;
+	TShared<GameObjectCollection> oldGameObjectCollection = mGameObjectCollection;
 
 	// Must be set before mRoot->SetScene, as it will retrieve the game object collection from the scene instance
 	mGameObjectCollection = newRoot->GetOwnerCollection().lock();
@@ -498,7 +498,7 @@ void SceneInstance::Clear(bool forceAll)
 			childIndex++;
 	}
 
-	const SPtr<GameObjectCollection>& gameObjectCollection = GetGameObjectCollection();
+	const TShared<GameObjectCollection>& gameObjectCollection = GetGameObjectCollection();
 	if(B3D_ENSURE(gameObjectCollection != nullptr))
 		gameObjectCollection->DestroyQueuedObjects();
 
@@ -528,7 +528,7 @@ void SceneInstance::NotifyMainCameraStateChanged(const HCamera& camera)
 	auto iterFind = std::find_if(mMainCameras.begin(), mMainCameras.end(), [&](const HCamera& entry)
 								 { return entry == camera; });
 
-	SPtr<Viewport> viewport = camera->GetViewport();
+	TShared<Viewport> viewport = camera->GetViewport();
 	if(camera->IsMain())
 	{
 		if(iterFind == mMainCameras.end())
@@ -554,7 +554,7 @@ HCamera SceneInstance::GetMainCamera() const
 	return nullptr;
 }
 
-void SceneInstance::SetMainCameraRenderTarget(const SPtr<RenderTarget>& renderTarget)
+void SceneInstance::SetMainCameraRenderTarget(const TShared<RenderTarget>& renderTarget)
 {
 	if(mPrimaryRenderTarget == renderTarget)
 		return;
@@ -598,12 +598,12 @@ HSceneObject SceneInstance::CreateSceneObject(const String& name, u32 flags)
 	return newSceneObject;
 }
 
-SPtr<SceneInstance> SceneInstance::Create(const String& name)
+TShared<SceneInstance> SceneInstance::Create(const String& name)
 {
-	const SPtr<GameObjectCollection>& gameObjectCollection = GameObjectCollection::Create();
+	const TShared<GameObjectCollection>& gameObjectCollection = GameObjectCollection::Create();
 	HSceneObject root = SceneObject::CreateInternal(gameObjectCollection, "Root");
 
-	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, UUID::kEmpty);
+	TShared<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, UUID::kEmpty);
 	root->SetScene(sceneInstance);
 
 	SceneManager::Instance().NotifySceneInstanceCreated(sceneInstance);
@@ -619,18 +619,18 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name)
 	return sceneInstance;
 }
 
-SPtr<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject& root)
+TShared<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject& root)
 {
 	return Create(name, root, UUID::kEmpty);
 }
 
-SPtr<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject& root, const UUID& associatedResourceId)
+TShared<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject& root, const UUID& associatedResourceId)
 {
-	const SPtr<GameObjectCollection>& gameObjectCollection = root->GetOwnerCollection().lock();
+	const TShared<GameObjectCollection>& gameObjectCollection = root->GetOwnerCollection().lock();
 	if(!B3D_ENSURE(gameObjectCollection != nullptr))
 		return nullptr;
 
-	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, associatedResourceId);
+	TShared<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, associatedResourceId);
 	root->SetScene(sceneInstance);
 
 	SceneManager::Instance().NotifySceneInstanceCreated(sceneInstance);
@@ -645,12 +645,12 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject
 	return sceneInstance;
 }
 
-SPtr<render::RenderProxy> SceneInstance::CreateRenderProxy() const
+TShared<render::RenderProxy> SceneInstance::CreateRenderProxy() const
 {
-	const SPtr<render::RendererScene>& rendererSceneProxy = B3DGetRenderProxy(mRendererScene);
+	const TShared<render::RendererScene>& rendererSceneProxy = B3DGetRenderProxy(mRendererScene);
 
 	render::SceneInstance* renderProxy = new(B3DAllocate<render::SceneInstance>()) render::SceneInstance(GetInternalId(), rendererSceneProxy);
-	SPtr<render::SceneInstance> renderProxyShared = B3DMakeSharedFromExisting<render::SceneInstance>(renderProxy);
+	TShared<render::SceneInstance> renderProxyShared = B3DMakeSharedFromExisting<render::SceneInstance>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;

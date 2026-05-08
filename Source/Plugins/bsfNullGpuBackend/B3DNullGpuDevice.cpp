@@ -128,7 +128,7 @@ namespace b3d
 			mCapabilities.AddShaderProfile("nullsl");
 		}
 
-		SPtr<GpuProgramBytecode> NullGpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
+		TShared<GpuProgramBytecode> NullGpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
 		{
 			return B3DMakeShared<GpuProgramBytecode>();
 		}
@@ -138,7 +138,7 @@ namespace b3d
 			return (u32)mQueueInfos[(u32)type].Queues.size();
 		}
 
-		SPtr<GpuQueue> NullGpuDevice::GetQueue(GpuQueueType type, u32 index) const
+		TShared<GpuQueue> NullGpuDevice::GetQueue(GpuQueueType type, u32 index) const
 		{
 			if (index < mQueueInfos[(u32)type].Queues.size())
 				return mQueueInfos[(u32)type].Queues[index];
@@ -146,18 +146,18 @@ namespace b3d
 			return nullptr;
 		}
 
-		SPtr<render::GpuCommandBufferPool> NullGpuDevice::CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation)
+		TShared<render::GpuCommandBufferPool> NullGpuDevice::CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation)
 		{
 			return B3DMakeSharedFromExisting(new(B3DAllocate<NullGpuCommandBufferPool>()) NullGpuCommandBufferPool(*this, createInformation));
 		}
 
-		SPtr<Texture> NullGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<Texture> NullGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
 			NullTexture* rawTexture = new(B3DAllocate<NullTexture>()) NullTexture(*this, createInformation);
 
 			// Default: standalone (calling-thread deletion)
 			// With RenderProxy flag: forward destruction to render thread
-			SPtr<NullTexture> texture = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+			TShared<NullTexture> texture = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
 				? B3DMakeSharedFromExisting(rawTexture)
 				: MakeSharedStandalone<NullTexture>(rawTexture);
 
@@ -169,13 +169,13 @@ namespace b3d
 			return texture;
 		}
 
-		SPtr<GpuBuffer> NullGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<GpuBuffer> NullGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
 			NullGpuBuffer* rawBuffer = new(B3DAllocate<NullGpuBuffer>()) NullGpuBuffer(*this, createInformation);
 
 			// Default: standalone (calling-thread deletion)
 			// With RenderProxy flag: forward destruction to render thread
-			SPtr<NullGpuBuffer> buffer = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+			TShared<NullGpuBuffer> buffer = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
 				? B3DMakeSharedFromExisting(rawBuffer)
 				: MakeSharedStandalone<NullGpuBuffer>(rawBuffer);
 
@@ -187,19 +187,19 @@ namespace b3d
 			return buffer;
 		}
 
-		SPtr<GpuQueryPool> NullGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
+		TShared<GpuQueryPool> NullGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
 		{
 			return B3DMakeShared<NullGpuQueryPool>(*this, createInformation);
 		}
 
-		SPtr<EventQuery> NullGpuDevice::CreateEventQuery()
+		TShared<EventQuery> NullGpuDevice::CreateEventQuery()
 		{
 			return B3DMakeShared<NullEventQuery>(*this);
 		}
 
-		SPtr<GpuProgram> NullGpuDevice::CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<GpuProgram> NullGpuDevice::CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
-			SPtr<NullGpuProgram> program = B3DMakeShared<NullGpuProgram>(*this, createInformation);
+			TShared<NullGpuProgram> program = B3DMakeShared<NullGpuProgram>(*this, createInformation);
 
 			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 				program->Initialize();
@@ -207,9 +207,9 @@ namespace b3d
 			return program;
 		}
 
-		SPtr<GpuGraphicsPipelineState> NullGpuDevice::CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<GpuGraphicsPipelineState> NullGpuDevice::CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
-			SPtr<NullGpuGraphicsPipelineState> pipelineState = B3DMakeShared<NullGpuGraphicsPipelineState>(*this, createInformation);
+			TShared<NullGpuGraphicsPipelineState> pipelineState = B3DMakeShared<NullGpuGraphicsPipelineState>(*this, createInformation);
 
 			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 				pipelineState->Initialize();
@@ -217,9 +217,9 @@ namespace b3d
 			return pipelineState;
 		}
 
-		SPtr<GpuComputePipelineState> NullGpuDevice::CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<GpuComputePipelineState> NullGpuDevice::CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
-			SPtr<NullGpuComputePipelineState> pipelineState = B3DMakeShared<NullGpuComputePipelineState>(*this, createInformation);
+			TShared<NullGpuComputePipelineState> pipelineState = B3DMakeShared<NullGpuComputePipelineState>(*this, createInformation);
 
 			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 				pipelineState->Initialize();
@@ -227,7 +227,7 @@ namespace b3d
 			return pipelineState;
 		}
 
-		SPtr<GpuPipelineParameterLayout> NullGpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
+		TShared<GpuPipelineParameterLayout> NullGpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
 		{
 			return B3DMakeShared<NullGpuPipelineParameterLayout>(*this, createInformation);
 		}
@@ -240,7 +240,7 @@ namespace b3d
 			{}
 		};
 
-		SPtr<GpuPipelineParameterSetLayout> NullGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
+		TShared<GpuPipelineParameterSetLayout> NullGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
 		{
 			return B3DMakeShared<NullGpuPipelineParameterSetLayout>(parameterDescription);
 		}
@@ -250,7 +250,7 @@ namespace b3d
 			return B3DMakeUnique<NullGpuParameterSetPool>(*this, createInformation);
 		}
 
-		SPtr<GpuTimelineFence> NullGpuDevice::CreateTimelineFence()
+		TShared<GpuTimelineFence> NullGpuDevice::CreateTimelineFence()
 		{
 			return B3DMakeShared<NullGpuTimelineFence>();
 		}
@@ -277,9 +277,9 @@ namespace b3d
 			return bufferInfo;
 		}
 
-		SPtr<SamplerState> NullGpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<SamplerState> NullGpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 		{
-			SPtr<NullSamplerState> samplerState = B3DMakeShared<NullSamplerState>(*this, createInformation);
+			TShared<NullSamplerState> samplerState = B3DMakeShared<NullSamplerState>(*this, createInformation);
 
 			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 				samplerState->Initialize();

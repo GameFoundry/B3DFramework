@@ -20,7 +20,7 @@ RTTIType* ShaderCompilerMetaData::GetRtti() const
 	return ShaderCompilerMetaData::GetRttiStatic();
 }
 
-SPtr<IShaderCompiler> ShaderCompilers::GetCompiler(const String& language)
+TShared<IShaderCompiler> ShaderCompilers::GetCompiler(const String& language)
 {
 	auto found = mCompilers.find(language);
 	if(found != mCompilers.end())
@@ -36,11 +36,11 @@ void ShaderCompilers::RegisterSearchPath(const Path& folder)
 }
 
 template <bool IsRenderProxy>
-SPtr<CoreVariantType<Shader, IsRenderProxy>> ShaderCompilers::GetOrCompileShader(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines)
+TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderCompilers::GetOrCompileShader(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines)
 {
 	using ShaderType = CoreVariantType<Shader, IsRenderProxy>;
 
-	SPtr<DataStream> shaderFileStream = nullptr;
+	TShared<DataStream> shaderFileStream = nullptr;
 
 	if(shaderPath.IsAbsolute())
 		shaderFileStream = FileSystem::OpenFile(shaderPath);
@@ -76,10 +76,10 @@ SPtr<CoreVariantType<Shader, IsRenderProxy>> ShaderCompilers::GetOrCompileShader
 	const Path shaderPathInCache = Path(shaderNameInCache) + shadingLanguageName + "MetaData";
 	PersistentCache& cache = GetApplication().GetApplicationCache();
 
-	SPtr<ShaderType> shader = cache.TryGetEntry<ShaderType>(shaderPathInCache);
+	TShared<ShaderType> shader = cache.TryGetEntry<ShaderType>(shaderPathInCache);
 	if(shader != nullptr)
 	{
-		const SPtr<ShaderCompilerMetaData> compilerMetaData = shader->GetCompilerMetaData();
+		const TShared<ShaderCompilerMetaData> compilerMetaData = shader->GetCompilerMetaData();
 		if(compilerMetaData != nullptr)
 		{
 			if(shaderHash != compilerMetaData->ShaderHash)
@@ -103,7 +103,7 @@ SPtr<CoreVariantType<Shader, IsRenderProxy>> ShaderCompilers::GetOrCompileShader
 
 	if(shader == nullptr)
 	{
-		const SPtr<IShaderCompiler> bslCompiler = GetCompiler("bsl");
+		const TShared<IShaderCompiler> bslCompiler = GetCompiler("bsl");
 		if(bslCompiler == nullptr)
 		{
 			B3D_LOG(Error, LogResources, "Shader compilation failed for shader \"{0}\". Shader compiler for BSL is not available.", shaderPath);
@@ -123,7 +123,7 @@ SPtr<CoreVariantType<Shader, IsRenderProxy>> ShaderCompilers::GetOrCompileShader
 			return nullptr;
 		}
 
-		const SPtr<ShaderCompilerMetaData> compilerMetaData = shader->GetCompilerMetaData();
+		const TShared<ShaderCompilerMetaData> compilerMetaData = shader->GetCompilerMetaData();
 		if(B3D_ENSURE(compilerMetaData != nullptr))
 		{
 			compilerMetaData->NameInCache = shaderNameInCache;
@@ -138,7 +138,7 @@ SPtr<CoreVariantType<Shader, IsRenderProxy>> ShaderCompilers::GetOrCompileShader
 
 ShadingLanguageFlag ShaderCompilers::DetectActiveShadingLanguage()
 {
-	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if(gpuDevice == nullptr)
 		return ShadingLanguageFlag::Unknown;
 
@@ -187,5 +187,5 @@ const char* ShaderCompilers::GetShadingLanguageName(ShadingLanguageFlag language
 	}
 }
 
-template B3D_EXPORT SPtr<CoreVariantType<Shader, false>> ShaderCompilers::GetOrCompileShader<false>(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
-template B3D_EXPORT SPtr<CoreVariantType<Shader, true>> ShaderCompilers::GetOrCompileShader<true>(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
+template B3D_EXPORT TShared<CoreVariantType<Shader, false>> ShaderCompilers::GetOrCompileShader<false>(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
+template B3D_EXPORT TShared<CoreVariantType<Shader, true>> ShaderCompilers::GetOrCompileShader<true>(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);

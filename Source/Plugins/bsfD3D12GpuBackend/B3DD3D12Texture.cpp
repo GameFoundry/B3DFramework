@@ -365,7 +365,7 @@ PixelData D3D12Texture::Map(GpuResourceUsage usage, u32 face, u32 mipLevel)
 		tempCommandList->Close();
 
 		// Execute the command list
-		SPtr<GpuQueue> queue = device.GetQueue(GQT_GRAPHICS, 0);
+		TShared<GpuQueue> queue = device.GetQueue(GQT_GRAPHICS, 0);
 		D3D12GpuQueue* d3d12Queue = static_cast<D3D12GpuQueue*>(queue.get());
 		ID3D12CommandQueue* commandQueue = d3d12Queue->GetD3D12Handle();
 
@@ -566,7 +566,7 @@ void D3D12Texture::Unmap(u32 face, u32 mipLevel)
 	tempCommandList->Close();
 
 	// Execute the command list
-	SPtr<GpuQueue> queue = device.GetQueue(GQT_GRAPHICS, 0);
+	TShared<GpuQueue> queue = device.GetQueue(GQT_GRAPHICS, 0);
 	D3D12GpuQueue* d3d12Queue = static_cast<D3D12GpuQueue*>(queue.get());
 	ID3D12CommandQueue* commandQueue = d3d12Queue->GetD3D12Handle();
 
@@ -687,7 +687,7 @@ void D3D12Texture::WriteData(const PixelData& data, u32 face, u32 mipLevel, bool
 	uploadBuffer->Unmap(0, nullptr);
 
 	// Get or create transfer command buffer for the current thread
-	SPtr<render::GpuCommandBuffer> transferCommandBuffer = device.GetOrCreateTransferCommandBuffer();
+	TShared<render::GpuCommandBuffer> transferCommandBuffer = device.GetOrCreateTransferCommandBuffer();
 	D3D12GpuCommandBuffer* d3d12CommandBuffer = static_cast<D3D12GpuCommandBuffer*>(transferCommandBuffer.get());
 
 	// Record copy commands on the transfer command buffer
@@ -765,7 +765,7 @@ void D3D12Texture::ReadData(PixelData& data, u32 face, u32 mipLevel)
 	}
 
 	// Get or create transfer command buffer for the current thread
-	SPtr<render::GpuCommandBuffer> transferCommandBuffer = device.GetOrCreateTransferCommandBuffer();
+	TShared<render::GpuCommandBuffer> transferCommandBuffer = device.GetOrCreateTransferCommandBuffer();
 	D3D12GpuCommandBuffer* d3d12CommandBuffer = static_cast<D3D12GpuCommandBuffer*>(transferCommandBuffer.get());
 
 	// Record copy commands on the transfer command buffer

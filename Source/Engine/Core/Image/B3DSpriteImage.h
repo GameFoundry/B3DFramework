@@ -125,14 +125,14 @@ namespace b3d
 		virtual ~SpriteImageAllocation();
 
 		/** Creates a new sprite image allocation. */
-		static SPtr<SpriteImageAllocation> Create(const WeakSPtr<SpriteImage>& owner, const HTexture& atlasTexture, const Area2& uvRange);
+		static TShared<SpriteImageAllocation> Create(const WeakSPtr<SpriteImage>& owner, const HTexture& atlasTexture, const Area2& uvRange);
 
 	protected:
 		friend class render::SpriteImageAllocation;
 
 		using TSpriteImageAllocation::TSpriteImageAllocation;
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 	};
 
@@ -205,7 +205,7 @@ namespace b3d
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 		using SpriteImageAllocationType = CoreVariantType<SpriteImageAllocation, IsRenderProxy>;
 
-		TSpriteImage(const SpriteImageCreateInformation& createInformation, const SPtr<SpriteImageAllocationType>& defaultAllocatedImage = nullptr)
+		TSpriteImage(const SpriteImageCreateInformation& createInformation, const TShared<SpriteImageAllocationType>& defaultAllocatedImage = nullptr)
 			:SpriteImageBase(createInformation), mDefaultAllocatedImage(defaultAllocatedImage)
 		{ }
 		~TSpriteImage() override = default;
@@ -225,14 +225,14 @@ namespace b3d
 		const SpriteImageAllocationType& GetDefaultAllocatedImage() const { return *mDefaultAllocatedImage; }
 
 		/** Returns the default (unscaled) image allocation, using the image size as provided on the sprite image construction. */
-		SPtr<SpriteImageAllocationType> GetDefaultAllocatedImageAsShared() const { return mDefaultAllocatedImage; }
+		TShared<SpriteImageAllocationType> GetDefaultAllocatedImageAsShared() const { return mDefaultAllocatedImage; }
 
 		/** Returns the size of a single animation frame in logical pixel units. If the texture has no animation this is the same as GetLogicalSize(). */
 		B3D_SCRIPT_EXPORT(ExportName(AnimationFrameSize), Property(Getter))
 		Size2UI GetAnimationFrameSize() const;
 
 	protected:
-		SPtr<SpriteImageAllocationType> mDefaultAllocatedImage;
+		TShared<SpriteImageAllocationType> mDefaultAllocatedImage;
 		TInlineArray<SpriteImageAllocationType*, 2> mScaledAllocatedImages;
 	};
 
@@ -263,7 +263,7 @@ namespace b3d
 		 * @param	size	Requested size of the allocation, in physical pixel units.
 		 * @return 			Allocation structure that provides information about the allocation and used for tracking allocation lifetime.
 		 */
-		virtual SPtr<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) = 0;
+		virtual TShared<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) = 0;
 
 		/**
 		 * Attempts to allocate a new image that is of appropriate quality for a scaled version of the default image. This is mostly used by vector shapes,
@@ -279,7 +279,7 @@ namespace b3d
 		 * @param	scale	Scale to apply.
 		 * @return 			Allocation structure that provides information about the allocation and used for tracking allocation lifetime.
 		 */
-		virtual SPtr<SpriteImageAllocation> FindOrAllocateScaledImage(float scale) = 0;
+		virtual TShared<SpriteImageAllocation> FindOrAllocateScaledImage(float scale) = 0;
 
 		/** Frees any data associated with the provided allocation. */
 		virtual void DeallocateImage(SpriteImageAllocation* allocation);
@@ -299,7 +299,7 @@ namespace b3d
 		{ }
 
 		void Destroy() override;
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		/************************************************************************/
@@ -339,7 +339,7 @@ namespace b3d
 		protected:
 			friend class b3d::SpriteImage;
 
-			SpriteImage(const SpriteImageCreateInformation& createInformation, const SPtr<SpriteImageAllocation>& defaultAllocatedImage)
+			SpriteImage(const SpriteImageCreateInformation& createInformation, const TShared<SpriteImageAllocation>& defaultAllocatedImage)
 				: TSpriteImage(createInformation, defaultAllocatedImage)
 			{ }
 

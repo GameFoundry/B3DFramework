@@ -265,7 +265,7 @@ namespace b3d
 		GpuParametersSetBase& operator=(const GpuParametersSetBase& rhs) = delete;
 
 		/** Gets the object that contains the processed information about all parameters. */
-		SPtr<GpuPipelineParameterSetLayout> GetLayout() const { return mParameterSetLayout; }
+		TShared<GpuPipelineParameterSetLayout> GetLayout() const { return mParameterSetLayout; }
 
 		/** Returns the set that this object is responsible binding parameters for. */
 		u32 GetSet() const { return mSet; }
@@ -295,9 +295,9 @@ namespace b3d
 		virtual void MarkResourcesDirtyInternal() {}
 
 	protected:
-		GpuParametersSetBase(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex);
+		GpuParametersSetBase(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex);
 
-		SPtr<GpuPipelineParameterSetLayout> mParameterSetLayout;
+		TShared<GpuPipelineParameterSetLayout> mParameterSetLayout;
 		u32 mSet = 0;
 	};
 
@@ -308,8 +308,8 @@ namespace b3d
 	public:
 		using GpuParametersType = CoreVariantType<GpuParameterSet, IsRenderProxy>;
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
-		using UniformBufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using BufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using UniformBufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 		virtual ~TGpuParameterSet();
 
@@ -376,7 +376,7 @@ namespace b3d
 		BufferType GetStorageBuffer(u32 slot, u32 arrayIndex = 0) const;
 
 		/**	Gets a sampler state bound to the specified slot/array index combination. */
-		SPtr<SamplerState> GetSamplerState(u32 slot, u32 arrayIndex = 0) const;
+		TShared<SamplerState> GetSamplerState(u32 slot, u32 arrayIndex = 0) const;
 
 		/** Gets information that determines which texture surfaces to bind as a sampled texture parameter. */
 		const TextureSurface& GetTextureSurface(u32 slot, u32 arrayIndex = 0) const;
@@ -437,7 +437,7 @@ namespace b3d
 		 * Sets a sampler state at the specified slot.
 		 * Returns true if the operation succeeded, otherwise logs and errors and returns false.
 		 */
-		virtual bool SetSamplerState(u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex = 0);
+		virtual bool SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex = 0);
 
 		/**	Assigns a data value to the parameter with the specified name. */
 		template <class T>
@@ -480,7 +480,7 @@ namespace b3d
 		}
 
 		/**	Assigns a sampler state to the parameter with the specified name. */
-		void SetSamplerState(const StringView& name, const SPtr<SamplerState>& sampler)
+		void SetSamplerState(const StringView& name, const TShared<SamplerState>& sampler)
 		{
 			TGpuParameterSampler<IsRenderProxy> param;
 			GetSamplerStateParameter(name, param);
@@ -488,9 +488,9 @@ namespace b3d
 		}
 
 	protected:
-		TGpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex);
+		TGpuParameterSet(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex);
 
-		virtual SPtr<GpuParametersType> GetSelf() const = 0;
+		virtual TShared<GpuParametersType> GetSelf() const = 0;
 
 		/** Data for a single bound texture. */
 		struct TextureData
@@ -517,7 +517,7 @@ namespace b3d
 		TextureData* mSampledTextureData = nullptr;
 		TextureData* mStorageTextureData = nullptr;
 		StorageBufferData* mStorageBufferData = nullptr;
-		SPtr<SamplerState>* mSamplerStates = nullptr;
+		TShared<SamplerState>* mSamplerStates = nullptr;
 	};
 
 	/** @} */
@@ -544,7 +544,7 @@ namespace b3d
 		 * @param	parameterSetLayout	Description of GPU parameters for a specific GPU pipeline state.
 		 * @param	setIndex			Index of the parameter set within the pipeline.
 		 */
-		static SPtr<GpuParameterSet> Create(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex = 0);
+		static TShared<GpuParameterSet> Create(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex = 0);
 
 		/** Contains a lookup table for sizes of all data parameters. Sizes are in bytes. */
 		const static GpuDataParameterTypeInformationLookup kParamSizes;
@@ -561,10 +561,10 @@ namespace b3d
 		struct SyncPacket;
 		friend class render::GpuParameterSet;
 
-		GpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex);
+		GpuParameterSet(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex);
 
-		SPtr<GpuParameterSet> GetSelf() const override;
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<GpuParameterSet> GetSelf() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		void GetListenerResources(Vector<HResource>& resources) override;
@@ -645,9 +645,9 @@ namespace b3d
 			friend class b3d::GpuParameterSet;
 			friend class b3d::GpuParameterSetPool;
 
-			GpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterLayout, u32 setIndex);
+			GpuParameterSet(const TShared<GpuPipelineParameterSetLayout>& parameterLayout, u32 setIndex);
 
-			SPtr<GpuParameterSet> GetSelf() const override;
+			TShared<GpuParameterSet> GetSelf() const override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 
 			GpuParameterSetPool* mOwnerPool = nullptr;

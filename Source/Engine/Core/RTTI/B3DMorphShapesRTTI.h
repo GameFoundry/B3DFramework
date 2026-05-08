@@ -35,7 +35,7 @@ namespace b3d
 			return TID_MorphShape;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<MorphShape>();
 		}
@@ -61,7 +61,7 @@ namespace b3d
 			return TID_MorphChannel;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return MorphChannel::CreateEmpty();
 		}
@@ -87,7 +87,7 @@ namespace b3d
 			return TID_MorphShapes;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return MorphShapes::CreateEmpty();
 		}

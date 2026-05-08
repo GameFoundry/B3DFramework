@@ -8,7 +8,7 @@ using namespace b3d;
 
 constexpr const char* RenderBeastFactory::kSystemName;
 
-SPtr<render::Renderer> RenderBeastFactory::Create()
+TShared<render::Renderer> RenderBeastFactory::Create()
 {
 	return B3DMakeShared<render::RenderBeast>();
 }

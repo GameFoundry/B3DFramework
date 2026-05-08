@@ -21,10 +21,10 @@ namespace b3d
 		NullPhysics(const PhysicsCreateInformation& createInformation);
 		~NullPhysics();
 
-		SPtr<PhysicsMaterial> CreateMaterial(float staticFriction, float dynamicFriction, float restitution) override;
-		UPtr<IPhysicsMeshImplementation> CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type) override;
-		SPtr<PhysicsScene> CreatePhysicsScene() override;
-		SPtr<ColliderShape> CreateColliderShape() override;
+		TShared<PhysicsMaterial> CreateMaterial(float staticFriction, float dynamicFriction, float restitution) override;
+		UPtr<IPhysicsMeshImplementation> CreateMesh(const TShared<MeshData>& meshData, PhysicsMeshType type) override;
+		TShared<PhysicsScene> CreatePhysicsScene() override;
+		TShared<ColliderShape> CreateColliderShape() override;
 		UPtr<IColliderImplementation> CreateColliderImplementation() override;
 		UPtr<IRigidbodyImplementation> CreateRigidbodyImplementation(Rigidbody& owner) override;
 

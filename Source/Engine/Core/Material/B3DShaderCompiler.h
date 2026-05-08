@@ -86,10 +86,10 @@ namespace b3d
 		 * @param		outShader			Shader if the compilation is successful, null otherwise.
 		 * @return							A result object containing an error message if not successful.
 		 */
-		virtual ShaderCompilerResult Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, SPtr<Shader>& outShader) = 0;
+		virtual ShaderCompilerResult Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, TShared<Shader>& outShader) = 0;
 
-		/** @copydoc Compile(const String&, const String&, const UnorderedMap<String, String>&, ShadingLanguageFlags, bool, SPtr<Shader>&) */
-		virtual ShaderCompilerResult Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, SPtr<render::Shader>& outShader) = 0;
+		/** @copydoc Compile(const String&, const String&, const UnorderedMap<String, String>&, ShadingLanguageFlags, bool, TShared<Shader>&) */
+		virtual ShaderCompilerResult Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, TShared<render::Shader>& outShader) = 0;
 
 		/**
 		 * Compiles a particular shader variation.
@@ -111,7 +111,7 @@ namespace b3d
 	{
 	public:
 		/** Registers a new shader compiler for the provided language. */
-		void RegisterCompiler(const String& language, const SPtr<IShaderCompiler>& compiler) { mCompilers[language] = compiler; }
+		void RegisterCompiler(const String& language, const TShared<IShaderCompiler>& compiler) { mCompilers[language] = compiler; }
 
 		/** Unregisters a shader compiler. */
 		void UnregisterCompiler(const String& language) { mCompilers.erase(language); }
@@ -120,7 +120,7 @@ namespace b3d
 		void RegisterSearchPath(const Path& folder);
 
 		/** Returns the compiler for the specified language. */
-		SPtr<IShaderCompiler> GetCompiler(const String& language);
+		TShared<IShaderCompiler> GetCompiler(const String& language);
 
 		/**
 		 * Attempts to retrieve a Shader object from cache or builds the Shader and adds it to the cache.
@@ -132,7 +132,7 @@ namespace b3d
 		 * @return					Shader object on success, or null on failure.
 		 */
 		template <bool IsRenderProxy>
-		SPtr<CoreVariantType<Shader, IsRenderProxy>> GetOrCompileShader(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
+		TShared<CoreVariantType<Shader, IsRenderProxy>> GetOrCompileShader(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
 
 		/** Detects shading language supported by the current render backend. */
 		static ShadingLanguageFlag DetectActiveShadingLanguage();
@@ -144,7 +144,7 @@ namespace b3d
 		static const char* GetShadingLanguageName(ShadingLanguageFlag language);
 
 	private:
-		UnorderedMap<String, SPtr<IShaderCompiler>> mCompilers;
+		UnorderedMap<String, TShared<IShaderCompiler>> mCompilers;
 		Vector<Path> mSearchPaths;
 		Mutex mSearchPathMutex;
 	};

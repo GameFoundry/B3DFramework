@@ -370,7 +370,7 @@ void Rigidbody::OnEnabled()
 	CheckForNestedRigibody();
 #endif
 
-	const SPtr<SceneInstance>& sceneInstance = SceneObject()->GetScene();
+	const TShared<SceneInstance>& sceneInstance = SceneObject()->GetScene();
 	mImplementation->AddToScene(*sceneInstance->GetPhysicsScene());
 }
 
@@ -395,8 +395,8 @@ void Rigidbody::OnTransformChanged(TransformChangedFlags flags)
 #endif
 	}
 
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
-	const SPtr<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
 
 	if(physicsScene->IsUpdateInProgress())
 		return;

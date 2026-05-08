@@ -46,7 +46,7 @@ namespace b3d
 	class B3D_EXPORT TVectorField
 	{
 	public:
-		using TextureType = SPtr<CoreVariantType<Texture, IsRenderProxy>>;
+		using TextureType = TShared<CoreVariantType<Texture, IsRenderProxy>>;
 
 		TVectorField() = default;
 
@@ -99,17 +99,17 @@ namespace b3d
 		 */
 
 		/** Same as create() excepts it creates a pointer to the vector field instead of a handle. */
-		static SPtr<VectorField> CreatePtrInternal(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values);
+		static TShared<VectorField> CreatePtrInternal(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values);
 
 		/** Creates the resource without initializing it. */
-		static SPtr<VectorField> CreateEmptyInternal();
+		static TShared<VectorField> CreateEmptyInternal();
 
 		/** @} */
 
 	protected:
 		VectorField(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values);
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -134,7 +134,7 @@ namespace b3d
 		class B3D_EXPORT VectorField : public RenderProxy, public TVectorField<true>
 		{
 		public:
-			VectorField(const VECTOR_FIELD_DESC& desc, const SPtr<Texture>& texture);
+			VectorField(const VECTOR_FIELD_DESC& desc, const TShared<Texture>& texture);
 		};
 
 		/** @} */
@@ -150,7 +150,7 @@ namespace b3d
 	public:
 		bool IsExtensionSupported(const String& ext) const override;
 		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const override;
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
+		TShared<Resource> Import(const Path& filePath, TShared<const ImportOptions> importOptions) override;
 	};
 
 	/** @} */

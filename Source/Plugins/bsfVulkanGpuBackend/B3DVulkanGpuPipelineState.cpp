@@ -269,7 +269,7 @@ void VulkanGpuGraphicsPipelineState::Initialize()
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineState);
 }
 
-VulkanPipeline* VulkanGpuGraphicsPipelineState::FindOrCreateVulkanResource(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput)
+VulkanPipeline* VulkanGpuGraphicsPipelineState::FindOrCreateVulkanResource(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType drawOp, const TShared<VulkanVertexInput>& vertexInput)
 {
 	Lock lock(mMutex);
 
@@ -307,7 +307,7 @@ void VulkanGpuGraphicsPipelineState::RegisterShaderModuleResources(VulkanResourc
 	}
 }
 
-VulkanPipeline* VulkanGpuGraphicsPipelineState::CreatePipeline(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType primitiveType, const SPtr<VulkanVertexInput>& vertexInput)
+VulkanPipeline* VulkanGpuGraphicsPipelineState::CreatePipeline(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType primitiveType, const TShared<VulkanVertexInput>& vertexInput)
 {
 	mInputAssemblyInfo.topology = VulkanUtility::GetDrawOp(primitiveType);
 	mTesselationInfo.patchControlPoints = 3; // Not provided by our shaders for now

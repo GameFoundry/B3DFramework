@@ -12,9 +12,9 @@ using namespace b3d;
 
 B3D_LOG_CATEGORY_STATIC(LogPersistentCache, Log)
 
-SPtr<PersistentCacheObject> PersistentCacheObject::Create(const SPtr<IReflectable>& object)
+TShared<PersistentCacheObject> PersistentCacheObject::Create(const TShared<IReflectable>& object)
 {
-	SPtr<PersistentCacheObject> cacheObject = B3DMakeSharedFromExisting<PersistentCacheObject>(new (B3DAllocate<PersistentCacheObject>()) PersistentCacheObject(object));
+	TShared<PersistentCacheObject> cacheObject = B3DMakeSharedFromExisting<PersistentCacheObject>(new (B3DAllocate<PersistentCacheObject>()) PersistentCacheObject(object));
 	cacheObject->SetId(UUIDGenerator::GenerateRandom());
 	cacheObject->SetShared(cacheObject);
 	cacheObject->Initialize();
@@ -22,9 +22,9 @@ SPtr<PersistentCacheObject> PersistentCacheObject::Create(const SPtr<IReflectabl
 	return cacheObject;
 }
 
-SPtr<PersistentCacheObject> PersistentCacheObject::Create(const TInlineArray<SPtr<IReflectable>, 1>& objects)
+TShared<PersistentCacheObject> PersistentCacheObject::Create(const TInlineArray<TShared<IReflectable>, 1>& objects)
 {
-	SPtr<PersistentCacheObject> cacheObject = B3DMakeSharedFromExisting<PersistentCacheObject>(new (B3DAllocate<PersistentCacheObject>()) PersistentCacheObject(objects));
+	TShared<PersistentCacheObject> cacheObject = B3DMakeSharedFromExisting<PersistentCacheObject>(new (B3DAllocate<PersistentCacheObject>()) PersistentCacheObject(objects));
 	cacheObject->SetId(UUIDGenerator::GenerateRandom());
 	cacheObject->SetShared(cacheObject);
 	cacheObject->Initialize();
@@ -55,7 +55,7 @@ RTTIType* PersistentCacheMetaData::GetRtti() const
 PersistentCache::CacheOperation::CacheOperation(const WeakSPtr<PersistentCache>& cache, const Path& entryPath, CacheOperationType type)
 	: Cache(cache), EntryPath(entryPath), Type(type)
 {
-	const SPtr<PersistentCache> cacheShared = cache.lock();
+	const TShared<PersistentCache> cacheShared = cache.lock();
 
 	if(!B3D_ENSURE(cacheShared))
 		return;
@@ -65,7 +65,7 @@ PersistentCache::CacheOperation::CacheOperation(const WeakSPtr<PersistentCache>&
 
 PersistentCache::CacheOperation::~CacheOperation()
 {
-	const SPtr<PersistentCache> cacheShared = Cache.lock();
+	const TShared<PersistentCache> cacheShared = Cache.lock();
 
 	if(!cacheShared)
 		return;
@@ -113,18 +113,18 @@ void PersistentCache::Initialize(const Path& cacheFolder)
 					return true;
 				}
 
-				SPtr<Package> package = Package::Load(path);
+				TShared<Package> package = Package::Load(path);
 				if(!B3D_ENSURE(package != nullptr))
 					return true;
 
 				bool isPackageOutOfDate = false;
 				for(const auto& resourceUUID : package->CreateResourceIdList())
 				{
-					const SPtr<const PackageResourceMetaData> resourceMetaData = package->GetResourceMetaData(resourceUUID);
+					const TShared<const PackageResourceMetaData> resourceMetaData = package->GetResourceMetaData(resourceUUID);
 					if(!B3D_ENSURE(resourceMetaData != nullptr))
 						continue;
 
-					const SPtr<PersistentCacheMetaData> cacheObjectMetaData = B3DRTTICast<PersistentCacheMetaData>(resourceMetaData->AdditionalMetaData);
+					const TShared<PersistentCacheMetaData> cacheObjectMetaData = B3DRTTICast<PersistentCacheMetaData>(resourceMetaData->AdditionalMetaData);
 					if(!B3D_ENSURE(cacheObjectMetaData != nullptr))
 						continue;
 
@@ -172,7 +172,7 @@ void PersistentCache::Initialize(const Path& cacheFolder)
 	RunEvictionIfRequired();
 }
 
-SPtr<PersistentCache> PersistentCache::Create()
+TShared<PersistentCache> PersistentCache::Create()
 {
 	return B3DMakeShared<PersistentCache>(PrivatelyConstruct());
 }
@@ -293,22 +293,22 @@ void PersistentCache::WriteDirtyMetaData()
 
 		const Path pathToPackage = GetPackagePathForEntry(entryPath);
 
-		const SPtr<DataStream> packageDataStream = FileSystem::OpenFile(pathToPackage, false);
+		const TShared<DataStream> packageDataStream = FileSystem::OpenFile(pathToPackage, false);
 		if(!packageDataStream)
 			continue;
 
-		const SPtr<Package> package = Package::Load(pathToPackage);
+		const TShared<Package> package = Package::Load(pathToPackage);
 
 		if(!B3D_ENSURE(package != nullptr))
 			continue;
 
 		for(const auto& resourceUUID : package->CreateResourceIdList())
 		{
-			const SPtr<const PackageResourceMetaData> resourceMetaData = package->GetResourceMetaData(resourceUUID);
+			const TShared<const PackageResourceMetaData> resourceMetaData = package->GetResourceMetaData(resourceUUID);
 			if(!B3D_ENSURE(resourceMetaData != nullptr))
 				continue;
 
-			SPtr<PersistentCacheMetaData> cacheObjectMetaData = B3DRTTICast<PersistentCacheMetaData>(resourceMetaData->AdditionalMetaData);
+			TShared<PersistentCacheMetaData> cacheObjectMetaData = B3DRTTICast<PersistentCacheMetaData>(resourceMetaData->AdditionalMetaData);
 			if(cacheObjectMetaData == nullptr)
 				cacheObjectMetaData = B3DMakeShared<PersistentCacheMetaData>();
 
@@ -362,38 +362,38 @@ void PersistentCache::Update()
 	WriteDirtyMetaData();
 }
 
-SPtr<IReflectable> PersistentCache::TryGetEntry(const Path& path)
+TShared<IReflectable> PersistentCache::TryGetEntry(const Path& path)
 {
 	TOptional<CacheOperation> operation = AcquireReadOperation(path);
 	if (!operation.has_value())
 		return nullptr;
 
-	const SPtr<Package> package = GetPackageForEntry(operation.value());
+	const TShared<Package> package = GetPackageForEntry(operation.value());
 	if (package == nullptr)
 		return nullptr;
 
-	const SPtr<Resource> resource = package->LoadResource(path);
+	const TShared<Resource> resource = package->LoadResource(path);
 	if (resource == nullptr)
 	{
 		B3D_LOG(Error, LogPersistentCache, "Cannot retrieve cache entry at path '{0}'. Failed deserializing entry from the package.", path);
 		return nullptr;
 	}
 
-	const SPtr<PersistentCacheObject> persistentCacheObject = B3DRTTICast<PersistentCacheObject>(resource);
+	const TShared<PersistentCacheObject> persistentCacheObject = B3DRTTICast<PersistentCacheObject>(resource);
 	if (persistentCacheObject == nullptr)
 	{
 		B3D_LOG(Error, LogPersistentCache, "Cannot retrieve cache entry at path '{0}. Package object is not of a valid type", path);
 		return nullptr;
 	}
 
-	const TInlineArray<SPtr<IReflectable>, 1>& cachedObjects = persistentCacheObject->GetObjects();
+	const TInlineArray<TShared<IReflectable>, 1>& cachedObjects = persistentCacheObject->GetObjects();
 	if (cachedObjects.Empty())
 		return nullptr;
 
 	return cachedObjects[0];
 }
 
-bool PersistentCache::SetEntry(const Path& path, const SPtr<IReflectable>& data, PersistentCachePriority priority, bool blocking)
+bool PersistentCache::SetEntry(const Path& path, const TShared<IReflectable>& data, PersistentCachePriority priority, bool blocking)
 {
 	if (path.IsEmpty())
 	{
@@ -417,15 +417,15 @@ bool PersistentCache::SetEntry(const Path& path, const SPtr<IReflectable>& data,
 		return true;
 	}
 
-	const SPtr<PersistentCacheObject> persistentCacheObject = PersistentCacheObject::Create(data);
+	const TShared<PersistentCacheObject> persistentCacheObject = PersistentCacheObject::Create(data);
 	B3D_ASSERT(persistentCacheObject != nullptr);
 
-	const SPtr<Package> package = Package::Create(path.GetFilename(), UUIDGenerator::GenerateRandom());
+	const TShared<Package> package = Package::Create(path.GetFilename(), UUIDGenerator::GenerateRandom());
 	B3D_ASSERT(package != nullptr);
 
 	package->AddResource(path,  persistentCacheObject);
 
-	const SPtr<PersistentCacheMetaData> cacheMetaData = B3DMakeShared<PersistentCacheMetaData>();
+	const TShared<PersistentCacheMetaData> cacheMetaData = B3DMakeShared<PersistentCacheMetaData>();
 	cacheMetaData->Priority = priority;
 	cacheMetaData->LastUsedTimestamp = (u64)std::time(nullptr);
 	cacheMetaData->CacheVersion = kVersion;
@@ -590,7 +590,7 @@ TOptional<PersistentCache::CacheOperation> PersistentCache::AcquireWriteOperatio
 	return CacheOperation(shared_from_this(), path, CacheOperationType::Write);
 }
 
-SPtr<Package> PersistentCache::GetPackageForEntry(const CacheOperation& operation) const
+TShared<Package> PersistentCache::GetPackageForEntry(const CacheOperation& operation) const
 {
 	if(!B3D_ENSURE(operation.Type == CacheOperationType::Read))
 		return nullptr;
@@ -599,7 +599,7 @@ SPtr<Package> PersistentCache::GetPackageForEntry(const CacheOperation& operatio
 	if (!FileSystem::Exists(pathToPackage))
 		return nullptr;
 
-	SPtr<Package> package = Package::Load(pathToPackage);
+	TShared<Package> package = Package::Load(pathToPackage);
 	if (package == nullptr)
 	{
 		B3D_LOG(Error, LogPersistentCache, "Failed retrieving cache entry. Cache package at path '{0}' failed to deserialize.", operation.EntryPath);
@@ -609,7 +609,7 @@ SPtr<Package> PersistentCache::GetPackageForEntry(const CacheOperation& operatio
 	return package;
 }
 
-bool PersistentCache::SetPackageForEntry(const CacheOperation& operation, const SPtr<Package>& package)
+bool PersistentCache::SetPackageForEntry(const CacheOperation& operation, const TShared<Package>& package)
 {
 	if(package == nullptr)
 		return false;
@@ -674,7 +674,7 @@ bool PersistentCache::SetPackageForEntry(const CacheOperation& operation, const 
 	Path temporaryPackagePath = temporaryPackageDirectory;
 	temporaryPackagePath.Append(package->GetPackageId().ToString() + Package::kPackageExtension);
 
-	SPtr<DataStream> temporaryFileStream = FileSystem::CreateAndOpenFile(temporaryPackagePath);
+	TShared<DataStream> temporaryFileStream = FileSystem::CreateAndOpenFile(temporaryPackagePath);
 	if(temporaryFileStream == nullptr)
 	{
 		B3D_LOG(Error, LogPersistentCache, "Cannot add entry '{0}' to cache. Unable to open a temporary file for writing at path '{1}'.", operation.EntryPath, temporaryPackagePath);

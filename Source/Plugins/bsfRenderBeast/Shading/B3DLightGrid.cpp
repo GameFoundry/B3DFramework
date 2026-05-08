@@ -49,7 +49,7 @@ void LightGridLLCreationMaterial::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("THREADGROUP_SIZE", kThreadgroupSize);
 }
 
-void LightGridLLCreationMaterial::SetParams(GpuCommandBuffer& commandBuffer, const Vector3I& gridSize, const GpuBufferSuballocation& gridUniformBuffer, const SPtr<GpuBuffer>& lightsBuffer, const SPtr<GpuBuffer>& probesBuffer)
+void LightGridLLCreationMaterial::SetParams(GpuCommandBuffer& commandBuffer, const Vector3I& gridSize, const GpuBufferSuballocation& gridUniformBuffer, const TShared<GpuBuffer>& lightsBuffer, const TShared<GpuBuffer>& probesBuffer)
 {
 	mGridSize = gridSize;
 	u32 numCells = gridSize[0] * gridSize[1] * gridSize[2];
@@ -125,7 +125,7 @@ void LightGridLLCreationMaterial::Execute(GpuCommandBuffer& commandBuffer, const
 	commandBuffer.DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
 }
 
-void LightGridLLCreationMaterial::GetOutputs(SPtr<GpuBuffer>& lightsLLHeads, SPtr<GpuBuffer>& lightsLL, SPtr<GpuBuffer>& probesLLHeads, SPtr<GpuBuffer>& probesLL) const
+void LightGridLLCreationMaterial::GetOutputs(TShared<GpuBuffer>& lightsLLHeads, TShared<GpuBuffer>& lightsLL, TShared<GpuBuffer>& probesLLHeads, TShared<GpuBuffer>& probesLL) const
 {
 	lightsLLHeads = mLightsLLHeads;
 	lightsLL = mLightsLL;
@@ -168,7 +168,7 @@ void LightGridLLReductionMaterial::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("THREADGROUP_SIZE", kThreadgroupSize);
 }
 
-void LightGridLLReductionMaterial::SetParams(GpuCommandBuffer& commandBuffer, const Vector3I& gridSize, const GpuBufferSuballocation& gridUniformBuffer, const SPtr<GpuBuffer>& lightsLLHeads, const SPtr<GpuBuffer>& lightsLL, const SPtr<GpuBuffer>& probeLLHeads, const SPtr<GpuBuffer>& probeLL)
+void LightGridLLReductionMaterial::SetParams(GpuCommandBuffer& commandBuffer, const Vector3I& gridSize, const GpuBufferSuballocation& gridUniformBuffer, const TShared<GpuBuffer>& lightsLLHeads, const TShared<GpuBuffer>& lightsLL, const TShared<GpuBuffer>& probeLLHeads, const TShared<GpuBuffer>& probeLL)
 {
 	mGridSize = gridSize;
 	u32 numCells = gridSize[0] * gridSize[1] * gridSize[2];
@@ -234,7 +234,7 @@ void LightGridLLReductionMaterial::Execute(GpuCommandBuffer& commandBuffer, cons
 	commandBuffer.DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
 }
 
-void LightGridLLReductionMaterial::GetOutputs(SPtr<GpuBuffer>& gridLightOffsetsAndSize, SPtr<GpuBuffer>& gridLightIndices, SPtr<GpuBuffer>& gridProbeOffsetsAndSize, SPtr<GpuBuffer>& gridProbeIndices) const
+void LightGridLLReductionMaterial::GetOutputs(TShared<GpuBuffer>& gridLightOffsetsAndSize, TShared<GpuBuffer>& gridLightIndices, TShared<GpuBuffer>& gridProbeOffsetsAndSize, TShared<GpuBuffer>& gridProbeIndices) const
 {
 	gridLightOffsetsAndSize = mGridLightOffsetAndSize;
 	gridLightIndices = mGridLightIndices;
@@ -294,10 +294,10 @@ void LightGrid::UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& 
 	creationMat->SetParams(commandBuffer, gridSize, mGridUniformBuffer, lightData.GetLightBuffer(), probeData.GetProbeBuffer());
 	creationMat->Execute(commandBuffer, view);
 
-	SPtr<GpuBuffer> lightLLHeads;
-	SPtr<GpuBuffer> lightLL;
-	SPtr<GpuBuffer> probeLLHeads;
-	SPtr<GpuBuffer> probeLL;
+	TShared<GpuBuffer> lightLLHeads;
+	TShared<GpuBuffer> lightLL;
+	TShared<GpuBuffer> probeLLHeads;
+	TShared<GpuBuffer> probeLL;
 	creationMat->GetOutputs(lightLLHeads, lightLL, probeLLHeads, probeLL);
 
 	LightGridLLReductionMaterial* reductionMat = LightGridLLReductionMaterial::Get();

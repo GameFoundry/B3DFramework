@@ -21,7 +21,7 @@ using namespace b3d;
 
 namespace b3d { namespace render
 {
-void Renderer::Initialize(const SPtr<GpuDevice>& gpuDevice)
+void Renderer::Initialize(const TShared<GpuDevice>& gpuDevice)
 {
 	mDevice = gpuDevice;
 }
@@ -51,13 +51,13 @@ void Renderer::DestroyOnRenderThread()
 	mCommandBufferPoolRing = nullptr;
 }
 
-SPtr<RendererMeshData> Renderer::CreateMeshDataInternal(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType)
+TShared<RendererMeshData> Renderer::CreateMeshDataInternal(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType)
 {
 	return B3DMakeSharedFromExisting<RendererMeshData>(new(B3DAllocate<RendererMeshData>())
 											   RendererMeshData(numVertices, numIndices, layout, indexType));
 }
 
-SPtr<RendererMeshData> Renderer::CreateMeshDataInternal(const SPtr<MeshData>& meshData)
+TShared<RendererMeshData> Renderer::CreateMeshDataInternal(const TShared<MeshData>& meshData)
 {
 	return B3DMakeSharedFromExisting<RendererMeshData>(new(B3DAllocate<RendererMeshData>())
 											   RendererMeshData(meshData));
@@ -77,7 +77,7 @@ void Renderer::Update()
 	std::swap(mRemainingUnresolvedTasks, mUnresolvedTasks);
 }
 
-void Renderer::AddTask(const SPtr<RendererTask>& task)
+void Renderer::AddTask(const TShared<RendererTask>& task)
 {
 	Lock lock(mTaskMutex);
 
@@ -177,7 +177,7 @@ void Renderer::ProcessTask(RendererTask& task, bool forceAll)
 	}
 }
 
-SPtr<Renderer> GetRenderer()
+TShared<Renderer> GetRenderer()
 {
 	return std::static_pointer_cast<Renderer>(RendererManager::Instance().GetActive());
 }
@@ -186,7 +186,7 @@ RendererTask::RendererTask(const PrivatelyConstruct& dummy, String name, std::fu
 	: mName(std::move(name)), mTaskWorker(std::move(taskWorker))
 {}
 
-SPtr<RendererTask> RendererTask::Create(String name, std::function<bool(GpuCommandBufferPool&)> taskWorker)
+TShared<RendererTask> RendererTask::Create(String name, std::function<bool(GpuCommandBufferPool&)> taskWorker)
 {
 	return B3DMakeShared<RendererTask>(PrivatelyConstruct(), std::move(name), std::move(taskWorker));
 }

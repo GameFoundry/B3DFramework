@@ -7,7 +7,7 @@ All GUI elements in the framework are managed by a @b3d::GUIWidget component. Ea
 The camera is created in the same way as shown in previous chapters, and you can use the same camera for both GUI and normal scene rendering. GUI elements will not be affected by the camera's position, orientation, or projection properties, though they may be affected by the size of the camera's render target.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 
 HSceneObject cameraSceneObject = SceneObject::Create("Camera");
 HCamera camera = cameraSceneObject->AddComponent<Camera>(primaryWindow);
@@ -53,7 +53,7 @@ In the example above, we assumed you would use the same camera for both GUI and 
 Initial creation of the camera is identical:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
+TShared<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 
 HSceneObject guiCameraSceneObject = SceneObject::Create("GUI camera");
 HCamera guiCamera = guiCameraSceneObject->AddComponent<Camera>(primaryWindow);
@@ -62,7 +62,7 @@ HCamera guiCamera = guiCameraSceneObject->AddComponent<Camera>(primaryWindow);
 To prevent the camera from rendering scene objects, enable the **RenderSettings::OverlayOnly** property on the camera's **RenderSettings** object:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderSettings> renderSettings = guiCamera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = guiCamera->GetRenderSettings();
 renderSettings->OverlayOnly = true;
 
 guiCamera->SetRenderSettings(renderSettings);
@@ -75,7 +75,7 @@ Next, prevent the camera from clearing the render target. By default, cameras wi
 **Viewport** is retrieved by calling @b3d::Camera::GetViewport. Set whether the render target is cleared through @b3d::Viewport::SetClearFlags by providing the @b3d::ClearFlagBits::Empty flag:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<Viewport> viewport = guiCamera->GetViewport();
+TShared<Viewport> viewport = guiCamera->GetViewport();
 
 // Disable clear for color, depth and stencil buffers
 viewport->SetClearFlags(ClearFlagBits::Empty);

@@ -53,7 +53,7 @@ namespace b3d
 		 * on the render thread, and the entity can be rendered. Use Mark*Dirty() methods when changing data fragment properties
 		 * to ensure render proxy has up-to-date information.
 		 */
-		static void RegisterWithRenderer(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene)
+		static void RegisterWithRenderer(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene)
 		{
 			(rendererScene.get()->*AllocateFn)(registry, entity);
 			MarkDirty(registry, entity);
@@ -63,7 +63,7 @@ namespace b3d
 		 * Deallocates the renderer ID and removes dirty tags. This deallocated the render proxy for the entity on the render thread,
 		 * and the entity will no longer be rendered. Does not remove data fragments — the entity stays but is deactivated.
 		 */
-		static void UnregisterFromRenderer(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene)
+		static void UnregisterFromRenderer(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene)
 		{
 			(rendererScene.get()->*DeallocateFn)(registry, entity);
 			registry.RemoveComponents<DirtyTag>(entity);
@@ -96,7 +96,7 @@ namespace b3d
 
 			if(registerWithRenderer)
 			{
-				const SPtr<RendererScene>& rendererScene = newScene.GetRendererScene();
+				const TShared<RendererScene>& rendererScene = newScene.GetRendererScene();
 				(rendererScene.get()->*AllocateFn)(newRegistry, newEntity);
 				MarkDirty(newRegistry, newEntity);
 			}

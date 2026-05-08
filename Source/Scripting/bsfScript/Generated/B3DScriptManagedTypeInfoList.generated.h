@@ -15,7 +15,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ManagedTypeInfoList")
 
-		ScriptManagedTypeInfoList(const SPtr<ManagedTypeInfoList>& nativeObject);
+		ScriptManagedTypeInfoList(const TShared<ManagedTypeInfoList>& nativeObject);
 		~ScriptManagedTypeInfoList();
 
 		static void SetupScriptBindings();

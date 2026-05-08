@@ -43,7 +43,7 @@ namespace b3d
 			return TID_TextureParamData;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<MaterialParamTextureData>();
 		}
@@ -63,7 +63,7 @@ namespace b3d
 			return TID_BufferParamData;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<MaterialParamBufferData>();
 		}
@@ -87,7 +87,7 @@ namespace b3d
 			return TID_SamplerStateParamData;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<MaterialParamSamplerStateData>();
 		}
@@ -106,14 +106,14 @@ namespace b3d
 			B3D_RTTI_MEMBER_CONTAINER(mSamplerParameters, 7)
 		B3D_RTTI_END_MEMBERS
 
-		SPtr<DataStream> GetDataBuffer(MaterialParameters* obj, u32& size)
+		TShared<DataStream> GetDataBuffer(MaterialParameters* obj, u32& size)
 		{
 			size = obj->mDataSize;
 
 			return B3DMakeShared<MemoryDataStream>(obj->mDataParamsBuffer, obj->mDataSize);
 		}
 
-		void SetDataBuffer(MaterialParameters* obj, const SPtr<DataStream>& value, u32 size)
+		void SetDataBuffer(MaterialParameters* obj, const TShared<DataStream>& value, u32 size)
 		{
 			obj->mDataParamsBuffer = obj->mAlloc.Alloc(size);
 			value->Read(obj->mDataParamsBuffer, size);
@@ -137,7 +137,7 @@ namespace b3d
 			return TID_MaterialParameters;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<MaterialParameters>();
 		}

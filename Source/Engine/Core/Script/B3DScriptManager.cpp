@@ -4,7 +4,7 @@
 
 using namespace b3d;
 
-SPtr<ScriptLibrary> ScriptManager::sScriptLibrary;
+TShared<ScriptLibrary> ScriptManager::sScriptLibrary;
 
 ScriptManager::ScriptManager()
 {

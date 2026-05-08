@@ -18,7 +18,7 @@ void ReflectionCubeDownsampleMaterial::Initialize()
 	mGpuParameterSet->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
 }
 
-void ReflectionCubeDownsampleMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target)
+void ReflectionCubeDownsampleMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 mip, const TShared<RenderTarget>& target)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -62,7 +62,7 @@ void ReflectionCubeImportanceSampleMaterial::InitDefinesInternal(ShaderDefines& 
 	defines.Set("NUM_SAMPLES", kNumSamples);
 }
 
-void ReflectionCubeImportanceSampleMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target)
+void ReflectionCubeImportanceSampleMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 mip, const TShared<RenderTarget>& target)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -114,7 +114,7 @@ void IrradianceComputeSHMaterial::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("PIXELS_PER_THREAD", kPixelsPerThread);
 }
 
-void IrradianceComputeSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, const SPtr<GpuBuffer>& output)
+void IrradianceComputeSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, const TShared<GpuBuffer>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -140,7 +140,7 @@ void IrradianceComputeSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const
 	commandBuffer.DispatchCompute(dispatchSize.X, dispatchSize.Y);
 }
 
-SPtr<GpuBuffer> IrradianceComputeSHMaterial::CreateOutputBuffer(const SPtr<Texture>& source, u32& numCoeffSets)
+TShared<GpuBuffer> IrradianceComputeSHMaterial::CreateOutputBuffer(const TShared<Texture>& source, u32& numCoeffSets)
 {
 	auto& props = source->GetProperties();
 	u32 faceSize = props.Width;
@@ -181,7 +181,7 @@ void IrradianceComputeSHFragMaterial::Initialize()
 	mGpuParameterSet->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
 }
 
-void IrradianceComputeSHFragMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 coefficientIdx, const SPtr<RenderTarget>& output)
+void IrradianceComputeSHFragMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 coefficientIdx, const TShared<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -203,7 +203,7 @@ void IrradianceComputeSHFragMaterial::Execute(GpuCommandBuffer& commandBuffer, c
 	commandBuffer.EndRenderPass();
 }
 
-PooledRenderTextureCreateInformation IrradianceComputeSHFragMaterial::GetOutputDesc(const SPtr<Texture>& input)
+PooledRenderTextureCreateInformation IrradianceComputeSHFragMaterial::GetOutputDesc(const TShared<Texture>& input)
 {
 	auto& props = input->GetProperties();
 	return PooledRenderTextureCreateInformation::CreateCube(PF_RGBA16F, props.Width, props.Height, TextureUsageFlag::RenderTarget);
@@ -217,7 +217,7 @@ void IrradianceAccumulateSHMaterial::Initialize()
 	mGpuParameterSet->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
 }
 
-void IrradianceAccumulateSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 sourceMip, const SPtr<RenderTarget>& output)
+void IrradianceAccumulateSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 sourceMip, const TShared<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -241,7 +241,7 @@ void IrradianceAccumulateSHMaterial::Execute(GpuCommandBuffer& commandBuffer, co
 	commandBuffer.EndRenderPass();
 }
 
-PooledRenderTextureCreateInformation IrradianceAccumulateSHMaterial::GetOutputDesc(const SPtr<Texture>& input)
+PooledRenderTextureCreateInformation IrradianceAccumulateSHMaterial::GetOutputDesc(const TShared<Texture>& input)
 {
 	auto& props = input->GetProperties();
 
@@ -257,7 +257,7 @@ void IrradianceAccumulateCubeSHMaterial::Initialize()
 	mGpuParameterSet->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
 }
 
-void IrradianceAccumulateCubeSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 sourceMip, const Vector2I& outputOffset, u32 coefficientIdx, const SPtr<RenderTarget>& output)
+void IrradianceAccumulateCubeSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 sourceMip, const Vector2I& outputOffset, u32 coefficientIdx, const TShared<RenderTarget>& output)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -309,7 +309,7 @@ void IrradianceReduceSHMaterial::Initialize()
 	mGpuParameterSet->GetStorageTextureParameter("gOutput", mOutputTextureParameter);
 }
 
-void IrradianceReduceSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& source, u32 numCoeffSets, const SPtr<Texture>& output, u32 outputIdx)
+void IrradianceReduceSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& source, u32 numCoeffSets, const TShared<Texture>& output, u32 outputIdx)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -329,7 +329,7 @@ void IrradianceReduceSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const 
 	commandBuffer.DispatchCompute(1);
 }
 
-SPtr<Texture> IrradianceReduceSHMaterial::CreateOutputTexture(u32 numCoeffSets)
+TShared<Texture> IrradianceReduceSHMaterial::CreateOutputTexture(u32 numCoeffSets)
 {
 	u32 shOrder = (u32)mVariationParameters.GetI32("SH_ORDER");
 	Vector2I size = IBLUtility::GetShCoeffTextureSize(numCoeffSets, shOrder);
@@ -360,7 +360,7 @@ void IrradianceProjectSHMaterial::Initialize()
 	mGpuParameterSet->GetSampledTextureParameter("gSHCoeffs", mInputTextureParameter);
 }
 
-void IrradianceProjectSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& shCoeffs, u32 face, const SPtr<RenderTarget>& target)
+void IrradianceProjectSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& shCoeffs, u32 face, const TShared<RenderTarget>& target)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -379,12 +379,12 @@ void IrradianceProjectSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const
 	commandBuffer.EndRenderPass();
 }
 
-void RenderBeastIBLUtility::FilterCubemapForSpecular(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const
+void RenderBeastIBLUtility::FilterCubemapForSpecular(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& scratch) const
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	auto& props = cubemap->GetProperties();
 
-	SPtr<Texture> scratchCubemap = scratch;
+	TShared<Texture> scratchCubemap = scratch;
 	if(scratchCubemap == nullptr)
 	{
 		TextureCreateInformation cubemapDesc;
@@ -438,7 +438,7 @@ void RenderBeastIBLUtility::FilterCubemapForSpecular(GpuCommandBuffer& commandBu
 			cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
 			cubeFaceRTDesc.ColorSurfaces[0].MipLevel = mip;
 
-			SPtr<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
+			TShared<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
 
 			ReflectionCubeImportanceSampleMaterial* material = ReflectionCubeImportanceSampleMaterial::Get();
 			material->Execute(commandBuffer, scratchCubemap, face, mip, target);
@@ -451,16 +451,16 @@ bool SupportsComputeSh()
 	return GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 }
 
-void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const
+void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output) const
 {
-	SPtr<Texture> coeffTexture;
+	TShared<Texture> coeffTexture;
 	if(SupportsComputeSh())
 	{
 		IrradianceComputeSHMaterial* shCompute = IrradianceComputeSHMaterial::GetVariation(5);
 		IrradianceReduceSHMaterial* shReduce = IrradianceReduceSHMaterial::GetVariation(5);
 
 		u32 numCoeffSets;
-		SPtr<GpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
+		TShared<GpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
 		for(u32 face = 0; face < 6; face++)
 			shCompute->Execute(commandBuffer, cubemap, face, coeffSetBuffer);
 
@@ -469,7 +469,7 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& command
 	}
 	else
 	{
-		SPtr<PooledRenderTexture> finalCoeffs = GetGpuResourcePool().Get(IrradianceAccumulateCubeSHMaterial::GetOutputDesc());
+		TShared<PooledRenderTexture> finalCoeffs = GetGpuResourcePool().Get(IrradianceAccumulateCubeSHMaterial::GetOutputDesc());
 
 		FilterCubemapForIrradianceNonCompute(commandBuffer, cubemap, 0, finalCoeffs->RenderTexture);
 		coeffTexture = finalCoeffs->Texture;
@@ -484,12 +484,12 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& command
 		cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
 		cubeFaceRTDesc.ColorSurfaces[0].MipLevel = 0;
 
-		SPtr<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
+		TShared<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
 		shProject->Execute(commandBuffer, coeffTexture, face, target);
 	}
 }
 
-void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const SPtr<Texture>& output, u32 outputIdx) const
+void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output, u32 outputIdx) const
 {
 	if(SupportsComputeSh())
 	{
@@ -497,7 +497,7 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& command
 		IrradianceReduceSHMaterial* shReduce = IrradianceReduceSHMaterial::GetVariation(3);
 
 		u32 numCoeffSets;
-		SPtr<GpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
+		TShared<GpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
 		for(u32 face = 0; face < 6; face++)
 			shCompute->Execute(commandBuffer, cubemap, face, coeffSetBuffer);
 
@@ -508,19 +508,19 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& command
 		RenderTextureCreateInformation rtDesc;
 		rtDesc.ColorSurfaces[0].Texture = output;
 
-		SPtr<RenderTexture> target = RenderTexture::Create(rtDesc);
+		TShared<RenderTexture> target = RenderTexture::Create(rtDesc);
 		FilterCubemapForIrradianceNonCompute(commandBuffer, cubemap, outputIdx, target);
 	}
 }
 
-void RenderBeastIBLUtility::ScaleCubemap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip) const
+void RenderBeastIBLUtility::ScaleCubemap(GpuCommandBuffer& commandBuffer, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip) const
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	auto& srcProps = src->GetProperties();
 	auto& dstProps = dst->GetProperties();
 
-	SPtr<Texture> scratchTex = src;
+	TShared<Texture> scratchTex = src;
 	int sizeSrcLog2 = (int)log2((float)srcProps.Width);
 	int sizeDstLog2 = (int)log2((float)dstProps.Width);
 
@@ -569,7 +569,7 @@ void RenderBeastIBLUtility::ScaleCubemap(GpuCommandBuffer& commandBuffer, const 
 		DownsampleCubemap(commandBuffer, scratchTex, srcMip, dst, dstMip);
 }
 
-void RenderBeastIBLUtility::DownsampleCubemap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip)
+void RenderBeastIBLUtility::DownsampleCubemap(GpuCommandBuffer& commandBuffer, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip)
 {
 	for(u32 face = 0; face < 6; face++)
 	{
@@ -579,14 +579,14 @@ void RenderBeastIBLUtility::DownsampleCubemap(GpuCommandBuffer& commandBuffer, c
 		cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
 		cubeFaceRTDesc.ColorSurfaces[0].MipLevel = dstMip;
 
-		SPtr<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
+		TShared<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
 
 		ReflectionCubeDownsampleMaterial* material = ReflectionCubeDownsampleMaterial::Get();
 		material->Execute(commandBuffer, src, face, srcMip, target);
 	}
 }
 
-void RenderBeastIBLUtility::FilterCubemapForIrradianceNonCompute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, u32 outputIdx, const SPtr<RenderTexture>& output)
+void RenderBeastIBLUtility::FilterCubemapForIrradianceNonCompute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, u32 outputIdx, const TShared<RenderTexture>& output)
 {
 	static const u32 kNumCoeffs = 9;
 
@@ -597,7 +597,7 @@ void RenderBeastIBLUtility::FilterCubemapForIrradianceNonCompute(GpuCommandBuffe
 
 	for(u32 coeff = 0; coeff < kNumCoeffs; ++coeff)
 	{
-		SPtr<PooledRenderTexture> coeffsTex = resPool.Get(shCompute->GetOutputDesc(cubemap));
+		TShared<PooledRenderTexture> coeffsTex = resPool.Get(shCompute->GetOutputDesc(cubemap));
 
 		// Generate SH coefficients and weights per-texel
 		for(u32 face = 0; face < 6; face++)
@@ -608,7 +608,7 @@ void RenderBeastIBLUtility::FilterCubemapForIrradianceNonCompute(GpuCommandBuffe
 			cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
 			cubeFaceRTDesc.ColorSurfaces[0].MipLevel = 0;
 
-			SPtr<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
+			TShared<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
 			shCompute->Execute(commandBuffer, cubemap, face, coeff, target);
 		}
 
@@ -616,12 +616,12 @@ void RenderBeastIBLUtility::FilterCubemapForIrradianceNonCompute(GpuCommandBuffe
 		auto& sourceProps = cubemap->GetProperties();
 		u32 numMips = PixelUtility::GetMipmapCount(sourceProps.Width, sourceProps.Height, 1, sourceProps.Format);
 
-		SPtr<PooledRenderTexture> downsampleInput = coeffsTex;
+		TShared<PooledRenderTexture> downsampleInput = coeffsTex;
 		coeffsTex = nullptr;
 
 		for(u32 mip = 0; mip < numMips; mip++)
 		{
-			SPtr<PooledRenderTexture> accumCoeffsTex = resPool.Get(shAccum->GetOutputDesc(downsampleInput->Texture));
+			TShared<PooledRenderTexture> accumCoeffsTex = resPool.Get(shAccum->GetOutputDesc(downsampleInput->Texture));
 
 			for(u32 face = 0; face < 6; face++)
 			{
@@ -631,7 +631,7 @@ void RenderBeastIBLUtility::FilterCubemapForIrradianceNonCompute(GpuCommandBuffe
 				cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
 				cubeFaceRTDesc.ColorSurfaces[0].MipLevel = 0;
 
-				SPtr<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
+				TShared<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
 				shAccum->Execute(commandBuffer, downsampleInput->Texture, face, 0, target);
 			}
 

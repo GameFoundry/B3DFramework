@@ -18,17 +18,17 @@ namespace b3d
 			MetalGpuCommandBufferPool::Destroy();
 		}
 
-		SPtr<GpuCommandBuffer> MetalGpuCommandBufferPool::Create(const GpuCommandBufferCreateInformation& createInformation)
+		TShared<GpuCommandBuffer> MetalGpuCommandBufferPool::Create(const GpuCommandBufferCreateInformation& createInformation)
 		{
 			const u32 id = mNextCommandBufferId++;
-			SPtr<MetalGpuCommandBuffer> commandBuffer = B3DMakeShared<MetalGpuCommandBuffer>(
+			TShared<MetalGpuCommandBuffer> commandBuffer = B3DMakeShared<MetalGpuCommandBuffer>(
 				static_cast<MetalGpuDevice&>(mGpuDevice), *this, id, mInformation.Thread, mInformation.Type, createInformation);
 
 			mCommandBuffers[id] = commandBuffer;
 			return commandBuffer;
 		}
 
-		SPtr<GpuCommandBuffer> MetalGpuCommandBufferPool::FindOrCreate(const GpuCommandBufferCreateInformation& createInformation)
+		TShared<GpuCommandBuffer> MetalGpuCommandBufferPool::FindOrCreate(const GpuCommandBufferCreateInformation& createInformation)
 		{
 			// B12: @c mReadyIds free-list is touched only on the pool's owner thread. Both
 			// @c FindOrCreate (render thread) and @c NotifyCommandBufferReady (posted via the pool's

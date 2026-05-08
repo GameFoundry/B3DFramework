@@ -16,7 +16,7 @@ GpuResourcePool::GpuResourcePool()
 	mDevice = GetApplication().GetPrimaryGpuDevice();
 }
 
-SPtr<PooledRenderTexture> GpuResourcePool::Get(const PooledRenderTextureCreateInformation& desc)
+TShared<PooledRenderTexture> GpuResourcePool::Get(const PooledRenderTextureCreateInformation& desc)
 {
 	for(auto& entry : mTextures)
 	{
@@ -34,7 +34,7 @@ SPtr<PooledRenderTexture> GpuResourcePool::Get(const PooledRenderTextureCreateIn
 		}
 	}
 
-	SPtr<PooledRenderTexture> newTexture = B3DMakeShared<PooledRenderTexture>(mCurrentFrame);
+	TShared<PooledRenderTexture> newTexture = B3DMakeShared<PooledRenderTexture>(mCurrentFrame);
 	mTextures.Add(newTexture);
 
 	TextureCreateInformation textureCreateInformation;
@@ -79,7 +79,7 @@ SPtr<PooledRenderTexture> GpuResourcePool::Get(const PooledRenderTextureCreateIn
 	return newTexture;
 }
 
-void GpuResourcePool::Get(SPtr<PooledRenderTexture>& texture, const PooledRenderTextureCreateInformation& desc)
+void GpuResourcePool::Get(TShared<PooledRenderTexture>& texture, const PooledRenderTextureCreateInformation& desc)
 {
 	if(texture && Matches(texture->Texture, desc))
 		return;
@@ -87,7 +87,7 @@ void GpuResourcePool::Get(SPtr<PooledRenderTexture>& texture, const PooledRender
 	texture = Get(desc);
 }
 
-SPtr<PooledStorageBuffer> GpuResourcePool::Get(const POOLED_STORAGE_BUFFER_DESC& desc)
+TShared<PooledStorageBuffer> GpuResourcePool::Get(const POOLED_STORAGE_BUFFER_DESC& desc)
 {
 	for(auto& entry : mBuffers)
 	{
@@ -105,7 +105,7 @@ SPtr<PooledStorageBuffer> GpuResourcePool::Get(const POOLED_STORAGE_BUFFER_DESC&
 		}
 	}
 
-	SPtr<PooledStorageBuffer> newBuffer = B3DMakeShared<PooledStorageBuffer>(mCurrentFrame);
+	TShared<PooledStorageBuffer> newBuffer = B3DMakeShared<PooledStorageBuffer>(mCurrentFrame);
 	mBuffers.Add(newBuffer);
 
 	GpuBufferCreateInformation bufferCreateInformation;
@@ -129,7 +129,7 @@ SPtr<PooledStorageBuffer> GpuResourcePool::Get(const POOLED_STORAGE_BUFFER_DESC&
 	return newBuffer;
 }
 
-void GpuResourcePool::Get(SPtr<PooledStorageBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc)
+void GpuResourcePool::Get(TShared<PooledStorageBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc)
 {
 	if(buffer && Matches(buffer->Buffer, desc))
 		return;
@@ -185,7 +185,7 @@ void GpuResourcePool::Prune(u32 age)
 	}
 }
 
-bool GpuResourcePool::Matches(const SPtr<Texture>& texture, const PooledRenderTextureCreateInformation& desc)
+bool GpuResourcePool::Matches(const TShared<Texture>& texture, const PooledRenderTextureCreateInformation& desc)
 {
 	const TextureProperties& texProps = texture->GetProperties();
 
@@ -194,7 +194,7 @@ bool GpuResourcePool::Matches(const SPtr<Texture>& texture, const PooledRenderTe
 	return match;
 }
 
-bool GpuResourcePool::Matches(const SPtr<GpuBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc)
+bool GpuResourcePool::Matches(const TShared<GpuBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc)
 {
 	const GpuBufferInformation& gpuBufferInformation = buffer->GetInformation();
 

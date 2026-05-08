@@ -50,7 +50,7 @@ namespace b3d
 		 * Populates the provided uniform buffer with information about the light. Provided buffer's structure
 		 * must match PerLightUniformDefinition.
 		 */
-		void PopulateLightUniformBuffer(const LightProxy& proxy, SPtr<GpuBuffer>& buffer, u32 index = 0);
+		void PopulateLightUniformBuffer(const LightProxy& proxy, TShared<GpuBuffer>& buffer, u32 index = 0);
 
 		/**
 		 * Calculates the light position that is shifted in order to account for area spot lights. For non-spot lights
@@ -62,10 +62,10 @@ namespace b3d
 		/** Container for all GBuffer textures. */
 		struct GBufferTextures
 		{
-			SPtr<Texture> Albedo;
-			SPtr<Texture> Normals;
-			SPtr<Texture> RoughMetal;
-			SPtr<Texture> Depth;
+			TShared<Texture> Albedo;
+			TShared<Texture> Normals;
+			TShared<Texture> RoughMetal;
+			TShared<Texture> Depth;
 		};
 
 		/** Allows you to easily bind GBuffer textures to some material. */
@@ -80,16 +80,16 @@ namespace b3d
 			static constexpr const char* kDepthSamplerName = "gDepthBufferSamp";
 
 			/** Initializes the required parameters. To be called once before use. */
-			void Initialize(GpuDevice& gpuDevice, GpuProgramType type, const SPtr<GpuParameterSet>& gpuParams);
+			void Initialize(GpuDevice& gpuDevice, GpuProgramType type, const TShared<GpuParameterSet>& gpuParams);
 
 			/** Binds the GBuffer textures to the pipeline. */
 			void Bind(const GBufferTextures& gbuffer);
 
 			/** Assigns the provided GBuffer textures to the provided GPU parameters object. */
-			static void Set(GpuDevice& gpuDevice, const SPtr<GpuParameterSet>& gpuParameters, const GBufferTextures& textures);
+			static void Set(GpuDevice& gpuDevice, const TShared<GpuParameterSet>& gpuParameters, const GBufferTextures& textures);
 
 		private:
-			SPtr<GpuParameterSet> mParams;
+			TShared<GpuParameterSet> mParams;
 
 			GpuParameterSampledTexture mGBufferA;
 			GpuParameterSampledTexture mGBufferB;
@@ -107,7 +107,7 @@ namespace b3d
 			 * @param[in]	clustered	If true, set up parameters for clustered forward rendering. If false, set up parameters
 			 *							for normal forward rendering.
 			 */
-			void Populate(const SPtr<GpuParameterSet>& params, bool clustered);
+			void Populate(const TShared<GpuParameterSet>& params, bool clustered);
 
 			/** Parameter used for binding the light grid uniform buffer. */
 			GpuParameterUniformBuffer GridUniformBufferParameter;
@@ -159,7 +159,7 @@ namespace b3d
 			void Update(const RenderBeastScene& scene, const RendererViewGroup& viewGroup);
 
 			/** Returns a GPU bindable buffer containing information about every light. */
-			SPtr<GpuBuffer> GetLightBuffer() const { return mLightBuffer; }
+			TShared<GpuBuffer> GetLightBuffer() const { return mLightBuffer; }
 
 			/**
 			 * Scans the list of lights visible in the view frustum to find the ones influencing the object described by
@@ -196,7 +196,7 @@ namespace b3d
 			const Vector<PackedRendererId>& GetLights(LightType type) const { return mVisibleLights[(u32)type]; }
 
 		private:
-			SPtr<GpuBuffer> mLightBuffer;
+			TShared<GpuBuffer> mLightBuffer;
 
 			u32 mLightCounts[(u32)LightType::Count];
 			u32 mShadowedLightCounts[(u32)LightType::Count];

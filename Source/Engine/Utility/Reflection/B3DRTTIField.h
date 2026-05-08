@@ -29,7 +29,7 @@ namespace b3d
 	 *				   and visited recursively. Fields can contain other IReflectable objects, which will be iterated recursively.
 	 *				   Supports versioning via field IDs, so you are freed to add/remove fields as long as they have unique IDs.
 	 * 
-	 * - Reflectable pointer - A SPtr<IReflectable>. Same as Reflectable type, except the object is not referenced by value, and is instead referenced by pointer.
+	 * - Reflectable pointer - A TShared<IReflectable>. Same as Reflectable type, except the object is not referenced by value, and is instead referenced by pointer.
 	 *						   If multiple fields point to the same object the serialization system will ensure a single object instance is serialized and deserialized.
 	 *
 	 * - Plain - Native data types, POD (Plain old data) structures, or in general types we don't want to (or can't) inherit from IReflectable.
@@ -58,7 +58,7 @@ namespace b3d
 	struct B3D_EXPORT RTTIFieldDataTypeSchema : IReflectable
 	{
 		RTTIFieldDataTypeSchema() = default;
-		RTTIFieldDataTypeSchema(bool hasDynamicSize, BitLength fixedSize, RTTIFieldDataType type, u32 fieldTypeId, SPtr<RTTISchema> fieldTypeSchema)
+		RTTIFieldDataTypeSchema(bool hasDynamicSize, BitLength fixedSize, RTTIFieldDataType type, u32 fieldTypeId, TShared<RTTISchema> fieldTypeSchema)
 			: HasDynamicSize(hasDynamicSize), FixedSize(fixedSize), Type(type), FieldTypeId(fieldTypeId), FieldTypeSchema(std::move(fieldTypeSchema))
 		{}
 
@@ -66,7 +66,7 @@ namespace b3d
 		BitLength FixedSize = 0;
 		RTTIFieldDataType Type = RTTIFieldDataType::Plain;
 		u32 FieldTypeId = 0;
-		SPtr<RTTISchema> FieldTypeSchema;
+		TShared<RTTISchema> FieldTypeSchema;
 
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;

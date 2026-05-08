@@ -49,8 +49,8 @@ namespace b3d
 		{ }
 
 		const char* PseudoElementName = nullptr; /**< Name of the pseudo-element, if the rule is for a pseudo-element. */
-		SPtr<const GUIStyleSheetStateRulesets> StateRulesets; /**< Rulesets for all states for a particular pseudo-element. */
-		SPtr<const GUIStyleSheetRuleset> CurrentStateRuleset; /**< Ruleset for the currently active state. */
+		TShared<const GUIStyleSheetStateRulesets> StateRulesets; /**< Rulesets for all states for a particular pseudo-element. */
+		TShared<const GUIStyleSheetRuleset> CurrentStateRuleset; /**< Ruleset for the currently active state. */
 
 		static const GUIStyleSheetRuleInformation kInvalid;
 	};

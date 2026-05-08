@@ -23,7 +23,7 @@ namespace b3d
 
 			void SubmitCommandBuffer(const GpuSubmissionInformation& information, bool flushTransferCommandBuffer = true) override;
 			void WaitUntilIdle() override;
-			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
+			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 
 			/**
 			 * Submits a command buffer on the queue using information prepared by the command buffer.
@@ -81,7 +81,7 @@ namespace b3d
 			 *
 			 * @note	Submit thread only.
 			 */
-			SPtr<VulkanGpuCommandBuffer> GetLastCommandBuffer() const { return mLastSubmittedCommandBuffer; }
+			TShared<VulkanGpuCommandBuffer> GetLastCommandBuffer() const { return mLastSubmittedCommandBuffer; }
 
 		protected:
 			/**
@@ -96,7 +96,7 @@ namespace b3d
 			/** Information about one or multiple submitted command buffers on a queue. */
 			struct QueueSubmissionInformation
 			{
-				QueueSubmissionInformation(const SPtr<VulkanGpuCommandBuffer>& lastSubmittedCommandBuffer, u32 submitIndex, u32 commandBufferCount)
+				QueueSubmissionInformation(const TShared<VulkanGpuCommandBuffer>& lastSubmittedCommandBuffer, u32 submitIndex, u32 commandBufferCount)
 					: LastSubmittedCommandBuffer(lastSubmittedCommandBuffer), SubmitIndex(submitIndex), CommandBufferCount(commandBufferCount)
 				{}
 
@@ -104,7 +104,7 @@ namespace b3d
 					: PresentOperationSwapChain(swapChain), SubmitIndex(submitIndex), CommandBufferCount(commandBufferCount)
 				{}
 
-				SPtr<VulkanGpuCommandBuffer> LastSubmittedCommandBuffer; /**< Last command buffer that was submitted, if the submit operation had any command buffers. */
+				TShared<VulkanGpuCommandBuffer> LastSubmittedCommandBuffer; /**< Last command buffer that was submitted, if the submit operation had any command buffers. */
 				VulkanSwapChain* PresentOperationSwapChain = nullptr; /**< Swap chain in case the submit operation was a present operation. */
 				u32 SubmitIndex;
 				u32 CommandBufferCount;
@@ -113,11 +113,11 @@ namespace b3d
 			/** Information about a single submitted command buffer. */
 			struct QueueSubmissionEntryInformation
 			{
-				QueueSubmissionEntryInformation(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, u32 semaphoreCount)
+				QueueSubmissionEntryInformation(const TShared<VulkanGpuCommandBuffer>& commandBuffer, u32 semaphoreCount)
 					: CommandBuffer(commandBuffer), SemaphoreCount(semaphoreCount)
 				{}
 
-				SPtr<VulkanGpuCommandBuffer> CommandBuffer; /**< Submitted command buffer. If null, the submission is a present call. */
+				TShared<VulkanGpuCommandBuffer> CommandBuffer; /**< Submitted command buffer. If null, the submission is a present call. */
 				u32 SemaphoreCount;
 			};
 
@@ -143,7 +143,7 @@ namespace b3d
 			 * @param	waitSemaphores		Set of semaphores that should be waited on before the command buffers start executing.
 			 * @param	signalFences		Optional timeline-fence + value pairs to also signal when this submit finishes.
 			 */
-			VkSubmitInfo RegisterSubmissionAndGenerateSubmitInfo(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences = {});
+			VkSubmitInfo RegisterSubmissionAndGenerateSubmitInfo(const TShared<VulkanGpuCommandBuffer>& commandBuffer, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences = {});
 
 			/**
 			 * Registers the set of command buffers for submission and generates the VkSubmitInfo structure that can be submitted to the queue.
@@ -152,7 +152,7 @@ namespace b3d
 			 * @param	waitSemaphores		Set of semaphores that should be waited on before the command buffers start executing.
 			 * @param	signalFences		Optional timeline-fence + value pairs to also signal when this submit finishes.
 			 */
-			VkSubmitInfo RegisterSubmissionAndGenerateSubmitInfo(const TArrayView<SPtr<VulkanGpuCommandBuffer>>& commandBuffers, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences = {});
+			VkSubmitInfo RegisterSubmissionAndGenerateSubmitInfo(const TArrayView<TShared<VulkanGpuCommandBuffer>>& commandBuffers, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences = {});
 
 			/**
 			 * Acquires a SubmitWorkBuffer for a new submit. Grows the pool on first use, but reuses existing
@@ -180,7 +180,7 @@ namespace b3d
 
 			List<QueueSubmissionInformation> mActiveSubmissions;
 
-			SPtr<VulkanGpuCommandBuffer> mLastSubmittedCommandBuffer;
+			TShared<VulkanGpuCommandBuffer> mLastSubmittedCommandBuffer;
 			bool mLastCBSemaphoreUsed = false;
 			u32 mNextSubmitIndex = 1;
 

@@ -34,7 +34,7 @@ TOptional<PrefabUpdateHelper::ObjectInPrefab> PrefabUpdateHelper::FindInstanceIn
 		return {};
 	}
 
-	const SPtr<GameObjectCollection>& gameObjectCollection = prefab->GetGameObjectCollection();
+	const TShared<GameObjectCollection>& gameObjectCollection = prefab->GetGameObjectCollection();
 	if(!B3D_ENSURE(gameObjectCollection))
 		return {};
 
@@ -246,7 +246,7 @@ void PrefabUpdateHelper::UpdatePrefab(const HPrefab& prefabToUpdate, const HScen
 	const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>>& sceneInstances = GetSceneManager().GetAllScenes();
 	for(const auto& pair : sceneInstances)
 	{
-		SPtr<SceneInstance> scene = pair.second.lock();
+		TShared<SceneInstance> scene = pair.second.lock();
 		if(B3D_ENSURE(scene != nullptr))
 		{
 			FrameVector<UUID> parentPrefabChain;

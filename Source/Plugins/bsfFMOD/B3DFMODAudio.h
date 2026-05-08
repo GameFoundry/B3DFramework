@@ -50,9 +50,9 @@ namespace b3d
 
 		/** @} */
 	private:
-		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation) override;
-		SPtr<IAudioListenerImplementation> CreateListener() override;
-		SPtr<IAudioSourceImplementation> CreateSource() override;
+		TShared<AudioClip> CreateClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation) override;
+		TShared<IAudioListenerImplementation> CreateListener() override;
+		TShared<IAudioSourceImplementation> CreateSource() override;
 
 		/** Rebuilds information about all listeners. Should be called when listener list changes. */
 		void RebuildListeners();

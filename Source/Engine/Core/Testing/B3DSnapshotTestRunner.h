@@ -125,7 +125,7 @@ namespace b3d
 
 	private:
 		/** Save the captured screenshot to disk. */
-		bool SaveScreenshot(const SPtr<PixelData>& pixelData);
+		bool SaveScreenshot(const TShared<PixelData>& pixelData);
 
 		/** Write the result JSON file. */
 		bool WriteResultJson();
@@ -141,7 +141,7 @@ namespace b3d
 
 		SnapshotTestConfiguration mConfiguration;
 		SnapshotTestResult mResult;
-		TAsyncOp<SPtr<PixelData>> mScreenCaptureOp;
+		TAsyncOp<TShared<PixelData>> mScreenCaptureOp;
 
 		u64 mStartFrame = 0;
 		u64 mExitAfterNFrames = 0;

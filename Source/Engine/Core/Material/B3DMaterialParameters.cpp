@@ -14,7 +14,7 @@
 
 using namespace b3d;
 
-SPtr<render::Texture> GetSpriteImageAtlas(const SPtr<render::SpriteImage>& spriteImage)
+TShared<render::Texture> GetSpriteImageAtlas(const TShared<render::SpriteImage>& spriteImage)
 {
 	if(spriteImage)
 		return spriteImage->GetDefaultAllocatedImage().GetTexture();
@@ -352,7 +352,7 @@ TMaterialParameters<IsRenderProxy>::TMaterialParameters(const ShaderType& shader
 	mBufferParameters.resize(mBufferParameterCount);
 	mSamplerParameters.resize(mSamplerParameterCount);
 	mDefaultTextureParams = mAlloc.Construct<TextureType>(mTextureParameterCount);
-	mDefaultSamplerStateParams = mAlloc.Construct<SPtr<SamplerState>>(mSamplerParameterCount);
+	mDefaultSamplerStateParams = mAlloc.Construct<TShared<SamplerState>>(mSamplerParameterCount);
 
 	auto& textureParams = shader->GetTextureParameters();
 	u32 textureIdx = 0;
@@ -563,7 +563,7 @@ void TMaterialParameters<IsRenderProxy>::SetBuffer(const String& name, const Buf
 }
 
 template <bool IsRenderProxy>
-void TMaterialParameters<IsRenderProxy>::GetSamplerState(const String& name, SPtr<SamplerState>& value) const
+void TMaterialParameters<IsRenderProxy>::GetSamplerState(const String& name, TShared<SamplerState>& value) const
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
@@ -577,7 +577,7 @@ void TMaterialParameters<IsRenderProxy>::GetSamplerState(const String& name, SPt
 }
 
 template <bool IsRenderProxy>
-void TMaterialParameters<IsRenderProxy>::SetSamplerState(const String& name, const SPtr<SamplerState>& value)
+void TMaterialParameters<IsRenderProxy>::SetSamplerState(const String& name, const TShared<SamplerState>& value)
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
@@ -726,13 +726,13 @@ void TMaterialParameters<IsRenderProxy>::SetStorageTexture(const ParamData& para
 }
 
 template <bool IsRenderProxy>
-void TMaterialParameters<IsRenderProxy>::GetSamplerState(const ParamData& param, SPtr<SamplerState>& value) const
+void TMaterialParameters<IsRenderProxy>::GetSamplerState(const ParamData& param, TShared<SamplerState>& value) const
 {
 	value = mSamplerParameters[param.Index].Value;
 }
 
 template <bool IsRenderProxy>
-void TMaterialParameters<IsRenderProxy>::SetSamplerState(const ParamData& param, const SPtr<SamplerState>& value)
+void TMaterialParameters<IsRenderProxy>::SetSamplerState(const ParamData& param, const TShared<SamplerState>& value)
 {
 	mSamplerParameters[param.Index].Value = value;
 
@@ -782,7 +782,7 @@ void TMaterialParameters<IsRenderProxy>::GetDefaultTexture(const ParamData& para
 }
 
 template <bool IsRenderProxy>
-void TMaterialParameters<IsRenderProxy>::GetDefaultSamplerState(const ParamData& param, SPtr<SamplerState>& value) const
+void TMaterialParameters<IsRenderProxy>::GetDefaultSamplerState(const ParamData& param, TShared<SamplerState>& value) const
 {
 	value = mDefaultSamplerStateParams[param.Index];
 }
@@ -809,8 +809,8 @@ namespace b3d
 	struct MaterialParametersTextureParameter
 	{
 		u32 ParameterIndex = ~0u;
-		SPtr<render::Texture> Texture;
-		SPtr<render::SpriteImage> SpriteImage;
+		TShared<render::Texture> Texture;
+		TShared<render::SpriteImage> SpriteImage;
 		bool IsLoadStore;
 		TextureSurface Surface;
 	};
@@ -818,13 +818,13 @@ namespace b3d
 	struct MaterialParametersBufferParameter
 	{
 		u32 ParameterIndex = ~0u;
-		SPtr<render::GpuBuffer> Buffer;
+		TShared<render::GpuBuffer> Buffer;
 	};
 
 	struct MaterialParametersSamplerStateParameter
 	{
 		u32 ParameterIndex = ~0u;
-		SPtr<SamplerState> SamplerState;
+		TShared<SamplerState> SamplerState;
 	};
 
 	B3D_SYNC_BLOCK_BEGIN(MaterialParameters, SyncPacket)
@@ -1030,11 +1030,11 @@ RTTIType* MaterialParameters::GetRtti() const
 
 namespace b3d { namespace render
 {
-MaterialParameters::MaterialParameters(const SPtr<Shader>& shader, u64 initialParamVersion)
+MaterialParameters::MaterialParameters(const TShared<Shader>& shader, u64 initialParamVersion)
 	: TMaterialParameters(shader, initialParamVersion)
 {}
 
-MaterialParameters::MaterialParameters(const SPtr<Shader>& shader, const SPtr<b3d::MaterialParameters>& params)
+MaterialParameters::MaterialParameters(const TShared<Shader>& shader, const TShared<b3d::MaterialParameters>& params)
 	: TMaterialParameters(shader, 1)
 {
 	memcpy(mDataParamsBuffer, params->mDataParamsBuffer, mDataSize);
@@ -1076,13 +1076,13 @@ MaterialParameters::MaterialParameters(const SPtr<Shader>& shader, const SPtr<b3
 			break;
 		case ParamType::Buffer:
 			{
-				SPtr<b3d::GpuBuffer> buffer = params->mBufferParameters[param.Index].Value;
+				TShared<b3d::GpuBuffer> buffer = params->mBufferParameters[param.Index].Value;
 				mBufferParameters[param.Index].Value = B3DGetRenderProxy(buffer);
 			}
 			break;
 		case ParamType::Sampler:
 			{
-				SPtr<SamplerState> sampState = params->mSamplerParameters[param.Index].Value;
+				TShared<SamplerState> sampState = params->mSamplerParameters[param.Index].Value;
 				mSamplerParameters[param.Index].Value = sampState;
 			}
 			break;

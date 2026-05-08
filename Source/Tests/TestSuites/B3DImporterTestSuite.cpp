@@ -33,7 +33,7 @@ void ImporterTestSuite::StartUp()
 
 void ImporterTestSuite::TestPngImport_Default()
 {
-	SPtr<TextureImportOptions> options = TextureImportOptions::Create();
+	TShared<TextureImportOptions> options = TextureImportOptions::Create();
 
 	HTexture texture = GetImporter().Import<Texture>(mImagePath, options);
 	B3D_TEST_ASSERT(texture != nullptr)
@@ -48,7 +48,7 @@ void ImporterTestSuite::TestPngImport_Default()
 
 void ImporterTestSuite::TestPngImport_WithMips()
 {
-	SPtr<TextureImportOptions> options = TextureImportOptions::Create();
+	TShared<TextureImportOptions> options = TextureImportOptions::Create();
 	options->GenerateMips = true;
 
 	HTexture texture = GetImporter().Import<Texture>(mImagePath, options);
@@ -64,7 +64,7 @@ void ImporterTestSuite::TestPngImport_WithMips()
 
 void ImporterTestSuite::TestPngImport_NvttBC3()
 {
-	SPtr<TextureImportOptions> options = TextureImportOptions::Create();
+	TShared<TextureImportOptions> options = TextureImportOptions::Create();
 	options->GenerateMips = true;
 	options->Format = PF_BC3;
 
@@ -81,7 +81,7 @@ void ImporterTestSuite::TestPngImport_NvttBC3()
 
 void ImporterTestSuite::TestOggImport_Default()
 {
-	SPtr<AudioClipImportOptions> options = AudioClipImportOptions::Create();
+	TShared<AudioClipImportOptions> options = AudioClipImportOptions::Create();
 	options->Is3D = false;
 
 	HAudioClip clip = GetImporter().Import<AudioClip>(mOggPath, options);
@@ -99,7 +99,7 @@ void ImporterTestSuite::TestOggImport_Default()
 
 void ImporterTestSuite::TestOggImport_KeepCompressed()
 {
-	SPtr<AudioClipImportOptions> options = AudioClipImportOptions::Create();
+	TShared<AudioClipImportOptions> options = AudioClipImportOptions::Create();
 	options->Is3D = false;
 	options->Format = AudioFormat::VORBIS;
 	options->ReadMode = AudioReadMode::LoadCompressed;
@@ -118,7 +118,7 @@ void ImporterTestSuite::TestOggImport_KeepCompressed()
 
 void ImporterTestSuite::TestFlacImport_Default()
 {
-	SPtr<AudioClipImportOptions> options = AudioClipImportOptions::Create();
+	TShared<AudioClipImportOptions> options = AudioClipImportOptions::Create();
 	options->Is3D = false;
 
 	HAudioClip clip = GetImporter().Import<AudioClip>(mFlacPath, options);

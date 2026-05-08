@@ -20,7 +20,7 @@ namespace b3d
 
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedComponentRTTI : public TRTTIType<ManagedComponent, Component, ManagedComponentRTTI>
 	{
-		SPtr<ManagedSerializableObject> mSerializedObjectData;
+		TShared<ManagedSerializableObject> mSerializedObjectData;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mNamespace, 0)
@@ -62,7 +62,7 @@ namespace b3d
 			return TID_ManagedComponent;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<ManagedComponent>();
 		}

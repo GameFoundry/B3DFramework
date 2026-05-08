@@ -27,7 +27,7 @@ namespace b3d
 
 	void ScriptDragAndDrop::InternalStartDrag(MonoObject* data)
 	{
-		SPtr<DragAndDropData> tmpdata;
+		TShared<DragAndDropData> tmpdata;
 		ScriptDragAndDropDataWrapperBase* scriptObjectWrapperdata;
 		scriptObjectWrapperdata = (ScriptDragAndDropDataWrapperBase*)ScriptDragAndDropData::GetScriptObjectWrapper(data);
 		if(scriptObjectWrapperdata != nullptr)
@@ -59,7 +59,7 @@ namespace b3d
 
 	MonoObject* ScriptDragAndDrop::InternalGetDragData()
 	{
-		SPtr<DragAndDropData> tmp__output;
+		TShared<DragAndDropData> tmp__output;
 		tmp__output = DragAndDrop::Instance().GetDragData();
 
 		MonoObject* __output;
@@ -70,7 +70,7 @@ namespace b3d
 
 	MonoObject* ScriptDragAndDrop::InternalGetDropData()
 	{
-		SPtr<DragAndDropData> tmp__output;
+		TShared<DragAndDropData> tmp__output;
 		tmp__output = DragAndDrop::Instance().GetDropData();
 
 		MonoObject* __output;

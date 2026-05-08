@@ -13,7 +13,7 @@
 
 namespace b3d
 {
-	ScriptParticleVectorFieldSettings::ScriptParticleVectorFieldSettings(const SPtr<ParticleVectorFieldSettings>& nativeObject)
+	ScriptParticleVectorFieldSettings::ScriptParticleVectorFieldSettings(const TShared<ParticleVectorFieldSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -209,7 +209,7 @@ namespace b3d
 
 	MonoObject* ScriptParticleVectorFieldSettings::InternalGetRotationRate(ScriptParticleVectorFieldSettings* self)
 	{
-		SPtr<TDistribution<TVector3<float>>> tmp__output = B3DMakeShared<TDistribution<TVector3<float>>>();
+		TShared<TDistribution<TVector3<float>>> tmp__output = B3DMakeShared<TDistribution<TVector3<float>>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -226,7 +226,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<TDistribution<TVector3<float>>> tmpvalue;
+		TShared<TDistribution<TVector3<float>>> tmpvalue;
 		ScriptVector3Distribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptVector3Distribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)

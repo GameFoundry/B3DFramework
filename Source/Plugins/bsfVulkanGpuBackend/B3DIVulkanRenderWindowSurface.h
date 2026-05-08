@@ -53,7 +53,7 @@ namespace b3d::render
 		/** Returns the pixel format of the color surface. Used for reading back the rendered frame. */
 		virtual PixelFormat GetColorPixelFormat() const = 0;
 
-		TAsyncOp<SPtr<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer) override;
+		TAsyncOp<TShared<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer) override;
 	};
 
 	/** @} */

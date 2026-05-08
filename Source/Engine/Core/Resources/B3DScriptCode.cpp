@@ -16,9 +16,9 @@ HScriptCode ScriptCode::Create(const WString& data, bool editorScript)
 	return B3DStaticResourceCast<ScriptCode>(GetResources().CreateResourceHandle(CreatePtrInternal(data, editorScript)));
 }
 
-SPtr<ScriptCode> ScriptCode::CreatePtrInternal(const WString& data, bool editorScript)
+TShared<ScriptCode> ScriptCode::CreatePtrInternal(const WString& data, bool editorScript)
 {
-	SPtr<ScriptCode> scriptCodePtr = B3DMakeSharedFromExisting<ScriptCode>(
+	TShared<ScriptCode> scriptCodePtr = B3DMakeSharedFromExisting<ScriptCode>(
 		new(B3DAllocate<ScriptCode>()) ScriptCode(data, editorScript));
 	scriptCodePtr->SetShared(scriptCodePtr);
 	scriptCodePtr->Initialize();

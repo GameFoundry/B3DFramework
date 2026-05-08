@@ -12,7 +12,7 @@
 
 using namespace b3d;
 
-ecs::Light& ecs::CreateLight(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene, const Transform& transform)
+ecs::Light& ecs::CreateLight(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform)
 {
 	ecs::LightECSUtility::CreateFragmentsIfMissing(registry, entity);
 	registry.AddComponent<ecs::WorldTransform>(entity, ecs::WorldTransform(transform));
@@ -396,13 +396,13 @@ void Light::OnCreated()
 
 void Light::OnEnabled()
 {
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 	ecs::LightECSUtility::RegisterWithRenderer(*GetECSRegistry(), GetECSEntity(), rendererScene);
 }
 
 void Light::OnDisabled()
 {
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 	ecs::LightECSUtility::UnregisterFromRenderer(*GetECSRegistry(), GetECSEntity(), rendererScene);
 }
 

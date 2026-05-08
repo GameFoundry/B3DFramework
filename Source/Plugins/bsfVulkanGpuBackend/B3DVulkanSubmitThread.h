@@ -23,7 +23,7 @@ namespace b3d::render
 		struct FrameCompletionMarker
 		{
 			/** Last command buffer submitted for this frame. */
-			SPtr<VulkanGpuCommandBuffer> LastCommandBuffer;
+			TShared<VulkanGpuCommandBuffer> LastCommandBuffer;
 
 			/** Event signalled when this frame has been completely processed by the submit thread. */
 			SignalEvent CompletionEvent;
@@ -47,7 +47,7 @@ namespace b3d::render
 		 * @param	signalFences	Explicit list of timeline-fence + value pairs to signal when the submit completes.
 		 * @param	blocking		If true the calling thread will wait until the GPU completes the operation.
 		 */
-		void QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking = false);
+		void QueueSubmit(const TShared<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking = false);
 
 		/**
 		 * Queues an operation that acquires a swap chain image. Acquired images can be written to and eventually presented to the screen.
@@ -92,7 +92,7 @@ namespace b3d::render
 
 		VulkanGpuDevice& mGpuDevice;
 		SingleConsumerQueue mCommandQueue;
-		Array<SPtr<VulkanGpuCommandBufferPool>, GQT_COUNT> mCommandBufferPools;
+		Array<TShared<VulkanGpuCommandBufferPool>, GQT_COUNT> mCommandBufferPools;
 
 		/** Current frame index (0 to kFrameCount-1), tracked internally by submit thread. */
 		u32 mCurrentFrameIndex = 0;
@@ -101,7 +101,7 @@ namespace b3d::render
 		Array<FrameCompletionMarker, kFrameCount> mFrameMarkers;
 
 		/** Tracks the command buffer being built up as "last" during the current frame. */
-		SPtr<VulkanGpuCommandBuffer> mCurrentFrameLastCommandBuffer;
+		TShared<VulkanGpuCommandBuffer> mCurrentFrameLastCommandBuffer;
 	};
 
 	/** Retrieves an instance of VulkanSubmitThread. */

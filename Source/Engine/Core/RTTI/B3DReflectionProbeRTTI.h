@@ -42,7 +42,7 @@ namespace b3d::ecs
 			return TID_ECSReflectionProbe;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ReflectionProbe>();
 		}
@@ -95,7 +95,7 @@ namespace b3d
 			return TID_ReflectionProbe;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<ReflectionProbe>();
 		}

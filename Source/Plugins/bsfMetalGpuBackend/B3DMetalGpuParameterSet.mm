@@ -56,7 +56,7 @@ namespace b3d
 			}
 		} // namespace
 
-		MetalGpuParameters::MetalGpuParameters(MetalGpuDevice& gpuDevice, const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex, MetalGpuParameterSetPool* pool)
+		MetalGpuParameters::MetalGpuParameters(MetalGpuDevice& gpuDevice, const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex, MetalGpuParameterSetPool* pool)
 			: GpuParameterSet(parameterSetLayout, setIndex)
 			, mGpuDevice(gpuDevice)
 			, mImpl(B3DMakeUnique<Impl>())
@@ -156,7 +156,7 @@ namespace b3d
 			[mImpl->Encoder setArgumentBuffer:mImpl->ArgumentBuffer offset:(NSUInteger)mImpl->ArgumentBufferOffset];
 		}
 
-		bool MetalGpuParameters::SetUniformBuffer(u32 slot, const SPtr<GpuBuffer>& uniformBuffer, u32 arrayIndex, u32 offset)
+		bool MetalGpuParameters::SetUniformBuffer(u32 slot, const TShared<GpuBuffer>& uniformBuffer, u32 arrayIndex, u32 offset)
 		{
 			@autoreleasepool
 			{
@@ -189,10 +189,10 @@ namespace b3d
 				const u32 argIndex = mMetalLayout->GetArgumentBufferIndex(GpuParameterType::UniformBuffer, slot);
 				if (argIndex != (u32)~0u)
 				{
-					// B4 / A'5: dirty-compare on (engine-side SPtr target, Metal handle, array index,
+					// B4 / A'5: dirty-compare on (engine-side TShared target, Metal handle, array index,
 					// offset). A set-and-forget binding (same buffer, same offset every frame) no-ops
 					// after its first SetUniformBuffer. Metal-handle compare catches recreate /
-					// address-recycle cases where the SPtr target is stable but the backing MTLBuffer
+					// address-recycle cases where the TShared target is stable but the backing MTLBuffer
 					// changed (or vice versa).
 					ArgumentSlotSnapshot& snapshot = mSlotSnapshots[argIndex];
 					const void* incoming = uniformBuffer.get();
@@ -225,7 +225,7 @@ namespace b3d
 			} // @autoreleasepool
 		}
 
-		bool MetalGpuParameters::SetSampledTexture(u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
+		bool MetalGpuParameters::SetSampledTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
 		{
 			@autoreleasepool
 			{
@@ -258,7 +258,7 @@ namespace b3d
 				{
 					// B4 / A'5: dirty-compare on (texture pointer, Metal handle, array index, packed
 					// surface signature). Metal-handle compare catches @c RecreateInternalTexture —
-					// the engine-side @c Texture SPtr is stable but the backing MTLTexture changed.
+					// the engine-side @c Texture TShared is stable but the backing MTLTexture changed.
 					ArgumentSlotSnapshot& snapshot = mSlotSnapshots[argIndex];
 					const void* incoming = texture.get();
 					auto mtlWrapper = std::static_pointer_cast<MetalTexture>(texture);
@@ -287,7 +287,7 @@ namespace b3d
 			} // @autoreleasepool
 		}
 
-		bool MetalGpuParameters::SetStorageTexture(u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
+		bool MetalGpuParameters::SetStorageTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
 		{
 			@autoreleasepool
 			{
@@ -320,7 +320,7 @@ namespace b3d
 				{
 					// B4 / A'5: dirty-compare on (texture pointer, Metal handle, array index, packed
 					// surface signature). Metal-handle compare catches @c RecreateInternalTexture —
-					// stable engine-side SPtr, swapped MTLTexture.
+					// stable engine-side TShared, swapped MTLTexture.
 					ArgumentSlotSnapshot& snapshot = mSlotSnapshots[argIndex];
 					const void* incoming = texture.get();
 					auto mtlWrapper = std::static_pointer_cast<MetalTexture>(texture);
@@ -349,7 +349,7 @@ namespace b3d
 			} // @autoreleasepool
 		}
 
-		bool MetalGpuParameters::SetStorageBuffer(u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex, GpuBufferViewInformation view)
+		bool MetalGpuParameters::SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& buffer, u32 arrayIndex, GpuBufferViewInformation view)
 		{
 			@autoreleasepool
 			{
@@ -382,7 +382,7 @@ namespace b3d
 				{
 					// B4 / A'5: dirty-compare on (buffer pointer, Metal handle, array index, view
 					// offset, view range). Metal-handle compare catches @c RecreateInternalBuffer —
-					// stable engine-side SPtr, swapped MTLBuffer.
+					// stable engine-side TShared, swapped MTLBuffer.
 					ArgumentSlotSnapshot& snapshot = mSlotSnapshots[argIndex];
 					const void* incoming = buffer.get();
 					auto mtlWrapper = std::static_pointer_cast<MetalGpuBuffer>(buffer);
@@ -411,7 +411,7 @@ namespace b3d
 			} // @autoreleasepool
 		}
 
-		bool MetalGpuParameters::SetSamplerState(u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex)
+		bool MetalGpuParameters::SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex)
 		{
 			@autoreleasepool
 			{
@@ -441,8 +441,8 @@ namespace b3d
 				if (argIndex != (u32)~0u)
 				{
 					// B4 / A'5: dirty-compare on (sampler pointer, Metal handle, array index).
-					// MTLSamplerState is immutable post-creation, but the engine-side SPtr could be
-					// freshly-constructed while the prior SPtr target address is recycled — the
+					// MTLSamplerState is immutable post-creation, but the engine-side TShared could be
+					// freshly-constructed while the prior TShared target address is recycled — the
 					// handle compare still guards that case.
 					ArgumentSlotSnapshot& snapshot = mSlotSnapshots[argIndex];
 					const void* incoming = sampler.get();

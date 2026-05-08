@@ -21,14 +21,14 @@ settings.Size = TAnimationCurve<float>(
 	TKeyframe<float>{4.0f, 1.0f, 0.0f, 1.0f},
 });
 
-SPtr<ParticleEvolver> evolver = ParticleSize::Create(settings);
+TShared<ParticleEvolver> evolver = ParticleSize::Create(settings);
 particleSystem->SetEvolvers({evolver});
 ~~~~~~~~~~~~~
 
 Query the current evolvers:
 
 ~~~~~~~~~~~~~{.cpp}
-Vector<SPtr<ParticleEvolver>> evolvers = particleSystem->GetEvolvers();
+Vector<TShared<ParticleEvolver>> evolvers = particleSystem->GetEvolvers();
 ~~~~~~~~~~~~~
 
 Lets go over all the available evolver types.
@@ -51,7 +51,7 @@ settings.Size = TAnimationCurve<float>(
     TKeyframe<float>{4.0f, 1.0f, 0.0f, 1.0f},
 });
 
-SPtr<ParticleSize> evolver = ParticleSize::Create(settings);
+TShared<ParticleSize> evolver = ParticleSize::Create(settings);
 ~~~~~~~~~~~~~
 
 # Color over lifetime
@@ -70,7 +70,7 @@ settings.Color = ColorGradient(
     ColorGradientKey(Color::kBlack, 1.0f)
 });
 
-SPtr<ParticleColor> evolver = ParticleColor::Create(settings);
+TShared<ParticleColor> evolver = ParticleColor::Create(settings);
 ~~~~~~~~~~~~~
 
 # Rotation over lifetime
@@ -89,7 +89,7 @@ settings.Rotation = TAnimationCurve<float>(
      TKeyframe<float>{180.0f, 1.0f, 0.0f, 1.0f},
 });
 
-SPtr<ParticleRotation> evolver = ParticleRotation::Create(settings);
+TShared<ParticleRotation> evolver = ParticleRotation::Create(settings);
 ~~~~~~~~~~~~~
 
 # Gravity
@@ -104,7 +104,7 @@ The gravity force is inherited from the physics system, but can be scaled for th
 ParticleGravitySettings settings;
 settings.Scale = 1.0f;
 
-SPtr<ParticleGravity> evolver = ParticleGravity::Create(settings);
+TShared<ParticleGravity> evolver = ParticleGravity::Create(settings);
 ~~~~~~~~~~~~~
 
 # Force
@@ -124,7 +124,7 @@ settings.Force = TAnimationCurve<Vector3>(
 });
 settings.WorldSpace = true;
 
-SPtr<ParticleForce> evolver = ParticleForce::Create(settings);
+TShared<ParticleForce> evolver = ParticleForce::Create(settings);
 ~~~~~~~~~~~~~
 
 # Velocity
@@ -141,7 +141,7 @@ Use @b3d::ParticleVelocitySettings::Velocity to specify the velocity direction a
 ParticleVelocitySettings settings;
 settings.Velocity = Vector3(0.0f, 0.2f, 0.0f);
 
-SPtr<ParticleVelocity> evolver = ParticleVelocity::Create(settings);
+TShared<ParticleVelocity> evolver = ParticleVelocity::Create(settings);
 ~~~~~~~~~~~~~
 
 # Orbit
@@ -162,7 +162,7 @@ settings.Center = Vector3(0.0f, 0.0f, 0.0f);
 settings.Velocity = Vector3(0.0f, 1.2f, 0.0f); // In rotations/second
 settings.Radial = 0.4f;
 
-SPtr<ParticleOrbit> evolver = ParticleOrbit::Create(settings);
+TShared<ParticleOrbit> evolver = ParticleOrbit::Create(settings);
 ~~~~~~~~~~~~~
 
 # Collision
@@ -186,7 +186,7 @@ ParticleCollisionSettings settings;
 settings.Mode = ParticleCollisionMode::Plane;
 settings.Radius = 0.2f;
 
-SPtr<ParticleCollisions> evolver = ParticleCollisions::Create(settings);
+TShared<ParticleCollisions> evolver = ParticleCollisions::Create(settings);
 
 // Add a single plane to collide with
 evolver->SetPlanes({Plane(Vector3::kUnitY, 0.0f)});
@@ -198,7 +198,7 @@ ParticleCollisionSettings settings;
 settings.Mode = ParticleCollisionMode::World;
 settings.Radius = 0.2f;
 
-SPtr<ParticleCollisions> evolver = ParticleCollisions::Create(settings);
+TShared<ParticleCollisions> evolver = ParticleCollisions::Create(settings);
 ~~~~~~~~~~~~~
 
 # Texture animation
@@ -237,6 +237,6 @@ particleSystem->SetSettings(particleSystemSettings);
 ParticleTextureAnimationSettings settings;
 settings.CycleCount = 5;
 
-SPtr<ParticleTextureAnimation> evolver = ParticleTextureAnimation::Create(settings);
+TShared<ParticleTextureAnimation> evolver = ParticleTextureAnimation::Create(settings);
 particleSystem->SetEvolvers({evolver});
 ~~~~~~~~~~~~~

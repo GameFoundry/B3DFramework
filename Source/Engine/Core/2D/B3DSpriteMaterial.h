@@ -39,7 +39,7 @@ namespace b3d
 		virtual ~SpriteMaterialExtraInfo() = default;
 
 		/** Creates a new deep copy of the object. */
-		virtual SPtr<SpriteMaterialExtraInfo> Clone() const
+		virtual TShared<SpriteMaterialExtraInfo> Clone() const
 		{
 			return B3DMakeShared<SpriteMaterialExtraInfo>();
 		}
@@ -76,10 +76,10 @@ namespace b3d
 		u64 GroupId = 0;
 		TextureType Texture;
 		SpriteImageType SpriteImage; /**< Sprite image used to generate the sprite. Used for animation only. */
-		SPtr<render::SpriteImageAllocation> SpriteImageAllocation; /**< Allocation handle to keep the sprite image alive as long as needed. */
+		TShared<render::SpriteImageAllocation> SpriteImageAllocation; /**< Allocation handle to keep the sprite image alive as long as needed. */
 		Color Tint;
 		float AnimationStartTime = 0.0f;
-		SPtr<SpriteMaterialExtraInfo> AdditionalData;
+		TShared<SpriteMaterialExtraInfo> AdditionalData;
 	};
 
 	/** Contains information for initializing a sprite material. */
@@ -124,7 +124,7 @@ namespace b3d
 		 *
 		 * @param	supportClipping		If true, parameter adapter will be created for use with the clip region buffer variant of the material.
 		 */
-		virtual SPtr<render::MaterialParameterAdapter> CreateParameterAdapter(bool supportClipping);
+		virtual TShared<render::MaterialParameterAdapter> CreateParameterAdapter(bool supportClipping);
 
 		/**
 		 * Prepares the provided parameters for use with the current material.
@@ -136,7 +136,7 @@ namespace b3d
 		 * @param	uniformBuffer		Buffer containing data GPU parameters, created from GUISpriteUniformBufferDefinition.
 		 * @param	clipRegionBuffer	Buffer containing regions against all rendered sprite quads will be culled/clipped against.
 		 */
-		virtual void Prepare(const SPtr<render::MaterialParameterAdapter>& parameterAdapter, const SPtr<render::MeshBase>& mesh, const SPtr<render::Texture>& texture, const SPtr<SamplerState>& sampler, const render::GpuBufferSuballocation& uniformBuffer, const SPtr<render::GpuBuffer>& clipRegionBuffer) const;
+		virtual void Prepare(const TShared<render::MaterialParameterAdapter>& parameterAdapter, const TShared<render::MeshBase>& mesh, const TShared<render::Texture>& texture, const TShared<SamplerState>& sampler, const render::GpuBufferSuballocation& uniformBuffer, const TShared<render::GpuBuffer>& clipRegionBuffer) const;
 
 		/**
 		 * Renders the provided mesh using the current material.
@@ -149,7 +149,7 @@ namespace b3d
 		 * @param	clipRegionCount		Number of regions in @p clipRegionBuffer.
 		 * @param	additionalData		Optional additional data that might be required by the renderer.
 		 */
-		virtual void Render(render::GpuCommandBuffer& commandBuffer, const SPtr<render::GpuParameterSet>& parameters, const SPtr<render::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<render::GpuBuffer>& clipRegionBuffer, u32 clipRegionCount, const SPtr<SpriteMaterialExtraInfo>& additionalData) const;
+		virtual void Render(render::GpuCommandBuffer& commandBuffer, const TShared<render::GpuParameterSet>& parameters, const TShared<render::MeshBase>& mesh, const SubMesh& subMesh, const TShared<render::GpuBuffer>& clipRegionBuffer, u32 clipRegionCount, const TShared<SpriteMaterialExtraInfo>& additionalData) const;
 
 		/** Writes the provided parameters into a uniform buffer created from GUISpriteUniformBufferDefinition. */
 		static void PopulateUniformBuffer(const render::GpuBufferMappedScope& uniforms, const Vector2I& viewportOffset, float inverseViewportWidth, float inverseViewportHeight, bool flipY, float animationTime, u32 clipRegionCount, const Matrix4& transform, const render::SpriteMaterialInfo& materialInformation);
@@ -158,13 +158,13 @@ namespace b3d
 		virtual void Initialize();
 
 		/** Destroys the render thread material. */
-		static void Destroy(const SPtr<render::Material>& material);
+		static void Destroy(const TShared<render::Material>& material);
 
 		u32 mId;
 		bool mAllowBatching;
 
 		// Render thread only (everything below)
-		SPtr<render::Material> mMaterial;
+		TShared<render::Material> mMaterial;
 		u32 mWithoutClippingVariationIndex = ~0u;
 		u32 mWithClippingVariationIndex = ~0u;
 

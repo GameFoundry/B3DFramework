@@ -56,7 +56,7 @@ void RenderProxy::BlockUntilInitialized()
 	}
 }
 
-void RenderProxy::SetShared(SPtr<RenderProxy> sharedToThis)
+void RenderProxy::SetShared(TShared<RenderProxy> sharedToThis)
 {
 	mThis = sharedToThis;
 }

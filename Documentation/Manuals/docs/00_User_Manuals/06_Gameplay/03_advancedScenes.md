@@ -13,7 +13,7 @@ Scene instances control the state of all components within them. Components can 
 - **Stopped** - No callbacks are triggered (except OnCreated/OnDestroyed)
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
+TShared<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
 
 // Change the component state for all components in the scene
 sceneInstance->SetComponentState(ComponentState::Paused);
@@ -48,7 +48,7 @@ Note that if a component's parent SceneObject is inactive (via SetActive(false))
 You can find all components of a specific type in a scene instance using @b3d::SceneInstance::FindComponents:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
+TShared<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
 
 // Find all Camera components in the scene
 Vector<HCamera> cameras = sceneInstance->FindComponents<Camera>();
@@ -69,7 +69,7 @@ This is useful for:
 You can remove all objects from a scene instance using @b3d::SceneInstance::Clear:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
+TShared<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
 
 // Clear all non-persistent objects
 sceneInstance->Clear();
@@ -109,7 +109,7 @@ Each scene instance has its own time management through the @b3d::SceneTime obje
 For detailed information about using scene time, including time scaling, pausing, fixed timesteps, and practical examples, see the [Time utilities](../15_Utilities/08_time.md#scene-time) manual.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
+TShared<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
 SceneTime& time = sceneInstance->GetTime();
 
 // Get simulation time since scene started (affected by time scale)
@@ -125,7 +125,7 @@ time.SetPaused(true); // Pause simulation
 Scene instances track the main camera, which is used for rendering the primary viewport. You can access the main camera using @b3d::SceneInstance::GetMainCamera:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
+TShared<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
 
 // Get the main camera in the scene
 HCamera mainCamera = sceneInstance->GetMainCamera();
@@ -157,7 +157,7 @@ HSceneObject cameraObject = SceneObject::Create("MainCamera");
 HCamera camera = cameraObject->AddComponent<Camera>();
 
 // Get the primary window and set it as the camera's target
-SPtr<RenderWindow> window = GetApplication().GetPrimaryWindow();
+TShared<RenderWindow> window = GetApplication().GetPrimaryWindow();
 camera->GetViewport()->SetTarget(window);
 ~~~~~~~~~~~~~
 

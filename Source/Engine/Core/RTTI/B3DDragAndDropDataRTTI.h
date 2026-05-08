@@ -31,7 +31,7 @@ namespace b3d
 			return TID_DragAndDropData;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<DragAndDropData>();
 		}
@@ -55,7 +55,7 @@ namespace b3d
 			return TID_SceneObjectDragAndDropData;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<SceneObjectDragAndDropData>();
 		}
@@ -79,7 +79,7 @@ namespace b3d
 			return TID_ResourceDragAndDropData;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ResourceDragAndDropData>();
 		}

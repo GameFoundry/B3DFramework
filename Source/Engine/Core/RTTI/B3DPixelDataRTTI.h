@@ -34,14 +34,14 @@ namespace b3d
 			B3D_RTTI_GENERATED_MEMBER(mVersion, 10)
 		B3D_RTTI_END_MEMBERS
 
-		SPtr<DataStream> GetData(PixelData* obj, u32& size)
+		TShared<DataStream> GetData(PixelData* obj, u32& size)
 		{
 			size = obj->GetConsecutiveSize();
 
 			return B3DMakeShared<MemoryDataStream>(obj->GetData(), size);
 		}
 
-		void SetData(PixelData* obj, const SPtr<DataStream>& value, u32 size)
+		void SetData(PixelData* obj, const TShared<DataStream>& value, u32 size)
 		{
 			obj->AllocateInternalBuffer(size);
 			value->Read(obj->GetData(), size);
@@ -78,7 +78,7 @@ namespace b3d
 			return TID_PixelData;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<PixelData>();
 		}

@@ -195,10 +195,10 @@ namespace b3d
 			bool GetUsePoolReset() const { return mInformation.UsePoolReset; }
 
 			/** Creates a new command buffer. */
-			virtual SPtr<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) = 0;
+			virtual TShared<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) = 0;
 
 			/** Attempts to find a free command buffer from the pool, or creates a new one if it cannot be found. */
-			virtual SPtr<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) = 0;
+			virtual TShared<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) = 0;
 
 			/** Resets the command buffer pool, allowing all previously allocated command buffers to be re-used. Must be called only after all previously allocated command buffers have completed executing. */
 			virtual void Reset() = 0;
@@ -240,15 +240,15 @@ namespace b3d
 		/** Describes a barrier for a GpuBuffer. */
 		struct GpuBufferBarrier : GpuBarrier
 		{
-			GpuBufferBarrier(const SPtr<GpuBuffer>& object, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
+			GpuBufferBarrier(const TShared<GpuBuffer>& object, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
 				: GpuBarrier(destinationUsage, destinationAccess), Object(object)
 			{ }
 
-			GpuBufferBarrier(const SPtr<GpuBuffer>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
+			GpuBufferBarrier(const TShared<GpuBuffer>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
 				: GpuBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess), Object(object)
 			{ }
 
-			SPtr<GpuBuffer> Object;
+			TShared<GpuBuffer> Object;
 		};
 
 		/** Describes a common set of barrier information used both by Texture and RenderTarget barrier. */
@@ -281,26 +281,26 @@ namespace b3d
 		/** Describes a barrier for a Texture. */
 		struct GpuTextureBarrier : GpuSurfaceBarrier
 		{
-			GpuTextureBarrier(const SPtr<Texture>& object, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
+			GpuTextureBarrier(const TShared<Texture>& object, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
 				: GpuSurfaceBarrier(destinationUsage, destinationAccess, subResourceRange), Object(object)
 			{ }
 
-			GpuTextureBarrier(const SPtr<Texture>& object, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess,
+			GpuTextureBarrier(const TShared<Texture>& object, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess,
 				ImageLayout sourceLayout, ImageLayout destinationLayout, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
 				: GpuSurfaceBarrier(destinationUsage, destinationAccess, sourceLayout, destinationLayout, subResourceRange), Object(object)
 			{ }
 
-			GpuTextureBarrier(const SPtr<Texture>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
+			GpuTextureBarrier(const TShared<Texture>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
 				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
 				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, subResourceRange), Object(object)
 			{ }
 
-			GpuTextureBarrier(const SPtr<Texture>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess,
+			GpuTextureBarrier(const TShared<Texture>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess,
 				ImageLayout sourceLayout, ImageLayout destinationLayout, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
 				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, sourceLayout, destinationLayout, subResourceRange), Object(object)
 			{ }
 
-			SPtr<Texture> Object;
+			TShared<Texture> Object;
 		};
 /**
 		 * Describes a barrier for a RenderTarget.
@@ -313,27 +313,27 @@ namespace b3d
 		 */
 		struct GpuRenderTargetBarrier : GpuSurfaceBarrier
 		{
-			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, 
+			GpuRenderTargetBarrier(const TShared<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, 
 				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
 				: GpuSurfaceBarrier(destinationUsage, destinationAccess, subresourceRange), Object(object), SurfaceMask(surfaceMask)
 			{ }
 
-			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask,
+			GpuRenderTargetBarrier(const TShared<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask,
 				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, ImageLayout sourceLayout, ImageLayout destinationLayout, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
 				: GpuSurfaceBarrier(destinationUsage, destinationAccess, sourceLayout, destinationLayout, subresourceRange), Object(object), SurfaceMask(surfaceMask)
 			{ }
 
-			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
+			GpuRenderTargetBarrier(const TShared<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
 				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
 				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, subresourceRange), Object(object), SurfaceMask(surfaceMask)
 			{ }
 
-			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
+			GpuRenderTargetBarrier(const TShared<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
 				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, ImageLayout sourceLayout, ImageLayout destinationLayout, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
 				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, sourceLayout, destinationLayout, subresourceRange), Object(object), SurfaceMask(surfaceMask)
 			{ }
 
-			SPtr<RenderTarget> Object;
+			TShared<RenderTarget> Object;
 			RenderSurfaceMaskBits SurfaceMask; /**< Specifies which surface of the render target the barrier applies to. Must be a single bit. */
 		};
 
@@ -401,7 +401,7 @@ namespace b3d
 		struct RenderPassCreateInformation
 		{
 			/** Render target to render to. */
-			SPtr<RenderTarget> Target;
+			TShared<RenderTarget> Target;
 
 			/**
 			 * Which surfaces of the render target are read-only.
@@ -435,15 +435,15 @@ namespace b3d
 			 * Set of all GPU parameters that will be bound during this render pass. The command buffer will pre-register all resources
 			 * from these parameters, allowing barriers and layout transitions to be issued before the render pass begins.
 			 */
-			TInlineArray<SPtr<GpuParameterSet>, 4> Parameters;
+			TInlineArray<TShared<GpuParameterSet>, 4> Parameters;
 
 			RenderPassCreateInformation() = default;
 
-			RenderPassCreateInformation(const SPtr<RenderTarget>& target, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
+			RenderPassCreateInformation(const TShared<RenderTarget>& target, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
 				: Target(target), ReadOnlyMask(readOnlyMask), LoadMask(loadMask)
 			{ }
 
-			RenderPassCreateInformation(const SPtr<RenderTarget>& target, const SPtr<GpuParameterSet>& parameters, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
+			RenderPassCreateInformation(const TShared<RenderTarget>& target, const TShared<GpuParameterSet>& parameters, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
 				: Target(target), ReadOnlyMask(readOnlyMask), LoadMask(loadMask)
 			{
 				if(parameters != nullptr)
@@ -479,7 +479,7 @@ namespace b3d
 			 * in their GPU programs. The caller must ensure the provided parameters match the bound graphics/compute pipeline
 			 * at the time of the draw/dispatch call.
 			 */
-			virtual void SetGpuParameterSet(const SPtr<GpuParameterSet>& parameters) = 0;
+			virtual void SetGpuParameterSet(const TShared<GpuParameterSet>& parameters) = 0;
 
 			/**
 			 * Applies an offset from which reads in a buffer should start in a GPU program. This allows caller to quickly change
@@ -493,10 +493,10 @@ namespace b3d
 			virtual void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) = 0;
 
 			/** Sets a pipeline state that controls how will subsequent draw commands render primitives. */
-			virtual void SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState) = 0;
+			virtual void SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState) = 0;
 
 			/** Sets a pipeline state that controls how will subsequent dispatch commands execute. */
-			virtual void SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& pipelineState) = 0;
+			virtual void SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState) = 0;
 
 			/**
 			 * Sets the provided vertex buffers starting at the specified source index.	Set buffer to nullptr to clear the
@@ -506,7 +506,7 @@ namespace b3d
 			 * @param	buffers			A list of buffers to bind to the pipeline.
 			 * @param	bufferCount		Number of buffers in the @p buffers list.
 			 */
-			virtual void SetVertexBuffers(u32 index, SPtr<GpuBuffer>* buffers, u32 bufferCount) = 0;
+			virtual void SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount) = 0;
 
 			/**
 			 * Sets an index buffer to use when drawing. Indices in an index buffer reference vertices in the vertex buffer,
@@ -514,14 +514,14 @@ namespace b3d
 			 *
 			 * @param	buffer			Index buffer to bind, null to unbind.
 			 */
-			virtual void SetIndexBuffer(const SPtr<GpuBuffer>& buffer) = 0;
+			virtual void SetIndexBuffer(const TShared<GpuBuffer>& buffer) = 0;
 
 			/**
 			 * Sets the description of vertex elements in the vertex buffers that will be bound when executing the vertex GPU program.
 			 *
 			 * @param	vertexDescription	Vertex description to bind.
 			 */
-			virtual void SetVertexDescription(const SPtr<VertexDescription>& vertexDescription) = 0;
+			virtual void SetVertexDescription(const TShared<VertexDescription>& vertexDescription) = 0;
 
 			/**
 			 * Sets the draw operation that determines how to interpret the elements of the index or vertex buffers.
@@ -654,7 +654,7 @@ namespace b3d
 			 * @param	destinationOffset	Offset into the destination buffer, at which to place the copied data, in bytes.
 			 * @param	length				Size of the data to copy, in bytes.
 			 */
-			virtual void CopyBufferToBuffer(const SPtr<GpuBuffer>& source, const SPtr<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) = 0;
+			virtual void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) = 0;
 
 			/**
 			 * Copies data from a buffer to a texture subresource. The buffer must contain pixel data in the same format as the texture, accounting for the required
@@ -666,7 +666,7 @@ namespace b3d
 			 * @param	mipLevel		Destination mipmap level.
 			 * @param	arrayLayer		Destination texture face (array slice or cubemap face).
 			 */
-			virtual void CopyBufferToTexture(const SPtr<GpuBuffer>& source, const SPtr<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) = 0;
+			virtual void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) = 0;
 
 			/**
 			 * Copies data from a texture subresource to a buffer. The buffer must have enough space to receive all pixel data in the same format as the texture,
@@ -678,7 +678,7 @@ namespace b3d
 			 * @param	arrayLayer		Source texture face (array slice or cubemap face).
 			 * @param	bufferOffset	Offset into the destination buffer, in bytes.
 			 */
-			virtual void CopyTextureToBuffer(const SPtr<Texture>& source, const SPtr<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset = 0) = 0;
+			virtual void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset = 0) = 0;
 
 			/**
 			 * Copies data between texture subresources without format conversion or scaling. Both textures must have matching formats.
@@ -689,7 +689,7 @@ namespace b3d
 			 * @param	destination		Destination texture to copy into.
 			 * @param	copyInformation	Describes which subresources to copy and where.
 			 */
-			virtual bool CopyTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureCopyInformation& copyInformation = TextureCopyInformation::kDefault);
+			virtual bool CopyTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureCopyInformation& copyInformation = TextureCopyInformation::kDefault);
 
 			/**
 			 * Copies data between texture subresources with optional format conversion and scaling. Uses filtering when scaling.
@@ -699,7 +699,7 @@ namespace b3d
 			 * @param	destination		Destination texture to copy into.
 			 * @param	blitInformation	Describes which subresources to copy and where, including source/destination regions for scaling.
 			 */
-			virtual bool BlitTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureBlitInformation& blitInformation = TextureBlitInformation::kDefault);
+			virtual bool BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation = TextureBlitInformation::kDefault);
 
 			/**
 			 * Schedules the timestamp to be recorded in the command buffer. The timestamp will record the
@@ -709,7 +709,7 @@ namespace b3d
 			 * @param query			Query to use for referencing the recorded timestamp.
 			 * @param queryPool		Query pool that @p query was created from.
 			 */
-			virtual void WriteTimestamp(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) = 0;
+			virtual void WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) = 0;
 
 			/**
 			 * Schedules the query start in the command buffer. The query will capture information about GPU execution
@@ -722,7 +722,7 @@ namespace b3d
 			 * @param queryPool		Query pool that @p query was created from.
 			 * @param flags			Flags used to control the query.
 			 */
-			virtual void BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool, GpuQueryFlags flags = GpuQueryFlag::None) = 0;
+			virtual void BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags = GpuQueryFlag::None) = 0;
 
 			/**
 			 * Records the timestamp when this particular command executes on the GPU.
@@ -730,13 +730,13 @@ namespace b3d
 			 * @param query			Query to use for referencing the recorded data.
 			 * @param queryPool		Query pool that @p query was created from.
 			 */
-			virtual void EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) = 0;
+			virtual void EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) = 0;
 
 			/**
 			 * Resets the pool when the command buffer execution reaches this point. After resetting the pool previously allocated queries are no
 			 * longer valid, and new AllocateQuery() calls return queries from the start of the pool. Must be done outside of a render pass.
 			 */
-			virtual void ResetQueries(const SPtr<GpuQueryPool>& queryPool) = 0;
+			virtual void ResetQueries(const TShared<GpuQueryPool>& queryPool) = 0;
 
 			/**
 			 * Surrounds all following commands with the provided label, until EndLabel() is called. This may be used by external
@@ -773,17 +773,17 @@ namespace b3d
 			 * @name	profilingScopeName		Name of the profiling scope that you may use to identify it when retrieving
 			 *									results from GpuProfiler.
 			 */
-			SPtr<GpuCommandBufferProfiler> BeginProfiling(const ProfilerString& profilingScopeName);
+			TShared<GpuCommandBufferProfiler> BeginProfiling(const ProfilerString& profilingScopeName);
 
 			/** Finishes profiling the command buffer. Requested samples will be sent for resolve to GpuProfiler. */
 			void EndProfiling();	
 
 			/** Returns the currently active GPU profiler. Only valid in-between Begin/EndProfiling calls. */
-			const SPtr<GpuCommandBufferProfiler>& GetProfiler() { return mProfiler; }
+			const TShared<GpuCommandBufferProfiler>& GetProfiler() { return mProfiler; }
 #endif
 
 			/** Returns the shared pointer to the current object. */
-			SPtr<GpuCommandBuffer> GetShared() const { return mSelf.lock(); }
+			TShared<GpuCommandBuffer> GetShared() const { return mSelf.lock(); }
 
 			/** Triggers when the command buffer finishes execution on the GPU. triggers on the thread that owns the command buffer (the thread the command buffer pool was created on). */
 			Event<void()> OnDidComplete;
@@ -797,7 +797,7 @@ namespace b3d
 			 */
 
 			/** Sets a pointer to itself. */
-			void SetShared(const SPtr<GpuCommandBuffer>& value) { mSelf = value; }
+			void SetShared(const TShared<GpuCommandBuffer>& value) { mSelf = value; }
 
 			/** @} */
 
@@ -837,7 +837,7 @@ namespace b3d
 			bool mIsDestroyed = false;
 
 #if B3D_PROFILING_ENABLED
-			SPtr<GpuCommandBufferProfiler> mProfiler;
+			TShared<GpuCommandBufferProfiler> mProfiler;
 			ProfilerString mProfilingScopeName;
 #endif
 

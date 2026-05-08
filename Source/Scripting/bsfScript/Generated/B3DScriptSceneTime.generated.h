@@ -13,7 +13,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SceneTime")
 
-		ScriptSceneTime(const SPtr<SceneTime>& nativeObject);
+		ScriptSceneTime(const TShared<SceneTime>& nativeObject);
 		~ScriptSceneTime();
 
 		static void SetupScriptBindings();

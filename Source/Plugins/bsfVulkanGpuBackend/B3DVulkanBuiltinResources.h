@@ -25,19 +25,19 @@ namespace b3d
 			void Cleanup();
 
 			/** Buffer that can be used for buffer read operations when no other buffer is bound. */
-			SPtr<VulkanGpuBuffer> DummyReadBuffer;
+			TShared<VulkanGpuBuffer> DummyReadBuffer;
 
 			/** Buffer that can be used for buffer storage operations when no other buffer is bound. */
-			SPtr<VulkanGpuBuffer> DummyStorageBuffer;
+			TShared<VulkanGpuBuffer> DummyStorageBuffer;
 
 			/** Buffer that can be used for uniform storage when no other buffer is bound. */
-			SPtr<VulkanGpuBuffer> DummyUniformBuffer;
+			TShared<VulkanGpuBuffer> DummyUniformBuffer;
 
 			/** Buffer that can be used for structured storage when no other buffer is bound. */
-			SPtr<VulkanGpuBuffer> DummyStructuredBuffer;
+			TShared<VulkanGpuBuffer> DummyStructuredBuffer;
 
 			/** Buffer that can be used for vertex buffers when no other buffer is bound. */
-			SPtr<VulkanGpuBuffer> DummyVertexBuffer;
+			TShared<VulkanGpuBuffer> DummyVertexBuffer;
 
 		private:
 			VulkanGpuDevice& mGpuDevice;

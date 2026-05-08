@@ -14,7 +14,7 @@ ManagedSerializableArray::ManagedSerializableArray(const ConstructPrivately& dum
 {
 }
 
-ManagedSerializableArray::ManagedSerializableArray(const ConstructPrivately& dummy, const SPtr<ManagedTypeInfoArray>& typeInfo, MonoObject* managedInstance)
+ManagedSerializableArray::ManagedSerializableArray(const ConstructPrivately& dummy, const TShared<ManagedTypeInfoArray>& typeInfo, MonoObject* managedInstance)
 	: mArrayTypeInfo(typeInfo)
 
 {
@@ -39,7 +39,7 @@ ManagedSerializableArray::~ManagedSerializableArray()
 	}
 }
 
-SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedTypeInfoArray>& typeInfo)
+TShared<ManagedSerializableArray> ManagedSerializableArray::CreateFromExisting(MonoObject* managedInstance, const TShared<ManagedTypeInfoArray>& typeInfo)
 {
 	if(managedInstance == nullptr)
 		return nullptr;
@@ -50,17 +50,17 @@ SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateFromExisting(Mono
 	return B3DMakeShared<ManagedSerializableArray>(ConstructPrivately(), typeInfo, managedInstance);
 }
 
-SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateNew(const SPtr<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes)
+TShared<ManagedSerializableArray> ManagedSerializableArray::CreateNew(const TShared<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes)
 {
 	return B3DMakeShared<ManagedSerializableArray>(ConstructPrivately(), typeInfo, CreateManagedInstance(typeInfo, sizes));
 }
 
-SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateNew()
+TShared<ManagedSerializableArray> ManagedSerializableArray::CreateNew()
 {
 	return B3DMakeShared<ManagedSerializableArray>(ConstructPrivately());
 }
 
-MonoObject* ManagedSerializableArray::CreateManagedInstance(const SPtr<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes)
+MonoObject* ManagedSerializableArray::CreateManagedInstance(const TShared<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes)
 {
 	if(!typeInfo->IsTypeLoaded())
 		return nullptr;
@@ -85,7 +85,7 @@ MonoObject* ManagedSerializableArray::GetManagedInstance() const
 	return nullptr;
 }
 
-void ManagedSerializableArray::SetFieldData(u32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val)
+void ManagedSerializableArray::SetFieldData(u32 arrayIdx, const TShared<ManagedSerializableFieldData>& val)
 {
 	if(mGCHandle != 0)
 	{
@@ -98,7 +98,7 @@ void ManagedSerializableArray::SetFieldData(u32 arrayIdx, const SPtr<ManagedSeri
 	}
 }
 
-void ManagedSerializableArray::SetFieldData(MonoArray* obj, u32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val)
+void ManagedSerializableArray::SetFieldData(MonoArray* obj, u32 arrayIdx, const TShared<ManagedSerializableFieldData>& val)
 {
 	if(MonoUtil::IsValueType(mElementMonoClass))
 		SetValueInternal(obj, arrayIdx, val->GetValue(mArrayTypeInfo->ElementType));
@@ -109,7 +109,7 @@ void ManagedSerializableArray::SetFieldData(MonoArray* obj, u32 arrayIdx, const 
 	}
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableArray::GetFieldData(u32 arrayIdx)
+TShared<ManagedSerializableFieldData> ManagedSerializableArray::GetFieldData(u32 arrayIdx)
 {
 	if(mGCHandle != 0)
 	{
@@ -147,7 +147,7 @@ void ManagedSerializableArray::Serialize()
 		mNumElements[i] = GetLengthInternal(i);
 
 	u32 numElements = GetTotalLength();
-	mCachedEntries = Vector<SPtr<ManagedSerializableFieldData>>(numElements);
+	mCachedEntries = Vector<TShared<ManagedSerializableFieldData>>(numElements);
 
 	for(u32 i = 0; i < numElements; i++)
 		mCachedEntries[i] = GetFieldData(i);

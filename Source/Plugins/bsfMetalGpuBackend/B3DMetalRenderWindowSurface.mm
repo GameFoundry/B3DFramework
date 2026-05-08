@@ -218,7 +218,7 @@ namespace b3d::render
 						if (!waitMask.IsSet(waitQueueId))
 							continue;
 
-						SPtr<GpuQueue> queuePtr = mGpuDevice.GetQueue(queueType, queueIndex);
+						TShared<GpuQueue> queuePtr = mGpuDevice.GetQueue(queueType, queueIndex);
 						auto waitQueue = std::static_pointer_cast<MetalGpuQueue>(queuePtr);
 						if (!waitQueue)
 							continue;
@@ -359,11 +359,11 @@ namespace b3d::render
 		mNeedsDrawableSizeReapply.store(true, std::memory_order_release);
 	}
 
-	TAsyncOp<SPtr<PixelData>> MetalRenderWindowSurface::ReadAsync(GpuCommandBuffer& commandBuffer)
+	TAsyncOp<TShared<PixelData>> MetalRenderWindowSurface::ReadAsync(GpuCommandBuffer& commandBuffer)
 	{
 		@autoreleasepool
 		{
-			TAsyncOp<SPtr<PixelData>> op;
+			TAsyncOp<TShared<PixelData>> op;
 
 			if (!mValid || mLayer == nil || mCurrentDrawable == nil)
 			{
@@ -413,7 +413,7 @@ namespace b3d::render
 			// Pixel format used for the result. The drawable is always BGRA8 (sRGB variant is the same
 			// byte layout), so we read back into PF_BGRA8 and let the caller reinterpret the colorspace
 			// if needed — matching the Vulkan backend's behavior when reading an sRGB swapchain image.
-			SPtr<PixelData> pixelData = PixelData::Create(width, height, 1, PF_BGRA8);
+			TShared<PixelData> pixelData = PixelData::Create(width, height, 1, PF_BGRA8);
 
 			const u32 bytesPerRow = MetalUtility::GetTextureRowPitch(PF_BGRA8, width);
 			const NSUInteger bufferSize = (NSUInteger)bytesPerRow * height;

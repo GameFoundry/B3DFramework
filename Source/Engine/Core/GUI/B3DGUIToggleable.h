@@ -19,12 +19,12 @@ namespace b3d
 	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIToggleContent
 	{
 		GUIToggleContent() = default;
-		GUIToggleContent(const GUIContent& content, const SPtr<GUIToggleGroup>& toggleGroup = nullptr)
+		GUIToggleContent(const GUIContent& content, const TShared<GUIToggleGroup>& toggleGroup = nullptr)
 			: GeneralContent(content), ToggleGroup(toggleGroup)
 		{ }
 
 		GUIContent GeneralContent;
-		SPtr<GUIToggleGroup> ToggleGroup;
+		TShared<GUIToggleGroup> ToggleGroup;
 	};
 
 	/**	GUI element representing a toggleable button. */
@@ -50,7 +50,7 @@ namespace b3d
 		 */
 
 		/** Sets a toggle group of the toggle button. Toggling one button in a group will automatically untoggle others. */
-		void SetToggleGroupInternal(SPtr<GUIToggleGroup> toggleGroup);
+		void SetToggleGroupInternal(TShared<GUIToggleGroup> toggleGroup);
 
 		/** Sets an interface that constructs the vector path used for drawing the GUI element checkmark. */
 		void SetCheckmarkPathBuilder(const IGUIVectorPathBuilder* pathBuilder) { mCheckmarkPathBuilder = pathBuilder; }
@@ -85,7 +85,7 @@ namespace b3d
 		const IGUIVectorPathBuilder* mCheckmarkPathBuilder = nullptr;
 		u32 mCheckmarkPseudoElementIndex = ~0u;
 
-		SPtr<GUIToggleGroup> mToggleGroup;
+		TShared<GUIToggleGroup> mToggleGroup;
 		bool mIsToggled;
 
 		GUISizeConstraints mCheckmarkSizeConstraints;

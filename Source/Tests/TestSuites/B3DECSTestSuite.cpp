@@ -110,7 +110,7 @@ ECSTestSuite::ECSTestSuite()
 
 void ECSTestSuite::TestSparseSet()
 {
-	TShared<int> a = TShared<int>(new int);
+	TShared2<int> a = TShared2<int>(new int);
 
 	auto fnTestSparseSet = [this](auto&& entitySparseSet)
 	{

@@ -32,7 +32,7 @@ particleSystemSettings.Material = material;
 particleSystem->SetSettings(particleSystemSettings);
 
 // Add an emitter that emits particles on the surface of a sphere
-SPtr<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
+TShared<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
 
 ParticleSphereShapeSettings sphereShape;
 sphereShape.Radius = 0.3f;
@@ -91,14 +91,14 @@ Emitters determine where are new particles spawned, along with other properties 
 Once created they can be registered with the particle system by setting a list of emitters through @b3d::ParticleSystem::SetEmitters.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
+TShared<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
 particleSystem->SetEmitters({emitter});
 ~~~~~~~~~~~~~
 
 Query the current emitters:
 
 ~~~~~~~~~~~~~{.cpp}
-Vector<SPtr<ParticleEmitter>> emitters = particleSystem->GetEmitters();
+Vector<TShared<ParticleEmitter>> emitters = particleSystem->GetEmitters();
 ~~~~~~~~~~~~~
 
 ## Shape
@@ -115,7 +115,7 @@ emitter->SetShape(ParticleEmitterSphereShape::Create(sphereShape));
 Query the shape:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<ParticleEmitterShape> shape = emitter->GetShape();
+TShared<ParticleEmitterShape> shape = emitter->GetShape();
 ~~~~~~~~~~~~~
 
 ## Other emitter properties
@@ -328,9 +328,9 @@ Each particle system also has an @b3d::ecs::ParticleSystemId fragment that store
 You can bypass the **ParticleSystem** component and create `ecs::ParticleSystem` fragments directly for maximum performance. Helper functions @b3d::ecs::CreateParticleSystem and @b3d::ecs::DestroyParticleSystem handle fragment creation (including the simulation fragment), world transform, renderer ID allocation, and cleanup. Use @b3d::ecs::ParticleSystemECSUtility to mark dirty after property changes.
 
 ~~~~~~~~~~~~~{.cpp}
-const SPtr<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
+const TShared<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
 ecs::Registry& registry = scene->GetECSRegistry();
-const SPtr<RendererScene>& rendererScene = scene->GetRendererScene();
+const TShared<RendererScene>& rendererScene = scene->GetRendererScene();
 
 // Create an entity with all particle system fragments, a world transform, and a renderer ID
 ecs::Entity entity = registry.CreateEntity();
@@ -343,7 +343,7 @@ fragment.Settings = settings;
 fragment.Layer = 1;
 
 // Set up emitters
-SPtr<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
+TShared<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
 ParticleSphereShapeSettings sphereShape;
 sphereShape.Radius = 0.3f;
 emitter->SetShape(ParticleEmitterSphereShape::Create(sphereShape));

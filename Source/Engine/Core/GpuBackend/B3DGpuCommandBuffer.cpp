@@ -40,7 +40,7 @@ GpuCommandBuffer::~GpuCommandBuffer()
 }
 
 #if B3D_PROFILING_ENABLED
-SPtr<GpuCommandBufferProfiler> GpuCommandBuffer::BeginProfiling(const ProfilerString& profilingScopeName)
+TShared<GpuCommandBufferProfiler> GpuCommandBuffer::BeginProfiling(const ProfilerString& profilingScopeName)
 {
 	if(!B3D_ENSURE(mProfiler == nullptr))
 		return nullptr;
@@ -63,7 +63,7 @@ void GpuCommandBuffer::EndProfiling()
 }
 #endif
 
-bool GpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureCopyInformation& copyInformation)
+bool GpuCommandBuffer::CopyTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureCopyInformation& copyInformation)
 {
 	EnsureValidThread();
 
@@ -195,7 +195,7 @@ bool GpuCommandBuffer::CopyTexture(const SPtr<Texture>& source, const SPtr<Textu
 	return true;
 }
 
-bool GpuCommandBuffer::BlitTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureBlitInformation& blitInformation)
+bool GpuCommandBuffer::BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation)
 {
 	EnsureValidThread();
 

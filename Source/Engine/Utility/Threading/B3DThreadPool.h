@@ -132,7 +132,7 @@ namespace b3d
 		 * @param	workerMethod	The worker method to be called by the thread.
 		 * @return					A thread handle you may use for monitoring the thread execution.
 		 */
-		SPtr<PooledThread> Run(const String& name, std::function<void()> workerMethod);
+		TShared<PooledThread> Run(const String& name, std::function<void()> workerMethod);
 
 		/**
 		 * Stops all threads and destroys them. Caller must ensure each threads worker method returns otherwise this will
@@ -152,10 +152,10 @@ namespace b3d
 	protected:
 		friend class HThread;
 
-		Vector<SPtr<PooledThread>> mThreads;
+		Vector<TShared<PooledThread>> mThreads;
 
 		/**	Creates a new thread to be used by the pool. */
-		virtual SPtr<PooledThread> CreateThread(const String& name) = 0;
+		virtual TShared<PooledThread> CreateThread(const String& name) = 0;
 
 		/**
 		 * Returns the first unused thread if one exists, otherwise creates a new one.
@@ -164,7 +164,7 @@ namespace b3d
 		 *
 		 * @note	Throws an exception if we have reached our maximum thread capacity.
 		 */
-		SPtr<PooledThread> GetThread(const String& name);
+		TShared<PooledThread> GetThread(const String& name);
 
 		u32 mDefaultCapacity;
 		u32 mIdleTimeout;
@@ -208,9 +208,9 @@ namespace b3d
 		}
 
 	protected:
-		SPtr<PooledThread> CreateThread(const String& name) override
+		TShared<PooledThread> CreateThread(const String& name) override
 		{
-			SPtr<PooledThread> output(B3DNew<TPooledThread<ThreadPolicy>>(name), [](PooledThread* pooledThread)
+			TShared<PooledThread> output(B3DNew<TPooledThread<ThreadPolicy>>(name), [](PooledThread* pooledThread)
 				{
 					pooledThread->Destroy();
 					B3DDelete(pooledThread);

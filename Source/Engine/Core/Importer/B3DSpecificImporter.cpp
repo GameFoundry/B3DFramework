@@ -6,9 +6,9 @@
 
 using namespace b3d;
 
-Vector<SubResourceRaw> SpecificImporter::ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions)
+Vector<SubResourceRaw> SpecificImporter::ImportAll(const Path& filePath, TShared<const ImportOptions> importOptions)
 {
-	SPtr<Resource> resource = Import(filePath, importOptions);
+	TShared<Resource> resource = Import(filePath, importOptions);
 	if(resource == nullptr)
 		return Vector<SubResourceRaw>();
 
@@ -16,12 +16,12 @@ Vector<SubResourceRaw> SpecificImporter::ImportAll(const Path& filePath, SPtr<co
 	;
 }
 
-SPtr<ImportOptions> SpecificImporter::CreateImportOptions() const
+TShared<ImportOptions> SpecificImporter::CreateImportOptions() const
 {
 	return B3DMakeShared<ImportOptions>();
 }
 
-SPtr<const ImportOptions> SpecificImporter::GetDefaultImportOptions() const
+TShared<const ImportOptions> SpecificImporter::GetDefaultImportOptions() const
 {
 	if(mDefaultImportOptions == nullptr)
 		mDefaultImportOptions = CreateImportOptions();

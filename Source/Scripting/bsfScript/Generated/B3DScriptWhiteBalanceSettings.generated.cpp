@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptWhiteBalanceSettings::ScriptWhiteBalanceSettings(const SPtr<WhiteBalanceSettings>& nativeObject)
+	ScriptWhiteBalanceSettings::ScriptWhiteBalanceSettings(const TShared<WhiteBalanceSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -40,7 +40,7 @@ namespace b3d
 	}
 	void ScriptWhiteBalanceSettings::InternalWhiteBalanceSettings(MonoObject* scriptObject)
 	{
-		SPtr<WhiteBalanceSettings> nativeObject = B3DMakeShared<WhiteBalanceSettings>();
+		TShared<WhiteBalanceSettings> nativeObject = B3DMakeShared<WhiteBalanceSettings>();
 		ScriptObjectWrapper::Create<ScriptWhiteBalanceSettings>(nativeObject, scriptObject);
 	}
 

@@ -20,7 +20,7 @@ SphereCollider::SphereCollider()
 
 void SphereCollider::OnCreated()
 {
-	SPtr<ColliderShape> colliderShape = ColliderShape::CreateSphere(mRadius);
+	TShared<ColliderShape> colliderShape = ColliderShape::CreateSphere(mRadius);
 	colliderShape->SetPosition(mShapeLocalPosition);
 
 	mShapes = { colliderShape };

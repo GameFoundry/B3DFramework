@@ -88,7 +88,7 @@ namespace b3d
 		HRigidbody GetRigidbody() const { return mParentRigidbody; }
 
 		/** Returns all the shapes associated with this collider. */
-		TInlineArray<SPtr<ColliderShape>, 1> GetShapes() const { return mShapes; }
+		TInlineArray<TShared<ColliderShape>, 1> GetShapes() const { return mShapes; }
 
 		/**
 		 * Checks does the ray hit this collider.
@@ -175,7 +175,7 @@ namespace b3d
 		 */
 		bool RefreshParentRigidbody();
 
-		TInlineArray<SPtr<ColliderShape>, 1> mShapes;
+		TInlineArray<TShared<ColliderShape>, 1> mShapes;
 		UPtr<IColliderImplementation> mImplementation;
 
 		u64 mLayer = 1;
@@ -224,10 +224,10 @@ namespace b3d
 		virtual void RemoveFromScene() = 0;
 
 		/** Assigns a new child shape to the collider. */
-		virtual void AttachShape(const SPtr<ColliderShape>& shape) = 0;
+		virtual void AttachShape(const TShared<ColliderShape>& shape) = 0;
 
 		/** Removes a shape that was previously attached to the collider. */
-		virtual void DetachShape(const SPtr<ColliderShape>& shape) = 0;
+		virtual void DetachShape(const TShared<ColliderShape>& shape) = 0;
 
 		/** Changes the position and rotation of the collider. All child shapes will maintain relative position and rotation to the collider. */
 		virtual void SetTransform(const Vector3& position, const Quaternion& rotation) = 0;

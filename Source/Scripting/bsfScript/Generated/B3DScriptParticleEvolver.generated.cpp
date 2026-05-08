@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptParticleEvolver::ScriptParticleEvolver(const SPtr<ParticleEvolver>& nativeObject)
+	ScriptParticleEvolver::ScriptParticleEvolver(const TShared<ParticleEvolver>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

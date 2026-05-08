@@ -5,7 +5,7 @@
 
 namespace b3d
 {
-	SPtr<render::IRenderWindowSurface> NullRenderWindowManager::CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation)
+	TShared<render::IRenderWindowSurface> NullRenderWindowManager::CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation)
 	{
 		auto surface = B3DMakeShared<render::NullRenderWindowSurface>(createInformation);
 		return surface;

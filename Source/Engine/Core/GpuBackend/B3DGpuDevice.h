@@ -220,7 +220,7 @@ namespace b3d
 	struct GpuSubmissionInformation
 	{
 		/** Command buffer to submit  */
-		SPtr<render::GpuCommandBuffer> CommandBuffer;
+		TShared<render::GpuCommandBuffer> CommandBuffer;
 		
 		/**
 		 * Optional synchronization mask that determines if the submitted command buffer
@@ -271,7 +271,7 @@ namespace b3d
 		 * @param	syncMask			Optional synchronization mask that determines if the present operation
 		 *								depends on any command buffers submitted on other queues.
 		 */
-		virtual void PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) = 0;
+		virtual void PresentRenderWindow(const TShared<render::RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) = 0;
 
 		/** Blocks the calling thread until all operations on the queue finish executing on the GPU. */
 		virtual void WaitUntilIdle() = 0;
@@ -331,7 +331,7 @@ namespace b3d
 		virtual u32 GetQueueCount(GpuQueueType type) const = 0;
 
 		/** Retrieves a queue with the specified usage and index. */
-		virtual SPtr<GpuQueue> GetQueue(GpuQueueType type, u32 index) const = 0;
+		virtual TShared<GpuQueue> GetQueue(GpuQueueType type, u32 index) const = 0;
 
 		/**
 		 * Submits a command buffer on a queue matching its type. 
@@ -357,7 +357,7 @@ namespace b3d
 		 * @param	queueIndex		In case there are multiple queues supported with the command buffer's usage,
 		 *							this determines which one to execute on.
 		 */
-		virtual void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask = GpuQueueMask::kAll, u32 queueIndex = 0);
+		virtual void SubmitCommandBuffer(const TShared<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask = GpuQueueMask::kAll, u32 queueIndex = 0);
 
 		/**
 		 * Presents the back-buffer image from the provided window onto the window, using the appropriate queue that supports present operations.
@@ -366,7 +366,7 @@ namespace b3d
 		 * @param	syncMask			Optional synchronization mask that determines if the present operation
 		 *								depends on command buffers submitted on other queues.
 		 */
-		virtual void PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) = 0;
+		virtual void PresentRenderWindow(const TShared<render::RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) = 0;
 
 		/** Blocks the calling thread until all operations on the device finish. */
 		virtual void WaitUntilIdle() = 0;
@@ -385,7 +385,7 @@ namespace b3d
 		 * The returned command buffer will be automatically submitted during EndFrame() or when
 		 * SubmitTransferCommandBuffer() is called.
 		 */
-		const SPtr<render::GpuCommandBuffer>& GetOrCreateTransferCommandBuffer();
+		const TShared<render::GpuCommandBuffer>& GetOrCreateTransferCommandBuffer();
 
 		/**
 		 * Submits the transfer command buffer for the current thread. Optionally waits until the GPU is done processing it.
@@ -402,10 +402,10 @@ namespace b3d
 		 * Compiles the GPU program to an intermediate bytecode format. The bytecode can be cached and used for
 		 * quicker compilation/creation of GPU programs.
 		 */
-		virtual SPtr<GpuProgramBytecode> CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const = 0;
+		virtual TShared<GpuProgramBytecode> CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const = 0;
 
 		/** Creates a command buffer pool that may be used for allocating command buffers. */
-		virtual SPtr<render::GpuCommandBufferPool> CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation) = 0;
+		virtual TShared<render::GpuCommandBufferPool> CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation) = 0;
 
 		/**
 		 * Creates a new GPU texture.
@@ -413,7 +413,7 @@ namespace b3d
 		 * @param	createInformation	Object describing the texture to create.
 		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
 		 */
-		virtual SPtr<render::Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
+		virtual TShared<render::Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
 
 		/**
 		 * Creates a new GPU buffer.
@@ -421,14 +421,14 @@ namespace b3d
 		 * @param	createInformation	Object describing the buffer to create.
 		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
 		 */
-		virtual SPtr<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
+		virtual TShared<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
 
 		/**
 		 * Creates a new sampler state, or returns an existing one if one with the same create information was already created.
 		 *
 		 * @param	createInformation		Object describing the sampler state to create.
 		 */
-		virtual SPtr<SamplerState> FindOrCreateSamplerState(const SamplerStateCreateInformation& createInformation);
+		virtual TShared<SamplerState> FindOrCreateSamplerState(const SamplerStateCreateInformation& createInformation);
 
 		/**
 		 *  Creates a sampler state.
@@ -436,17 +436,17 @@ namespace b3d
 		 * @param	createInformation		Object describing the sampler state to create.
 		 * @param	flags					Creation flags. @see GpuObjectCreateFlag
 		 */
-		virtual SPtr<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
+		virtual TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
 
 		/**
 		 * Creates a new query pool.
 		 *
 		 * @param	createInformation		Object describing the query pool to create.
 		 */
-		virtual SPtr<render::GpuQueryPool> CreateQueryPool(const render::GpuQueryPoolCreateInformation& createInformation) = 0;
+		virtual TShared<render::GpuQueryPool> CreateQueryPool(const render::GpuQueryPoolCreateInformation& createInformation) = 0;
 
 		/** Create a new event query. */
-		virtual SPtr<render::EventQuery> CreateEventQuery() = 0;
+		virtual TShared<render::EventQuery> CreateEventQuery() = 0;
 
 		/**
 		 * Creates a new GPU program using the provided source code. If compilation fails or program is not supported
@@ -455,7 +455,7 @@ namespace b3d
 		 * @param	createInformation		Object describing the program to create.
 		 * @param	flags					Creation flags. @see GpuObjectCreateFlag
 		 */
-		virtual SPtr<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
+		virtual TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
 
 		/**
 		 * Creates a graphics pipeline.
@@ -463,7 +463,7 @@ namespace b3d
 		 * @param	createInformation		Object describing the pipeline to create.
 		 * @param	flags					Creation flags. @see GpuObjectCreateFlag
 		 */
-		virtual SPtr<GpuGraphicsPipelineState> CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
+		virtual TShared<GpuGraphicsPipelineState> CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
 
 		/**
 		 * Creates a compute pipeline.
@@ -471,14 +471,14 @@ namespace b3d
 		 * @param	createInformation		Object describing the pipeline to create.
 		 * @param	flags					Creation flags. @see GpuObjectCreateFlag
 		 */
-		virtual SPtr<GpuComputePipelineState> CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
+		virtual TShared<GpuComputePipelineState> CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
 
 		/**
 		 * Creates a pipeline layout from a set of GPU program parameter descriptions.
 		 *
 		 * @param	createInformation		Object describing the layout to create.
 		 */
-		virtual SPtr<GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation) = 0;
+		virtual TShared<GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation) = 0;
 
 		/**
 		 * Creates a single GPU pipeline parameter set layout from a parameter description.
@@ -486,7 +486,7 @@ namespace b3d
 		 * @param	parameterDescription	Description of parameters in the set.
 		 * @return							The created set layout.
 		 */
-		virtual SPtr<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription) = 0;
+		virtual TShared<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription) = 0;
 
 		/**
 		 * Creates a parameter set pool for allocating GPU parameter sets.
@@ -497,7 +497,7 @@ namespace b3d
 		virtual UPtr<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) = 0;
 
 		/** Creates a timeline fence that can be signaled when command buffer execution finishes. */
-		virtual SPtr<GpuTimelineFence> CreateTimelineFence() = 0;
+		virtual TShared<GpuTimelineFence> CreateTimelineFence() = 0;
 
 		/************************************************************************/
 		/* 								UTILITY METHODS                    		*/
@@ -555,7 +555,7 @@ namespace b3d
 		 * on a worker thread), in which case this deleter will be used.
 		 */
 		template <typename Type, typename MainAllocatorTag = DefaultAllocatorTag, typename PointerDataAllocatorTag = DefaultAllocatorTag>
-		static SPtr<Type> MakeSharedStandalone(Type* data)
+		static TShared<Type> MakeSharedStandalone(Type* data)
 		{
 			auto fnStandaloneDeleter = [](render::RenderProxy* object)
 			{
@@ -565,12 +565,12 @@ namespace b3d
 				B3DDelete<Type, MainAllocatorTag>((Type*)object);
 			};
 
-			return SPtr<Type>(data, fnStandaloneDeleter, StdAlloc<Type, PointerDataAllocatorTag>());
+			return TShared<Type>(data, fnStandaloneDeleter, StdAlloc<Type, PointerDataAllocatorTag>());
 		}
 
 		UPtr<GpuTransferBufferHelper> mTransferBufferHelper;
 
-		mutable UnorderedMap<SamplerStateCreateInformation, SPtr<SamplerState>> mCachedSamplerStates;
+		mutable UnorderedMap<SamplerStateCreateInformation, TShared<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;
 
 	private:

@@ -37,7 +37,7 @@ myMatParam = material->GetParamMat4("vertProjMatrix");
 myTextureParam = material->GetParamTexture("mainTexture");
 
 Matrix4 viewProjMat = ...;
-SPtr<Texture> someTexture = ...;
+TShared<Texture> someTexture = ...;
 
 myMatParam.Set(viewProjMat);
 myTextureParam.Set(someTexture);
@@ -75,7 +75,7 @@ desc.vertexProgram = vertexProgDesc;
 desc.fragmentProg = fragmentProgDesc;
 desc.blendState = blendStateDesc;
 
-SPtr<Pass> pass = Pass::create(desc);
+TShared<Pass> pass = Pass::create(desc);
 ~~~~~~~~~~~~~
 
 The descriptors for GPU programs and non-programmable states are filled out as described in the low-level rendering API manual.
@@ -89,10 +89,10 @@ To create a variation call @b3d::Variation::Create and provide it with:
  
 For example:
 ~~~~~~~~~~~~~{.cpp}
-SPtr<Pass> pass = ...;
+TShared<Pass> pass = ...;
 
 // Create a variation that uses HLSL and has a single pass
-SPtr<Variation> variation = Variation::Create("HLSL", { pass });
+TShared<Variation> variation = Variation::Create("HLSL", { pass });
 ~~~~~~~~~~~~~
   
 ## Creating a shader
@@ -104,7 +104,7 @@ Now that we have a variation we can create the shader by calling @b3d::Shader::C
   - @b3d::TSHADER_DESC<T>::SeparablePasses - An optimization hint to the renderer that can improve performance when turned on. Only relevant if the shader has variations with multiple passes. When true the renderer will not necessarily execute passes right after another, but might render other objects in-between passes. This can reduce state switching as multiple objects can be rendered with a single pass, but is only relevant for algorithms that can handle such a process (most can't).
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<Variation> variation = ...;
+TShared<Variation> variation = ...;
 	
 SHADER_DESC desc;
 desc.queueSortType = QueueSortType::None;
@@ -112,7 +112,7 @@ desc.queuePriority = 0;
 desc.separablePasses = false;
 desc.variations = { variation };
 
-SPtr<Shader> shader = Shader::Create("MyShader", desc);
+TShared<Shader> shader = Shader::Create("MyShader", desc);
 ~~~~~~~~~~~~~ 
   
 ## Shader parameters
@@ -131,7 +131,7 @@ For each parameter you must specify:
 
 ~~~~~~~~~~~~~{.cpp}
 // Extended example from above
-SPtr<Variation> variation = ...;
+TShared<Variation> variation = ...;
 	
 SHADER_DESC desc;
 desc.queueSortType = QueueSortType::None;
@@ -145,7 +145,7 @@ desc.AddParameter(SHADER_DATA_PARAM_DESC("WorldTfrm", "WorldTfrm", GPDT_MATRIX_4
 // Add a texture parameter
 desc.AddParameter(SHADER_OBJECT_PARAM_DESC("AlbedoTex", "AlbedoTex", GPOT_TEXTURE2D));
 
-SPtr<Shader> shader = Shader::Create("MyShader", desc);
+TShared<Shader> shader = Shader::Create("MyShader", desc);
 ~~~~~~~~~~~~~
 
 ### Advanced parameters
@@ -157,7 +157,7 @@ The parameter default value allows you to provide a value that will be used for 
 
 ~~~~~~~~~~~~~{.cpp}
 // An extended example from above with semantics and default values:
-SPtr<Variation> variation = ...;
+TShared<Variation> variation = ...;
 	
 SHADER_DESC desc;
 desc.queueSortType = QueueSortType::None;
@@ -187,11 +187,11 @@ You can retrieve a specific pass from a material by calling @b3d::Material::GetP
 Once you have a **Pass** you can retrieve from it either a **GraphicsPipelineState** or a **ComputePipelineState** by calling @b3d::Pass::GetGraphicsPipelineState() and @b3d::Pass::GetComputePipelineState(), respectively. Those can then be bound for rendering as shown in the low level rendering API manual.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<Material> material = ...;
+TShared<Material> material = ...;
 
 u32 passIndex = 0;
 u32 variationIndex = 0;
-SPtr<Pass> pass = material->GetPass(passIndex, variationIndex);
+TShared<Pass> pass = material->GetPass(passIndex, variationIndex);
 
 GpuCommandBuffer& commandBuffer = ...;
 commandBuffer.SetGpuGraphicsPipelineState(pass->GetGraphicsPipelineState());
@@ -205,11 +205,11 @@ In order to bind material parameters we need to somehow get access to a **GpuPar
 **GpuParameterSet** for a specific pass can then be retrieved by calling @b3d::MaterialParameterAdapter::GetGpuParameterSet() with the pass index and set index. They can then be bound as described in the low level render API manual.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<Material> material = ...;
+TShared<Material> material = ...;
 
 u32 passIndex = 0;
 u32 variationIndex = 0;
-SPtr<MaterialParameterAdapter> parameterAdapter = material->CreateParameterAdapter(variationIndex);
+TShared<MaterialParameterAdapter> parameterAdapter = material->CreateParameterAdapter(variationIndex);
 
 GpuCommandBuffer& commandBuffer = ...;
 commandBuffer.SetGpuParameterSet(parameterAdapter->GetGpuParameterSet(passIndex, 0));
@@ -218,7 +218,7 @@ commandBuffer.SetGpuParameterSet(parameterAdapter->GetGpuParameterSet(passIndex,
 Note that creation of a **MaterialParameterAdapter** object is expensive, and the intent is that it will be created once (or just a few times) per material. **MaterialParameterAdapter** contains a completely separate storage from the **Material** it was created from, therefore whenever material parameters are updated you must transfer its contents into **GpuParameterSet** by calling @b3d::MaterialParameterAdapter::Update().
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MaterialParameterAdapter> parameterAdapter = material->CreateParameterAdapter(variationIndex);
+TShared<MaterialParameterAdapter> parameterAdapter = material->CreateParameterAdapter(variationIndex);
 
 // ...update some parameters on the material...
 

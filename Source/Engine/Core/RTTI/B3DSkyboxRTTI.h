@@ -36,7 +36,7 @@ namespace b3d
 			return TID_Skybox;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<Skybox>();
 		}

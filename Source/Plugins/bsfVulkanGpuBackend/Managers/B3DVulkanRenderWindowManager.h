@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		VulkanRenderWindowManager() = default;
 
-		SPtr<render::IRenderWindowSurface> CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation) override;
+		TShared<render::IRenderWindowSurface> CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation) override;
 	};
 
 	/** @} */

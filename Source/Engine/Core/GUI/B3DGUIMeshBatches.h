@@ -18,7 +18,7 @@ namespace b3d
 	/**	Data required for rendering a single batch of GUI elements.  */
 	struct GUIMeshRenderData
 	{
-		SPtr<render::Mesh> Mesh;
+		TShared<render::Mesh> Mesh;
 		SubMesh SubMesh;
 		SpriteMaterial* Material;
 		render::SpriteMaterialInfo MaterialInformation;
@@ -32,11 +32,11 @@ namespace b3d
 	{
 		GUIRenderTargetRenderData() = default;
 
-		GUIRenderTargetRenderData(SPtr<render::RenderTarget> target, const Area2I& area)
+		GUIRenderTargetRenderData(TShared<render::RenderTarget> target, const Area2I& area)
 			: Target(std::move(target)), Area(area)
 		{}
 
-		SPtr<render::RenderTarget> Target;
+		TShared<render::RenderTarget> Target;
 		u64 LastUpdateCount = (u64)-1;
 		Area2I Area;
 	};
@@ -158,7 +158,7 @@ namespace b3d
 			// Mesh
 			u32 IndexCount = 0;
 			u32 VertexCount = 0;
-			SPtr<Mesh> Mesh;
+			TShared<Mesh> Mesh;
 			bool IsMeshDirty = true;
 		};
 

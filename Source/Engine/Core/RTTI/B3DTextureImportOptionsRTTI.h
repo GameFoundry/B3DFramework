@@ -39,7 +39,7 @@ namespace b3d
 			return TID_TextureImportOptions;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<TextureImportOptions>();
 		}

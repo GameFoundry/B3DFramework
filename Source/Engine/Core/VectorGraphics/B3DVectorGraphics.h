@@ -617,7 +617,7 @@ namespace b3d
 		const Vector<VectorPathState>& GetCommandStates() const { return mCommandStates; }
 
 		/** Creates a renderable object that can be used for rasterizing the vector path into pixels. */
-		SPtr<render::VectorPathRenderable> CreateRenderable(const VectorGraphicsSettings& settings) const;
+		TShared<render::VectorPathRenderable> CreateRenderable(const VectorGraphicsSettings& settings) const;
 
 		/**
 		 * Creates a new empty vector path.
@@ -626,7 +626,7 @@ namespace b3d
 		 *							when rasterizing the path and for bounds testing. 
 		 * @return					Newly created path.
 		 */
-		static SPtr<VectorPath> CreateShared(const Size2& canvasSize = kDefaultCanvasSize);
+		static TShared<VectorPath> CreateShared(const Size2& canvasSize = kDefaultCanvasSize);
 
 		/** @copydoc CreateShared() */
 		static HVectorPath Create(const Size2& canvasSize = kDefaultCanvasSize);
@@ -667,7 +667,7 @@ namespace b3d
 			const VectorGraphicsSettings& GetSettings() const { return mSettings; }
 
 			/** Prepares GPU parameters for rendering. Must be called before Render(). */
-			virtual SPtr<GpuParameterSet> Prepare() = 0;
+			virtual TShared<GpuParameterSet> Prepare() = 0;
 
 			/**
 			 * Records command required for rasterizing the path into pixels. Before calling this the user is required to have bound a render target containing

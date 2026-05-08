@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptManagedTypeInfoObject::ScriptManagedTypeInfoObject(const SPtr<ManagedTypeInfoObject>& nativeObject)
+	ScriptManagedTypeInfoObject::ScriptManagedTypeInfoObject(const TShared<ManagedTypeInfoObject>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

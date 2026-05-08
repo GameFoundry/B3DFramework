@@ -395,7 +395,7 @@ void GUIManager::UpdateCaretTexture()
 	}
 
 	const HTexture& texture = mCaretImage->GetAtlasTexture();
-	SPtr<PixelData> data = texture->GetProperties().AllocBuffer(0, 0);
+	TShared<PixelData> data = texture->GetProperties().AllocBuffer(0, 0);
 
 	data->SetColorAt(mCaretColor, 0, 0);
 	texture->WriteData(data);
@@ -413,7 +413,7 @@ void GUIManager::UpdateTextSelectionTexture()
 	}
 
 	const HTexture& texture = mTextSelectionImage->GetAtlasTexture();
-	SPtr<PixelData> data = texture->GetProperties().AllocBuffer(0, 0);
+	TShared<PixelData> data = texture->GetProperties().AllocBuffer(0, 0);
 
 	data->SetColorAt(mTextSelectionColor, 0, 0);
 	texture->WriteData(data);
@@ -803,7 +803,7 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 	{
 		for(auto& elementInfo : mElementsUnderPointer)
 		{
-			SPtr<GUIContextMenu> menu = elementInfo.Element->GetContextMenu();
+			TShared<GUIContextMenu> menu = elementInfo.Element->GetContextMenu();
 
 			if(menu != nullptr && elementInfo.Widget != nullptr)
 			{
@@ -1323,7 +1323,7 @@ bool GUIManager::ProcessDestroyQueueIteration()
 	return !mScheduledForDestruction.empty();
 }
 
-void GUIManager::SetInputBridge(const SPtr<RenderTexture>& renderTex, const GUIInteractable* element)
+void GUIManager::SetInputBridge(const TShared<RenderTexture>& renderTex, const GUIInteractable* element)
 {
 	if(element == nullptr)
 		mInputBridge.erase(renderTex);
@@ -1364,12 +1364,12 @@ GUIPhysicalPoint GUIManager::GetWidgetRelativePos(const GUIWidget* widget, const
 	return curLocalPos;
 }
 
-GUIPhysicalPoint GUIManager::WindowToBridgedCoords(const SPtr<RenderTarget>& target, const GUIPhysicalPoint& windowPos) const
+GUIPhysicalPoint GUIManager::WindowToBridgedCoords(const TShared<RenderTarget>& target, const GUIPhysicalPoint& windowPos) const
 {
 	// This cast might not be valid (the render target could be a window), but we only really need to cast
 	// so that mInputBridge map allows us to search through it - we don't access anything unless the target is bridged
 	// (in which case we know it is a RenderTexture)
-	SPtr<const RenderTexture> renderTexture = std::static_pointer_cast<const RenderTexture>(target);
+	TShared<const RenderTexture> renderTexture = std::static_pointer_cast<const RenderTexture>(target);
 	const RenderTargetProperties& rtProps = renderTexture->GetProperties();
 
 	auto found = mInputBridge.find(renderTexture);
@@ -1404,14 +1404,14 @@ const RenderWindow* GUIManager::GetWidgetWindow(const GUIWidget& widget) const
 	if(viewport == nullptr)
 		return nullptr;
 
-	SPtr<RenderTarget> target = viewport->GetTarget();
+	TShared<RenderTarget> target = viewport->GetTarget();
 	if(target == nullptr)
 		return nullptr;
 
 	// This cast might not be valid (the render target could be a window), but we only really need to cast
 	// so that mInputBridge map allows us to search through it - we don't access anything unless the target is bridged
 	// (in which case we know it is a RenderTexture)
-	SPtr<const RenderTexture> renderTexture = std::static_pointer_cast<const RenderTexture>(target);
+	TShared<const RenderTexture> renderTexture = std::static_pointer_cast<const RenderTexture>(target);
 
 	auto found = mInputBridge.find(renderTexture);
 	if(found != mInputBridge.end())
@@ -1433,7 +1433,7 @@ const RenderWindow* GUIManager::GetWidgetWindow(const GUIWidget& widget) const
 	return nullptr;
 }
 
-SPtr<RenderWindow> GUIManager::GetBridgeWindow(const SPtr<RenderTexture>& target) const
+TShared<RenderWindow> GUIManager::GetBridgeWindow(const TShared<RenderTexture>& target) const
 {
 	if(target == nullptr)
 		return nullptr;
@@ -1448,7 +1448,7 @@ SPtr<RenderWindow> GUIManager::GetBridgeWindow(const SPtr<RenderTexture>& target
 		if(parentWidget == nullptr)
 			return nullptr;
 
-		SPtr<RenderTarget> curTarget = parentWidget->GetTarget()->GetTarget();
+		TShared<RenderTarget> curTarget = parentWidget->GetTarget()->GetTarget();
 		if(curTarget == nullptr)
 			return nullptr;
 
@@ -1462,7 +1462,7 @@ SPtr<RenderWindow> GUIManager::GetBridgeWindow(const SPtr<RenderTexture>& target
 	return nullptr;
 }
 
-void GUIManager::GetBridgedElements(const GUIWidget* widget, TInlineArray<std::pair<const GUIInteractable*, SPtr<const RenderTarget>>, 4>& elements)
+void GUIManager::GetBridgedElements(const GUIWidget* widget, TInlineArray<std::pair<const GUIInteractable*, TShared<const RenderTarget>>, 4>& elements)
 {
 	if(widget == nullptr)
 		return;
@@ -1519,7 +1519,7 @@ void GUIManager::TabFocusFirst()
 		return;
 
 	// Don't use the element directly though, since its tab group could have explicit ordering
-	const SPtr<GUINavGroup>& navGroup = closestElement->GetNavigationGroup();
+	const TShared<GUINavGroup>& navGroup = closestElement->GetNavigationGroup();
 	navGroup->FocusFirst();
 }
 
@@ -1527,7 +1527,7 @@ void GUIManager::TabFocusNext()
 {
 	for(auto& entry : mElementsInFocus)
 	{
-		const SPtr<GUINavGroup>& navGroup = entry.Element->GetNavigationGroup();
+		const TShared<GUINavGroup>& navGroup = entry.Element->GetNavigationGroup();
 		GUIElementOptions elementOptions = entry.Element->GetOptionFlags();
 		if(elementOptions.IsSet(GUIElementOption::AcceptsKeyFocus) && navGroup != nullptr)
 		{
@@ -1612,7 +1612,7 @@ GUIRenderer::GUIRenderer()
 
 void GUIRenderer::Initialize(const Any& data)
 {
-	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	SamplerStateInformation ssDesc;
 	ssDesc.MagFilter = FO_POINT;
@@ -1657,7 +1657,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 	// TODO - Sprite animation might be broken. I need to continually mark the animated region as dirty.
 
 	FrameAllocatorScope frameScope;
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	GUICameraRenderData& cameraRenderData = mPerCameraData[&camera];
@@ -1669,7 +1669,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 	commandBuffer.BeginLabel("GUIRenderer::Render");
 
 	// Re-create cached render texture if needed
-	const SPtr<RenderTarget> renderTarget = viewContext.CurrentTarget;
+	const TShared<RenderTarget> renderTarget = viewContext.CurrentTarget;
 	const u32 renderTargetWidth = renderTarget->GetProperties().Width;
 	const u32 renderTargetHeight = renderTarget->GetProperties().Height;
 
@@ -1685,7 +1685,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 		cachedColorTextureCreateInformation.Format = PF_RGBA8;
 		cachedColorTextureCreateInformation.Usage = TextureUsageFlag::RenderTarget;
 
-		const SPtr<Texture> cachedColorTexture = gpuDevice->CreateTexture(cachedColorTextureCreateInformation);
+		const TShared<Texture> cachedColorTexture = gpuDevice->CreateTexture(cachedColorTextureCreateInformation);
 
 		RenderTextureCreateInformation cachedRenderTextureCreateInformation;
 		cachedRenderTextureCreateInformation.ColorSurfaces[0].Texture = cachedColorTexture;
@@ -1708,13 +1708,13 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 		}
 	}
 
-	auto fnCreateClipRegionBuffer = [](GUIWidgetRenderData& widgetRenderData, const FrameVector<Area2I>& clipRegions) -> SPtr<GpuBuffer>
+	auto fnCreateClipRegionBuffer = [](GUIWidgetRenderData& widgetRenderData, const FrameVector<Area2I>& clipRegions) -> TShared<GpuBuffer>
 	{
 		const u32 clipRegionCount = (u32)clipRegions.size();
 		B3D_ASSERT(clipRegionCount <= kMaxClipRegionsPerDraw);
 
 		GpuBufferSuballocation suballocation = widgetRenderData.ClipRegionBufferPool.Allocate();
-		const SPtr<GpuBuffer>& clipRegionBuffer = suballocation.GetBuffer();
+		const TShared<GpuBuffer>& clipRegionBuffer = suballocation.GetBuffer();
 		const u32 writeSize = sizeof(ClipRegionArea) * clipRegionCount;
 
 		GpuBufferMappedScope mapping = clipRegionBuffer->Map(GpuMapOption::Write);
@@ -1736,8 +1736,8 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 	{
 		const GUIMeshRenderData* RenderData = nullptr;
 		FrameVector<Area2I> OverlappingRegions;
-		SPtr<render::GpuParameterSet> GpuParameters;
-		SPtr<GpuBuffer> ClipRegionBuffer;
+		TShared<render::GpuParameterSet> GpuParameters;
+		TShared<GpuBuffer> ClipRegionBuffer;
 		u32 ClipRegionCount = 0;
 	};
 
@@ -1831,8 +1831,8 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 				const GUIBatchGpuParameterInfo& parameterInfo = widget.GpuParameterInfos[meshRenderData->GpuParametersIndex];
 
 				const GpuBufferSuballocation& uniformBuffer = meshToDraw.UniformBuffer;
-				const SPtr<GpuBuffer>& clipRegionBuffer = fnCreateClipRegionBuffer(widget, meshToDraw.OverlappingRegions);
-				const SPtr<MaterialParameterAdapter>& materialParameterAdapter = widget.MaterialParameterAdapters[parameterInfo.MaterialParameterIndex];
+				const TShared<GpuBuffer>& clipRegionBuffer = fnCreateClipRegionBuffer(widget, meshToDraw.OverlappingRegions);
+				const TShared<MaterialParameterAdapter>& materialParameterAdapter = widget.MaterialParameterAdapters[parameterInfo.MaterialParameterIndex];
 
 				// Prepare material and get GPU parameters
 				if(!kEnableGUIRegionDebugDrawing || !useDebugMaterial)
@@ -1957,7 +1957,7 @@ void GUIRenderer::UpdateDrawGroups(const Camera* camera, u64 widgetId, u32 widge
 {
 	mWidgetToCameraMap[widgetId] = camera;
 
-	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	GUICameraRenderData& cameraRenderData = mPerCameraData[camera];
 	Vector<GUIWidgetRenderData>& widgets = cameraRenderData.WidgetRenderData;
 	GUIWidgetRenderData* widget;
@@ -2011,8 +2011,8 @@ void GUIRenderer::UpdateDrawGroups(const Camera* camera, u64 widgetId, u32 widge
 			{
 				entry.GpuParametersIndex = currentBufferIndex++;
 
-				TArray<SPtr<MaterialParameterAdapter>>& materialParameterAdapterPool = mMaterialParameterAdapterPool[entry.Material];
-				SPtr<MaterialParameterAdapter> materialParameterAdapter;
+				TArray<TShared<MaterialParameterAdapter>>& materialParameterAdapterPool = mMaterialParameterAdapterPool[entry.Material];
+				TShared<MaterialParameterAdapter> materialParameterAdapter;
 				if(materialParameterAdapterPool.Empty())
 					materialParameterAdapter = entry.Material->CreateParameterAdapter(true);
 				else

@@ -43,7 +43,7 @@ To load and instantiate a scene:
 HScene scene = GetResources().Load<Scene>("D:/MyGame/Levels/Level01.b3d/Level01");
 
 // Instantiate the scene into the world
-SPtr<SceneInstance> sceneInstance = scene->Instantiate();
+TShared<SceneInstance> sceneInstance = scene->Instantiate();
 
 // The instantiated hierarchy is now active in the scene
 ~~~~~~~~~~~~~
@@ -53,7 +53,7 @@ When you instantiate a scene, it creates a @b3d::SceneInstance that contains the
 
 ~~~~~~~~~~~~~{.cpp}
 // Instantiate a scene
-SPtr<SceneInstance> sceneInstance = scene->Instantiate();
+TShared<SceneInstance> sceneInstance = scene->Instantiate();
 
 // You can destroy the entire scene instance when done
 sceneInstance->Destroy();
@@ -97,7 +97,7 @@ When you instantiate a prefab, the created scene objects maintain a link to the 
 
 ~~~~~~~~~~~~~{.cpp}
 // Get the main scene instance (assuming you have one)
-SPtr<SceneInstance> sceneInstance = GetSceneManager().GetMainSceneInstance();
+TShared<SceneInstance> sceneInstance = GetSceneManager().GetMainSceneInstance();
 
 // Instantiate the prefab
 HSceneObject enemy1 = enemyPrefab->Instantiate(sceneInstance);

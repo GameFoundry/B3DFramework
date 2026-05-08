@@ -47,7 +47,7 @@ namespace b3d
 		u32 GetThreadId() const { return mThreadId; }
 
 		/** Returns the scheduler thread that the queue is executing commands on. May be null if not scheduler is associated with the thread. */
-		const SPtr<SchedulerThread>& GetSchedulerThread() const { return mSchedulerThread; }
+		const TShared<SchedulerThread>& GetSchedulerThread() const { return mSchedulerThread; }
 
 		/** Posts a command for execution on the queue. Optionally blocks the calling fiber/thread until the command completes. Thread safe. */
 		void PostCommand(Function<void()>&& callback, const char* debugName = nullptr, bool waitUntilComplete = false, const String& extraInformation = StringUtility::kBlank);
@@ -90,7 +90,7 @@ namespace b3d
 
 	private:
 		u32 mThreadId = 0;
-		SPtr<SchedulerThread> mSchedulerThread;
+		TShared<SchedulerThread> mSchedulerThread;
 
 		Queue<QueuedCommand>* mCommandQueue;
 		Stack<Queue<QueuedCommand>*> mEmptyCommandQueues; /**< List of empty queues for reuse. */

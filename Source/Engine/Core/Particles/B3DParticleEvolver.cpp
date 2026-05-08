@@ -133,12 +133,12 @@ void ParticleTextureAnimation::Evolve(Random& random, const ParticleSystemState&
 	}
 }
 
-SPtr<ParticleTextureAnimation> ParticleTextureAnimation::Create(const ParticleTextureAnimationSettings& settings)
+TShared<ParticleTextureAnimation> ParticleTextureAnimation::Create(const ParticleTextureAnimationSettings& settings)
 {
 	return B3DMakeShared<ParticleTextureAnimation>(settings);
 }
 
-SPtr<ParticleTextureAnimation> ParticleTextureAnimation::Create()
+TShared<ParticleTextureAnimation> ParticleTextureAnimation::Create()
 {
 	return B3DMakeShared<ParticleTextureAnimation>();
 }
@@ -199,12 +199,12 @@ void ParticleOrbit::Evolve(Random& random, const ParticleSystemState& state, Par
 	}
 }
 
-SPtr<ParticleOrbit> ParticleOrbit::Create(const ParticleOrbitSettings& settings)
+TShared<ParticleOrbit> ParticleOrbit::Create(const ParticleOrbitSettings& settings)
 {
 	return B3DMakeShared<ParticleOrbit>(settings);
 }
 
-SPtr<ParticleOrbit> ParticleOrbit::Create()
+TShared<ParticleOrbit> ParticleOrbit::Create()
 {
 	return B3DMakeShared<ParticleOrbit>();
 }
@@ -248,12 +248,12 @@ void ParticleVelocity::Evolve(Random& random, const ParticleSystemState& state, 
 	}
 }
 
-SPtr<ParticleVelocity> ParticleVelocity::Create(const ParticleVelocitySettings& settings)
+TShared<ParticleVelocity> ParticleVelocity::Create(const ParticleVelocitySettings& settings)
 {
 	return B3DMakeShared<ParticleVelocity>(settings);
 }
 
-SPtr<ParticleVelocity> ParticleVelocity::Create()
+TShared<ParticleVelocity> ParticleVelocity::Create()
 {
 	return B3DMakeShared<ParticleVelocity>();
 }
@@ -297,12 +297,12 @@ void ParticleForce::Evolve(Random& random, const ParticleSystemState& state, Par
 	}
 }
 
-SPtr<ParticleForce> ParticleForce::Create(const ParticleForceSettings& settings)
+TShared<ParticleForce> ParticleForce::Create(const ParticleForceSettings& settings)
 {
 	return B3DMakeShared<ParticleForce>(settings);
 }
 
-SPtr<ParticleForce> ParticleForce::Create()
+TShared<ParticleForce> ParticleForce::Create()
 {
 	return B3DMakeShared<ParticleForce>();
 }
@@ -346,12 +346,12 @@ void ParticleGravity::Evolve(Random& random, const ParticleSystemState& state, P
 	}
 }
 
-SPtr<ParticleGravity> ParticleGravity::Create(const ParticleGravitySettings& settings)
+TShared<ParticleGravity> ParticleGravity::Create(const ParticleGravitySettings& settings)
 {
 	return B3DMakeShared<ParticleGravity>(settings);
 }
 
-SPtr<ParticleGravity> ParticleGravity::Create()
+TShared<ParticleGravity> ParticleGravity::Create()
 {
 	return B3DMakeShared<ParticleGravity>();
 }
@@ -384,12 +384,12 @@ void ParticleColor::Evolve(Random& random, const ParticleSystemState& state, Par
 	}
 }
 
-SPtr<ParticleColor> ParticleColor::Create(const ParticleColorSettings& settings)
+TShared<ParticleColor> ParticleColor::Create(const ParticleColorSettings& settings)
 {
 	return B3DMakeShared<ParticleColor>(settings);
 }
 
-SPtr<ParticleColor> ParticleColor::Create()
+TShared<ParticleColor> ParticleColor::Create()
 {
 	return B3DMakeShared<ParticleColor>();
 }
@@ -436,12 +436,12 @@ void ParticleSize::Evolve(Random& random, const ParticleSystemState& state, Part
 	}
 }
 
-SPtr<ParticleSize> ParticleSize::Create(const ParticleSizeSettings& settings)
+TShared<ParticleSize> ParticleSize::Create(const ParticleSizeSettings& settings)
 {
 	return B3DMakeShared<ParticleSize>(settings);
 }
 
-SPtr<ParticleSize> ParticleSize::Create()
+TShared<ParticleSize> ParticleSize::Create()
 {
 	return B3DMakeShared<ParticleSize>();
 }
@@ -488,12 +488,12 @@ void ParticleRotation::Evolve(Random& random, const ParticleSystemState& state, 
 	}
 }
 
-SPtr<ParticleRotation> ParticleRotation::Create(const ParticleRotationSettings& settings)
+TShared<ParticleRotation> ParticleRotation::Create(const ParticleRotationSettings& settings)
 {
 	return B3DMakeShared<ParticleRotation>(settings);
 }
 
-SPtr<ParticleRotation> ParticleRotation::Create()
+TShared<ParticleRotation> ParticleRotation::Create()
 {
 	return B3DMakeShared<ParticleRotation>();
 }
@@ -753,12 +753,12 @@ void ParticleCollisions::Evolve(Random& random, const ParticleSystemState& state
 	}
 }
 
-SPtr<ParticleCollisions> ParticleCollisions::Create(const ParticleCollisionSettings& settings)
+TShared<ParticleCollisions> ParticleCollisions::Create(const ParticleCollisionSettings& settings)
 {
 	return B3DMakeShared<ParticleCollisions>(settings);
 }
 
-SPtr<ParticleCollisions> ParticleCollisions::Create()
+TShared<ParticleCollisions> ParticleCollisions::Create()
 {
 	return B3DMakeShared<ParticleCollisions>();
 }

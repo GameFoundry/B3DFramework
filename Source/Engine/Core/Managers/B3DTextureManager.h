@@ -32,14 +32,14 @@ namespace b3d
 		 *									created for the render texture.
 		 * @param	depthStencilFormat	Format of the depth/stencil buffer if enabled.
 		 */
-		virtual SPtr<RenderTexture> CreateRenderTexture(const TextureCreateInformation& colorDesc, bool createDepth = true, PixelFormat depthStencilFormat = PF_D32);
+		virtual TShared<RenderTexture> CreateRenderTexture(const TextureCreateInformation& colorDesc, bool createDepth = true, PixelFormat depthStencilFormat = PF_D32);
 
 		/**
 		 * Creates a RenderTexture using the description struct.
 		 *
 		 * @param	desc	Description of the render texture to create.
 		 */
-		virtual SPtr<RenderTexture> CreateRenderTexture(const RenderTextureCreateInformation& desc);
+		virtual TShared<RenderTexture> CreateRenderTexture(const RenderTextureCreateInformation& desc);
 
 		/**
 		 * Gets the format which will be natively used for a requested format given the constraints of the current device.
@@ -53,7 +53,7 @@ namespace b3d
 		 * Creates an empty and uninitialized render texture of a specific type. This is to be implemented by render
 		 * systems with their own implementations.
 		 */
-		virtual SPtr<RenderTexture> CreateRenderTextureImpl(const RenderTextureCreateInformation& desc) = 0;
+		virtual TShared<RenderTexture> CreateRenderTextureImpl(const RenderTextureCreateInformation& desc) = 0;
 	};
 
 	namespace render
@@ -81,13 +81,13 @@ namespace b3d
 			/**
 			 * @copydoc b3d::TextureManager::CreateRenderTexture(const RenderTextureCreateInformation&)
 			 */
-			SPtr<RenderTexture> CreateRenderTexture(const RenderTextureCreateInformation& desc);
+			TShared<RenderTexture> CreateRenderTexture(const RenderTextureCreateInformation& desc);
 
 		protected:
 			friend class b3d::RenderTexture;
 
 			/** @copydoc CreateRenderTexture */
-			virtual SPtr<RenderTexture> CreateRenderTextureInternal(const RenderTextureCreateInformation& desc) = 0;
+			virtual TShared<RenderTexture> CreateRenderTextureInternal(const RenderTextureCreateInformation& desc) = 0;
 
 			GpuDevice& mGpuDevice;
 		};

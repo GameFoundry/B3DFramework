@@ -30,7 +30,7 @@ String boneName = bone->GetBoneName();
 B3D_LOG(Info, LogGeneric, "Bone name: {0}", boneName);
 
 // Or query the skeleton information and search for the bone you need
-// SPtr<Skeleton> skeleton = mesh->GetSkeleton();
+// TShared<Skeleton> skeleton = mesh->GetSkeleton();
 // ...
 ~~~~~~~~~~~~~
 

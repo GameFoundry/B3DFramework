@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptFilmGrainSettings::ScriptFilmGrainSettings(const SPtr<FilmGrainSettings>& nativeObject)
+	ScriptFilmGrainSettings::ScriptFilmGrainSettings(const TShared<FilmGrainSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -42,7 +42,7 @@ namespace b3d
 	}
 	void ScriptFilmGrainSettings::InternalFilmGrainSettings(MonoObject* scriptObject)
 	{
-		SPtr<FilmGrainSettings> nativeObject = B3DMakeShared<FilmGrainSettings>();
+		TShared<FilmGrainSettings> nativeObject = B3DMakeShared<FilmGrainSettings>();
 		ScriptObjectWrapper::Create<ScriptFilmGrainSettings>(nativeObject, scriptObject);
 	}
 

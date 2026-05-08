@@ -61,7 +61,7 @@ namespace b3d
 		 * @param[in]	flags			Flags to control various mesh options.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(Mesh))
-		static HMesh Create(const SPtr<RendererMeshData>& data, DrawOperationType topology = DOT_TRIANGLE_LIST, MeshFlags flags = MeshFlag::Static);
+		static HMesh Create(const TShared<RendererMeshData>& data, DrawOperationType topology = DOT_TRIANGLE_LIST, MeshFlags flags = MeshFlag::Static);
 
 		/**
 		 * Creates a new mesh with enough space to hold the a number of primitives using the specified layout. Indices can
@@ -73,7 +73,7 @@ namespace b3d
 		 * @param[in]	flags			Flags to control various mesh options.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(Mesh))
-		static HMesh Create(const SPtr<RendererMeshData>& data, const Vector<SubMesh>& subMeshes, MeshFlags flags = MeshFlag::Static);
+		static HMesh Create(const TShared<RendererMeshData>& data, const Vector<SubMesh>& subMeshes, MeshFlags flags = MeshFlag::Static);
 
 		/** Returns all sub-meshes contained in the mesh. */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(Mesh), Property(Getter), ExportName(SubMeshes))
@@ -92,9 +92,9 @@ namespace b3d
 		 * layout and index format.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(Mesh), Property(Getter), ExportName(MeshData))
-		static SPtr<RendererMeshData> GetMeshData(const HMesh& thisPtr);
+		static TShared<RendererMeshData> GetMeshData(const HMesh& thisPtr);
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(Mesh), Property(Setter), ExportName(MeshData))
-		static void SetMeshData(const HMesh& thisPtr, const SPtr<RendererMeshData>& value);
+		static void SetMeshData(const HMesh& thisPtr, const TShared<RendererMeshData>& value);
 	};
 
 	/** @endcond */

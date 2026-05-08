@@ -296,7 +296,7 @@ bool FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 	return true;
 }
 
-SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
+TShared<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 {
 	WString pathWString = UTF8::ToWide(fullPath.ToString());
 	const wchar_t* pathString = pathWString.c_str();
@@ -311,7 +311,7 @@ SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 	if(!readOnly)
 		accessMode = (DataStream::AccessMode)(accessMode | (u32)DataStream::WRITE);
 
-	SPtr<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(fullPath, accessMode);
+	TShared<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(fullPath, accessMode);
 	if(!fileDataStream->Open())
 	{
 		B3D_LOG(Warning, LogPlatform, "Failed to open file at path '{0}'. File stream failed to open.", fullPath);
@@ -321,9 +321,9 @@ SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 	return fileDataStream;
 }
 
-SPtr<DataStream> FileSystem::CreateAndOpenFile(const Path& fullPath)
+TShared<DataStream> FileSystem::CreateAndOpenFile(const Path& fullPath)
 {
-	SPtr<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(fullPath, DataStream::AccessMode::WRITE);
+	TShared<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(fullPath, DataStream::AccessMode::WRITE);
 	if(!fileDataStream->Open())
 	{
 		B3D_LOG(Warning, LogPlatform, "Failed to create file at path '{0}'. File stream failed to open.", fullPath);

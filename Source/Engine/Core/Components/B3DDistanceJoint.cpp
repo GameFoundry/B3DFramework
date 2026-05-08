@@ -88,7 +88,7 @@ void DistanceJoint::SetFlag(DistanceJointFlag flag, bool enabled)
 
 UPtr<IJointImplementation> DistanceJoint::CreateImplementation()
 {
-	const SPtr<SceneInstance>& scene = SO()->GetScene();
+	const TShared<SceneInstance>& scene = SO()->GetScene();
 	return scene->GetPhysicsScene()->CreateDistanceJoint(*this, mInformation);
 }
 

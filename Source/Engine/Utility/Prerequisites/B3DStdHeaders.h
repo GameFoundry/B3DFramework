@@ -121,9 +121,9 @@ namespace b3d
 	 * when the last shared pointer to the object is destroyed.
 	 */
 	template <typename T>
-	using SPtr = std::shared_ptr<T>;
+	using TShared = std::shared_ptr<T>;
 
-	/** Holds a reference to an object whose lifetime is managed by a SPtr, but doesn't increment the reference count. */
+	/** Holds a reference to an object whose lifetime is managed by a TShared, but doesn't increment the reference count. */
 	template <typename T>
 	using WeakSPtr = std::weak_ptr<T>;
 
@@ -158,7 +158,7 @@ namespace b3d
 	struct B3DIsSharedPointer : std::false_type {};
 
 	template <typename T>
-	struct B3DIsSharedPointer<SPtr<T>> : std::true_type {};
+	struct B3DIsSharedPointer<TShared<T>> : std::true_type {};
 
 	// Checks is the provided type a weak shared pointer
 	template <typename T>
@@ -189,9 +189,9 @@ namespace b3d
 	};
 
 	template <typename T>
-	struct B3DDecaySharedPointer<SPtr<T>>
+	struct B3DDecaySharedPointer<TShared<T>>
 	{
-		using value = typename SPtr<T>::element_type;
+		using value = typename TShared<T>::element_type;
 	};
 
 	/** Checks is the provided type std::pair<K, V>. */
@@ -218,10 +218,10 @@ namespace b3d
 	 * If class provides a `static SharedDeleter(Type*)` method it will be used as a shared pointer deleter, instead of the default.
 	 */
 	template <typename Type, typename AllocatorTag = DefaultAllocatorTag, typename... Args>
-	SPtr<Type> B3DMakeShared(Args&&... args)
+	TShared<Type> B3DMakeShared(Args&&... args)
 	{
 		if constexpr(B3DHasSharedDeleter<Type>::value)
-			return SPtr<Type>(B3DNew<Type, AllocatorTag>(std::forward<Args>(args)...), &Type::template SharedDeleter<Type, AllocatorTag>, StdAlloc<Type, AllocatorTag>());
+			return TShared<Type>(B3DNew<Type, AllocatorTag>(std::forward<Args>(args)...), &Type::template SharedDeleter<Type, AllocatorTag>, StdAlloc<Type, AllocatorTag>());
 		else
 			return std::allocate_shared<Type>(StdAlloc<Type, AllocatorTag>(), std::forward<Args>(args)...);
 	}
@@ -232,12 +232,12 @@ namespace b3d
 	 * If class provides a `static SharedDeleter(Type*)` method it will be used as a shared pointer deleter, instead of the default. 
 	 */
 	template <typename Type, typename MainAllocatorTag = DefaultAllocatorTag, typename PointerDataAllocatorTag = DefaultAllocatorTag, typename Delete = Deleter<Type, MainAllocatorTag>>
-	SPtr<Type> B3DMakeSharedFromExisting(Type* data, Delete del = Delete())
+	TShared<Type> B3DMakeSharedFromExisting(Type* data, Delete del = Delete())
 	{
 		if constexpr(B3DHasSharedDeleter<Type>::value)
-			return SPtr<Type>(data, &Type::template SharedDeleter<Type, MainAllocatorTag>, StdAlloc<Type, PointerDataAllocatorTag>());
+			return TShared<Type>(data, &Type::template SharedDeleter<Type, MainAllocatorTag>, StdAlloc<Type, PointerDataAllocatorTag>());
 		else
-			return SPtr<Type>(data, std::move(del), StdAlloc<Type, PointerDataAllocatorTag>());
+			return TShared<Type>(data, std::move(del), StdAlloc<Type, PointerDataAllocatorTag>());
 	}
 
 	/**
@@ -412,12 +412,12 @@ namespace b3d
 	{
 		struct Hash
 		{
-			u64 operator()(const SPtr<T>& value) const { return value ? value->GenerateHash() : 0; }
+			u64 operator()(const TShared<T>& value) const { return value ? value->GenerateHash() : 0; }
 		};
 
 		struct Equals
 		{
-			u64 operator()(const SPtr<T>& lhs, const SPtr<T>& rhs) const
+			u64 operator()(const TShared<T>& lhs, const TShared<T>& rhs) const
 			{
 				if(lhs == nullptr && rhs == nullptr)
 					return true;
@@ -446,13 +446,13 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Unordered set containing @p SPtr<T> as the key. @p T must provide `u64 GenerateHash()` method and an equality operator. */
+	/** Unordered set containing @p TShared<T> as the key. @p T must provide `u64 GenerateHash()` method and an equality operator. */
 	template<class T>
-	using TSharedUnorderedSet = UnorderedSet<SPtr<T>, typename TSharedUnorderedTypeHelper<T>::Hash, typename TSharedUnorderedTypeHelper<T>::Equals>;
+	using TSharedUnorderedSet = UnorderedSet<TShared<T>, typename TSharedUnorderedTypeHelper<T>::Hash, typename TSharedUnorderedTypeHelper<T>::Equals>;
 
-	/** Unordered map containing @p SPtr<K> as the key and @p V as value. @p K must provide `u64 GenerateHash()` method and an equality operator. */
+	/** Unordered map containing @p TShared<K> as the key and @p V as value. @p K must provide `u64 GenerateHash()` method and an equality operator. */
 	template<class K, class V>
-	using TSharedUnorderedMap = UnorderedMap<SPtr<K>, V, typename TSharedUnorderedTypeHelper<K>::Hash, typename TSharedUnorderedTypeHelper<K>::Equals>;
+	using TSharedUnorderedMap = UnorderedMap<TShared<K>, V, typename TSharedUnorderedTypeHelper<K>::Hash, typename TSharedUnorderedTypeHelper<K>::Equals>;
 
 	/** Unordered set containing @p T as the key. @p T must provide `u64 GenerateHash()` method and an equality operator. */
 	template<class T>

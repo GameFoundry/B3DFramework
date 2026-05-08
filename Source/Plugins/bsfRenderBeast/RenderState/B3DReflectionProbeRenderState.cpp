@@ -65,7 +65,7 @@ void VisibleReflectionProbeData::Update(const RenderBeastScene& scene, const Ren
 			bufferCreateInformation.StructuredStorage.Count = bufferSize / sizeof(ReflectioneProbeData);
 			bufferCreateInformation.StructuredStorage.ElementSize = sizeof(ReflectioneProbeData);
 
-			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+			const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			mProbeBuffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 		}
 
@@ -100,7 +100,7 @@ void ReflectionProbeRenderState::GetParameters(const ReflectionProbeProxy& proxy
 	output.InvBoxTransform.SetInverseTrs(output.Position, proxy.GetWorldTransform().GetRotation(), output.BoxExtents);
 }
 
-void ImageBasedLightingParameterBinding::Initialize(const SPtr<GpuParameterSet>& parameters, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray)
+void ImageBasedLightingParameterBinding::Initialize(const TShared<GpuParameterSet>& parameters, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray)
 {
 	// Sky
 	if(!optional || parameters->HasSampledTexture(kSkyReflectionTextureName))
@@ -136,13 +136,13 @@ void ImageBasedLightingParameterBinding::Initialize(const SPtr<GpuParameterSet>&
 	parameters->TryGetUniformBufferParameter(kGlobalReflectionProbeUniformBufferName, ReflectionProbesUniformBufferParameter);
 }
 
-void ImageBasedLightingParameterBinding::SetReflectionProbeCubemaps(const SPtr<GpuParameterSet>& parameters, const SPtr<Texture>& cubemaps, bool optional)
+void ImageBasedLightingParameterBinding::SetReflectionProbeCubemaps(const TShared<GpuParameterSet>& parameters, const TShared<Texture>& cubemaps, bool optional)
 {
 	if(!optional || parameters->HasSampledTexture(kReflectionProbeCubemapsTextureName))
 		parameters->SetSampledTexture(kReflectionProbeCubemapsTextureName, cubemaps);
 }
 
-void ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(const GpuBufferSuballocation& uniformBuffer, const Skybox* sky, u32 probeCount, const SPtr<Texture>& reflectionCubemaps, bool capturingReflections)
+void ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(const GpuBufferSuballocation& uniformBuffer, const Skybox* sky, u32 probeCount, const TShared<Texture>& reflectionCubemaps, bool capturingReflections)
 {
 	float brightness = 1.0f;
 	u32 skyReflectionsAvailable = 0;
@@ -150,7 +150,7 @@ void ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(cons
 
 	if(sky != nullptr)
 	{
-		SPtr<Texture> filteredReflections = sky->GetFilteredRadiance();
+		TShared<Texture> filteredReflections = sky->GetFilteredRadiance();
 		if(filteredReflections)
 		{
 			skyMipCount = filteredReflections->GetProperties().MipMapCount + 1;

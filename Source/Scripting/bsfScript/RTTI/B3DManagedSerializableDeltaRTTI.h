@@ -34,7 +34,7 @@ namespace b3d
 			return TID_ScriptModifiedField;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ManagedSerializableDelta::ModifiedField>();
 		}
@@ -60,7 +60,7 @@ namespace b3d
 			return TID_ScriptModifiedArrayEntry;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableDelta::ModifiedArrayEntry>();
 		}
@@ -86,7 +86,7 @@ namespace b3d
 			return TID_ScriptModifiedDictionaryEntry;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableDelta::ModifiedDictionaryEntry>();
 		}
@@ -106,7 +106,7 @@ namespace b3d
 			return TID_ScriptModification;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return nullptr;
 		}
@@ -131,7 +131,7 @@ namespace b3d
 			return TID_ScriptModifiedObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return ManagedSerializableDelta::ModifiedObject::Create();
 		}
@@ -157,7 +157,7 @@ namespace b3d
 			return TID_ScriptModifiedArray;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return ManagedSerializableDelta::ModifiedArray::Create();
 		}
@@ -183,7 +183,7 @@ namespace b3d
 			return TID_ScriptModifiedDictionary;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return ManagedSerializableDelta::ModifiedDictionary::Create();
 		}
@@ -208,7 +208,7 @@ namespace b3d
 			return TID_ScriptModifiedEntry;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return ManagedSerializableDelta::ModifiedEntry::Create(nullptr);
 		}
@@ -233,7 +233,7 @@ namespace b3d
 			return TID_ManagedSerializableDelta;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableDelta>();
 		}

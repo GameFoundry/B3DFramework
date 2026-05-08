@@ -46,7 +46,7 @@ namespace b3d
 		virtual void Erase() = 0;
 
 		/** Makes a copy of this iterator at its current location. */
-		virtual SPtr<IRTTIIterator> Clone(FrameAllocator& allocator) const = 0;
+		virtual TShared<IRTTIIterator> Clone(FrameAllocator& allocator) const = 0;
 
 		/** Seeks the iterator to a particular index. If the index is out of range, or seeking to index is not supported, the iterator is marked as invalid and false is returned. */
 		virtual bool SeekToIndex(u64 index) = 0;
@@ -149,7 +149,7 @@ namespace b3d
 		u64 GetElementCount() const override { return IteratorAdapter::Size(*mValue); }
 		const void* GetValue() const override { return &(*mIterator); }
 		void Increment() override { operator++(); }
-		SPtr<IRTTIIterator> Clone(FrameAllocator& allocator) const override;
+		TShared<IRTTIIterator> Clone(FrameAllocator& allocator) const override;
 		void Clear() override { IteratorAdapter::Clear(*mValue); }
 		void Erase() override
 		{
@@ -303,7 +303,7 @@ namespace b3d
 	};
 
 	template <class DataType, bool IsContainer>
-	SPtr<IRTTIIterator> TRTTIIterator<DataType, IsContainer>::Clone(FrameAllocator& allocator) const
+	TShared<IRTTIIterator> TRTTIIterator<DataType, IsContainer>::Clone(FrameAllocator& allocator) const
 	{
 		auto* const iterator = allocator.Construct<TRTTIIterator>(*mValue, mIterator);
 		return B3DMakeSharedFromExisting<TRTTIIterator>(iterator, TRTTIIteratorDeleter<DataType, IsContainer>(&allocator));

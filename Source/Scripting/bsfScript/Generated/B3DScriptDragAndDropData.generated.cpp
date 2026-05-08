@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptDragAndDropData::ScriptDragAndDropData(const SPtr<DragAndDropData>& nativeObject)
+	ScriptDragAndDropData::ScriptDragAndDropData(const TShared<DragAndDropData>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -36,7 +36,7 @@ namespace b3d
 	}
 	void ScriptDragAndDropData::InternalDragAndDropData(MonoObject* scriptObject)
 	{
-		SPtr<DragAndDropData> nativeObject = B3DMakeShared<DragAndDropData>();
+		TShared<DragAndDropData> nativeObject = B3DMakeShared<DragAndDropData>();
 		ScriptObjectWrapper::Create<ScriptDragAndDropData>(nativeObject, scriptObject);
 	}
 

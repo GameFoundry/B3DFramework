@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptParticleGravity::ScriptParticleGravity(const SPtr<ParticleGravity>& nativeObject)
+	ScriptParticleGravity::ScriptParticleGravity(const TShared<ParticleGravity>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -63,13 +63,13 @@ namespace b3d
 
 	void ScriptParticleGravity::InternalCreate(MonoObject* scriptObject, ParticleGravitySettings* settings)
 	{
-		SPtr<ParticleGravity> nativeObject = ParticleGravity::Create(*settings);
+		TShared<ParticleGravity> nativeObject = ParticleGravity::Create(*settings);
 		ScriptObjectWrapper::Create<ScriptParticleGravity>(nativeObject, scriptObject);
 	}
 
 	void ScriptParticleGravity::InternalCreate0(MonoObject* scriptObject)
 	{
-		SPtr<ParticleGravity> nativeObject = ParticleGravity::Create();
+		TShared<ParticleGravity> nativeObject = ParticleGravity::Create();
 		ScriptObjectWrapper::Create<ScriptParticleGravity>(nativeObject, scriptObject);
 	}
 }

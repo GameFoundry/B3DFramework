@@ -253,7 +253,7 @@ namespace b3d
 			const TChunkedArray<Sphere>& GetReflProbeWorldBounds() const { return mReflProbeWorldBounds; }
 
 			/** Returns the cubemap array texture containing all reflection probe cubemaps. */
-			const SPtr<Texture>& GetReflProbeCubemapsTex() const { return mReflProbeCubemapsTex; }
+			const TShared<Texture>& GetReflProbeCubemapsTex() const { return mReflProbeCubemapsTex; }
 
 			/** Returns the boolean array tracking which cubemap array slots are in use. */
 			const Vector<bool>& GetReflProbeCubemapArrayUsedSlots() const { return mReflProbeCubemapArrayUsedSlots; }
@@ -265,21 +265,21 @@ namespace b3d
 			void UpdateReflectionProbes(GpuCommandBuffer& commandBuffer);
 
 			/** Sets the GPU device used for texture creation. Called by RenderBeastScene::Initialize(). */
-			void SetGpuDevice(const SPtr<GpuDevice>& gpuDevice) { mGpuDevice = gpuDevice; }
+			void SetGpuDevice(const TShared<GpuDevice>& gpuDevice) { mGpuDevice = gpuDevice; }
 
 		private:
 			TChunkedArray<ReflectionProbeRenderState> mReflectionProbeRenderStates;
 			TChunkedArray<Sphere> mReflProbeWorldBounds;
 			Vector<bool> mReflProbeCubemapArrayUsedSlots;
-			SPtr<Texture> mReflProbeCubemapsTex;
-			SPtr<GpuDevice> mGpuDevice;
+			TShared<Texture> mReflProbeCubemapsTex;
+			TShared<GpuDevice> mGpuDevice;
 		};
 
 		/** Contains information about the scene (e.g. renderables, lights, cameras) required by the renderer. */
 		class RenderBeastScene : public RendererScene
 		{
 		public:
-			explicit RenderBeastScene(const SPtr<RenderBeastOptions>& options);
+			explicit RenderBeastScene(const TShared<RenderBeastOptions>& options);
 
 			void RegisterCamera(Camera* camera) override;
 			void UpdateCamera(Camera* camera, u32 updateFlag) override;
@@ -308,7 +308,7 @@ namespace b3d
 			void UpdateReflectionProbes(GpuCommandBuffer& commandBuffer);
 
 			/** Updates scene according to the newly provided renderer options. */
-			void SetOptions(const SPtr<RenderBeastOptions>& options);
+			void SetOptions(const TShared<RenderBeastOptions>& options);
 
 			/** Updates global per frame parameter buffers with new values. To be called at the start of every frame. */
 			void SetParamFrameParams(float time);
@@ -416,7 +416,7 @@ namespace b3d
 			const ReflectionProbeRenderState& GetReflectionProbeRenderState(PackedRendererId packedId) const { return GetReflectionProbeStorage().GetReflectionProbeRenderState(packedId); }
 			const TChunkedArray<ReflectionProbeRenderState>& GetReflectionProbes() const { return GetReflectionProbeStorage().GetReflectionProbeRenderStates(); }
 			const TChunkedArray<Sphere>& GetReflectionProbeWorldBounds() const { return GetReflectionProbeStorage().GetReflProbeWorldBounds(); }
-			const SPtr<Texture>& GetReflectionProbeCubemapsTex() const { return GetReflectionProbeStorage().GetReflProbeCubemapsTex(); }
+			const TShared<Texture>& GetReflectionProbeCubemapsTex() const { return GetReflectionProbeStorage().GetReflProbeCubemapsTex(); }
 			/** @} */
 
 			/**
@@ -473,10 +473,10 @@ namespace b3d
 			 */
 			void UpdateCameraRenderTargets(Camera* camera, bool remove = false);
 
-			SPtr<GpuDevice> mGpuDevice;
+			TShared<GpuDevice> mGpuDevice;
 			GpuBufferSuballocation mPerFrameSuballocation;
 			UniformBufferPools mUniformBufferPools;
-			SPtr<RenderBeastOptions> mOptions;
+			TShared<RenderBeastOptions> mOptions;
 			UnorderedMap<SamplerOverrideKey, MaterialSamplerOverrides*> mSamplerOverrides;
 
 			// Cameras and render targets

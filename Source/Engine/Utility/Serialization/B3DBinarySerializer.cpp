@@ -205,15 +205,15 @@ public:
 	/** Information about an object that is being deserialized. */
 	struct ObjectDeserializationData
 	{
-		ObjectDeserializationData(SPtr<IReflectable> object = nullptr, uint64_t offset = 0, SPtr<RTTISchema> schema = nullptr)
+		ObjectDeserializationData(TShared<IReflectable> object = nullptr, uint64_t offset = 0, TShared<RTTISchema> schema = nullptr)
 			: Object(std::move(object)), Offset(offset), Schema(std::move(schema))
 		{}
 
-		SPtr<IReflectable> Object; /**< Instance of the object. */
+		TShared<IReflectable> Object; /**< Instance of the object. */
 		bool IsDeserialized = false; /**< True if the instance of the object has been populated with deserialized data. */
 		bool DeserializationInProgress = false; /**< True while deserialization is happening for the object, used to detect circular references. */
 		uint64_t Offset; /**< Location of the object in the stream. */
-		SPtr<RTTISchema> Schema; /**< Schema that describes the object. */
+		TShared<RTTISchema> Schema; /**< Schema that describes the object. */
 	};
 
 	BinaryDeserializationContext(FrameAllocator& allocator, BufferedBitstreamReader& stream, size_t dataEnd, BinarySerializerFlags flags, RTTIOperationContext& rttiContext);
@@ -225,7 +225,7 @@ public:
 	 * @param	output					Previously created object to deserialize the data into. If null, the stream will be advanced until the next object, but no deserialization will happen.
 	 * @return							True if deserialization succeeded, false otherwise.
 	 */
-	bool DeserializeReflectableObject(SPtr<RTTISchema> outputObjectSchema, const SPtr<IReflectable>& output);
+	bool DeserializeReflectableObject(TShared<RTTISchema> outputObjectSchema, const TShared<IReflectable>& output);
 
 	/**
 	 * Creates an empty reflectable object and its deserialization data based on the provided information.
@@ -235,7 +235,7 @@ public:
 	 * @param	locationInStream			Location of the object in the stream, in bits.
 	 * @param	objectSchema				Schema describing the object's type. Can be null if schema has been encoded inline.
 	 */
-	void CreateReflectableObject(u32 reflectableObjectId, u32 reflectableObjectTypeId, u64 locationInStream, const SPtr<RTTISchema>& objectSchema);
+	void CreateReflectableObject(u32 reflectableObjectId, u32 reflectableObjectTypeId, u64 locationInStream, const TShared<RTTISchema>& objectSchema);
 
 	/** Finds deserialization data for the object with the provided ID. Returns null if it cannot be found. */
 	ObjectDeserializationData* GetObjectDeserializationData(u32 reflectableObjectId);
@@ -254,7 +254,7 @@ private:
 	 * Checks if the instance of the reflectable object with the specified ID has been already created, and if not,
 	 * creates the object and its deserialization data based on the provided schema. Provided schema must not be null.
 	 */
-	void EnsureReflectableObjectExists(u32 reflectableObjectId, const SPtr<RTTISchema>& objectSchema);
+	void EnsureReflectableObjectExists(u32 reflectableObjectId, const TShared<RTTISchema>& objectSchema);
 
 	/**
 	 * Returns a previously deserialized instance of the reflectable object with the specified ID, or if not already deserialized,
@@ -264,10 +264,10 @@ private:
 	 * @param		objectSchema			Schema describing the object.
 	 * @return								Deserialized object.
 	 */
-	SPtr<IReflectable> GetOrDeserializeReflectableObject(u32 reflectableObjectId, const SPtr<RTTISchema>& objectSchema);
+	TShared<IReflectable> GetOrDeserializeReflectableObject(u32 reflectableObjectId, const TShared<RTTISchema>& objectSchema);
 
 	/** Returns a previously created instance of the reflectable object with the specified ID. */
-	SPtr<IReflectable> GetReflectableObject(u32 reflectableObjectId) const;
+	TShared<IReflectable> GetReflectableObject(u32 reflectableObjectId) const;
 
 	/**
 	 * Decode meta field that was encoded using EncodeFieldMetaData(). Note that the decoded schema might not have the full field information. It's guaranteed
@@ -311,7 +311,7 @@ BinaryDeserializationContext::BinaryDeserializationContext(FrameAllocator& alloc
 	: mAllocator(allocator), mStream(stream), mDataEnd(dataEnd), mFlags(flags), mRTTIContext(rttiContext)
 { }
 
-bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema> outputObjectSchema, const SPtr<IReflectable>& output)
+bool BinaryDeserializationContext::DeserializeReflectableObject(TShared<RTTISchema> outputObjectSchema, const TShared<IReflectable>& output)
 {
 	const bool hasMeta = !mFlags.IsSet(BinarySerializerFlag::NoMeta);
 	const bool compressed = mFlags.IsSet(BinarySerializerFlag::Compress);
@@ -517,7 +517,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 				if(field != nullptr)
 					iteratorField = static_cast<RTTIIteratorField*>(field);
 
-				SPtr<IRTTIIterator> iterator;
+				TShared<IRTTIIterator> iterator;
 
 				if(iteratorField != nullptr)
 				{
@@ -549,7 +549,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 
 								if(iteratorField != nullptr)
 								{
-									SPtr<IReflectable> referencedObject;
+									TShared<IReflectable> referencedObject;
 									if(iteratorField->Schema.Info.Flags.IsSet(RTTIFieldFlag::WeakRef))
 										referencedObject = GetReflectableObject(referencedObjectId);
 									else
@@ -561,7 +561,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 							}
 						case RTTIFieldDataType::Reflectable:
 							{
-								SPtr<IReflectable> referencedObject;
+								TShared<IReflectable> referencedObject;
 								if(iteratorField != nullptr)
 									referencedObject = IReflectable::CreateInstanceFromTypeId(iteratorField->Schema.FieldDataTypes[typeIndex].FieldTypeId);
 
@@ -646,7 +646,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 				// Data block data
 				if(curField != nullptr)
 				{
-					const SPtr<DataStream>& dataStream = mStream.GetDataStream();
+					const TShared<DataStream>& dataStream = mStream.GetDataStream();
 					if(dataStream->IsFile()) // Allow streaming
 					{
 						uint64_t curOffset = mStream.Tell();
@@ -662,7 +662,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 					}
 					else
 					{
-						SPtr<MemoryDataStream> dataBlockStream = B3DMakeShared<MemoryDataStream>(dataBlockSize);
+						TShared<MemoryDataStream> dataBlockStream = B3DMakeShared<MemoryDataStream>(dataBlockSize);
 						mStream.ReadBytes(dataBlockStream->Data(), dataBlockSize);
 
 						curField->SetValue(rttiInstance, output.get(), dataBlockStream, dataBlockSize);
@@ -698,18 +698,18 @@ u32 BinaryDeserializationContext::ReadReferencedReflectableObjectId() const
 	return childObjectId;
 }
 
-void BinaryDeserializationContext::EnsureReflectableObjectExists(u32 reflectableObjectId, const SPtr<RTTISchema>& objectSchema)
+void BinaryDeserializationContext::EnsureReflectableObjectExists(u32 reflectableObjectId, const TShared<RTTISchema>& objectSchema)
 {
 	auto foundExisting = mReflectableObjectsToDeserialize.find(reflectableObjectId);
 
 	if(foundExisting != mReflectableObjectsToDeserialize.end())
 		return;
 
-	SPtr<IReflectable> object = IReflectable::CreateInstanceFromTypeId(objectSchema->TypeId);
+	TShared<IReflectable> object = IReflectable::CreateInstanceFromTypeId(objectSchema->TypeId);
 	mReflectableObjectsToDeserialize.insert(std::make_pair(reflectableObjectId, ObjectDeserializationData(object, ~0u, objectSchema)));
 }
 
-SPtr<IReflectable> BinaryDeserializationContext::GetOrDeserializeReflectableObject(u32 reflectableObjectId, const SPtr<RTTISchema>& objectSchema)
+TShared<IReflectable> BinaryDeserializationContext::GetOrDeserializeReflectableObject(u32 reflectableObjectId, const TShared<RTTISchema>& objectSchema)
 {
 	auto foundExisting = mReflectableObjectsToDeserialize.find(reflectableObjectId);
 	if(foundExisting == mReflectableObjectsToDeserialize.end())
@@ -757,7 +757,7 @@ BinaryDeserializationContext::ObjectDeserializationData* BinaryDeserializationCo
 	return &found->second;
 }
 
-SPtr<IReflectable> BinaryDeserializationContext::GetReflectableObject(u32 reflectableObjectId) const
+TShared<IReflectable> BinaryDeserializationContext::GetReflectableObject(u32 reflectableObjectId) const
 {
 	auto foundExisting = mReflectableObjectsToDeserialize.find(reflectableObjectId);
 	if(foundExisting == mReflectableObjectsToDeserialize.end())
@@ -771,9 +771,9 @@ SPtr<IReflectable> BinaryDeserializationContext::GetReflectableObject(u32 reflec
 	return foundExisting->second.Object;
 }
 
-void BinaryDeserializationContext::CreateReflectableObject(u32 reflectableObjectId, u32 reflectableObjectTypeId, u64 locationInStream, const SPtr<RTTISchema>& objectSchema)
+void BinaryDeserializationContext::CreateReflectableObject(u32 reflectableObjectId, u32 reflectableObjectTypeId, u64 locationInStream, const TShared<RTTISchema>& objectSchema)
 {
-	const SPtr<IReflectable>& object = IReflectable::CreateInstanceFromTypeId(reflectableObjectTypeId);
+	const TShared<IReflectable>& object = IReflectable::CreateInstanceFromTypeId(reflectableObjectTypeId);
 	mReflectableObjectsToDeserialize.insert(std::make_pair(reflectableObjectId, ObjectDeserializationData(object, locationInStream, objectSchema)));
 }
 
@@ -920,12 +920,12 @@ public:
 	/** Information about an object that is being serialized. */
 	struct ObjectToSerialize
 	{
-		ObjectToSerialize(u32 objectId, SPtr<IReflectable> object)
+		ObjectToSerialize(u32 objectId, TShared<IReflectable> object)
 			: ObjectId(objectId), Object(std::move(object))
 		{}
 
 		u32 ObjectId;
-		SPtr<IReflectable> Object;
+		TShared<IReflectable> Object;
 	};
 
 	BinarySerializationContext(FrameAllocator& allocator, BufferedBitstreamWriter& stream, BinarySerializerFlags flags, RTTIOperationContext& rttiContext);
@@ -956,7 +956,7 @@ private:
 	 * or returns a previously assigned one, if the object was already registered. This ID will be stored when the object
 	 * is serialized, and may be used for referencing the object in the serialized data.
 	 */
-	u32 RegisterReflectableObjectForSerialization(SPtr<IReflectable> object, Vector<ObjectToSerialize>& outReferencedObjectsToSerialize);
+	u32 RegisterReflectableObjectForSerialization(TShared<IReflectable> object, Vector<ObjectToSerialize>& outReferencedObjectsToSerialize);
 
 	/** Encodes and writes data required for representing a serialized field, into the provided stream. */
 	static void WriteFieldMetaData(const RTTIFieldSchema& fieldSchema, bool isLastFieldInType, BufferedBitstreamWriter& stream);
@@ -1054,7 +1054,7 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 				case RTTIFieldType::Iterable:
 				{
 					RTTIIteratorField* const iteratorField = static_cast<RTTIIteratorField*>(field);
-					SPtr<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object, mAllocator);
+					TShared<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object, mAllocator);
 
 					if(iteratorField->Schema.IsContainer)
 					{
@@ -1081,7 +1081,7 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 								{
 								case RTTIFieldDataType::ReflectablePointer:
 									{
-										SPtr<IReflectable> childObject;
+										TShared<IReflectable> childObject;
 
 										if(!mFlags.IsSet(BinarySerializerFlag::Shallow))
 											childObject = iteratorField->GetReflectablePointer(fieldValue, typeIndex);
@@ -1123,7 +1123,7 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 					auto* curField = static_cast<RTTIDataBlockFieldBase*>(field);
 
 					u32 dataBlockSize = 0;
-					SPtr<DataStream> blockStream = curField->GetValue(rttiInstance, object, dataBlockSize);
+					TShared<DataStream> blockStream = curField->GetValue(rttiInstance, object, dataBlockSize);
 
 					const u64 originalBlockStreamLocation = blockStream->Tell();
 
@@ -1280,7 +1280,7 @@ u32 BinarySerializationContext::FindOrCreateReflectableObjectId(IReflectable* ob
 	return objId;
 }
 
-u32 BinarySerializationContext::RegisterReflectableObjectForSerialization(SPtr<IReflectable> object, Vector<ObjectToSerialize>& outReferencedObjectsToSerialize)
+u32 BinarySerializationContext::RegisterReflectableObjectForSerialization(TShared<IReflectable> object, Vector<ObjectToSerialize>& outReferencedObjectsToSerialize)
 {
 	if(object == nullptr)
 		return 0;
@@ -1310,7 +1310,7 @@ BinarySerializer::BinarySerializer()
 	: mAlloc(&GetFrameAllocator())
 {}
 
-void BinarySerializer::Encode(IReflectable* object, const SPtr<DataStream>& stream, RTTIOperationContext& context, BinarySerializerFlags flags)
+void BinarySerializer::Encode(IReflectable* object, const TShared<DataStream>& stream, RTTIOperationContext& context, BinarySerializerFlags flags)
 {
 	mContext = &context;
 	mBuffer.Seek(0);
@@ -1320,7 +1320,7 @@ void BinarySerializer::Encode(IReflectable* object, const SPtr<DataStream>& stre
 	BufferedBitstreamWriter bufferedStream(&mBuffer, stream, kWriteBufferSize, kFlushAfterBytes);
 	BinarySerializationContext serializationContext(*mAlloc, bufferedStream, flags, context);
 
-	Vector<SPtr<IReflectable>> encodedObjects;
+	Vector<TShared<IReflectable>> encodedObjects;
 	u32 objectId = serializationContext.FindOrCreateReflectableObjectId(object);
 
 	Vector<BinarySerializationContext::ObjectToSerialize> referencedObjectsToSerialize;
@@ -1344,7 +1344,7 @@ void BinarySerializer::Encode(IReflectable* object, const SPtr<DataStream>& stre
 			if(found != serializedObjects.end())
 				continue; // Already processed
 
-			SPtr<IReflectable> curObject = it->Object;
+			TShared<IReflectable> curObject = it->Object;
 			u32 curObjectid = it->ObjectId;
 			serializedObjects.insert(curObjectid);
 			referencedObjectsToSerialize.erase(it); // TODO - Should update it to returned value from erase()
@@ -1377,13 +1377,13 @@ void BinarySerializer::Encode(IReflectable* object, const SPtr<DataStream>& stre
 	mAlloc->Clear();
 }
 
-void BinarySerializer::Encode(IReflectable* object, const SPtr<DataStream>& stream, BinarySerializerFlags flags)
+void BinarySerializer::Encode(IReflectable* object, const TShared<DataStream>& stream, BinarySerializerFlags flags)
 {
 	RTTIOperationContext rttiOperationContext;
 	return Encode(object, stream, rttiOperationContext, flags);
 }
 
-SPtr<IReflectable> BinarySerializer::Decode(const SPtr<DataStream>& stream, u32 dataLength, RTTIOperationContext& context, BinarySerializerFlags flags, std::function<void(float)> progress, SPtr<RTTISchema> schema)
+TShared<IReflectable> BinarySerializer::Decode(const TShared<DataStream>& stream, u32 dataLength, RTTIOperationContext& context, BinarySerializerFlags flags, std::function<void(float)> progress, TShared<RTTISchema> schema)
 {
 	mContext = &context;
 	mReportProgress = nullptr;
@@ -1437,7 +1437,7 @@ SPtr<IReflectable> BinarySerializer::Decode(const SPtr<DataStream>& stream, u32 
 	// Note: Ideally we can avoid iterating twice over the stream data
 	// We need to find offsets at which all objects start at so we can map object id to offset
 	u32 rootObjectId = (u32)-1;
-	SPtr<RTTISchema> curSchema = schema;
+	TShared<RTTISchema> curSchema = schema;
 	do
 	{
 		bool isRoot = rootObjectId == (u32)-1;
@@ -1492,7 +1492,7 @@ SPtr<IReflectable> BinarySerializer::Decode(const SPtr<DataStream>& stream, u32 
 	BinaryDeserializationContext::ObjectDeserializationData* const rootObjectToDeserialize = deserializationContext.GetObjectDeserializationData(rootObjectId);
 	B3D_ASSERT(rootObjectToDeserialize != nullptr);
 
-	SPtr<IReflectable> rootObject = rootObjectToDeserialize->Object;
+	TShared<IReflectable> rootObject = rootObjectToDeserialize->Object;
 
 	rootObjectToDeserialize->DeserializationInProgress = true;
 	deserializationContext.DeserializeReflectableObject(schema, rootObject);
@@ -1510,7 +1510,7 @@ SPtr<IReflectable> BinarySerializer::Decode(const SPtr<DataStream>& stream, u32 
 	return rootObject;
 }
 
-SPtr<IReflectable> BinarySerializer::Decode(const SPtr<DataStream>& stream, u32 dataLength, BinarySerializerFlags flags, std::function<void(float)> progress, SPtr<RTTISchema> schema)
+TShared<IReflectable> BinarySerializer::Decode(const TShared<DataStream>& stream, u32 dataLength, BinarySerializerFlags flags, std::function<void(float)> progress, TShared<RTTISchema> schema)
 {
 	RTTIOperationContext rttiOperationContext;
 	return Decode(stream, dataLength, rttiOperationContext, flags, std::move(progress), std::move(schema));

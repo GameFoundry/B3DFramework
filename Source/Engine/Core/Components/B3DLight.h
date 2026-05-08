@@ -188,7 +188,7 @@ namespace b3d
 		struct LightTransformDirty {};
 
 		/** Creates all Light data fragments, a world transform, and allocates a renderer ID. Entity is ready for rendering after this call. Returns the Light data fragment. */
-		Light& CreateLight(Registry& registry, Entity entity, const SPtr<RendererScene>& rendererScene, const Transform& transform = Transform::kIdentity);
+		Light& CreateLight(Registry& registry, Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform = Transform::kIdentity);
 
 		/** Removes all Light fragments. Cleanup (ID deallocation, dirty tags) is handled by the associated RendererScene when it is notified the fragment has been removed. */
 		void DestroyLight(Registry& registry, Entity entity);

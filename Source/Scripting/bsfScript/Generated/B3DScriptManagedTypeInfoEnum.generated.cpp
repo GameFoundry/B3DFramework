@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptManagedTypeInfoEnum::ScriptManagedTypeInfoEnum(const SPtr<ManagedTypeInfoEnum>& nativeObject)
+	ScriptManagedTypeInfoEnum::ScriptManagedTypeInfoEnum(const TShared<ManagedTypeInfoEnum>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

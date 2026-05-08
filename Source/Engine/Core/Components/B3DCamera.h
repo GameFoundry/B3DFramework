@@ -261,14 +261,14 @@ namespace b3d
 
 		/**	Returns the viewport used by the camera. */
 		B3D_SCRIPT_EXPORT(ExportName(Viewport), Property(Getter))
-		SPtr<ViewportType> GetViewport() const { return mViewport; }
+		TShared<ViewportType> GetViewport() const { return mViewport; }
 
 		/**
 		 * Settings that control rendering for this view. They determine how will the renderer process this view, which
 		 * effects will be enabled, and what properties will those effects use.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(RenderSettings), Property(Setter), ApplyOnDirty(true))
-		void SetRenderSettings(const SPtr<RenderSettingsType>& settings)
+		void SetRenderSettings(const TShared<RenderSettingsType>& settings)
 		{
 			mRenderSettings = settings;
 			MarkRenderProxyDataDirty((ComponentDirtyFlag)CameraDirtyFlag::RenderSettings);
@@ -276,7 +276,7 @@ namespace b3d
 
 		/** @copydoc SetRenderSettings() */
 		B3D_SCRIPT_EXPORT(ExportName(RenderSettings), Property(Getter), ApplyOnDirty(true))
-		const SPtr<RenderSettingsType>& GetRenderSettings() const { return mRenderSettings; }
+		const TShared<RenderSettingsType>& GetRenderSettings() const { return mRenderSettings; }
 
 		/**
 		 * Notifies a on-demand camera that it should re-draw its contents on the next frame. Ignored for a camera
@@ -502,8 +502,8 @@ namespace b3d
 		mutable float mLeft, mRight, mTop, mBottom; /**< Frustum extents. */
 		mutable AABox mBoundingBox; /**< Frustum bounding box. */
 
-		SPtr<ViewportType> mViewport; /**< Viewport that describes a 2D rendering surface. */
-		SPtr<RenderSettingsType> mRenderSettings; /**< Settings used to control rendering for this camera. */
+		TShared<ViewportType> mViewport; /**< Viewport that describes a 2D rendering surface. */
+		TShared<RenderSettingsType> mRenderSettings; /**< Settings used to control rendering for this camera. */
 	};
 
 	/** @} */
@@ -538,7 +538,7 @@ namespace b3d
 		 * @return	Async operation with captured pixel data, or nullptr if camera is inactive.
 		 */
 		B3D_SCRIPT_EXPORT()
-		TAsyncOp<SPtr<PixelData>> RequestCapture();
+		TAsyncOp<TShared<PixelData>> RequestCapture();
 
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/
@@ -561,7 +561,7 @@ namespace b3d
 
 		friend class render::Camera;
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
@@ -606,8 +606,8 @@ namespace b3d
 		protected:
 			friend class b3d::Camera;
 
-			Camera(const SPtr<SceneInstance>& scene, const SPtr<RenderTarget>& target = nullptr, float left = 0.0f, float top = 0.0f, float width = 1.0f, float height = 1.0f);
-			Camera(const SPtr<SceneInstance>& scene, const SPtr<Viewport>& viewport);
+			Camera(const TShared<SceneInstance>& scene, const TShared<RenderTarget>& target = nullptr, float left = 0.0f, float top = 0.0f, float width = 1.0f, float height = 1.0f);
+			Camera(const TShared<SceneInstance>& scene, const TShared<Viewport>& viewport);
 
 			void Initialize() override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
@@ -615,7 +615,7 @@ namespace b3d
 			u32 mRendererId;
 			Transform mTransform;
 			bool mActive = true;
-			SPtr<SceneInstance> mSceneInstance;
+			TShared<SceneInstance> mSceneInstance;
 		};
 	} // namespace render
 

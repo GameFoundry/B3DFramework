@@ -50,7 +50,7 @@ namespace b3d
 			void Update(const RenderBeastScene& scene, const RendererViewGroup& viewGroup);
 
 			/** Returns a GPU bindable buffer containing information about every reflection probe. */
-			SPtr<GpuBuffer> GetProbeBuffer() const { return mProbeBuffer; }
+			TShared<GpuBuffer> GetProbeBuffer() const { return mProbeBuffer; }
 
 			/** Returns the number of reflection probes in the probe buffer. */
 			u32 GetProbeCount() const { return mNumProbes; }
@@ -60,7 +60,7 @@ namespace b3d
 
 		private:
 			Vector<ReflectioneProbeData> mReflProbeData;
-			SPtr<GpuBuffer> mProbeBuffer;
+			TShared<GpuBuffer> mProbeBuffer;
 			u32 mNumProbes = 0;
 		};
 
@@ -94,7 +94,7 @@ namespace b3d
 			 * @param reflectionCubemaps	Texture array containing reflection probe cubemaps.
 			 * @param capturingReflections	True if currently capturing reflections (disables reflection map usage).
 			 */
-			static void PopulateGlobalReflectionProbeUniformBuffer(const GpuBufferSuballocation& uniformBuffer, const Skybox* sky, u32 probeCount, const SPtr<Texture>& reflectionCubemaps, bool capturingReflections);
+			static void PopulateGlobalReflectionProbeUniformBuffer(const GpuBufferSuballocation& uniformBuffer, const Skybox* sky, u32 probeCount, const TShared<Texture>& reflectionCubemaps, bool capturingReflections);
 
 			u32 ArrayIdx;
 			bool ArrayDirty : 1;
@@ -123,10 +123,10 @@ namespace b3d
 			 * @param[in]	gridIndices	Set to true if grid indices (used by light grid) parameter is required.
 			 * @param[in]	probeArray	True if the refl. probe data is to be provided in a structured buffer.
 			 */
-			void Initialize(const SPtr<GpuParameterSet>& parameters, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray);
+			void Initialize(const TShared<GpuParameterSet>& parameters, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray);
 
 			/** Sets the reflection probe cubemaps texture in the provided @p parameters object. */
-			static void SetReflectionProbeCubemaps(const SPtr<GpuParameterSet>& parameters, const SPtr<Texture>& cubemaps, bool optional = false);
+			static void SetReflectionProbeCubemaps(const TShared<GpuParameterSet>& parameters, const TShared<Texture>& cubemaps, bool optional = false);
 
 			GpuParameterSampledTexture SkyReflectionsTexParam;
 			GpuParameterSampledTexture AmbientOcclusionTexParam;

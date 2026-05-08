@@ -130,7 +130,7 @@ namespace b3d
 		 *
 		 * @note	If the provided samples are in PCM format, they should be signed integers of provided bit depth.
 		 */
-		static HAudioClip Create(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
+		static HAudioClip Create(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -138,11 +138,11 @@ namespace b3d
 		 */
 
 		/** Creates a new AudioClip without initializing it. Use Create() for normal use. */
-		static SPtr<AudioClip> CreateShared(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
+		static TShared<AudioClip> CreateShared(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
 
 		/** @} */
 	protected:
-		AudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
+		AudioClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
 
 		void Initialize() override;
 		bool IsCompressible() const override { return false; } // Compression handled on a case by case basis manually by the audio system
@@ -153,7 +153,7 @@ namespace b3d
 		 * @param	outSize	Size of the returned stream data, in bytes.
 		 * @return			Stream containing the original audio data.
 		 */
-		virtual SPtr<DataStream> GetSourceStream(u32& outSize) = 0;
+		virtual TShared<DataStream> GetSourceStream(u32& outSize) = 0;
 
 	protected:
 		AudioClipCreateInformation mInformation;
@@ -161,7 +161,7 @@ namespace b3d
 		u32 mStreamSize;
 		u32 mStreamOffset = 0;
 		float mLength = 0.0f;
-		SPtr<DataStream> mStreamData;
+		TShared<DataStream> mStreamData;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -176,7 +176,7 @@ namespace b3d
 		 *
 		 * @note	For serialization use only.
 		 */
-		static SPtr<AudioClip> CreateEmpty();
+		static TShared<AudioClip> CreateEmpty();
 	};
 
 	/** @} */

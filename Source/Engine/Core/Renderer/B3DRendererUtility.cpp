@@ -23,7 +23,7 @@ namespace b3d { namespace render
 {
 RendererUtility::RendererUtility()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	{
 		TInlineArray<VertexElement, 8> vertexElements;
@@ -58,13 +58,13 @@ RendererUtility::RendererUtility()
 		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-		SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
+		TShared<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
 
 		u32 vertexCount = 0;
 		u32 indexCount = 0;
 
 		ShapeMeshes3D::GetNumElementsSphere(3, vertexCount, indexCount);
-		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(vertexCount, indexCount, vertexDesc);
+		TShared<MeshData> meshData = B3DMakeShared<MeshData>(vertexCount, indexCount, vertexDesc);
 
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -79,13 +79,13 @@ RendererUtility::RendererUtility()
 		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-		SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
+		TShared<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 		u32 vertexCount = 0;
 		u32 indexCount = 0;
 
 		ShapeMeshes3D::GetNumElementsAaBox(vertexCount, indexCount);
-		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(vertexCount, indexCount, vertexDescription);
+		TShared<MeshData> meshData = B3DMakeShared<MeshData>(vertexCount, indexCount, vertexDescription);
 
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -103,12 +103,12 @@ RendererUtility::RendererUtility()
 		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-		SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
+		TShared<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 		u32 vertexCount = sideCount * sliceCount * 2;
 		u32 indexCount = ((sideCount * 2) * (sliceCount - 1) * 2) * 3;
 
-		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(vertexCount, indexCount, vertexDescription);
+		TShared<MeshData> meshData = B3DMakeShared<MeshData>(vertexCount, indexCount, vertexDescription);
 
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -160,13 +160,13 @@ RendererUtility::RendererUtility()
 		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-		SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
+		TShared<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 		u32 vertexCount = 0;
 		u32 indexCount = 0;
 
 		ShapeMeshes3D::GetNumElementsAaBox(vertexCount, indexCount);
-		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(vertexCount, indexCount, vertexDescription);
+		TShared<MeshData> meshData = B3DMakeShared<MeshData>(vertexCount, indexCount, vertexDescription);
 
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -178,43 +178,43 @@ RendererUtility::RendererUtility()
 	}
 }
 
-void RendererUtility::SetPass(GpuCommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIndex, u32 variationIndex)
+void RendererUtility::SetPass(GpuCommandBuffer& commandBuffer, const TShared<Material>& material, u32 passIndex, u32 variationIndex)
 {
-	const SPtr<Pass>& pass = material->GetPass(passIndex, variationIndex);
+	const TShared<Pass>& pass = material->GetPass(passIndex, variationIndex);
 	commandBuffer.SetGpuGraphicsPipelineState(pass->GetGraphicsPipelineState());
 	commandBuffer.SetStencilReferenceValue(pass->GetStencilRefValue());
 }
 
-void RendererUtility::SetComputePass(GpuCommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIndex)
+void RendererUtility::SetComputePass(GpuCommandBuffer& commandBuffer, const TShared<Material>& material, u32 passIndex)
 {
-	const SPtr<Pass>& pass = material->GetPass(passIndex);
+	const TShared<Pass>& pass = material->GetPass(passIndex);
 	commandBuffer.SetGpuComputePipelineState(pass->GetComputePipelineState());
 }
 
-void RendererUtility::SetPassParams(GpuCommandBuffer& commandBuffer, const SPtr<MaterialParameterAdapter>& parameterAdapter, u32 passIndex)
+void RendererUtility::SetPassParams(GpuCommandBuffer& commandBuffer, const TShared<MaterialParameterAdapter>& parameterAdapter, u32 passIndex)
 {
-	const SPtr<GpuParameterSet>& gpuParams = parameterAdapter->GetGpuParameterSet(passIndex);
+	const TShared<GpuParameterSet>& gpuParams = parameterAdapter->GetGpuParameterSet(passIndex);
 	if(gpuParams == nullptr)
 		return;
 
 	commandBuffer.SetGpuParameterSet(gpuParams);
 }
 
-void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>& mesh, u32 instanceCount)
+void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const TShared<MeshBase>& mesh, u32 instanceCount)
 {
 	Draw(commandBuffer, mesh, mesh->GetProperties().SubMeshes[0], instanceCount);
 }
 
-void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>& mesh, const SubMesh& subMesh, u32 instanceCount)
+void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const TShared<MeshBase>& mesh, const SubMesh& subMesh, u32 instanceCount)
 {
-	SPtr<VertexData> vertexData = mesh->GetVertexData();
+	TShared<VertexData> vertexData = mesh->GetVertexData();
 
 	commandBuffer.SetVertexDescription(mesh->GetVertexData()->VertexDescription);
 
 	auto& vertexBuffers = vertexData->GetBuffers();
 	if(vertexBuffers.size() > 0)
 	{
-		SPtr<GpuBuffer> buffers[B3D_MAX_BOUND_VERTEX_BUFFERS];
+		TShared<GpuBuffer> buffers[B3D_MAX_BOUND_VERTEX_BUFFERS];
 
 		u32 endSlot = 0;
 		u32 startSlot = B3D_MAX_BOUND_VERTEX_BUFFERS;
@@ -235,7 +235,7 @@ void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>
 		commandBuffer.SetVertexBuffers(startSlot, buffers, endSlot - startSlot + 1);
 	}
 
-	SPtr<GpuBuffer> indexBuffer = mesh->GetIndexBuffer();
+	TShared<GpuBuffer> indexBuffer = mesh->GetIndexBuffer();
 	commandBuffer.SetIndexBuffer(indexBuffer);
 
 	commandBuffer.SetDrawOperation(subMesh.DrawOp);
@@ -246,14 +246,14 @@ void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>
 	mesh->NotifyUsedOnGPU();
 }
 
-void RendererUtility::DrawMorph(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>& mesh, const SubMesh& subMesh, const SPtr<GpuBuffer>& morphVertices, const SPtr<VertexDescription>& morphVertexDescription)
+void RendererUtility::DrawMorph(GpuCommandBuffer& commandBuffer, const TShared<MeshBase>& mesh, const SubMesh& subMesh, const TShared<GpuBuffer>& morphVertices, const TShared<VertexDescription>& morphVertexDescription)
 {
 	// Bind buffers and draw
-	SPtr<VertexData> vertexData = mesh->GetVertexData();
+	TShared<VertexData> vertexData = mesh->GetVertexData();
 	commandBuffer.SetVertexDescription(morphVertexDescription);
 
 	auto& meshBuffers = vertexData->GetBuffers();
-	SPtr<GpuBuffer> allBuffers[B3D_MAX_BOUND_VERTEX_BUFFERS];
+	TShared<GpuBuffer> allBuffers[B3D_MAX_BOUND_VERTEX_BUFFERS];
 
 	u32 endSlot = 0;
 	u32 startSlot = B3D_MAX_BOUND_VERTEX_BUFFERS;
@@ -275,7 +275,7 @@ void RendererUtility::DrawMorph(GpuCommandBuffer& commandBuffer, const SPtr<Mesh
 	allBuffers[1] = morphVertices;
 	commandBuffer.SetVertexBuffers(startSlot, allBuffers, endSlot - startSlot + 1);
 
-	SPtr<GpuBuffer> indexBuffer = mesh->GetIndexBuffer();
+	TShared<GpuBuffer> indexBuffer = mesh->GetIndexBuffer();
 	commandBuffer.SetIndexBuffer(indexBuffer);
 
 	commandBuffer.SetDrawOperation(subMesh.DrawOp);
@@ -311,7 +311,7 @@ void RendererUtility::Blit(GpuCommandBuffer& commandBuffer, const BlitInformatio
 	BlitMat* const blitMaterial = BlitMat::GetVariation(textureProperties.SampleCount, !blitInformation.IsDepth, blitInformation.UseFiltering, blitInformation.UseBlend, blitInformation.WriteAlpha);
 
 	// Get GPU parameters and configure source texture
-	const SPtr<GpuParameterSet> gpuParameters = blitMaterial->Prepare(blitInformation.InputTexture);
+	const TShared<GpuParameterSet> gpuParameters = blitMaterial->Prepare(blitInformation.InputTexture);
 
 	// Begin render pass
 	RenderPassCreateInformation renderPassInfo(blitInformation.OutputRenderTarget, gpuParameters, blitInformation.ReadOnlyMask, blitInformation.LoadMask);
@@ -378,7 +378,7 @@ void RendererUtility::DrawScreenQuad(GpuCommandBuffer& commandBuffer, const Area
 		uvs[i].Y /= (float)textureSize.Y;
 	}
 
-	SPtr<MeshData> meshData = B3DMakeShared<MeshData>(4, 6, mFullscreenQuadVertexDescription);
+	TShared<MeshData> meshData = B3DMakeShared<MeshData>(4, 6, mFullscreenQuadVertexDescription);
 
 	auto vecIter = meshData->GetVec3DataIter(VES_POSITION);
 	for(u32 i = 0; i < 4; i++)
@@ -419,15 +419,15 @@ void BlitMat::Initialize()
 	mIsFiltered = mVariationParameters.GetI32("MODE") == 1;
 }
 
-SPtr<GpuParameterSet> BlitMat::Prepare(const SPtr<Texture>& source)
+TShared<GpuParameterSet> BlitMat::Prepare(const TShared<Texture>& source)
 {
-	SPtr<GpuParameterSet> gpuParameters = CreateGpuParameterSet();
+	TShared<GpuParameterSet> gpuParameters = CreateGpuParameterSet();
 	gpuParameters->SetSampledTexture("gSource", source);
 
 	return gpuParameters;
 }
 
-void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameterSet>& gpuParameters, const Area2& area, bool flipUV)
+void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters, const Area2& area, bool flipUV)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -526,7 +526,7 @@ void CompositeMaterial::Initialize()
 	mGpuParameterSet->GetSampledTextureParameter("gSource", mSourceTextureParameter);
 }
 
-void CompositeMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
+void CompositeMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, const TShared<RenderTarget>& target, const Color& tint)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 
@@ -553,7 +553,7 @@ void BicubicUpsampleMaterial::Initialize()
 	mGpuParameterSet->GetSampledTextureParameter("gSource", mSourceTextureParameter);
 }
 
-void BicubicUpsampleMaterial::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
+void BicubicUpsampleMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, const TShared<RenderTarget>& target, const Color& tint)
 {
 	B3D_PROFILE_RENDERER_MATERIAL
 

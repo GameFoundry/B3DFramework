@@ -35,7 +35,7 @@ namespace b3d
 		{};
 
 	public:
-		ManagedSerializableArray(const ConstructPrivately& dummy, const SPtr<ManagedTypeInfoArray>& typeInfo, MonoObject* managedInstance);
+		ManagedSerializableArray(const ConstructPrivately& dummy, const TShared<ManagedTypeInfoArray>& typeInfo, MonoObject* managedInstance);
 		ManagedSerializableArray(const ConstructPrivately& dummy);
 		~ManagedSerializableArray();
 
@@ -45,7 +45,7 @@ namespace b3d
 		MonoObject* GetManagedInstance() const;
 
 		/**	Returns the type information for the internal array. */
-		SPtr<ManagedTypeInfoArray> GetTypeInfo() const { return mArrayTypeInfo; }
+		TShared<ManagedTypeInfoArray> GetTypeInfo() const { return mArrayTypeInfo; }
 
 		/**
 		 * Changes the size of the array. Operates on managed object if in linked state, or on cached data otherwise. If
@@ -82,7 +82,7 @@ namespace b3d
 		 * @param[in]	arrayIdx	Index at which to set the value.
 		 * @param[in]	val			Wrapper around the value to store in the array. Must be of the array element type.
 		 */
-		void SetFieldData(u32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val);
+		void SetFieldData(u32 arrayIdx, const TShared<ManagedSerializableFieldData>& val);
 
 		/**
 		 * Returns the element value at the specified array index. Operates on managed object if in linked state, or on
@@ -91,7 +91,7 @@ namespace b3d
 		 * @param[in]	arrayIdx	Index at which to retrieve the value.
 		 * @return					A wrapper around the element value in the array.
 		 */
-		SPtr<ManagedSerializableFieldData> GetFieldData(u32 arrayIdx);
+		TShared<ManagedSerializableFieldData> GetFieldData(u32 arrayIdx);
 
 		/**
 		 * Serializes the internal managed object into a set of cached data that can be saved in memory/disk and can be
@@ -116,7 +116,7 @@ namespace b3d
 		 *									with the provided type info.
 		 * @param[in]	typeInfo			Type information for the array and its elements.
 		 */
-		static SPtr<ManagedSerializableArray> CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedTypeInfoArray>& typeInfo);
+		static TShared<ManagedSerializableArray> CreateFromExisting(MonoObject* managedInstance, const TShared<ManagedTypeInfoArray>& typeInfo);
 
 		/**
 		 * Creates a managed serializable array that creates and references a brand new managed array instance.
@@ -125,7 +125,7 @@ namespace b3d
 		 * @param[in]	sizes		Array of sizes, one per array dimension. Number of sizes must match number of array
 		 *							dimensions as specified by its type.
 		 */
-		static SPtr<ManagedSerializableArray> CreateNew(const SPtr<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes);
+		static TShared<ManagedSerializableArray> CreateNew(const TShared<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes);
 
 		/**
 		 * Creates a managed array instance.
@@ -134,7 +134,7 @@ namespace b3d
 		 * @param[in]	sizes		Array of sizes, one per array dimension. Number of sizes must match number of array
 		 *							dimensions as specified by its type.
 		 */
-		static MonoObject* CreateManagedInstance(const SPtr<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes);
+		static MonoObject* CreateManagedInstance(const TShared<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes);
 
 	protected:
 		/**
@@ -153,7 +153,7 @@ namespace b3d
 		 * @param[in]	arrayIdx	Index at which to set the value.
 		 * @param[in]	val			Wrapper around the value to store in the array. Must be of the array element type.
 		 */
-		void SetFieldData(MonoArray* obj, u32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val);
+		void SetFieldData(MonoArray* obj, u32 arrayIdx, const TShared<ManagedSerializableFieldData>& val);
 
 		/**	Sets a value at the specified index in the array. Operates on the provided managed object. */
 		void SetValueInternal(MonoArray* obj, u32 arrayIdx, void* val);
@@ -165,8 +165,8 @@ namespace b3d
 		::MonoClass* mElementMonoClass = nullptr;
 		MonoMethod* mCopyMethod = nullptr;
 
-		SPtr<ManagedTypeInfoArray> mArrayTypeInfo;
-		Vector<SPtr<ManagedSerializableFieldData>> mCachedEntries;
+		TShared<ManagedTypeInfoArray> mArrayTypeInfo;
+		Vector<TShared<ManagedSerializableFieldData>> mCachedEntries;
 		Vector<u32> mNumElements;
 		u32 mElemSize = 0;
 
@@ -175,7 +175,7 @@ namespace b3d
 		/************************************************************************/
 
 		/**	Creates an empty and uninitialized object used for serialization purposes. */
-		static SPtr<ManagedSerializableArray> CreateNew();
+		static TShared<ManagedSerializableArray> CreateNew();
 
 	public:
 		friend class ManagedSerializableArrayRTTI;

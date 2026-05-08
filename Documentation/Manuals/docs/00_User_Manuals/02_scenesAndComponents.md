@@ -273,7 +273,7 @@ Resources::Save(scene, "MyScene.asset");
 HScene loadedScene = Resources::Load<Scene>("MyScene.asset");
 
 // Instantiate the scene (creates a live copy in the world)
-SPtr<SceneInstance> instance = loadedScene->Instantiate();
+TShared<SceneInstance> instance = loadedScene->Instantiate();
 ~~~~~~~~~~~~~
 
 ## Scene Instances
@@ -282,7 +282,7 @@ A **SceneInstance** represents an active, running scene in your game. It manages
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a new empty scene instance
-SPtr<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
+TShared<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
 
 // Create scene objects within the scene instance
 HSceneObject sceneObject = sceneInstance->CreateSceneObject("MyObject");

@@ -88,7 +88,7 @@ namespace b3d
 		}
 
 		/** Creates an empty instance of a class from a type identifier. */
-		static SPtr<IReflectable> CreateInstanceFromTypeId(u32 rttiTypeId);
+		static TShared<IReflectable> CreateInstanceFromTypeId(u32 rttiTypeId);
 
 		/** Returns all available RTTI types. */
 		static UnorderedMap<u32, RTTIType*>& GetAllRttiTypes()

@@ -315,17 +315,17 @@ VulkanGpuDevice::~VulkanGpuDevice()
 	vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
 }
 
-SPtr<GpuProgramBytecode> VulkanGpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
+TShared<GpuProgramBytecode> VulkanGpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
 {
 	if(!IsGpuProgramLanguageSupported(createInformation.Language))
 		return nullptr;
 
 #if B3D_PLATFORM_MACOS
-	SPtr<GpuProgramBytecode> spirv = GLSLToSPIRV::Instance().Convert(createInformation, MOLTENVK_COMPILER_ID, MOLTENVK_COMPILER_VERSION);
+	TShared<GpuProgramBytecode> spirv = GLSLToSPIRV::Instance().Convert(createInformation, MOLTENVK_COMPILER_ID, MOLTENVK_COMPILER_VERSION);
 	// We'll just re-purpose the existing data structure
-	SPtr<GpuProgramBytecode> msl = spirv;
+	TShared<GpuProgramBytecode> msl = spirv;
 #else
-	SPtr<GpuProgramBytecode> spirv = GLSLToSPIRV::Instance().Convert(createInformation, VULKAN_COMPILER_ID, VULKAN_COMPILER_VERSION);
+	TShared<GpuProgramBytecode> spirv = GLSLToSPIRV::Instance().Convert(createInformation, VULKAN_COMPILER_ID, VULKAN_COMPILER_VERSION);
 #endif
 
 #if B3D_PLATFORM_MACOS
@@ -538,7 +538,7 @@ SPtr<GpuProgramBytecode> VulkanGpuDevice::CompileGpuProgramBytecode(const GpuPro
 #endif
 }
 
-SPtr<GpuQueue> VulkanGpuDevice::GetQueue(GpuQueueType type, u32 index) const
+TShared<GpuQueue> VulkanGpuDevice::GetQueue(GpuQueueType type, u32 index) const
 {
 	if (index >= GetQueueCount(type))
 		return nullptr;
@@ -546,16 +546,16 @@ SPtr<GpuQueue> VulkanGpuDevice::GetQueue(GpuQueueType type, u32 index) const
 	return mQueueInfos[(u32)type].Queues[index];
 }
 
-SPtr<GpuCommandBufferPool> VulkanGpuDevice::CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation)
+TShared<GpuCommandBufferPool> VulkanGpuDevice::CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation)
 {
 	return B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuCommandBufferPool>()) VulkanGpuCommandBufferPool(*this, createInformation));
 }
 
-SPtr<render::Texture> VulkanGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<render::Texture> VulkanGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
 	VulkanTexture* rawTexture = new(B3DAllocate<VulkanTexture>()) VulkanTexture(*this, createInformation);
 
-	SPtr<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+	TShared<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
 		? B3DMakeSharedFromExisting(rawTexture)
 		: MakeSharedStandalone<Texture>(rawTexture);
 
@@ -567,11 +567,11 @@ SPtr<render::Texture> VulkanGpuDevice::CreateTexture(const TextureCreateInformat
 	return output;
 }
 
-SPtr<render::GpuBuffer> VulkanGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<render::GpuBuffer> VulkanGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
 	VulkanGpuBuffer* rawBuffer = new(B3DAllocate<VulkanGpuBuffer>()) VulkanGpuBuffer(*this, createInformation);
 
-	SPtr<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+	TShared<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
 		? B3DMakeSharedFromExisting(rawBuffer)
 		: MakeSharedStandalone<GpuBuffer>(rawBuffer);
 
@@ -583,14 +583,14 @@ SPtr<render::GpuBuffer> VulkanGpuDevice::CreateGpuBuffer(const GpuBufferCreateIn
 	return output;
 }
 
-SPtr<GpuQueryPool> VulkanGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
+TShared<GpuQueryPool> VulkanGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
 {
 	return B3DMakeShared<VulkanGpuQueryPool>(GetResourceManager(), createInformation);
 }
 
-SPtr<SamplerState> VulkanGpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<SamplerState> VulkanGpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<SamplerState> output = B3DMakeSharedFromExisting(new (B3DAllocate<VulkanSamplerState>()) VulkanSamplerState(*this, createInformation));
+	TShared<SamplerState> output = B3DMakeSharedFromExisting(new (B3DAllocate<VulkanSamplerState>()) VulkanSamplerState(*this, createInformation));
 
 	if(!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 		output->Initialize();
@@ -598,14 +598,14 @@ SPtr<SamplerState> VulkanGpuDevice::CreateSamplerState(const SamplerStateCreateI
 	return output;
 }
 
-SPtr<EventQuery> VulkanGpuDevice::CreateEventQuery()
+TShared<EventQuery> VulkanGpuDevice::CreateEventQuery()
 {
 	return B3DMakeSharedFromExisting(new (B3DAllocate<VulkanEventQuery>()) VulkanEventQuery(*this));
 }
 
-SPtr<GpuProgram> VulkanGpuDevice::CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<GpuProgram> VulkanGpuDevice::CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<GpuProgram> output = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuProgram>()) VulkanGpuProgram(*this, createInformation));
+	TShared<GpuProgram> output = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuProgram>()) VulkanGpuProgram(*this, createInformation));
 
 	if(!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 		output->Initialize();
@@ -613,9 +613,9 @@ SPtr<GpuProgram> VulkanGpuDevice::CreateGpuProgram(const GpuProgramCreateInforma
 	return output;
 }
 
-SPtr<GpuGraphicsPipelineState> VulkanGpuDevice::CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<GpuGraphicsPipelineState> VulkanGpuDevice::CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<VulkanGpuGraphicsPipelineState> output = B3DMakeSharedFromExisting<VulkanGpuGraphicsPipelineState>(new(B3DAllocate<VulkanGpuGraphicsPipelineState>()) VulkanGpuGraphicsPipelineState(*this, createInformation));
+	TShared<VulkanGpuGraphicsPipelineState> output = B3DMakeSharedFromExisting<VulkanGpuGraphicsPipelineState>(new(B3DAllocate<VulkanGpuGraphicsPipelineState>()) VulkanGpuGraphicsPipelineState(*this, createInformation));
 
 	if(!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 		output->Initialize();
@@ -623,9 +623,9 @@ SPtr<GpuGraphicsPipelineState> VulkanGpuDevice::CreateGpuGraphicsPipelineState(c
 	return output;
 }
 
-SPtr<GpuComputePipelineState> VulkanGpuDevice::CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<GpuComputePipelineState> VulkanGpuDevice::CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
-	SPtr<VulkanGpuComputePipelineState> output = B3DMakeSharedFromExisting<VulkanGpuComputePipelineState>(new(B3DAllocate<VulkanGpuComputePipelineState>()) VulkanGpuComputePipelineState(*this, createInformation));
+	TShared<VulkanGpuComputePipelineState> output = B3DMakeSharedFromExisting<VulkanGpuComputePipelineState>(new(B3DAllocate<VulkanGpuComputePipelineState>()) VulkanGpuComputePipelineState(*this, createInformation));
 
 	if(!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 		output->Initialize();
@@ -633,12 +633,12 @@ SPtr<GpuComputePipelineState> VulkanGpuDevice::CreateGpuComputePipelineState(con
 	return output;
 }
 
-SPtr<GpuPipelineParameterLayout> VulkanGpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
+TShared<GpuPipelineParameterLayout> VulkanGpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
 {
 	return B3DMakeSharedFromExisting<VulkanGpuPipelineParameterLayout>(new(B3DAllocate<VulkanGpuPipelineParameterLayout>()) VulkanGpuPipelineParameterLayout(*this, createInformation));
 }
 
-SPtr<GpuPipelineParameterSetLayout> VulkanGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
+TShared<GpuPipelineParameterSetLayout> VulkanGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
 {
 	return B3DMakeShared<VulkanGpuPipelineParameterSetLayout>(*this, parameterDescription);
 }
@@ -648,7 +648,7 @@ UPtr<GpuParameterSetPool> VulkanGpuDevice::CreateParameterSetPool(const GpuParam
 	return B3DMakeUnique<VulkanGpuParameterSetPool>(*this, createInformation);
 }
 
-SPtr<GpuTimelineFence> VulkanGpuDevice::CreateTimelineFence()
+TShared<GpuTimelineFence> VulkanGpuDevice::CreateTimelineFence()
 {
 	return B3DMakeShared<VulkanGpuTimelineFence>(*this);
 }
@@ -684,7 +684,7 @@ void VulkanGpuDevice::RunDefragPass()
 	if (!mDefragEnabled)
 		return;
 
-	const SPtr<render::GpuCommandBuffer>& transferCb = mTransferBufferHelper->GetOrCreateTransferCommandBuffer();
+	const TShared<render::GpuCommandBuffer>& transferCb = mTransferBufferHelper->GetOrCreateTransferCommandBuffer();
 	if (transferCb == nullptr)
 		return;
 
@@ -708,9 +708,9 @@ void VulkanGpuDevice::SubmitTransferCommandBuffers(bool wait)
 		GetVulkanSubmitThread().WaitUntilIdle();
 }
 
-void VulkanGpuDevice::PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, GpuQueueMask syncMask)
+void VulkanGpuDevice::PresentRenderWindow(const TShared<render::RenderWindow>& renderWindow, GpuQueueMask syncMask)
 {
-	SPtr<GpuQueue> queue = GetQueue(GQT_GRAPHICS, 0);
+	TShared<GpuQueue> queue = GetQueue(GQT_GRAPHICS, 0);
 	if (!B3D_ENSURE(queue))
 		return;
 
@@ -783,7 +783,7 @@ void VulkanGpuDevice::DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&
 		const u32 queueCount = GetQueueCount(queueType);
 		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
 		{
-			const SPtr<VulkanGpuQueue>& queue = std::static_pointer_cast<VulkanGpuQueue>(GetQueue(queueType, queueIndex));
+			const TShared<VulkanGpuQueue>& queue = std::static_pointer_cast<VulkanGpuQueue>(GetQueue(queueType, queueIndex));
 			callback(*queue);
 		}
 	}
@@ -1245,7 +1245,7 @@ void VulkanGpuDevice::GetSyncSemaphores(GpuQueueMask syncMask, TInlineArray<Vulk
 		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
 		{
 			VulkanGpuQueue* queue = static_cast<VulkanGpuQueue*>(GetQueue(queueType, queueIndex).get());
-			SPtr<VulkanGpuCommandBuffer> lastCommandBuffer = queue->GetLastCommandBuffer();
+			TShared<VulkanGpuCommandBuffer> lastCommandBuffer = queue->GetLastCommandBuffer();
 
 			// Check if a buffer is currently executing on the queue
 			if(lastCommandBuffer == nullptr || (!lastCommandBuffer->IsSubmitted() && !lastCommandBuffer->IsDone()))

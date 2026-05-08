@@ -30,9 +30,9 @@ HMesh MeshEx::Create(int numVertices, int numIndices, const Vector<SubMesh>& sub
 	return Mesh::Create(desc);
 }
 
-HMesh MeshEx::Create(const SPtr<RendererMeshData>& data, DrawOperationType topology, MeshFlags flags)
+HMesh MeshEx::Create(const TShared<RendererMeshData>& data, DrawOperationType topology, MeshFlags flags)
 {
-	SPtr<MeshData> meshData;
+	TShared<MeshData> meshData;
 	if(data != nullptr)
 		meshData = data->GetData();
 
@@ -47,9 +47,9 @@ HMesh MeshEx::Create(const SPtr<RendererMeshData>& data, DrawOperationType topol
 	return Mesh::Create(meshData, desc);
 }
 
-HMesh MeshEx::Create(const SPtr<RendererMeshData>& data, const Vector<SubMesh>& subMeshes, MeshFlags flags)
+HMesh MeshEx::Create(const TShared<RendererMeshData>& data, const Vector<SubMesh>& subMeshes, MeshFlags flags)
 {
-	SPtr<MeshData> meshData;
+	TShared<MeshData> meshData;
 	if(data != nullptr)
 		meshData = data->GetData();
 
@@ -82,17 +82,17 @@ void MeshEx::GetBounds(const HMesh& thisPtr, AABox* box, Sphere* sphere)
 	*sphere = bounds.GetSphere();
 }
 
-SPtr<RendererMeshData> MeshEx::GetMeshData(const HMesh& thisPtr)
+TShared<RendererMeshData> MeshEx::GetMeshData(const HMesh& thisPtr)
 {
-	const SPtr<MeshData>& meshData = thisPtr->GetCachedData();
+	const TShared<MeshData>& meshData = thisPtr->GetCachedData();
 	return RendererMeshData::Create(meshData);
 }
 
-void MeshEx::SetMeshData(const HMesh& thisPtr, const SPtr<RendererMeshData>& value)
+void MeshEx::SetMeshData(const HMesh& thisPtr, const TShared<RendererMeshData>& value)
 {
 	if(value != nullptr)
 	{
-		SPtr<MeshData> meshData = value->GetData();
+		TShared<MeshData> meshData = value->GetData();
 		thisPtr->WriteData(meshData, true);
 	}
 }

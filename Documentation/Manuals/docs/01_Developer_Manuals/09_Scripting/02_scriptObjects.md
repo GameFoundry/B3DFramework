@@ -37,10 +37,10 @@ This class is intended as a wrapper for the C++ class you're exposing to the scr
 
 | Native object type | Base class template | Constructor parameter |
 |---|---|---|
-| **IReflectable** subclass (shared ptr) | `TScriptReflectableWrapper<NativeType, SelfType>` | `const SPtr<NativeType>&` |
+| **IReflectable** subclass (shared ptr) | `TScriptReflectableWrapper<NativeType, SelfType>` | `const TShared<NativeType>&` |
 | **Resource** subclass (handle) | `TScriptResourceWrapper<NativeType, SelfType>` | `const TResourceHandle<NativeType>&` |
 | **GameObject** subclass (handle) | `TScriptGameObjectWrapper<NativeType, SelfType>` | `const TGameObjectHandle<NativeType>&` |
-| Non-reflectable (shared ptr) | `TScriptNonReflectableWrapper<NativeType, SelfType>` | `const SPtr<NativeType>&` |
+| Non-reflectable (shared ptr) | `TScriptNonReflectableWrapper<NativeType, SelfType>` | `const TShared<NativeType>&` |
 | Value type (by value) | `TScriptValueTypeWrapper<NativeType, SelfType>` | `const NativeType&` |
 | Other / manual | `TScriptObjectWrapper<SelfType>` | `IScriptExportable*` |
 
@@ -58,7 +58,7 @@ class ScriptMyObject : public TScriptReflectableWrapper<MyObject, ScriptMyObject
 public:
 	B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MyObject")
 
-	ScriptMyObject(const SPtr<MyObject>& nativeObject)
+	ScriptMyObject(const TShared<MyObject>& nativeObject)
 		: TScriptReflectableWrapper(nativeObject)
 	{ }
 
@@ -97,7 +97,7 @@ If your class is not static you will need to eventually create an instance of th
 
 ~~~~~~~~~~~~~{.cpp}
 // From C++: get or create the managed object for a native object
-SPtr<MyObject> nativeObject = ...;
+TShared<MyObject> nativeObject = ...;
 MonoObject* managedObj = ScriptMyObject::GetOrCreateScriptObject(nativeObject);
 ~~~~~~~~~~~~~
 
@@ -105,7 +105,7 @@ If the managed object is created from C# (e.g. via a constructor), you should se
 ~~~~~~~~~~~~~{.cpp}
 void ScriptMyObject::internal_CreateInstance(MonoObject* scriptObject)
 {
-	SPtr<MyObject> nativeObject = B3DMakeShared<MyObject>();
+	TShared<MyObject> nativeObject = B3DMakeShared<MyObject>();
 	ScriptObjectWrapper::Create<ScriptMyObject>(nativeObject, scriptObject);
 }
 ~~~~~~~~~~~~~

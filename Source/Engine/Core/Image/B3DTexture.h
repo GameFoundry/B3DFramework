@@ -66,12 +66,12 @@ namespace b3d
 			:TextureInformation(other)
 		{ }
 
-		TextureCreateInformation(const SPtr<PixelData>& initialData);
+		TextureCreateInformation(const TShared<PixelData>& initialData);
 
 		/** Initializes the structure so that is creates a texture that can fit the provided pixel data. */
-		static TextureCreateInformation CreateFromPixelData(const SPtr<PixelData>& pixelData);
+		static TextureCreateInformation CreateFromPixelData(const TShared<PixelData>& pixelData);
 
-		SPtr<PixelData> InitialData;
+		TShared<PixelData> InitialData;
 	};
 
 	/** Structure used for specifying information about a texture copy operation. */
@@ -166,7 +166,7 @@ namespace b3d
 		 *
 		 * @note	Thread safe.
 		 */
-		SPtr<PixelData> AllocBuffer(u32 face, u32 mipLevel) const;
+		TShared<PixelData> AllocBuffer(u32 face, u32 mipLevel) const;
 
 		/**
 		 * Maps a sub-resource index to an exact face and mip level. Sub-resource indexes are used when reading or writing
@@ -262,7 +262,7 @@ namespace b3d
 
 		TGpuTextureMappedScope() = default;
 
-		TGpuTextureMappedScope(PixelData pixelData, SPtr<TextureType> texture, GpuTextureSubresource subresource, GpuMapOptions options)
+		TGpuTextureMappedScope(PixelData pixelData, TShared<TextureType> texture, GpuTextureSubresource subresource, GpuMapOptions options)
 			: mPixelData(std::move(pixelData)), mTexture(std::move(texture)), mSubresource(subresource), mOptions(options)
 		{}
 
@@ -314,7 +314,7 @@ namespace b3d
 		const PixelData& GetPixelData() const { return mPixelData; }
 
 		/** Returns the texture being mapped. */
-		const SPtr<TextureType>& GetTexture() const { return mTexture; }
+		const TShared<TextureType>& GetTexture() const { return mTexture; }
 
 		/** Returns the subresource being mapped. */
 		const GpuTextureSubresource& GetSubresource() const { return mSubresource; }
@@ -325,7 +325,7 @@ namespace b3d
 
 	private:
 		PixelData mPixelData;
-		SPtr<TextureType> mTexture;
+		TShared<TextureType> mTexture;
 		GpuTextureSubresource mSubresource;
 		GpuMapOptions mOptions;
 	};
@@ -356,7 +356,7 @@ namespace b3d
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		TAsyncOp<void> WriteData(const SPtr<PixelData>& data, u32 face = 0, u32 mipLevel = 0, bool discardEntireBuffer = false);
+		TAsyncOp<void> WriteData(const TShared<PixelData>& data, u32 face = 0, u32 mipLevel = 0, bool discardEntireBuffer = false);
 
 		/**
 		 * Reads internal texture data to the provided previously allocated buffer. Provided data buffer will be locked
@@ -370,7 +370,7 @@ namespace b3d
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		TAsyncOp<void> ReadData(const SPtr<PixelData>& data, u32 face = 0, u32 mipLevel = 0);
+		TAsyncOp<void> ReadData(const TShared<PixelData>& data, u32 face = 0, u32 mipLevel = 0);
 
 		/**
 		 * Reads internal texture data into a newly allocated buffer.
@@ -383,7 +383,7 @@ namespace b3d
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(GetGPUPixels))
-		TAsyncOp<SPtr<PixelData>> ReadData(u32 face = 0, u32 mipLevel = 0);
+		TAsyncOp<TShared<PixelData>> ReadData(u32 face = 0, u32 mipLevel = 0);
 
 		/**
 		 * Reads data from the cached system memory texture buffer into the provided buffer.
@@ -420,21 +420,21 @@ namespace b3d
 		 */
 
 		/** Same as Create() excepts it creates a pointer to the texture instead of a texture handle. */
-		static SPtr<Texture> CreateShared(const TextureCreateInformation& createInformation);
+		static TShared<Texture> CreateShared(const TextureCreateInformation& createInformation);
 
 		/** Creates an empty texture with default parameters. Requires an explicit call to Initialize() before use. Primarily intended for deserialization. */
-		static SPtr<Texture> CreateEmpty();
+		static TShared<Texture> CreateEmpty();
 
 		/** @} */
 
 	protected:
 		friend class TextureManager;
 
-		Texture(const TextureCreateInformation& createInformation, const SPtr<PixelData>& pixelData);
+		Texture(const TextureCreateInformation& createInformation, const TShared<PixelData>& pixelData);
 		Texture(const TextureCreateInformation& createInformation);
 
 		void Initialize() override;
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 
 		/** Calculates the size of the texture, in bytes. */
 		u32 CalculateSize() const;
@@ -450,9 +450,9 @@ namespace b3d
 		void UpdateCpuBuffers(u32 subresourceIdx, const PixelData& data);
 
 	protected:
-		Vector<SPtr<PixelData>> mCPUSubresourceData;
+		Vector<TShared<PixelData>> mCPUSubresourceData;
 		TextureProperties mProperties;
-		mutable SPtr<PixelData> mInitData;
+		mutable TShared<PixelData> mInitData;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -570,19 +570,19 @@ namespace b3d
 			 *
 			 * @note	Render thread only.
 			 */
-			SPtr<TextureView> RequestView(const TextureSurface& surface, GpuViewUsage usage);
+			TShared<TextureView> RequestView(const TextureSurface& surface, GpuViewUsage usage);
 
 			/** Returns a plain white texture. */
-			static SPtr<Texture> kWhite;
+			static TShared<Texture> kWhite;
 
 			/** Returns a plain black texture. */
-			static SPtr<Texture> kBlack;
+			static TShared<Texture> kBlack;
 
 			/** Returns a plain pink texture. */
-			static SPtr<Texture> kPink;
+			static TShared<Texture> kPink;
 
 			/** Returns a plain normal map texture with normal pointing up (in Y direction). */
-			static SPtr<Texture> kNormal;
+			static TShared<Texture> kNormal;
 
 		protected:
 			/************************************************************************/
@@ -590,15 +590,15 @@ namespace b3d
 			/************************************************************************/
 
 			/**	Creates a view of a specific subresource in a texture. */
-			virtual SPtr<TextureView> CreateView(const TextureViewInformation& desc);
+			virtual TShared<TextureView> CreateView(const TextureViewInformation& desc);
 
 			/** Releases all internal texture view references. */
 			void ClearBufferViews();
 
-			UnorderedMap<TextureViewInformation, SPtr<TextureView>, TextureView::HashFunction, TextureView::EqualFunction> mTextureViews;
+			UnorderedMap<TextureViewInformation, TShared<TextureView>, TextureView::HashFunction, TextureView::EqualFunction> mTextureViews;
 			String mName;
 			TextureProperties mProperties;
-			SPtr<PixelData> mInitData;
+			TShared<PixelData> mInitData;
 			void* mMappedMemory = nullptr;
 		};
 
@@ -643,7 +643,7 @@ namespace b3d
 			 * @param readable		True if the buffer needs to be CPU-readable (for readback), false if CPU-writeable (for upload).
 			 * @return				Newly created staging buffer sized for the specified texture subresource.
 			 */
-			static SPtr<GpuBuffer> CreateStagingBuffer(const SPtr<Texture>& texture, u32 mipLevel, bool readable);
+			static TShared<GpuBuffer> CreateStagingBuffer(const TShared<Texture>& texture, u32 mipLevel, bool readable);
 
 			/**
 			 * Creates a staging buffer with the specified size.
@@ -653,7 +653,7 @@ namespace b3d
 			 * @param readable		True if the buffer needs to be CPU-readable (for readback), false if CPU-writeable (for upload).
 			 * @return				Newly created staging buffer.
 			 */
-			static SPtr<GpuBuffer> CreateStagingBuffer(const SPtr<Texture>& texture, const PixelData& pixelData, bool readable);
+			static TShared<GpuBuffer> CreateStagingBuffer(const TShared<Texture>& texture, const PixelData& pixelData, bool readable);
 
 			/**
 			 * Writes pixel data to a texture subresource.
@@ -671,7 +671,7 @@ namespace b3d
 			 *
 			 * @note Render thread only.
 			 */
-			static void Write(const SPtr<Texture>& texture, const PixelData& source, u32 mipLevel = 0, u32 arrayLayer = 0, TextureWriteFlags flags = TextureWriteFlag::Normal, SPtr<GpuCommandBuffer> commandBuffer = nullptr);
+			static void Write(const TShared<Texture>& texture, const PixelData& source, u32 mipLevel = 0, u32 arrayLayer = 0, TextureWriteFlags flags = TextureWriteFlag::Normal, TShared<GpuCommandBuffer> commandBuffer = nullptr);
 
 			/**
 			 * Reads data from the texture subresource into the provided buffer.
@@ -687,7 +687,7 @@ namespace b3d
 			 * @param	arrayLayer		Array layer (or cubemap face or depth slice) to read from.
 			 * @param	gpuQueue		GPU queue on which to perform the read. If not specified the default transfer queue will be used.
 			 */
-			static void Read(const SPtr<Texture>& texture, PixelData& destination, u32 mipLevel = 0, u32 arrayLayer = 0, const SPtr<GpuQueue>& gpuQueue = nullptr);
+			static void Read(const TShared<Texture>& texture, PixelData& destination, u32 mipLevel = 0, u32 arrayLayer = 0, const TShared<GpuQueue>& gpuQueue = nullptr);
 
 			/**
 			 * Performs a non-blocking read operation. The GPU will execute the read when the command buffer reaches the execution point
@@ -698,7 +698,7 @@ namespace b3d
 			 * @param	arrayLayer		Texture array layer (or cubemap face or depth slice) to read from.
 			 * @return					Operation that will be signaled when the data is ready to be read.
 			 */
-			static TAsyncOp<SPtr<PixelData>> ReadAsync(const SPtr<Texture>& texture, GpuCommandBuffer& commandBuffer, u32 mipLevel = 0, u32 arrayLayer = 0);
+			static TAsyncOp<TShared<PixelData>> ReadAsync(const TShared<Texture>& texture, GpuCommandBuffer& commandBuffer, u32 mipLevel = 0, u32 arrayLayer = 0);
 
 			/**
 			 * Sets all the pixels of the specified face and mip level to the provided value.
@@ -711,7 +711,7 @@ namespace b3d
 			 *							If not provided the operation will be queued on an internal command buffer that will be submitted before
 			 *							any regular command buffer submission.
 			 */
-			static void Clear(const SPtr<Texture>& texture, const Color& value, u32 mipLevel = 0, u32 arrayLayer = 0, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr);
+			static void Clear(const TShared<Texture>& texture, const Color& value, u32 mipLevel = 0, u32 arrayLayer = 0, const TShared<GpuCommandBuffer>& commandBuffer = nullptr);
 		};
 
 		/** @} */

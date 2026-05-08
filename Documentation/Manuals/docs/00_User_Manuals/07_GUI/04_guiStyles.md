@@ -291,7 +291,7 @@ Create custom style sheets by writing CSS files and loading them as resources:
 HGUIStyleSheet customStyleSheet = GetImporter().Import<GUIStyleSheet>("MyStyles.css");
 
 // Create a cascade with the custom style sheet
-SPtr<GUIStyleSheetCascade> styleSheetCascade = GUIStyleSheetCascade::Create();
+TShared<GUIStyleSheetCascade> styleSheetCascade = GUIStyleSheetCascade::Create();
 styleSheetCascade->RegisterStyleSheet(customStyleSheet, 0);
 
 // Assign to widget
@@ -304,7 +304,7 @@ The @b3d::GUIStyleSheetCascade class manages multiple style sheets with importan
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a cascade with multiple style sheets
-SPtr<GUIStyleSheetCascade> cascade = GUIStyleSheetCascade::Create();
+TShared<GUIStyleSheetCascade> cascade = GUIStyleSheetCascade::Create();
 
 // Base styles (lowest importance)
 cascade->RegisterStyleSheet(baseStyleSheet, 0);

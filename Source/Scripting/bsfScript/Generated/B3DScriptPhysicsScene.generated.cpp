@@ -19,7 +19,7 @@
 
 namespace b3d
 {
-	ScriptPhysicsScene::ScriptPhysicsScene(const SPtr<PhysicsScene>& nativeObject)
+	ScriptPhysicsScene::ScriptPhysicsScene(const TShared<PhysicsScene>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

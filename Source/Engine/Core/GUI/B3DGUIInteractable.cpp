@@ -27,7 +27,7 @@ namespace b3d
 
 		u32 GetRttiId() const override { return TID_GUIInteractable; }
 
-		SPtr<IReflectable> NewRttiObject() { return nullptr; }
+		TShared<IReflectable> NewRttiObject() { return nullptr; }
 	};
 } // namespace b3d
 
@@ -122,9 +122,9 @@ void GUIInteractable::ChangeParentWidget(GUIWidget* widget)
 	}
 }
 
-void GUIInteractable::SetNavigationGroup(const SPtr<GUINavGroup>& navGroup)
+void GUIInteractable::SetNavigationGroup(const TShared<GUINavGroup>& navGroup)
 {
-	SPtr<GUINavGroup> currentNavGroup = GetNavigationGroup();
+	TShared<GUINavGroup> currentNavGroup = GetNavigationGroup();
 	if(currentNavGroup == navGroup)
 		return;
 
@@ -139,12 +139,12 @@ void GUIInteractable::SetNavigationGroup(const SPtr<GUINavGroup>& navGroup)
 
 void GUIInteractable::SetNavigationGroupIndex(i32 index)
 {
-	SPtr<GUINavGroup> navGroup = GetNavigationGroup();
+	TShared<GUINavGroup> navGroup = GetNavigationGroup();
 	if(navGroup != nullptr)
 		navGroup->SetIndex(this, index);
 }
 
-SPtr<GUINavGroup> GUIInteractable::GetNavigationGroup() const
+TShared<GUINavGroup> GUIInteractable::GetNavigationGroup() const
 {
 	if(mNavigationGroup)
 		return mNavigationGroup;
@@ -182,7 +182,7 @@ void GUIInteractable::RemoveStateFlags(GUIElementStateFlags flags)
 	MarkContentAsDirty();
 }
 
-SPtr<GUIContextMenu> GUIInteractable::GetContextMenu() const
+TShared<GUIContextMenu> GUIInteractable::GetContextMenu() const
 {
 	if(!IsDisabled())
 		return mContextMenu;
@@ -195,7 +195,7 @@ void GUIInteractable::Destroy()
 	if(mIsPendingDestroy)
 		return;
 
-	const SPtr<GUINavGroup> navigationGroup = GetNavigationGroup();
+	const TShared<GUINavGroup> navigationGroup = GetNavigationGroup();
 	if(navigationGroup != nullptr)
 		navigationGroup->UnregisterElement(this);
 

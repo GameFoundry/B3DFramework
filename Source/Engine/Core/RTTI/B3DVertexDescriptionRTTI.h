@@ -33,7 +33,7 @@ namespace b3d
 			}
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeSharedFromExisting<VertexDescription>(new(B3DAllocate<VertexDescription>()) VertexDescription());
 		}

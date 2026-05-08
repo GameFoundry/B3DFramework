@@ -125,8 +125,8 @@ void Joint::OnTransformChanged(TransformChangedFlags flags)
 	if(mImplementation == nullptr)
 		return;
 
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
-	const SPtr<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
 
 	// We're ignoring this during physics update because it would cause problems if the joint itself was moved by physics
 	// Note: This isn't particularily correct because if the joint is being moved by physics but the rigidbodies
@@ -151,8 +151,8 @@ void Joint::NotifyRigidbodyMoved(const HRigidbody& body)
 	if(mImplementation == nullptr)
 		return;
 
-	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
-	const SPtr<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
+	const TShared<SceneInstance>& scene = SceneObject()->GetScene();
+	const TShared<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
 
 	// If physics update is in progress do nothing, as its the joint itself that's probably moving the body
 	if(physicsScene->IsUpdateInProgress())

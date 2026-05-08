@@ -25,13 +25,13 @@ namespace b3d
 			~VertexData() = default;
 
 			/**	Assigns a new vertex buffer to the specified index. */
-			void SetBuffer(u32 index, SPtr<GpuBuffer> buffer);
+			void SetBuffer(u32 index, TShared<GpuBuffer> buffer);
 
 			/**	Retrieves a vertex buffer from the specified index. */
-			SPtr<GpuBuffer> GetBuffer(u32 index) const;
+			TShared<GpuBuffer> GetBuffer(u32 index) const;
 
 			/**	Returns a list of all bound vertex buffers. */
-			const UnorderedMap<u32, SPtr<GpuBuffer>>& GetBuffers() const { return mVertexBuffers; }
+			const UnorderedMap<u32, TShared<GpuBuffer>>& GetBuffers() const { return mVertexBuffers; }
 
 			/**	Checks if there is a buffer at the specified index. */
 			bool IsBufferBound(u32 index) const;
@@ -43,7 +43,7 @@ namespace b3d
 			u32 GetMaxBufferIndex() const { return mMaxBufferIdx; }
 
 			/**	Declaration used for the contained vertex buffers. */
-			SPtr<VertexDescription> VertexDescription;
+			TShared<VertexDescription> VertexDescription;
 
 			/**	Number of vertices to use. */
 			u32 VertexCount = 0;
@@ -51,7 +51,7 @@ namespace b3d
 		private:
 			void RecalculateMaxIndex();
 
-			UnorderedMap<u32, SPtr<GpuBuffer>> mVertexBuffers;
+			UnorderedMap<u32, TShared<GpuBuffer>> mVertexBuffers;
 			u32 mMaxBufferIdx = 0;
 		};
 

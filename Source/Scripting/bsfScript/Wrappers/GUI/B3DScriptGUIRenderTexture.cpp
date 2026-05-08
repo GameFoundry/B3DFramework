@@ -41,7 +41,7 @@ void ScriptGUIRenderTexture::InternalCreateInstance(MonoObject* instance, Script
 	for(u32 i = 0; i < arrayLen; i++)
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
-	SPtr<RenderTexture> renderTexture;
+	TShared<RenderTexture> renderTexture;
 	if(texture != nullptr)
 		renderTexture = texture->GetNativeObjectAsShared();
 
@@ -55,7 +55,7 @@ void ScriptGUIRenderTexture::InternalSetTexture(ScriptGUIRenderTexture* self, Sc
 	if(!self->IsNativeObjectValid())
 		return;
 
-	SPtr<RenderTexture> renderTexture;
+	TShared<RenderTexture> renderTexture;
 	if(texture != nullptr)
 		renderTexture = texture->GetNativeObjectAsShared();
 

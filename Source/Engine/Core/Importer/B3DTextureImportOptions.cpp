@@ -5,7 +5,7 @@
 
 using namespace b3d;
 
-SPtr<TextureImportOptions> TextureImportOptions::Create()
+TShared<TextureImportOptions> TextureImportOptions::Create()
 {
 	return B3DMakeShared<TextureImportOptions>();
 }

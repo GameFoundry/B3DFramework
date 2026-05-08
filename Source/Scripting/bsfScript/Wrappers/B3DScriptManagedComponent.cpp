@@ -66,7 +66,7 @@ void ScriptManagedComponent::CreateAndBindScriptObject()
 		return;
 
 	HManagedComponent component = GetNativeObjectAsHandle();
-	SPtr<ManagedObjectInfo> objectInformation;
+	TShared<ManagedObjectInfo> objectInformation;
 	MonoObject* const scriptObject = component->CreateScriptObject(objectInformation);
 
 	if(scriptObject != nullptr)

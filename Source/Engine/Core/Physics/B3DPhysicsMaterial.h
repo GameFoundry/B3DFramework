@@ -78,7 +78,7 @@ namespace b3d
 		 *
 		 * For internal use. Requires manual initialization after creation.
 		 */
-		static SPtr<PhysicsMaterial> CreatePtrInternal(float staticFriction = 0.0f, float dynamicFriction = 0.0f, float restitution = 0.0f);
+		static TShared<PhysicsMaterial> CreatePtrInternal(float staticFriction = 0.0f, float dynamicFriction = 0.0f, float restitution = 0.0f);
 
 		/** @} */
 

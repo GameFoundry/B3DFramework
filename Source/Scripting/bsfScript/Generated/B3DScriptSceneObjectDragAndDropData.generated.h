@@ -15,7 +15,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SceneObjectDragAndDropData")
 
-		ScriptSceneObjectDragAndDropData(const SPtr<SceneObjectDragAndDropData>& nativeObject);
+		ScriptSceneObjectDragAndDropData(const TShared<SceneObjectDragAndDropData>& nativeObject);
 		~ScriptSceneObjectDragAndDropData();
 
 		static void SetupScriptBindings();

@@ -9,7 +9,7 @@
 namespace b3d
 {
 #if !B3D_IS_ENGINE
-	ScriptAudioClipImportOptions::ScriptAudioClipImportOptions(const SPtr<AudioClipImportOptions>& nativeObject)
+	ScriptAudioClipImportOptions::ScriptAudioClipImportOptions(const TShared<AudioClipImportOptions>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -46,7 +46,7 @@ namespace b3d
 	}
 	void ScriptAudioClipImportOptions::InternalCreate(MonoObject* scriptObject)
 	{
-		SPtr<AudioClipImportOptions> nativeObject = AudioClipImportOptions::Create();
+		TShared<AudioClipImportOptions> nativeObject = AudioClipImportOptions::Create();
 		ScriptObjectWrapper::Create<ScriptAudioClipImportOptions>(nativeObject, scriptObject);
 	}
 	AudioFormat ScriptAudioClipImportOptions::InternalGetFormat(ScriptAudioClipImportOptions* self)

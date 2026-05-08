@@ -20,15 +20,15 @@ bool PlainTextImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numByt
 	return true; // Plain-text so we don't even check for magic number
 }
 
-SPtr<Resource> PlainTextImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+TShared<Resource> PlainTextImporter::Import(const Path& filePath, TShared<const ImportOptions> importOptions)
 {
 	WString textData;
 	{
-		SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
+		TShared<DataStream> stream = FileSystem::OpenFile(filePath);
 		textData = stream->GetAsWString();
 	}
 
-	SPtr<PlainText> plainText = PlainText::CreatePtrInternal(textData);
+	TShared<PlainText> plainText = PlainText::CreatePtrInternal(textData);
 
 	String fileName = filePath.GetFilename(false);
 	plainText->SetName(fileName);

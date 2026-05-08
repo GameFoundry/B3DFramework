@@ -14,7 +14,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AnimationUtility")
 
-		ScriptAnimationUtility(const SPtr<AnimationUtility>& nativeObject);
+		ScriptAnimationUtility(const TShared<AnimationUtility>& nativeObject);
 		~ScriptAnimationUtility();
 
 		static void SetupScriptBindings();

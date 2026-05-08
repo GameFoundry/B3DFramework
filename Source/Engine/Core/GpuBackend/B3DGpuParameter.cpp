@@ -38,7 +38,7 @@ void TGpuParameterPrimitive<T, IsRenderProxy>::Set(const T& value, u32 arrayIdx)
 
 	const GpuDataParameterTypeInformation& typeInformation = b3d::GpuParameterSet::kParamSizes.Lookup[mParameterInformation->Type];
 
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
@@ -303,7 +303,7 @@ TGpuParameterSampler<IsRenderProxy>::TGpuParameterSampler(const GpuParameterBind
 }
 
 template <bool IsRenderProxy>
-void TGpuParameterSampler<IsRenderProxy>::Set(const SPtr<SamplerState>& samplerState, u32 arrayIndex) const
+void TGpuParameterSampler<IsRenderProxy>::Set(const TShared<SamplerState>& samplerState, u32 arrayIndex) const
 {
 	if(mParent == nullptr)
 		return;
@@ -315,7 +315,7 @@ void TGpuParameterSampler<IsRenderProxy>::Set(const SPtr<SamplerState>& samplerS
 }
 
 template <bool IsRenderProxy>
-SPtr<SamplerState> TGpuParameterSampler<IsRenderProxy>::Get(u32 arrayIndex) const
+TShared<SamplerState> TGpuParameterSampler<IsRenderProxy>::Get(u32 arrayIndex) const
 {
 	if (mParent == nullptr)
 		return nullptr;

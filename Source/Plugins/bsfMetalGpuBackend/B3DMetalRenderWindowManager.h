@@ -18,7 +18,7 @@ namespace b3d
 		MetalRenderWindowManager() = default;
 		~MetalRenderWindowManager() = default;
 
-		SPtr<render::IRenderWindowSurface> CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation) override;
+		TShared<render::IRenderWindowSurface> CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation) override;
 	};
 
 	/** @} */

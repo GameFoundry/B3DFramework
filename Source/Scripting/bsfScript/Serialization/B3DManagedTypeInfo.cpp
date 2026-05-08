@@ -36,7 +36,7 @@ MonoReflectionType* ManagedObjectInfo::GetReflectionType() const
 	return MonoUtil::GetType(ScriptClass->GetInternalClass());
 }
 
-SPtr<ManagedMemberInfo> ManagedObjectInfo::FindMatchingField(const SPtr<ManagedMemberInfo>& fieldInfo, const SPtr<ManagedTypeInfo>& fieldTypeInfo) const
+TShared<ManagedMemberInfo> ManagedObjectInfo::FindMatchingField(const TShared<ManagedMemberInfo>& fieldInfo, const TShared<ManagedTypeInfo>& fieldTypeInfo) const
 {
 	const ManagedObjectInfo* objInfo = this;
 	while(objInfo != nullptr)
@@ -47,7 +47,7 @@ SPtr<ManagedMemberInfo> ManagedObjectInfo::FindMatchingField(const SPtr<ManagedM
 			{
 				if(B3D_ENSURE(found->second < (u32)objInfo->Members.size()))
 				{
-					SPtr<ManagedMemberInfo> foundMember = objInfo->Members[found->second];
+					TShared<ManagedMemberInfo> foundMember = objInfo->Members[found->second];
 					if(foundMember->IsSerializable())
 					{
 						if(fieldInfo->TypeInfo->Matches(foundMember->TypeInfo))
@@ -159,7 +159,7 @@ RTTIType* ManagedTypeInfo::GetRtti() const
 	return ManagedTypeInfo::GetRttiStatic();
 }
 
-bool ManagedTypeInfoPrimitive::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
+bool ManagedTypeInfoPrimitive::Matches(const TShared<ManagedTypeInfo>& typeInfo) const
 {
 	if(!B3DRTTIIsOfType<ManagedTypeInfoPrimitive>(typeInfo))
 		return false;
@@ -221,7 +221,7 @@ RTTIType* ManagedTypeInfoPrimitive::GetRtti() const
 	return ManagedTypeInfoPrimitive::GetRttiStatic();
 }
 
-bool ManagedTypeInfoEnum::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
+bool ManagedTypeInfoEnum::Matches(const TShared<ManagedTypeInfo>& typeInfo) const
 {
 	if(const auto enumTypeInfo = B3DRTTICast<ManagedTypeInfoEnum>(typeInfo.get()))
 	{
@@ -259,7 +259,7 @@ RTTIType* ManagedTypeInfoEnum::GetRtti() const
 	return ManagedTypeInfoEnum::GetRttiStatic();
 }
 
-bool ManagedTypeInfoReference::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
+bool ManagedTypeInfoReference::Matches(const TShared<ManagedTypeInfo>& typeInfo) const
 {
 	if(!B3DRTTIIsOfType<ManagedTypeInfoReference>(typeInfo))
 		return false;
@@ -308,7 +308,7 @@ bool ManagedTypeInfoReference::IsTypeLoaded() const
 	}
 
 	// Specific component or resource (either builtin or custom)
-	SPtr<ManagedObjectInfo> objInfo;
+	TShared<ManagedObjectInfo> objInfo;
 	if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(TypeNamespace, TypeName, objInfo))
 		return nullptr;
 
@@ -325,7 +325,7 @@ RTTIType* ManagedTypeInfoReference::GetRtti() const
 	return ManagedTypeInfoReference::GetRttiStatic();
 }
 
-bool ManagedTypeInfoResourceReference::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
+bool ManagedTypeInfoResourceReference::Matches(const TShared<ManagedTypeInfo>& typeInfo) const
 {
 	if(!B3DRTTIIsOfType<ManagedTypeInfoResourceReference>(typeInfo))
 		return false;
@@ -369,7 +369,7 @@ RTTIType* ManagedTypeInfoResourceReference::GetRtti() const
 	return ManagedTypeInfoResourceReference::GetRttiStatic();
 }
 
-bool ManagedTypeInfoObject::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
+bool ManagedTypeInfoObject::Matches(const TShared<ManagedTypeInfo>& typeInfo) const
 {
 	if(!B3DRTTIIsOfType<ManagedTypeInfoObject>(typeInfo))
 		return false;
@@ -387,7 +387,7 @@ bool ManagedTypeInfoObject::IsTypeLoaded() const
 
 ::MonoClass* ManagedTypeInfoObject::GetMonoClass() const
 {
-	SPtr<ManagedObjectInfo> objInfo;
+	TShared<ManagedObjectInfo> objInfo;
 	if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(TypeNamespace, TypeName, objInfo))
 		return nullptr;
 
@@ -404,7 +404,7 @@ RTTIType* ManagedTypeInfoObject::GetRtti() const
 	return ManagedTypeInfoObject::GetRttiStatic();
 }
 
-bool ManagedTypeInfoArray::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
+bool ManagedTypeInfoArray::Matches(const TShared<ManagedTypeInfo>& typeInfo) const
 {
 	if(!B3DRTTIIsOfType<ManagedTypeInfoArray>(typeInfo))
 		return false;
@@ -438,7 +438,7 @@ RTTIType* ManagedTypeInfoArray::GetRtti() const
 	return ManagedTypeInfoArray::GetRttiStatic();
 }
 
-bool ManagedTypeInfoList::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
+bool ManagedTypeInfoList::Matches(const TShared<ManagedTypeInfo>& typeInfo) const
 {
 	if(!B3DRTTIIsOfType<ManagedTypeInfoList>(typeInfo))
 		return false;
@@ -475,7 +475,7 @@ RTTIType* ManagedTypeInfoList::GetRtti() const
 	return ManagedTypeInfoList::GetRttiStatic();
 }
 
-bool ManagedTypeInfoDictionary::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
+bool ManagedTypeInfoDictionary::Matches(const TShared<ManagedTypeInfo>& typeInfo) const
 {
 	if(!B3DRTTIIsOfType<ManagedTypeInfoDictionary>(typeInfo))
 		return false;

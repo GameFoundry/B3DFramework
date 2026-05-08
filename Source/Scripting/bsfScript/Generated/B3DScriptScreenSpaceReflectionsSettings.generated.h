@@ -14,7 +14,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ScreenSpaceReflectionsSettings")
 
-		ScriptScreenSpaceReflectionsSettings(const SPtr<ScreenSpaceReflectionsSettings>& nativeObject);
+		ScriptScreenSpaceReflectionsSettings(const TShared<ScreenSpaceReflectionsSettings>& nativeObject);
 		~ScriptScreenSpaceReflectionsSettings();
 
 		static void SetupScriptBindings();

@@ -15,12 +15,12 @@ using namespace b3d;
 
 RendererMeshData::RendererMeshData(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType)
 {
-	SPtr<VertexDescription> vertexDesc = VertexLayoutVertexDesc(layout);
+	TShared<VertexDescription> vertexDesc = VertexLayoutVertexDesc(layout);
 
 	mMeshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDesc, indexType);
 }
 
-RendererMeshData::RendererMeshData(const SPtr<MeshData>& meshData)
+RendererMeshData::RendererMeshData(const TShared<MeshData>& meshData)
 	: mMeshData(meshData)
 {
 }
@@ -202,7 +202,7 @@ void RendererMeshData::SetUV1(Vector2* buffer, u32 size)
 
 void RendererMeshData::GetBoneWeights(BoneWeight* buffer, u32 size)
 {
-	SPtr<VertexDescription> vertexDesc = mMeshData->GetVertexDescription();
+	TShared<VertexDescription> vertexDesc = mMeshData->GetVertexDescription();
 
 	if(!vertexDesc->HasElement(VES_BLEND_WEIGHTS) ||
 	   !vertexDesc->HasElement(VES_BLEND_INDICES))
@@ -240,7 +240,7 @@ void RendererMeshData::GetBoneWeights(BoneWeight* buffer, u32 size)
 
 void RendererMeshData::SetBoneWeights(BoneWeight* buffer, u32 size)
 {
-	SPtr<VertexDescription> vertexDesc = mMeshData->GetVertexDescription();
+	TShared<VertexDescription> vertexDesc = mMeshData->GetVertexDescription();
 
 	if(!vertexDesc->HasElement(VES_BLEND_WEIGHTS) ||
 	   !vertexDesc->HasElement(VES_BLEND_INDICES))
@@ -328,17 +328,17 @@ void RendererMeshData::SetIndices(u32* buffer, u32 size)
 	}
 }
 
-SPtr<RendererMeshData> RendererMeshData::Create(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType)
+TShared<RendererMeshData> RendererMeshData::Create(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType)
 {
 	return RendererManager::Instance().GetActive()->CreateMeshDataInternal(numVertices, numIndices, layout, indexType);
 }
 
-SPtr<RendererMeshData> RendererMeshData::Create(const SPtr<MeshData>& meshData)
+TShared<RendererMeshData> RendererMeshData::Create(const TShared<MeshData>& meshData)
 {
 	return RendererManager::Instance().GetActive()->CreateMeshDataInternal(meshData);
 }
 
-SPtr<VertexDescription> RendererMeshData::VertexLayoutVertexDesc(VertexLayout type)
+TShared<VertexDescription> RendererMeshData::VertexLayoutVertexDesc(VertexLayout type)
 {
 	TInlineArray<VertexElement, 8> vertexElements;
 	i32 intType = (i32)type;
@@ -373,10 +373,10 @@ SPtr<VertexDescription> RendererMeshData::VertexLayoutVertexDesc(VertexLayout ty
 	return B3DMakeShared<VertexDescription>(vertexElements);
 }
 
-SPtr<MeshData> RendererMeshData::Convert(const SPtr<MeshData>& meshData)
+TShared<MeshData> RendererMeshData::Convert(const TShared<MeshData>& meshData)
 {
 	// Note: Only converting between packed normals/tangents for now
-	SPtr<VertexDescription> vertexDesc = meshData->GetVertexDescription();
+	TShared<VertexDescription> vertexDesc = meshData->GetVertexDescription();
 
 	u32 numVertices = meshData->GetVertexCount();
 	u32 numIndices = meshData->GetIndexCount();
@@ -432,10 +432,10 @@ SPtr<MeshData> RendererMeshData::Convert(const SPtr<MeshData>& meshData)
 	   blendWeightsElem != nullptr && blendWeightsElem->GetType() == VET_FLOAT4)
 		type |= (i32)VertexLayout::BoneWeights;
 
-	SPtr<RendererMeshData> rendererMeshData = Create(numVertices, numIndices, (VertexLayout)type, meshData->GetIndexType());
+	TShared<RendererMeshData> rendererMeshData = Create(numVertices, numIndices, (VertexLayout)type, meshData->GetIndexType());
 
-	SPtr<MeshData> output = rendererMeshData->mMeshData;
-	SPtr<VertexDescription> outputVertexDesc = output->GetVertexDescription();
+	TShared<MeshData> output = rendererMeshData->mMeshData;
+	TShared<VertexDescription> outputVertexDesc = output->GetVertexDescription();
 	u32 outputStride = outputVertexDesc->GetVertexStride();
 
 	if((type & (i32)VertexLayout::Position) != 0)

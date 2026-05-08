@@ -18,7 +18,7 @@ GameObjectCollection::~GameObjectCollection()
 	GameObjectManager::Instance().UnregisterGameObjectCollection(*this);
 }
 
-GameObjectHandle GameObjectCollection::RegisterNewObject(const SPtr<GameObject>& object)
+GameObjectHandle GameObjectCollection::RegisterNewObject(const TShared<GameObject>& object)
 {
 	if(!B3D_ENSURE(object != nullptr))
 		return nullptr;
@@ -117,12 +117,12 @@ bool GameObjectCollection::ObjectExists(const UUID& uuid) const
 	return mObjects.find(uuid) != mObjects.end();
 }
 
-void GameObjectCollection::ReplaceGameObjectInstance(GameObjectHandle& newObjectHandle, const SPtr<GameObjectInstanceData>& originalObjectInstanceData)
+void GameObjectCollection::ReplaceGameObjectInstance(GameObjectHandle& newObjectHandle, const TShared<GameObjectInstanceData>& originalObjectInstanceData)
 {
 	B3D_ASSERT(originalObjectInstanceData != nullptr);
 
 	const UUID originalObjectId = newObjectHandle.GetId();
-	const SPtr<GameObject> newObject = newObjectHandle.GetShared();
+	const TShared<GameObject> newObject = newObjectHandle.GetShared();
 
 	newObjectHandle->SetInstanceData(originalObjectInstanceData);
 	newObjectHandle.SetObjectInstanceData(newObject);
@@ -283,9 +283,9 @@ void GameObjectCollection::EndHandleResolve()
 	mHandleResolveActive = false;
 }
 
-SPtr<GameObjectCollection> GameObjectCollection::Create()
+TShared<GameObjectCollection> GameObjectCollection::Create()
 {
-	SPtr<GameObjectCollection> collection = B3DMakeShared<GameObjectCollection>(PrivatelyConstruct());
+	TShared<GameObjectCollection> collection = B3DMakeShared<GameObjectCollection>(PrivatelyConstruct());
 
 	if(GameObjectManager::IsStarted()) // May not be started for default object
 		GameObjectManager::Instance().RegisterGameObjectCollection(collection);

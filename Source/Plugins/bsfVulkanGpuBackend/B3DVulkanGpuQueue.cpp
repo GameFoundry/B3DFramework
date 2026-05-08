@@ -55,7 +55,7 @@ void VulkanGpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& informa
 	GetVulkanSubmitThread().QueueSubmit(std::static_pointer_cast<VulkanGpuCommandBuffer>(information.CommandBuffer), *this, information.SyncMask, information.SignalFences);
 }
 
-void VulkanGpuQueue::PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask)
+void VulkanGpuQueue::PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask)
 {
 	if(renderWindow == nullptr)
 		return;
@@ -125,13 +125,13 @@ void VulkanGpuQueue::WaitUntilIdle()
 	GetVulkanSubmitThread().WaitUntilIdle(*this);
 }
 
-VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TShared<VulkanGpuCommandBuffer>& commandBuffer, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
-	TInlineArray<SPtr<VulkanGpuCommandBuffer>, 1> commandBuffers = { commandBuffer };
+	TInlineArray<TShared<VulkanGpuCommandBuffer>, 1> commandBuffers = { commandBuffer };
 	return RegisterSubmissionAndGenerateSubmitInfo(commandBuffers, waitSemaphores, signalFences);
 }
 
-VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TArrayView<SPtr<VulkanGpuCommandBuffer>>& commandBuffers, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TArrayView<TShared<VulkanGpuCommandBuffer>>& commandBuffers, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	SubmitWorkBuffer& workBuffer = AcquireSubmitWorkBuffer();
 
@@ -243,13 +243,13 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 
 		// Find an appropriate queue to execute on
 		u32 transitionQueueIndex = 0;
-		SPtr<VulkanGpuQueue> transitionQueue = nullptr;
+		TShared<VulkanGpuQueue> transitionQueue = nullptr;
 
 		const u32 queueCount = device.GetQueueCount(transitionQueueType);
 		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
 		{
 			// Try to find a queue not currently executing
-			const SPtr<VulkanGpuQueue>& curQueue = std::static_pointer_cast<VulkanGpuQueue>(device.GetQueue(transitionQueueType, queueIndex));
+			const TShared<VulkanGpuQueue>& curQueue = std::static_pointer_cast<VulkanGpuQueue>(device.GetQueue(transitionQueueType, queueIndex));
 			if(!curQueue->IsExecuting())
 			{
 				transitionQueue = curQueue;
@@ -307,7 +307,7 @@ void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool q
 	auto it = mActiveSubmissions.begin();
 	while(it != mActiveSubmissions.end())
 	{
-		const SPtr<VulkanGpuCommandBuffer> cmdBuffer = it->LastSubmittedCommandBuffer;
+		const TShared<VulkanGpuCommandBuffer> cmdBuffer = it->LastSubmittedCommandBuffer;
 		if(cmdBuffer == nullptr)
 		{
 			++it;

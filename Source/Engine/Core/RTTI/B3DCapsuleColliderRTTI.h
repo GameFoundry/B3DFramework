@@ -37,7 +37,7 @@ namespace b3d
 			return TID_CapsuleCollider;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CapsuleCollider>();
 		}

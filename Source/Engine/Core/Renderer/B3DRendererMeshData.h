@@ -205,27 +205,27 @@ namespace b3d
 
 		/**	Returns the underlying MeshData structure. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Data))
-		SPtr<MeshData> GetData() const { return mMeshData; }
+		TShared<MeshData> GetData() const { return mMeshData; }
 
 		/**	Creates a new empty mesh data structure. */
-		static SPtr<RendererMeshData> Create(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType = IT_32BIT);
+		static TShared<RendererMeshData> Create(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType = IT_32BIT);
 
 		/**	Creates a new mesh data structure using an existing mesh data buffer. */
-		static SPtr<RendererMeshData> Create(const SPtr<MeshData>& meshData);
+		static TShared<RendererMeshData> Create(const TShared<MeshData>& meshData);
 
 		/**	Creates a vertex descriptor from a vertex layout enum. */
-		static SPtr<VertexDescription> VertexLayoutVertexDesc(VertexLayout type);
+		static TShared<VertexDescription> VertexLayoutVertexDesc(VertexLayout type);
 
 		/** Converts a generic mesh data into mesh data format expected by the renderer. */
-		static SPtr<MeshData> Convert(const SPtr<MeshData>& meshData);
+		static TShared<MeshData> Convert(const TShared<MeshData>& meshData);
 
 	private:
 		friend class render::Renderer;
 
 		RendererMeshData(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType = IT_32BIT);
-		RendererMeshData(const SPtr<MeshData>& meshData);
+		RendererMeshData(const TShared<MeshData>& meshData);
 
-		SPtr<MeshData> mMeshData;
+		TShared<MeshData> mMeshData;
 	};
 
 	/** @} */

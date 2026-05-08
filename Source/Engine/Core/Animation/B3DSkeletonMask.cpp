@@ -17,7 +17,7 @@ bool SkeletonMask::IsEnabled(u32 boneIndex) const
 	return !mIsDisabled[boneIndex];
 }
 
-SkeletonMaskBuilder::SkeletonMaskBuilder(const SPtr<Skeleton>& skeleton)
+SkeletonMaskBuilder::SkeletonMaskBuilder(const TShared<Skeleton>& skeleton)
 	: mSkeleton(skeleton), mMask(skeleton->GetBoneCount())
 {}
 

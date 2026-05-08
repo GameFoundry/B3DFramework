@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	SPtr<render::IRenderWindowSurface> MetalRenderWindowManager::CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation)
+	TShared<render::IRenderWindowSurface> MetalRenderWindowManager::CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation)
 	{
 		auto device = std::static_pointer_cast<render::MetalGpuDevice>(GetMetalGpuBackend().GetDevice(0));
 		return B3DMakeShared<render::MetalRenderWindowSurface>(*device, createInformation);

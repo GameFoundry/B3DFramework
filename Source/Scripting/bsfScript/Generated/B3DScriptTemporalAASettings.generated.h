@@ -14,7 +14,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TemporalAASettings")
 
-		ScriptTemporalAASettings(const SPtr<TemporalAASettings>& nativeObject);
+		ScriptTemporalAASettings(const TShared<TemporalAASettings>& nativeObject);
 		~ScriptTemporalAASettings();
 
 		static void SetupScriptBindings();

@@ -92,7 +92,7 @@ AnimationClip::AnimationClip()
 {
 }
 
-AnimationClip::AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const SPtr<RootMotion>& rootMotion)
+AnimationClip::AnimationClip(const TShared<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const TShared<RootMotion>& rootMotion)
 	: Resource(false), mVersion(0), mCurves(curves), mRootMotion(rootMotion), mIsAdditive(isAdditive), mLength(0.0f), mSampleRate(sampleRate)
 {
 	if(mCurves == nullptr)
@@ -111,27 +111,27 @@ HAnimationClip AnimationClip::Create(bool isAdditive)
 		CreatePtrInternal(B3DMakeShared<AnimationCurves>(), isAdditive)));
 }
 
-HAnimationClip AnimationClip::Create(const SPtr<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const SPtr<RootMotion>& rootMotion)
+HAnimationClip AnimationClip::Create(const TShared<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const TShared<RootMotion>& rootMotion)
 {
 	return B3DStaticResourceCast<AnimationClip>(GetResources().CreateResourceHandle(
 		CreatePtrInternal(curves, isAdditive, sampleRate, rootMotion)));
 }
 
-SPtr<AnimationClip> AnimationClip::CreateEmpty()
+TShared<AnimationClip> AnimationClip::CreateEmpty()
 {
 	AnimationClip* rawPtr = new(B3DAllocate<AnimationClip>()) AnimationClip();
 
-	SPtr<AnimationClip> newClip = B3DMakeSharedFromExisting<AnimationClip>(rawPtr);
+	TShared<AnimationClip> newClip = B3DMakeSharedFromExisting<AnimationClip>(rawPtr);
 	newClip->SetShared(newClip);
 
 	return newClip;
 }
 
-SPtr<AnimationClip> AnimationClip::CreatePtrInternal(const SPtr<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const SPtr<RootMotion>& rootMotion)
+TShared<AnimationClip> AnimationClip::CreatePtrInternal(const TShared<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const TShared<RootMotion>& rootMotion)
 {
 	AnimationClip* rawPtr = new(B3DAllocate<AnimationClip>()) AnimationClip(curves, isAdditive, sampleRate, rootMotion);
 
-	SPtr<AnimationClip> newClip = B3DMakeSharedFromExisting<AnimationClip>(rawPtr);
+	TShared<AnimationClip> newClip = B3DMakeSharedFromExisting<AnimationClip>(rawPtr);
 	newClip->SetShared(newClip);
 	newClip->Initialize();
 

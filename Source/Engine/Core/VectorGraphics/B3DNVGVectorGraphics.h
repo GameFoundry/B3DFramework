@@ -140,19 +140,19 @@ namespace b3d
 		public:
 			NVGVectorPathRenderable(const b3d::VectorPath& vectorPath, const VectorGraphicsSettings& settings);
 
-			SPtr<GpuParameterSet> Prepare() override;
+			TShared<GpuParameterSet> Prepare() override;
 			void Render(GpuCommandBuffer& commandBuffer) override;
 
 		private:
 			/** GPU buffers holding the vertex, index and uniform parameter information. */
 			struct RenderGpuBuffers
 			{
-				SPtr<VertexDescription> VertexDescription;
-				SPtr<GpuBuffer> VertexBuffer;
-				SPtr<GpuBuffer> IndexBuffer;
-				SPtr<GpuBuffer> ViewUniformBuffer;
-				SPtr<GpuBuffer> RenderUniformBuffer;
-				SPtr<GpuParameterSet> GpuParameterSet;
+				TShared<VertexDescription> VertexDescription;
+				TShared<GpuBuffer> VertexBuffer;
+				TShared<GpuBuffer> IndexBuffer;
+				TShared<GpuBuffer> ViewUniformBuffer;
+				TShared<GpuBuffer> RenderUniformBuffer;
+				TShared<GpuParameterSet> GpuParameterSet;
 			};
 
 			/** Context that will be filled by NanoVG callbacks when executing NanoVG path commands. */

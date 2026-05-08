@@ -19,7 +19,7 @@ namespace b3d
 
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedResourceRTTI : public TRTTIType<ManagedResource, Resource, ManagedResourceRTTI>
 	{
-		SPtr<ManagedSerializableObject> mSerializedObjectData;
+		TShared<ManagedSerializableObject> mSerializedObjectData;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_GENERATED_MEMBER(mSerializedObjectData, 0)
@@ -44,7 +44,7 @@ namespace b3d
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit) && !operationType.IsSet(RTTIOperationType::PreExistingObjectBit))
 			{
-				const SPtr<ManagedResource>& managedResource = std::static_pointer_cast<ManagedResource>(object.GetShared());
+				const TShared<ManagedResource>& managedResource = std::static_pointer_cast<ManagedResource>(object.GetShared());
 				managedResource->mSerializedObjectData = mSerializedObjectData; 
 				managedResource->Initialize();
 			}
@@ -61,7 +61,7 @@ namespace b3d
 			return TID_ManagedResource;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return ManagedResource::CreateUninitializedAsShared();
 		}

@@ -154,7 +154,7 @@ importOptions->CpuCached = true;
 HMesh mesh = GetImporter().Import<Mesh>("dragon.fbx", importOptions);
 
 // Read cached data
-SPtr<MeshData> meshData = mesh->GetCachedData();
+TShared<MeshData> meshData = mesh->GetCachedData();
 
 // Read vertex positions using an iterator
 auto positionIterator = meshData->GetVec3DataIter(VES_POSITION);
@@ -178,7 +178,7 @@ meshData->GetVertexData(VES_POSITION, positions.data(),
 When you have CPU-cached mesh data, you can read various vertex attributes:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MeshData> meshData = mesh->GetCachedData();
+TShared<MeshData> meshData = mesh->GetCachedData();
 
 // Get vertex count
 u32 vertexCount = meshData->GetVertexCount();
@@ -249,7 +249,7 @@ You can also write to mesh data and update the GPU buffers:
 
 ~~~~~~~~~~~~~{.cpp}
 // Allocate mesh data matching the mesh format
-SPtr<MeshData> meshData = mesh->AllocBuffer();
+TShared<MeshData> meshData = mesh->AllocBuffer();
 
 // Modify vertex positions
 auto positionIterator = meshData->GetVec3DataIter(VES_POSITION);
@@ -288,7 +288,7 @@ Builtin meshes are immediately available and don't require importing or loading.
 You can calculate the bounds of mesh data:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MeshData> meshData = mesh->GetCachedData();
+TShared<MeshData> meshData = mesh->GetCachedData();
 
 // Calculate bounds from all vertices
 Bounds bounds = meshData->CalculateBounds();

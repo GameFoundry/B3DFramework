@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	ScriptRootMotion::ScriptRootMotion(const SPtr<RootMotion>& nativeObject)
+	ScriptRootMotion::ScriptRootMotion(const TShared<RootMotion>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -41,7 +41,7 @@ namespace b3d
 	}
 	MonoObject* ScriptRootMotion::InternalGetPositionCurves(ScriptRootMotion* self)
 	{
-		SPtr<TAnimationCurve<TVector3<float>>> tmp__output = B3DMakeShared<TAnimationCurve<TVector3<float>>>();
+		TShared<TAnimationCurve<TVector3<float>>> tmp__output = B3DMakeShared<TAnimationCurve<TVector3<float>>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -55,7 +55,7 @@ namespace b3d
 
 	MonoObject* ScriptRootMotion::InternalGetRotationCurves(ScriptRootMotion* self)
 	{
-		SPtr<TAnimationCurve<TQuaternion<float>>> tmp__output = B3DMakeShared<TAnimationCurve<TQuaternion<float>>>();
+		TShared<TAnimationCurve<TQuaternion<float>>> tmp__output = B3DMakeShared<TAnimationCurve<TQuaternion<float>>>();
 		if(!self->IsNativeObjectValid())
 			return {};
 

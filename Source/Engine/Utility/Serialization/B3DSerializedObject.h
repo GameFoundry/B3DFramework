@@ -17,7 +17,7 @@ namespace b3d
 	 */
 
 	/** Helper to compare two ISerialized objects for equality, while also checking if they are null. */
-	B3D_EXPORT bool Equals(const SPtr<ISerialized>& lhs, const SPtr<ISerialized>& rhs);
+	B3D_EXPORT bool Equals(const TShared<ISerialized>& lhs, const TShared<ISerialized>& rhs);
 
 	/** Base class for all data types used in intermediate IReflectable object representation. */
 	struct B3D_EXPORT ISerialized : IReflectable
@@ -32,13 +32,13 @@ namespace b3d
 		 *						same instances of data. The original will retain data ownership and it will go out of
 		 *						scope when the original does.
 		 */
-		virtual SPtr<ISerialized> Clone(bool cloneData = true) = 0;
+		virtual TShared<ISerialized> Clone(bool cloneData = true) = 0;
 
 		/** Calculates the hash value of the contained data. */
 		virtual u64 CalculateHash() const = 0;
 
 		/** Checks if this value matches the other provided value. */
-		virtual bool Equals(const SPtr<ISerialized>& other) const = 0;
+		virtual bool Equals(const TShared<ISerialized>& other) const = 0;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -54,11 +54,11 @@ namespace b3d
 
 namespace std
 {
-	/** Hash value generator for SPtr<ISerialized>. */
+	/** Hash value generator for TShared<ISerialized>. */
 	template <>
-	struct hash<b3d::SPtr<b3d::ISerialized>>
+	struct hash<b3d::TShared<b3d::ISerialized>>
 	{
-		size_t operator()(const b3d::SPtr<b3d::ISerialized>& value) const
+		size_t operator()(const b3d::TShared<b3d::ISerialized>& value) const
 		{
 			if(value == nullptr)
 				return 0;
@@ -67,11 +67,11 @@ namespace std
 		}
 	};
 
-	/** Equality operator for SPtr<ISerialized>. */
+	/** Equality operator for TShared<ISerialized>. */
 	template <>
-	struct equal_to<b3d::SPtr<b3d::ISerialized>>
+	struct equal_to<b3d::TShared<b3d::ISerialized>>
 	{
-		bool operator()(const b3d::SPtr<b3d::ISerialized>& lhs, const b3d::SPtr<b3d::ISerialized>& rhs) const
+		bool operator()(const b3d::TShared<b3d::ISerialized>& lhs, const b3d::TShared<b3d::ISerialized>& rhs) const
 		{
 			return b3d::Equals(lhs, rhs);
 		}
@@ -87,11 +87,11 @@ namespace b3d
 	{
 		SerializedTuple() = default;
 
-		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		TShared<ISerialized> Clone(bool cloneData = true) override;
 		u64 CalculateHash() const override;
-		bool Equals(const SPtr<ISerialized>& other) const override;
+		bool Equals(const TShared<ISerialized>& other) const override;
 
-		TInlineArray<SPtr<ISerialized>, 2> Values; /**< One value per type. */
+		TInlineArray<TShared<ISerialized>, 2> Values; /**< One value per type. */
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -108,7 +108,7 @@ namespace b3d
 		SerializedField() = default;
 
 		u32 FieldId = 0;
-		SPtr<ISerialized> Value;
+		TShared<ISerialized> Value;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -165,9 +165,9 @@ namespace b3d
 		/** Returns the RTTI type ID for the most-derived class of this object. */
 		u32 GetRootTypeId() const;
 
-		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		TShared<ISerialized> Clone(bool cloneData = true) override;
 		u64 CalculateHash() const override;
-		bool Equals(const SPtr<ISerialized>& other) const override;
+		bool Equals(const TShared<ISerialized>& other) const override;
 
 		/**
 		 * Decodes the serialized object back into its original IReflectable object form.
@@ -175,7 +175,7 @@ namespace b3d
 		 * @param	context	Object that will be passed along to all RTTI type objects through their notify callbacks. Can be used for controlling
 		 *					serialization, maintaining state or sharing information between objects during serialization.
 		 */
-		SPtr<IReflectable> Decode(RTTIOperationContext& context) const;
+		TShared<IReflectable> Decode(RTTIOperationContext& context) const;
 
 		/**
 		 * Serializes the provided object and returns its SerializedObject representation.
@@ -184,7 +184,7 @@ namespace b3d
 		 * @param	flags	Flags used for controlling the serialization process.
 		 * @return			Serialized version of @p object.
 		 */
-		static SPtr<SerializedObject> Create(IReflectable& object, SerializedObjectEncodeFlags flags = SerializedObjectEncodeFlags());
+		static TShared<SerializedObject> Create(IReflectable& object, SerializedObjectEncodeFlags flags = SerializedObjectEncodeFlags());
 
 		Vector<SerializedSubObject> SubObjects;
 
@@ -208,9 +208,9 @@ namespace b3d
 				B3DFree(Value);
 		}
 
-		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		TShared<ISerialized> Clone(bool cloneData = true) override;
 		u64 CalculateHash() const override;
-		bool Equals(const SPtr<ISerialized>& other) const override;
+		bool Equals(const TShared<ISerialized>& other) const override;
 
 		u8* Value = nullptr;
 		u32 Size = 0;
@@ -230,11 +230,11 @@ namespace b3d
 	{
 		SerializedDataBlock() = default;
 
-		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		TShared<ISerialized> Clone(bool cloneData = true) override;
 		u64 CalculateHash() const override;
-		bool Equals(const SPtr<ISerialized>& other) const override;
+		bool Equals(const TShared<ISerialized>& other) const override;
 
-		SPtr<DataStream> Stream;
+		TShared<DataStream> Stream;
 		u32 Offset = 0;
 		u32 Size = 0;
 
@@ -252,11 +252,11 @@ namespace b3d
 	{
 		SerializedArray() = default;
 
-		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		TShared<ISerialized> Clone(bool cloneData = true) override;
 		u64 CalculateHash() const override;
-		bool Equals(const SPtr<ISerialized>& other) const override;
+		bool Equals(const TShared<ISerialized>& other) const override;
 
-		TArray<SPtr<ISerialized>> Entries;
+		TArray<TShared<ISerialized>> Entries;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -272,11 +272,11 @@ namespace b3d
 	{
 		SerializedMap() = default;
 
-		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		TShared<ISerialized> Clone(bool cloneData = true) override;
 		u64 CalculateHash() const override;
-		bool Equals(const SPtr<ISerialized>& other) const override;
+		bool Equals(const TShared<ISerialized>& other) const override;
 
-		UnorderedMap<SPtr<ISerialized>, SPtr<ISerialized>> Entries;
+		UnorderedMap<TShared<ISerialized>, TShared<ISerialized>> Entries;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

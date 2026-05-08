@@ -11,7 +11,7 @@ All virtual input is handled through the @b3d::VirtualInput class, accessible th
 Before we explain individual aspects, let's see a quick working example to give you a rough idea:
 ~~~~~~~~~~~~~{.cpp}
 // Set up input configuration that maps virtual keys to actual hardware keys
-SPtr<InputConfiguration> inputConfiguration = GetVirtualInput().GetConfiguration();
+TShared<InputConfiguration> inputConfiguration = GetVirtualInput().GetConfiguration();
 
 // Virtual button named "Forward" maps to W and Up arrow keys
 inputConfiguration->RegisterButton("Forward", ButtonCode::W);
@@ -28,7 +28,7 @@ if (GetVirtualInput().IsButtonDown(forwardKey))
 Before we can use the virtual input system, we must first create a set of virtual buttons and axes, name them, and map them to actual hardware keys. To do this we require an @b3d::InputConfiguration object, which can be retrieved from **VirtualInput** by calling @b3d::VirtualInput::GetConfiguration.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<InputConfiguration> inputConfiguration = GetVirtualInput().GetConfiguration();
+TShared<InputConfiguration> inputConfiguration = GetVirtualInput().GetConfiguration();
 ~~~~~~~~~~~~~
 
 # Virtual buttons

@@ -18,7 +18,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Viewport")
 
-		ScriptViewport(const SPtr<Viewport>& nativeObject);
+		ScriptViewport(const TShared<Viewport>& nativeObject);
 		~ScriptViewport();
 
 		static void SetupScriptBindings();

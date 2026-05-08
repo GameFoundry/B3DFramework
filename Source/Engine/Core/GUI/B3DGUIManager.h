@@ -196,7 +196,7 @@ namespace b3d
 		 * @note
 		 * Bridged element needs to remove itself as the bridge when it is destroyed.
 		 */
-		void SetInputBridge(const SPtr<RenderTexture>& renderTex, const GUIInteractable* element);
+		void SetInputBridge(const TShared<RenderTexture>& renderTex, const GUIInteractable* element);
 
 		/**
 		 * Converts window coordinates to coordinates relative to the specified bridged render target (target displayed
@@ -204,7 +204,7 @@ namespace b3d
 		 *
 		 * @return	If provided widget has no bridge, coordinates are returned as is.
 		 */
-		GUIPhysicalPoint WindowToBridgedCoords(const SPtr<RenderTarget>& target, const GUIPhysicalPoint& windowPos) const;
+		GUIPhysicalPoint WindowToBridgedCoords(const TShared<RenderTarget>& target, const GUIPhysicalPoint& windowPos) const;
 
 		/**
 		 * Returns the render window that holds the GUI element that displays the provided render texture.
@@ -213,10 +213,10 @@ namespace b3d
 		 * @return				Window that displays the GUI element with the render texture, or null if the render texture
 		 *						is not bridged.
 		 */
-		SPtr<RenderWindow> GetBridgeWindow(const SPtr<RenderTexture>& target) const;
+		TShared<RenderWindow> GetBridgeWindow(const TShared<RenderTexture>& target) const;
 
 		/** Returns all GUI elements that have input bridging set up and belong to the provided GUI widget. */
-		void GetBridgedElements(const GUIWidget* widget, TInlineArray<std::pair<const GUIInteractable*, SPtr<const RenderTarget>>, 4>& elements);
+		void GetBridgedElements(const GUIWidget* widget, TInlineArray<std::pair<const GUIInteractable*, TShared<const RenderTarget>>, 4>& elements);
 
 		/**	Returns the parent render window of the specified widget. */
 		const RenderWindow* GetWidgetWindow(const GUIWidget& widget) const;
@@ -345,7 +345,7 @@ namespace b3d
 		static const u32 kMeshHeapInitialNumIndices;
 
 		Vector<WidgetInfo> mWidgets;
-		SPtr<render::GUIRenderer> mRenderer;
+		TShared<render::GUIRenderer> mRenderer;
 
 		Stack<GUIElement*> mScheduledForDestruction;
 
@@ -394,7 +394,7 @@ namespace b3d
 		HSpriteTexture mTextSelectionImage;
 		Color mTextSelectionColor{ 0.0f, 114 / 255.0f, 188 / 255.0f };
 
-		Map<SPtr<const RenderTexture>, const GUIInteractable*> mInputBridge;
+		Map<TShared<const RenderTexture>, const GUIInteractable*> mInputBridge;
 		UPtr<GUIVectorSpriteAtlas> mVectorSpriteAtlas;
 
 		HEvent mOnPointerMovedConn;
@@ -451,7 +451,7 @@ namespace b3d
 				u32 WidgetDepth = 0;
 				Vector<GUIBatchRenderData> Batches;
 				TArray<GUIBatchGpuParameterInfo> GpuParameterInfos;
-				TArray<SPtr<MaterialParameterAdapter>> MaterialParameterAdapters;
+				TArray<TShared<MaterialParameterAdapter>> MaterialParameterAdapters;
 				TransientGpuBufferPool UniformBufferPool;
 				TransientGpuBufferPool ClipRegionBufferPool;
 
@@ -461,15 +461,15 @@ namespace b3d
 			struct GUICameraRenderData
 			{
 				Vector<GUIWidgetRenderData> WidgetRenderData;
-				SPtr<RenderTexture> CachedRenderTexture;
+				TShared<RenderTexture> CachedRenderTexture;
 				Vector<Area2I> DirtyRegions;
 				Vector<Area2I> LastFrameDirtyDebugDrawRegions;
 			};
 
 			UnorderedMap<const Camera*, GUICameraRenderData> mPerCameraData;
 			UnorderedMap<u64, const Camera*> mWidgetToCameraMap;
-			UnorderedMap<SpriteMaterial*, TArray<SPtr<MaterialParameterAdapter>>> mMaterialParameterAdapterPool;
-			SPtr<SamplerState> mSamplerState;
+			UnorderedMap<SpriteMaterial*, TArray<TShared<MaterialParameterAdapter>>> mMaterialParameterAdapterPool;
+			TShared<SamplerState> mSamplerState;
 			float mTime = 0.0f;
 		};
 	} // namespace render

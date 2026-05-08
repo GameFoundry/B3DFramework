@@ -26,14 +26,14 @@ void GpuDevice::SubmitCommandBuffer(const GpuSubmissionInformation& information,
 	if (!B3D_ENSURE(queueIndex < queueCount))
 		return;
 
-	const SPtr<GpuQueue>& queue = GetQueue(information.CommandBuffer->GetQueueType(), queueIndex);
+	const TShared<GpuQueue>& queue = GetQueue(information.CommandBuffer->GetQueueType(), queueIndex);
 	if (!B3D_ENSURE(queue))
 		return;
 
 	queue->SubmitCommandBuffer(information, flushTransferCommandBuffer);
 }
 
-void GpuDevice::SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, u32 queueIndex)
+void GpuDevice::SubmitCommandBuffer(const TShared<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, u32 queueIndex)
 {
 	GpuSubmissionInformation information;
 	information.CommandBuffer = commandBuffer;
@@ -48,24 +48,24 @@ bool GpuDevice::IsFrameComplete(u64 index) const
 	return index + RenderThread::kMaximumFramesInFlight <= currentFrame;
 }
 
-SPtr<SamplerState> GpuDevice::FindOrCreateSamplerState(const SamplerStateCreateInformation& createInformation)
+TShared<SamplerState> GpuDevice::FindOrCreateSamplerState(const SamplerStateCreateInformation& createInformation)
 {
 	Lock lock(mSamplerStateMutex);
 
 	if (auto found = mCachedSamplerStates.find(createInformation); found != mCachedSamplerStates.end())
 	{
-		SPtr<SamplerState> existingSamplerState = found->second;
+		TShared<SamplerState> existingSamplerState = found->second;
 		if (existingSamplerState != nullptr)
 			return existingSamplerState;
 	}
 
-	SPtr<SamplerState> newSamplerState = CreateSamplerState(createInformation);
+	TShared<SamplerState> newSamplerState = CreateSamplerState(createInformation);
 	mCachedSamplerStates[createInformation] = newSamplerState;
 
 	return newSamplerState;
 }
 
-const SPtr<render::GpuCommandBuffer>& GpuDevice::GetOrCreateTransferCommandBuffer()
+const TShared<render::GpuCommandBuffer>& GpuDevice::GetOrCreateTransferCommandBuffer()
 {
 	return mTransferBufferHelper->GetOrCreateTransferCommandBuffer();
 }

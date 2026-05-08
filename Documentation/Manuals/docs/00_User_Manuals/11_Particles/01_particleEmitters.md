@@ -7,7 +7,7 @@ title: Emitter shapes
 A shape is assigned to the emitter through the @b3d::ParticleEmitter::SetShape method. All shape types derive from @b3d::ParticleEmitterShape class. All shape classes have a **Create()** method that accepts a structure with various options allowing you to further customize the properties of the spawned particles.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
+TShared<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
 
 // An emitter with the sphere shape
 ParticleSphereShapeSettings sphereShape;
@@ -29,7 +29,7 @@ ParticleSphereShapeSettings shapeSettings;
 shapeSettings.Radius = 0.5f; // Size of the sphere
 shapeSettings.Thickness = 0.1f; // Spawn particles on sphere shell (shell width being 10% of sphere radius)
 
-SPtr<ParticleEmitterSphereShape> shape = ParticleEmitterSphereShape::Create(shapeSettings);
+TShared<ParticleEmitterSphereShape> shape = ParticleEmitterSphereShape::Create(shapeSettings);
 ~~~~~~~~~~~~~
 
 # Hemisphere
@@ -42,7 +42,7 @@ ParticleHemisphereShapeSettings shapeSettings;
 shapeSettings.Radius = 0.5f; // Size of the hemisphere
 shapeSettings.Thickness = 0.1f; // Spawn particles on hemisphere shell (shell width being 10% of hemisphere radius)
 
-SPtr<ParticleEmitterHemisphereShape> shape = ParticleEmitterHemisphereShape::Create(shapeSettings);
+TShared<ParticleEmitterHemisphereShape> shape = ParticleEmitterHemisphereShape::Create(shapeSettings);
 ~~~~~~~~~~~~~
 
 # Cone
@@ -57,7 +57,7 @@ ParticleConeShapeSettings shapeSettings;
 shapeSettings.Angle = Degree(45.0f);
 shapeSettings.Length = 1.0f;
 
-SPtr<ParticleEmitterConeShape> shape = ParticleEmitterConeShape::Create(shapeSettings);
+TShared<ParticleEmitterConeShape> shape = ParticleEmitterConeShape::Create(shapeSettings);
 ~~~~~~~~~~~~~
 
 Use @b3d::ParticleConeShapeSettings::Type to control should particles be spawned on the cone volume, or only its base.
@@ -114,7 +114,7 @@ ParticleBoxShapeSettings shapeSettings;
 shapeSettings.Extents = Vector3::kOne * 0.5f; // Unit-sized box
 shapeSettings.Type = ParticleEmitterBoxType::Volume; // Spawn in the entire box volume
 
-SPtr<ParticleEmitterBoxShape> shape = ParticleEmitterBoxShape::Create(shapeSettings);
+TShared<ParticleEmitterBoxShape> shape = ParticleEmitterBoxShape::Create(shapeSettings);
 ~~~~~~~~~~~~~
 
 # Circle
@@ -134,7 +134,7 @@ shapeSettings.Radius = 1.0f;
 shapeSettings.Arc = Degree(300.0f); // "Pie" shape (circle with a part cut out)
 shapeSettings.Thickness = 0.0f; // Spawn only on circle edges
 
-SPtr<ParticleEmitterCircleShape> shape = ParticleEmitterCircleShape::Create(shapeSettings);
+TShared<ParticleEmitterCircleShape> shape = ParticleEmitterCircleShape::Create(shapeSettings);
 ~~~~~~~~~~~~~
 
 # Rectangle
@@ -148,7 +148,7 @@ Use @b3d::ParticleRectShapeSettings::Extents to control the size of the rectangl
 ParticleRectShapeSettings shapeSettings;
 shapeSettings.Extents = Vector2::kOne * 0.5f;
 
-SPtr<ParticleEmitterRectShape> shape = ParticleEmitterRectShape::Create(shapeSettings);
+TShared<ParticleEmitterRectShape> shape = ParticleEmitterRectShape::Create(shapeSettings);
 ~~~~~~~~~~~~~
 
 # Line
@@ -162,7 +162,7 @@ Use @b3d::ParticleLineShapeSettings::Length to control the length of the line. Y
 ParticleLineShapeSettings shapeSettings;
 shapeSettings.Length = 1.0f;
 
-SPtr<ParticleEmitterLineShape> shape = ParticleEmitterLineShape::Create(shapeSettings);
+TShared<ParticleEmitterLineShape> shape = ParticleEmitterLineShape::Create(shapeSettings);
 ~~~~~~~~~~~~~
 
 # Static mesh
@@ -183,7 +183,7 @@ ParticleStaticMeshShapeSettings shapeSettings;
 shapeSettings.Mesh = mesh;
 shapeSettings.Type = ParticleEmitterMeshType::Triangle;
 
-SPtr<ParticleEmitterStaticMeshShape> shape = ParticleEmitterStaticMeshShape::Create(shapeSettings);
+TShared<ParticleEmitterStaticMeshShape> shape = ParticleEmitterStaticMeshShape::Create(shapeSettings);
 ~~~~~~~~~~~~~
 
 # Skinned mesh
@@ -200,5 +200,5 @@ ParticleSkinnedMeshShapeSettings shapeSettings;
 shapeSettings.Renderable = renderable;
 shapeSettings.Type = ParticleEmitterMeshType::Triangle;
 
-SPtr<ParticleEmitterSkinnedMeshShape> shape = ParticleEmitterSkinnedMeshShape::Create(shapeSettings);
+TShared<ParticleEmitterSkinnedMeshShape> shape = ParticleEmitterSkinnedMeshShape::Create(shapeSettings);
 ~~~~~~~~~~~~~

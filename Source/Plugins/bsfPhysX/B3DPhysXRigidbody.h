@@ -50,8 +50,8 @@ namespace b3d
 		void AddForceAtPoint(const Vector3& force, const Vector3& position, PointForceMode mode = PointForceMode::Force) override;
 		Vector3 GetVelocityAtPoint(const Vector3& point) const override;
 		void UpdateMassDistribution(bool autoMassEnabled) override;
-		void AttachShape(const SPtr<ColliderShape>& shape) override;
-		void DetachShape(const SPtr<ColliderShape>& shape) override;
+		void AttachShape(const TShared<ColliderShape>& shape) override;
+		void DetachShape(const TShared<ColliderShape>& shape) override;
 		void AddToScene(PhysicsScene& scene) override;
 		void RemoveFromScene() override;
 

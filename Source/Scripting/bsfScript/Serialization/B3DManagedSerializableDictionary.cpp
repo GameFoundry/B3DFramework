@@ -11,7 +11,7 @@
 #include "B3DMonoUtil.h"
 
 using namespace b3d;
-ManagedSerializableDictionaryKeyValue::ManagedSerializableDictionaryKeyValue(const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableFieldData>& value)
+ManagedSerializableDictionaryKeyValue::ManagedSerializableDictionaryKeyValue(const TShared<ManagedSerializableFieldData>& key, const TShared<ManagedSerializableFieldData>& value)
 	: Key(key), Value(value)
 {
 }
@@ -127,7 +127,7 @@ ManagedSerializableDictionary::Enumerator::operator=(const Enumerator& other)
 	return *this;
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableDictionary::Enumerator::GetKey() const
+TShared<ManagedSerializableFieldData> ManagedSerializableDictionary::Enumerator::GetKey() const
 {
 	if(mKeysArrayHandle != 0)
 	{
@@ -158,7 +158,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDictionary::Enumerator::Ge
 	}
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableDictionary::Enumerator::GetValue() const
+TShared<ManagedSerializableFieldData> ManagedSerializableDictionary::Enumerator::GetValue() const
 {
 	if(mValuesArrayHandle != 0)
 	{
@@ -218,7 +218,7 @@ bool ManagedSerializableDictionary::Enumerator::MoveNext()
 ManagedSerializableDictionary::ManagedSerializableDictionary(const ConstructPrivately& dummy)
 {}
 
-ManagedSerializableDictionary::ManagedSerializableDictionary(const ConstructPrivately& dummy, const SPtr<ManagedTypeInfoDictionary>& typeInfo, MonoObject* managedInstance)
+ManagedSerializableDictionary::ManagedSerializableDictionary(const ConstructPrivately& dummy, const TShared<ManagedTypeInfoDictionary>& typeInfo, MonoObject* managedInstance)
 	: mDictionaryTypeInfo(typeInfo)
 {
 	mGCHandle = MonoUtil::NewGcHandle(managedInstance, false);
@@ -239,7 +239,7 @@ ManagedSerializableDictionary::~ManagedSerializableDictionary()
 	}
 }
 
-SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedTypeInfoDictionary>& typeInfo)
+TShared<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateFromExisting(MonoObject* managedInstance, const TShared<ManagedTypeInfoDictionary>& typeInfo)
 {
 	if(managedInstance == nullptr)
 		return nullptr;
@@ -256,12 +256,12 @@ SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateFromExi
 	return B3DMakeShared<ManagedSerializableDictionary>(ConstructPrivately(), typeInfo, managedInstance);
 }
 
-SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateNew(const SPtr<ManagedTypeInfoDictionary>& typeInfo)
+TShared<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateNew(const TShared<ManagedTypeInfoDictionary>& typeInfo)
 {
 	return B3DMakeShared<ManagedSerializableDictionary>(ConstructPrivately(), typeInfo, CreateManagedInstance(typeInfo));
 }
 
-MonoObject* ManagedSerializableDictionary::CreateManagedInstance(const SPtr<ManagedTypeInfoDictionary>& typeInfo)
+MonoObject* ManagedSerializableDictionary::CreateManagedInstance(const TShared<ManagedTypeInfoDictionary>& typeInfo)
 {
 	if(!typeInfo->IsTypeLoaded())
 		return nullptr;
@@ -274,7 +274,7 @@ MonoObject* ManagedSerializableDictionary::CreateManagedInstance(const SPtr<Mana
 	return dictionaryClass->CreateInstance();
 }
 
-SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateEmpty()
+TShared<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateEmpty()
 {
 	return B3DMakeShared<ManagedSerializableDictionary>(ConstructPrivately());
 }
@@ -304,7 +304,7 @@ void ManagedSerializableDictionary::Serialize()
 
 	while(enumerator.MoveNext())
 	{
-		SPtr<ManagedSerializableFieldData> key = enumerator.GetKey();
+		TShared<ManagedSerializableFieldData> key = enumerator.GetKey();
 		mCachedEntries.insert(std::make_pair(key, enumerator.GetValue()));
 	}
 
@@ -349,7 +349,7 @@ MonoObject* ManagedSerializableDictionary::Deserialize()
 	return managedInstance;
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableDictionary::GetFieldData(const SPtr<ManagedSerializableFieldData>& key)
+TShared<ManagedSerializableFieldData> ManagedSerializableDictionary::GetFieldData(const TShared<ManagedSerializableFieldData>& key)
 {
 	if(mGCHandle != 0)
 	{
@@ -378,7 +378,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDictionary::GetFieldData(c
 	}
 }
 
-void ManagedSerializableDictionary::SetFieldData(const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableFieldData>& val)
+void ManagedSerializableDictionary::SetFieldData(const TShared<ManagedSerializableFieldData>& key, const TShared<ManagedSerializableFieldData>& val)
 {
 	if(mGCHandle != 0)
 	{
@@ -391,7 +391,7 @@ void ManagedSerializableDictionary::SetFieldData(const SPtr<ManagedSerializableF
 	}
 }
 
-void ManagedSerializableDictionary::SetFieldData(MonoObject* obj, const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableFieldData>& val)
+void ManagedSerializableDictionary::SetFieldData(MonoObject* obj, const TShared<ManagedSerializableFieldData>& key, const TShared<ManagedSerializableFieldData>& val)
 {
 	void* params[2];
 	params[0] = key->GetValue(mDictionaryTypeInfo->KeyType);
@@ -400,7 +400,7 @@ void ManagedSerializableDictionary::SetFieldData(MonoObject* obj, const SPtr<Man
 	mAddMethod->Invoke(obj, params);
 }
 
-void ManagedSerializableDictionary::RemoveFieldData(const SPtr<ManagedSerializableFieldData>& key)
+void ManagedSerializableDictionary::RemoveFieldData(const TShared<ManagedSerializableFieldData>& key)
 {
 	if(mGCHandle != 0)
 	{
@@ -418,7 +418,7 @@ void ManagedSerializableDictionary::RemoveFieldData(const SPtr<ManagedSerializab
 	}
 }
 
-bool ManagedSerializableDictionary::Contains(const SPtr<ManagedSerializableFieldData>& key) const
+bool ManagedSerializableDictionary::Contains(const TShared<ManagedSerializableFieldData>& key) const
 {
 	if(mGCHandle != 0)
 	{

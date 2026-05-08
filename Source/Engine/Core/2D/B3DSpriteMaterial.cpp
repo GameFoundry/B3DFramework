@@ -45,7 +45,7 @@ void SpriteMaterial::Initialize()
 
 	auto fnPrepareVariation = [this](u32 variationIndex)
 	{
-		const SPtr<render::Variation> variation = mMaterial->GetVariation(variationIndex);
+		const TShared<render::Variation> variation = mMaterial->GetVariation(variationIndex);
 		B3D_ASSERT(variation != nullptr);
 
 		if(!variation->IsCompiled())
@@ -54,7 +54,7 @@ void SpriteMaterial::Initialize()
 			operation.BlockUntilComplete();
 		}
 
-		const SPtr<render::Pass>& pass = mMaterial->GetPass(0, variationIndex);
+		const TShared<render::Pass>& pass = mMaterial->GetPass(0, variationIndex);
 
 		if(pass)
 			pass->Compile();
@@ -63,7 +63,7 @@ void SpriteMaterial::Initialize()
 	fnPrepareVariation(mWithClippingVariationIndex);
 	fnPrepareVariation(mWithoutClippingVariationIndex);
 
-	SPtr<render::Shader> shader = mMaterial->GetShader();
+	TShared<render::Shader> shader = mMaterial->GetShader();
 	if(shader->HasTextureParameter("gMainTexture"))
 	{
 		mTextureParameter = mMaterial->GetParamTexture("gMainTexture");
@@ -71,7 +71,7 @@ void SpriteMaterial::Initialize()
 	}
 }
 
-void SpriteMaterial::Destroy(const SPtr<render::Material>& material)
+void SpriteMaterial::Destroy(const TShared<render::Material>& material)
 {
 	// Do nothing, we just need to make sure the material pointer's last reference is lost while on the render thread
 }
@@ -91,14 +91,14 @@ u64 SpriteMaterial::GetMergeHash(const SpriteMaterialInfo& info) const
 	return (u64)hash;
 }
 
-SPtr<render::MaterialParameterAdapter> SpriteMaterial::CreateParameterAdapter(bool supportClipping)
+TShared<render::MaterialParameterAdapter> SpriteMaterial::CreateParameterAdapter(bool supportClipping)
 {
 	return mMaterial->CreateParameterAdapter(supportClipping ? mWithClippingVariationIndex : mWithoutClippingVariationIndex);
 }
 
-void SpriteMaterial::Prepare(const SPtr<render::MaterialParameterAdapter>& parameterAdapter, const SPtr<render::MeshBase>& mesh, const SPtr<render::Texture>& texture, const SPtr<SamplerState>& sampler, const render::GpuBufferSuballocation& uniformBuffer, const SPtr<render::GpuBuffer>& clipRegionBuffer) const
+void SpriteMaterial::Prepare(const TShared<render::MaterialParameterAdapter>& parameterAdapter, const TShared<render::MeshBase>& mesh, const TShared<render::Texture>& texture, const TShared<SamplerState>& sampler, const render::GpuBufferSuballocation& uniformBuffer, const TShared<render::GpuBuffer>& clipRegionBuffer) const
 {
-	SPtr<render::Texture> spriteTexture;
+	TShared<render::Texture> spriteTexture;
 	if(texture != nullptr)
 		spriteTexture = texture;
 	else
@@ -107,14 +107,14 @@ void SpriteMaterial::Prepare(const SPtr<render::MaterialParameterAdapter>& param
 	mTextureParameter.Set(spriteTexture);
 	mSamplerParameter.Set(sampler);
 
-	const SPtr<render::VertexData>& vertexData = mesh->GetVertexData();
-	const SPtr<render::GpuBuffer>& vertexBuffer = vertexData->GetBuffer(0);
+	const TShared<render::VertexData>& vertexData = mesh->GetVertexData();
+	const TShared<render::GpuBuffer>& vertexBuffer = vertexData->GetBuffer(0);
 
 	parameterAdapter->Update(mMaterial);
 
 	parameterAdapter->SetUniformBuffer("GUIParams", uniformBuffer);
 
-	const SPtr<render::GpuParameterSet>& gpuParameters = parameterAdapter->GetGpuParameterSet();
+	const TShared<render::GpuParameterSet>& gpuParameters = parameterAdapter->GetGpuParameterSet();
 	gpuParameters->SetStorageBuffer("gVertices", vertexBuffer);
 
 	if(clipRegionBuffer != nullptr)
@@ -122,7 +122,7 @@ void SpriteMaterial::Prepare(const SPtr<render::MaterialParameterAdapter>& param
 }
 
 
-void SpriteMaterial::Render(render::GpuCommandBuffer& commandBuffer, const SPtr<render::GpuParameterSet>& parameters, const SPtr<render::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<render::GpuBuffer>& clipRegionBuffer, u32 clipRegionCount, const SPtr<SpriteMaterialExtraInfo>& additionalData) const
+void SpriteMaterial::Render(render::GpuCommandBuffer& commandBuffer, const TShared<render::GpuParameterSet>& parameters, const TShared<render::MeshBase>& mesh, const SubMesh& subMesh, const TShared<render::GpuBuffer>& clipRegionBuffer, u32 clipRegionCount, const TShared<SpriteMaterialExtraInfo>& additionalData) const
 {
 	if(clipRegionBuffer != nullptr)
 	{

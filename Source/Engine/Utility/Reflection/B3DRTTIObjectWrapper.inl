@@ -175,7 +175,7 @@ namespace b3d::RTTIObjectWrapper
 		return SubObject<true>(mObject, mCurrentRTTIType, mFrameAllocator);
 	}
 
-	inline Field<false>::Field(u32 fieldId, const SPtr<ISerialized>& value, FrameAllocator* frameAllocator)
+	inline Field<false>::Field(u32 fieldId, const TShared<ISerialized>& value, FrameAllocator* frameAllocator)
 		: mId(fieldId), mValue(value), mFrameAllocator(frameAllocator)
 	{
 		B3D_ASSERT(frameAllocator != nullptr);
@@ -191,7 +191,7 @@ namespace b3d::RTTIObjectWrapper
 		return ValueIterator<false>(mValue, mFrameAllocator);
 	}
 
-	inline SPtr<ISerialized> Field<false>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const
+	inline TShared<ISerialized> Field<false>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const
 	{
 		return mValue != nullptr ? mValue->Clone() : nullptr;
 	}
@@ -217,7 +217,7 @@ namespace b3d::RTTIObjectWrapper
 		case RTTIFieldType::Iterable:
 		{
 			auto* const field = static_cast<RTTIIteratorField*>(mField);
-			const SPtr<IRTTIIterator> iterator = field->GetIterator(mRTTITypeInstance, mObject, *mFrameAllocator);
+			const TShared<IRTTIIterator> iterator = field->GetIterator(mRTTITypeInstance, mObject, *mFrameAllocator);
 
 			return ValueIterator<true>(mField, mRTTITypeInstance, mObject, iterator, mFrameAllocator);
 		}
@@ -228,7 +228,7 @@ namespace b3d::RTTIObjectWrapper
 		}
 	}
 
-	inline SPtr<ISerialized> Field<true>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const
+	inline TShared<ISerialized> Field<true>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const
 	{
 		IntermediateSerializer intermediateSerializer(mFrameAllocator, context);
 
@@ -248,7 +248,7 @@ namespace b3d::RTTIObjectWrapper
 		}
 	}
 
-	inline ValueIterator<false>::ValueIterator(const SPtr<ISerialized>& value, FrameAllocator* frameAllocator)
+	inline ValueIterator<false>::ValueIterator(const TShared<ISerialized>& value, FrameAllocator* frameAllocator)
 		:mFrameAllocator(frameAllocator)
 	{
 		B3D_ASSERT(frameAllocator != nullptr);
@@ -301,7 +301,7 @@ namespace b3d::RTTIObjectWrapper
 
 	inline Value<false> ValueIterator<false>::GetValue() const
 	{
-		SPtr<ISerialized> value;
+		TShared<ISerialized> value;
 		if(mArrayContainerValue != nullptr)
 			value = mArrayContainerValue->Entries[mArrayIndex];
 		else if(mMapContainerValue != nullptr)
@@ -356,7 +356,7 @@ namespace b3d::RTTIObjectWrapper
 		return {};
 	}
 
-	inline ValueIterator<true>::ValueIterator(RTTIField* field, RTTIType* rttiTypeInstance, IReflectable* object, const SPtr<IRTTIIterator>& iterator, FrameAllocator* frameAllocator)
+	inline ValueIterator<true>::ValueIterator(RTTIField* field, RTTIType* rttiTypeInstance, IReflectable* object, const TShared<IRTTIIterator>& iterator, FrameAllocator* frameAllocator)
 		: mIterator(iterator), mObject(object), mRTTITypeInstance(rttiTypeInstance), mField(field), mFrameAllocator(frameAllocator)
 	{
 		B3D_ASSERT(field != nullptr);
@@ -438,7 +438,7 @@ namespace b3d::RTTIObjectWrapper
 			const auto& field = *static_cast<RTTIIteratorField*>(mField);
 			if(field.IteratorSupportsSeekToKey())
 			{
-				SPtr<IRTTIIterator> iteratorCopy = mIterator->Clone(*mFrameAllocator);
+				TShared<IRTTIIterator> iteratorCopy = mIterator->Clone(*mFrameAllocator);
 
 				const void* fieldValue = field.GetIteratorValue(mRTTITypeInstance, mObject, *mFrameAllocator, *mIterator);
 
@@ -449,7 +449,7 @@ namespace b3d::RTTIObjectWrapper
 			}
 			else if(field.IteratorSupportsSeekToIndex())
 			{
-				SPtr<IRTTIIterator> iteratorCopy = mIterator->Clone(*mFrameAllocator);
+				TShared<IRTTIIterator> iteratorCopy = mIterator->Clone(*mFrameAllocator);
 				if(!iteratorCopy->SeekToIndex(otherIterator.mElementIndex))
 					return {};
 				
@@ -478,7 +478,7 @@ namespace b3d::RTTIObjectWrapper
 		return {};
 	}
 
-	inline Value<false>::Value(u32 tupleElementIndex, const SPtr<ISerialized>& value, FrameAllocator* frameAllocator)
+	inline Value<false>::Value(u32 tupleElementIndex, const TShared<ISerialized>& value, FrameAllocator* frameAllocator)
 		: mTupleElementIndex(tupleElementIndex), mValue(value), mFrameAllocator(frameAllocator)
 	{
 		B3D_ASSERT(frameAllocator != nullptr);
@@ -497,7 +497,7 @@ namespace b3d::RTTIObjectWrapper
 		if(!B3D_ENSURE(mTupleElementIndex == ~0u))
 			return Value<false>(tupleElementIndex, nullptr, mFrameAllocator);
 
-		SPtr<ISerialized> value;
+		TShared<ISerialized> value;
 		if(auto tuple = B3DRTTICast<SerializedTuple>(mValue))
 		{
 			if(B3D_ENSURE(tuple->Values.Size() > tupleElementIndex))
@@ -524,7 +524,7 @@ namespace b3d::RTTIObjectWrapper
 		return Object<false>(static_cast<SerializedObject*>(mValue.get()), mFrameAllocator);
 	}
 
-	inline SPtr<DataStream> Value<false>::GetDataStream(u32& size, u32& offset) const
+	inline TShared<DataStream> Value<false>::GetDataStream(u32& size, u32& offset) const
 	{
 		auto* field = static_cast<SerializedDataBlock*>(mValue.get());
 		size = field->Size;
@@ -576,7 +576,7 @@ namespace b3d::RTTIObjectWrapper
 		return isModified;
 	}
 
-	inline SPtr<ISerialized> Value<false>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const
+	inline TShared<ISerialized> Value<false>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const
 	{
 		if(mValue != nullptr)
 			return mValue->Clone();
@@ -584,7 +584,7 @@ namespace b3d::RTTIObjectWrapper
 		return nullptr;
 	}
 
-	inline Value<true>::Value(RTTIField* field, u32 tupleElementIndex, const SPtr<IRTTIIterator>& iterator, RTTIType* rttiTypeInstance, IReflectable* object, FrameAllocator* frameAllocator)
+	inline Value<true>::Value(RTTIField* field, u32 tupleElementIndex, const TShared<IRTTIIterator>& iterator, RTTIType* rttiTypeInstance, IReflectable* object, FrameAllocator* frameAllocator)
 		: mField(field), mTupleElementIndex(tupleElementIndex), mIterator(iterator), mRTTITypeInstance(rttiTypeInstance), mObject(object), mFrameAllocator(frameAllocator)
 	{
 		B3D_ASSERT(field != nullptr);
@@ -639,7 +639,7 @@ namespace b3d::RTTIObjectWrapper
 
 		if(fieldTypeSchema.Type == RTTIFieldDataType::ReflectablePointer)
 		{
-			SPtr<IReflectable> object = field->GetReflectablePointer(fieldValue, mTupleElementIndex);
+			TShared<IReflectable> object = field->GetReflectablePointer(fieldValue, mTupleElementIndex);
 
 			const u32 typeId = fieldTypeSchema.FieldTypeId;
 			return Object<true>(object.get(), IReflectable::GetRTTITypeFromTypeId(typeId), mFrameAllocator);
@@ -656,11 +656,11 @@ namespace b3d::RTTIObjectWrapper
 		return Object<true>(nullptr, nullptr, mFrameAllocator);
 	}
 
-	inline SPtr<DataStream> Value<true>::GetDataStream(u32& size, u32& offset) const
+	inline TShared<DataStream> Value<true>::GetDataStream(u32& size, u32& offset) const
 	{
 		auto* field = static_cast<RTTIDataBlockFieldBase*>(mField);
 
-		SPtr<DataStream> stream = field->GetValue(mRTTITypeInstance, mObject, size);
+		TShared<DataStream> stream = field->GetValue(mRTTITypeInstance, mObject, size);
 		offset = (u32)stream->Tell();
 
 		return stream;
@@ -736,7 +736,7 @@ namespace b3d::RTTIObjectWrapper
 		return isModified;
 	}
 
-	inline SPtr<ISerialized> Value<true>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const
+	inline TShared<ISerialized> Value<true>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext& context) const
 	{
 		auto* field = static_cast<RTTIIteratorField*>(mField);
 

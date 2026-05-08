@@ -72,7 +72,7 @@ namespace b3d
 			return TID_RTTIFieldDataTypeSchema;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<RTTIFieldDataTypeSchema>();
 		}
@@ -102,7 +102,7 @@ namespace b3d
 			return TID_RTTIFieldSchema;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<RTTIFieldSchema>();
 		}
@@ -129,7 +129,7 @@ namespace b3d
 			return TID_RTTISchema;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<RTTISchema>();
 		}

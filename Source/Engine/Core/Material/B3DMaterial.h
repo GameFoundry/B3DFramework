@@ -88,7 +88,7 @@ namespace b3d
 				memcpy(Data.get(), _data, Size);
 			}
 
-			SPtr<void> Data;
+			TShared<void> Data;
 			u32 Size;
 		};
 
@@ -118,7 +118,7 @@ namespace b3d
 	public:
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 		using SpriteImageType = CoreVariantHandleType<SpriteImage, IsRenderProxy>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using BufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 		using PassType = CoreVariantType<Pass, IsRenderProxy>;
 		using VariationType = CoreVariantType<Variation, IsRenderProxy>;
 		using ShaderType = CoreVariantHandleType<Shader, IsRenderProxy>;
@@ -145,7 +145,7 @@ namespace b3d
 		u32 GetVariationCount() const { return (u32)mVariations.size(); }
 
 		/** Returns the variation at the specified index. */
-		const SPtr<VariationType>& GetVariation(u32 index) const { return mVariations[index]; }
+		const TShared<VariationType>& GetVariation(u32 index) const { return mVariations[index]; }
 
 		/**
 		 * Attempts to find a variation matching the specified variation and tags among the supported variations.
@@ -176,7 +176,7 @@ namespace b3d
 		 * @param	variationIndex		Index of the variation to retrieve the pass for. 0 is always guaranteed to be the default variation.
 		 * @return						Pass if found, null otherwise.
 		 */
-		SPtr<PassType> GetPass(u32 passIndex = 0, u32 variationIndex = 0) const;
+		TShared<PassType> GetPass(u32 passIndex = 0, u32 variationIndex = 0) const;
 
 		/**
 		 * Creates an adapter that can be used for transferring parameters from the material to GpuParameterSet objects.
@@ -184,7 +184,7 @@ namespace b3d
 		 * GpuParameterSet objects. Adapter is only valid for a particular material variation, you will need to create a
 		 * different adapter for each variation.
 		 */
-		SPtr<MaterialParameterAdapterType> CreateParameterAdapter(u32 variationIndex = 0);
+		TShared<MaterialParameterAdapterType> CreateParameterAdapter(u32 variationIndex = 0);
 
 		/**
 		 * Assigns a float value to the shader parameter with the specified name.
@@ -306,7 +306,7 @@ namespace b3d
 		void SetBuffer(const String& name, const BufferType& value) { return GetParamBuffer(name).Set(value); }
 
 		/** Assigns a sampler state to the shader parameter with the specified name. */
-		void SetSamplerState(const String& name, const SPtr<SamplerState>& value) { return GetParamSamplerState(name).Set(value); }
+		void SetSamplerState(const String& name, const TShared<SamplerState>& value) { return GetParamSamplerState(name).Set(value); }
 
 		/**
 		 * Returns a float value assigned with the parameter with the specified name. If a curve is assigned to this
@@ -412,7 +412,7 @@ namespace b3d
 		SpriteImageType GetSpriteImage(const String& name) const { return GetParamSpriteImage(name).Get(); }
 
 		/** Returns a sampler state assigned with the parameter with the specified name. */
-		SPtr<SamplerState> GetSamplerState(const String& name) const { return GetParamSamplerState(name).Get(); }
+		TShared<SamplerState> GetSamplerState(const String& name) const { return GetParamSamplerState(name).Get(); }
 
 		/**
 		 * Returns a buffer representing a structure assigned to the parameter with the specified name.
@@ -680,7 +680,7 @@ namespace b3d
 		 * Returns an object containg all of material's parameters. Allows the caller to manipulate the parameters more
 		 * directly.
 		 */
-		SPtr<MaterialParametersType> GetMaterialParameters() const { return mParameters; }
+		TShared<MaterialParametersType> GetMaterialParameters() const { return mParameters; }
 
 		/** @} */
 	protected:
@@ -706,8 +706,8 @@ namespace b3d
 		void ReportIfNotInitialized() const;
 
 		ShaderType mShader;
-		SPtr<MaterialParametersType> mParameters;
-		Vector<SPtr<VariationType>> mVariations;
+		TShared<MaterialParametersType> mParameters;
+		Vector<TShared<VariationType>> mVariations;
 		ShaderVariationParameters mVariationParameters;
 	};
 
@@ -779,7 +779,7 @@ namespace b3d
 		Material();
 		Material(const HShader& shader, const ShaderVariationParameters& variation);
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
@@ -795,10 +795,10 @@ namespace b3d
 		 * Uses the provided list of parameters to try to set every parameter in this material. Parameter whose name, type
 		 * or size don't match are ignored and will not be set.
 		 */
-		void SetParams(const SPtr<MaterialParameters>& params);
+		void SetParams(const TShared<MaterialParameters>& params);
 
 		/**	Creates a new empty material but doesn't initialize it. */
-		static SPtr<Material> CreateEmpty();
+		static TShared<Material> CreateEmpty();
 
 		u32 mLoadFlags;
 
@@ -829,7 +829,7 @@ namespace b3d
 			void Initialize() override;
 
 			/** @copydoc b3d::Material::SetShader */
-			void SetShader(const SPtr<Shader>& shader);
+			void SetShader(const TShared<Shader>& shader);
 
 			/**
 			 * Set of parameters that determine which subset of variations in the assigned shader should be used. Only the
@@ -840,14 +840,14 @@ namespace b3d
 			void SetVariation(const ShaderVariationParameters& variation);
 
 			/** Creates a new material with the specified shader. */
-			static SPtr<Material> Create(const SPtr<Shader>& shader);
+			static TShared<Material> Create(const TShared<Shader>& shader);
 
 		private:
 			friend class b3d::Material;
 
 			Material() = default;
-			Material(const SPtr<Shader>& shader, const ShaderVariationParameters& variation);
-			Material(const SPtr<Shader>& shader, const Vector<SPtr<Variation>>& variations, const SPtr<MaterialParameters>& materialParameters, const ShaderVariationParameters& variation);
+			Material(const TShared<Shader>& shader, const ShaderVariationParameters& variation);
+			Material(const TShared<Shader>& shader, const Vector<TShared<Variation>>& variations, const TShared<MaterialParameters>& materialParameters, const ShaderVariationParameters& variation);
 
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 		};

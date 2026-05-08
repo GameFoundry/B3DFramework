@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		bool IsExtensionSupported(const String& ext) const override;
 		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const override;
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
+		TShared<Resource> Import(const Path& filePath, TShared<const ImportOptions> importOptions) override;
 	};
 
 	/** @} */

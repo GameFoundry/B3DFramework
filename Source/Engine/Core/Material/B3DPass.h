@@ -60,13 +60,13 @@ namespace b3d
 		 * Returns the graphics pipeline state describing this pass, or null if its a compute pass.
 		 * Only valid after Compile() has been called.
 		 */
-		const SPtr<GpuGraphicsPipelineState>& GetGraphicsPipelineState() const { return mGraphicsPipelineState; }
+		const TShared<GpuGraphicsPipelineState>& GetGraphicsPipelineState() const { return mGraphicsPipelineState; }
 
 		/**
 		 * Returns the compute pipeline state describing this pass, or null if its a graphics pass.
 		 * Only valid after compile has been called.
 		 */
-		const SPtr<GpuComputePipelineState>& GetComputePipelineState() const { return mComputePipelineState; }
+		const TShared<GpuComputePipelineState>& GetComputePipelineState() const { return mComputePipelineState; }
 	protected:
 		TPass();
 		TPass(const PassCreateInformation& createInformation);
@@ -75,8 +75,8 @@ namespace b3d
 		void CreatePipelineState();
 
 		PassCreateInformation mData;
-		SPtr<GpuGraphicsPipelineState> mGraphicsPipelineState;
-		SPtr<GpuComputePipelineState> mComputePipelineState;
+		TShared<GpuGraphicsPipelineState> mGraphicsPipelineState;
+		TShared<GpuComputePipelineState> mComputePipelineState;
 	};
 
 	/** @} */
@@ -105,7 +105,7 @@ namespace b3d
 		void Compile();
 
 		/**	Creates a new empty pass. */
-		static SPtr<Pass> Create(const PassCreateInformation& desc);
+		static TShared<Pass> Create(const PassCreateInformation& desc);
 
 	protected:
 		friend class Variation;
@@ -116,10 +116,10 @@ namespace b3d
 		Pass(const PassCreateInformation& createInformation);
 
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 
 		/**	Creates a new empty pass but doesn't initialize it. */
-		static SPtr<Pass> CreateEmpty();
+		static TShared<Pass> CreateEmpty();
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -151,10 +151,10 @@ namespace b3d
 			virtual ~Pass() = default;
 
 			/**	Creates a new pass. */
-			static SPtr<Pass> Create(const PassCreateInformation& createInformation);
+			static TShared<Pass> Create(const PassCreateInformation& createInformation);
 
 			/**	Creates a new empty pass. */
-			static SPtr<Pass> CreateEmpty();
+			static TShared<Pass> CreateEmpty();
 
 			/** @copydoc b3d::Pass::Compile */
 			void Compile();

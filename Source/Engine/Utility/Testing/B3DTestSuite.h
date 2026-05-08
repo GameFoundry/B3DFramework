@@ -131,11 +131,11 @@ namespace b3d
 		void Run(TestOutput& output);
 
 		/** Adds a new child suite to this suite. This method allows you to group suites and execute them all at once. */
-		void Add(const SPtr<TestSuite>& suite);
+		void Add(const TShared<TestSuite>& suite);
 
 		/**	Creates a new suite of a particular type. */
 		template <class T>
-		static SPtr<TestSuite> Create()
+		static TShared<TestSuite> Create()
 		{
 			static_assert((std::is_base_of<TestSuite, T>::value), "Invalid test suite type. It needs to derive from b3d::TestSuite.");
 
@@ -186,7 +186,7 @@ namespace b3d
 	private:
 		String mSuiteName;
 		Vector<TestEntry> mTests;
-		Vector<SPtr<TestSuite>> mSuites;
+		Vector<TShared<TestSuite>> mSuites;
 
 		// Transient
 		TestOutput* mOutput = nullptr;

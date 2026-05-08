@@ -1136,7 +1136,7 @@ void UtilityTestSuite::TestUnique()
 
 	// Empty pointer state
 	{
-		TUnique<UniqueLifetimeProbe> empty;
+		TUnique2<UniqueLifetimeProbe> empty;
 		B3D_TEST_ASSERT(empty.Get() == nullptr)
 		B3D_TEST_ASSERT(!empty)
 		B3D_TEST_ASSERT(empty == nullptr)
@@ -1144,7 +1144,7 @@ void UtilityTestSuite::TestUnique()
 
 	// Adopt raw pointer + auto-destroy on scope exit
 	{
-		TUnique<UniqueLifetimeProbe> owned(B3DNew<UniqueLifetimeProbe>(7));
+		TUnique2<UniqueLifetimeProbe> owned(B3DNew<UniqueLifetimeProbe>(7));
 		B3D_TEST_ASSERT(owned.Get() != nullptr)
 		B3D_TEST_ASSERT(static_cast<bool>(owned))
 		B3D_TEST_ASSERT(owned->Value == 7)
@@ -1155,7 +1155,7 @@ void UtilityTestSuite::TestUnique()
 
 	// Factory
 	{
-		TUnique<UniqueLifetimeProbe> made = B3DMakeUnique2<UniqueLifetimeProbe>(13);
+		TUnique2<UniqueLifetimeProbe> made = B3DMakeUnique2<UniqueLifetimeProbe>(13);
 		B3D_TEST_ASSERT(made->Value == 13)
 		B3D_TEST_ASSERT(UniqueLifetimeProbe::sLiveCount == 1)
 	}
@@ -1163,9 +1163,9 @@ void UtilityTestSuite::TestUnique()
 
 	// Move construct
 	{
-		TUnique<UniqueLifetimeProbe> source = B3DMakeUnique2<UniqueLifetimeProbe>(1);
+		TUnique2<UniqueLifetimeProbe> source = B3DMakeUnique2<UniqueLifetimeProbe>(1);
 		UniqueLifetimeProbe* expectedPointer = source.Get();
-		TUnique<UniqueLifetimeProbe> moved(std::move(source));
+		TUnique2<UniqueLifetimeProbe> moved(std::move(source));
 		B3D_TEST_ASSERT(moved.Get() == expectedPointer)
 		B3D_TEST_ASSERT(source.Get() == nullptr)
 		B3D_TEST_ASSERT(UniqueLifetimeProbe::sLiveCount == 1)
@@ -1174,8 +1174,8 @@ void UtilityTestSuite::TestUnique()
 
 	// Move-assign over a non-empty target releases the old object
 	{
-		TUnique<UniqueLifetimeProbe> first = B3DMakeUnique2<UniqueLifetimeProbe>(1);
-		TUnique<UniqueLifetimeProbe> second = B3DMakeUnique2<UniqueLifetimeProbe>(2);
+		TUnique2<UniqueLifetimeProbe> first = B3DMakeUnique2<UniqueLifetimeProbe>(1);
+		TUnique2<UniqueLifetimeProbe> second = B3DMakeUnique2<UniqueLifetimeProbe>(2);
 		B3D_TEST_ASSERT(UniqueLifetimeProbe::sLiveCount == 2)
 
 		first = std::move(second);
@@ -1184,11 +1184,11 @@ void UtilityTestSuite::TestUnique()
 	}
 	B3D_TEST_ASSERT(UniqueLifetimeProbe::sLiveCount == 0)
 
-	// Move from a derived TUnique into a base TUnique
+	// Move from a derived TUnique2 into a base TUnique2
 	{
-		TUnique<UniqueDerivedProbe> derived = B3DMakeUnique2<UniqueDerivedProbe>(42);
+		TUnique2<UniqueDerivedProbe> derived = B3DMakeUnique2<UniqueDerivedProbe>(42);
 		UniqueLifetimeProbe* expectedPointer = derived.Get();
-		TUnique<UniqueLifetimeProbe> base = std::move(derived);
+		TUnique2<UniqueLifetimeProbe> base = std::move(derived);
 		B3D_TEST_ASSERT(base.Get() == expectedPointer)
 		B3D_TEST_ASSERT(derived.Get() == nullptr)
 		B3D_TEST_ASSERT(base->Value == 42)
@@ -1197,7 +1197,7 @@ void UtilityTestSuite::TestUnique()
 
 	// Reset / Release
 	{
-		TUnique<UniqueLifetimeProbe> owned = B3DMakeUnique2<UniqueLifetimeProbe>(99);
+		TUnique2<UniqueLifetimeProbe> owned = B3DMakeUnique2<UniqueLifetimeProbe>(99);
 		UniqueLifetimeProbe* released = owned.Release();
 		B3D_TEST_ASSERT(owned.Get() == nullptr)
 		B3D_TEST_ASSERT(released != nullptr)
@@ -1221,8 +1221,8 @@ void UtilityTestSuite::TestUnique()
 
 	// Swap
 	{
-		TUnique<UniqueLifetimeProbe> a = B3DMakeUnique2<UniqueLifetimeProbe>(1);
-		TUnique<UniqueLifetimeProbe> b = B3DMakeUnique2<UniqueLifetimeProbe>(2);
+		TUnique2<UniqueLifetimeProbe> a = B3DMakeUnique2<UniqueLifetimeProbe>(1);
+		TUnique2<UniqueLifetimeProbe> b = B3DMakeUnique2<UniqueLifetimeProbe>(2);
 		UniqueLifetimeProbe* aPtr = a.Get();
 		UniqueLifetimeProbe* bPtr = b.Get();
 		a.Swap(b);
@@ -1237,7 +1237,7 @@ void UtilityTestSuite::TestUnique()
 	{
 		i32 destructionCount = 0;
 		{
-			TUnique<UniqueLifetimeProbe, DefaultAllocatorTag, CountingDeleter> withDeleter(
+			TUnique2<UniqueLifetimeProbe, DefaultAllocatorTag, CountingDeleter> withDeleter(
 				B3DNew<UniqueLifetimeProbe>(5), CountingDeleter{ &destructionCount });
 			B3D_TEST_ASSERT(UniqueLifetimeProbe::sLiveCount == 1)
 		}
@@ -1246,11 +1246,11 @@ void UtilityTestSuite::TestUnique()
 	}
 
 	// Layout: empty deleter case is exactly pointer-sized
-	static_assert(sizeof(TUnique<int>) == sizeof(int*), "TUnique with stateless deleter must be pointer-sized via EBO");
+	static_assert(sizeof(TUnique2<int>) == sizeof(int*), "TUnique2 with stateless deleter must be pointer-sized via EBO");
 
 	// nullptr assignment / comparisons
 	{
-		TUnique<UniqueLifetimeProbe> owned = B3DMakeUnique2<UniqueLifetimeProbe>(1);
+		TUnique2<UniqueLifetimeProbe> owned = B3DMakeUnique2<UniqueLifetimeProbe>(1);
 		B3D_TEST_ASSERT(owned != nullptr)
 		B3D_TEST_ASSERT(nullptr != owned)
 		owned = nullptr;
@@ -1261,21 +1261,21 @@ void UtilityTestSuite::TestUnique()
 
 	// Hash specialization
 	{
-		TUnique<UniqueLifetimeProbe> owned = B3DMakeUnique2<UniqueLifetimeProbe>(1);
-		std::hash<TUnique<UniqueLifetimeProbe>> hasher;
+		TUnique2<UniqueLifetimeProbe> owned = B3DMakeUnique2<UniqueLifetimeProbe>(1);
+		std::hash<TUnique2<UniqueLifetimeProbe>> hasher;
 		std::size_t hashValue = hasher(owned);
 		std::size_t pointerHash = std::hash<UniqueLifetimeProbe*>{}(owned.Get());
 		B3D_TEST_ASSERT(hashValue == pointerHash)
 	}
 	B3D_TEST_ASSERT(UniqueLifetimeProbe::sLiveCount == 0)
 
-	// Move-construct TShared from TUnique adopts ownership and runs the unique deleter on shared release
+	// Move-construct TShared2 from TUnique2 adopts ownership and runs the unique deleter on shared release
 	{
 		i32 destructionCount = 0;
 		{
-			TUnique<UniqueLifetimeProbe, DefaultAllocatorTag, CountingDeleter> source(
+			TUnique2<UniqueLifetimeProbe, DefaultAllocatorTag, CountingDeleter> source(
 				B3DNew<UniqueLifetimeProbe>(11), CountingDeleter{ &destructionCount });
-			TShared<UniqueLifetimeProbe> shared(std::move(source));
+			TShared2<UniqueLifetimeProbe> shared(std::move(source));
 			B3D_TEST_ASSERT(source.Get() == nullptr)
 			B3D_TEST_ASSERT(shared.Get() != nullptr)
 			B3D_TEST_ASSERT(shared->Value == 11)
@@ -1288,9 +1288,9 @@ void UtilityTestSuite::TestUnique()
 
 	// MoveToShared() member helper
 	{
-		TUnique<UniqueLifetimeProbe> owned = B3DMakeUnique2<UniqueLifetimeProbe>(17);
+		TUnique2<UniqueLifetimeProbe> owned = B3DMakeUnique2<UniqueLifetimeProbe>(17);
 		UniqueLifetimeProbe* expectedPointer = owned.Get();
-		TShared<UniqueLifetimeProbe> shared = std::move(owned).MoveToShared();
+		TShared2<UniqueLifetimeProbe> shared = std::move(owned).MoveToShared();
 		B3D_TEST_ASSERT(owned.Get() == nullptr)
 		B3D_TEST_ASSERT(shared.Get() == expectedPointer)
 		B3D_TEST_ASSERT(shared->Value == 17)

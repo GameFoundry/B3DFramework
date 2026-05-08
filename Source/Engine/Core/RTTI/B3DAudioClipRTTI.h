@@ -31,9 +31,9 @@ namespace b3d
 			B3D_RTTI_MEMBER(mLength, 10)
 		B3D_RTTI_END_MEMBERS
 
-		SPtr<DataStream> GetData(AudioClip* obj, u32& size)
+		TShared<DataStream> GetData(AudioClip* obj, u32& size)
 		{
-			SPtr<DataStream> stream = obj->GetSourceStream(size);
+			TShared<DataStream> stream = obj->GetSourceStream(size);
 			if(stream != nullptr && stream->IsFile())
 			{
 				B3D_LOG(Warning, LogRTTI, "Saving an AudioClip which uses streaming data. Streaming data might not be "
@@ -43,7 +43,7 @@ namespace b3d
 			return stream;
 		}
 
-		void SetData(AudioClip* obj, const SPtr<DataStream>& val, u32 size)
+		void SetData(AudioClip* obj, const TShared<DataStream>& val, u32 size)
 		{
 			obj->mStreamData = val->Clone(); // Making sure that the AudioClip cannot modify the source stream, which is still used by the deserializer
 			obj->mStreamSize = size;
@@ -73,7 +73,7 @@ namespace b3d
 			return TID_AudioClip;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return AudioClip::CreateEmpty();
 		}

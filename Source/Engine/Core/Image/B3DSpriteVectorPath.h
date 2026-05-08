@@ -34,7 +34,7 @@ namespace b3d
 		struct SyncPacket;
 
 		/** Creates a new sprite vector path allocation. */
-		static SPtr<SpriteVectorPathAllocation> Create(const WeakSPtr<SpriteImageType>& owner, const GUIVectorSpriteAtlasAllocation& vectorSpriteAtlasAllocation);
+		static TShared<SpriteVectorPathAllocation> Create(const WeakSPtr<SpriteImageType>& owner, const GUIVectorSpriteAtlasAllocation& vectorSpriteAtlasAllocation);
 
 	protected:
 		friend class render::SpriteVectorPathAllocation;
@@ -43,12 +43,12 @@ namespace b3d
 			:SpriteImageAllocation(owner, vectorSpriteAtlasAllocation.AtlasTexture, vectorSpriteAtlasAllocation.UVRange), mVectorSpriteAtlasAllocationHandle(vectorSpriteAtlasAllocation.AllocationHandle)
 		{ }
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 	private:
 		/** Allocation handle in the vector path atlas. */
-		SPtr<GUIVectorSpriteAtlasAllocationHandle> mVectorSpriteAtlasAllocationHandle;
+		TShared<GUIVectorSpriteAtlasAllocationHandle> mVectorSpriteAtlasAllocationHandle;
 	};
 
 	/** @} */
@@ -83,8 +83,8 @@ namespace b3d
 	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteVectorPath : public CoreVariantType<SpriteImage, false>
 	{
 	public:
-		SPtr<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) override;
-		SPtr<SpriteImageAllocation> FindOrAllocateScaledImage(float scale) override;
+		TShared<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) override;
+		TShared<SpriteImageAllocation> FindOrAllocateScaledImage(float scale) override;
 
 		/**	Creates a new sprite vector path. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SpriteVectorPath))
@@ -95,10 +95,10 @@ namespace b3d
 		static HSpriteVectorPath Create(const SpriteVectorPathCreateInformation& createInformation);
 
 		/** Creates a new SpriteVectorPath without a resource handle. Use Create() for normal use. */
-		static SPtr<SpriteVectorPath> CreateShared(const HVectorPath& vectorPath, const Size2I& defaultSize);
+		static TShared<SpriteVectorPath> CreateShared(const HVectorPath& vectorPath, const Size2I& defaultSize);
 
 		/** Creates a new SpriteVectorPath without a resource handle. Use Create() for normal use. */
-		static SPtr<SpriteVectorPath> CreateShared(const SpriteVectorPathCreateInformation& createInformation);
+		static TShared<SpriteVectorPath> CreateShared(const SpriteVectorPathCreateInformation& createInformation);
 
 	private:
 		friend class SpriteVectorPathRTTI;
@@ -108,10 +108,10 @@ namespace b3d
 		SpriteVectorPath(const SpriteVectorPathCreateInformation& createInformation);
 
 		/** Allocates a sprite image using the provided size. */
-		SPtr<SpriteVectorPathAllocation> AllocateImage(const Size2I& size);
+		TShared<SpriteVectorPathAllocation> AllocateImage(const Size2I& size);
 
 		void Initialize() override;
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		HVectorPath mVectorPath;
@@ -123,7 +123,7 @@ namespace b3d
 		/************************************************************************/
 
 		/**	Creates a new empty and uninitialized sprite vector path. */
-		static SPtr<SpriteVectorPath> CreateEmpty();
+		static TShared<SpriteVectorPath> CreateEmpty();
 
 	public:
 		friend class SpriteVectorPathRTTI;
@@ -148,11 +148,11 @@ namespace b3d
 		private:
 			friend class b3d::SpriteVectorPathAllocation;
 
-			SpriteVectorPathAllocation(const WeakSPtr<SpriteImageType>& owner, const TextureType& atlasTexture, const Area2& uvRange, const SPtr<GUIVectorSpriteAtlasAllocationHandle>& vectorSpriteAtlasAllocationHandle);
+			SpriteVectorPathAllocation(const WeakSPtr<SpriteImageType>& owner, const TextureType& atlasTexture, const Area2& uvRange, const TShared<GUIVectorSpriteAtlasAllocationHandle>& vectorSpriteAtlasAllocationHandle);
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 
 			/** Allocation handle in the vector path atlas. */
-			SPtr<GUIVectorSpriteAtlasAllocationHandle> mVectorSpriteAtlasAllocationHandle;
+			TShared<GUIVectorSpriteAtlasAllocationHandle> mVectorSpriteAtlasAllocationHandle;
 		};
 
 		/**
@@ -165,7 +165,7 @@ namespace b3d
 		private:
 			friend class b3d::SpriteVectorPath;
 
-			SpriteVectorPath(const SpriteVectorPathCreateInformation& createInformation, const SPtr<SpriteImageAllocation>& defaultAllocatedImage);
+			SpriteVectorPath(const SpriteVectorPathCreateInformation& createInformation, const TShared<SpriteImageAllocation>& defaultAllocatedImage);
 
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 		};

@@ -28,7 +28,7 @@ void SceneManager::OnStartUp()
 	SetMainScene(nullptr); // Forces creation of an empty main scene
 }
 
-void SceneManager::SetMainScene(const SPtr<SceneInstance>& scene)
+void SceneManager::SetMainScene(const TShared<SceneInstance>& scene)
 {
 	if(scene == nullptr)
 	{
@@ -39,16 +39,16 @@ void SceneManager::SetMainScene(const SPtr<SceneInstance>& scene)
 		mMainScene = scene;
 }
 
-void SceneManager::SetMainCameraRenderTarget(const SPtr<RenderTarget>& renderTarget)
+void SceneManager::SetMainCameraRenderTarget(const TShared<RenderTarget>& renderTarget)
 {
 	for(auto& entry : mSceneInstances)
 	{
-		const SPtr<SceneInstance>& scene = entry.second.lock();
+		const TShared<SceneInstance>& scene = entry.second.lock();
 		scene->SetMainCameraRenderTarget(renderTarget);
 	}
 }
 
-void SceneManager::NotifySceneInstanceCreated(const SPtr<SceneInstance>& sceneInstance)
+void SceneManager::NotifySceneInstanceCreated(const TShared<SceneInstance>& sceneInstance)
 {
 	if(!B3D_ENSURE(sceneInstance != nullptr))
 		return;

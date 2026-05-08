@@ -20,7 +20,7 @@ BoxCollider::BoxCollider()
 
 void BoxCollider::OnCreated()
 {
-	SPtr<ColliderShape> colliderShape = ColliderShape::CreateBox(mExtents);
+	TShared<ColliderShape> colliderShape = ColliderShape::CreateBox(mExtents);
 	colliderShape->SetPosition(mShapeLocalPosition);
 
 	mShapes = { colliderShape };

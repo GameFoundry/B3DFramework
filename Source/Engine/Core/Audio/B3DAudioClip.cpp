@@ -7,7 +7,7 @@
 
 using namespace b3d;
 
-AudioClip::AudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
+AudioClip::AudioClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
 	: Resource(false), mInformation(createInformation), mSampleCount(sampleCount), mStreamSize(streamSize), mStreamData(samples)
 {
 	if(samples != nullptr)
@@ -23,25 +23,25 @@ void AudioClip::Initialize()
 	Resource::Initialize();
 }
 
-HAudioClip AudioClip::Create(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
+HAudioClip AudioClip::Create(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
 {
 	return B3DStaticResourceCast<AudioClip>(GetResources().CreateResourceHandle(CreateShared(samples, streamSize, sampleCount, createInformation)));
 }
 
-SPtr<AudioClip> AudioClip::CreateShared(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
+TShared<AudioClip> AudioClip::CreateShared(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
 {
-	SPtr<AudioClip> newClip = GetAudio().CreateClip(samples, streamSize, sampleCount, createInformation);
+	TShared<AudioClip> newClip = GetAudio().CreateClip(samples, streamSize, sampleCount, createInformation);
 	newClip->SetShared(newClip);
 	newClip->Initialize();
 
 	return newClip;
 }
 
-SPtr<AudioClip> AudioClip::CreateEmpty()
+TShared<AudioClip> AudioClip::CreateEmpty()
 {
 	AudioClipCreateInformation createInformation;
 
-	SPtr<AudioClip> newClip = GetAudio().CreateClip(nullptr, 0, 0, createInformation);
+	TShared<AudioClip> newClip = GetAudio().CreateClip(nullptr, 0, 0, createInformation);
 	newClip->SetShared(newClip);
 
 	return newClip;

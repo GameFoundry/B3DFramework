@@ -32,7 +32,7 @@ namespace b3d
 			return TID_AudioListener;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<AudioListener>();
 		}

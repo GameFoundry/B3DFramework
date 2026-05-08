@@ -622,7 +622,7 @@ static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionDat
 template<bool IsRenderProxy>
 static String CrossCompile(const String& hlsl, GpuProgramType type, HLSLCrossCompileOutput outputType, bool optionalEntry, u32& startBindingSlot, ShaderCompilerResult& outCompileResult, CoreVariantType<ShaderCreateInformation, IsRenderProxy>* outShaderCreateInformation = nullptr, TInlineArray<GpuProgramType, 2>* detectedTypes = nullptr)
 {
-	SPtr<StringStream> input = B3DMakeShared<StringStream>();
+	TShared<StringStream> input = B3DMakeShared<StringStream>();
 
 	bool isVKSL = outputType == HLSLCrossCompileOutput::VKSL45 || outputType == HLSLCrossCompileOutput::MVKSL;
 	switch(outputType)

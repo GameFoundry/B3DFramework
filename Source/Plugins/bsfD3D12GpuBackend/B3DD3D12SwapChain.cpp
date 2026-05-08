@@ -109,7 +109,7 @@ void D3D12SwapChain::CreateSwapChain()
 	}
 
 	// Get the graphics queue for presenting
-	SPtr<GpuQueue> queue = mDevice.GetQueue(GQT_GRAPHICS, 0);
+	TShared<GpuQueue> queue = mDevice.GetQueue(GQT_GRAPHICS, 0);
 	if (!queue)
 	{
 		B3D_LOG(Error, LogRenderBackend, "Failed to get graphics queue for swap chain creation");

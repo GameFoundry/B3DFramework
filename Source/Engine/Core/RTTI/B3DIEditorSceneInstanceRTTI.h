@@ -30,7 +30,7 @@ namespace b3d
 			return TID_IEditorSceneInstance;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return nullptr;
 		}

@@ -18,6 +18,6 @@ namespace b3d
 		static void TestAssetRootPrefabLinkValid(TestSuite& testSuite, UnitTestSceneType& prefabWrapper, const UUID& prefabId);
 
 		/** Checks if prefab instance matches the object and resource IDs in the internal prefab hierarchy. */
-		static void TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(TestSuite& testSuite, UnitTestSceneB& instanceScene, const SPtr<UnitTestSceneB>& parentPrefabScene, const UUID& parentPrefabId, const UnorderedMap<UUID, SPtr<UnitTestSceneB>>& prefabSceneLookup);
+		static void TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(TestSuite& testSuite, UnitTestSceneB& instanceScene, const TShared<UnitTestSceneB>& parentPrefabScene, const UUID& parentPrefabId, const UnorderedMap<UUID, TShared<UnitTestSceneB>>& prefabSceneLookup);
 	};
 } // namespace b3d

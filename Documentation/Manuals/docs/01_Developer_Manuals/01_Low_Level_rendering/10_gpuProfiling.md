@@ -11,10 +11,10 @@ Therefore GPU profiling is instead handled by @b3d::GpuProfiler, globally access
 GPU profiling is done on a per-command-buffer basis. Before you can record samples, you need to enable profiling on a @b3d::render::GpuCommandBuffer by calling @b3d::render::GpuCommandBuffer::BeginProfiling. This returns a @b3d::GpuCommandBufferProfiler that you can use to record samples. When you're done recording commands, call @b3d::render::GpuCommandBuffer::EndProfiling.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuCommandBuffer> commandBuffer = commandBufferPool->FindOrCreate(GpuCommandBufferCreateInformation::Create("MyCommandBuffer"));
+TShared<GpuCommandBuffer> commandBuffer = commandBufferPool->FindOrCreate(GpuCommandBufferCreateInformation::Create("MyCommandBuffer"));
 
 // Enable profiling on the command buffer
-SPtr<GpuCommandBufferProfiler> commandBufferProfiler = commandBuffer->BeginProfiling("MyProfilingScope");
+TShared<GpuCommandBufferProfiler> commandBufferProfiler = commandBuffer->BeginProfiling("MyProfilingScope");
 
 // ... record commands and samples ...
 
@@ -27,10 +27,10 @@ commandBuffer->EndProfiling();
 Once profiling is enabled, you issue sampling calls using @b3d::GpuCommandBufferProfiler::BeginSample and @b3d::GpuCommandBufferProfiler::EndSample. Any GPU commands executed between these two calls will be measured.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuCommandBuffer> commandBuffer = commandBufferPool->FindOrCreate(GpuCommandBufferCreateInformation::Create("MyCommandBuffer"));
+TShared<GpuCommandBuffer> commandBuffer = commandBufferPool->FindOrCreate(GpuCommandBufferCreateInformation::Create("MyCommandBuffer"));
 
 // Enable profiling
-SPtr<GpuCommandBufferProfiler> commandBufferProfiler = commandBuffer->BeginProfiling("MyProfilingScope");
+TShared<GpuCommandBufferProfiler> commandBufferProfiler = commandBuffer->BeginProfiling("MyProfilingScope");
 
 // ... bind pipeline states, buffers, etc.
 

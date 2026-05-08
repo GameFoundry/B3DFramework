@@ -26,14 +26,14 @@ namespace b3d
 			friend class VulkanGpuParameterSetPool;
 
 		public:
-			VulkanGpuParameterSet(VulkanGpuDevice& gpuDevice, const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 set, VulkanGpuParameterSetPool& pool);
+			VulkanGpuParameterSet(VulkanGpuDevice& gpuDevice, const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 set, VulkanGpuParameterSetPool& pool);
 			~VulkanGpuParameterSet() override;
 
-			bool SetUniformBuffer(u32 slot, const SPtr<GpuBuffer>& uniformBuffer, u32 arrayIndex = 0, u32 offset = 0) override;
-			bool SetSampledTexture(u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) override;
-			bool SetStorageTexture(u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override;
-			bool SetStorageBuffer(u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) override;
-			bool SetSamplerState(u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex = 0) override;
+			bool SetUniformBuffer(u32 slot, const TShared<GpuBuffer>& uniformBuffer, u32 arrayIndex = 0, u32 offset = 0) override;
+			bool SetSampledTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) override;
+			bool SetStorageTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override;
+			bool SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) override;
+			bool SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex = 0) override;
 
 			/**
 			 * Prepares the internal descriptor sets for a bind operation on the provided command buffer. It generates and/or

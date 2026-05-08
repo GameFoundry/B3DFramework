@@ -106,7 +106,7 @@ void Debug::WriteAsBmp(u8* rawPixels, u32 bytesPerPixel, u32 width, u32 height, 
 		}
 	}
 
-	SPtr<DataStream> ds = FileSystem::CreateAndOpenFile(filePath);
+	TShared<DataStream> ds = FileSystem::CreateAndOpenFile(filePath);
 
 	u32 bmpDataSize = BitmapWriter::GetBmpSize(width, height, bytesPerPixel);
 	u8* bmpBuffer = B3DNewMultiple<u8>(bmpDataSize);
@@ -367,7 +367,7 @@ table td
 
 	stream << htmlFooter;
 
-	SPtr<DataStream> fileStream = FileSystem::CreateAndOpenFile(path);
+	TShared<DataStream> fileStream = FileSystem::CreateAndOpenFile(path);
 	fileStream->WriteString(stream.str());
 }
 
@@ -476,7 +476,7 @@ void Debug::SaveTextLog(const Path& path) const
 		stream << builtMsg << "\n";
 	}
 
-	SPtr<DataStream> fileStream = FileSystem::CreateAndOpenFile(path);
+	TShared<DataStream> fileStream = FileSystem::CreateAndOpenFile(path);
 	fileStream->WriteString(stream.str());
 }
 

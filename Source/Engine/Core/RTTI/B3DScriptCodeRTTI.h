@@ -34,7 +34,7 @@ namespace b3d
 			return TID_ScriptCode;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return ScriptCode::CreatePtrInternal(L""); // Initial string doesn't matter, it'll get overwritten
 		}

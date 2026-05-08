@@ -19,7 +19,7 @@ namespace b3d::render
 		UniformBufferPools::AllocationHandle PerObjectBufferAllocationHandle;
 
 		/** Shared parameter set for per-object data binding. */
-		SPtr<GpuParameterSet> PerObjectParameterSet;
+		TShared<GpuParameterSet> PerObjectParameterSet;
 
 		/** Suballocation for per-object uniform buffer data. */
 		GpuBufferSuballocation PerObjectSuballocation;

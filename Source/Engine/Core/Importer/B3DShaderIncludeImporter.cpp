@@ -20,15 +20,15 @@ bool ShaderIncludeImporter::IsMagicNumberSupported(const u8* magicNumber, u32 ma
 	return true; // Plain-text so I don't even check for magic number
 }
 
-SPtr<Resource> ShaderIncludeImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+TShared<Resource> ShaderIncludeImporter::Import(const Path& filePath, TShared<const ImportOptions> importOptions)
 {
 	String includeString;
 	{
-		SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
+		TShared<DataStream> stream = FileSystem::OpenFile(filePath);
 		includeString = stream->GetAsString();
 	}
 
-	SPtr<ShaderInclude> gpuInclude = ShaderInclude::CreatePtrInternal(includeString);
+	TShared<ShaderInclude> gpuInclude = ShaderInclude::CreatePtrInternal(includeString);
 
 	const String fileName = filePath.GetFilename(false);
 	gpuInclude->SetName(fileName);

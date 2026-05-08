@@ -26,7 +26,7 @@ namespace b3d
 		static UnitTestSceneA CreateInNewSceneInstance(const char* name);
 
 		/** Instantiates the provided prefab as a new scene instance and looks up the Test Scene A hierarchy in the instantiated objects. Releases instantiated scene instance when object goes out of scope. */
-		static UnitTestSceneA InstantateFromPrefab(const SPtr<Prefab>& prefab);
+		static UnitTestSceneA InstantateFromPrefab(const TShared<Prefab>& prefab);
 
 		/** Populates the scene objects and components by looking them up in the provided hierarchy. Does not take ownership of the scene instance. */
 		static UnitTestSceneA FromExistingHierarchy(const HSceneObject& root);
@@ -79,7 +79,7 @@ namespace b3d
 			predicate(Component_0_1_0, other.Component_0_1_0);
 		}
 
-		SPtr<SceneInstance> Scene;
+		TShared<SceneInstance> Scene;
 
 		HSceneObject SceneObject_0;
 		HSceneObject SceneObject_0_0;
@@ -95,7 +95,7 @@ namespace b3d
 
 	private:
 		/** Populates the provided scene instance with the scene. */
-		UnitTestSceneA(const SPtr<SceneInstance>& sceneInstance);
+		UnitTestSceneA(const TShared<SceneInstance>& sceneInstance);
 
 		/** Populates the scene objects and components by looking them up in the provided hierarchy. */
 		UnitTestSceneA(const HSceneObject& root, bool ownsSceneInstance);
@@ -158,7 +158,7 @@ namespace b3d
 		static UnitTestSceneB FromExistingHierarchy(const HSceneObject& root);
 
 		/** Populates the scene objects and components by looking them up in the provided hierarchy. Does not take ownership of the scene instance. */
-		static SPtr<UnitTestSceneB> FromExistingHierarchyAsShared(const HSceneObject& root);
+		static TShared<UnitTestSceneB> FromExistingHierarchyAsShared(const HSceneObject& root);
 
 		/** Creates the Test Scene B hierarchy as child of the provided object. Does not take ownership of the scene instance. */
 		static UnitTestSceneB CreateAsChild(const HSceneObject& parent);
@@ -246,9 +246,9 @@ namespace b3d
 		void TestAssertHierarchyMatchesOriginalIds(TestSuite& testSuite);
 
 		// TODO - Do
-		void TestAssertHierarchyMatchesPrefabLinks(TestSuite& testSuite, const UnorderedMap<UUID, SPtr<UnitTestSceneB>>& prefabSceneLookup, u32 nestingLevel = 0, const UUID& parentPrefabId = UUID::kEmpty, const SPtr<UnitTestSceneB>& parentPrefabScene = nullptr);
+		void TestAssertHierarchyMatchesPrefabLinks(TestSuite& testSuite, const UnorderedMap<UUID, TShared<UnitTestSceneB>>& prefabSceneLookup, u32 nestingLevel = 0, const UUID& parentPrefabId = UUID::kEmpty, const TShared<UnitTestSceneB>& parentPrefabScene = nullptr);
 
-		SPtr<SceneInstance> Scene;
+		TShared<SceneInstance> Scene;
 		HSceneObject Root;
 
 		HSceneObject SceneObject_0;
@@ -261,8 +261,8 @@ namespace b3d
 		UUID SceneObject_1_0_Id;
 		UUID Component_1_0_Id;
 
-		SPtr<UnitTestSceneB> OptionalPrefabInstance_0_0;
-		SPtr<UnitTestSceneB> OptionalPrefabInstance_1_1;
+		TShared<UnitTestSceneB> OptionalPrefabInstance_0_0;
+		TShared<UnitTestSceneB> OptionalPrefabInstance_1_1;
 
 		UnorderedMap<UUID, UnitTestGameObjectInformation> ObjectInformation;
 

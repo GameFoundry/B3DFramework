@@ -114,7 +114,7 @@ GUIStyleSheetLexer::GUIStyleSheetLexer()
 	mPropertyKeywords["icon"] = GUIStyleSheetTokenTypes::Icon;
 }
 
-bool GUIStyleSheetLexer::StartScanning(const SPtr<SourceCode>& sourceCode)
+bool GUIStyleSheetLexer::StartScanning(const TShared<SourceCode>& sourceCode)
 {
 	if(!sourceCode || !sourceCode->IsValid())
 		return false;

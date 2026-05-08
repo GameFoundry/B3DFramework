@@ -77,7 +77,7 @@ Some file formats can contain multiple resources. For example, an FBX file might
 
 ~~~~~~~~~~~~~{.cpp}
 // Import all resources from an FBX file
-SPtr<MultiResource> multiResource = GetImporter().ImportAll("character.fbx");
+TShared<MultiResource> multiResource = GetImporter().ImportAll("character.fbx");
 
 // Access individual resources
 for (const SubResource& subResource : multiResource->Entries)

@@ -33,12 +33,12 @@ bool FMODImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) c
 	return true;
 }
 
-SPtr<ImportOptions> FMODImporter::CreateImportOptions() const
+TShared<ImportOptions> FMODImporter::CreateImportOptions() const
 {
 	return B3DMakeShared<AudioClipImportOptions>();
 }
 
-SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+TShared<Resource> FMODImporter::Import(const Path& filePath, TShared<const ImportOptions> importOptions)
 {
 	AudioDataInfo info;
 
@@ -108,7 +108,7 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 	sound->unlock((void**)&startData, (void**)&endData, startSize, endSize);
 	sound->release();
 
-	SPtr<const AudioClipImportOptions> clipIO = std::static_pointer_cast<const AudioClipImportOptions>(importOptions);
+	TShared<const AudioClipImportOptions> clipIO = std::static_pointer_cast<const AudioClipImportOptions>(importOptions);
 
 	// If 3D, convert to mono
 	if(clipIO->Is3D && info.ChannelCount > 1)
@@ -146,7 +146,7 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 	}
 
 	// Encode to Ogg Vorbis if needed
-	SPtr<MemoryDataStream> sampleStream;
+	TShared<MemoryDataStream> sampleStream;
 	if(clipIO->Format == AudioFormat::VORBIS)
 	{
 		// Note: If the original source was in Ogg Vorbis we could just copy it here, but instead we decode to PCM and
@@ -169,7 +169,7 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 	clipDesc.ReadMode = clipIO->ReadMode;
 	clipDesc.Is3D = clipIO->Is3D;
 
-	SPtr<AudioClip> clip = AudioClip::CreatePtrInternal(sampleStream, bufferSize, info.NumSamples, clipDesc);
+	TShared<AudioClip> clip = AudioClip::CreatePtrInternal(sampleStream, bufferSize, info.NumSamples, clipDesc);
 
 	const String fileName = filePath.GetFilename(false);
 	clip->SetName(fileName);

@@ -8,7 +8,7 @@ Indirect lighting needs to be enabled through **RenderSettings::EnableIndirectLi
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable indirect lighting
 renderSettings->EnableIndirectLighting = true;

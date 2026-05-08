@@ -35,7 +35,7 @@ namespace b3d
 		 * @return				Information about the bone at the specified index.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(Skeleton), ExportName(GetBoneInfo))
-		static SkeletonBoneInfoEx GetBoneInfo(const SPtr<Skeleton>& thisPtr, int boneIdx);
+		static SkeletonBoneInfoEx GetBoneInfo(const TShared<Skeleton>& thisPtr, int boneIdx);
 	};
 
 	/** @endcond */

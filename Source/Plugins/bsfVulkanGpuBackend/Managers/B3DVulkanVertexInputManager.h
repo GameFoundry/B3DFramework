@@ -67,7 +67,7 @@ namespace b3d
 			{
 				TArrayView<VkVertexInputAttributeDescription> Attributes;
 				TArrayView<VkVertexInputBindingDescription> Bindings;
-				SPtr<VulkanVertexInput> VertexInput;
+				TShared<VulkanVertexInput> VertexInput;
 				u32 LastUsedIdx;
 
 				GroupAllocator Allocator;
@@ -84,11 +84,11 @@ namespace b3d
 			 * @param[in]	shaderInputDescription		Describes the vertex element inputs expected by a vertex shader.
 			 * @return									Vertex input state description, usable by Vulkan.
 			 */
-			SPtr<VulkanVertexInput> GetVertexInfo(const SPtr<VertexDescription>& vertexBufferDescription, const SPtr<VertexDescription>& shaderInputDescription);
+			TShared<VulkanVertexInput> GetVertexInfo(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription);
 
 		private:
 			/**	Creates a vertex input using the specified parameters and stores it in the input layout map. */
-			void AddNew(const SPtr<VertexDescription>& vertexBufferDescription, const SPtr<VertexDescription>& shaderInputDescription);
+			void AddNew(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription);
 
 			/**	Removes the least used vertex input. */
 			void RemoveLeastUsed();

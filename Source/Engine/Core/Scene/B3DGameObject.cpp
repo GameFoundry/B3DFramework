@@ -7,27 +7,27 @@
 
 using namespace b3d;
 
-void GameObject::InitializeInstanceData(const SPtr<GameObject>& object)
+void GameObject::InitializeInstanceData(const TShared<GameObject>& object)
 {
 	mInstanceData = B3DMakeShared<GameObjectInstanceData>();
 	mInstanceData->Object = object;
 }
 
-void GameObject::SetInstanceData(const SPtr<GameObjectInstanceData>& other)
+void GameObject::SetInstanceData(const TShared<GameObjectInstanceData>& other)
 {
-	SPtr<GameObject> object = mInstanceData->Object;
+	TShared<GameObject> object = mInstanceData->Object;
 
 	mInstanceData = other;
 	mInstanceData->Object = nullptr; // Note: Important to clear this before assign below, because GameObject destructor will clear mInstanceData->Object, which will trigger if this is the last object instance
 	mInstanceData->Object = object;
 }
 
-void GameObject::SetOwnerCollection(const SPtr<GameObjectCollection>& collection)
+void GameObject::SetOwnerCollection(const TShared<GameObjectCollection>& collection)
 {
 	if(!B3D_ENSURE(collection != nullptr))
 		return;
 
-	SPtr<GameObjectCollection> currentCollection = mOwnerCollection.lock();
+	TShared<GameObjectCollection> currentCollection = mOwnerCollection.lock();
 	if(currentCollection == collection)
 		return;
 
@@ -45,7 +45,7 @@ void GameObject::DestroyImmediate()
 
 	ClearAssociatedScriptObjectWrapper();
 
-	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
+	const TShared<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
 	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
 		ownerCollection->UnregisterObject(mThisHandle, HasGameObjectFlag(GameObjectTransientFlag::Initialized));
 
@@ -56,7 +56,7 @@ void GameObject::DestroyImmediate()
 
 void GameObject::QueueForDestroy()
 {
-	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
+	const TShared<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
 	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
 		ownerCollection->QueueForDestroy(mThisHandle);
 

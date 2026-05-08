@@ -21,22 +21,22 @@ bool SLImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) con
 	return true; // Plain-text so I don't even check for magic number
 }
 
-SPtr<Resource> SLImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+TShared<Resource> SLImporter::Import(const Path& filePath, TShared<const ImportOptions> importOptions)
 {
 	String source;
 	{
 		Lock fileLock = FileScheduler::GetLock(filePath);
 
-		SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
+		TShared<DataStream> stream = FileSystem::OpenFile(filePath);
 		source = stream->GetAsString();
 	}
 
-	SPtr<const ShaderImportOptions> io = std::static_pointer_cast<const ShaderImportOptions>(importOptions);
+	TShared<const ShaderImportOptions> io = std::static_pointer_cast<const ShaderImportOptions>(importOptions);
 	const String shaderName = filePath.GetFilename(false);
 
-	const SPtr<IShaderCompiler> bslCompiler = ShaderCompilers::Instance().GetCompiler(kShaderExtensionWithoutLeadingDot);
+	const TShared<IShaderCompiler> bslCompiler = ShaderCompilers::Instance().GetCompiler(kShaderExtensionWithoutLeadingDot);
 
-	SPtr<Shader> shader;
+	TShared<Shader> shader;
 	ShaderCompilerResult result = bslCompiler->Compile(shaderName, source, io->GetDefines(), io->Languages, true, shader);
 
 	if(shader != nullptr)
@@ -56,7 +56,7 @@ SPtr<Resource> SLImporter::Import(const Path& filePath, SPtr<const ImportOptions
 	return shader;
 }
 
-SPtr<ImportOptions> SLImporter::CreateImportOptions() const
+TShared<ImportOptions> SLImporter::CreateImportOptions() const
 {
 	return B3DMakeShared<ShaderImportOptions>();
 }

@@ -35,7 +35,7 @@ namespace b3d
 		TResourceHandle<Resource> tmp__output;
 		Path tmpinputFilePath;
 		tmpinputFilePath = MonoUtil::MonoToString(inputFilePath);
-		SPtr<ImportOptions> tmpimportOptions;
+		TShared<ImportOptions> tmpimportOptions;
 		ScriptImportOptionsWrapperBase* scriptObjectWrapperimportOptions;
 		scriptObjectWrapperimportOptions = (ScriptImportOptionsWrapperBase*)ScriptImportOptions::GetScriptObjectWrapper(importOptions);
 		if(scriptObjectWrapperimportOptions != nullptr)
@@ -56,7 +56,7 @@ namespace b3d
 		TAsyncOp<TResourceHandle<Resource>> tmp__output;
 		Path tmpinputFilePath;
 		tmpinputFilePath = MonoUtil::MonoToString(inputFilePath);
-		SPtr<ImportOptions> tmpimportOptions;
+		TShared<ImportOptions> tmpimportOptions;
 		ScriptImportOptionsWrapperBase* scriptObjectWrapperimportOptions;
 		scriptObjectWrapperimportOptions = (ScriptImportOptionsWrapperBase*)ScriptImportOptions::GetScriptObjectWrapper(importOptions);
 		if(scriptObjectWrapperimportOptions != nullptr)
@@ -84,10 +84,10 @@ namespace b3d
 
 	MonoObject* ScriptImporter::InternalImportAll(MonoString* inputFilePath, MonoObject* importOptions)
 	{
-		SPtr<MultiResource> tmp__output;
+		TShared<MultiResource> tmp__output;
 		Path tmpinputFilePath;
 		tmpinputFilePath = MonoUtil::MonoToString(inputFilePath);
-		SPtr<ImportOptions> tmpimportOptions;
+		TShared<ImportOptions> tmpimportOptions;
 		ScriptImportOptionsWrapperBase* scriptObjectWrapperimportOptions;
 		scriptObjectWrapperimportOptions = (ScriptImportOptionsWrapperBase*)ScriptImportOptions::GetScriptObjectWrapper(importOptions);
 		if(scriptObjectWrapperimportOptions != nullptr)
@@ -102,10 +102,10 @@ namespace b3d
 
 	MonoObject* ScriptImporter::InternalImportAllAsync(MonoString* inputFilePath, MonoObject* importOptions)
 	{
-		TAsyncOp<SPtr<MultiResource>> tmp__output;
+		TAsyncOp<TShared<MultiResource>> tmp__output;
 		Path tmpinputFilePath;
 		tmpinputFilePath = MonoUtil::MonoToString(inputFilePath);
-		SPtr<ImportOptions> tmpimportOptions;
+		TShared<ImportOptions> tmpimportOptions;
 		ScriptImportOptionsWrapperBase* scriptObjectWrapperimportOptions;
 		scriptObjectWrapperimportOptions = (ScriptImportOptionsWrapperBase*)ScriptImportOptions::GetScriptObjectWrapper(importOptions);
 		if(scriptObjectWrapperimportOptions != nullptr)
@@ -115,7 +115,7 @@ namespace b3d
 		MonoObject* __output;
 		auto fnConvertCallback = [](const Any& returnValue)
 		{
-			SPtr<MultiResource> nativeObject = AnyCast<SPtr<MultiResource>>(returnValue);
+			TShared<MultiResource> nativeObject = AnyCast<TShared<MultiResource>>(returnValue);
 			MonoObject* scriptObject;
 			scriptObject = ScriptMultiResource::GetOrCreateScriptObject(nativeObject);
 			return scriptObject;

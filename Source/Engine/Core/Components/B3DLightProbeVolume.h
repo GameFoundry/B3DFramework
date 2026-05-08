@@ -193,7 +193,7 @@ namespace b3d
 		 */
 		void UpdateCoefficients();
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		UnorderedMap<u32, ProbeInfo> mProbes;
@@ -201,7 +201,7 @@ namespace b3d
 		Vector3I mCellCount = { 1, 1, 1 };
 
 		u32 mNextProbeId = 0;
-		SPtr<render::RendererTask> mRendererTask;
+		TShared<render::RendererTask> mRendererTask;
 
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/
@@ -277,12 +277,12 @@ namespace b3d
 			void GetProbeCoefficients(Vector<LightProbeCoefficientInfo>& output) const;
 
 			/** Returns the texture containing SH coefficients for all probes in the volume. */
-			SPtr<Texture> GetCoefficientsTexture() const { return mCoefficients; }
+			TShared<Texture> GetCoefficientsTexture() const { return mCoefficients; }
 
 		protected:
 			friend class b3d::LightProbeVolume;
 
-			LightProbeVolume(const SPtr<SceneInstance>& scene, const UnorderedMap<u32, b3d::LightProbeVolume::ProbeInfo>& probes);
+			LightProbeVolume(const TShared<SceneInstance>& scene, const UnorderedMap<u32, b3d::LightProbeVolume::ProbeInfo>& probes);
 
 			void Initialize() override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
@@ -311,7 +311,7 @@ namespace b3d
 			Vector<LightProbeInfo> mProbeInfos;
 
 			// Contains SH coefficients for the probes
-			SPtr<Texture> mCoefficients;
+			TShared<Texture> mCoefficients;
 			u32 mCoeffBufferSize = 0;
 
 			// Temporary until initialization
@@ -319,7 +319,7 @@ namespace b3d
 
 			Transform mTransform;
 			bool mActive = true;
-			SPtr<SceneInstance> mSceneInstance;
+			TShared<SceneInstance> mSceneInstance;
 		};
 	} // namespace render
 

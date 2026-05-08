@@ -33,7 +33,7 @@ namespace b3d
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<PlainText> CreatePtrInternal(const WString& data);
+		static TShared<PlainText> CreatePtrInternal(const WString& data);
 
 		/** @} */
 	private:

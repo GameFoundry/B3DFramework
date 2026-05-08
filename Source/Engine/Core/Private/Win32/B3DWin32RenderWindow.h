@@ -21,7 +21,7 @@ namespace b3d
 	{
 		using Super = RenderWindow;
 	public:
-		Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
+		Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow);
 
 		void Initialize() override;
 		void Destroy() override;
@@ -44,7 +44,7 @@ namespace b3d
 	protected:
 		friend class render::Win32RenderWindow;
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 
 		void DoOnWindowMovedOrResized() override;
 		void DoOnDPIScaleChanged() override;
@@ -62,7 +62,7 @@ namespace b3d
 		{
 			using Super = RenderWindow;
 		public:
-			Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 hWnd, const SPtr<RenderWindow>& parentWindow);
+			Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 hWnd, const TShared<RenderWindow>& parentWindow);
 
 		protected:
 			friend class b3d::Win32RenderWindow;

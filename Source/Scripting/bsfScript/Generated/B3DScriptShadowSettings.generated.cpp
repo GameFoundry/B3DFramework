@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptShadowSettings::ScriptShadowSettings(const SPtr<ShadowSettings>& nativeObject)
+	ScriptShadowSettings::ScriptShadowSettings(const TShared<ShadowSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -44,7 +44,7 @@ namespace b3d
 	}
 	void ScriptShadowSettings::InternalShadowSettings(MonoObject* scriptObject)
 	{
-		SPtr<ShadowSettings> nativeObject = B3DMakeShared<ShadowSettings>();
+		TShared<ShadowSettings> nativeObject = B3DMakeShared<ShadowSettings>();
 		ScriptObjectWrapper::Create<ScriptShadowSettings>(nativeObject, scriptObject);
 	}
 

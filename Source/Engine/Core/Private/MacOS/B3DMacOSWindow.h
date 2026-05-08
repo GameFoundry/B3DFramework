@@ -42,7 +42,7 @@ namespace b3d
 		bool AllowResize = true;
 		bool Modal = false;
 		bool Floating = false;
-		SPtr<PixelData> Background;
+		TShared<PixelData> Background;
 	};
 
 	/**

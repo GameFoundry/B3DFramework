@@ -171,7 +171,7 @@ namespace b3d
 		 *						reference the data from the original stream (in which case the caller must ensure the
 		 *						original stream outlives the clone). This is not relevant for file streams.
 		 */
-		virtual SPtr<DataStream> Clone(bool copyData = true) const = 0;
+		virtual TShared<DataStream> Clone(bool copyData = true) const = 0;
 
 		/** Flushes the stream, writing any buffer data to the destination. Returns false if some error occurred and data was not written correctly. Does not need to be called if stream was just read from. */
 		virtual bool Flush() = 0;
@@ -223,7 +223,7 @@ namespace b3d
 		 * Create a stream which pre-buffers the contents of another stream. Data from the other buffer will be entirely
 		 * read and stored in an internal buffer.
 		 */
-		MemoryDataStream(const SPtr<DataStream>& other);
+		MemoryDataStream(const TShared<DataStream>& other);
 
 		/** Inherits the data from the provided stream, invalidating the source stream. */
 		MemoryDataStream(MemoryDataStream&& other);
@@ -245,7 +245,7 @@ namespace b3d
 		size_t Seek(size_t position) override;
 		size_t Tell() const override;
 		bool Eof() const override;
-		SPtr<DataStream> Clone(bool copyData = true) const override;
+		TShared<DataStream> Clone(bool copyData = true) const override;
 		bool Flush() override { return true; }
 		bool Close() override;
 
@@ -300,7 +300,7 @@ namespace b3d
 		size_t Seek(size_t pos) override;
 		size_t Tell() const override;
 		bool Eof() const override;
-		SPtr<DataStream> Clone(bool copyData = true) const override;
+		TShared<DataStream> Clone(bool copyData = true) const override;
 		bool Flush() override;
 		bool Close() override;
 

@@ -20,7 +20,7 @@ namespace b3d
 		using ScriptObjectWrapper::ScriptObjectWrapper;
 
 		/** Returns the root base class of the wrapped native object as a shared pointer. */
-		SPtr<GameObject> GetBaseNativeObjectAsShared() const { return mNativeObjectStrongHandle.GetShared(); }
+		TShared<GameObject> GetBaseNativeObjectAsShared() const { return mNativeObjectStrongHandle.GetShared(); }
 
 		/** Returns the root base class of the wrapped native object as a handle. */
 		const HGameObject& GetBaseNativeObjectAsHandle() const { return mNativeObjectStrongHandle; }
@@ -59,7 +59,7 @@ namespace b3d
 		ScriptObjectLifetimeTrackingMode GetLifetimeTrackingMode() const override { return ScriptObjectLifetimeTrackingMode::StrongHandleWithExplicitDestroy; }
 
 		/** Returns the wrapped native object as a shared pointer. */
-		SPtr<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(mNativeObjectStrongHandle.GetShared()); }
+		TShared<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(mNativeObjectStrongHandle.GetShared()); }
 
 		/** Returns the wrapped native object as a handle. */
 		TGameObjectHandle<NativeType> GetNativeObjectAsHandle() const { return B3DStaticGameObjectCast<NativeType>(mNativeObjectStrongHandle); }

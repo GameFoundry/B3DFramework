@@ -18,7 +18,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FontImportOptions")
 
-		ScriptFontImportOptions(const SPtr<FontImportOptions>& nativeObject);
+		ScriptFontImportOptions(const TShared<FontImportOptions>& nativeObject);
 		~ScriptFontImportOptions();
 
 		static void SetupScriptBindings();

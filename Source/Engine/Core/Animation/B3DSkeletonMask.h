@@ -36,7 +36,7 @@ namespace b3d
 	class B3D_EXPORT SkeletonMaskBuilder
 	{
 	public:
-		SkeletonMaskBuilder(const SPtr<Skeleton>& skeleton);
+		SkeletonMaskBuilder(const TShared<Skeleton>& skeleton);
 
 		/** Enables or disables a bone with the specified name. */
 		void SetBoneState(const String& name, bool enabled);
@@ -45,7 +45,7 @@ namespace b3d
 		SkeletonMask GetMask() const { return mMask; }
 
 	private:
-		SPtr<Skeleton> mSkeleton;
+		TShared<Skeleton> mSkeleton;
 		SkeletonMask mMask;
 	};
 

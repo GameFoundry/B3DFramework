@@ -101,7 +101,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<GUIContextMenu> tmpmenu;
+		TShared<GUIContextMenu> tmpmenu;
 		ScriptContextMenu* scriptObjectWrappermenu;
 		scriptObjectWrappermenu = ScriptContextMenu::GetScriptObjectWrapper(menu);
 		if(scriptObjectWrappermenu != nullptr)

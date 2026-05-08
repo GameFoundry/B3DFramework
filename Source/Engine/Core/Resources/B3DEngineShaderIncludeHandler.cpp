@@ -29,7 +29,7 @@ TOptional<String> EngineShaderIncludeHandler::FindIncludeSource(const String& na
 	
 	if(FileSystem::IsFile(path))
 	{
-		if(const SPtr<DataStream> stream = FileSystem::OpenFile(path))
+		if(const TShared<DataStream> stream = FileSystem::OpenFile(path))
 			return stream->GetAsString();
 	}
 

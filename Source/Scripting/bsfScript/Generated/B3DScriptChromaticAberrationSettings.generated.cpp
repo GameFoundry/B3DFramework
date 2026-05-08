@@ -10,7 +10,7 @@
 
 namespace b3d
 {
-	ScriptChromaticAberrationSettings::ScriptChromaticAberrationSettings(const SPtr<ChromaticAberrationSettings>& nativeObject)
+	ScriptChromaticAberrationSettings::ScriptChromaticAberrationSettings(const TShared<ChromaticAberrationSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -47,7 +47,7 @@ namespace b3d
 	}
 	void ScriptChromaticAberrationSettings::InternalChromaticAberrationSettings(MonoObject* scriptObject)
 	{
-		SPtr<ChromaticAberrationSettings> nativeObject = B3DMakeShared<ChromaticAberrationSettings>();
+		TShared<ChromaticAberrationSettings> nativeObject = B3DMakeShared<ChromaticAberrationSettings>();
 		ScriptObjectWrapper::Create<ScriptChromaticAberrationSettings>(nativeObject, scriptObject);
 	}
 

@@ -167,9 +167,9 @@ ThreadPool::~ThreadPool()
 	StopAll();
 }
 
-SPtr<PooledThread> ThreadPool::Run(const String& name, std::function<void()> workerMethod)
+TShared<PooledThread> ThreadPool::Run(const String& name, std::function<void()> workerMethod)
 {
-	SPtr<PooledThread> thread = GetThread(name);
+	TShared<PooledThread> thread = GetThread(name);
 	thread->Start(workerMethod);
 
 	return thread;
@@ -194,9 +194,9 @@ void ThreadPool::ClearUnused()
 	if(mThreads.size() <= mDefaultCapacity)
 		return;
 
-	TInlineArray<SPtr<PooledThread>, 4> idleThreads;
-	TInlineArray<SPtr<PooledThread>, 4> expiredThreads;
-	TInlineArray<SPtr<PooledThread>, 4> activeThreads;
+	TInlineArray<TShared<PooledThread>, 4> idleThreads;
+	TInlineArray<TShared<PooledThread>, 4> expiredThreads;
+	TInlineArray<TShared<PooledThread>, 4> activeThreads;
 
 	idleThreads.reserve(mThreads.size());
 	expiredThreads.reserve(mThreads.size());
@@ -232,7 +232,7 @@ void ThreadPool::ClearUnused()
 	mThreads.insert(mThreads.end(), activeThreads.begin(), activeThreads.end());
 }
 
-SPtr<PooledThread> ThreadPool::GetThread(const String& name)
+TShared<PooledThread> ThreadPool::GetThread(const String& name)
 {
 	u32 age = 0;
 	{
@@ -254,7 +254,7 @@ SPtr<PooledThread> ThreadPool::GetThread(const String& name)
 		}
 	}
 
-	SPtr<PooledThread> newThread = CreateThread(name);
+	TShared<PooledThread> newThread = CreateThread(name);
 	mThreads.push_back(newThread);
 
 	return newThread;

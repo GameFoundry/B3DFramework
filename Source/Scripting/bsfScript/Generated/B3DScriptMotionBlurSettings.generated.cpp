@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptMotionBlurSettings::ScriptMotionBlurSettings(const SPtr<MotionBlurSettings>& nativeObject)
+	ScriptMotionBlurSettings::ScriptMotionBlurSettings(const TShared<MotionBlurSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -46,7 +46,7 @@ namespace b3d
 	}
 	void ScriptMotionBlurSettings::InternalMotionBlurSettings(MonoObject* scriptObject)
 	{
-		SPtr<MotionBlurSettings> nativeObject = B3DMakeShared<MotionBlurSettings>();
+		TShared<MotionBlurSettings> nativeObject = B3DMakeShared<MotionBlurSettings>();
 		ScriptObjectWrapper::Create<ScriptMotionBlurSettings>(nativeObject, scriptObject);
 	}
 

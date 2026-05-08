@@ -22,8 +22,8 @@ namespace b3d
 			D3D12GpuCommandBufferPool(D3D12GpuDevice& device, const GpuCommandBufferPoolCreateInformation& createInformation);
 			~D3D12GpuCommandBufferPool() override;
 
-			SPtr<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) override;
-			SPtr<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) override;
+			TShared<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) override;
+			TShared<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) override;
 			void Reset() override;
 			void Destroy() override;
 
@@ -34,7 +34,7 @@ namespace b3d
 			ComPtr<ID3D12CommandAllocator> mCommandAllocator;
 			u32 mNextCommandBufferId = 1;
 
-			UnorderedMap<u32, SPtr<D3D12GpuCommandBuffer>> mCommandBuffers;
+			UnorderedMap<u32, TShared<D3D12GpuCommandBuffer>> mCommandBuffers;
 		};
 
 		/** CommandBuffer implementation for DirectX 12. */
@@ -64,28 +64,28 @@ namespace b3d
 			void SetName(const StringView& name) override;
 			CommandBufferState GetState() const override;
 
-			void SetGpuParameterSet(const SPtr<GpuParameterSet>& parameters) override;
+			void SetGpuParameterSet(const TShared<GpuParameterSet>& parameters) override;
 			void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) override;
-			void SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState) override;
-			void SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& pipelineState) override;
-			void SetVertexBuffers(u32 index, SPtr<GpuBuffer>* buffers, u32 bufferCount) override;
-			void SetIndexBuffer(const SPtr<GpuBuffer>& buffer) override;
-			void SetVertexDescription(const SPtr<VertexDescription>& vertexDescription) override;
+			void SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState) override;
+			void SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState) override;
+			void SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount) override;
+			void SetIndexBuffer(const TShared<GpuBuffer>& buffer) override;
+			void SetVertexDescription(const TShared<VertexDescription>& vertexDescription) override;
 			void SetDrawOperation(DrawOperationType operation) override;
 			void Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ) override;
-			void SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask) override;
+			void SetRenderTarget(const TShared<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask) override;
 			void SetViewport(const Area2& area) override;
 			void ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask) override;
 			void ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask) override;
 			void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom) override;
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
-			void WriteTimestamp(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) override;
-			void BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
-			void EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) override;
-			void ResetQueries(const SPtr<GpuQueryPool>& queryPool) override;
+			void WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
+			void BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
+			void EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
+			void ResetQueries(const TShared<GpuQueryPool>& queryPool) override;
 			void BeginLabel(const StringView& name) override;
 			void EndLabel() override;
 			void InsertLabel(const StringView& name) override;
@@ -255,11 +255,11 @@ namespace b3d
 			u32 mRenderTargetReadOnlyFlags = 0;
 			RenderSurfaceMask mRenderTargetLoadMask = RT_NONE;
 
-			SPtr<D3D12GpuGraphicsPipelineState> mGraphicsPipeline;
-			SPtr<D3D12GpuComputePipelineState> mComputePipeline;
-			SPtr<VertexDescription> mVertexDescription;
-			SPtr<D3D12GpuBuffer> mIndexBuffer;
-			Vector<SPtr<D3D12GpuBuffer>> mVertexBuffers;
+			TShared<D3D12GpuGraphicsPipelineState> mGraphicsPipeline;
+			TShared<D3D12GpuComputePipelineState> mComputePipeline;
+			TShared<VertexDescription> mVertexDescription;
+			TShared<D3D12GpuBuffer> mIndexBuffer;
+			Vector<TShared<D3D12GpuBuffer>> mVertexBuffers;
 			Area2 mNormalizedViewportArea{ 0.0f, 0.0f, 1.0f, 1.0f };
 			Area2I mScissor{ 0, 0, 0, 0 };
 			bool mIsScissorTestEnabled = false;
@@ -275,8 +275,8 @@ namespace b3d
 			bool mBoundParamsDirty : 1;
 			bool mVertexInputsDirty : 1;
 
-			SPtr<D3D12GpuParameters> mBoundParams;
-			SPtr<RenderTarget> mRenderTarget;
+			TShared<D3D12GpuParameters> mBoundParams;
+			TShared<RenderTarget> mRenderTarget;
 		};
 
 		/** @} */

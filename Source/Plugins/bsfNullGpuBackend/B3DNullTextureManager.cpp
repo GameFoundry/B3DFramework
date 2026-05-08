@@ -10,7 +10,7 @@ namespace b3d
 		return format;
 	}
 
-	SPtr<RenderTexture> NullTextureManager::CreateRenderTextureImpl(const RenderTextureCreateInformation& createInformation)
+	TShared<RenderTexture> NullTextureManager::CreateRenderTextureImpl(const RenderTextureCreateInformation& createInformation)
 	{
 		auto renderTexture = B3DMakeShared<NullRenderTexture>(createInformation);
 		return renderTexture;
@@ -22,7 +22,7 @@ namespace b3d
 			: TextureManager(gpuDevice)
 		{ }
 
-		SPtr<RenderTexture> NullTextureManager::CreateRenderTextureInternal(const RenderTextureCreateInformation& createInformation)
+		TShared<RenderTexture> NullTextureManager::CreateRenderTextureInternal(const RenderTextureCreateInformation& createInformation)
 		{
 			auto renderTexture = B3DMakeShared<NullRenderTexture>(createInformation);
 			return renderTexture;

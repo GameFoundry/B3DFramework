@@ -29,7 +29,7 @@ namespace b3d
 		 * Optional intermediate version of the GPU program. Can significantly speed up GPU program compilation/creation
 		 * when supported by the render backend. Call render::GpuProgram::CompileBytecode to generate it.
 		 */
-		SPtr<GpuProgramBytecode> Bytecode;
+		TShared<GpuProgramBytecode> Bytecode;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -51,7 +51,7 @@ namespace b3d
 		DataBlob Instructions;
 
 		/** Reflected information about GPU program parameters. */
-		SPtr<GpuProgramParameterDescription> ParameterDescription;
+		TShared<GpuProgramParameterDescription> ParameterDescription;
 
 		/** Input parameters for a vertex GPU program. */
 		Vector<VertexElement> VertexInput;
@@ -114,13 +114,13 @@ namespace b3d
 		GpuProgramType GetType() const { return mType; }
 
 		/** Returns description of all parameters in this GPU program. */
-		SPtr<GpuProgramParameterDescription> GetParameterDescription() const { return mParametersDescription; }
+		TShared<GpuProgramParameterDescription> GetParameterDescription() const { return mParametersDescription; }
 
 		/**	Returns a list of vertex elements that a vertex program expects as inputs. Only relevant for vertex programs. */
-		SPtr<VertexDescription> GetVertexInputDescription() const { return mVertexInputDescription; }
+		TShared<VertexDescription> GetVertexInputDescription() const { return mVertexInputDescription; }
 
 		/** Returns the compiled bytecode of this program. */
-		SPtr<GpuProgramBytecode> GetBytecode() const { return mBytecode; }
+		TShared<GpuProgramBytecode> GetBytecode() const { return mBytecode; }
 
 	protected:
 		GpuProgram(const GpuProgramCreateInformation& createInformation);
@@ -130,8 +130,8 @@ namespace b3d
 		bool mIsCompiled = false;
 		String mCompileMessages;
 
-		SPtr<GpuProgramParameterDescription> mParametersDescription;
-		SPtr<VertexDescription> mVertexInputDescription;
+		TShared<GpuProgramParameterDescription> mParametersDescription;
+		TShared<VertexDescription> mVertexInputDescription;
 
 		GpuProgramType mType;
 		String mLanguage;
@@ -139,7 +139,7 @@ namespace b3d
 		String mEntryPoint;
 		String mSource;
 
-		SPtr<GpuProgramBytecode> mBytecode;
+		TShared<GpuProgramBytecode> mBytecode;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

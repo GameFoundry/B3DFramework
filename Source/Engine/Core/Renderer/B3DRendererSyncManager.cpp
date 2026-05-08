@@ -30,7 +30,7 @@ void RendererSyncManager::SyncToRenderThread(bool swapBuffers)
 
 	for(auto& [key, weakScene] : SceneManager::Instance().GetAllScenes())
 	{
-		SPtr<SceneInstance> scene = weakScene.lock();
+		TShared<SceneInstance> scene = weakScene.lock();
 		if(!scene)
 			continue;
 

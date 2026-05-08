@@ -38,7 +38,7 @@ void VulkanRenderTexture::Initialize()
 		if(mColorSurfaces[renderTargetIndex] == nullptr)
 			continue;
 
-		const SPtr<TextureView>& view = mColorSurfaces[renderTargetIndex];
+		const TShared<TextureView>& view = mColorSurfaces[renderTargetIndex];
 		VulkanTexture* texture = static_cast<VulkanTexture*>(mInformation.ColorSurfaces[renderTargetIndex].Texture.get());
 
 		VulkanImage* image = texture->GetVulkanResource();
@@ -92,7 +92,7 @@ void VulkanRenderTexture::Initialize()
 
 	if(mDepthStencilSurface != nullptr)
 	{
-		const SPtr<TextureView>& view = mDepthStencilSurface;
+		const TShared<TextureView>& view = mDepthStencilSurface;
 		VulkanTexture* texture = static_cast<VulkanTexture*>(mInformation.DepthStencilSurface.Texture.get());
 
 		VulkanImage* image = texture->GetVulkanResource();

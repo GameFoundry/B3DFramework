@@ -33,7 +33,7 @@ namespace b3d
 			 * @param	compilerId			Backend-specific compiler identifier, written into the returned bytecode.
 			 * @param	compilerVersion		Backend-specific compiler version.
 			 */
-			SPtr<GpuProgramBytecode> Convert(const GpuProgramCreateInformation& createInformation, const char* compilerId, u32 compilerVersion);
+			TShared<GpuProgramBytecode> Convert(const GpuProgramCreateInformation& createInformation, const char* compilerId, u32 compilerVersion);
 		};
 
 		/** @} */

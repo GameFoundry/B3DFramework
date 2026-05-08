@@ -16,7 +16,7 @@ Next you need to specify what type of primitives you wish to draw by calling @b3
 
 ~~~~~~~~~~~~~{.cpp}
 // We're drawing a triangle list
-SPtr<GpuCommandBuffer> commandBuffer = ...;
+TShared<GpuCommandBuffer> commandBuffer = ...;
 commandBuffer->SetDrawOperation(DOT_TRIANGLE_LIST);
 ~~~~~~~~~~~~~
 
@@ -28,13 +28,13 @@ Finally you can now draw the object by calling @b3d::render::GpuCommandBuffer::D
  - `vertexCount` - Number of vertices to draw. Since the actual number of primitives drawn is determined by the index count, this value is internally used just for tracking purposes and wont affect your rendering. In most cases you can specify the number of vertices in the vertex buffer(s).
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuBuffer> indexBuffer = ...;
-SPtr<GpuBuffer> vertexBuffer = ...;
+TShared<GpuBuffer> indexBuffer = ...;
+TShared<GpuBuffer> vertexBuffer = ...;
 
 u32 numIndices = indexBuffer->GetProperties().IndexCount;
 u32 numVertices = vertexBuffer->GetProperties().ElementCount;
 
-SPtr<GpuCommandBuffer> commandBuffer = ...;
+TShared<GpuCommandBuffer> commandBuffer = ...;
 commandBuffer->DrawIndexed(0, numIndices, 0, numVertices);
 ~~~~~~~~~~~~~
 
@@ -42,10 +42,10 @@ commandBuffer->DrawIndexed(0, numIndices, 0, numVertices);
 If drawing without an index buffer you can call @b3d::render::GpuCommandBuffer::Draw() instead. It requires only the `vertexOffset` and `vertexCount` parameters, with same meaning as above (except `vertexCount` in this case does affect the rendering).
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuBuffer> vertexBuffer = ...;
+TShared<GpuBuffer> vertexBuffer = ...;
 u32 numVertices = vertexBuffer->GetProperties().ElementCount;
 
-SPtr<GpuCommandBuffer> commandBuffer = ...;
+TShared<GpuCommandBuffer> commandBuffer = ...;
 commandBuffer->Draw(0, numVertices);
 ~~~~~~~~~~~~~
 
@@ -78,15 +78,15 @@ VertexElement instancePositionElement(VET_FLOAT3, VES_POSITION, 1, 1, 1);
 
 // Create vertex description
 TInlineArray<VertexElement, 4> elements = { positionElement, normalElement, texcoordElement, instancePositionElement };
-SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(elements.data(), elements.size());
+TShared<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(elements.data(), elements.size());
 
-SPtr<GpuCommandBuffer> commandBuffer = ...;
+TShared<GpuCommandBuffer> commandBuffer = ...;
 
 // Bind vertex description
 commandBuffer->SetVertexDescription(vertexDescription);
 
 // Bind per-vertex and per-instance vertex buffers
-SPtr<GpuBuffer> buffers[2] = { perVertexVertexBuffer, perInstanceVertexBuffer };
+TShared<GpuBuffer> buffers[2] = { perVertexVertexBuffer, perInstanceVertexBuffer };
 commandBuffer->SetVertexBuffers(0, buffers, 2);
 
 // Draw ...
@@ -100,7 +100,7 @@ As a way of making drawing easier you can also use @b3d::render::RendererUtility
  - Execute a draw call
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MeshBase> mesh = ...;
-SPtr<GpuCommandBuffer> commandBuffer = ...;
+TShared<MeshBase> mesh = ...;
+TShared<GpuCommandBuffer> commandBuffer = ...;
 GetRendererUtility().Draw(*commandBuffer, mesh);
 ~~~~~~~~~~~~~

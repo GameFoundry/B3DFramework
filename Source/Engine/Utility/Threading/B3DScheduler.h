@@ -207,7 +207,7 @@ namespace b3d
 		/** Performs a context switch from the current fiber to the provided fiber. This fiber must be the currently executing fiber. */
 		void SwitchExecutionTo(Fiber* other);
 
-		const SPtr<marl::OSFiber> mOSFiber;
+		const TShared<marl::OSFiber> mOSFiber;
 		SchedulerThread* const mOwningThread;
 		State mState = State::Running;
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -282,7 +282,7 @@ namespace b3d
 		const u32 Id; /**< Unique identifier of the scheduler thread. */
 
 		/** Returns the scheduler thread bound to the current thread. */
-		B3D_EXPORT static const SPtr<SchedulerThread>& Get() { return Current; }
+		B3D_EXPORT static const TShared<SchedulerThread>& Get() { return Current; }
 
 	private:
 		friend class Scheduler;
@@ -345,7 +345,7 @@ namespace b3d
 		/** Waits until the mAddedSignal is notified and predicate returns true. */
 		void WaitOnAddedSignal(const Function<bool()>& predicate);
 
-		B3D_HIDDEN static thread_local SPtr<SchedulerThread> Current;
+		B3D_HIDDEN static thread_local TShared<SchedulerThread> Current;
 
 		const Mode mMode;
 		Scheduler* const mOwnerScheduler;
@@ -405,7 +405,7 @@ namespace b3d
 		Function<void(u32 workerId)> ThreadInitializeCallback;
 
 		/** Determines on which cores the internally created threads are allowed to execute on. */
-		SPtr<ThreadAffinityPolicy> AffinityPolicy;
+		TShared<ThreadAffinityPolicy> AffinityPolicy;
 
 		/** Stack size for a single fiber, in bytes. */
 		u64 FiberStackSize = 1024 * 1024;
@@ -489,7 +489,7 @@ namespace b3d
 
 		// Unified thread management - both internal and external threads
 		Mutex mWorkerThreadsMutex;
-		TArray<SPtr<SchedulerThread>> mWorkerThreads;
+		TArray<TShared<SchedulerThread>> mWorkerThreads;
 		TArray<u32> mInternalWorkerIndices;
 		std::atomic<u32> mNextExternalWorkerId;
 

@@ -3,23 +3,23 @@
 #include "Extensions/B3DPixelDataEx.h"
 
 using namespace b3d;
-SPtr<PixelData> PixelDataEx::Create(const PixelVolume& volume, PixelFormat format)
+TShared<PixelData> PixelDataEx::Create(const PixelVolume& volume, PixelFormat format)
 {
-	SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(volume, format);
+	TShared<PixelData> pixelData = B3DMakeShared<PixelData>(volume, format);
 	pixelData->AllocateInternalBuffer();
 
 	return pixelData;
 }
 
-SPtr<PixelData> PixelDataEx::Create(u32 width, u32 height, u32 depth, PixelFormat format)
+TShared<PixelData> PixelDataEx::Create(u32 width, u32 height, u32 depth, PixelFormat format)
 {
-	SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(width, height, depth, format);
+	TShared<PixelData> pixelData = B3DMakeShared<PixelData>(width, height, depth, format);
 	pixelData->AllocateInternalBuffer();
 
 	return pixelData;
 }
 
-Color PixelDataEx::GetPixel(const SPtr<PixelData>& thisPtr, int x, int y, int z)
+Color PixelDataEx::GetPixel(const TShared<PixelData>& thisPtr, int x, int y, int z)
 {
 	if(!CheckIsLocked(thisPtr))
 		return thisPtr->GetColorAt(x, y, z);
@@ -27,13 +27,13 @@ Color PixelDataEx::GetPixel(const SPtr<PixelData>& thisPtr, int x, int y, int z)
 		return Color();
 }
 
-void PixelDataEx::SetPixel(const SPtr<PixelData>& thisPtr, const Color& value, int x, int y, int z)
+void PixelDataEx::SetPixel(const TShared<PixelData>& thisPtr, const Color& value, int x, int y, int z)
 {
 	if(!CheckIsLocked(thisPtr))
 		thisPtr->SetColorAt(value, x, y, z);
 }
 
-Vector<Color> PixelDataEx::GetPixels(const SPtr<PixelData>& thisPtr)
+Vector<Color> PixelDataEx::GetPixels(const TShared<PixelData>& thisPtr)
 {
 	if(!CheckIsLocked(thisPtr))
 		return Vector<Color>();
@@ -41,7 +41,7 @@ Vector<Color> PixelDataEx::GetPixels(const SPtr<PixelData>& thisPtr)
 	return thisPtr->GetColors();
 }
 
-void PixelDataEx::SetPixels(const SPtr<PixelData>& thisPtr, const Vector<Color>& value)
+void PixelDataEx::SetPixels(const TShared<PixelData>& thisPtr, const Vector<Color>& value)
 {
 	if(!CheckIsLocked(thisPtr))
 		return;
@@ -49,7 +49,7 @@ void PixelDataEx::SetPixels(const SPtr<PixelData>& thisPtr, const Vector<Color>&
 	thisPtr->SetColors(value);
 }
 
-Vector<char> PixelDataEx::GetRawPixels(const SPtr<PixelData>& thisPtr)
+Vector<char> PixelDataEx::GetRawPixels(const TShared<PixelData>& thisPtr)
 {
 	if(!CheckIsLocked(thisPtr))
 		return Vector<char>();
@@ -60,7 +60,7 @@ Vector<char> PixelDataEx::GetRawPixels(const SPtr<PixelData>& thisPtr)
 	return output;
 }
 
-void PixelDataEx::SetRawPixels(const SPtr<PixelData>& thisPtr, const Vector<char>& value)
+void PixelDataEx::SetRawPixels(const TShared<PixelData>& thisPtr, const Vector<char>& value)
 {
 	if(!CheckIsLocked(thisPtr))
 		return;
@@ -76,7 +76,7 @@ void PixelDataEx::SetRawPixels(const SPtr<PixelData>& thisPtr, const Vector<char
 	memcpy(data, value.data(), thisPtr->GetSize());
 }
 
-bool PixelDataEx::CheckIsLocked(const SPtr<PixelData>& thisPtr)
+bool PixelDataEx::CheckIsLocked(const TShared<PixelData>& thisPtr)
 {
 	if(thisPtr->IsLocked())
 	{

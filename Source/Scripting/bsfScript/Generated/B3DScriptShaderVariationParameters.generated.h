@@ -14,7 +14,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ShaderVariationParameters")
 
-		ScriptShaderVariationParameters(const SPtr<ShaderVariationParameters>& nativeObject);
+		ScriptShaderVariationParameters(const TShared<ShaderVariationParameters>& nativeObject);
 		~ScriptShaderVariationParameters();
 
 		static void SetupScriptBindings();

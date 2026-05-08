@@ -328,7 +328,7 @@ namespace b3d
 
 		/** Converts provided pixels from one format to another.  */
 		B3D_SCRIPT_EXPORT();
-		static SPtr<PixelData> ConvertFormat(const SPtr<PixelData>& source, PixelFormat format);
+		static TShared<PixelData> ConvertFormat(const TShared<PixelData>& source, PixelFormat format);
 
 		/** Compresses the provided data using the specified compression options.  */
 		static void Compress(const PixelData& source, PixelData& destination, const CompressionOptions& options);
@@ -338,7 +338,7 @@ namespace b3d
 		 * is a compressed format.
 		 */
 		B3D_SCRIPT_EXPORT();
-		static SPtr<PixelData> Compress(const SPtr<PixelData>& source, const CompressionOptions& options);
+		static TShared<PixelData> Compress(const TShared<PixelData>& source, const CompressionOptions& options);
 
 		/**
 		 * Generates mip-maps from the provided source data using the specified compression options. Returned list includes
@@ -348,7 +348,7 @@ namespace b3d
 		 *			largest to smallest.
 		 */
 		B3D_SCRIPT_EXPORT()
-		static Vector<SPtr<PixelData>> GenerateMipmaps(const SPtr<PixelData>& source, const MipMapGenOptions& options);
+		static Vector<TShared<PixelData>> GenerateMipmaps(const TShared<PixelData>& source, const MipMapGenOptions& options);
 
 		/**
 		 * Scales pixel data in the source buffer and stores the scaled data in the destination buffer. Provided pixel data
@@ -359,7 +359,7 @@ namespace b3d
 
 		/** Scales pixel data in the source buffer according to the provided size and filtering method. */
 		B3D_SCRIPT_EXPORT()
-		static SPtr<PixelData> Scale(const SPtr<PixelData>& source, const Size3UI& size, ScaleFilter filter = ScaleFilter::Linear);
+		static TShared<PixelData> Scale(const TShared<PixelData>& source, const Size3UI& size, ScaleFilter filter = ScaleFilter::Linear);
 
 		/**
 		 * Mirrors the contents of the provided object along the X, Y and/or Z axes. */
@@ -374,11 +374,11 @@ namespace b3d
 
 		/** Converts pixel data in linear space to one in sRGB space. Only converts the RGB components. */
 		B3D_SCRIPT_EXPORT()
-		static SPtr<PixelData> LinearToSrgb(const SPtr<PixelData>& input);
+		static TShared<PixelData> LinearToSrgb(const TShared<PixelData>& input);
 
 		/** Converts pixel data in sRGB space to one in linear space. Only converts the RGB components. */
 		B3D_SCRIPT_EXPORT()
-		static SPtr<PixelData> SRGBToLinear(const SPtr<PixelData>& input);
+		static TShared<PixelData> SRGBToLinear(const TShared<PixelData>& input);
 
 		/**
 		 * Saves pixel data to an image file.
@@ -393,7 +393,7 @@ namespace b3d
 		 *						Compressed, float, depth, and integer formats will return false.
 		 */
 		B3D_SCRIPT_EXPORT()
-		static bool SaveImage(const SPtr<PixelData>& pixelData, const Path& outputPath, ImageFormat format, bool ignoreAlpha = false);
+		static bool SaveImage(const TShared<PixelData>& pixelData, const Path& outputPath, ImageFormat format, bool ignoreAlpha = false);
 	};
 
 	/** @} */

@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptParticleColor::ScriptParticleColor(const SPtr<ParticleColor>& nativeObject)
+	ScriptParticleColor::ScriptParticleColor(const TShared<ParticleColor>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -69,13 +69,13 @@ namespace b3d
 	{
 		ParticleColorSettings tmpsettings;
 		tmpsettings = ScriptParticleColorOptions::FromInterop(*settings);
-		SPtr<ParticleColor> nativeObject = ParticleColor::Create(tmpsettings);
+		TShared<ParticleColor> nativeObject = ParticleColor::Create(tmpsettings);
 		ScriptObjectWrapper::Create<ScriptParticleColor>(nativeObject, scriptObject);
 	}
 
 	void ScriptParticleColor::InternalCreate0(MonoObject* scriptObject)
 	{
-		SPtr<ParticleColor> nativeObject = ParticleColor::Create();
+		TShared<ParticleColor> nativeObject = ParticleColor::Create();
 		ScriptObjectWrapper::Create<ScriptParticleColor>(nativeObject, scriptObject);
 	}
 }

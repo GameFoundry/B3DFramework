@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	ScriptVectorGraphicsSettings::ScriptVectorGraphicsSettings(const SPtr<VectorGraphicsSettings>& nativeObject)
+	ScriptVectorGraphicsSettings::ScriptVectorGraphicsSettings(const TShared<VectorGraphicsSettings>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

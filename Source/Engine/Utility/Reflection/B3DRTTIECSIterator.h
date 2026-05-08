@@ -86,7 +86,7 @@ namespace b3d
 			return nullptr;
 		}
 
-		SPtr<IRTTIIterator> Clone(FrameAllocator& allocator) const override
+		TShared<IRTTIIterator> Clone(FrameAllocator& allocator) const override
 		{
 			auto* clone = allocator.Construct<TRTTIECSFragmentIterator>(mRegistry, mEntity);
 			clone->mIsValid = mIsValid;
@@ -130,7 +130,7 @@ namespace b3d
 			return &mValue;
 		}
 
-		SPtr<IRTTIIterator> Clone(FrameAllocator& allocator) const override
+		TShared<IRTTIIterator> Clone(FrameAllocator& allocator) const override
 		{
 			auto* clone = allocator.Construct<TRTTIECSTagGroupIterator>(mRegistry, mEntity);
 			clone->mIsValid = mIsValid;

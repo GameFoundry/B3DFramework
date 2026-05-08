@@ -50,7 +50,7 @@ namespace b3d
 			return TID_ManagedAssemblyInfo;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ManagedAssemblyInfo>();
 		}
@@ -76,7 +76,7 @@ namespace b3d
 
 				for(u32 memberIndex = 0; memberIndex < (u32)object.Members.size(); ++memberIndex)
 				{
-					const SPtr<ManagedMemberInfo>& memberInfo = object.Members[memberIndex];
+					const TShared<ManagedMemberInfo>& memberInfo = object.Members[memberIndex];
 					if(!B3D_ENSURE(memberInfo != nullptr))
 						continue;
 
@@ -96,7 +96,7 @@ namespace b3d
 			return TID_ManagedObjectInfo;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedObjectInfo>();
 		}
@@ -125,7 +125,7 @@ namespace b3d
 			return TID_ManagedMemberInfo;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			// This is an abstract class, but it wasn't always. For compatibility sake we return an object instance so old
 			// data can still be properly read.
@@ -147,7 +147,7 @@ namespace b3d
 			return TID_ManagedFieldInfo;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedFieldInfo>();
 		}
@@ -167,7 +167,7 @@ namespace b3d
 			return TID_ManagedPropertyInfo;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedPropertyInfo>();
 		}
@@ -187,7 +187,7 @@ namespace b3d
 			return TID_ManagedTypeInfo;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 			return nullptr;
@@ -213,7 +213,7 @@ namespace b3d
 			return TID_ManagedTypeInfoPrimitive;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedTypeInfoPrimitive>();
 		}
@@ -240,7 +240,7 @@ namespace b3d
 			return TID_ManagedTypeInfoEnum;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedTypeInfoEnum>();
 		}
@@ -268,7 +268,7 @@ namespace b3d
 			return TID_ManagedTypeInfoReference;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedTypeInfoReference>();
 		}
@@ -293,7 +293,7 @@ namespace b3d
 			return TID_ManagedTypeInfoResourceReference;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedTypeInfoResourceReference>();
 		}
@@ -323,7 +323,7 @@ namespace b3d
 			return TID_ManagedTypeInfoObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedTypeInfoObject>();
 		}
@@ -353,7 +353,7 @@ namespace b3d
 			return TID_ManagedTypeInfoArray;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedTypeInfoArray>();
 		}
@@ -382,7 +382,7 @@ namespace b3d
 			return TID_ManagedTypeInfoList;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedTypeInfoList>();
 		}
@@ -412,7 +412,7 @@ namespace b3d
 			return TID_ManagedTypeInfoDictionary;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedTypeInfoDictionary>();
 		}

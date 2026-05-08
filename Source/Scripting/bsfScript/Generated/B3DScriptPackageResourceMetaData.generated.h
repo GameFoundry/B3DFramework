@@ -18,7 +18,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PackageResourceMetaData")
 
-		ScriptPackageResourceMetaData(const SPtr<PackageResourceMetaData>& nativeObject);
+		ScriptPackageResourceMetaData(const TShared<PackageResourceMetaData>& nativeObject);
 		~ScriptPackageResourceMetaData();
 
 		static void SetupScriptBindings();

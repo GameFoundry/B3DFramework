@@ -20,7 +20,7 @@ namespace b3d
 		 * @param	fullPath	Full path to a file.
 		 * @param	readOnly	(optional) If true, returned stream will only be readable.
 		 */
-		static SPtr<DataStream> OpenFile(const Path& fullPath, bool readOnly = true);
+		static TShared<DataStream> OpenFile(const Path& fullPath, bool readOnly = true);
 
 		/**
 		 * Opens a file and returns a data stream capable of reading and writing to that file. If file doesn't exist new
@@ -28,7 +28,7 @@ namespace b3d
 		 *
 		 * @param	fullPath	Full path to a file.
 		 */
-		static SPtr<DataStream> CreateAndOpenFile(const Path& fullPath);
+		static TShared<DataStream> CreateAndOpenFile(const Path& fullPath);
 
 		/**
 		 * Returns the size of a file in bytes.

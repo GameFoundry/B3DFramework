@@ -18,7 +18,7 @@ namespace b3d
 	public:
 		/** @copydoc ColorGradient::Evaluate */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(ColorGradient))
-		static Color Evaluate(const SPtr<ColorGradient>& thisPtr, float t);
+		static Color Evaluate(const TShared<ColorGradient>& thisPtr, float t);
 	};
 
 	/** Extension class for ColorGradientHDr, for adding additional functionality for the script interface. */
@@ -27,7 +27,7 @@ namespace b3d
 	public:
 		/** @copydoc ColorGradientHDR::Evaluate */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(ColorGradientHDR))
-		static Color Evaluate(const SPtr<ColorGradientHDR>& thisPtr, float t);
+		static Color Evaluate(const TShared<ColorGradientHDR>& thisPtr, float t);
 	};
 
 	/** @endcond */

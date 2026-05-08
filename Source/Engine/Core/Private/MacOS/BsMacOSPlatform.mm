@@ -1023,7 +1023,7 @@ namespace b3d
 		}
 
 		// Convert to RGBA
-		SPtr<PixelData> rgbaData = PixelData::Create(data.GetWidth(), data.GetHeight(), 1, PF_RGBA8);
+		TShared<PixelData> rgbaData = PixelData::Create(data.GetWidth(), data.GetHeight(), 1, PF_RGBA8);
 		rgbaData->SetColors(colors);
 		@autoreleasepool
 		{

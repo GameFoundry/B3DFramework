@@ -22,7 +22,7 @@ void DropTarget::SetFileListInternal(const Vector<Path>& fileList)
 	mFileList = fileList;
 }
 
-SPtr<DropTarget> DropTarget::Create(const RenderWindow* window, const Area2I& area)
+TShared<DropTarget> DropTarget::Create(const RenderWindow* window, const Area2I& area)
 {
 	DropTarget* target = new(B3DAllocate<DropTarget>()) DropTarget(window, area);
 	return B3DMakeSharedFromExisting(target);

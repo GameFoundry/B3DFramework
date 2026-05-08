@@ -21,7 +21,7 @@ namespace b3d
 
 		/** Instantiates a scene by creating an instance of the scene object hierarchy. */
 		B3D_SCRIPT_EXPORT()
-		SPtr<SceneInstance> Instantiate() const;
+		TShared<SceneInstance> Instantiate() const;
 
 		bool AllowAsyncLoading() const override { return false; }
 
@@ -41,7 +41,7 @@ namespace b3d
 		HSceneObject GetRoot() const { return mRoot; }
 
 		/** Returns the game object collection that owns all the game objects in the scene. */
-		SPtr<GameObjectCollection> GetGameObjectCollection() const { return mGameObjectCollection; }
+		TShared<GameObjectCollection> GetGameObjectCollection() const { return mGameObjectCollection; }
 
 		/**
 		 * Instantiates a scene by creating an instance of the scene's scene object hierarchy. The new hierarchy
@@ -51,7 +51,7 @@ namespace b3d
 		 *								scene instance will be created and output through this parameter.
 		 * @return						Instantiated clone of the scene's scene object hierarchy.
 		 */
-		HSceneObject Instantiate(SPtr<SceneInstance>& inOutSceneInstance) const;
+		HSceneObject Instantiate(TShared<SceneInstance>& inOutSceneInstance) const;
 
 		/** Replaces the contents of this scene with new contents from the provided object. */
 		void ReplaceInternalHierarchy(const HSceneObject& sceneObject);
@@ -60,11 +60,11 @@ namespace b3d
 
 	private:
 		/**	Creates an empty and uninitialized scene. */
-		static SPtr<Scene> CreateEmpty();
+		static TShared<Scene> CreateEmpty();
 
 		HSceneObject mRoot;
 		UUID mUUID;
-		SPtr<GameObjectCollection> mGameObjectCollection; /**< Collection owning the internal hierarchy. */
+		TShared<GameObjectCollection> mGameObjectCollection; /**< Collection owning the internal hierarchy. */
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

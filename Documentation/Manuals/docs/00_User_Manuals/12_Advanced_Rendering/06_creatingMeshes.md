@@ -26,7 +26,7 @@ MeshCreateInformation meshCreateInformation;
 meshCreateInformation.VertexCount = 8;
 meshCreateInformation.IndexCount = 36;
 
-SPtr<VertexDescription> vertexDescription = ...; // Vertex description creation is explained below
+TShared<VertexDescription> vertexDescription = ...; // Vertex description creation is explained below
 meshCreateInformation.VertexDescription = vertexDescription;
 
 HMesh mesh = Mesh::Create(meshCreateInformation);
@@ -44,7 +44,7 @@ vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 vertexElements.Add(VertexElement(VET_FLOAT3, VES_NORMAL));
 vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
-SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
+TShared<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 ~~~~~~~~~~~~~
 
 You may also specify these optional properties, primarily useful for low-level rendering:
@@ -57,24 +57,24 @@ Once the **VertexDescription** structure has been filled, you can use it for ini
 After mesh has been created you need to write some vertex and index data to it by calling @b3d::Mesh::WriteData. This method accepts a @b3d::MeshData object.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MeshData> meshData = ...; // Explained below
+TShared<MeshData> meshData = ...; // Explained below
 // ... populate meshData
 
 mesh->WriteData(meshData, false);
 ~~~~~~~~~~~~~
 
 ## Creating mesh data
-You can create @b3d::MeshData by calling @b3d::MeshData::Create(u32, u32, const SPtr<VertexDescription>&, IndexType) and providing it with vertex description, index type and number of vertices and indices. You must ensure that the formats and sizes match the mesh this will be used on.
+You can create @b3d::MeshData by calling @b3d::MeshData::Create(u32, u32, const TShared<VertexDescription>&, IndexType) and providing it with vertex description, index type and number of vertices and indices. You must ensure that the formats and sizes match the mesh this will be used on.
 
 ~~~~~~~~~~~~~{.cpp}
 // Create mesh data able to contain 8 vertices of the format specified by vertexDescription, and 36 indices
-SPtr<MeshData> meshData = MeshData::Create(8, 36, vertexDescription);
+TShared<MeshData> meshData = MeshData::Create(8, 36, vertexDescription);
 ~~~~~~~~~~~~~
 
 You can also create **MeshData** using an existing mesh by calling @b3d::Mesh::AllocBuffer. This will create an object of adequate size and vertex description for use on that mesh.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MeshData> meshData = mesh->AllocBuffer();
+TShared<MeshData> meshData = mesh->AllocBuffer();
 ~~~~~~~~~~~~~
 
 ## Populating mesh data
@@ -144,7 +144,7 @@ Reading cached CPU data allows you to read-back any data you have written to the
 Cached CPU data can be read by calling @b3d::Mesh::GetCachedData.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MeshData> meshData = mesh->GetCachedData();
+TShared<MeshData> meshData = mesh->GetCachedData();
 ~~~~~~~~~~~~~
 
 After reading the data you can access it through @b3d::MeshData::GetVertexData, @b3d::MeshData::GetElementData or through iterators.

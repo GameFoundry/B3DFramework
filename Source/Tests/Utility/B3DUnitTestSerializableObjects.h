@@ -40,8 +40,8 @@ namespace b3d
 			ArrObjPtrB = { B3DMakeShared<UnitTestSerializationObjectB>(), B3DMakeShared<UnitTestSerializationObjectB>(), B3DMakeShared<UnitTestSerializationObjectB>() };
 		}
 
-		static SPtr<UnitTestSerializationObjectA> CreateVariantA();
-		static SPtr<UnitTestSerializationObjectA> CreateVariantB();
+		static TShared<UnitTestSerializationObjectA> CreateVariantA();
+		static TShared<UnitTestSerializationObjectA> CreateVariantB();
 
 		u32 IntA = 5;
 		String StrA = "5";
@@ -50,11 +50,11 @@ namespace b3d
 		UnitTestSerializationObjectB ObjA;
 		UnitTestSerializationObjectB ObjB;
 
-		SPtr<UnitTestSerializationObjectB> ObjPtrA = B3DMakeShared<UnitTestSerializationObjectB>();
-		SPtr<UnitTestSerializationObjectB> ObjPtrB = B3DMakeShared<UnitTestSerializationObjectB>();
-		SPtr<UnitTestSerializationObjectB> ObjPtrC = B3DMakeShared<UnitTestSerializationObjectB>();
-		SPtr<UnitTestSerializationObjectB> ObjPtrD = nullptr;
-		SPtr<UnitTestSerializationObjectB> ObjPtrE = nullptr;
+		TShared<UnitTestSerializationObjectB> ObjPtrA = B3DMakeShared<UnitTestSerializationObjectB>();
+		TShared<UnitTestSerializationObjectB> ObjPtrB = B3DMakeShared<UnitTestSerializationObjectB>();
+		TShared<UnitTestSerializationObjectB> ObjPtrC = B3DMakeShared<UnitTestSerializationObjectB>();
+		TShared<UnitTestSerializationObjectB> ObjPtrD = nullptr;
+		TShared<UnitTestSerializationObjectB> ObjPtrE = nullptr;
 
 		Vector<String> ArrStrA;
 		Vector<String> ArrStrB;
@@ -63,8 +63,8 @@ namespace b3d
 		Vector<UnitTestSerializationObjectB> ArrObjA;
 		Vector<UnitTestSerializationObjectB> ArrObjB;
 
-		Vector<SPtr<UnitTestSerializationObjectB>> ArrObjPtrA;
-		Vector<SPtr<UnitTestSerializationObjectB>> ArrObjPtrB;
+		Vector<TShared<UnitTestSerializationObjectB>> ArrObjPtrA;
+		Vector<TShared<UnitTestSerializationObjectB>> ArrObjPtrB;
 
 		UnorderedMap<u32, String> PlainMapA = { { 5, "value5" }, { 10, "value10" }, { 15, "value15" } };
 		UnorderedMap<u32, String> PlainMapB = { { 5, "value5" }, { 10, "value10" }, { 15, "value15" } };
@@ -76,7 +76,7 @@ namespace b3d
 		UnorderedMap<String, UnitTestSerializationObjectB> ObjectMapB = { { "a", UnitTestSerializationObjectB() }, { "b", UnitTestSerializationObjectB() } };
 		UnorderedMap<String, UnitTestSerializationObjectB> ObjectMapC = { { "a", UnitTestSerializationObjectB() }, { "b", UnitTestSerializationObjectB() } };
 
-		UnorderedMap<String, SPtr<UnitTestSerializationObjectB>> ObjectPointerMap = { { "a", B3DMakeShared<UnitTestSerializationObjectB>() },
+		UnorderedMap<String, TShared<UnitTestSerializationObjectB>> ObjectPointerMap = { { "a", B3DMakeShared<UnitTestSerializationObjectB>() },
 																					  { "b", B3DMakeShared<UnitTestSerializationObjectB>() },
 																					  { "c", B3DMakeShared<UnitTestSerializationObjectB>() },
 																					  { "d", B3DMakeShared<UnitTestSerializationObjectB>() },

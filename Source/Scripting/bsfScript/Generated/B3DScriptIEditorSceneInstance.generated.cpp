@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptIEditorSceneInstance::ScriptIEditorSceneInstance(const SPtr<IEditorSceneInstance>& nativeObject)
+	ScriptIEditorSceneInstance::ScriptIEditorSceneInstance(const TShared<IEditorSceneInstance>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

@@ -15,7 +15,7 @@
 
 namespace b3d
 {
-	ScriptAnimationCurves::ScriptAnimationCurves(const SPtr<AnimationCurves>& nativeObject)
+	ScriptAnimationCurves::ScriptAnimationCurves(const TShared<AnimationCurves>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -60,7 +60,7 @@ namespace b3d
 	}
 	void ScriptAnimationCurves::InternalAnimationCurves(MonoObject* scriptObject)
 	{
-		SPtr<AnimationCurves> nativeObject = B3DMakeShared<AnimationCurves>();
+		TShared<AnimationCurves> nativeObject = B3DMakeShared<AnimationCurves>();
 		ScriptObjectWrapper::Create<ScriptAnimationCurves>(nativeObject, scriptObject);
 	}
 
@@ -71,7 +71,7 @@ namespace b3d
 
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		SPtr<TAnimationCurve<TVector3<float>>> tmpcurve;
+		TShared<TAnimationCurve<TVector3<float>>> tmpcurve;
 		ScriptVector3Curve* scriptObjectWrappercurve;
 		scriptObjectWrappercurve = ScriptVector3Curve::GetScriptObjectWrapper(curve);
 		if(scriptObjectWrappercurve != nullptr)
@@ -86,7 +86,7 @@ namespace b3d
 
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		SPtr<TAnimationCurve<TQuaternion<float>>> tmpcurve;
+		TShared<TAnimationCurve<TQuaternion<float>>> tmpcurve;
 		ScriptQuaternionCurve* scriptObjectWrappercurve;
 		scriptObjectWrappercurve = ScriptQuaternionCurve::GetScriptObjectWrapper(curve);
 		if(scriptObjectWrappercurve != nullptr)
@@ -101,7 +101,7 @@ namespace b3d
 
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		SPtr<TAnimationCurve<TVector3<float>>> tmpcurve;
+		TShared<TAnimationCurve<TVector3<float>>> tmpcurve;
 		ScriptVector3Curve* scriptObjectWrappercurve;
 		scriptObjectWrappercurve = ScriptVector3Curve::GetScriptObjectWrapper(curve);
 		if(scriptObjectWrappercurve != nullptr)
@@ -116,7 +116,7 @@ namespace b3d
 
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		SPtr<TAnimationCurve<float>> tmpcurve;
+		TShared<TAnimationCurve<float>> tmpcurve;
 		ScriptAnimationCurve* scriptObjectWrappercurve;
 		scriptObjectWrappercurve = ScriptAnimationCurve::GetScriptObjectWrapper(curve);
 		if(scriptObjectWrappercurve != nullptr)

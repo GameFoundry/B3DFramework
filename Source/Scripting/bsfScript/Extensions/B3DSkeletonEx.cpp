@@ -3,7 +3,7 @@
 #include "Extensions/B3DSkeletonEx.h"
 
 using namespace b3d;
-SkeletonBoneInfoEx SkeletonEx::GetBoneInfo(const SPtr<Skeleton>& thisPtr, int boneIdx)
+SkeletonBoneInfoEx SkeletonEx::GetBoneInfo(const TShared<Skeleton>& thisPtr, int boneIdx)
 {
 	const SkeletonBoneInfo& boneInfo = thisPtr->GetBoneInfo(boneIdx);
 	SkeletonBoneInfoEx boneInfoEx;

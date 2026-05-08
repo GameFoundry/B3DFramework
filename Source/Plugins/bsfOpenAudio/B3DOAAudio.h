@@ -89,9 +89,9 @@ namespace b3d
 			OAAudioSource* Source;
 		};
 
-		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc) override;
-		SPtr<IAudioListenerImplementation> CreateListener() override;
-		SPtr<IAudioSourceImplementation> CreateSource() override;
+		TShared<AudioClip> CreateClip(const TShared<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc) override;
+		TShared<IAudioListenerImplementation> CreateListener() override;
+		TShared<IAudioSourceImplementation> CreateSource() override;
 
 		/**
 		 * Delete all existing contexts and rebuild them according to the listener list. All audio sources will be rebuilt

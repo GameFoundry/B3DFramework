@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptAutoExposureSettings::ScriptAutoExposureSettings(const SPtr<AutoExposureSettings>& nativeObject)
+	ScriptAutoExposureSettings::ScriptAutoExposureSettings(const TShared<AutoExposureSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -52,7 +52,7 @@ namespace b3d
 	}
 	void ScriptAutoExposureSettings::InternalAutoExposureSettings(MonoObject* scriptObject)
 	{
-		SPtr<AutoExposureSettings> nativeObject = B3DMakeShared<AutoExposureSettings>();
+		TShared<AutoExposureSettings> nativeObject = B3DMakeShared<AutoExposureSettings>();
 		ScriptObjectWrapper::Create<ScriptAutoExposureSettings>(nativeObject, scriptObject);
 	}
 

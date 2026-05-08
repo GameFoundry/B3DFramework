@@ -66,7 +66,7 @@ namespace b3d
 			~D3D12EventQuery() override;
 
 			/** @copydoc EventQuery::Begin */
-			void Begin(const SPtr<render::GpuCommandBuffer>& commandBuffer) override;
+			void Begin(const TShared<render::GpuCommandBuffer>& commandBuffer) override;
 
 			/** @copydoc EventQuery::IsReady */
 			bool IsReady() const override;
@@ -84,10 +84,10 @@ namespace b3d
 			~D3D12TimerQuery() override;
 
 			/** @copydoc TimerQuery::Begin */
-			void Begin(const SPtr<render::GpuCommandBuffer>& commandBuffer) override;
+			void Begin(const TShared<render::GpuCommandBuffer>& commandBuffer) override;
 
 			/** @copydoc TimerQuery::End */
-			void End(const SPtr<render::GpuCommandBuffer>& commandBuffer) override;
+			void End(const TShared<render::GpuCommandBuffer>& commandBuffer) override;
 
 			/** @copydoc TimerQuery::IsReady */
 			bool IsReady() const override;
@@ -108,10 +108,10 @@ namespace b3d
 			~D3D12OcclusionQuery() override;
 
 			/** @copydoc OcclusionQuery::Begin */
-			void Begin(const SPtr<render::GpuCommandBuffer>& commandBuffer) override;
+			void Begin(const TShared<render::GpuCommandBuffer>& commandBuffer) override;
 
 			/** @copydoc OcclusionQuery::End */
-			void End(const SPtr<render::GpuCommandBuffer>& commandBuffer) override;
+			void End(const TShared<render::GpuCommandBuffer>& commandBuffer) override;
 
 			/** @copydoc OcclusionQuery::IsReady */
 			bool IsReady() const override;

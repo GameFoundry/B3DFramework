@@ -23,8 +23,8 @@ namespace b3d
 			MetalGpuCommandBufferPool(MetalGpuDevice& device, const GpuCommandBufferPoolCreateInformation& createInformation);
 			~MetalGpuCommandBufferPool() override;
 
-			SPtr<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) override;
-			SPtr<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) override;
+			TShared<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) override;
+			TShared<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) override;
 			void Reset() override {}
 			void Destroy() override;
 
@@ -40,7 +40,7 @@ namespace b3d
 
 		private:
 			u32 mNextCommandBufferId = 1;
-			UnorderedMap<u32, SPtr<GpuCommandBuffer>> mCommandBuffers;
+			UnorderedMap<u32, TShared<GpuCommandBuffer>> mCommandBuffers;
 
 			// Recycle free-list. Populated by NotifyCommandBufferReady from the completion handler, and
 			// drained by FindOrCreate. Keeping this as a Vector (LIFO) means the most recently-finished

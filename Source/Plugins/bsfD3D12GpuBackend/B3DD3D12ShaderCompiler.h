@@ -24,7 +24,7 @@ namespace b3d
 			 * @param bytecode		Output bytecode object that will be populated with compiled shader and reflection data.
 			 * @return				True if compilation was successful.
 			 */
-			static bool CompileShader(const GpuProgramCreateInformation& desc, SPtr<GpuProgramBytecode>& bytecode);
+			static bool CompileShader(const GpuProgramCreateInformation& desc, TShared<GpuProgramBytecode>& bytecode);
 
 		private:
 			/** Performs shader reflection to extract parameter descriptions and vertex inputs. */

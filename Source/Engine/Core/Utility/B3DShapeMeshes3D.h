@@ -33,7 +33,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireAaBox(const AABox& box, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void WireAaBox(const AABox& box, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing a solid axis aligned box.
@@ -55,7 +55,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidAaBox(const AABox& box, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void SolidAaBox(const AABox& box, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing an outline of a sphere.
@@ -76,7 +76,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void WireSphere(const Sphere& sphere, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing an outline of a hemisphere.
@@ -97,7 +97,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireHemisphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void WireHemisphere(const Sphere& sphere, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a sphere.
@@ -122,7 +122,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 1);
+		static void SolidSphere(const Sphere& sphere, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 1);
 
 		/**
 		 * Fills the mesh data with vertices representing an outline of an arc.
@@ -148,7 +148,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void WireArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a solid double-sided arc.
@@ -178,7 +178,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void SolidArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing an outline of a disc.
@@ -202,7 +202,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireDisc(const Vector3& center, float radius, const Vector3& normal, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void WireDisc(const Vector3& center, float radius, const Vector3& normal, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a solid double-sided disc.
@@ -227,7 +227,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidDisc(const Vector3& center, float radius, const Vector3& normal, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void SolidDisc(const Vector3& center, float radius, const Vector3& normal, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing an outline of an camera frustum. Frustum will be facing -z and be
@@ -250,7 +250,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireFrustum(const Vector3& position, float aspect, Degree FOV, float near, float far, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void WireFrustum(const Vector3& position, float aspect, Degree FOV, float near, float far, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing a wireframe cone.
@@ -275,7 +275,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void WireCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a solid cone.
@@ -304,7 +304,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void SolidCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a wireframe cylinder.
@@ -329,7 +329,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void WireCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a solid cylinder.
@@ -358,7 +358,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void SolidCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a quad (4 triangles, two sided).
@@ -380,7 +380,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidQuad(const Rect3& area, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void SolidQuad(const Rect3& area, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing a per-pixel line.
@@ -399,7 +399,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void PixelLine(const Vector3& a, const Vector3& b, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void PixelLine(const Vector3& a, const Vector3& b, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing an anti-aliased line of specific width. Antialiasing is done
@@ -424,7 +424,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void AntialiasedLine(const Vector3& a, const Vector3& b, const Vector3& up, float width, float borderWidth, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void AntialiasedLine(const Vector3& a, const Vector3& b, const Vector3& up, float width, float borderWidth, const Color& color, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing per-pixel lines.
@@ -442,7 +442,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void PixelLineList(const Vector<Vector3>& linePoints, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void PixelLineList(const Vector<Vector3>& linePoints, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing anti-aliased lines of specific width. Antialiasing is done using
@@ -466,7 +466,7 @@ namespace b3d
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void AntialiasedLineList(const Vector<Vector3>& linePoints, const Vector3& up, float width, float borderWidth, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void AntialiasedLineList(const Vector<Vector3>& linePoints, const Vector3& up, float width, float borderWidth, const Color& color, const TShared<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with position and index data representing an outline of an axis aligned box. Use

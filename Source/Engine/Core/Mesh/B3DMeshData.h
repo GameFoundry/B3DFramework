@@ -101,7 +101,7 @@ namespace b3d
 		 * Constructs a new object that can hold number of vertices described by the provided vertex data description. As
 		 * well as a number of indices of the provided type.
 		 */
-		MeshData(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, IndexType indexType = IT_32BIT);
+		MeshData(u32 vertexCount, u32 indexCount, const TShared<VertexDescription>& vertexDescription, IndexType indexType = IT_32BIT);
 		~MeshData();
 
 		/**
@@ -236,7 +236,7 @@ namespace b3d
 		u32 GetStreamSize() const;
 
 		/** Returns an object that describes data contained in a single vertex. */
-		const SPtr<VertexDescription>& GetVertexDescription() const { return mVertexDescription; }
+		const TShared<VertexDescription>& GetVertexDescription() const { return mVertexDescription; }
 
 		/**	Return the size (in bytes) of the entire buffer. */
 		u32 GetSize() const { return GetInternalBufferSize(); }
@@ -256,13 +256,13 @@ namespace b3d
 		 * @return						Combined mesh data containing all vertices and indexes references by the provided
 		 *								sub-meshes.
 		 */
-		static SPtr<MeshData> Combine(const Vector<SPtr<MeshData>>& elements, const Vector<Vector<SubMesh>>& allSubMeshes, Vector<SubMesh>& subMeshes);
+		static TShared<MeshData> Combine(const Vector<TShared<MeshData>>& elements, const Vector<Vector<SubMesh>>& allSubMeshes, Vector<SubMesh>& subMeshes);
 
 		/**
 		 * Constructs a new object that can hold number of vertices described by the provided vertex data description. As
 		 * well as a number of indices of the provided type.
 		 */
-		static SPtr<MeshData> Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, IndexType indexType = IT_32BIT)
+		static TShared<MeshData> Create(u32 vertexCount, u32 indexCount, const TShared<VertexDescription>& vertexDescription, IndexType indexType = IT_32BIT)
 		{
 			return B3DMakeShared<MeshData>(vertexCount, indexCount, vertexDescription, indexType);
 		}
@@ -303,7 +303,7 @@ namespace b3d
 		u32 mIndexCount;
 		IndexType mIndexType;
 
-		SPtr<VertexDescription> mVertexDescription;
+		TShared<VertexDescription> mVertexDescription;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

@@ -59,7 +59,7 @@ namespace b3d
 			void Initialize() override;
 
 			/** Returns the vertex input declaration from the vertex GPU program bound on the pipeline. */
-			const SPtr<VertexDescription>& GetInputDeclaration() const { return mVertexDescription; }
+			const TShared<VertexDescription>& GetInputDeclaration() const { return mVertexDescription; }
 
 			/**
 			 * Attempts to find an existing pipeline matching the provided parameters, or creates a new one if one cannot be
@@ -73,7 +73,7 @@ namespace b3d
 			 *
 			 * @note	Thread safe.
 			 */
-			VulkanPipeline* FindOrCreateVulkanResource(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput);
+			VulkanPipeline* FindOrCreateVulkanResource(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType drawOp, const TShared<VulkanVertexInput>& vertexInput);
 
 			/** Returns the pipeline layout object. */
 			VkPipelineLayout GetPipelineLayoutHandle() const { return mPipelineLayout; }
@@ -96,7 +96,7 @@ namespace b3d
 			 *
 			 * @note	Thread safe.
 			 */
-			VulkanPipeline* CreatePipeline(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType primitiveType, const SPtr<VulkanVertexInput>& vertexInput);
+			VulkanPipeline* CreatePipeline(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType primitiveType, const TShared<VulkanVertexInput>& vertexInput);
 
 			/**	Key uniquely identifying GPU pipelines. */
 			struct GpuPipelineKey
@@ -135,7 +135,7 @@ namespace b3d
 			VkPipelineDynamicStateCreateInfo mDynamicStateInfo;
 			VkDynamicState mDynamicStates[3];
 			VkGraphicsPipelineCreateInfo mPipelineInfo;
-			SPtr<VertexDescription> mVertexDescription;
+			TShared<VertexDescription> mVertexDescription;
 
 			VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
 			UnorderedMap<GpuPipelineKey, VulkanPipeline*, HashFunc, EqualFunc> mPipelines;

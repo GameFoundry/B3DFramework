@@ -144,7 +144,7 @@ namespace b3d
 		struct RenderableTransformDirty {};
 
 		/** Creates all Renderable data fragments, a world transform, and allocates a renderer ID. Entity is ready for rendering after this call. Returns the Renderable data fragment. */
-		Renderable& CreateRenderable(Registry& registry, Entity entity, const SPtr<RendererScene>& rendererScene, const Transform& transform = Transform::kIdentity);
+		Renderable& CreateRenderable(Registry& registry, Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform = Transform::kIdentity);
 
 		/** Removes all Renderable fragments. Cleanup (ID deallocation, dirty tags) is handled by the associated RendererScene when it is notified the fragment has been removed. */
 		void DestroyRenderable(Registry& registry, Entity entity);
@@ -350,16 +350,16 @@ namespace b3d
 			void UpdateAnimationBuffers(const EvaluatedAnimationData& animData);
 
 			/** Returns the GPU buffer containing element's bone matrices, if it has any. */
-			const SPtr<GpuBuffer>& GetBoneMatrixBuffer() const { return mBoneMatrixBuffer; }
+			const TShared<GpuBuffer>& GetBoneMatrixBuffer() const { return mBoneMatrixBuffer; }
 
 			/** Returns the GPU buffer containing element's bone matrices for the previous frame, if it has any. */
-			const SPtr<GpuBuffer>& GetPreviousBoneMatrixBuffer() const { return mPreviousBoneMatrixBuffer; }
+			const TShared<GpuBuffer>& GetPreviousBoneMatrixBuffer() const { return mPreviousBoneMatrixBuffer; }
 
 			/** Returns the vertex buffer containing element's morph shape vertices, if it has any. */
-			const SPtr<GpuBuffer>& GetMorphShapeBuffer() const { return mMorphShapeBuffer; }
+			const TShared<GpuBuffer>& GetMorphShapeBuffer() const { return mMorphShapeBuffer; }
 
 			/** Returns vertex declaration used for rendering meshes containing morph shape information. */
-			const SPtr<VertexDescription>& GetMorphVertexDescription() const { return mMorphVertexDescription; }
+			const TShared<VertexDescription>& GetMorphVertexDescription() const { return mMorphVertexDescription; }
 
 			/**	Returns the transform matrix that is applied to the object when its being rendered. */
 			Matrix4 GetWorldTransformMatrix() const { return mWorldTransformMatrix; }
@@ -384,10 +384,10 @@ namespace b3d
 			u64 mAnimationId = (u64)-1;
 			u32 mMorphShapeVersion = 0;
 
-			SPtr<GpuBuffer> mBoneMatrixBuffer;
-			SPtr<GpuBuffer> mPreviousBoneMatrixBuffer;
-			SPtr<GpuBuffer> mMorphShapeBuffer;
-			SPtr<VertexDescription> mMorphVertexDescription;
+			TShared<GpuBuffer> mBoneMatrixBuffer;
+			TShared<GpuBuffer> mPreviousBoneMatrixBuffer;
+			TShared<GpuBuffer> mMorphShapeBuffer;
+			TShared<VertexDescription> mMorphVertexDescription;
 
 			Transform mTransform;
 			Matrix4 mWorldTransformMatrix = kIdentityTag;

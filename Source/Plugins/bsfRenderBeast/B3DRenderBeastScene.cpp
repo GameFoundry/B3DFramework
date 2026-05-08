@@ -117,7 +117,7 @@ static u32 InitAndRetrieveBasePassVariation(Material& material, bool useForwardR
 		variationIndex = material.GetDefaultVariation();
 
 	// Make sure the variation is compiled
-	const SPtr<Variation>& variation = material.GetVariation(variationIndex);
+	const TShared<Variation>& variation = material.GetVariation(variationIndex);
 	if(variation != nullptr)
 		variation->Compile();
 
@@ -130,10 +130,10 @@ static void ValidateBasePassMaterial(Material& material, RenderableAnimType anim
 	u32 passCount = material.GetPassCount(variationIndex);
 	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 	{
-		SPtr<Pass> pass = material.GetPass(passIndex, variationIndex);
-		SPtr<GpuGraphicsPipelineState> graphicsPipeline = pass->GetGraphicsPipelineState();
+		TShared<Pass> pass = material.GetPass(passIndex, variationIndex);
+		TShared<GpuGraphicsPipelineState> graphicsPipeline = pass->GetGraphicsPipelineState();
 
-		SPtr<VertexDescription> shaderVertexDescription = graphicsPipeline->GetVertexProgram()->GetVertexInputDescription();
+		TShared<VertexDescription> shaderVertexDescription = graphicsPipeline->GetVertexProgram()->GetVertexInputDescription();
 		if(shaderVertexDescription && !VertexDescription::IsCompatibleWithShaderInputs(vertexBufferDescription, *shaderVertexDescription))
 		{
 			TInlineArray<VertexElement, 8> missingElements = VertexDescription::GetMissingElementsForShaderInput(vertexBufferDescription, *shaderVertexDescription);
@@ -198,11 +198,11 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 		renderState->PrevWorldTransform = renderState->WorldTransform;
 		renderState->PrevFrameDirtyState = PrevFrameDirtyState::Clean;
 
-		SPtr<Mesh> mesh = proxy.GetMesh();
+		TShared<Mesh> mesh = proxy.GetMesh();
 		if(mesh != nullptr)
 		{
 			const MeshProperties& meshProps = mesh->GetProperties();
-			SPtr<VertexDescription> vertexDescription = mesh->GetVertexData()->VertexDescription;
+			TShared<VertexDescription> vertexDescription = mesh->GetVertexData()->VertexDescription;
 
 			for(u32 subMeshIndex = 0; subMeshIndex < (u32)meshProps.SubMeshes.size(); subMeshIndex++)
 			{
@@ -232,7 +232,7 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 				// Determine which variation to use
 				static_assert((u32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
 
-				const SPtr<Shader>& shader = drawCommand.Material->GetShader();
+				const TShared<Shader>& shader = drawCommand.Material->GetShader();
 				ShaderFlags shaderFlags = shader->GetFlags();
 				const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
 				bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
@@ -287,7 +287,7 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 		// Prepare all parameter bindings
 		for(auto& drawCommand : renderState->DrawCommands)
 		{
-			SPtr<Shader> shader = drawCommand.Material->GetShader();
+			TShared<Shader> shader = drawCommand.Material->GetShader();
 			if(shader == nullptr)
 			{
 				B3D_LOG(Warning, LogRenderer, "Missing shader on material.");
@@ -298,7 +298,7 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 			drawCommand.SharedPerObjectParameterSet = renderState->PerObjectParameterSet;
 			drawCommand.PerObjectBufferOffset = renderState->PerObjectSuballocation.GetSuballocationOffset();
 
-			SPtr<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
+			TShared<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
 
 			// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 			// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
@@ -397,8 +397,8 @@ void RenderableObjectStorage::PrepareVisibleRenderable(PackedRendererId id, cons
 	RenderableProxy& proxy = GetRenderableProxy(id);
 
 	// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
-	SPtr<GpuBuffer> boneMatrixBuffer;
-	SPtr<GpuBuffer> previousBoneMatrixBuffer;
+	TShared<GpuBuffer> boneMatrixBuffer;
+	TShared<GpuBuffer> previousBoneMatrixBuffer;
 	bool isAnimated = false;
 	if(frameInfo.PerSceneFrameData.Animation != nullptr)
 	{
@@ -601,7 +601,7 @@ void DecalObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> id
 				if(variationIndex == ~0u)
 					variationIndex = 0;
 
-				const SPtr<Variation>& variation = drawCommand.Material->GetVariation(variationIndex);
+				const TShared<Variation>& variation = drawCommand.Material->GetVariation(variationIndex);
 				if(variation)
 					variation->Compile();
 
@@ -619,7 +619,7 @@ void DecalObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> id
 		drawCommand.SamplerOverrides = mRenderBeastScene->AllocSamplerStateOverrides(drawCommand);
 
 		// Prepare all parameter bindings
-		SPtr<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
+		TShared<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
 
 		// Allocate from the uniform buffer manager after ParameterAdapter is created
 		{
@@ -747,7 +747,7 @@ void ParticleSystemObjectStorage::CreateRenderState(TArrayView<const PackedRende
 		if(drawCommand.Material == nullptr)
 			drawCommand.Material = Material::Create(DefaultParticleMaterial::Get()->GetShader());
 
-		const SPtr<Shader> shader = drawCommand.Material->GetShader();
+		const TShared<Shader> shader = drawCommand.Material->GetShader();
 
 		const ParticleOrientation orientation = settings.Orientation;
 		const bool lockY = settings.OrientationLockY;
@@ -782,7 +782,7 @@ void ParticleSystemObjectStorage::CreateRenderState(TArrayView<const PackedRende
 		drawCommand.DefaultVariationIndex = variationIndex;
 
 		// Make sure the variation is compiled
-		const SPtr<Variation>& variation = drawCommand.Material->GetVariation(variationIndex);
+		const TShared<Variation>& variation = drawCommand.Material->GetVariation(variationIndex);
 		if(variation)
 			variation->Compile();
 
@@ -790,7 +790,7 @@ void ParticleSystemObjectStorage::CreateRenderState(TArrayView<const PackedRende
 		drawCommand.ParameterAdapter = drawCommand.Material->CreateParameterAdapter(variationIndex);
 		drawCommand.ParameterAdapter->Update(drawCommand.Material, 0.0f, true);
 
-		SPtr<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
+		TShared<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
 
 		// Allocate per-object uniform buffer
 		const bool typeChanged = renderState.PerObjectBufferAllocationHandle.IsValid() && (gpu != drawCommand.IsGpuSimulated);
@@ -1122,7 +1122,7 @@ void ReflectionProbeObjectStorage::UpdateReflectionProbes(GpuCommandBuffer& comm
 
 				if(probeRenderState.ArrayDirty || forceArrayUpdate)
 				{
-					const SPtr<Texture>& texture = mReflectionProbeProxies[probeIndex].GetFilteredTexture();
+					const TShared<Texture>& texture = mReflectionProbeProxies[probeIndex].GetFilteredTexture();
 					if(texture == nullptr)
 						continue;
 
@@ -1168,7 +1168,7 @@ void ReflectionProbeObjectStorage::UpdateReflectionProbes(GpuCommandBuffer& comm
 
 // ---- RenderBeastScene ----
 
-RenderBeastScene::RenderBeastScene(const SPtr<RenderBeastOptions>& options)
+RenderBeastScene::RenderBeastScene(const TShared<RenderBeastOptions>& options)
 	: mOptions(options)
 {
 	mRenderableStorage = B3DMakeShared<RenderableObjectStorage>();
@@ -1353,7 +1353,7 @@ void RenderBeastScene::ResetRenderableReady()
 	mRenderableReady.assign(renderableCount, false);
 }
 
-void RenderBeastScene::SetOptions(const SPtr<RenderBeastOptions>& options)
+void RenderBeastScene::SetOptions(const TShared<RenderBeastOptions>& options)
 {
 	mOptions = options;
 
@@ -1363,7 +1363,7 @@ void RenderBeastScene::SetOptions(const SPtr<RenderBeastOptions>& options)
 
 RendererViewCreateInformation RenderBeastScene::CreateViewDesc(Camera* camera) const
 {
-	SPtr<Viewport> viewport = camera->GetViewport();
+	TShared<Viewport> viewport = camera->GetViewport();
 	ClearFlags clearFlags = viewport->GetClearFlags();
 	RendererViewCreateInformation viewDesc;
 
@@ -1425,7 +1425,7 @@ RendererViewCreateInformation RenderBeastScene::CreateViewDesc(Camera* camera) c
 
 void RenderBeastScene::UpdateCameraRenderTargets(Camera* camera, bool remove)
 {
-	SPtr<RenderTarget> renderTarget = camera->GetViewport()->GetTarget();
+	TShared<RenderTarget> renderTarget = camera->GetViewport()->GetTarget();
 
 	// Remove from render target list
 	int rtChanged = 0; // 0 - No RT, 1 - RT found, 2 - RT changed
@@ -1503,7 +1503,7 @@ void RenderBeastScene::RefreshSamplerOverrides(bool force)
 	bool anyDirty = false;
 	for(auto& entry : mSamplerOverrides)
 	{
-		SPtr<MaterialParameters> materialParams = entry.first.Material->GetMaterialParameters();
+		TShared<MaterialParameters> materialParams = entry.first.Material->GetMaterialParameters();
 
 		MaterialSamplerOverrides* materialOverrides = entry.second;
 		for(u32 i = 0; i < materialOverrides->NumOverrides; i++)
@@ -1511,7 +1511,7 @@ void RenderBeastScene::RefreshSamplerOverrides(bool force)
 			SamplerOverride& override = materialOverrides->Overrides[i];
 			const MaterialParametersBase::ParamData* materialParamData = materialParams->GetParamData(override.ParamIdx);
 
-			SPtr<SamplerState> samplerState;
+			TShared<SamplerState> samplerState;
 			materialParams->GetSamplerState(*materialParamData, samplerState);
 
 			u64 hash = 0;
@@ -1554,8 +1554,8 @@ void RenderBeastScene::RefreshSamplerOverrides(bool force)
 					const u32 setCount = drawCommand.ParameterAdapter->GetSetCount(passIndex);
 					for(u32 setIndex = 0; setIndex < setCount; setIndex++)
 					{
-						const SPtr<GpuParameterSet>& parameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet(passIndex, setIndex);
-						const SPtr<GpuPipelineParameterSetLayout>& uniformLayoutSet = parameterSet->GetLayout();
+						const TShared<GpuParameterSet>& parameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet(passIndex, setIndex);
+						const TShared<GpuPipelineParameterSetLayout>& uniformLayoutSet = parameterSet->GetLayout();
 
 						const u32 samplerCount = uniformLayoutSet->GetBindingCount(GpuParameterType::Sampler);
 						for(u32 samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)
@@ -1662,7 +1662,7 @@ MaterialSamplerOverrides* RenderBeastScene::AllocSamplerStateOverrides(DrawComma
 	}
 	else
 	{
-		SPtr<Shader> shader = drawCommand.Material->GetShader();
+		TShared<Shader> shader = drawCommand.Material->GetShader();
 		MaterialSamplerOverrides* samplerOverrides = SamplerOverrideUtility::GenerateSamplerOverrides(*mGpuDevice, shader, drawCommand.Material->GetMaterialParameters(), drawCommand.ParameterAdapter, mOptions);
 
 		mSamplerOverrides[samplerKey] = samplerOverrides;

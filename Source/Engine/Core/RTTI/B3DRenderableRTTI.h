@@ -38,7 +38,7 @@ namespace b3d::ecs
 			return TID_ECSRenderable;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<Renderable>();
 		}
@@ -74,7 +74,7 @@ namespace b3d
 			return TID_Renderable;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<Renderable>();
 		}

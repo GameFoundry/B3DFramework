@@ -101,12 +101,12 @@ namespace b3d
 		 * @note	Main thread.
 		 */
 		template <class T>
-		static SPtr<T> Create(const Any& data, const SPtr<RendererScene>& scene = nullptr)
+		static TShared<T> Create(const Any& data, const TShared<RendererScene>& scene = nullptr)
 		{
 			T* extension = new(B3DAllocate<T>()) T();
 			QueueInitializeOnRenderThread(extension, data, scene);
 
-			return SPtr<T>(extension, &RendererExtension::QueueDeleteOnRenderThread);
+			return TShared<T>(extension, &RendererExtension::QueueDeleteOnRenderThread);
 		}
 
 		/** Called when the renderer extension is first initialized. */
@@ -156,7 +156,7 @@ namespace b3d
 
 	private:
 		/** Initializer that triggers when a renderer extension is first constructed. */
-		static void QueueInitializeOnRenderThread(RendererExtension* extension, const Any& data, const SPtr<RendererScene>& scene);
+		static void QueueInitializeOnRenderThread(RendererExtension* extension, const Any& data, const TShared<RendererScene>& scene);
 
 		/** Deleter that triggers when a renderer extension object goes out of scope. */
 		static void QueueDeleteOnRenderThread(RendererExtension* extension);

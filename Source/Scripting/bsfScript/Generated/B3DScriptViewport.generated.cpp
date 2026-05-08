@@ -13,7 +13,7 @@
 
 namespace b3d
 {
-	ScriptViewport::ScriptViewport(const SPtr<Viewport>& nativeObject)
+	ScriptViewport::ScriptViewport(const TShared<Viewport>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -58,7 +58,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<RenderTarget> tmptarget;
+		TShared<RenderTarget> tmptarget;
 		ScriptRenderTargetWrapperBase* scriptObjectWrappertarget;
 		scriptObjectWrappertarget = (ScriptRenderTargetWrapperBase*)ScriptRenderTarget::GetScriptObjectWrapper(target);
 		if(scriptObjectWrappertarget != nullptr)
@@ -68,7 +68,7 @@ namespace b3d
 
 	MonoObject* ScriptViewport::InternalGetTarget(ScriptViewport* self)
 	{
-		SPtr<RenderTarget> tmp__output;
+		TShared<RenderTarget> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -206,12 +206,12 @@ namespace b3d
 
 	void ScriptViewport::InternalCreate(MonoObject* scriptObject, MonoObject* target, float x, float y, float width, float height)
 	{
-		SPtr<RenderTarget> tmptarget;
+		TShared<RenderTarget> tmptarget;
 		ScriptRenderTargetWrapperBase* scriptObjectWrappertarget;
 		scriptObjectWrappertarget = (ScriptRenderTargetWrapperBase*)ScriptRenderTarget::GetScriptObjectWrapper(target);
 		if(scriptObjectWrappertarget != nullptr)
 			tmptarget = std::static_pointer_cast<RenderTarget>(scriptObjectWrappertarget->GetBaseNativeObjectAsShared());
-		SPtr<Viewport> nativeObject = Viewport::Create(tmptarget, x, y, width, height);
+		TShared<Viewport> nativeObject = Viewport::Create(tmptarget, x, y, width, height);
 		ScriptObjectWrapper::Create<ScriptViewport>(nativeObject, scriptObject);
 	}
 }

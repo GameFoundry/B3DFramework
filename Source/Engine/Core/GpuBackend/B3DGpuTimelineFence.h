@@ -36,7 +36,7 @@ namespace b3d
 	/** Timeline fence and value to signal. */
 	struct GpuTimelineFenceAndValue
 	{
-		SPtr<GpuTimelineFence> Fence;
+		TShared<GpuTimelineFence> Fence;
 		u64 Value = 0;
 	};
 

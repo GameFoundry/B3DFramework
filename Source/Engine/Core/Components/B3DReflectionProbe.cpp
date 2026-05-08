@@ -18,7 +18,7 @@ using namespace b3d;
 
 // ECS free functions
 
-ecs::ReflectionProbe& ecs::CreateReflectionProbe(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene, const Transform& transform)
+ecs::ReflectionProbe& ecs::CreateReflectionProbe(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform)
 {
 	ecs::ReflectionProbeECSUtility::CreateFragmentsIfMissing(registry, entity);
 	registry.AddComponent<ecs::WorldTransform>(entity, ecs::WorldTransform(transform));
@@ -215,14 +215,14 @@ void ReflectionProbe::SetCustomTexture(const HTexture& texture)
 
 	if(texture != nullptr)
 	{
-		const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+		const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 		ReflectionProbeUtility::Filter(*GetECSRegistry(), GetECSEntity(), rendererScene);
 	}
 }
 
 void ReflectionProbe::Capture()
 {
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 	ReflectionProbeUtility::Capture(*GetECSRegistry(), GetECSEntity(), rendererScene);
 }
 
@@ -240,7 +240,7 @@ void ReflectionProbe::MarkRenderProxyDataDirty(ComponentDirtyFlag flag)
 
 // ReflectionProbeUtility
 
-void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene)
+void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene)
 {
 	ecs::ReflectionProbe& fragment = registry.GetComponents<ecs::ReflectionProbe>(entity);
 	RendererId probeId = registry.HasAllOf<ecs::ReflectionProbeId>(entity)
@@ -261,15 +261,15 @@ void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Enti
 
 	fragment.FilteredTexture = Texture::CreateShared(cubemapDesc);
 
-	SPtr<render::Texture> textureRenderProxy = B3DGetRenderProxy(fragment.FilteredTexture);
-	const SPtr<render::RendererScene> renderSceneProxy = B3DGetRenderProxy(rendererScene);
+	TShared<render::Texture> textureRenderProxy = B3DGetRenderProxy(fragment.FilteredTexture);
+	const TShared<render::RendererScene> renderSceneProxy = B3DGetRenderProxy(rendererScene);
 
-	SPtr<render::RendererTask> task;
+	TShared<render::RendererTask> task;
 	if(fragment.CustomTexture == nullptr)
 	{
 		auto fnRenderReflectionProbe = [textureRenderProxy, renderSceneProxy, probeId](render::GpuCommandBufferPool& commandBufferPool)
 		{
-			const SPtr<ReflectionProbeObjectStorageBase>& reflProbeStorage = renderSceneProxy->GetReflectionProbeStorage();
+			const TShared<ReflectionProbeObjectStorageBase>& reflProbeStorage = renderSceneProxy->GetReflectionProbeStorage();
 			PackedRendererId packedId = reflProbeStorage->GetPackedRendererId(probeId);
 			if(packedId == kInvalidPackedRendererId)
 				return true;
@@ -278,8 +278,8 @@ void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Enti
 			float probeRadius = proxy.GetType() == ReflectionProbeType::Sphere ? proxy.GetRadius() : proxy.GetExtents().Length();
 			Vector3 probePosition = proxy.GetWorldTransform().GetPosition();
 
-			const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("RenderAndFilterReflectionProbe"));
-			SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
+			const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("RenderAndFilterReflectionProbe"));
+			TShared<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 			commandBufferProfiler->BeginSample(*commandBuffer, "RenderAndFilterReflectionProbe");
 
@@ -297,7 +297,7 @@ void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Enti
 
 			GetGpuProfiler().ResolveProfileWhenReady("RenderAndFilterReflectionProbe", commandBufferProfiler);
 
-			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+			const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			gpuDevice->SubmitCommandBuffer(commandBuffer);
 
 			return true;
@@ -307,11 +307,11 @@ void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Enti
 	}
 	else
 	{
-		SPtr<render::Texture> customTextureRenderProxy = B3DGetRenderProxy(fragment.CustomTexture);
+		TShared<render::Texture> customTextureRenderProxy = B3DGetRenderProxy(fragment.CustomTexture);
 		auto fnFilterReflectionProbe = [customTextureRenderProxy, textureRenderProxy, renderSceneProxy, probeId](render::GpuCommandBufferPool& commandBufferPool)
 		{
-			const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("FilterReflectionProbe"));
-			SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
+			const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("FilterReflectionProbe"));
+			TShared<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 			commandBufferProfiler->BeginSample(*commandBuffer, "FilterReflectionProbe");
 
@@ -324,7 +324,7 @@ void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Enti
 
 			GetGpuProfiler().ResolveProfileWhenReady("FilterReflectionProbe", commandBufferProfiler);
 
-			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+			const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			gpuDevice->SubmitCommandBuffer(commandBuffer);
 
 			return true;
@@ -338,7 +338,7 @@ void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Enti
 }
 
 void ReflectionProbeUtility::Capture(ecs::Registry& registry, ecs::Entity entity,
-	const SPtr<RendererScene>& rendererScene)
+	const TShared<RendererScene>& rendererScene)
 {
 	ecs::ReflectionProbe& fragment = registry.GetComponents<ecs::ReflectionProbe>(entity);
 	if(fragment.CustomTexture != nullptr)
@@ -348,7 +348,7 @@ void ReflectionProbeUtility::Capture(ecs::Registry& registry, ecs::Entity entity
 }
 
 void ReflectionProbeUtility::Filter(ecs::Registry& registry, ecs::Entity entity,
-	const SPtr<RendererScene>& rendererScene)
+	const TShared<RendererScene>& rendererScene)
 {
 	ecs::ReflectionProbe& fragment = registry.GetComponents<ecs::ReflectionProbe>(entity);
 	if(fragment.CustomTexture == nullptr)
@@ -387,7 +387,7 @@ void ReflectionProbe::OnEnabled()
 {
 	ecs::Registry* registry = GetECSRegistry();
 	ecs::Entity entity = GetECSEntity();
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 	ecs::ReflectionProbeECSUtility::RegisterWithRenderer(*registry, entity, rendererScene);
 
 	ecs::ReflectionProbe& fragment = GetFragment();
@@ -411,7 +411,7 @@ void ReflectionProbe::OnDisabled()
 		fragment.PendingTask = nullptr;
 	}
 
-	const SPtr<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
+	const TShared<RendererScene>& rendererScene = SceneObject()->GetScene()->GetRendererScene();
 	ecs::ReflectionProbeECSUtility::UnregisterFromRenderer(*GetECSRegistry(), GetECSEntity(), rendererScene);
 }
 
@@ -459,7 +459,7 @@ void ReflectionProbeObjectStorageBase::SyncWrite(void* rawData, FrameAllocator& 
 	ReflectionProbeSyncBatch::Write(*this, rawData, allocator);
 }
 
-void ReflectionProbeObjectStorageBase::UpdateFilteredTexture(RendererId probeId, const SPtr<render::Texture>& texture)
+void ReflectionProbeObjectStorageBase::UpdateFilteredTexture(RendererId probeId, const TShared<render::Texture>& texture)
 {
 	PackedRendererId packedId = GetPackedRendererId(probeId);
 	if(packedId == kInvalidPackedRendererId)

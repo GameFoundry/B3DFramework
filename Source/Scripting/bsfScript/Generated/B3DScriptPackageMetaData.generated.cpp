@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptPackageMetaData::ScriptPackageMetaData(const SPtr<PackageMetaData>& nativeObject)
+	ScriptPackageMetaData::ScriptPackageMetaData(const TShared<PackageMetaData>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

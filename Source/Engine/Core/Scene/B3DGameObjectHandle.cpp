@@ -8,11 +8,11 @@
 
 using namespace b3d;
 
-GameObjectHandle::GameObjectHandle(const SPtr<GameObject>& object)
+GameObjectHandle::GameObjectHandle(const TShared<GameObject>& object)
 {
 	B3D_ASSERT(object != nullptr);
 
-	const SPtr<GameObjectInstanceData>& instanceData = object->GetInstanceData();
+	const TShared<GameObjectInstanceData>& instanceData = object->GetInstanceData();
 	const UUID id = object->GetId();
 
 	B3D_ASSERT(instanceData != nullptr);
@@ -28,12 +28,12 @@ bool GameObjectHandle::IsDestroyed(bool checkQueued) const
 		(checkQueued && mSharedHandleData->InstanceData->Object->HasGameObjectFlag(GameObjectTransientFlag::QueuedForDestroy));
 }
 
-void GameObjectHandle::SetObjectInstanceData(const SPtr<GameObject>& object)
+void GameObjectHandle::SetObjectInstanceData(const TShared<GameObject>& object)
 {
 	B3D_ASSERT(mSharedHandleData != nullptr);
 	B3D_ASSERT(object != nullptr);
 
-	const SPtr<GameObjectInstanceData>& instanceData = object->GetInstanceData();
+	const TShared<GameObjectInstanceData>& instanceData = object->GetInstanceData();
 	const UUID id = object->GetId();
 
 	B3D_ASSERT(instanceData != nullptr);

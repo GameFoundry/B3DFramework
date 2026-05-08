@@ -41,11 +41,11 @@ static bool TryAcquirePackageLockForResourceLoad(const Path& resourcePath, const
 	if(!B3D_ENSURE(lockResult == AcquirePackageLockResult::Acquired && outReadLock != nullptr))
 		return false;
 
-	const SPtr<Package>& package = outReadLock->GetPackage();
+	const TShared<Package>& package = outReadLock->GetPackage();
 	if(!B3D_ENSURE(package != nullptr))
 		return nullptr;
 
-	const SPtr<const PackageResourceMetaData>& resourceMetaData = package->GetResourceMetaData(resourcePackagePath.ResourcePathWithinPackage);
+	const TShared<const PackageResourceMetaData>& resourceMetaData = package->GetResourceMetaData(resourcePackagePath.ResourcePathWithinPackage);
 	if(resourceMetaData == nullptr)
 		return false;
 
@@ -166,8 +166,8 @@ bool Resources::Exists(const UUID& resourceId) const
 
 HResource Resources::LoadFromPackage(UPtr<PackageReadLock> packageReadLock, const UUID& resourceId, const ResourceLoadOptions& loadOptions)
 {
-	const SPtr<Package>& package = packageReadLock->GetPackage();
-	const SPtr<const PackageResourceMetaData>& metaData = package->GetResourceMetaData(resourceId);
+	const TShared<Package>& package = packageReadLock->GetPackage();
+	const TShared<const PackageResourceMetaData>& metaData = package->GetResourceMetaData(resourceId);
 
 	if(metaData == nullptr)
 	{
@@ -177,7 +177,7 @@ HResource Resources::LoadFromPackage(UPtr<PackageReadLock> packageReadLock, cons
 
 	HResource resourceHandle = GetOrCreateResourceHandle(resourceId);
 
-	SPtr<InProgressLoadInformation> inProgressLoadInformation;
+	TShared<InProgressLoadInformation> inProgressLoadInformation;
 	{
 		Lock lock(mLoadedResourceMutex);
 
@@ -251,11 +251,11 @@ HResource Resources::LoadFromPackage(UPtr<PackageReadLock> packageReadLock, cons
 
 	auto fnLoadFromPackageAndFinalize = [this, inProgressLoadInformationWeak = WeakSPtr<InProgressLoadInformation>(inProgressLoadInformation), package, resourceId]()
 	{
-		const SPtr<InProgressLoadInformation> inProgressLoadInformation = inProgressLoadInformationWeak.lock();
+		const TShared<InProgressLoadInformation> inProgressLoadInformation = inProgressLoadInformationWeak.lock();
 		if(!B3D_ENSURE(inProgressLoadInformation != nullptr))
 			return;
 
-		const SPtr<Resource> resource = package->DeserializeResource(resourceId);
+		const TShared<Resource> resource = package->DeserializeResource(resourceId);
 
 		{
 			Lock lock(mLoadedResourceMutex);
@@ -295,11 +295,11 @@ HResource Resources::LoadFromPackage(UPtr<PackageReadLock> packageReadLock, cons
 	return resourceHandle;
 }
 
-void Resources::TryFinalizeLoad(const SPtr<InProgressLoadInformation>& inProgressLoadInformation)
+void Resources::TryFinalizeLoad(const TShared<InProgressLoadInformation>& inProgressLoadInformation)
 {
 	const UUID& resourceId = inProgressLoadInformation->ResourceHandle.GetId();
 
-	TInlineArray<SPtr<InProgressLoadInformation>, 4> dependantLoads;
+	TInlineArray<TShared<InProgressLoadInformation>, 4> dependantLoads;
 	{
 		Lock lock(mLoadedResourceMutex);
 
@@ -313,7 +313,7 @@ void Resources::TryFinalizeLoad(const SPtr<InProgressLoadInformation>& inProgres
 		// Remove from in-progress map
 		if(auto found = mInProgressLoadInformation.find(resourceId); B3D_ENSURE(found != mInProgressLoadInformation.end()))
 		{
-			TInlineArray<SPtr<InProgressLoadInformation>, 1>& loadsPerResource = found->second;
+			TInlineArray<TShared<InProgressLoadInformation>, 1>& loadsPerResource = found->second;
 			for(auto it = loadsPerResource.begin(); it != loadsPerResource.end(); ++it)
 			{
 				if((*it) == inProgressLoadInformation)
@@ -498,7 +498,7 @@ void Resources::Destroy(ResourceHandleData& handleData)
 			if(lockResult != AcquirePackageLockResult::Acquired || packageReadLock == nullptr)
 				return;
 
-			const SPtr<Package>& package = packageReadLock->GetPackage();
+			const TShared<Package>& package = packageReadLock->GetPackage();
 			if(!B3D_ENSURE(package != nullptr))
 				return;
 
@@ -542,7 +542,7 @@ void Resources::SaveAsSinglePackage(const HResource& resource, const Path& folde
 	const String& packageFilename = name + Package::kPackageExtension;
 	const Path packagePath = Path::Combine(folder, packageFilename);
 
-	const SPtr<Package> package = Package::Create(name);
+	const TShared<Package> package = Package::Create(name);
 	package->AddResource(name, resource);
 
 	PackageManagerSavePackageOptions packageSaveOptions;
@@ -554,7 +554,7 @@ void Resources::SaveAsSinglePackage(const HResource& resource, const Path& folde
 	packageManager.SavePackage(package, packagePath, packageSaveOptions);
 }
 
-void Resources::UpdateHandle(HResource& handle, const SPtr<Resource>& resource)
+void Resources::UpdateHandle(HResource& handle, const TShared<Resource>& resource)
 {
 	const UUID& uuid = handle.GetId();
 	handle.AssociateResourceWithHandle(resource, uuid);
@@ -580,7 +580,7 @@ void Resources::UpdateResourcesFromPackage(const UPtr<PackageWriteLock>& package
 	if(!B3D_ENSURE(packageWriteLock != nullptr))
 		return;
 
-	const SPtr<Package>& package = packageWriteLock->GetPackage();
+	const TShared<Package>& package = packageWriteLock->GetPackage();
 	if(package == nullptr)
 		return;
 
@@ -601,7 +601,7 @@ void Resources::UpdateResourcesFromPackage(const UPtr<PackageWriteLock>& package
 			continue;
 		}
 
-		const SPtr<Resource> resource = package->LoadResource(resourceId);
+		const TShared<Resource> resource = package->LoadResource(resourceId);
 		if(resource == nullptr)
 		{
 			B3D_LOG(Warning, LogResources, "Failed to update resource '{0}' with new data from the package. Unknown error.", resourceId);
@@ -666,7 +666,7 @@ void Resources::GetLoadProgressRecursive(const HResource& resource, UnorderedMap
 		if(lockResult != AcquirePackageLockResult::Acquired || packageReadLock == nullptr)
 			return LoadProgress();
 
-		const SPtr<Package>& package = packageReadLock->GetPackage();
+		const TShared<Package>& package = packageReadLock->GetPackage();
 		if(!B3D_ENSURE(package != nullptr))
 			return LoadProgress();
 
@@ -685,8 +685,8 @@ void Resources::GetLoadProgressRecursive(const HResource& resource, UnorderedMap
 
 		if(const auto found = mInProgressLoadInformation.find(resourceId); found != mInProgressLoadInformation.end())
 		{
-			const TInlineArray<SPtr<InProgressLoadInformation>, 1>& inProgressLoadsPerResource = found->second;
-			for(const SPtr<InProgressLoadInformation>& entry : inProgressLoadsPerResource)
+			const TInlineArray<TShared<InProgressLoadInformation>, 1>& inProgressLoadsPerResource = found->second;
+			for(const TShared<InProgressLoadInformation>& entry : inProgressLoadsPerResource)
 			{
 				if(!B3D_ENSURE(entry != nullptr))
 					continue;
@@ -711,7 +711,7 @@ void Resources::GetLoadProgressRecursive(const HResource& resource, UnorderedMap
 	loadProgressMap[resourceId] = selfLoadProgress;
 }
 
-HResource Resources::CreateResourceHandle(const SPtr<Resource>& resource)
+HResource Resources::CreateResourceHandle(const TShared<Resource>& resource)
 {
 	if(resource == nullptr)
 		return nullptr;
@@ -720,7 +720,7 @@ HResource Resources::CreateResourceHandle(const SPtr<Resource>& resource)
 	return CreateResourceHandle(resource, uuid);
 }
 
-HResource Resources::CreateResourceHandle(const SPtr<Resource>& resource, const UUID& resourceId)
+HResource Resources::CreateResourceHandle(const TShared<Resource>& resource, const UUID& resourceId)
 {
 	HResource newHandle(resource, resourceId);
 

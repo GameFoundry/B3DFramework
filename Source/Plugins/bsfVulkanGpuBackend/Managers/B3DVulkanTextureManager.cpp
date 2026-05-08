@@ -31,7 +31,7 @@ const static DummyTexFormat DummyTexTypes[] = {
 	{ TEX_TYPE_CUBE_MAP, 2, 2, 2, 1 }
 };
 
-SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureImpl(const RenderTextureCreateInformation& desc)
+TShared<RenderTexture> VulkanTextureManager::CreateRenderTextureImpl(const RenderTextureCreateInformation& desc)
 {
 	VulkanRenderTexture* tex = new(B3DAllocate<VulkanRenderTexture>()) VulkanRenderTexture(desc);
 
@@ -57,7 +57,7 @@ void VulkanTextureManager::OnStartUp()
 	int idx = 0;
 	for(auto& entry : DummyTexTypes)
 	{
-		SPtr<PixelData> pixelData = PixelData::Create(entry.Width, entry.Height, entry.Depth, PF_RGBA8);
+		TShared<PixelData> pixelData = PixelData::Create(entry.Width, entry.Height, entry.Depth, PF_RGBA8);
 
 		for(int depth = 0; depth < entry.Depth; depth++)
 			for(int height = 0; height < entry.Height; height++)
@@ -173,9 +173,9 @@ VkFormat VulkanTextureManager::GetDummyViewFormat(GpuBufferFormat format)
 	}
 }
 
-SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureInternal(const RenderTextureCreateInformation& desc)
+TShared<RenderTexture> VulkanTextureManager::CreateRenderTextureInternal(const RenderTextureCreateInformation& desc)
 {
-	SPtr<VulkanRenderTexture> texPtr = B3DMakeShared<VulkanRenderTexture>(static_cast<VulkanGpuDevice&>(*GetApplication().GetPrimaryGpuDevice()), desc);
+	TShared<VulkanRenderTexture> texPtr = B3DMakeShared<VulkanRenderTexture>(static_cast<VulkanGpuDevice&>(*GetApplication().GetPrimaryGpuDevice()), desc);
 	texPtr->SetShared(texPtr);
 
 	return texPtr;

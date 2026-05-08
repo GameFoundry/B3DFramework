@@ -10,8 +10,8 @@ In this chapter we'll show how to manually bind a render target for rendering, a
 Use @b3d::render::GpuCommandBuffer::BeginRenderPass to bind a render target for rendering. This begins a render pass, which must be closed with @b3d::render::GpuCommandBuffer::EndRenderPass.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderTarget> target = ...; // Create a RenderTexture or RenderWindow as described in earlier chapters
-SPtr<GpuCommandBuffer> commandBuffer = ...; // Obtain a command buffer from a command buffer pool
+TShared<RenderTarget> target = ...; // Create a RenderTexture or RenderWindow as described in earlier chapters
+TShared<GpuCommandBuffer> commandBuffer = ...; // Obtain a command buffer from a command buffer pool
 
 RenderPassCreateInformation renderPassInfo(target);
 commandBuffer->BeginRenderPass(renderPassInfo);
@@ -45,8 +45,8 @@ commandBuffer->BeginRenderPass(renderPassInfo);
 When beginning a render pass you should declare all @b3d::GpuParameterSet objects that will be used during the pass. This is done through the `Parameters` field of @b3d::RenderPassCreateInformation. The render backend uses this information to transition resources (textures, buffers) into the correct layout and insert any necessary pipeline barriers before the render pass starts.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuParameterSet> materialParams = ...;
-SPtr<GpuParameterSet> lightingParams = ...;
+TShared<GpuParameterSet> materialParams = ...;
+TShared<GpuParameterSet> lightingParams = ...;
 
 RenderPassCreateInformation renderPassInfo(target);
 renderPassInfo.Parameters.Add(materialParams);
@@ -90,8 +90,8 @@ If a render target is a **RenderWindow** you must present the back buffer after 
 You can present a render window by calling @b3d::GpuDevice::PresentRenderWindow or @b3d::GpuQueue::PresentRenderWindow on a specific queue. The GPU device can be accessed through the command buffer via @b3d::render::GpuCommandBuffer::GetGpuDevice.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderWindow> window = ...; // Create a render window
-SPtr<GpuCommandBuffer> commandBuffer = ...; // Obtain a command buffer
+TShared<RenderWindow> window = ...; // Create a render window
+TShared<GpuCommandBuffer> commandBuffer = ...; // Obtain a command buffer
 
 RenderPassCreateInformation renderPassInfo(window);
 commandBuffer->BeginRenderPass(renderPassInfo);

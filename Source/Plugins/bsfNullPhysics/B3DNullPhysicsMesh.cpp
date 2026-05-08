@@ -11,11 +11,11 @@ NullPhysicsMeshImplementation::NullPhysicsMeshImplementation()
 	: mMeshData(nullptr)
 {}
 
-NullPhysicsMeshImplementation::NullPhysicsMeshImplementation(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+NullPhysicsMeshImplementation::NullPhysicsMeshImplementation(const TShared<MeshData>& meshData, PhysicsMeshType type)
 	: mMeshData(meshData)
 {}
 
-SPtr<MeshData> NullPhysicsMeshImplementation::GetMeshData() const
+TShared<MeshData> NullPhysicsMeshImplementation::GetMeshData() const
 {
 	if (mMeshData)
 		return mMeshData;
@@ -23,7 +23,7 @@ SPtr<MeshData> NullPhysicsMeshImplementation::GetMeshData() const
 	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-	SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
+	TShared<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
 	return MeshData::Create(0, 0, vertexDesc);
 }
 

@@ -12,7 +12,7 @@ Note that after you change any of the properties in **RenderSettings** you must 
 HCamera camera = ...;
 
 // Tweak the render settings by disabling some effects
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 renderSettings->ScreenSpaceReflections.Enabled = false;
 renderSettings->AmbientOcclusion.Enabled = false;
 renderSettings->EnableIndirectLighting = false;
@@ -30,7 +30,7 @@ Before the image is output to the screen it goes through the process called tone
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable HDR and tonemapping
 renderSettings->EnableHdr = true;
@@ -54,7 +54,7 @@ By default the system will calculate the exposure automatically, based on how th
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable automatic exposure
 renderSettings->EnableAutoExposure = true;
@@ -74,7 +74,7 @@ Automatic exposure can be disabled through @b3d::RenderSettings::EnableAutoExpos
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Disable automatic exposure and set manual exposure
 renderSettings->EnableAutoExposure = false;
@@ -95,7 +95,7 @@ By default the real-world lighting is assumed to be a room lit by daylight, but 
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Customize white balance settings
 renderSettings->WhiteBalance.Temperature = 6500.0f;
@@ -114,7 +114,7 @@ The relevant options are present in @b3d::RenderSettings::ColorGrading.
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Customize color grading settings
 renderSettings->ColorGrading.Saturation = Vector3(1.2f, 1.2f, 1.2f);
@@ -135,7 +135,7 @@ You can control and toggle the effect through @b3d::RenderSettings::ScreenSpaceR
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable and customize screen space reflections
 renderSettings->ScreenSpaceReflections.Enabled = true;
@@ -156,7 +156,7 @@ You can control and toggle the effect through @b3d::RenderSettings::AmbientOcclu
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable and customize ambient occlusion
 renderSettings->AmbientOcclusion.Enabled = true;
@@ -179,7 +179,7 @@ Depth of field options can be tweaked through @b3d::RenderSettings::DepthOfField
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable and customize depth of field with Gaussian blur
 renderSettings->DepthOfField.Enabled = true;
@@ -198,7 +198,7 @@ For more advanced depth of field effects, you can use the Bokeh type which allow
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable Bokeh depth of field
 renderSettings->DepthOfField.Enabled = true;
@@ -224,7 +224,7 @@ Motion blur options can be tweaked through @b3d::RenderSettings::MotionBlur.
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable and customize motion blur
 renderSettings->MotionBlur.Enabled = true;
@@ -243,7 +243,7 @@ Temporal anti-aliasing options can be tweaked through @b3d::RenderSettings::Temp
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable and customize temporal anti-aliasing
 renderSettings->TemporalAa.Enabled = true;
@@ -260,7 +260,7 @@ It can be toggled through @b3d::RenderSettings::EnableFxaa.
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable FXAA
 renderSettings->EnableFxaa = true;
@@ -281,7 +281,7 @@ Controlled through @b3d::RenderSettings::Gamma.
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Set gamma value
 renderSettings->Gamma = 2.2f;
@@ -294,7 +294,7 @@ Shadow rendering for a specific view can be completely disabled through @b3d::Re
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable shadows and customize settings
 renderSettings->EnableShadows = true;
@@ -311,7 +311,7 @@ Indirect lighting provided by **LightProbeVolume** can be fully disabled for a v
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable or disable indirect lighting
 renderSettings->EnableIndirectLighting = true;
@@ -329,7 +329,7 @@ You can enable/disable, as well as tweak the effect through @b3d::RenderSettings
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable and customize bloom
 renderSettings->Bloom.Enabled = true;
@@ -347,7 +347,7 @@ This effect simulates lens flare artifacts that occur in real-world cameras when
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable and customize lens flare
 renderSettings->ScreenSpaceLensFlare.Enabled = true;
@@ -367,7 +367,7 @@ Chromatic aberration simulates the lens distortion effect where colors are separ
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable and customize chromatic aberration
 renderSettings->ChromaticAberration.Enabled = true;
@@ -382,7 +382,7 @@ Film grain adds a time-varying noise effect over the entire image, simulating th
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 // Enable and customize film grain
 renderSettings->FilmGrain.Enabled = true;
@@ -399,7 +399,7 @@ Scene lighting can be completely disabled through @b3d::RenderSettings::EnableLi
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 renderSettings->EnableLighting = true;
 
@@ -411,7 +411,7 @@ The camera can be configured to use the skybox for rendering the background thro
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 renderSettings->EnableSkybox = true;
 
@@ -423,7 +423,7 @@ The cull distance determines at what distance objects will no longer be rendered
 
 ~~~~~~~~~~~~~{.cpp}
 HCamera camera = ...;
-SPtr<RenderSettings> renderSettings = camera->GetRenderSettings();
+TShared<RenderSettings> renderSettings = camera->GetRenderSettings();
 
 renderSettings->CullDistance = 500.0f;
 

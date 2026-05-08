@@ -27,7 +27,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FloatDistribution")
 
-		ScriptFloatDistribution(const SPtr<TDistribution<float>>& nativeObject);
+		ScriptFloatDistribution(const TShared<TDistribution<float>>& nativeObject);
 		~ScriptFloatDistribution();
 
 		static void SetupScriptBindings();
@@ -54,7 +54,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector3Distribution")
 
-		ScriptVector3Distribution(const SPtr<TDistribution<TVector3<float>>>& nativeObject);
+		ScriptVector3Distribution(const TShared<TDistribution<TVector3<float>>>& nativeObject);
 		~ScriptVector3Distribution();
 
 		static void SetupScriptBindings();
@@ -81,7 +81,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector2Distribution")
 
-		ScriptVector2Distribution(const SPtr<TDistribution<TVector2<float>>>& nativeObject);
+		ScriptVector2Distribution(const TShared<TDistribution<TVector2<float>>>& nativeObject);
 		~ScriptVector2Distribution();
 
 		static void SetupScriptBindings();

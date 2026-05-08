@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptSkeleton::ScriptSkeleton(const SPtr<Skeleton>& nativeObject)
+	ScriptSkeleton::ScriptSkeleton(const TShared<Skeleton>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

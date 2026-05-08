@@ -20,7 +20,7 @@ namespace b3d
 		GUIStyleSheetLexer();
 
 		/** Starts scanning the provided code. Calling this method starts (or restarts scanning). Returns true if the scanning started successfully. */
-		bool StartScanning(const SPtr<SourceCode>& sourceCode);
+		bool StartScanning(const TShared<SourceCode>& sourceCode);
 
 		/**
 		 * Returns the current token and advances to the next token. EndOfStream token will be returned once end of stream has been reached. 
@@ -122,7 +122,7 @@ namespace b3d
 		/** Records an error message that the current character doesn't match @p expectedCharacter and returns null. */
 		TOptional<Token> ErrorUnexpected(char expectedCharacter);
 
-		SPtr<SourceCode> mSourceCode;
+		TShared<SourceCode> mSourceCode;
 		char mCurrentCharacter = 0;
 		SourceCodePosition mCurrentPosition;
 		String mErrors;

@@ -17,16 +17,16 @@ namespace b3d
 	{
 	public:
 		/** Register a test suite. */
-		void RegisterSuite(const SPtr<TestSuite>& suite);
+		void RegisterSuite(const TShared<TestSuite>& suite);
 
 		/** Get all registered suites. */
-		const Vector<SPtr<TestSuite>>& GetSuites() const { return mSuites; }
+		const Vector<TShared<TestSuite>>& GetSuites() const { return mSuites; }
 
 		/** Clear all registered suites. */
 		void Clear() { mSuites.clear(); }
 
 	private:
-		Vector<SPtr<TestSuite>> mSuites;
+		Vector<TShared<TestSuite>> mSuites;
 	};
 
 	/** @} */

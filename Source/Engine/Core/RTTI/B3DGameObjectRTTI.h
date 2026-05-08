@@ -21,7 +21,7 @@ namespace b3d
 	/**	Provides temporary storage for data used during GameObject deserialization. */
 	struct GODeserializationData
 	{
-		SPtr<GameObject> Ptr;
+		TShared<GameObject> Ptr;
 	};
 
 	class B3D_EXPORT GameObjectRTTI : public TRTTIType<GameObject, IReflectable, GameObjectRTTI>
@@ -44,7 +44,7 @@ namespace b3d
 				if(object.mRTTIData.Empty())
 					return;
 
-				SPtr<GameObject> gameObjectPtr = AnyCast<SPtr<GameObject>>(object.mRTTIData);
+				TShared<GameObject> gameObjectPtr = AnyCast<TShared<GameObject>>(object.mRTTIData);
 
 				// Every GameObject must store GODeserializationData in its RTTI data field during deserialization
 				object.mRTTIData = GODeserializationData();
@@ -66,7 +66,7 @@ namespace b3d
 			return TID_GameObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 			return nullptr;

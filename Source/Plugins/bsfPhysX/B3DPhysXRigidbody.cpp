@@ -276,7 +276,7 @@ void PhysXRigidbody::UpdateMassDistribution(bool autoMassEnabled)
 	}
 }
 
-void PhysXRigidbody::AttachShape(const SPtr<ColliderShape>& shape)
+void PhysXRigidbody::AttachShape(const TShared<ColliderShape>& shape)
 {
 	if(!B3D_ENSURE(shape != nullptr))
 		return;
@@ -285,7 +285,7 @@ void PhysXRigidbody::AttachShape(const SPtr<ColliderShape>& shape)
 	mPxRigidDynamic->attachShape(*physxShape.GetPxShape());
 }
 
-void PhysXRigidbody::DetachShape(const SPtr<ColliderShape>& shape)
+void PhysXRigidbody::DetachShape(const TShared<ColliderShape>& shape)
 {
 	if(!B3D_ENSURE(shape != nullptr))
 		return;

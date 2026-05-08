@@ -81,10 +81,10 @@ namespace b3d
 		 *									maintaining state or sharing information between objects during serialization.
 		 * @param	flags					Flags used for controlling serialization.
 		 */
-		void Encode(IReflectable* object, const SPtr<DataStream>& stream, RTTIOperationContext& context, BinarySerializerFlags flags = BinarySerializerFlag::None);
+		void Encode(IReflectable* object, const TShared<DataStream>& stream, RTTIOperationContext& context, BinarySerializerFlags flags = BinarySerializerFlag::None);
 
-		/** Overload of Encode(IReflectable*, const SPtr<DataStream>&, BinarySerializerFlags, RTTIOperationContext&) that uses default constructed context. */
-		void Encode(IReflectable* object, const SPtr<DataStream>& stream, BinarySerializerFlags flags = BinarySerializerFlag::None);
+		/** Overload of Encode(IReflectable*, const TShared<DataStream>&, BinarySerializerFlags, RTTIOperationContext&) that uses default constructed context. */
+		void Encode(IReflectable* object, const TShared<DataStream>& stream, BinarySerializerFlags flags = BinarySerializerFlag::None);
 
 		/**
 		 * Decodes an object from binary data.
@@ -103,13 +103,13 @@ namespace b3d
 		 * @note
 		 * Child elements are guaranteed to be fully deserialized before their parents, except for fields marked with WeakRef flag.
 		 */
-		SPtr<IReflectable> Decode(const SPtr<DataStream>& stream, u32 dataLength, RTTIOperationContext& context, BinarySerializerFlags flags = BinarySerializerFlag::None, Function<void(float)> progress = nullptr, SPtr<RTTISchema> schema = nullptr);
+		TShared<IReflectable> Decode(const TShared<DataStream>& stream, u32 dataLength, RTTIOperationContext& context, BinarySerializerFlags flags = BinarySerializerFlag::None, Function<void(float)> progress = nullptr, TShared<RTTISchema> schema = nullptr);
 
 		/**
-		 * Overload of Decode(const SPtr<DataStream>&, u32, RTTIOperationContext, BinarySerializerFlags, Function<void(float)>, SPtr<RTTISchema>) that uses
+		 * Overload of Decode(const TShared<DataStream>&, u32, RTTIOperationContext, BinarySerializerFlags, Function<void(float)>, TShared<RTTISchema>) that uses
 		 * default constructed context.
 		 */
-		SPtr<IReflectable> Decode(const SPtr<DataStream>& stream, u32 dataLength, BinarySerializerFlags flags = BinarySerializerFlag::None, std::function<void(float)> progress = nullptr, SPtr<RTTISchema> schema = nullptr);
+		TShared<IReflectable> Decode(const TShared<DataStream>& stream, u32 dataLength, BinarySerializerFlags flags = BinarySerializerFlag::None, std::function<void(float)> progress = nullptr, TShared<RTTISchema> schema = nullptr);
 	private:
 		/** Determines how many bytes need to be read before the progress report callback is triggered. */
 		static constexpr u32 kReportAfterBytes = 32768;

@@ -51,7 +51,7 @@ namespace b3d
 	class B3D_EXPORT ShaderManager : public Module<ShaderManager>
 	{
 	public:
-		ShaderManager(const SPtr<IShaderIncludeHandler>& handler) { mIncludeHandler = handler; }
+		ShaderManager(const TShared<IShaderIncludeHandler>& handler) { mIncludeHandler = handler; }
 
 		/** @copydoc IShaderIncludeHandler::FindInclude */
 		HShaderInclude FindInclude(const String& name) const;
@@ -60,13 +60,13 @@ namespace b3d
 		TOptional<String> FindIncludeSource(const String& name) const;
 
 		/** Changes the active include handler that determines how is a shader include name mapped to the actual resource. */
-		void SetIncludeHandler(const SPtr<IShaderIncludeHandler>& handler) { mIncludeHandler = handler; }
+		void SetIncludeHandler(const TShared<IShaderIncludeHandler>& handler) { mIncludeHandler = handler; }
 
 		/** Registers a path in which to look for shader include files, along the default places. */
 		void AddSearchPath(const Path& path);
 
 	private:
-		SPtr<IShaderIncludeHandler> mIncludeHandler;
+		TShared<IShaderIncludeHandler> mIncludeHandler;
 	};
 
 	/** @} */

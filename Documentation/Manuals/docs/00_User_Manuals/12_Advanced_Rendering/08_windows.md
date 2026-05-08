@@ -16,7 +16,7 @@ createInformation.Fullscreen = false;
 createInformation.Title = "Helper window";
 
 // Creates a new non-fullscreen window with size 1280x720, at the center of the screen
-SPtr<RenderWindow> helperWindow = RenderWindow::Create(createInformation);
+TShared<RenderWindow> helperWindow = RenderWindow::Create(createInformation);
 ~~~~~~~~~~~~~
 
 # Destroying windows
@@ -91,7 +91,7 @@ You can create your own **VideoMode** with custom parameters (as we did so far),
 
 An example on how to use the video mode enumeration to set a window to fullscreen mode using the user's desktop resolution of the primary monitor:
 ~~~~~~~~~~~~~{.cpp}
-const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 const VideoModeInfo& videoModeInfo = gpuDevice->GetVideoModeInfo();
 const VideoOutputInfo& primaryMonitorInfo = videoModeInfo.GetOutputInfo(0); // 0th monitor is always primary
 
@@ -100,7 +100,7 @@ helperWindow->SetFullscreen(primaryMonitorInfo.GetDesktopVideoMode());
 
 An example to make a window fullscreen on a secondary monitor if one is available:
 ~~~~~~~~~~~~~{.cpp}
-const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 const VideoModeInfo& videoModeInfo = gpuDevice->GetVideoModeInfo();
 
 u32 outputCount = videoModeInfo.GetOutputCount();
@@ -113,7 +113,7 @@ if(outputCount > 1)
 
 And an example how to enumerate and print all available resolutions on the primary monitor:
 ~~~~~~~~~~~~~{.cpp}
-const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 const VideoModeInfo& videoModeInfo = gpuDevice->GetVideoModeInfo();
 const VideoOutputInfo& primaryMonitorInfo = videoModeInfo.GetOutputInfo(0);
 

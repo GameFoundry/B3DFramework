@@ -54,10 +54,10 @@ namespace b3d
 			ShadowDepthNormalMaterial() = default;
 
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameterSet>& gpuParameters);
+			void Bind(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters);
 
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
-			static void PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
+			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -88,10 +88,10 @@ namespace b3d
 			ShadowDepthNormalNoPSMaterial() = default;
 
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameterSet>& gpuParameters);
+			void Bind(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters);
 
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
-			static void PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
+			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -122,10 +122,10 @@ namespace b3d
 			ShadowDepthDirectionalMaterial() = default;
 
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameterSet>& gpuParameters);
+			void Bind(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters);
 
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
-			static void PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
+			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -168,10 +168,10 @@ namespace b3d
 			ShadowDepthCubeMaterial() = default;
 
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuParameterSet>& gpuParameters);
+			void Bind(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters);
 
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
-			static void PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& shadowCubeMatrices, const GpuBufferSuballocation& shadowCubeMasks);
+			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& shadowCubeMatrices, const GpuBufferSuballocation& shadowCubeMasks);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -224,7 +224,7 @@ namespace b3d
 		/** Common parameters used by the shadow projection materials. */
 		struct ShadowProjectParams
 		{
-			ShadowProjectParams(const LightProxy& light, const SPtr<Texture>& shadowMap, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& perCameraParams, GBufferTextures gbuffer)
+			ShadowProjectParams(const LightProxy& light, const TShared<Texture>& shadowMap, const TShared<GpuBuffer>& shadowParams, const TShared<GpuBuffer>& perCameraParams, GBufferTextures gbuffer)
 				: Light(light), ShadowMap(shadowMap), ShadowParams(shadowParams), PerCamera(perCameraParams), Gbuffer(gbuffer)
 			{}
 
@@ -232,13 +232,13 @@ namespace b3d
 			const LightProxy& Light;
 
 			/** Texture containing the shadow map. */
-			const SPtr<Texture>& ShadowMap;
+			const TShared<Texture>& ShadowMap;
 
 			/** Uniform buffer containing parameters specific for shadow projection. */
-			const SPtr<GpuBuffer> ShadowParams;
+			const TShared<GpuBuffer> ShadowParams;
 
 			/** Uniform buffer containing parameters specific to this view. */
-			const SPtr<GpuBuffer>& PerCamera;
+			const TShared<GpuBuffer>& PerCamera;
 
 			/** Contains the GBuffer textures. */
 			GBufferTextures Gbuffer;
@@ -290,7 +290,7 @@ namespace b3d
 			static ShadowProjectMaterial* GetVariation(u32 quality, bool directional, bool MSAA);
 
 			/** Returns the sampler state used for shadow sampling. */
-			static SPtr<SamplerState> GetShadowSampler(GpuDevice& gpuDevice);
+			static TShared<SamplerState> GetShadowSampler(GpuDevice& gpuDevice);
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(ShadowProjectOmniUniformDefinition)
@@ -336,7 +336,7 @@ namespace b3d
 			static ShadowProjectOmniMaterial* GetVariation(u32 quality, bool inside, bool MSAA);
 
 			/** Returns the sampler state used for shadow cubemap sampling. */
-			static SPtr<SamplerState> GetShadowSampler(GpuDevice& gpuDevice);
+			static TShared<SamplerState> GetShadowSampler(GpuDevice& gpuDevice);
 		};
 
 		/** Pixel format used for rendering and storing shadow maps. */
@@ -404,13 +404,13 @@ namespace b3d
 			u32 GetLastUsedCounter() const { return mLastUsedCounter; }
 
 			/** Returns the bindable atlas texture. */
-			SPtr<Texture> GetTexture() const;
+			TShared<Texture> GetTexture() const;
 
 			/** Returns the render target that allows you to render into the atlas. */
-			SPtr<RenderTexture> GetTarget() const;
+			TShared<RenderTexture> GetTarget() const;
 
 		private:
-			SPtr<PooledRenderTexture> mAtlas;
+			TShared<PooledRenderTexture> mAtlas;
 
 			StaticTextureAtlasLayout mLayout;
 			u32 mLastUsedCounter;
@@ -425,7 +425,7 @@ namespace b3d
 			virtual ~ShadowMapBase() {}
 
 			/** Returns the bindable shadow map texture. */
-			SPtr<Texture> GetTexture() const;
+			TShared<Texture> GetTexture() const;
 
 			/** Returns the size of a single face of the shadow map texture, in pixels. */
 			u32 GetSize() const { return mSize; }
@@ -454,7 +454,7 @@ namespace b3d
 			u32 GetLastUsedCounter() const { return mLastUsedCounter; }
 
 		protected:
-			SPtr<PooledRenderTexture> mShadowMap;
+			TShared<PooledRenderTexture> mShadowMap;
 			u32 mSize;
 
 			bool mIsUsed;
@@ -468,7 +468,7 @@ namespace b3d
 			ShadowCubemap(u32 size);
 
 			/** Returns a render target encompassing all six faces of the shadow cubemap. */
-			SPtr<RenderTexture> GetTarget() const;
+			TShared<RenderTexture> GetTarget() const;
 		};
 
 		/** Contains a texture required for rendering cascaded shadow maps. */
@@ -481,7 +481,7 @@ namespace b3d
 			u32 GetNumCascades() const { return mNumCascades; }
 
 			/** Returns a render target that allows rendering into a specific cascade of the cascaded shadow map. */
-			SPtr<RenderTexture> GetTarget(u32 cascadeIdx) const;
+			TShared<RenderTexture> GetTarget(u32 cascadeIdx) const;
 
 			/** Provides information about a shadow for the specified cascade. */
 			void SetShadowInfo(u32 cascadeIdx, const ShadowInfo& info) { mShadowInfos[cascadeIdx] = info; }
@@ -491,7 +491,7 @@ namespace b3d
 
 		private:
 			u32 mNumCascades;
-			Vector<SPtr<RenderTexture>> mTargets;
+			Vector<TShared<RenderTexture>> mTargets;
 			Vector<ShadowInfo> mShadowInfos;
 		};
 
@@ -525,8 +525,8 @@ namespace b3d
 			{
 				const ShadowInfo* ShadowInfo; /**< Note this will be invalidated if any new shadows are rendered via RenderShadowMaps(). */
 
-				SPtr<GpuParameterSet> PrimaryGpuParameters;
-				SPtr<GpuParameterSet> StencilGpuParameters;
+				TShared<GpuParameterSet> PrimaryGpuParameters;
+				TShared<GpuParameterSet> StencilGpuParameters;
 
 				u32 ShadowQuality;
 				bool IsViewerInsideLightVolume;
@@ -566,7 +566,7 @@ namespace b3d
 			void SetShadowMapSize(u32 size);
 
 			/** Gets or creates a shadow parameter set for the given per-object buffer. */
-			SPtr<GpuParameterSet> GetOrCreateCubemapShadowParameterSet(const SPtr<GpuBuffer>& perObjectBuffer);
+			TShared<GpuParameterSet> GetOrCreateCubemapShadowParameterSet(const TShared<GpuBuffer>& perObjectBuffer);
 
 		private:
 			/** Renders cascaded shadow maps for the provided directional light viewed from the provided view. */
@@ -693,26 +693,26 @@ namespace b3d
 			Vector<LocalLightShadows> mRadialLightShadows; /**< Maps a radial light in RenderBeastScene to zero or multiple ShadowInformation structures. */
 			Vector<PerViewLightShadows> mDirectionalLightShadows; /**< Maps a directional in RenderBeastScene to zero or multiple ShadowInformation structures. */
 
-			SPtr<VertexDescription> mPositionOnlyVertexDescription;
+			TShared<VertexDescription> mPositionOnlyVertexDescription;
 
 			// Mesh information used for drawing near & far planes
-			mutable SPtr<GpuBuffer> mPlaneIB;
-			mutable SPtr<GpuBuffer> mPlaneVB;
+			mutable TShared<GpuBuffer> mPlaneIB;
+			mutable TShared<GpuBuffer> mPlaneVB;
 
 			// Mesh information used for drawing a shadow frustum
-			mutable SPtr<GpuBuffer> mFrustumIB;
-			mutable SPtr<GpuBuffer> mFrustumVB;
+			mutable TShared<GpuBuffer> mFrustumIB;
+			mutable TShared<GpuBuffer> mFrustumVB;
 
 			Vector<bool> mRenderableVisibility; // Transient
 			Vector<ShadowMapOptions> mSpotLightShadowOptions; // Transient
 			Vector<ShadowMapOptions> mRadialLightShadowOptions; // Transient
 
 			// Shadow-specific per-object parameter set management (V+F+G stages for geometry shader support)
-			SPtr<GpuPipelineParameterSetLayout> mCubemapShadowPerObjectLayout;
+			TShared<GpuPipelineParameterSetLayout> mCubemapShadowPerObjectLayout;
 
 			struct CubemapShadowParameterSetEntry
 			{
-				SPtr<GpuParameterSet> ParameterSet;
+				TShared<GpuParameterSet> ParameterSet;
 				u32 RefCount = 0;
 			};
 

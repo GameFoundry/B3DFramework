@@ -26,7 +26,7 @@ static UUID GetPrefabOrInstanceId(const GameObjectHandle& object, bool returnPre
 	return object.GetId();
 }
 
-SceneObjectHierarchyDeltaObject::SceneObjectHierarchyDeltaObject(const HComponent& component, const SPtr<SerializedObject>& data)
+SceneObjectHierarchyDeltaObject::SceneObjectHierarchyDeltaObject(const HComponent& component, const TShared<SerializedObject>& data)
 {
 	Id = component.GetId();
 	ParentId = component->SceneObject().GetId();
@@ -35,7 +35,7 @@ SceneObjectHierarchyDeltaObject::SceneObjectHierarchyDeltaObject(const HComponen
 	Flags.Set(GameObjectDeltaFlag::ComponentDelta);
 }
 
-SceneObjectHierarchyDeltaObject::SceneObjectHierarchyDeltaObject(const HSceneObject& sceneObject, const SPtr<SerializedObject>& data)
+SceneObjectHierarchyDeltaObject::SceneObjectHierarchyDeltaObject(const HSceneObject& sceneObject, const TShared<SerializedObject>& data)
 {
 	Id = sceneObject.GetId();
 	ParentId = sceneObject->GetParent().IsValid() ? sceneObject->GetParent().GetId() : UUID::kEmpty;
@@ -55,7 +55,7 @@ RTTIType* SceneObjectHierarchyDeltaObject::GetRtti() const
 	return GetRttiStatic();
 }
 
-SPtr<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneObject& original, const HSceneObject& modified, SceneObjectHierarchyDeltaFlags flags)
+TShared<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneObject& original, const HSceneObject& modified, SceneObjectHierarchyDeltaFlags flags)
 {
 	if(original->GetPrefabResourceId() != modified->GetPrefabResourceId())
 	{
@@ -73,7 +73,7 @@ SPtr<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneOb
 			rttiOperationContext.GameObjectIdRemapping[pair.first] = pair.second.PrefabObjectId;
 	}
 
-	SPtr<SceneObjectHierarchyDelta> output = B3DMakeShared<SceneObjectHierarchyDelta>();
+	TShared<SceneObjectHierarchyDelta> output = B3DMakeShared<SceneObjectHierarchyDelta>();
 	GenerateHierarchyDelta(original, modified, rttiOperationContext, flags, output);
 
 	return output;
@@ -81,7 +81,7 @@ SPtr<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneOb
 
 void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectHierarchyDeltaFlags flags)
 {
-	const SPtr<GameObjectCollection> gameObjectCollection = original->GetOwnerCollection().lock();
+	const TShared<GameObjectCollection> gameObjectCollection = original->GetOwnerCollection().lock();
 	if(!B3D_ENSURE(gameObjectCollection != nullptr))
 		return;
 
@@ -122,11 +122,11 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 		if(!B3D_ENSURE(found != Objects.end() && found->second != nullptr))
 			continue;
 
-		const SPtr<SceneObjectHierarchyDeltaObject> deltaObject = found->second;
+		const TShared<SceneObjectHierarchyDeltaObject> deltaObject = found->second;
 		if(!B3D_ENSURE(deltaObject->Data != nullptr))
 			continue;
 
-		const SPtr<SceneObject> newSceneObject = B3DRTTICast<SceneObject>(deltaObject->Data->Decode(rttiOperationContext));
+		const TShared<SceneObject> newSceneObject = B3DRTTICast<SceneObject>(deltaObject->Data->Decode(rttiOperationContext));
 		if(!B3D_ENSURE(newSceneObject != nullptr))
 			continue;
 
@@ -156,7 +156,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 		if(!B3D_ENSURE(found != Objects.end() && found->second != nullptr))
 			continue;
 
-		const SPtr<SceneObjectHierarchyDeltaObject> deltaObject = found->second;
+		const TShared<SceneObjectHierarchyDeltaObject> deltaObject = found->second;
 		if(!B3D_ENSURE(deltaObject->Data != nullptr))
 			continue;
 
@@ -164,7 +164,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 		if(!B3D_ENSURE(parentSceneObject.IsValid()))
 			continue;
 
-		const SPtr<Component> newComponent = B3DRTTICast<Component>(deltaObject->Data->Decode(rttiOperationContext));
+		const TShared<Component> newComponent = B3DRTTICast<Component>(deltaObject->Data->Decode(rttiOperationContext));
 		if(!B3D_ENSURE(newComponent != nullptr))
 			continue;
 
@@ -176,7 +176,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 	// Once all the objects are created, apply all changes
 	for(const auto& entry : Objects)
 	{
-		const SPtr<SceneObjectHierarchyDeltaObject> deltaObject = entry.second;
+		const TShared<SceneObjectHierarchyDeltaObject> deltaObject = entry.second;
 		if(!B3D_ENSURE(deltaObject != nullptr))
 			continue;
 
@@ -276,7 +276,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 	rttiOperationContext.GameObjectCollection->EndHandleResolve();
 }
 
-void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
+void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, TShared<SceneObjectHierarchyDelta>& outDelta)
 {
 	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 
@@ -286,7 +286,7 @@ void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& origi
 	if(!isOriginalValid && !isModifiedValid)
 		return;
 
-	const SPtr<GameObjectCollection> modifiedGameObjectCollection = isModifiedValid ? modified->GetOwnerCollection().lock() : nullptr;
+	const TShared<GameObjectCollection> modifiedGameObjectCollection = isModifiedValid ? modified->GetOwnerCollection().lock() : nullptr;
 	const UnorderedMap<UUID, UUID> modifiedPrefabToInstanceIdMap = isPrefabDelta ? PrefabUtility::GetPrefabToInstanceIdMap(modified, true) : UnorderedMap<UUID, UUID>();
 
 	auto fnFindModifiedAndRemovedChildren =
@@ -311,7 +311,7 @@ void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& origi
 		}
 	};
 
-	const SPtr<GameObjectCollection> originalGameObjectCollection = isOriginalValid ? original->GetOwnerCollection().lock() : nullptr;
+	const TShared<GameObjectCollection> originalGameObjectCollection = isOriginalValid ? original->GetOwnerCollection().lock() : nullptr;
 
 	auto fnFindAddedChildren =
 		[isModifiedValid, originalGameObjectCollection, isPrefabDelta, context, flags, outDelta](const HSceneObject& modified, auto& fnFindAddedChildren) mutable -> void {
@@ -337,7 +337,7 @@ void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& origi
 	fnFindAddedChildren(modified, fnFindAddedChildren);
 }
 
-bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, bool ignoreParent, SPtr<SceneObjectHierarchyDelta>& outDelta)
+bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, bool ignoreParent, TShared<SceneObjectHierarchyDelta>& outDelta)
 {
 	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 	const bool isOriginalValid = original.IsValid();
@@ -368,8 +368,8 @@ bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& ori
 
 	if(!isOriginalValid)
 	{
-		SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modified, SerializedObjectEncodeFlag::IsDeltaCopy);
-		SPtr<SceneObjectHierarchyDeltaObject> sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modified, serializedModified);
+		TShared<SerializedObject> serializedModified = SerializedObject::Create(*modified, SerializedObjectEncodeFlag::IsDeltaCopy);
+		TShared<SceneObjectHierarchyDeltaObject> sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modified, serializedModified);
 		fnEnsureOutputObjectIsValid();
 
 		const auto result = outDelta->Objects.insert(std::make_pair(sceneDeltaObject->Id, sceneDeltaObject));
@@ -379,13 +379,13 @@ bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& ori
 	else
 	{
 		// Convert to serialized object first, because non-native delta handler only supports this
-		const SPtr<SerializedObject> serializedOriginal = SerializedObject::Create(*original, SerializedObjectEncodeFlag::IsDeltaCopy);
-		const SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modified, SerializedObjectEncodeFlag::IsDeltaCopy);
+		const TShared<SerializedObject> serializedOriginal = SerializedObject::Create(*original, SerializedObjectEncodeFlag::IsDeltaCopy);
+		const TShared<SerializedObject> serializedModified = SerializedObject::Create(*modified, SerializedObjectEncodeFlag::IsDeltaCopy);
 
 		IDeltaHandler& deltaHandler = original->GetRtti()->GetDeltaHandler();
-		SPtr<SerializedObject> delta = deltaHandler.GenerateDelta(serializedOriginal, serializedModified, context);
+		TShared<SerializedObject> delta = deltaHandler.GenerateDelta(serializedOriginal, serializedModified, context);
 
-		SPtr<SceneObjectHierarchyDeltaObject> sceneDeltaObject;
+		TShared<SceneObjectHierarchyDeltaObject> sceneDeltaObject;
 		if(delta != nullptr)
 		{
 			sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modified, delta);
@@ -419,7 +419,7 @@ bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& ori
 	return true;
 }
 
-void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
+void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, TShared<SceneObjectHierarchyDelta>& outDelta)
 {
 	if(!B3D_ENSURE(modified.IsValid()))
 		return;
@@ -451,15 +451,15 @@ void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& origi
 			if(originalComponent.GetId() == modifiedComponentId)
 			{
 				// Convert to serialized object first, because non-native delta handler only supports this
-				const SPtr<SerializedObject> serializedOriginal = SerializedObject::Create(*originalComponent, SerializedObjectEncodeFlag::IsDeltaCopy);
-				const SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modifiedComponent, SerializedObjectEncodeFlag::IsDeltaCopy);
+				const TShared<SerializedObject> serializedOriginal = SerializedObject::Create(*originalComponent, SerializedObjectEncodeFlag::IsDeltaCopy);
+				const TShared<SerializedObject> serializedModified = SerializedObject::Create(*modifiedComponent, SerializedObjectEncodeFlag::IsDeltaCopy);
 
 				IDeltaHandler& deltaHandler = originalComponent->GetRtti()->GetDeltaHandler();
-				SPtr<SerializedObject> delta = deltaHandler.GenerateDelta(serializedOriginal, serializedModified, context);
+				TShared<SerializedObject> delta = deltaHandler.GenerateDelta(serializedOriginal, serializedModified, context);
 
 				if(delta != nullptr)
 				{
-					SPtr<SceneObjectHierarchyDeltaObject> sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modifiedComponent, delta);
+					TShared<SceneObjectHierarchyDeltaObject> sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modifiedComponent, delta);
 					fnEnsureOutputObjectIsValid();
 
 					const auto result = outDelta->Objects.insert(std::make_pair(sceneDeltaObject->Id, sceneDeltaObject));
@@ -498,8 +498,8 @@ void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& origi
 
 		if(!foundMatch)
 		{
-			SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modifiedComponent, SerializedObjectEncodeFlag::IsDeltaCopy);
-			SPtr<SceneObjectHierarchyDeltaObject> sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modifiedComponent, serializedModified);
+			TShared<SerializedObject> serializedModified = SerializedObject::Create(*modifiedComponent, SerializedObjectEncodeFlag::IsDeltaCopy);
+			TShared<SceneObjectHierarchyDeltaObject> sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modifiedComponent, serializedModified);
 			fnEnsureOutputObjectIsValid();
 
 			const auto result = outDelta->Objects.insert(std::make_pair(sceneDeltaObject->Id, sceneDeltaObject));

@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleOrbit")
 
-		ScriptParticleOrbit(const SPtr<ParticleOrbit>& nativeObject);
+		ScriptParticleOrbit(const TShared<ParticleOrbit>& nativeObject);
 		~ScriptParticleOrbit();
 
 		static void SetupScriptBindings();

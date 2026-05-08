@@ -48,13 +48,13 @@ namespace b3d
 		auto tmpCollider = vecCollider;
 		for(int i = 0; i < 2; ++i)
 			output.Collider[i] = tmpCollider[i];
-		SPtr<ColliderShape> vecColliderShapes[2];
+		TShared<ColliderShape> vecColliderShapes[2];
 		if(value.ColliderShapes != nullptr)
 		{
 			ScriptArray scriptArrayColliderShapes(value.ColliderShapes);
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayColliderShapes.Size(); elementIndex++)
 			{
-				SPtr<ColliderShape> arrayElementPointerColliderShapes;
+				TShared<ColliderShape> arrayElementPointerColliderShapes;
 				ScriptColliderShape* scriptObjectWrapperColliderShapes;
 				scriptObjectWrapperColliderShapes = ScriptColliderShape::GetScriptObjectWrapper(scriptArrayColliderShapes.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrapperColliderShapes != nullptr)
@@ -102,7 +102,7 @@ namespace b3d
 		ScriptArray scriptArrayColliderShapes = ScriptArray::Create<ScriptColliderShape>(elementCountColliderShapes);
 		for(int elementIndex = 0; elementIndex < elementCountColliderShapes; elementIndex++)
 		{
-			SPtr<ColliderShape> arrayElementPointerColliderShapes = value.ColliderShapes[elementIndex];
+			TShared<ColliderShape> arrayElementPointerColliderShapes = value.ColliderShapes[elementIndex];
 			MonoObject* arrayElementColliderShapes;
 			arrayElementColliderShapes = ScriptColliderShape::GetOrCreateScriptObject(arrayElementPointerColliderShapes);
 			scriptArrayColliderShapes.Set(elementIndex, arrayElementColliderShapes);

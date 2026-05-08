@@ -99,7 +99,7 @@ void GpuCommandBufferProfiler::Reset(render::GpuCommandBuffer& commandBuffer)
 
 void GpuCommandBufferProfiler::ConvertToResultSample(const Sample& sample, GpuProfilerSample& reportSample)
 {
-	const SPtr<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
 	const u64 beginTimestamp = sample.TimestampQueryPool->GetQueryResult(sample.TimestampBeginQueryId);
 	const u64 endTimestamp = sample.TimestampQueryPool->GetQueryResult(sample.TimestampEndQueryId);
 
@@ -195,11 +195,11 @@ void GpuProfiler::Update()
 		for(u32 reverseIndex = 0; reverseIndex < unresolvedProfilerData.Queued.Size();)
 		{
 			const u32 index = (u32)unresolvedProfilerData.Queued.Size() - 1 - reverseIndex;
-			SPtr<GpuCommandBufferProfiler>& unresolvedCommandBufferProfiler = unresolvedProfilerData.Queued[index];
+			TShared<GpuCommandBufferProfiler>& unresolvedCommandBufferProfiler = unresolvedProfilerData.Queued[index];
 			if(unresolvedCommandBufferProfiler->mTimestampQueryPool == nullptr || previousEntryWasResolved)
 			{
 				auto it = unresolvedProfilerData.Queued.Begin() + index;
-				SPtr<GpuCommandBufferProfiler> profiler = *it;
+				TShared<GpuCommandBufferProfiler> profiler = *it;
 				unresolvedProfilerData.Queued.Erase(it);
 
 				profiler->Clear();
@@ -222,13 +222,13 @@ void GpuProfiler::Update()
 	}
 }
 
-SPtr<GpuCommandBufferProfiler> GpuProfiler::CreateCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer)
+TShared<GpuCommandBufferProfiler> GpuProfiler::CreateCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer)
 {
 	Lock lock(mMutex);
 
 	if(!mFreeCommandBufferProfilers.Empty())
 	{
-		SPtr<GpuCommandBufferProfiler> commandBufferProfiler = mFreeCommandBufferProfilers.Back();
+		TShared<GpuCommandBufferProfiler> commandBufferProfiler = mFreeCommandBufferProfilers.Back();
 		mFreeCommandBufferProfilers.Pop();
 
 		commandBufferProfiler->Reset(commandBuffer);
@@ -238,7 +238,7 @@ SPtr<GpuCommandBufferProfiler> GpuProfiler::CreateCommandBufferProfiler(render::
 	return B3DMakeShared<GpuCommandBufferProfiler>(commandBuffer);
 }
 
-void GpuProfiler::ResolveProfileWhenReady(const ProfilerString& name, const SPtr<GpuCommandBufferProfiler>& profiler)
+void GpuProfiler::ResolveProfileWhenReady(const ProfilerString& name, const TShared<GpuCommandBufferProfiler>& profiler)
 {
 	Lock lock(mMutex);
 
@@ -255,7 +255,7 @@ void GpuProfiler::ResolveProfileWhenReady(const ProfilerString& name, const SPtr
 	if(profilerData.Queued.Size() == kMaxQueuedEntries)
 	{
 		auto it = profilerData.Queued.Begin();
-		SPtr<GpuCommandBufferProfiler> existingProfiler = *it;
+		TShared<GpuCommandBufferProfiler> existingProfiler = *it;
 		profilerData.Queued.Erase(profilerData.Queued.Begin());
 
 		existingProfiler->Clear();
@@ -270,7 +270,7 @@ TOptional<GpuProfilerResults> GpuProfiler::GetResults(const ProfilerString& name
 	if(auto found = mResolvedProfilerData.find(name); found != mResolvedProfilerData.end())
 	{
 		ResolvedCommandBufferProfilerData resolvedProfilerData = std::move(found->second);
-		SPtr<GpuCommandBufferProfiler> profiler = resolvedProfilerData.LastResolved;
+		TShared<GpuCommandBufferProfiler> profiler = resolvedProfilerData.LastResolved;
 		GpuProfilerResults results = resolvedProfilerData.LastResolved->GetResults();
 
 		mResolvedProfilerData.erase(found);
@@ -284,19 +284,19 @@ TOptional<GpuProfilerResults> GpuProfiler::GetResults(const ProfilerString& name
 	return std::nullopt;
 }
 
-SPtr<render::GpuQueryPool> GpuProfiler::FindOrCreateQueryPool() const
+TShared<render::GpuQueryPool> GpuProfiler::FindOrCreateQueryPool() const
 {
 	// Note: mMutex must be locked here
 
 	if(!mFreeTimestampQueryPools.Empty())
 	{
-		SPtr<render::GpuQueryPool> queryPool = mFreeTimestampQueryPools.back();
+		TShared<render::GpuQueryPool> queryPool = mFreeTimestampQueryPools.back();
 		mFreeTimestampQueryPools.Pop();
 
 		return queryPool;
 	}
 
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if(gpuDevice == nullptr)
 		return nullptr;
 
@@ -307,7 +307,7 @@ SPtr<render::GpuQueryPool> GpuProfiler::FindOrCreateQueryPool() const
 	return gpuDevice->CreateQueryPool(createInformation);
 }
 
-void GpuProfiler::ReleaseQueryPool(const SPtr<render::GpuQueryPool>& queryPool)
+void GpuProfiler::ReleaseQueryPool(const TShared<render::GpuQueryPool>& queryPool)
 {
 	// Note: mMutex must be locked here
 

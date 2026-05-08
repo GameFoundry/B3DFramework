@@ -103,7 +103,7 @@ namespace b3d
 			return TID_FontBitmapPage;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<FontBitmapPage>();
 		}
@@ -133,7 +133,7 @@ namespace b3d
 			return TID_FontBitmapInformation;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<FontBitmapInformation>();
 		}
@@ -145,7 +145,7 @@ namespace b3d
 	{
 	private:
 		Vector<FontBitmapPage> mBakedPages;
-		UnorderedMap<float, SPtr<FontBitmapInformation>> mCharactersByPointSize;
+		UnorderedMap<float, TShared<FontBitmapInformation>> mCharactersByPointSize;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_NAMED(RenderMode, mInformation.RenderMode, 2)
@@ -154,13 +154,13 @@ namespace b3d
 			B3D_RTTI_GENERATED_MEMBER_CONTAINER(mBakedPages, 6)
 		B3D_RTTI_END_MEMBERS
 
-		SPtr<DataStream> GetFontData(Font* obj, u32& outSize)
+		TShared<DataStream> GetFontData(Font* obj, u32& outSize)
 		{
 			outSize = obj->mInformation.FontData != nullptr ? (u32)obj->mInformation.FontData->Size() : 0;
 			return obj->mInformation.FontData;
 		}
 
-		void SetFontData(Font* obj, const SPtr<DataStream>& value, u32 size)
+		void SetFontData(Font* obj, const TShared<DataStream>& value, u32 size)
 		{
 			if(value == nullptr)
 				obj->mInformation.FontData = nullptr;
@@ -191,7 +191,7 @@ namespace b3d
 			return TID_Font;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return Font::CreateEmpty();
 		}
@@ -222,11 +222,11 @@ namespace b3d
 
 				for(const auto& bitmapPair : object.mCharactersByPointSize)
 				{
-					const SPtr<FontBitmapInformation>& bitmapInformation = bitmapPair.second;
+					const TShared<FontBitmapInformation>& bitmapInformation = bitmapPair.second;
 					if(!B3D_ENSURE(bitmapInformation != nullptr))
 						continue;
 
-					SPtr<FontBitmapInformation> bitmapInformationCopy = B3DMakeShared<FontBitmapInformation>();
+					TShared<FontBitmapInformation> bitmapInformationCopy = B3DMakeShared<FontBitmapInformation>();
 					*bitmapInformationCopy = *bitmapInformation;
 					bitmapInformationCopy->Characters.clear();
 

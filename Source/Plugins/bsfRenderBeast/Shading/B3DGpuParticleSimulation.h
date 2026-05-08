@@ -66,10 +66,10 @@ namespace b3d
 			bool FreeInactiveTiles(GpuParticleResources& resources);
 
 			/** Returns a buffer containing UV coordinates to which each of the allocate tiles map to. */
-			SPtr<GpuBuffer> GetTileUVs() const { return mTileUVs; }
+			TShared<GpuBuffer> GetTileUVs() const { return mTileUVs; }
 
 			/** Returns a buffer containing per-particle indices used for locating particle data in the particle textures. */
-			SPtr<GpuBuffer> GetParticleIndices() const { return mParticleIndices; }
+			TShared<GpuBuffer> GetParticleIndices() const { return mParticleIndices; }
 
 			/**
 			 * Returns the total number of tiles used by this particle system. This may include inactive tiles unless you have
@@ -113,10 +113,10 @@ namespace b3d
 			u32 GetSortOffset() const { return mSortOffset; }
 
 			/** Sets GPU parameters prepared for simulation. */
-			void SetSimulateParameters(const SPtr<GpuParameterSet>& params) { mSimulateParameters = params; }
+			void SetSimulateParameters(const TShared<GpuParameterSet>& params) { mSimulateParameters = params; }
 
 			/** Returns GPU parameters used for simulation. Parameters must have been set via a previous call to SetSimulateParameters. */
-			const SPtr<GpuParameterSet>& GetSimulateParameters() const { return mSimulateParameters; }
+			const TShared<GpuParameterSet>& GetSimulateParameters() const { return mSimulateParameters; }
 
 		private:
 			Vector<GpuParticleTile> mTiles;
@@ -128,10 +128,10 @@ namespace b3d
 			u32 mSortOffset = 0;
 			Random mRandom;
 
-			SPtr<GpuBuffer> mTileUVs;
-			SPtr<GpuBuffer> mParticleIndices;
+			TShared<GpuBuffer> mTileUVs;
+			TShared<GpuBuffer> mParticleIndices;
 
-			SPtr<GpuParameterSet> mSimulateParameters;
+			TShared<GpuParameterSet> mSimulateParameters;
 		};
 
 		/** Performs simulation for all particle systems that have GPU simulation enabled. */
@@ -142,8 +142,8 @@ namespace b3d
 			/** Context for clearing particle tiles. Contains pre-configured buffer and parameters. */
 			struct TileClearParameters
 			{
-				SPtr<GpuBuffer> ScratchBuffer;
-				SPtr<GpuParameterSet> GpuParameters;
+				TShared<GpuBuffer> ScratchBuffer;
+				TShared<GpuParameterSet> GpuParameters;
 
 				/** Returns true if the buffer is not currently bound to any command buffer. */
 				bool IsAvailable() const
@@ -155,8 +155,8 @@ namespace b3d
 			/** Context for injecting new particles. Contains pre-configured buffer and parameters. */
 			struct ParticleInjectParameters
 			{
-				SPtr<GpuBuffer> ScratchBuffer;
-				SPtr<GpuParameterSet> GpuParameters;
+				TShared<GpuBuffer> ScratchBuffer;
+				TShared<GpuParameterSet> GpuParameters;
 
 				/** Returns true if the buffer is not currently bound to any command buffer. */
 				bool IsAvailable() const
@@ -210,7 +210,7 @@ namespace b3d
 			void PrepareBuffers(const GpuParticleSystem* system, const ParticleRenderState& particleRenderState);
 
 			/** Prepares simulation parameter buffers for a single GPU particle system. */
-			SPtr<GpuParameterSet> PrepareSimulateParameters(const ParticleSystemProxy& proxy, const ParticleRenderState& renderState, const GpuParticleSystem& system, float dt);
+			TShared<GpuParameterSet> PrepareSimulateParameters(const ParticleSystemProxy& proxy, const ParticleRenderState& renderState, const GpuParticleSystem& system, float dt);
 
 			/**
 			 * Prepares scratch buffers for clearing tiles. Allocates parameters from the pool, populates buffers with tile data,
@@ -262,14 +262,14 @@ namespace b3d
 		/** Contains textures that get updated with every run of the GPU particle simulation. */
 		struct GpuParticleStateTextures
 		{
-			SPtr<Texture> PositionAndTimeTex;
-			SPtr<Texture> VelocityTex;
+			TShared<Texture> PositionAndTimeTex;
+			TShared<Texture> VelocityTex;
 		};
 
 		/** Contains textures that contain data static throughout the particle's lifetime. */
 		struct GpuParticleStaticTextures
 		{
-			SPtr<Texture> SizeAndRotationTex;
+			TShared<Texture> SizeAndRotationTex;
 		};
 
 		/** Contains a texture containing quantized versions of all curves used for the GPU particle system. */
@@ -302,7 +302,7 @@ namespace b3d
 			void ApplyChanges(GpuCommandBuffer& commandBuffer);
 
 			/** Returns the internal texture the curve data is written to. */
-			const SPtr<Texture>& GetTexture() const { return mCurveTexture; }
+			const TShared<Texture>& GetTexture() const { return mCurveTexture; }
 
 			/** Returns the UV coordinates at which the provided allocation starts. */
 			static Vector2 GetUvOffset(const TextureRowAllocation& alloc);
@@ -324,15 +324,15 @@ namespace b3d
 			FrameAllocator mPendingAllocator;
 			Vector<PendingAllocation> mPendingAllocations;
 
-			SPtr<Texture> mCurveTexture;
-			SPtr<RenderTexture> mRT;
+			TShared<Texture> mCurveTexture;
+			TShared<RenderTexture> mRT;
 
 			TextureRowAllocator<kTexSize, kTexSize> mRowAllocator;
 
-			SPtr<GpuBuffer> mInjectUV;
-			SPtr<GpuBuffer> mInjectIndices;
-			SPtr<VertexDescription> mInjectVertexDescription;
-			SPtr<GpuBuffer> mInjectScratch;
+			TShared<GpuBuffer> mInjectUV;
+			TShared<GpuBuffer> mInjectIndices;
+			TShared<VertexDescription> mInjectVertexDescription;
+			TShared<GpuBuffer> mInjectScratch;
 		};
 
 		/**
@@ -366,13 +366,13 @@ namespace b3d
 			const GpuParticleCurves& GetCurveTexture() const { return mCurveTexture; }
 
 			/** Returns the render target which can be used for injecting new particle data in the state textures. */
-			const SPtr<RenderTexture>& GetInjectTarget() const { return mInjectRT[mWriteBufferIdx ^ 0x1]; }
+			const TShared<RenderTexture>& GetInjectTarget() const { return mInjectRT[mWriteBufferIdx ^ 0x1]; }
 
 			/** Returns the render target which can be used for writing the results of the particle system simulation. */
-			const SPtr<RenderTexture>& GetSimulationTarget() const { return mSimulateRT[mWriteBufferIdx]; }
+			const TShared<RenderTexture>& GetSimulationTarget() const { return mSimulateRT[mWriteBufferIdx]; }
 
 			/** Returns a global buffer containing particle indices for sorted particle systems. */
-			const SPtr<GpuBuffer>& GetSortedIndices() const;
+			const TShared<GpuBuffer>& GetSortedIndices() const;
 
 			/**
 			 * Attempts to allocate a new tile in particle textures. Returns index of the tile if successful or -1 if no more
@@ -408,11 +408,11 @@ namespace b3d
 			GpuParticleStaticTextures mStaticTextures;
 			GpuParticleCurves mCurveTexture;
 			GpuSortBuffers mSortBuffers;
-			SPtr<GpuBuffer> mSortedIndices[2];
+			TShared<GpuBuffer> mSortedIndices[2];
 			u32 mSortedIndicesBufferIdx = 0;
 
-			SPtr<RenderTexture> mSimulateRT[2];
-			SPtr<RenderTexture> mInjectRT[2];
+			TShared<RenderTexture> mSimulateRT[2];
+			TShared<RenderTexture> mInjectRT[2];
 
 			u32 mWriteBufferIdx = 0;
 

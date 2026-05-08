@@ -36,7 +36,7 @@ namespace b3d::render
 		PixelFormat GetColorPixelFormat() const override;
 
 	private:
-		SPtr<VulkanSurface> mSurface;
+		TShared<VulkanSurface> mSurface;
 		VkColorSpaceKHR mColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 		VkFormat mColorFormat = VK_FORMAT_UNDEFINED;
 		VkFormat mDepthFormat = VK_FORMAT_UNDEFINED;

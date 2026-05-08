@@ -76,7 +76,7 @@ Note that while extensions are executed on the render thread, they are started f
 
 ~~~~~~~~~~~~~{.cpp}
 // Calling from main thread
-SPtr<render::MyRendererExtension> rendererExt = RendererExtension::Create<render::MyRendererExtension>(nullptr);
+TShared<render::MyRendererExtension> rendererExt = RendererExtension::Create<render::MyRendererExtension>(nullptr);
 ~~~~~~~~~~~~~
 
 # Initialization
@@ -91,7 +91,7 @@ struct MyInitData
 {
 	int a;
 	float b;
-	SPtr<render::Texture> c;
+	TShared<render::Texture> c;
 }
 
 // Render thread
@@ -115,7 +115,7 @@ initData.a = 5;
 initData.b = 30.0f;
 initData.c = B3DGetRenderProxy(tex); // Get version of texture usable on render thread
 
-SPtr<render::MyRendererExtension> rendererExt = RendererExtension::Create<render::MyRendererExtension>(initData);
+TShared<render::MyRendererExtension> rendererExt = RendererExtension::Create<render::MyRendererExtension>(initData);
 ~~~~~~~~~~~~~
 
 # Destruction

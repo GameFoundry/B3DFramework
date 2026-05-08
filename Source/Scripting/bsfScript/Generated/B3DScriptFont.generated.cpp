@@ -45,7 +45,7 @@ namespace b3d
 
 	MonoObject* ScriptFont::InternalGetBitmap(ScriptFont* self, float size)
 	{
-		SPtr<FontBitmapInformation> tmp__output;
+		TShared<FontBitmapInformation> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 

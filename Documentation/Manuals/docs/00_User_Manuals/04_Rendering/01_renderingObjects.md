@@ -283,9 +283,9 @@ For maximum performance you can bypass the **Renderable** component entirely and
 
 ~~~~~~~~~~~~~{.cpp}
 // Get the scene's ECS registry and renderer scene
-const SPtr<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
+const TShared<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
 ecs::Registry& registry = scene->GetECSRegistry();
-const SPtr<RendererScene>& rendererScene = scene->GetRendererScene();
+const TShared<RendererScene>& rendererScene = scene->GetRendererScene();
 
 // Create an entity with all renderable fragments, a world transform, and a renderer ID
 ecs::Entity entity = registry.CreateEntity();

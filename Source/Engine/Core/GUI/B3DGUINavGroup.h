@@ -17,7 +17,7 @@ namespace b3d
 	{
 	public:
 		/** Creates a new navigation group. */
-		static SPtr<GUINavGroup> Create();
+		static TShared<GUINavGroup> Create();
 
 		/** Sets the focus to the first element in the group. */
 		void FocusFirst();

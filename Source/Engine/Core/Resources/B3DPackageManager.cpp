@@ -69,9 +69,9 @@ PackageWriteLock::~PackageWriteLock()
 	RuntimePackageInformation->LoadSignal.NotifyAll();
 }
 
-const SPtr<Package>& PackageWriteLock::GetPackage() const
+const TShared<Package>& PackageWriteLock::GetPackage() const
 {
-	static SPtr<Package> kNullPackage;
+	static TShared<Package> kNullPackage;
 	return RuntimePackageInformation != nullptr ? RuntimePackageInformation->LoadedPackage : kNullPackage;
 }
 
@@ -114,7 +114,7 @@ void PackageManager::LoadPackages(const Path& folderPath, bool recursive, const 
 	FileSystem::Iterate(folderPath, fnOnFileFound, nullptr, recursive);
 }
 
-UPtr<PackageWriteLock> PackageManager::SavePackage(const SPtr<Package>& package, const Path& destinationPath, const PackageManagerSavePackageOptions& options)
+UPtr<PackageWriteLock> PackageManager::SavePackage(const TShared<Package>& package, const Path& destinationPath, const PackageManagerSavePackageOptions& options)
 {
 	if(package == nullptr)
 	{
@@ -136,7 +136,7 @@ UPtr<PackageWriteLock> PackageManager::SavePackage(const SPtr<Package>& package,
 	}
 
 	const Path& temporarySavePath = FileSystem::GetUniqueTemporaryFilePath();
-	SPtr<DataStream> temporaryPackageStream = FileSystem::CreateAndOpenFile(temporarySavePath);
+	TShared<DataStream> temporaryPackageStream = FileSystem::CreateAndOpenFile(temporarySavePath);
 
 	SavePackageOptions savePackageOptions;
 	savePackageOptions.CompressResources = options.Compress;
@@ -167,7 +167,7 @@ UPtr<PackageWriteLock> PackageManager::SavePackage(const SPtr<Package>& package,
 
 	package->AssociateFileWithPackage(destinationPath);
 
-	const SPtr<Package> originalPackage = packageWriteLock->GetPackage();
+	const TShared<Package> originalPackage = packageWriteLock->GetPackage();
 	{
 		Lock lock(mMutex);
 		if(originalPackage != nullptr)
@@ -206,7 +206,7 @@ void PackageManager::UnloadPackage(const Path& packagePath)
 	if(!B3D_ENSURE(packageWriteLock != nullptr))
 		return;
 
-	const SPtr<Package>& package = packageWriteLock->GetPackage();
+	const TShared<Package>& package = packageWriteLock->GetPackage();
 	{
 		Lock lock(mMutex);
 
@@ -229,7 +229,7 @@ void PackageManager::ChangePhysicalPackagePath(const PackageWriteLock& packageWr
 	}
 
 	const Path& physicalPackagePath = packageWriteLock.RuntimePackageInformation->PhysicalPath;
-	const SPtr<Package>& package = packageWriteLock.GetPackage();
+	const TShared<Package>& package = packageWriteLock.GetPackage();
 	{
 		Lock lock(mMutex);
 
@@ -243,7 +243,7 @@ void PackageManager::ChangePhysicalPackagePath(const PackageWriteLock& packageWr
 			return;
 		}
 
-		SPtr<RuntimePackageInformation> runtimePackageInformation = foundSourcePackage->second;
+		TShared<RuntimePackageInformation> runtimePackageInformation = foundSourcePackage->second;
 		mPackagesByPath.erase(foundSourcePackage);
 		mPackagesByPath.insert(std::make_pair(newPath, runtimePackageInformation));
 
@@ -254,7 +254,7 @@ void PackageManager::ChangePhysicalPackagePath(const PackageWriteLock& packageWr
 
 void PackageManager::ChangeVirtualPackagePath(const PackageWriteLock& packageWriteLock, const Path& newVirtualPathPrefix)
 {
-	const SPtr<Package>& package = packageWriteLock.GetPackage();
+	const TShared<Package>& package = packageWriteLock.GetPackage();
 	const Path& oldVirtualPathPrefix = packageWriteLock.RuntimePackageInformation->VirtualPathPrefix;
 	{
 		Lock lock(mMutex);
@@ -262,7 +262,7 @@ void PackageManager::ChangeVirtualPackagePath(const PackageWriteLock& packageWri
 		const Vector<UUID>& resourceIds = package->CreateResourceIdList();
 		for(const auto& resourceId : resourceIds)
 		{
-			const SPtr<const PackageResourceMetaData>& resourceMetaData = package->GetResourceMetaData(resourceId);
+			const TShared<const PackageResourceMetaData>& resourceMetaData = package->GetResourceMetaData(resourceId);
 			if(!B3D_ENSURE(resourceMetaData))
 				continue;
 
@@ -285,9 +285,9 @@ void PackageManager::ChangeVirtualPackagePath(const PackageWriteLock& packageWri
 bool PackageManager::SavePackageMetaData(const PackageWriteLock& packageWriteLock)
 {
 	const Path& physicalPathToPackage = packageWriteLock.RuntimePackageInformation->PhysicalPath;
-	const SPtr<Package>& package = packageWriteLock.GetPackage();
+	const TShared<Package>& package = packageWriteLock.GetPackage();
 
-	const SPtr<DataStream> packageDataStream = FileSystem::OpenFile(physicalPathToPackage, false);
+	const TShared<DataStream> packageDataStream = FileSystem::OpenFile(physicalPathToPackage, false);
 	if(!B3D_ENSURE(packageDataStream != nullptr))
 		return false;
 
@@ -337,7 +337,7 @@ TOptional<Path> PackageManager::TryGetPackagePathForResource(const UUID& resourc
 	return {};
 }
 
-SPtr<const PackageResourceMetaData> PackageManager::GetResourceMetaData(const UUID& resourceId)
+TShared<const PackageResourceMetaData> PackageManager::GetResourceMetaData(const UUID& resourceId)
 {
 	if(auto packagePath = TryGetPackagePathForResource(resourceId); packagePath.has_value())
 	{
@@ -347,7 +347,7 @@ SPtr<const PackageResourceMetaData> PackageManager::GetResourceMetaData(const UU
 		if(!B3D_ENSURE(lockResult == AcquirePackageLockResult::Acquired && readLock != nullptr))
 			return nullptr;
 
-		const SPtr<Package>& package = readLock->GetPackage();
+		const TShared<Package>& package = readLock->GetPackage();
 		if(!B3D_ENSURE(package != nullptr))
 			return nullptr;
 
@@ -383,7 +383,7 @@ AcquirePackageLockResult PackageManager::AcquireReadLock(const Path& physicalPac
 				break;
 			}
 
-			const SPtr<RuntimePackageInformation> runtimePackageInformation = found->second;
+			const TShared<RuntimePackageInformation> runtimePackageInformation = found->second;
 			if(!runtimePackageInformation->AcquiredWriteLock)
 			{
 				// No write lock held, we can acquire a read lock
@@ -404,7 +404,7 @@ AcquirePackageLockResult PackageManager::AcquireReadLock(const Path& physicalPac
 	}
 
 	// Loading a brand new package. We only reach this point if we created a new RuntimePackageInformation above.
-	SPtr<Package> package;
+	TShared<Package> package;
 	if(FileSystem::Exists(physicalPackagePath))
 		package = Package::Load(physicalPackagePath);
 
@@ -421,7 +421,7 @@ AcquirePackageLockResult PackageManager::AcquireReadLock(const Path& physicalPac
 		{
 			mPackagesById[package->GetPackageId()] = runtimePackageInformation;
 
-			const SPtr<PackageMetaData>& packageMetaData = package->GetPackageMetaData();
+			const TShared<PackageMetaData>& packageMetaData = package->GetPackageMetaData();
 
 			runtimePackageInformation->LoadedPackage = package;
 			runtimePackageInformation->PhysicalPath = physicalPackagePath;
@@ -441,7 +441,7 @@ AcquirePackageLockResult PackageManager::AcquireReadLock(const Path& physicalPac
 		}
 		else // Nothing was loaded, clear the runtime information entry we added
 		{
-			const SPtr<RuntimePackageInformation> runtimePackageInformationCopy = std::move(found->second);
+			const TShared<RuntimePackageInformation> runtimePackageInformationCopy = std::move(found->second);
 			mPackagesByPath.erase(found);
 
 			runtimePackageInformationCopy->LoadSignal.NotifyAll();
@@ -458,7 +458,7 @@ AcquirePackageLockResult PackageManager::AcquireWriteLock(const Path& physicalPa
 		return AcquirePackageLockResult::NotAcquiredPackageNotFound;
 	}
 
-	SPtr<RuntimePackageInformation> runtimePackageInformation;
+	TShared<RuntimePackageInformation> runtimePackageInformation;
 	{
 		Lock lock(mMutex);
 
@@ -536,7 +536,7 @@ void PackageManager::LoadPackageResourceInformation(Package& package, const Path
 
 		if(!virtualPathPrefix.IsEmpty())
 		{
-			const SPtr<const PackageResourceMetaData>& resourceMetaData = package.GetResourceMetaData(resourceId);
+			const TShared<const PackageResourceMetaData>& resourceMetaData = package.GetResourceMetaData(resourceId);
 			if(!B3D_ENSURE(resourceMetaData))
 				continue;
 
@@ -573,7 +573,7 @@ void PackageManager::ClearPackageResourceInformation(Package& package, const Pat
 
 		if(!virtualPathPrefix.IsEmpty())
 		{
-			const SPtr<const PackageResourceMetaData>& resourceMetaData = package.GetResourceMetaData(resourceId);
+			const TShared<const PackageResourceMetaData>& resourceMetaData = package.GetResourceMetaData(resourceId);
 			if(!B3D_ENSURE(resourceMetaData))
 				continue;
 

@@ -185,7 +185,7 @@ UniformBufferPools::BufferKey UniformBufferPools::BuildBufferKey(PoolType type, 
 	return key;
 }
 
-SPtr<render::GpuParameterSet> UniformBufferPools::GetOrCreateParameterSet(PoolGroup& group, const AllocationEntry& entry)
+TShared<render::GpuParameterSet> UniformBufferPools::GetOrCreateParameterSet(PoolGroup& group, const AllocationEntry& entry)
 {
 	BufferKey key = BuildBufferKey(group.Type, entry);
 
@@ -197,7 +197,7 @@ SPtr<render::GpuParameterSet> UniformBufferPools::GetOrCreateParameterSet(PoolGr
 	}
 
 	GpuParameterSetPool& pool = GetRenderer()->GetParameterSetPool();
-	SPtr<GpuParameterSet> parameterSet = pool.Create(group.ParameterSetLayout, GpuPipelineSet::kPerObject);
+	TShared<GpuParameterSet> parameterSet = pool.Create(group.ParameterSetLayout, GpuPipelineSet::kPerObject);
 
 	// Bind all buffers by their uniform buffer names
 	for (u32 poolIndex = 0; poolIndex < entry.Suballocations.Size(); ++poolIndex)
@@ -229,7 +229,7 @@ void UniformBufferPools::ReleaseParameterSet(PoolGroup& group, const AllocationE
 		group.ParameterSetsByBuffer.erase(iter);
 }
 
-void UniformBufferPools::UpdatePerObjectBuffer(const RenderState& renderState, const SPtr<GpuCommandBuffer>& commandBuffer)
+void UniformBufferPools::UpdatePerObjectBuffer(const RenderState& renderState, const TShared<GpuCommandBuffer>& commandBuffer)
 {
 	if (!renderState.PerObjectSuballocation.IsValid())
 		return;
@@ -246,14 +246,14 @@ void UniformBufferPools::UpdatePerObjectBuffer(const RenderState& renderState, c
 
 	staging.Unmap();
 
-	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetOrCreateTransferCommandBuffer();
+	const TShared<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetOrCreateTransferCommandBuffer();
 
 	const GpuBufferSuballocation& source = staging.GetSuballocation();
 	const GpuBufferSuballocation& destination = renderState.PerObjectSuballocation;
 	actualCommandBuffer->CopyBufferToBuffer(source.GetBuffer(), destination.GetBuffer(), source.GetSuballocationOffset(), destination.GetSuballocationOffset(), source.GetSize());
 }
 
-void UniformBufferPools::UpdateDecalParamBuffer(const DecalRenderState& decal, const DecalProxy& proxy, const SPtr<GpuCommandBuffer>& commandBuffer)
+void UniformBufferPools::UpdateDecalParamBuffer(const DecalRenderState& decal, const DecalProxy& proxy, const TShared<GpuCommandBuffer>& commandBuffer)
 {
 	if (!decal.DecalParamSuballocation.IsValid())
 		return;
@@ -288,14 +288,14 @@ void UniformBufferPools::UpdateDecalParamBuffer(const DecalRenderState& decal, c
 
 	staging.Unmap();
 
-	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetOrCreateTransferCommandBuffer();
+	const TShared<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetOrCreateTransferCommandBuffer();
 
 	const GpuBufferSuballocation& source = staging.GetSuballocation();
 	const GpuBufferSuballocation& destination = decal.DecalParamSuballocation;
 	actualCommandBuffer->CopyBufferToBuffer(source.GetBuffer(), destination.GetBuffer(), source.GetSuballocationOffset(), destination.GetSuballocationOffset(), source.GetSize());
 }
 
-void UniformBufferPools::UpdateGpuParticlesParamBuffer(const ParticleRenderState& particles, const SPtr<GpuCommandBuffer>& commandBuffer)
+void UniformBufferPools::UpdateGpuParticlesParamBuffer(const ParticleRenderState& particles, const TShared<GpuCommandBuffer>& commandBuffer)
 {
 	if (!particles.GpuParticlesParamSuballocation.IsValid())
 		return;
@@ -314,7 +314,7 @@ void UniformBufferPools::UpdateGpuParticlesParamBuffer(const ParticleRenderState
 
 	staging.Unmap();
 
-	const SPtr<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetOrCreateTransferCommandBuffer();
+	const TShared<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : mDevice->GetOrCreateTransferCommandBuffer();
 
 	const GpuBufferSuballocation& source = staging.GetSuballocation();
 	const GpuBufferSuballocation& destination = particles.GpuParticlesParamSuballocation;

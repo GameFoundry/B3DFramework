@@ -237,11 +237,11 @@ namespace b3d
 		RasterizerStateInformation RasterizerState;
 		DepthStencilStateInformation DepthStencilState;
 
-		SPtr<GpuProgram> VertexProgram;
-		SPtr<GpuProgram> FragmentProgram;
-		SPtr<GpuProgram> GeometryProgram;
-		SPtr<GpuProgram> HullProgram;
-		SPtr<GpuProgram> DomainProgram;
+		TShared<GpuProgram> VertexProgram;
+		TShared<GpuProgram> FragmentProgram;
+		TShared<GpuProgram> GeometryProgram;
+		TShared<GpuProgram> HullProgram;
+		TShared<GpuProgram> DomainProgram;
 	};
 
 	/** Descriptor structure used for initializing a GPU graphics pipeline state. */
@@ -257,7 +257,7 @@ namespace b3d
 	/** Descriptor structure describing a GPU compute pipeline state. */
 	struct GpuComputePipelineStateInformation
 	{
-		SPtr<GpuProgram> Program;
+		TShared<GpuProgram> Program;
 	};
 
 	/** Descriptor structure used for initializing a GPU compute pipeline state. */
@@ -296,19 +296,19 @@ namespace b3d
 		const RasterizerStateInformation& GetRasterizerState() const { return mData.RasterizerState; }
 		const DepthStencilStateInformation& GetDepthStencilState() const { return mData.DepthStencilState; }
 
-		const SPtr<GpuProgram>& GetVertexProgram() const { return mData.VertexProgram; }
-		const SPtr<GpuProgram>& GetFragmentProgram() const { return mData.FragmentProgram; }
-		const SPtr<GpuProgram>& GetGeometryProgram() const { return mData.GeometryProgram; }
-		const SPtr<GpuProgram>& GetHullProgram() const { return mData.HullProgram; }
-		const SPtr<GpuProgram>& GetDomainProgram() const { return mData.DomainProgram; }
+		const TShared<GpuProgram>& GetVertexProgram() const { return mData.VertexProgram; }
+		const TShared<GpuProgram>& GetFragmentProgram() const { return mData.FragmentProgram; }
+		const TShared<GpuProgram>& GetGeometryProgram() const { return mData.GeometryProgram; }
+		const TShared<GpuProgram>& GetHullProgram() const { return mData.HullProgram; }
+		const TShared<GpuProgram>& GetDomainProgram() const { return mData.DomainProgram; }
 
 		/** Returns an object containing the layout of all parameters in all the GPU programs used in this pipeline state. */
-		const SPtr<GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
+		const TShared<GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
 
 	protected:
 		GpuDevice& mGpuDevice;
 		GpuGraphicsPipelineStateInformation mData;
-		SPtr<GpuPipelineParameterLayout> mParameterLayout;
+		TShared<GpuPipelineParameterLayout> mParameterLayout;
 	};
 
 	/**
@@ -326,16 +326,16 @@ namespace b3d
 		/** Initializes the object. The object should not be used before this is called. */
 		virtual void Initialize();
 
-		const SPtr<GpuProgram>& GetProgram() const { return mData.Program; }
+		const TShared<GpuProgram>& GetProgram() const { return mData.Program; }
 
 		/** Returns an object containing the layout of all parameters in the GPU program used in this pipeline state. */
-		const SPtr<GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
+		const TShared<GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
 
 	protected:
 		GpuDevice& mGpuDevice;
 
 		GpuComputePipelineStateInformation mData;
-		SPtr<GpuPipelineParameterLayout> mParameterLayout;
+		TShared<GpuPipelineParameterLayout> mParameterLayout;
 	};
 
 	/** @} */

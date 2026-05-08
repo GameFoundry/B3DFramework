@@ -175,7 +175,7 @@ namespace b3d
 			return TID_VectorPath;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<VectorPath>();
 		}
@@ -200,7 +200,7 @@ namespace b3d
 			return TID_VectorPathRenderable;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			B3D_ENSURE_LOG(false, "Attempting to construct an abstract type from RTTI.");
 			return nullptr;

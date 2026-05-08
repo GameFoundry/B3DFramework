@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptParticleForce::ScriptParticleForce(const SPtr<ParticleForce>& nativeObject)
+	ScriptParticleForce::ScriptParticleForce(const TShared<ParticleForce>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -69,13 +69,13 @@ namespace b3d
 	{
 		ParticleForceSettings tmpsettings;
 		tmpsettings = ScriptParticleForceSettings::FromInterop(*settings);
-		SPtr<ParticleForce> nativeObject = ParticleForce::Create(tmpsettings);
+		TShared<ParticleForce> nativeObject = ParticleForce::Create(tmpsettings);
 		ScriptObjectWrapper::Create<ScriptParticleForce>(nativeObject, scriptObject);
 	}
 
 	void ScriptParticleForce::InternalCreate0(MonoObject* scriptObject)
 	{
-		SPtr<ParticleForce> nativeObject = ParticleForce::Create();
+		TShared<ParticleForce> nativeObject = ParticleForce::Create();
 		ScriptObjectWrapper::Create<ScriptParticleForce>(nativeObject, scriptObject);
 	}
 }

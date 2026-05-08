@@ -25,7 +25,7 @@ namespace b3d
 		bool IsMagicNumberSupported(const u8* magicNumber, u32 magicNumberSize) const;
 
 		/** @copydoc SpecificImporter::Import */
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions);
+		TShared<Resource> Import(const Path& filePath, TShared<const ImportOptions> importOptions);
 	};
 
 	/** @} */

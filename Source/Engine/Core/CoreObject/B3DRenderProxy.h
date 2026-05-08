@@ -50,7 +50,7 @@ namespace b3d
 			bool IsDestroyed() const { return mFlags.IsSet(RenderProxyFlag::Destroyed); }
 
 			/** Returns a shared pointer version of "this" pointer. */
-			SPtr<RenderProxy> GetShared() const { return mThis.lock(); }
+			TShared<RenderProxy> GetShared() const { return mThis.lock(); }
 
 		public: // ***** INTERNAL ******
 			/** @name Internal
@@ -62,7 +62,7 @@ namespace b3d
 			 *
 			 * @note	Called automatically by the factory creation methods so user should not call this manually.
 			 */
-			void SetShared(SPtr<RenderProxy> sharedToThis);
+			void SetShared(TShared<RenderProxy> sharedToThis);
 
 			/** Called when the last reference in the shared pointer owning this object goes out of scope. */
 			template <class T, class AllocatorTag>

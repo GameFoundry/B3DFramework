@@ -37,7 +37,7 @@ namespace b3d
 		tmpName = MonoUtil::MonoToString(value.Name);
 		output.Name = tmpName;
 		output.Flags = value.Flags;
-		SPtr<TAnimationCurve<float>> tmpCurve;
+		TShared<TAnimationCurve<float>> tmpCurve;
 		ScriptAnimationCurve* scriptObjectWrapperCurve;
 		scriptObjectWrapperCurve = ScriptAnimationCurve::GetScriptObjectWrapper(value.Curve);
 		if(scriptObjectWrapperCurve != nullptr)
@@ -56,7 +56,7 @@ namespace b3d
 		output.Name = tmpName;
 		output.Flags = value.Flags;
 		MonoObject* tmpCurve;
-		SPtr<TAnimationCurve<float>> tmpCurvecopy;
+		TShared<TAnimationCurve<float>> tmpCurvecopy;
 		tmpCurvecopy = B3DMakeShared<TAnimationCurve<float>>(value.Curve);
 		tmpCurve = ScriptAnimationCurve::GetOrCreateScriptObject(tmpCurvecopy);
 		output.Curve = tmpCurve;
@@ -85,7 +85,7 @@ namespace b3d
 		tmpName = MonoUtil::MonoToString(value.Name);
 		output.Name = tmpName;
 		output.Flags = value.Flags;
-		SPtr<TAnimationCurve<TVector3<float>>> tmpCurve;
+		TShared<TAnimationCurve<TVector3<float>>> tmpCurve;
 		ScriptVector3Curve* scriptObjectWrapperCurve;
 		scriptObjectWrapperCurve = ScriptVector3Curve::GetScriptObjectWrapper(value.Curve);
 		if(scriptObjectWrapperCurve != nullptr)
@@ -104,7 +104,7 @@ namespace b3d
 		output.Name = tmpName;
 		output.Flags = value.Flags;
 		MonoObject* tmpCurve;
-		SPtr<TAnimationCurve<TVector3<float>>> tmpCurvecopy;
+		TShared<TAnimationCurve<TVector3<float>>> tmpCurvecopy;
 		tmpCurvecopy = B3DMakeShared<TAnimationCurve<TVector3<float>>>(value.Curve);
 		tmpCurve = ScriptVector3Curve::GetOrCreateScriptObject(tmpCurvecopy);
 		output.Curve = tmpCurve;
@@ -133,7 +133,7 @@ namespace b3d
 		tmpName = MonoUtil::MonoToString(value.Name);
 		output.Name = tmpName;
 		output.Flags = value.Flags;
-		SPtr<TAnimationCurve<TVector2<float>>> tmpCurve;
+		TShared<TAnimationCurve<TVector2<float>>> tmpCurve;
 		ScriptVector2Curve* scriptObjectWrapperCurve;
 		scriptObjectWrapperCurve = ScriptVector2Curve::GetScriptObjectWrapper(value.Curve);
 		if(scriptObjectWrapperCurve != nullptr)
@@ -152,7 +152,7 @@ namespace b3d
 		output.Name = tmpName;
 		output.Flags = value.Flags;
 		MonoObject* tmpCurve;
-		SPtr<TAnimationCurve<TVector2<float>>> tmpCurvecopy;
+		TShared<TAnimationCurve<TVector2<float>>> tmpCurvecopy;
 		tmpCurvecopy = B3DMakeShared<TAnimationCurve<TVector2<float>>>(value.Curve);
 		tmpCurve = ScriptVector2Curve::GetOrCreateScriptObject(tmpCurvecopy);
 		output.Curve = tmpCurve;
@@ -181,7 +181,7 @@ namespace b3d
 		tmpName = MonoUtil::MonoToString(value.Name);
 		output.Name = tmpName;
 		output.Flags = value.Flags;
-		SPtr<TAnimationCurve<TQuaternion<float>>> tmpCurve;
+		TShared<TAnimationCurve<TQuaternion<float>>> tmpCurve;
 		ScriptQuaternionCurve* scriptObjectWrapperCurve;
 		scriptObjectWrapperCurve = ScriptQuaternionCurve::GetScriptObjectWrapper(value.Curve);
 		if(scriptObjectWrapperCurve != nullptr)
@@ -200,7 +200,7 @@ namespace b3d
 		output.Name = tmpName;
 		output.Flags = value.Flags;
 		MonoObject* tmpCurve;
-		SPtr<TAnimationCurve<TQuaternion<float>>> tmpCurvecopy;
+		TShared<TAnimationCurve<TQuaternion<float>>> tmpCurvecopy;
 		tmpCurvecopy = B3DMakeShared<TAnimationCurve<TQuaternion<float>>>(value.Curve);
 		tmpCurve = ScriptQuaternionCurve::GetOrCreateScriptObject(tmpCurvecopy);
 		output.Curve = tmpCurve;
@@ -229,7 +229,7 @@ namespace b3d
 		tmpName = MonoUtil::MonoToString(value.Name);
 		output.Name = tmpName;
 		output.Flags = value.Flags;
-		SPtr<TAnimationCurve<int32_t>> tmpCurve;
+		TShared<TAnimationCurve<int32_t>> tmpCurve;
 		ScriptIntegerCurve* scriptObjectWrapperCurve;
 		scriptObjectWrapperCurve = ScriptIntegerCurve::GetScriptObjectWrapper(value.Curve);
 		if(scriptObjectWrapperCurve != nullptr)
@@ -248,7 +248,7 @@ namespace b3d
 		output.Name = tmpName;
 		output.Flags = value.Flags;
 		MonoObject* tmpCurve;
-		SPtr<TAnimationCurve<int32_t>> tmpCurvecopy;
+		TShared<TAnimationCurve<int32_t>> tmpCurvecopy;
 		tmpCurvecopy = B3DMakeShared<TAnimationCurve<int32_t>>(value.Curve);
 		tmpCurve = ScriptIntegerCurve::GetOrCreateScriptObject(tmpCurvecopy);
 		output.Curve = tmpCurve;

@@ -82,7 +82,7 @@ namespace b3d
 		static const HString& Dummy();
 
 	private:
-		SPtr<LocalizedStringData> mStringData;
+		TShared<LocalizedStringData> mStringData;
 		String* mParameters = nullptr;
 
 		mutable bool mIsDirty = true;

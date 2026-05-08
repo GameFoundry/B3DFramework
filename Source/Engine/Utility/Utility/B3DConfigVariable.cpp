@@ -315,7 +315,7 @@ namespace b3d
 			return false;
 		}
 
-		SPtr<DataStream> stream = FileSystem::OpenFile(path, true);
+		TShared<DataStream> stream = FileSystem::OpenFile(path, true);
 		if (stream == nullptr)
 		{
 			B3D_LOG(Warning, LogConfigVariable, "Failed to open config file: {0}", path);

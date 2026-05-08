@@ -1795,7 +1795,7 @@ struct NVTTCompressOutputHandler : public nvtt::OutputHandler
 /**	Handles output from NVTT library for a mip-map chain. */
 struct NVTTMipmapOutputHandler : public nvtt::OutputHandler
 {
-	NVTTMipmapOutputHandler(const Vector<SPtr<PixelData>>& buffers)
+	NVTTMipmapOutputHandler(const Vector<TShared<PixelData>>& buffers)
 		: Buffers(buffers), BufferWritePos(nullptr), BufferEnd(nullptr)
 	{}
 
@@ -1822,8 +1822,8 @@ struct NVTTMipmapOutputHandler : public nvtt::OutputHandler
 	void endImage() override
 	{}
 
-	Vector<SPtr<PixelData>> Buffers;
-	SPtr<PixelData> ActiveBuffer;
+	Vector<TShared<PixelData>> Buffers;
+	TShared<PixelData> ActiveBuffer;
 
 	u8* BufferWritePos;
 	u8* BufferEnd;
@@ -2836,12 +2836,12 @@ void PixelUtility::Scale(const PixelData& source, PixelData& scaled, ScaleFilter
 	}
 }
 
-SPtr<PixelData> PixelUtility::Scale(const SPtr<PixelData>& source, const Size3UI& size, ScaleFilter filter)
+TShared<PixelData> PixelUtility::Scale(const TShared<PixelData>& source, const Size3UI& size, ScaleFilter filter)
 {
 	if(source == nullptr)
 		return nullptr;
 
-	SPtr<PixelData> output = PixelData::Create(size.Width, size.Height, size.Depth, source->GetFormat());
+	TShared<PixelData> output = PixelData::Create(size.Width, size.Height, size.Depth, source->GetFormat());
 	Scale(*source, *output, filter);
 
 	return output;
@@ -2979,12 +2979,12 @@ void PixelUtility::Mirror(PixelData& pixelData, MirrorMode mode)
 	}
 }
 
-SPtr<PixelData> PixelUtility::LinearToSrgb(const SPtr<PixelData>& input)
+TShared<PixelData> PixelUtility::LinearToSrgb(const TShared<PixelData>& input)
 {
 	if(input == nullptr)
 		return nullptr;
 
-	SPtr<PixelData> output = PixelData::Create(input->GetExtents(), input->GetFormat());
+	TShared<PixelData> output = PixelData::Create(input->GetExtents(), input->GetFormat());
 
 	const u32 depth = input->GetDepth();
 	const u32 height = input->GetHeight();
@@ -3021,12 +3021,12 @@ SPtr<PixelData> PixelUtility::LinearToSrgb(const SPtr<PixelData>& input)
 	return output;
 }
 
-SPtr<PixelData> PixelUtility::SRGBToLinear(const SPtr<PixelData>& input)
+TShared<PixelData> PixelUtility::SRGBToLinear(const TShared<PixelData>& input)
 {
 	if(input == nullptr)
 		return nullptr;
 
-	SPtr<PixelData> output = PixelData::Create(input->GetExtents(), input->GetFormat());
+	TShared<PixelData> output = PixelData::Create(input->GetExtents(), input->GetFormat());
 
 	const u32 depth = input->GetDepth();
 	const u32 height = input->GetHeight();
@@ -3125,31 +3125,31 @@ void PixelUtility::Compress(const PixelData& source, PixelData& destination, con
 	}
 }
 
-SPtr<PixelData> PixelUtility::Compress(const SPtr<PixelData>& source, const CompressionOptions& options)
+TShared<PixelData> PixelUtility::Compress(const TShared<PixelData>& source, const CompressionOptions& options)
 {
 	if(source == nullptr)
 		return nullptr;
 
-	SPtr<PixelData> output = PixelData::Create(source->GetWidth(), source->GetHeight(), source->GetDepth(), options.Format);
+	TShared<PixelData> output = PixelData::Create(source->GetWidth(), source->GetHeight(), source->GetDepth(), options.Format);
 	Compress(*source, *output, options);
 
 	return output;
 }
 
-SPtr<PixelData> PixelUtility::ConvertFormat(const SPtr<PixelData>& source, PixelFormat format)
+TShared<PixelData> PixelUtility::ConvertFormat(const TShared<PixelData>& source, PixelFormat format)
 {
 	if(source == nullptr)
 		return nullptr;
 	
-	SPtr<PixelData> output = PixelData::Create(source->GetWidth(), source->GetHeight(), source->GetDepth(), format);
+	TShared<PixelData> output = PixelData::Create(source->GetWidth(), source->GetHeight(), source->GetDepth(), format);
 	BulkPixelConversion(*source, *output);
 
 	return output;
 }
 
-Vector<SPtr<PixelData>> PixelUtility::GenerateMipmaps(const SPtr<PixelData>& source, const MipMapGenOptions& options)
+Vector<TShared<PixelData>> PixelUtility::GenerateMipmaps(const TShared<PixelData>& source, const MipMapGenOptions& options)
 {
-	Vector<SPtr<PixelData>> output;
+	Vector<TShared<PixelData>> output;
 
 	if(source == nullptr)
 		return output;
@@ -3216,7 +3216,7 @@ Vector<SPtr<PixelData>> PixelUtility::GenerateMipmaps(const SPtr<PixelData>& sou
 
 	u32 numMips = GetMipmapCount(source->GetWidth(), source->GetHeight(), 1, source->GetFormat());
 
-	Vector<SPtr<PixelData>> rgbaMipBuffers;
+	Vector<TShared<PixelData>> rgbaMipBuffers;
 
 	// Note: This can be done more effectively without creating so many temp buffers
 	// and working with the original formats directly, but it would complicate the code
@@ -3255,8 +3255,8 @@ Vector<SPtr<PixelData>> PixelUtility::GenerateMipmaps(const SPtr<PixelData>& sou
 
 	for(u32 i = 0; i < (u32)rgbaMipBuffers.size(); i++)
 	{
-		SPtr<PixelData> argbBuffer = rgbaMipBuffers[i];
-		SPtr<PixelData> outputBuffer = B3DMakeShared<PixelData>(argbBuffer->GetWidth(), argbBuffer->GetHeight(), 1, source->GetFormat());
+		TShared<PixelData> argbBuffer = rgbaMipBuffers[i];
+		TShared<PixelData> outputBuffer = B3DMakeShared<PixelData>(argbBuffer->GetWidth(), argbBuffer->GetHeight(), 1, source->GetFormat());
 		outputBuffer->AllocateInternalBuffer();
 
 		BulkPixelConversion(*argbBuffer, *outputBuffer);
@@ -3268,7 +3268,7 @@ Vector<SPtr<PixelData>> PixelUtility::GenerateMipmaps(const SPtr<PixelData>& sou
 	return output;
 }
 
-bool PixelUtility::SaveImage(const SPtr<PixelData>& pixelData, const Path& outputPath, ImageFormat format,
+bool PixelUtility::SaveImage(const TShared<PixelData>& pixelData, const Path& outputPath, ImageFormat format,
 	bool ignoreAlpha)
 {
 	if (pixelData == nullptr)

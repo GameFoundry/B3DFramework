@@ -51,7 +51,7 @@ namespace b3d
 		~RendererScene() override;
 
 		/** Creates a new renderer scene. */
-		static SPtr<RendererScene> Create();
+		static TShared<RendererScene> Create();
 
 		/** Allocates a persistent render object ID for a renderable and adds the ecs::RenderableId fragment. */
 		RendererId AllocateRenderableId(ecs::Registry& registry, ecs::Entity entity);
@@ -84,13 +84,13 @@ namespace b3d
 		void DeallocateReflectionProbeId(ecs::Registry& registry, ecs::Entity entity);
 
 		/** Returns the reflection probe object storage for this scene. */
-		const SPtr<ReflectionProbeObjectStorageBase>& GetReflectionProbeStorage() const { return mReflectionProbeStorage; }
+		const TShared<ReflectionProbeObjectStorageBase>& GetReflectionProbeStorage() const { return mReflectionProbeStorage; }
 
 		/**
 		 * Sets the owning SceneInstance and subscribes to OnWillRemove events for automatic cleanup
 		 * of renderer IDs and dirty tags when data fragments are removed from entities.
 		 */
-		void SetOwner(const SPtr<SceneInstance>& scene);
+		void SetOwner(const TShared<SceneInstance>& scene);
 
 		/**
 		 * Reads dirty ECS data on the main thread and posts a command to write the changes to the render thread,
@@ -100,7 +100,7 @@ namespace b3d
 
 	protected:
 		void Initialize() override;
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 
 		/**
 		 * Reads dirty ECS data for all sync handlers in this scene into a frame-allocated RendererSceneSyncData.
@@ -110,11 +110,11 @@ namespace b3d
 	private:
 		WeakSPtr<SceneInstance> mOwner;
 
-		SPtr<DecalObjectStorageBase> mDecalStorage;
-		SPtr<RenderableObjectStorageBase> mRenderableStorage;
-		SPtr<LightObjectStorageBase> mLightStorage;
-		SPtr<ParticleSystemObjectStorageBase> mParticleSystemStorage;
-		SPtr<ReflectionProbeObjectStorageBase> mReflectionProbeStorage;
+		TShared<DecalObjectStorageBase> mDecalStorage;
+		TShared<RenderableObjectStorageBase> mRenderableStorage;
+		TShared<LightObjectStorageBase> mLightStorage;
+		TShared<ParticleSystemObjectStorageBase> mParticleSystemStorage;
+		TShared<ReflectionProbeObjectStorageBase> mReflectionProbeStorage;
 
 		THEvent<ThreadUnsafe> mLightRemovedHandle;
 		THEvent<ThreadUnsafe> mRenderableRemovedHandle;
@@ -145,19 +145,19 @@ namespace b3d
 
 		public:
 			/** Returns the renderable object storage for this scene. */
-			const SPtr<RenderableObjectStorageBase>& GetRenderableStorage() const { return mRenderableStorage; }
+			const TShared<RenderableObjectStorageBase>& GetRenderableStorage() const { return mRenderableStorage; }
 
 			/** Returns the light object storage for this scene. */
-			const SPtr<LightObjectStorageBase>& GetLightStorage() const { return mLightStorage; }
+			const TShared<LightObjectStorageBase>& GetLightStorage() const { return mLightStorage; }
 
 			/** Returns the decal object storage for this scene. */
-			const SPtr<DecalObjectStorageBase>& GetDecalStorage() const { return mDecalStorage; }
+			const TShared<DecalObjectStorageBase>& GetDecalStorage() const { return mDecalStorage; }
 
 			/** Returns the particle system object storage for this scene. */
-			const SPtr<ParticleSystemObjectStorageBase>& GetParticleSystemStorage() const { return mParticleSystemStorage; }
+			const TShared<ParticleSystemObjectStorageBase>& GetParticleSystemStorage() const { return mParticleSystemStorage; }
 
 			/** Returns the reflection probe object storage for this scene. */
-			const SPtr<ReflectionProbeObjectStorageBase>& GetReflectionProbeStorage() const { return mReflectionProbeStorage; }
+			const TShared<ReflectionProbeObjectStorageBase>& GetReflectionProbeStorage() const { return mReflectionProbeStorage; }
 
 			/** Applies sync data from SyncRead to render-thread representations and frees frame-allocated memory. */
 			void SyncWrite(RendererSceneSyncData& batchData, FrameAllocator& allocator);
@@ -209,11 +209,11 @@ namespace b3d
 			const Set<RendererExtension*, RendererExtension::SortFunction>& GetCombinedRendererExtensions() const { return mCombinedRendererExtensions; }
 
 		protected:
-			SPtr<DecalObjectStorageBase> mDecalStorage;
-			SPtr<RenderableObjectStorageBase> mRenderableStorage;
-			SPtr<LightObjectStorageBase> mLightStorage;
-			SPtr<ParticleSystemObjectStorageBase> mParticleSystemStorage;
-			SPtr<ReflectionProbeObjectStorageBase> mReflectionProbeStorage;
+			TShared<DecalObjectStorageBase> mDecalStorage;
+			TShared<RenderableObjectStorageBase> mRenderableStorage;
+			TShared<LightObjectStorageBase> mLightStorage;
+			TShared<ParticleSystemObjectStorageBase> mParticleSystemStorage;
+			TShared<ReflectionProbeObjectStorageBase> mReflectionProbeStorage;
 
 			Set<RendererExtension*, RendererExtension::SortFunction> mRendererExtensions;
 			Set<RendererExtension*, RendererExtension::SortFunction> mCombinedRendererExtensions; /**< Transient set of per-scene and global renderer extensions. */

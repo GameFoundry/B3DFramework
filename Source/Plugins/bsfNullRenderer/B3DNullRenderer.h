@@ -17,7 +17,7 @@ namespace b3d
 	public:
 		static constexpr const char* SystemName = "bsfNullRenderer";
 
-		SPtr<render::Renderer> Create() override;
+		TShared<render::Renderer> Create() override;
 		const String& Name() const override;
 	};
 
@@ -49,25 +49,25 @@ namespace b3d
 			NullRenderer() = default;
 
 			const StringID& GetName() const override;
-			void Initialize(const SPtr<GpuDevice>& gpuDevice) override;
+			void Initialize(const TShared<GpuDevice>& gpuDevice) override;
 			void Destroy() override;
 			void RenderAll(PerFrameData perFrameData) override;
-			void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override {}
-			SPtr<RendererScene> CreateScene() override;
+			void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override {}
+			TShared<RendererScene> CreateScene() override;
 		};
 
 		/** Null implementation of IBLUtility. */
 		class NullIBLUtility : public IBLUtility
 		{
 		public:
-			void FilterCubemapForSpecular(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const override {}
-			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const override {}
-			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const SPtr<Texture>& output, u32 outputIdx) const override {}
-			void ScaleCubemap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip) const override {}
+			void FilterCubemapForSpecular(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& scratch) const override {}
+			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output) const override {}
+			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output, u32 outputIdx) const override {}
+			void ScaleCubemap(GpuCommandBuffer& commandBuffer, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip) const override {}
 		};
 
 		/**	Provides easy access to the null renderer. */
-		SPtr<NullRenderer> GetNullRenderer();
+		TShared<NullRenderer> GetNullRenderer();
 
 		/** @} */
 	} // namespace render

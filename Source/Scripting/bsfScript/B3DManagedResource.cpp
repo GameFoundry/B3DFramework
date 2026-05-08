@@ -40,11 +40,11 @@ ResourceBackupData ManagedResource::Backup()
 		if(scriptObjectWrapper != nullptr)
 			scriptObject = scriptObjectWrapper->GetScriptObject();
 
-		SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::CreateFromExisting(scriptObject);
+		TShared<ManagedSerializableObject> serializableObject = ManagedSerializableObject::CreateFromExisting(scriptObject);
 
 		if(serializableObject != nullptr)
 		{
-			SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+			TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 			BinarySerializer bs;
 
 			bs.Encode(serializableObject.get(), stream);
@@ -60,7 +60,7 @@ ResourceBackupData ManagedResource::Backup()
 	}
 	else
 	{
-		SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+		TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 
 		if(mSerializedObjectData != nullptr)
 		{
@@ -86,7 +86,7 @@ void ManagedResource::Restore(const ResourceBackupData& data)
 	if(scriptObject != nullptr && data.Data != nullptr)
 	{
 		BinarySerializer bs;
-		SPtr<ManagedSerializableObject> serializableObject = std::static_pointer_cast<ManagedSerializableObject>(
+		TShared<ManagedSerializableObject> serializableObject = std::static_pointer_cast<ManagedSerializableObject>(
 			bs.Decode(B3DMakeShared<MemoryDataStream>(data.Data, data.Size), data.Size));
 
 		if(mObjectInformation != nullptr)
@@ -101,15 +101,15 @@ void ManagedResource::Restore(const ResourceBackupData& data)
 
 HManagedResource ManagedResource::CreateUninitialized()
 {
-	SPtr<ManagedResource> managedResourceShared = CreateUninitializedAsShared();
+	TShared<ManagedResource> managedResourceShared = CreateUninitializedAsShared();
 	HManagedResource managedResource = B3DStaticResourceCast<ManagedResource>(GetResources().CreateResourceHandle(managedResourceShared));
 
 	return managedResource;
 }
 
-SPtr<ManagedResource> ManagedResource::CreateUninitializedAsShared()
+TShared<ManagedResource> ManagedResource::CreateUninitializedAsShared()
 {
-	SPtr<ManagedResource> managedResource = B3DMakeSharedFromExisting<ManagedResource>(new(B3DAllocate<ManagedResource>()) ManagedResource());
+	TShared<ManagedResource> managedResource = B3DMakeSharedFromExisting<ManagedResource>(new(B3DAllocate<ManagedResource>()) ManagedResource());
 	managedResource->SetShared(managedResource);
 
 	return managedResource;
@@ -126,7 +126,7 @@ void ManagedResource::Initialize()
 		if(!B3D_ENSURE(scriptObject != nullptr))
 			return;
 
-		SPtr<ManagedResourceMetaData> metaData = B3DMakeShared<ManagedResourceMetaData>();
+		TShared<ManagedResourceMetaData> metaData = B3DMakeShared<ManagedResourceMetaData>();
 		mMetaData = metaData;
 
 		MonoUtil::GetClassName(scriptObject, metaData->TypeNamespace, metaData->TypeName);
@@ -134,7 +134,7 @@ void ManagedResource::Initialize()
 	// If not, we need to create the script object (e.g. if the resource is being deserialized)
 	else
 	{
-		SPtr<ManagedObjectInfo> objectInformation;
+		TShared<ManagedObjectInfo> objectInformation;
 		MonoObject* const scriptObject = CreateScriptObject(objectInformation);
 
 		ScriptObjectWrapper::Create<ScriptManagedResource>(B3DStaticResourceCast<ManagedResource>(GetHandle()), scriptObject);
@@ -148,7 +148,7 @@ void ManagedResource::Initialize()
 	}
 }
 
-MonoObject* ManagedResource::CreateScriptObject(SPtr<ManagedObjectInfo>& outObjectInformation) const
+MonoObject* ManagedResource::CreateScriptObject(TShared<ManagedObjectInfo>& outObjectInformation) const
 {
 	auto metaData = B3DRTTICast<ManagedResourceMetaData>(mMetaData);
 	if(B3D_ENSURE(metaData != nullptr))
@@ -160,7 +160,7 @@ MonoObject* ManagedResource::CreateScriptObject(SPtr<ManagedObjectInfo>& outObje
 	return ScriptAssemblyManager::Instance().GetBuiltinClasses().MissingResourceClass->CreateInstance(true);
 }
 
-void ManagedResource::SetupScriptBindings(const SPtr<ManagedObjectInfo>& objectInformation)
+void ManagedResource::SetupScriptBindings(const TShared<ManagedObjectInfo>& objectInformation)
 {
 	mObjectInformation = objectInformation;
 }

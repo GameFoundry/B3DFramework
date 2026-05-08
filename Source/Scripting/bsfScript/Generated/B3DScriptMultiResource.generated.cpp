@@ -10,7 +10,7 @@
 namespace b3d
 {
 #if !B3D_IS_ENGINE
-	ScriptMultiResource::ScriptMultiResource(const SPtr<MultiResource>& nativeObject)
+	ScriptMultiResource::ScriptMultiResource(const TShared<MultiResource>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -42,7 +42,7 @@ namespace b3d
 	}
 	void ScriptMultiResource::InternalMultiResource(MonoObject* scriptObject)
 	{
-		SPtr<MultiResource> nativeObject = B3DMakeShared<MultiResource>();
+		TShared<MultiResource> nativeObject = B3DMakeShared<MultiResource>();
 		ScriptObjectWrapper::Create<ScriptMultiResource>(nativeObject, scriptObject);
 	}
 
@@ -58,7 +58,7 @@ namespace b3d
 				nativeArrayentries[elementIndex] = ScriptSubResource::FromInterop(scriptArrayentries.Get<__SubResourceInterop>(elementIndex));
 			}
 		}
-		SPtr<MultiResource> nativeObject = B3DMakeShared<MultiResource>(nativeArrayentries);
+		TShared<MultiResource> nativeObject = B3DMakeShared<MultiResource>(nativeArrayentries);
 		ScriptObjectWrapper::Create<ScriptMultiResource>(nativeObject, scriptObject);
 	}
 

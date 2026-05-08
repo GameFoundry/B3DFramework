@@ -29,7 +29,7 @@ namespace b3d
 			return TID_ISerialized;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return nullptr;
 		}
@@ -38,14 +38,14 @@ namespace b3d
 	class B3D_EXPORT SerializedPlainDataRTTI : public TRTTIType<SerializedPlainData, ISerialized, SerializedPlainDataRTTI>
 	{
 	private:
-		SPtr<DataStream> GetData(SerializedPlainData* obj, u32& size)
+		TShared<DataStream> GetData(SerializedPlainData* obj, u32& size)
 		{
 			size = obj->Size;
 
 			return B3DMakeShared<MemoryDataStream>(obj->Value, obj->Size);
 		}
 
-		void SetData(SerializedPlainData* obj, const SPtr<DataStream>& value, u32 size)
+		void SetData(SerializedPlainData* obj, const TShared<DataStream>& value, u32 size)
 		{
 			obj->Value = (u8*)B3DAllocate(size);
 			obj->Size = size;
@@ -71,7 +71,7 @@ namespace b3d
 			return TID_SerializedPlainData;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<SerializedPlainData>();
 		}
@@ -80,7 +80,7 @@ namespace b3d
 	class B3D_EXPORT SerializedDataBlockRTTI : public TRTTIType<SerializedDataBlock, ISerialized, SerializedDataBlockRTTI>
 	{
 	private:
-		SPtr<DataStream> GetData(SerializedDataBlock* obj, u32& size)
+		TShared<DataStream> GetData(SerializedDataBlock* obj, u32& size)
 		{
 			size = obj->Size;
 			obj->Stream->Seek(obj->Offset);
@@ -88,9 +88,9 @@ namespace b3d
 			return obj->Stream;
 		}
 
-		void SetData(SerializedDataBlock* obj, const SPtr<DataStream>& value, u32 size)
+		void SetData(SerializedDataBlock* obj, const TShared<DataStream>& value, u32 size)
 		{
-			SPtr<MemoryDataStream> memStream = B3DMakeShared<MemoryDataStream>(size);
+			TShared<MemoryDataStream> memStream = B3DMakeShared<MemoryDataStream>(size);
 			value->Read(memStream->Data(), size);
 
 			obj->Stream = memStream;
@@ -115,7 +115,7 @@ namespace b3d
 			return TID_SerializedDataBlock;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<SerializedDataBlock>();
 		}
@@ -141,7 +141,7 @@ namespace b3d
 			return TID_SerializedSubObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedSubObject>();
 		}
@@ -166,7 +166,7 @@ namespace b3d
 			return TID_SerializedObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedObject>();
 		}
@@ -191,7 +191,7 @@ namespace b3d
 			return TID_SerializedArray;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedArray>();
 		}
@@ -216,7 +216,7 @@ namespace b3d
 			return TID_SerializedMap;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedMap>();
 		}
@@ -241,7 +241,7 @@ namespace b3d
 			return TID_SerializedTuple;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedTuple>();
 		}
@@ -267,7 +267,7 @@ namespace b3d
 			return TID_SerializedField;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedField>();
 		}

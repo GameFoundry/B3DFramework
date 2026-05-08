@@ -11,7 +11,7 @@ title: Persistent Cache
 Use @b3d::PersistentCache::Create to create a new cache instance:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<PersistentCache> cache = PersistentCache::Create();
+TShared<PersistentCache> cache = PersistentCache::Create();
 ~~~~~~~~~~~~~
 
 ## Initializing the cache
@@ -43,7 +43,7 @@ The cache will automatically evict entries when it exceeds this limit, starting 
 Use @b3d::PersistentCache::SetEntry to add or update cache entries:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MyData> data = B3DMakeShared<MyData>();
+TShared<MyData> data = B3DMakeShared<MyData>();
 data->Value = 42;
 
 Path entryPath = "MyCache/ComputedResult.dat";
@@ -101,7 +101,7 @@ Use @b3d::PersistentCache::TryGetEntry to retrieve cached data:
 
 ~~~~~~~~~~~~~{.cpp}
 Path entryPath = "MyCache/ComputedResult.dat";
-SPtr<IReflectable> data = cache->TryGetEntry(entryPath);
+TShared<IReflectable> data = cache->TryGetEntry(entryPath);
 
 if(data)
 {
@@ -122,7 +122,7 @@ Returns `nullptr` if the entry doesn't exist in the cache.
 Use the template version to automatically cast to a specific type:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MyData> data = cache->TryGetEntry<MyData>("MyCache/ComputedResult.dat");
+TShared<MyData> data = cache->TryGetEntry<MyData>("MyCache/ComputedResult.dat");
 
 if(data)
 {

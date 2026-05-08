@@ -23,7 +23,7 @@ Size2I TSpriteImageAllocation<IsRenderProxy>::GetSize() const
 
 SpriteImageAllocation::~SpriteImageAllocation()
 {
-	SPtr<SpriteImage> owner = mOwner.lock();
+	TShared<SpriteImage> owner = mOwner.lock();
 	if(owner == nullptr)
 		return;
 
@@ -42,24 +42,24 @@ namespace b3d
 	B3D_SYNC_BLOCK_END
 }
 
-SPtr<SpriteImageAllocation> SpriteImageAllocation::Create(const WeakSPtr<SpriteImage>& owner, const HTexture& atlasTexture, const Area2& uvRange)
+TShared<SpriteImageAllocation> SpriteImageAllocation::Create(const WeakSPtr<SpriteImage>& owner, const HTexture& atlasTexture, const Area2& uvRange)
 {
 	SpriteImageAllocation* allocation = new(B3DAllocate<SpriteImageAllocation>()) SpriteImageAllocation(owner, atlasTexture, uvRange);
-	SPtr<SpriteImageAllocation> allocationShared = B3DMakeSharedFromExisting<SpriteImageAllocation>(allocation);
+	TShared<SpriteImageAllocation> allocationShared = B3DMakeSharedFromExisting<SpriteImageAllocation>(allocation);
 	allocationShared->SetShared(allocationShared);
 	allocationShared->Initialize();
 
 	return allocationShared;
 }
 
-SPtr<render::RenderProxy> SpriteImageAllocation::CreateRenderProxy() const
+TShared<render::RenderProxy> SpriteImageAllocation::CreateRenderProxy() const
 {
-	const SPtr<render::SpriteImage> owner = B3DGetRenderProxy(mOwner.lock());
-	const SPtr<render::Texture> atlasTexture = B3DGetRenderProxy(mTexture);
+	const TShared<render::SpriteImage> owner = B3DGetRenderProxy(mOwner.lock());
+	const TShared<render::Texture> atlasTexture = B3DGetRenderProxy(mTexture);
 
 	render::SpriteImageAllocation* const renderProxy = new(B3DAllocate<render::SpriteImageAllocation>()) render::SpriteImageAllocation(owner, atlasTexture, mUVRange);
 
-	SPtr<render::SpriteImageAllocation> renderProxyShared = B3DMakeSharedFromExisting<render::SpriteImageAllocation>(renderProxy);
+	TShared<render::SpriteImageAllocation> renderProxyShared = B3DMakeSharedFromExisting<render::SpriteImageAllocation>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -172,11 +172,11 @@ void SpriteImage::MarkRenderProxyDataDirtyInternal()
 	MarkRenderProxyDataDirty();
 }
 
-SPtr<render::RenderProxy> SpriteImage::CreateRenderProxy() const
+TShared<render::RenderProxy> SpriteImage::CreateRenderProxy() const
 {
 	render::SpriteImage* const renderProxy = new(B3DAllocate<render::SpriteImage>()) render::SpriteImage(mInformation, B3DGetRenderProxy(mDefaultAllocatedImage));
 
-	SPtr<render::SpriteImage> renderProxyShared = B3DMakeSharedFromExisting<render::SpriteImage>(renderProxy);
+	TShared<render::SpriteImage> renderProxyShared = B3DMakeSharedFromExisting<render::SpriteImage>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;

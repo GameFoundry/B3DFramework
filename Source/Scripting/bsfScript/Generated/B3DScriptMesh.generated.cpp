@@ -63,7 +63,7 @@ namespace b3d
 
 	MonoObject* ScriptMesh::InternalGetSkeleton(ScriptMesh* self)
 	{
-		SPtr<Skeleton> tmp__output;
+		TShared<Skeleton> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -77,7 +77,7 @@ namespace b3d
 
 	MonoObject* ScriptMesh::InternalGetMorphShapes(ScriptMesh* self)
 	{
-		SPtr<MorphShapes> tmp__output;
+		TShared<MorphShapes> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -114,7 +114,7 @@ namespace b3d
 
 	void ScriptMesh::InternalCreate1(MonoObject* scriptObject, MonoObject* data, DrawOperationType topology, MeshFlag flags)
 	{
-		SPtr<RendererMeshData> tmpdata;
+		TShared<RendererMeshData> tmpdata;
 		ScriptRendererMeshData* scriptObjectWrapperdata;
 		scriptObjectWrapperdata = ScriptRendererMeshData::GetScriptObjectWrapper(data);
 		if(scriptObjectWrapperdata != nullptr)
@@ -125,7 +125,7 @@ namespace b3d
 
 	void ScriptMesh::InternalCreate2(MonoObject* scriptObject, MonoObject* data, MonoArray* subMeshes, MeshFlag flags)
 	{
-		SPtr<RendererMeshData> tmpdata;
+		TShared<RendererMeshData> tmpdata;
 		ScriptRendererMeshData* scriptObjectWrapperdata;
 		scriptObjectWrapperdata = ScriptRendererMeshData::GetScriptObjectWrapper(data);
 		if(scriptObjectWrapperdata != nullptr)
@@ -198,7 +198,7 @@ namespace b3d
 
 	MonoObject* ScriptMesh::InternalGetMeshData(ScriptMesh* self)
 	{
-		SPtr<RendererMeshData> tmp__output;
+		TShared<RendererMeshData> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
@@ -215,7 +215,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		SPtr<RendererMeshData> tmpvalue;
+		TShared<RendererMeshData> tmpvalue;
 		ScriptRendererMeshData* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRendererMeshData::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)

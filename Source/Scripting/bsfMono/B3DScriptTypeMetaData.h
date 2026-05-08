@@ -71,7 +71,7 @@ namespace b3d
 		/** Callbacks use to create the correct script object and script wrapper object from a native object. */
 		union
 		{
-			MonoObject* (*ReflectableCreateCallback)(const SPtr<IReflectable>&) = nullptr;
+			MonoObject* (*ReflectableCreateCallback)(const TShared<IReflectable>&) = nullptr;
 			MonoObject* (*ResourceCreateCallback)(const HResource&);
 			MonoObject* (*GameObjectCreateCallback)(const HGameObject&);
 			MonoObject* (*GUIElementCreateCallback)(GUIElement*);

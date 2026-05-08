@@ -77,38 +77,38 @@ struct ShaderUniformBuffer
 	u32 Slot;
 };
 
-Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT> GatherParameterDescriptions(const SPtr<Pass>& pass)
+Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> GatherParameterDescriptions(const TShared<Pass>& pass)
 {
-	Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT> parameterDescriptions;
+	Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> parameterDescriptions;
 
-	const SPtr<GpuGraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
+	const TShared<GpuGraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
 	if(graphicsPipeline)
 	{
-		SPtr<GpuProgram> vertProgram = graphicsPipeline->GetVertexProgram();
+		TShared<GpuProgram> vertProgram = graphicsPipeline->GetVertexProgram();
 		if(vertProgram)
 			parameterDescriptions[GPT_VERTEX_PROGRAM] = vertProgram->GetParameterDescription();
 
-		SPtr<GpuProgram> fragProgram = graphicsPipeline->GetFragmentProgram();
+		TShared<GpuProgram> fragProgram = graphicsPipeline->GetFragmentProgram();
 		if(fragProgram)
 			parameterDescriptions[GPT_FRAGMENT_PROGRAM] = fragProgram->GetParameterDescription();
 
-		SPtr<GpuProgram> geomProgram = graphicsPipeline->GetGeometryProgram();
+		TShared<GpuProgram> geomProgram = graphicsPipeline->GetGeometryProgram();
 		if(geomProgram)
 			parameterDescriptions[GPT_GEOMETRY_PROGRAM] = geomProgram->GetParameterDescription();
 
-		SPtr<GpuProgram> hullProgram = graphicsPipeline->GetHullProgram();
+		TShared<GpuProgram> hullProgram = graphicsPipeline->GetHullProgram();
 		if(hullProgram)
 			parameterDescriptions[GPT_HULL_PROGRAM] = hullProgram->GetParameterDescription();
 
-		SPtr<GpuProgram> domainProgram = graphicsPipeline->GetDomainProgram();
+		TShared<GpuProgram> domainProgram = graphicsPipeline->GetDomainProgram();
 		if(domainProgram)
 			parameterDescriptions[GPT_DOMAIN_PROGRAM] = domainProgram->GetParameterDescription();
 	}
 
-	const SPtr<GpuComputePipelineState>& computePipeline = pass->GetComputePipelineState();
+	const TShared<GpuComputePipelineState>& computePipeline = pass->GetComputePipelineState();
 	if(computePipeline)
 	{
-		SPtr<GpuProgram> computeProgram = computePipeline->GetProgram();
+		TShared<GpuProgram> computeProgram = computePipeline->GetProgram();
 		if(computeProgram)
 			parameterDescriptions[GPT_COMPUTE_PROGRAM] = computeProgram->GetParameterDescription();
 	}
@@ -116,39 +116,39 @@ Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT> GatherParameterDescriptio
 	return parameterDescriptions;
 }
 
-Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT> GatherParameterDescriptions(const SPtr<render::Pass>& pass)
+Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> GatherParameterDescriptions(const TShared<render::Pass>& pass)
 {
-	Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT> parameterDescriptions;
+	Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> parameterDescriptions;
 
 	// Make sure all gpu programs are fully loaded
-	const SPtr<GpuGraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
+	const TShared<GpuGraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
 	if(graphicsPipeline)
 	{
-		SPtr<GpuProgram> vertProgram = graphicsPipeline->GetVertexProgram();
+		TShared<GpuProgram> vertProgram = graphicsPipeline->GetVertexProgram();
 		if(vertProgram)
 			parameterDescriptions[GPT_VERTEX_PROGRAM] = vertProgram->GetParameterDescription();
 
-		SPtr<GpuProgram> fragProgram = graphicsPipeline->GetFragmentProgram();
+		TShared<GpuProgram> fragProgram = graphicsPipeline->GetFragmentProgram();
 		if(fragProgram)
 			parameterDescriptions[GPT_FRAGMENT_PROGRAM] = fragProgram->GetParameterDescription();
 
-		SPtr<GpuProgram> geomProgram = graphicsPipeline->GetGeometryProgram();
+		TShared<GpuProgram> geomProgram = graphicsPipeline->GetGeometryProgram();
 		if(geomProgram)
 			parameterDescriptions[GPT_GEOMETRY_PROGRAM] = geomProgram->GetParameterDescription();
 
-		SPtr<GpuProgram> hullProgram = graphicsPipeline->GetHullProgram();
+		TShared<GpuProgram> hullProgram = graphicsPipeline->GetHullProgram();
 		if(hullProgram)
 			parameterDescriptions[GPT_HULL_PROGRAM] = hullProgram->GetParameterDescription();
 
-		SPtr<GpuProgram> domainProgram = graphicsPipeline->GetDomainProgram();
+		TShared<GpuProgram> domainProgram = graphicsPipeline->GetDomainProgram();
 		if(domainProgram)
 			parameterDescriptions[GPT_DOMAIN_PROGRAM] = domainProgram->GetParameterDescription();
 	}
 
-	const SPtr<GpuComputePipelineState>& computePipeline = pass->GetComputePipelineState();
+	const TShared<GpuComputePipelineState>& computePipeline = pass->GetComputePipelineState();
 	if(computePipeline)
 	{
-		SPtr<GpuProgram> computeProgram = computePipeline->GetProgram();
+		TShared<GpuProgram> computeProgram = computePipeline->GetProgram();
 		if(computeProgram)
 			parameterDescriptions[GPT_COMPUTE_PROGRAM] = computeProgram->GetParameterDescription();
 	}
@@ -166,18 +166,18 @@ bool AreParamsEqual(const GpuUniformBufferMemberInformation& paramA, const GpuUn
 	return equal;
 }
 
-Vector<ShaderUniformBuffer> DetermineValidShareableUniformBuffers(const Vector<SPtr<GpuProgramParameterDescription>>& paramDescs, const Map<String, ShaderUniformBufferInformation>& shaderUniformInformation)
+Vector<ShaderUniformBuffer> DetermineValidShareableUniformBuffers(const Vector<TShared<GpuProgramParameterDescription>>& paramDescs, const Map<String, ShaderUniformBufferInformation>& shaderUniformInformation)
 {
 	struct UniformBufferInfo
 	{
 		UniformBufferInfo() {}
 
-		UniformBufferInfo(const GpuUniformBufferInformation* uniformBufferDescriptor, const SPtr<GpuProgramParameterDescription>& paramDesc, bool isValid = true)
+		UniformBufferInfo(const GpuUniformBufferInformation* uniformBufferDescriptor, const TShared<GpuProgramParameterDescription>& paramDesc, bool isValid = true)
 			: BufferInformation(uniformBufferDescriptor), ParamDesc(paramDesc), IsValid(isValid)
 		{}
 
 		const GpuUniformBufferInformation* BufferInformation;
-		SPtr<GpuProgramParameterDescription> ParamDesc;
+		TShared<GpuProgramParameterDescription> ParamDesc;
 		bool IsValid;
 		u32 Set;
 		u32 Slot;
@@ -210,7 +210,7 @@ Vector<ShaderUniformBuffer> DetermineValidShareableUniformBuffers(const Vector<S
 				continue;
 
 			String otherBlockName = otherBlock.Name;
-			SPtr<GpuProgramParameterDescription> otherDesc = iterFind->second.ParamDesc;
+			TShared<GpuProgramParameterDescription> otherDesc = iterFind->second.ParamDesc;
 
 			for(auto myParamIter = curDesc.UniformBufferMembers.begin(); myParamIter != curDesc.UniformBufferMembers.end(); ++myParamIter)
 			{
@@ -272,7 +272,7 @@ Vector<ShaderUniformBuffer> DetermineValidShareableUniformBuffers(const Vector<S
 	return output;
 }
 
-Map<String, const GpuUniformBufferMemberInformation*> DetermineValidDataParameters(const Vector<SPtr<GpuProgramParameterDescription>>& paramDescs)
+Map<String, const GpuUniformBufferMemberInformation*> DetermineValidDataParameters(const Vector<TShared<GpuProgramParameterDescription>>& paramDescs)
 {
 	Map<String, const GpuUniformBufferMemberInformation*> foundDataParams;
 	Map<String, bool> validParams;
@@ -312,7 +312,7 @@ Map<String, const GpuUniformBufferMemberInformation*> DetermineValidDataParamete
 	return foundDataParams;
 }
 
-Vector<const GpuObjectParameterInformation*> DetermineValidObjectParameters(const Vector<SPtr<GpuProgramParameterDescription>>& paramDescs)
+Vector<const GpuObjectParameterInformation*> DetermineValidObjectParameters(const Vector<TShared<GpuProgramParameterDescription>>& paramDescs)
 {
 	Vector<const GpuObjectParameterInformation*> validParams;
 
@@ -348,7 +348,7 @@ Vector<const GpuObjectParameterInformation*> DetermineValidObjectParameters(cons
 	return validParams;
 }
 
-Map<String, String> DetermineMemberToUniformBufferMapping(const Vector<SPtr<GpuProgramParameterDescription>>& memberDescriptors)
+Map<String, String> DetermineMemberToUniformBufferMapping(const Vector<TShared<GpuProgramParameterDescription>>& memberDescriptors)
 {
 	Map<String, String> memberToUniformBuffer;
 
@@ -377,7 +377,7 @@ Map<String, String> DetermineMemberToUniformBufferMapping(const Vector<SPtr<GpuP
 	return memberToUniformBuffer;
 }
 
-UnorderedMap<ValidParamKey, String> DetermineValidParameters(const Vector<SPtr<GpuProgramParameterDescription>>& paramDescs, const Map<String, ShaderDataParameterInformation>& dataParams, const Map<String, ShaderObjectParameterInformation>& textureParams, const Map<String, ShaderObjectParameterInformation>& bufferParams, const Map<String, ShaderObjectParameterInformation>& samplerParams)
+UnorderedMap<ValidParamKey, String> DetermineValidParameters(const Vector<TShared<GpuProgramParameterDescription>>& paramDescs, const Map<String, ShaderDataParameterInformation>& dataParams, const Map<String, ShaderObjectParameterInformation>& textureParams, const Map<String, ShaderObjectParameterInformation>& bufferParams, const Map<String, ShaderObjectParameterInformation>& samplerParams)
 {
 	UnorderedMap<ValidParamKey, String> validParams;
 
@@ -443,38 +443,38 @@ UnorderedMap<ValidParamKey, String> DetermineValidParameters(const Vector<SPtr<G
 
 
 template<class T>
-SPtr<T> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferCreateInformation)
+TShared<T> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferCreateInformation)
 {
 	return nullptr;
 }
 
 template<>
-SPtr<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferCreateInformation)
+TShared<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferCreateInformation)
 {
 	return GpuBuffer::Create(gpuBufferCreateInformation);
 }
 
 template<>
-SPtr<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferCreateInformation)
+TShared<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferCreateInformation)
 {
-	const SPtr<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
 	return device->CreateGpuBuffer(gpuBufferCreateInformation);
 }
 
 template <bool IsRenderProxy>
-SPtr<CoreVariantType<GpuParameterSet, IsRenderProxy>> CreateGpuParameterSet(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
+TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>> CreateGpuParameterSet(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
 {
 	return nullptr;
 }
 
 template <>
-SPtr<GpuParameterSet> CreateGpuParameterSet<false>(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
+TShared<GpuParameterSet> CreateGpuParameterSet<false>(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
 {
 	return GpuParameterSet::Create(parameterSetLayout, setIndex);
 }
 
 template <>
-SPtr<render::GpuParameterSet> CreateGpuParameterSet<true>(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
+TShared<render::GpuParameterSet> CreateGpuParameterSet<true>(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
 {
 	GpuParameterSetPool& pool = render::GetRenderer()->GetParameterSetPool();
 	return pool.Create(parameterSetLayout, setIndex);
@@ -484,25 +484,25 @@ template <bool IsRenderProxy>
 const u32 TMaterialParameterAdapter<IsRenderProxy>::kNumStages = 6;
 
 template <bool IsRenderProxy>
-TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<VariationType>& variation, const ShaderType& shader, const SPtr<MaterialParametersType>& materialParameters)
+TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const TShared<VariationType>& variation, const ShaderType& shader, const TShared<MaterialParametersType>& materialParameters)
 	: mGpuParametersPerPass(variation->GetPassCount()), mParamVersion(0)
 {
 	const u32 passCount = variation->GetPassCount();
 
 	// Create GpuParameterSet for each pass and descriptor set
-	Vector<SPtr<GpuProgramParameterDescription>> allParameterDescriptions;
-	Vector<Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT>> parameterDescriptionsPerPass;
+	Vector<TShared<GpuProgramParameterDescription>> allParameterDescriptions;
+	Vector<Array<TShared<GpuProgramParameterDescription>, GPT_COUNT>> parameterDescriptionsPerPass;
 	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 	{
-		SPtr<PassType> curPass = variation->GetPass(passIndex);
+		TShared<PassType> curPass = variation->GetPass(passIndex);
 
-		SPtr<GpuPipelineParameterLayout> parameterLayout;
-		SPtr<GpuGraphicsPipelineState> gfxPipeline = curPass->GetGraphicsPipelineState();
+		TShared<GpuPipelineParameterLayout> parameterLayout;
+		TShared<GpuGraphicsPipelineState> gfxPipeline = curPass->GetGraphicsPipelineState();
 		if(gfxPipeline != nullptr)
 			parameterLayout = gfxPipeline->GetParameterLayout();
 		else
 		{
-			SPtr<GpuComputePipelineState> computePipeline = curPass->GetComputePipelineState();
+			TShared<GpuComputePipelineState> computePipeline = curPass->GetComputePipelineState();
 			parameterLayout = computePipeline->GetParameterLayout();
 		}
 
@@ -511,7 +511,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 		mGpuParametersPerPass[passIndex].Resize(setCount);
 		for(u32 setIndex = 0; setIndex < setCount; setIndex++)
 		{
-			const SPtr<GpuPipelineParameterSetLayout>& layoutSet = parameterLayout->GetSet(setIndex);
+			const TShared<GpuPipelineParameterSetLayout>& layoutSet = parameterLayout->GetSet(setIndex);
 
 			const u32 resourceCount = layoutSet->GetResourceCount();
 			if(resourceCount > 0)
@@ -555,8 +555,8 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 	B3D_ASSERT(passCount < 64); // BlockInfo flags uses u64 for tracking usage
 	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 	{
-		TInlineArray<SPtr<GpuParametersType>, 4>& gpuParametersForPass = mGpuParametersPerPass[passIndex];
-		const Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[passIndex];
+		TInlineArray<TShared<GpuParametersType>, 4>& gpuParametersForPass = mGpuParametersPerPass[passIndex];
+		const Array<TShared<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[passIndex];
 
 		for(u32 j = 0; j < kNumStages; j++)
 		{
@@ -568,14 +568,14 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 
 				for(u32 setIndex = 0; setIndex < gpuParametersForPass.Size(); setIndex++)
 				{
-					SPtr<GpuParametersType>& gpuParameters = gpuParametersForPass[setIndex];
+					TShared<GpuParametersType>& gpuParameters = gpuParametersForPass[setIndex];
 					if(gpuParameters && gpuParameters->HasUniformBuffer(uniformBufferName))
 						gpuParameters->SetUniformBuffer(uniformBufferName, uniformBuffer);
 				}
 			}
 
 			// Create non-shareable ones (these are buffers defined by default by the RHI usually)
-			SPtr<GpuProgramParameterDescription> desc = parameterDescriptionsForPass[j];
+			TShared<GpuProgramParameterDescription> desc = parameterDescriptionsForPass[j];
 			if(desc == nullptr)
 				continue;
 
@@ -665,7 +665,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 		u32* stageOffsets = offsets;
 		for(u32 i = 0; i < passCount; i++)
 		{
-			const Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
+			const Array<TShared<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
 			for(u32 j = 0; j < kNumStages; j++)
 			{
 				auto fnProcessObjectParams = [&](const Map<String, GpuObjectParameterInformation>& gpuParams,
@@ -696,7 +696,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 					}
 				};
 
-				SPtr<GpuProgramParameterDescription> desc = parameterDescriptionsForPass[j];
+				TShared<GpuProgramParameterDescription> desc = parameterDescriptionsForPass[j];
 				if(desc == nullptr)
 				{
 					stageOffsets += 4;
@@ -792,10 +792,10 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const SPtr<V
 		{
 			for(u32 i = 0; i < passCount; i++)
 			{
-				const Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
+				const Array<TShared<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
 				for(u32 j = 0; j < kNumStages; j++)
 				{
-					SPtr<GpuProgramParameterDescription> curDesc = parameterDescriptionsForPass[j];
+					TShared<GpuProgramParameterDescription> curDesc = parameterDescriptionsForPass[j];
 					if(curDesc == nullptr)
 					{
 						uniformBuffer.PassData[i].Bindings[j].Set = -1;
@@ -832,7 +832,7 @@ TMaterialParameterAdapter<IsRenderProxy>::~TMaterialParameterAdapter()
 }
 
 template <bool IsRenderProxy>
-SPtr<typename TMaterialParameterAdapter<IsRenderProxy>::GpuParametersType> TMaterialParameterAdapter<IsRenderProxy>::GetGpuParameterSet(u32 passIndex, u32 setIndex)
+TShared<typename TMaterialParameterAdapter<IsRenderProxy>::GpuParametersType> TMaterialParameterAdapter<IsRenderProxy>::GetGpuParameterSet(u32 passIndex, u32 setIndex)
 {
 	if(passIndex >= mGpuParametersPerPass.size())
 		return nullptr;
@@ -878,7 +878,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::SetUniformBuffer(u32 index, const
 		const u32 passCount = (u32)mGpuParametersPerPass.size();
 		for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 		{
-			TInlineArray<SPtr<GpuParametersType>, 4>& gpuParametersForPass = mGpuParametersPerPass[passIndex];
+			TInlineArray<TShared<GpuParametersType>, 4>& gpuParametersForPass = mGpuParametersPerPass[passIndex];
 			for(u32 stageIndex = 0; stageIndex < kNumStages; stageIndex++)
 			{
 				GpuProgramType gpuProgramType = (GpuProgramType)stageIndex;
@@ -887,7 +887,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::SetUniformBuffer(u32 index, const
 
 				if(binding.Slot != ~0u && binding.Set < gpuParametersForPass.Size())
 				{
-					SPtr<GpuParametersType>& gpuParameters = gpuParametersForPass[binding.Set];
+					TShared<GpuParametersType>& gpuParameters = gpuParametersForPass[binding.Set];
 					if(gpuParameters)
 						gpuParameters->SetUniformBuffer(binding.Slot, buffer);
 				}
@@ -925,13 +925,13 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 	// a ring buffer and a version number. Then we could just iterate over the ring buffer and only access dirty
 	// parameters. If the version number is too high (larger than ring buffer can store), then we force update for all.
 
-	const SPtr<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = device->GetCapabilities().Conventions;
-	const SPtr<MaterialParametersType>& materialParameters = material->GetMaterialParameters();
+	const TShared<MaterialParametersType>& materialParameters = material->GetMaterialParameters();
 
 	// Parameters are sorted by buffer, so we map when buffer changes.
 	TGpuBufferMappedScope<IsRenderProxy> mappedScope;
-	SPtr<render::GpuBuffer> stagingBuffer;  // Only used for render proxy when buffer doesn't support direct mapping
+	TShared<render::GpuBuffer> stagingBuffer;  // Only used for render proxy when buffer doesn't support direct mapping
 	const UniformBufferInfo* currentUniformBufferInfo = nullptr;
 	void* bufferMemory = nullptr;
 	u32 curentBlockIndex = ~0u;
@@ -946,7 +946,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 				mappedScope.Unmap();
 
 				GpuDevice& gpuDevice = currentUniformBufferInfo->Buffer->GetDevice();
-				const SPtr<render::GpuCommandBuffer>& commandBuffer = gpuDevice.GetOrCreateTransferCommandBuffer();
+				const TShared<render::GpuCommandBuffer>& commandBuffer = gpuDevice.GetOrCreateTransferCommandBuffer();
 				commandBuffer->CopyBufferToBuffer(stagingBuffer, currentUniformBufferInfo->Buffer, 0, currentUniformBufferInfo->SuballocationByteOffset, currentUniformBufferInfo->Buffer->GetSuballocationSize());
 				stagingBuffer = nullptr;
 			}
@@ -1244,7 +1244,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 
 	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 	{
-		TInlineArray<SPtr<GpuParametersType>, 4>& gpuParametersForPass = mGpuParametersPerPass[passIndex];
+		TInlineArray<TShared<GpuParametersType>, 4>& gpuParametersForPass = mGpuParametersPerPass[passIndex];
 
 		for(u32 stageIndex = 0; stageIndex < kNumStages; stageIndex++)
 		{
@@ -1264,7 +1264,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 
 				if(paramInfo.SetIndex < gpuParametersForPass.Size())
 				{
-					SPtr<GpuParametersType>& gpuParameters = gpuParametersForPass[paramInfo.SetIndex];
+					TShared<GpuParametersType>& gpuParameters = gpuParametersForPass[paramInfo.SetIndex];
 					if(gpuParameters)
 						gpuParameters->SetSampledTexture(paramInfo.SlotIndex, texture, surface, 0);
 				}
@@ -1284,7 +1284,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 
 				if(paramInfo.SetIndex < gpuParametersForPass.Size())
 				{
-					SPtr<GpuParametersType>& gpuParameters = gpuParametersForPass[paramInfo.SetIndex];
+					TShared<GpuParametersType>& gpuParameters = gpuParametersForPass[paramInfo.SetIndex];
 					if(gpuParameters)
 						gpuParameters->SetStorageTexture(paramInfo.SlotIndex, texture, surface, 0);
 				}
@@ -1303,7 +1303,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 
 				if(paramInfo.SetIndex < gpuParametersForPass.Size())
 				{
-					SPtr<GpuParametersType>& gpuParameters = gpuParametersForPass[paramInfo.SetIndex];
+					TShared<GpuParametersType>& gpuParameters = gpuParametersForPass[paramInfo.SetIndex];
 					if(gpuParameters)
 						gpuParameters->SetStorageBuffer(paramInfo.SlotIndex, buffer, 0);
 				}
@@ -1317,12 +1317,12 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 				if(materialParamInfo->Version <= mParamVersion && !updateAll)
 					continue;
 
-				SPtr<SamplerState> samplerState;
+				TShared<SamplerState> samplerState;
 				materialParameters->GetSamplerState(*materialParamInfo, samplerState);
 
 				if(paramInfo.SetIndex < gpuParametersForPass.Size())
 				{
-					SPtr<GpuParametersType>& gpuParameters = gpuParametersForPass[paramInfo.SetIndex];
+					TShared<GpuParametersType>& gpuParameters = gpuParametersForPass[paramInfo.SetIndex];
 					if(gpuParameters)
 						gpuParameters->SetSamplerState(paramInfo.SlotIndex, samplerState, 0);
 				}
@@ -1332,7 +1332,7 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 		// Mark all GpuParameterSet objects in this pass as dirty
 		for(u32 setIndex = 0; setIndex < gpuParametersForPass.Size(); setIndex++)
 		{
-			SPtr<GpuParametersType>& gpuParameters = gpuParametersForPass[setIndex];
+			TShared<GpuParametersType>& gpuParameters = gpuParametersForPass[setIndex];
 			if(gpuParameters)
 				gpuParameters->MarkRenderProxyDataDirtyInternal();
 		}
@@ -1368,7 +1368,7 @@ namespace b3d::render
 			const u32 passCount = (u32)mGpuParametersPerPass.size();
 			for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 			{
-				TInlineArray<SPtr<GpuParameterSet>, 4>& gpuParametersForPass = mGpuParametersPerPass[passIndex];
+				TInlineArray<TShared<GpuParameterSet>, 4>& gpuParametersForPass = mGpuParametersPerPass[passIndex];
 				for(u32 stageIndex = 0; stageIndex < kNumStages; stageIndex++)
 				{
 					GpuProgramType gpuProgramType = (GpuProgramType)stageIndex;
@@ -1377,7 +1377,7 @@ namespace b3d::render
 
 					if(binding.Slot != ~0u && binding.Set < gpuParametersForPass.Size())
 					{
-						SPtr<GpuParameterSet>& gpuParameters = gpuParametersForPass[binding.Set];
+						TShared<GpuParameterSet>& gpuParameters = gpuParametersForPass[binding.Set];
 						if(gpuParameters)
 							gpuParameters->SetUniformBuffer(binding.Slot, suballocation);
 					}

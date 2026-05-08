@@ -13,7 +13,7 @@ TMaterialDataCommon<DATA_TYPE, IsRenderProxy>::TMaterialDataCommon(const String&
 {
 	if(material != nullptr)
 	{
-		SPtr<MaterialParamsType> params = material->GetMaterialParameters();
+		TShared<MaterialParamsType> params = material->GetMaterialParameters();
 
 		u32 paramIndex;
 		auto result = params->GetParamIndex(name, MaterialParameters::ParamType::Data, (GpuDataParameterType)DATA_TYPE, 0, paramIndex);
@@ -43,7 +43,7 @@ void TMaterialParameterPrimitive<T, IsRenderProxy>::Set(const T& value, u32 arra
 		return;
 	}
 
-	SPtr<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
+	TShared<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	params->SetDataParam(*data, arrayIdx, value);
@@ -57,7 +57,7 @@ T TMaterialParameterPrimitive<T, IsRenderProxy>::Get(u32 arrayIdx) const
 	if(this->mMaterial == nullptr || arrayIdx >= this->mArraySize)
 		return output;
 
-	SPtr<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
+	TShared<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	params->GetDataParam(*data, arrayIdx, output);
@@ -76,7 +76,7 @@ void TMaterialParameterCurve<T, IsRenderProxy>::Set(TAnimationCurve<T> value, u3
 		return;
 	}
 
-	SPtr<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
+	TShared<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	params->SetCurveParam(*data, arrayIdx, std::move(value));
@@ -91,7 +91,7 @@ const TAnimationCurve<T>& TMaterialParameterCurve<T, IsRenderProxy>::Get(u32 arr
 	if(this->mMaterial == nullptr || arrayIdx >= this->mArraySize)
 		return EMPTY_CURVE;
 
-	SPtr<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
+	TShared<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	return params->template GetCurveParam<T>(*data, arrayIdx);
@@ -109,7 +109,7 @@ void TMaterialParameterColorGradient<IsRenderProxy>::Set(const ColorGradientHDR&
 		return;
 	}
 
-	SPtr<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
+	TShared<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	params->SetColorGradientParam(*data, arrayIdx, value);
@@ -124,7 +124,7 @@ const ColorGradientHDR& TMaterialParameterColorGradient<IsRenderProxy>::Get(u32 
 	if(this->mMaterial == nullptr || arrayIdx >= this->mArraySize)
 		return EMPTY_GRADIENT;
 
-	SPtr<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
+	TShared<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	return params->GetColorGradientParam(*data, arrayIdx);
@@ -142,7 +142,7 @@ void TMaterialParameterStruct<IsRenderProxy>::Set(const void* value, u32 sizeByt
 		return;
 	}
 
-	SPtr<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
+	TShared<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	params->SetStructData(*data, value, sizeBytes, arrayIdx);
@@ -155,7 +155,7 @@ void TMaterialParameterStruct<IsRenderProxy>::Get(void* value, u32 sizeBytes, u3
 	if(this->mMaterial == nullptr || arrayIdx >= this->mArraySize)
 		return;
 
-	SPtr<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
+	TShared<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	params->GetStructData(*data, value, sizeBytes, arrayIdx);
@@ -167,7 +167,7 @@ u32 TMaterialParameterStruct<IsRenderProxy>::GetElementSize() const
 	if(this->mMaterial == nullptr)
 		return 0;
 
-	SPtr<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
+	TShared<typename Base::MaterialParamsType> params = this->mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	return params->GetStructSize(*data);
@@ -179,7 +179,7 @@ TMaterialParameterSampledTexture<IsRenderProxy>::TMaterialParameterSampledTextur
 {
 	if(material != nullptr)
 	{
-		SPtr<MaterialParamsType> params = material->GetMaterialParameters();
+		TShared<MaterialParamsType> params = material->GetMaterialParameters();
 
 		u32 paramIndex;
 		auto result = params->GetParamIndex(name, MaterialParameters::ParamType::Texture, GPDT_UNKNOWN, 0, paramIndex);
@@ -200,7 +200,7 @@ void TMaterialParameterSampledTexture<IsRenderProxy>::Set(const TextureType& tex
 	if(mMaterial == nullptr)
 		return;
 
-	SPtr<MaterialParamsType> params = mMaterial->GetMaterialParameters();
+	TShared<MaterialParamsType> params = mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(mParamIndex);
 
 	// If there is a default value, assign that instead of null
@@ -223,7 +223,7 @@ typename TMaterialParameterSampledTexture<IsRenderProxy>::TextureType TMaterialP
 
 	TextureSurface surface;
 
-	SPtr<MaterialParamsType> params = mMaterial->GetMaterialParameters();
+	TShared<MaterialParamsType> params = mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(mParamIndex);
 
 	params->GetTexture(*data, texture, surface);
@@ -236,7 +236,7 @@ TMaterialParamSpriteImage<IsRenderProxy>::TMaterialParamSpriteImage(const String
 {
 	if(material != nullptr)
 	{
-		SPtr<MaterialParamsType> params = material->GetMaterialParameters();
+		TShared<MaterialParamsType> params = material->GetMaterialParameters();
 
 		u32 paramIndex;
 		auto result = params->GetParamIndex(name, MaterialParameters::ParamType::Texture, GPDT_UNKNOWN, 0, paramIndex);
@@ -257,7 +257,7 @@ void TMaterialParamSpriteImage<IsRenderProxy>::Set(const SpriteImageType& image)
 	if(mMaterial == nullptr)
 		return;
 
-	SPtr<MaterialParamsType> params = mMaterial->GetMaterialParameters();
+	TShared<MaterialParamsType> params = mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(mParamIndex);
 
 	if(image == nullptr)
@@ -282,7 +282,7 @@ typename TMaterialParamSpriteImage<IsRenderProxy>::SpriteImageType TMaterialPara
 	if(mMaterial == nullptr)
 		return texture;
 
-	SPtr<MaterialParamsType> params = mMaterial->GetMaterialParameters();
+	TShared<MaterialParamsType> params = mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(mParamIndex);
 
 	params->GetSpriteImage(*data, texture);
@@ -295,7 +295,7 @@ TMaterialParameterStorageTexture<IsRenderProxy>::TMaterialParameterStorageTextur
 {
 	if(material != nullptr)
 	{
-		SPtr<MaterialParamsType> params = material->GetMaterialParameters();
+		TShared<MaterialParamsType> params = material->GetMaterialParameters();
 
 		u32 paramIndex;
 		auto result = params->GetParamIndex(name, MaterialParameters::ParamType::Texture, GPDT_UNKNOWN, 0, paramIndex);
@@ -316,7 +316,7 @@ void TMaterialParameterStorageTexture<IsRenderProxy>::Set(const TextureType& tex
 	if(mMaterial == nullptr)
 		return;
 
-	SPtr<MaterialParamsType> params = mMaterial->GetMaterialParameters();
+	TShared<MaterialParamsType> params = mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(mParamIndex);
 
 	params->SetStorageTexture(*data, texture, surface);
@@ -334,7 +334,7 @@ typename TMaterialParameterStorageTexture<IsRenderProxy>::TextureType TMaterialP
 
 	TextureSurface surface;
 
-	SPtr<MaterialParamsType> params = mMaterial->GetMaterialParameters();
+	TShared<MaterialParamsType> params = mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(mParamIndex);
 
 	params->GetStorageTexture(*data, texture, surface);
@@ -348,7 +348,7 @@ TMaterialParameterBuffer<IsRenderProxy>::TMaterialParameterBuffer(const String& 
 {
 	if(material != nullptr)
 	{
-		SPtr<MaterialParamsType> params = material->GetMaterialParameters();
+		TShared<MaterialParamsType> params = material->GetMaterialParameters();
 
 		u32 paramIndex;
 		auto result = params->GetParamIndex(name, MaterialParameters::ParamType::Buffer, GPDT_UNKNOWN, 0, paramIndex);
@@ -369,7 +369,7 @@ void TMaterialParameterBuffer<IsRenderProxy>::Set(const BufferType& buffer) cons
 	if(mMaterial == nullptr)
 		return;
 
-	SPtr<MaterialParamsType> params = mMaterial->GetMaterialParameters();
+	TShared<MaterialParamsType> params = mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(mParamIndex);
 
 	params->SetBuffer(*data, buffer);
@@ -384,7 +384,7 @@ typename TMaterialParameterBuffer<IsRenderProxy>::BufferType TMaterialParameterB
 	if(mMaterial == nullptr)
 		return buffer;
 
-	SPtr<MaterialParamsType> params = mMaterial->GetMaterialParameters();
+	TShared<MaterialParamsType> params = mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(mParamIndex);
 	params->GetBuffer(*data, buffer);
 
@@ -397,7 +397,7 @@ TMaterialParameterSampler<IsRenderProxy>::TMaterialParameterSampler(const String
 {
 	if(material != nullptr)
 	{
-		SPtr<MaterialParamsType> params = material->GetMaterialParameters();
+		TShared<MaterialParamsType> params = material->GetMaterialParameters();
 
 		u32 paramIndex;
 		auto result = params->GetParamIndex(name, MaterialParameters::ParamType::Sampler, GPDT_UNKNOWN, 0, paramIndex);
@@ -413,16 +413,16 @@ TMaterialParameterSampler<IsRenderProxy>::TMaterialParameterSampler(const String
 }
 
 template <bool IsRenderProxy>
-void TMaterialParameterSampler<IsRenderProxy>::Set(const SPtr<SamplerState>& sampState) const
+void TMaterialParameterSampler<IsRenderProxy>::Set(const TShared<SamplerState>& sampState) const
 {
 	if(mMaterial == nullptr)
 		return;
 
-	SPtr<MaterialParamsType> params = mMaterial->GetMaterialParameters();
+	TShared<MaterialParamsType> params = mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(mParamIndex);
 
 	// If there is a default value, assign that instead of null
-	SPtr<SamplerState> newValue = sampState;
+	TShared<SamplerState> newValue = sampState;
 	if(newValue == nullptr)
 		params->GetDefaultSamplerState(*data, newValue);
 
@@ -432,13 +432,13 @@ void TMaterialParameterSampler<IsRenderProxy>::Set(const SPtr<SamplerState>& sam
 }
 
 template <bool IsRenderProxy>
-SPtr<SamplerState> TMaterialParameterSampler<IsRenderProxy>::Get() const
+TShared<SamplerState> TMaterialParameterSampler<IsRenderProxy>::Get() const
 {
-	SPtr<SamplerState> samplerState;
+	TShared<SamplerState> samplerState;
 	if(mMaterial == nullptr)
 		return samplerState;
 
-	SPtr<MaterialParamsType> params = mMaterial->GetMaterialParameters();
+	TShared<MaterialParamsType> params = mMaterial->GetMaterialParameters();
 	const MaterialParameters::ParamData* data = params->GetParamData(mParamIndex);
 
 	params->GetSamplerState(*data, samplerState);

@@ -25,7 +25,7 @@ namespace b3d
 		{
 			// A'10: mirror @c RecreateInternalBuffer's deferred-release pattern for dtor-initiated
 			// releases. The MTLBuffer may still be referenced by in-flight command buffers when the
-			// last SPtr<MetalGpuBuffer> is dropped; queue the backing handle against the graphics
+			// last TShared<MetalGpuBuffer> is dropped; queue the backing handle against the graphics
 			// queue's last-committed watermark so it survives until those retire.
 			//
 			// Shortcuts:
@@ -48,7 +48,7 @@ namespace b3d
 				return;
 			}
 
-			SPtr<GpuQueue> gfxQueue = mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
+			TShared<GpuQueue> gfxQueue = mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
 			MetalGpuQueue* metalQueue = gfxQueue ? static_cast<MetalGpuQueue*>(gfxQueue.get()) : nullptr;
 			const u64 lastCommitted = metalQueue != nullptr ? metalQueue->GetLastCommittedEventValue() : 0;
 
@@ -115,7 +115,7 @@ namespace b3d
 
 			if (prior != nil)
 			{
-				SPtr<GpuQueue> gfxQueue = mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
+				TShared<GpuQueue> gfxQueue = mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
 				MetalGpuQueue* metalQueue = gfxQueue ? static_cast<MetalGpuQueue*>(gfxQueue.get()) : nullptr;
 				const u64 lastCommitted = metalQueue != nullptr ? metalQueue->GetLastCommittedEventValue() : 0;
 

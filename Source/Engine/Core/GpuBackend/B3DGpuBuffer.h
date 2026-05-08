@@ -293,11 +293,11 @@ namespace b3d
 		using GpuBufferType = CoreVariantType<b3d::GpuBuffer, IsRenderProxy>;
 
 		TGpuBufferSuballocation() = default;
-		explicit TGpuBufferSuballocation(const SPtr<GpuBufferType>& buffer, u32 suballocationOffset = 0)
+		explicit TGpuBufferSuballocation(const TShared<GpuBufferType>& buffer, u32 suballocationOffset = 0)
 			: mBuffer(buffer), mSuballocationOffset(suballocationOffset) {}
 
 		/** Gets the underlying GPU buffer. */
-		const SPtr<GpuBufferType>& GetBuffer() const { return mBuffer; }
+		const TShared<GpuBufferType>& GetBuffer() const { return mBuffer; }
 
 		/** Gets the zero-based suballocation index within the buffer. Computed lazily from offset. */
 		u32 GetSuballocationIndex() const { return mBuffer ? (mSuballocationOffset / mBuffer->GetSuballocationSize()) : 0; }
@@ -326,7 +326,7 @@ namespace b3d
 		TGpuBufferMappedScope<IsRenderProxy> Map(GpuMapOptions options = GpuMapOption::Write) const;
 
 	private:
-		SPtr<GpuBufferType> mBuffer;
+		TShared<GpuBufferType> mBuffer;
 		u32 mSuballocationOffset = 0;
 	};
 
@@ -379,7 +379,7 @@ namespace b3d
 
 		void* GetMappedMemory() const { return mMappedMemory; }
 		const GpuSuballocationType& GetSuballocation() const { return mSuballocation; }
-		const SPtr<GpuBufferType>& GetBuffer() const { return mSuballocation.GetBuffer(); }
+		const TShared<GpuBufferType>& GetBuffer() const { return mSuballocation.GetBuffer(); }
 		bool IsValid() const { return mMappedMemory != nullptr; }
 		explicit operator bool() const { return IsValid(); }
 
@@ -460,7 +460,7 @@ namespace b3d
 		}
 
 		/** Creates a new buffer. */
-		static SPtr<GpuBuffer> Create(const GpuBufferCreateInformation& createInformation);
+		static TShared<GpuBuffer> Create(const GpuBufferCreateInformation& createInformation);
 
 		/** Returns the size of a single element in the buffer, of the provided format, in bytes. */
 		static u32 GetFormatSize(GpuBufferFormat format);
@@ -469,13 +469,13 @@ namespace b3d
 		static u32 GetIndexSize(IndexType type) { return type == IT_32BIT ? 4 : 2; }
 
 		/** Calculates the size of a buffer described by the provided information, in bytes. */
-		static u32 CalculateTotalBufferSize(const GpuBufferInformation& information, const SPtr<GpuDevice>& gpuDevice);
+		static u32 CalculateTotalBufferSize(const GpuBufferInformation& information, const TShared<GpuDevice>& gpuDevice);
 
 		/**
 		 * Calculates the distance between two buffers, in case the buffer contains sub-allocated buffers. This is guaranteed to be at
 		 * least the request size of a single sub-allocated buffer, but may be larger due to alignment requirements.
 		 */
-		static u32 CalculateSuballocatedBufferSize(const GpuBufferInformation& information, const SPtr<GpuDevice>& gpuDevice);
+		static u32 CalculateSuballocatedBufferSize(const GpuBufferInformation& information, const TShared<GpuDevice>& gpuDevice);
 		static u32 CalculateSuballocatedBufferSize(const GpuBufferInformation& information, const GpuDevice& gpuDevice);
 
 	protected:
@@ -487,7 +487,7 @@ namespace b3d
 
 		void Initialize() override;
 		void Destroy() override;
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		GpuBufferInformation mInformation;
@@ -745,7 +745,7 @@ namespace b3d::render
 		 * @param	readable	True if the buffer needs to be CPU-readable, false if the buffer needs to be CPU-writeable.
 		 * @return				Newly created buffer.
 		 */
-		static SPtr<GpuBuffer> CreateStaging(const SPtr<GpuBuffer>& buffer, bool readable);
+		static TShared<GpuBuffer> CreateStaging(const TShared<GpuBuffer>& buffer, bool readable);
 
 		/**
 		 * Writes data into a buffer while accounting for the fact that the buffer might not be directly CPU-writable. Only buffers with
@@ -764,7 +764,7 @@ namespace b3d::render
 		 *							the operation will be queued on a transfer command buffer that will be submitted just before next regular command
 		 *							buffer submission (or at the latest, at the end of the current frame).
 		 */
-		static void Write(const SPtr<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags writeFlags = GpuBufferWriteFlag::Normal, SPtr<GpuCommandBuffer> commandBuffer = nullptr);
+		static void Write(const TShared<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags writeFlags = GpuBufferWriteFlag::Normal, TShared<GpuCommandBuffer> commandBuffer = nullptr);
 
 		/**
 		 * Reads data from a buffer while accounting for the fact that the buffer might not be directly CPU-readable. Only buffers with
@@ -783,7 +783,7 @@ namespace b3d::render
 		 * @param	destination		Destination buffer large enough to store the read data. Data is written from the start of the buffer (@p offset is only applied to the source).
 		 * @param	gpuQueue		GPU queue on which to perform the read. If not specified the default transfer queue will be used.
 		 */
-		static void Read(const SPtr<GpuBuffer>& buffer, u32 offset, u32 length, void* destination, const SPtr<GpuQueue>& gpuQueue = nullptr);
+		static void Read(const TShared<GpuBuffer>& buffer, u32 offset, u32 length, void* destination, const TShared<GpuQueue>& gpuQueue = nullptr);
 
 		/**
 		 * Performs a non-blocking read operation. The GPU will execute the read when the command buffer reaches the execution point
@@ -794,7 +794,7 @@ namespace b3d::render
 		 * @param	length			Length of the area you want to read, in bytes.
 		 * @return					Operation that will be signaled when the data is ready to be read.
 		 */
-		static TAsyncOp<SPtr<MemoryDataStream>> ReadAsync(const SPtr<GpuBuffer>& buffer, u32 offset, u32 length, GpuCommandBuffer& commandBuffer);
+		static TAsyncOp<TShared<MemoryDataStream>> ReadAsync(const TShared<GpuBuffer>& buffer, u32 offset, u32 length, GpuCommandBuffer& commandBuffer);
 	};
 
 } // namespace b3d::render

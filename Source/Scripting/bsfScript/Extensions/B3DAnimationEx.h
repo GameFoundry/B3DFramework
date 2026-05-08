@@ -17,32 +17,32 @@ namespace b3d
 	{
 	public:
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(AnimationCurves), ExportName(Position), Property(Getter))
-		static Vector<TNamedAnimationCurve<Vector3>> GetPositionCurves(const SPtr<AnimationCurves>& thisPtr);
+		static Vector<TNamedAnimationCurve<Vector3>> GetPositionCurves(const TShared<AnimationCurves>& thisPtr);
 
 		/** Curves for animating scene object's position. */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(AnimationCurves), ExportName(Position), Property(Setter))
-		static void SetPositionCurves(const SPtr<AnimationCurves>& thisPtr, const Vector<TNamedAnimationCurve<Vector3>>& value);
+		static void SetPositionCurves(const TShared<AnimationCurves>& thisPtr, const Vector<TNamedAnimationCurve<Vector3>>& value);
 
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(AnimationCurves), ExportName(Rotation), Property(Getter))
-		static Vector<TNamedAnimationCurve<Quaternion>> GetRotationCurves(const SPtr<AnimationCurves>& thisPtr);
+		static Vector<TNamedAnimationCurve<Quaternion>> GetRotationCurves(const TShared<AnimationCurves>& thisPtr);
 
 		/** Curves for animating scene object's rotation. */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(AnimationCurves), ExportName(Rotation), Property(Setter))
-		static void SetRotationCurves(const SPtr<AnimationCurves>& thisPtr, const Vector<TNamedAnimationCurve<Quaternion>>& value);
+		static void SetRotationCurves(const TShared<AnimationCurves>& thisPtr, const Vector<TNamedAnimationCurve<Quaternion>>& value);
 
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(AnimationCurves), ExportName(Scale), Property(Getter))
-		static Vector<TNamedAnimationCurve<Vector3>> GetScaleCurves(const SPtr<AnimationCurves>& thisPtr);
+		static Vector<TNamedAnimationCurve<Vector3>> GetScaleCurves(const TShared<AnimationCurves>& thisPtr);
 
 		/** Curves for animating scene object's scale. */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(AnimationCurves), ExportName(Scale), Property(Setter))
-		static void SetScaleCurves(const SPtr<AnimationCurves>& thisPtr, const Vector<TNamedAnimationCurve<Vector3>>& value);
+		static void SetScaleCurves(const TShared<AnimationCurves>& thisPtr, const Vector<TNamedAnimationCurve<Vector3>>& value);
 
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(AnimationCurves), ExportName(Generic), Property(Getter))
-		static Vector<TNamedAnimationCurve<float>> GetGenericCurves(const SPtr<AnimationCurves>& thisPtr);
+		static Vector<TNamedAnimationCurve<float>> GetGenericCurves(const TShared<AnimationCurves>& thisPtr);
 
 		/** Curves for animating generic component properties. */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(AnimationCurves), ExportName(Generic), Property(Setter))
-		static void SetGenericCurves(const SPtr<AnimationCurves>& thisPtr, const Vector<TNamedAnimationCurve<float>>& value);
+		static void SetGenericCurves(const TShared<AnimationCurves>& thisPtr, const Vector<TNamedAnimationCurve<float>>& value);
 	};
 
 	/** Extension class for RootMotion, for adding additional functionality for the script version of the class. */
@@ -51,11 +51,11 @@ namespace b3d
 	public:
 		/** Animation curve representing the movement of the root bone. */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(RootMotion), ExportName(Position), Property(Getter))
-		static TAnimationCurve<Vector3> GetPositionCurves(const SPtr<RootMotion>& thisPtr);
+		static TAnimationCurve<Vector3> GetPositionCurves(const TShared<RootMotion>& thisPtr);
 
 		/** Animation curve representing the rotation of the root bone. */
 		B3D_SCRIPT_EXPORT(ExtensionMethodForType(RootMotion), ExportName(Rotation), Property(Getter))
-		static TAnimationCurve<Quaternion> GetRotationCurves(const SPtr<RootMotion>& thisPtr);
+		static TAnimationCurve<Quaternion> GetRotationCurves(const TShared<RootMotion>& thisPtr);
 	};
 
 	/** @endcond */

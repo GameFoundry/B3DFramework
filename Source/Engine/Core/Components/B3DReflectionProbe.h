@@ -55,7 +55,7 @@ namespace b3d
 		Vector3 Extents = { 1.0f, 1.0f, 1.0f }; /**< Extents used by box reflection probe. */
 		float TransitionDistance = 0.1f; /**< Extra distance to used for fading out box probes. */
 		Sphere Bounds = { Vector3::kZero, 1.0f }; /**< Sphere that bounds the probe area of influence. */
-		SPtr<TextureType> FilteredTexture; /**< Pre-filtered texture generated from custom texture or scene capture. */
+		TShared<TextureType> FilteredTexture; /**< Pre-filtered texture generated from custom texture or scene capture. */
 
 		/** Computes the world space bounding sphere for a reflection probe and updates the Bounds field. */
 		void ComputeBounds(const Transform& transform);
@@ -90,7 +90,7 @@ namespace b3d
 		float GetTransitionDistance() const { return GetData().TransitionDistance; }
 
 		/** Returns a pre-filtered texture that is generated either from the provided custom texture, or from scene capture. */
-		const SPtr<TextureType>& GetFilteredTexture() const { return GetData().FilteredTexture; }
+		const TShared<TextureType>& GetFilteredTexture() const { return GetData().FilteredTexture; }
 
 	private:
 		const TReflectionProbeData<IsRenderProxy>& GetData() const
@@ -112,7 +112,7 @@ namespace b3d
 			struct TransformSyncPacket;
 
 			HTexture CustomTexture; /**< Optional custom cubemap texture. When set, this is filtered instead of capturing the scene. */
-			SPtr<render::RendererTask> PendingTask; /**< Transient (not serialized). In-flight capture/filter task, if any. */
+			TShared<render::RendererTask> PendingTask; /**< Transient (not serialized). In-flight capture/filter task, if any. */
 
 			friend class ECSReflectionProbeRTTI;
 			static RTTIType* GetRttiStatic();
@@ -132,7 +132,7 @@ namespace b3d
 		struct ReflectionProbeTransformDirty {};
 
 		/** Creates all ReflectionProbe data fragments, a world transform, and allocates a renderer ID. Entity is ready for rendering after this call. Returns the ReflectionProbe data fragment. */
-		ReflectionProbe& CreateReflectionProbe(Registry& registry, Entity entity, const SPtr<RendererScene>& rendererScene, const Transform& transform = Transform::kIdentity);
+		ReflectionProbe& CreateReflectionProbe(Registry& registry, Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform = Transform::kIdentity);
 
 		/** Removes all ReflectionProbe fragments. Cleanup (ID deallocation, dirty tags, task cancellation) is handled by the associated RendererScene when it is notified the fragment has been removed. */
 		void DestroyReflectionProbe(Registry& registry, Entity entity);
@@ -154,20 +154,20 @@ namespace b3d
 		 * No action if the fragment has a custom texture set. Requires ecs::ReflectionProbe,
 		 * ecs::WorldTransform, and ecs::ReflectionProbeId on the entity.
 		 */
-		static void Capture(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene);
+		static void Capture(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene);
 
 		/**
 		 * Filters the custom texture set on the fragment. No action if no custom texture is set.
 		 * Requires ecs::ReflectionProbe, ecs::WorldTransform, and ecs::ReflectionProbeId on the entity.
 		 */
-		static void Filter(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene);
+		static void Filter(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene);
 
 	private:
 		/**
 		 * Performs the actual capture and/or filter operation, creating a RendererTask.
 		 * Cancels any existing in-flight task for this probe via RendererScene::SetPendingCaptureTask.
 		 */
-		static void CaptureAndFilter(ecs::Registry& registry, ecs::Entity entity, const SPtr<RendererScene>& rendererScene);
+		static void CaptureAndFilter(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene);
 	};
 
 	/** @} */
@@ -350,7 +350,7 @@ namespace b3d
 		 * Resolves the ID to a packed ID (with version check for safety), updates the proxy's filtered texture,
 		 * and calls OnFilteredTextureUpdated so the renderer can mark the cubemap array slot dirty.
 		 */
-		void UpdateFilteredTexture(RendererId probeId, const SPtr<render::Texture>& texture);
+		void UpdateFilteredTexture(RendererId probeId, const TShared<render::Texture>& texture);
 
 		/**
 		 * Called once per frame for each new reflection probe being added, or a probe whose data needs to be rebuilt

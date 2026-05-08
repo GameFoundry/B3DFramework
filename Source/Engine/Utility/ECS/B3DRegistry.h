@@ -75,7 +75,7 @@ namespace b3d::ecs
 			if(auto found = mComponentStorage.find(typeId); found != mComponentStorage.end())
 				return static_cast<TStorageType<Type>&>(*found->second);
 
-			SPtr<SparseSet> componentStorage;
+			TShared<SparseSet> componentStorage;
 			if constexpr(std::is_empty_v<Type>)
 				componentStorage = B3DMakeShared<TTagSparseSet<Type>>();
 			else
@@ -404,7 +404,7 @@ namespace b3d::ecs
 			if(auto found = mGroupStorage.find(GroupType::TypeId()); found != mGroupStorage.end())
 				return GroupType(*std::static_pointer_cast<InternalsType>(found->second));
 
-			SPtr<InternalsType> internals;
+			TShared<InternalsType> internals;
 			if constexpr(sizeof...(OwnedTypes) == 0)
 				internals = B3DMakeShared<InternalsType>(std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<IncludedTypes>>()...), std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<ExcludedTypes>>()...));
 			else
@@ -549,8 +549,8 @@ namespace b3d::ecs
 
 	private:
 		EntitySparseSet mEntityStorage;
-		UnorderedMap<TypeId, SPtr<SparseSet>> mComponentStorage;
-		UnorderedMap<TypeId, SPtr<GroupCommon>> mGroupStorage;
+		UnorderedMap<TypeId, TShared<SparseSet>> mComponentStorage;
+		UnorderedMap<TypeId, TShared<GroupCommon>> mGroupStorage;
 	};
 
 	/** @} */

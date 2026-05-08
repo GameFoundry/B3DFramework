@@ -21,13 +21,13 @@ GpuDevice& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 GpuCommandBufferPoolCreateInformation poolCreateInformation =
 	GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS);
 
-SPtr<GpuCommandBufferPool> commandBufferPool = gpuDevice.CreateGpuCommandBufferPool(poolCreateInformation);
+TShared<GpuCommandBufferPool> commandBufferPool = gpuDevice.CreateGpuCommandBufferPool(poolCreateInformation);
 ~~~~~~~~~~~~~
 
 Once you have a pool, you can create command buffers by calling @b3d::render::GpuCommandBufferPool::Create or @b3d::render::GpuCommandBufferPool::FindOrCreate. The latter will attempt to reuse an existing command buffer from the pool if one is available.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuCommandBuffer> commandBuffer = commandBufferPool->Create(
+TShared<GpuCommandBuffer> commandBuffer = commandBufferPool->Create(
 	GpuCommandBufferCreateInformation::Create("MyCommandBuffer"));
 ~~~~~~~~~~~~~
 

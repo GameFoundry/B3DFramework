@@ -31,7 +31,7 @@ namespace b3d { namespace render
 		GpuParticleClearMaterial() = default;
 
 		/** Populates GPU parameters for rendering using this material. */
-		static void PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const SPtr<GpuBuffer>& vertexInputBuffer, const SPtr<GpuBuffer>& tileUVs);
+		static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const TShared<GpuBuffer>& vertexInputBuffer, const TShared<GpuBuffer>& tileUVs);
 	};
 
 	/** Material used for adding new particles into the particle state textures. */
@@ -43,7 +43,7 @@ namespace b3d { namespace render
 		GpuParticleInjectMaterial() = default;
 
 		/** Populates GPU parameters for rendering using this material. */
-		static void PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, const SPtr<GpuBuffer>& vertexInputBuffer);
+		static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const TShared<GpuBuffer>& vertexInputBuffer);
 	};
 
 	/** Material used for adding new curves into the curve texture. */
@@ -55,7 +55,7 @@ namespace b3d { namespace render
 		GpuParticleCurveInjectMaterial() = default;
 
 		/** Populates GPU parameters for rendering using this material. */
-		void Prepare(const SPtr<GpuBuffer>& vertexInputBuffer);
+		void Prepare(const TShared<GpuBuffer>& vertexInputBuffer);
 	};
 
 	B3D_UNIFORM_BUFFER_BEGIN(VectorFieldUniformDefinition)
@@ -125,9 +125,9 @@ namespace b3d { namespace render
 		 * @param	vectorFieldTexture			3D texture representing the vector field, or null if none.
 		 * @param	supportsDepthCollisions		True if this material variation supports depth collisions
 		 */
-		static void PopulateParameters(const SPtr<GpuParameterSet>& gpuParameters, GpuParticleResources& resources, const SPtr<GpuBuffer>& particleVertexInputBuffer,
-			const GpuBufferSuballocation& viewParams, const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<GpuBuffer>& tileUVs,
-			const GpuBufferSuballocation& perObjectParams, const SPtr<Texture>& vectorFieldTexture, bool supportsDepthCollisions);
+		static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, GpuParticleResources& resources, const TShared<GpuBuffer>& particleVertexInputBuffer,
+			const GpuBufferSuballocation& viewParams, const TShared<Texture>& depth, const TShared<Texture>& normals, const TShared<GpuBuffer>& tileUVs,
+			const GpuBufferSuballocation& perObjectParams, const TShared<Texture>& vectorFieldTexture, bool supportsDepthCollisions);
 
 		/** Returns the material variation matching the provided parameters. */
 		static GpuParticleSimulateMaterial* GetVariation(bool depthCollisions, bool localSpace);
@@ -153,7 +153,7 @@ namespace b3d { namespace render
 		void Initialize() override;
 
 		/** Binds the material to the pipeline along with the global input texture containing particle positions and times. */
-		void Bind(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& positionAndTime);
+		void Bind(GpuCommandBuffer& commandBuffer, const TShared<Texture>& positionAndTime);
 
 		/**
 		 * Executes the material, calculating the bounds. Note that this function reads back from the GPU and should not
@@ -163,7 +163,7 @@ namespace b3d { namespace render
 		 * @param		indices			Buffer containing offsets into the position texture for each particle.
 		 * @param		numParticles	Number of particle in the provided indices buffer.
 		 */
-		AABox Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& indices, u32 numParticles);
+		AABox Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& indices, u32 numParticles);
 
 	private:
 		GpuParameterUniformBuffer mInputUniformBufferParameter;
@@ -195,7 +195,7 @@ namespace b3d { namespace render
 		void Initialize() override;
 
 		/** Binds the material to the pipeline along with the global input texture containing particle positions and times. */
-		void Bind(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& positionAndTime);
+		void Bind(GpuCommandBuffer& commandBuffer, const TShared<Texture>& positionAndTime);
 
 		/**
 		 * Executes the material, generating sort data for a particular particle system and injecting it into the specified
@@ -213,7 +213,7 @@ namespace b3d { namespace render
 		 *								as @p outKeys.
 		 * @return						Number of particle that were written to the buffers.
 		 */
-		u32 Execute(GpuCommandBuffer& commandBuffer, const GpuParticleSystem& system, u32 systemIdx, const Vector3& localViewOrigin, u32 offset, const SPtr<GpuBuffer>& outKeys, const SPtr<GpuBuffer>& outIndices);
+		u32 Execute(GpuCommandBuffer& commandBuffer, const GpuParticleSystem& system, u32 systemIdx, const Vector3& localViewOrigin, u32 offset, const TShared<GpuBuffer>& outKeys, const TShared<GpuBuffer>& outIndices);
 
 	private:
 		GpuParameterUniformBuffer mInputUniformBufferParameter;

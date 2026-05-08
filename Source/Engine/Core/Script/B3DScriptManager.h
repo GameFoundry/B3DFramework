@@ -90,13 +90,13 @@ namespace b3d
 		 * Sets the active script library that controls what kind and which scripts are loaded. Must be called before
 		 * the module is started up.
 		 */
-		static void SetScriptLibrary(const SPtr<ScriptLibrary>& library) { sScriptLibrary = library; }
+		static void SetScriptLibrary(const TShared<ScriptLibrary>& library) { sScriptLibrary = library; }
 
 		/** Returns the currently assigned script library. */
-		static const SPtr<ScriptLibrary>& GetScriptLibrary() { return sScriptLibrary; }
+		static const TShared<ScriptLibrary>& GetScriptLibrary() { return sScriptLibrary; }
 
 	private:
-		static SPtr<ScriptLibrary> sScriptLibrary;
+		static TShared<ScriptLibrary> sScriptLibrary;
 	};
 
 	/** @} */

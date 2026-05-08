@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptManagedFieldInfo::ScriptManagedFieldInfo(const SPtr<ManagedFieldInfo>& nativeObject)
+	ScriptManagedFieldInfo::ScriptManagedFieldInfo(const TShared<ManagedFieldInfo>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

@@ -13,7 +13,7 @@
 
 namespace b3d
 {
-	ScriptParticleSystemSettings::ScriptParticleSystemSettings(const SPtr<ParticleSystemSettings>& nativeObject)
+	ScriptParticleSystemSettings::ScriptParticleSystemSettings(const TShared<ParticleSystemSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

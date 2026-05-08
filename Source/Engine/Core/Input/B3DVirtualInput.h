@@ -57,11 +57,11 @@ namespace b3d
 
 		/**	Input configuration that determines how physical keys map to virtual buttons. */
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Configuration))
-		void SetConfiguration(const SPtr<InputConfiguration>& input);
+		void SetConfiguration(const TShared<InputConfiguration>& input);
 
 		/** @copydoc SetConfiguration */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Configuration))
-		SPtr<InputConfiguration> GetConfiguration() const { return mInputConfiguration; }
+		TShared<InputConfiguration> GetConfiguration() const { return mInputConfiguration; }
 
 		/** Creates a new virtual button associated with the name, or returns an existing button if it exists. */
 		B3D_SCRIPT_EXPORT()
@@ -138,7 +138,7 @@ namespace b3d
 		/** Performs all logic related to a button release. */
 		void ButtonUp(const ButtonEvent& event);
 
-		SPtr<InputConfiguration> mInputConfiguration;
+		TShared<InputConfiguration> mInputConfiguration;
 		Vector<DeviceData> mDevices;
 		Queue<VirtualButtonEvent> mEvents;
 		u32 mActiveModifiers = (u32)ButtonModifier::None;

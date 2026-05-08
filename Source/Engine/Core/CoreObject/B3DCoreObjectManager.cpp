@@ -69,7 +69,7 @@ void CoreObjectManager::UnregisterObject(CoreObject* object)
 
 		if(isDirty)
 		{
-			SPtr<render::RenderProxy> renderProxy = object->GetRenderProxy();
+			TShared<render::RenderProxy> renderProxy = object->GetRenderProxy();
 			if(renderProxy != nullptr)
 			{
 				FrameAllocator* allocator = mSyncAllocators[mActiveFrameAllocatorIndex];
@@ -253,7 +253,7 @@ void CoreObjectManager::SyncToRenderThread(CoreObject* object)
 {
 	struct IndividualCoreSyncData
 	{
-		SPtr<render::RenderProxy> Destination;
+		TShared<render::RenderProxy> Destination;
 		CoreSyncData SyncData;
 		FrameAllocator* Allocator;
 	};
@@ -282,7 +282,7 @@ void CoreObjectManager::SyncToRenderThread(CoreObject* object)
 				fnSyncObject(dependency);
 		}
 
-		SPtr<render::RenderProxy> renderProxy = currentObject->GetRenderProxy();
+		TShared<render::RenderProxy> renderProxy = currentObject->GetRenderProxy();
 		if(renderProxy == nullptr)
 		{
 			currentObject->MarkRenderProxyDataUpToDate();
@@ -385,7 +385,7 @@ void CoreObjectManager::SyncDownload(FrameAllocator* allocator)
 					fnSyncObject(dependency);
 			}
 
-			SPtr<render::RenderProxy> renderProxy = currentObject->GetRenderProxy();
+			TShared<render::RenderProxy> renderProxy = currentObject->GetRenderProxy();
 			if(renderProxy == nullptr)
 			{
 				currentObject->MarkRenderProxyDataUpToDate();
@@ -439,7 +439,7 @@ void CoreObjectManager::SyncUpload()
 
 	for(auto& objectSyncData : syncData.Entries)
 	{
-		SPtr<render::RenderProxy> destinationObject = objectSyncData.RenderProxy;
+		TShared<render::RenderProxy> destinationObject = objectSyncData.RenderProxy;
 		if(destinationObject != nullptr)
 			destinationObject->SyncFromCoreObject(objectSyncData.SyncData, *syncData.Allocator);
 

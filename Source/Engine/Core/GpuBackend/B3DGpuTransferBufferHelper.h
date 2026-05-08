@@ -33,7 +33,7 @@ namespace b3d
 		struct ThreadData
 		{
 			UPtr<render::GpuCommandBufferPoolRing> PoolRing; /**< Ring buffer of pools for allocating transfer command buffers. */
-			SPtr<render::GpuCommandBuffer> CurrentCommandBuffer; /**< Currently active transfer buffer, if any. */
+			TShared<render::GpuCommandBuffer> CurrentCommandBuffer; /**< Currently active transfer buffer, if any. */
 			ThreadId OwnerThread; /**< Thread ID that owns this data. */
 		};
 
@@ -54,7 +54,7 @@ namespace b3d
 		 *
 		 * @return			Transfer command buffer for the current thread.
 		 */
-		const SPtr<render::GpuCommandBuffer>& GetOrCreateTransferCommandBuffer();
+		const TShared<render::GpuCommandBuffer>& GetOrCreateTransferCommandBuffer();
 
 		/**
 		 * Submits the active transfer command buffer for the current thread.

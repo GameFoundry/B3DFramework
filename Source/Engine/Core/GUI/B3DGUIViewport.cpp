@@ -56,8 +56,8 @@ void GUIViewport::UpdateRenderElements()
 
 	mCamera->SetHorizontalFOV(currentFOV);
 
-	SPtr<Viewport> viewport = mCamera->GetViewport();
-	SPtr<RenderTarget> renderTarget = viewport->GetTarget();
+	TShared<Viewport> viewport = mCamera->GetViewport();
+	TShared<RenderTarget> renderTarget = viewport->GetTarget();
 	const RenderTargetProperties& rtProps = renderTarget->GetProperties();
 
 	float x = (float)mAbsolutePosition.X / (float)rtProps.Width;
@@ -74,8 +74,8 @@ void GUIViewport::ChangeParentWidget(GUIWidget* widget)
 
 	if(widget != nullptr)
 	{
-		SPtr<RenderTarget> guiRenderTarget = widget->GetTarget()->GetTarget();
-		SPtr<RenderTarget> cameraRenderTarget = mCamera->GetViewport()->GetTarget();
+		TShared<RenderTarget> guiRenderTarget = widget->GetTarget()->GetTarget();
+		TShared<RenderTarget> cameraRenderTarget = mCamera->GetViewport()->GetTarget();
 
 		B3D_ENSURE_LOG(guiRenderTarget == cameraRenderTarget, "Camera provided to GUIViewport must use the same render target as the GUIWidget this element is located on.");
 	}

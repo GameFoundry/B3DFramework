@@ -29,8 +29,8 @@ namespace b3d
 		/** Buffers to contain both inputs and outputs for the GpuSort algorithm. */
 		struct GpuSortBuffers
 		{
-			SPtr<GpuBuffer> Keys[2];
-			SPtr<GpuBuffer> Values[2];
+			TShared<GpuBuffer> Keys[2];
+			TShared<GpuBuffer> Values[2];
 		};
 
 		/** Zeroes out the provided buffer. Should be called on the count output buffer before executing RadixSortCountMaterial. */
@@ -48,7 +48,7 @@ namespace b3d
 			 * @param	commandBuffer	Command buffer to execute on.
 			 * @param	outputCounts	Pre-allocated buffer to zero out.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& outputCounts);
+			void Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& outputCounts);
 
 			GpuParameterStorageBuffer MOutputParam;
 		};
@@ -76,7 +76,7 @@ namespace b3d
 			 *							representing this buffer.
 			 * @param	outputCounts	Pre-allocated buffer to contain the resulting per-digit counts for each group.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const SPtr<GpuBuffer>& inputKeys, const SPtr<GpuBuffer>& outputCounts);
+			void Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputKeys, const TShared<GpuBuffer>& outputCounts);
 
 			GpuParameterStorageBuffer MInputKeysParam;
 			GpuParameterStorageBuffer MOutputCountsParam;
@@ -103,7 +103,7 @@ namespace b3d
 			 * @param	inputCounts		Counts as output by the RadixSortCountMaterial material.
 			 * @param	outputCounts	Pre-allocated buffer to contain the resulting per-digit counts for each group.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& params, const SPtr<GpuBuffer>& inputCounts, const SPtr<GpuBuffer>& outputOffsets);
+			void Execute(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputCounts, const TShared<GpuBuffer>& outputOffsets);
 
 			GpuParameterStorageBuffer MInputCountsParam;
 			GpuParameterStorageBuffer MOutputOffsetsParam;
@@ -135,7 +135,7 @@ namespace b3d
 			 * @return					Index of the buffer that should be used as input for the next iteration of the
 			 *							algorithm. (In case the keys were only partially sorted)
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const SPtr<GpuBuffer>& inputOffsets, const GpuSortBuffers& buffers, u32 inputBufferIdx);
+			void Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputOffsets, const GpuSortBuffers& buffers, u32 inputBufferIdx);
 
 			GpuParameterStorageBuffer MInputOffsetsBufferParam;
 			GpuParameterStorageBuffer MInputKeysBufferParam;
@@ -189,7 +189,7 @@ namespace b3d
 			static GpuSortBuffers CreateSortBuffers(u32 numElements, bool values = false);
 
 		private:
-			SPtr<GpuBuffer> mHelperBuffers[2];
+			TShared<GpuBuffer> mHelperBuffers[2];
 		};
 
 		/* @} */

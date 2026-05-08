@@ -29,7 +29,7 @@ namespace b3d
 		 * @param	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *							GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIRenderTexture* Create(const SPtr<RenderTexture>& texture, bool transparent, const String& styleName = StringUtility::kBlank);
+		static GUIRenderTexture* Create(const TShared<RenderTexture>& texture, bool transparent, const String& styleName = StringUtility::kBlank);
 
 		/**
 		 * Creates a new element with the provided render texture.
@@ -41,7 +41,7 @@ namespace b3d
 		 * @param	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *							GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIRenderTexture* Create(const SPtr<RenderTexture>& texture, bool transparent, const GUIOptions& options, const String& styleName = StringUtility::kBlank);
+		static GUIRenderTexture* Create(const TShared<RenderTexture>& texture, bool transparent, const GUIOptions& options, const String& styleName = StringUtility::kBlank);
 
 		/**
 		 * Creates a new element with the provided render texture.
@@ -50,7 +50,7 @@ namespace b3d
 		 * @param	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *							GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIRenderTexture* Create(const SPtr<RenderTexture>& texture, const String& styleName = StringUtility::kBlank);
+		static GUIRenderTexture* Create(const TShared<RenderTexture>& texture, const String& styleName = StringUtility::kBlank);
 
 		/**
 		 * Creates a new element with the provided render texture.
@@ -61,18 +61,18 @@ namespace b3d
 		 * @param	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *							GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIRenderTexture* Create(const SPtr<RenderTexture>& texture, const GUIOptions& options, const String& styleName = StringUtility::kBlank);
+		static GUIRenderTexture* Create(const TShared<RenderTexture>& texture, const GUIOptions& options, const String& styleName = StringUtility::kBlank);
 
 		/** Changes the active render texture whose contents to display in the GUI element. */
-		void SetRenderTexture(const SPtr<RenderTexture>& texture);
+		void SetRenderTexture(const TShared<RenderTexture>& texture);
 
 	protected:
-		GUIRenderTexture(const String& styleName, const SPtr<RenderTexture>& texture, bool transparent, const GUISizeConstraints& dimensions);
+		GUIRenderTexture(const String& styleName, const TShared<RenderTexture>& texture, bool transparent, const GUISizeConstraints& dimensions);
 		virtual ~GUIRenderTexture();
 
 		void UpdateRenderElements() override;
 
-		SPtr<RenderTexture> mSourceTexture;
+		TShared<RenderTexture> mSourceTexture;
 		bool mTransparent;
 	};
 

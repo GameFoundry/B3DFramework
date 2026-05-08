@@ -258,7 +258,7 @@ GUIPhysicalUnit GUIInputCaret::GetCaretHeight() const
 		if(mTextDesc.Font != nullptr)
 		{
 			const float nearestSize = mTextDesc.Font->GetClosestExistingBitmapSize(mTextDesc.FontSize);
-			SPtr<const FontBitmapInformation> fontData = mTextDesc.Font->GetBitmap(nearestSize);
+			TShared<const FontBitmapInformation> fontData = mTextDesc.Font->GetBitmap(nearestSize);
 
 			if(fontData != nullptr)
 				return Math::RoundToI32(fontData->LineHeight);

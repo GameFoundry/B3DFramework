@@ -239,7 +239,7 @@ namespace b3d
 			if (mImpl->CommandBuffer != nil)
 				return mImpl->CommandBuffer;
 
-			SPtr<GpuQueue> queuePtr = mGpuDevice.GetQueue(mQueueType, 0);
+			TShared<GpuQueue> queuePtr = mGpuDevice.GetQueue(mQueueType, 0);
 			auto metalQueue = std::static_pointer_cast<MetalGpuQueue>(queuePtr);
 			if (!metalQueue)
 				return nil;
@@ -347,7 +347,7 @@ namespace b3d
 			}
 		}
 
-		void MetalGpuCommandBuffer::SetGpuParameterSet(const SPtr<GpuParameterSet>& parameters)
+		void MetalGpuCommandBuffer::SetGpuParameterSet(const TShared<GpuParameterSet>& parameters)
 		{
 			// B1: the per-parameter-set path below may walk retained Obj-C handles under the hood;
 			// drain transients locally so the fiber scheduler does not accumulate them across frames.
@@ -409,13 +409,13 @@ namespace b3d
 			} // @autoreleasepool
 		}
 
-		void MetalGpuCommandBuffer::SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState)
+		void MetalGpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState)
 		{
 			EnsureValidThread();
 			mBoundGraphicsPipeline = std::static_pointer_cast<MetalGpuGraphicsPipelineState>(pipelineState);
 		}
 
-		void MetalGpuCommandBuffer::SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& pipelineState)
+		void MetalGpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState)
 		{
 			EnsureValidThread();
 			mBoundComputePipeline = pipelineState;
@@ -429,7 +429,7 @@ namespace b3d
 				[mImpl->ComputeEncoder setComputePipelineState:pso];
 		}
 
-		void MetalGpuCommandBuffer::SetVertexBuffers(u32 index, SPtr<GpuBuffer>* buffers, u32 bufferCount)
+		void MetalGpuCommandBuffer::SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount)
 		{
 			// B1: setVertexBuffer:offset:atIndex: retains transient objects inside the encoder state
 			// snapshot; drain them locally so they do not survive past the call under the fiber scheduler.
@@ -457,13 +457,13 @@ namespace b3d
 			} // @autoreleasepool
 		}
 
-		void MetalGpuCommandBuffer::SetIndexBuffer(const SPtr<GpuBuffer>& buffer)
+		void MetalGpuCommandBuffer::SetIndexBuffer(const TShared<GpuBuffer>& buffer)
 		{
 			EnsureValidThread();
 			mBoundIndexBuffer = buffer;
 		}
 
-		void MetalGpuCommandBuffer::SetVertexDescription(const SPtr<VertexDescription>& vertexDescription)
+		void MetalGpuCommandBuffer::SetVertexDescription(const TShared<VertexDescription>& vertexDescription)
 		{
 			EnsureValidThread();
 			mBoundVertexDescription = vertexDescription;
@@ -529,7 +529,7 @@ namespace b3d
 			// (set-and-forget bindings cost nothing here).
 			for (u32 slotIndex = 0; slotIndex < (u32)mBoundParameterSets.Size(); slotIndex++)
 			{
-				const SPtr<GpuParameterSet>& slotSet = mBoundParameterSets[slotIndex];
+				const TShared<GpuParameterSet>& slotSet = mBoundParameterSets[slotIndex];
 				if (!slotSet)
 					continue;
 
@@ -586,7 +586,7 @@ namespace b3d
 			// emit-residency per slot. See @c Draw for the full comment.
 			for (u32 slotIndex = 0; slotIndex < (u32)mBoundParameterSets.Size(); slotIndex++)
 			{
-				const SPtr<GpuParameterSet>& slotSet = mBoundParameterSets[slotIndex];
+				const TShared<GpuParameterSet>& slotSet = mBoundParameterSets[slotIndex];
 				if (!slotSet)
 					continue;
 
@@ -673,7 +673,7 @@ namespace b3d
 			// re-attaching when @c SetGpuParameterSet already covered this slot is safe.
 			for (u32 slotIndex = 0; slotIndex < (u32)mBoundParameterSets.Size(); slotIndex++)
 			{
-				const SPtr<GpuParameterSet>& slotSet = mBoundParameterSets[slotIndex];
+				const TShared<GpuParameterSet>& slotSet = mBoundParameterSets[slotIndex];
 				if (!slotSet)
 					continue;
 
@@ -809,7 +809,7 @@ namespace b3d
 			mRenderPassWidth = 0;
 			mRenderPassHeight = 0;
 
-			const SPtr<RenderTarget>& target = createInformation.Target;
+			const TShared<RenderTarget>& target = createInformation.Target;
 			if (!target)
 				return;
 
@@ -844,7 +844,7 @@ namespace b3d
 			if (targetProps.IsWindow)
 			{
 				auto* window = static_cast<RenderWindow*>(target.get());
-				const SPtr<IRenderWindowSurface>& windowSurface = window->GetRenderWindowSurface();
+				const TShared<IRenderWindowSurface>& windowSurface = window->GetRenderWindowSurface();
 				auto metalSurface = std::static_pointer_cast<MetalRenderWindowSurface>(windowSurface);
 				if (!metalSurface)
 				{
@@ -978,7 +978,7 @@ namespace b3d
 			// draw-time re-attach this wires the engine's "declare in BeginRenderPass" pattern.
 			// Attach only here: the draw-time path still commits pending writes and emits
 			// useResource:, so nothing from B5's draw-time contract moves earlier.
-			for (const SPtr<GpuParameterSet>& paramSet : createInformation.Parameters)
+			for (const TShared<GpuParameterSet>& paramSet : createInformation.Parameters)
 			{
 				if (!paramSet)
 					continue;
@@ -1092,7 +1092,7 @@ namespace b3d
 				[mImpl->RenderEncoder setStencilReferenceValue:value];
 		}
 
-		void MetalGpuCommandBuffer::CopyBufferToBuffer(const SPtr<GpuBuffer>& source, const SPtr<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
+		void MetalGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
 		{
 			EnsureValidThread();
 
@@ -1124,7 +1124,7 @@ namespace b3d
 				size:length];
 		}
 
-		void MetalGpuCommandBuffer::CopyBufferToTexture(const SPtr<GpuBuffer>& source, const SPtr<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
+		void MetalGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
 		{
 			EnsureValidThread();
 			if (!source || !destination)
@@ -1164,7 +1164,7 @@ namespace b3d
 				destinationOrigin:MTLOriginMake(0, 0, 0)];
 		}
 
-		void MetalGpuCommandBuffer::CopyTextureToBuffer(const SPtr<Texture>& source, const SPtr<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)
+		void MetalGpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)
 		{
 			EnsureValidThread();
 			if (!source || !destination)
@@ -1204,7 +1204,7 @@ namespace b3d
 				destinationBytesPerImage:slicePitch];
 		}
 
-		void MetalGpuCommandBuffer::SetPendingVisibilityPool(const SPtr<GpuQueryPool>& queryPool)
+		void MetalGpuCommandBuffer::SetPendingVisibilityPool(const TShared<GpuQueryPool>& queryPool)
 		{
 			EnsureValidThread();
 
@@ -1225,7 +1225,7 @@ namespace b3d
 			mPendingVisibilityPool = std::static_pointer_cast<MetalGpuQueryPool>(queryPool);
 		}
 
-		void MetalGpuCommandBuffer::WriteTimestamp(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool)
+		void MetalGpuCommandBuffer::WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool)
 		{
 			EnsureValidThread();
 
@@ -1286,7 +1286,7 @@ namespace b3d
 			AddUniqueUsedQueryPool(metalPool.get());
 		}
 
-		void MetalGpuCommandBuffer::BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool, GpuQueryFlags flags)
+		void MetalGpuCommandBuffer::BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags)
 		{
 			EnsureValidThread();
 
@@ -1307,7 +1307,7 @@ namespace b3d
 			AddUniqueUsedQueryPool(metalPool.get());
 		}
 
-		void MetalGpuCommandBuffer::EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool)
+		void MetalGpuCommandBuffer::EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool)
 		{
 			EnsureValidThread();
 			(void)query;
@@ -1319,7 +1319,7 @@ namespace b3d
 			[mImpl->RenderEncoder setVisibilityResultMode:MTLVisibilityResultModeDisabled offset:0];
 		}
 
-		void MetalGpuCommandBuffer::ResetQueries(const SPtr<GpuQueryPool>& queryPool)
+		void MetalGpuCommandBuffer::ResetQueries(const TShared<GpuQueryPool>& queryPool)
 		{
 			EnsureValidThread();
 
@@ -1504,7 +1504,7 @@ namespace b3d
 						if (!waitMask.IsSet(waitQueueId))
 							continue;
 
-						SPtr<GpuQueue> queuePtr = device.GetQueue(queueType, queueIndex);
+						TShared<GpuQueue> queuePtr = device.GetQueue(queueType, queueIndex);
 						auto waitQueue = std::static_pointer_cast<MetalGpuQueue>(queuePtr);
 						if (!waitQueue)
 							continue;
@@ -1596,7 +1596,7 @@ namespace b3d
 					// matching the Vulkan cleanup semantics.
 					mQueueSyncMask = GpuQueueMask();
 
-					SPtr<GpuCommandBuffer> selfShared = GetShared();
+					TShared<GpuCommandBuffer> selfShared = GetShared();
 					mPool.GetMessageQueue().PostCommand([selfShared]()
 					{
 						auto* metalSelf = static_cast<MetalGpuCommandBuffer*>(selfShared.get());
@@ -1620,7 +1620,7 @@ namespace b3d
 
 				mState = GpuCommandBufferState::Executing;
 
-				SPtr<GpuCommandBuffer> selfShared = GetShared();
+				TShared<GpuCommandBuffer> selfShared = GetShared();
 				[emptyCmdBuffer addCompletedHandler:^(id<MTLCommandBuffer>)
 				{
 					auto* metalSelf = static_cast<MetalGpuCommandBuffer*>(selfShared.get());
@@ -1660,7 +1660,7 @@ namespace b3d
 			// bsfVulkanGpuBackend backend's message-queue-back pattern.
 			mState = GpuCommandBufferState::Executing;
 
-			SPtr<GpuCommandBuffer> selfShared = GetShared();
+			TShared<GpuCommandBuffer> selfShared = GetShared();
 			[cmdBuffer addCompletedHandler:^(id<MTLCommandBuffer>)
 			{
 				auto* metalSelf = static_cast<MetalGpuCommandBuffer*>(selfShared.get());

@@ -32,7 +32,7 @@ namespace b3d
 			vecElements.resize(scriptArrayElements.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayElements.Size(); elementIndex++)
 			{
-				SPtr<HString> arrayElementPointerElements;
+				TShared<HString> arrayElementPointerElements;
 				ScriptLocString* scriptObjectWrapperElements;
 				scriptObjectWrapperElements = ScriptLocString::GetScriptObjectWrapper(scriptArrayElements.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrapperElements != nullptr)
@@ -57,7 +57,7 @@ namespace b3d
 		ScriptArray scriptArrayElements = ScriptArray::Create<ScriptLocString>(elementCountElements);
 		for(int elementIndex = 0; elementIndex < elementCountElements; elementIndex++)
 		{
-			SPtr<HString> arrayElementPointerElements = B3DMakeShared<HString>();
+			TShared<HString> arrayElementPointerElements = B3DMakeShared<HString>();
 			*arrayElementPointerElements = value.Elements[elementIndex];
 			MonoObject* arrayElementElements;
 			arrayElementElements = ScriptLocString::GetOrCreateScriptObject(arrayElementPointerElements);

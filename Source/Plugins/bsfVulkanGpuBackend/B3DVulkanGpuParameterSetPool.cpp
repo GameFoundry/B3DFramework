@@ -77,9 +77,9 @@ namespace b3d::render
 		}
 	}
 
-	SPtr<GpuParameterSet> VulkanGpuParameterSetPool::Create(const SPtr<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
+	TShared<GpuParameterSet> VulkanGpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
 	{
-		SPtr<VulkanGpuParameterSet> output = B3DMakeShared<VulkanGpuParameterSet>(mDevice, layout, setIndex, *this);
+		TShared<VulkanGpuParameterSet> output = B3DMakeShared<VulkanGpuParameterSet>(mDevice, layout, setIndex, *this);
 		output->SetShared(output);
 
 		if (!deferredInitialize)

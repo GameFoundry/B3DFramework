@@ -217,19 +217,19 @@ namespace b3d
 		 * Exact implementation depends on the physics plugin used.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(Physics), Property(Getter))
-		const SPtr<PhysicsScene>& GetPhysicsScene() const { return mPhysicsScene; }
+		const TShared<PhysicsScene>& GetPhysicsScene() const { return mPhysicsScene; }
 
 		/**
 		 * Representation of the scene used by the renderer. Contains all the objects that need to be rendered.
 		 * Exact implementation depends on the renderer plugin used.
 		 */
-		const SPtr<RendererScene>& GetRendererScene() const { return mRendererScene; }
+		const TShared<RendererScene>& GetRendererScene() const { return mRendererScene; }
 
 		/** Returns the object responsible for updating animations in this scene. */
-		const SPtr<AnimationScene>& GetAnimationScene() const { return mAnimationScene; }
+		const TShared<AnimationScene>& GetAnimationScene() const { return mAnimationScene; }
 
 		/** Returns the object responsible for updating particles in this scene. */
-		const SPtr<ParticleScene>& GetParticleScene() const { return mParticleScene; }
+		const TShared<ParticleScene>& GetParticleScene() const { return mParticleScene; }
 
 		/** Returns an object that manages time associated with this scene. */
 		const SceneTime& GetTime() const { return mTime; }
@@ -254,7 +254,7 @@ namespace b3d
 #if B3D_WITH_EDITOR 
 		/** Editor scene instance, if running from within the editor. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(EditorSceneInstance))
-		SPtr<IEditorSceneInstance> GetEditorSceneInstance() const { return mEditorSceneInstance.lock(); }
+		TShared<IEditorSceneInstance> GetEditorSceneInstance() const { return mEditorSceneInstance.lock(); }
 #endif
 
 		/** Removes all scene objects from the scene, except for persistent objects. If @p forceAll is true, removes even the persistent objects. */
@@ -272,14 +272,14 @@ namespace b3d
 
 		/** Creates a new empty scene instance. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SceneInstance))
-		static SPtr<SceneInstance> Create(const String& name);
+		static TShared<SceneInstance> Create(const String& name);
 
 		/** Creates a new scene instance with an existing hierarchy. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SceneInstance))
-		static SPtr<SceneInstance> Create(const String& name, const HSceneObject& root);
+		static TShared<SceneInstance> Create(const String& name, const HSceneObject& root);
 
 		/** Creates a new scene instance with an existing hierarchy and associated resource ID. */
-		static SPtr<SceneInstance> Create(const String& name, const HSceneObject& root, const UUID& associatedResourceId);
+		static TShared<SceneInstance> Create(const String& name, const HSceneObject& root, const UUID& associatedResourceId);
 
 		/**
 		 * @name Internal
@@ -293,7 +293,7 @@ namespace b3d
 		const ecs::Registry& GetECSRegistry() const { return mGameObjectCollection->GetECSRegistry(); }
 
 		/** Returns the game object collection storing all the scene's game objects. */
-		const SPtr<GameObjectCollection>& GetGameObjectCollection() const { return mGameObjectCollection; }
+		const TShared<GameObjectCollection>& GetGameObjectCollection() const { return mGameObjectCollection; }
 
 		/** Sets the ID of the resource that the scene instance is associated with (e.g. resource the scene was loaded from.). */
 		void SetAssociatedResourceId(const UUID& id) { mAssociatedResourceId = id; }
@@ -323,11 +323,11 @@ namespace b3d
 		 * Sets the render target that the main camera in the scene (if any) will render its view to. This generally means
 		 * the main game window when running standalone, or the Game viewport when running in editor.
 		 */
-		void SetMainCameraRenderTarget(const SPtr<RenderTarget>& renderTarget);
+		void SetMainCameraRenderTarget(const TShared<RenderTarget>& renderTarget);
 
 #if B3D_WITH_EDITOR
 		/** @copydoc GetEditorSceneInstance */
-		void SetEditorSceneInstance(const SPtr<IEditorSceneInstance>& scene) { mEditorSceneInstance = scene; }
+		void SetEditorSceneInstance(const TShared<IEditorSceneInstance>& scene) { mEditorSceneInstance = scene; }
 #endif
 
 		/** @} */
@@ -335,7 +335,7 @@ namespace b3d
 	private:
 		friend class SceneManager;
 
-		SPtr<render::RenderProxy> CreateRenderProxy() const override;
+		TShared<render::RenderProxy> CreateRenderProxy() const override;
 
 		/**	Callback that is triggered when the main render target size is changed. */
 		void OnMainRenderTargetResized();
@@ -344,17 +344,17 @@ namespace b3d
 		HSceneObject mRoot;
 		UUID mAssociatedResourceId; /**< ID of the resource the scene was loaded from, if any. */
 		bool mIsActive = true;
-		SPtr<PhysicsScene> mPhysicsScene;
-		SPtr<RendererScene> mRendererScene;
-		SPtr<AnimationScene> mAnimationScene;
-		SPtr<ParticleScene> mParticleScene;
-		SPtr<GameObjectCollection> mGameObjectCollection;
+		TShared<PhysicsScene> mPhysicsScene;
+		TShared<RendererScene> mRendererScene;
+		TShared<AnimationScene> mAnimationScene;
+		TShared<ParticleScene> mParticleScene;
+		TShared<GameObjectCollection> mGameObjectCollection;
 		SceneTime mTime;
 
 		UnorderedMap<UUID, HCamera> mCameras;
 		Vector<HCamera> mMainCameras;
 
-		SPtr<RenderTarget> mPrimaryRenderTarget;
+		TShared<RenderTarget> mPrimaryRenderTarget;
 		HEvent mMainRenderTargetResizedHandle;
 
 #if B3D_WITH_EDITOR
@@ -380,17 +380,17 @@ namespace b3d
 			 * Representation of the scene used by the renderer. Contains all the objects that need to be rendered.
 			 * Exact implementation depends on the renderer plugin used.
 			 */
-			const SPtr<RendererScene>& GetRendererScene() const { return mRendererScene; }
+			const TShared<RendererScene>& GetRendererScene() const { return mRendererScene; }
 
 		protected:
 			friend class b3d::SceneInstance;
 
-			SceneInstance(u64 id, const SPtr<RendererScene>& rendererScene)
+			SceneInstance(u64 id, const TShared<RendererScene>& rendererScene)
 				: mId(id), mRendererScene(rendererScene)
 			{ }
 
 			u64 mId = ~0u;
-			SPtr<RendererScene> mRendererScene;
+			TShared<RendererScene> mRendererScene;
 		};
 	} // namespace render
 

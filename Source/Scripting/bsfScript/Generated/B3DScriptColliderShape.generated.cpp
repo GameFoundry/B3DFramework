@@ -18,7 +18,7 @@
 
 namespace b3d
 {
-	ScriptColliderShape::ScriptColliderShape(const SPtr<ColliderShape>& nativeObject)
+	ScriptColliderShape::ScriptColliderShape(const TShared<ColliderShape>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -444,7 +444,7 @@ namespace b3d
 
 	void ScriptColliderShape::InternalCreatePlane(MonoObject* scriptObject, PlaneColliderShapeInformation* information)
 	{
-		SPtr<ColliderShape> nativeObject = ColliderShape::CreatePlane(*information);
+		TShared<ColliderShape> nativeObject = ColliderShape::CreatePlane(*information);
 		ScriptObjectWrapper::Create<ScriptColliderShape>(nativeObject, scriptObject);
 	}
 
@@ -452,19 +452,19 @@ namespace b3d
 	{
 		BoxColliderShapeInformation tmpinformation;
 		tmpinformation = ScriptBoxColliderShapeInformation::FromInterop(*information);
-		SPtr<ColliderShape> nativeObject = ColliderShape::CreateBox(tmpinformation);
+		TShared<ColliderShape> nativeObject = ColliderShape::CreateBox(tmpinformation);
 		ScriptObjectWrapper::Create<ScriptColliderShape>(nativeObject, scriptObject);
 	}
 
 	void ScriptColliderShape::InternalCreateSphere(MonoObject* scriptObject, SphereColliderShapeInformation* information)
 	{
-		SPtr<ColliderShape> nativeObject = ColliderShape::CreateSphere(*information);
+		TShared<ColliderShape> nativeObject = ColliderShape::CreateSphere(*information);
 		ScriptObjectWrapper::Create<ScriptColliderShape>(nativeObject, scriptObject);
 	}
 
 	void ScriptColliderShape::InternalCreateCapsule(MonoObject* scriptObject, CapsuleColliderShapeInformation* information)
 	{
-		SPtr<ColliderShape> nativeObject = ColliderShape::CreateCapsule(*information);
+		TShared<ColliderShape> nativeObject = ColliderShape::CreateCapsule(*information);
 		ScriptObjectWrapper::Create<ScriptColliderShape>(nativeObject, scriptObject);
 	}
 
@@ -472,7 +472,7 @@ namespace b3d
 	{
 		MeshColliderShapeInformation tmpinformation;
 		tmpinformation = ScriptMeshColliderShapeInformation::FromInterop(*information);
-		SPtr<ColliderShape> nativeObject = ColliderShape::CreateMesh(tmpinformation);
+		TShared<ColliderShape> nativeObject = ColliderShape::CreateMesh(tmpinformation);
 		ScriptObjectWrapper::Create<ScriptColliderShape>(nativeObject, scriptObject);
 	}
 }

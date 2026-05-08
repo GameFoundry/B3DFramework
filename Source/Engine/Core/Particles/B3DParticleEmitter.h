@@ -165,11 +165,11 @@ namespace b3d
 
 		/** Creates a new particle emitter cone shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterConeShape> Create(const ParticleConeShapeSettings& settings);
+		static TShared<ParticleEmitterConeShape> Create(const ParticleConeShapeSettings& settings);
 
 		/** Creates a new particle emitter cone shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterConeShape> Create();
+		static TShared<ParticleEmitterConeShape> Create();
 
 		/**
 		 * @name Internal
@@ -237,11 +237,11 @@ namespace b3d
 
 		/** Creates a new particle emitter sphere shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterSphereShape> Create(const ParticleSphereShapeSettings& settings);
+		static TShared<ParticleEmitterSphereShape> Create(const ParticleSphereShapeSettings& settings);
 
 		/** Creates a new particle emitter sphere shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterSphereShape> Create();
+		static TShared<ParticleEmitterSphereShape> Create();
 
 		/**
 		 * @name Internal
@@ -303,11 +303,11 @@ namespace b3d
 
 		/** Creates a new particle emitter sphere shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterHemisphereShape> Create(const ParticleHemisphereShapeSettings& settings);
+		static TShared<ParticleEmitterHemisphereShape> Create(const ParticleHemisphereShapeSettings& settings);
 
 		/** Creates a new particle emitter sphere shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterHemisphereShape> Create();
+		static TShared<ParticleEmitterHemisphereShape> Create();
 
 		/**
 		 * @name Internal
@@ -375,11 +375,11 @@ namespace b3d
 
 		/** Creates a new particle emitter box shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterBoxShape> Create(const ParticleBoxShapeSettings& settings);
+		static TShared<ParticleEmitterBoxShape> Create(const ParticleBoxShapeSettings& settings);
 
 		/** Creates a new particle emitter box shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterBoxShape> Create();
+		static TShared<ParticleEmitterBoxShape> Create();
 
 		/**
 		 * @name Internal
@@ -436,11 +436,11 @@ namespace b3d
 
 		/** Creates a new particle emitter edge shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterLineShape> Create(const ParticleLineShapeSettings& settings);
+		static TShared<ParticleEmitterLineShape> Create(const ParticleLineShapeSettings& settings);
 
 		/** Creates a new particle emitter edge shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterLineShape> Create();
+		static TShared<ParticleEmitterLineShape> Create();
 
 		/**
 		 * @name Internal
@@ -512,11 +512,11 @@ namespace b3d
 
 		/** Creates a new particle emitter circle shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterCircleShape> Create(const ParticleCircleShapeSettings& settings);
+		static TShared<ParticleEmitterCircleShape> Create(const ParticleCircleShapeSettings& settings);
 
 		/** Creates a new particle emitter circle shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterCircleShape> Create();
+		static TShared<ParticleEmitterCircleShape> Create();
 
 		/**
 		 * @name Internal
@@ -570,11 +570,11 @@ namespace b3d
 
 		/** Creates a new particle emitter rectangle shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterRectShape> Create(const ParticleRectangleShapeSettings& settings);
+		static TShared<ParticleEmitterRectShape> Create(const ParticleRectangleShapeSettings& settings);
 
 		/** Creates a new particle emitter rectangle shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterRectShape> Create();
+		static TShared<ParticleEmitterRectShape> Create();
 
 		/**
 		 * @name Internal
@@ -707,7 +707,7 @@ namespace b3d
 		u8* mBoneIndices = nullptr;
 		u8* mBoneWeights = nullptr;
 
-		SPtr<MeshData> mMeshData;
+		TShared<MeshData> mMeshData;
 
 		// Transient
 		mutable u32 mNextSequentialIdx = 0;
@@ -737,11 +737,11 @@ namespace b3d
 
 		/** Creates a new particle emitter static mesh shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterStaticMeshShape> Create(const ParticleStaticMeshShapeSettings& settings);
+		static TShared<ParticleEmitterStaticMeshShape> Create(const ParticleStaticMeshShapeSettings& settings);
 
 		/** Creates a new particle emitter static mesh shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterStaticMeshShape> Create();
+		static TShared<ParticleEmitterStaticMeshShape> Create();
 
 		/**
 		 * @name Internal
@@ -809,11 +809,11 @@ namespace b3d
 
 		/** Creates a new particle emitter skinned mesh shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterSkinnedMeshShape> Create(const ParticleSkinnedMeshShapeSettings& settings);
+		static TShared<ParticleEmitterSkinnedMeshShape> Create(const ParticleSkinnedMeshShapeSettings& settings);
 
 		/** Creates a new particle emitter skinned mesh shape. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitterSkinnedMeshShape> Create();
+		static TShared<ParticleEmitterSkinnedMeshShape> Create();
 
 		/**
 		 * @name Internal
@@ -869,11 +869,11 @@ namespace b3d
 	public:
 		/** Shape over which to emit the particles. */
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Shape))
-		void SetShape(SPtr<ParticleEmitterShape> shape) { mShape = std::move(shape); }
+		void SetShape(TShared<ParticleEmitterShape> shape) { mShape = std::move(shape); }
 
 		/** @copydoc SetShape */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Shape))
-		const SPtr<ParticleEmitterShape>& GetShape() const { return mShape; }
+		const TShared<ParticleEmitterShape>& GetShape() const { return mShape; }
 
 		/** Determines the number of particles that are emitted every second. */
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(EmissionRate))
@@ -1019,7 +1019,7 @@ namespace b3d
 
 		/** Creates a new emitter. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleEmitter> Create();
+		static TShared<ParticleEmitter> Create();
 
 	private:
 		friend class ParticleSystem;
@@ -1049,7 +1049,7 @@ namespace b3d
 		u32 Spawn(u32 count, Random& random, const ParticleSystemState& state, ParticleSet& set, bool spacing) const;
 
 		// User-visible properties
-		SPtr<ParticleEmitterShape> mShape;
+		TShared<ParticleEmitterShape> mShape;
 
 		FloatDistribution mEmissionRate = 50.0f;
 		Vector<ParticleBurst> mBursts;

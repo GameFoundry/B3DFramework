@@ -21,24 +21,24 @@ namespace b3d
 	B3D_SYNC_BLOCK_END
 }
 
-SPtr<SpriteVectorPathAllocation> SpriteVectorPathAllocation::Create(const WeakSPtr<SpriteImageType>& owner, const GUIVectorSpriteAtlasAllocation& vectorSpriteAtlasAllocation)
+TShared<SpriteVectorPathAllocation> SpriteVectorPathAllocation::Create(const WeakSPtr<SpriteImageType>& owner, const GUIVectorSpriteAtlasAllocation& vectorSpriteAtlasAllocation)
 {
 	SpriteVectorPathAllocation* allocation = new(B3DAllocate<SpriteVectorPathAllocation>()) SpriteVectorPathAllocation(owner, vectorSpriteAtlasAllocation);
-	SPtr<SpriteVectorPathAllocation> allocationShared = B3DMakeSharedFromExisting<SpriteVectorPathAllocation>(allocation);
+	TShared<SpriteVectorPathAllocation> allocationShared = B3DMakeSharedFromExisting<SpriteVectorPathAllocation>(allocation);
 	allocationShared->SetShared(allocationShared);
 	allocationShared->Initialize();
 
 	return allocationShared;
 }
 
-SPtr<render::RenderProxy> SpriteVectorPathAllocation::CreateRenderProxy() const
+TShared<render::RenderProxy> SpriteVectorPathAllocation::CreateRenderProxy() const
 {
-	const SPtr<render::SpriteImage> owner = B3DGetRenderProxy(mOwner.lock());
-	const SPtr<render::Texture> atlasTexture = B3DGetRenderProxy(mTexture);
+	const TShared<render::SpriteImage> owner = B3DGetRenderProxy(mOwner.lock());
+	const TShared<render::Texture> atlasTexture = B3DGetRenderProxy(mTexture);
 
 	render::SpriteVectorPathAllocation* const renderProxy = new(B3DAllocate<render::SpriteVectorPathAllocation>()) render::SpriteVectorPathAllocation(owner, atlasTexture, mUVRange, mVectorSpriteAtlasAllocationHandle);
 
-	SPtr<render::SpriteVectorPathAllocation> renderProxyShared = B3DMakeSharedFromExisting<render::SpriteVectorPathAllocation>(renderProxy);
+	TShared<render::SpriteVectorPathAllocation> renderProxyShared = B3DMakeSharedFromExisting<render::SpriteVectorPathAllocation>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -65,7 +65,7 @@ SpriteVectorPath::SpriteVectorPath(const SpriteVectorPathCreateInformation& crea
 {
 }
 
-SPtr<SpriteImageAllocation> SpriteVectorPath::FindOrAllocateImageToFitArea(const Size2I& size)
+TShared<SpriteImageAllocation> SpriteVectorPath::FindOrAllocateImageToFitArea(const Size2I& size)
 {
 	if(!mVectorPath.IsLoaded(false))
 		return nullptr;
@@ -80,13 +80,13 @@ SPtr<SpriteImageAllocation> SpriteVectorPath::FindOrAllocateImageToFitArea(const
 	if(foundImage != mScaledAllocatedImages.end())
 		return std::static_pointer_cast<SpriteImageAllocation>((*foundImage)->GetShared());
 
-	SPtr<SpriteVectorPathAllocation> allocation = AllocateImage(size);
+	TShared<SpriteVectorPathAllocation> allocation = AllocateImage(size);
 	mScaledAllocatedImages.Add(allocation.get());
 
 	return allocation;
 }
 
-SPtr<SpriteImageAllocation> SpriteVectorPath::FindOrAllocateScaledImage(float scale)
+TShared<SpriteImageAllocation> SpriteVectorPath::FindOrAllocateScaledImage(float scale)
 {
 	const Size2I scaledSize(
 		Math::RoundToI32((float)mDefaultSize.Width * scale),
@@ -96,7 +96,7 @@ SPtr<SpriteImageAllocation> SpriteVectorPath::FindOrAllocateScaledImage(float sc
 	return FindOrAllocateImageToFitArea(scaledSize);
 }
 
-SPtr<SpriteVectorPathAllocation> SpriteVectorPath::AllocateImage(const Size2I& size)
+TShared<SpriteVectorPathAllocation> SpriteVectorPath::AllocateImage(const Size2I& size)
 {
 	VectorGraphicsSettings vectorGraphicsSettings;
 	vectorGraphicsSettings.Size = Size2((float)size.Width, (float)size.Height);
@@ -120,12 +120,12 @@ void SpriteVectorPath::Initialize()
 	Resource::Initialize();
 }
 
-SPtr<render::RenderProxy> SpriteVectorPath::CreateRenderProxy() const
+TShared<render::RenderProxy> SpriteVectorPath::CreateRenderProxy() const
 {
 	render::SpriteVectorPathCreateInformation createInformation(mInformation);
 	render::SpriteVectorPath* const renderProxy = new(B3DAllocate<render::SpriteVectorPath>()) render::SpriteVectorPath(createInformation, B3DGetRenderProxy(mDefaultAllocatedImage));
 
-	SPtr<render::SpriteVectorPath> renderProxyShared = B3DMakeSharedFromExisting<render::SpriteVectorPath>(renderProxy);
+	TShared<render::SpriteVectorPath> renderProxyShared = B3DMakeSharedFromExisting<render::SpriteVectorPath>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -142,19 +142,19 @@ RenderProxySyncPacket* SpriteVectorPath::CreateRenderProxySyncPacket(FrameAlloca
 
 HSpriteVectorPath SpriteVectorPath::Create(const HVectorPath& vectorPath, const Size2I& defaultSize)
 {
-	SPtr<SpriteVectorPath> spriteVectorPath = CreateShared(vectorPath, defaultSize);
+	TShared<SpriteVectorPath> spriteVectorPath = CreateShared(vectorPath, defaultSize);
 
 	return B3DStaticResourceCast<SpriteVectorPath>(GetResources().CreateResourceHandle(spriteVectorPath));
 }
 
 HSpriteVectorPath SpriteVectorPath::Create(const SpriteVectorPathCreateInformation& createInformation)
 {
-	SPtr<SpriteVectorPath> spriteVectorPath = CreateShared(createInformation);
+	TShared<SpriteVectorPath> spriteVectorPath = CreateShared(createInformation);
 
 	return B3DStaticResourceCast<SpriteVectorPath>(GetResources().CreateResourceHandle(spriteVectorPath));
 }
 
-SPtr<SpriteVectorPath> SpriteVectorPath::CreateShared(const HVectorPath& vectorPath, const Size2I& defaultSize)
+TShared<SpriteVectorPath> SpriteVectorPath::CreateShared(const HVectorPath& vectorPath, const Size2I& defaultSize)
 {
 	SpriteVectorPathCreateInformation createInformation;
 	createInformation.VectorPath = vectorPath;
@@ -163,9 +163,9 @@ SPtr<SpriteVectorPath> SpriteVectorPath::CreateShared(const HVectorPath& vectorP
 	return CreateShared(createInformation);
 }
 
-SPtr<SpriteVectorPath> SpriteVectorPath::CreateShared(const SpriteVectorPathCreateInformation& createInformation)
+TShared<SpriteVectorPath> SpriteVectorPath::CreateShared(const SpriteVectorPathCreateInformation& createInformation)
 {
-	SPtr<SpriteVectorPath> spriteVectorPath = B3DMakeSharedFromExisting<SpriteVectorPath>(new(B3DAllocate<SpriteVectorPath>()) SpriteVectorPath(createInformation));
+	TShared<SpriteVectorPath> spriteVectorPath = B3DMakeSharedFromExisting<SpriteVectorPath>(new(B3DAllocate<SpriteVectorPath>()) SpriteVectorPath(createInformation));
 
 	spriteVectorPath->SetShared(spriteVectorPath);
 	spriteVectorPath->Initialize();
@@ -173,9 +173,9 @@ SPtr<SpriteVectorPath> SpriteVectorPath::CreateShared(const SpriteVectorPathCrea
 	return spriteVectorPath;
 }
 
-SPtr<SpriteVectorPath> SpriteVectorPath::CreateEmpty()
+TShared<SpriteVectorPath> SpriteVectorPath::CreateEmpty()
 {
-	SPtr<SpriteVectorPath> spriteVectorPath = B3DMakeSharedFromExisting<SpriteVectorPath>(new(B3DAllocate<SpriteVectorPath>()) SpriteVectorPath(SpriteVectorPathCreateInformation()));
+	TShared<SpriteVectorPath> spriteVectorPath = B3DMakeSharedFromExisting<SpriteVectorPath>(new(B3DAllocate<SpriteVectorPath>()) SpriteVectorPath(SpriteVectorPathCreateInformation()));
 	spriteVectorPath->SetShared(spriteVectorPath);
 
 	return spriteVectorPath;
@@ -193,7 +193,7 @@ RTTIType* SpriteVectorPath::GetRtti() const
 
 namespace b3d { namespace render
 {
-SpriteVectorPathAllocation::SpriteVectorPathAllocation(const WeakSPtr<SpriteImageType>& owner, const TextureType& atlasTexture, const Area2& uvRange, const SPtr<GUIVectorSpriteAtlasAllocationHandle>& vectorSpriteAtlasAllocationHandle)
+SpriteVectorPathAllocation::SpriteVectorPathAllocation(const WeakSPtr<SpriteImageType>& owner, const TextureType& atlasTexture, const Area2& uvRange, const TShared<GUIVectorSpriteAtlasAllocationHandle>& vectorSpriteAtlasAllocationHandle)
 	: SpriteImageAllocation(owner, atlasTexture, uvRange), mVectorSpriteAtlasAllocationHandle(vectorSpriteAtlasAllocationHandle)
 { }
 
@@ -206,7 +206,7 @@ void SpriteVectorPathAllocation::SyncFromCoreObject(const CoreSyncData& data, Fr
 	syncPacket->ApplySyncData(this);
 }
 
-SpriteVectorPath::SpriteVectorPath(const SpriteVectorPathCreateInformation& createInformation, const SPtr<SpriteImageAllocation>& defaultAllocatedImage)
+SpriteVectorPath::SpriteVectorPath(const SpriteVectorPathCreateInformation& createInformation, const TShared<SpriteImageAllocation>& defaultAllocatedImage)
 	: SpriteImage(createInformation, defaultAllocatedImage)
 {
 }

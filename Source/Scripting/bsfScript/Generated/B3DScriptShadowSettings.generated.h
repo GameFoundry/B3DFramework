@@ -14,7 +14,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ShadowSettings")
 
-		ScriptShadowSettings(const SPtr<ShadowSettings>& nativeObject);
+		ScriptShadowSettings(const TShared<ShadowSettings>& nativeObject);
 		~ScriptShadowSettings();
 
 		static void SetupScriptBindings();

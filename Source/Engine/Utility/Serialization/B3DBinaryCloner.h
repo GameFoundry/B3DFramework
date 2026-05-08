@@ -26,7 +26,7 @@ namespace b3d
 		 * @param[in]	shallow		If false then all referenced objects will be cloned as well, otherwise the references
 		 *							to the original objects will be kept.
 		 */
-		static SPtr<IReflectable> Clone(IReflectable* object, bool shallow = false);
+		static TShared<IReflectable> Clone(IReflectable* object, bool shallow = false);
 
 	private:
 		struct ObjectExternalReferences;
@@ -44,7 +44,7 @@ namespace b3d
 		struct ObjectReference
 		{
 			ReferenceId Id;
-			SPtr<IReflectable> Object;
+			TShared<IReflectable> Object;
 		};
 
 		/**
@@ -83,7 +83,7 @@ namespace b3d
 	 *						object (both the clone and original referencing the same object by the pointer). If false, then the pointer object to will be cloned as well.
 	 */
 	template <class T>
-	SPtr<T> B3DRTTIClone(const T* const object, bool shallow = false)
+	TShared<T> B3DRTTIClone(const T* const object, bool shallow = false)
 	{
 		static_assert((std::is_base_of_v<IReflectable, T>), "Cannot clone object. It needs to derive from b3d::IReflectable.");
 
@@ -96,7 +96,7 @@ namespace b3d
 
 	/** @copydoc B3DRTTIClone(const IReflectable* const, bool) */
 	template <class T>
-	SPtr<T> B3DRTTIClone(const SPtr<T>& object, bool shallow = false)
+	TShared<T> B3DRTTIClone(const TShared<T>& object, bool shallow = false)
 	{
 		static_assert((std::is_base_of_v<IReflectable, T>), "Cannot clone object. It needs to derive from b3d::IReflectable.");
 

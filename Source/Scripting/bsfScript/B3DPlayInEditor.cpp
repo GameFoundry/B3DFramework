@@ -12,7 +12,7 @@
 #include "Scene/B3DSceneUtility.h"
 
 using namespace b3d;
-PlayInEditor::PlayInEditor(const SPtr<SceneInstance>& scene)
+PlayInEditor::PlayInEditor(const TShared<SceneInstance>& scene)
 	: mAssociatedScene(scene), mState(PlayInEditorState::Stopped), mNextState(PlayInEditorState::Stopped), mFrameStepActive(false), mScheduledStateChange(false)
 {
 	if(!GetApplication().IsEditor())

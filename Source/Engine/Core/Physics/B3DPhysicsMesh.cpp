@@ -7,34 +7,34 @@
 
 using namespace b3d;
 
-PhysicsMesh::PhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+PhysicsMesh::PhysicsMesh(const TShared<MeshData>& meshData, PhysicsMeshType type)
 	: mInitMeshData(meshData), mType(type)
 { }
 
-SPtr<MeshData> PhysicsMesh::GetMeshData() const
+TShared<MeshData> PhysicsMesh::GetMeshData() const
 {
 	return mImplementation->GetMeshData();
 }
 
-HPhysicsMesh PhysicsMesh::Create(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+HPhysicsMesh PhysicsMesh::Create(const TShared<MeshData>& meshData, PhysicsMeshType type)
 {
-	SPtr<PhysicsMesh> newMesh = CreateShared(meshData, type);
+	TShared<PhysicsMesh> newMesh = CreateShared(meshData, type);
 
 	return B3DStaticResourceCast<PhysicsMesh>(GetResources().CreateResourceHandle(newMesh));
 }
 
-SPtr<PhysicsMesh> PhysicsMesh::CreateShared(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+TShared<PhysicsMesh> PhysicsMesh::CreateShared(const TShared<MeshData>& meshData, PhysicsMeshType type)
 {
-	SPtr<PhysicsMesh> newMesh = B3DMakeShared<PhysicsMesh>(meshData, type);
+	TShared<PhysicsMesh> newMesh = B3DMakeShared<PhysicsMesh>(meshData, type);
 	newMesh->SetShared(newMesh);
 	newMesh->Initialize();
 
 	return newMesh;
 }
 
-SPtr<PhysicsMesh> PhysicsMesh::CreateEmpty()
+TShared<PhysicsMesh> PhysicsMesh::CreateEmpty()
 {
-	SPtr<PhysicsMesh> newMesh = B3DMakeShared<PhysicsMesh>(nullptr, PhysicsMeshType::Convex);
+	TShared<PhysicsMesh> newMesh = B3DMakeShared<PhysicsMesh>(nullptr, PhysicsMeshType::Convex);
 	newMesh->SetShared(newMesh);
 
 	return newMesh;

@@ -169,12 +169,12 @@ Each **ColliderShape** has the following properties that can be customized:
 Access the shapes associated with a collider using @b3d::Collider::GetShapes:
 
 ~~~~~~~~~~~~~{.cpp}
-TInlineArray<SPtr<ColliderShape>, 1> shapes = boxCollider->GetShapes();
+TInlineArray<TShared<ColliderShape>, 1> shapes = boxCollider->GetShapes();
 
 // Modify the first shape
 if (!shapes.empty())
 {
-	SPtr<ColliderShape> shape = shapes[0];
+	TShared<ColliderShape> shape = shapes[0];
 	shape->SetPosition(Vector3(1.0f, 0.0f, 0.0f));
 	shape->SetRotation(Quaternion(Vector3::kUnitZ, Degree(45.0f)));
 	shape->SetScale(Vector3(2.0f, 1.0f, 1.0f));
@@ -188,23 +188,23 @@ You can create collider shapes manually using the static creation methods:
 ~~~~~~~~~~~~~{.cpp}
 // Create a box shape
 BoxColliderShapeInformation boxInfo(Vector3(0.5f, 0.5f, 0.5f));
-SPtr<ColliderShape> boxShape = ColliderShape::CreateBox(boxInfo);
+TShared<ColliderShape> boxShape = ColliderShape::CreateBox(boxInfo);
 
 // Create a sphere shape
 SphereColliderShapeInformation sphereInfo(1.0f);
-SPtr<ColliderShape> sphereShape = ColliderShape::CreateSphere(sphereInfo);
+TShared<ColliderShape> sphereShape = ColliderShape::CreateSphere(sphereInfo);
 
 // Create a capsule shape
 CapsuleColliderShapeInformation capsuleInfo(0.5f, 1.0f);
-SPtr<ColliderShape> capsuleShape = ColliderShape::CreateCapsule(capsuleInfo);
+TShared<ColliderShape> capsuleShape = ColliderShape::CreateCapsule(capsuleInfo);
 
 // Create a plane shape
 PlaneColliderShapeInformation planeInfo;
-SPtr<ColliderShape> planeShape = ColliderShape::CreatePlane(planeInfo);
+TShared<ColliderShape> planeShape = ColliderShape::CreatePlane(planeInfo);
 
 // Create a mesh shape
 MeshColliderShapeInformation meshInfo(physicsMesh);
-SPtr<ColliderShape> meshShape = ColliderShape::CreateMesh(meshInfo);
+TShared<ColliderShape> meshShape = ColliderShape::CreateMesh(meshInfo);
 ~~~~~~~~~~~~~
 
 ## Modifying shape geometry
@@ -212,7 +212,7 @@ SPtr<ColliderShape> meshShape = ColliderShape::CreateMesh(meshInfo);
 Change the type or parameters of an existing shape:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<ColliderShape> shape = shapes[0];
+TShared<ColliderShape> shape = shapes[0];
 
 // Change to a box shape
 BoxColliderShapeInformation boxInfo(Vector3(1.0f, 1.0f, 1.0f));
@@ -251,7 +251,7 @@ However, you can customize properties on the existing shapes:
 
 ~~~~~~~~~~~~~{.cpp}
 // Customize the shape's physical properties
-SPtr<ColliderShape> shape = boxCollider->GetShapes()[0];
+TShared<ColliderShape> shape = boxCollider->GetShapes()[0];
 shape->SetMass(10.0f);
 shape->SetIsTrigger(false);
 

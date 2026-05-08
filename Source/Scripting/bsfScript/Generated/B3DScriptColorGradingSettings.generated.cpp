@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	ScriptColorGradingSettings::ScriptColorGradingSettings(const SPtr<ColorGradingSettings>& nativeObject)
+	ScriptColorGradingSettings::ScriptColorGradingSettings(const TShared<ColorGradingSettings>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

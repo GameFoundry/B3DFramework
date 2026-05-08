@@ -9,9 +9,9 @@
 
 using namespace b3d;
 
-SPtr<VertexDescription> GetGUITriangleMeshDesc()
+TShared<VertexDescription> GetGUITriangleMeshDesc()
 {
-	static SPtr<VertexDescription> sDesc;
+	static TShared<VertexDescription> sDesc;
 
 	if(!sDesc)
 	{
@@ -25,9 +25,9 @@ SPtr<VertexDescription> GetGUITriangleMeshDesc()
 	return sDesc;
 }
 
-SPtr<VertexDescription> GetGUILineMeshDesc()
+TShared<VertexDescription> GetGUILineMeshDesc()
 {
-	static SPtr<VertexDescription> sDesc;
+	static TShared<VertexDescription> sDesc;
 
 	if(!sDesc)
 	{
@@ -588,7 +588,7 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 		}
 
 		// Register elements that depend on render textures (currently these always correspond to input bridged elements)
-		TInlineArray<std::pair<const GUIInteractable*, SPtr<const RenderTarget>>, 4> bridgedElements;
+		TInlineArray<std::pair<const GUIInteractable*, TShared<const RenderTarget>>, 4> bridgedElements;
 		GetGUIManager().GetBridgedElements(mWidget, bridgedElements);
 
 		for(auto& entry : bridgedElements)
@@ -599,7 +599,7 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 			if(found == mElements.end())
 				continue;
 
-			const SPtr<const RenderTarget>& target = entry.second;
+			const TShared<const RenderTarget>& target = entry.second;
 			for(auto& batchId : found->second.BatchPerRenderElement)
 			{
 				for(auto& batchRenderData : output.Batches)
@@ -687,8 +687,8 @@ void GUIMeshBatches::RebuildMesh(Batch& batch)
 	if(batch.IndexCount == 0 || batch.VertexCount == 0)
 		return;
 
-	const SPtr<VertexDescription> vertexDescription = batch.Material.MeshType == GUIMeshType::Triangle ? GetGUITriangleMeshDesc() : GetGUILineMeshDesc();
-	const SPtr<MeshData> meshData = MeshData::Create(batch.VertexCount, batch.IndexCount, vertexDescription);
+	const TShared<VertexDescription> vertexDescription = batch.Material.MeshType == GUIMeshType::Triangle ? GetGUITriangleMeshDesc() : GetGUILineMeshDesc();
+	const TShared<MeshData> meshData = MeshData::Create(batch.VertexCount, batch.IndexCount, vertexDescription);
 	u8* positionData = meshData->GetElementData(VES_POSITION);
 	u8* uvData = vertexDescription->HasElement(VES_TEXCOORD) ? meshData->GetElementData(VES_TEXCOORD) : nullptr;
 	u32* indexData = meshData->GetIndices32();

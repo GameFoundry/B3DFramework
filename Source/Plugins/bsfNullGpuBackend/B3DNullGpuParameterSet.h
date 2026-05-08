@@ -19,14 +19,14 @@ namespace b3d
 		class NullGpuParameters : public GpuParameterSet
 		{
 		public:
-			NullGpuParameters(NullGpuDevice& gpuDevice, const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout);
+			NullGpuParameters(NullGpuDevice& gpuDevice, const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout);
 			~NullGpuParameters() override = default;
 
-			bool SetUniformBuffer(u32 slot, const SPtr<GpuBuffer>& uniformBuffer, u32 arrayIndex = 0, u32 offset = 0) override { return true; }
-			bool SetSampledTexture(u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) override { return true; }
-			bool SetStorageTexture(u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override { return true; }
-			bool SetStorageBuffer(u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) override { return true; }
-			bool SetSamplerState(u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex = 0) override { return true; }
+			bool SetUniformBuffer(u32 slot, const TShared<GpuBuffer>& uniformBuffer, u32 arrayIndex = 0, u32 offset = 0) override { return true; }
+			bool SetSampledTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) override { return true; }
+			bool SetStorageTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override { return true; }
+			bool SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) override { return true; }
+			bool SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex = 0) override { return true; }
 
 			void Initialize() override {}
 		};

@@ -44,7 +44,7 @@ namespace b3d
 			return TID_SceneObjectHierarchyDeltaObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SceneObjectHierarchyDeltaObject>();
 		}
@@ -72,7 +72,7 @@ namespace b3d
 			return TID_SceneObjectHierarchyDelta;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SceneObjectHierarchyDelta>();
 		}

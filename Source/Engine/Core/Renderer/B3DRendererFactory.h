@@ -22,7 +22,7 @@ namespace b3d
 		virtual ~RendererFactory() = default;
 
 		/**	Creates a new instance of the renderer. */
-		virtual SPtr<render::Renderer> Create() = 0;
+		virtual TShared<render::Renderer> Create() = 0;
 
 		/**	Returns the name of the renderer this factory creates. */
 		virtual const String& Name() const = 0;

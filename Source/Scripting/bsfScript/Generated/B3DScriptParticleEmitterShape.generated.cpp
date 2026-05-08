@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	ScriptParticleEmitterShape::ScriptParticleEmitterShape(const SPtr<ParticleEmitterShape>& nativeObject)
+	ScriptParticleEmitterShape::ScriptParticleEmitterShape(const TShared<ParticleEmitterShape>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();

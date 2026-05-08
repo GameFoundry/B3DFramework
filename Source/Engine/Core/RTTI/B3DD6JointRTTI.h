@@ -35,7 +35,7 @@ namespace b3d
 			return TID_D6JointDrive;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<D6JointDrive>();
 		}
@@ -85,7 +85,7 @@ namespace b3d
 			return TID_D6Joint;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<D6Joint>();
 		}

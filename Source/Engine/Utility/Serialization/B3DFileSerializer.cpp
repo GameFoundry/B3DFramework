@@ -20,7 +20,7 @@ FileEncoder::FileEncoder(const Path& fileLocation)
 	mOutputStream = FileSystem::CreateAndOpenFile(fileLocation);
 }
 
-FileEncoder::FileEncoder(const SPtr<DataStream>& stream)
+FileEncoder::FileEncoder(const TShared<DataStream>& stream)
 	: mOutputStream(stream)
 { }
 
@@ -61,11 +61,11 @@ FileDecoder::FileDecoder(const Path& fileLocation)
 		B3D_LOG(Fatal, LogSerialization, "File size is larger that u32 can hold. Ask a programmer to use a bigger data type.");
 }
 
-FileDecoder::FileDecoder(const SPtr<DataStream>& stream)
+FileDecoder::FileDecoder(const TShared<DataStream>& stream)
 	: mInputStream(stream)
 { }
 
-SPtr<IReflectable> FileDecoder::Decode(RTTIOperationContext& context)
+TShared<IReflectable> FileDecoder::Decode(RTTIOperationContext& context)
 {
 	if(mInputStream->Eof())
 		return nullptr;
@@ -74,12 +74,12 @@ SPtr<IReflectable> FileDecoder::Decode(RTTIOperationContext& context)
 	mInputStream->Read(&objectSize, sizeof(objectSize));
 
 	BinarySerializer bs;
-	SPtr<IReflectable> object = bs.Decode(mInputStream, objectSize, context);
+	TShared<IReflectable> object = bs.Decode(mInputStream, objectSize, context);
 
 	return object;
 }
 
-SPtr<IReflectable> FileDecoder::Decode()
+TShared<IReflectable> FileDecoder::Decode()
 {
 	RTTIOperationContext rttiOperationContext;
 	return Decode(rttiOperationContext);

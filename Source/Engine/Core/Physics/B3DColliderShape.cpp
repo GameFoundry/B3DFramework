@@ -50,47 +50,47 @@ MeshColliderShapeInformation ColliderShape::GetMeshShapeInformation() const
 	return MeshColliderShapeInformation();
 }
 
-SPtr<ColliderShape> ColliderShape::CreatePlane(const PlaneColliderShapeInformation& information)
+TShared<ColliderShape> ColliderShape::CreatePlane(const PlaneColliderShapeInformation& information)
 {
-	SPtr<ColliderShape> shape = GetPhysics().CreateColliderShape();
+	TShared<ColliderShape> shape = GetPhysics().CreateColliderShape();
 	shape->SetShape(information);
 
 	return shape;
 }
 
-SPtr<ColliderShape> ColliderShape::CreateBox(const BoxColliderShapeInformation& information)
+TShared<ColliderShape> ColliderShape::CreateBox(const BoxColliderShapeInformation& information)
 {
-	SPtr<ColliderShape> shape = GetPhysics().CreateColliderShape();
+	TShared<ColliderShape> shape = GetPhysics().CreateColliderShape();
 	shape->SetShape(information);
 
 	return shape;
 }
 
-SPtr<ColliderShape> ColliderShape::CreateSphere(const SphereColliderShapeInformation& information)
+TShared<ColliderShape> ColliderShape::CreateSphere(const SphereColliderShapeInformation& information)
 {
-	SPtr<ColliderShape> shape = GetPhysics().CreateColliderShape();
+	TShared<ColliderShape> shape = GetPhysics().CreateColliderShape();
 	shape->SetShape(information);
 
 	return shape;
 }
 
-SPtr<ColliderShape> ColliderShape::CreateCapsule(const CapsuleColliderShapeInformation& information)
+TShared<ColliderShape> ColliderShape::CreateCapsule(const CapsuleColliderShapeInformation& information)
 {
-	SPtr<ColliderShape> shape = GetPhysics().CreateColliderShape();
+	TShared<ColliderShape> shape = GetPhysics().CreateColliderShape();
 	shape->SetShape(information);
 
 	return shape;
 }
 
-SPtr<ColliderShape> ColliderShape::CreateMesh(const MeshColliderShapeInformation& information)
+TShared<ColliderShape> ColliderShape::CreateMesh(const MeshColliderShapeInformation& information)
 {
-	SPtr<ColliderShape> shape = GetPhysics().CreateColliderShape();
+	TShared<ColliderShape> shape = GetPhysics().CreateColliderShape();
 	shape->SetShape(information);
 
 	return shape;
 }
 
-SPtr<ColliderShape> ColliderShape::CreateEmpty()
+TShared<ColliderShape> ColliderShape::CreateEmpty()
 {
 	return GetPhysics().CreateColliderShape();
 }

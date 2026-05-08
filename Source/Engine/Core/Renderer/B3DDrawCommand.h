@@ -18,13 +18,13 @@ namespace b3d
 		{
 		public:
 			/**	Reference to the mesh to render. */
-			SPtr<Mesh> Mesh;
+			TShared<Mesh> Mesh;
 
 			/**	Portion of the mesh to render. */
 			SubMesh SubMesh;
 
 			/**	Material to render the mesh with. */
-			SPtr<Material> Material;
+			TShared<Material> Material;
 
 			/** Index of the variation in the material to render the element with. */
 			u32 DefaultVariationIndex = 0;
@@ -33,10 +33,10 @@ namespace b3d
 			u32 WriteVelocityVariationIndex = ~0u;
 
 			/** All GPU parameters from the material used by the renderable. */
-			SPtr<MaterialParameterAdapter> ParameterAdapter;
+			TShared<MaterialParameterAdapter> ParameterAdapter;
 
 			/** Shared parameter set for per-object data (set #1), bound at render time. */
-			SPtr<GpuParameterSet> SharedPerObjectParameterSet;
+			TShared<GpuParameterSet> SharedPerObjectParameterSet;
 
 			/** Byte offset of this element's per-object data within the shared buffer. */
 			u32 PerObjectBufferOffset = 0;

@@ -40,14 +40,14 @@ namespace b3d
 			 *								allocation — matches pre-B9 behavior and keeps unit tests that
 			 *								create parameter sets outside a pool working.
 			 */
-			MetalGpuParameters(MetalGpuDevice& gpuDevice, const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex, MetalGpuParameterSetPool* pool = nullptr);
+			MetalGpuParameters(MetalGpuDevice& gpuDevice, const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex, MetalGpuParameterSetPool* pool = nullptr);
 			~MetalGpuParameters() override;
 
-			bool SetUniformBuffer(u32 slot, const SPtr<GpuBuffer>& uniformBuffer, u32 arrayIndex = 0, u32 offset = 0) override;
-			bool SetSampledTexture(u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) override;
-			bool SetStorageTexture(u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override;
-			bool SetStorageBuffer(u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) override;
-			bool SetSamplerState(u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex = 0) override;
+			bool SetUniformBuffer(u32 slot, const TShared<GpuBuffer>& uniformBuffer, u32 arrayIndex = 0, u32 offset = 0) override;
+			bool SetSampledTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) override;
+			bool SetStorageTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override;
+			bool SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) override;
+			bool SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex = 0) override;
 
 			void Initialize() override;
 
@@ -57,7 +57,7 @@ namespace b3d
 				u32 Slot = 0;
 				u32 ArrayIndex = 0;
 				u32 Offset = 0;
-				SPtr<GpuBuffer> Buffer;
+				TShared<GpuBuffer> Buffer;
 			};
 
 			/** Record of a single storage buffer binding. */
@@ -65,7 +65,7 @@ namespace b3d
 			{
 				u32 Slot = 0;
 				u32 ArrayIndex = 0;
-				SPtr<GpuBuffer> Buffer;
+				TShared<GpuBuffer> Buffer;
 				GpuBufferViewInformation View;
 			};
 
@@ -74,7 +74,7 @@ namespace b3d
 			{
 				u32 Slot = 0;
 				u32 ArrayIndex = 0;
-				SPtr<Texture> Texture;
+				TShared<Texture> Texture;
 				TextureSurface Surface;
 			};
 
@@ -83,7 +83,7 @@ namespace b3d
 			{
 				u32 Slot = 0;
 				u32 ArrayIndex = 0;
-				SPtr<SamplerState> Sampler;
+				TShared<SamplerState> Sampler;
 			};
 
 			/** Returns the list of currently bound uniform buffers, in insertion order. */
@@ -191,11 +191,11 @@ namespace b3d
 			// argument-encoder write cost every bind. Mirrors the Vulkan backend's descriptor-write
 			// short-circuit.
 			//
-			// A'5: the snapshot stores *both* the engine-side SPtr target address *and* the underlying
+			// A'5: the snapshot stores *both* the engine-side TShared target address *and* the underlying
 			// Metal handle (@c id<MTLResource> / @c id<MTLSamplerState>) and invalidates whenever
 			// either differs. Engine-side pointer re-use is legal once a resource is dropped —
 			// @c RecreateInternalTexture / @c RecreateInternalBuffer also swap the Metal handle under
-			// an unchanged engine-side pointer — so comparing only the SPtr address would let a stale
+			// an unchanged engine-side pointer — so comparing only the TShared address would let a stale
 			// @c mResolvedResources[argIndex] survive past a recreate or a recycled allocation. The
 			// Metal handle read is the same Obj-C field access the commit path already performs, so
 			// the extra compare is effectively free.

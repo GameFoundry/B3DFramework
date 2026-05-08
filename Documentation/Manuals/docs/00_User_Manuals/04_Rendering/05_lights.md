@@ -248,9 +248,9 @@ Each light also has an @b3d::ecs::LightId fragment that stores a persistent rend
 You can bypass the **Light** component and create `ecs::Light` fragments directly for maximum performance. Helper functions @b3d::ecs::CreateLight and @b3d::ecs::DestroyLight handle fragment creation, world transform, renderer ID allocation, and cleanup. Use @b3d::ecs::LightECSUtility to mark dirty after property changes.
 
 ~~~~~~~~~~~~~{.cpp}
-const SPtr<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
+const TShared<SceneInstance>& scene = SceneManager::Instance().GetMainScene();
 ecs::Registry& registry = scene->GetECSRegistry();
-const SPtr<RendererScene>& rendererScene = scene->GetRendererScene();
+const TShared<RendererScene>& rendererScene = scene->GetRendererScene();
 
 // Create an entity with all light fragments, a world transform, and a renderer ID
 ecs::Entity entity = registry.CreateEntity();

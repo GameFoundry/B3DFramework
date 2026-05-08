@@ -15,7 +15,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ChromaticAberrationSettings")
 
-		ScriptChromaticAberrationSettings(const SPtr<ChromaticAberrationSettings>& nativeObject);
+		ScriptChromaticAberrationSettings(const TShared<ChromaticAberrationSettings>& nativeObject);
 		~ScriptChromaticAberrationSettings();
 
 		static void SetupScriptBindings();

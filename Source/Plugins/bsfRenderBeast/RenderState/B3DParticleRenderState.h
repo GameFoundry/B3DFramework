@@ -276,10 +276,10 @@ namespace b3d
 		 */
 		struct ParticleBillboardTextures
 		{
-			SPtr<Texture> PositionAndRotation;
-			SPtr<Texture> Color;
-			SPtr<Texture> SizeAndFrameIdx;
-			SPtr<GpuBuffer> Indices;
+			TShared<Texture> PositionAndRotation;
+			TShared<Texture> Color;
+			TShared<Texture> SizeAndFrameIdx;
+			TShared<GpuBuffer> Indices;
 		};
 
 		/**
@@ -288,11 +288,11 @@ namespace b3d
 		 */
 		struct ParticleMeshTextures
 		{
-			SPtr<Texture> Position;
-			SPtr<Texture> Color;
-			SPtr<Texture> Size;
-			SPtr<Texture> Rotation;
-			SPtr<GpuBuffer> Indices;
+			TShared<Texture> Position;
+			TShared<Texture> Color;
+			TShared<Texture> Size;
+			TShared<Texture> Rotation;
+			TShared<GpuBuffer> Indices;
 		};
 
 		/** Keeps a pool of textures used for the purposes of the particle system. */

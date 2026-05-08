@@ -16,11 +16,11 @@
 
 using namespace b3d;
 
-SPtr<RenderWindow> RenderWindowManager::CreateRenderWindow(const RenderWindowCreateInformation& createInformation, const SPtr<RenderWindow>& parentWindow)
+TShared<RenderWindow> RenderWindowManager::CreateRenderWindow(const RenderWindowCreateInformation& createInformation, const TShared<RenderWindow>& parentWindow)
 {
 	const u32 id = mNextWindowId++;
 
-	SPtr<RenderWindow> renderWindow;
+	TShared<RenderWindow> renderWindow;
 
 	// Check if headless mode is requested
 	if(createInformation.Headless)

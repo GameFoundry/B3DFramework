@@ -7,7 +7,7 @@
 
 using namespace b3d;
 
-HeadlessRenderWindow::HeadlessRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow)
+HeadlessRenderWindow::HeadlessRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow)
 	: RenderWindow(createInformation, windowId, parentWindow)
 {}
 
@@ -117,12 +117,12 @@ void HeadlessRenderWindow::SetVSync(bool enabled, u32 interval)
 	MarkRenderProxyDataDirty();
 }
 
-SPtr<render::RenderProxy> HeadlessRenderWindow::CreateRenderProxy() const
+TShared<render::RenderProxy> HeadlessRenderWindow::CreateRenderProxy() const
 {
-	SPtr<RenderWindow> parentWindow = mParentWindow.lock();
+	TShared<RenderWindow> parentWindow = mParentWindow.lock();
 	B3D_ENSURE(B3DIsWeakUnassigned(mParentWindow) || !mParentWindow.expired());
 
-	SPtr<render::RenderProxy> renderProxy = B3DMakeShared<render::HeadlessRenderWindow>(mCreateInformation, mWindowId, B3DGetRenderProxy(parentWindow));
+	TShared<render::RenderProxy> renderProxy = B3DMakeShared<render::HeadlessRenderWindow>(mCreateInformation, mWindowId, B3DGetRenderProxy(parentWindow));
 	renderProxy->SetShared(renderProxy);
 
 	return renderProxy;
@@ -130,7 +130,7 @@ SPtr<render::RenderProxy> HeadlessRenderWindow::CreateRenderProxy() const
 
 namespace b3d::render
 {
-HeadlessRenderWindow::HeadlessRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow)
+HeadlessRenderWindow::HeadlessRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow)
 	: RenderWindow(createInformation, windowId, 0, parentWindow) // 0 for platform window handle
 {}
 } // namespace b3d::render

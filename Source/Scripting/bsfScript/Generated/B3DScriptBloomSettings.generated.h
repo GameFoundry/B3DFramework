@@ -15,7 +15,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "BloomSettings")
 
-		ScriptBloomSettings(const SPtr<BloomSettings>& nativeObject);
+		ScriptBloomSettings(const TShared<BloomSettings>& nativeObject);
 		~ScriptBloomSettings();
 
 		static void SetupScriptBindings();

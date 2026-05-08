@@ -33,7 +33,7 @@ namespace b3d
 		TResourceHandle<Resource> GetHandle() const { return mSelfHandle.Lock(); }
 
 		/**	Retrieves meta-data containing various information describing a resource. */
-		SPtr<ResourceMetaData> GetMetaData() const { return mMetaData; }
+		TShared<ResourceMetaData> GetMetaData() const { return mMetaData; }
 
 		/**	Returns whether or not this resource is allowed to be asynchronously loaded. */
 		virtual bool AllowAsyncLoading() const { return true; }
@@ -107,7 +107,7 @@ namespace b3d
 		TWeakResourceHandle<Resource> mSelfHandle;
 
 		String mName;
-		SPtr<ResourceMetaData> mMetaData;
+		TShared<ResourceMetaData> mMetaData;
 
 		/**
 		 * Signal to the resource implementation if original data should be kept in memory. This is sometimes needed if

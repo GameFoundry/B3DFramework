@@ -104,27 +104,27 @@ namespace b3d
 
 		/** Converts a curve in euler angles (in degrees) into a curve using quaternions. */
 		B3D_SCRIPT_EXPORT()
-		static SPtr<TAnimationCurve<Quaternion>> EulerToQuaternionCurve(const SPtr<TAnimationCurve<Vector3>>& eulerCurve, EulerAngleOrder order = EulerAngleOrder::YXZ);
+		static TShared<TAnimationCurve<Quaternion>> EulerToQuaternionCurve(const TShared<TAnimationCurve<Vector3>>& eulerCurve, EulerAngleOrder order = EulerAngleOrder::YXZ);
 
 		/** Converts a curve in quaternions into a curve using euler angles (in degrees). */
 		B3D_SCRIPT_EXPORT()
-		static SPtr<TAnimationCurve<Vector3>> QuaternionToEulerCurve(const SPtr<TAnimationCurve<Quaternion>>& quatCurve);
+		static TShared<TAnimationCurve<Vector3>> QuaternionToEulerCurve(const TShared<TAnimationCurve<Quaternion>>& quatCurve);
 
 		/** Splits a Vector3 curve into three individual curves, one for each component. */
 		B3D_SCRIPT_EXPORT()
-		static Vector<SPtr<TAnimationCurve<float>>> SplitCurve3D(const SPtr<TAnimationCurve<Vector3>>& compoundCurve);
+		static Vector<TShared<TAnimationCurve<float>>> SplitCurve3D(const TShared<TAnimationCurve<Vector3>>& compoundCurve);
 
 		/** Combines three single component curves into a Vector3 curve. */
 		B3D_SCRIPT_EXPORT()
-		static SPtr<TAnimationCurve<Vector3>> CombineCurve3D(const Vector<SPtr<TAnimationCurve<float>>>& curveComponents);
+		static TShared<TAnimationCurve<Vector3>> CombineCurve3D(const Vector<TShared<TAnimationCurve<float>>>& curveComponents);
 
 		/** Splits a Vector2 curve into two individual curves, one for each component. */
 		B3D_SCRIPT_EXPORT()
-		static Vector<SPtr<TAnimationCurve<float>>> SplitCurve2D(const SPtr<TAnimationCurve<Vector2>>& compoundCurve);
+		static Vector<TShared<TAnimationCurve<float>>> SplitCurve2D(const TShared<TAnimationCurve<Vector2>>& compoundCurve);
 
 		/** Combines two single component curves into a Vector2 curve. */
 		B3D_SCRIPT_EXPORT()
-		static SPtr<TAnimationCurve<Vector2>> CombineCurve2D(const Vector<SPtr<TAnimationCurve<float>>>& curveComponents);
+		static TShared<TAnimationCurve<Vector2>> CombineCurve2D(const Vector<TShared<TAnimationCurve<float>>>& curveComponents);
 
 		/** Splits a multi-component curve into multiple individual curves, one for each component. */
 		template <class T>
@@ -146,7 +146,7 @@ namespace b3d
 
 		/** @copydoc CalculateRange(const Vector<TAnimationCurve<float>>&, float&, float&, float&, float&) */
 		B3D_SCRIPT_EXPORT()
-		static void CalculateRange(const Vector<SPtr<TAnimationCurve<float>>>& curves, float& outXMin, float& outXMax, float& outYMin, float& outYMax);
+		static void CalculateRange(const Vector<TShared<TAnimationCurve<float>>>& curves, float& outXMin, float& outXMax, float& outYMin, float& outYMax);
 
 		/** Scales all curve values and tangents by the specified scale factor. */
 		template <class T>

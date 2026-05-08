@@ -28,7 +28,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RenderSettings")
 
-		ScriptRenderSettings(const SPtr<RenderSettings>& nativeObject);
+		ScriptRenderSettings(const TShared<RenderSettings>& nativeObject);
 		~ScriptRenderSettings();
 
 		static void SetupScriptBindings();

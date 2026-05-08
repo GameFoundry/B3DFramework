@@ -48,7 +48,7 @@ namespace b3d
 		 */
 		void UpdateTransform();
 
-		SPtr<IAudioListenerImplementation> mImplementation;
+		TShared<IAudioListenerImplementation> mImplementation;
 		Vector3 mLastPosition = Vector3::kZero;
 		Vector3 mVelocity = Vector3::kZero;
 

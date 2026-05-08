@@ -57,8 +57,8 @@ namespace b3d
 			VulkanGpuCommandBufferPool(VulkanGpuDevice& device, const GpuCommandBufferPoolCreateInformation& createInformation);
 			~VulkanGpuCommandBufferPool() override;
 
-			SPtr<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) override;
-			SPtr<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) override;
+			TShared<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) override;
+			TShared<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) override;
 			void Reset() override;
 			void Destroy() override;
 
@@ -70,7 +70,7 @@ namespace b3d
 			u32 mQueueFamily = ~0u;
 			u32 mNextCommandBufferId = 1;
 
-			UnorderedMap<u32, SPtr<VulkanGpuCommandBuffer>> mCommandBuffers;
+			UnorderedMap<u32, TShared<VulkanGpuCommandBuffer>> mCommandBuffers;
 		};
 
 		/** Determines where are the current descriptor sets bound to. */
@@ -87,9 +87,9 @@ namespace b3d
 		/** All the information required for submitting a VulkanGpuCommandBuffer */
 		struct GpuCommandBufferSubmitInformation
 		{
-			SPtr<VulkanGpuCommandBuffer> SourceQueueTransitionCommandBuffer[GQT_COUNT]; /**< Contains resource transitions from their current queue to the destination queue, if there is a queue change. May be empty if there are no queue changes. To be executed on the source queue, rather than on the queue you are submitting on. */
-			SPtr<VulkanGpuCommandBuffer> DestinationQueueTransitionCommandBuffer; /**< Contains image layout transitions and transitions from source to the destination queue, if there are any. Should be submitted after the query reset command buffer. This submit should contain the provided semaphores if not empty. */
-			SPtr<VulkanGpuCommandBuffer> PrimaryCommandBuffer; /**< Primary command buffer we're submitting. This should be submitted after the destination queue transition command buffer. This submit should contain the semaphores if destination queue transition command buffer is not present. */
+			TShared<VulkanGpuCommandBuffer> SourceQueueTransitionCommandBuffer[GQT_COUNT]; /**< Contains resource transitions from their current queue to the destination queue, if there is a queue change. May be empty if there are no queue changes. To be executed on the source queue, rather than on the queue you are submitting on. */
+			TShared<VulkanGpuCommandBuffer> DestinationQueueTransitionCommandBuffer; /**< Contains image layout transitions and transitions from source to the destination queue, if there are any. Should be submitted after the query reset command buffer. This submit should contain the provided semaphores if not empty. */
+			TShared<VulkanGpuCommandBuffer> PrimaryCommandBuffer; /**< Primary command buffer we're submitting. This should be submitted after the destination queue transition command buffer. This submit should contain the semaphores if destination queue transition command buffer is not present. */
 			TInlineArray<VulkanSemaphore*, 8> Semaphores; /**< Semaphores that need to be waited on before executing the command buffers. */
 		};
 
@@ -100,13 +100,13 @@ namespace b3d
 			~VulkanGpuCommandBuffer() override;
 
 			void SetName(const StringView& name) override;
-			void SetGpuParameterSet(const SPtr<GpuParameterSet>& parameterSet) override;
+			void SetGpuParameterSet(const TShared<GpuParameterSet>& parameterSet) override;
 			void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) override;
-			void SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState) override;
-			void SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& pipelineState) override;
-			void SetVertexBuffers(u32 index, SPtr<GpuBuffer>* buffers, u32 bufferCount) override;
-			void SetIndexBuffer(const SPtr<GpuBuffer>& buffer) override;
-			void SetVertexDescription(const SPtr<VertexDescription>& vertexDescription) override;
+			void SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState) override;
+			void SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState) override;
+			void SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount) override;
+			void SetIndexBuffer(const TShared<GpuBuffer>& buffer) override;
+			void SetVertexDescription(const TShared<VertexDescription>& vertexDescription) override;
 			void SetDrawOperation(DrawOperationType operation) override;
 			void Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
@@ -120,15 +120,15 @@ namespace b3d
 			void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom) override;
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
-			void CopyBufferToBuffer(const SPtr<GpuBuffer>& source, const SPtr<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) override;
-			void CopyBufferToTexture(const SPtr<GpuBuffer>& source, const SPtr<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
-			void CopyTextureToBuffer(const SPtr<Texture>& source, const SPtr<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
-			bool CopyTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureCopyInformation& copyInformation) override;
-			bool BlitTexture(const SPtr<Texture>& source, const SPtr<Texture>& destination, const TextureBlitInformation& blitInformation) override;
-			void WriteTimestamp(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) override;
-			void BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
-			void EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) override;
-			void ResetQueries(const SPtr<GpuQueryPool>& queryPool) override;
+			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) override;
+			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
+			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
+			bool CopyTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureCopyInformation& copyInformation) override;
+			bool BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation) override;
+			void WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
+			void BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
+			void EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
+			void ResetQueries(const TShared<GpuQueryPool>& queryPool) override;
 			void BeginLabel(const StringView& name) override;
 			void EndLabel() override;
 			void InsertLabel(const StringView& name) override;
@@ -420,7 +420,7 @@ namespace b3d
 			void BindVertexInputs();
 
 			/** Binds the currently stored GPU parameter sets, if dirty. */
-			void BindGpuParameters(const SPtr<GpuPipelineParameterLayout>& pipelineParameterLayout, VulkanBarrierHelper& barrierHelper);
+			void BindGpuParameters(const TShared<GpuPipelineParameterLayout>& pipelineParameterLayout, VulkanBarrierHelper& barrierHelper);
 
 			/** Creates an array of clear values from the specified clear mask and values. To be used for the explicit clear command, or render bass begin. */
 			Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> BuildClearValues(RenderSurfaceMask clearMask, const Color& color, float depth, u16 stencil);
@@ -477,11 +477,11 @@ namespace b3d
 			VulkanBarrierHelper mBarrierHelper;
 			GpuQueueId mSubmittedQueueId;
 
-			SPtr<VulkanGpuGraphicsPipelineState> mGraphicsPipeline;
-			SPtr<VulkanGpuComputePipelineState> mComputePipeline;
-			SPtr<VertexDescription> mVertexDescription;
-			SPtr<VulkanGpuBuffer> mIndexBuffer;
-			Vector<SPtr<VulkanGpuBuffer>> mVertexBuffers;
+			TShared<VulkanGpuGraphicsPipelineState> mGraphicsPipeline;
+			TShared<VulkanGpuComputePipelineState> mComputePipeline;
+			TShared<VertexDescription> mVertexDescription;
+			TShared<VulkanGpuBuffer> mIndexBuffer;
+			Vector<TShared<VulkanGpuBuffer>> mVertexBuffers;
 			Area2 mNormalizedViewportArea{ 0.0f, 0.0f, 1.0f, 1.0f };
 			Area2I mScissor{ 0, 0, 0, 0 };
 			bool mIsScissorTestEnabled = false;
@@ -498,7 +498,7 @@ namespace b3d
 			bool mVertexInputsDirty : 1;
 			bool mIsDebugLabelOpen = false;
 			DescriptorSetBindFlags mDescriptorSetsBindState;
-			TInlineArray<SPtr<VulkanGpuParameterSet>, 4> mBoundGpuParameterSets;
+			TInlineArray<TShared<VulkanGpuParameterSet>, 4> mBoundGpuParameterSets;
 
 			VkBuffer mVertexBuffersTemp[B3D_MAX_BOUND_VERTEX_BUFFERS]{};
 			VkDeviceSize mVertexBufferOffsetsTemp[B3D_MAX_BOUND_VERTEX_BUFFERS]{};
@@ -511,7 +511,7 @@ namespace b3d
 			TInlineArray<u32, 16> mFlatDynamicOffsets;
 			UnorderedMap<GpuParameterSet*, CachedGpuParameterData> mRenderPassGpuParameterSetCache;
 
-			SPtr<RenderTarget> mRenderTarget;
+			TShared<RenderTarget> mRenderTarget;
 			bool mRenderTargetModified = false;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT

@@ -21,7 +21,7 @@ RenderableTestSuite::RenderableTestSuite()
 void RenderableTestSuite::TestRenderableSerialization()
 {
 	// Build a hierarchy with multiple renderables, each with distinct property values
-	SPtr<SceneInstance> scene = SceneInstance::Create("TestRenderableSerialization");
+	TShared<SceneInstance> scene = SceneInstance::Create("TestRenderableSerialization");
 
 	HSceneObject root = scene->CreateSceneObject("Root");
 
@@ -49,7 +49,7 @@ void RenderableTestSuite::TestRenderableSerialization()
 
 	// Create prefab and instantiate — this exercises binary serialization + deserialization of ECS fields
 	HPrefab prefab = Prefab::Create(root);
-	SPtr<SceneInstance> cloneScene = prefab->InstantiateAsScene();
+	TShared<SceneInstance> cloneScene = prefab->InstantiateAsScene();
 	HSceneObject cloneRoot = cloneScene->GetRoot();
 
 	// Verify hierarchy structure

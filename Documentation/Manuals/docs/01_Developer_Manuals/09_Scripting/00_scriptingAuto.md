@@ -44,11 +44,11 @@ If you do not respect these rules the code generation will either fail, or the g
  
 There are also limitations on the types of parameters and return values the exported methods are allowed to have:
  - **Resource**%s and **Component**%s must be passed as handles (e.g. **HMesh**, **HRenderable**)
- - Other classes must be passed as shared pointers (e.g. **SPtr<MyClass>**)
+ - Other classes must be passed as shared pointers (e.g. **TShared<MyClass>**)
  - Plain types such as **int**, **float** or types we'll describe below can be passed directly (e.g. **int**)
  - If a parameter is used as input it is beneficial to decorate it as a constant reference or a pointer (e.g. *const HMesh&*)
  - If a parameter is used as output it is beneficial to decorate it as a non-constant reference or a pointer (e.g. *HMesh&*)
- - If a parameter is an array, it must be of type **Vector** (e.g. *Vector<HMesh>* or *Vector<SPtr<MyClass>>*)
+ - If a parameter is an array, it must be of type **Vector** (e.g. *Vector<HMesh>* or *Vector<TShared<MyClass>>*)
  
 ~~~~~~~~~~~~~{.cpp}
 class B3D_SCRIPT_EXPORT() MyOtherClass
@@ -91,10 +91,10 @@ public:
 	void SetComponent(const HRenderable& renderable);
 	
 	B3D_SCRIPT_EXPORT()
-	SPtr<MyOtherClass> GetNormalObject();
+	TShared<MyOtherClass> GetNormalObject();
 	
 	B3D_SCRIPT_EXPORT()
-	void SetNormalObject(const SPtr<MyOtherClass>& value);
+	void SetNormalObject(const TShared<MyOtherClass>& value);
 	
 	B3D_SCRIPT_EXPORT()
 	Vector<HMesh> GetArray(); // HMesh could have also been a normal class or a component
@@ -358,7 +358,7 @@ class B3D_SCRIPT_EXPORT(ExtensionClassForType(MyClass)) MyClassEx
 public:
 	// External constructor because we don't want to expose MY_CLASS_DESC to script code
 	B3D_SCRIPT_EXPORT(ExtensionConstructorForType(MyClass))
-	static SPtr<MyClass> Create(int val1, float val2)
+	static TShared<MyClass> Create(int val1, float val2)
 	{
 		MY_CLASS_DESC desc;
 		desc.val1 = val1;
@@ -369,7 +369,7 @@ public:
 
 	// External method because MyClass returns an array in raw form, but we need it in a Vector
 	B3D_SCRIPT_EXPORT(ExtensionMethodForType(MyClass))
-	static Vector<u32> GetArrayData(const SPtr<MyClass>& thisPtr)
+	static Vector<u32> GetArrayData(const TShared<MyClass>& thisPtr)
 	{
 		u32 numEntries;
 		u32* entries = thisPtr->GetArrayData(numEntries);

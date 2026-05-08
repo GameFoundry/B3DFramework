@@ -13,7 +13,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 using namespace b3d;
-MacOSRenderWindow::MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow)
+MacOSRenderWindow::MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow)
 		:RenderWindow(createInformation, windowId, parentWindow)
 { }
 
@@ -36,7 +36,7 @@ void MacOSRenderWindow::Initialize()
 	mIsChild = false;
 	if(!B3DIsWeakUnassigned(mParentWindow))
 	{
-		const SPtr<RenderWindow> parentWindow = mParentWindow.lock();
+		const TShared<RenderWindow> parentWindow = mParentWindow.lock();
 		if(B3D_ENSURE(parentWindow != nullptr))
 			mIsChild = true;
 	}
@@ -314,13 +314,13 @@ u64 MacOSRenderWindow::GetPlatformWindowHandle() const
 	return mWindow->GetWindowIdInternal();
 }
 
-SPtr<render::RenderProxy> MacOSRenderWindow::CreateRenderProxy() const
+TShared<render::RenderProxy> MacOSRenderWindow::CreateRenderProxy() const
 {
-	SPtr<RenderWindow> parentWindow = mParentWindow.lock();
+	TShared<RenderWindow> parentWindow = mParentWindow.lock();
 	B3D_ENSURE(B3DIsWeakUnassigned(mParentWindow) || !mParentWindow.expired()); // If parent window is assigned, it must not be expired
 
 	RenderWindowCreateInformation createInformation = mCreateInformation;
-	SPtr<render::RenderProxy> renderProxy = B3DMakeShared<render::MacOSRenderWindow>(createInformation, mWindowId, GetPlatformWindowHandle(), B3DGetRenderProxy(parentWindow));
+	TShared<render::RenderProxy> renderProxy = B3DMakeShared<render::MacOSRenderWindow>(createInformation, mWindowId, GetPlatformWindowHandle(), B3DGetRenderProxy(parentWindow));
 	renderProxy->SetShared(renderProxy);
 
 	return renderProxy;
@@ -347,6 +347,6 @@ void MacOSRenderWindow::DoOnWindowMovedOrResized()
 
 using namespace b3d::render;
 
-MacOSRenderWindow::MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const SPtr<RenderWindow>& parentWindow)
+MacOSRenderWindow::MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const TShared<RenderWindow>& parentWindow)
 	: RenderWindow(createInformation, windowId, platformWindowHandle, parentWindow)
 { }

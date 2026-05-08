@@ -27,8 +27,8 @@ void RenderQueue::Clear()
 
 void RenderQueue::Add(const DrawCommand* drawCommand, float distFromCamera, u32 variationIndex)
 {
-	SPtr<Material> material = drawCommand->Material;
-	SPtr<Shader> shader = material->GetShader();
+	TShared<Material> material = drawCommand->Material;
+	TShared<Shader> shader = material->GetShader();
 
 	u32 queuePriority = shader->GetQueuePriority();
 	QueueSortType sortType = shader->GetQueueSortType();

@@ -154,7 +154,7 @@ namespace b3d
 		/** @copydoc SetCurves() */
 		B3D_SCRIPT_EXPORT(ExportName(Curves), Property(Getter))
 
-		SPtr<AnimationCurves> GetCurves() const { return mCurves; }
+		TShared<AnimationCurves> GetCurves() const { return mCurves; }
 
 		/**
 		 * A set of all curves stored in the animation. Returned value will not be updated if the animation clip curves are
@@ -180,7 +180,7 @@ namespace b3d
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(RootMotion), Property(Getter))
 
-		SPtr<RootMotion> GetRootMotion() const { return mRootMotion; }
+		TShared<RootMotion> GetRootMotion() const { return mRootMotion; }
 
 		/** Checks if animation clip has root motion curves separate from the normal animation curves. */
 		B3D_SCRIPT_EXPORT(ExportName(HasRootMotion), Property(Getter))
@@ -269,7 +269,7 @@ namespace b3d
 		 *							animation system directly but is instead provided to the user for manual evaluation.
 		 */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(AnimationClip))
-		static HAnimationClip Create(const SPtr<AnimationCurves>& curves, bool isAdditive = false, u32 sampleRate = 1, const SPtr<RootMotion>& rootMotion = nullptr);
+		static HAnimationClip Create(const TShared<AnimationCurves>& curves, bool isAdditive = false, u32 sampleRate = 1, const TShared<RootMotion>& rootMotion = nullptr);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -277,13 +277,13 @@ namespace b3d
 		 */
 
 		/** Creates a new AnimationClip without initializing it. Use create() for normal use. */
-		static SPtr<AnimationClip> CreatePtrInternal(const SPtr<AnimationCurves>& curves, bool isAdditive = false, u32 sampleRate = 1, const SPtr<RootMotion>& rootMotion = nullptr);
+		static TShared<AnimationClip> CreatePtrInternal(const TShared<AnimationCurves>& curves, bool isAdditive = false, u32 sampleRate = 1, const TShared<RootMotion>& rootMotion = nullptr);
 
 		/** @} */
 
 	protected:
 		AnimationClip();
-		AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const SPtr<RootMotion>& rootMotion);
+		AnimationClip(const TShared<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const TShared<RootMotion>& rootMotion);
 
 		void Initialize() override;
 
@@ -300,14 +300,14 @@ namespace b3d
 		 * threads. This means any modifications to the field will require a brand new data structure to be generated and
 		 * all existing data copied (plus the modification).
 		 */
-		SPtr<AnimationCurves> mCurves;
+		TShared<AnimationCurves> mCurves;
 
 		/**
 		 * A set of curves containing motion of the root bone. If this is non-empty it should be true that mCurves does not
 		 * contain animation curves for the root bone. Root motion will not be evaluated through normal animation process
 		 * but is instead provided for the user for manual evaluation.
 		 */
-		SPtr<RootMotion> mRootMotion;
+		TShared<RootMotion> mRootMotion;
 
 		/**
 		 * Contains a map from curve name to curve index. Indices are stored as specified in CurveType enum.
@@ -332,7 +332,7 @@ namespace b3d
 		 *
 		 * @note	For serialization use only.
 		 */
-		static SPtr<AnimationClip> CreateEmpty();
+		static TShared<AnimationClip> CreateEmpty();
 	};
 
 	/** @} */

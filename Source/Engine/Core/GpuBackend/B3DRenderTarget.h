@@ -43,7 +43,7 @@ namespace b3d
 		{
 			RenderSurfaceInformation() = default;
 
-			SPtr<Texture> Texture;
+			TShared<Texture> Texture;
 
 			/** First face of the texture to bind (array index in texture arrays, or Z slice in 3D textures). */
 			u32 Face = 0;
@@ -198,7 +198,7 @@ namespace b3d
 			 * @param	arrayLayer			Array layer to read (default 0).
 			 * @return						Async operation that triggers when the read operation is complete. May retun null PixelData if reading is not supported.
 			 */
-			virtual TAsyncOp<SPtr<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex = 0, u32 mipLevel = 0, u32 arrayLayer = 0);
+			virtual TAsyncOp<TShared<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex = 0, u32 mipLevel = 0, u32 arrayLayer = 0);
 
 			/** @} */
 		protected:

@@ -26,7 +26,7 @@ namespace b3d
 	{
 		ParticleBurst output;
 		output.Time = value.Time;
-		SPtr<TDistribution<float>> tmpCount;
+		TShared<TDistribution<float>> tmpCount;
 		ScriptFloatDistribution* scriptObjectWrapperCount;
 		scriptObjectWrapperCount = ScriptFloatDistribution::GetScriptObjectWrapper(value.Count);
 		if(scriptObjectWrapperCount != nullptr)
@@ -44,7 +44,7 @@ namespace b3d
 		__ParticleBurstInterop output;
 		output.Time = value.Time;
 		MonoObject* tmpCount;
-		SPtr<TDistribution<float>> tmpCountcopy;
+		TShared<TDistribution<float>> tmpCountcopy;
 		tmpCountcopy = B3DMakeShared<TDistribution<float>>(value.Count);
 		tmpCount = ScriptFloatDistribution::GetOrCreateScriptObject(tmpCountcopy);
 		output.Count = tmpCount;

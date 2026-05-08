@@ -28,7 +28,7 @@ ManagedSerializableObject::ManagedSerializableObject(const ConstructPrivately& d
 {
 }
 
-ManagedSerializableObject::ManagedSerializableObject(const ConstructPrivately& dummy, SPtr<ManagedObjectInfo> objInfo, MonoObject* managedInstance)
+ManagedSerializableObject::ManagedSerializableObject(const ConstructPrivately& dummy, TShared<ManagedObjectInfo> objInfo, MonoObject* managedInstance)
 	: mObjInfo(objInfo)
 {
 	mGCHandle = MonoUtil::NewGcHandle(managedInstance, false);
@@ -43,7 +43,7 @@ ManagedSerializableObject::~ManagedSerializableObject()
 	}
 }
 
-SPtr<ManagedSerializableObject> ManagedSerializableObject::CreateFromExisting(MonoObject* managedInstance)
+TShared<ManagedSerializableObject> ManagedSerializableObject::CreateFromExisting(MonoObject* managedInstance)
 {
 	if(managedInstance == nullptr)
 		return nullptr;
@@ -52,16 +52,16 @@ SPtr<ManagedSerializableObject> ManagedSerializableObject::CreateFromExisting(Mo
 	String elementTypeName;
 	MonoUtil::GetClassName(managedInstance, elementNs, elementTypeName);
 
-	SPtr<ManagedObjectInfo> objInfo;
+	TShared<ManagedObjectInfo> objInfo;
 	if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(elementNs, elementTypeName, objInfo))
 		return nullptr;
 
 	return B3DMakeShared<ManagedSerializableObject>(ConstructPrivately(), objInfo, managedInstance);
 }
 
-SPtr<ManagedSerializableObject> ManagedSerializableObject::CreateNew(const SPtr<ManagedTypeInfoObject>& type)
+TShared<ManagedSerializableObject> ManagedSerializableObject::CreateNew(const TShared<ManagedTypeInfoObject>& type)
 {
-	SPtr<ManagedObjectInfo> currentObjInfo = nullptr;
+	TShared<ManagedObjectInfo> currentObjInfo = nullptr;
 
 	// See if this type even still exists
 	if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(type->TypeNamespace, type->TypeName, currentObjInfo))
@@ -70,9 +70,9 @@ SPtr<ManagedSerializableObject> ManagedSerializableObject::CreateNew(const SPtr<
 	return B3DMakeShared<ManagedSerializableObject>(ConstructPrivately(), currentObjInfo, CreateManagedInstance(type));
 }
 
-MonoObject* ManagedSerializableObject::CreateManagedInstance(const SPtr<ManagedTypeInfoObject>& type)
+MonoObject* ManagedSerializableObject::CreateManagedInstance(const TShared<ManagedTypeInfoObject>& type)
 {
-	SPtr<ManagedObjectInfo> currentObjInfo = nullptr;
+	TShared<ManagedObjectInfo> currentObjInfo = nullptr;
 
 	// See if this type even still exists
 	if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(type->TypeNamespace, type->TypeName, currentObjInfo))
@@ -85,7 +85,7 @@ MonoObject* ManagedSerializableObject::CreateManagedInstance(const SPtr<ManagedT
 	return currentObjInfo->ScriptClass->CreateInstance(construct);
 }
 
-SPtr<ManagedSerializableObject> ManagedSerializableObject::CreateEmpty()
+TShared<ManagedSerializableObject> ManagedSerializableObject::CreateEmpty()
 {
 	return B3DMakeShared<ManagedSerializableObject>(ConstructPrivately());
 }
@@ -105,7 +105,7 @@ void ManagedSerializableObject::Serialize()
 
 	mCachedData.clear();
 
-	SPtr<ManagedObjectInfo> curType = mObjInfo;
+	TShared<ManagedObjectInfo> curType = mObjInfo;
 	while(curType != nullptr)
 	{
 		for(auto& memberInfo : curType->Members)
@@ -131,7 +131,7 @@ void ManagedSerializableObject::Serialize()
 MonoObject* ManagedSerializableObject::Deserialize()
 {
 	// See if this type even still exists
-	SPtr<ManagedObjectInfo> currentObjInfo = nullptr;
+	TShared<ManagedObjectInfo> currentObjInfo = nullptr;
 	if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(mObjInfo->TypeInfo->TypeNamespace, mObjInfo->TypeInfo->TypeName, currentObjInfo))
 	{
 		return nullptr;
@@ -143,7 +143,7 @@ MonoObject* ManagedSerializableObject::Deserialize()
 	return managedInstance;
 }
 
-void ManagedSerializableObject::Deserialize(MonoObject* instance, const SPtr<ManagedObjectInfo>& objInfo)
+void ManagedSerializableObject::Deserialize(MonoObject* instance, const TShared<ManagedObjectInfo>& objInfo)
 {
 	if(instance == nullptr)
 		return;
@@ -154,7 +154,7 @@ void ManagedSerializableObject::Deserialize(MonoObject* instance, const SPtr<Man
 
 	// Scan all fields and ensure the fields still exist
 	u32 i = 0;
-	SPtr<ManagedObjectInfo> curType = mObjInfo;
+	TShared<ManagedObjectInfo> curType = mObjInfo;
 	while(curType != nullptr)
 	{
 		for(auto& member : curType->Members)
@@ -166,7 +166,7 @@ void ManagedSerializableObject::Deserialize(MonoObject* instance, const SPtr<Man
 
 				ManagedSerializableFieldKey key(typeID, fieldId);
 
-				SPtr<ManagedMemberInfo> matchingFieldInfo = objInfo->FindMatchingField(member, curType->TypeInfo);
+				TShared<ManagedMemberInfo> matchingFieldInfo = objInfo->FindMatchingField(member, curType->TypeInfo);
 				if(matchingFieldInfo != nullptr)
 					matchingFieldInfo->SetUnboxedValue(instance, mCachedData[key]->GetValue(matchingFieldInfo->TypeInfo));
 
@@ -180,12 +180,12 @@ void ManagedSerializableObject::Deserialize(MonoObject* instance, const SPtr<Man
 
 bool ManagedSerializableObject::Equals(ManagedSerializableObject& other, RTTIOperationContext* context)
 {
-	SPtr<ManagedObjectInfo> otherObjInfo = other.GetObjectInfo();
+	TShared<ManagedObjectInfo> otherObjInfo = other.GetObjectInfo();
 
 	if(!mObjInfo->TypeInfo->Matches(otherObjInfo->TypeInfo))
 		return false;
 
-	SPtr<ManagedObjectInfo> curObjInfo = mObjInfo;
+	TShared<ManagedObjectInfo> curObjInfo = mObjInfo;
 	while(curObjInfo != nullptr)
 	{
 		for(auto& member : curObjInfo->Members)
@@ -193,8 +193,8 @@ bool ManagedSerializableObject::Equals(ManagedSerializableObject& other, RTTIOpe
 			if(!member->IsSerializable())
 				continue;
 
-			SPtr<ManagedSerializableFieldData> oldData = GetFieldData(member);
-			SPtr<ManagedSerializableFieldData> newData = other.GetFieldData(member);
+			TShared<ManagedSerializableFieldData> oldData = GetFieldData(member);
+			TShared<ManagedSerializableFieldData> newData = other.GetFieldData(member);
 
 			if(!oldData)
 				return !newData;
@@ -214,7 +214,7 @@ bool ManagedSerializableObject::Equals(ManagedSerializableObject& other, RTTIOpe
 	return true;
 }
 
-void ManagedSerializableObject::SetFieldData(const SPtr<ManagedMemberInfo>& fieldInfo, const SPtr<ManagedSerializableFieldData>& val)
+void ManagedSerializableObject::SetFieldData(const TShared<ManagedMemberInfo>& fieldInfo, const TShared<ManagedSerializableFieldData>& val)
 {
 	if(mGCHandle != 0)
 	{
@@ -228,7 +228,7 @@ void ManagedSerializableObject::SetFieldData(const SPtr<ManagedMemberInfo>& fiel
 	}
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableObject::GetFieldData(const SPtr<ManagedMemberInfo>& fieldInfo) const
+TShared<ManagedSerializableFieldData> ManagedSerializableObject::GetFieldData(const TShared<ManagedMemberInfo>& fieldInfo) const
 {
 	if(mGCHandle != 0)
 	{

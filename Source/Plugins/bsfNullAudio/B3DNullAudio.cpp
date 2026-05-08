@@ -12,22 +12,22 @@ NullAudio::NullAudio()
 	mAllDevices.push_back(mActiveDevice);
 }
 
-SPtr<AudioClip> NullAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
+TShared<AudioClip> NullAudio::CreateClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
 {
 	return B3DMakeShared<NullAudioClip>(samples, streamSize, sampleCount, createInformation);
 }
 
-SPtr<IAudioListenerImplementation> NullAudio::CreateListener()
+TShared<IAudioListenerImplementation> NullAudio::CreateListener()
 {
 	return B3DMakeShared<NullAudioListener>();
 }
 
-SPtr<IAudioSourceImplementation> NullAudio::CreateSource()
+TShared<IAudioSourceImplementation> NullAudio::CreateSource()
 {
 	return B3DMakeShared<NullAudioSource>();
 }
 
-NullAudioClip::NullAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
+NullAudioClip::NullAudioClip(const TShared<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
 	: AudioClip(samples, streamSize, sampleCount, createInformation)
 {}
 
@@ -48,7 +48,7 @@ void NullAudioClip::Initialize()
 	AudioClip::Initialize();
 }
 
-SPtr<DataStream> NullAudioClip::GetSourceStream(u32& outSize)
+TShared<DataStream> NullAudioClip::GetSourceStream(u32& outSize)
 {
 	outSize = mSourceStreamSize;
 	mSourceStreamData->Seek(0);

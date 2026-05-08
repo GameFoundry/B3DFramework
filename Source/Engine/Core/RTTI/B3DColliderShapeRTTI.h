@@ -239,7 +239,7 @@ namespace b3d
 			return TID_ColliderShape;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return ColliderShape::CreateEmpty();
 		}

@@ -43,28 +43,28 @@ namespace b3d
 			const VideoModeInfo& GetVideoModeInfo() const override { return *mVideoModeInfo; }
 
 			bool IsGpuProgramLanguageSupported(const StringView& language) const override { return language == kGpuProgramLanguageName; }
-			SPtr<GpuProgramBytecode> CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const override;
+			TShared<GpuProgramBytecode> CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const override;
 
 			u32 GetQueueCount(GpuQueueUsage usage) const override { return (u32)mQueueInfos[(u32)usage].Queues.size(); }
-			SPtr<GpuQueue> GetQueue(GpuQueueUsage usage, u32 index) const override;
-			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) override;
+			TShared<GpuQueue> GetQueue(GpuQueueUsage usage, u32 index) const override;
+			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) override;
 			void WaitUntilIdle() override;
 			void BeginFrame() override;
 
-			SPtr<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
-			SPtr<Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
-			SPtr<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
-			SPtr<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
-			SPtr<EventQuery> CreateEventQuery() override;
-			SPtr<TimerQuery> CreateTimerQuery() override;
-			SPtr<OcclusionQuery> CreateOcclusionQuery(bool isBinary) override;
-			SPtr<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
-			SPtr<GpuGraphicsPipelineState> CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
-			SPtr<GpuComputePipelineState> CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
-			SPtr<GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation) override;
-			SPtr<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription) override;
+			TShared<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
+			TShared<Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
+			TShared<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
+			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
+			TShared<EventQuery> CreateEventQuery() override;
+			TShared<TimerQuery> CreateTimerQuery() override;
+			TShared<OcclusionQuery> CreateOcclusionQuery(bool isBinary) override;
+			TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
+			TShared<GpuGraphicsPipelineState> CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
+			TShared<GpuComputePipelineState> CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
+			TShared<GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation) override;
+			TShared<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription) override;
 			UPtr<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) override;
-			SPtr<GpuTimelineFence> CreateTimelineFence() override;
+			TShared<GpuTimelineFence> CreateTimelineFence() override;
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
 			GpuUniformBufferInformation GenerateUniformBufferInformation(const String& name, TArray<GpuUniformBufferMemberInformation>& inOutUniforms) override;
@@ -93,7 +93,7 @@ namespace b3d
 		private:
 			friend class b3d::D3D12GpuBackend;
 
-			SPtr<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
+			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 
 			/** Initializes the capabilities of the device. */
 			void InitializeCapabilities();
@@ -112,12 +112,12 @@ namespace b3d
 			/** Contains data about a set of queues of a specific type. */
 			struct QueueInfo
 			{
-				Vector<SPtr<D3D12GpuQueue>> Queues;
+				Vector<TShared<D3D12GpuQueue>> Queues;
 			};
 
 			QueueInfo mQueueInfos[GQT_COUNT];
 			GpuDeviceCapabilities mCapabilities;
-			SPtr<VideoModeInfo> mVideoModeInfo;
+			TShared<VideoModeInfo> mVideoModeInfo;
 		};
 
 		/** @} */

@@ -15,7 +15,7 @@ namespace b3d
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ManagedResourceMetaData")
 
-		ScriptManagedResourceMetaData(const SPtr<ManagedResourceMetaData>& nativeObject);
+		ScriptManagedResourceMetaData(const TShared<ManagedResourceMetaData>& nativeObject);
 		~ScriptManagedResourceMetaData();
 
 		static void SetupScriptBindings();

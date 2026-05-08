@@ -27,7 +27,7 @@ namespace b3d
 
 		u32 GetRttiId() const override { return TID_GUIRenderable; }
 
-		SPtr<IReflectable> NewRttiObject() { return nullptr; }
+		TShared<IReflectable> NewRttiObject() { return nullptr; }
 	};
 } // namespace b3d
 
@@ -271,7 +271,7 @@ void GUIRenderable::RefreshStyle()
 		const GUIWidget* parentWidget = GetParentWidget();
 		const GUIStyleSheetCascade& styleSheetCascade = parentWidget != nullptr ? parentWidget->GetStyleSheetCascade() : GUIStyleSheetCascade::kEmpty;
 
-		SPtr<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheetCascade.BuildStateRulesets(*this);
+		TShared<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheetCascade.BuildStateRulesets(*this);
 
 		if(!newStateRulesets)
 			newStateRulesets = GUIStyleSheetStateRulesets::kDefault;
@@ -296,7 +296,7 @@ void GUIRenderable::RefreshStyle()
 		const GUIStyleSheetRules* inheritedRules = mStyleSheetRuleInformation.CurrentStateRuleset != nullptr ? &mStyleSheetRuleInformation.CurrentStateRuleset->Rules : nullptr;
 		for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
 		{
-			SPtr<const GUIStyleSheetStateRulesets> newPseudoElementStateRulesets = styleSheetCascade.BuildStateRulesets(*this, pseudoElementRuleInformation.PseudoElementName);
+			TShared<const GUIStyleSheetStateRulesets> newPseudoElementStateRulesets = styleSheetCascade.BuildStateRulesets(*this, pseudoElementRuleInformation.PseudoElementName);
 
 			if(!newPseudoElementStateRulesets)
 				newPseudoElementStateRulesets = GUIStyleSheetStateRulesets::kDefault;

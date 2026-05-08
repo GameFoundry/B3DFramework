@@ -64,8 +64,8 @@ void AnimationUtility::WrapTime(float& time, float start, float end, bool loop)
 	}
 }
 
-SPtr<TAnimationCurve<Quaternion>> AnimationUtility::EulerToQuaternionCurve(
-	const SPtr<TAnimationCurve<Vector3>>& eulerCurve, EulerAngleOrder order)
+TShared<TAnimationCurve<Quaternion>> AnimationUtility::EulerToQuaternionCurve(
+	const TShared<TAnimationCurve<Vector3>>& eulerCurve, EulerAngleOrder order)
 {
 	// TODO: We calculate tangents by sampling. There must be an analytical way to calculate tangents when converting
 	// a curve.
@@ -183,7 +183,7 @@ SPtr<TAnimationCurve<Quaternion>> AnimationUtility::EulerToQuaternionCurve(
 	return B3DMakeShared<TAnimationCurve<Quaternion>>(quatKeyframes);
 }
 
-SPtr<TAnimationCurve<Vector3>> AnimationUtility::QuaternionToEulerCurve(const SPtr<TAnimationCurve<Quaternion>>& quatCurve)
+TShared<TAnimationCurve<Vector3>> AnimationUtility::QuaternionToEulerCurve(const TShared<TAnimationCurve<Quaternion>>& quatCurve)
 {
 	// TODO: We calculate tangents by sampling. There must be an analytical way to calculate tangents when converting
 	// a curve.
@@ -341,21 +341,21 @@ void CombineCurve(
 	}
 }
 
-Vector<SPtr<TAnimationCurve<float>>> AnimationUtility::SplitCurve3D(const SPtr<TAnimationCurve<Vector3>>& compoundCurve)
+Vector<TShared<TAnimationCurve<float>>> AnimationUtility::SplitCurve3D(const TShared<TAnimationCurve<Vector3>>& compoundCurve)
 {
 	Vector<TKeyframe<float>> keyFrames[3];
 
 	if(compoundCurve)
 		::SplitCurve(*compoundCurve, keyFrames);
 
-	Vector<SPtr<TAnimationCurve<float>>> output(3);
+	Vector<TShared<TAnimationCurve<float>>> output(3);
 	for(u32 i = 0; i < 3; i++)
 		output[i] = B3DMakeShared<TAnimationCurve<float>>(keyFrames[i]);
 
 	return output;
 }
 
-SPtr<TAnimationCurve<Vector3>> AnimationUtility::CombineCurve3D(const Vector<SPtr<TAnimationCurve<float>>>& curveComponents)
+TShared<TAnimationCurve<Vector3>> AnimationUtility::CombineCurve3D(const Vector<TShared<TAnimationCurve<float>>>& curveComponents)
 {
 	Vector<TKeyframe<Vector3>> keyFrames;
 	if(curveComponents.size() >= 3)
@@ -368,21 +368,21 @@ SPtr<TAnimationCurve<Vector3>> AnimationUtility::CombineCurve3D(const Vector<SPt
 	return B3DMakeShared<TAnimationCurve<Vector3>>(keyFrames);
 }
 
-Vector<SPtr<TAnimationCurve<float>>> AnimationUtility::SplitCurve2D(const SPtr<TAnimationCurve<Vector2>>& compoundCurve)
+Vector<TShared<TAnimationCurve<float>>> AnimationUtility::SplitCurve2D(const TShared<TAnimationCurve<Vector2>>& compoundCurve)
 {
 	Vector<TKeyframe<float>> keyFrames[2];
 
 	if(compoundCurve)
 		::SplitCurve(*compoundCurve, keyFrames);
 
-	Vector<SPtr<TAnimationCurve<float>>> output(2);
+	Vector<TShared<TAnimationCurve<float>>> output(2);
 	for(u32 i = 0; i < 2; i++)
 		output[i] = B3DMakeShared<TAnimationCurve<float>>(keyFrames[i]);
 
 	return output;
 }
 
-SPtr<TAnimationCurve<Vector2>> AnimationUtility::CombineCurve2D(const Vector<SPtr<TAnimationCurve<float>>>& curveComponents)
+TShared<TAnimationCurve<Vector2>> AnimationUtility::CombineCurve2D(const Vector<TShared<TAnimationCurve<float>>>& curveComponents)
 {
 	Vector<TKeyframe<Vector2>> keyFrames;
 	if(curveComponents.size() >= 2)
@@ -455,7 +455,7 @@ void AnimationUtility::CalculateRange(const Vector<TAnimationCurve<float>>& curv
 		outYMax = 0.0f;
 }
 
-void AnimationUtility::CalculateRange(const Vector<SPtr<TAnimationCurve<float>>>& curves, float& outXMin, float& outXMax, float& outYMin, float& outYMax)
+void AnimationUtility::CalculateRange(const Vector<TShared<TAnimationCurve<float>>>& curves, float& outXMin, float& outXMax, float& outYMin, float& outYMax)
 {
 	outXMin = std::numeric_limits<float>::infinity();
 	outXMax = -std::numeric_limits<float>::infinity();

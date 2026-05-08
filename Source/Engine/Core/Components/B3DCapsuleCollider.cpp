@@ -22,7 +22,7 @@ CapsuleCollider::CapsuleCollider()
 
 void CapsuleCollider::OnCreated()
 {
-	SPtr<ColliderShape> colliderShape = ColliderShape::CreateCapsule(CapsuleColliderShapeInformation(mRadius, mHalfHeight));
+	TShared<ColliderShape> colliderShape = ColliderShape::CreateCapsule(CapsuleColliderShapeInformation(mRadius, mHalfHeight));
 	colliderShape->SetPosition(mShapeLocalPosition);
 	colliderShape->SetRotation(mShapeLocalRotation);
 

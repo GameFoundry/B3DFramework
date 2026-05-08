@@ -156,7 +156,7 @@ void Input::InitRawInput()
 {
 	mPlatformData = B3DNew<InputPrivateData>();
 
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	const bool isHeadless = gpuDevice == nullptr || gpuDevice->GetCapabilities().DeviceName == "Null" || mWindowHandle == 0;
 	if(isHeadless)

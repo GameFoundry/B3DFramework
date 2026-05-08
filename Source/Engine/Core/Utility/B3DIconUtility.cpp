@@ -185,7 +185,7 @@ struct IconHeader
 	u32 ClrImportant;
 };
 
-void IconUtility::UpdateIconExe(const Path& path, const Map<u32, SPtr<PixelData>>& pixelsPerSize)
+void IconUtility::UpdateIconExe(const Path& path, const Map<u32, TShared<PixelData>>& pixelsPerSize)
 {
 	// A PE file is structured as such:
 	//  - MSDOS Header
@@ -323,7 +323,7 @@ void IconUtility::UpdateIconExe(const Path& path, const Map<u32, SPtr<PixelData>
 	stream.close();
 }
 
-void IconUtility::UpdateIconData(u8* iconData, const Map<u32, SPtr<PixelData>>& pixelsPerSize)
+void IconUtility::UpdateIconData(u8* iconData, const Map<u32, TShared<PixelData>>& pixelsPerSize)
 {
 	IconHeader* iconHeader = (IconHeader*)iconData;
 
@@ -345,7 +345,7 @@ void IconUtility::UpdateIconData(u8* iconData, const Map<u32, SPtr<PixelData>>& 
 	}
 
 	// Write colors
-	SPtr<PixelData> srcPixels = iterFind->second;
+	TShared<PixelData> srcPixels = iterFind->second;
 	u32* colorData = (u32*)iconPixels;
 
 	u32 idx = 0;

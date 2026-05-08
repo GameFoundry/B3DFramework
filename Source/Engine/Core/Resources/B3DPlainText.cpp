@@ -16,9 +16,9 @@ HPlainText PlainText::Create(const WString& data)
 	return B3DStaticResourceCast<PlainText>(GetResources().CreateResourceHandle(CreatePtrInternal(data)));
 }
 
-SPtr<PlainText> PlainText::CreatePtrInternal(const WString& data)
+TShared<PlainText> PlainText::CreatePtrInternal(const WString& data)
 {
-	SPtr<PlainText> plainTextPtr = B3DMakeSharedFromExisting<PlainText>(
+	TShared<PlainText> plainTextPtr = B3DMakeSharedFromExisting<PlainText>(
 		new(B3DAllocate<PlainText>()) PlainText(data));
 	plainTextPtr->SetShared(plainTextPtr);
 	plainTextPtr->Initialize();

@@ -39,7 +39,7 @@ namespace b3d
 		HCollider Collider[2];
 
 		/** Shapes of that have collided. */
-		SPtr<ColliderShape> ColliderShapes[2];
+		TShared<ColliderShape> ColliderShapes[2];
 
 		// Note: Not too happy this is heap allocated, use static allocator?
 		Vector<ContactPoint> ContactPoints; /**< Information about all the contact points for the hit. */
@@ -80,7 +80,7 @@ namespace b3d
 		 */
 		HCollider Collider;
 
-		SPtr<ColliderShape> ColliderShape; /**< Collider shape that was hit. */
+		TShared<ColliderShape> ColliderShape; /**< Collider shape that was hit. */
 	};
 
 	/** @} */

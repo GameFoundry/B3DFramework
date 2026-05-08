@@ -34,7 +34,7 @@ namespace b3d
 			return TID_SerializableFieldKey;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<ManagedSerializableFieldKey>();
 		}
@@ -54,7 +54,7 @@ namespace b3d
 			return TID_SerializableFieldData;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			B3D_ASSERT(false && "Cannot instantiate an abstract class.");
 			return nullptr;
@@ -80,7 +80,7 @@ namespace b3d
 			return TID_SerializableFieldDataEntry;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataEntry>();
 		}
@@ -104,7 +104,7 @@ namespace b3d
 			return TID_SerializableFieldDataBool;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataBool>();
 		}
@@ -136,7 +136,7 @@ namespace b3d
 			return TID_SerializableFieldDataChar;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataChar>();
 		}
@@ -160,7 +160,7 @@ namespace b3d
 			return TID_SerializableFieldDataI8;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataI8>();
 		}
@@ -184,7 +184,7 @@ namespace b3d
 			return TID_SerializableFieldDataU8;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataU8>();
 		}
@@ -208,7 +208,7 @@ namespace b3d
 			return TID_SerializableFieldDataI16;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataI16>();
 		}
@@ -232,7 +232,7 @@ namespace b3d
 			return TID_SerializableFieldDataU16;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataU16>();
 		}
@@ -256,7 +256,7 @@ namespace b3d
 			return TID_SerializableFieldDataI32;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataI32>();
 		}
@@ -280,7 +280,7 @@ namespace b3d
 			return TID_SerializableFieldDataU32;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataU32>();
 		}
@@ -304,7 +304,7 @@ namespace b3d
 			return TID_SerializableFieldDataI64;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataI64>();
 		}
@@ -328,7 +328,7 @@ namespace b3d
 			return TID_SerializableFieldDataU64;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataU64>();
 		}
@@ -352,7 +352,7 @@ namespace b3d
 			return TID_SerializableFieldDataFloat;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataFloat>();
 		}
@@ -376,7 +376,7 @@ namespace b3d
 			return TID_SerializableFieldDataDouble;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataDouble>();
 		}
@@ -410,7 +410,7 @@ namespace b3d
 			return TID_SerializableFieldDataString;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataString>();
 		}
@@ -434,7 +434,7 @@ namespace b3d
 			return TID_SerializableFieldDataResourceRef;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataResourceRef>();
 		}
@@ -458,7 +458,7 @@ namespace b3d
 			return TID_SerializableFieldDataGameObjectRef;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataGameObjectRef>();
 		}
@@ -482,7 +482,7 @@ namespace b3d
 			return TID_SerializableFieldDataReflectableRef;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataReflectableRef>();
 		}
@@ -506,7 +506,7 @@ namespace b3d
 			return TID_SerializableFieldDataObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataObject>();
 		}
@@ -530,7 +530,7 @@ namespace b3d
 			return TID_SerializableFieldDataArray;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataArray>();
 		}
@@ -554,7 +554,7 @@ namespace b3d
 			return TID_SerializableFieldDataList;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataList>();
 		}
@@ -578,7 +578,7 @@ namespace b3d
 			return TID_SerializableFieldDataDictionary;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<ManagedSerializableFieldDataDictionary>();
 		}

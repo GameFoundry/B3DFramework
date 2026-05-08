@@ -8,15 +8,15 @@ Compute GPU programs are executed in one or multiple thread groups. Each thread 
 
 ~~~~~~~~~~~~~{.cpp}
 // Get the GPU device from the command buffer
-SPtr<GpuDevice> device = commandBuffer->GetGpuDevice();
+TShared<GpuDevice> device = commandBuffer->GetGpuDevice();
 
 // Create a compute pipeline state with your compute program
 GpuComputePipelineStateCreateInformation pipelineCreateInfo;
 pipelineCreateInfo.Program = myComputeProgram;
-SPtr<GpuComputePipelineState> computePipelineState = device->CreateGpuComputePipelineState(pipelineCreateInfo);
+TShared<GpuComputePipelineState> computePipelineState = device->CreateGpuComputePipelineState(pipelineCreateInfo);
 
 // Create GPU parameter set for binding resources (set 0)
-SPtr<GpuParameterSet> parameterSet = device->CreateGpuParameterSet(computePipelineState->GetParameterLayout()->GetSet(0), 0);
+TShared<GpuParameterSet> parameterSet = device->CreateGpuParameterSet(computePipelineState->GetParameterLayout()->GetSet(0), 0);
 
 // Set parameters (buffers, textures, etc.)
 parameterSet->SetStorageBuffer("inputBuffer", myInputBuffer);

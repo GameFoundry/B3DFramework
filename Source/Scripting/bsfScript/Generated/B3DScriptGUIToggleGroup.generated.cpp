@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptGUIToggleGroup::ScriptGUIToggleGroup(const SPtr<GUIToggleGroup>& nativeObject)
+	ScriptGUIToggleGroup::ScriptGUIToggleGroup(const TShared<GUIToggleGroup>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -38,7 +38,7 @@ namespace b3d
 	}
 	void ScriptGUIToggleGroup::InternalCreate(MonoObject* scriptObject, bool allowAllOff)
 	{
-		SPtr<GUIToggleGroup> nativeObject = GUIToggleGroup::Create(allowAllOff);
+		TShared<GUIToggleGroup> nativeObject = GUIToggleGroup::Create(allowAllOff);
 		ScriptObjectWrapper::Create<ScriptGUIToggleGroup>(nativeObject, scriptObject);
 	}
 }

@@ -12,7 +12,7 @@
 using namespace b3d;
 using namespace b3d::render;
 
-D3D12GpuParameters::D3D12GpuParameters(const SPtr<GpuPipelineParameterSetLayout>& parameterSetLayout, D3D12GpuDevice& device, u32 setIndex)
+D3D12GpuParameters::D3D12GpuParameters(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, D3D12GpuDevice& device, u32 setIndex)
 	: GpuParameterSet(parameterSetLayout, setIndex)
 	, mDevice(device)
 {
@@ -28,7 +28,7 @@ void D3D12GpuParameters::Initialize()
 {
 	// TODO: D3D12 backend needs proper implementation
 	// For now, initialize descriptor tables based on the set layout
-	const SPtr<GpuPipelineParameterSetLayout>& setLayout = GetParameterSetLayout();
+	const TShared<GpuPipelineParameterSetLayout>& setLayout = GetParameterSetLayout();
 	if (!setLayout)
 		return;
 

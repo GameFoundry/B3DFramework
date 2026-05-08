@@ -950,9 +950,9 @@ GUIPhysicalPoint GUIInputBox::GetTextOffset() const
 	return GetAbsoluteContentBounds().GetPosition() + mTextOffset;
 }
 
-SPtr<GUIContextMenu> GUIInputBox::GetContextMenu() const
+TShared<GUIContextMenu> GUIInputBox::GetContextMenu() const
 {
-	static SPtr<GUIContextMenu> contextMenu;
+	static TShared<GUIContextMenu> contextMenu;
 
 	if(contextMenu == nullptr)
 	{

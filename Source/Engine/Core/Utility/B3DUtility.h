@@ -61,7 +61,7 @@ namespace b3d
 		bool IsGameObjectDeserializationActive = false;
 		/** Determines should any newly deserialized game object should be initialized. See SceneObject::Initialize(). */
 		bool InitializeNewGameObjects = false;
-		SPtr<GameObjectCollection> GameObjectCollection; /**< If deserializing game objects, collection to place them in. */
+		TShared<GameObjectCollection> GameObjectCollection; /**< If deserializing game objects, collection to place them in. */
 
 		ecs::Entity CurrentSceneObjectEntity = ecs::kNullEntity; /** Current scene object ECS entity for component deserialization. Set by SceneObjectRTTI, read by ComponentRTTI. */
 		UnorderedMap<UUID, UUID> GameObjectIdRemapping; /**< If provided, game object IDs will be remapped to provided values. */

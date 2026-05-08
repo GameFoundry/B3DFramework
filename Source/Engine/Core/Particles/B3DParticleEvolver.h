@@ -108,11 +108,11 @@ namespace b3d
 
 		/** Creates a new particle texture animation evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleTextureAnimation> Create(const ParticleTextureAnimationSettings& settings);
+		static TShared<ParticleTextureAnimation> Create(const ParticleTextureAnimationSettings& settings);
 
 		/** Creates a new particle texture animation evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleTextureAnimation> Create();
+		static TShared<ParticleTextureAnimation> Create();
 
 	private:
 		void Evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, u32 startIdx, u32 count, bool spacing, float spacingOffset) const override;
@@ -170,11 +170,11 @@ namespace b3d
 
 		/** Creates a new particle orbit evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleOrbit> Create(const ParticleOrbitSettings& settings);
+		static TShared<ParticleOrbit> Create(const ParticleOrbitSettings& settings);
 
 		/** Creates a new particle orbit evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleOrbit> Create();
+		static TShared<ParticleOrbit> Create();
 
 	private:
 		void Evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, u32 startIdx, u32 count, bool spacing, float spacingOffset) const override;
@@ -223,11 +223,11 @@ namespace b3d
 
 		/** Creates a new particle velocity evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleVelocity> Create(const ParticleVelocitySettings& settings);
+		static TShared<ParticleVelocity> Create(const ParticleVelocitySettings& settings);
 
 		/** Creates a new particle velocity evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleVelocity> Create();
+		static TShared<ParticleVelocity> Create();
 
 	private:
 		void Evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, u32 startIdx, u32 count, bool spacing, float spacingOffset) const override;
@@ -276,11 +276,11 @@ namespace b3d
 
 		/** Creates a new particle force evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleForce> Create(const ParticleForceSettings& settings);
+		static TShared<ParticleForce> Create(const ParticleForceSettings& settings);
 
 		/** Creates a new particle force evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleForce> Create();
+		static TShared<ParticleForce> Create();
 
 	private:
 		void Evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, u32 startIdx, u32 count, bool spacing, float spacingOffset) const override;
@@ -326,11 +326,11 @@ namespace b3d
 
 		/** Creates a new particle gravity evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleGravity> Create(const ParticleGravitySettings& settings);
+		static TShared<ParticleGravity> Create(const ParticleGravitySettings& settings);
 
 		/** Creates a new particle gravity evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleGravity> Create();
+		static TShared<ParticleGravity> Create();
 
 	private:
 		void Evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, u32 startIdx, u32 count, bool spacing, float spacingOffset) const override;
@@ -376,11 +376,11 @@ namespace b3d
 
 		/** Creates a new particle color evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleColor> Create(const ParticleColorSettings& settings);
+		static TShared<ParticleColor> Create(const ParticleColorSettings& settings);
 
 		/** Creates a new particle color evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleColor> Create();
+		static TShared<ParticleColor> Create();
 
 	private:
 		void Evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, u32 startIdx, u32 count, bool spacing, float spacingOffset) const override;
@@ -440,11 +440,11 @@ namespace b3d
 
 		/** Creates a new particle size evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleSize> Create(const ParticleSizeSettings& settings);
+		static TShared<ParticleSize> Create(const ParticleSizeSettings& settings);
 
 		/** Creates a new particle size evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleSize> Create();
+		static TShared<ParticleSize> Create();
 
 	private:
 		void Evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, u32 startIdx, u32 count, bool spacing, float spacingOffset) const override;
@@ -502,11 +502,11 @@ namespace b3d
 
 		/** Creates a new particle rotation evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleRotation> Create(const ParticleRotationSettings& settings);
+		static TShared<ParticleRotation> Create(const ParticleRotationSettings& settings);
 
 		/** Creates a new particle rotation evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleRotation> Create();
+		static TShared<ParticleRotation> Create();
 
 	private:
 		void Evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, u32 startIdx, u32 count, bool spacing, float spacingOffset) const override;
@@ -611,11 +611,11 @@ namespace b3d
 
 		/** Creates a new particle collision evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleCollisions> Create(const ParticleCollisionSettings& settings);
+		static TShared<ParticleCollisions> Create(const ParticleCollisionSettings& settings);
 
 		/** Creates a new particle collision evolver. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
-		static SPtr<ParticleCollisions> Create();
+		static TShared<ParticleCollisions> Create();
 
 	private:
 		/** @copydoc ParticleEvolver::Evolve */

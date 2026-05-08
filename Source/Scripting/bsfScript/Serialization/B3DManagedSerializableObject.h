@@ -48,7 +48,7 @@ namespace b3d
 		};
 
 	public:
-		ManagedSerializableObject(const ConstructPrivately& dummy, SPtr<ManagedObjectInfo> objInfo, MonoObject* managedInstance);
+		ManagedSerializableObject(const ConstructPrivately& dummy, TShared<ManagedObjectInfo> objInfo, MonoObject* managedInstance);
 		ManagedSerializableObject(const ConstructPrivately& dummy);
 		~ManagedSerializableObject();
 
@@ -58,7 +58,7 @@ namespace b3d
 		MonoObject* GetManagedInstance() const;
 
 		/**	Returns the type information for the internal object. */
-		SPtr<ManagedObjectInfo> GetObjectInfo() const { return mObjInfo; }
+		TShared<ManagedObjectInfo> GetObjectInfo() const { return mObjInfo; }
 
 		/**
 		 * Sets a new value of the specified field. Operates on managed object if in linked state, or on cached data
@@ -68,7 +68,7 @@ namespace b3d
 		 *							type this object is initialized with.
 		 * @param[in]	val			Wrapper around the value to store in the field.
 		 */
-		void SetFieldData(const SPtr<ManagedMemberInfo>& fieldInfo, const SPtr<ManagedSerializableFieldData>& val);
+		void SetFieldData(const TShared<ManagedMemberInfo>& fieldInfo, const TShared<ManagedSerializableFieldData>& val);
 
 		/**
 		 * Returns the value of the specified field. Operates on managed object if in linked state, or on cached data
@@ -78,7 +78,7 @@ namespace b3d
 		 *							type this object is initialized with.
 		 * @return					A wrapper around the value of the field.
 		 */
-		SPtr<ManagedSerializableFieldData> GetFieldData(const SPtr<ManagedMemberInfo>& fieldInfo) const;
+		TShared<ManagedSerializableFieldData> GetFieldData(const TShared<ManagedMemberInfo>& fieldInfo) const;
 
 		/**
 		 * Serializes the internal managed object into a set of cached data that can be saved in memory/disk and can be
@@ -102,7 +102,7 @@ namespace b3d
 		 * @param[in]	instance	Existing managed instance of the same type this serializable object represents.
 		 * @param[in]	objInfo		Serializable object info for the managed object type.
 		 */
-		void Deserialize(MonoObject* instance, const SPtr<ManagedObjectInfo>& objInfo);
+		void Deserialize(MonoObject* instance, const TShared<ManagedObjectInfo>& objInfo);
 
 		/** Checks if this object has the same contents as the provided object. */
 		bool Equals(ManagedSerializableObject& other, RTTIOperationContext* context = nullptr);
@@ -113,33 +113,33 @@ namespace b3d
 		 *
 		 * @param[in]	managedInstance		Constructed managed instance of the object to link with.
 		 */
-		static SPtr<ManagedSerializableObject> CreateFromExisting(MonoObject* managedInstance);
+		static TShared<ManagedSerializableObject> CreateFromExisting(MonoObject* managedInstance);
 
 		/**
 		 * Creates a managed serializable object that creates and references a brand new managed object instance.
 		 *
 		 * @param[in]	type	Type of the object to create.
 		 */
-		static SPtr<ManagedSerializableObject> CreateNew(const SPtr<ManagedTypeInfoObject>& type);
+		static TShared<ManagedSerializableObject> CreateNew(const TShared<ManagedTypeInfoObject>& type);
 
 		/**
 		 * Creates a managed object instance.
 		 *
 		 * @param[in]	type	Type of the object to create.
 		 */
-		static MonoObject* CreateManagedInstance(const SPtr<ManagedTypeInfoObject>& type);
+		static MonoObject* CreateManagedInstance(const TShared<ManagedTypeInfoObject>& type);
 
 	protected:
 		uint32_t mGCHandle = 0;
-		SPtr<ManagedObjectInfo> mObjInfo;
-		UnorderedMap<ManagedSerializableFieldKey, SPtr<ManagedSerializableFieldData>, Hash, struct Equals> mCachedData;
+		TShared<ManagedObjectInfo> mObjInfo;
+		UnorderedMap<ManagedSerializableFieldKey, TShared<ManagedSerializableFieldData>, Hash, struct Equals> mCachedData;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 
 		/**	Creates an empty and uninitialized object used for serialization purposes. */
-		static SPtr<ManagedSerializableObject> CreateEmpty();
+		static TShared<ManagedSerializableObject> CreateEmpty();
 
 	public:
 		friend class ManagedSerializableObjectRTTI;

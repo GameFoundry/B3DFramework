@@ -37,14 +37,14 @@ namespace b3d
 		/** Per-object parameter set layout and dynamic offset index for normal renderables. */
 		struct RenderableParameterSetInfo
 		{
-			SPtr<GpuPipelineParameterSetLayout> Layout;
+			TShared<GpuPipelineParameterSetLayout> Layout;
 			u32 PerObjectDynamicOffsetIndex = 0;
 		};
 
 		/** Per-object parameter set layout and dynamic offset indices for decals. */
 		struct DecalParameterSetInfo
 		{
-			SPtr<GpuPipelineParameterSetLayout> Layout;
+			TShared<GpuPipelineParameterSetLayout> Layout;
 			u32 PerObjectDynamicOffsetIndex = 0;
 			u32 DecalDynamicOffsetIndex = 0;
 		};
@@ -52,7 +52,7 @@ namespace b3d
 		/** Per-object parameter set layout and dynamic offset indices for GPU-simulated particles. */
 		struct GpuParticlesParameterSetInfo
 		{
-			SPtr<GpuPipelineParameterSetLayout> Layout;
+			TShared<GpuPipelineParameterSetLayout> Layout;
 			u32 PerObjectDynamicOffsetIndex = 0;
 			u32 GpuParticlesDynamicOffsetIndex = 0;
 		};
@@ -66,7 +66,7 @@ namespace b3d
 			/** Renderer information for a single material. */
 			struct RendererMaterial
 			{
-				Vector<SPtr<MaterialParameterAdapter>> Params;
+				Vector<TShared<MaterialParameterAdapter>> Params;
 				u32 MatVersion;
 			};
 
@@ -76,8 +76,8 @@ namespace b3d
 
 			const StringID& GetName() const override;
 			void RenderAll(PerFrameData perFrameData) override;
-			void SetOptions(const SPtr<RendererOptions>& options) override;
-			SPtr<RendererOptions> GetOptions() const override;
+			void SetOptions(const TShared<RendererOptions>& options) override;
+			TShared<RendererOptions> GetOptions() const override;
 
 			/** Returns the feature set the renderer is operating on. Render thread only. */
 			RenderBeastFeatureSet GetFeatureSet() const { return mFeatureSet; }
@@ -94,13 +94,13 @@ namespace b3d
 			/** Returns the type configurations for the renderable uniform buffer manager. */
 			const TInlineArray<UniformBufferPools::PoolConfiguration, 4>& GetPerObjectUniformTypeConfigurations() const { return mTypeConfigurations; }
 
-			void Initialize(const SPtr<GpuDevice>& gpuDevice) override;
+			void Initialize(const TShared<GpuDevice>& gpuDevice) override;
 			void Destroy() override;
-			void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override;
+			void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override;
 			void RequestDebugFrameCapture() override { mIsFrameCaptureRequested = true; }
-			void RequestScreenCapture(Camera* camera, TAsyncOp<SPtr<PixelData>> asyncOp) override;
-			SPtr<GpuDevice> GetGpuDevice() const { return mDevice; }
-			SPtr<RendererScene> CreateScene() override;
+			void RequestScreenCapture(Camera* camera, TAsyncOp<TShared<PixelData>> asyncOp) override;
+			TShared<GpuDevice> GetGpuDevice() const { return mDevice; }
+			TShared<RendererScene> CreateScene() override;
 
 		private:
 			friend class RenderBeastScene;
@@ -175,7 +175,7 @@ namespace b3d
 			void DestroyOnRenderThread() override;
 
 			/** Called right after a renderer scene has been created. */
-			void NotifySceneCreated(const SPtr<RenderBeastScene>& scene);
+			void NotifySceneCreated(const TShared<RenderBeastScene>& scene);
 
 			/** Called just before a renderer scene is destroyed. */
 			void NotifySceneDestroyed(const RenderBeastScene* scene);
@@ -193,13 +193,13 @@ namespace b3d
 			// Scene data
 			Vector<RenderBeastScene*> mScenes;
 
-			SPtr<RenderBeastOptions> mRenderThreadOptions;
+			TShared<RenderBeastOptions> mRenderThreadOptions;
 
 			// Helpers to avoid memory allocations
 			RendererViewGroup* mMainViewGroup = nullptr;
 
 			// Main thread only fields
-			SPtr<RenderBeastOptions> mOptions;
+			TShared<RenderBeastOptions> mOptions;
 			bool mOptionsDirty = true;
 
 			// Transient
@@ -207,7 +207,7 @@ namespace b3d
 		};
 
 		/**	Provides easy access to the RenderBeast renderer. */
-		SPtr<RenderBeast> GetRenderBeast();
+		TShared<RenderBeast> GetRenderBeast();
 
 		/** @} */
 	} // namespace render

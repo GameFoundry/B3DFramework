@@ -32,7 +32,7 @@ namespace b3d
 		/** Contains data about a calculated morph shape. */
 		struct MorphShapeInfo
 		{
-			SPtr<MeshData> MeshData;
+			TShared<MeshData> MeshData;
 			u32 Version;
 		};
 
@@ -92,7 +92,7 @@ namespace b3d
 		const EvaluatedAnimationData* Update(bool async = true);
 
 		/** Creates a new empty animation scene. */
-		static SPtr<AnimationScene> Create() { return B3DMakeShared<AnimationScene>(); }
+		static TShared<AnimationScene> Create() { return B3DMakeShared<AnimationScene>(); }
 
 		/**
 		 * @name Internal
@@ -100,7 +100,7 @@ namespace b3d
 		 */
 
 		/** Scene instance that owns this animation scene. */
-		void SetOwner(const SPtr<SceneInstance>& scene) { mOwner = scene; }
+		void SetOwner(const TShared<SceneInstance>& scene) { mOwner = scene; }
 
 		/** @} */
 
@@ -142,10 +142,10 @@ namespace b3d
 		float mLastAnimationDeltaTime = 0.0f;
 		bool mPaused = false;
 
-		SPtr<VertexDescription> mBlendShapeVertexDescription;
+		TShared<VertexDescription> mBlendShapeVertexDescription;
 
 		// Animation thread
-		Vector<SPtr<AnimationProxy>> mProxies;
+		Vector<TShared<AnimationProxy>> mProxies;
 		Vector<ConvexVolume> mCullFrustums;
 		EvaluatedAnimationData mAnimData[RenderThread::kSyncBufferCount + 1];
 

@@ -68,7 +68,7 @@ namespace b3d
 		u64 GetInternalId() const { return mInternalID; }
 
 		/** Returns a shared_ptr version of "this" pointer. */
-		SPtr<CoreObject> GetShared() const { return mThis.lock(); }
+		TShared<CoreObject> GetShared() const { return mThis.lock(); }
 
 		/**
 		 * Returns an object that contains render thread specific implementation of this CoreObject. Null is a valid return
@@ -76,7 +76,7 @@ namespace b3d
 		 *
 		 * @note	Thread safe to retrieve, but its data is only valid on the render thread.
 		 */
-		SPtr<render::RenderProxy> GetRenderProxy() const { return mRenderProxy; }
+		TShared<render::RenderProxy> GetRenderProxy() const { return mRenderProxy; }
 
 		/**
 		 * Ensures all dirty syncable data is send to the render proxy (if any).
@@ -98,7 +98,7 @@ namespace b3d
 		 *
 		 * @note	This should be called by the factory creation methods so user doesn't have to call it manually.
 		 */
-		void SetShared(SPtr<CoreObject> ptrThis);
+		void SetShared(TShared<CoreObject> ptrThis);
 
 		/** Called when the last reference in the shared pointer owning this object goes out of scope. */
 		template <class T, class AllocatorTag>
@@ -142,7 +142,7 @@ namespace b3d
 		 * Creates an object that contains render thread specific data and methods for this object. Can be null if such
 		 * object is not required.
 		 */
-		virtual SPtr<render::RenderProxy> CreateRenderProxy() const { return nullptr; }
+		virtual TShared<render::RenderProxy> CreateRenderProxy() const { return nullptr; }
 
 		/**
 		 * Marks the render proxy data as dirty. This causes the SyncToRenderProxy() method to trigger the next time objects are synced
@@ -197,28 +197,28 @@ namespace b3d
 		}
 
 	protected:
-		SPtr<render::RenderProxy> mRenderProxy;
+		TShared<render::RenderProxy> mRenderProxy;
 
 		/** @} */
 	};
 
 	/** Returns associated render proxy object, or null if the object is null or has no render proxy. */
 	template<class Type>
-	SPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(Type* const object)
+	TShared<CoreVariantType<Type, true>> B3DGetRenderProxy(Type* const object)
 	{
 		return object == nullptr ? nullptr : std::static_pointer_cast<CoreVariantType<Type, true>>(object->GetRenderProxy());
 	}
 
 	/** Returns associated render proxy object, or null if the object is null or has no render proxy. */
 	template<class Type>
-	SPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(const SPtr<Type>& object)
+	TShared<CoreVariantType<Type, true>> B3DGetRenderProxy(const TShared<Type>& object)
 	{
 		return object == nullptr ? nullptr : std::static_pointer_cast<CoreVariantType<Type, true>>(object->GetRenderProxy());
 	}
 
 	/** Returns associated render proxy object, or null if the object is null or has no render proxy. */
 	template<class Type>
-	SPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(const SPtr<const Type>& object)
+	TShared<CoreVariantType<Type, true>> B3DGetRenderProxy(const TShared<const Type>& object)
 	{
 		return object == nullptr ? nullptr : std::static_pointer_cast<CoreVariantType<Type, true>>(object->GetRenderProxy());
 	}
@@ -227,7 +227,7 @@ namespace b3d
 	template<class Type>
 	WeakSPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(const WeakSPtr<Type>& object)
 	{
-		SPtr<Type> strongObject = object.lock();
+		TShared<Type> strongObject = object.lock();
 		return B3DGetRenderProxy(strongObject);
 	}
 
@@ -235,20 +235,20 @@ namespace b3d
 	template<class Type>
 	WeakSPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(const WeakSPtr<const Type>& object)
 	{
-		SPtr<const Type> strongObject = object.lock();
+		TShared<const Type> strongObject = object.lock();
 		return B3DGetRenderProxy(strongObject);
 	}
 
 	/** Returns associated render proxy object, or null if the object is null or has no render proxy. */
 	template<class Type>
-	SPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(const TResourceHandle<Type>& object)
+	TShared<CoreVariantType<Type, true>> B3DGetRenderProxy(const TResourceHandle<Type>& object)
 	{
 		return !object.IsLoaded(false) ? nullptr : std::static_pointer_cast<CoreVariantType<Type, true>>(object->GetRenderProxy());
 	}
 
 	/** Returns associated render proxy object, or null if the object is null or has no render proxy. */
 	template<class Type>
-	SPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(const TGameObjectHandle<Type>& object)
+	TShared<CoreVariantType<Type, true>> B3DGetRenderProxy(const TGameObjectHandle<Type>& object)
 	{
 		return !object.IsValid() ? nullptr : std::static_pointer_cast<CoreVariantType<Type, true>>(object->GetRenderProxy());
 	}

@@ -107,7 +107,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		void SetOwnerCollection(const SPtr<GameObjectCollection>& collection) override;
+		void SetOwnerCollection(const TShared<GameObjectCollection>& collection) override;
 
 		/** Register the scene object and its children with the scene manager, and initialize all of their components. */
 		void Initialize();
@@ -119,10 +119,10 @@ namespace b3d
 		void ClearPrefabDelta() { mPrefabDelta = nullptr; }
 
 		/** Returns a prefab delta object containing instance specific modifications of this object compared to its prefab reference, if any. */
-		const SPtr<SceneObjectHierarchyDelta>& GetPrefabDelta() const { return mPrefabDelta; }
+		const TShared<SceneObjectHierarchyDelta>& GetPrefabDelta() const { return mPrefabDelta; }
 
 		/** Assigns a new prefab delta. Caller must ensure the prefab delta was generated for this object. */
-		void SetPrefabDelta(const SPtr<SceneObjectHierarchyDelta>& delta) { mPrefabDelta = delta; }
+		void SetPrefabDelta(const TShared<SceneObjectHierarchyDelta>& delta) { mPrefabDelta = delta; }
 
 		/** @copydoc GetPrefabVersion */
 		void SetPrefabVersion(const UUID& version) { mPrefabVersion = version; }
@@ -153,7 +153,7 @@ namespace b3d
 		 * When creating objects with DontInstantiate flag it is the callers responsibility to manually destroy the object,
 		 * otherwise it will leak.
 		 */
-		static HSceneObject CreateInternal(const SPtr<GameObjectCollection>& ownerCollection, const String& name, u32 flags = 0);
+		static HSceneObject CreateInternal(const TShared<GameObjectCollection>& ownerCollection, const String& name, u32 flags = 0);
 
 		/**
 		 * Registers an existing SceneObject instance with the game object collection, and returns a handle to the object.
@@ -161,7 +161,7 @@ namespace b3d
 		 * @param	ownerCollection			Collection to register the scene object with.
 		 * @param	sceneObject				Scene object to register.
 		 */
-		static HSceneObject CreateInternal(const SPtr<GameObjectCollection>& ownerCollection, const SPtr<SceneObject>& sceneObject);
+		static HSceneObject CreateInternal(const TShared<GameObjectCollection>& ownerCollection, const TShared<SceneObject>& sceneObject);
 
 		void DestroyImmediate() override;
 		void QueueForDestroy() override;
@@ -171,7 +171,7 @@ namespace b3d
 
 		UUID mPrefabResourceId; /**< Identifier of the prefab resource that this object is linked to, if any. */
 		UUID mPrefabVersion = UUID::kEmpty;
-		SPtr<SceneObjectHierarchyDelta> mPrefabDelta;
+		TShared<SceneObjectHierarchyDelta> mPrefabDelta;
 		SceneObjectFlags mFlags;
 
 		/************************************************************************/
@@ -374,7 +374,7 @@ namespace b3d
 		void IterateHierarchy(const Function<bool(const HSceneObject&)>& onSceneObjectFound, const Function<void(const HComponent&)>& onComponentFound, bool visitSelf = true) const;
 
 		/** Returns the scene this object is part of. Can be null if scene object hasn't been instantiated. */
-		SPtr<SceneInstance> GetScene() const { return mParentScene.lock(); }
+		TShared<SceneInstance> GetScene() const { return mParentScene.lock(); }
 
 		/**
 		 * Searches the scene object hierarchy to find a child scene object using the provided path.
@@ -447,7 +447,7 @@ namespace b3d
 		 *										the ID of the original game objects will be preserved.
 		 * @return								Cloned scene object hierarchy.
 		 */
-		HSceneObject Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool preserveIds = false);
+		HSceneObject Clone(const TShared<GameObjectCollection>& cloneOwnerCollection, bool preserveIds = false);
 
 		/**
 		 * Makes a deep copy of this object (including all its children). Cloned object will be parented to the root of the
@@ -462,7 +462,7 @@ namespace b3d
 		 *										the ID of the original game objects will be preserved. 
 		 * @return								Cloned scene object hierarchy.
 		 */
-		HSceneObject Clone(const SPtr<SceneInstance>& cloneSceneInstance, bool initialize = true, bool preserveIds = false);
+		HSceneObject Clone(const TShared<SceneInstance>& cloneSceneInstance, bool initialize = true, bool preserveIds = false);
 
 		/** @} */
 
@@ -483,7 +483,7 @@ namespace b3d
 		void SetParentInternal(const HSceneObject& parent, bool keepWorldTransform = true);
 
 		/** Changes the owning scene of the scene object and all children. */
-		void SetScene(const SPtr<SceneInstance>& scene);
+		void SetScene(const TShared<SceneInstance>& scene);
 
 		/**
 		 * Adds a child to the child array. This method doesn't check for null or duplicate values.
@@ -512,7 +512,7 @@ namespace b3d
 		{
 			static_assert((std::is_base_of<b3d::Component, T>::value), "Specified type is not a valid Component.");
 
-			SPtr<T> component(new(B3DAllocate<T>()) T(GetHandle(), std::forward<Args>(args)...), &B3DDelete<T>, StdAlloc<T>());
+			TShared<T> component(new(B3DAllocate<T>()) T(GetHandle(), std::forward<Args>(args)...), &B3DDelete<T>, StdAlloc<T>());
 			component->SetId(UUIDGenerator::GenerateRandom());
 
 			const HComponent componentHandle = RegisterComponentWithOwnerCollection(component);
@@ -611,12 +611,12 @@ namespace b3d
 
 		/**	Creates an empty component with the default constructor. Primarily used for RTTI purposes. */
 		template <typename T>
-		static SPtr<T> CreateEmptyComponent()
+		static TShared<T> CreateEmptyComponent()
 		{
 			static_assert((std::is_base_of<b3d::Component, T>::value), "Specified type is not a valid Component.");
 
 			T* rawPtr = new(B3DAllocate<T>()) T();
-			SPtr<T> gameObject(rawPtr, &B3DDelete<T>, StdAlloc<T>());
+			TShared<T> gameObject(rawPtr, &B3DDelete<T>, StdAlloc<T>());
 			gameObject->mRTTIData = gameObject;
 
 			return gameObject;
@@ -636,7 +636,7 @@ namespace b3d
 		/** @} */
 	private:
 		/** Registers the provided component with the owner game object collection and returns the component handle. */
-		HComponent RegisterComponentWithOwnerCollection(const SPtr<Component>& component);
+		HComponent RegisterComponentWithOwnerCollection(const TShared<Component>& component);
 
 		/**
 		 *	Adds the component to the internal component array, and optionally initialized it. Note the component will only
@@ -645,7 +645,7 @@ namespace b3d
 		void InternalAddComponent(const HComponent& component, bool initialize);
 
 		/** Equivalent to AddComponent(const HComponent&, bool), but internally looks up the component handle from the game object collection. */
-		void InternalAddComponent(const SPtr<Component>& component, bool initialize);
+		void InternalAddComponent(const TShared<Component>& component, bool initialize);
 
 		Vector<HComponent> mComponents;
 

@@ -23,7 +23,7 @@
 
 using namespace b3d;
 template <class T>
-bool CompareFieldData(const T* a, const SPtr<ManagedSerializableFieldData>& b)
+bool CompareFieldData(const T* a, const TShared<ManagedSerializableFieldData>& b)
 {
 	if(B3DRTTIIsOfType<T>(b))
 	{
@@ -34,7 +34,7 @@ bool CompareFieldData(const T* a, const SPtr<ManagedSerializableFieldData>& b)
 	return false;
 }
 
-bool CompareFieldData(const SPtr<ManagedSerializableFieldData>& oldData, const SPtr<ManagedSerializableFieldData>& newData, RTTIOperationContext* context)
+bool CompareFieldData(const TShared<ManagedSerializableFieldData>& oldData, const TShared<ManagedSerializableFieldData>& newData, RTTIOperationContext* context)
 {
 	if(!oldData)
 		return !newData;
@@ -47,7 +47,7 @@ bool CompareFieldData(const SPtr<ManagedSerializableFieldData>& oldData, const S
 	return oldData->Equals(newData, context);
 }
 
-bool IsPrimitiveOrEnumType(const SPtr<ManagedTypeInfo>& typeInfo, ManagedPrimitiveType underlyingType)
+bool IsPrimitiveOrEnumType(const TShared<ManagedTypeInfo>& typeInfo, ManagedPrimitiveType underlyingType)
 {
 	if(const auto primitiveTypeInfo = B3DRTTICast<ManagedTypeInfoPrimitive>(typeInfo.get()))
 		return primitiveTypeInfo->PrimitiveType == underlyingType;
@@ -61,32 +61,32 @@ ManagedSerializableFieldKey::ManagedSerializableFieldKey(u16 typeId, u16 fieldId
 	: MTypeId(typeId), MFieldId(fieldId)
 {}
 
-SPtr<ManagedSerializableFieldKey> ManagedSerializableFieldKey::Create(u16 typeId, u16 fieldId)
+TShared<ManagedSerializableFieldKey> ManagedSerializableFieldKey::Create(u16 typeId, u16 fieldId)
 {
-	SPtr<ManagedSerializableFieldKey> fieldKey = B3DMakeShared<ManagedSerializableFieldKey>(typeId, fieldId);
+	TShared<ManagedSerializableFieldKey> fieldKey = B3DMakeShared<ManagedSerializableFieldKey>(typeId, fieldId);
 	return fieldKey;
 }
 
-SPtr<ManagedSerializableFieldDataEntry> ManagedSerializableFieldDataEntry::Create(const SPtr<ManagedSerializableFieldKey>& key, const SPtr<ManagedSerializableFieldData>& value)
+TShared<ManagedSerializableFieldDataEntry> ManagedSerializableFieldDataEntry::Create(const TShared<ManagedSerializableFieldKey>& key, const TShared<ManagedSerializableFieldData>& value)
 {
-	SPtr<ManagedSerializableFieldDataEntry> fieldDataEntry = B3DMakeShared<ManagedSerializableFieldDataEntry>();
+	TShared<ManagedSerializableFieldDataEntry> fieldDataEntry = B3DMakeShared<ManagedSerializableFieldDataEntry>();
 	fieldDataEntry->MKey = key;
 	fieldDataEntry->MValue = value;
 
 	return fieldDataEntry;
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SPtr<ManagedTypeInfo>& typeInfo, MonoObject* value)
+TShared<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const TShared<ManagedTypeInfo>& typeInfo, MonoObject* value)
 {
 	return Create(typeInfo, value, true);
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::CreateDefault(const SPtr<ManagedTypeInfo>& typeInfo)
+TShared<ManagedSerializableFieldData> ManagedSerializableFieldData::CreateDefault(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	return Create(typeInfo, nullptr, false);
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SPtr<ManagedTypeInfo>& typeInfo, MonoObject* value, bool allowNull)
+TShared<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const TShared<ManagedTypeInfo>& typeInfo, MonoObject* value, bool allowNull)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive || typeInfo->GetTypeId() == TID_ManagedTypeInfoEnum)
 	{
@@ -344,7 +344,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	}
 	else if(typeInfo->GetTypeId() == TID_ManagedTypeInfoArray)
 	{
-		SPtr<ManagedTypeInfoArray> arrayTypeInfo = std::static_pointer_cast<ManagedTypeInfoArray>(typeInfo);
+		TShared<ManagedTypeInfoArray> arrayTypeInfo = std::static_pointer_cast<ManagedTypeInfoArray>(typeInfo);
 
 		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataArray>();
 		if(value != nullptr)
@@ -359,7 +359,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	}
 	else if(typeInfo->GetTypeId() == TID_ManagedTypeInfoList)
 	{
-		SPtr<ManagedTypeInfoList> listTypeInfo = std::static_pointer_cast<ManagedTypeInfoList>(typeInfo);
+		TShared<ManagedTypeInfoList> listTypeInfo = std::static_pointer_cast<ManagedTypeInfoList>(typeInfo);
 
 		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataList>();
 		if(value != nullptr)
@@ -371,7 +371,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	}
 	else if(typeInfo->GetTypeId() == TID_ManagedTypeInfoDictionary)
 	{
-		SPtr<ManagedTypeInfoDictionary> dictTypeInfo = std::static_pointer_cast<ManagedTypeInfoDictionary>(typeInfo);
+		TShared<ManagedTypeInfoDictionary> dictTypeInfo = std::static_pointer_cast<ManagedTypeInfoDictionary>(typeInfo);
 
 		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataDictionary>();
 		if(value != nullptr)
@@ -385,7 +385,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataBool::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataBool::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::Bool))
 		return &Value;
@@ -393,7 +393,7 @@ void* ManagedSerializableFieldDataBool::GetValue(const SPtr<ManagedTypeInfo>& ty
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataChar::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataChar::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::Char))
 		return &Value;
@@ -401,7 +401,7 @@ void* ManagedSerializableFieldDataChar::GetValue(const SPtr<ManagedTypeInfo>& ty
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataI8::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataI8::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I8))
 		return &Value;
@@ -409,7 +409,7 @@ void* ManagedSerializableFieldDataI8::GetValue(const SPtr<ManagedTypeInfo>& type
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataU8::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataU8::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U8))
 		return &Value;
@@ -417,7 +417,7 @@ void* ManagedSerializableFieldDataU8::GetValue(const SPtr<ManagedTypeInfo>& type
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataI16::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataI16::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I16))
 		return &Value;
@@ -425,7 +425,7 @@ void* ManagedSerializableFieldDataI16::GetValue(const SPtr<ManagedTypeInfo>& typ
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataU16::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataU16::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U16))
 		return &Value;
@@ -433,7 +433,7 @@ void* ManagedSerializableFieldDataU16::GetValue(const SPtr<ManagedTypeInfo>& typ
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataI32::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataI32::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I32))
 		return &Value;
@@ -441,7 +441,7 @@ void* ManagedSerializableFieldDataI32::GetValue(const SPtr<ManagedTypeInfo>& typ
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataU32::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataU32::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U32))
 		return &Value;
@@ -449,7 +449,7 @@ void* ManagedSerializableFieldDataU32::GetValue(const SPtr<ManagedTypeInfo>& typ
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataI64::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataI64::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I64))
 		return &Value;
@@ -457,7 +457,7 @@ void* ManagedSerializableFieldDataI64::GetValue(const SPtr<ManagedTypeInfo>& typ
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataU64::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataU64::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U64))
 		return &Value;
@@ -465,7 +465,7 @@ void* ManagedSerializableFieldDataU64::GetValue(const SPtr<ManagedTypeInfo>& typ
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataFloat::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataFloat::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
@@ -477,7 +477,7 @@ void* ManagedSerializableFieldDataFloat::GetValue(const SPtr<ManagedTypeInfo>& t
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataDouble::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataDouble::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
@@ -489,7 +489,7 @@ void* ManagedSerializableFieldDataDouble::GetValue(const SPtr<ManagedTypeInfo>& 
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataString::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataString::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
@@ -506,7 +506,7 @@ void* ManagedSerializableFieldDataString::GetValue(const SPtr<ManagedTypeInfo>& 
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataResourceRef::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataResourceRef::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoReference)
 	{
@@ -541,7 +541,7 @@ void* ManagedSerializableFieldDataResourceRef::GetValue(const SPtr<ManagedTypeIn
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataGameObjectRef::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataGameObjectRef::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoReference)
 	{
@@ -554,7 +554,7 @@ void* ManagedSerializableFieldDataGameObjectRef::GetValue(const SPtr<ManagedType
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataReflectableRef::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataReflectableRef::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoReference)
 	{
@@ -567,7 +567,7 @@ void* ManagedSerializableFieldDataReflectableRef::GetValue(const SPtr<ManagedTyp
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataObject::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataObject::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoObject)
 	{
@@ -592,7 +592,7 @@ void* ManagedSerializableFieldDataObject::GetValue(const SPtr<ManagedTypeInfo>& 
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataArray::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataArray::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoArray)
 	{
@@ -607,7 +607,7 @@ void* ManagedSerializableFieldDataArray::GetValue(const SPtr<ManagedTypeInfo>& t
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataList::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataList::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoList)
 	{
@@ -622,7 +622,7 @@ void* ManagedSerializableFieldDataList::GetValue(const SPtr<ManagedTypeInfo>& ty
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-void* ManagedSerializableFieldDataDictionary::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataDictionary::GetValue(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoDictionary)
 	{
@@ -637,7 +637,7 @@ void* ManagedSerializableFieldDataDictionary::GetValue(const SPtr<ManagedTypeInf
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataBool::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataBool::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::Bool))
 		return MonoUtil::Box(MonoUtil::GetBoolClass(), &Value);
@@ -645,7 +645,7 @@ MonoObject* ManagedSerializableFieldDataBool::GetValueBoxed(const SPtr<ManagedTy
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataChar::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataChar::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::Char))
 		return MonoUtil::Box(MonoUtil::GetCharClass(), &Value);
@@ -653,7 +653,7 @@ MonoObject* ManagedSerializableFieldDataChar::GetValueBoxed(const SPtr<ManagedTy
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataI8::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataI8::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I8))
 		return MonoUtil::Box(MonoUtil::GetSByteClass(), &Value);
@@ -661,7 +661,7 @@ MonoObject* ManagedSerializableFieldDataI8::GetValueBoxed(const SPtr<ManagedType
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataU8::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataU8::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U8))
 		return MonoUtil::Box(MonoUtil::GetByteClass(), &Value);
@@ -669,7 +669,7 @@ MonoObject* ManagedSerializableFieldDataU8::GetValueBoxed(const SPtr<ManagedType
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataI16::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataI16::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I16))
 		return MonoUtil::Box(MonoUtil::GetInt16Class(), &Value);
@@ -677,7 +677,7 @@ MonoObject* ManagedSerializableFieldDataI16::GetValueBoxed(const SPtr<ManagedTyp
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataU16::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataU16::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U16))
 		return MonoUtil::Box(MonoUtil::GetUint16Class(), &Value);
@@ -685,7 +685,7 @@ MonoObject* ManagedSerializableFieldDataU16::GetValueBoxed(const SPtr<ManagedTyp
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataI32::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataI32::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I32))
 		return MonoUtil::Box(MonoUtil::GetInt32Class(), &Value);
@@ -693,7 +693,7 @@ MonoObject* ManagedSerializableFieldDataI32::GetValueBoxed(const SPtr<ManagedTyp
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataU32::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataU32::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U32))
 		return MonoUtil::Box(MonoUtil::GetUint32Class(), &Value);
@@ -701,7 +701,7 @@ MonoObject* ManagedSerializableFieldDataU32::GetValueBoxed(const SPtr<ManagedTyp
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataI64::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataI64::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I64))
 		return MonoUtil::Box(MonoUtil::GetInt64Class(), &Value);
@@ -709,7 +709,7 @@ MonoObject* ManagedSerializableFieldDataI64::GetValueBoxed(const SPtr<ManagedTyp
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataU64::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataU64::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U64))
 		return MonoUtil::Box(MonoUtil::GetUint64Class(), &Value);
@@ -717,7 +717,7 @@ MonoObject* ManagedSerializableFieldDataU64::GetValueBoxed(const SPtr<ManagedTyp
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataFloat::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataFloat::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
@@ -729,7 +729,7 @@ MonoObject* ManagedSerializableFieldDataFloat::GetValueBoxed(const SPtr<ManagedT
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataDouble::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataDouble::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
@@ -741,27 +741,27 @@ MonoObject* ManagedSerializableFieldDataDouble::GetValueBoxed(const SPtr<Managed
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataString::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataString::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataResourceRef::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataResourceRef::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataGameObjectRef::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataGameObjectRef::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataReflectableRef::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataReflectableRef::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataObject::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataObject::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoObject)
 	{
@@ -776,82 +776,82 @@ MonoObject* ManagedSerializableFieldDataObject::GetValueBoxed(const SPtr<Managed
 	B3D_LOG(Fatal, LogScript, "Requesting an invalid type in serializable field.");
 }
 
-MonoObject* ManagedSerializableFieldDataArray::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataArray::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataList::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataList::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataDictionary::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataDictionary::GetValueBoxed(const TShared<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-bool ManagedSerializableFieldDataBool::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataBool::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataChar::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataChar::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI8::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataI8::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU8::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataU8::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI16::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataI16::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU16::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataU16::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI32::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataI32::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU32::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataU32::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI64::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataI64::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU64::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataU64::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataFloat::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataFloat::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataDouble::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataDouble::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataString::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataString::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	if(B3DRTTIIsOfType<ManagedSerializableFieldDataString>(other))
 	{
@@ -862,14 +862,14 @@ bool ManagedSerializableFieldDataString::Equals(const SPtr<ManagedSerializableFi
 	return false;
 }
 
-bool ManagedSerializableFieldDataResourceRef::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataResourceRef::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataGameObjectRef::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataGameObjectRef::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
-	const SPtr<ManagedSerializableFieldDataGameObjectRef>& exactOther = B3DRTTICast<ManagedSerializableFieldDataGameObjectRef>(other);
+	const TShared<ManagedSerializableFieldDataGameObjectRef>& exactOther = B3DRTTICast<ManagedSerializableFieldDataGameObjectRef>(other);
 	if(exactOther != nullptr)
 	{
 		UUID myId = Value.GetId();
@@ -891,12 +891,12 @@ bool ManagedSerializableFieldDataGameObjectRef::Equals(const SPtr<ManagedSeriali
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataReflectableRef::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataReflectableRef::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataObject::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataObject::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataObject>(other))
 	{
@@ -912,7 +912,7 @@ bool ManagedSerializableFieldDataObject::Equals(const SPtr<ManagedSerializableFi
 	return false;
 }
 
-bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataArray::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataArray>(other))
 	{
@@ -930,8 +930,8 @@ bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFie
 
 		for(u32 i = 0; i < newLength; i++)
 		{
-			SPtr<ManagedSerializableFieldData> oldData = Value->GetFieldData(i);
-			SPtr<ManagedSerializableFieldData> newData = otherObj->Value->GetFieldData(i);
+			TShared<ManagedSerializableFieldData> oldData = Value->GetFieldData(i);
+			TShared<ManagedSerializableFieldData> newData = otherObj->Value->GetFieldData(i);
 
 			if(CompareFieldData(oldData, newData, context))
 				return false;
@@ -943,7 +943,7 @@ bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFie
 	return false;
 }
 
-bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataList::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataList>(other))
 	{
@@ -961,8 +961,8 @@ bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFiel
 
 		for(u32 i = 0; i < newLength; i++)
 		{
-			SPtr<ManagedSerializableFieldData> oldData = Value->GetFieldData(i);
-			SPtr<ManagedSerializableFieldData> newData = otherObj->Value->GetFieldData(i);
+			TShared<ManagedSerializableFieldData> oldData = Value->GetFieldData(i);
+			TShared<ManagedSerializableFieldData> newData = otherObj->Value->GetFieldData(i);
 
 			if(CompareFieldData(oldData, newData, context))
 				return false;
@@ -974,7 +974,7 @@ bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFiel
 	return false;
 }
 
-bool ManagedSerializableFieldDataDictionary::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
+bool ManagedSerializableFieldDataDictionary::Equals(const TShared<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataDictionary>(other))
 	{
@@ -987,7 +987,7 @@ bool ManagedSerializableFieldDataDictionary::Equals(const SPtr<ManagedSerializab
 		auto newEnumerator = otherObj->Value->GetEnumerator();
 		while(newEnumerator.MoveNext())
 		{
-			SPtr<ManagedSerializableFieldData> key = newEnumerator.GetKey();
+			TShared<ManagedSerializableFieldData> key = newEnumerator.GetKey();
 			if(Value->Contains(key))
 			{
 				if(!CompareFieldData(Value->GetFieldData(key), newEnumerator.GetValue(), context))
@@ -1000,7 +1000,7 @@ bool ManagedSerializableFieldDataDictionary::Equals(const SPtr<ManagedSerializab
 		auto oldEnumerator = Value->GetEnumerator();
 		while(oldEnumerator.MoveNext())
 		{
-			SPtr<ManagedSerializableFieldData> key = oldEnumerator.GetKey();
+			TShared<ManagedSerializableFieldData> key = oldEnumerator.GetKey();
 			if(!otherObj->Value->Contains(oldEnumerator.GetKey()))
 				return false;
 		}

@@ -350,7 +350,7 @@ const GpuUniformBufferMemberInformation* GpuPipelineParameterSetLayout::TryGetUn
 
 GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const GpuPipelineParameterLayoutCreateInformation& createInformation)
 {
-	Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT> perProgramParameterDescriptions;
+	Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> perProgramParameterDescriptions;
 	perProgramParameterDescriptions[GPT_FRAGMENT_PROGRAM] = createInformation.Fragment;
 	perProgramParameterDescriptions[GPT_VERTEX_PROGRAM] = createInformation.Vertex;
 	perProgramParameterDescriptions[GPT_GEOMETRY_PROGRAM] = createInformation.Geometry;
@@ -362,7 +362,7 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const 
 	TInlineArray<GpuProgramParameterDescription, 4> perSetParameterDescriptions;
 	for(u32 programIndex = 0; programIndex < GPT_COUNT; programIndex++)
 	{
-		const SPtr<GpuProgramParameterDescription>& parameterDescription = perProgramParameterDescriptions[programIndex];
+		const TShared<GpuProgramParameterDescription>& parameterDescription = perProgramParameterDescriptions[programIndex];
 		if(parameterDescription == nullptr)
 			continue;
 

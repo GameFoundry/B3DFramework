@@ -42,9 +42,9 @@ namespace b3d
 			return TID_SamplerState;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
-			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+			const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			if(!gpuDevice)
 				return nullptr;
 

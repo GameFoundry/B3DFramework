@@ -28,14 +28,14 @@ namespace b3d
 			B3D_RTTI_MEMBER(mIndexCount, 3)
 		B3D_RTTI_END_MEMBERS
 
-		SPtr<DataStream> GetData(MeshData* obj, u32& size)
+		TShared<DataStream> GetData(MeshData* obj, u32& size)
 		{
 			size = obj->GetInternalBufferSize();
 
 			return B3DMakeShared<MemoryDataStream>(obj->GetData(), size);
 		}
 
-		void SetData(MeshData* obj, const SPtr<DataStream>& value, u32 size)
+		void SetData(MeshData* obj, const TShared<DataStream>& value, u32 size)
 		{
 			obj->AllocateInternalBuffer(size);
 			value->Read(obj->GetData(), size);
@@ -47,7 +47,7 @@ namespace b3d
 			AddDataBlockField("data", 4, &MeshDataRTTI::GetData, &MeshDataRTTI::SetData);
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeSharedFromExisting<MeshData>(new(B3DAllocate<MeshData>()) MeshData());
 		}

@@ -36,7 +36,7 @@ namespace b3d
 
 	MonoObject* ScriptManagedTypeUtility::InternalGetTypeInfo(MonoReflectionType* objectType)
 	{
-		SPtr<ManagedTypeInfo> tmp__output;
+		TShared<ManagedTypeInfo> tmp__output;
 		_MonoReflectionType* tmpobjectType = nullptr;
 		tmpobjectType = objectType;
 		tmp__output = ManagedTypeUtility::GetTypeInfo(tmpobjectType);
@@ -49,7 +49,7 @@ namespace b3d
 
 	MonoObject* ScriptManagedTypeUtility::InternalGetSerializableObjectInfo(MonoReflectionType* objectType)
 	{
-		SPtr<ManagedObjectInfo> tmp__output;
+		TShared<ManagedObjectInfo> tmp__output;
 		_MonoReflectionType* tmpobjectType = nullptr;
 		tmpobjectType = objectType;
 		tmp__output = ManagedTypeUtility::GetSerializableObjectInfo(tmpobjectType);
@@ -76,7 +76,7 @@ namespace b3d
 	MonoObject* ScriptManagedTypeUtility::InternalCreateSerializableObject(MonoObject* typeInfo)
 	{
 		_MonoObject* tmp__output = nullptr;
-		SPtr<ManagedTypeInfoObject> tmptypeInfo;
+		TShared<ManagedTypeInfoObject> tmptypeInfo;
 		ScriptManagedTypeInfoObject* scriptObjectWrappertypeInfo;
 		scriptObjectWrappertypeInfo = ScriptManagedTypeInfoObject::GetScriptObjectWrapper(typeInfo);
 		if(scriptObjectWrappertypeInfo != nullptr)
@@ -92,7 +92,7 @@ namespace b3d
 	MonoObject* ScriptManagedTypeUtility::InternalCreateArray(MonoObject* typeInfo, MonoArray* arraySizes)
 	{
 		_MonoObject* tmp__output = nullptr;
-		SPtr<ManagedTypeInfoArray> tmptypeInfo;
+		TShared<ManagedTypeInfoArray> tmptypeInfo;
 		ScriptManagedTypeInfoArray* scriptObjectWrappertypeInfo;
 		scriptObjectWrappertypeInfo = ScriptManagedTypeInfoArray::GetScriptObjectWrapper(typeInfo);
 		if(scriptObjectWrappertypeInfo != nullptr)
@@ -118,7 +118,7 @@ namespace b3d
 	MonoObject* ScriptManagedTypeUtility::InternalCreateList(MonoObject* typeInfo, uint32_t size)
 	{
 		_MonoObject* tmp__output = nullptr;
-		SPtr<ManagedTypeInfoList> tmptypeInfo;
+		TShared<ManagedTypeInfoList> tmptypeInfo;
 		ScriptManagedTypeInfoList* scriptObjectWrappertypeInfo;
 		scriptObjectWrappertypeInfo = ScriptManagedTypeInfoList::GetScriptObjectWrapper(typeInfo);
 		if(scriptObjectWrappertypeInfo != nullptr)
@@ -134,7 +134,7 @@ namespace b3d
 	MonoObject* ScriptManagedTypeUtility::InternalCreateDictionary(MonoObject* typeInfo)
 	{
 		_MonoObject* tmp__output = nullptr;
-		SPtr<ManagedTypeInfoDictionary> tmptypeInfo;
+		TShared<ManagedTypeInfoDictionary> tmptypeInfo;
 		ScriptManagedTypeInfoDictionary* scriptObjectWrappertypeInfo;
 		scriptObjectWrappertypeInfo = ScriptManagedTypeInfoDictionary::GetScriptObjectWrapper(typeInfo);
 		if(scriptObjectWrappertypeInfo != nullptr)

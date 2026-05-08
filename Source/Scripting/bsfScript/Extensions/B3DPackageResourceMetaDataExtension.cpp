@@ -8,7 +8,7 @@
 
 using namespace b3d;
 
-MonoReflectionType* PackageResourceMetaDataExtension::GetResourceType(const SPtr<PackageResourceMetaData>& self)
+MonoReflectionType* PackageResourceMetaDataExtension::GetResourceType(const TShared<PackageResourceMetaData>& self)
 {
 	if(!B3D_ENSURE(self != nullptr))
 		return nullptr;

@@ -40,7 +40,7 @@ void GetLightParameters(const LightProxy& proxy, LightData& output)
 	output.ShiftedLightPosition = GetShiftedLightPosition(proxy);
 }
 
-void PopulateLightUniformBuffer(const LightProxy& proxy, SPtr<GpuBuffer>& buffer, u32 index)
+void PopulateLightUniformBuffer(const LightProxy& proxy, TShared<GpuBuffer>& buffer, u32 index)
 {
 	LightData lightData;
 	GetLightParameters(proxy, lightData);
@@ -101,7 +101,7 @@ Vector3 GetShiftedLightPosition(const LightProxy& proxy)
 		return tfrm.GetPosition();
 }
 
-void GBufferParameterBinding::Initialize(GpuDevice& gpuDevice, GpuProgramType type, const SPtr<GpuParameterSet>& gpuParams)
+void GBufferParameterBinding::Initialize(GpuDevice& gpuDevice, GpuProgramType type, const TShared<GpuParameterSet>& gpuParams)
 {
 	mParams = gpuParams;
 
@@ -120,7 +120,7 @@ void GBufferParameterBinding::Initialize(GpuDevice& gpuDevice, GpuProgramType ty
 		desc.MagFilter = FO_POINT;
 		desc.MipFilter = FO_POINT;
 
-		SPtr<SamplerState> ss = gpuDevice.FindOrCreateSamplerState(desc);
+		TShared<SamplerState> ss = gpuDevice.FindOrCreateSamplerState(desc);
 		samplerStateParam.Set(ss);
 	}
 }
@@ -133,7 +133,7 @@ void GBufferParameterBinding::Bind(const GBufferTextures& gbuffer)
 	mGBufferDepth.Set(gbuffer.Depth);
 }
 
-void GBufferParameterBinding::Set(GpuDevice& gpuDevice, const SPtr<GpuParameterSet>& gpuParameters, const GBufferTextures& textures)
+void GBufferParameterBinding::Set(GpuDevice& gpuDevice, const TShared<GpuParameterSet>& gpuParameters, const GBufferTextures& textures)
 {
 	if(gpuParameters->HasSampledTexture(kAlbedoTextureName))
 		gpuParameters->SetSampledTexture(kAlbedoTextureName, textures.Albedo);
@@ -157,12 +157,12 @@ void GBufferParameterBinding::Set(GpuDevice& gpuDevice, const SPtr<GpuParameterS
 		samplerStateInformation.MagFilter = FO_POINT;
 		samplerStateInformation.MipFilter = FO_POINT;
 
-		SPtr<SamplerState> sampleState = gpuDevice.FindOrCreateSamplerState(samplerStateInformation);
+		TShared<SamplerState> sampleState = gpuDevice.FindOrCreateSamplerState(samplerStateInformation);
 		samplerStateParam.Set(sampleState);
 	}
 }
 
-void ForwardLightingParams::Populate(const SPtr<GpuParameterSet>& params, bool clustered)
+void ForwardLightingParams::Populate(const TShared<GpuParameterSet>& params, bool clustered)
 {
 	if(clustered)
 	{
@@ -282,7 +282,7 @@ void VisibleLightData::Update(const RenderBeastScene& scene, const RendererViewG
 			bufferCreateInformation.StructuredStorage.Count = bufferSize / sizeof(LightData);
 			bufferCreateInformation.StructuredStorage.ElementSize = sizeof(LightData);
 
-			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+			const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			mLightBuffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 		}
 

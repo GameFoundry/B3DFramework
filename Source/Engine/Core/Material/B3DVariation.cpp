@@ -21,7 +21,7 @@ VariationBase::VariationBase(const String& language, const ShaderVariationParame
 
 bool VariationBase::IsSupported() const
 {
-	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+	const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	if((gpuDevice != nullptr && gpuDevice->IsGpuProgramLanguageSupported(mLanguage)) || mLanguage == "Any")
 		return true;
@@ -40,7 +40,7 @@ TVariation<IsRenderProxy>::TVariation()
 {}
 
 template <bool IsRenderProxy>
-SPtr<typename TVariation<IsRenderProxy>::PassType> TVariation<IsRenderProxy>::GetPass(u32 passIndex) const
+TShared<typename TVariation<IsRenderProxy>::PassType> TVariation<IsRenderProxy>::GetPass(u32 passIndex) const
 {
 	if(!mHasPassData)
 	{
@@ -70,7 +70,7 @@ u32 TVariation<IsRenderProxy>::GetPassCount() const
 }
 
 template <bool IsRenderProxy>
-void TVariation<IsRenderProxy>::SetCompiledPassData(TInlineArray<SPtr<PassType>, 1> compiledPasses)
+void TVariation<IsRenderProxy>::SetCompiledPassData(TInlineArray<TShared<PassType>, 1> compiledPasses)
 {
 	mPasses = std::move(compiledPasses);
 	mHasPassData = true;
@@ -96,7 +96,7 @@ TAsyncOp<bool> TVariation<IsRenderProxy>::Compile()
 
 	if(!mHasPassData)
 	{
-		const SPtr<ShaderType> owner = mOwner.lock();
+		const TShared<ShaderType> owner = mOwner.lock();
 		if(!B3D_ENSURE(owner != nullptr))
 		{
 			B3D_LOG(Error, LogMaterial, "Cannot compile shader variation. Parent shader is not assigned.");
@@ -109,7 +109,7 @@ TAsyncOp<bool> TVariation<IsRenderProxy>::Compile()
 		StringStream hashStringStream;
 		hashStringStream << variationName << "\n";
 
-		const SPtr<ShaderCompilerMetaData>& shaderCompilerMetaData = owner->GetCompilerMetaData();
+		const TShared<ShaderCompilerMetaData>& shaderCompilerMetaData = owner->GetCompilerMetaData();
 		if(shaderCompilerMetaData != nullptr)
 		{
 			hashStringStream << shaderCompilerMetaData->Source;
@@ -128,14 +128,14 @@ TAsyncOp<bool> TVariation<IsRenderProxy>::Compile()
 		{
 			cacheName = Path(shaderCompilerMetaData->NameInCache)+ mLanguage + StringUtility::HexToLiteral(variationHash.data(), (u32)variationHash.size());
 
-			const SPtr<VariationType> cachedVariations = cache.TryGetEntry<VariationType>(cacheName);
+			const TShared<VariationType> cachedVariations = cache.TryGetEntry<VariationType>(cacheName);
 			if(cachedVariations != nullptr)
 				GetSelf()->SetCompiledPassData(cachedVariations->mPasses);
 		}
 
 		if(!mHasPassData)
 		{
-			SPtr<IShaderCompiler> shaderCompiler = ShaderCompilers::Instance().GetCompiler("bsl");
+			TShared<IShaderCompiler> shaderCompiler = ShaderCompilers::Instance().GetCompiler("bsl");
 			if(shaderCompiler == nullptr)
 			{
 				B3D_LOG(Error, LogMaterial, "Cannot compile variation. BSL shader compiler is not available.");
@@ -183,19 +183,19 @@ Variation::Variation()
 	: TVariation()
 {}
 
-SPtr<render::RenderProxy> Variation::CreateRenderProxy() const
+TShared<render::RenderProxy> Variation::CreateRenderProxy() const
 {
-	const SPtr<Shader> owner = mOwner.lock();
+	const TShared<Shader> owner = mOwner.lock();
 	const WeakSPtr<render::Shader> ownerRenderProxy = B3DGetRenderProxy(owner);
 
-	TInlineArray<SPtr<render::Pass>, 1> passRenderProxies;
+	TInlineArray<TShared<render::Pass>, 1> passRenderProxies;
 	for(auto& pass : mPasses)
 		passRenderProxies.Add(B3DGetRenderProxy(pass));
 
 	TOptional<render::PrecompiledVariationData> precompiledDataRenderProxy = mHasPassData ? render::PrecompiledVariationData(passRenderProxies) : TOptional<render::PrecompiledVariationData>{};
 
 	render::Variation* const renderProxy = new(B3DAllocate<render::Variation>()) render::Variation(ownerRenderProxy, mLanguage, mVariationParameters, precompiledDataRenderProxy);
-	const SPtr<render::Variation> renderProxyShared = B3DMakeSharedFromExisting<render::Variation>(renderProxy);
+	const TShared<render::Variation> renderProxyShared = B3DMakeSharedFromExisting<render::Variation>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
 	return renderProxyShared;
@@ -222,7 +222,7 @@ namespace b3d
 	B3D_SYNC_BLOCK_BEGIN(Variation, SyncPacket)
 		B3D_SYNC_BLOCK_ENTRY(mPasses)
 		B3D_SYNC_BLOCK_ENTRY(mHasPassData)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM(SPtr<Shader>, Owner)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM(TShared<Shader>, Owner)
 	B3D_SYNC_BLOCK_END
 }
 
@@ -238,20 +238,20 @@ RenderProxySyncPacket* Variation::CreateRenderProxySyncPacket(FrameAllocator& al
 	return syncPacket;
 }
 
-SPtr<Variation> Variation::Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData)
+TShared<Variation> Variation::Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData)
 {
 	Variation* variation = new(B3DAllocate<Variation>()) Variation(owner, language, variationParameters, precompiledData);
-	SPtr<Variation> variationShared = B3DMakeSharedFromExisting<Variation>(variation);
+	TShared<Variation> variationShared = B3DMakeSharedFromExisting<Variation>(variation);
 	variationShared->SetShared(variationShared);
 	variationShared->Initialize();
 
 	return variationShared;
 }
 
-SPtr<Variation> Variation::CreateEmpty()
+TShared<Variation> Variation::CreateEmpty()
 {
 	Variation* variation = new(B3DAllocate<Variation>()) Variation();
-	SPtr<Variation> variationShared = B3DMakeSharedFromExisting<Variation>(variation);
+	TShared<Variation> variationShared = B3DMakeSharedFromExisting<Variation>(variation);
 	variationShared->SetShared(variationShared);
 
 	return variationShared;
@@ -277,20 +277,20 @@ Variation::Variation(const WeakSPtr<Shader>& owner, const String& language, cons
 	: TVariation(owner, language, variationParameters, precompiledData)
 {}
 
-SPtr<Variation> Variation::Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData)
+TShared<Variation> Variation::Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData)
 {
 	Variation *const variation = new(B3DAllocate<Variation>()) Variation(owner, language, variationParameters, precompiledData);
-	SPtr<Variation> variationShared = B3DMakeSharedFromExisting<Variation>(variation);
+	TShared<Variation> variationShared = B3DMakeSharedFromExisting<Variation>(variation);
 	variationShared->SetShared(variationShared);
 	variationShared->Initialize();
 
 	return variationShared;
 }
 
-SPtr<Variation> Variation::CreateEmpty()
+TShared<Variation> Variation::CreateEmpty()
 {
 	Variation* const variation = new(B3DAllocate<Variation>()) Variation();
-	SPtr<Variation> variationShared = B3DMakeSharedFromExisting<Variation>(variation);
+	TShared<Variation> variationShared = B3DMakeSharedFromExisting<Variation>(variation);
 	variationShared->SetShared(variationShared);
 	variationShared->Initialize();
 

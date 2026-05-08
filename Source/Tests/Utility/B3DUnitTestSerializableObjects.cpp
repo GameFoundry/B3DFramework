@@ -25,14 +25,14 @@ namespace b3d
 		return GetRttiStatic();
 	}
 
-	SPtr<UnitTestSerializationObjectA> UnitTestSerializationObjectA::CreateVariantA()
+	TShared<UnitTestSerializationObjectA> UnitTestSerializationObjectA::CreateVariantA()
 	{
 		return B3DMakeShared<UnitTestSerializationObjectA>();
 	}
 
-	SPtr<UnitTestSerializationObjectA> UnitTestSerializationObjectA::CreateVariantB()
+	TShared<UnitTestSerializationObjectA> UnitTestSerializationObjectA::CreateVariantB()
 	{
-		SPtr<UnitTestSerializationObjectA> object = B3DMakeShared<UnitTestSerializationObjectA>();
+		TShared<UnitTestSerializationObjectA> object = B3DMakeShared<UnitTestSerializationObjectA>();
 
 		object->IntA = 995;
 		object->StrA = "potato";

@@ -28,9 +28,9 @@ namespace b3d
 		bool IsExtensionSupported(const String& ext) const override;
 		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const override;
 		ImporterAsyncMode GetAsyncMode() const override { return ImporterAsyncMode::Single; }
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
-		Vector<SubResourceRaw> ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
-		SPtr<ImportOptions> CreateImportOptions() const override;
+		TShared<Resource> Import(const Path& filePath, TShared<const ImportOptions> importOptions) override;
+		Vector<SubResourceRaw> ImportAll(const Path& filePath, TShared<const ImportOptions> importOptions) override;
+		TShared<ImportOptions> CreateImportOptions() const override;
 
 	private:
 		/**
@@ -45,7 +45,7 @@ namespace b3d
 		/**
 		 * Reads the FBX file and outputs mesh data from the read file. Sub-mesh information will be output in @p subMeshes.
 		 */
-		SPtr<RendererMeshData> ImportMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animationClips, SPtr<Skeleton>& skeleton, SPtr<MorphShapes>& morphShapes);
+		TShared<RendererMeshData> ImportMeshData(const Path& filePath, TShared<const ImportOptions> importOptions, Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animationClips, TShared<Skeleton>& skeleton, TShared<MorphShapes>& morphShapes);
 
 		/**
 		 * Loads the data from the file at the provided path into the provided FBX scene. Returns false if the file
@@ -97,7 +97,7 @@ namespace b3d
 		TAnimationCurve<T> ImportCurve(FbxAnimCurve* (&fbxCurve)[C], float (&defaultValues)[C], FBXImportOptions& importOptions, float clipStart, float clipEnd);
 
 		/** Converts FBX animation clips into engine-ready animation curve format. */
-		void ConvertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits, const SPtr<Skeleton>& skeleton, bool importRootMotion, Vector<FBXAnimationClipData>& output);
+		void ConvertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits, const TShared<Skeleton>& skeleton, bool importRootMotion, Vector<FBXAnimationClipData>& output);
 
 		/**
 		 * Removes identical sequential keyframes for the provided set of curves. The keyframe must be identical over all
@@ -122,7 +122,7 @@ namespace b3d
 		void GenerateMissingTangentSpace(FBXImportScene& scene, const FBXImportOptions& options);
 
 		/** Converts the mesh data from the imported FBX scene into mesh data that can be used for initializing a mesh. */
-		SPtr<RendererMeshData> GenerateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, Vector<SubMesh>& outputSubMeshes);
+		TShared<RendererMeshData> GenerateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, Vector<SubMesh>& outputSubMeshes);
 
 		/**
 		 * Parses the scene and outputs a skeleton for the imported meshes using the imported raw data.
@@ -132,10 +132,10 @@ namespace b3d
 		 *							multiple sub-meshes (as there can't be multiple roots).
 		 * @return					Skeleton containing a set of bones, or null if meshes don't contain a skeleton.
 		 */
-		SPtr<Skeleton> CreateSkeleton(const FBXImportScene& scene, bool sharedRoot);
+		TShared<Skeleton> CreateSkeleton(const FBXImportScene& scene, bool sharedRoot);
 
 		/** Parses the scene and generates morph shapes for the imported meshes using the imported raw data. */
-		SPtr<MorphShapes> CreateMorphShapes(const FBXImportScene& scene);
+		TShared<MorphShapes> CreateMorphShapes(const FBXImportScene& scene);
 
 		/**	Creates an internal representation of an FBX node from an FbxNode object. */
 		FBXImportNode* CreateImportNode(FBXImportScene& scene, FbxNode* fbxNode, FBXImportNode* parent);

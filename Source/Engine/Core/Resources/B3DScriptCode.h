@@ -39,7 +39,7 @@ namespace b3d
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<ScriptCode> CreatePtrInternal(const WString& data, bool editorScript = false);
+		static TShared<ScriptCode> CreatePtrInternal(const WString& data, bool editorScript = false);
 
 		/** @} */
 	private:

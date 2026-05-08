@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	ScriptColorGradient::ScriptColorGradient(const SPtr<ColorGradient>& nativeObject)
+	ScriptColorGradient::ScriptColorGradient(const TShared<ColorGradient>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -48,13 +48,13 @@ namespace b3d
 	}
 	void ScriptColorGradient::InternalColorGradient(MonoObject* scriptObject)
 	{
-		SPtr<ColorGradient> nativeObject = B3DMakeShared<ColorGradient>();
+		TShared<ColorGradient> nativeObject = B3DMakeShared<ColorGradient>();
 		ScriptObjectWrapper::Create<ScriptColorGradient>(nativeObject, scriptObject);
 	}
 
 	void ScriptColorGradient::InternalColorGradient0(MonoObject* scriptObject, Color* color)
 	{
-		SPtr<ColorGradient> nativeObject = B3DMakeShared<ColorGradient>(*color);
+		TShared<ColorGradient> nativeObject = B3DMakeShared<ColorGradient>(*color);
 		ScriptObjectWrapper::Create<ScriptColorGradient>(nativeObject, scriptObject);
 	}
 
@@ -70,7 +70,7 @@ namespace b3d
 				nativeArraykeys[elementIndex] = ScriptColorGradientKey::FromInterop(scriptArraykeys.Get<__ColorGradientKeyInterop>(elementIndex));
 			}
 		}
-		SPtr<ColorGradient> nativeObject = B3DMakeShared<ColorGradient>(nativeArraykeys);
+		TShared<ColorGradient> nativeObject = B3DMakeShared<ColorGradient>(nativeArraykeys);
 		ScriptObjectWrapper::Create<ScriptColorGradient>(nativeObject, scriptObject);
 	}
 

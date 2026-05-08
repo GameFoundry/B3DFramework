@@ -31,7 +31,7 @@ namespace b3d
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<ShaderInclude> CreatePtrInternal(const String& includeString);
+		static TShared<ShaderInclude> CreatePtrInternal(const String& includeString);
 
 		/** @} */
 	private:

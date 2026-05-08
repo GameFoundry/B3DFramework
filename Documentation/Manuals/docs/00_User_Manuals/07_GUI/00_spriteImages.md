@@ -89,11 +89,11 @@ HSpriteVectorPath spriteVectorPath = ...;
 
 // Request an allocation that fits a specific pixel area
 Size2I targetSize(128, 128);
-SPtr<SpriteImageAllocation> scaledAllocation = spriteVectorPath->FindOrAllocateImageToFitArea(targetSize);
+TShared<SpriteImageAllocation> scaledAllocation = spriteVectorPath->FindOrAllocateImageToFitArea(targetSize);
 
 // Or request an allocation at a specific scale factor
 float scale = 2.0f;
-SPtr<SpriteImageAllocation> scaledAllocation2 = spriteVectorPath->FindOrAllocateScaledImage(scale);
+TShared<SpriteImageAllocation> scaledAllocation2 = spriteVectorPath->FindOrAllocateScaledImage(scale);
 ~~~~~~~~~~~~~
 
 These allocations are cached, so requesting the same size or scale multiple times will return the existing allocation rather than creating a new one. The allocation remains valid as long as you hold a reference to the returned **SpriteImageAllocation** object.

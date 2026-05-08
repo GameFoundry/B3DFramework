@@ -37,7 +37,7 @@ namespace b3d
 			return TID_VectorField;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		TShared<IReflectable> NewRttiObject()
 		{
 			return VectorField::CreateEmptyInternal();
 		}

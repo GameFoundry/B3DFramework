@@ -35,7 +35,7 @@ void ScriptManagedResource::CreateAndBindScriptObject()
 		return;
 
 	HManagedResource resource = GetNativeObjectAsHandle();
-	SPtr<ManagedObjectInfo> objectInformation;
+	TShared<ManagedObjectInfo> objectInformation;
 	MonoObject* const scriptObject = resource->CreateScriptObject(objectInformation);
 
 	if(scriptObject != nullptr)

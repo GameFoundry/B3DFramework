@@ -8,9 +8,9 @@
 
 using namespace b3d;
 
-UnorderedMap<UUID, SPtr<GameObjectInstanceData>> SceneUtility::RecordSceneObjectHierarchyInstanceData(const HSceneObject& root)
+UnorderedMap<UUID, TShared<GameObjectInstanceData>> SceneUtility::RecordSceneObjectHierarchyInstanceData(const HSceneObject& root)
 {
-	UnorderedMap<UUID, SPtr<GameObjectInstanceData>> outInstanceData;
+	UnorderedMap<UUID, TShared<GameObjectInstanceData>> outInstanceData;
 	root->IterateHierarchy(
 		[&outInstanceData](const HSceneObject& sceneObject)
 		{
@@ -25,9 +25,9 @@ UnorderedMap<UUID, SPtr<GameObjectInstanceData>> SceneUtility::RecordSceneObject
 	return outInstanceData;
 }
 
-void SceneUtility::RestoreSceneObjectHierarchyInstanceData(const HSceneObject& root, const UnorderedMap<UUID, SPtr<GameObjectInstanceData>>& instanceData)
+void SceneUtility::RestoreSceneObjectHierarchyInstanceData(const HSceneObject& root, const UnorderedMap<UUID, TShared<GameObjectInstanceData>>& instanceData)
 {
-	SPtr<GameObjectCollection> gameObjectCollection = root->GetOwnerCollection().lock();
+	TShared<GameObjectCollection> gameObjectCollection = root->GetOwnerCollection().lock();
 	if(!B3D_ENSURE(gameObjectCollection))
 		return;
 

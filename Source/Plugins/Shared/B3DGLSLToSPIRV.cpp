@@ -926,7 +926,7 @@ GLSLToSPIRV::~GLSLToSPIRV()
 	glslang::FinalizeProcess();
 }
 
-SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformation& desc, const char* compilerId, u32 compilerVersion)
+TShared<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformation& desc, const char* compilerId, u32 compilerVersion)
 {
 	TBuiltInResource resources = DefaultTBuiltInResource;
 	glslang::TProgram program;
@@ -954,7 +954,7 @@ SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformation&
 	shader.setStrings(&sourceBytes, 1);
 	shader.setEntryPoint("main");
 
-	SPtr<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
+	TShared<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
 	bytecode->CompilerId = compilerId;
 	bytecode->CompilerVersion = compilerVersion;
 

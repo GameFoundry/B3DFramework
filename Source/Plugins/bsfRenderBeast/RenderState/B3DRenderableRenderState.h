@@ -62,10 +62,10 @@ namespace b3d
 			ImageBasedLightingParameterBinding ImageBasedParams;
 
 			/** Vertex buffer containing element's morph shape vertices, if it has any. */
-			SPtr<GpuBuffer> MorphShapeBuffer;
+			TShared<GpuBuffer> MorphShapeBuffer;
 
 			/** Vertex declaration used for rendering meshes containing morph shape information. */
-			SPtr<VertexDescription> MorphVertexDefinition;
+			TShared<VertexDescription> MorphVertexDefinition;
 
 			/** Time to used for evaluating material animation. */
 			float MaterialAnimationTime = 0.0f;

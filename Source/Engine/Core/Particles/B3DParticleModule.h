@@ -48,7 +48,7 @@ namespace b3d
 		ParticleSet* Particles;
 
 		/** Sorted evolver list, cached per-frame for simulation methods. */
-		const Vector<SPtr<ParticleEvolver>>* Evolvers;
+		const Vector<TShared<ParticleEvolver>>* Evolvers;
 
 		/** Random number generator from the simulation fragment. */
 		Random* Rng;

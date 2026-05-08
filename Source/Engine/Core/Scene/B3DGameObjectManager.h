@@ -30,7 +30,7 @@ namespace b3d
 		friend class GameObjectCollection;
 
 		/** Notifies the manager that a new game object collection was created. */
-		void RegisterGameObjectCollection(const SPtr<GameObjectCollection>& collection);
+		void RegisterGameObjectCollection(const TShared<GameObjectCollection>& collection);
 
 		/** Notifies the manager that a game object collection was about to be destroyed. */
 		void UnregisterGameObjectCollection(const GameObjectCollection& collection);

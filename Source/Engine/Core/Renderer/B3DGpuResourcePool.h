@@ -26,8 +26,8 @@ namespace b3d
 				: mLastUsedFrame(lastUsedFrame)
 			{}
 
-			SPtr<Texture> Texture;
-			SPtr<RenderTexture> RenderTexture;
+			TShared<Texture> Texture;
+			TShared<RenderTexture> RenderTexture;
 
 		private:
 			friend class GpuResourcePool;
@@ -42,7 +42,7 @@ namespace b3d
 				: mLastUsedFrame(lastUsedFrame)
 			{}
 
-			SPtr<GpuBuffer> Buffer;
+			TShared<GpuBuffer> Buffer;
 
 		private:
 			friend class GpuResourcePool;
@@ -65,7 +65,7 @@ namespace b3d
 			 *
 			 * @param[in]	desc		Descriptor structure that describes what kind of texture to retrieve.
 			 */
-			SPtr<PooledRenderTexture> Get(const PooledRenderTextureCreateInformation& desc);
+			TShared<PooledRenderTexture> Get(const PooledRenderTextureCreateInformation& desc);
 
 			/**
 			 * Attempts to find the unused render texture with the specified parameters in the pool, or creates a new texture
@@ -78,7 +78,7 @@ namespace b3d
 			 *								value will be output through this parameter.
 			 * @param[in]		desc		Descriptor structure that describes what kind of texture to retrieve.
 			 */
-			void Get(SPtr<PooledRenderTexture>& texture, const PooledRenderTextureCreateInformation& desc);
+			void Get(TShared<PooledRenderTexture>& texture, const PooledRenderTextureCreateInformation& desc);
 
 			/**
 			 * Attempts to find the unused storage buffer with the specified parameters in the pool, or creates a new buffer
@@ -86,7 +86,7 @@ namespace b3d
 			 *
 			 * @param[in]	desc		Descriptor structure that describes what kind of buffer to retrieve.
 			 */
-			SPtr<PooledStorageBuffer> Get(const POOLED_STORAGE_BUFFER_DESC& desc);
+			TShared<PooledStorageBuffer> Get(const POOLED_STORAGE_BUFFER_DESC& desc);
 
 			/**
 			 * Attempts to find the unused storage buffer with the specified parameters in the pool, or creates a new buffer
@@ -99,7 +99,7 @@ namespace b3d
 			 *								value will be output through this parameter.
 			 * @param[in]	desc			Descriptor structure that describes what kind of buffer to retrieve.
 			 */
-			void Get(SPtr<PooledStorageBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc);
+			void Get(TShared<PooledStorageBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc);
 
 			/** Lets the pool know that another frame has passed. */
 			void Update();
@@ -118,7 +118,7 @@ namespace b3d
 			 * @param[in]	desc		Descriptor structure that describes what kind of texture to match.
 			 * @return					True if the texture matches the descriptor, false otherwise.
 			 */
-			static bool Matches(const SPtr<Texture>& texture, const PooledRenderTextureCreateInformation& desc);
+			static bool Matches(const TShared<Texture>& texture, const PooledRenderTextureCreateInformation& desc);
 
 			/**
 			 * Checks does the provided buffer match the parameters.
@@ -127,11 +127,11 @@ namespace b3d
 			 * @param[in]	desc	Descriptor structure that describes what kind of buffer to match.
 			 * @return				True if the buffer matches the descriptor, false otherwise.
 			 */
-			static bool Matches(const SPtr<GpuBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc);
+			static bool Matches(const TShared<GpuBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc);
 
-			SPtr<GpuDevice> mDevice;
-			TArray<SPtr<PooledRenderTexture>> mTextures;
-			TArray<SPtr<PooledStorageBuffer>> mBuffers;
+			TShared<GpuDevice> mDevice;
+			TArray<TShared<PooledRenderTexture>> mTextures;
+			TArray<TShared<PooledStorageBuffer>> mBuffers;
 
 			u32 mCurrentFrame = 0;
 		};

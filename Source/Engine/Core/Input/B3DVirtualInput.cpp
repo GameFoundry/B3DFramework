@@ -18,7 +18,7 @@ VirtualInput::VirtualInput()
 	Input::Instance().OnButtonUp.Connect([this](const ButtonEvent& event) { ButtonUp(event); });
 }
 
-void VirtualInput::SetConfiguration(const SPtr<InputConfiguration>& input)
+void VirtualInput::SetConfiguration(const TShared<InputConfiguration>& input)
 {
 	mInputConfiguration = input;
 

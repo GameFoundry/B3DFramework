@@ -30,7 +30,7 @@ namespace b3d
 			return TID_RenderTarget;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			B3D_ASSERT(false && "Unable to instantiate abstract class.");
 			return nullptr;
@@ -52,7 +52,7 @@ namespace b3d
 			return TID_RenderTexture;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			B3D_ASSERT(false && "This object cannot be instantiated using reflection.");
 			return nullptr;
@@ -74,7 +74,7 @@ namespace b3d
 			return TID_RenderWindow;
 		}
 
-		SPtr<IReflectable> NewRttiObject() override
+		TShared<IReflectable> NewRttiObject() override
 		{
 			B3D_ASSERT(false && "This object cannot be instantiated using reflection.");
 			return nullptr;

@@ -315,7 +315,7 @@ mainPanel->AddElement(toggle);
 For radio button groups where only one button can be active, create a toggle group:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GUIToggleGroup> group = GUIToggleGroup::Create();
+TShared<GUIToggleGroup> group = GUIToggleGroup::Create();
 
 GUIToggle* radio0 = GUIToggle::Create(HString("Option 1"), group);
 GUIToggle* radio1 = GUIToggle::Create(HString("Option 2"), group);
@@ -625,7 +625,7 @@ button->SetTooltip(HString("Click this button to save your work"));
 Elements can show context menus on right-click:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GUIContextMenu> contextMenu = GUIContextMenu::Create();
+TShared<GUIContextMenu> contextMenu = GUIContextMenu::Create();
 contextMenu->AddMenuItem(HString("Copy"), []() { B3D_LOG(Info, LogGUI, "Copy selected"); });
 contextMenu->AddMenuItem(HString("Paste"), []() { B3D_LOG(Info, LogGUI, "Paste selected"); });
 contextMenu->AddSeparator();

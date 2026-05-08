@@ -9,7 +9,7 @@
 
 using namespace b3d;
 
-SPtr<IReflectable> BinaryCloner::Clone(IReflectable* object, bool shallow)
+TShared<IReflectable> BinaryCloner::Clone(IReflectable* object, bool shallow)
 {
 	if(object == nullptr)
 		return nullptr;
@@ -24,12 +24,12 @@ SPtr<IReflectable> BinaryCloner::Clone(IReflectable* object, bool shallow)
 		externalReferences = GatherExternalReferences(object, allocator, rttiOperationContext);
 	}
 
-	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+	TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer bs;
 	bs.Encode(object, stream, shallow ? BinarySerializerFlag::Shallow : BinarySerializerFlag::None);
 
 	stream->Seek(0);
-	SPtr<IReflectable> clonedObject = bs.Decode(stream, (u32)stream->Size());
+	TShared<IReflectable> clonedObject = bs.Decode(stream, (u32)stream->Size());
 
 	if(shallow)
 	{
@@ -80,7 +80,7 @@ BinaryCloner::ObjectExternalReferences BinaryCloner::GatherExternalReferences(IR
 			if(field->Schema.FieldType == RTTIFieldType::Iterable)
 			{
 				auto* const iteratorField = static_cast<RTTIIteratorField*>(field);
-				const SPtr<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object, allocator);
+				const TShared<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object, allocator);
 
 				u32 arrayIndex = 0;
 				while(iterator != nullptr && iterator->IsValid())
@@ -103,7 +103,7 @@ BinaryCloner::ObjectExternalReferences BinaryCloner::GatherExternalReferences(IR
 
 						if(fieldTypeSchema.Type == RTTIFieldDataType::ReflectablePointer)
 						{
-							SPtr<IReflectable> childObject = iteratorField->GetReflectablePointer(fieldValue, tupleElementIndex);
+							TShared<IReflectable> childObject = iteratorField->GetReflectablePointer(fieldValue, tupleElementIndex);
 
 							if(childObject != nullptr)
 							{
@@ -165,7 +165,7 @@ void BinaryCloner::RestoreExternalReferences(IReflectable* object, FrameAllocato
 				if(B3D_ENSURE(field->Schema.FieldType == RTTIFieldType::Iterable))
 				{
 					auto* const iteratorField = static_cast<RTTIIteratorField*>(field);
-					const SPtr<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object, allocator);
+					const TShared<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object, allocator);
 
 					if(field->Schema.IsContainer)
 					{
@@ -216,7 +216,7 @@ void BinaryCloner::RestoreExternalReferences(IReflectable* object, FrameAllocato
 				if(B3D_ENSURE(field->Schema.FieldType == RTTIFieldType::Iterable))
 				{
 					auto* const iteratorField = static_cast<RTTIIteratorField*>(field);
-					const SPtr<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object, allocator);
+					const TShared<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object, allocator);
 
 					if(field->Schema.IsContainer)
 					{

@@ -17,14 +17,14 @@ GUIToggleGroup::~GUIToggleGroup()
 	}
 }
 
-void GUIToggleGroup::Initialize(const SPtr<GUIToggleGroup>& sharedPtr)
+void GUIToggleGroup::Initialize(const TShared<GUIToggleGroup>& sharedPtr)
 {
 	mThis = sharedPtr;
 }
 
-SPtr<GUIToggleGroup> GUIToggleGroup::Create(bool allowAllOff)
+TShared<GUIToggleGroup> GUIToggleGroup::Create(bool allowAllOff)
 {
-	SPtr<GUIToggleGroup> toggleGroup = B3DMakeSharedFromExisting<GUIToggleGroup>(new(B3DAllocate<GUIToggleGroup>()) GUIToggleGroup(allowAllOff));
+	TShared<GUIToggleGroup> toggleGroup = B3DMakeSharedFromExisting<GUIToggleGroup>(new(B3DAllocate<GUIToggleGroup>()) GUIToggleGroup(allowAllOff));
 	toggleGroup->Initialize(toggleGroup);
 
 	return toggleGroup;
