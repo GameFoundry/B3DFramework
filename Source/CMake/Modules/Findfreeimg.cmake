@@ -14,7 +14,7 @@ endif()
 B3DPopulateDefaultPackageSearchPaths(freeimg)
 
 B3DFindImportedIncludes(freeimg FreeImage.h)
-B3DFindImportedLibraryWithExplicitNames(freeimg freeimage SHARED FreeImage FreeImage FreeImage FreeImage)
+B3DFindImportedLibraryWithConfigurationNames(freeimg freeimage SHARED FreeImage FreeImaged)
 
 B3DEndFindPackage(freeimg freeimage)
 

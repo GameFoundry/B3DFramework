@@ -62,12 +62,9 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
 	"$MSBUILD" FreeImage.2017.sln -p:Configuration=Debug -p:Platform=x64 -p:PlatformToolset=v143 -p:WindowsTargetPlatformVersion=10.0 || exit 1
 
 	cp -p Dist/x64/FreeImage.lib "$OutputFolder/lib/Release/"
-	cp -p Dist/x64/FreeImaged.lib "$OutputFolder/lib/Debug/FreeImage.lib"
-	# Debug DLL is renamed to FreeImage.dll to match the release layout, mirroring the .lib
-	# renaming above. Findfreeimg.cmake and bsfFreeImgImporter both reference the DLL as
-	# "FreeImage.dll" regardless of configuration.
+	cp -p Dist/x64/FreeImaged.lib "$OutputFolder/lib/Debug/"
 	cp -p Dist/x64/FreeImage.dll "$OutputFolder/bin/Release/"
-	cp -p Dist/x64/FreeImaged.dll "$OutputFolder/bin/Debug/FreeImage.dll"
+	cp -p Dist/x64/FreeImaged.dll "$OutputFolder/bin/Debug/"
 
 elif [[ "$Platform" == "darwin"* ]]; then
 	mkdir -p "$OutputFolder/lib"
