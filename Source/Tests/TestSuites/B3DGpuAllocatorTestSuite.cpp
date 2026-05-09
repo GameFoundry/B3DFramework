@@ -9,6 +9,7 @@
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuCommandBufferPoolRing.h"
 #include "GpuBackend/Allocators/B3DGpuAllocator.h"
+#include "GpuBackend/Allocators/B3DGpuLinearAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 
@@ -53,6 +54,17 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_ConcurrentAllocateAndFree)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_ConcurrentDefragWithAllocateAndFree)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_ThreadUnsafePolicyOptOut)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_ContractAndInitialState)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_BumpPointerAlignedOffsets)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_OverflowRotatesPage)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_MultiPageWithinFrame)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_PageRecycledOnFenceComplete)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_OversizeBypassesPagePool)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_ResetRetiresActivePage)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_SparePageCap)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_FreeIsNoop)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_FreeImmediateOnSharedPageIsNoop)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_ThreadUnsafePolicyOptOut)
 }
 
 namespace
@@ -239,6 +251,26 @@ namespace
 		configuration.BufferImageGranularity = granularity;
 		configuration.GranularityDisableThreshold = 0;
 		return configuration;
+	}
+
+	using LinearAllocator = TGpuLinearAllocator<MockHeapBackend>;
+
+	/** Default linear allocator configuration. Tests that need a different page size or spare cap pass overrides. */
+	LinearAllocator::Configuration MakeDefaultLinearConfig(u64 pageSize = 64 * 1024, u32 maxRetained = 2)
+	{
+		LinearAllocator::Configuration configuration;
+		configuration.PageSize = pageSize;
+		configuration.MaxRetainedPages = maxRetained;
+		return configuration;
+	}
+
+	/** Helper: advances frame, marks all complete, flushes — drains every retire entry stamped at or before the call. */
+	template <typename Allocator>
+	void AdvanceCompleteAndFlush(Allocator& allocator, MockGpuFrameTracker& tracker)
+	{
+		tracker.AdvanceFrame();
+		tracker.MarkAllFramesComplete();
+		allocator.Flush();
 	}
 
 	/** Identifier the deferred-free queue forwards to a strategy's FreeImmediateImpl. */
@@ -1734,4 +1766,342 @@ void GpuAllocatorTestSuite::TestTlsf_ThreadUnsafePolicyOptOut()
 	allocator.Free(locA);
 	allocator.Free(locB);
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
+}
+
+void GpuAllocatorTestSuite::TestLinear_ContractAndInitialState()
+{
+	B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID(MockHeapBackend);
+
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+
+	// No heap creation on construction — pages are created lazily on first allocation.
+	LinearAllocator allocator(&backend, &tracker, MakeDefaultLinearConfig());
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 0)
+	B3D_TEST_ASSERT(allocator.GetCommittedBytes() == 0)
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == 0)
+
+	// First TryAllocate creates the initial page.
+	MockLocation location;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, location))
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 1)
+	B3D_TEST_ASSERT(allocator.GetCommittedBytes() == 64 * 1024)
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == 1)
+	B3D_TEST_ASSERT(location.IsValid())
+	B3D_TEST_ASSERT(location.Allocator == &allocator)
+	B3D_TEST_ASSERT(location.Size == 1024)
+	B3D_TEST_ASSERT((location.Offset & 15) == 0)
+}
+
+void GpuAllocatorTestSuite::TestLinear_BumpPointerAlignedOffsets()
+{
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+	LinearAllocator allocator(&backend, &tracker, MakeDefaultLinearConfig());
+
+	struct Alloc { MockLocation Location; u64 Begin; u64 End; };
+	Vector<Alloc> allocs;
+
+	const u32 allocCount = 8;
+	const u64 allocSize = 1024;
+	const u32 alignment = 256;
+
+	for (u32 allocIndex = 0; allocIndex < allocCount; allocIndex++)
+	{
+		Alloc record;
+		B3D_TEST_ASSERT(allocator.TryAllocate(allocSize, alignment, record.Location))
+		B3D_TEST_ASSERT((record.Location.Offset & (alignment - 1)) == 0)
+		record.Begin = record.Location.Offset;
+		record.End = record.Location.Offset + record.Location.Size;
+		allocs.push_back(record);
+	}
+
+	// All allocations land in the same page (8 * 1024 << 64KB) and don't overlap.
+	for (u32 outerIndex = 0; outerIndex < allocs.size(); outerIndex++)
+	{
+		B3D_TEST_ASSERT(allocs[outerIndex].Location.Heap.Id == allocs[0].Location.Heap.Id)
+		for (u32 innerIndex = outerIndex + 1; innerIndex < allocs.size(); innerIndex++)
+		{
+			const bool disjoint = allocs[outerIndex].End <= allocs[innerIndex].Begin
+				|| allocs[innerIndex].End <= allocs[outerIndex].Begin;
+			B3D_TEST_ASSERT(disjoint)
+		}
+	}
+
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 1)
+}
+
+void GpuAllocatorTestSuite::TestLinear_OverflowRotatesPage()
+{
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+	// 8 KB page with no spare retention so the destroy-on-drain path is also exercised.
+	LinearAllocator allocator(&backend, &tracker, MakeDefaultLinearConfig(/*pageSize*/ 8 * 1024, /*maxRetained*/ 0));
+
+	MockLocation first;
+	B3D_TEST_ASSERT(allocator.TryAllocate(5 * 1024, 16, first))
+
+	// 5KB used — a 4KB request can't fit in the remaining 3KB, must rotate.
+	MockLocation second;
+	B3D_TEST_ASSERT(allocator.TryAllocate(4 * 1024, 16, second))
+	B3D_TEST_ASSERT(second.Heap.Id != first.Heap.Id)
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 2) // First retired-pending-drain, second active.
+
+	// First allocation's location is still valid — backend heap is alive until fence drains.
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == 2)
+
+	// Drain — first page goes through FreeImmediateImpl. With MaxRetainedPages=0, it destructs.
+	AdvanceCompleteAndFlush(allocator, tracker);
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 1) // Only the active second page remains.
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == 1)
+	B3D_TEST_ASSERT(backend.DestroyCount() == 1)
+}
+
+void GpuAllocatorTestSuite::TestLinear_MultiPageWithinFrame()
+{
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+	LinearAllocator allocator(&backend, &tracker, MakeDefaultLinearConfig(/*pageSize*/ 4 * 1024, /*maxRetained*/ 4));
+
+	// Force three page rotations (no AdvanceFrame between them) — three retired pages plus one active.
+	MockLocation a, b, c, d;
+	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, a))
+	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, b)) // overflow → page 2
+	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, c)) // overflow → page 3
+	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, d)) // overflow → page 4
+
+	B3D_TEST_ASSERT(a.Heap.Id != b.Heap.Id)
+	B3D_TEST_ASSERT(b.Heap.Id != c.Heap.Id)
+	B3D_TEST_ASSERT(c.Heap.Id != d.Heap.Id)
+
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 4)
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == 4)
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)
+
+	// All three retired pages share the same retire-frame index. After completion + flush they
+	// drain in one pass and land on the spare list (cap = 4).
+	AdvanceCompleteAndFlush(allocator, tracker);
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 3)
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 4) // 3 spares + active page.
+	B3D_TEST_ASSERT(backend.DestroyCount() == 0)
+}
+
+void GpuAllocatorTestSuite::TestLinear_PageRecycledOnFenceComplete()
+{
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+	LinearAllocator allocator(&backend, &tracker, MakeDefaultLinearConfig(/*pageSize*/ 4 * 1024, /*maxRetained*/ 1));
+
+	MockLocation first;
+	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, first))
+
+	// Trigger overflow → page 2.
+	MockLocation second;
+	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, second))
+	B3D_TEST_ASSERT(backend.CreateCount() == 2)
+
+	// Drain the retired page 1 onto spares.
+	AdvanceCompleteAndFlush(allocator, tracker);
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 1)
+	B3D_TEST_ASSERT(backend.CreateCount() == 2) // No new heaps created during drain.
+	B3D_TEST_ASSERT(backend.DestroyCount() == 0)
+
+	// Trigger another overflow on page 2 — should pull from spares, not call CreateHeap again.
+	MockLocation third;
+	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, third))
+	B3D_TEST_ASSERT(backend.CreateCount() == 2) // Reused the spare.
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)
+}
+
+void GpuAllocatorTestSuite::TestLinear_OversizeBypassesPagePool()
+{
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+	LinearAllocator allocator(&backend, &tracker, MakeDefaultLinearConfig(/*pageSize*/ 8 * 1024, /*maxRetained*/ 4));
+
+	// First populate the active page with a normal allocation, so we can verify the oversize path
+	// doesn't disturb the active page state.
+	MockLocation small;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, small))
+	const u64 usedBeforeOversize = allocator.GetUsedBytes();
+	const u32 activeHeapId = small.Heap.Id;
+
+	// Oversize request: PageSize is 8KB; ask for 32KB. Lands in a dedicated heap and is retired
+	// immediately — heap stays alive in the deferred-free queue until the fence completes.
+	MockLocation oversize;
+	B3D_TEST_ASSERT(allocator.TryAllocate(32 * 1024, 16, oversize))
+	B3D_TEST_ASSERT(oversize.Size == 32 * 1024)
+	B3D_TEST_ASSERT(oversize.Offset == 0)
+	B3D_TEST_ASSERT(oversize.Heap.Id != activeHeapId)
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 2) // active + oversize-pending-drain.
+
+	// Active page was untouched.
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == usedBeforeOversize)
+
+	// Active page is alive; oversize page is alive but retired.
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == 2)
+
+	// Drain. Oversize never goes to spares — it destructs.
+	AdvanceCompleteAndFlush(allocator, tracker);
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)
+	B3D_TEST_ASSERT(backend.DestroyCount() == 1)
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == 1)
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 1) // Only the active page remains.
+}
+
+void GpuAllocatorTestSuite::TestLinear_ResetRetiresActivePage()
+{
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+	LinearAllocator allocator(&backend, &tracker, MakeDefaultLinearConfig());
+
+	MockLocation first;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, first))
+	const u32 activeHeapId = first.Heap.Id;
+
+	allocator.Reset();
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 1)        // Page is retired-pending-drain, not destroyed.
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)            // No active page → bump offset reads as 0.
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)
+
+	// Drain — the page lands on the spare list (default MaxRetainedPages = 2).
+	AdvanceCompleteAndFlush(allocator, tracker);
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 1)
+	B3D_TEST_ASSERT(backend.DestroyCount() == 0)
+
+	// Next allocate pulls from spares — same page slot, same backend heap.
+	MockLocation second;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, second))
+	B3D_TEST_ASSERT(second.Heap.Id == activeHeapId)
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)
+	B3D_TEST_ASSERT(backend.CreateCount() == 1) // No new heap created.
+
+	// Reset on an empty allocator (no active page) is a no-op.
+	allocator.Reset();
+	allocator.Reset();
+	AdvanceCompleteAndFlush(allocator, tracker);
+}
+
+void GpuAllocatorTestSuite::TestLinear_SparePageCap()
+{
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+	LinearAllocator allocator(&backend, &tracker, MakeDefaultLinearConfig(/*pageSize*/ 4 * 1024, /*maxRetained*/ 1));
+
+	// Force three pages alive concurrently within one frame: first two retire on overflow, third stays active.
+	MockLocation a, b, c;
+	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, a))
+	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, b))
+	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, c))
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 3)
+	B3D_TEST_ASSERT(backend.CreateCount() == 3)
+
+	// Drain. Two pages retire; cap is 1, so the second drained page destructs.
+	AdvanceCompleteAndFlush(allocator, tracker);
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 1)
+	B3D_TEST_ASSERT(backend.DestroyCount() == 1)
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 2) // 1 spare + active.
+}
+
+void GpuAllocatorTestSuite::TestLinear_FreeIsNoop()
+{
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+	LinearAllocator allocator(&backend, &tracker, MakeDefaultLinearConfig());
+
+	MockLocation first;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, first))
+	const u32 originalHeapId = first.Heap.Id;
+	const u64 usedBefore = allocator.GetUsedBytes();
+	const u32 livePagesBefore = allocator.GetLivePageCount();
+
+	// Free is a no-op for the linear allocator: the location is reset by the base, but the active
+	// page's bump offset is unchanged and no retire entry is queued.
+	allocator.Free(first);
+	B3D_TEST_ASSERT(!first.IsValid())
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == usedBefore)
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == livePagesBefore)
+
+	// Subsequent allocate lands AFTER the freed range and on the same active page — proves no recycling happened.
+	MockLocation second;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, second))
+	B3D_TEST_ASSERT(second.Offset >= usedBefore)
+	B3D_TEST_ASSERT(second.Heap.Id == originalHeapId)
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 1)
+
+	// Flush should drain nothing — the queue was never touched by Free.
+	AdvanceCompleteAndFlush(allocator, tracker);
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)
+	B3D_TEST_ASSERT(backend.DestroyCount() == 0)
+}
+
+void GpuAllocatorTestSuite::TestLinear_FreeImmediateOnSharedPageIsNoop()
+{
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+	LinearAllocator allocator(&backend, &tracker, MakeDefaultLinearConfig());
+
+	// Three allocations share one active page. With a naive implementation, FreeImmediate(a) would
+	// recycle/destroy the page — invalidating b and c. The linear allocator must treat per-allocation
+	// FreeImmediate as a no-op so peers remain valid.
+	MockLocation a, b, c;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, a))
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, b))
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, c))
+	B3D_TEST_ASSERT(a.Heap.Id == b.Heap.Id && b.Heap.Id == c.Heap.Id)
+
+	const u64 usedBefore = allocator.GetUsedBytes();
+	const u32 livePagesBefore = allocator.GetLivePageCount();
+	const u32 destroyCountBefore = backend.DestroyCount();
+
+	// FreeImmediate one of the three. The page must NOT be recycled — peers are still live.
+	allocator.FreeImmediate(a);
+	B3D_TEST_ASSERT(!a.IsValid())
+	B3D_TEST_ASSERT(b.IsValid())
+	B3D_TEST_ASSERT(c.IsValid())
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == usedBefore)        // Bump offset unchanged.
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == livePagesBefore)
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)              // No spurious spare entry.
+	B3D_TEST_ASSERT(backend.DestroyCount() == destroyCountBefore)    // No spurious destroy.
+
+	// Subsequent allocate keeps bumping past c's range — proves the page is still being used as the active page.
+	MockLocation d;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, d))
+	B3D_TEST_ASSERT(d.Heap.Id == b.Heap.Id)
+	B3D_TEST_ASSERT(d.Offset >= c.Offset + c.Size)
+
+	// Free the rest with FreeImmediate — still all no-ops; page is reclaimed only via Reset + drain.
+	allocator.FreeImmediate(b);
+	allocator.FreeImmediate(c);
+	allocator.FreeImmediate(d);
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == livePagesBefore)
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)
+	B3D_TEST_ASSERT(backend.DestroyCount() == destroyCountBefore)
+}
+
+void GpuAllocatorTestSuite::TestLinear_ThreadUnsafePolicyOptOut()
+{
+	using ThreadUnsafeAllocator = TGpuLinearAllocator<MockHeapBackend, ThreadUnsafe>;
+
+	MockHeapBackend backend;
+	MockGpuFrameTracker tracker;
+
+	ThreadUnsafeAllocator::Configuration configuration;
+	configuration.PageSize = 8 * 1024;
+	configuration.MaxRetainedPages = 1;
+	ThreadUnsafeAllocator allocator(&backend, &tracker, configuration);
+
+	MockLocation a, b;
+	B3D_TEST_ASSERT(allocator.TryAllocate(2 * 1024, 16, a))
+	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, b))
+	B3D_TEST_ASSERT(a.Heap.Id == b.Heap.Id)
+
+	allocator.Reset();
+	tracker.AdvanceFrame();
+	tracker.MarkAllFramesComplete();
+	allocator.Flush();
+	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 1)
 }

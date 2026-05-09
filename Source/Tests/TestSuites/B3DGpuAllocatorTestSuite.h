@@ -154,5 +154,38 @@ namespace b3d
 		 * a simple allocate / free round-trip behaves identically to the thread-safe instantiation.
 		 */
 		void TestTlsf_ThreadUnsafePolicyOptOut();
+
+		/** Compiles the linear allocator against the mock backend, asserts trait validation, instantiates with no committed pages. */
+		void TestLinear_ContractAndInitialState();
+
+		/** Sequential allocations within a single page produce non-overlapping aligned offsets. */
+		void TestLinear_BumpPointerAlignedOffsets();
+
+		/** A request that doesn't fit retires the active page and lands in a fresh one; the retired page index is queued for the current frame. */
+		void TestLinear_OverflowRotatesPage();
+
+		/** Filling a page and continuing to allocate within the same frame grows the allocator without recycling — both pages stay live until the frame's fence drains. */
+		void TestLinear_MultiPageWithinFrame();
+
+		/** Once the retire fence completes and Flush runs, the retired page lands on the spare list and the next overflow reuses it instead of creating a new heap. */
+		void TestLinear_PageRecycledOnFenceComplete();
+
+		/** Allocations larger than @c PageSize bypass the spare list — they land in a dedicated one-shot heap that is destroyed (never spared) once its fence completes. */
+		void TestLinear_OversizeBypassesPagePool();
+
+		/** Reset retires the active page and clears the active-page slot; the next allocate creates a fresh page. */
+		void TestLinear_ResetRetiresActivePage();
+
+		/** Drained pages beyond @c MaxRetainedPages destruct rather than going to spares. */
+		void TestLinear_SparePageCap();
+
+		/** Per-allocation Free is a no-op apart from resetting the caller's location — page state is unchanged and no retire entry is queued. */
+		void TestLinear_FreeIsNoop();
+
+		/** Per-allocation FreeImmediate is also a no-op: calling it on one Location does not invalidate peer Locations sharing the same page, and the page itself is not recycled. */
+		void TestLinear_FreeImmediateOnSharedPageIsNoop();
+
+		/** Compile-time + runtime smoke test for the ThreadUnsafe policy: instantiating the linear allocator with ThreadSafetyPolicy::ThreadUnsafe compiles and behaves identically. */
+		void TestLinear_ThreadUnsafePolicyOptOut();
 	};
 } // namespace b3d
