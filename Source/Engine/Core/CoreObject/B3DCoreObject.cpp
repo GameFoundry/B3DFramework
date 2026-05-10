@@ -16,7 +16,7 @@ CoreObject::CoreObject(bool createRenderProxy)
 
 CoreObject::~CoreObject()
 {
-	B3D_ASSERT(IsDestroyed() && "Destructor called but object is not destroyed. This means the object was not cleaned up properly..");
+	B3D_ASSERT((!IsInitialized() || IsDestroyed()) && "Destructor called but object is not destroyed. This means the object was not cleaned up properly..");
 	B3D_ASSERT(mThis.expired() && "Shared pointer to this object still has active references but the object is being deleted. You shouldn't delete CoreObjects manually.");
 }
 

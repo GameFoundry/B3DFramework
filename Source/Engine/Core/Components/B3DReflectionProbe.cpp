@@ -418,6 +418,7 @@ void ReflectionProbe::OnDisabled()
 void ReflectionProbe::OnDestroyed()
 {
 	ecs::ReflectionProbeECSUtility::RemoveFragments(*GetECSRegistry(), GetECSEntity());
+	CoreObject::Destroy();
 }
 
 void ReflectionProbe::OnSceneChanged(SceneInstance* oldScene, ecs::Entity oldEntity)
@@ -468,4 +469,3 @@ void ReflectionProbeObjectStorageBase::UpdateFilteredTexture(RendererId probeId,
 	mReflectionProbeProxies[packedId].mData.FilteredTexture = texture;
 	OnFilteredTextureUpdated(packedId);
 }
-
