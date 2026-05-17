@@ -1,6 +1,6 @@
 ![B3D Framework](./Documentation/logo.svg)
 
-B3D Framework is a C++17 library intended as a foundation for high-performance game engines, games and other real-time graphical applications. It targets zero-compromise performance capable of running the largest open-world projects, paired with a clean, intuitive API and a modular internal architecture that's easy to understand, modify and extend.
+B3D Framework is a C++17 library intended as a foundation for high-performance game engines, games and other real-time graphical applications. It targets zero-compromise performance capable of running the large open-world projects, paired with a clean, intuitive API and a modular internal architecture that's easy to understand, modify and extend.
 
 **Highlights**
  * High performance: an ECS that scales to massive object counts, fiber-based task scheduling across all systems, and cache-aware data layouts
@@ -8,7 +8,7 @@ B3D Framework is a C++17 library intended as a foundation for high-performance g
  * Feature rich: integrated UI system, C# scripting, physics, animation, audio and asset import for all popular formats
  * Clean architecture: highly modular, fully documented, and cross-platform across Windows, Linux and macOS
 
-The framework is still in active development, but can already serve as a solid foundation for custom game engines. Ongoing work targets first-class support across every major desktop and console platform, and aims to keep pace with the leading edge of real-time rendering — including a Metal backend for macOS, PlayStation 5 support, meshlet-style rendering with LOD and streaming over a persistent GPU scene, real-time global illumination, physical camera, light and material controls, and a transition to the Slang shading language.
+The framework is still in active development, but can already serve as a solid foundation for custom game engines. Some of the upcoming features include support for every major desktop and console platform, meshlet-style rendering with LOD and streaming over a persistent GPU scene, real-time global illumination, physical camera, light and material controls.
 
 # Features
 * [Features](Documentation/GitHub/features.md) - A detailed list of all currently available features.
