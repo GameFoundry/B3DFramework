@@ -202,6 +202,11 @@ if(NOT B3D_IS_ENGINE)
 	# but it is required because it is a dependency of the bsf target
 	install(TARGETS ThirdParty EXPORT bsf)
 
+	# Public usage requirements interface. Installs no artifacts, but must be in
+	# the export set because bsf links it PUBLIC and thus references it in its
+	# exported INTERFACE_LINK_LIBRARIES.
+	install(TARGETS bsfHeaders EXPORT bsf)
+
 	install(
 		EXPORT bsf
 		NAMESPACE b3d::
