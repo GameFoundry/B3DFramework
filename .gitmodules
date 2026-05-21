@@ -1,7 +1,7 @@
 
 [submodule "Examples"]
 	path = Examples
-	url = https://github.com/BearishSun/B3DExamples
+	url = https://github.com/GameFoundry/B3DFrameworkExamples
 [submodule "Tools/BansheeCodeGenerator"]
 	path = Tools/BansheeCodeGenerator
 	url = https://github.com/BearishSun/BansheeCodeGenerator
