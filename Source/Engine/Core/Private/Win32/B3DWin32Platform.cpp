@@ -346,7 +346,7 @@ void Platform::Sleep(u32 duration)
 
 void Win32Platform::RegisterDropTarget(DropTarget* target)
 {
-	const RenderWindow* window = target->GetOwnerWindowInternal();
+	const RenderWindow* window = target->GetOwnerWindow();
 	const u64 hwnd = window->GetPlatformWindowHandle();
 	if(hwnd == 0)
 		return; // No drag-drop in headless mode
@@ -371,7 +371,7 @@ void Win32Platform::RegisterDropTarget(DropTarget* target)
 
 void Win32Platform::UnregisterDropTarget(DropTarget* target)
 {
-	auto iterFind = mData->DropTargets.DropTargetsPerWindow.find(target->GetOwnerWindowInternal());
+	auto iterFind = mData->DropTargets.DropTargetsPerWindow.find(target->GetOwnerWindow());
 	if(iterFind == mData->DropTargets.DropTargetsPerWindow.end())
 	{
 		B3D_LOG(Warning, LogPlatform, "Attempting to destroy a drop target but cannot find its parent window.");

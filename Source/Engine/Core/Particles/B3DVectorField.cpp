@@ -93,12 +93,12 @@ RTTIType* VectorField::GetRtti() const
 /************************************************************************/
 HVectorField VectorField::Create(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)
 {
-	TShared<VectorField> vectorFieldPtr = CreatePtrInternal(desc, values);
+	TShared<VectorField> vectorFieldPtr = CreateShared(desc, values);
 
 	return B3DStaticResourceCast<VectorField>(GetResources().CreateResourceHandle(vectorFieldPtr));
 }
 
-TShared<VectorField> VectorField::CreatePtrInternal(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)
+TShared<VectorField> VectorField::CreateShared(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)
 {
 	auto* vectorField = new(B3DAllocate<VectorField>()) VectorField(desc, values);
 
@@ -109,7 +109,7 @@ TShared<VectorField> VectorField::CreatePtrInternal(const VECTOR_FIELD_DESC& des
 	return vectorFieldPtr;
 }
 
-TShared<VectorField> VectorField::CreateEmptyInternal()
+TShared<VectorField> VectorField::CreateEmpty()
 {
 	auto* vectorField = new(B3DAllocate<VectorField>()) VectorField();
 
@@ -255,7 +255,7 @@ TShared<Resource> FGAImporter::Import(const Path& filePath, TShared<const Import
 	}
 
 	const String fileName = filePath.GetFilename(false);
-	TShared<VectorField> vectorField = VectorField::CreatePtrInternal(desc, values);
+	TShared<VectorField> vectorField = VectorField::CreateShared(desc, values);
 	vectorField->SetName(fileName);
 
 	return vectorField;

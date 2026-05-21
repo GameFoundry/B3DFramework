@@ -28,7 +28,7 @@ TShared<Resource> ShaderIncludeImporter::Import(const Path& filePath, TShared<co
 		includeString = stream->GetAsString();
 	}
 
-	TShared<ShaderInclude> gpuInclude = ShaderInclude::CreatePtrInternal(includeString);
+	TShared<ShaderInclude> gpuInclude = ShaderInclude::CreateShared(includeString);
 
 	const String fileName = filePath.GetFilename(false);
 	gpuInclude->SetName(fileName);

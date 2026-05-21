@@ -404,7 +404,7 @@ void VulkanGpuBackend::OnStartUp()
 	for(u32 i = 0; i < gpuInfo.NumGpUs; i++)
 		gpuInfo.Names[i] = mDevices[i]->GetDeviceProperties().deviceName;
 
-	PlatformUtility::SetGPUInfoInternal(gpuInfo);
+	PlatformUtility::SetGPUInfo(gpuInfo);
 
 	// Get required extension functions
 	GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfaceSupportKHR)

@@ -97,7 +97,7 @@ bool VirtualInput::IsButtonHeld(const VirtualButton& button, u32 deviceIndex) co
 float VirtualInput::GetAxisValue(const VirtualAxis& axis, u32 deviceIndex) const
 {
 	VirtualAxisInformation axisDescription;
-	if(mInputConfiguration->GetAxisInternal(axis, axisDescription))
+	if(mInputConfiguration->GetAxis(axis, axisDescription))
 	{
 		float axisValue = GetInput().GetAxisValue((u32)axisDescription.Type, deviceIndex);
 
@@ -136,7 +136,7 @@ float VirtualInput::GetAxisValue(const VirtualAxis& axis, u32 deviceIndex) const
 	return 0.0f;
 }
 
-void VirtualInput::UpdateInternal()
+void VirtualInput::Update()
 {
 	u64 frameIndex = GetTime().GetCurrentFrameIndex();
 	for(auto& deviceData : mDevices)
@@ -239,7 +239,7 @@ void VirtualInput::ButtonDown(const ButtonEvent& event)
 	tempButtons.clear();
 	tempBtnDescs.clear();
 
-	if(mInputConfiguration->GetButtonsInternal(event.ButtonCode, mActiveModifiers, tempButtons, tempBtnDescs))
+	if(mInputConfiguration->GetButtons(event.ButtonCode, mActiveModifiers, tempButtons, tempBtnDescs))
 	{
 		while(event.DeviceIndex >= (u32)mDevices.size())
 			mDevices.push_back(DeviceData());
@@ -284,7 +284,7 @@ void VirtualInput::ButtonUp(const ButtonEvent& event)
 	tempButtons.clear();
 	tempBtnDescs.clear();
 
-	if(mInputConfiguration->GetButtonsInternal(event.ButtonCode, mActiveModifiers, tempButtons, tempBtnDescs))
+	if(mInputConfiguration->GetButtons(event.ButtonCode, mActiveModifiers, tempButtons, tempBtnDescs))
 	{
 		while(event.DeviceIndex >= (u32)mDevices.size())
 			mDevices.push_back(DeviceData());

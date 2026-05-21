@@ -36,7 +36,7 @@ namespace b3d
 
 		TShared<IReflectable> NewRttiObject()
 		{
-			return ScriptCode::CreatePtrInternal(L""); // Initial string doesn't matter, it'll get overwritten
+			return ScriptCode::CreateShared(L""); // Initial string doesn't matter, it'll get overwritten
 		}
 	};
 

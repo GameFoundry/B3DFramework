@@ -660,7 +660,7 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 	bool needsRedraw = view.ShouldRedrawOverlay();
 	if(!rendererExtensions.empty())
 	{
-		view.NotifyCompositorTargetChangedInternal(target);
+		view.NotifyCompositorTargetChanged(target);
 
 		mOverlayExtensions.clear();
 
@@ -691,7 +691,7 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 			entry->Render(*camera, context);
 		}
 
-		view.NotifyCompositorTargetChangedInternal(nullptr);
+		view.NotifyCompositorTargetChanged(nullptr);
 	}
 
 	view.ResolveSceneCaptures(commandBuffer, target);

@@ -70,7 +70,7 @@ namespace b3d
 		 * Assigns information about GPU hardware. This data will be returned by getSystemInfo() when requested. This is
 		 * expeced to be called by the render API backend when initialized.
 		 */
-		static void SetGPUInfoInternal(GPUInfo gpuInfo) { sGPUInfo = gpuInfo; }
+		static void SetGPUInfo(GPUInfo gpuInfo) { sGPUInfo = gpuInfo; }
 
 		/** @} */
 

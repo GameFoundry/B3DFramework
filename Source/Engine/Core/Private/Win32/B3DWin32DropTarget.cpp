@@ -198,12 +198,12 @@ void Win32DropTarget::Update()
 		{
 			if(op.Type != DropOpType::Leave)
 			{
-				if(target->IsInsideInternal(op.Position))
+				if(target->IsInside(op.Position))
 				{
-					if(!target->IsActiveInternal())
+					if(!target->IsActive())
 					{
-						target->SetFileListInternal(*op.MFileList);
-						target->SetActiveInternal(true);
+						target->SetFileList(*op.MFileList);
+						target->SetActive(true);
 						target->OnEnter(op.Position.X, op.Position.Y);
 					}
 
@@ -211,27 +211,27 @@ void Win32DropTarget::Update()
 						target->OnDragOver(op.Position.X, op.Position.Y);
 					else if(op.Type == DropOpType::Drop)
 					{
-						target->SetFileListInternal(*op.MFileList);
+						target->SetFileList(*op.MFileList);
 						target->OnDrop(op.Position.X, op.Position.Y);
 					}
 				}
 				else
 				{
-					if(target->IsActiveInternal())
+					if(target->IsActive())
 					{
 						target->OnLeave();
 						target->ClearInternal();
-						target->SetActiveInternal(false);
+						target->SetActive(false);
 					}
 				}
 			}
 			else
 			{
-				if(target->IsActiveInternal())
+				if(target->IsActive())
 				{
 					target->OnLeave();
 					target->ClearInternal();
-					target->SetActiveInternal(false);
+					target->SetActive(false);
 				}
 			}
 		}

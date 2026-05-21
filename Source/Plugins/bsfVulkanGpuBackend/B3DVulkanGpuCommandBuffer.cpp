@@ -2264,7 +2264,7 @@ void VulkanGpuCommandBuffer::NotifyRenderTargetModified()
 	if(mRenderTarget == nullptr || mRenderTargetModified)
 		return;
 
-	mRenderTarget->TickUpdateCountInternal();
+	mRenderTarget->TickUpdateCount();
 	mRenderTargetModified = true;
 }
 

@@ -195,28 +195,28 @@ namespace b3d
 		 * Called every frame. Detects button state changes and prepares callback events to trigger via a call to
 		 * TriggerCallbacksInternal().
 		 */
-		void UpdateInternal();
+		void Update();
 
 		/** Triggers any queued input event callbacks. */
-		void TriggerCallbacksInternal();
+		void TriggerCallbacks();
 
 		/** Returns internal, platform specific privata data. */
-		InputPrivateData* GetPrivateDataInternal() const { return mPlatformData; }
+		InputPrivateData* GetPrivateData() const { return mPlatformData; }
 
 		/** Returns a handle to the window that is currently receiving input. */
 		u64 GetWindowHandle() const { return mWindowHandle; }
 
 		/** Called by Mouse when mouse movement is detected. */
-		void NotifyMouseMovedInternal(i32 relativeX, i32 relativeY, i32 relativeZ);
+		void NotifyMouseMoved(i32 relativeX, i32 relativeY, i32 relativeZ);
 
 		/** Called by any of the raw input devices when analog axis movement is detected. */
-		void NotifyAxisMovedInternal(u32 gamepadIndex, u32 axisIndex, i32 value);
+		void NotifyAxisMoved(u32 gamepadIndex, u32 axisIndex, i32 value);
 
 		/** Called by any of the raw input devices when a button is pressed. */
-		void NotifyButtonPressedInternal(u32 deviceIndex, ButtonCode code, u64 timestamp);
+		void NotifyButtonPressed(u32 deviceIndex, ButtonCode code, u64 timestamp);
 
 		/** Called by any of the raw input devices when a button is released. */
-		void NotifyButtonReleasedInternal(u32 deviceIndex, ButtonCode code, u64 timestamp);
+		void NotifyButtonReleased(u32 deviceIndex, ButtonCode code, u64 timestamp);
 
 		/** @} */
 

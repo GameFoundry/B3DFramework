@@ -9,12 +9,12 @@ using namespace b3d;
 
 HPhysicsMaterial PhysicsMaterial::Create(float staticFriction, float dynamicFriction, float restitution)
 {
-	TShared<PhysicsMaterial> newMaterial = CreatePtrInternal(staticFriction, dynamicFriction, restitution);
+	TShared<PhysicsMaterial> newMaterial = CreateShared(staticFriction, dynamicFriction, restitution);
 
 	return B3DStaticResourceCast<PhysicsMaterial>(GetResources().CreateResourceHandle(newMaterial));
 }
 
-TShared<PhysicsMaterial> PhysicsMaterial::CreatePtrInternal(float staticFriction, float dynamicFriction, float restitution)
+TShared<PhysicsMaterial> PhysicsMaterial::CreateShared(float staticFriction, float dynamicFriction, float restitution)
 {
 	TShared<PhysicsMaterial> newMaterial = GetPhysics().CreateMaterial(staticFriction, dynamicFriction, restitution);
 	newMaterial->SetShared(newMaterial);

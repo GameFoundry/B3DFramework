@@ -47,8 +47,6 @@ namespace b3d
 			VkSemaphore mSemaphore;
 		};
 
-		class VulkanInternalCommandBuffer;
-
 		/** Vulkan implementation of GpuCommandBufferPool. */
 		class VulkanGpuCommandBufferPool : public GpuCommandBufferPool
 		{

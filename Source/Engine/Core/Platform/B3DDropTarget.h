@@ -82,19 +82,19 @@ namespace b3d
 		void ClearInternal();
 
 		/** Sets the file list and marks the drop event as FileList. */
-		void SetFileListInternal(const Vector<Path>& fileList);
+		void SetFileList(const Vector<Path>& fileList);
 
 		/** Marks the drop area as inactive or active. */
-		void SetActiveInternal(bool active) { mActive = active; }
+		void SetActive(bool active) { mActive = active; }
 
 		/**	Checks is the specified position within the current drop area. Position should be in window local coordinates. */
-		bool IsInsideInternal(const Vector2I& pos) const;
+		bool IsInside(const Vector2I& pos) const;
 
 		/** Returns true if the drop target is active. */
-		bool IsActiveInternal() const { return mActive; }
+		bool IsActive() const { return mActive; }
 
 		/**	Returns a render window this drop target is attached to. */
-		const RenderWindow* GetOwnerWindowInternal() const { return mOwnerWindow; }
+		const RenderWindow* GetOwnerWindow() const { return mOwnerWindow; }
 
 		/** @} */
 	protected:

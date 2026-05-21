@@ -64,14 +64,14 @@ RendererViewProperties::RendererViewProperties(const RendererViewCreateInformati
 }
 
 RendererView::RendererView()
-	: mCamera(nullptr), mRenderSettingsHash(0), mViewIdx(-1)
+	: mCamera(nullptr), mRenderSettingsHash(0), mViewIndex(-1)
 {
 	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	mPerCameraBufferPool.Initialize(*gpuDevice, GpuBufferCreateInformation::CreateUniform(gPerCameraUniformDefinition.GetSize()), 4);
 }
 
 RendererView::RendererView(const RendererViewCreateInformation& desc)
-	: mProperties(desc), mCamera(desc.SceneCamera), mRenderSettingsHash(0), mViewIdx(-1)
+	: mProperties(desc), mCamera(desc.SceneCamera), mRenderSettingsHash(0), mViewIndex(-1)
 {
 	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	mPerCameraBufferPool.Initialize(*gpuDevice, GpuBufferCreateInformation::CreateUniform(gPerCameraUniformDefinition.GetSize()), 4);
@@ -926,7 +926,7 @@ void RendererViewGroup::SetViews(RendererView** views, u32 numViews)
 	for(u32 i = 0; i < numViews; i++)
 	{
 		mViews.push_back(views[i]);
-		views[i]->SetViewIdxInternal(i);
+		views[i]->SetViewIndex(i);
 	}
 }
 

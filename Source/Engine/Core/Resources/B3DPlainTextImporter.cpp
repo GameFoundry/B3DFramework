@@ -28,7 +28,7 @@ TShared<Resource> PlainTextImporter::Import(const Path& filePath, TShared<const 
 		textData = stream->GetAsWString();
 	}
 
-	TShared<PlainText> plainText = PlainText::CreatePtrInternal(textData);
+	TShared<PlainText> plainText = PlainText::CreateShared(textData);
 
 	String fileName = filePath.GetFilename(false);
 	plainText->SetName(fileName);

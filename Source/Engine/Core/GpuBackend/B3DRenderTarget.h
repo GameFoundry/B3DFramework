@@ -186,7 +186,7 @@ namespace b3d
 			 */
 
 			/** Increments the update count, letting other code know that the contents of the render target changed. */
-			void TickUpdateCountInternal() { mUpdateCount++; }
+			void TickUpdateCount() { mUpdateCount++; }
 
 			/**
 			 * Reads the contents of this render target. Issues a copy command into the command buffer

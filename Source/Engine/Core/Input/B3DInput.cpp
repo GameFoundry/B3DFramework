@@ -73,7 +73,7 @@ Input::~Input()
 	mMouseWheelScrolledConn.Disconnect();
 }
 
-void Input::UpdateInternal()
+void Input::Update()
 {
 	// Toggle states only remain active for a single frame before they are transitioned
 	// into permanent state
@@ -139,7 +139,7 @@ void Input::UpdateInternal()
 	AxisMoved(0, -rawYValue, (u32)InputAxis::MouseY);
 }
 
-void Input::TriggerCallbacksInternal()
+void Input::TriggerCallbacks()
 {
 	Vector2I pointerPosition;
 	float mouseScroll;
@@ -290,7 +290,7 @@ void Input::InputFocusLost()
 		gamepad->ChangeCaptureContext(0);
 }
 
-void Input::NotifyMouseMovedInternal(i32 relativeX, i32 relativeY, i32 relativeZ)
+void Input::NotifyMouseMoved(i32 relativeX, i32 relativeY, i32 relativeZ)
 {
 	mMouseSampleAccumulator[0] += relativeX;
 	mMouseSampleAccumulator[1] += relativeY;
@@ -314,7 +314,7 @@ void Input::NotifyMouseMovedInternal(i32 relativeX, i32 relativeY, i32 relativeZ
 	AxisMoved(0, (float)relativeZ, (u32)InputAxis::MouseZ);
 }
 
-void Input::NotifyAxisMovedInternal(u32 gamepadIndex, u32 axisIndex, i32 value)
+void Input::NotifyAxisMoved(u32 gamepadIndex, u32 axisIndex, i32 value)
 {
 	// Move axis values into [-1.0f, 1.0f] range
 	float axisRange = Math::Abs((float)Gamepad::kMaxAxis) + Math::Abs((float)Gamepad::kMinAxis);
@@ -323,12 +323,12 @@ void Input::NotifyAxisMovedInternal(u32 gamepadIndex, u32 axisIndex, i32 value)
 	AxisMoved(gamepadIndex, axisValue, axisIndex);
 }
 
-void Input::NotifyButtonPressedInternal(u32 deviceIndex, ButtonCode code, u64 timestamp)
+void Input::NotifyButtonPressed(u32 deviceIndex, ButtonCode code, u64 timestamp)
 {
 	ButtonDown(deviceIndex, code, timestamp - mTimestampClockOffset);
 }
 
-void Input::NotifyButtonReleasedInternal(u32 deviceIndex, ButtonCode code, u64 timestamp)
+void Input::NotifyButtonReleased(u32 deviceIndex, ButtonCode code, u64 timestamp)
 {
 	ButtonUp(deviceIndex, code, timestamp - mTimestampClockOffset);
 }

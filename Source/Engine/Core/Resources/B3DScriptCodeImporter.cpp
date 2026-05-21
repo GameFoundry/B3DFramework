@@ -36,7 +36,7 @@ TShared<Resource> ScriptCodeImporter::Import(const Path& filePath, TShared<const
 		editorScript = scriptIO->EditorScript;
 	}
 
-	TShared<ScriptCode> scriptCode = ScriptCode::CreatePtrInternal(textData, editorScript);
+	TShared<ScriptCode> scriptCode = ScriptCode::CreateShared(textData, editorScript);
 
 	const String fileName = filePath.GetFilename(false);
 	scriptCode->SetName(fileName);

@@ -34,7 +34,7 @@ namespace b3d
 
 		TShared<IReflectable> NewRttiObject()
 		{
-			return ShaderInclude::CreatePtrInternal(""); // Initial string doesn't matter, it'll get overwritten
+			return ShaderInclude::CreateShared(""); // Initial string doesn't matter, it'll get overwritten
 		}
 	};
 

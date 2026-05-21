@@ -60,7 +60,7 @@ namespace b3d
 
 		TShared<IReflectable> NewRttiObject()
 		{
-			return PhysicsMaterial::CreatePtrInternal();
+			return PhysicsMaterial::CreateShared();
 		}
 	};
 

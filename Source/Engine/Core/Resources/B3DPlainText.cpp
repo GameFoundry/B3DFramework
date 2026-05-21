@@ -13,10 +13,10 @@ PlainText::PlainText(const WString& data)
 
 HPlainText PlainText::Create(const WString& data)
 {
-	return B3DStaticResourceCast<PlainText>(GetResources().CreateResourceHandle(CreatePtrInternal(data)));
+	return B3DStaticResourceCast<PlainText>(GetResources().CreateResourceHandle(CreateShared(data)));
 }
 
-TShared<PlainText> PlainText::CreatePtrInternal(const WString& data)
+TShared<PlainText> PlainText::CreateShared(const WString& data)
 {
 	TShared<PlainText> plainTextPtr = B3DMakeSharedFromExisting<PlainText>(
 		new(B3DAllocate<PlainText>()) PlainText(data));

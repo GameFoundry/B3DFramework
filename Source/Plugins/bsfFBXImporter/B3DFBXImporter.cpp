@@ -160,7 +160,7 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, TShared<cons
 		Vector<ImportedAnimationEvents> events = meshImportOptions->AnimationEvents;
 		for(auto& entry : animationClips)
 		{
-			TShared<AnimationClip> clip = AnimationClip::CreatePtrInternal(entry.Curves, entry.IsAdditive, entry.SampleRate, entry.RootMotion);
+			TShared<AnimationClip> clip = AnimationClip::CreateShared(entry.Curves, entry.IsAdditive, entry.SampleRate, entry.RootMotion);
 			clip->SetName(entry.Name);
 
 			for(auto& eventsEntry : events)

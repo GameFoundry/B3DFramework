@@ -429,7 +429,7 @@ namespace b3d
 			Vector4 GetNdcToUv() const;
 
 			/** Returns an index of this view within the parent view group. */
-			u32 GetViewIdx() const { return mViewIdx; }
+			u32 GetViewIndex() const { return mViewIndex; }
 
 			/** Determines if a view should be rendered this frame. */
 			bool ShouldDraw() const;
@@ -468,7 +468,7 @@ namespace b3d
 			float GetCurrentExposure() const;
 
 			/** Assigns a view index to the view. To be called by the parent view group when the view is added to it. */
-			void SetViewIdxInternal(u32 viewIdx) { mViewIdx = viewIdx; }
+			void SetViewIndex(u32 viewIndex) { mViewIndex = viewIndex; }
 
 			/** Lets an on-demand view know that it should be redrawn this frame. */
 			void NotifyNeedsRedraw();
@@ -479,7 +479,7 @@ namespace b3d
 			 * rendering of a single frame. This should be set to null if the renderer is not currently rendering the
 			 * view.
 			 */
-			void NotifyCompositorTargetChangedInternal(const TShared<RenderTarget>& target) const { mCurrentRenderTarget = target; }
+			void NotifyCompositorTargetChanged(const TShared<RenderTarget>& target) const { mCurrentRenderTarget = target; }
 
 			/**
 			 * Returns the render target that is currently being rendered to by the render compositor.
@@ -554,7 +554,7 @@ namespace b3d
 			GpuBufferSuballocation mPerCameraBuffer;
 			VisibilityInfo mVisibility;
 			LightGrid mLightGrid;
-			u32 mViewIdx;
+			u32 mViewIndex;
 
 			// Temporal anti-aliasing
 			u32 mTemporalPositionIdx;

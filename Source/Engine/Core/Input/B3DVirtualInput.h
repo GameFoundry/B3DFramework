@@ -126,7 +126,7 @@ namespace b3d
 		 */
 
 		/** Called once every frame. Triggers button callbacks. */
-		void UpdateInternal();
+		void Update();
 
 		/** @} */
 	private:

@@ -108,13 +108,13 @@ AnimationClip::AnimationClip(const TShared<AnimationCurves>& curves, bool isAddi
 HAnimationClip AnimationClip::Create(bool isAdditive)
 {
 	return B3DStaticResourceCast<AnimationClip>(GetResources().CreateResourceHandle(
-		CreatePtrInternal(B3DMakeShared<AnimationCurves>(), isAdditive)));
+		CreateShared(B3DMakeShared<AnimationCurves>(), isAdditive)));
 }
 
 HAnimationClip AnimationClip::Create(const TShared<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const TShared<RootMotion>& rootMotion)
 {
 	return B3DStaticResourceCast<AnimationClip>(GetResources().CreateResourceHandle(
-		CreatePtrInternal(curves, isAdditive, sampleRate, rootMotion)));
+		CreateShared(curves, isAdditive, sampleRate, rootMotion)));
 }
 
 TShared<AnimationClip> AnimationClip::CreateEmpty()
@@ -127,7 +127,7 @@ TShared<AnimationClip> AnimationClip::CreateEmpty()
 	return newClip;
 }
 
-TShared<AnimationClip> AnimationClip::CreatePtrInternal(const TShared<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const TShared<RootMotion>& rootMotion)
+TShared<AnimationClip> AnimationClip::CreateShared(const TShared<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const TShared<RootMotion>& rootMotion)
 {
 	AnimationClip* rawPtr = new(B3DAllocate<AnimationClip>()) AnimationClip(curves, isAdditive, sampleRate, rootMotion);
 

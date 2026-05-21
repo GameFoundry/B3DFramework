@@ -96,15 +96,15 @@ void ReleaseDirectInput(Mouse::Pimpl* m)
 void DoMouseClick(Input* owner, ButtonCode mouseButton, const DIDEVICEOBJECTDATA& data)
 {
 	if(data.dwData & 0x80)
-		owner->NotifyButtonPressedInternal(0, mouseButton, data.dwTimeStamp);
+		owner->NotifyButtonPressed(0, mouseButton, data.dwTimeStamp);
 	else
-		owner->NotifyButtonReleasedInternal(0, mouseButton, data.dwTimeStamp);
+		owner->NotifyButtonReleased(0, mouseButton, data.dwTimeStamp);
 }
 
 Mouse::Mouse(const String& name, Input* owner)
 	: mName(name), mOwner(owner)
 {
-	InputPrivateData* pvtData = owner->GetPrivateDataInternal();
+	InputPrivateData* pvtData = owner->GetPrivateData();
 
 	m = B3DNew<Pimpl>();
 	m->DirectInput = pvtData->DirectInput;
@@ -195,7 +195,7 @@ void Mouse::Capture()
 	}
 
 	if(axesMoved)
-		mOwner->NotifyMouseMovedInternal(relativeX, relativeY, relativeZ);
+		mOwner->NotifyMouseMoved(relativeX, relativeY, relativeZ);
 }
 
 void Mouse::ChangeCaptureContext(u64 windowHandle)

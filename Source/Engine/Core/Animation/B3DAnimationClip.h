@@ -276,8 +276,8 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Creates a new AnimationClip without initializing it. Use create() for normal use. */
-		static TShared<AnimationClip> CreatePtrInternal(const TShared<AnimationCurves>& curves, bool isAdditive = false, u32 sampleRate = 1, const TShared<RootMotion>& rootMotion = nullptr);
+		/** Creates a new AnimationClip without initializing it. Use Create() for normal use. */
+		static TShared<AnimationClip> CreateShared(const TShared<AnimationCurves>& curves, bool isAdditive = false, u32 sampleRate = 1, const TShared<RootMotion>& rootMotion = nullptr);
 
 		/** @} */
 

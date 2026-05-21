@@ -99,10 +99,10 @@ namespace b3d
 		 */
 
 		/** Same as create() excepts it creates a pointer to the vector field instead of a handle. */
-		static TShared<VectorField> CreatePtrInternal(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values);
+		static TShared<VectorField> CreateShared(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values);
 
 		/** Creates the resource without initializing it. */
-		static TShared<VectorField> CreateEmptyInternal();
+		static TShared<VectorField> CreateEmpty();
 
 		/** @} */
 

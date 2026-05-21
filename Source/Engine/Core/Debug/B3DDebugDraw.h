@@ -148,7 +148,7 @@ namespace b3d
 		void Clear();
 
 		/** Performs per-frame operations. */
-		void UpdateInternal();
+		void Update();
 
 	private:
 		friend class render::DebugDrawRenderer;

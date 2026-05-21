@@ -430,13 +430,13 @@ void Application::RunMainLoopFrame()
 			scene->GetTime().Update();
 		}
 	}
-	GetInput().UpdateInternal();
+	GetInput().Update();
 	// RenderWindowManager::update needs to happen after Input::update and before Input::_triggerCallbacks,
 	// so that all input is properly captured in case there is a focus change, and so that
 	// focus change is registered before input events are sent out (mouse press can result in code
 	// checking if a window is in focus, so it has to be up to date)
 	RenderWindowManager::Instance().Update();
-	GetInput().TriggerCallbacksInternal();
+	GetInput().TriggerCallbacks();
 	GetDebug().TriggerCallbacksInternal();
 	FolderMonitorManager::Instance().Update();
 
@@ -526,7 +526,7 @@ void Application::RunMainLoopFrame()
 	GetRenderThread().PostCommand([this] { EndRenderThreadProfiling(); }, "EndRenderThreadProfiling");
 
 	GetProfilerCPU().EndThread();
-	GetProfiler().UpdateInternal();
+	GetProfiler().Update();
 
 	// Check if we should exit after N frames
 	if(mExitAfterNFrames > 0 && GetTime().GetCurrentFrameIndex() >= mExitAfterNFrames)
@@ -548,7 +548,7 @@ void Application::SetFpsLimit(u32 limit)
 
 void Application::PreUpdate()
 {
-	VirtualInput::Instance().UpdateInternal();
+	VirtualInput::Instance().Update();
 
 	if(mProfilerOverlay)
 		mProfilerOverlay->Update();
@@ -559,7 +559,7 @@ void Application::PostUpdate()
 	UpdateScriptManager();
 
 	PROFILE_CALL(GUIManager::Instance().Update(), "GUI");
-	DebugDraw::Instance().UpdateInternal();
+	DebugDraw::Instance().Update();
 }
 
 void Application::ShowProfilerOverlay(ProfilerOverlayType type, const HCamera& camera)
@@ -620,7 +620,7 @@ void Application::EndRenderThreadProfiling()
 	GpuProfiler::Instance().Update();
 
 	GetProfilerCPU().EndThread();
-	GetProfiler().UpdateRenderThreadInternal();
+	GetProfiler().UpdateRenderThread();
 }
 
 void* Application::LoadPlugin(const String& pluginName, void* passThrough)

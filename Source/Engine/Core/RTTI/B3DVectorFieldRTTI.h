@@ -39,7 +39,7 @@ namespace b3d
 
 		TShared<IReflectable> NewRttiObject()
 		{
-			return VectorField::CreateEmptyInternal();
+			return VectorField::CreateEmpty();
 		}
 
 	protected:

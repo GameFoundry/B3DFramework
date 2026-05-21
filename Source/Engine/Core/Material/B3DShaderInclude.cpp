@@ -13,10 +13,10 @@ ShaderInclude::ShaderInclude(const String& includeString)
 
 HShaderInclude ShaderInclude::Create(const String& includeString)
 {
-	return B3DStaticResourceCast<ShaderInclude>(GetResources().CreateResourceHandle(CreatePtrInternal(includeString)));
+	return B3DStaticResourceCast<ShaderInclude>(GetResources().CreateResourceHandle(CreateShared(includeString)));
 }
 
-TShared<ShaderInclude> ShaderInclude::CreatePtrInternal(const String& includeString)
+TShared<ShaderInclude> ShaderInclude::CreateShared(const String& includeString)
 {
 	TShared<ShaderInclude> shaderIncludePtr = B3DMakeSharedFromExisting<ShaderInclude>(
 		new(B3DAllocate<ShaderInclude>()) ShaderInclude(includeString));

@@ -88,7 +88,7 @@ void InputConfiguration::UnregisterAxis(const String& name)
 	}
 }
 
-bool InputConfiguration::GetButtonsInternal(ButtonCode code, u32 modifiers, Vector<VirtualButton>& buttons, Vector<VirtualButtonInformation>& buttonDescriptions) const
+bool InputConfiguration::GetButtons(ButtonCode code, u32 modifiers, Vector<VirtualButton>& buttons, Vector<VirtualButtonInformation>& buttonDescriptions) const
 {
 	const Vector<VirtualButtonData>& buttonData = mButtons[(u32)code & 0x0000FFFF];
 
@@ -106,7 +106,7 @@ bool InputConfiguration::GetButtonsInternal(ButtonCode code, u32 modifiers, Vect
 	return foundAny;
 }
 
-bool InputConfiguration::GetAxisInternal(const VirtualAxis& axis, VirtualAxisInformation& axisDescription) const
+bool InputConfiguration::GetAxis(const VirtualAxis& axis, VirtualAxisInformation& axisDescription) const
 {
 	if(axis.AxisIdentifier >= (u32)mAxes.size())
 		return false;

@@ -6,7 +6,7 @@ B3D Framework is a C++17 library intended as a foundation for high-performance g
  * High performance: an ECS that scales to massive object counts, fiber-based task scheduling across all systems, and cache-aware data layouts
  * Modern rendering: physically based shading, a hybrid tiled deferred / clustered forward renderer, and a robust Vulkan backend
  * Feature rich: integrated UI system, C# scripting, physics, animation, audio and asset import for all popular formats
- * Clean architecture: highly modular, fully documented, and cross-platform across Windows, Linux and macOS
+ * Clean architecture: highly modular, fully documented, and cross-platform
 
 The framework is still in active development, but can already serve as a solid foundation for custom game engines. Some of the upcoming features include support for every major desktop and console platform, meshlet-style rendering with LOD and streaming over a persistent GPU scene, real-time global illumination, physical camera, light and material controls.
 

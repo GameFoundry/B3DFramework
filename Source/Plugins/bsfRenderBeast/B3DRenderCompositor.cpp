@@ -504,7 +504,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	// Trigger pre-base-pass callbacks
 	if(sceneCamera != nullptr)
 	{
-		inputs.View.NotifyCompositorTargetChangedInternal(RenderTarget);
+		inputs.View.NotifyCompositorTargetChanged(RenderTarget);
 
 		for(auto& extension : inputs.ExtPreBasePass)
 		{
@@ -568,7 +568,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	// Trigger post-base-pass callbacks
 	if(sceneCamera != nullptr)
 	{
-		inputs.View.NotifyCompositorTargetChangedInternal(RenderTargetNoMask);
+		inputs.View.NotifyCompositorTargetChanged(RenderTargetNoMask);
 
 		for(auto& extension : inputs.ExtPostBasePass)
 		{
@@ -726,7 +726,7 @@ RCNodeMSAACoverage::DependencyDefinition RCNodeMSAACoverage::GetDependencyDefini
 void RCNodeParticleSimulate::Render(const RenderCompositorNodeInputs& inputs)
 {
 	// Only simulate particles for the first view in the main render pass
-	if(inputs.ViewGroup.IsMainPass() && inputs.View.GetViewIdx() == 0)
+	if(inputs.ViewGroup.IsMainPass() && inputs.View.GetViewIndex() == 0)
 	{
 		auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 		RCNodeBasePass* gbufferNode = dependencies.Get<RCNodeBasePass>();
@@ -1686,7 +1686,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	Camera* sceneCamera = inputs.View.GetSceneCamera();
 	if(sceneCamera != nullptr)
 	{
-		inputs.View.NotifyCompositorTargetChangedInternal(renderTarget);
+		inputs.View.NotifyCompositorTargetChanged(renderTarget);
 
 		for(auto& extension : inputs.ExtPostLighting)
 		{
@@ -1800,7 +1800,7 @@ void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 	Camera* sceneCamera = inputs.View.GetSceneCamera();
 	if(sceneCamera != nullptr)
 	{
-		inputs.View.NotifyCompositorTargetChangedInternal(target);
+		inputs.View.NotifyCompositorTargetChanged(target);
 
 		for(auto& extension : inputs.ExtOverlay)
 		{
@@ -1816,7 +1816,7 @@ void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 	// Process pending frame captures (after overlays, before clearing target)
 	inputs.View.ResolveSceneCaptures(*inputs.ActiveCommandBuffer, target);
 
-	inputs.View.NotifyCompositorTargetChangedInternal(nullptr);
+	inputs.View.NotifyCompositorTargetChanged(nullptr);
 }
 
 void RCNodeFinalResolve::Clear()

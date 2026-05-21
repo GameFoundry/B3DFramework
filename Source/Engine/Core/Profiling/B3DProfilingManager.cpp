@@ -22,7 +22,7 @@ ProfilingManager::~ProfilingManager()
 		B3DDeleteMultiple<ProfilerReport, ProfilerAllocatorTag>(mSavedRenderThreadReports, kNumSavedFrames);
 }
 
-void ProfilingManager::UpdateInternal()
+void ProfilingManager::Update()
 {
 #if B3D_PROFILING_ENABLED
 	mSavedMainThreadReports[mNextSimulationReportIndex].CpuReport = GetProfilerCPU().GenerateReport();
@@ -33,7 +33,7 @@ void ProfilingManager::UpdateInternal()
 #endif
 }
 
-void ProfilingManager::UpdateRenderThreadInternal()
+void ProfilingManager::UpdateRenderThread()
 {
 #if B3D_PROFILING_ENABLED
 	Lock lock(mSync);

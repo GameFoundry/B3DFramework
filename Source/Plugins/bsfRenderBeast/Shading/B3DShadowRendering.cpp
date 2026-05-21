@@ -1134,7 +1134,7 @@ namespace b3d
 
 			TInlineArray<const ShadowInfo*, 6> shadowInfos;
 
-			const u32 viewIndex = view.GetViewIdx();
+			const u32 viewIndex = view.GetViewIndex();
 			// Prepare parameters
 			if(light.GetType() == LightType::Radial)
 			{
@@ -1476,7 +1476,7 @@ namespace b3d
 
 		void ShadowRendering::RenderCascadedShadowMaps(GpuCommandBuffer& commandBuffer, const RendererView& view, u32 lightIdx, RenderBeastScene& scene, const FrameInfo& frameInfo)
 		{
-			u32 viewIdx = view.GetViewIdx();
+			u32 viewIdx = view.GetViewIndex();
 			LocalLightShadows& lightShadows = mDirectionalLightShadows[lightIdx].ViewShadows[viewIdx];
 
 			if(!view.GetRenderSettings().EnableShadows)

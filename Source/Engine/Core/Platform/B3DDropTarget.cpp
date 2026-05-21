@@ -9,12 +9,12 @@ void DropTarget::ClearInternal()
 	mFileList.clear();
 }
 
-bool DropTarget::IsInsideInternal(const Vector2I& pos) const
+bool DropTarget::IsInside(const Vector2I& pos) const
 {
 	return mArea.Contains(pos);
 }
 
-void DropTarget::SetFileListInternal(const Vector<Path>& fileList)
+void DropTarget::SetFileList(const Vector<Path>& fileList)
 {
 	ClearInternal();
 

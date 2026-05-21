@@ -53,7 +53,6 @@ namespace b3d
 		class VulkanDescriptorSet;
 		class VulkanDescriptorManager;
 		class VulkanGpuCommandBufferPool;
-		class VulkanInternalCommandBuffer;
 		class VulkanGpuCommandBuffer;
 		class VulkanGpuQueue;
 		class VulkanResourceManager;

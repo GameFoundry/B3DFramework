@@ -82,7 +82,7 @@ void ReleaseDirectInput(Keyboard::Pimpl* m)
 Keyboard::Keyboard(const String& name, Input* owner)
 	: mName(name), mOwner(owner)
 {
-	InputPrivateData* pvtData = owner->GetPrivateDataInternal();
+	InputPrivateData* pvtData = owner->GetPrivateData();
 
 	m = B3DNew<Pimpl>();
 	m->DirectInput = pvtData->DirectInput;
@@ -141,9 +141,9 @@ void Keyboard::Capture()
 		m->KeyBuffer[(u32)buttonCode] = (u8)(diBuff[entryIndex].dwData);
 
 		if(diBuff[entryIndex].dwData & 0x80)
-			mOwner->NotifyButtonPressedInternal(0, buttonCode, diBuff[entryIndex].dwTimeStamp);
+			mOwner->NotifyButtonPressed(0, buttonCode, diBuff[entryIndex].dwTimeStamp);
 		else
-			mOwner->NotifyButtonReleasedInternal(0, buttonCode, diBuff[entryIndex].dwTimeStamp);
+			mOwner->NotifyButtonReleased(0, buttonCode, diBuff[entryIndex].dwTimeStamp);
 	}
 
 	// If a lost device/access denied was detected, recover
@@ -168,9 +168,9 @@ void Keyboard::Capture()
 			if(keyBufferCopy[keyIndex] != m->KeyBuffer[keyIndex])
 			{
 				if(m->KeyBuffer[keyIndex])
-					mOwner->NotifyButtonPressedInternal(0, (ButtonCode)keyIndex, GetTickCount64());
+					mOwner->NotifyButtonPressed(0, (ButtonCode)keyIndex, GetTickCount64());
 				else
-					mOwner->NotifyButtonReleasedInternal(0, (ButtonCode)keyIndex, GetTickCount64());
+					mOwner->NotifyButtonReleased(0, (ButtonCode)keyIndex, GetTickCount64());
 			}
 		}
 

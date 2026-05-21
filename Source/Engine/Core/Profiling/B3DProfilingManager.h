@@ -37,14 +37,14 @@ namespace b3d
 		~ProfilingManager();
 
 		/** Called every frame. */
-		void UpdateInternal();
+		void Update();
 
 		/**
 		 * Called every frame from the render thread.
 		 *
 		 * @note	Render thread only.
 		 */
-		void UpdateRenderThreadInternal();
+		void UpdateRenderThread();
 
 		/**
 		 * Returns a profiler report for the specified frame, for the specified thread.

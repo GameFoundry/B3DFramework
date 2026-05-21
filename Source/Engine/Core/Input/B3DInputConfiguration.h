@@ -219,10 +219,10 @@ namespace b3d
 		/**
 		 * Returns data about virtual buttons that are triggered by the specified physical button code and modifier flags.
 		 */
-		bool GetButtonsInternal(ButtonCode code, u32 modifiers, Vector<VirtualButton>& buttons, Vector<VirtualButtonInformation>& buttonDescriptions) const;
+		bool GetButtons(ButtonCode code, u32 modifiers, Vector<VirtualButton>& buttons, Vector<VirtualButtonInformation>& buttonDescriptions) const;
 
 		/**	Retrieves virtual axis descriptor for the provided axis. */
-		bool GetAxisInternal(const VirtualAxis& axis, VirtualAxisInformation& axisDescription) const;
+		bool GetAxis(const VirtualAxis& axis, VirtualAxisInformation& axisDescription) const;
 
 		/** @} */
 

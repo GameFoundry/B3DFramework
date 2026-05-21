@@ -127,7 +127,7 @@ void DebugDraw::Clear()
 	mDrawHelper->Clear();
 }
 
-void DebugDraw::UpdateInternal()
+void DebugDraw::Update()
 {
 	mActiveMeshes.clear();
 	mActiveMeshes = mDrawHelper->BuildMeshes(DrawHelper::SortType::None);
