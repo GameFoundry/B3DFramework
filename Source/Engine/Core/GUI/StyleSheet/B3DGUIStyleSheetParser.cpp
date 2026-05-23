@@ -5,8 +5,10 @@
 #include "FileSystem/B3DDataStream.h"
 #include <charconv>
 
+#include "Image/B3DSpriteImage.h"
 #include "Resources/B3DBuiltinResources.h"
 #include "Resources/B3DResources.h"
+#include "Text/B3DFont.h"
 #include "Text/B3DStockIcons.h"
 
 using namespace b3d;

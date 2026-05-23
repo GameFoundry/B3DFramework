@@ -78,6 +78,7 @@
 	* GPU queues (async compute and upload)
 	* Full support for all SM5 features (geometry and compute shaders, instanced rendering, texture arrays, unordered access textures and buffers)
 	* Debug naming for all GPU objects and RenderDoc integration
+	* GPU allocators (Two level segregated fit with defragment support & linear for transient allocations)
 * __Asset pipeline__
 	* Built-in support for third party formats:
 		* FBX, OBJ, DAE meshes
@@ -121,6 +122,7 @@
 	* Automatic batching for fast rendering
 	* Supports arbitrary 3D transformations
 	* Localization support (string tables)
+	* Minimal redraw (only modified regions redraw, static GUI -> not even swap happens)
 * __Animation__
 	* Skeletal animation with skinning
 		* 1D and 2D animation blending
@@ -253,3 +255,4 @@
 		* Custom memory allocators, including inline array allocator, stack-based and frame allocators
 		* Command line argument parsing
 		* Config variable system for runtime configuration
+		* Quad/OctTree with SIMD
