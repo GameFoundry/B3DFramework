@@ -27,6 +27,7 @@ CoreTestSuite::CoreTestSuite()
 	B3D_ADD_TEST(CoreTestSuite::TestAnimCurveIntegration)
 	B3D_ADD_TEST(CoreTestSuite::TestLookupTable)
 	B3D_ADD_TEST(CoreTestSuite::TestBinarySerialization)
+	B3D_ADD_TEST(CoreTestSuite::TestDataBlockSerialization)
 	B3D_ADD_TEST(CoreTestSuite::TestSerializedObject)
 	B3D_ADD_TEST(CoreTestSuite::TestBinaryDelta)
 
@@ -148,6 +149,31 @@ void CoreTestSuite::TestBinarySerialization()
 
 	const TShared<UnitTestSerializationObjectA> deserializedObject = B3DRTTICast<UnitTestSerializationObjectA>(serializer.Decode(stream, (u32)stream->Size()));
 	UnitTestSerializationHelpers::TestAssertObjectsMatch(*this, object, deserializedObject, false);
+}
+
+void CoreTestSuite::TestDataBlockSerialization()
+{
+	// Round-trip an object carrying a data block through a MemoryDataStream. This exercises the serializer's in-memory
+	// data-block decode path and verifies the stream handed to the RTTI setter reports the correct Size() (the fix for
+	// the MemoryDataStream capacity-constructor leaving Size() == 0).
+	const TShared<UnitTestSerializationObjectB> object = B3DMakeShared<UnitTestSerializationObjectB>();
+	object->IntA = 42;
+	object->StrA = "data-block";
+	object->DataBlock = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+
+	TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+	BinarySerializer serializer;
+	serializer.Encode(object.get(), stream, BinarySerializerFlag::None);
+
+	stream->Seek(0);
+
+	const TShared<UnitTestSerializationObjectB> deserializedObject = B3DRTTICast<UnitTestSerializationObjectB>(serializer.Decode(stream, (u32)stream->Size()));
+
+	B3D_TEST_ASSERT(deserializedObject != nullptr);
+	B3D_TEST_ASSERT(deserializedObject->IntA == object->IntA);
+	B3D_TEST_ASSERT(deserializedObject->StrA == object->StrA);
+	B3D_TEST_ASSERT(deserializedObject->DataBlock == object->DataBlock);
+	B3D_TEST_ASSERT(deserializedObject->DataBlockStreamSize == (u32)object->DataBlock.size());
 }
 
 void CoreTestSuite::TestSerializedObject()

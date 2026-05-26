@@ -19,7 +19,7 @@ class DataStreamSource : public snappy::Source
 public:
 	static constexpr size_t kFileReadBufferSize = 32768;
 
-	DataStreamSource(const DataStream& stream, u64 bytesToRead, std::function<void(float)> reportProgress = nullptr)
+	DataStreamSource(DataStream& stream, u64 bytesToRead, std::function<void(float)> reportProgress = nullptr)
 		: mStream(stream), mReportProgress(std::move(reportProgress))
 	{
 		const size_t remainingBytesInStream = stream.Size() - stream.Tell();
@@ -28,13 +28,28 @@ public:
 		mEndAddress = stream.Tell() + mTotalBytesToRead;
 
 		if(mStream.IsFile())
-			mReadBuffer = (char*)B3DAllocate(kFileReadBufferSize);
+		{
+			mReadBuffers[0] = (char*)B3DAllocate(kFileReadBufferSize);
+			mReadBuffers[1] = (char*)B3DAllocate(kFileReadBufferSize);
+
+			mFileReadCursor = stream.Tell();
+
+			// Start reading the first chunk right away so it overlaps with whatever the caller does before the first Peek.
+			IssueReadAhead();
+		}
 	}
 
 	~DataStreamSource() override
 	{
-		if(mReadBuffer != nullptr)
-			B3DFree(mReadBuffer);
+		// Wait for any in-flight read-ahead before freeing the buffer it's writing into.
+		if(mReadAheadInFlight)
+			mReadAheadOp.BlockUntilComplete();
+
+		if(mReadBuffers[0] != nullptr)
+			B3DFree(mReadBuffers[0]);
+
+		if(mReadBuffers[1] != nullptr)
+			B3DFree(mReadBuffers[1]);
 	}
 
 	size_t Available() const override
@@ -51,22 +66,36 @@ public:
 			*len = Available();
 			return (char*)memoryStream.Data() + mReadBufferOffset;
 		}
-		else
+
+		// Advance through buffers until the active one has unconsumed data (a Skip may span more than one buffer).
+		while(mReadBufferOffset >= mReadBufferSize)
 		{
-			while(mReadBufferOffset >= mReadBufferSize)
+			if(!mReadAheadInFlight)
 			{
-				mReadBufferOffset -= mReadBufferSize;
-
-				const size_t sizeToRead = std::min(kFileReadBufferSize, mEndAddress - mStream.Tell());
-				mReadBufferSize = mStream.Read(mReadBuffer, sizeToRead);
-
-				if(mReadBufferSize == 0)
-					break;
+				// No more data available from the stream.
+				*len = 0;
+				return mReadBuffers[mActiveBufferIndex];
 			}
 
-			*len = mReadBufferSize - mReadBufferOffset;
-			return (char*)(mReadBuffer + mReadBufferOffset);
+			mReadBufferOffset -= mReadBufferSize;
+
+			// Consume the chunk that was being read ahead (cheap if the IO already finished), then immediately start
+			// reading the next one so it overlaps with the snappy decompression of this chunk.
+			mReadAheadOp.BlockUntilComplete();
+			const TShared<MemoryDataStream> readResult = mReadAheadOp.GetReturnValue();
+
+			mActiveBufferIndex = mReadAheadTargetBufferIndex;
+			mReadBufferSize = readResult != nullptr ? readResult->Size() : 0;
+			mReadAheadInFlight = false;
+
+			IssueReadAhead();
+
+			if(mReadBufferSize == 0)
+				break;
 		}
+
+		*len = mReadBufferSize - mReadBufferOffset;
+		return mReadBuffers[mActiveBufferIndex] + mReadBufferOffset;
 	}
 
 	void Skip(size_t n) override
@@ -79,17 +108,40 @@ public:
 	}
 
 private:
-	const DataStream& mStream;
+	/** Issues an asynchronous read for the next chunk into the buffer not currently being consumed. */
+	void IssueReadAhead()
+	{
+		if(mFileReadCursor >= mEndAddress)
+		{
+			mReadAheadInFlight = false;
+			return;
+		}
+
+		const size_t sizeToRead = std::min(kFileReadBufferSize, mEndAddress - mFileReadCursor);
+		mReadAheadTargetBufferIndex = 1 - mActiveBufferIndex;
+
+		mReadAheadOp = mStream.ReadAsync(mFileReadCursor, sizeToRead, DataRange(mReadBuffers[mReadAheadTargetBufferIndex], sizeToRead));
+		mReadAheadInFlight = true;
+		mFileReadCursor += sizeToRead;
+	}
+
+	DataStream& mStream;
 	std::function<void(float)> mReportProgress;
 
 	size_t mRemainingBytes;
 	size_t mTotalBytesToRead;
 	size_t mEndAddress = 0;
 
-	// File streams only
-	char* mReadBuffer = nullptr;
+	// File streams only: double-buffered read-ahead.
+	char* mReadBuffers[2] = { nullptr, nullptr };
+	u32 mActiveBufferIndex = 0;
 	size_t mReadBufferOffset = 0;
 	size_t mReadBufferSize = 0;
+
+	TAsyncOp<TShared<MemoryDataStream>> mReadAheadOp;
+	bool mReadAheadInFlight = false;
+	u32 mReadAheadTargetBufferIndex = 0;
+	u64 mFileReadCursor = 0;
 };
 
 /** Sink (destination) accepting a data stream. Used for Snappy compression library. */

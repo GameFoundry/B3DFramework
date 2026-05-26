@@ -5,7 +5,6 @@
 #include "Debug/B3DDebug.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
-#include "FileSystem/B3DAsyncDataStream.h"
 
 #include <algorithm>
 #include <fstream>
@@ -326,7 +325,7 @@ void FileSystemTestSuite::TestStreamWriteReadRoundtrip()
 	}
 
 	{
-		TShared<DataStream> in = FileSystem::OpenFile(path, true);
+		TShared<DataStream> in = FileSystem::OpenFile(path);
 		B3D_TEST_ASSERT(in != nullptr);
 		B3D_TEST_ASSERT(in->Size() == content.size());
 
@@ -367,7 +366,7 @@ void FileSystemTestSuite::TestOpenFileMissing()
 	LoggingScope logScope(*this);
 	logScope.ExpectWarning("Failed to open file");
 
-	TShared<DataStream> stream = FileSystem::OpenFile(path, true);
+	TShared<DataStream> stream = FileSystem::OpenFile(path);
 	B3D_TEST_ASSERT(stream == nullptr);
 }
 
@@ -377,7 +376,7 @@ void FileSystemTestSuite::TestOpenFileAsyncRead()
 	const String content = "0123456789ABCDEFabcdef";
 	CreateFile(path, content);
 
-	TShared<IAsyncDataStream> stream = FileSystem::OpenFileAsync(path);
+	TShared<DataStream> stream = FileSystem::OpenFile(path, FileAccessFlag::Read | FileAccessFlag::Async);
 	B3D_TEST_ASSERT(stream != nullptr);
 	B3D_TEST_ASSERT(stream->Size() == content.size());
 
@@ -408,7 +407,7 @@ void FileSystemTestSuite::TestOpenFileAsyncUserMemory()
 	const String content = "user-supplied-memory-test";
 	CreateFile(path, content);
 
-	TShared<IAsyncDataStream> stream = FileSystem::OpenFileAsync(path);
+	TShared<DataStream> stream = FileSystem::OpenFile(path, FileAccessFlag::Read | FileAccessFlag::Async);
 	B3D_TEST_ASSERT(stream != nullptr);
 
 	Vector<u8> buffer(content.size(), 0);
@@ -435,7 +434,7 @@ void FileSystemTestSuite::TestOpenFileAsyncEof()
 	const String content = "short";
 	CreateFile(path, content);
 
-	TShared<IAsyncDataStream> stream = FileSystem::OpenFileAsync(path);
+	TShared<DataStream> stream = FileSystem::OpenFile(path, FileAccessFlag::Read | FileAccessFlag::Async);
 	B3D_TEST_ASSERT(stream != nullptr);
 
 	// Request more bytes than remain past the offset; should return only the available bytes.

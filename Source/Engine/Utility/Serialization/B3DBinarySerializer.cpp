@@ -15,7 +15,8 @@ using namespace b3d;
 constexpr u32 BinarySerializer::kReportAfterBytes;
 constexpr u32 BinarySerializer::kWriteBufferSize;
 constexpr u32 BinarySerializer::kFlushAfterBytes;
-constexpr u32 BinarySerializer::kPreloadChunkBytes;
+constexpr u32 BinarySerializer::kReadPreloadChunkBytes;
+constexpr u32 BinarySerializer::kReadMaxBufferBytes;
 
 /** Contains used combinations of 00xx xxx0 bits in the field type encoding. */
 enum FieldTypeBits : u8
@@ -600,7 +601,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(TShared<RTTISche
 
 								if(iteratorField != nullptr)
 								{
-									mStream.Preload((uint32_t)Math::DivideAndRoundUp(typeSizeBits, (uint64_t)8));
+									mStream.EnsureLoadedToBitstream((uint32_t)Math::DivideAndRoundUp(typeSizeBits, (uint64_t)8));
 									iteratorField->ReadPlainTypeTupleFromStream(fieldValue, typeIndex, mStream.GetBitstream(), compressed);
 
 									mStream.Skip(typeSizeBits);
@@ -664,6 +665,10 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(TShared<RTTISche
 					{
 						TShared<MemoryDataStream> dataBlockStream = B3DMakeShared<MemoryDataStream>(dataBlockSize);
 						mStream.ReadBytes(dataBlockStream->Data(), dataBlockSize);
+
+						// This ensures the data stream size reports 'dataBlockSize'
+						dataBlockStream->Seek(dataBlockSize);
+						dataBlockStream->Seek(0);
 
 						curField->SetValue(rttiInstance, output.get(), dataBlockStream, dataBlockSize);
 					}
@@ -822,21 +827,21 @@ void BinaryDeserializationContext::SkipBuiltinType(u32 fieldType, BufferedBitstr
 	case TID_Bool:
 		{
 			bool data;
-			stream.Preload(sizeof(data));
+			stream.EnsureLoadedToBitstream(sizeof(data));
 			RTTIPlainType<bool>::FromMemory(data, stream.GetBitstream(), RTTIFieldInfo(), compressed);
 			break;
 		}
 	case TID_Int32:
 		{
 			int32_t data;
-			stream.Preload(sizeof(data));
+			stream.EnsureLoadedToBitstream(sizeof(data));
 			RTTIPlainType<int32_t>::FromMemory(data, stream.GetBitstream(), RTTIFieldInfo(), compressed);
 			break;
 		}
 	case TID_UInt32:
 		{
 			uint32_t data;
-			stream.Preload(sizeof(data));
+			stream.EnsureLoadedToBitstream(sizeof(data));
 			RTTIPlainType<uint32_t>::FromMemory(data, stream.GetBitstream(), RTTIFieldInfo(), compressed);
 			break;
 		}
@@ -1417,7 +1422,7 @@ TShared<IReflectable> BinarySerializer::Decode(const TShared<DataStream>& stream
 		}
 	}
 
-	BufferedBitstreamReader bufferedStream(&mBuffer, stream, kPreloadChunkBytes, kFlushAfterBytes);
+	BufferedBitstreamReader bufferedStream(&mBuffer, stream, dataLength, kReadPreloadChunkBytes, kReadMaxBufferBytes);
 	BinaryDeserializationContext deserializationContext(*mAlloc, bufferedStream, endBits, flags, context);
 
 	auto fnReportProgress = [this, &bufferedStream]()

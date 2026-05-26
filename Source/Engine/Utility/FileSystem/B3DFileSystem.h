@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DUtilityPrerequisites.h"
+#include "FileSystem/B3DDataStream.h"
 
 namespace b3d
 {
@@ -15,12 +16,13 @@ namespace b3d
 	{
 	public:
 		/**
-		 * Opens a file and returns a data stream capable of reading or writing to that file.
+		 * Opens a file and returns a data stream capable of reading and/or writing to that file.
 		 *
 		 * @param	fullPath	Full path to a file.
-		 * @param	readOnly	(optional) If true, returned stream will only be readable.
+		 * @param	access		(optional) Combination of FileAccessFlag values controlling how the file is accessed.
+		 *						Defaults to read-only.
 		 */
-		static TShared<DataStream> OpenFile(const Path& fullPath, bool readOnly = true);
+		static TShared<DataStream> OpenFile(const Path& fullPath, FileAccessFlags access = FileAccessFlag::Read);
 
 		/**
 		 * Opens a file and returns a data stream capable of reading and writing to that file. If file doesn't exist new
@@ -29,16 +31,6 @@ namespace b3d
 		 * @param	fullPath	Full path to a file.
 		 */
 		static TShared<DataStream> CreateAndOpenFile(const Path& fullPath);
-
-		/**
-		 * Opens a file for read-only access and returns a stream that supports asynchronous reads. On platforms that
-		 * provide a native asynchronous implementation (e.g. overlapped IO on Windows) that will be used, otherwise a
-		 * default implementation that performs synchronous reads on a worker thread is returned.
-		 *
-		 * @param	fullPath	Full path to a file.
-		 * @return				Async stream, or null if the file doesn't exist or couldn't be opened.
-		 */
-		static TShared<IAsyncDataStream> OpenFileAsync(const Path& fullPath);
 
 		/**
 		 * Returns the size of a file in bytes.
@@ -156,18 +148,9 @@ namespace b3d
 		 * platform may override it to provide a native stream type. Returns null if the stream failed to open.
 		 *
 		 * @param	fullPath	Full path to a file.
-		 * @param	accessMode	Combination of DataStream::AccessMode flags the stream should be opened with.
+		 * @param	access		Combination of FileAccessFlag values the stream should be opened with.
 		 */
-		static TShared<DataStream> CreateFileStream(const Path& fullPath, u32 accessMode);
-
-		/**
-		 * Platform hook that constructs the concrete asynchronous read stream backing OpenFileAsync(). The default
-		 * implementation wraps synchronous reads on a worker thread, but a platform may override it to provide a native
-		 * implementation. Returns null if the file failed to open.
-		 *
-		 * @param	fullPath	Full path to a file.
-		 */
-		static TShared<IAsyncDataStream> CreateAsyncFileStream(const Path& fullPath);
+		static TShared<DataStream> CreateFileStream(const Path& fullPath, FileAccessFlags access);
 
 		/** Copy a single file. Internal function used by copy(). */
 		static bool CopyFile(const Path& oldPath, const Path& newPath);

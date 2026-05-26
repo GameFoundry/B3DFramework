@@ -213,7 +213,7 @@ TShared<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
 	TUnique<MemoryDataStream> memStream;
 	FREE_IMAGE_FORMAT imageFormat;
 	{
-		TShared<DataStream> fileData = FileSystem::OpenFile(filePath, true);
+		TShared<DataStream> fileData = FileSystem::OpenFile(filePath);
 		if(fileData->Size() > std::numeric_limits<u32>::max())
 		{
 			B3D_ENSURE_LOG(false, "File size larger than supported!");

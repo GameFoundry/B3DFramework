@@ -44,7 +44,9 @@ namespace b3d
 		void SetData(PixelData* obj, const TShared<DataStream>& value, u32 size)
 		{
 			obj->AllocateInternalBuffer(size);
-			value->Read(obj->GetData(), size);
+
+			TAsyncOp<TShared<MemoryDataStream>> readOp = value->ReadAsync((u64)value->Tell(), size, DataRange(obj->GetData(), size));
+			readOp.BlockUntilComplete();
 		}
 
 	public:

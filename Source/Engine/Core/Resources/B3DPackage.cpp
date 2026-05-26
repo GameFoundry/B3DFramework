@@ -859,80 +859,80 @@ size_t Package::GetResourceSizeInDataStream(const UUID& id) const
 
 TShared<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offsetInStream, size_t sizeInStream, CompressionType compressionType, std::atomic<float>& outProgress) const
 {
-	SharedLock dataLock(mDataMutex);
+	Path packagePath;
+	{
+		Lock lock(mPathMutex);
+		packagePath = mAssociatedPackageFilePath;
+	}
 
-	const TShared<DataStream> dataStream = FileSystem::OpenFile(mAssociatedPackageFilePath);
+	// Note: File content must be synchronized at a higher level via package locks, to avoid multiple packages accessing the same file.
+	TShared<DataStream> dataStream = FileSystem::OpenFile(packagePath, FileAccessFlag::Read | FileAccessFlag::Async);
+
 	if (!dataStream)
 	{
-		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). The package has not been serialized or the package file is missing.", mName, mAssociatedPackageFilePath, id, mAssociatedPackageFilePath);
+		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). The package has not been serialized or the package file is missing.", mName, packagePath, id);
 		return nullptr;
 	}
 
 	if (!dataStream->IsReadable())
 	{
-		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). The data stream from package file is not readable.", mName, mAssociatedPackageFilePath, id);
+		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). The data stream from package file is not readable.", mName, packagePath, id);
 		return nullptr;
 	}
+
+	if (offsetInStream >= dataStream->Size())
+	{
+		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Data stream from package file reached end prematurely.", mName, packagePath, id);
+		return nullptr;
+	}
+
+	dataStream->Seek(offsetInStream);
 
 	RTTIOperationEngineContext rttiOperationContext;
 
-	// Read resource data
 	TShared<IReflectable> loadedData;
-	dataStream->Seek(offsetInStream);
-
-	if (dataStream->Eof())
+	if (compressionType == CompressionType::Uncompressed)
 	{
-		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Data stream from package file reached end prematurely.", mName, mAssociatedPackageFilePath, id);
-		return nullptr;
+		BinarySerializer binarySerializer;
+		loadedData = binarySerializer.Decode(dataStream, (u32)sizeInStream, rttiOperationContext, BinarySerializerFlag::None,
+			[&outProgress](float progress) { outProgress.exchange(progress, std::memory_order_relaxed); });
 	}
 	else
 	{
-		if (compressionType == CompressionType::Uncompressed)
-		
+		constexpr float kCompressionProgressWeight = 0.9f; // Assuming compression will take 90% of the deserialization time.
+		const TShared<MemoryDataStream> uncompressedStream = B3DMakeShared<MemoryDataStream>();
+
+		const bool decompressionSuccessful = Compression::Decompress(*dataStream, *uncompressedStream, sizeInStream, compressionType, [&outProgress, kCompressionProgressWeight](float progress) {
+			outProgress.exchange(progress * kCompressionProgressWeight, std::memory_order_relaxed);
+		});
+
+		uncompressedStream->Seek(0);
+
+		if (decompressionSuccessful)
 		{
-			BinarySerializer binarySerializer;
-			loadedData = binarySerializer.Decode(dataStream, (u32)sizeInStream, rttiOperationContext, BinarySerializerFlag::None,
-				[&outProgress](float progress) { outProgress.exchange(progress, std::memory_order_relaxed); });
+			BinarySerializer bs;
+			loadedData = bs.Decode(uncompressedStream, (u32)uncompressedStream->Size(), rttiOperationContext, BinarySerializerFlag::None,
+								   [&outProgress, kCompressionProgressWeight](float progress) {
+									   outProgress.exchange(kCompressionProgressWeight + progress * (1.0f - kCompressionProgressWeight), std::memory_order_relaxed);
+								   });
 		}
 		else
 		{
-			constexpr float kCompressionProgressWeight = 0.9f; // Assuming compression will take 90% of the deserialization time.
-			const TShared<MemoryDataStream> uncompressedStream = B3DMakeShared<MemoryDataStream>();
-
-			const bool decompressionSuccessful = Compression::Decompress(*dataStream, *uncompressedStream, sizeInStream, compressionType, [&outProgress, kCompressionProgressWeight](float progress) {
-				outProgress.exchange(progress * kCompressionProgressWeight, std::memory_order_relaxed);
-			});
-
-			uncompressedStream->Seek(0);
-
-			if (decompressionSuccessful)
-			{
-				BinarySerializer bs;
-				loadedData = bs.Decode(uncompressedStream, (u32)uncompressedStream->Size(), rttiOperationContext, BinarySerializerFlag::None,
-									   [&outProgress, kCompressionProgressWeight](float progress) {
-										   outProgress.exchange(kCompressionProgressWeight + progress * (1.0f - kCompressionProgressWeight), std::memory_order_relaxed);
-									   });
-			}
-			else
-			{
-				B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Data decompression failed.", mName, mAssociatedPackageFilePath, id);
-				return nullptr;
-			}
+			B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Data decompression failed.", mName, packagePath, id);
+			return nullptr;
 		}
 	}
 
 	if (loadedData == nullptr)
 	{
-		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Unknown deserialization error.", mName, mAssociatedPackageFilePath, id);
+		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Unknown deserialization error.", mName, packagePath, id);
 		return nullptr;
 	}
-	else
+
+	if (!loadedData->IsDerivedFrom(Resource::GetRttiStatic()))
 	{
-		if (!loadedData->IsDerivedFrom(Resource::GetRttiStatic()))
-		{
-			B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Deserialized object is not a Resource type.", mName, mAssociatedPackageFilePath, id);
-			return nullptr;
-		}
+		B3D_LOG(Error, LogResources, "Cannot deserialize package resource with id '{2}' in package {0} ({1}). Deserialized object is not a Resource type.", mName, packagePath, id);
+		return nullptr;
 	}
 
 	return std::static_pointer_cast<Resource>(loadedData);
@@ -1028,7 +1028,15 @@ bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& 
 
 	stream->Skip(resourceHeaderSize);
 
-	const TShared<DataStream> existingPackageFileStream = !mAssociatedPackageFilePath.IsEmpty() ? FileSystem::OpenFile(mAssociatedPackageFilePath) : nullptr;
+	Path existingPackagePath;
+	{
+		Lock lock(mPathMutex);
+		existingPackagePath = mAssociatedPackageFilePath;
+	}
+
+	TShared<DataStream> existingPackageFileStream;
+	if(!existingPackagePath.IsEmpty())
+		existingPackageFileStream = FileSystem::OpenFile(existingPackagePath);
 
 	FrameAllocatorScope frameScope;
 	FrameVector<SerializedResourceHeader> resourceHeaders(resourceCount);
@@ -1060,11 +1068,9 @@ bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& 
 		}
 		else
 		{
-			SharedLock dataLock(mDataMutex);
-
 			if (!existingPackageFileStream || entry.second->SizeInDataStream == 0)
 			{
-				B3D_LOG(Error, LogResources, "Cannot save resource with id {2} to package {0} ({1}). Original data for resource cannot be found in the associated package file.", mName, mAssociatedPackageFilePath, entry.second->MetaData->Id);
+				B3D_LOG(Error, LogResources, "Cannot save resource with id {2} to package {0} ({1}). Original data for resource cannot be found in the associated package file.", mName, existingPackagePath, entry.second->MetaData->Id);
 				resourceHeaders[resourceIndex].SizeInDataStream = 0;
 			}
 			else
@@ -1102,9 +1108,9 @@ bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& 
 						uncompressedDataStream = B3DMakeShared<MemoryDataStream>();
 						if(!Compression::Decompress(*existingPackageFileStream, *uncompressedDataStream, entry.second->SizeInDataStream, savedCompressionTypesPerResource[resourceIndex]))
 						{
-							B3D_LOG(Error, LogResources, "Cannot save resource with id {2} to package {0} ({1}). Decompression failed for original resource data.", mName, mAssociatedPackageFilePath, entry.second->MetaData->Id);
+							B3D_LOG(Error, LogResources, "Cannot save resource with id {2} to package {0} ({1}). Decompression failed for original resource data.", mName, existingPackagePath, entry.second->MetaData->Id);
 							continue;
-							
+
 						}
 
 						uncompressedDataStream->Seek(0);
@@ -1150,7 +1156,7 @@ bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& 
 
 void Package::AssociateFileWithPackage(const Path& path)
 {
-	UniqueLock lock(mDataMutex);
+	Lock lock(mPathMutex);
 	mAssociatedPackageFilePath = path;
 }
 
@@ -1159,7 +1165,10 @@ TShared<Package> Package::Clone() const
 	Lock lock(mMetaDataMutex);
 
 	TShared<Package> output = Create(mName, mId);
-	output->mAssociatedPackageFilePath = mAssociatedPackageFilePath;
+	{
+		Lock pathLock(mPathMutex);
+		output->mAssociatedPackageFilePath = mAssociatedPackageFilePath;
+	}
 	output->mPackageMetaData = B3DRTTIClone(mPackageMetaData, false);
 
 	for (const auto& entry : mResourceInformationByUUID)

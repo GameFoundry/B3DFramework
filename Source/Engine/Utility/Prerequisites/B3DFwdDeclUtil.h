@@ -220,8 +220,6 @@ namespace b3d
 	class DataStream;
 	class MemoryDataStream;
 	class FileDataStream;
-	class IAsyncDataStream;
-	class AsyncFileDataStream;
 	class MeshData;
 	class FileSystem;
 	class Timer;

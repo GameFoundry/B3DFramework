@@ -116,7 +116,9 @@ namespace b3d
 		void SetDataBuffer(MaterialParameters* obj, const TShared<DataStream>& value, u32 size)
 		{
 			obj->mDataParamsBuffer = obj->mAlloc.Alloc(size);
-			value->Read(obj->mDataParamsBuffer, size);
+
+			TAsyncOp<TShared<MemoryDataStream>> readOp = value->ReadAsync((u64)value->Tell(), size, DataRange(obj->mDataParamsBuffer, size));
+			readOp.BlockUntilComplete();
 
 			obj->mDataSize = size;
 		}

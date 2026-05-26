@@ -293,7 +293,7 @@ void PersistentCache::WriteDirtyMetaData()
 
 		const Path pathToPackage = GetPackagePathForEntry(entryPath);
 
-		const TShared<DataStream> packageDataStream = FileSystem::OpenFile(pathToPackage, false);
+		const TShared<DataStream> packageDataStream = FileSystem::OpenFile(pathToPackage, FileAccessFlag::Read | FileAccessFlag::Write);
 		if(!packageDataStream)
 			continue;
 
@@ -565,15 +565,20 @@ TOptional<PersistentCache::CacheOperation> PersistentCache::AcquireWriteOperatio
 		return CacheOperation(shared_from_this(), path, CacheOperationType::Write);
 	};
 
-	// If there are any existing read or write operation, they need to complete first
-	mOperationCompletedSignal.Wait(lock, [this, &path]
+	// If there are any existing read or write operations on the entry, they need to complete first.
+	const auto fnIsEntryFree = [this, &path]
 	{
 		auto found = mEntries.find(path);
 		if (found == mEntries.end())
 			return true;
 
 		return !found->second.IsWriteOperationActive && found->second.ActiveReadOperationCount == 0;
-	});
+	};
+
+	if(blocking)
+		mOperationCompletedSignal.Wait(lock, fnIsEntryFree);
+	else if(!fnIsEntryFree())
+		return {};
 
 	auto found = mEntries.find(path);
 	if(found == mEntries.end())

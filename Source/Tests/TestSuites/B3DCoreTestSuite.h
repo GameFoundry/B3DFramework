@@ -15,6 +15,7 @@ namespace b3d
 		void TestAnimCurveIntegration();
 		void TestLookupTable();
 		void TestBinarySerialization();
+		void TestDataBlockSerialization();
 		void TestSerializedObject();
 		void TestBinaryDelta();
 	};

@@ -50,6 +50,19 @@ TShared<DataStream> fileStream = FileSystem::CreateAndOpenFile("C:/Path/To/File.
 // Write to data stream (see below)
 ~~~~~~~~~~~~~
 
+Use @b3d::FileSystem::OpenFile to open an already existing file. By default the file is opened read-only. Pass a combination of @b3d::FileAccessFlag values to control how the file is accessed:
+ - **FileAccessFlag::Read** - File can be read from.
+ - **FileAccessFlag::Write** - File can be written to.
+ - **FileAccessFlag::Async** - Opens the file for asynchronous reads via @b3d::DataStream::ReadAsync (see below). Intended to be combined with **Read**.
+
+~~~~~~~~~~~~~{.cpp}
+// Open an existing file for reading (default)
+TShared<DataStream> readStream = FileSystem::OpenFile("C:/Path/To/File.txt");
+
+// Open an existing file for both reading and writing
+TShared<DataStream> readWriteStream = FileSystem::OpenFile("C:/Path/To/File.txt", FileAccessFlag::Read | FileAccessFlag::Write);
+~~~~~~~~~~~~~
+
 # Data streams
 If you create or open a file you will receive a @b3d::DataStream object. Data streams allow you to easily write to, or read from open files.
 
@@ -93,3 +106,25 @@ B3DFree(dataBuffer);
 Each time you read or write from the stream, the current read/write indices will advance. So subsequent calls to read/write will continue from the last position that was read/written.
 
 Finally, use @b3d::DataStream::Size to find out the size of a stream in bytes.
+
+# Asynchronous reads
+Open a file with @b3d::FileAccessFlag::Async to read from it asynchronously through @b3d::DataStream::ReadAsync. On platforms that support it this uses a native asynchronous IO path, so the read can overlap with other work; on other platforms it falls back to a synchronous read. Unlike @b3d::DataStream::Read, **ReadAsync** is positioned: it reads starting from an explicit offset and neither uses nor advances the stream's read/write cursor.
+
+**ReadAsync** returns a @b3d::TAsyncOp that completes once the data is available. Call @b3d::TAsyncOp::BlockUntilComplete to wait for the read, then @b3d::TAsyncOp::GetReturnValue to retrieve the resulting @b3d::MemoryDataStream.
+
+~~~~~~~~~~~~~{.cpp}
+TShared<DataStream> fileStream = FileSystem::OpenFile("C:/Path/To/File.txt", FileAccessFlag::Read | FileAccessFlag::Async);
+
+// Start reading 1024 bytes from the start of the file
+TAsyncOp<TShared<MemoryDataStream>> readOperation = fileStream->ReadAsync(0, 1024);
+
+// ... do other work while the read is in progress ...
+
+// Wait for the read to complete, then retrieve the data
+readOperation.BlockUntilComplete();
+TShared<MemoryDataStream> readData = readOperation.GetReturnValue();
+
+fileStream->Close();
+~~~~~~~~~~~~~
+
+By default **ReadAsync** allocates and returns a new memory block containing the data. You may instead provide your own memory through the @b3d::DataRange parameter, in which case the returned stream wraps your buffer without taking ownership and you must ensure that memory outlives the stream. The returned stream's size may be smaller than requested if the end of the file was reached.

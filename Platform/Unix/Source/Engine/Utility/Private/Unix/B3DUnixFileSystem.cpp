@@ -3,7 +3,6 @@
 #include "FileSystem/B3DFileSystem.h"
 
 #include "FileSystem/B3DDataStream.h"
-#include "FileSystem/B3DAsyncDataStream.h"
 #include "Debug/B3DDebug.h"
 
 #include <dirent.h>
@@ -144,9 +143,9 @@ bool FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 	return true;
 }
 
-TShared<DataStream> FileSystem::CreateFileStream(const Path& path, u32 accessMode)
+TShared<DataStream> FileSystem::CreateFileStream(const Path& path, FileAccessFlags access)
 {
-	TShared<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(path, (DataStream::AccessMode)accessMode);
+	TShared<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(path, access);
 	if(!fileDataStream->Open())
 	{
 		B3D_LOG(Warning, LogFileSystem, "Failed to open file at path '{0}'. File stream failed to open.", path);
@@ -154,11 +153,6 @@ TShared<DataStream> FileSystem::CreateFileStream(const Path& path, u32 accessMod
 	}
 
 	return fileDataStream;
-}
-
-TShared<IAsyncDataStream> FileSystem::CreateAsyncFileStream(const Path& path)
-{
-	return AsyncFileDataStream::Create(path);
 }
 
 u64 FileSystem::GetFileSize(const Path& path)

@@ -508,7 +508,7 @@ namespace b3d
 		UnorderedMap<UUID, TUnique<ResourceInformation>> mResourceInformationByUUID;
 
 		mutable Mutex mMetaDataMutex;
-		mutable SharedMutex mDataMutex;
+		mutable Mutex mPathMutex;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

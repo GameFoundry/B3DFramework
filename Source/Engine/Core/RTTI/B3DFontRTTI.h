@@ -163,15 +163,24 @@ namespace b3d
 		void SetFontData(Font* obj, const TShared<DataStream>& value, u32 size)
 		{
 			if(value == nullptr)
-				obj->mInformation.FontData = nullptr;
-			else if(value->IsFile())
 			{
-				obj->mInformation.FontData = B3DMakeShared<MemoryDataStream>(size);
-				obj->mInformation.FontData->Seek(size); // Note: Forces the size to be set to this value. TODO: We need a better way to do this.
-				value->Read(obj->mInformation.FontData->Data(), size);
+				obj->mInformation.FontData = nullptr;
+				return;
 			}
-			else
+
+			if(!value->IsFile())
+			{
 				obj->mInformation.FontData = std::static_pointer_cast<MemoryDataStream>(value);
+				return;
+			}
+
+			TShared<MemoryDataStream> fontData = B3DMakeShared<MemoryDataStream>(size);
+			fontData->Seek(size); // Forces Size() to be set (the capacity constructor leaves it at 0).
+
+			TAsyncOp<TShared<MemoryDataStream>> readOp = value->ReadAsync((u64)value->Tell(), size, DataRange(fontData->Data(), size));
+			readOp.BlockUntilComplete();
+
+			obj->mInformation.FontData = fontData;
 		}
 
 	public:

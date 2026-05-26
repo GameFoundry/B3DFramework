@@ -15,24 +15,38 @@ namespace
 	constexpr u64 kMaxTransferPerCall = 0xFFFF0000ull;
 }
 
+struct Win32FileDataStream::AsyncChunkReadRequest
+{
+	OVERLAPPED Overlapped; /**< Must be the first member so the OVERLAPPED can be recovered via CONTAINING_RECORD. */
+	Win32FileDataStream* Stream = nullptr;
+	void* Buffer = nullptr;
+	bool OwnsBuffer = false;
+	u64 BaseOffset = 0; /**< File offset where the read began. */
+	u64 TotalByteCount = 0; /**< Total number of bytes to read (clamped to the end of file). */
+	u64 BytesRead = 0; /**< Bytes read so far across all chunks. */
+	HANDLE Event = nullptr; /**< Manual-reset completion event; also stored in Overlapped.hEvent. */
+	HANDLE WaitHandle = nullptr; /**< Threadpool wait registration for the current chunk. */
+	TAsyncOp<TShared<MemoryDataStream>> Op;
+};
+
 // ************************************************************************************************************************
 // Win32FileDataStream
 // ************************************************************************************************************************
 
-Win32FileDataStream::Win32FileDataStream(const Path& path, AccessMode accessMode)
-	: DataStream(accessMode), mPath(path)
+Win32FileDataStream::Win32FileDataStream(const Path& path, FileAccessFlags access)
+	: mPath(path), mAccess(access)
 { }
 
 Win32FileDataStream::~Win32FileDataStream()
 {
-	if(mHandle != nullptr)
-		Close();
+	Close();
 }
 
 bool Win32FileDataStream::Open()
 {
-	const bool wantRead = (mAccess & READ) != 0;
-	const bool wantWrite = (mAccess & WRITE) != 0;
+	const bool wantRead = mAccess.IsSet(FileAccessFlag::Read);
+	const bool wantWrite = mAccess.IsSet(FileAccessFlag::Write);
+	mIsOverlapped = mAccess.IsSet(FileAccessFlag::Async);
 
 	DWORD access = 0;
 	if(wantRead)
@@ -44,12 +58,17 @@ bool Win32FileDataStream::Open()
 	// Write-only mirrors CreateAndOpenFile: create the file (truncating any existing one). Otherwise open an existing file.
 	const DWORD disposition = (wantWrite && !wantRead) ? CREATE_ALWAYS : OPEN_EXISTING;
 
+	// Streams opened with the ASYNC flag use overlapped IO so ReadAsync() can issue true asynchronous reads. The same
+	// overlapped handle also serves synchronous Read()/Write() (which issue an overlapped operation and wait for it).
+	DWORD flags = FILE_ATTRIBUTE_NORMAL;
+	if(mIsOverlapped)
+		flags |= FILE_FLAG_OVERLAPPED;
+
 	// Match std::fstream's sharing mode (MSVC opens with _SH_DENYNO == FILE_SHARE_READ | FILE_SHARE_WRITE). Sharing
-	// writes is required because the engine legitimately holds the same file open for writing while opening it again
-	// for reading - e.g. PersistentCache::WriteDirtyMetaData opens a package read+write and then loads (reads) it back.
+	// writes is required because the engine holds the same file open for writing while opening it again for reading.
 	// Without FILE_SHARE_WRITE the second open fails with ERROR_SHARING_VIOLATION even though the file exists.
 	const WString widePath = UTF8::ToWide(mPath.ToString());
-	HANDLE handle = CreateFileW(widePath.c_str(), access, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, disposition, FILE_ATTRIBUTE_NORMAL, nullptr);
+	HANDLE handle = CreateFileW(widePath.c_str(), access, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, disposition, flags, nullptr);
 	if(handle == INVALID_HANDLE_VALUE)
 	{
 		B3D_LOG(Error, LogFileSystem, "Failed to open file '{0}' (error {1}).", mPath, (u32)GetLastError());
@@ -57,6 +76,20 @@ bool Win32FileDataStream::Open()
 	}
 
 	mHandle = handle;
+
+	if(mIsOverlapped)
+	{
+		// Manual-reset event used by the synchronous Read()/Write() path to wait on overlapped completions. Async reads
+		// use their own per-operation events, so this can't be confused with them.
+		mSyncEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+		if(mSyncEvent == nullptr)
+		{
+			B3D_LOG(Error, LogFileSystem, "Failed to create a synchronization event for file '{0}' (error {1}).", mPath, (u32)GetLastError());
+			CloseHandle(handle);
+			mHandle = nullptr;
+			return false;
+		}
+	}
 
 	LARGE_INTEGER size{};
 	if(GetFileSizeEx(handle, &size))
@@ -83,10 +116,54 @@ size_t Win32FileDataStream::Read(void* outData, size_t byteCount) const
 		const DWORD bytesToRead = remaining > kMaxTransferPerCall ? (DWORD)kMaxTransferPerCall : (DWORD)remaining;
 
 		DWORD bytesRead = 0;
-		if(!ReadFile((HANDLE)mHandle, out + totalBytesRead, bytesToRead, &bytesRead, nullptr))
+		if(mIsOverlapped)
 		{
-			B3D_LOG(Error, LogFileSystem, "Error while reading from file '{0}' (error {1}).", mPath, (u32)GetLastError());
-			break;
+			// Overlapped handles ignore the file pointer, so the read position is supplied via the OVERLAPPED and the
+			// completion is waited on synchronously. The per-stream event makes the wait unambiguous even if async reads
+			// are concurrently in flight on the same handle.
+			const u64 fileOffset = mCursor + totalBytesRead;
+
+			OVERLAPPED ov{};
+			ov.Offset = (DWORD)(fileOffset & 0xFFFFFFFFull);
+			ov.OffsetHigh = (DWORD)(fileOffset >> 32);
+			ov.hEvent = (HANDLE)mSyncEvent;
+			ResetEvent((HANDLE)mSyncEvent);
+
+			if(!ReadFile((HANDLE)mHandle, out + totalBytesRead, bytesToRead, &bytesRead, &ov))
+			{
+				const DWORD error = GetLastError();
+				if(error == ERROR_IO_PENDING)
+				{
+					if(!GetOverlappedResult((HANDLE)mHandle, &ov, &bytesRead, TRUE))
+					{
+						const DWORD waitError = GetLastError();
+						if(waitError == ERROR_HANDLE_EOF)
+							bytesRead = 0;
+						else
+						{
+							B3D_LOG(Error, LogFileSystem, "Error while reading from file '{0}' (error {1}).", mPath, (u32)waitError);
+							break;
+						}
+					}
+				}
+				else if(error == ERROR_HANDLE_EOF)
+				{
+					bytesRead = 0;
+				}
+				else
+				{
+					B3D_LOG(Error, LogFileSystem, "Error while reading from file '{0}' (error {1}).", mPath, (u32)error);
+					break;
+				}
+			}
+		}
+		else
+		{
+			if(!ReadFile((HANDLE)mHandle, out + totalBytesRead, bytesToRead, &bytesRead, nullptr))
+			{
+				B3D_LOG(Error, LogFileSystem, "Error while reading from file '{0}' (error {1}).", mPath, (u32)GetLastError());
+				break;
+			}
 		}
 
 		if(bytesRead == 0) // End of file reached.
@@ -100,6 +177,222 @@ size_t Win32FileDataStream::Read(void* outData, size_t byteCount) const
 		mEof = true;
 
 	return totalBytesRead;
+}
+
+TAsyncOp<TShared<MemoryDataStream>> Win32FileDataStream::ReadAsync(u64 offset, size_t byteCount, TOptional<DataRange> userSuppliedMemory)
+{
+	// Non-overlapped handles can't issue native asynchronous reads, so use the synchronous default implementation.
+	if(!mIsOverlapped)
+		return DataStream::ReadAsync(offset, byteCount, userSuppliedMemory);
+
+	TAsyncOp<TShared<MemoryDataStream>> op;
+
+	if(byteCount == 0)
+	{
+		op.CompleteOperation(B3DMakeShared<MemoryDataStream>());
+		return op;
+	}
+
+	{
+		Lock lock(mMutex);
+		if(mClosed || mHandle == nullptr)
+		{
+			op.CompleteOperation(nullptr);
+			return op;
+		}
+
+		mOutstandingReads++;
+	}
+
+	AsyncChunkReadRequest* request = B3DNew<AsyncChunkReadRequest>();
+	request->Stream = this;
+	request->BaseOffset = offset;
+	request->Op = op;
+	request->Event = CreateEventW(nullptr, TRUE, FALSE, nullptr); // Manual-reset, initially nonsignaled.
+
+	if(request->Event == nullptr)
+	{
+		B3D_LOG(Error, LogFileSystem, "Failed to create an event for an asynchronous read (error {0}).", (u32)GetLastError());
+		FinalizeAsyncRead(request, 0, false);
+		return op;
+	}
+
+	if(userSuppliedMemory.has_value())
+	{
+		request->Buffer = userSuppliedMemory->Data;
+		request->OwnsBuffer = false;
+	}
+	else
+	{
+		request->Buffer = B3DAllocate(byteCount);
+		request->OwnsBuffer = true;
+
+		if(request->Buffer == nullptr)
+		{
+			B3D_LOG(Error, LogFileSystem, "Failed to allocate {0} bytes for an asynchronous read.", (u64)byteCount);
+			FinalizeAsyncRead(request, 0, false);
+			return op;
+		}
+	}
+
+	// Clamp the read to the bytes actually available so ReadFile never crosses the end of file. This keeps the
+	// completion behaviour unambiguous and matches the synchronous default. Reads entirely at/after EOF complete inline.
+	const u64 available = offset < mSize ? (mSize - offset) : 0;
+	request->TotalByteCount = byteCount > available ? available : byteCount;
+
+	if(request->TotalByteCount == 0)
+	{
+		FinalizeAsyncRead(request, 0, true);
+		return op;
+	}
+
+	IssueAsyncChunkRead(request);
+	return op;
+}
+
+bool Win32FileDataStream::IssueAsyncChunkRead(AsyncChunkReadRequest* request)
+{
+	// A single ReadFile transfers at most a DWORD's worth of bytes, so reads larger than that are split into chunks and
+	// chained from the completion callback. This keeps the per-call count valid while supporting reads beyond 4 GiB.
+	const u64 fileOffset = request->BaseOffset + request->BytesRead;
+	const u64 remaining = request->TotalByteCount - request->BytesRead;
+	const DWORD bytesToRead = remaining > kMaxTransferPerCall ? (DWORD)kMaxTransferPerCall : (DWORD)remaining;
+
+	ZeroMemory(&request->Overlapped, sizeof(OVERLAPPED));
+	request->Overlapped.Offset = (DWORD)(fileOffset & 0xFFFFFFFFull);
+	request->Overlapped.OffsetHigh = (DWORD)(fileOffset >> 32);
+	request->Overlapped.hEvent = request->Event;
+	ResetEvent(request->Event);
+
+	u8* const out = static_cast<u8*>(request->Buffer) + request->BytesRead;
+
+	// Register the wait on the completion event before issuing the read so the completion can't be missed.
+	// The wait fires once (WT_EXECUTEONLYONCE) when the event is signaled, and is re-registered for each chunk.
+	if(!RegisterWaitForSingleObject(&request->WaitHandle, request->Event, &OnAsyncChunkReadComplete, request, INFINITE, WT_EXECUTEONLYONCE))
+	{
+		B3D_LOG(Warning, LogFileSystem, "Failed to register an IO wait for an asynchronous read (error {0}).", (u32)GetLastError());
+
+		request->WaitHandle = nullptr;
+		FinalizeAsyncRead(request, (size_t)request->BytesRead, false);
+
+		return false;
+	}
+
+	const BOOL ok = ReadFile((HANDLE)mHandle, out, bytesToRead, nullptr, &request->Overlapped);
+	if(!ok)
+	{
+		const DWORD error = GetLastError();
+		if(error != ERROR_IO_PENDING)
+		{
+			// The read failed synchronously; the event won't be signaled, so the registered wait would never fire.
+			// Unregister it (blocking - we're not in the callback) and finalize. ERROR_HANDLE_EOF shouldn't happen
+			// (reads are clamped) but is treated as a clean end of data.
+			UnregisterWaitEx(request->WaitHandle, INVALID_HANDLE_VALUE);
+			request->WaitHandle = nullptr;
+
+			if(error == ERROR_HANDLE_EOF)
+			{
+				FinalizeAsyncRead(request, (size_t)request->BytesRead, true);
+			}
+			else
+			{
+				B3D_LOG(Warning, LogFileSystem, "Asynchronous read failed (error {0}).", (u32)error);
+				FinalizeAsyncRead(request, (size_t)request->BytesRead, false);
+			}
+
+			return false;
+		}
+	}
+
+	// On both ERROR_IO_PENDING and synchronous success the event is signaled on completion, so the registered wait fires.
+	return true;
+}
+
+void __stdcall Win32FileDataStream::OnAsyncChunkReadComplete(void* parameter, unsigned char /*timedOut*/)
+{
+	AsyncChunkReadRequest* request = static_cast<AsyncChunkReadRequest*>(parameter);
+
+	// One-shot wait: unregister it (non-blocking - we're inside its own callback, so a blocking unregister would
+	// deadlock) so the registration is released and the next chunk can register a fresh wait.
+	UnregisterWaitEx(request->WaitHandle, nullptr);
+	request->WaitHandle = nullptr;
+
+	// The outstanding-read counter keeps the handle alive until all async reads finish, so it's valid here even if
+	// Close() cancelled this read (in which case GetOverlappedResult reports ERROR_OPERATION_ABORTED).
+	DWORD bytesTransferred = 0;
+	DWORD errorCode = ERROR_SUCCESS;
+	if(!GetOverlappedResult((HANDLE)request->Stream->mHandle, &request->Overlapped, &bytesTransferred, FALSE))
+		errorCode = GetLastError();
+
+	request->Stream->FinalizeAsyncChunkRead(request, errorCode, (size_t)bytesTransferred);
+}
+
+void Win32FileDataStream::FinalizeAsyncChunkRead(AsyncChunkReadRequest* request, unsigned long errorCode, size_t bytesTransferred)
+{
+	// Reads are clamped to the file size, so ERROR_HANDLE_EOF isn't expected, but treat it (and a zero-byte transfer)
+	// as a clean end of data. Any other error - including ERROR_OPERATION_ABORTED from Close() cancelling in-flight
+	// reads - finishes the operation as a failure, discarding whatever was read so far.
+	if(errorCode != ERROR_SUCCESS && errorCode != ERROR_HANDLE_EOF)
+	{
+		FinalizeAsyncRead(request, (size_t)request->BytesRead, false);
+		return;
+	}
+
+	request->BytesRead += bytesTransferred;
+
+	const bool reachedEof = (errorCode == ERROR_HANDLE_EOF) || (bytesTransferred == 0);
+	const bool moreToRead = request->BytesRead < request->TotalByteCount;
+
+	if(moreToRead && !reachedEof)
+	{
+		bool closing;
+		{
+			Lock lock(mMutex);
+			closing = mClosed;
+		}
+
+		if(!closing)
+		{
+			IssueAsyncChunkRead(request); // Chains the next chunk
+			return;
+		}
+
+		// Close() was requested between chunks: stop chaining and finish as a failure (matching an in-flight chunk that
+		// gets cancelled via CancelIoEx).
+		FinalizeAsyncRead(request, (size_t)request->BytesRead, false);
+		return;
+	}
+
+	FinalizeAsyncRead(request, (size_t)request->BytesRead, true);
+}
+
+void Win32FileDataStream::FinalizeAsyncRead(AsyncChunkReadRequest* request, size_t bytesRead, bool succeeded)
+{
+	TShared<MemoryDataStream> result;
+	if(succeeded)
+	{
+		if(request->OwnsBuffer)
+			result = B3DMakeShared<MemoryDataStream>(request->Buffer, bytesRead, true);
+		else
+			result = B3DMakeShared<MemoryDataStream>(request->Buffer, bytesRead);
+	}
+	else if(request->OwnsBuffer && request->Buffer != nullptr)
+	{
+		B3DFree(request->Buffer);
+	}
+
+	if(request->Event != nullptr)
+		CloseHandle(request->Event);
+
+	request->Op.CompleteOperation(result);
+	B3DDelete(request);
+
+	Lock lock(mMutex);
+	B3D_ASSERT(mOutstandingReads > 0);
+	mOutstandingReads--;
+
+	if(mOutstandingReads == 0)
+		mAllReadsComplete.notify_all();
 }
 
 size_t Win32FileDataStream::Write(const void* data, size_t byteCount)
@@ -118,10 +411,41 @@ size_t Win32FileDataStream::Write(const void* data, size_t byteCount)
 		const DWORD bytesToWrite = remaining > kMaxTransferPerCall ? (DWORD)kMaxTransferPerCall : (DWORD)remaining;
 
 		DWORD bytesWritten = 0;
-		if(!WriteFile((HANDLE)mHandle, in + totalBytesWritten, bytesToWrite, &bytesWritten, nullptr))
+		if(mIsOverlapped)
 		{
-			B3D_LOG(Error, LogFileSystem, "Error while writing to file '{0}' (error {1}).", mPath, (u32)GetLastError());
-			break;
+			const u64 fileOffset = mCursor + totalBytesWritten;
+
+			OVERLAPPED ov{};
+			ov.Offset = (DWORD)(fileOffset & 0xFFFFFFFFull);
+			ov.OffsetHigh = (DWORD)(fileOffset >> 32);
+			ov.hEvent = (HANDLE)mSyncEvent;
+			ResetEvent((HANDLE)mSyncEvent);
+
+			if(!WriteFile((HANDLE)mHandle, in + totalBytesWritten, bytesToWrite, &bytesWritten, &ov))
+			{
+				const DWORD error = GetLastError();
+				if(error == ERROR_IO_PENDING)
+				{
+					if(!GetOverlappedResult((HANDLE)mHandle, &ov, &bytesWritten, TRUE))
+					{
+						B3D_LOG(Error, LogFileSystem, "Error while writing to file '{0}' (error {1}).", mPath, (u32)GetLastError());
+						break;
+					}
+				}
+				else
+				{
+					B3D_LOG(Error, LogFileSystem, "Error while writing to file '{0}' (error {1}).", mPath, (u32)error);
+					break;
+				}
+			}
+		}
+		else
+		{
+			if(!WriteFile((HANDLE)mHandle, in + totalBytesWritten, bytesToWrite, &bytesWritten, nullptr))
+			{
+				B3D_LOG(Error, LogFileSystem, "Error while writing to file '{0}' (error {1}).", mPath, (u32)GetLastError());
+				break;
+			}
 		}
 
 		totalBytesWritten += bytesWritten;
@@ -138,6 +462,14 @@ size_t Win32FileDataStream::Skip(size_t count)
 {
 	if(!B3D_ENSURE(mHandle != nullptr))
 		return 0;
+
+	if(mIsOverlapped)
+	{
+		// Overlapped IO is positioned, so the cursor is tracked purely in software.
+		mCursor += count;
+		mEof = false;
+		return count;
+	}
 
 	LARGE_INTEGER distance;
 	distance.QuadPart = (LONGLONG)count;
@@ -160,6 +492,14 @@ size_t Win32FileDataStream::Seek(size_t pos)
 {
 	if(!B3D_ENSURE(mHandle != nullptr))
 		return (size_t)mCursor;
+
+	if(mIsOverlapped)
+	{
+		// Overlapped IO is positioned, so the cursor is tracked purely in software.
+		mCursor = (u64)pos;
+		mEof = false;
+		return (size_t)mCursor;
+	}
 
 	LARGE_INTEGER distance;
 	distance.QuadPart = (LONGLONG)pos;
@@ -189,7 +529,7 @@ bool Win32FileDataStream::Eof() const
 
 TShared<DataStream> Win32FileDataStream::Clone(bool copyData) const
 {
-	return B3DMakeShared<Win32FileDataStream>(mPath, (AccessMode)GetAccessMode());
+	return B3DMakeShared<Win32FileDataStream>(mPath, mAccess);
 }
 
 bool Win32FileDataStream::Flush()
@@ -197,7 +537,7 @@ bool Win32FileDataStream::Flush()
 	if(!B3D_ENSURE(mHandle != nullptr))
 		return false;
 
-	if((mAccess & WRITE) != 0)
+	if(mAccess.IsSet(FileAccessFlag::Write))
 		return FlushFileBuffers((HANDLE)mHandle) != 0;
 
 	return true;
@@ -205,247 +545,17 @@ bool Win32FileDataStream::Flush()
 
 bool Win32FileDataStream::Close()
 {
-	bool flushResult = true;
-	if(mHandle != nullptr)
-	{
-		if((mAccess & WRITE) != 0)
-			flushResult = FlushFileBuffers((HANDLE)mHandle) != 0;
-
-		CloseHandle((HANDLE)mHandle);
-		mHandle = nullptr;
-	}
-
-	return flushResult;
-}
-
-// ************************************************************************************************************************
-// Win32AsyncFileDataStream
-// ************************************************************************************************************************
-
-struct Win32AsyncFileDataStream::ReadContext
-{
-	OVERLAPPED Overlapped; /**< Must be the first member so the OVERLAPPED can be recovered via CONTAINING_RECORD. */
-	Win32AsyncFileDataStream* Stream = nullptr;
-	void* Buffer = nullptr;
-	bool OwnsBuffer = false;
-	u64 BaseOffset = 0; /**< File offset where the read began. */
-	u64 TotalByteCount = 0; /**< Total number of bytes to read (clamped to the end of file). */
-	u64 BytesRead = 0; /**< Bytes read so far across all chunks. */
-	TAsyncOp<TShared<MemoryDataStream>> Op;
-};
-
-TShared<Win32AsyncFileDataStream> Win32AsyncFileDataStream::Create(const Path& fullPath)
-{
-	// Share both reads and writes to match the synchronous stream (and the std::fstream-backed default path this
-	// replaces), so opening a file for async reading doesn't fail when it's concurrently held open for writing.
-	const WString widePath = UTF8::ToWide(fullPath.ToString());
-	HANDLE handle = CreateFileW(widePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr);
-	if(handle == INVALID_HANDLE_VALUE)
-	{
-		B3D_LOG(Warning, LogFileSystem, "Failed to open file at path '{0}' for async reading.", fullPath);
-		return nullptr;
-	}
-
-	if(!BindIoCompletionCallback(handle, reinterpret_cast<LPOVERLAPPED_COMPLETION_ROUTINE>(&CompletionRoutine), 0))
-	{
-		B3D_LOG(Warning, LogFileSystem, "Failed to bind IO completion callback for file '{0}' (error {1}).", fullPath, (u32)GetLastError());
-		CloseHandle(handle);
-
-		return nullptr;
-	}
-
-	u64 size = 0;
-	LARGE_INTEGER li{};
-	if(GetFileSizeEx(handle, &li))
-		size = (u64)li.QuadPart;
-
-	return B3DMakeShared<Win32AsyncFileDataStream>((void*)handle, size);
-}
-
-Win32AsyncFileDataStream::Win32AsyncFileDataStream(void* handle, u64 size)
-	: mHandle(handle), mSize(size)
-{ }
-
-Win32AsyncFileDataStream::~Win32AsyncFileDataStream()
-{
-	Close();
-}
-
-TAsyncOp<TShared<MemoryDataStream>> Win32AsyncFileDataStream::ReadAsync(u64 offset, size_t byteCount, TOptional<DataRange> userSuppliedMemory)
-{
-	TAsyncOp<TShared<MemoryDataStream>> op;
-
-	if(byteCount == 0)
-	{
-		op.CompleteOperation(B3DMakeShared<MemoryDataStream>());
-		return op;
-	}
-
 	{
 		Lock lock(mMutex);
 		if(mClosed)
-		{
-			op.CompleteOperation(nullptr);
-			return op;
-		}
-
-		mOutstandingReads++;
-	}
-
-	ReadContext* context = B3DNew<ReadContext>();
-	context->Stream = this;
-	context->BaseOffset = offset;
-	context->Op = op;
-
-	if(userSuppliedMemory.has_value())
-	{
-		context->Buffer = userSuppliedMemory->Data;
-		context->OwnsBuffer = false;
-	}
-	else
-	{
-		context->Buffer = B3DAllocate(byteCount);
-		context->OwnsBuffer = true;
-
-		if(context->Buffer == nullptr)
-		{
-			B3D_LOG(Error, LogFileSystem, "Failed to allocate {0} bytes for an asynchronous read.", (u64)byteCount);
-			CompleteContext(context, 0, false);
-			return op;
-		}
-	}
-
-	// Clamp the read to the bytes actually available so ReadFile never crosses the end of file. This keeps the
-	// completion behaviour unambiguous: an in-bounds overlapped read always delivers exactly one completion callback,
-	// whereas a read that hits EOF can fail synchronously while also queuing a completion packet (which would complete
-	// the operation twice). Reads entirely at/after EOF are completed inline without issuing any IO.
-	const u64 available = offset < mSize ? (mSize - offset) : 0;
-	context->TotalByteCount = byteCount > available ? available : byteCount;
-
-	if(context->TotalByteCount == 0)
-	{
-		CompleteContext(context, 0, true);
-		return op;
-	}
-
-	IssueRead(context);
-	return op;
-}
-
-bool Win32AsyncFileDataStream::IssueRead(ReadContext* context)
-{
-	// A single ReadFile transfers at most a DWORD's worth of bytes, so reads larger than that are split into chunks
-	// and chained from the completion callback. This keeps the per-call count valid while supporting reads beyond 4 GiB.
-	const u64 fileOffset = context->BaseOffset + context->BytesRead;
-	const u64 remaining = context->TotalByteCount - context->BytesRead;
-	const DWORD bytesToRead = remaining > kMaxTransferPerCall ? (DWORD)kMaxTransferPerCall : (DWORD)remaining;
-
-	ZeroMemory(&context->Overlapped, sizeof(OVERLAPPED));
-	context->Overlapped.Offset = (DWORD)(fileOffset & 0xFFFFFFFFull);
-	context->Overlapped.OffsetHigh = (DWORD)(fileOffset >> 32);
-
-	u8* const out = static_cast<u8*>(context->Buffer) + context->BytesRead;
-	const BOOL ok = ReadFile((HANDLE)mHandle, out, bytesToRead, nullptr, &context->Overlapped);
-	if(!ok)
-	{
-		const DWORD error = GetLastError();
-		if(error != ERROR_IO_PENDING)
-		{
-			B3D_LOG(Warning, LogFileSystem, "Asynchronous read failed (error {0}).", (u32)error);
-			CompleteContext(context, (size_t)context->BytesRead, false);
-
-			return false;
-		}
-	}
-
-	// On both ERROR_IO_PENDING and synchronous success a completion packet is queued (FILE_SKIP_COMPLETION_PORT_ON_SUCCESS
-	// is not set), so the completion callback advances or finishes the operation.
-	return true;
-}
-
-void Win32AsyncFileDataStream::CompleteContext(ReadContext* context, size_t bytesRead, bool succeeded)
-{
-	TShared<MemoryDataStream> result;
-	if(succeeded)
-	{
-		if(context->OwnsBuffer)
-			result = B3DMakeShared<MemoryDataStream>(context->Buffer, bytesRead, true);
-		else
-			result = B3DMakeShared<MemoryDataStream>(context->Buffer, bytesRead);
-	}
-	else if(context->OwnsBuffer && context->Buffer != nullptr)
-	{
-		B3DFree(context->Buffer);
-	}
-
-	context->Op.CompleteOperation(result);
-	B3DDelete(context);
-
-	Lock lock(mMutex);
-	B3D_ASSERT(mOutstandingReads > 0);
-	mOutstandingReads--;
-
-	if(mOutstandingReads == 0)
-		mAllReadsComplete.notify_all();
-}
-
-void __stdcall Win32AsyncFileDataStream::CompletionRoutine(unsigned long errorCode, unsigned long bytesTransferred, void* overlapped)
-{
-	ReadContext* context = CONTAINING_RECORD(reinterpret_cast<OVERLAPPED*>(overlapped), ReadContext, Overlapped);
-	context->Stream->DoOnChunkComplete(context, errorCode, (size_t)bytesTransferred);
-}
-
-void Win32AsyncFileDataStream::DoOnChunkComplete(ReadContext* context, unsigned long errorCode, size_t bytesTransferred)
-{
-	// Reads are clamped to the file size, so ERROR_HANDLE_EOF isn't expected, but treat it (and a zero-byte transfer)
-	// as a clean end of data. Any other error - including ERROR_OPERATION_ABORTED from Close() cancelling in-flight
-	// reads - finishes the operation as a failure, discarding whatever was read so far.
-	if(errorCode != ERROR_SUCCESS && errorCode != ERROR_HANDLE_EOF)
-	{
-		CompleteContext(context, (size_t)context->BytesRead, false);
-		return;
-	}
-
-	context->BytesRead += bytesTransferred;
-
-	const bool reachedEof = (errorCode == ERROR_HANDLE_EOF) || (bytesTransferred == 0);
-	const bool moreToRead = context->BytesRead < context->TotalByteCount;
-
-	if(moreToRead && !reachedEof)
-	{
-		bool closing;
-		{
-			Lock lock(mMutex);
-			closing = mClosed;
-		}
-
-		if(!closing)
-		{
-			IssueRead(context); // Chains the next chunk; finalizes inline on synchronous failure.
-			return;
-		}
-
-		// Close() was requested between chunks: stop chaining so it doesn't have to wait out a huge read, and finish
-		// the operation as a failure (matching an in-flight chunk that gets cancelled via CancelIoEx).
-		CompleteContext(context, (size_t)context->BytesRead, false);
-		return;
-	}
-
-	CompleteContext(context, (size_t)context->BytesRead, true);
-}
-
-void Win32AsyncFileDataStream::Close()
-{
-	{
-		Lock lock(mMutex);
-		if(mClosed)
-			return;
+			return true;
 
 		mClosed = true;
 	}
 
-	// Cancel any in-flight reads so their completion callbacks fire promptly (with ERROR_OPERATION_ABORTED).
-	if(mHandle != nullptr)
+	// Cancel any in-flight asynchronous reads so their completion events fire promptly (with ERROR_OPERATION_ABORTED),
+	// then wait for them to drain before releasing the handle.
+	if(mHandle != nullptr && mIsOverlapped)
 		CancelIoEx((HANDLE)mHandle, nullptr);
 
 	{
@@ -453,9 +563,21 @@ void Win32AsyncFileDataStream::Close()
 		mAllReadsComplete.wait(lock, [this]() { return mOutstandingReads == 0; });
 	}
 
+	bool flushResult = true;
 	if(mHandle != nullptr)
 	{
+		if(mAccess.IsSet(FileAccessFlag::Write))
+			flushResult = FlushFileBuffers((HANDLE)mHandle) != 0;
+
 		CloseHandle((HANDLE)mHandle);
 		mHandle = nullptr;
 	}
+
+	if(mSyncEvent != nullptr)
+	{
+		CloseHandle((HANDLE)mSyncEvent);
+		mSyncEvent = nullptr;
+	}
+
+	return flushResult;
 }

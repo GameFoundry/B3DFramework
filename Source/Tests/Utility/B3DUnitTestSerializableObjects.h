@@ -11,9 +11,18 @@ namespace b3d
 		u32 IntA = 100;
 		String StrA = "100";
 
+		/** Optional raw data, serialized as a data block. Empty by default so existing round-trip tests are unaffected. */
+		Vector<u8> DataBlock;
+
+		/**
+		 * Captures the Size() reported by the data-block stream passed to the RTTI setter during the last deserialization.
+		 * Not serialized; used by tests to verify the serializer hands the consumer a correctly-sized data-block stream.
+		 */
+		u32 DataBlockStreamSize = 0;
+
 		bool operator==(const UnitTestSerializationObjectB& other) const
 		{
-			return IntA == other.IntA && StrA == other.StrA;
+			return IntA == other.IntA && StrA == other.StrA && DataBlock == other.DataBlock;
 		}
 
 		/************************************************************************/

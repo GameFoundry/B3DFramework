@@ -287,7 +287,7 @@ bool PackageManager::SavePackageMetaData(const PackageWriteLock& packageWriteLoc
 	const Path& physicalPathToPackage = packageWriteLock.RuntimePackageInformation->PhysicalPath;
 	const TShared<Package>& package = packageWriteLock.GetPackage();
 
-	const TShared<DataStream> packageDataStream = FileSystem::OpenFile(physicalPathToPackage, false);
+	const TShared<DataStream> packageDataStream = FileSystem::OpenFile(physicalPathToPackage, FileAccessFlag::Read | FileAccessFlag::Write);
 	if(!B3D_ENSURE(packageDataStream != nullptr))
 		return false;
 

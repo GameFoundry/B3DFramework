@@ -120,8 +120,14 @@ namespace b3d
 		/** Determines how often to flush from the local buffer into the output stream, when writing. */
 		static constexpr u32 kFlushAfterBytes = (u32)(kWriteBufferSize * 0.75f);
 
-		/** Determines the minimum amount of bytes to preload into the temporary buffer. */
-		static constexpr u32 kPreloadChunkBytes = (u32)(kWriteBufferSize * 0.25f);
+		/**
+		 * Minimum amount of bytes to preload into the temporary read buffer per chunk. Also the size of each read-ahead
+		 * issued while decoding, so it should be large enough to amortize per-read overhead.
+		 */
+		static constexpr u32 kReadPreloadChunkBytes = 256 * 1024;
+
+		/** Size the buffered read data is allowed to grow to before older buffered data is discarded. */
+		static constexpr u32 kReadMaxBufferBytes = 1024 * 1024;
 
 		u32 mTotalBytesToRead = 0;
 		u32 mNextProgressReport = kReportAfterBytes;

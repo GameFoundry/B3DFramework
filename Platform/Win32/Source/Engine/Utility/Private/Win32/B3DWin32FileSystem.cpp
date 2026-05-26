@@ -297,9 +297,9 @@ bool FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 	return true;
 }
 
-TShared<DataStream> FileSystem::CreateFileStream(const Path& fullPath, u32 accessMode)
+TShared<DataStream> FileSystem::CreateFileStream(const Path& fullPath, FileAccessFlags access)
 {
-	TShared<Win32FileDataStream> fileDataStream = B3DMakeShared<Win32FileDataStream>(fullPath, (DataStream::AccessMode)accessMode);
+	TShared<Win32FileDataStream> fileDataStream = B3DMakeShared<Win32FileDataStream>(fullPath, access);
 	if(!fileDataStream->Open())
 	{
 		B3D_LOG(Warning, LogFileSystem, "Failed to open file at path '{0}'. File stream failed to open.", fullPath);
@@ -307,11 +307,6 @@ TShared<DataStream> FileSystem::CreateFileStream(const Path& fullPath, u32 acces
 	}
 
 	return fileDataStream;
-}
-
-TShared<IAsyncDataStream> FileSystem::CreateAsyncFileStream(const Path& fullPath)
-{
-	return Win32AsyncFileDataStream::Create(fullPath);
 }
 
 u64 FileSystem::GetFileSize(const Path& fullPath)

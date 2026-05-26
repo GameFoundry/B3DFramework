@@ -2,12 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
-#include "FileSystem/B3DAsyncDataStream.h"
 #include "Debug/B3DDebug.h"
 
 using namespace b3d;
 
-TShared<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
+TShared<DataStream> FileSystem::OpenFile(const Path& fullPath, FileAccessFlags access)
 {
 	if(!Exists(fullPath) || !IsFile(fullPath))
 	{
@@ -15,27 +14,12 @@ TShared<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 		return nullptr;
 	}
 
-	u32 accessMode = DataStream::READ;
-	if(!readOnly)
-		accessMode |= DataStream::WRITE;
-
-	return CreateFileStream(fullPath, accessMode);
+	return CreateFileStream(fullPath, access);
 }
 
 TShared<DataStream> FileSystem::CreateAndOpenFile(const Path& fullPath)
 {
-	return CreateFileStream(fullPath, DataStream::WRITE);
-}
-
-TShared<IAsyncDataStream> FileSystem::OpenFileAsync(const Path& fullPath)
-{
-	if(!Exists(fullPath) || !IsFile(fullPath))
-	{
-		B3D_LOG(Warning, LogFileSystem, "Failed to open file at path '{0}'. File doesn't exist.", fullPath);
-		return nullptr;
-	}
-
-	return CreateAsyncFileStream(fullPath);
+	return CreateFileStream(fullPath, FileAccessFlag::Write);
 }
 
 bool FileSystem::Copy(const Path& oldPath, const Path& newPath, bool overwriteExisting)

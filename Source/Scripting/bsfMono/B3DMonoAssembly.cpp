@@ -59,7 +59,7 @@ void MonoAssembly::Load()
 		Unload();
 
 	// Load assembly from memory because mono_domain_assembly_open keeps a lock on the file
-	TShared<DataStream> assemblyStream = FileSystem::OpenFile(mPath, true);
+	TShared<DataStream> assemblyStream = FileSystem::OpenFile(mPath);
 	if(assemblyStream == nullptr)
 	{
 		B3D_LOG(Error, LogScript, "Cannot load assembly at path \"{0}\" because the file doesn't exist", mPath);
@@ -89,7 +89,7 @@ void MonoAssembly::Load()
 
 	if(FileSystem::Exists(mdbPath))
 	{
-		TShared<DataStream> mdbStream = FileSystem::OpenFile(mdbPath, true);
+		TShared<DataStream> mdbStream = FileSystem::OpenFile(mdbPath);
 
 		if(mdbStream != nullptr)
 		{

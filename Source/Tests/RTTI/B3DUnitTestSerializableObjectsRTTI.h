@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 #include "RTTI/B3DStringRTTI.h"
+#include "FileSystem/B3DDataStream.h"
 
 namespace b3d
 {
@@ -72,7 +73,29 @@ namespace b3d
 			B3D_RTTI_MEMBER(StrA, 1)
 		B3D_RTTI_END_MEMBERS
 
+		TShared<DataStream> GetDataBlock(UnitTestSerializationObjectB* obj, u32& size)
+		{
+			size = (u32)obj->DataBlock.size();
+			return B3DMakeShared<MemoryDataStream>(obj->DataBlock.data(), size);
+		}
+
+		void SetDataBlock(UnitTestSerializationObjectB* obj, const TShared<DataStream>& value, u32 size)
+		{
+			// Record the stream's reported size so tests can verify the serializer's in-memory data-block path hands the
+			// consumer a correctly-sized stream (regression guard for the MemoryDataStream capacity-ctor Size() fix).
+			obj->DataBlockStreamSize = (u32)value->Size();
+
+			obj->DataBlock.resize(size);
+			if(size > 0)
+				value->Read(obj->DataBlock.data(), size);
+		}
+
 	public:
+		UnitTestSerializationObjectBRTTI()
+		{
+			AddDataBlockField("dataBlock", 2, &UnitTestSerializationObjectBRTTI::GetDataBlock, &UnitTestSerializationObjectBRTTI::SetDataBlock);
+		}
+
 		const String& GetRttiName() override
 		{
 			static String name = "UnitTestSerializationObjectB";

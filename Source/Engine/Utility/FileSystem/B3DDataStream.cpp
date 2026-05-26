@@ -191,6 +191,51 @@ size_t DataStream::WriteBits(const uint8_t* data, uint32_t count)
 	return Write(data, byteCount) * 8;
 }
 
+TAsyncOp<TShared<MemoryDataStream>> DataStream::ReadAsync(u64 offset, size_t byteCount, TOptional<DataRange> userSuppliedMemory)
+{
+	// Default synchronous implementation: position the cursor, read into the destination, restore the cursor and
+	// complete the operation immediately. Concrete streams opened with ASYNC may override this with a native async path.
+	TAsyncOp<TShared<MemoryDataStream>> op;
+
+	if(byteCount == 0)
+	{
+		op.CompleteOperation(B3DMakeShared<MemoryDataStream>());
+		return op;
+	}
+
+	void* buffer;
+	bool ownsBuffer;
+	if(userSuppliedMemory.has_value())
+	{
+		buffer = userSuppliedMemory->Data;
+		ownsBuffer = false;
+	}
+	else
+	{
+		buffer = B3DAllocate(byteCount);
+		ownsBuffer = true;
+
+		if(buffer == nullptr)
+		{
+			B3D_LOG(Error, LogFileSystem, "Failed to allocate {0} bytes for an asynchronous read.", (u64)byteCount);
+			op.CompleteOperation(nullptr);
+			return op;
+		}
+	}
+
+	const size_t previousCursor = Tell();
+	Seek((size_t)offset);
+	const size_t bytesRead = Read(buffer, byteCount);
+	Seek(previousCursor);
+
+	if(ownsBuffer)
+		op.CompleteOperation(B3DMakeShared<MemoryDataStream>(buffer, bytesRead, true));
+	else
+		op.CompleteOperation(B3DMakeShared<MemoryDataStream>(buffer, bytesRead));
+
+	return op;
+}
+
 void DataStream::Align(uint32_t count)
 {
 	if(count <= 1)
@@ -201,12 +246,12 @@ void DataStream::Align(uint32_t count)
 }
 
 MemoryDataStream::MemoryDataStream()
-	: DataStream(READ | WRITE)
+	: DataStream()
 {
 }
 
 MemoryDataStream::MemoryDataStream(size_t capacity)
-	: DataStream(READ | WRITE)
+	: DataStream()
 {
 	ReallocateBuffer(capacity);
 	mCursor = mData;
@@ -214,7 +259,7 @@ MemoryDataStream::MemoryDataStream(size_t capacity)
 }
 
 MemoryDataStream::MemoryDataStream(void* memory, size_t size)
-	: DataStream(READ | WRITE), mOwnsMemory(false)
+	: DataStream(), mOwnsMemory(false)
 {
 	mData = mCursor = static_cast<uint8_t*>(memory);
 	mSize = size;
@@ -223,7 +268,7 @@ MemoryDataStream::MemoryDataStream(void* memory, size_t size)
 }
 
 MemoryDataStream::MemoryDataStream(void* memory, size_t size, bool takeOwnership)
-	: DataStream(READ | WRITE), mOwnsMemory(takeOwnership)
+	: DataStream(), mOwnsMemory(takeOwnership)
 {
 	mData = mCursor = static_cast<uint8_t*>(memory);
 	mSize = size;
@@ -232,7 +277,7 @@ MemoryDataStream::MemoryDataStream(void* memory, size_t size, bool takeOwnership
 }
 
 MemoryDataStream::MemoryDataStream(const MemoryDataStream& sourceStream)
-	: DataStream(READ | WRITE)
+	: DataStream()
 {
 	// Copy data from incoming stream
 	mSize = sourceStream.Size();
@@ -245,7 +290,7 @@ MemoryDataStream::MemoryDataStream(const MemoryDataStream& sourceStream)
 }
 
 MemoryDataStream::MemoryDataStream(const TShared<DataStream>& sourceStream)
-	: DataStream(READ | WRITE)
+	: DataStream()
 {
 	// Copy data from incoming stream
 	mSize = sourceStream->Size();
@@ -273,7 +318,6 @@ MemoryDataStream& MemoryDataStream::operator=(const MemoryDataStream& other)
 		return *this;
 
 	this->mName = other.mName;
-	this->mAccess = other.mAccess;
 
 	if(!other.mOwnsMemory)
 	{
@@ -317,7 +361,6 @@ MemoryDataStream& MemoryDataStream::operator=(MemoryDataStream&& other)
 		B3DFree(mData);
 
 	this->mName = std::move(other.mName);
-	this->mAccess = std::exchange(other.mAccess, 0);
 	this->mCursor = std::exchange(other.mCursor, nullptr);
 	this->mEnd = std::exchange(other.mEnd, nullptr);
 	this->mData = std::exchange(other.mData, nullptr);
@@ -470,8 +513,8 @@ void MemoryDataStream::ReallocateBuffer(size_t byteCount)
 	mCapacity = byteCount;
 }
 
-FileDataStream::FileDataStream(const Path& path, AccessMode accessMode)
-	: DataStream(accessMode), mPath(path)
+FileDataStream::FileDataStream(const Path& path, FileAccessFlags access)
+	: mPath(path), mAccess(access)
 { }
 
 FileDataStream::~FileDataStream()
@@ -487,10 +530,10 @@ bool FileDataStream::Open()
 	// Always open in binary mode
 	std::ios::openmode mode = std::ios::binary;
 
-	if((mAccess & READ) != 0)
+	if(mAccess.IsSet(FileAccessFlag::Read))
 		mode |= std::ios::in;
 
-	if(((mAccess & WRITE) != 0))
+	if(mAccess.IsSet(FileAccessFlag::Write))
 		mode |= std::ios::out;
 
 	mFileStream.open(mPath.ToPlatformString().c_str(), mode);
@@ -540,7 +583,7 @@ size_t FileDataStream::Skip(size_t count)
 
 	const size_t currentOffset = Tell();
 
-	if(((mAccess & WRITE) != 0))
+	if(mAccess.IsSet(FileAccessFlag::Write))
 		mFileStream.seekp(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
 	else
 		mFileStream.seekg(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
@@ -558,10 +601,10 @@ size_t FileDataStream::Seek(size_t pos)
 	if(mFileStream.eof() && !mFileStream.bad())
 		mFileStream.clear();
 
-	if(((mAccess & READ) != 0))
+	if(mAccess.IsSet(FileAccessFlag::Read))
 		mFileStream.seekg(static_cast<std::streamoff>(pos), std::ios::beg);
 
-	if(((mAccess & WRITE) != 0))
+	if(mAccess.IsSet(FileAccessFlag::Write))
 		mFileStream.seekp(static_cast<std::ifstream::pos_type>(pos), std::ios::beg);
 
 	return Tell();
@@ -576,7 +619,7 @@ size_t FileDataStream::Tell() const
 	if(mFileStream.eof() && !mFileStream.bad())
 		const_cast<std::fstream&>(mFileStream).clear();
 
-	if(((mAccess & WRITE) != 0))
+	if(mAccess.IsSet(FileAccessFlag::Write))
 		return (size_t)const_cast<std::fstream&>(mFileStream).tellp();
 
 	return (size_t)const_cast<std::fstream&>(mFileStream).tellg();
@@ -592,7 +635,7 @@ bool FileDataStream::Eof() const
 
 TShared<DataStream> FileDataStream::Clone(bool copyData) const
 {
-	return B3DMakeShared<FileDataStream>(mPath, (AccessMode)GetAccessMode());
+	return B3DMakeShared<FileDataStream>(mPath, mAccess);
 }
 
 bool FileDataStream::Flush()

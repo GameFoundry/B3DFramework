@@ -3,6 +3,9 @@
 #pragma once
 
 #include "B3DUtilityPrerequisites.h"
+#include "Threading/B3DAsyncOp.h"
+#include "Utility/B3DUtil.h"
+#include "Utility/B3DFlags.h"
 #include <istream>
 
 namespace b3d
@@ -25,31 +28,22 @@ namespace b3d
 	class B3D_EXPORT DataStream
 	{
 	public:
-		enum AccessMode
-		{
-			READ = 1,
-			WRITE = 2
-		};
-
-	public:
 		/** Creates an unnamed stream. */
-		DataStream(u16 accessMode = READ)
-			: mAccess(accessMode)
-		{}
+		DataStream() = default;
 
 		/** Creates a named stream. */
-		DataStream(const String& name, u16 accessMode = READ)
-			: mName(name), mAccess(accessMode) {}
+		DataStream(const String& name)
+			: mName(name) {}
 
 		virtual ~DataStream() = default;
 
 		const String& GetName() const { return mName; }
 
-		u16 GetAccessMode() const { return mAccess; }
+		/** Checks whether data can be read from the stream. File streams report this based on their access flags. */
+		virtual bool IsReadable() const { return true; }
 
-		virtual bool IsReadable() const { return (mAccess & READ) != 0; }
-
-		virtual bool IsWriteable() const { return (mAccess & WRITE) != 0; }
+		/** Checks whether data can be written to the stream. File streams report this based on their access flags. */
+		virtual bool IsWriteable() const { return true; }
 
 		/** Checks whether the stream reads/writes from a file system. */
 		virtual bool IsFile() const = 0;
@@ -66,9 +60,30 @@ namespace b3d
 		 * @param	byteCount	Number of bytes to read.
 		 * @return				Number of bytes actually read.
 		 *
-		 * @note	Stream must be created with READ access mode.
+		 * @note	Stream must be readable.
 		 */
 		virtual size_t Read(void* outData, size_t byteCount) const = 0;
+
+		/**
+		 * Asynchronously reads @p byteCount bytes starting at @p offset. The read is positioned and independent of the
+		 * stream's read cursor (it neither uses nor advances it).
+		 *
+		 * @param	offset				Byte offset from the start of the stream to begin reading at.
+		 * @param	byteCount			Number of bytes to read.
+		 * @param	userSuppliedMemory	(optional) If provided, data is read into this memory (which must have capacity
+		 *								for at least @p byteCount bytes) and the returned stream wraps it without taking
+		 *								ownership. The caller must ensure the memory outlives the returned stream. If not
+		 *								provided, a new memory block is allocated and owned by the returned stream.
+		 * @return						Operation that completes with a memory stream containing the read data. The
+		 *								stream's size may be smaller than @p byteCount if the end of the stream was reached.
+		 *								The operation completes with null if the read failed, or with an empty stream if
+		 *								@p byteCount is zero or @p offset is at/after the end of the stream.
+		 *
+		 * @note	The default implementation performs a synchronous Read() and completes immediately. File streams opened
+		 *			with FileAccessFlag::Async may override this to use a native asynchronous path (which on some
+		 *			platforms can also perform hardware-accelerated IO/decompression).
+		 */
+		virtual TAsyncOp<TShared<MemoryDataStream>> ReadAsync(u64 offset, size_t byteCount, TOptional<DataRange> userSuppliedMemory = TOptional<DataRange>());
 
 		/**
 		 * Write the requisite number of bytes to the stream and advance the write pointer.
@@ -77,7 +92,7 @@ namespace b3d
 		 * @param	byteCount	Number of bytes to write.
 		 * @return				Number of bytes actually written.
 		 *
-		 * @note	Stream must be created with WRITE access mode.
+		 * @note	Stream must be writeable.
 		 */
 		virtual size_t Write(const void* data, size_t byteCount) { return 0; }
 
@@ -89,7 +104,7 @@ namespace b3d
 		 * @param	count	Number of bits to read.
 		 * @return			Number of bits actually read.
 		 *
-		 * @note	Stream must be created with READ access mode.
+		 * @note	Stream must be readable.
 		 */
 		virtual size_t ReadBits(uint8_t* outData, uint32_t count);
 
@@ -101,7 +116,7 @@ namespace b3d
 		 * @param	count	Number of bits to write.
 		 * @return			Number of bits actually written.
 		 *
-		 * @note	Stream must be created with WRITE access mode.
+		 * @note	Stream must be writeable.
 		 */
 		virtual size_t WriteBits(const uint8_t* data, uint32_t count);
 
@@ -184,7 +199,6 @@ namespace b3d
 
 		String mName;
 		size_t mSize = 0;
-		u16 mAccess;
 	};
 
 	/** Data stream for handling data from memory. Data is stored in a memory block that is either owned by the stream (freed when stream goes out of scope), or owned externally. */
@@ -289,6 +303,23 @@ namespace b3d
 		bool mOwnsMemory = true;
 	};
 
+	/** Controls how a file is opened by FileSystem::OpenFile(). */
+	enum class FileAccessFlag
+	{
+		Read = 1 << 0,  /**< File can be read from. */
+		Write = 1 << 1, /**< File can be written to. */
+
+		/**
+		 * Opens the file for asynchronous reads via DataStream::ReadAsync(), enabling a native asynchronous path (e.g.
+		 * overlapped IO on Windows) on platforms that support it. On other platforms ReadAsync() falls back to a
+		 * synchronous implementation regardless. Intended to be combined with Read.
+		 */
+		Async = 1 << 2
+	};
+
+	using FileAccessFlags = Flags<FileAccessFlag>;
+	B3D_FLAGS_OPERATORS(FileAccessFlag)
+
 	/** Data stream for handling data from standard streams. */
 	class B3D_EXPORT FileDataStream final : public DataStream
 	{
@@ -297,14 +328,16 @@ namespace b3d
 		 * Constructs a file stream.
 		 *
 		 * @param	filePath	Path of the file to open.
-		 * @param	accessMode	Determines should the file be opened in read, write or read/write mode.
+		 * @param	access		Combination of FileAccessFlag values determining how the file is accessed.
 		 */
-		FileDataStream(const Path& filePath, AccessMode accessMode = READ);
+		FileDataStream(const Path& filePath, FileAccessFlags access = FileAccessFlag::Read);
 		~FileDataStream() override;
 
 		/** Opens the file stream. Must be called before any actions on the stream. Returns false if not successful. */
 		bool Open();
 		bool IsFile() const override { return true; }
+		bool IsReadable() const override { return mAccess.IsSet(FileAccessFlag::Read); }
+		bool IsWriteable() const override { return mAccess.IsSet(FileAccessFlag::Write); }
 		size_t Read(void* data, size_t byteCount) const override;
 		size_t Write(const void* data, size_t byteCount) override;
 		size_t Skip(size_t count) override;
@@ -320,6 +353,7 @@ namespace b3d
 
 	protected:
 		Path mPath;
+		FileAccessFlags mAccess;
 		std::fstream mFileStream;
 	};
 

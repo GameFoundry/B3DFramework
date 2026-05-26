@@ -52,7 +52,7 @@ void FileEncoder::Encode(IReflectable* object)
 
 FileDecoder::FileDecoder(const Path& fileLocation)
 {
-	mInputStream = FileSystem::OpenFile(fileLocation, true);
+	mInputStream = FileSystem::OpenFile(fileLocation);
 
 	if(mInputStream == nullptr)
 		return;
