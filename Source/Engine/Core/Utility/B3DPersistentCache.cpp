@@ -293,13 +293,13 @@ void PersistentCache::WriteDirtyMetaData()
 
 		const Path pathToPackage = GetPackagePathForEntry(entryPath);
 
-		const TShared<DataStream> packageDataStream = FileSystem::OpenFile(pathToPackage, FileAccessFlag::Read | FileAccessFlag::Write);
-		if(!packageDataStream)
+		const TShared<Package> package = Package::Load(pathToPackage);
+		if(!B3D_ENSURE(package != nullptr))
 			continue;
 
-		const TShared<Package> package = Package::Load(pathToPackage);
-
-		if(!B3D_ENSURE(package != nullptr))
+		// Make sure to do this after Package::Load above, so we don't get a sharing violation when attempting to read a file being opened for write.
+		const TShared<DataStream> packageDataStream = FileSystem::OpenFile(pathToPackage, FileAccessFlag::Read | FileAccessFlag::Write);
+		if(!packageDataStream)
 			continue;
 
 		for(const auto& resourceUUID : package->CreateResourceIdList())
@@ -330,14 +330,33 @@ void PersistentCache::WriteDirtyMetaData()
 		savePackageOptions.CompressResources = true;
 		savePackageOptions.SaveMetaDataOnly = true;
 
-		if(!package->Save(packageDataStream, savePackageOptions))
+		if(package->Save(packageDataStream, savePackageOptions))
 		{
-			// Try re-saving everything
-			savePackageOptions.SaveMetaDataOnly = false;
-			B3D_ENSURE(package->Save(packageDataStream, savePackageOptions));	
+			B3D_ENSURE(packageDataStream->Close());
 		}
+		else
+		{
+			// A full re-save is needed, but Package::Save needs to be able to read the old package file so save to a temporary location first.
+			B3D_ENSURE(packageDataStream->Close());
 
-		B3D_ENSURE(packageDataStream->Close());
+			const Path temporarySavePath = FileSystem::GetUniqueTemporaryFilePath();
+			TShared<DataStream> temporaryFileStream = FileSystem::CreateAndOpenFile(temporarySavePath);
+			if(!B3D_ENSURE(temporaryFileStream != nullptr))
+				continue;
+
+			savePackageOptions.SaveMetaDataOnly = false;
+			const bool saveResult = package->Save(temporaryFileStream, savePackageOptions);
+			B3D_ENSURE(temporaryFileStream->Close());
+
+			if(!B3D_ENSURE(saveResult))
+			{
+				FileSystem::Remove(temporarySavePath);
+				continue;
+			}
+
+			FileSystem::Remove(pathToPackage);
+			B3D_ENSURE(FileSystem::Move(temporarySavePath, pathToPackage));
+		}
 	}
 
 	// Determine if there are more remaining dirty entries

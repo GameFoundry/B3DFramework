@@ -70,6 +70,10 @@ Framework/
 - **Multi-Threading**: Task-based parallelism throughout the engine, internally using fibers rather than threads (See Scheduler)
 - **Event System**: Components expose events (e.g., `OnCollisionBegin.Connect(callback)`)
 - **Memory allocation**: `B3DNew`/`B3DDelete` instead of `new/delete`, `B3DAllocate/B3DFree` instead of `malloc/free`
+ - Avoid dynamic memory allocations whenever possible
+ - Use FrameAllocator for temporary heap allocations
+ - Re-use temporary containers (e.g. Vector, TArray). Allocate them as class members instead of locally in functions, so their memory can be re-used.
+ - Use TInlineArray when allocating past a certain count is unlikely
 
 ## Code Style and Conventions
 

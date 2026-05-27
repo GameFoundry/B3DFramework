@@ -6,6 +6,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -55,6 +56,21 @@ bool UnixFileDataStream::Open()
 	if(fd < 0)
 	{
 		B3D_LOG(Error, LogFileSystem, "Failed to open file '{0}' (error {1}).", mPath, String(strerror(errno)));
+		return false;
+	}
+
+	// Strict sharing parity with the Win32 stream: read-only opens take an advisory shared lock (LOCK_SH); any
+	// write-capable open takes an exclusive lock (LOCK_EX). LOCK_NB makes the kernel surface accidental concurrent
+	// access (read while a writer is active, or any two writers on the same path) as EWOULDBLOCK at open time instead
+	// of silent racing. flock() is per-open-file-description, so multiple sequential opens by the same process do not
+	// self-conflict; the lock releases automatically when the fd closes. Locks are advisory and only enforced between
+	// cooperating callers, but every in-process file open goes through this stream so all internal callers cooperate.
+	const int lockOp = wantWrite ? (LOCK_EX | LOCK_NB) : (LOCK_SH | LOCK_NB);
+	if(::flock(fd, lockOp) != 0)
+	{
+		B3D_LOG(Error, LogFileSystem, "Failed to acquire {0} lock on file '{1}' (error {2}).",
+				wantWrite ? "exclusive" : "shared", mPath, String(strerror(errno)));
+		::close(fd);
 		return false;
 	}
 

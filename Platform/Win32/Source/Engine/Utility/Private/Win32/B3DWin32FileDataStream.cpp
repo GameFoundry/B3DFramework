@@ -64,11 +64,14 @@ bool Win32FileDataStream::Open()
 	if(mIsOverlapped)
 		flags |= FILE_FLAG_OVERLAPPED;
 
-	// Match std::fstream's sharing mode (MSVC opens with _SH_DENYNO == FILE_SHARE_READ | FILE_SHARE_WRITE). Sharing
-	// writes is required because the engine holds the same file open for writing while opening it again for reading.
-	// Without FILE_SHARE_WRITE the second open fails with ERROR_SHARING_VIOLATION even though the file exists.
+	// Strict sharing: read-only handles permit other readers (FILE_SHARE_READ); any write-capable handle is exclusive
+	// (dwShareMode = 0). The kernel surfaces accidental concurrent open-for-write on the same path as
+	// ERROR_SHARING_VIOLATION at open time, instead of letting it turn into silent data corruption. Callers that
+	// legitimately need to coordinate concurrent access on the same path do so through higher-level locks (e.g.
+	// PackageWriteLock, PersistentCache per-entry write operations) and serialize their opens accordingly.
+	const DWORD shareMode = wantWrite ? 0 : FILE_SHARE_READ;
 	const WString widePath = UTF8::ToWide(mPath.ToString());
-	HANDLE handle = CreateFileW(widePath.c_str(), access, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, disposition, flags, nullptr);
+	HANDLE handle = CreateFileW(widePath.c_str(), access, shareMode, nullptr, disposition, flags, nullptr);
 	if(handle == INVALID_HANDLE_VALUE)
 	{
 		B3D_LOG(Error, LogFileSystem, "Failed to open file '{0}' (error {1}).", mPath, (u32)GetLastError());
