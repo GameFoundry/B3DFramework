@@ -1,0 +1,32 @@
+// Shared bit-packing helpers for the 128-bit block-compressed formats (BC6H / BC7). Kept in its own mixin so every
+// per-mode encoder header can pull it in without duplicating the packer.
+mixin TextureCompressBitUtil
+{
+	code
+	{
+		// Appends the low @p numBits of @p value to @p block at bit cursor @p pos, advancing the cursor. Little-endian
+		// within the 128-bit block (bit 0 = LSB of block.x, bit 127 = MSB of block.w).
+		void PutBits(inout uint4 block, inout uint pos, uint value, uint numBits)
+		{
+			for (uint i = 0; i < numBits; ++i)
+			{
+				uint bit = (value >> i) & 1u;
+				uint p = pos + i;
+				block[p >> 5] |= bit << (p & 31u);
+			}
+			pos += numBits;
+		}
+
+		// Writes the low @p numBits of @p value at the absolute bit position @p startPos (no running cursor). BC6H packs
+		// endpoint components into scattered, non-contiguous bit ranges, so its per-mode packers address bits directly.
+		void SetBits(inout uint4 block, uint startPos, uint value, uint numBits)
+		{
+			for (uint i = 0; i < numBits; ++i)
+			{
+				uint bit = (value >> i) & 1u;
+				uint p = startPos + i;
+				block[p >> 5] |= bit << (p & 31u);
+			}
+		}
+	};
+};

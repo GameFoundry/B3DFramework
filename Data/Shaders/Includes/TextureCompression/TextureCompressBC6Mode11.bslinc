@@ -1,0 +1,33 @@
+// BC6H mode 11 encoder (mode bits 0x03). One region (single subset), RGB endpoints at 10-bit precision with no
+// transform (endpoints stored raw), and 4-bit indices. Block layout (LSB->MSB): mode(5, ="00011") | rw gw bw rx gx bx
+// (10 each: endpoint A = w, endpoint B = x) | index0 (3 bits, anchor) | index1..15 (4 bits each) = 128 bits.
+//
+// This is the highest-precision one-region mode and the workhorse for smooth HDR blocks. Endpoints come from the
+// principal axis of the block's half-float-bit distribution (shared PCA), then one least-squares refinement pass.
+#include "$ENGINE$\TextureCompression\TextureCompressBC6Common.bslinc"
+
+mixin TextureCompressBC6Mode11
+{
+	mixin TextureCompressBC6Common;
+
+	code
+	{
+		// @p h holds the 16 texels as UF16 half-float bits (per channel, 0..0x7BFF). @p outErr receives the total squared
+		// reconstruction error in half-bit space so the dispatcher can pick the lowest-error mode per block.
+		uint4 CompressBC6Mode11(int3 h[16], out float outErr)
+		{
+			// One region, 10-bit base, no transform, 4-bit indices (shared single-subset fit).
+			int3 W, X;
+			uint idx[16];
+			EncodeBC6OneRegion(h, 10, int3(10, 10, 10), false, W, X, idx, outErr);
+
+			// Pack the 128-bit block (all endpoint fields contiguous for mode 11).
+			uint4 block = uint4(0, 0, 0, 0);
+			SetBits(block, 0, 0x03u, 5);                                          // mode 11 prefix "00011"
+			SetBits(block, 5,  (uint)W.x, 10); SetBits(block, 15, (uint)W.y, 10); SetBits(block, 25, (uint)W.z, 10);
+			SetBits(block, 35, (uint)X.x, 10); SetBits(block, 45, (uint)X.y, 10); SetBits(block, 55, (uint)X.z, 10);
+			PackBC6IndicesOneRegion(block, idx);
+			return block;
+		}
+	};
+};

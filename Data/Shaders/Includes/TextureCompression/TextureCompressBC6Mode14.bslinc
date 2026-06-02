@@ -1,0 +1,29 @@
+// BC6H mode 14 encoder (mode bits 0x0F). One region, full 16-bit base with only a 4-bit signed delta (transform),
+// 4-bit indices. Maximum endpoint precision but a very small endpoint span - it only wins on essentially flat HDR
+// blocks. Endpoint fit + indices come from the shared single-subset encoder; the top 6 base bits (15:10) follow each
+// channel's 4-bit delta.
+#include "$ENGINE$\TextureCompression\TextureCompressBC6Common.bslinc"
+
+mixin TextureCompressBC6Mode14
+{
+	mixin TextureCompressBC6Common;
+
+	code
+	{
+		uint4 CompressBC6Mode14(int3 h[16], out float outErr)
+		{
+			int3 W, X;
+			uint idx[16];
+			EncodeBC6OneRegion(h, 16, int3(4, 4, 4), true, W, X, idx, outErr);
+
+			uint4 block = uint4(0, 0, 0, 0);
+			SetBits(block, 0, 0x0Fu, 5);
+			SetBits(block, 5,  (uint)W.x, 10); SetBits(block, 15, (uint)W.y, 10); SetBits(block, 25, (uint)W.z, 10);
+			SetBits(block, 35, (uint)X.x, 4); SetBits(block, 39, (uint)W.x >> 10, 6); // rx[3:0], rw[15:10]
+			SetBits(block, 45, (uint)X.y, 4); SetBits(block, 49, (uint)W.y >> 10, 6); // gx[3:0], gw[15:10]
+			SetBits(block, 55, (uint)X.z, 4); SetBits(block, 59, (uint)W.z >> 10, 6); // bx[3:0], bw[15:10]
+			PackBC6IndicesOneRegion(block, idx);
+			return block;
+		}
+	};
+};

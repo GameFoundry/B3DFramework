@@ -15,6 +15,7 @@ Data/.version
 Data/*
 !Data/.reqversion
 !Data/DataPackageManifest.txt
+!Data/Shaders/
 !Data/Raw/
 Data/Raw/*
 !Data/Raw/ShaderDependencies.json

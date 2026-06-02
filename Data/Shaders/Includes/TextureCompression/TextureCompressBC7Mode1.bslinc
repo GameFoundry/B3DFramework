@@ -1,0 +1,188 @@
+// BC7 mode 1 encoder. Mode 1 is two-subset RGB (no alpha): a 6-bit partition selects one of 64 ways to split the 16
+// texels into two subsets, each subset gets its own RGB endpoint pair at 6-bit precision plus a single shared P-bit
+// (7-bit effective), and texels use 3-bit indices. Block layout (LSB->MSB): mode(2, ="01") | partition(6) |
+// R0 R1 R2 R3 G0 G1 G2 G3 B0 B1 B2 B3 (6 each, endpoint = 2*subset + which) | P0 P1 (1 each, one per subset) |
+// indices (3 bits each, the two subset anchors store 2 bits) = 128 bits.
+//
+// Endpoints come from each subset's colour bounding box; the encoder searches all 64 partitions and keeps the one with
+// the lowest total reconstruction error. Alpha is not represented (the decoder forces A=255), so the dispatcher must add
+// the alpha penalty before comparing this mode's error against alpha-capable modes.
+#include "$ENGINE$\TextureCompression\TextureCompressBC7Common.bslinc"
+
+mixin TextureCompressBC7Mode1
+{
+	mixin TextureCompressBC7Common;
+
+	code
+	{
+		// Quantizes one subset's two RGB endpoints to 6-bit codes sharing a single P-bit (7-bit effective), choosing the
+		// P-bit that minimises the combined endpoint reconstruction error. Returns codes (for packing) and the 8-bit
+		// reconstructed endpoints (for index selection / error).
+		void QuantizeSubsetMode1(int3 e0, int3 e1, out int3 c0, out int3 c1, out uint pbit, out int3 r0, out int3 r1)
+		{
+			int3 bestC0 = int3(0, 0, 0), bestC1 = int3(0, 0, 0);
+			int3 bestR0 = int3(0, 0, 0), bestR1 = int3(0, 0, 0);
+			int bestP = 0;
+			int bestErr = 0x7fffffff;
+			[unroll]
+			for (int p = 0; p < 2; ++p)
+			{
+				int3 tc0 = int3(0, 0, 0), tc1 = int3(0, 0, 0);
+				int3 tr0 = int3(0, 0, 0), tr1 = int3(0, 0, 0);
+				int err = 0;
+				[unroll]
+				for (int ch = 0; ch < 3; ++ch)
+				{
+					int t0 = (int)round((float)e0[ch] * (127.0f / 255.0f));
+					int code0 = clamp((t0 - p + 1) >> 1, 0, 63);
+					int rec0 = ExpandBC7((code0 << 1) | p, 7);
+					int d0 = rec0 - e0[ch];
+					err += d0 * d0;
+					tc0[ch] = code0; tr0[ch] = rec0;
+
+					int t1 = (int)round((float)e1[ch] * (127.0f / 255.0f));
+					int code1 = clamp((t1 - p + 1) >> 1, 0, 63);
+					int rec1 = ExpandBC7((code1 << 1) | p, 7);
+					int d1 = rec1 - e1[ch];
+					err += d1 * d1;
+					tc1[ch] = code1; tr1[ch] = rec1;
+				}
+				if (err < bestErr)
+				{
+					bestErr = err;
+					bestC0 = tc0; bestC1 = tc1;
+					bestR0 = tr0; bestR1 = tr1;
+					bestP = p;
+				}
+			}
+			c0 = bestC0; c1 = bestC1;
+			r0 = bestR0; r1 = bestR1;
+			pbit = (uint)bestP;
+		}
+
+		// Encodes a 4x4 RGB block into a 128-bit BC7 mode-1 block, searching all 64 partitions. @p outErr receives the
+		// total squared RGB reconstruction error (so the dispatcher can pick the best mode per block).
+		uint4 CompressBC7Mode1(float3 texels[16], out float outErr)
+		{
+			int3 px[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+				px[i] = (int3)round(saturate(texels[i]) * 255.0f);
+
+			int bestPart = 0;
+			float bestErr = 1e30f;
+			int3 bC0[2], bC1[2];
+			uint bP[2];
+			uint bIdx[16];
+
+			for (uint part = 0; part < 64; ++part)
+			{
+				uint mask = kBC7Part2[part];
+				uint mask0 = (~mask) & 0xFFFFu;
+				uint mask1 = mask & 0xFFFFu;
+
+				// PCA principal-axis endpoints per subset.
+				float3 fe0_0, fe1_0, fe0_1, fe1_1;
+				FitLineRGB(px, mask0, fe0_0, fe1_0);
+				FitLineRGB(px, mask1, fe0_1, fe1_1);
+
+				int3 c0_0, c1_0, r0_0, r1_0; uint p_0;
+				int3 c0_1, c1_1, r0_1, r1_1; uint p_1;
+				float err = 0;
+				uint idx[16];
+
+				// Pass 0: quantize PCA endpoints, assign indices, least-squares-refine. Pass 1: re-quantize, re-assign.
+				[unroll]
+				for (uint refinePass = 0; refinePass < 2; ++refinePass)
+				{
+					QuantizeSubsetMode1((int3)round(fe0_0), (int3)round(fe1_0), c0_0, c1_0, p_0, r0_0, r1_0);
+					QuantizeSubsetMode1((int3)round(fe0_1), (int3)round(fe1_1), c0_1, c1_1, p_1, r0_1, r1_1);
+
+					float wgt[16];
+					err = 0;
+					[unroll]
+					for (uint t = 0; t < 16; ++t)
+					{
+						uint s = (mask >> t) & 1u;
+						int3 pr0 = (s == 0u) ? r0_0 : r0_1;
+						int3 pr1 = (s == 0u) ? r1_0 : r1_1;
+						int bestK = 0;
+						int bestD = 0x7fffffff;
+						[unroll]
+						for (uint k = 0; k < 8; ++k)
+						{
+							int w = (int)kBC7Weight3[k];
+							int3 pal = ((64 - w) * pr0 + w * pr1 + 32) >> 6;
+							int3 d = px[t] - pal;
+							int dd = d.x * d.x + d.y * d.y + d.z * d.z;
+							if (dd < bestD) { bestD = dd; bestK = (int)k; }
+						}
+						err += (float)bestD;
+						idx[t] = (uint)bestK;
+						wgt[t] = (float)kBC7Weight3[bestK] * (1.0f / 64.0f);
+					}
+
+					if (refinePass == 0)
+					{
+						RefineLineRGB(px, mask0, wgt, fe0_0, fe1_0);
+						RefineLineRGB(px, mask1, wgt, fe0_1, fe1_1);
+					}
+				}
+
+				if (err < bestErr)
+				{
+					bestErr = err;
+					bestPart = (int)part;
+					bC0[0] = c0_0; bC1[0] = c1_0; bP[0] = p_0;
+					bC0[1] = c0_1; bC1[1] = c1_1; bP[1] = p_1;
+					[unroll]
+					for (uint t = 0; t < 16; ++t)
+						bIdx[t] = idx[t];
+				}
+			}
+
+			// Anchor fixups: subset 0 anchor is texel 0, subset 1 anchor is kBC7Anchor2[bestPart]. Each anchor index slot
+			// stores one fewer bit, so its high bit must be 0; if not, swap that subset's endpoints and invert (7 - idx)
+			// every index in that subset (the 3-bit weights are symmetric, so this is lossless).
+			uint anchor1 = kBC7Anchor2[bestPart];
+			uint pmask = kBC7Part2[bestPart];
+			if (bIdx[0] >= 4u)
+			{
+				int3 t = bC0[0]; bC0[0] = bC1[0]; bC1[0] = t;
+				[unroll]
+				for (uint tt = 0; tt < 16; ++tt)
+					if (((pmask >> tt) & 1u) == 0u) bIdx[tt] = 7u - bIdx[tt];
+			}
+			if (bIdx[anchor1] >= 4u)
+			{
+				int3 t = bC0[1]; bC0[1] = bC1[1]; bC1[1] = t;
+				[unroll]
+				for (uint tt = 0; tt < 16; ++tt)
+					if (((pmask >> tt) & 1u) == 1u) bIdx[tt] = 7u - bIdx[tt];
+			}
+
+			outErr = bestErr;
+
+			// Pack the 128-bit block.
+			uint4 block = uint4(0, 0, 0, 0);
+			uint pos = 0;
+			PutBits(block, pos, 0x2u, 2);              // mode 1 prefix "01" (bit 1 set)
+			PutBits(block, pos, (uint)bestPart, 6);
+			PutBits(block, pos, (uint)bC0[0].x, 6); PutBits(block, pos, (uint)bC1[0].x, 6);
+			PutBits(block, pos, (uint)bC0[1].x, 6); PutBits(block, pos, (uint)bC1[1].x, 6);
+			PutBits(block, pos, (uint)bC0[0].y, 6); PutBits(block, pos, (uint)bC1[0].y, 6);
+			PutBits(block, pos, (uint)bC0[1].y, 6); PutBits(block, pos, (uint)bC1[1].y, 6);
+			PutBits(block, pos, (uint)bC0[0].z, 6); PutBits(block, pos, (uint)bC1[0].z, 6);
+			PutBits(block, pos, (uint)bC0[1].z, 6); PutBits(block, pos, (uint)bC1[1].z, 6);
+			PutBits(block, pos, bP[0], 1); PutBits(block, pos, bP[1], 1);
+			[unroll]
+			for (uint t = 0; t < 16; ++t)
+			{
+				uint nb = (t == 0u || t == anchor1) ? 2u : 3u;
+				PutBits(block, pos, bIdx[t], nb);
+			}
+
+			return block;
+		}
+	};
+};

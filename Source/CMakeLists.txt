@@ -50,6 +50,8 @@ set(B3D_MONOLITHIC_BUILD OFF CACHE BOOL "Link non-importer plugins statically in
 
 set(B3D_BUILD_IMPORTERS ON CACHE BOOL "Build asset importer plugins and the import tooling. These are cook-time only, and are not supported on consoles.")
 
+set(B3D_USE_NVTT ON CACHE BOOL "Use the nvtt library for runtime texture (BCn) compression. When disabled uses experimental built-in GPU based BC compression & mip generation.")
+
 # Ensure dependencies are up to date
 ## Check data dependencies
 B3DCheckAndUpdateAssetPackage(FrameworkData)

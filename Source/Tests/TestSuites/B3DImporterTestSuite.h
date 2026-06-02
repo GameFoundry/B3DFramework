@@ -18,7 +18,10 @@ namespace b3d
 	private:
 		void TestPngImport_Default();
 		void TestPngImport_WithMips();
-		void TestPngImport_NvttBC3();
+		void TestPngImport_BC3();
+		void TestGpuCompress_Psnr();
+		void TestGpuCompress_BC6H_Psnr();
+		void TestGpuMipmaps_BoxFilter();
 
 		void TestOggImport_Default();
 		void TestOggImport_KeepCompressed();

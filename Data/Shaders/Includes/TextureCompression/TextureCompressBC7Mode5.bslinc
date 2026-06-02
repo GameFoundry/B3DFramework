@@ -1,0 +1,167 @@
+// BC7 mode 5 encoder. Mode 5 is single-subset RGBA with a 2-bit channel rotation: RGB endpoints at 7-bit precision and
+// A endpoints at 8-bit (no P-bits), separate 2-bit colour and 2-bit alpha indices, and a rotation that optionally swaps
+// one colour channel with alpha (so the higher-variance channel can use the dedicated alpha index set). Block layout
+// (LSB->MSB): mode(6, ="000001") | rotation(2) | R0 R1 G0 G1 B0 B1 (7 each) | A0 A1 (8 each) | colour indices (2 bits
+// each, texel-0 anchor 1 bit) | alpha indices (2 bits each, texel-0 anchor 1 bit) = 128 bits.
+//
+// Encodes full RGBA, so its error is directly comparable to mode 6 (no alpha penalty needed). The encoder tries all four
+// rotations and keeps the lowest-error one.
+#include "$ENGINE$\TextureCompression\TextureCompressBC7Common.bslinc"
+
+mixin TextureCompressBC7Mode5
+{
+	mixin TextureCompressBC7Common;
+
+	code
+	{
+		// Remaps a texel for the given rotation: rotation r (1..3) swaps colour channel r-1 with alpha, matching the
+		// decoder's post-interpolation swap. Rotation 0 leaves the texel unchanged.
+		void ApplyRotationMode5(int4 p, uint rot, out int3 col, out int alpha)
+		{
+			col = p.rgb;
+			alpha = p.a;
+			if (rot == 1u) { col.r = p.a; alpha = p.r; }
+			else if (rot == 2u) { col.g = p.a; alpha = p.g; }
+			else if (rot == 3u) { col.b = p.a; alpha = p.b; }
+		}
+
+		uint4 CompressBC7Mode5(float4 texels[16], out float outErr)
+		{
+			int4 px[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+				px[i] = (int4)round(saturate(texels[i]) * 255.0f);
+
+			uint bestRot = 0;
+			float bestErr = 1e30f;
+			int3 bC0 = int3(0, 0, 0), bC1 = int3(0, 0, 0); // 7-bit colour endpoint codes
+			int bA0 = 0, bA1 = 0;                          // 8-bit alpha endpoint codes
+			uint bCIdx[16], bAIdx[16];
+
+			[unroll]
+			for (uint rot = 0; rot < 4; ++rot)
+			{
+				int3 cmn = int3(255, 255, 255), cmx = int3(0, 0, 0);
+				int amn = 255, amx = 0;
+				int3 col[16];
+				int alp[16];
+				[unroll]
+				for (uint i = 0; i < 16; ++i)
+				{
+					int3 c; int a;
+					ApplyRotationMode5(px[i], rot, c, a);
+					col[i] = c; alp[i] = a;
+					cmn = min(cmn, c); cmx = max(cmx, c);
+					amn = min(amn, a); amx = max(amx, a);
+				}
+
+				// PCA principal-axis colour endpoints (over the rotated RGB); 1-D extent for the rotated alpha.
+				float3 fec0, fec1;
+				FitLineRGB(col, 0xFFFFu, fec0, fec1);
+				float fea0 = (float)amx, fea1 = (float)amn;
+
+				int3 c0 = int3(0, 0, 0), c1 = int3(0, 0, 0);
+				int a0 = 0, a1 = 0;
+				float err = 0;
+				uint cIdx[16], aIdx[16];
+
+				// Pass 0: quantize PCA endpoints, assign indices, least-squares-refine. Pass 1: re-quantize, re-assign.
+				[unroll]
+				for (uint refinePass = 0; refinePass < 2; ++refinePass)
+				{
+					// Colour endpoints: 7-bit, reconstruction = expand(code, 7).
+					int3 rc0 = int3(0, 0, 0), rc1 = int3(0, 0, 0);
+					[unroll]
+					for (int ch = 0; ch < 3; ++ch)
+					{
+						int q0 = clamp((int)round(fec0[ch] * (127.0f / 255.0f)), 0, 127);
+						int q1 = clamp((int)round(fec1[ch] * (127.0f / 255.0f)), 0, 127);
+						c0[ch] = q0; c1[ch] = q1;
+						rc0[ch] = ExpandBC7(q0, 7); rc1[ch] = ExpandBC7(q1, 7);
+					}
+					// Alpha endpoints: 8-bit, reconstruction is the value itself.
+					a0 = clamp((int)round(fea0), 0, 255);
+					a1 = clamp((int)round(fea1), 0, 255);
+
+					float cwgt[16], awgt[16];
+					err = 0;
+					[unroll]
+					for (uint t = 0; t < 16; ++t)
+					{
+						int bestKc = 0; int bestDc = 0x7fffffff;
+						int bestKa = 0; int bestDa = 0x7fffffff;
+						[unroll]
+						for (uint k = 0; k < 4; ++k)
+						{
+							int w = (int)kBC7Weight2[k];
+							int3 pal = ((64 - w) * rc0 + w * rc1 + 32) >> 6;
+							int3 dc = col[t] - pal;
+							int ddc = dc.x * dc.x + dc.y * dc.y + dc.z * dc.z;
+							if (ddc < bestDc) { bestDc = ddc; bestKc = (int)k; }
+
+							int pa = ((64 - w) * a0 + w * a1 + 32) >> 6;
+							int da = alp[t] - pa;
+							int dda = da * da;
+							if (dda < bestDa) { bestDa = dda; bestKa = (int)k; }
+						}
+						err += (float)(bestDc + bestDa);
+						cIdx[t] = (uint)bestKc;
+						aIdx[t] = (uint)bestKa;
+						cwgt[t] = (float)kBC7Weight2[bestKc] * (1.0f / 64.0f);
+						awgt[t] = (float)kBC7Weight2[bestKa] * (1.0f / 64.0f);
+					}
+
+					if (refinePass == 0)
+					{
+						RefineLineRGB(col, 0xFFFFu, cwgt, fec0, fec1);
+						RefineScalar(alp, 0xFFFFu, awgt, fea0, fea1);
+					}
+				}
+
+				if (err < bestErr)
+				{
+					bestErr = err;
+					bestRot = rot;
+					bC0 = c0; bC1 = c1; bA0 = a0; bA1 = a1;
+					[unroll]
+					for (uint t = 0; t < 16; ++t) { bCIdx[t] = cIdx[t]; bAIdx[t] = aIdx[t]; }
+				}
+			}
+
+			// Anchor fixups (texel 0 stores 1 bit for each index set, so its high bit must be clear). Colour and alpha
+			// index sets are fixed independently.
+			if (bCIdx[0] >= 2u)
+			{
+				int3 t = bC0; bC0 = bC1; bC1 = t;
+				[unroll]
+				for (uint tt = 0; tt < 16; ++tt) bCIdx[tt] = 3u - bCIdx[tt];
+			}
+			if (bAIdx[0] >= 2u)
+			{
+				int t = bA0; bA0 = bA1; bA1 = t;
+				[unroll]
+				for (uint tt = 0; tt < 16; ++tt) bAIdx[tt] = 3u - bAIdx[tt];
+			}
+
+			outErr = bestErr;
+
+			// Pack the 128-bit block.
+			uint4 block = uint4(0, 0, 0, 0);
+			uint pos = 0;
+			PutBits(block, pos, 0x20u, 6);             // mode 5 prefix "000001" (bit 5 set)
+			PutBits(block, pos, bestRot, 2);
+			PutBits(block, pos, (uint)bC0.x, 7); PutBits(block, pos, (uint)bC1.x, 7);
+			PutBits(block, pos, (uint)bC0.y, 7); PutBits(block, pos, (uint)bC1.y, 7);
+			PutBits(block, pos, (uint)bC0.z, 7); PutBits(block, pos, (uint)bC1.z, 7);
+			PutBits(block, pos, (uint)bA0, 8); PutBits(block, pos, (uint)bA1, 8);
+			[unroll]
+			for (uint t = 0; t < 16; ++t)
+				PutBits(block, pos, bCIdx[t], (t == 0u) ? 1u : 2u);
+			[unroll]
+			for (uint t = 0; t < 16; ++t)
+				PutBits(block, pos, bAIdx[t], (t == 0u) ? 1u : 2u);
+
+			return block;
+		}
+	};
+};

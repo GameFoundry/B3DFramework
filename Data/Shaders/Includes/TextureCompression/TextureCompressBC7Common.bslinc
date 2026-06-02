@@ -1,0 +1,145 @@
+// Constants and helpers shared across BC7 mode encoders. Per-mode encoder headers (TextureCompressBC7Mode*.bslinc) mix
+// this in. As more modes are ported, shared tables (partition / anchor / weight tables) accumulate here rather than in
+// any single mode's header.
+#include "$ENGINE$\TextureCompression\TextureCompressBitUtil.bslinc"
+#include "$ENGINE$\TextureCompression\TextureCompressLineFit.bslinc"
+
+mixin TextureCompressBC7Common
+{
+	mixin TextureCompressBitUtil;
+	mixin TextureCompressLineFit;
+
+	code
+	{
+		// BC7 4-bit index interpolation weights (the hardware decoder's aWeight4 table); used by every mode with 4-bit
+		// indices (e.g. mode 6).
+		static const uint kBC7Weight4[16] = { 0, 4, 9, 13, 17, 21, 26, 30, 34, 38, 43, 47, 51, 55, 60, 64 };
+		// 3-bit and 2-bit index weights (aWeight3 / aWeight2). Used by partitioned modes (1/0/2/3/7).
+		static const uint kBC7Weight3[8] = { 0, 9, 18, 27, 37, 46, 55, 64 };
+		static const uint kBC7Weight2[4] = { 0, 21, 43, 64 };
+
+		// 2-subset partition table (BC7 standard). Bit t (0..15) selects subset 0 or 1 for texel t. Ported verbatim from
+		// the BC7 spec.
+		static const uint kBC7Part2[64] = {
+			0x0000CCCCu, 0x00008888u, 0x0000EEEEu, 0x0000ECC8u, 0x0000C880u, 0x0000FEECu, 0x0000FEC8u, 0x0000EC80u,
+			0x0000C800u, 0x0000FFECu, 0x0000FE80u, 0x0000E800u, 0x0000FFE8u, 0x0000FF00u, 0x0000FFF0u, 0x0000F000u,
+			0x0000F710u, 0x0000008Eu, 0x00007100u, 0x000008CEu, 0x0000008Cu, 0x00007310u, 0x00003100u, 0x00008CCEu,
+			0x0000088Cu, 0x00003110u, 0x00006666u, 0x0000366Cu, 0x000017E8u, 0x00000FF0u, 0x0000718Eu, 0x0000399Cu,
+			0x0000AAAAu, 0x0000F0F0u, 0x00005A5Au, 0x000033CCu, 0x00003C3Cu, 0x000055AAu, 0x00009696u, 0x0000A55Au,
+			0x000073CEu, 0x000013C8u, 0x0000324Cu, 0x00003BDCu, 0x00006996u, 0x0000C33Cu, 0x00009966u, 0x00000660u,
+			0x00000272u, 0x000004E4u, 0x00004E40u, 0x00002720u, 0x0000C936u, 0x0000936Cu, 0x000039C6u, 0x0000639Cu,
+			0x00009336u, 0x00009CC6u, 0x0000817Eu, 0x0000E718u, 0x0000CCF0u, 0x00000FCCu, 0x00007744u, 0x0000EE22u
+		};
+
+		// Subset-1 anchor (fixup) index for each 2-subset partition. The anchor
+		// of subset 0 is always texel 0. Anchor index slots store one fewer bit, so their high bit must be kept clear.
+		static const uint kBC7Anchor2[64] = {
+			15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+			15,  2,  8,  2,  2,  8,  8, 15,  2,  8,  2,  2,  8,  8,  2,  2,
+			15, 15,  6,  8,  2,  8, 15, 15,  2,  8,  2,  2,  2, 15, 15,  6,
+			 6,  2,  6,  8, 15, 15,  2,  2, 15, 15, 15, 15, 15,  2,  2, 15
+		};
+
+		// Subset selector for the 2-subset partition table.
+		uint GetBC7Subset2(uint partition, uint texel)
+		{
+			return (kBC7Part2[partition] >> texel) & 1u;
+		}
+
+		// 3-subset partition table (BC7 standard). Packed two bits per texel across a 32-bit word: bit (16+t) selects
+		// subset 2, bit t selects subset 1, neither set selects subset 0.
+		static const uint kBC7Part3[64] = {
+			0xF60008CCu, 0x73008CC8u, 0x3310CC80u, 0x00CEEC00u, 0xCC003300u, 0xCC0000CCu, 0x00CCFF00u, 0x3300CCCCu,
+			0xF0000F00u, 0xF0000FF0u, 0xFF0000F0u, 0x88884444u, 0x88886666u, 0xCCCC2222u, 0xEC80136Cu, 0x7310008Cu,
+			0xC80036C8u, 0x310008CEu, 0xCCC03330u, 0x0CCCF000u, 0xEE0000EEu, 0x77008888u, 0xCC0022C0u, 0x33004430u,
+			0x00CC0C22u, 0xFC880344u, 0x06606996u, 0x66009960u, 0xC88C0330u, 0xF9000066u, 0x0CC0C22Cu, 0x73108C00u,
+			0xEC801300u, 0x08CEC400u, 0xEC80004Cu, 0x44442222u, 0x0F0000F0u, 0x49242492u, 0x42942942u, 0x0C30C30Cu,
+			0x03C0C03Cu, 0xFF0000AAu, 0x5500AA00u, 0xCCCC3030u, 0x0C0CC0C0u, 0x66669090u, 0x0FF0A00Au, 0x5550AAA0u,
+			0xF0000AAAu, 0x0E0EE0E0u, 0x88887070u, 0x99906660u, 0xE00E0EE0u, 0x88880770u, 0xF0000666u, 0x99006600u,
+			0xFF000066u, 0xC00C0CC0u, 0xCCCC0330u, 0x90006000u, 0x08088080u, 0xEEEE1010u, 0xFFF0000Au, 0x731008CEu
+		};
+
+		// Subset-1 and subset-2 anchor (fixup) indices for each 3-subset partition (BC7_FIXUPINDICES). Subset 0's anchor
+		// is always texel 0.
+		static const uint kBC7Anchor3a[64] = {
+			 3,  3, 15, 15,  8,  3, 15, 15,  8,  8,  6,  6,  6,  5,  3,  3,
+			 3,  3,  8, 15,  3,  3,  6, 10,  5,  8,  8,  6,  8,  5, 15, 15,
+			 8, 15,  3,  5,  6, 10,  8, 15, 15,  3, 15,  5, 15, 15, 15, 15,
+			 3, 15,  5,  5,  5,  8,  5, 10,  5, 10,  8, 13, 15, 12,  3,  3
+		};
+		static const uint kBC7Anchor3b[64] = {
+			15,  8,  8,  3, 15, 15,  3,  8, 15, 15, 15, 15, 15, 15, 15,  8,
+			15,  8, 15,  3, 15,  8, 15,  8,  3, 15,  6, 10, 15, 15, 10,  8,
+			15,  3, 15, 10, 10,  8,  9, 10,  6, 15,  8, 15,  3,  6,  6,  8,
+			15,  3, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,  8
+		};
+
+		// Subset selector for the 3-subset partition table.
+		uint GetBC7Subset3(uint partition, uint texel)
+		{
+			uint v = kBC7Part3[partition];
+			uint hi = (v >> (16u + texel)) & 1u;
+			uint lo = (v >> texel) & 1u;
+			return hi ? 2u : (lo ? 1u : 0u);
+		}
+
+		// Expands a @p bits-wide value (after the optional P-bit has been appended) to 8 bits via the hardware
+		// bit-replication the BC7 decoder uses. For bits == 8 this is the identity.
+		int ExpandBC7(int v, int bits)
+		{
+			return (v << (8 - bits)) | (v >> (2 * bits - 8));
+		}
+
+		// ------------------------------------------------------------------------------------------------------------
+		// BC7 endpoint fitting. Thin wrappers over the shared TextureCompressLineFit layer (PCA principal-axis fit +
+		// least-squares refine), which is reused unchanged by BC1/BC6H. These convert the BC7 integer texels (0..255) to
+		// float, call the generic geometry, and clamp the result back to the 8-bit range. @p mask16 selects subset members
+		// (bit t set = member); single-subset modes pass 0xFFFF. @p e0 is the high (index-0) end, @p e1 the low end.
+
+		void FitLineRGB(int3 px[16], uint mask16, out float3 e0, out float3 e1)
+		{
+			float3 f[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i) f[i] = (float3)px[i];
+			FitLine3f(f, mask16, e0, e1);
+			e0 = clamp(e0, 0.0f, 255.0f); e1 = clamp(e1, 0.0f, 255.0f);
+		}
+
+		void FitLineRGBA(int4 px[16], uint mask16, out float4 e0, out float4 e1)
+		{
+			float4 f[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i) f[i] = (float4)px[i];
+			FitLine4f(f, mask16, e0, e1);
+			e0 = clamp(e0, 0.0f, 255.0f); e1 = clamp(e1, 0.0f, 255.0f);
+		}
+
+		void RefineLineRGB(int3 px[16], uint mask16, float wgt[16], inout float3 e0, inout float3 e1)
+		{
+			float3 f[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i) f[i] = (float3)px[i];
+			RefineLine3f(f, mask16, wgt, e0, e1);
+			e0 = clamp(e0, 0.0f, 255.0f); e1 = clamp(e1, 0.0f, 255.0f);
+		}
+
+		void RefineLineRGBA(int4 px[16], uint mask16, float wgt[16], inout float4 e0, inout float4 e1)
+		{
+			float4 f[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i) f[i] = (float4)px[i];
+			RefineLine4f(f, mask16, wgt, e0, e1);
+			e0 = clamp(e0, 0.0f, 255.0f); e1 = clamp(e1, 0.0f, 255.0f);
+		}
+
+		// Scalar (single-channel) least-squares refinement, for the dedicated alpha index sets in modes 4/5.
+		void RefineScalar(int v[16], uint mask16, float wgt[16], inout float e0, inout float e1)
+		{
+			float f[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i) f[i] = (float)v[i];
+			RefineLine1f(f, mask16, wgt, e0, e1);
+			e0 = clamp(e0, 0.0f, 255.0f); e1 = clamp(e1, 0.0f, 255.0f);
+		}
+	};
+};

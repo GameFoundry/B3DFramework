@@ -136,7 +136,8 @@ namespace b3d
 		PNG, /*< Portable Network Graphics (lossless, compressed). */
 		JPG, /*< JPEG (lossy, quality 90). */
 		BMP, /*< Bitmap (uncompressed). */
-		TGA  /*< Truevision TGA (run-length encoding). */
+		TGA, /*< Truevision TGA (run-length encoding). */
+		EXR  /*< OpenEXR (high dynamic range, floating point). */
 	};
 
 	/**	Utility methods for converting and managing pixel data and formats. */
@@ -385,12 +386,13 @@ namespace b3d
 		 *
 		 * @param pixelData		Pixel data to save. Must be non-null with valid dimensions.
 		 * @param outputPath	Output file path. Extension will be set based on format.
-		 * @param format		Image format to save as (PNG, JPG, BMP, TGA).
-		 * @param ignoreAlpha	If true, alpha channel will be set to fully opaque (255) in the output.
+		 * @param format		Image format to save as (PNG, JPG, BMP, TGA, EXR).
+		 * @param ignoreAlpha	If true, alpha channel will be set to fully opaque (255) in the output. Ignored for EXR.
 		 * @return				True if save succeeded, false on error (with log message).
 		 *
-		 * @note				Only supports 8-bit normalized formats: R8, RGB8, BGR8, RGBA8, BGRA8.
-		 *						Compressed, float, depth, and integer formats will return false.
+		 * @note				PNG/JPG/BMP/TGA only support 8-bit normalized formats: R8, RGB8, BGR8, RGBA8, BGRA8.
+		 *						EXR only supports floating-point formats: R16F, RG16F, RGBA16F, R32F, RG32F, RGB32F,
+		 *						RGBA32F. Mismatched format/extension combinations will return false.
 		 */
 		B3D_SCRIPT_EXPORT()
 		static bool SaveImage(const TShared<PixelData>& pixelData, const Path& outputPath, ImageFormat format, bool ignoreAlpha = false);

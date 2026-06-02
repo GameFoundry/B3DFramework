@@ -1,0 +1,54 @@
+// BC6H mode 4 encoder (mode bits 0x06, 5-bit prefix). Two regions, 5-bit partition, 3-bit indices. Endpoints store an
+// 11-bit base plus three signed deltas at 4/5/4 bits (G gets the wider delta). Sibling of mode 3 with the wide delta
+// channel rotated to green; wins on smooth two-subset HDR blocks whose green channel needs the extra delta range.
+//
+// Endpoint fit + indices + partition search come from the shared two-region encoder; only the scattered bit layout is
+// mode-specific. The 11th base bit of each channel is interleaved into the delta region.
+#include "$ENGINE$\TextureCompression\TextureCompressBC6Common.bslinc"
+
+mixin TextureCompressBC6Mode4
+{
+	mixin TextureCompressBC6Common;
+
+	code
+	{
+		uint4 CompressBC6Mode4(int3 h[16], out float outErr)
+		{
+			uint part;
+			int3 c[4];
+			uint idx[16];
+			EncodeBC6TwoRegion(h, 11, int3(4, 5, 4), true, part, c, idx, outErr);
+
+			uint rw = (uint)c[0].x, gw = (uint)c[0].y, bw = (uint)c[0].z;
+			uint rx = (uint)c[1].x, gx = (uint)c[1].y, bx = (uint)c[1].z;
+			uint ry = (uint)c[2].x, gy = (uint)c[2].y, by = (uint)c[2].z;
+			uint rz = (uint)c[3].x, gz = (uint)c[3].y, bz = (uint)c[3].z;
+
+			uint4 block = uint4(0, 0, 0, 0);
+			SetBits(block, 0, 0x06u, 5);          // mode 4 prefix "00110"
+			SetBits(block, 5, rw, 10);            // rw[9:0]
+			SetBits(block, 15, gw, 10);           // gw[9:0]
+			SetBits(block, 25, bw, 10);           // bw[9:0]
+			SetBits(block, 35, rx, 4);            // rx[3:0]
+			SetBits(block, 39, rw >> 10, 1);      // rw[10]
+			SetBits(block, 40, gz >> 4, 1);       // gz[4]
+			SetBits(block, 41, gy, 4);            // gy[3:0]
+			SetBits(block, 45, gx, 5);            // gx[4:0]
+			SetBits(block, 50, gw >> 10, 1);      // gw[10]
+			SetBits(block, 51, gz, 4);            // gz[3:0]
+			SetBits(block, 55, bx, 4);            // bx[3:0]
+			SetBits(block, 59, bw >> 10, 1);      // bw[10]
+			SetBits(block, 60, bz >> 1, 1);       // bz[1]
+			SetBits(block, 61, by, 4);            // by[3:0]
+			SetBits(block, 65, ry, 4);            // ry[3:0]
+			SetBits(block, 69, bz, 1);            // bz[0]
+			SetBits(block, 70, bz >> 2, 1);       // bz[2]
+			SetBits(block, 71, rz, 4);            // rz[3:0]
+			SetBits(block, 75, gy >> 4, 1);       // gy[4]
+			SetBits(block, 76, bz >> 3, 1);       // bz[3]
+			SetBits(block, 77, part, 5);          // partition (shape index)
+			PackBC6IndicesTwoRegion(block, idx, kBC6Anchor2[part]);
+			return block;
+		}
+	};
+};

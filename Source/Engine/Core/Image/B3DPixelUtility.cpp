@@ -1,15 +1,29 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Image/B3DPixelUtility.h"
+#include "Image/B3DTextureCompressor.h"
+#include "Image/B3DGenerateMipmap.h"
 #include "Utility/B3DBitwise.h"
 #include "Image/B3DColor.h"
 #include "Math/B3DMath.h"
 #include "Image/B3DTexture.h"
 #include "FileSystem/B3DPath.h"
+#if B3D_USE_NVTT
 #include <nvtt.h>
+#endif
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "ThirdParty/stb_image_write.h"
+
+// TinyEXR provides OpenEXR (.exr) HDR export
+#define TINYEXR_IMPLEMENTATION
+#define TINYEXR_USE_MINIZ 0
+#define TINYEXR_USE_STB_ZLIB 1
+#include "ThirdParty/tinyexr.h"
+
+// tinyexr's ZIP decode path (LoadEXR) references stb_image.h's zlib decoder. We don't include stb_image.h since we
+// never load EXRs, so provide a stub to satisfy the linker for that dead code path.
+extern "C" int stbi_zlib_decode_buffer(char* /*obuffer*/, int /*olen*/, const char* /*ibuffer*/, int /*ilen*/) { return -1; }
 
 using namespace b3d;
 
@@ -1765,6 +1779,7 @@ static inline const PixelFormatDescription& GetDescriptionFor(const PixelFormat 
 	return _pixelFormats[ord];
 }
 
+#if B3D_USE_NVTT
 /**	Handles compression output from NVTT library for a single image. */
 struct NVTTCompressOutputHandler : public nvtt::OutputHandler
 {
@@ -1903,6 +1918,73 @@ nvtt::WrapMode ToNvttWrapMode(MipMapWrapMode wrapMode)
 	// Unknown alpha mode
 	return nvtt::WrapMode_Mirror;
 }
+#endif // B3D_USE_NVTT
+
+namespace
+{
+	// Saves floating-point pixel data as an OpenEXR (.exr) HDR image via TinyEXR. Supports 1/3/4-channel float and
+	// half-float source formats; 2-channel (RG) sources are padded to RGB with B = 0. Channels are written as 32-bit
+	// float (no precision loss). Assumes the caller has already validated dimensions and the non-null path.
+	bool SaveImageAsEXR(const TShared<PixelData>& pixelData, const Path& outputPath)
+	{
+		const PixelFormat fmt = pixelData->GetFormat();
+
+		u32 components;
+		switch (fmt)
+		{
+		case PF_R16F:    case PF_R32F:    components = 1; break;
+		case PF_RG16F:   case PF_RG32F:   components = 3; break; // EXR has no 2-channel layout; pad B = 0.
+		case PF_RGB32F:                   components = 3; break;
+		case PF_RGBA16F: case PF_RGBA32F: components = 4; break;
+		default:
+			B3D_LOG(Error, LogPixelUtility, "SaveImage failed: EXR export requires a floating-point pixel format "
+				"(R16F, RG16F, RGBA16F, R32F, RG32F, RGB32F, RGBA32F). Got '{0}'.", PixelUtility::GetFormatName(fmt));
+			return false;
+		}
+
+		const u32 width = pixelData->GetWidth();
+		const u32 height = pixelData->GetHeight();
+
+		// Build a tightly-packed, interleaved float buffer. GetColorAt returns unclamped float channels for HDR formats.
+		Vector<float> pixels((size_t)width * height * components);
+		for (u32 y = 0; y < height; ++y)
+		{
+			for (u32 x = 0; x < width; ++x)
+			{
+				const Color color = pixelData->GetColorAt(x, y);
+
+				float* const pixelComponents = &pixels[((size_t)y * width + x) * components];
+				pixelComponents[0] = color.R;
+				if (components >= 3)
+				{
+					pixelComponents[1] = color.G; 
+					pixelComponents[2] = color.B;
+				}
+
+				if (components == 4)
+					pixelComponents[3] = color.A;
+			}
+		}
+
+		Path finalPath = outputPath;
+		finalPath.SetExtension(".exr");
+		const String pathString = finalPath.ToString();
+
+		const char* error = nullptr;
+		const int returnValue = SaveEXR(pixels.data(), (int)width, (int)height, (int)components, /*save_as_fp16*/ 0, pathString.c_str(), &error);
+		if (returnValue != TINYEXR_SUCCESS)
+		{
+			B3D_LOG(Error, LogPixelUtility, "SaveImage failed: TinyEXR error writing '{0}': {1}", pathString, error != nullptr ? error : "unknown error");
+
+			if (error != nullptr)
+				FreeEXRErrorMessage(error);
+
+			return false;
+		}
+
+		return true;
+	}
+} // anonymous namespace
 
 u32 PixelUtility::GetElementByteCount(PixelFormat format)
 {
@@ -3083,6 +3165,19 @@ void PixelUtility::Compress(const PixelData& source, PixelData& destination, con
 		return;
 	}
 
+#if !B3D_USE_NVTT
+	// GPU compression where the target format is supported (BC1/BC3/BC4/BC5/BC6H/BC7)
+	if(GpuTextureCompressor::IsFormatSupported(options.Format))
+	{
+		if(GpuTextureCompressor::Compress(source, destination, options))
+			return;
+
+		B3D_LOG(Warning, LogPixelUtility, "GPU texture compression failed for format \"{0}\". Falling back.", GetFormatName(options.Format));
+	}
+
+	B3D_LOG(Error, LogPixelUtility, "Compression failed. Runtime texture compression is not available on this platform.");
+	return;
+#else
 	PixelFormat interimFormat = options.Format == PF_BC6H ? PF_RGBA32F : PF_BGRA8;
 
 	PixelData interimData(source.GetWidth(), source.GetHeight(), 1, interimFormat);
@@ -3123,6 +3218,7 @@ void PixelUtility::Compress(const PixelData& source, PixelData& destination, con
 		B3D_LOG(Error, LogPixelUtility, "Compression failed. Internal error.");
 		return;
 	}
+#endif // B3D_USE_NVTT
 }
 
 TShared<PixelData> PixelUtility::Compress(const TShared<PixelData>& source, const CompressionOptions& options)
@@ -3172,6 +3268,14 @@ Vector<TShared<PixelData>> PixelUtility::GenerateMipmaps(const TShared<PixelData
 		return output;
 	}
 
+#if !B3D_USE_NVTT
+	// GPU mip-map generation
+	if(GpuGenerateMipmap::Generate(source, options, output))
+		return output;
+
+	B3D_LOG(Error, LogPixelUtility, "Mipmap generation failed. Runtime mipmap generation is not available on this platform.");
+	return output;
+#else
 	PixelFormat interimFormat = IsFloatingPoint(source->GetFormat()) ? PF_RGBA32F : PF_BGRA8;
 
 	PixelData interimData(source->GetWidth(), source->GetHeight(), 1, interimFormat);
@@ -3266,10 +3370,10 @@ Vector<TShared<PixelData>> PixelUtility::GenerateMipmaps(const TShared<PixelData
 	}
 
 	return output;
+#endif // B3D_USE_NVTT
 }
 
-bool PixelUtility::SaveImage(const TShared<PixelData>& pixelData, const Path& outputPath, ImageFormat format,
-	bool ignoreAlpha)
+bool PixelUtility::SaveImage(const TShared<PixelData>& pixelData, const Path& outputPath, ImageFormat format, bool ignoreAlpha)
 {
 	if (pixelData == nullptr)
 	{
@@ -3298,6 +3402,10 @@ bool PixelUtility::SaveImage(const TShared<PixelData>& pixelData, const Path& ou
 		B3D_LOG(Error, LogPixelUtility, "SaveImage failed: Output path is empty");
 		return false;
 	}
+
+	// HDR export takes a separate path: it consumes floating-point formats rather than the 8-bit ones below.
+	if (format == ImageFormat::EXR)
+		return SaveImageAsEXR(pixelData, outputPath);
 
 	// Validate pixel format support
 	PixelFormat pixelFormat = pixelData->GetFormat();

@@ -1,0 +1,190 @@
+// Format-agnostic endpoint geometry shared by every BCn encoder (BC1, BC7, BC6H, ...). These operate purely on float
+// vectors in whatever numeric space the caller works in (LDR 0..255, HDR half-float bits, etc.) and never clamp - the
+// caller clamps the result to its representable range. Keeping the PCA + least-squares maths here means each format /
+// mode reuses one implementation instead of re-deriving it.
+//
+//   FitLine{3,4}f  - principal-axis endpoints (PCA via power iteration) over the masked points; @p e0 is the high
+//                    (index-0) end, @p e1 the low (index-max) end.
+//   RefineLine{3,4,1}f - one least-squares endpoint solve given fixed per-texel blend factors @p wgt (fraction toward
+//                    e1, in [0,1]); leaves the endpoints unchanged on a degenerate system.
+//
+// @p mask16 selects which of the 16 points belong (bit t set = member); single-subset callers pass 0xFFFF.
+
+mixin TextureCompressLineFit
+{
+	code
+	{
+		void FitLine3f(float3 pts[16], uint mask16, out float3 e0, out float3 e1)
+		{
+			float3 mean = float3(0, 0, 0);
+			float3 mn = float3(1e30f, 1e30f, 1e30f), mx = float3(-1e30f, -1e30f, -1e30f);
+			float count = 0;
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+			{
+				if (((mask16 >> i) & 1u) == 0u) continue;
+				float3 c = pts[i];
+				mean += c; count += 1.0f;
+				mn = min(mn, c); mx = max(mx, c);
+			}
+			if (count < 0.5f) { e0 = float3(0, 0, 0); e1 = float3(0, 0, 0); return; }
+			mean /= count;
+
+			float cxx = 0, cxy = 0, cxz = 0, cyy = 0, cyz = 0, czz = 0;
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+			{
+				if (((mask16 >> i) & 1u) == 0u) continue;
+				float3 d = pts[i] - mean;
+				cxx += d.x * d.x; cxy += d.x * d.y; cxz += d.x * d.z;
+				cyy += d.y * d.y; cyz += d.y * d.z; czz += d.z * d.z;
+			}
+
+			// Power iteration for the dominant eigenvector, seeded with the bounding-box diagonal.
+			float3 axis = mx - mn;
+			if (dot(axis, axis) < 1e-12f) axis = float3(1, 1, 1);
+			[unroll]
+			for (uint k = 0; k < 8; ++k)
+			{
+				float3 v;
+				v.x = cxx * axis.x + cxy * axis.y + cxz * axis.z;
+				v.y = cxy * axis.x + cyy * axis.y + cyz * axis.z;
+				v.z = cxz * axis.x + cyz * axis.y + czz * axis.z;
+				float m = max(max(abs(v.x), abs(v.y)), abs(v.z));
+				axis = (m > 1e-9f) ? (v / m) : axis;
+			}
+
+			float minP = 1e30f, maxP = -1e30f;
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+			{
+				if (((mask16 >> i) & 1u) == 0u) continue;
+				float proj = dot(pts[i] - mean, axis);
+				minP = min(minP, proj); maxP = max(maxP, proj);
+			}
+			e0 = mean + axis * maxP;
+			e1 = mean + axis * minP;
+		}
+
+		void FitLine4f(float4 pts[16], uint mask16, out float4 e0, out float4 e1)
+		{
+			float4 mean = float4(0, 0, 0, 0);
+			float4 mn = float4(1e30f, 1e30f, 1e30f, 1e30f), mx = float4(-1e30f, -1e30f, -1e30f, -1e30f);
+			float count = 0;
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+			{
+				if (((mask16 >> i) & 1u) == 0u) continue;
+				float4 c = pts[i];
+				mean += c; count += 1.0f;
+				mn = min(mn, c); mx = max(mx, c);
+			}
+			if (count < 0.5f) { e0 = float4(0, 0, 0, 0); e1 = float4(0, 0, 0, 0); return; }
+			mean /= count;
+
+			float cxx = 0, cxy = 0, cxz = 0, cxw = 0, cyy = 0, cyz = 0, cyw = 0, czz = 0, czw = 0, cww = 0;
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+			{
+				if (((mask16 >> i) & 1u) == 0u) continue;
+				float4 d = pts[i] - mean;
+				cxx += d.x * d.x; cxy += d.x * d.y; cxz += d.x * d.z; cxw += d.x * d.w;
+				cyy += d.y * d.y; cyz += d.y * d.z; cyw += d.y * d.w;
+				czz += d.z * d.z; czw += d.z * d.w; cww += d.w * d.w;
+			}
+
+			float4 axis = mx - mn;
+			if (dot(axis, axis) < 1e-12f) axis = float4(1, 1, 1, 1);
+			[unroll]
+			for (uint k = 0; k < 8; ++k)
+			{
+				float4 v;
+				v.x = cxx * axis.x + cxy * axis.y + cxz * axis.z + cxw * axis.w;
+				v.y = cxy * axis.x + cyy * axis.y + cyz * axis.z + cyw * axis.w;
+				v.z = cxz * axis.x + cyz * axis.y + czz * axis.z + czw * axis.w;
+				v.w = cxw * axis.x + cyw * axis.y + czw * axis.z + cww * axis.w;
+				float m = max(max(abs(v.x), abs(v.y)), max(abs(v.z), abs(v.w)));
+				axis = (m > 1e-9f) ? (v / m) : axis;
+			}
+
+			float minP = 1e30f, maxP = -1e30f;
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+			{
+				if (((mask16 >> i) & 1u) == 0u) continue;
+				float proj = dot(pts[i] - mean, axis);
+				minP = min(minP, proj); maxP = max(maxP, proj);
+			}
+			e0 = mean + axis * maxP;
+			e1 = mean + axis * minP;
+		}
+
+		void RefineLine3f(float3 pts[16], uint mask16, float wgt[16], inout float3 e0, inout float3 e1)
+		{
+			float A = 0, B = 0, C = 0;
+			float3 sumA = float3(0, 0, 0), sumB = float3(0, 0, 0);
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+			{
+				if (((mask16 >> i) & 1u) == 0u) continue;
+				float w = wgt[i];
+				float a = 1.0f - w;
+				A += a * a; B += a * w; C += w * w;
+				sumA += a * pts[i];
+				sumB += w * pts[i];
+			}
+			float det = A * C - B * B;
+			if (abs(det) > 1e-9f)
+			{
+				float inv = 1.0f / det;
+				e0 = ( C * sumA - B * sumB) * inv;
+				e1 = (-B * sumA + A * sumB) * inv;
+			}
+		}
+
+		void RefineLine4f(float4 pts[16], uint mask16, float wgt[16], inout float4 e0, inout float4 e1)
+		{
+			float A = 0, B = 0, C = 0;
+			float4 sumA = float4(0, 0, 0, 0), sumB = float4(0, 0, 0, 0);
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+			{
+				if (((mask16 >> i) & 1u) == 0u) continue;
+				float w = wgt[i];
+				float a = 1.0f - w;
+				A += a * a; B += a * w; C += w * w;
+				sumA += a * pts[i];
+				sumB += w * pts[i];
+			}
+			float det = A * C - B * B;
+			if (abs(det) > 1e-9f)
+			{
+				float inv = 1.0f / det;
+				e0 = ( C * sumA - B * sumB) * inv;
+				e1 = (-B * sumA + A * sumB) * inv;
+			}
+		}
+
+		void RefineLine1f(float v[16], uint mask16, float wgt[16], inout float e0, inout float e1)
+		{
+			float A = 0, B = 0, C = 0, sumA = 0, sumB = 0;
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+			{
+				if (((mask16 >> i) & 1u) == 0u) continue;
+				float w = wgt[i];
+				float a = 1.0f - w;
+				A += a * a; B += a * w; C += w * w;
+				sumA += a * v[i];
+				sumB += w * v[i];
+			}
+			float det = A * C - B * B;
+			if (abs(det) > 1e-9f)
+			{
+				float inv = 1.0f / det;
+				e0 = ( C * sumA - B * sumB) * inv;
+				e1 = (-B * sumA + A * sumB) * inv;
+			}
+		}
+	};
+};

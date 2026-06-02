@@ -1,0 +1,135 @@
+// BC7 mode 6 encoder. Mode 6 is single-subset RGBA with 7-bit endpoints + a per-endpoint P-bit (8-bit effective) and
+// 4-bit indices - the simplest BC7 mode. Block layout (LSB->MSB): mode(7, =0x40) | R0 R1 G0 G1 B0 B1 A0 A1 (7 each) |
+// P0 P1 (1 each) | index0 (3 bits, anchor) | index1..15 (4 bits each) = 128 bits.
+//
+// One mode per header: as further BC7 modes are ported each gets its own TextureCompressBC7Mode*.bslinc that mixes in
+// TextureCompressBC7Common, and TextureCompress.bsl picks per-block min-error across the enabled modes.
+#include "$ENGINE$\TextureCompression\TextureCompressBC7Common.bslinc"
+
+mixin TextureCompressBC7Mode6
+{
+	mixin TextureCompressBC7Common;
+
+	code
+	{
+		// Quantizes one RGBA endpoint (0..255 per channel) to 7-bit codes plus a single shared P-bit, choosing the P-bit
+		// that minimises total reconstruction error across the four channels. The decoder reconstructs (code << 1) | pbit.
+		void QuantizeEndpointMode6(int4 v, out int4 q, out uint pbit)
+		{
+			int4 bestQ = int4(0, 0, 0, 0);
+			int bestErr = 0x7fffffff;
+			int bestP = 0;
+			[unroll]
+			for (int p = 0; p < 2; ++p)
+			{
+				int4 qc = int4(0, 0, 0, 0);
+				int err = 0;
+				[unroll]
+				for (int c = 0; c < 4; ++c)
+				{
+					int code = clamp((v[c] - p + 1) >> 1, 0, 127); // round((v - p) / 2)
+					int recon = (code << 1) | p;
+					int d = recon - v[c];
+					err += d * d;
+					qc[c] = code;
+				}
+				if (err < bestErr)
+				{
+					bestErr = err;
+					bestQ = qc;
+					bestP = p;
+				}
+			}
+			q = bestQ;
+			pbit = (uint)bestP;
+		}
+
+		// Encodes a 4x4 RGBA block into a 128-bit BC7 mode-6 block. Endpoints come from the colour bounding-box diagonal,
+		// then a single nearest-palette index pass. @p outErr receives the total squared RGBA reconstruction error so the
+		// dispatcher can pick the lowest-error mode per block.
+		uint4 CompressBC7Mode6(float4 texels[16], out float outErr)
+		{
+			int4 px[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+				px[i] = (int4)round(saturate(texels[i]) * 255.0f);
+
+			// PCA principal-axis endpoints over the whole (single-subset) RGBA block.
+			float4 fe0, fe1;
+			FitLineRGBA(px, 0xFFFFu, fe0, fe1);
+
+			int4 q0 = int4(0, 0, 0, 0), q1 = int4(0, 0, 0, 0);
+			uint p0 = 0, p1 = 0;
+			uint idx[16];
+			float totalErr = 0;
+
+			// Pass 0: quantize the PCA endpoints, assign indices, least-squares-refine. Pass 1: re-quantize the refined
+			// endpoints, re-assign, and emit.
+			[unroll]
+			for (uint refinePass = 0; refinePass < 2; ++refinePass)
+			{
+				QuantizeEndpointMode6((int4)round(fe0), q0, p0);
+				QuantizeEndpointMode6((int4)round(fe1), q1, p1);
+
+				int4 r0 = (q0 << 1) | (int)p0;
+				int4 r1 = (q1 << 1) | (int)p1;
+
+				float wgt[16];
+				totalErr = 0;
+				[unroll]
+				for (uint t = 0; t < 16; ++t)
+				{
+					int bestI = 0;
+					int bestErr = 0x7fffffff;
+					[unroll]
+					for (uint k = 0; k < 16; ++k)
+					{
+						int w = (int)kBC7Weight4[k];
+						int4 pal = ((64 - w) * r0 + w * r1 + 32) >> 6;
+						int4 d = px[t] - pal;
+						int err = d.x * d.x + d.y * d.y + d.z * d.z + d.w * d.w;
+						if (err < bestErr)
+						{
+							bestErr = err;
+							bestI = (int)k;
+						}
+					}
+					idx[t] = (uint)bestI;
+					wgt[t] = (float)kBC7Weight4[bestI] * (1.0f / 64.0f);
+					totalErr += (float)bestErr;
+				}
+
+				if (refinePass == 0)
+					RefineLineRGBA(px, 0xFFFFu, wgt, fe0, fe1);
+			}
+			outErr = totalErr;
+
+			// The anchor (texel 0) index must have its high bit clear. If it doesn't, swap the endpoints and invert every
+			// index: the palette weights are symmetric (kBC7Weight4[15 - k] == 64 - kBC7Weight4[k]), so this is lossless.
+			if (idx[0] >= 8u)
+			{
+				int4 tq = q0; q0 = q1; q1 = tq;
+				uint tp = p0; p0 = p1; p1 = tp;
+				[unroll]
+				for (uint t = 0; t < 16; ++t)
+					idx[t] = 15u - idx[t];
+			}
+
+			// Pack the 128-bit block.
+			uint4 block = uint4(0, 0, 0, 0);
+			uint pos = 0;
+			PutBits(block, pos, 0x40u, 7); // mode 6 marker (bit 6 set)
+			PutBits(block, pos, (uint)q0.x, 7); PutBits(block, pos, (uint)q1.x, 7);
+			PutBits(block, pos, (uint)q0.y, 7); PutBits(block, pos, (uint)q1.y, 7);
+			PutBits(block, pos, (uint)q0.z, 7); PutBits(block, pos, (uint)q1.z, 7);
+			PutBits(block, pos, (uint)q0.w, 7); PutBits(block, pos, (uint)q1.w, 7);
+			PutBits(block, pos, p0, 1); PutBits(block, pos, p1, 1);
+			PutBits(block, pos, idx[0], 3); // anchor index: reduced to 3 bits
+			[unroll]
+			for (uint t = 1; t < 16; ++t)
+				PutBits(block, pos, idx[t], 4);
+
+			return block;
+		}
+	};
+};

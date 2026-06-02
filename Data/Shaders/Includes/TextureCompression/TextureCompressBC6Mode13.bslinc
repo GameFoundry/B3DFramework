@@ -1,0 +1,28 @@
+// BC6H mode 13 encoder (mode bits 0x0B). One region, 12-bit base with an 8-bit signed delta (transform), 4-bit
+// indices. Even higher base precision than mode 12 with a tighter endpoint span. Endpoint fit + indices come from the
+// shared single-subset encoder; the two high base bits (11,10) are interleaved after each channel's delta.
+#include "$ENGINE$\TextureCompression\TextureCompressBC6Common.bslinc"
+
+mixin TextureCompressBC6Mode13
+{
+	mixin TextureCompressBC6Common;
+
+	code
+	{
+		uint4 CompressBC6Mode13(int3 h[16], out float outErr)
+		{
+			int3 W, X;
+			uint idx[16];
+			EncodeBC6OneRegion(h, 12, int3(8, 8, 8), true, W, X, idx, outErr);
+
+			uint4 block = uint4(0, 0, 0, 0);
+			SetBits(block, 0, 0x0Bu, 5);
+			SetBits(block, 5,  (uint)W.x, 10); SetBits(block, 15, (uint)W.y, 10); SetBits(block, 25, (uint)W.z, 10);
+			SetBits(block, 35, (uint)X.x, 8); SetBits(block, 43, (uint)W.x >> 11, 1); SetBits(block, 44, (uint)W.x >> 10, 1);
+			SetBits(block, 45, (uint)X.y, 8); SetBits(block, 53, (uint)W.y >> 11, 1); SetBits(block, 54, (uint)W.y >> 10, 1);
+			SetBits(block, 55, (uint)X.z, 8); SetBits(block, 63, (uint)W.z >> 11, 1); SetBits(block, 64, (uint)W.z >> 10, 1);
+			PackBC6IndicesOneRegion(block, idx);
+			return block;
+		}
+	};
+};

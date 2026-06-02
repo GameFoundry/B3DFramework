@@ -1,0 +1,407 @@
+// Constants and helpers shared across BC6H mode encoders (UF16 / unsigned half-float HDR). Per-mode encoder headers
+// (TextureCompressBC6Mode*.bslinc) mix this in. BC6H reuses the format-agnostic PCA + least-squares geometry from
+// TextureCompressLineFit (shared with BC1/BC7) and the same index-weight / partition / anchor tables as BC7's two-subset
+// modes (BC6H's 32 partitions are exactly the first 32 BC7 two-subset partitions, with identical fixup/anchor indices).
+//
+// Pipeline (all integer, matching the hardware decoder):
+//   input half-float bits h in [0, 0x7BFF]  --QuantizeBC6(prec)-->  endpoint code
+//   code  --UnquantizeBC6(prec)-->  16-bit value  --lerp(weights)-->  16-bit value  --FinishUnquantizeBC6-->  half bits
+// Endpoints are fitted in the FinishUnquantize (half-bit) space, which is where the decoded palette lives.
+#include "$ENGINE$\TextureCompression\TextureCompressBitUtil.bslinc"
+#include "$ENGINE$\TextureCompression\TextureCompressLineFit.bslinc"
+
+mixin TextureCompressBC6Common
+{
+	mixin TextureCompressBitUtil;
+	mixin TextureCompressLineFit;
+
+	code
+	{
+		// Index interpolation weights (same tables BC7 uses): 4-bit for one-region modes, 3-bit for two-region modes.
+		static const uint kBC6Weight4[16] = { 0, 4, 9, 13, 17, 21, 26, 30, 34, 38, 43, 47, 51, 55, 60, 64 };
+		static const uint kBC6Weight3[8] = { 0, 9, 18, 27, 37, 46, 55, 64 };
+
+		// Two-region partition table (BC6H uses the first 32 BC7 two-subset partitions). Bit t selects subset 0/1.
+		static const uint kBC6Part2[32] = {
+			0x0000CCCCu, 0x00008888u, 0x0000EEEEu, 0x0000ECC8u, 0x0000C880u, 0x0000FEECu, 0x0000FEC8u, 0x0000EC80u,
+			0x0000C800u, 0x0000FFECu, 0x0000FE80u, 0x0000E800u, 0x0000FFE8u, 0x0000FF00u, 0x0000FFF0u, 0x0000F000u,
+			0x0000F710u, 0x0000008Eu, 0x00007100u, 0x000008CEu, 0x0000008Cu, 0x00007310u, 0x00003100u, 0x00008CCEu,
+			0x0000088Cu, 0x00003110u, 0x00006666u, 0x0000366Cu, 0x000017E8u, 0x00000FF0u, 0x0000718Eu, 0x0000399Cu
+		};
+
+		// Subset-1 anchor (fixup) index per two-region partition (matches g_indexfixups / BC7 anchors).
+		static const uint kBC6Anchor2[32] = {
+			15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+			15,  2,  8,  2,  2,  8,  8, 15,  2,  8,  2,  2,  8,  8,  2,  2
+		};
+
+		uint GetBC6Subset2(uint partition, uint texel)
+		{
+			return (kBC6Part2[partition] >> texel) & 1u;
+		}
+
+		// Forward endpoint quantization (UF16): half-float bits -> @p prec-bit code. Inverse of the decode chain
+		// (Unquantize then FinishUnquantize)
+		int QuantizeBC6(int h, int prec)
+		{
+			if (prec <= 1) return 0;
+			if (h < 0) h = 0;
+			int bias = (prec > 10 && prec != 16) ? ((1 << (prec - 11)) - 1) : 0;
+			if (prec == 16) bias = 15;
+			return ((h << prec) + bias) / 31744; // 31744 = 0x7C00 = F16_MAX_BITS + 1
+		}
+
+		// Endpoint unquantization (UF16): @p prec-bit code -> 16-bit value.
+		int UnquantizeBC6(int q, int prec)
+		{
+			if (prec >= 15) return q;
+			if (q == 0) return 0;
+			if (q == (1 << prec) - 1) return 0xFFFF;
+			return ((q << 16) + 0x8000) >> prec;
+		}
+
+		// Final magnitude scale (UF16): 16-bit interpolated value -> half-float bits.
+		int FinishUnquantizeBC6(int u)
+		{
+			return (u * 31) >> 6;
+		}
+
+		// Decoded half-float bits for palette entry @p i, given the two endpoint codes (already in @p wBits precision)
+		// and the index bit-width (3 or 4). Mirrors generate_palette_quantized + lerp + finish_unquantize.
+		int BC6PaletteValue(int codeA, int codeB, int wBits, uint i, uint indexBits)
+		{
+			int ua = UnquantizeBC6(codeA, wBits);
+			int ub = UnquantizeBC6(codeB, wBits);
+			int w = (indexBits == 4u) ? (int)kBC6Weight4[i] : (int)kBC6Weight3[i];
+			int v = (ua * (64 - w) + ub * w) >> 6;
+			return FinishUnquantizeBC6(v);
+		}
+
+		// Clamps a float endpoint (half-bit space) to the representable UF16 range and rounds to an int.
+		int RoundHalfBits(float v)
+		{
+			return (int)round(clamp(v, 0.0f, 31743.0f)); // 0x7BFF
+		}
+
+		// Sign-extends the low @p bits of @p v to a full int (matches the decoder's SIGN_EXTEND).
+		int SignExtendBC6(int v, int bits)
+		{
+			return (v & (1 << (bits - 1))) ? (v | (~0 << bits)) : v;
+		}
+
+		// Quantizes a PCA endpoint pair (half-bit space floats e0/e1) of one subset to @p wBits. When @p transformed,
+		// the second endpoint is stored as a @p tBits signed delta from the first (the base); @p codeBStore holds that
+		// delta and @p codeBAct holds the value the decoder reconstructs (so the caller can build an accurate palette
+		// and measure true error). Non-transformed modes store/keep the raw wBits code.
+		void QuantizeBC6Pair(float3 e0, float3 e1, int wBits, int3 tBits, bool transformed,
+			out int3 codeA, out int3 codeBStore, out int3 codeBAct)
+		{
+			int wmask = (1 << wBits) - 1;
+			[unroll]
+			for (int ch = 0; ch < 3; ++ch)
+			{
+				int a = QuantizeBC6(RoundHalfBits(e0[ch]), wBits);
+				int b = QuantizeBC6(RoundHalfBits(e1[ch]), wBits);
+				codeA[ch] = a;
+				if (transformed)
+				{
+					int tb = tBits[ch];
+					int tm = (1 << tb) - 1;
+					int d = (b - a) & tm;
+					codeBStore[ch] = d;
+					codeBAct[ch] = (SignExtendBC6(d, tb) + a) & wmask;
+				}
+				else
+				{
+					codeBStore[ch] = b;
+					codeBAct[ch] = b;
+				}
+			}
+		}
+
+		// Full single-subset (one-region) BC6H endpoint+index fit shared by modes 11..14. Uses the shared PCA + one
+		// least-squares refinement pass, quantizes to the mode's precision (with optional transform), assigns 4-bit
+		// indices and applies the anchor fixup (index 0 high bit must be 0). Outputs the codes to pack: @p W (base,
+		// wBits) and @p X (second endpoint: tBits delta if transformed, else raw wBits). @p err = squared error.
+		void EncodeBC6OneRegion(int3 h[16], int wBits, int3 tBits, bool transformed,
+			out int3 W, out int3 X, out uint idx[16], out float err)
+		{
+			float3 pts[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+				pts[i] = (float3)h[i];
+
+			float3 e0, e1;
+			FitLine3f(pts, 0xFFFFu, e0, e1);
+
+			int3 cA = int3(0, 0, 0), cBs = int3(0, 0, 0), cBa = int3(0, 0, 0);
+			uint tmpIdx[16];
+			float total = 0;
+
+			[unroll]
+			for (uint refinePass = 0; refinePass < 2; ++refinePass)
+			{
+				QuantizeBC6Pair(e0, e1, wBits, tBits, transformed, cA, cBs, cBa);
+
+				int palR[16], palG[16], palB[16];
+				[unroll]
+				for (uint k = 0; k < 16; ++k)
+				{
+					palR[k] = BC6PaletteValue(cA.x, cBa.x, wBits, k, 4u);
+					palG[k] = BC6PaletteValue(cA.y, cBa.y, wBits, k, 4u);
+					palB[k] = BC6PaletteValue(cA.z, cBa.z, wBits, k, 4u);
+				}
+
+				float wgt[16];
+				total = 0;
+				[unroll]
+				for (uint t = 0; t < 16; ++t)
+				{
+					int bestK = 0;
+					int bestD = 0x7fffffff;
+					[unroll]
+					for (uint k = 0; k < 16; ++k)
+					{
+						int dr = h[t].x - palR[k];
+						int dg = h[t].y - palG[k];
+						int db = h[t].z - palB[k];
+						int dd = dr * dr + dg * dg + db * db;
+						if (dd < bestD) { bestD = dd; bestK = (int)k; }
+					}
+					tmpIdx[t] = (uint)bestK;
+					wgt[t] = (float)kBC6Weight4[bestK] * (1.0f / 64.0f);
+					total += (float)bestD;
+				}
+
+				if (refinePass == 0)
+					RefineLine3f(pts, 0xFFFFu, wgt, e0, e1);
+			}
+
+			// Anchor fixup: index 0 stores only 3 bits, so it must be < 8. Swap the endpoints (re-quantize so the base /
+			// delta are recomputed correctly) and invert every index; the 4-bit ramp is symmetric so this is lossless.
+			if (tmpIdx[0] >= 8u)
+			{
+				float3 t = e0; e0 = e1; e1 = t;
+				QuantizeBC6Pair(e0, e1, wBits, tBits, transformed, cA, cBs, cBa);
+				[unroll]
+				for (uint i = 0; i < 16; ++i)
+					tmpIdx[i] = 15u - tmpIdx[i];
+			}
+
+			W = cA;
+			X = cBs;
+			idx = tmpIdx;
+			err = total;
+		}
+
+		// Packs the 16 indices of a one-region block: index 0 as 3 bits at the one-region offset (65), the rest 4 bits.
+		void PackBC6IndicesOneRegion(inout uint4 block, uint idx[16])
+		{
+			uint pos = 65;
+			SetBits(block, pos, idx[0], 3); pos += 3;
+			[unroll]
+			for (uint t = 1; t < 16; ++t)
+			{
+				SetBits(block, pos, idx[t], 4);
+				pos += 4;
+			}
+		}
+
+		// Quantizes an RGB endpoint (half-bit space floats) to a per-channel absolute @p wBits code.
+		int3 QuantizeVecBC6(float3 e, int wBits)
+		{
+			return int3(QuantizeBC6(RoundHalfBits(e.x), wBits),
+			            QuantizeBC6(RoundHalfBits(e.y), wBits),
+			            QuantizeBC6(RoundHalfBits(e.z), wBits));
+		}
+
+		// Full two-subset (two-region) BC6H endpoint+index fit shared by modes 1..10. Searches all 32 partitions; per
+		// partition it fits a PCA line per subset (shared geometry), quantizes endpoints to absolute @p wBits codes,
+		// assigns 3-bit indices over one least-squares refinement pass, and keeps the lowest-error partition. The two
+		// anchor fixups (subset-0 anchor = texel 0, subset-1 anchor = kBC6Anchor2[part]) are applied in absolute-code
+		// space - lossless because the 3-bit ramp is symmetric. Finally the four absolute codes are converted to the
+		// mode's stored layout (@p codeStore: base for subset-0 A, then base+delta for the other three when @p
+		// transformed) and the error is re-measured from the truly-decoded palette so the dispatcher accounts for any
+		// delta clamping. @p codeStore order: [0]=subset0 A (base), [1]=subset0 B, [2]=subset1 A, [3]=subset1 B.
+		void EncodeBC6TwoRegion(int3 h[16], int wBits, int3 tBits, bool transformed,
+			out uint outPart, out int3 codeStore[4], out uint idxOut[16], out float errOut)
+		{
+			float3 pts[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+				pts[i] = (float3)h[i];
+
+			float bestErr = 1e30f;
+			uint bestPart = 0;
+			int3 bestAbs[4];
+			uint bestIdx[16];
+
+			for (uint part = 0; part < 32; ++part)
+			{
+				uint pmask = kBC6Part2[part];
+				uint mask0 = (~pmask) & 0xFFFFu;
+				uint mask1 = pmask & 0xFFFFu;
+
+				float3 fe0_0, fe1_0, fe0_1, fe1_1;
+				FitLine3f(pts, mask0, fe0_0, fe1_0);
+				FitLine3f(pts, mask1, fe0_1, fe1_1);
+
+				int3 absC[4];
+				uint idx[16];
+				float err = 0;
+
+				[unroll]
+				for (uint refinePass = 0; refinePass < 2; ++refinePass)
+				{
+					absC[0] = QuantizeVecBC6(fe0_0, wBits);
+					absC[1] = QuantizeVecBC6(fe1_0, wBits);
+					absC[2] = QuantizeVecBC6(fe0_1, wBits);
+					absC[3] = QuantizeVecBC6(fe1_1, wBits);
+
+					// Palette per subset, packed into [16] as index s*8 + k (subset s, ramp position k).
+					int palR[16], palG[16], palB[16];
+					[unroll]
+					for (uint s = 0; s < 2; ++s)
+					{
+						[unroll]
+						for (uint k = 0; k < 8; ++k)
+						{
+							palR[s * 8 + k] = BC6PaletteValue(absC[2 * s].x, absC[2 * s + 1].x, wBits, k, 3u);
+							palG[s * 8 + k] = BC6PaletteValue(absC[2 * s].y, absC[2 * s + 1].y, wBits, k, 3u);
+							palB[s * 8 + k] = BC6PaletteValue(absC[2 * s].z, absC[2 * s + 1].z, wBits, k, 3u);
+						}
+					}
+
+					float wgt[16];
+					err = 0;
+					[unroll]
+					for (uint t = 0; t < 16; ++t)
+					{
+						uint b = ((pmask >> t) & 1u) * 8u;
+						int bestK = 0;
+						int bestD = 0x7fffffff;
+						[unroll]
+						for (uint k = 0; k < 8; ++k)
+						{
+							int dr = h[t].x - palR[b + k];
+							int dg = h[t].y - palG[b + k];
+							int db = h[t].z - palB[b + k];
+							int dd = dr * dr + dg * dg + db * db;
+							if (dd < bestD) { bestD = dd; bestK = (int)k; }
+						}
+						idx[t] = (uint)bestK;
+						wgt[t] = (float)kBC6Weight3[bestK] * (1.0f / 64.0f);
+						err += (float)bestD;
+					}
+
+					if (refinePass == 0)
+					{
+						RefineLine3f(pts, mask0, wgt, fe0_0, fe1_0);
+						RefineLine3f(pts, mask1, wgt, fe0_1, fe1_1);
+					}
+				}
+
+				if (err < bestErr)
+				{
+					bestErr = err;
+					bestPart = part;
+					bestAbs[0] = absC[0]; bestAbs[1] = absC[1]; bestAbs[2] = absC[2]; bestAbs[3] = absC[3];
+					[unroll]
+					for (uint t = 0; t < 16; ++t)
+						bestIdx[t] = idx[t];
+				}
+			}
+
+			// Anchor fixups: each anchor index slot stores one fewer bit, so its high bit must be 0. Swap that subset's
+			// endpoints and invert (7 - idx) every index in that subset; the 3-bit ramp is symmetric so this is lossless.
+			uint anchor1 = kBC6Anchor2[bestPart];
+			uint fpmask = kBC6Part2[bestPart];
+			if (bestIdx[0] >= 4u)
+			{
+				int3 t = bestAbs[0]; bestAbs[0] = bestAbs[1]; bestAbs[1] = t;
+				[unroll]
+				for (uint tt = 0; tt < 16; ++tt)
+					if (((fpmask >> tt) & 1u) == 0u) bestIdx[tt] = 7u - bestIdx[tt];
+			}
+			if (bestIdx[anchor1] >= 4u)
+			{
+				int3 t = bestAbs[2]; bestAbs[2] = bestAbs[3]; bestAbs[3] = t;
+				[unroll]
+				for (uint tt = 0; tt < 16; ++tt)
+					if (((fpmask >> tt) & 1u) == 1u) bestIdx[tt] = 7u - bestIdx[tt];
+			}
+
+			// Convert absolute codes to the stored representation and reconstruct the decoder's actual codes.
+			int wmask = (1 << wBits) - 1;
+			int3 act[4];
+			codeStore[0] = bestAbs[0];
+			act[0] = bestAbs[0];
+			[unroll]
+			for (uint k = 1; k < 4; ++k)
+			{
+				[unroll]
+				for (int ch = 0; ch < 3; ++ch)
+				{
+					if (transformed)
+					{
+						int tb = tBits[ch];
+						int tm = (1 << tb) - 1;
+						int d = (bestAbs[k][ch] - bestAbs[0][ch]) & tm;
+						codeStore[k][ch] = d;
+						act[k][ch] = (SignExtendBC6(d, tb) + bestAbs[0][ch]) & wmask;
+					}
+					else
+					{
+						codeStore[k][ch] = bestAbs[k][ch];
+						act[k][ch] = bestAbs[k][ch];
+					}
+				}
+			}
+
+			// Re-measure error from the truly-decoded palette (delta clamping above may shift the actual codes).
+			int palR2[16], palG2[16], palB2[16];
+			[unroll]
+			for (uint s = 0; s < 2; ++s)
+			{
+				[unroll]
+				for (uint k = 0; k < 8; ++k)
+				{
+					palR2[s * 8 + k] = BC6PaletteValue(act[2 * s].x, act[2 * s + 1].x, wBits, k, 3u);
+					palG2[s * 8 + k] = BC6PaletteValue(act[2 * s].y, act[2 * s + 1].y, wBits, k, 3u);
+					palB2[s * 8 + k] = BC6PaletteValue(act[2 * s].z, act[2 * s + 1].z, wBits, k, 3u);
+				}
+			}
+			float finalErr = 0;
+			[unroll]
+			for (uint t = 0; t < 16; ++t)
+			{
+				uint b = ((fpmask >> t) & 1u) * 8u + bestIdx[t];
+				int dr = h[t].x - palR2[b];
+				int dg = h[t].y - palG2[b];
+				int db = h[t].z - palB2[b];
+				finalErr += (float)(dr * dr + dg * dg + db * db);
+			}
+
+			outPart = bestPart;
+			[unroll]
+			for (uint t = 0; t < 16; ++t)
+				idxOut[t] = bestIdx[t];
+			errOut = finalErr;
+		}
+
+		// Packs the 16 indices of a two-region block: index 0 and the subset-1 anchor as 2 bits, the rest 3 bits, from
+		// the two-region offset (82). @p anchor1 is the subset-1 anchor (kBC6Anchor2[partition]).
+		void PackBC6IndicesTwoRegion(inout uint4 block, uint idx[16], uint anchor1)
+		{
+			uint pos = 82;
+			SetBits(block, pos, idx[0], 2); pos += 2;
+			[unroll]
+			for (uint t = 1; t < 16; ++t)
+			{
+				uint nb = (t == anchor1) ? 2u : 3u;
+				SetBits(block, pos, idx[t], nb);
+				pos += nb;
+			}
+		}
+	};
+};
