@@ -141,5 +141,301 @@ mixin TextureCompressBC7Common
 			RefineLine1f(f, mask16, wgt, e0, e1);
 			e0 = clamp(e0, 0.0f, 255.0f); e1 = clamp(e1, 0.0f, 255.0f);
 		}
+
+		// ----------------------------------------------------------------------------------------------------------------
+		// Shared BC7 encode core. The partitioned / single-subset RGB(A) modes (0, 1, 2, 3, 6, 7) differ only in a few
+		// numeric parameters - subset count, channel count, partition count, endpoint precision, P-bit scheme and index
+		// precision - so they all route through EncodeBC7Subsets below (mirroring how BC6H's modes share
+		// EncodeBC6TwoRegion). Each mode header is then just: build the int4 texels, call the core with its descriptor, and
+		// pack the returned codes / P-bits / indices into that mode's bit layout. Modes 4/5 (channel rotation + dual index
+		// sets) keep their own search but still share the rotation remap and index-weight helpers here.
+
+		// Interpolation weight for a @p ib-bit index (ib in {2, 3, 4}).
+		int BC7IdxWeight(int ib, uint k)
+		{
+			if (ib == 2) return (int)kBC7Weight2[k];
+			if (ib == 3) return (int)kBC7Weight3[k];
+			return (int)kBC7Weight4[k];
+		}
+
+		// Remaps a texel for the given channel rotation (modes 4/5): rotation r (1..3) swaps colour channel r-1 with alpha,
+		// matching the decoder's post-interpolation swap. Rotation 0 leaves the texel unchanged.
+		void ApplyRotationBC7(int4 p, uint rot, out int3 col, out int alpha)
+		{
+			col = p.rgb;
+			alpha = p.a;
+			if (rot == 1u) { col.r = p.a; alpha = p.r; }
+			else if (rot == 2u) { col.g = p.a; alpha = p.g; }
+			else if (rot == 3u) { col.b = p.a; alpha = p.b; }
+		}
+
+		// Quantizes a single 0..255 channel value to a @p bits-wide BC7 endpoint code. @p p is the P-bit to append (0/1) or
+		// -1 for modes without P-bits (the P-bit, when present, becomes the code's LSB so the effective precision is
+		// bits+1). Returns the code and outputs the 8-bit reconstruction the hardware decoder produces.
+		int QuantizeChannelBC7(int v, int bits, int p, out int recon)
+		{
+			int maxCode = (1 << bits) - 1;
+			if (p < 0)
+			{
+				int q = clamp((int)round((float)v * ((float)maxCode / 255.0f)), 0, maxCode);
+				recon = ExpandBC7(q, bits);
+				return q;
+			}
+			int eff = bits + 1;
+			int effMax = (1 << eff) - 1;
+			int t = (int)round((float)v * ((float)effMax / 255.0f));
+			int code = clamp((t - p + 1) >> 1, 0, maxCode);
+			recon = ExpandBC7((code << 1) | p, eff);
+			return code;
+		}
+
+		// Quantizes one endpoint (@p numCh channels of @p v, 0..255) to @p bits-wide codes. @p pbMode: 0 = no P-bit;
+		// 1 = a per-endpoint P-bit chosen to minimise this endpoint's reconstruction error. Outputs codes, the chosen
+		// P-bit (0 when none) and the 8-bit reconstruction.
+		void QuantizeEndpointBC7(int4 v, int numCh, int bits, int pbMode, out int4 code, out uint pbit, out int4 recon)
+		{
+			code = int4(0, 0, 0, 0);
+			recon = int4(0, 0, 0, 0);
+			if (pbMode == 0)
+			{
+				[unroll]
+				for (int c = 0; c < 4; ++c)
+				{
+					if (c >= numCh) continue;
+					int r; code[c] = QuantizeChannelBC7(v[c], bits, -1, r); recon[c] = r;
+				}
+				pbit = 0u;
+				return;
+			}
+
+			int bestP = 0, bestErr = 0x7fffffff;
+			int4 bestC = int4(0, 0, 0, 0), bestR = int4(0, 0, 0, 0);
+			[unroll]
+			for (int p = 0; p < 2; ++p)
+			{
+				int4 qc = int4(0, 0, 0, 0), rc = int4(0, 0, 0, 0);
+				int err = 0;
+				[unroll]
+				for (int c = 0; c < 4; ++c)
+				{
+					if (c >= numCh) continue;
+					int r; int q = QuantizeChannelBC7(v[c], bits, p, r);
+					qc[c] = q; rc[c] = r;
+					int d = r - v[c]; err += d * d;
+				}
+				if (err < bestErr) { bestErr = err; bestC = qc; bestR = rc; bestP = p; }
+			}
+			code = bestC; recon = bestR; pbit = (uint)bestP;
+		}
+
+		// Quantizes a subset's endpoint pair to @p bits-wide codes sharing a single P-bit (chosen to minimise the pair's
+		// combined reconstruction error). Used by the shared-P-bit modes (mode 1).
+		void QuantizeSubsetSPB(int4 v0, int4 v1, int numCh, int bits, out int4 c0, out int4 c1, out uint pbit, out int4 r0, out int4 r1)
+		{
+			int bestP = 0, bestErr = 0x7fffffff;
+			int4 bC0 = int4(0, 0, 0, 0), bC1 = int4(0, 0, 0, 0), bR0 = int4(0, 0, 0, 0), bR1 = int4(0, 0, 0, 0);
+			[unroll]
+			for (int p = 0; p < 2; ++p)
+			{
+				int4 q0 = int4(0, 0, 0, 0), q1 = int4(0, 0, 0, 0), rr0 = int4(0, 0, 0, 0), rr1 = int4(0, 0, 0, 0);
+				int err = 0;
+				[unroll]
+				for (int c = 0; c < 4; ++c)
+				{
+					if (c >= numCh) continue;
+					int t0; q0[c] = QuantizeChannelBC7(v0[c], bits, p, t0); rr0[c] = t0;
+					int d0 = t0 - v0[c]; err += d0 * d0;
+					int t1; q1[c] = QuantizeChannelBC7(v1[c], bits, p, t1); rr1[c] = t1;
+					int d1 = t1 - v1[c]; err += d1 * d1;
+				}
+				if (err < bestErr) { bestErr = err; bC0 = q0; bC1 = q1; bR0 = rr0; bR1 = rr1; bestP = p; }
+			}
+			c0 = bC0; c1 = bC1; r0 = bR0; r1 = bR1; pbit = (uint)bestP;
+		}
+
+		// Computes per-texel subset membership (@p subsetOf) and per-subset 16-bit membership masks (@p smask) for
+		// partition @p part of an @p numSubsets-subset layout. Single-subset puts every texel in subset 0.
+		void BC7SubsetMembership(int numSubsets, int part, out uint subsetOf[16], out uint smask[3])
+		{
+			smask[0] = 0u; smask[1] = 0u; smask[2] = 0u;
+			if (numSubsets == 1)
+			{
+				[unroll]
+				for (int t = 0; t < 16; ++t) subsetOf[t] = 0u;
+				smask[0] = 0xFFFFu;
+			}
+			else if (numSubsets == 2)
+			{
+				uint pv = kBC7Part2[part];
+				[unroll]
+				for (int t = 0; t < 16; ++t) subsetOf[t] = (pv >> (uint)t) & 1u;
+				smask[0] = (~pv) & 0xFFFFu; smask[1] = pv;
+			}
+			else
+			{
+				uint pv = kBC7Part3[part];
+				[unroll]
+				for (int t = 0; t < 16; ++t)
+				{
+					uint sId = ((pv >> (16u + (uint)t)) & 1u) != 0u ? 2u : (((pv >> (uint)t) & 1u) != 0u ? 1u : 0u);
+					subsetOf[t] = sId; smask[sId] |= 1u << (uint)t;
+				}
+			}
+		}
+
+		// Shared BC7 endpoint+index fit for the 1/2/3-subset RGB(A) modes. Searches @p numPartitions partitions of the
+		// @p numSubsets-subset layout; per partition it fits a PCA line per subset (shared geometry), quantizes endpoints
+		// to @p bits-wide codes under @p pbMode (0 = none, 1 = per-endpoint P-bit, 2 = one shared P-bit per subset),
+		// assigns @p ib-bit indices over one least-squares refinement pass, and keeps the lowest-error partition. Anchor
+		// fixups (subset-0 anchor = texel 0, others from the BC7 anchor tables) are applied losslessly (symmetric index
+		// ramp). @p numCh is 3 (RGB) or 4 (RGBA); RGB callers pass texels with w = 0. Outputs the best partition, the
+		// endpoint codes and P-bits (flattened as 2*subset + which), the indices and the total squared error.
+		void EncodeBC7Subsets(int4 px[16], int numSubsets, int numCh, int numPartitions, int bits, int pbMode, int ib,
+			out int bestPart, out int4 codeStore[6], out uint pbitStore[6], out uint idxOut[16], out float errOut)
+		{
+			int idxCount = 1 << ib;
+
+			bestPart = 0;
+			float bestErr = 1e30f;
+			int4 bC0[3], bC1[3];
+			uint bP0[3], bP1[3];
+			uint bIdx[16];
+			[unroll]
+			for (int s = 0; s < 3; ++s) { bC0[s] = int4(0, 0, 0, 0); bC1[s] = int4(0, 0, 0, 0); bP0[s] = 0u; bP1[s] = 0u; }
+			[unroll]
+			for (int t = 0; t < 16; ++t) bIdx[t] = 0u;
+
+			for (int part = 0; part < numPartitions; ++part)
+			{
+				uint subsetOf[16];
+				uint smask[3];
+				BC7SubsetMembership(numSubsets, part, subsetOf, smask);
+
+				float4 fe0[3], fe1[3];
+				[unroll]
+				for (int s = 0; s < 3; ++s)
+				{
+					fe0[s] = float4(0, 0, 0, 0); fe1[s] = float4(0, 0, 0, 0);
+					if (s < numSubsets) FitLineRGBA(px, smask[s], fe0[s], fe1[s]);
+				}
+
+				int4 q0[3], q1[3], r0[3], r1[3];
+				uint p0[3], p1[3];
+				[unroll]
+				for (int s = 0; s < 3; ++s)
+				{
+					q0[s] = int4(0, 0, 0, 0); q1[s] = int4(0, 0, 0, 0);
+					r0[s] = int4(0, 0, 0, 0); r1[s] = int4(0, 0, 0, 0);
+					p0[s] = 0u; p1[s] = 0u;
+				}
+				float err = 0;
+				uint idx[16];
+				[unroll]
+				for (int t = 0; t < 16; ++t) idx[t] = 0u;
+
+				[unroll]
+				for (int refinePass = 0; refinePass < 2; ++refinePass)
+				{
+					[unroll]
+					for (int s = 0; s < 3; ++s)
+					{
+						if (s >= numSubsets) continue;
+						int4 ev0 = (int4)round(fe0[s]);
+						int4 ev1 = (int4)round(fe1[s]);
+						if (pbMode == 2)
+						{
+							uint pb;
+							QuantizeSubsetSPB(ev0, ev1, numCh, bits, q0[s], q1[s], pb, r0[s], r1[s]);
+							p0[s] = pb; p1[s] = pb;
+						}
+						else
+						{
+							QuantizeEndpointBC7(ev0, numCh, bits, pbMode, q0[s], p0[s], r0[s]);
+							QuantizeEndpointBC7(ev1, numCh, bits, pbMode, q1[s], p1[s], r1[s]);
+						}
+					}
+
+					float wgt[16];
+					err = 0;
+					[unroll]
+					for (int t = 0; t < 16; ++t)
+					{
+						uint s = subsetOf[t];
+						int4 pr0 = r0[s];
+						int4 pr1 = r1[s];
+						int bestK = 0;
+						int bestD = 0x7fffffff;
+						[unroll]
+						for (int k = 0; k < 16; ++k)
+						{
+							if (k >= idxCount) continue;
+							int w = BC7IdxWeight(ib, (uint)k);
+							int4 pal = ((64 - w) * pr0 + w * pr1 + 32) >> 6;
+							int4 d = px[t] - pal;
+							int dd = d.x * d.x + d.y * d.y + d.z * d.z + ((numCh == 4) ? d.w * d.w : 0);
+							if (dd < bestD) { bestD = dd; bestK = k; }
+						}
+						err += (float)bestD;
+						idx[t] = (uint)bestK;
+						wgt[t] = (float)BC7IdxWeight(ib, (uint)bestK) * (1.0f / 64.0f);
+					}
+
+					if (refinePass == 0)
+					{
+						[unroll]
+						for (int s = 0; s < 3; ++s)
+							if (s < numSubsets) RefineLineRGBA(px, smask[s], wgt, fe0[s], fe1[s]);
+					}
+				}
+
+				if (err < bestErr)
+				{
+					bestErr = err;
+					bestPart = part;
+					[unroll]
+					for (int s = 0; s < 3; ++s) { bC0[s] = q0[s]; bC1[s] = q1[s]; bP0[s] = p0[s]; bP1[s] = p1[s]; }
+					[unroll]
+					for (int t = 0; t < 16; ++t) bIdx[t] = idx[t];
+				}
+			}
+
+			// Anchor fixups: each anchor index slot stores one fewer bit, so its high bit must be 0. Swap that subset's
+			// endpoints (and per-endpoint P-bits) and invert every index in that subset; the index ramp is symmetric so
+			// this is lossless. A shared P-bit (pbMode 2) is symmetric across the swap and stays put.
+			uint anchor[3];
+			anchor[0] = 0u; anchor[1] = 0u; anchor[2] = 0u;
+			if (numSubsets == 2) anchor[1] = kBC7Anchor2[bestPart];
+			else if (numSubsets == 3) { anchor[1] = kBC7Anchor3a[bestPart]; anchor[2] = kBC7Anchor3b[bestPart]; }
+
+			uint subF[16];
+			uint smaskF[3];
+			BC7SubsetMembership(numSubsets, bestPart, subF, smaskF);
+
+			int thresh = idxCount >> 1;
+			int invMax = idxCount - 1;
+			[unroll]
+			for (int s = 0; s < 3; ++s)
+			{
+				if (s >= numSubsets) continue;
+				if (bIdx[anchor[s]] >= (uint)thresh)
+				{
+					int4 tq = bC0[s]; bC0[s] = bC1[s]; bC1[s] = tq;
+					if (pbMode == 1) { uint tp = bP0[s]; bP0[s] = bP1[s]; bP1[s] = tp; }
+					[unroll]
+					for (int t = 0; t < 16; ++t)
+						if (subF[t] == (uint)s) bIdx[t] = (uint)invMax - bIdx[t];
+				}
+			}
+
+			errOut = bestErr;
+			[unroll]
+			for (int s = 0; s < 3; ++s)
+			{
+				codeStore[2 * s + 0] = bC0[s]; codeStore[2 * s + 1] = bC1[s];
+				pbitStore[2 * s + 0] = bP0[s]; pbitStore[2 * s + 1] = bP1[s];
+			}
+			[unroll]
+			for (int t = 0; t < 16; ++t) idxOut[t] = bIdx[t];
+		}
 	};
 };

@@ -14,17 +14,6 @@ mixin TextureCompressBC7Mode5
 
 	code
 	{
-		// Remaps a texel for the given rotation: rotation r (1..3) swaps colour channel r-1 with alpha, matching the
-		// decoder's post-interpolation swap. Rotation 0 leaves the texel unchanged.
-		void ApplyRotationMode5(int4 p, uint rot, out int3 col, out int alpha)
-		{
-			col = p.rgb;
-			alpha = p.a;
-			if (rot == 1u) { col.r = p.a; alpha = p.r; }
-			else if (rot == 2u) { col.g = p.a; alpha = p.g; }
-			else if (rot == 3u) { col.b = p.a; alpha = p.b; }
-		}
-
 		uint4 CompressBC7Mode5(float4 texels[16], out float outErr)
 		{
 			int4 px[16];
@@ -49,7 +38,7 @@ mixin TextureCompressBC7Mode5
 				for (uint i = 0; i < 16; ++i)
 				{
 					int3 c; int a;
-					ApplyRotationMode5(px[i], rot, c, a);
+					ApplyRotationBC7(px[i], rot, c, a);
 					col[i] = c; alp[i] = a;
 					cmn = min(cmn, c); cmx = max(cmx, c);
 					amn = min(amn, a); amx = max(amx, a);
