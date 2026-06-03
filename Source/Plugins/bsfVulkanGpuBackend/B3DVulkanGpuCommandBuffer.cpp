@@ -872,8 +872,8 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 	if(!B3D_ENSURE(!IsInRenderPass()))
 		return;
 
-	// Need to bind gpu params before starting render pass, in order to make sure any layout transitions execute
-	BindGpuParameters(mComputePipeline->GetParameterLayout(), mBarrierHelper);
+	const TShared<GpuPipelineParameterLayout>& pipelineParameterLayout = mComputePipeline->GetParameterLayout();
+	BindGpuParameters(pipelineParameterLayout, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 

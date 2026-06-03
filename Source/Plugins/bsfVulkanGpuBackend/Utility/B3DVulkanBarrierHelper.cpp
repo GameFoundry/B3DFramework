@@ -295,73 +295,76 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresou
 
 void VulkanBarrierHelper::Execute(VulkanGpuCommandBuffer& commandBuffer)
 {
-	if(!HasBarriers())
-		return;
-
-	// Determine barrier type based on access patterns
-	// Read-after-write or write-after-write requires memory barrier, or if there are any layout transitions queued
-	if(mCombinedSourceAccess.IsSet(GpuAccessFlag::Write) || mHasLayoutTransition)
+	if(HasBarriers())
 	{
-		vkCmdPipelineBarrier(
-			commandBuffer.GetVulkanHandle(),
-			mCombinedSourceStages,
-			mCombinedDestinationStages,
-			0,
-			0, nullptr,
-			(u32)mBufferBarriers.size(), mBufferBarriers.data(),
-			(u32)mImageBarriers.size(), mImageBarriers.data());
-	}
-	// Write-after-read requires only execution barrier
-	else if(mCombinedSourceAccess.IsSet(GpuAccessFlag::Read) && mCombinedDestinationAccess.IsSet(GpuAccessFlag::Write))
-	{
-		vkCmdPipelineBarrier(
-			commandBuffer.GetVulkanHandle(),
-			mCombinedSourceStages,
-			mCombinedDestinationStages,
-			0,
-			0, nullptr,
-			0, nullptr,
-			0, nullptr);
-	}
-
-	// Update layout for all image barriers
-	for(const auto& trackingInfo : mImageLayoutTracking)
-	{
-		if(trackingInfo.Image == nullptr)
-			continue;
-
-		mResourceTracker->UpdateImageLayoutTrackingAfterBarrier(
-			trackingInfo.Image,
-			trackingInfo.SubresourceRange,
-			trackingInfo.OldLayout,
-			trackingInfo.NewLayout);
-	}
-
-	// Update hazard tracking for all barriers
-	for(const auto& trackingInfo : mBarrierTracking)
-	{
-		// TODO - SourceAccess/DestinationAccess should probably be the combined source/destination access, as the only thing that
-		// matters if memory barrier was executed or not. 
-		if(trackingInfo.Buffer != nullptr)
+		// Determine barrier type based on access patterns
+		// Read-after-write or write-after-write requires memory barrier, or if there are any layout transitions queued
+		if(mCombinedSourceAccess.IsSet(GpuAccessFlag::Write) || mHasLayoutTransition)
 		{
-			mResourceTracker->UpdateWriteHazardTrackingAfterBarrier(
-				trackingInfo.Buffer,
-				trackingInfo.SourceAccessStages,
-				trackingInfo.SourceAccess,
-				trackingInfo.DestinationAccessStages,
-				trackingInfo.DestinationAccess);
+			vkCmdPipelineBarrier(
+				commandBuffer.GetVulkanHandle(),
+				mCombinedSourceStages,
+				mCombinedDestinationStages,
+				0,
+				0, nullptr,
+				(u32)mBufferBarriers.size(), mBufferBarriers.data(),
+				(u32)mImageBarriers.size(), mImageBarriers.data());
 		}
-		else if(trackingInfo.Image != nullptr)
+		// Write-after-read requires only execution barrier
+		else if(mCombinedSourceAccess.IsSet(GpuAccessFlag::Read) && mCombinedDestinationAccess.IsSet(GpuAccessFlag::Write))
 		{
-			mResourceTracker->UpdateWriteHazardTrackingAfterBarrier(
+			vkCmdPipelineBarrier(
+				commandBuffer.GetVulkanHandle(),
+				mCombinedSourceStages,
+				mCombinedDestinationStages,
+				0,
+				0, nullptr,
+				0, nullptr,
+				0, nullptr);
+		}
+
+		// Update layout for all image barriers
+		for(const auto& trackingInfo : mImageLayoutTracking)
+		{
+			if(trackingInfo.Image == nullptr)
+				continue;
+
+			mResourceTracker->UpdateImageLayoutTrackingAfterBarrier(
 				trackingInfo.Image,
-				trackingInfo.ImageSubresourceRange,
-				trackingInfo.SourceAccessStages,
-				trackingInfo.SourceAccess,
-				trackingInfo.DestinationAccessStages,
-				trackingInfo.DestinationAccess);
+				trackingInfo.SubresourceRange,
+				trackingInfo.OldLayout,
+				trackingInfo.NewLayout);
+		}
+
+		// Update hazard tracking for all barriers
+		for(const auto& trackingInfo : mBarrierTracking)
+		{
+			// TODO - SourceAccess/DestinationAccess should probably be the combined source/destination access, as the only thing that
+			// matters if memory barrier was executed or not.
+			if(trackingInfo.Buffer != nullptr)
+			{
+				mResourceTracker->UpdateWriteHazardTrackingAfterBarrier(
+					trackingInfo.Buffer,
+					trackingInfo.SourceAccessStages,
+					trackingInfo.SourceAccess,
+					trackingInfo.DestinationAccessStages,
+					trackingInfo.DestinationAccess);
+			}
+			else if(trackingInfo.Image != nullptr)
+			{
+				mResourceTracker->UpdateWriteHazardTrackingAfterBarrier(
+					trackingInfo.Image,
+					trackingInfo.ImageSubresourceRange,
+					trackingInfo.SourceAccessStages,
+					trackingInfo.SourceAccess,
+					trackingInfo.DestinationAccessStages,
+					trackingInfo.DestinationAccess);
+			}
 		}
 	}
+
+	// Apply the read/write hazard registrations that were deferred while tracking this dispatch/draw's resources
+	mResourceTracker->CommitPendingHazardRegistrations();
 
 	Clear();
 }

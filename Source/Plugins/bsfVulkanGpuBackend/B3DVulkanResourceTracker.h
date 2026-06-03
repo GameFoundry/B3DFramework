@@ -329,6 +329,15 @@ namespace b3d::render
 		/** Updates write hazard tracking for a single image after a barrier has been issued. */
 		void UpdateWriteHazardTrackingAfterBarrier(VulkanImage* image, const VkImageSubresourceRange& range, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess);
 
+		/**
+		 * Applies all read/write hazard registrations deferred by TrackBufferUsage / TrackSubresourceUsage. Must be called by
+		 * the barrier helper at the end of VulkanBarrierHelper::Execute, i.e. after any UpdateWriteHazardTrackingAfterBarrier
+		 * calls have resolved prior-write hazards. Deferring the registration this way ensures a resource written during the
+		 * current dispatch/draw is left marked unsafe for the next access, rather than being clobbered by the AddSafeAccess
+		 * that resolves the previous write.
+		 */
+		void CommitPendingHazardRegistrations();
+
 		/** Returns the internal map of all tracked buffers and their tracking states. */
 		TDenseMap<VulkanResource*, BufferTrackingState>& GetBuffers() { return mBuffers; }
 
@@ -389,7 +398,6 @@ namespace b3d::render
 		/** Registers a new resource range using the provided parameters to initialize it. */
 		u32 AddSubresourceTrackingState(const VkImageSubresourceRange& range);
 
-
 		/**
 		 * Creates a copy of an existing subresource with a new range.
 		 *
@@ -424,6 +432,17 @@ namespace b3d::render
 
 		/** Pool allocator for WriteHazardTracking structures. */
 		PoolAlloc<sizeof(WriteHazardTracking)> mWriteHazardPool;
+
+		/** A read/write hazard registration deferred until the pending barriers have been issued. */
+		struct PendingHazardRegistration
+		{
+			WriteHazardTracking* Tracking;
+			VulkanAccessStageFlags AccessStageFlags;
+			GpuAccessFlags Access;
+		};
+
+		/** Read/write hazard registrations deferred until the pending barriers are issued (see CommitPendingHazardRegistrations). */
+		Vector<PendingHazardRegistration> mPendingHazardRegistrations;
 	};
 
 	/** @} */

@@ -207,25 +207,11 @@ namespace b3d
 			commandBufferInfo.Name = "TextureCompress";
 			const TShared<render::GpuCommandBuffer> commandBuffer = pool->Create(commandBufferInfo);
 
-			// One thread per 4x4 block; the kernel uses [numthreads(8, 8, 1)]. The BC7 mode groups run in sequence on one
-			// command buffer and must see each other's writes to gOutput / gBestErr. The resource tracker only auto-inserts
-			// write barriers for raw/structured UAVs, not the typed RWBuffers used here, so issue an explicit compute->compute
-			// read-after-write barrier between consecutive dispatches.
+			// One thread per 4x4 block; the kernel uses [numthreads(8, 8, 1)]. The mode groups run in sequence on one command
+			// buffer and must see each other's writes to the shared gOutput / gBestErr running-best buffers.
 			const Vector2I blockDims((i32)blockCountX, (i32)blockCountY);
 			for(u32 i = 0; i < materials.Size(); ++i)
-			{
-				if(i > 0)
-				{
-					const render::GpuResourceUseFlags computeAccess = render::GpuResourceUseFlag::ShaderAccess | render::GpuResourceUseFlag::StageComputeShader;
-					render::GpuBufferBarrier barriers[] = {
-						render::GpuBufferBarrier(output, computeAccess, GpuAccessFlag::Write, computeAccess, GpuAccessFlag::Read | GpuAccessFlag::Write),
-						render::GpuBufferBarrier(bestErr, computeAccess, GpuAccessFlag::Write, computeAccess, GpuAccessFlag::Read | GpuAccessFlag::Write)
-					};
-					commandBuffer->IssueBarriers(render::GpuBarriers(TArrayView<render::GpuBufferBarrier>(barriers, 2)));
-				}
-
 				materials[i]->Execute(*commandBuffer, input, output, metaBuffer, bestErr, blockDims);
-			}
 
 			gpuDevice->SubmitCommandBuffer(commandBuffer);
 

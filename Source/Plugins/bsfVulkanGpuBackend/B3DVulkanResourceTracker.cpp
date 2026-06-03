@@ -192,11 +192,9 @@ void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, BufferTrackin
 
 	writeHazardTracking->Access |= access;
 
-	if(access.IsSet(GpuAccessFlag::Read))
-		writeHazardTracking->ExecutionBarrierTracking.ClearStageSafeAccess(accessStageFlags);
-
-	if(access.IsSet(GpuAccessFlag::Write))
-		writeHazardTracking->MemoryBarrierTracking.ClearStageSafeAccess(accessStageFlags);
+	// Defer registering hazards until after the barrier is issued, as the barrier helper clears any hazards that have been set
+	if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
+		mPendingHazardRegistrations.push_back({ writeHazardTracking, accessStageFlags, access });
 
 	bufferTrackingState.UseHandle.Flags |= access;
 	bufferTrackingState.UseFlags |= useFlags;
@@ -346,11 +344,9 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 
 	writeHazardTracking->Access |= accessFlags;
 
-	if(accessFlags.IsSet(GpuAccessFlag::Read))
-		writeHazardTracking->ExecutionBarrierTracking.ClearStageSafeAccess(accessStageFlags);
-
-	if(accessFlags.IsSet(GpuAccessFlag::Write))
-		writeHazardTracking->MemoryBarrierTracking.ClearStageSafeAccess(accessStageFlags);
+	// Defer registering hazards until after the barrier is issued, as the barrier helper clears any hazards that have been set
+	if(accessFlags.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
+		mPendingHazardRegistrations.push_back({ writeHazardTracking, accessStageFlags, accessFlags });
 
 	subresourceTrackingState.Access |= accessFlags;
 
@@ -800,6 +796,20 @@ void VulkanResourceTracker::UpdateImageLayoutTrackingAfterBarrier(VulkanImage* i
 	}, &callbackParameters);
 }
 
+void VulkanResourceTracker::CommitPendingHazardRegistrations()
+{
+	for(const PendingHazardRegistration& registration : mPendingHazardRegistrations)
+	{
+		if(registration.Access.IsSet(GpuAccessFlag::Read))
+			registration.Tracking->ExecutionBarrierTracking.ClearStageSafeAccess(registration.AccessStageFlags);
+
+		if(registration.Access.IsSet(GpuAccessFlag::Write))
+			registration.Tracking->MemoryBarrierTracking.ClearStageSafeAccess(registration.AccessStageFlags);
+	}
+
+	mPendingHazardRegistrations.clear();
+}
+
 void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(VulkanBuffer* buffer, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess)
 {
 	BufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
@@ -989,6 +999,9 @@ void VulkanResourceTracker::Clear()
 		if(entry.WriteHazardTracking != nullptr)
 			mWriteHazardPool.Destruct(entry.WriteHazardTracking);
 	}
+
+	// Drop deferred registrations before destructing the WriteHazardTracking objects they point at.
+	mPendingHazardRegistrations.clear();
 
 	mResources.clear();
 	mImages.clear();
