@@ -162,7 +162,7 @@ shader TextureCompress
 			// Pass 0: assign indices then least-squares-refine the endpoints.
 			// Pass 1: re-assign indices against the refined endpoints and emit.
 			[unroll]
-			for (uint refinePass = 0; refinePass < 2; ++refinePass)
+			for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
 			{
 				c0 = PackColor565(maxColor);
 				c1 = PackColor565(minColor);
@@ -197,7 +197,7 @@ shader TextureCompress
 					indices |= best << (j * 2);
 				}
 
-				if (refinePass == 0)
+				if (refinePass + 1 < BCN_REFINE_PASSES)
 				{
 					// Solve the 2x2 normal equations for the endpoints that minimise error
 					// given the fixed indices. Same matrix for all three channels.
@@ -220,6 +220,82 @@ shader TextureCompress
 						maxColor = saturate(( C * sumA - B * sumB) * invDet);
 						minColor = saturate((-B * sumA + A * sumB) * invDet);
 					}
+				}
+			}
+
+			// +/-1 endpoint polish: with indices fixed, nudge each 5:6:5 sub-channel code by -1/0/+1 and keep the lowest
+			// squared-error pair (separable per channel), then re-assign indices. Recovers error the float least-squares
+			// fit loses to 5:6:5 quantization. Reconstruction matches Unpack565 (bit replication).
+			[unroll]
+			for (uint polishIter = 0; polishIter < BCN_POLISH_ITERS; ++polishIter)
+			{
+				int codes0[3] = { (int)((c0 >> 11) & 0x1Fu), (int)((c0 >> 5) & 0x3Fu), (int)(c0 & 0x1Fu) };
+				int codes1[3] = { (int)((c1 >> 11) & 0x1Fu), (int)((c1 >> 5) & 0x3Fu), (int)(c1 & 0x1Fu) };
+				int maxCode[3] = { 31, 63, 31 };
+
+				uint idx[16];
+				[unroll]
+				for (uint j = 0; j < 16; ++j)
+					idx[j] = (indices >> (j * 2)) & 3u;
+
+				[unroll]
+				for (uint ch = 0; ch < 3; ++ch)
+				{
+					int cur0 = codes0[ch], cur1 = codes1[ch];
+					int mc = maxCode[ch];
+					float polBest = 1e30f;
+					int sel0 = cur0, sel1 = cur1;
+					[unroll]
+					for (int d0 = -1; d0 <= 1; ++d0)
+					{
+						int nc0 = clamp(cur0 + d0, 0, mc);
+						// 5-bit channels (R,B) replicate the top 2 bits; the 6-bit channel (G) replicates the top 4.
+						float q0 = (float)((ch == 1u) ? ((nc0 << 2) | (nc0 >> 4)) : ((nc0 << 3) | (nc0 >> 2))) / 255.0f;
+						[unroll]
+						for (int d1 = -1; d1 <= 1; ++d1)
+						{
+							int nc1 = clamp(cur1 + d1, 0, mc);
+							float q1 = (float)((ch == 1u) ? ((nc1 << 2) | (nc1 >> 4)) : ((nc1 << 3) | (nc1 >> 2))) / 255.0f;
+							float se = 0;
+							[unroll]
+							for (uint t = 0; t < 16; ++t)
+							{
+								float w = idxW[idx[t]];
+								float pal = (1.0f - w) * q0 + w * q1;
+								float diff = texels[t][ch] - pal;
+								se += diff * diff;
+							}
+							if (se < polBest) { polBest = se; sel0 = nc0; sel1 = nc1; }
+						}
+					}
+					codes0[ch] = sel0; codes1[ch] = sel1;
+				}
+
+				c0 = ((uint)codes0[0] << 11) | ((uint)codes0[1] << 5) | (uint)codes0[2];
+				c1 = ((uint)codes1[0] << 11) | ((uint)codes1[1] << 5) | (uint)codes1[2];
+
+				// Re-assign indices against the polished endpoints.
+				float3 q0v = Unpack565(c0);
+				float3 q1v = Unpack565(c1);
+				float3 palette[4];
+				palette[0] = q0v;
+				palette[1] = q1v;
+				palette[2] = (2.0f * q0v + q1v) / 3.0f;
+				palette[3] = (q0v + 2.0f * q1v) / 3.0f;
+				indices = 0;
+				[unroll]
+				for (uint j = 0; j < 16; ++j)
+				{
+					uint best = 0;
+					float bestDist = 1e20f;
+					[unroll]
+					for (uint p = 0; p < 4; ++p)
+					{
+						float3 d = texels[j] - palette[p];
+						float dist = dot(d, d);
+						if (dist < bestDist) { bestDist = dist; best = p; }
+					}
+					indices |= best << (j * 2);
 				}
 			}
 
@@ -261,7 +337,7 @@ shader TextureCompress
 			// Pass 0: assign indices then least-squares-refine the endpoints.
 			// Pass 1: re-assign indices against the refined endpoints and emit.
 			[unroll]
-			for (uint refinePass = 0; refinePass < 2; ++refinePass)
+			for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
 			{
 				r0 = (uint)round(saturate(maxV) * 255.0f);
 				r1 = (uint)round(saturate(minV) * 255.0f);
@@ -308,7 +384,7 @@ shader TextureCompress
 						idxHi |= best << (pos - 32);
 				}
 
-				if (refinePass == 0)
+				if (refinePass + 1 < BCN_REFINE_PASSES)
 				{
 					// Solve the 2x2 normal equations for the endpoints that minimise error
 					// given the fixed indices.
@@ -333,6 +409,105 @@ shader TextureCompress
 						maxV = saturate(max(e0, e1));
 						minV = saturate(min(e0, e1));
 					}
+				}
+			}
+
+			// +/-1 endpoint polish: with indices fixed, nudge each 8-bit endpoint by -1/0/+1 and keep the lowest
+			// squared-error pair, then re-assign indices. Recovers error the float least-squares fit loses to rounding.
+			[unroll]
+			for (uint polishIter = 0; polishIter < BCN_POLISH_ITERS; ++polishIter)
+			{
+				// Index assignment against the current endpoints (8-value ramp, r0 >= r1).
+				float fr0 = r0 / 255.0f;
+				float fr1 = r1 / 255.0f;
+				float pal[8];
+				pal[0] = fr0; pal[1] = fr1;
+				[unroll]
+				for (uint p = 1; p < 7; ++p)
+					pal[p + 1] = ((7 - p) * fr0 + p * fr1) / 7.0f;
+
+				uint idx[16];
+				[unroll]
+				for (uint j = 0; j < 16; ++j)
+				{
+					uint best = 0;
+					float bestDist = 1e20f;
+					[unroll]
+					for (uint k = 0; k < 8; ++k)
+					{
+						float d = texels[j] - pal[k];
+						float dist = d * d;
+						if (dist < bestDist) { bestDist = dist; best = k; }
+					}
+					idx[j] = best;
+				}
+
+				// Optimize the two endpoints (single channel) with indices held fixed.
+				int cur0 = (int)r0, cur1 = (int)r1;
+				float polBest = 1e30f;
+				int sel0 = cur0, sel1 = cur1;
+				[unroll]
+				for (int d0 = -1; d0 <= 1; ++d0)
+				{
+					int nc0 = clamp(cur0 + d0, 0, 255);
+					float q0 = nc0 / 255.0f;
+					[unroll]
+					for (int d1 = -1; d1 <= 1; ++d1)
+					{
+						int nc1 = clamp(cur1 + d1, 0, 255);
+						float q1 = nc1 / 255.0f;
+						float se = 0;
+						[unroll]
+						for (uint t = 0; t < 16; ++t)
+						{
+							float w = idxW[idx[t]];
+							float p = (1.0f - w) * q0 + w * q1;
+							float diff = texels[t] - p;
+							se += diff * diff;
+						}
+						if (se < polBest) { polBest = se; sel0 = nc0; sel1 = nc1; }
+					}
+				}
+				r0 = (uint)sel0; r1 = (uint)sel1;
+			}
+
+			// 8-value mode requires r0 >= r1; the palette set is identical under a swap, so reorder and let the final
+			// re-assignment below pick fresh indices (no remap needed).
+			if (r0 < r1) { uint tmp = r0; r0 = r1; r1 = tmp; }
+
+			// Final index assignment + pack against the polished, ordered endpoints.
+			{
+				float fr0 = r0 / 255.0f;
+				float fr1 = r1 / 255.0f;
+				float pal[8];
+				pal[0] = fr0; pal[1] = fr1;
+				[unroll]
+				for (uint p = 1; p < 7; ++p)
+					pal[p + 1] = ((7 - p) * fr0 + p * fr1) / 7.0f;
+
+				idxLo = 0;
+				idxHi = 0;
+				[unroll]
+				for (uint j = 0; j < 16; ++j)
+				{
+					uint best = 0;
+					float bestDist = 1e20f;
+					[unroll]
+					for (uint k = 0; k < 8; ++k)
+					{
+						float d = texels[j] - pal[k];
+						float dist = d * d;
+						if (dist < bestDist) { bestDist = dist; best = k; }
+					}
+					uint pos = j * 3;
+					if (pos < 32)
+					{
+						idxLo |= best << pos;
+						if (pos + 3 > 32)
+							idxHi |= best >> (32 - pos);
+					}
+					else
+						idxHi |= best << (pos - 32);
 				}
 			}
 

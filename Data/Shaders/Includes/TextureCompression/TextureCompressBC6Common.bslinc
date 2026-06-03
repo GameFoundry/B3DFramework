@@ -139,7 +139,7 @@ mixin TextureCompressBC6Common
 			float total = 0;
 
 			[unroll]
-			for (uint refinePass = 0; refinePass < 2; ++refinePass)
+			for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
 			{
 				QuantizeBC6Pair(e0, e1, wBits, tBits, transformed, cA, cBs, cBa);
 
@@ -173,7 +173,7 @@ mixin TextureCompressBC6Common
 					total += (float)bestD;
 				}
 
-				if (refinePass == 0)
+				if (refinePass + 1 < BCN_REFINE_PASSES)
 					RefineLine3f(pts, 0xFFFFu, wgt, e0, e1);
 			}
 
@@ -251,7 +251,7 @@ mixin TextureCompressBC6Common
 				float err = 0;
 
 				[unroll]
-				for (uint refinePass = 0; refinePass < 2; ++refinePass)
+				for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
 				{
 					absC[0] = QuantizeVecBC6(fe0_0, wBits);
 					absC[1] = QuantizeVecBC6(fe1_0, wBits);
@@ -294,7 +294,7 @@ mixin TextureCompressBC6Common
 						err += (float)bestD;
 					}
 
-					if (refinePass == 0)
+					if (refinePass + 1 < BCN_REFINE_PASSES)
 					{
 						RefineLine3f(pts, mask0, wgt, fe0_0, fe1_0);
 						RefineLine3f(pts, mask1, wgt, fe0_1, fe1_1);

@@ -56,7 +56,7 @@ mixin TextureCompressBC7Mode5
 
 				// Pass 0: quantize PCA endpoints, assign indices, least-squares-refine. Pass 1: re-quantize, re-assign.
 				[unroll]
-				for (uint refinePass = 0; refinePass < 2; ++refinePass)
+				for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
 				{
 					// Colour endpoints: 7-bit, reconstruction = expand(code, 7).
 					int3 rc0 = int3(0, 0, 0), rc1 = int3(0, 0, 0);
@@ -100,7 +100,7 @@ mixin TextureCompressBC7Mode5
 						awgt[t] = (float)kBC7Weight2[bestKa] * (1.0f / 64.0f);
 					}
 
-					if (refinePass == 0)
+					if (refinePass + 1 < BCN_REFINE_PASSES)
 					{
 						RefineLineRGB(col, 0xFFFFu, cwgt, fec0, fec1);
 						RefineScalar(alp, 0xFFFFu, awgt, fea0, fea1);
