@@ -55,7 +55,7 @@ mixin TextureCompressBC7Mode5
 				uint cIdx[16], aIdx[16];
 
 				// Pass 0: quantize PCA endpoints, assign indices, least-squares-refine. Pass 1: re-quantize, re-assign.
-				[unroll]
+				// Runtime loop (not [unroll]), because we're seeing hangs when compiling this shader on AMD
 				for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
 				{
 					// Colour endpoints: 7-bit, reconstruction = expand(code, 7).

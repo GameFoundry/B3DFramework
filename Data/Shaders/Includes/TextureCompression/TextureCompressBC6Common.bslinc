@@ -138,7 +138,7 @@ mixin TextureCompressBC6Common
 			uint tmpIdx[16];
 			float total = 0;
 
-			[unroll]
+			// Runtime loop (not [unroll]), because we're seeing hangs when compiling this shader on AMD
 			for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
 			{
 				QuantizeBC6Pair(e0, e1, wBits, tBits, transformed, cA, cBs, cBa);
@@ -250,7 +250,7 @@ mixin TextureCompressBC6Common
 				uint idx[16];
 				float err = 0;
 
-				[unroll]
+				// Runtime loop (not [unroll]), because we're seeing hangs when compiling this shader on AMD
 				for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
 				{
 					absC[0] = QuantizeVecBC6(fe0_0, wBits);

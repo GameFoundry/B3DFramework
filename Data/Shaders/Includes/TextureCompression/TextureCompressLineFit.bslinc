@@ -14,6 +14,9 @@
 // and (on all but the last pass) least-squares-refines the endpoints against those indices, letting endpoints and
 // indices co-adapt. The original encoders used 2 (a single refine); more passes converge closer to the local optimum
 // for a few extra ALU ops per block. Guarded so the many headers that include this file don't redefine it.
+//
+// IMPORTANT: the per-pass loop in every encoder is a RUNTIME loop, deliberately NOT [unroll]'d, because
+// compiling such a large shader seems to be hanging AMD's Vulkan driver.
 #ifndef BCN_REFINE_PASSES
 	#define BCN_REFINE_PASSES 4
 #endif
@@ -24,13 +27,6 @@
 // step that the continuous least-squares solve cannot see. 0 disables the polish.
 #ifndef BCN_POLISH_ITERS
 	#define BCN_POLISH_ITERS 2
-#endif
-
-// Number of partitions BC7 cluster fit revisits. The partition search ranks all partitions by PCA+refine error; cluster
-// fit then re-fits the K lowest-error ones (not just the single winner) because the exhaustive cut search can change
-// which partition is actually best. 1 = winner only. Only affects the 2-bit-index BC7 modes (where cluster fit runs).
-#ifndef BCN_CLUSTERFIT_TOPK
-	#define BCN_CLUSTERFIT_TOPK 4
 #endif
 
 mixin TextureCompressLineFit

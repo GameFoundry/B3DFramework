@@ -292,115 +292,6 @@ mixin TextureCompressBC7Common
 			}
 		}
 
-		// 4-cluster (2-bit index) cluster fit for one BC7 subset. Sorts the subset's texels along the fit axis, then
-		// enumerates every way to cut the sorted run into 4 contiguous clusters (the four palette slots). Each cut assigns
-		// per-texel blend weights, so a weighted least-squares solve gives the best endpoints for that cut; the endpoints
-		// are quantized (under @p pbMode), the decoded squared error measured, and the lowest-error cut kept. This reaches
-		// endpoint pairs a single PCA fit + nearest-assignment never finds - the main quality lever for the low-precision
-		// modes. Bounded: at most C(m+3,3) cuts with m = subset size <= 16. Only used for ib == 2 (4 palette entries).
-		// @p axisE0/@p axisE1 give the sort direction (the PCA endpoints). Outputs the codes/P-bits, per-texel indices
-		// (members only; others 0) and the subset's squared error.
-		void ClusterFitSubset2BC7(int4 px[16], uint mask16, int numCh, int bits, int pbMode, float4 axisE0, float4 axisE1,
-			out int4 outC0, out int4 outC1, out uint outP0, out uint outP1, out uint outIdx[16], out float outErr)
-		{
-			outC0 = int4(0, 0, 0, 0); outC1 = int4(0, 0, 0, 0); outP0 = 0u; outP1 = 0u; outErr = 1e30f;
-			[unroll]
-			for (int z = 0; z < 16; ++z) outIdx[z] = 0u;
-
-			// Gather the subset's texels, then selection-sort them by projection onto the fit axis.
-			int ord[16];
-			float proj[16];
-			int cnt = 0;
-			float4 axis = axisE0 - axisE1;
-			[unroll]
-			for (int t = 0; t < 16; ++t)
-			{
-				if (((mask16 >> (uint)t) & 1u) == 0u) continue;
-				ord[cnt] = t;
-				proj[cnt] = dot((float4)px[t] - axisE1, axis);
-				cnt++;
-			}
-			if (cnt == 0) return;
-			for (int a = 0; a < cnt; ++a)
-			{
-				int bi = a;
-				for (int b = a + 1; b < cnt; ++b)
-					if (proj[b] < proj[bi]) bi = b;
-				float tpr = proj[a]; proj[a] = proj[bi]; proj[bi] = tpr;
-				int tor = ord[a]; ord[a] = ord[bi]; ord[bi] = tor;
-			}
-
-			float alpha1 = (float)kBC7Weight2[1] * (1.0f / 64.0f);
-			float alpha2 = (float)kBC7Weight2[2] * (1.0f / 64.0f);
-
-			// Enumerate the three cut points i <= j <= k that split the sorted run into the four clusters.
-			for (int i = 0; i <= cnt; ++i)
-			{
-				for (int j = i; j <= cnt; ++j)
-				{
-					for (int k = j; k <= cnt; ++k)
-					{
-						float A = 0, B = 0, C = 0;
-						float4 sumA = float4(0, 0, 0, 0), sumB = float4(0, 0, 0, 0);
-						for (int r = 0; r < cnt; ++r)
-						{
-							float w = (r < i) ? 0.0f : ((r < j) ? alpha1 : ((r < k) ? alpha2 : 1.0f));
-							float aa = 1.0f - w;
-							float4 pp = (float4)px[ord[r]];
-							A += aa * aa; B += aa * w; C += w * w;
-							sumA += aa * pp; sumB += w * pp;
-						}
-						float det = A * C - B * B;
-						if (abs(det) < 1e-9f) continue;
-						float invd = 1.0f / det;
-						float4 fe0 = clamp(( C * sumA - B * sumB) * invd, 0.0f, 255.0f);
-						float4 fe1 = clamp((-B * sumA + A * sumB) * invd, 0.0f, 255.0f);
-
-						int4 q0, q1, rr0, rr1; uint qp0, qp1;
-						QuantizeEndpointBC7((int4)round(fe0), numCh, bits, pbMode, q0, qp0, rr0);
-						QuantizeEndpointBC7((int4)round(fe1), numCh, bits, pbMode, q1, qp1, rr1);
-
-						float err = 0;
-						for (int r = 0; r < cnt; ++r)
-						{
-							int4 pt = px[ord[r]];
-							int bestD = 0x7fffffff;
-							[unroll]
-							for (int kk = 0; kk < 4; ++kk)
-							{
-								int w = (int)kBC7Weight2[kk];
-								int4 pal = ((64 - w) * rr0 + w * rr1 + 32) >> 6;
-								int4 d = pt - pal;
-								int dd = d.x * d.x + d.y * d.y + d.z * d.z + ((numCh == 4) ? d.w * d.w : 0);
-								if (dd < bestD) bestD = dd;
-							}
-							err += (float)bestD;
-						}
-
-						if (err < outErr)
-						{
-							outErr = err; outC0 = q0; outC1 = q1; outP0 = qp0; outP1 = qp1;
-							for (int r = 0; r < cnt; ++r)
-							{
-								int4 pt = px[ord[r]];
-								int bestK = 0; int bestD = 0x7fffffff;
-								[unroll]
-								for (int kk = 0; kk < 4; ++kk)
-								{
-									int w = (int)kBC7Weight2[kk];
-									int4 pal = ((64 - w) * rr0 + w * rr1 + 32) >> 6;
-									int4 d = pt - pal;
-									int dd = d.x * d.x + d.y * d.y + d.z * d.z + ((numCh == 4) ? d.w * d.w : 0);
-									if (dd < bestD) { bestD = dd; bestK = kk; }
-								}
-								outIdx[ord[r]] = (uint)bestK;
-							}
-						}
-					}
-				}
-			}
-		}
-
 		// Shared BC7 endpoint+index fit for the 1/2/3-subset RGB(A) modes. Searches @p numPartitions partitions of the
 		// @p numSubsets-subset layout; per partition it fits a PCA line per subset (shared geometry), quantizes endpoints
 		// to @p bits-wide codes under @p pbMode (0 = none, 1 = per-endpoint P-bit, 2 = one shared P-bit per subset),
@@ -422,11 +313,6 @@ mixin TextureCompressBC7Common
 			for (int s = 0; s < 3; ++s) { bC0[s] = int4(0, 0, 0, 0); bC1[s] = int4(0, 0, 0, 0); bP0[s] = 0u; bP1[s] = 0u; }
 			[unroll]
 			for (int t = 0; t < 16; ++t) bIdx[t] = 0u;
-
-			int topPart[BCN_CLUSTERFIT_TOPK];
-			float topErr[BCN_CLUSTERFIT_TOPK];
-			[unroll]
-			for (int n = 0; n < BCN_CLUSTERFIT_TOPK; ++n) { topPart[n] = 0; topErr[n] = 1e30f; }
 
 			for (int part = 0; part < numPartitions; ++part)
 			{
@@ -456,7 +342,7 @@ mixin TextureCompressBC7Common
 				[unroll]
 				for (int t = 0; t < 16; ++t) idx[t] = 0u;
 
-				[unroll]
+				// Runtime loop (not [unroll]), because we're seeing hangs when compiling this shader on AMD
 				for (int refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
 				{
 					[unroll]
@@ -511,14 +397,6 @@ mixin TextureCompressBC7Common
 					}
 				}
 
-				// Track the K lowest-error partitions (unordered) so cluster fit below can revisit the close runners-up,
-				// not just the single winner - the exhaustive cut search can change which partition is actually best.
-				int worstSlot = 0;
-				[unroll]
-				for (int n = 1; n < BCN_CLUSTERFIT_TOPK; ++n)
-					if (topErr[n] > topErr[worstSlot]) worstSlot = n;
-				if (err < topErr[worstSlot]) { topErr[worstSlot] = err; topPart[worstSlot] = part; }
-
 				if (err < bestErr)
 				{
 					bestErr = err;
@@ -541,109 +419,6 @@ mixin TextureCompressBC7Common
 			uint subF[16];
 			uint smaskF[3];
 			BC7SubsetMembership(numSubsets, bestPart, subF, smaskF);
-
-			// Cluster fit on the winning partition (2-bit-index modes only, where the coarse 4-entry palette makes it
-			// most valuable and the cut enumeration is bounded). Subsets are independent for a fixed partition, so each
-			// is fitted and accepted independently when it beats the PCA+refine result; bestErr is updated by the per-
-			// subset error delta (it equals the sum of per-subset nearest-assignment errors).
-			if (ib == 2)
-			{
-				float4 cfe0[3], cfe1[3];
-				[unroll]
-				for (int s = 0; s < 3; ++s)
-				{
-					cfe0[s] = float4(0, 0, 0, 0); cfe1[s] = float4(0, 0, 0, 0);
-					if (s < numSubsets) FitLineRGBA(px, smaskF[s], cfe0[s], cfe1[s]);
-				}
-				[unroll]
-				for (int s = 0; s < 3; ++s)
-				{
-					if (s >= numSubsets) continue;
-
-					// Current subset error with the refine-loop endpoints/indices.
-					int cp0 = (pbMode == 0) ? -1 : (int)bP0[s];
-					int cp1 = (pbMode == 0) ? -1 : (int)bP1[s];
-					int4 cr0 = int4(0, 0, 0, 0), cr1 = int4(0, 0, 0, 0);
-					[unroll]
-					for (int c = 0; c < 4; ++c)
-					{
-						if (c >= numCh) continue;
-						cr0[c] = ReconChannelBC7(bC0[s][c], cp0, bits);
-						cr1[c] = ReconChannelBC7(bC1[s][c], cp1, bits);
-					}
-					float curErr = 0;
-					[unroll]
-					for (int t = 0; t < 16; ++t)
-					{
-						if (subF[t] != (uint)s) continue;
-						int w = BC7IdxWeight(2, bIdx[t]);
-						int4 pal = ((64 - w) * cr0 + w * cr1 + 32) >> 6;
-						int4 d = px[t] - pal;
-						curErr += (float)(d.x * d.x + d.y * d.y + d.z * d.z + ((numCh == 4) ? d.w * d.w : 0));
-					}
-
-					int4 nc0, nc1; uint nP0, nP1; uint cfIdx[16]; float cfErr;
-					ClusterFitSubset2BC7(px, smaskF[s], numCh, bits, pbMode, cfe0[s], cfe1[s], nc0, nc1, nP0, nP1, cfIdx, cfErr);
-
-					if (cfErr < curErr)
-					{
-						bC0[s] = nc0; bC1[s] = nc1; bP0[s] = nP0; bP1[s] = nP1;
-						[unroll]
-						for (int t = 0; t < 16; ++t)
-							if (subF[t] == (uint)s) bIdx[t] = cfIdx[t];
-						bestErr += cfErr - curErr;
-					}
-				}
-			}
-
-			// Top-K cluster fit: also cluster-fit the close runner-up partitions and adopt one wholesale if its total
-			// beats the (already cluster-fitted) winner. Each candidate is fitted purely by cluster fit; subsets are
-			// independent, so the candidate's total is the sum of its per-subset cluster-fit errors.
-			if (ib == 2)
-			{
-				for (int n = 0; n < BCN_CLUSTERFIT_TOPK; ++n)
-				{
-					int cand = topPart[n];
-					if (cand == bestPart) continue;
-
-					uint cSubF[16]; uint cSmask[3];
-					BC7SubsetMembership(numSubsets, cand, cSubF, cSmask);
-					int4 cc0[3], cc1[3]; uint ccp0[3], ccp1[3]; uint cIdxAll[16];
-					[unroll]
-					for (int t = 0; t < 16; ++t) cIdxAll[t] = 0u;
-					[unroll]
-					for (int s = 0; s < 3; ++s) { cc0[s] = int4(0, 0, 0, 0); cc1[s] = int4(0, 0, 0, 0); ccp0[s] = 0u; ccp1[s] = 0u; }
-
-					float candTotal = 0;
-					[unroll]
-					for (int s = 0; s < 3; ++s)
-					{
-						if (s >= numSubsets) continue;
-						float4 ce0, ce1;
-						FitLineRGBA(px, cSmask[s], ce0, ce1);
-						int4 nc0, nc1; uint nP0, nP1; uint nIdx[16]; float nErr;
-						ClusterFitSubset2BC7(px, cSmask[s], numCh, bits, pbMode, ce0, ce1, nc0, nc1, nP0, nP1, nIdx, nErr);
-						cc0[s] = nc0; cc1[s] = nc1; ccp0[s] = nP0; ccp1[s] = nP1;
-						candTotal += nErr;
-						[unroll]
-						for (int t = 0; t < 16; ++t)
-							if (cSubF[t] == (uint)s) cIdxAll[t] = nIdx[t];
-					}
-
-					if (candTotal < bestErr)
-					{
-						bestErr = candTotal; bestPart = cand;
-						[unroll]
-						for (int s = 0; s < 3; ++s) { bC0[s] = cc0[s]; bC1[s] = cc1[s]; bP0[s] = ccp0[s]; bP1[s] = ccp1[s]; }
-						[unroll]
-						for (int t = 0; t < 16; ++t) { bIdx[t] = cIdxAll[t]; subF[t] = cSubF[t]; }
-						[unroll]
-						for (int s = 0; s < 3; ++s) smaskF[s] = cSmask[s];
-						anchor[1] = (numSubsets == 2) ? kBC7Anchor2[cand] : ((numSubsets == 3) ? kBC7Anchor3a[cand] : 0u);
-						anchor[2] = (numSubsets == 3) ? kBC7Anchor3b[cand] : 0u;
-					}
-				}
-			}
 
 			// +/-1 endpoint polish on the winning partition: holding the per-texel indices fixed, nudge each endpoint code
 			// by -1/0/+1 and keep the lowest squared-error pair (separable per channel), then re-assign indices. Recovers

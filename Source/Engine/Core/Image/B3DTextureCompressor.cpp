@@ -70,12 +70,18 @@ namespace b3d
 		public:
 			TextureCompressMaterial() = default;
 
-			/** Records the dispatch that compresses @p input into @p output. Must run on the render thread. */
-			void Execute(render::GpuCommandBuffer& commandBuffer, const TShared<render::GpuBuffer>& input, const TShared<render::GpuBuffer>& output, const TShared<render::GpuBuffer>& meta, const Vector2I& blockCount)
+			/**
+			 * Records the dispatch that compresses @p input into @p output. Must run on the render thread. @p bestErr is the
+			 * per-block running-best-error buffer shared by the BC7 mode-group dispatches; pass null for single-dispatch
+			 * formats (the variation's shader will not declare gBestErr in that case).
+			 */
+			void Execute(render::GpuCommandBuffer& commandBuffer, const TShared<render::GpuBuffer>& input, const TShared<render::GpuBuffer>& output, const TShared<render::GpuBuffer>& meta, const TShared<render::GpuBuffer>& bestErr, const Vector2I& blockCount)
 			{
 				mGpuParameterSet->SetStorageBuffer("gInput", input);
 				mGpuParameterSet->SetStorageBuffer("gOutput", output);
 				mGpuParameterSet->SetStorageBuffer("gMeta", meta);
+				if(bestErr != nullptr && mGpuParameterSet->HasStorageBuffer("gBestErr"))
+					mGpuParameterSet->SetStorageBuffer("gBestErr", bestErr);
 
 				Bind(commandBuffer);
 				commandBuffer.DispatchCompute((u32)Math::DivideAndRoundUp(blockCount.X, 8), (u32)Math::DivideAndRoundUp(blockCount.Y, 8));
@@ -89,6 +95,7 @@ namespace b3d
 				return variation;
 			}
 
+			/** Returns the material for a single FORMAT variation value (including the extra BC7 mode-group values 6 and 7). */
 			static TextureCompressMaterial* GetVariation(i32 variation)
 			{
 				switch(variation)
@@ -98,8 +105,45 @@ namespace b3d
 				case 2: return Get(GetVariationParams<2>());
 				case 3: return Get(GetVariationParams<3>());
 				case 5: return Get(GetVariationParams<5>());
+				case 6: return Get(GetVariationParams<6>());
+				case 7: return Get(GetVariationParams<7>());
+				case 8: return Get(GetVariationParams<8>());
+				case 9: return Get(GetVariationParams<9>());
+				case 10: return Get(GetVariationParams<10>());
+				case 11: return Get(GetVariationParams<11>());
+				case 12: return Get(GetVariationParams<12>());
+				case 13: return Get(GetVariationParams<13>());
 				default: return Get(GetVariationParams<4>());
 				}
+			}
+
+			/**
+			 * Fills @p outVariations with the sequence of FORMAT variation values that must be dispatched, in order, to fully
+			 * compress the given base format. BC7 (base variation 4) splits into four mode groups (4 -> 6 -> 7 -> 8) and
+			 * BC6H (base variation 5) into six (5 -> 9 -> 10 -> 11 -> 12 -> 13), each run over a shared running-best buffer;
+			 * every other format is a single dispatch.
+			 */
+			static void GetDispatchVariations(i32 baseVariation, TInlineArray<i32, 8>& outVariations)
+			{
+				outVariations.Clear();
+				if(baseVariation == 4) // BC7: four mode-group dispatches (see TextureCompress.bsl FORMAT note).
+				{
+					outVariations.Add(4);
+					outVariations.Add(6);
+					outVariations.Add(7);
+					outVariations.Add(8);
+				}
+				else if(baseVariation == 5) // BC6H: six mode-group dispatches.
+				{
+					outVariations.Add(5);
+					outVariations.Add(9);
+					outVariations.Add(10);
+					outVariations.Add(11);
+					outVariations.Add(12);
+					outVariations.Add(13);
+				}
+				else
+					outVariations.Add(baseVariation);
 			}
 		};
 
@@ -107,7 +151,7 @@ namespace b3d
 		 * Performs the actual GPU compression. Must be called on the render thread: it creates GPU resources, dispatches the
 		 * compute kernel and reads the packed blocks back to the CPU. Returns true on success.
 		 */
-		bool CompressOnRenderThread(TextureCompressMaterial* material, const TShared<PixelData>& source, GpuBufferFormat inputBufferFormat, GpuBufferFormat outputBufferFormat, PixelData& destination)
+		bool CompressOnRenderThread(const TInlineArray<TextureCompressMaterial*, 8>& materials, const TShared<PixelData>& source, GpuBufferFormat inputBufferFormat, GpuBufferFormat outputBufferFormat, PixelData& destination)
 		{
 			AssertIfNotRenderThread();
 
@@ -145,14 +189,43 @@ namespace b3d
 			if(output == nullptr)
 				return false;
 
+			// BC7 splits its modes across several dispatches (see TextureCompress.bsl). They share a per-block running-best
+			// error buffer so each group can continue the minimum started by the previous one. Single-dispatch formats skip it.
+			TShared<render::GpuBuffer> bestErr;
+			if(materials.Size() > 1)
+			{
+				bestErr = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1F, blockCount,
+					GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+
+				if(bestErr == nullptr)
+					return false;
+			}
+
 			const TShared<render::GpuCommandBufferPool> pool = gpuDevice->CreateGpuCommandBufferPool(render::GpuCommandBufferPoolCreateInformation::CreateForThisThread());
 
 			render::GpuCommandBufferCreateInformation commandBufferInfo;
 			commandBufferInfo.Name = "TextureCompress";
 			const TShared<render::GpuCommandBuffer> commandBuffer = pool->Create(commandBufferInfo);
 
-			// One thread per 4x4 block; the kernel uses [numthreads(8, 8, 1)].
-			material->Execute(*commandBuffer, input, output, metaBuffer, Vector2I((i32)blockCountX, (i32)blockCountY));
+			// One thread per 4x4 block; the kernel uses [numthreads(8, 8, 1)]. The BC7 mode groups run in sequence on one
+			// command buffer and must see each other's writes to gOutput / gBestErr. The resource tracker only auto-inserts
+			// write barriers for raw/structured UAVs, not the typed RWBuffers used here, so issue an explicit compute->compute
+			// read-after-write barrier between consecutive dispatches.
+			const Vector2I blockDims((i32)blockCountX, (i32)blockCountY);
+			for(u32 i = 0; i < materials.Size(); ++i)
+			{
+				if(i > 0)
+				{
+					const render::GpuResourceUseFlags computeAccess = render::GpuResourceUseFlag::ShaderAccess | render::GpuResourceUseFlag::StageComputeShader;
+					render::GpuBufferBarrier barriers[] = {
+						render::GpuBufferBarrier(output, computeAccess, GpuAccessFlag::Write, computeAccess, GpuAccessFlag::Read | GpuAccessFlag::Write),
+						render::GpuBufferBarrier(bestErr, computeAccess, GpuAccessFlag::Write, computeAccess, GpuAccessFlag::Read | GpuAccessFlag::Write)
+					};
+					commandBuffer->IssueBarriers(render::GpuBarriers(TArrayView<render::GpuBufferBarrier>(barriers, 2)));
+				}
+
+				materials[i]->Execute(*commandBuffer, input, output, metaBuffer, bestErr, blockDims);
+			}
 
 			gpuDevice->SubmitCommandBuffer(commandBuffer);
 
@@ -268,15 +341,25 @@ namespace b3d
 		const TShared<PixelData> convertedSource = PixelData::Create(source.GetWidth(), source.GetHeight(), 1, interimFormat);
 		PixelUtility::BulkPixelConversion(source, *convertedSource);
 
-		// Compile/fetch the shader variation (blocks until ready).
-		TextureCompressMaterial* const material = TextureCompressMaterial::GetVariation(variation);
-		if(material == nullptr || material->GetComputePipeline() == nullptr)
-			return false;
+		// Compile/fetch the shader variation(s) for this format. BC7 needs several mode-group variations dispatched in
+		// sequence; everything else is a single variation. Each Get() blocks until that variation is compiled.
+		TInlineArray<i32, 8> dispatchVariations;
+		TextureCompressMaterial::GetDispatchVariations(variation, dispatchVariations);
+
+		TInlineArray<TextureCompressMaterial*, 8> materials;
+		for(const i32 dispatchVariation : dispatchVariations)
+		{
+			TextureCompressMaterial* const material = TextureCompressMaterial::GetVariation(dispatchVariation);
+			if(material == nullptr || material->GetComputePipeline() == nullptr)
+				return false;
+
+			materials.Add(material);
+		}
 
 		// GPU resource creation and dispatch must run on the render thread. Run inline if we're already there,
 		// otherwise marshal the work across and block until it finishes.
 		bool success = false;
-		auto fnGpuWork = [&]() { success = CompressOnRenderThread(material, convertedSource, inputBufferFormat, bufferFormat, destination); };
+		auto fnGpuWork = [&]() { success = CompressOnRenderThread(materials, convertedSource, inputBufferFormat, bufferFormat, destination); };
 
 		if(B3D_CURRENT_THREAD_ID == GetRenderThread().GetThreadId())
 			fnGpuWork();
