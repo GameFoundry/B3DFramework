@@ -152,7 +152,14 @@ shader TextureCompress
 				axis = (m > 1e-7f) ? (v / m) : axis;
 			}
 
-			// Endpoints = the extreme projections onto the principal axis.
+			// --- Cluster fit (squish style) -------------------------------------------------------
+			// Range-fit (PCA extremes + Lloyd) leaves several dB on the table for smooth gradients because the index
+			// boundaries are only locally optimal. Cluster fit instead projects the texels onto the principal axis,
+			// sorts them, and enumerates every ordered split of the sorted run into the 4 palette levels {0,1/3,2/3,1};
+			// for each split it solves the least-squares-optimal endpoint pair in closed form and keeps the lowest-error
+			// one. The optimal index assignment is monotonic along the axis, so a sorted ordered partition is exhaustive.
+
+			// PCA-extreme endpoints, kept only as a fallback seed if every cluster partition turns out degenerate.
 			float minProj = 1e20f;
 			float maxProj = -1e20f;
 			[unroll]
@@ -162,34 +169,124 @@ shader TextureCompress
 				minProj = min(minProj, proj);
 				maxProj = max(maxProj, proj);
 			}
-			float3 maxColor = saturate(mean + axis * maxProj);
-			float3 minColor = saturate(mean + axis * minProj);
+			float3 bestE0 = saturate(mean + axis * maxProj);
+			float3 bestE1 = saturate(mean + axis * minProj);
+
+			// Sort the texels by their projection onto the axis (ascending). Insertion sort over a runtime loop keeps
+			// the IR small (no unrolled 16-wide sorting network); the inner shift is a runtime loop for the same reason.
+			float3 sortedPts[16];
+			float sortKey[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+			{
+				sortedPts[i] = texels[i];
+				sortKey[i] = dot(texels[i] - mean, axis);
+			}
+			for (uint a = 1; a < 16; ++a)
+			{
+				float keyP = sortKey[a];
+				float3 keyV = sortedPts[a];
+				uint b = a;
+				[loop]
+				while (b > 0 && sortKey[b - 1] > keyP)
+				{
+					sortKey[b] = sortKey[b - 1];
+					sortedPts[b] = sortedPts[b - 1];
+					--b;
+				}
+				sortKey[b] = keyP;
+				sortedPts[b] = keyV;
+			}
+
+			// Totals over all texels (constant across partitions): sum of points and sum of |point|^2.
+			float3 sumAll = float3(0, 0, 0);
+			float pSq = 0.0f;
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+			{
+				sumAll += sortedPts[i];
+				pSq += dot(sortedPts[i], sortedPts[i]);
+			}
+
+			// Enumerate ordered partitions (n0,n1,n2,n3) of the 16 sorted points across the four palette levels.
+			// acc0/acc1/acc2 carry the running point sums of groups 0/1/2 as the split points sweep; group 3 is the
+			// remainder. Each (n0,n1,n2) is one closed-form least-squares endpoint solve plus an error evaluation. The
+			// loops are runtime (not [unroll]) so the ~969-iteration search stays a small loop body on the AMD compiler.
+			float bestSSE = 1e30f;
+			float3 acc0 = float3(0, 0, 0);
+			for (uint n0 = 0; n0 <= 16; ++n0)
+			{
+				float3 acc1 = float3(0, 0, 0);
+				for (uint n1 = 0; n0 + n1 <= 16; ++n1)
+				{
+					float3 acc2 = float3(0, 0, 0);
+					for (uint n2 = 0; n0 + n1 + n2 <= 16; ++n2)
+					{
+						uint n3 = 16u - n0 - n1 - n2;
+						float3 s0 = acc0;
+						float3 s1 = acc1;
+						float3 s2 = acc2;
+						float3 s3 = sumAll - acc0 - acc1 - acc2;
+						float fn0 = (float)n0, fn1 = (float)n1, fn2 = (float)n2, fn3 = (float)n3;
+
+						// Normal-equation coefficients for the blend factors (1-w) = {1, 2/3, 1/3, 0} per level.
+						float A = fn0 + fn1 * (4.0f / 9.0f) + fn2 * (1.0f / 9.0f);
+						float Cc = fn1 * (1.0f / 9.0f) + fn2 * (4.0f / 9.0f) + fn3;
+						float Bb = (fn1 + fn2) * (2.0f / 9.0f);
+						float det = A * Cc - Bb * Bb;
+						if (det > 1e-9f)
+						{
+							float3 rhsA = s0 + s1 * (2.0f / 3.0f) + s2 * (1.0f / 3.0f);
+							float3 rhsB = s1 * (1.0f / 3.0f) + s2 * (2.0f / 3.0f) + s3;
+							float inv = 1.0f / det;
+							float3 e0 = (Cc * rhsA - Bb * rhsB) * inv;
+							float3 e1 = (A * rhsB - Bb * rhsA) * inv;
+
+							// Reconstructed palette value per group, and the resulting total squared error.
+							float3 r0 = e0;
+							float3 r1 = (2.0f / 3.0f) * e0 + (1.0f / 3.0f) * e1;
+							float3 r2 = (1.0f / 3.0f) * e0 + (2.0f / 3.0f) * e1;
+							float3 r3 = e1;
+							float sse = pSq
+								- 2.0f * (dot(r0, s0) + dot(r1, s1) + dot(r2, s2) + dot(r3, s3))
+								+ fn0 * dot(r0, r0) + fn1 * dot(r1, r1) + fn2 * dot(r2, r2) + fn3 * dot(r3, r3);
+							if (sse < bestSSE)
+							{
+								bestSSE = sse;
+								bestE0 = saturate(e0);
+								bestE1 = saturate(e1);
+							}
+						}
+
+						if (n0 + n1 + n2 < 16u)
+							acc2 += sortedPts[n0 + n1 + n2];
+					}
+					if (n0 + n1 < 16u)
+						acc1 += sortedPts[n0 + n1];
+				}
+				if (n0 < 16u)
+					acc0 += sortedPts[n0];
+			}
+
+			float3 maxColor = bestE0;
+			float3 minColor = bestE1;
 
 			// Maps each 2-bit index to its endpoint1 (minColor) blend factor.
 			float idxW[4];
 			idxW[0] = 0.0f; idxW[1] = 1.0f; idxW[2] = 1.0f / 3.0f; idxW[3] = 2.0f / 3.0f;
 
-			uint c0 = 0, c1 = 0;
+			// Quantize the cluster-fit endpoints to 5:6:5 and assign indices once, seeding the ±1 polish below.
+			uint c0 = PackColor565(maxColor);
+			uint c1 = PackColor565(minColor);
 			uint indices = 0;
-
-			// Pass 0: assign indices then least-squares-refine the endpoints.
-			// Pass 1: re-assign indices against the refined endpoints and emit.
-			// Runtime loop (not [unroll]), because we're seeing hangs when compiling this shader on AMD
-			for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
 			{
-				c0 = PackColor565(maxColor);
-				c1 = PackColor565(minColor);
 				float3 q0 = Unpack565(c0);
 				float3 q1 = Unpack565(c1);
-
 				float3 palette[4];
 				palette[0] = q0;
 				palette[1] = q1;
 				palette[2] = (2.0f * q0 + q1) / 3.0f;
 				palette[3] = (q0 + 2.0f * q1) / 3.0f;
-
-				uint idx[16];
-				indices = 0;
 				[unroll]
 				for (uint j = 0; j < 16; ++j)
 				{
@@ -200,39 +297,9 @@ shader TextureCompress
 					{
 						float3 d = texels[j] - palette[p];
 						float dist = dot(d, d);
-						if (dist < bestDist)
-						{
-							bestDist = dist;
-							best = p;
-						}
+						if (dist < bestDist) { bestDist = dist; best = p; }
 					}
-					idx[j] = best;
 					indices |= best << (j * 2);
-				}
-
-				if (refinePass + 1 < BCN_REFINE_PASSES)
-				{
-					// Solve the 2x2 normal equations for the endpoints that minimise error
-					// given the fixed indices. Same matrix for all three channels.
-					float A = 0, B = 0, C = 0;
-					float3 sumA = float3(0, 0, 0);
-					float3 sumB = float3(0, 0, 0);
-					[unroll]
-					for (uint j = 0; j < 16; ++j)
-					{
-						float w = idxW[idx[j]];
-						float a = 1.0f - w;
-						A += a * a; B += a * w; C += w * w;
-						sumA += a * texels[j];
-						sumB += w * texels[j];
-					}
-					float det = A * C - B * B;
-					if (abs(det) > 1e-7f)
-					{
-						float invDet = 1.0f / det;
-						maxColor = saturate(( C * sumA - B * sumB) * invDet);
-						minColor = saturate((-B * sumA + A * sumB) * invDet);
-					}
 				}
 			}
 
@@ -425,63 +492,43 @@ shader TextureCompress
 				}
 			}
 
-			// +/-1 endpoint polish: with indices fixed, nudge each 8-bit endpoint by -1/0/+1 and keep the lowest
-			// squared-error pair, then re-assign indices. Recovers error the float least-squares fit loses to rounding.
-			[unroll]
-			for (uint polishIter = 0; polishIter < BCN_POLISH_ITERS; ++polishIter)
+			// Joint endpoint window search (replaces the index-fixed +/-1 polish). For every (r0,r1) candidate in a
+			// window around the Lloyd-refined endpoints, do a *fresh* nearest-level assignment and evaluate the true
+			// squared error. Because each candidate re-derives its own index map, this explores different assignments
+			// globally and escapes the local minimum Lloyd converges to - which is the bulk of the quality gap to CPU
+			// encoders. For evenly-spaced levels the nearest index is closed form (project onto the ramp + round), so
+			// no inner 8-way palette match is needed. The o0/o1 loops are runtime (not [unroll]) to keep the IR small.
 			{
-				// Index assignment against the current endpoints (8-value ramp, r0 >= r1).
-				float fr0 = r0 / 255.0f;
-				float fr1 = r1 / 255.0f;
-				float pal[8];
-				pal[0] = fr0; pal[1] = fr1;
-				[unroll]
-				for (uint p = 1; p < 7; ++p)
-					pal[p + 1] = ((7 - p) * fr0 + p * fr1) / 7.0f;
-
-				uint idx[16];
-				[unroll]
-				for (uint j = 0; j < 16; ++j)
+				const int kW = 8; // +/- search radius in 8-bit endpoint codes
+				int baseR0 = (int)r0, baseR1 = (int)r1;
+				int bestR0 = baseR0, bestR1 = baseR1;
+				float bestErr = 1e30f;
+				[loop]
+				for (int o0 = -kW; o0 <= kW; ++o0)
 				{
-					uint best = 0;
-					float bestDist = 1e20f;
-					[unroll]
-					for (uint k = 0; k < 8; ++k)
-					{
-						float d = texels[j] - pal[k];
-						float dist = d * d;
-						if (dist < bestDist) { bestDist = dist; best = k; }
-					}
-					idx[j] = best;
-				}
-
-				// Optimize the two endpoints (single channel) with indices held fixed.
-				int cur0 = (int)r0, cur1 = (int)r1;
-				float polBest = 1e30f;
-				int sel0 = cur0, sel1 = cur1;
-				[unroll]
-				for (int d0 = -1; d0 <= 1; ++d0)
-				{
-					int nc0 = clamp(cur0 + d0, 0, 255);
+					int nc0 = clamp(baseR0 + o0, 0, 255);
 					float q0 = nc0 / 255.0f;
-					[unroll]
-					for (int d1 = -1; d1 <= 1; ++d1)
+					[loop]
+					for (int o1 = -kW; o1 <= kW; ++o1)
 					{
-						int nc1 = clamp(cur1 + d1, 0, 255);
+						int nc1 = clamp(baseR1 + o1, 0, 255);
 						float q1 = nc1 / 255.0f;
+						float diff = q1 - q0;
+						float invd = (abs(diff) > 1e-6f) ? (7.0f / diff) : 0.0f;
 						float se = 0;
 						[unroll]
 						for (uint t = 0; t < 16; ++t)
 						{
-							float w = idxW[idx[t]];
-							float p = (1.0f - w) * q0 + w * q1;
-							float diff = texels[t] - p;
-							se += diff * diff;
+							float v = texels[t];
+							float kf = clamp(round((v - q0) * invd), 0.0f, 7.0f);
+							float recon = q0 + kf * diff / 7.0f;
+							float e = v - recon;
+							se += e * e;
 						}
-						if (se < polBest) { polBest = se; sel0 = nc0; sel1 = nc1; }
+						if (se < bestErr) { bestErr = se; bestR0 = nc0; bestR1 = nc1; }
 					}
 				}
-				r0 = (uint)sel0; r1 = (uint)sel1;
+				r0 = (uint)bestR0; r1 = (uint)bestR1;
 			}
 
 			// 8-value mode requires r0 >= r1; the palette set is identical under a swap, so reorder and let the final

@@ -21,6 +21,7 @@ namespace b3d
 		void TestPngImport_BC3();
 		void TestGpuCompress_Psnr();
 		void TestGpuCompress_BC6H_Psnr();
+		void TestGpuCompress_Perf();
 		void TestGpuMipmaps_BoxFilter();
 
 		void TestOggImport_Default();

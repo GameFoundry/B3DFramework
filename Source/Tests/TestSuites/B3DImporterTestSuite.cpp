@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
+#include <chrono>
 
 using namespace b3d;
 
@@ -104,6 +105,149 @@ namespace
 		if(PixelUtility::SaveImage(img, outPath, ImageFormat::EXR))
 			B3D_LOG(Info, LogPixelUtility, "Wrote compression comparison image '{0}.exr'", name);
 	}
+
+	// Decodes a BCn-compressed surface back to RGBA8 and fills display-mapped [source]/[decoded]
+	// buffers (tightly packed width*height*4, top-left origin) ready for WriteSideBySidePNG. The
+	// channel mapping matches the per-format interpretation used by the PSNR test (BC4 = grey from
+	// red, BC5 = red+green, others = RGB), so source and decoded are compared like-for-like.
+	void BuildCompareSurfaces(PixelFormat format, const PixelData& source, const PixelData& compressed,
+		u32 width, u32 height, Vector<u8>& srcDisp, Vector<u8>& decDisp)
+	{
+		const u32 blocksX = width / 4;
+		const u32 blocksY = height / 4;
+		const u32 blockBytes = (format == PF_BC1 || format == PF_BC4) ? 8u : 16u;
+		const u8* const blocks = compressed.GetData();
+
+		srcDisp.assign((u64)width * height * 4, 0);
+		decDisp.assign((u64)width * height * 4, 0);
+
+		for(u32 by = 0; by < blocksY; ++by)
+		{
+			for(u32 bx = 0; bx < blocksX; ++bx)
+			{
+				const u8* const block = blocks + (by * blocksX + bx) * blockBytes;
+
+				u8 decRGBA[64];
+				u8 decR[16];
+				u8 decG[16];
+				if(format == PF_BC1)
+					TextureCompressionUtility::DecodeBC1(block, false, decRGBA);
+				else if(format == PF_BC3)
+				{
+					TextureCompressionUtility::DecodeBC4(block, decR);
+					TextureCompressionUtility::DecodeBC1(block + 8, true, decRGBA);
+				}
+				else if(format == PF_BC4)
+					TextureCompressionUtility::DecodeBC4(block, decR);
+				else if(format == PF_BC7)
+					TextureCompressionUtility::DecodeBC7(block, decRGBA);
+				else // BC5
+				{
+					TextureCompressionUtility::DecodeBC4(block, decR);
+					TextureCompressionUtility::DecodeBC4(block + 8, decG);
+				}
+
+				for(u32 i = 0; i < 16; ++i)
+				{
+					const u32 px = bx * 4 + (i % 4);
+					const u32 py = by * 4 + (i / 4);
+					const Color c = source.GetColorAt(px, py);
+					const u8 s0 = (u8)Math::Clamp((i32)std::lround(c.R * 255.0f), 0, 255);
+					const u8 s1 = (u8)Math::Clamp((i32)std::lround(c.G * 255.0f), 0, 255);
+					const u8 s2 = (u8)Math::Clamp((i32)std::lround(c.B * 255.0f), 0, 255);
+
+					u8 sr, sg, sb, dr, dg, db;
+					if(format == PF_BC4)      { sr = sg = sb = s0; dr = dg = db = decR[i]; }
+					else if(format == PF_BC5) { sr = s0; sg = s1; sb = 0; dr = decR[i]; dg = decG[i]; db = 0; }
+					else                      { sr = s0; sg = s1; sb = s2; dr = decRGBA[i * 4 + 0]; dg = decRGBA[i * 4 + 1]; db = decRGBA[i * 4 + 2]; }
+
+					u8* const sp = &srcDisp[((u64)py * width + px) * 4]; sp[0] = sr; sp[1] = sg; sp[2] = sb; sp[3] = 255;
+					u8* const dp = &decDisp[((u64)py * width + px) * 4]; dp[0] = dr; dp[1] = dg; dp[2] = db; dp[3] = 255;
+				}
+			}
+		}
+	}
+
+	// Decodes a BCn-compressed surface and returns PSNR (dB) vs the source over the channels the
+	// format actually carries (BC1 = RGB, BC3 = RGBA, BC4 = R, BC5 = RG, BC7 = RGBA). Matches the
+	// channel accounting used by both the small-image PSNR test and the CMP_Core harness, so the
+	// numbers are directly comparable.
+	double ComputeCompressedPsnr(PixelFormat format, const PixelData& source, const PixelData& compressed, u32 width, u32 height)
+	{
+		const u32 blocksX = width / 4;
+		const u32 blocksY = height / 4;
+		const u32 blockBytes = (format == PF_BC1 || format == PF_BC4) ? 8u : 16u;
+		const u8* const blocks = compressed.GetData();
+
+		double error = 0.0;
+		u64 samples = 0;
+
+		for(u32 by = 0; by < blocksY; ++by)
+		{
+			for(u32 bx = 0; bx < blocksX; ++bx)
+			{
+				const u8* const block = blocks + (by * blocksX + bx) * blockBytes;
+
+				u8 decRGBA[64];
+				u8 decR[16];
+				u8 decG[16];
+				if(format == PF_BC1)
+					TextureCompressionUtility::DecodeBC1(block, false, decRGBA);
+				else if(format == PF_BC3)
+				{
+					TextureCompressionUtility::DecodeBC4(block, decR);
+					TextureCompressionUtility::DecodeBC1(block + 8, true, decRGBA);
+				}
+				else if(format == PF_BC4)
+					TextureCompressionUtility::DecodeBC4(block, decR);
+				else if(format == PF_BC7)
+					TextureCompressionUtility::DecodeBC7(block, decRGBA);
+				else // BC5
+				{
+					TextureCompressionUtility::DecodeBC4(block, decR);
+					TextureCompressionUtility::DecodeBC4(block + 8, decG);
+				}
+
+				for(u32 i = 0; i < 16; ++i)
+				{
+					const u32 px = bx * 4 + (i % 4);
+					const u32 py = by * 4 + (i / 4);
+					const Color c = source.GetColorAt(px, py);
+					const double s0 = (double)Math::Clamp((i32)std::lround(c.R * 255.0f), 0, 255);
+					const double s1 = (double)Math::Clamp((i32)std::lround(c.G * 255.0f), 0, 255);
+					const double s2 = (double)Math::Clamp((i32)std::lround(c.B * 255.0f), 0, 255);
+					const double s3 = (double)Math::Clamp((i32)std::lround(c.A * 255.0f), 0, 255);
+
+					if(format == PF_BC1)
+					{
+						const double dr = s0 - decRGBA[i * 4 + 0], dg = s1 - decRGBA[i * 4 + 1], db = s2 - decRGBA[i * 4 + 2];
+						error += dr * dr + dg * dg + db * db; samples += 3;
+					}
+					else if(format == PF_BC3)
+					{
+						const double dr = s0 - decRGBA[i * 4 + 0], dg = s1 - decRGBA[i * 4 + 1], db = s2 - decRGBA[i * 4 + 2], da = s3 - decR[i];
+						error += dr * dr + dg * dg + db * db + da * da; samples += 4;
+					}
+					else if(format == PF_BC4)
+					{
+						const double d = s0 - decR[i]; error += d * d; samples += 1;
+					}
+					else if(format == PF_BC7)
+					{
+						const double dr = s0 - decRGBA[i * 4 + 0], dg = s1 - decRGBA[i * 4 + 1], db = s2 - decRGBA[i * 4 + 2], da = s3 - decRGBA[i * 4 + 3];
+						error += dr * dr + dg * dg + db * db + da * da; samples += 4;
+					}
+					else // BC5
+					{
+						const double dr = s0 - decR[i], dg = s1 - decG[i];
+						error += dr * dr + dg * dg; samples += 2;
+					}
+				}
+			}
+		}
+
+		return PsnrFromError(error, samples);
+	}
 } // anonymous namespace
 
 ImporterTestSuite::ImporterTestSuite()
@@ -114,6 +258,7 @@ ImporterTestSuite::ImporterTestSuite()
 	B3D_ADD_TEST(ImporterTestSuite::TestPngImport_BC3)
 	B3D_ADD_TEST(ImporterTestSuite::TestGpuCompress_Psnr)
 	B3D_ADD_TEST(ImporterTestSuite::TestGpuCompress_BC6H_Psnr)
+	B3D_ADD_TEST(ImporterTestSuite::TestGpuCompress_Perf)
 	B3D_ADD_TEST(ImporterTestSuite::TestGpuMipmaps_BoxFilter)
 	B3D_ADD_TEST(ImporterTestSuite::TestOggImport_Default)
 	B3D_ADD_TEST(ImporterTestSuite::TestOggImport_KeepCompressed)
@@ -402,6 +547,89 @@ void ImporterTestSuite::TestGpuCompress_BC6H_Psnr()
 
 	// A working one-region BC6H encoder on a smooth gradient is far above this floor.
 	B3D_TEST_ASSERT(psnr > 30.0)
+}
+
+void ImporterTestSuite::TestGpuCompress_Perf()
+{
+	// Large-texture throughput / memory check. Gated behind the B3D_PERF_IMAGE env var so the
+	// suite stays green on machines without the (large) source asset; set it to an image path
+	// (e.g. the 4096x4096 Cerberus_A.tga) to exercise it. Measures the full import-style round
+	// trip (CPU->GPU upload + compute dispatch(es) + GPU->CPU readback) on a warm pipeline.
+	const char* perfImage = std::getenv("B3D_PERF_IMAGE");
+	if(perfImage == nullptr || perfImage[0] == '\0')
+		return;
+
+	const TShared<GpuDevice> device = GetApplication().GetPrimaryGpuDevice();
+	if(device == nullptr || device->GetCapabilities().BackendName == "Null")
+		return;
+
+	TShared<TextureImportOptions> options = TextureImportOptions::Create();
+	HTexture texture = GetImporter().Import<Texture>(Path(perfImage), options);
+	B3D_TEST_ASSERT(texture != nullptr)
+	B3D_TEST_ASSERT(texture.IsLoaded())
+
+	TAsyncOp<TShared<PixelData>> readOp = texture->ReadData(0, 0);
+	readOp.BlockUntilComplete();
+	TShared<PixelData> source = readOp.GetReturnValue();
+	B3D_TEST_ASSERT(source != nullptr)
+
+	const u32 width = source->GetWidth();
+	const u32 height = source->GetHeight();
+	const double mpix = (double)width * (double)height / 1.0e6;
+	B3D_LOG(Info, LogPixelUtility, "GPU compress perf: source {0}x{1} ({2} Mpix) from '{3}'", width, height, mpix, perfImage);
+
+	struct Case { PixelFormat Format; const char* Name; };
+	const Case cases[] = {
+		{ PF_BC1, "BC1" },
+		{ PF_BC3, "BC3" },
+		{ PF_BC4, "BC4" },
+		{ PF_BC5, "BC5" },
+		{ PF_BC7, "BC7" },
+	};
+
+	using Clock = std::chrono::high_resolution_clock;
+	const u32 kIters = 3;
+
+	for(const Case& test : cases)
+	{
+		TShared<PixelData> compressed = PixelData::Create(width, height, 1, test.Format);
+		CompressionOptions co;
+		co.Format = test.Format;
+
+		// Warm-up: the first call pays the one-time pipeline compile per FORMAT variation; excluded from timing.
+		const bool warmOk = GpuTextureCompressor::Compress(*source, *compressed, co);
+		B3D_TEST_ASSERT(warmOk)
+
+		double bestMs = 1.0e30;
+		double sumMs = 0.0;
+		for(u32 it = 0; it < kIters; ++it)
+		{
+			const Clock::time_point t0 = Clock::now();
+			const bool ok = GpuTextureCompressor::Compress(*source, *compressed, co);
+			const double ms = std::chrono::duration<double, std::milli>(Clock::now() - t0).count();
+			B3D_TEST_ASSERT(ok)
+			if(ms < bestMs) bestMs = ms;
+			sumMs += ms;
+		}
+
+		const double meanMs = sumMs / (double)kIters;
+		const double thru = bestMs > 0.0 ? mpix / (bestMs / 1000.0) : 0.0;
+		B3D_LOG(Info, LogPixelUtility, "GPU compress perf {0}: best {1} ms, mean {2} ms, {3} Mpix/s (warm, full round-trip)",
+			test.Name, bestMs, meanMs, thru);
+
+		// Quality of our encoder on this image, comparable to the CMP_Core harness's per-format PSNR.
+		const double psnr = ComputeCompressedPsnr(test.Format, *source, *compressed, width, height);
+		B3D_LOG(Info, LogPixelUtility, "GPU compress perf {0}: PSNR = {1} dB", test.Name, psnr);
+
+		// Optional visual check: decode the compressed surface and write a [source | decoded] PNG to the
+		// working directory (set B3D_DUMP_COMPRESS_IMAGES=1). Skipped by default - it is heavy at 4K.
+		if(DumpCompressImagesEnabled())
+		{
+			Vector<u8> srcDisp, decDisp;
+			BuildCompareSurfaces(test.Format, *source, *compressed, width, height, srcDisp, decDisp);
+			WriteSideBySidePNG(test.Name, width, height, srcDisp, decDisp);
+		}
+	}
 }
 
 void ImporterTestSuite::TestGpuMipmaps_BoxFilter()

@@ -113,6 +113,9 @@ namespace b3d
 		/**	Type of GPU program (for example fragment, vertex). */
 		GpuProgramType GetType() const { return mType; }
 
+		/** Returns the debug name of this program (for example "MyShader (Vertex Program)"). May be empty. */
+		const String& GetName() const { return mName; }
+
 		/** Returns description of all parameters in this GPU program. */
 		TShared<GpuProgramParameterDescription> GetParameterDescription() const { return mParametersDescription; }
 
