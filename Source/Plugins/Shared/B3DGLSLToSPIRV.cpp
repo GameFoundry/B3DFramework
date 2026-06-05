@@ -978,7 +978,7 @@ TShared<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformati
 
 	glslang::SpvOptions spvOptions;
 	spvOptions.disableOptimizer = false;
-	spvOptions.optimizeSize = true;
+	spvOptions.optimizeSize = false;
 
 	GlslangToSpv(*program.getIntermediate(glslType), spirv, &logger, &spvOptions);
 
