@@ -29,7 +29,7 @@ B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(LogRendererMaterial, Log)
 public:                                                                          \
 	static void InitMetaDataInternal()                                           \
 	{                                                                            \
-		b3d::RendererMaterialManager::RegisterMaterial(&mMetaData, path);		 \
+		b3d::RendererMaterialManager::RegisterMaterial(&GetMetaData(), path);	 \
 	};
 
 /**
@@ -41,8 +41,8 @@ public:                                                                         
 public:                                                                          \
 	static void InitMetaDataInternal()                                           \
 	{                                                                            \
-		InitDefinesInternal(mMetaData.Defines);                                  \
-		b3d::RendererMaterialManager::RegisterMaterial(&mMetaData, path);		 \
+		InitDefinesInternal(GetMetaData().Defines);                              \
+		b3d::RendererMaterialManager::RegisterMaterial(&GetMetaData(), path);	 \
 	};                                                                           \
 	static void InitDefinesInternal(ShaderDefines& defines);
 
@@ -113,7 +113,7 @@ namespace b3d
 			{}
 		};
 
-#define B3D_PROFILE_RENDERER_MATERIAL RendererMaterialProfileBlock __sampleBlock(commandBuffer, mMetaData);
+#define B3D_PROFILE_RENDERER_MATERIAL RendererMaterialProfileBlock __sampleBlock(commandBuffer, GetMetaData());
 
 		/**	Base class for all RendererMaterial instances, containing common data and methods. */
 		class B3D_EXPORT RendererMaterialBase
@@ -199,10 +199,10 @@ namespace b3d
 			static T* Get(const ShaderVariationParameters& variationParameters);
 
 			/** Returns the path to the built-in (non-overriden) shader used by this material. */
-			static Path GetShaderPath() { return mMetaData.ShaderPath; }
+			static Path GetShaderPath() { return GetMetaData().ShaderPath; }
 
 			/** Returns a set of dynamically defined defines used when compiling this shader. */
-			static ShaderDefines GetShaderDefines() { return mMetaData.Defines; }
+			static ShaderDefines GetShaderDefines() { return GetMetaData().Defines; }
 
 			/** Creates a new instance of GPU parameters for this material. */
 			TShared<GpuParameterSet> CreateGpuParameterSet(u32 set = 0) const override;
@@ -233,7 +233,13 @@ namespace b3d
 
 			friend class b3d::RendererMaterialManager;
 
-			static RendererMaterialMetaData mMetaData;
+			/** Returns the metadata shared by all instances of this renderer material. */
+			static RendererMaterialMetaData& GetMetaData()
+			{
+				static RendererMaterialMetaData metaData;
+				return metaData;
+			}
+
 			static InitRendererMaterialStart<T> mInitOnStart;
 		};
 
@@ -252,7 +258,7 @@ namespace b3d
 				operation.BlockUntilComplete();
 			}
 
-			return (T*)mMetaData.VariationInformation[0].RendererMaterialInstance;
+			return (T*)GetMetaData().VariationInformation[0].RendererMaterialInstance;
 		}
 
 		template <class T>
@@ -266,7 +272,7 @@ namespace b3d
 
 			if(variationParameters.GetIndex() == ~0u)
 			{
-				variationParameters.SetIndex(mMetaData.VariationParameterSet.Find(variationParameters));
+				variationParameters.SetIndex(GetMetaData().VariationParameterSet.Find(variationParameters));
 			}
 
 			const u32 variationIndex = variationParameters.GetIndex();
@@ -277,7 +283,7 @@ namespace b3d
 				operation.BlockUntilComplete();
 			}
 
-			return (T*)mMetaData.VariationInformation[variationIndex].RendererMaterialInstance;
+			return (T*)GetMetaData().VariationInformation[variationIndex].RendererMaterialInstance;
 		}
 
 		template <class T>
@@ -285,21 +291,21 @@ namespace b3d
 		{
 			B3D_ASSERT(!IsShaderInitialized());
 
-			if(mMetaData.ShaderState == RendererMaterialShaderState::InitializeInProgressOnWorkerThread)
-				return mMetaData.ShaderInitializeOperation;
+			if(GetMetaData().ShaderState == RendererMaterialShaderState::InitializeInProgressOnWorkerThread)
+				return GetMetaData().ShaderInitializeOperation;
 
-			mMetaData.ShaderState = RendererMaterialShaderState::InitializeInProgressOnWorkerThread;
+			GetMetaData().ShaderState = RendererMaterialShaderState::InitializeInProgressOnWorkerThread;
 
 			// Finishes shader initialization on render thread (i.e. this thread).
 			auto fnFinishInitializeShader = []()
 			{
-				if (!B3D_ENSURE(mMetaData.Shader))
+				if (!B3D_ENSURE(GetMetaData().Shader))
 				{
-					B3D_LOG(Error, LogRendererMaterial, "Cannot initialize renderer material. Failed to compile shader {0}.", mMetaData.ShaderPath);
+					B3D_LOG(Error, LogRendererMaterial, "Cannot initialize renderer material. Failed to compile shader {0}.", GetMetaData().ShaderPath);
 					return;
 				}
 
-				const Vector<TShared<Variation>> variations = mMetaData.Shader->GetCompatibleVariations();
+				const Vector<TShared<Variation>> variations = GetMetaData().Shader->GetCompatibleVariations();
 
 				static TInlineArray<RendererMaterialVariationInformation, 4> newVariationInformation;
 				static ShaderVariations newVariationParameterSet;
@@ -314,10 +320,10 @@ namespace b3d
 				{
 					const TShared<Variation>& shaderVariation = variations[variationIndex];
 
-					for(u32 preliminaryVariationIndex = 0; preliminaryVariationIndex < mMetaData.VariationInformation.size(); ++preliminaryVariationIndex)
+					for(u32 preliminaryVariationIndex = 0; preliminaryVariationIndex < GetMetaData().VariationInformation.size(); ++preliminaryVariationIndex)
 					{
-						const ShaderVariationParameters& preliminaryVariationParameters = mMetaData.VariationParameterSet.Get(preliminaryVariationIndex);
-						RendererMaterialVariationInformation& preliminaryVariationInformation = mMetaData.VariationInformation[preliminaryVariationIndex];
+						const ShaderVariationParameters& preliminaryVariationParameters = GetMetaData().VariationParameterSet.Get(preliminaryVariationIndex);
+						RendererMaterialVariationInformation& preliminaryVariationInformation = GetMetaData().VariationInformation[preliminaryVariationIndex];
 
 						B3D_ASSERT(preliminaryVariationInformation.State == RendererMaterialVariationState::CompilationWaitingOnShader);
 
@@ -333,18 +339,18 @@ namespace b3d
 					newVariationParameterSet.Add(shaderVariation->GetVariationParameters());
 				}
 
-				std::swap(newVariationInformation, mMetaData.VariationInformation);
-				std::swap(newVariationParameterSet, mMetaData.VariationParameterSet);
+				std::swap(newVariationInformation, GetMetaData().VariationInformation);
+				std::swap(newVariationParameterSet, GetMetaData().VariationParameterSet);
 
 				newVariationInformation.Clear();
 				newVariationParameterSet.Clear();
 
-				mMetaData.ShaderState = RendererMaterialShaderState::Initialized;
-				mMetaData.ShaderInitializeOperation.CompleteOperation(mMetaData.Shader);
-				mMetaData.ShaderInitializeOperation = TAsyncOp<TShared<Shader>>(AsyncOpEmpty());
+				GetMetaData().ShaderState = RendererMaterialShaderState::Initialized;
+				GetMetaData().ShaderInitializeOperation.CompleteOperation(GetMetaData().Shader);
+				GetMetaData().ShaderInitializeOperation = TAsyncOp<TShared<Shader>>(AsyncOpEmpty());
 
 				u32 variationIndex = 0;
-				for(const auto& entry : mMetaData.VariationInformation)
+				for(const auto& entry : GetMetaData().VariationInformation)
 				{
 					if(entry.State == RendererMaterialVariationState::CompilationWaitingOnShader)
 						CompileShaderVariation(variationIndex);
@@ -361,14 +367,14 @@ namespace b3d
 			{
 				static const String kRendererMaterialShaderCachePrefix = "RendererMaterialShaders/";
 
-				mMetaData.Shader = ShaderCompilers::Instance().GetOrCompileShader<true>(mMetaData.ShaderPath, kRendererMaterialShaderCachePrefix, mMetaData.Defines);
+				GetMetaData().Shader = ShaderCompilers::Instance().GetOrCompileShader<true>(GetMetaData().ShaderPath, kRendererMaterialShaderCachePrefix, GetMetaData().Defines);
 				initializeAsyncOp.CompleteOperation();
 			};
 
-			mMetaData.ShaderInitializeOperation = TAsyncOp<TShared<Shader>>();
+			GetMetaData().ShaderInitializeOperation = TAsyncOp<TShared<Shader>>();
 			GetApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnInitializeShader), "Compile shader meta-data"));
 
-			return mMetaData.ShaderInitializeOperation;
+			return GetMetaData().ShaderInitializeOperation;
 		}
 
 		template <class T>
@@ -376,37 +382,37 @@ namespace b3d
 		{
 			if(!IsShaderInitialized())
 			{
-				B3D_ASSERT(mMetaData.ShaderState == RendererMaterialShaderState::InitializeInProgressOnWorkerThread);
+				B3D_ASSERT(GetMetaData().ShaderState == RendererMaterialShaderState::InitializeInProgressOnWorkerThread);
 
 				// Until the shader is ready we use the parameter set only for variations that are queued for compilation
-				const u32 foundVariationIndex = mMetaData.VariationParameterSet.Find(variationParameters);
+				const u32 foundVariationIndex = GetMetaData().VariationParameterSet.Find(variationParameters);
 				if(foundVariationIndex == ~0u)
 				{
 					RendererMaterialVariationInformation variationInformation;
 					variationInformation.State = RendererMaterialVariationState::CompilationWaitingOnShader;
 					variationInformation.VariationCompileOperation = TAsyncOp<RendererMaterialBase*>();
 
-					mMetaData.VariationInformation.Add(variationInformation);
-					mMetaData.VariationParameterSet.Add(variationParameters);
+					GetMetaData().VariationInformation.Add(variationInformation);
+					GetMetaData().VariationParameterSet.Add(variationParameters);
 
 					return variationInformation.VariationCompileOperation;
 				}
 				else
 				{
-					B3D_ASSERT(foundVariationIndex >= mMetaData.VariationInformation.Size());
-					B3D_ASSERT(mMetaData.VariationInformation[foundVariationIndex].State == RendererMaterialVariationState::CompilationWaitingOnShader);
+					B3D_ASSERT(foundVariationIndex >= GetMetaData().VariationInformation.Size());
+					B3D_ASSERT(GetMetaData().VariationInformation[foundVariationIndex].State == RendererMaterialVariationState::CompilationWaitingOnShader);
 
-					return mMetaData.VariationInformation[foundVariationIndex].VariationCompileOperation;
+					return GetMetaData().VariationInformation[foundVariationIndex].VariationCompileOperation;
 				}
 			}
 
 			if(variationParameters.GetIndex() == ~0u)
-				variationParameters.SetIndex(mMetaData.VariationParameterSet.Find(variationParameters));
+				variationParameters.SetIndex(GetMetaData().VariationParameterSet.Find(variationParameters));
 
 			const u32 variationIndex = variationParameters.GetIndex();
 			if(!B3D_ENSURE(variationIndex != ~0u))
 			{
-				B3D_LOG(Error, LogRendererMaterial, "Cannot compile renderer material variation for {0}. Variation parameters cannot be found.", mMetaData.ShaderPath);
+				B3D_LOG(Error, LogRendererMaterial, "Cannot compile renderer material variation for {0}. Variation parameters cannot be found.", GetMetaData().ShaderPath);
 			}
 
 			return CompileRendererMaterialVariation(variationIndex);
@@ -419,7 +425,7 @@ namespace b3d
 			B3D_ASSERT(variationIndex != ~0u);
 			B3D_ASSERT(!IsRendereMaterialVariationCompiled(variationIndex));
 
-			RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
+			RendererMaterialVariationInformation& variationInformation = GetMetaData().VariationInformation[variationIndex];
 			if(variationInformation.State == RendererMaterialVariationState::CompilationInProgressOnWorkerThread || variationInformation.State == RendererMaterialVariationState::CompilationWaitingOnShader)
 				return variationInformation.VariationCompileOperation;
 
@@ -432,18 +438,18 @@ namespace b3d
 		template<class T>
 		void RendererMaterial<T>::CompileShaderVariation(u32 variationIndex)
 		{
-			B3D_ASSERT(mMetaData.ShaderState == RendererMaterialShaderState::Initialized && mMetaData.Shader != nullptr);
+			B3D_ASSERT(GetMetaData().ShaderState == RendererMaterialShaderState::Initialized && GetMetaData().Shader != nullptr);
 
-			RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
+			RendererMaterialVariationInformation& variationInformation = GetMetaData().VariationInformation[variationIndex];
 			B3D_ASSERT(variationInformation.State == RendererMaterialVariationState::NotCompiled || variationInformation.State == RendererMaterialVariationState::CompilationWaitingOnShader);
 
 			variationInformation.State = RendererMaterialVariationState::CompilationInProgressOnWorkerThread;
 			variationInformation.BackendCompileOperation = variationInformation.ShaderVariation->Compile();
 			variationInformation.BackendCompileOperation.DoWhenComplete([variationIndex]
 			{
-				B3D_ASSERT(mMetaData.VariationInformation[variationIndex].State == RendererMaterialVariationState::CompilationInProgressOnWorkerThread);
+				B3D_ASSERT(GetMetaData().VariationInformation[variationIndex].State == RendererMaterialVariationState::CompilationInProgressOnWorkerThread);
 
-				RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
+				RendererMaterialVariationInformation& variationInformation = GetMetaData().VariationInformation[variationIndex];
 				B3D_ASSERT(variationInformation.State == RendererMaterialVariationState::CompilationInProgressOnWorkerThread);
 				B3D_ASSERT(variationInformation.RendererMaterialInstance == nullptr);
 
@@ -462,7 +468,7 @@ namespace b3d
 		template <class T>
 		bool RendererMaterial<T>::IsShaderInitialized()
 		{
-			return mMetaData.ShaderState == RendererMaterialShaderState::Initialized;
+			return GetMetaData().ShaderState == RendererMaterialShaderState::Initialized;
 		}
 
 		template <class T>
@@ -471,10 +477,10 @@ namespace b3d
 			if(variationIndex == ~0u)
 				return false;
 
-			if(mMetaData.VariationInformation.size() <= variationIndex)
+			if(GetMetaData().VariationInformation.size() <= variationIndex)
 				return false;
 
-			return mMetaData.VariationInformation[variationIndex].State == RendererMaterialVariationState::Compiled && mMetaData.VariationInformation[variationIndex].RendererMaterialInstance != nullptr;
+			return GetMetaData().VariationInformation[variationIndex].State == RendererMaterialVariationState::Compiled && GetMetaData().VariationInformation[variationIndex].RendererMaterialInstance != nullptr;
 		}
 
 		template<class T>
@@ -487,10 +493,10 @@ namespace b3d
 		void RendererMaterial<T>::InitializeInternal(u32 variationIndex)
 		{
 			mGpuDevice = GetApplication().GetPrimaryGpuDevice();
-			mShader = mMetaData.Shader;
-			mVariationParameters = mMetaData.VariationParameterSet.Get(variationIndex);
+			mShader = GetMetaData().Shader;
+			mVariationParameters = GetMetaData().VariationParameterSet.Get(variationIndex);
 
-			const TShared<Variation>& shaderVariation = mMetaData.VariationInformation[variationIndex].ShaderVariation;
+			const TShared<Variation>& shaderVariation = GetMetaData().VariationInformation[variationIndex].ShaderVariation;
 			B3D_ASSERT(shaderVariation->IsSupported());
 			B3D_ASSERT(shaderVariation->GetVariationParameters() == mVariationParameters);
 
@@ -542,9 +548,6 @@ namespace b3d
 
 			Initialize();
 		}
-
-		template <class T>
-		RendererMaterialMetaData RendererMaterial<T>::mMetaData;
 
 		template <class T>
 		InitRendererMaterialStart<T> RendererMaterial<T>::mInitOnStart;
