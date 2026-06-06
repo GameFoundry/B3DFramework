@@ -8,12 +8,9 @@
 #include "Math/B3DMath.h"
 #include "Debug/B3DLog.h"
 
-#define AMD_EXTENSIONS
-#define NV_EXTENSIONS
 #include "glslang/Public/ShaderLang.h"
-#include "glslang/Include/Types.h"
+#include "glslang/Public/ResourceLimits.h"
 #include "glslang/SPIRV/GlslangToSpv.h"
-#include "glslang/Include/revision.h"
 #include "spirv_cross/spirv_cross.hpp"
 
 using namespace b3d;
@@ -21,172 +18,52 @@ using namespace b3d::render;
 
 namespace
 {
-	const TBuiltInResource DefaultTBuiltInResource = {
-		/* .MaxLights = */ 32,
-		/* .MaxClipPlanes = */ 6,
-		/* .MaxTextureUnits = */ 32,
-		/* .MaxTextureCoords = */ 32,
-		/* .MaxVertexAttribs = */ 64,
-		/* .MaxVertexUniformComponents = */ 4096,
-		/* .MaxVaryingFloats = */ 64,
-		/* .MaxVertexTextureImageUnits = */ 32,
-		/* .MaxCombinedTextureImageUnits = */ 80,
-		/* .MaxTextureImageUnits = */ 32,
-		/* .MaxFragmentUniformComponents = */ 4096,
-		/* .MaxDrawBuffers = */ 32,
-		/* .MaxVertexUniformVectors = */ 128,
-		/* .MaxVaryingVectors = */ 8,
-		/* .MaxFragmentUniformVectors = */ 16,
-		/* .MaxVertexOutputVectors = */ 16,
-		/* .MaxFragmentInputVectors = */ 15,
-		/* .MinProgramTexelOffset = */ -8,
-		/* .MaxProgramTexelOffset = */ 7,
-		/* .MaxClipDistances = */ 8,
-		/* .MaxComputeWorkGroupCountX = */ 65535,
-		/* .MaxComputeWorkGroupCountY = */ 65535,
-		/* .MaxComputeWorkGroupCountZ = */ 65535,
-		/* .MaxComputeWorkGroupSizeX = */ 1024,
-		/* .MaxComputeWorkGroupSizeY = */ 1024,
-		/* .MaxComputeWorkGroupSizeZ = */ 64,
-		/* .MaxComputeUniformComponents = */ 1024,
-		/* .MaxComputeTextureImageUnits = */ 16,
-		/* .MaxComputeImageUniforms = */ 8,
-		/* .MaxComputeAtomicCounters = */ 8,
-		/* .MaxComputeAtomicCounterBuffers = */ 1,
-		/* .MaxVaryingComponents = */ 60,
-		/* .MaxVertexOutputComponents = */ 64,
-		/* .MaxGeometryInputComponents = */ 64,
-		/* .MaxGeometryOutputComponents = */ 128,
-		/* .MaxFragmentInputComponents = */ 128,
-		/* .MaxImageUnits = */ 8,
-		/* .MaxCombinedImageUnitsAndFragmentOutputs = */ 8,
-		/* .MaxCombinedShaderOutputResources = */ 8,
-		/* .MaxImageSamples = */ 0,
-		/* .MaxVertexImageUniforms = */ 0,
-		/* .MaxTessControlImageUniforms = */ 0,
-		/* .MaxTessEvaluationImageUniforms = */ 0,
-		/* .MaxGeometryImageUniforms = */ 0,
-		/* .MaxFragmentImageUniforms = */ 8,
-		/* .MaxCombinedImageUniforms = */ 8,
-		/* .MaxGeometryTextureImageUnits = */ 16,
-		/* .MaxGeometryOutputVertices = */ 256,
-		/* .MaxGeometryTotalOutputComponents = */ 1024,
-		/* .MaxGeometryUniformComponents = */ 1024,
-		/* .MaxGeometryVaryingComponents = */ 64,
-		/* .MaxTessControlInputComponents = */ 128,
-		/* .MaxTessControlOutputComponents = */ 128,
-		/* .MaxTessControlTextureImageUnits = */ 16,
-		/* .MaxTessControlUniformComponents = */ 1024,
-		/* .MaxTessControlTotalOutputComponents = */ 4096,
-		/* .MaxTessEvaluationInputComponents = */ 128,
-		/* .MaxTessEvaluationOutputComponents = */ 128,
-		/* .MaxTessEvaluationTextureImageUnits = */ 16,
-		/* .MaxTessEvaluationUniformComponents = */ 1024,
-		/* .MaxTessPatchComponents = */ 120,
-		/* .MaxPatchVertices = */ 32,
-		/* .MaxTessGenLevel = */ 64,
-		/* .MaxViewports = */ 16,
-		/* .MaxVertexAtomicCounters = */ 0,
-		/* .MaxTessControlAtomicCounters = */ 0,
-		/* .MaxTessEvaluationAtomicCounters = */ 0,
-		/* .MaxGeometryAtomicCounters = */ 0,
-		/* .MaxFragmentAtomicCounters = */ 8,
-		/* .MaxCombinedAtomicCounters = */ 8,
-		/* .MaxAtomicCounterBindings = */ 1,
-		/* .MaxVertexAtomicCounterBuffers = */ 0,
-		/* .MaxTessControlAtomicCounterBuffers = */ 0,
-		/* .MaxTessEvaluationAtomicCounterBuffers = */ 0,
-		/* .MaxGeometryAtomicCounterBuffers = */ 0,
-		/* .MaxFragmentAtomicCounterBuffers = */ 1,
-		/* .MaxCombinedAtomicCounterBuffers = */ 1,
-		/* .MaxAtomicCounterBufferSize = */ 16384,
-		/* .MaxTransformFeedbackBuffers = */ 4,
-		/* .MaxTransformFeedbackInterleavedComponents = */ 64,
-		/* .MaxCullDistances = */ 8,
-		/* .MaxCombinedClipAndCullDistances = */ 8,
-		/* .MaxSamples = */ 4,
-#if GLSLANG_PATCH_LEVEL >= 2892
-		/* .maxMeshOutputVerticesNV = */ 256,
-		/* .maxMeshOutputPrimitivesNV = */ 512,
-		/* .maxMeshWorkGroupSizeX_NV = */ 32,
-		/* .maxMeshWorkGroupSizeY_NV = */ 1,
-		/* .maxMeshWorkGroupSizeZ_NV = */ 1,
-		/* .maxTaskWorkGroupSizeX_NV = */ 32,
-		/* .maxTaskWorkGroupSizeY_NV = */ 1,
-		/* .maxTaskWorkGroupSizeZ_NV = */ 1,
-		/* .maxMeshViewCountNV = */ 4,
-#endif
-		/* .limits = */ {
-			/* .nonInductiveForLoops = */ 1,
-			/* .whileLoops = */ 1,
-			/* .doWhileLoops = */ 1,
-			/* .generalUniformIndexing = */ 1,
-			/* .generalAttributeMatrixVectorIndexing = */ 1,
-			/* .generalVaryingIndexing = */ 1,
-			/* .generalSamplerIndexing = */ 1,
-			/* .generalVariableIndexing = */ 1,
-			/* .generalConstantMatrixVectorIndexing = */ 1,
-		}
-	};
-
-	VertexElementType MapGLSLangToVertexElementType(const glslang::TType& type)
+	/** Converts a SPIRV-Cross vertex stage-input type into a B3D vertex element type. */
+	VertexElementType MapSPIRVCrossToVertexElementType(const spirv_cross::SPIRType& type)
 	{
-		if (type.isVector())
-		{
-			u32 vectorSize = type.getVectorSize();
+		const u32 vectorSize = type.vecsize;
 
-			switch (type.getBasicType())
-			{
-			case glslang::EbtFloat:
-				switch (vectorSize)
-				{
-				case 2: return VET_FLOAT2;
-				case 3: return VET_FLOAT3;
-				case 4: return VET_FLOAT4;
-				default: return VET_UNKNOWN;
-				}
-			case glslang::EbtFloat16:
-				switch (vectorSize)
-				{
-				case 2: return VET_HALF2;
-				case 3: return VET_HALF3;
-				case 4: return VET_HALF4;
-				default: return VET_UNKNOWN;
-				}
-			case glslang::EbtInt:
-				switch (vectorSize)
-				{
-				case 2: return VET_INT2;
-				case 3: return VET_INT3;
-				case 4: return VET_INT4;
-				default: return VET_UNKNOWN;
-				}
-			case glslang::EbtUint:
-				switch (vectorSize)
-				{
-				case 2: return VET_UINT2;
-				case 3: return VET_UINT3;
-				case 4: return VET_UINT4;
-				default: return VET_UNKNOWN;
-				}
-			default:
-				return VET_UNKNOWN;
-			}
-		}
-
-		if (type.getVectorSize() == 1)
+		switch (type.basetype)
 		{
-			switch (type.getBasicType())
+		case spirv_cross::SPIRType::Float:
+			switch (vectorSize)
 			{
-			case glslang::EbtFloat: return VET_FLOAT1;
-			case glslang::EbtFloat16: return VET_HALF1;
-			case glslang::EbtInt: return VET_INT1;
-			case glslang::EbtUint: return VET_UINT1;
+			case 1: return VET_FLOAT1;
+			case 2: return VET_FLOAT2;
+			case 3: return VET_FLOAT3;
+			case 4: return VET_FLOAT4;
 			default: return VET_UNKNOWN;
 			}
+		case spirv_cross::SPIRType::Half:
+			switch (vectorSize)
+			{
+			case 1: return VET_HALF1;
+			case 2: return VET_HALF2;
+			case 3: return VET_HALF3;
+			case 4: return VET_HALF4;
+			default: return VET_UNKNOWN;
+			}
+		case spirv_cross::SPIRType::Int:
+			switch (vectorSize)
+			{
+			case 1: return VET_INT1;
+			case 2: return VET_INT2;
+			case 3: return VET_INT3;
+			case 4: return VET_INT4;
+			default: return VET_UNKNOWN;
+			}
+		case spirv_cross::SPIRType::UInt:
+			switch (vectorSize)
+			{
+			case 1: return VET_UINT1;
+			case 2: return VET_UINT2;
+			case 3: return VET_UINT3;
+			case 4: return VET_UINT4;
+			default: return VET_UNKNOWN;
+			}
+		default:
+			return VET_UNKNOWN;
 		}
-
-		return VET_UNKNOWN;
 	}
 
 	/** Converts a SPIRVCross type into a B3D GPU data parameter type. */
@@ -877,15 +754,19 @@ namespace
 		return false;
 	}
 
-	bool ParseVertexAttributes(const glslang::TProgram* program, Vector<VertexElement>& elementList, String& log)
+	bool ParseVertexAttributes(spirv_cross::Compiler& compiler, Vector<VertexElement>& elementList, String& log)
 	{
-		int attributeCount = program->getNumLiveAttributes();
-		for (int i = 0; i < attributeCount; i++)
+		const spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+		for (const spirv_cross::Resource& input : resources.stage_inputs)
 		{
-			const glslang::TType* ttype = program->getAttributeTType(i);
-			u32 location = ttype->getQualifier().layoutLocation;
+			const std::string& attribName = input.name;
 
-			if (location == (u32)-1)
+			// Built-in inputs (gl_VertexIndex etc.) carry no user semantic and are typically reflected
+			// separately, but guard against them just in case.
+			if (attribName.compare(0, 3, "gl_") == 0)
+				continue;
+
+			if (!compiler.has_decoration(input.id, spv::DecorationLocation))
 			{
 				log = "Vertex attribute parsing error: Found a vertex attribute without a location "
 					  "qualifier. Each attribute must have an explicitly defined location number.";
@@ -893,22 +774,22 @@ namespace
 				return false;
 			}
 
-			const char* attribName = program->getAttributeName(i);
+			const u32 location = compiler.get_decoration(input.id, spv::DecorationLocation);
 
 			VertexElementSemantic semantic = VES_POSITION;
 			u16 index = 0;
-			if (AttributeNameToElementSemantic(attribName, semantic, index))
+			if (AttributeNameToElementSemantic(attribName.c_str(), semantic, index))
 			{
-				VertexElementType type = MapGLSLangToVertexElementType(*ttype);
-				if (type == VET_UNKNOWN)
-					B3D_LOG(Error, LogRenderBackend, "Cannot determine vertex input attribute type for attribute: {0}", attribName);
+				const spirv_cross::SPIRType& type = compiler.get_type(input.base_type_id);
+				const VertexElementType elementType = MapSPIRVCrossToVertexElementType(type);
+				if (elementType == VET_UNKNOWN)
+					B3D_LOG(Error, LogRenderBackend, "Cannot determine vertex input attribute type for attribute: {0}", attribName.c_str());
 
-				elementList.push_back(VertexElement(type, semantic, index, 0, 0, location));
+				elementList.push_back(VertexElement(elementType, semantic, index, 0, 0, location));
 			}
 			else
 			{
-				if (memcmp(attribName, "gl_", 3) != 0)
-					B3D_LOG(Error, LogRenderBackend, "Cannot determine vertex input attribute semantic for attribute: {0}", attribName);
+				B3D_LOG(Error, LogRenderBackend, "Cannot determine vertex input attribute semantic for attribute: {0}", attribName.c_str());
 			}
 		}
 
@@ -928,7 +809,7 @@ GLSLToSPIRV::~GLSLToSPIRV()
 
 TShared<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformation& desc, const char* compilerId, u32 compilerVersion)
 {
-	TBuiltInResource resources = DefaultTBuiltInResource;
+	const TBuiltInResource& resources = *GetDefaultResources();
 	glslang::TProgram program;
 
 	EShLanguage glslType = EShLangVertex;
@@ -950,6 +831,8 @@ TShared<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformati
 	const char* sourceBytes = source.c_str();
 
 	glslang::TShader shader(glslType);
+	shader.setEnvInput(glslang::EShSourceGlsl, glslType, glslang::EShClientVulkan, 100);
+	shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_1);
 	shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_3);
 	shader.setStrings(&sourceBytes, 1);
 	shader.setEntryPoint("main");
@@ -974,7 +857,6 @@ TShared<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformati
 	}
 
 	program.mapIO();
-	program.buildReflection();
 
 	glslang::SpvOptions spvOptions;
 	spvOptions.disableOptimizer = false;
@@ -997,7 +879,7 @@ TShared<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformati
 	// Populate vertex input attributes from the glslang reflection.
 	if (desc.Type == GPT_VERTEX_PROGRAM)
 	{
-		if (!ParseVertexAttributes(&program, bytecode->VertexInput, bytecode->Messages))
+		if (!ParseVertexAttributes(spirvCompiler, bytecode->VertexInput, bytecode->Messages))
 			return bytecode;
 	}
 

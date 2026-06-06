@@ -140,7 +140,8 @@ B3D_CMAKE_GENERATOR="Ninja" ./B3DBuildSnappy.sh
 - Build script: `B3DBuildFLAC.sh`
 
 **glslang**
-- glslang commit: 377bccb143941ec4931e6aed9ac07752ccefb979
+- glslang version: 15.4.0 (matches Vulkan SDK 1.4.321)
+- SPIRV-Tools / SPIRV-Headers: pinned transitively via glslang's `known_good.json` (fetched by `update_glslang_sources.py`)
 - https://github.com/KhronosGroup/glslang
 - Required by bsfVulkanGpuBackend
 - Compile as a static library

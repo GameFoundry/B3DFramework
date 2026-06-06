@@ -59,7 +59,7 @@ namespace b3d
 		 * Version of the compiler used for compiling Vulkan GPU programs. Tick this whenever the compiler updates in order
 		 * to force bytecode to rebuild.
 		 */
-		static constexpr u32 kVulkanCompilerVersion = 2;
+		static constexpr u32 kVulkanCompilerVersion = 3;
 
 		/** Identifier of the compiler used for compiling MoltenVK GPU programs. */
 		static constexpr const char* kMoltenVkCompilerId = "MoltenVK";
