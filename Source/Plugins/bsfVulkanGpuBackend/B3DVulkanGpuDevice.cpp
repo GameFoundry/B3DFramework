@@ -64,12 +64,14 @@ namespace
 		const VkDeviceSize alignedOffset = atom > 1 ? (absOffset & ~atomMask) : absOffset;
 		VkDeviceSize alignedEnd = atom > 1 ? ((absEnd + atomMask) & ~atomMask) : absEnd;
 
+		const VulkanGpuHeap& heap = ToVulkanGpuHeap(allocation.Location.Heap);
+
 		// Clamp the end against the underlying device memory in case the upward round overruns its tail.
-		alignedEnd = std::min(alignedEnd, allocation.Location.Heap.Size);
+		alignedEnd = std::min(alignedEnd, heap.Size);
 
 		VkMappedMemoryRange range = {};
 		range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-		range.memory = allocation.Location.Heap.Memory;
+		range.memory = heap.Memory;
 		range.offset = alignedOffset;
 		range.size = alignedEnd - alignedOffset;
 
@@ -951,7 +953,7 @@ VulkanBuffer* VulkanGpuDevice::BindBufferToAllocation(const VulkanBufferCreateIn
 	B3D_ASSERT(buffer != VK_NULL_HANDLE);
 	B3D_ASSERT(allocation.IsValid());
 
-	const VkResult bindResult = vkBindBufferMemory(mLogicalDevice, buffer, allocation.Location.Heap.Memory, allocation.Location.Offset);
+	const VkResult bindResult = vkBindBufferMemory(mLogicalDevice, buffer, ToVulkanGpuHeap(allocation.Location.Heap).Memory, allocation.Location.Offset);
 	B3D_ASSERT(bindResult == VK_SUCCESS);
 	(void)bindResult;
 
@@ -992,7 +994,7 @@ VulkanImage* VulkanGpuDevice::BindBufferToAllocation(const VulkanImageCreateInfo
 	B3D_ASSERT(image != VK_NULL_HANDLE);
 	B3D_ASSERT(allocation.IsValid());
 
-	const VkResult bindResult = vkBindImageMemory(mLogicalDevice, image, allocation.Location.Heap.Memory, allocation.Location.Offset);
+	const VkResult bindResult = vkBindImageMemory(mLogicalDevice, image, ToVulkanGpuHeap(allocation.Location.Heap).Memory, allocation.Location.Offset);
 	B3D_ASSERT(bindResult == VK_SUCCESS);
 	(void)bindResult;
 
@@ -1028,8 +1030,9 @@ VulkanAllocationResult VulkanGpuDevice::AllocateMemory(VkImage image, VkMemoryPr
 	B3D_ASSERT(ok && "TLSF allocator failed to satisfy image allocation request.");
 	(void)ok;
 
-	if (output.Location.Heap.Mapped != nullptr)
-		output.MappedMemory = static_cast<u8*>(output.Location.Heap.Mapped) + output.Location.Offset;
+	const VulkanGpuHeap& heap = ToVulkanGpuHeap(output.Location.Heap);
+	if (heap.Mapped != nullptr)
+		output.MappedMemory = static_cast<u8*>(heap.Mapped) + output.Location.Offset;
 
 	return output;
 }
@@ -1060,8 +1063,9 @@ VulkanAllocationResult VulkanGpuDevice::AllocateMemory(VkBuffer buffer, VkMemory
 		(void)ok;
 	}
 
-	if (output.Location.Heap.Mapped != nullptr)
-		output.MappedMemory = static_cast<u8*>(output.Location.Heap.Mapped) + output.Location.Offset;
+	const VulkanGpuHeap& heap = ToVulkanGpuHeap(output.Location.Heap);
+	if (heap.Mapped != nullptr)
+		output.MappedMemory = static_cast<u8*>(heap.Mapped) + output.Location.Offset;
 
 	return output;
 }
@@ -1071,7 +1075,7 @@ void VulkanGpuDevice::FreeMemory(VulkanAllocationResult& allocation)
 	if (!allocation.IsValid())
 		return;
 
-	const u32 memoryTypeIndex = allocation.Location.Heap.MemoryTypeIndex;
+	const u32 memoryTypeIndex = ToVulkanGpuHeap(allocation.Location.Heap).MemoryTypeIndex;
 
 	if (allocation.IsTransient)
 	{

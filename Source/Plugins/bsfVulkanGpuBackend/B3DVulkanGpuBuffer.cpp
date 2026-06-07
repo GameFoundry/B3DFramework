@@ -32,16 +32,16 @@ VulkanBuffer::~VulkanBuffer()
 		device.FreeMemory(mAllocation);
 }
 
-IGpuResource* VulkanBuffer::MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuResourceLocation& newLocationBase)
+IGpuResource* VulkanBuffer::MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuResourceLocation& newLocation)
 {
 	B3D_ASSERT(mParent != nullptr && "VulkanBuffer::MoveAllocation invoked on an untracked wrapper (no parent VulkanGpuBuffer).");
 	B3D_ASSERT(mParent->GetVulkanResource() == this && "Parent's mBuffer no longer points at this wrapper — proxy invariant broken.");
 
-	const auto& newLocation = static_cast<const TGpuResourceLocation<VulkanHeapBackend>&>(newLocationBase);
+	const VulkanGpuHeap& heap = ToVulkanGpuHeap(newLocation.Heap);
 
 	VulkanAllocationResult preReserved;
 	preReserved.Location = newLocation;
-	preReserved.MappedMemory = newLocation.Heap.Mapped != nullptr ? static_cast<u8*>(newLocation.Heap.Mapped) + newLocation.Offset : nullptr;
+	preReserved.MappedMemory = heap.Mapped != nullptr ? static_cast<u8*>(heap.Mapped) + newLocation.Offset : nullptr;
 
 	VulkanBuffer* newBuffer = mParent->RelocateInternalBuffer(preReserved, commandBuffer);
 

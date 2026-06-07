@@ -23,7 +23,7 @@ namespace b3d
 	private:
 		/**
 		 * Compile-time + runtime contract surface of TGpuAllocator: trait static asserts, layout
-		 * guarantees on TGpuResourceLocation, retire/drain ordering and IGpuResource callback dispatch.
+		 * guarantees on GpuResourceLocation, retire/drain ordering and IGpuResource callback dispatch.
 		 */
 		void TestGpuAllocatorContract();
 

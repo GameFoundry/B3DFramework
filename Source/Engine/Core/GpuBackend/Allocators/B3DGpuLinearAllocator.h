@@ -192,7 +192,6 @@ namespace b3d
 	{
 	public:
 		using Base = TGpuAllocator<TGpuLinearAllocator<HeapBackend>, HeapBackend, ThreadUnsafe>;
-		using Location = typename Base::Location;
 		using HeapHandle = typename HeapBackend::HeapHandle;
 		using PagePool = TGpuLinearPagePool<HeapBackend>;
 
@@ -240,13 +239,13 @@ namespace b3d
 		 * requests. @p kind must be GpuResourceKind::Linear and @p owner must be null — linear
 		 * allocations don't participate in defragmentation.
 		 */
-		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out);
+		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuResourceLocation& out);
 
 		/**
 		 * No-op apart from the base-driven Location::Reset. Linear allocations don't track
 		 * per-allocation lifetime; the page is the unit of recycling.
 		 */
-		void FreeImpl(Location& allocation);
+		void FreeImpl(GpuResourceLocation& allocation);
 
 		/**
 		 * Reached from two different paths, distinguished by @p reclaimKind:
@@ -368,7 +367,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend>
-	bool TGpuLinearAllocator<HeapBackend>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out)
+	bool TGpuLinearAllocator<HeapBackend>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuResourceLocation& out)
 	{
 		B3D_ASSERT(out.Allocator == nullptr);
 		B3D_ASSERT(alignment > 0);
@@ -430,7 +429,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend>
-	void TGpuLinearAllocator<HeapBackend>::FreeImpl(Location& allocation)
+	void TGpuLinearAllocator<HeapBackend>::FreeImpl(GpuResourceLocation& allocation)
 	{
 		// Per-allocation Free is a no-op for the linear allocator. Pages recycle as a whole when they
 		// fill up or when Reset is called; individual allocations never reclaim space. The base wraps
@@ -575,7 +574,7 @@ namespace b3d
 		B3D_ASSERT(pageIndex < (u32)mPages.size());
 		B3D_ASSERT(mPages[pageIndex] != nullptr);
 
-		Location snapshot;
+		GpuResourceLocation snapshot;
 		snapshot.Allocator = this;
 		snapshot.AllocatorData0 = pageIndex;
 		snapshot.AllocatorData1 = kReclaimPage;

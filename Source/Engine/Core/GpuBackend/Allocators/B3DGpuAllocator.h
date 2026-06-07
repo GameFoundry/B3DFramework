@@ -20,7 +20,7 @@ namespace b3d
 	 * contract and allocator templates validate it with B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID.
 	 *
 	 * Required typedefs
-	 * - HeapHandle: Backend heap handle type.
+	 * - HeapHandle: Backend heap handle type. Must be IGpuHeap*.
 	 * - HeapCreateInformation: Backend-specific create-info struct passed to CreateHeap.
 	 *
 	 * Required methods
@@ -140,10 +140,8 @@ namespace b3d
 	public:
 		B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID(HeapBackend);
 
-		using Location = TGpuResourceLocation<HeapBackend>;
-
 		/** Attempts to allocate @p size bytes with @p alignment. Resource kind defaults to Linear. The allocation is untracked (won't participate in defragmentation). */
-		bool TryAllocate(u64 size, u32 alignment, Location& out)
+		bool TryAllocate(u64 size, u32 alignment, GpuResourceLocation& out)
 		{
 			return TryAllocate(size, alignment, GpuResourceKind::Linear, nullptr, out);
 		}
@@ -152,7 +150,7 @@ namespace b3d
 		 * Attempts to allocate @p size bytes with @p alignment, tagged with @p kind so the strategy
 		 * can honor buffer-image granularity (if needed by the backend). The allocation is untracked (won't participate in defragmentation).
 		 */
-		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, Location& out)
+		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, GpuResourceLocation& out)
 		{
 			return TryAllocate(size, alignment, kind, nullptr, out);
 		}
@@ -162,7 +160,7 @@ namespace b3d
 		 * @p owner as the resource the allocator will call back during defragmentation. Pass
 		 * nullptr if the allocation is untracked (won't participate in defragmentation).
 		 */
-		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out)
+		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuResourceLocation& out)
 		{
 			ScopedLock lock(mMutex);
 			return static_cast<Derived*>(this)->TryAllocateImpl(size, alignment, kind, owner, out);
@@ -172,7 +170,7 @@ namespace b3d
 		 * Retires a previously allocated location and resets it to the empty state. Frees are
 		 * deferred until the associated resource is no longer used on the GPU.
 		 */
-		void Free(Location& allocation)
+		void Free(GpuResourceLocation& allocation)
 		{
 			ScopedLock lock(mMutex);
 			static_cast<Derived*>(this)->FreeImpl(allocation);
@@ -187,7 +185,7 @@ namespace b3d
 		 * example, when the caller already gates resource destruction on a separate use-count or
 		 * frame fence. Use Free when no such guarantee exists.
 		 */
-		void FreeImmediate(Location& allocation)
+		void FreeImmediate(GpuResourceLocation& allocation)
 		{
 			ScopedLock lock(mMutex);
 			static_cast<Derived*>(this)->FreeImmediateImpl(allocation.AllocatorData0, allocation.AllocatorData1);
@@ -244,7 +242,7 @@ namespace b3d
 		 * Schedule deferred-free of @p allocation against the allocator's current completion marker.
 		 * Caller must hold the allocator mutex when @p ThreadPolicy is ThreadSafe.
 		 */
-		void RetireAllocation(const Location& allocation)
+		void RetireAllocation(const GpuResourceLocation& allocation)
 		{
 			B3D_ASSERT(mCompletionTracker != nullptr);
 

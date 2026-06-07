@@ -26,10 +26,18 @@ namespace b3d
 	};
 
 	/**
-	 * Empty marker base for TGpuResourceLocation. Lets non-templated interfaces (e.g. IGpuResource::MoveAllocation) accept any backend's
-	 * typed location through a common reference; the consumer downcasts to its concrete TGpuResourceLocation<HeapBackend>.
+	 * Opaque, backend-owned GPU memory heap.
+	 *
+	 * The destructor is protected and non-virtual: heaps are never deleted through an @c IGpuHeap* (the
+	 * backend always destroys the concrete type), so no vtable is introduced and the struct stays a
+	 * trivial tag.
 	 */
-	struct GpuResourceLocation {};
+	struct IGpuHeap
+	{
+	protected:
+		IGpuHeap() = default;
+		~IGpuHeap() = default;
+	};
 
 	/**
 	 * GPU memory allocation as returned by a GPU memory allocator. Used for freeing the allocation, as well
@@ -38,17 +46,11 @@ namespace b3d
 	 * supplies a fresh replacement location to IGpuResource::MoveAllocation when defragmentation
 	 * moves the allocation.
 	 *
-	 * Inherits from GpuResourceLocation so any backend-specialised location can be passed through
-	 * the non-templated IGpuResource::MoveAllocation hook and downcast back to its concrete type.
-	 *
-	 * @tparam HeapBackend	Backend trait satisfying the GpuHeapBackend contract.
+	 * Must stay standard-layout and trivially-copyable.
 	 */
-	template <typename HeapBackend>
-	struct TGpuResourceLocation : GpuResourceLocation
+	struct GpuResourceLocation
 	{
-		using HeapHandle = typename HeapBackend::HeapHandle;
-
-		HeapHandle Heap{};
+		IGpuHeap* Heap = nullptr;
 		u64 Offset = 0;
 		u64 Size = 0;
 
@@ -68,7 +70,7 @@ namespace b3d
 		/** Resets the location to the empty state. */
 		void Reset()
 		{
-			Heap = HeapHandle{};
+			Heap = nullptr;
 			Offset = 0;
 			Size = 0;
 			Allocator = nullptr;
@@ -228,11 +230,11 @@ namespace b3d
 
 		/**
 		 * Called after the owning allocator has reserved a new home for this resource during defragmentation.
-		 * Inside this call, the consumer's old TGpuResourceLocation is still intact — the implementation can
+		 * Inside this call, the consumer's old GpuResourceLocation is still intact — the implementation can
 		 * read its source heap / offset / size off it. The implementation must:
 		 *   1. Record a copy from the source range to the destination range using @p commandBuffer.
 		 *   2. Recreate any placed backend object (VkBuffer / VkImage / ...) bound to the new memory range.
-		 *   3. Replace the IGpuResource's TGpuResourceLocation with @p newLocation, so the location identifies
+		 *   3. Replace the IGpuResource's GpuResourceLocation with @p newLocation, so the location identifies
 		 *      the destination slot from now on. The IGpuResource holding the new location must be returned
 		 *      from MoveAllocation; how this is done depends on the allocator's @c FreeDeferralMode:
 		 *
@@ -244,8 +246,8 @@ namespace b3d
 		 *        in place to the new memory location and return 'this'. The allocator will interally free old memory 
 		 *		  after the IFrameTracker reports it is no longer being used.
 		 *
-		 * @p newLocation is a GpuResourceLocation reference; the consumer downcasts to its concrete
-		 * TGpuResourceLocation<HeapBackend> to access the typed heap handle and slot identity.
+		 * @p newLocation is a backend-agnostic GpuResourceLocation; the consumer downcasts its opaque
+		 * IGpuHeap* to the concrete backend heap to access native fields and slot identity.
 		 *
 		 * Must succeed; backends should not pick candidates whose recreation can fail.
 		 */

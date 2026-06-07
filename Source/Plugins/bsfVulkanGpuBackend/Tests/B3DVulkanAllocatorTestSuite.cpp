@@ -90,7 +90,8 @@ void VulkanAllocatorTestSuite::TestHostVisibleHeapCreateAndDestroy()
 	createInformation.PropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	createInformation.MapPersistently = true;
 
-	VulkanHeapHandle heap = backend.CreateHeap(kHeapSize, createInformation);
+	IGpuHeap* heapHandle = backend.CreateHeap(kHeapSize, createInformation);
+	const VulkanGpuHeap& heap = ToVulkanGpuHeap(heapHandle);
 	B3D_TEST_ASSERT(heap.Memory != VK_NULL_HANDLE)
 	B3D_TEST_ASSERT(heap.Size == kHeapSize)
 	B3D_TEST_ASSERT(heap.Mapped != nullptr)
@@ -105,7 +106,7 @@ void VulkanAllocatorTestSuite::TestHostVisibleHeapCreateAndDestroy()
 		B3D_TEST_ASSERT(mapped[kHeapSize - 1] == 0x5A)
 	}
 
-	backend.DestroyHeap(heap);
+	backend.DestroyHeap(heapHandle);
 }
 
 void VulkanAllocatorTestSuite::TestDeviceLocalHeapCreateAndDestroy()
@@ -125,12 +126,13 @@ void VulkanAllocatorTestSuite::TestDeviceLocalHeapCreateAndDestroy()
 	// DEVICE_LOCAL memory is generally not host-visible — this case complements the host-visible
 	// test by walking the non-mapping CreateHeap branch on a memory type that real GPU-resident
 	// allocators (textures, vertex/index buffers) actually use.
-	VulkanHeapHandle heap = backend.CreateHeap(kHeapSize, createInformation);
+	IGpuHeap* heapHandle = backend.CreateHeap(kHeapSize, createInformation);
+	const VulkanGpuHeap& heap = ToVulkanGpuHeap(heapHandle);
 	B3D_TEST_ASSERT(heap.Memory != VK_NULL_HANDLE)
 	B3D_TEST_ASSERT(heap.Size == kHeapSize)
 	B3D_TEST_ASSERT(heap.Mapped == nullptr)
 
-	backend.DestroyHeap(heap);
+	backend.DestroyHeap(heapHandle);
 }
 
 void VulkanAllocatorTestSuite::TestAllocateAndFreeHostVisibleBuffer()
@@ -162,15 +164,15 @@ void VulkanAllocatorTestSuite::TestAllocateAndFreeHostVisibleBuffer()
 	auto config = BuildAllocatorConfig(memProps, device->GetDeviceProperties().limits, memoryTypeIndex);
 	TGpuTlsfAllocator<VulkanHeapBackend> allocator(&device->GetHeapBackend(), &device->GetFrameCompletionTracker(), config);
 
-	TGpuResourceLocation<VulkanHeapBackend> location;
+	GpuResourceLocation location;
 	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::Linear, location);
 	B3D_TEST_ASSERT(ok)
 	B3D_TEST_ASSERT(location.IsValid())
-	B3D_TEST_ASSERT(location.Heap.Mapped != nullptr)
+	B3D_TEST_ASSERT(ToVulkanGpuHeap(location.Heap).Mapped != nullptr)
 
 	// Sentinel write to confirm the persistent map is actually writable for this allocation's slice.
 	{
-		u8* mapped = static_cast<u8*>(location.Heap.Mapped) + location.Offset;
+		u8* mapped = static_cast<u8*>(ToVulkanGpuHeap(location.Heap).Mapped) + location.Offset;
 		mapped[0] = 0xA5;
 		mapped[kSize - 1] = 0x5A;
 		B3D_TEST_ASSERT(mapped[0] == 0xA5)
@@ -217,12 +219,12 @@ void VulkanAllocatorTestSuite::TestAllocateAndFreeDeviceLocalImage()
 	auto config = BuildAllocatorConfig(memProps, device->GetDeviceProperties().limits, memoryTypeIndex);
 	TGpuTlsfAllocator<VulkanHeapBackend> allocator(&device->GetHeapBackend(), &device->GetFrameCompletionTracker(), config);
 
-	TGpuResourceLocation<VulkanHeapBackend> location;
+	GpuResourceLocation location;
 	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::NonLinear, location);
 	B3D_TEST_ASSERT(ok)
 	B3D_TEST_ASSERT(location.IsValid())
 
-	const VkMemoryPropertyFlags flags = memProps.memoryTypes[location.Heap.MemoryTypeIndex].propertyFlags;
+	const VkMemoryPropertyFlags flags = memProps.memoryTypes[ToVulkanGpuHeap(location.Heap).MemoryTypeIndex].propertyFlags;
 	B3D_TEST_ASSERT((flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0)
 
 	vkDestroyImage(device->GetLogical(), image, nullptr);
@@ -267,7 +269,7 @@ void VulkanAllocatorTestSuite::TestBufferHeapGrowth()
 
 	// Allocate enough 1 MiB chunks to exceed the 4 MiB initial heap and force a second heap.
 	constexpr u32 kAllocCount = 6;
-	TGpuResourceLocation<VulkanHeapBackend> locations[kAllocCount];
+	GpuResourceLocation locations[kAllocCount];
 	for (u32 entryIndex = 0; entryIndex < kAllocCount; entryIndex++)
 	{
 		const bool ok = allocator.TryAllocate(probeReq.size, (u32)probeReq.alignment, GpuResourceKind::Linear, locations[entryIndex]);

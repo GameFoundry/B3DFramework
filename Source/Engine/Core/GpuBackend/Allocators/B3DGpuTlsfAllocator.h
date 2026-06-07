@@ -184,7 +184,7 @@ namespace b3d
 
 		/**
 		 * Pool node describing a contiguous range within one heap. Indexed by u32 so node
-		 * identity fits in TGpuResourceLocation::AllocatorData1.
+		 * identity fits in GpuResourceLocation::AllocatorData1.
 		 */
 		struct Node
 		{
@@ -883,7 +883,7 @@ namespace b3d
 	/**
 	 * Two-Level Segregated Fit GPU memory allocator. O(1) bitmap-driven bucket lookup, leading-padding
 	 * split for alignment, full coalescing on free, multi-heap growable. One allocator instance manages
-	 * a list of backend heaps; allocations report back to the consumer via TGpuResourceLocation, with
+	 * a list of backend heaps; allocations report back to the consumer via GpuResourceLocation, with
 	 * the heap index and pool node index stored in the location's two strategy-private slots.
 	 *
 	 * **Threading.** When ThreadPolicy is ThreadSafe (the default), every public entry point — including
@@ -908,7 +908,6 @@ namespace b3d
 	{
 	public:
 		using Base = TGpuAllocator<TGpuTlsfAllocator<HeapBackend, ThreadPolicy>, HeapBackend, ThreadPolicy>;
-		using Location = typename Base::Location;
 		using HeapHandle = typename HeapBackend::HeapHandle;
 
 		/** Runtime configuration for the allocator. */
@@ -969,8 +968,8 @@ namespace b3d
 		 *  @{
 		 */
 
-		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out);
-		void FreeImpl(Location& allocation);
+		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuResourceLocation& out);
+		void FreeImpl(GpuResourceLocation& allocation);
 		void FreeImmediateImpl(u32 heapIndex, u32 nodeIndex);
 
 		/**
@@ -979,7 +978,7 @@ namespace b3d
 		 * the IGpuResource wrapper exists, then the wrapper registers itself post-construction).
 		 * Pass nullptr to clear the owner — the slot remains live but becomes ineligible for defrag.
 		 */
-		void SetAllocationOwner(const Location& allocation, IGpuResource* owner);
+		void SetAllocationOwner(const GpuResourceLocation& allocation, IGpuResource* owner);
 
 		/** @} */
 
@@ -1124,7 +1123,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, Location& out)
+	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuResourceLocation& out)
 	{
 		B3D_ASSERT(out.Allocator == nullptr);
 		B3D_ASSERT(alignment > 0);
@@ -1186,7 +1185,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::FreeImpl(Location& allocation)
+	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::FreeImpl(GpuResourceLocation& allocation)
 	{
 		B3D_ASSERT(allocation.Allocator == this);
 		B3D_ASSERT(allocation.AllocatorData0 < (u32)mHeaps.size());
@@ -1222,7 +1221,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::SetAllocationOwner(const Location& allocation, IGpuResource* owner)
+	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::SetAllocationOwner(const GpuResourceLocation& allocation, IGpuResource* owner)
 	{
 		typename Base::ScopedLock lock(this->GetMutex());
 		B3D_ASSERT(allocation.Allocator == this);
@@ -1382,7 +1381,7 @@ namespace b3d
 		Heap* destHeap = mHeaps[destination.HeapIndex];
 
 		// 3. Build the destination Location
-		Location newLocation;
+		GpuResourceLocation newLocation;
 		newLocation.Heap = destHeap->Handle();
 		newLocation.Offset = destination.Offset;
 		newLocation.Size = sourceSize;
@@ -1412,7 +1411,7 @@ namespace b3d
 				"FreeDeferralMode::FrameTracker requires MoveAllocation to return the same IGpuResource it was called on. "
 				"Wrapper-swap patterns require FreeDeferralMode::ResourceLifecycle.");
 
-			Location sourceSnapshot;
+			GpuResourceLocation sourceSnapshot;
 			sourceSnapshot.Allocator = this;
 			sourceSnapshot.AllocatorData0 = sourceHeapIndex;
 			sourceSnapshot.AllocatorData1 = sourceNodeIndex;

@@ -4,6 +4,8 @@
 
 #include "B3DVulkanPrerequisites.h"
 #include "GpuBackend/Allocators/B3DGpuAllocator.h"
+#include "Utility/B3DPool.h"
+#include "Threading/B3DThreading.h"
 
 namespace b3d
 {
@@ -17,13 +19,20 @@ namespace b3d
 	 */
 
 	/** References a Vulkan memory heap, as returned by VulkanHeapBackend. */
-	struct VulkanHeapHandle
+	struct VulkanGpuHeap : IGpuHeap
 	{
 		VkDeviceMemory Memory = VK_NULL_HANDLE; /**< Backing device memory. Resources are bound at allocator-supplied offsets. */
 		VkDeviceSize Size = 0; /**< Total heap size in bytes. */
 		void* Mapped = nullptr; /**< Persistent CPU map; nullptr unless @c VulkanHeapCreateInformation::MapPersistently was set. */
 		u32 MemoryTypeIndex = 0; /**< Index into VkPhysicalDeviceMemoryProperties::memoryTypes; recorded for introspection. */
 	};
+
+	/** Downcasts an opaque engine heap handle to the concrete Vulkan heap it must refer to. */
+	inline VulkanGpuHeap& ToVulkanGpuHeap(IGpuHeap* heap)
+	{
+		B3D_ASSERT(heap != nullptr);
+		return *static_cast<VulkanGpuHeap*>(heap);
+	}
 
 	/** Initializer struct for VulkanHeapBackend::CreateHeap. */
 	struct VulkanHeapCreateInformation
@@ -37,7 +46,7 @@ namespace b3d
 	class B3D_EXPORT VulkanHeapBackend
 	{
 	public:
-		using HeapHandle = VulkanHeapHandle;
+		using HeapHandle = IGpuHeap*;
 		using HeapCreateInformation = VulkanHeapCreateInformation;
 
 		explicit VulkanHeapBackend(render::VulkanGpuDevice& device);
@@ -50,10 +59,13 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Allocates a backing heap of @p sizeInBytes bytes according to @p createInformation. */
+		/**
+		 * Allocates a backing heap of @p sizeInBytes bytes according to @p createInformation. Returns a
+		 * stable VulkanGpuHeap pointer (as IGpuHeap*) minted from the backend's pool.
+		 */
 		HeapHandle CreateHeap(u64 sizeInBytes, const HeapCreateInformation& createInformation);
 
-		/** Releases the backing heap. */
+		/** Frees the device memory and returns the heap object to the pool. */
 		void DestroyHeap(HeapHandle handle);
 
 		/** @} */
@@ -61,6 +73,10 @@ namespace b3d
 	private:
 		render::VulkanGpuDevice* mDevice = nullptr;
 		VkDevice mLogicalDevice = VK_NULL_HANDLE;
+
+		/** Pool of heap objects with stable addresses. Guarded by mHeapPoolMutex — CreateHeap/DestroyHeap are called concurrently from per-memory-type allocators. */
+		TPool<VulkanGpuHeap> mHeapPool;
+		Mutex mHeapPoolMutex;
 	};
 
 	/** @} */

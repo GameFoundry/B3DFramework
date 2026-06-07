@@ -99,6 +99,13 @@ namespace
 		return device.GetCapabilities().BackendName != "Null";
 	}
 
+	/** Backend-owned mock heap with a stable address. Carries the index used to find its host storage. */
+	struct MockGpuHeap : IGpuHeap
+	{
+		u32 Id = 0;
+		u64 Size = 0;
+	};
+
 	/**
 	 * In-process implementation of the GpuHeapBackend trait used by the allocator unit tests.
 	 * Backs each "heap" with a host-side Vector<u8> so that allocator-driven offsets can be
@@ -107,11 +114,7 @@ namespace
 	class MockHeapBackend
 	{
 	public:
-		struct HeapHandle
-		{
-			u32 Id = 0;
-			u64 Size = 0;
-		};
+		using HeapHandle = IGpuHeap*;
 
 		struct HeapCreateInformation
 		{
@@ -121,11 +124,20 @@ namespace
 
 		MockHeapBackend() = default;
 
-		HeapHandle CreateHeap(u64 sizeInBytes, const HeapCreateInformation&)
+		~MockHeapBackend()
 		{
-			HeapHandle handle;
-			handle.Id = (u32)mHeaps.size();
-			handle.Size = sizeInBytes;
+			// Heap objects have stable addresses for the backend's lifetime (DestroyHeap only frees the
+			// host storage, never the object) so location identity-by-pointer stays valid across the test.
+			for (MockGpuHeap* heap : mHeapObjects)
+				B3DDelete(heap);
+		}
+
+		IGpuHeap* CreateHeap(u64 sizeInBytes, const HeapCreateInformation&)
+		{
+			MockGpuHeap* heap = B3DNew<MockGpuHeap>();
+			heap->Id = (u32)mHeaps.size();
+			heap->Size = sizeInBytes;
+			mHeapObjects.push_back(heap);
 
 			Storage storage;
 			storage.Live = true;
@@ -133,14 +145,18 @@ namespace
 			mHeaps.push_back(std::move(storage));
 			mLiveCount++;
 
-			return handle;
+			return heap;
 		}
 
-		void DestroyHeap(HeapHandle handle)
+		void DestroyHeap(IGpuHeap* handle)
 		{
-			B3D_ASSERT(handle.Id < mHeaps.size());
+			if (handle == nullptr)
+				return;
 
-			Storage& storage = mHeaps[handle.Id];
+			MockGpuHeap* heap = static_cast<MockGpuHeap*>(handle);
+			B3D_ASSERT(heap->Id < mHeaps.size());
+
+			Storage& storage = mHeaps[heap->Id];
 			if (!storage.Live)
 				return;
 
@@ -163,6 +179,7 @@ namespace
 		};
 
 		Vector<Storage> mHeaps;
+		Vector<MockGpuHeap*> mHeapObjects;
 		u32 mLiveCount = 0;
 		u32 mDestroyCount = 0;
 	};
@@ -214,7 +231,7 @@ namespace
 		bool mAnyComplete = false;
 	};
 
-	using MockLocation = TGpuResourceLocation<MockHeapBackend>;
+	using MockLocation = GpuResourceLocation;
 	using TlsfAllocator = TGpuTlsfAllocator<MockHeapBackend>;
 
 	/**
@@ -383,8 +400,8 @@ void GpuAllocatorTestSuite::TestGpuAllocatorContract()
 
 	// The location must remain a POD so render proxies can copy/move it without ceremony. If a future
 	// change introduces a non-trivial member, these asserts catch it before consumer code regresses.
-	static_assert(std::is_standard_layout<MockLocation>::value, "TGpuResourceLocation must remain standard-layout.");
-	static_assert(std::is_trivially_copyable<MockLocation>::value, "TGpuResourceLocation must remain trivially copyable.");
+	static_assert(std::is_standard_layout<MockLocation>::value, "GpuResourceLocation must remain standard-layout.");
+	static_assert(std::is_trivially_copyable<MockLocation>::value, "GpuResourceLocation must remain trivially copyable.");
 
 	MockHeapBackend backend;
 	MockGpuCompletionTracker tracker;
@@ -694,7 +711,7 @@ void GpuAllocatorTestSuite::TestTlsf_NonOverlappingAlignedOffsets()
 	{
 		for (u32 innerIndex = outerIndex + 1; innerIndex < allocs.size(); innerIndex++)
 		{
-			if (allocs[outerIndex].Location.Heap.Id != allocs[innerIndex].Location.Heap.Id)
+			if (allocs[outerIndex].Location.Heap != allocs[innerIndex].Location.Heap)
 				continue;
 			const bool disjoint = allocs[outerIndex].End <= allocs[innerIndex].Begin
 				|| allocs[innerIndex].End <= allocs[outerIndex].Begin;
@@ -741,8 +758,8 @@ void GpuAllocatorTestSuite::TestTlsf_CoalesceAllOrders()
 			B3D_TEST_ASSERT(allocator.TryAllocate(blockSize, 16, locations[blockIndex]))
 
 		// All three live in the same heap (heap is 64KB, allocations total 48KB).
-		B3D_TEST_ASSERT(locations[0].Heap.Id == locations[1].Heap.Id)
-		B3D_TEST_ASSERT(locations[0].Heap.Id == locations[2].Heap.Id)
+		B3D_TEST_ASSERT(locations[0].Heap == locations[1].Heap)
+		B3D_TEST_ASSERT(locations[0].Heap == locations[2].Heap)
 
 		tracker.AdvanceFrame();
 		for (u32 freeIndex = 0; freeIndex < 3; freeIndex++)
@@ -897,7 +914,7 @@ void GpuAllocatorTestSuite::TestTlsf_RandomStressNoLeak()
 				// negligible at the 4000-iteration / sub-1KB-live workload of this stress test.
 				for (const Live& other : live)
 				{
-					if (other.Location.Heap.Id != record.Location.Heap.Id)
+					if (other.Location.Heap != record.Location.Heap)
 						continue;
 					const bool disjoint = record.End <= other.Begin || other.End <= record.Begin;
 					B3D_TEST_ASSERT(disjoint)
@@ -1835,7 +1852,7 @@ void GpuAllocatorTestSuite::TestLinear_BumpPointerAlignedOffsets()
 	// All allocations land in the same page (8 * 1024 << 64KB) and don't overlap.
 	for (u32 outerIndex = 0; outerIndex < allocs.size(); outerIndex++)
 	{
-		B3D_TEST_ASSERT(allocs[outerIndex].Location.Heap.Id == allocs[0].Location.Heap.Id)
+		B3D_TEST_ASSERT(allocs[outerIndex].Location.Heap == allocs[0].Location.Heap)
 		for (u32 innerIndex = outerIndex + 1; innerIndex < allocs.size(); innerIndex++)
 		{
 			const bool disjoint = allocs[outerIndex].End <= allocs[innerIndex].Begin
@@ -1860,7 +1877,7 @@ void GpuAllocatorTestSuite::TestLinear_OverflowRotatesPage()
 	// 5KB used — a 4KB request can't fit in the remaining 3KB, must rotate.
 	MockLocation second;
 	B3D_TEST_ASSERT(allocator.TryAllocate(4 * 1024, 16, second))
-	B3D_TEST_ASSERT(second.Heap.Id != first.Heap.Id)
+	B3D_TEST_ASSERT(second.Heap != first.Heap)
 	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 2) // First retired-pending-drain, second active.
 
 	// First allocation's location is still valid — backend heap is alive until fence drains.
@@ -1887,9 +1904,9 @@ void GpuAllocatorTestSuite::TestLinear_MultiPageWithinFrame()
 	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, c)) // overflow → page 3
 	B3D_TEST_ASSERT(allocator.TryAllocate(3 * 1024, 16, d)) // overflow → page 4
 
-	B3D_TEST_ASSERT(a.Heap.Id != b.Heap.Id)
-	B3D_TEST_ASSERT(b.Heap.Id != c.Heap.Id)
-	B3D_TEST_ASSERT(c.Heap.Id != d.Heap.Id)
+	B3D_TEST_ASSERT(a.Heap != b.Heap)
+	B3D_TEST_ASSERT(b.Heap != c.Heap)
+	B3D_TEST_ASSERT(c.Heap != d.Heap)
 
 	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 4)
 	B3D_TEST_ASSERT(backend.LiveHeapCount() == 4)
@@ -1941,7 +1958,7 @@ void GpuAllocatorTestSuite::TestLinear_OversizeBypassesPagePool()
 	MockLocation small;
 	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, small))
 	const u64 usedBeforeOversize = allocator.GetUsedBytes();
-	const u32 activeHeapId = small.Heap.Id;
+	const IGpuHeap* activeHeapId = small.Heap;
 
 	// Oversize request: PageSize is 8KB; ask for 32KB. Lands in a dedicated heap and is retired
 	// immediately — heap stays alive in the deferred-free queue until the fence completes.
@@ -1949,7 +1966,7 @@ void GpuAllocatorTestSuite::TestLinear_OversizeBypassesPagePool()
 	B3D_TEST_ASSERT(allocator.TryAllocate(32 * 1024, 16, oversize))
 	B3D_TEST_ASSERT(oversize.Size == 32 * 1024)
 	B3D_TEST_ASSERT(oversize.Offset == 0)
-	B3D_TEST_ASSERT(oversize.Heap.Id != activeHeapId)
+	B3D_TEST_ASSERT(oversize.Heap != activeHeapId)
 	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 2) // active + oversize-pending-drain.
 
 	// Active page was untouched.
@@ -1974,7 +1991,7 @@ void GpuAllocatorTestSuite::TestLinear_ResetRetiresActivePage()
 
 	MockLocation first;
 	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, first))
-	const u32 activeHeapId = first.Heap.Id;
+	const IGpuHeap* activeHeapId = first.Heap;
 
 	allocator.Reset();
 	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 1)        // Page is retired-pending-drain, not destroyed.
@@ -1989,7 +2006,7 @@ void GpuAllocatorTestSuite::TestLinear_ResetRetiresActivePage()
 	// Next allocate pulls from spares — same page slot, same backend heap.
 	MockLocation second;
 	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, second))
-	B3D_TEST_ASSERT(second.Heap.Id == activeHeapId)
+	B3D_TEST_ASSERT(second.Heap == activeHeapId)
 	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)
 	B3D_TEST_ASSERT(backend.CreateCount() == 1) // No new heap created.
 
@@ -2028,7 +2045,7 @@ void GpuAllocatorTestSuite::TestLinear_FreeIsNoop()
 
 	MockLocation first;
 	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, first))
-	const u32 originalHeapId = first.Heap.Id;
+	const IGpuHeap* originalHeapId = first.Heap;
 	const u64 usedBefore = allocator.GetUsedBytes();
 	const u32 livePagesBefore = allocator.GetLivePageCount();
 
@@ -2043,7 +2060,7 @@ void GpuAllocatorTestSuite::TestLinear_FreeIsNoop()
 	MockLocation second;
 	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, second))
 	B3D_TEST_ASSERT(second.Offset >= usedBefore)
-	B3D_TEST_ASSERT(second.Heap.Id == originalHeapId)
+	B3D_TEST_ASSERT(second.Heap == originalHeapId)
 	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 1)
 
 	// Flush should drain nothing — the queue was never touched by Free.
@@ -2065,7 +2082,7 @@ void GpuAllocatorTestSuite::TestLinear_FreeImmediateOnSharedPageIsNoop()
 	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, a))
 	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, b))
 	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, c))
-	B3D_TEST_ASSERT(a.Heap.Id == b.Heap.Id && b.Heap.Id == c.Heap.Id)
+	B3D_TEST_ASSERT(a.Heap == b.Heap && b.Heap == c.Heap)
 
 	const u64 usedBefore = allocator.GetUsedBytes();
 	const u32 livePagesBefore = allocator.GetLivePageCount();
@@ -2084,7 +2101,7 @@ void GpuAllocatorTestSuite::TestLinear_FreeImmediateOnSharedPageIsNoop()
 	// Subsequent allocate keeps bumping past c's range — proves the page is still being used as the active page.
 	MockLocation d;
 	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 16, d))
-	B3D_TEST_ASSERT(d.Heap.Id == b.Heap.Id)
+	B3D_TEST_ASSERT(d.Heap == b.Heap)
 	B3D_TEST_ASSERT(d.Offset >= c.Offset + c.Size)
 
 	// Free the rest with FreeImmediate — still all no-ops; page is reclaimed only via Reset + drain.

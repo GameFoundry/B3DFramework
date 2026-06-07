@@ -38,7 +38,7 @@ VulkanHeapBackend::VulkanHeapBackend(VulkanGpuDevice& device)
 
 VulkanHeapBackend::~VulkanHeapBackend() = default;
 
-VulkanHeapHandle VulkanHeapBackend::CreateHeap(u64 sizeInBytes, const VulkanHeapCreateInformation& createInformation)
+IGpuHeap* VulkanHeapBackend::CreateHeap(u64 sizeInBytes, const VulkanHeapCreateInformation& createInformation)
 {
 	const VkPhysicalDeviceMemoryProperties& memProps = mDevice->GetMemoryProperties();
 
@@ -50,34 +50,47 @@ VulkanHeapHandle VulkanHeapBackend::CreateHeap(u64 sizeInBytes, const VulkanHeap
 	allocateInfo.allocationSize = sizeInBytes;
 	allocateInfo.memoryTypeIndex = memoryTypeIndex;
 
-	VulkanHeapHandle handle = {};
-	handle.Size = sizeInBytes;
-	handle.MemoryTypeIndex = memoryTypeIndex;
-
-	VkResult result = vkAllocateMemory(mLogicalDevice, &allocateInfo, gVulkanAllocator, &handle.Memory);
+	VkDeviceMemory memory = VK_NULL_HANDLE;
+	VkResult result = vkAllocateMemory(mLogicalDevice, &allocateInfo, gVulkanAllocator, &memory);
 	B3D_ASSERT(result == VK_SUCCESS);
 
+	void* mapped = nullptr;
 	if(createInformation.MapPersistently)
 	{
 		const VkMemoryPropertyFlags typeFlags = memProps.memoryTypes[memoryTypeIndex].propertyFlags;
 		B3D_ASSERT((typeFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0 && "MapPersistently set on a non-HOST_VISIBLE memory type.");
 
-		result = vkMapMemory(mLogicalDevice, handle.Memory, 0, VK_WHOLE_SIZE, 0, &handle.Mapped);
+		result = vkMapMemory(mLogicalDevice, memory, 0, VK_WHOLE_SIZE, 0, &mapped);
 		B3D_ASSERT(result == VK_SUCCESS);
 	}
 
-	return handle;
+	Lock lock(mHeapPoolMutex);
+	VulkanGpuHeap* heap = mHeapPool.Allocate();
+	heap->Memory = memory;
+	heap->Size = sizeInBytes;
+	heap->Mapped = mapped;
+	heap->MemoryTypeIndex = memoryTypeIndex;
+
+	return heap;
 }
 
-void VulkanHeapBackend::DestroyHeap(VulkanHeapHandle handle)
+void VulkanHeapBackend::DestroyHeap(IGpuHeap* handle)
 {
-	if(handle.Memory == VK_NULL_HANDLE)
+	if(handle == nullptr)
 		return;
 
-	if(handle.Mapped != nullptr)
-		vkUnmapMemory(mLogicalDevice, handle.Memory);
+	VulkanGpuHeap* heap = static_cast<VulkanGpuHeap*>(handle);
 
-	vkFreeMemory(mLogicalDevice, handle.Memory, gVulkanAllocator);
+	if(heap->Memory != VK_NULL_HANDLE)
+	{
+		if(heap->Mapped != nullptr)
+			vkUnmapMemory(mLogicalDevice, heap->Memory);
+
+		vkFreeMemory(mLogicalDevice, heap->Memory, gVulkanAllocator);
+	}
+
+	Lock lock(mHeapPoolMutex);
+	mHeapPool.Release(heap);
 }
 
 // Conformance check
