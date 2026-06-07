@@ -51,7 +51,18 @@ namespace b3d
 		 * Ensures that the GPU can perform write operations in the buffer. Generally this is used for buffers used in compute operations. StoreOnGPU memory
 		 * flag must be used.
 		 */
-		AllowUnorderedAccessOnTheGPU = 1 << 2
+		AllowUnorderedAccessOnTheGPU = 1 << 2,
+
+		/**
+		 * Allocates the buffer's backing memory from the device's linear (bump) allocator instead of the general-purpose allocator. Memory is not freed
+		 * per-allocation; instead the whole page is reclaimed in bulk when the allocator is flushed and the frame it was allocated in is no longer
+		 * in flight on the GPU. This makes allocation/free extremely cheap, but the buffer's lifetime must be bounded by the frame that created it.
+		 *
+		 * Only use this for short-lived, single-use buffers (e.g. compute scratch input/output) whose GPU work completes within the frame that allocated
+		 * them. Such a buffer must NOT be retained past the end of that frame. Note on worker threads what constitutes a 'frame' is user determined via
+		 * fences.
+		 */
+		Transient = 1 << 3
 	};
 
 	using GpuBufferFlags = Flags<GpuBufferFlag>;

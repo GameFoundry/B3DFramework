@@ -13,6 +13,7 @@
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/Allocators/B3DGpuAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
+#include "GpuBackend/Allocators/B3DGpuLinearAllocator.h"
 
 namespace b3d
 {
@@ -49,6 +50,7 @@ namespace b3d
 		{
 			TGpuResourceLocation<VulkanHeapBackend> Location; /**< Allocator slot — heap, offset, size, allocator-private bookkeeping. */
 			void* MappedMemory = nullptr; /**< Heap.Mapped + Location.Offset for host-visible heaps; null otherwise. */
+			bool IsTransient = false; /**< True if produced by the linear (bump) allocator rather than the TLSF allocator; controls which allocator frees it. */
 
 			/** Returns true once the allocator has populated this result with a live slot. */
 			bool IsValid() const { return Location.IsValid(); }
@@ -277,9 +279,12 @@ namespace b3d
 			 * (where possible) the @p preferredFlags hint, then suballocates from the per-memory-type allocator.
 			 * The caller is responsible for binding via vkBindBufferMemory; this method does not bind.
 			 *
+			 * When @p transient is true the slot is taken from the per-memory-type linear (bump) allocator instead of the
+			 * general-purpose TLSF allocator.
+			 *
 			 * Internal — invoked only by CreateBuffer.
 			 */
-			VulkanAllocationResult AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags);
+			VulkanAllocationResult AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, bool transient);
 
 			/**
 			 * Common bind-and-wrap helper for buffers. Binds @p buffer to @p allocation, constructs the
@@ -313,12 +318,27 @@ namespace b3d
 			TGpuTlsfAllocator<VulkanHeapBackend>& GetOrCreateGpuMemoryAllocator(u32 memoryTypeIndex);
 
 			/**
+			 * Returns the linear (bump) allocator backing memory type @p memoryTypeIndex, lazily creating it on first use.
+			 * Used for transient buffer allocations (GpuBufferFlag::Transient). Pages retire against the device frame fence
+			 * and are reclaimed in bulk via EndFrame/WaitUntilIdle rather than per-allocation.
+			 */
+			TGpuLinearAllocator<VulkanHeapBackend>& GetOrCreateGpuLinearAllocator(u32 memoryTypeIndex);
+
+			/**
 			 * Runs an opportunistic defragmentation pass across every GPU allocators that support it.
 			 *
 			 * No-op when mDefragEnabled is false. Bounded by mDefragBudgetBytes / mDefragBudgetAllocations
 			 * so a single frame can't stall on copying many GBs of memory.
 			 */
 			void RunDefragPass();
+
+			/**
+			 * Reclaims memory held by the per-memory-type linear (transient) allocators. Retires each allocator's
+			 * active page against the current frame index, then drains every page whose frame is no longer in flight
+			 * on the GPU. Called once per frame from EndFrame (on the render thread); because the linear allocators
+			 * are shared and thread-safe this reclaims transient buffers allocated by any thread during the frame.
+			 */
+			void ReclaimLinearAllocators();
 
 			/** Marks the device as a primary device. */
 			void SetIsPrimary() { mIsPrimary = true; }
@@ -354,6 +374,12 @@ namespace b3d
 
 			/** Guards lazy creation of mTlsfAllocators entries. */
 			mutable Mutex mGpuMemoryAllocatorMutex;
+
+			/** Per-memory-type linear (bump) allocator pool for transient buffers. Slots are lazily populated on first transient allocation. */
+			TUnique<TGpuLinearAllocator<VulkanHeapBackend>> mGpuLinearAllocators[VK_MAX_MEMORY_TYPES];
+
+			/** Guards lazy creation of mGpuLinearAllocators entries. */
+			mutable Mutex mGpuLinearAllocatorMutex;
 
 			u64 mDefragBudgetBytes = 8ull * 1024 * 1024;
 			u32 mDefragBudgetAllocations = 8;

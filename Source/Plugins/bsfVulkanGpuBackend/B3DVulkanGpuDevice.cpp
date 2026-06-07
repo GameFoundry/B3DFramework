@@ -305,7 +305,18 @@ VulkanGpuDevice::~VulkanGpuDevice()
 		TUnique<TGpuTlsfAllocator<VulkanHeapBackend>>& allocator = mGpuMemoryAllocators[typeIndex];
 		if (allocator != nullptr)
 		{
-			allocator->Flush(0, true);
+			allocator->Flush(true);
+			allocator.reset();
+		}
+	}
+
+	// Same for the transient linear allocators — they must release their pages before the heap backend is destroyed.
+	for (u32 typeIndex = 0; typeIndex < VK_MAX_MEMORY_TYPES; typeIndex++)
+	{
+		TUnique<TGpuLinearAllocator<VulkanHeapBackend>>& allocator = mGpuLinearAllocators[typeIndex];
+		if (allocator != nullptr)
+		{
+			allocator->Flush(true);
 			allocator.reset();
 		}
 	}
@@ -676,7 +687,25 @@ void VulkanGpuDevice::EndFrame()
 	// Advance transfer buffer helper pools to next frame. Important this is done after the wait above.
 	mTransferBufferHelper->EndFrame();
 
+	// Transient reclamation point. Must run before GpuDevice::EndFrame() increments the frame index, so the
+	// retired pages are stamped with the correct frame.
+	ReclaimLinearAllocators();
+
 	GpuDevice::EndFrame();
+}
+
+void VulkanGpuDevice::ReclaimLinearAllocators()
+{
+	Lock lock(mGpuLinearAllocatorMutex);
+	for (TUnique<TGpuLinearAllocator<VulkanHeapBackend>>& allocator : mGpuLinearAllocators)
+	{
+		if (allocator == nullptr)
+			continue;
+
+		// Retire the active page (stamped against the current frame), then drain everything whose frame is complete.
+		allocator->Reset();
+		allocator->Flush();
+	}
 }
 
 void VulkanGpuDevice::RunDefragPass()
@@ -896,7 +925,8 @@ VulkanBuffer* VulkanGpuDevice::CreateBuffer(const VulkanBufferCreateInformation&
 	B3D_ASSERT(createResult == VK_SUCCESS);
 	(void)createResult;
 
-	const VulkanAllocationResult allocation = AllocateMemory(buffer, requiredFlags, preferredFlags);
+	const bool transient = createInformation.Flags.IsSet(GpuBufferFlag::Transient);
+	const VulkanAllocationResult allocation = AllocateMemory(buffer, requiredFlags, preferredFlags, transient);
 
 	return BindBufferToAllocation(createInformation, buffer, allocation, parent);
 }
@@ -1001,7 +1031,7 @@ VulkanAllocationResult VulkanGpuDevice::AllocateMemory(VkImage image, VkMemoryPr
 	return output;
 }
 
-VulkanAllocationResult VulkanGpuDevice::AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags)
+VulkanAllocationResult VulkanGpuDevice::AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, bool transient)
 {
 	VkMemoryRequirements requirements = {};
 	vkGetBufferMemoryRequirements(mLogicalDevice, buffer, &requirements);
@@ -1009,12 +1039,23 @@ VulkanAllocationResult VulkanGpuDevice::AllocateMemory(VkBuffer buffer, VkMemory
 	const u32 memoryTypeIndex = PickMemoryTypeIndex(requirements.memoryTypeBits, requiredFlags, preferredFlags);
 	B3D_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES && "No Vulkan memory type satisfies the requested buffer allocation flags.");
 
-	TGpuTlsfAllocator<VulkanHeapBackend>& allocator = GetOrCreateGpuMemoryAllocator(memoryTypeIndex);
-
 	VulkanAllocationResult output;
-	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::Linear, output.Location);
-	B3D_ASSERT(ok && "TLSF allocator failed to satisfy buffer allocation request.");
-	(void)ok;
+	output.IsTransient = transient;
+
+	if (transient)
+	{
+		TGpuLinearAllocator<VulkanHeapBackend>& allocator = GetOrCreateGpuLinearAllocator(memoryTypeIndex);
+		const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::Linear, output.Location);
+		B3D_ASSERT(ok && "Linear allocator failed to satisfy transient buffer allocation request.");
+		(void)ok;
+	}
+	else
+	{
+		TGpuTlsfAllocator<VulkanHeapBackend>& allocator = GetOrCreateGpuMemoryAllocator(memoryTypeIndex);
+		const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::Linear, output.Location);
+		B3D_ASSERT(ok && "TLSF allocator failed to satisfy buffer allocation request.");
+		(void)ok;
+	}
 
 	if (output.Location.Heap.Mapped != nullptr)
 		output.MappedMemory = static_cast<u8*>(output.Location.Heap.Mapped) + output.Location.Offset;
@@ -1028,8 +1069,18 @@ void VulkanGpuDevice::FreeMemory(VulkanAllocationResult& allocation)
 		return;
 
 	const u32 memoryTypeIndex = allocation.Location.Heap.MemoryTypeIndex;
-	TGpuTlsfAllocator<VulkanHeapBackend>& allocator = GetOrCreateGpuMemoryAllocator(memoryTypeIndex);
-	allocator.FreeImmediate(allocation.Location);
+
+	if (allocation.IsTransient)
+	{
+		TGpuLinearAllocator<VulkanHeapBackend>& allocator = GetOrCreateGpuLinearAllocator(memoryTypeIndex);
+		allocator.FreeImmediate(allocation.Location);
+	}
+	else
+	{
+		TGpuTlsfAllocator<VulkanHeapBackend>& allocator = GetOrCreateGpuMemoryAllocator(memoryTypeIndex);
+		allocator.FreeImmediate(allocation.Location);
+	}
+
 	allocation.MappedMemory = nullptr;
 }
 
@@ -1125,6 +1176,29 @@ TGpuTlsfAllocator<VulkanHeapBackend>& VulkanGpuDevice::GetOrCreateGpuMemoryAlloc
 		slot = B3DMakeUnique<TGpuTlsfAllocator<VulkanHeapBackend>>(mHeapBackend.get(), this, configuration);
 		return *slot;
 	}
+}
+
+TGpuLinearAllocator<VulkanHeapBackend>& VulkanGpuDevice::GetOrCreateGpuLinearAllocator(u32 memoryTypeIndex)
+{
+	B3D_ASSERT(memoryTypeIndex < mMemoryProperties.memoryTypeCount);
+
+	Lock lock(mGpuLinearAllocatorMutex);
+	TUnique<TGpuLinearAllocator<VulkanHeapBackend>>& slot = mGpuLinearAllocators[memoryTypeIndex];
+	if (slot != nullptr)
+		return *slot;
+
+	const VkMemoryPropertyFlags flags = mMemoryProperties.memoryTypes[memoryTypeIndex].propertyFlags;
+	const bool isHostVisible = (flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
+
+	TGpuLinearAllocator<VulkanHeapBackend>::Configuration configuration;
+	configuration.PageSize = 8ull * 1024 * 1024;
+	configuration.MaxRetainedPages = 2;
+	configuration.HeapCreateInfo.MemoryTypeBits = (1u << memoryTypeIndex);
+	configuration.HeapCreateInfo.PropertyFlags = flags;
+	configuration.HeapCreateInfo.MapPersistently = isHostVisible;
+
+	slot = B3DMakeUnique<TGpuLinearAllocator<VulkanHeapBackend>>(mHeapBackend.get(), this, configuration);
+	return *slot;
 }
 
 void VulkanGpuDevice::InitializeCapabilities()

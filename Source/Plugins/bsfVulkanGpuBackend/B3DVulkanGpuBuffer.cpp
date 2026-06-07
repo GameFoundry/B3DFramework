@@ -275,9 +275,11 @@ VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, b
 	const GpuBufferType newBufferType = staging ? readable ? GpuBufferType::StagingRead : GpuBufferType::StagingWrite : mInformation.Type;
 	const GpuBufferFlags newBufferFlags = staging ? (GpuBufferFlags)0 : mInformation.Flags;
 
-	// Staging sub-buffers are transient (no proxy back-pointer, so untracked / ineligible for defrag).
+	// Transient buffers are allocated from the linear (bump) allocator, which doesn't participate in defragmentation
+	const bool transient = newBufferFlags.IsSet(GpuBufferFlag::Transient);
+
 	// Persistent buffers pass `this` as the proxy parent so defrag can recreate them in place.
-	VulkanGpuBuffer* const proxyParent = staging ? nullptr : this;
+	VulkanGpuBuffer* const proxyParent = (staging || transient) ? nullptr : this;
 
 	const String debugName = staging ? StringUtility::Format("Staging buffer ({0})", mName) : mName;
 

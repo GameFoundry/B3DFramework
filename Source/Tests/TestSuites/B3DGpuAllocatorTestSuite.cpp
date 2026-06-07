@@ -466,7 +466,7 @@ void GpuAllocatorTestSuite::TestGpuAllocatorDeferredDelete()
 		tracker.AdvanceFrame(); allocator.RetireAllocation(locationC);
 
 		// No Signal() call — submissions remain incomplete.
-		allocator.Flush(3, true);
+		allocator.Flush(true);
 
 		B3D_TEST_ASSERT(allocator.FreedSlots.size() == 3)
 		B3D_TEST_ASSERT(allocator.FreedSlots[0].AllocatorData0 == 1)
@@ -1095,7 +1095,7 @@ void GpuAllocatorTestSuite::TestTlsf_Defrag_DrainsHighestHeap()
 	allocator.Free(holders[0]->Location);
 	allocator.Free(holders[1]->Location);
 	tracker.MarkAllFramesComplete();
-	allocator.Flush(0, false);
+	allocator.Flush(false);
 
 	const TlsfAllocator::DefragmentationStats stats = allocator.Defrag(NullCommandBuffer());
 
@@ -1109,7 +1109,7 @@ void GpuAllocatorTestSuite::TestTlsf_Defrag_DrainsHighestHeap()
 	// the now-empty heap 1 is released back to the backend.
 	tracker.AdvanceFrame();
 	tracker.MarkAllFramesComplete();
-	allocator.Flush(0, false);
+	allocator.Flush(false);
 
 	B3D_TEST_ASSERT(allocator.GetHeapCount() == 1)
 }
@@ -1148,7 +1148,7 @@ void GpuAllocatorTestSuite::TestTlsf_Defrag_SingleHeapWithinHeapCompaction()
 	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex += 2)
 		allocator.Free(holders[holderIndex]->Location);
 	tracker.MarkAllFramesComplete();
-	allocator.Flush(0, false);
+	allocator.Flush(false);
 
 	const TlsfAllocator::DefragmentationStats stats = allocator.Defrag(NullCommandBuffer());
 
@@ -1199,7 +1199,7 @@ void GpuAllocatorTestSuite::TestTlsf_Defrag_RespectsBudget()
 	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex += 2)
 		allocator.Free(holders[holderIndex]->Location);
 	tracker.MarkAllFramesComplete();
-	allocator.Flush(0, false);
+	allocator.Flush(false);
 
 	TlsfAllocator::DefragmentationInfo info{};
 	info.MaxBytesPerCall = kAllocSize; // One allocation worth.
@@ -1252,7 +1252,7 @@ void GpuAllocatorTestSuite::TestTlsf_Defrag_OnlySkipsUntrackedSlots()
 	allocator.Free(holders[2]->Location);
 	allocator.Free(holders[4]->Location);
 	tracker.MarkAllFramesComplete();
-	allocator.Flush(0, false);
+	allocator.Flush(false);
 
 	const TlsfAllocator::DefragmentationStats stats = allocator.Defrag(NullCommandBuffer());
 
@@ -1298,7 +1298,7 @@ void GpuAllocatorTestSuite::TestTlsf_Defrag_MovesInFlightResource()
 	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex += 2)
 		allocator.Free(holders[holderIndex]->Location);
 	tracker.MarkAllFramesComplete();
-	allocator.Flush(0, false);
+	allocator.Flush(false);
 
 	const TlsfAllocator::DefragmentationStats stats = allocator.Defrag(NullCommandBuffer());
 
@@ -1350,7 +1350,7 @@ void GpuAllocatorTestSuite::TestTlsf_Defrag_MoveAllocationReceivesContext()
 	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex += 2)
 		allocator.Free(holders[holderIndex]->Location);
 	tracker.MarkAllFramesComplete();
-	allocator.Flush(0, false);
+	allocator.Flush(false);
 
 	// Capture original offsets for survivors before Defrag rewrites their locations.
 	Vector<u64> originalOffsetForSurvivor;
@@ -1433,7 +1433,7 @@ void GpuAllocatorTestSuite::TestTlsf_FrameTrackerPolicy_DefersAcrossFrames()
 	const u64 retireFrame = tracker.CurrentFrameIndex();
 	allocator.Free(location);
 	B3D_TEST_ASSERT(!location.IsValid())
-	allocator.Flush(0, false);
+	allocator.Flush(false);
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == usedAfterAlloc)
 
 	// Even after kMaximumFramesInFlight ticks the slot is still held — the mock tracker tracks
@@ -1441,12 +1441,12 @@ void GpuAllocatorTestSuite::TestTlsf_FrameTrackerPolicy_DefersAcrossFrames()
 	// "frame-complete" is a GPU-drained predicate, not a tick predicate.
 	for (u32 tick = 0; tick < RenderThread::kMaximumFramesInFlight; tick++)
 		tracker.AdvanceFrame();
-	allocator.Flush(0, false);
+	allocator.Flush(false);
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == usedAfterAlloc)
 
 	// Marking the retire frame complete is what flips IsFrameComplete to true. Flush now drains.
 	tracker.MarkFrameComplete(retireFrame);
-	allocator.Flush(0, false);
+	allocator.Flush(false);
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
 }
 

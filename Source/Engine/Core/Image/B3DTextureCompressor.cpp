@@ -341,7 +341,14 @@ namespace b3d
 
 					for(u32 materialIndex = 0; materialIndex < materials.Size(); ++materialIndex)
 					{
-						render::GpuBufferMappedScope parameters = render::gTextureCompressParams.AllocateTransient().Map();
+						const TShared<render::GpuBuffer> parameterBuffer = render::gTextureCompressParams.CreateTransientBuffer();
+						if(parameterBuffer == nullptr)
+						{
+							op.CompleteOperation(nullptr);
+							return;
+						}
+
+						render::GpuBufferMappedScope parameters = parameterBuffer->Map(GpuMapOption::Write);
 						render::gTextureCompressParams.gTextureSize.Set(parameters, fullTexSize);
 						render::gTextureCompressParams.gBlockCount.Set(parameters, fullBlockCount);
 						render::gTextureCompressParams.gBlockOffset.Set(parameters, tileOffset);

@@ -124,7 +124,7 @@ namespace b3d
 			// Upload mip 0 (the RGBA32F-converted source) as the first input buffer; read as float4 in the shader.
 			const u32 baseWidth = convertedSource->GetWidth();
 			const u32 baseHeight = convertedSource->GetHeight();
-			const TShared<render::GpuBuffer> inputBuffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, baseWidth * baseHeight));
+			const TShared<render::GpuBuffer> inputBuffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, baseWidth * baseHeight, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::Transient));
 			if(inputBuffer == nullptr)
 			{
 				op.CompleteOperation(Vector<TShared<PixelData>>());
@@ -136,6 +136,7 @@ namespace b3d
 			// Generate levels 1..mipCount, each downsampled from the previous level's GPU buffer (no CPU round-trip).
 			TInlineArray<TShared<render::GpuBuffer>, 16> levelBuffers; // Generated level outputs, in order
 			TInlineArray<Size2UI, 16> levelDimensions; // (width, height) of each generated level
+			TInlineArray<TShared<render::GpuBuffer>, 16> parameterBuffers; // Transient per-dispatch uniform buffers; kept alive until the GPU completes
 
 			TShared<render::GpuBuffer> previous = inputBuffer;
 			u32 sourceWidth = baseWidth;
@@ -146,16 +147,24 @@ namespace b3d
 				const u32 destinationHeight = std::max(1u, sourceHeight / 2);
 
 				// Output for this level: written as a compute UAV, read back by the CPU, and bound as the next level's input (read as a storage buffer).
-				const TShared<render::GpuBuffer> output = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, destinationWidth * destinationHeight, GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+				const TShared<render::GpuBuffer> output = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, destinationWidth * destinationHeight, GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowUnorderedAccessOnTheGPU | GpuBufferFlag::Transient));
 				if(output == nullptr)
 				{
 					op.CompleteOperation(Vector<TShared<PixelData>>());
 					return;
 				}
 
-				// Per-dispatch constants for this level, in a transient uniform buffer (frame-lifetime, GPU-safe). The
-				// mapped scope must outlive the dispatch; it is unmapped (flushed) just before submission below.
-				render::GpuBufferMappedScope parameters = render::gMipmapParameterDefinition.AllocateTransient().Map();
+				// Per-dispatch constants for this level, in a transient uniform buffer (linear-allocator backed, thread-safe,
+				// frame-lifetime). The buffer must be kept alive until the GPU completes, so it is stored in parameterBuffers
+				// and captured by the completion callback. The mapped scope is unmapped (flushed) just before the dispatch.
+				const TShared<render::GpuBuffer> parameterBuffer = render::gMipmapParameterDefinition.CreateTransientBuffer();
+				if(parameterBuffer == nullptr)
+				{
+					op.CompleteOperation(Vector<TShared<PixelData>>());
+					return;
+				}
+
+				render::GpuBufferMappedScope parameters = parameterBuffer->Map(GpuMapOption::Write);
 				render::gMipmapParameterDefinition.gSourceSize.Set(parameters, Vector2I((i32)sourceWidth, (i32)sourceHeight));
 				render::gMipmapParameterDefinition.gDestSize.Set(parameters, Vector2I((i32)destinationWidth, (i32)destinationHeight));
 				render::gMipmapParameterDefinition.gFilter.Set(parameters, filter);
@@ -167,6 +176,7 @@ namespace b3d
 
 				material->Execute(*commandBuffer, previous, output, parameters, Vector2I((i32)destinationWidth, (i32)destinationHeight));
 
+				parameterBuffers.Add(parameterBuffer);
 				levelBuffers.Add(output);
 				levelDimensions.Add(Size2UI(destinationWidth, destinationHeight));
 
@@ -189,7 +199,7 @@ namespace b3d
 			// Assemble the chain once the GPU finishes. Captures keep the level buffers (read-back sources) and read ops
 			// alive until completion. Runs on the render thread (the command buffer's owner thread).
 			commandBuffer->OnDidComplete.Connect(
-				[op, readOps, levelBuffers, inputBuffer, levelDimensions, sourceFormat, mip0]() mutable
+				[op, readOps, levelBuffers, inputBuffer, parameterBuffers, levelDimensions, sourceFormat, mip0]() mutable
 				{
 					Vector<TShared<PixelData>> outMipLevels;
 					outMipLevels.reserve(levelDimensions.size() + 1);

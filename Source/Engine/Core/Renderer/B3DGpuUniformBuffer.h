@@ -191,10 +191,31 @@ namespace b3d
 			 * this for uniform buffers that are updated every frame.
 			 *
 			 * Note that transient buffer allocations might be larger than size returned by GetSize(), due to alignment requirements.
+			 *
+			 * @note NOT thread safe. The backing TransientGpuBufferPool may only be used from the render thread. Off-render-thread
+			 *       callers must use CreateTransientBuffer() instead, which is backed by the device's thread-safe linear allocator.
 			 */
 			GpuBufferSuballocation AllocateTransient()
 			{
 				return mTransientAllocationPool.Allocate();
+			}
+
+			/**
+			 * Allocates a one-shot uniform buffer backed by the GPU device's linear (transient) allocator.
+			 * This is thread safe and may be called from any thread.
+			 *
+			 * The returned buffer's memory is reclaimed in bulk at end-of-frame (once the frame is no longer in flight on the GPU),
+			 * so it must only be used for the single operation that created it.
+			 *
+			 * @return	The transient buffer, or nullptr if there is no primary GPU device.
+			 */
+			TShared<GpuBuffer> CreateTransientBuffer() const
+			{
+				const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
+				if(gpuDevice)
+					return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::Transient, 1), GpuObjectCreateFlag::RenderThreadDestroy);
+
+				return nullptr;
 			}
 
 		protected:

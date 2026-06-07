@@ -1110,7 +1110,7 @@ namespace b3d
 	{
 		// Drain unconditionally — any submissions still in flight at destructor time are the caller's
 		// responsibility to wait for via WaitUntilIdle, matching the convention from TGpuAllocator.
-		Base::Flush(0, true);
+		Base::Flush(true);
 
 		for (u32 heapIndex = 0; heapIndex < (u32)mHeaps.size(); heapIndex++)
 		{

@@ -195,19 +195,15 @@ namespace b3d
 		}
 
 		/**
-		 * Releases retired allocations whose recorded frame index is no longer in flight on the GPU.
+		 * Releases retired allocations whose recorded frame is no longer in flight on the GPU
+		 * (per IGpuFrameTracker::IsFrameComplete).
 		 *
-		 * @param frameLag       Strategy-specific retention policy: drain only entries that have been
-		 *                       queued for at least @p frameLag frames. Honored by individual strategies
-		 *                       that need it (e.g. transient page pools that hold a slot one extra frame
-		 *                       to avoid thrash).
 		 * @param forceComplete  When true, frame-completion checks are skipped and every retired entry
 		 *                       is freed unconditionally. Use only at shutdown after ensuring all
 		 *                       GPU work has completed.
 		 */
-		void Flush(u32 frameLag = 3, bool forceComplete = false)
+		void Flush(bool forceComplete = false)
 		{
-			(void)frameLag;
 			ScopedLock lock(mMutex);
 			DrainRetired(forceComplete);
 		}
