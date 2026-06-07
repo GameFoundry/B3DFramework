@@ -241,7 +241,10 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	if(mSupportsTimelineSemaphore)
+	{
 		GET_DEVICE_PROC_ADDR(mLogicalDevice, GetSemaphoreCounterValueKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, WaitSemaphoresKHR)
+	}
 
 	// Retrieve queues
 	for(u32 i = 0; i < GQT_COUNT; i++)

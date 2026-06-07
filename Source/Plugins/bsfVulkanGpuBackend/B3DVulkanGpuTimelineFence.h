@@ -31,6 +31,10 @@ namespace b3d
 		/** Returns the underlying timeline semaphore handle, or @c VK_NULL_HANDLE if unavailable. */
 		VkSemaphore GetTimelineSemaphore() const { return mTimeline; }
 
+	protected:
+		/** Native blocking wait via vkWaitSemaphores. Invoked by Wait(). */
+		void WaitInternal(u64 value) final;
+
 	private:
 		render::VulkanGpuDevice* mDevice = nullptr;
 		VkDevice mLogicalDevice = VK_NULL_HANDLE;

@@ -43,3 +43,18 @@ u64 VulkanGpuTimelineFence::GetCompletedValue() const
 
 	return current;
 }
+
+void VulkanGpuTimelineFence::WaitInternal(u64 value)
+{
+	if (mTimeline == VK_NULL_HANDLE)
+		return;
+
+	VkSemaphoreWaitInfoKHR waitInfo = {};
+	waitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO_KHR;
+	waitInfo.semaphoreCount = 1;
+	waitInfo.pSemaphores = &mTimeline;
+	waitInfo.pValues = &value;
+
+	const VkResult result = vkWaitSemaphoresKHR(mLogicalDevice, &waitInfo, UINT64_MAX);
+	B3D_ASSERT(result == VK_SUCCESS);
+}

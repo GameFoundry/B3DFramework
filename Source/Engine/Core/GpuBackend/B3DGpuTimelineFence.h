@@ -26,11 +26,21 @@ namespace b3d
 		/** Returns true if @p value has been reached. */
 		bool IsSignaled(u64 value) const { return value <= GetCompletedValue(); }
 
+		/**Blocks until @p value has been signaled by the GPU. Returns immediately if it is already signaled. */
+		void Wait(u64 value);
+
 	protected:
 		GpuTimelineFence() = default;
 
 		GpuTimelineFence(const GpuTimelineFence&) = delete;
 		GpuTimelineFence& operator=(const GpuTimelineFence&) = delete;
+
+		/**
+		 * Backend blocking wait until @p value is signaled, invoked by Wait().
+		 * The default implementation polls GetCompletedValue() with a short sleep; backends with a 
+		 * native blocking primitive (e.g. vkWaitSemaphores) should override it for efficiency.
+		 */
+		virtual void WaitInternal(u64 value);
 	};
 
 	/** Timeline fence and value to signal. */

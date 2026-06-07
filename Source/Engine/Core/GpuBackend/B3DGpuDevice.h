@@ -329,6 +329,50 @@ namespace b3d
 	};
 
 	/**
+	 * Timeline-fence based completion tracker. Composes a single GpuTimelineFence; the marker is the 
+	 * exact fence value the GPU signals (no conservative lag like GpuFrameCompletionTracker).
+	 *
+	 * Marker contract: GetCurrentMarker() returns the value the NEXT submit will signal. Submission
+	 * records NotifyWillSubmit() (which yields that value and advances the marker), so a page retired
+	 * right before the submit is stamped with exactly the value its submit signals.
+	 */
+	class B3D_EXPORT GpuFenceCompletionTracker : public IGpuCompletionTracker
+	{
+	public:
+		explicit GpuFenceCompletionTracker(TShared<GpuTimelineFence> fence)
+			: mFence(std::move(fence))
+		{ }
+
+		/** Value the next submit will signal. Monotonic; starts at 1 (0 is the timeline's unsignaled state). */
+		u64 GetCurrentMarker() const override { return mNextValue; }
+
+		/** Exact: true once the GPU has signaled @p marker on the fence. */
+		bool IsMarkerComplete(u64 marker) const override { return mFence->IsSignaled(marker); }
+
+		/** Records an impending submission: returns the fence + value to signal, and advances the marker. */
+		GpuTimelineFenceAndValue NotifyWillSubmit()
+		{
+			const u64 value = mNextValue++;
+			mLastSignaled = value;
+			return { mFence, value };
+		}
+
+		/** Blocks until the last submitted marker completes. No-op if nothing was submitted. */
+		void WaitUntilComplete()
+		{
+			if (mLastSignaled > 0)
+				mFence->Wait(mLastSignaled);
+		}
+
+		const TShared<GpuTimelineFence>& GetFence() const { return mFence; }
+
+	private:
+		TShared<GpuTimelineFence> mFence;
+		u64 mNextValue = 1;
+		u64 mLastSignaled = 0;
+	};
+
+	/**
 	 * Provides access to a particular GPU device.
 	 *
 	 * @note	Thread safe.

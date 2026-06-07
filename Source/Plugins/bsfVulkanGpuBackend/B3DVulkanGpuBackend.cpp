@@ -60,6 +60,7 @@ PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR = nullptr;
 PFN_vkQueuePresentKHR vkQueuePresentKHR = nullptr;
 
 PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR = nullptr;
+PFN_vkWaitSemaphoresKHR vkWaitSemaphoresKHR = nullptr;
 
 /** Enables Vulkan validation layers. Ignored if the backend or platform does not support them. */
 static const bool kEnableVulkanValidationLayers = B3D_DEBUG;
