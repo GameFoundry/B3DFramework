@@ -17,6 +17,17 @@ GpuQueue::GpuQueue(GpuDevice& gpuDevice, GpuQueueType type, u32 index)
 {
 }
 
+GpuDevice::GpuDevice()
+	: mPrimaryContext(*this, mPrimaryTracker)
+{
+}
+
+GpuWorkContext& GpuDevice::GetPrimaryContext()
+{
+	EnsureRenderThread();
+	return mPrimaryContext;
+}
+
 void GpuDevice::SubmitCommandBuffer(const GpuSubmissionInformation& information, u32 queueIndex, bool flushTransferCommandBuffer)
 {
 	if (!B3D_ENSURE(information.CommandBuffer))

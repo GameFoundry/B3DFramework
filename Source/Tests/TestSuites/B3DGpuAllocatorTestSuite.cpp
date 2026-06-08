@@ -554,7 +554,7 @@ void GpuAllocatorTestSuite::TestFrameTracker_InitialState()
 	// so the value is non-deterministic — what matters is that the predicate is monotone: a frame
 	// reported complete now stays complete, and the current frame is never reported complete (it
 	// is by definition still being recorded).
-	IGpuCompletionTracker& tracker = device->GetFrameCompletionTracker();
+	IGpuCompletionTracker& tracker = device->GetPrimaryCompletionTracker();
 	const u64 frame = tracker.GetCurrentMarker();
 	B3D_TEST_ASSERT(!tracker.IsMarkerComplete(frame))
 
@@ -588,7 +588,7 @@ void GpuAllocatorTestSuite::TestFrameTracker_AdvancesOnEndFrame()
 		GetRenderThread().PostCommand(fnTickFrame, "TestFrameTracker_AdvancesOnEndFrame::Tick", true);
 
 	device->WaitUntilIdle();
-	B3D_TEST_ASSERT(device->GetFrameCompletionTracker().IsMarkerComplete(indexBefore))
+	B3D_TEST_ASSERT(device->GetPrimaryCompletionTracker().IsMarkerComplete(indexBefore))
 }
 
 void GpuAllocatorTestSuite::TestUserCreatedFence_ExplicitSignal()

@@ -9,6 +9,7 @@
 #include "B3DPrerequisites.h"
 #include "B3DSamplerState.h"
 #include "B3DGpuTransferBufferHelper.h"
+#include "B3DGpuWorkContext.h"
 
 namespace b3d::render
 {
@@ -604,14 +605,24 @@ namespace b3d
 		 * Returns the device's primary completion tracker - to be used on the render thread, controlled via BeginFrame()/EndFrame(). 
 		 * Worker threads should use fence trackers, since concept of a frame is not as clearly defined for workers.
 		 */
-		IGpuCompletionTracker& GetFrameCompletionTracker() { return mPrimaryTracker; }
+		IGpuCompletionTracker& GetPrimaryCompletionTracker() { return mPrimaryTracker; }
 
 		/** Index of the frame currently being recorded. Monotonic; starts at 0. Incremented inside EndFrame. */
 		u64 GetCurrentFrameIndex() const { return mPrimaryTracker.GetCurrentMarker(); }
 
+		/**
+		 * Returns the device's render-thread-bound primary work context. All the device's existing
+		 * transient/transfer behavior forwards to it. Render thread only.
+		 *
+		 * TODO: Move the primary work context outside of the GpuDevice and have it be owned by Renderer instead. This also includes the primary completion tracker.
+		 */
+		GpuWorkContext& GetPrimaryContext();
+
 		/** @} */
 
 	protected:
+		GpuDevice();
+
 		/**
 		 * Explicit deleter for objects that derive from RenderProxy. By default render proxy objects provide a custom deleter that
 		 * ensure they always get deleted on the render thread. But this behaviour is not always wanted (i.e. if creating a GPU object
@@ -638,6 +649,10 @@ namespace b3d
 
 	private:
 		GpuFrameCompletionTracker mPrimaryTracker;
+
+		// Declared after mPrimaryTracker so it is constructed last and torn down first; borrows the
+		// tracker above. Render-thread-bound, persistent for the device lifetime.
+		GpuWorkContext mPrimaryContext;
 	};
 
 	/** @} */
