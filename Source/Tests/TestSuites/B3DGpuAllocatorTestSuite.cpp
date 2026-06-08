@@ -68,6 +68,8 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_SharedPoolRespectsBound)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_SharedPoolDrainsOnlyAfterMarkerComplete)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_SharedPoolForceDrainReturnsPages)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAllocatorIdentity_FreeRoutesByCarriedAllocator)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAllocatorIdentity_DefraggedAllocationFreesThroughCarriedAllocator)
 }
 
 namespace
@@ -2244,5 +2246,146 @@ void GpuAllocatorTestSuite::TestLinear_SharedPoolForceDrainReturnsPages()
 	// only the force-drained retired page made it back to the pool.
 	B3D_TEST_ASSERT(pool.GetSparePageCount() == 1)
 	B3D_TEST_ASSERT(backend.DestroyCount() == 1)
+}
+
+void GpuAllocatorTestSuite::TestAllocatorIdentity_FreeRoutesByCarriedAllocator()
+{
+	// 1A.2 made the allocation carry its own free handle: GpuResourceLocation::Allocator is an
+	// IGpuAllocator* stamped at TryAllocate. This test proves a caller can free purely through that
+	// carried base pointer — with no static knowledge of the concrete strategy — and the call
+	// dispatches to the right allocator: a TLSF free reclaims the slot, a linear free is a per-
+	// allocation no-op. Separate backends keep each allocator's byte/page accounting independent.
+	MockHeapBackend tlsfBackend;
+	MockHeapBackend linearBackend;
+	MockGpuCompletionTracker tracker;
+
+	// TLSF in ResourceLifecycle so FreeImmediate reclaims synchronously and used-bytes is observable
+	// without a frame-tracker dance.
+	TlsfAllocator::Configuration tlsfConfig = MakeDefaultTlsfConfig();
+	tlsfConfig.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
+	TlsfAllocator tlsfAllocator(&tlsfBackend, &tracker, tlsfConfig);
+
+	LinearAllocator linearAllocator(&linearBackend, &tracker, MakeDefaultLinearConfig());
+
+	MockLocation tlsfLocation;
+	B3D_TEST_ASSERT(tlsfAllocator.TryAllocate(2048, 64, tlsfLocation))
+
+	// Two linear allocations share one active page so the no-op free can be observed against a peer.
+	MockLocation linearFirst, linearSecond;
+	B3D_TEST_ASSERT(linearAllocator.TryAllocate(1024, 16, linearFirst))
+	B3D_TEST_ASSERT(linearAllocator.TryAllocate(1024, 16, linearSecond))
+	B3D_TEST_ASSERT(linearFirst.Heap == linearSecond.Heap)
+
+	// Identity: each location points back at the concrete allocator that produced it, upcast to the
+	// shared IGpuAllocator interface. The two carried handles are distinct.
+	B3D_TEST_ASSERT(tlsfLocation.Allocator == static_cast<IGpuAllocator*>(&tlsfAllocator))
+	B3D_TEST_ASSERT(linearFirst.Allocator == static_cast<IGpuAllocator*>(&linearAllocator))
+	B3D_TEST_ASSERT(linearSecond.Allocator == static_cast<IGpuAllocator*>(&linearAllocator))
+	B3D_TEST_ASSERT(tlsfLocation.Allocator != linearFirst.Allocator)
+
+	const u64 tlsfUsedBeforeFree = tlsfAllocator.GetUsedBytes();
+	B3D_TEST_ASSERT(tlsfUsedBeforeFree >= 2048)
+
+	// Free the TLSF slot through ONLY the carried base pointer — no static knowledge of the concrete
+	// type at the call site. Dispatch reaches the TLSF strategy and (ResourceLifecycle) reclaims it.
+	IGpuAllocator* tlsfHandle = tlsfLocation.Allocator;
+	tlsfHandle->FreeImmediate(tlsfLocation);
+	B3D_TEST_ASSERT(!tlsfLocation.IsValid())
+	B3D_TEST_ASSERT(tlsfAllocator.GetUsedBytes() == 0)
+
+	// Free one linear slot through its carried base pointer. Dispatch reaches the linear strategy,
+	// whose per-allocation FreeImmediate is a no-op: the shared page is not recycled or destroyed and
+	// the peer slot stays valid.
+	const u32 linearLivePagesBefore = linearAllocator.GetLivePageCount();
+	const u32 linearDestroyBefore = linearBackend.DestroyCount();
+	IGpuAllocator* linearHandle = linearFirst.Allocator;
+	linearHandle->FreeImmediate(linearFirst);
+	B3D_TEST_ASSERT(!linearFirst.IsValid())
+	B3D_TEST_ASSERT(linearSecond.IsValid())
+	B3D_TEST_ASSERT(linearAllocator.GetLivePageCount() == linearLivePagesBefore)
+	B3D_TEST_ASSERT(linearBackend.DestroyCount() == linearDestroyBefore)
+
+	// A subsequent linear allocation still bumps past the peer on the same page, confirming the no-op
+	// free left the active page untouched.
+	MockLocation linearThird;
+	B3D_TEST_ASSERT(linearAllocator.TryAllocate(1024, 16, linearThird))
+	B3D_TEST_ASSERT(linearThird.Heap == linearSecond.Heap)
+	B3D_TEST_ASSERT(linearThird.Offset >= linearSecond.Offset + linearSecond.Size)
+}
+
+void GpuAllocatorTestSuite::TestAllocatorIdentity_DefraggedAllocationFreesThroughCarriedAllocator()
+{
+	// After defragmentation relocates an allocation, the replacement Location the allocator supplies to
+	// MoveAllocation must itself carry the producing allocator (Location.Allocator), so a moved resource
+	// can still be freed through its (new) carried handle. Mirrors the multi-heap drain setup: 6 holders
+	// fill heap 0 then spill to heap 1, two heap-0 slots are vacated, and Defrag migrates the heap-1
+	// survivors down into heap 0.
+	MockHeapBackend backend;
+	MockGpuCompletionTracker tracker;
+
+	TlsfAllocator::Configuration configuration = MakeDefaultTlsfConfig();
+	configuration.InitialHeapSize = 64 * 1024;
+	configuration.MaxHeapSize = 64 * 1024;
+	configuration.GrowthFactor = 1;
+	configuration.MaxEmptyHeapCount = 0;
+	TlsfAllocator allocator(&backend, &tracker, configuration);
+
+	struct Holder { MockResource Resource; MockLocation Location; };
+	const u32 kAllocCount = 6;
+	const u64 kAllocSize = 16 * 1024;
+
+	Vector<TUnique<Holder>> holders;
+	for (u32 holderIndex = 0; holderIndex < kAllocCount; holderIndex++)
+	{
+		auto holder = B3DMakeUnique<Holder>();
+		holder->Resource.LocationPtr = &holder->Location;
+		B3D_TEST_ASSERT(allocator.TryAllocate(kAllocSize, 16, GpuResourceKind::Linear, &holder->Resource, holder->Location))
+		// Every fresh allocation carries the producing allocator.
+		B3D_TEST_ASSERT(holder->Location.Allocator == static_cast<IGpuAllocator*>(&allocator))
+		holders.push_back(std::move(holder));
+	}
+
+	B3D_TEST_ASSERT(allocator.GetHeapCount() == 2)
+	const u32 heap0Slot = holders[0]->Location.AllocatorData0;
+	const u32 heap1Slot = holders[4]->Location.AllocatorData0;
+	B3D_TEST_ASSERT(heap0Slot != heap1Slot)
+
+	// Vacate room in heap 0 so heap 1's survivors can migrate down.
+	tracker.AdvanceFrame();
+	allocator.Free(holders[0]->Location);
+	allocator.Free(holders[1]->Location);
+	tracker.MarkAllFramesComplete();
+	allocator.Flush(false);
+
+	const TlsfAllocator::DefragmentationStats stats = allocator.Defrag(NullCommandBuffer());
+	B3D_TEST_ASSERT(stats.MovesCompleted == 2)
+
+	// The two relocated survivors now live in heap 0, and their replacement locations still carry the
+	// same producing allocator — the relocation didn't orphan the free handle.
+	for (u32 holderIndex = 4; holderIndex < kAllocCount; holderIndex++)
+	{
+		B3D_TEST_ASSERT(holders[holderIndex]->Location.AllocatorData0 == heap0Slot)
+		B3D_TEST_ASSERT(holders[holderIndex]->Location.Allocator == static_cast<IGpuAllocator*>(&allocator))
+	}
+
+	// Drain the defrag-retired heap-1 source slots; with MaxEmptyHeapCount=0 the emptied heap 1 is released.
+	tracker.AdvanceFrame();
+	tracker.MarkAllFramesComplete();
+	allocator.Flush(false);
+	B3D_TEST_ASSERT(allocator.GetHeapCount() == 1)
+
+	// Free every still-live allocation (indices 2..5, including the two relocated by defrag) through ONLY
+	// its carried Location.Allocator handle, then drain. Routing through the carried pointer must reclaim
+	// every slot — used bytes returns to zero.
+	tracker.AdvanceFrame();
+	for (u32 holderIndex = 2; holderIndex < kAllocCount; holderIndex++)
+	{
+		MockLocation& location = holders[holderIndex]->Location;
+		B3D_TEST_ASSERT(location.IsValid())
+		location.Allocator->Free(location);
+	}
+	tracker.MarkAllFramesComplete();
+	allocator.Flush(false);
+	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
 }
 

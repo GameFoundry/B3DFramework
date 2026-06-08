@@ -196,5 +196,20 @@ namespace b3d
 
 		/** Force drain (destructor / blocking reclaim) returns a never-completed retired page to the shared pool rather than waiting on a marker that never signals. */
 		void TestLinear_SharedPoolForceDrainReturnsPages();
+
+		/**
+		 * An allocation carries its producing allocator as an IGpuAllocator* (stamped at TryAllocate).
+		 * A caller can free purely through that carried base handle — with no static knowledge of the
+		 * concrete strategy — and the call dispatches correctly: a TLSF free reclaims the slot, while a
+		 * linear free is a per-allocation no-op.
+		 */
+		void TestAllocatorIdentity_FreeRoutesByCarriedAllocator();
+
+		/**
+		 * After defragmentation relocates an allocation, the replacement Location the allocator hands to
+		 * MoveAllocation still carries the producing allocator, so the moved resource can be freed
+		 * through its (new) carried handle without orphaning the free path.
+		 */
+		void TestAllocatorIdentity_DefraggedAllocationFreesThroughCarriedAllocator();
 	};
 } // namespace b3d
