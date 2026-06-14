@@ -64,15 +64,15 @@ void RendererMaterialManager::DestroyOnRenderThread()
 	Vector<RendererMaterialData>& materials = GetMaterials();
 	for(u32 i = 0; i < materials.size(); i++)
 	{
-		materials[i].MetaData->Shader = nullptr;
+		render::RendererMaterialMetaData* metaData = materials[i].MetaData;
 
-		for(auto& entry : materials[i].MetaData->VariationInformation)
-		{
-			if(entry.RendererMaterialInstance != nullptr)
-				B3DDelete(entry.RendererMaterialInstance);
-		}
+		Lock stateLock(metaData->StateMutex);
 
-		materials[i].MetaData->VariationInformation.Clear();
+		metaData->Shader = nullptr;
+		metaData->VariationInformation.Clear();
+		metaData->VariationParameterSet.Clear();
+		metaData->ShaderState = render::RendererMaterialShaderState::NotInitialized;
+		metaData->ShaderInitializeOperation = TAsyncOp<TShared<render::Shader>>(AsyncOpEmpty());
 	}
 }
 

@@ -26,7 +26,19 @@ namespace b3d
 	 */
 
 	/**
-	 * Owns various GPU state for work on a single thread/fiber, and is used for submitting GPU work from that 
+	 * Base interface for objects owned by a GpuWorkContext and scoped to its lifetime. Registered via
+	 * GpuWorkContext::AddLocal()/GetOrCreateLocal() and destroyed with the context, on the context's owning
+	 * thread - after the context's GPU work has drained, but before the context's pools are torn down, so
+	 * locals may release pool-allocated resources (e.g. parameter sets) from their destructors.
+	 */
+	class B3D_EXPORT IGpuWorkContextLocal
+	{
+	public:
+		virtual ~IGpuWorkContextLocal() = default;
+	};
+
+	/**
+	 * Owns various GPU state for work on a single thread/fiber, and is used for submitting GPU work from that
 	 * thread/fiber. Backed by a GpuDevice; one device can have multiple contexts active at a time.
 	 * 
 	 * Provides parameter set and command buffer pools, transfer command buffers, transient memory allocations 
@@ -123,6 +135,35 @@ namespace b3d
 		GpuParameterSetPool& GetParameterSetPool() { return *mParameterSetPool; }
 
 		/**
+		 * Returns the context-local object registered under @p key, or null if none is. Context-local objects
+		 * let systems cache per-context state (e.g. renderer material instances) with the context's lifetime.
+		 * Must be called from the owning thread.
+		 */
+		IGpuWorkContextLocal* GetLocal(const void* key) const;
+
+		/**
+		 * Registers @p object as a context-local object under @p key, transferring its ownership to the
+		 * context. No object must already be registered under the key. The object is destroyed with the
+		 * context, on the owning thread, after the context's GPU work drains but before its pools are torn
+		 * down. Must be called from the owning thread.
+		 */
+		IGpuWorkContextLocal& AddLocal(const void* key, TUnique<IGpuWorkContextLocal> object);
+
+		/**
+		 * Returns the context-local object registered under @p key, creating it on first use via @p factory
+		 * (a callable returning TUnique<IGpuWorkContextLocal>). The object is cast to @p T, so a key must
+		 * consistently map to a single type. See AddLocal().
+		 */
+		template <class T, class FactoryType>
+		T& GetOrCreateLocal(const void* key, FactoryType&& factory)
+		{
+			if (IGpuWorkContextLocal* const existing = GetLocal(key))
+				return static_cast<T&>(*existing);
+
+			return static_cast<T&>(AddLocal(key, factory()));
+		}
+
+		/**
 		 * Returns a command buffer for transfer (copy/upload) operations, lazily creating the context's
 		 * transfer pool ring and the active command buffer if needed. The returned buffer is submitted by
 		 * SubmitTransferCommandBuffers(), or recycled at the next AdvanceFrame().
@@ -206,6 +247,13 @@ namespace b3d
 
 		/** Pool for GPU parameter sets allocated through this context. */
 		TUnique<GpuParameterSetPool> mParameterSetPool;
+
+		/**
+		 * Context-local objects, keyed by their registering system. Declared after mParameterSetPool (and
+		 * explicitly cleared first in the destructor) so locals are destroyed before the pools they may hold
+		 * resources from.
+		 */
+		Map<const void*, TUnique<IGpuWorkContextLocal>> mLocalObjects;
 
 		// Transfer command-buffers
 		TUnique<render::GpuCommandBufferPoolRing> mTransferPoolRing;

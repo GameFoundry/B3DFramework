@@ -93,6 +93,27 @@ namespace b3d
 		/** Creates a new shader variation with the specified parameters. */
 		ShaderVariationParameters(const TInlineArray<ShaderVariationParameter, 4>& params);
 
+		// mIndex is a std::atomic (it is read/written from multiple threads once renderer materials are used off
+		// the render thread), which deletes the implicit copy operations. These restore value-copy semantics,
+		// preserving the base classes' own copy behaviour (e.g. IScriptExportable's script-wrapper handling).
+		ShaderVariationParameters(const ShaderVariationParameters& other)
+			: IReflectable(other), IScriptExportable(other), mParams(other.mParams)
+			, mIndex(other.mIndex.load(std::memory_order_relaxed))
+		{}
+
+		ShaderVariationParameters& operator=(const ShaderVariationParameters& other)
+		{
+			if(this != &other)
+			{
+				IReflectable::operator=(other);
+				IScriptExportable::operator=(other);
+				mParams = other.mParams;
+				mIndex.store(other.mIndex.load(std::memory_order_relaxed), std::memory_order_relaxed);
+			}
+
+			return *this;
+		}
+
 		/**
 		 * Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be
 		 * found.
@@ -203,10 +224,10 @@ namespace b3d
 		/**
 		 * Returns a unique index of this variation, relative to all other variations registered in ShaderVariations object.
 		 */
-		u32 GetIndex() const { return mIndex; }
+		u32 GetIndex() const { return mIndex.load(std::memory_order_relaxed); }
 
 		/** Assigns a unique index to the variation that can later be used for quick lookup. */
-		void SetIndex(u32 idx) const { mIndex = idx; }
+		void SetIndex(u32 idx) const { mIndex.store(idx, std::memory_order_relaxed); }
 
 		/** @} */
 	private:
@@ -216,7 +237,7 @@ namespace b3d
 		ShaderVariationParameter* FindParameter(const StringID& name);
 
 		TInlineArray<ShaderVariationParameter, 4> mParams;
-		mutable u32 mIndex = -1;
+		mutable std::atomic<u32> mIndex{ ~0u };
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

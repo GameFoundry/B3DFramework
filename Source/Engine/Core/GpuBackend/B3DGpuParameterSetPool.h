@@ -58,7 +58,7 @@ namespace b3d
 	 * - Transient: Used for per-frame allocations. All parameter sets allocated from the pool are deallocated at once.
 	 * - Persistent: Used for persistent (multi-frame) allocations. Individual sets are deallocated as the go out of scope.
 	 *
-	 * Not thread safe. All GpuParameterSets allocated from this pool must be used on the same thread.
+	 * @note	Not thread safe. The pool, and the parameter sets allocated from it, are used on a single thread.
 	 */
 	class B3D_EXPORT GpuParameterSetPool
 	{

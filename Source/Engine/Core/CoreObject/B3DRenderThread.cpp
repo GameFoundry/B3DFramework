@@ -83,6 +83,16 @@ void RenderThread::PostCommand(std::function<void()>&& commandCallback, const ch
 	mCommandQueue.PostCommand(std::move(commandCallback), debugName, waitUntilComplete, extraDebugInformation);
 }
 
+void RenderThread::PostTask(SchedulerTask&& task)
+{
+	// Assigned when the command pump starts; the render thread is running by the time anything posts to it.
+	const TShared<SchedulerThread>& schedulerThread = mCommandQueue.GetSchedulerThread();
+	if (!B3D_ENSURE(schedulerThread != nullptr))
+		return;
+
+	schedulerThread->Post(std::move(task));
+}
+
 namespace b3d
 {
 RenderThread& GetRenderThread()

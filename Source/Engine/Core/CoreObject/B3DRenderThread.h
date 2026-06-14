@@ -42,6 +42,16 @@ namespace b3d
 		void PostCommand(std::function<void()>&& commandCallback, const char* debugName = "Render thread command", bool waitUntilComplete = false, const String& extraDebugInformation = StringUtility::kBlank);
 
 		/**
+		 * Queues a task for execution on the render thread's fiber scheduler. Unlike PostCommand(), the task
+		 * runs even while the render thread is blocked inside a command (e.g. yieldably waiting on an async
+		 * operation), because it is executed directly by the scheduler rather than the command pump. Use for
+		 * work that must run on the render thread and that blocked render-thread code may be waiting on.
+		 *
+		 * @note	Thread safe.
+		 */
+		void PostTask(SchedulerTask&& task);
+
+		/**
 		 * @name Internal
 		 * @{
 		 */
