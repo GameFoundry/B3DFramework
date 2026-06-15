@@ -30,8 +30,11 @@ SpriteImageAllocation::~SpriteImageAllocation()
 	owner->DeallocateImage(this);
 }
 
-template class TSpriteImageAllocation<true>;
-template class TSpriteImageAllocation<false>;
+namespace b3d
+{
+	template class TSpriteImageAllocation<true>;
+	template class TSpriteImageAllocation<false>;
+} // namespace b3d
 
 namespace b3d
 {
@@ -143,8 +146,11 @@ Size2UI TSpriteImage<IsRenderProxy>::GetAnimationFrameSize() const
 		size.Height / Math::Max(1U, mInformation.Animation.RowCount));
 }
 
-template class TSpriteImage<true>;
-template class TSpriteImage<false>;
+namespace b3d
+{
+	template class TSpriteImage<true>;
+	template class TSpriteImage<false>;
+} // namespace b3d
 
 namespace b3d
 {

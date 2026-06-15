@@ -172,8 +172,12 @@ TAsyncOp<bool> TVariation<IsRenderProxy>::Compile()
 	return operation;
 }
 
-template class TVariation<false>;
-template class TVariation<true>;
+// Explicit instantiations must be declared within the template's enclosing namespace
+namespace b3d
+{
+	template class TVariation<false>;
+	template class TVariation<true>;
+} // namespace b3d
 
 Variation::Variation(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData)
 	: TVariation(owner, language, variationParameters, precompiledData)

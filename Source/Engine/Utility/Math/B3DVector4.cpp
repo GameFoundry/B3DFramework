@@ -11,5 +11,8 @@ bool TVector4<T>::IsNaN() const
 	return Math::IsNaN(X) || Math::IsNaN(Y) || Math::IsNaN(Z) || Math::IsNaN(W);
 }
 
-template struct B3D_EXPORT TVector4<float>;
-template struct B3D_EXPORT TVector4<double>;
+namespace b3d
+{
+	template struct B3D_EXPORT TVector4<float>;
+	template struct B3D_EXPORT TVector4<double>;
+} // namespace b3d

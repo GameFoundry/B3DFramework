@@ -387,6 +387,7 @@ namespace b3d
 	class GpuPipelineParameterLayout;
 	struct FontBitmapInformation;
 	class GameObject;
+	class GameObjectCollection;
 	class GpuResourceData;
 	struct RenderOperation;
 	class RenderQueue;

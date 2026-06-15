@@ -104,5 +104,8 @@ void TBounds<T>::TransformAffine(const TTransform<T>& transform)
 	mSphereRadius *= Math::Max(Math::Abs(scale.X), Math::Max(Math::Abs(scale.Y), Math::Abs(scale.Z)));
 }
 
-template struct B3D_EXPORT TBounds<float>;
-template struct B3D_EXPORT TBounds<double>;
+namespace b3d
+{
+	template struct B3D_EXPORT TBounds<float>;
+	template struct B3D_EXPORT TBounds<double>;
+} // namespace b3d

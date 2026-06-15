@@ -82,10 +82,8 @@ void Path::Assign(const char* pathStr, u32 characterCount, PathType type)
 	default:
 #if B3D_PLATFORM_WIN32
 		ParseWindows(pathStr, characterCount);
-#elif B3D_PLATFORM_MACOS || B3D_PLATFORM_LINUX
-		parseUnix(pathStr, characterCount);
 #else
-		static_assert(false, "Unsupported platform for path.");
+		ParseUnix(pathStr, characterCount);
 #endif
 		break;
 	}
@@ -109,10 +107,8 @@ String Path::ToString(PathType type) const
 	default:
 #if B3D_PLATFORM_WIN32
 		return BuildWindows();
-#elif B3D_PLATFORM_MACOS || B3D_PLATFORM_LINUX
-		return buildUnix();
 #else
-		static_assert(false, "Unsupported platform for path.");
+		return BuildUnix();
 #endif
 		break;
 	}

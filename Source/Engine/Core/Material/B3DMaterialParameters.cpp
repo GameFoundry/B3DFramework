@@ -787,8 +787,11 @@ void TMaterialParameters<IsRenderProxy>::GetDefaultSamplerState(const ParamData&
 	value = mDefaultSamplerStateParams[param.Index];
 }
 
-template class TMaterialParameters<true>;
-template class TMaterialParameters<false>;
+namespace b3d
+{
+	template class TMaterialParameters<true>;
+	template class TMaterialParameters<false>;
+} // namespace b3d
 
 namespace b3d
 {

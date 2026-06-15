@@ -16,7 +16,7 @@ namespace b3d
 	 * format.
 	 */
 	template<typename T>
-	struct B3D_EXPORT TMatrix3
+	struct TMatrix3
 	{
 	private:
 		struct EulerAngleOrderData
@@ -287,10 +287,10 @@ namespace b3d
 		T m[3][3];
 	};
 
-	template<> const TMatrix3<float> TMatrix3<float>::kZero{kZeroTag};
-	template<> const TMatrix3<double> TMatrix3<double>::kZero{kZeroTag};
-	template<> const TMatrix3<float> TMatrix3<float>::kIdentity{kIdentityTag};
-	template<> const TMatrix3<double> TMatrix3<double>::kIdentity{kIdentityTag};
+	template<> inline const TMatrix3<float> TMatrix3<float>::kZero{kZeroTag};
+	template<> inline const TMatrix3<double> TMatrix3<double>::kZero{kZeroTag};
+	template<> inline const TMatrix3<float> TMatrix3<float>::kIdentity{kIdentityTag};
+	template<> inline const TMatrix3<double> TMatrix3<double>::kIdentity{kIdentityTag};
 
 	/** @} */
 } // namespace b3d

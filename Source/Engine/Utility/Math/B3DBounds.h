@@ -17,7 +17,7 @@ namespace b3d
 
 	/** Bounds represented by an axis aligned box and a sphere. */
 	template<typename T>
-	struct B3D_EXPORT TBounds
+	struct TBounds
 	{
 		constexpr TBounds() = default;
 
@@ -79,14 +79,14 @@ namespace b3d
 		T mSphereRadius = (T)0.0;
 	};
 
-	template<> const TBounds<float> TBounds<float>::kEmpty = TBounds(kZeroTag);
-	template<> const TBounds<double> TBounds<double>::kEmpty = TBounds(kZeroTag);
+	template<> inline const TBounds<float> TBounds<float>::kEmpty = TBounds<float>(kZeroTag);
+	template<> inline const TBounds<double> TBounds<double>::kEmpty = TBounds<double>(kZeroTag);
 
-	template<> const TBounds<float> TBounds<float>::kUnit = TBounds(TVector3<float>::kZero, TVector3<float>::kOne / 2.0f, 1.0f);
-	template<> const TBounds<double> TBounds<double>::kUnit = TBounds(TVector3<double>::kZero, TVector3<double>::kOne / 2.0, 1.0);
+	template<> inline const TBounds<float> TBounds<float>::kUnit = TBounds(TVector3<float>::kZero, TVector3<float>::kOne / 2.0f, 1.0f);
+	template<> inline const TBounds<double> TBounds<double>::kUnit = TBounds(TVector3<double>::kZero, TVector3<double>::kOne / 2.0, 1.0);
 
-	template<> const TBounds<float> TBounds<float>::kInfinite = TBounds(TVector3<float>::kZero, TVector3<float>::kInfinite, std::numeric_limits<float>::infinity());
-	template<> const TBounds<double> TBounds<double>::kInfinite = TBounds(TVector3<double>::kZero, TVector3<double>::kInfinite, std::numeric_limits<double>::infinity());
+	template<> inline const TBounds<float> TBounds<float>::kInfinite = TBounds(TVector3<float>::kZero, TVector3<float>::kInfinite, std::numeric_limits<float>::infinity());
+	template<> inline const TBounds<double> TBounds<double>::kInfinite = TBounds(TVector3<double>::kZero, TVector3<double>::kInfinite, std::numeric_limits<double>::infinity());
 
 	/** @} */
 } // namespace b3d

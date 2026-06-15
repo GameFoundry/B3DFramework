@@ -506,8 +506,11 @@ Vector<TShared<typename TShader<IsRenderProxy>::VariationType>> TShader<IsRender
 	return output;
 }
 
-template class TShader<false>;
-template class TShader<true>;
+namespace b3d
+{
+	template class TShader<false>;
+	template class TShader<true>;
+} // namespace b3d
 
 Shader::Shader(const String& name, const ShaderCreateInformation& createInformation, u32 id)
 	: Resource(true, name), TShader(createInformation, id)

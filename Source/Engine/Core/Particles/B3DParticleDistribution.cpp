@@ -91,8 +91,11 @@ LookupTable TColorDistribution<T>::ToLookupTable(u32 numSamples, bool ignoreRang
 	return LookupTable(std::move(values), minT, maxT, sizeof(Color) / sizeof(float));
 }
 
-template struct B3D_EXPORT TColorDistribution<ColorGradient>;
-template struct B3D_EXPORT TColorDistribution<ColorGradientHDR>;
+namespace b3d
+{
+	template struct B3D_EXPORT TColorDistribution<ColorGradient>;
+	template struct B3D_EXPORT TColorDistribution<ColorGradientHDR>;
+} // namespace b3d
 
 template <class T>
 LookupTable TDistribution<T>::ToLookupTable(u32 numSamples, bool ignoreRange) const
@@ -153,6 +156,9 @@ LookupTable TDistribution<T>::ToLookupTable(u32 numSamples, bool ignoreRange) co
 	return LookupTable(std::move(values), minT, maxT, sizeof(T) / sizeof(float));
 }
 
-template struct B3D_EXPORT TDistribution<float>;
-template struct B3D_EXPORT TDistribution<Vector3>;
-template struct B3D_EXPORT TDistribution<Vector2>;
+namespace b3d
+{
+	template struct B3D_EXPORT TDistribution<float>;
+	template struct B3D_EXPORT TDistribution<Vector3>;
+	template struct B3D_EXPORT TDistribution<Vector2>;
+} // namespace b3d

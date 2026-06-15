@@ -4,7 +4,10 @@
 
 using namespace b3d;
 
-template struct B3D_EXPORT TVector2<float>;
-template struct B3D_EXPORT TVector2<double>;
-template struct B3D_EXPORT TVector2<i32>;
-template struct B3D_EXPORT TVector2<u32>;
+namespace b3d
+{
+	template struct B3D_EXPORT TVector2<float>;
+	template struct B3D_EXPORT TVector2<double>;
+	template struct B3D_EXPORT TVector2<i32>;
+	template struct B3D_EXPORT TVector2<u32>;
+} // namespace b3d

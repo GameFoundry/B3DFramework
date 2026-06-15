@@ -28,45 +28,45 @@ namespace b3d
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TUnitValue<i32, PhysicalPixel>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TUnitValue<float, PhysicalPixel>;
 
-	template<> const TVector2<TUnitValue<i32, LogicalPixel>> TVector2<TUnitValue<i32, LogicalPixel>>::kZero{kZeroTag};
-	template<> const TVector2<TUnitValue<float, LogicalPixel>> TVector2<TUnitValue<float, LogicalPixel>>::kZero{kZeroTag};
-	template<> const TVector2<TUnitValue<i32, PhysicalPixel>> TVector2<TUnitValue<i32, PhysicalPixel>>::kZero{kZeroTag};
-	template<> const TVector2<TUnitValue<float, PhysicalPixel>> TVector2<TUnitValue<float, PhysicalPixel>>::kZero{kZeroTag};
+	template<> inline const TVector2<TUnitValue<i32, LogicalPixel>> TVector2<TUnitValue<i32, LogicalPixel>>::kZero{kZeroTag};
+	template<> inline const TVector2<TUnitValue<float, LogicalPixel>> TVector2<TUnitValue<float, LogicalPixel>>::kZero{kZeroTag};
+	template<> inline const TVector2<TUnitValue<i32, PhysicalPixel>> TVector2<TUnitValue<i32, PhysicalPixel>>::kZero{kZeroTag};
+	template<> inline const TVector2<TUnitValue<float, PhysicalPixel>> TVector2<TUnitValue<float, PhysicalPixel>>::kZero{kZeroTag};
 
-	template<> const TVector2<TUnitValue<i32, LogicalPixel>> TVector2<TUnitValue<i32, LogicalPixel>>::kOne{1, 1};
-	template<> const TVector2<TUnitValue<float, LogicalPixel>> TVector2<TUnitValue<float, LogicalPixel>>::kOne{1.0f, 1.0f};
-	template<> const TVector2<TUnitValue<i32, PhysicalPixel>> TVector2<TUnitValue<i32, PhysicalPixel>>::kOne{1, 1};
-	template<> const TVector2<TUnitValue<float, PhysicalPixel>> TVector2<TUnitValue<float, PhysicalPixel>>::kOne{1.0f, 1.0f};
+	template<> inline const TVector2<TUnitValue<i32, LogicalPixel>> TVector2<TUnitValue<i32, LogicalPixel>>::kOne{1, 1};
+	template<> inline const TVector2<TUnitValue<float, LogicalPixel>> TVector2<TUnitValue<float, LogicalPixel>>::kOne{1.0f, 1.0f};
+	template<> inline const TVector2<TUnitValue<i32, PhysicalPixel>> TVector2<TUnitValue<i32, PhysicalPixel>>::kOne{1, 1};
+	template<> inline const TVector2<TUnitValue<float, PhysicalPixel>> TVector2<TUnitValue<float, PhysicalPixel>>::kOne{1.0f, 1.0f};
 
-	template<> const TVector2<TUnitValue<i32, LogicalPixel>> TVector2<TUnitValue<i32, LogicalPixel>>::kUnitX{1, 0};
-	template<> const TVector2<TUnitValue<float, LogicalPixel>> TVector2<TUnitValue<float, LogicalPixel>>::kUnitX{1.0f, 0.0f};
-	template<> const TVector2<TUnitValue<i32, PhysicalPixel>> TVector2<TUnitValue<i32, PhysicalPixel>>::kUnitX{1, 0};
-	template<> const TVector2<TUnitValue<float, PhysicalPixel>> TVector2<TUnitValue<float, PhysicalPixel>>::kUnitX{1.0f, 0.0f};
+	template<> inline const TVector2<TUnitValue<i32, LogicalPixel>> TVector2<TUnitValue<i32, LogicalPixel>>::kUnitX{1, 0};
+	template<> inline const TVector2<TUnitValue<float, LogicalPixel>> TVector2<TUnitValue<float, LogicalPixel>>::kUnitX{1.0f, 0.0f};
+	template<> inline const TVector2<TUnitValue<i32, PhysicalPixel>> TVector2<TUnitValue<i32, PhysicalPixel>>::kUnitX{1, 0};
+	template<> inline const TVector2<TUnitValue<float, PhysicalPixel>> TVector2<TUnitValue<float, PhysicalPixel>>::kUnitX{1.0f, 0.0f};
 
-	template<> const TVector2<TUnitValue<i32, LogicalPixel>> TVector2<TUnitValue<i32, LogicalPixel>>::kUnitY{0, 1};
-	template<> const TVector2<TUnitValue<float, LogicalPixel>> TVector2<TUnitValue<float, LogicalPixel>>::kUnitY{0.0f, 1.0f};
-	template<> const TVector2<TUnitValue<i32, PhysicalPixel>> TVector2<TUnitValue<i32, PhysicalPixel>>::kUnitY{0, 1};
-	template<> const TVector2<TUnitValue<float, PhysicalPixel>> TVector2<TUnitValue<float, PhysicalPixel>>::kUnitY{0.0f, 1.0f};
+	template<> inline const TVector2<TUnitValue<i32, LogicalPixel>> TVector2<TUnitValue<i32, LogicalPixel>>::kUnitY{0, 1};
+	template<> inline const TVector2<TUnitValue<float, LogicalPixel>> TVector2<TUnitValue<float, LogicalPixel>>::kUnitY{0.0f, 1.0f};
+	template<> inline const TVector2<TUnitValue<i32, PhysicalPixel>> TVector2<TUnitValue<i32, PhysicalPixel>>::kUnitY{0, 1};
+	template<> inline const TVector2<TUnitValue<float, PhysicalPixel>> TVector2<TUnitValue<float, PhysicalPixel>>::kUnitY{0.0f, 1.0f};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TVector2<TUnitValue<i32, LogicalPixel>>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TVector2<TUnitValue<float, LogicalPixel>>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TVector2<TUnitValue<i32, PhysicalPixel>>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TVector2<TUnitValue<float, PhysicalPixel>>;
 	
-	template<> const TSize2<TUnitValue<i32, LogicalPixel>> TSize2<TUnitValue<i32, LogicalPixel>>::kZero{kZeroTag};
-	template<> const TSize2<TUnitValue<float, LogicalPixel>> TSize2<TUnitValue<float, LogicalPixel>>::kZero{kZeroTag};
-	template<> const TSize2<TUnitValue<i32, PhysicalPixel>> TSize2<TUnitValue<i32, PhysicalPixel>>::kZero{kZeroTag};
-	template<> const TSize2<TUnitValue<float, PhysicalPixel>> TSize2<TUnitValue<float, PhysicalPixel>>::kZero{kZeroTag};
+	template<> inline const TSize2<TUnitValue<i32, LogicalPixel>> TSize2<TUnitValue<i32, LogicalPixel>>::kZero{kZeroTag};
+	template<> inline const TSize2<TUnitValue<float, LogicalPixel>> TSize2<TUnitValue<float, LogicalPixel>>::kZero{kZeroTag};
+	template<> inline const TSize2<TUnitValue<i32, PhysicalPixel>> TSize2<TUnitValue<i32, PhysicalPixel>>::kZero{kZeroTag};
+	template<> inline const TSize2<TUnitValue<float, PhysicalPixel>> TSize2<TUnitValue<float, PhysicalPixel>>::kZero{kZeroTag};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TSize2<TUnitValue<i32, LogicalPixel>>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TSize2<TUnitValue<float, LogicalPixel>>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TSize2<TUnitValue<i32, PhysicalPixel>>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TSize2<TUnitValue<float, PhysicalPixel>>;
 
-	template<> const TArea2<TUnitValue<i32, LogicalPixel>> TArea2<TUnitValue<i32, LogicalPixel>>::kEmpty;
-	template<> const TArea2<TUnitValue<float, LogicalPixel>> TArea2<TUnitValue<float, LogicalPixel>>::kEmpty;
-	template<> const TArea2<TUnitValue<i32, PhysicalPixel>> TArea2<TUnitValue<i32, PhysicalPixel>>::kEmpty;
-	template<> const TArea2<TUnitValue<float, PhysicalPixel>> TArea2<TUnitValue<float, PhysicalPixel>>::kEmpty;
+	template<> inline const TArea2<TUnitValue<i32, LogicalPixel>> TArea2<TUnitValue<i32, LogicalPixel>>::kEmpty{};
+	template<> inline const TArea2<TUnitValue<float, LogicalPixel>> TArea2<TUnitValue<float, LogicalPixel>>::kEmpty{};
+	template<> inline const TArea2<TUnitValue<i32, PhysicalPixel>> TArea2<TUnitValue<i32, PhysicalPixel>>::kEmpty{};
+	template<> inline const TArea2<TUnitValue<float, PhysicalPixel>> TArea2<TUnitValue<float, PhysicalPixel>>::kEmpty{};
 
 	using GUIPhysicalUnit = TUnitValue<i32, PhysicalPixel>;
 	using GUIPhysicalUnitF = TUnitValue<float, PhysicalPixel>;

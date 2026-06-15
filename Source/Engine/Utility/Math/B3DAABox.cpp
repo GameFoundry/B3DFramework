@@ -485,5 +485,8 @@ bool TAABox<T>::operator!=(const TAABox<T>& rhs) const
 	return !(*this == rhs);
 }
 
-template struct B3D_EXPORT TAABox<float>;
-template struct B3D_EXPORT TAABox<double>;
+namespace b3d
+{
+	template struct B3D_EXPORT TAABox<float>;
+	template struct B3D_EXPORT TAABox<double>;
+} // namespace b3d

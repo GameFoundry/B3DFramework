@@ -1199,8 +1199,11 @@ bool TAnimationCurve<T>::operator==(const TAnimationCurve<T>& rhs) const
 	return mKeyframes == rhs.mKeyframes;
 }
 
-template class TAnimationCurve<Vector3>;
-template class TAnimationCurve<Vector2>;
-template class TAnimationCurve<Quaternion>;
-template class TAnimationCurve<float>;
-template class TAnimationCurve<i32>;
+namespace b3d
+{
+	template class TAnimationCurve<Vector3>;
+	template class TAnimationCurve<Vector2>;
+	template class TAnimationCurve<Quaternion>;
+	template class TAnimationCurve<float>;
+	template class TAnimationCurve<i32>;
+} // namespace b3d

@@ -35,10 +35,13 @@ static u32 CalculateUnalignedGpuBufferSize(const GpuBufferInformation& informati
 }
 
 // Explicit template instantiations
-template class TGpuBufferSuballocation<false>;
-template class TGpuBufferSuballocation<true>;
-template class TGpuBufferMappedScope<false>;
-template class TGpuBufferMappedScope<true>;
+namespace b3d
+{
+	template class TGpuBufferSuballocation<false>;
+	template class TGpuBufferSuballocation<true>;
+	template class TGpuBufferMappedScope<false>;
+	template class TGpuBufferMappedScope<true>;
+} // namespace b3d
 
 GpuBuffer::GpuBuffer(const GpuBufferCreateInformation& createInformation)
 	: mInformation(createInformation)

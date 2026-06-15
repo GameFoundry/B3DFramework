@@ -162,5 +162,8 @@ void TTransform<T>::SetForward(const TVector3<T>& forwardDir)
 	SetRotation(currentRotation);
 }
 
-template class B3D_EXPORT TTransform<float>;
-template class B3D_EXPORT TTransform<double>;
+namespace b3d
+{
+	template class B3D_EXPORT TTransform<float>;
+	template class B3D_EXPORT TTransform<double>;
+} // namespace b3d

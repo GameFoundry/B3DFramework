@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
-#include "B3DShaderCompiler.h"
+#include "Material/B3DShaderCompiler.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Reflection/B3DRTTIPlain.h"
 #include "RTTI/B3DStringRTTI.h"

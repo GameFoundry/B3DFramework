@@ -526,46 +526,49 @@ void TMaterial<IsRenderProxy>::ReportIfNotInitialized() const
 	B3D_ENSURE_LOG(!mVariations.empty(), "Shader does not contain a supported variation.");
 }
 
-template class TMaterial<false>;
-template class TMaterial<true>;
+namespace b3d
+{
+	template class TMaterial<false>;
+	template class TMaterial<true>;
 
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<float, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<int, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Color, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector2, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector3, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector4, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector2I, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector3I, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector4I, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2x3, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2x4, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3x2, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3x4, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4x2, false>&) const;
-template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4x3, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<float, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<int, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Color, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector2, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector3, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector4, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector2I, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector3I, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Vector4I, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2x3, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2x4, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3x2, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3x4, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4x2, false>&) const;
+	template B3D_EXPORT void TMaterial<false>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4x3, false>&) const;
 
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<float, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<int, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Color, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector2, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector3, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector4, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector2I, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector3I, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector4I, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2x3, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2x4, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3x2, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3x4, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4x2, true>&) const;
-template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4x3, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<float, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<int, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Color, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector2, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector3, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector4, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector2I, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector3I, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Vector4I, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2x3, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix2x4, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3x2, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix3x4, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4x2, true>&) const;
+	template B3D_EXPORT void TMaterial<true>::GetParam(const String&, TMaterialParameterPrimitive<Matrix4x3, true>&) const;
+} // namespace b3d
 
 Material::Material()
 	: mLoadFlags(Load_None)

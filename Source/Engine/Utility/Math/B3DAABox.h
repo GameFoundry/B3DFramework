@@ -148,13 +148,13 @@ namespace b3d
 		static const u32 kCubeIndices[36];
 	};
 
-	template<> const TAABox<float> TAABox<float>::kEmpty = TAABox(TVector3<float>(0.0f, 0.0f, 0.0f), TVector3<float>(0.0f, 0.0f, 0.0f));
-	template<> const TAABox<double> TAABox<double>::kEmpty = TAABox(TVector3<double>(0.0, 0.0, 0.0), TVector3<double>(0.0, 0.0, 0.0));
+	template<> inline const TAABox<float> TAABox<float>::kEmpty = TAABox(TVector3<float>(0.0f, 0.0f, 0.0f), TVector3<float>(0.0f, 0.0f, 0.0f));
+	template<> inline const TAABox<double> TAABox<double>::kEmpty = TAABox(TVector3<double>(0.0, 0.0, 0.0), TVector3<double>(0.0, 0.0, 0.0));
 
-	template<> const TAABox<float> TAABox<float>::kUnit = TAABox(TVector3<float>(-0.5f, -0.5f, -0.5f), TVector3<float>(0.5f, 0.5f, 0.5f));
-	template<> const TAABox<double> TAABox<double>::kUnit = TAABox(TVector3<double>(-0.5, -0.5, -0.5), TVector3<double>(0.5, 0.5, 0.5));
+	template<> inline const TAABox<float> TAABox<float>::kUnit = TAABox(TVector3<float>(-0.5f, -0.5f, -0.5f), TVector3<float>(0.5f, 0.5f, 0.5f));
+	template<> inline const TAABox<double> TAABox<double>::kUnit = TAABox(TVector3<double>(-0.5, -0.5, -0.5), TVector3<double>(0.5, 0.5, 0.5));
 
-	template<> const TAABox<float> TAABox<float>::kInfinite = TAABox(
+	template<> inline const TAABox<float> TAABox<float>::kInfinite = TAABox(
 		TVector3<float>(
 			std::numeric_limits<float>::infinity(),
 			std::numeric_limits<float>::infinity(),
@@ -164,7 +164,7 @@ namespace b3d
 			-std::numeric_limits<float>::infinity(),
 			-std::numeric_limits<float>::infinity()));
 
-	template<> const TAABox<double> TAABox<double>::kInfinite = TAABox(
+	template<> inline const TAABox<double> TAABox<double>::kInfinite = TAABox(
 		TVector3<double>(
 			std::numeric_limits<double>::infinity(),
 			std::numeric_limits<double>::infinity(),
@@ -174,7 +174,7 @@ namespace b3d
 			-std::numeric_limits<double>::infinity(),
 			-std::numeric_limits<double>::infinity()));
 
-	template<> const u32 TAABox<float>::kCubeIndices[36] = {
+	template<> inline const u32 TAABox<float>::kCubeIndices[36] = {
 		// Near
 		NearLeftBottom, NearLeftTop, NearRightTop,
 		NearLeftBottom, NearRightTop, NearRightBottom,
@@ -200,7 +200,7 @@ namespace b3d
 		NearLeftBottom, FarRightBottom, FarLeftBottom
 	};
 
-	template<> const u32 TAABox<double>::kCubeIndices[36] = {
+	template<> inline const u32 TAABox<double>::kCubeIndices[36] = {
 		// Near
 		NearLeftBottom, NearLeftTop, NearRightTop,
 		NearLeftBottom, NearRightTop, NearRightBottom,

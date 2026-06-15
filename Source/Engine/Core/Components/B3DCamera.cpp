@@ -696,11 +696,14 @@ template <bool IsRenderProxy>
 void TCamera<IsRenderProxy>::MarkRenderProxyDataDirty(ComponentDirtyFlag flag)
 {
 	if constexpr(!IsRenderProxy)
-		CoreObject::MarkRenderProxyDataDirty((u32)flag);
+		Super::MarkRenderProxyDataDirty((u32)flag);
 }
 
-template class TCamera<false>;
-template class TCamera<true>;
+namespace b3d
+{
+	template class TCamera<false>;
+	template class TCamera<true>;
+} // namespace b3d
 
 namespace b3d
 {

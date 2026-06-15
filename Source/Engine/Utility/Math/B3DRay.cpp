@@ -135,5 +135,8 @@ std::pair<bool, T> TRay<T>::Intersects(const TVector3<T>& a, const TVector3<T>& 
 	return std::pair<bool, T>(true, t);
 }
 
-template struct B3D_EXPORT TRay<float>;
-template struct B3D_EXPORT TRay<double>;
+namespace b3d
+{
+	template struct B3D_EXPORT TRay<float>;
+	template struct B3D_EXPORT TRay<double>;
+} // namespace b3d

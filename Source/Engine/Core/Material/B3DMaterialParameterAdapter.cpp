@@ -1342,8 +1342,12 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 	mParamVersion = materialParameters->GetParamVersion();
 }
 
+// Explicit instantiations must be declared within the template's enclosing namespace
+namespace b3d
+{
 template class TMaterialParameterAdapter<false>;
 template class TMaterialParameterAdapter<true>;
+} // namespace b3d
 
 namespace b3d::render
 {

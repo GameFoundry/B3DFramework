@@ -142,9 +142,9 @@ namespace b3d
 #if B3D_PLATFORM_WIN32
 		WString ToPlatformString() const;
 #else
-		String toPlatformString() const
+		String ToPlatformString() const
 		{
-			return toString();
+			return ToString();
 		}
 #endif
 

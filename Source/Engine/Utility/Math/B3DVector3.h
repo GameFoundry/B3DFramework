@@ -435,23 +435,23 @@ namespace b3d
 		static const TVector3 kUnitZ;
 	};
 
-	template<> const TVector3<float> TVector3<float>::kZero{kZeroTag};
-	template<> const TVector3<double> TVector3<double>::kZero{kZeroTag};
+	template<> inline const TVector3<float> TVector3<float>::kZero{kZeroTag};
+	template<> inline const TVector3<double> TVector3<double>::kZero{kZeroTag};
 
-	template<> const TVector3<float> TVector3<float>::kOne{1.0f, 1.0f, 1.0f};
-	template<> const TVector3<double> TVector3<double>::kOne{1.0, 1.0, 1.0};
+	template<> inline const TVector3<float> TVector3<float>::kOne{1.0f, 1.0f, 1.0f};
+	template<> inline const TVector3<double> TVector3<double>::kOne{1.0, 1.0, 1.0};
 
-	template<> const TVector3<float> TVector3<float>::kInfinite{ std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity() };
-	template<> const TVector3<double> TVector3<double>::kInfinite{ std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity() };
+	template<> inline const TVector3<float> TVector3<float>::kInfinite{ std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity() };
+	template<> inline const TVector3<double> TVector3<double>::kInfinite{ std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity() };
 
-	template<> const TVector3<float> TVector3<float>::kUnitX{1.0f, 0.0f, 0.0f};
-	template<> const TVector3<double> TVector3<double>::kUnitX{1.0, 0.0, 0.0};
+	template<> inline const TVector3<float> TVector3<float>::kUnitX{1.0f, 0.0f, 0.0f};
+	template<> inline const TVector3<double> TVector3<double>::kUnitX{1.0, 0.0, 0.0};
 
-	template<> const TVector3<float> TVector3<float>::kUnitY{0.0f, 1.0f, 0.0f};
-	template<> const TVector3<double> TVector3<double>::kUnitY{0.0, 1.0, 0.0};
+	template<> inline const TVector3<float> TVector3<float>::kUnitY{0.0f, 1.0f, 0.0f};
+	template<> inline const TVector3<double> TVector3<double>::kUnitY{0.0, 1.0, 0.0};
 
-	template<> const TVector3<float> TVector3<float>::kUnitZ{0.0f, 0.0f, 1.0f};
-	template<> const TVector3<double> TVector3<double>::kUnitZ{0.0, 0.0, 1.0};
+	template<> inline const TVector3<float> TVector3<float>::kUnitZ{0.0f, 0.0f, 1.0f};
+	template<> inline const TVector3<double> TVector3<double>::kUnitZ{0.0, 0.0, 1.0};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector3)) TVector3<float>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector3D)) TVector3<double>;

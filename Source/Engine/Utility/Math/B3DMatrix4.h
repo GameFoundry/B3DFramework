@@ -17,7 +17,7 @@ namespace b3d
 
 	/** Class representing a 4x4 matrix, in row major format. */
 	template<typename T>
-	struct B3D_EXPORT TMatrix4
+	struct TMatrix4
 	{
 	public:
 		TMatrix4() = default;
@@ -490,10 +490,10 @@ namespace b3d
 		T m[4][4];
 	};
 
-	template<> const TMatrix4<float> TMatrix4<float>::kZero{kZeroTag};
-	template<> const TMatrix4<double> TMatrix4<double>::kZero{kZeroTag};
-	template<> const TMatrix4<float> TMatrix4<float>::kIdentity{kIdentityTag};
-	template<> const TMatrix4<double> TMatrix4<double>::kIdentity{kIdentityTag};
+	template<> inline const TMatrix4<float> TMatrix4<float>::kZero{kZeroTag};
+	template<> inline const TMatrix4<double> TMatrix4<double>::kZero{kZeroTag};
+	template<> inline const TMatrix4<float> TMatrix4<float>::kIdentity{kIdentityTag};
+	template<> inline const TMatrix4<double> TMatrix4<double>::kIdentity{kIdentityTag};
 
 	/** @} */
 } // namespace b3d

@@ -106,8 +106,11 @@ void TPass<IsRenderProxy>::CreatePipelineState()
 	}
 }
 
-template class TPass<false>;
-template class TPass<true>;
+namespace b3d
+{
+	template class TPass<false>;
+	template class TPass<true>;
+} // namespace b3d
 
 namespace b3d
 {
