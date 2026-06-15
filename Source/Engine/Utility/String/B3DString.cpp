@@ -233,29 +233,17 @@ String StringUtility::StripExtension(const String& input)
 
 namespace b3d
 {
-WString ToWString(const String& source)
+WString ToWideString(const String& source)
 {
 	return WString(source.begin(), source.end());
 }
 
-WString ToWString(const char* source)
+WString ToWideString(const char* source)
 {
-	return ToWString(String(source));
+	return ToWideString(String(source));
 }
 
-WString ToWString(float val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
-{
-	WStringStream stream;
-	stream.precision(precision);
-	stream.width(width);
-	stream.fill(fill);
-	if(flags)
-		stream.setf(flags);
-	stream << val;
-	return stream.str();
-}
-
-WString ToWString(double val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
+WString ToWideString(float val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
 {
 	WStringStream stream;
 	stream.precision(precision);
@@ -267,17 +255,29 @@ WString ToWString(double val, unsigned short precision, unsigned short width, ch
 	return stream.str();
 }
 
-WString ToWString(const Radian& val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
+WString ToWideString(double val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
 {
-	return ToWString(val.GetValueInRadians(), precision, width, fill, flags);
+	WStringStream stream;
+	stream.precision(precision);
+	stream.width(width);
+	stream.fill(fill);
+	if(flags)
+		stream.setf(flags);
+	stream << val;
+	return stream.str();
 }
 
-WString ToWString(const Degree& val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
+WString ToWideString(const Radian& val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
 {
-	return ToWString(val.GetValueInDegrees(), precision, width, fill, flags);
+	return ToWideString(val.GetValueInRadians(), precision, width, fill, flags);
 }
 
-WString ToWString(int val, unsigned short width, char fill, std::ios::fmtflags flags)
+WString ToWideString(const Degree& val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
+{
+	return ToWideString(val.GetValueInDegrees(), precision, width, fill, flags);
+}
+
+WString ToWideString(int val, unsigned short width, char fill, std::ios::fmtflags flags)
 {
 	WStringStream stream;
 	stream.width(width);
@@ -288,7 +288,7 @@ WString ToWString(int val, unsigned short width, char fill, std::ios::fmtflags f
 	return stream.str();
 }
 
-WString ToWString(unsigned int val, unsigned short width, char fill, std::ios::fmtflags flags)
+WString ToWideString(unsigned int val, unsigned short width, char fill, std::ios::fmtflags flags)
 {
 	WStringStream stream;
 	stream.width(width);
@@ -299,7 +299,7 @@ WString ToWString(unsigned int val, unsigned short width, char fill, std::ios::f
 	return stream.str();
 }
 
-WString ToWString(i64 val, unsigned short width, char fill, std::ios::fmtflags flags)
+WString ToWideString(long val, unsigned short width, char fill, std::ios::fmtflags flags)
 {
 	WStringStream stream;
 	stream.width(width);
@@ -310,7 +310,7 @@ WString ToWString(i64 val, unsigned short width, char fill, std::ios::fmtflags f
 	return stream.str();
 }
 
-WString ToWString(u64 val, unsigned short width, char fill, std::ios::fmtflags flags)
+WString ToWideString(unsigned long val, unsigned short width, char fill, std::ios::fmtflags flags)
 {
 	WStringStream stream;
 	stream.width(width);
@@ -321,7 +321,7 @@ WString ToWString(u64 val, unsigned short width, char fill, std::ios::fmtflags f
 	return stream.str();
 }
 
-WString ToWString(char val, unsigned short width, char fill, std::ios::fmtflags flags)
+WString ToWideString(long long val, unsigned short width, char fill, std::ios::fmtflags flags)
 {
 	WStringStream stream;
 	stream.width(width);
@@ -332,7 +332,7 @@ WString ToWString(char val, unsigned short width, char fill, std::ios::fmtflags 
 	return stream.str();
 }
 
-WString ToWString(wchar_t val, unsigned short width, char fill, std::ios::fmtflags flags)
+WString ToWideString(unsigned long long val, unsigned short width, char fill, std::ios::fmtflags flags)
 {
 	WStringStream stream;
 	stream.width(width);
@@ -343,35 +343,57 @@ WString ToWString(wchar_t val, unsigned short width, char fill, std::ios::fmtfla
 	return stream.str();
 }
 
-WString ToWString(const Vector2& val)
+WString ToWideString(char val, unsigned short width, char fill, std::ios::fmtflags flags)
+{
+	WStringStream stream;
+	stream.width(width);
+	stream.fill(fill);
+	if(flags)
+		stream.setf(flags);
+	stream << val;
+	return stream.str();
+}
+
+WString ToWideString(wchar_t val, unsigned short width, char fill, std::ios::fmtflags flags)
+{
+	WStringStream stream;
+	stream.width(width);
+	stream.fill(fill);
+	if(flags)
+		stream.setf(flags);
+	stream << val;
+	return stream.str();
+}
+
+WString ToWideString(const Vector2& val)
 {
 	WStringStream stream;
 	stream << val.X << L" " << val.Y;
 	return stream.str();
 }
 
-WString ToWString(const Vector2I& val)
+WString ToWideString(const Vector2I& val)
 {
 	WStringStream stream;
 	stream << val.X << L" " << val.Y;
 	return stream.str();
 }
 
-WString ToWString(const Vector3& val)
+WString ToWideString(const Vector3& val)
 {
 	WStringStream stream;
 	stream << val.X << L" " << val.Y << L" " << val.Z;
 	return stream.str();
 }
 
-WString ToWString(const Vector4& val)
+WString ToWideString(const Vector4& val)
 {
 	WStringStream stream;
 	stream << val.X << L" " << val.Y << L" " << val.Z << L" " << val.W;
 	return stream.str();
 }
 
-WString ToWString(const Matrix3& val)
+WString ToWideString(const Matrix3& val)
 {
 	WStringStream stream;
 	stream << val[0][0] << L" "
@@ -386,7 +408,7 @@ WString ToWString(const Matrix3& val)
 	return stream.str();
 }
 
-WString ToWString(bool value, bool yesNo)
+WString ToWideString(bool value, bool yesNo)
 {
 	if(value)
 	{
@@ -409,7 +431,7 @@ WString ToWString(bool value, bool yesNo)
 	}
 }
 
-WString ToWString(const Matrix4& val)
+WString ToWideString(const Matrix4& val)
 {
 	WStringStream stream;
 	stream << val[0][0] << L" "
@@ -431,21 +453,21 @@ WString ToWString(const Matrix4& val)
 	return stream.str();
 }
 
-WString ToWString(const Quaternion& val)
+WString ToWideString(const Quaternion& val)
 {
 	WStringStream stream;
 	stream << val.W << L" " << val.X << L" " << val.Y << L" " << val.Z;
 	return stream.str();
 }
 
-WString ToWString(const Color& val)
+WString ToWideString(const Color& val)
 {
 	WStringStream stream;
 	stream << val.R << L" " << val.G << L" " << val.B << L" " << val.A;
 	return stream.str();
 }
 
-WString ToWString(const Vector<b3d::WString>& val)
+WString ToWideString(const Vector<b3d::WString>& val)
 {
 	WStringStream stream;
 	Vector<b3d::WString>::const_iterator it, iteratorEnd, iteratorBegin;
@@ -549,7 +571,7 @@ String ToString(unsigned long val, unsigned short width, char fill, std::ios::fm
 	return stream.str();
 }
 
-String ToString(i64 val, unsigned short width, char fill, std::ios::fmtflags flags)
+String ToString(long long val, unsigned short width, char fill, std::ios::fmtflags flags)
 {
 	StringStream stream;
 	stream.width(width);
@@ -560,7 +582,7 @@ String ToString(i64 val, unsigned short width, char fill, std::ios::fmtflags fla
 	return stream.str();
 }
 
-String ToString(u64 val, unsigned short width, char fill, std::ios::fmtflags flags)
+String ToString(unsigned long long val, unsigned short width, char fill, std::ios::fmtflags flags)
 {
 	StringStream stream;
 	stream.width(width);
@@ -719,7 +741,7 @@ String ToString(const LogVerbosity& val)
 	}
 }
 
-String ToString(std::time_t val, bool isUTC, bool useISO8601, TimeToStringConversionType type)
+String TimeToString(std::time_t val, bool isUTC, bool useISO8601, TimeToStringConversionType type)
 {
 	char out[100];
 	String formatInput;

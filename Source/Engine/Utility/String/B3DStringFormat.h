@@ -235,24 +235,24 @@ namespace b3d
 
 		/**	Helper method for converting any data type to a wide string. */
 		template <class T>
-		static WString ToWString(const T& param)
+		static WString ToWideString(const T& param)
 		{
-			return b3d::ToWString(param);
+			return b3d::ToWideString(param);
 		}
 
 		/**	Helper method that "converts" a wide string to a wide string (simply a pass through). */
-		static WString ToWString(const WString& param) { return param; }
+		static WString ToWideString(const WString& param) { return param; }
 
 		/**	Helper method that converts a wide character array to a wide string. */
 		template <class T>
-		static WString ToWString(T* param)
+		static WString ToWideString(T* param)
 		{
 			static_assert(!std::is_same<T, T>::value, "Invalid pointer type.");
 			return L"";
 		}
 
 		/**	Helper method that converts a wide character array to a wide string. */
-		static WString ToWString(const wchar_t* param)
+		static WString ToWideString(const wchar_t* param)
 		{
 			if(param == nullptr)
 				return WString();
@@ -261,7 +261,7 @@ namespace b3d
 		}
 
 		/**	Helper method that converts a wide character array to a wide string. */
-		static WString ToWString(wchar_t* param)
+		static WString ToWideString(wchar_t* param)
 		{
 			if(param == nullptr)
 				return WString();
@@ -296,7 +296,7 @@ namespace b3d
 			if(idx >= kMaxParams)
 				return;
 
-			BasicString<wchar_t> sourceParam = ToWString(param);
+			BasicString<wchar_t> sourceParam = ToWideString(param);
 			parameters[idx].Buffer = (wchar_t*)B3DAllocate((u32)sourceParam.size() * sizeof(wchar_t));
 			parameters[idx].Size = (u32)sourceParam.size();
 

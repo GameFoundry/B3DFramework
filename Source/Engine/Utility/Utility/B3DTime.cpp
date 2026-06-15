@@ -62,18 +62,18 @@ u64 Time::GetTimePrecise() const
 String Time::GetCurrentDateTimeString(bool isUTC)
 {
 	std::time_t t = std::time(nullptr);
-	return ToString(t, isUTC, false, TimeToStringConversionType::Full);
+	return TimeToString(t, isUTC, false, TimeToStringConversionType::Full);
 }
 
 String Time::GetCurrentTimeString(bool isUTC)
 {
 	std::time_t t = std::time(nullptr);
-	return ToString(t, isUTC, false, TimeToStringConversionType::Time);
+	return TimeToString(t, isUTC, false, TimeToStringConversionType::Time);
 }
 
 String Time::GetAppStartUpDateString(bool isUTC)
 {
-	return ToString(mAppStartUpDate, isUTC, false, TimeToStringConversionType::Full);
+	return TimeToString(mAppStartUpDate, isUTC, false, TimeToStringConversionType::Full);
 }
 
 SceneTime::SceneTime()

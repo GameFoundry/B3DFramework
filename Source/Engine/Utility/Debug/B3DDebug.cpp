@@ -352,7 +352,7 @@ table td
 		}
 		stream << R"(			<td>)" << ToString(verbosity) << R"(</td>)" << std::endl;
 
-		stream << R"(			<td>)" << ToString(entry.LocalTime, false, false, TimeToStringConversionType::Time)
+		stream << R"(			<td>)" << TimeToString(entry.LocalTime, false, false, TimeToStringConversionType::Time)
 			   << "</td>" << std::endl;
 
 		stream << R"(			<td>)" << entry.CategoryName << "</td>" << std::endl;
@@ -434,7 +434,7 @@ void Debug::SaveTextLog(const Path& path) const
 	for(auto& entry : entries)
 	{
 		String builtMsg;
-		builtMsg.append(ToString(entry.LocalTime, false, true, TimeToStringConversionType::Full));
+		builtMsg.append(TimeToString(entry.LocalTime, false, true, TimeToStringConversionType::Full));
 		builtMsg.append(" ");
 
 		switch(entry.Verbosity)

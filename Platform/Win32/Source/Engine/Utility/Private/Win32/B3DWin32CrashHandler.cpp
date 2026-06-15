@@ -485,7 +485,7 @@ void CrashHandler::ReportCrash(const String& type, const String& description, co
 		return;
 	}
 
-	Win32PopupErrorMessageBox(ToWString(kSFatalErrorMsg), GetCrashFolder());
+	Win32PopupErrorMessageBox(ToWideString(kSFatalErrorMsg), GetCrashFolder());
 
 	DebugBreak();
 
@@ -529,7 +529,7 @@ int CrashHandler::ReportCrash(void* exceptionDataPtr) const
 		return EXCEPTION_EXECUTE_HANDLER;
 	}
 
-	Win32PopupErrorMessageBox(ToWString(kSFatalErrorMsg), GetCrashFolder());
+	Win32PopupErrorMessageBox(ToWideString(kSFatalErrorMsg), GetCrashFolder());
 
 	DebugBreak();
 

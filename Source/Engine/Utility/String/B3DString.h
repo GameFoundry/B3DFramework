@@ -62,40 +62,46 @@ namespace b3d
 	using SmallString = std::basic_string<char, std::char_traits<char>, StdAlloc<char>>; // TODO: Currently equivalent to String, need to implement the allocator
 
 	/** Converts a narrow string to a wide string. */
-	B3D_EXPORT WString ToWString(const String& source);
+	B3D_EXPORT WString ToWideString(const String& source);
 
 	/**	Converts a narrow string to a wide string. */
-	B3D_EXPORT WString ToWString(const char* source);
+	B3D_EXPORT WString ToWideString(const char* source);
 
 	/** Converts a float to a string. */
-	B3D_EXPORT WString ToWString(float val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWideString(float val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/** Converts a double to a string. */
-	B3D_EXPORT WString ToWString(double val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWideString(double val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/** Converts a Radian to a string. */
-	B3D_EXPORT WString ToWString(const Radian& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWideString(const Radian& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/** Converts a Degree to a string. */
-	B3D_EXPORT WString ToWString(const Degree& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWideString(const Degree& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an int to a string. */
-	B3D_EXPORT WString ToWString(int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWideString(int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an unsigned int to a string. */
-	B3D_EXPORT WString ToWString(unsigned int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWideString(unsigned int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
-	/**	Converts an 64bit integer to a string. */
-	B3D_EXPORT WString ToWString(i64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	/**	Converts a long to a string. */
+	B3D_EXPORT WString ToWideString(long val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
-	/**	Converts an 64bit unsigned to a string. */
-	B3D_EXPORT WString ToWString(u64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	/**	Converts an unsigned long to a string. */
+	B3D_EXPORT WString ToWideString(unsigned long val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+
+	/**	Converts a 64bit int to a string. */
+	B3D_EXPORT WString ToWideString(long long val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+
+	/**	Converts an 64bit unsigned int to a string. */
+	B3D_EXPORT WString ToWideString(unsigned long long val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an narrow char unsigned to a string. */
-	B3D_EXPORT WString ToWString(char val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWideString(char val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an wide bit char unsigned to a string. */
-	B3D_EXPORT WString ToWString(wchar_t val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWideString(wchar_t val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**
 	 * Converts a boolean to a string.
@@ -103,66 +109,66 @@ namespace b3d
 	 * @param	value	Value to convert.
 	 * @param	yesNo	(optional) If set to true, result is "yes" or "no" instead of "true" or "false".
 	 */
-	B3D_EXPORT WString ToWString(bool value, bool yesNo = false);
+	B3D_EXPORT WString ToWideString(bool value, bool yesNo = false);
 
 	/**
 	 * Converts a 2 dimensional vector to a string.
 	 *
 	 * @note	Format is "x y".
 	 */
-	B3D_EXPORT WString ToWString(const Vector2& val);
+	B3D_EXPORT WString ToWideString(const Vector2& val);
 
 	/**
 	 * Converts a 2 dimensional integer vector to a string.
 	 *
 	 * @note	Format is "x y".
 	 */
-	B3D_EXPORT WString ToWString(const Vector2I& val);
+	B3D_EXPORT WString ToWideString(const Vector2I& val);
 
 	/**
 	 * Converts a 3 dimensional vector to a string.
 	 *
 	 * @note	Format is "x y z".
 	 */
-	B3D_EXPORT WString ToWString(const Vector3& val);
+	B3D_EXPORT WString ToWideString(const Vector3& val);
 
 	/**
 	 * Converts a 4 dimensional vector to a string.
 	 *
 	 * @note	Format is "x y z w".
 	 */
-	B3D_EXPORT WString ToWString(const Vector4& val);
+	B3D_EXPORT WString ToWideString(const Vector4& val);
 
 	/**
 	 * Converts a 3x3 matrix to a string.
 	 *
 	 * @note	Format is "00 01 02 10 11 12 20 21 22".
 	 */
-	B3D_EXPORT WString ToWString(const Matrix3& val);
+	B3D_EXPORT WString ToWideString(const Matrix3& val);
 
 	/**
 	 * Converts a 4x4 matrix to a string.
 	 *
 	 * @note	Format is "00 01 02 03 10 11 12 13 20 21 22 23 30 31 32 33".
 	 */
-	B3D_EXPORT WString ToWString(const Matrix4& val);
+	B3D_EXPORT WString ToWideString(const Matrix4& val);
 
 	/**
 	 * Converts a Quaternion to a string.
 	 *
 	 * @note	Format is "w x y z".
 	 */
-	B3D_EXPORT WString ToWString(const Quaternion& val);
+	B3D_EXPORT WString ToWideString(const Quaternion& val);
 
 	/**
 	 * Converts a color to a string.
 	 *
 	 * @note	Format is "r g b a".
 	 */
-	B3D_EXPORT WString ToWString(const Color& val);
+	B3D_EXPORT WString ToWideString(const Color& val);
 
 	/** Converts a vector of strings into a single string where the substrings are delimited by spaces. */
-	B3D_EXPORT WString ToWString(const Vector<b3d::WString>& val);
+	B3D_EXPORT WString ToWideString(const Vector<b3d::WString>& val);
 
 	/** Converts a wide string to a narrow string. */
 	B3D_EXPORT String ToString(const WString& source);
@@ -195,10 +201,10 @@ namespace b3d
 	B3D_EXPORT String ToString(unsigned long val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts a 64bit int to a string. */
-	B3D_EXPORT String ToString(i64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT String ToString(long long val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an 64bit unsigned int to a string. */
-	B3D_EXPORT String ToString(u64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT String ToString(unsigned long long val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**
 	 * Converts a boolean to a string.
@@ -295,7 +301,7 @@ namespace b3d
 	 *			- Full: [DayOfWeek], [Month] [NumericalDate], [NumericalYear] [HH]::[MM]::[SS]
 	 *  By default will output the local hour in custom format.
 	 */
-	B3D_EXPORT String ToString(std::time_t time, bool isUTC = false, bool useISO8601 = false, TimeToStringConversionType type = TimeToStringConversionType::Time);
+	B3D_EXPORT String TimeToString(std::time_t time, bool isUTC = false, bool useISO8601 = false, TimeToStringConversionType type = TimeToStringConversionType::Time);
 
 	/**
 	 * Converts a vector of strings into a single string where the substrings are delimited by spaces.

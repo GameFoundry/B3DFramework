@@ -191,7 +191,7 @@ void D3D12Texture::CreateTexture()
 	// Set debug name if available
 	if (!props.Name.empty())
 	{
-		WString wideName = ToWString(props.Name);
+		WString wideName = ToWideString(props.Name);
 		mTexture->SetName(wideName.c_str());
 	}
 

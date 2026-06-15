@@ -48,7 +48,7 @@ ansiString = UTF8::ToANSI(utf8String);
 ~~~~~~~~~~~~~
 
 # Converting data types
-You can convert most primitive data types to strings by using the @b3d::ToString or @b3d::ToWString functions.
+You can convert most primitive data types to strings by using the @b3d::ToString or @b3d::ToWideString functions.
 
 ~~~~~~~~~~~~~{.cpp}
 bool booleanValue = false;
