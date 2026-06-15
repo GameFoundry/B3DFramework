@@ -64,3 +64,7 @@
 #	define B3D_PLUGIN_EXPORT __attribute__((dllexport))
 #endif
 #define B3D_PLUGIN_HIDDEN
+
+// Dynamic library naming
+#define B3D_DYNLIB_EXTENSION "dll"
+#define B3D_DYNLIB_PREFIX nullptr

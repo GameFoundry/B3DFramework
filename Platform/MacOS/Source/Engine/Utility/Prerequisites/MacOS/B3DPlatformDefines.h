@@ -33,3 +33,7 @@
 // Plugin export
 #define B3D_PLUGIN_EXPORT __attribute__((visibility("default")))
 #define B3D_PLUGIN_HIDDEN __attribute__((visibility("hidden")))
+
+// Dynamic library naming
+#define B3D_DYNLIB_EXTENSION "dylib"
+#define B3D_DYNLIB_PREFIX "lib"
