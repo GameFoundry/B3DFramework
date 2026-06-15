@@ -43,7 +43,7 @@ static bool TryAcquirePackageLockForResourceLoad(const Path& resourcePath, const
 
 	const TShared<Package>& package = outReadLock->GetPackage();
 	if(!B3D_ENSURE(package != nullptr))
-		return nullptr;
+		return false;
 
 	const TShared<const PackageResourceMetaData>& resourceMetaData = package->GetResourceMetaData(resourcePackagePath.ResourcePathWithinPackage);
 	if(resourceMetaData == nullptr)

@@ -60,5 +60,8 @@ T TRadian<T>::GetValueInDegrees() const
 	return mRadians * Math::kRaD2Deg;
 }
 
-template class B3D_EXPORT TRadian<float>;
-template class B3D_EXPORT TRadian<double>;
+namespace b3d
+{
+	template class B3D_EXPORT TRadian<float>;
+	template class B3D_EXPORT TRadian<double>;
+} // namespace b3d

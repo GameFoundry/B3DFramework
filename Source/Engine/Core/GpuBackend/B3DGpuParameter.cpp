@@ -323,68 +323,71 @@ TShared<SamplerState> TGpuParameterSampler<IsRenderProxy>::Get(u32 arrayIndex) c
 	return mParent->GetSamplerState(mBinding.Slot, arrayIndex);
 }
 
-template class TGpuParameterPrimitive<float, false>;
-template class TGpuParameterPrimitive<double, false>;
-template class TGpuParameterPrimitive<Color, false>;
-template class TGpuParameterPrimitive<Vector2, false>;
-template class TGpuParameterPrimitive<Vector3, false>;
-template class TGpuParameterPrimitive<Vector4, false>;
-template class TGpuParameterPrimitive<i32, false>;
-template class TGpuParameterPrimitive<Vector2I, false>;
-template class TGpuParameterPrimitive<Vector3I, false>;
-template class TGpuParameterPrimitive<Vector4I, false>;
-template class TGpuParameterPrimitive<u32, false>;
-template class TGpuParameterPrimitive<Vector2UI, false>;
-template class TGpuParameterPrimitive<Vector3UI, false>;
-template class TGpuParameterPrimitive<Vector4UI, false>;
-template class TGpuParameterPrimitive<Matrix2, false>;
-template class TGpuParameterPrimitive<Matrix2x3, false>;
-template class TGpuParameterPrimitive<Matrix2x4, false>;
-template class TGpuParameterPrimitive<Matrix3, false>;
-template class TGpuParameterPrimitive<Matrix3x2, false>;
-template class TGpuParameterPrimitive<Matrix3x4, false>;
-template class TGpuParameterPrimitive<Matrix4, false>;
-template class TGpuParameterPrimitive<Matrix4x2, false>;
-template class TGpuParameterPrimitive<Matrix4x3, false>;
+namespace b3d
+{
+	template class TGpuParameterPrimitive<float, false>;
+	template class TGpuParameterPrimitive<double, false>;
+	template class TGpuParameterPrimitive<Color, false>;
+	template class TGpuParameterPrimitive<Vector2, false>;
+	template class TGpuParameterPrimitive<Vector3, false>;
+	template class TGpuParameterPrimitive<Vector4, false>;
+	template class TGpuParameterPrimitive<i32, false>;
+	template class TGpuParameterPrimitive<Vector2I, false>;
+	template class TGpuParameterPrimitive<Vector3I, false>;
+	template class TGpuParameterPrimitive<Vector4I, false>;
+	template class TGpuParameterPrimitive<u32, false>;
+	template class TGpuParameterPrimitive<Vector2UI, false>;
+	template class TGpuParameterPrimitive<Vector3UI, false>;
+	template class TGpuParameterPrimitive<Vector4UI, false>;
+	template class TGpuParameterPrimitive<Matrix2, false>;
+	template class TGpuParameterPrimitive<Matrix2x3, false>;
+	template class TGpuParameterPrimitive<Matrix2x4, false>;
+	template class TGpuParameterPrimitive<Matrix3, false>;
+	template class TGpuParameterPrimitive<Matrix3x2, false>;
+	template class TGpuParameterPrimitive<Matrix3x4, false>;
+	template class TGpuParameterPrimitive<Matrix4, false>;
+	template class TGpuParameterPrimitive<Matrix4x2, false>;
+	template class TGpuParameterPrimitive<Matrix4x3, false>;
 
-template class TGpuParameterPrimitive<float, true>;
-template class TGpuParameterPrimitive<double, true>;
-template class TGpuParameterPrimitive<Color, true>;
-template class TGpuParameterPrimitive<Vector2, true>;
-template class TGpuParameterPrimitive<Vector3, true>;
-template class TGpuParameterPrimitive<Vector4, true>;
-template class TGpuParameterPrimitive<i32, true>;
-template class TGpuParameterPrimitive<Vector2I, true>;
-template class TGpuParameterPrimitive<Vector3I, true>;
-template class TGpuParameterPrimitive<Vector4I, true>;
-template class TGpuParameterPrimitive<u32, true>;
-template class TGpuParameterPrimitive<Vector2UI, true>;
-template class TGpuParameterPrimitive<Vector3UI, true>;
-template class TGpuParameterPrimitive<Vector4UI, true>;
-template class TGpuParameterPrimitive<Matrix2, true>;
-template class TGpuParameterPrimitive<Matrix2x3, true>;
-template class TGpuParameterPrimitive<Matrix2x4, true>;
-template class TGpuParameterPrimitive<Matrix3, true>;
-template class TGpuParameterPrimitive<Matrix3x2, true>;
-template class TGpuParameterPrimitive<Matrix3x4, true>;
-template class TGpuParameterPrimitive<Matrix4, true>;
-template class TGpuParameterPrimitive<Matrix4x2, true>;
-template class TGpuParameterPrimitive<Matrix4x3, true>;
+	template class TGpuParameterPrimitive<float, true>;
+	template class TGpuParameterPrimitive<double, true>;
+	template class TGpuParameterPrimitive<Color, true>;
+	template class TGpuParameterPrimitive<Vector2, true>;
+	template class TGpuParameterPrimitive<Vector3, true>;
+	template class TGpuParameterPrimitive<Vector4, true>;
+	template class TGpuParameterPrimitive<i32, true>;
+	template class TGpuParameterPrimitive<Vector2I, true>;
+	template class TGpuParameterPrimitive<Vector3I, true>;
+	template class TGpuParameterPrimitive<Vector4I, true>;
+	template class TGpuParameterPrimitive<u32, true>;
+	template class TGpuParameterPrimitive<Vector2UI, true>;
+	template class TGpuParameterPrimitive<Vector3UI, true>;
+	template class TGpuParameterPrimitive<Vector4UI, true>;
+	template class TGpuParameterPrimitive<Matrix2, true>;
+	template class TGpuParameterPrimitive<Matrix2x3, true>;
+	template class TGpuParameterPrimitive<Matrix2x4, true>;
+	template class TGpuParameterPrimitive<Matrix3, true>;
+	template class TGpuParameterPrimitive<Matrix3x2, true>;
+	template class TGpuParameterPrimitive<Matrix3x4, true>;
+	template class TGpuParameterPrimitive<Matrix4, true>;
+	template class TGpuParameterPrimitive<Matrix4x2, true>;
+	template class TGpuParameterPrimitive<Matrix4x3, true>;
 
-template class TGpuParameterStruct<false>;
-template class TGpuParameterStruct<true>;
+	template class TGpuParameterStruct<false>;
+	template class TGpuParameterStruct<true>;
 
-template class TGpuParameterSampledTexture<false>;
-template class TGpuParameterSampledTexture<true>;
+	template class TGpuParameterSampledTexture<false>;
+	template class TGpuParameterSampledTexture<true>;
 
-template class TGpuParameterStorageBuffer<false>;
-template class TGpuParameterStorageBuffer<true>;
+	template class TGpuParameterStorageBuffer<false>;
+	template class TGpuParameterStorageBuffer<true>;
 
-template class TGpuParameterUniformBuffer<false>;
-template class TGpuParameterUniformBuffer<true>;
+	template class TGpuParameterUniformBuffer<false>;
+	template class TGpuParameterUniformBuffer<true>;
 
-template class TGpuParameterSampler<false>;
-template class TGpuParameterSampler<true>;
+	template class TGpuParameterSampler<false>;
+	template class TGpuParameterSampler<true>;
 
-template class TGpuParameterStorageTexture<false>;
-template class TGpuParameterStorageTexture<true>;
+	template class TGpuParameterStorageTexture<false>;
+	template class TGpuParameterStorageTexture<true>;
+} // namespace b3d

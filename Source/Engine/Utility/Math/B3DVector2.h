@@ -374,25 +374,25 @@ namespace b3d
 		static const TVector2 kUnitY;
 	};
 
-	template<> const TVector2<float> TVector2<float>::kZero{kZeroTag};
-	template<> const TVector2<double> TVector2<double>::kZero{kZeroTag};
-	template<> const TVector2<i32> TVector2<i32>::kZero{kZeroTag};
-	template<> const TVector2<u32> TVector2<u32>::kZero{kZeroTag};
+	template<> inline const TVector2<float> TVector2<float>::kZero{kZeroTag};
+	template<> inline const TVector2<double> TVector2<double>::kZero{kZeroTag};
+	template<> inline const TVector2<i32> TVector2<i32>::kZero{kZeroTag};
+	template<> inline const TVector2<u32> TVector2<u32>::kZero{kZeroTag};
 
-	template<> const TVector2<float> TVector2<float>::kOne{1.0f, 1.0f};
-	template<> const TVector2<double> TVector2<double>::kOne{1.0, 1.0};
-	template<> const TVector2<i32> TVector2<i32>::kOne{1, 1};
-	template<> const TVector2<u32> TVector2<u32>::kOne{1u, 1u};
+	template<> inline const TVector2<float> TVector2<float>::kOne{1.0f, 1.0f};
+	template<> inline const TVector2<double> TVector2<double>::kOne{1.0, 1.0};
+	template<> inline const TVector2<i32> TVector2<i32>::kOne{1, 1};
+	template<> inline const TVector2<u32> TVector2<u32>::kOne{1u, 1u};
 
-	template<> const TVector2<float> TVector2<float>::kUnitX{1.0f, 0.0f};
-	template<> const TVector2<double> TVector2<double>::kUnitX{1.0, 0.0};
-	template<> const TVector2<i32> TVector2<i32>::kUnitX{1, 0};
-	template<> const TVector2<u32> TVector2<u32>::kUnitX{1u, 0u};
+	template<> inline const TVector2<float> TVector2<float>::kUnitX{1.0f, 0.0f};
+	template<> inline const TVector2<double> TVector2<double>::kUnitX{1.0, 0.0};
+	template<> inline const TVector2<i32> TVector2<i32>::kUnitX{1, 0};
+	template<> inline const TVector2<u32> TVector2<u32>::kUnitX{1u, 0u};
 
-	template<> const TVector2<float> TVector2<float>::kUnitY{0.0f, 1.0f};
-	template<> const TVector2<double> TVector2<double>::kUnitY{0.0, 1.0};
-	template<> const TVector2<i32> TVector2<i32>::kUnitY{0, 1};
-	template<> const TVector2<u32> TVector2<u32>::kUnitY{0u, 1u};
+	template<> inline const TVector2<float> TVector2<float>::kUnitY{0.0f, 1.0f};
+	template<> inline const TVector2<double> TVector2<double>::kUnitY{0.0, 1.0};
+	template<> inline const TVector2<i32> TVector2<i32>::kUnitY{0, 1};
+	template<> inline const TVector2<u32> TVector2<u32>::kUnitY{0u, 1u};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true)) TVector2<float>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true)) TVector2<double>;

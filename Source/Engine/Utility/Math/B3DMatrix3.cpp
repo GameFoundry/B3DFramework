@@ -1029,5 +1029,8 @@ void TMatrix3<T>::EigenSolveSymmetric(T eigenValues[3], TVector3<T> eigenVectors
 	}
 }
 
-template struct B3D_EXPORT TMatrix3<float>;
-template struct B3D_EXPORT TMatrix3<double>;
+namespace b3d
+{
+	template struct B3D_EXPORT TMatrix3<float>;
+	template struct B3D_EXPORT TMatrix3<double>;
+} // namespace b3d

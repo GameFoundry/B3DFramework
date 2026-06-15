@@ -181,7 +181,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 	if(mImplementation->Face == nullptr)
 	{
 		B3D_LOG(Error, LogFont, "Failed to render font glyphs. Font renderer is not initialized.");
-		return nullptr;
+		return false;
 	}
 
 	const float quantizedFontSizeInPoints = GetQuantizedFontSize(sizeInPoints);
@@ -193,7 +193,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 	if(!B3D_ENSURE(FT_Set_Char_Size(mImplementation->Face, ConvertFloatToFixed26Dot6(quantizedFontSizeInPoints), 0, mInformation.DPI, mInformation.DPI) == 0))
 	{
 		B3D_LOG(Error, LogFont, "Failed to render font glyphs. Failed to set character size.");
-		return nullptr;
+		return false;
 	}
 
 	TShared<FontBitmapInformation> bitmapInformation;

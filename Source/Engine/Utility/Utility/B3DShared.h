@@ -793,7 +793,7 @@ namespace b3d
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
 		explicit TWeak(const TWeak<OtherType>& other)
 		{
-			if constexpr(DisallowExpiredConversions<>)
+			if constexpr(DisallowExpiredConversions<OtherType>)
 				this->ConstructWeakFromIfNotExpired(other);
 			else
 				this->ConstructWeakFrom(other);
@@ -802,7 +802,7 @@ namespace b3d
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
 		explicit TWeak(TWeak<OtherType>&& other)
 		{
-			if constexpr(DisallowExpiredConversions<>)
+			if constexpr(DisallowExpiredConversions<OtherType>)
 				this->MoveWeakFromIfNotExpired(std::move(other));
 			else
 				this->MoveConstructFrom(std::move(other));

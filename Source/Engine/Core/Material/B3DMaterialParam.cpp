@@ -451,54 +451,57 @@ TShared<SamplerState> TMaterialParameterSampler<IsRenderProxy>::Get() const
 	template class TMaterialParameterPrimitive<type, false>;                    \
 	template class TMaterialParameterPrimitive<type, true>;
 
-MATERIAL_DATA_PARAM_INSTATIATE(float)
-MATERIAL_DATA_PARAM_INSTATIATE(double)
-MATERIAL_DATA_PARAM_INSTATIATE(Color)
-MATERIAL_DATA_PARAM_INSTATIATE(Vector2)
-MATERIAL_DATA_PARAM_INSTATIATE(Vector3)
-MATERIAL_DATA_PARAM_INSTATIATE(Vector4)
-MATERIAL_DATA_PARAM_INSTATIATE(i32)
-MATERIAL_DATA_PARAM_INSTATIATE(Vector2I)
-MATERIAL_DATA_PARAM_INSTATIATE(Vector3I)
-MATERIAL_DATA_PARAM_INSTATIATE(Vector4I)
-MATERIAL_DATA_PARAM_INSTATIATE(u32)
-MATERIAL_DATA_PARAM_INSTATIATE(Vector2UI)
-MATERIAL_DATA_PARAM_INSTATIATE(Vector3UI)
-MATERIAL_DATA_PARAM_INSTATIATE(Vector4UI)
-MATERIAL_DATA_PARAM_INSTATIATE(Matrix2)
-MATERIAL_DATA_PARAM_INSTATIATE(Matrix2x3)
-MATERIAL_DATA_PARAM_INSTATIATE(Matrix2x4)
-MATERIAL_DATA_PARAM_INSTATIATE(Matrix3)
-MATERIAL_DATA_PARAM_INSTATIATE(Matrix3x2)
-MATERIAL_DATA_PARAM_INSTATIATE(Matrix3x4)
-MATERIAL_DATA_PARAM_INSTATIATE(Matrix4)
-MATERIAL_DATA_PARAM_INSTATIATE(Matrix4x2)
-MATERIAL_DATA_PARAM_INSTATIATE(Matrix4x3)
+namespace b3d
+{
+	MATERIAL_DATA_PARAM_INSTATIATE(float)
+	MATERIAL_DATA_PARAM_INSTATIATE(double)
+	MATERIAL_DATA_PARAM_INSTATIATE(Color)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector2)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector3)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector4)
+	MATERIAL_DATA_PARAM_INSTATIATE(i32)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector2I)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector3I)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector4I)
+	MATERIAL_DATA_PARAM_INSTATIATE(u32)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector2UI)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector3UI)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector4UI)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix2)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix2x3)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix2x4)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix3)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix3x2)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix3x4)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix4)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix4x2)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix4x3)
 
-#undef MATERIAL_DATA_PARAM_INSTATIATE
+	#undef MATERIAL_DATA_PARAM_INSTATIATE
 
-template class TMaterialDataCommon<GPDT_STRUCT, false>;
-template class TMaterialDataCommon<GPDT_STRUCT, true>;
-template class TMaterialParameterStruct<false>;
-template class TMaterialParameterStruct<true>;
+	template class TMaterialDataCommon<GPDT_STRUCT, false>;
+	template class TMaterialDataCommon<GPDT_STRUCT, true>;
+	template class TMaterialParameterStruct<false>;
+	template class TMaterialParameterStruct<true>;
 
-template class TMaterialParameterCurve<float, false>;
-template class TMaterialParameterCurve<float, true>;
+	template class TMaterialParameterCurve<float, false>;
+	template class TMaterialParameterCurve<float, true>;
 
-template class TMaterialParameterColorGradient<false>;
-template class TMaterialParameterColorGradient<true>;
+	template class TMaterialParameterColorGradient<false>;
+	template class TMaterialParameterColorGradient<true>;
 
-template class TMaterialParameterSampledTexture<false>;
-template class TMaterialParameterSampledTexture<true>;
+	template class TMaterialParameterSampledTexture<false>;
+	template class TMaterialParameterSampledTexture<true>;
 
-template class TMaterialParamSpriteImage<false>;
-template class TMaterialParamSpriteImage<true>;
+	template class TMaterialParamSpriteImage<false>;
+	template class TMaterialParamSpriteImage<true>;
 
-template class TMaterialParameterStorageTexture<false>;
-template class TMaterialParameterStorageTexture<true>;
+	template class TMaterialParameterStorageTexture<false>;
+	template class TMaterialParameterStorageTexture<true>;
 
-template class TMaterialParameterBuffer<false>;
-template class TMaterialParameterBuffer<true>;
+	template class TMaterialParameterBuffer<false>;
+	template class TMaterialParameterBuffer<true>;
 
-template class TMaterialParameterSampler<false>;
-template class TMaterialParameterSampler<true>;
+	template class TMaterialParameterSampler<false>;
+	template class TMaterialParameterSampler<true>;
+} // namespace b3d

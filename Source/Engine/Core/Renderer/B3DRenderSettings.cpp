@@ -58,8 +58,11 @@ RTTIType* AmbientOcclusionSettings::GetRtti() const
 	return GetRttiStatic();
 }
 
-template struct TDepthOfFieldSettings<false>;
-template struct TDepthOfFieldSettings<true>;
+namespace b3d
+{
+	template struct TDepthOfFieldSettings<false>;
+	template struct TDepthOfFieldSettings<true>;
+} // namespace b3d
 
 RTTIType* DepthOfFieldSettings::GetRttiStatic()
 {
@@ -121,8 +124,11 @@ RTTIType* TemporalAASettings::GetRtti() const
 	return GetRttiStatic();
 }
 
-template struct TChromaticAberrationSettings<false>;
-template struct TChromaticAberrationSettings<true>;
+namespace b3d
+{
+	template struct TChromaticAberrationSettings<false>;
+	template struct TChromaticAberrationSettings<true>;
+} // namespace b3d
 
 RTTIType* ChromaticAberrationSettings::GetRttiStatic()
 {
@@ -154,8 +160,11 @@ RTTIType* ShadowSettings::GetRtti() const
 	return GetRttiStatic();
 }
 
-template struct TRenderSettings<false>;
-template struct TRenderSettings<true>;
+namespace b3d
+{
+	template struct TRenderSettings<false>;
+	template struct TRenderSettings<true>;
+} // namespace b3d
 
 RTTIType* RenderSettings::GetRttiStatic()
 {

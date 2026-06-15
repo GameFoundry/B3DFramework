@@ -63,14 +63,14 @@ namespace b3d
 		static const TSphere<T> kInfinite;
 	};
 
-	template<> const TSphere<float> TSphere<float>::kEmpty = TSphere(TVector3<float>(0.0f, 0.0f, 0.0f), 0.0f);
-	template<> const TSphere<double> TSphere<double>::kEmpty = TSphere(TVector3<double>(0.0, 0.0, 0.0), 0.0);
+	template<> inline const TSphere<float> TSphere<float>::kEmpty = TSphere(TVector3<float>(0.0f, 0.0f, 0.0f), 0.0f);
+	template<> inline const TSphere<double> TSphere<double>::kEmpty = TSphere(TVector3<double>(0.0, 0.0, 0.0), 0.0);
 
-	template<> const TSphere<float> TSphere<float>::kUnit = TSphere(TVector3<float>(0.0f, 0.0f, 0.0f), 0.5f);
-	template<> const TSphere<double> TSphere<double>::kUnit = TSphere(TVector3<double>(0.0, 0.0, 0.0), 0.5);
+	template<> inline const TSphere<float> TSphere<float>::kUnit = TSphere(TVector3<float>(0.0f, 0.0f, 0.0f), 0.5f);
+	template<> inline const TSphere<double> TSphere<double>::kUnit = TSphere(TVector3<double>(0.0, 0.0, 0.0), 0.5);
 
-	template<> const TSphere<float> TSphere<float>::kInfinite = TSphere(TVector3<float>(0.0f, 0.0f, 0.0f), std::numeric_limits<float>::infinity());
-	template<> const TSphere<double> TSphere<double>::kInfinite = TSphere(TVector3<double>(0.0, 0.0, 0.0), std::numeric_limits<double>::infinity());
+	template<> inline const TSphere<float> TSphere<float>::kInfinite = TSphere(TVector3<float>(0.0f, 0.0f, 0.0f), std::numeric_limits<float>::infinity());
+	template<> inline const TSphere<double> TSphere<double>::kInfinite = TSphere(TVector3<double>(0.0, 0.0, 0.0), std::numeric_limits<double>::infinity());
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Sphere)) TSphere<float>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(SphereD)) TSphere<double>;

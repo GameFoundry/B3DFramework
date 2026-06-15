@@ -80,5 +80,8 @@ std::pair<std::array<TVector3<T>, 2>, T> TLineSegment3<T>::GetNearestPoint(const
 	return std::make_pair(nearestPoints, distance);
 }
 
-template struct B3D_EXPORT TLineSegment3<float>;
-template struct B3D_EXPORT TLineSegment3<double>;
+namespace b3d
+{
+	template struct B3D_EXPORT TLineSegment3<float>;
+	template struct B3D_EXPORT TLineSegment3<double>;
+} // namespace b3d

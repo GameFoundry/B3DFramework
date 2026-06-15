@@ -157,5 +157,8 @@ bool TColorGradient<COLOR, TIME>::operator==(const TColorGradient<COLOR, TIME>& 
 	return true;
 }
 
-template class TColorGradient<RGBA, uint16_t>;
-template class TColorGradient<Color, float>;
+namespace b3d
+{
+	template class TColorGradient<RGBA, uint16_t>;
+	template class TColorGradient<Color, float>;
+} // namespace b3d

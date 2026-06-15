@@ -358,9 +358,9 @@ namespace b3d
 			inOutAreaList.push_back(area);
 	}
 
-	template<> const TArea2<i32> TArea2<i32>::kEmpty;
-	template<> const TArea2<i32, u32> TArea2<i32, u32>::kEmpty;
-	template<> const TArea2<float> TArea2<float>::kEmpty;
+	template<> inline const TArea2<i32> TArea2<i32>::kEmpty{};
+	template<> inline const TArea2<i32, u32> TArea2<i32, u32>::kEmpty{};
+	template<> inline const TArea2<float> TArea2<float>::kEmpty{};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true)) TArea2<i32>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true)) TArea2<i32, u32>;

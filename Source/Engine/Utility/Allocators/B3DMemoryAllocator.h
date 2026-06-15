@@ -42,37 +42,37 @@ namespace b3d
 		_aligned_free(ptr);
 	}
 #elif B3D_PLATFORM_LINUX || B3D_PLATFORM_ANDROID
-	inline void* platformAlignedAlloc16(size_t size)
+	inline void* PlatformAlignedAlloc16(size_t size)
 	{
 		return ::memalign(16, size);
 	}
 
-	inline void platformAlignedFree16(void* ptr)
+	inline void PlatformAlignedFree16(void* ptr)
 	{
 		::free(ptr);
 	}
 
-	inline void* platformAlignedAlloc(size_t size, size_t alignment)
+	inline void* PlatformAlignedAlloc(size_t size, size_t alignment)
 	{
 		return ::memalign(alignment, size);
 	}
 
-	inline void platformAlignedFree(void* ptr)
+	inline void PlatformAlignedFree(void* ptr)
 	{
 		::free(ptr);
 	}
 #else // 16 byte aligment by default
-	inline void* platformAlignedAlloc16(size_t size)
+	inline void* PlatformAlignedAlloc16(size_t size)
 	{
 		return ::malloc(size);
 	}
 
-	inline void platformAlignedFree16(void* ptr)
+	inline void PlatformAlignedFree16(void* ptr)
 	{
 		::free(ptr);
 	}
 
-	inline void* platformAlignedAlloc(size_t size, size_t alignment)
+	inline void* PlatformAlignedAlloc(size_t size, size_t alignment)
 	{
 		void* data = ::malloc(size + (alignment - 1) + sizeof(void*));
 		if(data == nullptr)
@@ -85,7 +85,7 @@ namespace b3d
 		return alignedData;
 	}
 
-	inline void platformAlignedFree(void* ptr)
+	inline void PlatformAlignedFree(void* ptr)
 	{
 		// TODO: Document how this works.
 		::free(((void**)ptr)[-1]);

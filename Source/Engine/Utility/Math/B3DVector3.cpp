@@ -12,5 +12,8 @@ TVector3<T>::TVector3(const Vector4& other)
 {
 }
 
-template struct B3D_EXPORT TVector3<float>;
-template struct B3D_EXPORT TVector3<double>;
+namespace b3d
+{
+	template struct B3D_EXPORT TVector3<float>;
+	template struct B3D_EXPORT TVector3<double>;
+} // namespace b3d

@@ -217,8 +217,8 @@ namespace b3d
 		static const TVector3I kZero;
 	};
 
-	template<> const TVector3I<i32> TVector3I<i32>::kZero{0, 0, 0};
-	template<> const TVector3I<u32> TVector3I<u32>::kZero{0u, 0u, 0u};
+	template<> inline const TVector3I<i32> TVector3I<i32>::kZero{0, 0, 0};
+	template<> inline const TVector3I<u32> TVector3I<u32>::kZero{0u, 0u, 0u};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector3I)) TVector3I<i32>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector3UI)) TVector3I<u32>;

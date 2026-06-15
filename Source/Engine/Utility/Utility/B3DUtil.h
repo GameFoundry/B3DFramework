@@ -152,8 +152,8 @@ namespace b3d
 		static const TSize3 kZero;
 	};
 
-	template<> const TSize3<u32> TSize3<u32>::kZero{kZeroTag};
-	template<> const TSize3<float> TSize3<float>::kZero{kZeroTag};
+	template<> inline const TSize3<u32> TSize3<u32>::kZero{kZeroTag};
+	template<> inline const TSize3<float> TSize3<float>::kZero{kZeroTag};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Size3)) TSize3<float>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Size3UI)) TSize3<u32>;

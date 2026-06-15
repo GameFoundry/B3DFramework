@@ -185,7 +185,7 @@ namespace b3d
 		public:
 			NVGVectorPathRenderable() = default; // Deserialization only
 
-			friend class NVGVectorPathRenderableRTTI;
+			friend class b3d::NVGVectorPathRenderableRTTI;
 			static RTTIType* GetRttiStatic();
 			RTTIType* GetRtti() const override;
 		};

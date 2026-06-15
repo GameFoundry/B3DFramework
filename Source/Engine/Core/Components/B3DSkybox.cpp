@@ -29,11 +29,14 @@ template <bool IsRenderProxy>
 void TSkybox<IsRenderProxy>::MarkRenderProxyDataDirty(ComponentDirtyFlag flag)
 {
 	if constexpr(!IsRenderProxy)
-		CoreObject::MarkRenderProxyDataDirty((u32)flag);
+		Super::MarkRenderProxyDataDirty((u32)flag);
 }
 
-template TSkybox<true>;
-template TSkybox<false>;
+namespace b3d
+{
+	template class TSkybox<true>;
+	template class TSkybox<false>;
+} // namespace b3d
 
 Skybox::Skybox(const HSceneObject& parent)
 	: Component(parent)

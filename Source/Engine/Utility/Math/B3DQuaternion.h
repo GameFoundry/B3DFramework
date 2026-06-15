@@ -399,11 +399,11 @@ namespace b3d
 		T X, Y, Z, W; // Note: Order is relevant, don't break it
 	};
 
-	template<> const TQuaternion<float> TQuaternion<float>::kZero{0.0f, 0.0f, 0.0f, 0.0f};
-	template<> const TQuaternion<double> TQuaternion<double>::kZero{0.0, 0.0, 0.0, 0.0};
+	template<> inline const TQuaternion<float> TQuaternion<float>::kZero{0.0f, 0.0f, 0.0f, 0.0f};
+	template<> inline const TQuaternion<double> TQuaternion<double>::kZero{0.0, 0.0, 0.0, 0.0};
 
-	template<> const TQuaternion<float> TQuaternion<float>::kIdentity{1.0f, 0.0f, 0.0f, 0.0f};
-	template<> const TQuaternion<double> TQuaternion<double>::kIdentity{1.0, 0.0, 0.0, 0.0};
+	template<> inline const TQuaternion<float> TQuaternion<float>::kIdentity{1.0f, 0.0f, 0.0f, 0.0f};
+	template<> inline const TQuaternion<double> TQuaternion<double>::kIdentity{1.0, 0.0, 0.0, 0.0};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Quaternion)) TQuaternion<float>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(QuaternionD)) TQuaternion<double>;

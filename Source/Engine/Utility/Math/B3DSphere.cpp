@@ -112,5 +112,8 @@ bool TSphere<T>::Intersects(const TAABox<T>& box) const
 	return box.Intersects(*this);
 }
 
-template struct B3D_EXPORT TSphere<float>;
-template struct B3D_EXPORT TSphere<double>;
+namespace b3d
+{
+	template struct B3D_EXPORT TSphere<float>;
+	template struct B3D_EXPORT TSphere<double>;
+} // namespace b3d

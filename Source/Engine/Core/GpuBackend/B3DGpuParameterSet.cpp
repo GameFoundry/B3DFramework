@@ -485,46 +485,50 @@ bool TGpuParameterSet<IsRenderProxy>::SetSamplerState(u32 slot, const TShared<Sa
 	return true;
 }
 
-template class TGpuParameterSet<false>;
-template class TGpuParameterSet<true>;
+// Explicit instantiations must be declared within the template's enclosing namespace
+namespace b3d
+{
+	template class TGpuParameterSet<false>;
+	template class TGpuParameterSet<true>;
 
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<float>(const StringView&, TGpuParameterPrimitive<float, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<int>(const StringView&, TGpuParameterPrimitive<int, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Color>(const StringView&, TGpuParameterPrimitive<Color, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector2>(const StringView&, TGpuParameterPrimitive<Vector2, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector3>(const StringView&, TGpuParameterPrimitive<Vector3, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector4>( const StringView&, TGpuParameterPrimitive<Vector4, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector2I>(const StringView&, TGpuParameterPrimitive<Vector2I, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector3I>(const StringView&, TGpuParameterPrimitive<Vector3I, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector4I>(const StringView&, TGpuParameterPrimitive<Vector4I, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix2>(const StringView&, TGpuParameterPrimitive<Matrix2, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix2x3>(const StringView&, TGpuParameterPrimitive<Matrix2x3, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix2x4>(const StringView&, TGpuParameterPrimitive<Matrix2x4, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix3>(const StringView&, TGpuParameterPrimitive<Matrix3, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix3x2>(const StringView&, TGpuParameterPrimitive<Matrix3x2, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix3x4>(const StringView&, TGpuParameterPrimitive<Matrix3x4, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix4>(const StringView&, TGpuParameterPrimitive<Matrix4, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix4x2>(const StringView&, TGpuParameterPrimitive<Matrix4x2, false>&) const;
-template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix4x3>(const StringView&, TGpuParameterPrimitive<Matrix4x3, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<float>(const StringView&, TGpuParameterPrimitive<float, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<int>(const StringView&, TGpuParameterPrimitive<int, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Color>(const StringView&, TGpuParameterPrimitive<Color, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector2>(const StringView&, TGpuParameterPrimitive<Vector2, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector3>(const StringView&, TGpuParameterPrimitive<Vector3, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector4>( const StringView&, TGpuParameterPrimitive<Vector4, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector2I>(const StringView&, TGpuParameterPrimitive<Vector2I, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector3I>(const StringView&, TGpuParameterPrimitive<Vector3I, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Vector4I>(const StringView&, TGpuParameterPrimitive<Vector4I, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix2>(const StringView&, TGpuParameterPrimitive<Matrix2, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix2x3>(const StringView&, TGpuParameterPrimitive<Matrix2x3, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix2x4>(const StringView&, TGpuParameterPrimitive<Matrix2x4, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix3>(const StringView&, TGpuParameterPrimitive<Matrix3, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix3x2>(const StringView&, TGpuParameterPrimitive<Matrix3x2, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix3x4>(const StringView&, TGpuParameterPrimitive<Matrix3x4, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix4>(const StringView&, TGpuParameterPrimitive<Matrix4, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix4x2>(const StringView&, TGpuParameterPrimitive<Matrix4x2, false>&) const;
+	template B3D_EXPORT void TGpuParameterSet<false>::GetParameter<Matrix4x3>(const StringView&, TGpuParameterPrimitive<Matrix4x3, false>&) const;
 
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<float>(const StringView&, TGpuParameterPrimitive<float, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<int>(const StringView&, TGpuParameterPrimitive<int, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Color>(const StringView&, TGpuParameterPrimitive<Color, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector2>(const StringView&, TGpuParameterPrimitive<Vector2, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector3>(const StringView&, TGpuParameterPrimitive<Vector3, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector4>(const StringView&, TGpuParameterPrimitive<Vector4, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector2I>(const StringView&, TGpuParameterPrimitive<Vector2I, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector3I>(const StringView&, TGpuParameterPrimitive<Vector3I, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector4I>(const StringView&, TGpuParameterPrimitive<Vector4I, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix2>(const StringView&, TGpuParameterPrimitive<Matrix2, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix2x3>(const StringView&, TGpuParameterPrimitive<Matrix2x3, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix2x4>(const StringView&, TGpuParameterPrimitive<Matrix2x4, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix3>(const StringView&, TGpuParameterPrimitive<Matrix3, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix3x2>(const StringView&, TGpuParameterPrimitive<Matrix3x2, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix3x4>(const StringView&, TGpuParameterPrimitive<Matrix3x4, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix4>(const StringView&, TGpuParameterPrimitive<Matrix4, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix4x2>(const StringView&, TGpuParameterPrimitive<Matrix4x2, true>&) const;
-template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix4x3>(const StringView&, TGpuParameterPrimitive<Matrix4x3, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<float>(const StringView&, TGpuParameterPrimitive<float, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<int>(const StringView&, TGpuParameterPrimitive<int, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Color>(const StringView&, TGpuParameterPrimitive<Color, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector2>(const StringView&, TGpuParameterPrimitive<Vector2, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector3>(const StringView&, TGpuParameterPrimitive<Vector3, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector4>(const StringView&, TGpuParameterPrimitive<Vector4, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector2I>(const StringView&, TGpuParameterPrimitive<Vector2I, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector3I>(const StringView&, TGpuParameterPrimitive<Vector3I, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Vector4I>(const StringView&, TGpuParameterPrimitive<Vector4I, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix2>(const StringView&, TGpuParameterPrimitive<Matrix2, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix2x3>(const StringView&, TGpuParameterPrimitive<Matrix2x3, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix2x4>(const StringView&, TGpuParameterPrimitive<Matrix2x4, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix3>(const StringView&, TGpuParameterPrimitive<Matrix3, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix3x2>(const StringView&, TGpuParameterPrimitive<Matrix3x2, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix3x4>(const StringView&, TGpuParameterPrimitive<Matrix3x4, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix4>(const StringView&, TGpuParameterPrimitive<Matrix4, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix4x2>(const StringView&, TGpuParameterPrimitive<Matrix4x2, true>&) const;
+	template B3D_EXPORT void TGpuParameterSet<true>::GetParameter<Matrix4x3>(const StringView&, TGpuParameterPrimitive<Matrix4x3, true>&) const;
+} // namespace b3d
 
 namespace b3d
 {

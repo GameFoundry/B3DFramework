@@ -557,6 +557,8 @@ namespace b3d
 		/** @} */
 
 	protected:
+		friend class ShaderRenderProxyRTTI;
+
 		ShaderInformationType mInformation;
 		u32 mShaderId;
 	};
@@ -719,7 +721,7 @@ namespace b3d
 			Shader(u32 id);
 
 		public:
-			friend class ShaderRenderProxyRTTI;
+			friend class b3d::ShaderRenderProxyRTTI;
 			static RTTIType* GetRttiStatic();
 			RTTIType* GetRtti() const override;
 		};

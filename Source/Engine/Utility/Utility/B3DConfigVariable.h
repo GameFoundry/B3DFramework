@@ -183,6 +183,17 @@ namespace b3d
 		std::atomic<bool> mHasPendingUpdate{false};
 	};
 
+	// Per-type member specializations, declared before the instantiation declarations below as the
+	// standard requires explicit specializations to precede any point of instantiation
+	template<> B3D_EXPORT const char* TConfigVariable<bool>::GetTypeName() const;
+	template<> B3D_EXPORT const char* TConfigVariable<i32>::GetTypeName() const;
+	template<> B3D_EXPORT const char* TConfigVariable<u32>::GetTypeName() const;
+	template<> B3D_EXPORT const char* TConfigVariable<float>::GetTypeName() const;
+	template<> B3D_EXPORT bool TConfigVariable<bool>::SetFromString(const String& value, ConfigVariableSource source);
+	template<> B3D_EXPORT bool TConfigVariable<i32>::SetFromString(const String& value, ConfigVariableSource source);
+	template<> B3D_EXPORT bool TConfigVariable<u32>::SetFromString(const String& value, ConfigVariableSource source);
+	template<> B3D_EXPORT bool TConfigVariable<float>::SetFromString(const String& value, ConfigVariableSource source);
+
 	// Explicit instantiation declarations
 	extern template class TConfigVariable<bool>;
 	extern template class TConfigVariable<i32>;
