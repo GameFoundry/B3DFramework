@@ -64,6 +64,12 @@ PFN_vkWaitSemaphoresKHR vkWaitSemaphoresKHR = nullptr;
 
 PFN_vkGetDeviceBufferMemoryRequirementsKHR vkGetDeviceBufferMemoryRequirementsKHR = nullptr;
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+// Diagnostics (VK_KHR_pipeline_executable_properties): used by the optional gpu.DumpPipelineStats occupancy dump.
+PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR = nullptr;
+PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR = nullptr;
+#endif
+
 /** Enables Vulkan validation layers. Ignored if the backend or platform does not support them. */
 static const bool kEnableVulkanValidationLayers = B3D_DEBUG;
 

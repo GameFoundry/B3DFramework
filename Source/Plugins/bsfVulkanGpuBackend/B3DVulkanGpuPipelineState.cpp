@@ -9,9 +9,90 @@
 #include "B3DVulkanGpuCommandBuffer.h"
 #include "Profiling/B3DRenderStats.h"
 #include "B3DVulkanRenderPass.h"
+#include "B3DVulkanGpuBackend.h"
+#include "Utility/B3DConfigVariable.h"
 
 using namespace b3d;
 using namespace b3d::render;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+/** 
+ * When enabled, captures and logs per-shader pipeline executable statistics (VGPR/LDS/occupancy) at compute-pipeline creation. 
+ * Development builds only.
+ */
+static TConfigVariable gDumpPipelineStats("gpu.DumpPipelineStats",
+	"Capture and log per-shader pipeline executable statistics (VGPR/LDS/occupancy) at pipeline creation. "
+	"Requires VK_KHR_pipeline_executable_properties.", false, ConfigVariableFlag::ReadOnly);
+
+/**
+ * Print every per-shader executable statistic the driver exposes for a freshly created pipeline
+ * (NVIDIA reports register count / occupancy hints; AMD reports VGPRs/SGPRs/LDS/wavefront occupancy).
+ */
+static void DumpPipelineExecutableStats(VkDevice device, VkPipeline pipeline, const String& programName)
+{
+	VkPipelineInfoKHR pipelineInfo = {};
+	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INFO_KHR;
+	pipelineInfo.pipeline = pipeline;
+
+	uint32_t executablePropertyCount = 0;
+	b3d::vkGetPipelineExecutablePropertiesKHR(device, &pipelineInfo, &executablePropertyCount, nullptr);
+	if(executablePropertyCount == 0)
+		return;
+
+	Vector<VkPipelineExecutablePropertiesKHR> executableProperties(executablePropertyCount);
+	for(uint32_t propertyIndex = 0; propertyIndex < executablePropertyCount; ++propertyIndex)
+	{
+		executableProperties[propertyIndex] = {};
+		executableProperties[propertyIndex].sType = VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_PROPERTIES_KHR;
+	}
+	b3d::vkGetPipelineExecutablePropertiesKHR(device, &pipelineInfo, &executablePropertyCount, executableProperties.data());
+
+	for(uint32_t propertyIndex = 0; propertyIndex < executablePropertyCount; ++propertyIndex)
+	{
+		VkPipelineExecutableInfoKHR executableInfo = {};
+		executableInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INFO_KHR;
+		executableInfo.pipeline = pipeline;
+		executableInfo.executableIndex = propertyIndex;
+
+		uint32_t statisticCount = 0;
+		b3d::vkGetPipelineExecutableStatisticsKHR(device, &executableInfo, &statisticCount, nullptr);
+
+		if(statisticCount == 0)
+			continue;
+
+		Vector<VkPipelineExecutableStatisticKHR> statistics(statisticCount);
+		for(uint32_t statisticIndex = 0; statisticIndex < statisticCount; ++statisticIndex)
+		{
+			statistics[statisticIndex] = {};
+			statistics[statisticIndex].sType = VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_STATISTIC_KHR;
+		}
+
+		b3d::vkGetPipelineExecutableStatisticsKHR(device, &executableInfo, &statisticCount, statistics.data());
+
+		for(uint32_t statisticIndex = 0; statisticIndex < statisticCount; ++statisticIndex)
+		{
+			const VkPipelineExecutableStatisticKHR& statistic = statistics[statisticIndex];
+
+			String value;
+			switch(statistic.format)
+			{
+			case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_BOOL32_KHR:
+				value = ToString((u32)statistic.value.b32); break;
+			case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_INT64_KHR:
+				value = ToString((i64)statistic.value.i64); break;
+			case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_UINT64_KHR:
+				value = ToString((u64)statistic.value.u64); break;
+			case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_FLOAT64_KHR:
+				value = ToString((double)statistic.value.f64); break;
+			default: break;
+			}
+
+			B3D_LOG(Info, LogRenderBackend, "[PIPESTATS] {0} | exec='{1}' subgroup={2} | {3} = {4}",
+				programName, executableProperties[propertyIndex].name, executableProperties[propertyIndex].subgroupSize, statistic.name, value);
+		}
+	}
+}
+#endif
 
 VulkanPipeline::VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, const std::array<bool, B3D_MAXIMUM_RENDER_TARGET_COUNT>& colorReadOnly, bool depthStencilReadOnly, u32 vertexBufferBindingCount, const StringView& name)
 	: VulkanResource(owner, true, name), mPipeline(pipeline), mReadOnlyColor(colorReadOnly), mReadOnlyDepth(depthStencilReadOnly), mVertexBufferBindingCount(vertexBufferBindingCount)
@@ -489,9 +570,23 @@ void VulkanGpuComputePipelineState::Initialize()
 
 	pipelineCI.layout = descManager.GetPipelineLayout(layouts, layoutCount);
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// When the gpu.DumpPipelineStats config variable is enabled, ask the driver to keep per-shader executable
+	// statistics (VGPR count, occupancy, LDS, etc.) so we can reason about why a compute kernel is occupancy-bound.
+	// Requires VK_KHR_pipeline_executable_properties, enabled at device creation.
+	const bool captureStats = gDumpPipelineStats.Get() && (b3d::vkGetPipelineExecutableStatisticsKHR != nullptr);
+	if(captureStats)
+		pipelineCI.flags |= VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR;
+#endif
+
 	VkPipeline pipeline;
 	VkResult result = vkCreateComputePipelines(gpuDevice.GetLogical(), VK_NULL_HANDLE, 1, &pipelineCI, gVulkanAllocator, &pipeline);
 	B3D_ASSERT(result == VK_SUCCESS);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(captureStats && result == VK_SUCCESS)
+		DumpPipelineExecutableStats(gpuDevice.GetLogical(), pipeline, vkProgram->GetName());
+#endif
 
 	mPipeline = rescManager.Create<VulkanPipeline>(pipeline);
 	mPipelineLayout = pipelineCI.layout;

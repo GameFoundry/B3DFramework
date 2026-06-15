@@ -170,13 +170,18 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 
 	// Set up extensions. Required: swapchain, maintenance1, maintenance2, maintenance4. Plus optional ones
 	// discovered below (shader_viewport_index_layer, timeline_semaphore).
-	const char* extensions[8];
+	const char* extensions[12];
 	uint32_t extensionCount = 0;
 
 	extensions[extensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 	extensions[extensionCount++] = VK_KHR_MAINTENANCE1_EXTENSION_NAME;
 	extensions[extensionCount++] = VK_KHR_MAINTENANCE2_EXTENSION_NAME;
 	extensions[extensionCount++] = VK_KHR_MAINTENANCE_4_EXTENSION_NAME;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// Diagnostics: optional, only enabled for the gpu.DumpPipelineStats occupancy dump (development builds only).
+	bool supportsPipelineExecutableProperties = false;
+#endif
 
 	// Enumerate supported extensions
 	uint32_t availableExtensionCount = 0;
@@ -197,6 +202,13 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 					extensions[extensionCount++] = VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME;
 					mSupportsTimelineSemaphore = true;
 				}
+#if B3D_BUILD_TYPE_DEVELOPMENT
+				else if(strcmp(entry.extensionName, VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME) == 0)
+				{
+					extensions[extensionCount++] = VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME;
+					supportsPipelineExecutableProperties = true;
+				}
+#endif
 			}
 		}
 	}
@@ -237,6 +249,17 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	maintenance4Features.maintenance4 = VK_TRUE;
 	featureChain = &maintenance4Features;
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR pipelineExecutableFeatures = {};
+	if(supportsPipelineExecutableProperties)
+	{
+		pipelineExecutableFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_EXECUTABLE_PROPERTIES_FEATURES_KHR;
+		pipelineExecutableFeatures.pNext = featureChain;
+		pipelineExecutableFeatures.pipelineExecutableInfo = VK_TRUE;
+		featureChain = &pipelineExecutableFeatures;
+	}
+#endif
+
 	VkDeviceCreateInfo deviceInfo;
 	deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	deviceInfo.pNext = featureChain;
@@ -260,6 +283,14 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 
 	GET_DEVICE_PROC_ADDR(mLogicalDevice, GetDeviceBufferMemoryRequirementsKHR)
 	B3D_ASSERT(vkGetDeviceBufferMemoryRequirementsKHR != nullptr && "VK_KHR_maintenance4 is required.");
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(supportsPipelineExecutableProperties)
+	{
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, GetPipelineExecutablePropertiesKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, GetPipelineExecutableStatisticsKHR)
+	}
+#endif
 
 	// Retrieve queues
 	for(u32 i = 0; i < GQT_COUNT; i++)
