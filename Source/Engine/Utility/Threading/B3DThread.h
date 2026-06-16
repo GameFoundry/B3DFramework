@@ -44,7 +44,7 @@ namespace b3d
 	{
 	public:
 		/** True if thread affinity is supported on the current platform. */
-#if B3D_PLATFORM_WIN32 || B3D_PLATFORM_MACOS || B3D_PLATFORM_LINUX
+#if B3D_PLATFORM_WIN32 || B3D_PLATFORM_MACOS || B3D_PLATFORM_LINUX || B3D_PLATFORM_PS5
 		static constexpr bool kIsSupported = true;
 #else
 		static constexpr bool kIsSupported = false;

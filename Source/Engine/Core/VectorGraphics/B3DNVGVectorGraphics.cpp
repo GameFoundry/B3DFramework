@@ -213,11 +213,11 @@ namespace b3d::render
 				{
 					switch(command.SetPathSolidity.Solidity)
 					{
-					case VectorGraphicsPathWinding::Clockwise:
-						nvgPathWinding(&context, NVG_CW);
-						break;
-					case VectorGraphicsPathWinding::Counterclockwise:
+					case VectorGraphicsPathSolidity::Solid:
 						nvgPathWinding(&context, NVG_CCW);
+						break;
+					case VectorGraphicsPathSolidity::Hole:
+						nvgPathWinding(&context, NVG_CW);
 						break;
 					}
 					break;

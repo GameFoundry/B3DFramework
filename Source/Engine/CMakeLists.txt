@@ -42,6 +42,8 @@ endif()
 add_library(ThirdParty INTERFACE)
 target_include_directories(ThirdParty INTERFACE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Utility/ThirdParty>
+	# CityHash's city.cc includes <citycrc.h>, which in turn includes <city.h>, so its own directory must be on the include path (as in the library's upstream build).
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Utility/ThirdParty/CityHash>
 	$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/Utility/ThirdParty>)
 
 # Public usage requirements for bsf (include dirs + compile flags). Exposed as a

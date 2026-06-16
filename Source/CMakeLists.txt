@@ -24,6 +24,13 @@ endif()
 set(B3D_GPU_BACKEND "${B3D_GPU_BACKEND_DEFAULT}" CACHE STRING "GPU backend to use.")
 set_property(CACHE B3D_GPU_BACKEND PROPERTY STRINGS ${B3D_GPU_BACKEND_CHOICES})
 
+# The cached backend selection can go stale when B3D_PLATFORM changes in an existing build directory.
+# Fall back to the platform's default instead of configuring with a backend the platform can't provide.
+if(NOT B3D_GPU_BACKEND IN_LIST B3D_GPU_BACKEND_CHOICES)
+	message(STATUS "GPU backend '${B3D_GPU_BACKEND}' is not available on platform '${B3D_PLATFORM}'. Falling back to '${B3D_GPU_BACKEND_DEFAULT}'.")
+	set_property(CACHE B3D_GPU_BACKEND PROPERTY VALUE ${B3D_GPU_BACKEND_DEFAULT})
+endif()
+
 set(B3D_RENDERER "RenderBeast" CACHE STRING "Renderer backend to use.")
 set_property(CACHE B3D_RENDERER PROPERTY STRINGS RenderBeast Null)
 
@@ -206,7 +213,7 @@ if(B3D_MONOLITHIC_BUILD)
 			)
 		else()
 			string(APPEND B3D_STATIC_PLUGIN_FORCE_SYMBOLS
-				"__attribute__((used)) static void* (*kForceKeep_${PLUGIN_TARGET})() = LoadPlugin_${PLUGIN_TARGET};\n"
+				"__attribute__((used)) static void* (*kForceKeep_${PLUGIN_TARGET})() = b3d::LoadPlugin_${PLUGIN_TARGET};\n"
 			)
 		endif()
 	endforeach()

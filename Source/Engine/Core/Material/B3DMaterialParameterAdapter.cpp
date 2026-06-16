@@ -885,9 +885,10 @@ void TMaterialParameterAdapter<IsRenderProxy>::SetUniformBuffer(u32 index, const
 
 				const UniformBufferBinding& binding = uniformBufferInfo.PassData[passIndex].Bindings[gpuProgramType];
 
-				if(binding.Slot != ~0u && binding.Set < gpuParametersForPass.Size())
+				const u32 bindingSet = binding.Set;
+				if(binding.Slot != ~0u && bindingSet < gpuParametersForPass.Size())
 				{
-					TShared<GpuParametersType>& gpuParameters = gpuParametersForPass[binding.Set];
+					TShared<GpuParametersType>& gpuParameters = gpuParametersForPass[bindingSet];
 					if(gpuParameters)
 						gpuParameters->SetUniformBuffer(binding.Slot, buffer);
 				}
@@ -1345,8 +1346,8 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 // Explicit instantiations must be declared within the template's enclosing namespace
 namespace b3d
 {
-template class TMaterialParameterAdapter<false>;
-template class TMaterialParameterAdapter<true>;
+	template class TMaterialParameterAdapter<false>;
+	template class TMaterialParameterAdapter<true>;
 } // namespace b3d
 
 namespace b3d::render
@@ -1380,9 +1381,10 @@ namespace b3d::render
 
 					const UniformBufferBinding& binding = uniformBufferInfo.PassData[passIndex].Bindings[gpuProgramType];
 
-					if(binding.Slot != ~0u && binding.Set < gpuParametersForPass.Size())
+					const u32 bindingSet = binding.Set;
+					if(binding.Slot != ~0u && bindingSet < gpuParametersForPass.Size())
 					{
-						TShared<GpuParameterSet>& gpuParameters = gpuParametersForPass[binding.Set];
+						TShared<GpuParameterSet>& gpuParameters = gpuParametersForPass[bindingSet];
 						if(gpuParameters)
 							gpuParameters->SetUniformBuffer(binding.Slot, suballocation);
 					}

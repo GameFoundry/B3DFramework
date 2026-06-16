@@ -21,7 +21,7 @@ B3DSetDefaultLinkAndCompileFlags(FrameworkTests)
 target_compile_definitions(FrameworkTests PRIVATE -DB3D_FRAMEWORK_TESTS_EXPORTS)
 
 # Includes
-target_include_directories(FrameworkTests PUBLIC
+target_include_directories(FrameworkTests PRIVATE
 	"${B3D_FRAMEWORK_SOURCE_FOLDER}/Engine/Utility"
 	"${B3D_FRAMEWORK_SOURCE_FOLDER}/Engine/Utility/ThirdParty"
 	"${CMAKE_CURRENT_SOURCE_DIR}"

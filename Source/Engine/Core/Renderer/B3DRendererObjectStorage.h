@@ -7,12 +7,7 @@
 #include "Renderer/B3DRendererId.h"
 #include "Renderer/B3DRendererSyncManager.h"
 #include "Utility/B3DTChunkedArray.h"
-
-namespace b3d::ecs
-{
-	class Registry;
-	template<typename... Types> struct TExcludedTypes;
-}
+#include "ECS/B3DRegistry.h"
 
 namespace b3d
 {

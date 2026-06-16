@@ -166,7 +166,7 @@ namespace b3d
 		}
 
 		/** Copies an array from the non-core object into the field in the RenderProxySyncPacket. */
-		template <bool IsRenderProxy, class FieldTypeA, class FieldTypeB, u64 N>
+		template <bool IsRenderProxy, class FieldTypeA, class FieldTypeB, u32 N>
 		void RenderProxySyncField(RenderProxySyncVector<FieldTypeA>& a, TInlineArray<FieldTypeB, N>& b, std::enable_if_t<!IsRenderProxy>* = 0)
 		{
 			a.resize(b.size());
@@ -175,7 +175,7 @@ namespace b3d
 		}
 
 		/** Copies an array from the RenderProxySyncPacket to a core object. */
-		template <bool IsRenderProxy, class FieldTypeA, class FieldTypeB, u64 N>
+		template <bool IsRenderProxy, class FieldTypeA, class FieldTypeB, u32 N>
 		void RenderProxySyncField(RenderProxySyncVector<FieldTypeA>& a, TInlineArray<FieldTypeB, N>& b, std::enable_if_t<IsRenderProxy>* = 0)
 		{
 			b.resize(a.size());
@@ -198,7 +198,7 @@ namespace b3d
 		};
 
 		/** Defines an intermediate type used for storing data of type T in a RenderProxySyncPacket. */
-		template <class T, u64 N>
+		template <class T, u32 N>
 		struct RenderProxySyncPacketType<TInlineArray<T, N>>
 		{
 			typedef RenderProxySyncVector<std::decay_t<decltype(GetRenderProxy(RemoveHandle(T())))>> Type;

@@ -16,7 +16,9 @@
 
 #include "osfiber_asm_x64.h"
 
-#include "ThirdParty/marl/include/marl/export.h"
+#ifndef MARL_EXPORT
+#define MARL_EXPORT
+#endif
 
 //You can find an explanation of this code here: https://github.com/google/marl/issues/199
 

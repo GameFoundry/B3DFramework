@@ -46,8 +46,12 @@
 #error "Unsupported target"
 #endif
 
-#include "marl/export.h"
-#include "marl/memory.h"
+#ifndef MARL_EXPORT
+#define MARL_EXPORT
+#endif
+#ifndef MARL_NO_EXPORT
+#define MARL_NO_EXPORT
+#endif
 
 #include <functional>
 #include <memory>
