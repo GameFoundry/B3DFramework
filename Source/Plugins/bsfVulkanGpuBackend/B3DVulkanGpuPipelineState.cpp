@@ -11,6 +11,7 @@
 #include "B3DVulkanRenderPass.h"
 #include "B3DVulkanGpuBackend.h"
 #include "Utility/B3DConfigVariable.h"
+#include "Utility/B3DTimer.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -22,7 +23,21 @@ using namespace b3d::render;
  */
 static TConfigVariable gDumpPipelineStats("gpu.DumpPipelineStats",
 	"Capture and log per-shader pipeline executable statistics (VGPR/LDS/occupancy) at pipeline creation. "
-	"Requires VK_KHR_pipeline_executable_properties.", false, ConfigVariableFlag::ReadOnly);
+	"Requires VK_KHR_pipeline_executable_properties.",
+	false,
+	ConfigVariableFlag::ReadOnly);
+
+/**
+ * When enabled, logs the driver's pipeline-compile time (the duration of vkCreate*Pipelines) at pipeline creation.
+ * On a cold driver cache this is the per-shader compile cost - the asset-import pain point, especially on amdvlk/LLPC;
+ * a warm cache returns in well under 1 ms. Independent of gDumpPipelineStats so timing is not perturbed by the
+ * statistics-capture flag. Development builds only.
+ */
+static TConfigVariable gDumpPipelineTimings("gpu.DumpPipelineTimings",
+	"Log the driver pipeline-compile time (ms) at pipeline creation. Clear the driver shader caches first for cold "
+	"(true compile) numbers; a warm cache returns in <1 ms.",
+	false,
+	ConfigVariableFlag::ReadOnly);
 
 /**
  * Print every per-shader executable statistic the driver exposes for a freshly created pipeline
@@ -580,10 +595,20 @@ void VulkanGpuComputePipelineState::Initialize()
 #endif
 
 	VkPipeline pipeline;
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	const bool timeCompile = gDumpPipelineTimings.Get();
+	const Timer compileTimer; // starts timing on construction; only read below when timeCompile is set
+#endif
 	VkResult result = vkCreateComputePipelines(gpuDevice.GetLogical(), VK_NULL_HANDLE, 1, &pipelineCI, gVulkanAllocator, &pipeline);
 	B3D_ASSERT(result == VK_SUCCESS);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
+	if(timeCompile && result == VK_SUCCESS)
+	{
+		const double compileMs = compileTimer.GetMicroseconds() / 1000.0;
+		B3D_LOG(Info, LogRenderBackend, "[PIPELINE] compute {0} ms {1}", compileMs, vkProgram->GetName());
+	}
+
 	if(captureStats && result == VK_SUCCESS)
 		DumpPipelineExecutableStats(gpuDevice.GetLogical(), pipeline, vkProgram->GetName());
 #endif
