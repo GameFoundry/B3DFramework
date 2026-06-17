@@ -95,6 +95,8 @@ mixin TextureCompressBC7Common
 		// least-squares refine), which is reused unchanged by BC1/BC6H. These convert the BC7 integer texels (0..255) to
 		// float, call the generic geometry, and clamp the result back to the 8-bit range. @p mask16 selects subset members
 		// (bit t set = member); single-subset modes pass 0xFFFF. @p e0 is the high (index-0) end, @p e1 the low end.
+		// Only the RGB / scalar variants (modes 4/5's rotation search) remain as wrappers; EncodeBC7Subsets converts its
+		// texels to float once and calls FitLine4f / RefineLine4f directly.
 
 		void FitLineRGB(int3 px[16], uint mask16, out float3 e0, out float3 e1)
 		{
@@ -105,30 +107,12 @@ mixin TextureCompressBC7Common
 			e0 = clamp(e0, 0.0f, 255.0f); e1 = clamp(e1, 0.0f, 255.0f);
 		}
 
-		void FitLineRGBA(int4 px[16], uint mask16, out float4 e0, out float4 e1)
-		{
-			float4 f[16];
-			[unroll]
-			for (uint i = 0; i < 16; ++i) f[i] = (float4)px[i];
-			FitLine4f(f, mask16, e0, e1);
-			e0 = clamp(e0, 0.0f, 255.0f); e1 = clamp(e1, 0.0f, 255.0f);
-		}
-
 		void RefineLineRGB(int3 px[16], uint mask16, float wgt[16], inout float3 e0, inout float3 e1)
 		{
 			float3 f[16];
 			[unroll]
 			for (uint i = 0; i < 16; ++i) f[i] = (float3)px[i];
 			RefineLine3f(f, mask16, wgt, e0, e1);
-			e0 = clamp(e0, 0.0f, 255.0f); e1 = clamp(e1, 0.0f, 255.0f);
-		}
-
-		void RefineLineRGBA(int4 px[16], uint mask16, float wgt[16], inout float4 e0, inout float4 e1)
-		{
-			float4 f[16];
-			[unroll]
-			for (uint i = 0; i < 16; ++i) f[i] = (float4)px[i];
-			RefineLine4f(f, mask16, wgt, e0, e1);
 			e0 = clamp(e0, 0.0f, 255.0f); e1 = clamp(e1, 0.0f, 255.0f);
 		}
 
@@ -304,6 +288,12 @@ mixin TextureCompressBC7Common
 		{
 			int idxCount = 1 << ib;
 
+			// Texels as floats for the PCA / least-squares geometry, converted once up front. The fit/refine wrappers
+			// used to re-convert all 16 texels on every call (2 fits + up to 6 refines per partition, x64 partitions).
+			float4 pts[16];
+			[unroll]
+			for (int i = 0; i < 16; ++i) pts[i] = (float4)px[i];
+
 			bestPart = 0;
 			float bestErr = 1e30f;
 			int4 bC0[3], bC1[3];
@@ -325,7 +315,11 @@ mixin TextureCompressBC7Common
 				for (int s = 0; s < 3; ++s)
 				{
 					fe0[s] = float4(0, 0, 0, 0); fe1[s] = float4(0, 0, 0, 0);
-					if (s < numSubsets) FitLineRGBA(px, smask[s], fe0[s], fe1[s]);
+					if (s < numSubsets)
+					{
+						FitLine4f(pts, smask[s], fe0[s], fe1[s]);
+						fe0[s] = clamp(fe0[s], 0.0f, 255.0f); fe1[s] = clamp(fe1[s], 0.0f, 255.0f);
+					}
 				}
 
 				int4 q0[3], q1[3], r0[3], r1[3];
@@ -366,7 +360,13 @@ mixin TextureCompressBC7Common
 
 					// Rolled loops (not [unroll]): inlined many times per BC7 kernel (mode 0/2 search 64 three-subset
 					// partitions, FORMAT 4 inlines five modes) and unrolling the 16x16 search overruns amdvlk/LLPC's
-					// cold-compile budget (hangs in vkCreateComputePipelines).
+					// cold-compile budget (hangs in vkCreateComputePipelines). The candidate loop must keep its constant
+					// 16 bound with a `continue` past idxCount: both a `k < idxCount` bound and a `break` fold to a small
+					// constant trip count after inlining, and amdvlk/LLPC then fully unrolls the loop into the
+					// surrounding runtime loops, exploding cold compile (mode 2: 3.4 s -> 29 s, mode 7: 3.1 s -> 13 s).
+					// The palette entry is recomputed per candidate from the register-resident endpoints rather than
+					// staged in a local array: a dynamically indexed array lands in scratch memory, and at this kernel's
+					// low occupancy the load latency costs more than the few ALU ops it saves (measured: net loss).
 					float wgt[16];
 					err = 0;
 					for (int t = 0; t < 16; ++t)
@@ -394,7 +394,13 @@ mixin TextureCompressBC7Common
 					{
 						[unroll]
 						for (int s = 0; s < 3; ++s)
-							if (s < numSubsets) RefineLineRGBA(px, smask[s], wgt, fe0[s], fe1[s]);
+						{
+							if (s < numSubsets)
+							{
+								RefineLine4f(pts, smask[s], wgt, fe0[s], fe1[s]);
+								fe0[s] = clamp(fe0[s], 0.0f, 255.0f); fe1[s] = clamp(fe1[s], 0.0f, 255.0f);
+							}
+						}
 					}
 				}
 
@@ -497,7 +503,7 @@ mixin TextureCompressBC7Common
 					int bestD = 0x7fffffff;
 					for (int k = 0; k < 16; ++k)
 					{
-						if (k >= idxCount) continue;
+						if (k >= idxCount) continue; // constant 16 bound + continue, NOT break: see the search-loop note
 						int w = BC7IdxWeight(ib, (uint)k);
 						int4 pal = ((64 - w) * e0r + w * e1r + 32) >> 6;
 						int4 d = px[t] - pal;

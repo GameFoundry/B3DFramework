@@ -107,7 +107,16 @@ mixin TextureCompressBC6Common
 				{
 					int tb = tBits[ch];
 					int tm = (1 << tb) - 1;
-					int d = (b - a) & tm;
+					// Clamp the delta to the signed tb-bit range, and further so the decoder's reconstruction
+					// (sign-extended delta + base) stays within [0, wmask] without wrapping. The hardware decodes the
+					// second endpoint as (SIGN_EXTEND(delta) + base) & MASK(wBits); a delta whose magnitude exceeds the
+					// field wraps to a near-max code that unquantizes to ~65504 (a firefly), even when both endpoints
+					// are individually in range. Clamping keeps the reconstruction in range, so a block whose endpoints
+					// are too far apart for this mode just incurs a larger error (and loses mode selection).
+					int lo = -(1 << (tb - 1));
+					int hi = (1 << (tb - 1)) - 1;
+					int delta = clamp(b - a, max(lo, -a), min(hi, wmask - a));
+					int d = delta & tm;
 					codeBStore[ch] = d;
 					codeBAct[ch] = (SignExtendBC6(d, tb) + a) & wmask;
 				}
@@ -136,7 +145,6 @@ mixin TextureCompressBC6Common
 
 			int3 cA = int3(0, 0, 0), cBs = int3(0, 0, 0), cBa = int3(0, 0, 0);
 			uint tmpIdx[16];
-			float total = 0;
 
 			// Runtime loop (not [unroll]), because we're seeing hangs when compiling this shader on AMD
 			for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
@@ -152,7 +160,6 @@ mixin TextureCompressBC6Common
 				}
 
 				float wgt[16];
-				total = 0;
 				for (uint t = 0; t < 16; ++t)
 				{
 					int bestK = 0;
@@ -167,7 +174,6 @@ mixin TextureCompressBC6Common
 					}
 					tmpIdx[t] = (uint)bestK;
 					wgt[t] = (float)kBC6Weight4[bestK] * (1.0f / 64.0f);
-					total += (float)bestD;
 				}
 
 				if (refinePass + 1 < BCN_REFINE_PASSES)
@@ -185,10 +191,30 @@ mixin TextureCompressBC6Common
 					tmpIdx[i] = 15u - tmpIdx[i];
 			}
 
+			// Re-measure error from the truly-decoded palette (mirrors EncodeBC6TwoRegion). The anchor-fixup re-quantize
+			// and the transform's delta clamping can shift the actual decoded codes, so the error accumulated during the
+			// refine loop is stale: a transformed endpoint that wraps to the max code unquantizes to 0xFFFF (65504.0). That
+			// must be penalized here so a saturating fit loses mode selection instead of emitting a firefly.
+			int palR[16], palG[16], palB[16];
+			for (uint k = 0; k < 16; ++k)
+			{
+				palR[k] = BC6PaletteValue(cA.x, cBa.x, wBits, k, 4u);
+				palG[k] = BC6PaletteValue(cA.y, cBa.y, wBits, k, 4u);
+				palB[k] = BC6PaletteValue(cA.z, cBa.z, wBits, k, 4u);
+			}
+			float finalErr = 0;
+			for (uint t = 0; t < 16; ++t)
+			{
+				int dr = h[t].x - palR[tmpIdx[t]];
+				int dg = h[t].y - palG[tmpIdx[t]];
+				int db = h[t].z - palB[tmpIdx[t]];
+				finalErr += (float)(dr * dr + dg * dg + db * db);
+			}
+
 			W = cA;
 			X = cBs;
 			idx = tmpIdx;
-			err = total;
+			err = finalErr;
 		}
 
 		// Packs the 16 indices of a one-region block: index 0 as 3 bits at the one-region offset (65), the rest 4 bits.
@@ -362,11 +388,20 @@ mixin TextureCompressBC6Common
 				{
 					if (transformed)
 					{
+						// Same delta-overflow guard as QuantizeBC6Pair: clamp the stored delta to the signed tb-bit
+						// range and so the decoder's (sign-extended delta + base) stays in [0, wmask] without wrapping.
+						// Here the delta is each endpoint relative to subset-0's base; subset-1's base can be far from
+						// it when the two regions differ in brightness, so an unclamped delta wraps to a near-max code
+						// that decodes to ~65504 (a firefly). Clamping yields a larger error instead, losing selection.
 						int tb = tBits[ch];
 						int tm = (1 << tb) - 1;
-						int d = (bestAbs[k][ch] - bestAbs[0][ch]) & tm;
+						int base = bestAbs[0][ch];
+						int lo = -(1 << (tb - 1));
+						int hi = (1 << (tb - 1)) - 1;
+						int delta = clamp(bestAbs[k][ch] - base, max(lo, -base), min(hi, wmask - base));
+						int d = delta & tm;
 						codeStore[k][ch] = d;
-						act[k][ch] = (SignExtendBC6(d, tb) + bestAbs[0][ch]) & wmask;
+						act[k][ch] = (SignExtendBC6(d, tb) + base) & wmask;
 					}
 					else
 					{

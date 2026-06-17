@@ -29,10 +29,12 @@ mixin TextureCompressBC1
 			return float3(r8, g8, b8) / 255.0f;
 		}
 
-		// Encodes a 4x4 RGB block into a 64-bit BC1 block (no punch-through alpha).
-		// Endpoints come from the principal axis of the block's colour distribution (PCA),
-		// followed by one least-squares refinement pass over the assigned indices.
-		uint2 CompressBC1(float3 texels[16])
+		// Encodes a 4x4 RGB block into a 64-bit BC1 block. Endpoints come from the principal axis of the block's
+		// colour distribution (PCA) plus an iterated cluster fit and a +/-1 polish. When @p allow3Color is set the
+		// encoder also evaluates BC1's 3-colour mode (palette {c0, c1, (c0+c1)/2, black}, selected by c0 <= c1) and
+		// emits it when it lowers the block error - free quality for opaque content with dark texels. It must be left
+		// OFF for a BC2/BC3 colour block, which the hardware always decodes as 4-colour regardless of endpoint order.
+		uint2 CompressBC1(float3 texels[16], bool allow3Color)
 		{
 			// Mean, covariance and bounding box in a single pass.
 			float3 mean = texels[0];
@@ -323,6 +325,176 @@ mixin TextureCompressBC1
 			{
 				uint tmp = c0; c0 = c1; c1 = tmp;
 				indices ^= 0x55555555u;
+			}
+
+			// Squared error of the finalised 4-colour reconstruction (decoded exactly as the hardware does), used to
+			// decide whether the 3-colour candidate below is worth emitting.
+			float err4 = 0.0f;
+			{
+				float3 q0 = Unpack565(c0), q1 = Unpack565(c1);
+				float3 pal0 = q0, pal1 = q1, pal2 = (2.0f * q0 + q1) / 3.0f, pal3 = (q0 + 2.0f * q1) / 3.0f;
+				[unroll]
+				for (uint j = 0; j < 16; ++j)
+				{
+					uint id = (indices >> (j * 2)) & 3u;
+					float3 p = (id == 0u) ? pal0 : (id == 1u) ? pal1 : (id == 2u) ? pal2 : pal3;
+					float3 d = texels[j] - p;
+					err4 += dot(d, d);
+				}
+			}
+
+			// --- 3-colour mode -----------------------------------------------------------------------------------
+			// Selected by c0 <= c1; palette is {c0, c1, (c0+c1)/2, BLACK}, the 4th index decoding to opaque black.
+			// For opaque content a block with dark texels can route those to the exact-black index and spend both
+			// endpoints fitting the remaining colours, beating 4-colour mode. We compute a 3-colour candidate and
+			// emit it only when its error is lower, so this never regresses (and is gated off for BC3 colour blocks).
+			if (allow3Color)
+			{
+				// Iterated Lloyd fit: assign each texel to the nearest of {te0, te1, mid, black}, then least-squares
+				// refit te0/te1 over the on-line texels only (blend weights 0, 1, 1/2); black texels are excluded so
+				// the endpoints tighten on the colours they represent. Seeded from the cluster-fit endpoints.
+				float3 te0 = bestE0;
+				float3 te1 = bestE1;
+				[loop]
+				for (uint it3 = 0; it3 < 3u; ++it3)
+				{
+					float3 mid = (te0 + te1) * 0.5f;
+					float A = 0, Bc = 0, C = 0;
+					float3 rA = float3(0, 0, 0), rB = float3(0, 0, 0);
+					[unroll]
+					for (uint j = 0; j < 16; ++j)
+					{
+						float3 d0 = texels[j] - te0, d1 = texels[j] - te1, dm = texels[j] - mid;
+						float b0 = dot(d0, d0), b1 = dot(d1, d1), bm = dot(dm, dm), bb = dot(texels[j], texels[j]);
+						float best = b0, w = 0.0f; bool blk = false;
+						if (b1 < best) { best = b1; w = 1.0f; }
+						if (bm < best) { best = bm; w = 0.5f; }
+						if (bb < best) { blk = true; }
+						if (!blk)
+						{
+							float a = 1.0f - w;
+							A += a * a; Bc += a * w; C += w * w;
+							rA += a * texels[j]; rB += w * texels[j];
+						}
+					}
+					float det = A * C - Bc * Bc;
+					if (!(det > 1e-9f))
+						break; // degenerate (e.g. every texel snapped to black) - keep the current endpoints
+					float inv = 1.0f / det;
+					te0 = saturate((C * rA - Bc * rB) * inv);
+					te1 = saturate((A * rB - Bc * rA) * inv);
+				}
+
+				uint t0 = PackColor565(te0);
+				uint t1 = PackColor565(te1);
+
+				// Assign indices against the quantized 3-colour palette, seeding the polish below.
+				uint idx3 = 0;
+				{
+					float3 q0 = Unpack565(t0), q1 = Unpack565(t1);
+					float3 pal0 = q0, pal1 = q1, pal2 = (q0 + q1) * 0.5f;
+					[unroll]
+					for (uint j = 0; j < 16; ++j)
+					{
+						float3 e0d = texels[j] - pal0, e1d = texels[j] - pal1, e2d = texels[j] - pal2;
+						float c0d = dot(e0d, e0d), c1d = dot(e1d, e1d), c2d = dot(e2d, e2d), c3d = dot(texels[j], texels[j]);
+						uint bp = 0; float bd = c0d;
+						if (c1d < bd) { bd = c1d; bp = 1u; }
+						if (c2d < bd) { bd = c2d; bp = 2u; }
+						if (c3d < bd) { bp = 3u; }
+						idx3 |= bp << (j * 2);
+					}
+				}
+
+				// +/-1 polish specialised for the 3-colour palette (index 3 reconstructs to black, independent of the
+				// endpoints), re-assigning indices each pass. Mirrors the 4-colour polish above.
+				[unroll]
+				for (uint pol3 = 0; pol3 < BCN_POLISH_ITERS; ++pol3)
+				{
+					int codes0[3] = { (int)((t0 >> 11) & 0x1Fu), (int)((t0 >> 5) & 0x3Fu), (int)(t0 & 0x1Fu) };
+					int codes1[3] = { (int)((t1 >> 11) & 0x1Fu), (int)((t1 >> 5) & 0x3Fu), (int)(t1 & 0x1Fu) };
+					int maxCode[3] = { 31, 63, 31 };
+
+					uint id3[16];
+					[unroll]
+					for (uint j = 0; j < 16; ++j)
+						id3[j] = (idx3 >> (j * 2)) & 3u;
+
+					[unroll]
+					for (uint ch = 0; ch < 3; ++ch)
+					{
+						int cur0 = codes0[ch], cur1 = codes1[ch];
+						int mc = maxCode[ch];
+						float polBest = 1e30f;
+						int sel0 = cur0, sel1 = cur1;
+						[unroll]
+						for (int d0 = -1; d0 <= 1; ++d0)
+						{
+							int nc0 = clamp(cur0 + d0, 0, mc);
+							float q0 = (float)((ch == 1u) ? ((nc0 << 2) | (nc0 >> 4)) : ((nc0 << 3) | (nc0 >> 2))) / 255.0f;
+							[unroll]
+							for (int d1 = -1; d1 <= 1; ++d1)
+							{
+								int nc1 = clamp(cur1 + d1, 0, mc);
+								float q1 = (float)((ch == 1u) ? ((nc1 << 2) | (nc1 >> 4)) : ((nc1 << 3) | (nc1 >> 2))) / 255.0f;
+								float qm = (q0 + q1) * 0.5f;
+								float se = 0;
+								[unroll]
+								for (uint t = 0; t < 16; ++t)
+								{
+									uint id = id3[t];
+									float pal = (id == 0u) ? q0 : (id == 1u) ? q1 : (id == 2u) ? qm : 0.0f;
+									float diff = texels[t][ch] - pal;
+									se += diff * diff;
+								}
+								if (se < polBest) { polBest = se; sel0 = nc0; sel1 = nc1; }
+							}
+						}
+						codes0[ch] = sel0; codes1[ch] = sel1;
+					}
+
+					t0 = ((uint)codes0[0] << 11) | ((uint)codes0[1] << 5) | (uint)codes0[2];
+					t1 = ((uint)codes1[0] << 11) | ((uint)codes1[1] << 5) | (uint)codes1[2];
+
+					float3 q0v = Unpack565(t0), q1v = Unpack565(t1);
+					float3 pal0 = q0v, pal1 = q1v, pal2 = (q0v + q1v) * 0.5f;
+					idx3 = 0;
+					[unroll]
+					for (uint j = 0; j < 16; ++j)
+					{
+						float3 e0d = texels[j] - pal0, e1d = texels[j] - pal1, e2d = texels[j] - pal2;
+						float c0d = dot(e0d, e0d), c1d = dot(e1d, e1d), c2d = dot(e2d, e2d), c3d = dot(texels[j], texels[j]);
+						uint bp = 0; float bd = c0d;
+						if (c1d < bd) { bd = c1d; bp = 1u; }
+						if (c2d < bd) { bd = c2d; bp = 2u; }
+						if (c3d < bd) { bp = 3u; }
+						idx3 |= bp << (j * 2);
+					}
+				}
+
+				// The 3-colour selector requires the first endpoint <= the second. Order them, then re-derive indices
+				// and the final error against the ordered palette (the index 0<->1 roles swap when the order flips).
+				uint cA = min(t0, t1);
+				uint cB = max(t0, t1);
+				float3 qA = Unpack565(cA), qB = Unpack565(cB);
+				float3 pal0 = qA, pal1 = qB, pal2 = (qA + qB) * 0.5f;
+				uint idxF = 0;
+				float err3 = 0.0f;
+				[unroll]
+				for (uint j = 0; j < 16; ++j)
+				{
+					float3 e0d = texels[j] - pal0, e1d = texels[j] - pal1, e2d = texels[j] - pal2;
+					float c0d = dot(e0d, e0d), c1d = dot(e1d, e1d), c2d = dot(e2d, e2d), c3d = dot(texels[j], texels[j]);
+					uint bp = 0; float bd = c0d;
+					if (c1d < bd) { bd = c1d; bp = 1u; }
+					if (c2d < bd) { bd = c2d; bp = 2u; }
+					if (c3d < bd) { bd = c3d; bp = 3u; }
+					idxF |= bp << (j * 2);
+					err3 += bd;
+				}
+
+				if (err3 < err4)
+					return uint2(cA | (cB << 16), idxF);
 			}
 
 			return uint2(c0 | (c1 << 16), indices);

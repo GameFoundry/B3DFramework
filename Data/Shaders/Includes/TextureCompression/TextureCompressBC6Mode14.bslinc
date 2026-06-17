@@ -1,7 +1,9 @@
 // BC6H mode 14 encoder (mode bits 0x0F). One region, full 16-bit base with only a 4-bit signed delta (transform),
 // 4-bit indices. Maximum endpoint precision but a very small endpoint span - it only wins on essentially flat HDR
 // blocks. Endpoint fit + indices come from the shared single-subset encoder; the top 6 base bits (15:10) follow each
-// channel's 4-bit delta.
+// channel's 4-bit delta and - per the BC6H spec (DirectXTex ms_aModeDescs) - are stored MSB-first: block bit 39 holds
+// rw[15] and bit 44 holds rw[10] (and likewise for green/blue). Writing them straight (rw[10]@39..rw[15]@44) round-trips
+// against our own decoder but the GPU reads them reversed, scrambling the high base bits into fireflies.
 #include "$ENGINE$\TextureCompression\TextureCompressBC6Common.bslinc"
 
 mixin TextureCompressBC6Mode14
@@ -19,9 +21,16 @@ mixin TextureCompressBC6Mode14
 			uint4 block = uint4(0, 0, 0, 0);
 			SetBits(block, 0, 0x0Fu, 5);
 			SetBits(block, 5,  (uint)W.x, 10); SetBits(block, 15, (uint)W.y, 10); SetBits(block, 25, (uint)W.z, 10);
-			SetBits(block, 35, (uint)X.x, 4); SetBits(block, 39, (uint)W.x >> 10, 6); // rx[3:0], rw[15:10]
-			SetBits(block, 45, (uint)X.y, 4); SetBits(block, 49, (uint)W.y >> 10, 6); // gx[3:0], gw[15:10]
-			SetBits(block, 55, (uint)X.z, 4); SetBits(block, 59, (uint)W.z >> 10, 6); // bx[3:0], bw[15:10]
+			// rw/gw/bw[15:10] are packed MSB-first (bit 39 = rw[15] .. bit 44 = rw[10]); see header note.
+			SetBits(block, 35, (uint)X.x, 4);
+			SetBits(block, 39, (uint)W.x >> 15, 1); SetBits(block, 40, (uint)W.x >> 14, 1); SetBits(block, 41, (uint)W.x >> 13, 1);
+			SetBits(block, 42, (uint)W.x >> 12, 1); SetBits(block, 43, (uint)W.x >> 11, 1); SetBits(block, 44, (uint)W.x >> 10, 1);
+			SetBits(block, 45, (uint)X.y, 4);
+			SetBits(block, 49, (uint)W.y >> 15, 1); SetBits(block, 50, (uint)W.y >> 14, 1); SetBits(block, 51, (uint)W.y >> 13, 1);
+			SetBits(block, 52, (uint)W.y >> 12, 1); SetBits(block, 53, (uint)W.y >> 11, 1); SetBits(block, 54, (uint)W.y >> 10, 1);
+			SetBits(block, 55, (uint)X.z, 4);
+			SetBits(block, 59, (uint)W.z >> 15, 1); SetBits(block, 60, (uint)W.z >> 14, 1); SetBits(block, 61, (uint)W.z >> 13, 1);
+			SetBits(block, 62, (uint)W.z >> 12, 1); SetBits(block, 63, (uint)W.z >> 11, 1); SetBits(block, 64, (uint)W.z >> 10, 1);
 			PackBC6IndicesOneRegion(block, idx);
 			return block;
 		}

@@ -177,10 +177,10 @@ shader TextureCompress
 			}
 
 			#if FORMAT == 0 // BC1
-				gOutput[blockId] = CompressBC1(rgb);
+				gOutput[blockId] = CompressBC1(rgb, true); // standalone BC1: 3-colour mode allowed
 			#elif FORMAT == 1 // BC3 = BC4(alpha) + BC1(color)
 				uint2 alphaBlock = CompressBC4(alpha);
-				uint2 colorBlock = CompressBC1(rgb);
+				uint2 colorBlock = CompressBC1(rgb, false); // BC3 colour block is always 4-colour
 				gOutput[blockId] = uint4(alphaBlock, colorBlock);
 			#elif FORMAT == 2 // BC4
 				gOutput[blockId] = CompressBC4(red);

@@ -72,6 +72,12 @@ mixin TextureCompressLineFit
 				float m = max(max(abs(v.x), abs(v.y)), abs(v.z));
 				axis = (m > 1e-9f) ? (v / m) : axis;
 			}
+			// Normalize the dominant axis to unit length. Power iteration leaves it scaled by its largest component
+			// (|axis| in [1, sqrt(dim)]); without this, mean + axis*proj overshoots the data by up to ~|axis|^2 (~3x),
+			// pushing endpoints outside the data toward the BC6H all-ones firefly code. With a unit axis the projected
+			// endpoints are true PCA projections of the data and stay within the convex hull. axis is never zero here
+			// (the last iteration leaves its largest component at magnitude 1), so normalize is safe.
+			axis = normalize(axis);
 
 			float minP = 1e30f, maxP = -1e30f;
 			[unroll]
@@ -81,6 +87,9 @@ mixin TextureCompressLineFit
 				float proj = dot(pts[i] - mean, axis);
 				minP = min(minP, proj); maxP = max(maxP, proj);
 			}
+			// The unit axis above makes mean + axis*proj a true projection of the data onto the principal line, so
+			// the endpoints lie within the data's convex hull and need no bounding-box clamp here (BC6H's all-ones
+			// firefly code is guarded downstream by the RefineLine3f and transformed-delta clamps).
 			e0 = mean + axis * maxP;
 			e1 = mean + axis * minP;
 		}
@@ -125,6 +134,9 @@ mixin TextureCompressLineFit
 				float m = max(max(abs(v.x), abs(v.y)), max(abs(v.z), abs(v.w)));
 				axis = (m > 1e-9f) ? (v / m) : axis;
 			}
+			// Normalize the dominant axis to unit length (see FitLine3f for the rationale); without it
+			// mean + axis*proj overshoots the data by up to ~|axis|^2. axis is never zero here, so normalize is safe.
+			axis = normalize(axis);
 
 			float minP = 1e30f, maxP = -1e30f;
 			[unroll]
@@ -142,6 +154,7 @@ mixin TextureCompressLineFit
 		{
 			float A = 0, B = 0, C = 0;
 			float3 sumA = float3(0, 0, 0), sumB = float3(0, 0, 0);
+			float3 mn = float3(1e30f, 1e30f, 1e30f), mx = float3(-1e30f, -1e30f, -1e30f);
 			[unroll]
 			for (uint i = 0; i < 16; ++i)
 			{
@@ -151,13 +164,19 @@ mixin TextureCompressLineFit
 				A += a * a; B += a * w; C += w * w;
 				sumA += a * pts[i];
 				sumB += w * pts[i];
+				mn = min(mn, pts[i]); mx = max(mx, pts[i]);
 			}
 			float det = A * C - B * B;
 			if (abs(det) > 1e-9f)
 			{
 				float inv = 1.0f / det;
-				e0 = ( C * sumA - B * sumB) * inv;
-				e1 = (-B * sumA + A * sumB) * inv;
+				// Clamp to the subset's bounding box: as the index distribution approaches degenerate (nearly all
+				// texels at one end) det shrinks toward 0 while passing the guard, so 1/det blows the least-squares
+				// endpoints far past the data. Unclamped, such an endpoint quantizes to BC6H's reserved all-ones code
+				// and decodes to 65504 (a firefly). The clamp is at worst neutral for LDR formats (they would clamp
+				// to the format max anyway) and prevents the blow-up for BC6H.
+				e0 = clamp(( C * sumA - B * sumB) * inv, mn, mx);
+				e1 = clamp((-B * sumA + A * sumB) * inv, mn, mx);
 			}
 		}
 
