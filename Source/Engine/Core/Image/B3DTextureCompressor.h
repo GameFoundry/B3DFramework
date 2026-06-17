@@ -32,27 +32,4 @@ namespace b3d
 		 */
 		static TAsyncOp<TShared<PixelData>> Compress(const TShared<PixelData>& source, const TShared<PixelData>& destination, const CompressionOptions& options);
 	};
-
-	/**
-	 * CPU reference decoders for block-compressed formats. These mirror the hardware BCn decoder bit-for-bit and exist
-	 * primarily for verification (e.g. measuring encoder PSNR in tests), not for runtime decompression.
-	 */
-	class B3D_EXPORT TextureCompressionUtility
-	{
-	public:
-		/**
-		 * Decodes a BC1 color block (8 bytes) into 16 RGBA quads (@p outRGBA, row-major). When @p fourColorOnly is true the
-		 * 3-colour/punch-through mode is never used (as for the BC2/BC3 color sub-block).
-		 */
-		static void DecodeBC1(const u8* block, bool fourColorOnly, u8 outRGBA[64]);
-
-		/** Decodes a BC4 block (8 bytes) into 16 single-channel values (@p out). */
-		static void DecodeBC4(const u8* block, u8 out[16]);
-
-		/** Decodes a BC7 block (16 bytes) into 16 RGBA quads (@p outRGBA, row-major). */
-		static void DecodeBC7(const u8* block, u8 outRGBA[64]);
-
-		/** Decodes a BC6H block in the unsigned (UF16) variant (16 bytes) into 16 RGB float triplets (@p out). */
-		static void DecodeBC6H_UF16(const u8* block, float out[16][3]);
-	};
 } // namespace b3d

@@ -556,18 +556,18 @@ void RenderBeastIBLUtility::ScaleCubemap(GpuCommandBuffer& commandBuffer, const 
 	{
 		if(srcProps.Format == dstProps.Format)
 		{
-		for(u32 face = 0; face < 6; face++)
-		{
-			TextureCopyInformation copyDesc;
-			copyDesc.SourceFace = face;
-			copyDesc.SourceMip = srcMip;
-			copyDesc.DestinationFace = face;
-			copyDesc.DestinationMip = dstMip;
+			for(u32 face = 0; face < 6; face++)
+			{
+				TextureCopyInformation copyDesc;
+				copyDesc.SourceFace = face;
+				copyDesc.SourceMip = srcMip;
+				copyDesc.DestinationFace = face;
+				copyDesc.DestinationMip = dstMip;
 
-			commandBuffer.CopyTexture(src, dst, copyDesc);
+				commandBuffer.CopyTexture(src, dst, copyDesc);
+			}
 		}
-	}
-	else
+		else
 			DownsampleCubemap(commandBuffer, src, srcMip, dst, dstMip);
 	}
 	else
