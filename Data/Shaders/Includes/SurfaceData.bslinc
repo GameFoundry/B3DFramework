@@ -26,5 +26,15 @@ mixin SurfaceData
 		{
 			return val * 2.0f;
 		}
+
+		// Unpacks a tangent-space normal sampled from a normal map. X and Y come from the red and green channels
+		// (stored in [0,1], remapped to [-1,1]); Z is reconstructed from them, so the result is correct for
+		// two-channel formats (e.g. BC5, whose blue channel reads as 0) as well as three-channel ones.
+		float3 unpackNormalMap(float4 packedNormal)
+		{
+			float2 xy = packedNormal.rg * 2.0f - 1.0f; // TODO - Consider using SNORM format, to get rid of the MAD
+			float z = sqrt(saturate(1.0f - dot(xy, xy)));
+			return float3(xy, z);
+		}
 	};
 };

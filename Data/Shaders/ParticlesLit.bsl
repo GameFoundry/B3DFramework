@@ -62,7 +62,7 @@ shader Surface
 		{
 			float2 uv = input.uv0 * gUVTile + gUVOffset;
 		
-			float3 normal = normalize(gNormalTex.Sample(gNormalSamp, uv).xyz * 2.0f - float3(1, 1, 1));
+			float3 normal = unpackNormalMap(gNormalTex.Sample(gNormalSamp, uv));
 			float3 worldNormal = calcWorldNormal(input, normal);
 		
 			SurfaceData surfaceData;

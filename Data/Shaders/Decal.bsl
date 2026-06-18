@@ -304,7 +304,7 @@ shader Surface
 			#if BLEND_MODE == 3
 				OutSceneColor = float4(gEmissiveColor * gEmissiveMaskTex.Sample(gEmissiveMaskSamp, uv).x, opacity);
 			#elif BLEND_MODE == 2
-				float3 normal = normalize(gNormalTex.Sample(gNormalSamp, uv) * 2.0f - float3(1, 1, 1));
+				float3 normal = unpackNormalMap(gNormalTex.Sample(gNormalSamp, uv));
 
 				// Flip multiplication order since we need to transform with tangentToWorld, which is the transpose
 				worldNormal = mul(normal, worldToTangent);
@@ -314,7 +314,7 @@ shader Surface
 				opacity *= albedo.a;
 				OutGBufferA = float4(albedo.xyz, opacity);
 
-				float3 normal = normalize(gNormalTex.Sample(gNormalSamp, uv) * 2.0f - float3(1, 1, 1));
+				float3 normal = unpackNormalMap(gNormalTex.Sample(gNormalSamp, uv));
 
 				// Flip multiplication order since we need to transform with tangentToWorld, which is the transpose
 				worldNormal = mul(normal, worldToTangent);
