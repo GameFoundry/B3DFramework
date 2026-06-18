@@ -79,6 +79,7 @@
 	* Full support for all SM5 features (geometry and compute shaders, instanced rendering, texture arrays, unordered access textures and buffers)
 	* Debug naming for all GPU objects and RenderDoc integration
 	* GPU allocators (Two level segregated fit with defragment support & linear for transient allocations)
+	* Multi-threaded GPU work contexts (command buffer submission, transient memory & resource pools for worker threads)
 * __Asset pipeline__
 	* Built-in support for third party formats:
 		* FBX, OBJ, DAE meshes
@@ -87,7 +88,9 @@
 		* OGG, FLAC, WAV, MP3 sounds
 		* HLSL, GLSL shaders
 	* Asynchronous resource loading and import
+	* Native OS-level asynchronous file I/O
 	* Resource compression
+	* Fast GPU-accelerated texture compression (BC1, BC3, BC4, BC5, BC6H, BC7)
 	* Extensible importer system
 	* Package-based resource storage, with support for multiple resources bundled per package
 	* Thread-safe package operations (load, save, import, reimport, copy, move, delete)
@@ -216,7 +219,7 @@
 		* Binary delta generation with nested and map-aware support
 		* Works with custom components, resources, ECS fragments or arbitrary types
 		* Handles complex types (e.g. array, list, dictionary) and references
-		* Fast and small memory footprint, with specialized compresson mode for networked transfers
+		* Fast and small memory footprint, with specialized compression mode for networked transfers
 * __Scheduler & threading__
 	* Fiber-based task scheduler built on the Marl library
 	* Fiber-aware synchronization primitives (Signal, ConditionVariable, wait groups)
@@ -238,6 +241,7 @@
 * __Build & tooling__
 	* CMake-based build with automated source globbing
 	* Automated dependency package download and versioning
+	* Build scripts to compile all third party dependencies from source
 	* Command line configuration for executables
 * __Other__
 	* CPU & GPU profiler
