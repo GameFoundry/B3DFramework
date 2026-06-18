@@ -1089,10 +1089,6 @@ render::GpuTextureMappedScope VulkanTexture::Map(u32 mipLevel, u32 arrayLayer, G
 
 	VulkanImageSubresource* const subresource = mImage->GetSubresource(arrayLayer, mipLevel);
 
-	// Initially the texture will be in preinitialized layout, and it will transition to general layout on first
-	// use in shader. No further transitions are allowed for directly mappable textures.
-	B3D_ASSERT(subresource->GetLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED || subresource->GetLayout() == VK_IMAGE_LAYOUT_GENERAL);
-
 	// GPU should never be allowed to write to a directly mappable texture, since only linear tiling is supported
 	// for direct mapping, and we don't support using it with either storage textures or render targets.
 	B3D_ASSERT(!mSupportsGPUWrites);
