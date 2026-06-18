@@ -5,6 +5,7 @@
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "Renderer/B3DRenderer.h"
+#include "2D/B3DSpriteMaterial.h"
 #include "RTTI/B3DNVGVectorGraphicsRTTI.h"
 
 using namespace b3d;
@@ -324,7 +325,14 @@ namespace b3d::render
 	/*** Populates the uniform buffer parameters required for rendering a path element. */
 	static NVGRenderUniforms CreateNVGRenderUniformParameters(NVGpaint* paint, NVGscissor* scissor, float fringe, float width, float strokeThreshold)
 	{
-		auto fnConvertAndPremultiplyColor = [](NVGcolor& color) { return Color(color.r * color.a, color.g * color.a, color.b * color.a, color.a); };
+		auto fnConvertAndPremultiplyColor = [](NVGcolor& color)
+		{
+			Color actualColor(color.r, color.g, color.b, color.a);
+			if(gGuiUseLinearColorSpace)
+				actualColor = actualColor.GetLinear();
+
+			return Color(actualColor.R * actualColor.A, actualColor.G * actualColor.A, actualColor.B * actualColor.A, actualColor.A);
+		};
 
 		NVGRenderUniforms uniformParameters;
 		uniformParameters.InnerColor = fnConvertAndPremultiplyColor(paint->innerColor);

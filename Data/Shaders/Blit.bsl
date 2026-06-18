@@ -1,5 +1,9 @@
+#include "$ENGINE$\ColorSpace.bslinc"
+
 shader Blit
 {
+	mixin ColorSpace;
+
 	variations
 	{
 		MODE = 
@@ -11,6 +15,7 @@ shader Blit
 		MSAA_COUNT = { 1, 2, 4, 8 };
         BLEND = { true, false };
         WRITE_ALPHA = { false, true };
+        SRGB_ENCODE = { false, true };
 	};
 
 	depth
@@ -104,19 +109,26 @@ shader Blit
 		#else // MSAA_COUNT
 		
 		Texture2D<float4> gSource;
-		
+
 		#if MODE == 1
 			SamplerState gSampler;
 		#endif
-	
+
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
 			#if MODE == 1
-				return gSource.Sample(gSampler, input.uv0);
+				float4 color = gSource.Sample(gSampler, input.uv0);
 			#else // MODE
 				int2 iUV = trunc(input.uv0);
-				return gSource.Load(int3(iUV.xy, 0));
+				float4 color = gSource.Load(int3(iUV.xy, 0));
 			#endif // MODE
+
+			#if SRGB_ENCODE
+				// Source is hardware-sRGB (decoded to linear on sample); re-encode to sRGB so it can be written to a non-sRGB target.
+				color.rgb = LinearToGammasRGB(color.rgb);
+			#endif
+
+			return color;
 		}
 		
 		#endif // MSAA_COUNT

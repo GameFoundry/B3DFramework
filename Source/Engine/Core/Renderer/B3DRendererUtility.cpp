@@ -308,7 +308,7 @@ void RendererUtility::Blit(GpuCommandBuffer& commandBuffer, const BlitInformatio
 	}
 
 	// Get appropriate material variation
-	BlitMat* const blitMaterial = BlitMat::GetVariation(textureProperties.SampleCount, !blitInformation.IsDepth, blitInformation.UseFiltering, blitInformation.UseBlend, blitInformation.WriteAlpha);
+	BlitMat* const blitMaterial = BlitMat::GetVariation(textureProperties.SampleCount, !blitInformation.IsDepth, blitInformation.UseFiltering, blitInformation.UseBlend, blitInformation.WriteAlpha, blitInformation.SrgbEncode);
 
 	// Get GPU parameters and configure source texture
 	const TShared<GpuParameterSet> gpuParameters = blitMaterial->Prepare(blitInformation.InputTexture);
@@ -440,23 +440,23 @@ void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuParamete
 		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0, 0, 1, 1), Vector2I(1, 1), 1, flipUV);
 }
 
-BlitMat* BlitMat::GetVariation(u32 msaaCount, bool isColor, bool isFiltered, bool blend, bool writeAlpha)
+BlitMat* BlitMat::GetVariation(u32 msaaCount, bool isColor, bool isFiltered, bool blend, bool writeAlpha, bool srgbEncode)
 {
 	if(blend)
 	{
 		if(writeAlpha)
 		{
 			if(isFiltered)
-				return Get(GetVariation<1, 1, true, true>());
+				return srgbEncode ? Get(GetVariation<1, 1, true, true, true>()) : Get(GetVariation<1, 1, true, true, false>());
 			else
-				return Get(GetVariation<1, 0, true, true>());
+				return srgbEncode ? Get(GetVariation<1, 0, true, true, true>()) : Get(GetVariation<1, 0, true, true, false>());
 		}
 		else
 		{
 			if(isFiltered)
-				return Get(GetVariation<1, 1, true, false>());
+				return srgbEncode ? Get(GetVariation<1, 1, true, false, true>()) : Get(GetVariation<1, 1, true, false, false>());
 			else
-				return Get(GetVariation<1, 0, true, false>());
+				return srgbEncode ? Get(GetVariation<1, 0, true, false, true>()) : Get(GetVariation<1, 0, true, false, false>());
 		}
 	}
 
@@ -467,12 +467,12 @@ BlitMat* BlitMat::GetVariation(u32 msaaCount, bool isColor, bool isFiltered, boo
 			switch(msaaCount)
 			{
 			case 2:
-				return Get(GetVariation<2, 0, false, false>());
+				return Get(GetVariation<2, 0, false, false, false>());
 			case 4:
-				return Get(GetVariation<4, 0, false, false>());
+				return Get(GetVariation<4, 0, false, false, false>());
 			default:
 			case 8:
-				return Get(GetVariation<8, 0, false, false>());
+				return Get(GetVariation<8, 0, false, false, false>());
 			}
 		}
 		else
@@ -480,21 +480,21 @@ BlitMat* BlitMat::GetVariation(u32 msaaCount, bool isColor, bool isFiltered, boo
 			switch(msaaCount)
 			{
 			case 2:
-				return Get(GetVariation<2, 2, false, false>());
+				return Get(GetVariation<2, 2, false, false, false>());
 			case 4:
-				return Get(GetVariation<4, 2, false, false>());
+				return Get(GetVariation<4, 2, false, false, false>());
 			default:
 			case 8:
-				return Get(GetVariation<8, 2, false, false>());
+				return Get(GetVariation<8, 2, false, false, false>());
 			}
 		}
 	}
 	else
 	{
 		if(isFiltered)
-			return Get(GetVariation<1, 1, false, false>());
+			return Get(GetVariation<1, 1, false, false, false>());
 		else
-			return Get(GetVariation<1, 0, false, false>());
+			return Get(GetVariation<1, 0, false, false, false>());
 	}
 }
 

@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "2D/B3DSprite.h"
+#include "2D/B3DSpriteMaterial.h"
 #include "CoreObject/B3DCoreObjectManager.h"
 #include "Material/B3DMaterial.h"
 #include "Image/B3DTexture.h"
@@ -12,6 +13,17 @@
 #include "Image/B3DSpriteTexture.h"
 
 using namespace b3d;
+
+namespace b3d
+{
+	TConfigVariable<bool> gGuiUseLinearColorSpace("gui.UseLinearColorSpace",
+		"If true (default), GUI/sprite/vector content is composited in linear color space: input colors and "
+		"sRGB-imported textures are decoded to linear, blending happens in linear, and the result is re-encoded to "
+		"sRGB on output. If false, compositing happens in gamma (sRGB-encoded) space (matching web browsers). "
+		"UI source textures should be imported as sRGB when true and as linear when false.",
+		true,
+		ConfigVariableFlag::ReadOnly);
+}
 
 SpriteMaterial::SpriteMaterial(u32 id, const HMaterial& material, ShaderVariationParameters variation, bool allowBatching)
 	: mId(id), mAllowBatching(allowBatching), mMaterialStored(false)
@@ -142,7 +154,8 @@ void SpriteMaterial::Render(render::GpuCommandBuffer& commandBuffer, const TShar
 
 void SpriteMaterial::PopulateUniformBuffer(const render::GpuBufferMappedScope& uniforms, const Vector2I& viewportOffset, float inverseViewportWidth, float inverseViewportHeight, bool flipY, float animationTime, u32 clipRegionCount, const Matrix4& transform, const render::SpriteMaterialInfo& materialInformation)
 {
-	render::gGUISpriteUniformBufferDefinition.gTint.Set(uniforms, materialInformation.Tint);
+	const Color tint = gGuiUseLinearColorSpace ? materialInformation.Tint.GetLinear() : materialInformation.Tint;
+	render::gGUISpriteUniformBufferDefinition.gTint.Set(uniforms, tint);
 	render::gGUISpriteUniformBufferDefinition.gWorldTransform.Set(uniforms, transform);
 	render::gGUISpriteUniformBufferDefinition.gInvViewportWidth.Set(uniforms, inverseViewportWidth);
 	render::gGUISpriteUniformBufferDefinition.gInvViewportHeight.Set(uniforms, inverseViewportHeight);

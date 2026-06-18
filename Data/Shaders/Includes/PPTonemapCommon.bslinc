@@ -1,5 +1,9 @@
+#include "$ENGINE$\ColorSpace.bslinc"
+
 mixin PPTonemapCommon
 {
+	mixin ColorSpace;
+
 	code
 	{
 		static const float3x3 sRGBToXYZMatrix =
@@ -81,31 +85,5 @@ mixin PPTonemapCommon
 
 			return exp2((logColor - exposureGrey / 1023.0f) * linearRange) * linearGrey;
 		}
-
-		/**
-		 * Converts a linear color value in sRGB/Rec.709 color space into gamma space (applies Rec.709 transfer function). 
-		 * Rec.709 values are suitable for HDTVs and projectors.
-		 *
-		 * @param 	linearColor		Linear color in sRGB/Rec.709 color space.
-		 * @return					Gamma corrected color.
-		 */				
-		float3 LinearToGammaRec709(float3 linearColor) 
-		{
-			// TODO: Clamp lower end of linear color so it isn't denormalized?
-			return min(linearColor * 4.5f, pow(max(linearColor, 0.018f), 0.45f) * 1.099f - 0.099f);
-		}
-
-		/**
-		 * Converts a linear color value in sRGB/Rec.709 color space into gamma space (applies sRGB transfer function). 
-		 * sRGB values are suitable for PC displays.
-		 *
-		 * @param 	linearColor		Linear color in sRGB/Rec.709 color space.
-		 * @return					Gamma corrected color.
-		 */		
-		float3 LinearToGammasRGB(float3 linearColor) 
-		{
-			// TODO: Clamp lower end of linear color so it isn't denormalized?
-			return min(linearColor * 12.92f, pow(max(linearColor, 0.00313067f), 1.0f/2.4f) * 1.055f - 0.055f);
-		}			
 	};
 };

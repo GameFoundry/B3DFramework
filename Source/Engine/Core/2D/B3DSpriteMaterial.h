@@ -7,6 +7,7 @@
 #include "Image/B3DColor.h"
 #include "Material/B3DShaderVariation.h"
 #include "Renderer/B3DGpuUniformBuffer.h"
+#include "Utility/B3DConfigVariable.h"
 
 namespace b3d
 {
@@ -19,6 +20,14 @@ namespace b3d
 	/** @addtogroup 2D-Internal
 	 *  @{
 	 */
+
+	/**
+	 * If true (default), GUI/sprite/vector content is composited in linear color space: input colors and
+	 * sRGB-imported textures are decoded to linear, blending happens in linear, and the result is re-encoded to
+	 * sRGB on output. If false, compositing happens in gamma (sRGB-encoded) space (matching web browsers). UI source
+	 * textures should be imported as sRGB when true and as linear when false.
+	 */
+	extern TConfigVariable<bool> gGuiUseLinearColorSpace;
 
 	/** Type of transparency supported by a sprite material. */
 	enum class SpriteMaterialTransparency

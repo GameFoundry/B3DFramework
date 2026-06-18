@@ -25,7 +25,7 @@ namespace b3d
 			RMAT_DEF("Blit.bsl");
 
 			/** Helper method used for initializing variations of this material. */
-			template <u32 MSAA, u32 MODE, u32 BLEND, u32 WRITE_ALPHA>
+			template <u32 MSAA, u32 MODE, u32 BLEND, u32 WRITE_ALPHA, u32 SRGB_ENCODE>
 			static const ShaderVariationParameters& GetVariation()
 			{
 				static ShaderVariationParameters variation = ShaderVariationParameters(
@@ -34,6 +34,7 @@ namespace b3d
 						ShaderVariationParameter("MODE", MODE),
 						ShaderVariationParameter("BLEND", BLEND),
 						ShaderVariationParameter("WRITE_ALPHA", WRITE_ALPHA),
+						ShaderVariationParameter("SRGB_ENCODE", SRGB_ENCODE),
 					}));
 
 				return variation;
@@ -72,8 +73,11 @@ namespace b3d
 			 *							the alpha value from the source.
 			 * @param	writeAlpha		If true, alpha value from the source will be passed to the destination. Only relevant when
 			 *							@p blend in enabled.
+			 * @param	srgbEncode		If true, the sampled color is encoded from linear into sRGB (gamma) space before being
+			 *							written. Used when compositing a hardware-sRGB source (which decodes to linear on sample)
+			 *							onto a non-sRGB target that expects sRGB-encoded values. Only relevant for color blits.
 			 */
-			static BlitMat* GetVariation(u32 msaaCount, bool isColor, bool isFiltered, bool blend = false, bool writeAlpha = false);
+			static BlitMat* GetVariation(u32 msaaCount, bool isColor, bool isFiltered, bool blend = false, bool writeAlpha = false, bool srgbEncode = false);
 
 		private:
 			bool mIsFiltered = false;
@@ -275,6 +279,13 @@ namespace b3d
 			 * If true, all RGBA channels are written.
 			 */
 			bool WriteAlpha = false;
+
+			/**
+			 * If true, the sampled color is encoded from linear into sRGB (gamma) space before being written.
+			 * Use when the source is a hardware-sRGB texture (which the GPU decodes to linear on sample) but the
+			 * destination is a non-sRGB target that expects sRGB-encoded values. Only relevant for color blits (@p IsDepth false).
+			 */
+			bool SrgbEncode = false;
 
 			/** Helper to create blit information with commonly used settings for copying a color texture (no blending, no filtering, no UV flip). */
 			static BlitInformation BlitColor(const TShared<Texture>& inputTexture, const TShared<RenderTarget>& outputRenderTarget, const Area2I& inputArea = Area2I::kEmpty, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)

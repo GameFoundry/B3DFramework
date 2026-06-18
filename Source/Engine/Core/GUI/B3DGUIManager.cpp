@@ -36,6 +36,7 @@
 #include "GpuBackend/B3DSamplerState.h"
 #include "Resources/B3DBuiltinResources.h"
 #include "2D/B3DSpriteManager.h"
+#include "2D/B3DSpriteMaterial.h"
 #include "Material/B3DMaterialParameterAdapter.h"
 #include "VectorGraphics/B3DVectorSpriteAtlas.h"
 #include "GpuBackend/B3DGpuBackend.h"
@@ -1684,6 +1685,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 		cachedColorTextureCreateInformation.Height = renderTargetHeight;
 		cachedColorTextureCreateInformation.Format = PF_RGBA8;
 		cachedColorTextureCreateInformation.Usage = TextureUsageFlag::RenderTarget;
+		cachedColorTextureCreateInformation.UseHardwareSRGB = gGuiUseLinearColorSpace;
 
 		const TShared<Texture> cachedColorTexture = gpuDevice->CreateTexture(cachedColorTextureCreateInformation);
 
@@ -1939,6 +1941,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 	BlitInformation blitInformation = BlitInformation::Blend(cameraRenderData.CachedRenderTexture->GetColorTexture(0), renderTarget, Area2I::kEmpty, RT_NONE, RT_ALL);
 	blitInformation.OutputArea = Area2(0.0f, 0.0f, 1.0f, 1.0f);
 	blitInformation.WriteAlpha = true;
+	blitInformation.SrgbEncode = gGuiUseLinearColorSpace;
 
 	GetRendererUtility().Blit(commandBuffer, blitInformation);
 

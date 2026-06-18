@@ -96,6 +96,39 @@ for TEST_NAME in "${SNAPSHOT_TESTS[@]}"; do
 	fi
 done
 
+echo "::phase::editor_snapshot"
+
+# Run the editor itself in headless mode and capture a screenshot of its UI, using
+# the same snapshot mechanism as the example snapshot tests above.
+EDITOR_NAME="Editor"
+EDITOR_EXE="$BIN_DIR/Banshee3D.exe"
+
+if [ ! -f "$EDITOR_EXE" ]; then
+	echo "::error::Editor executable not found: $EDITOR_EXE"
+	FAILED_TESTS+=("$EDITOR_NAME (not found)")
+else
+	echo "Running editor snapshot test: $EDITOR_NAME"
+
+	mkdir -p "$RESULTS_DIR/snapshots/$EDITOR_NAME"
+
+	set +e
+	"$EDITOR_EXE" \
+		--headless \
+		--gpu.PreferIntegrated=true \
+		--enable-test-snapshot \
+		--test-output-path="$RESULTS_DIR/snapshots/$EDITOR_NAME" \
+		--test-name="$EDITOR_NAME" \
+		--exit-after-n-frames=100 \
+		--capture-frame=50 2>&1 | tee "$RESULTS_DIR/snapshots/$EDITOR_NAME/${EDITOR_NAME}_log.txt"
+	EDITOR_EXIT_CODE=${PIPESTATUS[0]}
+	set -e
+
+	if [ $EDITOR_EXIT_CODE -ne 0 ]; then
+		echo "::error::Editor snapshot test failed with exit code $EDITOR_EXIT_CODE"
+		FAILED_TESTS+=("$EDITOR_NAME")
+	fi
+fi
+
 if [ ${#FAILED_TESTS[@]} -gt 0 ]; then
 	echo "::error::${#FAILED_TESTS[@]} test(s) failed:"
 	for TEST in "${FAILED_TESTS[@]}"; do
