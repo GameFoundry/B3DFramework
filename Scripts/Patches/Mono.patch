@@ -40,3 +40,32 @@ index 480f9e15048..32477d41285 100644
        <MonoAOTCMakeArgs Condition="'$(TargetArchitecture)' == 'wasm'" Include="-DCLR_CMAKE_HOST_ARCH=$(BuildArchitecture)" />
        <MonoAOTCMakeArgs Condition="'$(TargetArchitecture)' != 'wasm'" Include="-DCLR_CMAKE_HOST_ARCH=$(TargetArchitecture)" />
  
+diff --git a/eng/native/init-vs-env.cmd b/eng/native/init-vs-env.cmd
+index 0d28cac9893..5d04647bb3e 100644
+--- a/eng/native/init-vs-env.cmd
++++ b/eng/native/init-vs-env.cmd
+@@ -34,11 +34,19 @@ set "__VSCOMNTOOLS="
+ 
+ if not exist "%__VSWhere%" goto :VSWhereMissing
+ 
+-if exist "%__VSWhere%" (
+-    for /f "tokens=*" %%p in (
+-        '"%__VSWhere%" -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath'
+-    ) do set __VSCOMNTOOLS=%%p\Common7\Tools
+-)
++:: B3D: Constrain Visual Studio selection to the 2022 (17.x) range. When a newer Visual Studio
++:: (e.g. v18 / VS 2026) is also installed, the upstream '-latest' query selects it and the
++:: '%VisualStudioVersion%'=='17.0' check below then rejects the build with "Visual Studio 2022
++:: with C++ tools required". Pinning to [17.0,18.0) makes vswhere return the VS 2022 install, so
++:: the natural VsDevCmd flow sets VisualStudioVersion=17.0 and passes the gate. The query runs on
++:: its own line (not inside the 'for /f' it replaces) because adding a quoted '-version' argument
++:: to that 'for /f' breaks cmd's quote handling and mangles the vswhere path. (Upstream removed
++:: this version gate entirely in dotnet/runtime#115538, but that fix was not backported to
++:: release/9.0, which this build is pinned to.)
++"%__VSWhere%" -latest -prerelease -version "[17.0,18.0)" -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath > "%TEMP%\__b3d_vspath.txt" 2>nul
++set /p __VSINSTALLPATH=<"%TEMP%\__b3d_vspath.txt"
++del "%TEMP%\__b3d_vspath.txt" 2>nul
++if defined __VSINSTALLPATH set "__VSCOMNTOOLS=%__VSINSTALLPATH%\Common7\Tools"
+ 
+ if not exist "%__VSCOMNTOOLS%" goto :VSMissing
+ 

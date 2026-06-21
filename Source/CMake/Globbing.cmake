@@ -1,4 +1,4 @@
-# Parses all source files in the provided folder recursively, and outputs the list of files in @p outSourceFiles.
+	# Parses all source files in the provided folder recursively, and outputs the list of files in @p outSourceFiles.
 # For each sub-folder found it also creates a source group with the folder hierarchy.
 #
 # @param	parentPath		Folder path in which to perform the search. All output paths will be relative to this path.

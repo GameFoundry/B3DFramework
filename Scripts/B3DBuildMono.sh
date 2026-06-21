@@ -11,7 +11,7 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
     echo " - If you receive an error that .NET runtime is in use, shut down all programs that may use it (such as Visual Studio)"
     echo " - If you receive an error that files cannot be created or opened. Try enabling long paths in the OS and Git."
     echo "   - On Windows edit registry HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem\LongPathsEnabled 1 (DWORD)"
-    echo "   - On Git `git config --system core.longpaths true`"
+    echo "   - On Git: git config --system core.longpaths true"
     echo "   - If the error keeps occuring, you can move the script directory to drive root, and then copy dependencies to correct location after the build."
     echo " - If you receive a ILLinker error during compilation, try running the script again until it succeeds"
     echo ""
@@ -107,7 +107,7 @@ copy_libraries()
     # Copy native runtime library
     cp -p -- "artifacts/bin/mono/$1.$2.$3/coreclr$SharedLibraryExtension" "$MonoOutputFolder/bin/$4"
 
-    # Copy the AOT cross compiler (built via /p:BuildMonoAOTCrossCompiler=true).
+    # Copy the AOT cross compiler (built via the BuildMonoAOTCrossCompiler property).
     # It lives under cross/<rid>/ where rid maps windows->win-<arch>, else <os>-<arch>.
     local ridOs="$1"
     if [[ "$1" == "windows" ]]; then ridOs="win"; fi
@@ -128,27 +128,64 @@ copy_libraries()
 }
 
 
+# Request the Mono AOT cross compiler. This is an MSBuild property; we pass it via the environment
+export BuildMonoAOTCrossCompiler=true
+
 if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
+    # MAX_PATH workaround: Native CMake/Ninja build's intermediate object paths (artifacts\obj\...\<hash>\*.obj) can easily
+	# overflow Windows' 260-char limit for a few files, and cl.exe/rc.exe then fail intermittently with
+    # "C1083: Cannot open compiler generated file: ''". Map the clone to a short virtual drive and
+    # build from there so every path stays short. subst is per-session and needs no admin; the
+    # mapping is torn down on EXIT even if the build fails. (dotnet/runtime recommends a short build
+    # path over relying on LongPathsEnabled, which cl.exe does not honor reliably.)
+    cloneUnixPath="$PWD"
+    cloneWinPath="$(pwd -W | tr '/' '\\' 2>/dev/null)"
+    substDrive=""
+    for L in B Y X W V U T S R Q P O N M; do
+        if subst "${L}:" "$cloneWinPath" >/dev/null 2>&1; then
+            substDrive="$L"
+            break
+        fi
+    done
+
+    cleanup_subst() {
+        if [ -n "$substDrive" ]; then
+            cd "$cloneUnixPath" 2>/dev/null
+            MSYS2_ARG_CONV_EXCL='*' MSYS_NO_PATHCONV=1 subst "${substDrive}:" /d >/dev/null 2>&1
+        fi
+    }
+    trap cleanup_subst EXIT
+
+    if [ -n "$substDrive" ] && cd "/$(printf '%s' "$substDrive" | tr 'A-Z' 'a-z')" 2>/dev/null; then
+        echo "[Info] MAX_PATH workaround: building via $substDrive:\\ -> $cloneWinPath"
+    else
+        echo "[Warning] Could not set up the short-path (subst) MAX_PATH workaround; building from"
+        echo "          the deep clone path. If the native build fails with 'C1083: Cannot open"
+        echo "          compiler generated file', enable OS/Git long paths or move the clone nearer"
+        echo "          the drive root."
+        cd "$cloneUnixPath"
+    fi
+
     # Build & copy debug
-    ./build.cmd mono+libs -configuration Debug /p:BuildMonoAOTCrossCompiler=true
+    ./build.cmd mono+libs -configuration Debug
     copy_libraries windows x64 Debug Debug/
 
     # Build & copy release
-    ./build.cmd mono+libs -configuration Release /p:BuildMonoAOTCrossCompiler=true
+    ./build.cmd mono+libs -configuration Release
     copy_libraries windows x64 Release Release/
 
     # Copy includes
     cp -a -r -- "artifacts/bin/mono/windows.x64.Debug/include/mono-2.0/." "$MonoOutputFolder/include/"
 elif [[ "$Platform" == "darwin"* ]]; then
     # Build & copy release
-    ./build.sh mono+libs -configuration Release /p:BuildMonoAOTCrossCompiler=true
+    ./build.sh mono+libs -configuration Release
     copy_libraries osx arm64 Release ""
 
     # Copy includes
     cp -a -r -- "artifacts/bin/mono/osx.arm64.Release/include/mono-2.0/." "$MonoOutputFolder/include/"
 else
     # Build & copy release
-    ./build.sh mono+libs -configuration Release /p:BuildMonoAOTCrossCompiler=true
+    ./build.sh mono+libs -configuration Release
     copy_libraries linux x64 Release ""
 
     # Copy includes
