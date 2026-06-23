@@ -261,5 +261,84 @@ TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderRegistry::GetOrCompileShad
 	return shader;
 }
 
+template <bool IsRenderProxy>
+bool ShaderRegistry::GetOrCompileVariation(const TShared<CoreVariantType<Shader, IsRenderProxy>>& shader, const TShared<CoreVariantType<Variation, IsRenderProxy>>& variation, const String& language)
+{
+	using PassType = CoreVariantType<Pass, IsRenderProxy>;
+	using VariationType = CoreVariantType<Variation, IsRenderProxy>;
+
+	if(!B3D_ENSURE(shader != nullptr))
+	{
+		B3D_LOG(Error, LogMaterial, "Cannot compile shader variation. Parent shader is not assigned.");
+		return false;
+	}
+
+	if(!B3D_ENSURE(variation != nullptr))
+	{
+		B3D_LOG(Error, LogMaterial, "Cannot compile shader variation. Variation is not assigned.");
+		return false;
+	}
+
+	const ShaderVariationParameters& variationParameters = variation->GetVariationParameters();
+	const String& variationName = variationParameters.CreateVariationName();
+
+	StringStream hashStringStream;
+	hashStringStream << variationName << "\n";
+
+	const TShared<ShaderCompilerMetaData>& shaderCompilerMetaData = shader->GetCompilerMetaData();
+	if(shaderCompilerMetaData != nullptr)
+	{
+		hashStringStream << StringUtility::HexToLiteral(shaderCompilerMetaData->ShaderHash.data(), (u32)shaderCompilerMetaData->ShaderHash.size()) << "\n";
+
+		for(const auto& includeHashPair : shaderCompilerMetaData->IncludeHashes)
+			hashStringStream << includeHashPair.first << " = " << StringUtility::HexToLiteral(includeHashPair.second.data(), (u32)includeHashPair.second.size()) << "\n";
+	}
+
+	const String& hashString = hashStringStream.str();
+	const Array<u64, 2> variationHash = Shader::ComputeHash(hashString);
+
+	Path cacheName;
+	PersistentCache& cache = GetApplication().GetApplicationCache();
+
+	if(shaderCompilerMetaData != nullptr && !shaderCompilerMetaData->NameInCache.empty())
+	{
+		cacheName = Path(shaderCompilerMetaData->NameInCache)+ language + StringUtility::HexToLiteral(variationHash.data(), (u32)variationHash.size());
+
+		const TShared<VariationType> cachedVariation = cache.TryGetEntry<VariationType>(cacheName);
+		if(cachedVariation != nullptr)
+		{
+			TInlineArray<TShared<PassType>, 1> cachedPasses;
+			const u32 passCount = cachedVariation->GetPassCount();
+			for(u32 passIndex = 0; passIndex < passCount; passIndex++)
+				cachedPasses.Add(cachedVariation->GetPass(passIndex));
+
+			variation->SetCompiledPassData(cachedPasses);
+			return true;
+		}
+	}
+
+	TShared<IShaderCompiler> shaderCompiler = ShaderCompilers::Instance().GetCompiler("bsl");
+	if(shaderCompiler == nullptr)
+	{
+		B3D_LOG(Error, LogMaterial, "Cannot compile variation. BSL shader compiler is not available.");
+		return false;
+	}
+
+	const ShaderCompilerResult compileResult = shaderCompiler->CompileVariation(*shader, variationParameters, language, *variation);
+
+	if(!compileResult.ErrorMessage.empty())
+	{
+		B3D_LOG(Error, LogRenderer, "Compilation error when compiling a variation for shader \"{0}\":\n{1}. Location: {2} ({3})", shader->GetShaderName(), compileResult.ErrorMessage, compileResult.ErrorLine, compileResult.ErrorColumn);
+		return false;
+	}
+
+	if(!cacheName.IsEmpty())
+		cache.SetEntry(cacheName, variation);
+
+	return true;
+}
+
 template B3D_EXPORT TShared<CoreVariantType<Shader, false>> ShaderRegistry::GetOrCompileShader<false>(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
 template B3D_EXPORT TShared<CoreVariantType<Shader, true>> ShaderRegistry::GetOrCompileShader<true>(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
+template B3D_EXPORT bool ShaderRegistry::GetOrCompileVariation<false>(const TShared<CoreVariantType<Shader, false>>& shader, const TShared<CoreVariantType<Variation, false>>& variation, const String& language);
+template B3D_EXPORT bool ShaderRegistry::GetOrCompileVariation<true>(const TShared<CoreVariantType<Shader, true>>& shader, const TShared<CoreVariantType<Variation, true>>& variation, const String& language);

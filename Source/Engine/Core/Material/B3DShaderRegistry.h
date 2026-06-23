@@ -48,6 +48,18 @@ namespace b3d
 		template <bool IsRenderProxy>
 		TShared<CoreVariantType<Shader, IsRenderProxy>> GetOrCompileShader(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
 
+		/**
+		 * Resolves compiled pass data for a shader variation, retrieving it from the application cache if available, or
+		 * compiling it and adding it to the cache otherwise.
+		 *
+		 * @param	shader		Shader that owns the variation.
+		 * @param	variation	Variation to initialize with compiled pass data.
+		 * @param	language	Shading language identifier for the variation.
+		 * @return				True if the variation pass data was resolved successfully, or false on failure.
+		 */
+		template <bool IsRenderProxy>
+		bool GetOrCompileVariation(const TShared<CoreVariantType<Shader, IsRenderProxy>>& shader, const TShared<CoreVariantType<Variation, IsRenderProxy>>& variation, const String& language);
+
 	protected:
 		void OnStartUp() override;
 		void OnShutDown() override;

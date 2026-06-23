@@ -3,14 +3,13 @@
 #include "Material/B3DVariation.h"
 
 #include "B3DApplication.h"
-#include "B3DShaderCompiler.h"
 #include "CoreObject/B3DCoreObjectSync.h"
 #include "Renderer/B3DRendererManager.h"
 #include "Material/B3DPass.h"
+#include "Material/B3DShaderRegistry.h"
 #include "Renderer/B3DRenderer.h"
 #include "RTTI/B3DVariationRTTI.h"
 #include "GpuBackend/B3DGpuDevice.h"
-#include "Utility/B3DPersistentCache.h"
 
 using namespace b3d;
 
@@ -104,58 +103,10 @@ TAsyncOp<bool> TVariation<IsRenderProxy>::Compile()
 			return operation;
 		}
 
-		const String& variationName = mVariationParameters.CreateVariationName();
-
-		StringStream hashStringStream;
-		hashStringStream << variationName << "\n";
-
-		const TShared<ShaderCompilerMetaData>& shaderCompilerMetaData = owner->GetCompilerMetaData();
-		if(shaderCompilerMetaData != nullptr)
+		if(!ShaderRegistry::Instance().GetOrCompileVariation<IsRenderProxy>(owner, GetSelf(), mLanguage))
 		{
-			hashStringStream << shaderCompilerMetaData->Source;
-
-			for(const auto& includeHashPair : shaderCompilerMetaData->IncludeHashes)
-				hashStringStream << includeHashPair.first << " = " << StringUtility::HexToLiteral(includeHashPair.second.data(), (u32)includeHashPair.second.size()) << "\n";
-		}
-
-		const String& hashString = hashStringStream.str();
-		const Array<u64, 2> variationHash = Shader::ComputeHash(hashString);
-
-		Path cacheName;
-		PersistentCache& cache = GetApplication().GetApplicationCache();
-
-		if(shaderCompilerMetaData != nullptr && !shaderCompilerMetaData->NameInCache.empty())
-		{
-			cacheName = Path(shaderCompilerMetaData->NameInCache)+ mLanguage + StringUtility::HexToLiteral(variationHash.data(), (u32)variationHash.size());
-
-			const TShared<VariationType> cachedVariations = cache.TryGetEntry<VariationType>(cacheName);
-			if(cachedVariations != nullptr)
-				GetSelf()->SetCompiledPassData(cachedVariations->mPasses);
-		}
-
-		if(!mHasPassData)
-		{
-			TShared<IShaderCompiler> shaderCompiler = ShaderCompilers::Instance().GetCompiler("bsl");
-			if(shaderCompiler == nullptr)
-			{
-				B3D_LOG(Error, LogMaterial, "Cannot compile variation. BSL shader compiler is not available.");
-				operation.CompleteOperation(false);
-				return operation;
-			}
-
-			const ShaderCompilerResult compileResult = shaderCompiler->CompileVariation(*owner, mVariationParameters, mLanguage, *GetSelf());
-
-			if(!compileResult.ErrorMessage.empty())
-			{
-				B3D_LOG(Error, LogRenderer, "Compilation error when compiling a variation for shader \"{0}\":\n{1}. Location: {2} ({3})", owner->GetShaderName(), compileResult.ErrorMessage, compileResult.ErrorLine, compileResult.ErrorColumn);
-				operation.CompleteOperation(false);
-				return operation;
-			}
-
-			if(!cacheName.IsEmpty())
-				cache.SetEntry(cacheName, GetSelf());
-
-			mHasPassData = true;
+			operation.CompleteOperation(false);
+			return operation;
 		}
 	}
 
