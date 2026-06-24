@@ -155,9 +155,9 @@ RenderProxySyncPacket* Pass::CreateRenderProxySyncPacket(FrameAllocator& allocat
 	return allocator.Construct<SyncPacket>(*this, allocator, flags);
 }
 
-TShared<Pass> Pass::Create(const PassCreateInformation& desc)
+TShared<Pass> Pass::Create(const PassCreateInformation& createInformation)
 {
-	Pass* newPass = new(B3DAllocate<Pass>()) Pass(desc);
+	Pass* newPass = new(B3DAllocate<Pass>()) Pass(createInformation);
 	TShared<Pass> newPassPtr = B3DMakeSharedFromExisting<Pass>(newPass);
 	newPassPtr->SetShared(newPassPtr);
 	newPassPtr->Initialize();

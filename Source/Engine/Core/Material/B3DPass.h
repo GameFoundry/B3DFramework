@@ -105,7 +105,7 @@ namespace b3d
 		void Compile();
 
 		/**	Creates a new empty pass. */
-		static TShared<Pass> Create(const PassCreateInformation& desc);
+		static TShared<Pass> Create(const PassCreateInformation& createInformation);
 
 	protected:
 		friend class Variation;

@@ -485,6 +485,31 @@ namespace b3d
 		}
 	};
 
+	class B3D_EXPORT PrebuiltShaderDataRTTI : public TRTTIType<PrebuiltShaderData, ShaderInformationBase, PrebuiltShaderDataRTTI>
+	{
+	private:
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(Name, 0)
+		B3D_RTTI_END_MEMBERS
+
+	public:
+		const String& GetRttiName() override
+		{
+			static String name = "PrebuiltShaderData";
+			return name;
+		}
+
+		u32 GetRttiId() const override
+		{
+			return TID_PrebuiltShaderData;
+		}
+
+		TShared<IReflectable> NewRttiObject() override
+		{
+			return B3DMakeShared<PrebuiltShaderData>();
+		}
+	};
+
 	class B3D_EXPORT ShaderRTTI : public TRTTIType<Shader, Resource, ShaderRTTI>
 	{
 	private:

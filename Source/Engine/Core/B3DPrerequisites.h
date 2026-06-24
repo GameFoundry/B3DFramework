@@ -814,6 +814,7 @@ namespace b3d
 		TID_ECSParticleSystem = 1278,
 		TID_ECSReflectionProbe = 1279,
 		TID_PrebuiltShader = 1280,
+		TID_PrebuiltShaderData = 1281,
 
 		// Moved from Engine layer
 		TID_Camera = 30000,
