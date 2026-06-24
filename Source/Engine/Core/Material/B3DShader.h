@@ -388,16 +388,16 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 	};
 
-	class PrebuiltShaderDataRTTI;
+	class PrecompiledShaderDataRTTI;
 
 	/**
 	 * Thread-agnostic, serializable snapshot of a compiled shader, excluding the per-variation objects (which are cached
 	 * separately). Used to cache a shader once and reconstruct either the main or render-thread Shader from it, so the same
 	 * cache entry serves both threads.
 	 */
-	struct B3D_EXPORT PrebuiltShaderData : ShaderInformationBase
+	struct B3D_EXPORT PrecompiledShaderData : ShaderInformationBase
 	{
-		PrebuiltShaderData() = default;
+		PrecompiledShaderData() = default;
 
 		/** Name of the shader. */
 		String Name;
@@ -406,7 +406,7 @@ namespace b3d
 		/* 								SERIALIZATION                      		*/
 		/************************************************************************/
 	public:
-		friend class PrebuiltShaderDataRTTI;
+		friend class PrecompiledShaderDataRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
@@ -584,9 +584,9 @@ namespace b3d
 
 		/**
 		 * Copies the thread-agnostic shader description into @p out, slicing away the per-variation objects (which are
-		 * cached separately). Shared by both the main and render-thread GetPrebuiltData() implementations.
+		 * cached separately). Shared by both the main and render-thread GetPrecompiledData() implementations.
 		 */
-		void FillPrebuiltData(ShaderInformationBase& out) const { out = mInformation; }
+		void FillPrecompiledData(ShaderInformationBase& out) const { out = mInformation; }
 
 		ShaderInformationType mInformation;
 		u32 mShaderId;
@@ -677,16 +677,16 @@ namespace b3d
 		static TShared<Shader> CreateShared(const String& name, const ShaderCreateInformation& createInformation);
 
 		/**
-		 * Reconstructs a shader from a PrebuiltShaderData snapshot, recreating the variation shells for the
+		 * Reconstructs a shader from a PrecompiledShaderData snapshot, recreating the variation shells for the
 		 * provided languages. The variations are left uncompiled (pass data is filled on demand).
 		 *
-		 * @param	data		Cached shader description created by GetPrebuiltData() in a previous session.
+		 * @param	data		Cached shader description created by GetPrecompiledData() in a previous session.
 		 * @param	languages	Shading language identifiers to create variation shells for.
 		 */
-		static TShared<Shader> Create(const PrebuiltShaderData& data, const Vector<String>& languages);
+		static TShared<Shader> Create(const PrecompiledShaderData& data, const Vector<String>& languages);
 
 		/** Extracts a snapshot of this shader. This object can be cached and used for creating the same shader. */
-		TShared<PrebuiltShaderData> GetPrebuiltData() const;
+		TShared<PrecompiledShaderData> GetPrecompiledData() const;
 
 		/** @} */
 
@@ -741,14 +741,14 @@ namespace b3d
 			/** @copydoc b3d::Shader::Create */
 			static TShared<Shader> Create(const String& name, const ShaderCreateInformation& createInformation);
 
-			/** @copydoc b3d::Shader::Create(const PrebuiltShaderData&, const Vector<String>&) */
-			static TShared<Shader> Create(const PrebuiltShaderData& data, const Vector<String>& languages);
+			/** @copydoc b3d::Shader::Create(const PrecompiledShaderData&, const Vector<String>&) */
+			static TShared<Shader> Create(const PrecompiledShaderData& data, const Vector<String>& languages);
 
 			/** Creates an empty shader. */
 			static TShared<Shader> CreateEmpty();
 
-			/** @copydoc b3d::Shader::GetPrebuiltData */
-			TShared<PrebuiltShaderData> GetPrebuiltData() const;
+			/** @copydoc b3d::Shader::GetPrecompiledData */
+			TShared<PrecompiledShaderData> GetPrecompiledData() const;
 
 			/** Returns the name of the shader. */
 			String GetShaderName() const { return mName; }

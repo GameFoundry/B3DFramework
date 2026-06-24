@@ -267,12 +267,12 @@ RTTIType* ShaderInformation::GetRtti() const
 	return GetRttiStatic();
 }
 
-RTTIType* PrebuiltShaderData::GetRttiStatic()
+RTTIType* PrecompiledShaderData::GetRttiStatic()
 {
-	return PrebuiltShaderDataRTTI::Instance();
+	return PrecompiledShaderDataRTTI::Instance();
 }
 
-RTTIType* PrebuiltShaderData::GetRtti() const
+RTTIType* PrecompiledShaderData::GetRtti() const
 {
 	return GetRttiStatic();
 }
@@ -641,12 +641,12 @@ u32 Shader::GetDataParameterSize(GpuDataParameterType type)
 namespace
 {
 	/**
-	 * Builds a shader create information from a PrebuiltShaderData snapshot. Copies the shared description and
+	 * Builds a shader create information from a PrecompiledShaderData snapshot. Copies the shared description and
 	 * recreates the (uncompiled) variation shells for each variation/language combination.
 	 * Variations are created with no owner; the caller assigns the owner once the shader exists.
 	 */
 	template <bool IsRenderProxy>
-	CoreVariantType<ShaderCreateInformation, IsRenderProxy> CreateShaderCreateInformationFromPrebuiltData(const PrebuiltShaderData& data, const Vector<String>& languages)
+	CoreVariantType<ShaderCreateInformation, IsRenderProxy> CreateShaderCreateInformationFromPrecompiledData(const PrecompiledShaderData& data, const Vector<String>& languages)
 	{
 		using VariationType = CoreVariantType<Variation, IsRenderProxy>;
 
@@ -673,9 +673,9 @@ HShader Shader::Create(const String& name, const ShaderCreateInformation& create
 	return B3DStaticResourceCast<Shader>(GetResources().CreateResourceHandle(newShader));
 }
 
-TShared<Shader> Shader::Create(const PrebuiltShaderData& data, const Vector<String>& languages)
+TShared<Shader> Shader::Create(const PrecompiledShaderData& data, const Vector<String>& languages)
 {
-	ShaderCreateInformation createInformation = CreateShaderCreateInformationFromPrebuiltData<false>(data, languages);
+	ShaderCreateInformation createInformation = CreateShaderCreateInformationFromPrecompiledData<false>(data, languages);
 	TShared<Shader> shader = CreateShared(data.Name, createInformation);
 
 	for(const auto& variation : createInformation.Variations)
@@ -684,10 +684,10 @@ TShared<Shader> Shader::Create(const PrebuiltShaderData& data, const Vector<Stri
 	return shader;
 }
 
-TShared<PrebuiltShaderData> Shader::GetPrebuiltData() const
+TShared<PrecompiledShaderData> Shader::GetPrecompiledData() const
 {
-	TShared<PrebuiltShaderData> data = B3DMakeShared<PrebuiltShaderData>();
-	FillPrebuiltData(*data);
+	TShared<PrecompiledShaderData> data = B3DMakeShared<PrecompiledShaderData>();
+	FillPrecompiledData(*data);
 	data->Name = GetShaderName();
 
 	return data;
@@ -776,9 +776,9 @@ TShared<Shader> Shader::Create(const String& name, const ShaderCreateInformation
 	return shaderShared;
 }
 
-TShared<Shader> Shader::Create(const PrebuiltShaderData& data, const Vector<String>& languages)
+TShared<Shader> Shader::Create(const PrecompiledShaderData& data, const Vector<String>& languages)
 {
-	ShaderCreateInformation createInformation = CreateShaderCreateInformationFromPrebuiltData<true>(data, languages);
+	ShaderCreateInformation createInformation = CreateShaderCreateInformationFromPrecompiledData<true>(data, languages);
 	TShared<Shader> shader = Create(data.Name, createInformation);
 
 	for(const auto& variation : createInformation.Variations)
@@ -787,10 +787,10 @@ TShared<Shader> Shader::Create(const PrebuiltShaderData& data, const Vector<Stri
 	return shader;
 }
 
-TShared<PrebuiltShaderData> Shader::GetPrebuiltData() const
+TShared<PrecompiledShaderData> Shader::GetPrecompiledData() const
 {
-	TShared<PrebuiltShaderData> data = B3DMakeShared<PrebuiltShaderData>();
-	FillPrebuiltData(*data);
+	TShared<PrecompiledShaderData> data = B3DMakeShared<PrecompiledShaderData>();
+	FillPrecompiledData(*data);
 	data->Name = GetShaderName();
 
 	return data;

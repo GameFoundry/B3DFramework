@@ -168,7 +168,7 @@ TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderRegistry::GetOrCompileShad
 	if(!shadingLanguageName.empty())
 		activeLanguages.push_back(shadingLanguageName);
 
-	TShared<PrebuiltShaderData> prebuiltData;
+	TShared<PrecompiledShaderData> precompiledData;
 
 	// 1) Prebuilt shader store. Keyed by a source-independent virtual path so it can be resolved without the shader's
 	//    high-level source being present. Each cooked shader is wrapped in a PrebuiltShader.
@@ -178,16 +178,16 @@ TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderRegistry::GetOrCompileShad
 		const TShared<IReflectable> prebuiltObject = prebuilt != nullptr ? prebuilt->GetObject() : nullptr;
 		if(prebuiltObject != nullptr)
 		{
-			prebuiltData = B3DRTTICast<PrebuiltShaderData>(prebuiltObject);
-			if(prebuiltData == nullptr)
+			precompiledData = B3DRTTICast<PrecompiledShaderData>(prebuiltObject);
+			if(precompiledData == nullptr)
 				B3D_LOG(Warning, LogResources, "Prebuilt shader store contains an entry for \"{0}\" but it is not of the expected type. Falling back to compilation.", shaderPath);
 		}
 	}
 
 #if !B3D_BUILD_TYPE_DEVELOPMENT
 	// Outside development builds we trust the prebuilt store and never touch the source.
-	if(prebuiltData != nullptr)
-		return ShaderType::Create(*prebuiltData, activeLanguages);
+	if(precompiledData != nullptr)
+		return ShaderType::Create(*precompiledData, activeLanguages);
 #endif
 
 	// Locate the shader source. In development builds it is used to verify the prebuilt shader is up to date; on a
@@ -212,41 +212,41 @@ TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderRegistry::GetOrCompileShad
 
 	if(shaderFileStream == nullptr)
 	{
-		// No source available: keep the (unverified) prebuilt data if we have it, otherwise this is a hard failure.
-		if(prebuiltData == nullptr)
+		// No source available: keep the (unverified) precompiled data if we have it, otherwise this is a hard failure.
+		if(precompiledData == nullptr)
 		{
 			B3D_LOG(Error, LogResources, "Shader resolution failed for shader \"{0}\". No prebuilt shader was found and the shader source cannot be located.", shaderPath);
 			return nullptr;
 		}
 
-		return ShaderType::Create(*prebuiltData, activeLanguages);
+		return ShaderType::Create(*precompiledData, activeLanguages);
 	}
 
 	const String shaderSource = shaderFileStream->GetAsString();
 	const Array<u64, 2> shaderHash = Shader::ComputeHash(shaderSource);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	// In development builds, discard the prebuilt data if it no longer matches the source on disk so the cache/
+	// In development builds, discard the precompiled data if it no longer matches the source on disk so the cache/
 	// compilation paths below pick up local shader edits.
-	if(prebuiltData != nullptr && !IsShaderUpToDate(prebuiltData->CompilerMetaData, shaderHash))
+	if(precompiledData != nullptr && !IsShaderUpToDate(precompiledData->CompilerMetaData, shaderHash))
 	{
 		B3D_LOG(Info, LogResources, "Prebuilt shader \"{0}\" is out of date with its source. Recompiling from source.", shaderPath);
-		prebuiltData = nullptr;
+		precompiledData = nullptr;
 	}
 #endif
 
 	// 2) Writable application cache.
 	PersistentCache& cache = GetApplication().GetApplicationCache();
-	if(prebuiltData == nullptr)
+	if(precompiledData == nullptr)
 	{
-		prebuiltData = cache.TryGetEntry<PrebuiltShaderData>(shaderPathInCache);
-		if(prebuiltData != nullptr && !IsShaderUpToDate(prebuiltData->CompilerMetaData, shaderHash))
-			prebuiltData = nullptr;
+		precompiledData = cache.TryGetEntry<PrecompiledShaderData>(shaderPathInCache);
+		if(precompiledData != nullptr && !IsShaderUpToDate(precompiledData->CompilerMetaData, shaderHash))
+			precompiledData = nullptr;
 	}
 
 	// Resolved valid cached data from the prebuilt store or the application cache: reconstruct the requested variant.
-	if(prebuiltData != nullptr)
-		return ShaderType::Create(*prebuiltData, activeLanguages);
+	if(precompiledData != nullptr)
+		return ShaderType::Create(*precompiledData, activeLanguages);
 
 	// 3) On-demand compilation from source, delegated to ShaderCompilers.
 	TShared<ShaderType> shader = ShaderCompilers::Instance().CompileShader<IsRenderProxy>(shaderName, shaderSource, defines, activeLanguages);
@@ -258,7 +258,7 @@ TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderRegistry::GetOrCompileShad
 			compilerMetaData->NameInCache = shaderNameInCache;
 			compilerMetaData->ShaderHash = shaderHash;
 
-			cache.SetEntry(shaderPathInCache, shader->GetPrebuiltData());
+			cache.SetEntry(shaderPathInCache, shader->GetPrecompiledData());
 		}
 	}
 
