@@ -27,29 +27,29 @@ namespace b3d
 
 	/** Data that may be passed to Variation on creation to initialize it with precompiled set of passes (rather than requiring on-demand compilation). */
 	template<bool IsRenderProxy>
-	struct TPrecompiledVariationData
+	struct TPrecompiledVariationPasses
 	{
 		using PassType = CoreVariantType<Pass, IsRenderProxy>;
 
-		TPrecompiledVariationData(const TInlineArray<TShared<PassType>, 1>& precompiledPasses = {})
+		TPrecompiledVariationPasses(const TInlineArray<TShared<PassType>, 1>& precompiledPasses = {})
 			: PrecompiledPasses(precompiledPasses)
 		{ }
 
 		TInlineArray<TShared<PassType>, 1> PrecompiledPasses;
 	};
 
-	using PrecompiledVariationData = TPrecompiledVariationData<false>;
-	namespace render { using PrecompiledVariationData = TPrecompiledVariationData<true>; }
+	using PrecompiledVariationPasses = TPrecompiledVariationPasses<false>;
+	namespace render { using PrecompiledVariationPasses = TPrecompiledVariationPasses<true>; }
 
-	class VariationPrecompiledDataRTTI;
+	class PrecompiledVariationDataRTTI;
 
 	/**
 	 * Serializable snapshot of a compiled shader variation, holding only the shared compiled pass data
 	 * (and the variation's language/parameters). Used to cache a variation once and reconstruct later.
 	 */
-	struct B3D_EXPORT VariationPrecompiledData : IReflectable
+	struct B3D_EXPORT PrecompiledVariationData : IReflectable
 	{
-		VariationPrecompiledData() = default;
+		PrecompiledVariationData() = default;
 
 		/** Shading language the passes were compiled for. */
 		String Language;
@@ -64,7 +64,7 @@ namespace b3d
 		/* 								SERIALIZATION                      		*/
 		/************************************************************************/
 	public:
-		friend class VariationPrecompiledDataRTTI;
+		friend class PrecompiledVariationDataRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
@@ -103,7 +103,7 @@ namespace b3d
 		using VariationType = CoreVariantType<Variation, IsRenderProxy>;
 
 		TVariation();
-		TVariation(const WeakSPtr<ShaderType>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<TPrecompiledVariationData<IsRenderProxy>>& precompiledData);
+		TVariation(const WeakSPtr<ShaderType>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<TPrecompiledVariationPasses<IsRenderProxy>>& precompiledData);
 		virtual ~TVariation() = default;
 
 		/**	Returns a pass with the specified index. */
@@ -127,7 +127,7 @@ namespace b3d
 		void SetCompiledPassData(TInlineArray<TShared<PassType>, 1> compiledPasses);
 
 		/** Captures the compiled pass data of this variation into a serializable snapshot that can be cached and reconstructed later. */
-		TShared<VariationPrecompiledData> GetPrecompiledData() const;
+		TShared<PrecompiledVariationData> GetPrecompiledData() const;
 
 		/** Sets the shader that owns this variation. */
 		void SetOwner(const WeakSPtr<ShaderType>& owner);
@@ -158,7 +158,7 @@ namespace b3d
 	class B3D_EXPORT Variation : public IReflectable, public CoreObject, public TVariation<false>
 	{
 	public:
-		Variation(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData);
+		Variation(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationPasses>& precompiledData);
 
 		/**
 		 * Creates a new variation.
@@ -169,7 +169,7 @@ namespace b3d
 		 * @param precompiledData		Optional set of precompiled variation data. If not provided, you must manually call Compile() on the variation before use.
 		 * @return						Newly creted variation.
 		 */
-		static TShared<Variation> Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData = {});
+		static TShared<Variation> Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationPasses>& precompiledData = {});
 
 	protected:
 		TShared<render::RenderProxy> CreateRenderProxy() const override;
@@ -214,10 +214,10 @@ namespace b3d
 		class B3D_EXPORT Variation : public IReflectable, public RenderProxy, public TVariation<true>
 		{
 		public:
-			Variation(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData);
+			Variation(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationPasses>& precompiledData);
 
-			/** @copydoc b3d::Variation::Create(const WeakSPtr<Shader>&, const String&, const ShaderVariationParameters&, const Optional<PrecompiledVariationData>&) */
-			static TShared<Variation> Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData = {});
+			/** @copydoc b3d::Variation::Create(const WeakSPtr<Shader>&, const String&, const ShaderVariationParameters&, const Optional<PrecompiledVariationPasses>&) */
+			static TShared<Variation> Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationPasses>& precompiledData = {});
 
 			/**	Creates a new empty variation. */
 			static TShared<Variation> CreateEmpty();

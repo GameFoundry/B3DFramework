@@ -29,8 +29,8 @@ bool VariationBase::IsSupported() const
 }
 
 template <bool IsRenderProxy>
-TVariation<IsRenderProxy>::TVariation(const WeakSPtr<ShaderType>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<TPrecompiledVariationData<IsRenderProxy>>& precompiledData)
-	: VariationBase(language, variationParameters), mOwner(owner), mPasses(precompiledData.value_or(TPrecompiledVariationData<IsRenderProxy>()).PrecompiledPasses), mHasPassData(precompiledData.has_value())
+TVariation<IsRenderProxy>::TVariation(const WeakSPtr<ShaderType>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<TPrecompiledVariationPasses<IsRenderProxy>>& precompiledData)
+	: VariationBase(language, variationParameters), mOwner(owner), mPasses(precompiledData.value_or(TPrecompiledVariationPasses<IsRenderProxy>()).PrecompiledPasses), mHasPassData(precompiledData.has_value())
 { }
 
 template <bool IsRenderProxy>
@@ -123,9 +123,9 @@ TAsyncOp<bool> TVariation<IsRenderProxy>::Compile()
 }
 
 template <bool IsRenderProxy>
-TShared<VariationPrecompiledData> TVariation<IsRenderProxy>::GetPrecompiledData() const
+TShared<PrecompiledVariationData> TVariation<IsRenderProxy>::GetPrecompiledData() const
 {
-	TShared<VariationPrecompiledData> data = B3DMakeShared<VariationPrecompiledData>();
+	TShared<PrecompiledVariationData> data = B3DMakeShared<PrecompiledVariationData>();
 	data->Language = mLanguage;
 	data->VariationParameters = mVariationParameters;
 
@@ -142,7 +142,7 @@ namespace b3d
 	template class TVariation<true>;
 } // namespace b3d
 
-Variation::Variation(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData)
+Variation::Variation(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationPasses>& precompiledData)
 	: TVariation(owner, language, variationParameters, precompiledData)
 {}
 
@@ -159,7 +159,7 @@ TShared<render::RenderProxy> Variation::CreateRenderProxy() const
 	for(auto& pass : mPasses)
 		passRenderProxies.Add(B3DGetRenderProxy(pass));
 
-	TOptional<render::PrecompiledVariationData> precompiledDataRenderProxy = mHasPassData ? render::PrecompiledVariationData(passRenderProxies) : TOptional<render::PrecompiledVariationData>{};
+	TOptional<render::PrecompiledVariationPasses> precompiledDataRenderProxy = mHasPassData ? render::PrecompiledVariationPasses(passRenderProxies) : TOptional<render::PrecompiledVariationPasses>{};
 
 	render::Variation* const renderProxy = new(B3DAllocate<render::Variation>()) render::Variation(ownerRenderProxy, mLanguage, mVariationParameters, precompiledDataRenderProxy);
 	const TShared<render::Variation> renderProxyShared = B3DMakeSharedFromExisting<render::Variation>(renderProxy);
@@ -205,7 +205,7 @@ RenderProxySyncPacket* Variation::CreateRenderProxySyncPacket(FrameAllocator& al
 	return syncPacket;
 }
 
-TShared<Variation> Variation::Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData)
+TShared<Variation> Variation::Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationPasses>& precompiledData)
 {
 	Variation* variation = new(B3DAllocate<Variation>()) Variation(owner, language, variationParameters, precompiledData);
 	TShared<Variation> variationShared = B3DMakeSharedFromExisting<Variation>(variation);
@@ -234,14 +234,14 @@ RTTIType* Variation::GetRtti() const
 	return Variation::GetRttiStatic();
 }
 
-RTTIType* VariationPrecompiledData::GetRttiStatic()
+RTTIType* PrecompiledVariationData::GetRttiStatic()
 {
-	return VariationPrecompiledDataRTTI::Instance();
+	return PrecompiledVariationDataRTTI::Instance();
 }
 
-RTTIType* VariationPrecompiledData::GetRtti() const
+RTTIType* PrecompiledVariationData::GetRtti() const
 {
-	return VariationPrecompiledData::GetRttiStatic();
+	return PrecompiledVariationData::GetRttiStatic();
 }
 
 namespace b3d { namespace render
@@ -250,11 +250,11 @@ Variation::Variation()
 	: TVariation(WeakSPtr<Shader>(), StringUtility::kBlank, ShaderVariationParameters(), {})
 { }
 
-Variation::Variation(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData)
+Variation::Variation(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationPasses>& precompiledData)
 	: TVariation(owner, language, variationParameters, precompiledData)
 {}
 
-TShared<Variation> Variation::Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationData>& precompiledData)
+TShared<Variation> Variation::Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const TOptional<PrecompiledVariationPasses>& precompiledData)
 {
 	Variation *const variation = new(B3DAllocate<Variation>()) Variation(owner, language, variationParameters, precompiledData);
 	TShared<Variation> variationShared = B3DMakeSharedFromExisting<Variation>(variation);

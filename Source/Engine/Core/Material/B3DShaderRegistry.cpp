@@ -22,35 +22,6 @@ using namespace b3d;
 
 namespace b3d
 {
-	/**
-	 * Resource wrapper that holds a single cooked shader (main or render-thread variant) as a generic reflectable, so it
-	 * can be stored within a Package.
-	 */
-	class PrebuiltShader final : public Resource
-	{
-	public:
-		/** Returns the wrapped shader object, or null if none is present. */
-		TShared<IReflectable> GetObject() const { return mObjects.Empty() ? nullptr : mObjects[0]; }
-
-		/** Creates a wrapper holding the provided shader object. */
-		static TShared<PrebuiltShader> Create(const TShared<IReflectable>& object);
-
-	private:
-		explicit PrebuiltShader(const TShared<IReflectable>& object)
-			: Resource(false), mObjects({ object })
-		{ }
-
-		TInlineArray<TShared<IReflectable>, 1> mObjects;
-
-		/************************************************************************/
-		/* 								SERIALIZATION                      		*/
-		/************************************************************************/
-	public:
-		friend class PrebuiltShaderRTTI;
-		static RTTIType* GetRttiStatic();
-		RTTIType* GetRtti() const override;
-	};
-
 	/** @cond RTTI */
 	class PrebuiltShaderRTTI final : public TRTTIType<PrebuiltShader, Resource, PrebuiltShaderRTTI>
 	{
@@ -156,6 +127,29 @@ void ShaderRegistry::RegisterSearchPath(const Path& folder)
 	mSearchPaths.push_back(folder);
 }
 
+String ShaderRegistry::GetShaderCacheName(const String& cachePrefix, const String& shaderName)
+{
+	return cachePrefix + shaderName + "/";
+}
+
+Path ShaderRegistry::GetShaderMetaDataPath(const String& shaderCacheName, const String& language)
+{
+	return Path(shaderCacheName) + language + "/MetaData";
+}
+
+Path ShaderRegistry::GetVariationPath(const ShaderCompilerMetaData& metadata, const String& language, const String& variationName)
+{
+	StringStream hashStringStream;
+	hashStringStream << variationName << "\n";
+	hashStringStream << StringUtility::HexToLiteral(metadata.ShaderHash.data(), (u32)metadata.ShaderHash.size()) << "\n";
+
+	for(const auto& includeHashPair : metadata.IncludeHashes)
+		hashStringStream << includeHashPair.first << " = " << StringUtility::HexToLiteral(includeHashPair.second.data(), (u32)includeHashPair.second.size()) << "\n";
+
+	const Array<u64, 2> variationHash = Shader::ComputeHash(hashStringStream.str());
+	return Path(metadata.NameInCache) + language + StringUtility::HexToLiteral(variationHash.data(), (u32)variationHash.size());
+}
+
 template <bool IsRenderProxy>
 TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderRegistry::GetOrCompileShader(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines)
 {
@@ -163,8 +157,8 @@ TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderRegistry::GetOrCompileShad
 
 	const String shadingLanguageName = ShaderCompilers::Instance().DetectActiveShadingLanguage();
 	const String& shaderName = shaderPath.GetFilename(false);
-	const String shaderNameInCache = cachePrefix + shaderName + "/";
-	const Path shaderPathInCache = Path(shaderNameInCache) + shadingLanguageName + "/MetaData";
+	const String shaderNameInCache = GetShaderCacheName(cachePrefix, shaderName);
+	const Path shaderPathInCache = GetShaderMetaDataPath(shaderNameInCache, shadingLanguageName);
 
 	Vector<String> activeLanguages;
 	if(!shadingLanguageName.empty())
@@ -284,41 +278,49 @@ bool ShaderRegistry::GetOrCompileVariation(const TShared<CoreVariantType<Shader,
 		return false;
 	}
 
+	const TShared<ShaderCompilerMetaData>& shaderCompilerMetaData = shader->GetCompilerMetaData();
+	if(!B3D_ENSURE(shaderCompilerMetaData != nullptr))
+		return false;
+
 	const ShaderVariationParameters& variationParameters = variation->GetVariationParameters();
 	const String& variationName = variationParameters.CreateVariationName();
+	const Path variationPath = GetVariationPath(*shaderCompilerMetaData, language, variationName);
 
-	StringStream hashStringStream;
-	hashStringStream << variationName << "\n";
-
-	const TShared<ShaderCompilerMetaData>& shaderCompilerMetaData = shader->GetCompilerMetaData();
-	if(shaderCompilerMetaData != nullptr)
+	// 1) Prebuilt shader store. Unlike the shader-level lookup, the variation key is source-sensitive (it folds in the
+	//    shader and include hashes), so a store entry is found only when it was cooked against the current source.
+	if(mPrebuiltStore != nullptr && mPrebuiltStore->Contains(variationPath))
 	{
-		hashStringStream << StringUtility::HexToLiteral(shaderCompilerMetaData->ShaderHash.data(), (u32)shaderCompilerMetaData->ShaderHash.size()) << "\n";
+		const TShared<PrebuiltShader> prebuilt = B3DRTTICast<PrebuiltShader>(mPrebuiltStore->LoadResource(variationPath));
+		const TShared<IReflectable> prebuiltObject = prebuilt != nullptr ? prebuilt->GetObject() : nullptr;
+		if(prebuiltObject != nullptr)
+		{
+			const TShared<PrecompiledVariationData> prebuiltData = B3DRTTICast<PrecompiledVariationData>(prebuiltObject);
+			if(prebuiltData != nullptr)
+			{
+				TInlineArray<TShared<PassType>, 1> prebuiltPasses;
+				for(const auto& passInformation : prebuiltData->Passes)
+					prebuiltPasses.Add(PassType::Create(PassCreateInformation(passInformation)));
 
-		for(const auto& includeHashPair : shaderCompilerMetaData->IncludeHashes)
-			hashStringStream << includeHashPair.first << " = " << StringUtility::HexToLiteral(includeHashPair.second.data(), (u32)includeHashPair.second.size()) << "\n";
+				variation->SetCompiledPassData(std::move(prebuiltPasses));
+				return true;
+			}
+
+			B3D_LOG(Warning, LogMaterial, "Prebuilt shader store contains a variation entry for \"{0}\" but it is not of the expected type. Falling back to compilation.", shader->GetShaderName());
+		}
 	}
 
-	const String& hashString = hashStringStream.str();
-	const Array<u64, 2> variationHash = Shader::ComputeHash(hashString);
-
-	Path cacheName;
+	// 2) Writable application cache, keyed by the same source-sensitive path so local shader edits invalidate stale entries.
 	PersistentCache& cache = GetApplication().GetApplicationCache();
 
-	if(shaderCompilerMetaData != nullptr && !shaderCompilerMetaData->NameInCache.empty())
+	const TShared<PrecompiledVariationData> cachedData = cache.TryGetEntry<PrecompiledVariationData>(variationPath);
+	if(cachedData != nullptr)
 	{
-		cacheName = Path(shaderCompilerMetaData->NameInCache)+ language + StringUtility::HexToLiteral(variationHash.data(), (u32)variationHash.size());
+		TInlineArray<TShared<PassType>, 1> cachedPasses;
+		for(const auto& passInformation : cachedData->Passes)
+			cachedPasses.Add(PassType::Create(PassCreateInformation(passInformation)));
 
-		const TShared<VariationPrecompiledData> cachedData = cache.TryGetEntry<VariationPrecompiledData>(cacheName);
-		if(cachedData != nullptr)
-		{
-			TInlineArray<TShared<PassType>, 1> cachedPasses;
-			for(const auto& passInformation : cachedData->Passes)
-				cachedPasses.Add(PassType::Create(PassCreateInformation(passInformation)));
-
-			variation->SetCompiledPassData(std::move(cachedPasses));
-			return true;
-		}
+		variation->SetCompiledPassData(std::move(cachedPasses));
+		return true;
 	}
 
 	TShared<IShaderCompiler> shaderCompiler = ShaderCompilers::Instance().GetCompiler("bsl");
@@ -336,9 +338,7 @@ bool ShaderRegistry::GetOrCompileVariation(const TShared<CoreVariantType<Shader,
 		return false;
 	}
 
-	if(!cacheName.IsEmpty())
-		cache.SetEntry(cacheName, variation->GetPrecompiledData());
-
+	cache.SetEntry(variationPath, variation->GetPrecompiledData());
 	return true;
 }
 

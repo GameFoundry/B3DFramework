@@ -17,7 +17,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_EXPORT VariationPrecompiledDataRTTI : public TRTTIType<VariationPrecompiledData, IReflectable, VariationPrecompiledDataRTTI>
+	class B3D_EXPORT PrecompiledVariationDataRTTI : public TRTTIType<PrecompiledVariationData, IReflectable, PrecompiledVariationDataRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -29,18 +29,18 @@ namespace b3d
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "VariationPrecompiledData";
+			static String name = "PrecompiledVariationData";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_VariationPrecompiledData;
+			return TID_PrecompiledVariationData;
 		}
 
 		TShared<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<VariationPrecompiledData>();
+			return B3DMakeShared<PrecompiledVariationData>();
 		}
 	};
 

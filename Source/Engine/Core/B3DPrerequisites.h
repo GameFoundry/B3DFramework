@@ -815,7 +815,7 @@ namespace b3d
 		TID_ECSReflectionProbe = 1279,
 		TID_PrebuiltShader = 1280,
 		TID_PrecompiledShaderData = 1281,
-		TID_VariationPrecompiledData = 1282,
+		TID_PrecompiledVariationData = 1282,
 		TID_PassInformation = 1283,
 
 		// Moved from Engine layer

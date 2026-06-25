@@ -17,8 +17,34 @@ namespace b3d
 	 *  @{
 	 */
 
+	/** Resource wrapper that holds a single cooked shader artifact (e.g PrecompiledShaderData, PrecompiledVariationData). */
+	class B3D_EXPORT PrebuiltShader final : public Resource
+	{
+	public:
+		/** Returns the wrapped shader object, or null if none is present. */
+		TShared<IReflectable> GetObject() const { return mObjects.Empty() ? nullptr : mObjects[0]; }
+
+		/** Creates a wrapper holding the provided shader object. */
+		static TShared<PrebuiltShader> Create(const TShared<IReflectable>& object);
+
+	private:
+		explicit PrebuiltShader(const TShared<IReflectable>& object)
+			: Resource(false), mObjects({ object })
+		{ }
+
+		TInlineArray<TShared<IReflectable>, 1> mObjects;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class PrebuiltShaderRTTI;
+		static RTTIType* GetRttiStatic();
+		RTTIType* GetRtti() const override;
+	};
+
 	/**
-	 * Resolves Shader objects and owns the read-only store of prebuilt (cooked) shaders. A shader is resolved in the 
+	 * Resolves Shader objects and owns the read-only store of prebuilt (cooked) shaders. A shader is resolved in the
 	 * following order: the prebuilt store, then the application cache, then on-demand compilation via ShaderCompilers. 
 	 * The prebuilt store is produced ahead of time by the offline shader cook tool, the system falls back on other
 	 * methods if the shader is not available in the prebuilt store or prebuilt store is out of date.
@@ -59,6 +85,35 @@ namespace b3d
 		 */
 		template <bool IsRenderProxy>
 		bool GetOrCompileVariation(const TShared<CoreVariantType<Shader, IsRenderProxy>>& shader, const TShared<CoreVariantType<Variation, IsRenderProxy>>& variation, const String& language);
+
+		/**
+		 * @name Cache / prebuilt-store path derivation
+		 *
+		 * Helpers that compute the virtual paths under which shaders and their variations are keyed in both the
+		 * application cache and the prebuilt store. They are shared between the runtime resolver (GetOrCompileShader /
+		 * GetOrCompileVariation) and the offline shader cook tool so the two can never drift in how entries are named.
+		 * @{
+		 */
+
+		/**
+		 * Returns the store directory for a shader, of the form "<cachePrefix><shaderName>/". This is the value stored
+		 * in ShaderCompilerMetaData::NameInCache and forms the root of every per-language entry for that shader.
+		 */
+		static String GetShaderCacheName(const String& cachePrefix, const String& shaderName);
+
+		/** Returns the virtual path of a shader's metadata entry: "<shaderCacheName><language>/MetaData". */
+		static Path GetShaderMetaDataPath(const String& shaderCacheName, const String& language);
+
+		/**
+		 * Returns the virtual path of a shader variation entry: "<NameInCache><language>/<hash>". The hash folds in the
+		 * variation name together with the shader's source and include hashes (taken from @p metadata), so the key is
+		 * source-sensitive: it changes whenever the shader or any of its includes is edited, and stale entries are then
+		 * simply not found. The application cache, the prebuilt store, and the cook all key variations through here so
+		 * the three can never drift.
+		 */
+		static Path GetVariationPath(const ShaderCompilerMetaData& metadata, const String& language, const String& variationName);
+
+		/** @} */
 
 	protected:
 		void OnStartUp() override;
