@@ -5,6 +5,8 @@
 #include "B3DApplication.h"
 #include "Material/B3DShaderCompiler.h"
 #include "Material/B3DShaderVariation.h"
+#include "Material/B3DVariation.h"
+#include "Material/B3DPass.h"
 #include "Resources/B3DPackage.h"
 #include "Resources/B3DResource.h"
 #include "Reflection/B3DRTTIType.h"
@@ -269,7 +271,6 @@ template <bool IsRenderProxy>
 bool ShaderRegistry::GetOrCompileVariation(const TShared<CoreVariantType<Shader, IsRenderProxy>>& shader, const TShared<CoreVariantType<Variation, IsRenderProxy>>& variation, const String& language)
 {
 	using PassType = CoreVariantType<Pass, IsRenderProxy>;
-	using VariationType = CoreVariantType<Variation, IsRenderProxy>;
 
 	if(!B3D_ENSURE(shader != nullptr))
 	{
@@ -308,15 +309,14 @@ bool ShaderRegistry::GetOrCompileVariation(const TShared<CoreVariantType<Shader,
 	{
 		cacheName = Path(shaderCompilerMetaData->NameInCache)+ language + StringUtility::HexToLiteral(variationHash.data(), (u32)variationHash.size());
 
-		const TShared<VariationType> cachedVariation = cache.TryGetEntry<VariationType>(cacheName);
-		if(cachedVariation != nullptr)
+		const TShared<VariationPrecompiledData> cachedData = cache.TryGetEntry<VariationPrecompiledData>(cacheName);
+		if(cachedData != nullptr)
 		{
 			TInlineArray<TShared<PassType>, 1> cachedPasses;
-			const u32 passCount = cachedVariation->GetPassCount();
-			for(u32 passIndex = 0; passIndex < passCount; passIndex++)
-				cachedPasses.Add(cachedVariation->GetPass(passIndex));
+			for(const auto& passInformation : cachedData->Passes)
+				cachedPasses.Add(PassType::Create(PassCreateInformation(passInformation)));
 
-			variation->SetCompiledPassData(cachedPasses);
+			variation->SetCompiledPassData(std::move(cachedPasses));
 			return true;
 		}
 	}
@@ -337,7 +337,7 @@ bool ShaderRegistry::GetOrCompileVariation(const TShared<CoreVariantType<Shader,
 	}
 
 	if(!cacheName.IsEmpty())
-		cache.SetEntry(cacheName, variation);
+		cache.SetEntry(cacheName, variation->GetPrecompiledData());
 
 	return true;
 }

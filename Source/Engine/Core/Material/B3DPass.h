@@ -15,8 +15,8 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Descriptor structure used for initializing a shader pass. */
-	struct PassCreateInformation
+	/** Descriptor structure used for describing a shader pass. */
+	struct B3D_EXPORT PassInformation : public IReflectable
 	{
 		BlendStateInformation BlendStateInformation;
 		RasterizerStateInformation RasterizerStateInformation;
@@ -29,6 +29,23 @@ namespace b3d
 		GpuProgramCreateInformation HullProgramCreateInformation;
 		GpuProgramCreateInformation DomainProgramCreateInformation;
 		GpuProgramCreateInformation ComputeProgramCreateInformation;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class PassInformationRTTI;
+		static RTTIType* GetRttiStatic();
+		RTTIType* GetRtti() const override;
+	};
+
+	/** Descriptor structure used for creating a Pass. */
+	struct PassCreateInformation : PassInformation
+	{
+		PassCreateInformation() = default;
+		PassCreateInformation(const PassInformation& other)
+			: PassInformation(other)
+		{ }
 	};
 
 	/** @} */
@@ -56,6 +73,9 @@ namespace b3d
 		/** Returns the GPU program descriptor for the specified GPU program type. */
 		const GpuProgramCreateInformation& GetGpuProgramCreateInformation(GpuProgramType type) const;
 
+		/** Returns the pass description, including the compiled GPU program bytecode. */
+		const PassInformation& GetInformation() const { return mData; }
+
 		/**
 		 * Returns the graphics pipeline state describing this pass, or null if its a compute pass.
 		 * Only valid after Compile() has been called.
@@ -74,7 +94,7 @@ namespace b3d
 		/** Creates either the graphics or the compute pipeline state from the stored pass data. */
 		void CreatePipelineState();
 
-		PassCreateInformation mData;
+		PassInformation mData;
 		TShared<GpuGraphicsPipelineState> mGraphicsPipelineState;
 		TShared<GpuComputePipelineState> mComputePipelineState;
 	};
@@ -164,7 +184,7 @@ namespace b3d
 			friend class Variation;
 
 			Pass() = default;
-			Pass(const PassCreateInformation& desc);
+			Pass(const PassCreateInformation& createInformation);
 
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 

@@ -6,6 +6,7 @@
 #include "Reflection/B3DIReflectable.h"
 #include "CoreObject/B3DCoreObject.h"
 #include "Material/B3DShaderVariation.h"
+#include "Material/B3DPass.h"
 #include "String/B3DStringID.h"
 
 namespace b3d
@@ -39,6 +40,34 @@ namespace b3d
 
 	using PrecompiledVariationData = TPrecompiledVariationData<false>;
 	namespace render { using PrecompiledVariationData = TPrecompiledVariationData<true>; }
+
+	class VariationPrecompiledDataRTTI;
+
+	/**
+	 * Serializable snapshot of a compiled shader variation, holding only the shared compiled pass data
+	 * (and the variation's language/parameters). Used to cache a variation once and reconstruct later.
+	 */
+	struct B3D_EXPORT VariationPrecompiledData : IReflectable
+	{
+		VariationPrecompiledData() = default;
+
+		/** Shading language the passes were compiled for. */
+		String Language;
+
+		/** Variation parameters (preprocessor defines) the passes were compiled with. */
+		ShaderVariationParameters VariationParameters;
+
+		/** Compiled pass descriptions, including the GPU program bytecode. */
+		TInlineArray<PassInformation, 1> Passes;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class VariationPrecompiledDataRTTI;
+		static RTTIType* GetRttiStatic();
+		RTTIType* GetRtti() const override;
+	};
 
 	/** Base class that is used for implementing both main and render thread versions of Variation. */
 	class B3D_EXPORT VariationBase
@@ -96,6 +125,9 @@ namespace b3d
 
 		/** Assigns a set of compiled passes to the variation. This should be called only when a variation has not been initialized with precompiled pass data, and compilation for the variation finished. */
 		void SetCompiledPassData(TInlineArray<TShared<PassType>, 1> compiledPasses);
+
+		/** Captures the compiled pass data of this variation into a serializable snapshot that can be cached and reconstructed later. */
+		TShared<VariationPrecompiledData> GetPrecompiledData() const;
 
 		/** Sets the shader that owns this variation. */
 		void SetOwner(const WeakSPtr<ShaderType>& owner);

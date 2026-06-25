@@ -20,8 +20,8 @@ TPass<IsRenderProxy>::TPass()
 }
 
 template <bool IsRenderProxy>
-TPass<IsRenderProxy>::TPass(const PassCreateInformation& data)
-	: mData(data)
+TPass<IsRenderProxy>::TPass(const PassCreateInformation& createInformation)
+	: mData((PassInformation)createInformation)
 {
 }
 
@@ -112,6 +112,16 @@ namespace b3d
 	template class TPass<true>;
 } // namespace b3d
 
+RTTIType* PassInformation::GetRttiStatic()
+{
+	return PassInformationRTTI::Instance();
+}
+
+RTTIType* PassInformation::GetRtti() const
+{
+	return PassInformation::GetRttiStatic();
+}
+
 namespace b3d
 {
 	B3D_SYNC_BLOCK_BEGIN(Pass, SyncPacket)
@@ -121,7 +131,7 @@ namespace b3d
 }
 
 Pass::Pass(const PassCreateInformation& createInformation)
-	: TPass(createInformation)
+	: TPass((PassInformation)createInformation)
 {}
 
 TShared<render::RenderProxy> Pass::CreateRenderProxy() const
@@ -186,8 +196,8 @@ RTTIType* Pass::GetRtti() const
 
 namespace b3d { namespace render
 {
-Pass::Pass(const PassCreateInformation& desc)
-	: TPass(desc)
+Pass::Pass(const PassCreateInformation& createInformation)
+	: TPass(createInformation)
 {}
 
 void Pass::Compile()

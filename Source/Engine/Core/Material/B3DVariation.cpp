@@ -122,6 +122,19 @@ TAsyncOp<bool> TVariation<IsRenderProxy>::Compile()
 	return operation;
 }
 
+template <bool IsRenderProxy>
+TShared<VariationPrecompiledData> TVariation<IsRenderProxy>::GetPrecompiledData() const
+{
+	TShared<VariationPrecompiledData> data = B3DMakeShared<VariationPrecompiledData>();
+	data->Language = mLanguage;
+	data->VariationParameters = mVariationParameters;
+
+	for(const auto& pass : mPasses)
+		data->Passes.Add(pass->GetInformation());
+
+	return data;
+}
+
 // Explicit instantiations must be declared within the template's enclosing namespace
 namespace b3d
 {
@@ -219,6 +232,16 @@ RTTIType* Variation::GetRttiStatic()
 RTTIType* Variation::GetRtti() const
 {
 	return Variation::GetRttiStatic();
+}
+
+RTTIType* VariationPrecompiledData::GetRttiStatic()
+{
+	return VariationPrecompiledDataRTTI::Instance();
+}
+
+RTTIType* VariationPrecompiledData::GetRtti() const
+{
+	return VariationPrecompiledData::GetRttiStatic();
 }
 
 namespace b3d { namespace render

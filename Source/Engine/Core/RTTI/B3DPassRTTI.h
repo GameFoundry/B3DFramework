@@ -16,21 +16,46 @@ namespace b3d
 	 *  @{
 	 */
 
+	class B3D_EXPORT PassInformationRTTI : public TRTTIType<PassInformation, IReflectable, PassInformationRTTI>
+	{
+	private:
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(BlendStateInformation, 0)
+			B3D_RTTI_MEMBER(RasterizerStateInformation, 1)
+			B3D_RTTI_MEMBER(DepthStencilStateInformation, 2)
+
+			B3D_RTTI_MEMBER(StencilRefValue, 3)
+			B3D_RTTI_MEMBER(VertexProgramCreateInformation, 4)
+			B3D_RTTI_MEMBER(FragmentProgramCreateInformation, 5)
+			B3D_RTTI_MEMBER(GeometryProgramCreateInformation, 6)
+			B3D_RTTI_MEMBER(HullProgramCreateInformation, 7)
+			B3D_RTTI_MEMBER(DomainProgramCreateInformation, 8)
+			B3D_RTTI_MEMBER(ComputeProgramCreateInformation, 9)
+		B3D_RTTI_END_MEMBERS
+
+	public:
+		const String& GetRttiName() override
+		{
+			static String name = "PassInformation";
+			return name;
+		}
+
+		u32 GetRttiId() const override
+		{
+			return TID_PassInformation;
+		}
+
+		TShared<IReflectable> NewRttiObject() override
+		{
+			return B3DMakeShared<PassInformation>();
+		}
+	};
+
 	class B3D_EXPORT PassRTTI : public TRTTIType<Pass, IReflectable, PassRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_NAMED(BlendStateInformation, mData.BlendStateInformation, 0)
-			B3D_RTTI_MEMBER_NAMED(RasterizerStateInformation, mData.RasterizerStateInformation, 1)
-			B3D_RTTI_MEMBER_NAMED(DepthStencilStateInformation, mData.DepthStencilStateInformation, 2)
-
-			B3D_RTTI_MEMBER_NAMED(StencilReferenceValue, mData.StencilRefValue, 3)
-			B3D_RTTI_MEMBER_NAMED(VertexProgramInformation, mData.VertexProgramCreateInformation, 4)
-			B3D_RTTI_MEMBER_NAMED(FragmentProgramInformation, mData.FragmentProgramCreateInformation, 5)
-			B3D_RTTI_MEMBER_NAMED(GeometryProgramInformation, mData.GeometryProgramCreateInformation, 6)
-			B3D_RTTI_MEMBER_NAMED(HullProgramInformation, mData.HullProgramCreateInformation, 7)
-			B3D_RTTI_MEMBER_NAMED(DomainProgramInformation, mData.DomainProgramCreateInformation, 8)
-			B3D_RTTI_MEMBER_NAMED(ComputeProgramInformation, mData.ComputeProgramCreateInformation, 9)
+			B3D_RTTI_MEMBER(mData, 0)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -61,17 +86,7 @@ namespace b3d
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_NAMED(BlendStateInformation, mData.BlendStateInformation, 0)
-			B3D_RTTI_MEMBER_NAMED(RasterizerStateInformation, mData.RasterizerStateInformation, 1)
-			B3D_RTTI_MEMBER_NAMED(DepthStencilStateInformation, mData.DepthStencilStateInformation, 2)
-
-			B3D_RTTI_MEMBER_NAMED(StencilReferenceValue, mData.StencilRefValue, 3)
-			B3D_RTTI_MEMBER_NAMED(VertexProgramInformation, mData.VertexProgramCreateInformation, 4)
-			B3D_RTTI_MEMBER_NAMED(FragmentProgramInformation, mData.FragmentProgramCreateInformation, 5)
-			B3D_RTTI_MEMBER_NAMED(GeometryProgramInformation, mData.GeometryProgramCreateInformation, 6)
-			B3D_RTTI_MEMBER_NAMED(HullProgramInformation, mData.HullProgramCreateInformation, 7)
-			B3D_RTTI_MEMBER_NAMED(DomainProgramInformation, mData.DomainProgramCreateInformation, 8)
-			B3D_RTTI_MEMBER_NAMED(ComputeProgramInformation, mData.ComputeProgramCreateInformation, 9)
+			B3D_RTTI_MEMBER(mData, 0)
 		B3D_RTTI_END_MEMBERS
 
 	public:
