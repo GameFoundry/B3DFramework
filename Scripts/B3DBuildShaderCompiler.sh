@@ -204,8 +204,8 @@ B3DBuildAndInstallConfiguration() {
 
 # Build based on platform
 if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
-	# RelWithDebInfo first (it is the engine's "Debug" set and carries the install PDB), then Release.
-	B3DBuildAndInstallConfiguration "RelWithDebInfo" "Debug"
+	# Debug first, then Release.
+	B3DBuildAndInstallConfiguration "Debug" "Debug"
 	B3DBuildAndInstallConfiguration "Release" "Release"
 else
 	# Host Unix (macOS/Linux): a single Release shared library (it serves both engine configs). Optional
