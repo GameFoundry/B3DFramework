@@ -43,18 +43,14 @@ void RendererMaterialManager::InitOnRenderThread()
 	}
 }
 
-ShaderDefines RendererMaterialManager::GetDefinesInternal(const Path& shaderPath)
+void RendererMaterialManager::GetRegisteredMaterialShaders(Vector<RendererMaterialShaderInfo>& output)
 {
-	ShaderDefines output;
+	Lock lock(GetMutex());
 
 	Vector<RendererMaterialData>& materials = GetMaterials();
-	for(auto& entry : materials)
-	{
-		if(entry.ShaderPath == shaderPath)
-			return entry.MetaData->Defines;
-	}
-
-	return output;
+	output.reserve(output.size() + materials.size());
+	for(const auto& entry : materials)
+		output.push_back({ entry.ShaderPath, entry.MetaData->Defines });
 }
 
 void RendererMaterialManager::DestroyOnRenderThread()

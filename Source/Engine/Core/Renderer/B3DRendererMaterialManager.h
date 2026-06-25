@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "Utility/B3DModule.h"
+#include "Material/B3DShaderVariation.h"
 
 namespace b3d
 {
@@ -28,14 +29,26 @@ namespace b3d
 		};
 
 	public:
+		/** A shader used by one or more registered renderer materials, together with the defines it is compiled with. */
+		struct RendererMaterialShaderInfo
+		{
+			Path ShaderPath;
+			ShaderDefines Defines;
+		};
+
 		RendererMaterialManager();
 		~RendererMaterialManager();
 
 		/**	Registers a new material that should be initialized on module start-up. */
 		static void RegisterMaterial(render::RendererMaterialMetaData* metaData, const char* shaderPath);
 
-		/** Returns a set of defines to be used when importing the shader. */
-		static ShaderDefines GetDefinesInternal(const Path& shaderPath);
+		/**
+		 * Enumerates the shaders used by all registered renderer materials, appending one entry per registered material
+		 * to @p output. A shader shared by several materials (potentially with different defines) yields one entry per
+		 * material. Safe to call without a render device, so the offline shader cook tool can determine which builtin
+		 * shaders are renderer materials, and with which defines and cache prefix they must be compiled.
+		 */
+		static void GetRegisteredMaterialShaders(Vector<RendererMaterialShaderInfo>& output);
 
 	private:
 		template <class T>
