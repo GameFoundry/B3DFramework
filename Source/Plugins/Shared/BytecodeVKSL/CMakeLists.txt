@@ -32,3 +32,6 @@ endif()
 target_link_libraries(bsfBytecodeVKSL PUBLIC ${glslang_LIBRARIES} ${SPIRVCross_LIBRARIES})
 
 set_property(TARGET bsfBytecodeVKSL PROPERTY FOLDER Plugins)
+
+# Register shader compiler target as "<language>|<targetLanguage>|<define>". Used by bsfSL and cook tool to determine supported targets.
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "vksl|VKSL450|VULKAN")

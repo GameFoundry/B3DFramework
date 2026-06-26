@@ -18,3 +18,6 @@ target_include_directories(bsfBytecodeMVKSL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}"
 target_link_libraries(bsfBytecodeMVKSL PUBLIC bsfBytecodeVKSL)
 
 set_property(TARGET bsfBytecodeMVKSL PROPERTY FOLDER Plugins)
+
+# Register shader compiler target as "<language>|<targetLanguage>|<define>". Used by bsfSL and cook tool to determine supported targets.
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "mvksl|VKSL450|METAL")

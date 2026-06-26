@@ -57,6 +57,8 @@ set(B3D_MONOLITHIC_BUILD OFF CACHE BOOL "Link non-importer plugins statically in
 
 set(B3D_BUILD_IMPORTERS ON CACHE BOOL "Build asset importer plugins and the import tooling. These are cook-time only, and are not supported on consoles.")
 
+set(B3D_BUILD_COOK_TOOL ON CACHE BOOL "Build the offline asset cook tool.")
+
 # Ensure dependencies are up to date
 ## Check data dependencies
 B3DCheckAndUpdateAssetPackage(FrameworkData)
@@ -121,6 +123,30 @@ add_subdirectory(Engine)
 set(B3D_PLATFORM_SOURCE_FOLDER ${B3D_PLATFORM_${B3D_PLATFORM}_SOURCE_FOLDER})
 if(EXISTS ${B3D_PLATFORM_SOURCE_FOLDER}/CMakeLists.txt)
 	add_subdirectory(${B3D_PLATFORM_SOURCE_FOLDER} ${PROJECT_BINARY_DIR}/Platform/${B3D_PLATFORM})
+endif()
+
+## Shader bytecode compilers
+if(B3D_BUILD_ALL_PLUGINS OR B3D_GPU_BACKEND STREQUAL "Vulkan" OR B3D_GPU_BACKEND STREQUAL "Metal" OR B3D_BUILD_COOK_TOOL)
+	add_subdirectory(Plugins/Shared/BytecodeVKSL)
+endif()
+
+if(APPLE AND (B3D_BUILD_ALL_PLUGINS OR B3D_GPU_BACKEND STREQUAL "Vulkan" OR B3D_BUILD_COOK_TOOL))
+	add_subdirectory(Plugins/Shared/BytecodeMVKSL)
+endif()
+
+if(APPLE AND (B3D_BUILD_ALL_PLUGINS OR B3D_GPU_BACKEND STREQUAL "Metal" OR B3D_BUILD_COOK_TOOL))
+	add_subdirectory(Plugins/Shared/BytecodeMSL)
+endif()
+
+## Platform overlay shader backends
+### Allow platform overlays to register shader cross-compiler and bytecode compiler
+if(B3D_BUILD_COOK_TOOL)
+	foreach(platformName ${B3D_PLATFORM_CHOICES})
+		set(platformShaderBackendFile ${B3D_PLATFORM_${platformName}_SOURCE_FOLDER}/CMake/ShaderBackend.cmake)
+		if(EXISTS ${platformShaderBackendFile})
+			include(${platformShaderBackendFile})
+		endif()
+	endforeach()
 endif()
 
 ## Plugins
@@ -188,6 +214,23 @@ if(B3D_BUILD_IMPORTERS)
 	add_subdirectory(Plugins/bsfFontImporter)
 	add_subdirectory(Plugins/bsfFreeImgImporter)
 	add_subdirectory(Plugins/bsfSL)
+endif()
+
+# Offline asset cook tool
+if(B3D_BUILD_COOK_TOOL)
+	if(NOT TARGET bsfSL)
+		add_subdirectory(Plugins/bsfSL)
+	endif()
+
+	if(NOT TARGET bsfNullGpuBackend)
+		add_subdirectory(Plugins/bsfNullGpuBackend)
+	endif()
+
+	if(NOT TARGET bsfNullRenderer)
+		add_subdirectory(Plugins/bsfNullRenderer)
+	endif()
+
+	add_subdirectory(Tools/BansheeCookTool)
 endif()
 
 ## Generate static plugin registry for monolithic builds

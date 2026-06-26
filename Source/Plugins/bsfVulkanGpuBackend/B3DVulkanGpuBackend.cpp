@@ -14,6 +14,7 @@
 #else
 #include "B3DBytecodeCompilerVKSL.h"
 #endif
+#include "Material/B3DShaderCompiler.h"
 #include "B3DVulkanGpuProgram.h"
 #include "B3DVulkanRenderPass.h"
 #include "B3DVulkanSubmitThread.h"

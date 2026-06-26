@@ -24,27 +24,13 @@ endif()
 # Source files and their filters
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_SL_SRC)
 
-# Built-in cross-compile targets. Each entry is "<language>|<targetLanguage>|<define>" (the trailing "|<define>" is
-# optional): the engine shading-language id, the B3DShaderCompiler output target id, and an optional preprocessor
-# define emitted into the HLSL input. 
-set(B3D_SHADER_CROSS_COMPILE_TARGETS
-	"vksl|VKSL450|VULKAN"
-	"mvksl|VKSL450|METAL"
-	"msl|VKSL450|METAL"
-)
+# Each entry is "<language>|<targetLanguage>|<define>" (the trailing "|<define>" is optional):
+# the engine shading-language id, the B3DShaderCompiler output target id, and an optional preprocessor define emitted into the HLSL input.
+# These are populated by Bytecode libraries when they are included in the build
+get_property(B3D_SHADER_CROSS_COMPILE_TARGETS GLOBAL PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS)
 
-# Add optional per-platform shader support from platform overlays. Each present overlay may contribute
-# cross-compile targets (appended to B3D_SHADER_CROSS_COMPILE_TARGETS above) and/or a runtime-loaded
-# backend DLL (accumulated into B3D_SHADER_BACKEND_LIBRARIES, linked into bsfSL further below so it gets
-# deployed next to the engine). Included here -- before the registration .cpp is generated and the target
-# is created -- so the target contributions are complete in time.
-set(B3D_SHADER_BACKEND_LIBRARIES "")
-foreach(platformName ${B3D_PLATFORM_CHOICES})
-	set(platformShaderFile ${B3D_PLATFORM_${platformName}_SOURCE_FOLDER}/CMake/ShaderBackend.cmake)
-	if(EXISTS ${platformShaderFile})
-		include(${platformShaderFile})
-	endif()
-endforeach()
+# List of extra libraries required by shader backends.
+get_property(B3D_SHADER_BACKEND_LIBRARIES GLOBAL PROPERTY B3D_SHADER_BACKEND_LIBRARIES)
 
 # Generate .cpp for cross compile target registration
 set(B3D_SHADER_CROSS_COMPILE_TARGET_REGISTRATIONS "")
