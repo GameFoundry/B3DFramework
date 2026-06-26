@@ -192,7 +192,7 @@ namespace b3d
 				};
 
 				// Iterate per-type in the canonical kTypeOrder* sequence from B3DMetalBytecodeLayout.h —
-				// the SPIRV-Cross hook in the bsfBytecodeMSL compiler uses the same constants to assign MSL
+				// the SPIRV-Cross hook in the bsfShaderBackendMSL compiler uses the same constants to assign MSL
 				// argument-buffer indices, so both sides must agree on the order by construction.
 				static_assert(kTypeOrderUniformBuffer  == 0, "Canonical type order changed; update table below.");
 				static_assert(kTypeOrderSampledTexture == 1, "Canonical type order changed; update table below.");

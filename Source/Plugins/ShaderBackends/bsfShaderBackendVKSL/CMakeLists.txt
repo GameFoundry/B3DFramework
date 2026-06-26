@@ -12,26 +12,26 @@ endif()
 find_package(glslang)
 find_package(SPIRVCross)
 
-add_library(bsfBytecodeVKSL STATIC
+add_library(bsfShaderBackendVKSL STATIC
 	B3DGLSLToSPIRV.cpp
 	B3DBytecodeCompilerVKSL.cpp)
 
-B3DSetDefaultLinkAndCompileFlags(bsfBytecodeVKSL)
+B3DSetDefaultLinkAndCompileFlags(bsfShaderBackendVKSL)
 
 # Public so consumers inherit the headers
-target_include_directories(bsfBytecodeVKSL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(bsfShaderBackendVKSL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Engine headers
 if(B3D_MONOLITHIC_BUILD)
-	target_link_libraries(bsfBytecodeVKSL PUBLIC bsfHeaders)
+	target_link_libraries(bsfShaderBackendVKSL PUBLIC bsfHeaders)
 else()
-	target_link_libraries(bsfBytecodeVKSL PUBLIC bsf)
+	target_link_libraries(bsfShaderBackendVKSL PUBLIC bsf)
 endif()
 
 # Third-party dependencies (glslang, SPIR-V Cross)
-target_link_libraries(bsfBytecodeVKSL PUBLIC ${glslang_LIBRARIES} ${SPIRVCross_LIBRARIES})
+target_link_libraries(bsfShaderBackendVKSL PUBLIC ${glslang_LIBRARIES} ${SPIRVCross_LIBRARIES})
 
-set_property(TARGET bsfBytecodeVKSL PROPERTY FOLDER Plugins)
+set_property(TARGET bsfShaderBackendVKSL PROPERTY FOLDER Plugins)
 
 # Register shader compiler target as "<language>|<targetLanguage>|<define>". Used by bsfSL and cook tool to determine supported targets.
 set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "vksl|VKSL450|VULKAN")

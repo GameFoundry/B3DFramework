@@ -127,15 +127,15 @@ endif()
 
 ## Shader bytecode compilers
 if(B3D_BUILD_ALL_PLUGINS OR B3D_GPU_BACKEND STREQUAL "Vulkan" OR B3D_GPU_BACKEND STREQUAL "Metal" OR B3D_BUILD_COOK_TOOL)
-	add_subdirectory(Plugins/Shared/BytecodeVKSL)
+	add_subdirectory(Plugins/ShaderBackends/bsfShaderBackendVKSL)
 endif()
 
 if(APPLE AND (B3D_BUILD_ALL_PLUGINS OR B3D_GPU_BACKEND STREQUAL "Vulkan" OR B3D_BUILD_COOK_TOOL))
-	add_subdirectory(Plugins/Shared/BytecodeMVKSL)
+	add_subdirectory(Plugins/ShaderBackends/bsfShaderBackendMVKSL)
 endif()
 
 if(APPLE AND (B3D_BUILD_ALL_PLUGINS OR B3D_GPU_BACKEND STREQUAL "Metal" OR B3D_BUILD_COOK_TOOL))
-	add_subdirectory(Plugins/Shared/BytecodeMSL)
+	add_subdirectory(Plugins/ShaderBackends/bsfShaderBackendMSL)
 endif()
 
 ## Platform overlay shader backends

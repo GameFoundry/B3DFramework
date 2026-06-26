@@ -70,7 +70,7 @@ namespace b3d
 		 *      the emitted MSL uses identical @c msl_buffer / @c msl_texture / @c msl_sampler values as
 		 *      the layout's MTLArgumentEncoder.
 		 *
-		 * They live here, in the shared bytecode-layout contract, so the offline compiler (bsfBytecodeMSL)
+		 * They live here, in the shared bytecode-layout contract, so the offline compiler (bsfShaderBackendMSL)
 		 * and the runtime backend (bsfMetalGpuBackend) consume the single authoritative copy — an earlier
 		 * bug (phase-2 review S2) hard-coded the values independently in each site and any edit to one
 		 * would silently corrupt shader bindings until the other was updated in lockstep.

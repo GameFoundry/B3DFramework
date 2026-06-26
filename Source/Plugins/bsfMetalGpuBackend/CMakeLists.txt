@@ -5,7 +5,7 @@ endif()
 
 # Source files and their filters
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_METALGPUBACKEND_SRC)
-B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "BytecodeVKSL;BytecodeMVKSL;BytecodeMSL" BS_METALGPUBACKEND_SRC) # Exclude Bytecode folders (they are either not used, or linked as libraries below)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "" BS_METALGPUBACKEND_SRC)
 
 # Target
 B3DAddPlugin(bsfMetalGpuBackend ENGINE ${BS_METALGPUBACKEND_SRC})
@@ -21,7 +21,7 @@ target_include_directories(bsfMetalGpuBackend PRIVATE
 
 # Libraries
 ## VKSL -> SPIR-V -> MSL compiler. Brings in glslang + SPIRV-Cross
-target_link_libraries(bsfMetalGpuBackend PRIVATE bsfBytecodeMSL)
+target_link_libraries(bsfMetalGpuBackend PRIVATE bsfShaderBackendMSL)
 
 # Apple frameworks required by the Metal backend
 B3DTargetLinkFramework(bsfMetalGpuBackend Foundation)
