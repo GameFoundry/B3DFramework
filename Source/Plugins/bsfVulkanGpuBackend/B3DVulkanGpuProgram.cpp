@@ -3,6 +3,7 @@
 #include "B3DVulkanGpuProgram.h"
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanUtility.h"
+#include "B3DGLSLToSPIRV.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
@@ -78,7 +79,7 @@ void VulkanGpuProgram::Initialize()
 		createInformation.Type = mType;
 		createInformation.EntryPoint = mEntryPoint;
 #if B3D_PLATFORM_MACOS
-		desc.language = kGpuProgramLanguageMvksl;
+		createInformation.Language = kGpuProgramLanguageMvksl;
 #else
 		createInformation.Language = kGpuProgramLanguageVksl;
 #endif

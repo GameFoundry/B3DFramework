@@ -30,6 +30,7 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_SL_SRC)
 set(B3D_SHADER_CROSS_COMPILE_TARGETS
 	"vksl|VKSL450|VULKAN"
 	"mvksl|VKSL450|METAL"
+	"msl|VKSL450|METAL"
 )
 
 # Add optional per-platform shader support from platform overlays. Each present overlay may contribute

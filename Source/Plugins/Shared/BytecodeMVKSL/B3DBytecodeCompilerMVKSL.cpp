@@ -1,6 +1,6 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "B3DVulkanMSLCompiler.h"
+#include "B3DBytecodeCompilerMVKSL.h"
 
 #if B3D_PLATFORM_MACOS
 
@@ -14,13 +14,18 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanMSLCompiler::VulkanMSLCompiler(const char* compilerId, u32 compilerVersion)
+TShared<IGpuBytecodeCompiler> render::CreateBytecodeCompilermvksl()
+{
+	return B3DMakeShared<BytecodeCompilerMVKSL>(kMoltenVkCompilerId, kMoltenVkCompilerVersion);
+}
+
+BytecodeCompilerMVKSL::BytecodeCompilerMVKSL(const char* compilerId, u32 compilerVersion)
 	: mConverter(B3DMakeUnique<GLSLToSPIRV>(compilerId, compilerVersion))
 { }
 
-VulkanMSLCompiler::~VulkanMSLCompiler() = default;
+BytecodeCompilerMVKSL::~BytecodeCompilerMVKSL() = default;
 
-TShared<GpuProgramBytecode> VulkanMSLCompiler::CompileBytecode(const GpuProgramCreateInformation& createInformation)
+TShared<GpuProgramBytecode> BytecodeCompilerMVKSL::CompileBytecode(const GpuProgramCreateInformation& createInformation)
 {
 	TShared<GpuProgramBytecode> spirv = mConverter->CompileBytecode(createInformation);
 	// We'll just re-purpose the existing data structure

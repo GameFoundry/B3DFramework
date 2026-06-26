@@ -29,13 +29,12 @@ namespace b3d
 		{
 		public:
 			/**
-			 * The engine's BSL compiler emits shader source for the Metal backend in the @c mvksl
-			 * form: Vulkan-flavored GLSL with a @c METAL define, matching what MoltenVK accepts. The
-			 * Metal backend runs that source through glslang (SPIR-V) and then SPIRV-Cross (MSL)
-			 * before compiling the resulting MSL into an @c MTLLibrary. The canonical literal lives
-			 * in @c B3DGpuBackend.h.
+			 * The engine's BSL compiler emits shader source for the native Metal backend in the
+			 * @c msl form: Vulkan-flavored GLSL with a @c METAL define. The Metal backend runs that
+			 * source through glslang (SPIR-V) and then SPIRV-Cross (MSL) before compiling the resulting
+			 * MSL into an @c MTLLibrary. The canonical literal lives in @c B3DGpuBackend.h.
 			 */
-			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageMvksl;
+			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageMsl;
 
 			MetalGpuDevice();
 			~MetalGpuDevice();

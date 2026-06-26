@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "B3DMetalPrerequisites.h"
+#include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "Utility/B3DDataBlob.h"
 #include "Math/B3DMath.h"
@@ -57,6 +57,29 @@ namespace b3d
 
 		/** Sentinel default for the compute workgroup size when no value has been read. */
 		inline constexpr u32 kMetalDefaultWorkgroupSize[3] = { 1, 1, 1 };
+
+		/**
+		 * Canonical per-type ordering used when assigning argument-buffer indices inside a Metal
+		 * argument buffer. Two sites must agree on this order byte-for-byte:
+		 *
+		 *   1. @c MetalGpuPipelineParameterSetLayout's ctor, which walks the base-class per-type
+		 *      uniform lists and appends bindings in this exact sequence before assigning
+		 *      @c ArgIndex values.
+		 *   2. The native Metal bytecode compiler's SPIRV-Cross hook (BytecodeCompilerMSL), which folds
+		 *      the same five lists into a single packed u64 sort key (Set:24 | TypeOrder:8 | Slot:32) so
+		 *      the emitted MSL uses identical @c msl_buffer / @c msl_texture / @c msl_sampler values as
+		 *      the layout's MTLArgumentEncoder.
+		 *
+		 * They live here, in the shared bytecode-layout contract, so the offline compiler (bsfBytecodeMSL)
+		 * and the runtime backend (bsfMetalGpuBackend) consume the single authoritative copy — an earlier
+		 * bug (phase-2 review S2) hard-coded the values independently in each site and any edit to one
+		 * would silently corrupt shader bindings until the other was updated in lockstep.
+		 */
+		static constexpr u64 kTypeOrderUniformBuffer  = 0;
+		static constexpr u64 kTypeOrderSampledTexture = 1;
+		static constexpr u64 kTypeOrderStorageTexture = 2;
+		static constexpr u64 kTypeOrderStorageBuffer  = 3;
+		static constexpr u64 kTypeOrderSampler        = 4;
 
 		/**
 		 * Result of parsing the bytecode envelope. @c MslSource and @c MslSize describe a read-only window

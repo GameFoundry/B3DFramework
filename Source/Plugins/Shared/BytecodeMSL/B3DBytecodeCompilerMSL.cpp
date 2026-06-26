@@ -1,6 +1,9 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "B3DMetalMSLCompiler.h"
+#include "B3DBytecodeCompilerMSL.h"
+
+#if B3D_PLATFORM_MACOS
+
 #include "B3DGLSLToSPIRV.h"
 #include "B3DMetalBytecodeLayout.h"
 #include "GpuBackend/B3DGpuProgram.h"
@@ -14,13 +17,18 @@
 using namespace b3d;
 using namespace b3d::render;
 
-MetalMSLCompiler::MetalMSLCompiler(const char* compilerId, u32 compilerVersion)
+TShared<IGpuBytecodeCompiler> render::CreateBytecodeCompilermsl()
+{
+	return B3DMakeShared<BytecodeCompilerMSL>(kMetalCompilerId, kMetalCompilerVersion);
+}
+
+BytecodeCompilerMSL::BytecodeCompilerMSL(const char* compilerId, u32 compilerVersion)
 	: mConverter(B3DMakeUnique<GLSLToSPIRV>(compilerId, compilerVersion))
 { }
 
-MetalMSLCompiler::~MetalMSLCompiler() = default;
+BytecodeCompilerMSL::~BytecodeCompilerMSL() = default;
 
-TShared<GpuProgramBytecode> MetalMSLCompiler::CompileBytecode(const GpuProgramCreateInformation& createInformation)
+TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgramCreateInformation& createInformation)
 {
 	// Cache-hit short-circuit. Shader caches persist the already-compiled MSL payload on disk
 	// (see MetalGpuProgram::Initialize — bytecode arrives here as the full packed MSL blob). If
@@ -36,7 +44,7 @@ TShared<GpuProgramBytecode> MetalMSLCompiler::CompileBytecode(const GpuProgramCr
 		&& createInformation.Bytecode->Instructions.Size > 0)
 		return createInformation.Bytecode;
 
-	// Step 1: VKSL/MVKSL -> SPIR-V + reflection, via glslang + SPIRV-Cross. The returned
+	// Step 1: VKSL -> SPIR-V + reflection, via glslang + SPIRV-Cross. The returned
 	// bytecode is already tagged with kMetalCompilerId / kMetalCompilerVersion; the final MSL
 	// blob replaces the payload below but keeps the tag.
 	TShared<GpuProgramBytecode> bytecode = mConverter->CompileBytecode(createInformation);
@@ -80,7 +88,7 @@ TShared<GpuProgramBytecode> MetalMSLCompiler::CompileBytecode(const GpuProgramCr
 	{
 		GpuProgramParameterDescription& paramDesc = *bytecode->ParameterDescription;
 
-		// Type-order values (kTypeOrder*) are published on B3DMetalPrerequisites.h so this site
+		// Type-order values (kTypeOrder*) are published on B3DMetalBytecodeLayout.h so this site
 		// and @c MetalGpuPipelineParameterSetLayout's ctor consume the single authoritative
 		// copy — any drift between the two would silently corrupt argument-buffer indices.
 		//
@@ -219,3 +227,5 @@ TShared<GpuProgramBytecode> MetalMSLCompiler::CompileBytecode(const GpuProgramCr
 
 	return bytecode;
 }
+
+#endif // B3D_PLATFORM_MACOS

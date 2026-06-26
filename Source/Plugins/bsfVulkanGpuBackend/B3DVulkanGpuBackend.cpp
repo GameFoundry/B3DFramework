@@ -9,8 +9,11 @@
 #include <vulkan/vulkan.h>
 
 #include "B3DVulkanFramebuffer.h"
-#include "B3DGLSLToSPIRV.h"
-#include "B3DVulkanMSLCompiler.h"
+#if B3D_PLATFORM_MACOS
+#include "B3DBytecodeCompilerMVKSL.h"
+#else
+#include "B3DBytecodeCompilerVKSL.h"
+#endif
 #include "B3DVulkanGpuProgram.h"
 #include "B3DVulkanRenderPass.h"
 #include "B3DVulkanSubmitThread.h"
@@ -424,9 +427,9 @@ void VulkanGpuBackend::OnStartUp()
 	GET_DEVICE_PROC_ADDR(presentDevice, QueuePresentKHR)
 
 #if B3D_PLATFORM_MACOS
-	ShaderCompilers::Instance().RegisterBytecodeCompiler(VulkanGpuDevice::kGpuProgramLanguageName, B3DMakeShared<VulkanMSLCompiler>(kMoltenVkCompilerId, kMoltenVkCompilerVersion));
+	ShaderCompilers::Instance().RegisterBytecodeCompiler(VulkanGpuDevice::kGpuProgramLanguageName, CreateBytecodeCompilermvksl());
 #else
-	ShaderCompilers::Instance().RegisterBytecodeCompiler(VulkanGpuDevice::kGpuProgramLanguageName, B3DMakeShared<GLSLToSPIRV>(kVulkanCompilerId, kVulkanCompilerVersion));
+	ShaderCompilers::Instance().RegisterBytecodeCompiler(VulkanGpuDevice::kGpuProgramLanguageName, CreateBytecodeCompilervksl());
 #endif
 
 	// Create the render pass manager

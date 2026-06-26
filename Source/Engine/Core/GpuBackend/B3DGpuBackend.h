@@ -28,11 +28,18 @@ namespace b3d
 	inline constexpr const char* kGpuProgramLanguageVksl = "vksl";
 
 	/**
-	 * Identifier for the Metal-flavored VKSL dialect authored by BSL when targeting the Metal
+	 * Identifier for the MoltenVK-flavored VKSL dialect authored by BSL when running Vulkan on top of
+	 * MoltenVK (the Vulkan backend on macOS). Same surface syntax as kGpuProgramLanguageVksl but with
+	 * the @c METAL preprocessor define, so you can further customize for Metal specific code. 
+	 */
+	inline constexpr const char* kGpuProgramLanguageMvksl = "mvksl";
+
+	/**
+	 * Identifier for the Metal-flavored VKSL dialect authored by BSL when targeting the native Metal
 	 * backend. Same surface syntax as kGpuProgramLanguageVksl but with the @c METAL preprocessor
 	 * define, so you can further customize for Metal specific code.
 	 */
-	inline constexpr const char* kGpuProgramLanguageMvksl = "mvksl";
+	inline constexpr const char* kGpuProgramLanguageMsl = "msl";
 
 	/**
 	 * Identifier for the null shading language consumed by the null backend. Produces no actual shader code; used

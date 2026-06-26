@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DMetalGpuPipelineParameterLayout.h"
 #include "B3DMetalGpuDevice.h"
+#include "B3DMetalBytecodeLayout.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "Utility/B3DCommonTypes.h"
 #include <algorithm>
@@ -190,8 +191,8 @@ namespace b3d
 						});
 				};
 
-				// Iterate per-type in the canonical kTypeOrder* sequence from B3DMetalPrerequisites.h —
-				// the SPIRV-Cross hook in MetalGpuDevice uses the same constants to assign MSL
+				// Iterate per-type in the canonical kTypeOrder* sequence from B3DMetalBytecodeLayout.h —
+				// the SPIRV-Cross hook in the bsfBytecodeMSL compiler uses the same constants to assign MSL
 				// argument-buffer indices, so both sides must agree on the order by construction.
 				static_assert(kTypeOrderUniformBuffer  == 0, "Canonical type order changed; update table below.");
 				static_assert(kTypeOrderSampledTexture == 1, "Canonical type order changed; update table below.");

@@ -4,8 +4,7 @@
 #include "B3DMetalGpuDevice.h"
 #include "B3DMetalTextureManager.h"
 #include "B3DMetalRenderWindowManager.h"
-#include "B3DMetalMSLCompiler.h"
-#include "B3DMetalBytecodeLayout.h"
+#include "B3DBytecodeCompilerMSL.h"
 #include "Material/B3DShaderCompiler.h"
 
 namespace b3d
@@ -16,11 +15,7 @@ namespace b3d
 		device->Initialize();
 		mDevices.Add(device);
 
-		// Register the device-independent mvksl bytecode compiler (VKSL/MVKSL -> SPIR-V -> argument-buffer MSL).
-		// The compiler owns its own glslang/SPIRV-Cross converter, so this construct-and-register is all the
-		// start-up it needs - no module to start. Mirrors VulkanGpuBackend::OnStartUp.
-		ShaderCompilers::Instance().RegisterBytecodeCompiler(render::MetalGpuDevice::kGpuProgramLanguageName,
-			B3DMakeShared<render::MetalMSLCompiler>(render::kMetalCompilerId, render::kMetalCompilerVersion));
+		ShaderCompilers::Instance().RegisterBytecodeCompiler(render::MetalGpuDevice::kGpuProgramLanguageName, render::CreateBytecodeCompilermsl());
 
 		// Create the texture managers
 		TextureManager::StartUp<MetalTextureManager>();

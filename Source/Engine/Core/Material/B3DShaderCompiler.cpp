@@ -39,7 +39,7 @@ TShared<IGpuBytecodeCompiler> ShaderCompilers::GetBytecodeCompiler(const String&
 }
 
 ShaderCompilers::ShaderCompilers()
-	: mShadingLanguages{ kGpuProgramLanguageHlsl, kGpuProgramLanguageVksl, kGpuProgramLanguageMvksl, kGpuProgramLanguageNullsl }
+	: mShadingLanguages{ kGpuProgramLanguageHlsl, kGpuProgramLanguageVksl, kGpuProgramLanguageMvksl, kGpuProgramLanguageMsl, kGpuProgramLanguageNullsl }
 {
 }
 

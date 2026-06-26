@@ -80,7 +80,7 @@ namespace b3d
 		 * This ultimately controls on which render backends it will be able to run on.
 		 */
 		B3D_SCRIPT_EXPORT()
-		Vector<String> Languages = { kGpuProgramLanguageHlsl, kGpuProgramLanguageVksl, kGpuProgramLanguageMvksl };
+		Vector<String> Languages = { kGpuProgramLanguageHlsl, kGpuProgramLanguageVksl, kGpuProgramLanguageMvksl, kGpuProgramLanguageMsl };
 
 		/** Creates a new import options object that allows you to customize how are meshes imported. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))

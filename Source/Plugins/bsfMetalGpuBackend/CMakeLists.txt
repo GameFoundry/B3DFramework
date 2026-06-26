@@ -5,20 +5,7 @@ endif()
 
 # Source files and their filters
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_METALGPUBACKEND_SRC)
-B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "" BS_METALGPUBACKEND_SRC)
-
-# Packages: shader cross-compilation depends on glslang + SPIRV-Cross (same bundled versions used by
-# the Vulkan backend). The Metal plugin accepts engine shaders in VKSL form, converts to SPIR-V via
-# glslang, then cross-compiles to MSL via SPIRV-Cross with argument-buffer emission enabled.
-if(B3D_GPU_BACKEND MATCHES "Metal" OR B3D_BUILD_ALL_PLUGINS)
-	if(B3D_USE_BUNDLED_LIBRARIES)
-		B3DCheckAndUpdatePrebuiltDependency(glslang)
-		B3DCheckAndUpdatePrebuiltDependency(SPIRVCross)
-	endif()
-
-	find_package(glslang)
-	find_package(SPIRVCross)
-endif()
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "BytecodeVKSL;BytecodeMVKSL;BytecodeMSL" BS_METALGPUBACKEND_SRC) # Exclude Bytecode folders (they are either not used, or linked as libraries below)
 
 # Target
 B3DAddPlugin(bsfMetalGpuBackend ENGINE ${BS_METALGPUBACKEND_SRC})
@@ -33,9 +20,8 @@ target_include_directories(bsfMetalGpuBackend PRIVATE
 )
 
 # Libraries
-# Note: glslang must be linked before any system Vulkan to ensure our bundled version wins.
-target_link_libraries(bsfMetalGpuBackend PRIVATE ${glslang_LIBRARIES})
-target_link_libraries(bsfMetalGpuBackend PRIVATE ${SPIRVCross_LIBRARIES})
+## VKSL -> SPIR-V -> MSL compiler. Brings in glslang + SPIRV-Cross
+target_link_libraries(bsfMetalGpuBackend PRIVATE bsfBytecodeMSL)
 
 # Apple frameworks required by the Metal backend
 B3DTargetLinkFramework(bsfMetalGpuBackend Foundation)

@@ -1,21 +1,15 @@
 # Source files and their filters
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "Tests" B3D_VULKANGPUBACKEND_SOURCE_FILES)
-B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "" B3D_VULKANGPUBACKEND_SOURCE_FILES)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "BytecodeVKSL;BytecodeMVKSL;BytecodeMSL" B3D_VULKANGPUBACKEND_SOURCE_FILES) # Exclude Bytecode folders (they are either not used, or linked as libraries below)
 
 # Packages
 if(B3D_GPU_BACKEND MATCHES "Vulkan" OR B3D_BUILD_ALL_PLUGINS)
-	# Ensure pre-built binary dependencies are up to date
+	# Ensure pre-built binary dependencies are up to date. glslang and SPIRV-Cross come from bsfBytecodeVKSL.
 	if(B3D_USE_BUNDLED_LIBRARIES)
-		B3DCheckAndUpdatePrebuiltDependency(glslang)
-		B3DCheckAndUpdatePrebuiltDependency(SPIRVCross)
-
 		if(WIN32)
 			B3DCheckAndUpdatePrebuiltDependency(RenderDoc)
 		endif()
 	endif()
-
-	find_package(glslang)
-	find_package(SPIRVCross)
 
 	if(APPLE)
 		find_package(MoltenVK)
@@ -40,16 +34,16 @@ target_include_directories(bsfVulkanGpuBackend PRIVATE
 	"../Shared/"
 )
 
-# Libraries	
-## External libs: Vulkan, MoltenVK, glslang, SPIR-V Cross
-
-### Note: It's important to link glslang before Vulkan, as it contains its own glslang libraries. This ensures the search finds out local version first.
-target_link_libraries(bsfVulkanGpuBackend PRIVATE ${glslang_LIBRARIES})
-target_link_libraries(bsfVulkanGpuBackend PRIVATE ${SPIRVCross_LIBRARIES})
-
+# Libraries
+## External libs: Vulkan, MoltenVK
 if(APPLE) # MacOS
+	## mvksl bytecode compiler (MoltenVK MSL)
+	target_link_libraries(bsfVulkanGpuBackend PRIVATE bsfBytecodeMVKSL)
 	target_link_libraries(bsfVulkanGpuBackend PRIVATE ${MoltenVK_LIBRARIES})
 else()
+	## vksl bytecode compiler
+	### Note: This brings in glslang, and it's important to link glslang before Vulkan, as it contains its own glslang libraries. This ensures the search finds out local version first.
+	target_link_libraries(bsfVulkanGpuBackend PRIVATE bsfBytecodeVKSL)
 	target_link_libraries(bsfVulkanGpuBackend PRIVATE ${Vulkan_LIBRARIES})
 endif()
 

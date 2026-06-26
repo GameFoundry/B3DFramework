@@ -31,6 +31,24 @@ namespace b3d
 			u32 mCompilerVersion;
 		};
 
+		/** Identifier of the compiler used for compiling Vulkan GPU programs (stamped into the produced bytecode). */
+		static constexpr const char* kVulkanCompilerId = "Vulkan";
+
+		/**
+		 * Version of the compiler used for compiling Vulkan GPU programs. Tick this whenever the compiler updates in order
+		 * to force bytecode to rebuild.
+		 */
+		static constexpr u32 kVulkanCompilerVersion = 3;
+
+		/** Identifier of the compiler used for compiling MoltenVK GPU programs. */
+		static constexpr const char* kMoltenVkCompilerId = "MoltenVK";
+
+		/**
+		 * Version of the compiler used for compiling MoltenVK GPU programs. Tick this whenever the compiler updates in order
+		 * to force bytecode to rebuild.
+		 */
+		static constexpr u32 kMoltenVkCompilerVersion = 1;
+
 		/** @} */
 	} // namespace render
 } // namespace b3d
