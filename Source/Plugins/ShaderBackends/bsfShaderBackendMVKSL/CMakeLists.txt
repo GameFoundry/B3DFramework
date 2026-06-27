@@ -5,8 +5,10 @@ if(NOT APPLE)
 	return()
 endif()
 
-add_library(bsfShaderBackendMVKSL STATIC
-	B3DBytecodeCompilerMVKSL.cpp)
+# Source files and their filters
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" B3D_SHADERBACKENDMVKSL_SOURCE_FILES)
+
+add_library(bsfShaderBackendMVKSL STATIC ${B3D_SHADERBACKENDMVKSL_SOURCE_FILES})
 
 B3DSetDefaultLinkAndCompileFlags(bsfShaderBackendMVKSL)
 
@@ -21,3 +23,6 @@ set_property(TARGET bsfShaderBackendMVKSL PROPERTY FOLDER Plugins)
 
 # Register shader compiler target as "<language>|<targetLanguage>|<define>". Used by bsfSL and cook tool to determine supported targets.
 set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "mvksl|VKSL450|METAL")
+
+# Let anything using this shader backend know which libraries it needs to link
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_BACKEND_LIBRARIES bsfShaderBackendMVKSL)

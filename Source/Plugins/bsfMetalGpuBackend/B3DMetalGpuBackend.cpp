@@ -4,8 +4,6 @@
 #include "B3DMetalGpuDevice.h"
 #include "B3DMetalTextureManager.h"
 #include "B3DMetalRenderWindowManager.h"
-#include "B3DBytecodeCompilerMSL.h"
-#include "Material/B3DShaderCompiler.h"
 
 namespace b3d
 {
@@ -14,8 +12,6 @@ namespace b3d
 		auto device = B3DMakeShared<render::MetalGpuDevice>();
 		device->Initialize();
 		mDevices.Add(device);
-
-		ShaderCompilers::Instance().RegisterBytecodeCompiler(render::MetalGpuDevice::kGpuProgramLanguageName, render::CreateBytecodeCompilermsl());
 
 		// Create the texture managers
 		TextureManager::StartUp<MetalTextureManager>();
@@ -46,9 +42,6 @@ namespace b3d
 		RenderWindowManager::ShutDown();
 		render::TextureManager::ShutDown();
 		TextureManager::ShutDown();
-
-		// Drops the last reference to the bytecode-compiler adapter, which destroys its glslang/SPIRV-Cross converter.
-		ShaderCompilers::Instance().UnregisterBytecodeCompiler(render::MetalGpuDevice::kGpuProgramLanguageName);
 
 		mDevices.clear();
 

@@ -3,7 +3,7 @@
 #include "B3DVulkanGpuProgram.h"
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanUtility.h"
-#include "B3DGLSLToSPIRV.h"
+#include "Material/B3DShaderCompiler.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
@@ -67,22 +67,16 @@ void VulkanGpuProgram::Initialize()
 		return;
 	}
 
-	if(!mBytecode ||
-#if B3D_PLATFORM_MACOS
-	   mBytecode->CompilerId != kMoltenVkCompilerId || mBytecode->CompilerVersion != kMoltenVkCompilerVersion)
-#else
-	   mBytecode->CompilerId != kVulkanCompilerId || mBytecode->CompilerVersion != kVulkanCompilerVersion)
-#endif
+	// Recompile when a bytecode compiler is registered and the bytecode is missing or stale.
+	const char* language = VulkanGpuDevice::kGpuProgramLanguageName;
+	const TShared<IGpuBytecodeCompiler> bytecodeCompiler = ShaderCompilers::Instance().GetBytecodeCompiler(language);
+	if(bytecodeCompiler && (!mBytecode || !bytecodeCompiler->IsUpToDate(*mBytecode)))
 	{
 		GpuProgramCreateInformation createInformation;
 		createInformation.Name = mName;
 		createInformation.Type = mType;
 		createInformation.EntryPoint = mEntryPoint;
-#if B3D_PLATFORM_MACOS
-		createInformation.Language = kGpuProgramLanguageMvksl;
-#else
-		createInformation.Language = kGpuProgramLanguageVksl;
-#endif
+		createInformation.Language = language;
 		createInformation.Source = mSource;
 
 		mBytecode = mGpuDevice.CompileGpuProgramBytecode(createInformation);

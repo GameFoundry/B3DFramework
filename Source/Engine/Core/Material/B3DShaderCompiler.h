@@ -101,6 +101,14 @@ namespace b3d
 		 * @return						Compiled bytecode, or null on failure.
 		 */
 		virtual TShared<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& createInformation) = 0;
+
+		/**
+		 * Returns true if @p bytecode was produced by a version of this compiler compatible with the current one.
+		 *
+		 * @param	bytecode	Previously produced bytecode to test for staleness.
+		 * @return				True if the bytecode is current, false if it should be recompiled.
+		 */
+		virtual bool IsUpToDate(const GpuProgramBytecode& bytecode) const = 0;
 	};
 
 	/** Keeps track of all available shader compilers. */

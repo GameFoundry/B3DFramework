@@ -34,23 +34,13 @@ namespace b3d
 		 *
 		 * The magic doubles as a MoltenVK-compatibility marker so a single reader can consume either
 		 * producer's output. @c GpuProgramBytecode::CompilerId and @c ::CompilerVersion travel in
-		 * parallel fields on @c GpuProgramBytecode — not inside @c Instructions — and are validated
-		 * against @c kMetalCompilerId / @c kMetalCompilerVersion by the reader before it consults the
-		 * payload.
+		 * parallel fields on @c GpuProgramBytecode — not inside @c Instructions — and are validated by
+		 * the reader (through the bytecode compiler's @c IsUpToDate) before it consults the payload.
 		 *
 		 * All values are little-endian because every Metal-capable platform Banshee supports (macOS,
 		 * iOS, iPadOS, visionOS — all Apple Silicon or x86-64) is little-endian; no byte-swap is
 		 * performed on read.
 		 */
-
-		/** Identifier of the compiler used for compiling Metal GPU programs. */
-		inline constexpr const char* kMetalCompilerId = "Metal";
-
-		/**
-		 * Version of the compiler used for compiling Metal GPU programs. Tick this whenever the compiler
-		 * updates in order to force bytecode to rebuild.
-		 */
-		inline constexpr u32 kMetalCompilerVersion = 1;
 
 		/** Magic header in the MSL bytecode blob identifying it as MSL source text (matches MoltenVK's magic). */
 		inline constexpr u32 kMetalMslSourceMagic = 0x19960412;

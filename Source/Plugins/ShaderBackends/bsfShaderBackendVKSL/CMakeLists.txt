@@ -12,9 +12,10 @@ endif()
 find_package(glslang)
 find_package(SPIRVCross)
 
-add_library(bsfShaderBackendVKSL STATIC
-	B3DGLSLToSPIRV.cpp
-	B3DBytecodeCompilerVKSL.cpp)
+# Source files and their filters
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" B3D_SHADERBACKENDVKSL_SOURCE_FILES)
+
+add_library(bsfShaderBackendVKSL STATIC ${B3D_SHADERBACKENDVKSL_SOURCE_FILES})
 
 B3DSetDefaultLinkAndCompileFlags(bsfShaderBackendVKSL)
 
@@ -33,5 +34,8 @@ target_link_libraries(bsfShaderBackendVKSL PUBLIC ${glslang_LIBRARIES} ${SPIRVCr
 
 set_property(TARGET bsfShaderBackendVKSL PROPERTY FOLDER Plugins)
 
-# Register shader compiler target as "<language>|<targetLanguage>|<define>". Used by bsfSL and cook tool to determine supported targets.
+# Register shader compiler target as "<language>|<targetLanguage>|<define>". Used to determine supported targets.
 set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "vksl|VKSL450|VULKAN")
+
+# Let anything using this shader backend know which libraries it needs to link
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_BACKEND_LIBRARIES bsfShaderBackendVKSL)

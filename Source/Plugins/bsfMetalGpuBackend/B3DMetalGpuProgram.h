@@ -50,16 +50,6 @@ namespace b3d
 			u32 mWorkgroupSize[3] = { 1, 1, 1 };
 		};
 
-		/**
-		 * Legacy uppercase aliases. Prefer @c kMetalCompilerId / @c kMetalCompilerVersion /
-		 * @c kMetalMslSourceMagic from B3DMetalBytecodeLayout.h for new code — these remain because
-		 * a handful of call sites (bytecode tagging in @c MetalGpuDevice, guard checks in
-		 * @c MetalGpuProgram::Initialize) still reference them by the uppercase form.
-		 */
-		static constexpr const char* METAL_COMPILER_ID = kMetalCompilerId;
-		static constexpr u32 METAL_COMPILER_VERSION = kMetalCompilerVersion;
-		static constexpr u32 METAL_MSL_SOURCE_MAGIC = kMetalMslSourceMagic;
-
 		/** @} */
 	} // namespace render
 } // namespace b3d

@@ -25,6 +25,11 @@ BytecodeCompilerMVKSL::BytecodeCompilerMVKSL(const char* compilerId, u32 compile
 
 BytecodeCompilerMVKSL::~BytecodeCompilerMVKSL() = default;
 
+bool BytecodeCompilerMVKSL::IsUpToDate(const GpuProgramBytecode& bytecode) const
+{
+	return mConverter->IsUpToDate(bytecode);
+}
+
 TShared<GpuProgramBytecode> BytecodeCompilerMVKSL::CompileBytecode(const GpuProgramCreateInformation& createInformation)
 {
 	TShared<GpuProgramBytecode> spirv = mConverter->CompileBytecode(createInformation);

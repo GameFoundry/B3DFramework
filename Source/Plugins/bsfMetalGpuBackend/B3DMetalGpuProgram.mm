@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DMetalGpuProgram.h"
 #include "B3DMetalGpuDevice.h"
+#include "Material/B3DShaderCompiler.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Profiling/B3DRenderStats.h"
@@ -55,15 +56,16 @@ namespace b3d
 				return;
 			}
 
-			if (!mBytecode ||
-				mBytecode->CompilerId != METAL_COMPILER_ID ||
-				mBytecode->CompilerVersion != METAL_COMPILER_VERSION)
+			// Recompile when a bytecode compiler is registered (importer-enabled builds) and the bytecode is missing or stale.
+			const char* language = MetalGpuDevice::kGpuProgramLanguageName;
+			const TShared<IGpuBytecodeCompiler> bytecodeCompiler = ShaderCompilers::Instance().GetBytecodeCompiler(language);
+			if (bytecodeCompiler && (!mBytecode || !bytecodeCompiler->IsUpToDate(*mBytecode)))
 			{
 				GpuProgramCreateInformation createInformation;
 				createInformation.Name = mName;
 				createInformation.Type = mType;
 				createInformation.EntryPoint = mEntryPoint;
-				createInformation.Language = MetalGpuDevice::kGpuProgramLanguageName;
+				createInformation.Language = language;
 				createInformation.Source = mSource;
 
 				mBytecode = mGpuDevice.CompileGpuProgramBytecode(createInformation);

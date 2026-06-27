@@ -120,12 +120,16 @@ configure_file("${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DFrameworkConfig.h.in" "$
 add_subdirectory(Engine)
 
 ## Platform
-set(B3D_PLATFORM_SOURCE_FOLDER ${B3D_PLATFORM_${B3D_PLATFORM}_SOURCE_FOLDER})
-if(EXISTS ${B3D_PLATFORM_SOURCE_FOLDER}/CMakeLists.txt)
-	add_subdirectory(${B3D_PLATFORM_SOURCE_FOLDER} ${PROJECT_BINARY_DIR}/Platform/${B3D_PLATFORM})
-endif()
+### Each platform self-guards so only active platform fully contributes, but other platforms can still contribute if they need to (e.g. for tooling on a host platform).
+foreach(platformName ${B3D_PLATFORM_CHOICES})
+	set(platformSourceFolder ${B3D_PLATFORM_${platformName}_SOURCE_FOLDER})
+	if(EXISTS ${platformSourceFolder}/CMakeLists.txt)
+		add_subdirectory(${platformSourceFolder} ${PROJECT_BINARY_DIR}/Platform/${platformName})
+	endif()
+endforeach()
 
 ## Shader bytecode compilers
+### Register these before bsfSL
 if(B3D_BUILD_ALL_PLUGINS OR B3D_GPU_BACKEND STREQUAL "Vulkan" OR B3D_GPU_BACKEND STREQUAL "Metal" OR B3D_BUILD_COOK_TOOL)
 	add_subdirectory(Plugins/ShaderBackends/bsfShaderBackendVKSL)
 endif()
@@ -136,17 +140,6 @@ endif()
 
 if(APPLE AND (B3D_BUILD_ALL_PLUGINS OR B3D_GPU_BACKEND STREQUAL "Metal" OR B3D_BUILD_COOK_TOOL))
 	add_subdirectory(Plugins/ShaderBackends/bsfShaderBackendMSL)
-endif()
-
-## Platform overlay shader backends
-### Allow platform overlays to register shader cross-compiler and bytecode compiler
-if(B3D_BUILD_COOK_TOOL)
-	foreach(platformName ${B3D_PLATFORM_CHOICES})
-		set(platformShaderBackendFile ${B3D_PLATFORM_${platformName}_SOURCE_FOLDER}/CMake/ShaderBackend.cmake)
-		if(EXISTS ${platformShaderBackendFile})
-			include(${platformShaderBackendFile})
-		endif()
-	endforeach()
 endif()
 
 ## Plugins

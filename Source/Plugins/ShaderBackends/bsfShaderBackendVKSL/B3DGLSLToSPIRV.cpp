@@ -808,6 +808,11 @@ GLSLToSPIRV::~GLSLToSPIRV()
 	glslang::FinalizeProcess();
 }
 
+bool GLSLToSPIRV::IsUpToDate(const GpuProgramBytecode& bytecode) const
+{
+	return bytecode.CompilerId == mCompilerId && bytecode.CompilerVersion == mCompilerVersion;
+}
+
 TShared<GpuProgramBytecode> GLSLToSPIRV::CompileBytecode(const GpuProgramCreateInformation& desc)
 {
 	const TBuiltInResource& resources = *GetDefaultResources();

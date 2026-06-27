@@ -16,6 +16,15 @@ namespace b3d
 		 *  @{
 		 */
 
+		/** Identifier of the compiler used for compiling Metal GPU programs. */
+		inline constexpr const char* kMetalCompilerId = "Metal";
+
+		/**
+		 * Version of the compiler used for compiling Metal GPU programs. Tick this whenever the compiler updates in order
+		 * to force bytecode to rebuild.
+		 */
+		inline constexpr u32 kMetalCompilerVersion = 1;
+
 		class GLSLToSPIRV;
 
 		/**
@@ -30,8 +39,8 @@ namespace b3d
 			BytecodeCompilerMSL(const char* compilerId, u32 compilerVersion);
 			~BytecodeCompilerMSL();
 
-			/** Performs the VKSL -> SPIR-V -> argument-buffer MSL conversion and packs the result. */
 			TShared<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& createInformation) override;
+			bool IsUpToDate(const GpuProgramBytecode& bytecode) const override;
 
 		private:
 			TUnique<GLSLToSPIRV> mConverter;

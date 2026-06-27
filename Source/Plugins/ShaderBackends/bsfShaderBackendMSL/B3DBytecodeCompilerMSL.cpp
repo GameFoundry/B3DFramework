@@ -28,6 +28,11 @@ BytecodeCompilerMSL::BytecodeCompilerMSL(const char* compilerId, u32 compilerVer
 
 BytecodeCompilerMSL::~BytecodeCompilerMSL() = default;
 
+bool BytecodeCompilerMSL::IsUpToDate(const GpuProgramBytecode& bytecode) const
+{
+	return mConverter->IsUpToDate(bytecode);
+}
+
 TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgramCreateInformation& createInformation)
 {
 	// Cache-hit short-circuit. Shader caches persist the already-compiled MSL payload on disk

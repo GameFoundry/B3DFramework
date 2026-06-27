@@ -37,13 +37,8 @@ target_include_directories(bsfVulkanGpuBackend PRIVATE
 # Libraries
 ## External libs: Vulkan, MoltenVK
 if(APPLE) # MacOS
-	## mvksl bytecode compiler (MoltenVK MSL)
-	target_link_libraries(bsfVulkanGpuBackend PRIVATE bsfShaderBackendMVKSL)
 	target_link_libraries(bsfVulkanGpuBackend PRIVATE ${MoltenVK_LIBRARIES})
 else()
-	## vksl bytecode compiler
-	### Note: This brings in glslang, and it's important to link glslang before Vulkan, as it contains its own glslang libraries. This ensures the search finds out local version first.
-	target_link_libraries(bsfVulkanGpuBackend PRIVATE bsfShaderBackendVKSL)
 	target_link_libraries(bsfVulkanGpuBackend PRIVATE ${Vulkan_LIBRARIES})
 endif()
 

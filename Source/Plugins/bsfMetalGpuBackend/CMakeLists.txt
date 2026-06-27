@@ -17,11 +17,8 @@ B3DSetDefaultLinkAndCompileFlags(bsfMetalGpuBackend)
 target_include_directories(bsfMetalGpuBackend PRIVATE
 	"./"
 	"../Shared/"
+	"../ShaderBackends/bsfShaderBackendMSL"
 )
-
-# Libraries
-## VKSL -> SPIR-V -> MSL compiler. Brings in glslang + SPIRV-Cross
-target_link_libraries(bsfMetalGpuBackend PRIVATE bsfShaderBackendMSL)
 
 # Apple frameworks required by the Metal backend
 B3DTargetLinkFramework(bsfMetalGpuBackend Foundation)

@@ -26,19 +26,26 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_SL_SRC)
 
 # Each entry is "<language>|<targetLanguage>|<define>" (the trailing "|<define>" is optional):
 # the engine shading-language id, the B3DShaderCompiler output target id, and an optional preprocessor define emitted into the HLSL input.
-# These are populated by Bytecode libraries when they are included in the build
+# These are populated by the bsfShaderBackend<LANG> libraries when they are included in the build.
 get_property(B3D_SHADER_CROSS_COMPILE_TARGETS GLOBAL PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS)
 
-# List of extra libraries required by shader backends.
+# Libraries bsfSL must link for the shader backends: each bsfShaderBackend<LANG> appends its own bytecode-compiler static
+# library here, plus any extra cross-compiler import libraries the backends require
 get_property(B3D_SHADER_BACKEND_LIBRARIES GLOBAL PROPERTY B3D_SHADER_BACKEND_LIBRARIES)
 
-# Generate .cpp for cross compile target registration
+# Generate .cpp for cross compile target + bytecode compiler registration. For each supported language we always emit its
+# HLSL cross-compile target; if a bsfShaderBackend<LANG> bytecode-compiler library is also built, we additionally register
+# its compiler. The library itself is linked via B3D_SHADER_BACKEND_LIBRARIES above (each backend appends itself).
 set(B3D_SHADER_CROSS_COMPILE_TARGET_REGISTRATIONS "")
+set(B3D_SHADER_BYTECODE_COMPILER_DECLARATIONS "")
+set(B3D_SHADER_BYTECODE_COMPILER_REGISTRATIONS "")
 foreach(targetEntry ${B3D_SHADER_CROSS_COMPILE_TARGETS})
 	string(REPLACE "|" ";" targetFields ${targetEntry})
 	list(GET targetFields 0 targetLanguageId)
 	list(GET targetFields 1 targetOutputLanguage)
 	list(LENGTH targetFields targetFieldCount)
+
+	# Register HLSL -> <LANG> cross compiler support
 	if(targetFieldCount GREATER 2)
 		list(GET targetFields 2 targetDefine)
 		string(APPEND B3D_SHADER_CROSS_COMPILE_TARGET_REGISTRATIONS
@@ -47,16 +54,25 @@ foreach(targetEntry ${B3D_SHADER_CROSS_COMPILE_TARGETS})
 		string(APPEND B3D_SHADER_CROSS_COMPILE_TARGET_REGISTRATIONS
 			"\t\tRegisterTarget(\"${targetLanguageId}\", { \"${targetOutputLanguage}\", nullptr });\n")
 	endif()
+
+	# Register <LANG> -> <BYTECODE> bytecode compiler support
+	string(TOUPPER ${targetLanguageId} targetLanguageUpper)
+	if(TARGET bsfShaderBackend${targetLanguageUpper})
+		string(APPEND B3D_SHADER_BYTECODE_COMPILER_DECLARATIONS
+			"\t\tTShared<IGpuBytecodeCompiler> CreateBytecodeCompiler${targetLanguageId}();\n")
+		string(APPEND B3D_SHADER_BYTECODE_COMPILER_REGISTRATIONS
+			"\t\tShaderCompilers::Instance().RegisterBytecodeCompiler(\"${targetLanguageId}\", b3d::render::CreateBytecodeCompiler${targetLanguageId}());\n")
+	endif()
 endforeach()
 
-set(BS_SL_CROSSCOMPILE_TARGETS_GENERATED ${PROJECT_BINARY_DIR}/Generated/Plugins/bsfSL/B3DHLSLCrossCompileTargets.cpp)
+set(BS_SL_SHADER_BACKENDS_GENERATED ${PROJECT_BINARY_DIR}/Generated/Plugins/bsfSL/B3DShaderBackends.cpp)
 configure_file(
-	${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DHLSLCrossCompileTargets.cpp.in
-	${BS_SL_CROSSCOMPILE_TARGETS_GENERATED}
+	${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DShaderBackends.cpp.in
+	${BS_SL_SHADER_BACKENDS_GENERATED}
 	@ONLY
 )
-list(APPEND BS_SL_SRC ${BS_SL_CROSSCOMPILE_TARGETS_GENERATED})
-source_group("Generated" FILES ${BS_SL_CROSSCOMPILE_TARGETS_GENERATED})
+list(APPEND BS_SL_SRC ${BS_SL_SHADER_BACKENDS_GENERATED})
+source_group("Generated" FILES ${BS_SL_SHADER_BACKENDS_GENERATED})
 
 # Ensure pre-built binary dependencies are up to date
 if(B3D_USE_BUNDLED_LIBRARIES)
@@ -89,7 +105,7 @@ if(B3D_BUILD_BSL_PARSER AND WIN32)
 endif()
 
 # Libraries
-## External lib: XShaderCompiler, plus any optional per-platform shader backends found above.
+## XShaderCompiler plus B3D_SHADER_BACKEND_LIBRARIES (the per-language bytecode-compiler static libs and any cross-compiler import libs the backends contribute)
 target_link_libraries(bsfSL PRIVATE ${XShaderCompiler_LIBRARIES} ${B3D_SHADER_BACKEND_LIBRARIES})
 
 # IDE specific

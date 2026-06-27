@@ -16,6 +16,15 @@ namespace b3d
 		 *  @{
 		 */
 
+		/** Identifier of the compiler used for compiling MoltenVK GPU programs. */
+		inline constexpr const char* kMoltenVkCompilerId = "MoltenVK";
+
+		/**
+		 * Version of the compiler used for compiling MoltenVK GPU programs. Tick this whenever the compiler updates in
+		 * order to force bytecode to rebuild.
+		 */
+		inline constexpr u32 kMoltenVkCompilerVersion = 1;
+
 		class GLSLToSPIRV;
 
 		/**
@@ -29,6 +38,7 @@ namespace b3d
 			~BytecodeCompilerMVKSL();
 
 			TShared<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& createInformation) override;
+			bool IsUpToDate(const GpuProgramBytecode& bytecode) const override;
 
 		private:
 			TUnique<GLSLToSPIRV> mConverter;

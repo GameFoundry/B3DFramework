@@ -9,12 +9,6 @@
 #include <vulkan/vulkan.h>
 
 #include "B3DVulkanFramebuffer.h"
-#if B3D_PLATFORM_MACOS
-#include "B3DBytecodeCompilerMVKSL.h"
-#else
-#include "B3DBytecodeCompilerVKSL.h"
-#endif
-#include "Material/B3DShaderCompiler.h"
 #include "B3DVulkanGpuProgram.h"
 #include "B3DVulkanRenderPass.h"
 #include "B3DVulkanSubmitThread.h"
@@ -427,12 +421,6 @@ void VulkanGpuBackend::OnStartUp()
 	GET_DEVICE_PROC_ADDR(presentDevice, AcquireNextImageKHR)
 	GET_DEVICE_PROC_ADDR(presentDevice, QueuePresentKHR)
 
-#if B3D_PLATFORM_MACOS
-	ShaderCompilers::Instance().RegisterBytecodeCompiler(VulkanGpuDevice::kGpuProgramLanguageName, CreateBytecodeCompilermvksl());
-#else
-	ShaderCompilers::Instance().RegisterBytecodeCompiler(VulkanGpuDevice::kGpuProgramLanguageName, CreateBytecodeCompilervksl());
-#endif
-
 	// Create the render pass manager
 	VulkanRenderPassCache::StartUp();
 	VulkanFramebufferCache::StartUp();
@@ -474,9 +462,6 @@ void VulkanGpuBackend::OnShutDown()
 	VulkanRenderPassCache::ShutDown();
 	render::TextureManager::ShutDown();
 	TextureManager::ShutDown();
-
-	// Drops the last reference to the bytecode-compiler adapter, which destroys its glslang/SPIRV-Cross converter.
-	ShaderCompilers::Instance().UnregisterBytecodeCompiler(VulkanGpuDevice::kGpuProgramLanguageName);
 
 	mPresentDevice = nullptr;
 	mDevices.clear();

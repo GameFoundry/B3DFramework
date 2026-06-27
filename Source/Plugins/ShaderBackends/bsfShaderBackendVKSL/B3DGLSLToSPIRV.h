@@ -23,31 +23,13 @@ namespace b3d
 			GLSLToSPIRV(const char* compilerId, u32 compilerVersion);
 			~GLSLToSPIRV();
 
-			/** Performs the GLSL / VKSL -> SPIR-V conversion and populates reflection info on the result. */
 			TShared<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& createInformation) override;
+			bool IsUpToDate(const GpuProgramBytecode& bytecode) const override;
 
 		private:
 			const char* mCompilerId;
 			u32 mCompilerVersion;
 		};
-
-		/** Identifier of the compiler used for compiling Vulkan GPU programs (stamped into the produced bytecode). */
-		static constexpr const char* kVulkanCompilerId = "Vulkan";
-
-		/**
-		 * Version of the compiler used for compiling Vulkan GPU programs. Tick this whenever the compiler updates in order
-		 * to force bytecode to rebuild.
-		 */
-		static constexpr u32 kVulkanCompilerVersion = 3;
-
-		/** Identifier of the compiler used for compiling MoltenVK GPU programs. */
-		static constexpr const char* kMoltenVkCompilerId = "MoltenVK";
-
-		/**
-		 * Version of the compiler used for compiling MoltenVK GPU programs. Tick this whenever the compiler updates in order
-		 * to force bytecode to rebuild.
-		 */
-		static constexpr u32 kMoltenVkCompilerVersion = 1;
 
 		/** @} */
 	} // namespace render
