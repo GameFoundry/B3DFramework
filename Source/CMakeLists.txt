@@ -59,6 +59,11 @@ set(B3D_BUILD_IMPORTERS ON CACHE BOOL "Build asset importer plugins and the impo
 
 set(B3D_BUILD_COOK_TOOL ON CACHE BOOL "Build the offline asset cook tool.")
 
+# Apply platform-specific option overrides, if the target platform defines any.
+if(COMMAND B3DApplyPlatformOptionOverrides)
+	B3DApplyPlatformOptionOverrides()
+endif()
+
 # Ensure dependencies are up to date
 ## Check data dependencies
 B3DCheckAndUpdateAssetPackage(FrameworkData)
