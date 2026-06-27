@@ -39,6 +39,7 @@ get_property(B3D_SHADER_BACKEND_LIBRARIES GLOBAL PROPERTY B3D_SHADER_BACKEND_LIB
 set(B3D_SHADER_CROSS_COMPILE_TARGET_REGISTRATIONS "")
 set(B3D_SHADER_BYTECODE_COMPILER_DECLARATIONS "")
 set(B3D_SHADER_BYTECODE_COMPILER_REGISTRATIONS "")
+set(B3D_SHADER_BYTECODE_COMPILER_UNREGISTRATIONS "")
 foreach(targetEntry ${B3D_SHADER_CROSS_COMPILE_TARGETS})
 	string(REPLACE "|" ";" targetFields ${targetEntry})
 	list(GET targetFields 0 targetLanguageId)
@@ -62,6 +63,8 @@ foreach(targetEntry ${B3D_SHADER_CROSS_COMPILE_TARGETS})
 			"\t\tTShared<IGpuBytecodeCompiler> CreateBytecodeCompiler${targetLanguageId}();\n")
 		string(APPEND B3D_SHADER_BYTECODE_COMPILER_REGISTRATIONS
 			"\t\tShaderCompilers::Instance().RegisterBytecodeCompiler(\"${targetLanguageId}\", b3d::render::CreateBytecodeCompiler${targetLanguageId}());\n")
+		string(APPEND B3D_SHADER_BYTECODE_COMPILER_UNREGISTRATIONS
+			"\t\tShaderCompilers::Instance().UnregisterBytecodeCompiler(\"${targetLanguageId}\");\n")
 	endif()
 endforeach()
 

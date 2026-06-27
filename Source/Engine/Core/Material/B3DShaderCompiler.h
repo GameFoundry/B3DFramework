@@ -127,8 +127,17 @@ namespace b3d
 		/** Unregisters a shader compiler. Thread safe. */
 		void UnregisterCompiler(const String& language)
 		{
-			Lock lock(mCompilerMutex);
-			mCompilers.erase(language);
+			// Ensure the compiler is destroyed outside of the mutex as it may call back into this class to unregister the bytecode compilers
+			TShared<IShaderCompiler> removed;
+			{
+				Lock lock(mCompilerMutex);
+				const auto found = mCompilers.find(language);
+				if(found == mCompilers.end())
+					return;
+
+				removed = std::move(found->second);
+				mCompilers.erase(found);
+			}
 		}
 
 		/**

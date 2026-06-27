@@ -20,6 +20,7 @@ namespace b3d
 	{
 	public:
 		BSLCompiler();
+		~BSLCompiler() override;
 
 		ShaderCompilerResult Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, const Vector<String>& languages, bool compileVariations, TShared<Shader>& outShader) override
 		{

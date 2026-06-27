@@ -30,6 +30,11 @@ BSLCompiler::BSLCompiler()
 	HLSLCrossCompiler::RegisterSupportedTargets();
 }
 
+BSLCompiler::~BSLCompiler()
+{
+	HLSLCrossCompiler::UnregisterSupportedTargets();
+}
+
 static TShared<Shader> CreateShader(const String& name, const ShaderCreateInformation& shaderCreateInformation, const Vector<String>& includes)
 {
 	TShared<Shader> shader = Shader::CreateShared(name, shaderCreateInformation);
