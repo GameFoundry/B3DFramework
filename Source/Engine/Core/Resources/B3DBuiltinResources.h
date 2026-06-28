@@ -197,6 +197,12 @@ namespace b3d
 		static constexpr const char* kFontsFolder = "Fonts/";
 		static constexpr const char* kUnitTestDataFolder = "UnitTestData/";
 
+		/**
+		 * Cache prefix under which surface (non renderer-material) builtin shaders are resolved by ShaderRegistry, and the
+		 * key the offline shader cook writes them under.
+		 */
+		static constexpr const char* kBuiltinShaderCachePrefix = "BuiltinShaders/";
+
 		static constexpr const char* kMeshSphereFile = "Sphere";
 		static constexpr const char* kMeshBoxFile = "Box";
 		static constexpr const char* kMeshConeFile = "Cone";

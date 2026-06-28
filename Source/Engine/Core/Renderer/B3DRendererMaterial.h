@@ -141,6 +141,9 @@ namespace b3d
 		class B3D_EXPORT RendererMaterialBase
 		{
 		public:
+			/** Cache prefix under which renderer-material shaders are resolved by ShaderRegistry, and the key the offline shader cook writes them under. */
+			static constexpr const char* kRendererMaterialShaderCachePrefix = "RendererMaterialShaders/";
+
 			virtual ~RendererMaterialBase() = default;
 
 			/** Initializes the material. Use this instead of the constructor to perform any one-time setup before using the material. */
@@ -670,11 +673,9 @@ namespace b3d
 			{
 				auto fnCompileShader = []()
 				{
-					static const String kRendererMaterialShaderCachePrefix = "RendererMaterialShaders/";
-
 					RendererMaterialMetaData& metaData = GetMetaData();
 					TShared<Shader> compiledShader = ShaderRegistry::Instance().GetOrCompileShader<true>(
-						metaData.ShaderPath, kRendererMaterialShaderCachePrefix, metaData.Defines);
+						metaData.ShaderPath, RendererMaterialBase::kRendererMaterialShaderCachePrefix, metaData.Defines);
 
 					GetRenderThread().PostTask(SchedulerTask([compiledShader]() mutable
 					{

@@ -228,6 +228,10 @@ if(B3D_BUILD_COOK_TOOL)
 		add_subdirectory(Plugins/bsfNullRenderer)
 	endif()
 
+	if(NOT TARGET bsfRenderBeast)
+		add_subdirectory(Plugins/bsfRenderBeast)
+	endif()
+
 	add_subdirectory(Tools/BansheeCookTool)
 endif()
 

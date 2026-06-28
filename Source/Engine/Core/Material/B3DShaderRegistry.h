@@ -113,6 +113,12 @@ namespace b3d
 		 */
 		static Path GetVariationPath(const ShaderCompilerMetaData& metadata, const String& language, const String& variationName);
 
+		/**
+		 * Returns the absolute path of the default prebuilt shader store - the package this module loads at start-up and
+		 * the offline shader cook tool writes by default.
+		 */
+		static Path GetPrebuiltStorePath();
+
 		/** @} */
 
 	protected:

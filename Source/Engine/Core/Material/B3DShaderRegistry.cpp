@@ -103,10 +103,15 @@ namespace
 ShaderRegistry::ShaderRegistry() = default;
 ShaderRegistry::~ShaderRegistry() = default;
 
-void ShaderRegistry::OnStartUp()
+Path ShaderRegistry::GetPrebuiltStorePath()
 {
 	const String packageFileName = String(kPrebuiltShaderPackageName) + Package::kPackageExtension;
-	const Path prebuiltStorePath = Paths::GetDataPath() + kPrebuiltShaderFolderName + packageFileName;
+	return Paths::GetDataPath() + kPrebuiltShaderFolderName + packageFileName;
+}
+
+void ShaderRegistry::OnStartUp()
+{
+	const Path prebuiltStorePath = GetPrebuiltStorePath();
 
 	if(FileSystem::Exists(prebuiltStorePath))
 	{

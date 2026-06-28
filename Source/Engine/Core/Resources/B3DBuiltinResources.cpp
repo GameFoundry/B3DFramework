@@ -262,7 +262,6 @@ HShader BuiltinResources::GetOrCompileShader(const Path& path) const
 	HShader shader;
 	if(shader == nullptr)
 	{
-		static const String kBuiltinShaderCachePrefix = "BuiltinShaders/";
 		const TShared<Shader> shaderShared = ShaderRegistry::Instance().GetOrCompileShader<false>(path, kBuiltinShaderCachePrefix, {});
 
 		if(shaderShared != nullptr)
