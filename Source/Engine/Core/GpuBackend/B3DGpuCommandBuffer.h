@@ -70,6 +70,36 @@ namespace b3d
 		typedef Flags<GpuResourceUseFlag> GpuResourceUseFlags;
 		B3D_FLAGS_OPERATORS(GpuResourceUseFlag)
 
+		/**
+		 * Determines on which pipeline stage and in what manner a resource is being accessed. Combined with read/write
+		 * access flags this uniquely determines the synchronization (pipeline/cache barriers) a backend must issue.
+		 * Each backend maps these logical stages to its native pipeline stage and access/cache masks.
+		 */
+		enum class GpuStageFlag
+		{
+			None							= 0,
+			DrawIndirect					= 1 << 0,	/**< Indirect draw/dispatch argument fetch. */
+			VertexInputAttributes			= 1 << 1,	/**< Vertex attribute fetch (vertex buffers). */
+			VertexInputIndices				= 1 << 2,	/**< Index buffer fetch. */
+			VertexShaderNonUniform			= 1 << 3,	/**< Non-uniform (sampled/storage) access in the vertex shader stage. */
+			FragmentShaderNonUniform		= 1 << 4,	/**< Non-uniform (sampled/storage) access in the fragment shader stage. */
+			ComputeShaderNonUniform			= 1 << 5,	/**< Non-uniform (sampled/storage) access in the compute shader stage. */
+			VertexShaderUniform				= 1 << 6,	/**< Uniform/constant buffer access in the vertex shader stage. */
+			FragmentShaderUniform			= 1 << 7,	/**< Uniform/constant buffer access in the fragment shader stage. */
+			ComputeShaderUniform			= 1 << 8,	/**< Uniform/constant buffer access in the compute shader stage. */
+			EarlyFragmentTests				= 1 << 9,	/**< Depth/stencil access before the fragment shader. */
+			LateFragmentTests				= 1 << 10,	/**< Depth/stencil access after the fragment shader. */
+			ColorAttachment					= 1 << 11,	/**< Color attachment (render target) read/write. */
+			Transfer						= 1 << 12,	/**< Copy/blit/clear transfer operations. */
+			Host							= 1 << 13,	/**< Access by the host (CPU). */
+
+			AllShader = VertexShaderNonUniform | FragmentShaderNonUniform | ComputeShaderNonUniform | VertexShaderUniform | FragmentShaderUniform | ComputeShaderUniform,
+			All = AllShader | DrawIndirect | VertexInputAttributes | VertexInputIndices | EarlyFragmentTests | LateFragmentTests | ColorAttachment | Transfer | Host
+		};
+
+		typedef Flags<GpuStageFlag> GpuStageFlags;
+		B3D_FLAGS_OPERATORS(GpuStageFlag)
+
 		/** Image layout - determines how an image is accessed in GPU operations. */
 		enum class ImageLayout
 		{

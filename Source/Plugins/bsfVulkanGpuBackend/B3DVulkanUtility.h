@@ -124,12 +124,6 @@ namespace b3d
 			/** Checks if the two image subresource ranges are identical. */
 			static bool RangeEquals(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b);
 
-			/** Converts a VulkanAccessStageFlag to a readable string of characters representing the access and stage. */
-			static const char* GetAccessStageName(VulkanAccessStageFlag flag);
-
-			/** Converts all bits set in VulkanAccessStageFlag into a list readable access and stage specifiers that will be appended to @p output, using "|" as separator. */
-			static void GetAccessStageNames(VulkanAccessStageFlags flags, StringStream& output);
-
 			/** Converts a VkImageLayout enum value to a readable string representing the layout name. */
 			static const char* GetImageLayoutName(VkImageLayout layout);
 
@@ -152,10 +146,8 @@ namespace b3d
 			 * @param outStages		Output parameter that receives the corresponding Vulkan pipeline stage flags.
 			 * @param outAccessMask Output parameter that receives the corresponding Vulkan access flags.
 			 */
-			static void GetPipelineStageAndAccessMask(VulkanAccessStageFlags accessStage, GpuAccessFlags access, VkPipelineStageFlags& outStages, VkAccessFlags& outAccessMask);
+			static void GetPipelineStageAndAccessMask(GpuStageFlags accessStage, GpuAccessFlags access, VkPipelineStageFlags& outStages, VkAccessFlags& outAccessMask);
 
-			/** Converts resource usage flags into VulkanResourceAccessTypeFlags. */
-			static VulkanAccessStageFlags GetVulkanAccessStageFlags(GpuResourceUseFlags usage);
 		};
 
 		/** @} */

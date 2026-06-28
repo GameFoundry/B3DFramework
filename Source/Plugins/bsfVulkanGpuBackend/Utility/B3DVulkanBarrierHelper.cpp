@@ -5,6 +5,7 @@
 #include "B3DVulkanGpuCommandBuffer.h"
 #include "B3DVulkanTexture.h"
 #include "B3DVulkanUtility.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -18,8 +19,8 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBa
 	if(buffer == nullptr)
 		return nullptr;
 
-	const VulkanAccessStageFlags sourceAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(sourceUsage);
-	const VulkanAccessStageFlags destinationAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(destinationUsage);
+	const GpuStageFlags sourceAccessStageFlags = GpuBackendUtility::GetStageFlags(sourceUsage);
+	const GpuStageFlags destinationAccessStageFlags = GpuBackendUtility::GetStageFlags(destinationUsage);
 
 	return AddBufferBarrier(buffer, sourceAccessStageFlags, sourceAccess, destinationAccessStageFlags, destinationAccess);
 }
@@ -41,28 +42,28 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBa
 	if(buffer == nullptr)
 		return nullptr;
 
-	const VulkanAccessStageFlags destinationAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(destinationUsage);
+	const GpuStageFlags destinationAccessStageFlags = GpuBackendUtility::GetStageFlags(destinationUsage);
 
-	VulkanAccessStageFlags sourceAccessStageFlags;
+	GpuStageFlags sourceAccessStageFlags;
 	GpuAccessFlags sourceAccessFlags;
 
 	// WAW or RAW hazard
-	const VulkanAccessStageFlags writeAccessStageFlags = bufferTrackingState.WriteHazardTracking->MemoryBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
+	const GpuStageFlags writeAccessStageFlags = bufferTrackingState.WriteHazardTracking->MemoryBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
 	if(destinationAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
 	{
 		sourceAccessStageFlags |= writeAccessStageFlags;
 
-		if(writeAccessStageFlags != VulkanAccessStageFlag::None)
+		if(writeAccessStageFlags != GpuStageFlag::None)
 			sourceAccessFlags |= GpuAccessFlag::Write;
 	}
 
 	// WAR hazard
-	const VulkanAccessStageFlags readAccessStageFlags = bufferTrackingState.WriteHazardTracking->ExecutionBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
+	const GpuStageFlags readAccessStageFlags = bufferTrackingState.WriteHazardTracking->ExecutionBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
 	if(destinationAccess.IsSet(GpuAccessFlag::Write))
 	{
 		sourceAccessStageFlags |= readAccessStageFlags;
 
-		if(readAccessStageFlags != VulkanAccessStageFlag::None)
+		if(readAccessStageFlags != GpuStageFlag::None)
 			sourceAccessFlags |= GpuAccessFlag::Read;
 	}
 
@@ -72,7 +73,7 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBa
 	return AddBufferBarrier(buffer, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess);
 }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags)
 {
 	if(buffer == nullptr)
 		return nullptr;
@@ -123,8 +124,8 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBa
 
 const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccessFlags, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccessFlags, ImageLayout oldLayout, ImageLayout newLayout)
 {
-	const VulkanAccessStageFlags sourceAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(sourceUsage);
-	const VulkanAccessStageFlags destinationAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(destinationUsage);
+	const GpuStageFlags sourceAccessStageFlags = GpuBackendUtility::GetStageFlags(sourceUsage);
+	const GpuStageFlags destinationAccessStageFlags = GpuBackendUtility::GetStageFlags(destinationUsage);
 
 	const VkImageLayout vkOldLayout = VulkanUtility::GetImageLayout(oldLayout);
 	const VkImageLayout vkNewLayout = VulkanUtility::GetImageLayout(newLayout);
@@ -174,28 +175,28 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresou
 	if(image == nullptr)
 		return nullptr;
 	
-	const VulkanAccessStageFlags destinationAccessStageFlags = VulkanUtility::GetVulkanAccessStageFlags(destinationUsage);
+	const GpuStageFlags destinationAccessStageFlags = GpuBackendUtility::GetStageFlags(destinationUsage);
 
-	VulkanAccessStageFlags sourceAccessStageFlags;
+	GpuStageFlags sourceAccessStageFlags;
 	GpuAccessFlags sourceAccessFlags;
 
 	// WAW or RAW hazard
-	const VulkanAccessStageFlags writeAccessStageFlags = subresourceTrackingState.WriteHazardTracking->MemoryBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
+	const GpuStageFlags writeAccessStageFlags = subresourceTrackingState.WriteHazardTracking->MemoryBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
 	if(destinationAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
 	{
 		sourceAccessStageFlags |= writeAccessStageFlags;
 
-		if(writeAccessStageFlags != VulkanAccessStageFlag::None)
+		if(writeAccessStageFlags != GpuStageFlag::None)
 			sourceAccessFlags |= GpuAccessFlag::Write;
 	}
 
 	// WAR hazard
-	const VulkanAccessStageFlags readAccessStageFlags = subresourceTrackingState.WriteHazardTracking->ExecutionBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
+	const GpuStageFlags readAccessStageFlags = subresourceTrackingState.WriteHazardTracking->ExecutionBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
 	if(destinationAccess.IsSet(GpuAccessFlag::Write))
 	{
 		sourceAccessStageFlags |= readAccessStageFlags;
 
-		if(readAccessStageFlags != VulkanAccessStageFlag::None)
+		if(readAccessStageFlags != GpuStageFlag::None)
 			sourceAccessFlags |= GpuAccessFlag::Read;
 	}
 
@@ -209,7 +210,7 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresou
 	return AddSubresourceBarrier(image, subresourceTrackingState.Range, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess, subresourceTrackingState.CurrentLayout, newLayout);
 }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresourceBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresourceBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
 	if(image == nullptr)
 		return nullptr;

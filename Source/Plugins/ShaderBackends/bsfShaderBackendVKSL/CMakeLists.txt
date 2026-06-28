@@ -37,5 +37,5 @@ set_property(TARGET bsfShaderBackendVKSL PROPERTY FOLDER Plugins)
 # Register shader compiler target as "<language>|<targetLanguage>|<define>". Used to determine supported targets.
 set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "vksl|VKSL450|VULKAN")
 
-# Let anything using this shader backend know which libraries it needs to link
+# Anything that needs shader compilation will use this property to find libraries it needs to link
 set_property(GLOBAL APPEND PROPERTY B3D_SHADER_BACKEND_LIBRARIES bsfShaderBackendVKSL)

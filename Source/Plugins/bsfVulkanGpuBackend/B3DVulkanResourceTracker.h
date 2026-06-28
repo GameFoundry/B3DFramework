@@ -6,9 +6,9 @@
 #include "B3DVulkanResource.h"
 #include "Allocators/B3DPoolAlloc.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuResourceTracker.h"
 #include "Utility/B3DDenseMap.h"
 
-#define B3D_VERIFY_BARRIERS B3D_BUILD_TYPE_DEVELOPMENT // If enabled, ensures that memory barriers are properly issued
 
 namespace b3d::render
 {
@@ -23,65 +23,6 @@ namespace b3d::render
 	/** @addtogroup Vulkan
 	 *  @{
 	 */
-
-	/** Keeps track on which pipelines was a resource written/read, and on which pipelines may it be safely accessed from. */
-	struct WriteHazardPipelineTracking
-	{
-		static constexpr u32 kPipelineStageCount = 16;
-
-		/** For each pipeline stage, stores in which pipelines is it safe to access the pipeline. */
-		std::array<VulkanAccessStageFlags, kPipelineStageCount> SafeAccess;
-
-		WriteHazardPipelineTracking();
-
-		/** Clears safe access for all provided pipeline stages. */
-		void ClearStageSafeAccess(VulkanAccessStageFlags stages);
-
-		/**
-		 * Adds safe access for all provided pipeline stages.
-		 *
-		 * @param	sourceStages		One or multiple stages to add the safe access to.
-		 * @param	destinationStages	Stages to register as being safe to access from.
-		 */
-		void AddStageSafeAccess(VulkanAccessStageFlags sourceStages, VulkanAccessStageFlags destinationStages);
-
-		/** Checks is it safe to access the resource in all the provided pipeline stages. */
-		bool IsAccessSafe(VulkanAccessStageFlags stages) const;
-
-		/** Returns a list of all source stages that we cannot safely access data from the provided @p stages. */
-		VulkanAccessStageFlags GetUnsafeAccessStages(VulkanAccessStageFlags stages) const;
-
-		/** Writes a descriptive error message when access is unsafe. */
-		void LogUnsafeAccess(VulkanAccessStageFlags stages, GpuAccessFlags currentAccessType, GpuAccessFlags previousAccessType) const;
-	};
-
-	/** Tracking that is used for validation when memory barriers need to be issued. */
-	struct WriteHazardTracking
-	{
-		GpuAccessFlags Access; /**< Has the buffer been read or written so far. */
-
-		/**
-		 * Keeps track of all pipeline stages that the resource was read from, and which of those stages can be safely accessed by a write operation (and on which stage).
-		 * A write following a read requires an execution barrier.
-		 */
-		WriteHazardPipelineTracking ExecutionBarrierTracking;
-
-		/**
-		 * Keeps track of all pipeline stages that the resource was written to, and which of those stages can be safely accessed by a read or write operation
-		 * (and on which stage). Any operation following a write requires a memory barrier. Memory barrier implies an execution barrier as well.
-		 */
-		WriteHazardPipelineTracking MemoryBarrierTracking;
-
-		/** Updates execution and memory barrier tracking by marking access as safe in the destination stages, from the source stages. */
-		void AddSafeAccess(VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess);
-
-#if B3D_VERIFY_BARRIERS
-		/** Verifies that the access is safe from the provided stage and access type. Logs errors if not. */
-		void VerifySafeAccess(VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess) const;
-#endif
-
-		// Note - Add LayoutTransitionTracking? Tracks last use of an imagine in a specific layout, and which layouts can be safely transitioned to/from without a barrier
-	};
 
 	/**
 	 * Helper class that tracks all resources used on a command buffer. It is responsible for keeping those resources alive why they
@@ -120,7 +61,7 @@ namespace b3d::render
 			GpuResourceUseFlags UseFlags;
 
 			/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued*/
-			WriteHazardTracking* WriteHazardTracking = nullptr;
+			GpuWriteHazardTracking* WriteHazardTracking = nullptr;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			/** Suballocation indices that are bound in this tracking state. Typically 1-2. */
@@ -163,7 +104,7 @@ namespace b3d::render
 			bool InitialReadOnly = false;
 
 			/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued. */
-			WriteHazardTracking* WriteHazardTracking = nullptr;
+			GpuWriteHazardTracking* WriteHazardTracking = nullptr;
 
 			// Only relevant for layout transitions
 			/**
@@ -324,10 +265,10 @@ namespace b3d::render
 		void UpdateImageLayoutTrackingAfterBarrier(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout oldLayout, VkImageLayout newLayout);
 
 		/** Updates write hazard tracking for a single buffer after a barrier has been issued. */
-		void UpdateWriteHazardTrackingAfterBarrier(VulkanBuffer* buffer, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess);
+		void UpdateWriteHazardTrackingAfterBarrier(VulkanBuffer* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess);
 
 		/** Updates write hazard tracking for a single image after a barrier has been issued. */
-		void UpdateWriteHazardTrackingAfterBarrier(VulkanImage* image, const VkImageSubresourceRange& range, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess);
+		void UpdateWriteHazardTrackingAfterBarrier(VulkanImage* image, const VkImageSubresourceRange& range, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess);
 
 		/**
 		 * Applies all read/write hazard registrations deferred by TrackBufferUsage / TrackSubresourceUsage. Must be called by
@@ -430,14 +371,14 @@ namespace b3d::render
 		/** Set of global subresource indices that are used on the current render pass. */
 		Set<u32> mRenderPassSubresources;
 
-		/** Pool allocator for WriteHazardTracking structures. */
-		PoolAlloc<sizeof(WriteHazardTracking)> mWriteHazardPool;
+		/** Pool allocator for GpuWriteHazardTracking structures. */
+		PoolAlloc<sizeof(GpuWriteHazardTracking)> mWriteHazardPool;
 
 		/** A read/write hazard registration deferred until the pending barriers have been issued. */
 		struct PendingHazardRegistration
 		{
-			WriteHazardTracking* Tracking;
-			VulkanAccessStageFlags AccessStageFlags;
+			GpuWriteHazardTracking* Tracking;
+			GpuStageFlags AccessStageFlags;
 			GpuAccessFlags Access;
 		};
 

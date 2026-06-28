@@ -51,9 +51,9 @@ namespace b3d::render
 			VulkanImage* Image = nullptr;
 			VkImageSubresourceRange ImageSubresourceRange{};
 			GpuAccessFlags SourceAccess = GpuAccessFlag::None;
-			VulkanAccessStageFlags SourceAccessStages = VulkanAccessStageFlag::None;
+			GpuStageFlags SourceAccessStages = GpuStageFlag::None;
 			GpuAccessFlags DestinationAccess = GpuAccessFlag::None;
-			VulkanAccessStageFlags DestinationAccessStages = VulkanAccessStageFlag::None;
+			GpuStageFlags DestinationAccessStages = GpuStageFlag::None;
 		};
 
 		/**
@@ -158,11 +158,11 @@ namespace b3d::render
 		bool HasBarriers() const;
 
 	private:
-		/** Low-level overload of AddImageBarrier that uses VulkanAccessStageFlags directly. */
-		const BarrierTrackingInfo* AddSubresourceBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout);
+		/** Low-level overload of AddImageBarrier that uses GpuStageFlags directly. */
+		const BarrierTrackingInfo* AddSubresourceBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout);
 
-		/** Low-level overload of AddBufferBarrier that uses VulkanAccessStageFlags directly. */
-		const BarrierTrackingInfo* AddBufferBarrier(VulkanBuffer* buffer, VulkanAccessStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, VulkanAccessStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags);
+		/** Low-level overload of AddBufferBarrier that uses GpuStageFlags directly. */
+		const BarrierTrackingInfo* AddBufferBarrier(VulkanBuffer* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags);
 
 		/** Information needed to update layout after barrier execution. */
 		struct LayoutTrackingInfo

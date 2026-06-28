@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 
@@ -53,6 +54,15 @@ namespace b3d
 
 			return size;
 		}
+
+		/** Maps resource usage flags to the stages describing on which pipeline stage and how the resource is accessed. */
+		static render::GpuStageFlags GetStageFlags(render::GpuResourceUseFlags usage);
+
+		/** Converts a single GpuStageFlag into a readable string representing the access and stage. */
+		static const char* GetAccessStageName(render::GpuStageFlag flag);
+
+		/** Appends every bit set in @p flags to @p output as readable stage names, using "|" as separator. */
+		static void GetAccessStageNames(render::GpuStageFlags flags, StringStream& output);
 	};
 
 	/** @} */

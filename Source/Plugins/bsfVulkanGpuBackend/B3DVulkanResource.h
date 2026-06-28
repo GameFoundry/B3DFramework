@@ -113,32 +113,6 @@ namespace b3d
 			VulkanGpuDevice& GetDevice() const;
 		};
 
-		/** Determines on which pipeline and how is a resource being accessed. Together with read/write flags allows the caller to uniquely determine Vulkan pipeline and access masks from this enum. */
-		enum class VulkanAccessStageFlag
-		{
-			None							= 0,		//				 Pipeline stage						|				Access (read)					|				Access (write)
-			DrawIndirect					= 1 << 0,	// VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT				| VK_ACCESS_INDIRECT_COMMAND_READ_BIT			| N/A
-			VertexInputAttributes			= 1 << 1,	// VK_PIPELINE_STAGE_VERTEX_INPUT_BIT				| VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT			| N/A
-			VertexInputIndices				= 1 << 2,	// VK_PIPELINE_STAGE_VERTEX_INPUT_BIT				| VK_ACCESS_INDEX_READ_BIT						| N/A
-			VertexShaderNonUniform			= 1 << 3,	// VK_PIPELINE_STAGE_VERTEX_SHADER_BIT				| VK_ACCESS_SHADER_READ_BIT						| VK_ACCESS_SHADER_WRITE_BIT
-			FragmentShaderNonUniform		= 1 << 4,	// VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT			| VK_ACCESS_SHADER_READ_BIT						| VK_ACCESS_SHADER_WRITE_BIT
-			ComputeShaderNonUniform			= 1 << 5,	// VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT				| VK_ACCESS_SHADER_READ_BIT						| VK_ACCESS_SHADER_WRITE_BIT
-			VertexShaderUniform				= 1 << 6,	// VK_PIPELINE_STAGE_VERTEX_SHADER_BIT				| VK_ACCESS_UNIFORM_READ_BIT					| N/A
-			FragmentShaderUniform			= 1 << 7,	// VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT			| VK_ACCESS_UNIFORM_READ_BIT					| N/A
-			ComputeShaderUniform			= 1 << 8,	// VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT				| VK_ACCESS_UNIFORM_READ_BIT					| N/A
-			EarlyFragmentTests				= 1 << 9,	// VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT		| VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT	| VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
-			LateFragmentTests				= 1 << 10,	// VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT		| VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT	| VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
-			ColorAttachment					= 1 << 11,	// VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT	| VK_ACCESS_COLOR_ATTACHMENT_READ_BIT			| VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
-			Transfer						= 1 << 12,	// VK_PIPELINE_STAGE_TRANSFER_BIT					| VK_ACCESS_TRANSFER_READ_BIT					| VK_ACCESS_TRANSFER_WRITE_BIT
-			Host							= 1 << 13,	// VK_PIPELINE_STAGE_HOST_BIT						| VK_ACCESS_HOST_READ_BIT						| VK_ACCESS_HOST_WRITE_BIT
-
-			AllShader = VertexShaderNonUniform | FragmentShaderNonUniform | ComputeShaderNonUniform | VertexShaderUniform | FragmentShaderUniform | ComputeShaderUniform,
-			All = AllShader | DrawIndirect | VertexInputAttributes | VertexInputIndices | EarlyFragmentTests | LateFragmentTests | ColorAttachment | Transfer | Host
-		};
-
-		typedef Flags<VulkanAccessStageFlag> VulkanAccessStageFlags;
-		B3D_FLAGS_OPERATORS(VulkanAccessStageFlag)
-
 		/** @} */
 	} // namespace render
 } // namespace b3d
