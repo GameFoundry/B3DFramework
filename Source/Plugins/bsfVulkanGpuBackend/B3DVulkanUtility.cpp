@@ -1092,39 +1092,45 @@ void VulkanUtility::GetPipelineStageAndAccessMask(GpuStageFlags accessStage, Gpu
 }
 
 
-VkImageLayout VulkanUtility::GetImageLayout(ImageLayout layout)
+VkImageLayout VulkanUtility::GetImageLayout(GpuImageLayout layout)
 {
 	switch (layout)
 	{
-		case ImageLayout::Undefined:
+		case GpuImageLayout::Undefined:
 			return VK_IMAGE_LAYOUT_UNDEFINED;
 
-		case ImageLayout::General:
+		case GpuImageLayout::General:
 			return VK_IMAGE_LAYOUT_GENERAL;
 
-		case ImageLayout::ColorAttachment:
+		case GpuImageLayout::ColorAttachment:
 			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-		case ImageLayout::DepthStencilAttachment:
+		case GpuImageLayout::DepthStencilAttachment:
 			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-		case ImageLayout::DepthStencilReadOnly:
+		case GpuImageLayout::DepthStencilReadOnly:
 			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
-		case ImageLayout::ShaderReadOnly:
+		case GpuImageLayout::DepthReadOnlyStencilAttachment:
+			return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR;
+
+		case GpuImageLayout::DepthAttachmentStencilReadOnly:
+			return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR;
+
+		case GpuImageLayout::ShaderReadOnly:
 			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-		case ImageLayout::TransferSource:
+		case GpuImageLayout::TransferSource:
 			return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 
-		case ImageLayout::TransferDestination:
+		case GpuImageLayout::TransferDestination:
 			return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
-		case ImageLayout::Present:
+		case GpuImageLayout::Present:
 			return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 		default:
-			B3D_LOG(Warning, LogRenderBackend, "Unknown ImageLayout enum value: {0}", (u32)layout);
+			B3D_LOG(Warning, LogRenderBackend, "Unknown GpuImageLayout enum value: {0}", (u32)layout);
 			return VK_IMAGE_LAYOUT_UNDEFINED;
 	}
 }

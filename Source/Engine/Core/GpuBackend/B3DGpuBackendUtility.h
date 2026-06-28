@@ -63,6 +63,23 @@ namespace b3d
 
 		/** Appends every bit set in @p flags to @p output as readable stage names, using "|" as separator. */
 		static void GetAccessStageNames(render::GpuStageFlags flags, StringStream& output);
+
+		/** Checks if the two image subresource ranges have any overlapping subresources. */
+		static bool RangeOverlaps(const GpuTextureSubresourceRange& a, const GpuTextureSubresourceRange& b);
+
+		/**
+		 * Subdivides an image subresource range by cutting it with another range. If the ranges don't overlap, or the
+		 * @p cutWith range completely covers the @p toCut range, the original @p toCut range is output.
+		 *
+		 * @param[in]	toCut		Range to cut.
+		 * @param[in]	cutWith		Range to cut with.
+		 * @param[out]	output		Pieces of the range that was cut.
+		 * @param[out]	numAreas	Number of pieces in the @p output array.
+		 */
+		static void CutRange(const GpuTextureSubresourceRange& toCut, const GpuTextureSubresourceRange& cutWith, std::array<GpuTextureSubresourceRange, 5>& output, u32& numAreas);
+
+		/** Converts a GpuImageLayout enum value to a readable string representing the layout name. */
+		static const char* GetImageLayoutName(render::GpuImageLayout layout);
 	};
 
 	/** @} */

@@ -12,7 +12,7 @@ using namespace b3d;
 using namespace b3d::render;
 
 VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation, VulkanGpuBuffer* parent)
-	: VulkanResource(owner, false, createInformation.DebugName), mType(createInformation.Type), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory)
+	: TVulkanResource<IGpuBufferResource>(owner, false, createInformation.DebugName), mType(createInformation.Type), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory)
 {
 }
 
@@ -126,130 +126,6 @@ VkBufferView VulkanBuffer::GetOrCreateView(VkFormat format)
 	mViews.Add(ViewInformation(format, view));
 	return view;
 }
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-
-void VulkanBuffer::InitializeSuballocationTracking(u32 suballocationCount, u32 suballocationSize)
-{
-	Lock lock(mMutex);
-
-	mSuballocationSize = suballocationSize;
-
-	// Only track if there are multiple suballocations (single suballocation falls back to whole-buffer tracking)
-	if(suballocationCount > 1)
-	{
-		mSuballocationStates.Clear();
-		for(u32 subIndex = 0; subIndex < suballocationCount; ++subIndex)
-			mSuballocationStates.Add(SuballocationTrackingState{});
-	}
-}
-
-void VulkanBuffer::NotifySuballocationBound(u32 suballocationIndex)
-{
-	Lock lock(mMutex);
-	if(mSuballocationStates.Empty())
-		return; // Single suballocation, use existing whole-buffer tracking
-
-	B3D_ASSERT(suballocationIndex < mSuballocationStates.Size());
-	mSuballocationStates[suballocationIndex].BoundCount++;
-}
-
-void VulkanBuffer::NotifySuballocationUsed(u32 suballocationIndex)
-{
-	Lock lock(mMutex);
-	if(mSuballocationStates.Empty())
-		return;
-
-	B3D_ASSERT(suballocationIndex < mSuballocationStates.Size());
-	mSuballocationStates[suballocationIndex].UseCount++;
-}
-
-void VulkanBuffer::NotifySuballocationDone(u32 suballocationIndex)
-{
-	Lock lock(mMutex);
-	if(mSuballocationStates.Empty())
-		return;
-
-	B3D_ASSERT(suballocationIndex < mSuballocationStates.Size());
-	B3D_ASSERT(mSuballocationStates[suballocationIndex].UseCount > 0);
-	B3D_ASSERT(mSuballocationStates[suballocationIndex].BoundCount > 0);
-	mSuballocationStates[suballocationIndex].UseCount--;
-	mSuballocationStates[suballocationIndex].BoundCount--;
-}
-
-void VulkanBuffer::NotifySuballocationUnbound(u32 suballocationIndex)
-{
-	Lock lock(mMutex);
-	if(mSuballocationStates.Empty())
-		return;
-
-	B3D_ASSERT(suballocationIndex < mSuballocationStates.Size());
-	B3D_ASSERT(mSuballocationStates[suballocationIndex].BoundCount > 0);
-	mSuballocationStates[suballocationIndex].BoundCount--;
-}
-
-bool VulkanBuffer::IsSuballocationBound(u32 suballocationIndex) const
-{
-	Lock lock(mMutex);
-	if(mSuballocationStates.Empty())
-		return mBountCount > 0; // Fall back to whole-buffer tracking
-
-	B3D_ASSERT(suballocationIndex < mSuballocationStates.Size());
-	return mSuballocationStates[suballocationIndex].BoundCount > 0;
-}
-
-bool VulkanBuffer::IsSuballocationInUse(u32 suballocationIndex) const
-{
-	Lock lock(mMutex);
-	if(mSuballocationStates.Empty())
-		return mUsedCount > 0; // Fall back to whole-buffer tracking
-
-	B3D_ASSERT(suballocationIndex < mSuballocationStates.Size());
-	return mSuballocationStates[suballocationIndex].UseCount > 0;
-}
-
-u32 VulkanBuffer::GetSuballocationIndexForOffset(u32 offset) const
-{
-	if(mSuballocationSize == 0)
-		return 0;
-
-	return offset / mSuballocationSize;
-}
-
-bool VulkanBuffer::IsRangeBound(u32 offset, u32 size) const
-{
-	Lock lock(mMutex);
-	if(mSuballocationStates.Empty())
-		return mBountCount > 0; // Fall back to whole-buffer tracking
-
-	const u32 firstSuballoc = GetSuballocationIndexForOffset(offset);
-	const u32 lastSuballoc = GetSuballocationIndexForOffset(offset + size - 1);
-
-	for(u32 subIndex = firstSuballoc; subIndex <= lastSuballoc && subIndex < mSuballocationStates.Size(); ++subIndex)
-	{
-		if(mSuballocationStates[subIndex].BoundCount > 0)
-			return true;
-	}
-	return false;
-}
-
-bool VulkanBuffer::IsRangeInUse(u32 offset, u32 size) const
-{
-	Lock lock(mMutex);
-	if(mSuballocationStates.Empty())
-		return mUsedCount > 0; // Fall back to whole-buffer tracking
-
-	const u32 firstSuballoc = GetSuballocationIndexForOffset(offset);
-	const u32 lastSuballoc = GetSuballocationIndexForOffset(offset + size - 1);
-
-	for(u32 subIndex = firstSuballoc; subIndex <= lastSuballoc && subIndex < mSuballocationStates.Size(); ++subIndex)
-	{
-		if(mSuballocationStates[subIndex].UseCount > 0)
-			return true;
-	}
-	return false;
-}
-#endif // B3D_BUILD_TYPE_DEVELOPMENT
 
 VulkanGpuBuffer::VulkanGpuBuffer(VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation, IGpuAllocator& allocator)
 	: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device)), mAllocator(allocator), mDirectlyMappable((createInformation.Flags.IsSetAny(GpuBufferFlag::StoreOnCPUWithGPUAccess)) != 0 || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite), mSupportsGPUWrites(createInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))

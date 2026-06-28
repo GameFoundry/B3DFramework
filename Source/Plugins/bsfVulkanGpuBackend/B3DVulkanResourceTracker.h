@@ -181,7 +181,7 @@ namespace b3d::render
 		 * Lets the tracker know that the provided resource will be queued on the associated command buffer.
 		 * If a resource is an image, buffer, swap chain or framebuffer use the more specific Track*Use() overload.
 		 */
-		void TrackResourceUsage(VulkanResource* resource, GpuAccessFlags access);
+		void TrackResourceUsage(IGpuResource* resource, GpuAccessFlags access);
 
 		/**
 		 * Iterates over all subresource tracking states that overlap with the provided subresource range. The provided callback is invoked for each overlapping subresource.
@@ -280,10 +280,10 @@ namespace b3d::render
 		void CommitPendingHazardRegistrations();
 
 		/** Returns the internal map of all tracked buffers and their tracking states. */
-		TDenseMap<VulkanResource*, BufferTrackingState>& GetBuffers() { return mBuffers; }
+		TDenseMap<IGpuBufferResource*, BufferTrackingState>& GetBuffers() { return mBuffers; }
 
 		/** Returns the internal map of all tracked images to their tracking state indices. */
-		TDenseMap<VulkanResource*, u32>& GetImages() { return mImages; }
+		TDenseMap<IGpuImageResource*, u32>& GetImages() { return mImages; }
 
 	private:
 		friend class VulkanGpuCommandBuffer;
@@ -351,13 +351,13 @@ namespace b3d::render
 		VulkanGpuCommandBuffer* mCommandBuffer;
 
 		/** Maps images to their tracking state index in mImageTrackingState. */
-		TDenseMap<VulkanResource*, u32> mImages;
+		TDenseMap<IGpuImageResource*, u32> mImages;
 
 		/** Maps buffers to their tracking state. */
-		TDenseMap<VulkanResource*, BufferTrackingState> mBuffers;
+		TDenseMap<IGpuBufferResource*, BufferTrackingState> mBuffers;
 
 		/** All generic resources tracked by this command buffer. */
-		TDenseMap<VulkanResource*, ResourceUseHandle> mResources;
+		TDenseMap<IGpuResource*, ResourceUseHandle> mResources;
 
 		/** Maps swap chains to their use handles. */
 		TDenseMap<VulkanSwapChain*, ResourceUseHandle> mSwapChains;

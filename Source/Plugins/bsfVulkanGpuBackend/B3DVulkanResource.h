@@ -19,18 +19,33 @@ namespace b3d
 		class VulkanResourceManager;
 
 		/**
-		 * Wraps one or multiple native Vulkan objects. Extends IGpuResource with the Vulkan-specific
-		 * portion of the lifetime state machine: queue ownership transitions and per-queue read/write
-		 * use counters. Aggregate counters and deferred destruction are inherited from IGpuResource.
+		 * Wraps a native Vulkan object. Extends a generic GPU resource base (@p TBase) with the
+		 * Vulkan-specific portion of the lifetime state machine: queue ownership transitions and per-queue
+		 * read/write use counters. Aggregate counters and deferred destruction are inherited from IGpuResource.
 		 *
 		 * @note Thread safe
 		 */
-		class VulkanResource : public IGpuResource
+		template<class TBase>
+		class TVulkanResource : public TBase
 		{
+		protected:
+			/** Possible states of this object. */
+			enum class State
+			{
+				Normal,
+				Shared
+			};
+
 		public:
 			static constexpr u32 kMaximumUniqueQueueCount = B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT;
 
-			VulkanResource(VulkanResourceManager* owner, bool concurrency, const StringView& name);
+			template<class... TBaseArgs>
+			TVulkanResource(VulkanResourceManager* owner, bool concurrency, TBaseArgs&&... baseArgs)
+				: TBase(owner, std::forward<TBaseArgs>(baseArgs)...), mOwner(owner), mState(concurrency ? State::Shared : State::Normal)
+			{
+				B3DZeroOut(mReadUses);
+				B3DZeroOut(mWriteUses);
+			}
 
 			/**
 			 * Returns the queue usage the resource is currently owned by. Returns -1 if owned by no queue.
@@ -40,7 +55,7 @@ namespace b3d
 			 */
 			GpuQueueType GetOwnedQueueType() const
 			{
-				Lock lock(mMutex);
+				Lock lock(this->mMutex);
 				return mOwnedQueueType;
 			}
 
@@ -55,7 +70,7 @@ namespace b3d
 			/** Returns true if the resource is only allowed to be used by a single queue family at once. */
 			bool IsExclusive() const
 			{
-				Lock lock(mMutex);
+				Lock lock(this->mMutex);
 				return mState != State::Shared;
 			}
 
@@ -65,13 +80,6 @@ namespace b3d
 		protected:
 			void OnNotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags) override;
 			void OnNotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags) override;
-
-			/** Possible states of this object. */
-			enum class State
-			{
-				Normal,
-				Shared
-			};
 
 			/**
 			 * Typed manager pointer. Shadows IGpuResource::mOwner so that subclasses calling mOwner->GetDevice()
@@ -86,6 +94,9 @@ namespace b3d
 			u8 mReadUses[kMaximumUniqueQueueCount];
 			u8 mWriteUses[kMaximumUniqueQueueCount];
 		};
+
+		/** Standard Vulkan resource with no specialized generic role. */
+		using VulkanResource = TVulkanResource<IGpuResource>;
 
 		/**
 		 * Creates and destroys VulkanResource%s on a single device.

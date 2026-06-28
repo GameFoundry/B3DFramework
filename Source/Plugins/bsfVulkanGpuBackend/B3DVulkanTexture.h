@@ -43,7 +43,7 @@ namespace b3d
 		class VulkanTexture;
 
 		/** Wrapper around a Vulkan image object that manages its usage and lifetime. */
-		class VulkanImage : public VulkanResource
+		class VulkanImage : public TVulkanResource<IGpuImageResource>
 		{
 		public:
 			/**
@@ -221,10 +221,7 @@ namespace b3d
 			bool mOwnsImage;
 			bool mIsShaderReadAllowed = true;
 
-			u32 mFaceCount;
 			u32 mDepthSliceCount;
-			u32 mMipLevelCount;
-			VulkanImageSubresource** mSubresources;
 
 			mutable VkImageViewCreateInfo mImageViewCI;
 			mutable Vector<ImageViewInformation> mImageInfos;

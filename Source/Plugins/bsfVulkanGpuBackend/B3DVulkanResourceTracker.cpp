@@ -230,7 +230,7 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 		subresourceTrackingState.FramebufferUse |= accessFlags;
 }
 
-void VulkanResourceTracker::TrackResourceUsage(VulkanResource* resource, GpuAccessFlags access)
+void VulkanResourceTracker::TrackResourceUsage(IGpuResource* resource, GpuAccessFlags access)
 {
 	auto insertResult = mResources.insert(std::make_pair(resource, ResourceUseHandle()));
 	if(insertResult.second) // New element

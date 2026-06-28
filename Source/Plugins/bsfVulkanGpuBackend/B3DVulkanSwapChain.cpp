@@ -17,7 +17,7 @@ VulkanSurface::~VulkanSurface()
 }
 
 VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const TShared<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain, const StringView& name)
-	: VulkanResource(owner, false, name), mSurface(surface)
+	: Super(owner, false, name), mSurface(surface)
 {
 	// Process messages related to this swap chain on this thread. Mostly these are notifies when a swap chain is done being used for a present operation. */
 	Scheduler* const scheduler = Scheduler::Get();
@@ -291,7 +291,7 @@ void VulkanSwapChain::Destroy()
 	// Ensure we process all pending messages as those could contain unbind notifies, so we can ensure the resource gets destroyed immediately (important for shutdown)
 	mMessageQueue.RunUntilIdle();
 
-	Base::Destroy();
+	Super::Destroy();
 }
 
 ImageAcquireResult VulkanSwapChain::AcquireImage()

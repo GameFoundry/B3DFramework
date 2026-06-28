@@ -7,20 +7,12 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanResource::VulkanResource(VulkanResourceManager* owner, bool concurrency, const StringView& name)
-	: IGpuResource(owner, name)
-	, mOwner(owner)
-	, mState(concurrency ? State::Shared : State::Normal)
-{
-	B3DZeroOut(mReadUses);
-	B3DZeroOut(mWriteUses);
-}
-
-void VulkanResource::OnNotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags)
+template<class TBase>
+void TVulkanResource<TBase>::OnNotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags)
 {
 	// Called under IGpuResource::mMutex from inside NotifyUsed, after the aggregate use counter has been incremented.
 	// IGpuResource has already incremented mUsedCount, so a value > 1 means there were prior in-flight uses.
-	const bool wasInUse = mUsedCount > 1;
+	const bool wasInUse = this->mUsedCount > 1;
 	if(wasInUse && mState == State::Normal) // Used without support for concurrency
 	{
 		B3D_ASSERT(mOwnedQueueType == queueId.GetType() && "Vulkan resource without concurrency support can only be used by one queue family at once.");
@@ -43,7 +35,8 @@ void VulkanResource::OnNotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags)
 	}
 }
 
-void VulkanResource::OnNotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags)
+template<class TBase>
+void TVulkanResource<TBase>::OnNotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags)
 {
 	// Called under IGpuResource::mMutex from inside NotifyDone, after the aggregate counters have been decremented.
 	if(useFlags.IsSet(GpuAccessFlag::Read))
@@ -59,11 +52,12 @@ void VulkanResource::OnNotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags)
 	}
 }
 
-GpuQueueMask VulkanResource::GetUseInfo(GpuAccessFlags useFlags) const
+template<class TBase>
+GpuQueueMask TVulkanResource<TBase>::GetUseInfo(GpuAccessFlags useFlags) const
 {
 	GpuQueueMask mask = 0;
 
-	Lock lock(mMutex);
+	Lock lock(this->mMutex);
 
 	if(useFlags.IsSet(GpuAccessFlag::Read))
 	{
@@ -86,10 +80,16 @@ GpuQueueMask VulkanResource::GetUseInfo(GpuAccessFlags useFlags) const
 	return mask;
 }
 
-VulkanGpuDevice& VulkanResource::GetDevice() const
+template<class TBase>
+VulkanGpuDevice& TVulkanResource<TBase>::GetDevice() const
 {
 	return mOwner->GetDevice();
 }
+
+template class TVulkanResource<IGpuResource>;
+template class TVulkanResource<IGpuBufferResource>;
+template class TVulkanResource<IGpuImageResource>;
+template class TVulkanResource<IGpuSwapChainResource>;
 
 VulkanResourceManager::VulkanResourceManager(VulkanGpuDevice& device)
 	: GpuResourceManager(device)

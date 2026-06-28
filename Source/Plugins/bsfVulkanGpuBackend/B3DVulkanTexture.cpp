@@ -15,8 +15,26 @@
 using namespace b3d;
 using namespace b3d::render;
 
+namespace
+{
+	/** Determines the full aspect flags for a texture created with provided @p createInformation. */
+	GpuTextureAspectFlags GetFullAspectFlags(const VulkanImageCreateInformation& createInformation)
+	{
+		if(createInformation.Usage.IsSet(TextureUsageFlag::DepthStencil))
+		{
+			const bool hasStencil = createInformation.Format == VK_FORMAT_D16_UNORM_S8_UINT ||
+				createInformation.Format == VK_FORMAT_D24_UNORM_S8_UINT ||
+				createInformation.Format == VK_FORMAT_D32_SFLOAT_S8_UINT;
+
+			return hasStencil ? (GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil) : GpuTextureAspectFlags(GpuTextureAspectFlag::Depth);
+		}
+
+		return GpuTextureAspectFlag::Color;
+	}
+}
+
 VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, VkImage image, VulkanAllocationResult allocation, VulkanTexture* parent)
-	: VulkanResource(owner, false, createInformation.DebugName), mImage(image), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory), mUsage(createInformation.Usage), mOwnsImage(createInformation.OwnsImage), mIsShaderReadAllowed(createInformation.IsShaderReadAllowed), mFaceCount(createInformation.FaceCount), mDepthSliceCount(createInformation.DepthSliceCount), mMipLevelCount(createInformation.MipLevelCount)
+	: TVulkanResource<IGpuImageResource>(owner, false, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation)), mImage(image), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory), mUsage(createInformation.Usage), mOwnsImage(createInformation.OwnsImage), mIsShaderReadAllowed(createInformation.IsShaderReadAllowed), mDepthSliceCount(createInformation.DepthSliceCount)
 {
 	mImageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	mImageViewCI.pNext = nullptr;
@@ -66,7 +84,6 @@ VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateIn
 	}
 
 	const u32 subresourceCount = mFaceCount * mMipLevelCount;
-	mSubresources = (VulkanImageSubresource**)B3DAllocate(sizeof(VulkanImageSubresource*) * subresourceCount);
 	for(u32 i = 0; i < subresourceCount; i++)
 		mSubresources[i] = owner->Create<VulkanImageSubresource>(createInformation.Layout);
 }
@@ -83,9 +100,6 @@ VulkanImage::~VulkanImage()
 
 		mSubresources[i]->Destroy();
 	}
-
-	B3DFree(mSubresources);
-	mSubresources = nullptr;
 
 	{
 		Lock lock(mViewsMutex);
@@ -130,7 +144,7 @@ void VulkanImage::Destroy()
 		VulkanFramebufferCache::Instance().NotifyImageDestroyed(*this);
 	}
 
-	VulkanResource::Destroy();
+	IGpuResource::Destroy();
 }
 
 void VulkanImage::SetName(const StringView& name)
@@ -360,7 +374,7 @@ VkImageSubresourceRange VulkanImage::GetRange(const TextureSurface& surface) con
 VulkanImageSubresource* VulkanImage::GetSubresource(u32 face, u32 mipLevel)
 {
 	B3D_ASSERT(mipLevel * mFaceCount + face < mFaceCount * mMipLevelCount);
-	return mSubresources[mipLevel * mFaceCount + face];
+	return static_cast<VulkanImageSubresource*>(mSubresources[mipLevel * mFaceCount + face]);
 }
 
 VkSubresourceLayout VulkanImage::GetSubresourceLayout(u32 face, u32 mipLevel) const

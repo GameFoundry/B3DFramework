@@ -122,7 +122,7 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBa
 	return &mBarrierTracking.back();
 }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccessFlags, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccessFlags, ImageLayout oldLayout, ImageLayout newLayout)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccessFlags, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccessFlags, GpuImageLayout oldLayout, GpuImageLayout newLayout)
 {
 	const GpuStageFlags sourceAccessStageFlags = GpuBackendUtility::GetStageFlags(sourceUsage);
 	const GpuStageFlags destinationAccessStageFlags = GpuBackendUtility::GetStageFlags(destinationUsage);
@@ -133,7 +133,7 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBar
 	return AddSubresourceBarrier(image, subresourceRange, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccessFlags, vkOldLayout, vkNewLayout);
 }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, ImageLayout newLayout)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout newLayout)
 {
 	if(image == nullptr)
 		return nullptr;
@@ -149,7 +149,7 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBar
 		VulkanImage* Image;
 		GpuResourceUseFlags DestinationUsage;
 		GpuAccessFlags DestinationAccess;
-		ImageLayout NewLayout;
+		GpuImageLayout NewLayout;
 		const BarrierTrackingInfo* OutTrackingInfo;
 	};
 

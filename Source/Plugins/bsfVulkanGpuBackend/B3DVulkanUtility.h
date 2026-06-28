@@ -80,8 +80,8 @@ namespace b3d
 			/** Gets Vulkan flags representing a certain shader stage. */
 			static VkShaderStageFlagBits GetShaderStage(GpuProgramType type);
 
-			/** Maps a framework ImageLayout enum to Vulkan VkImageLayout. */
-			static VkImageLayout GetImageLayout(ImageLayout layout);
+			/** Maps a framework GpuImageLayout enum to Vulkan VkImageLayout. */
+			static VkImageLayout GetImageLayout(GpuImageLayout layout);
 
 			/** Converts a set of shader stage flags into a pipeline stage flags set containing the relevant shader stages. */
 			static VkPipelineStageFlags ShaderToPipelineStage(VkShaderStageFlags shaderStageFlags);

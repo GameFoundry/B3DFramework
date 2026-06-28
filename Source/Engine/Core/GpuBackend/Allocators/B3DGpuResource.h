@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuTextureSubresource.h"
 
 namespace b3d
 {
@@ -374,6 +375,122 @@ namespace b3d
 		void DestroyImmediately();
 
 		bool mDestroyRequested = false;
+	};
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	/** Tracks the bound/use state of a single suballocation within a buffer. */
+	struct SuballocationTrackingState
+	{
+		u32 BoundCount = 0;  /**< Number of command buffers this suballocation is bound to. */
+		u32 UseCount = 0;    /**< Number of submitted command buffers using this suballocation. */
+	};
+#endif
+
+	/** Base for GPU buffer resources. */
+	class B3D_EXPORT IGpuBufferResource : public IGpuResource
+	{
+	public:
+		IGpuBufferResource(GpuResourceManager* owner, const StringView& name)
+			: IGpuResource(owner, name)
+		{}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		/**
+		 * Initializes suballocation tracking for the specified count. Called during buffer creation. Only needs
+		 * to be called for buffers with more than one suballocation.
+		 *
+		 * @param suballocationCount	Number of suballocations in the buffer.
+		 * @param suballocationSize		Size of each suballocation in bytes.
+		 */
+		void InitializeSuballocationTracking(u32 suballocationCount, u32 suballocationSize);
+
+		/** Notifies that a suballocation is bound to a command buffer. */
+		void NotifySuballocationBound(u32 suballocationIndex);
+
+		/** Notifies that a suballocation is used (command buffer submitted). */
+		void NotifySuballocationUsed(u32 suballocationIndex);
+
+		/** Notifies that a suballocation is done being used (command buffer completed). */
+		void NotifySuballocationDone(u32 suballocationIndex);
+
+		/** Notifies that a suballocation is unbound (command buffer destroyed without submit). */
+		void NotifySuballocationUnbound(u32 suballocationIndex);
+
+		/** Checks if a suballocation is currently bound to any command buffer. */
+		bool IsSuballocationBound(u32 suballocationIndex) const;
+
+		/** Checks if a suballocation is currently in use on the GPU. */
+		bool IsSuballocationInUse(u32 suballocationIndex) const;
+
+		/** Checks if any suballocation overlapping the given byte range is bound. */
+		bool IsRangeBound(u32 offset, u32 size) const;
+
+		/** Checks if any suballocation overlapping the given byte range is in use. */
+		bool IsRangeInUse(u32 offset, u32 size) const;
+
+		/** Returns the suballocation index for the given byte offset. */
+		u32 GetSuballocationIndexForOffset(u32 offset) const;
+#endif
+
+	protected:
+		IGpuBufferResource() = default;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		TInlineArray<SuballocationTrackingState, 2> mSuballocationStates;
+		u32 mSuballocationSize = 0;  // Size of each suballocation (for range-to-index conversion)
+#endif
+	};
+
+	/**
+	 * Base for GPU image resources. Stores the full-image subresource range and
+	 * the per-(face × mip) subresource resource pointers shared across backends.
+	 * The subresource array is allocated by the constructor (zero-initialized);
+	 * backends fill in the pointers during their own construction.
+	 */
+	class B3D_EXPORT IGpuImageResource : public IGpuResource
+	{
+	public:
+		/**
+		 * Constructs the image resource, recording its shape (face/mip counts + full-image subresource range)
+		 * and allocating the per-(face × mip) subresource pointer storage. The pointers are zero-initialized;
+		 * the backend fills them in during its own construction.
+		 */
+		IGpuImageResource(GpuResourceManager* owner, const StringView& name, u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspectMask);
+
+		~IGpuImageResource() override;
+
+		/** Retrieves a subresource range covering all the sub-resources of the image. */
+		const GpuTextureSubresourceRange& GetRange() const { return mFullRange; }
+
+		/**
+		 * Retrieves a separate resource for a specific image face & mip level. This allows the caller to track
+		 * subresource usage individually, instead of for the entire image.
+		 */
+		IGpuResource* GetSubresource(u32 face, u32 mipLevel) const
+		{
+			B3D_ASSERT(mipLevel * mFaceCount + face < mFaceCount * mMipLevelCount);
+			return mSubresources[mipLevel * mFaceCount + face];
+		}
+
+	protected:
+		IGpuImageResource() = default;
+
+		u32 mFaceCount = 0;
+		u32 mMipLevelCount = 0;
+		GpuTextureSubresourceRange mFullRange;
+		IGpuResource** mSubresources = nullptr;
+	};
+
+	/** Base GPU swap chain resources. */
+	class B3D_EXPORT IGpuSwapChainResource : public IGpuResource
+	{
+	public:
+		IGpuSwapChainResource(GpuResourceManager* owner, const StringView& name)
+			: IGpuResource(owner, name)
+		{}
+
+	protected:
+		IGpuSwapChainResource() = default;
 	};
 
 	/** @} */

@@ -57,9 +57,9 @@ namespace b3d
 		};
 
 		/** Vulkan swap chain containing two or more buffers for rendering and presenting onto the screen. */
-		class VulkanSwapChain : public VulkanResource, INonCopyable
+		class VulkanSwapChain : public TVulkanResource<IGpuSwapChainResource>, INonCopyable
 		{
-			using Base = VulkanResource;
+			using Super = TVulkanResource<IGpuSwapChainResource>;
 		public:
 			/**
 			 * Creates the swap chain with the provided properties. Destroys any previously existing swap chain. Caller must
