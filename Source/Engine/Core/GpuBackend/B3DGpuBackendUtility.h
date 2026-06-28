@@ -14,7 +14,7 @@ namespace b3d
 	 */
 
 	/** Collection of static utility methods shared between GPU backend implementations. */
-	class GpuBackendUtility
+	class B3D_EXPORT GpuBackendUtility
 	{
 	public:
 		/**

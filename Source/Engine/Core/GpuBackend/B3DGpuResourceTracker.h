@@ -16,7 +16,7 @@ namespace b3d
 		 */
 
 		/** Keeps track on which pipeline stages a resource was written/read, and on which stages it may be safely accessed from. */
-		struct GpuWriteHazardPipelineTracking
+		struct B3D_EXPORT GpuWriteHazardPipelineTracking
 		{
 			static constexpr u32 kPipelineStageCount = 16;
 
@@ -47,7 +47,7 @@ namespace b3d
 		};
 
 		/** Tracking that is used for validation when memory barriers need to be issued. */
-		struct GpuWriteHazardTracking
+		struct B3D_EXPORT GpuWriteHazardTracking
 		{
 			GpuAccessFlags Access; /**< Has the buffer been read or written so far. */
 
