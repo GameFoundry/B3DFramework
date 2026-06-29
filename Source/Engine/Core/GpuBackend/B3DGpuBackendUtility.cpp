@@ -257,6 +257,12 @@ bool GpuBackendUtility::RangeOverlaps(const GpuTextureSubresourceRange& a, const
 	return false;
 }
 
+bool GpuBackendUtility::RangeEquals(const GpuTextureSubresourceRange& a, const GpuTextureSubresourceRange& b)
+{
+	return a.BaseArrayLayer == b.BaseArrayLayer && a.BaseMipLevel == b.BaseMipLevel &&
+		a.ArrayLayerCount == b.ArrayLayerCount && a.MipLevelCount == b.MipLevelCount && a.AspectMask == b.AspectMask;
+}
+
 const char* GpuBackendUtility::GetImageLayoutName(GpuImageLayout layout)
 {
 	switch(layout)

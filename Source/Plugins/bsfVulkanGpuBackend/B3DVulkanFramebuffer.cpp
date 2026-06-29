@@ -27,7 +27,7 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, VulkanRenderP
 
 		mColorAttachments[attachmentIdx].BaseLayer = desc.Color[i].BaseLayer;
 		mColorAttachments[attachmentIdx].Image = desc.Color[i].Image;
-		mColorAttachments[attachmentIdx].FinalLayout = renderPass->GetColorAttachmentDescription(attachmentIdx).finalLayout;
+		mColorAttachments[attachmentIdx].FinalLayout = renderPass->GetColorAttachmentFinalLayout(attachmentIdx);
 		mColorAttachments[attachmentIdx].Index = i;
 		mColorAttachments[attachmentIdx].Surface = desc.Color[i].Surface;
 
@@ -43,7 +43,7 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, VulkanRenderP
 	{
 		mDepthStencilAttachment.BaseLayer = desc.Depth.BaseLayer;
 		mDepthStencilAttachment.Image = desc.Depth.Image;
-		mDepthStencilAttachment.FinalLayout = renderPass->GetDepthAttachmentDescription().finalLayout;
+		mDepthStencilAttachment.FinalLayout = renderPass->GetDepthAttachmentFinalLayout();
 		mDepthStencilAttachment.Index = 0;
 		mDepthStencilAttachment.Surface = desc.Depth.Surface;
 

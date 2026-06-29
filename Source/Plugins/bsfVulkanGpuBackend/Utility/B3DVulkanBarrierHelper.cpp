@@ -14,7 +14,7 @@ VulkanBarrierHelper::VulkanBarrierHelper(VulkanResourceTracker* resourceTracker)
 	: mResourceTracker(resourceTracker)
 { }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(IGpuBufferResource* buffer, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
 {
 	if(buffer == nullptr)
 		return nullptr;
@@ -25,19 +25,19 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBa
 	return AddBufferBarrier(buffer, sourceAccessStageFlags, sourceAccess, destinationAccessStageFlags, destinationAccess);
 }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(IGpuBufferResource* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
 {
 	if(buffer == nullptr)
 		return nullptr;
 
-	const VulkanResourceTracker::BufferTrackingState* bufferTrackingState = mResourceTracker->FindBufferTrackingState(buffer);
+	const GpuBufferTrackingState* bufferTrackingState = mResourceTracker->FindBufferTrackingState(buffer);
 	if(bufferTrackingState == nullptr)
 		return nullptr;
 
 	return AddBufferBarrier(buffer, *bufferTrackingState, destinationUsage, destinationAccess);
 }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, const VulkanResourceTracker::BufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(IGpuBufferResource* buffer, const GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
 {
 	if(buffer == nullptr)
 		return nullptr;
@@ -73,10 +73,12 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBa
 	return AddBufferBarrier(buffer, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess);
 }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags)
 {
 	if(buffer == nullptr)
 		return nullptr;
+
+	const VkBuffer bufferHandle = static_cast<VulkanBuffer*>(buffer)->GetVulkanHandle();
 
 	VkPipelineStageFlags sourceStageMask, destinationStageMask;
 	VkAccessFlags sourceAccessMask, destinationAccessMask;
@@ -88,8 +90,8 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBa
 	mCombinedSourceAccess |= sourceAccessFlags;
 	mCombinedDestinationAccess |= destinationAccessFlags;
 
-	auto found = std::find_if(mBufferBarriers.begin(), mBufferBarriers.end(), [buffer](const VkBufferMemoryBarrier& barrier)
-		{ return barrier.buffer == buffer->GetVulkanHandle(); } );
+	auto found = std::find_if(mBufferBarriers.begin(), mBufferBarriers.end(), [bufferHandle](const VkBufferMemoryBarrier& barrier)
+		{ return barrier.buffer == bufferHandle; } );
 	if(found == mBufferBarriers.end())
 	{
 		VkBufferMemoryBarrier barrier;
@@ -99,7 +101,7 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBa
 		barrier.dstAccessMask = destinationAccessMask;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.buffer = buffer->GetVulkanHandle();
+		barrier.buffer = bufferHandle;
 		barrier.offset = 0;
 		barrier.size = VK_WHOLE_SIZE;
 
@@ -122,23 +124,20 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddBufferBa
 	return &mBarrierTracking.back();
 }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccessFlags, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccessFlags, GpuImageLayout oldLayout, GpuImageLayout newLayout)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccessFlags, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccessFlags, GpuImageLayout oldLayout, GpuImageLayout newLayout)
 {
 	const GpuStageFlags sourceAccessStageFlags = GpuBackendUtility::GetStageFlags(sourceUsage);
 	const GpuStageFlags destinationAccessStageFlags = GpuBackendUtility::GetStageFlags(destinationUsage);
 
-	const VkImageLayout vkOldLayout = VulkanUtility::GetImageLayout(oldLayout);
-	const VkImageLayout vkNewLayout = VulkanUtility::GetImageLayout(newLayout);
-
-	return AddSubresourceBarrier(image, subresourceRange, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccessFlags, vkOldLayout, vkNewLayout);
+	return AddSubresourceBarrier(image, subresourceRange, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccessFlags, oldLayout, newLayout);
 }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout newLayout)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout newLayout)
 {
 	if(image == nullptr)
 		return nullptr;
 
-	const VulkanResourceTracker::ImageTrackingState* imageTrackingState = mResourceTracker->FindImageTrackingState(image);
+	const GpuImageTrackingState* imageTrackingState = mResourceTracker->FindImageTrackingState(image);
 	if(imageTrackingState == nullptr)
 		return nullptr;
 
@@ -146,7 +145,7 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBar
 	{
 		VulkanBarrierHelper* BarrierHelper;
 		VulkanResourceTracker* ResourceTracker;
-		VulkanImage* Image;
+		IGpuImageResource* Image;
 		GpuResourceUseFlags DestinationUsage;
 		GpuAccessFlags DestinationAccess;
 		GpuImageLayout NewLayout;
@@ -159,22 +158,20 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddImageBar
 		CallbackParameters* const callbackParameters = static_cast<CallbackParameters*>(userData);
 
 		VulkanResourceTracker& resourceTracker = *callbackParameters->ResourceTracker;
-		const VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState = resourceTracker.GetSubresourceTrackingStateAtIndex(globalSubresourceIndex);
-
-		const VkImageLayout vkNewLayout = VulkanUtility::GetImageLayout(callbackParameters->NewLayout);
+		const GpuImageSubresourceTrackingState& subresourceTrackingState = resourceTracker.GetSubresourceTrackingStateAtIndex(globalSubresourceIndex);
 
 		VulkanBarrierHelper& barrierHelper = *callbackParameters->BarrierHelper;
-		callbackParameters->OutTrackingInfo = barrierHelper.AddSubresourceBarrier(callbackParameters->Image, subresourceTrackingState, callbackParameters->DestinationUsage, callbackParameters->DestinationAccess, vkNewLayout);
+		callbackParameters->OutTrackingInfo = barrierHelper.AddSubresourceBarrier(callbackParameters->Image, subresourceTrackingState, callbackParameters->DestinationUsage, callbackParameters->DestinationAccess, callbackParameters->NewLayout);
 	}, &callbackParameters);
 
 	return callbackParameters.OutTrackingInfo;
 }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresourceBarrier(VulkanImage* image, const VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout newLayout)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresourceBarrier(IGpuImageResource* image, const GpuImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout newLayout)
 {
 	if(image == nullptr)
 		return nullptr;
-	
+
 	const GpuStageFlags destinationAccessStageFlags = GpuBackendUtility::GetStageFlags(destinationUsage);
 
 	GpuStageFlags sourceAccessStageFlags;
@@ -201,7 +198,7 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresou
 	}
 
 	// No layout transition if destination layout is undefined
-	if(newLayout == VK_IMAGE_LAYOUT_UNDEFINED)
+	if(newLayout == GpuImageLayout::Undefined)
 		newLayout = subresourceTrackingState.CurrentLayout;
 
 	if(sourceAccessFlags == GpuAccessFlag::None && subresourceTrackingState.CurrentLayout == newLayout)
@@ -210,10 +207,15 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresou
 	return AddSubresourceBarrier(image, subresourceTrackingState.Range, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess, subresourceTrackingState.CurrentLayout, newLayout);
 }
 
-const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresourceBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout)
+const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, GpuImageLayout oldLayout, GpuImageLayout newLayout)
 {
 	if(image == nullptr)
 		return nullptr;
+
+	const VkImage imageHandle = static_cast<VulkanImage*>(image)->GetVulkanHandle();
+	const VkImageLayout vkOldLayout = VulkanUtility::GetVkImageLayout(oldLayout);
+	const VkImageLayout vkNewLayout = VulkanUtility::GetVkImageLayout(newLayout);
+	const VkImageSubresourceRange vkSubresourceRange = VulkanUtility::ToVulkanImageSubresourceRange(subresourceRange);
 
 	VkPipelineStageFlags sourceStageMask, destinationStageMask;
 	VkAccessFlags sourceAccessMask, destinationAccessMask;
@@ -225,9 +227,9 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresou
 	mCombinedSourceAccess |= sourceAccessFlags;
 	mCombinedDestinationAccess |= destinationAccessFlags;
 
-	auto found = std::find_if(mImageBarriers.begin(), mImageBarriers.end(), [image, &subresourceRange](const VkImageMemoryBarrier& barrier)
+	auto found = std::find_if(mImageBarriers.begin(), mImageBarriers.end(), [imageHandle, &vkSubresourceRange](const VkImageMemoryBarrier& barrier)
 	{
-		return barrier.image == image->GetVulkanHandle() && VulkanUtility::RangeEquals(barrier.subresourceRange, subresourceRange);
+		return barrier.image == imageHandle && VulkanUtility::RangeEquals(barrier.subresourceRange, vkSubresourceRange);
 	});
 
 	if(found == mImageBarriers.end())
@@ -239,10 +241,10 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresou
 		barrier.dstAccessMask = destinationAccessMask;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout = oldLayout;
-		barrier.newLayout = newLayout;
-		barrier.image = image->GetVulkanHandle();
-		barrier.subresourceRange = subresourceRange;
+		barrier.oldLayout = vkOldLayout;
+		barrier.newLayout = vkNewLayout;
+		barrier.image = imageHandle;
+		barrier.subresourceRange = vkSubresourceRange;
 
 		mImageBarriers.Add(barrier);
 	}
@@ -250,14 +252,14 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresou
 	{
 		found->srcAccessMask |= sourceAccessMask;
 		found->dstAccessMask |= destinationAccessMask;
-		found->newLayout = newLayout;
+		found->newLayout = vkNewLayout;
 
-		oldLayout = found->oldLayout;
+		oldLayout = VulkanUtility::GetGpuImageLayout(found->oldLayout);
 	}
 
 	auto foundTracking = std::find_if(mImageLayoutTracking.begin(), mImageLayoutTracking.end(), [image, &subresourceRange](const LayoutTrackingInfo& layoutTrackingInfo)
 	{
-		return layoutTrackingInfo.Image == image && VulkanUtility::RangeEquals(layoutTrackingInfo.SubresourceRange, subresourceRange);
+		return layoutTrackingInfo.Image == image && GpuBackendUtility::RangeEquals(layoutTrackingInfo.SubresourceRange, subresourceRange);
 	});
 
 	if(oldLayout != newLayout)

@@ -47,12 +47,12 @@ TAsyncOp<TShared<PixelData>> IVulkanRenderWindowSurface::ReadAsync(GpuCommandBuf
 	extent.height = height;
 	extent.depth = 1;
 
-	VkImageSubresourceRange subresourceRange;
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = 1;
-	subresourceRange.baseArrayLayer = 0;
-	subresourceRange.layerCount = 1;
+	GpuTextureSubresourceRange subresourceRange;
+	subresourceRange.AspectMask = GpuTextureAspectFlag::Color;
+	subresourceRange.BaseMipLevel = 0;
+	subresourceRange.MipLevelCount = 1;
+	subresourceRange.BaseArrayLayer = 0;
+	subresourceRange.ArrayLayerCount = 1;
 
 	// Calculate row pitch in pixels (not bytes)
 	const u32 rowPitch = width;
@@ -60,7 +60,7 @@ TAsyncOp<TShared<PixelData>> IVulkanRenderWindowSurface::ReadAsync(GpuCommandBuf
 
 	// Issue the copy command
 	VulkanGpuCommandBuffer& vulkanCmdBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
-	vulkanCmdBuffer.CopyImageToBuffer(colorImage, vulkanBuffer, extent, subresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, rowPitch, sliceHeight);
+	vulkanCmdBuffer.CopyImageToBuffer(colorImage, vulkanBuffer, extent, subresourceRange, GpuImageLayout::TransferSource, rowPitch, sliceHeight);
 
 	// Set up async completion
 	TAsyncOp<TShared<PixelData>> op;

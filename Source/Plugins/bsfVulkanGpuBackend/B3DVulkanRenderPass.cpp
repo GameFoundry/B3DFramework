@@ -107,9 +107,11 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VulkanRenderPas
 			vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 			if(createInformation.IsOffscreenSurface)
-				vkAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				mColorAttachmentFinalLayouts[sequentialAttachmentIndex] = GpuImageLayout::ColorAttachment;
 			else
-				vkAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+				mColorAttachmentFinalLayouts[sequentialAttachmentIndex] = GpuImageLayout::Present;
+
+			vkAttachmentDescription.finalLayout = VulkanUtility::GetVulkanImageLayout(mColorAttachmentFinalLayouts[sequentialAttachmentIndex]);
 
 			vkAttachmentReference.attachment = sequentialAttachmentIndex;
 			vkAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -143,7 +145,9 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VulkanRenderPas
 		vkAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		vkAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 		vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		vkAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		mDepthAttachmentFinalLayout = GpuImageLayout::DepthStencilAttachment;
+		vkAttachmentDescription.finalLayout = VulkanUtility::GetVulkanImageLayout(mDepthAttachmentFinalLayout);
 
 		mDepthReference.attachment = sequentialAttachmentIndex;
 		mDepthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;

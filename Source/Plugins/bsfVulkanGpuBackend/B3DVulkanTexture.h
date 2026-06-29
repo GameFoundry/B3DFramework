@@ -109,11 +109,10 @@ namespace b3d
 			/** Get aspect flags that represent the contents of this image. */
 			VkImageAspectFlags GetAspectFlags() const;
 
-			/** Retrieves a subresource range covering all the sub-resources of the image. */
-			VkImageSubresourceRange GetRange() const;
+			using IGpuImageResource::GetRange;
 
-			/** Retrieves a subresource range covering all the specified sub-resource range of the image. */
-			VkImageSubresourceRange GetRange(const TextureSurface& surface) const;
+			/** Retrieves a subresource range covering the specified sub-resource range of the image. */
+			GpuTextureSubresourceRange GetRange(const TextureSurface& surface) const;
 
 			/**
 			 * Retrieves a separate resource for a specific image face & mip level. This allows the caller to track subresource

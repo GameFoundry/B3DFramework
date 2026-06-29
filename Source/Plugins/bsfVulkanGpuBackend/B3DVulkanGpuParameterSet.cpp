@@ -883,9 +883,9 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanGpuCommandBuffer& commandBuffer
 			const TArrayView<const VkDescriptorSetLayoutBinding> perSetBindings = pipelineParameterInformationSet.GetBindings();
 
 			const GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::ShaderAccess;
-			const VkImageSubresourceRange range = vulkanImage->GetRange(surface);
+			const GpuTextureSubresourceRange range = vulkanImage->GetRange(surface);
 
-			resourceTracker.TrackImageUsage(vulkanImage, range, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_GENERAL, useFlags, GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper);
+			resourceTracker.TrackImageUsage(vulkanImage, range, GpuImageLayout::General, GpuImageLayout::General, useFlags, GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mStorageImages[sequentialResourceIndex] != VK_NULL_HANDLE);
@@ -916,7 +916,7 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanGpuCommandBuffer& commandBuffer
 			const u32 usedResourceSequentialIndex = pipelineParameterInformationSet.GetUsedResourceSequentialIndex(slot, arrayIndex);
 
 			VulkanImage* vulkanImage = nullptr;
-			VkImageLayout layout;
+			GpuImageLayout gpuLayout = GpuImageLayout::ShaderReadOnly;
 			if(mSampledTextureData[sequentialResourceIndex].Texture != nullptr)
 			{
 				VulkanTexture* element = static_cast<VulkanTexture*>(mSampledTextureData[sequentialResourceIndex].Texture.get());
@@ -925,9 +925,9 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanGpuCommandBuffer& commandBuffer
 				// Keep dynamic textures in general layout, so they can be easily mapped by CPU
 				const TextureProperties& props = element->GetProperties();
 				if(props.Usage.IsSet(TextureUsageFlag::StoreOnCPUWithGPUAccess))
-					layout = VK_IMAGE_LAYOUT_GENERAL;
+					gpuLayout = GpuImageLayout::General;
 				else
-					layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					gpuLayout = GpuImageLayout::ShaderReadOnly;
 			}
 
 			const TextureSurface& surface = mSampledTextureData[sequentialResourceIndex].Surface;
@@ -948,7 +948,7 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanGpuCommandBuffer& commandBuffer
 				auto& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
 
 				vulkanImage = vkTexManager.GetDummyTexture(objectType)->GetVulkanResource();
-				layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				gpuLayout = GpuImageLayout::ShaderReadOnly;
 
 				if(vulkanImage == nullptr)
 					continue;
@@ -960,15 +960,15 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanGpuCommandBuffer& commandBuffer
 			}
 
 			// Register with command buffer
-			VkImageSubresourceRange range = vulkanImage->GetRange(surface);
+			const GpuTextureSubresourceRange range = vulkanImage->GetRange(surface);
 
 			const TArrayView<const VkDescriptorSetLayoutBinding> perSetBindings = pipelineParameterInformationSet.GetBindings();
 
 			const GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::ShaderAccess;
-			resourceTracker.TrackImageUsage(vulkanImage, range, layout, layout, useFlags, GpuAccessFlag::Read, barrierHelper);
+			resourceTracker.TrackImageUsage(vulkanImage, range, gpuLayout, gpuLayout, useFlags, GpuAccessFlag::Read, barrierHelper);
 
 			// Actual layout might be different than requested if the image is also used as a FB attachment
-			layout = commandBuffer.GetCurrentLayout(vulkanImage, range, true); // TODO - Might not be necessary provided the resource tracker is aware the image is being used in the framebuffer
+			const VkImageLayout layout = commandBuffer.GetCurrentLayout(vulkanImage, range, true); // TODO - Might not be necessary provided the resource tracker is aware the image is being used in the framebuffer
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mSampledImages[sequentialResourceIndex] != VK_NULL_HANDLE);

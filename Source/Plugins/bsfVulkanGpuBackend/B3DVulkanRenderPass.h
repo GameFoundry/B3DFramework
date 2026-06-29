@@ -4,6 +4,7 @@
 
 #include "B3DVulkanPrerequisites.h"
 #include "B3DVulkanResource.h"
+#include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "Utility/B3DModule.h"
 
 namespace b3d
@@ -83,16 +84,16 @@ namespace b3d
 			VkRenderPass GetVkRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask) const;
 
 			/**
-			 * Returns the attachment descriptor for the specified color attachment. The attachment index is sequential in
-			 * range [0, getNumColorAttachments()).
+			 * Returns the final layout the specified color attachment transitions to when the render pass ends. The
+			 * attachment index is sequential in range [0, getNumColorAttachments()).
 			 */
-			const VkAttachmentDescription& GetColorAttachmentDescription(u32 index) const { return mAttachments[index]; }
+			GpuImageLayout GetColorAttachmentFinalLayout(u32 index) const { return mColorAttachmentFinalLayouts[index]; }
 
 			/**
-			 * Returns the attachment descriptor for the depth attachment. Only valid if depth attachment was requested
-			 * during render pass creation.
+			 * Returns the final layout the depth attachment transitions to when the render pass ends. Only valid if depth
+			 * attachment was requested during render pass creation.
 			 */
-			const VkAttachmentDescription& GetDepthAttachmentDescription() const { return mAttachments[mColorAttachmentCount]; }
+			GpuImageLayout GetDepthAttachmentFinalLayout() const { return mDepthAttachmentFinalLayout; }
 
 			/** Gets the total number of frame-buffer attachments, including both color and depth. */
 			u32 GetAttachmentCount() const { return mAttachmentCount; }
@@ -147,6 +148,8 @@ namespace b3d
 			u32 mMaximumColorAttachmentIndex = 0;
 			u32 mColorAttachmentSequentialToAttachmentIndexMap[B3D_MAXIMUM_RENDER_TARGET_COUNT]{ 0 };
 			std::array<bool, B3D_MAXIMUM_RENDER_TARGET_COUNT> mIsShaderReadAllowedForColorAttachment { false };
+			GpuImageLayout mColorAttachmentFinalLayouts[B3D_MAXIMUM_RENDER_TARGET_COUNT]{};
+			GpuImageLayout mDepthAttachmentFinalLayout = GpuImageLayout::Undefined;
 			bool mHasDepthAttachment;
 			VkSampleCountFlagBits mSampleFlags = VK_SAMPLE_COUNT_1_BIT;
 			VkDevice mDevice;

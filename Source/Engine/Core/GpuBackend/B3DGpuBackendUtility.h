@@ -67,6 +67,9 @@ namespace b3d
 		/** Checks if the two image subresource ranges have any overlapping subresources. */
 		static bool RangeOverlaps(const GpuTextureSubresourceRange& a, const GpuTextureSubresourceRange& b);
 
+		/** Checks if the two image subresource ranges cover the same mip levels and array layers. */
+		static bool RangeEquals(const GpuTextureSubresourceRange& a, const GpuTextureSubresourceRange& b);
+
 		/**
 		 * Subdivides an image subresource range by cutting it with another range. If the ranges don't overlap, or the
 		 * @p cutWith range completely covers the @p toCut range, the original @p toCut range is output.

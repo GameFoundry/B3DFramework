@@ -54,7 +54,7 @@ namespace b3d
 			VulkanImage* Image = nullptr;
 			TextureSurface Surface;
 			u32 BaseLayer = 0;
-			VkImageLayout FinalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			GpuImageLayout FinalLayout = GpuImageLayout::Undefined;
 			u32 Index = 0;
 		};
 

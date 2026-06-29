@@ -14,17 +14,12 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanResourceTracker::VulkanResourceTracker(VulkanGpuCommandBuffer* commandBuffer)
-	: mCommandBuffer(commandBuffer)
+GpuBufferTrackingState& VulkanResourceTracker::GetOrCreateBufferTrackingState(IGpuBufferResource* buffer)
 {
-}
-
-VulkanResourceTracker::BufferTrackingState& VulkanResourceTracker::GetOrCreateBufferTrackingState(VulkanBuffer* buffer)
-{
-	auto insertResult = mBuffers.insert(std::make_pair(buffer, BufferTrackingState()));
+	auto insertResult = mBuffers.insert(std::make_pair(buffer, GpuBufferTrackingState()));
 	if(insertResult.second) // New element
 	{
-		BufferTrackingState& bufferTrackingState = insertResult.first->second;
+		GpuBufferTrackingState& bufferTrackingState = insertResult.first->second;
 		bufferTrackingState.UseFlags = GpuResourceUseFlag::Undefined;
 
 		bufferTrackingState.UseHandle.Used = false;
@@ -37,12 +32,12 @@ VulkanResourceTracker::BufferTrackingState& VulkanResourceTracker::GetOrCreateBu
 	}
 	else // Existing element
 	{
-		BufferTrackingState& bufferTrackingState = insertResult.first->second;
+		GpuBufferTrackingState& bufferTrackingState = insertResult.first->second;
 		return bufferTrackingState;
 	}
 }
 
-void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, BufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper, u32 dynamicOffset)
+void VulkanResourceTracker::TrackBufferUsage(IGpuBufferResource* buffer, GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, VulkanBarrierHelper& barrierHelper, u32 dynamicOffset)
 {
 	B3D_ASSERT(!bufferTrackingState.UseHandle.Used);
 
@@ -93,15 +88,15 @@ void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, BufferTrackin
 #endif
 }
 
-void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper, u32 dynamicOffset)
+void VulkanResourceTracker::TrackBufferUsage(IGpuBufferResource* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper, u32 dynamicOffset)
 {
-	BufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
+	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
 	TrackBufferUsage(buffer, bufferTrackingState, useFlags, accessFlags, barrierHelper, dynamicOffset);
 }
 
-void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresourceRange subresourceRange, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper)
+void VulkanResourceTracker::TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper)
 {
-	ImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
+	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
 
 	B3D_ASSERT(!imageTrackingState.UseHandle.Used);
 	imageTrackingState.UseHandle.Flags |= accessFlags;
@@ -110,9 +105,9 @@ void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresour
 	{
 		VulkanResourceTracker* Self;
 		VulkanBarrierHelper* BarrierHelper;
-		VulkanImage* Image;
-		VkImageLayout Layout;
-		VkImageLayout FinalLayout;
+		IGpuImageResource* Image;
+		GpuImageLayout Layout;
+		GpuImageLayout FinalLayout;
 		GpuResourceUseFlags UseFlags;
 		GpuAccessFlags AccessFlags;
 	};
@@ -127,28 +122,28 @@ void VulkanResourceTracker::TrackImageUsage(VulkanImage* image, VkImageSubresour
 	}, &callbackParameters);
 
 	// Register any sub-resources
-	B3D_ASSERT(subresourceRange.layerCount != VK_REMAINING_ARRAY_LAYERS);
-	B3D_ASSERT(subresourceRange.levelCount != VK_REMAINING_MIP_LEVELS);
+	B3D_ASSERT(subresourceRange.ArrayLayerCount != ~0u);
+	B3D_ASSERT(subresourceRange.MipLevelCount != ~0u);
 
-	for(u32 layerIndex = 0; layerIndex < subresourceRange.layerCount; layerIndex++)
+	for(u32 layerIndex = 0; layerIndex < subresourceRange.ArrayLayerCount; layerIndex++)
 	{
-		for(u32 levelIndex = 0; levelIndex < subresourceRange.levelCount; levelIndex++)
+		for(u32 levelIndex = 0; levelIndex < subresourceRange.MipLevelCount; levelIndex++)
 		{
-			const u32 layer = subresourceRange.baseArrayLayer + layerIndex;
-			const u32 mipLevel = subresourceRange.baseMipLevel + levelIndex;
+			const u32 layer = subresourceRange.BaseArrayLayer + layerIndex;
+			const u32 mipLevel = subresourceRange.BaseMipLevel + levelIndex;
 
 			TrackResourceUsage(image->GetSubresource(layer, mipLevel), accessFlags);
 		}
 	}
 }
 
-void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 globalSubresourceIndex, VkImageLayout layout, VkImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper)
+void VulkanResourceTracker::TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, VulkanBarrierHelper& barrierHelper)
 {
 	const bool isShaderUse = useFlags.IsSet(GpuResourceUseFlag::ShaderAccess);
 	const bool isFramebufferUse = useFlags.IsSetAny(GpuResourceUseFlag::ColorAttachment | GpuResourceUseFlag::DepthStencilAttachment);
 	const bool isTransferUse = useFlags.IsSetAny(GpuResourceUseFlag::Transfer);
 
-	ImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[globalSubresourceIndex];
+	GpuImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[globalSubresourceIndex];
 	if(subresourceTrackingState.Access == GpuAccessFlag::None) // New subresource
 	{
 		subresourceTrackingState.InitialLayout = layout;
@@ -178,10 +173,10 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 
 				const bool firstUseInRenderPass = !subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write)
 					&& !subresourceTrackingState.FramebufferUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write);
-				if(firstUseInRenderPass || subresourceTrackingState.RequiredLayout == VK_IMAGE_LAYOUT_UNDEFINED)
+				if(firstUseInRenderPass || subresourceTrackingState.RequiredLayout == GpuImageLayout::Undefined)
 					subresourceTrackingState.RequiredLayout = layout;
 				else if(subresourceTrackingState.RequiredLayout != layout)
-					subresourceTrackingState.RequiredLayout = VK_IMAGE_LAYOUT_GENERAL;
+					subresourceTrackingState.RequiredLayout = GpuImageLayout::General;
 			}
 		}
 		else if(isFramebufferUse)
@@ -232,10 +227,10 @@ void VulkanResourceTracker::TrackSubresourceUsage(VulkanImage* image, u32 global
 
 void VulkanResourceTracker::TrackResourceUsage(IGpuResource* resource, GpuAccessFlags access)
 {
-	auto insertResult = mResources.insert(std::make_pair(resource, ResourceUseHandle()));
+	auto insertResult = mResources.insert(std::make_pair(resource, GpuResourceUseHandle()));
 	if(insertResult.second) // New element
 	{
-		ResourceUseHandle& useHandle = insertResult.first->second;
+		GpuResourceUseHandle& useHandle = insertResult.first->second;
 		useHandle.Used = false;
 		useHandle.Flags = access;
 
@@ -243,7 +238,7 @@ void VulkanResourceTracker::TrackResourceUsage(IGpuResource* resource, GpuAccess
 	}
 	else // Existing element
 	{
-		ResourceUseHandle& useHandle = insertResult.first->second;
+		GpuResourceUseHandle& useHandle = insertResult.first->second;
 
 		B3D_ASSERT(!useHandle.Used);
 		useHandle.Flags |= access;
@@ -252,10 +247,10 @@ void VulkanResourceTracker::TrackResourceUsage(IGpuResource* resource, GpuAccess
 
 void VulkanResourceTracker::TrackFramebufferUsage(VulkanFramebuffer* framebuffer, RenderSurfaceMask loadMask, RenderSurfaceMask readOnlyMask, VulkanBarrierHelper& barrierHelper)
 {
-	auto insertResult = mResources.insert(std::make_pair(framebuffer, ResourceUseHandle()));
+	auto insertResult = mResources.insert(std::make_pair(framebuffer, GpuResourceUseHandle()));
 	if(insertResult.second) // New element
 	{
-		ResourceUseHandle& useHandle = insertResult.first->second;
+		GpuResourceUseHandle& useHandle = insertResult.first->second;
 		useHandle.Used = false;
 		useHandle.Flags = GpuAccessFlag::Write;
 
@@ -263,7 +258,7 @@ void VulkanResourceTracker::TrackFramebufferUsage(VulkanFramebuffer* framebuffer
 	}
 	else // Existing element
 	{
-		ResourceUseHandle& useHandle = insertResult.first->second;
+		GpuResourceUseHandle& useHandle = insertResult.first->second;
 
 		B3D_ASSERT(!useHandle.Used);
 		useHandle.Flags |= GpuAccessFlag::Write;
@@ -278,15 +273,15 @@ void VulkanResourceTracker::TrackFramebufferUsage(VulkanFramebuffer* framebuffer
 
 		// If image is being loaded, we need to transfer it to correct layout, otherwise it doesn't matter. We're using
 		// these values because that's what VulkanFramebuffer expects as initialLayout.
-		VkImageLayout layout;
+		GpuImageLayout layout;
 		if(loadMask.IsSet((RenderSurfaceMaskBits)(1 << colorAttachmentIndex)))
-			layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			layout = GpuImageLayout::ColorAttachment;
 		else
-			layout = VK_IMAGE_LAYOUT_UNDEFINED;
+			layout = GpuImageLayout::Undefined;
 
 		GpuAccessFlag access = readOnlyMask.IsSet((RenderSurfaceMaskBits)(1 << colorAttachmentIndex)) ? GpuAccessFlag::Read : GpuAccessFlag::Write;
 
-		VkImageSubresourceRange range = attachment.Image->GetRange(attachment.Surface);
+		GpuTextureSubresourceRange range = attachment.Image->GetRange(attachment.Surface);
 		TrackImageUsage(attachment.Image, range, layout, attachment.FinalLayout, GpuResourceUseFlag::ColorAttachment, access, barrierHelper);
 	}
 
@@ -296,26 +291,26 @@ void VulkanResourceTracker::TrackFramebufferUsage(VulkanFramebuffer* framebuffer
 
 		// If image is being loaded, we need to transfer it to correct layout, otherwise it doesn't matter. We're using
 		// these values because that's what VulkanFramebuffer expects as initialLayout.
-		VkImageLayout layout;
+		GpuImageLayout layout;
 		if(loadMask.IsSet(RT_DEPTH) || loadMask.IsSet(RT_STENCIL)) // Can't load one without the other
-			layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			layout = GpuImageLayout::DepthStencilAttachment;
 		else
-			layout = VK_IMAGE_LAYOUT_UNDEFINED;
+			layout = GpuImageLayout::Undefined;
 
 		// Note: We purposefully don't check read-only stencil here as generally access tracking doesn't matter for it, as it's always an attachment and shader can't read/write it directly
 		const GpuAccessFlag access = readOnlyMask.IsSet(RT_DEPTH) ? GpuAccessFlag::Read : GpuAccessFlag::Write;
 
-		VkImageSubresourceRange range = attachment.Image->GetRange(attachment.Surface);
+		GpuTextureSubresourceRange range = attachment.Image->GetRange(attachment.Surface);
 		TrackImageUsage(attachment.Image, range, layout, attachment.FinalLayout, GpuResourceUseFlag::DepthStencilAttachment, access, barrierHelper);
 	}
 }
 
-void VulkanResourceTracker::TrackSwapChainUsage(VulkanSwapChain* swapChain)
+void VulkanResourceTracker::TrackSwapChainUsage(IGpuSwapChainResource* swapChain)
 {
-	auto insertResult = mSwapChains.insert(std::make_pair(swapChain, ResourceUseHandle()));
+	auto insertResult = mSwapChains.insert(std::make_pair(swapChain, GpuResourceUseHandle()));
 	if(insertResult.second) // New element
 	{
-		ResourceUseHandle& useHandle = insertResult.first->second;
+		GpuResourceUseHandle& useHandle = insertResult.first->second;
 		useHandle.Used = false;
 		useHandle.Flags = GpuAccessFlag::Write;
 
@@ -323,23 +318,23 @@ void VulkanResourceTracker::TrackSwapChainUsage(VulkanSwapChain* swapChain)
 	}
 	else // Existing element
 	{
-		ResourceUseHandle& useHandle = insertResult.first->second;
+		GpuResourceUseHandle& useHandle = insertResult.first->second;
 
 		B3D_ASSERT(!useHandle.Used);
 		useHandle.Flags |= GpuAccessFlag::Write;
 	}
 }
 
-VulkanResourceTracker::ImageTrackingState& VulkanResourceTracker::GetOrCreateImageTrackingState(VulkanImage* image)
+GpuImageTrackingState& VulkanResourceTracker::GetOrCreateImageTrackingState(IGpuImageResource* image)
 {
 	const u32 nextImageTrackingIndex = (u32)mImageTrackingState.size();
 
 	auto insertResult = mImages.insert(std::make_pair(image, nextImageTrackingIndex));
 	if(insertResult.second) // New element
 	{
-		mImageTrackingState.push_back(ImageTrackingState());
+		mImageTrackingState.push_back(GpuImageTrackingState());
 
-		ImageTrackingState& imageTrackingState = mImageTrackingState[nextImageTrackingIndex];
+		GpuImageTrackingState& imageTrackingState = mImageTrackingState[nextImageTrackingIndex];
 		imageTrackingState.FirstSubresourceInfoIndex = ~0u;
 		imageTrackingState.SubresourceInfoCount = 0;
 
@@ -352,14 +347,14 @@ VulkanResourceTracker::ImageTrackingState& VulkanResourceTracker::GetOrCreateIma
 	else // Existing element
 	{
 		const u32 imageTrackingIndex = insertResult.first->second;
-		ImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
+		GpuImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
 
 		B3D_ASSERT(!imageTrackingState.UseHandle.Used);
 		return imageTrackingState;
 	}
 }
 
-u32 VulkanResourceTracker::FindImageTrackingStateIndex(VulkanImage* image) const
+u32 VulkanResourceTracker::FindImageTrackingStateIndex(IGpuImageResource* image) const
 {
 	auto found = mImages.find(image);
 	if(found == mImages.end())
@@ -368,7 +363,7 @@ u32 VulkanResourceTracker::FindImageTrackingStateIndex(VulkanImage* image) const
 	return found->second;
 }
 
-const VulkanResourceTracker::ImageTrackingState* VulkanResourceTracker::FindImageTrackingState(VulkanImage* image) const
+const GpuImageTrackingState* VulkanResourceTracker::FindImageTrackingState(IGpuImageResource* image) const
 {
 	const u32 imageTrackingIndex = FindImageTrackingStateIndex(image);
 	if(imageTrackingIndex == ~0u)
@@ -377,7 +372,7 @@ const VulkanResourceTracker::ImageTrackingState* VulkanResourceTracker::FindImag
 	return &mImageTrackingState[imageTrackingIndex];
 }
 
-const VulkanResourceTracker::ImageTrackingState& VulkanResourceTracker::GetImageTrackingState(VulkanImage* image) const
+const GpuImageTrackingState& VulkanResourceTracker::GetImageTrackingState(IGpuImageResource* image) const
 {
 	const u32 imageTrackingIndex = FindImageTrackingStateIndex(image);
 	B3D_ASSERT(imageTrackingIndex != ~0u);
@@ -385,7 +380,7 @@ const VulkanResourceTracker::ImageTrackingState& VulkanResourceTracker::GetImage
 	return mImageTrackingState[imageTrackingIndex];
 }
 
-VulkanResourceTracker::ImageTrackingState& VulkanResourceTracker::GetImageTrackingState(VulkanImage* image)
+GpuImageTrackingState& VulkanResourceTracker::GetImageTrackingState(IGpuImageResource* image)
 {
 	const u32 imageTrackingIndex = FindImageTrackingStateIndex(image);
 	B3D_ASSERT(imageTrackingIndex != ~0u);
@@ -393,52 +388,52 @@ VulkanResourceTracker::ImageTrackingState& VulkanResourceTracker::GetImageTracki
 	return mImageTrackingState[imageTrackingIndex];
 }
 
-TArrayView<const VulkanResourceTracker::ImageSubresourceTrackingState> VulkanResourceTracker::GetSubresourceTrackingStatesForImage(VulkanImage* image) const
+TArrayView<const GpuImageSubresourceTrackingState> VulkanResourceTracker::GetSubresourceTrackingStatesForImage(IGpuImageResource* image) const
 {
-	const ImageTrackingState& imageTrackingState = GetImageTrackingState(image);
+	const GpuImageTrackingState& imageTrackingState = GetImageTrackingState(image);
 	if(imageTrackingState.FirstSubresourceInfoIndex == ~0u)
 		return {};
 
 	return TArrayView(&mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex], imageTrackingState.SubresourceInfoCount);
 }
 
-TArrayView<VulkanResourceTracker::ImageSubresourceTrackingState> VulkanResourceTracker::GetSubresourceTrackingStatesForImage(VulkanImage* image)
+TArrayView<GpuImageSubresourceTrackingState> VulkanResourceTracker::GetSubresourceTrackingStatesForImage(IGpuImageResource* image)
 {
-	ImageTrackingState& imageTrackingState = GetImageTrackingState(image);
+	GpuImageTrackingState& imageTrackingState = GetImageTrackingState(image);
 	if(imageTrackingState.FirstSubresourceInfoIndex == ~0u)
 		return {};
 
 	return TArrayView(&mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex], imageTrackingState.SubresourceInfoCount);
 }
 
-const VulkanResourceTracker::ImageSubresourceTrackingState& VulkanResourceTracker::GetSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip) const
+const GpuImageSubresourceTrackingState& VulkanResourceTracker::GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip) const
 {
-	const ImageSubresourceTrackingState* const trackingState = FindSubresourceTrackingState(image, face, mip);
+	const GpuImageSubresourceTrackingState* const trackingState = FindSubresourceTrackingState(image, face, mip);
 	if(!B3D_ENSURE(trackingState != nullptr))
 	{
 		// Fallback to first subresource
 		const u32 imageTrackingIndex = mImages.find(image)->second;
-		const ImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
+		const GpuImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
 
-		const ImageSubresourceTrackingState* const subresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
+		const GpuImageSubresourceTrackingState* const subresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
 		return subresourceTrackingStates[0];
 	}
 
 	return *trackingState;
 }
 
-const VulkanResourceTracker::ImageSubresourceTrackingState* VulkanResourceTracker::FindSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip) const
+const GpuImageSubresourceTrackingState* VulkanResourceTracker::FindSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip) const
 {
 	const u32 imageTrackingIndex = mImages.find(image)->second;
-	const ImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
+	const GpuImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
 
-	const ImageSubresourceTrackingState* const subresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
+	const GpuImageSubresourceTrackingState* const subresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
 	for(u32 localSubresourceIndex = 0; localSubresourceIndex < imageTrackingState.SubresourceInfoCount; localSubresourceIndex++)
 	{
-		const ImageSubresourceTrackingState& subresourceTrackingState = subresourceTrackingStates[localSubresourceIndex];
+		const GpuImageSubresourceTrackingState& subresourceTrackingState = subresourceTrackingStates[localSubresourceIndex];
 
-		if(face >= subresourceTrackingState.Range.baseArrayLayer && face < (subresourceTrackingState.Range.baseArrayLayer + subresourceTrackingState.Range.layerCount) &&
-		   mip >= subresourceTrackingState.Range.baseMipLevel && mip < (subresourceTrackingState.Range.baseMipLevel + subresourceTrackingState.Range.levelCount))
+		if(face >= subresourceTrackingState.Range.BaseArrayLayer && face < (subresourceTrackingState.Range.BaseArrayLayer + subresourceTrackingState.Range.ArrayLayerCount) &&
+		   mip >= subresourceTrackingState.Range.BaseMipLevel && mip < (subresourceTrackingState.Range.BaseMipLevel + subresourceTrackingState.Range.MipLevelCount))
 		{
 			return &subresourceTrackingState;
 		}
@@ -447,7 +442,7 @@ const VulkanResourceTracker::ImageSubresourceTrackingState* VulkanResourceTracke
 	return nullptr;
 }
 
-const VulkanResourceTracker::BufferTrackingState* VulkanResourceTracker::FindBufferTrackingState(VulkanBuffer* buffer) const
+const GpuBufferTrackingState* VulkanResourceTracker::FindBufferTrackingState(IGpuBufferResource* buffer) const
 {
 	auto found = mBuffers.find(buffer);
 	if(found != mBuffers.end())
@@ -456,27 +451,27 @@ const VulkanResourceTracker::BufferTrackingState* VulkanResourceTracker::FindBuf
 	return nullptr;
 }
 
-VulkanResourceTracker::ImageSubresourceTrackingState& VulkanResourceTracker::GetSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip)
+GpuImageSubresourceTrackingState& VulkanResourceTracker::GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip)
 {
 	// Delegate to 'const' version and re-cast
-	return const_cast<ImageSubresourceTrackingState&>(const_cast<const VulkanResourceTracker*>(this)->GetSubresourceTrackingState(image, face, mip));
+	return const_cast<GpuImageSubresourceTrackingState&>(const_cast<const VulkanResourceTracker*>(this)->GetSubresourceTrackingState(image, face, mip));
 }
 
-void VulkanResourceTracker::IterateAndCreateOverlappingImageSubresourceTrackingState(VulkanImage* image, VkImageSubresourceRange subresourceRange, void (*FnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData)
+void VulkanResourceTracker::IterateAndCreateOverlappingImageSubresourceTrackingState(IGpuImageResource* image, GpuTextureSubresourceRange subresourceRange, void (*FnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData)
 {
-	ImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
+	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
 
 	IterateAndCreateOverlappingImageSubresourceTrackingState(imageTrackingState, *image, subresourceRange, FnDoOnOverlappingSubresource, userData);
 }
 
-void VulkanResourceTracker::IterateAndCreateOverlappingImageSubresourceTrackingState(ImageTrackingState& imageTrackingState, const VulkanImage& image, VkImageSubresourceRange subresourceRange, void(*FnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData)
+void VulkanResourceTracker::IterateAndCreateOverlappingImageSubresourceTrackingState(GpuImageTrackingState& imageTrackingState, const IGpuImageResource& image, GpuTextureSubresourceRange subresourceRange, void(*FnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData)
 {
-	// Provide exact size as code below doesn't handle VK_REMAINING_* macros
-	if(subresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS)
-		subresourceRange.layerCount = image.GetRange().layerCount;
+	// Provide exact size as code below doesn't handle the "remaining" sentinel
+	if(subresourceRange.ArrayLayerCount == ~0u)
+		subresourceRange.ArrayLayerCount = image.GetRange().ArrayLayerCount;
 
-	if(subresourceRange.levelCount == VK_REMAINING_MIP_LEVELS)
-		subresourceRange.levelCount = image.GetRange().levelCount;
+	if(subresourceRange.MipLevelCount == ~0u)
+		subresourceRange.MipLevelCount = image.GetRange().MipLevelCount;
 
 	if(imageTrackingState.FirstSubresourceInfoIndex == ~0u)
 	{
@@ -488,19 +483,19 @@ void VulkanResourceTracker::IterateAndCreateOverlappingImageSubresourceTrackingS
 		return;
 	}
 
-	ImageSubresourceTrackingState* const existingSubresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
+	GpuImageSubresourceTrackingState* const existingSubresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
 
 	// First test for the simplest and most common case (same range or no overlap) to avoid more complex computations.
 	bool foundRange = false;
 	for(u32 subresourceLocalIndex = 0; subresourceLocalIndex < imageTrackingState.SubresourceInfoCount; subresourceLocalIndex++)
 	{
-		ImageSubresourceTrackingState& existingSubresourceTrackingState = existingSubresourceTrackingStates[subresourceLocalIndex];
-		if(VulkanUtility::RangeOverlaps(existingSubresourceTrackingState.Range, subresourceRange))
+		GpuImageSubresourceTrackingState& existingSubresourceTrackingState = existingSubresourceTrackingStates[subresourceLocalIndex];
+		if(GpuBackendUtility::RangeOverlaps(existingSubresourceTrackingState.Range, subresourceRange))
 		{
-			if(existingSubresourceTrackingState.Range.layerCount == subresourceRange.layerCount &&
-			   existingSubresourceTrackingState.Range.levelCount == subresourceRange.levelCount &&
-			   existingSubresourceTrackingState.Range.baseArrayLayer == subresourceRange.baseArrayLayer &&
-			   existingSubresourceTrackingState.Range.baseMipLevel == subresourceRange.baseMipLevel)
+			if(existingSubresourceTrackingState.Range.ArrayLayerCount == subresourceRange.ArrayLayerCount &&
+			   existingSubresourceTrackingState.Range.MipLevelCount == subresourceRange.MipLevelCount &&
+			   existingSubresourceTrackingState.Range.BaseArrayLayer == subresourceRange.BaseArrayLayer &&
+			   existingSubresourceTrackingState.Range.BaseMipLevel == subresourceRange.BaseMipLevel)
 			{
 				const u32 subresourceIndex = imageTrackingState.FirstSubresourceInfoIndex + subresourceLocalIndex;
 				FnDoOnOverlappingSubresource(subresourceIndex, userData);
@@ -516,7 +511,7 @@ void VulkanResourceTracker::IterateAndCreateOverlappingImageSubresourceTrackingS
 	// (for just a few specific textures per frame).
 	if(!foundRange)
 	{
-		std::array<VkImageSubresourceRange, 5> cutRanges;
+		std::array<GpuTextureSubresourceRange, 5> cutRanges;
 
 		B3DMarkAllocatorFrame();
 		{
@@ -527,21 +522,21 @@ void VulkanResourceTracker::IterateAndCreateOverlappingImageSubresourceTrackingS
 			for(u32 subresourceLocalIndex = 0; subresourceLocalIndex < imageTrackingState.SubresourceInfoCount; subresourceLocalIndex++)
 			{
 				const u32 globalSubresourceIndex = imageTrackingState.FirstSubresourceInfoIndex + subresourceLocalIndex;
-				ImageSubresourceTrackingState& subresource = mSubresourceTrackingState[globalSubresourceIndex];
+				GpuImageSubresourceTrackingState& subresource = mSubresourceTrackingState[globalSubresourceIndex];
 
-				if(!VulkanUtility::RangeOverlaps(subresource.Range, subresourceRange))
+				if(!GpuBackendUtility::RangeOverlaps(subresource.Range, subresourceRange))
 					CopySubresourceTrackingStateWithNewRange(globalSubresourceIndex, subresource.Range);
 				else // Need to cut
 				{
 					u32 cutRangeCount;
-					VulkanUtility::CutRange(subresource.Range, subresourceRange, cutRanges, cutRangeCount);
+					GpuBackendUtility::CutRange(subresource.Range, subresourceRange, cutRanges, cutRangeCount);
 
 					for(u32 cutRangeIndex = 0; cutRangeIndex < cutRangeCount; cutRangeIndex++)
 					{
 						// Create a copy of the original subresource with the new range
 						const u32 newGlobalSubresourceIndex = CopySubresourceTrackingStateWithNewRange(globalSubresourceIndex, cutRanges[cutRangeIndex]);
 
-						if(VulkanUtility::RangeOverlaps(cutRanges[cutRangeIndex], subresourceRange))
+						if(GpuBackendUtility::RangeOverlaps(cutRanges[cutRangeIndex], subresourceRange))
 						{
 							FnDoOnOverlappingSubresource(newGlobalSubresourceIndex, userData);
 
@@ -560,26 +555,26 @@ void VulkanResourceTracker::IterateAndCreateOverlappingImageSubresourceTrackingS
 			}
 			else // Search if overlapping ranges fully cover the requested range, and insert non-covered regions
 			{
-				FrameQueue<VkImageSubresourceRange> sourceRanges;
+				FrameQueue<GpuTextureSubresourceRange> sourceRanges;
 				sourceRanges.push(subresourceRange);
 
 				for(auto& entry : cutOverlappingRanges)
 				{
-					VkImageSubresourceRange& overlappingRange = mSubresourceTrackingState[entry].Range;
+					GpuTextureSubresourceRange& overlappingRange = mSubresourceTrackingState[entry].Range;
 
 					const u32 sourceRangeCount = (u32)sourceRanges.size();
 					for(u32 sourceRangeIndex = 0; sourceRangeIndex < sourceRangeCount; sourceRangeIndex++)
 					{
-						VkImageSubresourceRange sourceRange = sourceRanges.front();
+						GpuTextureSubresourceRange sourceRange = sourceRanges.front();
 						sourceRanges.pop();
 
 						u32 cutRangeCount;
-						VulkanUtility::CutRange(sourceRange, overlappingRange, cutRanges, cutRangeCount);
+						GpuBackendUtility::CutRange(sourceRange, overlappingRange, cutRanges, cutRangeCount);
 
 						for(u32 cutRangeIndex = 0; cutRangeIndex < cutRangeCount; cutRangeIndex++)
 						{
 							// We only care about ranges outside of the ones we already covered
-							if(!VulkanUtility::RangeOverlaps(cutRanges[cutRangeIndex], overlappingRange))
+							if(!GpuBackendUtility::RangeOverlaps(cutRanges[cutRangeIndex], overlappingRange))
 								sourceRanges.push(cutRanges[cutRangeIndex]);
 						}
 					}
@@ -600,26 +595,26 @@ void VulkanResourceTracker::IterateAndCreateOverlappingImageSubresourceTrackingS
 	}
 }
 
-u32 VulkanResourceTracker::AddSubresourceTrackingState(const VkImageSubresourceRange& range)
+u32 VulkanResourceTracker::AddSubresourceTrackingState(const GpuTextureSubresourceRange& range)
 {
-	mSubresourceTrackingState.push_back(ImageSubresourceTrackingState());
+	mSubresourceTrackingState.push_back(GpuImageSubresourceTrackingState());
 
-	ImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState.back();
-	subresourceTrackingState.CurrentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	subresourceTrackingState.InitialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	subresourceTrackingState.RequiredLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	subresourceTrackingState.RenderPassLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	GpuImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState.back();
+	subresourceTrackingState.CurrentLayout = GpuImageLayout::Undefined;
+	subresourceTrackingState.InitialLayout = GpuImageLayout::Undefined;
+	subresourceTrackingState.RequiredLayout = GpuImageLayout::Undefined;
+	subresourceTrackingState.RenderPassLayout = GpuImageLayout::Undefined;
 	subresourceTrackingState.Range = range;
 	subresourceTrackingState.WriteHazardTracking = mWriteHazardPool.Construct<GpuWriteHazardTracking>();
 
 	return (u32)mSubresourceTrackingState.size() - 1;
 }
 
-u32 VulkanResourceTracker::CopySubresourceTrackingStateWithNewRange(u32 copyFromIndex, const VkImageSubresourceRange& newRange)
+u32 VulkanResourceTracker::CopySubresourceTrackingStateWithNewRange(u32 copyFromIndex, const GpuTextureSubresourceRange& newRange)
 {
-	ImageSubresourceTrackingState* const copyFromSubresource = &mSubresourceTrackingState[copyFromIndex];
+	GpuImageSubresourceTrackingState* const copyFromSubresource = &mSubresourceTrackingState[copyFromIndex];
 
-	ImageSubresourceTrackingState subresourceCopy = *copyFromSubresource;
+	GpuImageSubresourceTrackingState subresourceCopy = *copyFromSubresource;
 	subresourceCopy.Range = newRange;
 
 	subresourceCopy.WriteHazardTracking = mWriteHazardPool.Construct<GpuWriteHazardTracking>();
@@ -635,15 +630,15 @@ u32 VulkanResourceTracker::CopySubresourceTrackingStateWithNewRange(u32 copyFrom
 	return (u32)mSubresourceTrackingState.size() - 1;
 }
 
-void VulkanResourceTracker::UpdateImageLayoutTrackingAfterBarrier(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout oldLayout, VkImageLayout newLayout)
+void VulkanResourceTracker::UpdateImageLayoutTrackingAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuImageLayout oldLayout, GpuImageLayout newLayout)
 {
-	ImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
+	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
 
 	struct CallbackParameters
 	{
 		VulkanResourceTracker* Self;
-		VkImageLayout OldLayout;
-		VkImageLayout NewLayout;
+		GpuImageLayout OldLayout;
+		GpuImageLayout NewLayout;
 	};
 
 	CallbackParameters callbackParameters = { this, oldLayout, newLayout };
@@ -652,13 +647,13 @@ void VulkanResourceTracker::UpdateImageLayoutTrackingAfterBarrier(VulkanImage* i
 	{
 		CallbackParameters* callbackParameters = (CallbackParameters*)userData;
 
-		ImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Self->mSubresourceTrackingState[globalSubresourceIndex];
+		GpuImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Self->mSubresourceTrackingState[globalSubresourceIndex];
 
 		if(subresourceTrackingState.CurrentLayout != callbackParameters->OldLayout)
 		{
 			B3D_LOG(Warning, LogRenderBackend, "Image layout transition failed: current layout does not match expected old layout. "
 				"Current layout: {0}, Expected old layout: {1}. The barrier's old layout must match the image's current layout.",
-				VulkanUtility::GetImageLayoutName(subresourceTrackingState.CurrentLayout), VulkanUtility::GetImageLayoutName(callbackParameters->OldLayout));
+				GpuBackendUtility::GetImageLayoutName(subresourceTrackingState.CurrentLayout), GpuBackendUtility::GetImageLayoutName(callbackParameters->OldLayout));
 		}
 
 		B3D_ENSURE(subresourceTrackingState.CurrentLayout == callbackParameters->OldLayout);
@@ -681,17 +676,17 @@ void VulkanResourceTracker::CommitPendingHazardRegistrations()
 	mPendingHazardRegistrations.clear();
 }
 
-void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(VulkanBuffer* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess)
+void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(IGpuBufferResource* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess)
 {
-	BufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
+	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
 	GpuWriteHazardTracking* const writeHazardTracking = bufferTrackingState.WriteHazardTracking;
 
 	writeHazardTracking->AddSafeAccess(sourceAccessStageFlags, sourceAccess, destinationAccessStageFlags, destinationAccess);
 }
 
-void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(VulkanImage* image, const VkImageSubresourceRange& range, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess)
+void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess)
 {
-	ImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
+	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
 
 	struct CallbackParameters
 	{
@@ -708,7 +703,7 @@ void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(VulkanImage* i
 	{
 		CallbackParameters* callbackParameters = (CallbackParameters*)userData;
 
-		ImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Self->mSubresourceTrackingState[globalSubresourceIndex];
+		GpuImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Self->mSubresourceTrackingState[globalSubresourceIndex];
 		GpuWriteHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
 
 		writeHazardTracking->AddSafeAccess(callbackParameters->SourceAccessStageFlags, callbackParameters->SourceAccess, callbackParameters->DestinationAccessStageFlags, callbackParameters->DestinationAccess);
@@ -720,7 +715,7 @@ void VulkanResourceTracker::NotifyUsed(GpuQueueId queueId)
 {
 	for(auto& entry : mResources)
 	{
-		ResourceUseHandle& useHandle = entry.second;
+		GpuResourceUseHandle& useHandle = entry.second;
 		B3D_ASSERT(!useHandle.Used);
 
 		useHandle.Used = true;
@@ -730,9 +725,9 @@ void VulkanResourceTracker::NotifyUsed(GpuQueueId queueId)
 	for(auto& entry : mImages)
 	{
 		const u32 trackingImageStateIndex = entry.second;
-		ImageTrackingState& imageTrackingState = mImageTrackingState[trackingImageStateIndex];
+		GpuImageTrackingState& imageTrackingState = mImageTrackingState[trackingImageStateIndex];
 
-		ResourceUseHandle& useHandle = imageTrackingState.UseHandle;
+		GpuResourceUseHandle& useHandle = imageTrackingState.UseHandle;
 		B3D_ASSERT(!useHandle.Used);
 
 		useHandle.Used = true;
@@ -741,23 +736,22 @@ void VulkanResourceTracker::NotifyUsed(GpuQueueId queueId)
 
 	for(auto& entry : mBuffers)
 	{
-		BufferTrackingState& trackingState = entry.second;
-		ResourceUseHandle& useHandle = trackingState.UseHandle;
+		GpuBufferTrackingState& trackingState = entry.second;
+		GpuResourceUseHandle& useHandle = trackingState.UseHandle;
 		B3D_ASSERT(!useHandle.Used);
 
 		useHandle.Used = true;
 		entry.first->NotifyUsed(queueId, useHandle.Flags);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-		VulkanBuffer* buffer = static_cast<VulkanBuffer*>(entry.first);
 		for(u32 suballocationIndex : trackingState.BoundSuballocationIndices)
-			buffer->NotifySuballocationUsed(suballocationIndex);
+			entry.first->NotifySuballocationUsed(suballocationIndex);
 #endif
 	}
 
 	for(auto& entry : mSwapChains)
 	{
-		ResourceUseHandle& useHandle = entry.second;
+		GpuResourceUseHandle& useHandle = entry.second;
 		B3D_ASSERT(!useHandle.Used);
 
 		useHandle.Used = true;
@@ -769,7 +763,7 @@ void VulkanResourceTracker::NotifyDone(GpuQueueId queueId)
 {
 	for(auto& entry : mResources)
 	{
-		ResourceUseHandle& useHandle = entry.second;
+		GpuResourceUseHandle& useHandle = entry.second;
 		B3D_ASSERT(useHandle.Used);
 
 		entry.first->NotifyDone(queueId, useHandle.Flags);
@@ -778,9 +772,9 @@ void VulkanResourceTracker::NotifyDone(GpuQueueId queueId)
 	for(auto& entry : mImages)
 	{
 		const u32 trackingImageStateIndex = entry.second;
-		ImageTrackingState& imageTrackingState = mImageTrackingState[trackingImageStateIndex];
+		GpuImageTrackingState& imageTrackingState = mImageTrackingState[trackingImageStateIndex];
 
-		ResourceUseHandle& useHandle = imageTrackingState.UseHandle;
+		GpuResourceUseHandle& useHandle = imageTrackingState.UseHandle;
 		B3D_ASSERT(useHandle.Used);
 
 		entry.first->NotifyDone(queueId, useHandle.Flags);
@@ -788,14 +782,13 @@ void VulkanResourceTracker::NotifyDone(GpuQueueId queueId)
 
 	for(auto& entry : mBuffers)
 	{
-		BufferTrackingState& trackingState = entry.second;
-		ResourceUseHandle& useHandle = trackingState.UseHandle;
+		GpuBufferTrackingState& trackingState = entry.second;
+		GpuResourceUseHandle& useHandle = trackingState.UseHandle;
 		B3D_ASSERT(useHandle.Used);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-		VulkanBuffer* buffer = static_cast<VulkanBuffer*>(entry.first);
 		for(u32 suballocationIndex : trackingState.BoundSuballocationIndices)
-			buffer->NotifySuballocationDone(suballocationIndex);
+			entry.first->NotifySuballocationDone(suballocationIndex);
 #endif
 
 		entry.first->NotifyDone(queueId, useHandle.Flags);
@@ -804,7 +797,7 @@ void VulkanResourceTracker::NotifyDone(GpuQueueId queueId)
 	// Must be done after images & framebuffer because swap chain does error checking if those were freed
 	for(auto& entry : mSwapChains)
 	{
-		ResourceUseHandle& useHandle = entry.second;
+		GpuResourceUseHandle& useHandle = entry.second;
 		B3D_ASSERT(useHandle.Used);
 
 		entry.first->NotifyDone(queueId, useHandle.Flags);
@@ -815,7 +808,7 @@ void VulkanResourceTracker::NotifyUnbound()
 {
 	for(auto& entry : mResources)
 	{
-		ResourceUseHandle& useHandle = entry.second;
+		GpuResourceUseHandle& useHandle = entry.second;
 		B3D_ASSERT(!useHandle.Used);
 
 		entry.first->NotifyUnbound();
@@ -824,9 +817,9 @@ void VulkanResourceTracker::NotifyUnbound()
 	for(auto& entry : mImages)
 	{
 		const u32 trackingImageStateIndex = entry.second;
-		ImageTrackingState& imageTrackingState = mImageTrackingState[trackingImageStateIndex];
+		GpuImageTrackingState& imageTrackingState = mImageTrackingState[trackingImageStateIndex];
 
-		ResourceUseHandle& useHandle = imageTrackingState.UseHandle;
+		GpuResourceUseHandle& useHandle = imageTrackingState.UseHandle;
 		B3D_ASSERT(!useHandle.Used);
 
 		entry.first->NotifyUnbound();
@@ -834,14 +827,13 @@ void VulkanResourceTracker::NotifyUnbound()
 
 	for(auto& entry : mBuffers)
 	{
-		BufferTrackingState& trackingState = entry.second;
-		ResourceUseHandle& useHandle = trackingState.UseHandle;
+		GpuBufferTrackingState& trackingState = entry.second;
+		GpuResourceUseHandle& useHandle = trackingState.UseHandle;
 		B3D_ASSERT(!useHandle.Used);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-		VulkanBuffer* buffer = static_cast<VulkanBuffer*>(entry.first);
 		for(u32 suballocationIndex : trackingState.BoundSuballocationIndices)
-			buffer->NotifySuballocationUnbound(suballocationIndex);
+			entry.first->NotifySuballocationUnbound(suballocationIndex);
 #endif
 
 		entry.first->NotifyUnbound();
@@ -850,7 +842,7 @@ void VulkanResourceTracker::NotifyUnbound()
 	// Must be done after images & framebuffer because swap chain does error checking if those were freed
 	for(auto& entry : mSwapChains)
 	{
-		ResourceUseHandle& useHandle = entry.second;
+		GpuResourceUseHandle& useHandle = entry.second;
 		B3D_ASSERT(!useHandle.Used);
 
 		entry.first->NotifyUnbound();
@@ -886,12 +878,12 @@ void VulkanResourceTracker::Clear()
 void VulkanResourceTracker::ClearFramebufferFlagsForImage(VulkanImage* image)
 {
 	const u32 imageTrackingIndex = mImages[image];
-	ImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
+	GpuImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
 
-	ImageSubresourceTrackingState* const subresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
+	GpuImageSubresourceTrackingState* const subresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
 	for(u32 localSubresourceIndex = 0; localSubresourceIndex < imageTrackingState.SubresourceInfoCount; localSubresourceIndex++)
 	{
-		ImageSubresourceTrackingState& subresourceTrackingState = subresourceTrackingStates[localSubresourceIndex];
+		GpuImageSubresourceTrackingState& subresourceTrackingState = subresourceTrackingStates[localSubresourceIndex];
 		subresourceTrackingState.FramebufferUse = GpuAccessFlag::None;
 	}
 }
@@ -900,24 +892,24 @@ void VulkanResourceTracker::ClearShaderFlagsForAllRenderPassImageSubresources()
 {
 	for(const auto& subresourceIndex : mRenderPassSubresources)
 	{
-		ImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[subresourceIndex];
+		GpuImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[subresourceIndex];
 		subresourceTrackingState.ShaderUse = GpuAccessFlag::None;
 	}
 
 	mRenderPassSubresources.clear();
 }
 
-VkImageLayout VulkanResourceTracker::GetCurrentSubresourceLayout(VulkanImage* image, const VkImageSubresourceRange& range, VulkanFramebuffer* framebuffer, RenderSurfaceMask explicitReadOnlyMask) const
+GpuImageLayout VulkanResourceTracker::GetCurrentSubresourceLayout(VulkanImage* image, const GpuTextureSubresourceRange& range, VulkanFramebuffer* framebuffer, RenderSurfaceMask explicitReadOnlyMask) const
 {
-	const u32 face = range.baseArrayLayer;
-	const u32 mip = range.baseMipLevel;
+	const u32 face = range.BaseArrayLayer;
+	const u32 mip = range.BaseMipLevel;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	const ImageTrackingState* const imageTrackingState = FindImageTrackingState(image);
+	const GpuImageTrackingState* const imageTrackingState = FindImageTrackingState(image);
 	if(imageTrackingState == nullptr)
 	{
 		B3D_ASSERT(false);
-		return VK_IMAGE_LAYOUT_UNDEFINED;
+		return GpuImageLayout::Undefined;
 	}
 #endif
 
@@ -925,11 +917,11 @@ VkImageLayout VulkanResourceTracker::GetCurrentSubresourceLayout(VulkanImage* im
 	if(framebuffer != nullptr)
 		renderPass = framebuffer->GetRenderPass();
 
-	TArrayView<const ImageSubresourceTrackingState> subresourceTrackingStates = GetSubresourceTrackingStatesForImage(image);
+	TArrayView<const GpuImageSubresourceTrackingState> subresourceTrackingStates = GetSubresourceTrackingStatesForImage(image);
 	for(const auto& subresourceTrackingState : subresourceTrackingStates)
 	{
-		if(face >= subresourceTrackingState.Range.baseArrayLayer && face < (subresourceTrackingState.Range.baseArrayLayer + subresourceTrackingState.Range.layerCount) &&
-		   mip >= subresourceTrackingState.Range.baseMipLevel && mip < (subresourceTrackingState.Range.baseMipLevel + subresourceTrackingState.Range.levelCount))
+		if(face >= subresourceTrackingState.Range.BaseArrayLayer && face < (subresourceTrackingState.Range.BaseArrayLayer + subresourceTrackingState.Range.ArrayLayerCount) &&
+		   mip >= subresourceTrackingState.Range.BaseMipLevel && mip < (subresourceTrackingState.Range.BaseMipLevel + subresourceTrackingState.Range.MipLevelCount))
 		{
 			// If it's a FB attachment, retrieve its layout after the render pass begins
 			if(subresourceTrackingState.FramebufferUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write) && framebuffer != nullptr)
@@ -942,16 +934,16 @@ VkImageLayout VulkanResourceTracker::GetCurrentSubresourceLayout(VulkanImage* im
 					if(readMask.IsSet(RT_DEPTH))
 					{
 						if(readMask.IsSet(RT_STENCIL))
-							return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+							return GpuImageLayout::DepthStencilReadOnly;
 						else // Depth readable but stencil isn't
-							return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR;
+							return GpuImageLayout::DepthReadOnlyStencilAttachment;
 					}
 					else
 					{
 						if(readMask.IsSet(RT_STENCIL)) // Stencil readable but depth isn't
-							return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR;
+							return GpuImageLayout::DepthAttachmentStencilReadOnly;
 						else
-							return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+							return GpuImageLayout::DepthStencilAttachment;
 					}
 				}
 				else // It is a color attachment
@@ -964,9 +956,9 @@ VkImageLayout VulkanResourceTracker::GetCurrentSubresourceLayout(VulkanImage* im
 						if(attachment.Image == image)
 						{
 							if(readMask.IsSet((RenderSurfaceMaskBits)(1 << attachment.Index)))
-								return VK_IMAGE_LAYOUT_GENERAL;
+								return GpuImageLayout::General;
 							else
-								return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+								return GpuImageLayout::ColorAttachment;
 						}
 					}
 				}
@@ -977,7 +969,7 @@ VkImageLayout VulkanResourceTracker::GetCurrentSubresourceLayout(VulkanImage* im
 	}
 
 	B3D_ASSERT(false);
-	return VK_IMAGE_LAYOUT_UNDEFINED;
+	return GpuImageLayout::Undefined;
 }
 
 RenderSurfaceMask VulkanResourceTracker::GetFramebufferReadOnlyMask(VulkanFramebuffer* framebuffer, RenderSurfaceMask explicitReadOnlyMask) const
@@ -990,7 +982,7 @@ RenderSurfaceMask VulkanResourceTracker::GetFramebufferReadOnlyMask(VulkanFrameb
 	for(u32 colorAttachmentIndex = 0; colorAttachmentIndex < colorAttachmentCount; colorAttachmentIndex++)
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetColorAttachment(colorAttachmentIndex);
-		const ImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		const GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
 
 		const bool readOnly = subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write); // Note: Should report error if shader write is used
 
@@ -1001,7 +993,7 @@ RenderSurfaceMask VulkanResourceTracker::GetFramebufferReadOnlyMask(VulkanFrameb
 	if(renderPass->HasDepthAttachment())
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetDepthStencilAttachment();
-		const ImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		const GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
 
 		const bool readOnly = subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write); // Note: Should report error if shader write is used
 
@@ -1025,7 +1017,7 @@ void VulkanResourceTracker::MoveAllFramebufferAttachmentsToFinalLayouts(VulkanFr
 	for(u32 colorAttachmentIndex = 0; colorAttachmentIndex < colorAttachmentCount; colorAttachmentIndex++)
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetColorAttachment(colorAttachmentIndex);
-		ImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
 
 		subresourceTrackingState.CurrentLayout = subresourceTrackingState.RenderPassLayout;
 		subresourceTrackingState.RequiredLayout = subresourceTrackingState.RenderPassLayout;
@@ -1034,10 +1026,9 @@ void VulkanResourceTracker::MoveAllFramebufferAttachmentsToFinalLayouts(VulkanFr
 	if(renderPass->HasDepthAttachment())
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetDepthStencilAttachment();
-		ImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
 
 		subresourceTrackingState.CurrentLayout = subresourceTrackingState.RenderPassLayout;
 		subresourceTrackingState.RequiredLayout = subresourceTrackingState.RenderPassLayout;
 	}
 }
-

@@ -17,14 +17,14 @@ using namespace b3d::render;
 
 namespace
 {
-	/** Determines the full aspect flags for a texture created with provided @p createInformation. */
-	GpuTextureAspectFlags GetFullAspectFlags(const VulkanImageCreateInformation& createInformation)
+	/** Determines the full aspect flags for a texture with the provided @p usage and @p format. */
+	GpuTextureAspectFlags GetFullAspectFlags(TextureUsageFlags usage, VkFormat format)
 	{
-		if(createInformation.Usage.IsSet(TextureUsageFlag::DepthStencil))
+		if(usage.IsSet(TextureUsageFlag::DepthStencil))
 		{
-			const bool hasStencil = createInformation.Format == VK_FORMAT_D16_UNORM_S8_UINT ||
-				createInformation.Format == VK_FORMAT_D24_UNORM_S8_UINT ||
-				createInformation.Format == VK_FORMAT_D32_SFLOAT_S8_UINT;
+			const bool hasStencil = format == VK_FORMAT_D16_UNORM_S8_UINT ||
+				format == VK_FORMAT_D24_UNORM_S8_UINT ||
+				format == VK_FORMAT_D32_SFLOAT_S8_UINT;
 
 			return hasStencil ? (GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil) : GpuTextureAspectFlags(GpuTextureAspectFlag::Depth);
 		}
@@ -34,7 +34,7 @@ namespace
 }
 
 VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, VkImage image, VulkanAllocationResult allocation, VulkanTexture* parent)
-	: TVulkanResource<IGpuImageResource>(owner, false, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation)), mImage(image), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory), mUsage(createInformation.Usage), mOwnsImage(createInformation.OwnsImage), mIsShaderReadAllowed(createInformation.IsShaderReadAllowed), mDepthSliceCount(createInformation.DepthSliceCount)
+	: TVulkanResource<IGpuImageResource>(owner, false, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format)), mImage(image), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory), mUsage(createInformation.Usage), mOwnsImage(createInformation.OwnsImage), mIsShaderReadAllowed(createInformation.IsShaderReadAllowed), mDepthSliceCount(createInformation.DepthSliceCount)
 {
 	mImageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	mImageViewCI.pNext = nullptr;
@@ -332,41 +332,17 @@ const TextureSurface& VulkanImage::CalculateExplicitSurface(TextureSurface& surf
 
 VkImageAspectFlags VulkanImage::GetAspectFlags() const
 {
-	if(mUsage.IsSet(TextureUsageFlag::DepthStencil))
-	{
-		bool hasStencil = mImageViewCI.format == VK_FORMAT_D16_UNORM_S8_UINT ||
-			mImageViewCI.format == VK_FORMAT_D24_UNORM_S8_UINT ||
-			mImageViewCI.format == VK_FORMAT_D32_SFLOAT_S8_UINT;
-
-		if(hasStencil)
-			return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-
-		return VK_IMAGE_ASPECT_DEPTH_BIT;
-	}
-
-	return VK_IMAGE_ASPECT_COLOR_BIT;
+	return VulkanUtility::GetAspectMask(GetFullAspectFlags(mUsage, mImageViewCI.format));
 }
 
-VkImageSubresourceRange VulkanImage::GetRange() const
+GpuTextureSubresourceRange VulkanImage::GetRange(const TextureSurface& surface) const
 {
-	VkImageSubresourceRange range;
-	range.baseArrayLayer = 0;
-	range.layerCount = mFaceCount;
-	range.baseMipLevel = 0;
-	range.levelCount = mMipLevelCount;
-	range.aspectMask = GetAspectFlags();
-
-	return range;
-}
-
-VkImageSubresourceRange VulkanImage::GetRange(const TextureSurface& surface) const
-{
-	VkImageSubresourceRange range;
-	range.baseArrayLayer = surface.Face;
-	range.layerCount = Math::Min(surface.FaceCount == 0 ? mFaceCount : surface.FaceCount, mFaceCount);
-	range.baseMipLevel = surface.MipLevel;
-	range.levelCount = Math::Min(surface.MipLevelCount == 0 ? mMipLevelCount : surface.MipLevelCount, mMipLevelCount);
-	range.aspectMask = GetAspectFlags();
+	GpuTextureSubresourceRange range;
+	range.BaseArrayLayer = surface.Face;
+	range.ArrayLayerCount = Math::Min(surface.FaceCount == 0 ? mFaceCount : surface.FaceCount, mFaceCount);
+	range.BaseMipLevel = surface.MipLevel;
+	range.MipLevelCount = Math::Min(surface.MipLevelCount == 0 ? mMipLevelCount : surface.MipLevelCount, mMipLevelCount);
+	range.AspectMask = GetRange().AspectMask;
 
 	return range;
 }
@@ -963,23 +939,23 @@ void VulkanTexture::CopyImageToImage(VulkanGpuCommandBuffer& commandBuffer, Vulk
 		if(mipDepth != 1) mipDepth /= 2;
 	}
 
-	VkImageSubresourceRange range;
-	range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	range.baseArrayLayer = 0;
-	range.layerCount = faceCount;
-	range.baseMipLevel = 0;
-	range.levelCount = mipCount;
+	GpuTextureSubresourceRange range;
+	range.AspectMask = GpuTextureAspectFlag::Color;
+	range.BaseArrayLayer = 0;
+	range.ArrayLayerCount = faceCount;
+	range.BaseMipLevel = 0;
+	range.MipLevelCount = mipCount;
 
-	VkImageLayout transferSourceLayout, transferDestinationLayout;
+	GpuImageLayout transferSourceLayout, transferDestinationLayout;
 	if(mDirectlyMappable)
 	{
-		transferSourceLayout = VK_IMAGE_LAYOUT_GENERAL;
-		transferDestinationLayout = VK_IMAGE_LAYOUT_GENERAL;
+		transferSourceLayout = GpuImageLayout::General;
+		transferDestinationLayout = GpuImageLayout::General;
 	}
 	else
 	{
-		transferSourceLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-		transferDestinationLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		transferSourceLayout = GpuImageLayout::TransferSource;
+		transferDestinationLayout = GpuImageLayout::TransferDestination;
 	}
 
 	commandBuffer.CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, range, range, mipCount, imageRegions);
@@ -1052,18 +1028,18 @@ void VulkanTexture::CopyImageSubresourceToBuffer(VulkanGpuCommandBuffer& command
 
 	const ImageSubresourcePitch pitch = GetStagingBufferPitchForSubresource(sourceFace, sourceMipLevel);
 
-	VkImageSubresourceRange subresourceRange;
-	subresourceRange.baseArrayLayer = sourceFace;
-	subresourceRange.layerCount = 1;
-	subresourceRange.baseMipLevel = sourceMipLevel;
-	subresourceRange.levelCount = 1;
+	GpuTextureSubresourceRange subresourceRange;
+	subresourceRange.BaseArrayLayer = sourceFace;
+	subresourceRange.ArrayLayerCount = 1;
+	subresourceRange.BaseMipLevel = sourceMipLevel;
+	subresourceRange.MipLevelCount = 1;
 
 	if(mProperties.Usage.IsSet(TextureUsageFlag::DepthStencil))
-		subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+		subresourceRange.AspectMask = GpuTextureAspectFlag::Depth;
 	else
-		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.AspectMask = GpuTextureAspectFlag::Color;
 
-	commandBuffer.CopyImageToBuffer(sourceImage, destinationBuffer, extent, subresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, pitch.RowPitch, pitch.SliceHeight);
+	commandBuffer.CopyImageToBuffer(sourceImage, destinationBuffer, extent, subresourceRange, GpuImageLayout::TransferSource, pitch.RowPitch, pitch.SliceHeight);
 }
 
 render::GpuTextureMappedScope VulkanTexture::Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options)

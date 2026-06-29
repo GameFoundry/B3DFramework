@@ -266,7 +266,7 @@ namespace b3d
 			 * @param	rowPitch			Determines how many pixels to advance when moving to a new row in the source buffer.
 			 * @param	sliceHeight			Determines how many pixels to advance when moving to a new slice in the source buffer.
 			 */
-			void CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight);
+			void CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, u32 rowPitch, u32 sliceHeight);
 
 			/**
 			 * Copies the contents of the image subresource into the destination buffer. Caller must ensure the provided
@@ -280,7 +280,7 @@ namespace b3d
 			 * @param	rowPitch			Determines how many pixels to advance when moving to a new row in the destination buffer.
 			 * @param	sliceHeight			Determines how many pixels to advance when moving to a new slice in the destination buffer.
 			 */
-			void CopyImageToBuffer(VulkanImage* source, VulkanBuffer* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight);
+			void CopyImageToBuffer(VulkanImage* source, VulkanBuffer* destination, const VkExtent3D& region, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, u32 rowPitch, u32 sliceHeight);
 
 			/**
 			 * Copies one or multiple regions from one or multiple image sub-resources from the source image to the destination image.
@@ -295,7 +295,7 @@ namespace b3d
 			 * @param	regionCount					Number of regions in the @p regions array.
 			 * @param	regions						One or multiple regions which to copy.
 			 */
-			void CopyImageToImage(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageCopy* regions);
+			void CopyImageToImage(VulkanImage* source, VulkanImage* destination, GpuImageLayout sourceLayout, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& sourceSubresourceRange, const GpuTextureSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageCopy* regions);
 
 			/**
 			 * Blits one or multiple regions from one or multiple image sub-resources from the source image to the destination image.
@@ -310,7 +310,7 @@ namespace b3d
 			 * @param	regionCount					Number of regions in the @p regions array.
 			 * @param	regions						One or multiple regions which to blit.
 			 */
-			void Blit(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageBlit* regions);
+			void Blit(VulkanImage* source, VulkanImage* destination, GpuImageLayout sourceLayout, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& sourceSubresourceRange, const GpuTextureSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageBlit* regions);
 
 			/**
 			 * Resolves multisampled images into non-multiplesampled ones, from one or multiple regions from one or multiple image sub-resources
@@ -327,7 +327,7 @@ namespace b3d
 			 * @param	regionCount					Number of regions in the @p regions array.
 			 * @param	regions						One or multiple regions which to resolve.
 			 */
-			void Resolve(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageResolve* regions);
+			void Resolve(VulkanImage* source, VulkanImage* destination, GpuImageLayout sourceLayout, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& sourceSubresourceRange, const GpuTextureSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageResolve* regions);
 
 			/**
 			 * Returns the current layout of the specified image, as seen by this command buffer. This is different from the
@@ -341,7 +341,7 @@ namespace b3d
 			 *								in the case the image is used in the framebuffer, in which case the render pass
 			 *								may perform an automated layout transition when it begins.
 			 */
-			VkImageLayout GetCurrentLayout(VulkanImage* image, const VkImageSubresourceRange& range, bool inRenderPass);
+			VkImageLayout GetCurrentLayout(VulkanImage* image, const GpuTextureSubresourceRange& range, bool inRenderPass);
 
 		private:
 			friend class VulkanGpuCommandBufferPool;
