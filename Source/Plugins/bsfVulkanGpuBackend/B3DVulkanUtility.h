@@ -110,25 +110,8 @@ namespace b3d
 			/** Converts engine texture subresource range into VkImageSubresourceRange. */
 			static VkImageSubresourceRange ToVkImageSubresourceRange(const GpuTextureSubresourceRange& subresourceRange);
 
-			/**
-			 * Subdivides an image subresource range by cutting it with another range. If the ranges don't overlap, or the
-			 * @p cutWith range completely overs the @p toCut range, the original @p toCut range is output.
-			 *
-			 * @param[in]	toCut		Range to cut.
-			 * @param[in]	cutWith		Range to cut with.
-			 * @param[out]	output		Pieces of the range that was cut.
-			 * @param[out]	numAreas	Number of pieces in the @p output array.
-			 */
-			static void CutRange(const VkImageSubresourceRange& toCut, const VkImageSubresourceRange& cutWith, std::array<VkImageSubresourceRange, 5>& output, u32& numAreas);
-
-			/** Checks if the two image subresource ranges have any overlapping subresources. */
-			static bool RangeOverlaps(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b);
-
 			/** Checks if the two image subresource ranges are identical. */
 			static bool RangeEquals(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b);
-
-			/** Converts a VkImageLayout enum value to a readable string representing the layout name. */
-			static const char* GetImageLayoutName(VkImageLayout layout);
 
 			/**
 			 * Returns pipeline stages based on the resource usage flags. This allows for fine-grained control
