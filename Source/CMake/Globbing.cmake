@@ -52,7 +52,8 @@ function(B3DGlobSourceFilesWithExplicitPattern parentPath pattern path foldersTo
 				list(APPEND pathsToProcess ${currentPath}${child}/)
 				list(APPEND sourceGroups ${currentSourceGroup}${child}/)
 			else()
-				if(${child} MATCHES ".*\.[${pattern}]$")
+				# [.] is a literal-dot anchor (CMake regex collapses \. to any-char); () makes the list an alternation.
+				if(${child} MATCHES ".*[.](${pattern})$")
 					list(APPEND sourceFiles "${currentPath}${child}")
 					list(APPEND sourceGroupFiles "${currentPath}${child}")
 				endif()
@@ -84,7 +85,7 @@ endfunction()
 # @param	foldersToIgnore	Optional list of folders to ignore in the search
 # @param	outSourceFiles	List of all found source files, relative to @p parentPath.
 function(B3DGlobSourceFiles parentPath path foldersToIgnore outSourceFiles)
-	B3DGlobSourceFilesWithExplicitPattern("${parentPath}" "cpp|cxx|c|hpp|h|inl|mm|m" "${path}" "${foldersToIgnore}" sourceFiles)
+	B3DGlobSourceFilesWithExplicitPattern("${parentPath}" "cpp|cxx|cc|c|hpp|hh|h|inl|mm|m|rc" "${path}" "${foldersToIgnore}" sourceFiles)
 
 	list(APPEND sourceFiles ${${outSourceFiles}})
 	set(${outSourceFiles} ${sourceFiles} PARENT_SCOPE)
