@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanBarrierHelper.h"
+#include "B3DVulkanResourceTracker.h"
 #include "B3DVulkanGpuBuffer.h"
 #include "B3DVulkanGpuCommandBuffer.h"
 #include "B3DVulkanTexture.h"

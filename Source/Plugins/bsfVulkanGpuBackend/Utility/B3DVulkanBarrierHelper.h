@@ -7,7 +7,7 @@
 #include "Allocators/B3DFrameAllocator.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
-#include "B3DVulkanResourceTracker.h"
+#include "GpuBackend/B3DGpuResourceTracker.h"
 
 namespace b3d::render
 {
