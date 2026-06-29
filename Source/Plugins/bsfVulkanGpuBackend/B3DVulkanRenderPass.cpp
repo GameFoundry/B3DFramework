@@ -111,7 +111,7 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VulkanRenderPas
 			else
 				mColorAttachmentFinalLayouts[sequentialAttachmentIndex] = GpuImageLayout::Present;
 
-			vkAttachmentDescription.finalLayout = VulkanUtility::GetVulkanImageLayout(mColorAttachmentFinalLayouts[sequentialAttachmentIndex]);
+			vkAttachmentDescription.finalLayout = VulkanUtility::ToVkImageLayout(mColorAttachmentFinalLayouts[sequentialAttachmentIndex]);
 
 			vkAttachmentReference.attachment = sequentialAttachmentIndex;
 			vkAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -147,7 +147,7 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VulkanRenderPas
 		vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 		mDepthAttachmentFinalLayout = GpuImageLayout::DepthStencilAttachment;
-		vkAttachmentDescription.finalLayout = VulkanUtility::GetVulkanImageLayout(mDepthAttachmentFinalLayout);
+		vkAttachmentDescription.finalLayout = VulkanUtility::ToVkImageLayout(mDepthAttachmentFinalLayout);
 
 		mDepthReference.attachment = sequentialAttachmentIndex;
 		mDepthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;

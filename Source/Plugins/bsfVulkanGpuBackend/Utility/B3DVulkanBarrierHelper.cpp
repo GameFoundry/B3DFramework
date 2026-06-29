@@ -213,9 +213,9 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresou
 		return nullptr;
 
 	const VkImage imageHandle = static_cast<VulkanImage*>(image)->GetVulkanHandle();
-	const VkImageLayout vkOldLayout = VulkanUtility::GetVkImageLayout(oldLayout);
-	const VkImageLayout vkNewLayout = VulkanUtility::GetVkImageLayout(newLayout);
-	const VkImageSubresourceRange vkSubresourceRange = VulkanUtility::ToVulkanImageSubresourceRange(subresourceRange);
+	const VkImageLayout vkOldLayout = VulkanUtility::ToVkImageLayout(oldLayout);
+	const VkImageLayout vkNewLayout = VulkanUtility::ToVkImageLayout(newLayout);
+	const VkImageSubresourceRange vkSubresourceRange = VulkanUtility::ToVkImageSubresourceRange(subresourceRange);
 
 	VkPipelineStageFlags sourceStageMask, destinationStageMask;
 	VkAccessFlags sourceAccessMask, destinationAccessMask;
@@ -254,7 +254,7 @@ const VulkanBarrierHelper::BarrierTrackingInfo* VulkanBarrierHelper::AddSubresou
 		found->dstAccessMask |= destinationAccessMask;
 		found->newLayout = vkNewLayout;
 
-		oldLayout = VulkanUtility::GetGpuImageLayout(found->oldLayout);
+		oldLayout = VulkanUtility::ToGpuImageLayout(found->oldLayout);
 	}
 
 	auto foundTracking = std::find_if(mImageLayoutTracking.begin(), mImageLayoutTracking.end(), [image, &subresourceRange](const LayoutTrackingInfo& layoutTrackingInfo)

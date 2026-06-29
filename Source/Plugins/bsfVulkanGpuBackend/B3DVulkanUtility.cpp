@@ -740,7 +740,7 @@ VkViewport VulkanUtility::ToVulkanViewport(const Area2I& input, float minDepth, 
 	return output;
 }
 
-VkImageSubresourceRange VulkanUtility::ToVulkanImageSubresourceRange(const GpuTextureSubresourceRange& subresourceRange)
+VkImageSubresourceRange VulkanUtility::ToVkImageSubresourceRange(const GpuTextureSubresourceRange& subresourceRange)
 {
 	VkImageSubresourceRange output;
 	output.aspectMask = GetAspectMask(subresourceRange.AspectMask);
@@ -1092,7 +1092,7 @@ void VulkanUtility::GetPipelineStageAndAccessMask(GpuStageFlags accessStage, Gpu
 }
 
 
-VkImageLayout VulkanUtility::GetVkImageLayout(GpuImageLayout layout)
+VkImageLayout VulkanUtility::ToVkImageLayout(GpuImageLayout layout)
 {
 	switch (layout)
 	{
@@ -1135,7 +1135,7 @@ VkImageLayout VulkanUtility::GetVkImageLayout(GpuImageLayout layout)
 	}
 }
 
-GpuImageLayout VulkanUtility::GetGpuImageLayout(VkImageLayout layout)
+GpuImageLayout VulkanUtility::ToGpuImageLayout(VkImageLayout layout)
 {
 	switch (layout)
 	{

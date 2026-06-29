@@ -1378,7 +1378,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 			for(const auto& subresourceTrackingState : subresourceTrackingStates)
 			{
 				u32 startIdx = (u32)barriers.size();
-				image->GetBarriers(VulkanUtility::ToVulkanImageSubresourceRange(subresourceTrackingState.Range), barriers);
+				image->GetBarriers(VulkanUtility::ToVkImageSubresourceRange(subresourceTrackingState.Range), barriers);
 
 				for(u32 j = startIdx; j < (u32)barriers.size(); j++)
 				{
@@ -1399,7 +1399,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 			u32 faceEnd = range.BaseArrayLayer + range.ArrayLayerCount;
 
 			bool layoutMismatch = false;
-			VkImageLayout initialLayout = VulkanUtility::GetVulkanImageLayout(subresourceTrackingState.InitialLayout);
+			VkImageLayout initialLayout = VulkanUtility::ToVkImageLayout(subresourceTrackingState.InitialLayout);
 			if(initialLayout != VK_IMAGE_LAYOUT_UNDEFINED)
 			{
 				for(u32 mip = range.BaseMipLevel; mip < mipEnd; mip++)
@@ -1423,7 +1423,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 			if(layoutMismatch || queueMismatch)
 			{
 				u32 startIdx = (u32)localBarriers.size();
-				image->GetBarriers(VulkanUtility::ToVulkanImageSubresourceRange(subresourceTrackingState.Range), localBarriers);
+				image->GetBarriers(VulkanUtility::ToVkImageSubresourceRange(subresourceTrackingState.Range), localBarriers);
 
 				for(u32 j = startIdx; j < (u32)localBarriers.size(); j++)
 				{
@@ -1446,7 +1446,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 				for(u32 face = range.BaseArrayLayer; face < faceEnd; face++)
 				{
 					VulkanImageSubresource* subresource = image->GetSubresource(face, mip);
-					subresource->SetLayout(VulkanUtility::GetVulkanImageLayout(subresourceTrackingState.CurrentLayout));
+					subresource->SetLayout(VulkanUtility::ToVkImageLayout(subresourceTrackingState.CurrentLayout));
 				}
 			}
 		}
@@ -2026,7 +2026,7 @@ void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage
 {
 	B3D_ENSURE(!IsInRenderPass());
 
-	const VkImageLayout vkLayout = VulkanUtility::GetVulkanImageLayout(layout);
+	const VkImageLayout vkLayout = VulkanUtility::ToVkImageLayout(layout);
 
 	VkImageSubresourceLayers rangeLayers;
 	rangeLayers.aspectMask = VulkanUtility::GetAspectMask(subresourceRange.AspectMask);
@@ -2056,7 +2056,7 @@ void VulkanGpuCommandBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer
 {
 	B3D_ENSURE(!IsInRenderPass());
 
-	const VkImageLayout vkLayout = VulkanUtility::GetVulkanImageLayout(layout);
+	const VkImageLayout vkLayout = VulkanUtility::ToVkImageLayout(layout);
 
 	VkImageSubresourceLayers rangeLayers;
 	rangeLayers.aspectMask = VulkanUtility::GetAspectMask(subresourceRange.AspectMask);
@@ -2102,7 +2102,7 @@ void VulkanGpuCommandBuffer::CopyImageToImage(VulkanImage* source, VulkanImage* 
 
 	mBarrierHelper.Execute(*this);
 
-	vkCmdCopyImage(GetVulkanHandle(), source->GetVulkanHandle(), VulkanUtility::GetVulkanImageLayout(sourceLayout), destination->GetVulkanHandle(), VulkanUtility::GetVulkanImageLayout(destinationLayout), regionCount, regions);
+	vkCmdCopyImage(GetVulkanHandle(), source->GetVulkanHandle(), VulkanUtility::ToVkImageLayout(sourceLayout), destination->GetVulkanHandle(), VulkanUtility::ToVkImageLayout(destinationLayout), regionCount, regions);
 }
 
 void VulkanGpuCommandBuffer::Blit(VulkanImage* source, VulkanImage* destination, GpuImageLayout sourceLayout, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& sourceSubresourceRange, const GpuTextureSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageBlit* regions)
@@ -2121,7 +2121,7 @@ void VulkanGpuCommandBuffer::Blit(VulkanImage* source, VulkanImage* destination,
 
 	mBarrierHelper.Execute(*this);
 
-	vkCmdBlitImage(GetVulkanHandle(), source->GetVulkanHandle(), VulkanUtility::GetVulkanImageLayout(sourceLayout), destination->GetVulkanHandle(), VulkanUtility::GetVulkanImageLayout(destinationLayout), regionCount, regions, VK_FILTER_LINEAR);
+	vkCmdBlitImage(GetVulkanHandle(), source->GetVulkanHandle(), VulkanUtility::ToVkImageLayout(sourceLayout), destination->GetVulkanHandle(), VulkanUtility::ToVkImageLayout(destinationLayout), regionCount, regions, VK_FILTER_LINEAR);
 }
 
 void VulkanGpuCommandBuffer::Resolve(VulkanImage* source, VulkanImage* destination, GpuImageLayout sourceLayout, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& sourceSubresourceRange, const GpuTextureSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageResolve* regions)
@@ -2139,7 +2139,7 @@ void VulkanGpuCommandBuffer::Resolve(VulkanImage* source, VulkanImage* destinati
 
 	mBarrierHelper.Execute(*this);
 
-	vkCmdResolveImage(GetVulkanHandle(), source->GetVulkanHandle(), VulkanUtility::GetVulkanImageLayout(sourceLayout), destination->GetVulkanHandle(), VulkanUtility::GetVulkanImageLayout(destinationLayout), regionCount, regions);
+	vkCmdResolveImage(GetVulkanHandle(), source->GetVulkanHandle(), VulkanUtility::ToVkImageLayout(sourceLayout), destination->GetVulkanHandle(), VulkanUtility::ToVkImageLayout(destinationLayout), regionCount, regions);
 }
 
 // TODO - Deprecate
@@ -2162,9 +2162,9 @@ void VulkanGpuCommandBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags source
 VkImageLayout VulkanGpuCommandBuffer::GetCurrentLayout(VulkanImage* image, const GpuTextureSubresourceRange& range, bool inRenderPass)
 {
 	if(inRenderPass)
-		return VulkanUtility::GetVulkanImageLayout(mResourceTracker.GetCurrentSubresourceLayout(image, range, mFramebuffer, mRenderTargetReadOnlyMask));
+		return VulkanUtility::ToVkImageLayout(mResourceTracker.GetCurrentSubresourceLayout(image, range, mFramebuffer, mRenderTargetReadOnlyMask));
 
-	return VulkanUtility::GetVulkanImageLayout(mResourceTracker.GetCurrentSubresourceLayout(image, range));
+	return VulkanUtility::ToVkImageLayout(mResourceTracker.GetCurrentSubresourceLayout(image, range));
 }
 
 void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)

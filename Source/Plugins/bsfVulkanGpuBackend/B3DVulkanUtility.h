@@ -81,10 +81,10 @@ namespace b3d
 			static VkShaderStageFlagBits GetShaderStage(GpuProgramType type);
 
 			/** Maps a framework GpuImageLayout enum to Vulkan VkImageLayout. */
-			static VkImageLayout GetVulkanImageLayout(GpuImageLayout layout);
+			static VkImageLayout ToVkImageLayout(GpuImageLayout layout);
 
 			/** Maps a Vulkan VkImageLayout back into the framework GpuImageLayout enum. */
-			static GpuImageLayout GetGpuImageLayout(VkImageLayout layout);
+			static GpuImageLayout ToGpuImageLayout(VkImageLayout layout);
 
 			/** Converts a set of shader stage flags into a pipeline stage flags set containing the relevant shader stages. */
 			static VkPipelineStageFlags ShaderToPipelineStage(VkShaderStageFlags shaderStageFlags);
@@ -108,7 +108,7 @@ namespace b3d
 			static VkViewport ToVulkanViewport(const Area2I& input, float minDepth, float maxDepth);
 
 			/** Converts engine texture subresource range into VkImageSubresourceRange. */
-			static VkImageSubresourceRange ToVulkanImageSubresourceRange(const GpuTextureSubresourceRange& subresourceRange);
+			static VkImageSubresourceRange ToVkImageSubresourceRange(const GpuTextureSubresourceRange& subresourceRange);
 
 			/**
 			 * Subdivides an image subresource range by cutting it with another range. If the ranges don't overlap, or the
