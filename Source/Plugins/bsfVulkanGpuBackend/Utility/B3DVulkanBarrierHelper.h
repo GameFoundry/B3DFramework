@@ -7,7 +7,7 @@
 #include "Allocators/B3DFrameAllocator.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
-#include "GpuBackend/B3DGpuResourceTracker.h"
+#include "GpuBackend/B3DGpuBarrierHelper.h"
 
 namespace b3d::render
 {
@@ -40,22 +40,9 @@ namespace b3d::render
 	 * helper.Execute();
 	 * @endcode
 	 */
-	class VulkanBarrierHelper
+	class VulkanBarrierHelper : public TGpuBarrierHelper<VulkanBarrierHelper>
 	{
 	public:
-
-		/** Information needed to update hazard tracking after barrier execution. */
-		struct BarrierTrackingInfo
-		{
-			IGpuBufferResource* Buffer = nullptr;
-			IGpuImageResource* Image = nullptr;
-			GpuTextureSubresourceRange ImageSubresourceRange{};
-			GpuAccessFlags SourceAccess = GpuAccessFlag::None;
-			GpuStageFlags SourceAccessStages = GpuStageFlag::None;
-			GpuAccessFlags DestinationAccess = GpuAccessFlag::None;
-			GpuStageFlags DestinationAccessStages = GpuStageFlag::None;
-		};
-
 		/**
 		 * Constructs a barrier helper associated with the provided command buffer.
 		 *
@@ -63,78 +50,6 @@ namespace b3d::render
 		 *							and notified with new state when barriers and layout transitions are executed.
 		 */
 		VulkanBarrierHelper(VulkanResourceTracker* resourceTracker);
-
-		/**
-		 * Adds a memory barrier for a buffer resource.
-		 *
-		 * @param buffer				Buffer to add barrier for.
-		 * @param sourceUsage			How the buffer was used before the barrier.
-		 * @param sourceAccess			Type of access (read/write) before the barrier.
-		 * @param destinationUsage		How the buffer will be used after the barrier.
-		 * @param destinationAccess		Type of access (read/write) after the barrier.
-		 * @return						Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
-		 */
-		const BarrierTrackingInfo* AddBufferBarrier(IGpuBufferResource* buffer, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
-
-		/**
-		 * Adds a memory barrier for a buffer resource. Automatically deduces source usage/access from current tracked state.
-		 *
-		 * @param buffer				Buffer to add barrier for.
-		 * @param destinationUsage		How the buffer will be used after the barrier.
-		 * @param destinationAccess		Type of access (read/write) after the barrier.
-		 * @return						Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
-		 */
-		const BarrierTrackingInfo* AddBufferBarrier(IGpuBufferResource* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
-
-		/**
-		 * Adds a memory barrier for a buffer resource. Automatically deduces source usage/access from provided tracked state.
-		 *
-		 * @param buffer				Buffer to add barrier for.
-		 * @param bufferTrackingState	Buffer tracking information as retrieved from VulkanResourceTracker.
-		 * @param destinationUsage		How the buffer will be used after the barrier.
-		 * @param destinationAccess		Type of access (read/write) after the barrier.
-		 * @return						Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
-		 */
-		const BarrierTrackingInfo* AddBufferBarrier(IGpuBufferResource* buffer, const GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
-
-		/**
-		 * Adds a memory barrier for an image resource.
-		 *
-		 * @param image						Image to add barrier for.
-		 * @param subresourceRange			Subresource range of the image to barrier.
-		 * @param sourceUsage				How the image was used before the barrier.
-		 * @param sourceAccessFlags			Type of access (read/write) before the barrier.
-		 * @param destinationUsage			How the image will be used after the barrier.
-		 * @param destinationAccessFlags	Type of access (read/write) after the barrier.
-		 * @param oldLayout					Current layout of the image before the barrier.
-		 * @param newLayout					Layout the image will be transitioned to after the barrier.
-		 * @return							Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
-		 */
-		const BarrierTrackingInfo* AddImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccessFlags, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccessFlags, GpuImageLayout oldLayout, GpuImageLayout newLayout);
-
-		/**
-		 * Adds a memory barrier for an image resource. Automatically deduces source usage/access and layout from current tracked state.
-		 *
-		 * @param image					Image to add barrier for.
-		 * @param subresourceRange		Subresource range of the image to barrier.
-		 * @param destinationUsage		How the image will be used after the barrier.
-		 * @param destinationAccess		Type of access (read/write) after the barrier.
-		 * @param newLayout				Layout the image will be transitioned to after the barrier.
-		 * @return						Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
-		 */
-		const BarrierTrackingInfo* AddImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout newLayout);
-
-		/**
-		 * Adds a memory barrier for an existing subresource of an image resource. Automatically deduces source usage/access and layout from provided tracked state.
-		 *
-		 * @param image							Image to add barrier for.
-		 * @param subresourceTrackingState		Subresource tracking information as retrieved from VulkanResourceTracker.
-		 * @param destinationUsage				How the image will be used after the barrier.
-		 * @param destinationAccess				Type of access (read/write) after the barrier.
-		 * @param newLayout						Layout the image will be transitioned to after the barrier.
-		 * @return								Information about a barrier that was queued, or null if none was queued. Only valid until next call to Add/Execute/Clear.
-		 */
-		const BarrierTrackingInfo* AddSubresourceBarrier(IGpuImageResource* image, const GpuImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout newLayout);
 
 		/**
 		 * Executes all accumulated barriers by issuing a pipeline barrier command.
@@ -158,22 +73,13 @@ namespace b3d::render
 		bool HasBarriers() const;
 
 	private:
-		/** Low-level overload of AddImageBarrier that uses GpuStageFlags directly. */
-		const BarrierTrackingInfo* AddSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, GpuImageLayout oldLayout, GpuImageLayout newLayout);
+		friend class TGpuBarrierHelper<VulkanBarrierHelper>;
 
-		/** Low-level overload of AddBufferBarrier that uses GpuStageFlags directly. */
-		const BarrierTrackingInfo* AddBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags);
+		/** CRTP hook: accumulates the native Vulkan buffer barrier (dedup + combined stage/access masks). Called by the shared low-level path. */
+		void RecordBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags);
 
-		/** Information needed to update layout after barrier execution. */
-		struct LayoutTrackingInfo
-		{
-			IGpuImageResource* Image = nullptr;
-			GpuTextureSubresourceRange SubresourceRange{};
-			GpuImageLayout OldLayout = GpuImageLayout::Undefined;
-			GpuImageLayout NewLayout = GpuImageLayout::Undefined;
-		};
-
-		VulkanResourceTracker* mResourceTracker;
+		/** CRTP hook: accumulates the native Vulkan image barrier; reconciles @p oldLayout from an already-merged barrier and flags layout transitions. Called by the shared low-level path. */
+		void RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, GpuImageLayout& oldLayout, GpuImageLayout newLayout);
 
 		TInlineArray<VkBufferMemoryBarrier, 4> mBufferBarriers;
 		TInlineArray<VkImageMemoryBarrier, 4> mImageBarriers;
@@ -183,11 +89,10 @@ namespace b3d::render
 		GpuAccessFlags mCombinedSourceAccess = GpuAccessFlag::None;
 		GpuAccessFlags mCombinedDestinationAccess = GpuAccessFlag::None;
 
-		TInlineArray<LayoutTrackingInfo, 4> mImageLayoutTracking;
 		bool mHasLayoutTransition = false;
-
-		TInlineArray<BarrierTrackingInfo, 8> mBarrierTracking;
 	};
+
+	extern template class TGpuBarrierHelper<VulkanBarrierHelper>;
 
 	/** @} */
 }
