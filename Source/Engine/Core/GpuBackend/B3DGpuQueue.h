@@ -12,7 +12,6 @@ namespace b3d
 	namespace render
 	{
 		class GpuCommandBuffer;
-		class GpuSubmitThread;
 		class RenderWindow;
 	}
 
@@ -230,59 +229,6 @@ namespace b3d
 		virtual void WaitUntilIdle() = 0;
 
 	protected:
-		friend class render::GpuSubmitThread;
-
-		/** @name Submit thread
-		 *  Interface driven by GpuSubmitThread. Not part of the public API.
-		 *  @{
-		 */
-
-		/**
-		 * Submits a command buffer on this queue. The backend derives any per-command-buffer submit data it needs
-		 * from @p commandBuffer internally.
-		 *
-		 * @param	commandBuffer	Command buffer to submit.
-		 * @param	syncMask		Inter-queue synchronization mask.
-		 * @param	signalFences	Timeline-fence + value pairs to signal when the submit completes.
-		 *
-		 * @note	Submit thread only.
-		 */
-		virtual void ExecuteSubmitOnSubmitThread(const TShared<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences);
-
-		/**
-		 * Checks if any of the active command buffers finished executing on the queue and updates their states
-		 * accordingly.
-		 *
-		 * @param	forceWait		If true, waits until the relevant command buffers finish executing.
-		 * @param	queueEmpty		If true, the caller guarantees the queue will be empty (e.g. on shutdown),
-		 *							allowing all needed resources to be freed.
-		 * @param	lastSubmitIndex	Index of the last submitted command buffer to check. If ~0u, all submitted
-		 *							command buffers are checked.
-		 *
-		 * @note	Submit thread only.
-		 */
-		virtual void RefreshCompletionState(bool forceWait, bool queueEmpty = false, u32 lastSubmitIndex = ~0u);
-
-		/**
-		 * Returns the submit index of the most recently submitted work (command buffer or present) on this queue,
-		 * or 0 if nothing has been submitted yet. Capture this at a frame boundary and pass it to
-		 * RefreshCompletionState() to wait for all of that frame's work to complete.
-		 *
-		 * @note	Submit thread only.
-		 */
-		virtual u32 GetLastSubmitIndex() const;
-
-		/**
-		 * Blocks until all work submitted on this queue finishes executing on the GPU, using the backend's native
-		 * wait. Unlike WaitUntilIdle() this must not route through the submit thread - it is what the submit thread
-		 * itself calls to perform the wait.
-		 *
-		 * @note	Submit thread only.
-		 */
-		virtual void WaitUntilIdleOnSubmitThread();
-
-		/** @} */
-
 		GpuQueue(GpuDevice& gpuDevice, GpuQueueType type, u32 index);
 
 		GpuDevice& mGpuDevice;

@@ -298,18 +298,8 @@ namespace b3d
 
 	protected:
 		friend class GpuWorkContext;
-		friend class render::GpuSubmitThread;
 
 		GpuDevice() = default;
-
-		/**
-		 * Blocks until all work on the device finishes executing on the GPU, using the backend's native wait.
-		 * Unlike WaitUntilIdle() this must not route through the submit thread - it is what the submit thread
-		 * itself calls to perform the wait.
-		 *
-		 * @note	Submit thread only.
-		 */
-		virtual void WaitUntilIdleOnSubmitThread();
 
 		/**
 		 * Creates a new GPU buffer whose backing memory is suballocated from an explicitly provided

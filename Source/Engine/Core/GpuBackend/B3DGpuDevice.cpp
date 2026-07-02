@@ -29,11 +29,6 @@ TUnique<IGpuAllocator> GpuDevice::CreateTransientAllocator(u32 /*memoryType*/, I
 	return nullptr;
 }
 
-void GpuDevice::WaitUntilIdleOnSubmitThread()
-{
-	B3D_ENSURE_LOG(false, "This device does not support submit-thread idle waits.");
-}
-
 void GpuDevice::DoForEachQueue(const std::function<void(GpuQueue&)>&& callback) const
 {
 	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)

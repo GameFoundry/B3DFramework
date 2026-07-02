@@ -32,8 +32,8 @@ static void RunSubmitThreadCommand(SingleConsumerQueue& commandQueue, std::funct
 		function();
 }
 
-GpuSubmitThread::GpuSubmitThread(GpuDevice& gpuDevice)
-	: mGpuDevice(gpuDevice)
+GpuSubmitThread::GpuSubmitThread(GpuDevice& gpuDevice, IGpuSubmitThreadBackend& backend)
+	: mGpuDevice(gpuDevice), mBackend(backend)
 {
 	B3D_ASSERT(gActiveSubmitThread == nullptr);
 	gActiveSubmitThread = this;
@@ -81,13 +81,13 @@ GpuSubmitThread::~GpuSubmitThread()
 
 void GpuSubmitThread::QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer, GpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking)
 {
-	auto fnCommand = [commandBuffer, &queue, syncMask, signalFences = std::move(signalFences)]() mutable
+	auto fnCommand = [this, commandBuffer, &queue, syncMask, signalFences = std::move(signalFences)]() mutable
 	{
 		syncMask |= commandBuffer->GetQueueSyncMask();
-		queue.ExecuteSubmitOnSubmitThread(commandBuffer, syncMask, signalFences);
+		mBackend.ExecuteSubmit(queue, commandBuffer, syncMask, signalFences);
 	};
 
-	commandBuffer->NotifyWillQueueForSubmit();
+	mBackend.NotifyWillQueueForSubmit(*commandBuffer);
 	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Command buffer submit");
 
 	if (blocking)
@@ -144,9 +144,9 @@ void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 		// time this runs all of the frame's submissions have already executed (the command queue is processed in order), so
 		// each queue's most recent submit index covers the whole frame.
 		FrameCompletionMarker& currentMarker = mFrameMarkers[frameIndex];
-		mGpuDevice.DoForEachQueue([&currentMarker](GpuQueue& queue)
+		mGpuDevice.DoForEachQueue([this, &currentMarker](GpuQueue& queue)
 		{
-			currentMarker.LastSubmitIndices[queue.GetId().Id] = queue.GetLastSubmitIndex();
+			currentMarker.LastSubmitIndices[queue.GetId().Id] = mBackend.GetLastSubmitIndex(queue);
 		});
 
 		// Wait for all of the previous frame's work to finish on every queue, up to the submit index captured at that frame's
@@ -155,10 +155,10 @@ void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 		// command buffers from the same frame are still executing. Reusing their command buffer pools or resources before they
 		// finish would lead to GPU faults and device loss.
 		const FrameCompletionMarker& previousMarker = mFrameMarkers[nextFrameIndex];
-		mGpuDevice.DoForEachQueue([&previousMarker](GpuQueue& queue)
+		mGpuDevice.DoForEachQueue([this, &previousMarker](GpuQueue& queue)
 		{
 			const u32 lastSubmitIndex = previousMarker.LastSubmitIndices[queue.GetId().Id];
-			queue.RefreshCompletionState(true, false, lastSubmitIndex);
+			mBackend.RefreshCompletionState(queue, true, false, lastSubmitIndex);
 		});
 
 		// TODO: This could be signalled earlier. In case the frame's work finishes earlier the submit thread could set the signal
@@ -178,12 +178,12 @@ void GpuSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)
 {
 	auto fnCommand = [this, performCleanupForShutdown]()
 	{
-		auto fnWait = [this] { mGpuDevice.WaitUntilIdleOnSubmitThread(); };
+		auto fnWait = [this] { mBackend.WaitUntilIdle(); };
 		gRenderEnableSubmitThread ? RunBlockingCallAsYieldable(fnWait) : fnWait();
 
-		mGpuDevice.DoForEachQueue([performCleanupForShutdown](GpuQueue& queue)
+		mGpuDevice.DoForEachQueue([this, performCleanupForShutdown](GpuQueue& queue)
 		{
-			queue.RefreshCompletionState(true, performCleanupForShutdown);
+			mBackend.RefreshCompletionState(queue, true, performCleanupForShutdown);
 		});
 
 		if (performCleanupForShutdown)
@@ -200,12 +200,12 @@ void GpuSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)
 
 void GpuSubmitThread::WaitUntilIdle(GpuQueue& queue)
 {
-	auto fnCommand = [&queue]()
+	auto fnCommand = [this, &queue]()
 	{
-		auto fnWait = [&queue] { queue.WaitUntilIdleOnSubmitThread(); };
+		auto fnWait = [this, &queue] { mBackend.WaitUntilIdle(queue); };
 		gRenderEnableSubmitThread ? RunBlockingCallAsYieldable(fnWait) : fnWait();
 
-		queue.RefreshCompletionState(true);
+		mBackend.RefreshCompletionState(queue, true);
 	};
 
 	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Queue wait idle", true);
