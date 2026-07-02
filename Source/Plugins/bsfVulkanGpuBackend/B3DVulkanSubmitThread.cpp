@@ -147,7 +147,7 @@ void VulkanSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 		mGpuDevice.DoForEachQueue([&previousMarker](VulkanGpuQueue& queue)
 		{
 			const u32 lastSubmitIndex = previousMarker.LastSubmitIndices[queue.GetId().Id];
-			queue.RefreshCompletionStateOnSubmitThread(true, false, lastSubmitIndex);
+			queue.RefreshCompletionState(true, false, lastSubmitIndex);
 		});
 
 		// TODO: This could be signalled earlier. In case the frame's work finishes earlier the submit thread could set the signal
@@ -172,7 +172,7 @@ void VulkanSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)
 
 		mGpuDevice.DoForEachQueue([performCleanupForShutdown](VulkanGpuQueue& queue)
 		{
-			queue.RefreshCompletionStateOnSubmitThread(true, performCleanupForShutdown);
+			queue.RefreshCompletionState(true, performCleanupForShutdown);
 		});
 
 		if (performCleanupForShutdown)
@@ -194,7 +194,7 @@ void VulkanSubmitThread::WaitUntilIdle(VulkanGpuQueue& queue)
 		const VkResult result = kEnableSubmitThread ? RunBlockingCallAsYieldable(vkQueueWaitIdle, queue.GetVulkanHandle()) : vkQueueWaitIdle(queue.GetVulkanHandle());
 		B3D_ASSERT(result == VK_SUCCESS);
 
-		queue.RefreshCompletionStateOnSubmitThread(true);
+		queue.RefreshCompletionState(true);
 	};
 
 	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Queue wait idle", true);

@@ -304,7 +304,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 	ReleaseAllSubmitWorkBuffers();
 }
 
-void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool queueEmpty, u32 lastSubmitIndex)
+void VulkanGpuQueue::RefreshCompletionState(bool forceWait, bool queueEmpty, u32 lastSubmitIndex)
 {
 	AssertIfNotVulkanSubmitThread();
 

@@ -74,7 +74,7 @@ namespace b3d
 			 *
 			 * @note	Submit thread only.
 			 */
-			void RefreshCompletionStateOnSubmitThread(bool forceWait, bool queueEmpty = false, u32 lastSubmitIndex = ~0u);
+			void RefreshCompletionState(bool forceWait, bool queueEmpty = false, u32 lastSubmitIndex = ~0u);
 
 			/**
 			 * Returns the last command buffer that was submitted on this queue.

@@ -133,7 +133,9 @@ namespace b3d
 		/** Each vertex (except the first two) form a triangle with the previous two vertices. */
 		DOT_TRIANGLE_STRIP B3D_SCRIPT_EXPORT(ExportName(TriangleStrip)) = 5,
 		/** Each vertex (except the first two) form a triangle with the first vertex and previous vertex. */
-		DOT_TRIANGLE_FAN B3D_SCRIPT_EXPORT(ExportName(TriangleFan)) = 6
+		DOT_TRIANGLE_FAN B3D_SCRIPT_EXPORT(ExportName(TriangleFan)) = 6,
+		/** Total number of draw operation types. */
+		DOT_COUNT B3D_SCRIPT_EXPORT(ExportName(TriangleFan)) = 6
 	};
 
 	/**	Type of mesh indices used, used for determining maximum number of vertices in a mesh. */
