@@ -19,9 +19,6 @@
 #	define VK_USE_PLATFORM_MACOS_MVK
 #endif
 
-/** Maximum number of GPU queues that may exist at once. */
-#define B3D_MAX_UNIQUE_QUEUES B3D_MAX_QUEUES_PER_TYPE* b3d::GQT_COUNT // Must fit within 4 bytes
-
 #include "vulkan/vulkan.h"
 #undef MemoryBarrier // Conflicting define from winnt.h
 #undef None // Conflicting define from Xlib

@@ -10,6 +10,7 @@
 #include "B3DSamplerState.h"
 #include "B3DGpuCompletionTracker.h"
 #include "B3DGpuQueue.h"
+#include "B3DGpuSubmitThread.h"
 #include "B3DGpuWorkContext.h"
 
 namespace b3d::render
@@ -99,6 +100,9 @@ namespace b3d
 		/** Retrieves a queue with the specified usage and index. */
 		virtual TShared<GpuQueue> GetQueue(GpuQueueType type, u32 index) const = 0;
 
+		/** Invokes the callback for every queue on the device, across all queue types. */
+		void DoForEachQueue(const std::function<void(GpuQueue&)>&& callback) const;
+
 		/**
 		 * Presents the back-buffer image from the provided window onto the window, using the appropriate queue that supports present operations.
 		 *
@@ -110,6 +114,16 @@ namespace b3d
 
 		/** Blocks the calling thread until all operations on the device finish. */
 		virtual void WaitUntilIdle() = 0;
+
+		/**
+		 * Returns the submit thread responsible for executing queue submit and present operations for this device.
+		 * Only valid on backends that construct one during startup.
+		 */
+		render::GpuSubmitThread& GetSubmitThread() const
+		{
+			B3D_ASSERT(mSubmitThread != nullptr);
+			return *mSubmitThread;
+		}
 
 		/** Notifies the device the rendering for the current frame will start. See EndFrame(). Render thread only. */
 		virtual void BeginFrame() = 0;
@@ -284,8 +298,18 @@ namespace b3d
 
 	protected:
 		friend class GpuWorkContext;
+		friend class render::GpuSubmitThread;
 
 		GpuDevice() = default;
+
+		/**
+		 * Blocks until all work on the device finishes executing on the GPU, using the backend's native wait.
+		 * Unlike WaitUntilIdle() this must not route through the submit thread - it is what the submit thread
+		 * itself calls to perform the wait.
+		 *
+		 * @note	Submit thread only.
+		 */
+		virtual void WaitUntilIdleOnSubmitThread();
 
 		/**
 		 * Creates a new GPU buffer whose backing memory is suballocated from an explicitly provided
@@ -321,6 +345,9 @@ namespace b3d
 
 		mutable UnorderedMap<SamplerStateCreateInformation, TShared<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;
+
+		/** Thread responsible for executing queue submit and present operations. Constructed by backends that use one. */
+		TUnique<render::GpuSubmitThread> mSubmitThread;
 	};
 
 	/** @} */

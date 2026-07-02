@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DGpuDevice.h"
 #include "B3DGpuCommandBuffer.h"
+#include "B3DGpuSubmitThread.h"
 #include "Image/B3DTexture.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuProgram.h"
@@ -26,6 +27,26 @@ TUnique<IGpuAllocator> GpuDevice::CreateTransientAllocator(u32 /*memoryType*/, I
 {
 	// Default: context-owned transient allocation is unsupported. Backends that support it override this.
 	return nullptr;
+}
+
+void GpuDevice::WaitUntilIdleOnSubmitThread()
+{
+	B3D_ENSURE_LOG(false, "This device does not support submit-thread idle waits.");
+}
+
+void GpuDevice::DoForEachQueue(const std::function<void(GpuQueue&)>&& callback) const
+{
+	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
+	{
+		const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
+
+		const u32 queueCount = GetQueueCount(queueType);
+		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
+		{
+			const TShared<GpuQueue>& queue = GetQueue(queueType, queueIndex);
+			callback(*queue);
+		}
+	}
 }
 
 TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& /*createInformation*/, IGpuAllocator& /*allocator*/, GpuObjectCreateFlags /*flags*/)

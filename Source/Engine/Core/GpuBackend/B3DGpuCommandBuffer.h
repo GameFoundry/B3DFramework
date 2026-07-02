@@ -832,8 +832,15 @@ namespace b3d
 
 		protected:
 			friend class GpuCommandBufferPool;
+			friend class GpuSubmitThread;
 
 			GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
+
+			/**
+			 * Called on the owning thread just before the command buffer is queued for submission on the submit thread.
+			 * Backends override this to release state that must not be touched from the submit thread.
+			 */
+			virtual void NotifyWillQueueForSubmit() {}
 
 			/**
 			 * Performs internal cleanup of command buffer state without resetting the underlying API command buffer.

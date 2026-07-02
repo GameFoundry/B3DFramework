@@ -237,6 +237,9 @@
 /** Maximum number of individual GPU queues, per type. */
 #define B3D_MAX_QUEUES_PER_TYPE 8
 
+/** Maximum number of GPU queues that may exist at once. */
+#define B3D_MAX_UNIQUE_QUEUES B3D_MAX_QUEUES_PER_TYPE* b3d::GQT_COUNT // Must fit within 4 bytes
+
 /** Maximum number of hardware devices usable at once. */
 #define B3D_MAX_DEVICES 5U
 
