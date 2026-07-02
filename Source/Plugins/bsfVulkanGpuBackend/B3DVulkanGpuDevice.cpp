@@ -493,6 +493,42 @@ void VulkanGpuDevice::WaitUntilIdle()
 	GetVulkanSubmitThread().WaitUntilIdle();
 }
 
+void VulkanGpuDevice::NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer)
+{
+	static_cast<VulkanGpuCommandBuffer&>(commandBuffer).NotifyWillQueueForSubmit();
+}
+
+void VulkanGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+{
+	VulkanGpuQueue& vulkanQueue = static_cast<VulkanGpuQueue&>(queue);
+	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*commandBuffer);
+
+	const GpuCommandBufferSubmitInformation submitInformation = vulkanCommandBuffer.PrepareForSubmitOnSubmitThread(vulkanQueue.GetType(), vulkanQueue.GetIndex());
+	vulkanQueue.ExecuteSubmitOnSubmitThread(submitInformation, syncMask, signalFences);
+}
+
+void VulkanGpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, bool queueEmpty, u32 lastSubmitIndex)
+{
+	static_cast<VulkanGpuQueue&>(queue).RefreshCompletionState(forceWait, queueEmpty, lastSubmitIndex);
+}
+
+u32 VulkanGpuDevice::GetLastSubmitIndex(const GpuQueue& queue) const
+{
+	return static_cast<const VulkanGpuQueue&>(queue).GetLastSubmitIndex();
+}
+
+void VulkanGpuDevice::ExecuteWaitUntilIdle()
+{
+	const VkResult result = vkDeviceWaitIdle(mLogicalDevice);
+	B3D_ASSERT(result == VK_SUCCESS);
+}
+
+void VulkanGpuDevice::ExecuteWaitUntilIdle(GpuQueue& queue)
+{
+	const VkResult result = vkQueueWaitIdle(static_cast<VulkanGpuQueue&>(queue).GetVulkanHandle());
+	B3D_ASSERT(result == VK_SUCCESS);
+}
+
 void VulkanGpuDevice::BeginFrame()
 {
 	ASSERT_IF_NOT_RENDER_THREAD

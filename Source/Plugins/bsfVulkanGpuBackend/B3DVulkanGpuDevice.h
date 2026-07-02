@@ -56,7 +56,7 @@ namespace b3d
 		};
 
 		/** Represents a single GPU device usable by Vulkan. */
-		class VulkanGpuDevice : public GpuDevice
+		class VulkanGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend
 		{
 		public:
 #if B3D_PLATFORM_MACOS
@@ -265,6 +265,20 @@ namespace b3d
 			friend class b3d::VulkanGpuBackend;
 
 			static constexpr u32 kQueueUsageCombinationCount = 8; // 3^2, as there are three usage types in CommandBufferUsageFlag
+
+			/**
+			 * @name IGpuSubmitThreadBackend implementation
+			 * @{
+			 */
+
+			void NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer) override;
+			void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences) override;
+			void RefreshCompletionState(GpuQueue& queue, bool forceWait, bool queueEmpty, u32 lastSubmitIndex) override;
+			u32 GetLastSubmitIndex(const GpuQueue& queue) const override;
+			void ExecuteWaitUntilIdle() override;
+			void ExecuteWaitUntilIdle(GpuQueue& queue) override;
+
+			/** @} */
 
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 

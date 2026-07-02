@@ -3,6 +3,7 @@
 #include "B3DVulkanResource.h"
 #include "B3DVulkanGpuCommandBuffer.h"
 #include "CoreObject/B3DRenderThread.h"
+#include "GpuBackend/B3DGpuSwapChain.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -89,7 +90,7 @@ VulkanGpuDevice& TVulkanResource<TBase>::GetDevice() const
 template class TVulkanResource<IGpuResource>;
 template class TVulkanResource<IGpuBufferResource>;
 template class TVulkanResource<IGpuImageResource>;
-template class TVulkanResource<IGpuSwapChainResource>;
+template class TVulkanResource<GpuSwapChain>;
 
 VulkanResourceManager::VulkanResourceManager(VulkanGpuDevice& device)
 	: GpuResourceManager(device)

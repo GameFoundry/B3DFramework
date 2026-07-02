@@ -86,10 +86,10 @@ namespace b3d::render
 		virtual u32 GetLastSubmitIndex(const GpuQueue& queue) const = 0;
 
 		/** Blocks until all work on the device finishes executing on the GPU, using the backend's native wait. */
-		virtual void WaitUntilIdle() = 0;
+		virtual void ExecuteWaitUntilIdle() = 0;
 
 		/** Blocks until all work submitted on the provided queue finishes executing on the GPU, using the backend's native wait. */
-		virtual void WaitUntilIdle(GpuQueue& queue) = 0;
+		virtual void ExecuteWaitUntilIdle(GpuQueue& queue) = 0;
 
 		/** @} */
 	};

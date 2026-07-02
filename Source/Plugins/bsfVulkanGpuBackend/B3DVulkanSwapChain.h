@@ -5,6 +5,7 @@
 #include "B3DVulkanPrerequisites.h"
 #include "B3DVulkanFramebuffer.h"
 #include "B3DVulkanGpuQueue.h"
+#include "GpuBackend/B3DGpuSwapChain.h"
 #include "Threading/B3DSingleConsumerQueue.h"
 
 namespace b3d
@@ -57,9 +58,9 @@ namespace b3d
 		};
 
 		/** Vulkan swap chain containing two or more buffers for rendering and presenting onto the screen. */
-		class VulkanSwapChain : public TVulkanResource<IGpuSwapChainResource>, INonCopyable
+		class VulkanSwapChain : public TVulkanResource<GpuSwapChain>, INonCopyable
 		{
-			using Super = TVulkanResource<IGpuSwapChainResource>;
+			using Super = TVulkanResource<GpuSwapChain>;
 		public:
 			/**
 			 * Creates the swap chain with the provided properties. Destroys any previously existing swap chain. Caller must
@@ -71,7 +72,7 @@ namespace b3d
 			void Destroy() override;
 
 			/** Returns a thread safe message queue that may be used for posting messages to the thread responsible for the swap chain. */
-			SingleConsumerQueue& GetMessageQueue() { return mMessageQueue; }
+			SingleConsumerQueue& GetMessageQueue() override { return mMessageQueue; }
 
 			/**
 			 * Returns the actual width of the swap chain, in pixels. This might differ from the requested size in case it
@@ -88,12 +89,12 @@ namespace b3d
 			/**
 			 * Attempts to acquire a new swap chain image. Caller can retrieve the surface by calling GetImage(). Caller
 			 * must wait on the semaphore provided by the surface before rendering to it. Method might fail if the swap
-			 * chain is no longer valid, and failure result will be returned. If this happens a swap chain rebuild
-			 * should be attempted. If successful index of the returned image will be returned.
+			 * chain is no longer valid. The result of the operation is recorded internally and later consumed by
+			 * WaitUntilFirstImageAcquired(), which marks the swap chain invalid on failure so a rebuild can be attempted.
 			 *
 			 * @note	Submit thread only.
 			 */
-			ImageAcquireResult AcquireImage();
+			void AcquireImage() override;
 
 			/**
 			 * Blocks the calling thread until acquire operations for all swap chains complete. If there are multiple acquire operations queued for the 
@@ -106,7 +107,7 @@ namespace b3d
 			 * NotifyImagePresented() is called this method will start returning the next available acquired image index, if
 			 * any was acquired. To notify a new image was acquired used NotifyImageAcquired().
 			 */
-			bool TryGetFirstAcquiredImageIndex(u32& outImageIndex) const;
+			bool TryGetFirstAcquiredImageIndex(u32& outImageIndex) const override;
 
 			/**
 			 * Issues the swap chain present operation on the provided queue. The first acquired but not presented image will
@@ -114,13 +115,13 @@ namespace b3d
 			 *
 			 * @param	imageIndex	Index of the image to present. Must have been previously acquired, and image semaphore waited on
 			 *						before presenting.
-			 * @param	queue		Queue to submit the operation on. Queue must support present operations.
+			 * @param	queue		Queue to submit the operation on. Must be a VulkanGpuQueue that supports present operations.
 			 * @param	syncMask	Mask that controls which other command buffers does the present depend upon
-			 *						(if any). 
+			 *						(if any).
 			 *
 			 * @note	Submit thread only.
 			 */
-			void Present(u32 imageIndex, VulkanGpuQueue& queue, GpuQueueMask syncMask);
+			void Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncMask) override;
 
 			/** Returns the number of available color images. */
 			u32 GetColorImageCount() const { return (u32)mSurfaces.size(); }
@@ -151,13 +152,13 @@ namespace b3d
 			void MarkAsRetired() { mIsRetired = true; }
 
 			/** Checks if the swap chain is retired. */
-			bool IsRetired() const { return mIsRetired; }
+			bool IsRetired() const override { return mIsRetired; }
 
 			/** Notifies that an image has been queued for acquire on the submit thread. */
-			void NotifyWasImageAcquireQueued();
+			void NotifyWasImageAcquireQueued() override;
 
 			/** Notifies the swap chain that the specified image has been queued for present. This prevents it from being returned by GetFirstAcquiredImageIndex(). */
-			void NotifyWasPresentQueued(u32 imageIndex);
+			void NotifyWasPresentQueued(u32 imageIndex) override;
 		private:
 			VkDevice mDevice = VK_NULL_HANDLE;
 			VkSwapchainKHR mSwapChain = VK_NULL_HANDLE;

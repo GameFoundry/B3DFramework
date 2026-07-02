@@ -178,7 +178,7 @@ void GpuSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)
 {
 	auto fnCommand = [this, performCleanupForShutdown]()
 	{
-		auto fnWait = [this] { mBackend.WaitUntilIdle(); };
+		auto fnWait = [this] { mBackend.ExecuteWaitUntilIdle(); };
 		gRenderEnableSubmitThread ? RunBlockingCallAsYieldable(fnWait) : fnWait();
 
 		mGpuDevice.DoForEachQueue([this, performCleanupForShutdown](GpuQueue& queue)
@@ -202,7 +202,7 @@ void GpuSubmitThread::WaitUntilIdle(GpuQueue& queue)
 {
 	auto fnCommand = [this, &queue]()
 	{
-		auto fnWait = [this, &queue] { mBackend.WaitUntilIdle(queue); };
+		auto fnWait = [this, &queue] { mBackend.ExecuteWaitUntilIdle(queue); };
 		gRenderEnableSubmitThread ? RunBlockingCallAsYieldable(fnWait) : fnWait();
 
 		mBackend.RefreshCompletionState(queue, true);

@@ -294,7 +294,7 @@ void VulkanSwapChain::Destroy()
 	Super::Destroy();
 }
 
-ImageAcquireResult VulkanSwapChain::AcquireImage()
+void VulkanSwapChain::AcquireImage()
 {
 	// This should be called from the submit thread, or one of the helper workers (workers are utilized because of the wait in vkAcquireNextImageKHR,
 	// otherwise the calling fiber cannot yield - we need to launch this in its own thread).
@@ -319,7 +319,7 @@ ImageAcquireResult VulkanSwapChain::AcquireImage()
 		mImageAcquireResults.Add(output);
 		mImageAcquireSignal.NotifyAll();
 
-		return output;
+		return;
 	}
 
 	uint32_t imageIndex;
@@ -334,7 +334,7 @@ ImageAcquireResult VulkanSwapChain::AcquireImage()
 		mImageAcquireResults.Add(output);
 		mImageAcquireSignal.NotifyAll();
 
-		return output;
+		return;
 	}
 
 	mSurfaces[imageIndex].WaitSemaphore = mSemaphores[mLastAcquiredSemaphoreIndex];
@@ -352,8 +352,6 @@ ImageAcquireResult VulkanSwapChain::AcquireImage()
 		mImageAcquireResults.Add(output);
 		mImageAcquireSignal.NotifyAll();
 	}
-
-	return output;
 }
 
 void VulkanSwapChain::WaitUntilFirstImageAcquired()
@@ -386,10 +384,12 @@ void VulkanSwapChain::WaitUntilFirstImageAcquired()
 	mImageAcquireResults.clear();
 }
 
-void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, GpuQueueMask syncMask)
+void VulkanSwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncMask)
 {
 	AssertIfNotVulkanSubmitThread();
 	B3D_ASSERT(imageIndex <= (UINT32)mSurfaces.size());
+
+	VulkanGpuQueue& vulkanQueue = static_cast<VulkanGpuQueue&>(queue);
 
 	if(!mSurfaces[imageIndex].Acquired)
 		return;
@@ -401,7 +401,7 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, GpuQueueMas
 
 	if(imageLayout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
 	{
-		VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(queue.GetType());
+		VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(vulkanQueue.GetType());
 
 		const TShared<VulkanGpuCommandBuffer> commandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("SwapChainImageLayoutTransition")));
 		commandBuffer->SetName("Swap chain image layout transition");
@@ -430,13 +430,13 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, GpuQueueMas
 
 		GpuCommandBufferSubmitInformation submitInformation;
 		submitInformation.PrimaryCommandBuffer = commandBuffer;
-		queue.ExecuteSubmitOnSubmitThread(submitInformation, GpuQueueMask::kNone, {});
+		vulkanQueue.ExecuteSubmitOnSubmitThread(submitInformation, GpuQueueMask::kNone, {});
 
 		imageSubresource->SetLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}
 
-	VulkanGpuDevice& presentDevice = queue.GetDevice();
-	const GpuQueueMask queueMask = queue.GetId();
+	VulkanGpuDevice& presentDevice = vulkanQueue.GetDevice();
+	const GpuQueueMask queueMask = vulkanQueue.GetId();
 
 	// Ignore myself as we handle this in VulkanGpuQueue::Present() already
 	syncMask &= ~queueMask;
@@ -447,7 +447,7 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, GpuQueueMas
 	// Wait on present (i.e. until the back buffer becomes available), if we haven't already done so
 	AppendWaitSemaphoreIfRequired(imageIndex, mSemaphoresBuffer);
 
-	const VkResult result = queue.Present(this, imageIndex, mSemaphoresBuffer);
+	const VkResult result = vulkanQueue.Present(this, imageIndex, mSemaphoresBuffer);
 	mSemaphoresBuffer.Clear();
 
 	if(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR)
