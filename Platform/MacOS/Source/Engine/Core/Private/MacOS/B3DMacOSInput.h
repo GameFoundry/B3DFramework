@@ -3,12 +3,22 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "Input/B3DInputBackend.h"
+#include "Input/B3DInputFwd.h"
+
 #include <IOKit/hid/IOHIDLib.h>
 
 namespace b3d
 {
-	static constexpr u32 HID_NUM_MOUSE_AXES = 3;
-	static constexpr u32 HID_NUM_GAMEPAD_AXES = 24;
+	/** @addtogroup Platform-Internal
+	 *  @{
+	 */
+
+	static constexpr u32 kHIDMouseAxisCount = 3;
+
+	// Number of axis slots tracked per gamepad. Covers the common InputAxis entries plus a few extra slots that
+	// unrecognized device axes get mapped to (starting past InputAxis::RightTrigger).
+	static constexpr u32 kHIDGamepadAxisCount = 24;
 
 	/** Available types of devices supported by the HIDManager. */
 	enum class HIDType
@@ -24,43 +34,47 @@ namespace b3d
 	 */
 	struct HIDElement
 	{
-		IOHIDElementRef ref;
-		IOHIDElementCookie cookie;
+		IOHIDElementRef Ref;
+		IOHIDElementCookie Cookie;
 
-		i32 min, max;
-		mutable i32 detectedMin, detectedMax;
-		u32 usage;
+		i32 Min, Max;
+		mutable i32 DetectedMin, DetectedMax;
+		u32 Usage;
 	};
 
 	/** Contains information about a single input device and its elements, as reported by the HIDManager. */
 	struct HIDDevice
 	{
-		IOHIDDeviceRef ref;
-		IOHIDQueueRef queueRef;
+		IOHIDDeviceRef Ref;
+		IOHIDQueueRef QueueRef;
 
-		String name;
-		u32 id;
+		String Name;
+		u32 Id;
 
-		Vector<HIDElement> axes;
-		Vector<HIDElement> buttons;
-		Vector<HIDElement> hats;
+		Vector<HIDElement> Axes;
+		Vector<HIDElement> Buttons;
+		Vector<HIDElement> Hats;
 
-		u64 gamepadAxisTimestamps[HID_NUM_GAMEPAD_AXES];
+		u64 GamepadAxisTimestamps[kHIDGamepadAxisCount];
+
+		/** Currently pressed 8-way POV button, tracked so hat events can be reported with press/release semantics. */
+		ButtonCode PovState;
 	};
 
 	/** Contains information about all enumerated input devices for a specific HIDManager. */
 	struct HIDData
 	{
-		Vector<HIDDevice> devices;
-		HIDType type;
-		Input* owner = nullptr;
+		Vector<HIDDevice> Devices;
+		HIDType Type;
+		Input* Owner = nullptr;
 
-		i32 mouseAxisValues[HID_NUM_MOUSE_AXES];
+		i32 MouseAxisValues[kHIDMouseAxisCount];
 	};
 
 	/**
 	 * Provides access to the low level IO HID manager. Enumerates available input devices and reports their input to the
-	 * Input object.
+	 * Input object. Hot-plug is handled internally: the IOKit device matching/removal callbacks fire while events are
+	 * pumped during Capture().
 	 */
 	class HIDManager
 	{
@@ -71,40 +85,48 @@ namespace b3d
 		 * @param type 		Determines what category of input devices will this manager enumerate and report events for.
 		 * @param input		Input object that will by called by the HID manager when input events occur.
 		 */
-		HIDManager(HIDType type, Input* input);
+		HIDManager(HIDType type, Input& input);
 		~HIDManager();
 
 		/**
-		 * Checks if any new input events have been generates and reports them to the Input object.
+		 * Checks if any new input events have been generated and reports them to the Input object.
 		 *
 		 * @param[in] device		Device to read events from. If null, the events are read from all devices of the
 		 * 							compatible type.
 		 * @param[in] ignoreEvents 	If true the system will not trigger any external events for the reported input. This
 		 * 							can be useful for situations where input is disabled, like an out-of-focus window.
 		 */
-		void capture(IOHIDDeviceRef device, bool ignoreEvents = false);
+		void Capture(IOHIDDeviceRef device, bool ignoreEvents = false);
+
+		/** Returns the number of currently attached devices. */
+		u32 GetDeviceCount() const { return (u32)mData.Devices.size(); }
+
+		/** Returns the name of the device with the specified id, or blank if no such device is attached. */
+		String GetDeviceName(u32 deviceId) const;
 
 	private:
 		IOHIDManagerRef mHIDManager = nullptr;
 		HIDData mData;
 	};
 
-	/** Information about a gamepad. */
-	struct GamepadInfo
+	/** MacOS implementation of the input backend, based on the IOKit HID manager. */
+	class MacOSInputBackend final : public IInputBackend
 	{
-		u32 id;
-		String name;
-		IOHIDDeviceRef deviceRef;
-		HIDManager* hid;
+	public:
+		MacOSInputBackend(Input& owner);
+		~MacOSInputBackend();
+
+		void Update() override;
+		u32 GetDeviceCount(InputDevice type) const override;
+		String GetDeviceName(InputDevice type, u32 deviceIndex) const override;
+		void ChangeCaptureContext(u64 windowHandle) override;
+
+	private:
+		HIDManager* mKeyboard = nullptr;
+		HIDManager* mMouse = nullptr;
+		HIDManager* mGamepad = nullptr;
+		bool mHasInputFocus = true;
 	};
 
-	/**
-	 * Data specific to MacOS implementation of the input system. Can be passed to platform specific implementations of
-	 * the individual device types.
-	 */
-	struct InputPrivateData
-	{
-		Vector<GamepadInfo> gamepadInfos;
-		HIDManager* gamepadHIDManager;
-	};
+	/** @} */
 } // namespace b3d

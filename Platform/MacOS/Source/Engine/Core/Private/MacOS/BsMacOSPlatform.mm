@@ -582,15 +582,16 @@ namespace b3d
 		[[NSApp mainMenu] addItem:appleMenuItem];
 	}}
 
-	Event<void(const Vector2I &, const OSPointerButtonStates &)> Platform::onCursorMoved;
-	Event<void(const Vector2I &, OSMouseButton button, const OSPointerButtonStates &)> Platform::onCursorButtonPressed;
-	Event<void(const Vector2I &, OSMouseButton button, const OSPointerButtonStates &)> Platform::onCursorButtonReleased;
-	Event<void(const Vector2I &, const OSPointerButtonStates &)> Platform::onCursorDoubleClick;
-	Event<void(InputCommandType)> Platform::onInputCommand;
-	Event<void(float)> Platform::onMouseWheelScrolled;
-	Event<void(u32)> Platform::onCharInput;
+	Event<void(const Vector2I &, const OSPointerButtonStates &)> Platform::OnPointerMoved;
+	Event<void(const Vector2I &, OSMouseButton button, const OSPointerButtonStates &)> Platform::OnPointerButtonPressed;
+	Event<void(const Vector2I &, OSMouseButton button, const OSPointerButtonStates &)> Platform::OnPointerButtonReleased;
+	Event<void(const Vector2I &, const OSPointerButtonStates &)> Platform::OnPointerDoubleClick;
+	Event<void(InputCommandType)> Platform::OnInputCommand;
+	Event<void(float)> Platform::OnMouseWheelScrolled;
+	Event<void(u32)> Platform::OnCharInput;
 
-	Event<void()> Platform::onMouseCaptureChanged;
+	Event<void()> Platform::OnMouseCaptureChanged;
+	Event<void()> Platform::OnInputDevicesChanged;
 
 	Platform::Pimpl* Platform::mData = B3DNew<Platform::Pimpl>();
 
