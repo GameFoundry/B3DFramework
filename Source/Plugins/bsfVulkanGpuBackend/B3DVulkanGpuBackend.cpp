@@ -11,7 +11,6 @@
 #include "B3DVulkanFramebuffer.h"
 #include "B3DVulkanGpuProgram.h"
 #include "B3DVulkanRenderPass.h"
-#include "B3DVulkanSubmitThread.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "Utility/B3DCommandLine.h"
 #include "Utility/B3DConfigVariable.h"
@@ -425,12 +424,9 @@ void VulkanGpuBackend::OnStartUp()
 	VulkanRenderPassCache::StartUp();
 	VulkanFramebufferCache::StartUp();
 
-	// Start the submit thread
-	VulkanSubmitThread::StartUp(*mDevices[0]);
-
-	// Create the texture manager for use by others. Must come after the submit thread: its startup
-	// uploads the built-in/dummy textures through a worker GpuWorkContext, whose teardown submits the
-	// recorded transfers and waits for them on the GPU queue.
+	// Create the texture manager for use by others. Must come after device creation (which starts the
+	// submit thread): its startup uploads the built-in/dummy textures through a worker GpuWorkContext,
+	// whose teardown submits the recorded transfers and waits for them on the GPU queue.
 	TextureManager::StartUp<VulkanTextureManager>();
 	render::TextureManager::StartUp<render::VulkanTextureManager>(*mDevices[0]);
 
@@ -455,7 +451,6 @@ void VulkanGpuBackend::OnShutDown()
 		device->WaitUntilIdle();
 	}
 
-	VulkanSubmitThread::ShutDown();
 	VulkanVertexInputManager::ShutDown();
 	RenderWindowManager::ShutDown();
 	VulkanFramebufferCache::ShutDown();

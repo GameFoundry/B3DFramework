@@ -11,7 +11,6 @@ namespace b3d::render
 	 *  @{
 	 */
 
-	class VulkanSubmitThread;
 	class VulkanGpuQueue;
 
 	/**

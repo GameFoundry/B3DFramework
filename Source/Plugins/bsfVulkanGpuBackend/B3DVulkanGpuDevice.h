@@ -135,9 +135,6 @@ namespace b3d
 			 */
 			u32 GetQueueFamily(GpuQueueType type) const { return mQueueInfos[(int)type].FamilyIndex; }
 
-			/** Perform an operation for each queue on the device. */
-			void DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&& callback) const;
-
 			/** Returns the best matching surface format according to the provided parameters. */
 			SurfaceFormat GetSurfaceFormat(const VkSurfaceKHR& surface, bool useHardwareSRGB) const;
 

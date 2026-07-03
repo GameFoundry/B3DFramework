@@ -6,7 +6,6 @@
 #include "B3DVulkanFramebuffer.h"
 #include "B3DVulkanTexture.h"
 #include "B3DVulkanRenderPass.h"
-#include "B3DVulkanSubmitThread.h"
 #include "B3DVulkanUtility.h"
 
 using namespace b3d;
@@ -126,7 +125,7 @@ void VulkanHeadlessRenderWindowSurface::CreateSwapChainImages()
 
 void VulkanHeadlessRenderWindowSurface::DestroySwapChainImages()
 {
-	GetVulkanSubmitThread().WaitUntilIdle();
+	GetVulkanGpuBackend().GetPresentDevice()->GetSubmitThread().WaitUntilIdle();
 
 	for(u32 imageIndex = 0; imageIndex < kImageCount; imageIndex++)
 	{

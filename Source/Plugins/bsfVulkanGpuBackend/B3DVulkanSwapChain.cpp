@@ -386,7 +386,7 @@ void VulkanSwapChain::WaitUntilFirstImageAcquired()
 
 void VulkanSwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncMask)
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 	B3D_ASSERT(imageIndex <= (UINT32)mSurfaces.size());
 
 	VulkanGpuQueue& vulkanQueue = static_cast<VulkanGpuQueue&>(queue);
@@ -401,7 +401,7 @@ void VulkanSwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask sync
 
 	if(imageLayout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
 	{
-		VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(vulkanQueue.GetType());
+		GpuCommandBufferPool& commandBufferPool = GetDevice().GetSubmitThread().GetCommandBufferPool(vulkanQueue.GetType());
 
 		const TShared<VulkanGpuCommandBuffer> commandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("SwapChainImageLayoutTransition")));
 		commandBuffer->SetName("Swap chain image layout transition");
@@ -466,7 +466,7 @@ void VulkanSwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask sync
 
 bool VulkanSwapChain::AppendWaitSemaphoreIfRequired(u32 imageIndex, TInlineArray<VulkanSemaphore*, 8>& outSemaphores)
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 
 	if(!mSurfaces[imageIndex].NeedsWait)
 		return false;

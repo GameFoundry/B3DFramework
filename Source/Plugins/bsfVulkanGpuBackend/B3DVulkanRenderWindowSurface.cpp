@@ -4,7 +4,7 @@
 #include "B3DVulkanFramebuffer.h"
 #include "B3DVulkanGpuBackend.h"
 #include "B3DVulkanGpuQueue.h"
-#include "B3DVulkanSubmitThread.h"
+#include "GpuBackend/B3DGpuSubmitThread.h"
 #include "B3DVulkanSwapChain.h"
 
 using namespace b3d;
@@ -105,9 +105,9 @@ VulkanRenderWindowSurface::~VulkanRenderWindowSurface()
 
 void VulkanRenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsync)
 {
-	GetVulkanSubmitThread().WaitUntilIdle();
-
 	TShared<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
+	presentDevice->GetSubmitThread().WaitUntilIdle();
+
 	VulkanSwapChain* oldSwapChain = mSwapChain;
 	oldSwapChain->MarkAsRetired();
 
@@ -126,7 +126,7 @@ void VulkanRenderWindowSurface::Destroy()
 	if(mIsDestroyed)
 		return;
 
-	GetVulkanSubmitThread().WaitUntilIdle();
+	mSwapChain->GetDevice().GetSubmitThread().WaitUntilIdle();
 	mSwapChain->Destroy();
 	mSwapChain = nullptr;
 
@@ -135,14 +135,14 @@ void VulkanRenderWindowSurface::Destroy()
 
 void VulkanRenderWindowSurface::SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask)
 {
-	VulkanGpuQueue& vulkanGpuQueue = static_cast<VulkanGpuQueue&>(queue);
+	GpuSubmitThread& submitThread = mSwapChain->GetDevice().GetSubmitThread();
 
-	GetVulkanSubmitThread().QueuePresent(vulkanGpuQueue, *mSwapChain, syncMask);
+	submitThread.QueuePresent(queue, *mSwapChain, syncMask);
 
 	// Ensure the acquire operation we queued the previous frame has finished. This also means the old image was presented.
 	mSwapChain->WaitUntilFirstImageAcquired();
 
-	GetVulkanSubmitThread().QueueImageAcquire(*mSwapChain);
+	submitThread.QueueImageAcquire(*mSwapChain);
 }
 
 VulkanFramebuffer* VulkanRenderWindowSurface::GetActiveFramebuffer(bool acquireIfUnavailable)
@@ -158,7 +158,7 @@ VulkanFramebuffer* VulkanRenderWindowSurface::GetActiveFramebuffer(bool acquireI
 	// It's possible this is a fresh swap chain and no acquires were queued for it yet
 	if(!isImageAcquired && acquireIfUnavailable)
 	{
-		GetVulkanSubmitThread().QueueImageAcquire(*mSwapChain);
+		mSwapChain->GetDevice().GetSubmitThread().QueueImageAcquire(*mSwapChain);
 		mSwapChain->WaitUntilFirstImageAcquired();
 		isImageAcquired = mSwapChain->TryGetFirstAcquiredImageIndex(mActiveImageIndex);
 	}

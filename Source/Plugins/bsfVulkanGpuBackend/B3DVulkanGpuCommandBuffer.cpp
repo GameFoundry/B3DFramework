@@ -86,7 +86,7 @@ void VulkanGpuCommandBufferPool::Destroy()
 	}
 
 	if(areAnyCommandBuffersStillExecuting)
-		GetVulkanSubmitThread().WaitUntilIdle();
+		mGpuDevice.GetSubmitThread().WaitUntilIdle();
 
 	mMessageQueue.PostRequestShutdownCommand(true);
 
@@ -1328,11 +1328,11 @@ VulkanSemaphore* VulkanGpuCommandBuffer::RequestInterQueueSemaphore() const
 
 GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubmitThread(GpuQueueType queueType, u32 queueIndex)
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 	B3D_ASSERT(IsSubmitted()); // Caller should already have set this flag
 
 	GpuCommandBufferSubmitInformation submitInformation;
-	VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(queueType);
+	GpuCommandBufferPool& commandBufferPool = GetVulkanGpuDevice().GetSubmitThread().GetCommandBufferPool(queueType);
 
 	// Issue pipeline barriers for queue transitions (need to happen on original queue first, then on new queue)
 	for(auto& entry : mResourceTracker.GetBuffers())
@@ -1562,7 +1562,7 @@ void VulkanGpuCommandBuffer::NotifyWillQueueForSubmit()
 
 bool VulkanGpuCommandBuffer::UpdateExecutionStatus(bool block)
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 
 	VkResult result = vkWaitForFences(GetVulkanGpuDevice().GetLogical(), 1, &mFence, true, block ? 1'000'000'000 : 0);
 

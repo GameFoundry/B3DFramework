@@ -4,7 +4,7 @@
 
 #include "B3DVulkanPrerequisites.h"
 #include "B3DVulkanResource.h"
-#include "B3DVulkanSubmitThread.h"
+#include "B3DVulkanGpuDevice.h"
 #include "Image/B3DTexture.h"
 
 namespace b3d
@@ -245,7 +245,7 @@ namespace b3d
 			 */
 			VkImageLayout GetLayout() const
 			{
-				AssertIfNotVulkanSubmitThread();
+				AssertIfNotSubmitThread();
 
 				return mLayout;
 			}
@@ -257,7 +257,7 @@ namespace b3d
 			 */
 			void SetLayout(VkImageLayout layout)
 			{
-				AssertIfNotVulkanSubmitThread();
+				AssertIfNotSubmitThread();
 
 				mLayout = layout;
 			}

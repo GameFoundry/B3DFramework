@@ -9,7 +9,6 @@
 #include "B3DVulkanHeapBackend.h"
 #include "B3DVulkanUtility.h"
 #include "B3DVulkanGpuBackend.h"
-#include "B3DVulkanSubmitThread.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "Managers/B3DVulkanDescriptorManager.h"
 #include "Managers/B3DVulkanQueries.h"
@@ -323,10 +322,21 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	static_assert(false, "mVideoModeInfo needs to be created.");
 #endif
 
+	// Start the submit thread that all queue submission and present operations are routed through
+	IGpuSubmitThreadBackend& submitThreadBackend = *this;
+	mSubmitThread = B3DMakeUnique<GpuSubmitThread>(*this, submitThreadBackend);
 }
 
 VulkanGpuDevice::~VulkanGpuDevice()
 {
+	// Drain all outstanding GPU work, then stop the submit thread before any of the objects it operates on
+	// (queues, command buffer pools, resources) are torn down.
+	if (mSubmitThread != nullptr)
+	{
+		WaitUntilIdle();
+		mSubmitThread = nullptr;
+	}
+
 	mCachedSamplerStates.clear();
 	mBuiltinResources.Cleanup();
 
@@ -490,7 +500,15 @@ TShared<GpuTimelineFence> VulkanGpuDevice::CreateTimelineFence()
 
 void VulkanGpuDevice::WaitUntilIdle()
 {
-	GetVulkanSubmitThread().WaitUntilIdle();
+	// The submit thread lives from the end of construction to the start of destruction; in the remaining
+	// windows the native wait suffices.
+	if (mSubmitThread == nullptr)
+	{
+		ExecuteWaitUntilIdle();
+		return;
+	}
+
+	GetSubmitThread().WaitUntilIdle();
 }
 
 void VulkanGpuDevice::NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer)
@@ -539,7 +557,7 @@ void VulkanGpuDevice::EndFrame()
 	ASSERT_IF_NOT_RENDER_THREAD
 
 	// Signal end-of-frame to submit thread. This blocks until the previous frame's resources are safe to reuse.
-	GetVulkanSubmitThread().QueueEndFrameAndWaitForPreviousFrame();
+	GetSubmitThread().QueueEndFrameAndWaitForPreviousFrame();
 }
 
 void VulkanGpuDevice::RunDefragPass(GpuWorkContext& gpuContext)
@@ -627,21 +645,6 @@ float VulkanGpuDevice::ConvertTimestampToMilliseconds(u64 timestamp)
 {
 	const double timestampToMs = (double)GetDeviceProperties().limits.timestampPeriod / 1e6; // Nano to milli
 	return (float)((double)timestamp * timestampToMs);
-}
-
-void VulkanGpuDevice::DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&& callback) const
-{
-	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
-	{
-		GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
-
-		const u32 queueCount = GetQueueCount(queueType);
-		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
-		{
-			const TShared<VulkanGpuQueue>& queue = std::static_pointer_cast<VulkanGpuQueue>(GetQueue(queueType, queueIndex));
-			callback(*queue);
-		}
-	}
 }
 
 SurfaceFormat VulkanGpuDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, bool useHardwareSRGB) const
@@ -1150,7 +1153,7 @@ void VulkanGpuDevice::InitializeCapabilities()
 
 void VulkanGpuDevice::GetSyncSemaphores(GpuQueueMask syncMask, TInlineArray<VulkanSemaphore*, 8>& outSemaphores) const
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 
 	bool semaphoreRequestFailed = false;
 

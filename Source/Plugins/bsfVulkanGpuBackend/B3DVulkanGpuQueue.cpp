@@ -5,7 +5,7 @@
 #include "B3DVulkanGpuTimelineFence.h"
 #include "B3DIVulkanRenderWindowSurface.h"
 #include "B3DVulkanHeapBackend.h"
-#include "B3DVulkanSubmitThread.h"
+#include "GpuBackend/B3DGpuSubmitThread.h"
 #include "B3DVulkanSwapChain.h"
 #include "Profiling/B3DRenderStats.h"
 
@@ -49,7 +49,7 @@ void VulkanGpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& informa
 		vulkanCommandBuffer.End();
 
 	vulkanCommandBuffer.SetIsSubmitted();
-	GetVulkanSubmitThread().QueueSubmit(std::static_pointer_cast<VulkanGpuCommandBuffer>(information.CommandBuffer), *this, information.SyncMask, information.SignalFences);
+	mGpuDevice.GetSubmitThread().QueueSubmit(information.CommandBuffer, *this, information.SyncMask, information.SignalFences);
 }
 
 void VulkanGpuQueue::PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask)
@@ -69,7 +69,7 @@ void VulkanGpuQueue::PresentRenderWindow(const TShared<RenderWindow>& renderWind
 
 bool VulkanGpuQueue::IsExecuting() const
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 
 	if(mLastSubmittedCommandBuffer == nullptr)
 		return false;
@@ -79,7 +79,7 @@ bool VulkanGpuQueue::IsExecuting() const
 
 VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageIndex, TArrayView<VulkanSemaphore*> waitSemaphores)
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 
 	SubmitWorkBuffer& workBuffer = AcquireSubmitWorkBuffer();
 	RegisterSemaphoresAndGetHandles(waitSemaphores, workBuffer.WaitSemaphores);
@@ -119,7 +119,7 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 
 void VulkanGpuQueue::WaitUntilIdle()
 {
-	GetVulkanSubmitThread().WaitUntilIdle(*this);
+	mGpuDevice.GetSubmitThread().WaitUntilIdle(*this);
 }
 
 VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TShared<VulkanGpuCommandBuffer>& commandBuffer, const TArrayView<VulkanSemaphore*>& waitSemaphores, TArrayView<const GpuTimelineFenceAndValue> signalFences)
@@ -219,7 +219,7 @@ VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TArra
 
 void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 
 	if (!B3D_ENSURE(submitInformation.PrimaryCommandBuffer))
 		return;
@@ -306,7 +306,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 
 void VulkanGpuQueue::RefreshCompletionState(bool forceWait, bool queueEmpty, u32 lastSubmitIndex)
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 
 	u32 lastFinishedSubmission = 0;
 
@@ -411,7 +411,7 @@ void VulkanGpuQueue::RefreshCompletionState(bool forceWait, bool queueEmpty, u32
 
 u32 VulkanGpuQueue::RegisterSemaphoresAndGetHandles(const TArrayView<VulkanSemaphore*>& inSemaphores, TInlineArray<VkSemaphore, 8>& outSemaphores)
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 
 	u32 count = 0;
 	for(const auto& semaphore : inSemaphores)
@@ -447,7 +447,7 @@ u32 VulkanGpuQueue::RegisterSemaphoresAndGetHandles(const TArrayView<VulkanSemap
 
 VulkanGpuQueue::SubmitWorkBuffer& VulkanGpuQueue::AcquireSubmitWorkBuffer()
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 
 	if (mActiveSubmitWorkBufferCount >= mSubmitWorkBufferPool.size())
 		mSubmitWorkBufferPool.push_back(B3DMakeUnique<SubmitWorkBuffer>());
@@ -459,6 +459,6 @@ VulkanGpuQueue::SubmitWorkBuffer& VulkanGpuQueue::AcquireSubmitWorkBuffer()
 
 void VulkanGpuQueue::ReleaseAllSubmitWorkBuffers()
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 	mActiveSubmitWorkBufferCount = 0;
 }

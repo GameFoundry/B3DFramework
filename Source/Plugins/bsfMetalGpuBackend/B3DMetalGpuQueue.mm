@@ -155,8 +155,8 @@ namespace b3d
 			// OR in any per-command-buffer sync mask accumulated via AddQueueSyncMask. Per the base
 			// class contract (B3DGpuCommandBuffer.h: AddQueueSyncMask): "The provided mask is OR-ed
 			// with existing mask ... utilized at the time the command buffer is submitted to a queue."
-			// The Vulkan backend does the same fold in VulkanSubmitThread::QueueSubmit (see
-			// B3DVulkanSubmitThread.cpp: "syncMask |= commandBuffer->GetQueueSyncMask();").
+			// The core submit thread does the same fold in GpuSubmitThread::QueueSubmit (see
+			// B3DGpuSubmitThread.cpp: "syncMask |= commandBuffer->GetQueueSyncMask();").
 			GpuQueueMask syncMask = information.SyncMask;
 			syncMask |= metalCB->GetQueueSyncMask();
 

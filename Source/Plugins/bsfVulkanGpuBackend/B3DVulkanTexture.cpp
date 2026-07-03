@@ -7,7 +7,6 @@
 #include "B3DVulkanUtility.h"
 #include "B3DVulkanGpuBuffer.h"
 #include "B3DVulkanGpuCommandBuffer.h"
-#include "B3DVulkanSubmitThread.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "Profiling/B3DRenderStats.h"
 #include "Math/B3DMath.h"
@@ -517,7 +516,7 @@ VkAccessFlags VulkanImage::GetAccessFlags(VkImageLayout layout, bool readOnly)
 
 void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, TArray<VkImageMemoryBarrier>& barriers)
 {
-	AssertIfNotVulkanSubmitThread();
+	AssertIfNotSubmitThread();
 
 	// Nothing to do
 	if (range.levelCount == 0 || range.layerCount == 0)

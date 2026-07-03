@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanHeapBackend.h"
 #include "B3DVulkanGpuDevice.h"
-#include "B3DVulkanSubmitThread.h"
 
 using namespace b3d;
 using namespace b3d::render;
