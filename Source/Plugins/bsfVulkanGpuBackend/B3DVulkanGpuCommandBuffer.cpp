@@ -1776,7 +1776,7 @@ bool VulkanGpuCommandBuffer::IsReadyForRender()
 bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 {
 	const TShared<VertexDescription> vertexShaderInputDescription = mGraphicsPipeline->GetInputDeclaration();
-	const TShared<VulkanVertexInput> vertexShaderInput = VulkanVertexInputManager::Instance().GetVertexInfo(mVertexDescription, vertexShaderInputDescription);
+	const TShared<VulkanVertexInput> vertexShaderInput = VulkanVertexInputManager::Instance().GetVertexInput(mVertexDescription, vertexShaderInputDescription);
 
 	VulkanRenderPass *const renderPass = mFramebuffer->GetRenderPass();
 	VulkanPipeline *const pipeline = mGraphicsPipeline->FindOrCreateVulkanResource(renderPass, mRenderTargetReadOnlyMask, mDrawOp, vertexShaderInput);

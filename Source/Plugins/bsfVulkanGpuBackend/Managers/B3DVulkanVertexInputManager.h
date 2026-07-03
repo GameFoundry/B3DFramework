@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DVulkanPrerequisites.h"
+#include "GpuBackend/B3DGpuVertexInputManager.h"
 #include "Allocators/B3DGroupAlloc.h"
 #include "Utility/B3DModule.h"
 
@@ -14,11 +15,19 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Contains data describing vertex inputs for a graphics pipeline. */
+		/**
+		 * Contains data describing vertex inputs for a graphics pipeline. Owns the attribute and binding descriptions
+		 * the create info points to, so the create info stays valid for the lifetime of this object.
+		 */
 		class VulkanVertexInput
 		{
 		public:
-			VulkanVertexInput(u32 id, const VkPipelineVertexInputStateCreateInfo& createInfo, u32 bindingCount);
+			/**
+			 * @param	id							Identifier which uniquely represents this vertex input configuration.
+			 * @param	vertexBufferDescription		Describes the structure of a single vertex in a vertex buffer.
+			 * @param	layout						Vertex buffer layout resolved against the vertex shader inputs.
+			 */
+			VulkanVertexInput(u32 id, const TShared<VertexDescription>& vertexBufferDescription, const GpuVertexInputLayout& layout);
 
 			/** Returns an object contining the necessary information to initialize the vertex input on a pipeline. */
 			const VkPipelineVertexInputStateCreateInfo* GetCreateInfo() const { return &mCreateInfo; }
@@ -27,83 +36,38 @@ namespace b3d
 			u32 GetId() const { return mId; }
 
 			/** Returns the number of vertex buffers that are expected to be bound as vertex input. */
-			u32 GetVertexBufferBindingCount() const { return mBindingCount; }
+			u32 GetVertexBufferBindingCount() const { return (u32)mBindings.Size(); }
 
 		private:
 			u32 mId;
-			u32 mBindingCount = 0;
+
+			GroupAllocator mAllocator;
+			TArrayView<VkVertexInputAttributeDescription> mAttributes;
+			TArrayView<VkVertexInputBindingDescription> mBindings;
 			VkPipelineVertexInputStateCreateInfo mCreateInfo;
 		};
+
+		class VulkanVertexInputManager;
+		extern template class TGpuVertexInputManager<VulkanVertexInputManager, TShared<VulkanVertexInput>>;
 
 		/**
 		 * Maps vertex buffer structure and vertex shader inputs in order to create vertex input description usable by Vulkan.
 		 */
-		class VulkanVertexInputManager : public Module<VulkanVertexInputManager>
+		class VulkanVertexInputManager : public Module<VulkanVertexInputManager>, public TGpuVertexInputManager<VulkanVertexInputManager, TShared<VulkanVertexInput>>
 		{
-		private:
-			/**	Key uniquely identifying buffer and shader vertex declarations. */
-			struct VertexDeclarationKey
-			{
-				u32 BufferDeclarationId;
-				u32 ShaderDeclarationId;
-			};
-
-			/**	Creates a hash from vertex declaration key. */
-			class HashFunc
-			{
-			public:
-				::std::size_t operator()(const VertexDeclarationKey& key) const;
-			};
-
-			/**	Compares two vertex declaration keys. */
-			class EqualFunc
-			{
-			public:
-				bool operator()(const VertexDeclarationKey& a, const VertexDeclarationKey& b) const;
-			};
-
-			/**	Contains data about a single instance of vertex input object. */
-			struct VertexInputEntry
-			{
-				TArrayView<VkVertexInputAttributeDescription> Attributes;
-				TArrayView<VkVertexInputBindingDescription> Bindings;
-				TShared<VulkanVertexInput> VertexInput;
-				u32 LastUsedIdx;
-
-				GroupAllocator Allocator;
-			};
-
 		public:
-			VulkanVertexInputManager();
 			~VulkanVertexInputManager();
 
-			/**
-			 * Returns an object that describes how vertex buffer elements map to vertex shader inputs.
-			 *
-			 * @param[in]	vertexBufferDescription		Describes the structure of a single vertex in a vertex buffer.
-			 * @param[in]	shaderInputDescription		Describes the vertex element inputs expected by a vertex shader.
-			 * @return									Vertex input state description, usable by Vulkan.
-			 */
-			TShared<VulkanVertexInput> GetVertexInfo(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription);
-
 		private:
-			/**	Creates a vertex input using the specified parameters and stores it in the input layout map. */
-			void AddNew(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription);
+			friend class TGpuVertexInputManager<VulkanVertexInputManager, TShared<VulkanVertexInput>>;
 
-			/**	Removes the least used vertex input. */
-			void RemoveLeastUsed();
+			/** Creates a vertex input object for the provided resolved layout. */
+			TShared<VulkanVertexInput> CreateVertexInput(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription, const GpuVertexInputLayout& layout);
 
-		private:
-			static const int kDeclarationBufferSize = 1024;
-			static const int kElementCountToPrune = 64;
+			/** Releases a vertex input object evicted from the cache. */
+			void DestroyVertexInput(TShared<VulkanVertexInput>& vertexInput);
 
-			UnorderedMap<VertexDeclarationKey, VertexInputEntry, HashFunc, EqualFunc> mVertexInputMap;
-
-			u32 mNextId;
-			bool mWarningShown;
-			u32 mLastUsedCounter;
-
-			Mutex mMutex;
+			u32 mNextId = 1;
 		};
 
 		/** @} */

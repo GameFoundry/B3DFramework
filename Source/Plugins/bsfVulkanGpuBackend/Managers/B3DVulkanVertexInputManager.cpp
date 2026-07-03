@@ -5,181 +5,71 @@
 #include "Profiling/B3DRenderStats.h"
 #include "GpuBackend/B3DVertexDescription.h"
 
+// Generic manager method definitions, followed by the explicit instantiation for the Vulkan vertex input types.
+// Included here so the single instantiation lives in this translation unit. The header carries a matching
+// `extern template` to suppress implicit instantiation elsewhere.
+#include "GpuBackend/B3DGpuVertexInputManager.inl"
+
+template class b3d::render::TGpuVertexInputManager<b3d::render::VulkanVertexInputManager, b3d::TShared<b3d::render::VulkanVertexInput>>;
+
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanVertexInput::VulkanVertexInput(u32 id, const VkPipelineVertexInputStateCreateInfo& createInfo, u32 bindingCount)
-	: mId(id), mBindingCount(bindingCount), mCreateInfo(createInfo)
-{}
-
-const int VulkanVertexInputManager::kElementCountToPrune;
-
-size_t VulkanVertexInputManager::HashFunc::operator()(const VertexDeclarationKey& key) const
+VulkanVertexInput::VulkanVertexInput(u32 id, const TShared<VertexDescription>& vertexBufferDescription, const GpuVertexInputLayout& layout)
+	: mId(id)
 {
-	size_t hash = 0;
-	B3DCombineHash(hash, key.BufferDeclarationId);
-	B3DCombineHash(hash, key.ShaderDeclarationId);
+	const u32 attributeCount = (u32)layout.Attributes.Size();
+	const u32 bindingCount = layout.StreamCount;
 
-	return hash;
-}
-
-bool VulkanVertexInputManager::EqualFunc::operator()(const VertexDeclarationKey& a, const VertexDeclarationKey& b) const
-{
-	if(a.BufferDeclarationId != b.BufferDeclarationId)
-		return false;
-
-	if(a.ShaderDeclarationId != b.ShaderDeclarationId)
-		return false;
-
-	return true;
-}
-
-VulkanVertexInputManager::VulkanVertexInputManager()
-{
-	Lock lock(mMutex);
-
-	mNextId = 1;
-	mWarningShown = false;
-	mLastUsedCounter = 0;
-}
-
-VulkanVertexInputManager::~VulkanVertexInputManager()
-{
-	Lock lock(mMutex);
-
-	while(mVertexInputMap.begin() != mVertexInputMap.end())
-	{
-		auto firstElem = mVertexInputMap.begin();
-		mVertexInputMap.erase(firstElem);
-	}
-}
-
-TShared<VulkanVertexInput> VulkanVertexInputManager::GetVertexInfo(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription)
-{
-	Lock lock(mMutex);
-
-	VertexDeclarationKey pair;
-	pair.BufferDeclarationId = vertexBufferDescription->GetId();
-	pair.ShaderDeclarationId = shaderInputDescription->GetId();
-
-	auto iterFind = mVertexInputMap.find(pair);
-	if(iterFind == mVertexInputMap.end())
-	{
-		if(mVertexInputMap.size() >= kDeclarationBufferSize)
-			RemoveLeastUsed(); // Prune so the buffer doesn't just infinitely grow
-
-		AddNew(vertexBufferDescription, shaderInputDescription);
-
-		iterFind = mVertexInputMap.find(pair);
-	}
-
-	iterFind->second.LastUsedIdx = ++mLastUsedCounter;
-	return iterFind->second.VertexInput;
-}
-
-void VulkanVertexInputManager::AddNew(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription)
-{
-	const TInlineArray<VertexElement, 8>& vertexBufferElements = vertexBufferDescription->GetElements();
-	const TInlineArray<VertexElement, 8>& shaderInputElements = shaderInputDescription->GetElements();
-
-	const u32 attributeCount = (u32)shaderInputElements.size();
-
-	bool areAnyShaderInputsMissing = false;
-	u32 bindingCount = 0;
-	for(const auto& shaderInputElement : shaderInputElements)
-	{
-		const VertexElement* matchingElement = nullptr;
-		for(const auto& vertexBufferElement : vertexBufferElements)
-		{
-			if(shaderInputElement.GetSemantic() == vertexBufferElement.GetSemantic() && shaderInputElement.GetSemanticIndex() == vertexBufferElement.GetSemanticIndex())
-			{
-				matchingElement = &vertexBufferElement;
-				break;
-			}
-		}
-
-		if(matchingElement == nullptr)
-		{
-			areAnyShaderInputsMissing = true;
-			continue;
-		}
-
-		bindingCount = Math::Max(bindingCount, (u32)matchingElement->GetStreamIndex() + 1);
-	}
-
-	// Add extra binding to store the empty vertex buffer for missing attributes
-	if(areAnyShaderInputsMissing)
-		bindingCount++;
-
-	VertexInputEntry newEntry;
-	GroupAllocator& alloc = newEntry.Allocator;
-
-	alloc.Reserve<VkVertexInputAttributeDescription>(attributeCount)
+	mAllocator.Reserve<VkVertexInputAttributeDescription>(attributeCount)
 		.Reserve<VkVertexInputBindingDescription>(bindingCount)
 		.Initialize();
 
-	newEntry.Attributes = alloc.Allocate<VkVertexInputAttributeDescription>(attributeCount);
-	newEntry.Bindings = alloc.Allocate<VkVertexInputBindingDescription>(bindingCount);
+	mAttributes = mAllocator.Allocate<VkVertexInputAttributeDescription>(attributeCount);
+	mBindings = mAllocator.Allocate<VkVertexInputBindingDescription>(bindingCount);
 
 	bool* isFirstAttributeInVertexBuffer = B3DStackAllocate<bool>(bindingCount);
-	for(u32 i = 0; i < bindingCount; i++)
+	for(u32 bindingIndex = 0; bindingIndex < bindingCount; bindingIndex++)
 	{
-		// This is the empty buffer binding we use if any shader inputs are missing
-		const bool isNullBinding = areAnyShaderInputsMissing && ((i + 1) == bindingCount);
+		// The null stream is the empty buffer binding we use if any shader inputs are missing
+		const bool isNullBinding = bindingIndex == layout.NullStreamIndex;
 
-		VkVertexInputBindingDescription& binding = newEntry.Bindings[i];
-		binding.binding = i;
+		VkVertexInputBindingDescription& binding = mBindings[bindingIndex];
+		binding.binding = bindingIndex;
 		binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		binding.stride = isNullBinding ? 0 : vertexBufferDescription->GetVertexStride(i);
+		binding.stride = isNullBinding ? 0 : vertexBufferDescription->GetVertexStride(bindingIndex);
 
-		isFirstAttributeInVertexBuffer[i] = true;
+		isFirstAttributeInVertexBuffer[bindingIndex] = true;
 	}
 
 	u32 attributeIndex = 0;
-	for(auto& shaderInputElement : shaderInputElements)
+	for(const GpuVertexInputAttribute& resolvedAttribute : layout.Attributes)
 	{
-		VkVertexInputAttributeDescription& attribute = newEntry.Attributes[attributeIndex];
+		VkVertexInputAttributeDescription& attribute = mAttributes[attributeIndex];
+		attribute.location = resolvedAttribute.ShaderInput->GetOffset();
+		attribute.binding = resolvedAttribute.StreamIndex;
 
-		const VertexElement* matchingElement = nullptr;
-		for(auto& vertexBufferElement : vertexBufferElements)
+		if(resolvedAttribute.BufferElement != nullptr)
 		{
-			if(shaderInputElement.GetSemantic() == vertexBufferElement.GetSemantic() && shaderInputElement.GetSemanticIndex() == vertexBufferElement.GetSemanticIndex())
-			{
-				matchingElement = &vertexBufferElement;
-				break;
-			}
-		}
-
-		attribute.location = shaderInputElement.GetOffset();
-
-		bool isSteppingPerVertex;
-		if(matchingElement != nullptr)
-		{
-			attribute.binding = matchingElement->GetStreamIndex();
-			attribute.format = VulkanUtility::GetVertexType(matchingElement->GetType());
-			attribute.offset = matchingElement->GetOffset();
-
-			isSteppingPerVertex = matchingElement->GetInstanceStepRate() == 0;
+			attribute.format = VulkanUtility::GetVertexType(resolvedAttribute.BufferElement->GetType());
+			attribute.offset = resolvedAttribute.BufferElement->GetOffset();
 		}
 		else
 		{
-			attribute.binding = bindingCount - 1;
-			attribute.format = VulkanUtility::GetVertexType(shaderInputElement.GetType());
+			attribute.format = VulkanUtility::GetVertexType(resolvedAttribute.ShaderInput->GetType());
 			attribute.offset = 0;
-
-			isSteppingPerVertex = true;
 		}
 
-		VkVertexInputBindingDescription& binding = newEntry.Bindings[attribute.binding];
+		VkVertexInputBindingDescription& binding = mBindings[attribute.binding];
 		if(isFirstAttributeInVertexBuffer[attribute.binding])
 		{
-			binding.inputRate = isSteppingPerVertex ? VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE;
+			binding.inputRate = resolvedAttribute.SteppedPerInstance ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
 			isFirstAttributeInVertexBuffer[attribute.binding] = false;
 		}
 		else
 		{
-			if((binding.inputRate == VK_VERTEX_INPUT_RATE_VERTEX && !isSteppingPerVertex) ||
-			   (binding.inputRate == VK_VERTEX_INPUT_RATE_INSTANCE && isSteppingPerVertex))
+			if((binding.inputRate == VK_VERTEX_INPUT_RATE_VERTEX && resolvedAttribute.SteppedPerInstance) ||
+			   (binding.inputRate == VK_VERTEX_INPUT_RATE_INSTANCE && !resolvedAttribute.SteppedPerInstance))
 			{
 				B3D_LOG(Error, LogRenderBackend, "Found multiple vertex attributes belonging to the same binding but with "
 											 "different input rates. All attributes in a binding must have the same input rate. Ignoring "
@@ -192,53 +82,26 @@ void VulkanVertexInputManager::AddNew(const TShared<VertexDescription>& vertexBu
 
 	B3DStackFree(isFirstAttributeInVertexBuffer);
 
-	VkPipelineVertexInputStateCreateInfo vertexInputCI;
-	vertexInputCI.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputCI.pNext = nullptr;
-	vertexInputCI.flags = 0;
-	vertexInputCI.pVertexBindingDescriptions = newEntry.Bindings.Data();
-	vertexInputCI.vertexBindingDescriptionCount = bindingCount;
-	vertexInputCI.pVertexAttributeDescriptions = newEntry.Attributes.Data();
-	vertexInputCI.vertexAttributeDescriptionCount = attributeCount;
-
-	// Create key and add to the layout map
-	VertexDeclarationKey pair;
-	pair.BufferDeclarationId = vertexBufferDescription->GetId();
-	pair.ShaderDeclarationId = shaderInputDescription->GetId();
-
-	newEntry.VertexInput = B3DMakeShared<VulkanVertexInput>(mNextId++, vertexInputCI, bindingCount);
-	newEntry.LastUsedIdx = ++mLastUsedCounter;
-
-	mVertexInputMap[pair] = std::move(newEntry);
+	mCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	mCreateInfo.pNext = nullptr;
+	mCreateInfo.flags = 0;
+	mCreateInfo.pVertexBindingDescriptions = mBindings.Data();
+	mCreateInfo.vertexBindingDescriptionCount = bindingCount;
+	mCreateInfo.pVertexAttributeDescriptions = mAttributes.Data();
+	mCreateInfo.vertexAttributeDescriptionCount = attributeCount;
 }
 
-void VulkanVertexInputManager::RemoveLeastUsed()
+VulkanVertexInputManager::~VulkanVertexInputManager()
 {
-	Lock lock(mMutex);
+	ReleaseAll();
+}
 
-	if(!mWarningShown)
-	{
-		B3D_LOG(Warning, LogRenderBackend, "Vertex input buffer is full, pruning last {0} elements. This is "
-									   "probably okay unless you are creating a massive amount of input layouts as they will get re-created every "
-									   "frame. In that case you should increase the layout buffer size. This warning won't be shown again.",
-			   kElementCountToPrune);
+TShared<VulkanVertexInput> VulkanVertexInputManager::CreateVertexInput(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription, const GpuVertexInputLayout& layout)
+{
+	return B3DMakeShared<VulkanVertexInput>(mNextId++, vertexBufferDescription, layout);
+}
 
-		mWarningShown = true;
-	}
-
-	Map<u32, VertexDeclarationKey> leastFrequentlyUsedMap;
-
-	for(auto iter = mVertexInputMap.begin(); iter != mVertexInputMap.end(); ++iter)
-		leastFrequentlyUsedMap[iter->second.LastUsedIdx] = iter->first;
-
-	u32 elemsRemoved = 0;
-	for(auto iter = leastFrequentlyUsedMap.begin(); iter != leastFrequentlyUsedMap.end(); ++iter)
-	{
-		auto inputLayoutIter = mVertexInputMap.find(iter->second);
-		mVertexInputMap.erase(inputLayoutIter);
-
-		elemsRemoved++;
-		if(elemsRemoved >= kElementCountToPrune)
-			break;
-	}
+void VulkanVertexInputManager::DestroyVertexInput(TShared<VulkanVertexInput>& vertexInput)
+{
+	vertexInput = nullptr;
 }
