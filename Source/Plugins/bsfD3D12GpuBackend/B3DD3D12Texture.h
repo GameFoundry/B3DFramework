@@ -24,46 +24,104 @@ namespace b3d
 			/** @copydoc Texture::Initialize */
 			void Initialize() override;
 
-			/** Returns the D3D12 resource. */
+			/** @copydoc D3D12Resource::GetD3D12Resource */
 			ID3D12Resource* GetD3D12Resource() const override { return mTexture.Get(); }
 
 			/** Returns the DXGI format of the texture. */
 			DXGI_FORMAT GetDXGIFormat() const { return mDXGIFormat; }
 
-		protected:
-			/** @copydoc Texture::Map */
-			PixelData Map(GpuResourceUsage usage, u32 face, u32 mipLevel) override;
+			/** @copydoc render::Texture::GetDevice */
+			GpuDevice& GetDevice() const override { return mGpuDevice; }
 
-			/** @copydoc Texture::Unmap */
-			void Unmap(u32 face, u32 mipLevel) override;
+			/** @copydoc render::Texture::Map */
+			GpuTextureMappedScope Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options) override;
 
-			/** @copydoc Texture::WriteData */
-			void WriteData(const PixelData& data, u32 face, u32 mipLevel, bool discardEntireBuffer) override;
+			/** @copydoc render::Texture::RecreateInternalTexture */
+			void RecreateInternalTexture() override;
 
-			/** @copydoc Texture::ReadData */
-			void ReadData(PixelData& data, u32 face, u32 mipLevel) override;
+			/** @copydoc render::Texture::GetStagingBufferPitchForSubresource */
+			ImageSubresourcePitch GetStagingBufferPitchForSubresource(u32 face, u32 mipLevel) const override;
 
-			/** @copydoc Texture::CopyData */
-			void CopyData(Texture& destination, const PixelData& srcData, const PixelData& dstData) override;
+			/**
+			 * Byte pitch between rows that staging buffers use for copies to or from the given subresource. Padded to
+			 * D3D12_TEXTURE_DATA_PITCH_ALIGNMENT as required for placed copy footprints, while remaining a whole
+			 * number of format blocks.
+			 */
+			u32 GetStagingRowPitchInBytes(u32 mipLevel) const;
+
+			/** @copydoc render::Texture::GetUseMask */
+			GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags = GpuAccessFlag::Read | GpuAccessFlag::Write) const override;
+
+			/** @copydoc render::Texture::GetBoundCount */
+			u32 GetBoundCount(u32 subresourceIdx = 0) const override;
+
+			/** @copydoc render::Texture::GetUseCount */
+			u32 GetUseCount(u32 subresourceIdx = 0) const override;
+
+			/** @copydoc render::Texture::Flush */
+			void Flush(u32 mipLevel, u32 arrayLayer) override;
+
+			/**
+			 * Returns a CPU descriptor handle for a shader resource view (SRV) covering the specified surface. Views are
+			 * cached and reused for identical surface requests. Returns a zeroed handle if the view could not be created.
+			 */
+			D3D12_CPU_DESCRIPTOR_HANDLE GetSRVHandle(const TextureSurface& surface);
+
+			/**
+			 * Returns a CPU descriptor handle for an unordered access view (UAV) covering the specified surface. Only
+			 * valid for textures created with AllowUnorderedAccessOnTheGPU. Returns a zeroed handle otherwise.
+			 */
+			D3D12_CPU_DESCRIPTOR_HANDLE GetUAVHandle(const TextureSurface& surface);
 
 		private:
+			/** Distinguishes cached view types. */
+			enum class ViewType
+			{
+				SRV,
+				UAV
+			};
+
+			/** Key used to cache texture views by surface and view type. */
+			struct ViewKey
+			{
+				TextureSurface Surface;
+				ViewType Type;
+
+				bool operator==(const ViewKey& other) const
+				{
+					return Type == other.Type && Surface == other.Surface;
+				}
+			};
+
+			/** Hashes a ViewKey. */
+			struct ViewKeyHash
+			{
+				size_t operator()(const ViewKey& key) const;
+			};
+
 			/** Creates the D3D12 texture resource. */
 			void CreateTexture();
 
-			/** Creates a staging buffer for CPU access to the specified subresource. */
-			void CreateStagingBuffer(u32 subresourceIndex, u32 width, u32 height);
+			/** Releases the currently allocated D3D12 texture resource, if any. */
+			void ReleaseTexture();
 
-			/** Calculates the subresource index for the given face and mip level. */
-			u32 CalculateSubresourceIndex(u32 face, u32 mipLevel) const;
+			/** Frees all cached view descriptors. */
+			void ReleaseViews();
 
+			/** Creates (or returns cached) descriptor of the requested type/surface. */
+			D3D12_CPU_DESCRIPTOR_HANDLE GetOrCreateView(const TextureSurface& surface, ViewType type);
+
+			GpuDevice& mGpuDevice;
 			ComPtr<ID3D12Resource> mTexture;
 			D3D12MA::Allocation* mAllocation = nullptr;
-			DXGI_FORMAT mDXGIFormat;
+			DXGI_FORMAT mDXGIFormat = DXGI_FORMAT_UNKNOWN;
 
-			// Staging resources for CPU access
-			ComPtr<ID3D12Resource> mStagingBuffer;
-			void* mMappedData = nullptr;
-			u32 mMappedSubresource = (u32)-1;
+			UnorderedMap<ViewKey, D3D12_CPU_DESCRIPTOR_HANDLE, ViewKeyHash> mViews;
+
+			// CPU-side buffer backing the most recent write mapping. Uploaded to the GPU on Flush(). See Map().
+			TShared<PixelData> mMappedWriteData;
+			u32 mMappedWriteMip = 0;
+			u32 mMappedWriteLayer = 0;
 		};
 
 		/** @} */

@@ -142,6 +142,10 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 
 			case GPOT_RWBYTE_BUFFER:
 			case GPOT_RWSTRUCTURED_BUFFER:
+			case GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER:
+			case GPOT_RWTYPED_BUFFER:
+			case GPOT_RWAPPEND_BUFFER:
+			case GPOT_RWCONSUME_BUFFER:
 				return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 
 			default:
@@ -175,7 +179,7 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 				D3D12_DESCRIPTOR_RANGE range = {};
 				range.RangeType = getDescriptorRangeType(uniformInfo->Type, uniformInfo->ObjectType);
 				range.NumDescriptors = uniformInfo->ArraySize;
-				range.BaseShaderRegister = uniformInfo->Slot; // Use slot as shader register
+				range.BaseShaderRegister = MapSlotToRegister(uniformInfo->Slot); // Slots encode the HLSL register, see MapRegisterToSlot()
 				range.RegisterSpace = setIndex; // Use set as register space
 				range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 

@@ -4,9 +4,9 @@
 
 #include "B3DD3D12Prerequisites.h"
 #include "GpuBackend/B3DEventQuery.h"
-#include "GpuBackend/B3DTimerQuery.h"
-#include "GpuBackend/B3DOcclusionQuery.h"
 #include "GpuBackend/B3DGpuQueries.h"
+
+#include <atomic>
 
 namespace b3d
 {
@@ -58,71 +58,34 @@ namespace b3d
 			bool mResolved = false;
 		};
 
-		/** DirectX 12 implementation of an event query. */
+		/**
+		 * DirectX 12 implementation of an event query. Readiness is derived from the command buffer's OnDidComplete
+		 * event: once the command buffer the query was scheduled on finishes executing on the GPU, an atomic ready
+		 * flag is flipped and IsReady() begins returning true.
+		 *
+		 * @note	The event fires on the command buffer's owning thread. IsReady() may be polled from another thread,
+		 *			hence the atomic ready flag.
+		 */
 		class D3D12EventQuery : public EventQuery
 		{
 		public:
-			D3D12EventQuery(GpuDevice& device);
+			D3D12EventQuery(D3D12GpuDevice& device);
 			~D3D12EventQuery() override;
 
 			/** @copydoc EventQuery::Begin */
-			void Begin(const TShared<render::GpuCommandBuffer>& commandBuffer) override;
+			void Begin(GpuCommandBuffer& commandBuffer) override;
 
 			/** @copydoc EventQuery::IsReady */
 			bool IsReady() const override;
 
 		private:
-			ComPtr<ID3D12Fence> mFence;
-			u64 mFenceValue = 0;
-		};
+			D3D12GpuDevice& mDevice;
 
-		/** DirectX 12 implementation of a timer query. */
-		class D3D12TimerQuery : public TimerQuery
-		{
-		public:
-			D3D12TimerQuery(GpuDevice& device);
-			~D3D12TimerQuery() override;
+			/** Set to true once the command buffer this query was scheduled on completes on the GPU. */
+			std::atomic<bool> mReady{ false };
 
-			/** @copydoc TimerQuery::Begin */
-			void Begin(const TShared<render::GpuCommandBuffer>& commandBuffer) override;
-
-			/** @copydoc TimerQuery::End */
-			void End(const TShared<render::GpuCommandBuffer>& commandBuffer) override;
-
-			/** @copydoc TimerQuery::IsReady */
-			bool IsReady() const override;
-
-			/** @copydoc TimerQuery::GetTimeInMilliseconds */
-			float GetTimeInMilliseconds() override;
-
-		private:
-			// TODO: Implement using query pools
-			bool mIsReady = false;
-		};
-
-		/** DirectX 12 implementation of an occlusion query. */
-		class D3D12OcclusionQuery : public OcclusionQuery
-		{
-		public:
-			D3D12OcclusionQuery(bool isBinary, GpuDevice& device);
-			~D3D12OcclusionQuery() override;
-
-			/** @copydoc OcclusionQuery::Begin */
-			void Begin(const TShared<render::GpuCommandBuffer>& commandBuffer) override;
-
-			/** @copydoc OcclusionQuery::End */
-			void End(const TShared<render::GpuCommandBuffer>& commandBuffer) override;
-
-			/** @copydoc OcclusionQuery::IsReady */
-			bool IsReady() const override;
-
-			/** @copydoc OcclusionQuery::GetNumSamples */
-			u32 GetNumSamples() override;
-
-		private:
-			// TODO: Implement using query pools
-			bool mIsBinary;
-			bool mIsReady = false;
+			/** Connection to the command buffer's OnDidComplete event. Disconnected on re-Begin and on destruction. */
+			HEvent mCompleteConnection;
 		};
 
 		/** @} */

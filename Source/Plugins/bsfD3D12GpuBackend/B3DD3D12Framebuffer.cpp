@@ -44,19 +44,28 @@ void D3D12Framebuffer::CreateViews()
 	for (u32 i = 0; i < kMaxColorAttachments; i++)
 	{
 		mRenderTargetViews[i].ptr = 0;
+		mColorAttachments[i] = Attachment{};
+		mOwnedColorStates[i] = D3D12_RESOURCE_STATE_COMMON;
+		mColorFormats[i] = DXGI_FORMAT_UNKNOWN;
 	}
 	mDepthStencilView.ptr = 0;
+	mDepthStencilAttachment = Attachment{};
+	mDepthStencilFormat = DXGI_FORMAT_UNKNOWN;
+	mSampleCount = 1;
 
 	if (!mRenderTarget)
 		return;
 
 	// Get the device and descriptor manager
-	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(GetD3D12GpuBackend().GetPrimaryDevice());
+	D3D12GpuDevice& device = *GetD3D12GpuBackend().GetPrimaryDevice();
 	D3D12DescriptorManager& descriptorManager = device.GetDescriptorManager();
 	ID3D12Device* d3d12Device = device.GetD3D12Device();
 
-	// Check if this is a RenderTexture (off-screen) or RenderWindow (swap chain)
-	const RenderTexture* renderTexture = dynamic_cast<const RenderTexture*>(mRenderTarget);
+	// Check if this is a RenderTexture (off-screen) or RenderWindow (swap chain). Note that dynamic_cast cannot
+	// be used as the engine builds without RTTI.
+	const RenderTexture* renderTexture = !mRenderTarget->GetProperties().IsWindow
+		? static_cast<const RenderTexture*>(mRenderTarget)
+		: nullptr;
 
 	if (renderTexture)
 	{
@@ -82,19 +91,18 @@ void D3D12Framebuffer::CreateViews()
 			rtvDesc.Format = D3D12Utility::GetDXGIFormat(colorTexture->GetProperties().Format);
 
 			const TextureProperties& props = colorTexture->GetProperties();
-			switch (props.TextureType)
+			switch (props.Type)
 			{
 			case TEX_TYPE_2D:
 				rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 				rtvDesc.Texture2D.MipSlice = 0;
 				rtvDesc.Texture2D.PlaneSlice = 0;
 				break;
-			case TEX_TYPE_2D_ARRAY:
 			case TEX_TYPE_CUBE_MAP:
 				rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
 				rtvDesc.Texture2DArray.MipSlice = 0;
 				rtvDesc.Texture2DArray.FirstArraySlice = 0;
-				rtvDesc.Texture2DArray.ArraySize = props.NumFaces;
+				rtvDesc.Texture2DArray.ArraySize = props.GetFaceCount();
 				rtvDesc.Texture2DArray.PlaneSlice = 0;
 				break;
 			case TEX_TYPE_3D:
@@ -109,6 +117,14 @@ void D3D12Framebuffer::CreateViews()
 			}
 
 			d3d12Device->CreateRenderTargetView(resource, &rtvDesc, mRenderTargetViews[i]);
+
+			// The D3D12Texture is itself a D3D12Resource state holder, so transitions update the texture's
+			// shared current state directly.
+			mColorAttachments[i].Resource = resource;
+			mColorAttachments[i].StateHolder = d3d12Texture->GetCurrentStatePtr();
+			mColorFormats[i] = rtvDesc.Format;
+			mSampleCount = Math::Max(1u, props.SampleCount);
+
 			mNumColorAttachments++;
 		}
 
@@ -130,18 +146,17 @@ void D3D12Framebuffer::CreateViews()
 				dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 
 				const TextureProperties& props = depthTexture->GetProperties();
-				switch (props.TextureType)
+				switch (props.Type)
 				{
 				case TEX_TYPE_2D:
 					dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 					dsvDesc.Texture2D.MipSlice = 0;
 					break;
-				case TEX_TYPE_2D_ARRAY:
 				case TEX_TYPE_CUBE_MAP:
 					dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 					dsvDesc.Texture2DArray.MipSlice = 0;
 					dsvDesc.Texture2DArray.FirstArraySlice = 0;
-					dsvDesc.Texture2DArray.ArraySize = props.NumFaces;
+					dsvDesc.Texture2DArray.ArraySize = props.GetFaceCount();
 					break;
 				default:
 					B3D_LOG(Error, LogRenderBackend, "Unsupported texture type for depth-stencil view");
@@ -149,6 +164,12 @@ void D3D12Framebuffer::CreateViews()
 				}
 
 				d3d12Device->CreateDepthStencilView(resource, &dsvDesc, mDepthStencilView);
+
+				mDepthStencilAttachment.Resource = resource;
+				mDepthStencilAttachment.StateHolder = d3d12Texture->GetCurrentStatePtr();
+				mDepthStencilFormat = dsvDesc.Format;
+				mSampleCount = Math::Max(1u, props.SampleCount);
+
 				mHasDepthStencil = true;
 			}
 		}
@@ -178,6 +199,13 @@ void D3D12Framebuffer::CreateViews()
 		// Get the RTV for the specified back buffer
 		mRenderTargetViews[0] = swapChain->GetBackBufferRTV(mBackBufferIndex);
 		mNumColorAttachments = 1;
+		mColorFormats[0] = swapChain->GetCreateInformation().ColorFormat;
+
+		// Swap-chain back buffers have no D3D12Resource wrapper, so the framebuffer owns the tracked state. The
+		// back buffer is created (and left after Present) in COMMON/PRESENT state.
+		mColorAttachments[0].Resource = swapChain->GetBackBuffer(mBackBufferIndex);
+		mColorAttachments[0].StateHolder = &mOwnedColorStates[0];
+		mOwnedColorStates[0] = D3D12_RESOURCE_STATE_COMMON;
 
 		// Get depth stencil view if it exists
 		D3D12_CPU_DESCRIPTOR_HANDLE dsv = swapChain->GetDepthStencilView();
@@ -185,6 +213,16 @@ void D3D12Framebuffer::CreateViews()
 		{
 			mDepthStencilView = dsv;
 			mHasDepthStencil = true;
+			mDepthStencilFormat = swapChain->GetCreateInformation().DepthStencilFormat;
+
+			// TODO(d3d12-port): The swap chain exposes only the depth-stencil DSV handle, not the backing
+			// ID3D12Resource*, so the framebuffer cannot transition the swap-chain depth buffer. Resource stays
+			// null and the command buffer skips its transition. The swap chain creates the depth buffer in
+			// DEPTH_WRITE state and nothing else transitions it, so this is safe for the common depth-write path,
+			// but read-only depth on a window target will not be honored until the swap chain exposes the resource.
+			mDepthStencilAttachment.Resource = nullptr;
+			mDepthStencilAttachment.StateHolder = &mOwnedDepthStencilState;
+			mOwnedDepthStencilState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		}
 
 		B3D_LOG(Info, LogRenderBackend, "Created framebuffer from RenderWindow swap chain: {0}x{1}", mWidth, mHeight);

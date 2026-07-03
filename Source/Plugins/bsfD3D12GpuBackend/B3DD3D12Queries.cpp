@@ -3,6 +3,7 @@
 #include "B3DD3D12Queries.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12Utility.h"
+#include "GpuBackend/B3DGpuCommandBuffer.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -248,104 +249,40 @@ u64 D3D12GpuQueryPool::GetQueryResult(GpuQueryId queryId, u32 elementIndex)
 	return result;
 }
 
-D3D12EventQuery::D3D12EventQuery(GpuDevice& device)
-	: EventQuery(device)
+D3D12EventQuery::D3D12EventQuery(D3D12GpuDevice& device)
+	: EventQuery()
+	, mDevice(device)
 {
-	D3D12GpuDevice& d3d12Device = static_cast<D3D12GpuDevice&>(device);
-	ID3D12Device* d3d12DevicePtr = d3d12Device.GetD3D12Device();
-
-	// Create a D3D12 fence for the event query
-	HRESULT hr = d3d12DevicePtr->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
-	if (FAILED(hr))
-	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to create D3D12 fence for event query");
-	}
 }
 
 D3D12EventQuery::~D3D12EventQuery()
 {
-	mFence.Reset();
+	// Disconnect from any command buffer still tracking this query, so its OnDidComplete callback doesn't touch a
+	// destroyed query.
+	if (mCompleteConnection)
+		mCompleteConnection.Disconnect();
 }
 
-void D3D12EventQuery::Begin(const TShared<render::GpuCommandBuffer>& commandBuffer)
+void D3D12EventQuery::Begin(GpuCommandBuffer& commandBuffer)
 {
-	// Increment fence value and signal from the command buffer
-	mFenceValue++;
+	// Drop any prior subscription and reset readiness - Begin may be called to re-use a query.
+	if (mCompleteConnection)
+		mCompleteConnection.Disconnect();
 
-	// TODO: Signal fence from command buffer when it's executed
-	// For now, this is a placeholder implementation
+	mReady.store(false, std::memory_order_relaxed);
+
+	// OnDidComplete fires (on the command buffer's owning thread) once the command buffer finishes executing on the
+	// GPU. That's at or after the point the query was scheduled, which satisfies the EventQuery contract. Capture a
+	// raw pointer to the atomic flag; the connection is disconnected in the destructor and on re-Begin, so the flag
+	// outlives every invocation of this callback.
+	std::atomic<bool>* readyFlag = &mReady;
+	mCompleteConnection = commandBuffer.OnDidComplete.Connect([readyFlag]()
+	{
+		readyFlag->store(true, std::memory_order_release);
+	});
 }
 
 bool D3D12EventQuery::IsReady() const
 {
-	if (!mFence)
-		return false;
-
-	// Check if the fence has been signaled
-	return mFence->GetCompletedValue() >= mFenceValue;
-}
-
-D3D12TimerQuery::D3D12TimerQuery(GpuDevice& device)
-	: TimerQuery(device)
-{
-	// TODO: Implement using query pools
-}
-
-D3D12TimerQuery::~D3D12TimerQuery()
-{
-}
-
-void D3D12TimerQuery::Begin(const TShared<render::GpuCommandBuffer>& commandBuffer)
-{
-	// TODO: Implement using query pools
-	mIsReady = false;
-}
-
-void D3D12TimerQuery::End(const TShared<render::GpuCommandBuffer>& commandBuffer)
-{
-	// TODO: Implement using query pools
-}
-
-bool D3D12TimerQuery::IsReady() const
-{
-	return mIsReady;
-}
-
-float D3D12TimerQuery::GetTimeInMilliseconds()
-{
-	// TODO: Implement using query pools
-	return 0.0f;
-}
-
-D3D12OcclusionQuery::D3D12OcclusionQuery(bool isBinary, GpuDevice& device)
-	: OcclusionQuery(isBinary, device)
-	, mIsBinary(isBinary)
-{
-	// TODO: Implement using query pools
-}
-
-D3D12OcclusionQuery::~D3D12OcclusionQuery()
-{
-}
-
-void D3D12OcclusionQuery::Begin(const TShared<render::GpuCommandBuffer>& commandBuffer)
-{
-	// TODO: Implement using query pools
-	mIsReady = false;
-}
-
-void D3D12OcclusionQuery::End(const TShared<render::GpuCommandBuffer>& commandBuffer)
-{
-	// TODO: Implement using query pools
-}
-
-bool D3D12OcclusionQuery::IsReady() const
-{
-	return mIsReady;
-}
-
-u32 D3D12OcclusionQuery::GetNumSamples()
-{
-	// TODO: Implement using query pools
-	return 0;
+	return mReady.load(std::memory_order_acquire);
 }

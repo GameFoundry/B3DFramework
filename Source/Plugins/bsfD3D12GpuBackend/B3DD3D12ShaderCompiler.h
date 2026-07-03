@@ -5,6 +5,8 @@
 #include "B3DD3D12Prerequisites.h"
 #include "GpuBackend/B3DGpuProgram.h"
 
+#include <d3d12shader.h>
+
 namespace b3d
 {
 	namespace render
@@ -42,8 +44,8 @@ namespace b3d
 			static void ReflectVertexInput(ID3D12ShaderReflection* reflection, const D3D12_SHADER_DESC& shaderDesc,
 				Vector<VertexElement>& vertexInput);
 
-			/** Converts D3D12 shader type to GpuParamDataType. */
-			static GpuParamDataType ConvertD3DTypeToGpuParamDataType(const D3D12_SHADER_TYPE_DESC& typeDesc);
+			/** Converts D3D12 shader type to GpuDataParameterType. */
+			static GpuDataParameterType ConvertD3DTypeToGpuDataParameterType(const D3D12_SHADER_TYPE_DESC& typeDesc);
 
 			/** Parses HLSL semantic name (e.g., "POSITION0") to semantic type and index. */
 			static bool ParseSemanticName(const char* semanticName, VertexElementSemantic& semantic, u16& index);

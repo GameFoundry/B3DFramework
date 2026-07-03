@@ -3,7 +3,8 @@
 #pragma once
 
 #include "B3DD3D12Prerequisites.h"
-#include "Image/B3DPixelFormat.h"
+#include "Image/B3DPixelData.h"
+#include "Image/B3DPixelUtility.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 
 namespace b3d
@@ -24,17 +25,17 @@ namespace b3d
 			/** Converts a DXGI format to engine pixel format. */
 			static PixelFormat GetPixelFormat(DXGI_FORMAT format);
 
-			/** Converts engine buffer usage flags to D3D12 resource flags. */
-			static D3D12_RESOURCE_FLAGS GetBufferResourceFlags(GpuBufferUsage usage);
+			/** Converts engine buffer flags to D3D12 resource flags. */
+			static D3D12_RESOURCE_FLAGS GetBufferResourceFlags(GpuBufferFlags flags);
 
 			/** Converts engine texture usage flags to D3D12 resource flags. */
 			static D3D12_RESOURCE_FLAGS GetTextureResourceFlags(TextureUsageFlags usage);
 
-			/** Converts engine GPU resource usage to D3D12 heap type. */
-			static D3D12_HEAP_TYPE GetHeapType(GpuResourceUsage usage);
+			/** Determines the D3D12 heap type to place a buffer of the provided type and flags in. */
+			static D3D12_HEAP_TYPE GetHeapType(GpuBufferType type, GpuBufferFlags flags);
 
 			/** Converts engine comparison function to D3D12 comparison function. */
-			static D3D12_COMPARISON_FUNC GetComparisonFunc(ComparisonFunction func);
+			static D3D12_COMPARISON_FUNC GetComparisonFunc(CompareFunction func);
 
 			/** Converts engine texture addressing mode to D3D12 texture address mode. */
 			static D3D12_TEXTURE_ADDRESS_MODE GetTextureAddressMode(TextureAddressingMode mode);
@@ -80,6 +81,33 @@ namespace b3d
 			 */
 			static u32 CalcConstantBufferElementSizeAndOffset(GpuDataParameterType type, u32 arraySize, u32& offset);
 		};
+
+		/** HLSL shader register classes, used for encoding engine parameter slots. See MapRegisterToSlot(). */
+		enum class D3D12RegisterClass
+		{
+			ConstantBuffer = 0,	 // b registers
+			ShaderResource = 1,	 // t registers
+			UnorderedAccess = 2, // u registers
+			Sampler = 3,		 // s registers
+
+			Count = 4
+		};
+
+		/**
+		 * Maps an HLSL shader register to an engine parameter slot. HLSL registers are only unique within their register
+		 * class (b/t/u/s), while engine slots must be unique across all parameters of a set, so the class is encoded
+		 * into the slot. Inverted by MapSlotToRegister().
+		 */
+		constexpr u32 MapRegisterToSlot(u32 registerIndex, D3D12RegisterClass registerClass)
+		{
+			return registerIndex * (u32)D3D12RegisterClass::Count + (u32)registerClass;
+		}
+
+		/** Recovers the HLSL shader register from an engine parameter slot encoded by MapRegisterToSlot(). */
+		constexpr u32 MapSlotToRegister(u32 slot)
+		{
+			return slot / (u32)D3D12RegisterClass::Count;
+		}
 
 		/** @} */
 	} // namespace render

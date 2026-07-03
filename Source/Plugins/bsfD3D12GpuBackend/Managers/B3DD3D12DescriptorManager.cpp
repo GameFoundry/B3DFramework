@@ -113,11 +113,58 @@ void D3D12DescriptorManager::CreateHeaps()
 		mHeaps[(u32)D3D12DescriptorHeapType::Sampler].NumDescriptors = heapDesc.NumDescriptors;
 		mHeaps[(u32)D3D12DescriptorHeapType::Sampler].NextFreeIndex = 0;
 	}
+
+	// Create the CPU-only staging heaps resource views are created into. These must be separate from the
+	// shader-visible heaps above: parameter sets copy staged descriptors into their shader-visible ranges, and
+	// shader-visible heaps cannot be a descriptor copy source.
+
+	// CBV/SRV/UAV staging heap
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		heapDesc.NumDescriptors = 8192; // Every live resource view descriptor lives here
+		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // CPU-only
+		heapDesc.NodeMask = 0;
+
+		DescriptorHeap& stagingHeap = mStagingHeaps[(u32)D3D12DescriptorHeapType::CBV_SRV_UAV];
+		HRESULT hr = device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&stagingHeap.Heap));
+		B3D_ASSERT(SUCCEEDED(hr) && "Failed to create CBV/SRV/UAV staging descriptor heap");
+
+		stagingHeap.CPUStart = stagingHeap.Heap->GetCPUDescriptorHandleForHeapStart();
+		stagingHeap.NumDescriptors = heapDesc.NumDescriptors;
+		stagingHeap.NextFreeIndex = 0;
+	}
+
+	// Sampler staging heap
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+		heapDesc.NumDescriptors = 2048;
+		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // CPU-only
+		heapDesc.NodeMask = 0;
+
+		DescriptorHeap& stagingHeap = mStagingHeaps[(u32)D3D12DescriptorHeapType::Sampler];
+		HRESULT hr = device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&stagingHeap.Heap));
+		B3D_ASSERT(SUCCEEDED(hr) && "Failed to create Sampler staging descriptor heap");
+
+		stagingHeap.CPUStart = stagingHeap.Heap->GetCPUDescriptorHandleForHeapStart();
+		stagingHeap.NumDescriptors = heapDesc.NumDescriptors;
+		stagingHeap.NextFreeIndex = 0;
+	}
+}
+
+D3D12DescriptorManager::DescriptorHeap& D3D12DescriptorManager::GetStagingHeap(D3D12DescriptorHeapType type)
+{
+	if (type == D3D12DescriptorHeapType::CBV_SRV_UAV || type == D3D12DescriptorHeapType::Sampler)
+		return mStagingHeaps[(u32)type];
+
+	// RTV/DSV heaps are CPU-only already
+	return mHeaps[(u32)type];
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::AllocateCPUDescriptor(D3D12DescriptorHeapType type)
 {
-	DescriptorHeap& heap = mHeaps[(u32)type];
+	DescriptorHeap& heap = GetStagingHeap(type);
 
 	// Check free list first
 	if (!heap.FreeList.empty())
@@ -146,7 +193,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::AllocateCPUDescriptor(D3D12D
 
 void D3D12DescriptorManager::FreeCPUDescriptor(D3D12DescriptorHeapType type, D3D12_CPU_DESCRIPTOR_HANDLE handle)
 {
-	DescriptorHeap& heap = mHeaps[(u32)type];
+	DescriptorHeap& heap = GetStagingHeap(type);
 
 	// Calculate index from handle
 	SIZE_T offset = handle.ptr - heap.CPUStart.ptr;

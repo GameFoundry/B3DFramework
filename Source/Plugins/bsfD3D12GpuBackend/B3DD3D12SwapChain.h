@@ -3,6 +3,8 @@
 #pragma once
 
 #include "B3DD3D12Prerequisites.h"
+#include "GpuBackend/B3DGpuSwapChain.h"
+#include "Threading/B3DSingleConsumerQueue.h"
 
 namespace b3d
 {
@@ -19,17 +21,26 @@ namespace b3d
 			u32 Width = 0;
 			u32 Height = 0;
 			bool VSync = false;
+			u32 VsyncInterval = 1;
 			DXGI_FORMAT ColorFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 			DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_UNKNOWN;
 			bool CreateDepthBuffer = false;
 		};
 
-		/** DirectX 12 implementation of a swap chain. */
-		class D3D12SwapChain
+		/**
+		 * DirectX 12 implementation of a swap chain. Wraps a DXGI flip-model swap chain and integrates it with the
+		 * core GpuSwapChain contract so acquires and presents flow through the GpuSubmitThread.
+		 *
+		 * @note	DXGI has no semaphore/fence based image acquire - AcquireImage() resolves to recording the DXGI
+		 *			current back buffer index. Because the acquire is synchronous the acquired index is available to
+		 *			the render thread immediately after AcquireImage() returns.
+		 */
+		class D3D12SwapChain : public GpuSwapChain
 		{
+			using Super = GpuSwapChain;
 		public:
-			D3D12SwapChain(const D3D12SwapChainCreateInformation& createInfo, D3D12GpuDevice& device);
-			~D3D12SwapChain();
+			D3D12SwapChain(D3D12ResourceManager* owner, const D3D12SwapChainCreateInformation& createInfo, D3D12GpuDevice& device);
+			~D3D12SwapChain() override;
 
 			/** Sets the render target that owns this swap chain (for framebuffer creation). */
 			void SetRenderTarget(const RenderTarget* renderTarget);
@@ -38,7 +49,10 @@ namespace b3d
 			void Initialize();
 
 			/** Destroy the swap chain and release resources. */
-			void Destroy();
+			void Destroy() override;
+
+			/** @copydoc GpuSwapChain::GetMessageQueue */
+			SingleConsumerQueue& GetMessageQueue() override { return mMessageQueue; }
 
 			/** Returns the DXGI swap chain. */
 			IDXGISwapChain4* GetDXGISwapChain() const { return mSwapChain.Get(); }
@@ -61,14 +75,57 @@ namespace b3d
 			/** Returns the number of back buffers. */
 			u32 GetBackBufferCount() const { return mBackBufferCount; }
 
+			/** Returns the information the swap chain was created with. */
+			const D3D12SwapChainCreateInformation& GetCreateInformation() const { return mCreateInfo; }
+
 			/** Returns the width of the swap chain. */
 			u32 GetWidth() const { return mWidth; }
 
 			/** Returns the height of the swap chain. */
 			u32 GetHeight() const { return mHeight; }
 
-			/** Presents the current back buffer. */
-			HRESULT Present(u32 syncInterval);
+			/** Returns the vsync present interval this swap chain was created with (0 when vsync is disabled). */
+			u32 GetSyncInterval() const { return mVSync ? mVsyncInterval : 0u; }
+
+			/**
+			 * Executes the DXGI present using the swap chain's vsync interval.
+			 *
+			 * @note	Submit thread only.
+			 */
+			HRESULT PresentDXGI();
+
+			/** @name Submit thread
+			 *  @{
+			 */
+
+			/** @copydoc GpuSwapChain::AcquireImage */
+			void AcquireImage() override;
+
+			/** @copydoc GpuSwapChain::Present */
+			void Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncMask) override;
+
+			/** @} */
+
+			/** @name Render thread
+			 *  @{
+			 */
+
+			/** @copydoc GpuSwapChain::TryGetFirstAcquiredImageIndex */
+			bool TryGetFirstAcquiredImageIndex(u32& outImageIndex) const override;
+
+			/** @copydoc GpuSwapChain::NotifyWasImageAcquireQueued */
+			void NotifyWasImageAcquireQueued() override;
+
+			/** @copydoc GpuSwapChain::NotifyWasPresentQueued */
+			void NotifyWasPresentQueued(u32 imageIndex) override;
+
+			/** @copydoc GpuSwapChain::IsRetired */
+			bool IsRetired() const override { return mIsRetired; }
+
+			/** Marks the swap chain as retired. A retired swap chain can still present already-acquired images, but cannot acquire new ones. */
+			void MarkAsRetired() { mIsRetired = true; }
+
+			/** @} */
 
 		private:
 			/** Creates the swap chain. */
@@ -94,7 +151,7 @@ namespace b3d
 			static constexpr u32 kMaxBackBuffers = 3;
 			ComPtr<ID3D12Resource> mBackBuffers[kMaxBackBuffers];
 			D3D12_CPU_DESCRIPTOR_HANDLE mBackBufferRTVs[kMaxBackBuffers];
-			UniquePtr<D3D12Framebuffer> mFramebuffers[kMaxBackBuffers];
+			D3D12Framebuffer* mFramebuffers[kMaxBackBuffers];
 			u32 mBackBufferCount = 0;
 
 			ComPtr<ID3D12Resource> mDepthStencilBuffer;
@@ -103,7 +160,20 @@ namespace b3d
 
 			u32 mWidth = 0;
 			u32 mHeight = 0;
+			bool mVSync = false;
+			u32 mVsyncInterval = 1;
 			bool mIsInitialized = false;
+			bool mIsRetired = false;
+
+			/**
+			 * Indices of images that have been acquired (via AcquireImage) but not yet queued for present. Guarded by
+			 * a mutex because AcquireImage runs on the submit thread while TryGetFirstAcquiredImageIndex /
+			 * NotifyWasPresentQueued run on the render thread.
+			 */
+			mutable Mutex mAcquireMutex;
+			TInlineArray<u32, 4> mAcquiredImageIndices;
+
+			SingleConsumerQueue mMessageQueue;
 		};
 
 		/** @} */

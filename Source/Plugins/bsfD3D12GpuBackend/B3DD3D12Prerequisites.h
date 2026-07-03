@@ -31,12 +31,13 @@ namespace b3d
 		class D3D12GpuPipelineParameterLayout;
 		class D3D12SamplerState;
 		class D3D12EventQuery;
-		class D3D12TimerQuery;
-		class D3D12OcclusionQuery;
+		class D3D12GpuQueryPool;
 		class D3D12Framebuffer;
 		class D3D12RenderTexture;
 		class D3D12SwapChain;
 		class D3D12Resource;
+		class D3D12ResourceManager;
+		class D3D12GpuTimelineFence;
 		class D3D12DescriptorHeap;
 		class D3D12DescriptorManager;
 		class D3D12RootSignature;

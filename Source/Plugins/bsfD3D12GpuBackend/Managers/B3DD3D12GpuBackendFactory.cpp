@@ -10,5 +10,9 @@ constexpr const char* D3D12GpuBackendFactory::SystemName;
 
 void D3D12GpuBackendFactory::Create()
 {
-	D3D12GpuBackend::StartUp();
+	auto fnStartUp = []() { // TODO - Not quite ready to be started from the main thread as command buffer pools gets bound to the calling thread
+		GpuBackend::StartUp<D3D12GpuBackend>();
+	};
+
+	RenderThread::Instance().PostCommand(fnStartUp, "D3D12GpuBackend::StartUp", true);
 }

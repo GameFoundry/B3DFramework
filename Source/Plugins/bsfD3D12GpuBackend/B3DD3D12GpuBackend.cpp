@@ -2,11 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12GpuBackend.h"
 #include "B3DD3D12GpuDevice.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
 #include "Managers/B3DD3D12GpuBackendFactory.h"
+#include "Managers/B3DD3D12RenderWindowManager.h"
+#include "Managers/B3DD3D12TextureManager.h"
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
+#include <dxgidebug.h>
 
 #if B3D_PLATFORM_WIN32
 #	include "Private/Win32/B3DWin32VideoModeInfo.h"
@@ -141,17 +145,21 @@ void D3D12GpuBackend::OnStartUp()
 		}
 	}
 
-	PlatformUtility::SetGPUInfoInternal(gpuInfo);
+	PlatformUtility::SetGPUInfo(gpuInfo);
 
-	// TODO: Create texture manager
-	// TextureManager::StartUp<D3D12TextureManager>();
-	// render::TextureManager::StartUp<render::D3D12TextureManager>(*mDevices[0]);
+	// Start the submit thread
+	mDevices[0]->StartSubmitThread();
 
-	// TODO: Create render window manager
-	// RenderWindowManager::StartUp<D3D12RenderWindowManager>();
+	// Create the texture manager for use by others. Must come after the submit thread: its startup
+	// uploads the built-in/dummy textures through a worker GpuWorkContext, whose teardown submits the
+	// recorded transfers and waits for them on the GPU queue.
+	TextureManager::StartUp<D3D12TextureManager>();
+	render::TextureManager::StartUp<render::D3D12TextureManager>(*mDevices[0]);
 
-	// TODO: Set up frame capture (PIX, RenderDoc)
-	// mFrameCapture = B3DMakeShared<D3D12FrameCapture>();
+	// Create render window manager
+	RenderWindowManager::StartUp<D3D12RenderWindowManager>();
+
+	// TODO(d3d12-port): Set up frame capture (PIX)
 
 	Super::OnStartUp();
 }
@@ -167,10 +175,18 @@ void D3D12GpuBackend::OnShutDown()
 		device->WaitUntilIdle();
 	}
 
-	// TODO: Shutdown managers
-	// RenderWindowManager::ShutDown();
-	// render::TextureManager::ShutDown();
-	// TextureManager::ShutDown();
+	// The devices' internal work contexts own render-thread command buffer pools, so they must be torn down on the
+	// render thread (and while the submit thread still runs, as teardown flushes outstanding transfer work)
+	GetRenderThread().PostCommand([this]
+	{
+		for (const auto& device : mDevices)
+			device->ReleaseInternalWorkContext();
+	}, "D3D12 internal work context release", true);
+
+	mDevices[0]->StopSubmitThread();
+	RenderWindowManager::ShutDown();
+	render::TextureManager::ShutDown();
+	TextureManager::ShutDown();
 
 	mPrimaryDevice = nullptr;
 	mDevices.clear();

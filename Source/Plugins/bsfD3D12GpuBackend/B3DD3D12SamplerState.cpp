@@ -4,7 +4,6 @@
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12Utility.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
-#include "Profiling/B3DRenderStats.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -103,8 +102,6 @@ D3D12SamplerState::~D3D12SamplerState()
 		descriptorManager.FreeCPUDescriptor(D3D12DescriptorHeapType::Sampler, mDescriptorHandle);
 		mDescriptorHandle.ptr = 0;
 	}
-
-	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_SamplerState);
 }
 
 void D3D12SamplerState::Initialize()
@@ -117,9 +114,9 @@ void D3D12SamplerState::Initialize()
 	ZeroMemory(&mSamplerDesc, sizeof(D3D12_SAMPLER_DESC));
 
 	// Convert addressing modes
-	mSamplerDesc.AddressU = GetD3D12AddressMode(info.AddressMode.u);
-	mSamplerDesc.AddressV = GetD3D12AddressMode(info.AddressMode.v);
-	mSamplerDesc.AddressW = GetD3D12AddressMode(info.AddressMode.w);
+	mSamplerDesc.AddressU = GetD3D12AddressMode(info.AddressMode.U);
+	mSamplerDesc.AddressV = GetD3D12AddressMode(info.AddressMode.V);
+	mSamplerDesc.AddressW = GetD3D12AddressMode(info.AddressMode.W);
 
 	// Convert filter mode
 	bool useComparison = (info.ComparisonFunc != CMPF_ALWAYS_PASS);
@@ -152,10 +149,10 @@ void D3D12SamplerState::Initialize()
 	}
 
 	// Set border color
-	mSamplerDesc.BorderColor[0] = info.BorderColor.r;
-	mSamplerDesc.BorderColor[1] = info.BorderColor.g;
-	mSamplerDesc.BorderColor[2] = info.BorderColor.b;
-	mSamplerDesc.BorderColor[3] = info.BorderColor.a;
+	mSamplerDesc.BorderColor[0] = info.BorderColor.R;
+	mSamplerDesc.BorderColor[1] = info.BorderColor.G;
+	mSamplerDesc.BorderColor[2] = info.BorderColor.B;
+	mSamplerDesc.BorderColor[3] = info.BorderColor.A;
 
 	// Allocate a descriptor from the sampler heap
 	D3D12DescriptorManager& descriptorManager = mDevice.GetDescriptorManager();
@@ -177,6 +174,4 @@ void D3D12SamplerState::Initialize()
 		(u32)mSamplerDesc.AddressV,
 		(u32)mSamplerDesc.AddressW,
 		mSamplerDesc.MaxAnisotropy);
-
-	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_SamplerState);
 }

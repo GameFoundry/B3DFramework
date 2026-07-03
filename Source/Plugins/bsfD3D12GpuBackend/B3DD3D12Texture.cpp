@@ -2,840 +2,532 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12Texture.h"
 #include "B3DD3D12GpuDevice.h"
-#include "B3DD3D12GpuQueue.h"
 #include "B3DD3D12Utility.h"
+#include "Managers/B3DD3D12DescriptorManager.h"
 #include "Profiling/B3DRenderStats.h"
 #include "Image/B3DPixelUtility.h"
 #include "Image/B3DPixelData.h"
+#include "GpuBackend/B3DGpuWorkContext.h"
 #include <algorithm>
 
-using namespace b3d;
-using namespace b3d::render;
-
-D3D12Texture::D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device)
-	: Texture(createInformation, device)
-	, mDXGIFormat(DXGI_FORMAT_UNKNOWN)
+namespace
 {
-}
-
-D3D12Texture::~D3D12Texture()
-{
-	// Release staging buffer if mapped
-	if (mMappedData)
+	/**
+	 * Returns an SRV-compatible DXGI format for a texture format. Depth formats cannot be read through an SRV using
+	 * their depth format and must be viewed through a colour-compatible aliasing format.
+	 */
+	DXGI_FORMAT GetShaderReadFormat(DXGI_FORMAT format)
 	{
-		Unmap(0, 0);
-	}
-
-	// Release D3D12 resources
-	if (mAllocation)
-	{
-		mAllocation->Release();
-		mAllocation = nullptr;
-	}
-
-	mTexture.Reset();
-	mStagingBuffer.Reset();
-
-	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Texture);
-}
-
-
-void D3D12Texture::Initialize()
-{
-	Texture::Initialize();
-
-	CreateTexture();
-
-	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Texture);
-}
-
-void D3D12Texture::CreateTexture()
-{
-	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
-	ID3D12Device* d3d12Device = device.GetD3D12Device();
-
-	const TextureProperties& props = GetProperties();
-
-	// Convert pixel format to DXGI format
-	mDXGIFormat = D3D12Utility::GetDXGIFormat(props.Format);
-	if (mDXGIFormat == DXGI_FORMAT_UNKNOWN)
-	{
-		B3D_LOG(Error, LogRenderBackend, "Unsupported texture format");
-		return;
-	}
-
-	// Determine resource dimension
-	D3D12_RESOURCE_DIMENSION dimension;
-	u32 arraySize = 1;
-
-	switch (props.TextureType)
-	{
-	case TEX_TYPE_1D:
-		dimension = D3D12_RESOURCE_DIMENSION_TEXTURE1D;
-		break;
-	case TEX_TYPE_2D:
-		dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		break;
-	case TEX_TYPE_3D:
-		dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
-		break;
-	case TEX_TYPE_CUBE_MAP:
-		dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		arraySize = 6;
-		break;
-	case TEX_TYPE_1D_ARRAY:
-		dimension = D3D12_RESOURCE_DIMENSION_TEXTURE1D;
-		arraySize = props.NumFaces;
-		break;
-	case TEX_TYPE_2D_ARRAY:
-		dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		arraySize = props.NumFaces;
-		break;
-	case TEX_TYPE_CUBE_MAP_ARRAY:
-		dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		arraySize = props.NumFaces * 6;
-		break;
-	default:
-		B3D_LOG(Error, LogRenderBackend, "Unsupported texture type");
-		return;
-	}
-
-	// Create resource description
-	D3D12_RESOURCE_DESC resourceDesc = {};
-	resourceDesc.Dimension = dimension;
-	resourceDesc.Alignment = 0; // Let D3D12 choose appropriate alignment
-	resourceDesc.Width = props.Width;
-	resourceDesc.Height = props.Height;
-	resourceDesc.DepthOrArraySize = (dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D) ? props.Depth : arraySize;
-	resourceDesc.MipLevels = props.NumMipmaps;
-	resourceDesc.Format = mDXGIFormat;
-	resourceDesc.SampleDesc.Count = props.MultisampleCount > 0 ? props.MultisampleCount : 1;
-	resourceDesc.SampleDesc.Quality = 0;
-	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	// Set resource flags based on usage
-	if (props.Usage.IsSet(TextureUsageFlag::RenderTarget))
-	{
-		if (PixelUtility::IsDepth(props.Format))
-			resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-		else
-			resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-	}
-
-	if (props.Usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU))
-	{
-		resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-	}
-
-	// Determine initial state
-	D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
-	if (props.Usage.IsSet(TextureUsageFlag::RenderTarget))
-	{
-		if (PixelUtility::IsDepth(props.Format))
-			initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-		else
-			initialState = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	}
-
-	// Create heap properties for GPU-only memory
-	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	heapProps.CreationNodeMask = 0;
-	heapProps.VisibleNodeMask = 0;
-
-	// Determine clear value for render targets
-	D3D12_CLEAR_VALUE clearValue = {};
-	D3D12_CLEAR_VALUE* pClearValue = nullptr;
-
-	if (props.Usage.IsSet(TextureUsageFlag::RenderTarget))
-	{
-		clearValue.Format = mDXGIFormat;
-		if (PixelUtility::IsDepth(props.Format))
+		switch(format)
 		{
-			clearValue.DepthStencil.Depth = 1.0f;
-			clearValue.DepthStencil.Stencil = 0;
-		}
-		else
-		{
-			clearValue.Color[0] = 0.0f;
-			clearValue.Color[1] = 0.0f;
-			clearValue.Color[2] = 0.0f;
-			clearValue.Color[3] = 0.0f;
-		}
-		pClearValue = &clearValue;
-	}
-
-	// Create the texture resource using D3D12MA allocator
-	D3D12MA::ALLOCATION_DESC allocDesc = {};
-	allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-	allocDesc.ExtraHeapFlags = D3D12_HEAP_FLAG_NONE;
-
-	HRESULT hr = device.GetAllocator()->CreateResource(
-		&allocDesc,
-		&resourceDesc,
-		initialState,
-		pClearValue,
-		&mAllocation,
-		IID_PPV_ARGS(&mTexture)
-	);
-
-	if (FAILED(hr))
-	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to create D3D12 texture resource");
-		return;
-	}
-
-	// Set debug name if available
-	if (!props.Name.empty())
-	{
-		WString wideName = ToWideString(props.Name);
-		mTexture->SetName(wideName.c_str());
-	}
-
-	B3D_LOG(Info, LogRenderBackend, "Created D3D12 texture: {0}x{1}, format={2}, mips={3}",
-		props.Width, props.Height, (u32)mDXGIFormat, props.NumMipmaps);
-}
-
-u32 D3D12Texture::CalculateSubresourceIndex(u32 face, u32 mipLevel) const
-{
-	const TextureProperties& props = GetProperties();
-
-	// D3D12 subresource index = MipLevel + (ArraySlice * MipLevels)
-	return mipLevel + (face * props.NumMipmaps);
-}
-
-void D3D12Texture::CreateStagingBuffer(u32 subresourceIndex, u32 width, u32 height)
-{
-	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
-	ID3D12Device* d3d12Device = device.GetD3D12Device();
-
-	// Get the required buffer size for this subresource
-	D3D12_RESOURCE_DESC textureDesc = mTexture->GetDesc();
-
-	u64 totalBytes = 0;
-	u64 rowSizeInBytes = 0;
-	u32 numRows = 0;
-
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
-	d3d12Device->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, 0, &layout, &numRows, &rowSizeInBytes, &totalBytes);
-
-	// Create staging buffer in upload heap for CPU-to-GPU, or readback heap for GPU-to-CPU
-	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_READBACK; // We'll use readback for both read and write
-	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	heapProps.CreationNodeMask = 0;
-	heapProps.VisibleNodeMask = 0;
-
-	D3D12_RESOURCE_DESC bufferDesc = {};
-	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferDesc.Alignment = 0;
-	bufferDesc.Width = totalBytes;
-	bufferDesc.Height = 1;
-	bufferDesc.DepthOrArraySize = 1;
-	bufferDesc.MipLevels = 1;
-	bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-	bufferDesc.SampleDesc.Count = 1;
-	bufferDesc.SampleDesc.Quality = 0;
-	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	D3D12MA::Allocation* stagingAllocation = nullptr;
-
-	D3D12MA::ALLOCATION_DESC stagingAllocDesc = {};
-	stagingAllocDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
-	stagingAllocDesc.ExtraHeapFlags = D3D12_HEAP_FLAG_NONE;
-
-	HRESULT hr = device.GetAllocator()->CreateResource(
-		&stagingAllocDesc,
-		&bufferDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		&stagingAllocation,
-		IID_PPV_ARGS(&mStagingBuffer)
-	);
-
-	// Release old staging allocation if exists (we don't track it separately)
-	if (stagingAllocation)
-		stagingAllocation->Release();
-
-	if (FAILED(hr))
-	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to create staging buffer for texture mapping");
-		mStagingBuffer.Reset();
-	}
-}
-
-PixelData D3D12Texture::Map(GpuResourceUsage usage, u32 face, u32 mipLevel)
-{
-	const TextureProperties& props = GetProperties();
-	u32 subresourceIndex = CalculateSubresourceIndex(face, mipLevel);
-
-	// Calculate mip dimensions
-	u32 mipWidth = std::max(1u, props.Width >> mipLevel);
-	u32 mipHeight = std::max(1u, props.Height >> mipLevel);
-
-	// Create staging buffer if needed
-	if (!mStagingBuffer || mMappedSubresource != subresourceIndex)
-	{
-		if (mStagingBuffer)
-			mStagingBuffer.Reset();
-
-		CreateStagingBuffer(subresourceIndex, mipWidth, mipHeight);
-		if (!mStagingBuffer)
-			return PixelData();
-	}
-
-	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
-	ID3D12Device* d3d12Device = device.GetD3D12Device();
-
-	// If reading, we need to copy from the GPU texture to the staging buffer
-	if (usage == GRU_READ || usage == GRU_READ_WRITE)
-	{
-		// TODO: This requires command buffer execution
-		// For now, we'll create a temporary command list
-		// In a production implementation, this should use a copy queue
-
-		ComPtr<ID3D12CommandAllocator> tempAllocator;
-		ComPtr<ID3D12GraphicsCommandList> tempCommandList;
-
-		HRESULT hr = d3d12Device->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(&tempAllocator)
-		);
-
-		if (FAILED(hr))
-		{
-			B3D_LOG(Error, LogRenderBackend, "Failed to create temporary command allocator for texture mapping");
-			return PixelData();
-		}
-
-		hr = d3d12Device->CreateCommandList(
-			0,
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			tempAllocator.Get(),
-			nullptr,
-			IID_PPV_ARGS(&tempCommandList)
-		);
-
-		if (FAILED(hr))
-		{
-			B3D_LOG(Error, LogRenderBackend, "Failed to create temporary command list for texture mapping");
-			return PixelData();
-		}
-
-		// Transition texture to copy source state
-		D3D12_RESOURCE_BARRIER barrier = {};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		barrier.Transition.pResource = mTexture.Get();
-		barrier.Transition.Subresource = subresourceIndex;
-		barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; // TODO: Track actual state
-		barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
-
-		tempCommandList->ResourceBarrier(1, &barrier);
-
-		// Copy texture to staging buffer
-		D3D12_TEXTURE_COPY_LOCATION srcLocation = {};
-		srcLocation.pResource = mTexture.Get();
-		srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-		srcLocation.SubresourceIndex = subresourceIndex;
-
-		D3D12_RESOURCE_DESC textureDesc = mTexture->GetDesc();
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
-		u64 rowSizeInBytes, totalBytes;
-		u32 numRows;
-		d3d12Device->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, 0, &layout, &numRows, &rowSizeInBytes, &totalBytes);
-
-		D3D12_TEXTURE_COPY_LOCATION dstLocation = {};
-		dstLocation.pResource = mStagingBuffer.Get();
-		dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-		dstLocation.PlacedFootprint = layout;
-
-		tempCommandList->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
-
-		// Transition back to common state
-		barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
-		barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
-		tempCommandList->ResourceBarrier(1, &barrier);
-
-		tempCommandList->Close();
-
-		// Execute the command list
-		TShared<GpuQueue> queue = device.GetQueue(GQT_GRAPHICS, 0);
-		D3D12GpuQueue* d3d12Queue = static_cast<D3D12GpuQueue*>(queue.get());
-		ID3D12CommandQueue* commandQueue = d3d12Queue->GetD3D12Handle();
-
-		ID3D12CommandList* commandLists[] = { tempCommandList.Get() };
-		commandQueue->ExecuteCommandLists(1, commandLists);
-
-		// Wait for copy to complete
-		// TODO: Use fence for proper synchronization
-		ComPtr<ID3D12Fence> fence;
-		hr = d3d12Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
-		if (SUCCEEDED(hr))
-		{
-			HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-			commandQueue->Signal(fence.Get(), 1);
-			fence->SetEventOnCompletion(1, fenceEvent);
-			WaitForSingleObject(fenceEvent, INFINITE);
-			CloseHandle(fenceEvent);
+		case DXGI_FORMAT_D32_FLOAT:
+			return DXGI_FORMAT_R32_FLOAT;
+		case DXGI_FORMAT_D16_UNORM:
+			return DXGI_FORMAT_R16_UNORM;
+		case DXGI_FORMAT_D24_UNORM_S8_UINT:
+			return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+			return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+		default:
+			return format;
 		}
 	}
-
-	// Map the staging buffer
-	D3D12_RANGE readRange = { 0, 0 };
-	if (usage == GRU_READ || usage == GRU_READ_WRITE)
-	{
-		// Read the entire buffer
-		readRange.End = (SIZE_T)mStagingBuffer->GetDesc().Width;
-	}
-
-	HRESULT hr = mStagingBuffer->Map(0, &readRange, &mMappedData);
-	if (FAILED(hr))
-	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to map staging buffer");
-		return PixelData();
-	}
-
-	mMappedSubresource = subresourceIndex;
-
-	// Get layout information
-	D3D12_RESOURCE_DESC textureDesc = mTexture->GetDesc();
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
-	u64 rowSizeInBytes, totalBytes;
-	u32 numRows;
-	d3d12Device->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, 0, &layout, &numRows, &rowSizeInBytes, &totalBytes);
-
-	// Create PixelData
-	PixelVolume volume(0, 0, 0, mipWidth, mipHeight, 1);
-	PixelData pixelData(volume, props.Format);
-	pixelData.SetExternalBuffer((u8*)mMappedData);
-	pixelData.SetRowPitch((u32)layout.Footprint.RowPitch);
-	pixelData.SetSlicePitch((u32)(layout.Footprint.RowPitch * numRows));
-
-	return pixelData;
 }
 
-void D3D12Texture::Unmap(u32 face, u32 mipLevel)
+namespace b3d
 {
-	if (!mStagingBuffer || !mMappedData)
-		return;
-
-	u32 subresourceIndex = CalculateSubresourceIndex(face, mipLevel);
-
-	if (mMappedSubresource != subresourceIndex)
+	namespace render
 	{
-		B3D_LOG(Warning, LogRenderBackend, "Unmapping subresource that wasn't mapped");
-		return;
-	}
-
-	// Unmap the staging buffer
-	D3D12_RANGE writtenRange = { 0, (SIZE_T)mStagingBuffer->GetDesc().Width };
-	mStagingBuffer->Unmap(0, &writtenRange);
-	mMappedData = nullptr;
-
-	// Copy from staging buffer back to GPU texture
-	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
-	ID3D12Device* d3d12Device = device.GetD3D12Device();
-
-	// Create temporary command list for upload
-	ComPtr<ID3D12CommandAllocator> tempAllocator;
-	ComPtr<ID3D12GraphicsCommandList> tempCommandList;
-
-	HRESULT hr = d3d12Device->CreateCommandAllocator(
-		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		IID_PPV_ARGS(&tempAllocator)
-	);
-
-	if (FAILED(hr))
-	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to create temporary command allocator for texture unmapping");
-		return;
-	}
-
-	hr = d3d12Device->CreateCommandList(
-		0,
-		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		tempAllocator.Get(),
-		nullptr,
-		IID_PPV_ARGS(&tempCommandList)
-	);
-
-	if (FAILED(hr))
-	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to create temporary command list for texture unmapping");
-		return;
-	}
-
-	// We need to change staging buffer to upload heap for writing back
-	// But since we created it as readback, we need to create a new upload buffer
-	D3D12_RESOURCE_DESC textureDesc = mTexture->GetDesc();
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
-	u64 rowSizeInBytes, totalBytes;
-	u32 numRows;
-	d3d12Device->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, 0, &layout, &numRows, &rowSizeInBytes, &totalBytes);
-
-	// Create upload buffer
-	ComPtr<ID3D12Resource> uploadBuffer;
-	D3D12_HEAP_PROPERTIES uploadHeapProps = {};
-	uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-	uploadHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	uploadHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-
-	D3D12_RESOURCE_DESC uploadBufferDesc = {};
-	uploadBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	uploadBufferDesc.Width = totalBytes;
-	uploadBufferDesc.Height = 1;
-	uploadBufferDesc.DepthOrArraySize = 1;
-	uploadBufferDesc.MipLevels = 1;
-	uploadBufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-	uploadBufferDesc.SampleDesc.Count = 1;
-	uploadBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	uploadBufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	D3D12MA::Allocation* unmapUploadAllocation = nullptr;
-
-	D3D12MA::ALLOCATION_DESC unmapUploadAllocDesc = {};
-	unmapUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-	unmapUploadAllocDesc.ExtraHeapFlags = D3D12_HEAP_FLAG_NONE;
-
-	hr = device.GetAllocator()->CreateResource(
-		&unmapUploadAllocDesc,
-		&uploadBufferDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		&unmapUploadAllocation,
-		IID_PPV_ARGS(&uploadBuffer)
-	);
-
-	if (FAILED(hr))
-	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to create upload buffer for texture unmapping");
-		tempCommandList->Close();
-		return;
-	}
-
-	// Copy staging buffer data to upload buffer
-	void* uploadData = nullptr;
-	hr = uploadBuffer->Map(0, nullptr, &uploadData);
-	if (SUCCEEDED(hr))
-	{
-		void* stagingData = nullptr;
-		D3D12_RANGE readRange = { 0, (SIZE_T)totalBytes };
-		if (SUCCEEDED(mStagingBuffer->Map(0, &readRange, &stagingData)))
+		// Constructed unmanaged (protected D3D12Resource ctor): the engine owns the texture's lifetime through
+		// its shared pointer, and the native resource release is deferred via D3D12GpuDevice::DeferNativeRelease.
+		D3D12Texture::D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device)
+			: Texture(createInformation)
+			, D3D12Resource()
+			, mGpuDevice(device)
 		{
-			memcpy(uploadData, stagingData, (size_t)totalBytes);
-			mStagingBuffer->Unmap(0, nullptr);
+			SetDebugName(createInformation.Name);
 		}
-		uploadBuffer->Unmap(0, nullptr);
-	}
 
-	// Transition texture to copy destination
-	D3D12_RESOURCE_BARRIER barrier = {};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = mTexture.Get();
-	barrier.Transition.Subresource = subresourceIndex;
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON; // TODO: Track actual state
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
-
-	tempCommandList->ResourceBarrier(1, &barrier);
-
-	// Copy from upload buffer to texture
-	D3D12_TEXTURE_COPY_LOCATION srcLocation = {};
-	srcLocation.pResource = uploadBuffer.Get();
-	srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-	srcLocation.PlacedFootprint = layout;
-
-	D3D12_TEXTURE_COPY_LOCATION dstLocation = {};
-	dstLocation.pResource = mTexture.Get();
-	dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-	dstLocation.SubresourceIndex = subresourceIndex;
-
-	tempCommandList->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
-
-	// Transition back to common state
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
-	tempCommandList->ResourceBarrier(1, &barrier);
-
-	tempCommandList->Close();
-
-	// Execute the command list
-	TShared<GpuQueue> queue = device.GetQueue(GQT_GRAPHICS, 0);
-	D3D12GpuQueue* d3d12Queue = static_cast<D3D12GpuQueue*>(queue.get());
-	ID3D12CommandQueue* commandQueue = d3d12Queue->GetD3D12Handle();
-
-	ID3D12CommandList* commandLists[] = { tempCommandList.Get() };
-	commandQueue->ExecuteCommandLists(1, commandLists);
-
-	// Wait for copy to complete
-	ComPtr<ID3D12Fence> fence;
-	hr = d3d12Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
-	if (SUCCEEDED(hr))
-	{
-		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		commandQueue->Signal(fence.Get(), 1);
-		fence->SetEventOnCompletion(1, fenceEvent);
-		WaitForSingleObject(fenceEvent, INFINITE);
-		CloseHandle(fenceEvent);
-	}
-
-	// Release upload allocation
-	if (unmapUploadAllocation)
-		unmapUploadAllocation->Release();
-
-	mMappedSubresource = (u32)-1;
-}
-
-void D3D12Texture::WriteData(const PixelData& data, u32 face, u32 mipLevel, bool discardEntireBuffer)
-{
-	if (!mTexture)
-		return;
-
-	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
-	ID3D12Device* d3d12Device = device.GetD3D12Device();
-
-	const TextureProperties& props = GetProperties();
-	u32 subresourceIndex = CalculateSubresourceIndex(face, mipLevel);
-
-	// Get the texture layout information
-	D3D12_RESOURCE_DESC textureDesc = mTexture->GetDesc();
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
-	u64 rowSizeInBytes, totalBytes;
-	u32 numRows;
-	d3d12Device->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, 0, &layout, &numRows, &rowSizeInBytes, &totalBytes);
-
-	// Create upload buffer
-	D3D12_HEAP_PROPERTIES uploadHeapProps = {};
-	uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-	uploadHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	uploadHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	uploadHeapProps.CreationNodeMask = 0;
-	uploadHeapProps.VisibleNodeMask = 0;
-
-	D3D12_RESOURCE_DESC uploadBufferDesc = {};
-	uploadBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	uploadBufferDesc.Alignment = 0;
-	uploadBufferDesc.Width = totalBytes;
-	uploadBufferDesc.Height = 1;
-	uploadBufferDesc.DepthOrArraySize = 1;
-	uploadBufferDesc.MipLevels = 1;
-	uploadBufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-	uploadBufferDesc.SampleDesc.Count = 1;
-	uploadBufferDesc.SampleDesc.Quality = 0;
-	uploadBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	uploadBufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	ComPtr<ID3D12Resource> uploadBuffer;
-	D3D12MA::Allocation* writeUploadAllocation = nullptr;
-
-	D3D12MA::ALLOCATION_DESC writeUploadAllocDesc = {};
-	writeUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-	writeUploadAllocDesc.ExtraHeapFlags = D3D12_HEAP_FLAG_NONE;
-
-	HRESULT hr = device.GetAllocator()->CreateResource(
-		&writeUploadAllocDesc,
-		&uploadBufferDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		&writeUploadAllocation,
-		IID_PPV_ARGS(&uploadBuffer)
-	);
-
-	if (FAILED(hr))
-	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to create upload buffer for texture WriteData");
-		return;
-	}
-
-	// Map the upload buffer and copy pixel data
-	void* mappedData = nullptr;
-	hr = uploadBuffer->Map(0, nullptr, &mappedData);
-	if (FAILED(hr))
-	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to map upload buffer for texture WriteData");
-		return;
-	}
-
-	// Copy pixel data to upload buffer, accounting for D3D12's row pitch alignment
-	const u8* srcData = data.GetData();
-	u8* dstData = static_cast<u8*>(mappedData);
-
-	u32 srcRowPitch = data.GetRowPitch();
-	u32 dstRowPitch = (u32)layout.Footprint.RowPitch;
-
-	// If row pitches match, we can do a single memcpy
-	if (srcRowPitch == dstRowPitch && numRows > 0)
-	{
-		memcpy(dstData, srcData, srcRowPitch * numRows);
-	}
-	else
-	{
-		// Row pitches differ, copy row by row
-		u32 rowDataSize = std::min(srcRowPitch, dstRowPitch);
-		for (u32 row = 0; row < numRows; row++)
+		D3D12Texture::~D3D12Texture()
 		{
-			memcpy(dstData + row * dstRowPitch, srcData + row * srcRowPitch, rowDataSize);
+			ReleaseTexture();
+
+			B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Texture);
 		}
-	}
 
-	uploadBuffer->Unmap(0, nullptr);
-
-	// Get or create transfer command buffer for the current thread
-	TShared<render::GpuCommandBuffer> transferCommandBuffer = device.GetInternalWorkContext().GetTransferCommandBuffer();
-	D3D12GpuCommandBuffer* d3d12CommandBuffer = static_cast<D3D12GpuCommandBuffer*>(transferCommandBuffer.get());
-
-	// Record copy commands on the transfer command buffer
-	d3d12CommandBuffer->TransitionResource(mTexture.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST, subresourceIndex);
-	d3d12CommandBuffer->CopyBufferToTexture(uploadBuffer.Get(), mTexture.Get(), layout, subresourceIndex);
-	d3d12CommandBuffer->TransitionResource(mTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON, subresourceIndex);
-
-	// Upload buffer and allocation can be destroyed immediately - they're tracked by the transfer command buffer
-	// The transfer buffer will be automatically submitted before next normal command buffer submission
-	if (writeUploadAllocation)
-		writeUploadAllocation->Release();
-
-	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_Texture);
-}
-
-void D3D12Texture::ReadData(PixelData& data, u32 face, u32 mipLevel)
-{
-	if (!mTexture)
-		return;
-
-	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
-	ID3D12Device* d3d12Device = device.GetD3D12Device();
-
-	const TextureProperties& props = GetProperties();
-	u32 subresourceIndex = CalculateSubresourceIndex(face, mipLevel);
-
-	// Get the texture layout information
-	D3D12_RESOURCE_DESC textureDesc = mTexture->GetDesc();
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
-	u64 rowSizeInBytes, totalBytes;
-	u32 numRows;
-	d3d12Device->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, 0, &layout, &numRows, &rowSizeInBytes, &totalBytes);
-
-	// Create readback buffer
-	D3D12_HEAP_PROPERTIES readbackHeapProps = {};
-	readbackHeapProps.Type = D3D12_HEAP_TYPE_READBACK;
-	readbackHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	readbackHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	readbackHeapProps.CreationNodeMask = 0;
-	readbackHeapProps.VisibleNodeMask = 0;
-
-	D3D12_RESOURCE_DESC readbackBufferDesc = {};
-	readbackBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	readbackBufferDesc.Alignment = 0;
-	readbackBufferDesc.Width = totalBytes;
-	readbackBufferDesc.Height = 1;
-	readbackBufferDesc.DepthOrArraySize = 1;
-	readbackBufferDesc.MipLevels = 1;
-	readbackBufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-	readbackBufferDesc.SampleDesc.Count = 1;
-	readbackBufferDesc.SampleDesc.Quality = 0;
-	readbackBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	readbackBufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	ComPtr<ID3D12Resource> readbackBuffer;
-	D3D12MA::Allocation* readbackAllocation = nullptr;
-
-	D3D12MA::ALLOCATION_DESC readbackAllocDesc = {};
-	readbackAllocDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
-	readbackAllocDesc.ExtraHeapFlags = D3D12_HEAP_FLAG_NONE;
-
-	HRESULT hr = device.GetAllocator()->CreateResource(
-		&readbackAllocDesc,
-		&readbackBufferDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		&readbackAllocation,
-		IID_PPV_ARGS(&readbackBuffer)
-	);
-
-	if (FAILED(hr))
-	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to create readback buffer for texture ReadData");
-		return;
-	}
-
-	// Get or create transfer command buffer for the current thread
-	TShared<render::GpuCommandBuffer> transferCommandBuffer = device.GetInternalWorkContext().GetTransferCommandBuffer();
-	D3D12GpuCommandBuffer* d3d12CommandBuffer = static_cast<D3D12GpuCommandBuffer*>(transferCommandBuffer.get());
-
-	// Record copy commands on the transfer command buffer
-	d3d12CommandBuffer->TransitionResource(mTexture.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE, subresourceIndex);
-	d3d12CommandBuffer->CopyTextureToBuffer(mTexture.Get(), readbackBuffer.Get(), layout, subresourceIndex);
-	d3d12CommandBuffer->TransitionResource(mTexture.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON, subresourceIndex);
-
-	// For ReadData, we must wait for completion since the caller needs the data
-	device.GetInternalWorkContext().SubmitTransferCommandBuffers(true);
-
-	// Map the readback buffer and copy to PixelData
-	void* mappedData = nullptr;
-	D3D12_RANGE readRange = { 0, (SIZE_T)totalBytes };
-	hr = readbackBuffer->Map(0, &readRange, &mappedData);
-	if (FAILED(hr))
-	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to map readback buffer for texture ReadData");
-		return;
-	}
-
-	// Ensure the PixelData has allocated buffer
-	u32 mipWidth = std::max(1u, props.Width >> mipLevel);
-	u32 mipHeight = std::max(1u, props.Height >> mipLevel);
-
-	if (data.GetData() == nullptr)
-	{
-		// Allocate internal buffer if not already allocated
-		PixelVolume volume(0, 0, 0, mipWidth, mipHeight, 1);
-		data = PixelData(volume, props.Format);
-	}
-
-	// Copy from readback buffer to PixelData, accounting for row pitch differences
-	const u8* srcData = static_cast<const u8*>(mappedData);
-	u8* dstData = data.GetData();
-
-	u32 srcRowPitch = (u32)layout.Footprint.RowPitch;
-	u32 dstRowPitch = data.GetRowPitch();
-
-	// If row pitches match, we can do a single memcpy
-	if (srcRowPitch == dstRowPitch && numRows > 0)
-	{
-		memcpy(dstData, srcData, srcRowPitch * numRows);
-	}
-	else
-	{
-		// Row pitches differ, copy row by row
-		u32 rowDataSize = std::min(srcRowPitch, dstRowPitch);
-		for (u32 row = 0; row < numRows; row++)
+		void D3D12Texture::Initialize()
 		{
-			memcpy(dstData + row * dstRowPitch, srcData + row * srcRowPitch, rowDataSize);
+			// The native resource must exist before the base initialize, as the latter uploads any initial data
+			CreateTexture();
+
+			B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Texture);
+			Texture::Initialize();
 		}
-	}
 
-	// Unmap the readback buffer
-	readbackBuffer->Unmap(0, nullptr);
+		void D3D12Texture::ReleaseTexture()
+		{
+			// Views reference the (about to be freed) native resource, so drop them first.
+			ReleaseViews();
 
-	// Release readback allocation
-	if (readbackAllocation)
-		readbackAllocation->Release();
+			if (mTexture == nullptr && mAllocation == nullptr)
+				return;
 
-	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResRead, RenderStatObject_Texture);
-}
+			// The GPU may still be referencing the resource through in-flight command buffers, so the native
+			// release is deferred until the device can guarantee it is no longer used.
+			static_cast<D3D12GpuDevice&>(mGpuDevice).DeferNativeRelease(mTexture, mAllocation);
 
-void D3D12Texture::CopyData(Texture& destination, const PixelData& srcData, const PixelData& dstData)
-{
-	// TODO: Implement texture-to-texture copy
-	// This requires:
-	// 1. Get D3D12 resources for both source and destination
-	// 2. Use CopyTextureRegion to copy between textures
-	// 3. Handle resource state transitions
+			mAllocation = nullptr;
+			mTexture.Reset();
+		}
 
-	B3D_LOG(Warning, LogRenderBackend, "D3D12Texture::CopyData not yet implemented");
-}
+		void D3D12Texture::CreateTexture()
+		{
+			D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
+
+			const TextureProperties& props = GetProperties();
+
+			// Convert pixel format to DXGI format
+			mDXGIFormat = D3D12Utility::GetDXGIFormat(props.Format);
+			if (mDXGIFormat == DXGI_FORMAT_UNKNOWN)
+			{
+				B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported texture format");
+				return;
+			}
+
+			// Determine resource dimension. Array-ness is now expressed via ArraySliceCount / GetFaceCount()
+			// rather than dedicated array texture types.
+			D3D12_RESOURCE_DIMENSION dimension;
+			switch (props.Type)
+			{
+			case TEX_TYPE_1D:
+				dimension = D3D12_RESOURCE_DIMENSION_TEXTURE1D;
+				break;
+			case TEX_TYPE_2D:
+			case TEX_TYPE_CUBE_MAP:
+				dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+				break;
+			case TEX_TYPE_3D:
+				dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
+				break;
+			default:
+				B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported texture type");
+				return;
+			}
+
+			const u32 faceCount = props.GetFaceCount();
+
+			// Create resource description
+			D3D12_RESOURCE_DESC resourceDesc = {};
+			resourceDesc.Dimension = dimension;
+			resourceDesc.Alignment = 0; // Let D3D12 choose appropriate alignment
+			resourceDesc.Width = props.Width;
+			resourceDesc.Height = props.Height;
+			resourceDesc.DepthOrArraySize = (dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D) ? (u16)props.Depth : (u16)faceCount;
+			resourceDesc.MipLevels = (u16)(props.MipMapCount + 1);
+			resourceDesc.Format = mDXGIFormat;
+			resourceDesc.SampleDesc.Count = props.SampleCount > 0 ? props.SampleCount : 1;
+			resourceDesc.SampleDesc.Quality = 0;
+			resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+			resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+			// Set resource flags based on usage
+			if (props.Usage.IsSet(TextureUsageFlag::RenderTarget))
+			{
+				if (PixelUtility::IsDepth(props.Format))
+					resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+				else
+					resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+			}
+
+			if (props.Usage.IsSet(TextureUsageFlag::DepthStencil))
+				resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+			if (props.Usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU))
+				resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+			// Determine initial state
+			D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
+			if (props.Usage.IsSet(TextureUsageFlag::RenderTarget))
+			{
+				if (PixelUtility::IsDepth(props.Format))
+					initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+				else
+					initialState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+			}
+			else if (props.Usage.IsSet(TextureUsageFlag::DepthStencil))
+			{
+				initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+			}
+
+			SetCurrentState(initialState);
+
+			// Determine clear value for render targets / depth-stencil targets
+			D3D12_CLEAR_VALUE clearValue = {};
+			D3D12_CLEAR_VALUE* pClearValue = nullptr;
+
+			if (props.Usage.IsSet(TextureUsageFlag::RenderTarget) || props.Usage.IsSet(TextureUsageFlag::DepthStencil))
+			{
+				clearValue.Format = mDXGIFormat;
+				if (PixelUtility::IsDepth(props.Format))
+				{
+					clearValue.DepthStencil.Depth = 1.0f;
+					clearValue.DepthStencil.Stencil = 0;
+				}
+				else
+				{
+					clearValue.Color[0] = 0.0f;
+					clearValue.Color[1] = 0.0f;
+					clearValue.Color[2] = 0.0f;
+					clearValue.Color[3] = 0.0f;
+				}
+				pClearValue = &clearValue;
+			}
+
+			// Create the texture resource using the D3D12MA allocator, in GPU-only (default heap) memory.
+			D3D12MA::ALLOCATION_DESC allocDesc = {};
+			allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+			allocDesc.ExtraHeapFlags = D3D12_HEAP_FLAG_NONE;
+
+			HRESULT hr = device.GetAllocator()->CreateResource(
+				&allocDesc,
+				&resourceDesc,
+				initialState,
+				pClearValue,
+				&mAllocation,
+				IID_PPV_ARGS(&mTexture)
+			);
+
+			if (FAILED(hr))
+			{
+				B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to create texture resource");
+				return;
+			}
+
+			// Set debug name if available
+			if (!props.Name.empty())
+			{
+				const WString wideName = ToWideString(props.Name);
+				mTexture->SetName(wideName.c_str());
+			}
+
+			B3D_LOG(Info, LogRenderBackend, "D3D12: Created texture: {0}x{1}, format={2}, mips={3}",
+				props.Width, props.Height, (u32)mDXGIFormat, props.MipMapCount + 1);
+		}
+
+		void D3D12Texture::RecreateInternalTexture()
+		{
+			// Note: this discards all currently written data, as documented in the base interface.
+			ReleaseTexture();
+			CreateTexture();
+		}
+
+		u32 D3D12Texture::GetStagingRowPitchInBytes(u32 mipLevel) const
+		{
+			u32 mipWidth, mipHeight, mipDepth;
+			PixelUtility::GetSizeForMipLevel(mProperties.Width, mProperties.Height, mProperties.Depth, mipLevel, mipWidth, mipHeight, mipDepth);
+
+			u32 rowPitch, depthPitch;
+			PixelUtility::GetPitch(mipWidth, mipHeight, mipDepth, mProperties.Format, rowPitch, depthPitch);
+
+			// Pad to the smallest multiple of the required pitch alignment that still holds a whole number of blocks
+			const u32 blockSize = PixelUtility::GetBlockSize(mProperties.Format);
+			u32 alignedRowPitch = Math::CeilToMultiple(rowPitch, (u32)D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+			while (alignedRowPitch % blockSize != 0)
+				alignedRowPitch += D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
+
+			return alignedRowPitch;
+		}
+
+		ImageSubresourcePitch D3D12Texture::GetStagingBufferPitchForSubresource(u32 face, u32 mipLevel) const
+		{
+			u32 mipWidth, mipHeight, mipDepth;
+			PixelUtility::GetSizeForMipLevel(mProperties.Width, mProperties.Height, mProperties.Depth, mipLevel, mipWidth, mipHeight, mipDepth);
+
+			const u32 blockSize = PixelUtility::GetBlockSize(mProperties.Format);
+			u32 rowPitchInPixels = GetStagingRowPitchInBytes(mipLevel) / blockSize;
+
+			// Depth slices within a placed footprint are always RowPitch * rows apart, so the slice height stays at the
+			// subresource's actual row count.
+			u32 sliceHeight = mipHeight;
+			if (PixelUtility::IsCompressed(mProperties.Format))
+			{
+				// For compressed formats the pitch is expressed in blocks
+				const Vector2I blockDimension = PixelUtility::GetBlockDimensions(mProperties.Format);
+				rowPitchInPixels *= blockDimension.X;
+				sliceHeight = Math::DivideAndRoundUp(mipHeight, (u32)blockDimension.Y) * blockDimension.Y;
+			}
+
+			return ImageSubresourcePitch(rowPitchInPixels, sliceHeight);
+		}
+
+		GpuTextureMappedScope D3D12Texture::Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options)
+		{
+			// D3D12 textures created here live in a DEFAULT (GPU-only) heap and cannot be mapped directly. We mirror
+			// the Null-backend approach: allocate a CPU-side PixelData for the subresource and hand it back through the
+			// RAII scope. For read mappings the buffer is populated with the current GPU contents; for write mappings the
+			// buffer is retained and uploaded to the GPU on the subsequent Flush() (via a staging buffer copy).
+			//
+			// The scope holds its own PixelData, but we point it at the same backing buffer we retain here (via
+			// SetExternalBuffer) so the caller's writes are visible to Flush().
+			const TextureProperties& props = GetProperties();
+
+			const u32 mipWidth = std::max(1u, props.Width >> mipLevel);
+			const u32 mipHeight = std::max(1u, props.Height >> mipLevel);
+			const u32 mipDepth = std::max(1u, props.Depth >> mipLevel);
+
+			// Backing buffer owned by the texture for the duration of the mapping.
+			TShared<PixelData> backing = B3DMakeShared<PixelData>(mipWidth, mipHeight, mipDepth, props.Format);
+			backing->AllocateInternalBuffer();
+
+			// For read mappings, populate the backing buffer with the current GPU contents.
+			if(options.IsSet(GpuMapOption::Read))
+			{
+				// Blocking readback. TextureUtility handles staging-buffer creation, the GPU copy, and the CPU read.
+				GpuWorkContext& workContext = static_cast<D3D12GpuDevice&>(mGpuDevice).GetInternalWorkContext();
+				TextureUtility::Read(workContext, std::static_pointer_cast<Texture>(GetShared()), *backing, mipLevel, arrayLayer);
+			}
+
+			// Retain the backing buffer for write mappings so Flush() can upload the caller's writes.
+			if(options.IsSet(GpuMapOption::Write))
+			{
+				mMappedWriteData = backing;
+				mMappedWriteMip = mipLevel;
+				mMappedWriteLayer = arrayLayer;
+			}
+
+			// The scope's PixelData aliases the backing buffer's memory rather than owning a separate copy.
+			PixelData scopeData(mipWidth, mipHeight, mipDepth, props.Format);
+			scopeData.SetRowPitch(backing->GetRowPitch());
+			scopeData.SetSlicePitch(backing->GetSlicePitch());
+			scopeData.SetExternalBuffer(backing->GetData());
+
+			return GpuTextureMappedScope(
+				std::move(scopeData),
+				std::static_pointer_cast<Texture>(GetShared()),
+				GpuTextureSubresource(mipLevel, arrayLayer),
+				options
+			);
+		}
+
+		void D3D12Texture::Flush(u32 mipLevel, u32 arrayLayer)
+		{
+			// Invoked by the mapped scope on unmap for write mappings. Upload the retained CPU buffer to the GPU via a
+			// staging-buffer copy (TextureUtility::Write handles staging + CopyBufferToTexture on the work context).
+			if(mMappedWriteData == nullptr)
+				return;
+
+			if(mMappedWriteMip != mipLevel || mMappedWriteLayer != arrayLayer)
+			{
+				// Flush target does not match the retained mapping; drop it to avoid uploading stale data.
+				mMappedWriteData = nullptr;
+				return;
+			}
+
+			GpuWorkContext& workContext = static_cast<D3D12GpuDevice&>(mGpuDevice).GetInternalWorkContext();
+			TextureUtility::Write(workContext, std::static_pointer_cast<Texture>(GetShared()), *mMappedWriteData, mipLevel, arrayLayer);
+
+			mMappedWriteData = nullptr;
+		}
+
+		size_t D3D12Texture::ViewKeyHash::operator()(const ViewKey& key) const
+		{
+			size_t seed = 0;
+			B3DCombineHash(seed, key.Surface.MipLevel);
+			B3DCombineHash(seed, key.Surface.MipLevelCount);
+			B3DCombineHash(seed, key.Surface.Face);
+			B3DCombineHash(seed, key.Surface.FaceCount);
+			B3DCombineHash(seed, key.Surface.IsBoundAs2DArray);
+			B3DCombineHash(seed, (u32)key.Type);
+			return seed;
+		}
+
+		void D3D12Texture::ReleaseViews()
+		{
+			if(mViews.empty())
+				return;
+
+			D3D12DescriptorManager& descriptorManager = static_cast<D3D12GpuDevice&>(mGpuDevice).GetDescriptorManager();
+			for(auto& entry : mViews)
+			{
+				if(entry.second.ptr != 0)
+					descriptorManager.FreeCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV, entry.second);
+			}
+
+			mViews.clear();
+		}
+
+		D3D12_CPU_DESCRIPTOR_HANDLE D3D12Texture::GetSRVHandle(const TextureSurface& surface)
+		{
+			return GetOrCreateView(surface, ViewType::SRV);
+		}
+
+		D3D12_CPU_DESCRIPTOR_HANDLE D3D12Texture::GetUAVHandle(const TextureSurface& surface)
+		{
+			if(!GetProperties().Usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU))
+				return D3D12_CPU_DESCRIPTOR_HANDLE{ 0 };
+
+			return GetOrCreateView(surface, ViewType::UAV);
+		}
+
+		D3D12_CPU_DESCRIPTOR_HANDLE D3D12Texture::GetOrCreateView(const TextureSurface& surface, ViewType type)
+		{
+			if(mTexture == nullptr)
+				return D3D12_CPU_DESCRIPTOR_HANDLE{ 0 };
+
+			const ViewKey key{ surface, type };
+			auto it = mViews.find(key);
+			if(it != mViews.end())
+				return it->second;
+
+			D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
+			ID3D12Device* d3d12Device = device.GetD3D12Device();
+			D3D12DescriptorManager& descriptorManager = device.GetDescriptorManager();
+
+			const TextureProperties& props = GetProperties();
+
+			// Resolve the requested surface, treating zero counts as "all remaining".
+			const u32 mipCount = props.MipMapCount + 1;
+			const u32 faceCount = props.GetFaceCount();
+
+			const u32 baseMip = surface.MipLevel;
+			const u32 numMips = surface.MipLevelCount == 0 ? (mipCount - baseMip) : surface.MipLevelCount;
+			const u32 baseFace = surface.Face;
+			const u32 numFaces = surface.FaceCount == 0 ? (faceCount - baseFace) : surface.FaceCount;
+
+			D3D12_CPU_DESCRIPTOR_HANDLE handle = descriptorManager.AllocateCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV);
+			if(handle.ptr == 0)
+			{
+				B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate descriptor for texture view");
+				return handle;
+			}
+
+			const bool isCube = props.Type == TEX_TYPE_CUBE_MAP && !surface.IsBoundAs2DArray;
+			const bool isArray = numFaces > 1 || (baseFace > 0) || surface.IsBoundAs2DArray;
+
+			if(type == ViewType::SRV)
+			{
+				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+				srvDesc.Format = GetShaderReadFormat(mDXGIFormat);
+				srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+				switch(props.Type)
+				{
+				case TEX_TYPE_1D:
+					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
+					srvDesc.Texture1D.MostDetailedMip = baseMip;
+					srvDesc.Texture1D.MipLevels = numMips;
+					break;
+				case TEX_TYPE_3D:
+					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+					srvDesc.Texture3D.MostDetailedMip = baseMip;
+					srvDesc.Texture3D.MipLevels = numMips;
+					break;
+				case TEX_TYPE_CUBE_MAP:
+					if(isCube)
+					{
+						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+						srvDesc.TextureCube.MostDetailedMip = baseMip;
+						srvDesc.TextureCube.MipLevels = numMips;
+					}
+					else
+					{
+						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+						srvDesc.Texture2DArray.MostDetailedMip = baseMip;
+						srvDesc.Texture2DArray.MipLevels = numMips;
+						srvDesc.Texture2DArray.FirstArraySlice = baseFace;
+						srvDesc.Texture2DArray.ArraySize = numFaces;
+					}
+					break;
+				case TEX_TYPE_2D:
+				default:
+					if(isArray)
+					{
+						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+						srvDesc.Texture2DArray.MostDetailedMip = baseMip;
+						srvDesc.Texture2DArray.MipLevels = numMips;
+						srvDesc.Texture2DArray.FirstArraySlice = baseFace;
+						srvDesc.Texture2DArray.ArraySize = numFaces;
+					}
+					else
+					{
+						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+						srvDesc.Texture2D.MostDetailedMip = baseMip;
+						srvDesc.Texture2D.MipLevels = numMips;
+					}
+					break;
+				}
+
+				// Note: For depth textures the resource was created with a typed depth format (e.g. D32_FLOAT). A
+				// colour-aliased SRV over a non-typeless depth resource is invalid in D3D12.
+				// TODO(d3d12-port): Create depth textures with a typeless format so a shader-read SRV can be created.
+				d3d12Device->CreateShaderResourceView(mTexture.Get(), &srvDesc, handle);
+			}
+			else // UAV
+			{
+				D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+				uavDesc.Format = mDXGIFormat;
+
+				switch(props.Type)
+				{
+				case TEX_TYPE_1D:
+					uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
+					uavDesc.Texture1D.MipSlice = baseMip;
+					break;
+				case TEX_TYPE_3D:
+					uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+					uavDesc.Texture3D.MipSlice = baseMip;
+					uavDesc.Texture3D.FirstWSlice = 0;
+					uavDesc.Texture3D.WSize = std::max(1u, props.Depth >> baseMip);
+					break;
+				case TEX_TYPE_CUBE_MAP:
+				case TEX_TYPE_2D:
+				default:
+					if(isArray || isCube)
+					{
+						uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+						uavDesc.Texture2DArray.MipSlice = baseMip;
+						uavDesc.Texture2DArray.FirstArraySlice = baseFace;
+						uavDesc.Texture2DArray.ArraySize = isCube ? faceCount : numFaces;
+					}
+					else
+					{
+						uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+						uavDesc.Texture2D.MipSlice = baseMip;
+					}
+					break;
+				}
+
+				d3d12Device->CreateUnorderedAccessView(mTexture.Get(), nullptr, &uavDesc, handle);
+			}
+
+			mViews[key] = handle;
+			return handle;
+		}
+
+		GpuQueueMask D3D12Texture::GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags) const
+		{
+			// TODO(d3d12-port): Per-subresource GPU usage tracking is not yet implemented for the D3D12 backend.
+			(void)mipLevel;
+			(void)arrayLayer;
+			(void)accessFlags;
+			return GpuQueueMask();
+		}
+
+		u32 D3D12Texture::GetBoundCount(u32 subresourceIdx) const
+		{
+			// TODO(d3d12-port): Per-subresource binding tracking is not yet implemented. Falls back to the
+			//					 aggregate resource-level counter maintained by IGpuResource.
+			(void)subresourceIdx;
+			return D3D12Resource::GetBoundCount();
+		}
+
+		u32 D3D12Texture::GetUseCount(u32 subresourceIdx) const
+		{
+			// TODO(d3d12-port): Per-subresource usage tracking is not yet implemented. Falls back to the
+			//					 aggregate resource-level counter maintained by IGpuResource.
+			(void)subresourceIdx;
+			return D3D12Resource::GetUseCount();
+		}
+
+	} // namespace render
+} // namespace b3d

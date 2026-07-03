@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12ShaderCompiler.h"
+#include "B3DD3D12Utility.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
 
@@ -63,13 +64,17 @@ bool D3D12ShaderCompiler::CompileShader(const GpuProgramCreateInformation& desc,
 	// Enable strict mode for better error checking
 	compileFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
 
+	// The source name must be a valid filename-like string - the standard include handler derives the include
+	// directory from it, and an empty name fails the whole compilation with ERROR_INVALID_NAME.
+	const char* sourceName = !desc.Name.empty() ? desc.Name.c_str() : "unnamed_shader";
+
 	// Compile the shader
 	ComPtr<ID3DBlob> shaderBlob;
 	ComPtr<ID3DBlob> errorBlob;
 	HRESULT hr = D3DCompile(
 		desc.Source.c_str(),
 		desc.Source.size(),
-		desc.Name.c_str(),
+		sourceName,
 		nullptr, // No defines for now
 		D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		desc.EntryPoint.c_str(),
@@ -95,7 +100,8 @@ bool D3D12ShaderCompiler::CompileShader(const GpuProgramCreateInformation& desc,
 			String errorMsg = "Shader compilation failed with unknown error";
 			if (bytecode)
 				bytecode->Messages = errorMsg;
-			B3D_LOG(Error, LogRenderBackend, "Failed to compile shader '{0}': {1}", desc.Name, errorMsg);
+			B3D_LOG(Error, LogRenderBackend, "Failed to compile shader '{0}': {1} (hr={2}, entryPoint='{3}', target='{4}', sourceLength={5})",
+				desc.Name, errorMsg, (u32)hr, desc.EntryPoint, target, (u64)desc.Source.size());
 		}
 
 		return false;
@@ -184,6 +190,11 @@ void D3D12ShaderCompiler::ReflectConstantBuffers(ID3D12ShaderReflection* reflect
 		D3D12_SHADER_BUFFER_DESC cbDesc;
 		cbReflection->GetDesc(&cbDesc);
 
+		// Structured and byte-address buffers also appear in the constant buffer list (as resource bind
+		// information blocks); they are reflected as bound resources instead
+		if (cbDesc.Type != D3D_CT_CBUFFER)
+			continue;
+
 		// Get the resource binding information
 		D3D12_SHADER_INPUT_BIND_DESC bindDesc;
 		for (u32 j = 0; j < shaderDesc.BoundResources; j++)
@@ -194,11 +205,12 @@ void D3D12ShaderCompiler::ReflectConstantBuffers(ID3D12ShaderReflection* reflect
 		}
 
 		// Create uniform buffer information
-		GpuDataParameterBlockInformation bufferInfo;
+		GpuUniformBufferInformation bufferInfo;
 		bufferInfo.Name = cbDesc.Name;
-		bufferInfo.Slot = bindDesc.BindPoint;
+		bufferInfo.Slot = MapRegisterToSlot(bindDesc.BindPoint, D3D12RegisterClass::ConstantBuffer);
 		bufferInfo.Set = bindDesc.Space; // Register space maps to descriptor set
-		bufferInfo.Size = cbDesc.Size;
+		bufferInfo.Size = cbDesc.Size / 4; // Core API expects size in multiples of 4 bytes
+		// TODO(d3d12-port): Stage/IsShareable flags are not derivable from HLSL reflection alone; left at defaults.
 
 		// Reflect constant buffer members
 		for (u32 j = 0; j < cbDesc.Variables; j++)
@@ -212,17 +224,58 @@ void D3D12ShaderCompiler::ReflectConstantBuffers(ID3D12ShaderReflection* reflect
 			typeReflection->GetDesc(&typeDesc);
 
 			// Create parameter information
-			GpuDataParameterInformation paramInfo;
-			paramInfo.Name = varDesc.Name;
-			paramInfo.ParamType = ConvertD3DTypeToGpuParamDataType(typeDesc);
-			paramInfo.ElementSize = varDesc.Size;
-			paramInfo.ParentUniformBufferSet = bufferInfo.Set;
-			paramInfo.ParentUniformBufferSlot = bufferInfo.Slot;
+			GpuUniformBufferMemberInformation memberInfo;
+			memberInfo.Name = varDesc.Name;
+			memberInfo.Type = ConvertD3DTypeToGpuDataParameterType(typeDesc);
+			memberInfo.ElementSize = varDesc.Size / 4; // Core API expects size in multiples of 4 bytes
+			memberInfo.ArraySize = typeDesc.Elements > 0 ? typeDesc.Elements : 1;
+			memberInfo.ArrayElementStride = 0; // TODO(d3d12-port): reflect array element stride if needed
+			memberInfo.ParentUniformBufferSet = bufferInfo.Set;
+			memberInfo.ParentUniformBufferSlot = bufferInfo.Slot;
+			memberInfo.GpuOffset = varDesc.StartOffset / 4; // Core API expects offset in multiples of 4 bytes
+			memberInfo.CpuOffset = varDesc.StartOffset / 4;
 
-			paramDesc.UniformBufferMembers[paramInfo.Name] = paramInfo;
+			paramDesc.UniformBufferMembers[memberInfo.Name] = memberInfo;
 		}
 
 		paramDesc.UniformBuffers[bufferInfo.Name] = bufferInfo;
+	}
+}
+
+namespace
+{
+	/** Maps a read-only SRV dimension to the matching engine texture object type. */
+	GpuParameterObjectType GetTextureObjectType(D3D_SRV_DIMENSION dimension)
+	{
+		switch (dimension)
+		{
+		case D3D_SRV_DIMENSION_TEXTURE1D:			return GPOT_TEXTURE1D;
+		case D3D_SRV_DIMENSION_TEXTURE1DARRAY:		return GPOT_TEXTURE1DARRAY;
+		case D3D_SRV_DIMENSION_TEXTURE2D:			return GPOT_TEXTURE2D;
+		case D3D_SRV_DIMENSION_TEXTURE2DARRAY:		return GPOT_TEXTURE2DARRAY;
+		case D3D_SRV_DIMENSION_TEXTURE2DMS:			return GPOT_TEXTURE2DMS;
+		case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY:	return GPOT_TEXTURE2DMSARRAY;
+		case D3D_SRV_DIMENSION_TEXTURE3D:			return GPOT_TEXTURE3D;
+		case D3D_SRV_DIMENSION_TEXTURECUBE:			return GPOT_TEXTURECUBE;
+		case D3D_SRV_DIMENSION_TEXTURECUBEARRAY:	return GPOT_TEXTURECUBEARRAY;
+		default:									return GPOT_TEXTURE2D;
+		}
+	}
+
+	/** Maps a read-write UAV dimension to the matching engine texture object type. */
+	GpuParameterObjectType GetRWTextureObjectType(D3D_SRV_DIMENSION dimension)
+	{
+		switch (dimension)
+		{
+		case D3D_SRV_DIMENSION_TEXTURE1D:			return GPOT_RWTEXTURE1D;
+		case D3D_SRV_DIMENSION_TEXTURE1DARRAY:		return GPOT_RWTEXTURE1DARRAY;
+		case D3D_SRV_DIMENSION_TEXTURE2D:			return GPOT_RWTEXTURE2D;
+		case D3D_SRV_DIMENSION_TEXTURE2DARRAY:		return GPOT_RWTEXTURE2DARRAY;
+		case D3D_SRV_DIMENSION_TEXTURE2DMS:			return GPOT_RWTEXTURE2DMS;
+		case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY:	return GPOT_RWTEXTURE2DMSARRAY;
+		case D3D_SRV_DIMENSION_TEXTURE3D:			return GPOT_RWTEXTURE3D;
+		default:									return GPOT_RWTEXTURE2D;
+		}
 	}
 }
 
@@ -236,33 +289,89 @@ void D3D12ShaderCompiler::ReflectBoundResources(ID3D12ShaderReflection* reflecti
 
 		GpuObjectParameterInformation paramInfo;
 		paramInfo.Name = bindDesc.Name;
-		paramInfo.Slot = bindDesc.BindPoint;
 		paramInfo.Set = bindDesc.Space;
 
+		// Note: The engine distinguishes sampled textures, storage (RW) textures and buffers, so classification
+		// must consider both the HLSL resource type and its dimension (Buffer<T>/RWBuffer<T> reflect as
+		// TEXTURE/UAV_RWTYPED with a BUFFER dimension). Misclassification corrupts parameter-set updates, which
+		// index per-category arrays.
 		switch (bindDesc.Type)
 		{
 		case D3D_SIT_TEXTURE:
-			paramInfo.Type = GPOT_TEXTURE2D; // TODO: Detect actual texture type from dimension
-			paramDesc.Textures[paramInfo.Name] = paramInfo;
+			paramInfo.Slot = MapRegisterToSlot(bindDesc.BindPoint, D3D12RegisterClass::ShaderResource);
+			if (bindDesc.Dimension == D3D_SRV_DIMENSION_BUFFER)
+			{
+				// Buffer<T> - read-only typed buffer. TODO(d3d12-port): no dedicated read-only typed buffer object
+				// type exists; byte buffer is the closest read-only buffer representation.
+				paramInfo.Type = GPOT_BYTE_BUFFER;
+				paramDesc.Buffers[paramInfo.Name] = paramInfo;
+			}
+			else
+			{
+				paramInfo.Type = GetTextureObjectType(bindDesc.Dimension);
+				paramDesc.SampledTextures[paramInfo.Name] = paramInfo;
+			}
 			break;
 
 		case D3D_SIT_SAMPLER:
-			paramInfo.Type = GPOT_SAMPLER_STATE;
+			// TODO(d3d12-port): No dedicated sampler-state object type exists; use a representative sampler type.
+			paramInfo.Slot = MapRegisterToSlot(bindDesc.BindPoint, D3D12RegisterClass::Sampler);
+			paramInfo.Type = GPOT_SAMPLER2D;
 			paramDesc.Samplers[paramInfo.Name] = paramInfo;
 			break;
 
 		case D3D_SIT_UAV_RWTYPED:
+			paramInfo.Slot = MapRegisterToSlot(bindDesc.BindPoint, D3D12RegisterClass::UnorderedAccess);
+			if (bindDesc.Dimension == D3D_SRV_DIMENSION_BUFFER)
+			{
+				paramInfo.Type = GPOT_RWTYPED_BUFFER;
+				paramDesc.Buffers[paramInfo.Name] = paramInfo;
+			}
+			else
+			{
+				paramInfo.Type = GetRWTextureObjectType(bindDesc.Dimension);
+				paramDesc.StorageTextures[paramInfo.Name] = paramInfo;
+			}
+			break;
+
 		case D3D_SIT_UAV_RWSTRUCTURED:
+			paramInfo.Slot = MapRegisterToSlot(bindDesc.BindPoint, D3D12RegisterClass::UnorderedAccess);
+			paramInfo.Type = GPOT_RWSTRUCTURED_BUFFER;
+			paramDesc.Buffers[paramInfo.Name] = paramInfo;
+			break;
+
 		case D3D_SIT_UAV_RWBYTEADDRESS:
+			paramInfo.Slot = MapRegisterToSlot(bindDesc.BindPoint, D3D12RegisterClass::UnorderedAccess);
+			paramInfo.Type = GPOT_RWBYTE_BUFFER;
+			paramDesc.Buffers[paramInfo.Name] = paramInfo;
+			break;
+
 		case D3D_SIT_UAV_APPEND_STRUCTURED:
+			paramInfo.Slot = MapRegisterToSlot(bindDesc.BindPoint, D3D12RegisterClass::UnorderedAccess);
+			paramInfo.Type = GPOT_RWAPPEND_BUFFER;
+			paramDesc.Buffers[paramInfo.Name] = paramInfo;
+			break;
+
 		case D3D_SIT_UAV_CONSUME_STRUCTURED:
+			paramInfo.Slot = MapRegisterToSlot(bindDesc.BindPoint, D3D12RegisterClass::UnorderedAccess);
+			paramInfo.Type = GPOT_RWCONSUME_BUFFER;
+			paramDesc.Buffers[paramInfo.Name] = paramInfo;
+			break;
+
 		case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
-			paramInfo.Type = GPOT_RW_TYPED_BUFFER; // TODO: Distinguish between buffer types
-			paramDesc.LoadStoreTextures[paramInfo.Name] = paramInfo;
+			paramInfo.Slot = MapRegisterToSlot(bindDesc.BindPoint, D3D12RegisterClass::UnorderedAccess);
+			paramInfo.Type = GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER;
+			paramDesc.Buffers[paramInfo.Name] = paramInfo;
 			break;
 
 		case D3D_SIT_STRUCTURED:
+			paramInfo.Slot = MapRegisterToSlot(bindDesc.BindPoint, D3D12RegisterClass::ShaderResource);
+			paramInfo.Type = GPOT_STRUCTURED_BUFFER;
+			paramDesc.Buffers[paramInfo.Name] = paramInfo;
+			break;
+
 		case D3D_SIT_BYTEADDRESS:
+			paramInfo.Slot = MapRegisterToSlot(bindDesc.BindPoint, D3D12RegisterClass::ShaderResource);
 			paramInfo.Type = GPOT_BYTE_BUFFER;
 			paramDesc.Buffers[paramInfo.Name] = paramInfo;
 			break;
@@ -310,7 +419,7 @@ void D3D12ShaderCompiler::ReflectVertexInput(ID3D12ShaderReflection* reflection,
 	}
 }
 
-GpuParamDataType D3D12ShaderCompiler::ConvertD3DTypeToGpuParamDataType(const D3D12_SHADER_TYPE_DESC& typeDesc)
+GpuDataParameterType D3D12ShaderCompiler::ConvertD3DTypeToGpuDataParameterType(const D3D12_SHADER_TYPE_DESC& typeDesc)
 {
 	switch (typeDesc.Type)
 	{
@@ -348,7 +457,7 @@ GpuParamDataType D3D12ShaderCompiler::ConvertD3DTypeToGpuParamDataType(const D3D
 		return GPDT_BOOL;
 
 	case D3D_SVT_DOUBLE:
-		// No double types in GpuParamDataType, treat as float
+		// No double types in GpuDataParameterType, treat as float
 		if (typeDesc.Columns == 1 && typeDesc.Rows == 1) return GPDT_FLOAT1;
 		if (typeDesc.Columns == 2 && typeDesc.Rows == 1) return GPDT_FLOAT2;
 		if (typeDesc.Columns == 3 && typeDesc.Rows == 1) return GPDT_FLOAT3;

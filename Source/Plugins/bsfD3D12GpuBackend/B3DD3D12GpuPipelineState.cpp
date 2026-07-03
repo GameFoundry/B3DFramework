@@ -5,11 +5,54 @@
 #include "B3DD3D12GpuProgram.h"
 #include "B3DD3D12Utility.h"
 #include "B3DD3D12GpuPipelineParameterLayout.h"
-#include "Profiling/B3DRenderStats.h"
 #include "GpuBackend/B3DVertexDescription.h"
 
 using namespace b3d;
 using namespace b3d::render;
+
+namespace
+{
+	/**
+	 * Maps an engine vertex element type to a DXGI format for use in an input layout.
+	 *
+	 * Note: D3D12Utility::GetDXGIFormat operates on PixelFormat, so vertex element types require their own mapping.
+	 */
+	DXGI_FORMAT GetVertexElementDXGIFormat(VertexElementType type)
+	{
+		switch (type)
+		{
+		case VET_FLOAT1:		return DXGI_FORMAT_R32_FLOAT;
+		case VET_FLOAT2:		return DXGI_FORMAT_R32G32_FLOAT;
+		case VET_FLOAT3:		return DXGI_FORMAT_R32G32B32_FLOAT;
+		case VET_FLOAT4:		return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		case VET_COLOR:
+		case VET_COLOR_ARGB:
+		case VET_COLOR_ABGR:
+		case VET_UBYTE4_NORM:	return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case VET_UBYTE4:		return DXGI_FORMAT_R8G8B8A8_UINT;
+		case VET_SHORT1:		return DXGI_FORMAT_R16_SINT;
+		case VET_SHORT2:		return DXGI_FORMAT_R16G16_SINT;
+		case VET_SHORT4:		return DXGI_FORMAT_R16G16B16A16_SINT;
+		case VET_USHORT1:		return DXGI_FORMAT_R16_UINT;
+		case VET_USHORT2:		return DXGI_FORMAT_R16G16_UINT;
+		case VET_USHORT4:		return DXGI_FORMAT_R16G16B16A16_UINT;
+		case VET_INT1:			return DXGI_FORMAT_R32_SINT;
+		case VET_INT2:			return DXGI_FORMAT_R32G32_SINT;
+		case VET_INT3:			return DXGI_FORMAT_R32G32B32_SINT;
+		case VET_INT4:			return DXGI_FORMAT_R32G32B32A32_SINT;
+		case VET_UINT1:			return DXGI_FORMAT_R32_UINT;
+		case VET_UINT2:			return DXGI_FORMAT_R32G32_UINT;
+		case VET_UINT3:			return DXGI_FORMAT_R32G32B32_UINT;
+		case VET_UINT4:			return DXGI_FORMAT_R32G32B32A32_UINT;
+		case VET_HALF1:			return DXGI_FORMAT_R16_FLOAT;
+		case VET_HALF2:			return DXGI_FORMAT_R16G16_FLOAT;
+		case VET_HALF4:			return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		default:
+			// VET_HALF3 has no direct 48-bit DXGI equivalent; fall back to the closest larger format.
+			return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		}
+	}
+}
 
 D3D12GpuGraphicsPipelineState::D3D12GpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuDevice& device)
 	: GpuGraphicsPipelineState(device, createInformation)
@@ -18,10 +61,8 @@ D3D12GpuGraphicsPipelineState::D3D12GpuGraphicsPipelineState(const GpuGraphicsPi
 
 D3D12GpuGraphicsPipelineState::~D3D12GpuGraphicsPipelineState()
 {
-	mPipelineState.Reset();
+	mPipelines.clear();
 	mRootSignature.Reset();
-
-	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_PipelineState);
 }
 
 void D3D12GpuGraphicsPipelineState::Initialize()
@@ -31,20 +72,58 @@ void D3D12GpuGraphicsPipelineState::Initialize()
 	if (mData.VertexProgram != nullptr)
 		mVertexDescription = mData.VertexProgram->GetVertexInputDescription();
 
-	CreatePipelineState();
-
-	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineState);
-}
-
-void D3D12GpuGraphicsPipelineState::CreatePipelineState()
-{
-	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
-	ID3D12Device* d3d12Device = device.GetD3D12Device();
-
-	// Get root signature from parameter layout
+	// Get root signature from parameter layout. Actual pipeline objects are created lazily per render target
+	// format / topology combination, see FindOrCreatePipeline().
 	D3D12GpuPipelineParameterLayout* d3d12ParamLayout = static_cast<D3D12GpuPipelineParameterLayout*>(mParameterLayout.get());
 	if (d3d12ParamLayout)
 		mRootSignature = d3d12ParamLayout->GetRootSignature();
+}
+
+bool D3D12PipelineVariantKey::operator==(const D3D12PipelineVariantKey& other) const
+{
+	if (RenderTargetCount != other.RenderTargetCount || DepthStencilFormat != other.DepthStencilFormat ||
+		SampleCount != other.SampleCount || TopologyType != other.TopologyType)
+		return false;
+
+	for (u32 i = 0; i < RenderTargetCount; i++)
+	{
+		if (RenderTargetFormats[i] != other.RenderTargetFormats[i])
+			return false;
+	}
+
+	return true;
+}
+
+size_t D3D12PipelineVariantKey::Hash::operator()(const D3D12PipelineVariantKey& key) const
+{
+	size_t hash = 0;
+	B3DCombineHash(hash, key.RenderTargetCount);
+	B3DCombineHash(hash, (u32)key.DepthStencilFormat);
+	B3DCombineHash(hash, key.SampleCount);
+	B3DCombineHash(hash, (u32)key.TopologyType);
+
+	for (u32 i = 0; i < key.RenderTargetCount; i++)
+		B3DCombineHash(hash, (u32)key.RenderTargetFormats[i]);
+
+	return hash;
+}
+
+ID3D12PipelineState* D3D12GpuGraphicsPipelineState::FindOrCreatePipeline(const D3D12PipelineVariantKey& key)
+{
+	auto found = mPipelines.find(key);
+	if (found != mPipelines.end())
+		return found->second.Get();
+
+	ComPtr<ID3D12PipelineState> pipeline = CreatePipelineState(key);
+	mPipelines[key] = pipeline;
+
+	return pipeline.Get();
+}
+
+Microsoft::WRL::ComPtr<ID3D12PipelineState> D3D12GpuGraphicsPipelineState::CreatePipelineState(const D3D12PipelineVariantKey& key)
+{
+	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
+	ID3D12Device* d3d12Device = device.GetD3D12Device();
 
 	// Graphics pipeline state descriptor
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
@@ -93,15 +172,15 @@ void D3D12GpuGraphicsPipelineState::CreatePipelineState()
 		for (const auto& element : vertexElements)
 		{
 			D3D12_INPUT_ELEMENT_DESC d3d12Element = {};
-			d3d12Element.SemanticName = GetSemanticName(element.Semantic);
-			d3d12Element.SemanticIndex = element.SemanticIdx;
-			d3d12Element.Format = D3D12Utility::GetDXGIFormat(element.Type);
-			d3d12Element.InputSlot = element.StreamIdx;
-			d3d12Element.AlignedByteOffset = element.Offset;
-			d3d12Element.InputSlotClass = element.InstanceStepRate > 0 ?
+			d3d12Element.SemanticName = GetSemanticName(element.GetSemantic());
+			d3d12Element.SemanticIndex = element.GetSemanticIndex();
+			d3d12Element.Format = GetVertexElementDXGIFormat(element.GetType());
+			d3d12Element.InputSlot = element.GetStreamIndex();
+			d3d12Element.AlignedByteOffset = element.GetOffset();
+			d3d12Element.InputSlotClass = element.GetInstanceStepRate() > 0 ?
 				D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA :
 				D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-			d3d12Element.InstanceDataStepRate = element.InstanceStepRate;
+			d3d12Element.InstanceDataStepRate = element.GetInstanceStepRate();
 
 			inputElements.push_back(d3d12Element);
 		}
@@ -132,7 +211,7 @@ void D3D12GpuGraphicsPipelineState::CreatePipelineState()
 	for (u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		u32 rtIdx = blendState.EnableIndependantBlend ? i : 0;
-		const RenderTargetBlendState& rtBlendState = blendState.RenderTargets[rtIdx];
+		const RenderTargetBlendStateInformation& rtBlendState = blendState.RenderTargets[rtIdx];
 
 		psoDesc.BlendState.RenderTarget[i].BlendEnable = rtBlendState.BlendEnable;
 		psoDesc.BlendState.RenderTarget[i].LogicOpEnable = FALSE;
@@ -170,21 +249,18 @@ void D3D12GpuGraphicsPipelineState::CreatePipelineState()
 
 	// Sample description
 	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.SampleDesc.Count = 1; // TODO: Get from render target
+	psoDesc.SampleDesc.Count = key.SampleCount;
 	psoDesc.SampleDesc.Quality = 0;
 
 	// Primitive topology type
-	psoDesc.PrimitiveTopologyType = D3D12Utility::GetPrimitiveTopologyType(DOT_TRIANGLE_LIST);
-	mPrimitiveTopology = D3D12Utility::GetPrimitiveTopology(DOT_TRIANGLE_LIST);
+	psoDesc.PrimitiveTopologyType = key.TopologyType;
 
-	// Render target formats (will be set at runtime based on bound render targets)
-	// For now, use common defaults
-	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-	for (u32 i = 1; i < 8; i++)
-		psoDesc.RTVFormats[i] = DXGI_FORMAT_UNKNOWN;
+	// Render target formats
+	psoDesc.NumRenderTargets = key.RenderTargetCount;
+	for (u32 i = 0; i < 8; i++)
+		psoDesc.RTVFormats[i] = i < key.RenderTargetCount ? key.RenderTargetFormats[i] : DXGI_FORMAT_UNKNOWN;
 
-	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.DSVFormat = key.DepthStencilFormat;
 
 	// Stream output (not used)
 	psoDesc.StreamOutput.pSODeclaration = nullptr;
@@ -200,16 +276,16 @@ void D3D12GpuGraphicsPipelineState::CreatePipelineState()
 	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
 	// Create pipeline state
-	HRESULT hr = d3d12Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState));
+	ComPtr<ID3D12PipelineState> pipelineState;
+	HRESULT hr = d3d12Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState));
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to create graphics pipeline state");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create graphics pipeline state (hr={0})", (u32)hr);
+		device.LogDebugLayerMessages();
 	}
-	else
-	{
-		B3D_LOG(Info, LogRenderBackend, "Created graphics pipeline state");
-	}
+
+	return pipelineState;
 }
 
 const char* D3D12GpuGraphicsPipelineState::GetSemanticName(VertexElementSemantic semantic)
@@ -228,7 +304,7 @@ const char* D3D12GpuGraphicsPipelineState::GetSemanticName(VertexElementSemantic
 		return "COLOR";
 	case VES_TEXCOORD:
 		return "TEXCOORD";
-	case VES_BINORMAL:
+	case VES_BITANGENT:
 		return "BINORMAL";
 	case VES_TANGENT:
 		return "TANGENT";
@@ -246,8 +322,6 @@ D3D12GpuComputePipelineState::~D3D12GpuComputePipelineState()
 {
 	mPipelineState.Reset();
 	mRootSignature.Reset();
-
-	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_PipelineState);
 }
 
 void D3D12GpuComputePipelineState::Initialize()
@@ -255,8 +329,6 @@ void D3D12GpuComputePipelineState::Initialize()
 	GpuComputePipelineState::Initialize();
 
 	CreatePipelineState();
-
-	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineState);
 }
 
 void D3D12GpuComputePipelineState::CreatePipelineState()
@@ -274,9 +346,9 @@ void D3D12GpuComputePipelineState::CreatePipelineState()
 	psoDesc.pRootSignature = mRootSignature.Get();
 
 	// Compute shader
-	if (mData.ComputeProgram)
+	if (mData.Program)
 	{
-		D3D12GpuProgram* csProgram = static_cast<D3D12GpuProgram*>(mData.ComputeProgram.get());
+		D3D12GpuProgram* csProgram = static_cast<D3D12GpuProgram*>(mData.Program.get());
 		psoDesc.CS = csProgram->GetShaderBytecode();
 	}
 
@@ -291,7 +363,8 @@ void D3D12GpuComputePipelineState::CreatePipelineState()
 
 	if (FAILED(hr))
 	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to create compute pipeline state");
+		B3D_LOG(Error, LogRenderBackend, "Failed to create compute pipeline state (hr={0})", (u32)hr);
+		device.LogDebugLayerMessages();
 	}
 	else
 	{

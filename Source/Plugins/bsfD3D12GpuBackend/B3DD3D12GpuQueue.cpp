@@ -3,15 +3,17 @@
 #include "B3DD3D12GpuQueue.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12GpuCommandBuffer.h"
+#include "B3DD3D12GpuTimelineFence.h"
 #include "B3DD3D12SwapChain.h"
+#include "GpuBackend/B3DGpuSubmitThread.h"
 #include "GpuBackend/B3DRenderWindow.h"
 #include "Profiling/B3DRenderStats.h"
 
 using namespace b3d;
 using namespace b3d::render;
 
-D3D12GpuQueue::D3D12GpuQueue(D3D12GpuDevice& device, GpuQueueUsage usage, u32 index, ID3D12CommandQueue* d3d12Queue)
-	: GpuQueue(device, usage, index)
+D3D12GpuQueue::D3D12GpuQueue(D3D12GpuDevice& device, GpuQueueType type, u32 index, ID3D12CommandQueue* d3d12Queue)
+	: GpuQueue(device, type, index)
 	, mQueue(d3d12Queue)
 {
 	// Create a fence for synchronization
@@ -30,14 +32,13 @@ D3D12GpuQueue::D3D12GpuQueue(D3D12GpuDevice& device, GpuQueueUsage usage, u32 in
 	{
 		B3D_LOG(Error, LogRenderBackend, "Failed to create fence event for GPU queue");
 	}
-
-	B3D_LOG(Info, LogRenderBackend, "Created D3D12 GPU queue: usage={0}, index={1}", (u32)usage, index);
 }
 
 D3D12GpuQueue::~D3D12GpuQueue()
 {
-	// Wait for all work to complete before destroying the queue
-	WaitUntilIdle();
+	// Queues are destroyed after the submit thread has been stopped (and all GPU work waited on), so a native
+	// wait covers any work that may still be pending.
+	WaitUntilIdleNative();
 
 	if (mFenceEvent)
 	{
@@ -47,56 +48,226 @@ D3D12GpuQueue::~D3D12GpuQueue()
 
 	mFence.Reset();
 	mQueue.Reset();
-
-	B3D_LOG(Info, LogRenderBackend, "Destroyed D3D12 GPU queue");
 }
 
 void D3D12GpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& information)
 {
-	(void)information.SignalFences; // TODO: chain ID3D12CommandQueue::Signal calls for each fence once D3D12GpuTimelineFence lands.
-	const TShared<GpuCommandBuffer>& commandBuffer = information.CommandBuffer;
-	if (!commandBuffer)
+	if (!B3D_ENSURE(information.CommandBuffer))
 		return;
 
-	D3D12GpuCommandBuffer* d3d12CommandBuffer = static_cast<D3D12GpuCommandBuffer*>(commandBuffer.get());
+	D3D12GpuCommandBuffer& commandBuffer = static_cast<D3D12GpuCommandBuffer&>(*information.CommandBuffer);
+	if (!B3D_ENSURE(commandBuffer.GetQueueType() == mType))
+		return;
 
-	// Make sure the command buffer is in the correct state
-	if (!d3d12CommandBuffer->IsReadyForSubmit())
+	if (commandBuffer.GetState() == GpuCommandBufferState::Executing)
 	{
-		B3D_LOG(Warning, LogRenderBackend, "Attempting to submit command buffer that is not ready for submission");
+		B3D_LOG(Error, LogRenderBackend, "Cannot submit a command buffer that's still executing.");
 		return;
 	}
 
-	// Get the D3D12 command list
-	ID3D12GraphicsCommandList* commandList = d3d12CommandBuffer->GetD3D12Handle();
-	if (!commandList)
-	{
-		B3D_LOG(Error, LogRenderBackend, "Command buffer has no D3D12 command list");
+	if (!B3D_ENSURE(!commandBuffer.IsInRenderPass()))
+		commandBuffer.EndRenderPass();
+
+	if (commandBuffer.IsRecording())
+		commandBuffer.End();
+
+	commandBuffer.SetIsSubmitted();
+	mGpuDevice.GetSubmitThread().QueueSubmit(information.CommandBuffer, *this, information.SyncMask, information.SignalFences);
+}
+
+void D3D12GpuQueue::PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask)
+{
+	if (renderWindow == nullptr)
 		return;
+
+	IRenderWindowSurface* surface = renderWindow->GetRenderWindowSurface().get();
+	if (surface == nullptr)
+		return;
+
+	renderWindow->NotifySwapBuffersRequested();
+	surface->SwapBuffers(*this, syncMask);
+
+	B3D_INCREMENT_RENDER_STATISTIC(NumPresents);
+}
+
+bool D3D12GpuQueue::IsExecuting() const
+{
+	AssertIfNotSubmitThread();
+
+	if (mLastSubmittedCommandBuffer == nullptr)
+		return false;
+
+	return mLastSubmittedCommandBuffer->IsSubmitted() || mLastSubmittedCommandBuffer->IsDone();
+}
+
+void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const TShared<D3D12GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+{
+	AssertIfNotSubmitThread();
+
+	if (!B3D_ENSURE(commandBuffer))
+		return;
+
+	D3D12GpuDevice& device = GetDevice();
+
+	// No need to explicitly sync with any entries on the same queue - same-queue submissions execute in order
+	syncMask &= ~GpuQueueMask(GetId());
+
+	// Make the queue wait for outstanding work on every queue in the sync mask
+	if (!syncMask.IsEmpty())
+	{
+		for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
+		{
+			const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
+			const u32 queueCount = device.GetQueueCount(queueType);
+
+			for (u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
+			{
+				if (!syncMask.IsSet(GpuQueueId(queueType, queueIndex)))
+					continue;
+
+				const TShared<D3D12GpuQueue> otherQueue = std::static_pointer_cast<D3D12GpuQueue>(device.GetQueue(queueType, queueIndex));
+				if (otherQueue == nullptr || otherQueue.get() == this || !otherQueue->IsExecuting())
+					continue;
+
+				Wait(otherQueue->GetSubmitFence(), otherQueue->GetLastSignaledFenceValue());
+			}
+		}
 	}
 
-	// Execute the command list
-	ID3D12CommandList* commandLists[] = { commandList };
+	ID3D12CommandList* commandLists[] = { commandBuffer->GetD3D12Handle() };
 	ExecuteCommandLists(commandLists, 1);
 
-	// Signal the command buffer's fence so it knows when execution is complete
-	ID3D12Fence* commandBufferFence = d3d12CommandBuffer->GetFence();
-	if (commandBufferFence)
+	// Surface any validation errors the debug layer recorded for this submission
+	device.LogDebugLayerMessages();
+
+	// Signal the command buffer's own completion fence. The fence value identifies this submission and is what
+	// UpdateExecutionStatus() polls for.
+	commandBuffer->mFenceValue++;
+	Signal(commandBuffer->GetFence(), commandBuffer->GetFenceValue());
+
+	// Signal the queue submit fence, used by other queues for cross-queue synchronization
+	mLastSignaledFenceValue = mNextFenceValue++;
+	Signal(mFence.Get(), mLastSignaledFenceValue);
+
+	// Signal any explicitly requested timeline fences
+	for (const GpuTimelineFenceAndValue& entry : signalFences)
 	{
-		u64 fenceValue = d3d12CommandBuffer->GetFenceValue();
-		Signal(commandBufferFence, fenceValue);
+		B3D_ASSERT(entry.Fence != nullptr);
+
+		D3D12GpuTimelineFence* fence = static_cast<D3D12GpuTimelineFence*>(entry.Fence.get());
+		if (fence->GetD3D12Fence() != nullptr)
+			Signal(fence->GetD3D12Fence(), entry.Value);
 	}
 
-	// Mark the command buffer as submitted
-	d3d12CommandBuffer->SetIsSubmitted();
+	{
+		Lock lock(mMutex);
+		mActiveSubmissions.push_back(QueueSubmissionInformation(commandBuffer, mNextSubmitIndex++));
+	}
 
-	// TODO: Handle syncMask for cross-queue dependencies
-	// This would require waiting on fences from other queues before submitting
+	mLastSubmittedCommandBuffer = commandBuffer;
+}
 
-	B3D_INCREMENT_RENDER_STATISTIC(NumCommandBuffersSubmitted);
+void D3D12GpuQueue::RefreshCompletionState(bool forceWait, bool queueEmpty, u32 lastSubmitIndex)
+{
+	AssertIfNotSubmitThread();
+
+	u32 lastFinishedSubmission = 0;
+
+	auto it = mActiveSubmissions.begin();
+	while (it != mActiveSubmissions.end())
+	{
+		const TShared<D3D12GpuCommandBuffer> commandBuffer = it->CommandBuffer;
+		if (commandBuffer == nullptr)
+		{
+			++it;
+			continue;
+		}
+
+		if (lastSubmitIndex != ~0u && it->SubmitIndex > lastSubmitIndex)
+			break;
+
+		if (!commandBuffer->UpdateExecutionStatus(forceWait))
+		{
+			B3D_ASSERT(!forceWait);
+			break; // No chance of any later CBs being done either
+		}
+
+		lastFinishedSubmission = it->SubmitIndex;
+		++it;
+	}
+
+	if (queueEmpty)
+		lastFinishedSubmission = mNextSubmitIndex - 1;
+
+	WaitGroup waitGroup;
+
+	{
+		Lock lock(mMutex);
+		it = mActiveSubmissions.begin();
+		while (it != mActiveSubmissions.end())
+		{
+			if (it->SubmitIndex > lastFinishedSubmission)
+				break;
+
+			const TShared<D3D12GpuCommandBuffer> commandBuffer = it->CommandBuffer;
+			if (commandBuffer != nullptr)
+			{
+				SingleConsumerQueue& messageQueue = commandBuffer->GetPool().GetMessageQueue();
+
+				waitGroup.Increment();
+				messageQueue.PostCommand([commandBuffer, waitGroup = forceWait ? &waitGroup : nullptr]()
+				{
+					commandBuffer->mState = GpuCommandBufferState::Done;
+					commandBuffer->OnDidComplete();
+					commandBuffer->Reset();
+
+					if (waitGroup != nullptr)
+						waitGroup->NotifyDone();
+				}, "CommandBufferCompleteCallback");
+
+				if (mLastSubmittedCommandBuffer == commandBuffer)
+					mLastSubmittedCommandBuffer = nullptr;
+			}
+			else if (it->PresentSwapChain != nullptr)
+			{
+				// Present entry: the swap chain image is no longer being used by the GPU. Post NotifyUnbound() back
+				// to the swap chain's message queue (processed on the render thread), matching the NotifyBound() that
+				// was issued when the present was queued.
+				D3D12SwapChain* const swapChain = it->PresentSwapChain;
+				SingleConsumerQueue& messageQueue = swapChain->GetMessageQueue();
+
+				waitGroup.Increment();
+				messageQueue.PostCommand([swapChain, waitGroup = forceWait ? &waitGroup : nullptr]()
+				{
+					swapChain->NotifyUnbound();
+
+					if (waitGroup != nullptr)
+						waitGroup->NotifyDone();
+				}, "SwapChainPresentCompleteCallback");
+			}
+
+			it = mActiveSubmissions.erase(it);
+		}
+	}
+
+	// Ensure the message back callbacks also trigger in the force wait case
+	if (forceWait)
+		waitGroup.Wait();
 }
 
 void D3D12GpuQueue::WaitUntilIdle()
+{
+	// During shutdown (or on non-primary devices) the submit thread doesn't exist; the native wait suffices then.
+	if (!GetDevice().HasSubmitThread())
+	{
+		WaitUntilIdleNative();
+		return;
+	}
+
+	mGpuDevice.GetSubmitThread().WaitUntilIdle(*this);
+}
+
+void D3D12GpuQueue::WaitUntilIdleNative()
 {
 	if (!mQueue || !mFence || !mFenceEvent)
 		return;
@@ -124,31 +295,8 @@ void D3D12GpuQueue::WaitUntilIdle()
 			B3D_LOG(Error, LogRenderBackend, "Failed to set fence event in WaitUntilIdle");
 		}
 	}
-}
 
-void D3D12GpuQueue::PresentRenderWindow(const TShared<RenderWindow>& renderWindow, u32 syncMask)
-{
-	if (!renderWindow)
-		return;
-
-	// TODO: Get the D3D12SwapChain from the render window
-	// For now, this is a stub since we need to integrate with the render window system
-
-	// The typical flow would be:
-	// 1. Get the swap chain from the render window
-	// 2. Call Present() on the swap chain
-	// 3. Handle vsync based on render window settings
-
-	B3D_LOG(Warning, LogRenderBackend, "D3D12GpuQueue::PresentRenderWindow not fully implemented");
-
-	// Placeholder for when swap chain integration is complete:
-	// D3D12SwapChain* swapChain = GetSwapChainFromRenderWindow(renderWindow);
-	// if (swapChain)
-	// {
-	//     Present(swapChain);
-	// }
-
-	B3D_INCREMENT_RENDER_STATISTIC(NumPresents);
+	GetDevice().LogDebugLayerMessages();
 }
 
 void D3D12GpuQueue::ExecuteCommandLists(ID3D12CommandList* const* commandLists, u32 numCommandLists)
@@ -183,20 +331,59 @@ void D3D12GpuQueue::Wait(ID3D12Fence* fence, u64 value)
 	}
 }
 
-HRESULT D3D12GpuQueue::Present(D3D12SwapChain* swapChain)
+HRESULT D3D12GpuQueue::Present(D3D12SwapChain* swapChain, GpuQueueMask syncMask)
 {
+	AssertIfNotSubmitThread();
+
 	if (!swapChain)
 		return E_INVALIDARG;
 
-	// Present with vsync (1) or without vsync (0)
-	// TODO: Get vsync setting from render window or configuration
-	u32 syncInterval = 1; // 1 = vsync enabled
+	D3D12GpuDevice& device = GetDevice();
 
-	HRESULT hr = swapChain->Present(syncInterval);
+	// No need to explicitly sync with entries on the same queue - same-queue submissions execute in order.
+	syncMask &= ~GpuQueueMask(GetId());
+
+	// Make the queue wait for outstanding work on every queue in the sync mask before presenting. DXGI presents on
+	// this queue's command queue, so this ordering ensures the rendered image is finished on other queues first.
+	if (!syncMask.IsEmpty())
+	{
+		for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
+		{
+			const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
+			const u32 queueCount = device.GetQueueCount(queueType);
+
+			for (u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
+			{
+				if (!syncMask.IsSet(GpuQueueId(queueType, queueIndex)))
+					continue;
+
+				const TShared<D3D12GpuQueue> otherQueue = std::static_pointer_cast<D3D12GpuQueue>(device.GetQueue(queueType, queueIndex));
+				if (otherQueue == nullptr || otherQueue.get() == this || !otherQueue->IsExecuting())
+					continue;
+
+				Wait(otherQueue->GetSubmitFence(), otherQueue->GetLastSignaledFenceValue());
+			}
+		}
+	}
+
+	// The DXGI present uses the swap chain's own vsync interval.
+	HRESULT hr = swapChain->PresentDXGI();
 
 	if (FAILED(hr))
 	{
 		B3D_LOG(Error, LogRenderBackend, "Failed to present swap chain");
+	}
+
+	// Signal the queue submit fence so a later submission can detect the present has been ordered on the GPU, and
+	// register a present entry. The entry has a null command buffer; it stays in mActiveSubmissions until a
+	// following submission on this queue completes (or the queue is drained), at which point the swap chain's
+	// NotifyUnbound() is posted back on its message queue.
+	mLastSignaledFenceValue = mNextFenceValue++;
+	Signal(mFence.Get(), mLastSignaledFenceValue);
+
+	{
+		Lock lock(mMutex);
+		mActiveSubmissions.push_back(QueueSubmissionInformation(swapChain, mNextSubmitIndex++));
 	}
 
 	return hr;

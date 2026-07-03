@@ -19,22 +19,37 @@ namespace b3d::render
 		~D3D12RenderWindowSurface();
 
 		void RebuildSwapChain(u32 width, u32 height, bool vsync) override;
+		void SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask) override;
 		void MarkSwapChainAsInvalid() override;
 		void Destroy() override;
 
 		/** Returns the swap chain owned by the surface. */
-		D3D12SwapChain* GetSwapChain() const { return mSwapChain.get(); }
+		D3D12SwapChain* GetSwapChain() const { return mSwapChain; }
 
 		/** Returns the framebuffer for the specified back buffer index. */
 		D3D12Framebuffer* GetFramebuffer(u32 backBufferIndex) const;
 
+		/**
+		 * Returns the framebuffer for the swap chain image the render thread should render to this frame. If no image
+		 * has been acquired yet (e.g. a fresh swap chain), an acquire is queued on the submit thread and the method
+		 * returns the resulting framebuffer. Mirrors the Vulkan surface's GetActiveFramebuffer().
+		 *
+		 * @note	Render thread only.
+		 */
+		D3D12Framebuffer* GetActiveFramebuffer();
+
 	private:
+		/** Creates the swap chain via the device resource manager and kicks the initial image acquire. */
+		void CreateSwapChainInternal(u32 width, u32 height, bool vsync, D3D12SwapChain* oldSwapChain);
+
 		D3D12GpuDevice& mDevice;
 		DXGI_FORMAT mColorFormat = DXGI_FORMAT_UNKNOWN;
 		DXGI_FORMAT mDepthFormat = DXGI_FORMAT_UNKNOWN;
 		bool mCreateDepthBuffer = false;
 		bool mUseHardwareSRGB = false;
-		UniquePtr<D3D12SwapChain> mSwapChain;
+		bool mVsync = false;
+		u32 mVsyncInterval = 1;
+		D3D12SwapChain* mSwapChain = nullptr;
 		HWND mWindowHandle = nullptr;
 		bool mIsDestroyed = false;
 	};

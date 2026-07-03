@@ -21,14 +21,20 @@ namespace b3d
 			DSV				/**< Depth-stencil views. */
 		};
 
-		/** Manages allocation of descriptor heaps and individual descriptors. */
+		/**
+		 * Manages allocation of descriptor heaps and individual descriptors.
+		 *
+		 * Resource views (via AllocateCPUDescriptor()) live in CPU-only staging heaps; parameter sets copy them into
+		 * contiguous shader-visible ranges (via AllocateGPUDescriptorRange()) before binding. The two must not share a
+		 * heap, as shader-visible heaps are CPU-write-only and cannot be a descriptor copy source.
+		 */
 		class D3D12DescriptorManager
 		{
 		public:
 			D3D12DescriptorManager(D3D12GpuDevice& device);
 			~D3D12DescriptorManager();
 
-			/** Allocates a descriptor from the specified heap type. */
+			/** Allocates a descriptor from the CPU-only staging heap of the specified type. */
 			D3D12_CPU_DESCRIPTOR_HANDLE AllocateCPUDescriptor(D3D12DescriptorHeapType type);
 
 			/** Frees a previously allocated descriptor. */
@@ -38,7 +44,7 @@ namespace b3d
 			void AllocateGPUDescriptorRange(D3D12DescriptorHeapType type, u32 count,
 				D3D12_CPU_DESCRIPTOR_HANDLE& outCPUHandle, D3D12_GPU_DESCRIPTOR_HANDLE& outGPUHandle);
 
-			/** Returns the descriptor heap of the specified type. */
+			/** Returns the shader-visible descriptor heap of the specified type. */
 			ID3D12DescriptorHeap* GetDescriptorHeap(D3D12DescriptorHeapType type) const;
 
 			/** Returns the descriptor increment size for the specified heap type. */
@@ -62,8 +68,15 @@ namespace b3d
 				Vector<u32> FreeList;
 			};
 
+			/**
+			 * Returns the CPU-only staging heap for the given type. RTV/DSV heaps are CPU-only to begin with, while
+			 * CBV_SRV_UAV/Sampler have dedicated staging heaps alongside their shader-visible ones.
+			 */
+			DescriptorHeap& GetStagingHeap(D3D12DescriptorHeapType type);
+
 			D3D12GpuDevice& mDevice;
-			DescriptorHeap mHeaps[4]; // One for each D3D12DescriptorHeapType
+			DescriptorHeap mHeaps[4]; // Shader-visible CBV_SRV_UAV/Sampler heaps + CPU-only RTV/DSV heaps
+			DescriptorHeap mStagingHeaps[2]; // CPU-only staging heaps for CBV_SRV_UAV and Sampler resource views
 			u32 mDescriptorSizes[4] = {}; // Descriptor size for each type
 		};
 

@@ -13,6 +13,7 @@
 #else
 	// Provide stub implementation for projects without D3D12MA
 	#include <d3d12.h>
+	#include <dxgi.h>
 	#include <wrl/client.h>
 
 	using Microsoft::WRL::ComPtr;

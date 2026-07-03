@@ -10,11 +10,17 @@
 
 #include "B3DD3D12GpuBuffer.h"
 #include "B3DD3D12GpuParameterSet.h"
+#include "B3DD3D12GpuParameterSetPool.h"
 #include "B3DD3D12GpuPipelineParameterLayout.h"
+#include "B3DD3D12GpuPipelineState.h"
 #include "B3DD3D12GpuProgram.h"
+#include "B3DD3D12GpuTimelineFence.h"
 #include "B3DD3D12Queries.h"
+#include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12SamplerState.h"
+#include "B3DD3D12ShaderCompiler.h"
 #include "B3DD3D12Texture.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "Utility/B3DBitwise.h"
 
@@ -83,12 +89,15 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter)
 	// Create descriptor manager
 	mDescriptorManager = B3DNew<D3D12DescriptorManager>(*this);
 
+	// Create resource manager
+	mResourceManager = B3DNew<D3D12ResourceManager>(*this);
+
 	// Create memory allocator
 	D3D12MA::ALLOCATOR_DESC allocatorDesc = {};
 	allocatorDesc.pDevice = mDevice.Get();
 	allocatorDesc.pAdapter = mAdapter.Get();
 
-	HRESULT hr = D3D12MA::CreateAllocator(&allocatorDesc, &mAllocator);
+	hr = D3D12MA::CreateAllocator(&allocatorDesc, &mAllocator);
 	if (FAILED(hr))
 	{
 		B3D_LOG(Error, LogRenderBackend, "Failed to create D3D12 memory allocator");
@@ -117,6 +126,12 @@ D3D12GpuDevice::~D3D12GpuDevice()
 			queue = nullptr;
 	}
 
+	// Release any pending deferred releases (the queues are idle by now) before tearing down the allocator
+	DrainDeferredReleases(true);
+
+	// Delete resource manager
+	B3DDelete(mResourceManager);
+
 	// Delete descriptor manager
 	B3DDelete(mDescriptorManager);
 
@@ -137,23 +152,18 @@ TShared<GpuProgramBytecode> D3D12GpuDevice::CompileGpuProgramBytecode(const GpuP
 	if (!IsGpuProgramLanguageSupported(createInformation.Language))
 		return nullptr;
 
-	// TODO: Implement HLSL compilation using DXC (DirectX Shader Compiler)
-	// For now, return nullptr to indicate compilation is not yet implemented
 	TShared<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
-	bytecode->compilerId = 0; // TODO: Define D3D12 compiler ID
-	bytecode->compilerVersion = 0;
-
-	B3D_LOG(Warning, LogRenderBackend, "D3D12 shader compilation not yet implemented");
+	D3D12ShaderCompiler::CompileShader(createInformation, bytecode);
 
 	return bytecode;
 }
 
-TShared<GpuQueue> D3D12GpuDevice::GetQueue(GpuQueueUsage usage, u32 index) const
+TShared<GpuQueue> D3D12GpuDevice::GetQueue(GpuQueueType type, u32 index) const
 {
-	if (index >= GetQueueCount(usage))
+	if (index >= GetQueueCount(type))
 		return nullptr;
 
-	return mQueueInfos[(u32)usage].Queues[index];
+	return mQueueInfos[(u32)type].Queues[index];
 }
 
 TShared<GpuCommandBufferPool> D3D12GpuDevice::CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation)
@@ -166,8 +176,8 @@ TShared<render::Texture> D3D12GpuDevice::CreateTexture(const TextureCreateInform
 	D3D12Texture* rawTexture = new (B3DAllocate<D3D12Texture>()) D3D12Texture(createInformation, *this);
 
 	// Default: standalone (calling-thread deletion)
-	// With RenderProxy flag: forward destruction to render thread
-	TShared<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderProxy)
+	// With RenderThreadDestroy flag: forward destruction to render thread
+	TShared<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
 		? B3DMakeSharedFromExisting(rawTexture)
 		: MakeSharedStandalone<Texture>(rawTexture);
 
@@ -184,8 +194,8 @@ TShared<render::GpuBuffer> D3D12GpuDevice::CreateGpuBuffer(const GpuBufferCreate
 	D3D12GpuBuffer* rawBuffer = new (B3DAllocate<D3D12GpuBuffer>()) D3D12GpuBuffer(createInformation, *this);
 
 	// Default: standalone (calling-thread deletion)
-	// With RenderProxy flag: forward destruction to render thread
-	TShared<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderProxy)
+	// With RenderThreadDestroy flag: forward destruction to render thread
+	TShared<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
 		? B3DMakeSharedFromExisting(rawBuffer)
 		: MakeSharedStandalone<GpuBuffer>(rawBuffer);
 
@@ -215,16 +225,6 @@ TShared<SamplerState> D3D12GpuDevice::CreateSamplerState(const SamplerStateCreat
 TShared<EventQuery> D3D12GpuDevice::CreateEventQuery()
 {
 	return B3DMakeSharedFromExisting(new (B3DAllocate<D3D12EventQuery>()) D3D12EventQuery(*this));
-}
-
-TShared<TimerQuery> D3D12GpuDevice::CreateTimerQuery()
-{
-	return B3DMakeSharedFromExisting(new (B3DAllocate<D3D12TimerQuery>()) D3D12TimerQuery(*this));
-}
-
-TShared<OcclusionQuery> D3D12GpuDevice::CreateOcclusionQuery(bool isBinary)
-{
-	return B3DMakeSharedFromExisting(new (B3DAllocate<D3D12OcclusionQuery>()) D3D12OcclusionQuery(isBinary, *this));
 }
 
 TShared<GpuProgram> D3D12GpuDevice::CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags)
@@ -265,48 +265,182 @@ TShared<GpuPipelineParameterLayout> D3D12GpuDevice::CreateGpuPipelineParameterLa
 		new (B3DAllocate<D3D12GpuPipelineParameterLayout>()) D3D12GpuPipelineParameterLayout(createInformation, *this));
 }
 
+namespace
+{
+	/** The D3D12 backend has no backend-specific set layout data; expose the protected base constructor. */
+	class D3D12GpuPipelineParameterSetLayout : public GpuPipelineParameterSetLayout
+	{
+	public:
+		D3D12GpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
+			: GpuPipelineParameterSetLayout(parameterDescription)
+		{}
+	};
+}
+
 TShared<GpuPipelineParameterSetLayout> D3D12GpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
 {
-	return B3DMakeShared<GpuPipelineParameterSetLayout>(parameterDescription);
+	return B3DMakeShared<D3D12GpuPipelineParameterSetLayout>(parameterDescription);
 }
 
 TUnique<GpuParameterSetPool> D3D12GpuDevice::CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation)
 {
-	// TODO: Implement D3D12-specific descriptor heap pool when needed
-	// For now, return nullptr - D3D12 uses descriptor heaps differently than Vulkan
-	return nullptr;
+	return B3DMakeUnique<D3D12GpuParameterSetPool>(*this, createInformation);
 }
 
 TShared<GpuTimelineFence> D3D12GpuDevice::CreateTimelineFence()
 {
-	// TODO: Implement D3D12-backed GpuTimelineFence on top of ID3D12Fence. Until then a real
-	// allocator path won't function on this backend; this stub keeps the abstract base satisfied.
-	return nullptr;
+	return B3DMakeShared<D3D12GpuTimelineFence>(*this);
+}
+
+void D3D12GpuDevice::StartSubmitThread()
+{
+	// The conversion to the privately-inherited backend interface is only accessible from member context,
+	// so it can't happen inside B3DMakeUnique's template.
+	IGpuSubmitThreadBackend& backend = *this;
+	mSubmitThread = B3DMakeUnique<GpuSubmitThread>(*this, backend);
+}
+
+void D3D12GpuDevice::StopSubmitThread()
+{
+	mSubmitThread = nullptr;
 }
 
 void D3D12GpuDevice::WaitUntilIdle()
 {
-	// Wait for all queues to finish
+	// Non-primary devices don't run a submit thread; their queues are never used so the native wait suffices.
+	if (mSubmitThread == nullptr)
+		ExecuteWaitUntilIdle();
+	else
+		GetSubmitThread().WaitUntilIdle();
+
+	// The device is idle, so nothing deferred can still be referenced by the GPU
+	DrainDeferredReleases(true);
+}
+
+void D3D12GpuDevice::NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer)
+{
+	static_cast<D3D12GpuCommandBuffer&>(commandBuffer).NotifyWillQueueForSubmit();
+}
+
+void D3D12GpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+{
+	static_cast<D3D12GpuQueue&>(queue).ExecuteSubmitOnSubmitThread(std::static_pointer_cast<D3D12GpuCommandBuffer>(commandBuffer), syncMask, signalFences);
+}
+
+void D3D12GpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, bool queueEmpty, u32 lastSubmitIndex)
+{
+	static_cast<D3D12GpuQueue&>(queue).RefreshCompletionState(forceWait, queueEmpty, lastSubmitIndex);
+}
+
+u32 D3D12GpuDevice::GetLastSubmitIndex(const GpuQueue& queue) const
+{
+	return static_cast<const D3D12GpuQueue&>(queue).GetLastSubmitIndex();
+}
+
+void D3D12GpuDevice::ExecuteWaitUntilIdle()
+{
 	for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 	{
-		const u32 queueCount = GetQueueCount((GpuQueueUsage)queueTypeIndex);
+		const u32 queueCount = GetQueueCount((GpuQueueType)queueTypeIndex);
 		for (u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
 		{
-			TShared<D3D12GpuQueue> queue = std::static_pointer_cast<D3D12GpuQueue>(GetQueue((GpuQueueUsage)queueTypeIndex, queueIndex));
+			const TShared<D3D12GpuQueue> queue = std::static_pointer_cast<D3D12GpuQueue>(GetQueue((GpuQueueType)queueTypeIndex, queueIndex));
 			if (queue)
-				queue->WaitUntilIdle();
+				queue->WaitUntilIdleNative();
 		}
 	}
 }
 
+void D3D12GpuDevice::ExecuteWaitUntilIdle(GpuQueue& queue)
+{
+	static_cast<D3D12GpuQueue&>(queue).WaitUntilIdleNative();
+}
+
 void D3D12GpuDevice::BeginFrame()
 {
-	// TODO: Implement frame begin logic (descriptor heap management, etc.)
+	ASSERT_IF_NOT_RENDER_THREAD
 }
 
 void D3D12GpuDevice::EndFrame()
 {
-	// TODO: Implement frame end logic (signal frame boundary to submission machinery)
+	ASSERT_IF_NOT_RENDER_THREAD
+
+	// Signal end-of-frame to submit thread. This blocks until the previous frame's resources are safe to reuse.
+	GetSubmitThread().QueueEndFrameAndWaitForPreviousFrame();
+
+	// Advance the deferred-release ring; entries two frame boundaries old are safe to free now
+	DrainDeferredReleases(false);
+}
+
+void D3D12GpuDevice::DeferNativeRelease(ComPtr<IUnknown> object, D3D12MA::Allocation* allocation)
+{
+	if (object == nullptr && allocation == nullptr)
+		return;
+
+	Lock lock(mDeferredReleaseMutex);
+	mDeferredReleases[mCurrentDeferredReleaseFrame].push_back({ std::move(object), allocation });
+}
+
+void D3D12GpuDevice::DrainDeferredReleases(bool releaseAll)
+{
+	Lock lock(mDeferredReleaseMutex);
+
+	auto fnReleaseList = [](Vector<DeferredRelease>& list)
+	{
+		for (DeferredRelease& entry : list)
+		{
+			// The object (e.g. an ID3D12Resource) must go before the memory backing it
+			entry.Object.Reset();
+
+			if (entry.Allocation != nullptr)
+				entry.Allocation->Release();
+		}
+
+		list.clear();
+	};
+
+	if (releaseAll)
+	{
+		for (Vector<DeferredRelease>& list : mDeferredReleases)
+			fnReleaseList(list);
+
+		return;
+	}
+
+	// Advance the ring; with two frames of GPU work in flight at most, the list that is now current was filled
+	// two frame boundaries ago and can no longer be referenced.
+	mCurrentDeferredReleaseFrame = (mCurrentDeferredReleaseFrame + 1) % kDeferredReleaseFrameCount;
+	fnReleaseList(mDeferredReleases[mCurrentDeferredReleaseFrame]);
+}
+
+void D3D12GpuDevice::LogDebugLayerMessages()
+{
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	ComPtr<ID3D12InfoQueue> infoQueue;
+	if (FAILED(mDevice.As(&infoQueue)))
+		return;
+
+	const u64 messageCount = infoQueue->GetNumStoredMessages();
+	for (u64 i = 0; i < messageCount; i++)
+	{
+		SIZE_T messageLength = 0;
+		if (FAILED(infoQueue->GetMessage(i, nullptr, &messageLength)) || messageLength == 0)
+			continue;
+
+		Vector<u8> storage(messageLength);
+		D3D12_MESSAGE* message = reinterpret_cast<D3D12_MESSAGE*>(storage.data());
+		if (FAILED(infoQueue->GetMessage(i, message, &messageLength)))
+			continue;
+
+		const StringView text(message->pDescription, (u32)message->DescriptionByteLength > 0 ? (u32)message->DescriptionByteLength - 1 : 0);
+		if (message->Severity <= D3D12_MESSAGE_SEVERITY_ERROR)
+			B3D_LOG(Error, LogRenderBackend, "D3D12 validation: {0}", text);
+		else if (message->Severity == D3D12_MESSAGE_SEVERITY_WARNING)
+			B3D_LOG(Warning, LogRenderBackend, "D3D12 validation: {0}", text);
+	}
+
+	infoQueue->ClearStoredMessages();
+#endif
 }
 
 GpuWorkContext& D3D12GpuDevice::GetInternalWorkContext()
@@ -319,7 +453,7 @@ GpuWorkContext& D3D12GpuDevice::GetInternalWorkContext()
 	return *mInternalWorkContext;
 }
 
-void D3D12GpuDevice::PresentRenderWindow(const TShared<render::RenderWindow>& renderWindow, u32 syncMask)
+void D3D12GpuDevice::PresentRenderWindow(const TShared<render::RenderWindow>& renderWindow, GpuQueueMask syncMask)
 {
 	TShared<GpuQueue> queue = GetQueue(GQT_GRAPHICS, 0);
 	if (!B3D_ENSURE(queue))
@@ -401,62 +535,50 @@ void D3D12GpuDevice::InitializeCapabilities()
 	wcstombs(deviceName, adapterDesc.Description, sizeof(deviceName));
 
 	mCapabilities.DeviceName = deviceName;
-	mCapabilities.DriverVersion = "Unknown"; // D3D12 doesn't provide easy access to driver version
+	mCapabilities.BackendName = "DirectX12";
 
-	// Query feature support
-	D3D12_FEATURE_DATA_D3D12_OPTIONS options;
-	if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &options, sizeof(options))))
-	{
-		mCapabilities.MaxBoundVertexBuffers = D3D12_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT;
-		mCapabilities.NumTextureUnitsPerStage[GPT_VERTEX_PROGRAM] = D3D12_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
-		mCapabilities.NumTextureUnitsPerStage[GPT_FRAGMENT_PROGRAM] = D3D12_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
-		mCapabilities.NumTextureUnitsPerStage[GPT_GEOMETRY_PROGRAM] = D3D12_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
-		mCapabilities.NumTextureUnitsPerStage[GPT_HULL_PROGRAM] = D3D12_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
-		mCapabilities.NumTextureUnitsPerStage[GPT_DOMAIN_PROGRAM] = D3D12_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
-		mCapabilities.NumTextureUnitsPerStage[GPT_COMPUTE_PROGRAM] = D3D12_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
+	mCapabilities.VertexBufferCount = D3D12_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT;
+	mCapabilities.RenderTargetCount = D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT;
 
-		mCapabilities.NumUniformBlocksPerStage[GPT_VERTEX_PROGRAM] = D3D12_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
-		mCapabilities.NumUniformBlocksPerStage[GPT_FRAGMENT_PROGRAM] = D3D12_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
-		mCapabilities.NumUniformBlocksPerStage[GPT_GEOMETRY_PROGRAM] = D3D12_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
-		mCapabilities.NumUniformBlocksPerStage[GPT_HULL_PROGRAM] = D3D12_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
-		mCapabilities.NumUniformBlocksPerStage[GPT_DOMAIN_PROGRAM] = D3D12_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
-		mCapabilities.NumUniformBlocksPerStage[GPT_COMPUTE_PROGRAM] = D3D12_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
+	mCapabilities.SampledTexturesPerStage[GPT_VERTEX_PROGRAM] = D3D12_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
+	mCapabilities.SampledTexturesPerStage[GPT_FRAGMENT_PROGRAM] = D3D12_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
+	mCapabilities.SampledTexturesPerStage[GPT_COMPUTE_PROGRAM] = D3D12_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
 
-		mCapabilities.MaximumRenderTargets = D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT;
+	mCapabilities.UniformBufferCountPerStage[GPT_VERTEX_PROGRAM] = D3D12_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
+	mCapabilities.UniformBufferCountPerStage[GPT_FRAGMENT_PROGRAM] = D3D12_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
+	mCapabilities.UniformBufferCountPerStage[GPT_COMPUTE_PROGRAM] = D3D12_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
 
-		// Check for additional capabilities
-		mCapabilities.HasGeometryShaders = true;
-		mCapabilities.HasTessellationShaders = true;
-		mCapabilities.HasComputeShaders = true;
-	}
+	mCapabilities.StorageTexturesPerStage[GPT_FRAGMENT_PROGRAM] = D3D12_UAV_SLOT_COUNT;
+	mCapabilities.StorageTexturesPerStage[GPT_COMPUTE_PROGRAM] = D3D12_UAV_SLOT_COUNT;
 
-	// Query texture capabilities
-	D3D12_FEATURE_DATA_FORMAT_SUPPORT formatSupport;
-	formatSupport.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	if (SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &formatSupport, sizeof(formatSupport))))
-	{
-		mCapabilities.MaxTextureSize = D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION;
-		mCapabilities.MaxCubeTextureSize = D3D12_REQ_TEXTURECUBE_DIMENSION;
-		mCapabilities.MaxTextureArraySlices = D3D12_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION;
-	}
+	mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_BC);
+	mCapabilities.SetCapability(RSC_COMPUTE_PROGRAM);
+	mCapabilities.SetCapability(RSC_LOAD_STORE);
+	mCapabilities.SetCapability(RSC_LOAD_STORE_MSAA);
+	mCapabilities.SetCapability(RSC_BYTECODE_CACHING);
+	mCapabilities.SetCapability(RSC_TEXTURE_VIEWS);
+	mCapabilities.SetCapability(RSC_RENDER_TARGET_LAYERS);
+
+	mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Up;
+	mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;
 
 	// Set vendor
 	switch (adapterDesc.VendorId)
 	{
 	case 0x10DE:
-		mCapabilities.Vendor = GPU_NVIDIA;
+		mCapabilities.DeviceVendor = GPU_NVIDIA;
 		break;
 	case 0x1002:
 	case 0x1022:
-		mCapabilities.Vendor = GPU_AMD;
+		mCapabilities.DeviceVendor = GPU_AMD;
 		break;
 	case 0x163C:
 	case 0x8086:
 	case 0x8087:
-		mCapabilities.Vendor = GPU_INTEL;
+		mCapabilities.DeviceVendor = GPU_INTEL;
 		break;
 	default:
-		mCapabilities.Vendor = GPU_UNKNOWN;
+		mCapabilities.DeviceVendor = GPU_UNKNOWN;
 		break;
 	}
 

@@ -7,6 +7,30 @@
 
 namespace b3d
 {
+	/** @addtogroup D3D12GpuBackend
+	 *  @{
+	 */
+
+	/**
+	 * DirectX 12 implementation of a render texture.
+	 *
+	 * @note	Main thread only.
+	 */
+	class D3D12RenderTexture : public RenderTexture
+	{
+	public:
+		virtual ~D3D12RenderTexture() = default;
+
+	protected:
+		friend class D3D12TextureManager;
+
+		D3D12RenderTexture(const RenderTextureCreateInformation& createInformation)
+			: RenderTexture(createInformation)
+		{ }
+	};
+
+	/** @} */
+
 	namespace render
 	{
 		/** @addtogroup D3D12GpuBackend
@@ -23,16 +47,14 @@ namespace b3d
 			/** @copydoc RenderTexture::Initialize */
 			void Initialize() override;
 
-		protected:
-			/** @copydoc RenderTexture::CreateFramebuffer */
-			void CreateFramebuffer() override;
-
-		public:
 			/** Returns the D3D12 framebuffer associated with this render texture. */
-			D3D12Framebuffer* GetFramebuffer() const { return mFramebuffer.get(); }
+			D3D12Framebuffer* GetFramebuffer() const { return mFramebuffer; }
 
 		private:
-			UniquePtr<D3D12Framebuffer> mFramebuffer;
+			/** Creates the D3D12 framebuffer (render target and depth-stencil views) for this render texture. */
+			void CreateFramebuffer();
+
+			D3D12Framebuffer* mFramebuffer = nullptr;
 		};
 
 		/** @} */

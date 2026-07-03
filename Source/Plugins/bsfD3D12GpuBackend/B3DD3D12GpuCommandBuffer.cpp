@@ -13,9 +13,13 @@
 #include "B3DD3D12Queries.h"
 #include "B3DD3D12SwapChain.h"
 #include "B3DD3D12RenderTexture.h"
+#include "B3DD3D12RenderWindowSurface.h"
+#include "B3DD3D12GpuPipelineState.h"
+#include "B3DD3D12BarrierUtility.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
 #include "Profiling/B3DRenderStats.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
+#include "GpuBackend/B3DRenderWindow.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -49,9 +53,9 @@ namespace
 D3D12GpuCommandBufferPool::D3D12GpuCommandBufferPool(D3D12GpuDevice& device, const GpuCommandBufferPoolCreateInformation& createInformation)
 	: GpuCommandBufferPool(device, createInformation)
 {
-	// Convert queue usage to D3D12 command list type
+	// Convert queue type to D3D12 command list type
 	D3D12_COMMAND_LIST_TYPE commandListType;
-	switch (createInformation.Usage)
+	switch (createInformation.Type)
 	{
 	case GQT_GRAPHICS:
 		commandListType = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -92,7 +96,7 @@ void D3D12GpuCommandBufferPool::Destroy()
 	bool areAnyCommandBuffersStillExecuting = false;
 	for (const auto& commandBufferPair : mCommandBuffers)
 	{
-		if (commandBufferPair.second->GetState() != CommandBufferState::Ready)
+		if (commandBufferPair.second->GetState() != GpuCommandBufferState::Ready)
 		{
 			areAnyCommandBuffersStillExecuting = true;
 			break;
@@ -120,7 +124,7 @@ TShared<GpuCommandBuffer> D3D12GpuCommandBufferPool::FindOrCreate(const GpuComma
 	// Try to find a ready command buffer
 	for (const auto& commandBufferPair : mCommandBuffers)
 	{
-		if (commandBufferPair.second->GetState() != CommandBufferState::Ready)
+		if (commandBufferPair.second->GetState() != GpuCommandBufferState::Ready)
 			continue;
 
 		commandBufferPair.second->SetName(createInformation.Name);
@@ -138,9 +142,9 @@ TShared<GpuCommandBuffer> D3D12GpuCommandBufferPool::Create(const GpuCommandBuff
 
 	D3D12GpuDevice& d3d12Device = static_cast<D3D12GpuDevice&>(mGpuDevice);
 
-	// Convert queue usage to command list type
+	// Convert queue type to command list type
 	D3D12_COMMAND_LIST_TYPE commandListType;
-	switch (mInformation.Usage)
+	switch (mInformation.Type)
 	{
 	case GQT_GRAPHICS:
 		commandListType = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -174,7 +178,7 @@ TShared<GpuCommandBuffer> D3D12GpuCommandBufferPool::Create(const GpuCommandBuff
 	TShared<D3D12GpuCommandBuffer> commandBuffer = B3DMakeSharedFromExisting(
 		new (B3DAllocate<D3D12GpuCommandBuffer>()) D3D12GpuCommandBuffer(
 			d3d12Device, *this, mNextCommandBufferId++, commandList.Get(),
-			mInformation.Thread, mInformation.Usage, createInformation),
+			mInformation.Thread, mInformation.Type, createInformation),
 		[](D3D12GpuCommandBuffer* commandBuffer)
 		{
 			B3DDelete(commandBuffer);
@@ -198,14 +202,12 @@ void D3D12GpuCommandBufferPool::Reset()
 }
 
 D3D12GpuCommandBuffer::D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id,
-	ID3D12GraphicsCommandList* commandList, ThreadId ownerThread, GpuQueueUsage queueType,
+	ID3D12GraphicsCommandList* commandList, ThreadId ownerThread, GpuQueueType queueType,
 	const GpuCommandBufferCreateInformation& createInformation)
 	: GpuCommandBuffer(device, ownerThread, queueType, createInformation)
 	, mId(id)
 	, mCommandList(commandList)
 	, mPool(pool)
-	, mOwnerThread(ownerThread)
-	, mSyncMask(0)
 	, mGfxPipelineRequiresBind(true)
 	, mCmpPipelineRequiresBind(true)
 	, mViewportRequiresBind(true)
@@ -224,7 +226,8 @@ D3D12GpuCommandBuffer::D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCom
 
 	B3D_ASSERT(SUCCEEDED(hr) && "Failed to create fence");
 
-	mFenceValue = 1;
+	// Incremented by the queue just before each submit's fence signal, so it always identifies the latest submission
+	mFenceValue = 0;
 
 	SetName(createInformation.Name);
 }
@@ -237,7 +240,7 @@ D3D12GpuCommandBuffer::~D3D12GpuCommandBuffer()
 		Reset();
 	}
 
-	if (mState == State::Submitted || mState == State::Done)
+	if (mState == GpuCommandBufferState::Executing || mState == GpuCommandBufferState::Done)
 	{
 		// Wait for command buffer to finish
 		const u64 completedValue = mFence->GetCompletedValue();
@@ -262,15 +265,16 @@ D3D12GpuCommandBuffer::~D3D12GpuCommandBuffer()
 void D3D12GpuCommandBuffer::Begin()
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Ready);
+	B3D_ASSERT(mState == GpuCommandBufferState::Ready);
 
 	// Reset command list
 	HRESULT hr = mCommandList->Reset(mPool.GetD3D12CommandAllocator(), nullptr);
 	B3D_ASSERT(SUCCEEDED(hr) && "Failed to reset command list");
 
-	mState = State::Recording;
+	mState = GpuCommandBufferState::Recording;
 
 	// Reset state tracking
+	mLastBoundGraphicsPipeline = nullptr;
 	mGfxPipelineRequiresBind = true;
 	mCmpPipelineRequiresBind = true;
 	mViewportRequiresBind = true;
@@ -283,10 +287,10 @@ void D3D12GpuCommandBuffer::Begin()
 void D3D12GpuCommandBuffer::End()
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Recording || mState == State::RecordingRenderPass);
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording || mState == GpuCommandBufferState::RecordingRenderPass);
 
 	// End render pass if active
-	if (mState == State::RecordingRenderPass)
+	if (mState == GpuCommandBufferState::RecordingRenderPass)
 		EndRenderPass();
 
 	// Close command list
@@ -294,7 +298,7 @@ void D3D12GpuCommandBuffer::End()
 	B3D_ASSERT(SUCCEEDED(hr) && "Failed to close command list");
 
 	mRenderTarget = nullptr;
-	mState = State::RecordingDone;
+	mState = GpuCommandBufferState::RecordingDone;
 }
 
 void D3D12GpuCommandBuffer::SetName(const StringView& name)
@@ -308,25 +312,6 @@ void D3D12GpuCommandBuffer::SetName(const StringView& name)
 	}
 }
 
-CommandBufferState D3D12GpuCommandBuffer::GetState() const
-{
-	switch (mState)
-	{
-	case State::Ready:
-		return CommandBufferState::Ready;
-	case State::Recording:
-	case State::RecordingRenderPass:
-	case State::RecordingDone:
-		return CommandBufferState::Recording;
-	case State::Submitted:
-		return CommandBufferState::Executing;
-	case State::Done:
-		return CommandBufferState::Done;
-	default:
-		return CommandBufferState::Ready;
-	}
-}
-
 void D3D12GpuCommandBuffer::SetGpuParameterSet(const TShared<GpuParameterSet>& parameters)
 {
 	mBoundParams = std::static_pointer_cast<D3D12GpuParameters>(parameters);
@@ -335,8 +320,13 @@ void D3D12GpuCommandBuffer::SetGpuParameterSet(const TShared<GpuParameterSet>& p
 
 void D3D12GpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset)
 {
-	// TODO: Implement dynamic buffer offsets using root descriptors
-	B3D_LOG(Warning, LogRenderBackend, "Dynamic buffer offsets not yet implemented for D3D12");
+	// TODO(d3d12-port): D3D12GpuParameters binds uniform buffers as CBVs baked into descriptor-heap tables
+	// (SetGraphics/ComputeRootDescriptorTable), not as root CBVs. Applying a per-draw dynamic offset there requires
+	// either promoting the affected CBV to a root descriptor (SetGraphicsRootConstantBufferView with base + offset)
+	// or re-creating the CBV descriptor at the new offset, both of which need the root-signature/descriptor design
+	// in B3DD3D12GpuParameterSet / B3DD3D12GpuPipelineParameterLayout (owned elsewhere) to expose the dynamic-offset
+	// slot. Until then this is a no-op; the base class stores the offset but it is not yet honored at draw time.
+	B3D_LOG(Warning, LogRenderBackend, "D3D12: SetDynamicBufferOffset not implemented (descriptor-table CBV binding; needs root-CBV or CBV rebuild support)");
 }
 
 void D3D12GpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState)
@@ -428,62 +418,77 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 	mCommandList->Dispatch(groupCountX, groupCountY, groupCountZ);
 }
 
-void D3D12GpuCommandBuffer::SetRenderTarget(const TShared<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask)
+void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
 {
+	EnsureValidThread();
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording);
+
+	const TShared<RenderTarget>& target = createInformation.Target;
+	if (!B3D_ENSURE(target != nullptr))
+		return;
+
 	mRenderTarget = target;
-	mRenderTargetReadOnlyFlags = readOnlyFlags;
-	mRenderTargetLoadMask = loadMask;
+	mRenderTargetReadOnlyMask = createInformation.ReadOnlyMask;
+	mRenderTargetLoadMask = createInformation.LoadMask;
+	mFramebuffer = nullptr;
 
 	// Get framebuffer for the render target
-	if (target)
+	if (target->GetProperties().IsWindow)
 	{
-		// Check if this is a RenderTexture
-		D3D12RenderTexture* renderTexture = dynamic_cast<D3D12RenderTexture*>(target.get());
-		if (renderTexture)
+		// For RenderWindow, get framebuffer from the render window surface.
+		// The surface/swap chain owns framebuffers for each back buffer.
+		const RenderWindow* renderWindow = static_cast<const RenderWindow*>(target.get());
+		const TShared<IRenderWindowSurface>& surfacePtr = renderWindow->GetRenderWindowSurface();
+
+		if (surfacePtr)
 		{
-			// RenderTexture owns its framebuffer
-			mFramebuffer = renderTexture->GetFramebuffer();
-		}
-		else
-		{
-			// For RenderWindow, get framebuffer from the render window surface
-			// The surface/swap chain owns framebuffers for each back buffer
-			const RenderWindow* renderWindow = static_cast<const RenderWindow*>(target.get());
-			const TShared<IRenderWindowSurface>& surfacePtr = renderWindow->GetRenderWindowSurface();
+			D3D12RenderWindowSurface* d3d12Surface = static_cast<D3D12RenderWindowSurface*>(surfacePtr.get());
+			D3D12SwapChain* swapChain = d3d12Surface->GetSwapChain();
 
-			if (surfacePtr)
+			if (swapChain)
 			{
-				D3D12RenderWindowSurface* d3d12Surface = static_cast<D3D12RenderWindowSurface*>(surfacePtr.get());
-				D3D12SwapChain* swapChain = d3d12Surface->GetSwapChain();
+				// Set the render target on the swap chain for framebuffer creation (if not already set)
+				swapChain->SetRenderTarget(renderWindow);
 
-				if (swapChain)
-				{
-					// Set the render target on the swap chain for framebuffer creation (if not already set)
-					swapChain->SetRenderTarget(renderWindow);
-
-					// Get the framebuffer for the current back buffer
-					u32 backBufferIndex = swapChain->GetCurrentBackBufferIndex();
-					mFramebuffer = d3d12Surface->GetFramebuffer(backBufferIndex);
-				}
-				else
-				{
-					mFramebuffer = nullptr;
-				}
-			}
-			else
-			{
-				mFramebuffer = nullptr;
+				// Get the framebuffer for the current back buffer
+				u32 backBufferIndex = swapChain->GetCurrentBackBufferIndex();
+				mFramebuffer = d3d12Surface->GetFramebuffer(backBufferIndex);
 			}
 		}
 	}
 	else
 	{
-		mFramebuffer = nullptr;
+		// RenderTexture owns its framebuffer
+		D3D12RenderTexture* renderTexture = static_cast<D3D12RenderTexture*>(target.get());
+		mFramebuffer = renderTexture->GetFramebuffer();
 	}
 
-	// TODO: Transition resources to render target state
+	mState = GpuCommandBufferState::RecordingRenderPass;
 
-	BeginRenderPass();
+	// Transition the framebuffer attachments into their render-pass states (color -> RENDER_TARGET, depth ->
+	// DEPTH_WRITE/DEPTH_READ) before binding render targets or clearing them.
+	TransitionRenderPassAttachments();
+
+	// TODO(d3d12-port): Barriers/layout transitions for the resources referenced by createInformation.Parameters
+	// are not yet issued here. Those resources are transitioned when the caller issues explicit barriers or through
+	// the copy paths; per-parameter-set pre-registration (as done by the Vulkan backend) remains to be ported.
+
+	// Set render targets if framebuffer exists
+	if (mFramebuffer)
+	{
+		const D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandles = mFramebuffer->GetRenderTargetViews();
+		const D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandle = mFramebuffer->GetDepthStencilView();
+		u32 numRTVs = mFramebuffer->GetNumColorAttachments();
+
+		mCommandList->OMSetRenderTargets(numRTVs, rtvHandles, FALSE, dsvHandle);
+	}
+
+	// Apply clear operations requested for the render pass start
+	if (createInformation.ClearMask != RT_NONE)
+	{
+		ClearViewportArea(GetRenderPassArea(), createInformation.ClearMask, createInformation.ClearColor,
+			createInformation.ClearDepth, (u16)createInformation.ClearStencil);
+	}
 }
 
 void D3D12GpuCommandBuffer::SetViewport(const Area2& area)
@@ -492,16 +497,93 @@ void D3D12GpuCommandBuffer::SetViewport(const Area2& area)
 	mViewportRequiresBind = true;
 }
 
-void D3D12GpuCommandBuffer::ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask)
+void D3D12GpuCommandBuffer::ClearRenderTarget(RenderSurfaceMask mask, const Color& color, float depth, u16 stencil)
 {
-	// TODO: Implement render target clearing
-	B3D_LOG(Warning, LogRenderBackend, "ClearRenderTarget not yet fully implemented for D3D12");
+	EnsureValidThread();
+
+	ClearViewportArea(GetRenderPassArea(), mask, color, depth, stencil);
 }
 
-void D3D12GpuCommandBuffer::ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask)
+void D3D12GpuCommandBuffer::ClearViewport(RenderSurfaceMask mask, const Color& color, float depth, u16 stencil)
 {
-	// TODO: Implement viewport clearing
-	B3D_LOG(Warning, LogRenderBackend, "ClearViewport not yet fully implemented for D3D12");
+	EnsureValidThread();
+
+	ClearViewportArea(GetViewportArea(), mask, color, depth, stencil);
+}
+
+void D3D12GpuCommandBuffer::ClearViewportArea(const Area2I& area, RenderSurfaceMask mask, const Color& color, float depth, u16 stencil)
+{
+	if (!mFramebuffer)
+		return;
+
+	D3D12_RECT rect;
+	rect.left = area.X;
+	rect.top = area.Y;
+	rect.right = area.X + area.Width;
+	rect.bottom = area.Y + area.Height;
+
+	// Clear color attachments
+	if (mask != RT_NONE)
+	{
+		const D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandles = mFramebuffer->GetRenderTargetViews();
+		const u32 numRTVs = mFramebuffer->GetNumColorAttachments();
+		const float clearColor[4] = { color.R, color.G, color.B, color.A };
+
+		for (u32 i = 0; i < numRTVs; i++)
+		{
+			if (mask.IsSet((RenderSurfaceMaskBits)(RT_COLOR0 << i)))
+				mCommandList->ClearRenderTargetView(rtvHandles[i], clearColor, 1, &rect);
+		}
+	}
+
+	// Clear depth/stencil attachment
+	const D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandle = mFramebuffer->GetDepthStencilView();
+	if (dsvHandle && (mask.IsSet(RT_DEPTH) || mask.IsSet(RT_STENCIL)))
+	{
+		D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS)0;
+		if (mask.IsSet(RT_DEPTH))
+			clearFlags |= D3D12_CLEAR_FLAG_DEPTH;
+		if (mask.IsSet(RT_STENCIL))
+			clearFlags |= D3D12_CLEAR_FLAG_STENCIL;
+
+		mCommandList->ClearDepthStencilView(*dsvHandle, clearFlags, depth, (UINT8)stencil, 1, &rect);
+	}
+}
+
+void D3D12GpuCommandBuffer::TransitionRenderPassAttachments()
+{
+	if(mFramebuffer == nullptr)
+		return;
+
+	Vector<D3D12_RESOURCE_BARRIER> nativeBarriers;
+
+	// Color attachments -> RENDER_TARGET. A read-only color surface stays sampleable (PIXEL/NON_PIXEL SRV).
+	const u32 numColor = mFramebuffer->GetNumColorAttachments();
+	for(u32 i = 0; i < numColor; i++)
+	{
+		const D3D12Framebuffer::Attachment& attachment = mFramebuffer->GetColorAttachment(i);
+
+		const bool readOnly = mRenderTargetReadOnlyMask.IsSet((RenderSurfaceMaskBits)(RT_COLOR0 << i));
+		const D3D12_RESOURCE_STATES targetState = readOnly
+			? (D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+			: D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+		AppendTransition(attachment.Resource, attachment.StateHolder, targetState, nativeBarriers);
+	}
+
+	// Depth/stencil attachment -> DEPTH_WRITE, or DEPTH_READ when the depth surface is read-only.
+	{
+		const D3D12Framebuffer::Attachment& attachment = mFramebuffer->GetDepthStencilAttachment();
+
+		const bool readOnly = mRenderTargetReadOnlyMask.IsSet(RT_DEPTH) && mRenderTargetReadOnlyMask.IsSet(RT_STENCIL);
+		const D3D12_RESOURCE_STATES targetState = readOnly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
+
+		// Resource is null for swap-chain depth buffers (unreachable from the framebuffer); AppendTransition skips it.
+		AppendTransition(attachment.Resource, attachment.StateHolder, targetState, nativeBarriers);
+	}
+
+	if(!nativeBarriers.empty())
+		mCommandList->ResourceBarrier((UINT)nativeBarriers.size(), nativeBarriers.data());
 }
 
 void D3D12GpuCommandBuffer::EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom)
@@ -529,7 +611,7 @@ void D3D12GpuCommandBuffer::SetStencilReferenceValue(u32 value)
 void D3D12GpuCommandBuffer::WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool)
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Recording || mState == State::RecordingRenderPass);
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording || mState == GpuCommandBufferState::RecordingRenderPass);
 
 	if (!query.IsValid() || !queryPool)
 	{
@@ -552,7 +634,7 @@ void D3D12GpuCommandBuffer::WriteTimestamp(GpuQueryId query, const TShared<GpuQu
 void D3D12GpuCommandBuffer::BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags)
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Recording || mState == State::RecordingRenderPass);
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording || mState == GpuCommandBufferState::RecordingRenderPass);
 
 	if (!query.IsValid() || !queryPool)
 	{
@@ -576,7 +658,7 @@ void D3D12GpuCommandBuffer::BeginQuery(GpuQueryId query, const TShared<GpuQueryP
 void D3D12GpuCommandBuffer::EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool)
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Recording || mState == State::RecordingRenderPass);
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording || mState == GpuCommandBufferState::RecordingRenderPass);
 
 	if (!query.IsValid() || !queryPool)
 	{
@@ -600,7 +682,7 @@ void D3D12GpuCommandBuffer::EndQuery(GpuQueryId query, const TShared<GpuQueryPoo
 void D3D12GpuCommandBuffer::ResetQueries(const TShared<GpuQueryPool>& queryPool)
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Recording || mState == State::RecordingRenderPass);
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording || mState == GpuCommandBufferState::RecordingRenderPass);
 
 	if (!queryPool)
 	{
@@ -629,59 +711,63 @@ void D3D12GpuCommandBuffer::ResetQueries(const TShared<GpuQueryPool>& queryPool)
 	);
 }
 
+namespace
+{
+	/** Value of PIX_EVENT_ANSI_VERSION, as expected by ID3D12GraphicsCommandList Begin/SetMarker metadata. */
+	constexpr UINT kPixEventAnsiVersion = 1;
+}
+
 void D3D12GpuCommandBuffer::BeginLabel(const StringView& name)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	// Use PIX markers for debugging
-	std::wstring wideName(name.begin(), name.end());
-	PIXBeginEvent(mCommandList.Get(), 0, wideName.c_str());
+	// ANSI event marker, understood by PIX/RenderDoc without requiring the PIX event runtime
+	const String eventName(name.data(), name.size());
+	mCommandList->BeginEvent(kPixEventAnsiVersion, eventName.c_str(), (UINT)eventName.size() + 1);
 #endif
 }
 
 void D3D12GpuCommandBuffer::EndLabel()
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	PIXEndEvent(mCommandList.Get());
+	mCommandList->EndEvent();
 #endif
 }
 
 void D3D12GpuCommandBuffer::InsertLabel(const StringView& name)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	std::wstring wideName(name.begin(), name.end());
-	PIXSetMarker(mCommandList.Get(), 0, wideName.c_str());
+	const String eventName(name.data(), name.size());
+	mCommandList->SetMarker(kPixEventAnsiVersion, eventName.c_str(), (UINT)eventName.size() + 1);
 #endif
-}
-
-void D3D12GpuCommandBuffer::BeginRenderPass()
-{
-	if (mState == State::RecordingRenderPass)
-		return;
-
-	mState = State::RecordingRenderPass;
-
-	// Set render targets if framebuffer exists
-	if (mFramebuffer)
-	{
-		const D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandles = mFramebuffer->GetRenderTargetViews();
-		const D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandle = mFramebuffer->GetDepthStencilView();
-		u32 numRTVs = mFramebuffer->GetNumColorAttachments();
-
-		mCommandList->OMSetRenderTargets(numRTVs, rtvHandles, FALSE, dsvHandle);
-	}
-
-	// TODO: Apply load operations (clear if needed based on mRenderTargetLoadMask)
 }
 
 void D3D12GpuCommandBuffer::EndRenderPass()
 {
-	if (mState != State::RecordingRenderPass)
+	if (mState != GpuCommandBufferState::RecordingRenderPass)
 		return;
 
 	// TODO: Apply store operations
 	// TODO: Resolve MSAA if needed
 
-	mState = State::Recording;
+	// Swap-chain back buffers must be in PRESENT (COMMON) state by the time the queue presents; there is no other
+	// point in the frame where a transition can be recorded, so it happens as the pass ends (Vulkan analog:
+	// finalLayout = PRESENT_SRC on window render passes).
+	if (mFramebuffer != nullptr && mRenderTarget != nullptr && mRenderTarget->GetProperties().IsWindow)
+	{
+		Vector<D3D12_RESOURCE_BARRIER> nativeBarriers;
+
+		const u32 numColor = mFramebuffer->GetNumColorAttachments();
+		for (u32 i = 0; i < numColor; i++)
+		{
+			const D3D12Framebuffer::Attachment& attachment = mFramebuffer->GetColorAttachment(i);
+			AppendTransition(attachment.Resource, attachment.StateHolder, D3D12_RESOURCE_STATE_PRESENT, nativeBarriers);
+		}
+
+		if (!nativeBarriers.empty())
+			mCommandList->ResourceBarrier((UINT)nativeBarriers.size(), nativeBarriers.data());
+	}
+
+	mState = GpuCommandBufferState::Recording;
 }
 
 bool D3D12GpuCommandBuffer::IsReadyForRender()
@@ -697,20 +783,37 @@ bool D3D12GpuCommandBuffer::IsReadyForRender()
 
 bool D3D12GpuCommandBuffer::BindGraphicsPipeline()
 {
-	if (!mGraphicsPipeline)
+	if (!mGraphicsPipeline || !mFramebuffer)
 		return false;
+
+	// Resolve the pipeline variant matching the current framebuffer formats and draw operation. Variants are
+	// cached by the pipeline state object, so this is a lookup on all but the first encounter.
+	D3D12PipelineVariantKey variantKey;
+	variantKey.RenderTargetCount = mFramebuffer->GetNumColorAttachments();
+	for (u32 i = 0; i < variantKey.RenderTargetCount; i++)
+		variantKey.RenderTargetFormats[i] = mFramebuffer->GetColorFormat(i);
+	variantKey.DepthStencilFormat = mFramebuffer->GetDepthStencilFormat();
+	variantKey.SampleCount = mFramebuffer->GetSampleCount();
+	variantKey.TopologyType = D3D12Utility::GetPrimitiveTopologyType(mDrawOp);
+
+	ID3D12PipelineState* pipeline = mGraphicsPipeline->FindOrCreatePipeline(variantKey);
+	if (!pipeline)
+		return false;
+
+	if (pipeline != mLastBoundGraphicsPipeline)
+	{
+		mCommandList->SetPipelineState(pipeline);
+		mLastBoundGraphicsPipeline = pipeline;
+	}
 
 	if (mGfxPipelineRequiresBind)
 	{
-		mCommandList->SetPipelineState(mGraphicsPipeline->GetD3D12PipelineState());
 		mCommandList->SetGraphicsRootSignature(mGraphicsPipeline->GetRootSignature());
-
-		// Set primitive topology
-		D3D_PRIMITIVE_TOPOLOGY topology = mGraphicsPipeline->GetPrimitiveTopology();
-		mCommandList->IASetPrimitiveTopology(topology);
-
 		mGfxPipelineRequiresBind = false;
 	}
+
+	// Set primitive topology (cheap dynamic state, set to match the current draw operation)
+	mCommandList->IASetPrimitiveTopology(D3D12Utility::GetPrimitiveTopology(mDrawOp));
 
 	return true;
 }
@@ -807,10 +910,10 @@ void D3D12GpuCommandBuffer::BindGpuParams()
 		return;
 
 	// Determine if we're binding for graphics or compute pipeline
-	bool isGraphics = (mGfxPipeline != nullptr);
+	bool isGraphics = (mGraphicsPipeline != nullptr);
 
 	// Get the device and descriptor manager
-	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(GetD3D12GpuBackend().GetPrimaryDevice());
+	D3D12GpuDevice& device = GetD3D12GpuDevice();
 	D3D12DescriptorManager& descriptorManager = device.GetDescriptorManager();
 
 	// Set descriptor heaps (CBV/SRV/UAV and Sampler heaps must be bound before setting root parameters)
@@ -826,18 +929,27 @@ void D3D12GpuCommandBuffer::BindGpuParams()
 	mBoundParamsDirty = false;
 }
 
+void D3D12GpuCommandBuffer::NotifyWillQueueForSubmit()
+{
+	// Clear everything not allowed on the submit thread
+	mGraphicsPipeline = nullptr;
+	mComputePipeline = nullptr;
+	mBoundParams = nullptr;
+	mIndexBuffer = nullptr;
+	mVertexBuffers.clear();
+}
+
 bool D3D12GpuCommandBuffer::UpdateExecutionStatus(bool block)
 {
-	if (mState != State::Submitted && mState != State::Done)
+	if (mState != GpuCommandBufferState::Executing && mState != GpuCommandBufferState::Done)
 		return true;
 
+	// Note: only checks the fence. The Done state transition is posted back to the command buffer's owning
+	// thread by the queue's RefreshCompletionState, mirroring the other backends.
 	const u64 completedValue = mFence->GetCompletedValue();
 
 	if (completedValue >= mFenceValue)
-	{
-		mState = State::Done;
 		return true;
-	}
 
 	if (block)
 	{
@@ -847,8 +959,6 @@ bool D3D12GpuCommandBuffer::UpdateExecutionStatus(bool block)
 			mFence->SetEventOnCompletion(mFenceValue, fenceEvent);
 			WaitForSingleObject(fenceEvent, INFINITE);
 			CloseHandle(fenceEvent);
-
-			mState = State::Done;
 			return true;
 		}
 	}
@@ -859,7 +969,7 @@ bool D3D12GpuCommandBuffer::UpdateExecutionStatus(bool block)
 void D3D12GpuCommandBuffer::Reset()
 {
 	// Mark as ready for reuse
-	mState = State::Ready;
+	mState = GpuCommandBufferState::Ready;
 
 	// Reset tracked state
 	mGraphicsPipeline = nullptr;
@@ -876,8 +986,8 @@ Area2I D3D12GpuCommandBuffer::GetViewportArea() const
 	if (!mRenderTarget)
 		return Area2I(0, 0, 0, 0);
 
-	u32 width = mRenderTarget->GetWidth();
-	u32 height = mRenderTarget->GetHeight();
+	u32 width = mRenderTarget->GetProperties().Width;
+	u32 height = mRenderTarget->GetProperties().Height;
 
 	return Area2I(
 		(i32)(mNormalizedViewportArea.X * width),
@@ -892,26 +1002,341 @@ Area2I D3D12GpuCommandBuffer::GetRenderPassArea() const
 	if (!mRenderTarget)
 		return Area2I(0, 0, 0, 0);
 
-	return Area2I(0, 0, mRenderTarget->GetWidth(), mRenderTarget->GetHeight());
+	return Area2I(0, 0, (i32)mRenderTarget->GetProperties().Width, (i32)mRenderTarget->GetProperties().Height);
+}
+
+bool D3D12GpuCommandBuffer::AppendTransition(ID3D12Resource* resource, D3D12_RESOURCE_STATES* stateHolder, D3D12_RESOURCE_STATES targetState,
+	Vector<D3D12_RESOURCE_BARRIER>& outBarriers, u32 subresource)
+{
+	if(resource == nullptr || stateHolder == nullptr)
+		return false;
+
+	const D3D12_RESOURCE_STATES before = *stateHolder;
+
+	// Same-state transitions are no-ops. PRESENT and COMMON share value 0, so this also collapses redundant
+	// COMMON<->PRESENT transitions.
+	if(before == targetState)
+		return false;
+
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = resource;
+	barrier.Transition.Subresource = subresource;
+	barrier.Transition.StateBefore = before;
+	barrier.Transition.StateAfter = targetState;
+
+	outBarriers.push_back(barrier);
+
+	// Tracking assumes single-threaded recording per resource (render thread + internal work context) for bring-up;
+	// the aggregate current state is advanced in place without cross-command-buffer synchronization.
+	*stateHolder = targetState;
+
+	return true;
+}
+
+void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
+{
+	EnsureValidThread();
+
+	if(!B3D_ENSURE(!IsInRenderPass()))
+		return;
+
+	Vector<D3D12_RESOURCE_BARRIER> nativeBarriers;
+
+	// Resolves the before-state: when the source usage is Undefined the tracked current state is used, otherwise the
+	// caller-provided source fields are mapped explicitly.
+	auto fnResolveTexture = [&nativeBarriers, this](D3D12Resource* resource, const GpuSurfaceBarrier& barrier)
+	{
+		if(resource == nullptr)
+			return;
+
+		ID3D12Resource* nativeResource = resource->GetD3D12Resource();
+		if(nativeResource == nullptr)
+			return;
+
+		D3D12_RESOURCE_STATES* stateHolder = resource->GetCurrentStatePtr();
+
+		// If a destination layout is provided it takes precedence (attachment/present transitions carry it);
+		// otherwise the destination usage/access determines the target state.
+		D3D12_RESOURCE_STATES targetState;
+		if(barrier.DestinationLayout != GpuImageLayout::Undefined)
+			targetState = D3D12BarrierUtility::GetResourceStateFromLayout(barrier.DestinationLayout, barrier.DestinationAccess);
+		else
+			targetState = D3D12BarrierUtility::GetResourceState(barrier.DestinationUsage, barrier.DestinationAccess, true);
+
+		// If an explicit source is supplied, seed the tracked state from it so the emitted before-state matches.
+		if(barrier.SourceUsage != GpuResourceUseFlag::Undefined)
+		{
+			if(barrier.SourceLayout != GpuImageLayout::Undefined)
+				*stateHolder = D3D12BarrierUtility::GetResourceStateFromLayout(barrier.SourceLayout, barrier.SourceAccess);
+			else
+				*stateHolder = D3D12BarrierUtility::GetResourceState(barrier.SourceUsage, barrier.SourceAccess, true);
+		}
+
+		AppendTransition(nativeResource, stateHolder, targetState, nativeBarriers);
+	};
+
+	for(const auto& barrier : barriers.BufferBarriers)
+	{
+		D3D12GpuBuffer* const d3d12Buffer = static_cast<D3D12GpuBuffer*>(barrier.Object.get());
+		if(d3d12Buffer == nullptr)
+			continue;
+
+		// UPLOAD-heap buffers are permanently GENERIC_READ and READBACK-heap buffers permanently COPY_DEST; they
+		// cannot be transitioned. Skip them entirely.
+		const D3D12_HEAP_TYPE heapType = D3D12Utility::GetHeapType(d3d12Buffer->GetInformation().Type, d3d12Buffer->GetInformation().Flags);
+		if(heapType == D3D12_HEAP_TYPE_UPLOAD || heapType == D3D12_HEAP_TYPE_READBACK)
+			continue;
+
+		ID3D12Resource* nativeResource = d3d12Buffer->GetD3D12Resource();
+		D3D12_RESOURCE_STATES* stateHolder = d3d12Buffer->GetCurrentStatePtr();
+
+		const D3D12_RESOURCE_STATES targetState = D3D12BarrierUtility::GetResourceState(barrier.DestinationUsage, barrier.DestinationAccess, false);
+
+		if(barrier.SourceUsage != GpuResourceUseFlag::Undefined)
+			*stateHolder = D3D12BarrierUtility::GetResourceState(barrier.SourceUsage, barrier.SourceAccess, false);
+
+		// UAV write -> UAV write requires a UAV barrier (not a transition) to order the two accesses.
+		const bool isUavToUav = (*stateHolder & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0 &&
+			(targetState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0;
+
+		if(isUavToUav)
+		{
+			D3D12_RESOURCE_BARRIER uavBarrier = {};
+			uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+			uavBarrier.UAV.pResource = nativeResource;
+			nativeBarriers.push_back(uavBarrier);
+		}
+		else
+		{
+			AppendTransition(nativeResource, stateHolder, targetState, nativeBarriers);
+		}
+	}
+
+	for(const auto& barrier : barriers.TextureBarriers)
+	{
+		D3D12Texture* const d3d12Texture = static_cast<D3D12Texture*>(barrier.Object.get());
+
+		// UAV->UAV hazard for storage images.
+		if(d3d12Texture != nullptr)
+		{
+			D3D12_RESOURCE_STATES* stateHolder = d3d12Texture->GetCurrentStatePtr();
+			const D3D12_RESOURCE_STATES targetState = (barrier.DestinationLayout != GpuImageLayout::Undefined)
+				? D3D12BarrierUtility::GetResourceStateFromLayout(barrier.DestinationLayout, barrier.DestinationAccess)
+				: D3D12BarrierUtility::GetResourceState(barrier.DestinationUsage, barrier.DestinationAccess, true);
+
+			if((*stateHolder & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0 && (targetState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0)
+			{
+				D3D12_RESOURCE_BARRIER uavBarrier = {};
+				uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+				uavBarrier.UAV.pResource = d3d12Texture->GetD3D12Resource();
+				nativeBarriers.push_back(uavBarrier);
+				continue;
+			}
+		}
+
+		fnResolveTexture(d3d12Texture, barrier);
+	}
+
+	for(const auto& barrier : barriers.RenderTargetBarriers)
+	{
+		if(barrier.Object == nullptr)
+			continue;
+
+		// Resolve the render target's framebuffer, which carries the per-attachment resource + state holder. This is
+		// the only way to reach swap-chain back buffers, which have no standalone D3D12Texture wrapper.
+		D3D12Framebuffer* framebuffer = nullptr;
+		if(barrier.Object->GetProperties().IsWindow)
+		{
+			const RenderWindow* const renderWindow = static_cast<const RenderWindow*>(barrier.Object.get());
+			const TShared<IRenderWindowSurface>& surfacePtr = renderWindow->GetRenderWindowSurface();
+			if(surfacePtr != nullptr)
+			{
+				D3D12RenderWindowSurface* d3d12Surface = static_cast<D3D12RenderWindowSurface*>(surfacePtr.get());
+				D3D12SwapChain* swapChain = d3d12Surface->GetSwapChain();
+				if(swapChain != nullptr)
+					framebuffer = d3d12Surface->GetFramebuffer(swapChain->GetCurrentBackBufferIndex());
+			}
+		}
+		else
+		{
+			D3D12RenderTexture* const renderTexture = static_cast<D3D12RenderTexture*>(barrier.Object.get());
+			framebuffer = renderTexture->GetFramebuffer();
+		}
+
+		if(framebuffer == nullptr)
+			continue;
+
+		const D3D12_RESOURCE_STATES targetState = (barrier.DestinationLayout != GpuImageLayout::Undefined)
+			? D3D12BarrierUtility::GetResourceStateFromLayout(barrier.DestinationLayout, barrier.DestinationAccess)
+			: D3D12BarrierUtility::GetResourceState(barrier.DestinationUsage, barrier.DestinationAccess, true);
+
+		for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
+		{
+			const RenderSurfaceMaskBits colorMask = static_cast<RenderSurfaceMaskBits>(RT_COLOR0 << colorIndex);
+			if(barrier.SurfaceMask == colorMask)
+			{
+				const D3D12Framebuffer::Attachment& attachment = framebuffer->GetColorAttachment(colorIndex);
+
+				if(attachment.StateHolder != nullptr && barrier.SourceUsage != GpuResourceUseFlag::Undefined)
+				{
+					*attachment.StateHolder = (barrier.SourceLayout != GpuImageLayout::Undefined)
+						? D3D12BarrierUtility::GetResourceStateFromLayout(barrier.SourceLayout, barrier.SourceAccess)
+						: D3D12BarrierUtility::GetResourceState(barrier.SourceUsage, barrier.SourceAccess, true);
+				}
+
+				AppendTransition(attachment.Resource, attachment.StateHolder, targetState, nativeBarriers);
+				break;
+			}
+		}
+
+		if(barrier.SurfaceMask == RT_DEPTH || barrier.SurfaceMask == RT_STENCIL)
+		{
+			const D3D12Framebuffer::Attachment& attachment = framebuffer->GetDepthStencilAttachment();
+
+			if(attachment.StateHolder != nullptr && barrier.SourceUsage != GpuResourceUseFlag::Undefined)
+			{
+				*attachment.StateHolder = (barrier.SourceLayout != GpuImageLayout::Undefined)
+					? D3D12BarrierUtility::GetResourceStateFromLayout(barrier.SourceLayout, barrier.SourceAccess)
+					: D3D12BarrierUtility::GetResourceState(barrier.SourceUsage, barrier.SourceAccess, true);
+			}
+
+			// attachment.Resource is null for swap-chain depth buffers (unreachable); AppendTransition skips those.
+			AppendTransition(attachment.Resource, attachment.StateHolder, targetState, nativeBarriers);
+		}
+	}
+
+	if(!nativeBarriers.empty())
+		mCommandList->ResourceBarrier((UINT)nativeBarriers.size(), nativeBarriers.data());
 }
 
 /************************************************************************/
 /* 								COPY COMMANDS                     		*/
 /************************************************************************/
 
-void D3D12GpuCommandBuffer::CopyBufferToBuffer(ID3D12Resource* source, ID3D12Resource* destination, u64 sourceOffset, u64 destinationOffset, u64 length)
+void D3D12GpuCommandBuffer::TransitionBufferForCopy(D3D12GpuBuffer* buffer, bool asDestination)
+{
+	if(buffer == nullptr)
+		return;
+
+	// UPLOAD-heap buffers are permanently GENERIC_READ (valid copy source) and READBACK-heap buffers permanently
+	// COPY_DEST; neither may be transitioned.
+	const D3D12_HEAP_TYPE heapType = D3D12Utility::GetHeapType(buffer->GetInformation().Type, buffer->GetInformation().Flags);
+	if(heapType == D3D12_HEAP_TYPE_UPLOAD || heapType == D3D12_HEAP_TYPE_READBACK)
+		return;
+
+	const D3D12_RESOURCE_STATES targetState = asDestination ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_COPY_SOURCE;
+
+	Vector<D3D12_RESOURCE_BARRIER> barriers;
+	AppendTransition(buffer->GetD3D12Resource(), buffer->GetCurrentStatePtr(), targetState, barriers);
+
+	if(!barriers.empty())
+		mCommandList->ResourceBarrier((UINT)barriers.size(), barriers.data());
+}
+
+void D3D12GpuCommandBuffer::TransitionTextureForCopy(D3D12Texture* texture, bool asDestination)
+{
+	if(texture == nullptr)
+		return;
+
+	const D3D12_RESOURCE_STATES targetState = asDestination ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_COPY_SOURCE;
+
+	Vector<D3D12_RESOURCE_BARRIER> barriers;
+	AppendTransition(texture->GetD3D12Resource(), texture->GetCurrentStatePtr(), targetState, barriers);
+
+	if(!barriers.empty())
+		mCommandList->ResourceBarrier((UINT)barriers.size(), barriers.data());
+}
+
+void D3D12GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Recording && "Command buffer must be in recording state");
+
+	if (!B3D_ENSURE(source != nullptr && destination != nullptr))
+		return;
+
+	D3D12GpuBuffer* d3d12Source = static_cast<D3D12GpuBuffer*>(source.get());
+	D3D12GpuBuffer* d3d12Destination = static_cast<D3D12GpuBuffer*>(destination.get());
+
+	// Transition into copy states (leave-and-track). UPLOAD/READBACK buffers are skipped by the helpers.
+	TransitionBufferForCopy(d3d12Source, false);
+	TransitionBufferForCopy(d3d12Destination, true);
+
+	CopyBufferToBufferRaw(d3d12Source->GetD3D12Resource(), d3d12Destination->GetD3D12Resource(), sourceOffset, destinationOffset, length);
+}
+
+void D3D12GpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
+{
+	EnsureValidThread();
+
+	if (!B3D_ENSURE(source != nullptr && destination != nullptr))
+		return;
+
+	D3D12GpuBuffer* d3d12Source = static_cast<D3D12GpuBuffer*>(source.get());
+	D3D12Texture* d3d12Destination = static_cast<D3D12Texture*>(destination.get());
+
+	// Transition into copy states (leave-and-track).
+	TransitionBufferForCopy(d3d12Source, false);
+	TransitionTextureForCopy(d3d12Destination, true);
+
+	ID3D12Resource* textureResource = d3d12Destination->GetD3D12Resource();
+	const D3D12_RESOURCE_DESC textureDesc = textureResource->GetDesc();
+
+	// Compute the placed footprint for the requested subresource from the destination texture description.
+	const u32 subresourceIndex = mipLevel + arrayLayer * textureDesc.MipLevels;
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
+	GetD3D12GpuDevice().GetD3D12Device()->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, bufferOffset, &footprint, nullptr, nullptr, nullptr);
+
+	// The staging buffer was laid out using the texture's staging pitch, which is what the copy must read with
+	footprint.Footprint.RowPitch = d3d12Destination->GetStagingRowPitchInBytes(mipLevel);
+
+	CopyBufferToTextureRaw(d3d12Source->GetD3D12Resource(), textureResource, footprint, subresourceIndex);
+}
+
+void D3D12GpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)
+{
+	EnsureValidThread();
+
+	if (!B3D_ENSURE(source != nullptr && destination != nullptr))
+		return;
+
+	D3D12Texture* d3d12Source = static_cast<D3D12Texture*>(source.get());
+	D3D12GpuBuffer* d3d12Destination = static_cast<D3D12GpuBuffer*>(destination.get());
+
+	// Transition into copy states (leave-and-track).
+	TransitionTextureForCopy(d3d12Source, false);
+	TransitionBufferForCopy(d3d12Destination, true);
+
+	ID3D12Resource* textureResource = d3d12Source->GetD3D12Resource();
+	const D3D12_RESOURCE_DESC textureDesc = textureResource->GetDesc();
+
+	// Compute the placed footprint for the requested subresource from the source texture description.
+	const u32 subresourceIndex = mipLevel + arrayLayer * textureDesc.MipLevels;
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
+	GetD3D12GpuDevice().GetD3D12Device()->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, bufferOffset, &footprint, nullptr, nullptr, nullptr);
+
+	// The staging buffer is laid out using the texture's staging pitch, which is what the copy must write with
+	footprint.Footprint.RowPitch = d3d12Source->GetStagingRowPitchInBytes(mipLevel);
+
+	CopyTextureToBufferRaw(textureResource, d3d12Destination->GetD3D12Resource(), footprint, subresourceIndex);
+}
+
+void D3D12GpuCommandBuffer::CopyBufferToBufferRaw(ID3D12Resource* source, ID3D12Resource* destination, u64 sourceOffset, u64 destinationOffset, u64 length)
+{
+	EnsureValidThread();
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
 	B3D_ASSERT(source && destination && "Source and destination buffers must be valid");
 
 	mCommandList->CopyBufferRegion(destination, destinationOffset, source, sourceOffset, length);
 }
 
-void D3D12GpuCommandBuffer::CopyBufferToTexture(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex)
+void D3D12GpuCommandBuffer::CopyBufferToTextureRaw(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex)
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Recording && "Command buffer must be in recording state");
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
 	B3D_ASSERT(source && destination && "Source buffer and destination texture must be valid");
 
 	D3D12_TEXTURE_COPY_LOCATION srcLocation = {};
@@ -927,10 +1352,10 @@ void D3D12GpuCommandBuffer::CopyBufferToTexture(ID3D12Resource* source, ID3D12Re
 	mCommandList->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
 }
 
-void D3D12GpuCommandBuffer::CopyTextureToBuffer(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex)
+void D3D12GpuCommandBuffer::CopyTextureToBufferRaw(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex)
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Recording && "Command buffer must be in recording state");
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
 	B3D_ASSERT(source && destination && "Source texture and destination buffer must be valid");
 
 	D3D12_TEXTURE_COPY_LOCATION srcLocation = {};
@@ -949,7 +1374,7 @@ void D3D12GpuCommandBuffer::CopyTextureToBuffer(ID3D12Resource* source, ID3D12Re
 void D3D12GpuCommandBuffer::TransitionResource(ID3D12Resource* resource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter, u32 subresource)
 {
 	EnsureValidThread();
-	B3D_ASSERT(mState == State::Recording && "Command buffer must be in recording state");
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
 	B3D_ASSERT(resource && "Resource must be valid");
 
 	// Skip transition if states are the same

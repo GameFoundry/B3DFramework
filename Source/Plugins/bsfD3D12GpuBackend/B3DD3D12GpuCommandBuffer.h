@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DD3D12Prerequisites.h"
+#include "B3DD3D12GpuDevice.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "Math/B3DArea2.h"
 
@@ -40,29 +41,10 @@ namespace b3d
 		/** CommandBuffer implementation for DirectX 12. */
 		class D3D12GpuCommandBuffer final : public GpuCommandBuffer
 		{
-		private:
-			/** Possible states a command buffer can be in. */
-			enum class State
-			{
-				/** Buffer is ready to be re-used. */
-				Ready,
-				/** Buffer is currently recording commands, but isn't recording a render pass. */
-				Recording,
-				/** Buffer is currently recording render pass commands. */
-				RecordingRenderPass,
-				/** Buffer is done recording but hasn't been submitted. */
-				RecordingDone,
-				/** Buffer is done recording and is currently submitted on a queue. */
-				Submitted,
-				/** Buffer is done executing on the device. */
-				Done
-			};
-
 		public:
 			~D3D12GpuCommandBuffer() override;
 
 			void SetName(const StringView& name) override;
-			CommandBufferState GetState() const override;
 
 			void SetGpuParameterSet(const TShared<GpuParameterSet>& parameters) override;
 			void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) override;
@@ -75,13 +57,19 @@ namespace b3d
 			void Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ) override;
-			void SetRenderTarget(const TShared<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask) override;
+			void BeginRenderPass(const RenderPassCreateInformation& createInformation) override;
+			void EndRenderPass() override;
+			bool IsInRenderPass() const override { return mState == GpuCommandBufferState::RecordingRenderPass; }
 			void SetViewport(const Area2& area) override;
-			void ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask) override;
-			void ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask) override;
+			void ClearRenderTarget(RenderSurfaceMask mask, const Color& color, float depth, u16 stencil) override;
+			void ClearViewport(RenderSurfaceMask mask, const Color& color, float depth, u16 stencil) override;
 			void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom) override;
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
+			void IssueBarriers(const GpuBarriers& barriers) override;
+			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) override;
+			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
+			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
 			void WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
 			void BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
 			void EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
@@ -106,32 +94,26 @@ namespace b3d
 			/** Returns the fence value that will be signaled when this command buffer completes. */
 			u64 GetFenceValue() const { return mFenceValue; }
 
-			/**
-			 * OR's the provided sync mask with the internal sync mask. The sync mask determines on which queues should
-			 * the buffer wait on before executing.
-			 */
-			void AppendSyncMask(u32 syncMask) { mSyncMask |= syncMask; }
-
-			/** Returns the sync mask as set by AppendSyncMask(). */
-			u32 GetSyncMask() const { return mSyncMask; }
-
 			/** Returns true if the command buffer is currently being processed by the device. */
-			bool IsSubmitted() const { return mState == State::Submitted; }
+			bool IsSubmitted() const { return mState == GpuCommandBufferState::Executing; }
 
 			/** Returns true if the command buffer is currently recording. */
-			bool IsRecording() const { return mState == State::Recording || mState == State::RecordingRenderPass; }
+			bool IsRecording() const { return mState == GpuCommandBufferState::Recording || mState == GpuCommandBufferState::RecordingRenderPass; }
 
 			/** Returns true if the command buffer is ready to be submitted to a queue. */
-			bool IsReadyForSubmit() const { return mState == State::RecordingDone; }
-
-			/** Returns true if the command buffer is currently recording a render pass. */
-			bool IsInRenderPass() const { return mState == State::RecordingRenderPass; }
+			bool IsReadyForSubmit() const { return mState == GpuCommandBufferState::RecordingDone; }
 
 			/** Returns true if the command buffer is done executing on the device. */
-			bool IsDone() const { return mState == State::Done; }
+			bool IsDone() const { return mState == GpuCommandBufferState::Done; }
 
 			/**
-			 * Checks if the command buffer still executing on the GPU. Internal state will be updated if execution finishes.
+			 * Called on the owning thread just before the command buffer is queued for submission on the submit
+			 * thread. Releases any state that must not be touched from the submit thread.
+			 */
+			void NotifyWillQueueForSubmit();
+
+			/**
+			 * Checks if the command buffer still executing on the GPU.
 			 *
 			 * @param	block	If true, the system will block until the command buffer is done executing.
 			 * @return			True if execution has finished (or was never submitted), false if still running.
@@ -149,7 +131,7 @@ namespace b3d
 			/************************************************************************/
 
 			/**
-			 * Copies the contents of the source buffer to the destination buffer.
+			 * Copies the contents of the source buffer to the destination buffer at the ID3D12Resource level.
 			 *
 			 * @param	source				Source buffer to copy from.
 			 * @param	destination			Destination buffer to copy to.
@@ -157,27 +139,27 @@ namespace b3d
 			 * @param	destinationOffset	Offset into the destination buffer, in bytes.
 			 * @param	length				Size of the data to copy, in bytes.
 			 */
-			void CopyBufferToBuffer(ID3D12Resource* source, ID3D12Resource* destination, u64 sourceOffset, u64 destinationOffset, u64 length);
+			void CopyBufferToBufferRaw(ID3D12Resource* source, ID3D12Resource* destination, u64 sourceOffset, u64 destinationOffset, u64 length);
 
 			/**
-			 * Copies the contents of the source buffer to the destination texture.
+			 * Copies the contents of the source buffer to the destination texture at the ID3D12Resource level.
 			 *
 			 * @param	source				Source buffer to copy from.
 			 * @param	destination			Destination texture to copy to.
 			 * @param	layout				Footprint layout describing the buffer data organization.
 			 * @param	subresourceIndex	Destination texture subresource index.
 			 */
-			void CopyBufferToTexture(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex);
+			void CopyBufferToTextureRaw(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex);
 
 			/**
-			 * Copies the contents of the source texture to the destination buffer.
+			 * Copies the contents of the source texture to the destination buffer at the ID3D12Resource level.
 			 *
 			 * @param	source				Source texture to copy from.
 			 * @param	destination			Destination buffer to copy to.
 			 * @param	layout				Footprint layout describing the buffer data organization.
 			 * @param	subresourceIndex	Source texture subresource index.
 			 */
-			void CopyTextureToBuffer(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex);
+			void CopyTextureToBufferRaw(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex);
 
 			/**
 			 * Issues a resource barrier to transition a resource state.
@@ -196,7 +178,7 @@ namespace b3d
 			friend class D3D12GpuQueue;
 
 			D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id,
-				ID3D12GraphicsCommandList* commandList, ThreadId ownerThread, GpuQueueUsage queueType,
+				ID3D12GraphicsCommandList* commandList, ThreadId ownerThread, GpuQueueType queueType,
 				const GpuCommandBufferCreateInformation& createInformation);
 
 			/** Returns the pool the command buffer was allocated from. */
@@ -205,17 +187,11 @@ namespace b3d
 			/** Makes the command buffer ready to start recording commands. */
 			void Begin();
 
-			/** Begins render pass recording. Must be called within Begin()/End() calls. */
-			void BeginRenderPass();
-
-			/** Ends render pass recording. */
-			void EndRenderPass();
-
 			/** Checks if all the prerequisites for rendering have been made. */
 			bool IsReadyForRender();
 
 			/** Marks the command buffer as submitted on a queue. */
-			void SetIsSubmitted() { mState = State::Submitted; }
+			void SetIsSubmitted() { mState = GpuCommandBufferState::Executing; }
 
 			/** Binds the current graphics pipeline to the command buffer. Returns true if bind was successful. */
 			bool BindGraphicsPipeline();
@@ -230,7 +206,37 @@ namespace b3d
 			void BindGpuParams();
 
 			/** Clears the specified area of the currently bound render target. */
-			void ClearViewport(const Area2I& area, u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask);
+			void ClearViewportArea(const Area2I& area, RenderSurfaceMask mask, const Color& color, float depth, u16 stencil);
+
+			/**
+			 * Transitions the current framebuffer's attachments into their render-pass states (color -> RENDER_TARGET,
+			 * depth -> DEPTH_WRITE/DEPTH_READ, honoring the read-only mask) and updates the tracked states. Must be
+			 * called before OMSetRenderTargets / clears in BeginRenderPass.
+			 */
+			void TransitionRenderPassAttachments();
+
+			/**
+			 * Emits a D3D12 transition for a resource whose current state is tracked externally (via @p stateHolder),
+			 * skipping no-op transitions and leaving the tracked state updated. Skips UPLOAD/READBACK heap buffers,
+			 * which are permanently in GENERIC_READ / COPY_DEST and must never be transitioned. Batches into the caller.
+			 *
+			 * @return		true if a transition barrier was appended to @p outBarriers.
+			 */
+			bool AppendTransition(ID3D12Resource* resource, D3D12_RESOURCE_STATES* stateHolder, D3D12_RESOURCE_STATES targetState,
+				Vector<D3D12_RESOURCE_BARRIER>& outBarriers, u32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+
+			/**
+			 * Immediately transitions a buffer into a copy state (COPY_SOURCE/COPY_DEST) and updates its tracked state.
+			 * UPLOAD-heap buffers (permanently GENERIC_READ) and READBACK-heap buffers (permanently COPY_DEST) are left
+			 * untouched. State is left in the copy state after the call (leave-and-track).
+			 */
+			void TransitionBufferForCopy(D3D12GpuBuffer* buffer, bool asDestination);
+
+			/**
+			 * Immediately transitions a texture into a copy state (COPY_SOURCE/COPY_DEST) and updates its tracked state.
+			 * State is left in the copy state after the call (leave-and-track).
+			 */
+			void TransitionTextureForCopy(D3D12Texture* texture, bool asDestination);
 
 			/** Returns the current viewport area in pixels. */
 			Area2I GetViewportArea() const;
@@ -242,17 +248,14 @@ namespace b3d
 			D3D12GpuDevice& GetD3D12GpuDevice() const { return static_cast<D3D12GpuDevice&>(mGpuDevice); }
 
 			u32 mId;
-			State mState = State::Ready;
 			ComPtr<ID3D12GraphicsCommandList> mCommandList;
 			D3D12GpuCommandBufferPool& mPool;
 			ComPtr<ID3D12Fence> mFence;
 			u64 mFenceValue = 0;
-			ThreadId mOwnerThread;
-			u32 mSyncMask;
 
 			// Render state
 			D3D12Framebuffer* mFramebuffer = nullptr;
-			u32 mRenderTargetReadOnlyFlags = 0;
+			RenderSurfaceMask mRenderTargetReadOnlyMask = RT_NONE;
 			RenderSurfaceMask mRenderTargetLoadMask = RT_NONE;
 
 			TShared<D3D12GpuGraphicsPipelineState> mGraphicsPipeline;
@@ -266,6 +269,7 @@ namespace b3d
 			u32 mStencilRef = 0;
 			DrawOperationType mDrawOp = DOT_TRIANGLE_LIST;
 			u32 mRequiredVertexBufferBindingCount = 0;
+			ID3D12PipelineState* mLastBoundGraphicsPipeline = nullptr; /**< Pipeline variant currently set on the command list. */
 
 			bool mGfxPipelineRequiresBind : 1;
 			bool mCmpPipelineRequiresBind : 1;

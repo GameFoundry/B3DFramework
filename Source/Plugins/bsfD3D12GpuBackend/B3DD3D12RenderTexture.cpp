@@ -6,34 +6,38 @@
 #include "B3DD3D12GpuDevice.h"
 #include "GpuBackend/B3DRenderTarget.h"
 
-using namespace b3d;
-using namespace b3d::render;
-
-D3D12RenderTexture::D3D12RenderTexture(const RenderTextureCreateInformation& createInformation)
-	: RenderTexture(createInformation)
+namespace b3d::render
 {
-}
+	D3D12RenderTexture::D3D12RenderTexture(const RenderTextureCreateInformation& createInformation)
+		: RenderTexture(createInformation)
+	{
+	}
 
-D3D12RenderTexture::~D3D12RenderTexture()
-{
-	mFramebuffer = nullptr;
-}
+	D3D12RenderTexture::~D3D12RenderTexture()
+	{
+		if (mFramebuffer != nullptr)
+		{
+			B3DDelete(mFramebuffer);
+			mFramebuffer = nullptr;
+		}
+	}
 
-void D3D12RenderTexture::Initialize()
-{
-	RenderTexture::Initialize();
+	void D3D12RenderTexture::Initialize()
+	{
+		RenderTexture::Initialize();
 
-	// Create the framebuffer now that textures are initialized
-	CreateFramebuffer();
-}
+		// Create the framebuffer now that textures are initialized
+		CreateFramebuffer();
+	}
 
-void D3D12RenderTexture::CreateFramebuffer()
-{
-	// Create D3D12 framebuffer with render target views and depth-stencil view
-	// The D3D12Framebuffer constructor will handle:
-	// 1. Getting color and depth-stencil textures from the RenderTarget
-	// 2. Creating render target views (RTVs) for each color attachment
-	// 3. Creating depth-stencil view (DSV) if depth-stencil attachment exists
-	// 4. Storing descriptor handles
-	mFramebuffer = B3DNew<D3D12Framebuffer>(this);
-}
+	void D3D12RenderTexture::CreateFramebuffer()
+	{
+		// Create D3D12 framebuffer with render target views and depth-stencil view
+		// The D3D12Framebuffer constructor will handle:
+		// 1. Getting color and depth-stencil textures from the RenderTarget
+		// 2. Creating render target views (RTVs) for each color attachment
+		// 3. Creating depth-stencil view (DSV) if depth-stencil attachment exists
+		// 4. Storing descriptor handles
+		mFramebuffer = B3DNew<D3D12Framebuffer>(this);
+	}
+} // namespace b3d::render

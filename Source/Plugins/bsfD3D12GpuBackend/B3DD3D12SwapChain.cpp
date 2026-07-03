@@ -4,19 +4,26 @@
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12GpuBackend.h"
 #include "B3DD3D12GpuQueue.h"
+#include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12Utility.h"
+#include "B3DD3D12Framebuffer.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
+#include "GpuBackend/B3DGpuSubmitThread.h"
+#include "Threading/B3DScheduler.h"
 
 using namespace b3d;
 using namespace b3d::render;
 
-D3D12SwapChain::D3D12SwapChain(const D3D12SwapChainCreateInformation& createInfo, D3D12GpuDevice& device)
-	: mDevice(device)
+D3D12SwapChain::D3D12SwapChain(D3D12ResourceManager* owner, const D3D12SwapChainCreateInformation& createInfo, D3D12GpuDevice& device)
+	: Super(owner, "SwapChain")
+	, mDevice(device)
 	, mCreateInfo(createInfo)
 	, mRenderTarget(nullptr)
+	, mBackBufferCount(0)
 	, mWidth(createInfo.Width)
 	, mHeight(createInfo.Height)
-	, mBackBufferCount(0)
+	, mVSync(createInfo.VSync)
+	, mVsyncInterval(createInfo.VsyncInterval)
 	, mIsInitialized(false)
 {
 	// Initialize descriptor handles and framebuffers to null
@@ -26,35 +33,18 @@ D3D12SwapChain::D3D12SwapChain(const D3D12SwapChainCreateInformation& createInfo
 		mFramebuffers[i] = nullptr;
 	}
 	mDepthStencilView.ptr = 0;
+
+	// Present-completion notifies (swap chain NotifyUnbound) are posted back to this queue and processed on the thread
+	// responsible for the swap chain (the render thread).
+	Scheduler* const scheduler = Scheduler::Get();
+	if (B3D_ENSURE(scheduler))
+		mMessageQueue.ScheduleRunUntilShutdown(*scheduler, true);
 }
 
 D3D12SwapChain::~D3D12SwapChain()
 {
-	Destroy();
-}
+	mMessageQueue.PostRequestShutdownCommand(true);
 
-void D3D12SwapChain::Initialize()
-{
-	if (mIsInitialized)
-		return;
-
-	CreateSwapChain();
-	GetBackBufferResources();
-	CreateRenderTargetViews();
-
-	if (mCreateInfo.CreateDepthBuffer)
-	{
-		CreateDepthStencilBuffer();
-	}
-
-	mIsInitialized = true;
-
-	B3D_LOG(Info, LogRenderBackend, "Initialized D3D12 swap chain: {0}x{1}, format={2}, buffers={3}",
-		mWidth, mHeight, (u32)mCreateInfo.ColorFormat, mBackBufferCount);
-}
-
-void D3D12SwapChain::Destroy()
-{
 	if (!mIsInitialized)
 		return;
 
@@ -63,7 +53,11 @@ void D3D12SwapChain::Destroy()
 	// Delete framebuffers
 	for (u32 i = 0; i < mBackBufferCount; i++)
 	{
-		mFramebuffers[i] = nullptr;
+		if (mFramebuffers[i] != nullptr)
+		{
+			B3DDelete(mFramebuffers[i]);
+			mFramebuffers[i] = nullptr;
+		}
 	}
 
 	// Free render target views
@@ -97,6 +91,35 @@ void D3D12SwapChain::Destroy()
 	mIsInitialized = false;
 
 	B3D_LOG(Info, LogRenderBackend, "Destroyed D3D12 swap chain");
+}
+
+void D3D12SwapChain::Initialize()
+{
+	if (mIsInitialized)
+		return;
+
+	CreateSwapChain();
+	GetBackBufferResources();
+	CreateRenderTargetViews();
+
+	if (mCreateInfo.CreateDepthBuffer)
+	{
+		CreateDepthStencilBuffer();
+	}
+
+	mIsInitialized = true;
+
+	B3D_LOG(Info, LogRenderBackend, "Initialized D3D12 swap chain: {0}x{1}, format={2}, buffers={3}",
+		mWidth, mHeight, (u32)mCreateInfo.ColorFormat, mBackBufferCount);
+}
+
+void D3D12SwapChain::Destroy()
+{
+	// Process any pending messages, most importantly present-completion NotifyUnbound notifies, so the resource can be
+	// destroyed immediately when its bound count reaches zero (important for shutdown / rebuild).
+	mMessageQueue.RunUntilIdle();
+
+	Super::Destroy();
 }
 
 void D3D12SwapChain::CreateSwapChain()
@@ -183,8 +206,8 @@ void D3D12SwapChain::GetBackBufferResources()
 		else
 		{
 			// Set debug name for the back buffer
-			String name = "SwapChain BackBuffer " + toString(i);
-			mBackBuffers[i]->SetName(StringUtil::ToWString(name).c_str());
+			String name = "SwapChain BackBuffer " + ToString(i);
+			mBackBuffers[i]->SetName(ToWideString(name).c_str());
 		}
 	}
 }
@@ -353,16 +376,16 @@ D3D12Framebuffer* D3D12SwapChain::GetFramebuffer(u32 index) const
 		mutableThis->mFramebuffers[index] = B3DNew<D3D12Framebuffer>(mRenderTarget, index);
 	}
 
-	return mFramebuffers[index].get();
+	return mFramebuffers[index];
 }
 
-HRESULT D3D12SwapChain::Present(u32 syncInterval)
+HRESULT D3D12SwapChain::PresentDXGI()
 {
 	if (!mSwapChain)
 		return E_FAIL;
 
-	// Present the back buffer
-	// syncInterval: 0 = no vsync, 1 = vsync, 2 = every other frame, etc.
+	// syncInterval: 0 = no vsync, 1 = vsync, 2 = every other refresh, etc.
+	const u32 syncInterval = GetSyncInterval();
 	HRESULT hr = mSwapChain->Present(syncInterval, 0);
 
 	if (FAILED(hr))
@@ -371,6 +394,78 @@ HRESULT D3D12SwapChain::Present(u32 syncInterval)
 	}
 
 	return hr;
+}
+
+void D3D12SwapChain::AcquireImage()
+{
+	// Called from the submit thread, or one of its helper workers (the submit thread offloads acquires to worker
+	// threads as they may block). DXGI has no async acquire; the currently addressable back buffer is available
+	// immediately, so we just record its index for the render thread to consume.
+	AssertIfRenderThread();
+
+	if (mIsRetired)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Attempting to acquire an image from a retired swap chain.");
+		return;
+	}
+
+	if (!mSwapChain)
+		return;
+
+	const u32 imageIndex = mSwapChain->GetCurrentBackBufferIndex();
+
+	Lock lock(mAcquireMutex);
+	mAcquiredImageIndices.Add(imageIndex);
+}
+
+void D3D12SwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncMask)
+{
+	AssertIfNotSubmitThread();
+
+	if (!mSwapChain)
+		return;
+
+	D3D12GpuQueue& d3d12Queue = static_cast<D3D12GpuQueue&>(queue);
+
+	// DXGI flip-model presents the swap chain's current back buffer; there is no per-image present target. No DXGI
+	// present happens between acquire and present, so the current back buffer still matches the acquired image index.
+	B3D_ASSERT(imageIndex == mSwapChain->GetCurrentBackBufferIndex() && "Presenting an image other than the current DXGI back buffer.");
+	(void)imageIndex;
+
+	// Register the present entry on the queue; this issues the DXGI present and records a present entry so the
+	// swap chain's NotifyUnbound() is posted back once a later submission on this queue completes.
+	d3d12Queue.Present(this, syncMask);
+}
+
+bool D3D12SwapChain::TryGetFirstAcquiredImageIndex(u32& outImageIndex) const
+{
+	Lock lock(mAcquireMutex);
+
+	if (mAcquiredImageIndices.Empty())
+		return false;
+
+	outImageIndex = mAcquiredImageIndices.Front();
+	return true;
+}
+
+void D3D12SwapChain::NotifyWasImageAcquireQueued()
+{
+	NotifyBound();
+}
+
+void D3D12SwapChain::NotifyWasPresentQueued(u32 imageIndex)
+{
+	{
+		Lock lock(mAcquireMutex);
+
+		const auto found = std::find(mAcquiredImageIndices.begin(), mAcquiredImageIndices.end(), imageIndex);
+		if (found != mAcquiredImageIndices.end())
+			mAcquiredImageIndices.erase(found);
+		else
+			B3D_ASSERT(false && "Presenting a swap chain image that wasn't acquired.");
+	}
+
+	NotifyBound();
 }
 
 void D3D12SwapChain::CreateFramebuffers()
@@ -384,6 +479,9 @@ void D3D12SwapChain::CreateFramebuffers()
 	// Create one framebuffer per back buffer
 	for (u32 i = 0; i < mBackBufferCount; i++)
 	{
+		if (mFramebuffers[i] != nullptr)
+			B3DDelete(mFramebuffers[i]);
+
 		mFramebuffers[i] = B3DNew<D3D12Framebuffer>(mRenderTarget, i);
 		B3D_LOG(Info, LogRenderBackend, "Created framebuffer for back buffer {0}", i);
 	}
