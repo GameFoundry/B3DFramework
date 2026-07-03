@@ -14,19 +14,23 @@
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
 #include <X11/extensions/XInput2.h>
+#include <cstring>
 #include <pwd.h>
+#include <sys/inotify.h>
+#include <unistd.h>
 
 using namespace b3d;
 
-Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::onCursorMoved;
-Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::onCursorButtonPressed;
-Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::onCursorButtonReleased;
-Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::onCursorDoubleClick;
-Event<void(InputCommandType)> Platform::onInputCommand;
-Event<void(float)> Platform::onMouseWheelScrolled;
-Event<void(u32)> Platform::onCharInput;
+Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::OnPointerMoved;
+Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::OnPointerButtonPressed;
+Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::OnPointerButtonReleased;
+Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::OnPointerDoubleClick;
+Event<void(InputCommandType)> Platform::OnInputCommand;
+Event<void(float)> Platform::OnMouseWheelScrolled;
+Event<void(u32)> Platform::OnCharInput;
 
-Event<void()> Platform::onMouseCaptureChanged;
+Event<void()> Platform::OnMouseCaptureChanged;
+Event<void()> Platform::OnInputDevicesChanged;
 
 Mutex LinuxPlatform::eventLock;
 Queue<LinuxButtonEvent> LinuxPlatform::buttonEvents;
@@ -86,6 +90,10 @@ struct Platform::Pimpl
 	Rect2I cursorClipRect;
 	LinuxWindow* cursorClipWindow = nullptr;
 	bool cursorClipEnabled = false;
+
+	// Input device attach/detach detection
+	int inotifyHandle = -1;
+	int inotifyDevInputWatch = -1;
 };
 
 static const u32 DOUBLE_CLICK_MS = 500;
@@ -812,17 +820,17 @@ RenderWindow* getRenderWindow(LinuxPlatform::Pimpl* data, ::Window xWindow)
  * @param pressed   true if the button was pressed, false if it was released
  * @param timestamp Time when the event happened
  */
-void enqueueButtonEvent(ButtonCode bc, bool pressed, Ui64 timestamp)
+void enqueueButtonEvent(ButtonCode bc, bool pressed, u64 timestamp)
 {
-	if(bc == BC_UNASSIGNED)
+	if(bc == ButtonCode::Unassigned)
 		return;
 
 	Lock eventLock(LinuxPlatform::eventLock);
 
 	LinuxButtonEvent event;
-	event.button = bc;
-	event.pressed = pressed;
-	event.timestamp = timestamp;
+	event.Button = bc;
+	event.Pressed = pressed;
+	event.Timestamp = timestamp;
 	LinuxPlatform::buttonEvents.push(event);
 }
 
@@ -861,9 +869,9 @@ void Platform::MessagePumpInternal()
 							deltas[valuator] = xInput2Event->raw_values[currentValuesIndex++];
 
 					Lock eventLock(LinuxPlatform::eventLock);
-					LinuxPlatform::mouseMotionEvent.deltaX += deltas[0];
-					LinuxPlatform::mouseMotionEvent.deltaY += deltas[1];
-					LinuxPlatform::mouseMotionEvent.deltaZ += deltas[3]; // Not a typo - 2 is for horizontal scroll.
+					LinuxPlatform::mouseMotionEvent.DeltaX += deltas[0];
+					LinuxPlatform::mouseMotionEvent.DeltaY += deltas[1];
+					LinuxPlatform::mouseMotionEvent.DeltaZ += deltas[3]; // Not a typo - 2 is for horizontal scroll.
 				}
 				break;
 			}
@@ -1267,6 +1275,21 @@ void Platform::StartUpInternal()
 	mData->xDisplay = XOpenDisplay(nullptr);
 	XSetErrorHandler(x11ErrorHandler);
 
+	// Watch for input devices getting attached/detached, used for gamepad hot-plug detection. IN_ATTRIB is needed on
+	// top of IN_CREATE because a new device node only becomes readable once udev adjusts its permissions, which happens
+	// shortly after the node gets created.
+	mData->inotifyHandle = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
+	if(mData->inotifyHandle != -1)
+	{
+		mData->inotifyDevInputWatch = inotify_add_watch(mData->inotifyHandle, "/dev/input",
+			IN_CREATE | IN_DELETE | IN_ATTRIB);
+
+		if(mData->inotifyDevInputWatch == -1)
+			B3D_LOG(Error, LogPlatform, "Unable to watch /dev/input, gamepad hot-plug won't be detected.");
+	}
+	else
+		B3D_LOG(Error, LogPlatform, "Failed to initialize inotify, gamepad hot-plug won't be detected.");
+
 	// For raw, relative mouse motion events, XInput2 extension is required
 	int firstEvent;
 	int firstError;
@@ -1362,9 +1385,42 @@ void Platform::StartUpInternal()
 	}
 }
 
+/** Checks if any input devices got attached/detached and triggers OnInputDevicesChanged if they did. */
+static void CheckInputDevicesChanged(Platform::Pimpl* data)
+{
+	if(data->inotifyDevInputWatch == -1)
+		return;
+
+	alignas(inotify_event) char buffer[4096];
+	bool devicesChanged = false;
+
+	while(true)
+	{
+		const ssize_t numReadBytes = read(data->inotifyHandle, buffer, sizeof(buffer));
+		if(numReadBytes <= 0)
+			break;
+
+		ssize_t offset = 0;
+		while(offset < numReadBytes)
+		{
+			const auto* event = (const inotify_event*)(buffer + offset);
+
+			// Gamepads are only ever enumerated through the evdev (/dev/input/eventX) nodes
+			if(event->len > 0 && strncmp(event->name, "event", 5) == 0)
+				devicesChanged = true;
+
+			offset += (ssize_t)(sizeof(inotify_event) + event->len);
+		}
+	}
+
+	if(devicesChanged && !Platform::OnInputDevicesChanged.Empty())
+		Platform::OnInputDevicesChanged();
+}
+
 void Platform::UpdateInternal()
 {
 	LinuxDragAndDrop::update();
+	CheckInputDevicesChanged(mData);
 	MessagePumpInternal();
 }
 
@@ -1393,6 +1449,16 @@ void Platform::ShutDownInternal()
 
 	XCloseDisplay(mData->xDisplay);
 	mData->xDisplay = nullptr;
+
+	if(mData->inotifyHandle != -1)
+	{
+		if(mData->inotifyDevInputWatch != -1)
+			inotify_rm_watch(mData->inotifyHandle, mData->inotifyDevInputWatch);
+
+		close(mData->inotifyHandle);
+		mData->inotifyHandle = -1;
+		mData->inotifyDevInputWatch = -1;
+	}
 
 	B3DDelete(mData);
 	mData = nullptr;

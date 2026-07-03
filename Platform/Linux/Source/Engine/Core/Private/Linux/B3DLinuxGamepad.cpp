@@ -1,158 +1,214 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Input/B3DGamepad.h"
 #include "Input/B3DInput.h"
 #include "Private/Linux/B3DLinuxInput.h"
+
 #include <fcntl.h>
 #include <linux/input.h>
+#include <unistd.h>
 
 using namespace b3d;
 
-/** Contains private data for the Linux Gamepad implementation. */
-struct Gamepad::Pimpl
+// Number of axis slots tracked per gamepad. Covers the common InputAxis entries plus a few extra slots that
+// unrecognized device axes get mapped to (starting at InputAxis::Count).
+static constexpr u32 kMaxGamepadAxes = 24;
+
+/** Converts an evdev event timestamp into milliseconds. */
+u64 EventTimeToMs(const timeval& time)
 {
-	GamepadInfo info;
-	i32 fileHandle;
-	ButtonCode povState;
-	bool hasInputFocus;
-};
-
-Gamepad::Gamepad(const String& name, const GamepadInfo& gamepadInfo, Input* owner)
-	: mName(name), mOwner(owner)
-{
-	m = B3DNew<Pimpl>();
-	m->info = gamepadInfo;
-	m->povState = BC_UNASSIGNED;
-	m->HasInputFocus = true;
-
-	String eventPath = "/dev/input/event" + toString(gamepadInfo.eventHandlerIdx);
-	m->fileHandle = open(eventPath.c_str(), O_RDWR | O_NONBLOCK);
-
-	if(m->fileHandle == -1)
-		B3D_LOG(Error, LogPlatform, "Failed to open input event file handle for device: {0}", gamepadInfo.name);
+	return (u64)time.tv_sec * 1000 + (u64)time.tv_usec / 1000;
 }
 
-Gamepad::~Gamepad()
+/** Converts the combined horizontal/vertical hat direction (each in [-1, 1]) into a single 8-way POV button code. */
+ButtonCode PovToButtonCode(i32 x, i32 y)
 {
-	if(m->fileHandle != -1)
-		close(m->fileHandle);
+	if(y < 0)
+	{
+		if(x < 0)
+			return ButtonCode::GamepadDPadUpLeft;
 
-	B3DDelete(m);
+		if(x > 0)
+			return ButtonCode::GamepadDPadUpRight;
+
+		return ButtonCode::GamepadDPadUp;
+	}
+
+	if(y > 0)
+	{
+		if(x < 0)
+			return ButtonCode::GamepadDPadDownLeft;
+
+		if(x > 0)
+			return ButtonCode::GamepadDPadDownRight;
+
+		return ButtonCode::GamepadDPadDown;
+	}
+
+	if(x < 0)
+		return ButtonCode::GamepadDPadLeft;
+
+	if(x > 0)
+		return ButtonCode::GamepadDPatRight;
+
+	return ButtonCode::Unassigned;
 }
 
-void Gamepad::capture()
+/**
+ * Converts an absolute axis value from the device-reported [min, max] range into the engine axis range. Trigger axes
+ * are mapped to [0, kMaxAxis] so an idle trigger reports zero, matching the other platform backends. All other axes
+ * are mapped to the full [kMinAxis, kMaxAxis] range.
+ */
+i32 RescaleAxisValue(const AxisInfo& axisInfo, i32 value)
 {
-	if(m->fileHandle == -1)
+	const bool isTrigger = axisInfo.AxisIdx == (i32)InputAxis::LeftTrigger ||
+		axisInfo.AxisIdx == (i32)InputAxis::RightTrigger;
+
+	const i32 targetMin = isTrigger ? 0 : IInputBackend::kMinAxis;
+	if(axisInfo.Min == targetMin && axisInfo.Max == IInputBackend::kMaxAxis)
+		return value;
+
+	const float range = (float)(axisInfo.Max - axisInfo.Min);
+	if(range <= 0.0f)
+		return 0;
+
+	const float normalized = (float)(value - axisInfo.Min) / range;
+	return targetMin + (i32)(normalized * (float)(IInputBackend::kMaxAxis - targetMin));
+}
+
+LinuxGamepad::LinuxGamepad(const GamepadInfo& gamepadInfo, Input& owner)
+	: mOwner(owner), mInfo(gamepadInfo)
+{
+	mPovState.Code = ButtonCode::Unassigned;
+	mPovState.Pressed = false;
+
+	const String eventPath = "/dev/input/event" + ToString(mInfo.EventHandlerIdx);
+	mFileHandle = open(eventPath.c_str(), O_RDONLY | O_NONBLOCK);
+
+	if(mFileHandle == -1)
+		B3D_LOG(Error, LogPlatform, "Failed to open input event file handle for device: {0}.", mInfo.Name);
+}
+
+LinuxGamepad::~LinuxGamepad()
+{
+	if(mFileHandle != -1)
+		close(mFileHandle);
+}
+
+void LinuxGamepad::Capture()
+{
+	if(mFileHandle == -1)
 		return;
 
 	struct AxisState
 	{
-		bool moved;
-		i32 value;
+		bool Moved;
+		i32 Value;
 	};
 
-	AxisState axisState[24];
+	AxisState axisState[kMaxGamepadAxes];
 	B3DZeroOut(axisState);
 
 	input_event events[BUFFER_SIZE_GAMEPAD];
 	while(true)
 	{
-		ssize_t numReadBytes = read(m->fileHandle, &events, sizeof(events));
+		const ssize_t numReadBytes = read(mFileHandle, &events, sizeof(events));
 		if(numReadBytes < 0)
 			break;
 
-		if(!m->HasInputFocus)
+		// Drain the events but discard them while another window owns input
+		if(!mHasInputFocus)
 			continue;
 
-		u32 numEvents = numReadBytes / sizeof(input_event);
-		for(u32 i = 0; i < numEvents; ++i)
+		const u32 numEvents = numReadBytes / sizeof(input_event);
+		for(u32 eventIndex = 0; eventIndex < numEvents; ++eventIndex)
 		{
-			switch(events[i].type)
+			const input_event& event = events[eventIndex];
+			switch(event.type)
 			{
 			case EV_KEY:
 				{
-					auto findIter = m->info.buttonMap.find(events[i].code);
-					if(findIter == m->info.buttonMap.end())
+					auto findIter = mInfo.ButtonMap.find(event.code);
+					if(findIter == mInfo.ButtonMap.end())
 						continue;
 
-					if(events[i].value)
-						mOwner->NotifyButtonPressedInternal(m->info.id, findIter->second, (u64)events[i].time.tv_usec);
+					if(event.value)
+						mOwner.NotifyButtonPressed(mInfo.Id, findIter->second, EventTimeToMs(event.time));
 					else
-						mOwner->NotifyButtonReleasedInternal(m->info.id, findIter->second, (u64)events[i].time.tv_usec);
+						mOwner.NotifyButtonReleased(mInfo.Id, findIter->second, EventTimeToMs(event.time));
 				}
 				break;
 			case EV_ABS:
 				{
 					// Stick or trigger
-					if(events[i].code <= ABS_BRAKE)
+					if(event.code <= ABS_BRAKE)
 					{
-						const AxisInfo& axisInfo = m->info.axisMap[events[i].code];
+						auto findIter = mInfo.AxisMap.find(event.code);
+						if(findIter == mInfo.AxisMap.end())
+							continue;
 
-						if(axisInfo.axisIdx >= 24)
-							break;
+						const AxisInfo& axisInfo = findIter->second;
+						if(axisInfo.AxisIdx < 0 || axisInfo.AxisIdx >= (i32)kMaxGamepadAxes)
+							continue;
 
-						axisState[axisInfo.axisIdx].moved = true;
-
-						// Scale range if needed
-						if(axisInfo.min == Gamepad::MIN_AXIS && axisInfo.max != Gamepad::MAX_AXIS)
-							axisState[axisInfo.axisIdx].value = events[i].value;
-						else
-						{
-							float range = (float)(axisInfo.max - axisInfo.min);
-							float normalizedValue = (axisInfo.max - events[i].value) / range;
-
-							range = (float)(Gamepad::MAX_AXIS - Gamepad::MIN_AXIS);
-							axisState[axisInfo.axisIdx].value = Gamepad::MIN_AXIS + (i32)(normalizedValue * range);
-						}
+						axisState[axisInfo.AxisIdx].Moved = true;
+						axisState[axisInfo.AxisIdx].Value = RescaleAxisValue(axisInfo, event.value);
 					}
-					else if(events[i].code <= ABS_HAT3Y) // POV
+					else if(event.code <= ABS_HAT3Y) // POV (DPad)
 					{
 						// Note: We only support a single POV and report events from all POVs as if they were from the
 						// same source
-						i32 povIdx = events[i].code - ABS_HAT0X;
+						const i32 povIdx = event.code - ABS_HAT0X;
 
-						ButtonCode povButton = BC_UNASSIGNED;
 						if((povIdx & 0x1) == 0) // Even, x axis
-						{
-							if(events[i].value == -1)
-								povButton = BC_GAMEPAD_DPAD_LEFT;
-							else if(events[i].value == 1)
-								povButton = BC_GAMEPAD_DPAD_RIGHT;
-						}
+							mPovX = event.value;
 						else // Odd, y axis
+							mPovY = event.value;
+
+						const u64 timestamp = EventTimeToMs(event.time);
+						const ButtonCode povButton = PovToButtonCode(mPovX, mPovY);
+						if(povButton != ButtonCode::Unassigned) // Pressed
 						{
-							if(events[i].value == -1)
-								povButton = BC_GAMEPAD_DPAD_UP;
-							else if(events[i].value == 1)
-								povButton = BC_GAMEPAD_DPAD_DOWN;
+							// Another button was previously pressed
+							if(mPovState.Pressed)
+							{
+								// If its a different button, release the old one and press the new one
+								if(mPovState.Code != povButton)
+								{
+									mOwner.NotifyButtonReleased(mInfo.Id, mPovState.Code, timestamp);
+									mOwner.NotifyButtonPressed(mInfo.Id, povButton, timestamp);
+
+									mPovState.Code = povButton;
+								}
+							}
+							else
+							{
+								mOwner.NotifyButtonPressed(mInfo.Id, povButton, timestamp);
+								mPovState.Code = povButton;
+								mPovState.Pressed = true;
+							}
 						}
-
-						if(m->povState != povButton)
+						else if(mPovState.Pressed)
 						{
-							if(m->povState != BC_UNASSIGNED)
-								mOwner->NotifyButtonReleasedInternal(m->info.id, m->povState, (u64)events[i].time.tv_usec);
-
-							if(povButton != BC_UNASSIGNED)
-								mOwner->NotifyButtonPressedInternal(m->info.id, povButton, (u64)events[i].time.tv_usec);
-
-							m->povState = povButton;
+							mOwner.NotifyButtonReleased(mInfo.Id, mPovState.Code, timestamp);
+							mPovState.Pressed = false;
 						}
 					}
-					break;
 				}
-			default: break;
+				break;
+			default:
+				break;
 			}
 		}
 	}
 
-	for(u32 i = 0; i < 24; i++)
+	for(u32 axisIndex = 0; axisIndex < kMaxGamepadAxes; axisIndex++)
 	{
-		if(axisState[i].moved)
-			mOwner->NotifyAxisMovedInternal(m->info.id, i, axisState[i].value);
+		if(axisState[axisIndex].Moved)
+			mOwner.NotifyAxisMoved(mInfo.Id, axisIndex, axisState[axisIndex].Value);
 	}
 }
 
-void Gamepad::changeCaptureContext(u64 windowHandle)
+void LinuxGamepad::ChangeCaptureContext(u64 windowHandle)
 {
-	m->HasInputFocus = windowHandle != (u64)-1;
+	mHasInputFocus = windowHandle != 0;
 }

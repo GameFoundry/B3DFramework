@@ -1,56 +1,46 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Input/B3DMouse.h"
 #include "Input/B3DInput.h"
+#include "Private/Linux/B3DLinuxInput.h"
 #include "Private/Linux/B3DLinuxPlatform.h"
+
+#include <cmath>
 
 using namespace b3d;
 
-/** Contains private data for the Linux Mouse implementation. */
-struct Mouse::Pimpl
+LinuxMouse::LinuxMouse(Input& owner)
+	: mOwner(owner)
 {
-	bool hasInputFocus;
-};
-
-Mouse::Mouse(const String& name, Input* owner)
-	: mName(name), mOwner(owner)
-{
-	m = B3DNew<Pimpl>();
-	m->HasInputFocus = true;
 }
 
-Mouse::~Mouse()
-{
-	B3DDelete(m);
-}
-
-void Mouse::capture()
+void LinuxMouse::Capture()
 {
 	Lock lock(LinuxPlatform::eventLock);
 
-	if(m->HasInputFocus)
+	if(mHasInputFocus)
 	{
-		double deltaX = round(LinuxPlatform::mouseMotionEvent.deltaX);
-		double deltaY = round(LinuxPlatform::mouseMotionEvent.deltaY);
-		double deltaZ = round(LinuxPlatform::mouseMotionEvent.deltaZ);
+		const double deltaX = std::round(LinuxPlatform::mouseMotionEvent.DeltaX);
+		const double deltaY = std::round(LinuxPlatform::mouseMotionEvent.DeltaY);
+		const double deltaZ = std::round(LinuxPlatform::mouseMotionEvent.DeltaZ);
 
 		if(deltaX != 0 || deltaY != 0 || deltaZ != 0)
-			mOwner->NotifyMouseMovedInternal(deltaX, deltaY, deltaZ);
+			mOwner.NotifyMouseMoved((i32)deltaX, (i32)deltaY, (i32)deltaZ);
 
-		LinuxPlatform::mouseMotionEvent.deltaX -= deltaX;
-		LinuxPlatform::mouseMotionEvent.deltaY -= deltaY;
-		LinuxPlatform::mouseMotionEvent.deltaZ -= deltaZ;
+		// Keep the sub-pixel remainder so slow movement doesn't get lost to rounding
+		LinuxPlatform::mouseMotionEvent.DeltaX -= deltaX;
+		LinuxPlatform::mouseMotionEvent.DeltaY -= deltaY;
+		LinuxPlatform::mouseMotionEvent.DeltaZ -= deltaZ;
 	}
 	else
 	{
 		// Discard accumulated data
-		LinuxPlatform::mouseMotionEvent.deltaX = 0;
-		LinuxPlatform::mouseMotionEvent.deltaY = 0;
-		LinuxPlatform::mouseMotionEvent.deltaZ = 0;
+		LinuxPlatform::mouseMotionEvent.DeltaX = 0;
+		LinuxPlatform::mouseMotionEvent.DeltaY = 0;
+		LinuxPlatform::mouseMotionEvent.DeltaZ = 0;
 	}
 }
 
-void Mouse::changeCaptureContext(u64 windowHandle)
+void LinuxMouse::ChangeCaptureContext(u64 windowHandle)
 {
-	m->HasInputFocus = windowHandle != (u64)-1;
+	mHasInputFocus = windowHandle != 0;
 }

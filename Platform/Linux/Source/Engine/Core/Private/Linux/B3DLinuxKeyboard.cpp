@@ -1,43 +1,32 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Input/B3DKeyboard.h"
 #include "Input/B3DInput.h"
+#include "Private/Linux/B3DLinuxInput.h"
 #include "Private/Linux/B3DLinuxPlatform.h"
 
 using namespace b3d;
 
-
-/** Contains private data for the Linux Keyboard implementation. */
-struct Keyboard::Pimpl
+LinuxKeyboard::LinuxKeyboard(Input& owner)
+	: mOwner(owner)
 {
-	bool hasInputFocus;
-};
-
-Keyboard::Keyboard(const String& name, Input* owner)
-	: mName(name), mOwner(owner)
-{
-	m = B3DNew<Pimpl>();
-	m->HasInputFocus = true;
 }
 
-Keyboard::~Keyboard()
-{
-	B3DDelete(m);
-}
-
-void Keyboard::capture()
+void LinuxKeyboard::Capture()
 {
 	Lock lock(LinuxPlatform::eventLock);
 
-	if(m->HasInputFocus)
+	if(mHasInputFocus)
 	{
+		// Note: The platform message pump queues all button events here, including mouse buttons. The button code
+		// determines which device the event gets attributed to.
 		while(!LinuxPlatform::buttonEvents.empty())
 		{
-			LinuxButtonEvent& event = LinuxPlatform::buttonEvents.front();
-			if(event.pressed)
-				mOwner->NotifyButtonPressedInternal(0, event.button, event.timestamp);
+			const LinuxButtonEvent& event = LinuxPlatform::buttonEvents.front();
+			if(event.Pressed)
+				mOwner.NotifyButtonPressed(0, event.Button, event.Timestamp);
 			else
-				mOwner->NotifyButtonReleasedInternal(0, event.button, event.timestamp);
+				mOwner.NotifyButtonReleased(0, event.Button, event.Timestamp);
+
 			LinuxPlatform::buttonEvents.pop();
 		}
 	}
@@ -49,7 +38,7 @@ void Keyboard::capture()
 	}
 }
 
-void Keyboard::changeCaptureContext(u64 windowHandle)
+void LinuxKeyboard::ChangeCaptureContext(u64 windowHandle)
 {
-	m->HasInputFocus = windowHandle != (u64)-1;
+	mHasInputFocus = windowHandle != 0;
 }
