@@ -9,10 +9,7 @@
 
 namespace b3d
 {
-	class Mouse;
-	class Keyboard;
-	class Gamepad;
-	struct InputPrivateData;
+	class IInputBackend;
 
 	/** @addtogroup Input
 	 *  @{
@@ -53,7 +50,9 @@ namespace b3d
 			PointerDown,
 			PointerDoubleClick,
 			TextInput,
-			Command
+			Command,
+			GamepadConnected,
+			GamepadDisconnected
 		};
 
 		/**	Stores information about a queued input event that is to be triggered later. */
@@ -186,6 +185,18 @@ namespace b3d
 		/**	Triggers on special input commands. */
 		Event<void(InputCommandType)> OnInputCommand;
 
+		/**
+		 * Triggers when a gamepad device is connected. Gamepads already present when the application starts also trigger
+		 * this on the first input update, so a single code path can handle both.
+		 */
+		Event<void(const GamepadConnectionEvent&)> OnGamepadConnected;
+
+		/**
+		 * Triggers when a gamepad device is disconnected. Any buttons the gamepad held get released (triggering
+		 * OnButtonUp) before this event.
+		 */
+		Event<void(const GamepadConnectionEvent&)> OnGamepadDisconnected;
+
 	public: // ***** INTERNAL ******
 		/** @name Internal
 		 *  @{
@@ -199,9 +210,6 @@ namespace b3d
 
 		/** Triggers any queued input event callbacks. */
 		void TriggerCallbacks();
-
-		/** Returns internal, platform specific privata data. */
-		InputPrivateData* GetPrivateData() const { return mPlatformData; }
 
 		/** Returns a handle to the window that is currently receiving input. */
 		u64 GetWindowHandle() const { return mWindowHandle; }
@@ -218,15 +226,18 @@ namespace b3d
 		/** Called by any of the raw input devices when a button is released. */
 		void NotifyButtonReleased(u32 deviceIndex, ButtonCode code, u64 timestamp);
 
+		/** Called by the input backend when a new gamepad device is connected. */
+		void NotifyGamepadAdded(u32 deviceIndex, const String& name);
+
+		/**
+		 * Called by the input backend when a gamepad device is removed. Releases any of its held buttons and re-centers
+		 * its axes.
+		 */
+		void NotifyGamepadRemoved(u32 deviceIndex, const String& name);
+
 		/** @} */
 
 	private:
-		/** Performs platform specific raw input system initialization. */
-		void InitRawInput();
-
-		/** Performs platform specific raw input system cleanup. */
-		void CleanUpRawInput();
-
 		/**
 		 * Smooths the input mouse axis value. Smoothing makes the changes to the axis more gradual depending on previous
 		 * values.
@@ -330,6 +341,9 @@ namespace b3d
 		Vector<ButtonEvent> mButtonDownEvents[2];
 		Vector<ButtonEvent> mButtonUpEvents[2];
 
+		Vector<GamepadConnectionEvent> mGamepadConnectedEvents[2];
+		Vector<GamepadConnectionEvent> mGamepadDisconnectedEvents[2];
+
 		// OS input events
 		HEvent mCharInputConn;
 		HEvent mCursorMovedConn;
@@ -343,10 +357,6 @@ namespace b3d
 		bool mMouseSmoothingEnabled = false;
 		u64 mWindowHandle;
 
-		Mouse* mMouse = nullptr;
-		Keyboard* mKeyboard = nullptr;
-		Vector<Gamepad*> mGamepads;
-
 		float mTotalMouseSamplingTime[2];
 		u32 mTotalMouseSampleCount[2];
 		float mMouseZeroTime[2];
@@ -354,9 +364,9 @@ namespace b3d
 		float mMouseSmoothedAxis[2];
 		u64 mLastMouseUpdateFrame;
 
-		u64 mTimestampClockOffset;
+		u64 mTimestampClockOffset = 0;
 
-		InputPrivateData* mPlatformData;
+		IInputBackend* mBackend = nullptr;
 
 		/************************************************************************/
 		/* 								STATICS		                      		*/

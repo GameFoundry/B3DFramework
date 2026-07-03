@@ -13,6 +13,7 @@
 #include "TimeAPI.h"
 #include <shellapi.h>
 #include <WinUser.h>
+#include <Dbt.h>
 
 #include "Utility/B3DCommandLine.h"
 
@@ -66,6 +67,7 @@ Event<void(float)> Platform::OnMouseWheelScrolled;
 Event<void(u32)> Platform::OnCharInput;
 
 Event<void()> Platform::OnMouseCaptureChanged;
+Event<void()> Platform::OnInputDevicesChanged;
 
 Platform::Private* Platform::mData = B3DNew<Platform::Private>();
 
@@ -747,6 +749,15 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 	case WM_SYSCHAR:
 		if(wParam != VK_SPACE)
 			return 0;
+		break;
+	case WM_DEVICECHANGE:
+		// Broadcast on any hardware configuration change, used to detect input device (gamepad) hot-plug
+		if(wParam == DBT_DEVNODES_CHANGED)
+		{
+			if(!OnInputDevicesChanged.Empty())
+				OnInputDevicesChanged();
+		}
+
 		break;
 	case WM_MOVE:
 		win->NotifyWindowEvent(WindowEventType::Moved);

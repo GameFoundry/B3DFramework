@@ -4,17 +4,15 @@
 #include "Private/Win32/B3DWin32Input.h"
 
 #include "B3DApplication.h"
-#include "Input/B3DMouse.h"
-#include "Input/B3DKeyboard.h"
-#include "Input/B3DGamepad.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "Platform/B3DPlatform.h"
 
 using namespace b3d;
 
 BOOL CALLBACK DIEnumDevCallbackInternal(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
 {
-	InputPrivateData* data = (InputPrivateData*)(pvRef);
+	Vector<GamepadInfo>* infos = (Vector<GamepadInfo>*)pvRef;
 
 	if(GET_DIDEVICE_TYPE(lpddi->dwDevType) == DI8DEVTYPE_JOYSTICK ||
 	   GET_DIDEVICE_TYPE(lpddi->dwDevType) == DI8DEVTYPE_GAMEPAD ||
@@ -26,11 +24,11 @@ BOOL CALLBACK DIEnumDevCallbackInternal(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
 		gamepadInfo.Name = lpddi->tszInstanceName;
 		gamepadInfo.GuidInstance = lpddi->guidInstance;
 		gamepadInfo.GuidProduct = lpddi->guidProduct;
-		gamepadInfo.Id = (u32)data->GamepadInfos.size();
+		gamepadInfo.Id = (u32)infos->size();
 		gamepadInfo.IsXInput = false;
 		gamepadInfo.XInputDev = 0;
 
-		data->GamepadInfos.push_back(gamepadInfo);
+		infos->push_back(gamepadInfo);
 	}
 
 	return DIENUM_CONTINUE;
@@ -112,7 +110,7 @@ void CheckXInputDevices(Vector<GamepadInfo>& infos)
 
 					// Compare the VID/PID to the DInput device
 					DWORD dwVidPid = MAKELONG(dwVid, dwPid);
-					for(auto entry : infos)
+					for(auto& entry : infos)
 					{
 						if(dwVidPid == entry.GuidProduct.Data1)
 						{
@@ -152,9 +150,10 @@ cleanup:
 		CoUninitialize();
 }
 
-void Input::InitRawInput()
+Win32InputBackend::Win32InputBackend(Input& owner)
+	: mOwner(owner)
 {
-	mPlatformData = B3DNew<InputPrivateData>();
+	mWindowHandle = owner.GetWindowHandle();
 
 	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
@@ -163,44 +162,39 @@ void Input::InitRawInput()
 		return;
 
 	if(IsWindow((HWND)mWindowHandle) == 0)
-		B3D_LOG(Fatal, LogPlatform, "RawInputManager failed to initialized. Invalid HWND provided.");
+		B3D_LOG(Fatal, LogPlatform, "Input backend failed to initialize. Invalid HWND provided.");
 
 	HINSTANCE hInst = GetModuleHandle(0);
 
-	HRESULT hr = DirectInput8Create(hInst, DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&mPlatformData->DirectInput, nullptr);
+	HRESULT hr = DirectInput8Create(hInst, DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&mDirectInput, nullptr);
 	if(FAILED(hr))
 		B3D_LOG(Fatal, LogPlatform, "Unable to initialize DirectInput.");
 
-	mPlatformData->KbSettings = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
-	mPlatformData->MouseSettings = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
+	mKbSettings = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
+	mMouseSettings = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
 
-	// Enumerate all attached devices
-	// Note: Only enumerating gamepads, assuming there is 1 keyboard and 1 mouse
-	mPlatformData->DirectInput->EnumDevices(NULL, DIEnumDevCallbackInternal, mPlatformData, DIEDFL_ATTACHEDONLY);
+	// Note: Assuming there is always exactly 1 keyboard and 1 mouse
+	mKeyboard = B3DNew<Win32Keyboard>(owner, mDirectInput, mKbSettings, mWindowHandle);
+	mMouse = B3DNew<Win32Mouse>(owner, mDirectInput, mMouseSettings, mWindowHandle);
 
-	for(u32 i = 0; i < 4; ++i)
+	Vector<GamepadInfo> gamepadInfos;
+	EnumerateGamepads(gamepadInfos);
+
+	for(auto& gamepadInfo : gamepadInfos)
 	{
-		XINPUT_STATE state;
-		if(XInputGetState(i, &state) != ERROR_DEVICE_NOT_CONNECTED)
-		{
-			CheckXInputDevices(mPlatformData->GamepadInfos);
-			break;
-		}
+		mGamepads.push_back(B3DNew<Win32Gamepad>(gamepadInfo, owner, mDirectInput, mMouseSettings, mWindowHandle));
+		mOwner.NotifyGamepadAdded(gamepadInfo.Id, gamepadInfo.Name);
 	}
 
-	if(GetDeviceCount(InputDevice::Keyboard) > 0)
-		mKeyboard = B3DNew<Keyboard>("Keyboard", this);
-
-	if(GetDeviceCount(InputDevice::Mouse) > 0)
-		mMouse = B3DNew<Mouse>("Mouse", this);
-
-	u32 numGamepads = GetDeviceCount(InputDevice::Gamepad);
-	for(u32 i = 0; i < numGamepads; i++)
-		mGamepads.push_back(B3DNew<Gamepad>(mPlatformData->GamepadInfos[i].Name, mPlatformData->GamepadInfos[i], this));
+	// Detect gamepad hot-plug. The event may trigger from the message loop thread, so only flag the change here and
+	// process it on the next Update().
+	mDevicesChangedConn = Platform::OnInputDevicesChanged.Connect([this]() { mDevicesDirty.store(true); });
 }
 
-void Input::CleanUpRawInput()
+Win32InputBackend::~Win32InputBackend()
 {
+	mDevicesChangedConn.Disconnect();
+
 	if(mMouse != nullptr)
 		B3DDelete(mMouse);
 
@@ -210,20 +204,152 @@ void Input::CleanUpRawInput()
 	for(auto& gamepad : mGamepads)
 		B3DDelete(gamepad);
 
-	if(mPlatformData->DirectInput != nullptr)
-		mPlatformData->DirectInput->Release();
-
-	B3DDelete(mPlatformData);
+	if(mDirectInput != nullptr)
+		mDirectInput->Release();
 }
 
-u32 Input::GetDeviceCount(InputDevice device) const
+void Win32InputBackend::Update()
+{
+	if(mDevicesDirty.exchange(false))
+		RebuildGamepads();
+
+	if(mMouse != nullptr)
+		mMouse->Capture();
+
+	if(mKeyboard != nullptr)
+		mKeyboard->Capture();
+
+	for(auto& gamepad : mGamepads)
+		gamepad->Capture();
+}
+
+u32 Win32InputBackend::GetDeviceCount(InputDevice device) const
 {
 	switch(device)
 	{
-	case InputDevice::Keyboard: return 1;
-	case InputDevice::Mouse: return 1;
-	case InputDevice::Gamepad: return (u32)mPlatformData->GamepadInfos.size();
+	case InputDevice::Keyboard: return mKeyboard != nullptr ? 1 : 0;
+	case InputDevice::Mouse: return mMouse != nullptr ? 1 : 0;
+	case InputDevice::Gamepad: return (u32)mGamepads.size();
 	default:
 	case InputDevice::Count: return 0;
 	}
 }
+
+String Win32InputBackend::GetDeviceName(InputDevice type, u32 deviceIndex) const
+{
+	switch(type)
+	{
+	case InputDevice::Keyboard:
+		if(mKeyboard != nullptr && deviceIndex == 0)
+			return "Keyboard";
+
+		return StringUtility::kBlank;
+	case InputDevice::Mouse:
+		if(mMouse != nullptr && deviceIndex == 0)
+			return "Mouse";
+
+		return StringUtility::kBlank;
+	case InputDevice::Gamepad:
+		if(deviceIndex < (u32)mGamepads.size())
+			return mGamepads[deviceIndex]->GetName();
+
+		return StringUtility::kBlank;
+	default:
+		return StringUtility::kBlank;
+	}
+}
+
+void Win32InputBackend::ChangeCaptureContext(u64 windowHandle)
+{
+	mWindowHandle = windowHandle;
+
+	if(mKeyboard != nullptr)
+		mKeyboard->ChangeCaptureContext(windowHandle);
+
+	if(mMouse != nullptr)
+		mMouse->ChangeCaptureContext(windowHandle);
+
+	for(auto& gamepad : mGamepads)
+		gamepad->ChangeCaptureContext(windowHandle);
+}
+
+void Win32InputBackend::EnumerateGamepads(Vector<GamepadInfo>& outGamepadInfos)
+{
+	// Enumerate all attached DirectInput devices
+	mDirectInput->EnumDevices(NULL, DIEnumDevCallbackInternal, &outGamepadInfos, DIEDFL_ATTACHEDONLY);
+
+	for(u32 i = 0; i < 4; ++i)
+	{
+		XINPUT_STATE state;
+		if(XInputGetState(i, &state) != ERROR_DEVICE_NOT_CONNECTED)
+		{
+			CheckXInputDevices(outGamepadInfos);
+			break;
+		}
+	}
+}
+
+void Win32InputBackend::RebuildGamepads()
+{
+	Vector<GamepadInfo> attachedInfos;
+	EnumerateGamepads(attachedInfos);
+
+	// Destroy gamepads that are no longer attached, matching devices by their unique instance GUID
+	for(auto it = mGamepads.begin(); it != mGamepads.end();)
+	{
+		Win32Gamepad* gamepad = *it;
+
+		bool isAttached = false;
+		for(auto& attachedInfo : attachedInfos)
+			isAttached |= IsEqualGUID(attachedInfo.GuidInstance, gamepad->GetInfo().GuidInstance) != 0;
+
+		if(isAttached)
+		{
+			++it;
+			continue;
+		}
+
+		mOwner.NotifyGamepadRemoved(gamepad->GetInfo().Id, gamepad->GetName());
+		B3DDelete(gamepad);
+		it = mGamepads.erase(it);
+	}
+
+	// Create newly attached gamepads
+	for(auto& attachedInfo : attachedInfos)
+	{
+		bool exists = false;
+		for(auto& gamepad : mGamepads)
+			exists |= IsEqualGUID(attachedInfo.GuidInstance, gamepad->GetInfo().GuidInstance) != 0;
+
+		if(exists)
+			continue;
+
+		// Assign the lowest free id, so device ids (and with them the per-device state slots in Input) get reused
+		// instead of growing unbounded across plug/unplug cycles
+		u32 id = 0;
+		while(true)
+		{
+			bool isUsed = false;
+			for(auto& gamepad : mGamepads)
+				isUsed |= gamepad->GetInfo().Id == id;
+
+			if(!isUsed)
+				break;
+
+			id++;
+		}
+
+		attachedInfo.Id = id;
+
+		mGamepads.push_back(B3DNew<Win32Gamepad>(attachedInfo, mOwner, mDirectInput, mMouseSettings, mWindowHandle));
+		mOwner.NotifyGamepadAdded(attachedInfo.Id, attachedInfo.Name);
+	}
+}
+
+namespace b3d
+{
+IInputBackend* CreateInputBackend(Input& owner)
+{
+	return B3DNew<Win32InputBackend>(owner);
+}
+} // namespace b3d

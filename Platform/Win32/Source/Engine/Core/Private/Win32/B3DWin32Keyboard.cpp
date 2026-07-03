@@ -1,27 +1,26 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Input/B3DKeyboard.h"
 #include "Input/B3DInput.h"
 #include "Private/Win32/B3DWin32Input.h"
 
 using namespace b3d;
 
-/** Contains private data for the Win32 Keyboard implementation. */
-struct Keyboard::Pimpl
+Win32Keyboard::Win32Keyboard(Input& owner, IDirectInput8* directInput, DWORD coopSettings, u64 windowHandle)
+	: mOwner(owner), mDirectInput(directInput), mCoopSettings(coopSettings)
 {
-	IDirectInput8* DirectInput;
-	IDirectInputDevice8* Keyboard;
-	DWORD CoopSettings;
-	HWND HWnd;
+	B3DZeroOut(mKeyBuffer);
 
-	u8 KeyBuffer[256];
-};
+	// Don't initialize DirectInput in headless mode (window handle == 0)
+	if(windowHandle != 0)
+		InitializeDirectInput((HWND)windowHandle);
+}
 
-/**
- * Initializes DirectInput keyboard device for a window with the specified handle. Only input from that window will be
- * reported.
- */
-void InitializeDirectInput(Keyboard::Pimpl* m, HWND hWnd)
+Win32Keyboard::~Win32Keyboard()
+{
+	ReleaseDirectInput();
+}
+
+void Win32Keyboard::InitializeDirectInput(HWND hWnd)
 {
 	DIPROPDWORD dipdw;
 	dipdw.diph.dwSize = sizeof(DIPROPDWORD);
@@ -30,83 +29,57 @@ void InitializeDirectInput(Keyboard::Pimpl* m, HWND hWnd)
 	dipdw.diph.dwHow = DIPH_DEVICE;
 	dipdw.dwData = DI_BUFFER_SIZE_KEYBOARD;
 
-	HRESULT result = m->DirectInput->CreateDevice(GUID_SysKeyboard, &m->Keyboard, nullptr);
+	HRESULT result = mDirectInput->CreateDevice(GUID_SysKeyboard, &mKeyboard, nullptr);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput keyboard init: Failed to create device. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Keyboard->SetDataFormat(&c_dfDIKeyboard);
+	result = mKeyboard->SetDataFormat(&c_dfDIKeyboard);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput keyboard init: Failed to set format. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Keyboard->SetCooperativeLevel(hWnd, m->CoopSettings);
+	result = mKeyboard->SetCooperativeLevel(hWnd, mCoopSettings);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput keyboard init: Failed to set coop level. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Keyboard->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph);
+	result = mKeyboard->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput keyboard init: Failed to set property. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Keyboard->Acquire();
+	result = mKeyboard->Acquire();
 	if(FAILED(result) && result != DIERR_OTHERAPPHASPRIO)
 	{
 		B3D_LOG(Error, LogInput, "DirectInput keyboard init: Failed to acquire device. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	m->HWnd = hWnd;
+	mHWnd = hWnd;
 }
 
-/** Releases DirectInput resources for the provided device */
-void ReleaseDirectInput(Keyboard::Pimpl* m)
+void Win32Keyboard::ReleaseDirectInput()
 {
-	if(m->Keyboard)
+	if(mKeyboard)
 	{
-		m->Keyboard->Unacquire();
-		m->Keyboard->Release();
-		m->Keyboard = nullptr;
+		mKeyboard->Unacquire();
+		mKeyboard->Release();
+		mKeyboard = nullptr;
 	}
 }
 
-Keyboard::Keyboard(const String& name, Input* owner)
-	: mName(name), mOwner(owner)
+void Win32Keyboard::Capture()
 {
-	InputPrivateData* pvtData = owner->GetPrivateData();
-
-	m = B3DNew<Pimpl>();
-	m->DirectInput = pvtData->DirectInput;
-	m->CoopSettings = pvtData->KbSettings;
-	m->Keyboard = nullptr;
-	m->HWnd = nullptr;
-	B3DZeroOut(m->KeyBuffer);
-
-	// Don't initialize DirectInput in headless mode (window handle == 0)
-	const u64 windowHandle = owner->GetWindowHandle();
-	if(windowHandle != 0)
-		InitializeDirectInput(m, (HWND)windowHandle);
-}
-
-Keyboard::~Keyboard()
-{
-	ReleaseDirectInput(m);
-
-	B3DDelete(m);
-}
-
-void Keyboard::Capture()
-{
-	if(m->Keyboard == nullptr)
+	if(mKeyboard == nullptr)
 		return;
 
 	DIDEVICEOBJECTDATA diBuff[DI_BUFFER_SIZE_KEYBOARD];
@@ -115,15 +88,15 @@ void Keyboard::Capture()
 	// Note: Only one keyboard per app due to this static (which is fine)
 	static bool verifyAfterAltTab = false;
 
-	HRESULT hr = m->Keyboard->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &entryCount, 0);
+	HRESULT hr = mKeyboard->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &entryCount, 0);
 	if(hr != DI_OK)
 	{
-		hr = m->Keyboard->Acquire();
+		hr = mKeyboard->Acquire();
 		if(hr == E_ACCESSDENIED)
 			verifyAfterAltTab = true;
 
 		while(hr == DIERR_INPUTLOST)
-			hr = m->Keyboard->Acquire();
+			hr = mKeyboard->Acquire();
 
 		return;
 	}
@@ -138,12 +111,12 @@ void Keyboard::Capture()
 	{
 		ButtonCode buttonCode = (ButtonCode)diBuff[entryIndex].dwOfs;
 
-		m->KeyBuffer[(u32)buttonCode] = (u8)(diBuff[entryIndex].dwData);
+		mKeyBuffer[(u32)buttonCode] = (u8)(diBuff[entryIndex].dwData);
 
 		if(diBuff[entryIndex].dwData & 0x80)
-			mOwner->NotifyButtonPressed(0, buttonCode, diBuff[entryIndex].dwTimeStamp);
+			mOwner.NotifyButtonPressed(0, buttonCode, diBuff[entryIndex].dwTimeStamp);
 		else
-			mOwner->NotifyButtonReleased(0, buttonCode, diBuff[entryIndex].dwTimeStamp);
+			mOwner.NotifyButtonReleased(0, buttonCode, diBuff[entryIndex].dwTimeStamp);
 	}
 
 	// If a lost device/access denied was detected, recover
@@ -151,26 +124,26 @@ void Keyboard::Capture()
 	{
 		// Store old buffer
 		u8 keyBufferCopy[256];
-		memcpy(keyBufferCopy, m->KeyBuffer, 256);
+		memcpy(keyBufferCopy, mKeyBuffer, 256);
 
 		// Read immediate state
-		hr = m->Keyboard->GetDeviceState(sizeof(m->KeyBuffer), &m->KeyBuffer);
+		hr = mKeyboard->GetDeviceState(sizeof(mKeyBuffer), &mKeyBuffer);
 
 		if(hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED)
 		{
-			hr = m->Keyboard->Acquire();
+			hr = mKeyboard->Acquire();
 			if(hr != DIERR_OTHERAPPHASPRIO)
-				m->Keyboard->GetDeviceState(sizeof(m->KeyBuffer), &m->KeyBuffer);
+				mKeyboard->GetDeviceState(sizeof(mKeyBuffer), &mKeyBuffer);
 		}
 
 		for(u32 keyIndex = 0; keyIndex < 256; keyIndex++)
 		{
-			if(keyBufferCopy[keyIndex] != m->KeyBuffer[keyIndex])
+			if(keyBufferCopy[keyIndex] != mKeyBuffer[keyIndex])
 			{
-				if(m->KeyBuffer[keyIndex])
-					mOwner->NotifyButtonPressed(0, (ButtonCode)keyIndex, GetTickCount64());
+				if(mKeyBuffer[keyIndex])
+					mOwner.NotifyButtonPressed(0, (ButtonCode)keyIndex, GetTickCount64());
 				else
-					mOwner->NotifyButtonReleased(0, (ButtonCode)keyIndex, GetTickCount64());
+					mOwner.NotifyButtonReleased(0, (ButtonCode)keyIndex, GetTickCount64());
 			}
 		}
 
@@ -178,18 +151,18 @@ void Keyboard::Capture()
 	}
 }
 
-void Keyboard::ChangeCaptureContext(u64 windowHandle)
+void Win32Keyboard::ChangeCaptureContext(u64 windowHandle)
 {
 	HWND newWindowHandle = (HWND)windowHandle;
 
-	if(m->HWnd != newWindowHandle)
+	if(mHWnd != newWindowHandle)
 	{
-		ReleaseDirectInput(m);
+		ReleaseDirectInput();
 
 		// Don't initialize DirectInput for invalid handles (headless mode or lost focus)
 		if(windowHandle != 0)
-			InitializeDirectInput(m, newWindowHandle);
+			InitializeDirectInput(newWindowHandle);
 		else
-			m->HWnd = newWindowHandle;
+			mHWnd = newWindowHandle;
 	}
 }

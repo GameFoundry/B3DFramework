@@ -1,6 +1,5 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Input/B3DMouse.h"
 #include "Input/B3DInput.h"
 #include "Private/Win32/B3DWin32Input.h"
 
@@ -21,20 +20,29 @@ namespace
 	constexpr DWORD kMouseOffsetButton7 = static_cast<DWORD>(offsetof(DIMOUSESTATE2, rgbButtons[7]));
 }
 
-/** Contains private data for the Win32 Mouse implementation. */
-struct Mouse::Pimpl
+/** Notifies the input handler that a mouse press or release occurred. Triggers an event in the input handler. */
+void DoMouseClick(Input& owner, ButtonCode mouseButton, const DIDEVICEOBJECTDATA& data)
 {
-	IDirectInput8* DirectInput;
-	IDirectInputDevice8* Mouse;
-	DWORD CoopSettings;
-	HWND HWnd;
-};
+	if(data.dwData & 0x80)
+		owner.NotifyButtonPressed(0, mouseButton, data.dwTimeStamp);
+	else
+		owner.NotifyButtonReleased(0, mouseButton, data.dwTimeStamp);
+}
 
-/**
- * Initializes DirectInput mouse device for a window with the specified handle. Only input from that window will be
- * reported.
- */
-void InitializeDirectInput(Mouse::Pimpl* m, HWND hWnd)
+Win32Mouse::Win32Mouse(Input& owner, IDirectInput8* directInput, DWORD coopSettings, u64 windowHandle)
+	: mOwner(owner), mDirectInput(directInput), mCoopSettings(coopSettings)
+{
+	// Don't initialize DirectInput in headless mode (window handle == 0)
+	if(windowHandle != 0)
+		InitializeDirectInput((HWND)windowHandle);
+}
+
+Win32Mouse::~Win32Mouse()
+{
+	ReleaseDirectInput();
+}
+
+void Win32Mouse::InitializeDirectInput(HWND hWnd)
 {
 	DIPROPDWORD dipdw;
 	dipdw.diph.dwSize = sizeof(DIPROPDWORD);
@@ -43,104 +51,70 @@ void InitializeDirectInput(Mouse::Pimpl* m, HWND hWnd)
 	dipdw.diph.dwHow = DIPH_DEVICE;
 	dipdw.dwData = DI_BUFFER_SIZE_MOUSE;
 
-	HRESULT result = m->DirectInput->CreateDevice(GUID_SysMouse, &m->Mouse, nullptr);
+	HRESULT result = mDirectInput->CreateDevice(GUID_SysMouse, &mMouse, nullptr);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput mouse init: Failed to create device. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Mouse->SetDataFormat(&c_dfDIMouse2);
+	result = mMouse->SetDataFormat(&c_dfDIMouse2);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput mouse init: Failed to set format. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Mouse->SetCooperativeLevel(hWnd, m->CoopSettings);
+	result = mMouse->SetCooperativeLevel(hWnd, mCoopSettings);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput mouse init: Failed to set coop level. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Mouse->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph);
+	result = mMouse->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput mouse init: Failed to set property. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Mouse->Acquire();
+	result = mMouse->Acquire();
 	if(FAILED(result) && result != DIERR_OTHERAPPHASPRIO)
 	{
 		B3D_LOG(Error, LogInput, "DirectInput mouse init: Failed to acquire device. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	m->HWnd = hWnd;
+	mHWnd = hWnd;
 }
 
-/** Releases DirectInput resources for the provided device */
-void ReleaseDirectInput(Mouse::Pimpl* m)
+void Win32Mouse::ReleaseDirectInput()
 {
-	if(m->Mouse)
+	if(mMouse)
 	{
-		m->Mouse->Unacquire();
-		m->Mouse->Release();
-		m->Mouse = nullptr;
+		mMouse->Unacquire();
+		mMouse->Release();
+		mMouse = nullptr;
 	}
 }
 
-/** Notifies the input handler that a mouse press or release occurred. Triggers an event in the input handler. */
-void DoMouseClick(Input* owner, ButtonCode mouseButton, const DIDEVICEOBJECTDATA& data)
+void Win32Mouse::Capture()
 {
-	if(data.dwData & 0x80)
-		owner->NotifyButtonPressed(0, mouseButton, data.dwTimeStamp);
-	else
-		owner->NotifyButtonReleased(0, mouseButton, data.dwTimeStamp);
-}
-
-Mouse::Mouse(const String& name, Input* owner)
-	: mName(name), mOwner(owner)
-{
-	InputPrivateData* pvtData = owner->GetPrivateData();
-
-	m = B3DNew<Pimpl>();
-	m->DirectInput = pvtData->DirectInput;
-	m->CoopSettings = pvtData->MouseSettings;
-	m->Mouse = nullptr;
-	m->HWnd = nullptr;
-
-	// Don't initialize DirectInput in headless mode (window handle == 0)
-	const u64 windowHandle = owner->GetWindowHandle();
-	if(windowHandle != 0)
-		InitializeDirectInput(m, (HWND)windowHandle);
-}
-
-Mouse::~Mouse()
-{
-	ReleaseDirectInput(m);
-
-	B3DDelete(m);
-}
-
-void Mouse::Capture()
-{
-	if(m->Mouse == nullptr)
+	if(mMouse == nullptr)
 		return;
 
 	DIDEVICEOBJECTDATA diBuff[DI_BUFFER_SIZE_MOUSE];
 	DWORD numEntries = DI_BUFFER_SIZE_MOUSE;
 
-	HRESULT hr = m->Mouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &numEntries, 0);
+	HRESULT hr = mMouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &numEntries, 0);
 	if(hr != DI_OK)
 	{
-		hr = m->Mouse->Acquire();
+		hr = mMouse->Acquire();
 		while(hr == DIERR_INPUTLOST)
-			hr = m->Mouse->Acquire();
+			hr = mMouse->Acquire();
 
-		hr = m->Mouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &numEntries, 0);
+		hr = mMouse->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &numEntries, 0);
 
 		if(FAILED(hr))
 			return;
@@ -195,21 +169,21 @@ void Mouse::Capture()
 	}
 
 	if(axesMoved)
-		mOwner->NotifyMouseMoved(relativeX, relativeY, relativeZ);
+		mOwner.NotifyMouseMoved(relativeX, relativeY, relativeZ);
 }
 
-void Mouse::ChangeCaptureContext(u64 windowHandle)
+void Win32Mouse::ChangeCaptureContext(u64 windowHandle)
 {
 	HWND newWindowHandle = (HWND)windowHandle;
 
-	if(m->HWnd != newWindowHandle)
+	if(mHWnd != newWindowHandle)
 	{
-		ReleaseDirectInput(m);
+		ReleaseDirectInput();
 
 		// Don't initialize DirectInput for invalid handles (headless mode or lost focus)
 		if(windowHandle != 0)
-			InitializeDirectInput(m, newWindowHandle);
+			InitializeDirectInput(newWindowHandle);
 		else
-			m->HWnd = newWindowHandle;
+			mHWnd = newWindowHandle;
 	}
 }

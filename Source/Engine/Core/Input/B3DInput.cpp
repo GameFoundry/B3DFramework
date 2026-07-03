@@ -3,9 +3,7 @@
 #include "Input/B3DInput.h"
 
 #include "B3DApplication.h"
-#include "Input/B3DMouse.h"
-#include "Input/B3DKeyboard.h"
-#include "Input/B3DGamepad.h"
+#include "Input/B3DInputBackend.h"
 #include "Utility/B3DTime.h"
 #include "Math/B3DMath.h"
 #include "Managers/B3DRenderWindowManager.h"
@@ -57,12 +55,12 @@ Input::Input()
 	mMouseZeroTime[1] = 0.0f;
 
 	// Raw input
-	InitRawInput();
+	mBackend = CreateInputBackend(*this);
 }
 
 Input::~Input()
 {
-	CleanUpRawInput();
+	B3DDelete(mBackend);
 
 	mCharInputConn.Disconnect();
 	mCursorMovedConn.Disconnect();
@@ -105,14 +103,7 @@ void Input::Update()
 	mPointerDoubleClicked = false;
 
 	// Capture raw input
-	if(mMouse != nullptr)
-		mMouse->Capture();
-
-	if(mKeyboard != nullptr)
-		mKeyboard->Capture();
-
-	for(auto& gamepad : mGamepads)
-		gamepad->Capture();
+	mBackend->Update();
 
 	float rawXValue = 0.0f;
 	float rawYValue = 0.0f;
@@ -159,6 +150,9 @@ void Input::TriggerCallbacks()
 
 		std::swap(mTextInputEvents[0], mTextInputEvents[1]);
 		std::swap(mCommandEvents[0], mCommandEvents[1]);
+
+		std::swap(mGamepadConnectedEvents[0], mGamepadConnectedEvents[1]);
+		std::swap(mGamepadDisconnectedEvents[0], mGamepadDisconnectedEvents[1]);
 
 		pointerPosition = mPointerPosition;
 		mouseScroll = mMouseScroll;
@@ -249,6 +243,12 @@ void Input::TriggerCallbacks()
 		case EventType::Command:
 			OnInputCommand(mCommandEvents[1][event.Index]);
 			break;
+		case EventType::GamepadConnected:
+			OnGamepadConnected(mGamepadConnectedEvents[1][event.Index]);
+			break;
+		case EventType::GamepadDisconnected:
+			OnGamepadDisconnected(mGamepadDisconnectedEvents[1][event.Index]);
+			break;
 		default:
 			break;
 		}
@@ -262,32 +262,18 @@ void Input::TriggerCallbacks()
 	mPointerDoubleClickEvents[1].clear();
 	mTextInputEvents[1].clear();
 	mCommandEvents[1].clear();
+	mGamepadConnectedEvents[1].clear();
+	mGamepadDisconnectedEvents[1].clear();
 }
 
 void Input::InputWindowChanged(RenderWindow& win)
 {
-	const u64 windowHandle = win.GetPlatformWindowHandle();
-
-	if(mKeyboard != nullptr)
-		mKeyboard->ChangeCaptureContext(windowHandle);
-
-	if(mMouse != nullptr)
-		mMouse->ChangeCaptureContext(windowHandle);
-
-	for(auto& gamepad : mGamepads)
-		gamepad->ChangeCaptureContext(windowHandle);
+	mBackend->ChangeCaptureContext(win.GetPlatformWindowHandle());
 }
 
 void Input::InputFocusLost()
 {
-	if(mKeyboard != nullptr)
-		mKeyboard->ChangeCaptureContext(0);
-
-	if(mMouse != nullptr)
-		mMouse->ChangeCaptureContext(0);
-
-	for(auto& gamepad : mGamepads)
-		gamepad->ChangeCaptureContext(0);
+	mBackend->ChangeCaptureContext(0);
 }
 
 void Input::NotifyMouseMoved(i32 relativeX, i32 relativeY, i32 relativeZ)
@@ -317,10 +303,54 @@ void Input::NotifyMouseMoved(i32 relativeX, i32 relativeY, i32 relativeZ)
 void Input::NotifyAxisMoved(u32 gamepadIndex, u32 axisIndex, i32 value)
 {
 	// Move axis values into [-1.0f, 1.0f] range
-	float axisRange = Math::Abs((float)Gamepad::kMaxAxis) + Math::Abs((float)Gamepad::kMinAxis);
+	float axisRange = Math::Abs((float)IInputBackend::kMaxAxis) + Math::Abs((float)IInputBackend::kMinAxis);
 
-	float axisValue = ((value + Math::Abs((float)Gamepad::kMinAxis)) / axisRange) * 2.0f - 1.0f;
+	float axisValue = ((value + Math::Abs((float)IInputBackend::kMinAxis)) / axisRange) * 2.0f - 1.0f;
 	AxisMoved(gamepadIndex, axisValue, axisIndex);
+}
+
+void Input::NotifyGamepadAdded(u32 deviceIndex, const String& name)
+{
+	Lock lock(mMutex);
+
+	GamepadConnectionEvent event;
+	event.DeviceIndex = deviceIndex;
+	event.Name = name;
+
+	mQueuedEvents[0].push_back(QueuedEvent(EventType::GamepadConnected, (u32)mGamepadConnectedEvents[0].size()));
+	mGamepadConnectedEvents[0].push_back(event);
+}
+
+void Input::NotifyGamepadRemoved(u32 deviceIndex, const String& name)
+{
+	if(deviceIndex < (u32)mDevices.size())
+	{
+		// Release any buttons held at the moment of removal
+		const u64 timestamp = GetTime().GetRealTimeInMilliseconds();
+		constexpr u32 firstGamepadKey = (u32)ButtonCode::GamepadA & 0x0000FFFF;
+		constexpr u32 gamepadKeyCount = (u32)ButtonCode::GamepadKeyCount;
+
+		for(u32 keyIndex = firstGamepadKey; keyIndex < firstGamepadKey + gamepadKeyCount; keyIndex++)
+		{
+			const ButtonState state = mDevices[deviceIndex].KeyStates[keyIndex];
+			if(state == ButtonState::On || state == ButtonState::ToggledOn)
+				ButtonUp(deviceIndex, (ButtonCode)(0x40000000 | keyIndex), timestamp);
+		}
+
+		// Re-center all gamepad axes
+		for(u32 axisIndex = (u32)InputAxis::LeftStickX; axisIndex <= (u32)InputAxis::RightTrigger; axisIndex++)
+			AxisMoved(deviceIndex, 0.0f, axisIndex);
+	}
+
+	// Note: Queued after the button releases above, so listeners see the releases before the disconnect
+	Lock lock(mMutex);
+
+	GamepadConnectionEvent event;
+	event.DeviceIndex = deviceIndex;
+	event.Name = name;
+
+	mQueuedEvents[0].push_back(QueuedEvent(EventType::GamepadDisconnected, (u32)mGamepadDisconnectedEvents[0].size()));
+	mGamepadDisconnectedEvents[0].push_back(event);
 }
 
 void Input::NotifyButtonPressed(u32 deviceIndex, ButtonCode code, u64 timestamp)
@@ -565,28 +595,14 @@ Vector2I Input::GetPointerPosition() const
 	return mPointerPosition;
 }
 
+u32 Input::GetDeviceCount(InputDevice device) const
+{
+	return mBackend->GetDeviceCount(device);
+}
+
 String Input::GetDeviceName(InputDevice type, u32 deviceIndex)
 {
-	switch(type)
-	{
-	case InputDevice::Keyboard:
-		if(mKeyboard != nullptr && deviceIndex == 0)
-			return mKeyboard->GetName();
-
-		return StringUtility::kBlank;
-	case InputDevice::Mouse:
-		if(mMouse != nullptr && deviceIndex == 0)
-			return mMouse->GetName();
-
-		return StringUtility::kBlank;
-	case InputDevice::Gamepad:
-		if(deviceIndex < (u32)mGamepads.size())
-			return mGamepads[deviceIndex]->GetName();
-
-		return StringUtility::kBlank;
-	default:
-		return StringUtility::kBlank;
-	}
+	return mBackend->GetDeviceName(type, deviceIndex);
 }
 
 void Input::SetMouseSmoothing(bool enable)

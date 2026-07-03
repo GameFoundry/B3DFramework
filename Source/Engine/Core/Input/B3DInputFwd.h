@@ -245,7 +245,8 @@ namespace b3d
 		KeyboardKeyCount = MediaSelect - Unassigned + 1, // IMPORTANT: Make sure to update these if you modify the values above
 		MouseKeyCount = MouseButton32 - MouseLeft + 1,
 		GamepadKeyCount = GamepadDPadDownRight - GamepadA + 1,
-		TotalKeyCount = KeyboardKeyCount + MouseKeyCount + GamepadKeyCount,
+		// +1 covers the unused index between the mouse and gamepad ranges, so the total spans the highest masked index
+		TotalKeyCount = KeyboardKeyCount + MouseKeyCount + GamepadKeyCount + 1,
 	};
 
 	/**	Contains data about a button input event. */
@@ -341,6 +342,13 @@ namespace b3d
 	{
 		u32 TextChar; /**< Character the that was input. */
 		mutable bool IsUsed = false; /**< This will be set to true if some previous event receiver has marked the event as used. */
+	};
+
+	/**	Contains data about a gamepad connection or disconnection event. */
+	struct GamepadConnectionEvent
+	{
+		u32 DeviceIndex; /**< Index of the gamepad device. Same index is used when querying button and axis state. */
+		String Name; /**< Name of the gamepad device. */
 	};
 
 	/**	Types of input devices. */

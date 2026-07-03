@@ -297,6 +297,12 @@ namespace b3d
 		/** Triggered whenever mouse capture state for the window is changed (it receives or loses it). */
 		static Event<void()> OnMouseCaptureChanged;
 
+		/**
+		 * Triggered whenever the set of attached input devices might have changed (for example a gamepad was plugged in
+		 * or removed). May be triggered from a non-main thread, and may report false positives.
+		 */
+		static Event<void()> OnInputDevicesChanged;
+
 	protected:
 		static Private* mData;
 	};

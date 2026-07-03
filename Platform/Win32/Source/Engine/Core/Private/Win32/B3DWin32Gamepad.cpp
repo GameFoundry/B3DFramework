@@ -1,6 +1,5 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Input/B3DGamepad.h"
 #include "Input/B3DInput.h"
 #include "Private/Win32/B3DWin32Input.h"
 
@@ -9,32 +8,68 @@
 
 using namespace b3d;
 
-/** Contains state of a POV (DPad). */
-struct POVState
+/** Converts a DirectInput or XInput button code to BSF ButtonCode. */
+ButtonCode GamepadButtonToButtonCode(i32 code)
 {
-	ButtonCode Code;
-	bool Pressed;
-};
+	switch(code)
+	{
+	case 0:
+		return ButtonCode::GamepadDPadUp;
+	case 1:
+		return ButtonCode::GamepadDPadDown;
+	case 2:
+		return ButtonCode::GamepadDPadLeft;
+	case 3:
+		return ButtonCode::GamepadDPatRight;
+	case 4:
+		return ButtonCode::GamepadStart;
+	case 5:
+		return ButtonCode::GamepadBack;
+	case 6:
+		return ButtonCode::GamepadLeftStick;
+	case 7:
+		return ButtonCode::GamepadRightStick;
+	case 8:
+		return ButtonCode::GamepadLeftBumper;
+	case 9:
+		return ButtonCode::GamepadRightBumper;
+	case 10:
+		return ButtonCode::GamepadButton1;
+	case 11:
+		return ButtonCode::GamepadLeftStick;
+	case 12:
+		return ButtonCode::GamepadA;
+	case 13:
+		return ButtonCode::GamepadB;
+	case 14:
+		return ButtonCode::GamepadX;
+	case 15:
+		return ButtonCode::GamepadY;
+	}
 
-/** Contains private data for the Win32 Gamepad implementation. */
-struct Gamepad::Pimpl
+	return (ButtonCode)(static_cast<unsigned>(ButtonCode::GamepadButton1) + (code - 15));
+}
+
+Win32Gamepad::Win32Gamepad(const GamepadInfo& gamepadInfo, Input& owner, IDirectInput8* directInput, DWORD coopSettings,
+	u64 windowHandle)
+	: mOwner(owner), mInfo(gamepadInfo), mDirectInput(directInput), mCoopSettings(coopSettings)
+	, mHWnd((HWND)windowHandle)
 {
-	IDirectInput8* DirectInput;
-	IDirectInputDevice8* Gamepad;
-	GamepadInfo Info;
-	DWORD CoopSettings;
-	HWND HWnd;
+	B3DZeroOut(mPovState);
+	B3DZeroOut(mAxisState);
+	B3DZeroOut(mButtonState);
 
-	POVState PovState[4];
-	i32 AxisState[6]; // Only for XInput
-	bool ButtonState[16]; // Only for XInput
-};
+	// Don't initialize DirectInput for XInput devices or in headless mode (window handle == 0)
+	if(!mInfo.IsXInput && mHWnd != nullptr)
+		InitializeDirectInput(mHWnd);
+}
 
-/**
- * Initializes DirectInput gamepad device for a window with the specified handle. Only input from that window will be
- * reported.
- */
-void InitializeDirectInput(Gamepad::Pimpl* m, HWND hWnd)
+Win32Gamepad::~Win32Gamepad()
+{
+	ReleaseDirectInput();
+}
+
+void Win32Gamepad::InitializeDirectInput(HWND hWnd)
 {
 	DIPROPDWORD dipdw;
 	dipdw.diph.dwSize = sizeof(DIPROPDWORD);
@@ -43,65 +78,63 @@ void InitializeDirectInput(Gamepad::Pimpl* m, HWND hWnd)
 	dipdw.diph.dwHow = DIPH_DEVICE;
 	dipdw.dwData = DI_BUFFER_SIZE_GAMEPAD;
 
-	HRESULT result = m->DirectInput->CreateDevice(m->Info.GuidInstance, &m->Gamepad, nullptr);
+	HRESULT result = mDirectInput->CreateDevice(mInfo.GuidInstance, &mGamepad, nullptr);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput gamepad init: Failed to create device. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Gamepad->SetDataFormat(&c_dfDIJoystick2);
+	result = mGamepad->SetDataFormat(&c_dfDIJoystick2);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput gamepad init: Failed to set format. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Gamepad->SetCooperativeLevel(hWnd, m->CoopSettings);
+	result = mGamepad->SetCooperativeLevel(hWnd, mCoopSettings);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput gamepad init: Failed to set coop level. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Gamepad->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph);
+	result = mGamepad->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph);
 	if(FAILED(result))
 	{
 		B3D_LOG(Error, LogInput, "DirectInput gamepad init: Failed to set property. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	result = m->Gamepad->Acquire();
+	result = mGamepad->Acquire();
 	if(FAILED(result) && result != DIERR_OTHERAPPHASPRIO)
 	{
 		B3D_LOG(Error, LogInput, "DirectInput gamepad init: Failed to acquire device. Error code: {0}.", (u64)result);
 		return;
 	}
 
-	m->HWnd = hWnd;
+	mHWnd = hWnd;
 }
 
-/** Releases DirectInput resources for the provided device */
-void ReleaseDirectInput(Gamepad::Pimpl* m)
+void Win32Gamepad::ReleaseDirectInput()
 {
-	if(m->Gamepad)
+	if(mGamepad)
 	{
-		m->Gamepad->Unacquire();
-		m->Gamepad->Release();
-		m->Gamepad = nullptr;
+		mGamepad->Unacquire();
+		mGamepad->Release();
+		mGamepad = nullptr;
 	}
 }
 
-/** Handles a DirectInput POV event. */
-void HandlePov(Input* owner, Gamepad::Pimpl* m, int pov, DIDEVICEOBJECTDATA& di)
+void Win32Gamepad::HandlePov(int pov, DIDEVICEOBJECTDATA& di)
 {
 	if(LOWORD(di.dwData) == 0xFFFF)
 	{
 		// Centered, release any buttons
-		if(m->PovState[pov].Pressed)
+		if(mPovState[pov].Pressed)
 		{
-			owner->NotifyButtonReleased(m->Info.Id, m->PovState[pov].Code, di.dwTimeStamp);
-			m->PovState[pov].Pressed = false;
+			mOwner.NotifyButtonReleased(mInfo.Id, mPovState[pov].Code, di.dwTimeStamp);
+			mPovState[pov].Pressed = false;
 		}
 	}
 	else
@@ -149,106 +182,37 @@ void HandlePov(Input* owner, Gamepad::Pimpl* m, int pov, DIDEVICEOBJECTDATA& di)
 		if(newPOVState.Pressed)
 		{
 			// Another button was previously pressed
-			if(m->PovState[pov].Pressed)
+			if(mPovState[pov].Pressed)
 			{
 				// If its a different button, release the old one and press the new one
-				if(m->PovState[pov].Code != newPOVState.Code)
+				if(mPovState[pov].Code != newPOVState.Code)
 				{
-					owner->NotifyButtonReleased(m->Info.Id, m->PovState[pov].Code, di.dwTimeStamp);
-					owner->NotifyButtonPressed(m->Info.Id, newPOVState.Code, di.dwTimeStamp);
+					mOwner.NotifyButtonReleased(mInfo.Id, mPovState[pov].Code, di.dwTimeStamp);
+					mOwner.NotifyButtonPressed(mInfo.Id, newPOVState.Code, di.dwTimeStamp);
 
-					m->PovState[pov].Code = newPOVState.Code;
+					mPovState[pov].Code = newPOVState.Code;
 				}
 			}
 			else
 			{
-				owner->NotifyButtonPressed(m->Info.Id, newPOVState.Code, di.dwTimeStamp);
-				m->PovState[pov].Code = newPOVState.Code;
-				m->PovState[pov].Pressed = true;
+				mOwner.NotifyButtonPressed(mInfo.Id, newPOVState.Code, di.dwTimeStamp);
+				mPovState[pov].Code = newPOVState.Code;
+				mPovState[pov].Pressed = true;
 			}
 		}
 	}
 }
 
-/** Converts a DirectInput or XInput button code to BSF ButtonCode. */
-ButtonCode GamepadButtonToButtonCode(i32 code)
-{
-	switch(code)
-	{
-	case 0:
-		return ButtonCode::GamepadDPadUp;
-	case 1:
-		return ButtonCode::GamepadDPadDown;
-	case 2:
-		return ButtonCode::GamepadDPadLeft;
-	case 3:
-		return ButtonCode::GamepadDPatRight;
-	case 4:
-		return ButtonCode::GamepadStart;
-	case 5:
-		return ButtonCode::GamepadBack;
-	case 6:
-		return ButtonCode::GamepadLeftStick;
-	case 7:
-		return ButtonCode::GamepadRightStick;
-	case 8:
-		return ButtonCode::GamepadLeftBumper;
-	case 9:
-		return ButtonCode::GamepadRightBumper;
-	case 10:
-		return ButtonCode::GamepadButton1;
-	case 11:
-		return ButtonCode::GamepadLeftStick;
-	case 12:
-		return ButtonCode::GamepadA;
-	case 13:
-		return ButtonCode::GamepadB;
-	case 14:
-		return ButtonCode::GamepadX;
-	case 15:
-		return ButtonCode::GamepadY;
-	}
-
-	return (ButtonCode)(static_cast<unsigned>(ButtonCode::GamepadButton1) + (code - 15));
-}
-
-Gamepad::Gamepad(const String& name, const GamepadInfo& gamepadInfo, Input* owner)
-	: mName(name), mOwner(owner)
-{
-	InputPrivateData* pvtData = owner->GetPrivateData();
-
-	m = B3DNew<Pimpl>();
-	m->DirectInput = pvtData->DirectInput;
-	m->CoopSettings = pvtData->MouseSettings;
-	m->Info = gamepadInfo;
-	m->Gamepad = nullptr;
-	m->HWnd = (HWND)owner->GetWindowHandle();
-	B3DZeroOut(m->PovState);
-	B3DZeroOut(m->AxisState);
-	B3DZeroOut(m->ButtonState);
-
-	// Don't initialize DirectInput for XInput devices or in headless mode (window handle == 0)
-	if(!m->Info.IsXInput && m->HWnd != nullptr)
-		InitializeDirectInput(m, m->HWnd);
-}
-
-Gamepad::~Gamepad()
-{
-	ReleaseDirectInput(m);
-
-	B3DDelete(m);
-}
-
-void Gamepad::Capture()
+void Win32Gamepad::Capture()
 {
 	// Skip capture in headless mode or when focus is lost
-	if(m->HWnd == nullptr || m->Gamepad == nullptr)
+	if(mHWnd == nullptr || (!mInfo.IsXInput && mGamepad == nullptr))
 		return;
 
-	if(m->Info.IsXInput)
+	if(mInfo.IsXInput)
 	{
 		XINPUT_STATE inputState;
-		if(XInputGetState((DWORD)m->Info.XInputDev, &inputState) != ERROR_SUCCESS)
+		if(XInputGetState((DWORD)mInfo.XInputDev, &inputState) != ERROR_SUCCESS)
 			memset(&inputState, 0, sizeof(inputState));
 
 		// Sticks and triggers
@@ -261,7 +225,7 @@ void Gamepad::Capture()
 		AxisState axisState[6];
 		B3DZeroOut(axisState);
 
-		// Note: Order of axes must match InputAxis enum
+		// Note: Order of axes must match the InputAxis enum, starting at LeftStickX
 		// Left stick
 		axisState[0].Value = (int)inputState.Gamepad.sThumbLX;
 		axisState[1].Value = -(int)inputState.Gamepad.sThumbLY;
@@ -271,15 +235,15 @@ void Gamepad::Capture()
 		axisState[3].Value = -(int)inputState.Gamepad.sThumbRY;
 
 		// Left trigger
-		axisState[4].Value = std::min((int)inputState.Gamepad.bLeftTrigger * 129, kMaxAxis);
+		axisState[4].Value = std::min((int)inputState.Gamepad.bLeftTrigger * 129, IInputBackend::kMaxAxis);
 
 		// Right trigger
-		axisState[5].Value = std::min((int)inputState.Gamepad.bRightTrigger * 129, kMaxAxis);
+		axisState[5].Value = std::min((int)inputState.Gamepad.bRightTrigger * 129, IInputBackend::kMaxAxis);
 
 		for(u32 axisIndex = 0; axisIndex < 6; axisIndex++)
 		{
-			axisState[axisIndex].Moved = axisState[axisIndex].Value != m->AxisState[axisIndex];
-			m->AxisState[axisIndex] = axisState[axisIndex].Value;
+			axisState[axisIndex].Moved = axisState[axisIndex].Value != mAxisState[axisIndex];
+			mAxisState[axisIndex] = axisState[axisIndex].Value;
 		}
 
 		// DPAD (POV)
@@ -296,30 +260,30 @@ void Gamepad::Capture()
 		if(dpadButton != ButtonCode::Unassigned) // Pressed
 		{
 			// Another button was previously pressed
-			if(m->PovState[0].Pressed)
+			if(mPovState[0].Pressed)
 			{
 				// If its a different button, release the old one and press the new one
-				if(m->PovState[0].Code != dpadButton)
+				if(mPovState[0].Code != dpadButton)
 				{
-					mOwner->NotifyButtonReleased(m->Info.Id, m->PovState[0].Code, GetTickCount64());
-					mOwner->NotifyButtonPressed(m->Info.Id, dpadButton, GetTickCount64());
+					mOwner.NotifyButtonReleased(mInfo.Id, mPovState[0].Code, GetTickCount64());
+					mOwner.NotifyButtonPressed(mInfo.Id, dpadButton, GetTickCount64());
 
-					m->PovState[0].Code = dpadButton;
+					mPovState[0].Code = dpadButton;
 				}
 			}
 			else
 			{
-				mOwner->NotifyButtonPressed(m->Info.Id, dpadButton, GetTickCount64());
-				m->PovState[0].Code = dpadButton;
-				m->PovState[0].Pressed = true;
+				mOwner.NotifyButtonPressed(mInfo.Id, dpadButton, GetTickCount64());
+				mPovState[0].Code = dpadButton;
+				mPovState[0].Pressed = true;
 			}
 		}
 		else
 		{
-			if(m->PovState[0].Pressed)
+			if(mPovState[0].Pressed)
 			{
-				mOwner->NotifyButtonReleased(m->Info.Id, m->PovState[0].Code, GetTickCount64());
-				m->PovState[0].Pressed = false;
+				mOwner.NotifyButtonReleased(mInfo.Id, mPovState[0].Code, GetTickCount64());
+				mPovState[0].Pressed = false;
 			}
 		}
 
@@ -328,23 +292,23 @@ void Gamepad::Capture()
 		{
 			bool buttonState = (inputState.Gamepad.wButtons & (1 << buttonIndex)) != 0;
 
-			if(buttonState != m->ButtonState[buttonIndex])
+			if(buttonState != mButtonState[buttonIndex])
 			{
 				if(buttonState)
-					mOwner->NotifyButtonPressed(m->Info.Id, GamepadButtonToButtonCode(buttonIndex), GetTickCount64());
+					mOwner.NotifyButtonPressed(mInfo.Id, GamepadButtonToButtonCode(buttonIndex), GetTickCount64());
 				else
-					mOwner->NotifyButtonReleased(m->Info.Id, GamepadButtonToButtonCode(buttonIndex), GetTickCount64());
+					mOwner.NotifyButtonReleased(mInfo.Id, GamepadButtonToButtonCode(buttonIndex), GetTickCount64());
 
-				m->ButtonState[buttonIndex] = buttonState;
+				mButtonState[buttonIndex] = buttonState;
 			}
 		}
 
-		for(int axisIndex = 0; axisIndex < 6; ++axisIndex)
+		for(u32 axisIndex = 0; axisIndex < 6; ++axisIndex)
 		{
 			if(!axisState[axisIndex].Moved)
 				continue;
 
-			mOwner->NotifyAxisMoved(m->Info.Id, axisIndex + (int)InputAxis::MouseZ, axisState[axisIndex].Value);
+			mOwner.NotifyAxisMoved(mInfo.Id, axisIndex + (u32)InputAxis::LeftStickX, axisState[axisIndex].Value);
 		}
 	}
 	else // DirectInput
@@ -352,18 +316,18 @@ void Gamepad::Capture()
 		DIDEVICEOBJECTDATA diBuff[DI_BUFFER_SIZE_GAMEPAD];
 		DWORD entryCount = DI_BUFFER_SIZE_GAMEPAD;
 
-		HRESULT hr = m->Gamepad->Poll();
+		HRESULT hr = mGamepad->Poll();
 		if(hr == DI_OK)
-			hr = m->Gamepad->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &entryCount, 0);
+			hr = mGamepad->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &entryCount, 0);
 
 		if(hr != DI_OK)
 		{
-			hr = m->Gamepad->Acquire();
+			hr = mGamepad->Acquire();
 			while(hr == DIERR_INPUTLOST)
-				hr = m->Gamepad->Acquire();
+				hr = mGamepad->Acquire();
 
-			m->Gamepad->Poll();
-			hr = m->Gamepad->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &entryCount, 0);
+			mGamepad->Poll();
+			hr = mGamepad->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), diBuff, &entryCount, 0);
 
 			if(FAILED(hr))
 				return;
@@ -384,16 +348,16 @@ void Gamepad::Capture()
 			switch(diBuff[entryIndex].dwOfs)
 			{
 			case DIJOFS_POV(0):
-				HandlePov(mOwner, m, 0, diBuff[entryIndex]);
+				HandlePov(0, diBuff[entryIndex]);
 				break;
 			case DIJOFS_POV(1):
-				HandlePov(mOwner, m, 1, diBuff[entryIndex]);
+				HandlePov(1, diBuff[entryIndex]);
 				break;
 			case DIJOFS_POV(2):
-				HandlePov(mOwner, m, 2, diBuff[entryIndex]);
+				HandlePov(2, diBuff[entryIndex]);
 				break;
 			case DIJOFS_POV(3):
-				HandlePov(mOwner, m, 3, diBuff[entryIndex]);
+				HandlePov(3, diBuff[entryIndex]);
 				break;
 			default:
 				// Button event
@@ -402,9 +366,9 @@ void Gamepad::Capture()
 					int button = diBuff[entryIndex].dwOfs - DIJOFS_BUTTON(0);
 
 					if((diBuff[entryIndex].dwData & 0x80) != 0)
-						mOwner->NotifyButtonPressed(m->Info.Id, GamepadButtonToButtonCode(button), diBuff[entryIndex].dwTimeStamp);
+						mOwner.NotifyButtonPressed(mInfo.Id, GamepadButtonToButtonCode(button), diBuff[entryIndex].dwTimeStamp);
 					else
-						mOwner->NotifyButtonReleased(m->Info.Id, GamepadButtonToButtonCode(button), diBuff[entryIndex].dwTimeStamp);
+						mOwner.NotifyButtonReleased(mInfo.Id, GamepadButtonToButtonCode(button), diBuff[entryIndex].dwTimeStamp);
 				}
 				else if((short)(diBuff[entryIndex].uAppData >> 16) == 0x1313) // Axis event
 				{
@@ -420,29 +384,29 @@ void Gamepad::Capture()
 
 		if(entryCount > 0)
 		{
-			for(int axisIndex = 0; axisIndex < 24; ++axisIndex)
+			for(u32 axisIndex = 0; axisIndex < 24; ++axisIndex)
 			{
 				if(!axisState[axisIndex].Moved)
 					continue;
 
-				mOwner->NotifyAxisMoved(m->Info.Id, axisIndex + (int)InputAxis::MouseZ, axisState[axisIndex].Value);
+				mOwner.NotifyAxisMoved(mInfo.Id, axisIndex + (u32)InputAxis::LeftStickX, axisState[axisIndex].Value);
 			}
 		}
 	}
 }
 
-void Gamepad::ChangeCaptureContext(u64 windowHandle)
+void Win32Gamepad::ChangeCaptureContext(u64 windowHandle)
 {
 	HWND newWindowHandle = (HWND)windowHandle;
 
-	if(m->HWnd != newWindowHandle)
+	if(mHWnd != newWindowHandle)
 	{
-		ReleaseDirectInput(m);
+		ReleaseDirectInput();
 
 		// Don't initialize DirectInput for invalid handles (headless mode or lost focus)
-		if(!m->Info.IsXInput && windowHandle != 0)
-			InitializeDirectInput(m, newWindowHandle);
+		if(!mInfo.IsXInput && windowHandle != 0)
+			InitializeDirectInput(newWindowHandle);
 		else
-			m->HWnd = newWindowHandle;
+			mHWnd = newWindowHandle;
 	}
 }
