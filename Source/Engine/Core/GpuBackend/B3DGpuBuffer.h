@@ -261,7 +261,7 @@ namespace b3d
 		static GpuBufferCreateInformation CreateStagingRead(u32 size)
 		{
 			GpuBufferCreateInformation output;
-			output.Type = GpuBufferType::StagingWrite;
+			output.Type = GpuBufferType::StagingRead;
 			output.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 			output.Staging.Size = size;
 
