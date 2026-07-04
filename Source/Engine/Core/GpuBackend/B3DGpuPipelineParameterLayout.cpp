@@ -88,6 +88,16 @@ GpuPipelineParameterSetLayout::GpuPipelineParameterSetLayout(const GpuProgramPar
 		if(uniformInformation.Slot < mUniforms.size())
 		{
 			UniformInformation* otherUniformInformation = mUniforms[uniformInformation.Slot];
+
+			// The entry might have already been registered before a restart of this loop, in which case it must not be
+			// treated as a collision (erasing it would leave a dangling pointer behind), nor re-registered below (that
+			// would duplicate it in the per-type arrays).
+			if(otherUniformInformation == &uniformInformation)
+			{
+				++it;
+				continue;
+			}
+
 			if(otherUniformInformation)
 			{
 				// Duplicate set/slot can be allowed only in the combined texture/sampler case
