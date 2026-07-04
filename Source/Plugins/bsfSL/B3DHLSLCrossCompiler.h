@@ -16,6 +16,14 @@ namespace b3d
 	{
 		const char* TargetLanguage = nullptr; /**< XShaderCompiler output target id (e.g. Xsc::TargetLanguage::VKSL450), or an optional backend's string id. */
 		const char* PreprocessorDefine = nullptr; /**< Emitted into the HLSL input as "#define <X> 1" before compilation. nullptr for none. */
+
+		/**
+		 * True when the cross-compiled output keeps the per-stage entry function names of the HLSL input (vsmain,
+		 * fsmain, ...), which HLSL-family output languages do. False when the output language requires a single fixed
+		 * entry name and the cross compiler therefore renames the entry function to "main" (GLSL-family outputs).
+		 * Determines the entry point recorded on - and used to compile bytecode from - the cross-compiled programs.
+		 */
+		bool KeepsEntryPointNames = false;
 	};
 
 	/**	Transforms HLSL into other shading languages, and also outputs reflection data. */

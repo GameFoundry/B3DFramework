@@ -315,47 +315,56 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 			gpuProgramCreateInformation.Source = code;
 			gpuProgramCreateInformation.Type = type;
 
-			// Bake bytecode for the target language if a compiler is registered for it.
+			// Bake bytecode for the target language if a compiler is registered for it. Program types the compiler cannot
+			// handle (for example geometry programs for some platforms) are left bytecode-less; consumers that require bytecode (the
+			// offline shader cook) detect and report these, while runtime backends fall back to compiling from source.
 			if(const TShared<IGpuBytecodeCompiler> bytecodeCompiler = ShaderCompilers::Instance().GetBytecodeCompiler(gpuProgramCreateInformation.Language))
-				gpuProgramCreateInformation.Bytecode = bytecodeCompiler->CompileBytecode(gpuProgramCreateInformation);
+			{
+				if(bytecodeCompiler->IsProgramTypeSupported(type))
+					gpuProgramCreateInformation.Bytecode = bytecodeCompiler->CompileBytecode(gpuProgramCreateInformation);
+			}
 
 			return gpuProgramCreateInformation;
 		};
 
+		// HLSL passes through with its per-stage entry names intact, and HLSL-family cross-compile outputs keep them too. 
+		// GLSL-family outputs have their entry function renamed to "main" by the cross compiler.
 		const bool isHLSL = language == kGpuProgramLanguageHlsl;
+		const bool usesStageEntryNames = isHLSL || (crossCompileTarget != nullptr && crossCompileTarget->KeepsEntryPointNames);
+
 		shaderPassInformation.VertexProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,
-			isHLSL ? "vsmain" : "main",
+			usesStageEntryNames ? "vsmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_VERTEX_PROGRAM],
 			GPT_VERTEX_PROGRAM);
 
 		shaderPassInformation.FragmentProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,
-			isHLSL ? "fsmain" : "main",
+			usesStageEntryNames ? "fsmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_FRAGMENT_PROGRAM],
 			GPT_FRAGMENT_PROGRAM);
 
 		shaderPassInformation.GeometryProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,
-			isHLSL ? "gsmain" : "main",
+			usesStageEntryNames ? "gsmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_GEOMETRY_PROGRAM],
 			GPT_GEOMETRY_PROGRAM);
 
 		shaderPassInformation.HullProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,
-			isHLSL ? "hsmain" : "main",
+			usesStageEntryNames ? "hsmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_HULL_PROGRAM],
 			GPT_HULL_PROGRAM);
 
 		shaderPassInformation.DomainProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,
-			isHLSL ? "dsmain" : "main",
+			usesStageEntryNames ? "dsmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_DOMAIN_PROGRAM],
 			GPT_DOMAIN_PROGRAM);
 
 		shaderPassInformation.ComputeProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,
-			isHLSL ? "csmain" : "main",
+			usesStageEntryNames ? "csmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_COMPUTE_PROGRAM],
 			GPT_COMPUTE_PROGRAM);
 

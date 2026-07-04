@@ -24,8 +24,10 @@ endif()
 # Source files and their filters
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_SL_SRC)
 
-# Each entry is "<language>|<targetLanguage>|<define>" (the trailing "|<define>" is optional):
-# the engine shading-language id, the B3DShaderCompiler output target id, and an optional preprocessor define emitted into the HLSL input.
+# Each entry is "<language>|<targetLanguage>|<define>[|KeepEntryNames]" (fields after <targetLanguage> are optional):
+# the engine shading-language id, the B3DShaderCompiler output target id, an optional preprocessor define emitted into the
+# HLSL input, and the optional literal "KeepEntryNames" for HLSL-family output languages that keep the per-stage entry
+# function names (vsmain, fsmain, ...) instead of renaming the entry to "main" the way GLSL-family outputs do.
 # These are populated by the bsfShaderBackend<LANG> libraries when they are included in the build.
 get_property(B3D_SHADER_CROSS_COMPILE_TARGETS GLOBAL PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS)
 
@@ -49,12 +51,23 @@ foreach(targetEntry ${B3D_SHADER_CROSS_COMPILE_TARGETS})
 	# Register HLSL -> <LANG> cross compiler support
 	if(targetFieldCount GREATER 2)
 		list(GET targetFields 2 targetDefine)
-		string(APPEND B3D_SHADER_CROSS_COMPILE_TARGET_REGISTRATIONS
-			"\t\tRegisterTarget(\"${targetLanguageId}\", { \"${targetOutputLanguage}\", \"${targetDefine}\" });\n")
+		set(targetDefineArgument "\"${targetDefine}\"")
 	else()
-		string(APPEND B3D_SHADER_CROSS_COMPILE_TARGET_REGISTRATIONS
-			"\t\tRegisterTarget(\"${targetLanguageId}\", { \"${targetOutputLanguage}\", nullptr });\n")
+		set(targetDefineArgument "nullptr")
 	endif()
+
+	set(targetKeepsEntryNames "false")
+	if(targetFieldCount GREATER 3)
+		list(GET targetFields 3 targetEntryNamesField)
+		if(targetEntryNamesField STREQUAL "KeepEntryNames")
+			set(targetKeepsEntryNames "true")
+		else()
+			message(FATAL_ERROR "Unrecognized cross-compile target field \"${targetEntryNamesField}\" in entry \"${targetEntry}\" (expected \"KeepEntryNames\").")
+		endif()
+	endif()
+
+	string(APPEND B3D_SHADER_CROSS_COMPILE_TARGET_REGISTRATIONS
+		"\t\tRegisterTarget(\"${targetLanguageId}\", { \"${targetOutputLanguage}\", ${targetDefineArgument}, ${targetKeepsEntryNames} });\n")
 
 	# Register <LANG> -> <BYTECODE> bytecode compiler support
 	string(TOUPPER ${targetLanguageId} targetLanguageUpper)

@@ -31,7 +31,12 @@ public:                                                                         
 	static void InitMetaDataInternal()                                           \
 	{                                                                            \
 		b3d::RendererMaterialManager::RegisterMaterial(&GetMetaData(), path);	 \
-	};
+	};                                                                           \
+                                                                                 \
+private:                                                                         \
+	static inline b3d::render::RendererMaterialRegistration mRegisterOnLoad{ &InitMetaDataInternal }; \
+                                                                                 \
+public:
 
 /**
  * References the shader path in RendererMaterial implementation. Provides an InitDefinesInternal() method allowing the C++
@@ -45,7 +50,12 @@ public:                                                                         
 		InitDefinesInternal(GetMetaData().Defines);                              \
 		b3d::RendererMaterialManager::RegisterMaterial(&GetMetaData(), path);	 \
 	};                                                                           \
-	static void InitDefinesInternal(ShaderDefines& defines);
+	static void InitDefinesInternal(ShaderDefines& defines);                     \
+                                                                                 \
+private:                                                                         \
+	static inline b3d::render::RendererMaterialRegistration mRegisterOnLoad{ &InitMetaDataInternal }; \
+                                                                                 \
+public:
 
 /** @} */
 
@@ -226,18 +236,18 @@ namespace b3d
 			TInlineArray<TAsyncOp<T*>, 4> PendingOps;
 		};
 
-		/**	Helper class to initialize all renderer materials as soon as the library is loaded. */
-		template <class T>
-		struct InitRendererMaterialStart
+		/**
+		 * Registers a renderer material's shader path and defines with the RendererMaterialManager. Instantiated as an
+		 * inline static member by the RMAT_DEF macros so registration runs at static-initialization (module load) time
+		 * for every declared material - including materials the code never constructs - keeping the full set of
+		 * renderer-material shaders and their defines enumerable (most notably by the offline shader cook).
+		 */
+		struct RendererMaterialRegistration
 		{
-		public:
-			InitRendererMaterialStart()
+			RendererMaterialRegistration(void (*initMetaDataFunction)())
 			{
-				T::InitMetaDataInternal();
+				initMetaDataFunction();
 			}
-
-			/**	Forces the compiler to not optimize out construction of this type. */
-			void Instantiate() {}
 		};
 
 		/** @} */
@@ -308,7 +318,7 @@ namespace b3d
 			TShared<GpuParameterSet> CreateGpuParameterSet(u32 set = 0) const override;
 
 		protected:
-			RendererMaterial();
+			RendererMaterial() = default;
 
 			/**
 			 * Initializes a freshly constructed instance for @p variationIndex against @p gpuContext: copies the
@@ -387,8 +397,6 @@ namespace b3d
 			 */
 			template <class ResolverType>
 			static TAsyncOp<T*> GetAsyncInternal(GpuWorkContext& gpuContext, ResolverType&& resolveIndex);
-
-			static InitRendererMaterialStart<T> mInitOnStart;
 		};
 
 		template <class T>
@@ -902,12 +910,6 @@ namespace b3d
 		}
 
 		template<class T>
-		RendererMaterial<T>::RendererMaterial()
-		{
-			mInitOnStart.Instantiate();
-		}
-
-		template<class T>
 		void RendererMaterial<T>::InitializeInternal(GpuWorkContext& gpuContext, u32 variationIndex)
 		{
 			RendererMaterialMetaData& metaData = GetMetaData();
@@ -971,9 +973,6 @@ namespace b3d
 
 			Initialize();
 		}
-
-		template <class T>
-		InitRendererMaterialStart<T> RendererMaterial<T>::mInitOnStart;
 
 		template <class T>
 		TShared<GpuParameterSet> RendererMaterial<T>::CreateGpuParameterSet(u32 set) const

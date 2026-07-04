@@ -219,7 +219,7 @@ shader VectorGraphics
 
 		float NVGScissorMask(float2 p)
 		{
-			float2 sc = (abs((mul(gScissorMatrix, float3(p.x, p.y, 1.0f))).xy) - gScissorExtents);
+			float2 sc = (abs((mul((float3x3)gScissorMatrix, float3(p.x, p.y, 1.0f))).xy) - gScissorExtents);
 			sc = float2(0.5f, 0.5f) - sc * gScissorScale;
 			return clamp(sc.x, 0.0f, 1.0f) * clamp(sc.y, 0.0f, 1.0f);
 		}

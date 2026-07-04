@@ -33,16 +33,28 @@ namespace b3d
 		};
 
 		/**
-		 * Cooks all @p items into a single package written to @p options.OutputPath. Individual shader/variation failures
-		 * are logged and skipped; the cook continues with the remaining work.
+		 * Cooks all @p items into a single package written to @p options.OutputPath. The cook always continues with the
+		 * remaining work after an individual shader/variation problem, but distinguishes two kinds:
+		 * - Skips (a variation using a program stage the language's bytecode compiler cannot handle) are logged as
+		 *   warnings and do not fail the cook.
+		 * - Failures (a shader failing to compile, or a cooked program missing its bytecode) are logged as errors and
+		 *   fail the cook, so build automation cannot mistake a broken store for a good one.
 		 *
-		 * @return	True if the package was written, false on a fatal error (for example the output could not be saved).
+		 * @return	True if every item cooked (skipped variations aside) and the package was written, false otherwise.
 		 */
 		static bool Cook(const Vector<ShaderCookItem>& items, const CookOptions& options);
 
 	private:
+		/** Outcome of cooking a single item. See Cook() for how skips and failures differ. */
+		enum class CookItemResult
+		{
+			Cooked, /**< Metadata and all non-skipped variations were written. */
+			Failed /**< The shader, or at least one of its variations, produced no usable artifact. */
+		};
+
 		/** Compiles and adds the metadata + variation artifacts for a single item to @p package. */
-		static bool CookItem(const ShaderCookItem& item, const String& language, Package& package, u32& outVariationCount);
+		static CookItemResult CookItem(const ShaderCookItem& item, const String& language, Package& package,
+			u32& outVariationCount, u32& outSkippedVariationCount);
 
 		/**
 		 * Drops the high-level cross-compiled program source from each pass of a cooked variation. The variation carries

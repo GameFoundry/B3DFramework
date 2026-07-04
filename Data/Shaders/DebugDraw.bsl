@@ -69,7 +69,7 @@ shader DebugDraw
 		}
 		float4 fsmain(in float4 inPos : SV_Position, in float3 normal : NORMAL, in float4 color : COLOR0) : SV_Target
 		{
-			float4 outColor = color * dot(normalize(normal), -gViewDir);
+			float4 outColor = color * dot(normalize(normal), -gViewDir.xyz);
 			outColor.a = color.a;
 			
 			return outColor;

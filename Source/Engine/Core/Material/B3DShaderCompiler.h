@@ -103,6 +103,13 @@ namespace b3d
 		virtual TShared<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& createInformation) = 0;
 
 		/**
+		 * Returns true if this compiler can compile programs of @p type. Callers (the cross compiler, the offline shader
+		 * cook) must not invoke CompileBytecode() for unsupported types; instead they skip the stage or the whole
+		 * variation, depending on whether the target platform can consume the program without bytecode.
+		 */
+		virtual bool IsProgramTypeSupported(GpuProgramType type) const { return true; }
+
+		/**
 		 * Returns true if @p bytecode was produced by a version of this compiler compatible with the current one.
 		 *
 		 * @param	bytecode	Previously produced bytecode to test for staleness.
