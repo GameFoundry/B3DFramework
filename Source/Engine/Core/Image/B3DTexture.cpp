@@ -402,6 +402,63 @@ TShared<TextureView> Texture::RequestView(const TextureSurface& surface, GpuView
 	return found->second;
 }
 
+ImageSubresourcePitch Texture::GetStagingBufferPitchForSubresource(u32 face, u32 mipLevel) const
+{
+	u32 mipWidth, mipHeight, mipDepth;
+	PixelUtility::GetSizeForMipLevel(mProperties.Width, mProperties.Height, mProperties.Depth, mipLevel, mipWidth, mipHeight, mipDepth);
+
+	u32 rowPitch, depthPitch;
+	PixelUtility::GetPitch(mipWidth, mipHeight, mipDepth, mProperties.Format, rowPitch, depthPitch);
+
+	const u32 blockSize = PixelUtility::GetBlockSize(mProperties.Format);
+
+	B3D_ASSERT(subresourceLayout.rowPitch % blockSize == 0);
+	B3D_ASSERT(subresourceLayout.depthPitch % blockSize == 0);
+
+	u32 rowPitchInPixels = rowPitch / blockSize;
+	u32 depthPitchInPixels = depthPitch / blockSize;
+
+	if(PixelUtility::IsCompressed(mProperties.Format))
+	{
+		// For compressed formats the pitch is expressed in blocks and we need to convert it to pixels
+		const Vector2I blockDimension = PixelUtility::GetBlockDimensions(mProperties.Format);
+		rowPitchInPixels *= blockDimension.X;
+		depthPitchInPixels *= blockDimension.X * blockDimension.Y;
+	}
+
+	return ImageSubresourcePitch(rowPitchInPixels, rowPitchInPixels != 0 ? depthPitchInPixels / rowPitchInPixels : 0);
+}
+
+namespace
+{
+	/**
+	 * Applies a subresource staging pitch (in blocks) to a PixelData object as byte pitches. Must be called before
+	 * the pixel data buffer is allocated or assigned.
+	 */
+	void ApplyRowAndSlicePitch(const ImageSubresourcePitch& pitch, PixelData& inOutPixelData)
+	{
+		const PixelFormat format = inOutPixelData.GetFormat();
+		const u32 blockSize = PixelUtility::GetBlockSize(format);
+
+		u32 rowPitchBytes;
+		u32 slicePitchBytes;
+		if(PixelUtility::IsCompressed(format))
+		{
+			const Vector2I blockDimension = PixelUtility::GetBlockDimensions(format);
+			rowPitchBytes = pitch.RowPitch / blockDimension.X * blockSize;
+			slicePitchBytes = rowPitchBytes * (pitch.SliceHeight / blockDimension.Y);
+		}
+		else
+		{
+			rowPitchBytes = pitch.RowPitch * blockSize;
+			slicePitchBytes = rowPitchBytes * pitch.SliceHeight;
+		}
+
+		inOutPixelData.SetRowPitch(rowPitchBytes);
+		inOutPixelData.SetSlicePitch(slicePitchBytes);
+	}
+}
+
 TShared<GpuBuffer> TextureUtility::CreateStagingBuffer(GpuWorkContext& gpuContext, const TShared<Texture>& texture, u32 mipLevel, bool readable)
 {
 	B3D_ASSERT(texture != nullptr);
@@ -412,6 +469,7 @@ TShared<GpuBuffer> TextureUtility::CreateStagingBuffer(GpuWorkContext& gpuContex
 	PixelUtility::GetSizeForMipLevel(properties.Width, properties.Height, properties.Depth, mipLevel, mipWidth, mipHeight, mipDepth);
 
 	PixelData pixelData(mipWidth, mipHeight, mipDepth, texture->GetProperties().Format);
+	ApplyRowAndSlicePitch(texture->GetStagingBufferPitchForSubresource(0, mipLevel), pixelData);
 	return CreateStagingBuffer(gpuContext, texture, pixelData, readable);
 }
 
@@ -504,6 +562,7 @@ void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& t
 	const u32 mipDepth = Math::Max(1u, textureProperties.Depth >> mipLevel);
 
 	PixelData lockedArea(mipWidth, mipHeight, mipDepth, textureProperties.Format);
+	ApplyRowAndSlicePitch(texture->GetStagingBufferPitchForSubresource(arrayLayer, mipLevel), lockedArea);
 	TShared<GpuBuffer> stagingBuffer = CreateStagingBuffer(gpuContext, texture, lockedArea, false);
 
 	if(!B3D_ENSURE(stagingBuffer != nullptr))
@@ -609,6 +668,7 @@ void TextureUtility::Read(GpuWorkContext& gpuContext, const TShared<Texture>& te
 
 	// Allocate a staging buffer
 	PixelData pixelData(mipWidth, mipHeight, mipDepth, texture->GetSupportedFormat());
+	ApplyRowAndSlicePitch(texture->GetStagingBufferPitchForSubresource(arrayLayer, mipLevel), pixelData);
 	TShared<GpuBuffer> stagingBuffer = CreateStagingBuffer(gpuContext, texture, pixelData, true);
 
 	// Similar to above, if image supports GPU writes or is currently being written to, we need to wait on any
@@ -647,6 +707,7 @@ TAsyncOp<TShared<PixelData>> TextureUtility::ReadAsync(GpuWorkContext& gpuContex
 	const u32 mipDepth = Math::Max(1u, textureProperties.Depth >> mipLevel);
 
 	const TShared<PixelData> pixelData = B3DMakeShared<PixelData>(mipWidth, mipHeight, mipDepth, texture->GetSupportedFormat());
+	ApplyRowAndSlicePitch(texture->GetStagingBufferPitchForSubresource(arrayLayer, mipLevel), *pixelData);
 
 	// TODO - Staging buffer might not be necessary if he texture is directly mappable
 	TShared<GpuBuffer> stagingBuffer = CreateStagingBuffer(gpuContext, texture, *pixelData, true);

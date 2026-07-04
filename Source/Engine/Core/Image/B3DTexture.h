@@ -190,10 +190,10 @@ namespace b3d
 			: RowPitch(rowPitch), SliceHeight(sliceHeight)
 		{ }
 
-		/** Number of blocks before advancing to the next row. For non-compressed formats this is equal to the number of pixels. For compressed it depends on the block size. */
+		/** Number of pixels before advancing to the next row. */
 		u32 RowPitch = 0;
 
-		/** Number of block columns before advancing to the next slice. For non-compressed formats this is equal to the number of pixels. For compressed it depends on the block size. */
+		/** Number of pixel columns before advancing to the next slice. */
 		u32 SliceHeight = 0;
 	};
 
@@ -504,6 +504,14 @@ namespace b3d
 
 			/**	Returns properties that contain information about the texture. */
 			const TextureProperties& GetProperties() const { return mProperties; }
+
+			/**
+			 * Returns the pitch (in pixels, see ImageSubresourcePitch) that staging buffers must be laid out with when
+			 * transferring data to or from the specified subresource via GpuCommandBuffer::CopyBufferToTexture or
+			 * CopyTextureToBuffer. Defaults to tightly packed rows; backends whose copy operations mandate padded row
+			 * placement override this.
+			 */
+			virtual ImageSubresourcePitch GetStagingBufferPitchForSubresource(u32 face, u32 mipLevel) const;
 
 			/************************************************************************/
 			/* 								TEXTURE VIEW                      		*/

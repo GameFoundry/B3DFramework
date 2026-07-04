@@ -371,27 +371,6 @@ VkSubresourceLayout VulkanImage::GetSubresourceLayout(u32 face, u32 mipLevel) co
 	return layout;
 }
 
-ImageSubresourcePitch VulkanImage::ConvertSubresourceLayoutToBlocks(const VkSubresourceLayout& subresourceLayout, PixelFormat format)
-{
-	const u32 blockSize = PixelUtility::GetBlockSize(format);
-
-	B3D_ASSERT(subresourceLayout.rowPitch % blockSize == 0);
-	B3D_ASSERT(subresourceLayout.depthPitch % blockSize == 0);
-
-	u32 rowPitchInPixels = (u32)(subresourceLayout.rowPitch / blockSize);
-	u32 depthPitch = (u32)(subresourceLayout.depthPitch / blockSize);
-
-	if(PixelUtility::IsCompressed(format))
-	{
-		// For compressed formats, we return the pitch in blocks
-		const Vector2I blockDimension = PixelUtility::GetBlockDimensions(format);
-		rowPitchInPixels *= blockDimension.X;
-		depthPitch *= blockDimension.X * blockDimension.Y;
-	}
-
-	return ImageSubresourcePitch(rowPitchInPixels, rowPitchInPixels != 0 ? depthPitch / rowPitchInPixels : 0);
-}
-
 void VulkanImage::ApplyRowAndSlicePitch(const VkSubresourceLayout& layout, PixelData& pixelData)
 {
 	u32 slicePitch = (u32)layout.depthPitch;
@@ -960,35 +939,6 @@ void VulkanTexture::CopyImageToImage(VulkanGpuCommandBuffer& commandBuffer, Vulk
 	commandBuffer.CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, range, range, mipCount, imageRegions);
 
 	B3DStackFree(imageRegions);
-}
-
-ImageSubresourcePitch VulkanTexture::GetStagingBufferPitchForSubresource(u32 face, u32 mipLevel) const
-{
-	u32 mipWidth, mipHeight, mipDepth;
-	PixelUtility::GetSizeForMipLevel(mProperties.Width, mProperties.Height, mProperties.Depth, mipLevel, mipWidth, mipHeight, mipDepth);
-
-	u32 rowPitch, depthPitch;
-	PixelUtility::GetPitch(mipWidth, mipHeight, mipDepth, mProperties.Format, rowPitch, depthPitch);
-
-	VkSubresourceLayout subresourceLayout;
-	subresourceLayout.rowPitch = rowPitch;
-	subresourceLayout.depthPitch = depthPitch;
-
-	return VulkanImage::ConvertSubresourceLayoutToBlocks(subresourceLayout, mProperties.Format);
-}
-
-ImageSubresourcePitch VulkanTexture::GetPitchForSubresource(u32 face, u32 mipLevel) const
-{
-	VkSubresourceLayout subresourceLayout;
-	if(mDirectlyMappable && mImage != nullptr)
-		subresourceLayout = mImage->GetSubresourceLayout(face, mipLevel);
-	else
-	{
-		subresourceLayout.rowPitch = 0;
-		subresourceLayout.depthPitch = 0;
-	}
-	
-	return VulkanImage::ConvertSubresourceLayoutToBlocks(subresourceLayout, mProperties.Format);
 }
 
 void VulkanTexture::RecreateInternalTexture()

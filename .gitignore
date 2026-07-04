@@ -10,7 +10,6 @@ Intermediate
 Dependencies/**
 !Dependencies/**/
 !Dependencies/**/.reqversion
-Builds
 Data/.version
 Data/*
 !Data/.reqversion
@@ -32,7 +31,7 @@ Documentation/Manuals/docs/Images
 Documentation/Manuals/static
 Documentation/.version
 Documentation/Timestamp.asset
-/Build
+/build*
 *.aps
 *.opendb
 B3DEngineConfig.h
