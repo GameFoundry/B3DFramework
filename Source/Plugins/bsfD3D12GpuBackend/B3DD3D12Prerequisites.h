@@ -35,8 +35,12 @@ namespace b3d
 		class D3D12Framebuffer;
 		class D3D12RenderTexture;
 		class D3D12SwapChain;
-		class D3D12Resource;
+		class D3D12Image;
+		class D3D12ImageSubresource;
+		class D3D12Buffer;
 		class D3D12ResourceManager;
+		class D3D12ResourceTracker;
+		class D3D12BarrierHelper;
 		class D3D12GpuTimelineFence;
 		class D3D12DescriptorHeap;
 		class D3D12DescriptorManager;

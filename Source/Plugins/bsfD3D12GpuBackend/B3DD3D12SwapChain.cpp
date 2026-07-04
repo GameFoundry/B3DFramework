@@ -5,6 +5,7 @@
 #include "B3DD3D12GpuBackend.h"
 #include "B3DD3D12GpuQueue.h"
 #include "B3DD3D12ResourceManager.h"
+#include "B3DD3D12Texture.h"
 #include "B3DD3D12Utility.h"
 #include "B3DD3D12Framebuffer.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
@@ -60,7 +61,7 @@ D3D12SwapChain::~D3D12SwapChain()
 		}
 	}
 
-	// Free render target views
+	// Free render target views and queue the back-buffer image wrappers for destruction
 	for (u32 i = 0; i < mBackBufferCount; i++)
 	{
 		if (mBackBufferRTVs[i].ptr != 0)
@@ -68,6 +69,13 @@ D3D12SwapChain::~D3D12SwapChain()
 			descriptorManager.FreeCPUDescriptor(D3D12DescriptorHeapType::RTV, mBackBufferRTVs[i]);
 			mBackBufferRTVs[i].ptr = 0;
 		}
+
+		if (mBackBufferImages[i] != nullptr)
+		{
+			mBackBufferImages[i]->Destroy();
+			mBackBufferImages[i] = nullptr;
+		}
+
 		mBackBuffers[i].Reset();
 	}
 
@@ -78,10 +86,11 @@ D3D12SwapChain::~D3D12SwapChain()
 		mDepthStencilView.ptr = 0;
 	}
 
-	if (mDepthStencilAllocation)
+	// The image wrapper owns the depth buffer's allocation and defers the native release
+	if (mDepthStencilImage != nullptr)
 	{
-		mDepthStencilAllocation->Release();
-		mDepthStencilAllocation = nullptr;
+		mDepthStencilImage->Destroy();
+		mDepthStencilImage = nullptr;
 	}
 
 	mDepthStencilBuffer.Reset();
@@ -202,13 +211,26 @@ void D3D12SwapChain::GetBackBufferResources()
 		{
 			B3D_LOG(Error, LogRenderBackend, "Failed to get swap chain back buffer {0}: HRESULT={1}", i, (u32)hr);
 			mBackBuffers[i].Reset();
+			continue;
 		}
-		else
-		{
-			// Set debug name for the back buffer
-			String name = "SwapChain BackBuffer " + ToString(i);
-			mBackBuffers[i]->SetName(ToWideString(name).c_str());
-		}
+
+		// Set debug name for the back buffer
+		String name = "SwapChain BackBuffer " + ToString(i);
+		mBackBuffers[i]->SetName(ToWideString(name).c_str());
+
+		// Wrap the back buffer in an image resource so command buffers can track its usage and state. Flip-model
+		// back buffers start in the COMMON (== PRESENT) state.
+		D3D12ImageCreateInformation imageCreateInformation;
+		imageCreateInformation.Resource = mBackBuffers[i];
+		imageCreateInformation.Allocation = nullptr; // DXGI owns the memory
+		imageCreateInformation.Format = mCreateInfo.ColorFormat;
+		imageCreateInformation.InitialState = D3D12_RESOURCE_STATE_COMMON;
+		imageCreateInformation.FaceCount = 1;
+		imageCreateInformation.MipLevelCount = 1;
+		imageCreateInformation.Aspect = GpuTextureAspectFlag::Color;
+		imageCreateInformation.Name = name;
+
+		mBackBufferImages[i] = mDevice.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
 	}
 }
 
@@ -286,12 +308,13 @@ void D3D12SwapChain::CreateDepthStencilBuffer()
 	allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 	allocDesc.ExtraHeapFlags = D3D12_HEAP_FLAG_NONE;
 
+	D3D12MA::Allocation* depthStencilAllocation = nullptr;
 	HRESULT hr = mDevice.GetAllocator()->CreateResource(
 		&allocDesc,
 		&depthStencilDesc,
 		D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		&clearValue,
-		&mDepthStencilAllocation,
+		&depthStencilAllocation,
 		IID_PPV_ARGS(&mDepthStencilBuffer)
 	);
 
@@ -302,6 +325,24 @@ void D3D12SwapChain::CreateDepthStencilBuffer()
 	}
 
 	mDepthStencilBuffer->SetName(L"SwapChain DepthStencil Buffer");
+
+	// Wrap the depth buffer in an image resource so command buffers can track its usage and state. The wrapper
+	// takes ownership of the allocation.
+	const bool hasStencil = mCreateInfo.DepthStencilFormat == DXGI_FORMAT_D24_UNORM_S8_UINT ||
+		mCreateInfo.DepthStencilFormat == DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+
+	D3D12ImageCreateInformation imageCreateInformation;
+	imageCreateInformation.Resource = mDepthStencilBuffer;
+	imageCreateInformation.Allocation = depthStencilAllocation;
+	imageCreateInformation.Format = mCreateInfo.DepthStencilFormat;
+	imageCreateInformation.InitialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	imageCreateInformation.FaceCount = 1;
+	imageCreateInformation.MipLevelCount = 1;
+	imageCreateInformation.Aspect = hasStencil ? (GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil)
+		: GpuTextureAspectFlags(GpuTextureAspectFlag::Depth);
+	imageCreateInformation.Name = "SwapChain DepthStencil Buffer";
+
+	mDepthStencilImage = mDevice.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
 
 	// Allocate descriptor
 	mDepthStencilView = descriptorManager.AllocateCPUDescriptor(D3D12DescriptorHeapType::DSV);
@@ -338,6 +379,14 @@ ID3D12Resource* D3D12SwapChain::GetBackBuffer(u32 index) const
 		return nullptr;
 
 	return mBackBuffers[index].Get();
+}
+
+D3D12Image* D3D12SwapChain::GetBackBufferImage(u32 index) const
+{
+	if (index >= mBackBufferCount)
+		return nullptr;
+
+	return mBackBufferImages[index];
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3D12SwapChain::GetBackBufferRTV(u32 index) const

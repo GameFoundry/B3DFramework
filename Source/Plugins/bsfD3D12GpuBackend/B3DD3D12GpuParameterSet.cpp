@@ -4,13 +4,35 @@
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12GpuPipelineParameterLayout.h"
 #include "B3DD3D12GpuBuffer.h"
+#include "B3DD3D12ResourceTracker.h"
 #include "B3DD3D12Texture.h"
 #include "B3DD3D12SamplerState.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
+#include "Utility/B3DD3D12BarrierHelper.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 
 using namespace b3d;
 using namespace b3d::render;
+
+namespace
+{
+	/** Returns true when the storage-buffer object type is writeable from the shader (UAV-class binding). */
+	bool IsReadWriteStorageBuffer(GpuParameterObjectType type)
+	{
+		switch(type)
+		{
+		case GPOT_RWTYPED_BUFFER:
+		case GPOT_RWBYTE_BUFFER:
+		case GPOT_RWSTRUCTURED_BUFFER:
+		case GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER:
+		case GPOT_RWAPPEND_BUFFER:
+		case GPOT_RWCONSUME_BUFFER:
+			return true;
+		default:
+			return false;
+		}
+	}
+}
 
 D3D12GpuParameters::D3D12GpuParameters(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, D3D12GpuDevice& device, u32 setIndex)
 	: GpuParameterSet(parameterSetLayout, setIndex)
@@ -169,6 +191,100 @@ bool D3D12GpuParameters::SetSamplerState(u32 slot, const TShared<SamplerState>& 
 	auto* d3d12Sampler = static_cast<D3D12SamplerState*>(sampler.get());
 	SetSamplerDescriptor(slot, arrayIndex, d3d12Sampler->GetDescriptorHandle());
 	return true;
+}
+
+void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTracker, D3D12BarrierHelper& barrierHelper)
+{
+	const TShared<GpuPipelineParameterSetLayout> setLayout = GetLayout();
+	if (setLayout == nullptr)
+		return;
+
+	// No per-stage information is threaded through yet, so shader accesses are tracked conservatively as visible to
+	// all stages. TODO(d3d12-port): derive the stage flags from the pipeline's shader stages.
+	const GpuResourceUseFlags stageUseFlags = GpuResourceUseFlag::AnyStage;
+
+	for (u32 typeIndex = 0; typeIndex < (u32)GpuParameterType::Count; typeIndex++)
+	{
+		const GpuParameterType type = (GpuParameterType)typeIndex;
+		const u32 bindingCount = setLayout->GetBindingCount(type);
+
+		for (u32 sequentialIndex = 0; sequentialIndex < bindingCount; sequentialIndex++)
+		{
+			const UniformInformation* uniformInfo = setLayout->TryGetUniformInformation(type, sequentialIndex);
+			if (uniformInfo == nullptr)
+				continue;
+
+			for (u32 arrayIndex = 0; arrayIndex < uniformInfo->ArraySize; arrayIndex++)
+			{
+				const u32 dataIndex = setLayout->GetSequentialResourceIndex(uniformInfo->Slot, arrayIndex);
+				if (dataIndex == ~0u)
+					continue;
+
+				switch (type)
+				{
+				case GpuParameterType::UniformBuffer:
+				{
+					if (GpuBuffer* const buffer = mUniformBufferData[dataIndex].Buffer.get())
+					{
+						resourceTracker.TrackBufferUsage(static_cast<D3D12GpuBuffer*>(buffer)->GetD3D12Buffer(),
+							stageUseFlags | GpuResourceUseFlag::UniformBuffer, GpuAccessFlag::Read, barrierHelper,
+							mUniformBufferData[dataIndex].Offset);
+					}
+					break;
+				}
+				case GpuParameterType::SampledTexture:
+				{
+					if (Texture* const texture = mSampledTextureData[dataIndex].Texture.get())
+					{
+						D3D12Image* const image = static_cast<D3D12Texture*>(texture)->GetD3D12Image();
+						if (image != nullptr)
+						{
+							const GpuTextureSubresourceRange range = image->GetRange(mSampledTextureData[dataIndex].Surface);
+							resourceTracker.TrackImageUsage(image, range, GpuImageLayout::ShaderReadOnly,
+								GpuImageLayout::ShaderReadOnly, stageUseFlags | GpuResourceUseFlag::ShaderAccess,
+								GpuAccessFlag::Read, barrierHelper);
+						}
+					}
+					break;
+				}
+				case GpuParameterType::StorageTexture:
+				{
+					if (Texture* const texture = mStorageTextureData[dataIndex].Texture.get())
+					{
+						D3D12Image* const image = static_cast<D3D12Texture*>(texture)->GetD3D12Image();
+						if (image != nullptr)
+						{
+							// Conservative read-write: UAV image bindings do not declare their access.
+							const GpuTextureSubresourceRange range = image->GetRange(mStorageTextureData[dataIndex].Surface);
+							resourceTracker.TrackImageUsage(image, range, GpuImageLayout::General,
+								GpuImageLayout::General, stageUseFlags | GpuResourceUseFlag::ShaderAccess,
+								GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper);
+						}
+					}
+					break;
+				}
+				case GpuParameterType::StorageBuffer:
+				{
+					if (GpuBuffer* const buffer = mStorageBufferData[dataIndex].Buffer.get())
+					{
+						GpuAccessFlags accessFlags = GpuAccessFlag::Read;
+						if (IsReadWriteStorageBuffer(uniformInfo->ObjectType))
+							accessFlags |= GpuAccessFlag::Write;
+
+						resourceTracker.TrackBufferUsage(static_cast<D3D12GpuBuffer*>(buffer)->GetD3D12Buffer(),
+							stageUseFlags | GpuResourceUseFlag::ShaderAccess, accessFlags, barrierHelper);
+					}
+					break;
+				}
+				case GpuParameterType::Sampler:
+					// Sampler states carry no GPU resource to track.
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
 }
 
 void D3D12GpuParameters::SetDescriptor(u32 slot, u32 arrayIndex, D3D12_CPU_DESCRIPTOR_HANDLE handle)

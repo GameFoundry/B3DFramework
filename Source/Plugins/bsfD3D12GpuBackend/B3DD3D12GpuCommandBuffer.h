@@ -4,6 +4,8 @@
 
 #include "B3DD3D12Prerequisites.h"
 #include "B3DD3D12GpuDevice.h"
+#include "B3DD3D12ResourceTracker.h"
+#include "Utility/B3DD3D12BarrierHelper.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "Math/B3DArea2.h"
 
@@ -113,6 +115,12 @@ namespace b3d
 			void NotifyWillQueueForSubmit();
 
 			/**
+			 * Called on the submit thread when the command buffer is executed on a queue. Marks every tracked
+			 * resource as in-flight (NotifyUsed) and remembers the queue for the matching NotifyDone on completion.
+			 */
+			void NotifyWasSubmittedToQueue(GpuQueueId queueId);
+
+			/**
 			 * Checks if the command buffer still executing on the GPU.
 			 *
 			 * @param	block	If true, the system will block until the command buffer is done executing.
@@ -161,18 +169,6 @@ namespace b3d
 			 */
 			void CopyTextureToBufferRaw(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex);
 
-			/**
-			 * Issues a resource barrier to transition a resource state.
-			 *
-			 * @param	resource			Resource to transition.
-			 * @param	stateBefore			Current state of the resource.
-			 * @param	stateAfter			Target state for the resource.
-			 * @param	subresource			Subresource index (default is all subresources).
-			 */
-			void TransitionResource(ID3D12Resource* resource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter, u32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
-
-			// TODO: Add more resource tracking and transition methods similar to Vulkan implementation
-
 		private:
 			friend class D3D12GpuCommandBufferPool;
 			friend class D3D12GpuQueue;
@@ -209,34 +205,16 @@ namespace b3d
 			void ClearViewportArea(const Area2I& area, RenderSurfaceMask mask, const Color& color, float depth, u16 stencil);
 
 			/**
-			 * Transitions the current framebuffer's attachments into their render-pass states (color -> RENDER_TARGET,
-			 * depth -> DEPTH_WRITE/DEPTH_READ, honoring the read-only mask) and updates the tracked states. Must be
-			 * called before OMSetRenderTargets / clears in BeginRenderPass.
+			 * Builds the tracker attachment list for the given framebuffer. @p outAttachments must hold at least
+			 * B3D_MAXIMUM_RENDER_TARGET_COUNT + 1 entries. Returns the number of populated entries.
 			 */
-			void TransitionRenderPassAttachments();
+			u32 BuildRenderTargetAttachments(const D3D12Framebuffer& framebuffer, D3D12RenderTargetAttachment* outAttachments) const;
 
 			/**
-			 * Emits a D3D12 transition for a resource whose current state is tracked externally (via @p stateHolder),
-			 * skipping no-op transitions and leaving the tracked state updated. Skips UPLOAD/READBACK heap buffers,
-			 * which are permanently in GENERIC_READ / COPY_DEST and must never be transitioned. Batches into the caller.
-			 *
-			 * @return		true if a transition barrier was appended to @p outBarriers.
+			 * Releases every resource tracked by the command buffer: NotifyDone when it was submitted (the GPU has
+			 * finished by the time this runs), NotifyUnbound otherwise, then clears the tracker.
 			 */
-			bool AppendTransition(ID3D12Resource* resource, D3D12_RESOURCE_STATES* stateHolder, D3D12_RESOURCE_STATES targetState,
-				Vector<D3D12_RESOURCE_BARRIER>& outBarriers, u32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
-
-			/**
-			 * Immediately transitions a buffer into a copy state (COPY_SOURCE/COPY_DEST) and updates its tracked state.
-			 * UPLOAD-heap buffers (permanently GENERIC_READ) and READBACK-heap buffers (permanently COPY_DEST) are left
-			 * untouched. State is left in the copy state after the call (leave-and-track).
-			 */
-			void TransitionBufferForCopy(D3D12GpuBuffer* buffer, bool asDestination);
-
-			/**
-			 * Immediately transitions a texture into a copy state (COPY_SOURCE/COPY_DEST) and updates its tracked state.
-			 * State is left in the copy state after the call (leave-and-track).
-			 */
-			void TransitionTextureForCopy(D3D12Texture* texture, bool asDestination);
+			void Cleanup();
 
 			/** Returns the current viewport area in pixels. */
 			Area2I GetViewportArea() const;
@@ -252,6 +230,15 @@ namespace b3d
 			D3D12GpuCommandBufferPool& mPool;
 			ComPtr<ID3D12Fence> mFence;
 			u64 mFenceValue = 0;
+
+			/** Tracks every resource used on the command buffer: lifetime (bound/use counts), hazards and states. */
+			D3D12ResourceTracker mResourceTracker;
+
+			/** Accumulates and emits the native barriers the tracker decides are required. */
+			D3D12BarrierHelper mBarrierHelper;
+
+			/** Queue the command buffer was submitted on; identifies the queue for NotifyDone. */
+			GpuQueueId mSubmittedQueueId;
 
 			// Render state
 			D3D12Framebuffer* mFramebuffer = nullptr;

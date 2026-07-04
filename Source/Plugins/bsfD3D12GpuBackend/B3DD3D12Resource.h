@@ -4,6 +4,7 @@
 
 #include "B3DD3D12Prerequisites.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
+#include "GpuBackend/B3DGpuResourceManager.h"
 
 namespace b3d
 {
@@ -16,46 +17,57 @@ namespace b3d
 		 */
 
 		/**
-		 * Base class for all D3D12 GPU resources that need to be tracked for synchronization purposes. Inherits the
-		 * cross-backend lifetime state machine (notify/destroy/deferred-destroy) from IGpuResource and adds
-		 * D3D12-specific state-tracking on top.
+		 * Wraps a native D3D12 object. Extends a generic GPU resource base (@p TBase) with the D3D12-specific portion
+		 * of the lifetime state machine: per-queue read/write use counters. Aggregate counters and deferred
+		 * destruction are inherited from IGpuResource.
+		 *
+		 * Unlike Vulkan there is no queue-family ownership machinery - D3D12 resources are usable on any queue
+		 * without explicit ownership transfers.
+		 *
+		 * @note Thread safe
 		 */
-		class D3D12Resource : public IGpuResource
+		template<class TBase>
+		class TD3D12Resource : public TBase
 		{
 		public:
-			/** Constructs a manager-owned resource. @p owner must be non-null. */
-			D3D12Resource(D3D12ResourceManager* owner, const StringView& name = "");
+			static constexpr u32 kMaximumUniqueQueueCount = B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT;
 
-			/** Returns the D3D12 resource. */
-			virtual ID3D12Resource* GetD3D12Resource() const = 0;
-
-			/** Returns the current resource state. */
-			D3D12_RESOURCE_STATES GetCurrentState() const { return mCurrentState; }
-
-			/** Sets the current resource state. */
-			void SetCurrentState(D3D12_RESOURCE_STATES state) { mCurrentState = state; }
+			template<class... TBaseArgs>
+			TD3D12Resource(D3D12ResourceManager* owner, TBaseArgs&&... baseArgs)
+				: TBase(owner, std::forward<TBaseArgs>(baseArgs)...), mOwner(owner)
+			{
+				B3DZeroOut(mReadUses);
+				B3DZeroOut(mWriteUses);
+			}
 
 			/**
-			 * Returns a pointer to the stored current-state field, so external state-tracking code (e.g. a framebuffer
-			 * attachment) can read and update the resource's tracked state in place.
+			 * Returns a mask that has bits set for every queue that the resource is currently used (read or written) by.
 			 *
-			 * @note Resource state tracking assumes single-threaded command recording per resource (render thread +
-			 *       internal work context) during bring-up; there is no cross-command-buffer locking on this field.
+			 * @param	useFlags	Flags for which to check use information (e.g. read only, write only, or both).
+			 * @return				Bitmask of which queues is the resource used on.
 			 */
-			D3D12_RESOURCE_STATES* GetCurrentStatePtr() { return &mCurrentState; }
+			GpuQueueMask GetUseInfo(GpuAccessFlags useFlags) const;
+
+			/** Returns the device this resource is created on. */
+			D3D12GpuDevice& GetDevice() const;
 
 		protected:
-			/**
-			 * Constructs an unmanaged resource with no owning D3D12ResourceManager. Reserved for subclasses that
-			 * take responsibility for their own lifetime rather than being allocated through
-			 * D3D12ResourceManager::Create — in particular the multiple-inheritance render resources
-			 * (D3D12Texture, D3D12GpuBuffer) that derive both a core resource type and this class, and manage
-			 * their native D3D12 objects directly. Chains to IGpuResource's protected unmanaged constructor.
-			 */
-			D3D12Resource() = default;
+			void OnNotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags) override;
+			void OnNotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags) override;
 
-			D3D12_RESOURCE_STATES mCurrentState = D3D12_RESOURCE_STATE_COMMON;
+			/**
+			 * Typed manager pointer. Shadows IGpuResource::mOwner so that subclasses calling mOwner->GetDevice()
+			 * (and similar typed accessors on the manager) see the D3D12ResourceManager surface. The base's untyped
+			 * pointer drives the deferred-destroy free path inside IGpuResource itself.
+			 */
+			D3D12ResourceManager* mOwner;
+
+			u8 mReadUses[kMaximumUniqueQueueCount];
+			u8 mWriteUses[kMaximumUniqueQueueCount];
 		};
+
+		/** Standard D3D12 resource with no specialized generic role. */
+		using D3D12Resource = TD3D12Resource<IGpuResource>;
 
 		/** @} */
 	} // namespace render

@@ -137,6 +137,10 @@ void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const TShared<D3D12GpuCommandBuf
 	ID3D12CommandList* commandLists[] = { commandBuffer->GetD3D12Handle() };
 	ExecuteCommandLists(commandLists, 1);
 
+	// Mark every tracked resource as in-flight on this queue (matched by NotifyDone when the completion callback
+	// runs the command buffer's Reset).
+	commandBuffer->NotifyWasSubmittedToQueue(GetId());
+
 	// Surface any validation errors the debug layer recorded for this submission
 	device.LogDebugLayerMessages();
 

@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12GpuBuffer.h"
 #include "B3DD3D12GpuDevice.h"
+#include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12Utility.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
 #include "Profiling/B3DRenderStats.h"
@@ -63,11 +64,25 @@ namespace
 	}
 }
 
-// Constructed unmanaged (protected D3D12Resource ctor): the engine owns the buffer's lifetime through its
-// shared pointer, and the native resource release is deferred via D3D12GpuDevice::DeferNativeRelease.
+D3D12Buffer::D3D12Buffer(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, D3D12MA::Allocation* allocation,
+	D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_STATES state, const StringView& name)
+	: TD3D12Resource<IGpuBufferResource>(owner, name)
+	, mResource(std::move(resource))
+	, mAllocation(allocation)
+	, mHeapType(heapType)
+	, mState(state)
+{}
+
+D3D12Buffer::~D3D12Buffer()
+{
+	// The buffer is only destroyed once no command buffer references it, but the deferred queue guards
+	// against release paths that bypass the tracker (e.g. teardown of never-tracked resources).
+	if(mResource != nullptr || mAllocation != nullptr)
+		GetDevice().DeferNativeRelease(mResource, mAllocation);
+}
+
 D3D12GpuBuffer::D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device)
 	: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device))
-	, D3D12Resource()
 {
 }
 
@@ -83,24 +98,20 @@ void D3D12GpuBuffer::ReleaseBuffer()
 	// Shader-binding descriptors reference the (about to be freed) native resource, so drop them first.
 	ReleaseShaderDescriptors();
 
+	if(mBuffer == nullptr)
+		return;
+
 	// Persistently mapped memory must be released before the resource is destroyed.
 	if(mMappedMemory != nullptr)
 	{
-		if(mBuffer)
-			mBuffer->Unmap(0, nullptr);
-
+		mBuffer->GetD3D12Resource()->Unmap(0, nullptr);
 		mMappedMemory = nullptr;
 	}
 
-	if (mBuffer == nullptr && mAllocation == nullptr)
-		return;
-
-	// The GPU may still be referencing the resource through in-flight command buffers, so the native
-	// release is deferred until the device can guarantee it is no longer used.
-	static_cast<D3D12GpuDevice&>(mDevice).DeferNativeRelease(mBuffer, mAllocation);
-
-	mAllocation = nullptr;
-	mBuffer.Reset();
+	// The GPU may still be referencing the resource through in-flight command buffers - destruction is
+	// deferred until the buffer's bound count drops to zero.
+	mBuffer->Destroy();
+	mBuffer = nullptr;
 }
 
 void D3D12GpuBuffer::Initialize()
@@ -134,8 +145,6 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 		break;
 	}
 
-	SetCurrentState(initialState);
-
 	// Not allowed to have size 0 buffer
 	u64 bufferSize = Math::Max(mTotalSize, 64u);
 
@@ -163,13 +172,15 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 	allocDesc.HeapType = heapType;
 	allocDesc.ExtraHeapFlags = D3D12_HEAP_FLAG_NONE;
 
+	ComPtr<ID3D12Resource> resource;
+	D3D12MA::Allocation* allocation = nullptr;
 	HRESULT hr = device.GetAllocator()->CreateResource(
 		&allocDesc,
 		&resourceDesc,
 		initialState,
 		nullptr, // No clear value for buffers
-		&mAllocation,
-		IID_PPV_ARGS(&mBuffer)
+		&allocation,
+		IID_PPV_ARGS(&resource)
 	);
 
 	if(FAILED(hr))
@@ -179,26 +190,27 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 		return;
 	}
 
-	if(!mName.empty())
-		SetName(mName);
-
 	// Persistently map CPU-accessible buffers (upload/readback heaps) so the base GpuBuffer Read/Write paths
 	// can access the memory directly via GetMappedMemory(). GPU-only (default heap) buffers stay unmapped.
+	void* mappedData = nullptr;
 	if(heapType == D3D12_HEAP_TYPE_UPLOAD || heapType == D3D12_HEAP_TYPE_READBACK)
 	{
-		void* mappedData = nullptr;
 		D3D12_RANGE readRange = { 0, 0 }; // Zero range: the CPU won't read on map (only relevant for readback flushing).
-		hr = mBuffer->Map(0, &readRange, &mappedData);
+		hr = resource->Map(0, &readRange, &mappedData);
 
 		if(FAILED(hr))
 		{
 			B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to persistently map buffer");
-			ReleaseBuffer();
+			device.DeferNativeRelease(std::move(resource), allocation);
 			return;
 		}
-
-		mMappedMemory = mappedData;
 	}
+
+	mBuffer = device.GetResourceManager().Create<D3D12Buffer>(std::move(resource), allocation, heapType, initialState, mName);
+	mMappedMemory = mappedData;
+
+	if(!mName.empty())
+		SetName(mName);
 
 	// Create vertex buffer view if this is a vertex buffer.
 	if(info.Type == GpuBufferType::Vertex)
@@ -291,7 +303,7 @@ void D3D12GpuBuffer::CreateShaderDescriptors()
 				srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 			}
 
-			d3d12Device->CreateShaderResourceView(mBuffer.Get(), &srvDesc, mSRVHandle);
+			d3d12Device->CreateShaderResourceView(mBuffer->GetD3D12Resource(), &srvDesc, mSRVHandle);
 		}
 
 		// UAV (write) — only when the buffer explicitly allows unordered access.
@@ -319,7 +331,7 @@ void D3D12GpuBuffer::CreateShaderDescriptors()
 					uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 				}
 
-				d3d12Device->CreateUnorderedAccessView(mBuffer.Get(), nullptr, &uavDesc, mUAVHandle);
+				d3d12Device->CreateUnorderedAccessView(mBuffer->GetD3D12Resource(), nullptr, &uavDesc, mUAVHandle);
 			}
 		}
 	}
@@ -369,18 +381,42 @@ void D3D12GpuBuffer::SetName(const StringView& name)
 {
 	GpuBuffer::SetName(name);
 
-	if(mBuffer)
+	if(mBuffer != nullptr && mBuffer->GetD3D12Resource() != nullptr)
 	{
 		const WString wideName = ToWideString(mName);
-		mBuffer->SetName(wideName.c_str());
+		mBuffer->GetD3D12Resource()->SetName(wideName.c_str());
 	}
 }
 
 GpuQueueMask D3D12GpuBuffer::GetUseMask(GpuAccessFlags accessFlags)
 {
-	// TODO(d3d12-port): Per-queue usage tracking is not yet implemented for the D3D12 backend.
-	return GpuQueueMask::kNone;
+	if(mBuffer == nullptr)
+		return GpuQueueMask::kNone;
+
+	return mBuffer->GetUseInfo(accessFlags);
 }
+
+u32 D3D12GpuBuffer::GetBoundCount() const
+{
+	return mBuffer != nullptr ? mBuffer->GetBoundCount() : 0;
+}
+
+u32 D3D12GpuBuffer::GetUseCount() const
+{
+	return mBuffer != nullptr ? mBuffer->GetUseCount() : 0;
+}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+bool D3D12GpuBuffer::IsRangeBound(u32 offset, u32 size) const
+{
+	return mBuffer != nullptr && mBuffer->IsRangeBound(offset, size);
+}
+
+bool D3D12GpuBuffer::IsRangeInUse(u32 offset, u32 size) const
+{
+	return mBuffer != nullptr && mBuffer->IsRangeInUse(offset, size);
+}
+#endif
 
 D3D12_GPU_VIRTUAL_ADDRESS D3D12GpuBuffer::GetGPUVirtualAddress() const
 {

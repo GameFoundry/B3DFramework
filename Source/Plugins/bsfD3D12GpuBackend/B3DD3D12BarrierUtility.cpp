@@ -98,6 +98,51 @@ D3D12_RESOURCE_STATES D3D12BarrierUtility::GetResourceStateFromLayout(GpuImageLa
 	}
 }
 
+D3D12_RESOURCE_STATES D3D12BarrierUtility::GetBufferStateFromStages(GpuStageFlags stages, GpuAccessFlags access)
+{
+	const bool isWrite = access.IsSet(GpuAccessFlag::Write);
+
+	// Transfer maps to the copy states; host access is serviced through copies (see GetResourceState).
+	if(stages.IsSet(GpuStageFlag::Transfer))
+		return isWrite ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_COPY_SOURCE;
+
+	if(stages.IsSet(GpuStageFlag::Host))
+		return isWrite ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_COPY_SOURCE;
+
+	// Any shader write forces the (exclusive) UAV state.
+	const GpuStageFlags kShaderNonUniformStages = GpuStageFlag::VertexShaderNonUniform |
+		GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform;
+
+	if(isWrite && stages.IsSetAny(kShaderNonUniformStages))
+		return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+
+	// Combinable read states are OR-ed together so a single barrier can express e.g. index + shader read use.
+	D3D12_RESOURCE_STATES state = (D3D12_RESOURCE_STATES)0;
+
+	if(stages.IsSet(GpuStageFlag::VertexInputIndices))
+		state |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
+
+	const GpuStageFlags kUniformStages = GpuStageFlag::VertexShaderUniform |
+		GpuStageFlag::FragmentShaderUniform | GpuStageFlag::ComputeShaderUniform;
+
+	if(stages.IsSet(GpuStageFlag::VertexInputAttributes) || stages.IsSetAny(kUniformStages))
+		state |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+
+	if(stages.IsSet(GpuStageFlag::DrawIndirect))
+		state |= D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+
+	if(stages.IsSet(GpuStageFlag::FragmentShaderNonUniform))
+		state |= D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+	if(stages.IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform))
+		state |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+	if(state == (D3D12_RESOURCE_STATES)0)
+		return D3D12_RESOURCE_STATE_COMMON;
+
+	return state;
+}
+
 bool D3D12BarrierUtility::IsReadOnlyState(D3D12_RESOURCE_STATES state)
 {
 	// COMMON (0) and PRESENT are read-combinable. Any of the exclusive write/target states disqualifies it.

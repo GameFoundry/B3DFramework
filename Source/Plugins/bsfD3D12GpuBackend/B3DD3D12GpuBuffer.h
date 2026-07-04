@@ -14,8 +14,51 @@ namespace b3d
 		 *  @{
 		 */
 
+		/**
+		 * Wraps a native D3D12 buffer resource and its memory allocation. Lifetime is owned by the device's
+		 * resource manager and released via IGpuResource::Destroy(), deferred until the GPU is done with the
+		 * resource. Also stores the buffer's current native resource state, which the barrier helper reads and
+		 * advances when it emits transitions.
+		 */
+		class D3D12Buffer : public TD3D12Resource<IGpuBufferResource>
+		{
+		public:
+			D3D12Buffer(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, D3D12MA::Allocation* allocation,
+				D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_STATES state, const StringView& name = "");
+			~D3D12Buffer() override;
+
+			/** Returns the native D3D12 resource. */
+			ID3D12Resource* GetD3D12Resource() const { return mResource.Get(); }
+
+			/** Returns the GPU virtual address of the buffer. */
+			D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const { return mResource != nullptr ? mResource->GetGPUVirtualAddress() : 0; }
+
+			/**
+			 * Returns the heap the buffer's memory lives in. UPLOAD heap buffers are permanently in the GENERIC_READ
+			 * state and READBACK heap buffers permanently in COPY_DEST - neither can be transitioned.
+			 */
+			D3D12_HEAP_TYPE GetHeapType() const { return mHeapType; }
+
+			/**
+			 * Returns the current native state of the buffer.
+			 *
+			 * @note Assumes single-threaded command recording per resource (render thread + internal work context);
+			 *       there is no cross-command-buffer synchronization on this field.
+			 */
+			D3D12_RESOURCE_STATES GetState() const { return mState; }
+
+			/** Sets the current native state of the buffer. */
+			void SetState(D3D12_RESOURCE_STATES state) { mState = state; }
+
+		private:
+			ComPtr<ID3D12Resource> mResource;
+			D3D12MA::Allocation* mAllocation = nullptr;
+			D3D12_HEAP_TYPE mHeapType = D3D12_HEAP_TYPE_DEFAULT;
+			D3D12_RESOURCE_STATES mState = D3D12_RESOURCE_STATE_COMMON;
+		};
+
 		/** DirectX 12 implementation of a GPU buffer. */
-		class D3D12GpuBuffer : public GpuBuffer, public D3D12Resource
+		class D3D12GpuBuffer : public GpuBuffer
 		{
 		public:
 			D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device);
@@ -31,10 +74,10 @@ namespace b3d
 			GpuQueueMask GetUseMask(GpuAccessFlags accessFlags) override;
 
 			/** @copydoc IGpuResource::GetBoundCount */
-			u32 GetBoundCount() const override { return D3D12Resource::GetBoundCount(); }
+			u32 GetBoundCount() const override;
 
 			/** @copydoc IGpuResource::GetUseCount */
-			u32 GetUseCount() const override { return D3D12Resource::GetUseCount(); }
+			u32 GetUseCount() const override;
 
 			/** @copydoc render::GpuBuffer::Flush */
 			void Flush(u32 offset, u32 size) override;
@@ -43,12 +86,15 @@ namespace b3d
 			void Invalidate(u32 offset, u32 size) override;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			bool IsRangeBound(u32 offset, u32 size) const override { return false; }
-			bool IsRangeInUse(u32 offset, u32 size) const override { return false; }
+			bool IsRangeBound(u32 offset, u32 size) const override;
+			bool IsRangeInUse(u32 offset, u32 size) const override;
 #endif
 
+			/** Returns the low-level buffer resource wrapping the native D3D12 buffer. */
+			D3D12Buffer* GetD3D12Buffer() const { return mBuffer; }
+
 			/** Returns the D3D12 resource. */
-			ID3D12Resource* GetD3D12Resource() const override { return mBuffer.Get(); }
+			ID3D12Resource* GetD3D12Resource() const { return mBuffer != nullptr ? mBuffer->GetD3D12Resource() : nullptr; }
 
 			/** Returns the GPU virtual address of the buffer. */
 			D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const;
@@ -85,7 +131,7 @@ namespace b3d
 			void RecreateInternalBuffer() override;
 
 		private:
-			/** Releases the underlying D3D12 resource and (if mapped) unmaps its persistent mapping. */
+			/** Queues the current D3D12Buffer (if any) for deferred destruction, unmapping it and dropping views first. */
 			void ReleaseBuffer();
 
 			/** Creates the CPU shader-binding descriptors (CBV/SRV/UAV) valid for this buffer's type and flags. */
@@ -94,8 +140,7 @@ namespace b3d
 			/** Frees any previously created shader-binding descriptors. */
 			void ReleaseShaderDescriptors();
 
-			ComPtr<ID3D12Resource> mBuffer;
-			D3D12MA::Allocation* mAllocation = nullptr;
+			D3D12Buffer* mBuffer = nullptr;
 
 			D3D12_VERTEX_BUFFER_VIEW mVertexBufferView{};
 			D3D12_INDEX_BUFFER_VIEW mIndexBufferView{};

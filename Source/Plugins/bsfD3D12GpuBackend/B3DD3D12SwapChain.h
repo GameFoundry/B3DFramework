@@ -63,6 +63,12 @@ namespace b3d
 			/** Returns the back buffer texture at the specified index. */
 			ID3D12Resource* GetBackBuffer(u32 index) const;
 
+			/** Returns the image wrapping the back buffer at the specified index. */
+			D3D12Image* GetBackBufferImage(u32 index) const;
+
+			/** Returns the image wrapping the depth-stencil buffer, or null if no depth buffer was created. */
+			D3D12Image* GetDepthStencilImage() const { return mDepthStencilImage; }
+
 			/** Returns the render target view for the specified back buffer. */
 			D3D12_CPU_DESCRIPTOR_HANDLE GetBackBufferRTV(u32 index) const;
 
@@ -150,12 +156,14 @@ namespace b3d
 
 			static constexpr u32 kMaxBackBuffers = 3;
 			ComPtr<ID3D12Resource> mBackBuffers[kMaxBackBuffers];
+			D3D12Image* mBackBufferImages[kMaxBackBuffers] = {};
 			D3D12_CPU_DESCRIPTOR_HANDLE mBackBufferRTVs[kMaxBackBuffers];
 			D3D12Framebuffer* mFramebuffers[kMaxBackBuffers];
 			u32 mBackBufferCount = 0;
 
+			// The depth-stencil buffer's ComPtr/allocation are owned by its D3D12Image wrapper.
 			ComPtr<ID3D12Resource> mDepthStencilBuffer;
-			D3D12MA::Allocation* mDepthStencilAllocation = nullptr;
+			D3D12Image* mDepthStencilImage = nullptr;
 			D3D12_CPU_DESCRIPTOR_HANDLE mDepthStencilView;
 
 			u32 mWidth = 0;

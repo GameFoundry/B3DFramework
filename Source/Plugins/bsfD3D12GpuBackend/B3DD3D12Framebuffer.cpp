@@ -45,7 +45,6 @@ void D3D12Framebuffer::CreateViews()
 	{
 		mRenderTargetViews[i].ptr = 0;
 		mColorAttachments[i] = Attachment{};
-		mOwnedColorStates[i] = D3D12_RESOURCE_STATE_COMMON;
 		mColorFormats[i] = DXGI_FORMAT_UNKNOWN;
 	}
 	mDepthStencilView.ptr = 0;
@@ -118,10 +117,8 @@ void D3D12Framebuffer::CreateViews()
 
 			d3d12Device->CreateRenderTargetView(resource, &rtvDesc, mRenderTargetViews[i]);
 
-			// The D3D12Texture is itself a D3D12Resource state holder, so transitions update the texture's
-			// shared current state directly.
-			mColorAttachments[i].Resource = resource;
-			mColorAttachments[i].StateHolder = d3d12Texture->GetCurrentStatePtr();
+			mColorAttachments[i].Image = d3d12Texture->GetD3D12Image();
+			mColorAttachments[i].Surface = TextureSurface(0, 1, 0, props.GetFaceCount());
 			mColorFormats[i] = rtvDesc.Format;
 			mSampleCount = Math::Max(1u, props.SampleCount);
 
@@ -165,8 +162,8 @@ void D3D12Framebuffer::CreateViews()
 
 				d3d12Device->CreateDepthStencilView(resource, &dsvDesc, mDepthStencilView);
 
-				mDepthStencilAttachment.Resource = resource;
-				mDepthStencilAttachment.StateHolder = d3d12Texture->GetCurrentStatePtr();
+				mDepthStencilAttachment.Image = d3d12Texture->GetD3D12Image();
+				mDepthStencilAttachment.Surface = TextureSurface(0, 1, 0, props.GetFaceCount());
 				mDepthStencilFormat = dsvDesc.Format;
 				mSampleCount = Math::Max(1u, props.SampleCount);
 
@@ -201,11 +198,8 @@ void D3D12Framebuffer::CreateViews()
 		mNumColorAttachments = 1;
 		mColorFormats[0] = swapChain->GetCreateInformation().ColorFormat;
 
-		// Swap-chain back buffers have no D3D12Resource wrapper, so the framebuffer owns the tracked state. The
-		// back buffer is created (and left after Present) in COMMON/PRESENT state.
-		mColorAttachments[0].Resource = swapChain->GetBackBuffer(mBackBufferIndex);
-		mColorAttachments[0].StateHolder = &mOwnedColorStates[0];
-		mOwnedColorStates[0] = D3D12_RESOURCE_STATE_COMMON;
+		mColorAttachments[0].Image = swapChain->GetBackBufferImage(mBackBufferIndex);
+		mColorAttachments[0].Surface = TextureSurface(0, 1, 0, 1);
 
 		// Get depth stencil view if it exists
 		D3D12_CPU_DESCRIPTOR_HANDLE dsv = swapChain->GetDepthStencilView();
@@ -215,14 +209,8 @@ void D3D12Framebuffer::CreateViews()
 			mHasDepthStencil = true;
 			mDepthStencilFormat = swapChain->GetCreateInformation().DepthStencilFormat;
 
-			// TODO(d3d12-port): The swap chain exposes only the depth-stencil DSV handle, not the backing
-			// ID3D12Resource*, so the framebuffer cannot transition the swap-chain depth buffer. Resource stays
-			// null and the command buffer skips its transition. The swap chain creates the depth buffer in
-			// DEPTH_WRITE state and nothing else transitions it, so this is safe for the common depth-write path,
-			// but read-only depth on a window target will not be honored until the swap chain exposes the resource.
-			mDepthStencilAttachment.Resource = nullptr;
-			mDepthStencilAttachment.StateHolder = &mOwnedDepthStencilState;
-			mOwnedDepthStencilState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+			mDepthStencilAttachment.Image = swapChain->GetDepthStencilImage();
+			mDepthStencilAttachment.Surface = TextureSurface(0, 1, 0, 1);
 		}
 
 		B3D_LOG(Info, LogRenderBackend, "Created framebuffer from RenderWindow swap chain: {0}x{1}", mWidth, mHeight);

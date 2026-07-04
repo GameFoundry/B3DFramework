@@ -32,6 +32,16 @@ namespace b3d
 			 */
 			void BindDescriptors(D3D12GpuDevice& device, ID3D12GraphicsCommandList* commandList, bool isGraphics);
 
+			/**
+			 * Registers every resource bound to this set with the command buffer's resource tracker, queuing any
+			 * required barriers/transitions into @p barrierHelper (the caller executes them before the work is
+			 * recorded). Must run on every bind: each command buffer needs its own tracker registrations.
+			 *
+			 * @param[in]	resourceTracker	Tracker owned by the command buffer the set is being bound on.
+			 * @param[in]	barrierHelper	Barrier helper associated with @p resourceTracker.
+			 */
+			void TrackBoundResources(D3D12ResourceTracker& resourceTracker, D3D12BarrierHelper& barrierHelper);
+
 			bool SetUniformBuffer(u32 slot, const TShared<GpuBuffer>& uniformBuffer, u32 arrayIndex = 0, u32 offset = 0) override;
 			bool SetSampledTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) override;
 			bool SetStorageTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override;

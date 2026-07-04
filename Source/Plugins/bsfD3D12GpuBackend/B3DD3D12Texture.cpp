@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12Texture.h"
 #include "B3DD3D12GpuDevice.h"
+#include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12Utility.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
 #include "Profiling/B3DRenderStats.h"
@@ -38,14 +39,52 @@ namespace b3d
 {
 	namespace render
 	{
-		// Constructed unmanaged (protected D3D12Resource ctor): the engine owns the texture's lifetime through
-		// its shared pointer, and the native resource release is deferred via D3D12GpuDevice::DeferNativeRelease.
+		D3D12ImageSubresource::D3D12ImageSubresource(D3D12ResourceManager* owner, D3D12_RESOURCE_STATES state, const StringView& name)
+			: D3D12Resource(owner, name), mState(state)
+		{}
+
+		D3D12Image::D3D12Image(D3D12ResourceManager* owner, const D3D12ImageCreateInformation& createInformation)
+			: TD3D12Resource<IGpuImageResource>(owner, createInformation.Name, createInformation.FaceCount,
+				createInformation.MipLevelCount, createInformation.Aspect)
+			, mResource(createInformation.Resource)
+			, mAllocation(createInformation.Allocation)
+			, mFormat(createInformation.Format)
+		{
+			const u32 subresourceCount = mFaceCount * mMipLevelCount;
+			for(u32 i = 0; i < subresourceCount; i++)
+				mSubresources[i] = owner->Create<D3D12ImageSubresource>(createInformation.InitialState);
+		}
+
+		D3D12Image::~D3D12Image()
+		{
+			const u32 subresourceCount = mFaceCount * mMipLevelCount;
+			for(u32 i = 0; i < subresourceCount; i++)
+			{
+				if(mSubresources[i] != nullptr)
+					mSubresources[i]->Destroy();
+			}
+
+			// The image is only destroyed once no command buffer references it, but the deferred queue guards
+			// against release paths that bypass the tracker (e.g. teardown of never-tracked resources).
+			if(mResource != nullptr || mAllocation != nullptr)
+				GetDevice().DeferNativeRelease(mResource, mAllocation);
+		}
+
+		GpuTextureSubresourceRange D3D12Image::GetRange(const TextureSurface& surface) const
+		{
+			GpuTextureSubresourceRange range;
+			range.BaseArrayLayer = surface.Face;
+			range.ArrayLayerCount = std::min(surface.FaceCount == 0 ? mFaceCount : surface.FaceCount, mFaceCount);
+			range.BaseMipLevel = surface.MipLevel;
+			range.MipLevelCount = std::min(surface.MipLevelCount == 0 ? mMipLevelCount : surface.MipLevelCount, mMipLevelCount);
+			range.AspectMask = GetRange().AspectMask;
+			return range;
+		}
+
 		D3D12Texture::D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device)
 			: Texture(createInformation)
-			, D3D12Resource()
 			, mGpuDevice(device)
 		{
-			SetDebugName(createInformation.Name);
 		}
 
 		D3D12Texture::~D3D12Texture()
@@ -69,15 +108,13 @@ namespace b3d
 			// Views reference the (about to be freed) native resource, so drop them first.
 			ReleaseViews();
 
-			if (mTexture == nullptr && mAllocation == nullptr)
+			if(mImage == nullptr)
 				return;
 
-			// The GPU may still be referencing the resource through in-flight command buffers, so the native
-			// release is deferred until the device can guarantee it is no longer used.
-			static_cast<D3D12GpuDevice&>(mGpuDevice).DeferNativeRelease(mTexture, mAllocation);
-
-			mAllocation = nullptr;
-			mTexture.Reset();
+			// The GPU may still be referencing the resource through in-flight command buffers - destruction is
+			// deferred until the image's bound count drops to zero.
+			mImage->Destroy();
+			mImage = nullptr;
 		}
 
 		void D3D12Texture::CreateTexture()
@@ -159,8 +196,6 @@ namespace b3d
 				initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 			}
 
-			SetCurrentState(initialState);
-
 			// Determine clear value for render targets / depth-stencil targets
 			D3D12_CLEAR_VALUE clearValue = {};
 			D3D12_CLEAR_VALUE* pClearValue = nullptr;
@@ -188,13 +223,15 @@ namespace b3d
 			allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 			allocDesc.ExtraHeapFlags = D3D12_HEAP_FLAG_NONE;
 
+			ComPtr<ID3D12Resource> resource;
+			D3D12MA::Allocation* allocation = nullptr;
 			HRESULT hr = device.GetAllocator()->CreateResource(
 				&allocDesc,
 				&resourceDesc,
 				initialState,
 				pClearValue,
-				&mAllocation,
-				IID_PPV_ARGS(&mTexture)
+				&allocation,
+				IID_PPV_ARGS(&resource)
 			);
 
 			if (FAILED(hr))
@@ -207,8 +244,30 @@ namespace b3d
 			if (!props.Name.empty())
 			{
 				const WString wideName = ToWideString(props.Name);
-				mTexture->SetName(wideName.c_str());
+				resource->SetName(wideName.c_str());
 			}
+
+			GpuTextureAspectFlags aspect = GpuTextureAspectFlag::Color;
+			if (PixelUtility::IsDepth(props.Format))
+			{
+				const bool hasStencil = mDXGIFormat == DXGI_FORMAT_D24_UNORM_S8_UINT ||
+					mDXGIFormat == DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+
+				aspect = hasStencil ? (GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil)
+					: GpuTextureAspectFlags(GpuTextureAspectFlag::Depth);
+			}
+
+			D3D12ImageCreateInformation imageCreateInformation;
+			imageCreateInformation.Resource = std::move(resource);
+			imageCreateInformation.Allocation = allocation;
+			imageCreateInformation.Format = mDXGIFormat;
+			imageCreateInformation.InitialState = initialState;
+			imageCreateInformation.FaceCount = faceCount;
+			imageCreateInformation.MipLevelCount = props.MipMapCount + 1;
+			imageCreateInformation.Aspect = aspect;
+			imageCreateInformation.Name = props.Name;
+
+			mImage = device.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
 
 			B3D_LOG(Info, LogRenderBackend, "D3D12: Created texture: {0}x{1}, format={2}, mips={3}",
 				props.Width, props.Height, (u32)mDXGIFormat, props.MipMapCount + 1);
@@ -371,7 +430,8 @@ namespace b3d
 
 		D3D12_CPU_DESCRIPTOR_HANDLE D3D12Texture::GetOrCreateView(const TextureSurface& surface, ViewType type)
 		{
-			if(mTexture == nullptr)
+			ID3D12Resource* nativeResource = GetD3D12Resource();
+			if(nativeResource == nullptr)
 				return D3D12_CPU_DESCRIPTOR_HANDLE{ 0 };
 
 			const ViewKey key{ surface, type };
@@ -460,7 +520,7 @@ namespace b3d
 				// Note: For depth textures the resource was created with a typed depth format (e.g. D32_FLOAT). A
 				// colour-aliased SRV over a non-typeless depth resource is invalid in D3D12.
 				// TODO(d3d12-port): Create depth textures with a typeless format so a shader-read SRV can be created.
-				d3d12Device->CreateShaderResourceView(mTexture.Get(), &srvDesc, handle);
+				d3d12Device->CreateShaderResourceView(nativeResource, &srvDesc, handle);
 			}
 			else // UAV
 			{
@@ -497,7 +557,7 @@ namespace b3d
 					break;
 				}
 
-				d3d12Device->CreateUnorderedAccessView(mTexture.Get(), nullptr, &uavDesc, handle);
+				d3d12Device->CreateUnorderedAccessView(nativeResource, nullptr, &uavDesc, handle);
 			}
 
 			mViews[key] = handle;
@@ -506,27 +566,34 @@ namespace b3d
 
 		GpuQueueMask D3D12Texture::GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags) const
 		{
-			// TODO(d3d12-port): Per-subresource GPU usage tracking is not yet implemented for the D3D12 backend.
+			if(mImage == nullptr)
+				return GpuQueueMask();
+
+			// Subresource use handles are registered on the generic tracker path, which does not split read/write
+			// counters, so per-subresource masks fall back to the whole-image mask filtered by access.
 			(void)mipLevel;
 			(void)arrayLayer;
-			(void)accessFlags;
-			return GpuQueueMask();
+			return mImage->GetUseInfo(accessFlags);
 		}
 
 		u32 D3D12Texture::GetBoundCount(u32 subresourceIdx) const
 		{
-			// TODO(d3d12-port): Per-subresource binding tracking is not yet implemented. Falls back to the
-			//					 aggregate resource-level counter maintained by IGpuResource.
-			(void)subresourceIdx;
-			return D3D12Resource::GetBoundCount();
+			if(mImage == nullptr)
+				return 0;
+
+			u32 face, mip;
+			mProperties.MapFromSubresourceIndex(subresourceIdx, face, mip);
+			return mImage->GetSubresource(face, mip)->GetBoundCount();
 		}
 
 		u32 D3D12Texture::GetUseCount(u32 subresourceIdx) const
 		{
-			// TODO(d3d12-port): Per-subresource usage tracking is not yet implemented. Falls back to the
-			//					 aggregate resource-level counter maintained by IGpuResource.
-			(void)subresourceIdx;
-			return D3D12Resource::GetUseCount();
+			if(mImage == nullptr)
+				return 0;
+
+			u32 face, mip;
+			mProperties.MapFromSubresourceIndex(subresourceIdx, face, mip);
+			return mImage->GetSubresource(face, mip)->GetUseCount();
 		}
 
 	} // namespace render

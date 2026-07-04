@@ -18,10 +18,10 @@ namespace b3d
 		 * Maps the engine's logical resource-use/access/layout model onto the fused D3D12 resource-state model.
 		 *
 		 * Unlike Vulkan (which tracks image layout and cache-access masks independently), D3D12 collapses both into a
-		 * single @c D3D12_RESOURCE_STATES value per (sub)resource. Because of that fusion the engine's CRTP resource
-		 * tracker/barrier helper - designed around Vulkan's split model and its per-subresource layout blocks - is a
-		 * poor fit here, and a direct usage->state mapping is used instead. Each D3D12 resource already stores a single
-		 * aggregate current state (see D3D12Resource), which the command buffer reads/writes when it emits transitions.
+		 * single @c D3D12_RESOURCE_STATES value per (sub)resource. GpuImageLayout maps onto that state space almost
+		 * 1:1, so images track real layouts through the shared resource tracker and D3D12BarrierHelper translates
+		 * them (plus the access flags that disambiguate e.g. depth read vs write) into native states here. Buffers
+		 * carry no layout in the core model; their states are derived from usage or stage/access flags instead.
 		 */
 		class D3D12BarrierUtility
 		{
@@ -47,6 +47,13 @@ namespace b3d
 			 * @param access		Read/write intent, used to disambiguate depth read vs write and general read vs UAV.
 			 */
 			static D3D12_RESOURCE_STATES GetResourceStateFromLayout(GpuImageLayout layout, GpuAccessFlags access);
+
+			/**
+			 * Translates pipeline-stage + access flags into the matching D3D12 buffer resource state. Used by the
+			 * barrier helper's low-level hooks, which only see stage masks (the shared tracker converts usage flags
+			 * to stages before invoking them).
+			 */
+			static D3D12_RESOURCE_STATES GetBufferStateFromStages(GpuStageFlags stages, GpuAccessFlags access);
 
 			/** Returns true if the state represents a read-only (or read-combinable) D3D12 state. UAV/RT/DEPTH_WRITE/COPY_DEST are not. */
 			static bool IsReadOnlyState(D3D12_RESOURCE_STATES state);
