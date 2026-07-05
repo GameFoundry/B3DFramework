@@ -820,6 +820,9 @@ namespace b3d
 		TID_PrecompiledShaderData = 1281,
 		TID_PrecompiledVariationData = 1282,
 		TID_PassInformation = 1283,
+		TID_GpuResourceTableLayout = 1284,
+		TID_GpuDescriptorTable = 1285,
+		TID_GpuDescriptorTableEntry = 1286,
 
 		// Moved from Engine layer
 		TID_Camera = 30000,

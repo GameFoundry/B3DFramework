@@ -32,6 +32,24 @@ RTTIType* GpuProgramBytecode::GetRtti() const
 	return GpuProgramBytecode::GetRttiStatic();
 }
 
+TArrayView<const GpuDescriptorTableEntry> GpuResourceTableLayout::GetEntries(const GpuDescriptorTable& table) const
+{
+	if(table.EntryCount == 0)
+		return TArrayView<const GpuDescriptorTableEntry>();
+
+	return TArrayView<const GpuDescriptorTableEntry>(Entries.data() + table.FirstEntry, table.EntryCount);
+}
+
+RTTIType* GpuResourceTableLayout::GetRttiStatic()
+{
+	return GpuResourceTableLayoutRTTI::Instance();
+}
+
+RTTIType* GpuResourceTableLayout::GetRtti() const
+{
+	return GpuResourceTableLayout::GetRttiStatic();
+}
+
 GpuProgram::GpuProgram(const GpuProgramCreateInformation& createInformation)
 	: mNeedsAdjacencyInfo(createInformation.RequiresAdjacency), mLanguage(createInformation.Language), mName(createInformation.Name), mType(createInformation.Type), mEntryPoint(createInformation.EntryPoint), mSource(createInformation.Source), mBytecode(createInformation.Bytecode)
 {

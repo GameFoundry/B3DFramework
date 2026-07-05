@@ -30,6 +30,7 @@ namespace b3d
 			B3D_RTTI_MEMBER(Messages, 3)
 			B3D_RTTI_MEMBER(CompilerId, 4)
 			B3D_RTTI_MEMBER(CompilerVersion, 5)
+			B3D_RTTI_MEMBER(ResourceTableLayout, 6)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -47,6 +48,32 @@ namespace b3d
 		TShared<IReflectable> NewRttiObject()
 		{
 			return B3DMakeShared<GpuProgramBytecode>();
+		}
+	};
+
+	class B3D_EXPORT GpuResourceTableLayoutRTTI : public TRTTIType<GpuResourceTableLayout, IReflectable, GpuResourceTableLayoutRTTI>
+	{
+	private:
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_CONTAINER(Tables, 0)
+			B3D_RTTI_MEMBER_CONTAINER(Entries, 1)
+		B3D_RTTI_END_MEMBERS
+
+	public:
+		const String& GetRttiName() override
+		{
+			static String name = "GpuResourceTableLayout";
+			return name;
+		}
+
+		u32 GetRttiId() const override
+		{
+			return TID_GpuResourceTableLayout;
+		}
+
+		TShared<IReflectable> NewRttiObject() override
+		{
+			return B3DMakeShared<GpuResourceTableLayout>();
 		}
 	};
 
@@ -220,6 +247,36 @@ namespace b3d
 
 			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
+		}
+	};
+
+	template <>
+	struct RTTIPlainType<GpuDescriptorTable> : RTTIPlainTypeHelper<GpuDescriptorTable, TID_GpuDescriptorTable, 1>
+	{
+		template <class Processor>
+		static void RTTIEnumerateFields(GpuDescriptorTable& object, Processor& processor, u8 /*version*/)
+		{
+			processor(object.Set);
+			processor(object.OffsetInBytes);
+			processor(object.SizeInBytes);
+			processor(object.FirstEntry);
+			processor(object.EntryCount);
+		}
+	};
+
+	template <>
+	struct RTTIPlainType<GpuDescriptorTableEntry> : RTTIPlainTypeHelper<GpuDescriptorTableEntry, TID_GpuDescriptorTableEntry, 1>
+	{
+		template <class Processor>
+		static void RTTIEnumerateFields(GpuDescriptorTableEntry& object, Processor& processor, u8 /*version*/)
+		{
+			processor(object.Kind);
+			processor(object.OffsetInBytes);
+			processor(object.TableIndex);
+			processor(object.Type);
+			processor(object.Slot);
+			processor(object.DescriptorCount);
+			processor(object.DescriptorSizeInBytes);
 		}
 	};
 

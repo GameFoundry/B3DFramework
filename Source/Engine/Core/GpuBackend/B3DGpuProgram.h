@@ -5,6 +5,7 @@
 #include "B3DPrerequisites.h"
 #include "Reflection/B3DIReflectable.h"
 #include "Utility/B3DDataBlob.h"
+#include "Utility/B3DTArrayView.h"
 #include "GpuBackend/B3DVertexDescription.h"
 
 namespace b3d
@@ -14,6 +15,77 @@ namespace b3d
 	 */
 
 	struct GpuProgramBytecode;
+
+	/** Identifies what a GpuDescriptorTableEntry describes: a pointer to a nested table, or a leaf resource binding. */
+	enum class GpuDescriptorEntryKind
+	{
+		SubTable, /**< Entry points at another table in GpuResourceTableLayout::Tables (via TableIndex). */
+		Resource, /**< Entry is a leaf resource binding (constant buffer / texture / buffer / sampler). */
+	};
+
+	/**
+	 * One node in a GpuResourceTableLayout: a contiguous group of descriptors and/or pointers to nested tables that a
+	 * backend packs together. Its entries live in GpuResourceTableLayout::Entries as the half-open range [FirstEntry, FirstEntry + EntryCount).
+	 */
+	struct GpuDescriptorTable
+	{
+		u32 Set = 0;           /**< Engine set (== register space) this table backs. Unused for the root table (index 0). */
+		u32 OffsetInBytes = 0; /**< Byte offset of this table's data within its parent table. 0 for the root table. */
+		u32 SizeInBytes = 0;   /**< Total byte size of this table's contents. */
+		u32 FirstEntry = 0;    /**< Index of this table's first entry in GpuResourceTableLayout::Entries. */
+		u32 EntryCount = 0;    /**< Number of entries belonging to this table. */
+	};
+
+	/**
+	 * A single member of a GpuDescriptorTable: either a pointer to a nested table (Kind == SubTable) or a leaf resource
+	 * binding (Kind == Resource). References to other tables are by array index into GpuResourceTableLayout::Tables,
+	 * never by pointer, so the whole layout is trivially serializable and relocatable.
+	 */
+	struct GpuDescriptorTableEntry
+	{
+		GpuDescriptorEntryKind Kind = GpuDescriptorEntryKind::Resource; /**< Selects which of the fields below apply. */
+		u32 OffsetInBytes = 0; /**< Byte offset of this entry within its parent table. */
+
+		// Kind == SubTable:
+		u32 TableIndex = 0; /**< Index into GpuResourceTableLayout::Tables of the nested table this entry points at. */
+
+		// Kind == Resource:
+		GpuParameterType Type = GpuParameterType::Unknown; /**< Resource class of the leaf binding. */
+		u32 Slot = 0;                  /**< Engine slot the resource was declared at. */
+		u32 DescriptorCount = 1;       /**< Number of descriptors (array size); 1 for a non-array binding. */
+		u32 DescriptorSizeInBytes = 0; /**< Size of a single descriptor; 0 when driver-managed. */
+	};
+
+	/**
+	 * Description of how a GPU program's resources are packed into descriptor tables.
+	 *
+	 * The layout is a flat pool of tables that reference each other by array index. Tables[0] is the root, 
+	 * the traversal helpers walk the hierarchy from there.
+	 */
+	struct B3D_EXPORT GpuResourceTableLayout : IReflectable
+	{
+		/** All descriptor tables, flattened. Tables[0] is the root table. Empty when the program binds no resources. */
+		Vector<GpuDescriptorTable> Tables;
+
+		/** Shared entry pool. Each table owns the sub-range [FirstEntry, FirstEntry + EntryCount) of this vector. */
+		Vector<GpuDescriptorTableEntry> Entries;
+
+		/** True when the program declares no resource tables (a resource-less shader). */
+		bool IsEmpty() const { return Tables.empty(); }
+
+		/** Returns the root (top-level) table. Only valid when !IsEmpty(). */
+		const GpuDescriptorTable& GetRootTable() const { return Tables.front(); }
+
+		/** Returns the entries owned by @p table as a contiguous read-only view into Entries. */
+		TArrayView<const GpuDescriptorTableEntry> GetEntries(const GpuDescriptorTable& table) const;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+		friend class GpuResourceTableLayoutRTTI;
+		static RTTIType* GetRttiStatic();
+		RTTIType* GetRtti() const override;
+	};
 
 	/** Descriptor structure used for initialization of a GpuProgram. */
 	struct B3D_EXPORT GpuProgramCreateInformation : public IReflectable
@@ -52,6 +124,9 @@ namespace b3d
 
 		/** Reflected information about GPU program parameters. */
 		TShared<GpuProgramParameterDescription> ParameterDescription;
+
+		/** Reflected description of how the program's resources pack into descriptor tables (SRT / root signature). */
+		TShared<GpuResourceTableLayout> ResourceTableLayout;
 
 		/** Input parameters for a vertex GPU program. */
 		Vector<VertexElement> VertexInput;
