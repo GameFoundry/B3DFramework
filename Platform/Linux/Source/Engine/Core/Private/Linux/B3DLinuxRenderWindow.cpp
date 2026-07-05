@@ -7,6 +7,7 @@
 #include "Private/Linux/B3DLinuxVideoModeInfo.h"
 #include "Math/B3DMath.h"
 #include "Managers/B3DRenderWindowManager.h"
+#include "B3DApplication.h"
 #include <X11/Xutil.h>
 
 #define XRANDR_ROTATION_LEFT (1 << 1)
@@ -20,18 +21,25 @@ LinuxRenderWindow::LinuxRenderWindow(const RenderWindowCreateInformation& create
 
 void LinuxRenderWindow::Initialize()
 {
-	LinuxPlatform::lockX();
+	LinuxPlatform::LockX();
 
-	mRenderWindowProperties.IsFullScreen = mCreateInformation.Fullscreen;
 	mIsChild = false;
 
 	XVisualInfo visualInfoTempl = {};
-	visualInfoTempl.screen = XDefaultScreen(LinuxPlatform::getXDisplay());
+	visualInfoTempl.screen = XDefaultScreen(LinuxPlatform::GetXDisplay());
 	visualInfoTempl.depth = 24;
 	visualInfoTempl.c_class = TrueColor;
 
 	int32_t numVisuals;
-	XVisualInfo* visualInfo = XGetVisualInfo(LinuxPlatform::getXDisplay(), VisualScreenMask | VisualDepthMask | VisualClassMask, &visualInfoTempl, &numVisuals);
+	XVisualInfo* visualInfo = XGetVisualInfo(LinuxPlatform::GetXDisplay(), VisualScreenMask | VisualDepthMask | VisualClassMask, &visualInfoTempl, &numVisuals);
+
+	if(visualInfo == nullptr || numVisuals == 0)
+	{
+		LinuxPlatform::UnlockX();
+
+		B3D_LOG(Error, LogPlatform, "Failed to find a usable X11 visual (24-bit TrueColor) for window creation.");
+		return;
+	}
 
 	WindowCreateInformation windowCreateInformation;
 	windowCreateInformation.X = mCreateInformation.Left;
@@ -44,6 +52,7 @@ void LinuxRenderWindow::Initialize()
 	windowCreateInformation.ShowOnTaskBar = !mCreateInformation.ToolWindow;
 	windowCreateInformation.Modal = mCreateInformation.Modal;
 	windowCreateInformation.VisualInfo = *visualInfo;
+	XFree(visualInfo);
 	windowCreateInformation.Screen = mCreateInformation.VideoMode.OutputIdx;
 	windowCreateInformation.Hidden = mCreateInformation.HideUntilSwap || mCreateInformation.Hidden;
 
@@ -56,7 +65,7 @@ void LinuxRenderWindow::Initialize()
 	}
 
 	mIsChild = windowCreateInformation.Parent != 0;
-	mWindowProperties.IsFullScreen = mCreateInformation.Fullscreen && !mIsChild;
+	mRenderWindowProperties.IsFullScreen = mCreateInformation.Fullscreen && !mIsChild;
 
 	mShowOnSwap = mCreateInformation.HideUntilSwap && !mCreateInformation.Hidden;
 	mRenderWindowProperties.IsHidden = mCreateInformation.HideUntilSwap || mCreateInformation.Hidden;
@@ -73,9 +82,9 @@ void LinuxRenderWindow::Initialize()
 	mRenderTargetProperties.MultisampleCount = mCreateInformation.MultisampleCount;
 
 	XWindowAttributes windowAttributes;
-	XGetWindowAttributes(LinuxPlatform::getXDisplay(), mWindow->GetXWindowInternal(), &windowAttributes);
+	XGetWindowAttributes(LinuxPlatform::GetXDisplay(), mWindow->GetXWindowInternal(), &windowAttributes);
 
-	LinuxPlatform::unlockX(); // Calls below have their own locking mechanisms
+	LinuxPlatform::UnlockX(); // Calls below have their own locking mechanisms
 
 	if(mCreateInformation.Fullscreen && !mIsChild)
 		SetFullscreen(mCreateInformation.VideoMode);
@@ -111,18 +120,18 @@ void LinuxRenderWindow::Destroy()
 
 Vector2I LinuxRenderWindow::ScreenToWindowPosition(const Vector2I& screenPosition) const
 {
-	LinuxPlatform::lockX();
+	LinuxPlatform::LockX();
 	Vector2I pos = mWindow->ScreenToWindowPos(screenPosition);
-	LinuxPlatform::unlockX();
+	LinuxPlatform::UnlockX();
 
 	return pos;
 }
 
 Vector2I LinuxRenderWindow::WindowToScreenPosition(const Vector2I& windowPosition) const
 {
-	LinuxPlatform::lockX();
+	LinuxPlatform::LockX();
 	Vector2I pos = mWindow->WindowToScreenPos(windowPosition);
-	LinuxPlatform::unlockX();
+	LinuxPlatform::UnlockX();
 
 	return pos;
 }
@@ -131,9 +140,9 @@ void LinuxRenderWindow::Move(i32 left, i32 top)
 {
 	if(!mRenderWindowProperties.IsFullScreen)
 	{
-		LinuxPlatform::lockX();
+		LinuxPlatform::LockX();
 		mWindow->Move(left, top);
-		LinuxPlatform::unlockX();
+		LinuxPlatform::UnlockX();
 
 		mRenderWindowProperties.Top = mWindow->GetTop();
 		mRenderWindowProperties.Left = mWindow->GetLeft();
@@ -146,9 +155,9 @@ void LinuxRenderWindow::Resize(u32 width, u32 height)
 {
 	if(!mRenderWindowProperties.IsFullScreen)
 	{
-		LinuxPlatform::lockX();
+		LinuxPlatform::LockX();
 		mWindow->Resize(width, height);
-		LinuxPlatform::unlockX();
+		LinuxPlatform::UnlockX();
 
 		mRenderTargetProperties.Width = mWindow->GetWidth();
 		mRenderTargetProperties.Height = mWindow->GetHeight();
@@ -160,9 +169,9 @@ void LinuxRenderWindow::Resize(u32 width, u32 height)
 
 void LinuxRenderWindow::Hide()
 {
-	LinuxPlatform::lockX();
+	LinuxPlatform::LockX();
 	mWindow->SetHidden(true);
-	LinuxPlatform::unlockX();
+	LinuxPlatform::UnlockX();
 
 	mRenderWindowProperties.IsHidden = true;
 
@@ -171,9 +180,9 @@ void LinuxRenderWindow::Hide()
 
 void LinuxRenderWindow::Show()
 {
-	LinuxPlatform::lockX();
+	LinuxPlatform::LockX();
 	mWindow->SetHidden(false);
-	LinuxPlatform::unlockX();
+	LinuxPlatform::UnlockX();
 
 	mRenderWindowProperties.IsHidden = false;
 
@@ -182,9 +191,9 @@ void LinuxRenderWindow::Show()
 
 void LinuxRenderWindow::Minimize()
 {
-	LinuxPlatform::lockX();
+	LinuxPlatform::LockX();
 	mWindow->Minimize();
-	LinuxPlatform::unlockX();
+	LinuxPlatform::UnlockX();
 
 	mRenderWindowProperties.IsMaximized = false;
 	mRenderWindowProperties.IsMinimized = true;
@@ -194,9 +203,9 @@ void LinuxRenderWindow::Minimize()
 
 void LinuxRenderWindow::Maximize()
 {
-	LinuxPlatform::lockX();
+	LinuxPlatform::LockX();
 	mWindow->Maximize();
-	LinuxPlatform::unlockX();
+	LinuxPlatform::UnlockX();
 
 	mRenderWindowProperties.IsMaximized = true;
 	mRenderWindowProperties.IsMinimized = false;
@@ -209,9 +218,9 @@ void LinuxRenderWindow::Maximize()
 
 void LinuxRenderWindow::Restore()
 {
-	LinuxPlatform::lockX();
+	LinuxPlatform::LockX();
 	mWindow->Restore();
-	LinuxPlatform::unlockX();
+	LinuxPlatform::UnlockX();
 
 	mRenderWindowProperties.IsMaximized = false;
 	mRenderWindowProperties.IsMinimized = false;
@@ -224,7 +233,7 @@ void LinuxRenderWindow::Restore()
 
 void LinuxRenderWindow::SetVideoMode(i32 screen, RROutput output, RRMode mode)
 {
-	::Display* display = LinuxPlatform::getXDisplay();
+	::Display* display = LinuxPlatform::GetXDisplay();
 	::Window rootWindow = RootWindow(display, screen);
 
 	XRRScreenResources* screenRes = XRRGetScreenResources(display, rootWindow);
@@ -299,89 +308,86 @@ void LinuxRenderWindow::SetFullscreen(const VideoMode& mode)
 	}
 	else
 	{
-		LinuxPlatform::lockX();
+		LinuxPlatform::LockX();
 
-		// Look for mode matching the requested resolution
-		::Display* display = LinuxPlatform::getXDisplay();
+		// Look for an XRandR mode matching the requested resolution
+		::Display* display = LinuxPlatform::GetXDisplay();
 		::Window rootWindow = RootWindow(display, screen);
 
-		XRRScreenResources* screenRes = XRRGetScreenResources(display, rootWindow);
-		if(screenRes == nullptr)
-		{
-			B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve screen resources. ");
-			return;
-		}
-
-		XRROutputInfo* outputInfo = XRRGetOutputInfo(display, screenRes, outputID);
-		if(outputInfo == nullptr)
-		{
-			XRRFreeScreenResources(screenRes);
-
-			B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve output info for output: {0}", (u32)outputID);
-			return;
-		}
-
-		XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, screenRes, outputInfo->crtc);
-		if(crtcInfo == nullptr)
-		{
-			XRRFreeScreenResources(screenRes);
-			XRRFreeOutputInfo(outputInfo);
-
-			B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve CRTC info for output: {0}", (u32)outputID);
-			return;
-		}
-
 		bool foundMode = false;
-		for(i32 i = 0; i < screenRes->nmode; i++)
+
+		XRRScreenResources* screenRes = XRRGetScreenResources(display, rootWindow);
+		if(screenRes != nullptr)
 		{
-			const XRRModeInfo& modeInfo = screenRes->modes[i];
-
-			u32 width, height;
-
-			if(crtcInfo->rotation & (XRANDR_ROTATION_LEFT | XRANDR_ROTATION_RIGHT))
+			XRROutputInfo* randrOutputInfo = XRRGetOutputInfo(display, screenRes, outputID);
+			if(randrOutputInfo != nullptr)
 			{
-				width = modeInfo.height;
-				height = modeInfo.width;
+				XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, screenRes, randrOutputInfo->crtc);
+				if(crtcInfo != nullptr)
+				{
+					for(i32 i = 0; i < screenRes->nmode; i++)
+					{
+						const XRRModeInfo& modeInfo = screenRes->modes[i];
+
+						u32 width, height;
+
+						if(crtcInfo->rotation & (XRANDR_ROTATION_LEFT | XRANDR_ROTATION_RIGHT))
+						{
+							width = modeInfo.height;
+							height = modeInfo.width;
+						}
+						else
+						{
+							width = modeInfo.width;
+							height = modeInfo.height;
+						}
+
+						float refreshRate;
+						if(modeInfo.hTotal != 0 && modeInfo.vTotal != 0)
+							refreshRate = (float)(modeInfo.dotClock / (double)(modeInfo.hTotal * modeInfo.vTotal));
+						else
+							refreshRate = 0.0f;
+
+						if(width == mode.Width && height == mode.Height)
+						{
+							modeID = modeInfo.id;
+							foundMode = true;
+
+							if(Math::ApproxEquals(refreshRate, mode.RefreshRate))
+								break;
+						}
+					}
+
+					XRRFreeCrtcInfo(crtcInfo);
+				}
+				else
+					B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve CRTC info for output: {0}", (u32)outputID);
+
+				XRRFreeOutputInfo(randrOutputInfo);
 			}
 			else
-			{
-				width = modeInfo.width;
-				height = modeInfo.height;
-			}
+				B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve output info for output: {0}", (u32)outputID);
 
-			float refreshRate;
-			if(modeInfo.hTotal != 0 && modeInfo.vTotal != 0)
-				refreshRate = (float)(modeInfo.DotClock / (double)(modeInfo.hTotal * modeInfo.vTotal));
-			else
-				refreshRate = 0.0f;
-
-			if(width == mode.Width && height == mode.Height)
-			{
-				modeID = modeInfo.id;
-				foundMode = true;
-
-				if(Math::ApproxEquals(refreshRate, mode.RefreshRate))
-					break;
-			}
+			XRRFreeScreenResources(screenRes);
 		}
+		else
+			B3D_LOG(Error, LogPlatform, "XRR: Failed to retrieve screen resources.");
+
+		LinuxPlatform::UnlockX();
 
 		if(!foundMode)
 		{
-			LinuxPlatform::unlockX();
-
 			B3D_LOG(Error, LogPlatform, "Unable to enter fullscreen, unsupported video mode requested.");
 			return;
 		}
-
-		LinuxPlatform::unlockX();
 	}
 
-	LinuxPlatform::lockX();
+	LinuxPlatform::LockX();
 
 	SetVideoMode(screen, outputID, modeID);
 	mWindow->SetFullscreenInternal(true);
 
-	LinuxPlatform::unlockX();
+	LinuxPlatform::UnlockX();
 
 	mRenderWindowProperties.IsFullScreen = true;
 
@@ -415,12 +421,12 @@ void LinuxRenderWindow::SetWindowed(u32 width, u32 height)
 
 	const render::LinuxVideoMode& desktopVideoMode = static_cast<const render::LinuxVideoMode&>(outputInfo.GetDesktopVideoMode());
 
-	LinuxPlatform::lockX();
+	LinuxPlatform::LockX();
 
 	SetVideoMode(outputInfo.GetScreenInternal(), outputInfo.GetOutputIDInternal(), desktopVideoMode.GetModeIDInternal());
 	mWindow->SetFullscreenInternal(false);
 
-	LinuxPlatform::unlockX();
+	LinuxPlatform::UnlockX();
 
 	mRenderWindowProperties.IsFullScreen = false;
 	mRenderTargetProperties.Width = width;

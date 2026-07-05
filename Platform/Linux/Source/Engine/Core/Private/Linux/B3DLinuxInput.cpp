@@ -351,7 +351,7 @@ void LinuxInputBackend::EnumerateGamepads(Vector<GamepadInfo>& outGamepadInfos)
 	for(u32 eventIndex = 0; eventIndex < 64; ++eventIndex)
 	{
 		const String eventPath = "/dev/input/event" + ToString(eventIndex);
-		const int file = open(eventPath.c_str(), O_RDONLY | O_NONBLOCK);
+		const int file = open(eventPath.c_str(), O_RDONLY | O_NONBLOCK | O_CLOEXEC);
 		if(file == -1)
 		{
 			// Note: We're ignoring failures due to permissions. The assumption is that gamepads won't have special

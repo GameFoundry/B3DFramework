@@ -13,6 +13,8 @@ void DynamicLibrary::Load()
 	if(mHandle)
 		return;
 
+	// RTLD_GLOBAL exports the plugin's symbols process-wide, which cross-plugin code may rely on (shared RTTI,
+	// exceptions across module boundaries). Consider RTLD_LOCAL if plugin symbol collisions ever surface.
 	mHandle = dlopen(mName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 
 	if(!mHandle)

@@ -54,7 +54,26 @@ public:
 		: Affinity(affinity)
 		, WorkerFunction(std::move(workerFunction))
 	{
-		const int result = pthread_create(&ThreadHandle, nullptr, &Implementation::Run, this);
+		pthread_attr_t attributes;
+		pthread_attr_init(&attributes);
+
+		const size_t coreCount = Affinity.GetCoreCount();
+		if (coreCount > 0)
+		{
+			cpu_set_t cpuSet;
+			CPU_ZERO(&cpuSet);
+
+			for (size_t coreIndex = 0; coreIndex < coreCount; coreIndex++)
+				CPU_SET(Affinity[coreIndex].Pthread.Index, &cpuSet);
+
+			const int affinityResult = pthread_attr_setaffinity_np(&attributes, sizeof(cpu_set_t), &cpuSet);
+			if (affinityResult != 0)
+				B3D_LOG(Error, LogGeneric, "pthread_attr_setaffinity_np() failed with error {0}.", affinityResult);
+		}
+
+		const int result = pthread_create(&ThreadHandle, &attributes, &Implementation::Run, this);
+		pthread_attr_destroy(&attributes);
+
 		if (result != 0)
 			B3D_LOG(Error, LogGeneric, "pthread_create() failed with error {0}.", result);
 		else
@@ -75,21 +94,6 @@ public:
 		}
 	}
 
-	void SetAffinity()
-	{
-		const size_t coreCount = Affinity.GetCoreCount();
-		if (coreCount == 0)
-			return;
-
-		cpu_set_t cpuSet;
-		CPU_ZERO(&cpuSet);
-
-		for (size_t coreIndex = 0; coreIndex < coreCount; coreIndex++)
-			CPU_SET(Affinity[coreIndex].Pthread.Index, &cpuSet);
-
-		pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuSet);
-	}
-
 	static void* Run(void* arg)
 	{
 		Implementation* implementation = static_cast<Implementation*>(arg);
@@ -98,7 +102,6 @@ public:
 		Thread::CurrentId = threadId;
 		implementation->KernelThreadId.store(threadId, std::memory_order_release);
 
-		implementation->SetAffinity();
 		implementation->WorkerFunction();
 		return nullptr;
 	}
@@ -148,6 +151,10 @@ void Thread::SetName(const char* format, ...)
 	va_start(vararg, format);
 	vsnprintf(name, sizeof(name), format, vararg);
 	va_end(vararg);
+
+	// Linux limits thread names to 16 bytes including the null terminator; glibc rejects longer names with
+	// ERANGE (silently leaving the old name). Truncate proactively so long names still take partial effect.
+	name[15] = '\0';
 
 	pthread_setname_np(pthread_self(), name);
 }

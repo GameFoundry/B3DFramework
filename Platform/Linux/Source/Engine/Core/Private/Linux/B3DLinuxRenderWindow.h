@@ -9,7 +9,6 @@
 namespace b3d
 {
 	class LinuxWindow;
-	class LinuxRenderWindow;
 
 	namespace render
 	{
@@ -23,6 +22,8 @@ namespace b3d
 	/** Render window implementation for Linux using Xlib. */
 	class B3D_EXPORT LinuxRenderWindow : public RenderWindow
 	{
+		using Super = RenderWindow;
+
 	public:
 		LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow);
 
@@ -39,7 +40,7 @@ namespace b3d
 		void Maximize() override;
 		void Restore() override;
 		void SetFullscreen(u32 width, u32 height, float refreshRate = 60.0f, u32 monitorIdx = 0) override;
-		void SetFullscreen(const VideoMode& mode);
+		void SetFullscreen(const VideoMode& mode) override;
 		void SetWindowed(u32 width, u32 height) override;
 		void SetVSync(bool enabled, u32 interval = 1) override;
 
@@ -65,6 +66,8 @@ namespace b3d
 		/** Render thread proxy for b3d::LinuxRenderWindow. */
 		class B3D_EXPORT LinuxRenderWindow : public RenderWindow
 		{
+			using Super = RenderWindow;
+
 		public:
 			LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 x11WindowHandle, const TShared<RenderWindow>& parentWindow);
 		};

@@ -48,12 +48,12 @@ bool UnixFileDataStream::Open()
 
 	int flags;
 	if(wantRead && wantWrite)
-		flags = O_RDWR;
+		flags = O_RDWR | O_CLOEXEC;
 	else if(wantWrite)
 		// Write-only mirrors CreateAndOpenFile: create the file (truncating any existing one). Otherwise open an existing file.
-		flags = O_WRONLY | O_CREAT | O_TRUNC;
+		flags = O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC;
 	else
-		flags = O_RDONLY;
+		flags = O_RDONLY | O_CLOEXEC;
 
 	const String pathStr = mPath.ToString();
 	const int fd = ::open(pathStr.c_str(), flags, 0644);
@@ -65,6 +65,7 @@ bool UnixFileDataStream::Open()
 
 	// Strict sharing: read-only handles permit other readers (FILE_SHARE_READ); any write-capable handle is exclusive
 	// (dwShareMode = 0). Shared permits sharing.
+	// Note: flock() is advisory and does not interoperate with fcntl() byte-range locks or all NFS setups; local-disk targets only.
 	if(!mAccess.IsSet(FileAccessFlag::Shared))
 	{
 		const int lockOp = wantWrite ? (LOCK_EX | LOCK_NB) : (LOCK_SH | LOCK_NB);

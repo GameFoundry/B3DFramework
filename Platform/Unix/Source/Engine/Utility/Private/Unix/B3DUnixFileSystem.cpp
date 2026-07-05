@@ -17,12 +17,18 @@
 #include <cstdlib>
 #include <fstream>
 
+#if B3D_PLATFORM_MACOS
+#include <mach-o/dyld.h>
+#endif
+
 #define HANDLE_PATH_ERROR(path__, errno__) \
 	B3D_LOG(Error, LogFileSystem, (String(__FUNCTION__) + ": " + (path__) + ": " + (strerror(errno__))));
 
 using namespace b3d;
 
-bool unix_pathExists(const String& path)
+namespace {
+
+bool UnixPathExists(const String& path)
 {
 	struct stat st_buf;
 	if(stat(path.c_str(), &st_buf) == 0)
@@ -36,7 +42,7 @@ bool unix_pathExists(const String& path)
 	}
 }
 
-bool unix_stat(const String& path, struct stat* st_buf)
+bool UnixStat(const String& path, struct stat* st_buf)
 {
 	if(stat(path.c_str(), st_buf) != 0)
 	{
@@ -46,27 +52,27 @@ bool unix_stat(const String& path, struct stat* st_buf)
 	return true;
 }
 
-bool unix_isFile(const String& path)
+bool UnixIsFile(const String& path)
 {
 	struct stat st_buf;
-	if(unix_stat(path, &st_buf))
+	if(UnixStat(path, &st_buf))
 		return S_ISREG(st_buf.st_mode);
 
 	return false;
 }
 
-bool unix_isDirectory(const String& path)
+bool UnixIsFolder(const String& path)
 {
 	struct stat st_buf;
-	if(unix_stat(path, &st_buf))
+	if(UnixStat(path, &st_buf))
 		return S_ISDIR(st_buf.st_mode);
 
 	return false;
 }
 
-bool unix_createDirectory(const String& path)
+bool UnixCreateFolder(const String& path)
 {
-	if(unix_pathExists(path) && unix_isDirectory(path))
+	if(UnixPathExists(path) && UnixIsFolder(path))
 		return false;
 
 	if(mkdir(path.c_str(), 0755))
@@ -78,10 +84,12 @@ bool unix_createDirectory(const String& path)
 	return true;
 }
 
+} // namespace
+
 bool FileSystem::RemoveFile(const Path& path)
 {
 	String pathStr = path.ToString();
-	if(unix_isDirectory(pathStr))
+	if(UnixIsFolder(pathStr))
 	{
 		if(rmdir(pathStr.c_str()))
 		{
@@ -120,6 +128,7 @@ bool FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 	if(std::rename(oldPathStr.c_str(), newPathStr.c_str()) == -1)
 	{
 		// Cross-filesystem copy is likely needed (for example, /tmp to Banshee install dir while copying assets)
+		// Future fast-path: copy_file_range()/reflink (FICLONE) can avoid the userspace stream copy on same-fs and CoW filesystems.
 		std::ifstream src(oldPathStr.c_str(), std::ios::binary);
 		std::ofstream dst(newPathStr.c_str(), std::ios::binary);
 		dst << src.rdbuf(); // First, copy
@@ -161,22 +170,22 @@ u64 FileSystem::GetFileSize(const Path& path)
 
 bool FileSystem::Exists(const Path& path)
 {
-	return unix_pathExists(path.ToString());
+	return UnixPathExists(path.ToString());
 }
 
 bool FileSystem::IsFile(const Path& path)
 {
 	String pathStr = path.ToString();
-	return unix_pathExists(pathStr) && unix_isFile(pathStr);
+	return UnixPathExists(pathStr) && UnixIsFile(pathStr);
 }
 
-bool FileSystem::IsDirectory(const Path& path)
+bool FileSystem::IsFolder(const Path& path)
 {
 	String pathStr = path.ToString();
-	return unix_pathExists(pathStr) && unix_isDirectory(pathStr);
+	return UnixPathExists(pathStr) && UnixIsFolder(pathStr);
 }
 
-bool FileSystem::CreateDir(const Path& path)
+bool FileSystem::CreateFolder(const Path& path)
 {
 	Path parentPath = path;
 	while(!Exists(parentPath) && parentPath.GetDirectoryCount() > 0)
@@ -187,14 +196,14 @@ bool FileSystem::CreateDir(const Path& path)
 	for(u32 directoryIndex = parentPath.GetDirectoryCount(); directoryIndex < path.GetDirectoryCount(); directoryIndex++)
 	{
 		parentPath.Append(path[directoryIndex]);
-		if(!unix_createDirectory(parentPath.ToString()))
+		if(!UnixCreateFolder(parentPath.ToString()))
 			return false;
 	}
 
 	// Last "file" entry is also considered a directory
 	if(!parentPath.Equals(path))
 	{
-		if(!unix_createDirectory(path.ToString()))
+		if(!UnixCreateFolder(path.ToString()))
 			return false;
 	}
 
@@ -205,7 +214,7 @@ void FileSystem::GetChildren(const Path& dirPath, Vector<Path>& files, Vector<Pa
 {
 	const String pathStr = dirPath.ToString();
 
-	if(unix_isFile(pathStr))
+	if(UnixIsFile(pathStr))
 		return;
 
 	DIR* dp = opendir(pathStr.c_str());
@@ -221,7 +230,7 @@ void FileSystem::GetChildren(const Path& dirPath, Vector<Path>& files, Vector<Pa
 		const String filename(ep->d_name);
 		if(filename != "." && filename != "..")
 		{
-			if(unix_isDirectory(pathStr + "/" + filename))
+			if(UnixIsFolder(pathStr + "/" + filename))
 				directories.push_back(dirPath + (filename + "/"));
 			else
 				files.push_back(dirPath + filename);
@@ -257,7 +266,7 @@ bool FileSystem::Iterate(const Path& dirPath, std::function<bool(const Path&)> f
 {
 	String pathStr = dirPath.ToString();
 
-	if(unix_isFile(pathStr))
+	if(UnixIsFile(pathStr))
 		return false;
 
 	DIR* dirHandle = opendir(pathStr.c_str());
@@ -275,7 +284,7 @@ bool FileSystem::Iterate(const Path& dirPath, std::function<bool(const Path&)> f
 			continue;
 
 		Path fullPath = dirPath;
-		if(unix_isDirectory(pathStr + "/" + filename))
+		if(UnixIsFolder(pathStr + "/" + filename))
 		{
 			Path childDir = fullPath.Append(filename + "/");
 			if(dirCallback != nullptr)
@@ -314,7 +323,7 @@ bool FileSystem::Iterate(const Path& dirPath, std::function<bool(const Path&)> f
 	return true;
 }
 
-Path FileSystem::GetTempDirectoryPath()
+Path FileSystem::GetTemporaryFolderPath()
 {
 	String tmpdir;
 
@@ -343,8 +352,65 @@ Path FileSystem::GetTempDirectoryPath()
 	if(directoryName == nullptr)
 	{
 		B3D_LOG(Error, LogFileSystem, String(__FUNCTION__) + ": " + strerror(errno));
-		return Path(StringUtil::BLANK);
+		return Path(StringUtility::kBlank);
 	}
 
 	return Path(String(directoryName) + "/");
+}
+
+Path FileSystem::GetExecutableFolderPath()
+{
+#if B3D_PLATFORM_LINUX
+	char buffer[PATH_MAX];
+	const ssize_t numBytes = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+	if(numBytes <= 0)
+	{
+		B3D_LOG(Error, LogFileSystem, String("Error when calling readlink(\"/proc/self/exe\"): ") + strerror(errno));
+		return Path();
+	}
+
+	buffer[numBytes] = '\0';
+	return Path(String(buffer)).GetParent();
+#elif B3D_PLATFORM_MACOS
+	char buffer[PATH_MAX];
+	uint32_t size = sizeof(buffer);
+	if(_NSGetExecutablePath(buffer, &size) != 0)
+	{
+		B3D_LOG(Error, LogFileSystem, "Error when calling _NSGetExecutablePath(): buffer too small.");
+		return Path();
+	}
+
+	return Path(String(buffer)).GetParent();
+#endif
+}
+
+Path FileSystem::GetApplicationDataFolder()
+{
+	const char* home = getenv("HOME");
+
+#if B3D_PLATFORM_MACOS
+	Path path(String(home != nullptr ? home : "") + "/Library/Application Support/");
+#else
+	// Honor the XDG base directory specification, defaulting to ~/.local/share.
+	Path path;
+	const char* xdgDataHome = getenv("XDG_DATA_HOME");
+	if(xdgDataHome != nullptr && xdgDataHome[0] != '\0')
+		path = Path(String(xdgDataHome) + "/");
+	else
+		path = Path(String(home != nullptr ? home : "") + "/.local/share/");
+#endif
+
+	path.Append("Banshee3D/");
+	return path;
+}
+
+Path FileSystem::GetUniqueTemporaryFilePath()
+{
+	Path output = GetTemporaryFolderPath();
+	output.SetFilename(UUIDGenerator::GenerateRandom().ToString());
+
+	while(Exists(output))
+		output.SetFilename(UUIDGenerator::GenerateRandom().ToString());
+
+	return output;
 }

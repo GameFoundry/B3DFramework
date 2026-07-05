@@ -6,12 +6,17 @@
 #include <fcntl.h>
 #include <linux/input.h>
 #include <unistd.h>
+#include <cerrno>
+#include <cstring>
 
 using namespace b3d;
 
 // Number of axis slots tracked per gamepad. Covers the common InputAxis entries plus a few extra slots that
 // unrecognized device axes get mapped to (starting at InputAxis::Count).
 static constexpr u32 kMaxGamepadAxes = 24;
+
+// Max number of evdev events to read in a single batch.
+static constexpr u32 kGamepadEventBufferSize = 64;
 
 /** Converts an evdev event timestamp into milliseconds. */
 u64 EventTimeToMs(const timeval& time)
@@ -82,7 +87,7 @@ LinuxGamepad::LinuxGamepad(const GamepadInfo& gamepadInfo, Input& owner)
 	mPovState.Pressed = false;
 
 	const String eventPath = "/dev/input/event" + ToString(mInfo.EventHandlerIdx);
-	mFileHandle = open(eventPath.c_str(), O_RDONLY | O_NONBLOCK);
+	mFileHandle = open(eventPath.c_str(), O_RDONLY | O_NONBLOCK | O_CLOEXEC);
 
 	if(mFileHandle == -1)
 		B3D_LOG(Error, LogPlatform, "Failed to open input event file handle for device: {0}.", mInfo.Name);
@@ -108,12 +113,27 @@ void LinuxGamepad::Capture()
 	AxisState axisState[kMaxGamepadAxes];
 	B3DZeroOut(axisState);
 
-	input_event events[BUFFER_SIZE_GAMEPAD];
+	input_event events[kGamepadEventBufferSize];
 	while(true)
 	{
 		const ssize_t numReadBytes = read(mFileHandle, &events, sizeof(events));
-		if(numReadBytes < 0)
+		if(numReadBytes <= 0)
+		{
+			// EAGAIN just means the non-blocking event queue is drained - the normal exit path.
+			// EINTR: retry on the next Capture() call.
+			if(numReadBytes < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)
+			{
+				// Genuine failure (e.g. ENODEV after the device was unplugged mid-read). Stop reading from
+				// this handle; the hot-plug rebuild destroys the device once the removal notification arrives.
+				B3D_LOG(Error, LogPlatform, "Reading input events failed for gamepad {0}. Error: {1}",
+					mInfo.Name, String(strerror(errno)));
+
+				close(mFileHandle);
+				mFileHandle = -1;
+			}
+
 			break;
+		}
 
 		// Drain the events but discard them while another window owns input
 		if(!mHasInputFocus)

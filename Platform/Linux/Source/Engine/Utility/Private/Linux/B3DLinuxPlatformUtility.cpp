@@ -5,6 +5,11 @@
 #include <stdlib.h>
 #include <uuid/uuid.h>
 #include <sys/utsname.h>
+#include <unistd.h>
+#include <cstring>
+#include <fstream>
+#include <sstream>
+#include <limits>
 
 #include <unicode/ustring.h>
 #include <unicode/utypes.h>
@@ -13,6 +18,7 @@
 
 using namespace b3d;
 
+// TODO: Verify this stub is still required by the ICU version currently linked; re-evaluate once the Linux target builds again.
 /** Define a stub 'entry-point' required by ICU. **/
 typedef struct
 {
@@ -61,15 +67,20 @@ extern "C" U_EXPORT const ICU_Data_Header U_ICUDATA_ENTRY_POINT = {
 
 GPUInfo PlatformUtility::sGPUInfo;
 
-void PlatformUtility::terminate(bool force)
+void PlatformUtility::Terminate(bool force)
 {
 	// TODOPORT - Support clean exit by sending the main window a quit message
 	exit(0);
 }
 
-SystemInfo PlatformUtility::getSystemInfo()
+SystemInfo PlatformUtility::GetSystemInfo()
 {
 	SystemInfo output;
+
+	output.CpuClockSpeedMhz = 0;
+	output.CpuNumCores = 0;
+	output.MemoryAmountMb = 0;
+	output.OsIs64Bit = false;
 
 	// Get CPU vendor, model and number of cores
 	{
@@ -87,7 +98,7 @@ SystemInfo PlatformUtility::getSystemInfo()
 				{
 					std::string vendorId;
 					if(lineStream >> vendorId)
-						output.cpuManufacturer = vendorId.c_str();
+						output.CpuManufacturer = vendorId.c_str();
 				}
 			}
 			else if(token == "model")
@@ -105,34 +116,23 @@ SystemInfo PlatformUtility::getSystemInfo()
 								modelName << " " << token;
 						}
 
-						output.cpuModel = modelName.str().c_str();
-					}
-				}
-			}
-			else if(token == "cpu")
-			{
-				if(lineStream >> token)
-				{
-					if(token == "cores")
-					{
-						if(lineStream >> token && token == ":")
-						{
-							u32 coreCount;
-							if(lineStream >> coreCount)
-								output.cpuNumCores = coreCount;
-						}
+						output.CpuModel = modelName.str().c_str();
 					}
 				}
 			}
 		}
 	}
 
+	// Number of logical processors
+	const long logicalCoreCount = sysconf(_SC_NPROCESSORS_ONLN);
+	output.CpuNumCores = logicalCoreCount > 0 ? (u32)logicalCoreCount : 0;
+
 	// Get CPU frequency
 	{
 		std::ifstream file("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq");
 		u32 frequency;
 		if(file >> frequency)
-			output.cpuClockSpeedMhz = frequency / 1000;
+			output.CpuClockSpeedMhz = frequency / 1000;
 	}
 
 	// Get amount of system memory
@@ -145,9 +145,9 @@ SystemInfo PlatformUtility::getSystemInfo()
 			{
 				u32 memTotal;
 				if(file >> memTotal)
-					output.memoryAmountMb = memTotal / 1024;
+					output.MemoryAmountMb = memTotal / 1024;
 				else
-					output.memoryAmountMb = 0;
+					output.MemoryAmountMb = 0;
 
 				break;
 			}
@@ -162,20 +162,20 @@ SystemInfo PlatformUtility::getSystemInfo()
 	uname(&osInfo);
 
 	// Note: This won't report the exact distro
-	output.osName = String(osInfo.sysname) + String(osInfo.version);
+	output.OsName = String(osInfo.sysname) + String(osInfo.version);
 
 	if(B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64)
-		output.osIs64Bit = true;
+		output.OsIs64Bit = true;
 	else
-		output.osIs64Bit = strstr(osInfo.machine, "64") != nullptr;
+		output.OsIs64Bit = strstr(osInfo.machine, "64") != nullptr;
 
 	// Get GPU info
-	output.gpuInfo = sGPUInfo;
+	output.GpuInfo = sGPUInfo;
 
 	return output;
 }
 
-String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
+String PlatformUtility::ConvertCaseUtF8(const String& input, bool toUpper)
 {
 	UErrorCode errorCode = U_ZERO_ERROR;
 
@@ -186,7 +186,8 @@ String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
 	auto uStr = B3DStackAllocate<UChar>((u32)bufferLen);
 	int32_t uStrLen = 0;
 	errorCode = U_ZERO_ERROR;
-	u_strFromUTF8(uStr, bufferLen * sizeof(UChar), &uStrLen, input.data(), inputLen, &errorCode);
+	// destCapacity is measured in UChars, not bytes
+	u_strFromUTF8(uStr, bufferLen, &uStrLen, input.data(), inputLen, &errorCode);
 
 	errorCode = U_ZERO_ERROR;
 	if(toUpper)
@@ -199,9 +200,9 @@ String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
 
 	errorCode = U_ZERO_ERROR;
 	if(toUpper)
-		convertedUStrLen = u_strToUpper(convertedUStr, bufferLen * sizeof(UChar), uStr, uStrLen, nullptr, &errorCode);
+		convertedUStrLen = u_strToUpper(convertedUStr, bufferLen, uStr, uStrLen, nullptr, &errorCode);
 	else
-		convertedUStrLen = u_strToLower(convertedUStr, bufferLen * sizeof(UChar), uStr, uStrLen, nullptr, &errorCode);
+		convertedUStrLen = u_strToLower(convertedUStr, bufferLen, uStr, uStrLen, nullptr, &errorCode);
 
 	errorCode = U_ZERO_ERROR;
 	u_strToUTF8(nullptr, 0, &bufferLen, convertedUStr, convertedUStrLen, &errorCode);
@@ -221,7 +222,7 @@ String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
 	return output;
 }
 
-UUID PlatformUtility::generateUUID()
+UUID PlatformUtility::GenerateUuid()
 {
 	uuid_t nativeUUID;
 	uuid_generate(nativeUUID);

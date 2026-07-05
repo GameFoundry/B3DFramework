@@ -12,12 +12,19 @@ using namespace b3d::render;
 
 LinuxVideoModeInfo::LinuxVideoModeInfo()
 {
-	LinuxPlatform::lockX();
+	LinuxPlatform::LockX();
 
-	::Display* display = LinuxPlatform::getXDisplay();
+	::Display* display = LinuxPlatform::GetXDisplay();
 
-	i32 minor, major;
-	XRRQueryVersion(display, &minor, &major);
+	// XRRGetOutputPrimary (used below and by the windowing code) requires RandR 1.3.
+	i32 major = 0;
+	i32 minor = 0;
+	if(!XRRQueryVersion(display, &major, &minor) || major < 1 || (major == 1 && minor < 3))
+	{
+		B3D_LOG(Error, LogPlatform, "XRandR 1.3 or newer is required for video mode enumeration (found {0}.{1}).", major, minor);
+		LinuxPlatform::UnlockX();
+		return;
+	}
 
 	i32 defaultScreen = XDefaultScreen(display);
 	RROutput primaryOutput = XRRGetOutputPrimary(display, RootWindow(display, defaultScreen));
@@ -60,7 +67,7 @@ LinuxVideoModeInfo::LinuxVideoModeInfo()
 		XRRFreeScreenResources(screenRes);
 	}
 
-	LinuxPlatform::unlockX();
+	LinuxPlatform::UnlockX();
 }
 
 LinuxVideoOutputInfo::LinuxVideoOutputInfo(::Display* x11Display, i32 screen, XRROutputInfo* outputInfo, XRRCrtcInfo* crtcInfo, XRRScreenResources* screenRes, RROutput outputID, u32 outputIdx)
@@ -114,11 +121,10 @@ LinuxVideoOutputInfo::LinuxVideoOutputInfo(::Display* x11Display, i32 screen, XR
 				}
 			}
 
-			continue;
+			XFree(data);
 		}
 
-		XFree(data);
-		break;
+		break; // EDID property handled (or failed); no other properties are relevant.
 	}
 
 	XFree(outputProps);
@@ -147,7 +153,7 @@ LinuxVideoOutputInfo::LinuxVideoOutputInfo(::Display* x11Display, i32 screen, XR
 
 		float refreshRate;
 		if(modeInfo.hTotal != 0 && modeInfo.vTotal != 0)
-			refreshRate = (float)(modeInfo.DotClock / (double)(modeInfo.hTotal * modeInfo.vTotal));
+			refreshRate = (float)(modeInfo.dotClock / (double)(modeInfo.hTotal * modeInfo.vTotal));
 		else
 			refreshRate = 0.0f;
 
@@ -162,7 +168,7 @@ LinuxVideoOutputInfo::LinuxVideoOutputInfo(::Display* x11Display, i32 screen, XR
 		if(screenRes->modes[k].id == currentMode)
 		{
 			mDesktopVideoMode = new(B3DAllocate<LinuxVideoMode>())
-				LinuxVideoMode(mVideoModes[k]->width, mVideoModes[k]->height, mVideoModes[k]->refreshRate, mVideoModes[k]->outputIdx, currentMode);
+				LinuxVideoMode(mVideoModes[k]->Width, mVideoModes[k]->Height, mVideoModes[k]->RefreshRate, mVideoModes[k]->OutputIdx, currentMode);
 			break;
 		}
 	}
@@ -175,5 +181,5 @@ LinuxVideoMode::LinuxVideoMode(u32 width, u32 height, float refreshRate, u32 out
 LinuxVideoMode::LinuxVideoMode(u32 width, u32 height, float refreshRate, u32 outputIdx, RRMode modeID)
 	: VideoMode(width, height, refreshRate, outputIdx), mModeID(modeID)
 {
-	isCustom = false;
+	IsCustom = false;
 }

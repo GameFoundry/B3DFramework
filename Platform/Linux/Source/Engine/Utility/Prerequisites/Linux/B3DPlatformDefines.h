@@ -16,7 +16,7 @@
 #	error "No supported compiler for Linux. "
 #endif
 
-#ifdef DEBUG
+#ifndef NDEBUG
 #	define B3D_DEBUG 1
 #else
 #	define B3D_DEBUG 0

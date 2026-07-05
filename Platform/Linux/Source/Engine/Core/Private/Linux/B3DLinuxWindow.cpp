@@ -43,7 +43,7 @@ struct LinuxWindow::Pimpl
 	bool IsExternal = false;
 	WindowState State = WindowState::Normal;
 
-	Vector<Rect2I> DragZones;
+	Vector<Area2I> DragZones;
 
 	void* UserData = nullptr;
 };
@@ -63,7 +63,7 @@ LinuxWindow::LinuxWindow(const WindowCreateInformation& createInformation)
 	}
 	else
 	{
-		::Display* display = LinuxPlatform::getXDisplay();
+		::Display* display = LinuxPlatform::GetXDisplay();
 
 		// Find the screen of the chosen monitor, as well as its current dimensions
 		i32 screen = XDefaultScreen(display);
@@ -176,8 +176,7 @@ LinuxWindow::LinuxWindow(const WindowCreateInformation& createInformation)
 
 		XSetNormalHints(display, m->XWindow, &hints);
 
-		setShowDecorations(createInformation.ShowDecorations);
-		setIsModal(createInformation.Modal);
+		SetShowDecorations(createInformation.ShowDecorations);
 
 		XClassHint* classHint = XAllocClassHint();
 
@@ -209,24 +208,43 @@ LinuxWindow::LinuxWindow(const WindowCreateInformation& createInformation)
 		XSetWMProtocols(display, m->XWindow, &atomDeleteWindow, 1);
 
 		// Enable drag and drop
-		LinuxDragAndDrop::makeDNDAware(m->XWindow);
+		LinuxDragAndDrop::MakeDNDAware(m->XWindow);
 
 		// Set background image if assigned
 		if(createInformation.Background)
 		{
-			Pixmap pixmap = LinuxPlatform::createPixmap(*createInformation.Background, (u32)createInformation.VisualInfo.depth);
+			Pixmap pixmap = LinuxPlatform::CreatePixmap(*createInformation.Background, (u32)createInformation.VisualInfo.depth);
 
 			XSetWindowBackgroundPixmap(display, m->XWindow, pixmap);
 			XFreePixmap(display, pixmap);
 			XSync(display, 0);
 		}
 
+		// _NET_WM_STATE client messages are only honored for mapped windows; the EWMH spec requires the
+		// initial state to be written as a property before the window is first mapped.
+		Atom initialStates[3];
+		u32 initialStateCount = 0;
+
+		if(createInformation.Modal)
+			initialStates[initialStateCount++] = XInternAtom(display, "_NET_WM_STATE_MODAL", False);
+
+		if(!createInformation.ShowOnTaskBar)
+		{
+			initialStates[initialStateCount++] = XInternAtom(display, "_NET_WM_STATE_SKIP_TASKBAR", False);
+			initialStates[initialStateCount++] = XInternAtom(display, "_NET_WM_STATE_SKIP_PAGER", False);
+		}
+
+		if(initialStateCount > 0)
+		{
+			Atom wmState = XInternAtom(display, "_NET_WM_STATE", False);
+
+			// Atom is unsigned long, satisfying the format = 32 long-element requirement
+			XChangeProperty(display, m->XWindow, wmState, XA_ATOM, 32, PropModeReplace, (unsigned char*)initialStates, (int)initialStateCount);
+		}
+
 		// Show the window (needs to happen after setting the background pixmap)
 		if(!createInformation.Hidden)
 			XMapWindow(display, m->XWindow);
-
-		if(!createInformation.ShowOnTaskBar)
-			showOnTaskbar(false);
 	}
 
 	m->HasTitleBar = createInformation.ShowDecorations;
@@ -248,7 +266,7 @@ void LinuxWindow::Move(i32 x, i32 y)
 	m->X = x;
 	m->Y = y;
 
-	XMoveWindow(LinuxPlatform::getXDisplay(), m->XWindow, x, y);
+	XMoveWindow(LinuxPlatform::GetXDisplay(), m->XWindow, x, y);
 }
 
 void LinuxWindow::Resize(u32 width, u32 height)
@@ -265,49 +283,49 @@ void LinuxWindow::Resize(u32 width, u32 height)
 		hints.min_width = width;
 		hints.max_width = width;
 
-		XSetNormalHints(LinuxPlatform::getXDisplay(), m->XWindow, &hints);
+		XSetNormalHints(LinuxPlatform::GetXDisplay(), m->XWindow, &hints);
 	}
 
 	m->Width = width;
 	m->Height = height;
 
-	XResizeWindow(LinuxPlatform::getXDisplay(), m->XWindow, width, height);
+	XResizeWindow(LinuxPlatform::GetXDisplay(), m->XWindow, width, height);
 }
 
 void LinuxWindow::SetHidden(bool hidden)
 {
 	if(hidden)
-		XUnmapWindow(LinuxPlatform::getXDisplay(), m->XWindow);
+		XUnmapWindow(LinuxPlatform::GetXDisplay(), m->XWindow);
 	else
 	{
-		XMapWindow(LinuxPlatform::getXDisplay(), m->XWindow);
-		XMoveResizeWindow(LinuxPlatform::getXDisplay(), m->XWindow, m->X, m->Y, m->Width, m->Height);
+		XMapWindow(LinuxPlatform::GetXDisplay(), m->XWindow);
+		XMoveResizeWindow(LinuxPlatform::GetXDisplay(), m->XWindow, m->X, m->Y, m->Width, m->Height);
 	}
 }
 
 void LinuxWindow::Maximize()
 {
-	maximize(true);
+	Maximize(true);
 }
 
 void LinuxWindow::Minimize()
 {
-	minimize(true);
+	Minimize(true);
 }
 
 void LinuxWindow::Restore()
 {
-	if(isMaximized())
-		maximize(false);
-	else if(isMinimized())
-		minimize(false);
+	if(IsMaximized())
+		Maximize(false);
+	else if(IsMinimized())
+		Minimize(false);
 }
 
 i32 LinuxWindow::GetLeft() const
 {
 	i32 x, y;
 	::Window child;
-	XTranslateCoordinates(LinuxPlatform::getXDisplay(), m->XWindow, DefaultRootWindow(LinuxPlatform::getXDisplay()), 0, 0, &x, &y, &child);
+	XTranslateCoordinates(LinuxPlatform::GetXDisplay(), m->XWindow, DefaultRootWindow(LinuxPlatform::GetXDisplay()), 0, 0, &x, &y, &child);
 
 	return x;
 }
@@ -316,7 +334,7 @@ i32 LinuxWindow::GetTop() const
 {
 	i32 x, y;
 	::Window child;
-	XTranslateCoordinates(LinuxPlatform::getXDisplay(), m->XWindow, DefaultRootWindow(LinuxPlatform::getXDisplay()), 0, 0, &x, &y, &child);
+	XTranslateCoordinates(LinuxPlatform::GetXDisplay(), m->XWindow, DefaultRootWindow(LinuxPlatform::GetXDisplay()), 0, 0, &x, &y, &child);
 
 	return y;
 }
@@ -324,7 +342,7 @@ i32 LinuxWindow::GetTop() const
 u32 LinuxWindow::GetWidth() const
 {
 	XWindowAttributes xwa;
-	XGetWindowAttributes(LinuxPlatform::getXDisplay(), m->XWindow, &xwa);
+	XGetWindowAttributes(LinuxPlatform::GetXDisplay(), m->XWindow, &xwa);
 
 	return (u32)xwa.width;
 }
@@ -332,7 +350,7 @@ u32 LinuxWindow::GetWidth() const
 u32 LinuxWindow::GetHeight() const
 {
 	XWindowAttributes xwa;
-	XGetWindowAttributes(LinuxPlatform::getXDisplay(), m->XWindow, &xwa);
+	XGetWindowAttributes(LinuxPlatform::GetXDisplay(), m->XWindow, &xwa);
 
 	return (u32)xwa.height;
 }
@@ -342,7 +360,7 @@ Vector2I LinuxWindow::WindowToScreenPos(const Vector2I& windowPos) const
 	Vector2I screenPos;
 
 	::Window child;
-	XTranslateCoordinates(LinuxPlatform::getXDisplay(), m->XWindow, DefaultRootWindow(LinuxPlatform::getXDisplay()), windowPos.x, windowPos.y, &screenPos.x, &screenPos.y, &child);
+	XTranslateCoordinates(LinuxPlatform::GetXDisplay(), m->XWindow, DefaultRootWindow(LinuxPlatform::GetXDisplay()), windowPos.X, windowPos.Y, &screenPos.X, &screenPos.Y, &child);
 
 	return screenPos;
 }
@@ -352,7 +370,7 @@ Vector2I LinuxWindow::ScreenToWindowPos(const Vector2I& screenPos) const
 	Vector2I windowPos;
 
 	::Window child;
-	XTranslateCoordinates(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), m->XWindow, screenPos.x, screenPos.y, &windowPos.x, &windowPos.y, &child);
+	XTranslateCoordinates(LinuxPlatform::GetXDisplay(), DefaultRootWindow(LinuxPlatform::GetXDisplay()), m->XWindow, screenPos.X, screenPos.Y, &windowPos.X, &windowPos.Y, &child);
 
 	return windowPos;
 }
@@ -367,10 +385,10 @@ void LinuxWindow::SetIcon(const PixelData& data)
 
 	PixelUtil::scale(data, resizedData);
 
-	::Display* display = LinuxPlatform::getXDisplay();
+	::Display* display = LinuxPlatform::GetXDisplay();
 
 	// Set icon the old way using IconPixmapHint.
-	Pixmap iconPixmap = LinuxPlatform::createPixmap(resizedData, (u32)XDefaultDepth(display, XDefaultScreen(display)));
+	Pixmap iconPixmap = LinuxPlatform::CreatePixmap(resizedData, (u32)XDefaultDepth(display, XDefaultScreen(display)));
 
 	XWMHints* hints = XAllocWMHints();
 	hints->flags = IconPixmapHint;
@@ -400,7 +418,7 @@ void LinuxWindow::SetIcon(const PixelData& data)
 
 void LinuxWindow::DoOnWindowMovedOrResized()
 {
-	::Display* display = LinuxPlatform::getXDisplay();
+	::Display* display = LinuxPlatform::GetXDisplay();
 
 	XWindowAttributes xwa;
 	XGetWindowAttributes(display, m->XWindow, &xwa);
@@ -419,20 +437,20 @@ void LinuxWindow::DestroyInternal()
 {
 	if(!m->IsExternal)
 	{
-		XUnmapWindow(LinuxPlatform::getXDisplay(), m->XWindow);
-		XSync(LinuxPlatform::getXDisplay(), 0);
+		XUnmapWindow(LinuxPlatform::GetXDisplay(), m->XWindow);
+		XSync(LinuxPlatform::GetXDisplay(), 0);
 
-		XDestroyWindow(LinuxPlatform::getXDisplay(), m->XWindow);
-		XSync(LinuxPlatform::getXDisplay(), 0);
+		XDestroyWindow(LinuxPlatform::GetXDisplay(), m->XWindow);
+		XSync(LinuxPlatform::GetXDisplay(), 0);
 	}
 
 	LinuxPlatform::UnregisterWindowInternal(m->XWindow);
 	m->XWindow = 0;
 }
 
-void LinuxWindow::SetDragZonesInternal(const Vector<Rect2I>& rects)
+void LinuxWindow::SetDragZonesInternal(const Vector<Area2I>& areas)
 {
-	m->DragZones = rects;
+	m->DragZones = areas;
 }
 
 void LinuxWindow::DragStartInternal(const XButtonEvent& event)
@@ -447,15 +465,15 @@ void LinuxWindow::DragStartInternal(const XButtonEvent& event)
 
 	for(auto& entry : m->DragZones)
 	{
-		if(entry.width == 0 || entry.height == 0)
+		if(entry.Width == 0 || entry.Height == 0)
 			continue;
 
-		if(entry.contains(Vector2I(event.x, event.y)))
+		if(entry.Contains(Vector2I(event.x, event.y)))
 		{
-			XUngrabPointer(LinuxPlatform::getXDisplay(), 0L);
-			XFlush(LinuxPlatform::getXDisplay());
+			XUngrabPointer(LinuxPlatform::GetXDisplay(), 0L);
+			XFlush(LinuxPlatform::GetXDisplay());
 
-			Atom wmMoveResize = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_MOVERESIZE", False);
+			Atom wmMoveResize = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_MOVERESIZE", False);
 
 			XEvent xev;
 			memset(&xev, 0, sizeof(xev));
@@ -469,8 +487,8 @@ void LinuxWindow::DragStartInternal(const XButtonEvent& event)
 			xev.xclient.data.l[3] = Button1;
 			xev.xclient.data.l[4] = 0;
 
-			XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
-			XSync(LinuxPlatform::getXDisplay(), 0);
+			XSendEvent(LinuxPlatform::GetXDisplay(), DefaultRootWindow(LinuxPlatform::GetXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+			XSync(LinuxPlatform::GetXDisplay(), 0);
 
 			m->DragInProgress = true;
 			return;
@@ -485,7 +503,7 @@ void LinuxWindow::DragEndInternal()
 	// WM failed to end the drag, send the cancel drag event
 	if(m->DragInProgress)
 	{
-		Atom wmMoveResize = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_MOVERESIZE", False);
+		Atom wmMoveResize = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_MOVERESIZE", False);
 
 		XEvent xev;
 		memset(&xev, 0, sizeof(xev));
@@ -499,7 +517,7 @@ void LinuxWindow::DragEndInternal()
 		xev.xclient.data.l[3] = Button1;
 		xev.xclient.data.l[4] = 0;
 
-		XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+		XSendEvent(LinuxPlatform::GetXDisplay(), DefaultRootWindow(LinuxPlatform::GetXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 
 		m->DragInProgress = false;
 	}
@@ -520,68 +538,71 @@ void* LinuxWindow::GetUserDataInternal() const
 	return m->UserData;
 }
 
-bool LinuxWindow::isMaximized() const
+bool LinuxWindow::IsMaximized() const
 {
-	Atom wmState = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE", False);
+	Atom wmState = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE", False);
 	Atom type;
 	i32 format;
-	uint64_t length;
-	uint64_t remaining;
-	uint8_t* data = nullptr;
+	unsigned long length;
+	unsigned long remaining;
+	u8* data = nullptr;
 
-	i32 result = XGetWindowProperty(LinuxPlatform::getXDisplay(), m->XWindow, wmState, 0, 1024, False, XA_ATOM, &type, &format, &length, &remaining, &data);
+	i32 result = XGetWindowProperty(LinuxPlatform::GetXDisplay(), m->XWindow, wmState, 0, 1024, False, XA_ATOM,
+		&type, &format, &length, &remaining, &data);
 
-	if(result == Success)
+	bool foundHorz = false;
+	bool foundVert = false;
+
+	if(result == Success && data != nullptr)
 	{
 		Atom* atoms = (Atom*)data;
-		Atom wmMaxHorz = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-		Atom wmMaxVert = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_MAXIMIZED_VERT", False);
+		Atom wmMaxHorz = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+		Atom wmMaxVert = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE_MAXIMIZED_VERT", False);
 
-		bool foundHorz = false;
-		bool foundVert = false;
-		for(u32 i = 0; i < length; i++)
+		for(unsigned long i = 0; i < length; i++)
 		{
 			if(atoms[i] == wmMaxHorz)
 				foundHorz = true;
 			if(atoms[i] == wmMaxVert)
 				foundVert = true;
-
-			if(foundVert && foundHorz)
-				return true;
 		}
 
-		XFree(atoms);
+		XFree(data);
 	}
 
-	return false;
+	return foundHorz && foundVert;
 }
 
-bool LinuxWindow::isMinimized()
+bool LinuxWindow::IsMinimized()
 {
-	Atom wmState = XInternAtom(LinuxPlatform::getXDisplay(), "WM_STATE", True);
+	Atom wmState = XInternAtom(LinuxPlatform::GetXDisplay(), "WM_STATE", True);
 	Atom type;
 	i32 format;
-	uint64_t length;
-	uint64_t remaining;
-	uint8_t* data = nullptr;
+	unsigned long length;
+	unsigned long remaining;
+	u8* data = nullptr;
 
-	i32 result = XGetWindowProperty(LinuxPlatform::getXDisplay(), m->XWindow, wmState, 0, 1024, False, AnyPropertyType, &type, &format, &length, &remaining, &data);
+	i32 result = XGetWindowProperty(LinuxPlatform::GetXDisplay(), m->XWindow, wmState, 0, 1024, False, AnyPropertyType,
+		&type, &format, &length, &remaining, &data);
 
-	if(result == Success)
+	bool minimized = false;
+	if(result == Success && data != nullptr && length > 0)
 	{
 		long* state = (long*)data;
-		if(state[0] == WM_IconicState)
-			return true;
+		minimized = state[0] == WM_IconicState;
 	}
 
-	return false;
+	if(data != nullptr)
+		XFree(data);
+
+	return minimized;
 }
 
-void LinuxWindow::maximize(bool enable)
+void LinuxWindow::Maximize(bool enable)
 {
-	Atom wmState = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE", False);
-	Atom wmMaxHorz = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-	Atom wmMaxVert = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_MAXIMIZED_VERT", False);
+	Atom wmState = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE", False);
+	Atom wmMaxHorz = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+	Atom wmMaxVert = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE_MAXIMIZED_VERT", False);
 
 	XEvent xev;
 	memset(&xev, 0, sizeof(xev));
@@ -593,13 +614,13 @@ void LinuxWindow::maximize(bool enable)
 	xev.xclient.data.l[1] = wmMaxHorz;
 	xev.xclient.data.l[2] = wmMaxVert;
 
-	XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+	XSendEvent(LinuxPlatform::GetXDisplay(), DefaultRootWindow(LinuxPlatform::GetXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 }
 
-void LinuxWindow::minimize(bool enable)
+void LinuxWindow::Minimize(bool enable)
 {
 	XEvent xev;
-	Atom wmChange = XInternAtom(LinuxPlatform::getXDisplay(), "WM_CHANGE_STATE", False);
+	Atom wmChange = XInternAtom(LinuxPlatform::GetXDisplay(), "WM_CHANGE_STATE", False);
 
 	memset(&xev, 0, sizeof(xev));
 	xev.type = ClientMessage;
@@ -608,14 +629,15 @@ void LinuxWindow::minimize(bool enable)
 	xev.xclient.format = 32;
 	xev.xclient.data.l[0] = enable ? WM_IconicState : WM_NormalState;
 
-	XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+	XSendEvent(LinuxPlatform::GetXDisplay(), DefaultRootWindow(LinuxPlatform::GetXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 }
 
-void LinuxWindow::showOnTaskbar(bool enable)
+// Only valid for mapped windows; the initial (pre-map) state is set as a property in the constructor.
+void LinuxWindow::ShowOnTaskbar(bool enable)
 {
-	Atom wmState = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE", False);
-	Atom wmSkipTaskbar = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_SKIP_TASKBAR", False);
-	Atom wmSkipPager = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_SKIP_PAGER", False);
+	Atom wmState = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE", False);
+	Atom wmSkipTaskbar = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE_SKIP_TASKBAR", False);
+	Atom wmSkipPager = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE_SKIP_PAGER", False);
 
 	XEvent xev;
 	memset(&xev, 0, sizeof(xev));
@@ -626,12 +648,12 @@ void LinuxWindow::showOnTaskbar(bool enable)
 	xev.xclient.data.l[0] = enable ? _NET_WM_STATE_REMOVE : _NET_WM_STATE_ADD;
 	xev.xclient.data.l[1] = wmSkipTaskbar;
 
-	XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+	XSendEvent(LinuxPlatform::GetXDisplay(), DefaultRootWindow(LinuxPlatform::GetXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 
 	xev.xclient.data.l[1] = wmSkipPager;
-	XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+	XSendEvent(LinuxPlatform::GetXDisplay(), DefaultRootWindow(LinuxPlatform::GetXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 
-	XSync(LinuxPlatform::getXDisplay(), 0);
+	XSync(LinuxPlatform::GetXDisplay(), 0);
 }
 
 void LinuxWindow::SetFullscreenInternal(bool fullscreen)
@@ -639,19 +661,21 @@ void LinuxWindow::SetFullscreenInternal(bool fullscreen)
 	// Attempt to bypass compositor if switching to fullscreen
 	if(fullscreen)
 	{
-		Atom wmBypassCompositor = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_BYPASS_COMPOSITOR", False);
+		Atom wmBypassCompositor = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_BYPASS_COMPOSITOR", False);
 		if(wmBypassCompositor)
 		{
-			static constexpr u32 enabled = 1;
+			// format = 32 properties are passed as long-sized elements (see SetShowDecorations note)
+			const unsigned long enabled = 1;
 
-			XChangeProperty(LinuxPlatform::getXDisplay(), m->XWindow, wmBypassCompositor, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&enabled, 1);
+			XChangeProperty(LinuxPlatform::GetXDisplay(), m->XWindow, wmBypassCompositor, XA_CARDINAL, 32,
+				PropModeReplace, (unsigned char*)&enabled, 1);
 		}
 	}
 
 	// Make the switch to fullscreen
 	XEvent xev;
-	Atom wmState = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE", False);
-	Atom wmFullscreen = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_FULLSCREEN", False);
+	Atom wmState = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE", False);
+	Atom wmFullscreen = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE_FULLSCREEN", False);
 
 	memset(&xev, 0, sizeof(xev));
 	xev.type = ClientMessage;
@@ -662,42 +686,43 @@ void LinuxWindow::SetFullscreenInternal(bool fullscreen)
 	xev.xclient.data.l[1] = wmFullscreen;
 	xev.xclient.data.l[2] = 0;
 
-	XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+	XSendEvent(LinuxPlatform::GetXDisplay(), DefaultRootWindow(LinuxPlatform::GetXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 }
 
-void LinuxWindow::setShowDecorations(bool show)
+void LinuxWindow::SetShowDecorations(bool show)
 {
-	static constexpr u32 MWM_HINTS_DECORATIONS = (1 << 1);
+	static constexpr unsigned long MWM_HINTS_DECORATIONS = (1 << 1);
 
 	struct MotifHints
 	{
-		u32 flags;
-		u32 functions;
-		u32 decorations;
-		i32 inputMode;
-		u32 status;
+		unsigned long Flags;
+		unsigned long Functions;
+		unsigned long Decorations;
+		long InputMode;
+		unsigned long Status;
 	};
 
 	if(show)
 		return;
 
 	MotifHints motifHints;
-	motifHints.flags = MWM_HINTS_DECORATIONS;
-	motifHints.decorations = 0;
-	motifHints.functions = 0;
-	motifHints.inputMode = 0;
-	motifHints.status = 0;
+	motifHints.Flags = MWM_HINTS_DECORATIONS;
+	motifHints.Decorations = 0;
+	motifHints.Functions = 0;
+	motifHints.InputMode = 0;
+	motifHints.Status = 0;
 
-	Atom wmHintsAtom = XInternAtom(LinuxPlatform::getXDisplay(), "_MOTIF_WM_HINTS", False);
-	XChangeProperty(LinuxPlatform::getXDisplay(), m->XWindow, wmHintsAtom, wmHintsAtom, 32, PropModeReplace, (unsigned char*)&motifHints, 5);
+	Atom wmHintsAtom = XInternAtom(LinuxPlatform::GetXDisplay(), "_MOTIF_WM_HINTS", False);
+	XChangeProperty(LinuxPlatform::GetXDisplay(), m->XWindow, wmHintsAtom, wmHintsAtom, 32, PropModeReplace, (unsigned char*)&motifHints, 5);
 }
 
-void LinuxWindow::setIsModal(bool modal)
+// Only valid for mapped windows; the initial (pre-map) state is set as a property in the constructor.
+void LinuxWindow::SetIsModal(bool modal)
 {
 	if(modal)
 	{
-		Atom wmState = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE", False);
-		Atom wmValue = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_MODAL", False);
+		Atom wmState = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE", False);
+		Atom wmValue = XInternAtom(LinuxPlatform::GetXDisplay(), "_NET_WM_STATE_MODAL", False);
 
 		XEvent xev;
 		memset(&xev, 0, sizeof(xev));
@@ -710,6 +735,6 @@ void LinuxWindow::setIsModal(bool modal)
 		xev.xclient.data.l[2] = 0;
 		xev.xclient.data.l[3] = 1;
 
-		XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+		XSendEvent(LinuxPlatform::GetXDisplay(), DefaultRootWindow(LinuxPlatform::GetXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 	}
 }

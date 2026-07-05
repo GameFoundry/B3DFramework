@@ -6,6 +6,7 @@
 #include <execinfo.h>
 #include <dlfcn.h>
 #include <csignal>
+#include <ctime>
 
 using namespace b3d;
 
@@ -28,11 +29,11 @@ void signalHandler(int signal, siginfo_t* info, void* context)
 	if(signalNameSz)
 		signalName = signalNameSz;
 	else
-		signalName = "Unknown signal #" + toString(signal);
+		signalName = "Unknown signal #" + ToString(signal);
 
 	// Note: Not safe to grab a stack-trace here (nor do memory allocations), but we might as well try since we're
 	// crashing anyway
-	CrashHandler::Instance().reportCrash(signalName, "Received fatal signal", "", "");
+	CrashHandler::Instance().ReportCrash(signalName, "Received fatal signal", "", "");
 
 	kill(getpid(), signal);
 	exit(signal);
@@ -41,7 +42,7 @@ void signalHandler(int signal, siginfo_t* info, void* context)
 CrashHandler::CrashHandler(const CrashHandlerSettings& settings)
 	: mSettings(settings)
 {
-	if(mSettings.disableCrashSignalHandler)
+	if(mSettings.DisableCrashSignalHandler)
 		return;
 
 	struct sigaction action;
@@ -61,21 +62,25 @@ CrashHandler::CrashHandler(const CrashHandlerSettings& settings)
 
 CrashHandler::~CrashHandler() {}
 
-String CrashHandler::getCrashTimestamp()
+String CrashHandler::GetCrashTimestamp()
 {
-	std::time_t t = time(0);
-	struct tm* now = localtime(&t);
+	std::time_t t = time(nullptr);
+
+	struct tm timeInfo;
+	localtime_r(&t, &timeInfo);
 
 	String timeStamp = "{0}{1}{2}_{3}{4}";
-	String strYear = toString(now->tm_year, 4, '0');
-	String strMonth = toString(now->tm_mon, 2, '0');
-	String strDay = toString(now->tm_mday, 2, '0');
-	String strHour = toString(now->tm_hour, 2, '0');
-	String strMinute = toString(now->tm_min, 2, '0');
-	return StringUtil::format(timeStamp, strYear, strMonth, strDay, strHour, strMinute);
+
+	// tm_year counts years since 1900 and tm_mon is zero-based.
+	String strYear = ToString(timeInfo.tm_year + 1900, 4, '0');
+	String strMonth = ToString(timeInfo.tm_mon + 1, 2, '0');
+	String strDay = ToString(timeInfo.tm_mday, 2, '0');
+	String strHour = ToString(timeInfo.tm_hour, 2, '0');
+	String strMinute = ToString(timeInfo.tm_min, 2, '0');
+	return StringUtility::Format(timeStamp, strYear, strMonth, strDay, strHour, strMinute);
 }
 
-String CrashHandler::getStackTrace()
+String CrashHandler::GetStackTrace()
 {
 	StringStream stackTrace;
 	void* trace[B3D_MAX_STACKTRACE_DEPTH];
@@ -123,13 +128,13 @@ String CrashHandler::getStackTrace()
 			stackTrace << String(messages[traceIndex]);
 #elif B3D_PLATFORM_LINUX
 		// Try to find the characters surrounding the mangled name: '(' and '+'
-		char* mangedName = nullptr;
+		char* mangledName = nullptr;
 		char* offsetBegin = nullptr;
 		char* offsetEnd = nullptr;
 		for(char* p = messages[traceIndex]; *p; ++p)
 		{
 			if(*p == '(')
-				mangedName = p;
+				mangledName = p;
 			else if(*p == '+')
 				offsetBegin = p;
 			else if(*p == ')')
@@ -139,20 +144,20 @@ String CrashHandler::getStackTrace()
 			}
 		}
 
-		bool lineContainsMangledSymbol = mangedName != nullptr && offsetBegin != nullptr && offsetEnd != nullptr &&
-			mangedName < offsetBegin;
+		bool lineContainsMangledSymbol = mangledName != nullptr && offsetBegin != nullptr && offsetEnd != nullptr &&
+			mangledName < offsetBegin;
 
-		stackTrace << toString(traceIndex) << ") ";
+		stackTrace << ToString(traceIndex) << ") ";
 
 		if(lineContainsMangledSymbol)
 		{
-			*mangedName++ = '\0';
+			*mangledName++ = '\0';
 			*offsetBegin++ = '\0';
 			*offsetEnd++ = '\0';
 
 			int status;
-			char* real_name = abi::__cxa_demangle(mangedName, 0, 0, &status);
-			char* output_name = status == 0 /* Demangling successful */ ? real_name : mangedName;
+			char* real_name = abi::__cxa_demangle(mangledName, 0, 0, &status);
+			char* output_name = status == 0 /* Demangling successful */ ? real_name : mangledName;
 			stackTrace << String(messages[traceIndex])
 					   << ": " << output_name
 					   << "+" << offsetBegin << offsetEnd;
@@ -172,24 +177,28 @@ String CrashHandler::getStackTrace()
 	return stackTrace.str();
 }
 
-void CrashHandler::reportCrash(const String& type, const String& description, const String& function, const String& file, u32 line) const
+void CrashHandler::ReportCrash(const String& type, const String& description, const String& function, const String& file, u32 line) const
 {
-	if(mSettings.onBeforeReportCrash)
+	if(mSettings.OnBeforeReportCrash)
 	{
-		if(mSettings.onBeforeReportCrash(type, description, function, file, line))
+		if(mSettings.OnBeforeReportCrash(type, description, function, file, line))
 			return;
 	}
 
-	logErrorAndStackTrace(type, description, function, file, line);
+	LogErrorAndStackTrace(type, description, function, file, line);
 
-	if(mSettings.onCrashPrintedToLog)
+	if(mSettings.OnCrashPrintedToLog)
 	{
-		if(mSettings.onCrashPrintedToLog())
+		if(mSettings.OnCrashPrintedToLog())
 			return;
 	}
 
-	saveCrashLog();
+	SaveCrashLog();
 
-	// Allow the debugger a chance to attach
-	std::raise(SIGINT);
+	// In headless/CI runs there is no one to attach a debugger, so skip the SIGINT hook and let the caller terminate.
+	if(!mSettings.SuppressErrorPopup)
+	{
+		// Allow the debugger a chance to attach
+		std::raise(SIGINT);
+	}
 }

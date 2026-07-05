@@ -3,7 +3,8 @@
 #pragma once
 
 #include "Prerequisites/B3DPrerequisitesUtil.h"
-#include "Math/B3DVector2I.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DArea2.h"
 #include <X11/X.h>
 #include <X11/Xutil.h>
 
@@ -103,10 +104,10 @@ namespace b3d
 		 * when window has no title bar, yet you still want to allow the user to drag it by clicking on some specific area
 		 * (e.g. a title bar you manually render).
 		 *
-		 * @param[in]	rects	Areas of the window (relative to the window origin in top-left corner) in which the drag
+		 * @param[in]	areas	Areas of the window (relative to the window origin in top-left corner) in which the drag
 		 * 						operation in allowed.
 		 */
-		void SetDragZonesInternal(const Vector<Rect2I>& rects);
+		void SetDragZonesInternal(const Vector<Area2I>& areas);
 
 		/**
 		 * Notifies the window that user has started dragging the window using a custom drag zone. Provided parameter is the
@@ -126,44 +127,44 @@ namespace b3d
 		/** Attaches non-specific user data that can later be retrieved through GetUserDataInternal(). */
 		void SetUserDataInternal(void* data);
 
-		/** Returns user data attached to the object when _setUserData was called. */
+		/** Returns user data attached to the object when SetUserDataInternal() was called. */
 		void* GetUserDataInternal() const;
 
 		/** @} */
 
 	private:
 		/** Checks if the window is currently maximized. */
-		bool isMaximized() const;
+		bool IsMaximized() const;
 
 		/** Checks if the window is currently minimized (iconified). */
-		bool isMinimized();
+		bool IsMinimized();
 
 		/**
 		 * Maximizes a window if @p enable is true. If false restores the window to size/position before maximization
 		 * occurred.
 		 */
-		void maximize(bool enable);
+		void Maximize(bool enable);
 
 		/**
 		 * Minimizes a window if @p enable is true. If false restores the window to size/position before minimization
 		 * occurred.
 		 */
-		void minimize(bool enable);
+		void Minimize(bool enable);
 
 		/** Shows or hides the window icon from the taskbar. */
-		void showOnTaskbar(bool enable);
+		void ShowOnTaskbar(bool enable);
 
 		/**
 		 * Shows or hides window decorations. Decorations include window title bar, border and similar. Essentially anything
 		 * not part of the main rendering area.
 		 */
-		void setShowDecorations(bool show);
+		void SetShowDecorations(bool show);
 
 		/**
 		 * Switches the window between modal and normal mode. Modal window prevents input to their parent window until
 		 * it is dismissed.
 		 */
-		void setIsModal(bool modal);
+		void SetIsModal(bool modal);
 
 		struct Pimpl;
 		Pimpl* m;

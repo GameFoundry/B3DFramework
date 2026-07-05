@@ -153,8 +153,5 @@ namespace b3d
 		HEvent mDevicesChangedConn;
 	};
 
-// Max number of evdev events to read in a single batch
-#define BUFFER_SIZE_GAMEPAD 64
-
 	/** @} */
 } // namespace b3d

@@ -3,11 +3,17 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "Math/B3DArea2.h"
+#include "Math/B3DVector2.h"
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
 namespace b3d
 {
+	/** @addtogroup Platform-Internal
+	 *  @{
+	 */
+
 	/** Handles X11 drag and drop functionality. */
 	class LinuxDragAndDrop
 	{
@@ -32,32 +38,32 @@ namespace b3d
 		struct DragAndDropOp
 		{
 			DragAndDropOp(DragAndDropOpType type, DropTarget* target)
-				: type(type), target(target)
+				: Type(type), Target(target)
 			{}
 
 			DragAndDropOp(DragAndDropOpType type, DropTarget* target, const Vector2I& pos)
-				: type(type), target(target), position(pos)
+				: Type(type), Target(target), Position(pos)
 			{}
 
 			DragAndDropOp(DragAndDropOpType type, DropTarget* target, const Vector2I& pos, const Vector<Path>& fileList)
-				: type(type), target(target), position(pos), fileList(fileList)
+				: Type(type), Target(target), Position(pos), FileList(fileList)
 			{}
 
-			DragAndDropOpType type;
-			DropTarget* target;
-			Vector2I position;
-			Vector<Path> fileList;
+			DragAndDropOpType Type;
+			DropTarget* Target;
+			Vector2I Position;
+			Vector<Path> FileList;
 		};
 
 		/** Represents a single registered drop area. */
 		struct DropArea
 		{
-			DropArea(DropTarget* target, const Rect2I& area)
-				: target(target), area(area)
+			DropArea(DropTarget* target, const Area2I& area)
+				: Target(target), Area(area)
 			{}
 
-			DropTarget* target;
-			Rect2I area;
+			DropTarget* Target;
+			Area2I Area;
 		};
 
 		/** Type of operations that can happen to a DropArea. */
@@ -71,13 +77,13 @@ namespace b3d
 		/** Operation that in some way modifies a DropArea. */
 		struct DropAreaOp
 		{
-			DropAreaOp(DropTarget* target, DropAreaOpType type, const Rect2I& area = Rect2I::EMPTY)
-				: target(target), area(area), type(type)
+			DropAreaOp(DropTarget* target, DropAreaOpType type, const Area2I& area = Area2I::kEmpty)
+				: Target(target), Area(area), Type(type)
 			{}
 
-			DropTarget* target;
-			Rect2I area;
-			DropAreaOpType type;
+			DropTarget* Target;
+			Area2I Area;
+			DropAreaOpType Type;
 		};
 
 	public:
@@ -86,28 +92,28 @@ namespace b3d
 		 *
 		 * @note	Core thread only.
 		 */
-		static void startUp(::Display* xDisplay);
+		static void StartUp(::Display* xDisplay);
 
 		/**
 		 * Shuts down the drag and drop system. Should be called after no more calls to the system are expected.
 		 *
 		 * @note	Core thread only.
 		 */
-		static void shutDown();
+		static void ShutDown();
 
 		/**
 		 * Triggers any drag and drop events.
 		 *
 		 * @note 	Sim thread only.
 		 */
-		static void update();
+		static void Update();
 
 		/**
 		 * Marks an X11 window as drag and drop aware (being able to accept and send drag and drop events).
 		 *
 		 * @note	Core thread only.
 		 */
-		static void makeDNDAware(::Window xWindow);
+		static void MakeDNDAware(::Window xWindow);
 
 		/**
 		 * Registers a new drop target Any further events processed will take this target into account, trigger its event
@@ -115,21 +121,21 @@ namespace b3d
 		 *
 		 * @note 	Thread safe.
 		 */
-		static void registerDropTarget(DropTarget* target);
+		static void RegisterDropTarget(DropTarget* target);
 
 		/**
 		 * Updates information about previous registered DropTarget. Call this when drop target area changes.
 		 *
 		 * @note	Thread safe.
 		 */
-		static void updateDropTarget(DropTarget* target);
+		static void UpdateDropTarget(DropTarget* target);
 
 		/**
 		 * Unregisters a drop target. Its events will no longer be triggered.
 		 *
 		 * @note	Thread safe.
 		 */
-		static void unregisterDropTarget(DropTarget* target);
+		static void UnregisterDropTarget(DropTarget* target);
 
 		/**
 		 * Processes X11 ClientMessage event and handles any messages relating to drag and drop. Returns true if a message
@@ -137,7 +143,7 @@ namespace b3d
 		 *
 		 * @note 	Core thread only.
 		 */
-		static bool handleClientMessage(XClientMessageEvent& event);
+		static bool HandleClientMessage(XClientMessageEvent& event);
 
 		/**
 		 * Processes X11 SelectionNotify event and handles it if it relates to drag and drop. Returns true if the event was
@@ -145,7 +151,7 @@ namespace b3d
 		 *
 		 * @note 	Core thread only.
 		 */
-		static bool handleSelectionNotify(XSelectionEvent& event);
+		static bool HandleSelectionNotify(XSelectionEvent& event);
 
 	private:
 		static ::Display* sXDisplay;
@@ -182,4 +188,6 @@ namespace b3d
 		// Other
 		static Atom sPRIMARY;
 	};
+
+	/** @} */
 } // namespace b3d

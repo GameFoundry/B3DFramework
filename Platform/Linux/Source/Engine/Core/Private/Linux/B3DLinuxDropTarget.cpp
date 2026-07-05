@@ -4,12 +4,13 @@
 #include "Platform/B3DPlatform.h"
 #include "Platform/B3DDropTarget.h"
 #include "GpuBackend/B3DRenderWindow.h"
-#include "Math/B3DRect2I.h"
+#include "Math/B3DArea2.h"
 #include "Private/Linux/B3DLinuxDropTarget.h"
 #include "Private/Linux/B3DLinuxWindow.h"
 #include "Private/Linux/B3DLinuxPlatform.h"
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
+#include <unistd.h>
 
 #undef None
 
@@ -47,21 +48,24 @@ struct X11Property
 };
 
 // Results must be freed using XFree
-X11Property readX11Property(::Display* display, ::Window window, Atom type)
+static X11Property ReadX11Property(::Display* display, ::Window window, Atom type)
 {
 	X11Property output;
 	output.data = nullptr;
 
 	unsigned long bytesLeft;
-	int bytesToFetch = 0;
+	long lengthEstimate = 0; // In 32-bit units, per the XGetWindowProperty contract
 
 	do
 	{
 		if(output.data != nullptr)
 			XFree(output.data);
 
-		XGetWindowProperty(display, window, type, 0, bytesToFetch, False, AnyPropertyType, &output.type, &output.format, (unsigned long*)&output.count, &bytesLeft, &output.data);
-		bytesToFetch += bytesLeft;
+		XGetWindowProperty(display, window, type, 0, lengthEstimate, False, AnyPropertyType,
+			&output.type, &output.format, (unsigned long*)&output.count, &bytesLeft, &output.data);
+
+		// long_length is in 32-bit multiples while bytes_after_return is in bytes; round up
+		lengthEstimate += (long)((bytesLeft + 3) / 4);
 	}
 	while(bytesLeft != 0);
 
@@ -71,7 +75,7 @@ X11Property readX11Property(::Display* display, ::Window window, Atom type)
 /**
  * Decodes percent (%) encoded characters in an URI to actual characters. Characters are decoded into the input string.
  */
-void decodeURI(char* uri)
+static void DecodeUri(char* uri)
 {
 	if(uri == nullptr)
 		return;
@@ -145,7 +149,7 @@ void decodeURI(char* uri)
 	uri[writeIdx] = '\0';
 }
 
-char* convertURIToLocalPath(char* uri)
+static char* ConvertUriToLocalPath(char* uri)
 {
 	if(memcmp(uri, "file:/", 6) == 0)
 		uri += 6;
@@ -175,7 +179,7 @@ char* convertURIToLocalPath(char* uri)
 
 	if(isLocal)
 	{
-		decodeURI(uri);
+		DecodeUri(uri);
 		if(uri[1] == '/')
 			uri++;
 		else
@@ -187,24 +191,24 @@ char* convertURIToLocalPath(char* uri)
 	return nullptr;
 }
 
-DropTarget::DropTarget(const RenderWindow* ownerWindow, const Rect2I& area)
+DropTarget::DropTarget(const RenderWindow* ownerWindow, const Area2I& area)
 	: mArea(area), mActive(false), mOwnerWindow(ownerWindow), mDropType(DropTargetType::None)
 {
-	LinuxDragAndDrop::registerDropTarget(this);
+	LinuxDragAndDrop::RegisterDropTarget(this);
 }
 
 DropTarget::~DropTarget()
 {
-	LinuxDragAndDrop::unregisterDropTarget(this);
+	LinuxDragAndDrop::UnregisterDropTarget(this);
 
 	ClearInternal();
 }
 
-void DropTarget::setArea(const Rect2I& area)
+void DropTarget::SetArea(const Area2I& area)
 {
 	mArea = area;
 
-	LinuxDragAndDrop::updateDropTarget(this);
+	LinuxDragAndDrop::UpdateDropTarget(this);
 }
 
 void LinuxDragAndDrop::StartUp(::Display* xDisplay)
@@ -233,31 +237,31 @@ void LinuxDragAndDrop::ShutDown()
 	sXDisplay = nullptr;
 }
 
-void LinuxDragAndDrop::makeDNDAware(::Window xWindow)
+void LinuxDragAndDrop::MakeDNDAware(::Window xWindow)
 {
-	u32 dndVersion = 5;
+	const unsigned long dndVersion = 5;
 	XChangeProperty(sXDisplay, xWindow, sXdndAware, XA_ATOM, 32, PropModeReplace, (unsigned char*)&dndVersion, 1);
 }
 
-void LinuxDragAndDrop::registerDropTarget(DropTarget* target)
+void LinuxDragAndDrop::RegisterDropTarget(DropTarget* target)
 {
 	Lock lock(sMutex);
 	sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Register, target->GetArea()));
 }
 
-void LinuxDragAndDrop::unregisterDropTarget(DropTarget* target)
+void LinuxDragAndDrop::UnregisterDropTarget(DropTarget* target)
 {
 	Lock lock(sMutex);
 	sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Unregister));
 }
 
-void LinuxDragAndDrop::updateDropTarget(DropTarget* target)
+void LinuxDragAndDrop::UpdateDropTarget(DropTarget* target)
 {
 	Lock lock(sMutex);
 	sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Update, target->GetArea()));
 }
 
-bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
+bool LinuxDragAndDrop::HandleClientMessage(XClientMessageEvent& event)
 {
 	// First handle any queued registration/unregistration
 	{
@@ -265,16 +269,16 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 
 		for(auto& entry : sQueuedAreaOperations)
 		{
-			switch(entry.type)
+			switch(entry.Type)
 			{
 			case DropAreaOpType::Register:
-				sDropAreas.push_back(DropArea(entry.target, entry.area));
+				sDropAreas.push_back(DropArea(entry.Target, entry.Area));
 				break;
 			case DropAreaOpType::Unregister:
 				// Remove any operations queued for this target
 				for(auto iter = sQueuedOperations.begin(); iter != sQueuedOperations.end();)
 				{
-					if(iter->target == entry.target)
+					if(iter->Target == entry.Target)
 						iter = sQueuedOperations.erase(iter);
 					else
 						++iter;
@@ -282,20 +286,21 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 
 				// Remove the area
 				{
-					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
-												 { return area.target == entry.target; });
+					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(),
+						[&](const DropArea& area) { return area.Target == entry.Target; });
 
-					sDropAreas.erase(iterFind);
+					if(iterFind != sDropAreas.end())
+						sDropAreas.erase(iterFind);
 				}
 
 				break;
 			case DropAreaOpType::Update:
 				{
-					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
-												 { return area.target == entry.target; });
+					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(),
+						[&](const DropArea& area) { return area.Target == entry.Target; });
 
 					if(iterFind != sDropAreas.end())
-						iterFind->area = entry.area;
+						iterFind->Area = entry.Area;
 				}
 				break;
 			}
@@ -318,7 +323,7 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 		// If more than 3 properties we need to read the list property to get them all
 		if(isList)
 		{
-			X11Property property = readX11Property(sXDisplay, sDNDSource, sXdndTypeList);
+			X11Property property = ReadX11Property(sXDisplay, sDNDSource, sXdndTypeList);
 
 			propertyList = (Atom*)property.data;
 			numProperties = property.count;
@@ -367,8 +372,8 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 	{
 		::Window source = (::Window)event.data.l[0];
 
-		sDragPosition.x = (i32)((event.data.l[2] >> 16) & 0xFFFF);
-		sDragPosition.y = (i32)((event.data.l[2]) & 0xFFFF);
+		sDragPosition.X = (i32)((event.data.l[2] >> 16) & 0xFFFF);
+		sDragPosition.Y = (i32)((event.data.l[2]) & 0xFFFF);
 
 		// Respond with a status message, we either accept or reject the dnd
 		XClientMessageEvent response;
@@ -389,42 +394,43 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 		{
 			for(auto& dropArea : sDropAreas)
 			{
-				LinuxWindow* linuxWindow;
-				dropArea.target->GetOwnerWindowInternal()->GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
-				::Window xWindow = linuxWindow->GetXWindowInternal();
+				::Window xWindow = (::Window)dropArea.Target->GetOwnerWindow()->GetPlatformWindowHandle();
+				LinuxWindow* linuxWindow = LinuxPlatform::GetWindowInternal(xWindow);
+				if(linuxWindow == nullptr)
+					continue;
 
 				if(xWindow == event.window)
 				{
-					Vector2I windowPos = linuxWindow->screenToWindowPos(sDragPosition);
-					if(dropArea.area.contains(windowPos))
+					Vector2I windowPos = linuxWindow->ScreenToWindowPos(sDragPosition);
+					if(dropArea.Area.Contains(windowPos))
 					{
 						// Accept drop
 						response.data.l[1] = 1;
 
-						if(dropArea.target->IsActiveInternal())
+						if(dropArea.Target->IsActive())
 						{
 							Lock lock(sMutex);
-							sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::DragOver, dropArea.target, windowPos));
+							sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::DragOver, dropArea.Target, windowPos));
 						}
 						else
 						{
 							Lock lock(sMutex);
-							sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Enter, dropArea.target, windowPos));
+							sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Enter, dropArea.Target, windowPos));
 						}
 
-						dropArea.target->SetActiveInternal(true);
+						dropArea.Target->SetActive(true);
 					}
 					else
 					{
 						// Cursor left previously active target's area
-						if(dropArea.target->IsActiveInternal())
+						if(dropArea.Target->IsActive())
 						{
 							{
 								Lock lock(sMutex);
-								sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropArea.target));
+								sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropArea.Target));
 							}
 
-							dropArea.target->SetActiveInternal(false);
+							dropArea.Target->SetActive(false);
 						}
 					}
 				}
@@ -439,14 +445,14 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 	{
 		for(auto& dropArea : sDropAreas)
 		{
-			if(dropArea.target->IsActiveInternal())
+			if(dropArea.Target->IsActive())
 			{
 				{
 					Lock lock(sMutex);
-					sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropArea.target));
+					sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropArea.Target));
 				}
 
-				dropArea.target->SetActiveInternal(false);
+				dropArea.Target->SetActive(false);
 			}
 		}
 
@@ -461,7 +467,7 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 		{
 			for(auto& dropArea : sDropAreas)
 			{
-				if(dropArea.target->IsActiveInternal())
+				if(dropArea.Target->IsActive())
 					dropAccepted = true;
 			}
 		}
@@ -474,7 +480,7 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 			else
 				timestamp = CurrentTime;
 
-			XConvertSelection(sXDisplay, sXdndSelection, sDNDType, sPRIMARY, LinuxPlatform::getMainXWindow(), timestamp);
+			XConvertSelection(sXDisplay, sXdndSelection, sDNDType, sPRIMARY, LinuxPlatform::GetMainXWindow(), timestamp);
 
 			// Now we wait for SelectionNotify
 		}
@@ -489,7 +495,7 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 			response.window = source;
 			response.message_type = sXdndFinished;
 			response.format = 32;
-			response.data.l[0] = LinuxPlatform::getMainXWindow();
+			response.data.l[0] = LinuxPlatform::GetMainXWindow();
 			response.data.l[1] = 0;
 			response.data.l[2] = 0;
 			response.data.l[3] = 0;
@@ -507,7 +513,7 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 	return true;
 }
 
-bool LinuxDragAndDrop::handleSelectionNotify(XSelectionEvent& event)
+bool LinuxDragAndDrop::HandleSelectionNotify(XSelectionEvent& event)
 {
 	if(event.target != sDNDType)
 		return false;
@@ -516,7 +522,7 @@ bool LinuxDragAndDrop::handleSelectionNotify(XSelectionEvent& event)
 		return true;
 
 	// Read data
-	X11Property property = readX11Property(sXDisplay, LinuxPlatform::getMainXWindow(), sPRIMARY);
+	X11Property property = ReadX11Property(sXDisplay, LinuxPlatform::GetMainXWindow(), sPRIMARY);
 	if(property.format == 8)
 	{
 		// Assuming this is a file list, since we rejected any other drop type
@@ -525,7 +531,7 @@ bool LinuxDragAndDrop::handleSelectionNotify(XSelectionEvent& event)
 		char* token = strtok((char*)property.data, "\r\n");
 		while(token != nullptr)
 		{
-			char* filePath = convertURIToLocalPath(token);
+			char* filePath = ConvertUriToLocalPath(token);
 			if(filePath != nullptr)
 				filePaths.push_back(String(filePath));
 
@@ -534,18 +540,20 @@ bool LinuxDragAndDrop::handleSelectionNotify(XSelectionEvent& event)
 
 		for(auto& dropArea : sDropAreas)
 		{
-			if(!dropArea.target->IsActiveInternal())
+			if(!dropArea.Target->IsActive())
 				continue;
 
-			LinuxWindow* linuxWindow;
-			dropArea.target->GetOwnerWindowInternal()->GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
+			LinuxWindow* linuxWindow =
+				LinuxPlatform::GetWindowInternal((::Window)dropArea.Target->GetOwnerWindow()->GetPlatformWindowHandle());
+			if(linuxWindow == nullptr)
+				continue;
 
-			Vector2I windowPos = linuxWindow->screenToWindowPos(sDragPosition);
+			Vector2I windowPos = linuxWindow->ScreenToWindowPos(sDragPosition);
 
 			Lock lock(sMutex);
-			sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Drop, dropArea.target, windowPos, filePaths));
+			sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Drop, dropArea.Target, windowPos, filePaths));
 
-			dropArea.target->SetActiveInternal(false);
+			dropArea.Target->SetActive(false);
 		}
 	}
 
@@ -560,7 +568,7 @@ bool LinuxDragAndDrop::handleSelectionNotify(XSelectionEvent& event)
 	response.window = sDNDSource;
 	response.message_type = sXdndFinished;
 	response.format = 32;
-	response.data.l[0] = LinuxPlatform::getMainXWindow();
+	response.data.l[0] = LinuxPlatform::GetMainXWindow();
 	response.data.l[1] = 1;
 	response.data.l[2] = sXdndActionCopy;
 	response.data.l[3] = 0;
@@ -574,7 +582,7 @@ bool LinuxDragAndDrop::handleSelectionNotify(XSelectionEvent& event)
 	return true;
 }
 
-void LinuxDragAndDrop::update()
+void LinuxDragAndDrop::Update()
 {
 	Vector<DragAndDropOp> operations;
 
@@ -585,21 +593,21 @@ void LinuxDragAndDrop::update()
 
 	for(auto& op : operations)
 	{
-		switch(op.type)
+		switch(op.Type)
 		{
 		case DragAndDropOpType::Enter:
-			op.target->onEnter(op.position.x, op.position.y);
+			op.Target->OnEnter(op.Position.X, op.Position.Y);
 			break;
 		case DragAndDropOpType::DragOver:
-			op.target->onDragOver(op.position.x, op.position.y);
+			op.Target->OnDragOver(op.Position.X, op.Position.Y);
 			break;
 		case DragAndDropOpType::Drop:
-			op.target->SetFileListInternal(op.fileList);
-			op.target->onDrop(op.position.x, op.position.y);
+			op.Target->SetFileList(op.FileList);
+			op.Target->OnDrop(op.Position.X, op.Position.Y);
 			break;
 		case DragAndDropOpType::Leave:
-			op.target->ClearInternal();
-			op.target->onLeave();
+			op.Target->ClearInternal();
+			op.Target->OnLeave();
 			break;
 		}
 	}
