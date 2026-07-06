@@ -23,11 +23,10 @@ namespace b3d
 		{
 		public:
 			/**
-			 * @param	id							Identifier which uniquely represents this vertex input configuration.
-			 * @param	vertexBufferDescription		Describes the structure of a single vertex in a vertex buffer.
-			 * @param	layout						Vertex buffer layout resolved against the vertex shader inputs.
+			 * @param	id			Identifier which uniquely represents this vertex input configuration.
+			 * @param	layout		Vertex buffer layout resolved against the vertex shader inputs.
 			 */
-			VulkanVertexInput(u32 id, const TShared<VertexDescription>& vertexBufferDescription, const GpuVertexInputLayout& layout);
+			VulkanVertexInput(u32 id, const GpuVertexInputLayout& layout);
 
 			/** Returns an object contining the necessary information to initialize the vertex input on a pipeline. */
 			const VkPipelineVertexInputStateCreateInfo* GetCreateInfo() const { return &mCreateInfo; }
@@ -62,7 +61,7 @@ namespace b3d
 			friend class TGpuVertexInputManager<VulkanVertexInputManager, TShared<VulkanVertexInput>>;
 
 			/** Creates a vertex input object for the provided resolved layout. */
-			TShared<VulkanVertexInput> CreateVertexInput(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription, const GpuVertexInputLayout& layout);
+			TShared<VulkanVertexInput> CreateVertexInput(const GpuVertexInputLayout& layout);
 
 			/** Releases a vertex input object evicted from the cache. */
 			void DestroyVertexInput(TShared<VulkanVertexInput>& vertexInput);

@@ -56,6 +56,13 @@ namespace b3d
 			u32 NullStreamIndex = kNoNullStream;
 
 			/**
+			 * Per-stream vertex stride in bytes (offset from one vertex to the next), indexed by stream index. Holds
+			 * exactly StreamCount entries. The null stream's entry, when present, is always zero as no user data is
+			 * ever fetched from it.
+			 */
+			TInlineArray<u32, 8> StreamStrides;
+
+			/**
 			 * Resolves the provided shader inputs against the provided vertex buffer elements, matching them by
 			 * semantic and semantic index. Unmatched shader inputs are assigned to an extra null stream, which the
 			 * backend is expected to serve with an empty vertex buffer so such inputs read zero.
@@ -71,9 +78,8 @@ namespace b3d
 		 * @note	Thread safe.
 		 *
 		 * @tparam	TDerived		Backend manager deriving from this class. Must provide:
-		 *							- TVertexInput CreateVertexInput(const TShared<VertexDescription>& vertexBufferDescription,
-		 *							  const TShared<VertexDescription>& shaderInputDescription, const GpuVertexInputLayout& layout)
-		 *							  building the backend vertex input object; may return null on failure.
+		 *							- TVertexInput CreateVertexInput(const GpuVertexInputLayout& layout) building the
+		 *							  backend vertex input object from the resolved layout; may return null on failure.
 		 *							- void DestroyVertexInput(TVertexInput& vertexInput) releasing an object evicted from
 		 *							  the cache. The derived destructor must call ReleaseAll() so eviction of the remaining
 		 *							  entries happens while the derived class is still alive.

@@ -45,7 +45,7 @@ TVertexInput TGpuVertexInputManager<TDerived, TVertexInput>::GetVertexInput(cons
 		layout.Resolve(*vertexBufferDescription, *shaderInputDescription);
 
 		VertexInputEntry newEntry;
-		newEntry.VertexInput = static_cast<TDerived*>(this)->CreateVertexInput(vertexBufferDescription, shaderInputDescription, layout);
+		newEntry.VertexInput = static_cast<TDerived*>(this)->CreateVertexInput(layout);
 		if(!newEntry.VertexInput)
 			return TVertexInput();
 

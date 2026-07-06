@@ -15,6 +15,7 @@ void GpuVertexInputLayout::Resolve(const VertexDescription& vertexBufferDescript
 	StreamCount = 0;
 	UsedStreamMask = 0;
 	NullStreamIndex = kNoNullStream;
+	StreamStrides.Clear();
 
 	bool areAnyShaderInputsMissing = false;
 	for(const VertexElement& shaderInputElement : shaderInputElements)
@@ -58,5 +59,25 @@ void GpuVertexInputLayout::Resolve(const VertexDescription& vertexBufferDescript
 			if(attribute.BufferElement == nullptr)
 				attribute.StreamIndex = NullStreamIndex;
 		}
+	}
+
+	// Record the vertex stride of every referenced stream so backends need no further access to the vertex
+	// buffer description. Strides sum all buffer elements in a stream, matched by a shader input or not, since
+	// unmatched elements still occupy space between consecutive vertices. The null stream always gets a zero
+	// stride: nothing is ever fetched from the empty buffer bound there, even if the buffer description happens
+	// to declare (unmatched) elements under the same stream index.
+	for(u32 streamIndex = 0; streamIndex < StreamCount; streamIndex++)
+	{
+		u32 stride = 0;
+		if(streamIndex != NullStreamIndex)
+		{
+			for(const VertexElement& vertexBufferElement : vertexBufferElements)
+			{
+				if(vertexBufferElement.GetStreamIndex() == streamIndex)
+					stride += vertexBufferElement.GetSize();
+			}
+		}
+
+		StreamStrides.Add(stride);
 	}
 }

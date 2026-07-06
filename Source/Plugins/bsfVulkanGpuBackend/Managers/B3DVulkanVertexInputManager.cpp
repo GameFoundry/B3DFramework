@@ -15,7 +15,7 @@ template class b3d::render::TGpuVertexInputManager<b3d::render::VulkanVertexInpu
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanVertexInput::VulkanVertexInput(u32 id, const TShared<VertexDescription>& vertexBufferDescription, const GpuVertexInputLayout& layout)
+VulkanVertexInput::VulkanVertexInput(u32 id, const GpuVertexInputLayout& layout)
 	: mId(id)
 {
 	const u32 attributeCount = (u32)layout.Attributes.Size();
@@ -31,13 +31,10 @@ VulkanVertexInput::VulkanVertexInput(u32 id, const TShared<VertexDescription>& v
 	bool* isFirstAttributeInVertexBuffer = B3DStackAllocate<bool>(bindingCount);
 	for(u32 bindingIndex = 0; bindingIndex < bindingCount; bindingIndex++)
 	{
-		// The null stream is the empty buffer binding we use if any shader inputs are missing
-		const bool isNullBinding = bindingIndex == layout.NullStreamIndex;
-
 		VkVertexInputBindingDescription& binding = mBindings[bindingIndex];
 		binding.binding = bindingIndex;
 		binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		binding.stride = isNullBinding ? 0 : vertexBufferDescription->GetVertexStride(bindingIndex);
+		binding.stride = layout.StreamStrides[bindingIndex];
 
 		isFirstAttributeInVertexBuffer[bindingIndex] = true;
 	}
@@ -96,9 +93,9 @@ VulkanVertexInputManager::~VulkanVertexInputManager()
 	ReleaseAll();
 }
 
-TShared<VulkanVertexInput> VulkanVertexInputManager::CreateVertexInput(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription, const GpuVertexInputLayout& layout)
+TShared<VulkanVertexInput> VulkanVertexInputManager::CreateVertexInput(const GpuVertexInputLayout& layout)
 {
-	return B3DMakeShared<VulkanVertexInput>(mNextId++, vertexBufferDescription, layout);
+	return B3DMakeShared<VulkanVertexInput>(mNextId++, layout);
 }
 
 void VulkanVertexInputManager::DestroyVertexInput(TShared<VulkanVertexInput>& vertexInput)
