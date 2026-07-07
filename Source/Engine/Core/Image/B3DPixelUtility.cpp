@@ -16,6 +16,10 @@
 #define TINYEXR_IMPLEMENTATION
 #define TINYEXR_USE_MINIZ 0
 #define TINYEXR_USE_STB_ZLIB 1
+// Only the EXR *export* path (SaveEXR) is ever called; the EXR read path and its MemoryMappedFile
+// helper are dead code here. Opt out of tinyexr's POSIX mmap branch so that dead code does not
+// reference mmap()/munmap(), which aren't exported on some platforms
+#define TINYEXR_DONT_USE_POSIX_MMAP
 #include "ThirdParty/tinyexr.h"
 
 // tinyexr's ZIP decode path (LoadEXR) references stb_image.h's zlib decoder. We don't include stb_image.h since we

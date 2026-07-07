@@ -723,7 +723,9 @@ extern const char* EXRGetSpectralUnits(const EXRHeader *exr_header);
 #define TINYEXR_USE_WIN32_MMAP (1)
 #endif
 
-#elif defined(__linux__) || defined(__unix__)
+// B3D change: TINYEXR_DONT_USE_POSIX_MMAP opts out of the POSIX mmap path on unix-like targets
+// whose libc does not export mmap (e.g. PS5); the plain fopen/fread fallback below is used instead.
+#elif (defined(__linux__) || defined(__unix__)) && !defined(TINYEXR_DONT_USE_POSIX_MMAP)
 #include <fcntl.h>     // for open()
 #include <sys/mman.h>  // for memory-mapping
 #include <sys/stat.h>  // for stat
