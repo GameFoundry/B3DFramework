@@ -224,6 +224,16 @@ namespace b3d
 			return (n & (n - 1)) == 0;
 		}
 
+		/** Rounds @p value up to the next multiple of @p alignment, which must be a power of two. */
+		template <typename T>
+		static T AlignUp(T value, T alignment)
+		{
+			B3D_ASSERT(IsPow2(alignment));
+
+			const T mask = alignment - 1;
+			return (value + mask) & ~mask;
+		}
+
 		/** Returns the number of bits a pattern must be shifted right by to remove right-hand zeros. */
 		template <typename T>
 		static uint32_t GetBitShift(T mask)
