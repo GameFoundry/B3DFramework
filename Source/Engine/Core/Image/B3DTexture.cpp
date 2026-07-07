@@ -412,8 +412,8 @@ ImageSubresourcePitch Texture::GetStagingBufferPitchForSubresource(u32 face, u32
 
 	const u32 blockSize = PixelUtility::GetBlockSize(mProperties.Format);
 
-	B3D_ASSERT(subresourceLayout.rowPitch % blockSize == 0);
-	B3D_ASSERT(subresourceLayout.depthPitch % blockSize == 0);
+	B3D_ASSERT(rowPitch % blockSize == 0);
+	B3D_ASSERT(depthPitch % blockSize == 0);
 
 	u32 rowPitchInPixels = rowPitch / blockSize;
 	u32 depthPitchInPixels = depthPitch / blockSize;
