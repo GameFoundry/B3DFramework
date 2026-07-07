@@ -38,6 +38,7 @@ namespace b3d
 	}
 
 	struct GpuPipelineParameterLayoutCreateInformation;
+	struct GpuResourceTableLayout;
 	struct GpuProgramBytecode;
 	struct GpuBufferCreateInformation;
 	struct GpuProgramCreateInformation;
@@ -243,9 +244,17 @@ namespace b3d
 		 * Creates a single GPU pipeline parameter set layout from a parameter description.
 		 *
 		 * @param	parameterDescription	Description of parameters in the set.
+		 * @param	resourceTableLayout		Optional reflected resource-table layout from a compiled program that backs
+		 *									the set. Backends that pack descriptors at compiler-chosen offsets consume it
+		 *									together with @p tableIndex - to place descriptors exactly where the shader 
+		 *									reads them; other backends ignore it. Null when no compiled program backs the 
+		 *									set (engine-authored layouts).
+		 * @param	tableIndex				Index of the child descriptor table backing the set within
+		 *									@p resourceTableLayout (an index into GpuResourceTableLayout::Tables). Only
+		 *									meaningful when @p resourceTableLayout is non-null; ~0u otherwise.
 		 * @return							The created set layout.
 		 */
-		virtual TShared<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription) = 0;
+		virtual TShared<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& resourceTableLayout = nullptr, u32 tableIndex = ~0u) = 0;
 
 		/**
 		 * Creates a parameter set pool for allocating GPU parameter sets.

@@ -232,7 +232,7 @@ namespace b3d
 			{}
 		};
 
-		TShared<GpuPipelineParameterSetLayout> NullGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
+		TShared<GpuPipelineParameterSetLayout> NullGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& /*resourceTableLayout*/, u32 /*tableIndex*/)
 		{
 			return B3DMakeShared<NullGpuPipelineParameterSetLayout>(parameterDescription);
 		}

@@ -54,6 +54,15 @@ namespace b3d
 		u32 Slot = 0;                  /**< Engine slot the resource was declared at. */
 		u32 DescriptorCount = 1;       /**< Number of descriptors (array size); 1 for a non-array binding. */
 		u32 DescriptorSizeInBytes = 0; /**< Size of a single descriptor; 0 when driver-managed. */
+
+		bool operator==(const GpuDescriptorTableEntry& other) const
+		{
+			return Kind == other.Kind && OffsetInBytes == other.OffsetInBytes && TableIndex == other.TableIndex &&
+				Type == other.Type && Slot == other.Slot && DescriptorCount == other.DescriptorCount &&
+				DescriptorSizeInBytes == other.DescriptorSizeInBytes;
+		}
+
+		bool operator!=(const GpuDescriptorTableEntry& other) const { return !(*this == other); }
 	};
 
 	/**

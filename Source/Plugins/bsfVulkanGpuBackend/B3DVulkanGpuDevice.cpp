@@ -483,7 +483,7 @@ TShared<GpuPipelineParameterLayout> VulkanGpuDevice::CreateGpuPipelineParameterL
 	return B3DMakeSharedFromExisting<VulkanGpuPipelineParameterLayout>(new(B3DAllocate<VulkanGpuPipelineParameterLayout>()) VulkanGpuPipelineParameterLayout(*this, createInformation));
 }
 
-TShared<GpuPipelineParameterSetLayout> VulkanGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
+TShared<GpuPipelineParameterSetLayout> VulkanGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& /*resourceTableLayout*/, u32 /*tableIndex*/)
 {
 	return B3DMakeShared<VulkanGpuPipelineParameterSetLayout>(*this, parameterDescription);
 }

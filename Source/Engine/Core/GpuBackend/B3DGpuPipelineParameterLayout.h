@@ -7,6 +7,9 @@
 
 namespace b3d
 {
+	struct GpuResourceTableLayout;
+	struct GpuDescriptorTable;
+
 	/** @addtogroup GpuBackend
 	 *  @{
 	 */
@@ -20,6 +23,15 @@ namespace b3d
 		TShared<GpuProgramParameterDescription> Hull;
 		TShared<GpuProgramParameterDescription> Domain;
 		TShared<GpuProgramParameterDescription> Compute;
+
+		/**
+		 * Optional reflected resource-table layouts, one per program stage (indexed by GpuProgramType), taken from
+		 * each program's compiled bytecode. Backends that pack descriptors at compiler-chosen offsets
+		 * consume these when building per-set layouts, so the engine writes every descriptor exactly
+		 * where the shader reads it; backends that derive layouts from the parameter descriptions alone ignore them.
+		 * Entries may be null (stage absent, or no reflected layout cached on its bytecode).
+		 */
+		Array<TShared<GpuResourceTableLayout>, GPT_COUNT> ResourceTableLayouts;
 	};
 
 	/** Descriptor structure used for initialization of a GpuPipelineParameterLayout. */

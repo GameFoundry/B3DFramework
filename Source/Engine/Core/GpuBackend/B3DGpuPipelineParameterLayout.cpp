@@ -4,6 +4,7 @@
 
 #include "B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
+#include "GpuBackend/B3DGpuProgram.h"
 #include "Math/B3DMath.h"
 #include "Utility/B3DResult.h"
 
@@ -358,6 +359,33 @@ const GpuUniformBufferMemberInformation* GpuPipelineParameterSetLayout::TryGetUn
 	return nullptr;
 }
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+namespace
+{
+	/**
+	 * Returns true when two reflected descriptor tables describe an identical packing: same total size and the same
+	 * placement (kind, offset, type, slot, count, descriptor size) for every entry, in the same order. Used to verify
+	 * that all pipeline stages sharing a set agree on the set's sub-block layout - they all read the same block of
+	 * descriptor memory, so a disagreement means at least one stage fetches garbage descriptors.
+	 */
+	bool AreDescriptorTablesEquivalent(const GpuResourceTableLayout& layoutA, const GpuDescriptorTable& tableA, const GpuResourceTableLayout& layoutB, const GpuDescriptorTable& tableB)
+	{
+		if(tableA.SizeInBytes != tableB.SizeInBytes || tableA.EntryCount != tableB.EntryCount)
+			return false;
+
+		const TArrayView<const GpuDescriptorTableEntry> entriesA = layoutA.GetEntries(tableA);
+		const TArrayView<const GpuDescriptorTableEntry> entriesB = layoutB.GetEntries(tableB);
+		for(u32 index = 0; index < tableA.EntryCount; index++)
+		{
+			if(entriesA[index] != entriesB[index])
+				return false;
+		}
+
+		return true;
+	}
+} // namespace
+#endif
+
 GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const GpuPipelineParameterLayoutCreateInformation& createInformation)
 {
 	Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> perProgramParameterDescriptions;
@@ -393,7 +421,61 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const 
 		}
 	}
 
+	// Locates the reflected descriptor table backing @p set within a program's resource-table layout: the child
+	// table referenced by a root-table SubTable entry whose set matches. Returns the child table's index into
+	// layout.Tables, or ~0u when the program does not reference the set. Leaf resources directly in the root table
+	// (outside any per-set sub-table) are not per-set data and are intentionally not considered - this mirrors the
+	// bind-time walk in the backends' command buffers.
+	auto fnFindSetTable = [](const GpuResourceTableLayout& layout, u32 set) -> u32
+	{
+		if(layout.IsEmpty())
+			return ~0u;
+
+		for(const GpuDescriptorTableEntry& entry : layout.GetEntries(layout.GetRootTable()))
+		{
+			if(entry.Kind != GpuDescriptorEntryKind::SubTable)
+				continue;
+
+			if(layout.Tables[entry.TableIndex].Set == set)
+				return entry.TableIndex;
+		}
+
+		return ~0u;
+	};
+
 	// Create sets
 	for(u32 set = 0; set < (u32)perSetParameterDescriptions.Size(); ++set)
-		mSets.Add(device.CreateGpuPipelineParameterSetLayout(perSetParameterDescriptions[set]));
+	{
+		// Backends that pack descriptors at compiler-chosen offsets consume the exact reflected table for the set
+		// instead of recomputing a packing convention. Every stage that references the set must agree on its packing,
+		// since a single descriptor block backs the set for all stages; use the first stage that references it and,
+		// in development builds, verify the remaining stages match.
+		TShared<GpuResourceTableLayout> reflectedLayout;
+		u32 reflectedTableIndex = ~0u;
+		for(u32 programIndex = 0; programIndex < GPT_COUNT; programIndex++)
+		{
+			const TShared<GpuResourceTableLayout>& stageLayout = createInformation.ResourceTableLayouts[programIndex];
+			if(stageLayout == nullptr)
+				continue;
+
+			const u32 tableIndex = fnFindSetTable(*stageLayout, set);
+			if(tableIndex == ~0u)
+				continue;
+
+			if(reflectedLayout == nullptr)
+			{
+				reflectedLayout = stageLayout;
+				reflectedTableIndex = tableIndex;
+			}
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			else if(!AreDescriptorTablesEquivalent(*reflectedLayout, reflectedLayout->Tables[reflectedTableIndex], *stageLayout, stageLayout->Tables[tableIndex]))
+			{
+				B3D_LOG(Error, LogRenderBackend, "GPU program stages disagree on the descriptor-table packing of set {0}; "
+					"parameter binding will be incorrect for at least one stage.", set);
+			}
+#endif
+		}
+
+		mSets.Add(device.CreateGpuPipelineParameterSetLayout(perSetParameterDescriptions[set], reflectedLayout, reflectedTableIndex));
+	}
 }
