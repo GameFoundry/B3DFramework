@@ -146,7 +146,7 @@ namespace b3d
 		 */
 		void Pitch(const TRadian<T>& angle);
 
-		static TTransform kIdentity;
+		static const TTransform kIdentity;
 
 	private:
 		TVector3<T> mPosition = TVector3<T>::kZero;
@@ -159,8 +159,8 @@ namespace b3d
 		template <class U> friend struct RTTIPlainType;
 	};
 
-	template<> TTransform<float> TTransform<float>::kIdentity;
-	template<> TTransform<double> TTransform<double>::kIdentity;
+	template<> inline const TTransform<float> TTransform<float>::kIdentity{};
+	template<> inline const TTransform<double> TTransform<double>::kIdentity{};
 
 	extern template class TTransform<float>;
 	extern template class TTransform<double>;
