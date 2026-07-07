@@ -27,5 +27,6 @@ namespace b3d
 		void TestHashedString();
 		void TestUnique();
 		void TestPool();
+		void TestSegregatedFitAllocator();
 	};
 } // namespace b3d

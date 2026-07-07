@@ -14,6 +14,7 @@
 #include "Threading/B3DThreadPool.h"
 #include "Utility/B3DMinHeap.h"
 #include "Utility/B3DPool.h"
+#include "Allocators/B3DSegregatedFitAllocator.h"
 #include "Utility/B3DSpatialTree.h"
 #include "Utility/B3DBitstream.h"
 #include "Utility/B3DQueue.h"
@@ -140,6 +141,7 @@ UtilityTestSuite::UtilityTestSuite()
 	B3D_ADD_TEST(UtilityTestSuite::TestHashedString)
 	B3D_ADD_TEST(UtilityTestSuite::TestUnique)
 	B3D_ADD_TEST(UtilityTestSuite::TestPool)
+	B3D_ADD_TEST(UtilityTestSuite::TestSegregatedFitAllocator)
 }
 
 void UtilityTestSuite::TestBitfield()
@@ -1429,4 +1431,228 @@ void UtilityTestSuite::TestPool()
 	}
 
 	B3D_TEST_ASSERT(PoolLifetimeProbe::sLiveCount == 0)
+}
+
+namespace
+{
+	/**
+	 * Instrumented backend for TSegregatedFitAllocator tests. Sources real aligned memory while recording slab
+	 * activity through external counters, letting the tests assert grow-on-demand, sized-to-fit growth, and that the
+	 * allocator releases every slab on destruction. All observable state is held by pointer so it survives the
+	 * backend being moved into the allocator.
+	 */
+	struct SegFitTestBackend
+	{
+		u32* AllocCalls = nullptr; /**< Incremented on every Allocate() call, whether it succeeds or is forced to fail. */
+		u32* LiveSlabs = nullptr; /**< ++ on a successful Allocate, -- on Free; must return to 0 once the allocator dies. */
+		bool* Aligned = nullptr; /**< Cleared if a slab base ever violates the requested alignment. */
+		bool* FailAll = nullptr; /**< When set, Allocate returns nullptr - simulates an out-of-memory backend. */
+
+		void* Allocate(u64 sizeBytes, u64 alignment)
+		{
+			(*AllocCalls)++;
+			if(FailAll != nullptr && *FailAll)
+				return nullptr;
+
+			void* const pointer = B3DAllocateAligned((size_t)sizeBytes, (size_t)alignment);
+			if(pointer == nullptr || ((u64)pointer % alignment) != 0)
+				*Aligned = false;
+
+			(*LiveSlabs)++;
+			return pointer;
+		}
+
+		void Free(void* pointer)
+		{
+			B3DFreeAligned(pointer);
+			(*LiveSlabs)--;
+		}
+	};
+}
+
+void UtilityTestSuite::TestSegregatedFitAllocator()
+{
+	using Allocator = TSegregatedFitAllocator<SegFitTestBackend, 16, 7>;
+
+	// Basic allocation: every block is slot-aligned, distinct, non-overlapping, writable, and all fit in one slab.
+	{
+		u32 allocCalls = 0;
+		u32 liveSlabs = 0;
+		bool aligned = true;
+		bool failAll = false;
+
+		{
+			Allocator::Configuration configuration{ 16 * 256, 16 };
+			Allocator allocator(configuration, SegFitTestBackend{ &allocCalls, &liveSlabs, &aligned, &failAll });
+
+			const u64 sizes[] = { 16, 32, 64, 512, 1600 }; // 1, 2, 4, 32, 100 slots
+			Vector<Allocator::Allocation> handles;
+			Vector<u64> lows;
+			Vector<u64> highs;
+
+			for(u64 size : sizes)
+			{
+				Allocator::Allocation handle = allocator.Allocate(size);
+				B3D_TEST_ASSERT(handle.IsValid())
+				B3D_TEST_ASSERT(((u64)handle.Data % 16) == 0)
+
+				// The block must be usable across its whole extent.
+				memset(handle.Data, 0xAB, (size_t)size);
+
+				const u64 low = (u64)handle.Data;
+				const u64 high = low + size;
+				for(u32 i = 0; i < (u32)lows.size(); ++i)
+					B3D_TEST_ASSERT(high <= lows[i] || highs[i] <= low)
+
+				lows.push_back(low);
+				highs.push_back(high);
+				handles.push_back(handle);
+			}
+
+			B3D_TEST_ASSERT(allocCalls == 1) // Everything fit within the first (pre-sized) slab.
+			B3D_TEST_ASSERT(aligned)
+
+			for(Allocator::Allocation& handle : handles)
+				allocator.Free(handle);
+		}
+
+		B3D_TEST_ASSERT(liveSlabs == 0) // The allocator destructor released every slab through the backend.
+	}
+
+	// Coalescing: fragmenting a slab and freeing the pieces in a scrambled order must recombine them into one full
+	// free run, so a whole-slab allocation succeeds afterwards without growing a new slab.
+	{
+		u32 allocCalls = 0;
+		u32 liveSlabs = 0;
+		bool aligned = true;
+		bool failAll = false;
+
+		Allocator::Configuration configuration{ 16 * 64, 16 };
+		Allocator allocator(configuration, SegFitTestBackend{ &allocCalls, &liveSlabs, &aligned, &failAll });
+
+		Allocator::Allocation quarters[4];
+		for(u32 i = 0; i < 4; ++i)
+		{
+			quarters[i] = allocator.Allocate(16 * 16); // 16 slots each; 4 x 16 == the whole 64-slot slab
+			B3D_TEST_ASSERT(quarters[i].IsValid())
+		}
+
+		B3D_TEST_ASSERT(allocCalls == 1)
+
+		allocator.Free(quarters[1]);
+		allocator.Free(quarters[3]);
+		allocator.Free(quarters[0]);
+		allocator.Free(quarters[2]);
+
+		Allocator::Allocation whole = allocator.Allocate(16 * 64);
+		B3D_TEST_ASSERT(whole.IsValid())
+		B3D_TEST_ASSERT(allocCalls == 1) // Coalescing reclaimed the slab; no new one was grown.
+
+		allocator.Free(whole);
+	}
+
+	// Grow-on-demand: once the current slab is exhausted, a further request grows a second slab.
+	{
+		u32 allocCalls = 0;
+		u32 liveSlabs = 0;
+		bool aligned = true;
+		bool failAll = false;
+
+		{
+			Allocator::Configuration configuration{ 16 * 64, 16 };
+			Allocator allocator(configuration, SegFitTestBackend{ &allocCalls, &liveSlabs, &aligned, &failAll });
+
+			Allocator::Allocation full = allocator.Allocate(16 * 64); // Fills slab 0 exactly.
+			B3D_TEST_ASSERT(full.IsValid())
+			B3D_TEST_ASSERT(allocCalls == 1)
+
+			Allocator::Allocation extra = allocator.Allocate(16); // Nothing fits; must grow slab 1.
+			B3D_TEST_ASSERT(extra.IsValid())
+			B3D_TEST_ASSERT(allocCalls == 2)
+			B3D_TEST_ASSERT(liveSlabs == 2)
+
+			allocator.Free(full);
+			allocator.Free(extra);
+		}
+
+		B3D_TEST_ASSERT(liveSlabs == 0)
+	}
+
+	// Oversized request: a single allocation larger than the configured slab size grows a slab sized to fit it.
+	{
+		u32 allocCalls = 0;
+		u32 liveSlabs = 0;
+		bool aligned = true;
+		bool failAll = false;
+
+		Allocator::Configuration configuration{ 16 * 64, 16 };
+		Allocator allocator(configuration, SegFitTestBackend{ &allocCalls, &liveSlabs, &aligned, &failAll });
+
+		Allocator::Allocation big = allocator.Allocate(16 * 128); // 128 slots > the 64-slot slab.
+		B3D_TEST_ASSERT(big.IsValid())
+		B3D_TEST_ASSERT(((u64)big.Data % 16) == 0)
+		B3D_TEST_ASSERT(aligned)
+
+		allocator.Free(big);
+	}
+
+	// Failure and degenerate inputs: a backend that cannot supply memory yields an invalid allocation, a zero-size
+	// request is invalid, and freeing an invalid (default) handle is a no-op.
+	{
+		u32 allocCalls = 0;
+		u32 liveSlabs = 0;
+		bool aligned = true;
+		bool failAll = true;
+
+		{
+			Allocator::Configuration configuration{ 16 * 64, 16 };
+			Allocator allocator(configuration, SegFitTestBackend{ &allocCalls, &liveSlabs, &aligned, &failAll });
+
+			B3D_TEST_ASSERT(!allocator.Allocate(16).IsValid()) // Backend returns null.
+			B3D_TEST_ASSERT(!allocator.Allocate(0).IsValid()) // Zero-size request.
+
+			allocator.Free(Allocator::Allocation()); // Must not touch the backend or crash.
+		}
+
+		B3D_TEST_ASSERT(liveSlabs == 0)
+	}
+
+	// Templating: a different slot size and size-class count instantiate and service allocations correctly.
+	{
+		using SmallAllocator = TSegregatedFitAllocator<SegFitTestBackend, 8, 4>;
+
+		u32 allocCalls = 0;
+		u32 liveSlabs = 0;
+		bool aligned = true;
+		bool failAll = false;
+
+		SmallAllocator::Configuration configuration{ 8 * 32, 8 };
+		SmallAllocator allocator(configuration, SegFitTestBackend{ &allocCalls, &liveSlabs, &aligned, &failAll });
+
+		SmallAllocator::Allocation one = allocator.Allocate(8); // 1 slot
+		SmallAllocator::Allocation three = allocator.Allocate(24); // 3 slots
+		B3D_TEST_ASSERT(one.IsValid() && three.IsValid())
+		B3D_TEST_ASSERT(((u64)one.Data % 8) == 0)
+		B3D_TEST_ASSERT(((u64)three.Data % 8) == 0)
+		B3D_TEST_ASSERT((u64)one.Data != (u64)three.Data)
+		B3D_TEST_ASSERT(aligned)
+
+		allocator.Free(one);
+		allocator.Free(three);
+	}
+
+	// The default SystemMemoryBackend instantiates and round-trips a plain system-heap allocation.
+	{
+		using HeapAllocator = TSegregatedFitAllocator<SystemMemoryBackend>;
+
+		HeapAllocator::Configuration configuration{ 4096, 16 };
+		HeapAllocator allocator(configuration);
+
+		HeapAllocator::Allocation handle = allocator.Allocate(64);
+		B3D_TEST_ASSERT(handle.IsValid())
+		B3D_TEST_ASSERT(((u64)handle.Data % 16) == 0)
+
+		memset(handle.Data, 0, 64);
+		allocator.Free(handle);
+	}
 }
