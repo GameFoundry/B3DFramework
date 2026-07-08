@@ -11,7 +11,10 @@ namespace b3d::render
 	 *  @{
 	 */
 
-	/** Interface that acts as a bridge between Win32RenderWindow and D3D12SwapChain. */
+	/**
+	 * Interface that acts as a bridge between Win32RenderWindow and D3D12SwapChain. Also handles headless surfaces,
+	 * which differ only in the swap chain they create (offscreen textures instead of DXGI back buffers).
+	 */
 	class D3D12RenderWindowSurface : public IRenderWindowSurface
 	{
 	public:
@@ -22,6 +25,7 @@ namespace b3d::render
 		void SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask) override;
 		void MarkSwapChainAsInvalid() override;
 		void Destroy() override;
+		TAsyncOp<TShared<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer) override;
 
 		/** Returns the swap chain owned by the surface. */
 		D3D12SwapChain* GetSwapChain() const { return mSwapChain; }
@@ -47,6 +51,7 @@ namespace b3d::render
 		DXGI_FORMAT mDepthFormat = DXGI_FORMAT_UNKNOWN;
 		bool mCreateDepthBuffer = false;
 		bool mUseHardwareSRGB = false;
+		bool mIsHeadless = false;
 		bool mVsync = false;
 		u32 mVsyncInterval = 1;
 		D3D12SwapChain* mSwapChain = nullptr;

@@ -169,6 +169,19 @@ namespace b3d
 			 */
 			void CopyTextureToBufferRaw(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex);
 
+			/**
+			 * Copies the top-level subresource of an image into a buffer, including the required resource tracking and
+			 * state transitions. Used for reading back images that have no owning texture (e.g. swap chain back buffers).
+			 *
+			 * @param	source			Image to copy from. Only subresource 0 (first face, top mip) is copied.
+			 * @param	destination		Buffer to copy into, at offset 0.
+			 * @param	width			Width of the image, in pixels.
+			 * @param	height			Height of the image, in pixels.
+			 * @param	rowPitchBytes	Byte pitch between rows in the buffer. Must be a multiple of
+			 *							D3D12_TEXTURE_DATA_PITCH_ALIGNMENT.
+			 */
+			void CopyImageToBuffer(D3D12Image* source, D3D12Buffer* destination, u32 width, u32 height, u32 rowPitchBytes);
+
 		private:
 			friend class D3D12GpuCommandBufferPool;
 			friend class D3D12GpuQueue;

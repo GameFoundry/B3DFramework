@@ -6,6 +6,8 @@
 #include "GpuBackend/B3DGpuSwapChain.h"
 #include "Threading/B3DSingleConsumerQueue.h"
 
+#include <atomic>
+
 namespace b3d
 {
 	namespace render
@@ -25,11 +27,16 @@ namespace b3d
 			DXGI_FORMAT ColorFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 			DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_UNKNOWN;
 			bool CreateDepthBuffer = false;
+			bool Headless = false; /**< When true no DXGI swap chain is created; offscreen textures stand in for the back buffers. */
 		};
 
 		/**
 		 * DirectX 12 implementation of a swap chain. Wraps a DXGI flip-model swap chain and integrates it with the
 		 * core GpuSwapChain contract so acquires and presents flow through the GpuSubmitThread.
+		 *
+		 * In headless mode (see D3D12SwapChainCreateInformation::Headless) no DXGI object exists; the back buffers are
+		 * plain committed textures and Present() just cycles the current index. All acquire/present bookkeeping flows
+		 * through the same submit-thread paths as the windowed mode so downstream code needs no special casing.
 		 *
 		 * @note	DXGI has no semaphore/fence based image acquire - AcquireImage() resolves to recording the DXGI
 		 *			current back buffer index. Because the acquire is synchronous the acquired index is available to
@@ -94,7 +101,17 @@ namespace b3d
 			u32 GetSyncInterval() const { return mVSync ? mVsyncInterval : 0u; }
 
 			/**
-			 * Executes the DXGI present using the swap chain's vsync interval.
+			 * Returns the index of the back buffer that was most recently queued for present, or the current back
+			 * buffer if nothing was presented yet. This is the image holding the last fully rendered frame, which is
+			 * what screen captures that run after the frame has been presented need to read.
+			 *
+			 * @note	Render thread only.
+			 */
+			u32 GetLastPresentedImageIndex() const;
+
+			/**
+			 * Executes the DXGI present using the swap chain's vsync interval. In headless mode simply advances the
+			 * current back buffer index.
 			 *
 			 * @note	Submit thread only.
 			 */
@@ -140,6 +157,9 @@ namespace b3d
 			/** Retrieves the back buffer resources. */
 			void GetBackBufferResources();
 
+			/** Creates offscreen textures that stand in for the back buffers in headless mode. */
+			void CreateHeadlessBackBuffers();
+
 			/** Creates render target views for back buffers. */
 			void CreateRenderTargetViews();
 
@@ -172,6 +192,16 @@ namespace b3d
 			u32 mVsyncInterval = 1;
 			bool mIsInitialized = false;
 			bool mIsRetired = false;
+			bool mIsHeadless = false;
+
+			/**
+			 * Current back buffer index in headless mode (DXGI tracks it internally otherwise). Written on the submit
+			 * thread when a present cycles buffers, read from the render thread and acquire workers.
+			 */
+			std::atomic<u32> mHeadlessBackBufferIndex{ 0 };
+
+			/** Index of the most recently presented back buffer, or -1 if nothing was presented yet. Render thread only. */
+			i32 mLastPresentedImageIndex = -1;
 
 			/**
 			 * Indices of images that have been acquired (via AcquireImage) but not yet queued for present. Guarded by

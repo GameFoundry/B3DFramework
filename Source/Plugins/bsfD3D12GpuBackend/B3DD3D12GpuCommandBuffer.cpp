@@ -1302,6 +1302,31 @@ void D3D12GpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, 
 	CopyTextureToBufferRaw(textureResource, d3d12Destination->GetD3D12Resource(), footprint, subresourceIndex);
 }
 
+void D3D12GpuCommandBuffer::CopyImageToBuffer(D3D12Image* source, D3D12Buffer* destination, u32 width, u32 height, u32 rowPitchBytes)
+{
+	EnsureValidThread();
+
+	if (!B3D_ENSURE(source != nullptr && destination != nullptr))
+		return;
+
+	// Track the transfer and execute the copy-state transitions it requires.
+	const GpuTextureSubresourceRange subresourceRange(0, 1, 0, 1, source->GetRange().AspectMask);
+	mResourceTracker.TrackImageUsage(source, subresourceRange, GpuImageLayout::TransferSource,
+		GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackBufferUsage(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mBarrierHelper.Execute(*this);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
+	footprint.Offset = 0;
+	footprint.Footprint.Format = source->GetDXGIFormat();
+	footprint.Footprint.Width = width;
+	footprint.Footprint.Height = height;
+	footprint.Footprint.Depth = 1;
+	footprint.Footprint.RowPitch = rowPitchBytes;
+
+	CopyTextureToBufferRaw(source->GetD3D12Resource(), destination->GetD3D12Resource(), footprint, 0);
+}
+
 void D3D12GpuCommandBuffer::CopyBufferToBufferRaw(ID3D12Resource* source, ID3D12Resource* destination, u64 sourceOffset, u64 destinationOffset, u64 length)
 {
 	EnsureValidThread();

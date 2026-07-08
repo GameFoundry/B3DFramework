@@ -26,6 +26,7 @@ D3D12SwapChain::D3D12SwapChain(D3D12ResourceManager* owner, const D3D12SwapChain
 	, mVSync(createInfo.VSync)
 	, mVsyncInterval(createInfo.VsyncInterval)
 	, mIsInitialized(false)
+	, mIsHeadless(createInfo.Headless)
 {
 	// Initialize descriptor handles and framebuffers to null
 	for (u32 i = 0; i < kMaxBackBuffers; i++)
@@ -107,8 +108,17 @@ void D3D12SwapChain::Initialize()
 	if (mIsInitialized)
 		return;
 
-	CreateSwapChain();
-	GetBackBufferResources();
+	if (mIsHeadless)
+	{
+		mBackBufferCount = kMaxBackBuffers;
+		CreateHeadlessBackBuffers();
+	}
+	else
+	{
+		CreateSwapChain();
+		GetBackBufferResources();
+	}
+
 	CreateRenderTargetViews();
 
 	if (mCreateInfo.CreateDepthBuffer)
@@ -234,11 +244,70 @@ void D3D12SwapChain::GetBackBufferResources()
 	}
 }
 
+void D3D12SwapChain::CreateHeadlessBackBuffers()
+{
+	// Offscreen textures that stand in for swap chain back buffers. They only ever hold rendered output (no shader
+	// reads), matching DXGI_USAGE_RENDER_TARGET_OUTPUT back buffers, and being committed resources their contents
+	// persist across presents - which the post-present screen capture path relies on.
+	D3D12_RESOURCE_DESC backBufferDesc = {};
+	backBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	backBufferDesc.Alignment = 0;
+	backBufferDesc.Width = mWidth;
+	backBufferDesc.Height = mHeight;
+	backBufferDesc.DepthOrArraySize = 1;
+	backBufferDesc.MipLevels = 1;
+	backBufferDesc.Format = mCreateInfo.ColorFormat;
+	backBufferDesc.SampleDesc.Count = 1;
+	backBufferDesc.SampleDesc.Quality = 0;
+	backBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	backBufferDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	D3D12_CLEAR_VALUE clearValue = {};
+	clearValue.Format = mCreateInfo.ColorFormat;
+
+	D3D12MA::ALLOCATION_DESC allocDesc = {};
+	allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+
+	for (u32 i = 0; i < mBackBufferCount; i++)
+	{
+		D3D12MA::Allocation* allocation = nullptr;
+		HRESULT hr = mDevice.GetAllocator()->CreateResource(
+			&allocDesc,
+			&backBufferDesc,
+			D3D12_RESOURCE_STATE_COMMON,
+			&clearValue,
+			&allocation,
+			IID_PPV_ARGS(&mBackBuffers[i])
+		);
+
+		if (FAILED(hr))
+		{
+			B3D_LOG(Error, LogRenderBackend, "Failed to create headless back buffer {0}: HRESULT={1}", i, (u32)hr);
+			mBackBuffers[i].Reset();
+			continue;
+		}
+
+		String name = "Headless BackBuffer " + ToString(i);
+		mBackBuffers[i]->SetName(ToWideString(name).c_str());
+
+		// Wrap the back buffer in an image resource so command buffers can track its usage and state. The wrapper
+		// takes ownership of the allocation.
+		D3D12ImageCreateInformation imageCreateInformation;
+		imageCreateInformation.Resource = mBackBuffers[i];
+		imageCreateInformation.Allocation = allocation;
+		imageCreateInformation.Format = mCreateInfo.ColorFormat;
+		imageCreateInformation.InitialState = D3D12_RESOURCE_STATE_COMMON;
+		imageCreateInformation.FaceCount = 1;
+		imageCreateInformation.MipLevelCount = 1;
+		imageCreateInformation.Aspect = GpuTextureAspectFlag::Color;
+		imageCreateInformation.Name = name;
+
+		mBackBufferImages[i] = mDevice.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
+	}
+}
+
 void D3D12SwapChain::CreateRenderTargetViews()
 {
-	if (!mSwapChain)
-		return;
-
 	D3D12DescriptorManager& descriptorManager = mDevice.GetDescriptorManager();
 	ID3D12Device* d3d12Device = mDevice.GetD3D12Device();
 
@@ -367,10 +436,21 @@ void D3D12SwapChain::CreateDepthStencilBuffer()
 
 u32 D3D12SwapChain::GetCurrentBackBufferIndex() const
 {
+	if (mIsHeadless)
+		return mHeadlessBackBufferIndex.load(std::memory_order_acquire);
+
 	if (!mSwapChain)
 		return 0;
 
 	return mSwapChain->GetCurrentBackBufferIndex();
+}
+
+u32 D3D12SwapChain::GetLastPresentedImageIndex() const
+{
+	if (mLastPresentedImageIndex >= 0)
+		return (u32)mLastPresentedImageIndex;
+
+	return GetCurrentBackBufferIndex();
 }
 
 ID3D12Resource* D3D12SwapChain::GetBackBuffer(u32 index) const
@@ -430,6 +510,15 @@ D3D12Framebuffer* D3D12SwapChain::GetFramebuffer(u32 index) const
 
 HRESULT D3D12SwapChain::PresentDXGI()
 {
+	if (mIsHeadless)
+	{
+		// No DXGI present in headless mode - just cycle to the next back buffer, mimicking a flip-model present.
+		const u32 currentIndex = mHeadlessBackBufferIndex.load(std::memory_order_relaxed);
+		mHeadlessBackBufferIndex.store((currentIndex + 1) % mBackBufferCount, std::memory_order_release);
+
+		return S_OK;
+	}
+
 	if (!mSwapChain)
 		return E_FAIL;
 
@@ -458,10 +547,10 @@ void D3D12SwapChain::AcquireImage()
 		return;
 	}
 
-	if (!mSwapChain)
+	if (!mSwapChain && !mIsHeadless)
 		return;
 
-	const u32 imageIndex = mSwapChain->GetCurrentBackBufferIndex();
+	const u32 imageIndex = GetCurrentBackBufferIndex();
 
 	Lock lock(mAcquireMutex);
 	mAcquiredImageIndices.Add(imageIndex);
@@ -471,14 +560,14 @@ void D3D12SwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncM
 {
 	AssertIfNotSubmitThread();
 
-	if (!mSwapChain)
+	if (!mSwapChain && !mIsHeadless)
 		return;
 
 	D3D12GpuQueue& d3d12Queue = static_cast<D3D12GpuQueue&>(queue);
 
 	// DXGI flip-model presents the swap chain's current back buffer; there is no per-image present target. No DXGI
 	// present happens between acquire and present, so the current back buffer still matches the acquired image index.
-	B3D_ASSERT(imageIndex == mSwapChain->GetCurrentBackBufferIndex() && "Presenting an image other than the current DXGI back buffer.");
+	B3D_ASSERT(imageIndex == GetCurrentBackBufferIndex() && "Presenting an image other than the current DXGI back buffer.");
 	(void)imageIndex;
 
 	// Register the present entry on the queue; this issues the DXGI present and records a present entry so the
@@ -513,6 +602,9 @@ void D3D12SwapChain::NotifyWasPresentQueued(u32 imageIndex)
 		else
 			B3D_ASSERT(false && "Presenting a swap chain image that wasn't acquired.");
 	}
+
+	// Remember the image holding the last rendered frame, for screen captures that run after the present.
+	mLastPresentedImageIndex = (i32)imageIndex;
 
 	NotifyBound();
 }

@@ -64,6 +64,10 @@ bool D3D12ShaderCompiler::CompileShader(const GpuProgramCreateInformation& desc,
 	// Enable strict mode for better error checking
 	compileFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
 
+	// Engine matrices are row-major in memory and shaders use the mul(matrix, vector) convention, so constant
+	// buffer matrices must be packed row-major (HLSL defaults to column-major, which transposes every matrix).
+	compileFlags |= D3DCOMPILE_PACK_MATRIX_ROW_MAJOR;
+
 	// The source name must be a valid filename-like string - the standard include handler derives the include
 	// directory from it, and an empty name fails the whole compilation with ERROR_INVALID_NAME.
 	const char* sourceName = !desc.Name.empty() ? desc.Name.c_str() : "unnamed_shader";

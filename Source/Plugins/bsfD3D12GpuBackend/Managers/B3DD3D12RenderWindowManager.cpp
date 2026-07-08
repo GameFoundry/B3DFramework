@@ -7,10 +7,7 @@ using namespace b3d;
 
 TShared<render::IRenderWindowSurface> D3D12RenderWindowManager::CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation)
 {
-	// TODO(d3d12-port): Support headless surfaces (offscreen swap-chain-less rendering), mirroring
-	// VulkanHeadlessRenderWindowSurface.
-	if (!B3D_ENSURE_LOG(!createInformation.Headless, "Headless render windows are not yet supported by the D3D12 backend."))
-		return nullptr;
-
+	// The same surface implementation handles both windowed and headless modes; the swap chain it creates uses
+	// offscreen textures instead of DXGI back buffers when headless.
 	return B3DMakeShared<render::D3D12RenderWindowSurface>(createInformation);
 }

@@ -2,13 +2,18 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12RenderWindowSurface.h"
 #include "B3DD3D12GpuBackend.h"
+#include "B3DD3D12GpuBuffer.h"
+#include "B3DD3D12GpuCommandBuffer.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12SwapChain.h"
+#include "B3DD3D12Texture.h"
 #include "B3DD3D12Utility.h"
 #include "B3DD3D12Framebuffer.h"
 #include "GpuBackend/B3DGpuSubmitThread.h"
+#include "Image/B3DPixelUtility.h"
 
+using namespace b3d;
 using namespace b3d::render;
 
 D3D12RenderWindowSurface::D3D12RenderWindowSurface(const RenderWindowSurfaceCreateInformation& createInformation)
@@ -16,6 +21,7 @@ D3D12RenderWindowSurface::D3D12RenderWindowSurface(const RenderWindowSurfaceCrea
 	, mWindowHandle((HWND)createInformation.PlatformWindowHandle)
 	, mCreateDepthBuffer(createInformation.CreateDepthBuffer)
 	, mUseHardwareSRGB(createInformation.UseHardwareSRGB)
+	, mIsHeadless(createInformation.Headless)
 	, mVsync(createInformation.VSync)
 	, mVsyncInterval(createInformation.VsyncInterval)
 {
@@ -63,6 +69,7 @@ void D3D12RenderWindowSurface::CreateSwapChainInternal(u32 width, u32 height, bo
 	swapChainCreateInfo.ColorFormat = mColorFormat;
 	swapChainCreateInfo.DepthStencilFormat = mDepthFormat;
 	swapChainCreateInfo.CreateDepthBuffer = mCreateDepthBuffer;
+	swapChainCreateInfo.Headless = mIsHeadless;
 
 	// The swap chain is an IGpuResource - its lifetime is owned by the device resource manager and it is released via
 	// IGpuResource::Destroy() (deferred until it's no longer bound), not a direct delete.
@@ -157,6 +164,82 @@ D3D12Framebuffer* D3D12RenderWindowSurface::GetFramebuffer(u32 backBufferIndex) 
 		return nullptr;
 
 	return mSwapChain->GetFramebuffer(backBufferIndex);
+}
+
+TAsyncOp<TShared<PixelData>> D3D12RenderWindowSurface::ReadAsync(GpuCommandBuffer& commandBuffer)
+{
+	if (mSwapChain == nullptr)
+		return {};
+
+	// Read the image holding the last fully rendered frame - captures typically run after the frame was presented.
+	// Note this is only reliable for headless surfaces, whose back buffers are plain committed textures. DXGI
+	// flip-discard back buffer contents are formally undefined after present, so windowed captures are best-effort.
+	const u32 imageIndex = mSwapChain->GetLastPresentedImageIndex();
+	D3D12Image* colorImage = mSwapChain->GetBackBufferImage(imageIndex);
+	if (colorImage == nullptr)
+		return {};
+
+	const u32 width = mSwapChain->GetWidth();
+	const u32 height = mSwapChain->GetHeight();
+	const PixelFormat pixelFormat = PF_RGBA8;
+
+	const TShared<PixelData> pixelData = B3DMakeShared<PixelData>(width, height, 1, pixelFormat);
+
+	// Buffer rows must be padded to the placed-footprint pitch alignment.
+	const u32 tightRowPitch = width * PixelUtility::GetBlockSize(pixelFormat);
+	const u32 paddedRowPitch = Math::CeilToMultiple(tightRowPitch, (u32)D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+	const u32 bufferSize = paddedRowPitch * height;
+
+	GpuBufferCreateInformation bufferCreateInfo;
+	bufferCreateInfo.Type = GpuBufferType::StagingRead;
+	bufferCreateInfo.Staging.Size = bufferSize;
+
+	TShared<GpuBuffer> stagingBuffer = mDevice.CreateGpuBuffer(bufferCreateInfo, GpuObjectCreateFlag::None);
+	if (stagingBuffer == nullptr)
+		return {};
+
+	D3D12Buffer* d3d12StagingBuffer = static_cast<D3D12GpuBuffer*>(stagingBuffer.get())->GetD3D12Buffer();
+
+	// Issue the copy command
+	D3D12GpuCommandBuffer& d3d12CommandBuffer = static_cast<D3D12GpuCommandBuffer&>(commandBuffer);
+	d3d12CommandBuffer.CopyImageToBuffer(colorImage, d3d12StagingBuffer, width, height, paddedRowPitch);
+
+	// Set up async completion
+	TAsyncOp<TShared<PixelData>> op;
+
+	auto fnOnCommandBufferCompleted = [stagingBuffer, op, pixelData, tightRowPitch, paddedRowPitch, height]() mutable
+	{
+		GpuBufferMappedScope mapping = stagingBuffer->Map(GpuMapOption::Read);
+
+		pixelData->AllocateInternalBuffer();
+
+		const u8* source = (const u8*)mapping.GetMappedMemory();
+		u8* destination = pixelData->GetData();
+
+		if (paddedRowPitch == tightRowPitch)
+			memcpy(destination, source, pixelData->GetSize());
+		else
+		{
+			// De-pad the rows into the tightly packed pixel data
+			for (u32 row = 0; row < height; row++)
+				memcpy(destination + row * (u64)tightRowPitch, source + row * (u64)paddedRowPitch, tightRowPitch);
+		}
+
+		op.CompleteOperation(pixelData);
+	};
+
+	auto fnOnCommandBufferDestroyed = [op](bool isSubmitted) mutable
+	{
+		if (isSubmitted)
+			return;
+
+		op.CompleteOperation(nullptr);
+	};
+
+	commandBuffer.OnDidComplete.Connect(fnOnCommandBufferCompleted);
+	commandBuffer.OnDestroyed.Connect(fnOnCommandBufferDestroyed);
+
+	return op;
 }
 
 D3D12Framebuffer* D3D12RenderWindowSurface::GetActiveFramebuffer()

@@ -277,8 +277,10 @@ namespace
 	};
 }
 
-TShared<GpuPipelineParameterSetLayout> D3D12GpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
+TShared<GpuPipelineParameterSetLayout> D3D12GpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& /*resourceTableLayout*/, u32 /*tableIndex*/)
 {
+	// TODO(d3d12-port): root-signature construction currently derives everything from the parameter description;
+	// consuming the reflected table (GpuResourceTableLayout) for exact root-signature population is the open follow-up.
 	return B3DMakeShared<D3D12GpuPipelineParameterSetLayout>(parameterDescription);
 }
 
