@@ -9,6 +9,21 @@ MACRO(B3DStartFindPackage packageName)
 	message(STATUS "Looking for ${packageName} installation...")
 ENDMACRO()
 
+# Resolves the on-disk location of a bundled dependency. The host platform uses the shared
+# Framework/Dependencies tree. A cross-compiled (non-host) platform that ships its own
+# dependency tree under Framework/Platform/<platform>/Dependencies uses that instead, so its
+# archives never collide with the host's in the shared folder (both are, e.g., x64).
+#
+# @param	packageName		Name of the package (also its sub-folder name).
+# @param	resultVar		Output variable to receive the resolved install directory.
+MACRO(B3DGetBundledDependencyFolder packageName resultVar)
+	if(B3D_PLATFORM_${B3D_PLATFORM}_DEPENDENCIES_FOLDER)
+		set(${resultVar} ${B3D_PLATFORM_${B3D_PLATFORM}_DEPENDENCIES_FOLDER}/${packageName})
+	else()
+		set(${resultVar} ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/${packageName})
+	endif()
+ENDMACRO()
+
 # Marks the end of CMake Find* script.
 #
 # @param	packageName			Name of the package that's being located.

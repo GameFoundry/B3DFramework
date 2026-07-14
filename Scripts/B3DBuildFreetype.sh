@@ -29,6 +29,15 @@ else
 	git checkout $FREETYPE_VERSION
 fi
 
+# Apply the shared source patch (disables FreeType's env-driven property lookup, which depends on
+# getenv() and is unused by Banshee). Applied on every platform. The --check guard keeps re-runs
+# idempotent.
+RootPatch="$CurrentDirectory/Patches/Freetype.patch"
+if [ -f "$RootPatch" ]; then
+	echo "Applying patch: $RootPatch"
+	git apply --check "$RootPatch" 2>/dev/null && git apply "$RootPatch"
+fi
+
 # Setup output folders
 OutputFolder="$PlatformDependencyFolder/freetype"
 B3DCleanDependencyFolder "$OutputFolder"
@@ -42,7 +51,8 @@ cmake -S . -B build -G "$CMakeGenerator" \
 	-DFT_DISABLE_BZIP2=ON \
 	-DFT_DISABLE_PNG=ON \
 	-DFT_DISABLE_HARFBUZZ=ON \
-	-DFT_DISABLE_BROTLI=ON || exit 1
+	-DFT_DISABLE_BROTLI=ON \
+	$B3D_EXTRA_CMAKE_ARGS || exit 1
 
 # Build and install
 cmake --build build --config Release --target install || exit 1

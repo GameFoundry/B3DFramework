@@ -40,7 +40,8 @@ cmake -S . -B build -G "$CMakeGenerator" \
 	-DBUILD_SHARED_LIBS=OFF \
 	-DSNAPPY_BUILD_TESTS=OFF \
 	-DSNAPPY_BUILD_BENCHMARKS=OFF \
-	-DSNAPPY_INSTALL=ON || exit 1
+	-DSNAPPY_INSTALL=ON \
+	$B3D_EXTRA_CMAKE_ARGS || exit 1
 
 # Build and install
 cmake --build build --config Release --target install || exit 1

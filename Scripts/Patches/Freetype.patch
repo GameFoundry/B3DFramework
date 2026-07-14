@@ -1,0 +1,14 @@
+diff --git a/include/freetype/config/ftoption.h b/include/freetype/config/ftoption.h
+index b857e0ebb..2234851a2 100644
+--- a/include/freetype/config/ftoption.h
++++ b/include/freetype/config/ftoption.h
+@@ -109,7 +109,8 @@ FT_BEGIN_HEADER
+    * ```
+    *
+    */
+-#define FT_CONFIG_OPTION_ENVIRONMENT_PROPERTIES
++/* Banshee sets no FREETYPE_PROPERTIES, and getenv() is absent on some console libcs. */
++/* #define FT_CONFIG_OPTION_ENVIRONMENT_PROPERTIES */
+ 
+ 
+   /**************************************************************************
