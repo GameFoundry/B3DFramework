@@ -9,13 +9,13 @@
 using namespace b3d;
 using namespace b3d::render;
 
-GpuWriteHazardPipelineTracking::GpuWriteHazardPipelineTracking()
+GpuHazardStageTracking::GpuHazardStageTracking()
 {
 	// Everything is safe to access by default
 	std::fill(SafeAccess.begin(), SafeAccess.end(), GpuStageFlag::All);
 }
 
-void GpuWriteHazardPipelineTracking::ClearStageSafeAccess(GpuStageFlags stages)
+void GpuHazardStageTracking::ClearStageSafeAccess(GpuStageFlags stages)
 {
 	u32 stagesAsInteger = (u32)stages;
 	while(stagesAsInteger != 0)
@@ -27,7 +27,7 @@ void GpuWriteHazardPipelineTracking::ClearStageSafeAccess(GpuStageFlags stages)
 	}
 }
 
-void GpuWriteHazardPipelineTracking::AddStageSafeAccess(GpuStageFlags sourceStages, GpuStageFlags destinationStages)
+void GpuHazardStageTracking::AddStageSafeAccess(GpuStageFlags sourceStages, GpuStageFlags destinationStages)
 {
 	u32 sourceStagesAsInteger = (u32)sourceStages;
 	while(sourceStagesAsInteger != 0)
@@ -39,7 +39,7 @@ void GpuWriteHazardPipelineTracking::AddStageSafeAccess(GpuStageFlags sourceStag
 	}
 }
 
-bool GpuWriteHazardPipelineTracking::IsAccessSafe(GpuStageFlags stages) const
+bool GpuHazardStageTracking::IsAccessSafe(GpuStageFlags stages) const
 {
 	for(const auto& entry : SafeAccess)
 	{
@@ -50,7 +50,7 @@ bool GpuWriteHazardPipelineTracking::IsAccessSafe(GpuStageFlags stages) const
 	return true;
 }
 
-GpuStageFlags GpuWriteHazardPipelineTracking::GetUnsafeAccessStages(GpuStageFlags stages) const
+GpuStageFlags GpuHazardStageTracking::GetUnsafeAccessStages(GpuStageFlags stages) const
 {
 	GpuStageFlags unsafeStages = GpuStageFlag::None;
 
@@ -63,7 +63,7 @@ GpuStageFlags GpuWriteHazardPipelineTracking::GetUnsafeAccessStages(GpuStageFlag
 	return unsafeStages;
 }
 
-void GpuWriteHazardPipelineTracking::LogUnsafeAccess(GpuStageFlags stages, GpuAccessFlags currentAccessType, GpuAccessFlags previousAccessType) const
+void GpuHazardStageTracking::LogUnsafeAccess(GpuStageFlags stages, GpuAccessFlags currentAccessType, GpuAccessFlags previousAccessType) const
 {
 	StringStream stream;
 	for(u32 stageIndex = 0; stageIndex < (u32)SafeAccess.size(); stageIndex++)
@@ -89,20 +89,132 @@ void GpuWriteHazardPipelineTracking::LogUnsafeAccess(GpuStageFlags stages, GpuAc
 	B3D_LOG(Warning, LogRenderBackend, "{0}", stream.str());
 }
 
-void GpuWriteHazardTracking::AddSafeAccess(GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess)
+void GpuHazardState::ClearSafeAccess(GpuStageFlags stages, GpuAccessFlags access)
 {
-	const bool needsMemoryBarrier = sourceAccess.IsSet(GpuAccessFlag::Write);
-	const bool needsExecutionBarrier = sourceAccess.IsSet(GpuAccessFlag::Read) && destinationAccess.IsSet(GpuAccessFlag::Write) || needsMemoryBarrier;
+	if(access.IsSet(GpuAccessFlag::Read))
+		ExecutionBarrierTracking.ClearStageSafeAccess(stages);
+
+	if(access.IsSet(GpuAccessFlag::Write))
+		MemoryBarrierTracking.ClearStageSafeAccess(stages);
+}
+
+void GpuHazardState::AddSafeAccess(const GpuHazardStageAndAccess& barrier)
+{
+	const bool needsMemoryBarrier = barrier.SourceAccess.IsSet(GpuAccessFlag::Write);
+	const bool needsExecutionBarrier = barrier.SourceAccess.IsSet(GpuAccessFlag::Read) && barrier.DestinationAccess.IsSet(GpuAccessFlag::Write) || needsMemoryBarrier;
 
 	if(needsExecutionBarrier)
-		ExecutionBarrierTracking.AddStageSafeAccess(sourceAccessStageFlags, destinationAccessStageFlags);
+		ExecutionBarrierTracking.AddStageSafeAccess(barrier.SourceStages, barrier.DestinationStages);
 
 	if(needsMemoryBarrier)
-		MemoryBarrierTracking.AddStageSafeAccess(sourceAccessStageFlags, destinationAccessStageFlags);
+		MemoryBarrierTracking.AddStageSafeAccess(barrier.SourceStages, barrier.DestinationStages);
+}
+
+void GpuHazardState::Merge(const GpuHazardState& other)
+{
+	for(u32 stageIndex = 0; stageIndex < GpuHazardStageTracking::kPipelineStageCount; ++stageIndex)
+	{
+		ExecutionBarrierTracking.SafeAccess[stageIndex] &= other.ExecutionBarrierTracking.SafeAccess[stageIndex];
+		MemoryBarrierTracking.SafeAccess[stageIndex] &= other.MemoryBarrierTracking.SafeAccess[stageIndex];
+	}
+}
+
+GpuAccessScope GpuHazardTracking::GetFirstAccessScope() const
+{
+	for(const Epoch& epoch : mCompletedEpochs)
+	{
+		if(epoch.AccessScope.IsValid())
+			return epoch.AccessScope;
+	}
+
+	return mCurrentAccessScope;
+}
+
+GpuHazardTracking::CrossCommandBufferRecipe GpuHazardTracking::DetermineCrossCommandBufferRecipe(const GpuHazardState& sourceCommandBufferHazards) const
+{
+	CrossCommandBufferRecipe result;
+	result.RemainingHazards = sourceCommandBufferHazards;
+
+	// Based on the provided access scope, determines which stages are unsafe to access with regards to the remaining hazards, 
+	// and records necessary memory or execution barriers to make them safe. Then clears the hazards from the remaining hazards.
+	auto fnGenerateBarriers = [&result](const GpuAccessScope& accessScope)
+	{
+		u32 stages = (u32)accessScope.GetStages();
+		while(stages != 0)
+		{
+			const u32 stageIndex = Bitwise::LeastSignificantBit(stages);
+			const GpuStageFlags destinationStage = (GpuStageFlag)(1 << stageIndex);
+			const GpuAccessFlags destinationAccess = accessScope.GetAccess(destinationStage);
+
+			const GpuStageFlags writeSourceStages = result.RemainingHazards.MemoryBarrierTracking.GetUnsafeAccessStages(destinationStage);
+			if(writeSourceStages != GpuStageFlag::None)
+			{
+				result.MemoryDependency.SourceStages |= writeSourceStages;
+				result.MemoryDependency.SourceAccess |= GpuAccessFlag::Write;
+				result.MemoryDependency.DestinationStages |= destinationStage;
+				result.MemoryDependency.DestinationAccess |= destinationAccess;
+
+				result.RemainingHazards.AddSafeAccess(GpuHazardStageAndAccess(writeSourceStages, GpuAccessFlag::Write, destinationStage, destinationAccess));
+			}
+
+			if(destinationAccess.IsSet(GpuAccessFlag::Write))
+			{
+				const GpuStageFlags readSourceStages = result.RemainingHazards.ExecutionBarrierTracking.GetUnsafeAccessStages(destinationStage);
+				if(readSourceStages != GpuStageFlag::None)
+				{
+					result.ExecutionDependency.SourceStages |= readSourceStages;
+					result.ExecutionDependency.SourceAccess |= GpuAccessFlag::Read;
+					result.ExecutionDependency.DestinationStages |= destinationStage;
+					result.ExecutionDependency.DestinationAccess |= GpuAccessFlag::Write;
+
+					result.RemainingHazards.AddSafeAccess(GpuHazardStageAndAccess(readSourceStages, GpuAccessFlag::Read, destinationStage, GpuAccessFlag::Write));
+				}
+			}
+
+			stages &= ~(1 << stageIndex);
+		}
+	};
+
+	// Clears remaining hazards based on inter-command-buffer barriers that were issued within the command buffer already.
+	auto fnApplyExistingBarrier = [&result](const GpuHazardStageAndAccess& barrier)
+	{
+		// If an existing (already recorded) barrier is resolving some hazard we need to ensure we insert a dependency on the source command buffer's queue.
+		// Normally this is done by if any new execution or memory barriers need to be issued, and this case covers the pre-existing barriers.
+		if(barrier.SourceAccess.IsSet(GpuAccessFlag::Write))
+		{
+			const GpuStageFlags unsafeStages = result.RemainingHazards.MemoryBarrierTracking.GetUnsafeAccessStages(barrier.DestinationStages) & barrier.SourceStages;
+			result.RequiresCrossQueueDependency |= unsafeStages != GpuStageFlag::None;
+		}
+
+		if(barrier.SourceAccess.IsSet(GpuAccessFlag::Read) && barrier.DestinationAccess.IsSet(GpuAccessFlag::Write))
+		{
+			const GpuStageFlags unsafeStages = result.RemainingHazards.ExecutionBarrierTracking.GetUnsafeAccessStages(barrier.DestinationStages) & barrier.SourceStages;
+			result.RequiresCrossQueueDependency |= unsafeStages != GpuStageFlag::None;
+		}
+
+		result.RemainingHazards.AddSafeAccess(barrier);
+	};
+
+	// Since the command buffer was recorded in isolation it had no knowledge of the hazards on the command buffer submitted before it.
+	// So we need to replay all accesses and barriers in the order they were issued, against the hazards now that they are known. If an
+	// existing inter-command-buffer barrier doesn't resolve the hazard, we must issue the barrier ourself before submitting the command buffer.
+	for(const Epoch& epoch : mCompletedEpochs)
+	{
+		fnGenerateBarriers(epoch.AccessScope);
+		fnApplyExistingBarrier(epoch.IssuedBarrier);
+	}
+
+	fnGenerateBarriers(mCurrentAccessScope);
+
+	// TODO - When we call AddSafeAccess this clears the hazard. This is fine if all command buffers are on the same queue. It's also fine if source is on queue A and destination on queue B.
+	// But in the cross-queue case, the hazard is only cleared from queue B's perspective. If we use the same resource on queue C, it will incorrectly think the hazard is gone. High level API
+	// currently requires user to manually provide queue sync masks, so this is not relevant at the moment, but may be if we decide to fully rely on the automatic system.
+
+	return result;
 }
 
 #if B3D_VERIFY_BARRIERS
-void GpuWriteHazardTracking::VerifySafeAccess(GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess) const
+void GpuHazardTracking::VerifySafeAccess(GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess) const
 {
 	// If this image has been previously used prevent read-after-write and write-after-read hazards
 	if(destinationAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
@@ -111,9 +223,9 @@ void GpuWriteHazardTracking::VerifySafeAccess(GpuStageFlags destinationAccessSta
 		if(Access.IsSet(GpuAccessFlag::Write))
 		{
 			// Triggers if user did not issue a RAW memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-			if(!MemoryBarrierTracking.IsAccessSafe(destinationAccessStageFlags))
+			if(!State.MemoryBarrierTracking.IsAccessSafe(destinationAccessStageFlags))
 			{
-				MemoryBarrierTracking.LogUnsafeAccess(destinationAccessStageFlags, destinationAccess, GpuAccessFlag::Write);
+				State.MemoryBarrierTracking.LogUnsafeAccess(destinationAccessStageFlags, destinationAccess, GpuAccessFlag::Write);
 				B3D_ENSURE(false);
 			}
 		}
@@ -128,9 +240,9 @@ void GpuWriteHazardTracking::VerifySafeAccess(GpuStageFlags destinationAccessSta
 			if(Access.IsSet(GpuAccessFlag::Read))
 			{
 				// Triggers if user did not issue a WAR memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-				if(!ExecutionBarrierTracking.IsAccessSafe(destinationAccessStageFlags))
+				if(!State.ExecutionBarrierTracking.IsAccessSafe(destinationAccessStageFlags))
 				{
-					ExecutionBarrierTracking.LogUnsafeAccess(destinationAccessStageFlags, GpuAccessFlag::Write, GpuAccessFlag::Read);
+					State.ExecutionBarrierTracking.LogUnsafeAccess(destinationAccessStageFlags, GpuAccessFlag::Write, GpuAccessFlag::Read);
 					B3D_ENSURE(false);
 				}
 			}

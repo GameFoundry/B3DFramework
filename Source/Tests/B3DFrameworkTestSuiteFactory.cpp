@@ -13,6 +13,7 @@
 #include "TestSuites/B3DFileSystemTestSuite.h"
 #include "TestSuites/B3DECSTestSuite.h"
 #include "TestSuites/B3DCoreTestSuite.h"
+#include "TestSuites/B3DGpuBackendTestSuite.h"
 #include "TestSuites/B3DGpuAllocatorTestSuite.h"
 #include "TestSuites/B3DPrefabTestSuite.h"
 #include "TestSuites/B3DSceneObjectTransformTestSuite.h"
@@ -47,6 +48,7 @@ namespace b3d
 		else if (layer == TestLayer::Core)
 		{
 			registry.RegisterSuite(TestSuite::Create<CoreTestSuite>());
+			registry.RegisterSuite(TestSuite::Create<GpuBackendTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<GpuAllocatorTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<PrefabTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<SceneObjectTransformTestSuite>());

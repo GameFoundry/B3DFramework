@@ -162,25 +162,6 @@ namespace b3d
 			/** Invalidates any GPU writes to the buffer to make them visible to the CPU. Only relevant for non-coherent memory. */
 			void Invalidate(VkDeviceSize offset, VkDeviceSize size);
 
-			/**
-			 * Determines a set of access flags based on the current image and provided image layout. This method makes
-			 * certain assumptions about image usage, so it might not be valid in all situations.
-			 *
-			 * @param[in]	layout		Layout the image is currently in.
-			 * @param[in]	readOnly	True if the image is only going to be read without writing, allows the system to
-			 *							set less general access flags. If unsure, set to false.
-			 */
-			VkAccessFlags GetAccessFlags(VkImageLayout layout, bool readOnly = false);
-
-			/**
-			 * Generates a set of image barriers that are grouped depending on the current layout of individual sub-resources
-			 * in the specified range. The method will try to reduce the number of generated barriers by grouping as many
-			 * sub-resources as possibly.
-			 *
-			 * @note	Submit thread only.
-			 */
-			void GetBarriers(const VkImageSubresourceRange& range, TArray<VkImageMemoryBarrier>& barriers);
-
 			/** Returns the subresource layout (pitch values in bytes) for a specific image subresource. */
 			VkSubresourceLayout GetSubresourceLayout(u32 face, u32 mipLevel) const;
 

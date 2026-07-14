@@ -428,7 +428,7 @@ void VulkanSwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask sync
 
 		commandBuffer->End();
 
-		GpuCommandBufferSubmitInformation submitInformation;
+		VulkanGpuCommandBufferSubmitInformation submitInformation;
 		submitInformation.PrimaryCommandBuffer = commandBuffer;
 		vulkanQueue.ExecuteSubmitOnSubmitThread(submitInformation, GpuQueueMask::kNone, {});
 

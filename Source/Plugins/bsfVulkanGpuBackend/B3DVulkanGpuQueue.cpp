@@ -217,7 +217,7 @@ VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TArra
 	return vkSubmitInfo;
 }
 
-void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	AssertIfNotSubmitThread();
 
@@ -226,47 +226,28 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 
 	VulkanGpuDevice& device = static_cast<VulkanGpuDevice&>(mGpuDevice);
 
-	// No need to explicitly sync with any entries on the same queue
+	syncMask |= submitInformation.RequiredWaitMask;
+
+	// Same-queue resource dependencies are recorded in the destination transition command buffer
 	const GpuQueueMask queueMask(GetId());
 	syncMask &= ~queueMask;
 
-	B3D_ASSERT(B3DSize(submitInformation.SourceQueueTransitionCommandBuffer) == GQT_COUNT);
-	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; ++queueTypeIndex)
+	for(const VulkanSourceQueueTransition& sourceTransition : submitInformation.SourceQueueTransitions)
 	{
-		if (submitInformation.SourceQueueTransitionCommandBuffer[queueTypeIndex] == nullptr)
+		if(sourceTransition.CommandBuffer == nullptr)
 			continue;
 
-		const GpuQueueType transitionQueueType = (GpuQueueType)queueTypeIndex;
+		TShared<VulkanGpuQueue> transitionQueue = std::static_pointer_cast<VulkanGpuQueue>(
+			device.GetQueue(sourceTransition.QueueId.GetType(), sourceTransition.QueueId.GetIndex()));
+		if(!B3D_ENSURE(transitionQueue != nullptr))
+			continue;
 
-		// Find an appropriate queue to execute on
-		u32 transitionQueueIndex = 0;
-		TShared<VulkanGpuQueue> transitionQueue = nullptr;
+		syncMask |= sourceTransition.QueueId;
 
-		const u32 queueCount = device.GetQueueCount(transitionQueueType);
-		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
-		{
-			// Try to find a queue not currently executing
-			const TShared<VulkanGpuQueue>& curQueue = std::static_pointer_cast<VulkanGpuQueue>(device.GetQueue(transitionQueueType, queueIndex));
-			if(!curQueue->IsExecuting())
-			{
-				transitionQueue = curQueue;
-				transitionQueueIndex = queueIndex;
-			}
-		}
+		VulkanGpuCommandBufferSubmitInformation transitionSubmitInformation;
+		transitionSubmitInformation.PrimaryCommandBuffer = sourceTransition.CommandBuffer;
 
-		// Can't find empty one, use the first one then
-		if(transitionQueue == nullptr)
-		{
-			transitionQueue = std::static_pointer_cast<VulkanGpuQueue>(device.GetQueue(transitionQueueType, 0));
-			transitionQueueIndex = 0;
-		}
-
-		syncMask |= GpuQueueId(transitionQueueType, transitionQueueIndex);
-
-		GpuCommandBufferSubmitInformation transitionSubmitInformation;
-		transitionSubmitInformation.PrimaryCommandBuffer = submitInformation.SourceQueueTransitionCommandBuffer[queueTypeIndex];
-
-		transitionQueue->ExecuteSubmitOnSubmitThread(transitionSubmitInformation, GpuQueueMask::kNone, {});
+		transitionQueue->ExecuteSubmitOnSubmitThread(transitionSubmitInformation, sourceTransition.WaitMask, {});
 	}
 
 	B3D_ENSURE(mWaitSemaphoreBuffer.Empty());
@@ -366,10 +347,10 @@ void VulkanGpuQueue::RefreshCompletionState(bool forceWait, bool queueEmpty, u32
 					semaphoresToRelease.Add(semaphore);
 				}
 
-				messageBackQueue.PostCommand([semaphoresToRelease]()
+				messageBackQueue.PostCommand([semaphoresToRelease, queueId = GetId()]()
 				{
 					for (const auto& semaphore : semaphoresToRelease)
-						semaphore->NotifyDone(0, GpuAccessFlag::Read | GpuAccessFlag::Write);
+						semaphore->NotifyDone(queueId, GpuAccessFlag::Read | GpuAccessFlag::Write);
 				});
 
 				waitGroup.Increment();

@@ -3,13 +3,12 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "GpuBackend/B3DGpuHazardTracking.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "Allocators/B3DPoolAlloc.h"
 #include "Utility/B3DDenseMap.h"
 #include "Utility/B3DTArrayView.h"
-
-#define B3D_VERIFY_BARRIERS B3D_BUILD_TYPE_DEVELOPMENT // If enabled, ensures that memory barriers are properly issued
 
 namespace b3d
 {
@@ -18,65 +17,6 @@ namespace b3d
 		/** @addtogroup GpuBackend
 		 *  @{
 		 */
-
-		/** Keeps track on which pipeline stages a resource was written/read, and on which stages it may be safely accessed from. */
-		struct B3D_EXPORT GpuWriteHazardPipelineTracking
-		{
-			static constexpr u32 kPipelineStageCount = 16;
-
-			/** For each pipeline stage, stores in which stages is it safe to access the resource. */
-			std::array<GpuStageFlags, kPipelineStageCount> SafeAccess;
-
-			GpuWriteHazardPipelineTracking();
-
-			/** Clears safe access for all provided pipeline stages. */
-			void ClearStageSafeAccess(GpuStageFlags stages);
-
-			/**
-			 * Adds safe access for all provided pipeline stages.
-			 *
-			 * @param	sourceStages		One or multiple stages to add the safe access to.
-			 * @param	destinationStages	Stages to register as being safe to access from.
-			 */
-			void AddStageSafeAccess(GpuStageFlags sourceStages, GpuStageFlags destinationStages);
-
-			/** Checks is it safe to access the resource in all the provided pipeline stages. */
-			bool IsAccessSafe(GpuStageFlags stages) const;
-
-			/** Returns a list of all source stages that we cannot safely access data from the provided @p stages. */
-			GpuStageFlags GetUnsafeAccessStages(GpuStageFlags stages) const;
-
-			/** Writes a descriptive error message when access is unsafe. */
-			void LogUnsafeAccess(GpuStageFlags stages, GpuAccessFlags currentAccessType, GpuAccessFlags previousAccessType) const;
-		};
-
-		/** Tracking that is used for validation when memory barriers need to be issued. */
-		struct B3D_EXPORT GpuWriteHazardTracking
-		{
-			GpuAccessFlags Access; /**< Has the buffer been read or written so far. */
-
-			/**
-			 * Keeps track of all pipeline stages that the resource was read from, and which of those stages can be safely accessed by a write operation (and on which stage).
-			 * A write following a read requires an execution barrier.
-			 */
-			GpuWriteHazardPipelineTracking ExecutionBarrierTracking;
-
-			/**
-			 * Keeps track of all pipeline stages that the resource was written to, and which of those stages can be safely accessed by a read or write operation
-			 * (and on which stage). Any operation following a write requires a memory barrier. Memory barrier implies an execution barrier as well.
-			 */
-			GpuWriteHazardPipelineTracking MemoryBarrierTracking;
-
-			/** Updates execution and memory barrier tracking by marking access as safe in the destination stages, from the source stages. */
-			void AddSafeAccess(GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess);
-
-#if B3D_VERIFY_BARRIERS
-			/** Verifies that the access is safe from the provided stage and access type. Logs errors if not. */
-			void VerifySafeAccess(GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess) const;
-#endif
-
-			// Note - Add LayoutTransitionTracking? Tracks last use of an imagine in a specific layout, and which layouts can be safely transitioned to/from without a barrier
-		};
 
 		/** Contains information about a single resource bound/used on a command buffer. */
 		struct GpuResourceUseHandle
@@ -98,7 +38,7 @@ namespace b3d
 			GpuResourceUseFlags UseFlags;
 
 			/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued. */
-			GpuWriteHazardTracking* WriteHazardTracking = nullptr;
+			GpuHazardTracking* WriteHazardTracking = nullptr;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			/** Suballocation indices that are bound in this tracking state. Typically 1-2. */
@@ -137,11 +77,8 @@ namespace b3d
 			/** Specifies how will the subresource be accessed during the current render pass or dispatch call. Unlike accesses in *Use structs, this one is not reset after render pass. */
 			GpuAccessFlags Access;
 
-			/** Determines is the initial use of this subresource read-only. Used for better determining access flags. */
-			bool InitialReadOnly = false;
-
 			/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued. */
-			GpuWriteHazardTracking* WriteHazardTracking = nullptr;
+			GpuHazardTracking* WriteHazardTracking = nullptr;
 
 			// Only relevant for layout transitions
 			/**
@@ -270,17 +207,16 @@ namespace b3d
 			void UpdateImageLayoutTrackingAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuImageLayout oldLayout, GpuImageLayout newLayout);
 
 			/** Updates write hazard tracking for a single buffer after a barrier has been issued. */
-			void UpdateWriteHazardTrackingAfterBarrier(IGpuBufferResource* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess);
+			void UpdateWriteHazardTrackingAfterBarrier(IGpuBufferResource* buffer, const GpuHazardStageAndAccess& barrier);
 
 			/** Updates write hazard tracking for a single image after a barrier has been issued. */
-			void UpdateWriteHazardTrackingAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccess, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess);
+			void UpdateWriteHazardTrackingAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuHazardStageAndAccess& barrier);
 
 			/**
-			 * Applies all read/write hazard registrations deferred by TrackBufferUsage / TrackSubresourceUsage. Must be called by
-			 * the barrier helper at the end of its Execute, i.e. after any UpdateWriteHazardTrackingAfterBarrier
-			 * calls have resolved prior-write hazards. Deferring the registration this way ensures a resource written during the
-			 * current dispatch/draw is left marked unsafe for the next access, rather than being clobbered by the AddSafeAccess
-			 * that resolves the previous write.
+			 * Applies all read/write hazard registrations deferred by TrackBufferUsage / TrackSubresourceUsage. Call after any
+			 * pending barriers have been issued, or after a recording scope that cannot contain barriers has ended. Deferring the
+			 * registration ensures a newly recorded write remains unsafe for the next access instead of being clobbered by the
+			 * AddSafeAccess that resolves a previous write.
 			 */
 			void CommitPendingHazardRegistrations();
 
@@ -373,13 +309,13 @@ namespace b3d
 			/** Set of global subresource indices that are used on the current render pass. */
 			Set<u32> mRenderPassSubresources;
 
-			/** Pool allocator for GpuWriteHazardTracking structures. */
-			PoolAlloc<sizeof(GpuWriteHazardTracking)> mWriteHazardPool;
+			/** Pool allocator for GpuHazardTracking structures. */
+			PoolAlloc<sizeof(GpuHazardTracking), 512, alignof(GpuHazardTracking)> mHazardTrackingPool;
 
 			/** A read/write hazard registration deferred until the pending barriers have been issued. */
 			struct PendingHazardRegistration
 			{
-				GpuWriteHazardTracking* Tracking;
+				GpuHazardTracking* Tracking;
 				GpuStageFlags AccessStageFlags;
 				GpuAccessFlags Access;
 			};

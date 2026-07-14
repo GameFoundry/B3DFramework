@@ -179,10 +179,10 @@ namespace b3d
 		 * Optional synchronization mask that determines if the submitted command buffer
 		 * depends on any other command buffers submitted on other queues.
 		 *
-		 * This mask is only relevant if your command buffers are executing on different
-		 * queues, and are dependent. If they are executing on the same queue then they will
-		 * execute sequentially in the order they are submitted. Otherwise, if there is a
-		 * dependency you must make state it explicitly here.
+		 * Use this for dependencies that are not represented by tracked resource accesses, such as ordering around
+		 * queries or externally managed synchronization. Backends may add resource-derived queue dependencies to this
+		 * mask automatically. Command buffers submitted to the same queue execute in submission order, but resource
+		 * memory and execution dependencies still require the appropriate barriers.
 		 */
 		GpuQueueMask SyncMask = GpuQueueMask::kAll;
 

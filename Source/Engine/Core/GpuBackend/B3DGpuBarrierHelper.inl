@@ -21,7 +21,7 @@ namespace b3d::render
 		const GpuStageFlags sourceAccessStageFlags = GpuBackendUtility::GetStageFlags(sourceUsage);
 		const GpuStageFlags destinationAccessStageFlags = GpuBackendUtility::GetStageFlags(destinationUsage);
 
-		return AddBufferBarrier(buffer, sourceAccessStageFlags, sourceAccess, destinationAccessStageFlags, destinationAccess);
+		return AddBufferBarrier(buffer, GpuHazardStageAndAccess(sourceAccessStageFlags, sourceAccess, destinationAccessStageFlags, destinationAccess));
 	}
 
 	template<class TDerived>
@@ -49,7 +49,7 @@ namespace b3d::render
 		GpuAccessFlags sourceAccessFlags;
 
 		// WAW or RAW hazard
-		const GpuStageFlags writeAccessStageFlags = bufferTrackingState.WriteHazardTracking->MemoryBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
+		const GpuStageFlags writeAccessStageFlags = bufferTrackingState.WriteHazardTracking->State.MemoryBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
 		if(destinationAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
 		{
 			sourceAccessStageFlags |= writeAccessStageFlags;
@@ -59,7 +59,7 @@ namespace b3d::render
 		}
 
 		// WAR hazard
-		const GpuStageFlags readAccessStageFlags = bufferTrackingState.WriteHazardTracking->ExecutionBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
+		const GpuStageFlags readAccessStageFlags = bufferTrackingState.WriteHazardTracking->State.ExecutionBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
 		if(destinationAccess.IsSet(GpuAccessFlag::Write))
 		{
 			sourceAccessStageFlags |= readAccessStageFlags;
@@ -71,23 +71,20 @@ namespace b3d::render
 		if(sourceAccessFlags == GpuAccessFlag::None)
 			return nullptr;
 
-		return AddBufferBarrier(buffer, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess);
+		return AddBufferBarrier(buffer, GpuHazardStageAndAccess(sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess));
 	}
 
 	template<class TDerived>
-	const typename TGpuBarrierHelper<TDerived>::BarrierTrackingInfo* TGpuBarrierHelper<TDerived>::AddBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags)
+	const typename TGpuBarrierHelper<TDerived>::BarrierTrackingInfo* TGpuBarrierHelper<TDerived>::AddBufferBarrier(IGpuBufferResource* buffer, const GpuHazardStageAndAccess& stageAndAccess)
 	{
 		if(buffer == nullptr)
 			return nullptr;
 
-		static_cast<TDerived*>(this)->RecordBufferBarrier(buffer, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccessFlags);
+		static_cast<TDerived*>(this)->RecordBufferBarrier(buffer, stageAndAccess);
 
 		BarrierTrackingInfo trackingInfo;
 		trackingInfo.Buffer = buffer;
-		trackingInfo.SourceAccess = sourceAccessFlags;
-		trackingInfo.SourceAccessStages = sourceAccessStageFlags;
-		trackingInfo.DestinationAccess = destinationAccessFlags;
-		trackingInfo.DestinationAccessStages = destinationAccessStageFlags;
+		trackingInfo.StageAndAccess = stageAndAccess;
 		mBarrierTracking.Add(trackingInfo);
 
 		return &mBarrierTracking.back();
@@ -99,7 +96,7 @@ namespace b3d::render
 		const GpuStageFlags sourceAccessStageFlags = GpuBackendUtility::GetStageFlags(sourceUsage);
 		const GpuStageFlags destinationAccessStageFlags = GpuBackendUtility::GetStageFlags(destinationUsage);
 
-		return AddSubresourceBarrier(image, subresourceRange, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccessFlags, oldLayout, newLayout);
+		return AddSubresourceBarrier(image, subresourceRange, GpuHazardStageAndAccess(sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccessFlags), oldLayout, newLayout);
 	}
 
 	template<class TDerived>
@@ -152,7 +149,7 @@ namespace b3d::render
 		GpuAccessFlags sourceAccessFlags;
 
 		// WAW or RAW hazard
-		const GpuStageFlags writeAccessStageFlags = subresourceTrackingState.WriteHazardTracking->MemoryBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
+		const GpuStageFlags writeAccessStageFlags = subresourceTrackingState.WriteHazardTracking->State.MemoryBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
 		if(destinationAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
 		{
 			sourceAccessStageFlags |= writeAccessStageFlags;
@@ -162,7 +159,7 @@ namespace b3d::render
 		}
 
 		// WAR hazard
-		const GpuStageFlags readAccessStageFlags = subresourceTrackingState.WriteHazardTracking->ExecutionBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
+		const GpuStageFlags readAccessStageFlags = subresourceTrackingState.WriteHazardTracking->State.ExecutionBarrierTracking.GetUnsafeAccessStages(destinationAccessStageFlags);
 		if(destinationAccess.IsSet(GpuAccessFlag::Write))
 		{
 			sourceAccessStageFlags |= readAccessStageFlags;
@@ -178,18 +175,18 @@ namespace b3d::render
 		if(sourceAccessFlags == GpuAccessFlag::None && subresourceTrackingState.CurrentLayout == newLayout)
 			return nullptr;
 
-		return AddSubresourceBarrier(image, subresourceTrackingState.Range, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess, subresourceTrackingState.CurrentLayout, newLayout);
+		return AddSubresourceBarrier(image, subresourceTrackingState.Range, GpuHazardStageAndAccess(sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccess), subresourceTrackingState.CurrentLayout, newLayout);
 	}
 
 	template<class TDerived>
-	const typename TGpuBarrierHelper<TDerived>::BarrierTrackingInfo* TGpuBarrierHelper<TDerived>::AddSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, GpuImageLayout oldLayout, GpuImageLayout newLayout)
+	const typename TGpuBarrierHelper<TDerived>::BarrierTrackingInfo* TGpuBarrierHelper<TDerived>::AddSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuHazardStageAndAccess& stageAndAccess, GpuImageLayout oldLayout, GpuImageLayout newLayout)
 	{
 		if(image == nullptr)
 			return nullptr;
 
 		// Accumulate the native barrier. The backend may reconcile oldLayout from an already-merged barrier (e.g. Vulkan),
 		// in which case the layout-tracking bookkeeping below must observe the reconciled value.
-		static_cast<TDerived*>(this)->RecordSubresourceBarrier(image, subresourceRange, sourceAccessStageFlags, sourceAccessFlags, destinationAccessStageFlags, destinationAccessFlags, oldLayout, newLayout);
+		static_cast<TDerived*>(this)->RecordSubresourceBarrier(image, subresourceRange, stageAndAccess, oldLayout, newLayout);
 
 		if(oldLayout != newLayout)
 		{
@@ -217,10 +214,7 @@ namespace b3d::render
 		BarrierTrackingInfo barrierTrackingInfo;
 		barrierTrackingInfo.Image = image;
 		barrierTrackingInfo.ImageSubresourceRange = subresourceRange;
-		barrierTrackingInfo.SourceAccess = sourceAccessFlags;
-		barrierTrackingInfo.SourceAccessStages = sourceAccessStageFlags;
-		barrierTrackingInfo.DestinationAccess = destinationAccessFlags;
-		barrierTrackingInfo.DestinationAccessStages = destinationAccessStageFlags;
+		barrierTrackingInfo.StageAndAccess = stageAndAccess;
 		mBarrierTracking.Add(barrierTrackingInfo);
 
 		return &mBarrierTracking.back();
@@ -235,35 +229,16 @@ namespace b3d::render
 			if(trackingInfo.Image == nullptr)
 				continue;
 
-			mResourceTracker->UpdateImageLayoutTrackingAfterBarrier(
-				trackingInfo.Image,
-				trackingInfo.SubresourceRange,
-				trackingInfo.OldLayout,
-				trackingInfo.NewLayout);
+			mResourceTracker->UpdateImageLayoutTrackingAfterBarrier(trackingInfo.Image, trackingInfo.SubresourceRange, trackingInfo.OldLayout, trackingInfo.NewLayout);
 		}
 
 		// Update hazard tracking for all barriers
 		for(const auto& trackingInfo : mBarrierTracking)
 		{
 			if(trackingInfo.Buffer != nullptr)
-			{
-				mResourceTracker->UpdateWriteHazardTrackingAfterBarrier(
-					trackingInfo.Buffer,
-					trackingInfo.SourceAccessStages,
-					trackingInfo.SourceAccess,
-					trackingInfo.DestinationAccessStages,
-					trackingInfo.DestinationAccess);
-			}
+				mResourceTracker->UpdateWriteHazardTrackingAfterBarrier(trackingInfo.Buffer, trackingInfo.StageAndAccess);
 			else if(trackingInfo.Image != nullptr)
-			{
-				mResourceTracker->UpdateWriteHazardTrackingAfterBarrier(
-					trackingInfo.Image,
-					trackingInfo.ImageSubresourceRange,
-					trackingInfo.SourceAccessStages,
-					trackingInfo.SourceAccess,
-					trackingInfo.DestinationAccessStages,
-					trackingInfo.DestinationAccess);
-			}
+				mResourceTracker->UpdateWriteHazardTrackingAfterBarrier( trackingInfo.Image, trackingInfo.ImageSubresourceRange, trackingInfo.StageAndAccess);
 		}
 	}
 

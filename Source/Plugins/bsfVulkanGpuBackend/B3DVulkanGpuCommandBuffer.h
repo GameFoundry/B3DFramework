@@ -82,12 +82,21 @@ namespace b3d
 		typedef Flags<DescriptorSetBindFlag> DescriptorSetBindFlags;
 		B3D_FLAGS_OPERATORS(DescriptorSetBindFlag)
 
-		/** All the information required for submitting a VulkanGpuCommandBuffer */
-		struct GpuCommandBufferSubmitInformation
+		/** Submit-thread command buffer that performs the source half of a resource handoff. */
+		struct VulkanSourceQueueTransition
 		{
-			TShared<VulkanGpuCommandBuffer> SourceQueueTransitionCommandBuffer[GQT_COUNT]; /**< Contains resource transitions from their current queue to the destination queue, if there is a queue change. May be empty if there are no queue changes. To be executed on the source queue, rather than on the queue you are submitting on. */
+			GpuQueueId QueueId; /**< Exact queue on which the source transition must execute. */
+			GpuQueueMask WaitMask; /**< Other queues the source transition must wait for before releasing ownership. */
+			TShared<VulkanGpuCommandBuffer> CommandBuffer; /**< Command buffer to issue source queue barriers and layout transitions on. */
+		};
+
+		/** All the information required for submitting a VulkanGpuCommandBuffer */
+		struct VulkanGpuCommandBufferSubmitInformation
+		{
+			TInlineArray<VulkanSourceQueueTransition, 4> SourceQueueTransitions; /**< Resource handoffs that must execute on their exact source queues. */
 			TShared<VulkanGpuCommandBuffer> DestinationQueueTransitionCommandBuffer; /**< Contains image layout transitions and transitions from source to the destination queue, if there are any. Should be submitted after the query reset command buffer. This submit should contain the provided semaphores if not empty. */
 			TShared<VulkanGpuCommandBuffer> PrimaryCommandBuffer; /**< Primary command buffer we're submitting. This should be submitted after the destination queue transition command buffer. This submit should contain the semaphores if destination queue transition command buffer is not present. */
+			GpuQueueMask RequiredWaitMask; /**< Resource-derived queue dependencies to combine with the caller-provided synchronization mask. */
 			TInlineArray<VulkanSemaphore*, 8> Semaphores; /**< Semaphores that need to be waited on before executing the command buffers. */
 		};
 
@@ -148,7 +157,7 @@ namespace b3d
 			 * 
 			 * @note Submit thread only.
 			 */
-			GpuCommandBufferSubmitInformation PrepareForSubmitOnSubmitThread(GpuQueueType queueType, u32 queueIndex);
+			VulkanGpuCommandBufferSubmitInformation PrepareForSubmitOnSubmitThread(GpuQueueType queueType, u32 queueIndex);
 
 			/** Called when the command buffer is about to be sent to the submit queue for submit. */
 			void NotifyWillQueueForSubmit();
@@ -501,7 +510,6 @@ namespace b3d
 			VkBuffer mVertexBuffersTemp[B3D_MAX_BOUND_VERTEX_BUFFERS]{};
 			VkDeviceSize mVertexBufferOffsetsTemp[B3D_MAX_BOUND_VERTEX_BUFFERS]{};
 			VkDescriptorSet* mDescriptorSetsTemp;
-			TransitionInfo mTransitionInfoTemp[GQT_COUNT];
 			Vector<VulkanEvent*> mQueuedEvents;
 			Vector<IVulkanRenderWindowSurface*> mAcquiredSurfaces;
 			TInlineArray<TInlineArray<u32, 4>, 4> mDynamicOffsetsPerSet;

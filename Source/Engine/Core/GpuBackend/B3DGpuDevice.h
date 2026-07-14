@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "B3DGpuHazardTracking.h"
 #include "B3DGpuParameterSetPool.h"
 #include "B3DGpuQueries.h"
 #include "B3DGpuTimelineFence.h"
@@ -48,17 +49,6 @@ namespace b3d
 	/** @addtogroup GpuBackend
 	 *  @{
 	 */
-
-	/** Flags that determine how is a resource being accessed by the GPU. */
-	enum class GpuAccessFlag
-	{
-		None = 0,
-		Read = 0x1,
-		Write = 0x2
-	};
-
-	typedef Flags<GpuAccessFlag> GpuAccessFlags;
-	B3D_FLAGS_OPERATORS(GpuAccessFlag);
 
 	/** Flags that control creation of GPU objects via GpuDevice factory methods. */
 	enum class GpuObjectCreateFlag

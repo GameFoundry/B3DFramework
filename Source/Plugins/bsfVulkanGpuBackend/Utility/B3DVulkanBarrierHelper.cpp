@@ -19,139 +19,177 @@ using namespace b3d::render;
 
 template class b3d::render::TGpuBarrierHelper<b3d::render::VulkanBarrierHelper>;
 
-VulkanBarrierHelper::VulkanBarrierHelper(VulkanResourceTracker* resourceTracker)
-	: TGpuBarrierHelper<VulkanBarrierHelper>(resourceTracker)
-{ }
-
-void VulkanBarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags)
+void VulkanBarrierBatch::AddBufferBarrier(VkBuffer buffer, const GpuHazardStageAndAccess& barrier,
+	u32 sourceQueueFamily, u32 destinationQueueFamily, VkDeviceSize offset, VkDeviceSize size)
 {
-	const VkBuffer bufferHandle = static_cast<VulkanBuffer*>(buffer)->GetVulkanHandle();
+	VkPipelineStageFlags sourceStages, destinationStages;
+	VkAccessFlags sourceAccess, destinationAccess;
+	VulkanUtility::GetPipelineStageAndAccessMask(barrier.SourceStages, barrier.SourceAccess, sourceStages, sourceAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(barrier.DestinationStages, barrier.DestinationAccess, destinationStages, destinationAccess);
 
-	VkPipelineStageFlags sourceStageMask, destinationStageMask;
-	VkAccessFlags sourceAccessMask, destinationAccessMask;
-	VulkanUtility::GetPipelineStageAndAccessMask(sourceAccessStageFlags, sourceAccessFlags, sourceStageMask, sourceAccessMask);
-	VulkanUtility::GetPipelineStageAndAccessMask(destinationAccessStageFlags, destinationAccessFlags, destinationStageMask, destinationAccessMask);
+	AddBufferBarrier(buffer, sourceStages, sourceAccess, destinationStages, destinationAccess, sourceQueueFamily, destinationQueueFamily, offset, size);
+}
 
-	mCombinedSourceStages |= sourceStageMask;
-	mCombinedDestinationStages |= destinationStageMask;
-	mCombinedSourceAccess |= sourceAccessFlags;
-	mCombinedDestinationAccess |= destinationAccessFlags;
+void VulkanBarrierBatch::AddBufferBarrier(VkBuffer buffer, VkPipelineStageFlags sourceStages, VkAccessFlags sourceAccess, VkPipelineStageFlags destinationStages, VkAccessFlags destinationAccess, u32 sourceQueueFamily, u32 destinationQueueFamily, VkDeviceSize offset, VkDeviceSize size)
+{
+	mCombinedSourceStages |= sourceStages;
+	mCombinedDestinationStages |= destinationStages;
 
-	auto found = std::find_if(mBufferBarriers.begin(), mBufferBarriers.end(), [bufferHandle](const VkBufferMemoryBarrier& barrier)
-		{ return barrier.buffer == bufferHandle; } );
+	auto found = std::find_if(mBufferBarriers.begin(), mBufferBarriers.end(), [buffer, sourceQueueFamily, destinationQueueFamily, offset, size](const VkBufferMemoryBarrier& barrier)
+	{
+		return barrier.buffer == buffer && barrier.srcQueueFamilyIndex == sourceQueueFamily && barrier.dstQueueFamilyIndex == destinationQueueFamily && barrier.offset == offset && barrier.size == size;
+	});
+
 	if(found == mBufferBarriers.end())
 	{
-		VkBufferMemoryBarrier barrier;
+		VkBufferMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-		barrier.pNext = nullptr;
-		barrier.srcAccessMask = sourceAccessMask;
-		barrier.dstAccessMask = destinationAccessMask;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.buffer = bufferHandle;
-		barrier.offset = 0;
-		barrier.size = VK_WHOLE_SIZE;
+		barrier.srcAccessMask = sourceAccess;
+		barrier.dstAccessMask = destinationAccess;
+		barrier.srcQueueFamilyIndex = sourceQueueFamily;
+		barrier.dstQueueFamilyIndex = destinationQueueFamily;
+		barrier.buffer = buffer;
+		barrier.offset = offset;
+		barrier.size = size;
 
 		mBufferBarriers.Add(barrier);
 	}
 	else
 	{
-		found->srcAccessMask |= sourceAccessMask;
-		found->dstAccessMask |= destinationAccessMask;
+		found->srcAccessMask |= sourceAccess;
+		found->dstAccessMask |= destinationAccess;
 	}
 }
 
-void VulkanBarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, GpuImageLayout& oldLayout, GpuImageLayout newLayout)
+VkImageLayout VulkanBarrierBatch::AddImageBarrier(VkImage image, const VkImageSubresourceRange& range,
+	const GpuHazardStageAndAccess& barrier, VkImageLayout oldLayout, VkImageLayout newLayout,
+	u32 sourceQueueFamily, u32 destinationQueueFamily)
+{
+	VkPipelineStageFlags sourceStages, destinationStages;
+	VkAccessFlags sourceAccess, destinationAccess;
+	VulkanUtility::GetPipelineStageAndAccessMask(barrier.SourceStages, barrier.SourceAccess, sourceStages, sourceAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(barrier.DestinationStages, barrier.DestinationAccess, destinationStages, destinationAccess);
+
+	return AddImageBarrier(image, range, sourceStages, sourceAccess, destinationStages, destinationAccess, oldLayout, newLayout, sourceQueueFamily, destinationQueueFamily);
+}
+
+VkImageLayout VulkanBarrierBatch::AddImageBarrier(VkImage image, const VkImageSubresourceRange& range, VkPipelineStageFlags sourceStages, VkAccessFlags sourceAccess, VkPipelineStageFlags destinationStages, VkAccessFlags destinationAccess, VkImageLayout oldLayout, VkImageLayout newLayout, u32 sourceQueueFamily, u32 destinationQueueFamily)
+{
+	mCombinedSourceStages |= sourceStages;
+	mCombinedDestinationStages |= destinationStages;
+
+	auto found = std::find_if(mImageBarriers.begin(), mImageBarriers.end(), [image, &range, sourceQueueFamily, destinationQueueFamily](const VkImageMemoryBarrier& barrier)
+	{
+		return barrier.image == image && barrier.srcQueueFamilyIndex == sourceQueueFamily && barrier.dstQueueFamilyIndex == destinationQueueFamily && VulkanUtility::RangeEquals(barrier.subresourceRange, range);
+	});
+
+	if(found == mImageBarriers.end())
+	{
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.srcAccessMask = sourceAccess;
+		barrier.dstAccessMask = destinationAccess;
+		barrier.srcQueueFamilyIndex = sourceQueueFamily;
+		barrier.dstQueueFamilyIndex = destinationQueueFamily;
+		barrier.oldLayout = oldLayout;
+		barrier.newLayout = newLayout;
+		barrier.image = image;
+		barrier.subresourceRange = range;
+
+		mImageBarriers.Add(barrier);
+		return oldLayout;
+	}
+
+	found->srcAccessMask |= sourceAccess;
+	found->dstAccessMask |= destinationAccess;
+	found->newLayout = newLayout;
+
+	return found->oldLayout;
+}
+
+void VulkanBarrierBatch::AddExecutionBarrier(const GpuHazardStageAndAccess& barrier)
+{
+	VkPipelineStageFlags sourceStages, destinationStages;
+	VkAccessFlags unusedAccess;
+	VulkanUtility::GetPipelineStageAndAccessMask(barrier.SourceStages, barrier.SourceAccess, sourceStages, unusedAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(barrier.DestinationStages, barrier.DestinationAccess, destinationStages, unusedAccess);
+
+	AddExecutionBarrier(sourceStages, destinationStages);
+}
+
+void VulkanBarrierBatch::AddExecutionBarrier(VkPipelineStageFlags sourceStages, VkPipelineStageFlags destinationStages)
+{
+	mCombinedSourceStages |= sourceStages;
+	mCombinedDestinationStages |= destinationStages;
+	mHasExecutionBarrier = true;
+}
+
+void VulkanBarrierBatch::Execute(VkCommandBuffer commandBuffer) const
+{
+	if(!HasBarriers())
+		return;
+
+	const VkPipelineStageFlags sourceStages = mCombinedSourceStages != 0 ? mCombinedSourceStages : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	const VkPipelineStageFlags destinationStages = mCombinedDestinationStages != 0 ? mCombinedDestinationStages : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	vkCmdPipelineBarrier(commandBuffer, sourceStages, destinationStages, 0, 0, nullptr, (u32)mBufferBarriers.size(), mBufferBarriers.data(), (u32)mImageBarriers.size(), mImageBarriers.data());
+}
+
+void VulkanBarrierBatch::Clear()
+{
+	mBufferBarriers.Clear();
+	mImageBarriers.Clear();
+	mCombinedSourceStages = 0;
+	mCombinedDestinationStages = 0;
+	mHasExecutionBarrier = false;
+}
+
+bool VulkanBarrierBatch::HasBarriers() const
+{
+	return mHasExecutionBarrier || !mBufferBarriers.Empty() || !mImageBarriers.Empty();
+}
+
+VulkanBarrierHelper::VulkanBarrierHelper(VulkanResourceTracker* resourceTracker)
+	: TGpuBarrierHelper<VulkanBarrierHelper>(resourceTracker)
+{ }
+
+void VulkanBarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const GpuHazardStageAndAccess& barrier)
+{
+	const VkBuffer bufferHandle = static_cast<VulkanBuffer*>(buffer)->GetVulkanHandle();
+
+	if(barrier.SourceAccess.IsSet(GpuAccessFlag::Write))
+		mBarrierBatch.AddBufferBarrier(bufferHandle, barrier);
+	else if(barrier.SourceAccess.IsSet(GpuAccessFlag::Read) && barrier.DestinationAccess.IsSet(GpuAccessFlag::Write))
+		mBarrierBatch.AddExecutionBarrier(barrier);
+}
+
+void VulkanBarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuHazardStageAndAccess& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout)
 {
 	const VkImage imageHandle = static_cast<VulkanImage*>(image)->GetVulkanHandle();
 	const VkImageLayout vkOldLayout = VulkanUtility::ToVkImageLayout(oldLayout);
 	const VkImageLayout vkNewLayout = VulkanUtility::ToVkImageLayout(newLayout);
 	const VkImageSubresourceRange vkSubresourceRange = VulkanUtility::ToVkImageSubresourceRange(subresourceRange);
 
-	VkPipelineStageFlags sourceStageMask, destinationStageMask;
-	VkAccessFlags sourceAccessMask, destinationAccessMask;
-	VulkanUtility::GetPipelineStageAndAccessMask(sourceAccessStageFlags, sourceAccessFlags, sourceStageMask, sourceAccessMask);
-	VulkanUtility::GetPipelineStageAndAccessMask(destinationAccessStageFlags, destinationAccessFlags, destinationStageMask, destinationAccessMask);
-
-	mCombinedSourceStages |= sourceStageMask;
-	mCombinedDestinationStages |= destinationStageMask;
-	mCombinedSourceAccess |= sourceAccessFlags;
-	mCombinedDestinationAccess |= destinationAccessFlags;
-
-	auto found = std::find_if(mImageBarriers.begin(), mImageBarriers.end(), [imageHandle, &vkSubresourceRange](const VkImageMemoryBarrier& barrier)
+	const bool hasMemoryDependency = barrier.SourceAccess.IsSet(GpuAccessFlag::Write);
+	const bool hasLayoutTransition = oldLayout != newLayout;
+	if(hasMemoryDependency || hasLayoutTransition)
 	{
-		return barrier.image == imageHandle && VulkanUtility::RangeEquals(barrier.subresourceRange, vkSubresourceRange);
-	});
-
-	if(found == mImageBarriers.end())
-	{
-		VkImageMemoryBarrier barrier;
-		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.pNext = nullptr;
-		barrier.srcAccessMask = sourceAccessMask;
-		barrier.dstAccessMask = destinationAccessMask;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout = vkOldLayout;
-		barrier.newLayout = vkNewLayout;
-		barrier.image = imageHandle;
-		barrier.subresourceRange = vkSubresourceRange;
-
-		mImageBarriers.Add(barrier);
+		const VkImageLayout effectiveOldLayout = mBarrierBatch.AddImageBarrier(imageHandle, vkSubresourceRange, barrier,
+			vkOldLayout, vkNewLayout);
+		oldLayout = VulkanUtility::ToGpuImageLayout(effectiveOldLayout);
 	}
-	else
-	{
-		found->srcAccessMask |= sourceAccessMask;
-		found->dstAccessMask |= destinationAccessMask;
-		found->newLayout = vkNewLayout;
-
-		// Reconcile the old layout with the one already recorded for the merged barrier, so the shared layout-tracking
-		// bookkeeping (in TGpuBarrierHelper) observes the correct source layout.
-		oldLayout = VulkanUtility::ToGpuImageLayout(found->oldLayout);
-	}
-
-	if(oldLayout != newLayout)
-	{
-		// TODO - Use more specific stages for layout transitions? Make sure layout transitions are only doing an execution barrier if memory barrier isn't needed
-		mCombinedSourceStages |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-		mHasLayoutTransition = true;
-	}
+	else if(barrier.SourceAccess.IsSet(GpuAccessFlag::Read) && barrier.DestinationAccess.IsSet(GpuAccessFlag::Write))
+		mBarrierBatch.AddExecutionBarrier(barrier);
 }
 
 void VulkanBarrierHelper::Execute(VulkanGpuCommandBuffer& commandBuffer)
 {
 	if(HasBarriers())
 	{
-		// Determine barrier type based on access patterns
-		// Read-after-write or write-after-write requires memory barrier, or if there are any layout transitions queued
-		if(mCombinedSourceAccess.IsSet(GpuAccessFlag::Write) || mHasLayoutTransition)
-		{
-			vkCmdPipelineBarrier(
-				commandBuffer.GetVulkanHandle(),
-				mCombinedSourceStages,
-				mCombinedDestinationStages,
-				0,
-				0, nullptr,
-				(u32)mBufferBarriers.size(), mBufferBarriers.data(),
-				(u32)mImageBarriers.size(), mImageBarriers.data());
-		}
-		// Write-after-read requires only execution barrier
-		else if(mCombinedSourceAccess.IsSet(GpuAccessFlag::Read) && mCombinedDestinationAccess.IsSet(GpuAccessFlag::Write))
-		{
-			vkCmdPipelineBarrier(
-				commandBuffer.GetVulkanHandle(),
-				mCombinedSourceStages,
-				mCombinedDestinationStages,
-				0,
-				0, nullptr,
-				0, nullptr,
-				0, nullptr);
-		}
-
+		mBarrierBatch.Execute(commandBuffer.GetVulkanHandle());
 		ApplyPostBarrierTracking();
 	}
 
-	// Apply the read/write hazard registrations that were deferred while tracking this dispatch/draw's resources
+	// Apply read/write hazard registrations deferred while tracking resource accesses
 	mResourceTracker->CommitPendingHazardRegistrations();
 
 	Clear();
@@ -159,18 +197,12 @@ void VulkanBarrierHelper::Execute(VulkanGpuCommandBuffer& commandBuffer)
 
 void VulkanBarrierHelper::Clear()
 {
-	mBufferBarriers.Clear();
-	mImageBarriers.Clear();
-	mCombinedSourceStages = 0;
-	mCombinedDestinationStages = 0;
-	mCombinedSourceAccess = GpuAccessFlag::None;
-	mCombinedDestinationAccess = GpuAccessFlag::None;
-	mHasLayoutTransition = false;
+	mBarrierBatch.Clear();
 
 	TGpuBarrierHelper<VulkanBarrierHelper>::Clear();
 }
 
 bool VulkanBarrierHelper::HasBarriers() const
 {
-	return !mBufferBarriers.Empty() || !mImageBarriers.Empty();
+	return mBarrierBatch.HasBarriers();
 }

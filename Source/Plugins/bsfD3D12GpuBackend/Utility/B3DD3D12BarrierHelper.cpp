@@ -83,11 +83,8 @@ void D3D12BarrierHelper::RequireSubresourceState(D3D12Image* image, u32 face, u3
 	subresource->SetState(state);
 }
 
-void D3D12BarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags)
+void D3D12BarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const GpuHazardStageAndAccess& barrier)
 {
-	(void)sourceAccessStageFlags;
-	(void)destinationAccessStageFlags;
-
 	// State-changing buffer transitions are emitted by RequireBufferState (a D3D12 transition barrier also
 	// synchronizes both sides, resolving the hazard this hook was called for). The only hazard a transition cannot
 	// express is a same-state write hazard, which for shader-visible buffers is UAV -> UAV.
@@ -97,14 +94,16 @@ void D3D12BarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, GpuStag
 	// copies into one buffer on a single command buffer.
 	D3D12Buffer* const d3d12Buffer = static_cast<D3D12Buffer*>(buffer);
 
-	const bool isWriteHazard = sourceAccessFlags.IsSet(GpuAccessFlag::Write) || destinationAccessFlags.IsSet(GpuAccessFlag::Write);
+	const bool isWriteHazard = barrier.SourceAccess.IsSet(GpuAccessFlag::Write) ||
+		barrier.DestinationAccess.IsSet(GpuAccessFlag::Write);
 	if(isWriteHazard && (d3d12Buffer->GetState() & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0)
 		AppendUavBarrier(d3d12Buffer->GetD3D12Resource());
 }
 
-void D3D12BarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, GpuImageLayout& oldLayout, GpuImageLayout newLayout)
+void D3D12BarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image,
+	const GpuTextureSubresourceRange& subresourceRange, const GpuHazardStageAndAccess& barrier,
+	GpuImageLayout& oldLayout, GpuImageLayout newLayout)
 {
-	(void)sourceAccessStageFlags;
 	(void)oldLayout; // The native before-state comes from the per-subresource stored state, not the core layout.
 
 	D3D12Image* const d3d12Image = static_cast<D3D12Image*>(image);
@@ -115,10 +114,11 @@ void D3D12BarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image, cons
 	// Derive the target state from the destination layout when one is provided; otherwise fall back to the
 	// destination stage/access flags (buffer-style derivation covers the shader/transfer cases).
 	const D3D12_RESOURCE_STATES targetState = newLayout != GpuImageLayout::Undefined
-		? D3D12BarrierUtility::GetResourceStateFromLayout(newLayout, destinationAccessFlags)
-		: D3D12BarrierUtility::GetBufferStateFromStages(destinationAccessStageFlags, destinationAccessFlags);
+		? D3D12BarrierUtility::GetResourceStateFromLayout(newLayout, barrier.DestinationAccess)
+		: D3D12BarrierUtility::GetBufferStateFromStages(barrier.DestinationStages, barrier.DestinationAccess);
 
-	const bool isWriteHazard = sourceAccessFlags.IsSet(GpuAccessFlag::Write) || destinationAccessFlags.IsSet(GpuAccessFlag::Write);
+	const bool isWriteHazard = barrier.SourceAccess.IsSet(GpuAccessFlag::Write) ||
+		barrier.DestinationAccess.IsSet(GpuAccessFlag::Write);
 
 	for(u32 layerIndex = 0; layerIndex < subresourceRange.ArrayLayerCount; layerIndex++)
 	{

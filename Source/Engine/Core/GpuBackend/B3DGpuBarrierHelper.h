@@ -45,10 +45,7 @@ namespace b3d::render
 			IGpuBufferResource* Buffer = nullptr;
 			IGpuImageResource* Image = nullptr;
 			GpuTextureSubresourceRange ImageSubresourceRange{};
-			GpuAccessFlags SourceAccess = GpuAccessFlag::None;
-			GpuStageFlags SourceAccessStages = GpuStageFlag::None;
-			GpuAccessFlags DestinationAccess = GpuAccessFlag::None;
-			GpuStageFlags DestinationAccessStages = GpuStageFlag::None;
+			GpuHazardStageAndAccess StageAndAccess;
 		};
 
 		/**
@@ -113,14 +110,14 @@ namespace b3d::render
 		 * Shared low-level buffer barrier path on explicit stage masks. Asks the derived backend to accumulate the native
 		 * barrier (RecordBufferBarrier), then records the bookkeeping needed for the post-barrier tracker updates.
 		 */
-		const BarrierTrackingInfo* AddBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags);
+		const BarrierTrackingInfo* AddBufferBarrier(IGpuBufferResource* buffer, const GpuHazardStageAndAccess& stageAndAccess);
 
 		/**
 		 * Shared low-level image subresource barrier path on explicit stage masks. Asks the derived backend to accumulate
 		 * the native barrier (RecordSubresourceBarrier; it may reconcile @p oldLayout from an already-merged
 		 * barrier), then records the layout transition and bookkeeping needed for the post-barrier tracker updates.
 		 */
-		const BarrierTrackingInfo* AddSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags sourceAccessStageFlags, GpuAccessFlags sourceAccessFlags, GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccessFlags, GpuImageLayout oldLayout, GpuImageLayout newLayout);
+		const BarrierTrackingInfo* AddSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuHazardStageAndAccess& stageAndAccess, GpuImageLayout oldLayout, GpuImageLayout newLayout);
 
 		/**
 		 * Runs the post-barrier tracker callbacks for everything accumulated since the last Clear: advances the tracked

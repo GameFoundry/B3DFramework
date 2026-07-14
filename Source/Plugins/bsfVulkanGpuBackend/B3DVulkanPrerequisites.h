@@ -66,12 +66,6 @@ namespace b3d
 			RenderStatObject_PipelineState = 100
 		};
 
-		/** Contains lists of images and buffers that require pipeline barrier transitions. */
-		struct TransitionInfo
-		{
-			TArray<VkImageMemoryBarrier> ImageBarriers;
-			TArray<VkBufferMemoryBarrier> BufferBarriers;
-		};
 	} // namespace render
 } // namespace b3d
 

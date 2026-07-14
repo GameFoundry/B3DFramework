@@ -13,13 +13,8 @@ void TVulkanResource<TBase>::OnNotifyUsed(GpuQueueId queueId, GpuAccessFlags use
 {
 	// Called under IGpuResource::mMutex from inside NotifyUsed, after the aggregate use counter has been incremented.
 	// IGpuResource has already incremented mUsedCount, so a value > 1 means there were prior in-flight uses.
-	const bool wasInUse = this->mUsedCount > 1;
-	if(wasInUse && mState == State::Normal) // Used without support for concurrency
-	{
-		B3D_ASSERT(mOwnedQueueType == queueId.GetType() && "Vulkan resource without concurrency support can only be used by one queue family at once.");
-	}
-
-	mOwnedQueueType = queueId.GetType();
+	if(mState == State::Normal && mOwnerQueueValid)
+		B3D_ASSERT(mOwnerQueueId.GetType() == queueId.GetType() && "Submitted ownership state must match the queue using an exclusive Vulkan resource.");
 
 	B3D_ASSERT(queueId.Id < kMaximumUniqueQueueCount);
 

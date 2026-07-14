@@ -10,7 +10,7 @@ namespace b3d
 {
 	namespace render
 	{
-		struct GpuCommandBufferSubmitInformation;
+		struct VulkanGpuCommandBufferSubmitInformation;
 		/** @addtogroup Vulkan
 		 *  @{
 		 */
@@ -35,7 +35,7 @@ namespace b3d
 			 *
 			 * @note	Submit thread only.
 			 */
-			void ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences);
+			void ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences);
 
 			/** Returns the internal handle to the Vulkan queue object. */
 			VkQueue GetVulkanHandle() const { return mQueue; }

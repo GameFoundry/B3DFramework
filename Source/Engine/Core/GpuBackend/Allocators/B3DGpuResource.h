@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuHazardTracking.h"
 #include "GpuBackend/B3DGpuTextureSubresource.h"
 
 namespace b3d
@@ -356,6 +357,9 @@ namespace b3d
 
 		String mDebugName;
 		GpuResourceManager* mOwner = nullptr;
+
+		/** Hazards remaining from the last command buffer submissions, grouped by queue. Submit thread only. */
+		render::GpuHazardStatesByQueue mSubmittedHazardStates;
 
 		/**
 		 * Lock guarding the lifetime state. Held during all Notify* calls (and around the OnNotifyUsed /

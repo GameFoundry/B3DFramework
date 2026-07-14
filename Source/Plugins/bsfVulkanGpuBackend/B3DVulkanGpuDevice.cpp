@@ -521,7 +521,7 @@ void VulkanGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuf
 	VulkanGpuQueue& vulkanQueue = static_cast<VulkanGpuQueue&>(queue);
 	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*commandBuffer);
 
-	const GpuCommandBufferSubmitInformation submitInformation = vulkanCommandBuffer.PrepareForSubmitOnSubmitThread(vulkanQueue.GetType(), vulkanQueue.GetIndex());
+	const VulkanGpuCommandBufferSubmitInformation submitInformation = vulkanCommandBuffer.PrepareForSubmitOnSubmitThread(vulkanQueue.GetType(), vulkanQueue.GetIndex());
 	vulkanQueue.ExecuteSubmitOnSubmitThread(submitInformation, syncMask, signalFences);
 }
 
