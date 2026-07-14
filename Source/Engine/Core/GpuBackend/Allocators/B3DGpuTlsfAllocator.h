@@ -1287,6 +1287,10 @@ namespace b3d
 	u32 TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::CreateNewHeap(u64 sizeInBytes)
 	{
 		const HeapHandle handle = Base::mBackend->CreateHeap(sizeInBytes, mConfig.HeapCreateInfo);
+		if (handle == nullptr)
+		{
+			return detail::tlsf::Utility::kInvalidIndex;
+		}
 
 		Heap* heap = B3DNew<Heap>(handle, sizeInBytes,
 			mConfig.BufferImageGranularity, mConfig.GranularityDisableThreshold, mConfig.MinAllocationSize);

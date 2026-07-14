@@ -32,6 +32,7 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestUserCreatedFence_ExplicitSignal)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_ContractAndInitialState)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_SingleAllocateFree)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_FailsSoftOnHeapCreationFailure)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_NonOverlappingAlignedOffsets)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_CoalesceAllOrders)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_LargeAlignmentSplitsLeadingPadding)
@@ -57,6 +58,7 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_ThreadUnsafePolicyOptOut)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_ContractAndInitialState)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_BumpPointerAlignedOffsets)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_FailsSoftOnHeapCreationFailure)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_OverflowRotatesPage)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_MultiPageWithinFrame)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_PageRecycledOnFenceComplete)
@@ -185,6 +187,35 @@ namespace
 		Vector<MockGpuHeap*> mHeapObjects;
 		u32 mLiveCount = 0;
 		u32 mDestroyCount = 0;
+	};
+
+	/**
+	 * Heap backend whose CreateHeap always fails, simulating a fail-soft backend memory-exhaustion
+	 * path that returns a null heap handle.
+	 */
+	class OutOfMemoryHeapBackend
+	{
+	public:
+		using HeapHandle = IGpuHeap*;
+
+		struct HeapCreateInformation
+		{
+		};
+
+		HeapHandle CreateHeap(u64 /*sizeInBytes*/, const HeapCreateInformation&)
+		{
+			CreateCallCount++;
+			return nullptr;
+		}
+
+		void DestroyHeap(HeapHandle handle)
+		{
+			if (handle != nullptr)
+				DestroyCallCount++;
+		}
+
+		u32 CreateCallCount = 0;
+		u32 DestroyCallCount = 0;
 	};
 
 	/**
@@ -688,6 +719,30 @@ void GpuAllocatorTestSuite::TestTlsf_SingleAllocateFree()
 	tracker.MarkFrameComplete(retireSubmission);
 	allocator.ReclaimUnused();
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
+}
+
+void GpuAllocatorTestSuite::TestTlsf_FailsSoftOnHeapCreationFailure()
+{
+	// A TLSF allocator over a backend that cannot create heaps must fail the allocation gracefully
+	// (TryAllocate returns false, the location stays invalid) rather than constructing a heap wrapper
+	// around a null handle.
+	OutOfMemoryHeapBackend backend;
+
+	TGpuTlsfAllocator<OutOfMemoryHeapBackend>::Configuration configuration;
+	configuration.InitialHeapSize = 4096;
+	configuration.MaxHeapSize = 65536;
+	configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
+
+	TGpuTlsfAllocator<OutOfMemoryHeapBackend> allocator(&backend, nullptr, configuration);
+
+	GpuResourceLocation location;
+	const bool allocated = allocator.TryAllocate(256, 16, GpuResourceKind::Linear, nullptr, location);
+
+	B3D_TEST_ASSERT(allocated == false)
+	B3D_TEST_ASSERT(location.IsValid() == false)
+	B3D_TEST_ASSERT(backend.CreateCallCount == 1)
+	B3D_TEST_ASSERT(backend.DestroyCallCount == 0)
+	B3D_TEST_ASSERT(allocator.GetHeapCount() == 0)
 }
 
 void GpuAllocatorTestSuite::TestTlsf_NonOverlappingAlignedOffsets()
@@ -1869,6 +1924,31 @@ void GpuAllocatorTestSuite::TestLinear_BumpPointerAlignedOffsets()
 	}
 
 	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 1)
+}
+
+void GpuAllocatorTestSuite::TestLinear_FailsSoftOnHeapCreationFailure()
+{
+	OutOfMemoryHeapBackend backend;
+	MockGpuCompletionTracker tracker;
+
+	using OutOfMemoryLinearAllocator = TGpuLinearAllocator<OutOfMemoryHeapBackend>;
+	OutOfMemoryLinearAllocator::Configuration configuration;
+	configuration.PageSize = 4 * 1024;
+
+	OutOfMemoryLinearAllocator allocator(&backend, &tracker, configuration);
+
+	GpuResourceLocation regularLocation;
+	B3D_TEST_ASSERT(!allocator.TryAllocate(256, 16, GpuResourceKind::Linear, nullptr, regularLocation))
+	B3D_TEST_ASSERT(!regularLocation.IsValid())
+	B3D_TEST_ASSERT(allocator.GetOutstandingAllocationCount() == 0)
+
+	GpuResourceLocation oversizeLocation;
+	B3D_TEST_ASSERT(!allocator.TryAllocate(8 * 1024, 16, GpuResourceKind::Linear, nullptr, oversizeLocation))
+	B3D_TEST_ASSERT(!oversizeLocation.IsValid())
+	B3D_TEST_ASSERT(allocator.GetOutstandingAllocationCount() == 0)
+
+	B3D_TEST_ASSERT(backend.CreateCallCount == 2)
+	B3D_TEST_ASSERT(backend.DestroyCallCount == 0)
 }
 
 void GpuAllocatorTestSuite::TestLinear_OverflowRotatesPage()

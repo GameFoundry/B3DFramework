@@ -103,6 +103,9 @@ namespace b3d
 		 */
 		void ReleasePage(HeapHandle handle)
 		{
+			if (handle == nullptr)
+				return;
+
 			Lock lock(mMutex);
 			if ((u32)mSparePages.size() < mConfig.MaxRetainedPages)
 			{
@@ -383,6 +386,9 @@ namespace b3d
 		if (size > GetPageSize())
 		{
 			const u32 oversizeIndex = CreateOversizedPage(size);
+			if (oversizeIndex == kInvalidPageIndex)
+				return false;
+
 			Page* oversize = mPages[oversizeIndex];
 			oversize->BumpOffset = size;
 
@@ -400,7 +406,11 @@ namespace b3d
 
 		// Acquire an active page on first allocate.
 		if (mCurrentPageIndex == kInvalidPageIndex)
+		{
 			mCurrentPageIndex = AcquirePage();
+			if (mCurrentPageIndex == kInvalidPageIndex)
+				return false;
+		}
 
 		Page* active = mPages[mCurrentPageIndex];
 		u64 alignedOffset = AlignUp(active->BumpOffset, alignment);
@@ -412,6 +422,9 @@ namespace b3d
 		{
 			RetirePage(mCurrentPageIndex);
 			mCurrentPageIndex = AcquirePage();
+			if (mCurrentPageIndex == kInvalidPageIndex)
+				return false;
+
 			active = mPages[mCurrentPageIndex];
 			alignedOffset = AlignUp(active->BumpOffset, alignment);
 			B3D_ASSERT(alignedOffset + size <= active->Size);
@@ -539,7 +552,15 @@ namespace b3d
 			// The pool owns the GPU heap; mPageStorage owns the Page struct (recycling its slot).
 			Page* page = mPageStorage.Allocate();
 			page->Handle = mPagePool->AcquirePage();
+			if (page->Handle == nullptr)
+			{
+				mPageStorage.Release(page);
+				return kInvalidPageIndex;
+			}
+
 			page->Size = mPagePool->GetPageSize();
+			page->BumpOffset = 0;
+			page->Oversize = false;
 
 			return InsertIntoPageTable(page);
 		}
@@ -553,7 +574,15 @@ namespace b3d
 
 		Page* page = mPageStorage.Allocate();
 		page->Handle = Base::mBackend->CreateHeap(mConfig.PageSize, mConfig.HeapCreateInfo);
+		if (page->Handle == nullptr)
+		{
+			mPageStorage.Release(page);
+			return kInvalidPageIndex;
+		}
+
 		page->Size = mConfig.PageSize;
+		page->BumpOffset = 0;
+		page->Oversize = false;
 
 		return InsertIntoPageTable(page);
 	}
@@ -563,7 +592,14 @@ namespace b3d
 	{
 		Page* page = mPageStorage.Allocate();
 		page->Handle = Base::mBackend->CreateHeap(size, mConfig.HeapCreateInfo);
+		if (page->Handle == nullptr)
+		{
+			mPageStorage.Release(page);
+			return kInvalidPageIndex;
+		}
+
 		page->Size = size;
+		page->BumpOffset = 0;
 		page->Oversize = true;
 
 		return InsertIntoPageTable(page);

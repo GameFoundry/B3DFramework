@@ -61,6 +61,9 @@ namespace b3d
 		/** Single allocate / free round-trip with deferred-fence drain. */
 		void TestTlsf_SingleAllocateFree();
 
+		/** A backend that cannot create heaps (OOM) makes TryAllocate fail soft instead of wrapping a null handle. */
+		void TestTlsf_FailsSoftOnHeapCreationFailure();
+
 		/** Multiple allocations land at non-overlapping offsets aligned to the requested alignment. */
 		void TestTlsf_NonOverlappingAlignedOffsets();
 
@@ -160,6 +163,9 @@ namespace b3d
 
 		/** Sequential allocations within a single page produce non-overlapping aligned offsets. */
 		void TestLinear_BumpPointerAlignedOffsets();
+
+		/** A backend heap-creation failure makes regular and oversize allocations fail without wrapping a null heap. */
+		void TestLinear_FailsSoftOnHeapCreationFailure();
 
 		/** A request that doesn't fit retires the active page and lands in a fresh one; the retired page index is queued for the current frame. */
 		void TestLinear_OverflowRotatesPage();
