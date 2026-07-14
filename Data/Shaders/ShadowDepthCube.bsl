@@ -7,6 +7,9 @@ shader ShadowDepth
 	
 	code
 	{
+		// TODO(ps5) The whole cube-face routing stage is a geometry shader, which the PS5 backend does not support.
+		// Compile the shader without it there; the remaining stages still cook so the pipeline stays loadable.
+#ifndef PS5
 		struct GSToPS
 		{
 			float4 position : SV_Position;
@@ -71,5 +74,6 @@ shader ShadowDepth
 				}
 			}
 		}
+#endif // !PS5
 	};
 };
