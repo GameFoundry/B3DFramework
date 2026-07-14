@@ -109,8 +109,8 @@ void GpuSubmitThread::QueuePresent(GpuQueue& queue, GpuSwapChain& swapChain, Gpu
 		swapChain.Present(acquiredImageIndex, queue, syncMask);
 	};
 
-	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Swap chain present");
 	swapChain.NotifyWasPresentQueued(acquiredImageIndex);
+	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Swap chain present");
 }
 
 void GpuSubmitThread::QueueImageAcquire(GpuSwapChain& swapChain)
