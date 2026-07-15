@@ -23,7 +23,7 @@ public:
 		: mStream(stream), mReportProgress(std::move(reportProgress))
 	{
 		const size_t remainingBytesInStream = stream.Size() - stream.Tell();
-		mTotalBytesToRead = bytesToRead == 0 ? remainingBytesInStream : std::min(remainingBytesInStream, bytesToRead);
+		mTotalBytesToRead = bytesToRead == 0 ? remainingBytesInStream : (size_t)std::min<u64>(remainingBytesInStream, bytesToRead);
 		mRemainingBytes = mTotalBytesToRead;
 		mEndAddress = stream.Tell() + mTotalBytesToRead;
 
@@ -117,7 +117,7 @@ private:
 			return;
 		}
 
-		const size_t sizeToRead = std::min(kFileReadBufferSize, mEndAddress - mFileReadCursor);
+		const size_t sizeToRead = (size_t)std::min<u64>(kFileReadBufferSize, mEndAddress - mFileReadCursor);
 		mReadAheadTargetBufferIndex = 1 - mActiveBufferIndex;
 
 		mReadAheadOp = mStream.ReadAsync(mFileReadCursor, sizeToRead, DataRange(mReadBuffers[mReadAheadTargetBufferIndex], sizeToRead));

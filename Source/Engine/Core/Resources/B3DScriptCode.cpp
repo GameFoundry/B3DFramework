@@ -4,7 +4,8 @@
 #include "Resources/B3DResources.h"
 #include "RTTI/B3DScriptCodeRTTI.h"
 
-using namespace b3d;
+namespace b3d
+{
 
 ScriptCode::ScriptCode(const WString& data, bool editorScript)
 	: Resource(false), mString(data), mEditorScript(editorScript)
@@ -35,3 +36,5 @@ RTTIType* ScriptCode::GetRtti() const
 {
 	return ScriptCode::GetRttiStatic();
 }
+
+} // namespace b3d

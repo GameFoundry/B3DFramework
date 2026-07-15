@@ -85,7 +85,8 @@ endfunction()
 # @param	foldersToIgnore	Optional list of folders to ignore in the search
 # @param	outSourceFiles	List of all found source files, relative to @p parentPath.
 function(B3DGlobSourceFiles parentPath path foldersToIgnore outSourceFiles)
-	B3DGlobSourceFilesWithExplicitPattern("${parentPath}" "cpp|cxx|cc|c|hpp|hh|h|inl|mm|m|rc" "${path}" "${foldersToIgnore}" sourceFiles)
+	# .S assembly files only compile on platforms that enable the ASM language (Platform.cmake); elsewhere they are carried as inert project items.
+	B3DGlobSourceFilesWithExplicitPattern("${parentPath}" "cpp|cxx|cc|c|hpp|hh|h|inl|mm|m|rc|S" "${path}" "${foldersToIgnore}" sourceFiles)
 
 	list(APPEND sourceFiles ${${outSourceFiles}})
 	set(${outSourceFiles} ${sourceFiles} PARENT_SCOPE)

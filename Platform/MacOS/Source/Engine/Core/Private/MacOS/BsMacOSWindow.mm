@@ -5,7 +5,7 @@
 #include "Private/MacOS/B3DMacOSWindow.h"
 #include "Private/MacOS/B3DMacOSPlatform.h"
 #include "Private/MacOS/B3DMacOSDropTarget.h"
-#include "Math/B3DRect2I.h"
+#include "Math/B3DArea2.h"
 #include "Input/B3DInputFwd.h"
 #include "String/B3DUnicode.h"
 #include "GpuBackend/B3DRenderWindow.h"
@@ -90,7 +90,7 @@ static bool keyCodeToInputCommand(uint32_t keyCode, bool shift, b3d::InputComman
 {
 	[super resetCursorRects];
 
-	[self addCursorRect:[self bounds] cursor:b3d::MacOSPlatform::_getCurrentCursor()];
+	[self addCursorRect:[self bounds] cursor:b3d::MacOSPlatform::GetCurrentCursorInternal()];
 }
 
 -(void)updateTrackingAreas
@@ -192,7 +192,7 @@ enum class MouseEventType
  * others.
  */
 @interface BSWindow : NSWindow
-@property(atomic,assign) UINT32 WindowId;
+@property(atomic,assign) b3d::u32 WindowId;
 @end
 
 @implementation BSWindow
@@ -226,11 +226,11 @@ enum class MouseEventType
 	uint32_t pressedButtons = (uint32_t)NSEvent.pressedMouseButtons;
 
 	b3d::OSPointerButtonStates buttonStates;
-	buttonStates.ctrl = (modifierFlags & NSEventModifierFlagControl) != 0;
-	buttonStates.shift = (modifierFlags & NSEventModifierFlagShift) != 0;
-	buttonStates.mouseButtons[0] = (pressedButtons & (1 << 0)) != 0;
-	buttonStates.mouseButtons[1] = (pressedButtons & (1 << 2)) != 0;
-	buttonStates.mouseButtons[2] = (pressedButtons & (1 << 1)) != 0;
+	buttonStates.Ctrl = (modifierFlags & NSEventModifierFlagControl) != 0;
+	buttonStates.Shift = (modifierFlags & NSEventModifierFlagShift) != 0;
+	buttonStates.MouseButtons[0] = (pressedButtons & (1 << 0)) != 0;
+	buttonStates.MouseButtons[1] = (pressedButtons & (1 << 2)) != 0;
+	buttonStates.MouseButtons[2] = (pressedButtons & (1 << 1)) != 0;
 
 	NSWindow* window = [event window];
 	NSScreen* screen = window ? [window screen] : [NSScreen mainScreen];
@@ -239,13 +239,13 @@ enum class MouseEventType
 	b3d::Vector2I pos((int32_t)screenPos.x, (int32_t)screenPos.y);
 
 	if(type == MouseEventType::ButtonDown)
-		b3d::MacOSPlatform::sendPointerButtonPressedEvent(pos, button, buttonStates);
+		b3d::MacOSPlatform::SendPointerButtonPressedEvent(pos, button, buttonStates);
 	else // ButtonUp
 	{
 		if([event clickCount] == 2 && button == b3d::OSMouseButton::Left)
-			b3d::MacOSPlatform::sendPointerDoubleClickEvent(pos, buttonStates);
+			b3d::MacOSPlatform::SendPointerDoubleClickEvent(pos, buttonStates);
 		else
-			b3d::MacOSPlatform::sendPointerButtonReleasedEvent(pos, button, buttonStates);
+			b3d::MacOSPlatform::SendPointerButtonReleasedEvent(pos, button, buttonStates);
 	}
 }
 
@@ -264,13 +264,13 @@ enum class MouseEventType
 			point.y = windowFrame.size.height - point.y;
 		}
 
-		for (NSUInteger i = 0; i < [dragAreas count]; i++)
+		for (NSUInteger dragAreaIndex = 0; dragAreaIndex < [dragAreas count]; dragAreaIndex++)
 		{
-			b3d::Rect2I rect;
-			[dragAreas[i] getValue:&rect];
+			b3d::Area2I area;
+			[dragAreas[dragAreaIndex] getValue:&area];
 
-			if(point.x >= rect.x && point.x < (rect.x + rect.width) &&
-					(point.y >= rect.y && point.y < (rect.y + rect.height)))
+			if(point.x >= area.X && point.x < (area.X + (b3d::i32)area.Width) &&
+					(point.y >= area.Y && point.y < (area.Y + (b3d::i32)area.Height)))
 			{
 				[window performWindowDragWithEvent:event];
 				isManualDrag = true;
@@ -329,22 +329,22 @@ enum class MouseEventType
 	b3d::flipY(screen, point);
 
 	b3d::Vector2I pos;
-	pos.x = (int32_t)point.x;
-	pos.y = (int32_t)point.y;
+	pos.X = (int32_t)point.x;
+	pos.Y = (int32_t)point.y;
 
-	if(b3d::MacOSPlatform::_clipCursor(pos))
-		b3d::MacOSPlatform::_setCursorPosition(pos);
+	if(b3d::MacOSPlatform::ClipCursorInternal(pos))
+		b3d::MacOSPlatform::SetCursorPositionInternal(pos);
 
 	NSUInteger modifierFlags = NSEvent.modifierFlags;
 
 	b3d::OSPointerButtonStates buttonStates;
-	buttonStates.ctrl = (modifierFlags & NSEventModifierFlagControl) != 0;
-	buttonStates.shift = (modifierFlags & NSEventModifierFlagShift) != 0;
-	buttonStates.mouseButtons[0] = (pressedButtons & (1 << 0)) != 0;
-	buttonStates.mouseButtons[1] = (pressedButtons & (1 << 1)) != 0;
-	buttonStates.mouseButtons[2] = (pressedButtons & (1 << 2)) != 0;
+	buttonStates.Ctrl = (modifierFlags & NSEventModifierFlagControl) != 0;
+	buttonStates.Shift = (modifierFlags & NSEventModifierFlagShift) != 0;
+	buttonStates.MouseButtons[0] = (pressedButtons & (1 << 0)) != 0;
+	buttonStates.MouseButtons[1] = (pressedButtons & (1 << 1)) != 0;
+	buttonStates.MouseButtons[2] = (pressedButtons & (1 << 2)) != 0;
 
-	b3d::MacOSPlatform::sendPointerMovedEvent(pos, buttonStates);
+	b3d::MacOSPlatform::SendPointerMovedEvent(pos, buttonStates);
 }
 
 - (void)mouseDragged:(NSEvent *)event
@@ -366,7 +366,7 @@ enum class MouseEventType
 {
 	float y = (float)[event deltaY];
 
-	b3d::MacOSPlatform::sendMouseWheelScrollEvent((float)y);
+	b3d::MacOSPlatform::SendMouseWheelScrollEvent((float)y);
 }
 
 - (void)keyDown:(NSEvent *)event
@@ -383,16 +383,16 @@ enum class MouseEventType
 	{
 		b3d::InputCommandType ict;
 		if (keyCodeToInputCommand(keyCode, shift, ict))
-			b3d::MacOSPlatform::sendInputCommandEvent(ict);
+			b3d::MacOSPlatform::SendInputCommandEvent(ict);
 		else
 		{
 			const char* chars = [string UTF8String];
 
 			b3d::String utf8String(chars);
-			b3d::U32String utf32String = b3d::UTF8::toUTF32(utf8String);
+			b3d::U32String utf32String = b3d::UTF8::ToUtF32(utf8String);
 
-			for (size_t i = 0; i < utf32String.length(); i++)
-				b3d::MacOSPlatform::sendCharInputEvent(utf32String[i]);
+			for (size_t characterIndex = 0; characterIndex < utf32String.length(); characterIndex++)
+				b3d::MacOSPlatform::SendCharInputEvent(utf32String[characterIndex]);
 		}
 	}
 }
@@ -404,7 +404,7 @@ enum class MouseEventType
 
 - (void)mouseExited:(NSEvent*)event
 {
-	MacOSPlatform::notifyWindowEvent(WindowEventType::MouseLeft, mWindow.WindowId);
+	MacOSPlatform::NotifyWindowEvent(WindowEventType::MouseLeft, mWindow.WindowId);
 }
 @end
 
@@ -449,41 +449,41 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 
 - (BOOL)windowShouldClose:(id)sender
 {
-	MacOSPlatform::notifyWindowEvent(WindowEventType::CloseRequested, mWindow.WindowId);
+	MacOSPlatform::NotifyWindowEvent(WindowEventType::CloseRequested, mWindow.WindowId);
 	return NO;
 }
 
 - (void)windowDidBecomeKey:(NSNotification*)notification
 {
-	MacOSPlatform::notifyWindowEvent(WindowEventType::FocusReceived, mWindow.WindowId);
+	MacOSPlatform::NotifyWindowEvent(WindowEventType::FocusReceived, mWindow.WindowId);
 }
 
 - (void)windowDidResignKey:(NSNotification*)notification
 {
-	MacOSPlatform::notifyWindowEvent(WindowEventType::FocusLost, mWindow.WindowId);
+	MacOSPlatform::NotifyWindowEvent(WindowEventType::FocusLost, mWindow.WindowId);
 }
 
 - (void)windowDidResize:(NSNotification*)notification
 {
 	if([[notification object] isKindOfClass:[NSWindow class]])
-		b3d::MacOSPlatform::_updateClipBounds([notification object]);
+		b3d::MacOSPlatform::UpdateClipBoundsInternal([notification object]);
 
-	MacOSPlatform::notifyWindowEvent(WindowEventType::Resized, mWindow.WindowId);
+	MacOSPlatform::NotifyWindowEvent(WindowEventType::Resized, mWindow.WindowId);
 }
 
 - (void)windowDidMove:(NSNotification*)notification
 {
-	MacOSPlatform::notifyWindowEvent(WindowEventType::Moved, mWindow.WindowId);
+	MacOSPlatform::NotifyWindowEvent(WindowEventType::Moved, mWindow.WindowId);
 }
 
 - (void)windowDidMiniaturize:(NSNotification*)notification
 {
-	MacOSPlatform::notifyWindowEvent(WindowEventType::Minimized, mWindow.WindowId);
+	MacOSPlatform::NotifyWindowEvent(WindowEventType::Minimized, mWindow.WindowId);
 }
 
 - (void)windowDidDeminiaturize:(NSNotification*)notification
 {
-	MacOSPlatform::notifyWindowEvent(WindowEventType::Restored, mWindow.WindowId);
+	MacOSPlatform::NotifyWindowEvent(WindowEventType::Restored, mWindow.WindowId);
 }
 
 - (BOOL)windowShouldZoom:(NSWindow*)window toFrame:(NSRect)newFrame
@@ -493,20 +493,11 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 	{
 		if (newFrame.size.width == mStandardZoomFrame.size.width &&
 			newFrame.size.height == mStandardZoomFrame.size.height)
-			MacOSPlatform::notifyWindowEvent(WindowEventType::Maximized, mWindow.WindowId);
+			MacOSPlatform::NotifyWindowEvent(WindowEventType::Maximized, mWindow.WindowId);
 		else
-			MacOSPlatform::notifyWindowEvent(WindowEventType::Restored, mWindow.WindowId);
+			MacOSPlatform::NotifyWindowEvent(WindowEventType::Restored, mWindow.WindowId);
 
 		mIsZooming = true;
-
-		NSRect contentRect = [mWindow contentRectForFrameRect:newFrame];
-		flipY([mWindow screen], contentRect);
-
-		Rect2I area(
-				(INT32)contentRect.origin.x,
-				(INT32)contentRect.origin.y,
-				(UINT32)contentRect.size.width,
-				(UINT32)contentRect.size.height);
 	}
 
 	return YES;
@@ -526,7 +517,7 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 	point = frameToContentRect(mWindow, point);
 
 	b3d::Vector2I position((int32_t)point.x, (int32_t)point.y);
-	if(b3d::CocoaDragAndDrop::_notifyDragEntered(mWindow.WindowId, position))
+	if(b3d::CocoaDragAndDrop::NotifyDragEnteredInternal(mWindow.WindowId, position))
 		return NSDragOperationLink;
 
 	return NSDragOperationNone;
@@ -538,7 +529,7 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 	point = frameToContentRect(mWindow, point);
 
 	b3d::Vector2I position((int32_t)point.x, (int32_t)point.y);
-	if(b3d::CocoaDragAndDrop::_notifyDragMoved(mWindow.WindowId, position))
+	if(b3d::CocoaDragAndDrop::NotifyDragMovedInternal(mWindow.WindowId, position))
 		return NSDragOperationLink;
 
 	return NSDragOperationNone;
@@ -546,7 +537,7 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 
 - (void)draggingExited:(nullable id <NSDraggingInfo>)sender
 {
-	b3d::CocoaDragAndDrop::_notifyDragLeft(mWindow.WindowId);
+	b3d::CocoaDragAndDrop::NotifyDragLeftInternal(mWindow.WindowId);
 }
 
 - (BOOL)performDragOperation:(id <NSDraggingInfo>)sender
@@ -568,7 +559,7 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 
 		b3d::Vector2I position((int32_t)point.x, (int32_t)point.y);
 
-		if(b3d::CocoaDragAndDrop::_notifyDragDropped(mWindow.WindowId, position, paths))
+		if(b3d::CocoaDragAndDrop::NotifyDragDroppedInternal(mWindow.WindowId, position, paths))
 			return YES;
 	}
 
@@ -578,7 +569,7 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 
 namespace b3d
 {
-	std::atomic<UINT32> gNextWindowId(1);
+	std::atomic<u32> gNextWindowId(1);
 
 	CocoaWindow::CocoaWindow(const WindowCreateInformation& createInformation)
 	{ @autoreleasepool {
@@ -591,30 +582,30 @@ namespace b3d
 		NSArray* screens = [NSScreen screens];
 
 		NSScreen* screen = nil;
-		INT32 x = 0;
-		INT32 y = 0;
+		i32 x = 0;
+		i32 y = 0;
 
 		for(NSScreen* entry in screens)
 		{
 			NSRect screenRect = [entry frame];
 
-			INT32 left = (INT32)screenRect.origin.x;
-			INT32 right = left + (INT32)screenRect.size.width;
-			INT32 bottom = (INT32)screenRect.origin.y;
-			INT32 top = bottom + (INT32)screenRect.size.height;
+			i32 left = (i32)screenRect.origin.x;
+			i32 right = left + (i32)screenRect.size.width;
+			i32 bottom = (i32)screenRect.origin.y;
+			i32 top = bottom + (i32)screenRect.size.height;
 
 			if(((createInformation.X >= left && createInformation.X < right) || createInformation.X == -1) &&
 			   ((createInformation.Y >= bottom && createInformation.Y < top) || createInformation.Y == -1))
 			{
 				if(createInformation.X == -1)
-					x = left + std::max(0, (INT32)screenRect.size.width - (INT32)createInformation.Width) / 2;
+					x = left + std::max(0, (i32)screenRect.size.width - (i32)createInformation.Width) / 2;
 				else
 					x = createInformation.X - left;
 
 				if(createInformation.Y == -1)
-					y = bottom + std::max(0, (INT32)screenRect.size.height - (INT32)createInformation.Height) / 2;
+					y = bottom + std::max(0, (i32)screenRect.size.height - (i32)createInformation.Height) / 2;
 				else
-					y = ((INT32)screenRect.size.height - (createInformation.Y + createInformation.Height)) - bottom;
+					y = ((i32)screenRect.size.height - (createInformation.Y + (i32)createInformation.Height)) - bottom;
 
 				screen = entry;
 				break;
@@ -668,7 +659,7 @@ namespace b3d
 			[m->Window setOpaque:NO];
 			[m->Window setBackgroundColor:[NSColor clearColor]];
 
-			NSImage* image = MacOSPlatform::createNSImage(*createInformation.Background);
+			NSImage* image = MacOSPlatform::CreateNSImage(*createInformation.Background);
 			[m->View setBackgroundImage:image];
 		}
 
@@ -686,36 +677,36 @@ namespace b3d
 		if(createInformation.Modal)
 			m->ModalSession = [NSApp beginModalSessionForWindow:m->Window];
 
-		MacOSPlatform::registerWindow(this);
+		MacOSPlatform::RegisterWindow(this);
 	}}
 
 	CocoaWindow::~CocoaWindow()
 	{
-        if (m->Window != nil)
-            DestroyInternal();
+		if (m->Window != nil)
+			DestroyInternal();
 
-        m->Delegate = nil;
-        m->Responder = nil;
-        m->View = nil;
-        m->Layer = nil;
+		m->Delegate = nil;
+		m->Responder = nil;
+		m->View = nil;
+		m->Layer = nil;
 
-        B3DDelete(m);
+		B3DDelete(m);
 	}
 
-	void CocoaWindow::Move(INT32 x, INT32 y)
+	void CocoaWindow::Move(i32 left, i32 top)
 	{
 		@autoreleasepool
 		{
 			NSPoint point;
-			point.x = x;
-			point.y = y;
+			point.x = left;
+			point.y = top;
 
 			flipY(m->Window.screen, point);
 			[m->Window setFrameTopLeftPoint:point];
 		}
 	}
 
-	void CocoaWindow::Resize(UINT32 width, UINT32 height)
+	void CocoaWindow::Resize(u32 width, u32 height)
 	{
 		@autoreleasepool
 		{
@@ -733,7 +724,7 @@ namespace b3d
 		}
 	}
 
-	Rect2I CocoaWindow::GetArea() const
+	Area2I CocoaWindow::GetArea() const
 	{
 		@autoreleasepool
 		{
@@ -742,32 +733,32 @@ namespace b3d
 
 			flipY([m->Window screen], contentRect);
 
-			return Rect2I(
-					(INT32)contentRect.origin.x,
-					(INT32)contentRect.origin.y,
-					(UINT32)contentRect.size.width,
-					(UINT32)contentRect.size.height);
+			return Area2I(
+					(i32)contentRect.origin.x,
+					(i32)contentRect.origin.y,
+					(u32)contentRect.size.width,
+					(u32)contentRect.size.height);
 		}
 	}
 
 	i32 CocoaWindow::GetLeft() const
 	{
-		return GetArea().x;
+		return GetArea().X;
 	}
 
 	i32 CocoaWindow::GetTop() const
 	{
-		return GetArea().y;
+		return GetArea().Y;
 	}
 
 	u32 CocoaWindow::GetWidth() const
 	{
-		return GetArea().width;
+		return GetArea().Width;
 	}
 
 	u32 CocoaWindow::GetHeight() const
 	{
-		return GetArea().height;
+		return GetArea().Height;
 	}
 
 	void CocoaWindow::SetHidden(bool hidden)
@@ -849,8 +840,8 @@ namespace b3d
 		flipY([m->Window screen], contentRect);
 
 		Vector2I screenPos;
-		screenPos.x = windowPos.x + (INT32)contentRect.origin.x;
-		screenPos.y = windowPos.y + (INT32)contentRect.origin.y;
+		screenPos.X = windowPos.X + (i32)contentRect.origin.x;
+		screenPos.Y = windowPos.Y + (i32)contentRect.origin.y;
 
 		return screenPos;
 	}
@@ -863,8 +854,8 @@ namespace b3d
 		flipY([m->Window screen], contentRect);
 
 		Vector2I windowPos;
-		windowPos.x = screenPos.x - (INT32) contentRect.origin.x;
-		windowPos.y = screenPos.y - (INT32) contentRect.origin.y;
+		windowPos.X = screenPos.X - (i32) contentRect.origin.x;
+		windowPos.Y = screenPos.Y - (i32) contentRect.origin.y;
 
 		return windowPos;
 	}
@@ -880,20 +871,20 @@ namespace b3d
 		if(m->IsModal)
 			[NSApp endModalSession:m->ModalSession];
 
-		MacOSPlatform::unregisterWindow(this);
+		MacOSPlatform::UnregisterWindow(this);
 
 		[m->Window close];
 		m->Window = nil;
 	}
 
-	void CocoaWindow::SetDragZonesInternal(const Vector<Rect2I>& rects)
+	void CocoaWindow::SetDragZonesInternal(const Vector<Area2I>& areas)
 	{
 		@autoreleasepool
 		{
 			NSMutableArray* array = [[NSMutableArray alloc] init];
 
-			for(auto& entry : rects)
-				[array addObject:[NSValue valueWithBytes:&entry objCType:@encode(Rect2I)]];
+			for(auto& entry : areas)
+				[array addObject:[NSValue valueWithBytes:&entry objCType:@encode(Area2I)]];
 
 			[m->Responder setDragAreas:array];
 		}
@@ -913,6 +904,8 @@ namespace b3d
 	{
 		if(m->NumDropTargets == 0)
 			[m->Window registerForDraggedTypes:@[NSFilenamesPboardType]];
+
+		m->NumDropTargets++;
 	}
 
 	void CocoaWindow::UnregisterForDragAndDropInternal()
@@ -937,7 +930,7 @@ namespace b3d
 		[m->View setLayer:(__bridge CALayer*)layer];
 		[m->View setWantsLayer:TRUE];
 
-        m->Layer = (__bridge CALayer*)layer;
+		m->Layer = (__bridge CALayer*)layer;
 	}
 
 	void* CocoaWindow::GetLayerInternal() const

@@ -6,4 +6,7 @@ if(APPLE)
 	set(B3D_GPU_BACKEND_LIB_Metal bsfMetalGpuBackend)
 	set(B3D_GPU_BACKEND_LIB_Vulkan bsfVulkanGpuBackend)
 	set(B3D_GPU_BACKEND_LIB_Null bsfNullGpuBackend)
+
+	# Needed for marl
+	enable_language(ASM)
 endif()

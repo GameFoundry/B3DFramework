@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Prerequisites/B3DPrerequisitesUtil.h"
+#include "B3DUtilityPrerequisites.h"
 #include "Math/B3DVector2.h"
 #include "Math/B3DArea2.h"
 #include <X11/X.h>

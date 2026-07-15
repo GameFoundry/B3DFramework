@@ -849,7 +849,7 @@ void Package::UnloadAllResources()
 	}
 }
 
-size_t Package::GetResourceSizeInDataStream(const UUID& id) const
+u64 Package::GetResourceSizeInDataStream(const UUID& id) const
 {
 	Lock lock(mMetaDataMutex);
 	const ResourceInformation* const resourceInformation= GetResourceInformation(id);
@@ -857,7 +857,7 @@ size_t Package::GetResourceSizeInDataStream(const UUID& id) const
 	return resourceInformation ? resourceInformation->SizeInDataStream : 0;
 }
 
-TShared<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offsetInStream, size_t sizeInStream, CompressionType compressionType, std::atomic<float>& outProgress) const
+TShared<Resource> Package::LoadAndDeserializeResource(const UUID& id, u64 offsetInStream, u64 sizeInStream, CompressionType compressionType, std::atomic<float>& outProgress) const
 {
 	Path packagePath;
 	{

@@ -90,7 +90,7 @@ struct FileAction
 		bytes += (oldFilename.size() + 1) * sizeof(String::value_type);
 
 		action->newName = (String::value_type*)bytes;
-		action->type = FileActionType::Modified;
+		action->type = FileActionType::Renamed;
 
 		memcpy(action->oldName, oldFilename.data(), oldFilename.size() * sizeof(String::value_type));
 		action->oldName[oldFilename.size()] = '\0';
@@ -324,7 +324,7 @@ FolderMonitor::FolderMonitor(const Path& folderPath, bool monitorSubdirectories,
 {
 	m = B3DNew<Pimpl>();
 
-	if(!FileSystem::IsDirectory(folderPath))
+	if(!FileSystem::IsFolder(folderPath))
 	{
 		B3D_LOG(Error, LogPlatform, "Provided path \"{0}\" is not a directory.", folderPath);
 		return;
@@ -365,7 +365,7 @@ FolderMonitor::~FolderMonitor()
 	// Wait for the thread to shutdown
 	if(m->WorkerThread != nullptr)
 	{
-		m->WorkerThread->join();
+		m->WorkerThread->WaitUntilComplete();
 
 		B3DDelete(m->WorkerThread);
 		m->WorkerThread = nullptr;
@@ -431,7 +431,7 @@ void FolderMonitor::WorkerThreadMain()
 					if(fileSize != entry.lastSize)
 					{
 						entry.lastSize = fileSize;
-						entry.timer.reset();
+						entry.timer.Reset();
 					}
 
 					if(entry.timer.GetMilliseconds() > WRITE_STEADY_WAIT)
@@ -478,19 +478,19 @@ void FolderMonitor::Update()
 		switch(action->type)
 		{
 		case FileActionType::Added:
-			if(!OnAdded.empty())
+			if(!OnAdded.Empty())
 				OnAdded(Path(action->newName));
 			break;
 		case FileActionType::Removed:
-			if(!OnRemoved.empty())
+			if(!OnRemoved.Empty())
 				OnRemoved(Path(action->newName));
 			break;
 		case FileActionType::Modified:
-			if(!OnModified.empty())
+			if(!OnModified.Empty())
 				OnModified(Path(action->newName));
 			break;
 		case FileActionType::Renamed:
-			if(!OnRenamed.empty())
+			if(!OnRenamed.Empty())
 				OnRenamed(Path(action->oldName), Path(action->newName));
 			break;
 		}

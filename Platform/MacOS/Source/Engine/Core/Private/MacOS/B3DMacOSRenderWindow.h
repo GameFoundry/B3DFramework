@@ -21,6 +21,8 @@ namespace b3d
 	/** Render window implementation for MacOS using Cocoa. */
 	class B3D_EXPORT MacOSRenderWindow : public RenderWindow
 	{
+		using Super = RenderWindow;
+
 	public:
 		MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow);
 
@@ -37,7 +39,7 @@ namespace b3d
 		void Maximize() override;
 		void Restore() override;
 		void SetFullscreen(u32 width, u32 height, float refreshRate = 60.0f, u32 monitorIdx = 0) override;
-		void SetFullscreen(const VideoMode& mode);
+		void SetFullscreen(const VideoMode& mode) override;
 		void SetWindowed(u32 width, u32 height) override;
 		void SetVSync(bool enabled, u32 interval = 1) override;
 
@@ -49,8 +51,11 @@ namespace b3d
 		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		void DoOnWindowMovedOrResized() override;
 
-		/** Changes the display mode (resolution, refresh rate) of the specified output device. */
-		void SetDisplayMode(const VideoOutputInfo& output, const VideoMode& mode);
+		/**
+		 * Changes the display mode (resolution, refresh rate) of the display with the specified Core Graphics display ID.
+		 * Returns false if the display doesn't support a mode matching the requested video mode.
+		 */
+		bool SetDisplayMode(u32 displayId, const VideoMode& mode);
 
 	private:
 		CocoaWindow* mWindow = nullptr;
@@ -60,8 +65,10 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread proxy for b3d::MacOSRenderWindow. */
-		class MacOSRenderWindow : public RenderWindow
+		class B3D_EXPORT MacOSRenderWindow : public RenderWindow
 		{
+			using Super = RenderWindow;
+
 		public:
 			MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const TShared<RenderWindow>& parentWindow);
 

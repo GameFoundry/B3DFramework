@@ -3,25 +3,114 @@
 #define BS_COCOA_INTERNALS
 
 #include "Private/MacOS/B3DMacOSRenderWindow.h"
-#include "Private/MacOS/B3DMacOSVideoModeInfo.h"
+
+#include "B3DApplication.h"
 #include "Private/MacOS/B3DMacOSWindow.h"
-#include "Private/MacOS/B3DMacOSPlatform.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "Managers/B3DRenderWindowManager.h"
 #include "Math/B3DMath.h"
-#include "CoreThread/B3DCoreThread.h"
+#include "Platform/B3DPlatform.h"
+#include "GpuBackend/B3DGpuDevice.h"
 
+#import <CoreGraphics/CoreGraphics.h>
 #import <QuartzCore/QuartzCore.h>
 
 using namespace b3d;
+
+/**
+ * Returns the Core Graphics display ID of the output device with the specified index, or kCGNullDirectDisplay if no
+ * such output exists. Output indices match those reported by the GPU device video mode info (mirrored displays are
+ * skipped and the primary display is always first).
+ */
+static CGDirectDisplayID GetDisplayId(u32 outputIdx)
+{
+	CGDisplayCount displayCount;
+	CGGetOnlineDisplayList(0, nullptr, &displayCount);
+
+	auto displays = (CGDirectDisplayID*)B3DStackAllocate((u32)(sizeof(CGDirectDisplayID) * displayCount));
+	auto orderedDisplays = (CGDirectDisplayID*)B3DStackAllocate((u32)(sizeof(CGDirectDisplayID) * displayCount));
+	CGGetOnlineDisplayList(displayCount, displays, &displayCount);
+
+	u32 orderedCount = 0;
+	for(u32 displayIdx = 0; displayIdx < displayCount; displayIdx++)
+	{
+		if(CGDisplayMirrorsDisplay(displays[displayIdx]) != kCGNullDirectDisplay)
+			continue;
+
+		CGDisplayModeRef modeRef = CGDisplayCopyDisplayMode(displays[displayIdx]);
+		if(!modeRef)
+			continue;
+
+		CGDisplayModeRelease(modeRef);
+
+		if(CGDisplayIsMain(displays[displayIdx]))
+		{
+			for(u32 moveIdx = orderedCount; moveIdx > 0; moveIdx--)
+				orderedDisplays[moveIdx] = orderedDisplays[moveIdx - 1];
+
+			orderedDisplays[0] = displays[displayIdx];
+		}
+		else
+			orderedDisplays[orderedCount] = displays[displayIdx];
+
+		orderedCount++;
+	}
+
+	CGDirectDisplayID displayId = kCGNullDirectDisplay;
+	if(outputIdx < orderedCount)
+		displayId = orderedDisplays[outputIdx];
+
+	B3DStackFree(orderedDisplays);
+	B3DStackFree(displays);
+
+	return displayId;
+}
+
+/**
+ * Finds a Core Graphics display mode of the specified display that matches the resolution and refresh rate of the
+ * provided video mode. Returns null if no matching mode exists. Caller must release the returned mode.
+ */
+static CGDisplayModeRef FindDisplayMode(CGDirectDisplayID displayId, const VideoMode& mode)
+{
+	CFArrayRef modes = CGDisplayCopyAllDisplayModes(displayId, nullptr);
+	if(modes == nullptr)
+		return nullptr;
+
+	CGDisplayModeRef foundModeRef = nullptr;
+
+	// Look for a mode matching the requested resolution, preferring one that also matches the refresh rate
+	CFIndex modeCount = CFArrayGetCount(modes);
+	for(CFIndex modeIdx = 0; modeIdx < modeCount; modeIdx++)
+	{
+		auto modeRef = (CGDisplayModeRef)CFArrayGetValueAtIndex(modes, modeIdx);
+
+		u32 width = (u32)CGDisplayModeGetPixelWidth(modeRef);
+		u32 height = (u32)CGDisplayModeGetPixelHeight(modeRef);
+
+		if(width == mode.Width && height == mode.Height)
+		{
+			foundModeRef = modeRef;
+
+			float refreshRate = (float)CGDisplayModeGetRefreshRate(modeRef);
+			if(Math::ApproxEquals(refreshRate, mode.RefreshRate))
+				break;
+		}
+	}
+
+	if(foundModeRef != nullptr)
+		CGDisplayModeRetain(foundModeRef);
+
+	CFRelease(modes);
+
+	return foundModeRef;
+}
+
 MacOSRenderWindow::MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const TShared<RenderWindow>& parentWindow)
-		:RenderWindow(createInformation, windowId, parentWindow)
+	: RenderWindow(createInformation, windowId, parentWindow)
 { }
 
 void MacOSRenderWindow::Initialize()
 {
-	mRenderWindowProperties.IsFullScreen = mCreateInformation.Fullscreen;
-	mIsChild = false;
-
 	WindowCreateInformation windowCreateInformation;
 	windowCreateInformation.X = mCreateInformation.Left;
 	windowCreateInformation.Y = mCreateInformation.Top;
@@ -47,11 +136,11 @@ void MacOSRenderWindow::Initialize()
 	mWindow = B3DNew<CocoaWindow>(windowCreateInformation);
 	mWindow->SetUserDataInternal(this);
 
-	Rect2I area = mWindow->GetArea();
-	mRenderTargetProperties.Width = area.width;
-	mRenderTargetProperties.Height = area.height;
-	mRenderWindowProperties.Top = area.y;
-	mRenderWindowProperties.Left = area.x;
+	Area2I area = mWindow->GetArea();
+	mRenderTargetProperties.Width = area.Width;
+	mRenderTargetProperties.Height = area.Height;
+	mRenderWindowProperties.Top = area.Y;
+	mRenderWindowProperties.Left = area.X;
 	mRenderWindowProperties.HasFocus = true;
 
 	mRenderTargetProperties.HwGamma = mCreateInformation.Gamma;
@@ -64,7 +153,7 @@ void MacOSRenderWindow::Initialize()
 		mWindow->SetHidden(true);
 
 	CAMetalLayer* layer = [[CAMetalLayer alloc] init];
-	mWindow->SetLayerInternal((__bridge void *)layer);
+	mWindow->SetLayerInternal((__bridge void*)layer);
 
 	// New windows always receive focus, but we don't receive an initial event from the OS, so trigger one manually
 	NotifyWindowEvent(WindowEventType::FocusReceived);
@@ -128,6 +217,7 @@ void MacOSRenderWindow::Resize(u32 width, u32 height)
 		mRenderTargetProperties.Height = mWindow->GetHeight();
 
 		MarkRenderProxyDataDirty();
+		OnResized();
 	}
 }
 
@@ -142,8 +232,8 @@ void MacOSRenderWindow::Hide()
 void MacOSRenderWindow::Show()
 {
 	mWindow->SetHidden(false);
-
 	mRenderWindowProperties.IsHidden = false;
+
 	MarkRenderProxyDataDirty();
 }
 
@@ -189,50 +279,32 @@ void MacOSRenderWindow::SetFullscreen(u32 width, u32 height, float refreshRate, 
 	SetFullscreen(videoMode);
 }
 
-void MacOSRenderWindow::SetFullscreen(const VideoMode& videoMode)
+void MacOSRenderWindow::SetFullscreen(const VideoMode& mode)
 {
-	if (mIsChild)
+	if(mIsChild)
 		return;
 
-	const render::MacOSVideoModeInfo& videoModeInfo = static_cast<const render::MacOSVideoModeInfo&>(GetApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
+	const VideoModeInfo& videoModeInfo = GetApplication().GetPrimaryGpuDevice()->GetVideoModeInfo();
 	const u32 outputCount = videoModeInfo.GetOutputCount();
 
-	u32 outputIdx = videoMode.OutputIdx;
+	u32 outputIdx = mode.OutputIdx;
 	if(outputIdx >= outputCount)
 	{
 		B3D_LOG(Error, LogPlatform, "Invalid output device index.");
 		return;
 	}
 
-	const VideoOutputInfo& outputInfo = videoModeInfo.GetOutputInfo(outputIdx);
-
-	if(!videoMode.IsCustom)
-		SetDisplayMode(outputInfo, videoMode);
-	else
+	CGDirectDisplayID displayId = GetDisplayId(outputIdx);
+	if(displayId == kCGNullDirectDisplay)
 	{
-		// Look for mode matching the requested resolution
-		u32 foundMode = ~0u;
-		u32 numModes = outputInfo.GetNumVideoModes();
-		for (u32 modeIndex = 0; modeIndex < numModes; modeIndex++)
-		{
-			const VideoMode& currentMode = outputInfo.GetVideoMode(modeIndex);
+		B3D_LOG(Error, LogPlatform, "Unable to find a display for output device index {0}.", outputIdx);
+		return;
+	}
 
-			if (currentMode.Width == videoMode.Width && currentMode.Height == videoMode.Height)
-			{
-				foundMode = modeIndex;
-
-				if (Math::ApproxEquals(currentMode.RefreshRate, videoMode.RefreshRate))
-					break;
-			}
-		}
-
-		if (foundMode == ~0u)
-		{
-			B3D_LOG(Error, LogPlatform, "Unable to enter fullscreen, unsupported video mode requested.");
-			return;
-		}
-
-		SetDisplayMode(outputInfo, outputInfo.GetVideoMode(foundMode));
+	if(!SetDisplayMode(displayId, mode))
+	{
+		B3D_LOG(Error, LogPlatform, "Unable to enter fullscreen, unsupported video mode requested.");
+		return;
 	}
 
 	mWindow->SetFullscreen();
@@ -241,8 +313,8 @@ void MacOSRenderWindow::SetFullscreen(const VideoMode& videoMode)
 
 	mRenderWindowProperties.Top = 0;
 	mRenderWindowProperties.Left = 0;
-	mRenderTargetProperties.Width = videoMode.Width;
-	mRenderTargetProperties.Height = videoMode.Height;
+	mRenderTargetProperties.Width = mode.Width;
+	mRenderTargetProperties.Height = mode.Height;
 
 	DoOnWindowMovedOrResized();
 	MarkRenderProxyDataDirty();
@@ -250,11 +322,11 @@ void MacOSRenderWindow::SetFullscreen(const VideoMode& videoMode)
 
 void MacOSRenderWindow::SetWindowed(u32 width, u32 height)
 {
-	if (!mRenderWindowProperties.IsFullScreen)
+	if(!mRenderWindowProperties.IsFullScreen)
 		return;
 
 	// Restore original display mode
-	const render::MacOSVideoModeInfo& videoModeInfo = static_cast<const render::MacOSVideoModeInfo&>(GetApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
+	const VideoModeInfo& videoModeInfo = GetApplication().GetPrimaryGpuDevice()->GetVideoModeInfo();
 	const u32 outputCount = videoModeInfo.GetOutputCount();
 
 	u32 outputIdx = 0; // 0 is always primary
@@ -264,8 +336,12 @@ void MacOSRenderWindow::SetWindowed(u32 width, u32 height)
 		return;
 	}
 
-	const VideoOutputInfo& outputInfo = videoModeInfo.GetOutputInfo(outputIdx);
-	SetDisplayMode(outputInfo, outputInfo.GetDesktopVideoMode());
+	CGDirectDisplayID displayId = GetDisplayId(outputIdx);
+	if(displayId != kCGNullDirectDisplay)
+	{
+		if(!SetDisplayMode(displayId, videoModeInfo.GetOutputInfo(outputIdx).GetDesktopVideoMode()))
+			B3D_LOG(Error, LogPlatform, "Unable to restore the original desktop video mode.");
+	}
 
 	mWindow->SetWindowed();
 
@@ -277,25 +353,29 @@ void MacOSRenderWindow::SetWindowed(u32 width, u32 height)
 	MarkRenderProxyDataDirty();
 }
 
-void MacOSRenderWindow::SetDisplayMode(const VideoOutputInfo& output, const VideoMode& mode)
+bool MacOSRenderWindow::SetDisplayMode(u32 displayId, const VideoMode& mode)
 {
-	CGDisplayFadeReservationToken fadeToken = kCGDisplayFadeReservationInvalidToken;
-	if (CGAcquireDisplayFadeReservation(5.0f, &fadeToken))
-		CGDisplayFade(fadeToken, 0.3f, kCGDisplayBlendNormal, kCGDisplayBlendSolidColor, 0, 0, 0, TRUE);
+	CGDisplayModeRef modeRef = FindDisplayMode((CGDirectDisplayID)displayId, mode);
+	if(modeRef == nullptr)
+		return false;
 
-	auto& destOutput = static_cast<const render::MacOSVideoOutputInfo&>(output);
-	auto& newMode = static_cast<const render::MacOSVideoMode&>(mode);
+	CGDisplayFadeReservationToken fadeToken = kCGDisplayFadeReservationInvalidToken;
+	if(CGAcquireDisplayFadeReservation(5.0f, &fadeToken) == kCGErrorSuccess)
+		CGDisplayFade(fadeToken, 0.3f, kCGDisplayBlendNormal, kCGDisplayBlendSolidColor, 0, 0, 0, TRUE);
 
 	// Note: An alternative to changing display resolution would be to only change the back-buffer size. But that doesn't
 	// account for refresh rate, so it's questionable how useful it would be.
-	CGDirectDisplayID displayID = destOutput.GetDisplayIDInternal();
-	CGDisplaySetDisplayMode(displayID, newMode.GetModeRefInternal(), nullptr);
+	CGDisplaySetDisplayMode((CGDirectDisplayID)displayId, modeRef, nullptr);
 
-	if (fadeToken != kCGDisplayFadeReservationInvalidToken)
+	if(fadeToken != kCGDisplayFadeReservationInvalidToken)
 	{
 		CGDisplayFade(fadeToken, 0.3f, kCGDisplayBlendSolidColor, kCGDisplayBlendNormal, 0, 0, 0, FALSE);
 		CGReleaseDisplayFadeReservation(fadeToken);
 	}
+
+	CGDisplayModeRelease(modeRef);
+
+	return true;
 }
 
 void MacOSRenderWindow::SetVSync(bool enabled, u32 interval)
@@ -311,7 +391,7 @@ void MacOSRenderWindow::SetVSync(bool enabled, u32 interval)
 
 u64 MacOSRenderWindow::GetPlatformWindowHandle() const
 {
-	return mWindow->GetWindowIdInternal();
+	return (u64)mWindow->GetWindowIdInternal();
 }
 
 TShared<render::RenderProxy> MacOSRenderWindow::CreateRenderProxy() const
@@ -345,8 +425,9 @@ void MacOSRenderWindow::DoOnWindowMovedOrResized()
 	Super::DoOnWindowMovedOrResized();
 }
 
-using namespace b3d::render;
-
+namespace b3d::render
+{
 MacOSRenderWindow::MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const TShared<RenderWindow>& parentWindow)
 	: RenderWindow(createInformation, windowId, platformWindowHandle, parentWindow)
 { }
+} // namespace b3d::render

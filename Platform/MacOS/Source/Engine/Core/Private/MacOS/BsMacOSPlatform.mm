@@ -9,6 +9,7 @@
 #include "GpuBackend/B3DRenderWindow.h"
 #include "Private/MacOS/B3DMacOSDropTarget.h"
 #include "String/B3DUnicode.h"
+#include "B3DApplication.h"
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
 
@@ -31,13 +32,13 @@
 	{
 		if([event keyCode] == 53) // Escape key
 		{
-			b3d::InputCommandType ic = b3d::InputCommandType::Escape;
-			b3d::MacOSPlatform::SendInputCommandEvent(ic);
+			b3d::InputCommandType inputCommand = b3d::InputCommandType::Escape;
+			b3d::MacOSPlatform::SendInputCommandEvent(inputCommand);
 		}
 		else if([event keyCode] == 48) // Tab key
 		{
-			b3d::InputCommandType ic = b3d::InputCommandType::Tab;
-			b3d::MacOSPlatform::SendInputCommandEvent(ic);
+			b3d::InputCommandType inputCommand = b3d::InputCommandType::Tab;
+			b3d::MacOSPlatform::SendInputCommandEvent(inputCommand);
 		}
 	}
 
@@ -64,32 +65,32 @@ namespace b3d
 	/** Contains information about a modal window session. */
 	struct ModalWindowInfo
 	{
-		u32 windowId;
-		NSModalSession session;
+		u32 WindowId;
+		NSModalSession Session;
 	};
 
-	struct Platform::Pimpl
+	struct Platform::Private
 	{
-		BSAppDelegate* appDelegate = nil;
+		BSAppDelegate* AppDelegate = nil;
 
-		Mutex windowMutex;
-		CocoaWindow* mainWindow = nullptr;
-		UnorderedMap<u32, CocoaWindow*> allWindows;
-		Vector<ModalWindowInfo> modalWindows;
+		Mutex WindowMutex;
+		CocoaWindow* MainWindow = nullptr;
+		UnorderedMap<u32, CocoaWindow*> AllWindows;
+		Vector<ModalWindowInfo> ModalWindows;
 
-		BSFPlatform* platformManager = nil;
+		BSFPlatform* PlatformManager = nil;
 
 		// Cursor
-		BSCursor* cursorManager = nil;
+		BSCursor* CursorManager = nil;
 
-		Mutex cursorMutex;
-		bool cursorIsHidden = false;
-		Vector2I cursorPos;
+		Mutex CursorMutex;
+		bool CursorIsHidden = false;
+		Vector2I CursorPos;
 
 		// Clipboard
-		Mutex clipboardMutex;
-		String cachedClipboardData;
-		i32 clipboardChangeCount = -1;
+		Mutex ClipboardMutex;
+		String CachedClipboardData;
+		i32 ClipboardChangeCount = -1;
 	};
 }
 
@@ -100,7 +101,7 @@ namespace b3d
 @interface BSCursor : NSObject
 @property NSCursor* currentCursor;
 
--(BSCursor*) initWithPlatformData:(b3d::Platform::Pimpl*)platformData;
+-(BSCursor*) initWithPlatformData:(b3d::Platform::Private*)platformData;
 -(b3d::Vector2I) getPosition;
 -(void) setPosition:(const b3d::Vector2I&) position;
 -(BOOL) clipCursor:(b3d::Vector2I&) position;
@@ -114,14 +115,14 @@ namespace b3d
 
 @implementation BSCursor
 {
-	b3d::Platform::Pimpl* platformData;
+	b3d::Platform::Private* platformData;
 
 	bool cursorClipEnabled;
-	b3d::Rect2I cursorClipRect;
+	b3d::Area2I cursorClipRect;
 	NSWindow* cursorClipWindow;
 }
 
-- (BSCursor*)initWithPlatformData:(b3d::Platform::Pimpl*)data
+- (BSCursor*)initWithPlatformData:(b3d::Platform::Private*)data
 {
 	self = [super init];
 
@@ -141,19 +142,19 @@ namespace b3d
 	}
 
 	b3d::Vector2I output;
-	output.x = (int32_t)point.x;
-	output.y = (int32_t)point.y;
+	output.X = (b3d::i32)point.x;
+	output.Y = (b3d::i32)point.y;
 
 	return output;
 }
 
 - (void)setPosition:(const b3d::Vector2I&)position
 {
-	NSPoint point = NSMakePoint(position.x, position.y);
+	NSPoint point = NSMakePoint(position.X, position.Y);
 	CGWarpMouseCursorPosition(point);
 
-	b3d::Lock lock(platformData->cursorMutex);
-	platformData->cursorPos = position;
+	b3d::Lock lock(platformData->CursorMutex);
+	platformData->CursorPos = position;
 }
 
 - (BOOL)clipCursor:(b3d::Vector2I&)position
@@ -161,26 +162,26 @@ namespace b3d
 	if(!cursorClipEnabled)
 		return false;
 
-	int32_t clippedX = position.x - cursorClipRect.x;
-	int32_t clippedY = position.y - cursorClipRect.y;
+	b3d::i32 clippedX = position.X - cursorClipRect.X;
+	b3d::i32 clippedY = position.Y - cursorClipRect.Y;
 
 	if(clippedX < 0)
 		clippedX = 0;
-	else if(clippedX >= (int32_t)cursorClipRect.width)
-		clippedX = cursorClipRect.width > 0 ? cursorClipRect.width - 1 : 0;
+	else if(clippedX >= (b3d::i32)cursorClipRect.Width)
+		clippedX = cursorClipRect.Width > 0 ? cursorClipRect.Width - 1 : 0;
 
 	if(clippedY < 0)
 		clippedY = 0;
-	else if(clippedY >= (int32_t)cursorClipRect.height)
-		clippedY = cursorClipRect.height > 0 ? cursorClipRect.height - 1 : 0;
+	else if(clippedY >= (b3d::i32)cursorClipRect.Height)
+		clippedY = cursorClipRect.Height > 0 ? cursorClipRect.Height - 1 : 0;
 
-	clippedX += cursorClipRect.x;
-	clippedY += cursorClipRect.y;
+	clippedX += cursorClipRect.X;
+	clippedY += cursorClipRect.Y;
 
-	if(clippedX != position.x || clippedY != position.y)
+	if(clippedX != position.X || clippedY != position.Y)
 	{
-		position.x = clippedX;
-		position.y = clippedY;
+		position.X = clippedX;
+		position.Y = clippedY;
 
 		return true;
 	}
@@ -196,10 +197,10 @@ namespace b3d
 	NSRect rect = [window contentRectForFrameRect:[window frame]];
 	b3d::flipY([window screen], rect);
 
-	cursorClipRect.x = (int32_t)rect.origin.x;
-	cursorClipRect.y = (int32_t)rect.origin.y;
-	cursorClipRect.width = (uint32_t)rect.size.width;
-	cursorClipRect.height = (uint32_t)rect.size.height;
+	cursorClipRect.X = (b3d::i32)rect.origin.x;
+	cursorClipRect.Y = (b3d::i32)rect.origin.y;
+	cursorClipRect.Width = (b3d::u32)rect.size.width;
+	cursorClipRect.Height = (b3d::u32)rect.size.height;
 }
 
 - (void)clipCursorToWindow:(NSValue*)windowValue
@@ -220,7 +221,7 @@ namespace b3d
 
 - (void)clipCursorToRect:(NSValue*)rectValue
 {
-	b3d::Rect2I rect;
+	b3d::Area2I rect;
 	[rectValue getValue:&rect];
 
 	cursorClipEnabled = true;
@@ -242,14 +243,10 @@ namespace b3d
 - (void)setCursor:(NSArray*)params
 {
 	NSCursor* cursor = params[0];
-	NSValue* hotSpotValue = params[1];
-
-	NSPoint hotSpot;
-	[hotSpotValue getValue:&hotSpot];
 
 	[self setCurrentCursor:cursor];
 
-	for(auto& entry : platformData->allWindows)
+	for(auto& entry : platformData->AllWindows)
 	{
 		NSWindow* window = entry.second->GetPrivateDataInternal()->Window;
 		[window invalidateCursorRectsForView:[window contentView]];
@@ -266,21 +263,21 @@ namespace b3d
 
 /** Contains platform specific functionality that is meant to be delayed executed from the sim thread, through Platform. */
 @interface BSFPlatform : NSObject
--(BSFPlatform*) initWithPlatformData:(b3d::Platform::Pimpl*)platformData;
+-(BSFPlatform*) initWithPlatformData:(b3d::Platform::Private*)platformData;
 -(void) setCaptionNonClientAreas:(NSArray*) params;
 -(void) resetNonClientAreas:(NSValue*) windowIdValue;
 -(void) openFolder:(NSURL*) url;
 -(void) setClipboardText:(NSString*) text;
 -(NSString*) getClipboardText;
--(int32_t) getClipboardChangeCount;
+-(b3d::i32) getClipboardChangeCount;
 @end
 
 @implementation BSFPlatform
 {
-	b3d::Platform::Pimpl* mPlatformData;
+	b3d::Platform::Private* mPlatformData;
 }
 
-- (BSFPlatform*)initWithPlatformData:(b3d::Platform::Pimpl*)platformData
+- (BSFPlatform*)initWithPlatformData:(b3d::Platform::Private*)platformData
 {
 	self = [super init];
 
@@ -295,20 +292,20 @@ namespace b3d
 	b3d::u32 windowId;
 	[windowIdValue getValue:&windowId];
 
-	auto iterFind = mPlatformData->allWindows.find(windowId);
-	if(iterFind == mPlatformData->allWindows.end())
+	auto iterFind = mPlatformData->AllWindows.find(windowId);
+	if(iterFind == mPlatformData->AllWindows.end())
 		return;
 
 	b3d::CocoaWindow* window = iterFind->second;
 
 	NSUInteger numEntries = [params count] - 1;
 
-	b3d::Vector<b3d::Rect2I> areas;
-	for(NSUInteger i = 0; i < numEntries; i++)
+	b3d::Vector<b3d::Area2I> areas;
+	for(NSUInteger entryIndex = 0; entryIndex < numEntries; entryIndex++)
 	{
-		NSValue* value = params[i + 1];
+		NSValue* value = params[entryIndex + 1];
 
-		b3d::Rect2I area;
+		b3d::Area2I area;
 		[value getValue:&area];
 
 		areas.push_back(area);
@@ -322,8 +319,8 @@ namespace b3d
 	b3d::u32 windowId;
 	[windowIdValue getValue:&windowId];
 
-	auto iterFind = mPlatformData->allWindows.find(windowId);
-	if(iterFind == mPlatformData->allWindows.end())
+	auto iterFind = mPlatformData->AllWindows.find(windowId);
+	if(iterFind == mPlatformData->AllWindows.end())
 		return;
 
 	b3d::CocoaWindow* window = iterFind->second;
@@ -356,9 +353,9 @@ namespace b3d
 	return (NSString*) items[0];
 }}
 
-- (int32_t)getClipboardChangeCount
+- (b3d::i32)getClipboardChangeCount
 {
-	return (int32_t)[[NSPasteboard generalPasteboard] changeCount];
+	return (b3d::i32)[[NSPasteboard generalPasteboard] changeCount];
 }
 
 @end
@@ -366,147 +363,148 @@ namespace b3d
 namespace b3d
 {
 	// Maps macOS keycodes to b3d button codes
-	static constexpr ButtonCode KeyCodeMapping[] =
+	static constexpr ButtonCode kKeyCodeMapping[] =
 	{
-		/*   0 */   BC_A,
-		/*   1 */   BC_S,
-		/*   2 */   BC_D,
-		/*   3 */   BC_F,
-		/*   4 */   BC_H,
-		/*   5 */   BC_G,
-		/*   6 */   BC_Z,
-		/*   7 */   BC_X,
-		/*   8 */   BC_C,
-		/*   9 */   BC_V,
-		/*  10 */   BC_GRAVE,
-		/*  11 */   BC_B,
-		/*  12 */   BC_Q,
-		/*  13 */   BC_W,
-		/*  14 */   BC_E,
-		/*  15 */   BC_R,
-		/*  16 */   BC_Y,
-		/*  17 */   BC_T,
-		/*  18 */   BC_1,
-		/*  19 */   BC_2,
-		/*  20 */   BC_3,
-		/*  21 */   BC_4,
-		/*  22 */   BC_6,
-		/*  23 */   BC_5,
-		/*  24 */   BC_EQUALS,
-		/*  25 */   BC_9,
-		/*  26 */   BC_7,
-		/*  27 */   BC_MINUS,
-		/*  28 */   BC_8,
-		/*  29 */   BC_0,
-		/*  30 */   BC_RBRACKET,
-		/*  31 */   BC_O,
-		/*  32 */   BC_U,
-		/*  33 */   BC_LBRACKET,
-		/*  34 */   BC_I,
-		/*  35 */   BC_P,
-		/*  36 */   BC_RETURN,
-		/*  37 */   BC_L,
-		/*  38 */   BC_J,
-		/*  39 */   BC_APOSTROPHE,
-		/*  40 */   BC_K,
-		/*  41 */   BC_SEMICOLON,
-		/*  42 */   BC_BACKSLASH,
-		/*  43 */   BC_COMMA,
-		/*  44 */   BC_SLASH,
-		/*  45 */   BC_N,
-		/*  46 */   BC_M,
-		/*  47 */   BC_PERIOD,
-		/*  48 */   BC_TAB,
-		/*  49 */   BC_SPACE,
-		/*  50 */   BC_GRAVE,
-		/*  51 */   BC_BACK,
-		/*  52 */   BC_NUMPADENTER,
-		/*  53 */   BC_ESCAPE,
-		/*  54 */   BC_RWIN,
-		/*  55 */   BC_LWIN,
-		/*  56 */   BC_LSHIFT,
-		/*  57 */   BC_CAPITAL,
-		/*  58 */   BC_LMENU,
-		/*  59 */   BC_LCONTROL,
-		/*  60 */   BC_RSHIFT,
-		/*  61 */   BC_RMENU,
-		/*  62 */   BC_RCONTROL,
-		/*  63 */   BC_RWIN,
-		/*  64 */   BC_UNASSIGNED,
-		/*  65 */   BC_DECIMAL,
-		/*  66 */   BC_UNASSIGNED,
-		/*  67 */   BC_MULTIPLY,
-		/*  68 */   BC_UNASSIGNED,
-		/*  69 */   BC_ADD,
-		/*  70 */   BC_UNASSIGNED,
-		/*  71 */   BC_NUMLOCK,
-		/*  72 */   BC_VOLUMEUP,
-		/*  73 */   BC_VOLUMEDOWN,
-		/*  74 */   BC_MUTE,
-		/*  75 */   BC_DIVIDE,
-		/*  76 */   BC_NUMPADENTER,
-		/*  77 */   BC_UNASSIGNED,
-		/*  78 */   BC_SUBTRACT,
-		/*  79 */   BC_UNASSIGNED,
-		/*  80 */   BC_UNASSIGNED,
-		/*  81 */   BC_NUMPADEQUALS,
-		/*  82 */   BC_NUMPAD0,
-		/*  83 */   BC_NUMPAD1,
-		/*  84 */   BC_NUMPAD2,
-		/*  85 */   BC_NUMPAD3,
-		/*  86 */   BC_NUMPAD4,
-		/*  87 */   BC_NUMPAD5,
-		/*  88 */   BC_NUMPAD6,
-		/*  89 */   BC_NUMPAD7,
-		/*  90 */   BC_UNASSIGNED,
-		/*  91 */   BC_NUMPAD8,
-		/*  92 */   BC_NUMPAD9,
-		/*  93 */   BC_CONVERT,
-		/*  94 */   BC_NOCONVERT,
-		/*  95 */   BC_NUMPADCOMMA,
-		/*  96 */   BC_F5,
-		/*  97 */   BC_F6,
-		/*  98 */   BC_F7,
-		/*  99 */   BC_F3,
-		/* 100 */   BC_F8,
-		/* 101 */   BC_F9,
-		/* 102 */   BC_UNASSIGNED,
-		/* 103 */   BC_F11,
-		/* 104 */   BC_UNASSIGNED,
-		/* 105 */   BC_UNASSIGNED,
-		/* 106 */   BC_UNASSIGNED,
-		/* 107 */   BC_SCROLL,
-		/* 108 */   BC_UNASSIGNED,
-		/* 109 */   BC_F10,
-		/* 110 */   BC_UNASSIGNED,
-		/* 111 */   BC_F12,
-		/* 112 */   BC_UNASSIGNED,
-		/* 113 */   BC_PAUSE,
-		/* 114 */   BC_INSERT,
-		/* 115 */   BC_HOME,
-		/* 116 */   BC_PGUP,
-		/* 117 */   BC_DELETE,
-		/* 118 */   BC_F4,
-		/* 119 */   BC_END,
-		/* 120 */   BC_F2,
-		/* 121 */   BC_PGDOWN,
-		/* 122 */   BC_F1,
-		/* 123 */   BC_LEFT,
-		/* 124 */   BC_RIGHT,
-		/* 125 */   BC_DOWN,
-		/* 126 */   BC_UP,
-		/* 127 */   BC_POWER
+		/*   0 */   ButtonCode::A,
+		/*   1 */   ButtonCode::S,
+		/*   2 */   ButtonCode::D,
+		/*   3 */   ButtonCode::F,
+		/*   4 */   ButtonCode::H,
+		/*   5 */   ButtonCode::G,
+		/*   6 */   ButtonCode::Z,
+		/*   7 */   ButtonCode::X,
+		/*   8 */   ButtonCode::C,
+		/*   9 */   ButtonCode::V,
+		/*  10 */   ButtonCode::Grave,
+		/*  11 */   ButtonCode::B,
+		/*  12 */   ButtonCode::Q,
+		/*  13 */   ButtonCode::W,
+		/*  14 */   ButtonCode::E,
+		/*  15 */   ButtonCode::R,
+		/*  16 */   ButtonCode::Y,
+		/*  17 */   ButtonCode::T,
+		/*  18 */   ButtonCode::Key1,
+		/*  19 */   ButtonCode::Key2,
+		/*  20 */   ButtonCode::Key3,
+		/*  21 */   ButtonCode::Key4,
+		/*  22 */   ButtonCode::Key6,
+		/*  23 */   ButtonCode::Key5,
+		/*  24 */   ButtonCode::Equals,
+		/*  25 */   ButtonCode::Key9,
+		/*  26 */   ButtonCode::Key7,
+		/*  27 */   ButtonCode::Minus,
+		/*  28 */   ButtonCode::Key8,
+		/*  29 */   ButtonCode::Key0,
+		/*  30 */   ButtonCode::RightBracket,
+		/*  31 */   ButtonCode::O,
+		/*  32 */   ButtonCode::U,
+		/*  33 */   ButtonCode::LeftBracket,
+		/*  34 */   ButtonCode::I,
+		/*  35 */   ButtonCode::P,
+		/*  36 */   ButtonCode::Enter,
+		/*  37 */   ButtonCode::L,
+		/*  38 */   ButtonCode::J,
+		/*  39 */   ButtonCode::Apostrophe,
+		/*  40 */   ButtonCode::K,
+		/*  41 */   ButtonCode::Semicolon,
+		/*  42 */   ButtonCode::Backslash,
+		/*  43 */   ButtonCode::Comma,
+		/*  44 */   ButtonCode::Slash,
+		/*  45 */   ButtonCode::N,
+		/*  46 */   ButtonCode::M,
+		/*  47 */   ButtonCode::Period,
+		/*  48 */   ButtonCode::Tab,
+		/*  49 */   ButtonCode::Space,
+		/*  50 */   ButtonCode::Grave,
+		/*  51 */   ButtonCode::Backspace,
+		/*  52 */   ButtonCode::NumpadEnter,
+		/*  53 */   ButtonCode::Escape,
+		/*  54 */   ButtonCode::RightWindows,
+		/*  55 */   ButtonCode::LeftWindows,
+		/*  56 */   ButtonCode::LeftShift,
+		/*  57 */   ButtonCode::CapsLock,
+		/*  58 */   ButtonCode::LeftAlt,
+		/*  59 */   ButtonCode::LeftControl,
+		/*  60 */   ButtonCode::RightShift,
+		/*  61 */   ButtonCode::RightAlt,
+		/*  62 */   ButtonCode::RightControl,
+		/*  63 */   ButtonCode::RightWindows,
+		/*  64 */   ButtonCode::Unassigned,
+		/*  65 */   ButtonCode::NumpadDecimal,
+		/*  66 */   ButtonCode::Unassigned,
+		/*  67 */   ButtonCode::NumpadMultiply,
+		/*  68 */   ButtonCode::Unassigned,
+		/*  69 */   ButtonCode::NumpadPlus,
+		/*  70 */   ButtonCode::Unassigned,
+		/*  71 */   ButtonCode::NumLock,
+		/*  72 */   ButtonCode::VolumeUp,
+		/*  73 */   ButtonCode::VolumeDown,
+		/*  74 */   ButtonCode::Mute,
+		/*  75 */   ButtonCode::NumpadDivide,
+		/*  76 */   ButtonCode::NumpadEnter,
+		/*  77 */   ButtonCode::Unassigned,
+		/*  78 */   ButtonCode::NumpadMinus,
+		/*  79 */   ButtonCode::Unassigned,
+		/*  80 */   ButtonCode::Unassigned,
+		/*  81 */   ButtonCode::NumadEquals,
+		/*  82 */   ButtonCode::Numpad0,
+		/*  83 */   ButtonCode::Numpad1,
+		/*  84 */   ButtonCode::Numpad2,
+		/*  85 */   ButtonCode::Numpad3,
+		/*  86 */   ButtonCode::Numpad4,
+		/*  87 */   ButtonCode::Numpad5,
+		/*  88 */   ButtonCode::Numpad6,
+		/*  89 */   ButtonCode::Numpad7,
+		/*  90 */   ButtonCode::Unassigned,
+		/*  91 */   ButtonCode::Numpad8,
+		/*  92 */   ButtonCode::Numpad9,
+		/*  93 */   ButtonCode::Convert,
+		/*  94 */   ButtonCode::NoConvert,
+		/*  95 */   ButtonCode::NumpadComma,
+		/*  96 */   ButtonCode::F5,
+		/*  97 */   ButtonCode::F6,
+		/*  98 */   ButtonCode::F7,
+		/*  99 */   ButtonCode::F3,
+		/* 100 */   ButtonCode::F8,
+		/* 101 */   ButtonCode::F9,
+		/* 102 */   ButtonCode::Unassigned,
+		/* 103 */   ButtonCode::F11,
+		/* 104 */   ButtonCode::Unassigned,
+		/* 105 */   ButtonCode::Unassigned,
+		/* 106 */   ButtonCode::Unassigned,
+		/* 107 */   ButtonCode::ScrollLock,
+		/* 108 */   ButtonCode::Unassigned,
+		/* 109 */   ButtonCode::F10,
+		/* 110 */   ButtonCode::Unassigned,
+		/* 111 */   ButtonCode::F12,
+		/* 112 */   ButtonCode::Unassigned,
+		/* 113 */   ButtonCode::Pause,
+		/* 114 */   ButtonCode::Insert,
+		/* 115 */   ButtonCode::Home,
+		/* 116 */   ButtonCode::PageUp,
+		/* 117 */   ButtonCode::Delete,
+		/* 118 */   ButtonCode::F4,
+		/* 119 */   ButtonCode::End,
+		/* 120 */   ButtonCode::F2,
+		/* 121 */   ButtonCode::PageDown,
+		/* 122 */   ButtonCode::F1,
+		/* 123 */   ButtonCode::ArrowLeft,
+		/* 124 */   ButtonCode::ArrowRight,
+		/* 125 */   ButtonCode::ArrowDown,
+		/* 126 */   ButtonCode::ArrowUp,
+		/* 127 */   ButtonCode::Power
 	};
 
-	static u32 ButtonCodeToKeyCode[255];
-	static void initKeyCodeMapping()
+	// Maps b3d keyboard button codes to macOS keycodes
+	static u32 ButtonCodeToKeyCode[256];
+	static void InitKeyCodeMapping()
 	{
 		memset(ButtonCodeToKeyCode, 0, sizeof(ButtonCodeToKeyCode));
 
-		u32 numKeyCodes = sizeof(KeyCodeMapping) / sizeof(KeyCodeMapping[0]);
+		u32 keyCodeCount = sizeof(kKeyCodeMapping) / sizeof(kKeyCodeMapping[0]);
 
-		for(u32 keyCodeIndex = 0; keyCodeIndex < numKeyCodes; keyCodeIndex++)
-			ButtonCodeToKeyCode[KeyCodeMapping[keyCodeIndex]] = keyCodeIndex;
+		for(u32 keyCodeIndex = 0; keyCodeIndex < keyCodeCount; keyCodeIndex++)
+			ButtonCodeToKeyCode[(u32)kKeyCodeMapping[keyCodeIndex]] = keyCodeIndex;
 	}
 
 	void flipY(NSScreen* screen, NSRect& rect)
@@ -531,7 +529,7 @@ namespace b3d
 	}
 
 	/** Returns the name of the current application based on the information in the app. bundle. */
-	static NSString* getAppName()
+	static NSString* GetAppName()
 	{
 		NSString* appName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleDisplayName"];
 		if (!appName)
@@ -545,12 +543,12 @@ namespace b3d
 	}
 
 	/** Creates the default menu for the application menu bar. */
-	static void createApplicationMenu()
+	static void CreateApplicationMenu()
 	{ @autoreleasepool {
 		NSMenu* mainMenu = [[NSMenu alloc] init];
 		[NSApp setMainMenu:mainMenu];
 
-		NSString* appName = getAppName();
+		NSString* appName = GetAppName();
 		NSMenu* appleMenu = [[NSMenu alloc] initWithTitle:@""];
 
 		NSString* aboutTitle = [@"About " stringByAppendingString:appName];
@@ -582,10 +580,10 @@ namespace b3d
 		[[NSApp mainMenu] addItem:appleMenuItem];
 	}}
 
-	Event<void(const Vector2I &, const OSPointerButtonStates &)> Platform::OnPointerMoved;
-	Event<void(const Vector2I &, OSMouseButton button, const OSPointerButtonStates &)> Platform::OnPointerButtonPressed;
-	Event<void(const Vector2I &, OSMouseButton button, const OSPointerButtonStates &)> Platform::OnPointerButtonReleased;
-	Event<void(const Vector2I &, const OSPointerButtonStates &)> Platform::OnPointerDoubleClick;
+	Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::OnPointerMoved;
+	Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::OnPointerButtonPressed;
+	Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::OnPointerButtonReleased;
+	Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::OnPointerDoubleClick;
 	Event<void(InputCommandType)> Platform::OnInputCommand;
 	Event<void(float)> Platform::OnMouseWheelScrolled;
 	Event<void(u32)> Platform::OnCharInput;
@@ -593,21 +591,23 @@ namespace b3d
 	Event<void()> Platform::OnMouseCaptureChanged;
 	Event<void()> Platform::OnInputDevicesChanged;
 
-	Platform::Pimpl* Platform::mData = B3DNew<Platform::Pimpl>();
+	Platform::Private* Platform::mData = B3DNew<Platform::Private>();
 
 	Platform::~Platform()
 	{
+		B3DDelete(mData);
+		mData = nullptr;
 	}
 
 	Vector2I Platform::GetCursorPosition()
 	{
-		Lock lock(mData->cursorMutex);
-		return mData->cursorPos;
+		Lock lock(mData->CursorMutex);
+		return mData->CursorPos;
 	}
 
 	void Platform::SetCursorPosition(const Vector2I& screenPos)
 	{
-		[mData->cursorManager setPosition:screenPos];
+		[mData->CursorManager setPosition:screenPos];
 	}
 
 	void Platform::CaptureMouse(const RenderWindow& window)
@@ -627,28 +627,28 @@ namespace b3d
 			kCGNullWindowID);
 
 		if(!windowDicts)
-			return nil;
+			return false;
 
 		u32 windowId = (u32)window.GetPlatformWindowHandle();
-		auto iterFind = mData->allWindows.find(windowId);
-		if(iterFind == mData->allWindows.end())
+		auto iterFind = mData->AllWindows.find(windowId);
+		if(iterFind == mData->AllWindows.end())
 			return false;
 
 		CocoaWindow* cocoaWindow = iterFind->second;
-		int32_t requestedWindowNumber = (int32_t)[cocoaWindow->GetPrivateDataInternal()->Window windowNumber];
-		CGPoint point = CGPointMake(screenPos.x, screenPos.y);
+		i32 requestedWindowNumber = (i32)[cocoaWindow->GetPrivateDataInternal()->Window windowNumber];
+		CGPoint point = CGPointMake(screenPos.X, screenPos.Y);
 
 		CFIndex numEntries = CFArrayGetCount(windowDicts);
-		for(CFIndex i = 0; i < numEntries; i++)
+		for(CFIndex entryIndex = 0; entryIndex < numEntries; entryIndex++)
 		{
-			CFDictionaryRef dict = (CFDictionaryRef)CFArrayGetValueAtIndex(windowDicts, i);
+			CFDictionaryRef dict = (CFDictionaryRef)CFArrayGetValueAtIndex(windowDicts, entryIndex);
 
 			CFNumberRef layerRef = (CFNumberRef) CFDictionaryGetValue(dict, kCGWindowLayer);
 			if(!layerRef)
 				continue;
 
 			// Ignore windows outside of layer 0, as those appear to be desktop elements
-			int32_t layer;
+			i32 layer;
 			CFNumberGetValue(layerRef, kCFNumberIntType, &layer);
 
 			// Layer 0 appear to be normal windows
@@ -668,7 +668,7 @@ namespace b3d
 			{
 				// Windows are ordered front to back intrinsically, so the first one we are within bounds of is the one we want
 				CFNumberRef windowNumRef = (CFNumberRef)CFDictionaryGetValue(dict, kCGWindowNumber);
-				int32_t windowNumber;
+				i32 windowNumber;
 				CFNumberGetValue(windowNumRef, kCGWindowIDCFNumberType, &windowNumber);
 
 				return requestedWindowNumber == windowNumber;
@@ -680,58 +680,58 @@ namespace b3d
 
 	void Platform::HideCursor()
 	{
-		Lock lock(mData->cursorMutex);
+		Lock lock(mData->CursorMutex);
 
-		if(!mData->cursorIsHidden)
+		if(!mData->CursorIsHidden)
 		{
 			[NSCursor performSelectorOnMainThread:@selector(hide) withObject:nil waitUntilDone:NO];
-			mData->cursorIsHidden = true;
+			mData->CursorIsHidden = true;
 		}
 	}
 
 	void Platform::ShowCursor()
 	{
-		Lock lock(mData->cursorMutex);
+		Lock lock(mData->CursorMutex);
 
-		if(mData->cursorIsHidden)
+		if(mData->CursorIsHidden)
 		{
 			[NSCursor performSelectorOnMainThread:@selector(unhide) withObject:nil waitUntilDone:NO];
-			mData->cursorIsHidden = false;
+			mData->CursorIsHidden = false;
 		}
 	}
 
 	bool Platform::IsCursorHidden()
 	{
-		Lock lock(mData->cursorMutex);
+		Lock lock(mData->CursorMutex);
 
-		return mData->cursorIsHidden;
+		return mData->CursorIsHidden;
 	}
 
 	void Platform::ClipCursorToWindow(const RenderWindow& window)
 	{
 		u32 windowId = (u32)window.GetPlatformWindowHandle();
-		auto iterFind = mData->allWindows.find(windowId);
-		if(iterFind == mData->allWindows.end())
+		auto iterFind = mData->AllWindows.find(windowId);
+		if(iterFind == mData->AllWindows.end())
 			return;
 
 		CocoaWindow* cocoaWindow = iterFind->second;
-		[mData->cursorManager
+		[mData->CursorManager
 			performSelectorOnMainThread:@selector(clipCursorToWindow:)
 			withObject:[NSValue valueWithPointer:cocoaWindow]
 			waitUntilDone:NO];
 	}
 
-	void Platform::ClipCursorToRect(const Rect2I& screenRect)
+	void Platform::ClipCursorToRect(const Area2I& screenRect)
 	{
-		[mData->cursorManager
+		[mData->CursorManager
 			performSelectorOnMainThread:@selector(clipCursorToRect:)
-			withObject:[NSValue value:&screenRect withObjCType:@encode(Rect2I)]
+			withObject:[NSValue value:&screenRect withObjCType:@encode(Area2I)]
 			waitUntilDone:NO];
 	}
 
 	void Platform::ClipCursorDisable()
 	{
-		[mData->cursorManager
+		[mData->CursorManager
 			performSelectorOnMainThread:@selector(clipCursorDisable)
 			withObject:nil
 			waitUntilDone:NO];
@@ -740,12 +740,12 @@ namespace b3d
 	void Platform::SetCursor(PixelData& pixelData, const Vector2I& hotSpot)
 	{ @autoreleasepool {
 		NSImage* image = MacOSPlatform::CreateNSImage(pixelData);
-		NSPoint point = NSMakePoint(hotSpot.x, hotSpot.y);
+		NSPoint point = NSMakePoint(hotSpot.X, hotSpot.Y);
 
 		NSCursor* cursor = [[NSCursor alloc] initWithImage:image hotSpot:point];
 		NSArray* params = @[cursor, [NSValue valueWithPoint:point]];
 
-		[mData->cursorManager
+		[mData->CursorManager
 			performSelectorOnMainThread:@selector(setCursor:) withObject:params waitUntilDone:NO];
 	}}
 
@@ -756,7 +756,7 @@ namespace b3d
 		[NSApp performSelectorOnMainThread:@selector(setApplicationIconImage:) withObject:image waitUntilDone:NO];
 	}}
 
-	void Platform::SetCaptionNonClientAreas(const render::RenderWindow& window, const Vector<Rect2I>& nonClientAreas)
+	void Platform::SetCaptionNonClientAreas(const RenderWindow& window, const Vector<Area2I>& nonClientAreas)
 	{ @autoreleasepool {
 		NSMutableArray* params = [[NSMutableArray alloc] init];
 
@@ -765,9 +765,9 @@ namespace b3d
 
 		[params addObject:windowIdValue];
 		for(auto& entry : nonClientAreas)
-			[params addObject:[NSValue value:&entry withObjCType:@encode(b3d::Rect2I)]];
+			[params addObject:[NSValue value:&entry withObjCType:@encode(Area2I)]];
 
-		[mData->platformManager
+		[mData->PlatformManager
 			performSelectorOnMainThread:@selector(setCaptionNonClientAreas:)
 			withObject:params
 			waitUntilDone:NO];
@@ -783,7 +783,7 @@ namespace b3d
 		u32 windowId = (u32)window.GetPlatformWindowHandle();
 		NSValue* windowIdValue = [NSValue valueWithBytes:&windowId objCType:@encode(u32)];
 
-		[mData->platformManager
+		[mData->PlatformManager
 			performSelectorOnMainThread:@selector(resetNonClientAreas:)
 			withObject:windowIdValue
 			waitUntilDone:NO];
@@ -797,19 +797,22 @@ namespace b3d
 	void Platform::CopyToClipboard(const String& string)
 	{ @autoreleasepool {
 		NSString* text = [NSString stringWithUTF8String:string.c_str()];
-		[mData->platformManager performSelectorOnMainThread:@selector(setClipboardText:)
+		[mData->PlatformManager performSelectorOnMainThread:@selector(setClipboardText:)
 			withObject:text
 			waitUntilDone:NO];
 	}}
 
 	String Platform::CopyFromClipboard()
 	{
-		Lock lock(mData->clipboardMutex);
-		return mData->cachedClipboardData;
+		Lock lock(mData->ClipboardMutex);
+		return mData->CachedClipboardData;
 	}
 
 	String Platform::KeyCodeToUnicode(u32 buttonCode)
 	{
+		if(buttonCode >= sizeof(ButtonCodeToKeyCode) / sizeof(ButtonCodeToKeyCode[0]))
+			return "";
+
 		u32 keyCode = ButtonCodeToKeyCode[buttonCode];
 
 		TISInputSourceRef currentKeyboard = TISCopyCurrentKeyboardInputSource();
@@ -849,85 +852,80 @@ namespace b3d
 			chars);
 
 		U16String u16String((char16_t*)chars, (size_t)length);
-		String utf8String = UTF8::FromUTF16(u16String);
+		String utf8String = UTF8::FromUtF16(u16String);
 
 		return utf8String;
 	}
 
 	void Platform::OpenFolder(const Path& path)
 	{
-		String pathStr = path.ToString();
+		String pathString = path.ToString();
 
-		NSURL* url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:pathStr.c_str()]];
-		[mData->platformManager
+		NSURL* url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:pathString.c_str()]];
+		[mData->PlatformManager
 			performSelectorOnMainThread:@selector(openFolder:)
 			withObject:url
 			waitUntilDone:NO];
 	}
 
-	void Platform::_startUp()
+	void Platform::StartUp()
 	{
-		initKeyCodeMapping();
+		InitKeyCodeMapping();
 
-		mData->appDelegate = [[BSAppDelegate alloc] init];
-		mData->cursorManager = [[BSCursor alloc] initWithPlatformData:mData];
-		mData->platformManager = [[BSFPlatform alloc] initWithPlatformData:mData];
+		mData->AppDelegate = [[BSAppDelegate alloc] init];
+		mData->CursorManager = [[BSCursor alloc] initWithPlatformData:mData];
+		mData->PlatformManager = [[BSFPlatform alloc] initWithPlatformData:mData];
 		[BSApplication sharedApplication];
 
-		[NSApp setDelegate:mData->appDelegate];
+		[NSApp setDelegate:mData->AppDelegate];
 		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
-		createApplicationMenu();
+		CreateApplicationMenu();
 
 		[NSApp finishLaunching];
 	}
 
-	void Platform::_update()
+	void Platform::Update()
 	{
-		CocoaDragAndDrop::update();
+		CocoaDragAndDrop::Update();
 
 		{
-			Lock lock(mData->cursorMutex);
-			mData->cursorPos = [mData->cursorManager getPosition];
+			Lock lock(mData->CursorMutex);
+			mData->CursorPos = [mData->CursorManager getPosition];
 		}
 
-		INT32 changeCount = [mData->platformManager getClipboardChangeCount];
-		if(mData->clipboardChangeCount != changeCount)
+		i32 changeCount = [mData->PlatformManager getClipboardChangeCount];
+		if(mData->ClipboardChangeCount != changeCount)
 		{
-			NSString* string = [mData->platformManager getClipboardText];
+			NSString* string = [mData->PlatformManager getClipboardText];
 			String utf8String;
 
 			if(string)
 				utf8String = [string UTF8String];
 
 			{
-				Lock lock(mData->clipboardMutex);
-				mData->cachedClipboardData = utf8String;
+				Lock lock(mData->ClipboardMutex);
+				mData->CachedClipboardData = utf8String;
 			}
 
-			mData->clipboardChangeCount = changeCount;
+			mData->ClipboardChangeCount = changeCount;
 		}
 
-		_messagePump();
+		MessagePump();
 	}
 
-	void Platform::_coreUpdate()
+	void Platform::ShutDown()
 	{
 		// Do nothing
 	}
 
-	void Platform::_shutDown()
-	{
-		// Do nothing
-	}
-
-	void Platform::_messagePump()
+	void Platform::MessagePump()
 	{ @autoreleasepool {
 		while(true)
 		{
-			if(!mData->modalWindows.empty())
+			if(!mData->ModalWindows.empty())
 			{
-				NSModalSession session = mData->modalWindows.back().session;
+				NSModalSession session = mData->ModalWindows.back().Session;
 				[NSApp runModalSession:session];
 				break;
 			}
@@ -950,18 +948,18 @@ namespace b3d
 	void MacOSPlatform::RegisterWindow(CocoaWindow* window)
 	{
 		// First window is assumed to be main
-		if(!mData->mainWindow)
-			mData->mainWindow = window;
+		if(!mData->MainWindow)
+			mData->MainWindow = window;
 
 		CocoaWindow::Pimpl* windowData = window->GetPrivateDataInternal();
 		if(windowData->IsModal)
 		{
 			ModalWindowInfo info = { window->GetWindowIdInternal(), windowData->ModalSession };
-			mData->modalWindows.push_back(info);
+			mData->ModalWindows.push_back(info);
 		}
 
-		Lock lock(mData->windowMutex);
-		mData->allWindows[window->GetWindowIdInternal()] = window;
+		Lock lock(mData->WindowMutex);
+		mData->AllWindows[window->GetWindowIdInternal()] = window;
 	}
 
 	void MacOSPlatform::UnregisterWindow(CocoaWindow* window)
@@ -970,43 +968,43 @@ namespace b3d
 		if(windowData->IsModal)
 		{
 			u32 windowId = window->GetWindowIdInternal();
-			auto iterFind = std::find_if(mData->modalWindows.begin(), mData->modalWindows.end(),
+			auto iterFind = std::find_if(mData->ModalWindows.begin(), mData->ModalWindows.end(),
 										 [windowId](const ModalWindowInfo& x)
 										 {
-											 return x.windowId == windowId;
+											 return x.WindowId == windowId;
 										 });
 
-			if(iterFind != mData->modalWindows.end())
-				mData->modalWindows.erase(iterFind);
+			if(iterFind != mData->ModalWindows.end())
+				mData->ModalWindows.erase(iterFind);
 		}
 
-		Lock lock(mData->windowMutex);
-		mData->allWindows.erase(window->GetWindowIdInternal());
+		Lock lock(mData->WindowMutex);
+		mData->AllWindows.erase(window->GetWindowIdInternal());
 
-		[mData->cursorManager unregisterWindow:windowData->Window];
+		[mData->CursorManager unregisterWindow:windowData->Window];
 
 		// Shut down app when the main window is closed
-		if(mData->mainWindow == window)
+		if(mData->MainWindow == window)
 		{
-			b3d::GetApplication().NotifyQuitRequested();
-			mData->mainWindow = nullptr;
+			GetApplication().NotifyQuitRequested();
+			mData->MainWindow = nullptr;
 		}
 	}
 
 	void MacOSPlatform::LockWindows()
 	{
-		mData->windowMutex.lock();
+		mData->WindowMutex.lock();
 	}
 
 	void MacOSPlatform::UnlockWindows()
 	{
-		mData->windowMutex.unlock();
+		mData->WindowMutex.unlock();
 	}
 
 	CocoaWindow* MacOSPlatform::GetWindow(u32 windowId)
 	{
-		auto iterFind = mData->allWindows.find(windowId);
-		if(iterFind == mData->allWindows.end())
+		auto iterFind = mData->AllWindows.find(windowId);
+		if(iterFind == mData->AllWindows.end())
 			return nullptr;
 
 		return iterFind->second;
@@ -1018,9 +1016,9 @@ namespace b3d
 		Vector<Color> colors = data.GetColors();
 		for(auto& color : colors)
 		{
-			color.r *= color.a;
-			color.g *= color.a;
-			color.b *= color.a;
+			color.R *= color.A;
+			color.G *= color.A;
+			color.B *= color.A;
 		}
 
 		// Convert to RGBA
@@ -1053,12 +1051,12 @@ namespace b3d
 
 	void MacOSPlatform::SendInputCommandEvent(InputCommandType inputCommand)
 	{
-		onInputCommand(inputCommand);
+		OnInputCommand(inputCommand);
 	}
 
 	void MacOSPlatform::SendCharInputEvent(u32 character)
 	{
-		onCharInput(character);
+		OnCharInput(character);
 	}
 
 	void MacOSPlatform::SendPointerButtonPressedEvent(
@@ -1066,7 +1064,7 @@ namespace b3d
 		OSMouseButton button,
 		const OSPointerButtonStates& buttonStates)
 	{
-		onCursorButtonPressed(pos, button, buttonStates);
+		OnPointerButtonPressed(pos, button, buttonStates);
 	}
 
 	void MacOSPlatform::SendPointerButtonReleasedEvent(
@@ -1074,30 +1072,30 @@ namespace b3d
 		OSMouseButton button,
 		const OSPointerButtonStates& buttonStates)
 	{
-		onCursorButtonReleased(pos, button, buttonStates);
+		OnPointerButtonReleased(pos, button, buttonStates);
 	}
 
 	void MacOSPlatform::SendPointerDoubleClickEvent(const Vector2I& pos, const OSPointerButtonStates& buttonStates)
 	{
-		onCursorDoubleClick(pos, buttonStates);
+		OnPointerDoubleClick(pos, buttonStates);
 	}
 
 	void MacOSPlatform::SendPointerMovedEvent(const Vector2I& pos, const OSPointerButtonStates& buttonStates)
 	{
-		onCursorMoved(pos, buttonStates);
+		OnPointerMoved(pos, buttonStates);
 	}
 
 	void MacOSPlatform::SendMouseWheelScrollEvent(float delta)
 	{
-		onMouseWheelScrolled(delta);
+		OnMouseWheelScrolled(delta);
 	}
 
-	void MacOSPlatform::NotifyWindowEvent(b3d::WindowEventType type, b3d::u32 windowId)
+	void MacOSPlatform::NotifyWindowEvent(WindowEventType type, u32 windowId)
 	{
 		CocoaWindow* window = nullptr;
 		{
-			auto iterFind = mData->allWindows.find(windowId);
-			if(iterFind == mData->allWindows.end())
+			auto iterFind = mData->AllWindows.find(windowId);
+			if(iterFind == mData->AllWindows.end())
 				return;
 
 			window = iterFind->second;
@@ -1118,21 +1116,21 @@ namespace b3d
 
 	NSCursor* MacOSPlatform::GetCurrentCursorInternal()
 	{
-		return [mData->cursorManager currentCursor];
+		return [mData->CursorManager currentCursor];
 	}
 
 	bool MacOSPlatform::ClipCursorInternal(Vector2I& pos)
 	{
-		return [mData->cursorManager clipCursor:pos];
+		return [mData->CursorManager clipCursor:pos];
 	}
 
 	void MacOSPlatform::UpdateClipBoundsInternal(NSWindow* window)
 	{
-		[mData->cursorManager updateClipBounds:window];
+		[mData->CursorManager updateClipBounds:window];
 	}
 
 	void MacOSPlatform::SetCursorPositionInternal(const Vector2I& position)
 	{
-		[mData->cursorManager setPosition:position];
+		[mData->CursorManager setPosition:position];
 	}
 }

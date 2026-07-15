@@ -8,10 +8,16 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Generates a new hash for the provided type using the default standard hasher and combines it with a previous hash. */
-	template <class T>
-	void B3DCombineHash(std::size_t& seed, const T& v)
+	/**
+	 * Generates a new hash for the provided type using the default standard hasher and combines it with a previous hash.
+	 * The seed may be any unsigned integer at least as wide as std::size_t.
+	 */
+	template <class S, class T>
+	void B3DCombineHash(S& seed, const T& v)
 	{
+		static_assert(std::is_unsigned<S>::value && sizeof(S) >= sizeof(std::size_t),
+			"Hash seed must be an unsigned integer at least as wide as std::size_t.");
+
 		using HashType = typename std::conditional<std::is_enum<T>::value, EnumClassHash, std::hash<T>>::type;
 
 		HashType hasher;

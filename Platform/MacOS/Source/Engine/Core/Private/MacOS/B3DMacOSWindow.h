@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Prerequisites/B3DPrerequisitesUtil.h"
-#include "Math/B3DVector2I.h"
-#include "Math/B3DRect2I.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DArea2.h"
 
 #ifdef BS_COCOA_INTERNALS
 #	import <Cocoa/Cocoa.h>
@@ -76,7 +76,7 @@ namespace b3d
 		~CocoaWindow();
 
 		/** Returns the current area of the window, relative to the top-left origin of the screen. */
-		Rect2I GetArea() const;
+		Area2I GetArea() const;
 
 		/**	Returns position of the left-most border of the window, relative to the screen. */
 		i32 GetLeft() const;
@@ -142,26 +142,26 @@ namespace b3d
 		 * when window has no title bar, yet you still want to allow the user to drag it by clicking on some specific area
 		 * (e.g. a title bar you manually render).
 		 *
-		 * @param[in]	rects	Areas of the window (relative to the window origin in top-left corner) in which the drag
+		 * @param[in]	areas	Areas of the window (relative to the window origin in top-left corner) in which the drag
 		 * 						operation in allowed.
 		 */
-		void SetDragZonesInternal(const Vector<Rect2I>& rects);
+		void SetDragZonesInternal(const Vector<Area2I>& areas);
 
 		/** Attaches non-specific user data that can later be retrieved through GetUserDataInternal(). */
 		void SetUserDataInternal(void* data);
 
-		/** Returns user data attached to the object when _setUserData was called. */
+		/** Returns user data attached to the object when SetUserDataInternal() was called. */
 		void* GetUserDataInternal() const;
 
 		/**
 		 * Registers the window with the drag and drop manager and allows it to accept file drop operations. Each call
-		 * to this method must eventually be followed with _unregisterForDragAndDrop.
+		 * to this method must eventually be followed with UnregisterForDragAndDropInternal().
 		 */
 		void RegisterForDragAndDropInternal();
 
 		/**
 		 * Unregisters the window from the drag and drop manager. This will need to be called multiple times if
-		 * _registerForDragAndDrop was called multiple times.
+		 * RegisterForDragAndDropInternal() was called multiple times.
 		 */
 		void UnregisterForDragAndDropInternal();
 

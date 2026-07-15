@@ -6,13 +6,16 @@
 find_path(LibUUID_INCLUDE_DIR uuid/uuid.h)
 
 if(APPLE)
-	find_library(LibUUID_LIBRARY NAMES libuuid.a uuid)
+	# The uuid_* functions are part of libSystem on macOS; only the header is needed.
+	if(LibUUID_INCLUDE_DIR)
+		set(LibUUID_FOUND TRUE)
+	endif()
 else()
 	find_library(LibUUID_LIBRARY NAMES uuid)
-endif()
 
-if(LibUUID_INCLUDE_DIR AND LibUUID_LIBRARY)
-    set(LibUUID_FOUND TRUE)
+	if(LibUUID_INCLUDE_DIR AND LibUUID_LIBRARY)
+		set(LibUUID_FOUND TRUE)
+	endif()
 endif()
 
 message(STATUS "Looking for LibUUID...")
@@ -28,8 +31,12 @@ else()
 endif()
 
 if(LibUUID_FOUND)
-    add_library(LibUUID STATIC IMPORTED)
-    set_target_properties(LibUUID PROPERTIES IMPORTED_LOCATION "${LibUUID_LIBRARY}")
+    if(APPLE)
+        add_library(LibUUID INTERFACE IMPORTED)
+    else()
+        add_library(LibUUID STATIC IMPORTED)
+        set_target_properties(LibUUID PROPERTIES IMPORTED_LOCATION "${LibUUID_LIBRARY}")
+    endif()
     set_target_properties(LibUUID PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${LibUUID_INCLUDE_DIR}")
 endif()
 

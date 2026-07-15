@@ -50,7 +50,7 @@ void Fiber::SwitchExecutionTo(Fiber* to)
 		mOSFiber->switchTo(to->mOSFiber.get());
 }
 
-TUnique<Fiber> Fiber::Create(u32 id, size_t stackSize, const std::function<void()>& workerFunction)
+TUnique<Fiber> Fiber::Create(u32 id, u64 stackSize, const std::function<void()>& workerFunction)
 {
 	return B3DMakeUnique<Fiber>(marl::OSFiber::createFiber(stackSize, workerFunction), id);
 }
