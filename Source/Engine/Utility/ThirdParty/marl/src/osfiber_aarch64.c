@@ -16,7 +16,9 @@
 
 #include "osfiber_asm_aarch64.h"
 
-#include "ThirdParty/marl/include/marl/export.h"
+#ifndef MARL_EXPORT
+#define MARL_EXPORT
+#endif
 
 MARL_EXPORT
 void marl_fiber_trampoline(void (*target)(void*), void* arg) {

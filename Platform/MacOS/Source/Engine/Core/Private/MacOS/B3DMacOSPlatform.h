@@ -5,15 +5,17 @@
 #include "Platform/B3DPlatform.h"
 #include "GpuBackend/B3DRenderWindow.h"
 
-// Don't include macOS frameworks when generating script bindings, as it can't find them
-#ifndef B3D_CODEGEN
+// Don't include macOS frameworks when generating script bindings, as it can't find them.
+// Also skip them in plain C++ translation units - Objective-C headers only parse in Objective-C++.
+#if !defined(B3D_CODEGEN) && defined(__OBJC__)
 #	include <Cocoa/Cocoa.h>
 #endif
 
 namespace b3d
 {
-	// Forward declare Cocoa types for SBGen purposes, since we didn't include Cocoa.h above
-#if B3D_CODEGEN
+	// Forward declare Cocoa types when Cocoa.h wasn't included above. Only usable as opaque
+	// pointers in that case - translation units that touch their members must be Objective-C++.
+#if B3D_CODEGEN || !defined(__OBJC__)
 	class NSImage;
 	class NSCursor;
 	class NSScreen;
@@ -33,59 +35,59 @@ namespace b3d
 	{
 	public:
 		/** Notifies the system that a new window was created. */
-		static void registerWindow(CocoaWindow* window);
+		static void RegisterWindow(CocoaWindow* window);
 
 		/** Notifies the system that a window is about to be destroyed. */
-		static void unregisterWindow(CocoaWindow* window);
+		static void UnregisterWindow(CocoaWindow* window);
 
 		/**
 		 * Locks the access to the list of CocoaWindows ensuring no new windows can be created or destroyed. This must be
 		 * called any time CocoaWindow is being used outside of the main thread to ensure the window doesn't get destroyed
-		 * while being in use. Needs to be followed by unlockWindows().
+		 * while being in use. Needs to be followed by UnlockWindows().
 		 */
-		static void lockWindows();
+		static void LockWindows();
 
-		/** Releases the lock acquires by lockWindows(). */
-		static void unlockWindows();
+		/** Releases the lock acquires by LockWindows(). */
+		static void UnlockWindows();
 
 		/**
 		 *  Returns a window based on its ID. Returns null if window cannot be found. Expects the caller to lock windows
-		 *  using lockWindows() in case this is called from non-main thread.
+		 *  using LockWindows() in case this is called from non-main thread.
 		 */
-		static CocoaWindow* getWindow(u32 windowId);
+		static CocoaWindow* GetWindow(u32 windowId);
 
 		/** Generates a Cocoa image from the provided pixel data. */
-		static NSImage* createNSImage(const PixelData& data);
+		static NSImage* CreateNSImage(const PixelData& data);
 
 		/** Sends an event notifying the system that a key corresponding to an input command was pressed. */
-		static void sendInputCommandEvent(InputCommandType inputCommand);
+		static void SendInputCommandEvent(InputCommandType inputCommand);
 
 		/** Sends an event notifying the system that the user typed some text. */
-		static void sendCharInputEvent(u32 character);
+		static void SendCharInputEvent(u32 character);
 
 		/** Sends an event notifying the system that a pointer button was pressed. */
-		static void sendPointerButtonPressedEvent(
+		static void SendPointerButtonPressedEvent(
 			const Vector2I& pos,
 			OSMouseButton button,
 			const OSPointerButtonStates& buttonStates);
 
 		/** Sends an event notifying the system that a pointer button was released. */
-		static void sendPointerButtonReleasedEvent(
+		static void SendPointerButtonReleasedEvent(
 			const Vector2I& pos,
 			OSMouseButton button,
 			const OSPointerButtonStates& buttonStates);
 
 		/** Sends an event notifying the system that the user clicked the left pointer button twice in quick succession. */
-		static void sendPointerDoubleClickEvent(const Vector2I& pos, const OSPointerButtonStates& buttonStates);
+		static void SendPointerDoubleClickEvent(const Vector2I& pos, const OSPointerButtonStates& buttonStates);
 
 		/** Sends an event notifying the system that the pointer moved. */
-		static void sendPointerMovedEvent(const Vector2I& pos, const OSPointerButtonStates& buttonStates);
+		static void SendPointerMovedEvent(const Vector2I& pos, const OSPointerButtonStates& buttonStates);
 
 		/** Sends an event notifying the system the user has scrolled the mouse wheel. */
-		static void sendMouseWheelScrollEvent(float delta);
+		static void SendMouseWheelScrollEvent(float delta);
 
 		/** Notifies the system that some window-related event has occurred. */
-		static void notifyWindowEvent(WindowEventType type, u32 windowId);
+		static void NotifyWindowEvent(WindowEventType type, u32 windowId);
 
 		/** Returns the currently assigned custom cursor. */
 		static NSCursor* GetCurrentCursorInternal();

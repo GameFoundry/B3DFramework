@@ -64,7 +64,12 @@ endfunction()
 function(B3DSetDefaultCompileAndLinkerFlagsGCC target)
 	# Note: Optionally add -ffunction-sections, -fdata-sections, but with linker option --gc-sections
 	# TODO: Use link-time optimization -flto. Might require non-default linker.
-	set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS -Wall -Wextra -Wno-unused-parameter -Wno-reorder-ctor -fPIC -fno-strict-aliasing -msse4.1 -ffast-math)
+	set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS -Wall -Wextra -Wno-unused-parameter -Wno-reorder-ctor -fPIC -fno-strict-aliasing -ffast-math)
+
+	# SIMD baseline. ARM64 requires no flag (NEON is part of the base ISA).
+	if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64|i.86)$")
+		set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS -msse4.1)
+	endif()
 
 	set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS $<$<CONFIG:Debug>:-ggdb -O0 -DDEBUG>)
 	set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS $<$<CONFIG:RelWithDebInfo>:-ggdb -O2 -DDEBUG -Wno-unused-variable>)
@@ -119,7 +124,9 @@ function(B3DSetDefaultLinkAndCompileFlags target)
 		B3DSetDefaultCompileAndLinkerFlagsClang(${target})
 
 		# glibc vector-math library
-		set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS -fveclib=libmvec)
+		if(LINUX)
+			set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS -fveclib=libmvec)
+		endif()
 
 		# Desktop executables are linked non-PIE
 		if (${target_type} STREQUAL "EXECUTABLE" AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

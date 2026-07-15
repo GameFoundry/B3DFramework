@@ -1,13 +1,10 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "String/B3DUnicode.h"
-#include "Platform/B3DPlatform.h"
+#include "Private/MacOS/B3DMacOSDropTarget.h"
+#include "Private/MacOS/B3DMacOSPlatform.h"
+#include "Private/MacOS/B3DMacOSWindow.h"
 #include "Platform/B3DDropTarget.h"
 #include "GpuBackend/B3DRenderWindow.h"
-#include "Math/B3DRect2I.h"
-#include "Private/MacOS/B3DMacOSDropTarget.h"
-#include "Private/MacOS/B3DMacOSWindow.h"
-#include "CoreThread/B3DCoreThread.h"
 
 using namespace b3d;
 
@@ -16,68 +13,68 @@ Mutex CocoaDragAndDrop::sMutex;
 Vector<CocoaDragAndDrop::DragAndDropOp> CocoaDragAndDrop::sQueuedOperations;
 Vector<CocoaDragAndDrop::DropAreaOp> CocoaDragAndDrop::sQueuedAreaOperations;
 
-DropTarget::DropTarget(const RenderWindow* ownerWindow, const Rect2I& area)
+DropTarget::DropTarget(const RenderWindow* ownerWindow, const Area2I& area)
 	: mArea(area), mActive(false), mOwnerWindow(ownerWindow), mDropType(DropTargetType::None)
 {
-	CocoaDragAndDrop::registerDropTarget(this);
+	CocoaDragAndDrop::RegisterDropTarget(this);
 }
 
 DropTarget::~DropTarget()
 {
-	CocoaDragAndDrop::unregisterDropTarget(this);
+	CocoaDragAndDrop::UnregisterDropTarget(this);
 
 	ClearInternal();
 }
 
-void DropTarget::setArea(const Rect2I& area)
+void DropTarget::SetArea(const Area2I& area)
 {
 	mArea = area;
 
-	CocoaDragAndDrop::updateDropTarget(this);
+	CocoaDragAndDrop::UpdateDropTarget(this);
 }
 
-void CocoaDragAndDrop::registerDropTarget(DropTarget* target)
+void CocoaDragAndDrop::RegisterDropTarget(DropTarget* target)
 {
 	Lock lock(sMutex);
 	sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Register, target->GetArea()));
 }
 
-void CocoaDragAndDrop::unregisterDropTarget(DropTarget* target)
+void CocoaDragAndDrop::UnregisterDropTarget(DropTarget* target)
 {
 	Lock lock(sMutex);
 	sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Unregister));
 }
 
-void CocoaDragAndDrop::updateDropTarget(DropTarget* target)
+void CocoaDragAndDrop::UpdateDropTarget(DropTarget* target)
 {
 	Lock lock(sMutex);
 	sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Update, target->GetArea()));
 }
 
-void CocoaDragAndDrop::update()
+void CocoaDragAndDrop::Update()
 {
-	THROW_IF_CORE_THREAD
-
 	// First handle any queued registration/unregistration
 	{
 		Lock lock(sMutex);
 
 		for(auto& entry : sQueuedAreaOperations)
 		{
-			CocoaWindow* areaWindow;
-			entry.target->GetOwnerWindowInternal()->GetCustomAttribute("COCOA_WINDOW", &areaWindow);
+			const u32 areaWindowId = (u32)entry.Target->GetOwnerWindow()->GetPlatformWindowHandle();
+			CocoaWindow* areaWindow = MacOSPlatform::GetWindow(areaWindowId);
 
-			switch(entry.type)
+			switch(entry.Type)
 			{
 			case DropAreaOpType::Register:
-				sDropAreas.push_back(DropArea(entry.target, entry.area));
-				areaWindow->RegisterForDragAndDropInternal();
+				sDropAreas.push_back(DropArea(entry.Target, entry.Area));
+
+				if(areaWindow)
+					areaWindow->RegisterForDragAndDropInternal();
 				break;
 			case DropAreaOpType::Unregister:
 				// Remove any operations queued for this target
 				for(auto iter = sQueuedOperations.begin(); iter != sQueuedOperations.end();)
 				{
-					if(iter->target == entry.target)
+					if(iter->Target == entry.Target)
 						iter = sQueuedOperations.erase(iter);
 					else
 						++iter;
@@ -85,22 +82,23 @@ void CocoaDragAndDrop::update()
 
 				// Remove the area
 				{
-					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
-												 { return area.target == entry.target; });
+					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&entry](const DropArea& area)
+												 { return area.Target == entry.Target; });
 
 					sDropAreas.erase(iterFind);
 				}
 
-				areaWindow->UnregisterForDragAndDropInternal();
+				if(areaWindow)
+					areaWindow->UnregisterForDragAndDropInternal();
 
 				break;
 			case DropAreaOpType::Update:
 				{
-					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
-												 { return area.target == entry.target; });
+					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&entry](const DropArea& area)
+												 { return area.Target == entry.Target; });
 
 					if(iterFind != sDropAreas.end())
-						iterFind->area = entry.area;
+						iterFind->Area = entry.Area;
 				}
 				break;
 			}
@@ -119,21 +117,21 @@ void CocoaDragAndDrop::update()
 
 	for(auto& op : operations)
 	{
-		switch(op.type)
+		switch(op.Type)
 		{
 		case DragAndDropOpType::Enter:
-			op.target->onEnter(op.position.x, op.position.y);
+			op.Target->OnEnter(op.Position.X, op.Position.Y);
 			break;
 		case DragAndDropOpType::DragOver:
-			op.target->onDragOver(op.position.x, op.position.y);
+			op.Target->OnDragOver(op.Position.X, op.Position.Y);
 			break;
 		case DragAndDropOpType::Drop:
-			op.target->SetFileListInternal(op.fileList);
-			op.target->onDrop(op.position.x, op.position.y);
+			op.Target->SetFileList(op.FileList);
+			op.Target->OnDrop(op.Position.X, op.Position.Y);
 			break;
 		case DragAndDropOpType::Leave:
-			op.target->ClearInternal();
-			op.target->onLeave();
+			op.Target->ClearInternal();
+			op.Target->OnLeave();
 			break;
 		}
 	}
@@ -141,24 +139,21 @@ void CocoaDragAndDrop::update()
 
 bool CocoaDragAndDrop::NotifyDragEnteredInternal(u32 windowId, const Vector2I& position)
 {
-	THROW_IF_CORE_THREAD
-
 	bool eventAccepted = false;
 	for(auto& entry : sDropAreas)
 	{
-		u32 areaWindowId = 0;
-		entry.target->GetOwnerWindowInternal()->GetCustomAttribute("WINDOW_ID", &areaWindowId);
+		const u32 areaWindowId = (u32)entry.Target->GetOwnerWindow()->GetPlatformWindowHandle();
 		if(areaWindowId != windowId)
 			continue;
 
-		if(entry.area.contains(position))
+		if(entry.Area.Contains(position))
 		{
-			if(!entry.target->IsActiveInternal())
+			if(!entry.Target->IsActive())
 			{
 				Lock lock(sMutex);
-				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Enter, entry.target, position));
+				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Enter, entry.Target, position));
 
-				entry.target->SetActiveInternal(true);
+				entry.Target->SetActive(true);
 			}
 
 			eventAccepted = true;
@@ -170,43 +165,40 @@ bool CocoaDragAndDrop::NotifyDragEnteredInternal(u32 windowId, const Vector2I& p
 
 bool CocoaDragAndDrop::NotifyDragMovedInternal(u32 windowId, const Vector2I& position)
 {
-	THROW_IF_CORE_THREAD
-
 	bool eventAccepted = false;
 	for(auto& entry : sDropAreas)
 	{
-		u32 areaWindowId = 0;
-		entry.target->GetOwnerWindowInternal()->GetCustomAttribute("WINDOW_ID", &areaWindowId);
+		const u32 areaWindowId = (u32)entry.Target->GetOwnerWindow()->GetPlatformWindowHandle();
 		if(areaWindowId != windowId)
 			continue;
 
-		if(entry.area.contains(position))
+		if(entry.Area.Contains(position))
 		{
-			if(entry.target->IsActiveInternal())
+			if(entry.Target->IsActive())
 			{
 				Lock lock(sMutex);
-				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::DragOver, entry.target, position));
+				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::DragOver, entry.Target, position));
 			}
 			else
 			{
 				Lock lock(sMutex);
-				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Enter, entry.target, position));
+				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Enter, entry.Target, position));
 			}
 
-			entry.target->SetActiveInternal(true);
+			entry.Target->SetActive(true);
 			eventAccepted = true;
 		}
 		else
 		{
 			// Cursor left previously active target's area
-			if(entry.target->IsActiveInternal())
+			if(entry.Target->IsActive())
 			{
 				{
 					Lock lock(sMutex);
-					sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, entry.target));
+					sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, entry.Target));
 				}
 
-				entry.target->SetActiveInternal(false);
+				entry.Target->SetActive(false);
 			}
 		}
 	}
@@ -216,47 +208,41 @@ bool CocoaDragAndDrop::NotifyDragMovedInternal(u32 windowId, const Vector2I& pos
 
 void CocoaDragAndDrop::NotifyDragLeftInternal(u32 windowId)
 {
-	THROW_IF_CORE_THREAD
-
 	for(auto& entry : sDropAreas)
 	{
-		u32 areaWindowId = 0;
-		entry.target->GetOwnerWindowInternal()->GetCustomAttribute("WINDOW_ID", &areaWindowId);
+		const u32 areaWindowId = (u32)entry.Target->GetOwnerWindow()->GetPlatformWindowHandle();
 		if(areaWindowId != windowId)
 			continue;
 
-		if(entry.target->IsActiveInternal())
+		if(entry.Target->IsActive())
 		{
 			{
 				Lock lock(sMutex);
-				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, entry.target));
+				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, entry.Target));
 			}
 
-			entry.target->SetActiveInternal(false);
+			entry.Target->SetActive(false);
 		}
 	}
 }
 
 bool CocoaDragAndDrop::NotifyDragDroppedInternal(u32 windowId, const Vector2I& position, const Vector<Path>& paths)
 {
-	THROW_IF_CORE_THREAD
-
 	bool eventAccepted = false;
 	for(auto& entry : sDropAreas)
 	{
-		u32 areaWindowId = 0;
-		entry.target->GetOwnerWindowInternal()->GetCustomAttribute("WINDOW_ID", &areaWindowId);
+		const u32 areaWindowId = (u32)entry.Target->GetOwnerWindow()->GetPlatformWindowHandle();
 		if(areaWindowId != windowId)
 			continue;
 
-		if(!entry.target->IsActiveInternal())
+		if(!entry.Target->IsActive())
 			continue;
 
 		Lock lock(sMutex);
-		sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Drop, entry.target, position, paths));
+		sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Drop, entry.Target, position, paths));
 
 		eventAccepted = true;
-		entry.target->SetActiveInternal(false);
+		entry.Target->SetActive(false);
 	}
 
 	return eventAccepted;

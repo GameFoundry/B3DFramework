@@ -501,8 +501,8 @@ namespace b3d
 		UUID mId;
 		Path mAssociatedPackageFilePath; /**< Path to the file in which the package data has been saved. Empty if package hasn't been saved yet. */
 		TShared<PackageMetaData> mPackageMetaData;
-		size_t mSerializedMetaDataEnd = 0;
-		size_t mMetaDataPaddingByteCount = 0; /**< Extra empty bytes in the file after meta-data. Allows meta-data to grow without having to re-write the whole file. */
+		u64 mSerializedMetaDataEnd = 0;
+		u64 mMetaDataPaddingByteCount = 0; /**< Extra empty bytes in the file after meta-data. Allows meta-data to grow without having to re-write the whole file. */
 
 		UnorderedMap<Path, ResourceInformation*, PathHashFunction<true>, PathEqualsFunction<true>> mResourceInformationByPath;
 		UnorderedMap<UUID, TUnique<ResourceInformation>> mResourceInformationByUUID;

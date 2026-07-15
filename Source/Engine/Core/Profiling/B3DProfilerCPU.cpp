@@ -9,15 +9,17 @@
 #	include <intrin.h>
 #endif
 
-#if B3D_COMPILER_GCC || B3D_COMPILER_CLANG
-#	include "B3DCpuid.h"
-#endif
+#if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64 || B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_32
+#	if B3D_COMPILER_GCC || B3D_COMPILER_CLANG
+#		include "B3DCpuid.h"
+#	endif
 
-#if B3D_COMPILER_CLANG
-#	if B3D_PLATFORM_WIN32
-#		include "intrin.h"
-#	else
-#		include <x86intrin.h>
+#	if B3D_COMPILER_CLANG
+#		if B3D_PLATFORM_WIN32
+#			include "intrin.h"
+#		else
+#			include <x86intrin.h>
+#		endif
 #	endif
 #endif
 
@@ -75,7 +77,14 @@ void ProfilerCPU::TimerPrecise::Reset()
 
 inline u64 ProfilerCPU::TimerPrecise::GetNumCycles()
 {
-#if B3D_COMPILER_GCC || B3D_COMPILER_CLANG
+#if (B3D_COMPILER_GCC || B3D_COMPILER_CLANG) && B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_ARM64
+	// Virtual counter register: constant-frequency, user-space readable (unlike the cycle counter PMCCNTR_EL0,
+	// which traps unless the kernel enables user access).
+	u64 x;
+	__asm__ __volatile__("mrs %0, cntvct_el0"
+						 : "=r"(x));
+	return x;
+#elif B3D_COMPILER_GCC || B3D_COMPILER_CLANG
 	unsigned int a = 0;
 	unsigned int b[4];
 	__get_cpuid(a, &b[0], &b[1], &b[2], &b[3]);

@@ -49,7 +49,7 @@ void SchedulerTicket::DoWhenCalled(Function<void()>&& callback) const
 		mData->Callback = std::move(callback);
 }
 
-inline SchedulerTicketQueue::SchedulerTicketQueue(Scheduler& scheduler)
+SchedulerTicketQueue::SchedulerTicketQueue(Scheduler& scheduler)
 {
 	mSharedData->Scheduler = &scheduler;
 }

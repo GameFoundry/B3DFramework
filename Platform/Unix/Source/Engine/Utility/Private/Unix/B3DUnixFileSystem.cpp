@@ -22,7 +22,7 @@
 #endif
 
 #define HANDLE_PATH_ERROR(path__, errno__) \
-	B3D_LOG(Error, LogFileSystem, (String(__FUNCTION__) + ": " + (path__) + ": " + (strerror(errno__))));
+	B3D_LOG(Error, LogFileSystem, "{0}: {1}: {2}", String(__FUNCTION__), (path__), String(strerror(errno__)));
 
 using namespace b3d;
 
@@ -137,14 +137,14 @@ bool FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 		src.close();
 		if(!src)
 		{
-			B3D_LOG(Error, LogFileSystem, String(__FUNCTION__) + ": renaming " + oldPathStr + " to " + newPathStr + ": " + strerror(errno));
+			B3D_LOG(Error, LogFileSystem, "{0}: renaming {1} to {2}: {3}", String(__FUNCTION__), oldPathStr, newPathStr, String(strerror(errno)));
 			return false; // Do not remove source if we failed!
 		}
 
 		// Then, remove source file (hopefully succeeds)
 		if(std::remove(oldPathStr.c_str()) == -1)
 		{
-			B3D_LOG(Error, LogFileSystem, String(__FUNCTION__) + ": renaming " + oldPathStr + " to " + newPathStr + ": " + strerror(errno));
+			B3D_LOG(Error, LogFileSystem, "{0}: renaming {1} to {2}: {3}", String(__FUNCTION__), oldPathStr, newPathStr, String(strerror(errno)));
 			return false;
 		}
 	}
@@ -256,7 +256,7 @@ Path FileSystem::GetWorkingDirectoryPath()
 	if(getcwd(buffer, PATH_MAX) != nullptr)
 		wd = buffer;
 	else
-		B3D_LOG(Error, LogFileSystem, String("Error when calling getcwd(): ") + strerror(errno));
+		B3D_LOG(Error, LogFileSystem, "Error when calling getcwd(): {0}", String(strerror(errno)));
 
 	B3DFree(buffer);
 	return Path(wd);
@@ -351,7 +351,7 @@ Path FileSystem::GetTemporaryFolderPath()
 
 	if(directoryName == nullptr)
 	{
-		B3D_LOG(Error, LogFileSystem, String(__FUNCTION__) + ": " + strerror(errno));
+		B3D_LOG(Error, LogFileSystem, "{0}: {1}", String(__FUNCTION__), String(strerror(errno)));
 		return Path(StringUtility::kBlank);
 	}
 
@@ -365,7 +365,7 @@ Path FileSystem::GetExecutableFolderPath()
 	const ssize_t numBytes = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
 	if(numBytes <= 0)
 	{
-		B3D_LOG(Error, LogFileSystem, String("Error when calling readlink(\"/proc/self/exe\"): ") + strerror(errno));
+		B3D_LOG(Error, LogFileSystem, "Error when calling readlink(\"/proc/self/exe\"): {0}", String(strerror(errno)));
 		return Path();
 	}
 

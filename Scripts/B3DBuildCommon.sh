@@ -83,10 +83,12 @@ B3DCleanDependencyFolder() {
 
 	ReqVersionFile="$FolderToClean/.reqversion"
 	if [ -f "$ReqVersionFile" ]; then
-		SavedReqVersion=$(cat "$ReqVersionFile")
+		SavedReqVersionFile=$(mktemp)
+		cp "$ReqVersionFile" "$SavedReqVersionFile"
 		rm -rf "$FolderToClean"
 		mkdir -p "$FolderToClean"
-		printf '%s' "$SavedReqVersion" > "$ReqVersionFile"
+		cp "$SavedReqVersionFile" "$ReqVersionFile"
+		rm -f "$SavedReqVersionFile"
 	else
 		rm -rf "$FolderToClean"
 		mkdir -p "$FolderToClean"
