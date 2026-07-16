@@ -50,7 +50,9 @@ set(CMAKE_XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES")
 set(CMAKE_FIND_FRAMEWORK "LAST")
 
 # Output
-if(B3D_IS_64BIT)
+if(APPLE)
+	set(outputFolderPrefix arm64)
+elseif(B3D_IS_64BIT)
 	set(outputFolderPrefix x64)
 else()
 	set(outputFolderPrefix x86)

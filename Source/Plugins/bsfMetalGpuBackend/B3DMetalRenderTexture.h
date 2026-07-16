@@ -28,6 +28,13 @@ namespace b3d
 		/**
 		 * Metal implementation of a render texture.
 		 *
+		 * Unlike the Vulkan render proxy, this deliberately does not override Initialize() to build a framebuffer
+		 * object: Metal has no VkFramebuffer/VkRenderPass equivalent. MTLRenderPassDescriptor is a transient,
+		 * cheap CPU-side descriptor whose load/store actions are per-pass state, so the command buffer constructs
+		 * it on every BeginRenderPass directly from the surface bindings exposed below (face/mip selection maps to
+		 * the attachment's slice/level). The core RenderTexture::Initialize() still runs and performs view
+		 * creation and validation.
+		 *
 		 * @note	Render thread only.
 		 */
 		class MetalRenderTexture : public RenderTexture

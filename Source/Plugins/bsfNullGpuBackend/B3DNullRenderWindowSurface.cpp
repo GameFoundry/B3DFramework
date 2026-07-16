@@ -15,7 +15,7 @@ namespace b3d::render
 		// No-op destructor
 	}
 
-	void NullRenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsync)
+	void NullRenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsync, u32 vsyncInterval)
 	{
 		// No-op implementation
 	}

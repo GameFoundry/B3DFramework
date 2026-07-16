@@ -381,6 +381,7 @@ namespace b3d
 			u32 Height = 0; /**< Height of the render surface, in pixels. */
 			bool VSync = false;
 			u32 VsyncInterval = 1; /**< Number of refresh cycles between presents when @c VSync is true. 1 = every refresh, 2 = half rate, etc. Backends that don't support variable present rate ignore this. */
+			float RefreshRate = 60.0f; /**< Refresh rate of the output selected for this window. */
 			bool CreateDepthBuffer = false;
 			bool UseHardwareSRGB = false;
 			bool Headless = false; /**< When true, creates a headless surface for offscreen rendering (no OS window is created). */
@@ -397,7 +398,7 @@ namespace b3d
 			virtual ~IRenderWindowSurface() = default;
 
 			/** Rebuilds the swap chain with new properties. */
-			virtual void RebuildSwapChain(u32 width, u32 height, bool vsync) = 0;
+			virtual void RebuildSwapChain(u32 width, u32 height, bool vsync, u32 vsyncInterval) = 0;
 
 			/** Presents the current back-buffer image, and acquires the next swap chain image for rendering. */
 			virtual void SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask) = 0;

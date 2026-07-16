@@ -22,12 +22,23 @@ namespace b3d
 			: GpuProgram(createInformation)
 			, mGpuDevice(gpuDevice)
 			, mImpl(B3DMakeUnique<Impl>())
-		{ }
+		{
+			const Array<u32, 3>& threadGroupSize = createInformation.Bytecode != nullptr
+				? createInformation.Bytecode->ThreadGroupSize
+				: createInformation.ThreadGroupSize;
+			mWorkgroupSize[0] = threadGroupSize[0];
+			mWorkgroupSize[1] = threadGroupSize[1];
+			mWorkgroupSize[2] = threadGroupSize[2];
+		}
 
 		MetalGpuProgram::~MetalGpuProgram()
 		{
 			if (mImpl)
 			{
+#if !__has_feature(objc_arc)
+				[mImpl->Function release];
+				[mImpl->Library release];
+#endif
 				mImpl->Function = nil;
 				mImpl->Library = nil;
 			}
@@ -67,38 +78,29 @@ namespace b3d
 				createInformation.EntryPoint = mEntryPoint;
 				createInformation.Language = language;
 				createInformation.Source = mSource;
+				Array<u32, 3> threadGroupSize = { mWorkgroupSize[0], mWorkgroupSize[1], mWorkgroupSize[2] };
+				if(mBytecode != nullptr)
+					threadGroupSize = mBytecode->ThreadGroupSize;
+				createInformation.ThreadGroupSize = threadGroupSize;
 
 				mBytecode = mGpuDevice.CompileGpuProgramBytecode(createInformation);
 			}
 
 			mCompileMessages = mBytecode ? mBytecode->Messages : String();
-			mIsCompiled = mBytecode && mBytecode->Instructions.Data != nullptr;
+			mIsCompiled = mBytecode && mBytecode->Instructions.Data != nullptr
+				&& mBytecode->Instructions.Size > 0 && mBytecode->ParameterDescription != nullptr
+				&& mBytecode->ResourceTableLayout != nullptr;
+			if(!mIsCompiled && mCompileMessages.empty())
+				mCompileMessages = "Metal GPU program bytecode is empty or missing native reflection metadata.";
 
 			if (mIsCompiled)
 			{
-				// Parse the bytecode envelope. Layout contract lives in B3DMetalBytecodeLayout.h — the
-				// reader verifies the magic, strips the optional compute workgroup triple, and trims
-				// trailing zero padding. A payload that fails validation is a cache corruption / version
-				// mismatch scenario; fall through to the same failure path as a magic mismatch.
-				const MetalBytecodePayload payload = ReadMetalBytecode(mType, mBytecode->Instructions.Data, mBytecode->Instructions.Size);
-				if (!payload.IsValid)
-				{
-					mIsCompiled = false;
-					mCompileMessages = "Metal GPU program bytecode magic mismatch; expected MSL source payload.";
-					B3D_LOG(Error, LogRenderBackend, "{0}", mCompileMessages);
-					GpuProgram::Initialize();
-					return;
-				}
-
 				if (mType == GPT_COMPUTE_PROGRAM)
 				{
-					mWorkgroupSize[0] = payload.WorkgroupSize[0];
-					mWorkgroupSize[1] = payload.WorkgroupSize[1];
-					mWorkgroupSize[2] = payload.WorkgroupSize[2];
+					mWorkgroupSize[0] = mBytecode->ThreadGroupSize[0];
+					mWorkgroupSize[1] = mBytecode->ThreadGroupSize[1];
+					mWorkgroupSize[2] = mBytecode->ThreadGroupSize[2];
 				}
-
-				const u8* code = payload.MslSource;
-				u32 codeSize = payload.MslSize;
 
 				id<MTLDevice> device = mGpuDevice.GetMetalDevice();
 				if (device == nil)
@@ -110,24 +112,20 @@ namespace b3d
 					return;
 				}
 
-				NSString* source = [[NSString alloc] initWithBytes:code length:codeSize encoding:NSUTF8StringEncoding];
-				if (source == nil)
-				{
-					mIsCompiled = false;
-					mCompileMessages = "Failed to decode Metal GPU program source as UTF-8.";
-					B3D_LOG(Error, LogRenderBackend, "{0}", mCompileMessages);
-					GpuProgram::Initialize();
-					return;
-				}
-
-				MTLCompileOptions* options = [[MTLCompileOptions alloc] init];
-				options.fastMathEnabled = YES;
-
 				NSError* error = nil;
-				mImpl->Library = [device newLibraryWithSource:source options:options error:&error];
+				dispatch_data_t libraryData = dispatch_data_create(mBytecode->Instructions.Data,
+					mBytecode->Instructions.Size, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0),
+					DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+				if (libraryData != nullptr)
+					mImpl->Library = [device newLibraryWithData:libraryData error:&error];
+
+#if OS_OBJECT_USE_OBJC
 #if !__has_feature(objc_arc)
-				[options release];
-				[source release];
+				[(id)libraryData release];
+#endif
+#else
+				if (libraryData != nullptr)
+					dispatch_release(libraryData);
 #endif
 
 				if (mImpl->Library == nil)
@@ -135,7 +133,7 @@ namespace b3d
 					mIsCompiled = false;
 					NSString* errorString = error ? [error localizedDescription] : @"unknown error";
 					mCompileMessages = String([errorString UTF8String]);
-					B3D_LOG(Error, LogRenderBackend, "Failed to compile Metal GPU program '{0}': {1}", mName, mCompileMessages);
+					B3D_LOG(Error, LogRenderBackend, "Failed to load Metal GPU program '{0}': {1}", mName, mCompileMessages);
 					GpuProgram::Initialize();
 					return;
 				}
@@ -148,13 +146,6 @@ namespace b3d
 
 				NSString* entryPointName = [NSString stringWithUTF8String:mEntryPoint.c_str()];
 				mImpl->Function = [mImpl->Library newFunctionWithName:entryPointName];
-				if (mImpl->Function == nil)
-				{
-					// SPIRV-Cross renames the default entry point to "main0"; fall back to that if the
-					// caller asked for the generic "main" name.
-					if (mEntryPoint == "main")
-						mImpl->Function = [mImpl->Library newFunctionWithName:@"main0"];
-				}
 
 				if (mImpl->Function == nil)
 				{

@@ -4,6 +4,7 @@
 #include "B3DMetalGpuDevice.h"
 #include "B3DMetalGpuParameterSet.h"
 #include "B3DMetalGpuPipelineParameterLayout.h"
+#include "B3DMetalShaderABI.h"
 #include "Debug/B3DLog.h"
 
 namespace b3d
@@ -40,18 +41,26 @@ namespace b3d
 					[block.Buffer release];
 				block.Buffer = nil;
 			}
-			for (id<MTLBuffer> buffer : mPersistentBuffers)
+			for (id<MTLBuffer> buffer : mDirectBuffers)
 			{
 				if (buffer != nil)
 					[buffer release];
 			}
 #endif
 			mBlocks.clear();
-			mPersistentBuffers.clear();
+			mDirectBuffers.clear();
 		}
 
 		TShared<GpuParameterSet> MetalGpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
 		{
+			if (setIndex > kMetalMaximumParameterSetIndex)
+			{
+				B3D_LOG(Error, LogRenderBackend,
+					"Metal parameter set index {0} exceeds the supported maximum of {1}.",
+					setIndex, kMetalMaximumParameterSetIndex);
+				return nullptr;
+			}
+
 			// A'6: worker fibers may call Create concurrently. The quota check and the counter
 			// increment must be a single atomic step under mPoolMutex, otherwise two fibers can both
 			// pass the gate at mAllocatedSetCount == MaxSets - 1 and overshoot the cap. We reserve
@@ -62,6 +71,7 @@ namespace b3d
 			// sub-allocation failure by logging + returning a nil argument buffer rather than
 			// throwing, so a no-rollback increment is safe: a set that fails to acquire its slice
 			// will still consume one quota entry but never produces a phantom successful allocation.
+			if (mInformation.Mode == GpuParameterSetPoolMode::Transient)
 			{
 				Lock lock(mPoolMutex);
 				if (mAllocatedSetCount >= mInformation.MaxSets)
@@ -75,16 +85,28 @@ namespace b3d
 			// a set released after Reset must observe its argument buffer as potentially reused, but
 			// the engine's contract is to drop all sets *before* Reset, so holding a raw pool pointer
 			// here is safe.
-			auto paramSet = B3DMakeShared<MetalGpuParameters>(mDevice, layout, setIndex, this);
+			auto paramSet = B3DMakeShared<MetalGpuParameters>(mDevice, layout, setIndex,
+				mInformation.Mode == GpuParameterSetPoolMode::Transient ? this : nullptr);
+			paramSet->SetShared(paramSet);
 
 			if (!deferredInitialize)
+			{
 				paramSet->Initialize();
+				if (!paramSet->IsMetalBindingReady())
+					return nullptr;
+			}
 
 			return paramSet;
 		}
 
 		void MetalGpuParameterSetPool::Reset()
 		{
+			if (mInformation.Mode == GpuParameterSetPoolMode::Persistent)
+			{
+				B3D_LOG(Error, LogRenderBackend, "Cannot perform Reset on a Persistent mode parameter set pool.");
+				return;
+			}
+
 			@autoreleasepool
 			{
 			Lock lock(mPoolMutex);
@@ -100,13 +122,13 @@ namespace b3d
 			// because they are not part of the ring. Caller contract says Reset invalidates every set
 			// the pool has handed out, so the buffers backing them can drop too.
 #if !__has_feature(objc_arc)
-			for (id<MTLBuffer> buffer : mPersistentBuffers)
+			for (id<MTLBuffer> buffer : mDirectBuffers)
 			{
 				if (buffer != nil)
 					[buffer release];
 			}
 #endif
-			mPersistentBuffers.clear();
+			mDirectBuffers.clear();
 			} // @autoreleasepool
 		}
 
@@ -125,8 +147,7 @@ namespace b3d
 			// large-resource fallback reasoning — we do not want a single multi-hundred-KB argument
 			// buffer to pin an entire block, nor do we want a persistent set to keep a block alive
 			// past its ring reset point.
-			const bool useDirectPath = (mInformation.Mode == GpuParameterSetPoolMode::Persistent)
-				|| (size > kLargeSliceThreshold);
+			const bool useDirectPath = size > kLargeSliceThreshold;
 			if (useDirectPath)
 			{
 				id<MTLBuffer> direct = [device newBufferWithLength:(NSUInteger)size
@@ -141,7 +162,7 @@ namespace b3d
 
 				{
 					Lock lock(mPoolMutex);
-					mPersistentBuffers.push_back(direct);
+					mDirectBuffers.push_back(direct);
 				}
 				outOffset = 0;
 				return direct;

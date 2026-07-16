@@ -4,6 +4,7 @@
 #include "B3DMetalGpuDevice.h"
 #include "B3DMetalTextureManager.h"
 #include "B3DMetalRenderWindowManager.h"
+#include "B3DMetalGpuFrameCapture.h"
 
 namespace b3d
 {
@@ -16,6 +17,10 @@ namespace b3d
 		// Create the texture managers
 		TextureManager::StartUp<MetalTextureManager>();
 		render::TextureManager::StartUp<render::MetalTextureManager>(*mDevices[0]);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		mFrameCapture = B3DMakeShared<MetalGpuFrameCapture>(static_cast<render::MetalGpuDevice&>(*mDevices[0]));
+#endif
 
 		// Create render window manager
 		RenderWindowManager::StartUp<MetalRenderWindowManager>();
@@ -43,6 +48,7 @@ namespace b3d
 		render::TextureManager::ShutDown();
 		TextureManager::ShutDown();
 
+		mFrameCapture = nullptr;
 		mDevices.clear();
 
 		Super::OnShutDown();

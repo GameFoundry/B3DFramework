@@ -3,487 +3,488 @@
 #include "B3DMetalRenderWindowSurface.h"
 #include "B3DMetalGpuDevice.h"
 #include "B3DMetalGpuQueue.h"
-#include "B3DMetalGpuCommandBuffer.h"
-#include "B3DMetalUtility.h"
-#include "Image/B3DPixelData.h"
+#include "B3DMetalResourceManager.h"
 #include "Debug/B3DLog.h"
-
-#if TARGET_OS_OSX
-#import <AppKit/AppKit.h>
-#elif TARGET_OS_IPHONE
-#import <UIKit/UIKit.h>
-#endif
+#define BS_COCOA_INTERNALS 1
+#include "Private/MacOS/B3DMacOSPlatform.h"
+#include "Private/MacOS/B3DMacOSWindow.h"
 
 namespace b3d::render
 {
+	namespace
+	{
+		void LogPresentCommandBufferError(id<MTLCommandBuffer> commandBuffer)
+		{
+			if ([commandBuffer status] != MTLCommandBufferStatusError)
+				return;
+
+			NSError* error = [commandBuffer error];
+			B3D_LOG(Fatal, LogRenderBackend, "Metal presentation command buffer failed ({0}, code {1}): {2}",
+				error ? String([[error domain] UTF8String]) : String("<unknown domain>"),
+				error ? (i64)[error code] : 0,
+				error ? String([[error localizedDescription] UTF8String]) : String("No error details were provided."));
+		}
+	}
+
+	MetalSwapChain::MetalSwapChain(MetalResourceManager* owner, MetalRenderWindowSurface& surface)
+		: Super(owner, "Metal render-window swap chain"), mSurface(surface)
+	{ }
+
+	MetalSwapChain::~MetalSwapChain()
+	{
+		mMessageQueue.RunUntilIdle();
+		AbortCurrentDrawable();
+
+		Lock lock(mMutex);
+		for (PendingDrawable& pendingDrawable : mPendingDrawables)
+			ReleaseDrawable(pendingDrawable.Drawable);
+		mPendingDrawables.clear();
+	}
+
+	void MetalSwapChain::ReleaseDrawable(CAMetalDrawableRef& drawable)
+	{
+		if (drawable == nil)
+			return;
+
+#if !__has_feature(objc_arc)
+		[drawable release];
+#endif
+		drawable = nil;
+	}
+
+	MTLTextureRef MetalSwapChain::AcquireDrawable(CAMetalLayerRef layer)
+	{
+		@autoreleasepool
+		{
+			Lock lock(mMutex);
+			if (mIsRetired || layer == nil)
+				return nil;
+
+			if (mCurrentDrawable == nil)
+			{
+				mCurrentDrawable = [layer nextDrawable];
+#if !__has_feature(objc_arc)
+				[mCurrentDrawable retain];
+#endif
+				mCurrentDrawableIndex = mNextDrawableIndex++;
+				mCurrentDrawableWasRenderedInto = false;
+			}
+
+			return mCurrentDrawable != nil ? mCurrentDrawable.texture : nil;
+		}
+	}
+
+	MTLTextureRef MetalSwapChain::GetCurrentTexture() const
+	{
+		Lock lock(mMutex);
+		return mCurrentDrawable != nil ? mCurrentDrawable.texture : nil;
+	}
+
+	void MetalSwapChain::AbortCurrentDrawable()
+	{
+		Lock lock(mMutex);
+		ReleaseDrawable(mCurrentDrawable);
+		mCurrentDrawableWasRenderedInto = false;
+	}
+
+	void MetalSwapChain::MarkDrawableAsRendered()
+	{
+		Lock lock(mMutex);
+		if (mCurrentDrawable != nil)
+			mCurrentDrawableWasRenderedInto = true;
+	}
+
+	bool MetalSwapChain::TryGetFirstAcquiredImageIndex(u32& outImageIndex) const
+	{
+		Lock lock(mMutex);
+		if (mCurrentDrawable == nil || !mCurrentDrawableWasRenderedInto || mIsRetired)
+			return false;
+
+		outImageIndex = mCurrentDrawableIndex;
+		return true;
+	}
+
+	void MetalSwapChain::NotifyWasPresentQueued(u32 imageIndex)
+	{
+		Lock lock(mMutex);
+		B3D_ASSERT(mCurrentDrawable != nil && mCurrentDrawableIndex == imageIndex);
+		if (mCurrentDrawable == nil || mCurrentDrawableIndex != imageIndex)
+			return;
+
+		mPendingDrawables.push_back({ imageIndex, mCurrentDrawable, mSurface.mVSync,
+			mSurface.mVSyncInterval, mSurface.mRefreshRate });
+		mCurrentDrawable = nil;
+		mCurrentDrawableWasRenderedInto = false;
+		NotifyBound();
+	}
+
+	void MetalSwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncMask)
+	{
+		AssertIfNotSubmitThread();
+
+		PendingDrawable claimedDrawable;
+		{
+			Lock lock(mMutex);
+			auto iterFind = std::find_if(mPendingDrawables.begin(), mPendingDrawables.end(),
+				[imageIndex](const PendingDrawable& entry) { return entry.Index == imageIndex; });
+			if (iterFind != mPendingDrawables.end())
+			{
+				claimedDrawable = *iterFind;
+#if __has_feature(objc_arc)
+				// The local strong keeps the drawable alive after erasing its pending entry.
+#else
+				[claimedDrawable.Drawable retain];
+#endif
+				ReleaseDrawable(iterFind->Drawable);
+				mPendingDrawables.erase(iterFind);
+			}
+		}
+
+		if (claimedDrawable.Drawable == nil)
+		{
+			NotifyUnbound();
+			return;
+		}
+
+		auto& metalQueue = static_cast<MetalGpuQueue&>(queue);
+		id<MTLCommandQueue> commandQueue = metalQueue.GetMetalQueue();
+		id<MTLCommandBuffer> commandBuffer = commandQueue != nil ? [commandQueue commandBuffer] : nil;
+		if (commandBuffer == nil)
+		{
+			B3D_LOG(Error, LogRenderBackend, "Failed to allocate the Metal presentation command buffer.");
+			ReleaseDrawable(claimedDrawable.Drawable);
+			NotifyUnbound();
+			return;
+		}
+
+		GpuQueueMask waitMask = syncMask & ~GpuQueueMask(queue.GetId());
+		for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
+		{
+			const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
+			for (u32 queueIndex = 0; queueIndex < mSurface.mGpuDevice.GetQueueCount(queueType); queueIndex++)
+			{
+				const GpuQueueId waitQueueId(queueType, queueIndex);
+				if (!waitMask.IsSet(waitQueueId))
+					continue;
+
+				auto waitQueue = std::static_pointer_cast<MetalGpuQueue>(mSurface.mGpuDevice.GetQueue(queueType, queueIndex));
+				const u64 waitValue = waitQueue->GetLastCommittedEventValue();
+				if (waitValue != 0)
+					[commandBuffer encodeWaitForEvent:waitQueue->GetSharedEvent() value:waitValue];
+			}
+		}
+
+		const bool useTimedPresent = claimedDrawable.VSync && claimedDrawable.VSyncInterval > 1;
+		if (useTimedPresent)
+		{
+			const double refreshRate = claimedDrawable.RefreshRate > 0.0f ? claimedDrawable.RefreshRate : 60.0;
+			[commandBuffer presentDrawable:claimedDrawable.Drawable
+				afterMinimumDuration:(double)claimedDrawable.VSyncInterval / refreshRate];
+		}
+		else
+			[commandBuffer presentDrawable:claimedDrawable.Drawable];
+
+		const u64 signalValue = metalQueue.ReserveNextEventValue();
+		[commandBuffer encodeSignalEvent:metalQueue.GetSharedEvent() value:signalValue];
+
+		TShared<WaitGroup> ownerCompletion = B3DMakeShared<WaitGroup>();
+		ownerCompletion->Increment();
+		[commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> completedBuffer)
+		{
+			LogPresentCommandBufferError(completedBuffer);
+			NotifyUnbound();
+			ownerCompletion->NotifyDone();
+		}];
+
+		[commandBuffer commit];
+		metalQueue.NotifySubmissionCommitted(signalValue, commandBuffer, ownerCompletion);
+		ReleaseDrawable(claimedDrawable.Drawable);
+	}
+
+	void MetalSwapChain::AcquireImage()
+	{
+		B3D_ASSERT(false && "CAMetalLayer drawables are acquired late by AcquireColorTexture().");
+	}
+
+	void MetalSwapChain::NotifyWasImageAcquireQueued()
+	{
+		B3D_ASSERT(false && "CAMetalLayer drawables do not use queued image acquisition.");
+	}
+
+	void MetalSwapChain::Retire()
+	{
+		mIsRetired.store(true, std::memory_order_release);
+	}
+
 	MetalRenderWindowSurface::MetalRenderWindowSurface(MetalGpuDevice& device, const RenderWindowSurfaceCreateInformation& createInformation)
 		: mGpuDevice(device)
 		, mWidth(createInformation.Width)
 		, mHeight(createInformation.Height)
 		, mVSync(createInformation.VSync)
 		, mVSyncInterval(createInformation.VsyncInterval == 0 ? 1 : createInformation.VsyncInterval)
+		, mRefreshRate(createInformation.RefreshRate)
 		, mHwGamma(createInformation.UseHardwareSRGB)
+		, mCreateDepthBuffer(createInformation.CreateDepthBuffer)
 		, mPendingWidth(createInformation.Width)
 		, mPendingHeight(createInformation.Height)
 		, mPendingVSync(createInformation.VSync)
+		, mPendingVSyncInterval(createInformation.VsyncInterval == 0 ? 1 : createInformation.VsyncInterval)
 	{
+		@autoreleasepool
+		{
 		if (createInformation.Headless)
+		{
+			// Headless surfaces are handled by MetalHeadlessRenderWindowSurface; the manager should never route
+			// them here. Fail loudly instead of producing a silently non-functional surface.
+			B3D_LOG(Error, LogRenderBackend, "MetalRenderWindowSurface created with Headless=true. Use MetalHeadlessRenderWindowSurface instead.");
+			mValid = false;
 			return;
+		}
 
-		mLayer = [CAMetalLayer layer];
+		MacOSPlatform::LockWindows();
+		CocoaWindow* window = MacOSPlatform::GetWindow((u32)createInformation.PlatformWindowHandle);
+		if (window != nullptr)
+			mLayer = (__bridge CAMetalLayer*)window->GetLayerInternal();
+#if !__has_feature(objc_arc)
+		[mLayer retain];
+#endif
+		MacOSPlatform::UnlockWindows();
+
+		if (mLayer == nil)
+		{
+			B3D_LOG(Error, LogRenderBackend, "MetalRenderWindowSurface could not resolve CAMetalLayer for Cocoa window ID {0}.",
+				createInformation.PlatformWindowHandle);
+			mValid = false;
+			return;
+		}
+
 		mLayer.device = device.GetMetalDevice();
 		mLayer.pixelFormat = mHwGamma ? MTLPixelFormatBGRA8Unorm_sRGB : MTLPixelFormatBGRA8Unorm;
-		// framebufferOnly = NO so the drawable texture advertises blit-source usage, which
-		// MetalGpuCommandBuffer::ReadAsync relies on to copy the presented frame into a PixelData
-		// staging buffer. The YES path happens to work on Apple Silicon today but fails under Metal
-		// API validation and is undefined per the CAMetalLayer contract. The small TBDR perf cost
-		// is acceptable given that ReadAsync is a documented feature of the engine's RenderWindow.
+		// framebufferOnly = NO so the drawable texture advertises blit-source usage, which the shared
+		// IMetalRenderWindowSurface::ReadAsync relies on to copy the presented frame into a PixelData staging
+		// buffer. Keeping this disabled has a persistent optimization cost versus framebufferOnly=YES, but the
+		// current RenderWindow API cannot declare capture intent before drawable acquisition. Re-enable the fast path
+		// when that backend-neutral capability is added; silently breaking window screenshots is not acceptable.
 		mLayer.framebufferOnly = NO;
 		mLayer.drawableSize = CGSizeMake(mWidth, mHeight);
 
-		// Pin the drawable pool at 3. CAMetalLayer's default is already 3 on current macOS but
-		// was 2 in older releases, and the explicit value also documents intent: triple-buffering
-		// gives the CPU one frame of slack over the GPU, which the engine's fiber scheduler assumes.
+		// Pin the drawable pool at 3. CAMetalLayer's default is already 3 on current macOS but was 2 in older
+		// releases, and the explicit value also documents intent: triple-buffering gives the CPU one frame of
+		// slack over the GPU, which the engine's fiber scheduler assumes.
 		mLayer.maximumDrawableCount = 3;
+		mLayer.allowsNextDrawableTimeout = YES;
 
-		// Match the layer's colorspace to the chosen pixel format. CAMetalLayer on wide-gamut
-		// displays (Apple P3) would otherwise reinterpret our output as P3:
-		//   - Hardware sRGB encoding (BGRA8Unorm_sRGB): the texture already encodes into sRGB,
-		//     so the layer must treat the bytes as sRGB. kCGColorSpaceSRGB.
-		//   - Linear pixel format (BGRA8Unorm): the engine wrote linear values (e.g. tonemapped
-		//     HDR output that stayed in linear space). kCGColorSpaceLinearSRGB keeps them linear
-		//     through the compositor instead of second-applying the sRGB transfer function.
-		const CFStringRef colorspaceName = mHwGamma ? kCGColorSpaceSRGB : kCGColorSpaceLinearSRGB;
-		CGColorSpaceRef layerColorspace = CGColorSpaceCreateWithName(colorspaceName);
+		// SDR windows use the sRGB output color space in both modes. Hardware gamma controls whether the attachment
+		// format performs the transfer encoding; it does not change how the compositor interprets the output gamut.
+		CGColorSpaceRef layerColorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 		mLayer.colorspace = layerColorspace;
 		CGColorSpaceRelease(layerColorspace);
 
 #if TARGET_OS_OSX
 		mLayer.displaySyncEnabled = mVSync ? YES : NO;
-		// Serialize present with NSWindow transactions so AppKit's live-resize loop can't display
-		// a frame before the window geometry update lands. Without this, dragging a window edge
-		// produces a 1-frame tearing band between the old and new drawable sizes.
-		mLayer.presentsWithTransaction = YES;
+		mLayer.presentsWithTransaction = NO;
 #endif
 
-#if TARGET_OS_OSX
-		NSWindow* window = (__bridge NSWindow*)(void*)createInformation.PlatformWindowHandle;
-		if (window == nil)
-		{
-			B3D_LOG(Error, LogRenderBackend, "MetalRenderWindowSurface created with a null NSWindow handle.");
-			mValid = false;
-			return;
+		mSwapChain = device.GetResourceManager().Create<MetalSwapChain>(*this);
+		RecreateDepthStencilTextureIfNeeded();
 		}
-
-		NSView* view = [window contentView];
-		[view setWantsLayer:YES];
-		[view setLayer:mLayer];
-
-		CGFloat scale = [window backingScaleFactor];
-		mLayer.contentsScale = scale;
-#elif TARGET_OS_IPHONE
-		UIView* view = (__bridge UIView*)(void*)createInformation.PlatformWindowHandle;
-		if (view == nil)
-		{
-			B3D_LOG(Error, LogRenderBackend, "MetalRenderWindowSurface created with a null UIView handle.");
-			mValid = false;
-			return;
-		}
-
-		[[view layer] addSublayer:mLayer];
-#else
-		B3D_LOG(Error, LogRenderBackend, "Metal render windows are not supported on this Apple platform variant.");
-		mValid = false;
-#endif
 	}
 
 	MetalRenderWindowSurface::~MetalRenderWindowSurface()
 	{
-		// Dtor mirrors @c Destroy() exactly — the Obj-C strongs are released and @c mValid flips
-		// false. Delegating keeps the teardown in one place; calling @c Destroy() on an already-
-		// destroyed surface is idempotent (setting nil strongs to nil and false to false).
+		// Dtor mirrors @c Destroy() exactly — the Obj-C strongs are released and @c mValid flips false. Delegating
+		// keeps the teardown in one place; calling @c Destroy() on an already-destroyed surface is idempotent.
 		Destroy();
 	}
 
-	id<CAMetalDrawable> MetalRenderWindowSurface::AcquireDrawable()
+	void MetalRenderWindowSurface::ReleaseCurrentDrawable()
+	{
+		if (mSwapChain != nullptr)
+			mSwapChain->AbortCurrentDrawable();
+	}
+
+	void MetalRenderWindowSurface::ApplyPendingStateIfNeeded()
+	{
+		// Drain any pending resize staged by RebuildSwapChain / MarkSwapChainAsInvalid. Writes to
+		// @c mLayer.drawableSize must stay on the render thread — the property is documented as thread-safe but
+		// concurrent writes are non-deterministic, and AppKit-driven resizes on the main thread would otherwise
+		// race the render thread's drawable acquisition.
+		if (!mNeedsDrawableSizeReapply.exchange(false, std::memory_order_acquire))
+			return;
+
+		u32 width;
+		u32 height;
+		bool vsync;
+		u32 vsyncInterval;
+		{
+			Lock lock(mPendingStateMutex);
+			width = mPendingWidth;
+			height = mPendingHeight;
+			vsync = mPendingVSync;
+			vsyncInterval = mPendingVSyncInterval;
+		}
+
+		mWidth = width;
+		mHeight = height;
+		mVSync = vsync;
+		mVSyncInterval = vsyncInterval;
+		mLayer.drawableSize = CGSizeMake(mWidth, mHeight);
+#if TARGET_OS_OSX
+		mLayer.displaySyncEnabled = mVSync ? YES : NO;
+#endif
+
+		RecreateDepthStencilTextureIfNeeded();
+	}
+
+	void MetalRenderWindowSurface::RecreateDepthStencilTextureIfNeeded()
+	{
+		if (!mCreateDepthBuffer || mWidth == 0 || mHeight == 0)
+			return;
+
+		if (mDepthStencilTexture != nil && (u32)mDepthStencilTexture.width == mWidth && (u32)mDepthStencilTexture.height == mHeight)
+			return;
+
+		// Depth32Float_Stencil8 is the universally supported depth/stencil format on Apple GPUs
+		// (Depth24Unorm_Stencil8 is unavailable on Apple silicon). Private storage rather than memoryless because
+		// the engine's LoadMask can legally request depth contents to be preserved across render passes.
+		MTLTextureDescriptor* descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8
+			width:mWidth height:mHeight mipmapped:NO];
+		descriptor.usage = MTLTextureUsageRenderTarget;
+		descriptor.storageMode = MTLStorageModePrivate;
+
+		id<MTLTexture> newDepthStencil = [mGpuDevice.GetMetalDevice() newTextureWithDescriptor:descriptor];
+		if (newDepthStencil == nil)
+		{
+			B3D_LOG(Error, LogRenderBackend, "Failed to create the render window depth/stencil texture ({0}x{1}).", mWidth, mHeight);
+			return;
+		}
+
+		newDepthStencil.label = @"RenderWindowDepthStencil";
+
+		// Any in-flight command buffer that references the old texture retains it (default retained-references
+		// mode), so replacing our strong reference here is safe even while a prior frame is still executing.
+		if (mDepthStencilTexture != nil)
+		{
+#if !__has_feature(objc_arc)
+			[mDepthStencilTexture release];
+#endif
+		}
+
+		mDepthStencilTexture = newDepthStencil; // Owns the +1 from newTextureWithDescriptor:.
+	}
+
+	MTLTextureRef MetalRenderWindowSurface::AcquireColorTexture()
 	{
 		@autoreleasepool
 		{
 			if (!mValid || mLayer == nil)
 				return nil;
 
-			// Drain any pending resize staged by RebuildSwapChain / MarkSwapChainAsInvalid. Writes to
-			// @c mLayer.drawableSize must stay on the render thread — the property is documented
-			// as thread-safe but concurrent writes are non-deterministic, and AppKit-driven resizes on
-			// the main thread would otherwise race the render thread's drawable acquisition.
-			if (mNeedsDrawableSizeReapply.exchange(false, std::memory_order_acquire))
-			{
-				u32 width;
-				u32 height;
-				bool vsync;
-				{
-					Lock lock(mPendingStateMutex);
-					width = mPendingWidth;
-					height = mPendingHeight;
-					vsync = mPendingVSync;
-				}
+			ApplyPendingStateIfNeeded();
 
-				mWidth = width;
-				mHeight = height;
-				mVSync = vsync;
-				mLayer.drawableSize = CGSizeMake(mWidth, mHeight);
-#if TARGET_OS_OSX
-				mLayer.displaySyncEnabled = mVSync ? YES : NO;
-#endif
-			}
-
-			if (mCurrentDrawable == nil)
-				mCurrentDrawable = [mLayer nextDrawable];
-
-			return mCurrentDrawable;
+			return mSwapChain != nullptr ? mSwapChain->AcquireDrawable(mLayer) : nil;
 		}
+	}
+
+	MTLTextureRef MetalRenderWindowSurface::GetCurrentColorTexture() const
+	{
+		return mSwapChain != nullptr ? mSwapChain->GetCurrentTexture() : nil;
 	}
 
 	void MetalRenderWindowSurface::AbortCurrentDrawable()
 	{
-		// Drop the drawable without presenting. Letting it release naturally simply frees the slot
-		// back into the CAMetalLayer drawable pool without incrementing the presentation counter,
-		// which is exactly what we want after an encoder-creation failure.
-		mCurrentDrawable = nil;
-		mDrawableWasRenderedInto = false;
+		ReleaseCurrentDrawable();
 	}
 
 	void MetalRenderWindowSurface::MarkDrawableAsRendered()
 	{
-		// The cmd buffer calls this right after @c renderCommandEncoderWithDescriptor: succeeds.
-		// The render pass's color attachment is configured with a store action against the drawable
-		// texture, so a successful encoder open is sufficient evidence that the drawable will carry
-		// defined content at submission time. Guard against the theoretical no-drawable case so a
-		// stray call after a teardown path is a no-op instead of spuriously arming the flag.
-		if (mCurrentDrawable != nil)
-			mDrawableWasRenderedInto = true;
+		// The command buffer calls this right after @c renderCommandEncoderWithDescriptor: succeeds. The render
+		// pass's color attachment is configured with a store action against the drawable texture, so a successful
+		// encoder open is sufficient evidence that the drawable will carry defined content at submission time.
+		// Guard against the theoretical no-drawable case so a stray call after a teardown path is a no-op.
+		if (mSwapChain != nullptr)
+			mSwapChain->MarkDrawableAsRendered();
 	}
 
-	MTLPixelFormat MetalRenderWindowSurface::GetColorFormat() const
+	MTLPixelFormatValue MetalRenderWindowSurface::GetColorFormat() const
 	{
-		return mLayer ? mLayer.pixelFormat : MTLPixelFormatBGRA8Unorm;
+		return mLayer != nil ? mLayer.pixelFormat : MTLPixelFormatBGRA8Unorm;
 	}
 
 	void MetalRenderWindowSurface::SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask)
 	{
-		@autoreleasepool
+		if (!mValid || mSwapChain == nullptr)
+			return;
+		u32 imageIndex;
+		if (!mSwapChain->TryGetFirstAcquiredImageIndex(imageIndex))
 		{
-			if (!mValid || mCurrentDrawable == nil)
-				return;
-
-			if (!mDrawableWasRenderedInto)
-			{
-				// An acquired drawable that no render pass ever wrote to: presenting it would push
-				// undefined content to the compositor. Drop it back to the pool instead. Logging is
-				// unlatched on purpose — every occurrence indicates a bug in the frame's render-pass
-				// composition (usually an early-return after @c AcquireDrawable without a matching
-				// @c AbortCurrentDrawable).
-				B3D_LOG(Warning, LogRenderBackend, "SwapBuffers skipped: drawable was acquired but no render pass wrote to it. Dropping the frame without present.");
-				mCurrentDrawable = nil;
-				return;
-			}
-
-			// We schedule the present through a short-lived command buffer acquired directly from the
-			// queue; the engine's normal command-buffer submission flushes any rendering work that wrote to
-			// the drawable before this command runs.
-			auto& metalQueue = static_cast<MetalGpuQueue&>(queue);
-			id<MTLCommandQueue> mtlQueue = metalQueue.GetMetalQueue();
-			if (mtlQueue == nil)
-			{
-				mCurrentDrawable = nil;
-				return;
-			}
-
-			id<MTLCommandBuffer> presentCB = [mtlQueue commandBuffer];
-
-			// Honor cross-queue sync: the present must wait for any producer queues in the mask to reach
-			// their latest signaled value, otherwise the drawable could be sampled or presented before the
-			// render work targeting it has completed.
-			const GpuQueueMask selfMask = queue.GetId();
-			const GpuQueueMask waitMask = syncMask & ~selfMask;
-			if (!waitMask.IsEmpty())
-			{
-				for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
-				{
-					const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
-					const u32 queueCount = mGpuDevice.GetQueueCount(queueType);
-					for (u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
-					{
-						const GpuQueueId waitQueueId(queueType, queueIndex);
-						if (!waitMask.IsSet(waitQueueId))
-							continue;
-
-						TShared<GpuQueue> queuePtr = mGpuDevice.GetQueue(queueType, queueIndex);
-						auto waitQueue = std::static_pointer_cast<MetalGpuQueue>(queuePtr);
-						if (!waitQueue)
-							continue;
-
-						id<MTLSharedEvent> waitEvent = waitQueue->GetSharedEvent();
-						// Present waits on the producer queue's *scheduled* event value so the drawable
-						// swap doesn't overtake any submission the graphics queue has already reserved.
-						const u64 waitValue = waitQueue->GetLastScheduledEventValue();
-						if (waitEvent == nil || waitValue == 0)
-							continue;
-
-						[presentCB encodeWaitForEvent:waitEvent value:waitValue];
-					}
-				}
-			}
-
-			// Compute the minimum display duration for a timed present. Only used when the engine has
-			// requested an interval > 1 (half-rate, third-rate, etc.). We query the owning screen for
-			// its refresh rate — NSScreen.maximumFramesPerSecond on macOS 12+, UIScreen on iOS. When
-			// the query is unavailable or returns a non-positive value we fall back to 60Hz, which
-			// matches the most common desktop/laptop display and keeps the divisor math sensible.
-			const bool usePresentAfterMinimumDuration = mVSyncInterval > 1;
-			CFTimeInterval minimumPresentDuration = 0.0;
-			if (usePresentAfterMinimumDuration)
-			{
-				double refreshHz = 60.0;
-#if TARGET_OS_OSX
-				if (@available(macOS 12.0, *))
-				{
-					NSScreen* screen = [NSScreen mainScreen];
-					if (screen != nil)
-					{
-						const NSInteger hz = [screen maximumFramesPerSecond];
-						if (hz > 0)
-							refreshHz = (double)hz;
-					}
-				}
-#elif TARGET_OS_IPHONE
-				UIScreen* screen = [UIScreen mainScreen];
-				if (screen != nil)
-				{
-					const NSInteger hz = [screen maximumFramesPerSecond];
-					if (hz > 0)
-						refreshHz = (double)hz;
-				}
-#endif
-				minimumPresentDuration = (CFTimeInterval)mVSyncInterval / refreshHz;
-			}
-
-#if TARGET_OS_OSX
-			// Apple's documented contract for CAMetalLayer.presentsWithTransaction == YES (set in the
-			// ctor) is: commit the cmd buffer, wait for it to reach scheduled, then call -present on the
-			// drawable directly. Using -[MTLCommandBuffer presentDrawable:] under this flag is a no-op
-			// for transaction serialization and trips Metal API validation. waitUntilScheduled blocks
-			// only until the kernel driver accepts the submission (not GPU completion), which is
-			// typically sub-ms and is what AppKit needs to pair our frame with the window-geometry
-			// update in live resize.
-			//
-			// B18 (minimal): when @c waitMask was empty there is no cross-queue consumer waiting on
-			// this present's signal, so skip the @c encodeSignalEvent + @c ReserveNextEventValue
-			// pair entirely. The empty cmd buffer itself cannot be removed on this path —
-			// @c waitUntilScheduled under @c presentsWithTransaction=YES requires *some* cmd buffer
-			// to anchor the AppKit transaction handoff — but the signal plumbing is pure overhead
-			// in that case. The full piggyback-present refactor (threading the drawable through
-			// the render cmd buffer's own commit) is out of scope for this pass.
-			if (!waitMask.IsEmpty())
-			{
-				const u64 signalValue = metalQueue.ReserveNextEventValue();
-				id<MTLSharedEvent> signalEvent = metalQueue.GetSharedEvent();
-				if (signalEvent != nil)
-					[presentCB encodeSignalEvent:signalEvent value:signalValue];
-			}
-
-			[presentCB commit];
-			[presentCB waitUntilScheduled];
-
-			// Under presentsWithTransaction the drawable is presented directly, not via the cmd buffer.
-			// For interval > 1 we ask Core Animation to hold the drawable on-screen for at least the
-			// computed duration; this is the documented path for half-rate / third-rate output on
-			// macOS fixed-refresh displays. Interval <= 1 keeps the zero-overhead plain -present.
-			if (usePresentAfterMinimumDuration)
-				[mCurrentDrawable presentAfterMinimumDuration:minimumPresentDuration];
-			else
-				[mCurrentDrawable present];
-#else
-			// iOS / tvOS async path: present rides on the command buffer. The timed variant lets us
-			// keep the existing command-buffer-anchored signal path while honoring the interval.
-			if (usePresentAfterMinimumDuration)
-				[presentCB presentDrawable:mCurrentDrawable afterMinimumDuration:minimumPresentDuration];
-			else
-				[presentCB presentDrawable:mCurrentDrawable];
-
-			// B18 (minimal): skip the signal-event plumbing when there are no cross-queue consumers
-			// waiting on this submission. @c presentDrawable: already carries the Core Animation
-			// completion guarantee the present itself needs; the shared event was only serving
-			// cross-queue waiters that aren't in flight on this path.
-			if (!waitMask.IsEmpty())
-			{
-				const u64 signalValue = metalQueue.ReserveNextEventValue();
-				id<MTLSharedEvent> signalEvent = metalQueue.GetSharedEvent();
-				if (signalEvent != nil)
-					[presentCB encodeSignalEvent:signalEvent value:signalValue];
-			}
-
-			[presentCB commit];
-#endif
-
-			mCurrentDrawable = nil;
-			mDrawableWasRenderedInto = false;
+			mSwapChain->AbortCurrentDrawable();
+			return;
 		}
+
+		mGpuDevice.GetSubmitThread().QueuePresent(queue, *mSwapChain, syncMask);
 	}
 
-	void MetalRenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsync)
+	void MetalRenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsync, u32 vsyncInterval)
 	{
-		// May be invoked from the main thread during AppKit live-resize or from the render thread
-		// via the command buffer's swap-chain-invalid path. Either way, we only stage here — the
-		// actual CAMetalLayer mutation happens in AcquireDrawable on the render thread so there is
-		// exactly one writer to the layer's mutable state.
+		// May be invoked from the main thread during AppKit live-resize or from the render thread via the command
+		// buffer's swap-chain-invalid path. Either way, we only stage here — the actual CAMetalLayer mutation
+		// happens in AcquireColorTexture on the render thread so there is exactly one writer to the layer's
+		// mutable state.
 		{
 			Lock lock(mPendingStateMutex);
 			mPendingWidth = width;
 			mPendingHeight = height;
 			mPendingVSync = vsync;
+			mPendingVSyncInterval = vsyncInterval == 0 ? 1 : vsyncInterval;
 		}
 		mNeedsDrawableSizeReapply.store(true, std::memory_order_release);
 	}
 
 	void MetalRenderWindowSurface::MarkSwapChainAsInvalid()
 	{
-		// Dropping the drawable here is safe: the caller has guaranteed no render pass is currently
-		// writing to it (the engine calls this on resize *after* the frame boundary). The pending-
-		// resize flag is toggled so the next AcquireDrawable re-applies the staged width/height to
-		// the layer — after a move between displays the layer's drawableSize may have drifted.
-		// Pending values are not touched: they are either from a prior @c RebuildSwapChain (the
-		// intended new size) or seeded from the ctor (the still-current size).
-		mCurrentDrawable = nil;
-		mDrawableWasRenderedInto = false;
+		// Dropping the drawable here is safe: the caller has guaranteed no render pass is currently writing to it
+		// (the engine calls this on resize *after* the frame boundary). The pending-resize flag is toggled so the
+		// next AcquireColorTexture re-applies the staged width/height to the layer — after a move between displays
+		// the layer's drawableSize may have drifted. Pending values are not touched: they are either from a prior
+		// @c RebuildSwapChain (the intended new size) or seeded from the ctor (the still-current size).
+		ReleaseCurrentDrawable();
 		mNeedsDrawableSizeReapply.store(true, std::memory_order_release);
-	}
-
-	TAsyncOp<TShared<PixelData>> MetalRenderWindowSurface::ReadAsync(GpuCommandBuffer& commandBuffer)
-	{
-		@autoreleasepool
-		{
-			TAsyncOp<TShared<PixelData>> op;
-
-			if (!mValid || mLayer == nil || mCurrentDrawable == nil)
-			{
-				// No drawable to read; signal "no frame produced" by completing with nullptr. Callers
-				// (snapshot tests, tonemap capture path) already treat nullptr as the no-frame code
-				// path, so this is a cleaner contract than inventing a zero-filled buffer at stale dims.
-				op.CompleteOperation(nullptr);
-				return op;
-			}
-
-			if (mLayer.framebufferOnly == YES)
-			{
-				// Defense in depth: the ctor sets framebufferOnly=NO so the drawable texture can be
-				// used as a blit source, but if a future change ever flips this to YES the blit
-				// below silently produces undefined bytes on Apple Silicon and fails Metal API
-				// validation. Surface the error unambiguously instead.
-				B3D_LOG(Error, LogRenderBackend, "ReadAsync requires framebufferOnly=NO on the CAMetalLayer; drawable is not blit-sampleable.");
-				op.CompleteOperation(nullptr);
-				return op;
-			}
-
-			id<MTLTexture> drawableTexture = mCurrentDrawable.texture;
-			if (drawableTexture == nil)
-			{
-				// No drawable texture available; signal "no frame produced" with nullptr.
-				op.CompleteOperation(nullptr);
-				return op;
-			}
-
-			auto& metalCB = static_cast<MetalGpuCommandBuffer&>(commandBuffer);
-			id<MTLBlitCommandEncoder> blit = metalCB.GetOrOpenBlitEncoder();
-			if (blit == nil)
-			{
-				// Blit encoder could not be opened; signal "no frame produced" with nullptr.
-				op.CompleteOperation(nullptr);
-				return op;
-			}
-
-			// Derive width/height from the drawable's texture rather than the engine-visible mWidth/
-			// mHeight fields. mWidth/mHeight are render-thread-owned and written in AcquireDrawable;
-			// reading them from ReadAsync (which the engine permits on non-render fiber contexts) would
-			// race those writes. The drawable's texture dimensions are the authoritative size the blit
-			// must use regardless, so this is race-free and avoids the need for an atomic latch.
-			const u32 width = (u32)drawableTexture.width;
-			const u32 height = (u32)drawableTexture.height;
-
-			// Pixel format used for the result. The drawable is always BGRA8 (sRGB variant is the same
-			// byte layout), so we read back into PF_BGRA8 and let the caller reinterpret the colorspace
-			// if needed — matching the Vulkan backend's behavior when reading an sRGB swapchain image.
-			TShared<PixelData> pixelData = PixelData::Create(width, height, 1, PF_BGRA8);
-
-			const u32 bytesPerRow = MetalUtility::GetTextureRowPitch(PF_BGRA8, width);
-			const NSUInteger bufferSize = (NSUInteger)bytesPerRow * height;
-
-			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
-			id<MTLBuffer> stagingBuffer = [device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared];
-			if (stagingBuffer == nil)
-			{
-				B3D_LOG(Error, LogRenderBackend, "ReadAsync: failed to allocate {0}-byte staging buffer.", (u64)bufferSize);
-				op.CompleteOperation(nullptr);
-				return op;
-			}
-
-			[blit copyFromTexture:drawableTexture
-				sourceSlice:0
-				sourceLevel:0
-				sourceOrigin:MTLOriginMake(0, 0, 0)
-				sourceSize:MTLSizeMake(width, height, 1)
-				toBuffer:stagingBuffer
-				destinationOffset:0
-				destinationBytesPerRow:bytesPerRow
-				destinationBytesPerImage:bufferSize];
-
-			// Hook completion through the engine-level cmd buffer signal rather than Metal's raw
-			// @c addCompletedHandler:. @c OnDidComplete is posted from Metal's internal completion
-			// queue back to the pool-owner engine thread (see MetalGpuCommandBuffer::CommitInternal),
-			// so the memcpy runs on the same thread the ReadAsync caller expects — identical to how
-			// the Vulkan backend consumes this signal in B3DIVulkanRenderWindowSurface.cpp. The
-			// shared-storage staging buffer is CPU-coherent the moment the GPU blit retires, which
-			// is strictly before OnDidComplete fires, so no explicit synchronize step is required.
-			const u32 resultRowPitch = pixelData->GetRowPitch();
-			const u32 resultHeight = height;
-
-			auto fnOnCommandBufferCompleted = [stagingBuffer, op, pixelData, bytesPerRow, resultRowPitch, resultHeight]() mutable
-			{
-				const u8* src = (const u8*)[stagingBuffer contents];
-				u8* dst = pixelData->GetData();
-				if (src != nullptr && dst != nullptr)
-				{
-					if (resultRowPitch == bytesPerRow)
-						memcpy(dst, src, (size_t)bytesPerRow * resultHeight);
-					else
-					{
-						for (u32 row = 0; row < resultHeight; row++)
-							memcpy(dst + row * resultRowPitch, src + row * bytesPerRow, bytesPerRow);
-					}
-				}
-				op.CompleteOperation(pixelData);
-			};
-
-			auto fnOnCommandBufferDestroyed = [op](bool isSubmitted) mutable
-			{
-				if (isSubmitted)
-					return;
-
-				op.CompleteOperation(nullptr);
-			};
-
-			commandBuffer.OnDidComplete.Connect(fnOnCommandBufferCompleted);
-			commandBuffer.OnDestroyed.Connect(fnOnCommandBufferDestroyed);
-
-			return op;
-		}
 	}
 
 	void MetalRenderWindowSurface::Destroy()
 	{
-		mCurrentDrawable = nil;
-		mDrawableWasRenderedInto = false;
-		mLayer = nil;
+		if (!mValid && mSwapChain == nullptr && mLayer == nil)
+			return;
+
+		ReleaseCurrentDrawable();
+		if (mSwapChain != nullptr)
+		{
+			mSwapChain->Retire();
+			if (mGpuDevice.HasSubmitThread())
+				mGpuDevice.GetSubmitThread().WaitUntilIdle();
+
+			mSwapChain->GetMessageQueue().RunUntilIdle();
+			mSwapChain->Destroy();
+			mSwapChain = nullptr;
+		}
+
+		if (mDepthStencilTexture != nil)
+		{
+#if !__has_feature(objc_arc)
+			[mDepthStencilTexture release];
+#endif
+			mDepthStencilTexture = nil;
+		}
+
+		if (mLayer != nil)
+		{
+#if !__has_feature(objc_arc)
+			[mLayer release];
+#endif
+			mLayer = nil;
+		}
+
 		mValid = false;
 	}
 } // namespace b3d::render

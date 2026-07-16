@@ -103,7 +103,7 @@ VulkanRenderWindowSurface::~VulkanRenderWindowSurface()
 	Destroy();
 }
 
-void VulkanRenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsync)
+void VulkanRenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsync, u32 vsyncInterval)
 {
 	TShared<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
 	presentDevice->GetSubmitThread().WaitUntilIdle();

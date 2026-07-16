@@ -117,6 +117,7 @@ namespace b3d
 		TArray<Sample*> mRootSamples;
 		TArray<Sample*> mActiveSampleChain;
 		PoolAlloc<sizeof(Sample), 256> mSamplePool;
+		u32 mSkippedSampleDepth = 0;
 		u64 mCommandBufferId = 0;
 	};
 

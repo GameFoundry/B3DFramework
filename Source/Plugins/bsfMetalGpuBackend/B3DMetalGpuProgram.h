@@ -3,7 +3,6 @@
 #pragma once
 
 #include "B3DMetalPrerequisites.h"
-#include "B3DMetalBytecodeLayout.h"
 #include "GpuBackend/B3DGpuProgram.h"
 
 namespace b3d
@@ -19,9 +18,8 @@ namespace b3d
 		/**
 		 * Metal implementation of a GPU program.
 		 *
-		 * Compiles MSL source text into an @c MTLLibrary and resolves the requested entry point as an
-		 * @c MTLFunction. Both handles are held in an ObjC++-only pimpl so this header stays includable
-		 * from plain C++ translation units.
+		 * Loads an offline-compiled @c metallib and resolves the requested entry point as an @c MTLFunction.
+		 * Both handles are held in an ObjC++-only pimpl.
 		 */
 		class MetalGpuProgram : public GpuProgram
 		{
@@ -31,7 +29,7 @@ namespace b3d
 
 			void Initialize() override;
 
-			/** Returns the compute workgroup size parsed from the compiled MSL (only meaningful for compute programs). */
+			/** Returns the compute workgroup size recorded by the high-level shader compiler. */
 			const u32* GetWorkgroupSize() const { return mWorkgroupSize; }
 
 #ifdef __OBJC__

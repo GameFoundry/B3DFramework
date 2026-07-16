@@ -31,6 +31,7 @@ namespace b3d
 			B3D_RTTI_MEMBER(CompilerId, 4)
 			B3D_RTTI_MEMBER(CompilerVersion, 5)
 			B3D_RTTI_MEMBER(ResourceTableLayout, 6)
+			B3D_RTTI_MEMBER(ThreadGroupSize, 7)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -159,6 +160,7 @@ namespace b3d
 			B3D_RTTI_MEMBER(Type, 4)
 			B3D_RTTI_MEMBER(RequiresAdjacency, 5)
 			B3D_RTTI_MEMBER(Bytecode, 6)
+			B3D_RTTI_MEMBER(ThreadGroupSize, 7)
 		B3D_RTTI_END_MEMBERS
 
 	public:

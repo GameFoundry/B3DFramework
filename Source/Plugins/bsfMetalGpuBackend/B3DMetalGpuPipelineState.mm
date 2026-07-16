@@ -4,6 +4,7 @@
 #include "B3DMetalGpuDevice.h"
 #include "B3DMetalGpuProgram.h"
 #include "B3DMetalUtility.h"
+#include "B3DMetalVertexInputManager.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Threading/B3DThreading.h"
 #include "Profiling/B3DRenderStats.h"
@@ -16,16 +17,14 @@ namespace b3d
 		struct MetalGpuGraphicsPipelineState::Impl
 		{
 			id<MTLDepthStencilState> DepthStencilState = nil;
-			MTLVertexDescriptor* VertexDescriptor = nil;
 
 			// Per-variant cache entry. Compilation is driven by the async @c completionHandler variant
 			// of @c newRenderPipelineStateWithDescriptor:, so an entry goes through a pending state
 			// (Ready == false, Pipeline == nil) before the completion handler fills in the result and
 			// flips Ready. Concurrent callers that arrive while a compile is in flight find the entry
 			// not-ready, unlock, and wait on @c PipelineCacheCV until the handler notifies — no
-			// duplicate compiles for the same key. No prewarming path exists yet, so every call still
-			// waits here; the completion-handler shape keeps the door open for a future Prewarm API
-			// without another rewrite.
+			// duplicate compiles for the same key. Prewarm starts this work without waiting; draw-time
+			// lookup waits only when the requested variant is still pending.
 			struct CachedVariant
 			{
 				id<MTLRenderPipelineState> Pipeline = nil;
@@ -36,18 +35,6 @@ namespace b3d
 			ConditionVariable PipelineCacheCV;
 			UnorderedMap<MetalPipelineVariantKey, CachedVariant, MetalPipelineVariantKeyHash> Pipelines;
 
-			// Keys that have already been registered into the device's MTLBinaryArchive this session.
-			// @c addRenderPipelineFunctionsWithDescriptor: does a full shader compile internally, so
-			// we track already-added keys to avoid redundant compiles when a PSO is retained beyond a
-			// single draw.
-			UnorderedSet<MetalPipelineVariantKey, MetalPipelineVariantKeyHash> ArchivedVariants;
-
-			// Count of completion handlers that have published their pipeline result but are still
-			// running the post-publish @c addRenderPipelineFunctionsWithDescriptor: call (which
-			// recompiles internally and can take many ms). The destructor must wait for this to reach
-			// zero in addition to every variant being Ready; otherwise a handler could still be
-			// touching @c implPtr after @c ~MetalGpuGraphicsPipelineState returns and frees the Impl.
-			u32 PendingArchiveAdds = 0;
 		};
 
 		MetalGpuGraphicsPipelineState::MetalGpuGraphicsPipelineState(MetalGpuDevice& gpuDevice, const GpuGraphicsPipelineStateCreateInformation& createInformation)
@@ -61,11 +48,7 @@ namespace b3d
 			if (mImpl)
 			{
 				{
-					// Drain any in-flight compiles so the completion handlers don't reference a freed Impl.
-					// Two things must finish: every variant's compile (Ready flips true) and every post-
-					// publish archive-add (PendingArchiveAdds hits zero). Splitting these lets draw-time
-					// waiters unblock as soon as the pipeline is published, while the destructor still
-					// blocks until the slower addRenderPipelineFunctionsWithDescriptor: call finishes.
+					// Drain any in-flight compiles so completion handlers cannot reference a freed Impl.
 					Lock lock(mImpl->PipelineCacheMutex);
 					mImpl->PipelineCacheCV.wait(lock, [this]{
 						for (auto& entry : mImpl->Pipelines)
@@ -73,16 +56,22 @@ namespace b3d
 							if (!entry.second.Ready)
 								return false;
 						}
-						return mImpl->PendingArchiveAdds == 0;
+						return true;
 					});
 
 					for (auto& entry : mImpl->Pipelines)
+					{
+#if !__has_feature(objc_arc)
+						[entry.second.Pipeline release];
+#endif
 						entry.second.Pipeline = nil;
+					}
 					mImpl->Pipelines.clear();
-					mImpl->ArchivedVariants.clear();
 				}
+#if !__has_feature(objc_arc)
+				[mImpl->DepthStencilState release];
+#endif
 				mImpl->DepthStencilState = nil;
-				mImpl->VertexDescriptor = nil;
 			}
 
 		}
@@ -120,6 +109,24 @@ namespace b3d
 			// these temporaries are reclaimed at function exit.
 			@autoreleasepool
 			{
+			// Vertex streams live at a fixed base slot above the parameter-set argument buffers (see
+			// kMetalVertexBufferSlotBase). A fixed constant — rather than the parameter-set count —
+			// keeps the MTLVertexDescriptor cached inside a MetalVertexInput valid across pipelines
+			// with differing set counts, and lets the command buffer compute a stream's slot without
+			// consulting this pipeline's layout. (The previous set-count-derived value was also read
+			// before the base Initialize() created mParameterLayout, so it always evaluated to 0 and
+			// vertex streams would have collided with argument-buffer slot 0.)
+			mVertexBufferBaseIndex = kMetalVertexBufferSlotBase;
+
+			// Publish the shader-side vertex input declaration. The command buffer resolves it against
+			// the bound vertex-buffer VertexDescription via MetalVertexInputManager at bind time —
+			// mirroring VulkanGpuCommandBuffer::BindGraphicsPipeline — and the resolved MetalVertexInput
+			// supplies the per-variant MTLVertexDescriptor to StartCompile. Building the descriptor
+			// eagerly from the shader's own declaration (the old behavior) never reconciled against the
+			// actually-bound buffers and could not serve unmatched shader inputs from a null stream.
+			if (mData.VertexProgram != nullptr)
+				mVertexDescription = mData.VertexProgram->GetVertexInputDescription();
+
 			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
 			if (device == nil)
 			{
@@ -137,10 +144,6 @@ namespace b3d
 			mSlopeScaledDepthBias = raster.SlopeScaledDepthBias;
 			mDepthBiasClamp = raster.DepthBiasClamp;
 			mScissorEnabled = raster.ScissorEnable;
-
-			// Argument buffers for parameter sets occupy low buffer slots (one per set); vertex streams
-			// are offset by the set count to avoid collisions in the vertex-stage buffer table.
-			mVertexBufferBaseIndex = mParameterLayout ? mParameterLayout->GetSetCount() : 0;
 
 			// Build depth-stencil state.
 			const DepthStencilStateInformation& depthStencil = mData.DepthStencilState;
@@ -169,72 +172,11 @@ namespace b3d
 			[dsDesc release];
 #endif
 
-			// Build vertex descriptor from the vertex program's input declaration. If we don't yet have
-			// a vertex program (e.g., when the pipeline will only ever be bound with a fixed vertex
-			// layout supplied at command-buffer time) we skip this; the command buffer then sets up the
-			// descriptor directly from SetVertexDescription().
-			if (mData.VertexProgram)
-			{
-				TShared<VertexDescription> inputDesc = mData.VertexProgram->GetVertexInputDescription();
-				if (inputDesc)
-				{
-					mImpl->VertexDescriptor = [[MTLVertexDescriptor alloc] init];
-
-					const auto& elements = inputDesc->GetElements();
-					for (u32 elementIndex = 0; elementIndex < elements.size(); elementIndex++)
-					{
-						const VertexElement& element = elements[elementIndex];
-
-						MTLVertexFormat format = MetalUtility::GetVertexFormat(element.GetType());
-						if (format == MTLVertexFormatInvalid)
-						{
-							B3D_LOG(Warning, LogRenderBackend, "Unsupported vertex element type {0} on Metal backend.", (u32)element.GetType());
-							continue;
-						}
-
-						// SPIRV-Cross emits @c [[attribute(N)]] where N is the SPIR-V input location, not the
-						// element's position in the reflected list. For shader-input descriptions produced by
-						// glslang (see B3DGLSLToSPIRV.cpp::ParseVertexAttributes), @c GetOffset() holds
-						// the @c layout(location=...) value — sparse locations (0, 2, 5) would be miswired as
-						// dense (0, 1, 2) if we used @c elementIndex here.
-						const u32 attrIndex = element.GetOffset();
-						mImpl->VertexDescriptor.attributes[attrIndex].format = format;
-						mImpl->VertexDescriptor.attributes[attrIndex].offset = element.GetOffset();
-						mImpl->VertexDescriptor.attributes[attrIndex].bufferIndex = mVertexBufferBaseIndex + element.GetStreamIndex();
-					}
-
-					// Per-stream stride/step info. The engine stores stride implicitly via GetVertexStride(stream).
-					constexpr u32 kMaxStreams = 16;
-					for (u32 streamIndex = 0; streamIndex < kMaxStreams; streamIndex++)
-					{
-						u32 stride = inputDesc->GetVertexStride(streamIndex);
-						if (stride == 0)
-							continue;
-
-						const u32 layoutIndex = mVertexBufferBaseIndex + streamIndex;
-						mImpl->VertexDescriptor.layouts[layoutIndex].stride = stride;
-						mImpl->VertexDescriptor.layouts[layoutIndex].stepFunction = MTLVertexStepFunctionPerVertex;
-						mImpl->VertexDescriptor.layouts[layoutIndex].stepRate = 1;
-					}
-
-					// Override with instance-step info from any element that requests it.
-					for (const VertexElement& element : elements)
-					{
-						if (element.GetInstanceStepRate() > 0)
-						{
-							const u32 layoutIndex = mVertexBufferBaseIndex + element.GetStreamIndex();
-							mImpl->VertexDescriptor.layouts[layoutIndex].stepFunction = MTLVertexStepFunctionPerInstance;
-							mImpl->VertexDescriptor.layouts[layoutIndex].stepRate = element.GetInstanceStepRate();
-						}
-					}
-				}
-			}
-
 			GpuGraphicsPipelineState::Initialize();
 			} // @autoreleasepool
 		}
 
-		bool MetalGpuGraphicsPipelineState::StartCompile(const MetalPipelineVariantKey& key)
+		bool MetalGpuGraphicsPipelineState::StartCompile(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput)
 		{
 			// Pipeline compile allocates a chain of autoreleased Obj-C objects (descriptor, NSError,
 			// localized-description strings). Drain them locally rather than letting them accumulate
@@ -288,8 +230,11 @@ namespace b3d
 				desc.fragmentFunction = fp->GetMetalFunction();
 			}
 
-			if (mImpl->VertexDescriptor)
-				desc.vertexDescriptor = mImpl->VertexDescriptor;
+			// The vertexDescriptor property is a copying property: desc owns its own copy after this
+			// assignment, so the MetalVertexInput only needs to stay alive for the duration of this
+			// (synchronous) call — the async completion handler never touches it.
+			if (vertexInput != nullptr)
+				desc.vertexDescriptor = vertexInput->GetVertexDescriptor();
 
 			desc.inputPrimitiveTopology = (MTLPrimitiveTopologyClass)key.TopologyClass;
 			desc.rasterSampleCount = std::max<u16>(1, key.SampleCount);
@@ -330,22 +275,16 @@ namespace b3d
 			if (key.StencilFormat != 0)
 				desc.stencilAttachmentPixelFormat = (MTLPixelFormat)key.StencilFormat;
 
-			// Attach the device's binary archives so Metal can reuse functions already compiled in a
-			// previous launch (via the loaded, read-only archive) and also register fresh compiles we
-			// do here (via the mutable archive) through addRenderPipelineFunctionsWithDescriptor:
-			// below. URL-loaded archives are immutable — only the mutable archive is a valid add
-			// target. Both are attached to the descriptor because either can serve as a lookup source.
-			id<MTLBinaryArchive> mutableArchive = nil;
+			// Use the archive loaded from an earlier offline/prewarm pass for pipeline lookup.
 			id<MTLBinaryArchive> loadedArchive = nil;
 			if (@available(macOS 11.0, iOS 14.0, *))
 			{
-				mutableArchive = mGpuDevice.GetMutableBinaryArchive();
+				// Runtime archive population recompiles this descriptor. Only consume the archive loaded
+				// from an earlier offline/prewarm pass on this latency-sensitive path.
 				loadedArchive = mGpuDevice.GetLoadedBinaryArchive();
-				NSMutableArray<id<MTLBinaryArchive>>* archives = [NSMutableArray arrayWithCapacity:2];
+				NSMutableArray<id<MTLBinaryArchive>>* archives = [NSMutableArray arrayWithCapacity:1];
 				if (loadedArchive != nil)
 					[archives addObject:loadedArchive];
-				if (mutableArchive != nil)
-					[archives addObject:mutableArchive];
 				if ([archives count] > 0)
 					desc.binaryArchives = archives;
 			}
@@ -353,21 +292,7 @@ namespace b3d
 			Impl* implPtr = mImpl.get();
 			const MetalPipelineVariantKey keyCopy = key;
 
-			// Under MRC, Block_copy does auto-retain captured Obj-C pointers, but the completion
-			// handler uses @c desc in addRenderPipelineFunctionsWithDescriptor: after publishing the
-			// result — to avoid relying on that implicit behavior while Metal's block copy is still
-			// in flight, we pair an explicit retain here with an explicit release at the end of the
-			// handler. Under ARC the pair is a no-op (the #if strips them out) and the compiler-
-			// generated retain/release takes care of lifetime.
-#if !__has_feature(objc_arc)
-			[desc retain];
-#endif
-
-			// Fire the async compile. The completion handler runs on a Metal-internal queue; it takes
-			// the cache lock, publishes the result, notifies waiters, and then runs the (potentially
-			// expensive) archive-add. Note that @c impl is captured by raw pointer — the pipeline
-			// state destructor drains pending compiles *and* pending archive-adds before it frees
-			// mImpl, so the pointer stays valid for the duration of every outstanding handler.
+			// The destructor drains pending compiles before freeing the raw Impl captured by the handler.
 			[device newRenderPipelineStateWithDescriptor:desc
 				completionHandler:^(id<MTLRenderPipelineState> pipeline, NSError* error)
 			{
@@ -379,57 +304,18 @@ namespace b3d
 						String([errorString UTF8String]));
 				}
 
-				// Publish the result first and notify waiters immediately, so draw-time callers don't
-				// block on the slow addRenderPipelineFunctions path below. If the pipeline compile
-				// succeeded and the variant hasn't already been registered this session, record a
-				// pending archive-add under the same lock so the destructor waits for us.
-				bool shouldAddToArchive = false;
+				// Publish the result and notify every waiter for this variant.
 				{
 					Lock completionLock(implPtr->PipelineCacheMutex);
 					auto& entry = implPtr->Pipelines[keyCopy];
+#if !__has_feature(objc_arc)
+					[pipeline retain];
+#endif
 					entry.Pipeline = pipeline;
 					entry.Ready = true;
-
-					if (pipeline != nil && mutableArchive != nil)
-					{
-						if (implPtr->ArchivedVariants.insert(keyCopy).second)
-						{
-							shouldAddToArchive = true;
-							implPtr->PendingArchiveAdds++;
-						}
-					}
-				}
-				implPtr->PipelineCacheCV.notify_all();
-
-				// Now run the expensive archive-add. addRenderPipelineFunctionsWithDescriptor: does a
-				// full shader compile internally; by running it after notify_all we keep draw-time
-				// waiters off the critical path. The dedup via ArchivedVariants above ensures we only
-				// pay this cost once per variant per session.
-				if (shouldAddToArchive)
-				{
-					if (@available(macOS 11.0, iOS 14.0, *))
-					{
-						NSError* addError = nil;
-						if (![mutableArchive addRenderPipelineFunctionsWithDescriptor:desc error:&addError])
-						{
-							NSString* addDesc = addError ? [addError localizedDescription] : @"unknown error";
-							B3D_LOG(Warning, LogRenderBackend,
-								"Failed to add render pipeline to Metal binary archive: {0}",
-								String([addDesc UTF8String]));
-						}
-					}
-
-					{
-						Lock lock(implPtr->PipelineCacheMutex);
-						B3D_ASSERT(implPtr->PendingArchiveAdds > 0);
-						implPtr->PendingArchiveAdds--;
-					}
 					implPtr->PipelineCacheCV.notify_all();
 				}
 
-#if !__has_feature(objc_arc)
-				[desc release];
-#endif
 			}];
 
 #if !__has_feature(objc_arc)
@@ -440,22 +326,22 @@ namespace b3d
 			} // @autoreleasepool
 		}
 
-		void MetalGpuGraphicsPipelineState::Prewarm(const MetalPipelineVariantKey& key)
+		void MetalGpuGraphicsPipelineState::Prewarm(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput)
 		{
 			// Prewarm is a non-blocking fire-and-forget. Delegate to StartCompile and discard the
 			// return value — a subsequent draw-time GetOrCreateMetalPipeline for the same key will
 			// find the pending entry and simply wait on the already-in-flight completion handler.
-			(void)StartCompile(key);
+			(void)StartCompile(key, vertexInput);
 		}
 
-		id<MTLRenderPipelineState> MetalGpuGraphicsPipelineState::GetOrCreateMetalPipeline(const MetalPipelineVariantKey& key)
+		id<MTLRenderPipelineState> MetalGpuGraphicsPipelineState::GetOrCreateMetalPipeline(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput)
 		{
 			// Dispatch the compile if nobody's started one for this key yet, then block until the
 			// completion handler publishes the result. If the pipeline was prewarmed or is already
 			// ready, StartCompile returns false immediately and we fall through to the wait, which
 			// either returns immediately (Ready already true) or blocks until the pending compile's
 			// handler runs.
-			const bool dispatched = StartCompile(key);
+			const bool dispatched = StartCompile(key, vertexInput);
 
 			Lock lock(mImpl->PipelineCacheMutex);
 			if (!dispatched && mImpl->Pipelines.find(key) == mImpl->Pipelines.end())
@@ -485,11 +371,6 @@ namespace b3d
 			// decide whether a wait is required; in the deferred-init case where Initialize is never
 			// called, Ready stays false and without this flag the destructor would hang forever.
 			bool InitializeStarted = false;
-			// Set to true while the completion handler runs the post-publish
-			// addComputePipelineFunctionsWithDescriptor: call. The destructor waits for this in
-			// addition to Ready because the handler keeps touching implPtr (for the lock/decrement
-			// and notify) even after publishing the pipeline.
-			bool ArchiveAddInFlight = false;
 			Mutex PipelineMutex;
 			ConditionVariable PipelineCV;
 		};
@@ -506,15 +387,16 @@ namespace b3d
 			{
 				// Drain the in-flight async compile if Initialize() fired one off and no caller has
 				// picked up the result yet. The completion handler captures mImpl.get() raw, so we
-				// must not free the Impl while the handler is still pending. We wait for both the
-				// pipeline result to be published (Ready) and the post-publish archive-add to finish
-				// (!ArchiveAddInFlight) — the handler keeps touching implPtr for the final notify even
-				// after it sets Ready. If Initialize was never called (deferred-init path with no
+				// must not free the Impl while the handler is still pending. If Initialize was never
+				// called (deferred-init path with no
 				// subsequent init), Ready stays false — skip the wait based on InitializeStarted to
 				// avoid a deadlock on the never-signaled CV.
 				Lock lock(mImpl->PipelineMutex);
 				if (mImpl->InitializeStarted)
-					mImpl->PipelineCV.wait(lock, [this]{ return mImpl->Ready && !mImpl->ArchiveAddInFlight; });
+					mImpl->PipelineCV.wait(lock, [this]{ return mImpl->Ready; });
+#if !__has_feature(objc_arc)
+				[mImpl->Pipeline release];
+#endif
 				mImpl->Pipeline = nil;
 			}
 
@@ -537,13 +419,7 @@ namespace b3d
 			// been called yet and GetMetalPipeline would deadlock at draw time — calling Initialize
 			// here makes the compute compile effectively asynchronous from the caller's perspective.
 			// Safe to re-enter: the bool guard in the async Initialize protects against double-start.
-			bool alreadyStarted = false;
-			{
-				Lock lock(mImpl->PipelineMutex);
-				alreadyStarted = mImpl->InitializeStarted;
-			}
-			if (!alreadyStarted)
-				Initialize();
+			Initialize();
 		}
 
 		void MetalGpuComputePipelineState::Initialize()
@@ -558,6 +434,8 @@ namespace b3d
 				// the completion-handler CV. All early-outs below also set Ready = true before
 				// returning, so the destructor's wait finds a satisfied predicate in those cases.
 				Lock lock(mImpl->PipelineMutex);
+				if (mImpl->InitializeStarted)
+					return;
 				mImpl->InitializeStarted = true;
 			}
 
@@ -568,8 +446,8 @@ namespace b3d
 				{
 					Lock lock(mImpl->PipelineMutex);
 					mImpl->Ready = true;
+					mImpl->PipelineCV.notify_all();
 				}
-				mImpl->PipelineCV.notify_all();
 				GpuComputePipelineState::Initialize();
 				return;
 			}
@@ -580,8 +458,8 @@ namespace b3d
 				{
 					Lock lock(mImpl->PipelineMutex);
 					mImpl->Ready = true;
+					mImpl->PipelineCV.notify_all();
 				}
-				mImpl->PipelineCV.notify_all();
 				GpuComputePipelineState::Initialize();
 				return;
 			}
@@ -594,8 +472,8 @@ namespace b3d
 				{
 					Lock lock(mImpl->PipelineMutex);
 					mImpl->Ready = true;
+					mImpl->PipelineCV.notify_all();
 				}
-				mImpl->PipelineCV.notify_all();
 				GpuComputePipelineState::Initialize();
 				return;
 			}
@@ -605,48 +483,26 @@ namespace b3d
 			mWorkgroupSize[1] = programWorkgroup[1];
 			mWorkgroupSize[2] = programWorkgroup[2];
 
-			// Use the descriptor-based compute pipeline creation path so we can attach the device's
-			// binary archives. @c newComputePipelineStateWithFunction: (the previous sync call) does
-			// not expose binaryArchives, so cold-launch compiles can't be cached there. Both the
-			// loaded (read-only) and mutable archives are attached; only the mutable one is a valid
-			// add target for addComputePipelineFunctionsWithDescriptor:.
+			// Use the descriptor path so an offline-populated binary archive can accelerate lookup.
 			MTLComputePipelineDescriptor* desc = [[MTLComputePipelineDescriptor alloc] init];
 			desc.computeFunction = function;
 
-			// The engine's compute shaders declare their workgroup size explicitly (we just copied it into
-			// mWorkgroupSize above), and every declared size the backend actually dispatches is a multiple
-			// of the device's thread-execution width on the Apple/AMD/Intel GPUs Metal runs on. Telling the
-			// driver so lets it skip the inner-loop bounds checks normally emitted to guard against partial
-			// threadgroups, which is a measurable win on dispatch-heavy frames (post-processing chains,
-			// compute-shader particle sims). The promise is a hard contract — if it's ever violated, the
-			// tail threads in a threadgroup read garbage; since the workgroup size is shader-authored, the
-			// shader author is already responsible for making this true.
-			desc.threadGroupSizeIsMultipleOfThreadExecutionWidth = YES;
+			// No engine-level contract guarantees a multiple of threadExecutionWidth. Keep Metal's safe
+			// default; incorrectly promising a multiple makes non-conforming dispatches undefined.
+			desc.threadGroupSizeIsMultipleOfThreadExecutionWidth = NO;
 
-			id<MTLBinaryArchive> mutableArchive = nil;
 			id<MTLBinaryArchive> loadedArchive = nil;
 			if (@available(macOS 11.0, iOS 14.0, *))
 			{
-				mutableArchive = mGpuDevice.GetMutableBinaryArchive();
 				loadedArchive = mGpuDevice.GetLoadedBinaryArchive();
-				NSMutableArray<id<MTLBinaryArchive>>* archives = [NSMutableArray arrayWithCapacity:2];
+				NSMutableArray<id<MTLBinaryArchive>>* archives = [NSMutableArray arrayWithCapacity:1];
 				if (loadedArchive != nil)
 					[archives addObject:loadedArchive];
-				if (mutableArchive != nil)
-					[archives addObject:mutableArchive];
 				if ([archives count] > 0)
 					desc.binaryArchives = archives;
 			}
 
 			Impl* implPtr = mImpl.get();
-
-			// Under MRC, pair an explicit retain here with a release inside the completion handler to
-			// keep @c desc alive across the handler's addComputePipelineFunctions call without relying
-			// on Block_copy's implicit capture-retain while Metal's copy is still in flight. Under ARC
-			// the compiler handles both ends.
-#if !__has_feature(objc_arc)
-			[desc retain];
-#endif
 
 			[device newComputePipelineStateWithDescriptor:desc
 				options:MTLPipelineOptionNone
@@ -660,50 +516,17 @@ namespace b3d
 						String([errorString UTF8String]));
 				}
 
-				// Publish the pipeline result first and notify waiters so GetMetalPipeline() unblocks
-				// immediately. The archive-add below recompiles the function internally and can take
-				// many ms — keeping it off the critical path is why this is reordered past notify.
-				bool shouldAddToArchive = false;
+				// Publish the pipeline result and notify all waiters.
 				{
 					Lock completionLock(implPtr->PipelineMutex);
+#if !__has_feature(objc_arc)
+					[pipeline retain];
+#endif
 					implPtr->Pipeline = pipeline;
 					implPtr->Ready = true;
-					if (pipeline != nil && mutableArchive != nil)
-					{
-						shouldAddToArchive = true;
-						implPtr->ArchiveAddInFlight = true;
-					}
-				}
-				implPtr->PipelineCV.notify_all();
-
-				// Register the successful compile into the mutable archive so the next launch can
-				// skip MSL translation. Single-shot per Impl: a compute pipeline state owns one
-				// pipeline with one function, so no dedup side-set is needed — the enclosing
-				// Initialize is called once.
-				if (shouldAddToArchive)
-				{
-					if (@available(macOS 11.0, iOS 14.0, *))
-					{
-						NSError* addError = nil;
-						if (![mutableArchive addComputePipelineFunctionsWithDescriptor:desc error:&addError])
-						{
-							NSString* addDesc = addError ? [addError localizedDescription] : @"unknown error";
-							B3D_LOG(Warning, LogRenderBackend,
-								"Failed to add compute pipeline to Metal binary archive: {0}",
-								String([addDesc UTF8String]));
-						}
-					}
-
-					{
-						Lock lock(implPtr->PipelineMutex);
-						implPtr->ArchiveAddInFlight = false;
-					}
 					implPtr->PipelineCV.notify_all();
 				}
 
-#if !__has_feature(objc_arc)
-				[desc release];
-#endif
 			}];
 
 #if !__has_feature(objc_arc)

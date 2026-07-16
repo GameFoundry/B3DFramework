@@ -105,6 +105,7 @@ namespace b3d
 		String Language; /**< Language the source is written in, for example "hlsl" or "glsl". */
 		GpuProgramType Type = GPT_VERTEX_PROGRAM; /**< Type of the program, for example vertex or fragment. */
 		bool RequiresAdjacency = false; /**< If true then adjacency information will be provided when rendering. */
+		Array<u32, 3> ThreadGroupSize = { 1, 1, 1 }; /**< Compute threads per threadgroup declared by the source program. */
 
 		/**
 		 * Optional intermediate version of the GPU program. Can significantly speed up GPU program compilation/creation
@@ -139,6 +140,9 @@ namespace b3d
 
 		/** Input parameters for a vertex GPU program. */
 		Vector<VertexElement> VertexInput;
+
+		/** Compute threads per threadgroup declared by the source program. */
+		Array<u32, 3> ThreadGroupSize = { 1, 1, 1 };
 
 		/** Messages output during the compilation process. Includes errors in case compilation failed. */
 		String Messages;

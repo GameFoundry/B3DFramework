@@ -7,6 +7,7 @@
 #include "B3DMetalGpuBuffer.h"
 #include "B3DMetalTexture.h"
 #include "B3DMetalHeapAllocator.h"
+#include "B3DMetalResourceManager.h"
 #include "B3DMetalGpuProgram.h"
 #include "B3DMetalGpuPipelineState.h"
 #include "Math/B3DMath.h"
@@ -29,7 +30,11 @@
 #include "Debug/B3DLog.h"
 #include "Utility/B3DScopeGuard.h"
 #include <atomic>
+#include <cstring>
 #include "Utility/Threading/B3DThreading.h"
+#include "CoreObject/B3DRenderThread.h"
+#include "GpuBackend/B3DGpuSubmitThread.h"
+#include "B3DMetalVertexInputManager.h"
 
 #include <mach/mach_time.h>
 
@@ -54,6 +59,12 @@ namespace b3d
 			id<MTLCommandQueue> CommandQueues[GQT_COUNT] = { nil };
 			id<MTLSharedEvent> QueueEvents[GQT_COUNT] = { nil };
 
+			// Persistent zero-filled buffer bound at a vertex-input null stream's slot for shader inputs
+			// that have no matching vertex-buffer element (see MetalVertexInput / GetNullVertexBuffer).
+			// Created once in Initialize (kMetalNullVertexStreamStride bytes, Shared storage, memset 0)
+			// and released in the destructor.
+			id<MTLBuffer> NullVertexBuffer = nil;
+
 			// Deferred-release list drained on every @c BeginFrame. Guarded by @c DeferredReleaseMutex
 			// because recreate can fire from worker fibers while the render thread is ticking frames.
 			Vector<DeferredReleaseEntry> DeferredReleases;
@@ -74,13 +85,7 @@ namespace b3d
 			bool SupportsComputeEncoderTimestamps = false;
 			bool SupportsBlitEncoderTimestamps = false;
 
-			// On-disk pipeline cache — split into two archives because URL-loaded MTLBinaryArchives are
-			// immutable. LoadedBinaryArchive is the (optional) read-only archive loaded from disk and
-			// used by pipeline state descriptors for fast-path lookup of pipelines compiled in a prior
-			// run. MutableBinaryArchive is a fresh empty archive that receives this session's new
-			// compiles via addRenderPipelineFunctionsWithDescriptor: / addComputePipelineFunctionsWithDescriptor:,
-			// and is serialized to disk in the destructor. Either / both may be nil when the platform
-			// (iOS simulator) or runtime (pre-macOS 11 / pre-iOS 14) doesn't support binary archives.
+			// Optional immutable binary archive populated by an offline/prewarm workflow.
 			//
 			// Archive construction is deferred to first use (see MetalGpuDevice::EnsureBinaryArchives)
 			// so device init does zero filesystem I/O — the NSSearchPathForDirectoriesInDomains +
@@ -92,7 +97,6 @@ namespace b3d
 			// init body synchronizes-with the acquire load on the fast path so the archive handles
 			// and path fields above are observable once the flag is seen set.
 			id<MTLBinaryArchive> LoadedBinaryArchive = nil;
-			id<MTLBinaryArchive> MutableBinaryArchive = nil;
 			Path BinaryArchivePath;
 			Mutex BinaryArchivesMutex;
 			std::atomic<bool> BinaryArchivesInitialized{ false };
@@ -113,29 +117,6 @@ namespace b3d
 
 		namespace
 		{
-			/** Parses the Metal device's reported name to infer the GPU vendor. */
-			GPUVendor ParseVendorFromDeviceName(NSString* deviceName)
-			{
-				if (deviceName == nil)
-					return GPU_UNKNOWN;
-
-				const String name([deviceName UTF8String]);
-
-				// The Metal device name typically starts with the vendor name followed by the model
-				// (e.g. "Apple M1 Pro", "AMD Radeon Pro 5500M", "Intel(R) Iris(R) Plus Graphics",
-				// "NVIDIA GeForce GT 750M"). Match on the common prefixes.
-				if (name.find("Apple") != String::npos)
-					return GPU_APPLE;
-				if (name.find("AMD") != String::npos || name.find("Radeon") != String::npos)
-					return GPU_AMD;
-				if (name.find("Intel") != String::npos)
-					return GPU_INTEL;
-				if (name.find("NVIDIA") != String::npos || name.find("GeForce") != String::npos)
-					return GPU_NVIDIA;
-
-				return GPU_UNKNOWN;
-			}
-
 			/**
 			 * Resolves the on-disk path for the Metal pipeline binary archive. Uses the user's caches
 			 * directory (@c NSCachesDirectory) so the archive survives reboots but is allowed to be
@@ -176,46 +157,14 @@ namespace b3d
 			// heaps those resources are backed by.
 			mIsShuttingDown = true;
 
-			// Persist the mutable pipeline binary archive to disk so the next launch can reuse compiled
-			// functions. Only MutableBinaryArchive is serialized — LoadedBinaryArchive is immutable and
-			// the file it came from already exists on disk. This means the persisted cache reflects only
-			// this session's new compiles, overwriting the prior file; pipelines that weren't used this
-			// session will not survive in the cache. That's the intended behavior for a regenerable
-			// cache. Serialization failures here are non-fatal (permission changes on the caches folder
-			// etc.) — we log and continue teardown.
-			//
-			// serializeToURL: blocks the calling thread for the full archive write (archives can be MB-
-			// sized — a cold-launched game with hundreds of BSL permutations serialized a 10+ MB file in
-			// profiles). We kick it off on the default-priority concurrent dispatch queue so the rest of
-			// teardown (queue release, device nil, deferred-release drain) runs in parallel; a group
-			// wait at the end of the destructor joins the two paths before returning. Obj-C strong
-			// references to the archive and the NSURL are held by the block's capture list so they
-			// survive until the serialize call returns.
-			dispatch_group_t serializeGroup = nullptr;
-			if (mImpl->MutableBinaryArchive != nil && !mImpl->BinaryArchivePath.IsEmpty())
+			// Drain all outstanding GPU work, then stop the submit thread before any of the objects it
+			// operates on (queues, command buffer pools) are torn down. ~GpuSubmitThread destroys its
+			// per-queue-type command buffer pools on the worker thread, which requires live queues and
+			// a live MTLDevice. Mirrors VulkanGpuDevice::~VulkanGpuDevice.
+			if (mSubmitThread != nullptr)
 			{
-				if (@available(macOS 11.0, iOS 14.0, *))
-				{
-					serializeGroup = dispatch_group_create();
-
-					NSString* nsPath = @(mImpl->BinaryArchivePath.ToString().c_str());
-					NSURL* url = [NSURL fileURLWithPath:nsPath];
-					id<MTLBinaryArchive> archive = mImpl->MutableBinaryArchive;
-					const String archivePathStr = mImpl->BinaryArchivePath.ToString();
-
-					dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-					dispatch_group_async(serializeGroup, queue, ^{
-						NSError* serializeError = nil;
-						if (![archive serializeToURL:url error:&serializeError])
-						{
-							NSString* desc = serializeError ? [serializeError localizedDescription] : @"unknown error";
-							B3D_LOG(Warning, LogRenderBackend,
-								"Failed to serialize Metal pipeline binary archive to '{0}': {1}",
-								archivePathStr,
-								String([desc UTF8String]));
-						}
-					});
-				}
+				WaitUntilIdle();
+				mSubmitThread = nullptr;
 			}
 
 			// Drain any still-pending deferred releases unconditionally — the device is going away so no
@@ -225,9 +174,21 @@ namespace b3d
 			{
 				Lock lock(mImpl->DeferredReleaseMutex);
 				for (Impl::DeferredReleaseEntry& entry : mImpl->DeferredReleases)
+				{
+#if !__has_feature(objc_arc)
+					[entry.Resource release];
+#endif
 					entry.Resource = nil;
+				}
 				mImpl->DeferredReleases.clear();
 			}
+
+			// Tear down the resource manager before the heap allocator. Any tracked wrappers still
+			// owned by the manager release their native handles and return their allocator spans to
+			// the heap pool from their destructors; those spans must be reclaimed before the heaps
+			// backing them are destroyed. Callers are expected to have driven the device through
+			// WaitUntilIdle, so no wrapper is still in flight on the GPU at this point.
+			mResourceManager.reset();
 
 			// Tear down the heap allocator only after the deferred-release queue has fully drained.
 			// Heap-backed resources hold implicit refs back to their parent heap; dropping the
@@ -237,28 +198,40 @@ namespace b3d
 			// all pooled MTLHeaps; the driver reclaims their storage on the next autorelease drain.
 			mHeapAllocator.reset();
 
-			// Join the async serializeToURL: block before we release the device — MTLBinaryArchive's
-			// serialization touches the MTLDevice internally (it needs the device to crack open the
-			// archive's internal function representations), so nil'ing the device before the group
-			// completes would crash. The block's capture list retains the archive and the NSURL, so
-			// those two survive regardless; the wait only gates on the device-scoped work actually
-			// finishing.
-			if (serializeGroup != nullptr)
-			{
-				dispatch_group_wait(serializeGroup, DISPATCH_TIME_FOREVER);
+			// Release the optional immutable pipeline archive before releasing its device.
 #if !__has_feature(objc_arc)
-				dispatch_release(serializeGroup);
+			[mImpl->LoadedBinaryArchive release];
 #endif
-			}
-			mImpl->MutableBinaryArchive = nil;
 			mImpl->LoadedBinaryArchive = nil;
+
+			// Tear down the vertex-input manager: it caches MetalVertexInput objects that own
+			// MTLVertexDescriptors, which must release before the MTLDevice they were built against is
+			// nil'd. Started in Initialize; mirrors the VulkanVertexInputManager start/stop pattern.
+			if (MetalVertexInputManager::IsStarted())
+				MetalVertexInputManager::ShutDown();
+
+			// Release the shared null vertex buffer created in Initialize.
+#if !__has_feature(objc_arc)
+			[mImpl->NullVertexBuffer release];
+#endif
+			mImpl->NullVertexBuffer = nil;
 
 			// Explicitly release Metal handles. Under ARC assigning nil decrements the refcount.
 			for (u32 i = 0; i < GQT_COUNT; i++)
 			{
+#if !__has_feature(objc_arc)
+				[mImpl->QueueEvents[i] release];
+				[mImpl->CommandQueues[i] release];
+#endif
 				mImpl->QueueEvents[i] = nil;
 				mImpl->CommandQueues[i] = nil;
 			}
+
+#if !__has_feature(objc_arc)
+			[mImpl->TimestampCounterSet release];
+			[mImpl->Device release];
+#endif
+			mImpl->TimestampCounterSet = nil;
 			mImpl->Device = nil;
 		}
 
@@ -273,12 +246,20 @@ namespace b3d
 			return mImpl->CommandQueues[(u32)type];
 		}
 
+		id<MTLBuffer> MetalGpuDevice::GetNullVertexBuffer() const
+		{
+			return mImpl->NullVertexBuffer;
+		}
+
 		void MetalGpuDevice::QueueMetalResourceForDeferredRelease(id resource, MetalGpuQueue* originQueue, u64 eventValue)
 		{
 			if (resource == nil)
 				return;
 
 			Impl::DeferredReleaseEntry entry;
+#if !__has_feature(objc_arc)
+			[resource retain];
+#endif
 			entry.Resource = resource;
 			entry.OriginQueue = originQueue;
 			entry.EventValue = eventValue;
@@ -289,6 +270,8 @@ namespace b3d
 
 		void MetalGpuDevice::BeginFrame()
 		{
+			ASSERT_IF_NOT_RENDER_THREAD
+
 			// Drain the deferred-release list: any entry whose origin queue has committed past the
 			// recorded event value is no longer referenced by in-flight work and can drop its strong ref.
 			// Swap-and-pop erase keeps the walk O(n) without shifting the tail on every drop. Entries
@@ -304,7 +287,9 @@ namespace b3d
 
 				if (ready)
 				{
-					// Dropping @c Resource nils the strong ref; the Metal runtime releases the backing.
+#if !__has_feature(objc_arc)
+					[entry.Resource release];
+#endif
 					entry.Resource = nil;
 					continue;
 				}
@@ -342,12 +327,6 @@ namespace b3d
 			return mImpl->LoadedBinaryArchive;
 		}
 
-		id<MTLBinaryArchive> MetalGpuDevice::GetMutableBinaryArchive()
-		{
-			EnsureBinaryArchives();
-			return mImpl->MutableBinaryArchive;
-		}
-
 		void MetalGpuDevice::EnsureBinaryArchives()
 		{
 			// Double-checked locking: once initialized, the two archive handles are read-only and
@@ -359,8 +338,7 @@ namespace b3d
 			if (mImpl->BinaryArchivesInitialized.load(std::memory_order_acquire))
 				return;
 
-#if !TARGET_IPHONE_SIMULATOR
-			if (@available(macOS 11.0, iOS 14.0, *))
+			if (@available(macOS 11.0, *))
 			{
 				Lock lock(mImpl->BinaryArchivesMutex);
 				// Relaxed load is fine here: we hold BinaryArchivesMutex, which provides the
@@ -379,8 +357,7 @@ namespace b3d
 				{
 					mImpl->BinaryArchivePath = GetPipelineBinaryArchivePath();
 
-					// Load the existing on-disk archive (if any) into LoadedBinaryArchive. Failures here
-					// are non-fatal — the mutable archive below still lets us cache this session's compiles.
+					// Load the existing offline-populated archive when available.
 					if (FileSystem::Exists(mImpl->BinaryArchivePath))
 					{
 						MTLBinaryArchiveDescriptor* loadDesc = [[MTLBinaryArchiveDescriptor alloc] init];
@@ -402,25 +379,6 @@ namespace b3d
 						[loadDesc release];
 #endif
 					}
-
-					// Always create a fresh empty mutable archive. addRenderPipelineFunctionsWithDescriptor:
-					// requires an archive created *without* a URL; attempting to add to a URL-loaded archive
-					// fails because the loaded form is immutable.
-					MTLBinaryArchiveDescriptor* mutableDesc = [[MTLBinaryArchiveDescriptor alloc] init];
-					NSError* mutableError = nil;
-					mImpl->MutableBinaryArchive = [mImpl->Device newBinaryArchiveWithDescriptor:mutableDesc error:&mutableError];
-					if (mImpl->MutableBinaryArchive == nil)
-					{
-						NSString* desc = mutableError ? [mutableError localizedDescription] : @"unknown error";
-						B3D_LOG(Warning, LogRenderBackend,
-							"Could not create writable Metal pipeline binary archive: {0}. Pipeline caching disabled for this session.",
-							String([desc UTF8String]));
-						mImpl->BinaryArchivePath = Path();
-					}
-
-#if !__has_feature(objc_arc)
-					[mutableDesc release];
-#endif
 				}
 
 				// Release store publishes the archive / path writes above to any fast-path acquire
@@ -428,7 +386,6 @@ namespace b3d
 				mImpl->BinaryArchivesInitialized.store(true, std::memory_order_release);
 				return;
 			}
-#endif
 			// No binary-archive support on this platform / runtime. Flip the flag so future callers
 			// short-circuit without re-entering the availability check. Release store pairs with the
 			// fast-path acquire load.
@@ -455,40 +412,92 @@ namespace b3d
 				if (initSucceeded)
 					return;
 
-				// Unwind in reverse of construction. Heap allocator goes first so any pooled MTLHeap
-				// references drop before we nil the MTLDevice they were created from.
+				// The submit thread is constructed last, so it is only non-null here if a future edit
+				// adds a failure point after it. Tear it down before the queues it operates on.
+				mSubmitThread = nullptr;
+
+				// Shut down the vertex-input manager if it was started, and release the null vertex
+				// buffer, before the MTLDevice they depend on is nil'd below.
+				if (MetalVertexInputManager::IsStarted())
+					MetalVertexInputManager::ShutDown();
+#if !__has_feature(objc_arc)
+				[mImpl->NullVertexBuffer release];
+#endif
+				mImpl->NullVertexBuffer = nil;
+
+				// Unwind in reverse of construction. The resource manager goes before the heap
+				// allocator so any wrappers it still owns free their allocator spans before the heaps
+				// backing them are destroyed; the heap allocator then drops its pooled MTLHeap
+				// references before we nil the MTLDevice they were created from.
+				mResourceManager.reset();
 				mHeapAllocator.reset();
 
 				for (u32 queueIndex = 0; queueIndex < GQT_COUNT; queueIndex++)
 				{
 					mQueueInfos[queueIndex].Queues.Clear();
+					mQueueInfos[queueIndex].FamilyIndex = ~0u;
+#if !__has_feature(objc_arc)
+					[mImpl->QueueEvents[queueIndex] release];
+					[mImpl->CommandQueues[queueIndex] release];
+#endif
 					mImpl->QueueEvents[queueIndex] = nil;
 					mImpl->CommandQueues[queueIndex] = nil;
 				}
+
+#if !__has_feature(objc_arc)
+				[mImpl->TimestampCounterSet release];
+				[mImpl->Device release];
+#endif
+				mImpl->TimestampCounterSet = nil;
 				mImpl->Device = nil;
+				mImpl->SupportsRenderEncoderTimestamps = false;
+				mImpl->SupportsComputeEncoderTimestamps = false;
+				mImpl->SupportsBlitEncoderTimestamps = false;
+				mImpl->FirstTimestampPairCaptured = false;
+				mImpl->TimestampCalibrationDone = false;
+				mCapabilities = GpuDeviceCapabilities();
+				mMaxSamplerAnisotropy = 1;
+				mCpuBaseTimestamp = 0;
+				mGpuBaseTimestamp = 0;
+				mGpuTicksPerNanosecond = 0.0;
 			});
 
-			// Acquire the default system Metal device. Multi-GPU enumeration via MTLCopyAllDevices
-			// can be added later once the engine needs to pick a specific adapter.
+			// Apple Silicon Macs expose one integrated GPU, so the system default is the only supported adapter.
 			mImpl->Device = MTLCreateSystemDefaultDevice();
+#if !__has_feature(objc_arc)
+			[mImpl->Device retain];
+#endif
 			if (mImpl->Device == nil)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Failed to acquire a default Metal device. The Metal backend requires a Metal-capable GPU.");
 				return false;
 			}
 
-			// Tier-2 argument buffers are a hard requirement of the backend: the parameter set path
-			// encodes all bindings into argument buffers rather than the direct setBuffer/setTexture
-			// slots. Tier-2 is available on Apple GPU 4+ and Mac GPU 2+.
-			const bool supportsApple4 = [mImpl->Device supportsFamily:MTLGPUFamilyApple4];
-			const bool supportsMac2 = [mImpl->Device supportsFamily:MTLGPUFamilyMac2];
-			if (!supportsApple4 && !supportsMac2)
+			NSString* deviceName = [mImpl->Device name];
+			const String deviceNameString = deviceName ? String([deviceName UTF8String]) : String("<unknown>");
+			if (![mImpl->Device supportsFamily:MTLGPUFamilyApple7])
 			{
-				NSString* deviceName = [mImpl->Device name];
 				B3D_LOG(Error, LogRenderBackend,
-					"Metal backend requires Apple GPU 4+ or Mac GPU 2+ for Tier-2 argument buffers. "
-					"Reported device '{0}' does not qualify.",
-					deviceName ? String([deviceName UTF8String]) : String("<unknown>"));
+					"Metal backend requires an Apple Silicon GPU (Apple family 7 or newer). Reported device '{0}' does not qualify.",
+					deviceNameString);
+				return false;
+			}
+
+			if (![mImpl->Device hasUnifiedMemory])
+			{
+				B3D_LOG(Error, LogRenderBackend,
+					"Metal backend requires Apple Silicon unified memory. Reported device '{0}' does not expose unified memory.",
+					deviceNameString);
+				return false;
+			}
+
+			// The parameter-set ABI requires Tier 2 argument buffers. Query the feature directly;
+			// GPU-family inference is not equivalent (Apple family 6 is the first Tier 2 family).
+			if ([mImpl->Device argumentBuffersSupport] != MTLArgumentBuffersTier2)
+			{
+				B3D_LOG(Error, LogRenderBackend,
+					"Metal backend requires Tier 2 argument-buffer support. Reported device '{0}' does not qualify.",
+					deviceNameString);
 				return false;
 			}
 
@@ -521,9 +530,7 @@ namespace b3d
 
 			InitializeCapabilities();
 
-			// The pipeline binary archives (LoadedBinaryArchive / MutableBinaryArchive) used to be built
-			// here. They are now constructed lazily on the first pipeline compile via
-			// @c EnsureBinaryArchives — see GetLoadedBinaryArchive / GetMutableBinaryArchive. This pulls
+			// The pipeline binary archive is loaded lazily on the first pipeline compile. This pulls
 			// the NSSearchPathForDirectoriesInDomains + FileSystem::Exists + FileSystem::CreateFolder
 			// cost out of device init entirely.
 
@@ -534,6 +541,37 @@ namespace b3d
 			// resources do not outlive their parent heap.
 			mHeapAllocator = B3DMakeUnique<MetalHeapAllocator>(*this);
 
+			// Resource manager mints and tracks the low-level MetalBuffer / MetalImage /
+			// MetalImageSubresource wrappers minted by GetResourceManager().Create<T>. Constructed
+			// after the heap allocator (wrappers sub-allocate from it) and torn down before it in the
+			// destructor so heap-backed wrappers free their spans before the heaps are destroyed.
+			mResourceManager = B3DMakeUnique<MetalResourceManager>(*this);
+
+			// Shared zero-filled null vertex buffer. Bound by the command buffer at a vertex-input null
+			// stream's slot for shader inputs with no matching vertex-buffer element (see
+			// MetalGpuCommandBuffer::ResolveVertexInputForDraw). Sized for the largest vertex element
+			// type (kMetalNullVertexStreamStride == 16 bytes) with Shared storage so the CPU-side
+			// memset lands; contents are zeroed once and never mutated afterwards.
+			mImpl->NullVertexBuffer = [mImpl->Device newBufferWithLength:kMetalNullVertexStreamStride options:MTLResourceStorageModeShared];
+			if (mImpl->NullVertexBuffer == nil)
+			{
+				B3D_LOG(Error, LogRenderBackend, "Failed to create the shared null vertex buffer.");
+				return false;
+			}
+			std::memset([mImpl->NullVertexBuffer contents], 0, kMetalNullVertexStreamStride);
+
+			// Start the vertex-input manager that resolves vertex-buffer layouts against vertex shader
+			// inputs and caches the resulting MetalVertexInput (MTLVertexDescriptor) objects. Mirrors
+			// where the Vulkan backend starts VulkanVertexInputManager.
+			MetalVertexInputManager::StartUp();
+
+			// Start the submit thread that all queue submit and present operations are routed through.
+			// Constructed last: its worker immediately allocates one command buffer pool per queue
+			// type, so the queues (and the MTLDevice) must be fully created. Mirrors the construction
+			// tail of VulkanGpuDevice.
+			IGpuSubmitThreadBackend& submitThreadBackend = *this;
+			mSubmitThread = B3DMakeUnique<GpuSubmitThread>(*this, submitThreadBackend);
+
 			mIsInitialized = true;
 			initSucceeded = true;
 			return true;
@@ -541,23 +579,20 @@ namespace b3d
 
 		void MetalGpuDevice::InitializeCapabilities()
 		{
-			// Driver version is populated from the device name/registry-id; Metal does not expose a
-			// driver version string in the same way Vulkan does.
-			mCapabilities.DriverVersion.Major = 1;
+			// Metal does not expose a driver version string equivalent to Vulkan's driver version.
+			mCapabilities.DriverVersion.Major = 0;
 			mCapabilities.DriverVersion.Minor = 0;
 			mCapabilities.DriverVersion.Release = 0;
 			mCapabilities.DriverVersion.Build = 0;
 
 			NSString* deviceName = [mImpl->Device name];
 			mCapabilities.DeviceName = deviceName ? String([deviceName UTF8String]) : String();
-			mCapabilities.DeviceVendor = ParseVendorFromDeviceName(deviceName);
+			mCapabilities.DeviceVendor = GPU_APPLE;
 			mCapabilities.BackendName = "Metal";
 
-			// Probe Metal feature-set / GPU family. Apple4/Mac2 (Tier-2 argument buffers) is validated
-			// in Initialize(); here we use finer-grained tiers to toggle optional capabilities.
-			const bool supportsApple4 = [mImpl->Device supportsFamily:MTLGPUFamilyApple4];
-			const bool supportsApple6 = [mImpl->Device supportsFamily:MTLGPUFamilyApple6];
-			const bool supportsMac2 = [mImpl->Device supportsFamily:MTLGPUFamilyMac2];
+			// Tier 2 argument buffers are validated directly in Initialize(); family queries here only
+			// control independent optional capabilities.
+			B3D_ASSERT([mImpl->Device supportsFamily:MTLGPUFamilyApple7]);
 
 			// All supported Metal GPUs can run compute. Geometry shaders are not supported natively on
 			// Metal and the SPIRV-Cross emulation path is out of scope for this phase; we do not
@@ -572,24 +607,17 @@ namespace b3d
 			mCapabilities.SetCapability(RSC_LOAD_STORE);
 			mCapabilities.SetCapability(RSC_LOAD_STORE_MSAA);
 
-			if (supportsMac2)
+			if ([mImpl->Device supportsBCTextureCompression])
 				mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_BC);
-			if (supportsApple4)
-			{
-				mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_ETC2);
-				mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_ASTC);
-			}
+			mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_ETC2);
+			mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_ASTC);
 			mCapabilities.SetCapability(RSC_BYTECODE_CACHING);
 			mCapabilities.SetCapability(RSC_TEXTURE_VIEWS);
 			mCapabilities.SetCapability(RSC_RENDER_TARGET_LAYERS);
 			mCapabilities.SetCapability(RSC_MULTI_THREADED_CB);
 
-			// Per-encoder counter sampling is orthogonal to stage-boundary sampling: the encoder-level
-			// @c sampleCountersInBuffer:atSampleIndex:withBarrier: API requires the matching sampling
-			// point flag (Draw / Dispatch / Blit boundary). Apple Silicon advertises only the stage
-			// boundary, so calling the render-encoder variant on such devices trips Metal validation
-			// even though RSC_TIMER_QUERIES is set. Cache the per-encoder flags so WriteTimestamp can
-			// gate each branch and fall through to a supported encoder, or no-op with a warn-once log.
+			// The generic query API permits timestamps in render, compute, blit, and no-encoder contexts.
+			// Advertise it only when every command-boundary sampling point can honor that contract.
 			mImpl->SupportsRenderEncoderTimestamps =
 				[mImpl->Device supportsCounterSampling:MTLCounterSamplingPointAtDrawBoundary];
 			mImpl->SupportsComputeEncoderTimestamps =
@@ -597,17 +625,19 @@ namespace b3d
 			mImpl->SupportsBlitEncoderTimestamps =
 				[mImpl->Device supportsCounterSampling:MTLCounterSamplingPointAtBlitBoundary];
 
-			// Timestamp queries need both stage-boundary counter sampling and a resolvable timestamp
-			// counter set. Probe explicitly — Intel integrated GPUs on older macOS do not support this.
-			// We cache the resolved counter set on Impl so the query pool can build an MTLCounterSampleBuffer
-			// without re-scanning, and capture one CPU/GPU tick pair for wallclock conversion.
-			if ([mImpl->Device supportsCounterSampling:MTLCounterSamplingPointAtStageBoundary])
+			// Stage-boundary-only sampling cannot represent arbitrary nested engine markers without
+			// restructuring render passes, so expose honest unsupported behavior on those devices.
+			if (mImpl->SupportsRenderEncoderTimestamps && mImpl->SupportsComputeEncoderTimestamps
+				&& mImpl->SupportsBlitEncoderTimestamps)
 			{
 				for (id<MTLCounterSet> counterSet in [mImpl->Device counterSets])
 				{
 					if ([[counterSet name] isEqualToString:MTLCommonCounterSetTimestamp])
 					{
 						mImpl->TimestampCounterSet = counterSet;
+#if !__has_feature(objc_arc)
+						[mImpl->TimestampCounterSet retain];
+#endif
 						break;
 					}
 				}
@@ -633,11 +663,6 @@ namespace b3d
 				}
 			}
 
-			// Ray tracing requires Apple GPU 6+ (M-series) or discrete Mac GPUs with MTLGPUFamilyMac2
-			// + ray-tracing acceleration structure support. Leave this to a follow-up — we don't build
-			// ray-tracing shaders in the engine yet.
-			(void)supportsApple6;
-
 			// Metal's clip-space Y axis points up — matching D3D, not Vulkan. A positive gl_Position.y
 			// lands at the top of the viewport after the standard Metal viewport transform (origin
 			// top-left, height extending downward). This pairs with flip_vert_y = false in the SPIRV-
@@ -647,45 +672,33 @@ namespace b3d
 			mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Up;
 			mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;
 
-			// Metal guarantees at least 31 vertex buffer slots and 8 color render targets on macOS 2+.
-			// Note: slot 30 is reserved for the per-pipeline argument-buffer-member mapping in a future
-			// S13b-style dynamic-offsets fast path; engine callers should treat 30 as an internal reserve
-			// (the current code does not bind anything there, but leaves room for it).
-			mCapabilities.VertexBufferCount = 31;
+			// Metal exposes 31 vertex-stage buffer slots. Parameter sets use 0..15, vertex streams use
+			// 16..29, and slot 30 remains reserved for SPIRV-Cross auxiliary buffers.
+			mCapabilities.VertexBufferCount = kMetalVertexBufferSlotEnd - kMetalVertexBufferSlotBase;
 			mCapabilities.RenderTargetCount = 8;
 
-			constexpr u16 textureUnitsPerStage = 16;
-			for (u32 i = 0; i < GPT_COUNT; i++)
+			constexpr u16 resourcesPerStage = (kMetalMaximumParameterSetIndex + 1)
+				* (kMetalMaximumArgumentBufferSlot + 1);
+			const GpuProgramType supportedStages[] =
 			{
-				mCapabilities.SampledTexturesPerStage[i] = textureUnitsPerStage;
-				mCapabilities.UniformBufferCountPerStage[i] = 16;
+				GPT_VERTEX_PROGRAM,
+				GPT_FRAGMENT_PROGRAM,
+				GPT_COMPUTE_PROGRAM
+			};
+			for (GpuProgramType stage : supportedStages)
+			{
+				mCapabilities.SampledTexturesPerStage[stage] = resourcesPerStage;
+				mCapabilities.UniformBufferCountPerStage[stage] = resourcesPerStage;
+				mCapabilities.StorageTexturesPerStage[stage] = resourcesPerStage;
 			}
 
-			mCapabilities.StorageTexturesPerStage[GPT_FRAGMENT_PROGRAM] = 8;
-			mCapabilities.StorageTexturesPerStage[GPT_COMPUTE_PROGRAM] = 8;
+			mCapabilities.TotalSampledTexturesCount = resourcesPerStage * 3;
+			mCapabilities.TotalUniformBuffersCount = resourcesPerStage * 3;
+			mCapabilities.TotalStorageTexturesCount = resourcesPerStage * 3;
 
-			mCapabilities.TotalSampledTexturesCount = textureUnitsPerStage * GPT_COUNT;
-			mCapabilities.TotalUniformBuffersCount = 16 * GPT_COUNT;
-			mCapabilities.TotalStorageTexturesCount = 16;
-
-			mCapabilities.GeometryProgramNumOutputVertices = 1024;
-
-			// Uniform-buffer offset alignment differs by GPU family: Apple Silicon reports 16, older
-			// discrete / Intel hardware reports 256. Metal does not expose a public API to query this
-			// directly, so derive from the GPU family. Per Apple's "Metal Feature Set Tables", Apple
-			// family GPUs (Apple3+) align to 16, while Mac family GPUs align to 256.
-			//
-			// This alignment applies to *both* the plain-buffer binding path
-			// (@c setVertexBuffer:offset:atIndex: etc.) and to the argument-buffer binding path used by
-			// MetalGpuParameters: each buffer handle that @c MTLArgumentEncoder records via
-			// @c setBuffer:offset:atIndex: must start at an offset that matches this alignment, because
-			// the argument encoder writes the offset into the argument-buffer slot verbatim and the GPU
-			// re-applies it at fetch time. So the value below governs the engine's GpuBufferUtility
-			// sub-allocation granularity for every uniform buffer the backend binds — through a stage
-			// slot *or* through an argument buffer. Structured-buffer / vertex-buffer alignment follow
-			// the same family split (16 on Apple-family, 256 on Mac-family); the engine exposes only
-			// one cap field, so honor the strictest case here.
-			mCapabilities.MinimumUniformBufferOffsetAlignment = supportsApple4 ? 16 : 256;
+			// Use the engine's 16-byte uniform/structured-buffer suballocation ABI on Apple Silicon.
+			// Parameter-set updates validate the same alignment before encoding buffer pointers.
+			mCapabilities.MinimumUniformBufferOffsetAlignment = 16;
 
 			// Metal's sampler descriptor caps maxAnisotropy at 16 across every feature set documented in
 			// "Metal Feature Set Tables"; the value is probed here so the sampler can clamp without
@@ -745,6 +758,37 @@ namespace b3d
 			return buffer;
 		}
 
+		TShared<GpuBuffer> MetalGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation,
+			IGpuAllocator& allocator, GpuObjectCreateFlags flags)
+		{
+			MetalGpuBuffer* rawBuffer = new(B3DAllocate<MetalGpuBuffer>()) MetalGpuBuffer(*this, createInformation, allocator);
+
+			TShared<MetalGpuBuffer> buffer = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+				? B3DMakeSharedFromExisting(rawBuffer)
+				: MakeSharedStandalone<MetalGpuBuffer>(rawBuffer);
+
+			buffer->SetShared(buffer);
+
+			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
+				buffer->Initialize();
+
+			return buffer;
+		}
+
+		u32 MetalGpuDevice::PickBufferMemoryType(const GpuBufferCreateInformation& createInformation) const
+		{
+			return MetalHeapAllocator::PickBufferMemoryType(createInformation);
+		}
+
+		TUnique<IGpuAllocator> MetalGpuDevice::CreateTransientAllocator(u32 memoryType,
+			IGpuCompletionTracker& completionTracker)
+		{
+			if (mHeapAllocator == nullptr)
+				return nullptr;
+
+			return mHeapAllocator->CreateTransientAllocator(memoryType, completionTracker);
+		}
+
 		TShared<GpuQueryPool> MetalGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
 		{
 			return B3DMakeShared<MetalGpuQueryPool>(*this, createInformation);
@@ -790,9 +834,10 @@ namespace b3d
 			return B3DMakeShared<MetalGpuPipelineParameterLayout>(*this, createInformation);
 		}
 
-		TShared<GpuPipelineParameterSetLayout> MetalGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
+		TShared<GpuPipelineParameterSetLayout> MetalGpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& resourceTableLayout, u32 tableIndex)
 		{
-			return B3DMakeShared<MetalGpuPipelineParameterSetLayout>(*this, parameterDescription);
+			return B3DMakeShared<MetalGpuPipelineParameterSetLayout>(parameterDescription, resourceTableLayout,
+				tableIndex);
 		}
 
 		TUnique<GpuParameterSetPool> MetalGpuDevice::CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation)
@@ -906,8 +951,58 @@ namespace b3d
 
 		void MetalGpuDevice::WaitUntilIdle()
 		{
-			// Wait on each queue's shared event rather than enumerating in-flight command buffers. Each
-			// queue's WaitUntilIdle blocks until that queue's last reserved event value is signaled.
+			// The submit thread lives from the end of Initialize() to the start of destruction; in the
+			// remaining windows the native wait suffices. Mirrors VulkanGpuDevice::WaitUntilIdle.
+			if (mSubmitThread == nullptr)
+			{
+				ExecuteWaitUntilIdle();
+				return;
+			}
+
+			GetSubmitThread().WaitUntilIdle();
+		}
+
+		void MetalGpuDevice::EndFrame()
+		{
+			ASSERT_IF_NOT_RENDER_THREAD
+
+			// Signal end-of-frame to the submit thread. This blocks until the previous frame's
+			// resources are safe to reuse (per-queue submit indices captured at the frame boundary are
+			// waited on via RefreshCompletionState). Mirrors VulkanGpuDevice::EndFrame.
+			GetSubmitThread().QueueEndFrameAndWaitForPreviousFrame();
+		}
+
+		void MetalGpuDevice::NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer)
+		{
+			static_cast<MetalGpuCommandBuffer&>(commandBuffer).NotifyWillQueueForSubmit();
+		}
+
+		void MetalGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+		{
+			MetalGpuQueue& metalQueue = static_cast<MetalGpuQueue&>(queue);
+			MetalGpuCommandBuffer& metalCommandBuffer = static_cast<MetalGpuCommandBuffer&>(*commandBuffer);
+
+			// CommitInternal encodes the cross-queue waits/signal + user fence signals and commits the
+			// MTLCommandBuffer. The submit thread is the sole caller, keeping per-queue submission
+			// order deterministic.
+			metalCommandBuffer.CommitInternal(metalQueue, syncMask, signalFences);
+		}
+
+		void MetalGpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, bool queueEmpty, u32 lastSubmitIndex)
+		{
+			static_cast<MetalGpuQueue&>(queue).RefreshCompletionState(forceWait, queueEmpty, lastSubmitIndex);
+		}
+
+		u32 MetalGpuDevice::GetLastSubmitIndex(const GpuQueue& queue) const
+		{
+			return static_cast<const MetalGpuQueue&>(queue).GetLastSubmitIndex();
+		}
+
+		void MetalGpuDevice::ExecuteWaitUntilIdle()
+		{
+			// Native device-wide wait: drain every queue's shared event and fence its completion
+			// handlers. Runs on the submit thread (via GpuSubmitThread::WaitUntilIdle) or inline during
+			// the construction/teardown windows where no submit thread exists.
 			for (u32 typeIndex = 0; typeIndex < GQT_COUNT; typeIndex++)
 			{
 				const GpuQueueType queueType = (GpuQueueType)typeIndex;
@@ -916,9 +1011,14 @@ namespace b3d
 				{
 					TShared<GpuQueue> queue = GetQueue(queueType, queueIndex);
 					if (queue)
-						queue->WaitUntilIdle();
+						static_cast<MetalGpuQueue&>(*queue).ExecuteWaitUntilIdle();
 				}
 			}
+		}
+
+		void MetalGpuDevice::ExecuteWaitUntilIdle(GpuQueue& queue)
+		{
+			static_cast<MetalGpuQueue&>(queue).ExecuteWaitUntilIdle();
 		}
 
 		TShared<SamplerState> MetalGpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags)

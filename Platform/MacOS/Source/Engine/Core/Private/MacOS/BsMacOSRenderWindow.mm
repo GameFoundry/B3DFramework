@@ -135,10 +135,12 @@ void MacOSRenderWindow::Initialize()
 
 	mWindow = B3DNew<CocoaWindow>(windowCreateInformation);
 	mWindow->SetUserDataInternal(this);
+	mWindow->Resize(mCreateInformation.VideoMode.Width, mCreateInformation.VideoMode.Height);
 
 	Area2I area = mWindow->GetArea();
-	mRenderTargetProperties.Width = area.Width;
-	mRenderTargetProperties.Height = area.Height;
+	const Vector2I framebufferSize = mWindow->GetFramebufferSizeInternal();
+	mRenderTargetProperties.Width = (u32)framebufferSize.X;
+	mRenderTargetProperties.Height = (u32)framebufferSize.Y;
 	mRenderWindowProperties.Top = area.Y;
 	mRenderWindowProperties.Left = area.X;
 	mRenderWindowProperties.HasFocus = true;
@@ -152,7 +154,9 @@ void MacOSRenderWindow::Initialize()
 	if(mRenderWindowProperties.IsHidden)
 		mWindow->SetHidden(true);
 
-	CAMetalLayer* layer = [[CAMetalLayer alloc] init];
+	CAMetalLayer* layer = [CAMetalLayer layer];
+	layer.contentsScale = mWindow->GetPrivateDataInternal()->Window.backingScaleFactor;
+	layer.drawableSize = CGSizeMake(mRenderTargetProperties.Width, mRenderTargetProperties.Height);
 	mWindow->SetLayerInternal((__bridge void*)layer);
 
 	// New windows always receive focus, but we don't receive an initial event from the OS, so trigger one manually
@@ -177,6 +181,7 @@ void MacOSRenderWindow::Destroy()
 
 	if(mWindow != nullptr)
 	{
+		mWindow->SetLayerInternal(nullptr);
 		B3DDelete(mWindow);
 		mWindow = nullptr;
 	}
@@ -213,8 +218,9 @@ void MacOSRenderWindow::Resize(u32 width, u32 height)
 	{
 		mWindow->Resize(width, height);
 
-		mRenderTargetProperties.Width = mWindow->GetWidth();
-		mRenderTargetProperties.Height = mWindow->GetHeight();
+		const Vector2I framebufferSize = mWindow->GetFramebufferSizeInternal();
+		mRenderTargetProperties.Width = (u32)framebufferSize.X;
+		mRenderTargetProperties.Height = (u32)framebufferSize.Y;
 
 		MarkRenderProxyDataDirty();
 		OnResized();
@@ -254,8 +260,9 @@ void MacOSRenderWindow::Maximize()
 	mRenderWindowProperties.IsMaximized = true;
 	mRenderWindowProperties.IsMinimized = false;
 
-	mRenderTargetProperties.Width = mWindow->GetWidth();
-	mRenderTargetProperties.Height = mWindow->GetHeight();
+	const Vector2I framebufferSize = mWindow->GetFramebufferSizeInternal();
+	mRenderTargetProperties.Width = (u32)framebufferSize.X;
+	mRenderTargetProperties.Height = (u32)framebufferSize.Y;
 
 	MarkRenderProxyDataDirty();
 }
@@ -267,8 +274,9 @@ void MacOSRenderWindow::Restore()
 	mRenderWindowProperties.IsMaximized = false;
 	mRenderWindowProperties.IsMinimized = false;
 
-	mRenderTargetProperties.Width = mWindow->GetWidth();
-	mRenderTargetProperties.Height = mWindow->GetHeight();
+	const Vector2I framebufferSize = mWindow->GetFramebufferSizeInternal();
+	mRenderTargetProperties.Width = (u32)framebufferSize.X;
+	mRenderTargetProperties.Height = (u32)framebufferSize.Y;
 
 	MarkRenderProxyDataDirty();
 }
@@ -344,10 +352,9 @@ void MacOSRenderWindow::SetWindowed(u32 width, u32 height)
 	}
 
 	mWindow->SetWindowed();
+	mWindow->Resize(width, height);
 
 	mRenderWindowProperties.IsFullScreen = false;
-	mRenderTargetProperties.Width = width;
-	mRenderTargetProperties.Height = height;
 
 	DoOnWindowMovedOrResized();
 	MarkRenderProxyDataDirty();
@@ -417,8 +424,9 @@ void MacOSRenderWindow::DoOnWindowMovedOrResized()
 
 	mRenderWindowProperties.Top = mWindow->GetTop();
 	mRenderWindowProperties.Left = mWindow->GetLeft();
-	mRenderTargetProperties.Width = mWindow->GetWidth();
-	mRenderTargetProperties.Height = mWindow->GetHeight();
+	const Vector2I framebufferSize = mWindow->GetFramebufferSizeInternal();
+	mRenderTargetProperties.Width = (u32)framebufferSize.X;
+	mRenderTargetProperties.Height = (u32)framebufferSize.Y;
 
 	MarkRenderProxyDataDirty();
 

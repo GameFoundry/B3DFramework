@@ -86,7 +86,7 @@ void D3D12RenderWindowSurface::CreateSwapChainInternal(u32 width, u32 height, bo
 	}
 }
 
-void D3D12RenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsync)
+void D3D12RenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsync, u32 vsyncInterval)
 {
 	if (!mSwapChain || mIsDestroyed)
 		return;
@@ -106,6 +106,7 @@ void D3D12RenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsyn
 	oldSwapChain->MarkAsRetired();
 
 	mVsync = vsync;
+	mVsyncInterval = vsyncInterval == 0 ? 1 : vsyncInterval;
 
 	CreateSwapChainInternal(width, height, vsync, oldSwapChain);
 

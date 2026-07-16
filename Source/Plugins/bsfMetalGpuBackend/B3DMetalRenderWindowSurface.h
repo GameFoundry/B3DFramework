@@ -3,112 +3,148 @@
 #pragma once
 
 #include "B3DMetalPrerequisites.h"
-#include "GpuBackend/B3DRenderWindow.h"
+#include "B3DIMetalRenderWindowSurface.h"
+#include "B3DMetalResource.h"
+#include "GpuBackend/B3DGpuSwapChain.h"
+#include "Threading/B3DSingleConsumerQueue.h"
 #include "Threading/B3DThreading.h"
 #include <atomic>
 
 namespace b3d::render
 {
-	class MetalGpuDevice;
+	class MetalRenderWindowSurface;
+
+	/** Submit-thread presentation bridge for a CAMetalLayer drawable. */
+	class MetalSwapChain final : public TMetalResource<GpuSwapChain>
+	{
+		using Super = TMetalResource<GpuSwapChain>;
+		struct PendingDrawable
+		{
+			u32 Index = 0;
+			CAMetalDrawableRef Drawable = nullptr;
+			bool VSync = false;
+			u32 VSyncInterval = 1;
+			float RefreshRate = 60.0f;
+		};
+
+	public:
+		MetalSwapChain(MetalResourceManager* owner, MetalRenderWindowSurface& surface);
+		~MetalSwapChain() override;
+
+		SingleConsumerQueue& GetMessageQueue() override { return mMessageQueue; }
+		void AcquireImage() override;
+		void Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncMask) override;
+		bool TryGetFirstAcquiredImageIndex(u32& outImageIndex) const override;
+		void NotifyWasImageAcquireQueued() override;
+		void NotifyWasPresentQueued(u32 imageIndex) override;
+		bool IsRetired() const override { return mIsRetired.load(std::memory_order_acquire); }
+
+		MTLTextureRef AcquireDrawable(CAMetalLayerRef layer);
+		MTLTextureRef GetCurrentTexture() const;
+		void AbortCurrentDrawable();
+		void MarkDrawableAsRendered();
+		void Retire();
+
+	private:
+		void ReleaseDrawable(CAMetalDrawableRef& drawable);
+
+		MetalRenderWindowSurface& mSurface;
+		mutable Mutex mMutex;
+		SingleConsumerQueue mMessageQueue;
+		Vector<PendingDrawable> mPendingDrawables;
+		CAMetalDrawableRef mCurrentDrawable = nullptr;
+		u32 mCurrentDrawableIndex = 0;
+		u32 mNextDrawableIndex = 1;
+		bool mCurrentDrawableWasRenderedInto = false;
+		std::atomic<bool> mIsRetired{ false };
+	};
 
 	/** @addtogroup MetalGpuBackend
 	 *  @{
 	 */
 
 	/**
-	 * Metal implementation of IRenderWindowSurface.
+	 * Metal implementation of IMetalRenderWindowSurface for surfaces backed by an OS window.
 	 *
-	 * Attaches a @c CAMetalLayer to the native platform view (NSView on macOS, UIView on iOS). The
-	 * layer owns the drawable queue; @c AcquireDrawable() pulls the next drawable to render into,
-	 * and @c SwapBuffers() commits it for presentation.
+	 * Resolves the @c CAMetalLayer attached to the engine's Cocoa window. The layer owns the drawable queue;
+	 * @c AcquireColorTexture() acquires late, while @c SwapBuffers() queues the drawable through MetalSwapChain.
+	 *
+	 * Objective-C members use ARC strong ownership in normal builds, with guarded manual retain/release support for
+	 * non-ARC configurations.
 	 */
-	class MetalRenderWindowSurface final : public IRenderWindowSurface
+	class MetalRenderWindowSurface final : public IMetalRenderWindowSurface
 	{
 	public:
 		MetalRenderWindowSurface(MetalGpuDevice& device, const RenderWindowSurfaceCreateInformation& createInformation);
 		~MetalRenderWindowSurface() override;
 
+		// IRenderWindowSurface
 		void SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask) override;
-		void RebuildSwapChain(u32 width, u32 height, bool vsync) override;
+		void RebuildSwapChain(u32 width, u32 height, bool vsync, u32 vsyncInterval) override;
 		void MarkSwapChainAsInvalid() override;
-		TAsyncOp<TShared<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer) override;
 		void Destroy() override;
 
-#ifdef __OBJC__
-		/**
-		 * Acquires the next drawable from the swap chain. Must be called once per frame before
-		 * opening a render encoder that writes to this surface.
-		 */
-		id<CAMetalDrawable> AcquireDrawable();
-
-		/** Returns the pixel format of the drawable texture (derived from the CAMetalLayer). */
-		MTLPixelFormat GetColorFormat() const;
-
-		/**
-		 * Releases the currently-acquired drawable without presenting it. Called when the render pass
-		 * that acquired it failed to open its encoder — without this, the drawable would remain held
-		 * until the next successful @c SwapBuffers, stalling the drawable pool for one or more frames.
-		 */
-		void AbortCurrentDrawable();
-
-		/**
-		 * Records that the currently-acquired drawable has had a render encoder open successfully
-		 * against it, so @c SwapBuffers is permitted to present it. Called by the command buffer
-		 * after @c renderCommandEncoderWithDescriptor: returns non-nil — the render pass's color
-		 * attachment is configured to store to the drawable texture, so a valid encoder guarantees
-		 * the drawable will carry rendered content at submission time. If no encoder ever opens
-		 * against a drawable (e.g. all render passes aborted mid-frame), @c SwapBuffers detects the
-		 * unset flag and drops the drawable without presenting, avoiding a frame of undefined
-		 * content on screen.
-		 */
-		void MarkDrawableAsRendered();
-#endif
+		// IMetalRenderWindowSurface
+		MTLTextureRef AcquireColorTexture() override;
+		MTLTextureRef GetCurrentColorTexture() const override;
+		MTLTextureRef GetDepthStencilTexture() const override { return mDepthStencilTexture; }
+		MTLPixelFormatValue GetColorFormat() const override;
+		PixelFormat GetColorPixelFormat() const override { return PF_BGRA8; }
+		bool IsSwapChainValid() const override
+		{
+			return mValid && mLayer != nullptr && !mNeedsDrawableSizeReapply.load(std::memory_order_acquire);
+		}
+		void AbortCurrentDrawable() override;
+		void MarkDrawableAsRendered() override;
 
 	private:
+		friend class MetalSwapChain;
+		/**
+		 * Drains any pending resize/vsync change staged by RebuildSwapChain / MarkSwapChainAsInvalid, re-applying
+		 * the layer's drawableSize and recreating the depth buffer if the size changed. Render thread only.
+		 */
+		void ApplyPendingStateIfNeeded();
+
+		/** (Re)creates the depth/stencil texture at the current surface size, if one was requested. Render thread only. */
+		void RecreateDepthStencilTextureIfNeeded();
+
+		/** Releases the currently-held drawable (if any) and resets the rendered-into flag. */
+		void ReleaseCurrentDrawable();
+
 		MetalGpuDevice& mGpuDevice;
 
-#ifdef __OBJC__
-		// Obj-C strong members held directly on the class (ARC). Previously hidden behind a pimpl
-		// to keep Obj-C types out of the header, but the header already gates its Obj-C surface on
-		// @c __OBJC__ so the pimpl added an allocation + pointer-chase with no encapsulation win.
-		CAMetalLayer* mLayer = nil;
-		id<CAMetalDrawable> mCurrentDrawable = nil;
-		// Tracks whether the currently-held drawable has been rendered into by at least one render
-		// pass this frame. Flipped true by @c MarkDrawableAsRendered (called from the cmd buffer
-		// after a successful encoder open) and reset whenever the drawable slot turns over
-		// (@c AbortCurrentDrawable, @c SwapBuffers tail, @c Destroy, @c MarkSwapChainAsInvalid).
-		// Prevents presenting a drawable whose contents are undefined because no render pass ever
-		// wrote to it — the previous behavior silently pushed garbage to the compositor.
-		bool mDrawableWasRenderedInto = false;
-#endif
+		// Obj-C strong members, with guarded manual ownership in non-ARC builds. The unconditional handle aliases keep
+		// class layout identical in .cpp and .mm translation units.
+		CAMetalLayerRef mLayer = nullptr;
+		MTLTextureRef mDepthStencilTexture = nullptr;
+		MetalSwapChain* mSwapChain = nullptr;
 
-		// These four fields are render-thread-only after construction. @c RebuildSwapChain /
-		// @c MarkSwapChainAsInvalid (which may fire from the main thread during live-resize) stage
-		// their values into the @c mPending* fields below and set @c mNeedsDrawableSizeReapply; the
-		// render thread drains them in @c AcquireDrawable.
+		// These fields are render-thread-only after construction. @c RebuildSwapChain / @c MarkSwapChainAsInvalid
+		// (which may fire from the main thread during live-resize) stage their values into the @c mPending* fields
+		// below and set @c mNeedsDrawableSizeReapply; the render thread drains them in @c AcquireColorTexture.
 		u32 mWidth = 0;
 		u32 mHeight = 0;
 		bool mVSync = false;
-		// Present rate divisor. 1 means every refresh (native rate), 2 means half rate, etc. Used by
-		// @c SwapBuffers to pick between plain @c presentDrawable: (interval <= 1) and the timed
-		// @c presentDrawable:afterMinimumDuration: / @c presentAfterMinimumDuration: variant
-		// (interval > 1) so the engine can run at a fractional display rate without burning CPU.
+		// Present rate divisor. 1 means every refresh, 2 means half rate, etc.
 		u32 mVSyncInterval = 1;
+		float mRefreshRate = 60.0f;
 		bool mHwGamma = false;
+		bool mCreateDepthBuffer = false;
 		bool mValid = true;
 
-		// Set by MarkSwapChainAsInvalid / RebuildSwapChain; AcquireDrawable re-applies drawableSize
-		// before requesting the next drawable so the layer resyncs with the engine's expected size
-		// after a displayed-surface invalidation (window moved between displays, scale factor change,
-		// etc.). Atomic because writes come from any thread, reads/clear happen on the render thread.
+		// Set by MarkSwapChainAsInvalid / RebuildSwapChain; AcquireColorTexture re-applies drawableSize before
+		// requesting the next drawable so the layer resyncs with the engine's expected size after a
+		// displayed-surface invalidation. Atomic because writes come from any thread, reads/clear happen on the
+		// render thread.
 		std::atomic<bool> mNeedsDrawableSizeReapply{ false };
 
-		// Guards the pending resize payload. Held only long enough to copy a small POD struct, so
-		// contention between the (infrequent) resize writer and the render thread is negligible.
+		// Guards the pending resize payload. Held only long enough to copy a small POD struct, so contention
+		// between the (infrequent) resize writer and the render thread is negligible.
 		mutable Mutex mPendingStateMutex;
 		u32 mPendingWidth = 0;
 		u32 mPendingHeight = 0;
 		bool mPendingVSync = false;
+		u32 mPendingVSyncInterval = 1;
 	};
 
 	/** @} */

@@ -2,25 +2,24 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DMetalGpuPipelineParameterLayout.h"
 #include "B3DMetalGpuDevice.h"
-#include "B3DMetalBytecodeLayout.h"
+#include "B3DMetalShaderABI.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "Utility/B3DCommonTypes.h"
+#include "Debug/B3DLog.h"
 #include <algorithm>
 
 namespace b3d
 {
 	namespace render
 	{
-		struct MetalGpuPipelineParameterSetLayout::Impl
-		{
-			// Retained MTLArgumentDescriptor list. Kept so each MetalGpuParameters can spin up its own
-			// MTLArgumentEncoder without re-walking the base-class parameter description. Empty when the
-			// layout has no bindings.
-			NSMutableArray<MTLArgumentDescriptor*>* Descriptors = nil;
-		};
-
 		namespace
 		{
+			u64 AlignUp(u64 value, u32 alignment)
+			{
+				const u64 mask = (u64)alignment - 1;
+				return (value + mask) & ~mask;
+			}
+
 			/** Maps the engine's per-stage usage flags into a bitmask over @c GpuProgramStageBit values. */
 			u32 BuildStageMask(const GpuProgramStageBits& usage)
 			{
@@ -112,72 +111,37 @@ namespace b3d
 				return stages;
 			}
 
-			/** Maps an engine texture object type to the Metal texture type used by the argument encoder. */
-			MTLTextureType MapMetalTextureType(GpuParameterObjectType type)
-			{
-				switch (type)
-				{
-				case GPOT_SAMPLER1D:
-				case GPOT_TEXTURE1D:
-				case GPOT_RWTEXTURE1D:
-					return MTLTextureType1D;
-				case GPOT_TEXTURE1DARRAY:
-				case GPOT_RWTEXTURE1DARRAY:
-					return MTLTextureType1DArray;
-				case GPOT_SAMPLER2D:
-				case GPOT_TEXTURE2D:
-				case GPOT_RWTEXTURE2D:
-					return MTLTextureType2D;
-				case GPOT_TEXTURE2DARRAY:
-				case GPOT_RWTEXTURE2DARRAY:
-					return MTLTextureType2DArray;
-				case GPOT_SAMPLER2DMS:
-				case GPOT_TEXTURE2DMS:
-				case GPOT_RWTEXTURE2DMS:
-					return MTLTextureType2DMultisample;
-				case GPOT_TEXTURE2DMSARRAY:
-				case GPOT_RWTEXTURE2DMSARRAY:
-					return MTLTextureType2DMultisampleArray;
-				case GPOT_SAMPLER3D:
-				case GPOT_TEXTURE3D:
-				case GPOT_RWTEXTURE3D:
-					return MTLTextureType3D;
-				case GPOT_SAMPLERCUBE:
-				case GPOT_TEXTURECUBE:
-					return MTLTextureTypeCube;
-				case GPOT_TEXTURECUBEARRAY:
-					return MTLTextureTypeCubeArray;
-				default:
-					return MTLTextureType2D;
-				}
-			}
 		} // namespace
 
 		MetalGpuPipelineParameterSetLayout::MetalGpuPipelineParameterSetLayout(
-			MetalGpuDevice& gpuDevice, const GpuProgramParameterDescription& parameterDescription)
+			const GpuProgramParameterDescription& parameterDescription,
+			const TShared<GpuResourceTableLayout>& resourceTableLayout, u32 tableIndex)
 			: GpuPipelineParameterSetLayout(parameterDescription)
-			, mGpuDevice(gpuDevice)
-			, mImpl(B3DMakeUnique<Impl>())
 		{
 			@autoreleasepool
 			{
-				// Gather bindings per type, sort deterministically by slot, then assign a monotonically
-				// increasing argument-buffer index. Metal argument buffers share one flat index namespace
-				// per set across buffers, textures and samplers, so assigning `slot` directly as the index
-				// causes collisions (e.g. UB slot 0 and sampler slot 0 would overwrite the same member).
-				// The same ordering is replicated in MetalGpuDevice's SPIRV-Cross hook
-				// (see fnCollectBinding), so the MSL-side encoder slot agrees with the MTLArgumentEncoder
-				// layout built here.
+				// Gather bindings per type and sort deterministically. This is both the CPU dirty-slot order
+				// and the fallback ABI for explicitly-created layouts that have no program reflection attached.
 				auto fnCollectBindings = [&](GpuParameterType type)
 				{
 					const u32 startIndex = (u32)mBindings.Size();
 					for (const auto* entry : mUniformsPerType[(u32)type])
 					{
+						if (entry->Slot > kMetalMaximumArgumentBufferSlot || entry->ArraySize == 0
+							|| entry->ArraySize > kMetalArgumentBufferArrayStride)
+						{
+							B3D_LOG(Error, LogRenderBackend,
+								"Metal argument-buffer binding exceeds the supported ABI. Slot: {0}, array size: {1}.",
+								entry->Slot, entry->ArraySize);
+							continue;
+						}
+
 						MetalArgumentBufferBinding record;
 						record.Slot = entry->Slot;
 						record.Type = entry->Type;
 						record.ObjectType = entry->ObjectType;
 						record.ArraySize = entry->ArraySize;
+						record.DynamicOffsetIndex = entry->DynamicOffsetIndex;
 						record.StageMask = BuildStageMask(entry->Usage);
 						mBindings.Add(record);
 					}
@@ -191,9 +155,8 @@ namespace b3d
 						});
 				};
 
-				// Iterate per-type in the canonical kTypeOrder* sequence from B3DMetalBytecodeLayout.h —
-				// the SPIRV-Cross hook in the bsfShaderBackendMSL compiler uses the same constants to assign MSL
-				// argument-buffer indices, so both sides must agree on the order by construction.
+				// Iterate per-type in the canonical kTypeOrder* sequence from B3DMetalShaderABI.h so
+				// CPU-side dirty-slot indices remain deterministic across layouts and shader permutations.
 				static_assert(kTypeOrderUniformBuffer  == 0, "Canonical type order changed; update table below.");
 				static_assert(kTypeOrderSampledTexture == 1, "Canonical type order changed; update table below.");
 				static_assert(kTypeOrderStorageTexture == 2, "Canonical type order changed; update table below.");
@@ -210,8 +173,74 @@ namespace b3d
 				for (GpuParameterType orderedType : kOrderedTypes)
 					fnCollectBindings(orderedType);
 
-				for (u32 i = 0; i < (u32)mBindings.Size(); ++i)
-					mBindings[i].ArgIndex = i;
+				const bool hasReflectedLayout = resourceTableLayout != nullptr;
+				const GpuDescriptorTable* reflectedTable = nullptr;
+				bool reflectedLayoutValid = true;
+				if(hasReflectedLayout)
+				{
+					if(tableIndex >= (u32)resourceTableLayout->Tables.size())
+					{
+						B3D_LOG(Error, LogRenderBackend, "Metal parameter-set layout received an invalid reflected table index {0}.", tableIndex);
+						reflectedLayoutValid = false;
+					}
+					else
+						reflectedTable = &resourceTableLayout->Tables[tableIndex];
+				}
+
+				u32 resourceIndex = 0;
+				u32 fallbackByteOffset = 0;
+				for (MetalArgumentBufferBinding& binding : mBindings)
+				{
+					binding.ArgIndex = resourceIndex;
+					binding.FirstResourceIndex = resourceIndex;
+					resourceIndex += binding.ArraySize;
+					binding.ByteOffset = fallbackByteOffset;
+					binding.ByteStride = sizeof(u64);
+					fallbackByteOffset += binding.ArraySize * (u32)sizeof(u64);
+
+					if(reflectedTable == nullptr)
+						continue;
+
+					const GpuDescriptorTableEntry* reflectedEntry = nullptr;
+					for(const GpuDescriptorTableEntry& candidate : resourceTableLayout->GetEntries(*reflectedTable))
+					{
+						if(candidate.Kind == GpuDescriptorEntryKind::Resource && candidate.Type == binding.Type
+							&& candidate.Slot == binding.Slot)
+						{
+							reflectedEntry = &candidate;
+							break;
+						}
+					}
+
+					if(reflectedEntry == nullptr || reflectedEntry->DescriptorCount != binding.ArraySize
+						|| reflectedEntry->DescriptorSizeInBytes < sizeof(u64))
+					{
+						B3D_LOG(Error, LogRenderBackend, "Metal reflection is missing a valid Tier-2 argument-buffer entry "
+							"for set {0}, slot {1}, type {2}.", reflectedTable->Set, binding.Slot, (u32)binding.Type);
+						reflectedLayoutValid = false;
+						continue;
+					}
+
+					const u64 bindingEnd = (u64)reflectedEntry->OffsetInBytes
+						+ (u64)(binding.ArraySize - 1) * reflectedEntry->DescriptorSizeInBytes + sizeof(u64);
+					if(bindingEnd > reflectedTable->SizeInBytes)
+					{
+						B3D_LOG(Error, LogRenderBackend, "Metal reflection reported an out-of-bounds argument-buffer entry "
+							"for set {0}, slot {1}.", reflectedTable->Set, binding.Slot);
+						reflectedLayoutValid = false;
+						continue;
+					}
+
+					binding.ByteOffset = reflectedEntry->OffsetInBytes;
+					binding.ByteStride = reflectedEntry->DescriptorSizeInBytes;
+				}
+
+				if(hasReflectedLayout && !reflectedLayoutValid)
+					return;
+
+				const u64 reflectedSize = reflectedTable != nullptr ? reflectedTable->SizeInBytes : 0;
+				mArgumentBufferSize = AlignUp(reflectedTable != nullptr ? reflectedSize : fallbackByteOffset,
+					mArgumentBufferAlignment);
 
 				// Fold every binding's stage mask into one value. Command-buffer bind paths read this to
 				// decide which stages receive the argument buffer (B7). Computed after ArgIndex assignment
@@ -254,9 +283,8 @@ namespace b3d
 					return &mComputeBuckets[mComputeBuckets.Size() - 1];
 				};
 
-				for (u32 bindingIndex = 0; bindingIndex < (u32)mBindings.Size(); ++bindingIndex)
+				for (const MetalArgumentBufferBinding& binding : mBindings)
 				{
-					const MetalArgumentBufferBinding& binding = mBindings[bindingIndex];
 					if (binding.Type == GpuParameterType::Sampler)
 						continue;
 
@@ -266,81 +294,22 @@ namespace b3d
 					if (renderStages != (MTLRenderStages)0)
 					{
 						ArgumentBindingBucket* renderBucket = fnFindOrAddRenderBucket(usage, renderStages);
-						renderBucket->BindingIndices.Add((u16)bindingIndex);
+						for (u32 arrayIndex = 0; arrayIndex < binding.ArraySize; arrayIndex++)
+							renderBucket->ResourceIndices.Add(binding.FirstResourceIndex + arrayIndex);
 					}
 
 					if (binding.StageMask & (u32)GpuProgramStageBit::Compute)
 					{
 						ArgumentBindingBucket* computeBucket = fnFindOrAddComputeBucket(usage);
-						computeBucket->BindingIndices.Add((u16)bindingIndex);
+						for (u32 arrayIndex = 0; arrayIndex < binding.ArraySize; arrayIndex++)
+							computeBucket->ResourceIndices.Add(binding.FirstResourceIndex + arrayIndex);
 					}
 				}
 
-				NSMutableArray<MTLArgumentDescriptor*>* descriptors = [NSMutableArray array];
-				for (const MetalArgumentBufferBinding& binding : mBindings)
-				{
-					MTLArgumentDescriptor* desc = [MTLArgumentDescriptor argumentDescriptor];
-					desc.index = binding.ArgIndex;
-					desc.arrayLength = binding.ArraySize > 1 ? binding.ArraySize : 0;
-
-					switch (binding.Type)
-					{
-					case GpuParameterType::UniformBuffer:
-						desc.dataType = MTLDataTypePointer;
-						desc.access = MTLArgumentAccessReadOnly;
-						break;
-					case GpuParameterType::StorageBuffer:
-						desc.dataType = MTLDataTypePointer;
-						desc.access = IsWritableBufferType(binding.ObjectType)
-							? MTLArgumentAccessReadWrite
-							: MTLArgumentAccessReadOnly;
-						break;
-					case GpuParameterType::SampledTexture:
-						desc.dataType = MTLDataTypeTexture;
-						desc.textureType = MapMetalTextureType(binding.ObjectType);
-						desc.access = MTLArgumentAccessReadOnly;
-						break;
-					case GpuParameterType::StorageTexture:
-						desc.dataType = MTLDataTypeTexture;
-						desc.textureType = MapMetalTextureType(binding.ObjectType);
-						desc.access = IsWritableTextureType(binding.ObjectType)
-							? MTLArgumentAccessReadWrite
-							: MTLArgumentAccessReadOnly;
-						break;
-					case GpuParameterType::Sampler:
-						desc.dataType = MTLDataTypeSampler;
-						desc.access = MTLArgumentAccessReadOnly;
-						break;
-					default:
-						break;
-					}
-
-					[descriptors addObject:desc];
-				}
-
-				if ([descriptors count] == 0)
-				{
-					mArgumentBufferSize = 0;
-					mArgumentBufferAlignment = 16;
-					return;
-				}
-
-				// Retain the descriptor list so each parameter set can mint its own encoder later,
-				// then create a transient encoder once up front to read size/alignment — both values
-				// are shared across every set that uses this layout.
-				mImpl->Descriptors = descriptors;
-
-				id<MTLDevice> device = mGpuDevice.GetMetalDevice();
-				id<MTLArgumentEncoder> probeEncoder = [device newArgumentEncoderWithArguments:descriptors];
-				if (probeEncoder != nil)
-				{
-					mArgumentBufferSize = (u64)[probeEncoder encodedLength];
-					mArgumentBufferAlignment = (u32)[probeEncoder alignment];
-				}
 			}
 		}
 
-		u32 MetalGpuPipelineParameterSetLayout::GetArgumentBufferIndex(GpuParameterType type, u32 slot) const
+		u32 MetalGpuPipelineParameterSetLayout::GetArgumentBufferIndex(GpuParameterType type, u32 slot, u32 arrayIndex) const
 		{
 			// Linear scan — a parameter set typically has on the order of ten bindings, so this is cheaper
 			// than maintaining a map. Note that combined-texture-sampler edge cases are the only way a
@@ -349,25 +318,51 @@ namespace b3d
 			for (const MetalArgumentBufferBinding& binding : mBindings)
 			{
 				if (binding.Type == type && binding.Slot == slot)
-					return binding.ArgIndex;
+					return arrayIndex < binding.ArraySize ? binding.ArgIndex + arrayIndex : (u32)~0u;
 			}
 
 			return (u32)~0u;
 		}
 
-		MetalGpuPipelineParameterSetLayout::~MetalGpuPipelineParameterSetLayout()
+		u64 MetalGpuPipelineParameterSetLayout::GetArgumentBufferByteOffset(GpuParameterType type, u32 slot,
+			u32 arrayIndex) const
 		{
-			if (mImpl)
-				mImpl->Descriptors = nil;
+			for (const MetalArgumentBufferBinding& binding : mBindings)
+			{
+				if (binding.Type == type && binding.Slot == slot && arrayIndex < binding.ArraySize)
+					return (u64)binding.ByteOffset + (u64)arrayIndex * binding.ByteStride;
+			}
+
+			return ~0ull;
 		}
 
-		id<MTLArgumentEncoder> MetalGpuPipelineParameterSetLayout::NewArgumentEncoder() const
+		u32 MetalGpuPipelineParameterSetLayout::GetResourceIndex(GpuParameterType type, u32 slot, u32 arrayIndex) const
 		{
-			if (!mImpl || mImpl->Descriptors == nil || [mImpl->Descriptors count] == 0)
-				return nil;
+			for (const MetalArgumentBufferBinding& binding : mBindings)
+			{
+				if (binding.Type == type && binding.Slot == slot)
+					return arrayIndex < binding.ArraySize ? binding.FirstResourceIndex + arrayIndex : (u32)~0u;
+			}
 
-			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
-			return [device newArgumentEncoderWithArguments:mImpl->Descriptors];
+			return (u32)~0u;
+		}
+
+		bool MetalGpuPipelineParameterSetLayout::GetDynamicOffsetBinding(u32 dynamicOffsetIndex,
+			GpuParameterType& type, u32& slot, u32& arrayIndex) const
+		{
+			for (const MetalArgumentBufferBinding& binding : mBindings)
+			{
+				if (binding.DynamicOffsetIndex == (u32)~0u || dynamicOffsetIndex < binding.DynamicOffsetIndex
+					|| dynamicOffsetIndex >= binding.DynamicOffsetIndex + binding.ArraySize)
+					continue;
+
+				type = binding.Type;
+				slot = binding.Slot;
+				arrayIndex = dynamicOffsetIndex - binding.DynamicOffsetIndex;
+				return true;
+			}
+
+			return false;
 		}
 
 		MetalGpuPipelineParameterLayout::MetalGpuPipelineParameterLayout(

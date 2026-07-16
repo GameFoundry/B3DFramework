@@ -7,6 +7,22 @@
 #include "Utility/B3DCommonTypes.h"
 #include "GpuBackend/B3DVertexDescription.h"
 
+namespace b3d
+{
+	struct GpuBufferInformation;
+
+	namespace render
+	{
+		/**
+		 * Returns true when the provided engine pixel format has a Metal pixel-format mapping (in
+		 * the requested gamma variant). Unlike MetalUtility::GetPixelFormat this is callable from
+		 * plain C++ translation units (e.g. the sim-side texture manager), where Metal types are
+		 * unavailable.
+		 */
+		bool IsMetalPixelFormatSupported(PixelFormat format, bool gamma);
+	} // namespace render
+} // namespace b3d
+
 #ifdef __OBJC__
 
 namespace b3d
@@ -88,6 +104,21 @@ namespace b3d
 			 * format and dimensions. For block-compressed formats the height is rounded up to a block.
 			 */
 			static u32 GetTextureSlicePitch(PixelFormat format, u32 width, u32 height);
+
+			/**
+			 * Maps a buffer's engine usage (type + flags) to the MTLStorageMode of its backing
+			 * memory. Buffers created with @c GpuBufferFlag::StoreOnCPUWithGPUAccess, or typed as
+			 * @c StagingRead / @c StagingWrite, are CPU-visible and use shared storage; everything
+			 * else is GPU-private.
+			 */
+			static MTLStorageMode GetBufferStorageMode(const GpuBufferInformation& information);
+
+			/**
+			 * Composes the flat @c MTLResourceOptions mask for a resource with the provided storage
+			 * mode. CPU cache mode stays at the default. Hazard tracking follows
+			 * @c B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION.
+			 */
+			static MTLResourceOptions GetResourceOptions(MTLStorageMode storageMode);
 		};
 
 		/** @} */

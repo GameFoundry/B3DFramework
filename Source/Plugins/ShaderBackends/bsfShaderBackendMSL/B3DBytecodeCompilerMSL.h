@@ -25,29 +25,24 @@ namespace b3d
 		 */
 		inline constexpr u32 kMetalCompilerVersion = 1;
 
-		class GLSLToSPIRV;
-
 		/**
-		 * Bytecode compiler for the native Metal backend's @c msl language. Cross-compiles engine VKSL source to
-		 * argument-buffer Metal Shading Language in two steps: GLSL/VKSL -> SPIR-V (via the owned GLSLToSPIRV) followed by
-		 * SPIR-V -> MSL (via SPIRV-Cross), packing the result into the WriteMetalBytecode blob layout that MetalGpuProgram
-		 * consumes. Device-independent, so it also runs in the headless shader-cook tool.
+		 * Compiles Metal Shading Language into a native @c metallib and translates Metal's native function reflection into
+		 * the engine's backend-independent program metadata.
 		 */
 		class BytecodeCompilerMSL final : public IGpuBytecodeCompiler
 		{
 		public:
-			BytecodeCompilerMSL(const char* compilerId, u32 compilerVersion);
-			~BytecodeCompilerMSL();
-
+			BytecodeCompilerMSL() = default;
 			TShared<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& createInformation) override;
+			bool IsProgramTypeSupported(GpuProgramType type) const override
+			{
+				return type == GPT_VERTEX_PROGRAM || type == GPT_FRAGMENT_PROGRAM || type == GPT_COMPUTE_PROGRAM;
+			}
 			bool IsUpToDate(const GpuProgramBytecode& bytecode) const override;
-
-		private:
-			TUnique<GLSLToSPIRV> mConverter;
 		};
 
 		/**
-		 * Constructs the native Metal bytecode compiler (engine VKSL source -> argument-buffer MSL, via SPIR-V). The
+		 * Constructs the native Metal bytecode compiler (MSL -> metallib + native reflection). The
 		 * factory's @c msl suffix matches the engine shading-language id (the first field of B3D_SHADER_CROSS_COMPILE_TARGETS).
 		 */
 		TShared<IGpuBytecodeCompiler> CreateBytecodeCompilermsl();

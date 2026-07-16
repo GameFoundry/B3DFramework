@@ -22,9 +22,8 @@ namespace b3d
 		/**
 		 * Metal implementation of a GPU parameter set backed by an argument buffer.
 		 *
-		 * Each set owns a single @c MTLBuffer whose layout is described by the set's
-		 * @c MetalGpuPipelineParameterSetLayout. Every @c SetX call writes the resource handle into the
-		 * argument buffer through the layout's shared @c MTLArgumentEncoder. The parameter set also
+		 * Each set owns one common Tier-2 argument-buffer allocation shared by every shader stage. Every
+		 * @c SetX call records a pending direct resource-handle write. The set also
 		 * retains strong references to the currently-bound resources so the command buffer can mark them
 		 * resident (via @c useResource:usage:stages:) each time the set is bound.
 		 */
@@ -33,7 +32,7 @@ namespace b3d
 		public:
 			/**
 			 * @param gpuDevice				Device that owns the MTLBuffer-backing storage.
-			 * @param parameterSetLayout	Argument-buffer layout — describes the MTLArgumentEncoder shape.
+			 * @param parameterSetLayout	Common, function-independent Tier-2 argument-buffer layout.
 			 * @param setIndex				Engine-side set index, matching the BSL @c [[buffer(set)]] slot.
 			 * @param pool					Optional pool to sub-allocate the argument buffer from (B9).
 			 *								When @c nullptr falls back to a direct @c newBufferWithLength:
@@ -105,31 +104,12 @@ namespace b3d
 			bool SetDynamicOffset(u32 slot, u32 offset);
 
 			/**
-			 * Flushes any pending @c SetX / @c SetDynamicOffset writes into the argument buffer via the
-			 * per-instance @c MTLArgumentEncoder. Called by @c MetalGpuCommandBuffer once per draw /
-			 * dispatch so successive @c Set* calls for the same slot collapse to a single encoder write
+			 * Flushes any pending @c SetX / @c SetDynamicOffset resource IDs directly into the argument buffer.
+			 * Called by @c MetalGpuCommandBuffer once per draw /
+			 * dispatch so successive @c Set* calls for the same slot collapse to a single 64-bit handle write
 			 * and identical re-binds across frames become no-ops. Short-circuits when no slot is dirty.
 			 */
-			void CommitPendingBindings();
-
-			/**
-			 * Returns @c true when at least one @c Set* / @c SetDynamicOffset call since the last
-			 * @c CommitPendingBindings drained mutated a slot's (resource, array index, offset, size)
-			 * tuple and the argument encoder therefore has pending writes. Cheap — used by the bind path
-			 * to skip redundant @c CommitPendingBindings calls inside a draw command.
-			 */
-			bool HasPendingBindings() const;
-
-			/**
-			 * B3: monotonic counter bumped inside @c mSetMutex whenever a @c Set* call genuinely
-			 * changed a slot's (resource, array index, offset, size) tuple. Command-buffer
-			 * @c EmitResidencyFor{Render,Compute}Encoder reads this with the bound parameter set's
-			 * raw identity and the *currently open encoder* to decide whether to re-emit
-			 * @c useResources: calls at all. The counter is not bumped on @c SetDynamicOffset: dynamic
-			 * offsets only change the encoded pointer inside the argument buffer, not the set of
-			 * resources the driver needs to keep resident.
-			 */
-			u64 GetGeneration() const;
+			u64 CommitPendingBindings();
 
 #ifdef __OBJC__
 			/** Returns the argument buffer backing this set. May be nil if Initialize() has not been called. */
@@ -137,7 +117,7 @@ namespace b3d
 
 			/**
 			 * Returns the byte offset into @c GetArgumentBuffer() at which this set's slice begins.
-			 * Non-zero only when the set was sub-allocated out of a pool block (B9). All encoder-side
+			 * Non-zero only when the set was sub-allocated out of a pool block (B9). All command-encoder
 			 * @c setVertexBuffer:offset: / @c setFragmentBuffer:offset: / @c setBuffer:offset: calls on
 			 * the argument buffer must pass this value — passing zero overlaps with a neighbouring
 			 * set's slice and silently corrupts bindings.
@@ -145,22 +125,22 @@ namespace b3d
 			u64 GetArgumentBufferOffset() const;
 
 			/**
-			 * Returns the cached Metal resource for the binding at @p argIndex (as assigned by the layout),
-			 * or @c nil when the binding has no resource attached or @p argIndex is out of range. Maintained
+			 * Returns the cached Metal resource at the layout's dense @p resourceIndex,
+			 * or @c nil when the binding has no resource attached or the index is out of range. Maintained
 			 * by @c CommitPendingBindings so command-buffer @c useResource: emission avoids re-resolving
 			 * the underlying @c id<MTLResource> per bind.
 			 */
-			id<MTLResource> GetCachedResourceForArgIndex(u32 argIndex) const;
+			id<MTLResource> GetCachedResource(u32 resourceIndex) const;
 #endif
 
 			/** Returns the typed layout used to build the argument buffer. */
 			const MetalGpuPipelineParameterSetLayout* GetMetalLayout() const { return mMetalLayout; }
 
+			/** Returns whether all native objects required by a non-empty argument-buffer layout exist. */
+			bool IsMetalBindingReady() const;
+
 		private:
 			struct Impl;
-
-			/** Re-binds the shared argument encoder to this set's argument buffer prior to a write. */
-			void BindEncoder() const;
 
 			MetalGpuDevice& mGpuDevice;
 			TUnique<Impl> mImpl;
@@ -179,7 +159,7 @@ namespace b3d
 
 			// Argument-buffer indices whose backing resource changed since the last CommitPendingBindings.
 			// Set* / SetDynamicOffset only mutate the CPU-side Vector<>s and insert the resolved argIndex
-			// here; the actual encoder writes happen once per commit, at which point the set is drained.
+			// here; the actual handle writes happen once per commit, at which point the set is drained.
 			// This makes a Set*-on-the-same-slot-twice pattern (common across frames) collapse to one
 			// write, and makes a bind with identical bindings a no-op.
 			UnorderedSet<u32> mDirtyArgumentSlots;
@@ -188,7 +168,7 @@ namespace b3d
 			// offset/size) tuple. Set* compares its incoming tuple against this snapshot and only
 			// inserts the argIndex into mDirtyArgumentSlots when the tuple genuinely differs, so a
 			// "set-and-forget" binding pattern (common in material-driven rendering) stops paying
-			// argument-encoder write cost every bind. Mirrors the Vulkan backend's descriptor-write
+			// argument-buffer write cost every bind. Mirrors the Vulkan backend's descriptor-write
 			// short-circuit.
 			//
 			// A'5: the snapshot stores *both* the engine-side TShared target address *and* the underlying
@@ -222,7 +202,7 @@ namespace b3d
 			};
 			UnorderedMap<u32, ArgumentSlotSnapshot> mSlotSnapshots;
 
-			// B6: per-argIndex cache of the resolved id<MTLResource>. Populated lazily inside
+			// Dense per-resource-element cache of resolved id<MTLResource> handles. Populated lazily inside
 			// CommitPendingBindings whenever a slot is flushed, so the command-buffer useResource:
 			// emission pass reads from here rather than re-scanning the per-type Vector<>s for every
 			// binding (the old O(n^2) resolve path). Values are type-erased as id<MTLResource> — the
@@ -231,21 +211,16 @@ namespace b3d
 			// include it; concrete casts live in the .mm translation unit.
 			Vector<void*> mResolvedResources;
 
-			// Guards the Set* / SetDynamicOffset / CommitPendingBindings critical section. The base
-			// GpuParameterSet contract declares the set thread-safe, so two sim-thread fibers may hit
-			// SetX concurrently; without this lock the base-class array writes and the Metal-side
-			// Vector<> + mDirtyArgumentSlots mutation would tear. Also held around the argument-encoder
-			// writes in CommitPendingBindings because the MTLArgumentEncoder carries per-instance state
-			// (the bound argument buffer + offset) that must not be reinterpreted mid-commit.
+			// Guards the Set* / SetDynamicOffset / CommitPendingBindings critical section so concurrent
+			// callers cannot tear the Metal-side Vector<>, dirty state, or direct argument-buffer writes.
 			mutable Mutex mSetMutex;
 
 			// B3: generation counter. Bumped inside @c mSetMutex from every @c Set* path that genuinely
 			// dirtied a slot (the B4 value-compare above is the gate). Not bumped on
 			// @c SetDynamicOffset — dynamic offsets change the encoded pointer but not the resident
 			// resource set. Starts at 1 so a freshly-default-constructed cache slot (value 0) never
-			// matches. Only written under mSetMutex; only read via GetGeneration on the command-buffer
-			// owner thread after the submitting caller has taken a natural happens-before through
-			// Set* -> SetGpuParameterSet -> bind.
+			// matches. CommitPendingBindings returns the value while holding mSetMutex, allowing the
+			// command-buffer residency cache to update without another lock acquisition.
 			u64 mGeneration = 1;
 		};
 

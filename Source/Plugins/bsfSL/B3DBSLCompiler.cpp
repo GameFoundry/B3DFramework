@@ -196,7 +196,14 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 
 	struct CrossCompilePassOutput
 	{
-		String ProgramCodePerType[GPT_COUNT];
+		CrossCompilePassOutput()
+		{
+			for(Array<u32, 3>& threadGroupSize : ThreadGroupSizePerType)
+				threadGroupSize = { 1, 1, 1 };
+		}
+
+		Array<String, GPT_COUNT> ProgramCodePerType;
+		Array<Array<u32, 3>, GPT_COUNT> ThreadGroupSizePerType;
 	};
 
 	using PassType = CoreVariantType<Pass, IsRenderProxy>;
@@ -213,7 +220,9 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 			{
 				B3D_ASSERT((i32)type < GPT_COUNT);
 				u32 binding = 0;
-				compileResult = HLSLCrossCompiler::CrossCompile(parsedShaderPass.Code, type, target, binding, crossCompiledOutput.ProgramCodePerType[(i32)type]);
+				compileResult = HLSLCrossCompiler::CrossCompile(parsedShaderPass.Code, type, target, binding,
+					crossCompiledOutput.ProgramCodePerType[(i32)type],
+					crossCompiledOutput.ThreadGroupSizePerType[(i32)type]);
 
 				if(!compileResult.ErrorMessage.empty())
 					return;
@@ -280,7 +289,7 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 		shaderPassInformation.RasterizerStateInformation = parsedShaderPass.RasterizerStateInformation;
 		shaderPassInformation.DepthStencilStateInformation = parsedShaderPass.DepthStencilStateInformation;
 
-		auto fnBuildGpuProgramCreateInformation = [&name](const String& language, const String& entry, const String& code, GpuProgramType type) -> GpuProgramCreateInformation
+		auto fnBuildGpuProgramCreateInformation = [&name](const String& language, const String& entry, const String& code, GpuProgramType type, const Array<u32, 3>& threadGroupSize) -> GpuProgramCreateInformation
 		{
 			const char* typeString;
 			switch(type)
@@ -314,6 +323,7 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 			gpuProgramCreateInformation.EntryPoint = entry;
 			gpuProgramCreateInformation.Source = code;
 			gpuProgramCreateInformation.Type = type;
+			gpuProgramCreateInformation.ThreadGroupSize = threadGroupSize;
 
 			// Bake bytecode for the target language if a compiler is registered for it. Program types the compiler cannot
 			// handle (for example geometry programs for some platforms) are left bytecode-less; consumers that require bytecode (the
@@ -336,37 +346,41 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 			crossCompileOutputLanguageName,
 			usesStageEntryNames ? "vsmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_VERTEX_PROGRAM],
-			GPT_VERTEX_PROGRAM);
+			GPT_VERTEX_PROGRAM,
+			crossCompilePassOutput.ThreadGroupSizePerType[GPT_VERTEX_PROGRAM]);
 
 		shaderPassInformation.FragmentProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,
 			usesStageEntryNames ? "fsmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_FRAGMENT_PROGRAM],
-			GPT_FRAGMENT_PROGRAM);
+			GPT_FRAGMENT_PROGRAM,
+			crossCompilePassOutput.ThreadGroupSizePerType[GPT_FRAGMENT_PROGRAM]);
 
 		shaderPassInformation.GeometryProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,
 			usesStageEntryNames ? "gsmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_GEOMETRY_PROGRAM],
-			GPT_GEOMETRY_PROGRAM);
+			GPT_GEOMETRY_PROGRAM,
+			crossCompilePassOutput.ThreadGroupSizePerType[GPT_GEOMETRY_PROGRAM]);
 
 		shaderPassInformation.HullProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,
 			usesStageEntryNames ? "hsmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_HULL_PROGRAM],
-			GPT_HULL_PROGRAM);
+			GPT_HULL_PROGRAM,
+			crossCompilePassOutput.ThreadGroupSizePerType[GPT_HULL_PROGRAM]);
 
 		shaderPassInformation.DomainProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,
 			usesStageEntryNames ? "dsmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_DOMAIN_PROGRAM],
-			GPT_DOMAIN_PROGRAM);
+			GPT_DOMAIN_PROGRAM, crossCompilePassOutput.ThreadGroupSizePerType[GPT_DOMAIN_PROGRAM]);
 
 		shaderPassInformation.ComputeProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,
 			usesStageEntryNames ? "csmain" : "main",
 			crossCompilePassOutput.ProgramCodePerType[GPT_COMPUTE_PROGRAM],
-			GPT_COMPUTE_PROGRAM);
+			GPT_COMPUTE_PROGRAM, crossCompilePassOutput.ThreadGroupSizePerType[GPT_COMPUTE_PROGRAM]);
 
 		shaderPassInformation.StencilRefValue = parsedShaderPass.StencilReferenceValue;
 

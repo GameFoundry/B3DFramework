@@ -1,6 +1,8 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuDeviceCapabilities.h"
 
 #include "Image/B3DTexture.h"
 #include "Image/B3DPixelUtility.h"
@@ -45,6 +47,9 @@ TShared<GpuCommandBufferProfiler> GpuCommandBuffer::BeginProfiling(const Profile
 	if(!B3D_ENSURE(mProfiler == nullptr))
 		return nullptr;
 
+	if(!mGpuDevice.GetCapabilities().HasCapability(RSC_TIMER_QUERIES))
+		return nullptr;
+
 	mProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*this);
 	mProfilingScopeName = profilingScopeName;
 
@@ -53,6 +58,9 @@ TShared<GpuCommandBufferProfiler> GpuCommandBuffer::BeginProfiling(const Profile
 
 void GpuCommandBuffer::EndProfiling()
 {
+	if(mProfiler == nullptr && !mGpuDevice.GetCapabilities().HasCapability(RSC_TIMER_QUERIES))
+		return;
+
 	if(!B3D_ENSURE(mProfiler != nullptr))
 		return;
 

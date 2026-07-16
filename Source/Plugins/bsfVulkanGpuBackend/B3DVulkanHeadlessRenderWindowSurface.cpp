@@ -149,7 +149,7 @@ void VulkanHeadlessRenderWindowSurface::DestroySwapChainImages()
 	}
 }
 
-void VulkanHeadlessRenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsync)
+void VulkanHeadlessRenderWindowSurface::RebuildSwapChain(u32 width, u32 height, bool vsync, u32 vsyncInterval)
 {
 	if(mIsDestroyed)
 		return;

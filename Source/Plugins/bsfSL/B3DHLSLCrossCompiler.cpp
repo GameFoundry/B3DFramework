@@ -1,6 +1,9 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DHLSLCrossCompiler.h"
+#if B3D_PLATFORM_MACOS
+#include "B3DMetalSourceCompiler.h"
+#endif
 #include "GpuBackend/B3DSamplerState.h"
 #include "Material/B3DShader.h"
 #include "Resources/B3DBuiltinResources.h"
@@ -627,7 +630,10 @@ static Mutex& GetXscCompileMutex()
 }
 
 template<bool IsRenderProxy>
-static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, bool optionalEntry, u32& startBindingSlot, ShaderCompilerResult& outCompileResult, CoreVariantType<ShaderCreateInformation, IsRenderProxy>* outShaderCreateInformation = nullptr, TInlineArray<GpuProgramType, 2>* detectedTypes = nullptr)
+static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target,
+	bool optionalEntry, u32& startBindingSlot, ShaderCompilerResult& outCompileResult,
+	CoreVariantType<ShaderCreateInformation, IsRenderProxy>* outShaderCreateInformation = nullptr,
+	TInlineArray<GpuProgramType, 2>* detectedTypes = nullptr, Array<u32, 3>* outThreadGroupSize = nullptr)
 {
 	TShared<StringStream> input = B3DMakeShared<StringStream>();
 
@@ -780,6 +786,13 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 			return "";
 	}
 
+	if(outThreadGroupSize != nullptr)
+	{
+		(*outThreadGroupSize)[0] = reflectionData.numThreads.x > 0 ? (u32)reflectionData.numThreads.x : 1;
+		(*outThreadGroupSize)[1] = reflectionData.numThreads.y > 0 ? (u32)reflectionData.numThreads.y : 1;
+		(*outThreadGroupSize)[2] = reflectionData.numThreads.z > 0 ? (u32)reflectionData.numThreads.z : 1;
+	}
+
 	return output.str();
 }
 
@@ -802,10 +815,29 @@ const HLSLCrossCompileTarget* HLSLCrossCompiler::GetTarget(const String& languag
 	return found != registry.end() ? &found->second : nullptr;
 }
 
-ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& startBindingSlot, String& outSource)
+ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& startBindingSlot, String& outSource, Array<u32, 3>& outThreadGroupSize)
 {
 	ShaderCompilerResult compileResult;
-	outSource = ::CrossCompile<false>(hlsl, type, target, false, startBindingSlot, compileResult);
+	outThreadGroupSize = { 1, 1, 1 };
+
+	HLSLCrossCompileTarget xscTarget = target;
+#if B3D_PLATFORM_MACOS
+	const bool compileMetalSource = target.TargetLanguage != nullptr && StringView(target.TargetLanguage) == "MSL";
+	if(compileMetalSource)
+		xscTarget.TargetLanguage = Xsc::TargetLanguage::VKSL450;
+#endif
+
+	outSource = ::CrossCompile<false>(hlsl, type, xscTarget, false, startBindingSlot, compileResult, nullptr, nullptr, &outThreadGroupSize);
+
+#if B3D_PLATFORM_MACOS
+	if(compileResult.ErrorMessage.empty() && compileMetalSource)
+	{
+		String metalSource;
+		compileResult = MetalSourceCompiler::Compile(outSource, type, metalSource);
+		if(compileResult.ErrorMessage.empty())
+			outSource = std::move(metalSource);
+	}
+#endif
 
 	return compileResult;
 }

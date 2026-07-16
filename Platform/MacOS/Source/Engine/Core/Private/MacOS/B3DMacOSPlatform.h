@@ -47,12 +47,12 @@ namespace b3d
 		 */
 		static void LockWindows();
 
-		/** Releases the lock acquires by LockWindows(). */
+		/** Releases the lock acquired by LockWindows(). */
 		static void UnlockWindows();
 
 		/**
 		 *  Returns a window based on its ID. Returns null if window cannot be found. Expects the caller to lock windows
-		 *  using LockWindows() in case this is called from non-main thread.
+		 *  using LockWindows() in case this is called from a non-main thread.
 		 */
 		static CocoaWindow* GetWindow(u32 windowId);
 

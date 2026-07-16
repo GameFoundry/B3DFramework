@@ -102,7 +102,7 @@ namespace b3d
 
 			// Persistent pools bypass the ring path — keep the direct-allocated buffers alive here so
 			// the pool controls their lifetime consistently with the transient path.
-			Vector<id<MTLBuffer>> mPersistentBuffers;
+			Vector<id<MTLBuffer>> mDirectBuffers;
 #endif
 		};
 

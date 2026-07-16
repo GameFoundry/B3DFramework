@@ -26,7 +26,7 @@ namespace b3d::render
 		~VulkanHeadlessRenderWindowSurface() override;
 
 		// IRenderWindowSurface
-		void RebuildSwapChain(u32 width, u32 height, bool vsync) override;
+		void RebuildSwapChain(u32 width, u32 height, bool vsync, u32 vsyncInterval) override;
 		void MarkSwapChainAsInvalid() override;
 		void Destroy() override;
 		void SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask) override;

@@ -57,8 +57,23 @@ namespace b3d
 			 */
 			void MarkSubmitted(MetalGpuQueue& queue, u64 eventValue);
 
-			/** Resets the allocator so @c AllocateQuery returns slot 0 again. Matches @c ResetQueries. */
-			void ResetNextQueryId() { mNextQueryId = 0; }
+			/** Records the first reference from a command buffer that has not entered submission yet. */
+			void MarkRecorded();
+
+			/** Transitions one recorded reference into the asynchronous submit pipeline. */
+			void MarkQueuedForSubmission();
+
+			/** Releases a queued marker when submission fails before a completion event can be encoded. */
+			void MarkSubmissionFailed();
+
+			/** Releases a recorded marker when its command buffer is discarded without submission. */
+			void MarkRecordingAbandoned();
+
+			/** Resets query allocation and invalidates cached results. Matches @c ResetQueries. */
+			void ResetAllocation();
+
+			/** Returns true when @p queryId belongs to the currently allocated range. */
+			bool IsQueryAllocated(GpuQueryId queryId) const;
 
 		private:
 			struct Impl;
@@ -66,6 +81,15 @@ namespace b3d
 			MetalGpuDevice& mGpuDevice;
 			TUnique<Impl> mImpl;
 			u32 mNextQueryId = 0;
+			u32 mRecordedCommandBuffers = 0;
+			u32 mPendingSubmissions = 0;
+			mutable Mutex mStateMutex;
+			ConditionVariable mSubmissionCondition;
+			Vector<u64> mResolvedResults;
+			bool mResultsCached = false;
+			bool mSupported = false;
+			bool mSubmissionFailed = false;
+			bool mSubmissionFailureReported = false;
 
 			// Tracks every (queue, eventValue) pair this pool was written from that has not yet been
 			// resolved. Appended to by MarkSubmitted (or the existing entry's value is replaced with the

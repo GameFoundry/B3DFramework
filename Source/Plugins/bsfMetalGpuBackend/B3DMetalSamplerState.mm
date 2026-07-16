@@ -61,7 +61,12 @@ namespace b3d
 		MetalSamplerState::~MetalSamplerState()
 		{
 			if (mImpl)
+			{
+#if !__has_feature(objc_arc)
+				[mImpl->Sampler release];
+#endif
 				mImpl->Sampler = nil;
+			}
 		}
 
 		id<MTLSamplerState> MetalSamplerState::GetMetalSampler() const
@@ -77,7 +82,11 @@ namespace b3d
 			{
 			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
 			if (device == nil)
+			{
+				B3D_LOG(Error, LogRenderBackend, "Cannot create Metal sampler state: device is null.");
+				SamplerState::Initialize();
 				return;
+			}
 
 			MTLSamplerDescriptor* desc = [[MTLSamplerDescriptor alloc] init];
 			desc.minFilter = MetalUtility::GetMinMagFilter(mInformation.MinFilter);
@@ -86,11 +95,15 @@ namespace b3d
 			desc.sAddressMode = MetalUtility::GetAddressMode(mInformation.AddressMode.U);
 			desc.tAddressMode = MetalUtility::GetAddressMode(mInformation.AddressMode.V);
 			desc.rAddressMode = MetalUtility::GetAddressMode(mInformation.AddressMode.W);
-			desc.lodMinClamp = std::max(0.0f, mInformation.MipMin);
-			desc.lodMaxClamp = mInformation.MipMax;
+			const float minimumLod = std::max(0.0f, mInformation.MipMin);
+			desc.lodMinClamp = minimumLod;
+			desc.lodMaxClamp = std::max(minimumLod, mInformation.MipMax);
+			if (mInformation.MipmapBias != 0.0f)
+				B3D_LOG(Warning, LogRenderBackend, "Metal sampler objects do not expose a mip LOD bias; requested bias {0} is ignored.", mInformation.MipmapBias);
 
 			const u32 hardwareMaxAniso = std::max(1u, mGpuDevice.GetMaxSamplerAnisotropy());
-			const bool anisotropic = (mInformation.MinFilter == FO_ANISOTROPIC || mInformation.MagFilter == FO_ANISOTROPIC);
+			const bool anisotropic = mInformation.MinFilter == FO_ANISOTROPIC
+				|| mInformation.MagFilter == FO_ANISOTROPIC || mInformation.MipFilter == FO_ANISOTROPIC;
 			desc.maxAnisotropy = anisotropic
 				? std::max(1u, std::min(hardwareMaxAniso, mInformation.MaxAniso))
 				: 1;
@@ -100,24 +113,16 @@ namespace b3d
 				|| mInformation.AddressMode.V == TAM_BORDER
 				|| mInformation.AddressMode.W == TAM_BORDER;
 
-			// Shadow samplers (comparison != ALWAYS_PASS) left on the default @c Color::kWhite border
-			// leak light through the border texels: with TAM_BORDER + a @c less comparison, the white
-			// border compares as "receiver closer than depth 1.0", which is always true, so everything
-			// outside the shadow-map footprint renders lit. Flip the default to opaque black in that
-			// one specific "defaulted" case — callers who actually want a white shadow-sampler border
-			// (unusual) must set a non-default color explicitly to bypass this.
-			Color borderColor = mInformation.BorderColor;
-			const bool isShadowSampler = mInformation.ComparisonFunc != CMPF_ALWAYS_PASS;
-			if (isShadowSampler && usesBorderAddressing && borderColor == Color::kWhite)
-				borderColor = Color::kBlack;
-
-			desc.borderColor = PickBorderColor(borderColor, usesBorderAddressing);
+			desc.borderColor = PickBorderColor(mInformation.BorderColor, usesBorderAddressing);
 			desc.supportArgumentBuffers = YES;
 
 			mImpl->Sampler = [device newSamplerStateWithDescriptor:desc];
 #if !__has_feature(objc_arc)
 			[desc release];
 #endif
+			if (mImpl->Sampler == nil)
+				B3D_LOG(Error, LogRenderBackend, "Failed to create Metal sampler state.");
+			SamplerState::Initialize();
 			} // @autoreleasepool
 		}
 	} // namespace render

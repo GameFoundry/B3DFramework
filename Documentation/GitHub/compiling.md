@@ -32,7 +32,7 @@ Use the guide below to get B3D Framework up and running as quickly as possible. 
 	 
 ## Customizing the build
 
-Additional variables allow you to pick between the render API (Vulkan, Null), audio module (FMOD, OpenAudio) among other options. Run *CMake* to see all options. Note that non-default *CMake* options might require additional dependencies to be installed, see [here](#other-dependencies).
+Additional variables allow you to pick between the render API (Vulkan, D3D12, Metal, Null), audio module (FMOD, OpenAudio) among other options. Run *CMake* to see all options. Note that non-default *CMake* options might require additional dependencies to be installed, see [here](#other-dependencies).
 
 Modify *CMAKE_INSTALL_PREFIX* to choose where the library gets installed after the *install* target is ran (e.g. `make install`, or running the *INSTALL* target in Visual Studio/XCode).
 
@@ -46,12 +46,11 @@ You can choose to use a different *CMake* generator than those specified above, 
   - Supported platforms:
     - Windows 10/11
     - Linux (currently non functional while major refactor is in progress)
-    - macOS 10.11 or newer (currently non functional while major refactor is in progress)
+    - macOS 13.0 or newer on Apple Silicon (arm64)
   - Supported compilers:
     - MSVC++ 17.0 (Visual Studio 2022)
     - GCC 7.0 (or newer) (currently non functional while major refactor is in progress)
-    - Clang 5.0 (or newer) (currently non functional while major refactor is in progress)
-	- Apple LLVM 9.0.0 (XCode 9) (currently non functional while major refactor is in progress)
+    - Apple Clang provided by a current Xcode installation on macOS
 	
 ### Third party dependencies
 B3D Framework relies on a variety of third party dependencies. A set of pre-compiled dependencies are provided for every supported platform/compiler and these will be fetched automatically by the build process. If required, the dependencies can also be compiled manually by following [this guide](dependencies.md). This can be required if the pre-compiled dependencies don't work with your platform (e.g. unsupported Linux distro) or if you wish to update to a newer dependency version.
@@ -80,9 +79,9 @@ The following dependencies will need to be installed manually. Which ones are re
 **macOS**
   - **Homebrew**
     - `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
-  - **Xcode 9**
-    - Grab from App Store
-    - After install make sure to run: `xcode-select -install`
+  - **Xcode and command-line tools**
+    - Install a current Xcode version that supports the target macOS SDK
+    - After installation run: `xcode-select --install`
   - **LibUUID**
     - `brew install ossp-uuid`
   - **Flex** (Optional)
@@ -91,16 +90,14 @@ The following dependencies will need to be installed manually. Which ones are re
   - **Bison** (Optional)
     - Only needed if you plan on changing BSL syntax (B3D_BUILD_BSL_PARSER option in CMake)
     - `brew install bison`
-    - Make sure old version of Bison that comes with Xcode is overriden:
-      - Add this to $HOME/.bash_profile: `export PATH="/usr/local/opt/bison/bin:$PATH"`
-      - `mv /usr/bin/bison /usr/bin/bison-2.3`
+    - Add Homebrew's Bison to your path: `export PATH="/opt/homebrew/opt/bison/bin:$PATH"`
 
 **All OS**
   - **Vulkan SDK 1.4.321.1*
-    - Only needed if you selected the Vulkan render API during build configuration (currently the only option, so you need to do this)
+    - Only needed if you explicitly select the Vulkan render API during build configuration
     - https://lunarg.com/vulkan-sdk/
     - Set up `VULKAN_SDK` environment variable pointing to your installation
-    - **Additional setup for MacOS** (currently not supported, as we're refactoring the macOS backend)
+    - **Additional setup for macOS Vulkan builds**
       - Set up the following environment variables:
         - `VULKAN_SDK = $SDK_DIR$/macOS`
         - `VK_LAYER_PATH = $SDK_DIR$/macOS/etc/vulkan/explicit_layer.d`

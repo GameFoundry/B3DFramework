@@ -262,6 +262,8 @@ enum class MouseEventType
 		{
 			NSRect windowFrame = [window frame];
 			point.y = windowFrame.size.height - point.y;
+			point.x *= window.backingScaleFactor;
+			point.y *= window.backingScaleFactor;
 		}
 
 		for (NSUInteger dragAreaIndex = 0; dragAreaIndex < [dragAreas count]; dragAreaIndex++)
@@ -474,6 +476,16 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 - (void)windowDidMove:(NSNotification*)notification
 {
 	MacOSPlatform::NotifyWindowEvent(WindowEventType::Moved, mWindow.WindowId);
+}
+
+- (void)windowDidChangeBackingProperties:(NSNotification*)notification
+{
+	CAMetalLayer* layer = (CAMetalLayer*)[[mWindow contentView] layer];
+	if ([layer isKindOfClass:[CAMetalLayer class]])
+		layer.contentsScale = mWindow.backingScaleFactor;
+
+	MacOSPlatform::NotifyWindowEvent(WindowEventType::DPIScaleChanged, mWindow.WindowId);
+	MacOSPlatform::NotifyWindowEvent(WindowEventType::Resized, mWindow.WindowId);
 }
 
 - (void)windowDidMiniaturize:(NSNotification*)notification
@@ -710,9 +722,10 @@ namespace b3d
 	{
 		@autoreleasepool
 		{
-			NSSize size;
-			size.width = width;
-			size.height = height;
+			NSSize backingSize;
+			backingSize.width = width;
+			backingSize.height = height;
+			const NSSize size = [m->View convertSizeFromBacking:backingSize];
 
 			NSRect frameRect = m->Window.frame;
 			NSRect contentRect = [m->Window contentRectForFrameRect:frameRect];
@@ -840,8 +853,9 @@ namespace b3d
 		flipY([m->Window screen], contentRect);
 
 		Vector2I screenPos;
-		screenPos.X = windowPos.X + (i32)contentRect.origin.x;
-		screenPos.Y = windowPos.Y + (i32)contentRect.origin.y;
+		const CGFloat scale = m->Window.backingScaleFactor;
+		screenPos.X = (i32)((CGFloat)windowPos.X / scale + contentRect.origin.x);
+		screenPos.Y = (i32)((CGFloat)windowPos.Y / scale + contentRect.origin.y);
 
 		return screenPos;
 	}
@@ -854,8 +868,9 @@ namespace b3d
 		flipY([m->Window screen], contentRect);
 
 		Vector2I windowPos;
-		windowPos.X = screenPos.X - (i32) contentRect.origin.x;
-		windowPos.Y = screenPos.Y - (i32) contentRect.origin.y;
+		const CGFloat scale = m->Window.backingScaleFactor;
+		windowPos.X = (i32)(((CGFloat)screenPos.X - contentRect.origin.x) * scale);
+		windowPos.Y = (i32)(((CGFloat)screenPos.Y - contentRect.origin.y) * scale);
 
 		return windowPos;
 	}
@@ -936,5 +951,11 @@ namespace b3d
 	void* CocoaWindow::GetLayerInternal() const
 	{
 		return (__bridge void *)m->Layer;
+	}
+
+	Vector2I CocoaWindow::GetFramebufferSizeInternal() const
+	{
+		const NSRect backingBounds = [m->View convertRectToBacking:[m->View bounds]];
+		return Vector2I((i32)backingBounds.size.width, (i32)backingBounds.size.height);
 	}
 }

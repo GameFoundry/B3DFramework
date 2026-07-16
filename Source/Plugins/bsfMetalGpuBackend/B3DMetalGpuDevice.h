@@ -13,6 +13,7 @@ namespace b3d
 	{
 		class MetalGpuQueue;
 		class MetalHeapAllocator;
+		class MetalResourceManager;
 
 		/** @addtogroup MetalGpuBackend
 		 *  @{
@@ -25,7 +26,7 @@ namespace b3d
 		 * handles are stored in an opaque @c Impl struct so that non-Objective-C++ translation units
 		 * can include this header without dragging in the Metal framework.
 		 */
-		class MetalGpuDevice : public GpuDevice
+		class MetalGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend
 		{
 		public:
 			/**
@@ -47,6 +48,16 @@ namespace b3d
 			id<MTLCommandQueue> GetMetalQueue(GpuQueueType type) const;
 
 			/**
+			 * Returns the persistent zero-filled MTLBuffer bound at a vertex-input null stream's slot for
+			 * shader inputs that have no matching vertex-buffer element. Created once at Initialize()
+			 * (@c kMetalNullVertexStreamStride bytes, @c MTLResourceStorageModeShared, contents memset to
+			 * zero) and released at teardown; the command buffer binds it via
+			 * @c MetalGpuCommandBuffer::ResolveVertexInputForDraw. Never nil once the device is
+			 * initialized on a valid MTLDevice.
+			 */
+			id<MTLBuffer> GetNullVertexBuffer() const;
+
+			/**
 			 * Queues an Obj-C Metal object (@c MTLTexture / @c MTLBuffer / ...) for release once
 			 * @p originQueue has committed at least @p eventValue on its shared event. Drained on the
 			 * next @c BeginFrame. Used by resource recreate paths to keep the prior backing alive until
@@ -62,39 +73,23 @@ namespace b3d
 			/**
 			 * Returns the resolved timestamp counter set used by @c MetalGpuQueryPool to allocate
 			 * @c MTLCounterSampleBuffer instances, or nil when the device did not advertise one at init
-			 * time. Used by the query pool to gate timestamp-pool creation.
+			 * time. A non-null set implies all command-boundary sampling points required by the generic
+			 * timestamp-query contract are also supported.
 			 */
 			id<MTLCounterSet> GetTimestampCounterSet() const;
 
 			/**
 			 * Returns the read-only MTLBinaryArchive loaded from the on-disk pipeline cache, or nil when
-			 * nothing was loaded (first launch, iOS simulator, load failure, pre-macOS 11 / pre-iOS 14).
+			 * nothing was loaded (first launch, load failure, or an incompatible archive).
 			 *
-			 * URL-loaded binary archives are immutable: you can use them as a lookup source in a pipeline
-			 * descriptor's @c binaryArchives but you cannot @c addRenderPipelineFunctionsWithDescriptor:
-			 * to them. Pipeline state objects therefore attach *both* this archive (for fast-path lookup
-			 * of pipelines compiled in a previous run) and @c GetMutableBinaryArchive() (to receive this
-			 * session's fresh compiles).
+			 * URL-loaded archives are immutable and are used only as pipeline lookup sources. Populating
+			 * an archive is an offline/prewarm responsibility because runtime insertion recompiles a PSO.
 			 *
 			 * The archives are created lazily on the first call (one-shot init under an internal mutex)
 			 * so device @c Initialize performs zero filesystem I/O for the pipeline cache; the cost is
 			 * only paid when the first PSO actually compiles.
 			 */
 			id<MTLBinaryArchive> GetLoadedBinaryArchive();
-
-			/**
-			 * Returns the writable MTLBinaryArchive that receives this session's freshly-compiled
-			 * pipelines, or nil when the platform / runtime does not support binary archives.
-			 *
-			 * Pipeline state objects add compiled variants back into this archive via
-			 * @c addRenderPipelineFunctionsWithDescriptor: / @c addComputePipelineFunctionsWithDescriptor:
-			 * so the next launch picks them up. Serialized to disk in the destructor; the loaded archive
-			 * is *not* serialized (it already exists on disk and URL-loaded archives are immutable).
-			 *
-			 * The archives are created lazily on the first call — see @c GetLoadedBinaryArchive for
-			 * rationale.
-			 */
-			id<MTLBinaryArchive> GetMutableBinaryArchive();
 #endif
 
 			/**
@@ -102,12 +97,23 @@ namespace b3d
 			 * @c MTLBuffer instances out of a pool of @c MTLHeap objects bucketed by storage mode.
 			 * Backends that create raw Metal resources on hot paths (texture / buffer creation
 			 * during streaming) should route through the allocator to avoid paying the per-resource
-			 * driver-side allocation cost which dominates on Apple Silicon. The allocator falls back
-			 * to direct device allocation for resources above its internal large-resource threshold.
+			 * driver-side allocation cost which dominates on Apple Silicon. Oversize allocations use
+			 * dedicated placement heaps rather than fragmenting pooled heaps.
 			 * Remains valid for the lifetime of the device — created in @c Initialize and torn down
 			 * after the deferred-release queue has been drained in the destructor.
 			 */
 			MetalHeapAllocator& GetHeapAllocator() const { return *mHeapAllocator; }
+
+			/**
+			 * Returns the device-owned resource manager that mints and tracks the lifetime of the
+			 * low-level tracked wrappers (@c MetalBuffer / @c MetalImage / @c MetalImageSubresource).
+			 * Wrappers are created via @c GetResourceManager().Create<T>(...) and retired via
+			 * @c IGpuResource::Destroy(); the manager defers the actual free until every command
+			 * buffer referencing the wrapper has retired. Created in @c Initialize (after the heap
+			 * allocator) and torn down in the destructor before @c mHeapAllocator.reset() so
+			 * heap-backed wrappers release their spans before the heaps are destroyed.
+			 */
+			MetalResourceManager& GetResourceManager() const { B3D_ASSERT(mResourceManager != nullptr); return *mResourceManager; }
 
 			/**
 			 * Returns @c true once @c ~MetalGpuDevice has started executing. Late resource destructors
@@ -120,14 +126,21 @@ namespace b3d
 			bool IsShuttingDown() const { return mIsShuttingDown; }
 
 			/**
+			 * Returns true while the device's GpuSubmitThread is alive (from the end of Initialize()
+			 * to the start of destruction). Used by MetalGpuQueue::WaitUntilIdle to fall back to the
+			 * native wait during construction / teardown windows, mirroring the null-check inside
+			 * VulkanGpuDevice::WaitUntilIdle.
+			 */
+			bool HasSubmitThread() const { return mSubmitThread != nullptr; }
+
+			/**
 			 * @name Per-encoder timestamp-sampling support flags
 			 *
 			 * @c sampleCountersInBuffer:atSampleIndex:withBarrier: on a render / compute / blit encoder
 			 * requires the device to advertise the matching @c MTLCounterSamplingPoint (Draw / Dispatch
 			 * / Blit boundary). Apple Silicon typically advertises only the stage boundary, so the
-			 * per-encoder calls would fail validation there. These flags are probed once at init and
-			 * consulted by @c MetalGpuCommandBuffer::WriteTimestamp to pick a supported encoder (or
-			 * drop the sample with a warn-once log if none qualify).
+			 * per-encoder calls would fail validation there. The backend advertises timer queries only
+			 * when all three flags are true.
 			 *  @{
 			 */
 			bool SupportsRenderEncoderTimestamps() const;
@@ -160,19 +173,25 @@ namespace b3d
 			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 			void WaitUntilIdle() override;
 			void BeginFrame() override;
+			void EndFrame() override;
 
 			TShared<render::GpuCommandBufferPool> CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation) override;
 			TShared<Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
 			TShared<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
+			TShared<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation,
+				IGpuAllocator& allocator, GpuObjectCreateFlags flags) override;
+			u32 PickBufferMemoryType(const GpuBufferCreateInformation& createInformation) const override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			TShared<EventQuery> CreateEventQuery() override;
 			TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<GpuGraphicsPipelineState> CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<GpuComputePipelineState> CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation) override;
-			TShared<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription) override;
+			TShared<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& resourceTableLayout, u32 tableIndex) override;
 			TUnique<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) override;
 			TShared<GpuTimelineFence> CreateTimelineFence() override;
+			TUnique<IGpuAllocator> CreateTransientAllocator(u32 memoryType,
+				IGpuCompletionTracker& completionTracker) override;
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
 			GpuUniformBufferInformation GenerateUniformBufferInformation(const String& name, TArray<GpuUniformBufferMemberInformation>& inOutUniforms) override;
@@ -188,6 +207,24 @@ namespace b3d
 				TArray<TShared<GpuQueue>> Queues;
 			};
 
+			/**
+			 * @name IGpuSubmitThreadBackend implementation
+			 *
+			 * Implemented privately, mirroring VulkanGpuDevice: the GpuSubmitThread constructed at the
+			 * end of Initialize() is the only caller. Command buffer methods downcast to the Metal
+			 * types; queue methods forward to MetalGpuQueue's submit-thread-facing half.
+			 * @{
+			 */
+
+			void NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer) override;
+			void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences) override;
+			void RefreshCompletionState(GpuQueue& queue, bool forceWait, bool queueEmpty, u32 lastSubmitIndex) override;
+			u32 GetLastSubmitIndex(const GpuQueue& queue) const override;
+			void ExecuteWaitUntilIdle() override;
+			void ExecuteWaitUntilIdle(GpuQueue& queue) override;
+
+			/** @} */
+
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 
 			/** Initializes capabilities by querying the underlying MTLDevice. */
@@ -195,11 +232,10 @@ namespace b3d
 
 #ifdef __OBJC__
 			/**
-			 * Lazy one-shot construction of the loaded / mutable pipeline binary archives. The first
-			 * call resolves the on-disk archive path, creates the caches folder if necessary, loads any
-			 * existing archive (immutable) and always creates a fresh empty mutable archive for this
-			 * session. Subsequent calls are cheap guarded reads. Kept private so only the archive
-			 * accessors trigger it.
+			 * Lazy one-shot construction of the loaded pipeline binary archive. The first call resolves
+			 * the on-disk archive path, creates the caches folder if necessary, and loads an existing
+			 * immutable archive. Subsequent calls are cheap guarded reads. Kept private so only the
+			 * archive accessor triggers it.
 			 */
 			void EnsureBinaryArchives();
 #endif
@@ -215,6 +251,12 @@ namespace b3d
 			bool mIsShuttingDown = false;
 			TUnique<Impl> mImpl;
 			TUnique<MetalHeapAllocator> mHeapAllocator;
+
+			// Owns the lifetime of the Metal-side tracked IGpuResource wrappers minted by
+			// GetResourceManager().Create<T>. Constructed after mHeapAllocator in Initialize and
+			// reset before mHeapAllocator in teardown so heap-backed wrappers free their allocator
+			// spans before the heaps that back them are destroyed.
+			TUnique<MetalResourceManager> mResourceManager;
 
 			QueueInfo mQueueInfos[GQT_COUNT];
 			GpuDeviceCapabilities mCapabilities;

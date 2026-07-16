@@ -174,6 +174,9 @@ namespace b3d
 		/** Returns the assigned CALayer to the window view. */
 		void* GetLayerInternal() const;
 
+		/** Returns the drawable client size in backing pixels. */
+		Vector2I GetFramebufferSizeInternal() const;
+
 		/** Returns internal private data for use by friends. */
 		Pimpl* GetPrivateDataInternal() const { return m; }
 

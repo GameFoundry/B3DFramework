@@ -4,6 +4,8 @@
 
 #include "B3DMetalPrerequisites.h"
 #include "B3DMetalGpuPipelineState.h"
+#include "B3DMetalResourceTracker.h"
+#include "B3DMetalBarrierHelper.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuTimelineFence.h"
 
@@ -16,7 +18,9 @@ namespace b3d
 		class MetalGpuCommandBufferPool;
 		class MetalGpuParameters;
 		class MetalGpuQueryPool;
-		class MetalRenderWindowSurface;
+		class IMetalRenderWindowSurface;
+		class MetalVertexInput;
+		class MetalImage;
 
 		/** @addtogroup MetalGpuBackend
 		 *  @{
@@ -60,6 +64,8 @@ namespace b3d
 			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) override;
 			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
 			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
+			bool CopyTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureCopyInformation& copyInformation) override;
+			bool BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation) override;
 			void WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
 			void BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
 			void EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
@@ -74,15 +80,26 @@ namespace b3d
 			u32 GetId() const { return mId; }
 
 			/**
-			 * Prepares a query pool to be used for occlusion queries in the next render pass.
-			 *
-			 * Metal requires the @c visibilityResultBuffer to be attached to the @c MTLRenderPassDescriptor
-			 * when the render encoder is created, so the engine must call this before @c BeginRenderPass
-			 * when the pass will host @c BeginQuery / @c EndQuery calls against this pool. Passing a null
-			 * pointer clears the pending pool. The pending pool is also cleared automatically in
-			 * @c EndRenderPass.
+			 * Called on the owner thread just before the command buffer is queued for submission on
+			 * the submit thread (via IGpuSubmitThreadBackend::NotifyWillQueueForSubmit). Releases
+			 * cached recording state that must not be touched from the submit thread — the submit
+			 * thread only needs the recorded MTLCommandBuffer and the used-query-pool list. Mirrors
+			 * VulkanGpuCommandBuffer::NotifyWillQueueForSubmit.
 			 */
-			void SetPendingVisibilityPool(const TShared<GpuQueryPool>& queryPool);
+			void NotifyWillQueueForSubmit();
+
+			/**
+			 * Notifies the command buffer that the pool it was allocated from has been reset
+			 * (GpuCommandBufferPool::Reset). The underlying MTLCommandBuffer is one-shot and already
+			 * released at commit time, so this is pure bookkeeping: buffers in @c Done state are
+			 * cleaned up and returned to @c Ready; buffers already @c Ready are left alone. Any other
+			 * state is a caller contract violation (the pool must only be reset once all of its
+			 * buffers have finished executing) and is reported via B3D_ENSURE.
+			 */
+			void NotifyParentPoolReset();
+
+			void Cleanup() override;
+			void Destroy() override;
 
 #ifdef __OBJC__
 			/**
@@ -98,6 +115,11 @@ namespace b3d
 			 * @p signalFences are user-provided timeline fences whose MTLSharedEvent is signaled with
 			 * the requested value once this command buffer's GPU work completes. The signals are encoded
 			 * after the queue's own signal so they observe the same FIFO ordering as cross-queue sync.
+			 *
+			 * @note	Submit thread only. Invoked via GpuSubmitThread -> MetalGpuDevice::ExecuteSubmit.
+			 *			The owner thread must already have released its recording state through
+			 *			NotifyWillQueueForSubmit() and transitioned the buffer to @c Executing
+			 *			(MetalGpuQueue::SubmitCommandBuffer does both via the submit-thread hand-off).
 			 */
 			void CommitInternal(MetalGpuQueue& submitQueue, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences = {});
 
@@ -111,6 +133,9 @@ namespace b3d
 			 * into, keeping ordering intact with the rest of the recorded commands.
 			 */
 			id<MTLBlitCommandEncoder> GetOrOpenBlitEncoder();
+
+			/** Encodes an event signal at the current command-stream position without violating encoder scope rules. */
+			bool EncodeSignalEvent(id<MTLSharedEvent> event, u64 value);
 #endif
 
 		private:
@@ -147,10 +172,10 @@ namespace b3d
 			id<MTLCommandEncoder> GetActiveEncoder() const;
 
 			/**
-			 * A'9: encodes cross-queue waits (from @p syncMask) and this queue's signal onto
-			 * @p cmdBuffer, returning the reserved signal value. Shared between the main
-			 * @c CommitInternal path and the empty-command-buffer fallback so the latter does not
-			 * drop cross-queue sync when @c AddQueueSyncMask was set but no real work was recorded.
+			 * Encodes waits from @p syncMask followed by this queue's signal, returning the reserved
+			 * signal value. The non-empty submission path passes an empty mask because its waits run
+			 * in a prologue command buffer; the empty submission path safely encodes waits here before
+			 * the signal.
 			 *
 			 * Must be called before @c [cmdBuffer commit]; ordering of the encoded waits / signal
 			 * against any other encoded work in @p cmdBuffer is the command buffer's FIFO order,
@@ -159,6 +184,41 @@ namespace b3d
 			 * on @p submitQueue after @c commit returns — this helper only encodes the sync points.
 			 */
 			u64 EncodeQueueSyncAndSignal(id<MTLCommandBuffer> cmdBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask);
+
+			/** Encodes queue-event waits at the current position in @p cmdBuffer without reserving a signal. */
+			void EncodeQueueWaits(id<MTLCommandBuffer> cmdBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask);
+
+			/** Resolves pending tracker barriers against the currently active Metal encoder. */
+			bool ExecutePendingBarriers();
+
+			/** Ends and reopens the current render pass with load actions that preserve its attachments. */
+			bool RestartRenderPassForBarrier();
+
+			/** Opens a continuation render encoder and restores state invalidated by the preceding encoder boundary. */
+			bool ResumeRenderPass(MTLRenderPassDescriptor* descriptor);
+
+			/**
+			 * Ensures the current render encoder writes visibility results into @p queryPool. Metal fixes the
+			 * visibility buffer when an encoder is created, so changing pools requires an encoder boundary.
+			 */
+			bool ActivateOcclusionQueryPool(const TShared<MetalGpuQueryPool>& queryPool);
+
+			/** Encodes and releases event signals deferred until the current render encoder ends. */
+			void EncodePendingEventSignals();
+
+			/**
+			 * Resolves the vertex input for the currently bound graphics pipeline against the bound
+			 * vertex-buffer VertexDescription (via MetalVertexInputManager) and binds the device's
+			 * zero-filled null vertex buffer at the resolved null-stream slot when the layout reserves
+			 * one. Returns the resolved vertex input (whose id feeds the pipeline variant key), or null
+			 * when the pipeline consumes no vertex input, when no vertex description is bound (the draw
+			 * should be skipped), or when the input could not be expressed on Metal (skip the draw).
+			 *
+			 * @param[out]	outSkipDraw		Set to true when the caller must skip the draw: a pipeline that
+			 *								declares vertex inputs but has no bound vertex description, or a
+			 *								vertex description that could not be resolved on Metal.
+			 */
+			TShared<MetalVertexInput> ResolveVertexInputForDraw(bool& outSkipDraw);
 #endif
 
 			struct Impl;
@@ -167,6 +227,12 @@ namespace b3d
 			MetalGpuCommandBufferPool& mPool;
 			TUnique<Impl> mImpl;
 			u32 mId;
+
+			/** Tracks every resource recorded on this command buffer; drives barrier deduction and Notify* fan-out. */
+			MetalResourceTracker mResourceTracker;
+
+			/** Accumulates and emits the native barriers the tracker requests. */
+			MetalBarrierHelper mBarrierHelper;
 
 			// Cached pipeline + input state; applied to the render encoder at bind time.
 			TShared<MetalGpuGraphicsPipelineState> mBoundGraphicsPipeline;
@@ -189,15 +255,25 @@ namespace b3d
 			// the pipeline variant key. TopologyClass is overwritten per-draw; everything else is fixed
 			// by the attachment layout of the current render pass.
 			MetalPipelineVariantKey mRenderPassPipelineKey;
-			MetalRenderWindowSurface* mAcquiredWindowSurface = nullptr;
+			IMetalRenderWindowSurface* mAcquiredWindowSurface = nullptr;
 			u32 mRenderPassWidth = 0;
 			u32 mRenderPassHeight = 0;
+			TInlineArray<MetalImage*, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> mRenderPassAttachmentImages;
 
-			// Query-pool bookkeeping: mPendingVisibilityPool is latched into the next render-pass
-			// descriptor's visibilityResultBuffer slot; mUsedQueryPools accumulates every pool that was
-			// touched by this command buffer, and CommitInternal notifies each one with the submission's
-			// event value so TryResolve can check the queue's signaled value without tracking it here.
-			TShared<MetalGpuQueryPool> mPendingVisibilityPool;
+			/** Occlusion pool whose visibility buffer is attached to the current native render encoder. */
+			TShared<MetalGpuQueryPool> mActiveOcclusionQueryPool;
+
+			// Id of the queue this command buffer was last submitted on. Recorded in CommitInternal at
+			// the same point the resource tracker is notified of use, and consumed by Cleanup() to route
+			// the tracker's completion notification (NotifyDone) to the correct queue. Mirrors
+			// VulkanGpuCommandBuffer::mSubmittedQueueId.
+			GpuQueueId mSubmittedQueueId;
+
+			/** True after resource tracking has been promoted from bound to submitted use. */
+			bool mResourcesSubmitted = false;
+
+			/** Prevents further encoding or native submission after an unrecoverable recording failure. */
+			bool mRecordingFailed = false;
 
 			/**
 			 * B10: query pools referenced during this command buffer's recording. Typical @p N is @<= 4
@@ -205,10 +281,12 @@ namespace b3d
 			 * @c AddUniqueUsedQueryPool beats the hash-set allocation overhead every recording. Cleared
 			 * in @c CommitInternal after @c MarkSubmitted is fanned out.
 			 */
-			TInlineArray<MetalGpuQueryPool*, 4> mUsedQueryPools;
+			TInlineArray<TShared<MetalGpuQueryPool>, 4> mUsedQueryPools;
+			TInlineArray<TShared<MetalGpuQueryPool>, 4> mSubmittedQueryPools;
+			bool mQueryPoolsQueuedForSubmission = false;
 
 			/** Linear-scan AddUnique for @c mUsedQueryPools. See the field's note above. */
-			void AddUniqueUsedQueryPool(MetalGpuQueryPool* pool);
+			void AddUniqueUsedQueryPool(const TShared<MetalGpuQueryPool>& pool);
 
 			/**
 			 * B3: residency-elision cache entry. A hit means @c [encoder useResources:…] already ran

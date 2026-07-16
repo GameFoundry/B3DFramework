@@ -1,5 +1,5 @@
-# Device-independent native-Metal bytecode compiler: engine VKSL source -> argument-buffer Metal Shading Language
-# (GLSL/VKSL -> SPIR-V via bsfShaderBackendVKSL's GLSLToSPIRV, then SPIR-V -> MSL via SPIRV-Cross).
+# Native-Metal shader backend: HLSLCrossCompiler emits MSL, then the bytecode compiler invokes Apple's tools to
+# produce a metallib and reflects that library through Metal.
 if(NOT APPLE)
 	return()
 endif()
@@ -19,7 +19,10 @@ target_link_libraries(bsfShaderBackendMSL PUBLIC bsfShaderBackendVKSL)
 set_property(TARGET bsfShaderBackendMSL PROPERTY FOLDER Plugins)
 
 # Register shader compiler target as "<language>|<targetLanguage>|<define>". Used to determine supported targets.
-set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "msl|VKSL450|METAL")
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "msl|MSL|METAL|KeepEntryNames")
+
+B3DTargetLinkFramework(bsfShaderBackendMSL Foundation)
+B3DTargetLinkFramework(bsfShaderBackendMSL Metal)
 
 # Let anything using this shader backend know which libraries it needs to link
 set_property(GLOBAL APPEND PROPERTY B3D_SHADER_BACKEND_LIBRARIES bsfShaderBackendMSL)

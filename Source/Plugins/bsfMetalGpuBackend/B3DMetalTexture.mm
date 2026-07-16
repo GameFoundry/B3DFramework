@@ -2,122 +2,129 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DMetalTexture.h"
 #include "B3DMetalGpuDevice.h"
-#include "B3DMetalGpuQueue.h"
 #include "B3DMetalHeapAllocator.h"
+#include "B3DMetalResourceManager.h"
 #include "B3DMetalUtility.h"
-#include "Image/B3DPixelData.h"
 #include "Debug/B3DLog.h"
-#include "Utility/Threading/B3DThreading.h"
 
 namespace b3d
 {
 	namespace render
 	{
-		struct MetalTexture::Impl
+		namespace
 		{
-			id<MTLTexture> Texture = nil;
+			/** Determines the full aspect flags for a texture with the provided @p usage and @p format. */
+			GpuTextureAspectFlags GetFullAspectFlags(TextureUsageFlags usage, PixelFormat format)
+			{
+				if (usage.IsSet(TextureUsageFlag::DepthStencil))
+				{
+					// PF_D32_S8X24 is the only combined depth-stencil format the Metal pixel-format
+					// table maps (MTLPixelFormatDepth32Float_Stencil8); PF_D16 / PF_D32 are depth-only.
+					const bool hasStencil = format == PF_D32_S8X24;
 
-			// Lazily-created MTLPixelFormat -> view cache, used for depth-stencil shader-read views.
-			UnorderedMap<u32, id<MTLTexture>> ShaderReadViews;
+					return hasStencil ? (GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil) : GpuTextureAspectFlags(GpuTextureAspectFlag::Depth);
+				}
 
-			// Guards concurrent @c GetShaderReadView calls from multiple worker fibers populating the
-			// cache for the same texture. @c newTextureViewWithPixelFormat: is invoked inside the lock
-			// so two callers racing on a miss for the same format don't both pay the allocation cost
-			// (or leave two live views for the same key).
-			Mutex ViewCacheMutex;
-		};
+				return GpuTextureAspectFlag::Color;
+			}
+		}
 
-		MetalTexture::MetalTexture(MetalGpuDevice& gpuDevice, const TextureCreateInformation& createInformation)
-			: Texture(createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
+		MetalImageSubresource::MetalImageSubresource(MetalResourceManager* owner, GpuImageLayout layout, const StringView& name)
+			: MetalResource(owner, name), mLayout(layout)
 		{ }
 
-		MetalTexture::~MetalTexture()
+		MetalImage::MetalImage(MetalResourceManager* owner, const MetalImageCreateInformation& createInformation, MetalTextureNativeHandle texture, const GpuResourceLocation& allocation)
+			: TMetalResource<IGpuImageResource>(owner, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format))
+			, mTexture(texture)
+			, mAllocation(allocation)
+			, mType(createInformation.Type)
 		{
-			// A'10: the MTLTexture (and any cached reinterpret views) may still be referenced by
-			// in-flight command buffers when the last TShared<MetalTexture> is dropped. Mirror
-			// @c RecreateInternalTexture's deferred-release pattern — queue the backing handles
-			// against the graphics queue's last-committed watermark so they survive until any
-			// in-flight command buffer that referenced them retires, then fall out of scope.
-			//
-			// Shortcuts:
-			//   * No @c mImpl or no @c Texture → nothing to defer.
-			//   * Device is shutting down (@c IsShuttingDown) → release synchronously. The device's
-			//     @c ~MetalGpuDevice already drains @c DeferredReleases and then resets the heap
-			//     allocator; queuing into the list after that drain would leave heap-backed entries
-			//     holding parent-heap refs past @c mHeapAllocator.reset(). The shutdown path has
-			//     already taken the @c WaitUntilIdle up front so nothing can still be in-flight.
-			//   * No graphics queue resolvable, or @c lastCommitted == 0 → the resource couldn't
-			//     have been scheduled, so immediate release is safe (symmetric with the recreate
-			//     short-circuit).
-			if (!mImpl || mImpl->Texture == nil)
-			{
-				ReleaseInternalTexture();
-				return;
-			}
-
-			if (mGpuDevice.IsShuttingDown())
-			{
-				ReleaseInternalTexture();
-				return;
-			}
-
-			TShared<GpuQueue> gfxQueue = mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
-			MetalGpuQueue* metalQueue = gfxQueue ? static_cast<MetalGpuQueue*>(gfxQueue.get()) : nullptr;
-			const u64 lastCommitted = metalQueue != nullptr ? metalQueue->GetLastCommittedEventValue() : 0;
-
-			if (metalQueue != nullptr && lastCommitted > 0)
-			{
-				// Transfer the strong refs into the deferred-release list. Move the local handles into
-				// locals first so @c mImpl fields are nil'd synchronously — anyone still holding the
-				// TShared (shouldn't happen, we're in the dtor) won't see a half-released state.
-				id<MTLTexture> prior = mImpl->Texture;
-				UnorderedMap<u32, id<MTLTexture>> priorViews;
-				priorViews.swap(mImpl->ShaderReadViews);
-				mImpl->Texture = nil;
-
-				// Views reinterpret the parent's storage, so they must retire no later than the
-				// parent. Queue each on the same watermark.
-				for (auto& viewEntry : priorViews)
-					mGpuDevice.QueueMetalResourceForDeferredRelease(viewEntry.second, metalQueue, lastCommitted);
-
-				mGpuDevice.QueueMetalResourceForDeferredRelease(prior, metalQueue, lastCommitted);
-				return;
-			}
-
-			ReleaseInternalTexture();
+			// Fill in the per-(face x mip) subresource wrappers the IGpuImageResource base
+			// allocated (zero-initialized). The resource tracker uses these to track subresource
+			// usage individually. Fresh image contents are undefined, mirroring Vulkan's
+			// VK_IMAGE_LAYOUT_UNDEFINED starting state.
+			const u32 subresourceCount = mFaceCount * mMipLevelCount;
+			for (u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
+				mSubresources[subresourceIndex] = owner->Create<MetalImageSubresource>(GpuImageLayout::Undefined);
 		}
 
-		id<MTLTexture> MetalTexture::GetMetalTexture() const
+		MetalImage::~MetalImage()
 		{
-			return mImpl->Texture;
+			const u32 subresourceCount = mFaceCount * mMipLevelCount;
+			for (u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
+			{
+				B3D_ASSERT(!mSubresources[subresourceIndex]->IsBound()); // Image being freed but its subresources are still bound somewhere
+
+				mSubresources[subresourceIndex]->Destroy();
+			}
+
+			// Views reinterpret this image's storage, so they must be released no later than the
+			// parent handle. The manager's deferred-destroy path guarantees this destructor only
+			// runs once no command buffer references the image, so synchronous release is safe.
+			{
+				Lock lock(mViewCacheMutex);
+#if !__has_feature(objc_arc)
+				for (auto& viewEntry : mShaderReadViews)
+					[viewEntry.second release];
+#endif
+				mShaderReadViews.clear();
+			}
+
+#if !__has_feature(objc_arc)
+			[mTexture release];
+#endif
+			mTexture = nullptr;
+
+			// Allocator-backed spans return to the device's persistent TLSF pool; direct device
+			// allocations carry an invalid location. ResourceLifecycle deferral mode reclaims
+			// immediately.
+			if (mAllocation.IsValid())
+				mAllocation.Allocator->Free(mAllocation);
 		}
 
-		id<MTLTexture> MetalTexture::GetShaderReadView(MTLPixelFormat viewFormat)
+		void MetalImage::SetName(const StringView& name)
 		{
-			if (mImpl->Texture == nil)
+			if (mTexture == nullptr)
+				return;
+
+			// NSString below is autoreleased; drain locally — there may be no runloop under the
+			// engine's fiber scheduler. StringView is not guaranteed null-terminated, so copy first.
+			@autoreleasepool
+			{
+				const String nameCopy(name.data(), name.size());
+				[mTexture setLabel:[NSString stringWithUTF8String:nameCopy.c_str()]];
+			}
+		}
+
+		MetalImageSubresource* MetalImage::GetSubresource(u32 face, u32 mipLevel)
+		{
+			return static_cast<MetalImageSubresource*>(IGpuImageResource::GetSubresource(face, mipLevel));
+		}
+
+		id<MTLTexture> MetalImage::GetShaderReadView(MTLPixelFormat viewFormat)
+		{
+			if (mTexture == nil)
 				return nil;
 
-			if (viewFormat == [mImpl->Texture pixelFormat])
-				return mImpl->Texture;
+			if (viewFormat == [mTexture pixelFormat])
+				return mTexture;
 
-			// One fiber may be fetching a view while another adds to the same cache — serialize both
-			// the @c find and the insert so the pair is atomic. View construction stays inside the
-			// lock so two callers racing on a miss for the same format don't both pay the allocation
-			// or leave two live MTLTextures mapped to one key.
-			Lock lock(mImpl->ViewCacheMutex);
+			// One fiber may be fetching a view while another adds to the same cache — serialize
+			// both the find and the insert so the pair is atomic (see mViewCacheMutex docs).
+			Lock lock(mViewCacheMutex);
 
 			const u32 key = (u32)viewFormat;
-			auto existing = mImpl->ShaderReadViews.find(key);
-			if (existing != mImpl->ShaderReadViews.end())
+			auto existing = mShaderReadViews.find(key);
+			if (existing != mShaderReadViews.end())
 				return existing->second;
 
-			const MTLPixelFormat parentFormat = [mImpl->Texture pixelFormat];
+			const MTLPixelFormat parentFormat = [mTexture pixelFormat];
 
-			// Combined depth-stencil textures need the 5-arg
-			// @c newTextureViewWithPixelFormat:textureType:levels:slices: when reinterpreted as a
-			// single-aspect view. The 1-arg form rejects DS-aspect splits because it cannot express
-			// which plane (depth vs stencil) the view targets. For sRGB / linear reinterpretation —
-			// or any other same-family case — keep the 1-arg form: it preserves texture type, level,
+			// Combined depth-stencil textures need the 4-argument
+			// newTextureViewWithPixelFormat:textureType:levels:slices: when reinterpreted as a
+			// single-aspect view — the 1-argument form rejects DS-aspect splits because it cannot
+			// express which plane the view targets. For sRGB / linear reinterpretation (or any
+			// other same-family case) keep the 1-argument form: it preserves texture type, level
 			// and slice ranges implicitly and is cheaper at creation.
 			const bool parentIsCombinedDS = (parentFormat == MTLPixelFormatDepth32Float_Stencil8)
 				|| (parentFormat == MTLPixelFormatDepth24Unorm_Stencil8);
@@ -130,60 +137,77 @@ namespace b3d
 			id<MTLTexture> view = nil;
 			if (parentIsCombinedDS && viewIsSingleAspect)
 			{
-				// @c MipMapCount on the engine side is "additional mips beyond the base level", so the
-				// total MTL level count is (MipMapCount + 1). Cube textures are stored in Metal as
-				// 6*ArraySliceCount slices under @c MTLTextureTypeCube / CubeArray — the array-length
-				// that @c newTextureViewWithPixelFormat: expects is the raw slice count, hence the *6.
-				const u32 levelCount = mProperties.MipMapCount + 1;
-				const u32 sliceCount = mProperties.ArraySliceCount
-					* ((mProperties.Type == TEX_TYPE_CUBE_MAP) ? 6u : 1u);
+				// Metal stores cube textures as 6 * arrayLength slices under
+				// MTLTextureTypeCube / CubeArray — the slice range the view initializer expects is
+				// the raw slice count, hence the *6. Level/slice counts are queried off the native
+				// texture so the view always covers the full resource.
+				const MTLTextureType textureType = [mTexture textureType];
+				const bool isCube = textureType == MTLTextureTypeCube || textureType == MTLTextureTypeCubeArray;
+				const NSUInteger sliceCount = [mTexture arrayLength] * (isCube ? 6 : 1);
 
-				view = [mImpl->Texture newTextureViewWithPixelFormat:viewFormat
-													  textureType:[mImpl->Texture textureType]
-														   levels:NSMakeRange(0, levelCount)
-														   slices:NSMakeRange(0, sliceCount)];
+				view = [mTexture newTextureViewWithPixelFormat:viewFormat
+												   textureType:textureType
+														levels:NSMakeRange(0, [mTexture mipmapLevelCount])
+														slices:NSMakeRange(0, sliceCount)];
 			}
 			else
 			{
-				view = [mImpl->Texture newTextureViewWithPixelFormat:viewFormat];
+				view = [mTexture newTextureViewWithPixelFormat:viewFormat];
 			}
 
 			if (view == nil)
 			{
 				B3D_LOG(Warning, LogRenderBackend,
-					"Failed to create MTLTexture view for texture '{0}' with format {1}.",
-					GetName(), (u32)viewFormat);
+					"Failed to create MTLTexture view with format {0}.", (u32)viewFormat);
 				return nil;
 			}
 
-			mImpl->ShaderReadViews[key] = view;
+			mShaderReadViews[key] = view;
 			return view;
+		}
+
+		MetalTexture::MetalTexture(MetalGpuDevice& gpuDevice, const TextureCreateInformation& createInformation)
+			: Texture(createInformation), mGpuDevice(gpuDevice)
+		{ }
+
+		MetalTexture::~MetalTexture()
+		{
+			// Queue the wrapper (native texture + cached reinterpret views) for destruction; the
+			// manager defers the actual release until every command buffer referencing it retires.
+			if (mImage != nullptr)
+				mImage->Destroy();
+		}
+
+		id<MTLTexture> MetalTexture::GetMetalTexture() const
+		{
+			return mImage != nullptr ? mImage->GetMetalHandle() : nil;
+		}
+
+		id<MTLTexture> MetalTexture::GetShaderReadView(MTLPixelFormat viewFormat)
+		{
+			return mImage != nullptr ? mImage->GetShaderReadView(viewFormat) : nil;
 		}
 
 		void MetalTexture::SetName(const StringView& name)
 		{
-			// Delegate to the base so @c Texture::mName (read by @c GetName) is the single source of
-			// truth — an earlier shadowing @c String mName here meant @c GetName returned an empty
-			// string even after @c SetName ran.
+			// Delegate to the base so Texture::mName (read by GetName) is the single source of truth.
 			Texture::SetName(name);
-			if (mImpl->Texture)
-			{
-				NSString* nsName = [NSString stringWithUTF8String:GetName().c_str()];
-				[mImpl->Texture setLabel:nsName];
-			}
+
+			if (mImage != nullptr)
+				mImage->SetName(name);
 		}
 
 		void MetalTexture::Initialize()
 		{
-			CreateInternalTexture();
+			mImage = CreateImage();
 
-			// A'11: if the backing MTLTexture could not be allocated (unsupported format, heap-allocator
-			// OOM, etc.) the downstream @c Texture::Initialize would still run @c TextureUtility::Write
-			// against a nil target — the copy path bails early with a log but the engine observes a
-			// "successful" init with no pixels uploaded and no error surfaced to the caller.
-			// @c CreateInternalTexture has already logged the specific failure reason; we skip the base
-			// upload path and make the failure visible to callers checking @c IsInitialized.
-			if (!mImpl || mImpl->Texture == nil)
+			// If the backing MTLTexture could not be allocated (unsupported format, allocator OOM,
+			// etc.) the downstream Texture::Initialize would still run TextureUtility::Write
+			// against a nil target — the copy path bails early with a log but the engine would
+			// observe a "successful" init with no pixels uploaded. CreateImage has already logged
+			// the specific failure reason; skip the base upload path and make the failure visible
+			// to callers checking IsInitialized.
+			if (mImage == nullptr)
 			{
 				B3D_LOG(Error, LogRenderBackend,
 					"MetalTexture allocation failed; skipping pixel upload for texture '{0}'. Texture is unusable.",
@@ -191,68 +215,45 @@ namespace b3d
 				return;
 			}
 
-			// Delegate to @c Texture::Initialize so the base handles the @c mInitData pixel upload via
-			// @c TextureUtility::Write. That path relies on the backend's @c MTLTexture already existing
-			// and being named, which is why this call comes last. The base also unlocks @c mInitData and
-			// invokes @c RenderProxy::Initialize — no explicit unlock or render-proxy init is needed here.
+			// Delegate to Texture::Initialize so the base handles the mInitData pixel upload via
+			// TextureUtility::Write. That path relies on the backend's MTLTexture already existing
+			// and being named, which is why this call comes last. The base also unlocks mInitData
+			// and invokes RenderProxy::Initialize — no explicit unlock or render-proxy init is
+			// needed here.
 			Texture::Initialize();
 		}
 
 		void MetalTexture::RecreateInternalTexture()
 		{
-			// The prior MTLTexture may still be referenced by in-flight command buffers. Hand the
-			// strong ref to the device's deferred-release list tagged with the graphics queue's
-			// last-committed event value; the next @c BeginFrame drops it once that value has been
-			// signaled. If the queue has never scheduled any work (ReservedValue == 0) the resource
-			// cannot have been bound, so we short-circuit and let the local strong ref fall out of
-			// scope, releasing immediately.
-			//
-			// TODO: this watermark covers only the graphics queue. If the texture was referenced solely
-			// on the compute or transfer queue, the release may over-retain by up to one frame (the
-			// graphics queue's frontier is usually ahead by that much). Tighten by recording the
-			// resource's actual last-submit queue + value once per-resource submit tracking lands.
-			id<MTLTexture> prior = mImpl->Texture;
-			UnorderedMap<u32, id<MTLTexture>> priorViews;
-			priorViews.swap(mImpl->ShaderReadViews);
-			mImpl->Texture = nil;
+			MetalImage* newImage = CreateImage();
 
-			if (prior != nil)
-			{
-				TShared<GpuQueue> gfxQueue = mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
-				MetalGpuQueue* metalQueue = gfxQueue ? static_cast<MetalGpuQueue*>(gfxQueue.get()) : nullptr;
-				const u64 lastCommitted = metalQueue != nullptr ? metalQueue->GetLastCommittedEventValue() : 0;
+			// Queue the previous wrapper for destruction. The manager defers the release until
+			// every command buffer referencing the image (or its cached reinterpret views, which
+			// the wrapper owns) has retired, so in-flight GPU work keeps reading the old MTLTexture
+			// safely while new writes target the fresh one.
+			if (mImage != nullptr)
+				mImage->Destroy();
 
-				if (metalQueue != nullptr && lastCommitted > 0)
-				{
-					// Views reinterpret the parent's storage, so they must retire no later than the
-					// parent. Queue each on the same watermark.
-					for (auto& viewEntry : priorViews)
-						mGpuDevice.QueueMetalResourceForDeferredRelease(viewEntry.second, metalQueue, lastCommitted);
-
-					mGpuDevice.QueueMetalResourceForDeferredRelease(prior, metalQueue, lastCommitted);
-				}
-				// else: the texture could not have been scheduled yet — strong refs fall out of scope here.
-			}
-
-			CreateInternalTexture();
+			mImage = newImage;
 		}
 
-		void MetalTexture::CreateInternalTexture()
+		MetalImage* MetalTexture::CreateImage()
 		{
-			// Descriptor / NSString / texture allocations below are autoreleased; drain them locally
-			// rather than relying on a runloop — there may be none under the engine's fiber scheduler.
+			// Descriptor / NSString / texture allocations below are autoreleased; drain them
+			// locally rather than relying on a runloop — there may be none under the engine's
+			// fiber scheduler.
 			@autoreleasepool
 			{
 			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
 			if (device == nil)
-				return;
+				return nullptr;
 
 			bool useSRGB = mProperties.UseHardwareSRGB;
 			MTLPixelFormat mtlFormat = MetalUtility::GetPixelFormat(mProperties.Format, useSRGB);
 			if (mtlFormat == MTLPixelFormatInvalid && useSRGB)
 			{
-				// Retry without sRGB; match the Vulkan backend's behavior where the linear variant is
-				// used if the hardware cannot honor the sRGB request.
+				// Retry without sRGB; match the Vulkan backend's behavior where the linear variant
+				// is used if the hardware cannot honor the sRGB request.
 				B3D_LOG(Warning, LogRenderBackend,
 					"MTLPixelFormat for format {0} unavailable in sRGB variant; falling back to linear.",
 					(u32)mProperties.Format);
@@ -262,135 +263,214 @@ namespace b3d
 			if (mtlFormat == MTLPixelFormatInvalid)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Cannot create MTLTexture: unsupported pixel format {0}.", (u32)mProperties.Format);
-				return;
+				return nullptr;
 			}
 
 			// MSAA textures cannot have mip chains on Metal — descriptor validation rejects
-			// @c sampleCount > 1 combined with @c mipmapLevelCount > 1. Force the mip count to 1 when
-			// the caller asked for both; the engine's internal MSAA render-target path only ever needs
-			// the base level anyway (downstream resolves happen into a separate, non-MSAA texture).
-			u32 mipCount = mProperties.MipMapCount + 1;
-			u32 sampleCount = std::max(1u, mProperties.SampleCount);
+			// sampleCount > 1 combined with mipmapLevelCount > 1. Fail unsupported combinations so
+			// engine-visible properties remain identical to the native resource.
+			bool supportsBCTextureCompression = false;
+			if (@available(macOS 11.0, *))
+				supportsBCTextureCompression = [device supportsBCTextureCompression];
+			if (PixelUtility::IsCompressed(mProperties.Format) && !supportsBCTextureCompression)
+			{
+				B3D_LOG(Error, LogRenderBackend,
+					"Cannot create compressed MTLTexture: this Apple GPU does not support BC texture compression.");
+				return nullptr;
+			}
 
-			// Not every sample count is available on every GPU (e.g. Apple-family typically maxes at
-			// 4x; some desktop Intel GPUs historically skipped 8x). Probe and fall back to the nearest
-			// lower supported count rather than letting the driver reject the descriptor outright.
+			if (mProperties.Width == 0 || (mProperties.Type != TEX_TYPE_1D && mProperties.Height == 0) ||
+				(mProperties.Type == TEX_TYPE_3D && mProperties.Depth == 0))
+			{
+				B3D_LOG(Error, LogRenderBackend, "Cannot create an MTLTexture with a zero relevant dimension.");
+				return nullptr;
+			}
+
+			const u32 width = mProperties.Width;
+			const u32 height = mProperties.Type == TEX_TYPE_1D ? 1u : mProperties.Height;
+			const u32 depth = mProperties.Type == TEX_TYPE_3D ? mProperties.Depth : 1u;
+			const u32 mipCount = mProperties.MipMapCount + 1;
+			const u32 sampleCount = std::max(1u, mProperties.SampleCount);
+
+			if (mProperties.ArraySliceCount == 0)
+			{
+				B3D_LOG(Error, LogRenderBackend, "Cannot create MTLTexture with zero array slices.");
+				return nullptr;
+			}
+
+			if ((mProperties.Type == TEX_TYPE_1D && (mProperties.Height > 1 || mProperties.Depth > 1)) ||
+				((mProperties.Type == TEX_TYPE_2D || mProperties.Type == TEX_TYPE_CUBE_MAP) && mProperties.Depth > 1))
+			{
+				B3D_LOG(Error, LogRenderBackend, "MTLTexture dimensions do not match the requested texture type.");
+				return nullptr;
+			}
+
+			if (mProperties.Type == TEX_TYPE_CUBE_MAP && width != height)
+			{
+				B3D_LOG(Error, LogRenderBackend, "Cannot create a non-square Metal cube texture ({0}x{1}).", width, height);
+				return nullptr;
+			}
+
+			u32 maximumMipCount = 1;
+			for (u32 maximumDimension = std::max(width, std::max(height, depth)); maximumDimension > 1; maximumDimension >>= 1)
+				maximumMipCount++;
+			if (mipCount > maximumMipCount)
+			{
+				B3D_LOG(Error, LogRenderBackend,
+					"Cannot create MTLTexture with {0} mip levels; dimensions allow at most {1}.", mipCount, maximumMipCount);
+				return nullptr;
+			}
+
 			if (sampleCount > 1 && ![device supportsTextureSampleCount:sampleCount])
 			{
-				u32 fallback = 1;
-				for (u32 probe = sampleCount - 1; probe >= 1; --probe)
-				{
-					if ([device supportsTextureSampleCount:probe])
-					{
-						fallback = probe;
-						break;
-					}
-					if (probe == 1)
-						break;
-				}
-				B3D_LOG(Warning, LogRenderBackend,
-					"MTLDevice does not support sampleCount={0}; falling back to {1}.",
-					sampleCount, fallback);
-				sampleCount = fallback;
+				B3D_LOG(Error, LogRenderBackend, "MTLDevice does not support texture sample count {0}.", sampleCount);
+				return nullptr;
 			}
 
 			if (sampleCount > 1 && mipCount > 1)
 			{
-				B3D_LOG(Warning, LogRenderBackend,
-					"MTLTexture requested with sampleCount={0} and mipmapLevelCount={1}; Metal rejects MSAA + mips, forcing mipmapLevelCount=1.",
-					sampleCount, mipCount);
-				mipCount = 1;
+				B3D_LOG(Error, LogRenderBackend, "Metal does not support multisampled textures with mipmaps.");
+				return nullptr;
+			}
+
+			if (sampleCount > 1 && mProperties.Type != TEX_TYPE_2D)
+			{
+				B3D_LOG(Error, LogRenderBackend, "Metal multisampling is supported only for 2D textures.");
+				return nullptr;
 			}
 
 			MTLTextureDescriptor* desc = [[MTLTextureDescriptor alloc] init];
 			desc.textureType = MetalUtility::GetTextureType(mProperties.Type, sampleCount, mProperties.ArraySliceCount);
 			desc.pixelFormat = mtlFormat;
-			desc.width = mProperties.Width;
-			desc.height = mProperties.Type == TEX_TYPE_1D ? 1 : mProperties.Height;
-			desc.depth = mProperties.Type == TEX_TYPE_3D ? mProperties.Depth : 1;
+			desc.width = width;
+			desc.height = height;
+			desc.depth = depth;
 			desc.mipmapLevelCount = mipCount;
 			desc.sampleCount = sampleCount;
 			// For cube maps Metal's arrayLength is the number of cube sets (faces = 6 * arrayLength),
 			// so propagate ArraySliceCount directly. Only TEX_TYPE_3D is non-array in Metal.
 			desc.arrayLength = (mProperties.Type == TEX_TYPE_3D) ? 1 : mProperties.ArraySliceCount;
 
-			// Map engine usage flags to Metal usage flags. @c MTLTextureUsagePixelFormatView is set
-			// unconditionally: @c [MTLTexture newTextureViewWithPixelFormat:] (used by
-			// @c GetShaderReadView) silently returns nil if the source texture wasn't created with it,
-			// and the sRGB/linear, depth-plane, and LoadStore-reinterpretation paths all need views
-			// over regular shader-read textures too. Cost is per-format metadata at creation — no
-			// runtime overhead for textures that never get a view.
-			MTLTextureUsage usage = MTLTextureUsageShaderRead | MTLTextureUsagePixelFormatView;
+			// Map engine usage flags to Metal usage flags. MTLTextureUsagePixelFormatView is set
+			// only for explicit mutable resources and depth-stencil plane views. Linear/sRGB views
+			// do not require it, allowing immutable textures to retain the optimal native layout.
+			MTLTextureUsage usage = MTLTextureUsageShaderRead;
+			if (mProperties.Usage.IsSet(TextureUsageFlag::MutableFormat) || mProperties.Format == PF_D32_S8X24)
+				usage |= MTLTextureUsagePixelFormatView;
 			if (mProperties.Usage & TextureUsageFlag::RenderTarget)
 				usage |= MTLTextureUsageRenderTarget;
 			if (mProperties.Usage & TextureUsageFlag::DepthStencil)
 				usage |= MTLTextureUsageRenderTarget;
-			if (mProperties.Usage & TextureUsageFlag::LoadStore)
+			if (mProperties.Usage & TextureUsageFlag::AllowUnorderedAccessOnTheGPU)
 				usage |= MTLTextureUsageShaderWrite;
 			desc.usage = usage;
 
-			// Textures always use private storage. CPU traffic runs through TextureUtility::Write /
-			// TextureUtility::Read, which stage into a GpuBuffer and then drive CopyBufferToTexture /
-			// CopyTextureToBuffer on the command buffer. Direct Map on Metal textures is out of scope
-			// for phase 2 (see Texture::Map contract in B3DTexture.h).
+			// Textures always use private storage. CPU traffic runs through
+			// TextureUtility::Write / TextureUtility::Read, which stage into a GpuBuffer and then
+			// drive CopyBufferToTexture / CopyTextureToBuffer on the command buffer. Direct Map on
+			// Metal textures is out of scope (see Texture::Map contract in B3DTexture.h).
 			desc.storageMode = MTLStorageModePrivate;
 
-			// TODO: phase-2 review S37 — DEFERRED. Leave @c hazardTrackingMode at its default
-			// (→ Tracked on macOS) so the driver auto-handles read-after-write / write-after-write
-			// hazards for directly-bound resources *and* for argument-buffer-referenced resources
-			// reached through @c useResource:usage:stages:. Flipping this to @c Untracked is a perf
-			// optimization that requires an engine-side resource tracker (S14) to land first; see the
-			// matching TODO in @c B3DMetalGpuCommandBuffer.mm::IssueBarriers.
+			// Direct textures and placement-heap textures use the same configured hazard policy.
+			if (@available(macOS 10.15, iOS 13.0, *))
+			{
+#if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
+				desc.hazardTrackingMode = MTLHazardTrackingModeUntracked;
+#else
+				desc.hazardTrackingMode = MTLHazardTrackingModeTracked;
+#endif
+			}
 
-			// Route through the device's heap allocator so the common case (textures under the
-			// large-resource threshold, private or shared storage) sub-allocates out of a pooled
-			// MTLHeap rather than paying the per-resource driver-side allocation cost. Oversized
-			// render targets / streaming textures fall back to direct device allocation inside the
-			// allocator; nothing in this method needs to know which path was taken.
-			mImpl->Texture = mGpuDevice.GetHeapAllocator().AllocateTexture(desc);
+			// Route through the device's memory manager so the texture sub-allocates out of a
+			// pooled placement MTLHeap at an allocator-chosen offset rather than paying the
+			// per-resource driver-side allocation cost. Oversized or non-poolable requests fall
+			// back to direct device allocation inside the allocator; the invalid location tells the
+			// wrapper nothing needs freeing back to the pool.
+			GpuResourceLocation location;
+			MetalTextureNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateTexture(desc, location);
 #if !__has_feature(objc_arc)
 			[desc release];
 #endif
 
-			if (mImpl->Texture == nil)
+			if (handle == nil)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Failed to create MTLTexture (format {0}, {1}x{2}).",
 					(u32)mProperties.Format, mProperties.Width, mProperties.Height);
-				return;
+				return nullptr;
 			}
 
+			mInternalFormat = mProperties.Format;
+
+			MetalImageCreateInformation imageCreateInformation;
+			imageCreateInformation.Type = mProperties.Type;
+			imageCreateInformation.Format = mProperties.Format;
+			imageCreateInformation.FaceCount = mProperties.Type == TEX_TYPE_3D ? 1u : mProperties.GetFaceCount();
+			imageCreateInformation.MipLevelCount = mipCount;
+			imageCreateInformation.Usage = mProperties.Usage;
+			imageCreateInformation.DebugName = GetName();
+
+			MetalImage* image = mGpuDevice.GetResourceManager().Create<MetalImage>(imageCreateInformation, handle, location);
+
 			if (!GetName().empty())
-			{
-				NSString* nsName = [NSString stringWithUTF8String:GetName().c_str()];
-				[mImpl->Texture setLabel:nsName];
-			}
+				image->SetName(GetName());
+
+			return image;
 			} // @autoreleasepool
 		}
 
-		void MetalTexture::ReleaseInternalTexture()
+		GpuQueueMask MetalTexture::GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags) const
 		{
-			if (!mImpl)
-				return;
+			if (mImage == nullptr || mipLevel > mProperties.MipMapCount ||
+				arrayLayer >= (mProperties.Type == TEX_TYPE_3D ? 1u : mProperties.GetFaceCount()))
+				return GpuQueueMask::kNone;
 
-			mImpl->Texture = nil;
-			mImpl->ShaderReadViews.clear();
+			return mImage->GetSubresource(arrayLayer, mipLevel)->GetUseInfo(accessFlags);
+		}
+
+		u32 MetalTexture::GetBoundCount(u32 subresourceIdx) const
+		{
+			if (mImage == nullptr)
+				return 0;
+
+			u32 face, mipLevel;
+			mProperties.MapFromSubresourceIndex(subresourceIdx, face, mipLevel);
+			if (mProperties.Type == TEX_TYPE_3D)
+				face = 0;
+
+			return mImage->GetSubresource(face, mipLevel)->GetBoundCount();
+		}
+
+		u32 MetalTexture::GetUseCount(u32 subresourceIdx) const
+		{
+			if (mImage == nullptr)
+				return 0;
+
+			u32 face, mipLevel;
+			mProperties.MapFromSubresourceIndex(subresourceIdx, face, mipLevel);
+			if (mProperties.Type == TEX_TYPE_3D)
+				face = 0;
+
+			return mImage->GetSubresource(face, mipLevel)->GetUseCount();
 		}
 
 		GpuTextureMappedScope MetalTexture::Map(u32, u32, GpuMapOptions)
 		{
-			// Metal textures are always private-storage in phase 2 and therefore not directly
-			// mappable. Callers should use TextureUtility::Write / TextureUtility::Read, which stage
-			// through a GpuBuffer and drive CopyBufferToTexture / CopyTextureToBuffer on the command
-			// buffer. The invalid scope returned here is the engine contract's signal that the caller
-			// must take the staging path.
+			// Metal textures are always private-storage and therefore not directly mappable.
+			// Callers should use TextureUtility::Write / TextureUtility::Read, which stage through
+			// a GpuBuffer and drive CopyBufferToTexture / CopyTextureToBuffer on the command
+			// buffer. The invalid scope returned here is the engine contract's signal that the
+			// caller must take the staging path.
 			return GpuTextureMappedScope();
 		}
 
 		void MetalTexture::Flush(u32, u32)
 		{
-			// No-op: private textures have no CPU-visible cache to flush. Present to satisfy the
-			// pure-virtual Texture::Flush override.
+			// No-op: private textures have no CPU-visible cache to flush.
 		}
 
+		void MetalTexture::Invalidate(u32, u32)
+		{
+			// No-op: private textures have no CPU-visible cache to invalidate.
+		}
 	} // namespace render
 } // namespace b3d

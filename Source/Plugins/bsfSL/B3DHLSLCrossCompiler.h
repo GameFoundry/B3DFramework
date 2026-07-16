@@ -41,7 +41,7 @@ namespace b3d
 		 * @param	outSource				Cross compiled shader source, if successful.
 		 * @return							A result object containing an error message if not successful.
 		 */
-		static ShaderCompilerResult CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& inOutStartBindingSlot, String& outSource);
+		static ShaderCompilerResult CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& inOutStartBindingSlot, String& outSource, Array<u32, 3>& outThreadGroupSize);
 
 		/**
 		 * Registers every cross-compilation target supported by this build. Call once during plugin start-up.

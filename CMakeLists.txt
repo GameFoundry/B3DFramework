@@ -1,5 +1,19 @@
 cmake_minimum_required (VERSION 3.31.0)
 
+if(CMAKE_HOST_APPLE)
+	if(NOT CMAKE_OSX_ARCHITECTURES)
+		set(CMAKE_OSX_ARCHITECTURES arm64 CACHE STRING "macOS target architecture" FORCE)
+	elseif(NOT CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+		message(FATAL_ERROR "Banshee targets Apple Silicon only. Set CMAKE_OSX_ARCHITECTURES=arm64.")
+	endif()
+
+	if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+		set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0 CACHE STRING "Minimum macOS deployment version" FORCE)
+	elseif(CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 13.0)
+		message(FATAL_ERROR "Banshee's Apple Silicon Metal target requires macOS 13.0 or newer.")
+	endif()
+endif()
+
 # CSharp is only supported by the Visual Studio generators.
 if(CMAKE_GENERATOR MATCHES "Visual Studio")
 	set(B3D_PROJECT_LANGUAGES C CXX CSharp)

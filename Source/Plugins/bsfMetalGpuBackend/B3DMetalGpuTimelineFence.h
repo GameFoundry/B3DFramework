@@ -39,6 +39,14 @@ namespace b3d
 			id<MTLSharedEvent> GetSharedEvent() const;
 #endif
 
+		protected:
+			/**
+			 * Native blocking wait on the fence's MTLSharedEvent via an MTLSharedEventListener +
+			 * dispatch semaphore. Invoked by Wait(). Replaces the base class' poll-with-sleep fallback
+			 * (mirrors VulkanGpuTimelineFence::WaitInternal, which uses vkWaitSemaphores).
+			 */
+			void WaitInternal(u64 value) final;
+
 		private:
 			struct Impl;
 			TUnique<Impl> mImpl;

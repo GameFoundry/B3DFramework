@@ -3,6 +3,7 @@
 #include "B3DMetalEventQuery.h"
 #include "B3DMetalGpuDevice.h"
 #include "B3DMetalGpuCommandBuffer.h"
+#include "Profiling/B3DRenderStats.h"
 
 namespace b3d
 {
@@ -17,6 +18,7 @@ namespace b3d
 			: mGpuDevice(gpuDevice)
 			, mImpl(B3DMakeUnique<Impl>())
 		{
+			B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Query);
 			id<MTLDevice> device = gpuDevice.GetMetalDevice();
 			if (device != nil)
 				mImpl->Event = [device newSharedEvent];
@@ -25,7 +27,14 @@ namespace b3d
 		MetalEventQuery::~MetalEventQuery()
 		{
 			if (mImpl)
+			{
+#if !__has_feature(objc_arc)
+				[mImpl->Event release];
+#endif
 				mImpl->Event = nil;
+			}
+
+			B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Query);
 		}
 
 		void MetalEventQuery::Begin(GpuCommandBuffer& commandBuffer)
@@ -34,32 +43,22 @@ namespace b3d
 				return;
 
 			auto& metalCB = static_cast<MetalGpuCommandBuffer&>(commandBuffer);
-			id<MTLCommandBuffer> mtlCB = metalCB.GetOrAcquireMetalCommandBuffer();
-			if (mtlCB == nil)
-				return;
 
-			// Signal is encoded at the current stream position, which matches the base-class contract
-			// (B3DEventQuery.h: "Once the GPU reaches this point the query will be set in the signaled
-			// state"). The Vulkan backend has identical semantics: VulkanEventQuery::Begin issues a
-			// @c vkCmdSetEvent at the call site (or queues it until after the current render pass
-			// ends). A review suggestion to move this signal to commit time would make @c IsReady
-			// return false until the whole buffer retires rather than until the GPU reached the Begin
-			// call — that is a meaning change away from the base contract, so we keep the per-call
-			// mid-stream signal. Metal @c encodeSignalEvent: is a command-buffer-level API and must
-			// not be called while an encoder is open; callers on the Metal path schedule EventQuery
-			// begins between encoder boundaries so the call is safe. No stricter assertion exists on
-			// the base class, matching Vulkan's looser contract.
-			const u64 nextValue = mExpectedValue.fetch_add(1, std::memory_order_relaxed) + 1;
-			[mtlCB encodeSignalEvent:mImpl->Event value:nextValue];
+			// Command-buffer event commands cannot be encoded while a Metal encoder is active. The
+			// command buffer therefore closes compute/blit encoders immediately, and defers signals
+			// from a render pass until its encoder ends, matching Vulkan's render-pass behavior.
+			const u64 nextValue = mExpectedValue.load(std::memory_order_relaxed) + 1;
+			if (metalCB.EncodeSignalEvent(mImpl->Event, nextValue))
+				mExpectedValue.store(nextValue, std::memory_order_release);
 		}
 
 		bool MetalEventQuery::IsReady() const
 		{
 			if (mImpl->Event == nil)
-				return true;
+				return false;
 
-			const u64 target = mExpectedValue.load(std::memory_order_relaxed);
-			return mImpl->Event.signaledValue >= target;
+			const u64 target = mExpectedValue.load(std::memory_order_acquire);
+			return target != 0 && mImpl->Event.signaledValue >= target;
 		}
 	} // namespace render
 } // namespace b3d

@@ -205,6 +205,7 @@ void RenderWindow::Initialize()
 		renderWindowSurfaceCreateInformation.UseHardwareSRGB = mCreateInformation.Gamma;
 		renderWindowSurfaceCreateInformation.VSync = mCreateInformation.Vsync;
 		renderWindowSurfaceCreateInformation.VsyncInterval = mCreateInformation.VsyncInterval;
+		renderWindowSurfaceCreateInformation.RefreshRate = mCreateInformation.VideoMode.RefreshRate;
 		renderWindowSurfaceCreateInformation.PlatformWindowHandle = mPlatformWindowHandle;
 		renderWindowSurfaceCreateInformation.Headless = mCreateInformation.Headless;
 
@@ -241,7 +242,7 @@ void RenderWindow::RebuildSwapChain()
 {
 	if(mRenderWindowSurface != nullptr)
 	{
-		mRenderWindowSurface->RebuildSwapChain(mRenderTargetProperties.Width, mRenderTargetProperties.Height, mRenderWindowProperties.Vsync);
+		mRenderWindowSurface->RebuildSwapChain(mRenderTargetProperties.Width, mRenderTargetProperties.Height, mRenderWindowProperties.Vsync, mRenderWindowProperties.VsyncInterval);
 		OnSwapChainDidRebuild();
 	}
 }

@@ -3,10 +3,16 @@
 #pragma once
 
 #include "B3DMetalPrerequisites.h"
+#include "GpuBackend/Allocators/B3DGpuAllocator.h"
+#include "GpuBackend/Allocators/B3DGpuLinearAllocator.h"
+#include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
+#include "Utility/B3DPool.h"
 #include "Utility/Threading/B3DThreading.h"
 
 namespace b3d
 {
+	struct GpuBufferInformation;
+
 	namespace render
 	{
 		class MetalGpuDevice;
@@ -15,124 +21,198 @@ namespace b3d
 		 *  @{
 		 */
 
+#ifdef __OBJC__
+		/** Native Metal heap handle. Aliased to void* in plain C++ TUs so class layouts stay identical (id is a pointer). */
+		using MetalHeapNativeHandle = id<MTLHeap>;
+#else
+		using MetalHeapNativeHandle = void*;
+#endif
+
+		/** References a Metal memory heap, as returned by MetalHeapBackend. */
+		struct MetalGpuHeap : IGpuHeap
+		{
+			/** Backing placement MTLHeap. Its hazard mode follows the backend synchronization toggle. */
+			MetalHeapNativeHandle Heap = nullptr;
+
+			u64 Size = 0; /**< Total heap size in bytes. */
+			u32 MemoryType = 0; /**< Memory type the heap was created for. See MetalHeapAllocator::kMemoryType*. */
+		};
+
+		/** Downcasts an opaque engine heap handle to the concrete Metal heap it must refer to. */
+		inline MetalGpuHeap& ToMetalGpuHeap(IGpuHeap* heap)
+		{
+			B3D_ASSERT(heap != nullptr);
+			return *static_cast<MetalGpuHeap*>(heap);
+		}
+
+		/** Initializer struct for MetalHeapBackend::CreateHeap. */
+		struct MetalHeapCreateInformation
+		{
+			u32 MemoryType = 0; /**< Memory type (storage-mode bucket) the heap serves. See MetalHeapAllocator::kMemoryType*. */
+		};
+
 		/**
-		 * Sub-allocates @c MTLTexture and @c MTLBuffer instances out of a pool of @c MTLHeap
-		 * objects, bucketed by storage mode. Replaces the per-resource @c newTextureWithDescriptor:
-		 * / @c newBufferWithLength:options: calls on the device which are the single largest
-		 * per-resource allocation cost on Apple Silicon for render-target-heavy scenes.
+		 * Metal implementation of the GpuHeapBackend trait. Creates placement-type MTLHeaps so the
+		 * engine-side allocator strategies (TLSF / linear) own sub-allocation offsets, mirroring the
+		 * Vulkan backend's bind-at-offset model. Heap hazard mode follows
+		 * @c B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION and always matches its child resources.
 		 *
-		 * Design:
-		 *  - One bucket per @c MTLStorageMode (currently @c Private and @c Shared). @c Memoryless
-		 *    is handled separately once transient-flag plumbing lands.
-		 *  - Each bucket holds a growable list of @c MTLHeap instances, each sized to
-		 *    @c kDefaultHeapSize at creation and grown on-demand when the existing heaps report
-		 *    insufficient free space for a request.
-		 *  - Requests whose size exceeds @c kLargeResourceThreshold bypass the heap pool entirely
-		 *    and allocate directly on the device. This keeps oversized render targets / streaming
-		 *    buffers from fragmenting the pool.
+		 * Requires placement-heap support (macOS 10.15). Apple Silicon Macs satisfy this requirement.
 		 *
-		 * Lifetime:
-		 *  - Heap-backed resources release back to their heap automatically via normal ARC /
-		 *    @c release refcount (Metal's heap contract — no explicit deallocation call is
-		 *    required). Callers continue to route prior resources through
-		 *    @c MetalGpuDevice::QueueMetalResourceForDeferredRelease as before.
+		 * @note Thread safe.
+		 */
+		class MetalHeapBackend
+		{
+		public:
+			using HeapHandle = IGpuHeap*;
+			using HeapCreateInformation = MetalHeapCreateInformation;
+
+			explicit MetalHeapBackend(MetalGpuDevice& device);
+			~MetalHeapBackend() = default;
+
+			MetalHeapBackend(const MetalHeapBackend&) = delete;
+			MetalHeapBackend& operator=(const MetalHeapBackend&) = delete;
+
+			/** @name GpuHeapBackend trait surface.
+			 *  @{
+			 */
+
+			/**
+			 * Allocates a backing MTLHeap of @p sizeInBytes bytes according to @p createInformation.
+			 * Returns a stable MetalGpuHeap pointer (as IGpuHeap*) minted from the backend's pool,
+			 * or nullptr on failure (device lost, OS too old, or out of memory).
+			 */
+			HeapHandle CreateHeap(u64 sizeInBytes, const HeapCreateInformation& createInformation);
+
+			/** Releases the MTLHeap and returns the heap object to the pool. */
+			void DestroyHeap(HeapHandle handle);
+
+			/** @} */
+
+		private:
+			MetalGpuDevice* mDevice = nullptr;
+
+			/** Pool of heap objects with stable addresses. Guarded by mHeapPoolMutex — CreateHeap/DestroyHeap are called concurrently from per-memory-type allocators. */
+			TPool<MetalGpuHeap> mHeapPool;
+			Mutex mHeapPoolMutex;
+		};
+
+		B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID(MetalHeapBackend);
+
+		/**
+		 * Device-level GPU memory manager for the Metal backend. Owns the MetalHeapBackend and one
+		 * persistent thread-safe TLSF allocator per memory type (private / shared storage), and
+		 * mints placed MTLBuffer / MTLTexture objects at allocator-chosen offsets inside pooled
+		 * placement heaps. This replaces the per-resource newBufferWithLength: /
+		 * newTextureWithDescriptor: driver allocations, which are the single largest per-resource
+		 * cost on Apple Silicon for resource-heavy scenes.
 		 *
-		 * Thread safety:
-		 *  - All public methods are safe to call from worker fibers. Internal mutex-per-bucket
-		 *    keeps contention to the bucket actually being hit (private vs shared).
+		 * Persistent requests the TLSF path cannot serve fall back to direct device allocations with
+		 * an invalid GpuResourceLocation. Explicit-allocator requests never fall back because doing so
+		 * would silently escape the transient allocator's frame-retirement contract.
+		 *
+		 * Ownership/lifetime: returned native handles are +1 references the caller owns (MRC).
+		 * The paired GpuResourceLocation must be freed via its stamped allocator
+		 * (location.Allocator->Free) once the resource's IGpuResource lifecycle reports it retired.
+		 * Persistent TLSF allocators reclaim immediately under ResourceLifecycle deferral; transient
+		 * linear allocators recycle their whole page after the completion tracker signals.
+		 *
+		 * @note Thread safe.
 		 */
 		class MetalHeapAllocator
 		{
 		public:
-			/** Default size of each freshly-grown @c MTLHeap (64 MB). */
-			static constexpr u64 kDefaultHeapSize = 64ull * 1024ull * 1024ull;
-
-			/**
-			 * Resources above this size bypass the heap pool and allocate directly on the device
-			 * to avoid fragmenting the pool with oversized allocations (32 MB — half the default
-			 * heap size).
-			 */
-			static constexpr u64 kLargeResourceThreshold = 32ull * 1024ull * 1024ull;
+			/** Memory types resources allocate from. One TLSF allocator exists per type. */
+			static constexpr u32 kMemoryTypePrivate = 0; /**< MTLStorageModePrivate — GPU-only resources. */
+			static constexpr u32 kMemoryTypeShared = 1;  /**< MTLStorageModeShared — CPU-visible buffers. */
+			static constexpr u32 kMemoryTypeCount = 2;
 
 			MetalHeapAllocator(MetalGpuDevice& device);
 			~MetalHeapAllocator();
 
-#ifdef __OBJC__
-			/**
-			 * Allocates an @c MTLTexture from a heap whose storage mode matches
-			 * @p descriptor.storageMode, or directly on the device if the texture exceeds
-			 * @c kLargeResourceThreshold or no heap in the matching bucket has room. Returns nil
-			 * on failure.
-			 */
-			id<MTLTexture> AllocateTexture(MTLTextureDescriptor* descriptor);
+			MetalHeapAllocator(const MetalHeapAllocator&) = delete;
+			MetalHeapAllocator& operator=(const MetalHeapAllocator&) = delete;
 
 			/**
-			 * Allocates an @c MTLBuffer of @p length bytes with the storage mode encoded in
-			 * @p options. As with textures, requests exceeding @c kLargeResourceThreshold fall
-			 * back to a direct device allocation. Returns nil on failure.
+			 * Determines the memory type a buffer described by @p information allocates from. A
+			 * buffer's memory type is a pure function of its create information, fixed for its
+			 * lifetime. Thread safe.
 			 */
-			id<MTLBuffer> AllocateBuffer(u64 length, MTLResourceOptions options);
+			static u32 PickBufferMemoryType(const GpuBufferInformation& information);
+
+			/**
+			 * Returns the persistent allocator for @p memoryType. Only valid when placement heaps
+			 * are supported; intended for device-level wiring (PickBufferMemoryType /
+			 * CreateTransientAllocator overrides) and diagnostics.
+			 */
+			IGpuAllocator& GetAllocator(u32 memoryType);
+
+			/**
+			 * Creates a context-owned transient linear allocator for @p memoryType. Normal pages are
+			 * obtained from a device-owned per-memory-type pool and retired through
+			 * @p completionTracker. Returns null when placement heaps are unavailable.
+			 */
+			TUnique<IGpuAllocator> CreateTransientAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
+
+			/** True when placement-heap sub-allocation is available on this device/OS. */
+			bool IsHeapSubAllocationSupported() const { return mPlacementHeapsSupported; }
+
+#ifdef __OBJC__
+			/**
+			 * Allocates an MTLBuffer of @p length bytes from the persistent allocator for
+			 * @p memoryType, placing it at the allocator-chosen heap offset. On success
+			 * @p outLocation holds the backing span (free it via outLocation.Allocator->Free once
+			 * the resource retires). On any heap-path miss the buffer is allocated directly on the
+			 * device and @p outLocation is left invalid. Returns nil only on hard failure.
+			 */
+			id<MTLBuffer> AllocateBuffer(u64 length, u32 memoryType, GpuResourceLocation& outLocation);
+
+			/**
+			 * Allocates a placed buffer through an explicitly supplied allocator. The allocator must
+			 * produce Metal heaps of @p memoryType. Unlike the persistent overload, this method does
+			 * not fall back to a direct allocation when the allocator cannot satisfy the request.
+			 */
+			id<MTLBuffer> AllocateBuffer(u64 length, u32 memoryType, IGpuAllocator& allocator, GpuResourceLocation& outLocation);
+
+			/**
+			 * Counterpart of AllocateBuffer for textures. The memory type is derived from
+			 * @p descriptor.storageMode; non-poolable storage modes fall through to a direct device
+			 * allocation. The descriptor must carry the configured hazard mode for the direct path;
+			 * heap-placed resources inherit the heap's matching mode.
+			 */
+			id<MTLTexture> AllocateTexture(MTLTextureDescriptor* descriptor, GpuResourceLocation& outLocation);
 #endif
 
 			/**
-			 * Drops every pooled @c MTLHeap. Callers must have drained the device's
-			 * deferred-release queue first, otherwise resources still being tracked for delayed
-			 * release may hold dangling heap refs after this returns. Invoked from the device's
-			 * destructor after @c WaitUntilIdle and deferred-release drain.
+			 * Destroys the persistent allocators and transient page pools, releasing every pooled
+			 * MTLHeap through the backend. Every resource sub-allocated from these heaps must have been destroyed
+			 * beforehand — the resource manager's leak tracking asserts that in debug builds.
+			 * Invoked from the device's destructor after WaitUntilIdle and resource teardown.
 			 */
 			void Shutdown();
 
 		private:
-#ifdef __OBJC__
-			/**
-			 * Allocates a texture from the heap bucket matching @p storageMode. Grows the bucket
-			 * with a new heap when existing heaps report insufficient space. The caller has
-			 * already pre-checked the large-resource threshold.
-			 */
-			id<MTLTexture> AllocateTextureFromHeap(MTLTextureDescriptor* descriptor, MTLStorageMode storageMode);
+			using MemoryAllocator = TGpuTlsfAllocator<MetalHeapBackend>;
+			using LinearPagePool = TGpuLinearPagePool<MetalHeapBackend>;
+			using TransientAllocator = TGpuLinearAllocator<MetalHeapBackend>;
 
-			/**
-			 * Counterpart of @c AllocateTextureFromHeap for buffers. @p hazardTrackingMode and
-			 * @p cpuCacheMode are extracted from the caller's @c MTLResourceOptions so newly-grown
-			 * heaps preserve them.
-			 */
-			id<MTLBuffer> AllocateBufferFromHeap(u64 length, MTLStorageMode storageMode, MTLResourceOptions options);
-
-			/**
-			 * Creates a fresh @c MTLHeap of at least @p minimumSize bytes with the given storage
-			 * mode. Returns nil on failure. Caller appends to the bucket.
-			 */
-			id<MTLHeap> CreateHeap(MTLStorageMode storageMode, u64 minimumSize);
-#endif
-
-			/** Index of the bucket for each supported @c MTLStorageMode. */
-			enum Bucket
-			{
-				BucketPrivate = 0,
-				BucketShared = 1,
-				BucketCount = 2
-			};
+			/** Returns the lazily-created shared transient-page pool for @p memoryType. */
+			LinearPagePool& GetOrCreateLinearPagePool(u32 memoryType);
 
 #ifdef __OBJC__
-			static Bucket StorageModeToBucket(MTLStorageMode storageMode);
+			/** Shared buffer allocation implementation for persistent and explicit allocator paths. */
+			id<MTLBuffer> AllocateBufferInternal(u64 length, u32 memoryType, IGpuAllocator& allocator,
+				bool allowDirectFallback, GpuResourceLocation& outLocation);
 #endif
-
-			struct BucketData
-			{
-				// One mutex per bucket rather than one global. Workers allocating shared-storage
-				// staging buffers do not contend with workers allocating private-storage textures.
-				Mutex BucketMutex;
-
-#ifdef __OBJC__
-				// Heaps are stored as raw id. Under ARC this list retains each heap; under MRC
-				// CreateHeap returns a +1 retained reference and we release in Shutdown.
-				Vector<id<MTLHeap>> Heaps;
-#endif
-			};
 
 			MetalGpuDevice& mDevice;
-			BucketData mBuckets[BucketCount];
-			bool mSharedBucketSupported = false;
+			MetalHeapBackend mBackend;
+			TUnique<MemoryAllocator> mAllocators[kMemoryTypeCount];
+			TUnique<LinearPagePool> mLinearPagePools[kMemoryTypeCount];
+			Mutex mLinearPagePoolMutex;
+
+			bool mPlacementHeapsSupported = false; /**< Placement heaps need macOS 10.15. */
+			bool mSharedHeapsSupported = false;    /**< Shared-storage heaps require unified memory. */
 		};
 
 		/** @} */

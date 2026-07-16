@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DMetalUtility.h"
 #include "Image/B3DPixelUtility.h"
+#include "GpuBackend/B3DGpuBuffer.h"
 #include "Debug/B3DLog.h"
 #include "Utility/Threading/B3DThreading.h"
 #include <atomic>
@@ -361,27 +362,78 @@ namespace b3d
 		u32 MetalUtility::GetTextureRowPitch(PixelFormat format, u32 width)
 		{
 			const u32 blockSize = PixelUtility::GetBlockSize(format);
+			if (blockSize == 0)
+				return 0;
+
+			u64 rowPitch;
 			if (PixelUtility::IsCompressed(format))
 			{
 				const Vector2I blockDim = PixelUtility::GetBlockDimensions(format);
-				const u32 blockCols = (std::max(1u, width) + (u32)blockDim.X - 1) / (u32)blockDim.X;
-				return blockCols * blockSize;
-			}
+				if (blockDim.X <= 0)
+					return 0;
 
-			return std::max(1u, width) * blockSize;
+				const u64 blockCols = ((u64)std::max(1u, width) + (u32)blockDim.X - 1) / (u32)blockDim.X;
+				rowPitch = blockCols * blockSize;
+			}
+			else
+				rowPitch = (u64)std::max(1u, width) * blockSize;
+
+			return rowPitch <= (u64)~0u ? (u32)rowPitch : 0;
 		}
 
 		u32 MetalUtility::GetTextureSlicePitch(PixelFormat format, u32 width, u32 height)
 		{
 			const u32 rowPitch = GetTextureRowPitch(format, width);
+			if (rowPitch == 0)
+				return 0;
+
+			u64 slicePitch;
 			if (PixelUtility::IsCompressed(format))
 			{
 				const Vector2I blockDim = PixelUtility::GetBlockDimensions(format);
-				const u32 blockRows = (std::max(1u, height) + (u32)blockDim.Y - 1) / (u32)blockDim.Y;
-				return rowPitch * blockRows;
-			}
+				if (blockDim.Y <= 0)
+					return 0;
 
-			return rowPitch * std::max(1u, height);
+				const u64 blockRows = ((u64)std::max(1u, height) + (u32)blockDim.Y - 1) / (u32)blockDim.Y;
+				slicePitch = (u64)rowPitch * blockRows;
+			}
+			else
+				slicePitch = (u64)rowPitch * std::max(1u, height);
+
+			return slicePitch <= (u64)~0u ? (u32)slicePitch : 0;
+		}
+
+		MTLStorageMode MetalUtility::GetBufferStorageMode(const GpuBufferInformation& information)
+		{
+			// CPU-visible buffers use shared storage so Map can expose [buffer contents] directly
+			// and the engine's GpuBufferUtility can memcpy in place. Everything else is GPU-private,
+			// which makes GpuBufferUtility fall back to its staging-buffer + CopyBufferToBuffer
+			// path. Managed storage (for discrete Macs) would need explicit didModifyRange on every
+			// write; shared works on all Apple platforms and is coherent on Apple Silicon.
+			const bool cpuVisible = information.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess)
+				|| information.Type == GpuBufferType::StagingRead
+				|| information.Type == GpuBufferType::StagingWrite;
+
+			return cpuVisible ? MTLStorageModeShared : MTLStorageModePrivate;
+		}
+
+		MTLResourceOptions MetalUtility::GetResourceOptions(MTLStorageMode storageMode)
+		{
+			// Storage/cache/hazard modes share this bit mask. Keep direct resources consistent
+			// with placement heaps by selecting the configured hazard policy here.
+			MTLResourceOptions options = (MTLResourceOptions)((NSUInteger)storageMode << MTLResourceStorageModeShift);
+#if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
+			options |= MTLResourceHazardTrackingModeUntracked;
+#else
+			options |= MTLResourceHazardTrackingModeTracked;
+#endif
+
+			return options;
+		}
+
+		bool IsMetalPixelFormatSupported(PixelFormat format, bool gamma)
+		{
+			return MetalUtility::GetPixelFormat(format, gamma) != MTLPixelFormatInvalid;
 		}
 	} // namespace render
 } // namespace b3d
