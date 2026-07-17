@@ -19,8 +19,17 @@ namespace b3d
 	class BSLCompiler : public IShaderCompiler
 	{
 	public:
+		/**
+		 * Version of the compiler's output. Bump whenever generated output changes in any way (the BSL parser, this
+		 * compiler, or the XShaderCompiler cross-compile backends), otherwise stale shaders keep being served from the
+		 * persistent cache and the prebuilt store.
+		 */
+		static constexpr u32 kCompilerVersion = 1;
+
 		BSLCompiler();
 		~BSLCompiler() override;
+
+		u32 GetVersion() const override { return kCompilerVersion; }
 
 		ShaderCompilerResult Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, const Vector<String>& languages, bool compileVariations, TShared<Shader>& outShader) override
 		{

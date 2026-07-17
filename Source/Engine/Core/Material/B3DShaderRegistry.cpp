@@ -78,14 +78,18 @@ namespace
 	constexpr const char* kPrebuiltShaderPackageName = "Shaders";
 
 	/**
-	 * Returns true if the shader's stored source/include hashes still match the freshly computed source hash and the
-	 * include files currently on disk - i.e. the compiled shader is up to date with its source. A shader with no compiler
-	 * meta-data cannot be validated and is treated as up to date.
+	 * Returns true if the shader's stored compiler version and source/include hashes still match the current compiler
+	 * and the source/include files currently on disk - i.e. the compiled shader is up to date. A shader with no compiler
+	 * meta-data cannot be validated and is treated as up to date, as is one when no compiler is available (in that case
+	 * recompilation is impossible and the cached data is the best we have).
 	 */
-	bool IsShaderUpToDate(const TShared<ShaderCompilerMetaData>& compilerMetaData, const Array<u64, 2>& sourceHash)
+	bool IsShaderUpToDate(const TShared<ShaderCompilerMetaData>& compilerMetaData, const Array<u64, 2>& sourceHash, const IShaderCompiler* currentCompiler)
 	{
 		if(compilerMetaData == nullptr)
 			return true;
+
+		if(currentCompiler != nullptr && compilerMetaData->CompilerVersion != currentCompiler->GetVersion())
+			return false;
 
 		if(compilerMetaData->ShaderHash != sourceHash)
 			return false;
@@ -145,6 +149,7 @@ Path ShaderRegistry::GetShaderMetaDataPath(const String& shaderCacheName, const 
 Path ShaderRegistry::GetVariationPath(const ShaderCompilerMetaData& metadata, const String& language, const String& variationName)
 {
 	StringStream hashStringStream;
+	hashStringStream << metadata.CompilerVersion << "\n";
 	hashStringStream << variationName << "\n";
 	hashStringStream << StringUtility::HexToLiteral(metadata.ShaderHash.data(), (u32)metadata.ShaderHash.size()) << "\n";
 
@@ -225,11 +230,12 @@ TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderRegistry::GetOrCompileShad
 
 	const String shaderSource = shaderFileStream->GetAsString();
 	const Array<u64, 2> shaderHash = Shader::ComputeHash(shaderSource);
+	const TShared<IShaderCompiler> bslCompiler = ShaderCompilers::Instance().GetCompiler("bsl");
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	// In development builds, discard the precompiled data if it no longer matches the source on disk so the cache/
-	// compilation paths below pick up local shader edits.
-	if(precompiledData != nullptr && !IsShaderUpToDate(precompiledData->CompilerMetaData, shaderHash))
+	// In development builds, discard the precompiled data if it no longer matches the source on disk or the current
+	// compiler version so the cache/compilation paths below pick up local shader and compiler changes.
+	if(precompiledData != nullptr && !IsShaderUpToDate(precompiledData->CompilerMetaData, shaderHash, bslCompiler.get()))
 	{
 		B3D_LOG(Info, LogResources, "Prebuilt shader \"{0}\" is out of date with its source. Recompiling from source.", shaderPath);
 		precompiledData = nullptr;
@@ -241,7 +247,7 @@ TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderRegistry::GetOrCompileShad
 	if(precompiledData == nullptr)
 	{
 		precompiledData = cache.TryGetEntry<PrecompiledShaderData>(shaderPathInCache);
-		if(precompiledData != nullptr && !IsShaderUpToDate(precompiledData->CompilerMetaData, shaderHash))
+		if(precompiledData != nullptr && !IsShaderUpToDate(precompiledData->CompilerMetaData, shaderHash, bslCompiler.get()))
 			precompiledData = nullptr;
 	}
 

@@ -106,10 +106,10 @@ namespace b3d
 
 		/**
 		 * Returns the virtual path of a shader variation entry: "<NameInCache><language>/<hash>". The hash folds in the
-		 * variation name together with the shader's source and include hashes (taken from @p metadata), so the key is
-		 * source-sensitive: it changes whenever the shader or any of its includes is edited, and stale entries are then
-		 * simply not found. The application cache, the prebuilt store, and the cook all key variations through here so
-		 * the three can never drift.
+		 * compiler version and the variation name together with the shader's source and include hashes (taken from
+		 * @p metadata), so the key is source- and compiler-sensitive: it changes whenever the shader or any of its
+		 * includes is edited or the shader compiler itself changes, and stale entries are then simply not found. The
+		 * application cache, the prebuilt store, and the cook all key variations through here so the three can never drift.
 		 */
 		static Path GetVariationPath(const ShaderCompilerMetaData& metadata, const String& language, const String& variationName);
 

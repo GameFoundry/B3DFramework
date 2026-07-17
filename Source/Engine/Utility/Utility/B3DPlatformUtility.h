@@ -47,6 +47,13 @@ namespace b3d
 		 */
 		[[noreturn]] static void Terminate(bool force = false);
 
+		/**
+		 * Disables interactive error dialogs (assert message boxes, abort prompts, OS error popups) for the current
+		 * process, routing the reports to stderr instead. Intended for unattended runs (CI, headless tests) where a
+		 * modal dialog would block the process until manually dismissed. No-op on platforms without such dialogs.
+		 */
+		static void DisableInteractiveErrorDialogs();
+
 		/** Returns information about the underlying hardware. */
 		static SystemInfo GetSystemInfo();
 

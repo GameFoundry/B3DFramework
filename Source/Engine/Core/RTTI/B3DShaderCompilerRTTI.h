@@ -28,6 +28,7 @@ namespace b3d
 			B3D_RTTI_MEMBER_CONTAINER(Variations, 4)
 			B3D_RTTI_MEMBER(Defines, 5)
 			B3D_RTTI_MEMBER(IncludeHashes, 6)
+			B3D_RTTI_MEMBER(CompilerVersion, 7)
 		B3D_RTTI_END_MEMBERS
 
 	public:

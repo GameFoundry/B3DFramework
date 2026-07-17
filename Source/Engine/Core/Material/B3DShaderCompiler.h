@@ -30,6 +30,7 @@ namespace b3d
 	{
 		String Source; /**< High level source code of the shader. */
 		String NameInCache; /**< Unique name of this shader in the shader cache. */
+		u32 CompilerVersion = 0; /**< Version of the compiler that produced this data (IShaderCompiler::GetVersion()). Data from a different version is considered stale. */
 		Array<u64, 2> ShaderHash; /**< Hash of the shader's source code (not including the include file source). */
 		TInlineArray<GpuProgramType, 2> GPUProgramTypes; /**< Types of GPU programs used by the shader. */
 		Vector<ShaderVariationParameters> Variations; /**< Sets of defines controlling which variations of the shader are present. */
@@ -52,6 +53,12 @@ namespace b3d
 	{
 	public:
 		virtual ~IShaderCompiler() = default;
+
+		/**
+		 * Returns the version of the compiler's output. The version is stored in the compiled shader's meta-data and
+		 * folded into shader cache keys, so a version change invalidates all previously cached and cooked output.
+		 */
+		virtual u32 GetVersion() const = 0;
 
 		/**
 		 * Compiles the shader from BSL and outputs a Shader object. Depending on the @p compileVariations parameter the shader variations will be compiled as well, or the shader will be empty and requires
