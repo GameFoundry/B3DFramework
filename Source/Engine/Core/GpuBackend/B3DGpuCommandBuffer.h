@@ -61,9 +61,9 @@ namespace b3d
 
 			// Stage flags can be combined with ShaderAccess or UniformBuffer usages, to clearly define at which stage the use is happening.
 			// If not provided system usually assumes potential use in all shader stages.
-			StageVertexShader = 1 << 7, /**< Access in vertex shader. */
-			StageFragmentShader = 1 << 8, /**< Access in fragment shader. */
-			StageComputeShader = 1 << 9, /**< Access in compute shader. */
+			StageVertexShader = 1 << 8, /**< Access in vertex shader. */
+			StageFragmentShader = 1 << 9, /**< Access in fragment shader. */
+			StageComputeShader = 1 << 10, /**< Access in compute shader. */
 
 			AnyStage = StageVertexShader | StageFragmentShader | StageComputeShader
 		};
