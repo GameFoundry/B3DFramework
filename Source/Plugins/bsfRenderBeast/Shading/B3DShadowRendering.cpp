@@ -839,7 +839,7 @@ namespace b3d
 				GpuUniformBufferInformation perObjectInfo;
 				perObjectInfo.Name = "PerObject";
 				perObjectInfo.Set = GpuPipelineSet::kPerObject;
-				perObjectInfo.Slot = 0;
+				perObjectInfo.Slot = gpuDevice->GetUniformBufferParameterSlot(0);
 				perObjectInfo.Size = Math::CeilToMultiple(gPerObjectUniformDefinition.GetSize() / 4u, 4u);
 				perObjectInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Geometry;
 				perObjectInfo.IsShareable = true;

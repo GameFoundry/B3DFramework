@@ -92,7 +92,7 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 		GpuUniformBufferInformation perObjectInfo;
 		perObjectInfo.Name = "PerObject";
 		perObjectInfo.Set = GpuPipelineSet::kPerObject;
-		perObjectInfo.Slot = 0;
+		perObjectInfo.Slot = mDevice->GetUniformBufferParameterSlot(0);
 		perObjectInfo.Size = Math::CeilToMultiple(gPerObjectUniformDefinition.GetSize() / 4u, 4u);
 		perObjectInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment;
 		perObjectInfo.IsShareable = true;
@@ -116,7 +116,7 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 			GpuUniformBufferInformation decalInfo;
 			decalInfo.Name = "DecalParams";
 			decalInfo.Set = GpuPipelineSet::kPerObject;
-			decalInfo.Slot = 1;
+			decalInfo.Slot = mDevice->GetUniformBufferParameterSlot(1);
 			decalInfo.Size = Math::CeilToMultiple(gDecalUniformDefinition.GetSize() / 4u, 4u);
 			decalInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment;
 			decalInfo.IsShareable = true;
@@ -141,7 +141,7 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 			GpuUniformBufferInformation gpuParticlesInfo;
 			gpuParticlesInfo.Name = "GpuParticleParams";
 			gpuParticlesInfo.Set = GpuPipelineSet::kPerObject;
-			gpuParticlesInfo.Slot = 1;
+			gpuParticlesInfo.Slot = mDevice->GetUniformBufferParameterSlot(1);
 			gpuParticlesInfo.Size = Math::CeilToMultiple(gGpuParticlesUniformDefinition.GetSize() / 4u, 4u);
 			gpuParticlesInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment;
 			gpuParticlesInfo.IsShareable = true;
