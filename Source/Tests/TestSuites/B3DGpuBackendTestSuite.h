@@ -13,10 +13,13 @@ namespace b3d
 		GpuBackendTestSuite();
 
 	private:
-		/** Verifies that accesses are accumulated into barrier-delimited hazard tracking epochs. */
-		void TestHazardTrackingAccessEpochs();
+		/** Verifies that accesses are accumulated into barrier-delimited hazard history epochs. */
+		void TestHazardHistoryEpochs();
 
 		/** Verifies cross-command-buffer dependencies and propagation of unresolved hazards. */
-		void TestCrossCommandBufferRecipe();
+		void TestTransitionRecipe();
+
+		/** Verifies remaining hazards produce per-queue transition recipes without losing unresolved destination stages. */
+		void TestResourceTransitionRecipe();
 	};
 } // namespace b3d

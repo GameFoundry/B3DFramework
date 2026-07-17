@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DBSLCompiler.h"
 #include "GpuBackend/B3DGpuProgram.h"
-#include <regex>
 #include "Material/B3DShader.h"
 #include "Material/B3DVariation.h"
 #include "Material/B3DPass.h"
@@ -78,6 +77,7 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 
 	TShared<ShaderCompilerMetaData> compilerMetaData = B3DMakeShared<ShaderCompilerMetaData>();
 	compilerMetaData->Source = source;
+	compilerMetaData->CompilerVersion = kCompilerVersion;
 	compilerMetaData->Variations = CreateShaderVariations(parsedShaderMetaData);
 	compilerMetaData->Defines = defines;
 
@@ -235,41 +235,6 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 			// Null backend: no compilation needed, leave all ProgramCodePerType entries as empty strings.
 			// The null GPU device accepts empty source and produces empty bytecode.
 		}
-		else if(language == kGpuProgramLanguageHlsl)
-		{
-			// Clean non-standard HLSL
-			// Note: Ideally we add a full HLSL output module to XShaderCompiler, instead of using simple regex. This
-			// way the syntax could be enhanced with more complex features, while still being able to output pure
-			// HLSL.
-			static const std::regex attrRegex(
-				R"(\[\s*layout\s*\(.*\)\s*\]|\[\s*internal\s*\]|\[\s*color\s*\]|\[\s*alias\s*\(.*\)\s*\]|\[\s*spriteuv\s*\(.*\)\s*\])");
-			String parsedCode = regex_replace(parsedShaderPass.Code, attrRegex, "");
-
-			static const std::regex attr2Regex(
-				R"(\[\s*hideInInspector\s*\]|\[\s*name\s*\(".*"\)\s*\]|\[\s*hdr\s*\])");
-			parsedCode = regex_replace(parsedCode, attr2Regex, "");
-
-			static const std::regex initializerRegex(
-				R"((Texture2D|Texture3D)\s*(\S*)\s*=.*;)");
-			parsedCode = regex_replace(parsedCode, initializerRegex, "$1 $2;");
-
-			static const std::regex warpWithSyncRegex(
-				R"(Warp(Group|Device|All)MemoryBarrierWithWarpSync)");
-			parsedCode = regex_replace(parsedCode, warpWithSyncRegex, "$1MemoryBarrierWithGroupSync");
-
-			static const std::regex warpNoSyncRegex(
-				R"(Warp(Group|Device|All)MemoryBarrier)");
-			parsedCode = regex_replace(parsedCode, warpNoSyncRegex, "$1MemoryBarrier");
-
-			// Note: I'm just copying HLSL code as-is. This code will contain all entry points which could have
-			// an effect on compile time. It would be ideal to remove dead code depending on program Type. This would
-			// involve adding a HLSL code generator to XShaderCompiler.
-			for(auto& type : shaderMetaData.GPUProgramTypes)
-			{
-				B3D_ASSERT((i32)type < GPT_COUNT);
-				crossCompilePassOutput.ProgramCodePerType[(i32)type] = parsedCode;
-			}
-		}
 		else // Need to cross compile to correct low-level language
 		{
 			if(crossCompileTarget == nullptr)
@@ -337,10 +302,9 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 			return gpuProgramCreateInformation;
 		};
 
-		// HLSL passes through with its per-stage entry names intact, and HLSL-family cross-compile outputs keep them too. 
-		// GLSL-family outputs have their entry function renamed to "main" by the cross compiler.
-		const bool isHLSL = language == kGpuProgramLanguageHlsl;
-		const bool usesStageEntryNames = isHLSL || (crossCompileTarget != nullptr && crossCompileTarget->KeepsEntryPointNames);
+		// HLSL-family cross-compile outputs keep their per-stage entry names intact; GLSL-family outputs have
+		// their entry function renamed to "main" by the cross compiler.
+		const bool usesStageEntryNames = crossCompileTarget != nullptr && crossCompileTarget->KeepsEntryPointNames;
 
 		shaderPassInformation.VertexProgramCreateInformation = fnBuildGpuProgramCreateInformation(
 			crossCompileOutputLanguageName,

@@ -4,7 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuDevice.h"
-#include "GpuBackend/B3DGpuHazardTracking.h"
+#include "GpuBackend/B3DGpuHazards.h"
 #include "GpuBackend/B3DGpuTextureSubresource.h"
 
 namespace b3d
@@ -151,6 +151,95 @@ namespace b3d
 	 *  @{
 	 */
 
+	namespace render
+	{
+		/** Stores hazards that remain on a IGpuResource after it has been submitted on a command buffer. Each queue keeps a copy of its own hazards. */
+		class B3D_EXPORT GpuResourceRemainingHazards
+		{
+		public:
+			/** Unresolved hazards produced by a single queue. */
+			struct PerQueueHazards
+			{
+				GpuQueueId QueueId;
+				GpuHazardState HazardState;
+			};
+
+			/** Adds hazards for a queue, merging them with an existing entry. Resolved states are ignored. */
+			void Add(GpuQueueId queueId, const GpuHazardState& hazards)
+			{
+				if(!hazards.HasUnsafeStages())
+					return;
+
+				for(PerQueueHazards& entry : mEntries)
+				{
+					if(entry.QueueId.Id != queueId.Id)
+						continue;
+
+					entry.HazardState.Merge(hazards);
+					return;
+				}
+
+				PerQueueHazards entry;
+				entry.QueueId = queueId;
+				entry.HazardState = hazards;
+				mEntries.Add(std::move(entry));
+			}
+
+			/** Returns unresolved read/write stages accumulated across all queues. */
+			GpuAccessScope GetUnsafeAccessScope() const
+			{
+				GpuAccessScope accesses;
+				for(const PerQueueHazards& entry : mEntries)
+				{
+					accesses.Add(entry.HazardState.GetUnsafeReadStages(), GpuAccessFlag::Read);
+					accesses.Add(entry.HazardState.GetUnsafeWriteStages(), GpuAccessFlag::Write);
+				}
+
+				return accesses;
+			}
+
+			/** Returns a mask containing every queue with unresolved hazards. */
+			GpuQueueMask GetQueueMask() const
+			{
+				GpuQueueMask mask = GpuQueueMask::kNone;
+				for(const PerQueueHazards& entry : mEntries)
+					mask |= entry.QueueId;
+
+				return mask;
+			}
+
+			/** Returns all per-queue hazard entries. */
+			const TInlineArray<PerQueueHazards, 2>& GetEntries() const { return mEntries; }
+
+			// Defined after the class, as it embeds the enclosing class by value (which requires it to be complete).
+			struct TransitionRecipe;
+
+			/**
+			 * Replays @p destinationCommandBufferHazards against the stored hazards without mutating either input.
+			 * Hazards produced on another queue remain unresolved for future destination queues: an acquire on
+			 * @p destinationQueueId only makes those accesses safe from that queue's perspective.
+			 */
+			TransitionRecipe BuildTransitionRecipe(const GpuHazardStateWithHistory& destinationCommandBufferHazards, GpuQueueId destinationQueueId) const;
+
+		private:
+			TInlineArray<PerQueueHazards, 2> mEntries;
+		};
+
+		/**
+		 * Everything needed to transition a resource onto a new command buffer: the barriers to issue against each
+		 * queue that previously used the resource, and the hazards that remain unresolved afterwards.
+		 */
+		struct GpuResourceRemainingHazards::TransitionRecipe
+		{
+			/** One recipe per queue that previously used the resource, stamped with that queue's id. */
+			TInlineArray<GpuHazardState::TransitionRecipe, 2> PerQueueTransitionRecipes;
+
+			GpuResourceRemainingHazards RemainingHazards;
+			GpuAccessScope SourceUnsafeAccessScope;
+			GpuQueueMask SourceQueueMask = GpuQueueMask::kNone;
+		};
+	}
+
 	/**
 	 * Common base for backend GPU resources (VulkanResource, D3D12Resource, MetalResource, NullResource).
 	 * Provides the cross-backend portion of the lifetime state machine — aggregate bound/in-use counters,
@@ -181,6 +270,8 @@ namespace b3d
 	class B3D_EXPORT IGpuResource
 	{
 	public:
+		static constexpr u32 kMaximumUniqueQueueCount = B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT;
+
 		/**
 		 * Constructs a manager-owned resource.
 		 *
@@ -283,6 +374,15 @@ namespace b3d
 			return mUsedCount;
 		}
 
+		/** Returns queues on which the resource currently has in-flight accesses matching @p useFlags. */
+		GpuQueueMask GetUseInfo(GpuAccessFlags useFlags) const;
+
+		/** Builds a transition recipe by replaying a command buffer's recorded hazard history against the resource's remaining hazards. Submit thread only. */
+		render::GpuResourceRemainingHazards::TransitionRecipe BuildTransitionRecipe(const render::GpuHazardStateWithHistory& destinationCommandBufferHazards, GpuQueueId destinationQueueId) const;
+
+		/** Commits a transition recipe's remaining hazards after native boundary synchronization has been constructed. Submit thread only. */
+		void SetRemainingHazards(render::GpuResourceRemainingHazards&& remainingHazards) { mRemainingHazards = std::move(remainingHazards); }
+
 		/**
 		 * Queues the resource for destruction. If the resource is currently bound to a command buffer, the actual free
 		 * is deferred until the bound count drops to zero; otherwise the manager frees it immediately. Only valid for
@@ -358,9 +458,6 @@ namespace b3d
 		String mDebugName;
 		GpuResourceManager* mOwner = nullptr;
 
-		/** Hazards remaining from the last command buffer submissions, grouped by queue. Submit thread only. */
-		render::GpuHazardStatesByQueue mSubmittedHazardStates;
-
 		/**
 		 * Lock guarding the lifetime state. Held during all Notify* calls (and around the OnNotifyUsed /
 		 * OnNotifyDone hooks), so backend overrides and backend queries can use this same mutex to protect
@@ -374,9 +471,18 @@ namespace b3d
 		/** Aggregate command-buffer binding count. Updated only by IGpuResource under mMutex. */
 		u32 mBountCount = 0;
 
+		/** Per-queue in-flight read counts. Guarded by mMutex. */
+		u8 mReadUses[kMaximumUniqueQueueCount] = {};
+
+		/** Per-queue in-flight write counts. Guarded by mMutex. */
+		u8 mWriteUses[kMaximumUniqueQueueCount] = {};
+
 	private:
 		/** Deletes the resource. Caller must ensure resource is not being used on the GPU or bound to a command buffer. */
 		void DestroyImmediately();
+
+		/** Hazards remaining from the last command buffer submissions, grouped by queue. Submit thread only. */
+		render::GpuResourceRemainingHazards mRemainingHazards;
 
 		bool mDestroyRequested = false;
 	};

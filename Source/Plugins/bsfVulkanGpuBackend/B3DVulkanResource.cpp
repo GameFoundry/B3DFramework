@@ -11,69 +11,10 @@ using namespace b3d::render;
 template<class TBase>
 void TVulkanResource<TBase>::OnNotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags)
 {
-	// Called under IGpuResource::mMutex from inside NotifyUsed, after the aggregate use counter has been incremented.
 	// IGpuResource has already incremented mUsedCount, so a value > 1 means there were prior in-flight uses.
 	if(mState == State::Normal && mOwnerQueueValid)
 		B3D_ASSERT(mOwnerQueueId.GetType() == queueId.GetType() && "Submitted ownership state must match the queue using an exclusive Vulkan resource.");
-
-	B3D_ASSERT(queueId.Id < kMaximumUniqueQueueCount);
-
-	if(useFlags.IsSet(GpuAccessFlag::Read))
-	{
-		B3D_ASSERT(mReadUses[queueId.Id] < 255 && "Resource used in too many command buffers at once.");
-		mReadUses[queueId.Id]++;
-	}
-
-	if(useFlags.IsSet(GpuAccessFlag::Write))
-	{
-		B3D_ASSERT(mWriteUses[queueId.Id] < 255 && "Resource used in too many command buffers at once.");
-		mWriteUses[queueId.Id]++;
-	}
-}
-
-template<class TBase>
-void TVulkanResource<TBase>::OnNotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags)
-{
-	// Called under IGpuResource::mMutex from inside NotifyDone, after the aggregate counters have been decremented.
-	if(useFlags.IsSet(GpuAccessFlag::Read))
-	{
-		B3D_ASSERT(mReadUses[queueId.Id] > 0);
-		mReadUses[queueId.Id]--;
-	}
-
-	if(useFlags.IsSet(GpuAccessFlag::Write))
-	{
-		B3D_ASSERT(mWriteUses[queueId.Id] > 0);
-		mWriteUses[queueId.Id]--;
-	}
-}
-
-template<class TBase>
-GpuQueueMask TVulkanResource<TBase>::GetUseInfo(GpuAccessFlags useFlags) const
-{
-	GpuQueueMask mask = 0;
-
-	Lock lock(this->mMutex);
-
-	if(useFlags.IsSet(GpuAccessFlag::Read))
-	{
-		for(u32 i = 0; i < kMaximumUniqueQueueCount; i++)
-		{
-			if(mReadUses[i] > 0)
-				mask |= GpuQueueId(i);
-		}
-	}
-
-	if(useFlags.IsSet(GpuAccessFlag::Write))
-	{
-		for(u32 i = 0; i < kMaximumUniqueQueueCount; i++)
-		{
-			if(mWriteUses[i] > 0)
-				mask |= GpuQueueId(i);
-		}
-	}
-
-	return mask;
+	(void)useFlags;
 }
 
 template<class TBase>

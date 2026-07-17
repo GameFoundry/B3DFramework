@@ -21,7 +21,7 @@ GpuBufferTrackingState& TGpuResourceTracker<TBarrierHelper>::GetOrCreateBufferTr
 
 		bufferTrackingState.UseHandle.Used = false;
 		bufferTrackingState.UseHandle.Flags = GpuAccessFlag::None;
-		bufferTrackingState.WriteHazardTracking = mHazardTrackingPool.Construct<GpuHazardTracking>();
+		bufferTrackingState.WriteHazardTracking = mHazardTrackingPool.Construct<GpuHazardStateWithHistory>();
 
 		buffer->NotifyBound();
 
@@ -42,11 +42,11 @@ void TGpuResourceTracker<TBarrierHelper>::TrackBufferUsage(IGpuBufferResource* b
 	const typename TBarrierHelper::BarrierTrackingInfo* barrierTrackingInfo = barrierHelper.AddBufferBarrier(buffer, bufferTrackingState, useFlags, access);
 
 	const GpuStageFlags accessStageFlags = GpuBackendUtility::GetStageFlags(useFlags);
-	GpuHazardTracking* const writeHazardTracking = bufferTrackingState.WriteHazardTracking;
+	GpuHazardStateWithHistory* const writeHazardTracking = bufferTrackingState.WriteHazardTracking;
 
 #if B3D_VERIFY_BARRIERS
 	// Make a copy as we need to apply the safe access from the barrier that was registered. We assume the caller will issue the barrier before using the buffer.
-	GpuHazardTracking writeHazardTrackingCopy;
+	GpuHazardStateWithHistory writeHazardTrackingCopy;
 	writeHazardTrackingCopy.Access = writeHazardTracking->Access;
 	writeHazardTrackingCopy.State = writeHazardTracking->State;
 
@@ -198,11 +198,11 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 	const typename TBarrierHelper::BarrierTrackingInfo* const barrierTrackingInfo = barrierHelper.AddSubresourceBarrier(image, subresourceTrackingState, useFlags, accessFlags, subresourceTrackingState.RequiredLayout);
 
 	const GpuStageFlags accessStageFlags = GpuBackendUtility::GetStageFlags(useFlags);
-	GpuHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
+	GpuHazardStateWithHistory* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
 
 #if B3D_VERIFY_BARRIERS
 	// Make a copy as we need to apply the safe access from the barrier that was registered. We assume the caller will issue the barrier before using the image.
-	GpuHazardTracking writeHazardTrackingCopy;
+	GpuHazardStateWithHistory writeHazardTrackingCopy;
 	writeHazardTrackingCopy.Access = writeHazardTracking->Access;
 	writeHazardTrackingCopy.State = writeHazardTracking->State;
 
@@ -565,7 +565,7 @@ u32 TGpuResourceTracker<TBarrierHelper>::AddSubresourceTrackingState(const GpuTe
 	subresourceTrackingState.RequiredLayout = GpuImageLayout::Undefined;
 	subresourceTrackingState.RenderPassLayout = GpuImageLayout::Undefined;
 	subresourceTrackingState.Range = range;
-	subresourceTrackingState.WriteHazardTracking = mHazardTrackingPool.Construct<GpuHazardTracking>();
+	subresourceTrackingState.WriteHazardTracking = mHazardTrackingPool.Construct<GpuHazardStateWithHistory>();
 
 	return (u32)mSubresourceTrackingState.size() - 1;
 }
@@ -578,7 +578,7 @@ u32 TGpuResourceTracker<TBarrierHelper>::CopySubresourceTrackingStateWithNewRang
 	GpuImageSubresourceTrackingState subresourceCopy = *copyFromSubresource;
 	subresourceCopy.Range = newRange;
 
-	subresourceCopy.WriteHazardTracking = mHazardTrackingPool.Construct<GpuHazardTracking>();
+	subresourceCopy.WriteHazardTracking = mHazardTrackingPool.Construct<GpuHazardStateWithHistory>();
 
 	if(B3D_ENSURE(copyFromSubresource->WriteHazardTracking != nullptr))
 		*subresourceCopy.WriteHazardTracking = *copyFromSubresource->WriteHazardTracking;
@@ -640,7 +640,7 @@ void TGpuResourceTracker<TBarrierHelper>::UpdateWriteHazardTrackingAfterBarrier(
 	const GpuHazardStageAndAccess& barrier)
 {
 	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
-	GpuHazardTracking* const writeHazardTracking = bufferTrackingState.WriteHazardTracking;
+	GpuHazardStateWithHistory* const writeHazardTracking = bufferTrackingState.WriteHazardTracking;
 
 	writeHazardTracking->RegisterBarrier(barrier);
 }
@@ -663,7 +663,7 @@ void TGpuResourceTracker<TBarrierHelper>::UpdateWriteHazardTrackingAfterBarrier(
 		CallbackParameters* callbackParameters = (CallbackParameters*)userData;
 
 		GpuImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Self->mSubresourceTrackingState[globalSubresourceIndex];
-		GpuHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
+		GpuHazardStateWithHistory* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
 
 		writeHazardTracking->RegisterBarrier(callbackParameters->Barrier);
 

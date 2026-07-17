@@ -43,26 +43,7 @@ namespace b3d
 			template<class... TBaseArgs>
 			TVulkanResource(VulkanResourceManager* owner, bool concurrency, TBaseArgs&&... baseArgs)
 				: TBase(owner, std::forward<TBaseArgs>(baseArgs)...), mOwner(owner), mState(concurrency ? State::Shared : State::Normal)
-			{
-				B3DZeroOut(mReadUses);
-				B3DZeroOut(mWriteUses);
-			}
-
-			/**
-			 * Returns a mask that has bits set for every queue that the resource is currently used (read or written) by.
-			 *
-			 * @param	useFlags	Flags for which to check use information (e.g. read only, write only, or both).
-			 * @return				Bitmask of which queues is the resource used on.
-			 */
-			GpuQueueMask GetUseInfo(GpuAccessFlags useFlags) const;
-
-			/** Returns hazards remaining from the last command buffer submission on every queue it was submitted on. Submit thread only. */
-			const GpuHazardStatesByQueue& GetLastSubmittedHazardStates() const
-			{
-				AssertIfNotSubmitThread();
-
-				return this->mSubmittedHazardStates;
-			}
+			{}
 
 			/** Returns the queue that currently owns the resource. Submit thread only. */
 			bool GetOwnerQueueId(GpuQueueId& queueId) const
@@ -85,14 +66,6 @@ namespace b3d
 				mOwnerQueueValid = true;
 			}
 
-			/** Sets hazards remaining on the last command buffer the resource was submitted on, per queue. Submit thread only. */
-			void SetLastSubmittedHazardStates(GpuHazardStatesByQueue&& hazardStates)
-			{
-				AssertIfNotSubmitThread();
-
-				this->mSubmittedHazardStates = std::move(hazardStates);
-			}
-
 			/** Returns true if the resource is only allowed to be used by a single queue family at once. */
 			bool IsExclusive() const
 			{
@@ -105,7 +78,6 @@ namespace b3d
 
 		protected:
 			void OnNotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags) override;
-			void OnNotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags) override;
 
 			/**
 			 * Typed manager pointer. Shadows IGpuResource::mOwner so that subclasses calling mOwner->GetDevice()
@@ -118,8 +90,6 @@ namespace b3d
 			bool mOwnerQueueValid = false;
 			State mState;
 
-			u8 mReadUses[kMaximumUniqueQueueCount];
-			u8 mWriteUses[kMaximumUniqueQueueCount];
 		};
 
 		/** Standard Vulkan resource with no specialized generic role. */

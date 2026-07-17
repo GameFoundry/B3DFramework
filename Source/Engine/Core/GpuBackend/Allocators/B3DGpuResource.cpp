@@ -32,7 +32,21 @@ namespace b3d
 	{
 		Lock lock(mMutex);
 		B3D_ASSERT(useFlags != GpuAccessFlag::None);
+		B3D_ASSERT(queueId.Id < kMaximumUniqueQueueCount);
 		mUsedCount++;
+
+		if(useFlags.IsSet(GpuAccessFlag::Read))
+		{
+			B3D_ASSERT(mReadUses[queueId.Id] < 255 && "Resource used in too many command buffers at once.");
+			mReadUses[queueId.Id]++;
+		}
+
+		if(useFlags.IsSet(GpuAccessFlag::Write))
+		{
+			B3D_ASSERT(mWriteUses[queueId.Id] < 255 && "Resource used in too many command buffers at once.");
+			mWriteUses[queueId.Id]++;
+		}
+
 		OnNotifyUsed(queueId, useFlags);
 	}
 
@@ -47,6 +61,18 @@ namespace b3d
 			mUsedCount--;
 			mBountCount--;
 
+			if(useFlags.IsSet(GpuAccessFlag::Read))
+			{
+				B3D_ASSERT(mReadUses[queueId.Id] > 0);
+				mReadUses[queueId.Id]--;
+			}
+
+			if(useFlags.IsSet(GpuAccessFlag::Write))
+			{
+				B3D_ASSERT(mWriteUses[queueId.Id] > 0);
+				mWriteUses[queueId.Id]--;
+			}
+
 			OnNotifyDone(queueId, useFlags);
 
 			destroyImmediately = mBountCount == 0 && mDestroyRequested;
@@ -55,6 +81,28 @@ namespace b3d
 		// Safe to check outside of mutex — once queued for destruction, mDestroyRequested cannot be cleared.
 		if(destroyImmediately)
 			DestroyImmediately();
+	}
+
+	GpuQueueMask IGpuResource::GetUseInfo(GpuAccessFlags useFlags) const
+	{
+		GpuQueueMask mask = GpuQueueMask::kNone;
+		Lock lock(mMutex);
+
+		for(u32 queueIndex = 0; queueIndex < kMaximumUniqueQueueCount; queueIndex++)
+		{
+			if(useFlags.IsSet(GpuAccessFlag::Read) && mReadUses[queueIndex] > 0)
+				mask |= GpuQueueId(queueIndex);
+
+			if(useFlags.IsSet(GpuAccessFlag::Write) && mWriteUses[queueIndex] > 0)
+				mask |= GpuQueueId(queueIndex);
+		}
+
+		return mask;
+	}
+
+	render::GpuResourceRemainingHazards::TransitionRecipe IGpuResource::BuildTransitionRecipe(const render::GpuHazardStateWithHistory& destinationCommandBufferHazards, GpuQueueId destinationQueueId) const
+	{
+		return mRemainingHazards.BuildTransitionRecipe(destinationCommandBufferHazards, destinationQueueId);
 	}
 
 	void IGpuResource::NotifyUnbound()

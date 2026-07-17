@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
-#include "B3DGpuHazardTracking.h"
+#include "B3DGpuHazards.h"
 #include "B3DGpuParameterSetPool.h"
 #include "B3DGpuQueries.h"
 #include "B3DGpuTimelineFence.h"

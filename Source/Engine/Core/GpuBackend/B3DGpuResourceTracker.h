@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
-#include "GpuBackend/B3DGpuHazardTracking.h"
+#include "GpuBackend/B3DGpuHazards.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "Allocators/B3DPoolAlloc.h"
@@ -38,7 +38,7 @@ namespace b3d
 			GpuResourceUseFlags UseFlags;
 
 			/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued. */
-			GpuHazardTracking* WriteHazardTracking = nullptr;
+			GpuHazardStateWithHistory* WriteHazardTracking = nullptr;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			/** Suballocation indices that are bound in this tracking state. Typically 1-2. */
@@ -78,7 +78,7 @@ namespace b3d
 			GpuAccessFlags Access;
 
 			/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued. */
-			GpuHazardTracking* WriteHazardTracking = nullptr;
+			GpuHazardStateWithHistory* WriteHazardTracking = nullptr;
 
 			// Only relevant for layout transitions
 			/**
@@ -309,13 +309,13 @@ namespace b3d
 			/** Set of global subresource indices that are used on the current render pass. */
 			Set<u32> mRenderPassSubresources;
 
-			/** Pool allocator for GpuHazardTracking structures. */
-			PoolAlloc<sizeof(GpuHazardTracking), 512, alignof(GpuHazardTracking)> mHazardTrackingPool;
+			/** Pool allocator for GpuHazardStateWithHistory structures. */
+			PoolAlloc<sizeof(GpuHazardStateWithHistory), 512, alignof(GpuHazardStateWithHistory)> mHazardTrackingPool;
 
 			/** A read/write hazard registration deferred until the pending barriers have been issued. */
 			struct PendingHazardRegistration
 			{
-				GpuHazardTracking* Tracking;
+				GpuHazardStateWithHistory* Tracking;
 				GpuStageFlags AccessStageFlags;
 				GpuAccessFlags Access;
 			};

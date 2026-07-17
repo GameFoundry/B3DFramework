@@ -4,7 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "B3DGpuDevice.h"
-#include "B3DGpuHazardTracking.h"
+#include "B3DGpuHazards.h"
 #include "B3DGpuQueries.h"
 #include "Image/B3DColor.h"
 #include "Image/B3DTexture.h"

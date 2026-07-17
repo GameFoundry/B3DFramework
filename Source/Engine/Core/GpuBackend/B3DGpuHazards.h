@@ -127,14 +127,14 @@ namespace b3d
 		};
 
 		/** Keeps track on which pipeline stages a resource was written/read, and on which stages it may be safely accessed from. */
-		struct B3D_EXPORT GpuHazardStageTracking
+		struct B3D_EXPORT GpuHazardStageState
 		{
 			static constexpr u32 kPipelineStageCount = 16;
 
 			/** For each pipeline stage, stores in which stages is it safe to access the resource. */
 			std::array<GpuStageFlags, kPipelineStageCount> SafeAccess;
 
-			GpuHazardStageTracking();
+			GpuHazardStageState();
 
 			/** Clears safe access for all provided pipeline stages. */
 			void ClearStageSafeAccess(GpuStageFlags stages);
@@ -157,6 +157,8 @@ namespace b3d
 			void LogUnsafeAccess(GpuStageFlags stages, GpuAccessFlags currentAccessType, GpuAccessFlags previousAccessType) const;
 		};
 
+		struct GpuHazardStateWithHistory;
+
 		/**
 		 * Outstanding read/write hazards and the destination stages that can safely access them.
 		 * For each stage it maps which other stage can safely access that stage. Reads/writes have separate mappings:
@@ -166,10 +168,10 @@ namespace b3d
 		struct B3D_EXPORT GpuHazardState
 		{
 			/** Read stages that require an execution dependency before a subsequent write. */
-			GpuHazardStageTracking ExecutionBarrierTracking;
+			GpuHazardStageState ExecutionBarrierTracking;
 
 			/** Write stages that require a memory dependency before a subsequent read or write. */
-			GpuHazardStageTracking MemoryBarrierTracking;
+			GpuHazardStageState MemoryBarrierTracking;
 
 			/** Registers a resource access as unsafe for subsequent conflicting accesses. */
 			void ClearSafeAccess(GpuStageFlags stages, GpuAccessFlags access);
@@ -188,109 +190,59 @@ namespace b3d
 
 			/** Returns true if any stages still have unsafe read or write access. */
 			bool HasUnsafeStages() const { return GetUnsafeReadStages() != GpuStageFlag::None || GetUnsafeWriteStages() != GpuStageFlag::None; }
+
+			// Defined after the class, as it embeds the enclosing class by value (which requires it to be complete).
+			struct TransitionRecipe;
+
+			/**
+			 * Replays @p destinationCommandBufferHazards' recorded access/barrier history against these hazards,
+			 * determining the barriers the destination command buffer must issue before it begins and the hazards
+			 * that remain unresolved afterwards. Neither input is mutated. @p sourceQueueId identifies the queue
+			 * these hazards were produced on and is stamped into the recipe verbatim.
+			 */
+			TransitionRecipe BuildTransitionRecipe(GpuQueueId sourceQueueId, const GpuHazardStateWithHistory& destinationCommandBufferHazards) const;
 		};
 
-		/** Stores unresolved resource hazards grouped by the queue that produced them. */
-		class GpuHazardStatesByQueue
+		/** Holds information about barriers that need to be issued between two command buffers, as well as the hazards that remain. */
+		struct GpuHazardState::TransitionRecipe
 		{
-		public:
-			/** Unresolved hazards produced by a single queue. */
-			struct Entry
+			GpuQueueId SourceQueueId; /**< Queue that produced the source hazards this recipe resolves. */
+			GpuHazardStageAndAccess MemoryDependency; /**< Memory dependency required before the destination command buffer begins. */
+			GpuHazardStageAndAccess ExecutionDependency; /** Execution dependency required before the destination command buffer begins. */
+			GpuHazardState RemainingHazardState; /** Remaining hazards that need to be evaluated for future command buffer submissions. */
+
+			/** If the source command buffer has issued an internal barrier we depend on, we need wait on its queue, otherwise we risk running before the barrier is issued. */
+			bool RequiresCrossQueueDependency = false;
+
+			/** Returns destination accesses that must be covered by a boundary dependency. */
+			GpuAccessScope GetDestinationAccessScope() const
 			{
-				GpuQueueId QueueId;
-				GpuHazardState Hazards;
-			};
+				GpuAccessScope scope;
 
-			/** Adds hazards for a queue, merging them with an existing entry. Resolved states are ignored. */
-			void Add(GpuQueueId queueId, const GpuHazardState& hazards)
-			{
-				if(!hazards.HasUnsafeStages())
-					return;
+				if(MemoryDependency.IsValid())
+					scope.Add(MemoryDependency.DestinationStages, MemoryDependency.DestinationAccess);
 
-				for(Entry& entry : mEntries)
-				{
-					if(entry.QueueId.Id != queueId.Id)
-						continue;
+				if(ExecutionDependency.IsValid())
+					scope.Add(ExecutionDependency.DestinationStages, ExecutionDependency.DestinationAccess);
 
-					entry.Hazards.Merge(hazards);
-					return;
-				}
-
-				Entry entry;
-				entry.QueueId = queueId;
-				entry.Hazards = hazards;
-				mEntries.Add(std::move(entry));
+				return scope;
 			}
 
-			/** Returns unresolved read/write stages accumulated across all queues. */
-			GpuAccessScope GetUnsafeAccessScope() const
+			/** Returns true if destination command buffer execution must be ordered after the source submission. */
+			bool HasDependency() const
 			{
-				GpuAccessScope accesses;
-				for(const Entry& entry : mEntries)
-				{
-					accesses.Add(entry.Hazards.GetUnsafeReadStages(), GpuAccessFlag::Read);
-					accesses.Add(entry.Hazards.GetUnsafeWriteStages(), GpuAccessFlag::Write);
-				}
-
-				return accesses;
+				return MemoryDependency.IsValid() || ExecutionDependency.IsValid() || RequiresCrossQueueDependency;
 			}
-
-			/** Returns a mask containing every queue with unresolved hazards. */
-			GpuQueueMask GetQueueMask() const
-			{
-				GpuQueueMask mask = GpuQueueMask::kNone;
-				for(const Entry& entry : mEntries)
-					mask |= entry.QueueId;
-
-				return mask;
-			}
-
-			/** Returns all per-queue hazard entries. */
-			const TInlineArray<Entry, 2>& GetEntries() const { return mEntries; }
-
-		private:
-			TInlineArray<Entry, 2> mEntries;
 		};
 
 		/** Tracks resource hazards and executed barriers within a command buffer. */
-		struct B3D_EXPORT GpuHazardTracking
+		struct B3D_EXPORT GpuHazardStateWithHistory
 		{
 			/** Accumulated stages & accesses marked unsafe in-between barriers, and the following barrier that made the accesses safe. */
 			struct Epoch
 			{
 				GpuAccessScope AccessScope;
 				GpuHazardStageAndAccess IssuedBarrier;
-			};
-
-			/** Holds information about barriers that need to be issued between two command buffers, as well as the hazards that remain. */
-			struct CrossCommandBufferRecipe
-			{
-				GpuHazardStageAndAccess MemoryDependency; /**< Memory dependency required before the destination command buffer begins. */
-				GpuHazardStageAndAccess ExecutionDependency; /** Execution dependency required before the destination command buffer begins. */
-				GpuHazardState RemainingHazards; /** Remaining hazards that need to be evaluated for future command buffer submissions. */
-
-				/** If the source command buffer has issued an internal barrier we depend on, we need wait on its queue, otherwise we risk running before the barrier is issued. */
-				bool RequiresCrossQueueDependency = false;
-
-				/** Returns destination accesses that must be covered by a boundary dependency. */
-				GpuAccessScope GetDestinationAccessScope() const
-				{
-					GpuAccessScope scope;
-
-					if(MemoryDependency.IsValid())
-						scope.Add(MemoryDependency.DestinationStages, MemoryDependency.DestinationAccess);
-
-					if(ExecutionDependency.IsValid())
-						scope.Add(ExecutionDependency.DestinationStages, ExecutionDependency.DestinationAccess);
-
-					return scope;
-				}
-
-				/** Returns true if destination command buffer execution must be ordered after the source submission. */
-				bool HasDependency() const
-				{
-					return MemoryDependency.IsValid() || ExecutionDependency.IsValid() || RequiresCrossQueueDependency;
-				}
 			};
 
 			GpuAccessFlags Access; /**< Has the resource been read or written so far. */
@@ -306,7 +258,7 @@ namespace b3d
 			/** Notifies the tracker that a barrier was issued, making certain stage accesses safe. */
 			void RegisterBarrier(const GpuHazardStageAndAccess& barrier)
 			{
-				// We accumulate all accesses between barriers as we need to replay them for the cross-command buffer recipe
+				// We accumulate all accesses between barriers as we need to replay them for the transition recipe
 				Epoch epoch;
 				epoch.AccessScope = mCurrentAccessScope;
 				epoch.IssuedBarrier = barrier;
@@ -336,9 +288,6 @@ namespace b3d
 			/** Returns accesses before the first barrier was issued. Used for cross-command buffer barrier execution. */
 			GpuAccessScope GetFirstAccessScope() const;
 
-			/** Applies the recorded access/barrier history to hazards inherited from an earlier command buffer. */
-			CrossCommandBufferRecipe DetermineCrossCommandBufferRecipe(const GpuHazardState& sourceCommandBufferHazards) const;
-
 #if B3D_VERIFY_BARRIERS
 			/** Verifies that the access is safe from the provided stage and access type. Logs errors if not. */
 			void VerifySafeAccess(GpuStageFlags destinationAccessStageFlags, GpuAccessFlags destinationAccess) const;
@@ -350,5 +299,6 @@ namespace b3d
 			TInlineArray<Epoch, 2> mCompletedEpochs;
 			GpuAccessScope mCurrentAccessScope;
 		};
+
 	}
 }
