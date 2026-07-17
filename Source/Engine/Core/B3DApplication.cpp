@@ -64,6 +64,7 @@
 #include "Utility/B3DConfigVariable.h"
 #include "Utility/B3DDynamicLibrary.h"
 #include "Utility/B3DPersistentCache.h"
+#include "Utility/B3DPlatformUtility.h"
 
 #define B3D_WAIT_FOR_DEBUGGER 0
 #if B3D_WAIT_FOR_DEBUGGER 
@@ -94,6 +95,12 @@ namespace b3d
 	B3D_LOG_CATEGORY(LogScript)
 	B3D_LOG_CATEGORY(LogImporter)
 	B3D_LOG_CATEGORY(LogInput)
+
+	TConfigVariable<bool> gDebugDisableErrorDialogs("debug.DisableErrorDialogs",
+		"Disables interactive error dialogs (assert message boxes, abort prompts) so unattended runs fail fast "
+		"instead of blocking until the dialog is dismissed. Error reports go to stderr instead.",
+		false,
+		ConfigVariableFlag::ReadOnly);
 } // namespace b3d
 
 using namespace b3d;
@@ -228,6 +235,10 @@ void Application::OnStartUp()
 
 	// Initialize configuration variable system
 	ConfigVariableManager::StartUp();
+
+	// Apply as early as possible so any subsequent assert/abort fails fast instead of blocking on a dialog
+	if (gDebugDisableErrorDialogs)
+		PlatformUtility::DisableInteractiveErrorDialogs();
 
 	mApplicationCache = PersistentCache::Create();
 	mApplicationCache->Initialize(FileSystem::GetApplicationDataFolder());

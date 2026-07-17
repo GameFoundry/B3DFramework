@@ -7,6 +7,8 @@
 #include <iphlpapi.h>
 #include <VersionHelpers.h>
 #include <intrin.h>
+#include <crtdbg.h>
+#include <cstdlib>
 #include "String/B3DUnicode.h"
 
 using namespace b3d;
@@ -19,6 +21,26 @@ void PlatformUtility::Terminate(bool force)
 		PostQuitMessage(0);
 	else
 		TerminateProcess(GetCurrentProcess(), 0);
+}
+
+void PlatformUtility::DisableInteractiveErrorDialogs()
+{
+	// Runtime error messages go to stderr instead of a message box
+	_set_error_mode(_OUT_TO_STDERR);
+
+	// Debug CRT reports (assert, _RPT*) go to stderr (no-ops in release builds where the debug CRT is absent)
+	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+	_CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
+
+	// abort() shouldn't show a message or invoke Watson/JIT debugger
+	_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+
+	// Suppress OS-level error boxes (missing DLL popups, GPF dialog, etc.)
+	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
 }
 
 typedef LONG NTSTATUS, *PNTSTATUS;

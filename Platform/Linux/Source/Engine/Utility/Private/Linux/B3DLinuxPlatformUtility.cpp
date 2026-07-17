@@ -73,6 +73,11 @@ void PlatformUtility::Terminate(bool force)
 	exit(0);
 }
 
+void PlatformUtility::DisableInteractiveErrorDialogs()
+{
+	// No interactive error dialogs on Linux - asserts and aborts already go to stderr
+}
+
 SystemInfo PlatformUtility::GetSystemInfo()
 {
 	SystemInfo output;
