@@ -86,7 +86,11 @@ void D3D12Framebuffer::CreateViews()
 		// Handle RenderTexture - create views for color and depth-stencil textures
 		for (u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 		{
-			TShared<Texture> colorTexture = renderTexture->GetColorTexture(i);
+			// Create render target view over the requested face/mip sub-range (rendering into a single cube face or
+			// texture-array slice is how cubemaps get filled, e.g. sky irradiance - a view always starting at face 0
+			// makes every such pass overwrite the first face).
+			const RenderSurfaceInformation& surfaceInformation = renderTexture->GetColorSurfaceInformation(i);
+			const TShared<Texture>& colorTexture = surfaceInformation.Texture;
 			if (!colorTexture)
 				continue;
 
@@ -100,10 +104,6 @@ void D3D12Framebuffer::CreateViews()
 			// Allocate RTV descriptor
 			mRenderTargetViews[i] = descriptorManager.AllocateCPUDescriptor(D3D12DescriptorHeapType::RTV);
 
-			// Create render target view over the requested face/mip sub-range (rendering into a single cube face or
-			// texture-array slice is how cubemaps get filled, e.g. sky irradiance - a view always starting at face 0
-			// makes every such pass overwrite the first face).
-			const RenderSurfaceInformation& surfaceInformation = renderTexture->GetColorSurfaceInformation(i);
 			const TextureProperties& props = colorTexture->GetProperties();
 
 			const u32 baseFace = surfaceInformation.Face;
@@ -162,7 +162,7 @@ void D3D12Framebuffer::CreateViews()
 		}
 
 		// Handle depth-stencil texture
-		TShared<Texture> depthTexture = renderTexture->GetDepthStencilTexture();
+		const TShared<Texture>& depthTexture = renderTexture->GetDepthStencilSurfaceInformation().Texture;
 		if (depthTexture)
 		{
 			D3D12Texture* d3d12Texture = static_cast<D3D12Texture*>(depthTexture.get());

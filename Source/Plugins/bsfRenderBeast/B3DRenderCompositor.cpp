@@ -337,13 +337,13 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	if(RenderTarget != nullptr)
 	{
 		u32 targetIdx = 0;
-		rebuildRT |= RenderTarget->GetColorTexture(targetIdx++) != sceneColorTex->Texture;
-		rebuildRT |= RenderTarget->GetColorTexture(targetIdx++) != AlbedoTex->Texture;
-		rebuildRT |= RenderTarget->GetColorTexture(targetIdx++) != NormalTex->Texture;
-		rebuildRT |= RenderTarget->GetColorTexture(targetIdx++) != RoughMetalTex->Texture;
-		if(needsVelocity) rebuildRT |= RenderTarget->GetColorTexture(targetIdx++) != VelocityTex->Texture;
-		rebuildRT |= RenderTarget->GetColorTexture(targetIdx++) != IdTex->Texture;
-		rebuildRT |= RenderTarget->GetDepthStencilTexture() != sceneDepthTex->Texture;
+		rebuildRT |= RenderTarget->GetColorSurfaceInformation(targetIdx++).Texture != sceneColorTex->Texture;
+		rebuildRT |= RenderTarget->GetColorSurfaceInformation(targetIdx++).Texture != AlbedoTex->Texture;
+		rebuildRT |= RenderTarget->GetColorSurfaceInformation(targetIdx++).Texture != NormalTex->Texture;
+		rebuildRT |= RenderTarget->GetColorSurfaceInformation(targetIdx++).Texture != RoughMetalTex->Texture;
+		if(needsVelocity) rebuildRT |= RenderTarget->GetColorSurfaceInformation(targetIdx++).Texture != VelocityTex->Texture;
+		rebuildRT |= RenderTarget->GetColorSurfaceInformation(targetIdx++).Texture != IdTex->Texture;
+		rebuildRT |= RenderTarget->GetDepthStencilSurfaceInformation().Texture != sceneDepthTex->Texture;
 	}
 	else
 		rebuildRT = true;
@@ -630,8 +630,8 @@ void RCNodeSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 	bool rebuildRT = false;
 	if(RenderTarget != nullptr)
 	{
-		rebuildRT |= RenderTarget->GetColorTexture(0) != SceneColorTex->Texture;
-		rebuildRT |= RenderTarget->GetDepthStencilTexture() != sceneDepthTex->Texture;
+		rebuildRT |= RenderTarget->GetColorSurfaceInformation(0).Texture != SceneColorTex->Texture;
+		rebuildRT |= RenderTarget->GetDepthStencilSurfaceInformation().Texture != sceneDepthTex->Texture;
 	}
 	else
 		rebuildRT = true;
@@ -891,8 +891,8 @@ void RCNodeLightAccumulation::Render(const RenderCompositorNodeInputs& inputs)
 	bool rebuildRT;
 	if(RenderTarget != nullptr)
 	{
-		rebuildRT = RenderTarget->GetColorTexture(0) != LightAccumulationTex->Texture;
-		rebuildRT |= RenderTarget->GetDepthStencilTexture() != depthNode->DepthTex->Texture;
+		rebuildRT = RenderTarget->GetColorSurfaceInformation(0).Texture != LightAccumulationTex->Texture;
+		rebuildRT |= RenderTarget->GetDepthStencilSurfaceInformation().Texture != depthNode->DepthTex->Texture;
 	}
 	else
 		rebuildRT = true;
@@ -1045,8 +1045,8 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 	bool rebuildRT = false;
 	if(mLightOcclusionRT != nullptr)
 	{
-		rebuildRT |= mLightOcclusionRT->GetColorTexture(0) != lightOcclusionTex->Texture;
-		rebuildRT |= mLightOcclusionRT->GetDepthStencilTexture() != sceneDepthNode->DepthTex->Texture;
+		rebuildRT |= mLightOcclusionRT->GetColorSurfaceInformation(0).Texture != lightOcclusionTex->Texture;
+		rebuildRT |= mLightOcclusionRT->GetDepthStencilSurfaceInformation().Texture != sceneDepthNode->DepthTex->Texture;
 	}
 	else
 		rebuildRT = true;
@@ -1555,8 +1555,8 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	bool rebuildRT;
 	if(renderTarget != nullptr)
 	{
-		rebuildRT = renderTarget->GetColorTexture(0) != sceneColorNode->SceneColorTex->Texture;
-		rebuildRT |= renderTarget->GetDepthStencilTexture() != sceneDepthNode->DepthTex->Texture;
+		rebuildRT = renderTarget->GetColorSurfaceInformation(0).Texture != sceneColorNode->SceneColorTex->Texture;
+		rebuildRT |= renderTarget->GetDepthStencilSurfaceInformation().Texture != sceneDepthNode->DepthTex->Texture;
 	}
 	else
 		rebuildRT = true;

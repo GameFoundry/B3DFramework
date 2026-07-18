@@ -1938,7 +1938,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 	// Note: This could be optimized by blitting only the modified regions
 	commandBuffer.EndRenderPass();
 
-	BlitInformation blitInformation = BlitInformation::Blend(cameraRenderData.CachedRenderTexture->GetColorTexture(0), renderTarget, Area2I::kEmpty, RT_NONE, RT_ALL);
+	BlitInformation blitInformation = BlitInformation::Blend(cameraRenderData.CachedRenderTexture->GetColorSurfaceInformation(0).Texture, renderTarget, Area2I::kEmpty, RT_NONE, RT_ALL);
 	blitInformation.OutputArea = Area2(0.0f, 0.0f, 1.0f, 1.0f);
 	blitInformation.WriteAlpha = true;
 	blitInformation.SrgbEncode = gGuiUseLinearColorSpace;

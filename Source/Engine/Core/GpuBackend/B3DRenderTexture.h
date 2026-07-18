@@ -53,7 +53,7 @@ namespace b3d
 		 *
 		 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
 		 */
-		const HTexture& GetColorTexture(u32 idx) const { return mBindableColorTex[idx]; }
+		const HTexture& GetColorTexture(u32 index) const { return mBindableColorTex[index]; }
 
 		/**
 		 * Returns a depth/stencil surface texture you may bind as an input to an GPU program.
@@ -129,18 +129,14 @@ namespace b3d
 			static TShared<RenderTexture> Create(const RenderTextureCreateInformation& createInformation);
 
 			/**
-			 * Returns a color surface texture you may bind as an input to an GPU program.
+			 * Returns the color surface information for the given attachment. You may bind the surface texture as an input to a GPU program.
 			 *
 			 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
 			 */
-			TShared<Texture> GetColorTexture(u32 idx) const { return mInformation.ColorSurfaces[idx].Texture; }
+			const RenderSurfaceInformation& GetColorSurfaceInformation(u32 index) const { return mInformation.ColorSurfaces[index]; }
 
-			/**
-			 * Returns a depth/stencil surface texture you may bind as an input to an GPU program.
-			 *
-			 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
-			 */
-			TShared<Texture> GetDepthStencilTexture() const { return mInformation.DepthStencilSurface.Texture; }
+			/** Returns the depth/stencil surface information. */
+			const RenderSurfaceInformation& GetDepthStencilSurfaceInformation() const { return mInformation.DepthStencilSurface; }
 
 		protected:
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;

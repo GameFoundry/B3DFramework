@@ -319,7 +319,7 @@ void RenderTexture::ReportIfBuffersDontMatch() const
 
 TAsyncOp<TShared<PixelData>> RenderTexture::ReadAsync(GpuWorkContext& gpuContext, GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex, u32 mipLevel, u32 arrayLayer)
 {
-	TShared<Texture> colorTexture = GetColorTexture(colorSurfaceIndex);
+	TShared<Texture> colorTexture = GetColorSurfaceInformation(colorSurfaceIndex).Texture;
 	if(colorTexture == nullptr)
 		return RenderTarget::ReadAsync(gpuContext, commandBuffer, colorSurfaceIndex, mipLevel, arrayLayer);
 
