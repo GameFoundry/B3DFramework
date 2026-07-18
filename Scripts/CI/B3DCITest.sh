@@ -46,88 +46,92 @@ if [ $UNIT_TEST_EXIT_CODE -ne 0 ]; then
 	exit $UNIT_TEST_EXIT_CODE
 fi
 
-echo "::phase::snapshot_tests"
+# ---------------------------------------------------------------------------
+# Snapshot test categories. Each category runs the same snapshot mechanism with
+# different engine command-line arguments (e.g. a different GPU backend). The
+# categories are declared to BansheeForge by emitting `::snapshot-category::NAME`
+# markers on stdout (parsed like `::phase::` markers); emission order determines
+# sub-tab order in the UI. Category names must be filesystem/URL-safe
+# ([A-Za-z0-9_-]) as they are used as directory names.
+# ---------------------------------------------------------------------------
+SNAPSHOT_CATEGORIES=("Vulkan" "D3D12" "Editor")
+
+declare -A CATEGORY_ARGS=(
+	["Vulkan"]=""
+	["D3D12"]="--gpu.backend=bsfD3D12GpuBackend"
+	["Editor"]=""
+)
 
 # List of example executables for snapshot testing
 # Note: CustomMaterials is disabled in CMakeLists.txt (outdated shader language)
-SNAPSHOT_TESTS=(
-	"Audio"
-	"Decals"
-	"GUI"
-	"GUICulling"
-	"Lighting"
-	"LowLevelRendering"
-	"Particles"
-	"Physics"
-	"PhysicallyBasedShading"
-	"SkeletalAnimation"
-	"VectorGraphics"
-	"NullBackends"
+# NullBackends hardcodes the null GPU backend so it only runs in the default category
+COMMON_TESTS="Audio Decals GUI GUICulling Lighting LowLevelRendering Particles Physics PhysicallyBasedShading SkeletalAnimation VectorGraphics"
+
+# The Editor category runs the editor itself in headless mode and captures a screenshot
+# of its UI, using the same snapshot mechanism as the example snapshot tests.
+declare -A CATEGORY_TESTS=(
+	["Vulkan"]="$COMMON_TESTS NullBackends"
+	["D3D12"]="$COMMON_TESTS"
+	["Editor"]="Editor"
 )
 
-for TEST_NAME in "${SNAPSHOT_TESTS[@]}"; do
-	EXAMPLE_EXE="$BIN_DIR/$TEST_NAME.exe"
-
-	if [ ! -f "$EXAMPLE_EXE" ]; then
-		echo "::error::Example executable not found: $EXAMPLE_EXE"
-		FAILED_TESTS+=("$TEST_NAME (not found)")
-		continue
-	fi
-
-	echo "Running snapshot test: $TEST_NAME"
-
-	mkdir -p "$RESULTS_DIR/snapshots/$TEST_NAME"
-
-	set +e
-	"$EXAMPLE_EXE" \
-		--headless \
-		--gpu.PreferIntegrated=true \
-		--enable-test-snapshot \
-		--test-output-path="$RESULTS_DIR/snapshots/$TEST_NAME" \
-		--test-name="$TEST_NAME" \
-		--exit-after-n-frames=100 \
-		--capture-frame=50 2>&1 | tee "$RESULTS_DIR/snapshots/$TEST_NAME/${TEST_NAME}_log.txt"
-	SNAPSHOT_EXIT_CODE=${PIPESTATUS[0]}
-	set -e
-
-	if [ $SNAPSHOT_EXIT_CODE -ne 0 ]; then
-		echo "::error::Snapshot test $TEST_NAME failed with exit code $SNAPSHOT_EXIT_CODE"
-		FAILED_TESTS+=("$TEST_NAME")
-	fi
+# Declare the categories to BansheeForge up-front (before running any test) so a
+# crashed/killed run still reports the full set of categories.
+for CATEGORY in "${SNAPSHOT_CATEGORIES[@]}"; do
+	echo "::snapshot-category::$CATEGORY"
 done
 
-echo "::phase::editor_snapshot"
+# run_snapshot <category> <test-name> <exe-path>
+run_snapshot() {
+	local CATEGORY="$1"
+	local TEST_NAME="$2"
+	local EXE="$3"
+	local OUT_DIR="$RESULTS_DIR/snapshots/$CATEGORY/$TEST_NAME"
 
-# Run the editor itself in headless mode and capture a screenshot of its UI, using
-# the same snapshot mechanism as the example snapshot tests above.
-EDITOR_NAME="Editor"
-EDITOR_EXE="$BIN_DIR/Banshee3D.exe"
+	if [ ! -f "$EXE" ]; then
+		echo "::error::Executable not found: $EXE"
+		FAILED_TESTS+=("$CATEGORY/$TEST_NAME (not found)")
+		return
+	fi
 
-if [ ! -f "$EDITOR_EXE" ]; then
-	echo "::error::Editor executable not found: $EDITOR_EXE"
-	FAILED_TESTS+=("$EDITOR_NAME (not found)")
-else
-	echo "Running editor snapshot test: $EDITOR_NAME"
+	echo "Running snapshot test: $CATEGORY/$TEST_NAME"
 
-	mkdir -p "$RESULTS_DIR/snapshots/$EDITOR_NAME"
+	mkdir -p "$OUT_DIR"
 
 	set +e
-	"$EDITOR_EXE" \
+	# CATEGORY_ARGS is intentionally unquoted so it word-splits into arguments
+	"$EXE" \
 		--headless \
 		--gpu.PreferIntegrated=true \
 		--enable-test-snapshot \
-		--test-output-path="$RESULTS_DIR/snapshots/$EDITOR_NAME" \
-		--test-name="$EDITOR_NAME" \
+		--test-output-path="$OUT_DIR" \
+		--test-name="$TEST_NAME" \
 		--exit-after-n-frames=100 \
-		--capture-frame=50 2>&1 | tee "$RESULTS_DIR/snapshots/$EDITOR_NAME/${EDITOR_NAME}_log.txt"
-	EDITOR_EXIT_CODE=${PIPESTATUS[0]}
+		--capture-frame=50 \
+		${CATEGORY_ARGS[$CATEGORY]} 2>&1 | tee "$OUT_DIR/${TEST_NAME}_log.txt"
+	local EXIT_CODE=${PIPESTATUS[0]}
 	set -e
 
-	if [ $EDITOR_EXIT_CODE -ne 0 ]; then
-		echo "::error::Editor snapshot test failed with exit code $EDITOR_EXIT_CODE"
-		FAILED_TESTS+=("$EDITOR_NAME")
+	if [ $EXIT_CODE -ne 0 ]; then
+		echo "::error::Snapshot test $CATEGORY/$TEST_NAME failed with exit code $EXIT_CODE"
+		FAILED_TESTS+=("$CATEGORY/$TEST_NAME")
 	fi
-fi
+}
+
+for CATEGORY in "${SNAPSHOT_CATEGORIES[@]}"; do
+	echo "::phase::snapshot_tests_${CATEGORY,,}"
+
+	for TEST_NAME in ${CATEGORY_TESTS[$CATEGORY]}; do
+		# The Editor snapshot runs the editor executable itself; all other tests are example exes
+		if [ "$TEST_NAME" = "Editor" ]; then
+			EXE="$BIN_DIR/Banshee3D.exe"
+		else
+			EXE="$BIN_DIR/$TEST_NAME.exe"
+		fi
+
+		run_snapshot "$CATEGORY" "$TEST_NAME" "$EXE"
+	done
+done
 
 if [ ${#FAILED_TESTS[@]} -gt 0 ]; then
 	echo "::error::${#FAILED_TESTS[@]} test(s) failed:"
