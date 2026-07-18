@@ -387,21 +387,18 @@ namespace b3d::render
 		void* mappedMemory = buffer->GetMappedMemory();
 		if(mappedMemory != nullptr)
 		{
-			// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
-			// being used because the write could have completed yet still not visible, so we need to issue a pipeline
-			// barrier below.
-			const bool isUsedOnGPU = !useMask.IsEmpty() || supportsGPUWrites;
+			const bool isBound = boundCount > 0;
 
 			// Recreate the internal buffer if it is bound to a command buffer, to avoid overwriting the old data. But only if the user
 			// allows discard via a flag. In case the user provided an explicit command buffer, perfer a staging buffer over discard
 			// (it still costs us creation of a new buffer, and the original buffer bindings remain valid). Finally, if no-overwrite is
 			// specified, we never recreate the buffer as the user guarantees he won't touch the previously bound region.
-			const bool recreateInternalBuffer = boundCount > 0 && commandBuffer == nullptr && canDiscardBuffer && !flags.IsSet(GpuBufferWriteFlag::NoOverwrite);
+			const bool recreateInternalBuffer = isBound && commandBuffer == nullptr && canDiscardBuffer && !flags.IsSet(GpuBufferWriteFlag::NoOverwrite);
 
 			// Even if the buffer is directly mappable we might wish to avoid mapping it directly in these situations:
 			const bool shouldMapDirectly =
-				(!isUsedOnGPU // GPU is currently using the buffer
-				&& (boundCount == 0 || recreateInternalBuffer)) // Buffer is bound to a command buffer already, and we are not creating a new one. Cannot map without affecting the previous binding.
+				recreateInternalBuffer // A freshly recreated backing resource is unreferenced by the GPU, so mapping it is always safe (and required on backends where mappable memory cannot be a GPU copy destination - D3D12 upload heaps)
+				|| (!isBound && !supportsGPUWrites) // Buffer not bound and not being used, nor are there any pending GPU writes
 				|| flags.IsSet(GpuBufferWriteFlag::NoOverwrite); // If no-overwrite flag is set, user guarantees he won't touch the memory the GPU is using
 
 			if(shouldMapDirectly)
@@ -417,21 +414,6 @@ namespace b3d::render
 		}
 
 		// Note: Not supporting staging memory. Not sure if there's a benefit.
-
-		// Create a staging buffer
-		TShared<GpuBuffer> stagingBuffer = CreateStaging(gpuContext, buffer, false);
-
-		// Copy the source into the staging buffer
-		if(stagingBuffer != nullptr)
-		{
-			GpuBufferMappedScope mapping = stagingBuffer->Map(0, length, GpuMapOption::Write);
-			memcpy(mapping.GetMappedMemory(), source, length);
-		}
-
-		// If the buffer is used in any way on the GPU, we need to wait for that use to finish before we issue our copy
-		GpuQueueMask syncMask;
-		if(!useMask.IsEmpty() && mapOptions.IsSet(GpuMapOption::NoOverwrite)) // Buffer is currently used on the GPU
-			syncMask = useMask;
 
 		// Check if the buffer will still be bound somewhere after the command buffers using it finish. If it is, we have to recreate the internal buffer otherwise the copy
 		// operation might just get overwritten by those command buffers when the execute. This is because the transfer command buffers are always submitted before regular
@@ -449,8 +431,37 @@ namespace b3d::render
 #endif
 			}
 			else
+			{
 				buffer->RecreateInternalBuffer();
+
+				// The recreated backing resource is fresh - nothing on the GPU references it - so CPU-mappable
+				// buffers can be written directly. This is both cheaper than a staging round-trip and required on
+				// backends where CPU-visible memory is not a valid GPU copy destination (D3D12 upload heaps).
+				if(buffer->GetMappedMemory() != nullptr)
+				{
+					GpuBufferMappedScope mapping = buffer->Map(offset, length, mapOptions);
+					memcpy(mapping.GetMappedMemory(), source, length);
+
+					return;
+				}
+			}
 		}
+
+		// Create a staging buffer
+		TShared<GpuBuffer> stagingBuffer = CreateStaging(gpuContext, buffer, false);
+
+		// Copy the source into the staging buffer
+		if(stagingBuffer != nullptr)
+		{
+			GpuBufferMappedScope mapping = stagingBuffer->Map(0, length, GpuMapOption::Write);
+			memcpy(mapping.GetMappedMemory(), source, length);
+		}
+
+		// If the buffer is used in any way on the GPU, we need to wait for that use to finish before we issue our
+		// copy - unless the user promised via no-overwrite not to touch any region the GPU is using.
+		GpuQueueMask syncMask;
+		if(!useMask.IsEmpty() && !mapOptions.IsSet(GpuMapOption::NoOverwrite)) // Buffer is currently used on the GPU
+			syncMask = useMask;
 
 		// Queue copy/update command for the actual write
 		if(commandBuffer == nullptr)

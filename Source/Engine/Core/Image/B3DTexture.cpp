@@ -524,10 +524,6 @@ void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& t
 	void* mappedMemory = texture->GetMappedMemory();
 	if(mappedMemory != nullptr)
 	{
-		// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
-		// being used because the write could have completed yet still not visible, so we need to issue a pipeline
-		// barrier below.
-		const bool isUsedOnGPU = !subresourceUseMask.IsEmpty() || supportsGPUWrites;
 		const bool isBound = subresourceBoundCount > 0;
 
 		// Recreate the internal image if it is bound to a command buffer, to avoid overwriting the old data. But only if the user
@@ -538,8 +534,8 @@ void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& t
 
 		// Even if the texture is directly mappable we might wish to avoid mapping it directly in these situations:
 		const bool shouldMapDirectly =
-			(!isUsedOnGPU // GPU is currently using the texture
-			&& (!isBound || recreateImage)) // Image is bound to a command buffer already, and we're not creating a new one. Cannot map without affecting the previous binding
+			recreateImage // A freshly recreated backing resource is unreferenced by the GPU, so mapping it is always safe
+			|| (!isBound && !supportsGPUWrites) // Image not bound and not being used, nor are there any pending GPU writes
 			|| noOverwrite; // If no-overwrite flag is set, user guarantees he won't touch the memory the GPU is using
 
 		if(shouldMapDirectly)
@@ -575,9 +571,10 @@ void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& t
 		PixelUtility::BulkPixelConversion(source, lockedArea);
 	}
 
-	// If the image is used in any way on the GPU, we need to wait for that use to finish before we issue our copy
+	// If the image is used in any way on the GPU, we need to wait for that use to finish before we issue our copy -
+	// unless the user promised via no-overwrite not to touch any region the GPU is using.
 	GpuQueueMask syncMask;
-	if(!subresourceUseMask.IsEmpty() && mapOptions.IsSet(GpuMapOption::NoOverwrite)) // Buffer is currently used on the GPU
+	if(!subresourceUseMask.IsEmpty() && !mapOptions.IsSet(GpuMapOption::NoOverwrite)) // Image is currently used on the GPU
 		syncMask = subresourceUseMask;
 
 	// Check if the image will still be bound somewhere after the command buffers using it finish. If it is, we have to recreate the internal image otherwise the copy
