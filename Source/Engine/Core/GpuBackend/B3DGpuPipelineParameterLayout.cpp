@@ -468,7 +468,10 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const 
 				reflectedTableIndex = tableIndex;
 			}
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			else if(!AreDescriptorTablesEquivalent(*reflectedLayout, reflectedLayout->Tables[reflectedTableIndex], *stageLayout, stageLayout->Tables[tableIndex]))
+// TODO (d3d12) - D3D12 reflection strips unused resources per shader stage and then builds the resource table from that. This means different stages can have
+// mismatching tables, and we tag then with SizeInBytes == 0. D3D12 resolves this internally by merging them internally. Down the line we need to ensure
+// the bytecode compiler generates identical tables for all stages.
+			else if(reflectedLayout->Tables[reflectedTableIndex].SizeInBytes != 0 && !AreDescriptorTablesEquivalent(*reflectedLayout, reflectedLayout->Tables[reflectedTableIndex], *stageLayout, stageLayout->Tables[tableIndex]))
 			{
 				B3D_LOG(Error, LogRenderBackend, "GPU program stages disagree on the descriptor-table packing of set {0}; "
 					"parameter binding will be incorrect for at least one stage.", set);
