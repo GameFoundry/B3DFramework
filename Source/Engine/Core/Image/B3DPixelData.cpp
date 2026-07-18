@@ -53,10 +53,14 @@ u32 PixelData::GetRowSkip() const
 
 u32 PixelData::GetSliceSkip() const
 {
-	u32 optimalRowPitch, optimalSlicePitch;
-	PixelUtility::GetPitch(GetWidth(), GetHeight(), GetDepth(), mFormat, optimalRowPitch, optimalSlicePitch);
+	u32 rowCount = GetHeight();
+	if(PixelUtility::IsCompressed(mFormat))
+	{
+		const Vector2I blockDimensions = PixelUtility::GetBlockDimensions(mFormat);
+		rowCount = Math::DivideAndRoundUp(rowCount, (u32)blockDimensions.Y);
+	}
 
-	return mSlicePitch - optimalSlicePitch;
+	return mSlicePitch - rowCount * mRowPitch;
 }
 
 u32 PixelData::GetConsecutiveSize() const
