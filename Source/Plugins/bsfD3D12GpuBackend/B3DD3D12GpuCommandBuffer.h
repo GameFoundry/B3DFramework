@@ -72,6 +72,7 @@ namespace b3d
 			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) override;
 			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
 			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
+			bool BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation) override;
 			void WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
 			void BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
 			void EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
@@ -211,8 +212,12 @@ namespace b3d
 			/** Binds vertex and index buffers to the pipeline, if dirty. */
 			void BindVertexInputs();
 
-			/** Binds the currently stored GPU parameters object, if dirty. */
-			void BindGpuParams();
+			/**
+			 * Binds the currently stored GPU parameter sets, if dirty. @p isGraphics selects whether the sets are
+			 * bound to the graphics or compute root signature - it must be passed by the caller (draw vs. dispatch)
+			 * since both pipeline types can be bound on the command buffer simultaneously.
+			 */
+			void BindGpuParams(bool isGraphics);
 
 			/** Clears the specified area of the currently bound render target. */
 			void ClearViewportArea(const Area2I& area, RenderSurfaceMask mask, const Color& color, float depth, u16 stencil);
@@ -228,6 +233,9 @@ namespace b3d
 			 * finished by the time this runs), NotifyUnbound otherwise, then clears the tracker.
 			 */
 			void Cleanup();
+
+			/** Remembers a query pool written to during the current recording so its results are resolved on End(). */
+			void TrackQueryPool(const TShared<GpuQueryPool>& queryPool);
 
 			/** Returns the current viewport area in pixels. */
 			Area2I GetViewportArea() const;
@@ -276,11 +284,30 @@ namespace b3d
 			bool mViewportRequiresBind : 1;
 			bool mStencilRefRequiresBind : 1;
 			bool mScissorRequiresBind : 1;
-			bool mBoundParamsDirty : 1;
+
+			// Tracked per bind point (mirroring Vulkan's DescriptorSetBindFlag): parameter changes dirty both, but a
+			// draw only cleans the graphics flag and a dispatch only the compute flag. Additionally re-set whenever the
+			// bind point's root signature is recorded, as that wipes all of the command list's root arguments.
+			bool mGraphicsParamsRequireBind : 1;
+			bool mComputeParamsRequireBind : 1;
+
 			bool mVertexInputsDirty : 1;
 
-			TShared<D3D12GpuParameters> mBoundParams;
+			Vector<TShared<D3D12GpuParameters>> mBoundParameterSets; /**< Bound parameter sets, indexed by set. */
 			TShared<RenderTarget> mRenderTarget;
+
+			/**
+			 * Per-set dynamic offset overrides (keyed by dynamic-offset index, see
+			 * GpuPipelineParameterSetLayout::GetDynamicOffsetIndex), applied to root CBV binds on top of the bound
+			 * parameter sets' own offsets. A set's overrides are cleared when new parameters are bound on it.
+			 */
+			Vector<UnorderedMap<u32, u32>> mDynamicOffsetOverridesPerSet;
+
+			/**
+			 * Query pools written to during the current recording. On End() each pool's allocated queries are resolved
+			 * into its readback buffer. The references also keep the pools alive until the command buffer is reset.
+			 */
+			Vector<TShared<GpuQueryPool>> mUsedQueryPools;
 		};
 
 		/** @} */

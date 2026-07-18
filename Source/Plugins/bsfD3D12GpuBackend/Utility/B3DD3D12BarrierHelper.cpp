@@ -58,19 +58,12 @@ void D3D12BarrierHelper::AppendUavBarrier(ID3D12Resource* resource)
 	mUavBarrierResources.Add(resource);
 }
 
-void D3D12BarrierHelper::RequireBufferState(D3D12Buffer* buffer, D3D12_RESOURCE_STATES state)
+void D3D12BarrierHelper::RequireBufferTransition(D3D12Buffer* buffer, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after)
 {
 	if(buffer == nullptr)
 		return;
 
-	// UPLOAD-heap buffers are permanently GENERIC_READ and READBACK-heap buffers permanently COPY_DEST; they
-	// cannot be transitioned.
-	const D3D12_HEAP_TYPE heapType = buffer->GetHeapType();
-	if(heapType == D3D12_HEAP_TYPE_UPLOAD || heapType == D3D12_HEAP_TYPE_READBACK)
-		return;
-
-	AppendTransition(buffer->GetD3D12Resource(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, buffer->GetState(), state);
-	buffer->SetState(state);
+	AppendTransition(buffer->GetD3D12Resource(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, before, after);
 }
 
 void D3D12BarrierHelper::RequireSubresourceState(D3D12Image* image, u32 face, u32 mipLevel, D3D12_RESOURCE_STATES state)
@@ -85,7 +78,7 @@ void D3D12BarrierHelper::RequireSubresourceState(D3D12Image* image, u32 face, u3
 
 void D3D12BarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const GpuHazardStageAndAccess& barrier)
 {
-	// State-changing buffer transitions are emitted by RequireBufferState (a D3D12 transition barrier also
+	// State-changing buffer transitions are emitted by RequireBufferTransition (a D3D12 transition barrier also
 	// synchronizes both sides, resolving the hazard this hook was called for). The only hazard a transition cannot
 	// express is a same-state write hazard, which for shader-visible buffers is UAV -> UAV.
 	//
@@ -94,9 +87,14 @@ void D3D12BarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const G
 	// copies into one buffer on a single command buffer.
 	D3D12Buffer* const d3d12Buffer = static_cast<D3D12Buffer*>(buffer);
 
+	// This hook fires from the shared tracker before the shadow updates the per-command-buffer state, so the
+	// tracked state still reflects the buffer's PREVIOUS use on this command buffer.
+	const D3D12_RESOURCE_STATES trackedState =
+		static_cast<D3D12ResourceTracker*>(mResourceTracker)->GetTrackedBufferState(d3d12Buffer);
+
 	const bool isWriteHazard = barrier.SourceAccess.IsSet(GpuAccessFlag::Write) ||
 		barrier.DestinationAccess.IsSet(GpuAccessFlag::Write);
-	if(isWriteHazard && (d3d12Buffer->GetState() & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0)
+	if(isWriteHazard && (trackedState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0)
 		AppendUavBarrier(d3d12Buffer->GetD3D12Resource());
 }
 

@@ -541,19 +541,28 @@ void D3D12SwapChain::AcquireImage()
 	// immediately, so we just record its index for the render thread to consume.
 	AssertIfRenderThread();
 
+	bool acquireValid = true;
+
 	if (mIsRetired)
 	{
 		B3D_LOG(Error, LogRenderBackend, "Attempting to acquire an image from a retired swap chain.");
-		return;
+		acquireValid = false;
 	}
+	else if (!mSwapChain && !mIsHeadless)
+		acquireValid = false;
 
-	if (!mSwapChain && !mIsHeadless)
-		return;
+	const u32 imageIndex = acquireValid ? GetCurrentBackBufferIndex() : 0;
 
-	const u32 imageIndex = GetCurrentBackBufferIndex();
-
+	// The pending count must be decremented even when the acquire fails, otherwise WaitUntilFirstImageAcquired()
+	// would never wake up.
 	Lock lock(mAcquireMutex);
-	mAcquiredImageIndices.Add(imageIndex);
+
+	if (acquireValid)
+		mAcquiredImageIndices.Add(imageIndex);
+
+	B3D_ASSERT(mPendingAcquireCount > 0);
+	mPendingAcquireCount--;
+	mAcquireSignal.NotifyAll();
 }
 
 void D3D12SwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncMask)
@@ -586,8 +595,19 @@ bool D3D12SwapChain::TryGetFirstAcquiredImageIndex(u32& outImageIndex) const
 	return true;
 }
 
+void D3D12SwapChain::WaitUntilFirstImageAcquired()
+{
+	Lock lock(mAcquireMutex);
+	mAcquireSignal.Wait(lock, [this] { return mPendingAcquireCount == 0; });
+}
+
 void D3D12SwapChain::NotifyWasImageAcquireQueued()
 {
+	{
+		Lock lock(mAcquireMutex);
+		mPendingAcquireCount++;
+	}
+
 	NotifyBound();
 }
 

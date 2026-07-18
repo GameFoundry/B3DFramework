@@ -115,12 +115,46 @@ void D3D12ResourceTracker::ClearShaderFlagsForAllRenderPassImageSubresources()
 void D3D12ResourceTracker::TrackBufferUsage(D3D12Buffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, D3D12BarrierHelper& barrierHelper, u32 dynamicOffset)
 {
 	// Shared bookkeeping first: registers the binding (keeping the buffer alive) and queues a hazard barrier when a
-	// prior write requires one.
+	// prior write requires one. The hazard hook reads the buffer's tracked state, so this must run before the
+	// state update below.
 	TGpuResourceTracker<D3D12BarrierHelper>::TrackBufferUsage(buffer, useFlags, accessFlags, barrierHelper, dynamicOffset);
 
 	// Keep the native state in sync with the usage. The transition (when one is needed) also provides the
 	// execution/memory synchronization for any hazard registered above.
-	barrierHelper.RequireBufferState(buffer, D3D12BarrierUtility::GetResourceState(useFlags, accessFlags, false));
+	RequireBufferState(buffer, D3D12BarrierUtility::GetResourceState(useFlags, accessFlags, false), barrierHelper);
+}
+
+void D3D12ResourceTracker::RequireBufferState(D3D12Buffer* buffer, D3D12_RESOURCE_STATES requiredState, D3D12BarrierHelper& barrierHelper)
+{
+	// UPLOAD-heap buffers are permanently GENERIC_READ and READBACK-heap buffers permanently COPY_DEST; they
+	// cannot be transitioned.
+	const D3D12_HEAP_TYPE heapType = buffer->GetHeapType();
+	if (heapType == D3D12_HEAP_TYPE_UPLOAD || heapType == D3D12_HEAP_TYPE_READBACK)
+		return;
+
+	// States are tracked per command buffer (see mBufferStates): the first use on this command buffer needs no
+	// barrier (implicit promotion from the decayed COMMON state covers any state for buffers); later uses only
+	// need a transition when the required state changes.
+	const auto it = mBufferStates.find(buffer);
+	if (it == mBufferStates.end())
+		mBufferStates.emplace(buffer, requiredState);
+	else if (it->second != requiredState)
+	{
+		barrierHelper.RequireBufferTransition(buffer, it->second, requiredState);
+		it->second = requiredState;
+	}
+}
+
+void D3D12ResourceTracker::Clear()
+{
+	TGpuResourceTracker<D3D12BarrierHelper>::Clear();
+	mBufferStates.clear();
+}
+
+D3D12_RESOURCE_STATES D3D12ResourceTracker::GetTrackedBufferState(const D3D12Buffer* buffer) const
+{
+	const auto it = mBufferStates.find(buffer);
+	return it != mBufferStates.end() ? it->second : D3D12_RESOURCE_STATE_COMMON;
 }
 
 void D3D12ResourceTracker::TrackImageUsage(D3D12Image* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, D3D12BarrierHelper& barrierHelper)

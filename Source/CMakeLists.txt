@@ -135,6 +135,11 @@ endforeach()
 
 ## Shader bytecode compilers
 ### Register these before bsfSL
+
+if(WIN32 AND (B3D_BUILD_ALL_PLUGINS OR B3D_GPU_BACKEND STREQUAL "DirectX12" OR B3D_BUILD_COOK_TOOL))
+	add_subdirectory(Plugins/ShaderBackends/bsfShaderBackendHLSL)
+endif()
+
 if(B3D_BUILD_ALL_PLUGINS OR B3D_GPU_BACKEND STREQUAL "Vulkan" OR B3D_GPU_BACKEND STREQUAL "Metal" OR B3D_BUILD_COOK_TOOL)
 	add_subdirectory(Plugins/ShaderBackends/bsfShaderBackendVKSL)
 endif()
@@ -154,6 +159,9 @@ if(B3D_BUILD_ALL_PLUGINS)
 	if(APPLE)
 		add_subdirectory(Plugins/bsfMetalGpuBackend)
 	endif()
+	if(WIN32 AND B3D_ENABLE_EXPERIMENTAL_GPU_BACKEND)
+		add_subdirectory(Plugins/bsfD3D12GpuBackend)
+	endif()
 	add_subdirectory(Plugins/bsfNullGpuBackend)
 	add_subdirectory(Plugins/bsfOpenAudio)
 	add_subdirectory(Plugins/bsfNullAudio)
@@ -172,6 +180,8 @@ else() # Otherwise include only chosen ones
 		add_subdirectory(Plugins/bsfVulkanGpuBackend)
 	elseif(B3D_GPU_BACKEND STREQUAL "Metal")
 		add_subdirectory(Plugins/bsfMetalGpuBackend)
+	elseif(B3D_GPU_BACKEND STREQUAL "DirectX12")
+		add_subdirectory(Plugins/bsfD3D12GpuBackend)
 	elseif(B3D_GPU_BACKEND STREQUAL "Null")
 		add_subdirectory(Plugins/bsfNullGpuBackend)
 	endif()

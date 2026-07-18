@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DD3D12Prerequisites.h"
+#include "B3DHLSLShaderABI.h"
 #include "Image/B3DPixelData.h"
 #include "Image/B3DPixelUtility.h"
 #include "GpuBackend/B3DGpuBuffer.h"
@@ -19,8 +20,11 @@ namespace b3d
 		class D3D12Utility
 		{
 		public:
-			/** Converts an engine pixel format to DXGI format. */
-			static DXGI_FORMAT GetDXGIFormat(PixelFormat format);
+			/**
+			 * Converts an engine pixel format to DXGI format. When @p sRGB is set, formats with an sRGB DXGI
+			 * variant map to it (so sampling decodes to linear); formats without one keep their linear variant.
+			 */
+			static DXGI_FORMAT GetDXGIFormat(PixelFormat format, bool sRGB = false);
 
 			/** Converts a DXGI format to engine pixel format. */
 			static PixelFormat GetPixelFormat(DXGI_FORMAT format);
@@ -70,44 +74,7 @@ namespace b3d
 			/** Checks if the specified format is a depth-stencil format. */
 			static bool IsDepthStencilFormat(DXGI_FORMAT format);
 
-			/**
-			 * Calculates the size and offset for a constant buffer element according to HLSL packing rules.
-			 * Updates the offset parameter to the next available offset after the element.
-			 *
-			 * @param type			Data type of the parameter.
-			 * @param arraySize		Number of elements in the array (1 if not an array).
-			 * @param offset		Current offset in the constant buffer (in float4 units). Will be updated.
-			 * @return				Size of the element in float4 units.
-			 */
-			static u32 CalcConstantBufferElementSizeAndOffset(GpuDataParameterType type, u32 arraySize, u32& offset);
 		};
-
-		/** HLSL shader register classes, used for encoding engine parameter slots. See MapRegisterToSlot(). */
-		enum class D3D12RegisterClass
-		{
-			ConstantBuffer = 0,	 // b registers
-			ShaderResource = 1,	 // t registers
-			UnorderedAccess = 2, // u registers
-			Sampler = 3,		 // s registers
-
-			Count = 4
-		};
-
-		/**
-		 * Maps an HLSL shader register to an engine parameter slot. HLSL registers are only unique within their register
-		 * class (b/t/u/s), while engine slots must be unique across all parameters of a set, so the class is encoded
-		 * into the slot. Inverted by MapSlotToRegister().
-		 */
-		constexpr u32 MapRegisterToSlot(u32 registerIndex, D3D12RegisterClass registerClass)
-		{
-			return registerIndex * (u32)D3D12RegisterClass::Count + (u32)registerClass;
-		}
-
-		/** Recovers the HLSL shader register from an engine parameter slot encoded by MapRegisterToSlot(). */
-		constexpr u32 MapSlotToRegister(u32 slot)
-		{
-			return slot / (u32)D3D12RegisterClass::Count;
-		}
 
 		/** @} */
 	} // namespace render

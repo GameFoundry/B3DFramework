@@ -670,24 +670,23 @@ void Application::UnloadAllPlugins()
 
 ApplicationCreateInformation Application::BuildCreateInformation(VideoMode videoMode, const String& title, bool fullscreen)
 {
-	ApplicationCreateInformation desc;
+	ApplicationCreateInformation createInformation;
 
-	// Set up default plugins
-	desc.GpuBackend = B3D_GPU_BACKEND;
-	desc.Renderer = B3D_RENDERER;
-	desc.Audio = B3D_AUDIO_BACKEND;
-	desc.Physics = B3D_PHYSICS_BACKEND;
+	createInformation.GpuBackend = CommandLine::GetParameterValue("gpu.backend", B3D_GPU_BACKEND);
+	createInformation.Renderer = B3D_RENDERER;
+	createInformation.Audio = B3D_AUDIO_BACKEND;
+	createInformation.Physics = B3D_PHYSICS_BACKEND;
 
-	desc.Importers.push_back("bsfFreeImgImporter");
-	desc.Importers.push_back("bsfFBXImporter");
-	desc.Importers.push_back("bsfFontImporter");
-	desc.Importers.push_back("bsfSL");
+	createInformation.Importers.push_back("bsfFreeImgImporter");
+	createInformation.Importers.push_back("bsfFBXImporter");
+	createInformation.Importers.push_back("bsfFontImporter");
+	createInformation.Importers.push_back("bsfSL");
 
-	desc.PrimaryWindow.VideoMode = videoMode;
-	desc.PrimaryWindow.Fullscreen = fullscreen;
-	desc.PrimaryWindow.Title = title;
+	createInformation.PrimaryWindow.VideoMode = videoMode;
+	createInformation.PrimaryWindow.Fullscreen = fullscreen;
+	createInformation.PrimaryWindow.Title = title;
 
-	return desc;
+	return createInformation;
 }
 
 TShared<IShaderIncludeHandler> Application::GetShaderIncludeHandler() const

@@ -7,6 +7,8 @@
 #include "Managers/B3DD3D12GpuBackendFactory.h"
 #include "Managers/B3DD3D12RenderWindowManager.h"
 #include "Managers/B3DD3D12TextureManager.h"
+#include "Managers/B3DD3D12VertexInputManager.h"
+#include "Utility/B3DConfigVariable.h"
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -20,17 +22,14 @@
 
 namespace b3d
 {
-	/** When enabled the D3D12 backend will prefer an integrated GPU over a discrete one. */
-	static const bool kD3D12PreferIntegratedGPU = false;
-
 	/** Enables D3D12 debug layer. */
 	static const bool kEnableD3D12DebugLayer = B3D_DEBUG;
 
 	/** Enables GPU-based validation (requires debug layer). More thorough but slower. */
 	static const bool kEnableD3D12GPUBasedValidation = false;
 
-	/** If specified, allows you to select which is the primary GPU to use. If ~0u system will pick the best GPU according to other options. */
-	static const u32 kPreferredGPUIndex = ~0u;
+	static TConfigVariable gPreferIntegratedGPU("gpu.PreferIntegrated", "Prefer using integrated GPU over discrete GPU when both are available.", false, ConfigVariableFlag::ReadOnly);
+	static TConfigVariable gPreferredGPUIndex("gpu.PreferredDeviceIndex", "Specifies the index of the GPU to use. Use < 0 is provided, best GPU is selected automatically.", -1, ConfigVariableFlag::ReadOnly);
 
 } // namespace b3d
 
@@ -66,6 +65,15 @@ void D3D12GpuBackend::OnStartUp()
 		{
 			B3D_LOG(Warning, LogRenderBackend, "Failed to enable D3D12 debug layer. Install the Graphics Tools feature.");
 		}
+
+		// Enable DRED so device removals record which command hung (see D3D12GpuDevice::LogDeviceRemovalBreadcrumbs()).
+		// Must be configured before any device is created.
+		ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings;
+		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&dredSettings))))
+		{
+			dredSettings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+			dredSettings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+		}
 	}
 #endif
 
@@ -86,7 +94,7 @@ void D3D12GpuBackend::OnStartUp()
 	for (UINT adapterIndex = 0;
 		mDXGIFactory->EnumAdapterByGpuPreference(
 			adapterIndex,
-			kD3D12PreferIntegratedGPU ? DXGI_GPU_PREFERENCE_MINIMUM_POWER : DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
+			gPreferIntegratedGPU ? DXGI_GPU_PREFERENCE_MINIMUM_POWER : DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
 			IID_PPV_ARGS(&adapter)) != DXGI_ERROR_NOT_FOUND;
 		++adapterIndex)
 	{
@@ -116,8 +124,8 @@ void D3D12GpuBackend::OnStartUp()
 
 	// Select primary adapter
 	u32 primaryAdapterIndex = 0;
-	if (kPreferredGPUIndex != ~0u && kPreferredGPUIndex < availableAdapters.size())
-		primaryAdapterIndex = kPreferredGPUIndex;
+	if (gPreferredGPUIndex >= 0 && (u32)gPreferredGPUIndex < availableAdapters.size())
+		primaryAdapterIndex = (u32)gPreferredGPUIndex;
 
 	mDXGIAdapter = availableAdapters[primaryAdapterIndex];
 
@@ -159,6 +167,9 @@ void D3D12GpuBackend::OnStartUp()
 	// Create render window manager
 	RenderWindowManager::StartUp<D3D12RenderWindowManager>();
 
+	// Create vertex input manager
+	D3D12VertexInputManager::StartUp();
+
 	// TODO(d3d12-port): Set up frame capture (PIX)
 
 	Super::OnStartUp();
@@ -184,6 +195,7 @@ void D3D12GpuBackend::OnShutDown()
 	}, "D3D12 internal work context release", true);
 
 	mDevices[0]->StopSubmitThread();
+	D3D12VertexInputManager::ShutDown();
 	RenderWindowManager::ShutDown();
 	render::TextureManager::ShutDown();
 	TextureManager::ShutDown();

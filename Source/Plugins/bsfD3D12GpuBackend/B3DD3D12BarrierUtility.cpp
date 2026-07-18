@@ -15,7 +15,21 @@ D3D12_RESOURCE_STATES D3D12BarrierUtility::GetResourceState(GpuResourceUseFlags 
 		return D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 	if(usage.IsSet(GpuResourceUseFlag::DepthStencilAttachment))
-		return isWrite ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_DEPTH_READ;
+	{
+		if(isWrite)
+			return D3D12_RESOURCE_STATE_DEPTH_WRITE;
+
+		// A read-only depth attachment may simultaneously be sampled (see GetResourceStateFromLayout); DEPTH_READ
+		// alone does not permit shader access.
+		D3D12_RESOURCE_STATES depthState = D3D12_RESOURCE_STATE_DEPTH_READ;
+		if(usage.IsSet(GpuResourceUseFlag::ShaderAccess))
+		{
+			depthState |= D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
+				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+		}
+
+		return depthState;
+	}
 
 	// Transfer maps to the D3D12 copy states. Host readback of a GPU-written resource is serviced through a copy
 	// into a READBACK-heap buffer, so a Host destination behaves like a copy source.
@@ -80,7 +94,10 @@ D3D12_RESOURCE_STATES D3D12BarrierUtility::GetResourceStateFromLayout(GpuImageLa
 	case GpuImageLayout::DepthAttachmentStencilReadOnly:
 		return D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	case GpuImageLayout::DepthStencilReadOnly:
-		return D3D12_RESOURCE_STATE_DEPTH_READ;
+		// The engine samples depth while in this layout (Vulkan's DEPTH_STENCIL_READ_ONLY allows SRV reads);
+		// D3D12's DEPTH_READ alone does not permit shader access, so the SRV states must be OR-ed in.
+		return D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
+			D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 	case GpuImageLayout::ShaderReadOnly:
 		return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 	case GpuImageLayout::TransferSource:

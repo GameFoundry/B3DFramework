@@ -123,8 +123,10 @@ namespace b3d
 
 			const TextureProperties& props = GetProperties();
 
-			// Convert pixel format to DXGI format
-			mDXGIFormat = D3D12Utility::GetDXGIFormat(props.Format);
+			// Convert pixel format to DXGI format. sRGB variants cannot be used with UAVs, so unordered-access
+			// textures keep the linear variant (mirroring the Vulkan backend's storage-image behavior).
+			const bool useSRGB = props.UseHardwareSRGB && !props.Usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
+			mDXGIFormat = D3D12Utility::GetDXGIFormat(props.Format, useSRGB);
 			if (mDXGIFormat == DXGI_FORMAT_UNKNOWN)
 			{
 				B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported texture format");
@@ -269,8 +271,8 @@ namespace b3d
 
 			mImage = device.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
 
-			B3D_LOG(Info, LogRenderBackend, "D3D12: Created texture: {0}x{1}, format={2}, mips={3}",
-				props.Width, props.Height, (u32)mDXGIFormat, props.MipMapCount + 1);
+			B3D_LOG(Info, LogRenderBackend, "D3D12: Created texture '{0}': {1}x{2}, format={3}, mips={4}",
+				props.Name, props.Width, props.Height, (u32)mDXGIFormat, props.MipMapCount + 1);
 		}
 
 		void D3D12Texture::RecreateInternalTexture()

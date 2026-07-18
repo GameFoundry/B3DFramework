@@ -165,6 +165,11 @@ endif()
 set(B3D_PLATFORM ${B3D_HOST_PLATFORM} CACHE STRING "Target platform to build for.")
 set_property(CACHE B3D_PLATFORM PROPERTY STRINGS ${B3D_PLATFORM_CHOICES})
 
+# Experimental GPU backends are hidden by default: they are excluded from the
+# platform's GPU backend choices and are not built as part of B3D_BUILD_ALL_PLUGINS. Declared before the
+# platform meta-data include below, since each platform's Platform.cmake decides its backend choices.
+set(B3D_ENABLE_EXPERIMENTAL_GPU_BACKEND OFF CACHE BOOL "If true, experimental in-development GPU backends (currently DirectX12) are offered as GPU backend choices and are included when building all plugins.")
+
 # Include platform meta-data (Platform.cmake)
 set(B3D_PLATFORM_METADATA ${B3D_PLATFORM_ROOT}/${B3D_PLATFORM}/Platform.cmake)
 if(NOT EXISTS ${B3D_PLATFORM_METADATA})

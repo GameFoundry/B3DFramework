@@ -52,16 +52,9 @@ void D3D12GpuParameters::Initialize()
 	if (!setLayout)
 		return;
 
-	// The root signature (B3DD3D12GpuPipelineParameterLayout::CreateRootSignature) emits one root parameter per used
-	// binding, iterating sets in order, then parameter types in enum order, then bindings within each type. We mirror
-	// that iteration to compute each binding's root parameter index.
-	//
-	// TODO(d3d12-port): The root parameter numbering is flat across ALL sets, but a GpuParameterSet only sees its own
-	//					 set layout and cannot count bindings in preceding sets. We therefore assume this set's bindings
-	//					 start at root parameter 0, which is only correct for single-set pipelines (mSet == 0). Multi-set
-	//					 pipelines need the per-set root-parameter base offset threaded through from the pipeline layout.
-	u32 rootParameterIndex = 0;
-
+	// Create the per-binding resource storage from this set's own layout, keyed by slot. Root parameter indices are
+	// NOT recorded here - they depend on the ACTIVE pipeline's layout and are derived at bind time (BindDescriptors
+	// walks the pipeline's set layout and looks these containers up by slot).
 	for (u32 typeIndex = 0; typeIndex < (u32)GpuParameterType::Count; typeIndex++)
 	{
 		const GpuParameterType type = (GpuParameterType)typeIndex;
@@ -73,17 +66,24 @@ void D3D12GpuParameters::Initialize()
 			if (uniformInfo == nullptr)
 				continue;
 
+			// Single-element uniform buffers occupy a root CBV descriptor instead of a descriptor table (this must
+			// mirror the root signature's promotion choice, see D3D12GpuPipelineParameterLayout::CreateRootSignature).
+			if (type == GpuParameterType::UniformBuffer && uniformInfo->ArraySize == 1)
+			{
+				RootConstantBuffer& rootBuffer = mRootConstantBuffers[uniformInfo->Slot];
+				rootBuffer.DataIndex = uniformInfo->SequentialResourceIndex;
+				rootBuffer.DynamicOffsetIndex = uniformInfo->DynamicOffsetIndex;
+				continue;
+			}
+
 			const bool isSampler = type == GpuParameterType::Sampler;
 			UnorderedMap<u32, DescriptorTable>& tables = isSampler ? mSamplerTables : mDescriptorTables;
 
 			DescriptorTable& table = tables[uniformInfo->Slot];
 			table.Slot = uniformInfo->Slot;
-			table.RootParameterIndex = rootParameterIndex;
 			table.DescriptorCount = uniformInfo->ArraySize;
 			table.Descriptors.resize(uniformInfo->ArraySize);
 			table.IsDirty = true;
-
-			rootParameterIndex++;
 		}
 	}
 }
@@ -93,8 +93,13 @@ bool D3D12GpuParameters::SetUniformBuffer(u32 slot, const TShared<GpuBuffer>& un
 	if (!GpuParameterSet::SetUniformBuffer(slot, uniformBuffer, arrayIndex, offset))
 		return false;
 
-	// TODO(d3d12-port): Dynamic offset (suballocation) is stored by the base class but not yet applied to the CBV; the
-	//					 CBV created on the buffer always covers suballocation 0.
+	// Single-element uniform buffers are bound as root CBVs: the buffer and its suballocation offset are read from
+	// the base class's bound-buffer data at bind time, no descriptor is involved.
+	if (mRootConstantBuffers.find(slot) != mRootConstantBuffers.end())
+		return true;
+
+	// TODO(d3d12-port): Suballocation offset is stored by the base class but not applied to arrayed CBVs; the CBV
+	//					 created on the buffer always covers suballocation 0.
 	if (uniformBuffer == nullptr)
 	{
 		// TODO(d3d12-port): builtin dummy resources. Without a dummy CBV the slot is left with a null descriptor and the
@@ -158,18 +163,34 @@ bool D3D12GpuParameters::SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& bu
 		return true;
 	}
 
-	// The root signature range type (SRV vs UAV) is derived from the shader-declared object type. Read-only storage
-	// buffers (Byte/StructuredBuffer) use the buffer's SRV; read-write ones (RWByte/RWStructuredBuffer) use its UAV. We
-	// select based on which views the buffer actually created: a UAV exists only for AllowUnorderedAccessOnTheGPU
-	// buffers, so prefer it when present, otherwise fall back to the SRV.
+	// The root signature range type (SRV vs UAV) is derived from the shader-declared object type, so the descriptor
+	// must match it: read-only storage buffers (Byte/StructuredBuffer) take the buffer's SRV, read-write ones
+	// (RWByte/RWStructuredBuffer/...) its UAV. Selecting by the buffer's own capabilities instead would hand a UAV
+	// descriptor to an SRV register whenever a GPU-writable buffer is bound read-only (generate-then-consume passes).
 	//
-	// TODO(d3d12-port): Thread the shader object type through so a read-write shader binding never silently receives an
-	//					 SRV (and vice versa). Also apply view.Offset/Range/Format instead of the default full-buffer view.
+	// The view format override matters for correctness, not just interpretation: a typed view whose component count
+	// doesn't match the shader's declared element type is undefined behavior in D3D12 and hardware drops the
+	// loads/stores (e.g. GpuSort moving 16X2U index payloads through RWBuffer<uint> needs an R32_UINT view).
+	//
+	// TODO(d3d12-port): view.Offset/Range are not applied (no engine callers currently pass them for storage buffers).
+	const UniformInformation* uniformInfo = GetLayout()->TryGetUniformInformation(slot);
+	const bool isReadWrite = uniformInfo != nullptr && IsReadWriteStorageBuffer(uniformInfo->ObjectType);
+
 	auto* d3d12Buffer = static_cast<D3D12GpuBuffer*>(buffer.get());
 
-	D3D12_CPU_DESCRIPTOR_HANDLE handle = d3d12Buffer->GetUAVHandle();
+	D3D12_CPU_DESCRIPTOR_HANDLE handle = isReadWrite ? d3d12Buffer->GetUAVHandle(view.Format) : d3d12Buffer->GetSRVHandle(view.Format);
 	if (handle.ptr == 0)
-		handle = d3d12Buffer->GetSRVHandle();
+	{
+		B3D_LOG(Warning, LogRenderBackend, "D3D12: Storage buffer bound to set {0} slot {1} has no {2} view; binding its {3} view instead.",
+			GetSet(), slot, isReadWrite ? "UAV" : "SRV", isReadWrite ? "SRV" : "UAV");
+		handle = isReadWrite ? d3d12Buffer->GetSRVHandle(view.Format) : d3d12Buffer->GetUAVHandle(view.Format);
+
+		if (handle.ptr == 0)
+		{
+			B3D_LOG(Error, LogRenderBackend, "D3D12: Storage buffer '{0}' (type {1}) bound to set {2} slot {3} has no shader views at all; the slot is left unbound and reads will return zero.",
+				buffer->GetName(), (u32)buffer->GetInformation().Type, GetSet(), slot);
+		}
+	}
 
 	SetDescriptor(slot, arrayIndex, handle);
 	return true;
@@ -317,46 +338,14 @@ void D3D12GpuParameters::SetSamplerDescriptor(u32 slot, u32 arrayIndex, D3D12_CP
 	table.IsDirty = true;
 }
 
-void D3D12GpuParameters::AllocateGPUDescriptorRanges(D3D12GpuDevice& device)
-{
-	if (mDescriptorsAllocated)
-		return;
-
-	D3D12DescriptorManager& descriptorManager = device.GetDescriptorManager();
-
-	for (auto& entry : mDescriptorTables)
-	{
-		DescriptorTable& table = entry.second;
-		if (table.DescriptorCount > 0)
-		{
-			descriptorManager.AllocateGPUDescriptorRange(
-				D3D12DescriptorHeapType::CBV_SRV_UAV,
-				table.DescriptorCount,
-				table.GPUVisibleCPUStart,
-				table.GPUVisibleGPUStart
-			);
-		}
-	}
-
-	for (auto& entry : mSamplerTables)
-	{
-		DescriptorTable& table = entry.second;
-		if (table.DescriptorCount > 0)
-		{
-			descriptorManager.AllocateGPUDescriptorRange(
-				D3D12DescriptorHeapType::Sampler,
-				table.DescriptorCount,
-				table.GPUVisibleCPUStart,
-				table.GPUVisibleGPUStart
-			);
-		}
-	}
-
-	mDescriptorsAllocated = true;
-}
-
 void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device)
 {
+	// A dirty table gets a FRESH shader-visible range and a full recopy of its descriptors. The previously issued
+	// range must not be overwritten: the command list consumes descriptors at EXECUTION time, so earlier
+	// draws/dispatches recorded against the old range would otherwise all read the newest descriptors (the engine
+	// re-binds the same parameter set with different resources many times per command buffer, e.g. buffer clears
+	// or GUI batches). This mirrors Vulkan's per-update descriptor set allocation; old ranges are reclaimed by the
+	// heap's ring allocator (see D3D12DescriptorManager::AllocateGPUDescriptorRange).
 	ID3D12Device* d3d12Device = device.GetD3D12Device();
 	D3D12DescriptorManager& descriptorManager = device.GetDescriptorManager();
 
@@ -364,18 +353,25 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device)
 	for (auto& entry : mDescriptorTables)
 	{
 		DescriptorTable& table = entry.second;
-		if (!table.IsDirty)
+		if (!table.IsDirty || table.DescriptorCount == 0)
 			continue;
 
-		for (u32 i = 0; i < table.Descriptors.size(); i++)
-		{
-			BoundDescriptor& desc = table.Descriptors[i];
-			if (desc.IsDirty && desc.CPUHandle.ptr != 0)
-			{
-				D3D12_CPU_DESCRIPTOR_HANDLE dstHandle = table.GPUVisibleCPUStart;
-				dstHandle.ptr += i * resourceDescriptorSize;
+		descriptorManager.AllocateGPUDescriptorRange(D3D12DescriptorHeapType::CBV_SRV_UAV, table.DescriptorCount,
+			table.GPUVisibleCPUStart, table.GPUVisibleGPUStart);
 
-				d3d12Device->CopyDescriptorsSimple(1, dstHandle, desc.CPUHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		if (table.GPUVisibleCPUStart.ptr != 0)
+		{
+			for (u32 i = 0; i < table.Descriptors.size(); i++)
+			{
+				BoundDescriptor& desc = table.Descriptors[i];
+				if (desc.CPUHandle.ptr != 0)
+				{
+					D3D12_CPU_DESCRIPTOR_HANDLE dstHandle = table.GPUVisibleCPUStart;
+					dstHandle.ptr += i * resourceDescriptorSize;
+
+					d3d12Device->CopyDescriptorsSimple(1, dstHandle, desc.CPUHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				}
+
 				desc.IsDirty = false;
 			}
 		}
@@ -387,18 +383,32 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device)
 	for (auto& entry : mSamplerTables)
 	{
 		DescriptorTable& table = entry.second;
-		if (!table.IsDirty)
+		if (!table.IsDirty || table.DescriptorCount == 0)
 			continue;
 
-		for (u32 i = 0; i < table.Descriptors.size(); i++)
-		{
-			BoundDescriptor& desc = table.Descriptors[i];
-			if (desc.IsDirty && desc.CPUHandle.ptr != 0)
-			{
-				D3D12_CPU_DESCRIPTOR_HANDLE dstHandle = table.GPUVisibleCPUStart;
-				dstHandle.ptr += i * samplerDescriptorSize;
+		descriptorManager.AllocateGPUDescriptorRange(D3D12DescriptorHeapType::Sampler, table.DescriptorCount,
+			table.GPUVisibleCPUStart, table.GPUVisibleGPUStart);
 
-				d3d12Device->CopyDescriptorsSimple(1, dstHandle, desc.CPUHandle, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+		if (table.GPUVisibleCPUStart.ptr != 0)
+		{
+			for (u32 i = 0; i < table.Descriptors.size(); i++)
+			{
+				BoundDescriptor& desc = table.Descriptors[i];
+
+				// Sampler bindings never (or null-) set by the caller fall back to the default sampler: unlike
+				// resource views there is no null descriptor for samplers, and a heap slot left unwritten is
+				// undefined to sample through.
+				const D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle =
+					desc.CPUHandle.ptr != 0 ? desc.CPUHandle : descriptorManager.GetDefaultSamplerCPUHandle();
+
+				if (sourceHandle.ptr != 0)
+				{
+					D3D12_CPU_DESCRIPTOR_HANDLE dstHandle = table.GPUVisibleCPUStart;
+					dstHandle.ptr += i * samplerDescriptorSize;
+
+					d3d12Device->CopyDescriptorsSimple(1, dstHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+				}
+
 				desc.IsDirty = false;
 			}
 		}
@@ -407,34 +417,75 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device)
 	}
 }
 
-void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, ID3D12GraphicsCommandList* commandList, bool isGraphics)
+void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, ID3D12GraphicsCommandList* commandList, bool isGraphics, u32 rootParameterOffset,
+	const GpuPipelineParameterSetLayout& pipelineSetLayout, const UnorderedMap<u32, u32>* dynamicOffsets)
 {
-	if (!mDescriptorsAllocated)
-		AllocateGPUDescriptorRanges(device);
-
 	UpdateGPUDescriptors(device);
 
-	for (const auto& entry : mDescriptorTables)
+	// Walk the PIPELINE's set layout in root-signature order (sets iterate parameter types in enum order, then
+	// bindings sequentially - see D3D12GpuPipelineParameterLayout::CreateRootSignature) and bind this set's matching
+	// resource, found by slot, to each root parameter. Bindings the set does not cover are left unset, same as null
+	// resources; the caller re-sets matching parameters before any draw/dispatch that actually reads them.
+	u32 rootParameterIndex = rootParameterOffset;
+
+	for (u32 typeIndex = 0; typeIndex < (u32)GpuParameterType::Count; typeIndex++)
 	{
-		const DescriptorTable& table = entry.second;
-		if (table.DescriptorCount == 0 || table.GPUVisibleGPUStart.ptr == 0)
-			continue;
+		const GpuParameterType type = (GpuParameterType)typeIndex;
+		const u32 bindingCount = pipelineSetLayout.GetBindingCount(type);
 
-		if (isGraphics)
-			commandList->SetGraphicsRootDescriptorTable(table.RootParameterIndex, table.GPUVisibleGPUStart);
-		else
-			commandList->SetComputeRootDescriptorTable(table.RootParameterIndex, table.GPUVisibleGPUStart);
-	}
+		for (u32 sequentialIndex = 0; sequentialIndex < bindingCount; sequentialIndex++)
+		{
+			const UniformInformation* uniformInfo = pipelineSetLayout.TryGetUniformInformation(type, sequentialIndex);
+			if (uniformInfo == nullptr)
+				continue;
 
-	for (const auto& entry : mSamplerTables)
-	{
-		const DescriptorTable& table = entry.second;
-		if (table.DescriptorCount == 0 || table.GPUVisibleGPUStart.ptr == 0)
-			continue;
+			const u32 currentRootParameterIndex = rootParameterIndex++;
 
-		if (isGraphics)
-			commandList->SetGraphicsRootDescriptorTable(table.RootParameterIndex, table.GPUVisibleGPUStart);
-		else
-			commandList->SetComputeRootDescriptorTable(table.RootParameterIndex, table.GPUVisibleGPUStart);
+			// Root CBV: resolve the bound uniform buffer's current GPU address at bind time (the backing resource
+			// may have been renamed since it was set) and apply the suballocation offset, or its dynamic override.
+			if (type == GpuParameterType::UniformBuffer && uniformInfo->ArraySize == 1)
+			{
+				const auto rootBufferIt = mRootConstantBuffers.find(uniformInfo->Slot);
+				if (rootBufferIt == mRootConstantBuffers.end())
+					continue;
+
+				const RootConstantBuffer& rootBuffer = rootBufferIt->second;
+
+				GpuBuffer* const buffer = mUniformBufferData[rootBuffer.DataIndex].Buffer.get();
+				if (buffer == nullptr)
+					continue; // Warned about at set time; leaving the root CBV unset matches the null-descriptor table path
+
+				u32 offset = mUniformBufferData[rootBuffer.DataIndex].Offset;
+				if (dynamicOffsets != nullptr && rootBuffer.DynamicOffsetIndex != ~0u)
+				{
+					if (const auto overrideIt = dynamicOffsets->find(rootBuffer.DynamicOffsetIndex); overrideIt != dynamicOffsets->end())
+						offset = overrideIt->second;
+				}
+
+				const D3D12_GPU_VIRTUAL_ADDRESS address = static_cast<D3D12GpuBuffer*>(buffer)->GetGPUVirtualAddress() + offset;
+
+				if (isGraphics)
+					commandList->SetGraphicsRootConstantBufferView(currentRootParameterIndex, address);
+				else
+					commandList->SetComputeRootConstantBufferView(currentRootParameterIndex, address);
+
+				continue;
+			}
+
+			const UnorderedMap<u32, DescriptorTable>& tables = type == GpuParameterType::Sampler ? mSamplerTables : mDescriptorTables;
+
+			const auto tableIt = tables.find(uniformInfo->Slot);
+			if (tableIt == tables.end())
+				continue;
+
+			const DescriptorTable& table = tableIt->second;
+			if (table.DescriptorCount == 0 || table.GPUVisibleGPUStart.ptr == 0)
+				continue;
+
+			if (isGraphics)
+				commandList->SetGraphicsRootDescriptorTable(currentRootParameterIndex, table.GPUVisibleGPUStart);
+			else
+				commandList->SetComputeRootDescriptorTable(currentRootParameterIndex, table.GPUVisibleGPUStart);
+		}
 	}
 }

@@ -47,6 +47,13 @@ namespace b3d
 			/** Returns the shader-visible descriptor heap of the specified type. */
 			ID3D12DescriptorHeap* GetDescriptorHeap(D3D12DescriptorHeapType type) const;
 
+			/**
+			 * Returns a CPU descriptor for the default sampler (linear filtering, wrap addressing), used for sampler
+			 * bindings the caller never set. Sampler heap slots have no null descriptor, so unset bindings must fall
+			 * back to something valid or the shader samples through an uninitialized descriptor.
+			 */
+			D3D12_CPU_DESCRIPTOR_HANDLE GetDefaultSamplerCPUHandle() const { return mDefaultSamplerHandle; }
+
 			/** Returns the descriptor increment size for the specified heap type. */
 			u32 GetDescriptorIncrementSize(D3D12DescriptorHeapType type) const { return mDescriptorSizes[(u32)type]; }
 
@@ -78,6 +85,7 @@ namespace b3d
 			DescriptorHeap mHeaps[4]; // Shader-visible CBV_SRV_UAV/Sampler heaps + CPU-only RTV/DSV heaps
 			DescriptorHeap mStagingHeaps[2]; // CPU-only staging heaps for CBV_SRV_UAV and Sampler resource views
 			u32 mDescriptorSizes[4] = {}; // Descriptor size for each type
+			D3D12_CPU_DESCRIPTOR_HANDLE mDefaultSamplerHandle{}; // Fallback for sampler bindings never set by the caller
 		};
 
 		/** @} */

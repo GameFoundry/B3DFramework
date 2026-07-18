@@ -24,10 +24,12 @@ namespace b3d::render
 	 *  - Image barriers become per-subresource transitions from the state stored on the D3D12ImageSubresource (which
 	 *    is guaranteed to match what was last emitted) to the state derived from the destination layout/access.
 	 *  - Same-state write hazards (UAV -> UAV) become D3D12_RESOURCE_BARRIER_TYPE_UAV barriers.
-	 *  - Buffer state changes are driven by RequireBufferState() from D3D12ResourceTracker::TrackBufferUsage, because
-	 *    buffers carry no layout in the core model and read->read state changes (e.g. COPY_SOURCE -> SRV) produce no
-	 *    hazard callback from the shared tracker. The RecordBufferBarrier hook therefore only contributes UAV
-	 *    barriers; the transition emitted by RequireBufferState provides the execution/memory synchronization.
+	 *  - Buffer state changes are driven by RequireBufferTransition() from D3D12ResourceTracker::TrackBufferUsage,
+	 *    because buffers carry no layout in the core model and read->read state changes (e.g. COPY_SOURCE -> SRV)
+	 *    produce no hazard callback from the shared tracker. Buffer states are tracked per command buffer by the
+	 *    tracker (decay/promotion make cross-command-buffer state meaningless). The RecordBufferBarrier hook
+	 *    therefore only contributes UAV barriers; the transition emitted by RequireBufferTransition provides the
+	 *    execution/memory synchronization.
 	 */
 	class D3D12BarrierHelper : public TGpuBarrierHelper<D3D12BarrierHelper>
 	{
@@ -54,11 +56,11 @@ namespace b3d::render
 		bool HasBarriers() const { return !mNativeBarriers.Empty(); }
 
 		/**
-		 * Ensures the buffer's native state equals @p state, appending a transition if it does not. UPLOAD-heap
-		 * buffers (permanently GENERIC_READ) and READBACK-heap buffers (permanently COPY_DEST) are skipped. The
-		 * buffer's tracked state is advanced immediately (record order).
+		 * Appends a transition moving the buffer between two states. The caller (the tracker's TrackBufferUsage
+		 * shadow) owns the per-command-buffer state bookkeeping and only calls this when the state actually changes
+		 * within the command buffer.
 		 */
-		void RequireBufferState(D3D12Buffer* buffer, D3D12_RESOURCE_STATES state);
+		void RequireBufferTransition(D3D12Buffer* buffer, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);
 
 		/**
 		 * Ensures the image subresource's native state equals @p state, appending a transition if it does not. The

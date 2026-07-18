@@ -2,6 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12GpuQueue.h"
+#include "String/B3DUnicode.h"
+#include <chrono>
 #include "B3DD3D12GpuCommandBuffer.h"
 #include "B3DD3D12Utility.h"
 #include "B3DD3D12GpuBackend.h"
@@ -18,9 +20,9 @@
 #include "B3DD3D12Queries.h"
 #include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12SamplerState.h"
-#include "B3DD3D12ShaderCompiler.h"
 #include "B3DD3D12Texture.h"
 #include "CoreObject/B3DRenderThread.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "Utility/B3DBitwise.h"
 
@@ -109,10 +111,41 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter)
 #else
 	static_assert(false, "mVideoModeInfo needs to be created.");
 #endif
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// Device-removal watchdog: on removal any subsequent D3D12 call can fail an assert and abort before the regular
+	// LogDebugLayerMessages() hook runs, losing the DRED breadcrumbs. A polling thread dumps them the moment the
+	// removal happens instead.
+	mWatchdogShouldExit.store(false, std::memory_order_relaxed);
+	mDeviceRemovalWatchdog = std::thread([this]()
+	{
+		while (!mWatchdogShouldExit.load(std::memory_order_relaxed))
+		{
+			if (mDevice->GetDeviceRemovedReason() != S_OK)
+			{
+				if (!mLoggedDeviceRemoval)
+				{
+					mLoggedDeviceRemoval = true;
+					LogDeviceRemovalBreadcrumbs();
+				}
+
+				return;
+			}
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(2));
+		}
+	});
+#endif
 }
 
 D3D12GpuDevice::~D3D12GpuDevice()
 {
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	mWatchdogShouldExit.store(true, std::memory_order_relaxed);
+	if (mDeviceRemovalWatchdog.joinable())
+		mDeviceRemovalWatchdog.join();
+#endif
+
 	// Tear down the internal work context's transfer resources before other cleanup, while its queues are alive.
 	mInternalWorkContext = nullptr;
 
@@ -145,17 +178,6 @@ D3D12GpuDevice::~D3D12GpuDevice()
 	// Release device
 	mDevice.Reset();
 	mAdapter.Reset();
-}
-
-TShared<GpuProgramBytecode> D3D12GpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
-{
-	if (!IsGpuProgramLanguageSupported(createInformation.Language))
-		return nullptr;
-
-	TShared<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
-	D3D12ShaderCompiler::CompileShader(createInformation, bytecode);
-
-	return bytecode;
 }
 
 TShared<GpuQueue> D3D12GpuDevice::GetQueue(GpuQueueType type, u32 index) const
@@ -280,8 +302,17 @@ namespace
 TShared<GpuPipelineParameterSetLayout> D3D12GpuDevice::CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& /*resourceTableLayout*/, u32 /*tableIndex*/)
 {
 	// TODO(d3d12-port): root-signature construction currently derives everything from the parameter description;
-	// consuming the reflected table (GpuResourceTableLayout) for exact root-signature population is the open follow-up.
+	// consuming the reflected bindings for exact root-signature population is the open follow-up. The per-stage
+	// reflected tables are merged per set by D3D12GpuPipelineParameterLayout (GetReflectedSetEntries()), which is
+	// where the follow-up should consume them - the per-set layout intentionally ignores the arguments here.
 	return B3DMakeShared<D3D12GpuPipelineParameterSetLayout>(parameterDescription);
+}
+
+u32 D3D12GpuDevice::GetUniformBufferParameterSlot(u32 registerIndex) const
+{
+	// Slots encode the HLSL register class alongside the register index (see MapRegisterToSlot()); engine-authored
+	// parameter descriptions must use the same encoding to remain slot-compatible with shader-reflected layouts.
+	return MapRegisterToSlot(registerIndex, HLSLRegisterClass::ConstantBuffer);
 }
 
 TUnique<GpuParameterSetPool> D3D12GpuDevice::CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation)
@@ -415,12 +446,120 @@ void D3D12GpuDevice::DrainDeferredReleases(bool releaseAll)
 	fnReleaseList(mDeferredReleases[mCurrentDeferredReleaseFrame]);
 }
 
+namespace
+{
+	/** Returns a human-readable name for a DRED auto-breadcrumb op. */
+	const char* GetBreadcrumbOpName(D3D12_AUTO_BREADCRUMB_OP op)
+	{
+		switch (op)
+		{
+		case D3D12_AUTO_BREADCRUMB_OP_SETMARKER: return "SetMarker";
+		case D3D12_AUTO_BREADCRUMB_OP_BEGINEVENT: return "BeginEvent";
+		case D3D12_AUTO_BREADCRUMB_OP_ENDEVENT: return "EndEvent";
+		case D3D12_AUTO_BREADCRUMB_OP_DRAWINSTANCED: return "DrawInstanced";
+		case D3D12_AUTO_BREADCRUMB_OP_DRAWINDEXEDINSTANCED: return "DrawIndexedInstanced";
+		case D3D12_AUTO_BREADCRUMB_OP_EXECUTEINDIRECT: return "ExecuteIndirect";
+		case D3D12_AUTO_BREADCRUMB_OP_DISPATCH: return "Dispatch";
+		case D3D12_AUTO_BREADCRUMB_OP_COPYBUFFERREGION: return "CopyBufferRegion";
+		case D3D12_AUTO_BREADCRUMB_OP_COPYTEXTUREREGION: return "CopyTextureRegion";
+		case D3D12_AUTO_BREADCRUMB_OP_COPYRESOURCE: return "CopyResource";
+		case D3D12_AUTO_BREADCRUMB_OP_RESOLVESUBRESOURCE: return "ResolveSubresource";
+		case D3D12_AUTO_BREADCRUMB_OP_CLEARRENDERTARGETVIEW: return "ClearRenderTargetView";
+		case D3D12_AUTO_BREADCRUMB_OP_CLEARUNORDEREDACCESSVIEW: return "ClearUnorderedAccessView";
+		case D3D12_AUTO_BREADCRUMB_OP_CLEARDEPTHSTENCILVIEW: return "ClearDepthStencilView";
+		case D3D12_AUTO_BREADCRUMB_OP_RESOURCEBARRIER: return "ResourceBarrier";
+		case D3D12_AUTO_BREADCRUMB_OP_EXECUTEBUNDLE: return "ExecuteBundle";
+		case D3D12_AUTO_BREADCRUMB_OP_PRESENT: return "Present";
+		case D3D12_AUTO_BREADCRUMB_OP_RESOLVEQUERYDATA: return "ResolveQueryData";
+		case D3D12_AUTO_BREADCRUMB_OP_BEGINSUBMISSION: return "BeginSubmission";
+		case D3D12_AUTO_BREADCRUMB_OP_ENDSUBMISSION: return "EndSubmission";
+		case D3D12_AUTO_BREADCRUMB_OP_WRITEBUFFERIMMEDIATE: return "WriteBufferImmediate";
+		default: return "<other>";
+		}
+	}
+} // namespace
+
+void D3D12GpuDevice::LogDeviceRemovalBreadcrumbs()
+{
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// DRED 1.2 (GetAutoBreadcrumbsOutput1) additionally carries per-breadcrumb context strings - the BeginEvent
+	// marker names - which identify the hanging render pass by name.
+	ComPtr<ID3D12DeviceRemovedExtendedData1> dred;
+	if (FAILED(mDevice.As(&dred)))
+		return;
+
+	D3D12_DRED_AUTO_BREADCRUMBS_OUTPUT1 breadcrumbs = {};
+	if (SUCCEEDED(dred->GetAutoBreadcrumbsOutput1(&breadcrumbs)))
+	{
+		for (const D3D12_AUTO_BREADCRUMB_NODE1* node = breadcrumbs.pHeadAutoBreadcrumbNode; node != nullptr; node = node->pNext)
+		{
+			const u32 completed = node->pLastBreadcrumbValue != nullptr ? *node->pLastBreadcrumbValue : 0;
+			const u32 total = node->BreadcrumbCount;
+
+			// Fully completed command lists are not where the hang is
+			if (completed == total)
+				continue;
+
+			String listName = "<unnamed>";
+			if (node->pCommandListDebugNameA != nullptr)
+				listName = node->pCommandListDebugNameA;
+			else if (node->pCommandListDebugNameW != nullptr)
+				listName = UTF8::FromWide(WString(node->pCommandListDebugNameW));
+
+			B3D_LOG(Error, LogRenderBackend, "DRED: Command list '{0}' hung at op {1}/{2}.", listName, completed, total);
+
+			// Gather the marker strings so ops can be annotated with the pass they belong to
+			UnorderedMap<u32, String> contextsByOp;
+			for (u32 i = 0; i < node->BreadcrumbContextsCount; i++)
+			{
+				const D3D12_DRED_BREADCRUMB_CONTEXT& context = node->pBreadcrumbContexts[i];
+				contextsByOp[context.BreadcrumbIndex] = UTF8::FromWide(WString(context.pContextString));
+			}
+
+			// Log the event markers preceding the hang (the innermost ones identify the active pass)
+			for (i32 i = (i32)completed; i >= 0; i--)
+			{
+				if (const auto it = contextsByOp.find((u32)i); it != contextsByOp.end())
+				{
+					B3D_LOG(Error, LogRenderBackend, "DRED:   last marker before hang: op[{0}] '{1}'", i, it->second);
+					break;
+				}
+			}
+
+			// Log the ops surrounding the hang point for context
+			const u32 contextStart = completed >= 10 ? completed - 10 : 0;
+			const u32 contextEnd = Math::Min(completed + 4, total);
+			for (u32 i = contextStart; i < contextEnd; i++)
+			{
+				String annotation;
+				if (const auto it = contextsByOp.find(i); it != contextsByOp.end())
+					annotation = " '" + it->second + "'";
+
+				B3D_LOG(Error, LogRenderBackend, "DRED:   op[{0}]{1} {2}{3}", i, i == completed ? " <-- HUNG" : "",
+					GetBreadcrumbOpName(node->pCommandHistory[i]), annotation);
+			}
+		}
+	}
+
+	D3D12_DRED_PAGE_FAULT_OUTPUT pageFault = {};
+	if (SUCCEEDED(dred->GetPageFaultAllocationOutput(&pageFault)) && pageFault.PageFaultVA != 0)
+		B3D_LOG(Error, LogRenderBackend, "DRED: Page fault at GPU VA {0:x}.", pageFault.PageFaultVA);
+#endif
+}
+
 void D3D12GpuDevice::LogDebugLayerMessages()
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	ComPtr<ID3D12InfoQueue> infoQueue;
 	if (FAILED(mDevice.As(&infoQueue)))
 		return;
+
+	// On device removal, log the DRED breadcrumbs (which command hung) once, before the queued messages
+	if (mDevice->GetDeviceRemovedReason() != S_OK && !mLoggedDeviceRemoval)
+	{
+		mLoggedDeviceRemoval = true;
+		LogDeviceRemovalBreadcrumbs();
+	}
 
 	const u64 messageCount = infoQueue->GetNumStoredMessages();
 	for (u64 i = 0; i < messageCount; i++)
@@ -486,7 +625,8 @@ GpuUniformBufferInformation D3D12GpuDevice::GenerateUniformBufferInformation(con
 	buffer.Slot = 0;
 	buffer.Set = 0;
 
-	// D3D12 uses HLSL constant buffer packing rules (similar to std140)
+	// The engine's uniform block definitions are authored to lay out identically under std140 and HLSL constant
+	// buffer packing, so the shared std140 helper computes the sizes and offsets (same as the other backends)
 	for (auto& param : inOutUniforms)
 	{
 		u32 size;
@@ -498,8 +638,7 @@ GpuUniformBufferInformation D3D12GpuDevice::GenerateUniformBufferInformation(con
 		}
 		else
 		{
-			// Calculate size based on HLSL packing rules
-			size = D3D12Utility::CalcConstantBufferElementSizeAndOffset(param.Type, param.ArraySize, buffer.Size);
+			size = GpuBackendUtility::CalcStd140MemberSizeAndOffset(param.Type, param.ArraySize, buffer.Size);
 		}
 
 		param.ElementSize = size;
@@ -552,6 +691,12 @@ void D3D12GpuDevice::InitializeCapabilities()
 
 	mCapabilities.StorageTexturesPerStage[GPT_FRAGMENT_PROGRAM] = D3D12_UAV_SLOT_COUNT;
 	mCapabilities.StorageTexturesPerStage[GPT_COMPUTE_PROGRAM] = D3D12_UAV_SLOT_COUNT;
+
+	// Constant buffer addresses (root CBVs and suballocation offsets alike) must be 256-byte aligned in D3D12
+	mCapabilities.MinimumUniformBufferOffsetAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
+
+	// UPLOAD-heap memory is CPU-write-only; it can never be a GPU copy destination
+	mCapabilities.MappableBuffersAreValidCopyDestinations = false;
 
 	mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_BC);
 	mCapabilities.SetCapability(RSC_COMPUTE_PROGRAM);

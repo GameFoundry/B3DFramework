@@ -65,12 +65,11 @@ namespace
 }
 
 D3D12Buffer::D3D12Buffer(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, D3D12MA::Allocation* allocation,
-	D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_STATES state, const StringView& name)
+	D3D12_HEAP_TYPE heapType, const StringView& name)
 	: TD3D12Resource<IGpuBufferResource>(owner, name)
 	, mResource(std::move(resource))
 	, mAllocation(allocation)
 	, mHeapType(heapType)
-	, mState(state)
 {}
 
 D3D12Buffer::~D3D12Buffer()
@@ -206,8 +205,15 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 		}
 	}
 
-	mBuffer = device.GetResourceManager().Create<D3D12Buffer>(std::move(resource), allocation, heapType, initialState, mName);
+	mBuffer = device.GetResourceManager().Create<D3D12Buffer>(std::move(resource), allocation, heapType, mName);
 	mMappedMemory = mappedData;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// Initialize suballocation tracking for the new buffer; without it IsRangeBound/IsRangeInUse fall back to
+	// whole-buffer counts and ValidateMap reports false positives for every write to a pooled suballocation
+	if(mBuffer != nullptr)
+		mBuffer->InitializeSuballocationTracking(mInformation.SuballocationCount, mSuballocationSize);
+#endif
 
 	if(!mName.empty())
 		SetName(mName);
@@ -259,19 +265,29 @@ void D3D12GpuBuffer::CreateShaderDescriptors()
 		}
 	}
 
-	// Simple/structured storage -> read-only SRV, plus a UAV if the buffer allows GPU writes.
-	if(info.Type == GpuBufferType::SimpleStorage || info.Type == GpuBufferType::StructuredStorage)
+	// Simple/structured storage -> read-only SRV, plus a UAV if the buffer allows GPU writes. Vertex buffers
+	// also get structured views: the engine binds them as storage buffers for GPU vertex pulling (sprite/GUI
+	// rendering), with the vertex layout supplying the structured stride. The shader-declared element stride
+	// must match the buffer's element size for this to be equivalent to Vulkan (where the stride comes from
+	// the program itself), which holds as each such mesh uses a vertex declaration mirroring the shader struct.
+	if(info.Type == GpuBufferType::SimpleStorage || info.Type == GpuBufferType::StructuredStorage ||
+		info.Type == GpuBufferType::Vertex)
 	{
-		const bool isStructured = info.Type == GpuBufferType::StructuredStorage;
+		const bool isStructured = info.Type != GpuBufferType::SimpleStorage;
 
 		u32 elementCount;
 		u32 elementStride;
 		DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN;
 
-		if(isStructured)
+		if(info.Type == GpuBufferType::StructuredStorage)
 		{
 			elementCount = info.StructuredStorage.Count;
 			elementStride = info.StructuredStorage.ElementSize;
+		}
+		else if(info.Type == GpuBufferType::Vertex)
+		{
+			elementCount = info.Vertex.Count;
+			elementStride = info.Vertex.ElementSize;
 		}
 		else
 		{
@@ -358,6 +374,17 @@ void D3D12GpuBuffer::ReleaseShaderDescriptors()
 		descriptorManager.FreeCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV, mUAVHandle);
 		mUAVHandle.ptr = 0;
 	}
+
+	Lock lock(mViewMutex);
+	for(FormatOverrideViews& views : mFormatViews)
+	{
+		if(views.Srv.ptr != 0)
+			descriptorManager.FreeCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV, views.Srv);
+
+		if(views.Uav.ptr != 0)
+			descriptorManager.FreeCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV, views.Uav);
+	}
+	mFormatViews.clear();
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetCBVHandle(u32 suballocationIndex) const
@@ -367,14 +394,96 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetCBVHandle(u32 suballocationIndex)
 	return mCBVHandle;
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetSRVHandle() const
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetSRVHandle(GpuBufferFormat format) const
 {
-	return mSRVHandle;
+	const GpuBufferInformation& info = GetInformation();
+	if(format == BF_UNKNOWN || info.Type != GpuBufferType::SimpleStorage || format == info.SimpleStorage.Format)
+		return mSRVHandle;
+
+	return GetFormatOverrideView(format, false);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetUAVHandle() const
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetUAVHandle(GpuBufferFormat format) const
 {
-	return mUAVHandle;
+	const GpuBufferInformation& info = GetInformation();
+	if(format == BF_UNKNOWN || info.Type != GpuBufferType::SimpleStorage || format == info.SimpleStorage.Format)
+		return mUAVHandle;
+
+	return GetFormatOverrideView(format, true);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetFormatOverrideView(GpuBufferFormat format, bool readWrite) const
+{
+	const GpuBufferInformation& info = GetInformation();
+
+	const DXGI_FORMAT viewFormat = GetBufferViewFormat(format);
+	if(viewFormat == DXGI_FORMAT_UNKNOWN || mBuffer == nullptr)
+		return {};
+
+	if(readWrite && !info.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
+		return {};
+
+	Lock lock(mViewMutex);
+
+	FormatOverrideViews* entry = nullptr;
+	for(FormatOverrideViews& views : mFormatViews)
+	{
+		if(views.Format == format)
+		{
+			entry = &views;
+			break;
+		}
+	}
+
+	if(entry == nullptr)
+	{
+		mFormatViews.push_back(FormatOverrideViews());
+		entry = &mFormatViews.back();
+		entry->Format = format;
+	}
+
+	D3D12_CPU_DESCRIPTOR_HANDLE& handle = readWrite ? entry->Uav : entry->Srv;
+	if(handle.ptr != 0)
+		return handle;
+
+	// The view covers the whole buffer, reinterpreting its contents through the override format
+	const u32 byteSize = info.SimpleStorage.Count * b3d::GpuBuffer::GetFormatSize(info.SimpleStorage.Format);
+	const u32 elementCount = byteSize / b3d::GpuBuffer::GetFormatSize(format);
+
+	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mDevice);
+
+	handle = device.GetDescriptorManager().AllocateCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV);
+	if(handle.ptr == 0)
+		return handle;
+
+	if(readWrite)
+	{
+		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+		uavDesc.Format = viewFormat;
+		uavDesc.Buffer.FirstElement = 0;
+		uavDesc.Buffer.NumElements = elementCount;
+		uavDesc.Buffer.StructureByteStride = 0;
+		uavDesc.Buffer.CounterOffsetInBytes = 0;
+		uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+		device.GetD3D12Device()->CreateUnorderedAccessView(mBuffer->GetD3D12Resource(), nullptr, &uavDesc, handle);
+	}
+	else
+	{
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.Format = viewFormat;
+		srvDesc.Buffer.FirstElement = 0;
+		srvDesc.Buffer.NumElements = elementCount;
+		srvDesc.Buffer.StructureByteStride = 0;
+		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+		device.GetD3D12Device()->CreateShaderResourceView(mBuffer->GetD3D12Resource(), &srvDesc, handle);
+	}
+
+	return handle;
 }
 
 void D3D12GpuBuffer::SetName(const StringView& name)

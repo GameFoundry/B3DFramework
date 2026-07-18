@@ -85,6 +85,7 @@ namespace b3d
 
 			u32 mNumColorAttachments = 0;
 			bool mHasDepthStencil = false;
+			bool mOwnsViews = false; /**< True when the RTV/DSV descriptors were allocated by us (render texture path) rather than referenced from the swap chain. */
 			u32 mWidth = 0;
 			u32 mHeight = 0;
 		};

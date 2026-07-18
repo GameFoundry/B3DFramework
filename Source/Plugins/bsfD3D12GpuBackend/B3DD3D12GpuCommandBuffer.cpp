@@ -17,7 +17,9 @@
 #include "B3DD3D12GpuPipelineState.h"
 #include "B3DD3D12BarrierUtility.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
+#include "Managers/B3DD3D12VertexInputManager.h"
 #include "Profiling/B3DRenderStats.h"
+#include "Image/B3DPixelUtility.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuSubmitThread.h"
 #include "GpuBackend/B3DRenderWindow.h"
@@ -215,7 +217,8 @@ D3D12GpuCommandBuffer::D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCom
 	, mViewportRequiresBind(true)
 	, mStencilRefRequiresBind(true)
 	, mScissorRequiresBind(true)
-	, mBoundParamsDirty(false)
+	, mGraphicsParamsRequireBind(false)
+	, mComputeParamsRequireBind(false)
 	, mVertexInputsDirty(false)
 {
 	// Create fence for command buffer completion
@@ -282,12 +285,14 @@ void D3D12GpuCommandBuffer::Begin()
 
 	// Reset state tracking
 	mLastBoundGraphicsPipeline = nullptr;
+	mRequiredVertexBufferBindingCount = 0;
 	mGfxPipelineRequiresBind = true;
 	mCmpPipelineRequiresBind = true;
 	mViewportRequiresBind = true;
 	mStencilRefRequiresBind = true;
 	mScissorRequiresBind = true;
-	mBoundParamsDirty = false;
+	mGraphicsParamsRequireBind = false;
+	mComputeParamsRequireBind = false;
 	mVertexInputsDirty = false;
 }
 
@@ -299,6 +304,20 @@ void D3D12GpuCommandBuffer::End()
 	// End render pass if active
 	if (mState == GpuCommandBufferState::RecordingRenderPass)
 		EndRenderPass();
+
+	// Copy the results of every query written during this recording into its pool's readback buffer. The pools are
+	// notified so their results become readable once this command buffer completes on the GPU.
+	for (const auto& usedQueryPool : mUsedQueryPools)
+	{
+		D3D12GpuQueryPool* d3d12QueryPool = static_cast<D3D12GpuQueryPool*>(usedQueryPool.get());
+		const u32 allocatedQueryCount = d3d12QueryPool->GetAllocatedQueryCount();
+		if (allocatedQueryCount == 0)
+			continue;
+
+		mCommandList->ResolveQueryData(d3d12QueryPool->GetD3D12QueryHeap(), d3d12QueryPool->GetD3D12QueryType(), 0,
+			allocatedQueryCount, d3d12QueryPool->GetReadbackBuffer(), 0);
+		d3d12QueryPool->NotifyResolveScheduled(*this);
+	}
 
 	// Close command list
 	HRESULT hr = mCommandList->Close();
@@ -321,19 +340,32 @@ void D3D12GpuCommandBuffer::SetName(const StringView& name)
 
 void D3D12GpuCommandBuffer::SetGpuParameterSet(const TShared<GpuParameterSet>& parameters)
 {
-	mBoundParams = std::static_pointer_cast<D3D12GpuParameters>(parameters);
-	mBoundParamsDirty = true;
+	if (!B3D_ENSURE(parameters != nullptr))
+		return;
+
+	const u32 set = parameters->GetSet();
+	if (set >= (u32)mBoundParameterSets.size())
+		mBoundParameterSets.resize(set + 1);
+
+	mBoundParameterSets[set] = std::static_pointer_cast<D3D12GpuParameters>(parameters);
+	mGraphicsParamsRequireBind = true;
+	mComputeParamsRequireBind = true;
+
+	// Freshly bound parameters carry their own offsets; overrides only apply on top of an already-bound set
+	if (set < (u32)mDynamicOffsetOverridesPerSet.size())
+		mDynamicOffsetOverridesPerSet[set].clear();
 }
 
 void D3D12GpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset)
 {
-	// TODO(d3d12-port): D3D12GpuParameters binds uniform buffers as CBVs baked into descriptor-heap tables
-	// (SetGraphics/ComputeRootDescriptorTable), not as root CBVs. Applying a per-draw dynamic offset there requires
-	// either promoting the affected CBV to a root descriptor (SetGraphicsRootConstantBufferView with base + offset)
-	// or re-creating the CBV descriptor at the new offset, both of which need the root-signature/descriptor design
-	// in B3DD3D12GpuParameterSet / B3DD3D12GpuPipelineParameterLayout (owned elsewhere) to expose the dynamic-offset
-	// slot. Until then this is a no-op; the base class stores the offset but it is not yet honored at draw time.
-	B3D_LOG(Warning, LogRenderBackend, "D3D12: SetDynamicBufferOffset not implemented (descriptor-table CBV binding; needs root-CBV or CBV rebuild support)");
+	EnsureValidThread();
+
+	if (set >= (u32)mDynamicOffsetOverridesPerSet.size())
+		mDynamicOffsetOverridesPerSet.resize(set + 1);
+
+	mDynamicOffsetOverridesPerSet[set][bufferIndex] = offset;
+	mGraphicsParamsRequireBind = true;
+	mComputeParamsRequireBind = true;
 }
 
 void D3D12GpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState)
@@ -350,12 +382,12 @@ void D3D12GpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputeP
 
 void D3D12GpuCommandBuffer::SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount)
 {
-	mVertexBuffers.clear();
+	const u32 endIndex = index + bufferCount;
+	if (mVertexBuffers.size() < endIndex)
+		mVertexBuffers.resize(endIndex);
+
 	for (u32 i = 0; i < bufferCount; i++)
-	{
-		if (buffers[i])
-			mVertexBuffers.push_back(std::static_pointer_cast<D3D12GpuBuffer>(buffers[i]));
-	}
+		mVertexBuffers[index + i] = std::static_pointer_cast<D3D12GpuBuffer>(buffers[i]);
 
 	mVertexInputsDirty = true;
 }
@@ -384,7 +416,7 @@ void D3D12GpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instance
 	BindGraphicsPipeline();
 	BindDynamicStates(false);
 	BindVertexInputs();
-	BindGpuParams();
+	BindGpuParams(true);
 
 	// Barriers accumulated by the bind-time tracking above. Parameter sets are normally pre-registered at
 	// BeginRenderPass so this is usually empty; when it is not, emitting mid-pass is legal in D3D12 (rendering uses
@@ -405,7 +437,7 @@ void D3D12GpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vert
 	BindGraphicsPipeline();
 	BindDynamicStates(false);
 	BindVertexInputs();
-	BindGpuParams();
+	BindGpuParams(true);
 
 	// See Draw() for why executing mid-pass is fine.
 	mBarrierHelper.Execute(*this);
@@ -426,14 +458,23 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 		mCommandList->SetPipelineState(mComputePipeline->GetD3D12PipelineState());
 		mCommandList->SetComputeRootSignature(mComputePipeline->GetRootSignature());
 		mCmpPipelineRequiresBind = false;
+
+		// Setting a root signature wipes all of the command list's compute root arguments; re-record them below.
+		// By this point the caller has set parameters matching this pipeline (binding is deferred to the dispatch
+		// itself), so rebinding the stored sets is safe - the same contract Vulkan relies on when it re-records
+		// vkCmdBindDescriptorSets against the current pipeline layout.
+		mComputeParamsRequireBind = true;
 	}
 
-	BindGpuParams();
+	BindGpuParams(false);
 
 	// Registration must run on every dispatch (not just when the bound set changes), so back-to-back dispatches
 	// using the same UAVs get the write-hazard (UAV) barriers between them.
-	if (mBoundParams != nullptr)
-		mBoundParams->TrackBoundResources(mResourceTracker, mBarrierHelper);
+	for (const TShared<D3D12GpuParameters>& parameters : mBoundParameterSets)
+	{
+		if (parameters != nullptr)
+			parameters->TrackBoundResources(mResourceTracker, mBarrierHelper);
+	}
 
 	mBarrierHelper.Execute(*this);
 
@@ -489,6 +530,13 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 	}
 
 	mState = GpuCommandBufferState::RecordingRenderPass;
+
+	// The viewport is stored normalized and resolves against the bound target, so a new render pass (potentially
+	// with a different-sized target) invalidates both the stamped viewport and the full-viewport scissor rect that
+	// emulates the disabled scissor test.
+	mViewportRequiresBind = true;
+	if (!mIsScissorTestEnabled)
+		mScissorRequiresBind = true;
 
 	// Register the framebuffer attachments (and the swap chain, for window targets) with the tracker. This must
 	// come before the parameter-set registration below so that when a pass samples one of its own attachments, the
@@ -547,6 +595,11 @@ void D3D12GpuCommandBuffer::SetViewport(const Area2& area)
 {
 	mNormalizedViewportArea = area;
 	mViewportRequiresBind = true;
+
+	// D3D12 has no scissor-test disable: the disabled state is emulated with a full-viewport scissor rect,
+	// so the stamped rect must follow every viewport change or it stays sized for the previous target.
+	if (!mIsScissorTestEnabled)
+		mScissorRequiresBind = true;
 }
 
 void D3D12GpuCommandBuffer::ClearRenderTarget(RenderSurfaceMask mask, const Color& color, float depth, u16 stencil)
@@ -676,6 +729,8 @@ void D3D12GpuCommandBuffer::WriteTimestamp(GpuQueryId query, const TShared<GpuQu
 
 	// EndQuery for timestamp queries records the current GPU timestamp
 	mCommandList->EndQuery(d3d12QueryPool->GetD3D12QueryHeap(), d3d12QueryPool->GetD3D12QueryType(), query.Id);
+
+	TrackQueryPool(queryPool);
 }
 
 void D3D12GpuCommandBuffer::BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags)
@@ -700,6 +755,8 @@ void D3D12GpuCommandBuffer::BeginQuery(GpuQueryId query, const TShared<GpuQueryP
 
 	// Begin the query
 	mCommandList->BeginQuery(d3d12QueryPool->GetD3D12QueryHeap(), d3d12QueryPool->GetD3D12QueryType(), query.Id);
+
+	TrackQueryPool(queryPool);
 }
 
 void D3D12GpuCommandBuffer::EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool)
@@ -737,25 +794,20 @@ void D3D12GpuCommandBuffer::ResetQueries(const TShared<GpuQueryPool>& queryPool)
 		return;
 	}
 
-	D3D12GpuQueryPool* d3d12QueryPool = static_cast<D3D12GpuQueryPool*>(queryPool.get());
+	// D3D12 query heap entries don't require a GPU-side reset (writing a query simply overwrites the entry), so
+	// resetting only restarts the pool's allocator per the GpuCommandBuffer contract.
+	static_cast<D3D12GpuQueryPool*>(queryPool.get())->NotifyPoolReset();
+}
 
-	// In D3D12, we resolve query data to a buffer
-	// This copies query results from the query heap to the readback buffer
-	u64 destOffset = 0;
+void D3D12GpuCommandBuffer::TrackQueryPool(const TShared<GpuQueryPool>& queryPool)
+{
+	for (const auto& usedQueryPool : mUsedQueryPools)
+	{
+		if (usedQueryPool == queryPool)
+			return;
+	}
 
-	// Resolve all allocated queries to the readback buffer
-	u32 allocatedQueryCount = d3d12QueryPool->GetAllocatedQueryCount();
-	if (allocatedQueryCount == 0)
-		return; // Nothing to resolve
-
-	mCommandList->ResolveQueryData(
-		d3d12QueryPool->GetD3D12QueryHeap(),
-		d3d12QueryPool->GetD3D12QueryType(),
-		0, // Start index
-		allocatedQueryCount,
-		d3d12QueryPool->GetReadbackBuffer(),
-		destOffset
-	);
+	mUsedQueryPools.push_back(queryPool);
 }
 
 namespace
@@ -836,10 +888,10 @@ bool D3D12GpuCommandBuffer::IsReadyForRender()
 	if (!mGraphicsPipeline)
 		return false;
 
-	if (!mRenderTarget)
+	if (mGraphicsPipeline->GetInputDeclaration() == nullptr)
 		return false;
 
-	return true;
+	return mRenderTarget != nullptr && mVertexDescription != nullptr;
 }
 
 bool D3D12GpuCommandBuffer::BindGraphicsPipeline()
@@ -847,8 +899,21 @@ bool D3D12GpuCommandBuffer::BindGraphicsPipeline()
 	if (!mGraphicsPipeline || !mFramebuffer)
 		return false;
 
-	// Resolve the pipeline variant matching the current framebuffer formats and draw operation. Variants are
-	// cached by the pipeline state object, so this is a lookup on all but the first encounter.
+	// Map the bound vertex buffer layout to the vertex shader's inputs; the result is part of the pipeline
+	// variant and tells us how many vertex buffer slots the pipeline fetches from
+	const TShared<D3D12VertexInput> vertexInput =
+		D3D12VertexInputManager::Instance().GetVertexInput(mVertexDescription, mGraphicsPipeline->GetInputDeclaration());
+	if (vertexInput == nullptr)
+		return false;
+
+	if (mRequiredVertexBufferBindingCount != vertexInput->GetVertexBufferBindingCount())
+	{
+		mRequiredVertexBufferBindingCount = vertexInput->GetVertexBufferBindingCount();
+		mVertexInputsDirty = true;
+	}
+
+	// Resolve the pipeline variant matching the current framebuffer formats, vertex input and draw operation.
+	// Variants are cached by the pipeline state object, so this is a lookup on all but the first encounter.
 	D3D12PipelineVariantKey variantKey;
 	variantKey.RenderTargetCount = mFramebuffer->GetNumColorAttachments();
 	for (u32 i = 0; i < variantKey.RenderTargetCount; i++)
@@ -856,8 +921,9 @@ bool D3D12GpuCommandBuffer::BindGraphicsPipeline()
 	variantKey.DepthStencilFormat = mFramebuffer->GetDepthStencilFormat();
 	variantKey.SampleCount = mFramebuffer->GetSampleCount();
 	variantKey.TopologyType = D3D12Utility::GetPrimitiveTopologyType(mDrawOp);
+	variantKey.VertexInputId = vertexInput->GetId();
 
-	ID3D12PipelineState* pipeline = mGraphicsPipeline->FindOrCreatePipeline(variantKey);
+	ID3D12PipelineState* pipeline = mGraphicsPipeline->FindOrCreatePipeline(variantKey, *vertexInput);
 	if (!pipeline)
 		return false;
 
@@ -871,6 +937,10 @@ bool D3D12GpuCommandBuffer::BindGraphicsPipeline()
 	{
 		mCommandList->SetGraphicsRootSignature(mGraphicsPipeline->GetRootSignature());
 		mGfxPipelineRequiresBind = false;
+
+		// Setting a root signature wipes all of the command list's graphics root arguments; re-record them on the
+		// next parameter bind (see DispatchCompute() for the safety argument).
+		mGraphicsParamsRequireBind = true;
 	}
 
 	// Set primitive topology (cheap dynamic state, set to match the current draw operation)
@@ -940,24 +1010,25 @@ void D3D12GpuCommandBuffer::BindVertexInputs()
 	if (!mVertexInputsDirty)
 		return;
 
-	// Bind vertex buffers
-	if (!mVertexBuffers.empty())
+	// Bind a view for every vertex buffer slot the current pipeline's vertex input fetches from. Slots with no
+	// bound buffer (including the null stream serving shader inputs with no matching vertex buffer element) get
+	// an empty view, which D3D12 defines to read zero.
+	if (mRequiredVertexBufferBindingCount > 0)
 	{
-		Vector<D3D12_VERTEX_BUFFER_VIEW> views;
-		views.reserve(mVertexBuffers.size());
+		Vector<D3D12_VERTEX_BUFFER_VIEW> views(mRequiredVertexBufferBindingCount, D3D12_VERTEX_BUFFER_VIEW{});
 
-		for (const auto& buffer : mVertexBuffers)
+		for (u32 slot = 0; slot < mRequiredVertexBufferBindingCount; slot++)
 		{
-			if (buffer)
-			{
-				mResourceTracker.TrackBufferUsage(buffer->GetD3D12Buffer(), GpuResourceUseFlag::VertexBuffer,
-					GpuAccessFlag::Read, mBarrierHelper);
-				views.push_back(buffer->GetVertexBufferView());
-			}
+			if (slot >= (u32)mVertexBuffers.size() || mVertexBuffers[slot] == nullptr)
+				continue;
+
+			const TShared<D3D12GpuBuffer>& buffer = mVertexBuffers[slot];
+			mResourceTracker.TrackBufferUsage(buffer->GetD3D12Buffer(), GpuResourceUseFlag::VertexBuffer,
+				GpuAccessFlag::Read, mBarrierHelper);
+			views[slot] = buffer->GetVertexBufferView();
 		}
 
-		if (!views.empty())
-			mCommandList->IASetVertexBuffers(0, (UINT)views.size(), views.data());
+		mCommandList->IASetVertexBuffers(0, (UINT)views.size(), views.data());
 	}
 
 	// Bind index buffer
@@ -971,18 +1042,19 @@ void D3D12GpuCommandBuffer::BindVertexInputs()
 	mVertexInputsDirty = false;
 }
 
-void D3D12GpuCommandBuffer::BindGpuParams()
+void D3D12GpuCommandBuffer::BindGpuParams(bool isGraphics)
 {
-	if (!mBoundParamsDirty || !mBoundParams)
+	const bool requiresBind = isGraphics ? mGraphicsParamsRequireBind : mComputeParamsRequireBind;
+	if (!requiresBind || mBoundParameterSets.empty())
 		return;
 
-	// Register the set's resources with the tracker. Render-pass sets are normally pre-registered at
-	// BeginRenderPass (via RenderPassCreateInformation::Parameters), in which case this only refreshes the
-	// bookkeeping; for sets bound mid-pass or for compute it queues any required barriers, executed by the caller.
-	mBoundParams->TrackBoundResources(mResourceTracker, mBarrierHelper);
+	// Root parameters are numbered flat across the pipeline's sets; the layout provides each set's base offset
+	const D3D12GpuPipelineParameterLayout* parameterLayout = isGraphics
+		? (mGraphicsPipeline != nullptr ? mGraphicsPipeline->GetD3D12ParameterLayout() : nullptr)
+		: (mComputePipeline != nullptr ? mComputePipeline->GetD3D12ParameterLayout() : nullptr);
 
-	// Determine if we're binding for graphics or compute pipeline
-	bool isGraphics = (mGraphicsPipeline != nullptr);
+	if (parameterLayout == nullptr)
+		return;
 
 	// Get the device and descriptor manager
 	D3D12GpuDevice& device = GetD3D12GpuDevice();
@@ -995,10 +1067,41 @@ void D3D12GpuCommandBuffer::BindGpuParams()
 	};
 	mCommandList->SetDescriptorHeaps(2, descriptorHeaps);
 
-	// Use the GpuParameters BindDescriptors method to handle all descriptor binding
-	mBoundParams->BindDescriptors(device, mCommandList.Get(), isGraphics);
+	const u32 layoutSetCount = parameterLayout->GetSetCount();
+	for (u32 set = 0; set < (u32)mBoundParameterSets.size(); set++)
+	{
+		const TShared<D3D12GpuParameters>& parameters = mBoundParameterSets[set];
+		if (parameters == nullptr)
+			continue;
 
-	mBoundParamsDirty = false;
+		// Sets beyond the active pipeline's layout can linger from earlier binds under a different pipeline;
+		// the current root signature has no parameters for them
+		if (set >= layoutSetCount)
+			continue;
+
+		// Register the set's resources with the tracker. Render-pass sets are normally pre-registered at
+		// BeginRenderPass (via RenderPassCreateInformation::Parameters), in which case this only refreshes the
+		// bookkeeping; for sets bound mid-pass or for compute it queues any required barriers, executed by the caller.
+		parameters->TrackBoundResources(mResourceTracker, mBarrierHelper);
+
+		const UnorderedMap<u32, u32>* dynamicOffsets =
+			set < (u32)mDynamicOffsetOverridesPerSet.size() && !mDynamicOffsetOverridesPerSet[set].empty()
+			? &mDynamicOffsetOverridesPerSet[set]
+			: nullptr;
+
+		// The ACTIVE pipeline's layout defines the root-signature parameter order; the bound set may have been
+		// created from a different (compatible) pipeline's layout, so binding matches resources by slot against it.
+		const TShared<GpuPipelineParameterSetLayout> pipelineSetLayout = parameterLayout->GetSet(set);
+		if (pipelineSetLayout == nullptr)
+			continue;
+
+		parameters->BindDescriptors(device, mCommandList.Get(), isGraphics, parameterLayout->GetSetRootParameterOffset(set), *pipelineSetLayout, dynamicOffsets);
+	}
+
+	if (isGraphics)
+		mGraphicsParamsRequireBind = false;
+	else
+		mComputeParamsRequireBind = false;
 }
 
 void D3D12GpuCommandBuffer::NotifyWillQueueForSubmit()
@@ -1007,7 +1110,7 @@ void D3D12GpuCommandBuffer::NotifyWillQueueForSubmit()
 	// resource tracker's bound counts until the GPU is done with them.
 	mGraphicsPipeline = nullptr;
 	mComputePipeline = nullptr;
-	mBoundParams = nullptr;
+	mBoundParameterSets.clear();
 	mIndexBuffer = nullptr;
 	mVertexBuffers.clear();
 }
@@ -1072,9 +1175,11 @@ void D3D12GpuCommandBuffer::Reset()
 	mComputePipeline = nullptr;
 	mVertexBuffers.clear();
 	mIndexBuffer = nullptr;
-	mBoundParams = nullptr;
+	mBoundParameterSets.clear();
 	mRenderTarget = nullptr;
 	mFramebuffer = nullptr;
+	mUsedQueryPools.clear();
+	mDynamicOffsetOverridesPerSet.clear();
 }
 
 Area2I D3D12GpuCommandBuffer::GetViewportArea() const
@@ -1121,8 +1226,8 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		else
 			mBarrierHelper.AddBufferBarrier(buffer, barrier.SourceUsage, barrier.SourceAccess, barrier.DestinationUsage, barrier.DestinationAccess);
 
-		// Keep the native state in sync with the destination usage (see D3D12ResourceTracker::TrackBufferUsage).
-		mBarrierHelper.RequireBufferState(buffer, D3D12BarrierUtility::GetResourceState(barrier.DestinationUsage, barrier.DestinationAccess, false));
+		// Keep the native state in sync with the destination usage (see D3D12ResourceTracker::RequireBufferState).
+		mResourceTracker.RequireBufferState(buffer, D3D12BarrierUtility::GetResourceState(barrier.DestinationUsage, barrier.DestinationAccess, false), mBarrierHelper);
 	}
 
 	for(const auto& barrier : barriers.TextureBarriers)
@@ -1227,6 +1332,12 @@ void D3D12GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source,
 	D3D12GpuBuffer* d3d12Source = static_cast<D3D12GpuBuffer*>(source.get());
 	D3D12GpuBuffer* d3d12Destination = static_cast<D3D12GpuBuffer*>(destination.get());
 
+	// UPLOAD-heap memory is CPU-write-only in D3D12; it cannot be a GPU copy destination. Engine paths must write
+	// such buffers through their persistent mapping instead (see GpuBufferUtility::Write).
+	B3D_ENSURE_ONCE_LOG(d3d12Destination->GetD3D12Buffer() == nullptr ||
+		d3d12Destination->GetD3D12Buffer()->GetHeapType() != D3D12_HEAP_TYPE_UPLOAD,
+		"D3D12: CopyBufferToBuffer destination '{0}' lives on the UPLOAD heap; the copy is invalid.", destination->GetName());
+
 	// Track the transfer and execute the copy-state transitions it requires (UPLOAD/READBACK buffers are skipped
 	// by the barrier helper). State is left in the copy state after the call (leave-and-track).
 	mResourceTracker.TrackBufferUsage(d3d12Source->GetD3D12Buffer(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
@@ -1267,6 +1378,100 @@ void D3D12GpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source
 	footprint.Footprint.RowPitch = d3d12Destination->GetStagingRowPitchInBytes(mipLevel);
 
 	CopyBufferToTextureRaw(d3d12Source->GetD3D12Resource(), textureResource, footprint, subresourceIndex);
+}
+
+bool D3D12GpuCommandBuffer::BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation)
+{
+	EnsureValidThread();
+
+	if(!GpuCommandBuffer::BlitTexture(source, destination, blitInformation))
+		return false;
+
+	auto* d3d12Source = static_cast<D3D12Texture*>(source.get());
+	auto* d3d12Destination = static_cast<D3D12Texture*>(destination.get());
+
+	const TextureProperties& sourceProperties = d3d12Source->GetProperties();
+	const TextureProperties& destinationProperties = d3d12Destination->GetProperties();
+
+	D3D12Image* sourceImage = d3d12Source->GetD3D12Image();
+	D3D12Image* destinationImage = d3d12Destination->GetD3D12Image();
+
+	if(sourceImage == nullptr || destinationImage == nullptr)
+		return false;
+
+	// An empty volume is the convention for "the entire subresource".
+	PixelVolume sourceVolume = blitInformation.SourceVolume;
+	if(sourceVolume.GetWidth() == 0 || sourceVolume.GetHeight() == 0 || sourceVolume.GetDepth() == 0)
+	{
+		u32 mipWidth, mipHeight, mipDepth;
+		PixelUtility::GetSizeForMipLevel(sourceProperties.Width, sourceProperties.Height, sourceProperties.Depth, blitInformation.SourceMip, mipWidth, mipHeight, mipDepth);
+
+		sourceVolume.Right = sourceVolume.Left + mipWidth;
+		sourceVolume.Bottom = sourceVolume.Top + mipHeight;
+		sourceVolume.Back = sourceVolume.Front + mipDepth;
+	}
+
+	PixelVolume destinationVolume = blitInformation.DestinationVolume;
+	if(destinationVolume.GetWidth() == 0 || destinationVolume.GetHeight() == 0 || destinationVolume.GetDepth() == 0)
+	{
+		u32 mipWidth, mipHeight, mipDepth;
+		PixelUtility::GetSizeForMipLevel(destinationProperties.Width, destinationProperties.Height, destinationProperties.Depth, blitInformation.DestinationMip, mipWidth, mipHeight, mipDepth);
+
+		destinationVolume.Right = destinationVolume.Left + mipWidth;
+		destinationVolume.Bottom = destinationVolume.Top + mipHeight;
+		destinationVolume.Back = destinationVolume.Front + mipDepth;
+	}
+
+	// D3D12 has no scaling/filtering blit equivalent to vkCmdBlitImage; only 1:1 region copies are supported.
+	// TODO(d3d12-port): Shader-based blit for scaled or format-converting blits.
+	if(sourceVolume.GetWidth() != destinationVolume.GetWidth() ||
+		sourceVolume.GetHeight() != destinationVolume.GetHeight() ||
+		sourceVolume.GetDepth() != destinationVolume.GetDepth())
+	{
+		B3D_ENSURE_ONCE_LOG(false, "D3D12: BlitTexture from '{0}' to '{1}' requires scaling, which is not supported; the blit is skipped.",
+			source->GetName(), destination->GetName());
+		return false;
+	}
+
+	// Track the transfer and execute the copy-state transitions it requires.
+	const GpuTextureSubresourceRange sourceRange(blitInformation.SourceMip, 1, blitInformation.SourceFace, blitInformation.FaceCount, sourceImage->GetRange().AspectMask);
+	const GpuTextureSubresourceRange destinationRange(blitInformation.DestinationMip, 1, blitInformation.DestinationFace, blitInformation.FaceCount, destinationImage->GetRange().AspectMask);
+	mResourceTracker.TrackImageUsage(sourceImage, sourceRange, GpuImageLayout::TransferSource,
+		GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(destinationImage, destinationRange, GpuImageLayout::TransferDestination,
+		GpuImageLayout::TransferDestination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mBarrierHelper.Execute(*this);
+
+	ID3D12Resource* sourceResource = sourceImage->GetD3D12Resource();
+	ID3D12Resource* destinationResource = destinationImage->GetD3D12Resource();
+
+	const u32 sourceMipCount = sourceResource->GetDesc().MipLevels;
+	const u32 destinationMipCount = destinationResource->GetDesc().MipLevels;
+
+	D3D12_BOX sourceBox;
+	sourceBox.left = sourceVolume.Left;
+	sourceBox.top = sourceVolume.Top;
+	sourceBox.front = sourceVolume.Front;
+	sourceBox.right = sourceVolume.Right;
+	sourceBox.bottom = sourceVolume.Bottom;
+	sourceBox.back = sourceVolume.Back;
+
+	for(u32 face = 0; face < blitInformation.FaceCount; ++face)
+	{
+		D3D12_TEXTURE_COPY_LOCATION srcLocation = {};
+		srcLocation.pResource = sourceResource;
+		srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		srcLocation.SubresourceIndex = blitInformation.SourceMip + (blitInformation.SourceFace + face) * sourceMipCount;
+
+		D3D12_TEXTURE_COPY_LOCATION dstLocation = {};
+		dstLocation.pResource = destinationResource;
+		dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		dstLocation.SubresourceIndex = blitInformation.DestinationMip + (blitInformation.DestinationFace + face) * destinationMipCount;
+
+		mCommandList->CopyTextureRegion(&dstLocation, destinationVolume.Left, destinationVolume.Top, destinationVolume.Front, &srcLocation, &sourceBox);
+	}
+
+	return true;
 }
 
 void D3D12GpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)

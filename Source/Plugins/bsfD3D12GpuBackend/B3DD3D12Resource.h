@@ -35,26 +35,12 @@ namespace b3d
 			template<class... TBaseArgs>
 			TD3D12Resource(D3D12ResourceManager* owner, TBaseArgs&&... baseArgs)
 				: TBase(owner, std::forward<TBaseArgs>(baseArgs)...), mOwner(owner)
-			{
-				B3DZeroOut(mReadUses);
-				B3DZeroOut(mWriteUses);
-			}
-
-			/**
-			 * Returns a mask that has bits set for every queue that the resource is currently used (read or written) by.
-			 *
-			 * @param	useFlags	Flags for which to check use information (e.g. read only, write only, or both).
-			 * @return				Bitmask of which queues is the resource used on.
-			 */
-			GpuQueueMask GetUseInfo(GpuAccessFlags useFlags) const;
+			{}
 
 			/** Returns the device this resource is created on. */
 			D3D12GpuDevice& GetDevice() const;
 
 		protected:
-			void OnNotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags) override;
-			void OnNotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags) override;
-
 			/**
 			 * Typed manager pointer. Shadows IGpuResource::mOwner so that subclasses calling mOwner->GetDevice()
 			 * (and similar typed accessors on the manager) see the D3D12ResourceManager surface. The base's untyped
@@ -62,8 +48,6 @@ namespace b3d
 			 */
 			D3D12ResourceManager* mOwner;
 
-			u8 mReadUses[kMaximumUniqueQueueCount];
-			u8 mWriteUses[kMaximumUniqueQueueCount];
 		};
 
 		/** Standard D3D12 resource with no specialized generic role. */

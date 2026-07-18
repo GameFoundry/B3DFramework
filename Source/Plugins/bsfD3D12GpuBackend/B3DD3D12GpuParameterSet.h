@@ -24,13 +24,29 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Prepares descriptor tables for binding. Copies descriptors to GPU-visible heap.
+			 * Prepares descriptor tables for binding. Copies descriptors to GPU-visible heap and sets the root CBVs
+			 * of bound uniform buffers.
 			 *
-			 * @param[in]	device			Device to use for descriptor operations.
-			 * @param[in]	commandList		Command list to bind descriptor heaps and tables to.
-			 * @param[in]	isGraphics		True if binding for graphics pipeline, false for compute.
+			 * Root parameter indices are derived from @p pipelineSetLayout (mirroring the root signature's iteration in
+			 * D3D12GpuPipelineParameterLayout::CreateRootSignature), NOT from this set's own layout: the engine allows a
+			 * parameter set created from one pipeline to stay bound while drawing with other pipelines whose layouts are
+			 * compatible (e.g. NVG switches per-mode material variation pipelines under a single bound set). Resources
+			 * are matched by slot - slots encode the HLSL register and register class, so a slot match is a type match.
+			 *
+			 * @param[in]	device				Device to use for descriptor operations.
+			 * @param[in]	commandList			Command list to bind descriptor heaps and tables to.
+			 * @param[in]	isGraphics			True if binding for graphics pipeline, false for compute.
+			 * @param[in]	rootParameterOffset	Index of the pipeline's first root parameter belonging to this set (root
+			 *									parameters are numbered flat across all of the pipeline's sets, see
+			 *									D3D12GpuPipelineParameterLayout::GetSetRootParameterOffset()).
+			 * @param[in]	pipelineSetLayout	The ACTIVE pipeline's layout for this set index, defining the root
+			 *									signature's parameter order.
+			 * @param[in]	dynamicOffsets		Optional dynamic offset overrides keyed by dynamic-offset index (see
+			 *									GpuPipelineParameterSetLayout::GetDynamicOffsetIndex). An override
+			 *									replaces the bound buffer's suballocation offset for that binding.
 			 */
-			void BindDescriptors(D3D12GpuDevice& device, ID3D12GraphicsCommandList* commandList, bool isGraphics);
+			void BindDescriptors(D3D12GpuDevice& device, ID3D12GraphicsCommandList* commandList, bool isGraphics, u32 rootParameterOffset,
+				const GpuPipelineParameterSetLayout& pipelineSetLayout, const UnorderedMap<u32, u32>* dynamicOffsets = nullptr);
 
 			/**
 			 * Registers every resource bound to this set with the command buffer's resource tracker, queuing any
@@ -59,12 +75,12 @@ namespace b3d
 			/**
 			 * A single descriptor table bound to one root parameter. The root signature emits one root parameter per
 			 * binding (see B3DD3D12GpuPipelineParameterLayout::CreateRootSignature), so each used binding maps to exactly
-			 * one table containing ArraySize descriptors.
+			 * one table containing ArraySize descriptors. The root parameter index the table binds to depends on the
+			 * active pipeline's layout and is derived at bind time (see BindDescriptors).
 			 */
 			struct DescriptorTable
 			{
 				u32 Slot = 0;
-				u32 RootParameterIndex = 0;
 				u32 DescriptorCount = 0;
 
 				// CPU descriptors, one per array element of this binding.
@@ -77,16 +93,30 @@ namespace b3d
 				bool IsDirty = true;
 			};
 
+			/**
+			 * A single-element uniform buffer bound as a root CBV descriptor rather than through a descriptor table
+			 * (mirroring B3DD3D12GpuPipelineParameterLayout::CreateRootSignature). Root CBVs take a raw GPU virtual
+			 * address, which is how suballocation offsets and per-draw dynamic offsets are applied. The buffer itself
+			 * is resolved from the base class's bound-buffer data, and the root parameter index from the active
+			 * pipeline's layout, at bind time.
+			 */
+			struct RootConstantBuffer
+			{
+				u32 DataIndex = 0; /**< Index into the base class's uniform buffer data (sequential resource index). */
+				u32 DynamicOffsetIndex = ~0u; /**< Index dynamic offset overrides are keyed by, or ~0u if unsupported. */
+			};
+
 			/** Stores a CPU descriptor at the given (slot, arrayIndex) in the resource tables and flags it dirty. */
 			void SetDescriptor(u32 slot, u32 arrayIndex, D3D12_CPU_DESCRIPTOR_HANDLE handle);
 
 			/** Stores a CPU descriptor at the given (slot, arrayIndex) in the sampler tables and flags it dirty. */
 			void SetSamplerDescriptor(u32 slot, u32 arrayIndex, D3D12_CPU_DESCRIPTOR_HANDLE handle);
 
-			/** Allocates GPU-visible descriptor ranges for all tables. */
-			void AllocateGPUDescriptorRanges(D3D12GpuDevice& device);
-
-			/** Copies dirty descriptors from CPU to GPU-visible heap. */
+			/**
+			 * Allocates a fresh GPU-visible descriptor range for every table whose descriptors changed since the last
+			 * update and copies the full table into it. Ranges are never updated in place: the GPU consumes them at
+			 * execution time, so recorded-but-unexecuted work must keep seeing the descriptors it was recorded with.
+			 */
 			void UpdateGPUDescriptors(D3D12GpuDevice& device);
 
 			D3D12GpuDevice& mDevice;
@@ -94,10 +124,11 @@ namespace b3d
 			// Resource (CBV/SRV/UAV) descriptor tables, keyed by slot.
 			UnorderedMap<u32, DescriptorTable> mDescriptorTables;
 
+			// Uniform buffers bound as root CBV descriptors, keyed by slot.
+			UnorderedMap<u32, RootConstantBuffer> mRootConstantBuffers;
+
 			// Sampler descriptor tables (separate GPU-visible heap), keyed by slot.
 			UnorderedMap<u32, DescriptorTable> mSamplerTables;
-
-			bool mDescriptorsAllocated = false;
 		};
 
 		/** @} */

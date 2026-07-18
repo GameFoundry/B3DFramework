@@ -25,6 +25,20 @@ D3D12DescriptorManager::D3D12DescriptorManager(D3D12GpuDevice& device)
 		d3d12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
 	CreateHeaps();
+
+	// Create the default sampler descriptor unset sampler bindings fall back to (see GetDefaultSamplerCPUHandle())
+	mDefaultSamplerHandle = AllocateCPUDescriptor(D3D12DescriptorHeapType::Sampler);
+	if (mDefaultSamplerHandle.ptr != 0)
+	{
+		D3D12_SAMPLER_DESC samplerDesc = {};
+		samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+
+		d3d12Device->CreateSampler(&samplerDesc, mDefaultSamplerHandle);
+	}
 }
 
 D3D12DescriptorManager::~D3D12DescriptorManager()
@@ -80,7 +94,9 @@ void D3D12DescriptorManager::CreateHeaps()
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		heapDesc.NumDescriptors = 4096; // Large heap for shader resources
+		// Ring-allocated (see AllocateGPUDescriptorRange()): sized generously so wrap-around only ever reaches
+		// ranges many frames old
+		heapDesc.NumDescriptors = 256 * 1024;
 		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // GPU-visible
 		heapDesc.NodeMask = 0;
 
@@ -208,16 +224,24 @@ void D3D12DescriptorManager::AllocateGPUDescriptorRange(D3D12DescriptorHeapType 
 {
 	DescriptorHeap& heap = mHeaps[(u32)type];
 
-	// For now, only support CBV_SRV_UAV and Sampler heaps (GPU-visible)
+	// Only CBV_SRV_UAV and Sampler heaps are GPU-visible
 	B3D_ASSERT(type == D3D12DescriptorHeapType::CBV_SRV_UAV || type == D3D12DescriptorHeapType::Sampler);
 
-	// Simple linear allocation (no free list for GPU descriptors yet)
-	if (heap.NextFreeIndex + count > heap.NumDescriptors)
+	if (!B3D_ENSURE(count <= heap.NumDescriptors))
 	{
-		B3D_LOG(Error, LogRenderBackend, "GPU descriptor heap exhausted for type {0}", (u32)type);
 		outCPUHandle.ptr = 0;
 		outGPUHandle.ptr = 0;
 		return;
+	}
+
+	// Ring allocation: ranges are written once and consumed by the GPU at execution time, so allocation wraps to
+	// the heap start when full. The heap is sized so a wrap only reaches ranges many frames old.
+	// TODO(d3d12-port): fence-guard the wrap so it provably cannot reach a range the GPU may still consume.
+	if (heap.NextFreeIndex + count > heap.NumDescriptors)
+	{
+		B3D_LOG(Info, LogRenderBackend, "GPU descriptor heap for type {0} wrapped after {1} descriptors.", (u32)type,
+			heap.NextFreeIndex);
+		heap.NextFreeIndex = 0;
 	}
 
 	outCPUHandle = heap.CPUStart;

@@ -5,6 +5,8 @@
 #include "B3DD3D12GpuDevice.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 
+#include <algorithm>
+
 using namespace b3d;
 using namespace b3d::render;
 
@@ -12,12 +14,88 @@ D3D12GpuPipelineParameterLayout::D3D12GpuPipelineParameterLayout(const GpuPipeli
 	: GpuPipelineParameterLayout(device, createInformation)
 	, mDevice(device)
 {
+	MergeReflectedSetTables(createInformation);
 	CreateRootSignature();
 }
 
 D3D12GpuPipelineParameterLayout::~D3D12GpuPipelineParameterLayout()
 {
 	mRootSignature.Reset();
+}
+
+void D3D12GpuPipelineParameterLayout::MergeReflectedSetTables(const GpuPipelineParameterLayoutCreateInformation& createInformation)
+{
+	// Locates the reflected table backing @p set within a stage's resource-table layout: the child table referenced
+	// by a root-table SubTable entry whose set matches. Returns null when the stage does not reference the set.
+	auto fnFindSetTable = [](const GpuResourceTableLayout& layout, u32 set) -> const GpuDescriptorTable*
+	{
+		if(layout.IsEmpty())
+			return nullptr;
+
+		for(const GpuDescriptorTableEntry& entry : layout.GetEntries(layout.GetRootTable()))
+		{
+			if(entry.Kind != GpuDescriptorEntryKind::SubTable)
+				continue;
+
+			if(layout.Tables[entry.TableIndex].Set == set)
+				return &layout.Tables[entry.TableIndex];
+		}
+
+		return nullptr;
+	};
+
+	mReflectedSetEntries.resize(mSets.Size());
+	for(u32 set = 0; set < (u32)mSets.Size(); set++)
+	{
+		Vector<GpuDescriptorTableEntry>& mergedEntries = mReflectedSetEntries[set];
+		for(u32 programIndex = 0; programIndex < GPT_COUNT; programIndex++)
+		{
+			const TShared<GpuResourceTableLayout>& stageLayout = createInformation.ResourceTableLayouts[programIndex];
+			if(stageLayout == nullptr)
+				continue;
+
+			const GpuDescriptorTable* table = fnFindSetTable(*stageLayout, set);
+			if(table == nullptr)
+				continue;
+
+			for(const GpuDescriptorTableEntry& entry : stageLayout->GetEntries(*table))
+			{
+				// D3D12 HLSL reflection only produces flat (Resource-only) set tables, see BuildResourceTableLayout()
+				if(entry.Kind != GpuDescriptorEntryKind::Resource)
+				{
+					B3D_LOG(Error, LogRenderBackend, "Unexpected nested descriptor table in reflected set {0}; entry ignored.", set);
+					continue;
+				}
+
+				GpuDescriptorTableEntry* existingEntry = nullptr;
+				for(GpuDescriptorTableEntry& mergedEntry : mergedEntries)
+				{
+					if(mergedEntry.Slot == entry.Slot)
+					{
+						existingEntry = &mergedEntry;
+						break;
+					}
+				}
+
+				if(existingEntry == nullptr)
+				{
+					mergedEntries.push_back(entry);
+				}
+#if B3D_BUILD_TYPE_DEVELOPMENT
+				else if(*existingEntry != entry)
+				{
+					B3D_LOG(Error, LogRenderBackend, "GPU program stages disagree on the descriptor-table entry at slot {0} of set {1}; "
+						"parameter binding will be incorrect for at least one stage.", entry.Slot, set);
+				}
+#endif
+			}
+		}
+
+		std::sort(mergedEntries.begin(), mergedEntries.end(), [](const GpuDescriptorTableEntry& lhs, const GpuDescriptorTableEntry& rhs)
+		{
+			return lhs.Slot < rhs.Slot;
+		});
+	}
 }
 
 void D3D12GpuPipelineParameterLayout::CreateRootSignature()
@@ -33,6 +111,8 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 		// We need to count how many ranges we need
 		totalDescriptorRangeCount += mSets[setIndex]->GetBindingCount();
 	}
+
+	mSetRootParameterOffsets.assign(setCount, 0);
 
 	if (totalDescriptorRangeCount == 0)
 	{
@@ -163,6 +243,10 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 		const TShared<GpuPipelineParameterSetLayout>& setLayout = mSets[setIndex];
 		const u32 bindingCount = setLayout->GetBindingCount();
 
+		// Root parameters are numbered flat across sets; record where this set's parameters begin so
+		// descriptor-table binds (which compute indices local to their set) can be offset at bind time.
+		mSetRootParameterOffsets[setIndex] = (u32)rootParameters.size();
+
 		// Iterate through all parameter types to find all uniforms
 		for (u32 typeIndex = 0; typeIndex < (u32)GpuParameterType::Count; typeIndex++)
 		{
@@ -174,6 +258,22 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 				const UniformInformation* uniformInfo = setLayout->TryGetUniformInformation(type, sequentialIndex);
 				if (uniformInfo == nullptr)
 					continue;
+
+				// Single-element uniform buffers are bound as root CBV descriptors rather than descriptor tables:
+				// root descriptors take a raw GPU virtual address, which lets the parameter set apply suballocation
+				// and per-draw dynamic offsets (SetDynamicBufferOffset) without recreating CBV descriptors.
+				// D3D12GpuParameters::Initialize() mirrors this choice so root parameter indices line up.
+				if (type == GpuParameterType::UniformBuffer && uniformInfo->ArraySize == 1)
+				{
+					D3D12_ROOT_PARAMETER rootParam = {};
+					rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+					rootParam.ShaderVisibility = getShaderVisibility(uniformInfo->Usage);
+					rootParam.Descriptor.ShaderRegister = MapSlotToRegister(uniformInfo->Slot);
+					rootParam.Descriptor.RegisterSpace = setIndex;
+
+					rootParameters.push_back(rootParam);
+					continue;
+				}
 
 				// Create descriptor range
 				D3D12_DESCRIPTOR_RANGE range = {};

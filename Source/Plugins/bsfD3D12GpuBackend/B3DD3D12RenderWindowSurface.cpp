@@ -121,6 +121,10 @@ void D3D12RenderWindowSurface::SwapBuffers(GpuQueue& queue, GpuQueueMask syncMas
 
 	GpuSubmitThread& submitThread = mDevice.GetSubmitThread();
 
+	// Ensure any queued acquire has executed, so the present below consumes the up-to-date acquired-image list and
+	// the acquire queued after it can't overlap a still-pending one.
+	mSwapChain->WaitUntilFirstImageAcquired();
+
 	// Present the image that was rendered this frame. First acquired-but-not-yet-presented image is presented.
 	submitThread.QueuePresent(queue, *mSwapChain, syncMask);
 
@@ -248,6 +252,11 @@ D3D12Framebuffer* D3D12RenderWindowSurface::GetActiveFramebuffer()
 	if (!mSwapChain)
 		return nullptr;
 
+	// If there is a swap chain acquire already queued, wait for it. Deciding the acquired-image list is empty while
+	// an acquire is still in flight would queue a duplicate acquire below, permanently desyncing the acquire/present
+	// bookkeeping (two entries recording the same back buffer, with only one present between them).
+	mSwapChain->WaitUntilFirstImageAcquired();
+
 	u32 imageIndex;
 	bool isImageAcquired = mSwapChain->TryGetFirstAcquiredImageIndex(imageIndex);
 
@@ -255,6 +264,7 @@ D3D12Framebuffer* D3D12RenderWindowSurface::GetActiveFramebuffer()
 	if (!isImageAcquired && !mSwapChain->IsRetired() && mDevice.HasSubmitThread())
 	{
 		mDevice.GetSubmitThread().QueueImageAcquire(*mSwapChain);
+		mSwapChain->WaitUntilFirstImageAcquired();
 		isImageAcquired = mSwapChain->TryGetFirstAcquiredImageIndex(imageIndex);
 	}
 

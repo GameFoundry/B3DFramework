@@ -5,54 +5,11 @@
 #include "B3DD3D12GpuProgram.h"
 #include "B3DD3D12Utility.h"
 #include "B3DD3D12GpuPipelineParameterLayout.h"
+#include "Managers/B3DD3D12VertexInputManager.h"
 #include "GpuBackend/B3DVertexDescription.h"
 
 using namespace b3d;
 using namespace b3d::render;
-
-namespace
-{
-	/**
-	 * Maps an engine vertex element type to a DXGI format for use in an input layout.
-	 *
-	 * Note: D3D12Utility::GetDXGIFormat operates on PixelFormat, so vertex element types require their own mapping.
-	 */
-	DXGI_FORMAT GetVertexElementDXGIFormat(VertexElementType type)
-	{
-		switch (type)
-		{
-		case VET_FLOAT1:		return DXGI_FORMAT_R32_FLOAT;
-		case VET_FLOAT2:		return DXGI_FORMAT_R32G32_FLOAT;
-		case VET_FLOAT3:		return DXGI_FORMAT_R32G32B32_FLOAT;
-		case VET_FLOAT4:		return DXGI_FORMAT_R32G32B32A32_FLOAT;
-		case VET_COLOR:
-		case VET_COLOR_ARGB:
-		case VET_COLOR_ABGR:
-		case VET_UBYTE4_NORM:	return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case VET_UBYTE4:		return DXGI_FORMAT_R8G8B8A8_UINT;
-		case VET_SHORT1:		return DXGI_FORMAT_R16_SINT;
-		case VET_SHORT2:		return DXGI_FORMAT_R16G16_SINT;
-		case VET_SHORT4:		return DXGI_FORMAT_R16G16B16A16_SINT;
-		case VET_USHORT1:		return DXGI_FORMAT_R16_UINT;
-		case VET_USHORT2:		return DXGI_FORMAT_R16G16_UINT;
-		case VET_USHORT4:		return DXGI_FORMAT_R16G16B16A16_UINT;
-		case VET_INT1:			return DXGI_FORMAT_R32_SINT;
-		case VET_INT2:			return DXGI_FORMAT_R32G32_SINT;
-		case VET_INT3:			return DXGI_FORMAT_R32G32B32_SINT;
-		case VET_INT4:			return DXGI_FORMAT_R32G32B32A32_SINT;
-		case VET_UINT1:			return DXGI_FORMAT_R32_UINT;
-		case VET_UINT2:			return DXGI_FORMAT_R32G32_UINT;
-		case VET_UINT3:			return DXGI_FORMAT_R32G32B32_UINT;
-		case VET_UINT4:			return DXGI_FORMAT_R32G32B32A32_UINT;
-		case VET_HALF1:			return DXGI_FORMAT_R16_FLOAT;
-		case VET_HALF2:			return DXGI_FORMAT_R16G16_FLOAT;
-		case VET_HALF4:			return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		default:
-			// VET_HALF3 has no direct 48-bit DXGI equivalent; fall back to the closest larger format.
-			return DXGI_FORMAT_R32G32B32A32_FLOAT;
-		}
-	}
-}
 
 D3D12GpuGraphicsPipelineState::D3D12GpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, GpuDevice& device)
 	: GpuGraphicsPipelineState(device, createInformation)
@@ -69,20 +26,33 @@ void D3D12GpuGraphicsPipelineState::Initialize()
 {
 	GpuGraphicsPipelineState::Initialize();
 
+	// The vertex shader's input declaration; paired with the vertex buffer description bound on the command
+	// buffer to build the input layout of each pipeline variant
 	if (mData.VertexProgram != nullptr)
 		mVertexDescription = mData.VertexProgram->GetVertexInputDescription();
 
 	// Get root signature from parameter layout. Actual pipeline objects are created lazily per render target
-	// format / topology combination, see FindOrCreatePipeline().
+	// format / topology / vertex input combination, see FindOrCreatePipeline().
 	D3D12GpuPipelineParameterLayout* d3d12ParamLayout = static_cast<D3D12GpuPipelineParameterLayout*>(mParameterLayout.get());
 	if (d3d12ParamLayout)
 		mRootSignature = d3d12ParamLayout->GetRootSignature();
 }
 
+D3D12GpuPipelineParameterLayout* D3D12GpuGraphicsPipelineState::GetD3D12ParameterLayout() const
+{
+	return static_cast<D3D12GpuPipelineParameterLayout*>(mParameterLayout.get());
+}
+
+D3D12GpuPipelineParameterLayout* D3D12GpuComputePipelineState::GetD3D12ParameterLayout() const
+{
+	return static_cast<D3D12GpuPipelineParameterLayout*>(mParameterLayout.get());
+}
+
 bool D3D12PipelineVariantKey::operator==(const D3D12PipelineVariantKey& other) const
 {
 	if (RenderTargetCount != other.RenderTargetCount || DepthStencilFormat != other.DepthStencilFormat ||
-		SampleCount != other.SampleCount || TopologyType != other.TopologyType)
+		SampleCount != other.SampleCount || TopologyType != other.TopologyType ||
+		VertexInputId != other.VertexInputId)
 		return false;
 
 	for (u32 i = 0; i < RenderTargetCount; i++)
@@ -101,6 +71,7 @@ size_t D3D12PipelineVariantKey::Hash::operator()(const D3D12PipelineVariantKey& 
 	B3DCombineHash(hash, (u32)key.DepthStencilFormat);
 	B3DCombineHash(hash, key.SampleCount);
 	B3DCombineHash(hash, (u32)key.TopologyType);
+	B3DCombineHash(hash, key.VertexInputId);
 
 	for (u32 i = 0; i < key.RenderTargetCount; i++)
 		B3DCombineHash(hash, (u32)key.RenderTargetFormats[i]);
@@ -108,19 +79,19 @@ size_t D3D12PipelineVariantKey::Hash::operator()(const D3D12PipelineVariantKey& 
 	return hash;
 }
 
-ID3D12PipelineState* D3D12GpuGraphicsPipelineState::FindOrCreatePipeline(const D3D12PipelineVariantKey& key)
+ID3D12PipelineState* D3D12GpuGraphicsPipelineState::FindOrCreatePipeline(const D3D12PipelineVariantKey& key, const D3D12VertexInput& vertexInput)
 {
 	auto found = mPipelines.find(key);
 	if (found != mPipelines.end())
 		return found->second.Get();
 
-	ComPtr<ID3D12PipelineState> pipeline = CreatePipelineState(key);
+	ComPtr<ID3D12PipelineState> pipeline = CreatePipelineState(key, vertexInput);
 	mPipelines[key] = pipeline;
 
 	return pipeline.Get();
 }
 
-Microsoft::WRL::ComPtr<ID3D12PipelineState> D3D12GpuGraphicsPipelineState::CreatePipelineState(const D3D12PipelineVariantKey& key)
+Microsoft::WRL::ComPtr<ID3D12PipelineState> D3D12GpuGraphicsPipelineState::CreatePipelineState(const D3D12PipelineVariantKey& key, const D3D12VertexInput& vertexInput)
 {
 	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
 	ID3D12Device* d3d12Device = device.GetD3D12Device();
@@ -162,32 +133,8 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> D3D12GpuGraphicsPipelineState::Creat
 		psoDesc.DS = dsProgram->GetShaderBytecode();
 	}
 
-	// Input layout from vertex description
-	Vector<D3D12_INPUT_ELEMENT_DESC> inputElements;
-	if (mVertexDescription)
-	{
-		const auto& vertexElements = mVertexDescription->GetElements();
-		inputElements.reserve(vertexElements.size());
-
-		for (const auto& element : vertexElements)
-		{
-			D3D12_INPUT_ELEMENT_DESC d3d12Element = {};
-			d3d12Element.SemanticName = GetSemanticName(element.GetSemantic());
-			d3d12Element.SemanticIndex = element.GetSemanticIndex();
-			d3d12Element.Format = GetVertexElementDXGIFormat(element.GetType());
-			d3d12Element.InputSlot = element.GetStreamIndex();
-			d3d12Element.AlignedByteOffset = element.GetOffset();
-			d3d12Element.InputSlotClass = element.GetInstanceStepRate() > 0 ?
-				D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA :
-				D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-			d3d12Element.InstanceDataStepRate = element.GetInstanceStepRate();
-
-			inputElements.push_back(d3d12Element);
-		}
-	}
-
-	psoDesc.InputLayout.pInputElementDescs = inputElements.data();
-	psoDesc.InputLayout.NumElements = (UINT)inputElements.size();
+	// Input layout, mapping the bound vertex buffer layout to the vertex shader's inputs
+	psoDesc.InputLayout = vertexInput.GetLayoutDesc();
 
 	// Rasterizer state
 	const RasterizerStateInformation& rasterizerState = GetRasterizerState();
@@ -286,31 +233,6 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> D3D12GpuGraphicsPipelineState::Creat
 	}
 
 	return pipelineState;
-}
-
-const char* D3D12GpuGraphicsPipelineState::GetSemanticName(VertexElementSemantic semantic)
-{
-	switch (semantic)
-	{
-	case VES_POSITION:
-		return "POSITION";
-	case VES_BLEND_WEIGHTS:
-		return "BLENDWEIGHT";
-	case VES_BLEND_INDICES:
-		return "BLENDINDICES";
-	case VES_NORMAL:
-		return "NORMAL";
-	case VES_COLOR:
-		return "COLOR";
-	case VES_TEXCOORD:
-		return "TEXCOORD";
-	case VES_BITANGENT:
-		return "BINORMAL";
-	case VES_TANGENT:
-		return "TANGENT";
-	default:
-		return "TEXCOORD";
-	}
 }
 
 D3D12GpuComputePipelineState::D3D12GpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuDevice& device)

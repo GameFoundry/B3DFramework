@@ -624,8 +624,6 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Rend
 		GpuParticleSystem* entry = renderState.GpuParticleSystem;
 		const ParticleSystemProxy& parentProxy = particleStorage.GetParticleSystemProxy(packedId);
 
-		// Age the tiles by the same time step the GPU simulation uses to age the particles (see gDT in
-		// PrepareSimulateParameters), so a tile can't be reclaimed while any of its particles may still be alive
 		entry->DetectInactiveTiles(dt);
 
 		bool tilesDirty = false;

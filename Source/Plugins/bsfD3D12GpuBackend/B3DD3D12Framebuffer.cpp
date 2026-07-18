@@ -34,8 +34,21 @@ D3D12Framebuffer::D3D12Framebuffer(const RenderTarget* renderTarget, u32 backBuf
 
 D3D12Framebuffer::~D3D12Framebuffer()
 {
-	// Descriptor handles are managed by the descriptor manager
-	// No explicit cleanup needed here
+	// Swap-chain framebuffers reference views owned by the swap chain, only views allocated by us are returned. This
+	// is safe with respect to in-flight GPU work: RTV/DSV descriptors are consumed at command list record time, so
+	// recycling the heap slot cannot affect already-recorded command lists.
+	if (!mOwnsViews)
+		return;
+
+	D3D12DescriptorManager& descriptorManager = GetD3D12GpuBackend().GetPrimaryDevice()->GetDescriptorManager();
+	for (u32 i = 0; i < kMaxColorAttachments; i++)
+	{
+		if (mRenderTargetViews[i].ptr != 0)
+			descriptorManager.FreeCPUDescriptor(D3D12DescriptorHeapType::RTV, mRenderTargetViews[i]);
+	}
+
+	if (mDepthStencilView.ptr != 0)
+		descriptorManager.FreeCPUDescriptor(D3D12DescriptorHeapType::DSV, mDepthStencilView);
 }
 
 void D3D12Framebuffer::CreateViews()
@@ -68,6 +81,8 @@ void D3D12Framebuffer::CreateViews()
 
 	if (renderTexture)
 	{
+		mOwnsViews = true;
+
 		// Handle RenderTexture - create views for color and depth-stencil textures
 		for (u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 		{
@@ -85,30 +100,51 @@ void D3D12Framebuffer::CreateViews()
 			// Allocate RTV descriptor
 			mRenderTargetViews[i] = descriptorManager.AllocateCPUDescriptor(D3D12DescriptorHeapType::RTV);
 
-			// Create render target view
-			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-			rtvDesc.Format = D3D12Utility::GetDXGIFormat(colorTexture->GetProperties().Format);
-
+			// Create render target view over the requested face/mip sub-range (rendering into a single cube face or
+			// texture-array slice is how cubemaps get filled, e.g. sky irradiance - a view always starting at face 0
+			// makes every such pass overwrite the first face).
+			const RenderSurfaceInformation& surfaceInformation = renderTexture->GetColorSurfaceInformation(i);
 			const TextureProperties& props = colorTexture->GetProperties();
+
+			const u32 baseFace = surfaceInformation.Face;
+			const u32 faceCount = surfaceInformation.FaceCount == 0 ? (props.GetFaceCount() - baseFace) : surfaceInformation.FaceCount;
+			const u32 mipLevel = surfaceInformation.MipLevel;
+
+			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+			// Use the resource's actual format rather than re-deriving from the pixel format - the two diverge
+			// for sRGB textures (the RTV format must match the resource's).
+			rtvDesc.Format = d3d12Texture->GetDXGIFormat();
+
 			switch (props.Type)
 			{
 			case TEX_TYPE_2D:
-				rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-				rtvDesc.Texture2D.MipSlice = 0;
-				rtvDesc.Texture2D.PlaneSlice = 0;
+				if (props.GetFaceCount() > 1)
+				{
+					rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+					rtvDesc.Texture2DArray.MipSlice = mipLevel;
+					rtvDesc.Texture2DArray.FirstArraySlice = baseFace;
+					rtvDesc.Texture2DArray.ArraySize = faceCount;
+					rtvDesc.Texture2DArray.PlaneSlice = 0;
+				}
+				else
+				{
+					rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+					rtvDesc.Texture2D.MipSlice = mipLevel;
+					rtvDesc.Texture2D.PlaneSlice = 0;
+				}
 				break;
 			case TEX_TYPE_CUBE_MAP:
 				rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-				rtvDesc.Texture2DArray.MipSlice = 0;
-				rtvDesc.Texture2DArray.FirstArraySlice = 0;
-				rtvDesc.Texture2DArray.ArraySize = props.GetFaceCount();
+				rtvDesc.Texture2DArray.MipSlice = mipLevel;
+				rtvDesc.Texture2DArray.FirstArraySlice = baseFace;
+				rtvDesc.Texture2DArray.ArraySize = faceCount;
 				rtvDesc.Texture2DArray.PlaneSlice = 0;
 				break;
 			case TEX_TYPE_3D:
 				rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
-				rtvDesc.Texture3D.MipSlice = 0;
-				rtvDesc.Texture3D.FirstWSlice = 0;
-				rtvDesc.Texture3D.WSize = props.Depth;
+				rtvDesc.Texture3D.MipSlice = mipLevel;
+				rtvDesc.Texture3D.FirstWSlice = surfaceInformation.Face;
+				rtvDesc.Texture3D.WSize = surfaceInformation.FaceCount == 0 ? props.Depth - surfaceInformation.Face : surfaceInformation.FaceCount;
 				break;
 			default:
 				B3D_LOG(Error, LogRenderBackend, "Unsupported texture type for render target view");
@@ -118,7 +154,7 @@ void D3D12Framebuffer::CreateViews()
 			d3d12Device->CreateRenderTargetView(resource, &rtvDesc, mRenderTargetViews[i]);
 
 			mColorAttachments[i].Image = d3d12Texture->GetD3D12Image();
-			mColorAttachments[i].Surface = TextureSurface(0, 1, 0, props.GetFaceCount());
+			mColorAttachments[i].Surface = TextureSurface(mipLevel, 1, baseFace, faceCount);
 			mColorFormats[i] = rtvDesc.Format;
 			mSampleCount = Math::Max(1u, props.SampleCount);
 
@@ -137,23 +173,39 @@ void D3D12Framebuffer::CreateViews()
 				// Allocate DSV descriptor
 				mDepthStencilView = descriptorManager.AllocateCPUDescriptor(D3D12DescriptorHeapType::DSV);
 
-				// Create depth-stencil view
+				// Create depth-stencil view over the requested face/mip sub-range (see the color path above).
+				const RenderSurfaceInformation& surfaceInformation = renderTexture->GetDepthStencilSurfaceInformation();
+				const TextureProperties& props = depthTexture->GetProperties();
+
+				const u32 baseFace = surfaceInformation.Face;
+				const u32 faceCount = surfaceInformation.FaceCount == 0 ? (props.GetFaceCount() - baseFace) : surfaceInformation.FaceCount;
+				const u32 mipLevel = surfaceInformation.MipLevel;
+
 				D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-				dsvDesc.Format = D3D12Utility::GetDXGIFormat(depthTexture->GetProperties().Format);
+				dsvDesc.Format = D3D12Utility::GetDXGIFormat(props.Format);
 				dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 
-				const TextureProperties& props = depthTexture->GetProperties();
 				switch (props.Type)
 				{
 				case TEX_TYPE_2D:
-					dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-					dsvDesc.Texture2D.MipSlice = 0;
+					if (props.GetFaceCount() > 1)
+					{
+						dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+						dsvDesc.Texture2DArray.MipSlice = mipLevel;
+						dsvDesc.Texture2DArray.FirstArraySlice = baseFace;
+						dsvDesc.Texture2DArray.ArraySize = faceCount;
+					}
+					else
+					{
+						dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+						dsvDesc.Texture2D.MipSlice = mipLevel;
+					}
 					break;
 				case TEX_TYPE_CUBE_MAP:
 					dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
-					dsvDesc.Texture2DArray.MipSlice = 0;
-					dsvDesc.Texture2DArray.FirstArraySlice = 0;
-					dsvDesc.Texture2DArray.ArraySize = props.GetFaceCount();
+					dsvDesc.Texture2DArray.MipSlice = mipLevel;
+					dsvDesc.Texture2DArray.FirstArraySlice = baseFace;
+					dsvDesc.Texture2DArray.ArraySize = faceCount;
 					break;
 				default:
 					B3D_LOG(Error, LogRenderBackend, "Unsupported texture type for depth-stencil view");
@@ -163,7 +215,7 @@ void D3D12Framebuffer::CreateViews()
 				d3d12Device->CreateDepthStencilView(resource, &dsvDesc, mDepthStencilView);
 
 				mDepthStencilAttachment.Image = d3d12Texture->GetD3D12Image();
-				mDepthStencilAttachment.Surface = TextureSurface(0, 1, 0, props.GetFaceCount());
+				mDepthStencilAttachment.Surface = TextureSurface(mipLevel, 1, baseFace, faceCount);
 				mDepthStencilFormat = dsvDesc.Format;
 				mSampleCount = Math::Max(1u, props.SampleCount);
 

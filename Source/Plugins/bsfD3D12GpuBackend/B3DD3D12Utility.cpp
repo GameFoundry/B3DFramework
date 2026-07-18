@@ -5,8 +5,36 @@
 using namespace b3d;
 using namespace b3d::render;
 
-DXGI_FORMAT D3D12Utility::GetDXGIFormat(PixelFormat format)
+namespace
 {
+	/** Promotes a linear DXGI format to its sRGB variant, for formats that have one. */
+	DXGI_FORMAT PromoteToSRGB(DXGI_FORMAT format)
+	{
+		switch (format)
+		{
+		case DXGI_FORMAT_R8G8B8A8_UNORM:
+			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		case DXGI_FORMAT_B8G8R8A8_UNORM:
+			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+		case DXGI_FORMAT_BC1_UNORM:
+			return DXGI_FORMAT_BC1_UNORM_SRGB;
+		case DXGI_FORMAT_BC2_UNORM:
+			return DXGI_FORMAT_BC2_UNORM_SRGB;
+		case DXGI_FORMAT_BC3_UNORM:
+			return DXGI_FORMAT_BC3_UNORM_SRGB;
+		case DXGI_FORMAT_BC7_UNORM:
+			return DXGI_FORMAT_BC7_UNORM_SRGB;
+		default:
+			return format;
+		}
+	}
+}
+
+DXGI_FORMAT D3D12Utility::GetDXGIFormat(PixelFormat format, bool sRGB)
+{
+	if (sRGB)
+		return PromoteToSRGB(GetDXGIFormat(format, false));
+
 	switch (format)
 	{
 	case PF_R8:
@@ -506,76 +534,3 @@ bool D3D12Utility::IsDepthStencilFormat(DXGI_FORMAT format)
 	}
 }
 
-u32 D3D12Utility::CalcConstantBufferElementSizeAndOffset(GpuDataParameterType type, u32 arraySize, u32& offset)
-{
-	// HLSL constant buffer packing rules (similar to std140)
-	// Each element is aligned to 16-byte (float4) boundaries
-
-	u32 size = 0;
-	u32 alignment = 0;
-
-	switch (type)
-	{
-	case GPDT_FLOAT1:
-		size = 1;
-		alignment = 1;
-		break;
-	case GPDT_FLOAT2:
-		size = 2;
-		alignment = 2;
-		break;
-	case GPDT_FLOAT3:
-		size = 3;
-		alignment = 4; // float3 aligns to float4 boundary
-		break;
-	case GPDT_FLOAT4:
-		size = 4;
-		alignment = 4;
-		break;
-	case GPDT_MATRIX_3X3:
-		size = 12; // 3 float4s
-		alignment = 4;
-		break;
-	case GPDT_MATRIX_4X4:
-		size = 16; // 4 float4s
-		alignment = 4;
-		break;
-	case GPDT_INT1:
-		size = 1;
-		alignment = 1;
-		break;
-	case GPDT_INT2:
-		size = 2;
-		alignment = 2;
-		break;
-	case GPDT_INT3:
-		size = 3;
-		alignment = 4;
-		break;
-	case GPDT_INT4:
-		size = 4;
-		alignment = 4;
-		break;
-	case GPDT_BOOL:
-		size = 1;
-		alignment = 1;
-		break;
-	case GPDT_STRUCT:
-		// Structs handled separately
-		size = 0;
-		alignment = 4;
-		break;
-	default:
-		size = 0;
-		alignment = 1;
-		break;
-	}
-
-	// Align offset to the element's alignment requirement
-	if (alignment > 0 && offset % alignment != 0)
-	{
-		offset = (offset / alignment + 1) * alignment;
-	}
-
-	return size;
-}

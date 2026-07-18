@@ -14,10 +14,13 @@ namespace b3d
 		 *  @{
 		 */
 
+		class D3D12VertexInput;
+		class D3D12GpuPipelineParameterLayout;
+
 		/**
 		 * Key identifying a single D3D12 pipeline state variant. D3D12 pipeline state objects bake in the render
-		 * target formats and primitive topology type, which the engine-level pipeline state does not know upfront,
-		 * so concrete pipelines are created lazily per encountered combination at draw time.
+		 * target formats, primitive topology type and vertex input layout, which the engine-level pipeline state
+		 * does not know upfront, so concrete pipelines are created lazily per encountered combination at draw time.
 		 */
 		struct D3D12PipelineVariantKey
 		{
@@ -26,6 +29,7 @@ namespace b3d
 			u32 RenderTargetCount = 0;
 			u32 SampleCount = 1;
 			D3D12_PRIMITIVE_TOPOLOGY_TYPE TopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+			u32 VertexInputId = 0;
 
 			bool operator==(const D3D12PipelineVariantKey& other) const;
 
@@ -48,19 +52,23 @@ namespace b3d
 
 			/**
 			 * Returns (creating on first use) the pipeline state object variant matching the provided render target
-			 * formats and topology. Returns null if creation failed.
+			 * formats, topology and vertex input. The key's VertexInputId must identify the provided vertex input.
+			 * Returns null if creation failed.
 			 */
-			ID3D12PipelineState* FindOrCreatePipeline(const D3D12PipelineVariantKey& key);
+			ID3D12PipelineState* FindOrCreatePipeline(const D3D12PipelineVariantKey& key, const D3D12VertexInput& vertexInput);
 
 			/** Returns the root signature used by this pipeline. */
 			ID3D12RootSignature* GetRootSignature() const { return mRootSignature.Get(); }
 
-		private:
-			/** Creates the D3D12 pipeline state object variant for the given key. */
-			ComPtr<ID3D12PipelineState> CreatePipelineState(const D3D12PipelineVariantKey& key);
+			/** Returns the D3D12 parameter layout backing the root signature. */
+			D3D12GpuPipelineParameterLayout* GetD3D12ParameterLayout() const;
 
-			/** Maps an engine vertex element semantic to an HLSL semantic name. */
-			static const char* GetSemanticName(VertexElementSemantic semantic);
+			/** Returns a description of the vertex element inputs expected by the pipeline's vertex shader. */
+			const TShared<VertexDescription>& GetInputDeclaration() const { return mVertexDescription; }
+
+		private:
+			/** Creates the D3D12 pipeline state object variant for the given key and vertex input. */
+			ComPtr<ID3D12PipelineState> CreatePipelineState(const D3D12PipelineVariantKey& key, const D3D12VertexInput& vertexInput);
 
 			UnorderedMap<D3D12PipelineVariantKey, ComPtr<ID3D12PipelineState>, D3D12PipelineVariantKey::Hash> mPipelines;
 			ComPtr<ID3D12RootSignature> mRootSignature;
@@ -82,6 +90,9 @@ namespace b3d
 
 			/** Returns the root signature used by this pipeline. */
 			ID3D12RootSignature* GetRootSignature() const { return mRootSignature.Get(); }
+
+			/** Returns the D3D12 parameter layout backing the root signature. */
+			D3D12GpuPipelineParameterLayout* GetD3D12ParameterLayout() const;
 
 		private:
 			/** Creates the D3D12 pipeline state object. */

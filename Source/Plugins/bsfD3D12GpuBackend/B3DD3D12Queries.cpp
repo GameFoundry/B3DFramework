@@ -65,6 +65,11 @@ D3D12GpuQueryPool::D3D12GpuQueryPool(D3D12GpuDevice& device, const GpuQueryPoolC
 
 D3D12GpuQueryPool::~D3D12GpuQueryPool()
 {
+	// Disconnect from any command buffer still tracking this pool, so its OnDidComplete callback doesn't touch a
+	// destroyed pool.
+	if (mResolveConnection)
+		mResolveConnection.Disconnect();
+
 	if (mReadbackAllocation)
 	{
 		mReadbackAllocation->Release();
@@ -158,22 +163,46 @@ GpuQueryId D3D12GpuQueryPool::AllocateQuery()
 	return GpuQueryId(mNextQueryId++);
 }
 
+void D3D12GpuQueryPool::NotifyPoolReset()
+{
+	if (mResolveConnection)
+		mResolveConnection.Disconnect();
+
+	mNextQueryId = 0;
+	mResolved.store(false, std::memory_order_relaxed);
+}
+
+void D3D12GpuQueryPool::NotifyResolveScheduled(GpuCommandBuffer& commandBuffer)
+{
+	// Drop any prior subscription - the pool may be re-resolved after a reset.
+	if (mResolveConnection)
+		mResolveConnection.Disconnect();
+
+	// Capture a raw pointer to the atomic flag; the connection is disconnected in the destructor and on reset, so
+	// the flag outlives every invocation of this callback.
+	std::atomic<bool>* resolvedFlag = &mResolved;
+	mResolveConnection = commandBuffer.OnDidComplete.Connect([resolvedFlag]()
+	{
+		resolvedFlag->store(true, std::memory_order_release);
+	});
+}
+
 bool D3D12GpuQueryPool::TryResolve(bool wait)
 {
-	// In D3D12, query resolution happens on the command buffer via ResolveQueryData
-	// The readback buffer must be mapped to read the results
-	// For now, we assume the resolve has been called from the command buffer
-	// and we just need to check if the data is available
+	// Query results are copied into the readback buffer by the ResolveQueryData() the command buffer records when
+	// it ends, and are readable once that command buffer completes on the GPU (which flips mResolved).
+	if (mNextQueryId == 0)
+		return true;
 
-	if (wait)
-	{
-		// Wait for the GPU to finish (this is a simple implementation)
-		// In production, you would want to wait on a fence
-		mDevice.WaitUntilIdle();
-		mResolved = true;
-	}
+	if (mResolved.load(std::memory_order_acquire))
+		return true;
 
-	return mResolved;
+	if (!wait)
+		return false;
+
+	mDevice.WaitUntilIdle();
+	mResolved.store(true, std::memory_order_relaxed);
+	return true;
 }
 
 u64 D3D12GpuQueryPool::GetQueryResult(GpuQueryId queryId, u32 elementIndex)
@@ -184,7 +213,7 @@ u64 D3D12GpuQueryPool::GetQueryResult(GpuQueryId queryId, u32 elementIndex)
 		return 0;
 	}
 
-	if (!mResolved)
+	if (!mResolved.load(std::memory_order_acquire))
 	{
 		B3D_LOG(Warning, LogRenderBackend, "Attempting to read query results before resolve");
 		return 0;

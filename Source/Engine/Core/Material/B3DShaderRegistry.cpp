@@ -230,7 +230,7 @@ TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderRegistry::GetOrCompileShad
 
 	const String shaderSource = shaderFileStream->GetAsString();
 	const Array<u64, 2> shaderHash = Shader::ComputeHash(shaderSource);
-	const TShared<IShaderCompiler> bslCompiler = ShaderCompilers::Instance().GetCompiler("bsl");
+	const TShared<IShaderCompiler>& bslCompiler = ShaderCompilers::Instance().GetCompiler("bsl");
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	// In development builds, discard the precompiled data if it no longer matches the source on disk or the current

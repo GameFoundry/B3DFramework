@@ -9,8 +9,11 @@ B3DAddPlugin(bsfD3D12GpuBackend ENGINE ${BS_D3D12GPUBACKEND_SRC})
 B3DSetDefaultLinkAndCompileFlags(bsfD3D12GpuBackend)
 
 # Includes
+## The hlsl shader backend is not linked (bytecode compilation goes through the ShaderCompilers registry); only its
+## B3DHLSLShaderABI.h header is consumed, for the shared register-class/slot encoding.
 target_include_directories(bsfD3D12GpuBackend PRIVATE
 	"./"
+	"../ShaderBackends/bsfShaderBackendHLSL"
 )
 
 # Definitions

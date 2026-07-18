@@ -42,6 +42,16 @@ namespace b3d
 			/** Returns the number of allocated queries. */
 			u32 GetAllocatedQueryCount() const { return mNextQueryId; }
 
+			/** Restarts the pool's allocator so AllocateQuery() hands out queries from the start of the pool again. */
+			void NotifyPoolReset();
+
+			/**
+			 * Notifies the pool that @p commandBuffer has recorded a ResolveQueryData() of all allocated queries into
+			 * the readback buffer. Results become readable (TryResolve() starts returning true) once that command
+			 * buffer completes on the GPU.
+			 */
+			void NotifyResolveScheduled(GpuCommandBuffer& commandBuffer);
+
 		private:
 			/** Creates the query heap and readback buffer. */
 			void CreateQueryHeap();
@@ -55,7 +65,15 @@ namespace b3d
 			GpuPipelineStatisticsQueryBits mPipelineStatsBits;
 
 			u32 mNextQueryId = 0;
-			bool mResolved = false;
+
+			/**
+			 * Set to true once the command buffer that resolved this pool's queries completes on the GPU. Written from
+			 * the command buffer's owning thread, polled via TryResolve() from the profiler, hence atomic.
+			 */
+			std::atomic<bool> mResolved{ false };
+
+			/** Connection to the resolving command buffer's OnDidComplete event. Disconnected on reset and destruction. */
+			HEvent mResolveConnection;
 		};
 
 		/**

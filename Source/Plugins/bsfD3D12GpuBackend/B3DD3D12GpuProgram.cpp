@@ -3,7 +3,7 @@
 #include "B3DD3D12GpuProgram.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12Utility.h"
-#include "B3DD3D12ShaderCompiler.h"
+#include "Material/B3DShaderCompiler.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
@@ -17,7 +17,7 @@ using namespace b3d;
 using namespace b3d::render;
 
 D3D12GpuProgram::D3D12GpuProgram(const GpuProgramCreateInformation& createInformation, GpuDevice& device)
-	: GpuProgram(createInformation)
+	: GpuProgram(createInformation), mGpuDevice(device)
 {
 }
 
@@ -39,23 +39,19 @@ void D3D12GpuProgram::Initialize()
 		return;
 	}
 
-	// Check if we have valid cached bytecode
-	bool needsCompilation = !mBytecode ||
-		mBytecode->CompilerId != "D3D12_DXC" ||
-		mBytecode->CompilerVersion != 1;
-
-	if (needsCompilation)
+	// Recompile when a bytecode compiler is registered and the bytecode is missing or stale.
+	const char* language = D3D12GpuDevice::kGpuProgramLanguageName;
+	const TShared<IGpuBytecodeCompiler> bytecodeCompiler = ShaderCompilers::Instance().GetBytecodeCompiler(language);
+	if (bytecodeCompiler && (!mBytecode || !bytecodeCompiler->IsUpToDate(*mBytecode)))
 	{
-		// Need to compile the shader
 		GpuProgramCreateInformation createInformation;
 		createInformation.Name = mName;
 		createInformation.Type = mType;
 		createInformation.EntryPoint = mEntryPoint;
-		createInformation.Language = kGpuProgramLanguageHlsl;
+		createInformation.Language = language;
 		createInformation.Source = mSource;
 
-		// Compile using utility class
-		mIsCompiled = D3D12ShaderCompiler::CompileShader(createInformation, mBytecode);
+		mBytecode = mGpuDevice.CompileGpuProgramBytecode(createInformation);
 	}
 
 	// Load bytecode into blob if compilation succeeded or we have cached data

@@ -30,6 +30,7 @@ namespace b3d
 			ID3DBlob* GetShaderBlob() const { return mShaderBlob.Get(); }
 
 		private:
+			GpuDevice& mGpuDevice;
 			ComPtr<ID3DBlob> mShaderBlob;
 			D3D12_SHADER_BYTECODE mShaderBytecode{};
 		};

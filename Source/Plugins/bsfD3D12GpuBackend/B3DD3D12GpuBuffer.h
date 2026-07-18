@@ -17,14 +17,17 @@ namespace b3d
 		/**
 		 * Wraps a native D3D12 buffer resource and its memory allocation. Lifetime is owned by the device's
 		 * resource manager and released via IGpuResource::Destroy(), deferred until the GPU is done with the
-		 * resource. Also stores the buffer's current native resource state, which the barrier helper reads and
-		 * advances when it emits transitions.
+		 * resource.
+		 *
+		 * The buffer intentionally stores NO native resource state: D3D12 buffers decay to COMMON when each
+		 * ExecuteCommandLists completes and implicitly promote from COMMON on first use, so states only exist
+		 * per command buffer and are tracked by D3D12ResourceTracker.
 		 */
 		class D3D12Buffer : public TD3D12Resource<IGpuBufferResource>
 		{
 		public:
 			D3D12Buffer(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, D3D12MA::Allocation* allocation,
-				D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_STATES state, const StringView& name = "");
+				D3D12_HEAP_TYPE heapType, const StringView& name = "");
 			~D3D12Buffer() override;
 
 			/** Returns the native D3D12 resource. */
@@ -39,22 +42,10 @@ namespace b3d
 			 */
 			D3D12_HEAP_TYPE GetHeapType() const { return mHeapType; }
 
-			/**
-			 * Returns the current native state of the buffer.
-			 *
-			 * @note Assumes single-threaded command recording per resource (render thread + internal work context);
-			 *       there is no cross-command-buffer synchronization on this field.
-			 */
-			D3D12_RESOURCE_STATES GetState() const { return mState; }
-
-			/** Sets the current native state of the buffer. */
-			void SetState(D3D12_RESOURCE_STATES state) { mState = state; }
-
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			D3D12MA::Allocation* mAllocation = nullptr;
 			D3D12_HEAP_TYPE mHeapType = D3D12_HEAP_TYPE_DEFAULT;
-			D3D12_RESOURCE_STATES mState = D3D12_RESOURCE_STATE_COMMON;
 		};
 
 		/** DirectX 12 implementation of a GPU buffer. */
@@ -116,21 +107,33 @@ namespace b3d
 
 			/**
 			 * Returns a CPU descriptor handle for a shader resource view (SRV) of the buffer, viewing it as a read-only
-			 * structured/typed/byte storage buffer. Returns a zeroed handle if the buffer cannot be viewed as an SRV.
+			 * structured/typed/byte storage buffer. For simple storage buffers @p format overrides the element format
+			 * the view interprets the contents as (BF_UNKNOWN uses the buffer's own format); other buffer types ignore
+			 * it. Returns a zeroed handle if the buffer cannot be viewed as an SRV.
 			 */
-			D3D12_CPU_DESCRIPTOR_HANDLE GetSRVHandle() const;
+			D3D12_CPU_DESCRIPTOR_HANDLE GetSRVHandle(GpuBufferFormat format = BF_UNKNOWN) const;
 
 			/**
 			 * Returns a CPU descriptor handle for an unordered access view (UAV) of the buffer, viewing it as a writable
-			 * storage buffer. Returns a zeroed handle if the buffer was not created with AllowUnorderedAccessOnTheGPU.
+			 * storage buffer. For simple storage buffers @p format overrides the element format the view interprets the
+			 * contents as (BF_UNKNOWN uses the buffer's own format); other buffer types ignore it. Returns a zeroed
+			 * handle if the buffer was not created with AllowUnorderedAccessOnTheGPU.
 			 */
-			D3D12_CPU_DESCRIPTOR_HANDLE GetUAVHandle() const;
+			D3D12_CPU_DESCRIPTOR_HANDLE GetUAVHandle(GpuBufferFormat format = BF_UNKNOWN) const;
 
 		protected:
 			/** @copydoc render::GpuBuffer::RecreateInternalBuffer */
 			void RecreateInternalBuffer() override;
 
 		private:
+			/** SRV/UAV pair viewing a simple storage buffer's contents through an overridden element format. */
+			struct FormatOverrideViews
+			{
+				GpuBufferFormat Format = BF_UNKNOWN;
+				D3D12_CPU_DESCRIPTOR_HANDLE Srv{};
+				D3D12_CPU_DESCRIPTOR_HANDLE Uav{};
+			};
+
 			/** Queues the current D3D12Buffer (if any) for deferred destruction, unmapping it and dropping views first. */
 			void ReleaseBuffer();
 
@@ -139,6 +142,13 @@ namespace b3d
 
 			/** Frees any previously created shader-binding descriptors. */
 			void ReleaseShaderDescriptors();
+
+			/**
+			 * Returns a cached (or lazily created) SRV/UAV of a simple storage buffer reinterpreted through @p format.
+			 * Returns a zeroed handle if the format has no typed-buffer DXGI equivalent, or a UAV is requested but the
+			 * buffer doesn't allow unordered access.
+			 */
+			D3D12_CPU_DESCRIPTOR_HANDLE GetFormatOverrideView(GpuBufferFormat format, bool readWrite) const;
 
 			D3D12Buffer* mBuffer = nullptr;
 
@@ -150,6 +160,11 @@ namespace b3d
 			D3D12_CPU_DESCRIPTOR_HANDLE mCBVHandle{};
 			D3D12_CPU_DESCRIPTOR_HANDLE mSRVHandle{};
 			D3D12_CPU_DESCRIPTOR_HANDLE mUAVHandle{};
+
+			// Views for bindings that override the element format (e.g. GpuSort moving 16X2U payloads as raw uints),
+			// created on first use per format.
+			mutable Vector<FormatOverrideViews> mFormatViews;
+			mutable Mutex mViewMutex;
 		};
 
 		/** @} */

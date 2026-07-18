@@ -65,6 +65,23 @@ namespace b3d::render
 		 */
 		void TrackBufferUsage(D3D12Buffer* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, D3D12BarrierHelper& barrierHelper, u32 dynamicOffset = 0);
 
+		/** Shadow of the base Clear that also resets the per-command-buffer buffer states. */
+		void Clear();
+
+		/**
+		 * Ensures the buffer is in @p requiredState from this point of the command buffer on, queuing a transition
+		 * into @p barrierHelper when the state differs from the buffer's previous use on this command buffer. The
+		 * first use needs no barrier: buffers decay to COMMON at ExecuteCommandLists completion and implicitly
+		 * promote from COMMON to any state. UPLOAD/READBACK-heap buffers have fixed states and are skipped.
+		 */
+		void RequireBufferState(D3D12Buffer* buffer, D3D12_RESOURCE_STATES requiredState, D3D12BarrierHelper& barrierHelper);
+
+		/**
+		 * Returns the buffer's state as last required on this command buffer, or D3D12_RESOURCE_STATE_COMMON when it
+		 * has not been used on it yet (the decayed state every buffer holds when a command buffer begins executing).
+		 */
+		D3D12_RESOURCE_STATES GetTrackedBufferState(const D3D12Buffer* buffer) const;
+
 		/**
 		 * Shadow of the base TrackImageUsage that additionally keeps each tracked subresource's native D3D12 state
 		 * in sync with its required layout. The first use of a subresource on a command buffer seeds the shared
@@ -73,6 +90,15 @@ namespace b3d::render
 		 * All D3D12 call sites must use this overload.
 		 */
 		void TrackImageUsage(D3D12Image* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, D3D12BarrierHelper& barrierHelper);
+
+	private:
+		/**
+		 * Buffer states, tracked PER COMMAND BUFFER: D3D12 buffers decay to COMMON when each ExecuteCommandLists
+		 * completes (the engine submits one command buffer per call) and implicitly promote from COMMON to any state
+		 * on their first use, so no persistent cross-command-buffer state exists to track - and attempting to (via a
+		 * state stored on the buffer itself) desynchronizes whenever recording order differs from submission order.
+		 */
+		UnorderedMap<const D3D12Buffer*, D3D12_RESOURCE_STATES> mBufferStates;
 	};
 
 	/** @} */

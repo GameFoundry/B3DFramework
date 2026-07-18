@@ -136,6 +136,14 @@ namespace b3d
 			/** @copydoc GpuSwapChain::TryGetFirstAcquiredImageIndex */
 			bool TryGetFirstAcquiredImageIndex(u32& outImageIndex) const override;
 
+			/**
+			 * Blocks until every acquire operation queued via the submit thread has executed. Must be called before
+			 * inspecting the acquired image indices, and before queuing a new acquire on the assumption that none are
+			 * pending - otherwise the same back buffer can get acquired twice, permanently desyncing the
+			 * acquire/present bookkeeping.
+			 */
+			void WaitUntilFirstImageAcquired();
+
 			/** @copydoc GpuSwapChain::NotifyWasImageAcquireQueued */
 			void NotifyWasImageAcquireQueued() override;
 
@@ -204,12 +212,15 @@ namespace b3d
 			i32 mLastPresentedImageIndex = -1;
 
 			/**
-			 * Indices of images that have been acquired (via AcquireImage) but not yet queued for present. Guarded by
-			 * a mutex because AcquireImage runs on the submit thread while TryGetFirstAcquiredImageIndex /
-			 * NotifyWasPresentQueued run on the render thread.
+			 * Indices of images that have been acquired (via AcquireImage) but not yet queued for present, along with
+			 * the number of acquire operations queued on the submit thread but not yet executed. Guarded by a mutex
+			 * because AcquireImage runs on the submit thread (or its workers) while TryGetFirstAcquiredImageIndex /
+			 * NotifyWasImageAcquireQueued / NotifyWasPresentQueued run on the render thread.
 			 */
 			mutable Mutex mAcquireMutex;
+			Signal mAcquireSignal;
 			TInlineArray<u32, 4> mAcquiredImageIndices;
+			u32 mPendingAcquireCount = 0;
 
 			SingleConsumerQueue mMessageQueue;
 		};

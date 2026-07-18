@@ -7,6 +7,11 @@
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuBackend.h"
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+#include <atomic>
+#include <thread>
+#endif
+
 namespace D3D12MA
 {
 	class Allocator;
@@ -44,7 +49,6 @@ namespace b3d
 			const VideoModeInfo& GetVideoModeInfo() const override { return *mVideoModeInfo; }
 
 			bool IsGpuProgramLanguageSupported(const StringView& language) const override { return language == kGpuProgramLanguageName; }
-			TShared<GpuProgramBytecode> CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const override;
 
 			u32 GetQueueCount(GpuQueueType type) const override { return (u32)mQueueInfos[(u32)type].Queues.size(); }
 			TShared<GpuQueue> GetQueue(GpuQueueType type, u32 index) const override;
@@ -63,6 +67,7 @@ namespace b3d
 			TShared<GpuComputePipelineState> CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation) override;
 			TShared<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& resourceTableLayout, u32 tableIndex) override;
+			u32 GetUniformBufferParameterSlot(u32 registerIndex) const override;
 			TUnique<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) override;
 			TShared<GpuTimelineFence> CreateTimelineFence() override;
 
@@ -107,6 +112,13 @@ namespace b3d
 			 * when the debug layer is disabled. Thread safe (the info queue is internally synchronized).
 			 */
 			void LogDebugLayerMessages();
+
+			/**
+			 * Logs DRED (Device Removed Extended Data) auto-breadcrumbs after a device removal: which command list
+			 * hung, at which command, plus a page-fault GPU VA when one was recorded. Requires DRED to have been
+			 * enabled before device creation (see D3D12GpuBackend::OnStartUp()); logs nothing otherwise.
+			 */
+			void LogDeviceRemovalBreadcrumbs();
 
 			/**
 			 * Render-thread work context used internally by this backend's texture/buffer read/write
@@ -173,6 +185,12 @@ namespace b3d
 			D3D12MA::Allocator* mAllocator = nullptr;
 			u64 mTimestampFrequency = 0;
 			TShared<GpuWorkContext> mInternalWorkContext; /**< See GetInternalWorkContext(). */
+			bool mLoggedDeviceRemoval = false; /**< Ensures DRED breadcrumbs are logged only once per removal. */
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			std::thread mDeviceRemovalWatchdog; /**< Dumps DRED breadcrumbs the moment the device is removed. */
+			std::atomic<bool> mWatchdogShouldExit{false};
+#endif
 
 			/** Contains data about a set of queues of a specific type. */
 			struct QueueInfo
