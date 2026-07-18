@@ -7,7 +7,7 @@
 #include "B3DMetalResource.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h" // GpuImageLayout
 #include "Image/B3DTexture.h"
-#include "Utility/Threading/B3DThreading.h"
+#include "Threading/B3DThreading.h"
 
 namespace b3d
 {

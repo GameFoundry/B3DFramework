@@ -89,7 +89,7 @@ namespace b3d::render
 		friend class TGpuBarrierHelper<MetalBarrierHelper>;
 
 		/** CRTP hook: accumulates the buffer barrier's scope + stage union. Called by the shared low-level path. */
-		void RecordBufferBarrier(IGpuBufferResource* buffer, const GpuHazardBarrier& barrier);
+		void RecordBufferBarrier(IGpuBufferResource* buffer, const GpuHazardStageAndAccess& barrier);
 
 		/**
 		 * CRTP hook: accumulates the image barrier's scope + stage union. Metal performs no native layout
@@ -97,7 +97,7 @@ namespace b3d::render
 		 * the base's layout bookkeeping proceeds with the tracked value unchanged.
 		 */
 		void RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange,
-			const GpuHazardBarrier& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout);
+			const GpuHazardStageAndAccess& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout);
 
 		// Engine-typed native accumulation (no Metal types here so the header stays includable from
 		// plain C++ TUs). Converted to MTLBarrierScope / MTLRenderStages inside Execute.

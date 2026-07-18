@@ -4,7 +4,7 @@
 #include "Image/B3DPixelUtility.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "Debug/B3DLog.h"
-#include "Utility/Threading/B3DThreading.h"
+#include "Threading/B3DThreading.h"
 #include <atomic>
 
 // TODO(C14): migrate the warn-once pattern below (and the two matching sites in

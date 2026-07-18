@@ -18,7 +18,7 @@ namespace b3d::render
 		: TGpuBarrierHelper<MetalBarrierHelper>(resourceTracker)
 	{ }
 
-	void MetalBarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const GpuHazardBarrier& barrier)
+	void MetalBarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const GpuHazardStageAndAccess& barrier)
 	{
 		// Scope-based accumulation: the native barrier synchronizes the whole buffer category, so the
 		// specific resource and access direction only matter to the base's tracker bookkeeping.
@@ -30,7 +30,7 @@ namespace b3d::render
 	}
 
 	void MetalBarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image,
-		const GpuTextureSubresourceRange& subresourceRange, const GpuHazardBarrier& barrier,
+		const GpuTextureSubresourceRange& subresourceRange, const GpuHazardStageAndAccess& barrier,
 		GpuImageLayout oldLayout, GpuImageLayout newLayout)
 	{
 		// Metal has no image layouts — the transition itself is a no-op natively. The base records the
@@ -149,7 +149,7 @@ namespace b3d::render
 			| GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests
 			| GpuStageFlag::ColorAttachment;
 
-		return !(mCombinedSourceStages & ~supportedSourceStages).IsEmpty()
-			|| !(mCombinedDestinationStages & ~supportedDestinationStages).IsEmpty();
+		return (mCombinedSourceStages & ~supportedSourceStages) != GpuStageFlag::None
+			|| (mCombinedDestinationStages & ~supportedDestinationStages) != GpuStageFlag::None;
 	}
 } // namespace b3d::render

@@ -46,7 +46,10 @@ namespace b3d::render
 		void Retire();
 
 	private:
-		void ReleaseDrawable(CAMetalDrawableRef& drawable);
+#ifdef __OBJC__
+		// __strong: an unqualified id& parameter defaults to __autoreleasing under ARC and cannot bind to strong lvalues
+		void ReleaseDrawable(CAMetalDrawableRef __strong& drawable);
+#endif
 
 		MetalRenderWindowSurface& mSurface;
 		mutable Mutex mMutex;

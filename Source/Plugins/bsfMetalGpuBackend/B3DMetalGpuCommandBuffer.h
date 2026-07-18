@@ -36,6 +36,9 @@ namespace b3d
 		class MetalGpuCommandBuffer final : public GpuCommandBuffer
 		{
 		public:
+			// Holds the Objective-C state; public so the file-local helpers in the .mm can take it as a parameter
+			struct Impl;
+
 			MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 			~MetalGpuCommandBuffer() override;
 
@@ -153,6 +156,9 @@ namespace b3d
 			/** Sets the command buffer state. Only accessible by friends (pool and queue). */
 			void SetState(GpuCommandBufferState state) { mState = state; }
 
+			/** Returns true if the command buffer is currently recording (with or without an open render pass). */
+			bool IsRecording() const { return mState == GpuCommandBufferState::Recording || mState == GpuCommandBufferState::RecordingRenderPass; }
+
 #ifdef __OBJC__
 			/**
 			 * Closes any currently-active encoder whose kind does not match @p targetKind and resets
@@ -220,8 +226,6 @@ namespace b3d
 			 */
 			TShared<MetalVertexInput> ResolveVertexInputForDraw(bool& outSkipDraw);
 #endif
-
-			struct Impl;
 
 			MetalGpuDevice& mGpuDevice;
 			MetalGpuCommandBufferPool& mPool;

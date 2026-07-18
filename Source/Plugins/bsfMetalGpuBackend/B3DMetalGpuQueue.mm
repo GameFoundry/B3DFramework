@@ -7,7 +7,7 @@
 #include "GpuBackend/B3DRenderWindow.h"
 #include "Debug/B3DLog.h"
 #include "Profiling/B3DRenderStats.h"
-#include "Utility/Threading/B3DThreading.h"
+#include "Threading/B3DThreading.h"
 
 namespace b3d
 {

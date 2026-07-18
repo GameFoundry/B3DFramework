@@ -46,8 +46,8 @@ namespace
 	{
 		Vector<char*> nativeArguments;
 		for(const String& argument : arguments)
-			nativeArguments.Add(const_cast<char*>(argument.c_str()));
-		nativeArguments.Add(nullptr);
+			nativeArguments.push_back(const_cast<char*>(argument.c_str()));
+		nativeArguments.push_back(nullptr);
 
 		posix_spawn_file_actions_t actions;
 		const int actionsResult = posix_spawn_file_actions_init(&actions);
@@ -204,7 +204,7 @@ namespace
 		if(type == GPDT_STRUCT || type == GPDT_UNKNOWN)
 			return fallbackSize;
 
-		return GpuParameterSet::kParamSizes.Lookup[(u32)type].Size;
+		return b3d::GpuParameterSet::kParamSizes.Lookup[(u32)type].Size;
 	}
 
 	bool ParseVertexSemantic(const String& inputName, VertexElementSemantic& outSemantic, u16& outIndex)
@@ -451,7 +451,7 @@ namespace
 		return true;
 	}
 
-	bool ReflectLibrary(id<MTLLibrary> library, NSString* entryPointName, GpuProgramType type, GpuProgramBytecode& outBytecode, id<MTLFunction>& outFunction)
+	bool ReflectLibrary(id<MTLLibrary> library, NSString* entryPointName, GpuProgramType type, GpuProgramBytecode& outBytecode, id<MTLFunction> __strong& outFunction)
 	{
 		outFunction = [library newFunctionWithName:entryPointName];
 		if(outFunction == nil)
@@ -531,7 +531,8 @@ namespace
 
 		if(!reflectedTables.empty())
 		{
-			std::sort(reflectedTables.begin(), reflectedTables.end(), [](const auto& lhs, const auto& rhs)
+			// Concrete parameter types: in a dependent context `.Set <` would parse as the b3d::Set template
+			std::sort(reflectedTables.begin(), reflectedTables.end(), [](const ReflectedTable& lhs, const ReflectedTable& rhs)
 			{
 				return lhs.Set < rhs.Set;
 			});

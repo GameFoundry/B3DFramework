@@ -4,7 +4,7 @@
 
 #include "B3DMetalPrerequisites.h"
 #include "GpuBackend/B3DGpuParameterSetPool.h"
-#include "Utility/Threading/B3DThreading.h"
+#include "Threading/B3DThreading.h"
 
 namespace b3d
 {
