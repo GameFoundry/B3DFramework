@@ -140,6 +140,13 @@ B3D_CMAKE_GENERATOR="Ninja" ./B3DBuildSnappy.sh
 - Compile as a static library
 - Build script: `B3DBuildGlslang.sh`
 
+**SPIRV-Cross**
+- SPIRV-Cross version: vulkan-sdk-1.4.321.0 (matches Vulkan SDK 1.4.321, same as glslang above)
+- https://github.com/KhronosGroup/SPIRV-Cross
+- Required by bsfShaderBackendVKSL and bsfMetalGpuBackend
+- Compile as a static library
+- Build script: `B3DBuildSPIRVCross.sh`
+
 **MoltenVK** (macOS only)
 - Commit ID: a684b47baab834e12da2af9f5997c867c4265b46
 - https://github.com/KhronosGroup/MoltenVK

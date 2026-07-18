@@ -43,12 +43,14 @@ B3DCleanDependencyFolder "$OutputFolder"
 
 # Configure. CMAKE_PREFIX_PATH lets find_package(Ogg) locate our libogg install
 # via its OggConfig.cmake. CMAKE_DEBUG_POSTFIX=d lets both configs coexist in a
-# flat lib/ folder.
+# flat lib/ folder. POLICY_VERSION_MINIMUM needed because libvorbis's
+# cmake_minimum_required is older than CMake 4.x allows.
 cmake -S . -B build -G "$CMakeGenerator" \
 	-DCMAKE_INSTALL_PREFIX="$OutputFolder" \
 	-DCMAKE_PREFIX_PATH="$OggOutputFolder" \
 	-DCMAKE_POSITION_INDEPENDENT_CODE=ON \
 	-DCMAKE_DEBUG_POSTFIX=d \
+	-DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
 	-DBUILD_SHARED_LIBS=OFF || exit 1
 
 # Build and install both configurations into the same flat lib/ folder

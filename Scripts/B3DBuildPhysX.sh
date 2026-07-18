@@ -34,7 +34,7 @@ fi
 
 PhysXRoot="$(pwd)"
 
-# Apply patch. Carries three kinds of fixes:
+# Apply patch. Carries five kinds of fixes:
 # - PsAllocator.h: pre-standard <typeinfo.h> -> <typeinfo> (header removed from modern Windows SDK).
 # - vcxproj TreatWarningAsError: true -> false. Newer MSVC versions emit warnings the 2018-era
 #   sources weren't written against (signed/unsigned, narrowing, etc.), and there's no intent
@@ -45,6 +45,12 @@ PhysXRoot="$(pwd)"
 #   debug/checked -> /MDd (Banshee maps its Debug config onto PhysX's checked). The checked
 #   config also drops NDEBUG from its PreprocessorDefinitions since /MDd auto-defines _DEBUG,
 #   and PxPreprocessor.h rejects both being defined at once.
+# - PxPreprocessor.h: detect macOS vs. iOS via TargetConditionals instead of architecture,
+#   which misclassified Apple Silicon Macs as iOS.
+# - make_osx64 Makefiles: build for the host arch instead of hardcoded x86_64, locate the SDK
+#   via xcrun (works without full Xcode), drop -msse2/-Werror, raise deployment target to 11.0.
+# - PsUnixFPU.cpp, GuSIMDHelpers.h, SnSerialUtils.cpp: gate x86 intrinsics/serialization tags
+#   on the architecture rather than the OS, so ARM64 macOS takes the NEON/generic paths.
 echo "Applying PhysX patch..."
 git apply "$CurrentDirectory/Patches/PhysX.patch" || exit 1
 
@@ -168,19 +174,25 @@ elif [[ "$Platform" == "linux-gnu"* ]]; then
 	cp -p "$LibFolder/checked/libPhysX3ExtensionsCHECKED.a" "$OutputFolder/lib/Debug/" || exit 1
 
 elif [[ "$Platform" == "darwin"* ]]; then
-	# PhysX 3.4 macOS build produces static libs only. FindPhysX.cmake reflects this
-	# via the APPLE branch, which links many additional static archives.
-	cd "$PhysXRoot/PhysX_3.4/Source/compiler/xcode_osx64"
+	# The supplied Xcode project predates Apple Silicon; the (patched) Makefile build targets
+	# the host architecture and needs only the Command Line Tools, not a full Xcode install.
+	cd "$PhysXRoot/PhysX_3.4/Source/compiler/make_osx64"
 
-	xcodebuild -project PhysX.xcodeproj -configuration $PhysXReleaseConfig -alltargets || exit 1
-	xcodebuild -project PhysX.xcodeproj -configuration $PhysXDebugConfig -alltargets || exit 1
+	make -j"$(sysctl -n hw.ncpu)" $PhysXReleaseConfig || exit 1
+	make -j"$(sysctl -n hw.ncpu)" $PhysXDebugConfig || exit 1
 
-	LibFolder="$PhysXRoot/PhysX_3.4/Lib/osx64"
+	# Static archives only, split across the main PhysX tree and the PxShared tree.
+	PhysXLibFolder="$PhysXRoot/PhysX_3.4/Lib/osx64"
+	PxSharedLibFolder="$PhysXRoot/PxShared/lib/osx64"
 
-	# Copy all static archives expected by FindPhysX.cmake's Apple branch.
-	for LibName in libLowLevel libLowLevelCloth libPhysX3 libPhysX3Common libPhysX3Cooking libPhysX3CharacterKinematic libPhysX3Extensions libPxFoundation libPxPvdSDK libPxTask libSceneQuery libSimulationController; do
-		cp -p "$LibFolder/release/${LibName}.a" "$OutputFolder/lib/Release/" || exit 1
-		cp -p "$LibFolder/checked/${LibName}CHECKED.a" "$OutputFolder/lib/Debug/" 2>/dev/null || true
+	# Copy all static archives expected by FindPhysX.cmake's Apple branch (checked -> Debug).
+	for LibName in libLowLevel libLowLevelAABB libLowLevelCloth libLowLevelDynamics libLowLevelParticles libPhysX3 libPhysX3Common libPhysX3Cooking libPhysX3CharacterKinematic libPhysX3Extensions libSceneQuery libSimulationController; do
+		cp -p "$PhysXLibFolder/${LibName}.a" "$OutputFolder/lib/Release/" || exit 1
+		cp -p "$PhysXLibFolder/${LibName}CHECKED.a" "$OutputFolder/lib/Debug/" || exit 1
+	done
+	for LibName in libPsFastXml libPxFoundation libPxPvdSDK libPxTask; do
+		cp -p "$PxSharedLibFolder/${LibName}.a" "$OutputFolder/lib/Release/" || exit 1
+		cp -p "$PxSharedLibFolder/${LibName}CHECKED.a" "$OutputFolder/lib/Debug/" || exit 1
 	done
 fi
 

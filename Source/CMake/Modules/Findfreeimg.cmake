@@ -14,7 +14,13 @@ endif()
 B3DPopulateDefaultPackageSearchPaths(freeimg)
 
 B3DFindImportedIncludes(freeimg FreeImage.h)
-B3DFindImportedLibraryWithConfigurationNames(freeimg freeimage SHARED FreeImage FreeImaged)
+
+# Dynamic library on Windows, static on Linux/macOS (see dependencies.md)
+if(WIN32)
+	B3DFindImportedLibraryWithConfigurationNames(freeimg freeimage SHARED FreeImage FreeImaged)
+else()
+	B3DFindImportedLibrary(freeimg freeimage STATIC)
+endif()
 
 B3DEndFindPackage(freeimg freeimage)
 

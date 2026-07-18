@@ -18,9 +18,15 @@ list(APPEND DotNETCoreMono_INCLUDE_SEARCH_DIRS ${DotNETCoreMono_INSTALL_DIR}/inc
 B3DFindImportedIncludes(DotNETCoreMono mono/jit/jit.h)
 
 # Load library as module as .NET Core requires mono to be in a dynamically loaded library, as we need to be able to reload the library on script recompile
-B3DFindImportedLibraryWithAlternateBinaryName(DotNETCoreMono coreclr.import MODULE coreclr)
-
-B3DEndFindPackage(DotNETCoreMono coreclr.import)
+if(WIN32)
+	# coreclr.dll with a coreclr.import.lib import library
+	B3DFindImportedLibraryWithAlternateBinaryName(DotNETCoreMono coreclr.import MODULE coreclr)
+	B3DEndFindPackage(DotNETCoreMono coreclr.import)
+else()
+	# libcoreclr.so/.dylib
+	B3DFindImportedLibrary(DotNETCoreMono coreclr MODULE)
+	B3DEndFindPackage(DotNETCoreMono coreclr)
+endif()
 
 # Install the managed assemblies
 install(

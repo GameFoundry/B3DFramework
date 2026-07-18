@@ -16,6 +16,13 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
     echo " - If you receive a ILLinker error during compilation, try running the script again until it succeeds"
     echo ""
     sleep 2
+elif [[ "$Platform" == "darwin"* ]]; then
+    echo "Building for macOS."
+    echo ""
+    echo "IMPORTANT: "
+    echo " - Make sure to install all prerequisites as specified here: https://github.com/dotnet/runtime/blob/main/docs/workflow/requirements/macos-requirements.md"
+    echo ""
+    sleep 2
 else
 	echo "[Error] This build script is not currently supported on the current platform: $Platform."
 	exit 1
@@ -48,7 +55,7 @@ fi
 # Setup Mono output folders
 MonoOutputFolder="$PlatformDependencyFolder/DotNETCoreMono"
 
-rm -rf $MonoOutputFolder
+B3DCleanDependencyFolder "$MonoOutputFolder"
 mkdir -p "$MonoOutputFolder/include/"
 mkdir -p "$MonoOutputFolder/lib/"
 mkdir -p "$MonoOutputFolder/bin/"
@@ -104,8 +111,12 @@ copy_libraries()
     copy_essential_assemblies "$ilDir" "$MonoOutputFolder/bin/Assemblies/"
     copy_essential_assemblies "$runtimeDir" "$MonoOutputFolder/bin/Assemblies/"
 
-    # Copy native runtime library
-    cp -p -- "artifacts/bin/mono/$1.$2.$3/coreclr$SharedLibraryExtension" "$MonoOutputFolder/bin/$4"
+    # Copy native runtime library (lib-prefixed and in lib/ on Unix, where the find module looks for it)
+    if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
+        cp -p -- "artifacts/bin/mono/$1.$2.$3/coreclr$SharedLibraryExtension" "$MonoOutputFolder/bin/$4"
+    else
+        cp -p -- "artifacts/bin/mono/$1.$2.$3/libcoreclr$SharedLibraryExtension" "$MonoOutputFolder/lib/$4"
+    fi
 
     # Copy the AOT cross compiler (built via the BuildMonoAOTCrossCompiler property).
     # It lives under cross/<rid>/ where rid maps windows->win-<arch>, else <os>-<arch>.
@@ -178,11 +189,11 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
     cp -a -r -- "artifacts/bin/mono/windows.x64.Debug/include/mono-2.0/." "$MonoOutputFolder/include/"
 elif [[ "$Platform" == "darwin"* ]]; then
     # Build & copy release
-    ./build.sh mono+libs -configuration Release
+    ./build.sh mono+libs -configuration Release || exit 1
     copy_libraries osx arm64 Release ""
 
-    # Copy includes
-    cp -a -r -- "artifacts/bin/mono/osx.arm64.Release/include/mono-2.0/." "$MonoOutputFolder/include/"
+    # Copy includes (BSD cp: -a already implies -R)
+    cp -a -- "artifacts/bin/mono/osx.arm64.Release/include/mono-2.0/." "$MonoOutputFolder/include/"
 else
     # Build & copy release
     ./build.sh mono+libs -configuration Release

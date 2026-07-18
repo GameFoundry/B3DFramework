@@ -56,10 +56,12 @@ fi
 
 # Configure. Disable tests, utils (openal-info, altonegen, ...) and examples; we
 # only need the library itself. ALSOFT_CONFIG/ALSOFT_HRTF_DEFS/ALSOFT_AMBDEC_PRESETS
-# install runtime data files we don't ship.
+# install runtime data files we don't ship. POLICY_VERSION_MINIMUM needed because
+# OpenAL Soft 1.17.2's cmake_minimum_required is older than CMake 4.x allows.
 cmake -S . -B build -G "$CMakeGenerator" \
 	-DCMAKE_INSTALL_PREFIX="$OutputFolder" \
 	-DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+	-DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
 	-DLIBTYPE="$LibType" \
 	-DALSOFT_TESTS=OFF \
 	-DALSOFT_UTILS=OFF \

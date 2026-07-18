@@ -1,3 +1,88 @@
+diff --git a/Makefile.osx b/Makefile.osx
+index c39121d..7d904f2 100644
+--- a/Makefile.osx
++++ b/Makefile.osx
+@@ -8,6 +8,8 @@ include Makefile.srcs
+ MACOSX_SYSROOT = $(shell xcrun --show-sdk-path)
+ # Specify deployement target here
+ MACOSX_DEPLOYMENT_TARGET = 10.11
++# Build for the host architecture (arm64 on Apple Silicon, x86_64 on Intel)
++MACOSX_ARCH = $(shell uname -m)
+ 
+ # General configuration variables:
+ CC_I386 = $(shell xcrun -find clang)
+@@ -15,9 +17,15 @@ CC_X86_64 = $(shell xcrun -find clang)
+ CPP_I386 = $(shell xcrun -find clang++)
+ CPP_X86_64 = $(shell xcrun -find clang++)
+ MACOSX_DEPLOY = -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
+-COMPILERFLAGS = -Os -fexceptions -fvisibility=hidden -DNO_LCMS -D__ANSI__
++# Z_HAVE_UNISTD_H: modern clang doesn't define the legacy `unix` macro, so bundled
++# ZLib needs to be told explicitly that <unistd.h> exists (lseek/read/write/close).
++# DISABLE_PERF_MEASUREMENT: matches Makefile.gnu; LibJXR's PerfTimer implementation
++# is not part of the source list, so calls to it would fail to link.
++# PNG_ARM_NEON_OPT=0: bundled LibPNG doesn't ship its arm/ NEON sources, so the
++# NEON code path it auto-enables on arm64 must be turned off.
++COMPILERFLAGS = -Os -fexceptions -fvisibility=hidden -DNO_LCMS -D__ANSI__ -DZ_HAVE_UNISTD_H -DDISABLE_PERF_MEASUREMENT -DPNG_ARM_NEON_OPT=0
+ COMPILERFLAGS_I386 = -arch i386
+-COMPILERFLAGS_X86_64 = -arch x86_64
++COMPILERFLAGS_X86_64 = -arch $(MACOSX_ARCH)
+ COMPILERPPFLAGS = -Wno-ctor-dtor-privacy -D__ANSI__ -std=c++11 -stdlib=libc++ -Wc++11-narrowing
+ INCLUDE +=
+ INCLUDE_I386 = -isysroot $(MACOSX_SYSROOT)
+@@ -82,7 +90,7 @@ $(STATICLIB)-i386: $(MODULES_I386)
+ 	$(LIBTOOL) -arch_only i386 -o $@ $(MODULES_I386)
+ 
+ $(STATICLIB)-x86_64: $(MODULES_X86_64)
+-	$(LIBTOOL) -arch_only x86_64 -o $@ $(MODULES_X86_64)
++	$(LIBTOOL) -arch_only $(MACOSX_ARCH) -o $@ $(MODULES_X86_64)
+ 
+ $(SHAREDLIB): $(SHAREDLIB)-i386 $(SHAREDLIB)-x86_64
+ 	$(LIPO) -create $(SHAREDLIB)-i386 $(SHAREDLIB)-x86_64 -output $(SHAREDLIB)
+diff --git a/Source/LibJXR/image/decode/segdec.c b/Source/LibJXR/image/decode/segdec.c
+index 1299458..a69ff95 100644
+--- a/Source/LibJXR/image/decode/segdec.c
++++ b/Source/LibJXR/image/decode/segdec.c
+@@ -29,6 +29,12 @@
+ #include "strcodec.h"
+ #include "decode.h"
+ 
++// On non-Windows platforms _byteswap_ulong is a function defined in strcodec.c;
++// declare it since modern compilers reject C89 implicit function declarations.
++#if !defined(WIN32) && !defined(UNDER_CE) && !defined(_BIG__ENDIAN_)
++U32 _byteswap_ulong(U32 bits);
++#endif
++
+ #ifdef MEM_TRACE
+ #define TRACE_MALLOC    1
+ #define TRACE_NEW       0
+diff --git a/Source/LibJXR/jxrgluelib/JXRGlueJxr.c b/Source/LibJXR/jxrgluelib/JXRGlueJxr.c
+index 2bf085a..787a334 100644
+--- a/Source/LibJXR/jxrgluelib/JXRGlueJxr.c
++++ b/Source/LibJXR/jxrgluelib/JXRGlueJxr.c
+@@ -27,6 +27,7 @@
+ //
+ //*@@@---@@@@******************************************************************
+ #include <limits.h>
++#include <wchar.h> // for wcslen; modern compilers reject implicit function declarations
+ #include <JXRGlue.h>
+ 
+ 
+diff --git a/Source/LibPNG/pngpriv.h b/Source/LibPNG/pngpriv.h
+index 81f8761..09f4969 100644
+--- a/Source/LibPNG/pngpriv.h
++++ b/Source/LibPNG/pngpriv.h
+@@ -514,8 +514,10 @@
+     */
+ #  include <float.h>
+ 
++   /* Modern Apple clang predefines TARGET_OS_MAC as a builtin; the classic
++    * Mac OS <fp.h> no longer exists, so don't let it select that branch. */
+ #  if (defined(__MWERKS__) && defined(macintosh)) || defined(applec) || \
+-    defined(THINK_C) || defined(__SC__) || defined(TARGET_OS_MAC)
++    defined(THINK_C) || defined(__SC__)
+    /* We need to check that <math.h> hasn't already been included earlier
+     * as it seems it doesn't agree with <fp.h>, yet we should really use
+     * <fp.h> if possible.
 diff --git a/Source/OpenEXR/IlmImf/ImfAttribute.cpp b/Source/OpenEXR/IlmImf/ImfAttribute.cpp
 index cb4ac36..0f8f473 100644
 --- a/Source/OpenEXR/IlmImf/ImfAttribute.cpp
@@ -12,3 +97,18 @@ index cb4ac36..0f8f473 100644
  {
      bool
      operator () (const char *x, const char *y) const
+diff --git a/Source/ZLib/zutil.h b/Source/ZLib/zutil.h
+index f30d4f8..5ee7164 100644
+--- a/Source/ZLib/zutil.h
++++ b/Source/ZLib/zutil.h
+@@ -130,7 +130,9 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
+ #  endif
+ #endif
+ 
+-#if defined(MACOS) || defined(TARGET_OS_MAC)
++/* Modern Apple clang predefines TARGET_OS_MAC as a builtin; this branch is for
++ * classic Mac OS only (upstream zlib removed TARGET_OS_MAC here in 1.2.12). */
++#if defined(MACOS)
+ #  define OS_CODE  7
+ #  ifndef Z_SOLO
+ #    if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
