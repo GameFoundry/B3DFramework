@@ -161,6 +161,8 @@ cd cmake_build
 # - XSC_BUILD_DEBUGGER=OFF: Don't build debugger
 # - XSC_BUILD_TESTS=OFF: Don't build tests
 # - XSC_SHARED_LIB=ON: Build a shared library (xsc_core.dll + import xsc_core.lib).
+# - XSC_BUILD_HLSL=ON: Register the HLSL round-trip output backend; the engine's "hlsl" shading language
+#   cross-compiles through it (register normalization + cross-stage-unique auto-binding).
 echo "Configuring CMake..."
 
 cmake .. -G "$CMakeGenerator" \
@@ -168,7 +170,8 @@ cmake .. -G "$CMakeGenerator" \
 	-DXSC_BUILD_SHELL=OFF \
 	-DXSC_BUILD_DEBUGGER=OFF \
 	-DXSC_BUILD_TESTS=OFF \
-	-DXSC_SHARED_LIB=ON || exit 1
+	-DXSC_SHARED_LIB=ON \
+	-DXSC_BUILD_HLSL=ON || exit 1
 
 # Builds one CMake configuration, installs the core into the public folder and reorganizes it into the
 # engine's dependency layout, then installs any enrolled overlay backends for this config.
