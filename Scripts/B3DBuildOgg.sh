@@ -33,10 +33,12 @@ fi
 OutputFolder="$PlatformDependencyFolder/libogg"
 B3DCleanDependencyFolder "$OutputFolder"
 
+# POLICY_VERSION_MINIMUM needed because libogg's cmake_minimum_required is older than CMake 4.x allows
 cmake -S . -B build -G "$CMakeGenerator" \
 	-DCMAKE_INSTALL_PREFIX="$OutputFolder" \
 	-DCMAKE_POSITION_INDEPENDENT_CODE=ON \
 	-DCMAKE_DEBUG_POSTFIX=d \
+	-DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
 	-DBUILD_SHARED_LIBS=OFF \
 	-DBUILD_TESTING=OFF || exit 1
 
