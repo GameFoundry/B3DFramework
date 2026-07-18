@@ -105,21 +105,22 @@ MacOSVideoMode::MacOSVideoMode(u32 width, u32 height, float refreshRate, u32 out
 MacOSVideoMode::MacOSVideoMode(CGDisplayModeRef mode, CVDisplayLinkRef linkRef, u32 outputIdx)
 	: VideoMode(0, 0, 0.0f, outputIdx), mModeRef(mode)
 {
-	width = (u32)CGDisplayModeGetPixelWidth(mModeRef);
-	height = (u32)CGDisplayModeGetPixelHeight(mModeRef);
+	Width = (u32)CGDisplayModeGetPixelWidth(mModeRef);
+	Height = (u32)CGDisplayModeGetPixelHeight(mModeRef);
 
-	refreshRate = (float)CGDisplayModeGetRefreshRate(mModeRef);
-	if(refreshRate == 0.0f && linkRef != nullptr)
+	RefreshRate = (float)CGDisplayModeGetRefreshRate(mModeRef);
+	if(RefreshRate == 0.0f && linkRef != nullptr)
 	{
 		CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(linkRef);
 		if((time.flags & kCVTimeIsIndefinite) == 0 && time.timeValue != 0)
-			refreshRate = time.timeScale / (float)time.timeValue;
+			RefreshRate = time.timeScale / (float)time.timeValue;
 	}
-	isCustom = false;
+	IsCustom = false;
 }
 
 MacOSVideoMode::~MacOSVideoMode()
 {
-	if(!isCustom && mModeRef)
+	if(!IsCustom && mModeRef)
 		CGDisplayModeRelease(mModeRef);
 }
+} // namespace b3d::render

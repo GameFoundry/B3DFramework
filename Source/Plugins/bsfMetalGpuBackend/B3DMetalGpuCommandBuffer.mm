@@ -220,10 +220,10 @@ namespace b3d
 					// real-world sets. Anything over that (bindless-style huge sets) falls back to a
 					// scratch @c Vector.
 					constexpr u32 kMaxStackResources = 32;
-					id<MTLResource> stack[kMaxStackResources];
-					Vector<id<MTLResource>> spill;
+					__unsafe_unretained id<MTLResource> stack[kMaxStackResources];
+					Vector<__unsafe_unretained id<MTLResource>> spill;
 
-					id<MTLResource>* resources = stack;
+					__unsafe_unretained id<MTLResource>* resources = stack;
 					if (bucket.ResourceIndices.Size() > kMaxStackResources)
 					{
 						spill.resize((size_t)bucket.ResourceIndices.Size());
@@ -255,7 +255,7 @@ namespace b3d
 					return;
 
 				EmitResidencyImpl(params, layout->GetRenderBuckets(),
-					[encoder](const auto& bucket, id<MTLResource>* resources, u32 resourceCount)
+					[encoder](const auto& bucket, __unsafe_unretained id<MTLResource>* resources, u32 resourceCount)
 					{
 						[encoder useResources:resources count:resourceCount usage:bucket.Usage stages:bucket.RenderStages];
 					});
@@ -269,7 +269,7 @@ namespace b3d
 					return;
 
 				EmitResidencyImpl(params, layout->GetComputeBuckets(),
-					[encoder](const auto& bucket, id<MTLResource>* resources, u32 resourceCount)
+					[encoder](const auto& bucket, __unsafe_unretained id<MTLResource>* resources, u32 resourceCount)
 					{
 						[encoder useResources:resources count:resourceCount usage:bucket.Usage];
 					});
@@ -2979,7 +2979,7 @@ namespace b3d
 		{
 			for (const TShared<MetalGpuQueryPool>& pool : mUsedQueryPools)
 				pool->MarkQueuedForSubmission();
-			mQueryPoolsQueuedForSubmission = !mUsedQueryPools.empty();
+			mQueryPoolsQueuedForSubmission = !mUsedQueryPools.Empty();
 
 			// Clear everything not allowed to be touched from the submit thread (mirrors
 			// VulkanGpuCommandBuffer::NotifyWillQueueForSubmit). Runs on the owner thread inside

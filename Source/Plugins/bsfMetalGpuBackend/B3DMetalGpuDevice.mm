@@ -13,6 +13,7 @@
 #include "Math/B3DMath.h"
 #include "B3DMetalGpuParameterSet.h"
 #include "B3DMetalGpuParameterSetPool.h"
+#include "B3DMetalShaderABI.h"
 #include "B3DMetalGpuPipelineParameterLayout.h"
 #include "B3DMetalSamplerState.h"
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
@@ -31,7 +32,7 @@
 #include "Utility/B3DScopeGuard.h"
 #include <atomic>
 #include <cstring>
-#include "Utility/Threading/B3DThreading.h"
+#include "Threading/B3DThreading.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuSubmitThread.h"
 #include "B3DMetalVertexInputManager.h"

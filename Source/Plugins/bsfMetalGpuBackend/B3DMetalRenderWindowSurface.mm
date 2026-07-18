@@ -41,7 +41,7 @@ namespace b3d::render
 		mPendingDrawables.clear();
 	}
 
-	void MetalSwapChain::ReleaseDrawable(CAMetalDrawableRef& drawable)
+	void MetalSwapChain::ReleaseDrawable(CAMetalDrawableRef __strong& drawable)
 	{
 		if (drawable == nil)
 			return;

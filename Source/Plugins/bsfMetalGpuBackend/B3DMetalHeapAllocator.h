@@ -7,7 +7,7 @@
 #include "GpuBackend/Allocators/B3DGpuLinearAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
 #include "Utility/B3DPool.h"
-#include "Utility/Threading/B3DThreading.h"
+#include "Threading/B3DThreading.h"
 
 namespace b3d
 {

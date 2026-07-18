@@ -290,7 +290,7 @@ namespace b3d
 
 					GpuResourceLocation location;
 					if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align,
-						GpuResourceKind::Linear, location))
+						GpuResourceKind::Linear, nullptr, location))
 					{
 						MetalGpuHeap& heap = ToMetalGpuHeap(location.Heap);
 						if (heap.MemoryType == memoryType)
