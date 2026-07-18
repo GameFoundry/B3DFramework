@@ -695,9 +695,6 @@ void D3D12GpuDevice::InitializeCapabilities()
 	// Constant buffer addresses (root CBVs and suballocation offsets alike) must be 256-byte aligned in D3D12
 	mCapabilities.MinimumUniformBufferOffsetAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
 
-	// UPLOAD-heap memory is CPU-write-only; it can never be a GPU copy destination
-	mCapabilities.MappableBuffersAreValidCopyDestinations = false;
-
 	mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_BC);
 	mCapabilities.SetCapability(RSC_COMPUTE_PROGRAM);
 	mCapabilities.SetCapability(RSC_LOAD_STORE);
