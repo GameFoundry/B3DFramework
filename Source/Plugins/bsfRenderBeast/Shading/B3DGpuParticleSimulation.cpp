@@ -289,6 +289,9 @@ bool GpuParticleSystem::AllocateTiles(GpuParticleResources& resources, Vector<Gp
 			{
 				tileIdx = (u32)mActiveTiles.Find(false);
 				mActiveTiles[tileIdx] = true;
+
+				// Re-used tiles contain stale (expired) particle data, so queue them for a GPU-side clear as well
+				newTiles.push_back(mTiles[tileIdx].Id);
 			}
 			// And finally just allocate a new tile if no room elsewhere
 			else
@@ -299,7 +302,7 @@ bool GpuParticleSystem::AllocateTiles(GpuParticleResources& resources, Vector<Gp
 
 				GpuParticleTile newTile;
 				newTile.Id = tileId;
-				newTile.Lifetime = 0.0f;
+				newTile.RemainingLifetime = 0.0f;
 
 				tileIdx = (u32)mTiles.size();
 				newTiles.push_back(newTile.Id);
@@ -324,7 +327,7 @@ bool GpuParticleSystem::AllocateTiles(GpuParticleResources& resources, Vector<Gp
 		particle.DataUv = tileUV + GpuParticleResources::GetParticleCoords(tileParticleIdx);
 
 		tile.NumFreeParticles--;
-		tile.Lifetime = std::max(tile.Lifetime, mTime + particle.Lifetime);
+		tile.RemainingLifetime = std::max(tile.RemainingLifetime, particle.Lifetime);
 
 		cachedTile.NumFreeParticles--;
 	}
@@ -332,12 +335,14 @@ bool GpuParticleSystem::AllocateTiles(GpuParticleResources& resources, Vector<Gp
 	return newTilesAdded;
 }
 
-void GpuParticleSystem::DetectInactiveTiles()
+void GpuParticleSystem::DetectInactiveTiles(float timeStep)
 {
 	mNumActiveTiles = 0;
 	for(u32 i = 0; i < (u32)mTiles.size(); i++)
 	{
-		if(mTiles[i].Lifetime >= mTime)
+		mTiles[i].RemainingLifetime -= timeStep;
+
+		if(mTiles[i].RemainingLifetime > 0.0f)
 		{
 			mNumActiveTiles++;
 			continue;
@@ -619,7 +624,9 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Rend
 		GpuParticleSystem* entry = renderState.GpuParticleSystem;
 		const ParticleSystemProxy& parentProxy = particleStorage.GetParticleSystemProxy(packedId);
 
-		entry->DetectInactiveTiles();
+		// Age the tiles by the same time step the GPU simulation uses to age the particles (see gDT in
+		// PrepareSimulateParameters), so a tile can't be reclaimed while any of its particles may still be alive
+		entry->DetectInactiveTiles(dt);
 
 		bool tilesDirty = false;
 		const auto iterFind = simData->GpuData.find(parentProxy.GetId());

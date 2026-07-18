@@ -33,7 +33,13 @@ namespace b3d
 		{
 			u32 Id = (u32)-1;
 			u32 NumFreeParticles = 0;
-			float Lifetime = 0.0f;
+
+			/**
+			 * Seconds remaining until every particle written to the tile has expired. Tracked as a countdown rather
+			 * than an absolute expiry time, since the particle system time wraps around for looping systems and
+			 * therefore cannot represent expiry times past the loop point.
+			 */
+			float RemainingLifetime = 0.0f;
 		};
 
 		/** Contains functionality specific to a single particle system simulated on the GPU. */
@@ -57,10 +63,12 @@ namespace b3d
 			bool AllocateTiles(GpuParticleResources& resources, Vector<GpuParticle>& newParticles, Vector<u32>& newTiles);
 
 			/**
-			 * Detects which tiles had all of their particle's expire and marks the inactive so they can be re-used on the
-			 * next call to allocateTiles().
+			 * Ages all tiles by the provided time step, then detects which tiles had all of their particles expire and
+			 * marks them inactive so they can be re-used on the next call to AllocateTiles().
+			 *
+			 * @param[in]	timeStep	Time in seconds by which the GPU simulation advances the particles this frame.
 			 */
-			void DetectInactiveTiles();
+			void DetectInactiveTiles(float timeStep);
 
 			/** Releases any tiles that were marked as inactive so they may be re-used by some other particle system. */
 			bool FreeInactiveTiles(GpuParticleResources& resources);
