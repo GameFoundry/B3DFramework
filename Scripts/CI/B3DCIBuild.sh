@@ -67,6 +67,7 @@ CMakeArgs=(
     -DCMAKE_INSTALL_PREFIX="$ARTIFACTS_DIR/"
     -DB3D_BUILD_ALL_PLUGINS=ON
     -DB3D_BUILD_TESTS=ON
+    -DB3D_ENABLE_EXPERIMENTAL_GPU_BACKEND=ON
 )
 if [ -n "$CMakeArchitecture" ]; then
     CMakeArgs+=(-A "$CMakeArchitecture")
