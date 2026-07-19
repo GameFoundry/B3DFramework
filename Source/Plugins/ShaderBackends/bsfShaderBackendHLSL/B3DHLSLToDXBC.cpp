@@ -241,7 +241,8 @@ namespace
 			bufferInformation.Slot = MapRegisterToSlot(bindDesc.BindPoint, HLSLRegisterClass::ConstantBuffer);
 			bufferInformation.Set = bindDesc.Space; // Register space maps to descriptor set
 			bufferInformation.Size = cbDesc.Size / 4; // Core API expects size in multiples of 4 bytes
-			// TODO(d3d12-port): Stage/IsShareable flags are not derivable from HLSL reflection alone; left at defaults.
+			bufferInformation.IsShareable = true;
+			// TODO(d3d12-port): Stage flags are not derivable from HLSL reflection alone; left at the default.
 
 			// Reflect constant buffer members
 			for (u32 j = 0; j < cbDesc.Variables; j++)

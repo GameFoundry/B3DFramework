@@ -21,7 +21,7 @@ namespace b3d
 		 * Version of the compiler used for compiling HLSL GPU programs. Tick this whenever the compiler updates in order
 		 * to force bytecode to rebuild.
 		 */
-		inline constexpr u32 kHlslCompilerVersion = 2;
+		inline constexpr u32 kHlslCompilerVersion = 3;
 
 		/**
 		 * Constructs the device-independent hlsl bytecode compiler (engine HLSL source -> DXBC via the D3D shader
