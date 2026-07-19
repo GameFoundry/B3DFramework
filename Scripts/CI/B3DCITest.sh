@@ -33,6 +33,7 @@ set +e
 ./UnitTestRunner.exe \
 	--headless \
 	--gpu.PreferIntegrated=true \
+	--debug.DisableErrorDialogs=true \
 	--test-output-format=json \
 	--test-output-path="$RESULTS_DIR/unit_tests.json" \
 	--test-layer=all 2>&1 | tee "$RESULTS_DIR/unit_tests.log"
@@ -103,6 +104,7 @@ run_snapshot() {
 	"$EXE" \
 		--headless \
 		--gpu.PreferIntegrated=true \
+		--debug.DisableErrorDialogs=true \
 		--enable-test-snapshot \
 		--test-output-path="$OUT_DIR" \
 		--test-name="$TEST_NAME" \
