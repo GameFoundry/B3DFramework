@@ -299,12 +299,6 @@ namespace b3d
 			 */
 			void CopyImageToImage(VulkanGpuCommandBuffer& commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage);
 
-			/**
-			 * Copies a single subresource from the source image into the destination buffer. Caller must ensure the destination buffer provides adequate
-			 * space for the texture data.
-			 */
-			void CopyImageSubresourceToBuffer(VulkanGpuCommandBuffer& commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer);
-
 			VulkanGpuDevice& mGpuDevice;
 			VulkanImage* mImage = nullptr;
 			PixelFormat mInternalFormat = PF_UNKNOWN;

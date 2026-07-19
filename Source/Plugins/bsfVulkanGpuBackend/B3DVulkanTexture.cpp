@@ -734,27 +734,6 @@ VulkanImage* VulkanTexture::RelocateInternalTexture(const VulkanAllocationResult
 	return newImage;
 }
 
-void VulkanTexture::CopyImageSubresourceToBuffer(VulkanGpuCommandBuffer& commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer)
-{
-	VkExtent3D extent;
-	PixelUtility::GetSizeForMipLevel(mProperties.Width, mProperties.Height, mProperties.Depth, sourceMipLevel, extent.width, extent.height, extent.depth);
-
-	const ImageSubresourcePitch pitch = GetStagingBufferPitchForSubresource(sourceFace, sourceMipLevel);
-
-	GpuTextureSubresourceRange subresourceRange;
-	subresourceRange.BaseArrayLayer = sourceFace;
-	subresourceRange.ArrayLayerCount = 1;
-	subresourceRange.BaseMipLevel = sourceMipLevel;
-	subresourceRange.MipLevelCount = 1;
-
-	if(mProperties.Usage.IsSet(TextureUsageFlag::DepthStencil))
-		subresourceRange.AspectMask = GpuTextureAspectFlag::Depth;
-	else
-		subresourceRange.AspectMask = GpuTextureAspectFlag::Color;
-
-	commandBuffer.CopyImageToBuffer(sourceImage, destinationBuffer, extent, subresourceRange, GpuImageLayout::TransferSource, pitch.RowPitch, pitch.SliceHeight);
-}
-
 render::GpuTextureMappedScope VulkanTexture::Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options)
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
