@@ -293,10 +293,14 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 			// Bake bytecode for the target language if a compiler is registered for it. Program types the compiler cannot
 			// handle (for example geometry programs for some platforms) are left bytecode-less; consumers that require bytecode (the
 			// offline shader cook) detect and report these, while runtime backends fall back to compiling from source.
-			if(const TShared<IGpuBytecodeCompiler> bytecodeCompiler = ShaderCompilers::Instance().GetBytecodeCompiler(gpuProgramCreateInformation.Language))
+			// Stages the shader doesn't define have empty source and are skipped entirely.
+			if(!gpuProgramCreateInformation.Source.empty())
 			{
-				if(bytecodeCompiler->IsProgramTypeSupported(type))
-					gpuProgramCreateInformation.Bytecode = bytecodeCompiler->CompileBytecode(gpuProgramCreateInformation);
+				if(const TShared<IGpuBytecodeCompiler> bytecodeCompiler = ShaderCompilers::Instance().GetBytecodeCompiler(gpuProgramCreateInformation.Language))
+				{
+					if(bytecodeCompiler->IsProgramTypeSupported(type))
+						gpuProgramCreateInformation.Bytecode = bytecodeCompiler->CompileBytecode(gpuProgramCreateInformation);
+				}
 			}
 
 			return gpuProgramCreateInformation;
