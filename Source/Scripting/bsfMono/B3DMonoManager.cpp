@@ -419,7 +419,7 @@ Path MonoManager::GetMonoExecPath() const
 #if B3D_PLATFORM_WIN32
 	path.Append("MonoExec.exe");
 #else
-	path.append("MonoExec");
+	path.Append("MonoExec");
 #endif
 
 	return path;
