@@ -19,6 +19,7 @@ B3DFindImportedLibraryWithConfigurationNames(SPIRVCross spirv-cross-core STATIC 
 B3DFindImportedLibraryWithConfigurationNames(SPIRVCross spirv-cross-c STATIC spirv-cross-c spirv-cross-cd)
 B3DFindImportedLibraryWithConfigurationNames(SPIRVCross spirv-cross-cpp STATIC spirv-cross-cpp spirv-cross-cppd)
 B3DFindImportedLibraryWithConfigurationNames(SPIRVCross spirv-cross-glsl STATIC spirv-cross-glsl spirv-cross-glsld)
+B3DFindImportedLibraryWithConfigurationNames(SPIRVCross spirv-cross-msl STATIC spirv-cross-msl spirv-cross-msld)
 B3DFindImportedLibraryWithConfigurationNames(SPIRVCross spirv-cross-reflect STATIC spirv-cross-reflect spirv-cross-reflectd)
 B3DFindImportedLibraryWithConfigurationNames(SPIRVCross spirv-cross-util STATIC spirv-cross-util spirv-cross-utild)
 
