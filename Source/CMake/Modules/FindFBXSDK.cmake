@@ -24,3 +24,8 @@ B3DFindImportedLibrary(FBXSDK ${FBXSDK_LIBNAME} STATIC)
 
 B3DEndFindPackage(FBXSDK ${FBXSDK_LIBNAME})
 
+# The static FBX library requires these system libraries on macOS
+if(APPLE)
+	list(APPEND FBXSDK_LIBRARIES xml2 z iconv)
+endif()
+
