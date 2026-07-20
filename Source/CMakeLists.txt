@@ -173,6 +173,7 @@ if(B3D_BUILD_ALL_PLUGINS)
 	## Scripting
 	add_subdirectory(Scripting/bsfMono)
 	add_subdirectory(Scripting/bsfScript)
+	add_subdirectory(Scripting/bsfSharpExec)
 	add_subdirectory(Scripting/bsfSharp)
 else() # Otherwise include only chosen ones
 	# Match global GpuBackend plugins. Platforms can match their own.
