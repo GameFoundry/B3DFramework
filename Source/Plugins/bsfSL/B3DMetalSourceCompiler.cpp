@@ -82,7 +82,7 @@ namespace
 		std::sort(sortedEntries.begin(), sortedEntries.end(), [](const auto* lhs, const auto* rhs)
 		{
 			if(lhs->Set != rhs->Set)
-				return lhs->Set < rhs->Set;
+				return (lhs->Set) < (rhs->Set);
 			if(lhs->Slot != rhs->Slot)
 				return lhs->Slot < rhs->Slot;
 			return lhs->Name < rhs->Name;
