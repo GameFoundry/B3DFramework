@@ -282,7 +282,7 @@ namespace b3d
 		const u32 Id; /**< Unique identifier of the scheduler thread. */
 
 		/** Returns the scheduler thread bound to the current thread. */
-		B3D_EXPORT static const TShared<SchedulerThread>& Get() { return Current; }
+		B3D_EXPORT static const TShared<SchedulerThread>& Get();
 
 	private:
 		friend class Scheduler;
@@ -462,7 +462,7 @@ namespace b3d
 		B3D_EXPORT void Post(SchedulerTask&& task);
 
 		/** Gets the scheduler bound to the current thread. */
-		B3D_EXPORT static Scheduler* Get() { return Current; }
+		B3D_EXPORT static Scheduler* Get();
 
 	private:
 		friend class SchedulerThread;

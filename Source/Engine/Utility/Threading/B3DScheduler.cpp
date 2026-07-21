@@ -146,6 +146,11 @@ static T take(UnorderedSet<T, H, E>& set) {
 
 thread_local TShared<SchedulerThread> SchedulerThread::Current{ nullptr };
 
+const TShared<SchedulerThread>& SchedulerThread::Get()
+{
+	return Current;
+}
+
 SchedulerThread::SchedulerThread(Scheduler* scheduler, Mode mode, u32 id)
 	: Id(id), mMode(mode), mOwnerScheduler(scheduler)
 { }
@@ -584,6 +589,11 @@ void SchedulerThread::SwitchExecutionToFiber(Fiber* to)
 }
 
 thread_local Scheduler* Scheduler::Current{ nullptr };
+
+Scheduler* Scheduler::Get()
+{
+	return Current;
+}
 
 u32 Scheduler::BindToCurrentThread()
 {
