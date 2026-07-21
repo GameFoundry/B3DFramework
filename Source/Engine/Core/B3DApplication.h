@@ -21,7 +21,7 @@ namespace b3d
 	 */
 
 	/**	Structure containing parameters for starting the application. */
-	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Application), ExportAsStruct(true), API(Framework)) ApplicationCreateInformation
+	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Application), ExportAsStruct(true), API(FrameworkOnly)) ApplicationCreateInformation
 	{
 		ApplicationCreateInformation() = default;
 		ApplicationCreateInformation(const VideoMode& videoMode, const String& title, bool fullscreen)

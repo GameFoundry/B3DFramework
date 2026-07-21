@@ -13,7 +13,7 @@ namespace b3d
 	 */
 
 	/**	States the game in editor can be in. */
-	enum class B3D_SCRIPT_EXPORT(API(Editor), DocumentationGroup(Editor - General)) PlayInEditorState
+	enum class B3D_SCRIPT_EXPORT(Assembly(Editor), DocumentationGroup(Editor - General)) PlayInEditorState
 	{
 		Stopped,
 		Playing,
@@ -21,7 +21,7 @@ namespace b3d
 	};
 
 	/** Handles functionality specific to running the game in editor. */
-	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT(API(Editor), DocumentationGroup(Editor - General)) PlayInEditor : public IScriptExportable
+	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT(Assembly(Editor), DocumentationGroup(Editor - General)) PlayInEditor : public IScriptExportable
 	{
 	public:
 		PlayInEditor(const TShared<SceneInstance>& sceneInstance);

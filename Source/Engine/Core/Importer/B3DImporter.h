@@ -20,14 +20,14 @@ namespace b3d
 	 * Contains a resource that was imported from a file that contains multiple resources (for example an animation from an
 	 * FBX file).
 	 */
-	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), ExportAsStruct(true), API(Framework)) SubResource
+	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), ExportAsStruct(true), API(FrameworkOnly)) SubResource
 	{
 		String Name; /**< Unique name of the sub-resource. */
 		B3D_NO_RREF HResource Value; /**< Contents of the sub-resource. */
 	};
 
 	/** Contains a group of resources imported from a single source file. */
-	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework)) MultiResource : public IScriptExportable
+	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(FrameworkOnly)) MultiResource : public IScriptExportable
 	{
 		B3D_SCRIPT_EXPORT()
 		MultiResource() = default;
@@ -43,7 +43,7 @@ namespace b3d
 	};
 
 	/** Module responsible for importing various asset types and converting them to types usable by the engine. */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework)) Importer : public Module<Importer>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(FrameworkOnly)) Importer : public Module<Importer>
 	{
 	public:
 		Importer();

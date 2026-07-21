@@ -32,7 +32,10 @@ namespace b3d
 	 *  - Property(Getter|Setter) - Specify the method should be exported as a property in script code. Getter methods must
 	 *		  return a single value and accept no parameters, while setter methods must accept one parameter and return no values.
 	 *		  Usable on methods only.
-	 *  - API(Framework|Engine|Editor) - Specify which assembly to export to. Multiple API parameters can be specified. Usable on types only.
+	 *  - Assembly(Engine|Editor) - Specify which assembly to generate the binding into. Defaults to the engine assembly.
+	 *		  Can be specified multiple times to generate into multiple assemblies. Usable on types only.
+	 *  - API(FrameworkOnly|EngineOnly|EditorOnly) - Restrict the generated code to a specific build configuration, by
+	 *		  wrapping it in a preprocessor guard. By default the code is present in all build configurations.
 	 *  - Exclude(true|false) - Excludes an enum or struct member from being generated in script code. By default all
 	 *		  struct & enum members are exported.
 	 *  - InteropOnly(true|false) - When enabled ensures only the interop C# method is generated, but not a public one.

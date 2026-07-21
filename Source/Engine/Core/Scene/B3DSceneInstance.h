@@ -166,7 +166,7 @@ namespace b3d
 
 #if B3D_WITH_EDITOR 
 	/** Interface that provides editor-specific information about a scene instance. */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) IEditorSceneInstance : public IScriptExportable, public IReflectable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene), API(EditorOnly)) IEditorSceneInstance : public IScriptExportable, public IReflectable
 	{
 	public:
 		IEditorSceneInstance() = default;
@@ -251,9 +251,9 @@ namespace b3d
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(MainCamera))
 		HCamera GetMainCamera() const;
 
-#if B3D_WITH_EDITOR 
+#if B3D_WITH_EDITOR
 		/** Editor scene instance, if running from within the editor. */
-		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(EditorSceneInstance))
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(EditorSceneInstance), API(EditorOnly))
 		TShared<IEditorSceneInstance> GetEditorSceneInstance() const { return mEditorSceneInstance.lock(); }
 #endif
 

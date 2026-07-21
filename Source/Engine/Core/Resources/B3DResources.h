@@ -19,7 +19,7 @@ namespace b3d
 	 */
 
 	/** Options that may be used to customize resource load operation. */
-	struct B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), API(Engine)) ResourceLoadOptions
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), API(EngineOnly)) ResourceLoadOptions
 	{
 		ResourceLoadOptions(bool asynchronousLoad = true, bool loadDependencies = true, bool keepInternalReference = true)
 			: AsynchronousLoad(asynchronousLoad), LoadDependencies(loadDependencies), KeepInternalReference(keepInternalReference)
@@ -53,7 +53,7 @@ namespace b3d
 	 *
 	 * @note	Main thread only.
 	 */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Resources), API(Engine)) Resources : public Module<Resources>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Resources), API(EngineOnly)) Resources : public Module<Resources>
 	{
 		/** Information about a loaded resource. */
 		struct LoadedResourceInformation

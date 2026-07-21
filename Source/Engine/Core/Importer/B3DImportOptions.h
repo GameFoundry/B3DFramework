@@ -16,7 +16,7 @@ namespace b3d
 	 * Base class for creating import options from. Import options are specific for each importer and control how is data
 	 * imported.
 	 */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework), API(Editor)) ImportOptions : public IReflectable, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), Assembly(Engine), Assembly(Editor), API(FrameworkOnly)) ImportOptions : public IReflectable, public IScriptExportable
 	{
 	public:
 		virtual ~ImportOptions() = default;

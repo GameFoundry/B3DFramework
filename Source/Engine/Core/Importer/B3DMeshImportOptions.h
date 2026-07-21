@@ -14,7 +14,7 @@ namespace b3d
 	 */
 
 	/** Controls what type of collision mesh should be imported during mesh import. */
-	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework), API(Editor)) CollisionMeshType
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), Assembly(Engine), Assembly(Editor), API(FrameworkOnly)) CollisionMeshType
 	{
 		None, /**< No collision mesh will be imported. */
 		Normal, /**< Normal triangle mesh will be imported. */
@@ -22,7 +22,7 @@ namespace b3d
 	};
 
 	/** Information about how to split an AnimationClip into multiple separate clips. */
-	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework), API(Editor)) AnimationSplitInfo : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), Assembly(Engine), Assembly(Editor), API(FrameworkOnly)) AnimationSplitInfo : IReflectable, IScriptExportable
 	{
 		B3D_SCRIPT_EXPORT()
 		AnimationSplitInfo() = default;
@@ -55,7 +55,7 @@ namespace b3d
 	};
 
 	/** A set of animation events that will be added to an animation clip during animation import. */
-	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework), API(Editor)) ImportedAnimationEvents : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), Assembly(Engine), Assembly(Editor), API(FrameworkOnly)) ImportedAnimationEvents : IReflectable, IScriptExportable
 	{
 		B3D_SCRIPT_EXPORT()
 		ImportedAnimationEvents() = default;
@@ -78,7 +78,7 @@ namespace b3d
 	/**
 	 * Contains import options you may use to control how is a mesh imported from some external format into engine format.
 	 */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework), API(Editor)) MeshImportOptions : public ImportOptions
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), Assembly(Engine), Assembly(Editor), API(FrameworkOnly)) MeshImportOptions : public ImportOptions
 	{
 	public:
 		MeshImportOptions() = default;

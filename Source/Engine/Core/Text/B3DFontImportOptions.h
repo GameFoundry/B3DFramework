@@ -13,7 +13,7 @@ namespace b3d
 	 */
 
 	/** Represents a range of character code. */
-	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Text), ExportAsStruct(true), API(Framework), API(Editor)) CharRange
+	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Text), ExportAsStruct(true), Assembly(Engine), Assembly(Editor), API(FrameworkOnly)) CharRange
 	{
 		CharRange() = default;
 
@@ -26,7 +26,7 @@ namespace b3d
 	};
 
 	/**	Import options that allow you to control how is a font imported. */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Text), API(Framework), API(Editor)) FontImportOptions : public ImportOptions
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Text), Assembly(Engine), Assembly(Editor), API(FrameworkOnly)) FontImportOptions : public ImportOptions
 	{
 	public:
 		FontImportOptions() = default;

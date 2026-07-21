@@ -13,7 +13,7 @@ namespace b3d
 	 */
 
 	/** Contains import options you may use to control how is a texture imported. */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework), API(Editor)) TextureImportOptions : public ImportOptions
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), Assembly(Engine), Assembly(Editor), API(FrameworkOnly)) TextureImportOptions : public ImportOptions
 	{
 	public:
 		TextureImportOptions() = default;

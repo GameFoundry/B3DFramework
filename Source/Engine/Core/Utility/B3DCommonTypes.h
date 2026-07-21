@@ -618,7 +618,7 @@ namespace b3d
 	};
 
 	/** Determines the type of the source image for generating cubemaps. */
-	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility), API(Framework), API(Editor)) CubemapSourceType
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility), Assembly(Engine), Assembly(Editor), API(FrameworkOnly)) CubemapSourceType
 	{
 		/** Source is a single image that will be replicated on all cubemap faces. */
 		Single,
