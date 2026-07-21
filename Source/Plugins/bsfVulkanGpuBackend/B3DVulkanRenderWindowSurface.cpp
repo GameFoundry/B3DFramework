@@ -7,6 +7,11 @@
 #include "GpuBackend/B3DGpuSubmitThread.h"
 #include "B3DVulkanSwapChain.h"
 
+#if B3D_PLATFORM_MACOS
+#	include "Private/MacOS/B3DMacOSPlatform.h"
+#	include "Private/MacOS/B3DMacOSWindow.h"
+#endif
+
 using namespace b3d;
 using namespace b3d::render;
 

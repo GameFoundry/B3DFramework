@@ -18,7 +18,7 @@
 #elif B3D_PLATFORM_LINUX
 #	include "Private/Linux/B3DLinuxVideoModeInfo.h"
 #elif B3D_PLATFORM_MACOS
-#	include "Private/MacOS/B3DMacOSVideoModeInfo.h"
+#	include "MacOS/B3DMacOSVideoModeInfo.h"
 #else
 static_assert(false, "Other platform includes go here.");
 #endif

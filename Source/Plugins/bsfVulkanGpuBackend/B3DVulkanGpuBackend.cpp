@@ -14,14 +14,16 @@
 #include "CoreObject/B3DRenderThread.h"
 #include "Utility/B3DCommandLine.h"
 #include "Utility/B3DConfigVariable.h"
-#include "Win32/B3DRenderDocFrameCapture.h"
+#if B3D_PLATFORM_WIN32
+#	include "Win32/B3DRenderDocFrameCapture.h"
+#endif
 
 #if B3D_PLATFORM_WIN32
 #	include "Private/Win32/B3DWin32VideoModeInfo.h"
 #elif B3D_PLATFORM_LINUX
 #	include "Private/Linux/B3DLinuxVideoModeInfo.h"
 #elif B3D_PLATFORM_MACOS
-#	include "Private/MacOS/B3DMacOSVideoModeInfo.h"
+#	include "MacOS/B3DMacOSVideoModeInfo.h"
 #	include <MoltenVK/vk_mvk_moltenvk.h>
 #else
 static_assert(false, "Other platform includes go here.");
@@ -436,7 +438,9 @@ void VulkanGpuBackend::OnStartUp()
 	// Create vertex input manager
 	VulkanVertexInputManager::StartUp();
 
+#if B3D_PLATFORM_WIN32
 	mFrameCapture = B3DMakeShared<RenderDocFrameCapture>(mInstance); // TODO - This should included in the build for development only, but it's currently always bundled with the application
+#endif
 
 	Super::OnStartUp();
 }

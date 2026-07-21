@@ -387,7 +387,7 @@ void VulkanSwapChain::WaitUntilFirstImageAcquired()
 void VulkanSwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncMask)
 {
 	AssertIfNotSubmitThread();
-	B3D_ASSERT(imageIndex <= (UINT32)mSurfaces.size());
+	B3D_ASSERT(imageIndex <= (u32)mSurfaces.size());
 
 	VulkanGpuQueue& vulkanQueue = static_cast<VulkanGpuQueue&>(queue);
 

@@ -23,10 +23,13 @@ VulkanGpuDevice& TVulkanResource<TBase>::GetDevice() const
 	return mOwner->GetDevice();
 }
 
-template class TVulkanResource<IGpuResource>;
-template class TVulkanResource<IGpuBufferResource>;
-template class TVulkanResource<IGpuImageResource>;
-template class TVulkanResource<GpuSwapChain>;
+namespace b3d::render
+{
+	template class TVulkanResource<IGpuResource>;
+	template class TVulkanResource<IGpuBufferResource>;
+	template class TVulkanResource<IGpuImageResource>;
+	template class TVulkanResource<GpuSwapChain>;
+}
 
 VulkanResourceManager::VulkanResourceManager(VulkanGpuDevice& device)
 	: GpuResourceManager(device)

@@ -176,7 +176,7 @@ TShared<GpuProgramBytecode> BytecodeCompilerMVKSL::CompileBytecode(const GpuProg
 	glslOptions.vertex.flip_vert_y = true;
 
 	compiler.set_common_options(glslOptions);
-	std::string source = compiler.Compile();
+	std::string source = compiler.compile();
 
 	// Parse workgroup size for compute shaders
 	u32 workgroupSize[3] = { 1, 1, 1 };
@@ -190,9 +190,9 @@ TShared<GpuProgramBytecode> BytecodeCompilerMVKSL::CompileBytecode(const GpuProg
 			spvEP = compiler.get_entry_point(ep.name, ep.execution_model);
 		}
 
-		workgroupSize[0] = spvEP.workgroup_size.X;
-		workgroupSize[1] = spvEP.workgroup_size.Y;
-		workgroupSize[2] = spvEP.workgroup_size.Z;
+		workgroupSize[0] = spvEP.workgroup_size.x;
+		workgroupSize[1] = spvEP.workgroup_size.y;
+		workgroupSize[2] = spvEP.workgroup_size.z;
 	}
 
 	// Copy the source into destination buffer
