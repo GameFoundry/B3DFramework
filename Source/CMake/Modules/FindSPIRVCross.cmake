@@ -24,3 +24,8 @@ B3DFindImportedLibraryWithConfigurationNames(SPIRVCross spirv-cross-reflect STAT
 B3DFindImportedLibraryWithConfigurationNames(SPIRVCross spirv-cross-util STATIC spirv-cross-util spirv-cross-utild)
 
 B3DEndFindPackage(SPIRVCross spirv-cross-core)
+
+# The macOS libraries are built with exceptions converted to assertions, since bsf builds with -fno-exceptions
+if(APPLE AND TARGET SPIRVCross::spirv-cross-core)
+	set_property(TARGET SPIRVCross::spirv-cross-core APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS)
+endif()

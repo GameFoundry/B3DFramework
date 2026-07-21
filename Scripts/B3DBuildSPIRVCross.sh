@@ -34,7 +34,7 @@ OutputFolder="$PlatformDependencyFolder/SPIRVCross"
 B3DCleanDependencyFolder "$OutputFolder"
 
 # Configure. Static libraries only; skip the CLI tool and tests. CMAKE_DEBUG_POSTFIX=d
-# lets both configs coexist in a flat lib/ folder.
+# lets both configs coexist in a flat lib/ folder. Exceptions become assertions since bsf builds with -fno-exceptions.
 cmake -S . -B build -G "$CMakeGenerator" \
 	-DCMAKE_INSTALL_PREFIX="$OutputFolder" \
 	-DCMAKE_POSITION_INDEPENDENT_CODE=ON \
@@ -42,7 +42,8 @@ cmake -S . -B build -G "$CMakeGenerator" \
 	-DSPIRV_CROSS_SHARED=OFF \
 	-DSPIRV_CROSS_STATIC=ON \
 	-DSPIRV_CROSS_CLI=OFF \
-	-DSPIRV_CROSS_ENABLE_TESTS=OFF || exit 1
+	-DSPIRV_CROSS_ENABLE_TESTS=OFF \
+	-DSPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS=ON || exit 1
 
 # Build and install both configurations into the same flat lib/ folder
 cmake --build build --config Release --target install || exit 1
