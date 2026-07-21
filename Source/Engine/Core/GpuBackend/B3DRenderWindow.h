@@ -60,7 +60,7 @@ namespace b3d
 	 */
 
 	/** Structure that is used for initializing a render window. */
-	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GpuBackend), ExportAsStruct(true), API(Framework)) RenderWindowCreateInformation
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GpuBackend), ExportAsStruct(true), API(FrameworkOnly)) RenderWindowCreateInformation
 	{
 		/** Output monitor, frame buffer resize and refresh rate. This is the size of the window's client area (which means actual window may be larger due to title bar and border. */
 		VideoMode VideoMode;

@@ -14,7 +14,7 @@ namespace b3d
 	 * Video mode contains information about how a render window presents its information to an output device like a
 	 * monitor.
 	 */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GpuBackend), ExportAsStruct(true), API(Framework)) VideoMode
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GpuBackend), ExportAsStruct(true), API(FrameworkOnly)) VideoMode
 	{
 	public:
 		VideoMode() = default;

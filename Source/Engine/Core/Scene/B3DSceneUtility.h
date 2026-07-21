@@ -12,7 +12,7 @@ namespace b3d
 	 */
 
 	/** Performs various scene specific operations. */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene), API(Editor), Static) SceneUtility
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene), Assembly(Editor), Static) SceneUtility
 	{
 	public:
 		/**

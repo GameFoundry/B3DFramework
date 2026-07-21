@@ -13,7 +13,7 @@ namespace b3d
 	/** @cond SCRIPT_EXTENSIONS */
 
 	/** Script-exported API for Application. */
-	class B3D_SCRIPT_EXPORT(ExtensionClassForType(Application), DocumentationGroup(Application), ExportName(Application), API(Framework)) ApplicationEx
+	class B3D_SCRIPT_EXPORT(ExtensionClassForType(Application), DocumentationGroup(Application), ExportName(Application), API(FrameworkOnly)) ApplicationEx
 	{
 	public:
 		B3D_SCRIPT_EXPORT()

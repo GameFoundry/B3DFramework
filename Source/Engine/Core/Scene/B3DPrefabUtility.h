@@ -45,7 +45,7 @@ namespace b3d
 	 */
 
 	/** Performs various prefab specific operations. */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene), API(Editor), Static) PrefabUtility
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene), Assembly(Editor), Static) PrefabUtility
 	{
 	public:
 		/**
