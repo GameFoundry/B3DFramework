@@ -10,6 +10,7 @@ namespace b3d::render
 {
 	class VulkanBarrierHelper;
 	class VulkanResourceTracker;
+	class VulkanGpuParameterSetPool;
 }
 
 namespace b3d
