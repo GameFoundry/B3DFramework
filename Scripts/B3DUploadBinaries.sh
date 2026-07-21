@@ -687,7 +687,13 @@ echo "Creating archive: $ArchiveName"
 
 if [ "$DryRun" = false ]; then
 	cd "$PackageFolder"
-	tar -czf "$ArchivePath" --transform "s,^,${ArchivePrefix}/," -T "$FileListPath"
+
+	# GNU tar and BSD tar (macOS default) spell path rewriting differently
+	if tar --version 2>&1 | grep -qi "bsdtar"; then
+		tar -czf "$ArchivePath" -s ",^,${ArchivePrefix}/," -T "$FileListPath"
+	else
+		tar -czf "$ArchivePath" --transform "s,^,${ArchivePrefix}/," -T "$FileListPath"
+	fi
 
 	if [ $? -ne 0 ]; then
 		echo "[Error] Failed to create archive"
