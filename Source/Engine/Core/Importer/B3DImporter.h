@@ -27,7 +27,7 @@ namespace b3d
 	};
 
 	/** Contains a group of resources imported from a single source file. */
-	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework)) MultiResource
+	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework)) MultiResource : public IScriptExportable
 	{
 		B3D_SCRIPT_EXPORT()
 		MultiResource() = default;
