@@ -5,6 +5,10 @@
 #include "FileSystem/B3DDataStream.h"
 #include <charconv>
 
+#if B3D_PLATFORM_MACOS || B3D_PLATFORM_IOS
+#include <xlocale.h>
+#endif
+
 #include "Image/B3DSpriteImage.h"
 #include "Resources/B3DBuiltinResources.h"
 #include "Resources/B3DResources.h"
@@ -1425,11 +1429,45 @@ bool GUIStyleSheetParser::TryParseInteger(const StringView& toParse, i32& outVal
 
 bool GUIStyleSheetParser::TryParseFloat(const StringView& toParse, float& outValue) const
 {
+#if B3D_PLATFORM_MACOS || B3D_PLATFORM_IOS
+	// Apple's libc++ makes floating-point std::from_chars unavailable below the macOS 26 deployment target, so we
+	// validate the fixed format manually and convert using strtof_l with a null locale (guaranteeing the C locale)
+	constexpr u32 MAX_LENGTH = 63;
+	if(toParse.empty() || toParse.size() > MAX_LENGTH)
+		return false;
+
+	bool hasDigit = false;
+	bool hasDecimalPoint = false;
+	for(u32 i = 0; i < toParse.size(); ++i)
+	{
+		const char entry = toParse[i];
+		if(entry >= '0' && entry <= '9')
+			hasDigit = true;
+		else if(entry == '.' && !hasDecimalPoint)
+			hasDecimalPoint = true;
+		else if(entry != '-' || i != 0)
+			return false;
+	}
+
+	if(!hasDigit)
+		return false;
+
+	char buffer[MAX_LENGTH + 1];
+	memcpy(buffer, toParse.data(), toParse.size());
+	buffer[toParse.size()] = '\0';
+
+	errno = 0;
+	char* parseEnd = nullptr;
+	outValue = strtof_l(buffer, &parseEnd, nullptr);
+
+	return parseEnd == buffer + toParse.size() && errno != ERANGE;
+#else
 	const char* const stringStart = toParse.data();
 	const char* const stringEnd = stringStart + toParse.size();
 	const std::from_chars_result parseResult = std::from_chars(stringStart, stringEnd, outValue, std::chars_format::fixed);
 
 	return parseResult.ptr == stringEnd && parseResult.ec == std::errc();
+#endif
 }
 
 bool GUIStyleSheetParser::TryParseHexColor(const StringView& toParse, Color& outValue) const
