@@ -2089,8 +2089,6 @@ void SSRStencilMaterial::Prepare(const RendererView& view, GBufferTextures gbuff
 	gSSRStencilUniformDefinition.gRoughnessScaleBias.Set(uniforms, roughnessScaleBias);
 	mUniformBufferParameter.Set(uniforms);
 
-	// Not all variations of the shader reference PerCamera, and backends whose shader reflection strips unused blocks
-	// (e.g. DirectX) then lack it in the layout
 	const GpuBufferSuballocation& perView = view.GetPerViewBuffer();
 	mGpuParameterSet->TrySetUniformBuffer("PerCamera", perView);
 }

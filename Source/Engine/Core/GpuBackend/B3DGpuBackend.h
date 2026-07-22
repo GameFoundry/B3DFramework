@@ -19,10 +19,10 @@ namespace b3d
 	 * Prefer using integrated GPU over discrete GPU when both are available. Shared by all backends - each defining its
 	 * own copy would register duplicates, and only the first registered copy receives command line/config values.
 	 */
-	extern TConfigVariable<bool> gGpuPreferIntegrated;
+	extern B3D_EXPORT TConfigVariable<bool> gGpuPreferIntegrated;
 
 	/** Index of the GPU device to use. If negative, the best device is selected automatically. Shared by all backends. */
-	extern TConfigVariable<i32> gGpuPreferredDeviceIndex;
+	extern B3D_EXPORT TConfigVariable<i32> gGpuPreferredDeviceIndex;
 
 	/**
 	 * Identifier for the HLSL source authored by BSL and consumed directly by the DirectX backends. Also the

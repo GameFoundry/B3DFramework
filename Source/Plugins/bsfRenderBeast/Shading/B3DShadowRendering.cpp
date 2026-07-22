@@ -128,8 +128,6 @@ namespace b3d
 
 		void ShadowDepthCubeMaterial::PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& shadowCubeMatrices, const GpuBufferSuballocation& shadowCubeMasks)
 		{
-			// The cube variations do the view-projection transform in the GS/PS, leaving ShadowParams unreferenced, and
-			// backends whose shader reflection strips unused blocks (e.g. DirectX) then lack it in the layout
 			gpuParameters->TrySetUniformBuffer("ShadowParams", shadowUniforms);
 			gpuParameters->SetUniformBuffer("ShadowCubeMatrices", shadowCubeMatrices);
 			gpuParameters->SetUniformBuffer("ShadowCubeMasks", shadowCubeMasks);
