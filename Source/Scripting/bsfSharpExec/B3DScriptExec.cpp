@@ -28,21 +28,21 @@ int main(int __argc, char* __argv[])
 		return 0;
 	}
 
-	MemStack::beginThread();
+	MemStack::BeginThread();
 	MonoManager::StartUp();
 
 	TShared<EngineScriptLibrary> library = B3DMakeShared<EngineScriptLibrary>();
-	ScriptManager::SetScriptLibraryInternal(library);
+	ScriptManager::SetScriptLibrary(library);
 
 	Path engineAssemblyPath = library->GetEngineAssemblyPath();
 
 	auto& monoManager = MonoManager::Instance();
-	b3d::MonoAssembly& bsfAssembly = monoManager.loadAssembly(engineAssemblyPath, ENGINE_ASSEMBLY);
-	b3d::MonoAssembly& gameAssembly = monoManager.loadAssembly(Path(__argv[1]), __argv[1]);
-	gameAssembly.invoke("Program::Start");
+	b3d::MonoAssembly& bsfAssembly = monoManager.LoadAssembly(engineAssemblyPath, kEngineAssembly);
+	b3d::MonoAssembly& gameAssembly = monoManager.LoadAssembly(Path(__argv[1]), __argv[1]);
+	gameAssembly.Invoke("Program::Start");
 
 	MonoManager::ShutDown();
-	MemStack::endThread();
+	MemStack::EndThread();
 
 	return 0;
 }

@@ -46,7 +46,7 @@ namespace b3d
 		TScriptGUIElementWrapper(NativeType* nativeObject)
 			: TScriptObjectWrapper<SelfType, BaseType>(nativeObject)
 		{
-			mNativeObject = nativeObject;
+			this->mNativeObject = nativeObject;
 		}
 
 		/**

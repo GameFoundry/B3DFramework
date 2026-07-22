@@ -52,17 +52,17 @@ namespace b3d
 		TScriptGameObjectWrapper(const TGameObjectHandle<NativeType>& nativeObject)
 			: TScriptObjectWrapper<SelfType, BaseType>(nativeObject.Get())
 		{
-			mNativeObjectStrongHandle = nativeObject;
+			this->mNativeObjectStrongHandle = nativeObject;
 		}
 
 		bool ShouldPersistScriptReload() const override { return true; }
 		ScriptObjectLifetimeTrackingMode GetLifetimeTrackingMode() const override { return ScriptObjectLifetimeTrackingMode::StrongHandleWithExplicitDestroy; }
 
 		/** Returns the wrapped native object as a shared pointer. */
-		TShared<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(mNativeObjectStrongHandle.GetShared()); }
+		TShared<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(this->mNativeObjectStrongHandle.GetShared()); }
 
 		/** Returns the wrapped native object as a handle. */
-		TGameObjectHandle<NativeType> GetNativeObjectAsHandle() const { return B3DStaticGameObjectCast<NativeType>(mNativeObjectStrongHandle); }
+		TGameObjectHandle<NativeType> GetNativeObjectAsHandle() const { return B3DStaticGameObjectCast<NativeType>(this->mNativeObjectStrongHandle); }
 
 		/**
 		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject

@@ -58,7 +58,7 @@
 namespace b3d
 {
 #if !B3D_IS_ENGINE
-	constexpr const char* ENGINE_ASSEMBLY = "bsfSharpCore";
+	constexpr const char* kEngineAssembly = "bsfSharpCore";
 #else
 	constexpr const char* kEngineAssembly = "MBansheeEngine";
 	constexpr const char* kScriptGameAssembly = "MScriptGame";

@@ -275,7 +275,11 @@ namespace b3d
 	template <class T>
 	void ScriptArray::Set(u32 idx, const T& value)
 	{
-		Detail::ScriptArraySet<T>(mInternal, idx, value);
+		// Vector<bool> element access yields a proxy reference whose address is not the value, so convert it to a real bool
+		if constexpr(std::is_same_v<T, Vector<bool>::reference>)
+			Detail::ScriptArraySet<bool>(mInternal, idx, (bool)value);
+		else
+			Detail::ScriptArraySet<T>(mInternal, idx, value);
 	}
 
 	template <class T>

@@ -4,7 +4,7 @@
 
 #include "B3DScriptEnginePrerequisites.h"
 #include "B3DScriptObjectWrapper.h"
-#include "B3DScriptResourceManager.h"
+#include "Serialization/B3DScriptAssemblyManager.h"
 #include "Resources/B3DResource.h"
 #include "Script/B3DIScriptExportable.h"
 
@@ -68,21 +68,21 @@ namespace b3d
 		TScriptResourceWrapper(const TResourceHandle<NativeType>& nativeObject)
 			: TScriptObjectWrapper<SelfType, BaseType>(nativeObject.Get())
 		{
-			mNativeObjectStrongHandle = nativeObject;
+			this->mNativeObjectStrongHandle = nativeObject;
 		}
 
 		/** Returns the wrapped native object as a shared pointer. */
-		TShared<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(mNativeObjectStrongHandle.GetShared()); }
+		TShared<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(this->mNativeObjectStrongHandle.GetShared()); }
 
 		/** Returns the wrapped native object as a handle. */
-		TResourceHandle<NativeType> GetNativeObjectAsHandle() const { return B3DStaticResourceCast<NativeType>(mNativeObjectStrongHandle); }
+		TResourceHandle<NativeType> GetNativeObjectAsHandle() const { return B3DStaticResourceCast<NativeType>(this->mNativeObjectStrongHandle); }
 
-		u32 GetNativeObjectReferenceCount() const override { return (u32)mNativeObjectStrongHandle.GetReferenceCount(); }
+		u32 GetNativeObjectReferenceCount() const override { return (u32)this->mNativeObjectStrongHandle.GetReferenceCount(); }
 
 		/** Returns a resource reference script object, that is wrapping the provided resource. */
 		MonoObject* GetOrCreateResourceReference() const
 		{
-			return ScriptResourceWrapper::GetOrCreateResourceReference(mNativeObjectStrongHandle, NativeType::GetRttiStatic()->GetRttiId());
+			return ScriptResourceWrapper::GetOrCreateResourceReference(this->mNativeObjectStrongHandle, NativeType::GetRttiStatic()->GetRttiId());
 		}
 
 		bool ShouldPersistScriptReload() const override { return true; }

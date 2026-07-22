@@ -5,6 +5,7 @@
 #include "B3DMonoUtil.h"
 #include "Resources/B3DResources.h"
 #include "Serialization/B3DScriptAssemblyManager.h"
+#include "B3DScriptResourceManager.h"
 
 using namespace b3d;
 ScriptRRefBase::ScriptRRefBase(const HResource& nativeObject)

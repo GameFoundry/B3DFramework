@@ -227,7 +227,7 @@ namespace b3d
 		void RecreateScriptObjectAfterScriptReload() override
 		{
 			// Try to create the object via the native object and fall back to default implementation otherwise
-			if(mNativeObject != nullptr && mNativeObject->RecreateScriptObjectAfterScriptReload())
+			if(this->mNativeObject != nullptr && this->mNativeObject->RecreateScriptObjectAfterScriptReload())
 				return;
 
 			MonoObject* const scriptObject = SelfType::CreateScriptObject(true);
@@ -241,8 +241,8 @@ namespace b3d
 		{
 			SelfType* scriptObjectWrapper = nullptr;
 
-			if(sInteropMetaData.ScriptObjectWrapperPointerField != nullptr && scriptObject != nullptr)
-				sInteropMetaData.ScriptObjectWrapperPointerField->Get(scriptObject, &scriptObjectWrapper);
+			if(SelfType::sInteropMetaData.ScriptObjectWrapperPointerField != nullptr && scriptObject != nullptr)
+				SelfType::sInteropMetaData.ScriptObjectWrapperPointerField->Get(scriptObject, &scriptObjectWrapper);
 
 			return scriptObjectWrapper;
 		}
@@ -257,8 +257,8 @@ namespace b3d
 
 			self->CreateScriptObjectHandle(scriptObject);
 
-			if(sInteropMetaData.ScriptObjectWrapperPointerField != nullptr)
-				sInteropMetaData.ScriptObjectWrapperPointerField->Set(scriptObject, &self);
+			if(SelfType::sInteropMetaData.ScriptObjectWrapperPointerField != nullptr)
+				SelfType::sInteropMetaData.ScriptObjectWrapperPointerField->Set(scriptObject, &self);
 		}
 	};
 

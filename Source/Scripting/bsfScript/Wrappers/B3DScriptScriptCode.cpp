@@ -32,16 +32,16 @@ MonoObject* ScriptScriptCode::CreateScriptObject(bool construct)
 	return sInteropMetaData.ScriptClass->CreateInstance(construct);
 }
 
-ScriptCode* ScriptScriptCode::GetNativeObject() const
+b3d::ScriptCode* ScriptScriptCode::GetNativeObject() const
 {
-	return static_cast<ScriptCode*>(TScriptResourceWrapper::GetNativeObject());
+	return static_cast<b3d::ScriptCode*>(TScriptResourceWrapper::GetNativeObject());
 }
 
 
 void ScriptScriptCode::InternalCreateInstance(MonoObject* scriptObject, MonoString* text)
 {
 	WString strText = MonoUtil::MonoToWString(text);
-	HScriptCode scriptCode = ScriptCode::Create(strText);
+	HScriptCode scriptCode = b3d::ScriptCode::Create(strText);
 
 	ScriptObjectWrapper::Create<ScriptScriptCode>(scriptCode, scriptObject);
 }

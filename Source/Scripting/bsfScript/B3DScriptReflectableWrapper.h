@@ -56,13 +56,13 @@ namespace b3d
 		TScriptReflectableWrapper(const TShared<NativeType>& nativeObject)
 			: TScriptObjectWrapper<SelfType, BaseType>(nativeObject.get())
 		{
-			mNativeObjectStrongHandle = nativeObject;
+			this->mNativeObjectStrongHandle = nativeObject;
 		}
 
 		/** Returns the wrapped native object as a shared pointer. */
-		TShared<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(mNativeObjectStrongHandle); }
+		TShared<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(this->mNativeObjectStrongHandle); }
 
-		u32 GetNativeObjectReferenceCount() const override { return (u32)mNativeObjectStrongHandle.use_count(); }
+		u32 GetNativeObjectReferenceCount() const override { return (u32)this->mNativeObjectStrongHandle.use_count(); }
 
 		/**
 		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject
