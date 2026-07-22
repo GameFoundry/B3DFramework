@@ -28,9 +28,6 @@ namespace b3d
 	/** Enables GPU-based validation (requires debug layer). More thorough but slower. */
 	static const bool kEnableD3D12GPUBasedValidation = false;
 
-	static TConfigVariable gPreferIntegratedGPU("gpu.PreferIntegrated", "Prefer using integrated GPU over discrete GPU when both are available.", false, ConfigVariableFlag::ReadOnly);
-	static TConfigVariable gPreferredGPUIndex("gpu.PreferredDeviceIndex", "Specifies the index of the GPU to use. Use < 0 is provided, best GPU is selected automatically.", -1, ConfigVariableFlag::ReadOnly);
-
 } // namespace b3d
 
 using namespace b3d;
@@ -94,7 +91,7 @@ void D3D12GpuBackend::OnStartUp()
 	for (UINT adapterIndex = 0;
 		mDXGIFactory->EnumAdapterByGpuPreference(
 			adapterIndex,
-			gPreferIntegratedGPU ? DXGI_GPU_PREFERENCE_MINIMUM_POWER : DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
+			gGpuPreferIntegrated ? DXGI_GPU_PREFERENCE_MINIMUM_POWER : DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
 			IID_PPV_ARGS(&adapter)) != DXGI_ERROR_NOT_FOUND;
 		++adapterIndex)
 	{
@@ -124,8 +121,8 @@ void D3D12GpuBackend::OnStartUp()
 
 	// Select primary adapter
 	u32 primaryAdapterIndex = 0;
-	if (gPreferredGPUIndex >= 0 && (u32)gPreferredGPUIndex < availableAdapters.size())
-		primaryAdapterIndex = (u32)gPreferredGPUIndex;
+	if (gGpuPreferredDeviceIndex >= 0 && (u32)gGpuPreferredDeviceIndex < availableAdapters.size())
+		primaryAdapterIndex = (u32)gGpuPreferredDeviceIndex;
 
 	mDXGIAdapter = availableAdapters[primaryAdapterIndex];
 

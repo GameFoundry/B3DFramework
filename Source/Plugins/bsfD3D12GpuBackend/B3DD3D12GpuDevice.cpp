@@ -44,6 +44,27 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter)
 	hr = D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&mDevice));
 	B3D_ASSERT(SUCCEEDED(hr) && "Failed to create D3D12 device");
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	{
+		// Clear colors are runtime-driven (viewport background, render target clear parameters) so they can never
+		// reliably match the fixed optimized clear value provided at resource creation; the mismatch message is a
+		// pure performance note that would otherwise spam the log on every clear.
+		ComPtr<ID3D12InfoQueue> infoQueue;
+		if (SUCCEEDED(mDevice.As(&infoQueue)))
+		{
+			D3D12_MESSAGE_ID deniedMessages[] = {
+				D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE,
+				D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE
+			};
+
+			D3D12_INFO_QUEUE_FILTER filter = {};
+			filter.DenyList.NumIDs = (UINT)std::size(deniedMessages);
+			filter.DenyList.pIDList = deniedMessages;
+			infoQueue->AddStorageFilterEntries(&filter);
+		}
+	}
+#endif
+
 	// Create command queues for each queue type
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;

@@ -167,7 +167,9 @@ void RadixSortPrefixScanMaterial::Execute(GpuCommandBuffer& commandBuffer, const
 	MInputCountsParam.Set(inputCounts);
 	MOutputOffsetsParam.Set(outputOffsets);
 
-	mGpuParameterSet->SetUniformBuffer("Params", params);
+	// The prefix-scan kernel never references the shared Params block from its mixin, and backends whose shader
+	// reflection strips unused blocks (e.g. DirectX) then lack it in the layout
+	mGpuParameterSet->TrySetUniformBuffer("Params", params);
 
 	Bind(commandBuffer);
 	commandBuffer.DispatchCompute(1);

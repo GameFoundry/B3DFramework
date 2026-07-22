@@ -90,6 +90,11 @@ namespace b3d
 				D3D12_CPU_DESCRIPTOR_HANDLE GPUVisibleCPUStart = { 0 };
 				D3D12_GPU_DESCRIPTOR_HANDLE GPUVisibleGPUStart = { 0 };
 
+				// Descriptor copied into GPU-visible heap slots whose binding was never (or null-) set: a null
+				// CBV/SRV/UAV matching the binding's declared type, or the default sampler for sampler bindings.
+				// Freshly allocated GPU-visible ranges hold stale data, so every slot must be written.
+				D3D12_CPU_DESCRIPTOR_HANDLE NullDescriptorHandle = { 0 };
+
 				bool IsDirty = true;
 			};
 

@@ -39,11 +39,80 @@ D3D12DescriptorManager::D3D12DescriptorManager(D3D12GpuDevice& device)
 
 		d3d12Device->CreateSampler(&samplerDesc, mDefaultSamplerHandle);
 	}
+
+	CreateNullDescriptors();
 }
 
 D3D12DescriptorManager::~D3D12DescriptorManager()
 {
 	// Heaps will be released automatically via ComPtr
+}
+
+void D3D12DescriptorManager::CreateNullDescriptors()
+{
+	ID3D12Device* d3d12Device = mDevice.GetD3D12Device();
+
+	// The formats are arbitrary (null descriptors read as zero regardless) but must be valid for the view dimension
+	mNullCBVHandle = AllocateCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV);
+	if (mNullCBVHandle.ptr != 0)
+		d3d12Device->CreateConstantBufferView(nullptr, mNullCBVHandle);
+
+	const D3D12_SRV_DIMENSION srvDimensions[] = {
+		D3D12_SRV_DIMENSION_BUFFER, D3D12_SRV_DIMENSION_TEXTURE1D, D3D12_SRV_DIMENSION_TEXTURE1DARRAY,
+		D3D12_SRV_DIMENSION_TEXTURE2D, D3D12_SRV_DIMENSION_TEXTURE2DARRAY, D3D12_SRV_DIMENSION_TEXTURE2DMS,
+		D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY, D3D12_SRV_DIMENSION_TEXTURE3D, D3D12_SRV_DIMENSION_TEXTURECUBE,
+		D3D12_SRV_DIMENSION_TEXTURECUBEARRAY
+	};
+
+	for (D3D12_SRV_DIMENSION dimension : srvDimensions)
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE handle = AllocateCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV);
+		if (handle.ptr == 0)
+			continue;
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = dimension == D3D12_SRV_DIMENSION_BUFFER ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R8G8B8A8_UNORM;
+		srvDesc.ViewDimension = dimension;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+		d3d12Device->CreateShaderResourceView(nullptr, &srvDesc, handle);
+		mNullSRVHandles[dimension] = handle;
+	}
+
+	const D3D12_UAV_DIMENSION uavDimensions[] = {
+		D3D12_UAV_DIMENSION_BUFFER, D3D12_UAV_DIMENSION_TEXTURE1D, D3D12_UAV_DIMENSION_TEXTURE1DARRAY,
+		D3D12_UAV_DIMENSION_TEXTURE2D, D3D12_UAV_DIMENSION_TEXTURE2DARRAY, D3D12_UAV_DIMENSION_TEXTURE3D
+	};
+
+	for (D3D12_UAV_DIMENSION dimension : uavDimensions)
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE handle = AllocateCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV);
+		if (handle.ptr == 0)
+			continue;
+
+		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+		uavDesc.Format = dimension == D3D12_UAV_DIMENSION_BUFFER ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R8G8B8A8_UNORM;
+		uavDesc.ViewDimension = dimension;
+
+		d3d12Device->CreateUnorderedAccessView(nullptr, nullptr, &uavDesc, handle);
+		mNullUAVHandles[dimension] = handle;
+	}
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::GetNullSRVHandle(D3D12_SRV_DIMENSION dimension) const
+{
+	if ((u32)dimension >= (u32)std::size(mNullSRVHandles))
+		return D3D12_CPU_DESCRIPTOR_HANDLE{ 0 };
+
+	return mNullSRVHandles[dimension];
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::GetNullUAVHandle(D3D12_UAV_DIMENSION dimension) const
+{
+	if ((u32)dimension >= (u32)std::size(mNullUAVHandles))
+		return D3D12_CPU_DESCRIPTOR_HANDLE{ 0 };
+
+	return mNullUAVHandles[dimension];
 }
 
 void D3D12DescriptorManager::CreateHeaps()

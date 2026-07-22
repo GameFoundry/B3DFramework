@@ -75,9 +75,6 @@ static const bool kEnableVulkanValidationLayers = B3D_DEBUG;
 /** Enabled Vulkan debug labels for objects. */
 static const bool kEnableVulkanDebugLabels = B3D_DEBUG;
 
-static TConfigVariable gPreferIntegratedGPU("gpu.PreferIntegrated", "Prefer using integrated GPU over discrete GPU when both are available.", false, ConfigVariableFlag::ReadOnly);
-static TConfigVariable gPreferredGPUIndex("gpu.PreferredDeviceIndex", "Specifies the index of the GPU to use. Use < 0 is provided, best GPU is selected automatically.", -1, ConfigVariableFlag::ReadOnly);
-
 } // namespace b3d
 
 using namespace b3d;
@@ -368,8 +365,8 @@ void VulkanGpuBackend::OnStartUp()
 	// Find primary device
 	uint32_t primaryDeviceIndex = ~0u;
 
-	if(gPreferredGPUIndex >= 0 && gPreferredGPUIndex < (i32)physicalDeviceCount)
-		primaryDeviceIndex = (u32)gPreferredGPUIndex;
+	if(gGpuPreferredDeviceIndex >= 0 && gGpuPreferredDeviceIndex < (i32)physicalDeviceCount)
+		primaryDeviceIndex = (u32)gGpuPreferredDeviceIndex;
 
 	if(primaryDeviceIndex == ~0u)
 	{
@@ -378,7 +375,7 @@ void VulkanGpuBackend::OnStartUp()
 			VkPhysicalDeviceProperties deviceProperties;
 			vkGetPhysicalDeviceProperties(physicalDevices[deviceIndex], &deviceProperties);
 
-			const bool isPrimary = gPreferIntegratedGPU ? deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU : deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+			const bool isPrimary = gGpuPreferIntegrated ? deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU : deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 
 			if(isPrimary)
 			{

@@ -32,6 +32,40 @@ namespace
 			return false;
 		}
 	}
+
+	/** Returns the SRV dimension matching a sampled-texture object type. */
+	D3D12_SRV_DIMENSION GetSRVDimension(GpuParameterObjectType type)
+	{
+		switch(type)
+		{
+		case GPOT_TEXTURE1D:			return D3D12_SRV_DIMENSION_TEXTURE1D;
+		case GPOT_TEXTURE1DARRAY:		return D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
+		case GPOT_TEXTURE2D:			return D3D12_SRV_DIMENSION_TEXTURE2D;
+		case GPOT_TEXTURE2DARRAY:		return D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+		case GPOT_TEXTURE2DMS:			return D3D12_SRV_DIMENSION_TEXTURE2DMS;
+		case GPOT_TEXTURE2DMSARRAY:		return D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY;
+		case GPOT_TEXTURE3D:			return D3D12_SRV_DIMENSION_TEXTURE3D;
+		case GPOT_TEXTURECUBE:			return D3D12_SRV_DIMENSION_TEXTURECUBE;
+		case GPOT_TEXTURECUBEARRAY:		return D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
+		default:						return D3D12_SRV_DIMENSION_TEXTURE2D;
+		}
+	}
+
+	/** Returns the UAV dimension matching a storage-texture object type. */
+	D3D12_UAV_DIMENSION GetUAVDimension(GpuParameterObjectType type)
+	{
+		switch(type)
+		{
+		case GPOT_RWTEXTURE1D:			return D3D12_UAV_DIMENSION_TEXTURE1D;
+		case GPOT_RWTEXTURE1DARRAY:		return D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
+		case GPOT_RWTEXTURE2D:
+		case GPOT_RWTEXTURE2DMS:		return D3D12_UAV_DIMENSION_TEXTURE2D;
+		case GPOT_RWTEXTURE2DARRAY:
+		case GPOT_RWTEXTURE2DMSARRAY:	return D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+		case GPOT_RWTEXTURE3D:			return D3D12_UAV_DIMENSION_TEXTURE3D;
+		default:						return D3D12_UAV_DIMENSION_TEXTURE2D;
+		}
+	}
 }
 
 D3D12GpuParameters::D3D12GpuParameters(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, D3D12GpuDevice& device, u32 setIndex)
@@ -84,6 +118,32 @@ void D3D12GpuParameters::Initialize()
 			table.DescriptorCount = uniformInfo->ArraySize;
 			table.Descriptors.resize(uniformInfo->ArraySize);
 			table.IsDirty = true;
+
+			// Fallback descriptor for elements the caller leaves unbound, matching the binding's declared type (see
+			// the field's documentation)
+			D3D12DescriptorManager& descriptorManager = mDevice.GetDescriptorManager();
+			switch (type)
+			{
+			case GpuParameterType::UniformBuffer:
+				table.NullDescriptorHandle = descriptorManager.GetNullCBVHandle();
+				break;
+			case GpuParameterType::SampledTexture:
+				table.NullDescriptorHandle = descriptorManager.GetNullSRVHandle(GetSRVDimension(uniformInfo->ObjectType));
+				break;
+			case GpuParameterType::StorageTexture:
+				table.NullDescriptorHandle = descriptorManager.GetNullUAVHandle(GetUAVDimension(uniformInfo->ObjectType));
+				break;
+			case GpuParameterType::StorageBuffer:
+				table.NullDescriptorHandle = IsReadWriteStorageBuffer(uniformInfo->ObjectType)
+					? descriptorManager.GetNullUAVHandle(D3D12_UAV_DIMENSION_BUFFER)
+					: descriptorManager.GetNullSRVHandle(D3D12_SRV_DIMENSION_BUFFER);
+				break;
+			case GpuParameterType::Sampler:
+				table.NullDescriptorHandle = descriptorManager.GetDefaultSamplerCPUHandle();
+				break;
+			default:
+				break;
+			}
 		}
 	}
 }
@@ -102,9 +162,7 @@ bool D3D12GpuParameters::SetUniformBuffer(u32 slot, const TShared<GpuBuffer>& un
 	//					 created on the buffer always covers suballocation 0.
 	if (uniformBuffer == nullptr)
 	{
-		// TODO(d3d12-port): builtin dummy resources. Without a dummy CBV the slot is left with a null descriptor and the
-		//					 copy into the GPU-visible heap is skipped (see UpdateGPUDescriptors).
-		B3D_LOG(Warning, LogRenderBackend, "D3D12: Null uniform buffer bound to set {0} slot {1}; no dummy resource available.", GetSet(), slot);
+		// A cleared handle makes the GPU-visible copy substitute a null CBV (see UpdateGPUDescriptors)
 		SetDescriptor(slot, arrayIndex, D3D12_CPU_DESCRIPTOR_HANDLE{ 0 });
 		return true;
 	}
@@ -121,8 +179,7 @@ bool D3D12GpuParameters::SetSampledTexture(u32 slot, const TShared<Texture>& tex
 
 	if (texture == nullptr)
 	{
-		// TODO(d3d12-port): builtin dummy resources.
-		B3D_LOG(Warning, LogRenderBackend, "D3D12: Null sampled texture bound to set {0} slot {1}; no dummy resource available.", GetSet(), slot);
+		// A cleared handle makes the GPU-visible copy substitute a null SRV (see UpdateGPUDescriptors)
 		SetDescriptor(slot, arrayIndex, D3D12_CPU_DESCRIPTOR_HANDLE{ 0 });
 		return true;
 	}
@@ -139,8 +196,7 @@ bool D3D12GpuParameters::SetStorageTexture(u32 slot, const TShared<Texture>& tex
 
 	if (texture == nullptr)
 	{
-		// TODO(d3d12-port): builtin dummy resources.
-		B3D_LOG(Warning, LogRenderBackend, "D3D12: Null storage texture bound to set {0} slot {1}; no dummy resource available.", GetSet(), slot);
+		// A cleared handle makes the GPU-visible copy substitute a null UAV (see UpdateGPUDescriptors)
 		SetDescriptor(slot, arrayIndex, D3D12_CPU_DESCRIPTOR_HANDLE{ 0 });
 		return true;
 	}
@@ -157,8 +213,7 @@ bool D3D12GpuParameters::SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& bu
 
 	if (buffer == nullptr)
 	{
-		// TODO(d3d12-port): builtin dummy resources.
-		B3D_LOG(Warning, LogRenderBackend, "D3D12: Null storage buffer bound to set {0} slot {1}; no dummy resource available.", GetSet(), slot);
+		// A cleared handle makes the GPU-visible copy substitute a null SRV/UAV (see UpdateGPUDescriptors)
 		SetDescriptor(slot, arrayIndex, D3D12_CPU_DESCRIPTOR_HANDLE{ 0 });
 		return true;
 	}
@@ -203,8 +258,7 @@ bool D3D12GpuParameters::SetSamplerState(u32 slot, const TShared<SamplerState>& 
 
 	if (sampler == nullptr)
 	{
-		// TODO(d3d12-port): builtin dummy resources.
-		B3D_LOG(Warning, LogRenderBackend, "D3D12: Null sampler bound to set {0} slot {1}; no dummy resource available.", GetSet(), slot);
+		// A cleared handle makes the GPU-visible copy substitute the default sampler (see UpdateGPUDescriptors)
 		SetSamplerDescriptor(slot, arrayIndex, D3D12_CPU_DESCRIPTOR_HANDLE{ 0 });
 		return true;
 	}
@@ -364,12 +418,19 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device)
 			for (u32 i = 0; i < table.Descriptors.size(); i++)
 			{
 				BoundDescriptor& desc = table.Descriptors[i];
-				if (desc.CPUHandle.ptr != 0)
+
+				// Elements never (or null-) set by the caller fall back to a null descriptor of the binding's declared
+				// type: the freshly allocated range holds stale data, so leaving the slot unwritten would hand the
+				// shader whatever descriptor a previous update left there.
+				const D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle =
+					desc.CPUHandle.ptr != 0 ? desc.CPUHandle : table.NullDescriptorHandle;
+
+				if (sourceHandle.ptr != 0)
 				{
 					D3D12_CPU_DESCRIPTOR_HANDLE dstHandle = table.GPUVisibleCPUStart;
 					dstHandle.ptr += i * resourceDescriptorSize;
 
-					d3d12Device->CopyDescriptorsSimple(1, dstHandle, desc.CPUHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					d3d12Device->CopyDescriptorsSimple(1, dstHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				}
 
 				desc.IsDirty = false;
@@ -395,11 +456,11 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device)
 			{
 				BoundDescriptor& desc = table.Descriptors[i];
 
-				// Sampler bindings never (or null-) set by the caller fall back to the default sampler: unlike
-				// resource views there is no null descriptor for samplers, and a heap slot left unwritten is
-				// undefined to sample through.
+				// Sampler bindings never (or null-) set by the caller fall back to the default sampler (the table's
+				// fallback handle): unlike resource views there is no null descriptor for samplers, and a heap slot
+				// left unwritten is undefined to sample through.
 				const D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle =
-					desc.CPUHandle.ptr != 0 ? desc.CPUHandle : descriptorManager.GetDefaultSamplerCPUHandle();
+					desc.CPUHandle.ptr != 0 ? desc.CPUHandle : table.NullDescriptorHandle;
 
 				if (sourceHandle.ptr != 0)
 				{

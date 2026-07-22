@@ -54,6 +54,27 @@ namespace b3d
 			 */
 			D3D12_CPU_DESCRIPTOR_HANDLE GetDefaultSamplerCPUHandle() const { return mDefaultSamplerHandle; }
 
+			/**
+			 * Returns a null CBV descriptor, used for uniform buffer bindings the caller never set. Shader reads
+			 * through it return zero. Copying nothing into a shader-visible heap slot is not an alternative: freshly
+			 * allocated ranges contain whatever the previous frame left there.
+			 */
+			D3D12_CPU_DESCRIPTOR_HANDLE GetNullCBVHandle() const { return mNullCBVHandle; }
+
+			/**
+			 * Returns a null SRV descriptor of the given view dimension, used for read-only texture/buffer bindings the
+			 * caller never set. Shader reads through it return zero. The dimension must match the shader's declared
+			 * resource type for the null-descriptor guarantees to hold.
+			 */
+			D3D12_CPU_DESCRIPTOR_HANDLE GetNullSRVHandle(D3D12_SRV_DIMENSION dimension) const;
+
+			/**
+			 * Returns a null UAV descriptor of the given view dimension, used for read-write texture/buffer bindings
+			 * the caller never set. Shader reads through it return zero, writes are dropped. The dimension must match
+			 * the shader's declared resource type for the null-descriptor guarantees to hold.
+			 */
+			D3D12_CPU_DESCRIPTOR_HANDLE GetNullUAVHandle(D3D12_UAV_DIMENSION dimension) const;
+
 			/** Returns the descriptor increment size for the specified heap type. */
 			u32 GetDescriptorIncrementSize(D3D12DescriptorHeapType type) const { return mDescriptorSizes[(u32)type]; }
 
@@ -63,6 +84,9 @@ namespace b3d
 		private:
 			/** Creates the descriptor heaps. */
 			void CreateHeaps();
+
+			/** Creates the null CBV/SRV/UAV descriptors unset resource bindings fall back to. */
+			void CreateNullDescriptors();
 
 			/** Descriptor heap for a specific type. */
 			struct DescriptorHeap
@@ -86,6 +110,11 @@ namespace b3d
 			DescriptorHeap mStagingHeaps[2]; // CPU-only staging heaps for CBV_SRV_UAV and Sampler resource views
 			u32 mDescriptorSizes[4] = {}; // Descriptor size for each type
 			D3D12_CPU_DESCRIPTOR_HANDLE mDefaultSamplerHandle{}; // Fallback for sampler bindings never set by the caller
+
+			// Fallbacks for resource bindings never set by the caller, indexed by view dimension where applicable
+			D3D12_CPU_DESCRIPTOR_HANDLE mNullCBVHandle{};
+			D3D12_CPU_DESCRIPTOR_HANDLE mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURECUBEARRAY + 1] = {};
+			D3D12_CPU_DESCRIPTOR_HANDLE mNullUAVHandles[D3D12_UAV_DIMENSION_TEXTURE3D + 1] = {};
 		};
 
 		/** @} */

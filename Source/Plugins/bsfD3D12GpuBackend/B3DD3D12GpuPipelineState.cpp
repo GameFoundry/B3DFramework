@@ -170,6 +170,20 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> D3D12GpuGraphicsPipelineState::Creat
 		psoDesc.BlendState.RenderTarget[i].BlendOpAlpha = D3D12Utility::GetBlendOp(rtBlendState.AlphaBlendOperation);
 		psoDesc.BlendState.RenderTarget[i].LogicOp = D3D12_LOGIC_OP_NOOP;
 		psoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask = rtBlendState.RenderTargetWriteMask & 0xF;
+
+		// MIN/MAX blend operations ignore the blend factors (treated as ONE); set them explicitly so the debug
+		// layer doesn't warn about the unused values
+		if (psoDesc.BlendState.RenderTarget[i].BlendOp == D3D12_BLEND_OP_MIN || psoDesc.BlendState.RenderTarget[i].BlendOp == D3D12_BLEND_OP_MAX)
+		{
+			psoDesc.BlendState.RenderTarget[i].SrcBlend = D3D12_BLEND_ONE;
+			psoDesc.BlendState.RenderTarget[i].DestBlend = D3D12_BLEND_ONE;
+		}
+
+		if (psoDesc.BlendState.RenderTarget[i].BlendOpAlpha == D3D12_BLEND_OP_MIN || psoDesc.BlendState.RenderTarget[i].BlendOpAlpha == D3D12_BLEND_OP_MAX)
+		{
+			psoDesc.BlendState.RenderTarget[i].SrcBlendAlpha = D3D12_BLEND_ONE;
+			psoDesc.BlendState.RenderTarget[i].DestBlendAlpha = D3D12_BLEND_ONE;
+		}
 	}
 
 	// Depth-stencil state
