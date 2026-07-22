@@ -12,6 +12,7 @@ namespace b3d
 		PNG = 0,
 		BMP = 2,
 		JPG = 1,
-		TGA = 3
+		TGA = 3,
+		EXR = 4
 	}
 }

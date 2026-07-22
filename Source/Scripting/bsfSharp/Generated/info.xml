@@ -159,6 +159,137 @@
 			<doc>Brightness multiplier that will be applied to skybox values before they&apos;re being used. Allows you to make the skybox more or less bright. Equal to one by default.</doc>
 		</property>
 	</class>
+	<enum native="PointerEventType" script="PointerEventType">
+		<doc>Type of pointer event.</doc>
+		<enumentry native="CursorMoved" script="CursorMoved">
+		</enumentry>
+		<enumentry native="ButtonPressed" script="ButtonPressed">
+		</enumentry>
+		<enumentry native="ButtonReleased" script="ButtonReleased">
+		</enumentry>
+		<enumentry native="DoubleClick" script="DoubleClick">
+		</enumentry>
+	</enum>
+	<struct native="TVector2&lt;float&gt;" script="TVector2&lt;float&gt;">
+		<doc>A two dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="float">
+			</param>
+			<param name="y" type="float">
+			</param>
+		</ctor>
+		<field name="X" type="float">
+		</field>
+		<field name="Y" type="float">
+		</field>
+	</struct>
+	<struct native="TVector2&lt;double&gt;" script="TVector2&lt;double&gt;">
+		<doc>A two dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="double">
+			</param>
+			<param name="y" type="double">
+			</param>
+		</ctor>
+		<field name="X" type="double">
+		</field>
+		<field name="Y" type="double">
+		</field>
+	</struct>
+	<struct native="TVector2&lt;int32_t&gt;" script="TVector2&lt;int&gt;">
+		<doc>A two dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+	</struct>
+	<struct native="TVector2&lt;uint32_t&gt;" script="TVector2&lt;int&gt;">
+		<doc>A two dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+	</struct>
+	<struct native="TVector2&lt;TUnitValue&lt;int32_t, LogicalPixel&gt;&gt;" script="TVector2&lt;TUnitValue&lt;int,LogicalPixel&gt;&gt;">
+		<doc>A two dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="TUnitValue&lt;int,LogicalPixel&gt;">
+			</param>
+			<param name="y" type="TUnitValue&lt;int,LogicalPixel&gt;">
+			</param>
+		</ctor>
+		<field name="X" type="TUnitValue&lt;int,LogicalPixel&gt;">
+		</field>
+		<field name="Y" type="TUnitValue&lt;int,LogicalPixel&gt;">
+		</field>
+	</struct>
+	<struct native="TVector2&lt;TUnitValue&lt;float, LogicalPixel&gt;&gt;" script="TVector2&lt;TUnitValue&lt;float,LogicalPixel&gt;&gt;">
+		<doc>A two dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="TUnitValue&lt;float,LogicalPixel&gt;">
+			</param>
+			<param name="y" type="TUnitValue&lt;float,LogicalPixel&gt;">
+			</param>
+		</ctor>
+		<field name="X" type="TUnitValue&lt;float,LogicalPixel&gt;">
+		</field>
+		<field name="Y" type="TUnitValue&lt;float,LogicalPixel&gt;">
+		</field>
+	</struct>
+	<struct native="TVector2&lt;TUnitValue&lt;int32_t, PhysicalPixel&gt;&gt;" script="TVector2&lt;TUnitValue&lt;int,PhysicalPixel&gt;&gt;">
+		<doc>A two dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="TUnitValue&lt;int,PhysicalPixel&gt;">
+			</param>
+			<param name="y" type="TUnitValue&lt;int,PhysicalPixel&gt;">
+			</param>
+		</ctor>
+		<field name="X" type="TUnitValue&lt;int,PhysicalPixel&gt;">
+		</field>
+		<field name="Y" type="TUnitValue&lt;int,PhysicalPixel&gt;">
+		</field>
+	</struct>
+	<struct native="TVector2&lt;TUnitValue&lt;float, PhysicalPixel&gt;&gt;" script="TVector2&lt;TUnitValue&lt;float,PhysicalPixel&gt;&gt;">
+		<doc>A two dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="TUnitValue&lt;float,PhysicalPixel&gt;">
+			</param>
+			<param name="y" type="TUnitValue&lt;float,PhysicalPixel&gt;">
+			</param>
+		</ctor>
+		<field name="X" type="TUnitValue&lt;float,PhysicalPixel&gt;">
+		</field>
+		<field name="Y" type="TUnitValue&lt;float,PhysicalPixel&gt;">
+		</field>
+	</struct>
 	<class native="ParticleColor" script="ParticleColor">
 		<doc>Changes the color of the particles over the particle lifetime.</doc>
 		<ctor>
@@ -348,10 +479,40 @@
 		<enumentry native="DOT_TRIANGLE_LIST" script="TriangleList">
 			<doc>Each sequential 3-tuple of vertices represent a triangle.</doc>
 		</enumentry>
-		<enumentry native="DOT_TRIANGLE_FAN" script="TriangleFan">
-			<doc>Each vertex (except the first two) form a triangle with the first vertex and previous vertex.</doc>
+		<enumentry native="DOT_COUNT" script="TriangleFan">
+			<doc>Total number of draw operation types.</doc>
 		</enumentry>
 	</enum>
+	<class native="GUIRenderable" script="GUIRenderable">
+		<doc>Represents a GUI element that can be rendered (i.e. has a visual representation). Renderable element can have a particular style, and provides one or multiple render elements to be drawn.</doc>
+		<property name="StyleSheetClass" type="string" getter="GetStyleSheetClass" setter="SetStyleSheetClass" static="false">
+			<doc>Sets new style class to be used by the element.</doc>
+		</property>
+		<property name="Tint" type="Color" getter="GetTint" setter="SetTint" static="false">
+			<doc>Sets the tint of the GUI element.</doc>
+		</property>
+	</class>
+	<struct native="Color" script="Color">
+		<doc>Color represented as 4 components, each being a floating point value ranging from 0 to 1. Color components are red, green, blue and alpha.</doc>
+		<ctor>
+			<param name="red" type="float">
+			</param>
+			<param name="green" type="float">
+			</param>
+			<param name="blue" type="float">
+			</param>
+			<param name="alpha" type="float">
+			</param>
+		</ctor>
+		<field name="R" type="float">
+		</field>
+		<field name="G" type="float">
+		</field>
+		<field name="B" type="float">
+		</field>
+		<field name="A" type="float">
+		</field>
+	</struct>
 	<class native="Debug" script="Debug">
 		<doc>Utility class providing various debug functionality.</doc>
 		<method native="Log" script="Log" static="false">
@@ -387,36 +548,6 @@
 			<doc>Triggered whenever one or multiple log entries were added or removed. Triggers only once per frame.</doc>
 		</event>
 	</class>
-	<class native="GUIRenderable" script="GUIRenderable">
-		<doc>Represents a GUI element that can be rendered (i.e. has a visual representation). Renderable element can have a particular style, and provides one or multiple render elements to be drawn.</doc>
-		<property name="StyleSheetClass" type="string" getter="GetStyleSheetClass" setter="SetStyleSheetClass" static="false">
-			<doc>Sets new style class to be used by the element.</doc>
-		</property>
-		<property name="Tint" type="Color" getter="GetTint" setter="SetTint" static="false">
-			<doc>Sets the tint of the GUI element.</doc>
-		</property>
-	</class>
-	<struct native="Color" script="Color">
-		<doc>Color represented as 4 components, each being a floating point value ranging from 0 to 1. Color components are red, green, blue and alpha.</doc>
-		<ctor>
-			<param name="red" type="float">
-			</param>
-			<param name="green" type="float">
-			</param>
-			<param name="blue" type="float">
-			</param>
-			<param name="alpha" type="float">
-			</param>
-		</ctor>
-		<field name="R" type="float">
-		</field>
-		<field name="G" type="float">
-		</field>
-		<field name="B" type="float">
-		</field>
-		<field name="A" type="float">
-		</field>
-	</struct>
 	<struct native="TVector3&lt;float&gt;" script="Vector3">
 		<doc>A three dimensional vector.</doc>
 		<ctor>
@@ -471,6 +602,98 @@
 		<field name="Z" type="double">
 		</field>
 	</struct>
+	<class native="Random" script="Random">
+		<doc>Generates pseudo random numbers using the Xorshift128 algorithm. Suitable for high performance requirements.</doc>
+		<ctor>
+			<doc>Initializes a new generator using the specified seed.</doc>
+			<param name="seed" type="int">
+			</param>
+		</ctor>
+		<method native="SetSeed" script="SetSeed" static="false">
+			<doc>Changes the seed of the generator to the specified value.</doc>
+			<param name="seed" type="int">
+			</param>
+		</method>
+		<method native="Get" script="Get" static="false">
+			<doc>Returns a random value in range [0, std::numeric_limits&lt;uint32_t&gt;::max()].</doc>
+			<returns type="int">
+			</returns>
+		</method>
+		<method native="GetRange" script="GetRange" static="false">
+			<doc>Returns a random value in range [min, max].</doc>
+			<param name="min" type="int">
+			</param>
+			<param name="max" type="int">
+			</param>
+			<returns type="int">
+			</returns>
+		</method>
+		<method native="GetUNorm" script="GetUNorm" static="false">
+			<doc>Returns a random value in range [0, 1].</doc>
+			<returns type="float">
+			</returns>
+		</method>
+		<method native="GetSNorm" script="GetSNorm" static="false">
+			<doc>Returns a random value in range [-1, 1].</doc>
+			<returns type="float">
+			</returns>
+		</method>
+		<method native="GetUnitVector" script="GetUnitVector" static="false">
+			<doc>Returns a random unit vector in three dimensions.</doc>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="GetUnitVector2D" script="GetUnitVector2D" static="false">
+			<doc>Returns a random unit vector in two dimensions.</doc>
+			<returns type="TVector2&lt;float&gt;">
+			</returns>
+		</method>
+		<method native="GetPointInSphere" script="GetPointInSphere" static="false">
+			<doc>Returns a random point inside a unit sphere.</doc>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="GetPointInSphereShell" script="GetPointInSphereShell" static="false">
+			<doc>Returns a random point inside the specified range in a sphere shell of unit radius, with the specified thickness, in range [0, 1]. Thickness of 0 will generate points on the sphere surface, while thickness of 1 will generate points within the entire sphere volume. Intermediate values represent the shell, which is a volume between two concentric spheres.</doc>
+			<param name="thickness" type="float">
+			</param>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="GetPointInCircle" script="GetPointInCircle" static="false">
+			<doc>Returns a random point inside a unit circle.</doc>
+			<returns type="TVector2&lt;float&gt;">
+			</returns>
+		</method>
+		<method native="GetPointInCircleShell" script="GetPointInCircleShell" static="false">
+			<doc>Returns a random point inside the specified range in a circle shell of unit radius, with the specified thickness, in range [0, 1]. Thickness of 0 will generate points on the circle edge, while thickness of 1 will generate points within the entire circle surface. Intermediate values represent the shell, which is the surface between two concentric circles.</doc>
+			<param name="thickness" type="float">
+			</param>
+			<returns type="TVector2&lt;float&gt;">
+			</returns>
+		</method>
+		<method native="GetPointInArc" script="GetPointInArc" static="false">
+			<doc>Returns a random point on a unit arc with the specified length (angle). Angle of 360 represents a circle.</doc>
+			<param name="angle" type="Degree">
+			</param>
+			<returns type="TVector2&lt;float&gt;">
+			</returns>
+		</method>
+		<method native="GetPointInArcShell" script="GetPointInArcShell" static="false">
+			<doc>Returns a random point inside the specified range in an arc shell of unit radius, with the specified length (angle) and thickness in range [0, 1]. Angle of 360 represents a circle shell. Thickness of 0 will generate points on the arc edge, while thickness of 1 will generate points on the entire arc &apos;slice&apos;. Intermediate vlaues represent the shell, which is the surface between two concentric circles.</doc>
+			<param name="angle" type="Degree">
+			</param>
+			<param name="thickness" type="float">
+			</param>
+			<returns type="TVector2&lt;float&gt;">
+			</returns>
+		</method>
+		<method native="GetBarycentric" script="GetBarycentric" static="false">
+			<doc>Returns a random set of Barycentric coordinates that may be used for generating random points on a triangle.</doc>
+			<returns type="Vector3">
+			</returns>
+		</method>
+	</class>
 	<struct native="KerningPair" script="KerningPair">
 		<doc>Kerning pair representing larger or smaller offset between a specific pair of characters.</doc>
 		<field name="OtherCharId" type="int">
@@ -1161,137 +1384,6 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 		<field name="Width" type="TUnitValue&lt;float,PhysicalPixel&gt;">
 		</field>
 		<field name="Height" type="TUnitValue&lt;float,PhysicalPixel&gt;">
-		</field>
-	</struct>
-	<enum native="PointerEventType" script="PointerEventType">
-		<doc>Type of pointer event.</doc>
-		<enumentry native="CursorMoved" script="CursorMoved">
-		</enumentry>
-		<enumentry native="ButtonPressed" script="ButtonPressed">
-		</enumentry>
-		<enumentry native="ButtonReleased" script="ButtonReleased">
-		</enumentry>
-		<enumentry native="DoubleClick" script="DoubleClick">
-		</enumentry>
-	</enum>
-	<struct native="TVector2&lt;float&gt;" script="TVector2&lt;float&gt;">
-		<doc>A two dimensional vector.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="float">
-			</param>
-			<param name="y" type="float">
-			</param>
-		</ctor>
-		<field name="X" type="float">
-		</field>
-		<field name="Y" type="float">
-		</field>
-	</struct>
-	<struct native="TVector2&lt;double&gt;" script="TVector2&lt;double&gt;">
-		<doc>A two dimensional vector.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="double">
-			</param>
-			<param name="y" type="double">
-			</param>
-		</ctor>
-		<field name="X" type="double">
-		</field>
-		<field name="Y" type="double">
-		</field>
-	</struct>
-	<struct native="TVector2&lt;int32_t&gt;" script="TVector2&lt;int&gt;">
-		<doc>A two dimensional vector.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-	</struct>
-	<struct native="TVector2&lt;uint32_t&gt;" script="TVector2&lt;int&gt;">
-		<doc>A two dimensional vector.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-	</struct>
-	<struct native="TVector2&lt;TUnitValue&lt;int32_t, LogicalPixel&gt;&gt;" script="TVector2&lt;TUnitValue&lt;int,LogicalPixel&gt;&gt;">
-		<doc>A two dimensional vector.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="TUnitValue&lt;int,LogicalPixel&gt;">
-			</param>
-			<param name="y" type="TUnitValue&lt;int,LogicalPixel&gt;">
-			</param>
-		</ctor>
-		<field name="X" type="TUnitValue&lt;int,LogicalPixel&gt;">
-		</field>
-		<field name="Y" type="TUnitValue&lt;int,LogicalPixel&gt;">
-		</field>
-	</struct>
-	<struct native="TVector2&lt;TUnitValue&lt;float, LogicalPixel&gt;&gt;" script="TVector2&lt;TUnitValue&lt;float,LogicalPixel&gt;&gt;">
-		<doc>A two dimensional vector.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="TUnitValue&lt;float,LogicalPixel&gt;">
-			</param>
-			<param name="y" type="TUnitValue&lt;float,LogicalPixel&gt;">
-			</param>
-		</ctor>
-		<field name="X" type="TUnitValue&lt;float,LogicalPixel&gt;">
-		</field>
-		<field name="Y" type="TUnitValue&lt;float,LogicalPixel&gt;">
-		</field>
-	</struct>
-	<struct native="TVector2&lt;TUnitValue&lt;int32_t, PhysicalPixel&gt;&gt;" script="TVector2&lt;TUnitValue&lt;int,PhysicalPixel&gt;&gt;">
-		<doc>A two dimensional vector.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="TUnitValue&lt;int,PhysicalPixel&gt;">
-			</param>
-			<param name="y" type="TUnitValue&lt;int,PhysicalPixel&gt;">
-			</param>
-		</ctor>
-		<field name="X" type="TUnitValue&lt;int,PhysicalPixel&gt;">
-		</field>
-		<field name="Y" type="TUnitValue&lt;int,PhysicalPixel&gt;">
-		</field>
-	</struct>
-	<struct native="TVector2&lt;TUnitValue&lt;float, PhysicalPixel&gt;&gt;" script="TVector2&lt;TUnitValue&lt;float,PhysicalPixel&gt;&gt;">
-		<doc>A two dimensional vector.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="TUnitValue&lt;float,PhysicalPixel&gt;">
-			</param>
-			<param name="y" type="TUnitValue&lt;float,PhysicalPixel&gt;">
-			</param>
-		</ctor>
-		<field name="X" type="TUnitValue&lt;float,PhysicalPixel&gt;">
-		</field>
-		<field name="Y" type="TUnitValue&lt;float,PhysicalPixel&gt;">
 		</field>
 	</struct>
 	<class native="Mesh" script="Mesh">
@@ -2114,98 +2206,6 @@ Also see SetContactOffset().</doc>
 				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
 			</param>
 		</ctor>
-	</class>
-	<class native="Random" script="Random">
-		<doc>Generates pseudo random numbers using the Xorshift128 algorithm. Suitable for high performance requirements.</doc>
-		<ctor>
-			<doc>Initializes a new generator using the specified seed.</doc>
-			<param name="seed" type="int">
-			</param>
-		</ctor>
-		<method native="SetSeed" script="SetSeed" static="false">
-			<doc>Changes the seed of the generator to the specified value.</doc>
-			<param name="seed" type="int">
-			</param>
-		</method>
-		<method native="Get" script="Get" static="false">
-			<doc>Returns a random value in range [0, std::numeric_limits&lt;uint32_t&gt;::max()].</doc>
-			<returns type="int">
-			</returns>
-		</method>
-		<method native="GetRange" script="GetRange" static="false">
-			<doc>Returns a random value in range [min, max].</doc>
-			<param name="min" type="int">
-			</param>
-			<param name="max" type="int">
-			</param>
-			<returns type="int">
-			</returns>
-		</method>
-		<method native="GetUNorm" script="GetUNorm" static="false">
-			<doc>Returns a random value in range [0, 1].</doc>
-			<returns type="float">
-			</returns>
-		</method>
-		<method native="GetSNorm" script="GetSNorm" static="false">
-			<doc>Returns a random value in range [-1, 1].</doc>
-			<returns type="float">
-			</returns>
-		</method>
-		<method native="GetUnitVector" script="GetUnitVector" static="false">
-			<doc>Returns a random unit vector in three dimensions.</doc>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="GetUnitVector2D" script="GetUnitVector2D" static="false">
-			<doc>Returns a random unit vector in two dimensions.</doc>
-			<returns type="TVector2&lt;float&gt;">
-			</returns>
-		</method>
-		<method native="GetPointInSphere" script="GetPointInSphere" static="false">
-			<doc>Returns a random point inside a unit sphere.</doc>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="GetPointInSphereShell" script="GetPointInSphereShell" static="false">
-			<doc>Returns a random point inside the specified range in a sphere shell of unit radius, with the specified thickness, in range [0, 1]. Thickness of 0 will generate points on the sphere surface, while thickness of 1 will generate points within the entire sphere volume. Intermediate values represent the shell, which is a volume between two concentric spheres.</doc>
-			<param name="thickness" type="float">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="GetPointInCircle" script="GetPointInCircle" static="false">
-			<doc>Returns a random point inside a unit circle.</doc>
-			<returns type="TVector2&lt;float&gt;">
-			</returns>
-		</method>
-		<method native="GetPointInCircleShell" script="GetPointInCircleShell" static="false">
-			<doc>Returns a random point inside the specified range in a circle shell of unit radius, with the specified thickness, in range [0, 1]. Thickness of 0 will generate points on the circle edge, while thickness of 1 will generate points within the entire circle surface. Intermediate values represent the shell, which is the surface between two concentric circles.</doc>
-			<param name="thickness" type="float">
-			</param>
-			<returns type="TVector2&lt;float&gt;">
-			</returns>
-		</method>
-		<method native="GetPointInArc" script="GetPointInArc" static="false">
-			<doc>Returns a random point on a unit arc with the specified length (angle). Angle of 360 represents a circle.</doc>
-			<param name="angle" type="Degree">
-			</param>
-			<returns type="TVector2&lt;float&gt;">
-			</returns>
-		</method>
-		<method native="GetPointInArcShell" script="GetPointInArcShell" static="false">
-			<doc>Returns a random point inside the specified range in an arc shell of unit radius, with the specified length (angle) and thickness in range [0, 1]. Angle of 360 represents a circle shell. Thickness of 0 will generate points on the arc edge, while thickness of 1 will generate points on the entire arc &apos;slice&apos;. Intermediate vlaues represent the shell, which is the surface between two concentric circles.</doc>
-			<param name="angle" type="Degree">
-			</param>
-			<param name="thickness" type="float">
-			</param>
-			<returns type="TVector2&lt;float&gt;">
-			</returns>
-		</method>
-		<method native="GetBarycentric" script="GetBarycentric" static="false">
-			<doc>Returns a random set of Barycentric coordinates that may be used for generating random points on a triangle.</doc>
-			<returns type="Vector3">
-			</returns>
-		</method>
 	</class>
 	<struct native="TRay&lt;float&gt;" script="Ray">
 		<doc>A ray in 3D space represented with an origin and direction.</doc>
@@ -3158,6 +3158,8 @@ Whether or not an audio source is spatial is controlled by the assigned AudioCli
 		</field>
 		<field name="Quality" type="CompressionQuality">
 		</field>
+		<field name="MaxTileSize" type="int">
+		</field>
 	</struct>
 	<struct native="TNamedAnimationCurve&lt;float&gt;" script="NamedFloatCurve">
 		<doc>An animation curve and its name.</doc>
@@ -3662,6 +3664,8 @@ Whether or not an audio source is spatial is controlled by the assigned AudioCli
 		<enumentry native="JPG" script="JPG">
 		</enumentry>
 		<enumentry native="TGA" script="TGA">
+		</enumentry>
+		<enumentry native="EXR" script="EXR">
 		</enumentry>
 	</enum>
 	<struct native="GUIToggleContent" script="GUIToggleContent">
@@ -6519,7 +6523,7 @@ Default value is 0.5. Should be in rough range [-1, 1].</doc>
 			<doc>Creates a new import options object that allows you to customize how are meshes imported.</doc>
 		</ctor>
 		<property name="Languages" type="string" getter="GetLanguages" setter="SetLanguages" static="false">
-			<doc>Low-level shading language identifiers (for example "hlsl", "vksl") the BSL shader should be converted into. This ultimately controls on which render backends it will be able to run on.</doc>
+			<doc>Low-level shading language identifiers (for example &quot;hlsl&quot;, &quot;vksl&quot;) the BSL shader should be converted into. This ultimately controls on which render backends it will be able to run on.</doc>
 		</property>
 	</class>
 	<class native="ColorGradingSettings" script="ColorGradingSettings">
@@ -7862,20 +7866,6 @@ Optionally if the parameter is an array you may provide an array index you which
 			<doc>A list of potential values this parameter can take on.</doc>
 		</field>
 	</struct>
-	<class native="RendererManager" script="RendererManager">
-		<doc>Allows you to change and retrieve the active renderer. Active renderer will be used for rendering all objects in the following frame.</doc>
-		<method native="RequestFrameCapture" script="RequestFrameCapture" static="false">
-			<doc>Queues GPU command capture of the next frame, if a frame capture is set up.</doc>
-		</method>
-	</class>
-	<struct native="VirtualAxis" script="VirtualAxis">
-		<doc>Identifier for a virtual axis.
-Primary purpose of this class is to avoid expensive string compare (axis names), and instead use a unique axis identifier for compare. Generally you want to create one of these using the axis name, and then store it for later use.</doc>
-		<ctor>
-		</ctor>
-		<field name="AxisIdentifier" type="int">
-		</field>
-	</struct>
 	<enum native="BuiltinTexture" script="BuiltinTexture">
 		<doc>Types of builtin textures that are always available.</doc>
 		<enumentry native="White" script="White">
@@ -8969,6 +8959,20 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 		<ctor>
 		</ctor>
 		<field name="ButtonIdentifier" type="int">
+		</field>
+	</struct>
+	<class native="RendererManager" script="RendererManager">
+		<doc>Allows you to change and retrieve the active renderer. Active renderer will be used for rendering all objects in the following frame.</doc>
+		<method native="RequestFrameCapture" script="RequestFrameCapture" static="false">
+			<doc>Queues GPU command capture of the next frame, if a frame capture is set up.</doc>
+		</method>
+	</class>
+	<struct native="VirtualAxis" script="VirtualAxis">
+		<doc>Identifier for a virtual axis.
+Primary purpose of this class is to avoid expensive string compare (axis names), and instead use a unique axis identifier for compare. Generally you want to create one of these using the axis name, and then store it for later use.</doc>
+		<ctor>
+		</ctor>
+		<field name="AxisIdentifier" type="int">
 		</field>
 	</struct>
 	<class native="InputConfiguration" script="InputConfiguration">

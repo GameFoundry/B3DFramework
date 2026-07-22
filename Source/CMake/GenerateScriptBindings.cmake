@@ -40,6 +40,21 @@ function(B3DRegisterCodeGenTarget)
 		"-I${B3D_FRAMEWORK_SOURCE_FOLDER}/Engine/Utility/ThirdParty"
 		"-I${PROJECT_BINARY_DIR}/Generated/Utility/")
 
+	# Platform overlay include folders, needed to resolve Prerequisites/{Platform}/... includes. Added
+	# as include paths only, since platform-internal headers contain no script exports to parse.
+	B3DGetActivePlatformFolders(activePlatformFolders)
+	foreach(platformFolder ${activePlatformFolders})
+		set(platformEngineFolder ${B3D_PLATFORM_${platformFolder}_SOURCE_FOLDER}/Engine)
+
+		if(EXISTS ${platformEngineFolder}/Utility)
+			list(APPEND B3D_CODEGEN_HEADER_FOLDERS "-I${platformEngineFolder}/Utility")
+		endif()
+
+		if(EXISTS ${platformEngineFolder}/Core)
+			list(APPEND B3D_CODEGEN_HEADER_FOLDERS "-I${platformEngineFolder}/Core")
+		endif()
+	endforeach()
+
 	set(B3D_CODEGEN_HEADER_FILES
 		"${B3D_FRAMEWORK_SOURCE_FOLDER}/Engine/Utility/B3DUtilityPrerequisites.h"
 		${B3D_CODEGEN_HEADER_FILES})

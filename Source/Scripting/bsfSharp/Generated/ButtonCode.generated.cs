@@ -233,7 +233,7 @@ namespace b3d
 		GamepadDPadDownRight = 1073742132,
 		KeyboardKeyCount = 238,
 		GamepadKeyCount = 38,
-		TotalKeyCount = 308
+		TotalKeyCount = 309
 	}
 
 	/** @} */

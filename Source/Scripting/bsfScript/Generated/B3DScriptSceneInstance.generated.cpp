@@ -35,7 +35,9 @@ namespace b3d
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPhysicsScene", (void*)&ScriptSceneInstance::InternalGetPhysicsScene);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetAssociatedResourceId", (void*)&ScriptSceneInstance::InternalGetAssociatedResourceId);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMainCamera", (void*)&ScriptSceneInstance::InternalGetMainCamera);
+#if B3D_WITH_EDITOR
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetEditorSceneInstance", (void*)&ScriptSceneInstance::InternalGetEditorSceneInstance);
+#endif
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Clear", (void*)&ScriptSceneInstance::InternalClear);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateSceneObject", (void*)&ScriptSceneInstance::InternalCreateSceneObject);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsRunning", (void*)&ScriptSceneInstance::InternalIsRunning);
@@ -144,6 +146,7 @@ namespace b3d
 		return __output;
 	}
 
+#if B3D_WITH_EDITOR
 	MonoObject* ScriptSceneInstance::InternalGetEditorSceneInstance(ScriptSceneInstance* self)
 	{
 		TShared<IEditorSceneInstance> tmp__output;
@@ -157,6 +160,7 @@ namespace b3d
 
 		return __output;
 	}
+#endif
 
 	void ScriptSceneInstance::InternalClear(ScriptSceneInstance* self, bool forceAll)
 	{

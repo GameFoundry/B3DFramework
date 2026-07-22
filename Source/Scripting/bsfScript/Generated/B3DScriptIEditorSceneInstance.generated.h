@@ -9,6 +9,7 @@
 namespace b3d { class IEditorSceneInstance; }
 namespace b3d
 {
+#if B3D_WITH_EDITOR
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptIEditorSceneInstanceWrapperBase : public ScriptReflectableWrapper
 	{
 	public:
@@ -30,4 +31,5 @@ namespace b3d
 
 	private:
 	};
+#endif
 }

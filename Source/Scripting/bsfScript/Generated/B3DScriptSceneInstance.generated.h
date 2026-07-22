@@ -28,7 +28,9 @@ namespace b3d
 		static MonoObject* InternalGetPhysicsScene(ScriptSceneInstance* self);
 		static void InternalGetAssociatedResourceId(ScriptSceneInstance* self, UUID* __output);
 		static MonoObject* InternalGetMainCamera(ScriptSceneInstance* self);
+#if B3D_WITH_EDITOR
 		static MonoObject* InternalGetEditorSceneInstance(ScriptSceneInstance* self);
+#endif
 		static void InternalClear(ScriptSceneInstance* self, bool forceAll);
 		static MonoObject* InternalCreateSceneObject(ScriptSceneInstance* self, MonoString* name, uint32_t flags);
 		static bool InternalIsRunning(ScriptSceneInstance* self);

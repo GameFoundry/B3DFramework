@@ -29,6 +29,6 @@ namespace b3d
 		public bool IsNormalMap;
 		public bool IsSrgb;
 		public CompressionQuality Quality;
-		public uint MaxTileSize;
+		public int MaxTileSize;
 	}
 }

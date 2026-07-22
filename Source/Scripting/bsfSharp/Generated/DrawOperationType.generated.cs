@@ -23,7 +23,7 @@ namespace b3d
 		TriangleStrip = 5,
 		/// <summary>Each sequential 3-tuple of vertices represent a triangle.</summary>
 		TriangleList = 4,
-		/// <summary>Each vertex (except the first two) form a triangle with the first vertex and previous vertex.</summary>
+		/// <summary>Total number of draw operation types.</summary>
 		TriangleFan = 6
 	}
 

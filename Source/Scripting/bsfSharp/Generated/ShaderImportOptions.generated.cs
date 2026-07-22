@@ -24,8 +24,8 @@ namespace b3d
 		}
 
 		/// <summary>
-		/// Low-level shading language identifiers (for example "hlsl", "vksl") the BSL shader should be converted into.
-		/// This ultimately controls on which render backends it will be able to run on.
+		/// Low-level shading language identifiers (for example &quot;hlsl&quot;, &quot;vksl&quot;) the BSL shader should be 
+		/// converted into. This ultimately controls on which render backends it will be able to run on.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

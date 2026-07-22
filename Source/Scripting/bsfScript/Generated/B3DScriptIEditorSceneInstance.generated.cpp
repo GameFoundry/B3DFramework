@@ -7,6 +7,7 @@
 
 namespace b3d
 {
+#if B3D_WITH_EDITOR
 	ScriptIEditorSceneInstance::ScriptIEditorSceneInstance(const TShared<IEditorSceneInstance>& nativeObject)
 		:TScriptReflectableWrapper(nativeObject)
 	{
@@ -33,4 +34,5 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
+#endif
 }
