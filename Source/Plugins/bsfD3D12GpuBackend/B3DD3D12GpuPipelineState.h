@@ -24,7 +24,7 @@ namespace b3d
 		 */
 		struct D3D12PipelineVariantKey
 		{
-			DXGI_FORMAT RenderTargetFormats[8] = {};
+			DXGI_FORMAT RenderTargetFormats[B3D_MAXIMUM_RENDER_TARGET_COUNT] = {};
 			DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_UNKNOWN;
 			u32 RenderTargetCount = 0;
 			u32 SampleCount = 1;

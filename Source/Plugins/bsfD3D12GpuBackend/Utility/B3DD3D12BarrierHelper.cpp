@@ -105,8 +105,6 @@ void D3D12BarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image,
 	const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier,
 	GpuImageLayout& oldLayout, GpuImageLayout newLayout)
 {
-	(void)oldLayout; // The native before-state comes from the per-subresource stored state, not the core layout.
-
 	D3D12Image* const d3d12Image = static_cast<D3D12Image*>(image);
 	ID3D12Resource* const nativeResource = d3d12Image->GetD3D12Resource();
 	if(nativeResource == nullptr)
@@ -130,10 +128,15 @@ void D3D12BarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image,
 			const u32 face = subresourceRange.BaseArrayLayer + layerIndex;
 			const u32 mipLevel = subresourceRange.BaseMipLevel + levelIndex;
 
+			// The first use on this command buffer has no local state yet, so seed it from the source layout the same
+			// way the target state is derived from the destination layout.
 			D3D12_RESOURCE_STATES before;
 			if(!resourceTracker->TryGetTrackedImageSubresourceState(d3d12Image, face, mipLevel, before))
 			{
-				before = oldLayout != GpuImageLayout::Undefined ? D3D12BarrierUtility::GetResourceStateFromLayout(oldLayout, barrier.SourceAccess) : D3D12BarrierUtility::GetBufferStateFromStages(barrier.SourceStages, barrier.SourceAccess);
+				before = oldLayout != GpuImageLayout::Undefined
+					? D3D12BarrierUtility::GetResourceStateFromLayout(oldLayout, barrier.SourceAccess)
+					: D3D12BarrierUtility::GetBufferStateFromStages(barrier.SourceStages, barrier.SourceAccess);
+
 				resourceTracker->SetTrackedImageSubresourceState(d3d12Image, face, mipLevel, before);
 			}
 
@@ -158,7 +161,7 @@ void D3D12BarrierHelper::Execute(D3D12GpuCommandBuffer& commandBuffer)
 	if(HasBarriers() || !mBarrierTracking.Empty() || !mImageLayoutTracking.Empty())
 	{
 		if(!mNativeBarriers.Empty())
-			commandBuffer.GetD3D12Handle()->ResourceBarrier((UINT)mNativeBarriers.size(), mNativeBarriers.data());
+			commandBuffer.GetD3D12Handle()->ResourceBarrier((UINT)mNativeBarriers.Size(), mNativeBarriers.Data());
 
 		// Shared bookkeeping: advances the tracked layouts and marks the source->destination pairs safe to access.
 		ApplyPostBarrierTracking();

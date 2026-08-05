@@ -100,64 +100,23 @@ void D3D12GpuPipelineParameterLayout::MergeReflectedSetTables(const GpuPipelineP
 
 void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 {
-	// Count the number of root parameters we need
 	const u32 setCount = (u32)mSets.Size();
 
-	// Calculate total number of descriptor ranges
-	u32 totalDescriptorRangeCount = 0;
+	u32 totalBindingCount = 0;
 	for (u32 setIndex = 0; setIndex < setCount; setIndex++)
-	{
-		// Each set may contain multiple types of descriptors
-		// We need to count how many ranges we need
-		totalDescriptorRangeCount += mSets[setIndex]->GetBindingCount();
-	}
+		totalBindingCount += mSets[setIndex]->GetBindingCount();
 
 	mSetRootParameterOffsets.assign(setCount, 0);
 
-	if (totalDescriptorRangeCount == 0)
-	{
-		// Create empty root signature
-		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
-		rootSignatureDesc.NumParameters = 0;
-		rootSignatureDesc.pParameters = nullptr;
-		rootSignatureDesc.NumStaticSamplers = 0;
-		rootSignatureDesc.pStaticSamplers = nullptr;
-		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-
-		ComPtr<ID3DBlob> signature;
-		ComPtr<ID3DBlob> error;
-		HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-
-		if (FAILED(hr))
-		{
-			if (error)
-			{
-				B3D_LOG(Error, LogRenderBackend, "Failed to serialize root signature: {0}",
-					(const char*)error->GetBufferPointer());
-			}
-			return;
-		}
-
-		hr = mDevice.GetD3D12Device()->CreateRootSignature(
-			0,
-			signature->GetBufferPointer(),
-			signature->GetBufferSize(),
-			IID_PPV_ARGS(&mRootSignature)
-		);
-
-		B3D_ASSERT(SUCCEEDED(hr) && "Failed to create root signature");
-		return;
-	}
-
-	// Allocate space for root parameters and descriptor ranges
+	// Each binding produces at most one root parameter and at most one descriptor range, so reserving up front keeps
+	// descriptorRanges from reallocating - the root parameters below hold pointers into it.
 	Vector<D3D12_ROOT_PARAMETER> rootParameters;
 	Vector<D3D12_DESCRIPTOR_RANGE> descriptorRanges;
 
-	rootParameters.reserve(totalDescriptorRangeCount);
-	descriptorRanges.reserve(totalDescriptorRangeCount);
+	rootParameters.reserve(totalBindingCount);
+	descriptorRanges.reserve(totalBindingCount);
 
-	// Helper lambda to convert shader stage bits to D3D12 visibility
-	auto getShaderVisibility = [](const GpuProgramStageBits& bits) -> D3D12_SHADER_VISIBILITY
+	auto fnGetShaderVisibility = [](const GpuProgramStageBits& bits) -> D3D12_SHADER_VISIBILITY
 	{
 		u32 stageCount = 0;
 		D3D12_SHADER_VISIBILITY lastVisibility = D3D12_SHADER_VISIBILITY_ALL;
@@ -195,10 +154,9 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 		return lastVisibility;
 	};
 
-	// Helper lambda to get descriptor range type
-	auto getDescriptorRangeType = [](GpuParameterType paramType, GpuParameterObjectType objectType) -> D3D12_DESCRIPTOR_RANGE_TYPE
+	auto fnGetDescriptorRangeType = [](GpuParameterType parameterType, GpuParameterObjectType objectType) -> D3D12_DESCRIPTOR_RANGE_TYPE
 	{
-		switch (paramType)
+		switch (parameterType)
 		{
 		case GpuParameterType::UniformBuffer:
 			return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
@@ -237,17 +195,14 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 		}
 	};
 
-	// Build root parameters from uniform information
 	for (u32 setIndex = 0; setIndex < setCount; setIndex++)
 	{
 		const TShared<GpuPipelineParameterSetLayout>& setLayout = mSets[setIndex];
-		const u32 bindingCount = setLayout->GetBindingCount();
 
 		// Root parameters are numbered flat across sets; record where this set's parameters begin so
 		// descriptor-table binds (which compute indices local to their set) can be offset at bind time.
 		mSetRootParameterOffsets[setIndex] = (u32)rootParameters.size();
 
-		// Iterate through all parameter types to find all uniforms
 		for (u32 typeIndex = 0; typeIndex < (u32)GpuParameterType::Count; typeIndex++)
 		{
 			const GpuParameterType type = (GpuParameterType)typeIndex;
@@ -255,55 +210,47 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 
 			for (u32 sequentialIndex = 0; sequentialIndex < typeBindingCount; sequentialIndex++)
 			{
-				const UniformInformation* uniformInfo = setLayout->TryGetUniformInformation(type, sequentialIndex);
-				if (uniformInfo == nullptr)
+				const UniformInformation* uniformInformation = setLayout->TryGetUniformInformation(type, sequentialIndex);
+				if (uniformInformation == nullptr)
 					continue;
+
+				D3D12_ROOT_PARAMETER rootParameter = {};
+				rootParameter.ShaderVisibility = fnGetShaderVisibility(uniformInformation->Usage);
 
 				// Single-element uniform buffers are bound as root CBV descriptors rather than descriptor tables:
 				// root descriptors take a raw GPU virtual address, which lets the parameter set apply suballocation
 				// and per-draw dynamic offsets (SetDynamicBufferOffset) without recreating CBV descriptors.
 				// D3D12GpuParameters::Initialize() mirrors this choice so root parameter indices line up.
-				if (type == GpuParameterType::UniformBuffer && uniformInfo->ArraySize == 1)
+				if (type == GpuParameterType::UniformBuffer && uniformInformation->ArraySize == 1)
 				{
-					D3D12_ROOT_PARAMETER rootParam = {};
-					rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-					rootParam.ShaderVisibility = getShaderVisibility(uniformInfo->Usage);
-					rootParam.Descriptor.ShaderRegister = MapSlotToRegister(uniformInfo->Slot);
-					rootParam.Descriptor.RegisterSpace = setIndex;
+					rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+					rootParameter.Descriptor.ShaderRegister = MapSlotToRegister(uniformInformation->Slot);
+					rootParameter.Descriptor.RegisterSpace = setIndex;
+				}
+				else
+				{
+					D3D12_DESCRIPTOR_RANGE range = {};
+					range.RangeType = fnGetDescriptorRangeType(uniformInformation->Type, uniformInformation->ObjectType);
+					range.NumDescriptors = uniformInformation->ArraySize;
+					range.BaseShaderRegister = MapSlotToRegister(uniformInformation->Slot); // Slots encode the HLSL register, see MapRegisterToSlot()
+					range.RegisterSpace = setIndex; // Use set as register space
+					range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-					rootParameters.push_back(rootParam);
-					continue;
+					descriptorRanges.push_back(range);
+
+					rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+					rootParameter.DescriptorTable.NumDescriptorRanges = 1;
+					rootParameter.DescriptorTable.pDescriptorRanges = &descriptorRanges.back();
 				}
 
-				// Create descriptor range
-				D3D12_DESCRIPTOR_RANGE range = {};
-				range.RangeType = getDescriptorRangeType(uniformInfo->Type, uniformInfo->ObjectType);
-				range.NumDescriptors = uniformInfo->ArraySize;
-				range.BaseShaderRegister = MapSlotToRegister(uniformInfo->Slot); // Slots encode the HLSL register, see MapRegisterToSlot()
-				range.RegisterSpace = setIndex; // Use set as register space
-				range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-				u32 rangeIndex = (u32)descriptorRanges.size();
-				descriptorRanges.push_back(range);
-
-				// Create root parameter for this descriptor table
-				D3D12_ROOT_PARAMETER rootParam = {};
-				rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-				rootParam.ShaderVisibility = getShaderVisibility(uniformInfo->Usage);
-				rootParam.DescriptorTable.NumDescriptorRanges = 1;
-				rootParam.DescriptorTable.pDescriptorRanges = &descriptorRanges[rangeIndex];
-
-				rootParameters.push_back(rootParam);
+				rootParameters.push_back(rootParameter);
 			}
 		}
 	}
 
-	// Create root signature
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 	rootSignatureDesc.NumParameters = (UINT)rootParameters.size();
-	rootSignatureDesc.pParameters = rootParameters.data();
-	rootSignatureDesc.NumStaticSamplers = 0;
-	rootSignatureDesc.pStaticSamplers = nullptr;
+	rootSignatureDesc.pParameters = rootParameters.empty() ? nullptr : rootParameters.data();
 	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 	ComPtr<ID3DBlob> signature;
@@ -313,26 +260,15 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 	if (FAILED(hr))
 	{
 		if (error)
-		{
-			B3D_LOG(Error, LogRenderBackend, "Failed to serialize root signature: {0}",
-				(const char*)error->GetBufferPointer());
-		}
+			B3D_LOG(Error, LogRenderBackend, "Failed to serialize root signature: {0}", (const char*)error->GetBufferPointer());
+
 		return;
 	}
 
-	hr = mDevice.GetD3D12Device()->CreateRootSignature(
-		0,
-		signature->GetBufferPointer(),
-		signature->GetBufferSize(),
-		IID_PPV_ARGS(&mRootSignature)
-	);
+	hr = mDevice.GetD3D12Device()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignature));
 
 	if (FAILED(hr))
-	{
 		B3D_LOG(Error, LogRenderBackend, "Failed to create root signature");
-	}
 	else
-	{
 		B3D_LOG(Verbose, LogRenderBackend, "Created root signature with {0} parameters", rootParameters.size());
-	}
 }

@@ -28,62 +28,32 @@ namespace
 		}
 	}
 
-	/** Converts engine filter options to D3D12 filter. */
+	/**
+	 * Converts engine filter options to a D3D12 filter. @p useComparison selects the comparison variant of the
+	 * filter, and @p useAnisotropic overrides the per-stage filters entirely.
+	 */
 	D3D12_FILTER GetD3D12Filter(FilterOptions minFilter, FilterOptions magFilter, FilterOptions mipFilter, bool useComparison, bool useAnisotropic)
 	{
-		// Handle anisotropic filtering
 		if (useAnisotropic)
-		{
 			return useComparison ? D3D12_FILTER_COMPARISON_ANISOTROPIC : D3D12_FILTER_ANISOTROPIC;
-		}
 
-		// Build filter from individual components
-		// D3D12 filter encoding: MIN_MAG_MIP_POINT, MIN_MAG_MIP_LINEAR, etc.
+		// D3D12 encodes the three per-stage filters as one bit each, in min/mag/mip order, with linear set and point
+		// clear. D3D12_FILTER_COMPARISON_* is the same encoding offset by the comparison reduction type.
+		u32 filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
 
-		bool minPoint = (minFilter == FO_POINT);
-		bool magPoint = (magFilter == FO_POINT);
-		bool mipPoint = (mipFilter == FO_POINT || mipFilter == FO_NONE);
+		if (minFilter != FO_POINT)
+			filter |= D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+
+		if (magFilter != FO_POINT)
+			filter |= D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+
+		if (mipFilter != FO_POINT && mipFilter != FO_NONE)
+			filter |= D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
 
 		if (useComparison)
-		{
-			// Comparison filters
-			if (minPoint && magPoint && mipPoint)
-				return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
-			else if (minPoint && magPoint && !mipPoint)
-				return D3D12_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR;
-			else if (minPoint && !magPoint && mipPoint)
-				return D3D12_FILTER_COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT;
-			else if (minPoint && !magPoint && !mipPoint)
-				return D3D12_FILTER_COMPARISON_MIN_POINT_MAG_MIP_LINEAR;
-			else if (!minPoint && magPoint && mipPoint)
-				return D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_MIP_POINT;
-			else if (!minPoint && magPoint && !mipPoint)
-				return D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
-			else if (!minPoint && !magPoint && mipPoint)
-				return D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-			else
-				return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
-		}
-		else
-		{
-			// Normal filters
-			if (minPoint && magPoint && mipPoint)
-				return D3D12_FILTER_MIN_MAG_MIP_POINT;
-			else if (minPoint && magPoint && !mipPoint)
-				return D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
-			else if (minPoint && !magPoint && mipPoint)
-				return D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
-			else if (minPoint && !magPoint && !mipPoint)
-				return D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR;
-			else if (!minPoint && magPoint && mipPoint)
-				return D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
-			else if (!minPoint && magPoint && !mipPoint)
-				return D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
-			else if (!minPoint && !magPoint && mipPoint)
-				return D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-			else
-				return D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-		}
+			filter |= D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+
+		return (D3D12_FILTER)filter;
 	}
 }
 
@@ -95,68 +65,34 @@ D3D12SamplerState::D3D12SamplerState(const SamplerStateCreateInformation& create
 
 D3D12SamplerState::~D3D12SamplerState()
 {
-	// Free the descriptor if it was allocated
 	if (mDescriptorHandle.ptr != 0)
-	{
-		D3D12DescriptorManager& descriptorManager = mDevice.GetDescriptorManager();
-		descriptorManager.FreeCPUDescriptor(D3D12DescriptorHeapType::Sampler, mDescriptorHandle);
-		mDescriptorHandle.ptr = 0;
-	}
+		mDevice.GetDescriptorManager().FreeCPUDescriptor(D3D12DescriptorHeapType::Sampler, mDescriptorHandle);
 }
 
 void D3D12SamplerState::Initialize()
 {
 	SamplerState::Initialize();
 
-	const SamplerStateInformation& info = GetInformation();
+	const SamplerStateInformation& information = GetInformation();
+	const bool useComparison = information.ComparisonFunc != CMPF_ALWAYS_PASS;
+	const bool useAnisotropic = information.MaxAniso > 1;
 
-	// Initialize D3D12 sampler descriptor
-	ZeroMemory(&mSamplerDesc, sizeof(D3D12_SAMPLER_DESC));
+	D3D12_SAMPLER_DESC samplerDescription{};
+	samplerDescription.AddressU = GetD3D12AddressMode(information.AddressMode.U);
+	samplerDescription.AddressV = GetD3D12AddressMode(information.AddressMode.V);
+	samplerDescription.AddressW = GetD3D12AddressMode(information.AddressMode.W);
+	samplerDescription.Filter = GetD3D12Filter(information.MinFilter, information.MagFilter, information.MipFilter, useComparison, useAnisotropic);
+	samplerDescription.MipLODBias = information.MipmapBias;
+	samplerDescription.MinLOD = information.MipMin;
+	samplerDescription.MaxLOD = information.MipMax;
+	samplerDescription.MaxAnisotropy = useAnisotropic ? std::min(information.MaxAniso, 16u) : 1; // D3D12 caps anisotropy at 16
+	samplerDescription.ComparisonFunc = useComparison ? D3D12Utility::GetComparisonFunc(information.ComparisonFunc) : D3D12_COMPARISON_FUNC_NEVER;
+	samplerDescription.BorderColor[0] = information.BorderColor.R;
+	samplerDescription.BorderColor[1] = information.BorderColor.G;
+	samplerDescription.BorderColor[2] = information.BorderColor.B;
+	samplerDescription.BorderColor[3] = information.BorderColor.A;
 
-	// Convert addressing modes
-	mSamplerDesc.AddressU = GetD3D12AddressMode(info.AddressMode.U);
-	mSamplerDesc.AddressV = GetD3D12AddressMode(info.AddressMode.V);
-	mSamplerDesc.AddressW = GetD3D12AddressMode(info.AddressMode.W);
-
-	// Convert filter mode
-	bool useComparison = (info.ComparisonFunc != CMPF_ALWAYS_PASS);
-	bool useAnisotropic = (info.MaxAniso > 1);
-	mSamplerDesc.Filter = GetD3D12Filter(info.MinFilter, info.MagFilter, info.MipFilter, useComparison, useAnisotropic);
-
-	// Set mipmap parameters
-	mSamplerDesc.MipLODBias = info.MipmapBias;
-	mSamplerDesc.MinLOD = info.MipMin;
-	mSamplerDesc.MaxLOD = info.MipMax;
-
-	// Set anisotropy
-	if (useAnisotropic)
-	{
-		mSamplerDesc.MaxAnisotropy = std::min(info.MaxAniso, 16u); // D3D12 max is 16
-	}
-	else
-	{
-		mSamplerDesc.MaxAnisotropy = 1;
-	}
-
-	// Set comparison function
-	if (useComparison)
-	{
-		mSamplerDesc.ComparisonFunc = D3D12Utility::GetComparisonFunc(info.ComparisonFunc);
-	}
-	else
-	{
-		mSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-	}
-
-	// Set border color
-	mSamplerDesc.BorderColor[0] = info.BorderColor.R;
-	mSamplerDesc.BorderColor[1] = info.BorderColor.G;
-	mSamplerDesc.BorderColor[2] = info.BorderColor.B;
-	mSamplerDesc.BorderColor[3] = info.BorderColor.A;
-
-	// Allocate a descriptor from the sampler heap
-	D3D12DescriptorManager& descriptorManager = mDevice.GetDescriptorManager();
-	mDescriptorHandle = descriptorManager.AllocateCPUDescriptor(D3D12DescriptorHeapType::Sampler);
+	mDescriptorHandle = mDevice.GetDescriptorManager().AllocateCPUDescriptor(D3D12DescriptorHeapType::Sampler);
 
 	if (mDescriptorHandle.ptr == 0)
 	{
@@ -164,14 +100,7 @@ void D3D12SamplerState::Initialize()
 		return;
 	}
 
-	// Create the sampler descriptor
-	ID3D12Device* d3d12Device = mDevice.GetD3D12Device();
-	d3d12Device->CreateSampler(&mSamplerDesc, mDescriptorHandle);
+	mDevice.GetD3D12Device()->CreateSampler(&samplerDescription, mDescriptorHandle);
 
-	B3D_LOG(Verbose, LogRenderBackend, "Created D3D12 sampler state: filter={0}, addressU={1}, addressV={2}, addressW={3}, maxAniso={4}",
-		(u32)mSamplerDesc.Filter,
-		(u32)mSamplerDesc.AddressU,
-		(u32)mSamplerDesc.AddressV,
-		(u32)mSamplerDesc.AddressW,
-		mSamplerDesc.MaxAnisotropy);
+	B3D_LOG(Verbose, LogRenderBackend, "Created D3D12 sampler state: filter={0}, addressU={1}, addressV={2}, addressW={3}, maxAniso={4}", (u32)samplerDescription.Filter, (u32)samplerDescription.AddressU, (u32)samplerDescription.AddressV, (u32)samplerDescription.AddressW, samplerDescription.MaxAnisotropy);
 }

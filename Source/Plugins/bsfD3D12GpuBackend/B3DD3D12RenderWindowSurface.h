@@ -21,11 +21,18 @@ namespace b3d::render
 		D3D12RenderWindowSurface(const RenderWindowSurfaceCreateInformation& createInformation);
 		~D3D12RenderWindowSurface();
 
+		/**
+		 * @name IRenderWindowSurface Interface
+		 * @{
+		 */
+
 		void RebuildSwapChain(u32 width, u32 height, bool vsync, u32 vsyncInterval) override;
 		void SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask) override;
 		void MarkSwapChainAsInvalid() override;
 		void Destroy() override;
 		TAsyncOp<TShared<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer) override;
+
+		/** @} */
 
 		/** Returns the swap chain owned by the surface. */
 		D3D12SwapChain* GetSwapChain() const { return mSwapChain; }

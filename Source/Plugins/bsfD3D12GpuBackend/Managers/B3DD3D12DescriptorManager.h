@@ -32,7 +32,6 @@ namespace b3d
 		{
 		public:
 			D3D12DescriptorManager(D3D12GpuDevice& device);
-			~D3D12DescriptorManager();
 
 			/** Allocates a descriptor from the CPU-only staging heap of the specified type. */
 			D3D12_CPU_DESCRIPTOR_HANDLE AllocateCPUDescriptor(D3D12DescriptorHeapType type);
@@ -40,9 +39,13 @@ namespace b3d
 			/** Frees a previously allocated descriptor. */
 			void FreeCPUDescriptor(D3D12DescriptorHeapType type, D3D12_CPU_DESCRIPTOR_HANDLE handle);
 
-			/** Allocates a contiguous range of GPU-visible descriptors. */
-			void AllocateGPUDescriptorRange(D3D12DescriptorHeapType type, u32 count,
-				D3D12_CPU_DESCRIPTOR_HANDLE& outCPUHandle, D3D12_GPU_DESCRIPTOR_HANDLE& outGPUHandle);
+			/**
+			 * Allocates a contiguous range of GPU-visible descriptors. Only valid for the CBV_SRV_UAV and Sampler heap
+			 * types. Both handles are set to null if @p count exceeds the heap's capacity.
+			 *
+			 * @note The range is ring-allocated and is not freed; it stays valid until allocation wraps around the heap.
+			 */
+			void AllocateGPUDescriptorRange(D3D12DescriptorHeapType type, u32 count, D3D12_CPU_DESCRIPTOR_HANDLE& outCPUHandle, D3D12_GPU_DESCRIPTOR_HANDLE& outGPUHandle);
 
 			/** Returns the shader-visible descriptor heap of the specified type. */
 			ID3D12DescriptorHeap* GetDescriptorHeap(D3D12DescriptorHeapType type) const;
@@ -75,29 +78,26 @@ namespace b3d
 			 */
 			D3D12_CPU_DESCRIPTOR_HANDLE GetNullUAVHandle(D3D12_UAV_DIMENSION dimension) const;
 
-			/** Returns the descriptor increment size for the specified heap type. */
-			u32 GetDescriptorIncrementSize(D3D12DescriptorHeapType type) const { return mDescriptorSizes[(u32)type]; }
-
-			/** Returns the descriptor size for the specified heap type (alias for GetDescriptorIncrementSize). */
+			/** Returns the stride between consecutive descriptors in a heap of the specified type. */
 			u32 GetDescriptorSize(D3D12DescriptorHeapType type) const { return mDescriptorSizes[(u32)type]; }
 
 		private:
-			/** Creates the descriptor heaps. */
-			void CreateHeaps();
-
-			/** Creates the null CBV/SRV/UAV descriptors unset resource bindings fall back to. */
-			void CreateNullDescriptors();
-
 			/** Descriptor heap for a specific type. */
 			struct DescriptorHeap
 			{
 				ComPtr<ID3D12DescriptorHeap> Heap;
 				D3D12_CPU_DESCRIPTOR_HANDLE CPUStart{};
-				D3D12_GPU_DESCRIPTOR_HANDLE GPUStart{};
-				u32 NumDescriptors = 0;
-				u32 NextFreeIndex = 0;
-				Vector<u32> FreeList;
+				D3D12_GPU_DESCRIPTOR_HANDLE GPUStart{}; /**< Only valid for shader-visible heaps. */
+				u32 DescriptorCount = 0;                /**< Capacity the heap was created with. */
+				u32 NextFreeIndex = 0;                  /**< Bump-allocation cursor into the heap. */
+				Vector<u32> FreeList;                   /**< Indices returned by FreeCPUDescriptor(), reused before the cursor advances. */
 			};
+
+			/** Creates the descriptor heaps, both the shader-visible ones and the CPU-only staging heaps. */
+			void CreateHeaps();
+
+			/** Creates the null CBV/SRV/UAV descriptors unset resource bindings fall back to. */
+			void CreateNullDescriptors();
 
 			/**
 			 * Returns the CPU-only staging heap for the given type. RTV/DSV heaps are CPU-only to begin with, while
@@ -105,10 +105,19 @@ namespace b3d
 			 */
 			DescriptorHeap& GetStagingHeap(D3D12DescriptorHeapType type);
 
+			/** Number of D3D12DescriptorHeapType values. */
+			static constexpr u32 kHeapTypeCount = 4;
+
+			/**
+			 * Number of heap types that need a separate CPU-only staging heap. Indexed by D3D12DescriptorHeapType,
+			 * which relies on CBV_SRV_UAV and Sampler being the first two enum values.
+			 */
+			static constexpr u32 kStagingHeapTypeCount = 2;
+
 			D3D12GpuDevice& mDevice;
-			DescriptorHeap mHeaps[4]; // Shader-visible CBV_SRV_UAV/Sampler heaps + CPU-only RTV/DSV heaps
-			DescriptorHeap mStagingHeaps[2]; // CPU-only staging heaps for CBV_SRV_UAV and Sampler resource views
-			u32 mDescriptorSizes[4] = {}; // Descriptor size for each type
+			DescriptorHeap mHeaps[kHeapTypeCount];              // Shader-visible CBV_SRV_UAV/Sampler heaps + CPU-only RTV/DSV heaps
+			DescriptorHeap mStagingHeaps[kStagingHeapTypeCount]; // CPU-only staging heaps for CBV_SRV_UAV and Sampler resource views
+			u32 mDescriptorSizes[kHeapTypeCount] = {};          // Descriptor size for each type
 			D3D12_CPU_DESCRIPTOR_HANDLE mDefaultSamplerHandle{}; // Fallback for sampler bindings never set by the caller
 
 			// Fallbacks for resource bindings never set by the caller, indexed by view dimension where applicable

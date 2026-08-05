@@ -23,15 +23,11 @@ namespace b3d
 			/** @copydoc SamplerState::Initialize */
 			void Initialize() override;
 
-			/** Returns the D3D12 sampler descriptor. */
-			const D3D12_SAMPLER_DESC& GetD3D12SamplerDesc() const { return mSamplerDesc; }
-
-			/** Returns the CPU descriptor handle for this sampler. */
+			/** Returns the CPU descriptor handle the sampler was created in. Null until Initialize() succeeds. */
 			D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandle() const { return mDescriptorHandle; }
 
 		private:
 			D3D12GpuDevice& mDevice;
-			D3D12_SAMPLER_DESC mSamplerDesc{};
 			D3D12_CPU_DESCRIPTOR_HANDLE mDescriptorHandle{};
 		};
 

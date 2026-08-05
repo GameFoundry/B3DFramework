@@ -121,12 +121,12 @@ namespace b3d
 		{
 			D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
 
-			const TextureProperties& props = GetProperties();
+			const TextureProperties& properties = GetProperties();
 
 			// Convert pixel format to DXGI format. sRGB variants cannot be used with UAVs, so unordered-access
 			// textures keep the linear variant (mirroring the Vulkan backend's storage-image behavior).
-			const bool useSRGB = props.UseHardwareSRGB && !props.Usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
-			mDXGIFormat = D3D12Utility::GetDXGIFormat(props.Format, useSRGB);
+			const bool useSRGB = properties.UseHardwareSRGB && !properties.Usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
+			mDXGIFormat = D3D12Utility::GetDXGIFormat(properties.Format, useSRGB);
 			if (mDXGIFormat == DXGI_FORMAT_UNKNOWN)
 			{
 				B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported texture format");
@@ -136,7 +136,7 @@ namespace b3d
 			// Determine resource dimension. Array-ness is now expressed via ArraySliceCount / GetFaceCount()
 			// rather than dedicated array texture types.
 			D3D12_RESOURCE_DIMENSION dimension;
-			switch (props.Type)
+			switch (properties.Type)
 			{
 			case TEX_TYPE_1D:
 				dimension = D3D12_RESOURCE_DIMENSION_TEXTURE1D;
@@ -153,47 +153,47 @@ namespace b3d
 				return;
 			}
 
-			const u32 faceCount = props.GetFaceCount();
+			const u32 faceCount = properties.GetFaceCount();
 
 			// Create resource description
 			D3D12_RESOURCE_DESC resourceDesc = {};
 			resourceDesc.Dimension = dimension;
 			resourceDesc.Alignment = 0; // Let D3D12 choose appropriate alignment
-			resourceDesc.Width = props.Width;
-			resourceDesc.Height = props.Height;
-			resourceDesc.DepthOrArraySize = (dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D) ? (u16)props.Depth : (u16)faceCount;
-			resourceDesc.MipLevels = (u16)(props.MipMapCount + 1);
+			resourceDesc.Width = properties.Width;
+			resourceDesc.Height = properties.Height;
+			resourceDesc.DepthOrArraySize = (dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D) ? (u16)properties.Depth : (u16)faceCount;
+			resourceDesc.MipLevels = (u16)(properties.MipMapCount + 1);
 			resourceDesc.Format = mDXGIFormat;
-			resourceDesc.SampleDesc.Count = props.SampleCount > 0 ? props.SampleCount : 1;
+			resourceDesc.SampleDesc.Count = properties.SampleCount > 0 ? properties.SampleCount : 1;
 			resourceDesc.SampleDesc.Quality = 0;
 			resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 			resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
 			// Set resource flags based on usage
-			if (props.Usage.IsSet(TextureUsageFlag::RenderTarget))
+			if (properties.Usage.IsSet(TextureUsageFlag::RenderTarget))
 			{
-				if (PixelUtility::IsDepth(props.Format))
+				if (PixelUtility::IsDepth(properties.Format))
 					resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 				else
 					resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 			}
 
-			if (props.Usage.IsSet(TextureUsageFlag::DepthStencil))
+			if (properties.Usage.IsSet(TextureUsageFlag::DepthStencil))
 				resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-			if (props.Usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU))
+			if (properties.Usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU))
 				resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 			// Determine initial state
 			D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
-			if (props.Usage.IsSet(TextureUsageFlag::RenderTarget))
+			if (properties.Usage.IsSet(TextureUsageFlag::RenderTarget))
 			{
-				if (PixelUtility::IsDepth(props.Format))
+				if (PixelUtility::IsDepth(properties.Format))
 					initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 				else
 					initialState = D3D12_RESOURCE_STATE_RENDER_TARGET;
 			}
-			else if (props.Usage.IsSet(TextureUsageFlag::DepthStencil))
+			else if (properties.Usage.IsSet(TextureUsageFlag::DepthStencil))
 			{
 				initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 			}
@@ -202,21 +202,21 @@ namespace b3d
 			D3D12_CLEAR_VALUE clearValue = {};
 			D3D12_CLEAR_VALUE* pClearValue = nullptr;
 
-			if (props.Usage.IsSet(TextureUsageFlag::RenderTarget) || props.Usage.IsSet(TextureUsageFlag::DepthStencil))
+			if (properties.Usage.IsSet(TextureUsageFlag::RenderTarget) || properties.Usage.IsSet(TextureUsageFlag::DepthStencil))
 			{
 				// The texture's clear value is immutable, so the optimized clear value always matches the clears issued against it.
 				clearValue.Format = mDXGIFormat;
-				if (PixelUtility::IsDepth(props.Format))
+				if (PixelUtility::IsDepth(properties.Format))
 				{
-					clearValue.DepthStencil.Depth = props.ClearDepth;
-					clearValue.DepthStencil.Stencil = props.ClearStencil;
+					clearValue.DepthStencil.Depth = properties.ClearDepth;
+					clearValue.DepthStencil.Stencil = properties.ClearStencil;
 				}
 				else
 				{
-					clearValue.Color[0] = props.ClearColor.R;
-					clearValue.Color[1] = props.ClearColor.G;
-					clearValue.Color[2] = props.ClearColor.B;
-					clearValue.Color[3] = props.ClearColor.A;
+					clearValue.Color[0] = properties.ClearColor.R;
+					clearValue.Color[1] = properties.ClearColor.G;
+					clearValue.Color[2] = properties.ClearColor.B;
+					clearValue.Color[3] = properties.ClearColor.A;
 				}
 				pClearValue = &clearValue;
 			}
@@ -244,14 +244,14 @@ namespace b3d
 			}
 
 			// Set debug name if available
-			if (!props.Name.empty())
+			if (!properties.Name.empty())
 			{
-				const WString wideName = ToWideString(props.Name);
+				const WString wideName = ToWideString(properties.Name);
 				resource->SetName(wideName.c_str());
 			}
 
 			GpuTextureAspectFlags aspect = GpuTextureAspectFlag::Color;
-			if (PixelUtility::IsDepth(props.Format))
+			if (PixelUtility::IsDepth(properties.Format))
 			{
 				const bool hasStencil = mDXGIFormat == DXGI_FORMAT_D24_UNORM_S8_UINT ||
 					mDXGIFormat == DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
@@ -266,14 +266,14 @@ namespace b3d
 			imageCreateInformation.Format = mDXGIFormat;
 			imageCreateInformation.InitialState = initialState;
 			imageCreateInformation.FaceCount = faceCount;
-			imageCreateInformation.MipLevelCount = props.MipMapCount + 1;
+			imageCreateInformation.MipLevelCount = properties.MipMapCount + 1;
 			imageCreateInformation.Aspect = aspect;
-			imageCreateInformation.Name = props.Name;
+			imageCreateInformation.Name = properties.Name;
 
 			mImage = device.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
 
 			B3D_LOG(Verbose, LogRenderBackend, "D3D12: Created texture '{0}': {1}x{2}, format={3}, mips={4}",
-				props.Name, props.Width, props.Height, (u32)mDXGIFormat, props.MipMapCount + 1);
+				properties.Name, properties.Width, properties.Height, (u32)mDXGIFormat, properties.MipMapCount + 1);
 		}
 
 		void D3D12Texture::RecreateInternalTexture()
@@ -331,14 +331,14 @@ namespace b3d
 			//
 			// The scope holds its own PixelData, but we point it at the same backing buffer we retain here (via
 			// SetExternalBuffer) so the caller's writes are visible to Flush().
-			const TextureProperties& props = GetProperties();
+			const TextureProperties& properties = GetProperties();
 
-			const u32 mipWidth = std::max(1u, props.Width >> mipLevel);
-			const u32 mipHeight = std::max(1u, props.Height >> mipLevel);
-			const u32 mipDepth = std::max(1u, props.Depth >> mipLevel);
+			const u32 mipWidth = std::max(1u, properties.Width >> mipLevel);
+			const u32 mipHeight = std::max(1u, properties.Height >> mipLevel);
+			const u32 mipDepth = std::max(1u, properties.Depth >> mipLevel);
 
 			// Backing buffer owned by the texture for the duration of the mapping.
-			TShared<PixelData> backing = B3DMakeShared<PixelData>(mipWidth, mipHeight, mipDepth, props.Format);
+			TShared<PixelData> backing = B3DMakeShared<PixelData>(mipWidth, mipHeight, mipDepth, properties.Format);
 			backing->AllocateInternalBuffer();
 
 			// For read mappings, populate the backing buffer with the current GPU contents.
@@ -358,7 +358,7 @@ namespace b3d
 			}
 
 			// The scope's PixelData aliases the backing buffer's memory rather than owning a separate copy.
-			PixelData scopeData(mipWidth, mipHeight, mipDepth, props.Format);
+			PixelData scopeData(mipWidth, mipHeight, mipDepth, properties.Format);
 			scopeData.SetRowPitch(backing->GetRowPitch());
 			scopeData.SetSlicePitch(backing->GetSlicePitch());
 			scopeData.SetExternalBuffer(backing->GetData());
@@ -446,16 +446,16 @@ namespace b3d
 			ID3D12Device* d3d12Device = device.GetD3D12Device();
 			D3D12DescriptorManager& descriptorManager = device.GetDescriptorManager();
 
-			const TextureProperties& props = GetProperties();
+			const TextureProperties& properties = GetProperties();
 
 			// Resolve the requested surface, treating zero counts as "all remaining".
-			const u32 mipCount = props.MipMapCount + 1;
-			const u32 faceCount = props.GetFaceCount();
+			const u32 mipCount = properties.MipMapCount + 1;
+			const u32 faceCount = properties.GetFaceCount();
 
 			const u32 baseMip = surface.MipLevel;
-			const u32 numMips = surface.MipLevelCount == 0 ? (mipCount - baseMip) : surface.MipLevelCount;
+			const u32 selectedMipCount = surface.MipLevelCount == 0 ? (mipCount - baseMip) : surface.MipLevelCount;
 			const u32 baseFace = surface.Face;
-			const u32 numFaces = surface.FaceCount == 0 ? (faceCount - baseFace) : surface.FaceCount;
+			const u32 selectedFaceCount = surface.FaceCount == 0 ? (faceCount - baseFace) : surface.FaceCount;
 
 			D3D12_CPU_DESCRIPTOR_HANDLE handle = descriptorManager.AllocateCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV);
 			if(handle.ptr == 0)
@@ -464,8 +464,8 @@ namespace b3d
 				return handle;
 			}
 
-			const bool isCube = props.Type == TEX_TYPE_CUBE_MAP && !surface.IsBoundAs2DArray;
-			const bool isArray = numFaces > 1 || (baseFace > 0) || surface.IsBoundAs2DArray;
+			const bool isCube = properties.Type == TEX_TYPE_CUBE_MAP && !surface.IsBoundAs2DArray;
+			const bool isArray = selectedFaceCount > 1 || (baseFace > 0) || surface.IsBoundAs2DArray;
 
 			if(type == ViewType::SRV)
 			{
@@ -473,32 +473,32 @@ namespace b3d
 				srvDesc.Format = GetShaderReadFormat(mDXGIFormat);
 				srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-				switch(props.Type)
+				switch(properties.Type)
 				{
 				case TEX_TYPE_1D:
 					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
 					srvDesc.Texture1D.MostDetailedMip = baseMip;
-					srvDesc.Texture1D.MipLevels = numMips;
+					srvDesc.Texture1D.MipLevels = selectedMipCount;
 					break;
 				case TEX_TYPE_3D:
 					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
 					srvDesc.Texture3D.MostDetailedMip = baseMip;
-					srvDesc.Texture3D.MipLevels = numMips;
+					srvDesc.Texture3D.MipLevels = selectedMipCount;
 					break;
 				case TEX_TYPE_CUBE_MAP:
 					if(isCube)
 					{
 						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
 						srvDesc.TextureCube.MostDetailedMip = baseMip;
-						srvDesc.TextureCube.MipLevels = numMips;
+						srvDesc.TextureCube.MipLevels = selectedMipCount;
 					}
 					else
 					{
 						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 						srvDesc.Texture2DArray.MostDetailedMip = baseMip;
-						srvDesc.Texture2DArray.MipLevels = numMips;
+						srvDesc.Texture2DArray.MipLevels = selectedMipCount;
 						srvDesc.Texture2DArray.FirstArraySlice = baseFace;
-						srvDesc.Texture2DArray.ArraySize = numFaces;
+						srvDesc.Texture2DArray.ArraySize = selectedFaceCount;
 					}
 					break;
 				case TEX_TYPE_2D:
@@ -507,15 +507,15 @@ namespace b3d
 					{
 						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 						srvDesc.Texture2DArray.MostDetailedMip = baseMip;
-						srvDesc.Texture2DArray.MipLevels = numMips;
+						srvDesc.Texture2DArray.MipLevels = selectedMipCount;
 						srvDesc.Texture2DArray.FirstArraySlice = baseFace;
-						srvDesc.Texture2DArray.ArraySize = numFaces;
+						srvDesc.Texture2DArray.ArraySize = selectedFaceCount;
 					}
 					else
 					{
 						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 						srvDesc.Texture2D.MostDetailedMip = baseMip;
-						srvDesc.Texture2D.MipLevels = numMips;
+						srvDesc.Texture2D.MipLevels = selectedMipCount;
 					}
 					break;
 				}
@@ -530,7 +530,7 @@ namespace b3d
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
 				uavDesc.Format = mDXGIFormat;
 
-				switch(props.Type)
+				switch(properties.Type)
 				{
 				case TEX_TYPE_1D:
 					uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
@@ -540,7 +540,7 @@ namespace b3d
 					uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
 					uavDesc.Texture3D.MipSlice = baseMip;
 					uavDesc.Texture3D.FirstWSlice = 0;
-					uavDesc.Texture3D.WSize = std::max(1u, props.Depth >> baseMip);
+					uavDesc.Texture3D.WSize = std::max(1u, properties.Depth >> baseMip);
 					break;
 				case TEX_TYPE_CUBE_MAP:
 				case TEX_TYPE_2D:
@@ -550,7 +550,7 @@ namespace b3d
 						uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
 						uavDesc.Texture2DArray.MipSlice = baseMip;
 						uavDesc.Texture2DArray.FirstArraySlice = baseFace;
-						uavDesc.Texture2DArray.ArraySize = isCube ? faceCount : numFaces;
+						uavDesc.Texture2DArray.ArraySize = isCube ? faceCount : selectedFaceCount;
 					}
 					else
 					{

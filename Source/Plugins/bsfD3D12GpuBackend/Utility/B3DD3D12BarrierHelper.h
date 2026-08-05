@@ -73,7 +73,7 @@ namespace b3d::render
 
 		/**
 		 * CRTP hook: same-state write hazards on buffers become UAV barriers. State-changing transitions are handled
-		 * by RequireBufferState (see class doc). Called by the shared low-level path.
+		 * by RequireBufferTransition (see class doc). Called by the shared low-level path.
 		 */
 		void RecordBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
 

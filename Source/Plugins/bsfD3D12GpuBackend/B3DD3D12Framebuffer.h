@@ -27,7 +27,7 @@ namespace b3d
 			const D3D12_CPU_DESCRIPTOR_HANDLE* GetDepthStencilView() const { return mHasDepthStencil ? &mDepthStencilView : nullptr; }
 
 			/** Returns the number of color attachments. */
-			u32 GetNumColorAttachments() const { return mNumColorAttachments; }
+			u32 GetColorAttachmentCount() const { return mColorAttachmentCount; }
 
 			/** Returns the width of the framebuffer. */
 			u32 GetWidth() const { return mWidth; }
@@ -72,8 +72,8 @@ namespace b3d
 			u32 mBackBufferIndex = 0;
 
 			static constexpr u32 kMaxColorAttachments = 8;
-			D3D12_CPU_DESCRIPTOR_HANDLE mRenderTargetViews[kMaxColorAttachments];
-			D3D12_CPU_DESCRIPTOR_HANDLE mDepthStencilView;
+			D3D12_CPU_DESCRIPTOR_HANDLE mRenderTargetViews[kMaxColorAttachments] = {};
+			D3D12_CPU_DESCRIPTOR_HANDLE mDepthStencilView = {};
 
 			// Per-attachment image references. Resource state lives on the image (subresource) objects themselves.
 			Attachment mColorAttachments[kMaxColorAttachments];
@@ -83,7 +83,7 @@ namespace b3d
 			DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_UNKNOWN;
 			u32 mSampleCount = 1;
 
-			u32 mNumColorAttachments = 0;
+			u32 mColorAttachmentCount = 0;
 			bool mHasDepthStencil = false;
 			bool mOwnsViews = false; /**< True when the RTV/DSV descriptors were allocated by us (render texture path) rather than referenced from the swap chain. */
 			u32 mWidth = 0;

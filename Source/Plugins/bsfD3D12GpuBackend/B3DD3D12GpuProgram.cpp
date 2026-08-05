@@ -2,14 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12GpuProgram.h"
 #include "B3DD3D12GpuDevice.h"
-#include "B3DD3D12Utility.h"
 #include "Material/B3DShaderCompiler.h"
-#include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Profiling/B3DRenderStats.h"
-#include "FileSystem/B3DFileSystem.h"
-#include "FileSystem/B3DDataStream.h"
 
 #include <d3dcompiler.h>
 
@@ -54,21 +50,14 @@ void D3D12GpuProgram::Initialize()
 		mBytecode = mGpuDevice.CompileGpuProgramBytecode(createInformation);
 	}
 
-	// Load bytecode into blob if compilation succeeded or we have cached data
+	// Copy the bytecode into a blob, as D3D12 requires the instructions to stay alive for as long as any pipeline
+	// state built from them.
 	if (mBytecode && mBytecode->Instructions.Data && mBytecode->Instructions.Size > 0)
 	{
-		// Create blob from bytecode data
-		HRESULT hr = D3DCreateBlob(mBytecode->Instructions.Size, &mShaderBlob);
-		if (SUCCEEDED(hr))
-		{
+		if (SUCCEEDED(D3DCreateBlob(mBytecode->Instructions.Size, &mShaderBlob)))
 			memcpy(mShaderBlob->GetBufferPointer(), mBytecode->Instructions.Data, mBytecode->Instructions.Size);
-			mIsCompiled = true;
-		}
 		else
-		{
 			B3D_LOG(Error, LogRenderBackend, "Failed to create shader blob for '{0}'", mName);
-			mIsCompiled = false;
-		}
 	}
 
 	if (mBytecode)
@@ -78,19 +67,13 @@ void D3D12GpuProgram::Initialize()
 
 	if (mIsCompiled)
 	{
-		// Set up shader bytecode descriptor
 		mShaderBytecode.pShaderBytecode = mShaderBlob->GetBufferPointer();
 		mShaderBytecode.BytecodeLength = mShaderBlob->GetBufferSize();
 
-		// Extract parameter description if available
-		if (mBytecode)
-			mParametersDescription = mBytecode->ParameterDescription;
+		mParametersDescription = mBytecode->ParameterDescription;
 
-		// Extract vertex input description for vertex shaders
-		if (mType == GPT_VERTEX_PROGRAM && mBytecode)
-		{
+		if (mType == GPT_VERTEX_PROGRAM)
 			mVertexInputDescription = B3DMakeShared<VertexDescription>(mBytecode->VertexInput, false);
-		}
 	}
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuProgram);

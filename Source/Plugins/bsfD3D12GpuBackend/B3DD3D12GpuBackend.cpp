@@ -38,7 +38,6 @@ void D3D12GpuBackend::OnStartUp()
 	HRESULT hr;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	// Enable the debug layer
 	if (kEnableD3D12DebugLayer)
 	{
 		hr = D3D12GetDebugInterface(IID_PPV_ARGS(&mDebugController));
@@ -46,14 +45,11 @@ void D3D12GpuBackend::OnStartUp()
 		{
 			mDebugController->EnableDebugLayer();
 
-			// Enable GPU-based validation if requested
 			if (kEnableD3D12GPUBasedValidation)
 			{
 				ComPtr<ID3D12Debug1> debugController1;
 				if (SUCCEEDED(mDebugController.As(&debugController1)))
-				{
 					debugController1->SetEnableGPUBasedValidation(true);
-				}
 			}
 
 			B3D_LOG(Info, LogRenderBackend, "D3D12 debug layer enabled.");
@@ -74,7 +70,6 @@ void D3D12GpuBackend::OnStartUp()
 	}
 #endif
 
-	// Create DXGI factory
 	UINT dxgiFactoryFlags = 0;
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	if (kEnableD3D12DebugLayer)
@@ -84,32 +79,25 @@ void D3D12GpuBackend::OnStartUp()
 	hr = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&mDXGIFactory));
 	B3D_ASSERT(SUCCEEDED(hr) && "Failed to create DXGI factory");
 
-	// Enumerate adapters
+	const DXGI_GPU_PREFERENCE gpuPreference = gGpuPreferIntegrated ? DXGI_GPU_PREFERENCE_MINIMUM_POWER : DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE;
+
 	ComPtr<IDXGIAdapter1> adapter;
 	Vector<ComPtr<IDXGIAdapter4>> availableAdapters;
 
-	for (UINT adapterIndex = 0;
-		mDXGIFactory->EnumAdapterByGpuPreference(
-			adapterIndex,
-			gGpuPreferIntegrated ? DXGI_GPU_PREFERENCE_MINIMUM_POWER : DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
-			IID_PPV_ARGS(&adapter)) != DXGI_ERROR_NOT_FOUND;
-		++adapterIndex)
+	for (UINT adapterIndex = 0; mDXGIFactory->EnumAdapterByGpuPreference(adapterIndex, gpuPreference, IID_PPV_ARGS(&adapter)) != DXGI_ERROR_NOT_FOUND; ++adapterIndex)
 	{
 		DXGI_ADAPTER_DESC1 desc;
 		adapter->GetDesc1(&desc);
 
-		// Skip software adapter
 		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
 			continue;
 
-		// Check if the adapter supports D3D12
+		// A null device pointer makes D3D12CreateDevice a support probe without actually creating the device.
 		if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
 		{
 			ComPtr<IDXGIAdapter4> adapter4;
 			if (SUCCEEDED(adapter.As(&adapter4)))
-			{
 				availableAdapters.push_back(adapter4);
-			}
 		}
 	}
 

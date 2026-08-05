@@ -28,7 +28,7 @@ namespace b3d
 			D3D12VertexInput(u32 id, const GpuVertexInputLayout& layout);
 
 			/** Returns the input layout descriptor for use in a pipeline state descriptor. */
-			const D3D12_INPUT_LAYOUT_DESC& GetLayoutDesc() const { return mLayoutDesc; }
+			const D3D12_INPUT_LAYOUT_DESC& GetLayoutDescription() const { return mLayoutDescription; }
 
 			/** Returns an identifier which uniquely represents this vertex input configuration. */
 			u32 GetId() const { return mId; }
@@ -40,7 +40,7 @@ namespace b3d
 			u32 mId;
 
 			Vector<D3D12_INPUT_ELEMENT_DESC> mElements;
-			D3D12_INPUT_LAYOUT_DESC mLayoutDesc = {};
+			D3D12_INPUT_LAYOUT_DESC mLayoutDescription = {};
 			u32 mVertexBufferBindingCount = 0;
 		};
 

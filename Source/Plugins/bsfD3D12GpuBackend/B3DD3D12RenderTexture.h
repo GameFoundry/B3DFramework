@@ -47,13 +47,10 @@ namespace b3d
 			/** @copydoc RenderTexture::Initialize */
 			void Initialize() override;
 
-			/** Returns the D3D12 framebuffer associated with this render texture. */
+			/** Returns the D3D12 framebuffer associated with this render texture. Null until Initialize() is called. */
 			D3D12Framebuffer* GetFramebuffer() const { return mFramebuffer; }
 
 		private:
-			/** Creates the D3D12 framebuffer (render target and depth-stencil views) for this render texture. */
-			void CreateFramebuffer();
-
 			D3D12Framebuffer* mFramebuffer = nullptr;
 		};
 

@@ -61,9 +61,6 @@ namespace b3d
 			/** @copydoc GpuSwapChain::GetMessageQueue */
 			SingleConsumerQueue& GetMessageQueue() override { return mMessageQueue; }
 
-			/** Returns the DXGI swap chain. */
-			IDXGISwapChain4* GetDXGISwapChain() const { return mSwapChain.Get(); }
-
 			/** Returns the current back buffer index. */
 			u32 GetCurrentBackBufferIndex() const;
 
@@ -84,9 +81,6 @@ namespace b3d
 
 			/** Returns the framebuffer for the specified back buffer. */
 			D3D12Framebuffer* GetFramebuffer(u32 index) const;
-
-			/** Returns the number of back buffers. */
-			u32 GetBackBufferCount() const { return mBackBufferCount; }
 
 			/** Returns the information the swap chain was created with. */
 			const D3D12SwapChainCreateInformation& GetCreateInformation() const { return mCreateInfo; }

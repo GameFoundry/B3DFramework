@@ -53,15 +53,9 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Maximum number of command buffers that another command buffer can be dependent on (via a sync mask) */
-	#define BS_MAX_D3D12_CB_DEPENDENCIES 2
-
-	/** Maximum number of queues per type */
-	constexpr u32 D3D12_MAX_QUEUES_PER_TYPE = 8;
-
-	/** @} */
-
-	// Template aliases for COM smart pointers
+	/** Reference counted pointer to a COM object, releasing it once the last reference goes out of scope. */
 	template<typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+	/** @} */
 } // namespace b3d

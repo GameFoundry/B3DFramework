@@ -151,142 +151,11 @@ DXGI_FORMAT D3D12Utility::GetDXGIFormat(PixelFormat format, bool sRGB)
 	}
 }
 
-PixelFormat D3D12Utility::GetPixelFormat(DXGI_FORMAT format)
-{
-	switch (format)
-	{
-	case DXGI_FORMAT_R8_UNORM:
-		return PF_R8;
-	case DXGI_FORMAT_R8G8_UNORM:
-		return PF_RG8;
-	case DXGI_FORMAT_R8G8B8A8_UNORM:
-		return PF_RGBA8;
-	case DXGI_FORMAT_B8G8R8A8_UNORM:
-		return PF_BGRA8;
-	case DXGI_FORMAT_R8_SNORM:
-		return PF_R8S;
-	case DXGI_FORMAT_R8G8_SNORM:
-		return PF_RG8S;
-	case DXGI_FORMAT_R8G8B8A8_SNORM:
-		return PF_RGBA8S;
-	case DXGI_FORMAT_R8_SINT:
-		return PF_R8I;
-	case DXGI_FORMAT_R8G8_SINT:
-		return PF_RG8I;
-	case DXGI_FORMAT_R8G8B8A8_SINT:
-		return PF_RGBA8I;
-	case DXGI_FORMAT_R8_UINT:
-		return PF_R8U;
-	case DXGI_FORMAT_R8G8_UINT:
-		return PF_RG8U;
-	case DXGI_FORMAT_R8G8B8A8_UINT:
-		return PF_RGBA8U;
-	case DXGI_FORMAT_R16_UNORM:
-		return PF_R16;
-	case DXGI_FORMAT_R16G16_UNORM:
-		return PF_RG16;
-	case DXGI_FORMAT_R16G16B16A16_UNORM:
-		return PF_RGBA16;
-	case DXGI_FORMAT_R16_SNORM:
-		return PF_R16S;
-	case DXGI_FORMAT_R16G16_SNORM:
-		return PF_RG16S;
-	case DXGI_FORMAT_R16G16B16A16_SNORM:
-		return PF_RGBA16S;
-	case DXGI_FORMAT_R16_SINT:
-		return PF_R16I;
-	case DXGI_FORMAT_R16G16_SINT:
-		return PF_RG16I;
-	case DXGI_FORMAT_R16G16B16A16_SINT:
-		return PF_RGBA16I;
-	case DXGI_FORMAT_R16_UINT:
-		return PF_R16U;
-	case DXGI_FORMAT_R16G16_UINT:
-		return PF_RG16U;
-	case DXGI_FORMAT_R16G16B16A16_UINT:
-		return PF_RGBA16U;
-	case DXGI_FORMAT_R16_FLOAT:
-		return PF_R16F;
-	case DXGI_FORMAT_R16G16_FLOAT:
-		return PF_RG16F;
-	case DXGI_FORMAT_R16G16B16A16_FLOAT:
-		return PF_RGBA16F;
-	case DXGI_FORMAT_R32_SINT:
-		return PF_R32I;
-	case DXGI_FORMAT_R32G32_SINT:
-		return PF_RG32I;
-	case DXGI_FORMAT_R32G32B32_SINT:
-		return PF_RGB32I;
-	case DXGI_FORMAT_R32G32B32A32_SINT:
-		return PF_RGBA32I;
-	case DXGI_FORMAT_R32_UINT:
-		return PF_R32U;
-	case DXGI_FORMAT_R32G32_UINT:
-		return PF_RG32U;
-	case DXGI_FORMAT_R32G32B32_UINT:
-		return PF_RGB32U;
-	case DXGI_FORMAT_R32G32B32A32_UINT:
-		return PF_RGBA32U;
-	case DXGI_FORMAT_R32_FLOAT:
-		return PF_R32F;
-	case DXGI_FORMAT_R32G32_FLOAT:
-		return PF_RG32F;
-	case DXGI_FORMAT_R32G32B32_FLOAT:
-		return PF_RGB32F;
-	case DXGI_FORMAT_R32G32B32A32_FLOAT:
-		return PF_RGBA32F;
-	case DXGI_FORMAT_BC1_UNORM:
-		return PF_BC1;
-	case DXGI_FORMAT_BC2_UNORM:
-		return PF_BC2;
-	case DXGI_FORMAT_BC3_UNORM:
-		return PF_BC3;
-	case DXGI_FORMAT_BC4_UNORM:
-		return PF_BC4;
-	case DXGI_FORMAT_BC5_UNORM:
-		return PF_BC5;
-	case DXGI_FORMAT_BC6H_UF16:
-		return PF_BC6H;
-	case DXGI_FORMAT_BC7_UNORM:
-		return PF_BC7;
-	case DXGI_FORMAT_R11G11B10_FLOAT:
-		return PF_RG11B10F;
-	case DXGI_FORMAT_R10G10B10A2_UNORM:
-		return PF_RGB10A2;
-	case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-		return PF_D32_S8X24;
-	case DXGI_FORMAT_D24_UNORM_S8_UINT:
-		return PF_D24S8;
-	case DXGI_FORMAT_D32_FLOAT:
-		return PF_D32;
-	case DXGI_FORMAT_D16_UNORM:
-		return PF_D16;
-	default:
-		return PF_UNKNOWN;
-	}
-}
-
 D3D12_RESOURCE_FLAGS D3D12Utility::GetBufferResourceFlags(GpuBufferFlags flags)
 {
 	D3D12_RESOURCE_FLAGS output = D3D12_RESOURCE_FLAG_NONE;
 
 	if (flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
-		output |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-
-	return output;
-}
-
-D3D12_RESOURCE_FLAGS D3D12Utility::GetTextureResourceFlags(TextureUsageFlags usage)
-{
-	D3D12_RESOURCE_FLAGS output = D3D12_RESOURCE_FLAG_NONE;
-
-	if (usage.IsSet(TextureUsageFlag::RenderTarget))
-		output |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-
-	if (usage.IsSet(TextureUsageFlag::DepthStencil))
-		output |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-
-	if (usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU))
 		output |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 	return output;
@@ -333,46 +202,6 @@ D3D12_COMPARISON_FUNC D3D12Utility::GetComparisonFunc(CompareFunction func)
 	default:
 		return D3D12_COMPARISON_FUNC_ALWAYS;
 	}
-}
-
-D3D12_TEXTURE_ADDRESS_MODE D3D12Utility::GetTextureAddressMode(TextureAddressingMode mode)
-{
-	switch (mode)
-	{
-	case TAM_WRAP:
-		return D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	case TAM_MIRROR:
-		return D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
-	case TAM_CLAMP:
-		return D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-	case TAM_BORDER:
-		return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-	default:
-		return D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	}
-}
-
-D3D12_FILTER D3D12Utility::GetFilter(FilterOptions minFilter, FilterOptions magFilter, FilterOptions mipFilter)
-{
-	if (minFilter == FO_ANISOTROPIC || magFilter == FO_ANISOTROPIC || mipFilter == FO_ANISOTROPIC)
-		return D3D12_FILTER_ANISOTROPIC;
-
-	const bool minLinear = minFilter == FO_LINEAR;
-	const bool magLinear = magFilter == FO_LINEAR;
-	const bool mipLinear = mipFilter == FO_LINEAR;
-
-	if (minLinear)
-	{
-		if (magLinear)
-			return mipLinear ? D3D12_FILTER_MIN_MAG_MIP_LINEAR : D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-
-		return mipLinear ? D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
-	}
-
-	if (magLinear)
-		return mipLinear ? D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR : D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
-
-	return mipLinear ? D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_MAG_MIP_POINT;
 }
 
 D3D12_BLEND D3D12Utility::GetBlend(BlendFactor factor)
@@ -514,23 +343,3 @@ D3D12_PRIMITIVE_TOPOLOGY_TYPE D3D12Utility::GetPrimitiveTopologyType(DrawOperati
 		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	}
 }
-
-u32 D3D12Utility::GetBytesPerPixel(DXGI_FORMAT format)
-{
-	return static_cast<u32>(PixelUtility::GetMemorySize(1, 1, 1, GetPixelFormat(format)));
-}
-
-bool D3D12Utility::IsDepthStencilFormat(DXGI_FORMAT format)
-{
-	switch (format)
-	{
-	case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-	case DXGI_FORMAT_D24_UNORM_S8_UINT:
-	case DXGI_FORMAT_D32_FLOAT:
-	case DXGI_FORMAT_D16_UNORM:
-		return true;
-	default:
-		return false;
-	}
-}
-

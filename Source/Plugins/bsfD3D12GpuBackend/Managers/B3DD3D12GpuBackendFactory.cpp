@@ -6,8 +6,6 @@
 
 using namespace b3d;
 
-constexpr const char* D3D12GpuBackendFactory::SystemName;
-
 void D3D12GpuBackendFactory::Create()
 {
 	auto fnStartUp = []() { // TODO - Not quite ready to be started from the main thread as command buffer pools gets bound to the calling thread

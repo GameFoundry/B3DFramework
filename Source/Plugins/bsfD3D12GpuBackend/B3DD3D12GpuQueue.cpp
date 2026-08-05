@@ -318,12 +318,12 @@ void D3D12GpuQueue::WaitUntilIdleNative()
 	GetDevice().LogDebugLayerMessages();
 }
 
-void D3D12GpuQueue::ExecuteCommandLists(ID3D12CommandList* const* commandLists, u32 numCommandLists)
+void D3D12GpuQueue::ExecuteCommandLists(ID3D12CommandList* const* commandLists, u32 commandListCount)
 {
-	if (!mQueue || numCommandLists == 0)
+	if (!mQueue || commandListCount == 0)
 		return;
 
-	mQueue->ExecuteCommandLists(numCommandLists, commandLists);
+	mQueue->ExecuteCommandLists(commandListCount, commandLists);
 }
 
 void D3D12GpuQueue::Signal(ID3D12Fence* fence, u64 value)
