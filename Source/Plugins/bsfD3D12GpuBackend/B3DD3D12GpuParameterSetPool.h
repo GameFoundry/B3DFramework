@@ -15,19 +15,21 @@ namespace b3d::render
 
 	/**
 	 * DirectX 12 implementation of a GPU parameter set pool. Parameter sets allocate their GPU-visible descriptor
-	 * ranges from the device's descriptor manager on first bind, so the pool itself only enforces the set capacity.
+	 * ranges from the device's descriptor manager on first bind, so the pool holds no storage of its own.
 	 */
 	class D3D12GpuParameterSetPool : public GpuParameterSetPool
 	{
 	public:
 		D3D12GpuParameterSetPool(D3D12GpuDevice& device, const GpuParameterSetPoolCreateInformation& createInformation);
 
+		/** @copydoc GpuParameterSetPool::Create */
 		TShared<GpuParameterSet> Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize = false) override;
+
+		/** @copydoc GpuParameterSetPool::Reset */
 		void Reset() override;
 
 	private:
 		D3D12GpuDevice& mDevice;
-		u32 mAllocatedSetCount = 0;
 	};
 
 	/** @} */

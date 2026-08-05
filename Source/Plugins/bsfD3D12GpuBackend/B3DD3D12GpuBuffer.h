@@ -77,7 +77,10 @@ namespace b3d
 			void Invalidate(u32 offset, u32 size) override;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
+			/** @copydoc render::GpuBuffer::IsRangeBound */
 			bool IsRangeBound(u32 offset, u32 size) const override;
+
+			/** @copydoc render::GpuBuffer::IsRangeInUse */
 			bool IsRangeInUse(u32 offset, u32 size) const override;
 #endif
 

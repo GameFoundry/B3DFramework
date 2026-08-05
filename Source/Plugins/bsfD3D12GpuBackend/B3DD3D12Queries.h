@@ -23,8 +23,13 @@ namespace b3d
 			D3D12GpuQueryPool(D3D12GpuDevice& device, const GpuQueryPoolCreateInformation& createInformation);
 			~D3D12GpuQueryPool() override;
 
+			/** @copydoc GpuQueryPool::AllocateQuery */
 			GpuQueryId AllocateQuery() override;
+
+			/** @copydoc GpuQueryPool::TryResolve */
 			bool TryResolve(bool wait = false) override;
+
+			/** @copydoc GpuQueryPool::GetQueryResult */
 			u64 GetQueryResult(GpuQueryId queryId, u32 elementIndex = 0) override;
 
 			/** Returns the D3D12 query heap. */
@@ -35,9 +40,6 @@ namespace b3d
 
 			/** Returns the readback buffer used for query results. */
 			ID3D12Resource* GetReadbackBuffer() const { return mReadbackBuffer.Get(); }
-
-			/** Returns the number of elements per query (1 for timer/occlusion, multiple for pipeline statistics). */
-			u32 GetElementsPerQuery() const { return mElementsPerQuery; }
 
 			/** Returns the number of allocated queries. */
 			u32 GetAllocatedQueryCount() const { return mNextQueryId; }
@@ -53,16 +55,16 @@ namespace b3d
 			void NotifyResolveScheduled(GpuCommandBuffer& commandBuffer);
 
 		private:
-			/** Creates the query heap and readback buffer. */
-			void CreateQueryHeap();
+			/** Creates the query heap along with the readback buffer its results are resolved into. */
+			void CreateQueryResources();
 
 			D3D12GpuDevice& mDevice;
 			ComPtr<ID3D12QueryHeap> mQueryHeap;
 			ComPtr<ID3D12Resource> mReadbackBuffer;
 			D3D12MA::Allocation* mReadbackAllocation = nullptr;
-			D3D12_QUERY_TYPE mD3D12QueryType;
-			D3D12_QUERY_HEAP_TYPE mD3D12QueryHeapType;
-			GpuPipelineStatisticsQueryBits mPipelineStatsBits;
+			D3D12_QUERY_TYPE mD3D12QueryType = D3D12_QUERY_TYPE_OCCLUSION;
+			D3D12_QUERY_HEAP_TYPE mD3D12QueryHeapType = D3D12_QUERY_HEAP_TYPE_OCCLUSION;
+			GpuPipelineStatisticsQueryBits mPipelineStatisticsBits;
 
 			u32 mNextQueryId = 0;
 

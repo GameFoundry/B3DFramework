@@ -8,9 +8,9 @@
 
 using namespace b3d;
 
-PixelFormat D3D12TextureManager::GetNativeFormat(TextureType ttype, PixelFormat format, TextureUsageFlags usage, bool hwGamma)
+PixelFormat D3D12TextureManager::GetNativeFormat(TextureType textureType, PixelFormat format, TextureUsageFlags usage, bool hardwareGamma)
 {
-	PixelUtility::CheckFormat(format, ttype, usage);
+	PixelUtility::CheckFormat(format, textureType, usage);
 
 	if(render::D3D12Utility::GetDXGIFormat(format) == DXGI_FORMAT_UNKNOWN)
 		return PF_RGBA8;
@@ -18,20 +18,20 @@ PixelFormat D3D12TextureManager::GetNativeFormat(TextureType ttype, PixelFormat 
 	return format;
 }
 
-TShared<RenderTexture> D3D12TextureManager::CreateRenderTextureImpl(const RenderTextureCreateInformation& desc)
+TShared<RenderTexture> D3D12TextureManager::CreateRenderTextureImpl(const RenderTextureCreateInformation& createInformation)
 {
-	D3D12RenderTexture* tex = new(B3DAllocate<D3D12RenderTexture>()) D3D12RenderTexture(desc);
+	D3D12RenderTexture* renderTexture = new(B3DAllocate<D3D12RenderTexture>()) D3D12RenderTexture(createInformation);
 
-	return B3DMakeSharedFromExisting<D3D12RenderTexture>(tex);
+	return B3DMakeSharedFromExisting<D3D12RenderTexture>(renderTexture);
 }
 
-namespace b3d {
-namespace render {
-TShared<RenderTexture> D3D12TextureManager::CreateRenderTextureInternal(const RenderTextureCreateInformation& desc)
+namespace b3d::render
 {
-	TShared<D3D12RenderTexture> texPtr = B3DMakeShared<D3D12RenderTexture>(desc);
-	texPtr->SetShared(texPtr);
+	TShared<RenderTexture> D3D12TextureManager::CreateRenderTextureInternal(const RenderTextureCreateInformation& createInformation)
+	{
+		TShared<D3D12RenderTexture> renderTexture = B3DMakeShared<D3D12RenderTexture>(createInformation);
+		renderTexture->SetShared(renderTexture);
 
-	return texPtr;
-}
-}} // namespace b3d::render
+		return renderTexture;
+	}
+} // namespace b3d::render

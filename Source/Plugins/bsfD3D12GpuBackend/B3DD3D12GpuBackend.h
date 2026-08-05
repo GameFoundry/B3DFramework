@@ -17,12 +17,19 @@ namespace b3d
 	{
 		using Super = GpuBackend;
 	public:
+		/** @copydoc GpuBackend::OnStartUp */
 		void OnStartUp() override;
+
+		/** @copydoc GpuBackend::OnShutDown */
 		void OnShutDown() override;
 
+		/** @copydoc GpuBackend::GetBackendName */
 		const char* GetBackendName() const override;
 
+		/** @copydoc GpuBackend::GetDeviceCount */
 		u32 GetDeviceCount() const override { return (u32)mDevices.size(); }
+
+		/** @copydoc GpuBackend::GetDevice */
 		TShared<GpuDevice> GetDevice(u32 index) const override { return mDevices[index]; }
 
 		/** Returns the DXGI factory used for device enumeration and swap chain creation. */

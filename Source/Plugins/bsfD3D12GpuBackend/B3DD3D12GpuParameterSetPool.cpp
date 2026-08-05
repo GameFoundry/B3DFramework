@@ -14,20 +14,18 @@ namespace b3d::render
 
 	TShared<GpuParameterSet> D3D12GpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
 	{
-		TShared<D3D12GpuParameters> paramSet = B3DMakeShared<D3D12GpuParameters>(layout, mDevice, setIndex);
-		paramSet->SetShared(paramSet);
+		TShared<D3D12GpuParameters> parameterSet = B3DMakeShared<D3D12GpuParameters>(layout, mDevice, setIndex);
+		parameterSet->SetShared(parameterSet);
 
 		if (!deferredInitialize)
-			paramSet->Initialize();
+			parameterSet->Initialize();
 
-		mAllocatedSetCount++;
-		return paramSet;
+		return parameterSet;
 	}
 
 	void D3D12GpuParameterSetPool::Reset()
 	{
 		// TODO(d3d12-port): Transient sets keep their GPU-visible descriptor ranges until destruction; a pool-level
 		// descriptor ring would allow reclaiming them in bulk here.
-		mAllocatedSetCount = 0;
 	}
 } // namespace b3d::render

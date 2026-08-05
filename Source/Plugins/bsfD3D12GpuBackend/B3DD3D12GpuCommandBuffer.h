@@ -42,10 +42,17 @@ namespace b3d
 			D3D12GpuCommandBufferPool(D3D12GpuDevice& device, const GpuCommandBufferPoolCreateInformation& createInformation);
 			~D3D12GpuCommandBufferPool() override;
 
+			/**
+			 * @name GpuCommandBufferPool Interface
+			 * @{
+			 */
+
 			TShared<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) override;
 			TShared<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) override;
 			void Reset() override;
 			void Destroy() override;
+
+			/** @} */
 
 			/** Returns the D3D12 command allocator. */
 			ID3D12CommandAllocator* GetD3D12CommandAllocator() const { return mCommandAllocator.Get(); }
@@ -62,6 +69,11 @@ namespace b3d
 		{
 		public:
 			~D3D12GpuCommandBuffer() override;
+
+			/**
+			 * @name GpuCommandBuffer Interface
+			 * @{
+			 */
 
 			void SetName(const StringView& name) override;
 
@@ -100,11 +112,10 @@ namespace b3d
 			void InsertLabel(const StringView& name) override;
 			void End() override;
 
+			/** @} */
+
 			/** Returns an unique identifier of this command buffer. */
 			u32 GetId() const { return mId; }
-
-			/** Returns the thread that the command buffer is allowed to be used on. */
-			ThreadId GetOwnerThread() const { return mOwnerThread; }
 
 			/** Returns the handle to the internal D3D12 command list wrapped by this object. */
 			ID3D12GraphicsCommandList* GetD3D12Handle() const { return mCommandList.Get(); }
@@ -120,9 +131,6 @@ namespace b3d
 
 			/** Returns true if the command buffer is currently recording. */
 			bool IsRecording() const { return mState == GpuCommandBufferState::Recording || mState == GpuCommandBufferState::RecordingRenderPass; }
-
-			/** Returns true if the command buffer is ready to be submitted to a queue. */
-			bool IsReadyForSubmit() const { return mState == GpuCommandBufferState::RecordingDone; }
 
 			/** Returns true if the command buffer is done executing on the device. */
 			bool IsDone() const { return mState == GpuCommandBufferState::Done; }
@@ -238,7 +246,7 @@ namespace b3d
 			 * bound to the graphics or compute root signature - it must be passed by the caller (draw vs. dispatch)
 			 * since both pipeline types can be bound on the command buffer simultaneously.
 			 */
-			void BindGpuParams(bool isGraphics);
+			void BindGpuParameterSets(bool isGraphics);
 
 			/** Clears the specified area of the currently bound render target. */
 			void ClearViewportArea(const Area2I& area, RenderSurfaceMask mask);
@@ -295,15 +303,15 @@ namespace b3d
 			Area2 mNormalizedViewportArea{ 0.0f, 0.0f, 1.0f, 1.0f };
 			Area2I mScissor{ 0, 0, 0, 0 };
 			bool mIsScissorTestEnabled = false;
-			u32 mStencilRef = 0;
-			DrawOperationType mDrawOp = DOT_TRIANGLE_LIST;
+			u32 mStencilReferenceValue = 0;
+			DrawOperationType mDrawOperation = DOT_TRIANGLE_LIST;
 			u32 mRequiredVertexBufferBindingCount = 0;
 			ID3D12PipelineState* mLastBoundGraphicsPipeline = nullptr; /**< Pipeline variant currently set on the command list. */
 
-			bool mGfxPipelineRequiresBind : 1;
-			bool mCmpPipelineRequiresBind : 1;
+			bool mGraphicsPipelineRequiresBind : 1;
+			bool mComputePipelineRequiresBind : 1;
 			bool mViewportRequiresBind : 1;
-			bool mStencilRefRequiresBind : 1;
+			bool mStencilReferenceValueRequiresBind : 1;
 			bool mScissorRequiresBind : 1;
 
 			// Tracked per bind point (mirroring Vulkan's DescriptorSetBindFlag): parameter changes dirty both, but a

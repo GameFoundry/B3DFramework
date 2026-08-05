@@ -122,8 +122,8 @@ D3D12VertexInput::D3D12VertexInput(u32 id, const GpuVertexInputLayout& layout)
 		mElements.push_back(element);
 	}
 
-	mLayoutDesc.pInputElementDescs = mElements.data();
-	mLayoutDesc.NumElements = (UINT)mElements.size();
+	mLayoutDescription.pInputElementDescs = mElements.data();
+	mLayoutDescription.NumElements = (UINT)mElements.size();
 }
 
 D3D12VertexInputManager::~D3D12VertexInputManager()

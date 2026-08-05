@@ -31,11 +31,10 @@ void D3D12GpuGraphicsPipelineState::Initialize()
 	if (mData.VertexProgram != nullptr)
 		mVertexDescription = mData.VertexProgram->GetVertexInputDescription();
 
-	// Get root signature from parameter layout. Actual pipeline objects are created lazily per render target
+	// Only the root signature is available upfront. Actual pipeline objects are created lazily per render target
 	// format / topology / vertex input combination, see FindOrCreatePipeline().
-	D3D12GpuPipelineParameterLayout* d3d12ParamLayout = static_cast<D3D12GpuPipelineParameterLayout*>(mParameterLayout.get());
-	if (d3d12ParamLayout)
-		mRootSignature = d3d12ParamLayout->GetRootSignature();
+	if (D3D12GpuPipelineParameterLayout* d3d12ParameterLayout = GetD3D12ParameterLayout())
+		mRootSignature = d3d12ParameterLayout->GetRootSignature();
 }
 
 D3D12GpuPipelineParameterLayout* D3D12GpuGraphicsPipelineState::GetD3D12ParameterLayout() const
@@ -91,50 +90,27 @@ ID3D12PipelineState* D3D12GpuGraphicsPipelineState::FindOrCreatePipeline(const D
 	return pipeline.Get();
 }
 
-Microsoft::WRL::ComPtr<ID3D12PipelineState> D3D12GpuGraphicsPipelineState::CreatePipelineState(const D3D12PipelineVariantKey& key, const D3D12VertexInput& vertexInput)
+ComPtr<ID3D12PipelineState> D3D12GpuGraphicsPipelineState::CreatePipelineState(const D3D12PipelineVariantKey& key, const D3D12VertexInput& vertexInput)
 {
 	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
 	ID3D12Device* d3d12Device = device.GetD3D12Device();
 
-	// Graphics pipeline state descriptor
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+	auto fnGetShaderBytecode = [](const TShared<GpuProgram>& program)
+	{
+		return program != nullptr ? static_cast<D3D12GpuProgram*>(program.get())->GetShaderBytecode() : D3D12_SHADER_BYTECODE{};
+	};
 
-	// Root signature
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = mRootSignature.Get();
 
-	// Shader stages
-	if (mData.VertexProgram)
-	{
-		D3D12GpuProgram* vsProgram = static_cast<D3D12GpuProgram*>(mData.VertexProgram.get());
-		psoDesc.VS = vsProgram->GetShaderBytecode();
-	}
-
-	if (mData.FragmentProgram)
-	{
-		D3D12GpuProgram* psProgram = static_cast<D3D12GpuProgram*>(mData.FragmentProgram.get());
-		psoDesc.PS = psProgram->GetShaderBytecode();
-	}
-
-	if (mData.GeometryProgram)
-	{
-		D3D12GpuProgram* gsProgram = static_cast<D3D12GpuProgram*>(mData.GeometryProgram.get());
-		psoDesc.GS = gsProgram->GetShaderBytecode();
-	}
-
-	if (mData.HullProgram)
-	{
-		D3D12GpuProgram* hsProgram = static_cast<D3D12GpuProgram*>(mData.HullProgram.get());
-		psoDesc.HS = hsProgram->GetShaderBytecode();
-	}
-
-	if (mData.DomainProgram)
-	{
-		D3D12GpuProgram* dsProgram = static_cast<D3D12GpuProgram*>(mData.DomainProgram.get());
-		psoDesc.DS = dsProgram->GetShaderBytecode();
-	}
+	psoDesc.VS = fnGetShaderBytecode(mData.VertexProgram);
+	psoDesc.PS = fnGetShaderBytecode(mData.FragmentProgram);
+	psoDesc.GS = fnGetShaderBytecode(mData.GeometryProgram);
+	psoDesc.HS = fnGetShaderBytecode(mData.HullProgram);
+	psoDesc.DS = fnGetShaderBytecode(mData.DomainProgram);
 
 	// Input layout, mapping the bound vertex buffer layout to the vertex shader's inputs
-	psoDesc.InputLayout = vertexInput.GetLayoutDesc();
+	psoDesc.InputLayout = vertexInput.GetLayoutDescription();
 
 	// Rasterizer state
 	const RasterizerStateInformation& rasterizerState = GetRasterizerState();
@@ -155,34 +131,35 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> D3D12GpuGraphicsPipelineState::Creat
 	psoDesc.BlendState.AlphaToCoverageEnable = blendState.EnableAlphaToCoverage;
 	psoDesc.BlendState.IndependentBlendEnable = blendState.EnableIndependantBlend;
 
-	for (u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
+	for (u32 renderTargetIndex = 0; renderTargetIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; renderTargetIndex++)
 	{
-		u32 rtIdx = blendState.EnableIndependantBlend ? i : 0;
-		const RenderTargetBlendStateInformation& rtBlendState = blendState.RenderTargets[rtIdx];
+		// Without independent blending every render target uses the first target's blend state.
+		const RenderTargetBlendStateInformation& sourceBlendState = blendState.RenderTargets[blendState.EnableIndependantBlend ? renderTargetIndex : 0];
+		D3D12_RENDER_TARGET_BLEND_DESC& targetBlendDesc = psoDesc.BlendState.RenderTarget[renderTargetIndex];
 
-		psoDesc.BlendState.RenderTarget[i].BlendEnable = rtBlendState.BlendEnable;
-		psoDesc.BlendState.RenderTarget[i].LogicOpEnable = FALSE;
-		psoDesc.BlendState.RenderTarget[i].SrcBlend = D3D12Utility::GetBlend(rtBlendState.ColorSourceFactor);
-		psoDesc.BlendState.RenderTarget[i].DestBlend = D3D12Utility::GetBlend(rtBlendState.ColorDestinationFactor);
-		psoDesc.BlendState.RenderTarget[i].BlendOp = D3D12Utility::GetBlendOp(rtBlendState.ColorBlendOperation);
-		psoDesc.BlendState.RenderTarget[i].SrcBlendAlpha = D3D12Utility::GetBlend(rtBlendState.AlphaSourceFactor);
-		psoDesc.BlendState.RenderTarget[i].DestBlendAlpha = D3D12Utility::GetBlend(rtBlendState.AlphaDestinationFactor);
-		psoDesc.BlendState.RenderTarget[i].BlendOpAlpha = D3D12Utility::GetBlendOp(rtBlendState.AlphaBlendOperation);
-		psoDesc.BlendState.RenderTarget[i].LogicOp = D3D12_LOGIC_OP_NOOP;
-		psoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask = rtBlendState.RenderTargetWriteMask & 0xF;
+		targetBlendDesc.BlendEnable = sourceBlendState.BlendEnable;
+		targetBlendDesc.LogicOpEnable = FALSE;
+		targetBlendDesc.SrcBlend = D3D12Utility::GetBlend(sourceBlendState.ColorSourceFactor);
+		targetBlendDesc.DestBlend = D3D12Utility::GetBlend(sourceBlendState.ColorDestinationFactor);
+		targetBlendDesc.BlendOp = D3D12Utility::GetBlendOp(sourceBlendState.ColorBlendOperation);
+		targetBlendDesc.SrcBlendAlpha = D3D12Utility::GetBlend(sourceBlendState.AlphaSourceFactor);
+		targetBlendDesc.DestBlendAlpha = D3D12Utility::GetBlend(sourceBlendState.AlphaDestinationFactor);
+		targetBlendDesc.BlendOpAlpha = D3D12Utility::GetBlendOp(sourceBlendState.AlphaBlendOperation);
+		targetBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+		targetBlendDesc.RenderTargetWriteMask = sourceBlendState.RenderTargetWriteMask & 0xF;
 
 		// MIN/MAX blend operations ignore the blend factors (treated as ONE); set them explicitly so the debug
 		// layer doesn't warn about the unused values
-		if (psoDesc.BlendState.RenderTarget[i].BlendOp == D3D12_BLEND_OP_MIN || psoDesc.BlendState.RenderTarget[i].BlendOp == D3D12_BLEND_OP_MAX)
+		if (targetBlendDesc.BlendOp == D3D12_BLEND_OP_MIN || targetBlendDesc.BlendOp == D3D12_BLEND_OP_MAX)
 		{
-			psoDesc.BlendState.RenderTarget[i].SrcBlend = D3D12_BLEND_ONE;
-			psoDesc.BlendState.RenderTarget[i].DestBlend = D3D12_BLEND_ONE;
+			targetBlendDesc.SrcBlend = D3D12_BLEND_ONE;
+			targetBlendDesc.DestBlend = D3D12_BLEND_ONE;
 		}
 
-		if (psoDesc.BlendState.RenderTarget[i].BlendOpAlpha == D3D12_BLEND_OP_MIN || psoDesc.BlendState.RenderTarget[i].BlendOpAlpha == D3D12_BLEND_OP_MAX)
+		if (targetBlendDesc.BlendOpAlpha == D3D12_BLEND_OP_MIN || targetBlendDesc.BlendOpAlpha == D3D12_BLEND_OP_MAX)
 		{
-			psoDesc.BlendState.RenderTarget[i].SrcBlendAlpha = D3D12_BLEND_ONE;
-			psoDesc.BlendState.RenderTarget[i].DestBlendAlpha = D3D12_BLEND_ONE;
+			targetBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+			targetBlendDesc.DestBlendAlpha = D3D12_BLEND_ONE;
 		}
 	}
 
@@ -208,37 +185,21 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> D3D12GpuGraphicsPipelineState::Creat
 	psoDesc.DepthStencilState.BackFace.StencilPassOp = D3D12Utility::GetStencilOp(depthStencilState.BackStencilPassOp);
 	psoDesc.DepthStencilState.BackFace.StencilFunc = D3D12Utility::GetComparisonFunc(depthStencilState.BackStencilComparisonFunc);
 
-	// Sample description
+	// Output configuration, all of it baked into the variant key
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.SampleDesc.Count = key.SampleCount;
 	psoDesc.SampleDesc.Quality = 0;
-
-	// Primitive topology type
 	psoDesc.PrimitiveTopologyType = key.TopologyType;
-
-	// Render target formats
 	psoDesc.NumRenderTargets = key.RenderTargetCount;
-	for (u32 i = 0; i < 8; i++)
-		psoDesc.RTVFormats[i] = i < key.RenderTargetCount ? key.RenderTargetFormats[i] : DXGI_FORMAT_UNKNOWN;
-
 	psoDesc.DSVFormat = key.DepthStencilFormat;
 
-	// Stream output (not used)
-	psoDesc.StreamOutput.pSODeclaration = nullptr;
-	psoDesc.StreamOutput.NumEntries = 0;
-	psoDesc.StreamOutput.pBufferStrides = nullptr;
-	psoDesc.StreamOutput.NumStrides = 0;
-	psoDesc.StreamOutput.RasterizedStream = 0;
+	for (u32 renderTargetIndex = 0; renderTargetIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; renderTargetIndex++)
+		psoDesc.RTVFormats[renderTargetIndex] = renderTargetIndex < key.RenderTargetCount ? key.RenderTargetFormats[renderTargetIndex] : DXGI_FORMAT_UNKNOWN;
 
-	// Cache and node mask
-	psoDesc.CachedPSO.pCachedBlob = nullptr;
-	psoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
-	psoDesc.NodeMask = 0;
 	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-	// Create pipeline state
 	ComPtr<ID3D12PipelineState> pipelineState;
-	HRESULT hr = d3d12Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState));
+	const HRESULT hr = d3d12Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState));
 
 	if (FAILED(hr))
 	{
@@ -272,30 +233,17 @@ void D3D12GpuComputePipelineState::CreatePipelineState()
 	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
 	ID3D12Device* d3d12Device = device.GetD3D12Device();
 
-	// Get root signature from parameter layout
-	D3D12GpuPipelineParameterLayout* d3d12ParamLayout = static_cast<D3D12GpuPipelineParameterLayout*>(mParameterLayout.get());
-	if (d3d12ParamLayout)
-		mRootSignature = d3d12ParamLayout->GetRootSignature();
+	if (D3D12GpuPipelineParameterLayout* d3d12ParameterLayout = GetD3D12ParameterLayout())
+		mRootSignature = d3d12ParameterLayout->GetRootSignature();
 
-	// Compute pipeline state descriptor
 	D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = mRootSignature.Get();
-
-	// Compute shader
-	if (mData.Program)
-	{
-		D3D12GpuProgram* csProgram = static_cast<D3D12GpuProgram*>(mData.Program.get());
-		psoDesc.CS = csProgram->GetShaderBytecode();
-	}
-
-	// Cache and node mask
-	psoDesc.CachedPSO.pCachedBlob = nullptr;
-	psoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
-	psoDesc.NodeMask = 0;
 	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-	// Create pipeline state
-	HRESULT hr = d3d12Device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState));
+	if (mData.Program != nullptr)
+		psoDesc.CS = static_cast<D3D12GpuProgram*>(mData.Program.get())->GetShaderBytecode();
+
+	const HRESULT hr = d3d12Device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&mPipelineState));
 
 	if (FAILED(hr))
 	{

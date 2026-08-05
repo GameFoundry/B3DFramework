@@ -162,10 +162,10 @@ namespace b3d
 			GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags = GpuAccessFlag::Read | GpuAccessFlag::Write) const override;
 
 			/** @copydoc render::Texture::GetBoundCount */
-			u32 GetBoundCount(u32 subresourceIdx = 0) const override;
+			u32 GetBoundCount(u32 subresourceIndex = 0) const override;
 
 			/** @copydoc render::Texture::GetUseCount */
-			u32 GetUseCount(u32 subresourceIdx = 0) const override;
+			u32 GetUseCount(u32 subresourceIndex = 0) const override;
 
 			/** @copydoc render::Texture::Flush */
 			void Flush(u32 mipLevel, u32 arrayLayer) override;

@@ -17,12 +17,10 @@ namespace b3d
 		 */
 
 		/**
-		 * Wraps a native D3D12 object. Extends a generic GPU resource base (@p TBase) with the D3D12-specific portion
-		 * of the lifetime state machine: per-queue read/write use counters. Aggregate counters and deferred
-		 * destruction are inherited from IGpuResource.
+		 * Wraps a native D3D12 object, adding a device accessor on top of a generic GPU resource base (@p TBase).
+		 * Use counting, lifetime state and deferred destruction all come from the base.
 		 *
-		 * Unlike Vulkan there is no queue-family ownership machinery - D3D12 resources are usable on any queue
-		 * without explicit ownership transfers.
+		 * Resources are usable on any queue: D3D12 has no queue-family ownership transfers.
 		 *
 		 * @note Thread safe
 		 */
@@ -30,24 +28,13 @@ namespace b3d
 		class TD3D12Resource : public TBase
 		{
 		public:
-			static constexpr u32 kMaximumUniqueQueueCount = B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT;
-
 			template<class... TBaseArgs>
 			TD3D12Resource(D3D12ResourceManager* owner, TBaseArgs&&... baseArgs)
-				: TBase(owner, std::forward<TBaseArgs>(baseArgs)...), mOwner(owner)
+				: TBase(owner, std::forward<TBaseArgs>(baseArgs)...)
 			{}
 
 			/** Returns the device this resource is created on. */
 			D3D12GpuDevice& GetDevice() const;
-
-		protected:
-			/**
-			 * Typed manager pointer. Shadows IGpuResource::mOwner so that subclasses calling mOwner->GetDevice()
-			 * (and similar typed accessors on the manager) see the D3D12ResourceManager surface. The base's untyped
-			 * pointer drives the deferred-destroy free path inside IGpuResource itself.
-			 */
-			D3D12ResourceManager* mOwner;
-
 		};
 
 		/** Standard D3D12 resource with no specialized generic role. */

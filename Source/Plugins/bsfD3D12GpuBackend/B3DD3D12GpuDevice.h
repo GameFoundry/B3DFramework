@@ -80,9 +80,6 @@ namespace b3d
 			/** Returns the D3D12 device object. */
 			ID3D12Device* GetD3D12Device() const { return mDevice.Get(); }
 
-			/** Returns the DXGI adapter. */
-			IDXGIAdapter4* GetDXGIAdapter() const { return mAdapter.Get(); }
-
 			/** Returns true if the device is the primary GPU. */
 			bool IsPrimary() const { return mIsPrimary; }
 

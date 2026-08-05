@@ -21,9 +21,16 @@ namespace b3d
 			D3D12GpuQueue(D3D12GpuDevice& device, GpuQueueType type, u32 index, ID3D12CommandQueue* d3d12Queue);
 			~D3D12GpuQueue();
 
+			/**
+			 * @name GpuQueue Interface
+			 * @{
+			 */
+
 			void SubmitCommandBuffer(const GpuSubmissionInformation& information) override;
 			void WaitUntilIdle() override;
 			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
+
+			/** @} */
 
 			/** Returns the internal handle to the D3D12 queue object. */
 			ID3D12CommandQueue* GetD3D12Handle() const { return mQueue.Get(); }
@@ -82,11 +89,11 @@ namespace b3d
 			 * Submits a command list to the queue.
 			 *
 			 * @param commandLists		Array of command lists to submit.
-			 * @param numCommandLists	Number of command lists in the array.
+			 * @param commandListCount	Number of command lists in the array.
 			 *
 			 * @note	Submit thread only.
 			 */
-			void ExecuteCommandLists(ID3D12CommandList* const* commandLists, u32 numCommandLists);
+			void ExecuteCommandLists(ID3D12CommandList* const* commandLists, u32 commandListCount);
 
 			/**
 			 * Signals the fence with the specified value when all previous work has completed.

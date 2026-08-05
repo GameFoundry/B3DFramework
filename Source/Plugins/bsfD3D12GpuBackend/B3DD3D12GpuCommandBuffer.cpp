@@ -212,10 +212,10 @@ D3D12GpuCommandBuffer::D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCom
 	, mCommandList(commandList)
 	, mPool(pool)
 	, mBarrierHelper(&mResourceTracker)
-	, mGfxPipelineRequiresBind(true)
-	, mCmpPipelineRequiresBind(true)
+	, mGraphicsPipelineRequiresBind(true)
+	, mComputePipelineRequiresBind(true)
 	, mViewportRequiresBind(true)
-	, mStencilRefRequiresBind(true)
+	, mStencilReferenceValueRequiresBind(true)
 	, mScissorRequiresBind(true)
 	, mGraphicsParamsRequireBind(false)
 	, mComputeParamsRequireBind(false)
@@ -286,10 +286,10 @@ void D3D12GpuCommandBuffer::Begin()
 	// Reset state tracking
 	mLastBoundGraphicsPipeline = nullptr;
 	mRequiredVertexBufferBindingCount = 0;
-	mGfxPipelineRequiresBind = true;
-	mCmpPipelineRequiresBind = true;
+	mGraphicsPipelineRequiresBind = true;
+	mComputePipelineRequiresBind = true;
 	mViewportRequiresBind = true;
-	mStencilRefRequiresBind = true;
+	mStencilReferenceValueRequiresBind = true;
 	mScissorRequiresBind = true;
 	mGraphicsParamsRequireBind = false;
 	mComputeParamsRequireBind = false;
@@ -371,13 +371,13 @@ void D3D12GpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32
 void D3D12GpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState)
 {
 	mGraphicsPipeline = std::static_pointer_cast<D3D12GpuGraphicsPipelineState>(pipelineState);
-	mGfxPipelineRequiresBind = true;
+	mGraphicsPipelineRequiresBind = true;
 }
 
 void D3D12GpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState)
 {
 	mComputePipeline = std::static_pointer_cast<D3D12GpuComputePipelineState>(pipelineState);
-	mCmpPipelineRequiresBind = true;
+	mComputePipelineRequiresBind = true;
 }
 
 void D3D12GpuCommandBuffer::SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount)
@@ -405,7 +405,7 @@ void D3D12GpuCommandBuffer::SetVertexDescription(const TShared<VertexDescription
 
 void D3D12GpuCommandBuffer::SetDrawOperation(DrawOperationType operation)
 {
-	mDrawOp = operation;
+	mDrawOperation = operation;
 }
 
 void D3D12GpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
@@ -416,7 +416,7 @@ void D3D12GpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instance
 	BindGraphicsPipeline();
 	BindDynamicStates(false);
 	BindVertexInputs();
-	BindGpuParams(true);
+	BindGpuParameterSets(true);
 
 	// Barriers accumulated by the bind-time tracking above. Parameter sets are normally pre-registered at
 	// BeginRenderPass so this is usually empty; when it is not, emitting mid-pass is legal in D3D12 (rendering uses
@@ -437,7 +437,7 @@ void D3D12GpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vert
 	BindGraphicsPipeline();
 	BindDynamicStates(false);
 	BindVertexInputs();
-	BindGpuParams(true);
+	BindGpuParameterSets(true);
 
 	// See Draw() for why executing mid-pass is fine.
 	mBarrierHelper.Execute(*this);
@@ -453,11 +453,11 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 	if (!mComputePipeline)
 		return;
 
-	if (mCmpPipelineRequiresBind)
+	if (mComputePipelineRequiresBind)
 	{
 		mCommandList->SetPipelineState(mComputePipeline->GetD3D12PipelineState());
 		mCommandList->SetComputeRootSignature(mComputePipeline->GetRootSignature());
-		mCmpPipelineRequiresBind = false;
+		mComputePipelineRequiresBind = false;
 
 		// Setting a root signature wipes all of the command list's compute root arguments; re-record them below.
 		// By this point the caller has set parameters matching this pipeline (binding is deferred to the dispatch
@@ -466,7 +466,7 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 		mComputeParamsRequireBind = true;
 	}
 
-	BindGpuParams(false);
+	BindGpuParameterSets(false);
 
 	// Registration must run on every dispatch (not just when the bound set changes), so back-to-back dispatches
 	// using the same UAVs get the write-hazard (UAV) barriers between them.
@@ -578,9 +578,9 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 	{
 		const D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandles = mFramebuffer->GetRenderTargetViews();
 		const D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandle = mFramebuffer->GetDepthStencilView();
-		u32 numRTVs = mFramebuffer->GetNumColorAttachments();
+		u32 renderTargetCount = mFramebuffer->GetColorAttachmentCount();
 
-		mCommandList->OMSetRenderTargets(numRTVs, rtvHandles, FALSE, dsvHandle);
+		mCommandList->OMSetRenderTargets(renderTargetCount, rtvHandles, FALSE, dsvHandle);
 	}
 
 	// Apply clear operations requested for the render pass start
@@ -630,9 +630,9 @@ void D3D12GpuCommandBuffer::ClearViewportArea(const Area2I& area, RenderSurfaceM
 	if (mask != RT_NONE)
 	{
 		const D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandles = mFramebuffer->GetRenderTargetViews();
-		const u32 numRTVs = mFramebuffer->GetNumColorAttachments();
+		const u32 renderTargetCount = mFramebuffer->GetColorAttachmentCount();
 
-		for (u32 i = 0; i < numRTVs; i++)
+		for (u32 i = 0; i < renderTargetCount; i++)
 		{
 			if (!mask.IsSet((RenderSurfaceMaskBits)(RT_COLOR0 << i)))
 				continue;
@@ -661,8 +661,8 @@ u32 D3D12GpuCommandBuffer::BuildRenderTargetAttachments(const D3D12Framebuffer& 
 {
 	u32 attachmentCount = 0;
 
-	const u32 numColor = framebuffer.GetNumColorAttachments();
-	for(u32 i = 0; i < numColor; i++)
+	const u32 colorAttachmentCount = framebuffer.GetColorAttachmentCount();
+	for(u32 i = 0; i < colorAttachmentCount; i++)
 	{
 		const D3D12Framebuffer::Attachment& attachment = framebuffer.GetColorAttachment(i);
 		if(attachment.Image == nullptr)
@@ -706,8 +706,8 @@ void D3D12GpuCommandBuffer::DisableScissorTest()
 
 void D3D12GpuCommandBuffer::SetStencilReferenceValue(u32 value)
 {
-	mStencilRef = value;
-	mStencilRefRequiresBind = true;
+	mStencilReferenceValue = value;
+	mStencilReferenceValueRequiresBind = true;
 }
 
 void D3D12GpuCommandBuffer::WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool)
@@ -857,8 +857,8 @@ void D3D12GpuCommandBuffer::EndRenderPass()
 		// analog: finalLayout = PRESENT_SRC on window render passes).
 		if (mRenderTarget != nullptr && mRenderTarget->GetProperties().IsWindow)
 		{
-			const u32 numColor = mFramebuffer->GetNumColorAttachments();
-			for (u32 i = 0; i < numColor; i++)
+			const u32 colorAttachmentCount = mFramebuffer->GetColorAttachmentCount();
+			for (u32 i = 0; i < colorAttachmentCount; i++)
 			{
 				const D3D12Framebuffer::Attachment& attachment = mFramebuffer->GetColorAttachment(i);
 				if (attachment.Image == nullptr)
@@ -917,12 +917,12 @@ bool D3D12GpuCommandBuffer::BindGraphicsPipeline()
 	// Resolve the pipeline variant matching the current framebuffer formats, vertex input and draw operation.
 	// Variants are cached by the pipeline state object, so this is a lookup on all but the first encounter.
 	D3D12PipelineVariantKey variantKey;
-	variantKey.RenderTargetCount = mFramebuffer->GetNumColorAttachments();
+	variantKey.RenderTargetCount = mFramebuffer->GetColorAttachmentCount();
 	for (u32 i = 0; i < variantKey.RenderTargetCount; i++)
 		variantKey.RenderTargetFormats[i] = mFramebuffer->GetColorFormat(i);
 	variantKey.DepthStencilFormat = mFramebuffer->GetDepthStencilFormat();
 	variantKey.SampleCount = mFramebuffer->GetSampleCount();
-	variantKey.TopologyType = D3D12Utility::GetPrimitiveTopologyType(mDrawOp);
+	variantKey.TopologyType = D3D12Utility::GetPrimitiveTopologyType(mDrawOperation);
 	variantKey.VertexInputId = vertexInput->GetId();
 
 	ID3D12PipelineState* pipeline = mGraphicsPipeline->FindOrCreatePipeline(variantKey, *vertexInput);
@@ -935,10 +935,10 @@ bool D3D12GpuCommandBuffer::BindGraphicsPipeline()
 		mLastBoundGraphicsPipeline = pipeline;
 	}
 
-	if (mGfxPipelineRequiresBind)
+	if (mGraphicsPipelineRequiresBind)
 	{
 		mCommandList->SetGraphicsRootSignature(mGraphicsPipeline->GetRootSignature());
-		mGfxPipelineRequiresBind = false;
+		mGraphicsPipelineRequiresBind = false;
 
 		// Setting a root signature wipes all of the command list's graphics root arguments; re-record them on the
 		// next parameter bind (see DispatchCompute() for the safety argument).
@@ -946,7 +946,7 @@ bool D3D12GpuCommandBuffer::BindGraphicsPipeline()
 	}
 
 	// Set primitive topology (cheap dynamic state, set to match the current draw operation)
-	mCommandList->IASetPrimitiveTopology(D3D12Utility::GetPrimitiveTopology(mDrawOp));
+	mCommandList->IASetPrimitiveTopology(D3D12Utility::GetPrimitiveTopology(mDrawOperation));
 
 	return true;
 }
@@ -1000,10 +1000,10 @@ void D3D12GpuCommandBuffer::BindDynamicStates(bool forceAll)
 	}
 
 	// Bind stencil reference
-	if (mStencilRefRequiresBind || forceAll)
+	if (mStencilReferenceValueRequiresBind || forceAll)
 	{
-		mCommandList->OMSetStencilRef(mStencilRef);
-		mStencilRefRequiresBind = false;
+		mCommandList->OMSetStencilRef(mStencilReferenceValue);
+		mStencilReferenceValueRequiresBind = false;
 	}
 }
 
@@ -1044,7 +1044,7 @@ void D3D12GpuCommandBuffer::BindVertexInputs()
 	mVertexInputsDirty = false;
 }
 
-void D3D12GpuCommandBuffer::BindGpuParams(bool isGraphics)
+void D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
 {
 	const bool requiresBind = isGraphics ? mGraphicsParamsRequireBind : mComputeParamsRequireBind;
 	if (!requiresBind || mBoundParameterSets.empty())

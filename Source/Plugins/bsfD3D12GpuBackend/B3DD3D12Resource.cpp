@@ -9,7 +9,7 @@ using namespace b3d::render;
 template<class TBase>
 D3D12GpuDevice& TD3D12Resource<TBase>::GetDevice() const
 {
-	return mOwner->GetDevice();
+	return static_cast<D3D12ResourceManager*>(this->mOwner)->GetDevice();
 }
 
 namespace b3d::render

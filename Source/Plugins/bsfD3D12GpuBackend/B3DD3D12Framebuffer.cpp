@@ -18,10 +18,6 @@ using namespace b3d::render;
 D3D12Framebuffer::D3D12Framebuffer(const RenderTarget* renderTarget, u32 backBufferIndex)
 	: mRenderTarget(renderTarget)
 	, mBackBufferIndex(backBufferIndex)
-	, mNumColorAttachments(0)
-	, mHasDepthStencil(false)
-	, mWidth(0)
-	, mHeight(0)
 {
 	if (!mRenderTarget)
 		return;
@@ -41,10 +37,10 @@ D3D12Framebuffer::~D3D12Framebuffer()
 		return;
 
 	D3D12DescriptorManager& descriptorManager = GetD3D12GpuBackend().GetPrimaryDevice()->GetDescriptorManager();
-	for (u32 i = 0; i < kMaxColorAttachments; i++)
+	for (u32 attachmentIndex = 0; attachmentIndex < kMaxColorAttachments; attachmentIndex++)
 	{
-		if (mRenderTargetViews[i].ptr != 0)
-			descriptorManager.FreeCPUDescriptor(D3D12DescriptorHeapType::RTV, mRenderTargetViews[i]);
+		if (mRenderTargetViews[attachmentIndex].ptr != 0)
+			descriptorManager.FreeCPUDescriptor(D3D12DescriptorHeapType::RTV, mRenderTargetViews[attachmentIndex]);
 	}
 
 	if (mDepthStencilView.ptr != 0)
@@ -53,22 +49,6 @@ D3D12Framebuffer::~D3D12Framebuffer()
 
 void D3D12Framebuffer::CreateViews()
 {
-	// Initialize to empty handles
-	for (u32 i = 0; i < kMaxColorAttachments; i++)
-	{
-		mRenderTargetViews[i].ptr = 0;
-		mColorAttachments[i] = Attachment{};
-		mColorFormats[i] = DXGI_FORMAT_UNKNOWN;
-	}
-	mDepthStencilView.ptr = 0;
-	mDepthStencilAttachment = Attachment{};
-	mDepthStencilFormat = DXGI_FORMAT_UNKNOWN;
-	mSampleCount = 1;
-
-	if (!mRenderTarget)
-		return;
-
-	// Get the device and descriptor manager
 	D3D12GpuDevice& device = *GetD3D12GpuBackend().GetPrimaryDevice();
 	D3D12DescriptorManager& descriptorManager = device.GetDescriptorManager();
 	ID3D12Device* d3d12Device = device.GetD3D12Device();
@@ -83,31 +63,28 @@ void D3D12Framebuffer::CreateViews()
 	{
 		mOwnsViews = true;
 
-		// Handle RenderTexture - create views for color and depth-stencil textures
-		for (u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
+		for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
 		{
 			// Create render target view over the requested face/mip sub-range (rendering into a single cube face or
 			// texture-array slice is how cubemaps get filled, e.g. sky irradiance - a view always starting at face 0
 			// makes every such pass overwrite the first face).
-			const RenderSurfaceInformation& surfaceInformation = renderTexture->GetColorSurfaceInformation(i);
+			const RenderSurfaceInformation& surfaceInformation = renderTexture->GetColorSurfaceInformation(attachmentIndex);
 			const TShared<Texture>& colorTexture = surfaceInformation.Texture;
 			if (!colorTexture)
 				continue;
 
-			// Get the D3D12 texture resource
 			D3D12Texture* d3d12Texture = static_cast<D3D12Texture*>(colorTexture.get());
 			ID3D12Resource* resource = d3d12Texture->GetD3D12Resource();
 
 			if (!resource)
 				continue;
 
-			// Allocate RTV descriptor
-			mRenderTargetViews[i] = descriptorManager.AllocateCPUDescriptor(D3D12DescriptorHeapType::RTV);
+			mRenderTargetViews[attachmentIndex] = descriptorManager.AllocateCPUDescriptor(D3D12DescriptorHeapType::RTV);
 
-			const TextureProperties& props = colorTexture->GetProperties();
+			const TextureProperties& properties = colorTexture->GetProperties();
 
 			const u32 baseFace = surfaceInformation.Face;
-			const u32 faceCount = surfaceInformation.FaceCount == 0 ? (props.GetFaceCount() - baseFace) : surfaceInformation.FaceCount;
+			const u32 faceCount = surfaceInformation.FaceCount == 0 ? (properties.GetFaceCount() - baseFace) : surfaceInformation.FaceCount;
 			const u32 mipLevel = surfaceInformation.MipLevel;
 
 			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
@@ -115,10 +92,10 @@ void D3D12Framebuffer::CreateViews()
 			// for sRGB textures (the RTV format must match the resource's).
 			rtvDesc.Format = d3d12Texture->GetDXGIFormat();
 
-			switch (props.Type)
+			switch (properties.Type)
 			{
 			case TEX_TYPE_2D:
-				if (props.GetFaceCount() > 1)
+				if (properties.GetFaceCount() > 1)
 				{
 					rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
 					rtvDesc.Texture2DArray.MipSlice = mipLevel;
@@ -144,24 +121,23 @@ void D3D12Framebuffer::CreateViews()
 				rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
 				rtvDesc.Texture3D.MipSlice = mipLevel;
 				rtvDesc.Texture3D.FirstWSlice = surfaceInformation.Face;
-				rtvDesc.Texture3D.WSize = surfaceInformation.FaceCount == 0 ? props.Depth - surfaceInformation.Face : surfaceInformation.FaceCount;
+				rtvDesc.Texture3D.WSize = surfaceInformation.FaceCount == 0 ? properties.Depth - surfaceInformation.Face : surfaceInformation.FaceCount;
 				break;
 			default:
 				B3D_LOG(Error, LogRenderBackend, "Unsupported texture type for render target view");
 				continue;
 			}
 
-			d3d12Device->CreateRenderTargetView(resource, &rtvDesc, mRenderTargetViews[i]);
+			d3d12Device->CreateRenderTargetView(resource, &rtvDesc, mRenderTargetViews[attachmentIndex]);
 
-			mColorAttachments[i].Image = d3d12Texture->GetD3D12Image();
-			mColorAttachments[i].Surface = TextureSurface(mipLevel, 1, baseFace, faceCount);
-			mColorFormats[i] = rtvDesc.Format;
-			mSampleCount = Math::Max(1u, props.SampleCount);
+			mColorAttachments[attachmentIndex].Image = d3d12Texture->GetD3D12Image();
+			mColorAttachments[attachmentIndex].Surface = TextureSurface(mipLevel, 1, baseFace, faceCount);
+			mColorFormats[attachmentIndex] = rtvDesc.Format;
+			mSampleCount = Math::Max(1u, properties.SampleCount);
 
-			mNumColorAttachments++;
+			mColorAttachmentCount++;
 		}
 
-		// Handle depth-stencil texture
 		const TShared<Texture>& depthTexture = renderTexture->GetDepthStencilSurfaceInformation().Texture;
 		if (depthTexture)
 		{
@@ -170,25 +146,24 @@ void D3D12Framebuffer::CreateViews()
 
 			if (resource)
 			{
-				// Allocate DSV descriptor
 				mDepthStencilView = descriptorManager.AllocateCPUDescriptor(D3D12DescriptorHeapType::DSV);
 
 				// Create depth-stencil view over the requested face/mip sub-range (see the color path above).
 				const RenderSurfaceInformation& surfaceInformation = renderTexture->GetDepthStencilSurfaceInformation();
-				const TextureProperties& props = depthTexture->GetProperties();
+				const TextureProperties& properties = depthTexture->GetProperties();
 
 				const u32 baseFace = surfaceInformation.Face;
-				const u32 faceCount = surfaceInformation.FaceCount == 0 ? (props.GetFaceCount() - baseFace) : surfaceInformation.FaceCount;
+				const u32 faceCount = surfaceInformation.FaceCount == 0 ? (properties.GetFaceCount() - baseFace) : surfaceInformation.FaceCount;
 				const u32 mipLevel = surfaceInformation.MipLevel;
 
 				D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-				dsvDesc.Format = D3D12Utility::GetDXGIFormat(props.Format);
+				dsvDesc.Format = D3D12Utility::GetDXGIFormat(properties.Format);
 				dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 
-				switch (props.Type)
+				switch (properties.Type)
 				{
 				case TEX_TYPE_2D:
-					if (props.GetFaceCount() > 1)
+					if (properties.GetFaceCount() > 1)
 					{
 						dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 						dsvDesc.Texture2DArray.MipSlice = mipLevel;
@@ -217,7 +192,7 @@ void D3D12Framebuffer::CreateViews()
 				mDepthStencilAttachment.Image = d3d12Texture->GetD3D12Image();
 				mDepthStencilAttachment.Surface = TextureSurface(mipLevel, 1, baseFace, faceCount);
 				mDepthStencilFormat = dsvDesc.Format;
-				mSampleCount = Math::Max(1u, props.SampleCount);
+				mSampleCount = Math::Max(1u, properties.SampleCount);
 
 				mHasDepthStencil = true;
 			}
@@ -225,39 +200,34 @@ void D3D12Framebuffer::CreateViews()
 	}
 	else
 	{
-		// Handle RenderWindow - get views from swap chain
 		const RenderWindow* renderWindow = static_cast<const RenderWindow*>(mRenderTarget);
 
-		// Get the render window surface which contains the swap chain
-		const TShared<IRenderWindowSurface>& surfacePtr = renderWindow->GetRenderWindowSurface();
-		if (!surfacePtr)
+		const TShared<IRenderWindowSurface>& surface = renderWindow->GetRenderWindowSurface();
+		if (!surface)
 		{
 			B3D_LOG(Warning, LogRenderBackend, "RenderWindow has no surface, cannot create framebuffer");
 			return;
 		}
 
-		D3D12RenderWindowSurface* d3d12Surface = static_cast<D3D12RenderWindowSurface*>(surfacePtr.get());
-		D3D12SwapChain* swapChain = d3d12Surface->GetSwapChain();
-
+		D3D12SwapChain* swapChain = static_cast<D3D12RenderWindowSurface*>(surface.get())->GetSwapChain();
 		if (!swapChain)
 		{
 			B3D_LOG(Warning, LogRenderBackend, "RenderWindow surface has no swap chain, cannot create framebuffer");
 			return;
 		}
 
-		// Get the RTV for the specified back buffer
+		// The swap chain owns these views, so they must not be freed on destruction (mOwnsViews stays false).
 		mRenderTargetViews[0] = swapChain->GetBackBufferRTV(mBackBufferIndex);
-		mNumColorAttachments = 1;
+		mColorAttachmentCount = 1;
 		mColorFormats[0] = swapChain->GetCreateInformation().ColorFormat;
 
 		mColorAttachments[0].Image = swapChain->GetBackBufferImage(mBackBufferIndex);
 		mColorAttachments[0].Surface = TextureSurface(0, 1, 0, 1);
 
-		// Get depth stencil view if it exists
-		D3D12_CPU_DESCRIPTOR_HANDLE dsv = swapChain->GetDepthStencilView();
-		if (dsv.ptr != 0)
+		const D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = swapChain->GetDepthStencilView();
+		if (depthStencilView.ptr != 0)
 		{
-			mDepthStencilView = dsv;
+			mDepthStencilView = depthStencilView;
 			mHasDepthStencil = true;
 			mDepthStencilFormat = swapChain->GetCreateInformation().DepthStencilFormat;
 

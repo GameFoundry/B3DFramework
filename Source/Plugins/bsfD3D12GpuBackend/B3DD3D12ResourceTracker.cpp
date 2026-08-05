@@ -30,9 +30,9 @@ using namespace b3d::render;
 
 void D3D12ResourceTracker::TrackRenderTargetUsage(const D3D12RenderTargetAttachment* attachments, u32 attachmentCount, RenderSurfaceMask readOnlyMask, D3D12BarrierHelper& barrierHelper)
 {
-	for (u32 i = 0; i < attachmentCount; i++)
+	for (u32 attachmentIndex = 0; attachmentIndex < attachmentCount; attachmentIndex++)
 	{
-		const D3D12RenderTargetAttachment& attachment = attachments[i];
+		const D3D12RenderTargetAttachment& attachment = attachments[attachmentIndex];
 
 		GpuAccessFlag access;
 		GpuResourceUseFlag useFlags;
@@ -65,9 +65,9 @@ RenderSurfaceMask D3D12ResourceTracker::GetRenderTargetReadOnlyMask(const D3D12R
 {
 	RenderSurfaceMask readMask = RT_NONE;
 
-	for (u32 i = 0; i < attachmentCount; i++)
+	for (u32 attachmentIndex = 0; attachmentIndex < attachmentCount; attachmentIndex++)
 	{
-		const D3D12RenderTargetAttachment& attachment = attachments[i];
+		const D3D12RenderTargetAttachment& attachment = attachments[attachmentIndex];
 
 		const GpuImageSubresourceTrackingState* subresourceTrackingState =
 			FindSubresourceTrackingState(attachment.Image, attachment.Surface.Face, attachment.Surface.MipLevel);
@@ -99,13 +99,13 @@ void D3D12ResourceTracker::ClearRenderTargetFlagsForImage(D3D12Image* image)
 	const GpuImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
 
 	GpuImageSubresourceTrackingState* const subresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
-	for (u32 i = 0; i < imageTrackingState.SubresourceInfoCount; i++)
-		subresourceTrackingStates[i].FramebufferUse = GpuAccessFlag::None;
+	for (u32 subresourceIndex = 0; subresourceIndex < imageTrackingState.SubresourceInfoCount; subresourceIndex++)
+		subresourceTrackingStates[subresourceIndex].FramebufferUse = GpuAccessFlag::None;
 }
 
 void D3D12ResourceTracker::ClearShaderFlagsForAllRenderPassImageSubresources()
 {
-	for (const auto& subresourceIndex : mRenderPassSubresources)
+	for (u32 subresourceIndex : mRenderPassSubresources)
 		mSubresourceTrackingState[subresourceIndex].ShaderUse = GpuAccessFlag::None;
 
 	mRenderPassSubresources.clear();

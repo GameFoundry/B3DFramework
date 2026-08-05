@@ -11,28 +11,31 @@ namespace b3d
 	 *  @{
 	 */
 
-	/**	Handles creation of DirectX 12 textures. */
+	/**	Handles creation of DirectX 12 textures on the simulation thread. */
 	class D3D12TextureManager : public TextureManager
 	{
 	public:
-		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, TextureUsageFlags usage, bool hwGamma) override;
+		/** @copydoc TextureManager::GetNativeFormat */
+		PixelFormat GetNativeFormat(TextureType textureType, PixelFormat format, TextureUsageFlags usage, bool hardwareGamma) override;
 
 	protected:
-		TShared<RenderTexture> CreateRenderTextureImpl(const RenderTextureCreateInformation& desc) override;
+		/** @copydoc TextureManager::CreateRenderTextureImpl */
+		TShared<RenderTexture> CreateRenderTextureImpl(const RenderTextureCreateInformation& createInformation) override;
 	};
 
 	namespace render
 	{
-		/**	Handles creation of DirectX 12 textures. */
+		/**	Handles creation of DirectX 12 textures on the core thread. */
 		class D3D12TextureManager : public TextureManager
 		{
 		public:
 			D3D12TextureManager(GpuDevice& gpuDevice)
-				:TextureManager(gpuDevice)
+				: TextureManager(gpuDevice)
 			{ }
 
 		protected:
-			TShared<RenderTexture> CreateRenderTextureInternal(const RenderTextureCreateInformation& desc) override;
+			/** @copydoc TextureManager::CreateRenderTextureInternal */
+			TShared<RenderTexture> CreateRenderTextureInternal(const RenderTextureCreateInformation& createInformation) override;
 		};
 	} // namespace render
 

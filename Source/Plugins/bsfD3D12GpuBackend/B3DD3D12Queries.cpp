@@ -11,7 +11,7 @@ using namespace b3d::render;
 D3D12GpuQueryPool::D3D12GpuQueryPool(D3D12GpuDevice& device, const GpuQueryPoolCreateInformation& createInformation)
 	: GpuQueryPool(createInformation)
 	, mDevice(device)
-	, mPipelineStatsBits(createInformation.PipelineStatisticsQueryBits)
+	, mPipelineStatisticsBits(createInformation.PipelineStatisticsQueryBits)
 {
 	// Determine D3D12 query type and heap type
 	switch (createInformation.Type)
@@ -32,25 +32,24 @@ D3D12GpuQueryPool::D3D12GpuQueryPool(D3D12GpuDevice& device, const GpuQueryPoolC
 		mD3D12QueryType = D3D12_QUERY_TYPE_PIPELINE_STATISTICS;
 		mD3D12QueryHeapType = D3D12_QUERY_HEAP_TYPE_PIPELINE_STATISTICS;
 
-		// Count the number of enabled statistics bits
+		// D3D12 always returns the full D3D12_QUERY_DATA_PIPELINE_STATISTICS structure, but only the requested
+		// statistics are exposed as query elements (see GetQueryResult).
 		mElementsPerQuery = 0;
-		if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::VertexCount))
+		if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::VertexCount))
 			mElementsPerQuery++;
-		if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::PrimitiveCount))
+		if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::PrimitiveCount))
 			mElementsPerQuery++;
-		if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::VertexShaderInvocationCount))
+		if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::VertexShaderInvocationCount))
 			mElementsPerQuery++;
-		if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::FragmentShaderInvocationCount))
+		if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::FragmentShaderInvocationCount))
 			mElementsPerQuery++;
-		if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::ComputeShaderInvocationCount))
+		if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::ComputeShaderInvocationCount))
 			mElementsPerQuery++;
-		if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::ClippingInvocationCount))
+		if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::ClippingInvocationCount))
 			mElementsPerQuery++;
-		if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::ClippingGeneratedPrimitiveCount))
+		if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::ClippingGeneratedPrimitiveCount))
 			mElementsPerQuery++;
 
-		// D3D12 pipeline statistics queries return all 11 statistics as D3D12_QUERY_DATA_PIPELINE_STATISTICS
-		// We'll need to extract only the ones requested
 		break;
 
 	default:
@@ -58,7 +57,7 @@ D3D12GpuQueryPool::D3D12GpuQueryPool(D3D12GpuDevice& device, const GpuQueryPoolC
 		return;
 	}
 
-	CreateQueryHeap();
+	CreateQueryResources();
 
 	B3D_LOG(Verbose, LogRenderBackend, "Created D3D12 query pool: type={0}, size={1}", (u32)createInformation.Type, mPoolSize);
 }
@@ -80,11 +79,10 @@ D3D12GpuQueryPool::~D3D12GpuQueryPool()
 	mReadbackBuffer.Reset();
 }
 
-void D3D12GpuQueryPool::CreateQueryHeap()
+void D3D12GpuQueryPool::CreateQueryResources()
 {
 	ID3D12Device* d3d12Device = mDevice.GetD3D12Device();
 
-	// Create query heap
 	D3D12_QUERY_HEAP_DESC heapDesc = {};
 	heapDesc.Type = mD3D12QueryHeapType;
 	heapDesc.Count = mPoolSize;
@@ -97,27 +95,17 @@ void D3D12GpuQueryPool::CreateQueryHeap()
 		return;
 	}
 
-	// Create readback buffer for query results
-	// Each query can have multiple elements (e.g., pipeline statistics)
-	u64 bufferSize = 0;
+	// Pipeline statistics resolve into a full statistics structure per query, every other type into a single u64.
+	const u64 bufferSize = mQueryType == GpuQueryType::PipelineStatistics
+		? sizeof(D3D12_QUERY_DATA_PIPELINE_STATISTICS) * mPoolSize
+		: sizeof(u64) * mPoolSize;
 
-	if (mQueryType == GpuQueryType::PipelineStatistics)
-	{
-		// Pipeline statistics queries return D3D12_QUERY_DATA_PIPELINE_STATISTICS structure
-		bufferSize = sizeof(D3D12_QUERY_DATA_PIPELINE_STATISTICS) * mPoolSize;
-	}
-	else
-	{
-		// Timestamp and occlusion queries return u64
-		bufferSize = sizeof(u64) * mPoolSize;
-	}
-
-	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_READBACK;
-	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	heapProps.CreationNodeMask = 0;
-	heapProps.VisibleNodeMask = 0;
+	D3D12_HEAP_PROPERTIES heapProperties = {};
+	heapProperties.Type = D3D12_HEAP_TYPE_READBACK;
+	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	heapProperties.CreationNodeMask = 0;
+	heapProperties.VisibleNodeMask = 0;
 
 	D3D12_RESOURCE_DESC resourceDesc = {};
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -136,20 +124,9 @@ void D3D12GpuQueryPool::CreateQueryHeap()
 	allocDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 	allocDesc.ExtraHeapFlags = D3D12_HEAP_FLAG_NONE;
 
-	hr = mDevice.GetAllocator()->CreateResource(
-		&allocDesc,
-		&resourceDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		&mReadbackAllocation,
-		IID_PPV_ARGS(&mReadbackBuffer)
-	);
-
+	hr = mDevice.GetAllocator()->CreateResource(&allocDesc, &resourceDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, &mReadbackAllocation, IID_PPV_ARGS(&mReadbackBuffer));
 	if (FAILED(hr))
-	{
 		B3D_LOG(Error, LogRenderBackend, "Failed to create query readback buffer");
-		return;
-	}
 }
 
 GpuQueryId D3D12GpuQueryPool::AllocateQuery()
@@ -219,7 +196,6 @@ u64 D3D12GpuQueryPool::GetQueryResult(GpuQueryId queryId, u32 elementIndex)
 		return 0;
 	}
 
-	// Map the readback buffer
 	void* mappedData = nullptr;
 	D3D12_RANGE readRange = { 0, 0 };
 
@@ -245,31 +221,29 @@ u64 D3D12GpuQueryPool::GetQueryResult(GpuQueryId queryId, u32 elementIndex)
 
 	if (mQueryType == GpuQueryType::PipelineStatistics)
 	{
-		// Extract the requested statistic from the pipeline statistics structure
-		D3D12_QUERY_DATA_PIPELINE_STATISTICS* stats = static_cast<D3D12_QUERY_DATA_PIPELINE_STATISTICS*>(mappedData) + queryId.Id;
+		const D3D12_QUERY_DATA_PIPELINE_STATISTICS* statistics = static_cast<const D3D12_QUERY_DATA_PIPELINE_STATISTICS*>(mappedData) + queryId.Id;
 
-		// Map element index to the specific statistic based on enabled bits
+		// Elements are numbered over the enabled bits only, in the same order they were counted in the constructor,
+		// so walk the enabled bits until the requested element is reached.
 		u32 currentElement = 0;
-		if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::VertexCount) && currentElement++ == elementIndex)
-			result = stats->IAVertices;
-		else if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::PrimitiveCount) && currentElement++ == elementIndex)
-			result = stats->IAPrimitives;
-		else if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::VertexShaderInvocationCount) && currentElement++ == elementIndex)
-			result = stats->VSInvocations;
-		else if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::FragmentShaderInvocationCount) && currentElement++ == elementIndex)
-			result = stats->PSInvocations;
-		else if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::ComputeShaderInvocationCount) && currentElement++ == elementIndex)
-			result = stats->CSInvocations;
-		else if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::ClippingInvocationCount) && currentElement++ == elementIndex)
-			result = stats->CInvocations;
-		else if (mPipelineStatsBits.IsSet(GpuPipelineStatisticsQueryBit::ClippingGeneratedPrimitiveCount) && currentElement++ == elementIndex)
-			result = stats->CPrimitives;
+		if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::VertexCount) && currentElement++ == elementIndex)
+			result = statistics->IAVertices;
+		else if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::PrimitiveCount) && currentElement++ == elementIndex)
+			result = statistics->IAPrimitives;
+		else if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::VertexShaderInvocationCount) && currentElement++ == elementIndex)
+			result = statistics->VSInvocations;
+		else if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::FragmentShaderInvocationCount) && currentElement++ == elementIndex)
+			result = statistics->PSInvocations;
+		else if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::ComputeShaderInvocationCount) && currentElement++ == elementIndex)
+			result = statistics->CSInvocations;
+		else if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::ClippingInvocationCount) && currentElement++ == elementIndex)
+			result = statistics->CInvocations;
+		else if (mPipelineStatisticsBits.IsSet(GpuPipelineStatisticsQueryBit::ClippingGeneratedPrimitiveCount) && currentElement++ == elementIndex)
+			result = statistics->CPrimitives;
 	}
 	else
 	{
-		// For timestamp and occlusion queries, just read the u64 value
-		u64* results = static_cast<u64*>(mappedData);
-		result = results[queryId.Id];
+		result = static_cast<const u64*>(mappedData)[queryId.Id];
 	}
 
 	D3D12_RANGE writtenRange = { 0, 0 };

@@ -22,12 +22,14 @@ namespace b3d::render
 	public:
 		D3D12GpuTimelineFence(D3D12GpuDevice& device);
 
+		/** @copydoc GpuTimelineFence::GetCompletedValue */
 		u64 GetCompletedValue() const override;
 
 		/** Returns the native fence object, to be signaled via ID3D12CommandQueue::Signal. */
 		ID3D12Fence* GetD3D12Fence() const { return mFence.Get(); }
 
 	protected:
+		/** @copydoc GpuTimelineFence::WaitInternal */
 		void WaitInternal(u64 value) override;
 
 	private:
