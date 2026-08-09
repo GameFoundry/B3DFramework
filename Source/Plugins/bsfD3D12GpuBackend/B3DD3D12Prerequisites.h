@@ -36,6 +36,8 @@ namespace b3d
 		class D3D12Image;
 		class D3D12ImageSubresource;
 		class D3D12Buffer;
+		class D3D12BufferPage;
+		class D3D12BufferPool;
 		class D3D12ResourceManager;
 		class D3D12ResourceTracker;
 		class D3D12BarrierHelper;
