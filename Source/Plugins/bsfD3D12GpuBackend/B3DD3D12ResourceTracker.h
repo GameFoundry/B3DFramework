@@ -1,0 +1,41 @@
+//************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#pragma once
+
+#include "B3DD3D12Prerequisites.h"
+#include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuResourceTracker.h"
+
+namespace b3d::render
+{
+	class D3D12BarrierHelper;
+	struct D3D12FramebufferAttachment;
+
+	/** @addtogroup D3D12GpuBackend
+	 *  @{
+	 */
+
+	extern template class TGpuResourceTracker<D3D12BarrierHelper>;
+
+	/**
+	 * D3D12-specific resource tracker. Logical hazards and image layouts remain entirely in the core tracker; this
+	 * subclass only provides render-target attachment integration.
+	 */
+	class D3D12ResourceTracker : public TGpuResourceTracker<D3D12BarrierHelper>
+	{
+	public:
+		/**
+		 * Registers each attachment of a render target as used on the associated command buffer, queuing any required
+		 * transitions into @p barrierHelper (execute them before the pass records its work).
+		 */
+		void TrackRenderTargetUsage(const D3D12FramebufferAttachment* attachments, u32 attachmentCount, RenderSurfaceMask readOnlyMask, D3D12BarrierHelper& barrierHelper);
+
+		/** Clears framebuffer-use flags for every tracked subresource of @p image when a render pass ends. */
+		void ClearRenderTargetFlagsForImage(D3D12Image* image);
+
+		/** Clears shader-use flags for every subresource touched during the current render pass. */
+		void ClearShaderFlagsForAllRenderPassImageSubresources();
+	};
+
+	/** @} */
+} // namespace b3d::render
