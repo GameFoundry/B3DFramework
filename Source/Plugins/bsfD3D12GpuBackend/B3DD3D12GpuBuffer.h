@@ -15,42 +15,64 @@ namespace b3d
 		 */
 
 		/**
-		 * Wraps a native D3D12 buffer resource and its memory allocation. Lifetime is owned by the device's
+		 * Wraps a slice of a pooled native D3D12 buffer resource. Lifetime is owned by the device's
 		 * resource manager and released via IGpuResource::Destroy(), deferred until the GPU is done with the
 		 * resource.
 		 *
-		 * The buffer intentionally stores NO native resource state: D3D12 buffers decay to COMMON when each
-		 * ExecuteCommandLists completes and implicitly promote from COMMON on first use, so states only exist
-		 * per command buffer and are tracked by D3D12ResourceTracker.
+		 * Logical hazards are tracked by the core resource tracker; backing-page write hazards are added by the
+		 * D3D12 barrier helper.
 		 */
 		class D3D12Buffer : public TD3D12Resource<IGpuBufferResource>
 		{
 		public:
-			D3D12Buffer(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, GpuResourceLocation allocation, D3D12_HEAP_TYPE heapType, const StringView& name = "");
+			/** Creates a logical buffer owning @p allocation until its tracked GPU uses complete. */
+			D3D12Buffer(D3D12ResourceManager* owner, GpuResourceLocation allocation, const StringView& name = "");
 			~D3D12Buffer() override;
 
 			/** Returns the native D3D12 resource. */
-			ID3D12Resource* GetD3D12Resource() const { return mResource.Get(); }
+			ID3D12Resource* GetD3D12Resource() const;
 
 			/** Returns the GPU virtual address of the buffer. */
-			D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const { return mResource != nullptr ? mResource->GetGPUVirtualAddress() : 0; }
+			D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const;
 
-			/**
-			 * Returns the heap the buffer's memory lives in. UPLOAD heap buffers are permanently in the GENERIC_READ
-			 * state and READBACK heap buffers permanently in COPY_DEST - neither can be transitioned.
-			 */
-			D3D12_HEAP_TYPE GetHeapType() const { return mHeapType; }
+			/** Returns the native page shared by this logical buffer and other compatible slices. */
+			D3D12BufferPage* GetPage() const;
+
+			/** Returns the byte offset of this logical buffer from the start of its native page. */
+			u64 GetOffset() const { return mAllocation.Offset; }
+
+			/** Returns the heap type of the shared native page containing this buffer slice. */
+			D3D12_HEAP_TYPE GetHeapType() const;
 
 		private:
-			ComPtr<ID3D12Resource> mResource;
 			GpuResourceLocation mAllocation;
-			D3D12_HEAP_TYPE mHeapType = D3D12_HEAP_TYPE_DEFAULT;
 		};
 
 		/** DirectX 12 implementation of a GPU buffer. */
 		class D3D12GpuBuffer : public GpuBuffer
 		{
+			/** Type of shader-binding descriptor associated with a buffer view. */
+			enum class ViewType
+			{
+				CBV, /**< Constant buffer view. */
+				SRV, /**< Shader resource view. */
+				UAV  /**< Unordered access view. */
+			};
+
+			/** Shader-binding descriptors viewing the buffer through a particular element format. */
+			struct BufferViews
+			{
+				BufferViews() = default;
+				explicit BufferViews(GpuBufferFormat format) : Format(format) { }
+
+				GpuBufferFormat Format = BF_UNKNOWN; /**< Element format shared by these descriptors. */
+				D3D12_CPU_DESCRIPTOR_HANDLE Cbv{};   /**< Constant buffer view, when applicable. */
+				D3D12_CPU_DESCRIPTOR_HANDLE Srv{};   /**< Shader resource view, when applicable. */
+				D3D12_CPU_DESCRIPTOR_HANDLE Uav{};   /**< Unordered access view, when applicable. */
+			};
+
 		public:
+			/** Creates an uninitialized D3D12 buffer; Initialize() allocates its native slice. */
 			D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device);
 			~D3D12GpuBuffer() override;
 
@@ -109,43 +131,22 @@ namespace b3d
 			void RecreateInternalBuffer() override;
 
 		private:
-			/** SRV/UAV pair viewing a simple storage buffer's contents through an overridden element format. */
-			struct FormatOverrideViews
-			{
-				GpuBufferFormat Format = BF_UNKNOWN;
-				D3D12_CPU_DESCRIPTOR_HANDLE Srv{};
-				D3D12_CPU_DESCRIPTOR_HANDLE Uav{};
-			};
-
-			/** Queues the current D3D12Buffer (if any) for deferred destruction, unmapping it and dropping views first. */
+			/** Queues the current D3D12Buffer for deferred destruction after dropping its mapped pointer and descriptors. */
 			void ReleaseBuffer();
 
-			/** Creates the CPU shader-binding descriptors (CBV/SRV/UAV) valid for this buffer's type and flags. */
-			void CreateShaderDescriptors();
-
-			/** Frees any previously created shader-binding descriptors. */
-			void ReleaseShaderDescriptors();
-
 			/**
-			 * Returns a cached (or lazily created) SRV/UAV of a simple storage buffer reinterpreted through @p format.
-			 * Returns a zeroed handle if the format has no typed-buffer DXGI equivalent, or a UAV is requested but the
-			 * buffer doesn't allow unordered access.
+			 * Returns a cached descriptor of @p type, creating it if needed. Typed simple-storage views are keyed by
+			 * @p format; other buffer types use BF_UNKNOWN. Returns a zeroed handle when the requested view isn't valid.
 			 */
-			D3D12_CPU_DESCRIPTOR_HANDLE GetFormatOverrideView(GpuBufferFormat format, bool readWrite) const;
+			D3D12_CPU_DESCRIPTOR_HANDLE GetOrCreateView(GpuBufferFormat format, ViewType type) const;
 
 			D3D12Buffer* mBuffer = nullptr;
 
 			D3D12_VERTEX_BUFFER_VIEW mVertexBufferView{};
 			D3D12_INDEX_BUFFER_VIEW mIndexBufferView{};
 
-			// CPU-only descriptor handles for shader binding. A zeroed ptr indicates the view is not applicable to this buffer's type/flags, or hasn't been created.
-			D3D12_CPU_DESCRIPTOR_HANDLE mCBVHandle{};
-			D3D12_CPU_DESCRIPTOR_HANDLE mSRVHandle{};
-			D3D12_CPU_DESCRIPTOR_HANDLE mUAVHandle{};
-
-			// Views for bindings that override the element format (e.g. GpuSort moving 16X2U payloads as raw uints),/ created on first use per format.
-			mutable Vector<FormatOverrideViews> mFormatViews;
-			mutable Mutex mViewMutex;
+			mutable TInlineArray<BufferViews, 2> mViews; /**< Default descriptors plus typed overrides created on demand. Most buffers need at most one override. */
+			mutable Mutex mViewMutex; /**< Guards descriptor lookup, creation, and release. */
 		};
 
 		/** @} */
