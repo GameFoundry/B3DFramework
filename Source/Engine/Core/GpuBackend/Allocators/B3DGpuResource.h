@@ -23,7 +23,7 @@ namespace b3d
 	 * linear and non-linear entries overlap (i.e. buffer image granularity), and this is used by the allocator
 	 * to respect that.
 	 */
-	enum class GpuResourceKind : u8
+	enum class GpuResourceKind : u8 // TODO - Rename to GpuResourceMemoryLayout
 	{
 		Linear		= 0,
 		NonLinear	= 1
