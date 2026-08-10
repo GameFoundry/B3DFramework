@@ -22,14 +22,14 @@ IGpuHeap* D3D12HeapBackend::CreateHeap(u64 sizeInBytes, const D3D12HeapCreateInf
 	heapDesc.Properties.CreationNodeMask = 0;
 	heapDesc.Properties.VisibleNodeMask = 0;
 	heapDesc.Alignment = createInformation.Alignment;
-	heapDesc.Flags = createInformation.Flags;
+	heapDesc.Flags = createInformation.Flags | D3D12_HEAP_FLAG_CREATE_NOT_ZEROED;
 
 	ComPtr<ID3D12Heap> nativeHeap;
 	const HRESULT hr = mDevice->CreateHeap(&heapDesc, IID_PPV_ARGS(&nativeHeap));
 	if(FAILED(hr))
 	{
 		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to create {0}-byte GPU heap (hr={1}, type={2}, flags={3}, alignment={4}).",
-			sizeInBytes, (u32)hr, (u32)createInformation.Type, (u32)createInformation.Flags, createInformation.Alignment);
+			sizeInBytes, (u32)hr, (u32)createInformation.Type, (u32)heapDesc.Flags, createInformation.Alignment);
 		return nullptr;
 	}
 
@@ -38,7 +38,7 @@ IGpuHeap* D3D12HeapBackend::CreateHeap(u64 sizeInBytes, const D3D12HeapCreateInf
 	heap->Heap = std::move(nativeHeap);
 	heap->Size = sizeInBytes;
 	heap->Type = createInformation.Type;
-	heap->Flags = createInformation.Flags;
+	heap->Flags = heapDesc.Flags;
 
 	return heap;
 }
