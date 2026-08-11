@@ -51,9 +51,10 @@ namespace b3d
 			ColorAttachment					= 1 << 11,	/**< Color attachment (render target) read/write. */
 			Transfer						= 1 << 12,	/**< Copy/blit/clear transfer operations. */
 			Host							= 1 << 13,	/**< Access by the host (CPU). */
+			Resolve							= 1 << 14,	/**< Multisample resolve operations. */
 
 			AllShader = VertexShaderNonUniform | FragmentShaderNonUniform | ComputeShaderNonUniform | VertexShaderUniform | FragmentShaderUniform | ComputeShaderUniform,
-			All = AllShader | DrawIndirect | VertexInputAttributes | VertexInputIndices | EarlyFragmentTests | LateFragmentTests | ColorAttachment | Transfer | Host
+			All = AllShader | DrawIndirect | VertexInputAttributes | VertexInputIndices | EarlyFragmentTests | LateFragmentTests | ColorAttachment | Transfer | Host | Resolve
 		};
 
 		typedef Flags<GpuStageFlag, u16> GpuStageFlags;

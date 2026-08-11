@@ -994,13 +994,16 @@ bool VulkanGpuCommandBuffer::CopyTexture(const TShared<Texture>& source, const T
 
 	const bool sourceHasMultipleSamples = sourceProperties.SampleCount > 1;
 	const bool destinationHasMultipleSamples = destinationProperties.SampleCount > 1;
+	const bool needsResolve = sourceHasMultipleSamples && !destinationHasMultipleSamples;
 
 	bool copyEntireSurface = copyInformation.SourceVolume.GetWidth() == 0 ||
 		copyInformation.SourceVolume.GetHeight() == 0 ||
 		copyInformation.SourceVolume.GetDepth() == 0;
 
-	GpuImageLayout transferSourceLayout = vulkanSource->IsDirectlyMappable() ? GpuImageLayout::General : GpuImageLayout::TransferSource;
-	GpuImageLayout transferDestinationLayout = vulkanDestination->IsDirectlyMappable() ? GpuImageLayout::General : GpuImageLayout::TransferDestination;
+	const GpuImageLayout sourceLayout = vulkanSource->IsDirectlyMappable() ? GpuImageLayout::General :
+		(needsResolve ? GpuImageLayout::ResolveSource : GpuImageLayout::TransferSource);
+	const GpuImageLayout destinationLayout = vulkanDestination->IsDirectlyMappable() ? GpuImageLayout::General :
+		(needsResolve ? GpuImageLayout::ResolveDestination : GpuImageLayout::TransferDestination);
 
 	u32 mipWidth, mipHeight, mipDepth;
 
@@ -1032,7 +1035,7 @@ bool VulkanGpuCommandBuffer::CopyTexture(const TShared<Texture>& source, const T
 	destinationRange.BaseMipLevel = copyInformation.DestinationMip;
 	destinationRange.MipLevelCount = 1;
 
-	if(sourceHasMultipleSamples && !destinationHasMultipleSamples)
+	if(needsResolve)
 	{
 		VkImageResolve resolveRegion;
 		resolveRegion.srcOffset = { (i32)copyInformation.SourceVolume.Left, (i32)copyInformation.SourceVolume.Top, (i32)copyInformation.SourceVolume.Front };
@@ -1047,7 +1050,7 @@ bool VulkanGpuCommandBuffer::CopyTexture(const TShared<Texture>& source, const T
 		resolveRegion.dstSubresource.mipLevel = copyInformation.DestinationMip;
 		resolveRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-		Resolve(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &resolveRegion);
+		Resolve(sourceImage, destinationImage, sourceLayout, destinationLayout, sourceRange, destinationRange, 1, &resolveRegion);
 	}
 	else
 	{
@@ -1064,7 +1067,7 @@ bool VulkanGpuCommandBuffer::CopyTexture(const TShared<Texture>& source, const T
 		imageRegion.dstSubresource.mipLevel = copyInformation.DestinationMip;
 		imageRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-		CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &imageRegion);
+		CopyImageToImage(sourceImage, destinationImage, sourceLayout, destinationLayout, sourceRange, destinationRange, 1, &imageRegion);
 	}
 
 	return true;
@@ -2065,8 +2068,8 @@ void VulkanGpuCommandBuffer::Resolve(VulkanImage* source, VulkanImage* destinati
 	GpuTextureSubresourceRange destinationSubresourceRangeForBarrier = destinationSubresourceRange;
 	destinationSubresourceRangeForBarrier.AspectMask = source->GetRange().AspectMask;
 
-	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, sourceLayout, sourceLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, destinationLayout, destinationLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, sourceLayout, sourceLayout, GpuResourceUseFlag::Resolve, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, destinationLayout, destinationLayout, GpuResourceUseFlag::Resolve, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 

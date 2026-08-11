@@ -911,7 +911,7 @@ void VulkanUtility::GetPipelineStageAndAccessMask(GpuStageFlags accessStage, Gpu
 		if(isWrite) outAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	}
 
-	if(accessStage.IsSet(GpuStageFlag::Transfer))
+	if(accessStage.IsSetAny(GpuStageFlag::Transfer | GpuStageFlag::Resolve))
 	{
 		outStages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
 		if(isRead) outAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
@@ -959,6 +959,12 @@ VkImageLayout VulkanUtility::ToVkImageLayout(GpuImageLayout layout)
 			return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 
 		case GpuImageLayout::TransferDestination:
+			return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+
+		case GpuImageLayout::ResolveSource:
+			return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+
+		case GpuImageLayout::ResolveDestination:
 			return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
 		case GpuImageLayout::Present:

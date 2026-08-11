@@ -27,5 +27,8 @@ namespace b3d
 
 		/** Copies data through a GPU-local buffer in consecutive graphics command buffers. */
 		void TestSameQueueBufferBoundary();
+
+		/** Resolves a multisampled texture through the Vulkan transfer-native resolve path. */
+		void TestMultisampleResolve();
 	};
 } // namespace b3d
