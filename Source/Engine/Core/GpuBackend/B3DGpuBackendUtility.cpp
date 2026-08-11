@@ -154,6 +154,9 @@ GpuStageFlags GpuBackendUtility::GetStageFlags(GpuResourceUseFlags usage)
 	if(usage.IsSet(GpuResourceUseFlag::Transfer))
 		accessStageFlags |= GpuStageFlag::Transfer;
 
+	if(usage.IsSet(GpuResourceUseFlag::Resolve))
+		accessStageFlags |= GpuStageFlag::Resolve;
+
 	if(usage.IsSet(GpuResourceUseFlag::Host))
 		accessStageFlags |= GpuStageFlag::Host;
 
@@ -185,6 +188,7 @@ const char* GpuBackendUtility::GetAccessStageName(GpuStageFlag flag)
 	case GpuStageFlag::ColorAttachment: return "ColorAttachment";
 	case GpuStageFlag::Transfer: return "Transfer";
 	case GpuStageFlag::Host: return "Host";
+	case GpuStageFlag::Resolve: return "Resolve";
 	case GpuStageFlag::AllShader: return "AllShader";
 	case GpuStageFlag::All: return "All";
 	default: return "Unknown";
@@ -277,6 +281,8 @@ const char* GpuBackendUtility::GetImageLayoutName(GpuImageLayout layout)
 	case GpuImageLayout::ShaderReadOnly: return "ShaderReadOnly";
 	case GpuImageLayout::TransferSource: return "TransferSource";
 	case GpuImageLayout::TransferDestination: return "TransferDestination";
+	case GpuImageLayout::ResolveSource: return "ResolveSource";
+	case GpuImageLayout::ResolveDestination: return "ResolveDestination";
 	case GpuImageLayout::Present: return "Present";
 	default: return "Unknown";
 	}

@@ -58,6 +58,7 @@ namespace b3d
 			ColorAttachment = 1 << 5, /**< Color attachment. */
 			DepthStencilAttachment = 1 << 6, /**< Depth/stencil attachment. */
 			Host = 1 << 7, /**< Access by the host (CPU). */
+			Resolve = 1 << 11, /**< Multisample resolve source or destination. */
 
 			// Stage flags can be combined with ShaderAccess or UniformBuffer usages, to clearly define at which stage the use is happening.
 			// If not provided system usually assumes potential use in all shader stages.
@@ -121,6 +122,12 @@ namespace b3d
 
 			/** Optimal for transfer destination operations (copies, blits). */
 			TransferDestination,
+
+			/** Layout used while reading a multisampled image during a resolve operation. */
+			ResolveSource,
+
+			/** Layout used while writing a single-sampled image during a resolve operation. */
+			ResolveDestination,
 
 			/** Layout for presenting to swap chain. Only used for swap chain images. */
 			Present

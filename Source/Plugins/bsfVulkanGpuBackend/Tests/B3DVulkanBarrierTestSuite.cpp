@@ -3,9 +3,11 @@
 #include "B3DVulkanBarrierTestSuite.h"
 #include "B3DVulkanGpuBackend.h"
 #include "B3DVulkanGpuDevice.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
+#include "Image/B3DTexture.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -73,6 +75,24 @@ namespace
 		if(readbackMapping.IsValid())
 			B3D_TEST_ASSERT_EXTERNAL(testSuite, memcmp(readbackMapping.GetMappedMemory(), expected.data(), expected.size()) == 0)
 	}
+
+	void CreateResolveTextures(VulkanGpuDevice& device, TShared<render::Texture>& outSource,
+		TShared<render::Texture>& outDestination)
+	{
+		TextureCreateInformation sourceCreateInformation;
+		sourceCreateInformation.Name = "Vulkan resolve test source";
+		sourceCreateInformation.Format = PF_RGBA8;
+		sourceCreateInformation.Width = 16;
+		sourceCreateInformation.Height = 16;
+		sourceCreateInformation.SampleCount = 4;
+		sourceCreateInformation.Usage = TextureUsageFlag::RenderTarget;
+		outSource = device.CreateTexture(sourceCreateInformation);
+
+		TextureCreateInformation destinationCreateInformation(sourceCreateInformation);
+		destinationCreateInformation.Name = "Vulkan resolve test destination";
+		destinationCreateInformation.SampleCount = 1;
+		outDestination = device.CreateTexture(destinationCreateInformation);
+	}
 }
 
 VulkanBarrierTestSuite::VulkanBarrierTestSuite()
@@ -83,6 +103,7 @@ VulkanBarrierTestSuite::VulkanBarrierTestSuite()
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestCompletedGraphicsToComputeBufferHandoff)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestCompletedQueueProgressFanOut)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestSameQueueBufferBoundary)
+	B3D_ADD_TEST(VulkanBarrierTestSuite::TestMultisampleResolve)
 }
 
 void VulkanBarrierTestSuite::TestGraphicsToComputeBufferHandoff()
@@ -134,4 +155,38 @@ void VulkanBarrierTestSuite::TestCompletedQueueProgressFanOut()
 void VulkanBarrierTestSuite::TestSameQueueBufferBoundary()
 {
 	RunBufferHandoff(*this, GQT_GRAPHICS, GQT_GRAPHICS);
+}
+
+void VulkanBarrierTestSuite::TestMultisampleResolve()
+{
+	VulkanGpuDevice* const device = GetActiveVulkanDevice();
+	if(device == nullptr || device->GetQueueCount(GQT_GRAPHICS) == 0)
+		return;
+
+	bool texturesCreated = false;
+	bool resolveRecorded = false;
+	GetRenderThread().PostCommand([device, &texturesCreated, &resolveRecorded]()
+	{
+		TShared<render::Texture> source;
+		TShared<render::Texture> destination;
+		CreateResolveTextures(*device, source, destination);
+		texturesCreated = source != nullptr && destination != nullptr;
+		if(!texturesCreated)
+			return;
+
+		const TShared<render::GpuCommandBufferPool> commandBufferPool = device->CreateGpuCommandBufferPool(
+			GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
+		const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool->Create(
+			GpuCommandBufferCreateInformation::Create("Vulkan MSAA resolve test"));
+		resolveRecorded = commandBuffer->CopyTexture(source, destination);
+		if(!resolveRecorded)
+			return;
+
+		const TShared<GpuWorkContext> workContext = GpuWorkContext::Create(*device);
+		workContext->SubmitCommandBuffer(commandBuffer, GpuQueueMask::kNone);
+		device->WaitUntilIdle();
+	}, "VulkanBarrierTestSuite::TestMultisampleResolve", true);
+
+	B3D_TEST_ASSERT(texturesCreated)
+	B3D_TEST_ASSERT(resolveRecorded)
 }
