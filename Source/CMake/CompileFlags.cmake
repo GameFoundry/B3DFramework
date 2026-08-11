@@ -152,6 +152,7 @@ function(B3DSetDefaultLinkAndCompileFlags target)
 		# TODO_OTHER_COMPILERS_GO_HERE
 	endif()
 
+	B3DApplyExecutableConfigurations(${target})
 	B3DSetVersionProperties(${target})
 	B3DSetRPATHInstallProperty(${target})
 endfunction()
