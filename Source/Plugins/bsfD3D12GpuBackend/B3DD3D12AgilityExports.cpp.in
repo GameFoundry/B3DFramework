@@ -1,0 +1,9 @@
+// Copyright (c) 2026 Banshee Engine
+
+#include <cstdint>
+
+extern "C"
+{
+	__declspec(dllexport) extern const std::uint32_t D3D12SDKVersion = @B3D_D3D12_AGILITY_SDK_VERSION@;
+	__declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\";
+}
