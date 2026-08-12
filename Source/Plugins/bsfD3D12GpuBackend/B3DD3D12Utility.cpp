@@ -173,6 +173,7 @@ D3D12_HEAP_TYPE D3D12Utility::GetHeapType(GpuBufferType type, GpuBufferFlags fla
 		break;
 	}
 
+	// TODO - Prefer D3D12_HEAP_TYPE_GPU_UPLOAD for non-staging StoreOnCPUWithGPUAccess buffers when supported and within the local-memory budget; staging buffers keep their UPLOAD/READBACK heaps.
 	if (flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess))
 		return D3D12_HEAP_TYPE_UPLOAD;
 
