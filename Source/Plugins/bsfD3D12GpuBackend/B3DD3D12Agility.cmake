@@ -23,8 +23,7 @@ else()
 endif()
 
 set(B3D_D3D12_AGILITY_INCLUDE_DIRECTORY "${b3dd3d12agilitysdk_SOURCE_DIR}/build/native/include")
-set(B3D_D3D12_AGILITY_BINARY_DIRECTORY
-	"${b3dd3d12agilitysdk_SOURCE_DIR}/build/native/bin/${B3D_D3D12_AGILITY_ARCHITECTURE}")
+set(B3D_D3D12_AGILITY_BINARY_DIRECTORY "${b3dd3d12agilitysdk_SOURCE_DIR}/build/native/bin/${B3D_D3D12_AGILITY_ARCHITECTURE}")
 set(B3D_D3D12_AGILITY_CORE_LIBRARY "${B3D_D3D12_AGILITY_BINARY_DIRECTORY}/D3D12Core.dll")
 set(B3D_D3D12_AGILITY_LAYERS_LIBRARY "${B3D_D3D12_AGILITY_BINARY_DIRECTORY}/d3d12SDKLayers.dll")
 set(B3D_D3D12_AGILITY_LICENSE "${b3dd3d12agilitysdk_SOURCE_DIR}/LICENSE.txt")
@@ -34,6 +33,7 @@ foreach(requiredPath
 	${B3D_D3D12_AGILITY_CORE_LIBRARY}
 	${B3D_D3D12_AGILITY_LAYERS_LIBRARY}
 	${B3D_D3D12_AGILITY_LICENSE})
+
 	if(NOT EXISTS "${requiredPath}")
 		message(FATAL_ERROR "The Direct3D 12 Agility SDK package is missing '${requiredPath}'.")
 	endif()
@@ -48,8 +48,7 @@ configure_file(
 
 set_property(GLOBAL PROPERTY B3D_D3D12_AGILITY_EXPORT_SOURCE "${agilityExportSource}")
 
-# Adds the Agility SDK selection exports to an executable, ensuring they are present in the process module rather than
-# a plugin DLL.
+# Adds the Agility SDK selection exports to an executable, ensuring they are present in the process module.
 #
 # @param	target	Name of the executable target to configure.
 function(B3DApplyD3D12ExecutableConfiguration target)
