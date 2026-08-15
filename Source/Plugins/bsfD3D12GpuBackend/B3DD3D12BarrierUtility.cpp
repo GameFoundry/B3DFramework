@@ -53,6 +53,9 @@ namespace
 
 D3D12_BARRIER_SYNC D3D12BarrierUtility::GetStageSync(GpuStageFlags stages)
 {
+	if(stages.IsSet(GpuStageFlag::All))
+		return D3D12_BARRIER_SYNC_ALL;
+
 	D3D12_BARRIER_SYNC sync = D3D12_BARRIER_SYNC_NONE;
 
 	if(stages.IsSet(GpuStageFlag::DrawIndirect))
@@ -179,8 +182,9 @@ D3D12_BARRIER_ACCESS D3D12BarrierUtility::GetTextureAccess(GpuStageFlags stages,
 		return D3D12_BARRIER_ACCESS_RESOLVE_SOURCE;
 	case GpuImageLayout::ResolveDestination:
 		return D3D12_BARRIER_ACCESS_RESOLVE_DEST;
-	case GpuImageLayout::Undefined:
 	case GpuImageLayout::Present:
+		return D3D12_BARRIER_ACCESS_COMMON;
+	case GpuImageLayout::Undefined:
 	default:
 		return D3D12_BARRIER_ACCESS_NO_ACCESS;
 	}
@@ -188,9 +192,6 @@ D3D12_BARRIER_ACCESS D3D12BarrierUtility::GetTextureAccess(GpuStageFlags stages,
 
 D3D12BarrierScope D3D12BarrierUtility::GetTextureScope(GpuStageFlags stages, GpuAccessFlags access, GpuImageLayout layout, GpuTextureAspectFlags aspects)
 {
-	if(layout == GpuImageLayout::Present)
-		return {};
-
 	D3D12BarrierScope scope;
 	scope.Access = GetTextureAccess(stages, access, layout, aspects);
 	scope.Sync = GetTextureSync(stages, scope.Access);
@@ -203,10 +204,13 @@ D3D12_BARRIER_SYNC D3D12BarrierUtility::GetTextureSync(GpuStageFlags stages, D3D
 	if(access == D3D12_BARRIER_ACCESS_NO_ACCESS)
 		return stageSync;
 
+	if(stageSync == D3D12_BARRIER_SYNC_ALL)
+		return D3D12_BARRIER_SYNC_ALL;
+
 	if(access == D3D12_BARRIER_ACCESS_COMMON)
 		return D3D12_BARRIER_SYNC_ALL;
 
-	D3D12_BARRIER_SYNC sync = stageSync;
+	D3D12_BARRIER_SYNC sync = D3D12_BARRIER_SYNC_NONE;
 	if((access & D3D12_BARRIER_ACCESS_RENDER_TARGET) != 0)
 		sync |= D3D12_BARRIER_SYNC_RENDER_TARGET;
 
