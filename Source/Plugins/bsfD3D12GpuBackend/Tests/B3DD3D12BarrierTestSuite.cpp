@@ -201,12 +201,25 @@ void D3D12BarrierTestSuite::TestTextureBarrierBatchMerging()
 	B3D_TEST_ASSERT(orderedBatch.mTextureBarriers[0].Scope.DestinationStages.IsSet(GpuStageFlag::ComputeShaderNonUniform))
 	B3D_TEST_ASSERT(orderedBatch.mTextureBarriers[0].Scope.DestinationAccess == GpuAccessFlag::Write)
 
-	D3D12BarrierBatch conservativeBatch;
-	conservativeBatch.AddTextureBarrier(resource, fullRange, unorderedAccessBarrier, GpuImageLayout::ShaderReadOnly,
-		GpuImageLayout::General, shaderLayout, unorderedAccessLayout);
-	B3D_TEST_ASSERT(conservativeBatch.mTextureBarriers.Size() == 1)
-	B3D_TEST_ASSERT(conservativeBatch.mTextureBarriers[0].Barrier.SyncBefore == D3D12_BARRIER_SYNC_PIXEL_SHADING)
-	B3D_TEST_ASSERT(conservativeBatch.mTextureBarriers[0].Barrier.AccessBefore == D3D12_BARRIER_ACCESS_SHADER_RESOURCE)
+	D3D12BarrierBatch chainedBatch;
+	chainedBatch.AddTextureBarrier(resource, fullRange, unorderedAccessBarrier, GpuImageLayout::ShaderReadOnly,
+		GpuImageLayout::General, shaderLayout, unorderedAccessLayout, shaderReadBarrier);
+	B3D_TEST_ASSERT(chainedBatch.mTextureBarriers.Size() == 1)
+	B3D_TEST_ASSERT(chainedBatch.mTextureBarriers[0].Barrier.SyncBefore ==
+		(D3D12_BARRIER_SYNC_VERTEX_SHADING | D3D12_BARRIER_SYNC_PIXEL_SHADING))
+	B3D_TEST_ASSERT(chainedBatch.mTextureBarriers[0].Barrier.AccessBefore == D3D12_BARRIER_ACCESS_SHADER_RESOURCE)
+
+	const GpuBarrierScope depthReadBarrier(GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests,
+		GpuAccessFlag::Read, GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests, GpuAccessFlag::Write);
+	D3D12BarrierBatch chainedDepthBatch;
+	chainedDepthBatch.AddTextureBarrier(resource, fullRange, depthReadBarrier, GpuImageLayout::DepthStencilReadOnly,
+		GpuImageLayout::DepthStencilAttachment, D3D12TextureLayout(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ),
+		D3D12TextureLayout(D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE), shaderReadBarrier);
+	B3D_TEST_ASSERT(chainedDepthBatch.mTextureBarriers.Size() == 1)
+	B3D_TEST_ASSERT(chainedDepthBatch.mTextureBarriers[0].Barrier.SyncBefore ==
+		(D3D12_BARRIER_SYNC_VERTEX_SHADING | D3D12_BARRIER_SYNC_PIXEL_SHADING | D3D12_BARRIER_SYNC_DEPTH_STENCIL))
+	B3D_TEST_ASSERT(chainedDepthBatch.mTextureBarriers[0].Barrier.AccessBefore ==
+		(D3D12_BARRIER_ACCESS_SHADER_RESOURCE | D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ))
 
 	D3D12BarrierBatch overlapBatch;
 	const GpuTextureSubresourceRange firstRange(0, 2, 0, 2, colorAspect);

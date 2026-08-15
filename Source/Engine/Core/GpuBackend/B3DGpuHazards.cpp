@@ -154,6 +154,7 @@ void GpuResourceHazardState::RecordBarrier(const GpuBarrierScope& barrier)
 		LeadingBarriers.Add(barrier);
 
 	LastWriteEpochHazardState.RecordBarrier(barrier);
+	LastBarrier = barrier;
 }
 
 GpuAccessScope GpuResourceHazardState::GetFirstAccessScope() const

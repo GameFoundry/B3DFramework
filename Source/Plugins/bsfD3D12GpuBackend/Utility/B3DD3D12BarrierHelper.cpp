@@ -7,6 +7,7 @@
 #include "B3DD3D12GpuBuffer.h"
 #include "B3DD3D12GpuCommandBuffer.h"
 #include "B3DD3D12Texture.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -41,18 +42,56 @@ void D3D12BarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image, cons
 		nativeBarrier.SourceAccess = GpuAccessFlag::Read | GpuAccessFlag::Write;
 	}
 
-	oldLayout = mBarriers.AddTextureBarrier(resource, range, nativeBarrier, oldLayout, newLayout, nativeOldLayout, nativeNewLayout);
+	oldLayout = mBarriers.AddTextureBarrier(resource, range, nativeBarrier, oldLayout, newLayout, nativeOldLayout, nativeNewLayout, GetLastBarrier(image, range));
 }
 
 void D3D12BarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
 {
 	D3D12Buffer* const d3d12Buffer = static_cast<D3D12Buffer*>(buffer);
-	mBarriers.AddBufferBarrier(d3d12Buffer->GetD3D12Resource(), barrier);
+	GpuBarrierScope physicalLastBarrier = GetLastBarrier(buffer);
+	if(d3d12Buffer->GetPage() != nullptr)
+	{
+		// TODO - Use the core physical buffer-domain hook so barriers from different suballocations can share the page's exact barrier chain.
+		physicalLastBarrier.DestinationStages = GpuStageFlag::All;
+	}
+
+	mBarriers.AddBufferBarrier(d3d12Buffer->GetD3D12Resource(), barrier, physicalLastBarrier);
 }
 
 void D3D12BarrierHelper::RecordBufferPageBarrier(D3D12BufferPage& page, const GpuBarrierScope& barrier)
 {
-	mBarriers.AddBufferBarrier(page.GetD3D12Resource(), barrier);
+	GpuBarrierScope physicalLastBarrier = GetLastBarrier(page);
+	// TODO - Use the core physical buffer-domain hook so every logical suballocation contributes to this chain.
+	physicalLastBarrier.DestinationStages = GpuStageFlag::All;
+	mBarriers.AddBufferBarrier(page.GetD3D12Resource(), barrier, physicalLastBarrier);
+}
+
+GpuBarrierScope D3D12BarrierHelper::GetLastBarrier(IGpuBufferResource* buffer) const
+{
+	const GpuBufferTrackingState* const trackingState = mResourceTracker->FindBufferTrackingState(buffer);
+	return trackingState != nullptr && trackingState->HazardState != nullptr ?  trackingState->HazardState->LastBarrier : GpuBarrierScope();
+}
+
+GpuBarrierScope D3D12BarrierHelper::GetLastBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
+{
+	GpuBarrierScope lastBarrier;
+	for(const GpuImageSubresourceTrackingState& trackingState : mResourceTracker->GetSubresourceTrackingStatesForImage(image))
+	{
+		if(!GpuBackendUtility::RangeOverlaps(trackingState.Range, range) || trackingState.HazardState == nullptr)
+			continue;
+
+		lastBarrier.DestinationStages |= trackingState.HazardState->LastBarrier.DestinationStages;
+		lastBarrier.DestinationAccess |= trackingState.HazardState->LastBarrier.DestinationAccess;
+	}
+
+	return lastBarrier;
+}
+
+GpuBarrierScope D3D12BarrierHelper::GetLastBarrier(D3D12BufferPage& page) const
+{
+	const D3D12ResourceTracker* const resourceTracker = static_cast<const D3D12ResourceTracker*>(mResourceTracker);
+	const auto found = resourceTracker->mBufferPageHazards.find(&page);
+	return found != resourceTracker->mBufferPageHazards.end() ? found->second.LastBarrier : GpuBarrierScope();
 }
 
 void D3D12BarrierHelper::Execute(D3D12GpuCommandBuffer& commandBuffer)
