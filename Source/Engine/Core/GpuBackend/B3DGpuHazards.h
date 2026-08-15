@@ -181,6 +181,7 @@ namespace b3d
 			TInlineArray<GpuBarrierScope, 1> LeadingBarriers; /**< Explicit (user) barriers recorded before the first access. */
 			GpuAccessScope AllAccessScope; /**< All accesses recorded in the tracking scope. */
 			GpuResourceWriteEpochHazardState LastWriteEpochHazardState; /**< Last write-epoch hazard state in the recording scope. */
+			GpuBarrierScope LastBarrier; /**< Most recently recorded barrier in the command-buffer recording scope. */
 
 			/** See GpuResourceWriteEpocHazardState::GetRequiredBarrier */
 			GpuBarrierScope GetRequiredBarrier(GpuStageFlags stages, GpuAccessFlags access, GpuStageFlags broadenedReadStages = GpuStageFlag::None) const;

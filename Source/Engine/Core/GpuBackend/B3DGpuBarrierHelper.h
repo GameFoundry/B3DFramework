@@ -26,7 +26,7 @@ namespace b3d::render
 	 *
 	 * Implemented with CRTP - a backend derives as `class XBarrierHelper : public TGpuBarrierHelper<XBarrierHelper>`
 	 * and provides:
-	 *  - @c RecordBufferBarrier / @c RecordSubresourceBarrier - accumulate the native barrier for one
+		 *  - @c RecordBufferBarrier / @c RecordSubresourceBarrier - accumulate the native barrier for one
 	 *    buffer/image. Called by the shared low-level path (befriend this template so they can stay private).
 	 *  - @c Execute - emit the accumulated native barriers, then call ApplyPostBarrierTracking(), the tracker's
 	 *    CommitPendingHazardRegistrations() and Clear().

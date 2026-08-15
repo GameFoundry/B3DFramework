@@ -39,6 +39,15 @@ namespace b3d::render
 		/** Adds a native transition for one logical image range. */
 		void RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout);
 
+		/** Returns the preceding barrier recorded for @p buffer, if any. */
+		GpuBarrierScope GetLastBarrier(IGpuBufferResource* buffer) const;
+
+		/** Returns the combined preceding barrier for tracked image partitions overlapping @p subresourceRange. */
+		GpuBarrierScope GetLastBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange) const;
+
+		/** Returns the preceding physical barrier recorded for @p page, if any. */
+		GpuBarrierScope GetLastBarrier(D3D12BufferPage& page) const;
+
 		D3D12BarrierBatch mBarriers;
 		GpuQueueType mQueueType;
 	};
