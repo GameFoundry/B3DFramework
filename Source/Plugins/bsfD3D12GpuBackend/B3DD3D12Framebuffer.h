@@ -13,6 +13,22 @@ namespace b3d
 		 *  @{
 		 */
 
+		/** Image and subresource surface used to create one framebuffer attachment. */
+		struct D3D12FramebufferAttachmentCreateInformation
+		{
+			D3D12Image* Image = nullptr; /**< Tracked image, or null when the attachment is absent. */
+			TextureSurface Surface; /**< Face and mip range bound by the attachment. */
+		};
+
+		/** Images and dimensions used to construct a framebuffer. */
+		struct D3D12FramebufferCreateInformation
+		{
+			D3D12FramebufferAttachmentCreateInformation ColorAttachments[B3D_MAXIMUM_RENDER_TARGET_COUNT]; /**< Color attachments indexed by render-target slot. */
+			D3D12FramebufferAttachmentCreateInformation DepthStencilAttachment; /**< Optional depth/stencil attachment. */
+			u32 Width = 0; /**< Framebuffer width in pixels. */
+			u32 Height = 0; /**< Framebuffer height in pixels. */
+		};
+
 		/** One framebuffer attachment resolved to its tracked image range and render-target role. */
 		struct D3D12FramebufferAttachment
 		{
@@ -26,8 +42,8 @@ namespace b3d
 		class D3D12Framebuffer
 		{
 		public:
-			/** Resolves the views and tracked attachment ranges for @p renderTarget. */
-			D3D12Framebuffer(const RenderTarget* renderTarget, u32 backBufferIndex = 0);
+			/** Creates and owns native views for the supplied attachments. */
+			explicit D3D12Framebuffer(const D3D12FramebufferCreateInformation& createInformation);
 			~D3D12Framebuffer();
 
 			/** Returns the render target views for the color attachments. */
@@ -67,14 +83,11 @@ namespace b3d
 			u32 GetSampleCount() const { return mSampleCount; }
 
 		private:
-			/** Creates the render target and depth-stencil views. */
-			void CreateViews();
+			/** Creates a render-target view for @p attachment in the packed native slot @p attachmentIndex. */
+			bool CreateRenderTargetView(u32 attachmentIndex, const D3D12FramebufferAttachmentCreateInformation& attachment);
 
 			/** Creates every valid read-only variant of a depth-stencil descriptor. */
-			void CreateDepthStencilViews(ID3D12Resource* resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& description, bool hasStencil);
-
-			const RenderTarget* mRenderTarget = nullptr;
-			u32 mBackBufferIndex = 0;
+			bool CreateDepthStencilViews(const D3D12FramebufferAttachmentCreateInformation& attachment);
 
 			static constexpr u32 kMaxColorAttachments = 8;
 			static constexpr u32 kDepthStencilViewCount = 4;
@@ -90,7 +103,6 @@ namespace b3d
 
 			u32 mColorAttachmentCount = 0;
 			bool mDepthStencilHasStencil = false;
-			bool mOwnsRenderTargetViews = false; /**< True when the RTV descriptors were allocated rather than borrowed from the swap chain. */
 			u32 mWidth = 0;
 			u32 mHeight = 0;
 		};

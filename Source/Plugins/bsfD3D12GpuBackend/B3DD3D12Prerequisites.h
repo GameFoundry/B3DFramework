@@ -45,6 +45,12 @@ namespace b3d
 		class D3D12DescriptorHeap;
 		class D3D12DescriptorManager;
 		class D3D12QueryHeap;
+
+		/** Maximum number of back buffers reserved by D3D12 render-window surface storage. */
+		constexpr u32 kD3D12MaximumBackBufferCount = 3;
+
+		/** Returns the configured number of back buffers cycled by D3D12 render-window surfaces. */
+		u32 GetD3D12BackBufferCount();
 	}
 
 	/** @addtogroup D3D12GpuBackend
