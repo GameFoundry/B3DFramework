@@ -20,73 +20,17 @@ using namespace b3d::render;
 void D3D12ResourceTracker::TrackBufferUsage(IGpuBufferResource* buffer, GpuResourceUseFlags useFlags,
 	GpuAccessFlags accessFlags, D3D12BarrierHelper& barrierHelper, u32 dynamicOffset)
 {
-	TrackBufferPageAccess(buffer, useFlags, accessFlags);
-	TGpuResourceTracker<D3D12BarrierHelper>::TrackBufferUsage(buffer, useFlags, accessFlags, barrierHelper, dynamicOffset);
-}
-
-void D3D12ResourceTracker::TrackBufferPageAccess(IGpuBufferResource* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags access)
-{
-	if(buffer == nullptr || !access.IsSet(GpuAccessFlag::Write))
+	if(buffer == nullptr)
 		return;
 
-	D3D12Buffer* const d3d12Buffer = static_cast<D3D12Buffer*>(buffer);
+	D3D12BufferResource* const d3d12Buffer = static_cast<D3D12BufferResource*>(buffer);
 	D3D12BufferPage* const page = d3d12Buffer->GetPage();
-	if(page == nullptr)
-		return;
-
-	const GpuStageFlags stages = GpuBackendUtility::GetStageFlags(useFlags);
-
-	for(PendingBufferPageAccess& pendingAccess : mPendingBufferPageAccesses)
+	if(page != nullptr && page != buffer && accessFlags.IsSet(GpuAccessFlag::Write))
 	{
-		if(pendingAccess.Page == page)
-		{
-			pendingAccess.Scope.Add(stages, GpuAccessFlag::Write);
-			return;
-		}
+		TGpuResourceTracker<D3D12BarrierHelper>::TrackBufferUsage(page, useFlags, GpuAccessFlag::Write, barrierHelper);
 	}
 
-	mPendingBufferPageAccesses.Add(PendingBufferPageAccess(page));
-	mPendingBufferPageAccesses.back().Scope.Add(stages, GpuAccessFlag::Write);
-}
-
-void D3D12ResourceTracker::ResolvePendingBufferPageHazards(D3D12BarrierHelper& barrierHelper)
-{
-	for(const PendingBufferPageAccess& access : mPendingBufferPageAccesses)
-	{
-		GpuResourceHazardState& pageHazards = mBufferPageHazards[access.Page];
-		GpuBarrierScope requiredBarrier = pageHazards.GetRequiredBarrier(access.Scope.WriteStages, GpuAccessFlag::Write);
-		if(requiredBarrier.IsValid())
-		{
-			barrierHelper.RecordBufferPageBarrier(*access.Page, requiredBarrier);
-			pageHazards.RecordBarrier(requiredBarrier);
-		}
-
-		pageHazards.RecordAccess(access.Scope.WriteStages, GpuAccessFlag::Write);
-	}
-
-	mPendingBufferPageAccesses.Clear();
-}
-
-void D3D12ResourceTracker::ResolveBufferPageSubmissionTransitions(GpuQueueId destinationQueueId, D3D12BufferPageSubmissionTransitionVisitor& visitor)
-{
-	for(auto& entry : mBufferPageHazards)
-	{
-		GpuResourceHazardState& hazardState = entry.second;
-		if(!hazardState.HasSubmissionEffect())
-			continue;
-
-		D3D12BufferPage& page = *entry.first;
-		GpuSubmissionTransition transition = GpuSubmissionTransition::Build(page, destinationQueueId, hazardState);
-		visitor.VisitBufferPage(page, transition);
-		transition.StateResource->SetSubmissionState(std::move(transition.PostTransitionSubmissionState));
-	}
-}
-
-void D3D12ResourceTracker::Clear()
-{
-	mPendingBufferPageAccesses.Clear();
-	mBufferPageHazards.clear();
-	TGpuResourceTracker<D3D12BarrierHelper>::Clear();
+	TGpuResourceTracker<D3D12BarrierHelper>::TrackBufferUsage(buffer, useFlags, accessFlags, barrierHelper, dynamicOffset);
 }
 
 void D3D12ResourceTracker::TrackRenderTargetUsage(const D3D12FramebufferAttachment* attachments, u32 attachmentCount, RenderSurfaceMask readOnlyMask, D3D12BarrierHelper& barrierHelper)

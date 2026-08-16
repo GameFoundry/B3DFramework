@@ -18,11 +18,8 @@ namespace b3d
 		 * Wraps a slice of a pooled native D3D12 buffer resource. Lifetime is owned by the device's
 		 * resource manager and released via IGpuResource::Destroy(), deferred until the GPU is done with the
 		 * resource.
-		 *
-		 * Logical hazards are tracked by the core resource tracker; backing-page write hazards are added by the
-		 * D3D12 barrier helper.
 		 */
-		class D3D12Buffer : public TD3D12Resource<IGpuBufferResource>
+		class D3D12Buffer : public D3D12BufferResource
 		{
 		public:
 			/** Creates a logical buffer owning @p allocation until its tracked GPU uses complete. */
@@ -30,13 +27,13 @@ namespace b3d
 			~D3D12Buffer() override;
 
 			/** Returns the native D3D12 resource. */
-			ID3D12Resource* GetD3D12Resource() const;
+			ID3D12Resource* GetD3D12Resource() const override;
 
 			/** Returns the GPU virtual address of the buffer. */
 			D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const;
 
 			/** Returns the native page shared by this logical buffer and other compatible slices. */
-			D3D12BufferPage* GetPage() const;
+			D3D12BufferPage* GetPage() const override;
 
 			/** Returns the byte offset of this logical buffer from the start of its native page. */
 			u64 GetOffset() const { return mAllocation.Offset; }
