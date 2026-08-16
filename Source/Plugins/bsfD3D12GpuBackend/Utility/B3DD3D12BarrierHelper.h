@@ -33,9 +33,6 @@ namespace b3d::render
 		/** Adds a native barrier for the resource backing @p buffer. */
 		void RecordBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
 
-		/** Adds a native barrier for a pooled physical buffer page. */
-		void RecordBufferPageBarrier(D3D12BufferPage& page, const GpuBarrierScope& barrier);
-
 		/** Adds a native transition for one logical image range. */
 		void RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout);
 
@@ -48,7 +45,19 @@ namespace b3d::render
 		/** Returns the preceding physical barrier recorded for @p page, if any. */
 		GpuBarrierScope GetLastBarrier(D3D12BufferPage& page) const;
 
+		/** Associates a queued native barrier with the page barrier chain it advances. */
+		struct PendingBufferPageBarrier
+		{
+			PendingBufferPageBarrier(D3D12BufferPage* page, const GpuBarrierScope& barrier)
+				: Page(page), Barrier(barrier)
+			{ }
+
+			D3D12BufferPage* Page = nullptr; /**< Physical page receiving the barrier. */
+			GpuBarrierScope Barrier; /**< Barrier forming the page's latest chain link. */
+		};
+
 		D3D12BarrierBatch mBarriers;
+		TInlineArray<PendingBufferPageBarrier, 8> mPendingBufferPageBarriers;
 		GpuQueueType mQueueType;
 	};
 

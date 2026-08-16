@@ -2,18 +2,13 @@
 namespace
 {
 	/** Determines transitions required in-between ExecuteCommandList calls, as well as waits required between queues. */
-	class D3D12SubmissionTransitionVisitor : public GpuSubmissionTransitionVisitor, public D3D12BufferPageSubmissionTransitionVisitor
+	class D3D12SubmissionTransitionVisitor : public GpuSubmissionTransitionVisitor
 	{
 	public:
 		D3D12SubmissionTransitionVisitor(D3D12GpuDevice& device, GpuQueueId destinationQueueId, D3D12GpuCommandBufferSubmitInformation& submitInformation) : mDevice(device), mDestinationQueueId(destinationQueueId), mSubmitInformation(submitInformation)
 		{ }
 
 		void VisitBuffer(const GpuSubmissionBufferTransition& transition) override
-		{
-			AddParallelAccessWait(transition);
-		}
-
-		void VisitBufferPage(D3D12BufferPage&, const GpuSubmissionTransition& transition) override
 		{
 			AddParallelAccessWait(transition);
 		}
@@ -190,6 +185,7 @@ namespace
 		TInlineArray<SourceTransitionBuildInformation, 4> mSourceTransitions;
 	};
 }
+
 D3D12GpuCommandBufferSubmitInformation D3D12GpuCommandBuffer::PrepareForSubmitOnSubmitThread(GpuQueueType queueType, u32 queueIndex)
 {
 	AssertIfNotSubmitThread();
@@ -201,7 +197,6 @@ D3D12GpuCommandBufferSubmitInformation D3D12GpuCommandBuffer::PrepareForSubmitOn
 
 	D3D12SubmissionTransitionVisitor visitor(device, destinationQueueId, submitInformation);
 	mResourceTracker.ResolveSubmissionTransitions(destinationQueueId, visitor);
-	mResourceTracker.ResolveBufferPageSubmissionTransitions(destinationQueueId, visitor); // TODO - Merge this into ResolveSubmissionTransitions?
 	visitor.Finalize();
 
 	submitInformation.PrimaryCommandBuffer = std::static_pointer_cast<D3D12GpuCommandBuffer>(GetShared());

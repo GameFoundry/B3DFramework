@@ -38,6 +38,20 @@ namespace b3d
 		/** Standard D3D12 resource with no specialized generic role. */
 		using D3D12Resource = TD3D12Resource<IGpuResource>;
 
+		/** Common interface for logical buffers and the native pages backing them. */
+		class D3D12BufferResource : public TD3D12Resource<IGpuBufferResource>
+		{
+		public:
+			/** Creates a tracked D3D12 buffer resource. */
+			D3D12BufferResource(D3D12ResourceManager* owner, const StringView& name);
+
+			/** Returns the native buffer resource. */
+			virtual ID3D12Resource* GetD3D12Resource() const = 0;
+
+			/** Returns the physical page containing this resource. */
+			virtual D3D12BufferPage* GetPage() const = 0;
+		};
+
 		/** Tracked lifetime wrapper for a native D3D12 COM object referenced by command-list commands. */
 		template<class TInterface>
 		class TD3D12GpuObject : public D3D12Resource

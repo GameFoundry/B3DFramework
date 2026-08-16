@@ -9,7 +9,7 @@
 namespace b3d::render
 {
 	/** A persistently allocated native buffer resource suballocated into logical D3D12Buffer slices. */
-	class D3D12BufferPage : public D3D12Resource, public IGpuHeap
+	class D3D12BufferPage : public D3D12BufferResource, public IGpuHeap
 	{
 	public:
 		/** Takes ownership of @p resource and its @p backingAllocation. */
@@ -17,7 +17,10 @@ namespace b3d::render
 		~D3D12BufferPage() override;
 
 		/** Returns the native resource backing every slice on this page. */
-		ID3D12Resource* GetD3D12Resource() const { return mResource.Get(); }
+		ID3D12Resource* GetD3D12Resource() const override { return mResource.Get(); }
+
+		/** Returns this physical page. */
+		D3D12BufferPage* GetPage() const override { return const_cast<D3D12BufferPage*>(this); }
 
 		/** Returns the base GPU virtual address of the page. */
 		D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const { return mResource->GetGPUVirtualAddress(); }

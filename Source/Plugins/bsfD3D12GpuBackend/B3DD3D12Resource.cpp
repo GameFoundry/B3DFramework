@@ -6,6 +6,10 @@
 using namespace b3d;
 using namespace b3d::render;
 
+D3D12BufferResource::D3D12BufferResource(D3D12ResourceManager* owner, const StringView& name)
+	: TD3D12Resource<IGpuBufferResource>(owner, name)
+{ }
+
 template<class TBase>
 D3D12GpuDevice& TD3D12Resource<TBase>::GetDevice() const
 {

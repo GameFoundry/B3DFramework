@@ -100,7 +100,7 @@ namespace
 }
 
 D3D12Buffer::D3D12Buffer(D3D12ResourceManager* owner, GpuResourceLocation allocation, const StringView& name)
-	: TD3D12Resource<IGpuBufferResource>(owner, name), mAllocation(allocation)
+	: D3D12BufferResource(owner, name), mAllocation(allocation)
 { }
 
 D3D12Buffer::~D3D12Buffer()
