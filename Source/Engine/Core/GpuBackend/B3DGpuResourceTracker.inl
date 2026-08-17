@@ -720,6 +720,9 @@ void TGpuResourceTracker<TBarrierHelper>::NotifyUsed(GpuQueueId queueId)
 		GpuResourceUseHandle& useHandle = imageTrackingState.UseHandle;
 		B3D_ASSERT(!useHandle.Used);
 
+		if(useHandle.Flags == GpuAccessFlag::None)
+			continue;
+
 		useHandle.Used = true;
 		entry.first->NotifyUsed(queueId, useHandle.Flags);
 	}
@@ -729,6 +732,9 @@ void TGpuResourceTracker<TBarrierHelper>::NotifyUsed(GpuQueueId queueId)
 		GpuBufferTrackingState& trackingState = entry.second;
 		GpuResourceUseHandle& useHandle = trackingState.UseHandle;
 		B3D_ASSERT(!useHandle.Used);
+
+		if(useHandle.Flags == GpuAccessFlag::None)
+			continue;
 
 		useHandle.Used = true;
 		entry.first->NotifyUsed(queueId, useHandle.Flags);
@@ -766,8 +772,14 @@ void TGpuResourceTracker<TBarrierHelper>::NotifyDone(GpuQueueId queueId)
 		GpuImageTrackingState& imageTrackingState = mImageTrackingState[trackingImageStateIndex];
 
 		GpuResourceUseHandle& useHandle = imageTrackingState.UseHandle;
-		B3D_ASSERT(useHandle.Used);
+		if(useHandle.Flags == GpuAccessFlag::None)
+		{
+			B3D_ASSERT(!useHandle.Used);
+			entry.first->NotifyUnbound();
+			continue;
+		}
 
+		B3D_ASSERT(useHandle.Used);
 		entry.first->NotifyDone(queueId, useHandle.Flags);
 	}
 
@@ -775,8 +787,14 @@ void TGpuResourceTracker<TBarrierHelper>::NotifyDone(GpuQueueId queueId)
 	{
 		GpuBufferTrackingState& trackingState = entry.second;
 		GpuResourceUseHandle& useHandle = trackingState.UseHandle;
-		B3D_ASSERT(useHandle.Used);
+		if(useHandle.Flags == GpuAccessFlag::None)
+		{
+			B3D_ASSERT(!useHandle.Used);
+			entry.first->NotifyUnbound();
+			continue;
+		}
 
+		B3D_ASSERT(useHandle.Used);
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		for(u32 suballocationIndex : trackingState.BoundSuballocationIndices)
 			entry.first->NotifySuballocationDone(suballocationIndex);

@@ -27,6 +27,9 @@ namespace b3d
 		class D3D12BarrierUtility
 		{
 		public:
+			/** Translates logical execution stages without deriving an access scope. */
+			static D3D12_BARRIER_SYNC GetStageSync(GpuStageFlags stages);
+
 			/** Converts a logical buffer use into a native enhanced-barrier scope. */
 			static D3D12BarrierScope GetBufferScope(GpuStageFlags stages, GpuAccessFlags access, D3D12_RESOURCE_FLAGS resourceFlags);
 
@@ -55,10 +58,7 @@ namespace b3d
 			/** Converts a logical texture use into native access flags compatible with @p layout and @p aspects. */
 			static D3D12_BARRIER_ACCESS GetTextureAccess(GpuStageFlags stages, GpuAccessFlags access, GpuImageLayout layout, GpuTextureAspectFlags aspects);
 
-			/** Translates logical stages directly; use @ref GetTextureSync when native texture access can impose additional synchronization. */
-			static D3D12_BARRIER_SYNC GetStageSync(GpuStageFlags stages);
-
-			/** Combines logical stages with the synchronization required by resolved native texture @p access. */
+			/** Returns the synchronization compatible with resolved native texture @p access. */
 			static D3D12_BARRIER_SYNC GetTextureSync(GpuStageFlags stages, D3D12_BARRIER_ACCESS access);
 		};
 

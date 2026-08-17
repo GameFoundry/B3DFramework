@@ -21,18 +21,11 @@ namespace
 			&& lhs.NumPlanes == rhs.NumPlanes;
 	}
 
-	D3D12_BARRIER_ACCESS CombineAccessScopes(D3D12_BARRIER_ACCESS currentAccess, D3D12_BARRIER_ACCESS precedingAccess)
+	/** In D3D12 barrier sync scopes must always be chained, i.e. previous barrier's after sync must be part of the current barrier's before sync. */
+	D3D12_BARRIER_SYNC GetChainedSyncBefore(const D3D12BarrierScope& beforeScope, GpuStageFlags precedingBarrierDestinationStages)
 	{
-		if(currentAccess == D3D12_BARRIER_ACCESS_NO_ACCESS)
-			return precedingAccess;
-
-		if(precedingAccess == D3D12_BARRIER_ACCESS_NO_ACCESS)
-			return currentAccess;
-
-		if(currentAccess == D3D12_BARRIER_ACCESS_COMMON || precedingAccess == D3D12_BARRIER_ACCESS_COMMON)
-			return D3D12_BARRIER_ACCESS_COMMON;
-
-		return (D3D12_BARRIER_ACCESS)(currentAccess | precedingAccess);
+		const D3D12_BARRIER_SYNC precedingSyncAfter = D3D12BarrierUtility::GetStageSync(precedingBarrierDestinationStages);
+		return (D3D12_BARRIER_SYNC)(beforeScope.Sync | precedingSyncAfter);
 	}
 }
 
@@ -50,7 +43,7 @@ bool D3D12BarrierBatch::IsEmpty() const
 	return true;
 }
 
-void D3D12BarrierBatch::AddBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, const GpuBarrierScope& lastBarrier)
+void D3D12BarrierBatch::AddBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages)
 {
 	if(resource == nullptr || !scope.IsValid())
 		return;
@@ -58,12 +51,11 @@ void D3D12BarrierBatch::AddBufferBarrier(ID3D12Resource* resource, const GpuBarr
 	const D3D12_RESOURCE_FLAGS resourceFlags = resource->GetDesc().Flags;
 	const D3D12BarrierScope beforeScope = D3D12BarrierUtility::GetBufferScope(scope.SourceStages, scope.SourceAccess, resourceFlags);
 	const D3D12BarrierScope afterScope = D3D12BarrierUtility::GetBufferScope(scope.DestinationStages, scope.DestinationAccess, resourceFlags);
-	const D3D12BarrierScope lastAfterScope = D3D12BarrierUtility::GetBufferScope(lastBarrier.DestinationStages, lastBarrier.DestinationAccess, resourceFlags);
 
 	D3D12_BUFFER_BARRIER barrier = {};
-	barrier.SyncBefore = beforeScope.Sync == D3D12_BARRIER_SYNC_ALL || lastAfterScope.Sync == D3D12_BARRIER_SYNC_ALL ?  D3D12_BARRIER_SYNC_ALL : (D3D12_BARRIER_SYNC)(beforeScope.Sync | lastAfterScope.Sync);
+	barrier.SyncBefore = GetChainedSyncBefore(beforeScope, precedingBarrierDestinationStages);
 	barrier.SyncAfter = afterScope.Sync;
-	barrier.AccessBefore = CombineAccessScopes(beforeScope.Access, lastAfterScope.Access);
+	barrier.AccessBefore = beforeScope.Access;
 	barrier.AccessAfter = afterScope.Access;
 	barrier.pResource = resource;
 	barrier.Offset = 0;
@@ -72,7 +64,7 @@ void D3D12BarrierBatch::AddBufferBarrier(ID3D12Resource* resource, const GpuBarr
 	mBufferBarriers.Add(barrier);
 }
 
-GpuImageLayout D3D12BarrierBatch::AddTextureBarrier(ID3D12Resource* resource, const GpuTextureSubresourceRange& range, const GpuBarrierScope& scope, GpuImageLayout logicalBeforeLayout, GpuImageLayout logicalAfterLayout, const D3D12TextureLayout& nativeBeforeLayout, const D3D12TextureLayout& nativeAfterLayout, const GpuBarrierScope& lastBarrier)
+GpuImageLayout D3D12BarrierBatch::AddTextureBarrier(ID3D12Resource* resource, const GpuTextureSubresourceRange& range, const GpuBarrierScope& scope, GpuImageLayout logicalBeforeLayout, GpuImageLayout logicalAfterLayout, const D3D12TextureLayout& nativeBeforeLayout, const D3D12TextureLayout& nativeAfterLayout, GpuStageFlags precedingBarrierDestinationStages)
 {
 	if(resource == nullptr)
 		return logicalBeforeLayout;
@@ -109,8 +101,7 @@ GpuImageLayout D3D12BarrierBatch::AddTextureBarrier(ID3D12Resource* resource, co
 		{
 			found->Scope.SourceStages |= scope.SourceStages;
 			found->Scope.SourceAccess |= scope.SourceAccess;
-			found->LastBarrier.DestinationStages |= lastBarrier.DestinationStages;
-			found->LastBarrier.DestinationAccess |= lastBarrier.DestinationAccess;
+			found->PrecedingBarrierDestinationStages |= precedingBarrierDestinationStages;
 			if(found->LogicalAfterLayout == logicalAfterLayout)
 			{
 				found->Scope.DestinationStages |= scope.DestinationStages;
@@ -137,7 +128,7 @@ GpuImageLayout D3D12BarrierBatch::AddTextureBarrier(ID3D12Resource* resource, co
 		entry.Barrier.pResource = resource;
 		entry.Barrier.Subresources = nativeRange;
 		entry.Scope = scope;
-		entry.LastBarrier = lastBarrier;
+		entry.PrecedingBarrierDestinationStages = precedingBarrierDestinationStages;
 		entry.LogicalBeforeLayout = logicalBeforeLayout;
 		entry.LogicalAfterLayout = logicalAfterLayout;
 		entry.Aspects = subresourceRange.AspectMask;
@@ -175,15 +166,13 @@ void D3D12BarrierBatch::RebuildTextureBarrier(TextureBarrierEntry& entry)
 	const bool layoutOnly = !hasSourceAccess && !hasDestinationAccess;
 
 	const D3D12BarrierScope beforeScope = D3D12BarrierUtility::GetTextureScope(entry.Scope.SourceStages, entry.Scope.SourceAccess, entry.LogicalBeforeLayout, entry.Aspects);
-	const D3D12BarrierScope lastAfterScope = D3D12BarrierUtility::GetTextureScope(entry.LastBarrier.DestinationStages, entry.LastBarrier.DestinationAccess, entry.LogicalBeforeLayout, entry.Aspects);
-	barrier.AccessBefore = CombineAccessScopes(beforeScope.Access, lastAfterScope.Access);
-	barrier.SyncBefore = beforeScope.Sync == D3D12_BARRIER_SYNC_ALL || lastAfterScope.Sync == D3D12_BARRIER_SYNC_ALL ?  D3D12_BARRIER_SYNC_ALL : (D3D12_BARRIER_SYNC)(beforeScope.Sync | lastAfterScope.Sync);
+	barrier.AccessBefore = beforeScope.Access;
+	barrier.SyncBefore = GetChainedSyncBefore(beforeScope, entry.PrecedingBarrierDestinationStages);
 
 	const D3D12BarrierScope afterScope = D3D12BarrierUtility::GetTextureScope(entry.Scope.DestinationStages, entry.Scope.DestinationAccess, entry.LogicalAfterLayout, entry.Aspects);
 	barrier.AccessAfter = afterScope.Access;
 	barrier.SyncAfter = afterScope.Sync;
 	barrier.Flags = discard ? D3D12_TEXTURE_BARRIER_FLAG_DISCARD : D3D12_TEXTURE_BARRIER_FLAG_NONE;
-
 	const bool redundantLayoutOnly = layoutOnly && !discard && barrier.LayoutBefore == barrier.LayoutAfter;
 	const bool redundantTrackedBarrier = !discard && barrier.LayoutBefore == barrier.LayoutAfter && !entry.Scope.IsValid();
 	entry.EmitsNativeBarrier = !redundantLayoutOnly && !redundantTrackedBarrier;

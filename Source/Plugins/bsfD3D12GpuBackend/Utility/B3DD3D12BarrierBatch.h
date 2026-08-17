@@ -23,14 +23,14 @@ namespace b3d::render
 	class D3D12BarrierBatch
 	{
 	public:
-		/** Adds a whole-resource buffer barrier chained after @p lastBarrier. */
-		void AddBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, const GpuBarrierScope& lastBarrier);
+		/** Adds a whole-resource buffer barrier chained after @p precedingBarrierDestinationStages. */
+		void AddBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages);
 
 		/**
 		 * Adds or merges a texture barrier. A native UNDEFINED before layout discards previous contents.
 		 * Returns the original logical layout retained by a merged barrier.
 		 */
-		GpuImageLayout AddTextureBarrier(ID3D12Resource* resource, const GpuTextureSubresourceRange& range, const GpuBarrierScope& scope, GpuImageLayout logicalBeforeLayout, GpuImageLayout logicalAfterLayout, const D3D12TextureLayout& nativeBeforeLayout, const D3D12TextureLayout& nativeAfterLayout, const GpuBarrierScope& lastBarrier = GpuBarrierScope());
+		GpuImageLayout AddTextureBarrier(ID3D12Resource* resource, const GpuTextureSubresourceRange& range, const GpuBarrierScope& scope, GpuImageLayout logicalBeforeLayout, GpuImageLayout logicalAfterLayout, const D3D12TextureLayout& nativeBeforeLayout, const D3D12TextureLayout& nativeAfterLayout, GpuStageFlags precedingBarrierDestinationStages = GpuStageFlag::None);
 
 		/** Returns whether the batch contains no barriers. */
 		bool IsEmpty() const;
@@ -49,7 +49,7 @@ namespace b3d::render
 		{
 			D3D12_TEXTURE_BARRIER Barrier{}; /**< Native barrier rebuilt after every merge. */
 			GpuBarrierScope Scope; /**< Combined logical source and destination scopes. */
-			GpuBarrierScope LastBarrier; /**< Preceding barrier on the same tracked subresource. */
+			GpuStageFlags PrecedingBarrierDestinationStages = GpuStageFlag::None; /**< Destination stages of the preceding barrier. */
 			GpuImageLayout LogicalBeforeLayout = GpuImageLayout::Undefined; /**< Original logical layout. */
 			GpuImageLayout LogicalAfterLayout = GpuImageLayout::Undefined; /**< Latest required logical layout. */
 			GpuTextureAspectFlags Aspects{}; /**< Aspect represented by the native plane. */

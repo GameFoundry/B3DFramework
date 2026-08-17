@@ -14,6 +14,9 @@ namespace b3d
 		D3D12BarrierTestSuite();
 
 	private:
+		/** Checks precise logical buffer stage and access mappings. */
+		void TestBufferBarrierScopes();
+
 		/** Checks logical texture scopes and the conservative layout-derived source scope. */
 		void TestTextureBarrierScopes();
 
