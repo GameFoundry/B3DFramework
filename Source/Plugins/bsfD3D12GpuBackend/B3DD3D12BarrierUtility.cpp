@@ -61,7 +61,7 @@ D3D12_BARRIER_SYNC D3D12BarrierUtility::GetStageSync(GpuStageFlags stages)
 	if(stages.IsSet(GpuStageFlag::DrawIndirect))
 		sync |= D3D12_BARRIER_SYNC_EXECUTE_INDIRECT;
 	if(stages.IsSet(GpuStageFlag::VertexInputAttributes))
-		sync |= D3D12_BARRIER_SYNC_DRAW;
+		sync |= D3D12_BARRIER_SYNC_VERTEX_SHADING;
 	if(stages.IsSet(GpuStageFlag::VertexInputIndices))
 		sync |= D3D12_BARRIER_SYNC_INDEX_INPUT;
 	if(stages.IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::VertexShaderUniform))
@@ -207,30 +207,47 @@ D3D12_BARRIER_SYNC D3D12BarrierUtility::GetTextureSync(GpuStageFlags stages, D3D
 	if(stageSync == D3D12_BARRIER_SYNC_ALL)
 		return D3D12_BARRIER_SYNC_ALL;
 
-	if(access == D3D12_BARRIER_ACCESS_COMMON)
+	if(stageSync == D3D12_BARRIER_SYNC_NONE)
+	{
+		B3D_ASSERT(false && "D3D12 texture access requires a synchronization stage.");
 		return D3D12_BARRIER_SYNC_ALL;
+	}
 
-	D3D12_BARRIER_SYNC sync = D3D12_BARRIER_SYNC_NONE;
+	if(access == D3D12_BARRIER_ACCESS_COMMON)
+		return stageSync;
+
+	D3D12_BARRIER_SYNC requiredSync = D3D12_BARRIER_SYNC_NONE;
 	if((access & D3D12_BARRIER_ACCESS_RENDER_TARGET) != 0)
-		sync |= D3D12_BARRIER_SYNC_RENDER_TARGET;
+		requiredSync |= D3D12_BARRIER_SYNC_RENDER_TARGET;
 
 	if((access & (D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ | D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE)) != 0)
-		sync |= D3D12_BARRIER_SYNC_DEPTH_STENCIL;
+		requiredSync |= D3D12_BARRIER_SYNC_DEPTH_STENCIL;
 
 	if((access & (D3D12_BARRIER_ACCESS_COPY_SOURCE | D3D12_BARRIER_ACCESS_COPY_DEST)) != 0)
-		sync |= D3D12_BARRIER_SYNC_COPY;
+		requiredSync |= D3D12_BARRIER_SYNC_COPY;
 
 	if((access & (D3D12_BARRIER_ACCESS_RESOLVE_SOURCE | D3D12_BARRIER_ACCESS_RESOLVE_DEST)) != 0)
-		sync |= D3D12_BARRIER_SYNC_RESOLVE;
+		requiredSync |= D3D12_BARRIER_SYNC_RESOLVE;
 
 	if((access & (D3D12_BARRIER_ACCESS_SHADER_RESOURCE | D3D12_BARRIER_ACCESS_UNORDERED_ACCESS)) != 0)
 	{
 		const GpuStageFlags shaderStages = stages & (GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform);
 		const D3D12_BARRIER_SYNC shaderSync = GetStageSync(shaderStages);
-		sync |= shaderSync != D3D12_BARRIER_SYNC_NONE ? shaderSync : D3D12_BARRIER_SYNC_ALL;
+		if(shaderSync == D3D12_BARRIER_SYNC_NONE)
+		{
+			// TODO - Submission preludes can establish a shader-readable layout before a leading primary barrier. Once
+			// entry barriers are absorbed into the prelude, the exact shader stage must always be available here.
+			return D3D12_BARRIER_SYNC_ALL_SHADING;
+		}
+
+		requiredSync |= shaderSync;
 	}
 
-	return sync != D3D12_BARRIER_SYNC_NONE ? sync : D3D12_BARRIER_SYNC_ALL;
+	if(requiredSync != D3D12_BARRIER_SYNC_NONE)
+		return requiredSync;
+
+	B3D_ASSERT(false && "D3D12 texture access has no compatible synchronization stage.");
+	return D3D12_BARRIER_SYNC_ALL;
 }
 
 D3D12BarrierScope D3D12BarrierUtility::GetTextureLayoutScope(GpuImageLayout layout, const D3D12TextureLayout& nativeLayout, GpuTextureAspectFlags aspects, GpuStageFlags preferredStages)

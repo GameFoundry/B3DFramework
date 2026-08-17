@@ -21,10 +21,13 @@ namespace b3d
 		/** Contains information about a single resource bound/used on a command buffer. */
 		struct GpuResourceUseHandle
 		{
-			/** Whether this resource has been submitted to the GPU queue. */
+			/** Whether this resource has been submitted as an actual GPU access. Tracking-only entries remain false. */
 			bool Used;
 
-			/** Access flags indicating how the resource is being accessed (read/write). */
+			/**
+			 * Access flags indicating how the resource is being accessed. None keeps the resource alive for barrier or
+			 * layout tracking without registering a read or write access.
+			 */
 			GpuAccessFlags Flags;
 		};
 

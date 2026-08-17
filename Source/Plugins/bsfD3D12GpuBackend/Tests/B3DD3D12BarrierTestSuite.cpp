@@ -45,6 +45,7 @@ namespace
 
 D3D12BarrierTestSuite::D3D12BarrierTestSuite() : TestSuite("D3D12BarrierTestSuite")
 {
+	B3D_ADD_TEST(D3D12BarrierTestSuite::TestBufferBarrierScopes)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestTextureBarrierScopes)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestTextureBarrierBatchMerging)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestResolveBarrierMappings)
@@ -57,6 +58,19 @@ D3D12BarrierTestSuite::D3D12BarrierTestSuite() : TestSuite("D3D12BarrierTestSuit
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestSameQueueSubmissionHazards)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestMultisampleResolve)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestResolveValidation)
+}
+
+void D3D12BarrierTestSuite::TestBufferBarrierScopes()
+{
+	const D3D12BarrierScope vertexBufferScope = D3D12BarrierUtility::GetBufferScope(GpuStageFlag::VertexInputAttributes,
+		GpuAccessFlag::Read, D3D12_RESOURCE_FLAG_NONE);
+	B3D_TEST_ASSERT(vertexBufferScope.Sync == D3D12_BARRIER_SYNC_VERTEX_SHADING)
+	B3D_TEST_ASSERT(vertexBufferScope.Access == D3D12_BARRIER_ACCESS_VERTEX_BUFFER)
+
+	const D3D12BarrierScope indexBufferScope = D3D12BarrierUtility::GetBufferScope(GpuStageFlag::VertexInputIndices,
+		GpuAccessFlag::Read, D3D12_RESOURCE_FLAG_NONE);
+	B3D_TEST_ASSERT(indexBufferScope.Sync == D3D12_BARRIER_SYNC_INDEX_INPUT)
+	B3D_TEST_ASSERT(indexBufferScope.Access == D3D12_BARRIER_ACCESS_INDEX_BUFFER)
 }
 
 void D3D12BarrierTestSuite::TestTextureBarrierScopes()
@@ -99,7 +113,7 @@ void D3D12BarrierTestSuite::TestTextureBarrierScopes()
 
 	const D3D12BarrierScope presentScope = D3D12BarrierUtility::GetTextureScope(GpuStageFlag::ColorAttachment,
 		GpuAccessFlag::Read, GpuImageLayout::Present, colorAspect);
-	B3D_TEST_ASSERT(presentScope.Sync == D3D12_BARRIER_SYNC_ALL)
+	B3D_TEST_ASSERT(presentScope.Sync == D3D12_BARRIER_SYNC_RENDER_TARGET)
 	B3D_TEST_ASSERT(presentScope.Access == D3D12_BARRIER_ACCESS_COMMON)
 }
 
@@ -155,8 +169,10 @@ void D3D12BarrierTestSuite::TestTextureBarrierBatchMerging()
 	B3D_TEST_ASSERT(leadingBatch.mTextureBarriers[0].Barrier.SyncBefore == D3D12_BARRIER_SYNC_ALL)
 	B3D_TEST_ASSERT(leadingBatch.mTextureBarriers[0].Barrier.AccessBefore == D3D12_BARRIER_ACCESS_UNORDERED_ACCESS)
 
+	const GpuBarrierScope renderTargetPrologueBarrier(GpuStageFlag::None, GpuAccessFlag::None,
+		GpuStageFlag::ColorAttachment, GpuAccessFlag::Write);
 	D3D12BarrierBatch renderTargetPrologueBatch;
-	renderTargetPrologueBatch.AddTextureBarrier(resource, fullRange, prologueBarrier, GpuImageLayout::Undefined,
+	renderTargetPrologueBatch.AddTextureBarrier(resource, fullRange, renderTargetPrologueBarrier, GpuImageLayout::Undefined,
 		GpuImageLayout::ColorAttachment, copyDestinationLayout, D3D12TextureLayout(D3D12_BARRIER_LAYOUT_RENDER_TARGET));
 	D3D12BarrierBatch renderTargetLeadingBatch;
 	renderTargetLeadingBatch.AddTextureBarrier(resource, fullRange, leadingBarrier, GpuImageLayout::ColorAttachment,
@@ -203,7 +219,7 @@ void D3D12BarrierTestSuite::TestTextureBarrierBatchMerging()
 
 	D3D12BarrierBatch chainedBatch;
 	chainedBatch.AddTextureBarrier(resource, fullRange, unorderedAccessBarrier, GpuImageLayout::ShaderReadOnly,
-		GpuImageLayout::General, shaderLayout, unorderedAccessLayout, shaderReadBarrier);
+		GpuImageLayout::General, shaderLayout, unorderedAccessLayout, shaderReadBarrier.DestinationStages);
 	B3D_TEST_ASSERT(chainedBatch.mTextureBarriers.Size() == 1)
 	B3D_TEST_ASSERT(chainedBatch.mTextureBarriers[0].Barrier.SyncBefore ==
 		(D3D12_BARRIER_SYNC_VERTEX_SHADING | D3D12_BARRIER_SYNC_PIXEL_SHADING))
@@ -214,12 +230,11 @@ void D3D12BarrierTestSuite::TestTextureBarrierBatchMerging()
 	D3D12BarrierBatch chainedDepthBatch;
 	chainedDepthBatch.AddTextureBarrier(resource, fullRange, depthReadBarrier, GpuImageLayout::DepthStencilReadOnly,
 		GpuImageLayout::DepthStencilAttachment, D3D12TextureLayout(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ),
-		D3D12TextureLayout(D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE), shaderReadBarrier);
+		D3D12TextureLayout(D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE), shaderReadBarrier.DestinationStages);
 	B3D_TEST_ASSERT(chainedDepthBatch.mTextureBarriers.Size() == 1)
 	B3D_TEST_ASSERT(chainedDepthBatch.mTextureBarriers[0].Barrier.SyncBefore ==
 		(D3D12_BARRIER_SYNC_VERTEX_SHADING | D3D12_BARRIER_SYNC_PIXEL_SHADING | D3D12_BARRIER_SYNC_DEPTH_STENCIL))
-	B3D_TEST_ASSERT(chainedDepthBatch.mTextureBarriers[0].Barrier.AccessBefore ==
-		(D3D12_BARRIER_ACCESS_SHADER_RESOURCE | D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ))
+	B3D_TEST_ASSERT(chainedDepthBatch.mTextureBarriers[0].Barrier.AccessBefore == D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ)
 
 	D3D12BarrierBatch overlapBatch;
 	const GpuTextureSubresourceRange firstRange(0, 2, 0, 2, colorAspect);

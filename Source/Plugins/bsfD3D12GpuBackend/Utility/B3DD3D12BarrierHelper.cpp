@@ -42,15 +42,15 @@ void D3D12BarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image, cons
 		nativeBarrier.SourceAccess = GpuAccessFlag::Read | GpuAccessFlag::Write;
 	}
 
-	oldLayout = mBarriers.AddTextureBarrier(resource, range, nativeBarrier, oldLayout, newLayout, nativeOldLayout, nativeNewLayout, GetLastBarrier(image, range));
+	oldLayout = mBarriers.AddTextureBarrier(resource, range, nativeBarrier, oldLayout, newLayout, nativeOldLayout, nativeNewLayout, GetPrecedingBarrierDestinationStages(image, range));
 }
 
 void D3D12BarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
 {
 	D3D12BufferResource* const d3d12Buffer = static_cast<D3D12BufferResource*>(buffer);
 	D3D12BufferPage* const page = d3d12Buffer->GetPage();
-	const GpuBarrierScope physicalLastBarrier = page != nullptr ? GetLastBarrier(*page) : GetLastBarrier(buffer);
-	mBarriers.AddBufferBarrier(d3d12Buffer->GetD3D12Resource(), barrier, physicalLastBarrier);
+	const GpuStageFlags precedingBarrierDestinationStages = page != nullptr ? GetPrecedingBarrierDestinationStages(*page) : GetPrecedingBarrierDestinationStages(buffer);
+	mBarriers.AddBufferBarrier(d3d12Buffer->GetD3D12Resource(), barrier, precedingBarrierDestinationStages);
 
 	if(page != nullptr)
 	{
@@ -67,36 +67,38 @@ void D3D12BarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const G
 	}
 }
 
-GpuBarrierScope D3D12BarrierHelper::GetLastBarrier(IGpuBufferResource* buffer) const
+GpuStageFlags D3D12BarrierHelper::GetPrecedingBarrierDestinationStages(IGpuBufferResource* buffer) const
 {
 	const GpuBufferTrackingState* const trackingState = mResourceTracker->FindBufferTrackingState(buffer);
-	return trackingState != nullptr && trackingState->HazardState != nullptr ?  trackingState->HazardState->LastBarrier : GpuBarrierScope();
+	return trackingState != nullptr && trackingState->HazardState != nullptr ? trackingState->HazardState->LastBarrier.DestinationStages : GpuStageFlag::None;
 }
 
-GpuBarrierScope D3D12BarrierHelper::GetLastBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
+GpuStageFlags D3D12BarrierHelper::GetPrecedingBarrierDestinationStages(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
 {
-	GpuBarrierScope lastBarrier;
+	if(mResourceTracker->FindImageTrackingState(image) == nullptr)
+		return GpuStageFlag::None;
+
+	GpuStageFlags destinationStages = GpuStageFlag::None;
 	for(const GpuImageSubresourceTrackingState& trackingState : mResourceTracker->GetSubresourceTrackingStatesForImage(image))
 	{
 		if(!GpuBackendUtility::RangeOverlaps(trackingState.Range, range) || trackingState.HazardState == nullptr)
 			continue;
 
-		lastBarrier.DestinationStages |= trackingState.HazardState->LastBarrier.DestinationStages;
-		lastBarrier.DestinationAccess |= trackingState.HazardState->LastBarrier.DestinationAccess;
+		destinationStages |= trackingState.HazardState->LastBarrier.DestinationStages;
 	}
 
-	return lastBarrier;
+	return destinationStages;
 }
 
-GpuBarrierScope D3D12BarrierHelper::GetLastBarrier(D3D12BufferPage& page) const
+GpuStageFlags D3D12BarrierHelper::GetPrecedingBarrierDestinationStages(D3D12BufferPage& page) const
 {
 	for(auto entry = mPendingBufferPageBarriers.rbegin(); entry != mPendingBufferPageBarriers.rend(); ++entry)
 	{
 		if(entry->Page == &page)
-			return entry->Barrier;
+			return entry->Barrier.DestinationStages;
 	}
 
-	return GetLastBarrier(&page);
+	return GetPrecedingBarrierDestinationStages(&page);
 }
 
 void D3D12BarrierHelper::Execute(D3D12GpuCommandBuffer& commandBuffer)
