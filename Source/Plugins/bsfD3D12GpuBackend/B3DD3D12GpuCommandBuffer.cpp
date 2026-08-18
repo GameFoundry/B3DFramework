@@ -1,6 +1,77 @@
 
 namespace
 {
+void D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
+{
+	const bool requiresBind = isGraphics ? mGraphicsParametersRequireBind : mComputeParametersRequireBind;
+	if (!requiresBind || mBoundParameterSets.empty())
+		return;
+
+	const D3D12GpuPipelineParameterLayout* parameterLayout = nullptr;
+	if (isGraphics)
+		parameterLayout = mGraphicsPipeline != nullptr ? mGraphicsPipeline->GetD3D12ParameterLayout() : nullptr;
+	else
+		parameterLayout = mComputePipeline != nullptr ? mComputePipeline->GetD3D12ParameterLayout() : nullptr;
+
+	if (parameterLayout == nullptr)
+		return;
+
+	D3D12GpuDevice& device = GetD3D12GpuDevice();
+
+	const u32 layoutSetCount = parameterLayout->GetSetCount();
+	for (u32 setIndex = 0; setIndex < (u32)mBoundParameterSets.size(); setIndex++)
+	{
+		const TShared<D3D12GpuParameters>& parameters = mBoundParameterSets[setIndex];
+		if (parameters == nullptr)
+			continue;
+
+		// Sets beyond the active pipeline's layout can linger from earlier binds under a different pipeline, the current root signature has no parameters for them
+		if (setIndex >= layoutSetCount)
+			continue;
+
+		const bool hasDynamicOffsetOverrides = setIndex < (u32)mDynamicOffsetOverridesPerSet.size() && !mDynamicOffsetOverridesPerSet[setIndex].empty();
+		const UnorderedMap<u32, u32>* dynamicOffsets = hasDynamicOffsetOverrides ? &mDynamicOffsetOverridesPerSet[setIndex] : nullptr;
+
+		const TShared<GpuPipelineParameterSetLayout> pipelineSetLayout = parameterLayout->GetSet(setIndex);
+		if (pipelineSetLayout == nullptr)
+			continue;
+
+		parameters->TrackBoundResources(mResourceTracker, mBarrierHelper, *pipelineSetLayout);
+		parameters->BindDescriptors(device, mResourceTracker, mCommandList.Get(), isGraphics, parameterLayout->GetDescriptorSetLayout(setIndex), dynamicOffsets);
+	}
+
+	if (isGraphics)
+		mGraphicsParametersRequireBind = false;
+	else
+		mComputeParametersRequireBind = false;
+}
+
+void D3D12GpuCommandBuffer::TrackGpuParameterSets(bool isGraphics)
+{
+	const D3D12GpuPipelineParameterLayout* parameterLayout = nullptr;
+	if (isGraphics)
+		parameterLayout = mGraphicsPipeline != nullptr ? mGraphicsPipeline->GetD3D12ParameterLayout() : nullptr;
+	else
+		parameterLayout = mComputePipeline != nullptr ? mComputePipeline->GetD3D12ParameterLayout() : nullptr;
+
+	if (parameterLayout == nullptr)
+		return;
+
+	const u32 setCount = parameterLayout->GetSetCount();
+	for (u32 setIndex = 0; setIndex < (u32)mBoundParameterSets.size() && setIndex < setCount; setIndex++)
+	{
+		const TShared<D3D12GpuParameters>& parameters = mBoundParameterSets[setIndex];
+		if (parameters == nullptr)
+			continue;
+
+		const TShared<GpuPipelineParameterSetLayout> pipelineSetLayout = parameterLayout->GetSet(setIndex);
+		if (pipelineSetLayout != nullptr)
+			parameters->TrackBoundResources(mResourceTracker, mBarrierHelper, *pipelineSetLayout);
+	}
+}
+
+namespace
+{
 	/** Determines transitions required in-between ExecuteCommandList calls, as well as waits required between queues. */
 	class D3D12SubmissionTransitionVisitor : public GpuSubmissionTransitionVisitor
 	{

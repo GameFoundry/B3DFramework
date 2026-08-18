@@ -139,3 +139,17 @@ namespace b3d
 			 * @note Submit thread only.
 			 */
 			bool UpdateExecutionStatus(bool block);
+
+			/**
+			 * Binds the currently stored GPU parameter sets, if dirty. @p isGraphics selects whether the sets are bound
+			 * to the graphics or the compute root signature; both pipeline types can be bound on the command buffer
+			 * simultaneously, so the bind point cannot be inferred from the command buffer's state alone.
+			 */
+			void BindGpuParameterSets(bool isGraphics);
+
+			/**
+			 * Registers resources from the currently bound parameter sets without rebinding their descriptors, using the
+			 * active graphics or compute pipeline's per-binding stage visibility. Used for repeated compute dispatches so
+			 * UAV writes remain ordered when descriptor bindings do not change.
+			 */
+			void TrackGpuParameterSets(bool isGraphics);
