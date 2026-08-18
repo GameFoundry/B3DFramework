@@ -2286,6 +2286,7 @@ namespace b3d
 
 			const TextureProperties& sourceProperties = source->GetProperties();
 			const TextureProperties& destinationProperties = destination->GetProperties();
+			const bool resolveMultisample = sourceProperties.SampleCount > 1 && destinationProperties.SampleCount == 1;
 			u32 sourceWidth, sourceHeight, sourceDepth;
 			PixelUtility::GetSizeForMipLevel(sourceProperties.Width, sourceProperties.Height, sourceProperties.Depth,
 				copyInformation.SourceMip, sourceWidth, sourceHeight, sourceDepth);
@@ -2348,15 +2349,6 @@ namespace b3d
 			destinationRange.BaseMipLevel = copyInformation.DestinationMip;
 			destinationRange.MipLevelCount = 1;
 
-			EnsureEncoderKind(EncoderKind::Blit);
-			mResourceTracker.TrackImageUsage(sourceResource, sourceRange, GpuImageLayout::TransferSource,
-				GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-			mResourceTracker.TrackImageUsage(destinationResource, destinationRange, GpuImageLayout::TransferDestination,
-				GpuImageLayout::TransferDestination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
-			if (!ExecutePendingBarriers())
-				return false;
-
-			const bool resolveMultisample = sourceProperties.SampleCount > 1 && destinationProperties.SampleCount == 1;
 			if (resolveMultisample)
 			{
 				u32 destinationWidth, destinationHeight, destinationDepth;
@@ -2372,8 +2364,22 @@ namespace b3d
 					B3D_LOG(Error, LogRenderBackend, "Metal supports multisample resolves only for complete, equally-sized texture subresources.");
 					return false;
 				}
+			}
 
-				EnsureEncoderKind(EncoderKind::None);
+			const GpuImageLayout sourceLayout = resolveMultisample ? GpuImageLayout::ResolveSource : GpuImageLayout::TransferSource;
+			const GpuImageLayout destinationLayout = resolveMultisample ? GpuImageLayout::ResolveDestination : GpuImageLayout::TransferDestination;
+			const GpuResourceUseFlags resourceUse = resolveMultisample ? GpuResourceUseFlag::Resolve : GpuResourceUseFlag::Transfer;
+
+			// Metal resolves through a render-pass store action. Establish the encoder boundary before
+			// recording the resolve hazard instead of treating it as blit work.
+			EnsureEncoderKind(resolveMultisample ? EncoderKind::None : EncoderKind::Blit);
+			mResourceTracker.TrackImageUsage(sourceResource, sourceRange, sourceLayout, sourceLayout, resourceUse, GpuAccessFlag::Read, mBarrierHelper);
+			mResourceTracker.TrackImageUsage(destinationResource, destinationRange, destinationLayout, destinationLayout, resourceUse, GpuAccessFlag::Write, mBarrierHelper);
+			if (!ExecutePendingBarriers())
+				return false;
+
+			if (resolveMultisample)
+			{
 				id<MTLCommandBuffer> commandBuffer = GetOrAcquireMetalCommandBuffer();
 				if (commandBuffer == nil)
 					return false;
