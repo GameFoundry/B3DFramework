@@ -43,8 +43,10 @@ namespace b3d::render
 		mHasTextureBarriers = true;
 
 		// Barriers touching attachment stages also need the render-target scope so in-pass
-		// attachment writes are visible to subsequent reads.
-		const GpuStageFlags kAttachmentStages = GpuStageFlag::ColorAttachment | GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests;
+		// attachment writes are visible to subsequent reads. Metal performs resolves as an
+		// attachment store action, so resolve hazards require the same encoder boundary.
+		const GpuStageFlags kAttachmentStages = GpuStageFlag::ColorAttachment | GpuStageFlag::EarlyFragmentTests
+			| GpuStageFlag::LateFragmentTests | GpuStageFlag::Resolve;
 		if(barrier.SourceStages.IsSetAny(kAttachmentStages) || barrier.DestinationStages.IsSetAny(kAttachmentStages))
 			mHasRenderTargetBarriers = true;
 
