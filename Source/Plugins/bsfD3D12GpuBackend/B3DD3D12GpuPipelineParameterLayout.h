@@ -1,0 +1,117 @@
+//************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#pragma once
+
+#include "B3DD3D12Prerequisites.h"
+#include "B3DD3D12Resource.h"
+#include "GpuBackend/B3DGpuPipelineParameterLayout.h"
+#include "GpuBackend/B3DGpuProgram.h"
+
+namespace b3d
+{
+	namespace render
+	{
+		/** @addtogroup D3D12GpuBackend
+		 *  @{
+		 */
+
+		/** Number of 32-bit values reserved for the push-constant block. */
+		constexpr u32 kD3D12RootConstantValueCount = 4;
+
+		/** Number of root CBVs reserved for dynamically offset uniform buffers. */
+		constexpr u32 kD3D12DynamicConstantBufferCount = 8;
+
+		/** Describes one binding packed into a D3D12 descriptor table. */
+		struct D3D12DescriptorBindingLayout
+		{
+			D3D12DescriptorBindingLayout() = default;
+
+			GpuParameterType Type = GpuParameterType::Unknown; /**< Generic parameter type. */
+			GpuParameterObjectType ObjectType = GPOT_UNKNOWN; /**< Shader object type used to select typed null descriptors. */
+			D3D12_DESCRIPTOR_RANGE_TYPE RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; /**< Native descriptor type. */
+			u32 Slot = ~0u; /**< Engine parameter slot. */
+			u32 ShaderRegister = 0; /**< First HLSL register occupied by the binding. */
+			u32 DescriptorCount = 0; /**< Number of descriptors occupied by the binding. */
+			u32 TableOffset = 0; /**< First descriptor within the packed table. */
+		};
+
+		/** Describes a consecutive native range within a D3D12 descriptor table. */
+		struct D3D12DescriptorRangeLayout
+		{
+			D3D12DescriptorRangeLayout() = default;
+
+			D3D12_DESCRIPTOR_RANGE_TYPE Type = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; /**< Native descriptor type. */
+			u32 BaseShaderRegister = 0; /**< First HLSL register in the range. */
+			u32 DescriptorCount = 0; /**< Number of consecutive registers in the range. */
+			u32 TableOffset = 0; /**< First descriptor within the packed table. */
+		};
+
+		/** Describes one packed resource or sampler table belonging to a parameter set. */
+		struct D3D12DescriptorTableLayout
+		{
+			D3D12DescriptorTableLayout() = default;
+
+			TInlineArray<D3D12DescriptorBindingLayout, 16> Bindings; /**< Bindings in descriptor-table order. */
+			TInlineArray<D3D12DescriptorRangeLayout, 8> Ranges; /**< Consecutive native ranges covering the bindings. */
+			u32 DescriptorCount = 0; /**< Total number of descriptors in the table. */
+			u32 RootParameterIndex = ~0u; /**< Root parameter used to bind the table. */
+		};
+
+		/** Describes one uniform buffer assigned to a dynamic root-CBV position. */
+		struct D3D12RootConstantBufferLayout
+		{
+			D3D12RootConstantBufferLayout() = default;
+
+			u32 Slot = ~0u; /**< Engine parameter slot. */
+			u32 DynamicOffsetIndex = ~0u; /**< Dynamic offset override index. */
+			u32 RootParameterIndex = ~0u; /**< Root parameter used to bind the CBV. */
+		};
+
+		/** D3D12 binding layout for one engine parameter set. */
+		struct D3D12DescriptorSetLayout
+		{
+			D3D12DescriptorSetLayout() = default;
+
+			D3D12DescriptorTableLayout ResourceTable; /**< Combined CBV/SRV/UAV table. */
+			D3D12DescriptorTableLayout SamplerTable; /**< Sampler table stored in the sampler heap. */
+			TInlineArray<D3D12RootConstantBufferLayout, 4> RootConstantBuffers; /**< Uniform buffers assigned to root CBVs. */
+		};
+
+		/** DirectX 12 implementation of GPU pipeline parameter layout. */
+		class D3D12GpuPipelineParameterLayout : public GpuPipelineParameterLayout
+		{
+		public:
+			/** Creates the root signature described by @p createInformation. */
+			D3D12GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, D3D12GpuDevice& device);
+			~D3D12GpuPipelineParameterLayout() override;
+
+			/** Returns the tracked D3D12 root signature. */
+			D3D12RootSignature* GetRootSignature() const { return mRootSignature; }
+
+			/** Returns the D3D12 binding layout for the given parameter set. */
+			const D3D12DescriptorSetLayout& GetDescriptorSetLayout(u32 setIndex) const { return mDescriptorSetLayouts[setIndex]; }
+
+			/**
+			 * Returns the slot-keyed union of every stage's reflected resource bindings for the given set, sorted by
+			 * slot. The D3D shader compiler reflects resource usage per stage (stripping unused declarations), so each
+			 * stage's table is a subset of the set's resources; the union describes the full set. Empty when no stage
+			 * binds resources in the set.
+			 */
+			TArrayView<const GpuDescriptorTableEntry> GetReflectedSetEntries(u32 setIndex) const { return mReflectedSetEntries[setIndex]; }
+
+		private:
+			/** Creates the D3D12 root signature. */
+			void CreateRootSignature();
+
+			/** Populates mReflectedSetEntries by merging the per-stage reflected resource tables by slot. */
+			void MergeReflectedSetTables(const GpuPipelineParameterLayoutCreateInformation& createInformation);
+
+			D3D12GpuDevice& mDevice;
+			D3D12RootSignature* mRootSignature = nullptr;
+			Vector<D3D12DescriptorSetLayout> mDescriptorSetLayouts; /**< Packed descriptor and root-CBV layouts per set. */
+			Vector<Vector<GpuDescriptorTableEntry>> mReflectedSetEntries; /**< Per-set slot-keyed union of stage-reflected bindings. */
+		};
+
+		/** @} */
+	} // namespace render
+} // namespace b3d
