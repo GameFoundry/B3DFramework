@@ -23,6 +23,13 @@ namespace b3d
 			D3D12_BARRIER_ACCESS Access = D3D12_BARRIER_ACCESS_NO_ACCESS; /**< Native memory access scope. */
 		};
 
+		/** Resource properties that affect the native layout selected for a logical texture layout. */
+		struct D3D12TextureLayoutOptions
+		{
+			bool AllowConcurrentQueueReads = false; /**< Whether shader reads may overlap on graphics and compute queues. */
+			bool IsPresentable = false; /**< Whether the texture is a swap-chain image that can remain in COMMON for copies. */
+		};
+
 		/** Maps the engine's logical synchronization model onto D3D12 enhanced barriers. */
 		class D3D12BarrierUtility
 		{
@@ -39,11 +46,8 @@ namespace b3d
 			/** Returns a conservative native access scope compatible with @p layout. */
 			static D3D12BarrierScope GetTextureLayoutScope(GpuImageLayout layout, const D3D12TextureLayout& nativeLayout, GpuTextureAspectFlags aspects, GpuStageFlags preferredStages = GpuStageFlag::None);
 
-			/**
-			 * Converts a core image layout into an aspect-aware enhanced-barrier layout for @p queueType. Shader-read
-			 * layouts remain queue-neutral when @p allowConcurrentQueueReads is true.
-			 */
-			static D3D12TextureLayout GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType, GpuTextureAspectFlags aspects = GpuTextureAspectFlag::Color, bool allowConcurrentQueueReads = false);
+			/** Converts a logical image layout and explicit resource properties into an aspect-aware native layout. */
+			static D3D12TextureLayout TranslateTextureLayout(GpuImageLayout layout, GpuQueueType queueType, GpuTextureAspectFlags aspects, const D3D12TextureLayoutOptions& options);
 
 			/** Returns whether @p layout can be used by the specified queue type. */
 			static bool IsTextureLayoutSupportedOnQueue(const D3D12TextureLayout& layout, GpuTextureAspectFlags aspects, GpuQueueType queueType);

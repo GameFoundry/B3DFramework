@@ -93,6 +93,15 @@ namespace b3d
 			GetDevice().FreeMemory(mAllocation);
 		}
 
+		D3D12TextureLayout D3D12Image::GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType, GpuTextureAspectFlags aspects) const
+		{
+			D3D12TextureLayoutOptions options;
+			options.AllowConcurrentQueueReads = mAllowConcurrentQueueReads;
+			options.IsPresentable = mIsPresentable;
+
+			return D3D12BarrierUtility::TranslateTextureLayout(layout, queueType, aspects, options);
+		}
+
 		GpuTextureSubresourceRange D3D12Image::GetRange(const TextureSurface& surface) const
 		{
 			const u32 remainingFaceCount = surface.Face < mFaceCount ? mFaceCount - surface.Face : 0;

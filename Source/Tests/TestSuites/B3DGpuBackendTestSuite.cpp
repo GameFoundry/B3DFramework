@@ -170,6 +170,9 @@ void GpuBackendTestSuite::TestResourceHazardState()
 	leadingBarrierHazardState.RecordBarrier(GpuBarrierScope(GpuStageFlag::VertexShaderNonUniform,
 		GpuAccessFlag::Write, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read));
 	B3D_TEST_ASSERT(leadingBarrierHazardState.LeadingBarriers.Size() == 2)
+	B3D_TEST_ASSERT(leadingBarrierHazardState.LastBarrier.SourceStages == GpuStageFlag::VertexShaderNonUniform)
+	B3D_TEST_ASSERT(leadingBarrierHazardState.LastBarrier.DestinationStages == GpuStageFlag::FragmentShaderNonUniform)
+	B3D_TEST_ASSERT(leadingBarrierHazardState.LastBarrier.DestinationAccess == GpuAccessFlag::Read)
 
 	GpuResourceWriteEpochHazardState shaderWriteChainState;
 	B3D_TEST_ASSERT(!ResolveTestAccess(shaderWriteChainState,
