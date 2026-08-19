@@ -13,6 +13,11 @@ namespace b3d
 	/// <summary>Flags that describe how a texture is used.</summary>
 	public enum TextureUsageFlag
 	{
+		/// <summary>
+		/// Indicates that the texture may be read by shaders on multiple GPU queues concurrently. Writes and transfer
+		/// operations remain synchronized normally.
+		/// </summary>
+		ConcurrentQueueReads = 8192,
 		/// <summary>Allows retrieving views of the texture using a different format than specified on creation.</summary>
 		MutableFormat = 16384,
 		/// <summary>Texture used as a depth/stencil buffer by the GPU. Must be combined with StoreOnGPU flag.</summary>

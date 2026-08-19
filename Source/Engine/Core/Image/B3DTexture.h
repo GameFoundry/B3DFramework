@@ -7,7 +7,7 @@
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuTextureSubresource.h"
 #include "Image/B3DColor.h"
-#include "Image/B3DPixelUtility.h"
+#include "Image/B3DPixelData.h"
 #include "GpuBackend/B3DTextureView.h"
 #include "Math/B3DVector3I.h"
 
@@ -16,6 +16,57 @@ namespace b3d
 	/** @addtogroup Image
 	 *  @{
 	 */
+
+	/** Flags that describe how a texture is used. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TextureUsageFlag
+	{
+		/**
+		 * Ensures the texture is placed into memory on the GPU device. This allows the GPU to access
+		 * the texture quickly, but makes updating the texture slower. Required for GPU-writeable
+		 * textures (render target, depth stencil or unordered access).
+		 */
+		StoreOnGPU B3D_SCRIPT_EXPORT(ExportName(Default)) = 1 << 0,
+
+		/**
+		 * Places the texture into CPU memory accessible to the GPU. This means the texture is faster
+		 * to update from the CPU, but it's slower to access by the GPU. Not allowed for GPU-writeable
+		 * textures (render target, depth stencil or unordered access).
+		 */
+		StoreOnCPUWithGPUAccess B3D_SCRIPT_EXPORT(ExportName(Dynamic)) = 1 << 1,
+
+		/** Texture that can be rendered to by the GPU. Must be combined with StoreOnGPU flag. */
+		RenderTarget B3D_SCRIPT_EXPORT(ExportName(Render)) = 1 << 9,
+
+		/** Texture used as a depth/stencil buffer by the GPU. Must be combined with StoreOnGPU flag. */
+		DepthStencil B3D_SCRIPT_EXPORT(ExportName(DepthStencil)) = 1 << 10,
+
+		/**
+		 * Ensures that the GPU can perform unordered write operations on the texture. Generally used
+		 * for textures in compute operations. Must be combined with StoreOnGPU flag.
+		 */
+		AllowUnorderedAccessOnTheGPU B3D_SCRIPT_EXPORT(ExportName(LoadStore)) = 1 << 11,
+
+		/**
+		 * All texture data will also be cached in CPU memory for fast read access from the CPU. Only relevant for main
+		 * thread textures, ignored for render thread textures.
+		 */
+		CPUCached B3D_SCRIPT_EXPORT(ExportName(CPUCached)) = 1 << 12,
+
+		/**
+		 * Indicates that the texture may be read by shaders on multiple GPU queues concurrently. Writes and transfer
+		 * operations remain synchronized normally.
+		 */
+		AllowConcurrentQueueReads B3D_SCRIPT_EXPORT(ExportName(ConcurrentQueueReads)) = 1 << 13,
+
+		/** Allows retrieving views of the texture using a different format than specified on creation. */
+		MutableFormat B3D_SCRIPT_EXPORT(ExportName(MutableFormat)) = 1 << 14,
+
+		/** Default setting suitable for majority of textures. */
+		Default = StoreOnGPU
+	};
+
+	using TextureUsageFlags = Flags<TextureUsageFlag>;
+	B3D_FLAGS_OPERATORS(TextureUsageFlag);
 
 	/**	Texture mipmap options. */
 	enum TextureMipmap
