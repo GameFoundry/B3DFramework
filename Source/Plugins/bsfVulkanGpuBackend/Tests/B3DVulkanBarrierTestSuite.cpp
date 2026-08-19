@@ -3,6 +3,7 @@
 #include "B3DVulkanBarrierTestSuite.h"
 #include "B3DVulkanGpuBackend.h"
 #include "B3DVulkanGpuDevice.h"
+#include "B3DVulkanTexture.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
@@ -103,6 +104,7 @@ VulkanBarrierTestSuite::VulkanBarrierTestSuite()
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestCompletedGraphicsToComputeBufferHandoff)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestCompletedQueueProgressFanOut)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestSameQueueBufferBoundary)
+	B3D_ADD_TEST(VulkanBarrierTestSuite::TestConcurrentQueueReadTexture)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestMultisampleResolve)
 }
 
@@ -155,6 +157,48 @@ void VulkanBarrierTestSuite::TestCompletedQueueProgressFanOut()
 void VulkanBarrierTestSuite::TestSameQueueBufferBoundary()
 {
 	RunBufferHandoff(*this, GQT_GRAPHICS, GQT_GRAPHICS);
+}
+
+void VulkanBarrierTestSuite::TestConcurrentQueueReadTexture()
+{
+	VulkanGpuDevice* const device = GetActiveVulkanDevice();
+	if(device == nullptr)
+		return;
+
+	TInlineArray<u32, GQT_COUNT> queueFamilies;
+	for(u32 queueType = 0; queueType < GQT_COUNT; queueType++)
+	{
+		const GpuQueueType type = (GpuQueueType)queueType;
+		if(device->GetQueueCount(type) == 0)
+			continue;
+
+		const u32 family = device->GetQueueFamily(type);
+		if(std::find(queueFamilies.begin(), queueFamilies.end(), family) == queueFamilies.end())
+			queueFamilies.Add(family);
+	}
+
+	TextureCreateInformation createInformation;
+	createInformation.Name = "Vulkan concurrent-read texture";
+	createInformation.Format = PF_RGBA8;
+	createInformation.Width = 8;
+	createInformation.Height = 8;
+	createInformation.Usage |= TextureUsageFlag::AllowConcurrentQueueReads;
+
+	bool textureCreated = false;
+	bool exclusive = true;
+	GetRenderThread().PostCommand([device, createInformation, &textureCreated, &exclusive]()
+	{
+		const TShared<render::Texture> texture = device->CreateTexture(createInformation);
+		textureCreated = texture != nullptr;
+		if(!textureCreated)
+			return;
+
+		const TShared<VulkanTexture> vulkanTexture = std::static_pointer_cast<VulkanTexture>(texture);
+		exclusive = vulkanTexture->GetVulkanResource()->IsExclusive();
+	}, "VulkanBarrierTestSuite::TestConcurrentQueueReadTexture", true);
+
+	B3D_TEST_ASSERT(textureCreated)
+	B3D_TEST_ASSERT(exclusive == (queueFamilies.Size() <= 1))
 }
 
 void VulkanBarrierTestSuite::TestMultisampleResolve()

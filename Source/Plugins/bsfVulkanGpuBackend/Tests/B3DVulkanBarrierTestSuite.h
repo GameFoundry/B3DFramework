@@ -28,6 +28,9 @@ namespace b3d
 		/** Copies data through a GPU-local buffer in consecutive graphics command buffers. */
 		void TestSameQueueBufferBoundary();
 
+		/** Checks that the concurrent-read texture hint enables concurrent Vulkan queue-family sharing when needed. */
+		void TestConcurrentQueueReadTexture();
+
 		/** Resolves a multisampled texture through the Vulkan transfer-native resolve path. */
 		void TestMultisampleResolve();
 	};
