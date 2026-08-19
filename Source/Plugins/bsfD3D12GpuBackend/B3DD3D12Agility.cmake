@@ -59,12 +59,19 @@ endfunction()
 
 B3DRegisterExecutableConfigurationProvider(B3DApplyD3D12ExecutableConfiguration)
 
+# Adds the Agility SDK headers ahead of the platform D3D12 headers used by @p target.
+#
+# @param	target	Name of the target that consumes D3D12 declarations.
+function(B3DUseD3D12AgilitySDKHeaders target)
+	target_include_directories(${target} BEFORE PRIVATE "${B3D_D3D12_AGILITY_INCLUDE_DIRECTORY}")
+endfunction()
+
 # Adds Agility SDK headers to @p target and stages the selected runtime beside the target. The SDK layers are included
 # only in Development builds.
 #
 # @param	target	Name of the D3D12 backend target to configure.
 function(B3DConfigureD3D12AgilitySDK target)
-	target_include_directories(${target} BEFORE PRIVATE "${B3D_D3D12_AGILITY_INCLUDE_DIRECTORY}")
+	B3DUseD3D12AgilitySDKHeaders(${target})
 
 	set(runtimeDirectory "$<TARGET_FILE_DIR:${target}>/D3D12")
 	add_custom_command(TARGET ${target} POST_BUILD
