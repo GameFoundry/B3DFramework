@@ -26,6 +26,9 @@ namespace b3d::render
 		/** Adds a whole-resource buffer barrier chained after @p precedingBarrierDestinationStages. */
 		void AddBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages);
 
+		/** Adds a global barrier using buffer access semantics, chained after @p precedingBarrierDestinationStages. */
+		void AddGlobalBufferBarrier(D3D12_RESOURCE_FLAGS resourceFlags, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages);
+
 		/**
 		 * Adds or merges a texture barrier. A native UNDEFINED before layout discards previous contents.
 		 * Returns the original logical layout retained by a merged barrier.
@@ -59,6 +62,7 @@ namespace b3d::render
 		/** Rebuilds the native barrier from the entry's merged logical scope and final layout. */
 		static void RebuildTextureBarrier(TextureBarrierEntry& entry);
 
+		TInlineArray<D3D12_GLOBAL_BARRIER, 8> mGlobalBarriers; /**< Barriers that cannot be represented for a specific resource. */
 		TInlineArray<D3D12_BUFFER_BARRIER, 8> mBufferBarriers; /**< Whole-resource buffer barriers. */
 		TInlineArray<TextureBarrierEntry, 8> mTextureBarriers; /**< Image layout and access barriers. */
 	};
