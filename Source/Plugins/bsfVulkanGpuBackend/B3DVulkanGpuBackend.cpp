@@ -16,7 +16,7 @@
 #include "Utility/B3DCommandLine.h"
 #include "Utility/B3DConfigVariable.h"
 #if B3D_PLATFORM_WIN32
-#	include "Win32/B3DRenderDocFrameCapture.h"
+#	include "Win32/B3DRenderDocCommandCapture.h"
 #endif
 
 #if B3D_PLATFORM_WIN32
@@ -442,7 +442,7 @@ void VulkanGpuBackend::OnStartUp()
 	VulkanVertexInputManager::StartUp();
 
 #if B3D_PLATFORM_WIN32
-	mFrameCapture = B3DMakeShared<RenderDocFrameCapture>(mInstance); // TODO - This should included in the build for development only, but it's currently always bundled with the application
+	mGPUCommandCapture = B3DMakeShared<RenderDocCommandCapture>(mInstance); // TODO - This should included in the build for development only, but it's currently always bundled with the application
 #endif
 
 	Super::OnStartUp();

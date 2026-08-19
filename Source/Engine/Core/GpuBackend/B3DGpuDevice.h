@@ -25,7 +25,7 @@ namespace b3d::render
 namespace b3d
 {
 	class GpuPipelineParameterSetLayout;
-	class GpuFrameCapture;
+	class GpuCommandCapture;
 	class IGpuAllocator;
 	struct SamplerStateCreateInformation;
 	struct TextureCreateInformation;

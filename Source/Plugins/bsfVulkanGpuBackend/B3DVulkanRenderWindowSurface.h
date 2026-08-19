@@ -46,6 +46,7 @@ namespace b3d::render
 		u64 mPlatformWindowHandle = 0;
 		bool mIsDestroyed = false;
 		u32 mActiveImageIndex = 0;
+		bool mHasAcquiredImage = false;
 	};
 
 	/** @} */

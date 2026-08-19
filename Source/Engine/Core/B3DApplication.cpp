@@ -532,12 +532,12 @@ void Application::RunMainLoopFrame()
 
 	GetRenderThread().PostCommand([this] { BeginRenderThreadProfiling(); }, "BeginRenderThreadProfiling");
 
-	PROFILE_CALL(RendererManager::Instance().GetActive()->RenderAll(perFrameData), "Render");
-
 #if B3D_ENABLE_TESTS
 	if(mSnapshotTestRunner != nullptr)
 		mSnapshotTestRunner->RequestScreenCapture();
 #endif
+
+	PROFILE_CALL(RendererManager::Instance().GetActive()->RenderAll(perFrameData), "Render");
 
 	GetRenderThread().PostCommand([this] { FrameRenderingFinishedCallback(); }, "FrameRenderingFinishedCallback");
 	GetRenderThread().PostCommand([this] { EndRenderThreadProfiling(); }, "EndRenderThreadProfiling");

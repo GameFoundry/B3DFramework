@@ -59,8 +59,8 @@ void RendererManager::Initialize()
 		mActiveRenderer->Activate();
 }
 
-void RendererManager::RequestFrameCapture()
+void RendererManager::RequestGPUCommandCapture()
 {
-	GetRenderThread().PostCommand([this] { mActiveRenderer->RequestDebugFrameCapture(); }, "RendererManager::RequestFrameCapture");
+	GetRenderThread().PostCommand([this] { mActiveRenderer->RequestGPUCommandCapture(); }, "RendererManager::RequestGPUCommandCapture");
 }
 

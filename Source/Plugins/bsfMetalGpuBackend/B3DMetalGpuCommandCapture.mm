@@ -1,23 +1,23 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "B3DMetalGpuFrameCapture.h"
+#include "B3DMetalGpuCommandCapture.h"
 #include "B3DMetalGpuDevice.h"
 #include "Debug/B3DLog.h"
 
 namespace b3d
 {
-	struct MetalGpuFrameCapture::Impl
+	struct MetalGpuCommandCapture::Impl
 	{
 		bool Capturing = false;
 		NSURL* OutputUrl = nil;
 	};
 
-	MetalGpuFrameCapture::MetalGpuFrameCapture(render::MetalGpuDevice& device)
+	MetalGpuCommandCapture::MetalGpuCommandCapture(render::MetalGpuDevice& device)
 		: mDevice(device)
 		, mImpl(B3DMakeUnique<Impl>())
 	{ }
 
-	MetalGpuFrameCapture::~MetalGpuFrameCapture()
+	MetalGpuCommandCapture::~MetalGpuCommandCapture()
 	{
 		Stop();
 #if !__has_feature(objc_arc)
@@ -26,7 +26,7 @@ namespace b3d
 		mImpl->OutputUrl = nil;
 	}
 
-	void MetalGpuFrameCapture::Start()
+	void MetalGpuCommandCapture::Start()
 	{
 		if (mImpl->Capturing)
 			return;
@@ -81,7 +81,7 @@ namespace b3d
 		}
 	}
 
-	void MetalGpuFrameCapture::Stop()
+	void MetalGpuCommandCapture::Stop()
 	{
 		if (!mImpl->Capturing)
 			return;

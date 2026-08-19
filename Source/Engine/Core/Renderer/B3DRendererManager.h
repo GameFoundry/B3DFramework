@@ -36,9 +36,9 @@ namespace b3d
 		/** Completes initialization of the currently active renderer, making it ready to render. See SetActive(). */
 		void Initialize();
 
-		/** Queues GPU command capture of the next frame, if a frame capture is set up. */
+		/** Queues capture of the next frame's GPU commands, if a command capture tool is available. */
 		B3D_SCRIPT_EXPORT()
-		void RequestFrameCapture();
+		void RequestGPUCommandCapture();
 
 		/**	Returns the currently active renderer. Null if no renderer is active. */
 		TShared<render::Renderer> GetActive() { return mActiveRenderer; }

@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	class GpuFrameCapture;
+	class GpuCommandCapture;
 	class GpuDevice;
 
 	/** @addtogroup GpuBackend
@@ -72,13 +72,13 @@ namespace b3d
 		/************************************************************************/
 
 		/** Captures all GPU commands following this point for analysis by an external tool (e.g. RenderDoc or nSight). */
-		virtual void StartCapture();
+		virtual void StartGPUCommandCapture();
 
-		/** Stops capture started by StartCapture() and makes the captured commands ready for analysis. */
-		virtual void StopCapture();
+		/** Stops capture started by StartGPUCommandCapture() and makes the captured commands ready for analysis. */
+		virtual void StopGPUCommandCapture();
 
 	protected:
-		TShared<GpuFrameCapture> mFrameCapture;
+		TShared<GpuCommandCapture> mGPUCommandCapture;
 	};
 
 	/** @} */

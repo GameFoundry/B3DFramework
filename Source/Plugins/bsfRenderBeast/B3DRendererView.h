@@ -444,10 +444,10 @@ namespace b3d
 			 * Determines if overlay (GUI) should be fully redrawn this frame.
 			 *
 			 * Normally GUI updates on-demand even if the view itself is not set to render on-demand.
-			 * This method returns true when the overlay needs a full update, such as when a screen
+			 * This method returns true when the overlay needs a full update, such as when a view
 			 * capture is pending.
 			 */
-			bool ShouldRedrawOverlay() const { return mRedrawThisFrame || !mRequestedScreenCaptures.empty(); }
+			bool ShouldRedrawOverlay() const { return mRedrawThisFrame || !mRequestedCaptures.empty(); }
 
 			/** Returns true if the view should write to the velocity buffer. */
 			bool RequiresVelocityWrites() const;
@@ -495,11 +495,11 @@ namespace b3d
 			 */
 			void NotifyLuminanceUpdated(u64 frameIdx, TShared<GpuCommandBuffer> cb, TShared<PooledRenderTexture> texture) const;
 
-			/** Queues a screen capture to be resolved the next time the view is rendered. */
-			void RequestScreenCapture(TAsyncOp<TShared<PixelData>> asyncOp);
+			/** Queues a capture to be resolved the next time the view is rendered. */
+			void RequestCapture(TAsyncOp<TShared<PixelData>> asyncOp);
 
-			/** Processes pending captures after rendering completes. */
-			void ResolveSceneCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& target) const;
+			/** Resolves pending captures after rendering completes. */
+			void ResolveCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& target) const;
 
 			/**
 			 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]
@@ -569,8 +569,8 @@ namespace b3d
 			u64 mWaitingOnAutoExposureFrame = std::numeric_limits<u64>::max();
 			mutable Vector<LuminanceUpdate> mLuminanceUpdates;
 
-			// Screen capture
-			mutable Vector<TAsyncOp<TShared<PixelData>>> mRequestedScreenCaptures;
+			// View capture
+			mutable Vector<TAsyncOp<TShared<PixelData>>> mRequestedCaptures;
 
 			// Exposure
 			float mPreviousEyeAdaptation = 0.0f;

@@ -294,6 +294,14 @@ TAsyncOp<TShared<PixelData>> RenderWindow::ReadAsync(GpuWorkContext& gpuContext,
 	if(!B3D_ENSURE(colorSurfaceIndex == 0 && mipLevel == 0 && arrayLayer == 0) || mRenderWindowSurface == nullptr)
 		return RenderTarget::ReadAsync(gpuContext, commandBuffer, colorSurfaceIndex, mipLevel, arrayLayer);
 
-	return mRenderWindowSurface->ReadAsync(commandBuffer);
+	TAsyncOp<TShared<PixelData>> readOp = mRenderWindowSurface->ReadAsync(commandBuffer);
+	if(!mCreateInformation.Headless && readOp != nullptr)
+	{
+		const TShared<RenderTarget> renderTarget = std::static_pointer_cast<RenderTarget>(GetShared());
+		const GpuRenderTargetBarrier presentBarrier(renderTarget, RT_COLOR0, GpuResourceUseFlag::Undefined, GpuAccessFlag::None, GpuImageLayout::Undefined, GpuImageLayout::Present);
+		commandBuffer.IssueBarriers(GpuBarriers(presentBarrier));
+	}
+
+	return readOp;
 }
 }}

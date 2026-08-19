@@ -42,6 +42,7 @@ namespace b3d
 		class RendererTask;
 		class LightProbeVolume;
 		class Decal;
+		class RenderWindow;
 
 		/** @addtogroup Renderer-Internal
 		 *  @{
@@ -258,18 +259,28 @@ namespace b3d
 			 */
 			virtual TShared<RendererMeshData> CreateMeshDataInternal(const TShared<MeshData>& meshData);
 
-			/** Queues GPU command capture of the next frame, if a frame capture is set up (e.g. RenderDoc capture). */
-			virtual void RequestDebugFrameCapture() { }
+			/** Queues capture of the next frame's GPU commands, if a command capture tool is available. */
+			virtual void RequestGPUCommandCapture() { }
 
 			/**
-			 * Requests a screen capture for the specified camera.
+			 * Requests capture of the specified camera's view the next time it is rendered.
 			 *
-			 * @param	camera		The camera whose view should be captured.
-			 * @param	asyncOp		Async operation to complete when capture finishes.
-
+			 * @param	camera		Camera whose view should be captured.
+			 * @param	asyncOp		Operation to complete when capture finishes.
+			 *
 			 * @note	Render thread.
 			 */
-			virtual void RequestScreenCapture(Camera* camera, TAsyncOp<TShared<PixelData>> asyncOp) { asyncOp.CompleteOperation(nullptr); }
+			virtual void RequestViewCapture(Camera* camera, TAsyncOp<TShared<PixelData>> asyncOp) { asyncOp.CompleteOperation(nullptr); }
+
+			/**
+			 * Requests capture of the final image rendered to the specified window before it is presented.
+			 *
+			 * @param	window		Window whose next rendered image should be captured.
+			 * @param	asyncOp		Operation to complete when capture finishes.
+			 *
+			 * @note	Render thread.
+			 */
+			virtual void RequestScreenCapture(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp) { asyncOp.CompleteOperation(nullptr); }
 
 			/**
 			 * Registers an extension object that will be called every frame, for each scene and view. Allows external code to perform

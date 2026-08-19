@@ -20,14 +20,14 @@ namespace b3d
 		private RendererManager(bool __dummy0) { }
 		protected RendererManager() { }
 
-		/// <summary>Queues GPU command capture of the next frame, if a frame capture is set up.</summary>
-		public static void RequestFrameCapture()
+		/// <summary>Queues capture of the next frame&apos;s GPU commands, if a command capture tool is available.</summary>
+		public static void RequestGPUCommandCapture()
 		{
-			Internal_RequestFrameCapture();
+			Internal_RequestGPUCommandCapture();
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_RequestFrameCapture();
+		private static extern void Internal_RequestGPUCommandCapture();
 	}
 
 	/** @} */

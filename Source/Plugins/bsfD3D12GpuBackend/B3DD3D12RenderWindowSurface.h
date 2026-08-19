@@ -43,8 +43,10 @@ namespace b3d::render
 		u32 mVsyncInterval = 1;
 		D3D12SwapChain* mSwapChain = nullptr;
 		HWND mWindowHandle = nullptr;
+		u32 mActiveImageIndex = 0;
 		bool mIsValid = false;
 		bool mIsDestroyed = false;
+		bool mHasAcquiredImage = false;
 	};
 
 	/** @} */

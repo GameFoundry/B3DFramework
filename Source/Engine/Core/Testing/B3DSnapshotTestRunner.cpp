@@ -2,18 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Testing/B3DSnapshotTestRunner.h"
 #include "B3DApplication.h"
-#include "Components/B3DCamera.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "Debug/B3DDebug.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
 #include "Image/B3DPixelUtility.h"
-#include "GpuBackend/B3DGpuCommandBuffer.h"
-#include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DRenderWindow.h"
 #include "Renderer/B3DRenderer.h"
-#include "Scene/B3DSceneInstance.h"
-#include "Scene/B3DSceneManager.h"
 #include "Utility/B3DTime.h"
 #include "Utility/B3DCommandLine.h"
 #include "ThirdParty/json.hpp"
@@ -101,17 +96,7 @@ void SnapshotTestRunner::PrepareForScreenCapture()
 		captureFrame = mExitAfterNFrames - 2;
 
 	if(currentFrame >= captureFrame)
-	{
-		// Force all the cameras to redraw this frame
-		for(const auto& pair : GetSceneManager().GetAllScenes())
-		{
-			const TShared<SceneInstance>& sceneInstance = pair.second.lock();
-			for(const auto& camera : sceneInstance->GetAllCameras())
-				camera.second->NotifyNeedsRedraw();
-		}
-
 		mCaptureState = CaptureState::Requested;
-	}
 }
 
 void SnapshotTestRunner::RequestScreenCapture()
@@ -130,38 +115,20 @@ void SnapshotTestRunner::RequestScreenCapture()
 		return;
 	}
 
-	// Create the async operation that will be completed on the render thread
 	TAsyncOp<TShared<PixelData>> asyncOp;
 	mScreenCaptureOp = asyncOp;
 
-	// Get render proxy and capture in lambda (following codebase pattern - see Texture::ReadData)
-	auto fnCaptureWindow = [windowProxy = B3DGetRenderProxy(primaryWindow), asyncOp]() mutable
+	TShared<render::RenderWindow> windowProxy = B3DGetRenderProxy(primaryWindow);
+	auto fnRequestScreenCapture = [windowProxy, asyncOp]() mutable
 	{
-		// Get the command buffer pool from renderer
 		TShared<render::Renderer> renderer = render::GetRenderer();
-		if(!renderer)
-		{
+		if(renderer != nullptr)
+			renderer->RequestScreenCapture(windowProxy, asyncOp);
+		else
 			asyncOp.CompleteOperation(nullptr);
-			return;
-		}
-
-		render::GpuCommandBufferPool& pool = renderer->GetCurrentCommandBufferPool();
-		TShared<render::GpuCommandBuffer> commandBuffer = pool.Create(
-			render::GpuCommandBufferCreateInformation::Create("SnapshotCapture"));
-
-		// Request async read from the window
-		TAsyncOp<TShared<PixelData>> readOp = windowProxy->ReadAsync(renderer->GetGpuContext(), *commandBuffer);
-
-		// Submit the command buffer
-		renderer->GetGpuContext().SubmitCommandBuffer(commandBuffer);
-
-		// Chain completion - when the read completes, complete our async op
-		readOp.DoWhenComplete([asyncOp, readOp]() mutable {
-			asyncOp.CompleteOperation(readOp.GetReturnValue());
-		});
 	};
 
-	GetRenderThread().PostCommand(std::move(fnCaptureWindow), "SnapshotTestRunner::RequestScreenCapture");
+	GetRenderThread().PostCommand(std::move(fnRequestScreenCapture), "SnapshotTestRunner::RequestScreenCapture");
 }
 
 void SnapshotTestRunner::Finalize()
@@ -193,21 +160,10 @@ void SnapshotTestRunner::Finalize()
 			mResult.Status = SnapshotTestStatus::Failed;
 		}
 	}
-	else if(mCaptureState != CaptureState::Queued)
+	else
 	{
-		// No capture was requested (maybe exit frame is too short), try to capture now
-		mCaptureState = CaptureState::Requested;
-		RequestScreenCapture();
-		if(mScreenCaptureOp != nullptr)
-		{
-			mScreenCaptureOp.BlockUntilComplete();
-			TShared<PixelData> pixelData = mScreenCaptureOp.GetReturnValue();
-			if(pixelData)
-			{
-				if(!SaveScreenshot(pixelData))
-					mResult.Status = SnapshotTestStatus::Failed;
-			}
-		}
+		mResult.Errors.push_back("No screen capture was queued before rendering finished");
+		mResult.Status = SnapshotTestStatus::Failed;
 	}
 
 	mCaptureState = CaptureState::Captured;

@@ -246,6 +246,7 @@ void RenderBeast::DestroyOnRenderThread()
 {
 	// Make sure all tasks finish first
 	ProcessTasks(true);
+	CompleteUnresolvedScreenCaptures();
 
 	while(!mScenes.empty())
 	{
@@ -366,6 +367,8 @@ void RenderBeast::RenderAllOnRenderThread(FrameTimings timings, PerFrameData per
 		entry->GetUniformBufferPools().AdvanceFrame();
 	}
 
+	CompleteUnresolvedScreenCaptures();
+
 	EndFrame();
 
 	// Tick pool frame
@@ -373,12 +376,12 @@ void RenderBeast::RenderAllOnRenderThread(FrameTimings timings, PerFrameData per
 
 	GetProfilerCPU().EndSample("Render");
 
-	if(mIsFrameCaptureRequested)
+	if(mIsGPUCommandCaptureRequested)
 	{
 		mDevice->WaitUntilIdle();
-		GpuBackend::Instance().StopCapture();
+		GpuBackend::Instance().StopGPUCommandCapture();
 
-		mIsFrameCaptureRequested = false;
+		mIsGPUCommandCaptureRequested = false;
 	}
 
 	GpuUniformBufferManager::Instance().AdvanceFrame();
@@ -412,8 +415,8 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 	GpuWorkContext& gpuContext = GetGpuContext();
 	BeginFrame();
 
-	if (mIsFrameCaptureRequested)
-		GpuBackend::Instance().StartCapture();
+	if (mIsGPUCommandCaptureRequested)
+		GpuBackend::Instance().StartGPUCommandCapture();
 
 	// If any reflection probes were updated or added, we need to copy them over in the global reflection probe array
 	scene.UpdateReflectionProbes(*commandBuffer);
@@ -437,15 +440,20 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 		const Vector<Camera*>& cameras = rtInfo.Cameras;
 
 		const bool isWindow = target->GetProperties().IsWindow;
-		const TShared<RenderWindow> window = std::static_pointer_cast<RenderWindow>(rtInfo.Target);
-		const bool renderTargetNeedsRedraw = window != nullptr ? window->IsRedrawRequested() : false;
+		TShared<RenderWindow> window;
+		if(isWindow)
+			window = std::static_pointer_cast<RenderWindow>(rtInfo.Target);
+
+		const bool renderTargetNeedsRedraw = window != nullptr && window->IsRedrawRequested();
+		const bool screenCaptureRequested = IsScreenCaptureRequested(window);
+		const bool forceRendering = mIsGPUCommandCaptureRequested || renderTargetNeedsRedraw || screenCaptureRequested;
 
 		const u32 cameraCount = (u32)cameras.size();
 		for(u32 i = 0; i < cameraCount; i++)
 		{
 			RendererView* viewInfo = scene.TryGetView(cameras[i]);
 
-			if (mIsFrameCaptureRequested || renderTargetNeedsRedraw)
+			if(forceRendering)
 				viewInfo->NotifyNeedsRedraw();
 
 			viewInfo->UpdateAsyncOperations(); // Note: Needs to happen before any ShouldDraw*() calls, to be consistent
@@ -456,9 +464,12 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 		PROFILE_CALL(mMainViewGroup->DetermineVisibility(*commandBuffer, scene), "Determine visibility")
 
 		// Render everything
-		const bool anythingDrawnForView = RenderViews(*commandBuffer, scene, *mMainViewGroup, frameInfo, renderTargetNeedsRedraw);
+		const bool anythingDrawnForView = RenderViews(*commandBuffer, scene, *mMainViewGroup, frameInfo, forceRendering);
 		if(anythingDrawnForView)
 		{
+			if(screenCaptureRequested)
+				ResolveScreenCaptures(*commandBuffer, window);
+
 #if B3D_PROFILING_ENABLED
 			commandBuffer->EndProfiling();
 #endif
@@ -485,7 +496,7 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 	return anythingDrawnForScene;
 }
 
-bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo, bool forceRender)
+bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo, bool forceRendering)
 {
 	bool needs3DRender = false;
 	u32 viewCount = viewGroup.GetViewCount();
@@ -542,7 +553,7 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene&
 		const RenderSettings& settings = view->GetRenderSettings();
 		if(settings.OverlayOnly)
 		{
-			if(RenderOverlay(commandBuffer, scene, *view, frameInfo, forceRender))
+			if(RenderOverlay(commandBuffer, scene, *view, frameInfo, forceRendering))
 				anythingDrawn = true;
 		}
 		else
@@ -622,7 +633,7 @@ void RenderBeast::RenderView(GpuCommandBuffer& commandBuffer, RenderBeastScene& 
 	GetProfilerCPU().EndSample("Render view");
 }
 
-bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo, bool forceRender)
+bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo, bool forceRendering)
 {
 	GetProfilerCPU().BeginSample("Render overlay");
 
@@ -672,7 +683,7 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 			if(request == RendererExtensionRequest::DontRender)
 				continue;
 
-			if(request == RendererExtensionRequest::ForceRender || forceRender)
+			if(request == RendererExtensionRequest::ForceRender || forceRendering)
 				needsRedraw = true;
 
 			mOverlayExtensions.push_back(entry);
@@ -693,7 +704,7 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 		view.NotifyCompositorTargetChanged(nullptr);
 	}
 
-	view.ResolveSceneCaptures(commandBuffer, target);
+	view.ResolveCaptures(commandBuffer, target);
 
 	view.EndFrame();
 
@@ -845,20 +856,88 @@ TShared<RendererScene> RenderBeast::CreateScene()
 	return scene;
 }
 
-void RenderBeast::RequestScreenCapture(Camera* camera, TAsyncOp<TShared<PixelData>> asyncOp)
+void RenderBeast::RequestViewCapture(Camera* camera, TAsyncOp<TShared<PixelData>> asyncOp)
 {
 	for (RenderBeastScene* scene : mScenes)
 	{
 		RendererView* view = scene->TryGetView(camera);
 		if(view)
 		{
-			view->RequestScreenCapture(std::move(asyncOp));
+			view->RequestCapture(std::move(asyncOp));
 			return;
 		}
 	}
 
 	B3D_LOG(Warning, LogRenderer, "RequestCapture: No view found for camera");
 	asyncOp.CompleteOperation(nullptr);
+}
+
+void RenderBeast::RequestScreenCapture(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp)
+{
+	if(window == nullptr)
+	{
+		asyncOp.CompleteOperation(nullptr);
+		return;
+	}
+
+	for(ScreenCaptureRequest& request : mScreenCaptureRequests)
+	{
+		if(request.Window != window)
+			continue;
+
+		request.Operations.Add(std::move(asyncOp));
+		return;
+	}
+
+	mScreenCaptureRequests.EmplaceBack(window, std::move(asyncOp));
+}
+
+bool RenderBeast::IsScreenCaptureRequested(const TShared<RenderWindow>& window) const
+{
+	if(window == nullptr)
+		return false;
+
+	for(const ScreenCaptureRequest& request : mScreenCaptureRequests)
+	{
+		if(request.Window == window)
+			return true;
+	}
+
+	return false;
+}
+
+void RenderBeast::ResolveScreenCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderWindow>& window)
+{
+	for(u32 requestIndex = 0; requestIndex < mScreenCaptureRequests.Size(); ++requestIndex)
+	{
+		ScreenCaptureRequest& request = mScreenCaptureRequests[requestIndex];
+		if(request.Window != window)
+			continue;
+
+		TInlineArray<TAsyncOp<TShared<PixelData>>, 1> captureOps = std::move(request.Operations);
+		mScreenCaptureRequests.Erase(mScreenCaptureRequests.Begin() + requestIndex);
+
+		TAsyncOp<TShared<PixelData>> readOp = window->ReadAsync(GetGpuContext(), commandBuffer);
+		auto fnOnReadOpCompleted = [captureOps = std::move(captureOps), readOp]() mutable
+		{
+			for(TAsyncOp<TShared<PixelData>>& captureOp : captureOps)
+				captureOp.CompleteOperation(readOp.GetReturnValue());
+		};
+
+		readOp.DoWhenComplete(std::move(fnOnReadOpCompleted));
+		return;
+	}
+}
+
+void RenderBeast::CompleteUnresolvedScreenCaptures()
+{
+	for(ScreenCaptureRequest& request : mScreenCaptureRequests)
+	{
+		for(TAsyncOp<TShared<PixelData>>& operation : request.Operations)
+			operation.CompleteOperation(nullptr);
+	}
+
+	mScreenCaptureRequests.Clear();
 }
 
 TShared<RenderBeast> GetRenderBeast()

@@ -15,12 +15,12 @@ namespace b3d
 
 	void ScriptRendererManager::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RequestFrameCapture", (void*)&ScriptRendererManager::InternalRequestFrameCapture);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RequestGPUCommandCapture", (void*)&ScriptRendererManager::InternalRequestGPUCommandCapture);
 
 	}
 
-	void ScriptRendererManager::InternalRequestFrameCapture()
+	void ScriptRendererManager::InternalRequestGPUCommandCapture()
 	{
-		RendererManager::Instance().RequestFrameCapture();
+		RendererManager::Instance().RequestGPUCommandCapture();
 	}
 }
