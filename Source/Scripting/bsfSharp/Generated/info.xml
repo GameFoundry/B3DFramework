@@ -8954,8 +8954,8 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 	</struct>
 	<class native="RendererManager" script="RendererManager">
 		<doc>Allows you to change and retrieve the active renderer. Active renderer will be used for rendering all objects in the following frame.</doc>
-		<method native="RequestFrameCapture" script="RequestFrameCapture" static="false">
-			<doc>Queues GPU command capture of the next frame, if a frame capture is set up.</doc>
+		<method native="RequestGPUCommandCapture" script="RequestGPUCommandCapture" static="false">
+			<doc>Queues capture of the next frame&apos;s GPU commands, if a command capture tool is available.</doc>
 		</method>
 	</class>
 	<struct native="VirtualAxis" script="VirtualAxis">

@@ -67,15 +67,6 @@ namespace b3d
 			/** Returns the vsync present interval this swap chain was created with (0 when vsync is disabled). */
 			u32 GetSyncInterval() const { return mVSync ? mVsyncInterval : 0u; }
 
-			/**
-			 * Returns the index of the back buffer that was most recently queued for present, or the current back
-			 * buffer if nothing was presented yet. This is the image holding the last fully rendered frame, which is
-			 * what screen captures that run after the frame has been presented need to read.
-			 *
-			 * @note	Render thread only.
-			 */
-			u32 GetLastPresentedImageIndex() const;
-
 			/** @name Submit thread
 			 *  @{
 			 */
@@ -131,9 +122,6 @@ namespace b3d
 			u32 mVsyncInterval = 1;
 			bool mIsInitialized = false;
 			bool mIsRetired = false;
-
-			/** Index of the most recently presented back buffer, or -1 if nothing was presented yet. Render thread only. */
-			i32 mLastPresentedImageIndex = -1;
 
 			/**
 			 * Indices of images that have been acquired (via AcquireImage) but not yet queued for present, along with

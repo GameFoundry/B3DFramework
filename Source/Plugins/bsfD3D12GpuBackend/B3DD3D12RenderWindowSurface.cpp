@@ -42,6 +42,7 @@ void D3D12RenderWindowSurface::CreateSwapChain(u32 width, u32 height, bool vsync
 	mSwapChain = mDevice.GetResourceManager().Create<D3D12SwapChain>(swapChainCreateInformation, mDevice);
 	mSwapChain->Initialize();
 	mIsValid = true;
+	mHasAcquiredImage = false;
 
 	// Kick the first image acquire so the render thread has an acquired image for the first frame
 	if (mDevice.HasSubmitThread())
@@ -77,6 +78,7 @@ void D3D12RenderWindowSurface::SwapBuffers(GpuQueue& queue, GpuQueueMask syncMas
 
 	// Present the image that was rendered this frame. First acquired-but-not-yet-presented image is presented.
 	submitThread.QueuePresent(queue, *mSwapChain, syncMask);
+	mHasAcquiredImage = false;
 
 	// Queue acquire the image for the next frame
 	if (!mSwapChain->IsRetired())
@@ -107,14 +109,15 @@ void D3D12RenderWindowSurface::Destroy()
 
 	mIsValid = false;
 	mIsDestroyed = true;
+	mHasAcquiredImage = false;
 }
 
 D3D12Image* D3D12RenderWindowSurface::GetCurrentColorImage() const
 {
-	if (!mSwapChain)
+	if (!mSwapChain || !mHasAcquiredImage)
 		return nullptr;
 
-	return mSwapChain->GetBackBufferImage(mSwapChain->GetLastPresentedImageIndex());
+	return mSwapChain->GetBackBufferImage(mActiveImageIndex);
 }
 
 u32 D3D12RenderWindowSurface::GetWidth() const
@@ -147,7 +150,12 @@ D3D12Framebuffer* D3D12RenderWindowSurface::GetActiveFramebuffer()
 	}
 
 	if (!isImageAcquired)
+	{
+		mHasAcquiredImage = false;
 		return nullptr;
+	}
 
-	return mSwapChain->GetFramebufferForImage(imageIndex);
+	mActiveImageIndex = imageIndex;
+	mHasAcquiredImage = true;
+	return mSwapChain->GetFramebufferForImage(mActiveImageIndex);
 }

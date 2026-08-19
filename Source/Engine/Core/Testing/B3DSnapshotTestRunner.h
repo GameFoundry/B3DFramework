@@ -106,17 +106,16 @@ namespace b3d
 		~SnapshotTestRunner();
 
 		/**
-		 * If redraw is required this frame, prepares all cameras for screen capture by forcing a redraw.
+		 * Advances the capture state when the configured capture frame is reached.
 		 *
-		 * Must be called before rendering when a capture is pending to ensure
-		 * on-demand cameras produce a fresh frame for the screenshot.
+		 * Must be called before rendering so a capture can be queued for the current frame.
 		 */
 		void PrepareForScreenCapture();
 
 		/**
 		 * If redraw is required this frame, queues a screen capture request.
 		 *
-		 * Must be called after rendering to ensure the screenshot captures the latest frame.
+		 * Must be called before rendering so the renderer can record the readback before presentation.
 		 */
 		void RequestScreenCapture();
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
-#include "GpuBackend/B3DGpuFrameCapture.h"
+#include "GpuBackend/B3DGpuCommandCapture.h"
 
 // TODO - Surround if an #if so this can be included from non-Vulkan render backends (all other Vulkan specific code too)
 #include <vulkan/vulkan.h>
@@ -11,11 +11,11 @@
 namespace b3d
 {
 	/** Captures GPU commands for the RenderDoc tool. */
-	class RenderDocFrameCapture : public GpuFrameCapture
+	class RenderDocCommandCapture : public GpuCommandCapture
 	{
 	public:
-		explicit RenderDocFrameCapture(VkInstance vulkanInstance);
-		virtual ~RenderDocFrameCapture();
+		explicit RenderDocCommandCapture(VkInstance vulkanInstance);
+		~RenderDocCommandCapture() override;
 
 		void Start() override;
 		void Stop() override;

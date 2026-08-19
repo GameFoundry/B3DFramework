@@ -24,9 +24,8 @@ void D3D12BarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image, cons
 {
 	D3D12Image* const d3d12Image = static_cast<D3D12Image*>(image);
 	ID3D12Resource* const resource = d3d12Image->GetD3D12Resource();
-	const bool allowConcurrentQueueReads = d3d12Image->AllowsConcurrentQueueReads();
-	const D3D12TextureLayout nativeOldLayout = D3D12BarrierUtility::GetTextureLayout(oldLayout, mQueueType, range.AspectMask, allowConcurrentQueueReads);
-	const D3D12TextureLayout nativeNewLayout = D3D12BarrierUtility::GetTextureLayout(newLayout, mQueueType, range.AspectMask, allowConcurrentQueueReads);
+	const D3D12TextureLayout nativeOldLayout = d3d12Image->GetTextureLayout(oldLayout, mQueueType, range.AspectMask);
+	const D3D12TextureLayout nativeNewLayout = d3d12Image->GetTextureLayout(newLayout, mQueueType, range.AspectMask);
 
 	if(!B3D_ENSURE_LOG(mQueueType != GQT_TRANSFER || (nativeOldLayout == D3D12TextureLayout::Common() && nativeNewLayout == D3D12TextureLayout::Common()), "D3D12 copy queues cannot record texture layout transitions."))
 		return;

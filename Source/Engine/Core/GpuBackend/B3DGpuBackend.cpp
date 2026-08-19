@@ -1,7 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DGpuBackend.h"
-#include "B3DGpuFrameCapture.h"
+#include "B3DGpuCommandCapture.h"
 
 namespace b3d
 {
@@ -14,14 +14,14 @@ namespace b3d
 
 using namespace b3d;
 
-void GpuBackend::StartCapture()
+void GpuBackend::StartGPUCommandCapture()
 {
-	if (mFrameCapture)
-		mFrameCapture->Start();
+	if (mGPUCommandCapture)
+		mGPUCommandCapture->Start();
 }
 
-void GpuBackend::StopCapture()
+void GpuBackend::StopGPUCommandCapture()
 {
-	if (mFrameCapture)
-		mFrameCapture->Stop();
+	if (mGPUCommandCapture)
+		mGPUCommandCapture->Stop();
 }

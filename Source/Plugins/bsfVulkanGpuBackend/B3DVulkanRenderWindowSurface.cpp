@@ -143,6 +143,7 @@ void VulkanRenderWindowSurface::SwapBuffers(GpuQueue& queue, GpuQueueMask syncMa
 	GpuSubmitThread& submitThread = mSwapChain->GetDevice().GetSubmitThread();
 
 	submitThread.QueuePresent(queue, *mSwapChain, syncMask);
+	mHasAcquiredImage = false;
 
 	// Ensure the acquire operation we queued the previous frame has finished. This also means the old image was presented.
 	mSwapChain->WaitUntilFirstImageAcquired();
@@ -169,8 +170,12 @@ VulkanFramebuffer* VulkanRenderWindowSurface::GetActiveFramebuffer(bool acquireI
 	}
 
 	if(!isImageAcquired)
+	{
+		mHasAcquiredImage = false;
 		return nullptr;
+	}
 
+	mHasAcquiredImage = true;
 	return mSwapChain->GetFramebufferForImage(mActiveImageIndex);
 }
 
@@ -190,7 +195,7 @@ bool VulkanRenderWindowSurface::IsSwapChainValid() const
 
 VulkanImage* VulkanRenderWindowSurface::GetCurrentColorImage() const
 {
-	if(mSwapChain == nullptr)
+	if(mSwapChain == nullptr || !mHasAcquiredImage)
 		return nullptr;
 
 	VulkanFramebuffer* framebuffer = mSwapChain->GetFramebufferForImage(mActiveImageIndex);

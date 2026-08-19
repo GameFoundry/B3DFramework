@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12Texture.h"
+#include "B3DD3D12BarrierUtility.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12Utility.h"
@@ -71,7 +72,8 @@ namespace b3d
 			mHasLayoutTransitionQueue = true;
 		}
 
-		D3D12Image::D3D12Image(D3D12ResourceManager* owner, const D3D12ImageCreateInformation& createInformation) : TD3D12Resource<IGpuImageResource>(owner, createInformation.Name, createInformation.FaceCount, createInformation.MipLevelCount, createInformation.Aspect), mResource(createInformation.Resource), mAllocation(createInformation.Allocation), mFormat(createInformation.Format), mAllowConcurrentQueueReads(createInformation.AllowConcurrentQueueReads)
+		D3D12Image::D3D12Image(D3D12ResourceManager* owner, const D3D12ImageCreateInformation& createInformation)
+			: TD3D12Resource<IGpuImageResource>(owner, createInformation.Name, createInformation.FaceCount, createInformation.MipLevelCount, createInformation.Aspect), mResource(createInformation.Resource), mAllocation(createInformation.Allocation), mFormat(createInformation.Format), mAllowConcurrentQueueReads(createInformation.AllowConcurrentQueueReads), mIsPresentable(createInformation.IsPresentable)
 		{
 			const u32 subresourceCount = mFaceCount * mMipLevelCount;
 			for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)

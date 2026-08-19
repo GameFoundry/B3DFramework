@@ -1,25 +1,25 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "B3DRenderDocFrameCapture.h"
+#include "B3DRenderDocCommandCapture.h"
 #include "Utility/B3DDynamicLibraryManager.h"
 #include "Utility/B3DDynamicLibrary.h"
 #include <RenderDoc/renderdoc_app.h>
 
 using namespace b3d;
 
-RenderDocFrameCapture::RenderDocFrameCapture(VkInstance vulkanInstance) :
+RenderDocCommandCapture::RenderDocCommandCapture(VkInstance vulkanInstance) :
 	mVulkanInstance(vulkanInstance), mRenderDocLibrary(nullptr)
 {
 	LoadRenderDocAPI();
 }
 
-RenderDocFrameCapture::~RenderDocFrameCapture()
+RenderDocCommandCapture::~RenderDocCommandCapture()
 {
 	if (mRenderDocLibrary != nullptr)
 		DynamicLibraryManager::Instance().Unload(mRenderDocLibrary);
 }
 
-void RenderDocFrameCapture::Start()
+void RenderDocCommandCapture::Start()
 {
 	if (!mRenderDocAPIPointers)
 		return;
@@ -30,7 +30,7 @@ void RenderDocFrameCapture::Start()
 	mIsCaptureInProgress = true;
 }
 
-void RenderDocFrameCapture::Stop()
+void RenderDocCommandCapture::Stop()
 {
 	if (!mIsCaptureInProgress)
 		return;
@@ -46,7 +46,7 @@ void RenderDocFrameCapture::Stop()
 	mIsCaptureInProgress = false;
 }
 
-void RenderDocFrameCapture::LoadRenderDocAPI()
+void RenderDocCommandCapture::LoadRenderDocAPI()
 {
 	if(mRenderDocLibrary != nullptr)
 	{

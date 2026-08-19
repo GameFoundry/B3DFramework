@@ -71,6 +71,7 @@ namespace b3d
 			u32 MipLevelCount = 1; /**< Number of mip levels in the image. */
 			GpuTextureAspectFlags Aspect = GpuTextureAspectFlag::Color; /**< Which aspects (color/depth/stencil) the image format contains. */
 			bool AllowConcurrentQueueReads = false; /**< Whether shader reads may overlap on multiple GPU queues. */
+			bool IsPresentable = false; /**< Whether the image is a swap-chain buffer that must remain compatible with presentation. */
 			String Name; /**< Optional debug name. */
 		};
 
@@ -94,6 +95,12 @@ namespace b3d
 			/** Returns whether shader reads may overlap on multiple GPU queues. */
 			bool AllowsConcurrentQueueReads() const { return mAllowConcurrentQueueReads; }
 
+			/** Returns whether this image is owned by a presentation swap chain. */
+			bool IsPresentable() const { return mIsPresentable; }
+
+			/** Returns the native layout for @p layout, including resource-specific presentation constraints. */
+			D3D12TextureLayout GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType, GpuTextureAspectFlags aspects) const;
+
 			using IGpuImageResource::GetRange;
 
 			/** Builds the subresource range selected by @p surface (its face/mip window), clamped to the image. */
@@ -113,6 +120,7 @@ namespace b3d
 			GpuResourceLocation mAllocation;
 			DXGI_FORMAT mFormat = DXGI_FORMAT_UNKNOWN;
 			bool mAllowConcurrentQueueReads = false;
+			bool mIsPresentable = false;
 		};
 
 		/** DirectX 12 implementation of a texture. */

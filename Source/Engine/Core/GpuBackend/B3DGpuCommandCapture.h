@@ -7,11 +7,11 @@
 namespace b3d
 {
 	/** Allows capturing a range of GPU commands for analysis by external tools (such as RenderDoc, nSight). */
-	class GpuFrameCapture
+	class GpuCommandCapture
 	{
 	public:
-		GpuFrameCapture() = default;
-		virtual ~GpuFrameCapture() = default;
+		GpuCommandCapture() = default;
+		virtual ~GpuCommandCapture() = default;
 
 		/** Captures all GPU commands following this point. */
 		virtual void Start() = 0;

@@ -18,6 +18,6 @@ namespace b3d
 		static void SetupScriptBindings();
 
 	private:
-		static void InternalRequestFrameCapture();
+		static void InternalRequestGPUCommandCapture();
 	};
 }

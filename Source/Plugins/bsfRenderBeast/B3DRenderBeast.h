@@ -70,6 +70,19 @@ namespace b3d
 				u32 MatVersion;
 			};
 
+			/** Capture operations waiting for the next image rendered to a window. */
+			struct ScreenCaptureRequest
+			{
+				ScreenCaptureRequest(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp)
+					: Window(window)
+				{
+					Operations.Add(std::move(asyncOp));
+				}
+
+				TShared<RenderWindow> Window;
+				TInlineArray<TAsyncOp<TShared<PixelData>>, 1> Operations;
+			};
+
 		public:
 			RenderBeast();
 			~RenderBeast() = default;
@@ -97,8 +110,9 @@ namespace b3d
 			void Activate() override;
 			void Destroy() override;
 			void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override;
-			void RequestDebugFrameCapture() override { mIsFrameCaptureRequested = true; }
-			void RequestScreenCapture(Camera* camera, TAsyncOp<TShared<PixelData>> asyncOp) override;
+			void RequestGPUCommandCapture() override { mIsGPUCommandCaptureRequested = true; }
+			void RequestViewCapture(Camera* camera, TAsyncOp<TShared<PixelData>> asyncOp) override;
+			void RequestScreenCapture(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp) override;
 			TShared<GpuDevice> GetGpuDevice() const { return mDevice; }
 			TShared<RendererScene> CreateScene() override;
 
@@ -136,11 +150,11 @@ namespace b3d
 			 * @param	scene					Owner scene of the view being drawn.
 			 * @param	viewGroup				Group of views to render. Usually there's one view per group, but e.g. when rendering cubemaps it can be 6.
 			 * @param	frameInfo				Information about the current frame.
-			 * @param	forceRender				Forces the overlay to render even if the views and extensions don't request a render.
+			 * @param	forceRendering			Forces the overlay to render even if the views and extensions don't request a render.
 			 *
 			 * @note	Render thread only.
 			 */
-			bool RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo, bool forceRender);
+			bool RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo, bool forceRendering);
 
 			/**
 			 * Renders all objects visible by the provided view.
@@ -162,11 +176,11 @@ namespace b3d
 			 * @param	scene					Owner scene of the view being drawn.
 			 * @param	view					View being drawn.
 			 * @param	frameInfo				Information about the current frame.
-			 * @param	forceRender				Forces the overlay to render even if the view and extensions don't request a render.
+			 * @param	forceRendering			Forces the overlay to render even if the view and extensions don't request a render.
 			 *
 			 * @note	Render thread only.
 			 */
-			bool RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo, bool forceRender);
+			bool RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo, bool forceRendering);
 
 			/**	Creates data used by the renderer on the render thread, when the renderer is activated. */
 			void ActivateOnRenderThread(const LoadedRendererTextures& rendererTextures);
@@ -180,9 +194,18 @@ namespace b3d
 			/** Called just before a renderer scene is destroyed. */
 			void NotifySceneDestroyed(const RenderBeastScene* scene);
 
+			/** Returns whether the specified window has a pending screen capture. */
+			bool IsScreenCaptureRequested(const TShared<RenderWindow>& window) const;
+
+			/** Records a window readback and forwards its result to the pending capture operations. */
+			void ResolveScreenCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderWindow>& window);
+
+			/** Completes captures whose windows were not rendered during the current frame. */
+			void CompleteUnresolvedScreenCaptures();
+
 			// Render thread only fields
 			RenderBeastFeatureSet mFeatureSet = RenderBeastFeatureSet::Desktop;
-			bool mIsFrameCaptureRequested = false;
+			bool mIsGPUCommandCaptureRequested = false;
 
 			// Per-object parameter set layouts and dynamic offset indices
 			RenderableParameterSetInfo mRenderableParameterSetInfo;
@@ -192,6 +215,7 @@ namespace b3d
 
 			// Scene data
 			Vector<RenderBeastScene*> mScenes;
+			TInlineArray<ScreenCaptureRequest, 1> mScreenCaptureRequests;
 
 			TShared<RenderBeastOptions> mRenderThreadOptions;
 

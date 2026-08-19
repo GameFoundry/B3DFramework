@@ -1029,27 +1029,27 @@ void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, con
 	}
 }
 
-void RendererView::RequestScreenCapture(TAsyncOp<TShared<PixelData>> asyncOp)
+void RendererView::RequestCapture(TAsyncOp<TShared<PixelData>> asyncOp)
 {
-	mRequestedScreenCaptures.push_back(std::move(asyncOp));
+	mRequestedCaptures.push_back(std::move(asyncOp));
 }
 
-void RendererView::ResolveSceneCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& target) const
+void RendererView::ResolveCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& target) const
 {
-	if(mRequestedScreenCaptures.empty())
+	if(mRequestedCaptures.empty())
 		return;
 
 	if(target == nullptr)
 	{
-		for(auto& entry : mRequestedScreenCaptures)
+		for(auto& entry : mRequestedCaptures)
 			entry.CompleteOperation(nullptr);
 
-		mRequestedScreenCaptures.clear();
+		mRequestedCaptures.clear();
 		return;
 	}
 
-	Vector<TAsyncOp<TShared<PixelData>>> captureOps = std::move(mRequestedScreenCaptures);
-	mRequestedScreenCaptures.clear();
+	Vector<TAsyncOp<TShared<PixelData>>> captureOps = std::move(mRequestedCaptures);
+	mRequestedCaptures.clear();
 
 	TAsyncOp<TShared<PixelData>> readOp = target->ReadAsync(GetRenderer()->GetGpuContext(), commandBuffer);
 

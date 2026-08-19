@@ -777,7 +777,7 @@ TAsyncOp<TShared<PixelData>> Camera::RequestCapture()
 	{
 		TShared<render::Renderer> renderer = render::GetRenderer();
 		if (renderer != nullptr)
-			renderer->RequestScreenCapture(renderCamera.get(), asyncOp);
+			renderer->RequestViewCapture(renderCamera.get(), asyncOp);
 		else
 			asyncOp.CompleteOperation(nullptr);
 	};

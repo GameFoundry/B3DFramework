@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DMetalPrerequisites.h"
-#include "GpuBackend/B3DGpuFrameCapture.h"
+#include "GpuBackend/B3DGpuCommandCapture.h"
 
 namespace b3d
 {
@@ -13,11 +13,11 @@ namespace b3d
 	}
 
 	/** Captures Metal commands into Xcode or a standalone GPU trace document. */
-	class MetalGpuFrameCapture final : public GpuFrameCapture
+	class MetalGpuCommandCapture final : public GpuCommandCapture
 	{
 	public:
-		explicit MetalGpuFrameCapture(render::MetalGpuDevice& device);
-		~MetalGpuFrameCapture() override;
+		explicit MetalGpuCommandCapture(render::MetalGpuDevice& device);
+		~MetalGpuCommandCapture() override;
 
 		void Start() override;
 		void Stop() override;

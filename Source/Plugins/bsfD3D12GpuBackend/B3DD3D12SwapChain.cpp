@@ -136,10 +136,11 @@ void D3D12SwapChain::Initialize()
 		D3D12ImageCreateInformation imageCreateInformation;
 		imageCreateInformation.Resource = mBackBuffers[backBufferIndex];
 		imageCreateInformation.Format = mCreateInformation.ColorFormat;
-		imageCreateInformation.InitialLayout = D3D12TextureLayout::Present();
+		imageCreateInformation.InitialLayout = D3D12TextureLayout::Common();
 		imageCreateInformation.FaceCount = 1;
 		imageCreateInformation.MipLevelCount = 1;
 		imageCreateInformation.Aspect = GpuTextureAspectFlag::Color;
+		imageCreateInformation.IsPresentable = true;
 		imageCreateInformation.Name = name;
 
 		mBackBufferImages[backBufferIndex] = mDevice.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
@@ -217,14 +218,6 @@ u32 D3D12SwapChain::GetCurrentBackBufferIndex() const
 		return 0;
 
 	return mSwapChain->GetCurrentBackBufferIndex();
-}
-
-u32 D3D12SwapChain::GetLastPresentedImageIndex() const
-{
-	if (mLastPresentedImageIndex >= 0)
-		return (u32)mLastPresentedImageIndex;
-
-	return GetCurrentBackBufferIndex();
 }
 
 D3D12Image* D3D12SwapChain::GetBackBufferImage(u32 index) const
@@ -341,7 +334,4 @@ void D3D12SwapChain::NotifyWasPresentQueued(u32 imageIndex)
 		else
 			B3D_ASSERT(false && "Presenting a swap chain image that wasn't acquired.");
 	}
-
-	// Remember the image holding the last rendered frame, for screen captures that run after the present.
-	mLastPresentedImageIndex = (i32)imageIndex;
 }
