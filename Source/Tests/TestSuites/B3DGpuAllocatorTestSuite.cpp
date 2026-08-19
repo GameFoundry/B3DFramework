@@ -692,7 +692,13 @@ void GpuAllocatorTestSuite::TestTlsf_ContractAndInitialState()
 	B3D_TEST_ASSERT(location.Size >= 1024)
 	B3D_TEST_ASSERT((location.Offset & 15) == 0)
 
-	FreeAndDrain(allocator, tracker,location);
+	// Allocations support non-power-of-two alignments such as a 12-byte stride combined with a 512-byte copy footprint.
+	MockLocation arbitraryAlignmentLocation;
+	B3D_TEST_ASSERT(allocator.TryAllocate(1024, 1536, arbitraryAlignmentLocation))
+	B3D_TEST_ASSERT(arbitraryAlignmentLocation.Offset % 1536 == 0)
+
+	FreeAndDrain(allocator, tracker, location);
+	FreeAndDrain(allocator, tracker, arbitraryAlignmentLocation);
 }
 
 void GpuAllocatorTestSuite::TestTlsf_SingleAllocateFree()

@@ -172,11 +172,11 @@ namespace b3d
 				return firstLevel * kSecondLevelCount + secondLevel;
 			}
 
-			/** Round @p value up to the next multiple of @p alignment (which must be a power of two). */
+			/** Round @p value up to the next multiple of a non-zero @p alignment. */
 			inline u64 AlignUp(u64 value, u32 alignment)
 			{
-				const u64 mask = (u64)alignment - 1;
-				return (value + mask) & ~mask;
+				const u64 remainder = value % alignment;
+				return remainder == 0 ? value : value + alignment - remainder;
 			}
 		} // namespace Utility
 

@@ -582,7 +582,6 @@ namespace b3d
 	bool TTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocate(u64 size, u32 alignment, Allocation& out, TlsfAllocationKind kind)
 	{
 		B3D_ASSERT(alignment > 0);
-		B3D_ASSERT(Bitwise::IsPow2(alignment));
 
 		ScopedLock<kThreadSafe> lock(mLockPolicy);
 
