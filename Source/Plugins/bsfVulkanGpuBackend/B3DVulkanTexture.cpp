@@ -33,7 +33,7 @@ namespace
 }
 
 VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, VkImage image, VulkanAllocationResult allocation, VulkanTexture* parent)
-	: TVulkanResource<IGpuImageResource>(owner, false, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format)), mImage(image), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory), mUsage(createInformation.Usage), mOwnsImage(createInformation.OwnsImage), mIsShaderReadAllowed(createInformation.IsShaderReadAllowed), mDepthSliceCount(createInformation.DepthSliceCount)
+	: TVulkanResource<IGpuImageResource>(owner, createInformation.CreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format)), mImage(image), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory), mUsage(createInformation.Usage), mOwnsImage(createInformation.OwnsImage), mIsShaderReadAllowed(createInformation.IsShaderReadAllowed), mDepthSliceCount(createInformation.DepthSliceCount)
 {
 	mImageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	mImageViewCI.pNext = nullptr;
@@ -83,8 +83,9 @@ VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateIn
 	}
 
 	const u32 subresourceCount = mFaceCount * mMipLevelCount;
-	for(u32 i = 0; i < subresourceCount; i++)
-		mSubresources[i] = owner->Create<VulkanImageSubresource>(createInformation.Layout);
+	const bool concurrentQueueAccess = createInformation.CreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT;
+	for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
+		mSubresources[subresourceIndex] = owner->Create<VulkanImageSubresource>(createInformation.Layout, concurrentQueueAccess);
 }
 
 VulkanImage::~VulkanImage()
@@ -425,8 +426,8 @@ void VulkanImage::Invalidate(VkDeviceSize offset, VkDeviceSize size)
 	device.InvalidateMemory(mAllocation, offset, size);
 }
 
-VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout, const StringView& name)
-	: VulkanResource(owner, false, name), mLayout(layout)
+VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout, bool concurrentQueueAccess, const StringView& name)
+	: VulkanResource(owner, concurrentQueueAccess, name), mLayout(layout)
 {}
 
 VulkanTexture::VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation)
@@ -535,9 +536,25 @@ void VulkanTexture::Initialize()
 	mImageCreateInformation.samples = VulkanUtility::GetSampleFlags(props.SampleCount);
 	mImageCreateInformation.tiling = tiling;
 	mImageCreateInformation.initialLayout = layout;
-	mImageCreateInformation.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	mImageCreateInformation.queueFamilyIndexCount = 0;
-	mImageCreateInformation.pQueueFamilyIndices = nullptr;
+	TInlineArray<u32, GQT_COUNT> queueFamilies;
+	if(usage.IsSet(TextureUsageFlag::AllowConcurrentQueueReads))
+	{
+		for(u32 queueType = 0; queueType < GQT_COUNT; queueType++)
+		{
+			const GpuQueueType type = (GpuQueueType)queueType;
+			if(mGpuDevice.GetQueueCount(type) == 0)
+				continue;
+
+			const u32 family = mGpuDevice.GetQueueFamily(type);
+			if(std::find(queueFamilies.begin(), queueFamilies.end(), family) == queueFamilies.end())
+				queueFamilies.Add(family);
+		}
+	}
+
+	const bool usesConcurrentSharing = queueFamilies.Size() > 1;
+	mImageCreateInformation.sharingMode = usesConcurrentSharing ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
+	mImageCreateInformation.queueFamilyIndexCount = usesConcurrentSharing ? (u32)queueFamilies.Size() : 0;
+	mImageCreateInformation.pQueueFamilyIndices = usesConcurrentSharing ? queueFamilies.data() : nullptr;
 
 	bool optimalTiling = tiling == VK_IMAGE_TILING_OPTIMAL;
 

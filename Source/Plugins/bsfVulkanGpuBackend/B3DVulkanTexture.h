@@ -212,7 +212,8 @@ namespace b3d
 		class VulkanImageSubresource : public VulkanResource
 		{
 		public:
-			VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout, const StringView& name = "");
+			/** Creates a tracked subresource with the image's queue-family sharing policy. */
+			VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout, bool concurrentQueueAccess, const StringView& name = "");
 
 			/**
 			 * Returns the layout the subresource is currently in. Note that this is only used to communicate layouts between
