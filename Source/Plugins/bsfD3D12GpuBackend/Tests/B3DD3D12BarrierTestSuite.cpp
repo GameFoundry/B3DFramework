@@ -302,8 +302,11 @@ void D3D12BarrierTestSuite::TestTextureBarrierBatchMerging()
 void D3D12BarrierTestSuite::TestResolveBarrierMappings()
 {
 	const GpuTextureAspectFlags colorAspect = GpuTextureAspectFlag::Color;
-	const D3D12TextureLayout resolveSourceLayout = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::ResolveSource, GQT_GRAPHICS);
-	const D3D12TextureLayout resolveDestinationLayout = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::ResolveDestination, GQT_GRAPHICS);
+	const D3D12TextureLayoutOptions layoutOptions;
+	const D3D12TextureLayout resolveSourceLayout = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::ResolveSource, GQT_GRAPHICS, colorAspect, layoutOptions);
+	const D3D12TextureLayout resolveDestinationLayout = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::ResolveDestination, GQT_GRAPHICS, colorAspect, layoutOptions);
 	B3D_TEST_ASSERT(resolveSourceLayout.GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_RESOLVE_SOURCE)
 	B3D_TEST_ASSERT(resolveDestinationLayout.GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_RESOLVE_DEST)
 
@@ -319,8 +322,10 @@ void D3D12BarrierTestSuite::TestResolveBarrierMappings()
 	B3D_TEST_ASSERT(!D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(resolveSourceLayout, colorAspect, GQT_COMPUTE))
 	B3D_TEST_ASSERT(!D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(resolveSourceLayout, colorAspect, GQT_TRANSFER))
 
-	B3D_TEST_ASSERT(D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::TransferSource, GQT_GRAPHICS).GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COPY_SOURCE)
-	B3D_TEST_ASSERT(D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::TransferDestination, GQT_GRAPHICS).GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COPY_DEST)
+	B3D_TEST_ASSERT(D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::TransferSource, GQT_GRAPHICS,
+		colorAspect, layoutOptions).GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COPY_SOURCE)
+	B3D_TEST_ASSERT(D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::TransferDestination, GQT_GRAPHICS,
+		colorAspect, layoutOptions).GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COPY_DEST)
 	const D3D12BarrierScope transferScope = D3D12BarrierUtility::GetTextureScope(GpuStageFlag::Transfer,
 		GpuAccessFlag::Read, GpuImageLayout::TransferSource, colorAspect);
 	B3D_TEST_ASSERT(transferScope.Sync == D3D12_BARRIER_SYNC_COPY)
@@ -328,15 +333,25 @@ void D3D12BarrierTestSuite::TestResolveBarrierMappings()
 
 void D3D12BarrierTestSuite::TestTextureLayoutMappings()
 {
-	constexpr bool kAllowConcurrentQueueReads = true;
 	const GpuTextureAspectFlags colorAspect = GpuTextureAspectFlag::Color;
-	const D3D12TextureLayout graphicsShaderRead = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::ShaderReadOnly, GQT_GRAPHICS);
-	const D3D12TextureLayout graphicsUnorderedAccess = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::General, GQT_GRAPHICS);
-	const D3D12TextureLayout computeShaderRead = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::ShaderReadOnly, GQT_COMPUTE);
-	const D3D12TextureLayout computeUnorderedAccess = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::General, GQT_COMPUTE);
-	const D3D12TextureLayout concurrentGraphicsRead = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::ShaderReadOnly, GQT_GRAPHICS, colorAspect, kAllowConcurrentQueueReads);
-	const D3D12TextureLayout concurrentComputeRead = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::ShaderReadOnly, GQT_COMPUTE, colorAspect, kAllowConcurrentQueueReads);
-	const D3D12TextureLayout concurrentGraphicsUnorderedAccess = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::General, GQT_GRAPHICS, colorAspect, kAllowConcurrentQueueReads);
+	const D3D12TextureLayoutOptions defaultOptions;
+	D3D12TextureLayoutOptions concurrentReadOptions;
+	concurrentReadOptions.AllowConcurrentQueueReads = true;
+
+	const D3D12TextureLayout graphicsShaderRead = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::ShaderReadOnly, GQT_GRAPHICS, colorAspect, defaultOptions);
+	const D3D12TextureLayout graphicsUnorderedAccess = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::General, GQT_GRAPHICS, colorAspect, defaultOptions);
+	const D3D12TextureLayout computeShaderRead = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::ShaderReadOnly, GQT_COMPUTE, colorAspect, defaultOptions);
+	const D3D12TextureLayout computeUnorderedAccess = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::General, GQT_COMPUTE, colorAspect, defaultOptions);
+	const D3D12TextureLayout concurrentGraphicsRead = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::ShaderReadOnly, GQT_GRAPHICS, colorAspect, concurrentReadOptions);
+	const D3D12TextureLayout concurrentComputeRead = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::ShaderReadOnly, GQT_COMPUTE, colorAspect, concurrentReadOptions);
+	const D3D12TextureLayout concurrentGraphicsUnorderedAccess = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::General, GQT_GRAPHICS, colorAspect, concurrentReadOptions);
 
 	B3D_TEST_ASSERT(graphicsShaderRead.GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_SHADER_RESOURCE)
 	B3D_TEST_ASSERT(graphicsUnorderedAccess.GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_UNORDERED_ACCESS)
@@ -345,8 +360,10 @@ void D3D12BarrierTestSuite::TestTextureLayoutMappings()
 	B3D_TEST_ASSERT(concurrentGraphicsRead.GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_SHADER_RESOURCE)
 	B3D_TEST_ASSERT(concurrentComputeRead == concurrentGraphicsRead)
 	B3D_TEST_ASSERT(concurrentGraphicsUnorderedAccess == graphicsUnorderedAccess)
-	B3D_TEST_ASSERT(D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::TransferSource, GQT_COMPUTE).GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_SOURCE)
-	B3D_TEST_ASSERT(D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::TransferDestination, GQT_COMPUTE).GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_DEST)
+	B3D_TEST_ASSERT(D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::TransferSource, GQT_COMPUTE,
+		colorAspect, defaultOptions).GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_SOURCE)
+	B3D_TEST_ASSERT(D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::TransferDestination, GQT_COMPUTE,
+		colorAspect, defaultOptions).GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_DEST)
 
 	B3D_TEST_ASSERT(D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(graphicsShaderRead, colorAspect, GQT_GRAPHICS))
 	B3D_TEST_ASSERT(!D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(graphicsShaderRead, colorAspect, GQT_COMPUTE))
@@ -355,8 +372,10 @@ void D3D12BarrierTestSuite::TestTextureLayoutMappings()
 	B3D_TEST_ASSERT(D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(concurrentGraphicsRead, colorAspect, GQT_GRAPHICS))
 	B3D_TEST_ASSERT(D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(concurrentComputeRead, colorAspect, GQT_COMPUTE))
 
-	const D3D12TextureLayout depthRead = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::DepthStencilReadOnly, GQT_GRAPHICS, GpuTextureAspectFlag::Depth);
-	const D3D12TextureLayout concurrentDepthRead = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::DepthStencilReadOnly, GQT_GRAPHICS, GpuTextureAspectFlag::Depth, kAllowConcurrentQueueReads);
+	const D3D12TextureLayout depthRead = D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::DepthStencilReadOnly,
+		GQT_GRAPHICS, GpuTextureAspectFlag::Depth, defaultOptions);
+	const D3D12TextureLayout concurrentDepthRead = D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::DepthStencilReadOnly,
+		GQT_GRAPHICS, GpuTextureAspectFlag::Depth, concurrentReadOptions);
 	B3D_TEST_ASSERT(depthRead.GetLayout(GpuTextureAspectFlag::Depth) == D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ)
 	B3D_TEST_ASSERT(!D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(depthRead, GpuTextureAspectFlag::Depth, GQT_COMPUTE))
 	B3D_TEST_ASSERT(D3D12BarrierUtility::CanTransitionTextureLayoutOnQueue(depthRead, GpuTextureAspectFlag::Depth, GQT_GRAPHICS))
@@ -364,8 +383,10 @@ void D3D12BarrierTestSuite::TestTextureLayoutMappings()
 	B3D_TEST_ASSERT(D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(concurrentDepthRead, GpuTextureAspectFlag::Depth, GQT_COMPUTE))
 
 	const GpuTextureAspectFlags depthStencilAspects = GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil;
-	const D3D12TextureLayout depthReadStencilWrite = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::DepthReadOnlyStencilAttachment, GQT_GRAPHICS, depthStencilAspects);
-	const D3D12TextureLayout depthWriteStencilRead = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::DepthAttachmentStencilReadOnly, GQT_GRAPHICS, depthStencilAspects);
+	const D3D12TextureLayout depthReadStencilWrite = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::DepthReadOnlyStencilAttachment, GQT_GRAPHICS, depthStencilAspects, defaultOptions);
+	const D3D12TextureLayout depthWriteStencilRead = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::DepthAttachmentStencilReadOnly, GQT_GRAPHICS, depthStencilAspects, defaultOptions);
 	B3D_TEST_ASSERT(depthReadStencilWrite.GetLayout(GpuTextureAspectFlag::Depth) == D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ)
 	B3D_TEST_ASSERT(depthReadStencilWrite.GetLayout(GpuTextureAspectFlag::Stencil) == D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE)
 	B3D_TEST_ASSERT(depthWriteStencilRead.GetLayout(GpuTextureAspectFlag::Depth) == D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE)
@@ -376,11 +397,22 @@ void D3D12BarrierTestSuite::TestCopyQueueLayoutMappings()
 {
 	const GpuTextureAspectFlags colorAspect = GpuTextureAspectFlag::Color;
 	const D3D12TextureLayout commonLayout = D3D12TextureLayout::Common();
-	const D3D12TextureLayout copySourceLayout = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::TransferSource, GQT_GRAPHICS);
-	const D3D12TextureLayout copyDestinationLayout = D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::TransferDestination, GQT_GRAPHICS);
+	const D3D12TextureLayoutOptions defaultOptions;
+	D3D12TextureLayoutOptions presentableOptions;
+	presentableOptions.IsPresentable = true;
+	const D3D12TextureLayout copySourceLayout = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::TransferSource, GQT_GRAPHICS, colorAspect, defaultOptions);
+	const D3D12TextureLayout copyDestinationLayout = D3D12BarrierUtility::TranslateTextureLayout(
+		GpuImageLayout::TransferDestination, GQT_GRAPHICS, colorAspect, defaultOptions);
 
-	B3D_TEST_ASSERT(D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::TransferSource, GQT_TRANSFER) == commonLayout)
-	B3D_TEST_ASSERT(D3D12BarrierUtility::GetTextureLayout(GpuImageLayout::TransferDestination, GQT_TRANSFER) == commonLayout)
+	B3D_TEST_ASSERT(D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::TransferSource, GQT_TRANSFER,
+		colorAspect, defaultOptions) == commonLayout)
+	B3D_TEST_ASSERT(D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::TransferDestination, GQT_TRANSFER,
+		colorAspect, defaultOptions) == commonLayout)
+	B3D_TEST_ASSERT(D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::TransferSource, GQT_GRAPHICS,
+		colorAspect, presentableOptions) == commonLayout)
+	B3D_TEST_ASSERT(D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::TransferDestination, GQT_GRAPHICS,
+		colorAspect, presentableOptions) == commonLayout)
 	B3D_TEST_ASSERT(D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(commonLayout, colorAspect, GQT_TRANSFER))
 	B3D_TEST_ASSERT(!D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(copySourceLayout, colorAspect, GQT_TRANSFER))
 	B3D_TEST_ASSERT(!D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(copyDestinationLayout, colorAspect, GQT_TRANSFER))

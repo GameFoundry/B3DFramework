@@ -136,7 +136,7 @@ void D3D12SwapChain::Initialize()
 		D3D12ImageCreateInformation imageCreateInformation;
 		imageCreateInformation.Resource = mBackBuffers[backBufferIndex];
 		imageCreateInformation.Format = mCreateInformation.ColorFormat;
-		imageCreateInformation.InitialLayout = D3D12TextureLayout::Common();
+		imageCreateInformation.InitialLayout = D3D12TextureLayout::Present();
 		imageCreateInformation.FaceCount = 1;
 		imageCreateInformation.MipLevelCount = 1;
 		imageCreateInformation.Aspect = GpuTextureAspectFlag::Color;

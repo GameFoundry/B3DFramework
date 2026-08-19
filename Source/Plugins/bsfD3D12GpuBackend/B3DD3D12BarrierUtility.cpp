@@ -307,7 +307,7 @@ D3D12BarrierScope D3D12BarrierUtility::GetTextureLayoutScope(GpuImageLayout layo
 	return GetTextureScope(stages, access, layout, aspects);
 }
 
-D3D12TextureLayout D3D12BarrierUtility::GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType, GpuTextureAspectFlags aspects, bool allowConcurrentQueueReads)
+D3D12TextureLayout D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout layout, GpuQueueType queueType, GpuTextureAspectFlags aspects, const D3D12TextureLayoutOptions& options)
 {
 	switch(layout)
 	{
@@ -321,7 +321,7 @@ D3D12TextureLayout D3D12BarrierUtility::GetTextureLayout(GpuImageLayout layout, 
 	case GpuImageLayout::DepthStencilAttachment:
 		return D3D12TextureLayout(D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE);
 	case GpuImageLayout::DepthStencilReadOnly:
-		if(allowConcurrentQueueReads)
+		if(options.AllowConcurrentQueueReads)
 			return D3D12TextureLayout(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ_COMPUTE_QUEUE_ACCESSIBLE);
 
 		return D3D12TextureLayout(GetQueueSpecificLayout(queueType,
@@ -333,7 +333,7 @@ D3D12TextureLayout D3D12BarrierUtility::GetTextureLayout(GpuImageLayout layout, 
 	case GpuImageLayout::DepthAttachmentStencilReadOnly:
 		return D3D12TextureLayout(D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE, D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ);
 	case GpuImageLayout::ShaderReadOnly:
-		if(allowConcurrentQueueReads)
+		if(options.AllowConcurrentQueueReads)
 			return D3D12TextureLayout(D3D12_BARRIER_LAYOUT_SHADER_RESOURCE);
 
 		return D3D12TextureLayout(GetQueueSpecificLayout(queueType,
@@ -341,7 +341,7 @@ D3D12TextureLayout D3D12BarrierUtility::GetTextureLayout(GpuImageLayout layout, 
 			D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_SHADER_RESOURCE,
 			D3D12_BARRIER_LAYOUT_SHADER_RESOURCE));
 	case GpuImageLayout::TransferSource:
-		if(queueType == GQT_TRANSFER)
+		if(options.IsPresentable || queueType == GQT_TRANSFER)
 			return D3D12TextureLayout::Common();
 
 		return D3D12TextureLayout(GetQueueSpecificLayout(queueType,
@@ -349,7 +349,7 @@ D3D12TextureLayout D3D12BarrierUtility::GetTextureLayout(GpuImageLayout layout, 
 			D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_SOURCE,
 			D3D12_BARRIER_LAYOUT_COPY_SOURCE));
 	case GpuImageLayout::TransferDestination:
-		if(queueType == GQT_TRANSFER)
+		if(options.IsPresentable || queueType == GQT_TRANSFER)
 			return D3D12TextureLayout::Common();
 
 		return D3D12TextureLayout(GetQueueSpecificLayout(queueType,
