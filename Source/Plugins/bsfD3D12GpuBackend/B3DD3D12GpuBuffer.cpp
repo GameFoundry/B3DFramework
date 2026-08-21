@@ -131,8 +131,8 @@ D3D12_HEAP_TYPE D3D12Buffer::GetHeapType() const
 	return page != nullptr ? page->GetHeapType() : D3D12_HEAP_TYPE_DEFAULT;
 }
 
-D3D12GpuBuffer::D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device)
-	: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device))
+D3D12GpuBuffer::D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, IGpuAllocator& allocator)
+	: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device)), mAllocator(allocator)
 {
 }
 
@@ -184,10 +184,6 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 	const GpuBufferInformation& information = GetInformation();
 	const D3D12_HEAP_TYPE heapType = D3D12Utility::GetHeapType(information.Type, information.Flags);
 
-	// D3D12 cannot place a UAV on an upload heap, so this combination is rejected with E_INVALIDARG below and leaves the buffer without a resource.
-	// TODO - Should probably just fall back to a different heap instead
-	B3D_ENSURE_LOG(!(heapType == D3D12_HEAP_TYPE_UPLOAD && information.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU)), "D3D12: Buffer '{0}' requests AllowUnorderedAccessOnTheGPU with CPU-visible storage (StoreOnCPUWithGPUAccess); unordered access requires StoreOnGPU.", mName);
-
 	// Not allowed to have size 0 buffer
 	u32 bufferSize = Math::Max(mTotalSize, 64u);
 
@@ -199,7 +195,7 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 	GpuResourceLocation allocation;
 	const D3D12_RESOURCE_FLAGS resourceFlags = D3D12Utility::GetBufferResourceFlags(information.Flags);
 	const u32 alignment = GetBufferSliceAlignment(information);
-	if(!device.GetBufferPool().TryAllocate(bufferSize, alignment, heapType, resourceFlags, allocation))
+	if(!mAllocator.TryAllocate(bufferSize, alignment, GpuResourceKind::Linear, nullptr, allocation))
 	{
 		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate a pooled buffer slice (size={0}, alignment={1}, type={2}, heapType={3}, resourceFlags={4}).",
 			bufferSize, alignment, (u32)information.Type, (u32)heapType, (u32)resourceFlags);

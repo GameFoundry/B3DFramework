@@ -11,6 +11,10 @@
 using namespace b3d;
 using namespace b3d::render;
 
+D3D12GpuPipelineParameterSetLayout::D3D12GpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
+	: GpuPipelineParameterSetLayout(parameterDescription)
+{ }
+
 D3D12GpuPipelineParameterLayout::D3D12GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, D3D12GpuDevice& device) : GpuPipelineParameterLayout(device, createInformation), mDevice(device)
 {
 	MergeReflectedSetTables(createInformation);
