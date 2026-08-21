@@ -77,6 +77,14 @@ namespace b3d
 			TInlineArray<D3D12RootConstantBufferLayout, 4> RootConstantBuffers; /**< Uniform buffers assigned to root CBVs. */
 		};
 
+		/** D3D12 parameter-set layout. */
+		class D3D12GpuPipelineParameterSetLayout : public GpuPipelineParameterSetLayout
+		{
+		public:
+			/** Creates a parameter-set layout from @p parameterDescription. */
+			explicit D3D12GpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription);
+		};
+
 		/** DirectX 12 implementation of GPU pipeline parameter layout. */
 		class D3D12GpuPipelineParameterLayout : public GpuPipelineParameterLayout
 		{

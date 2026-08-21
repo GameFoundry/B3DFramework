@@ -4,6 +4,7 @@
 
 #include "B3DD3D12Prerequisites.h"
 #include "B3DD3D12Resource.h"
+#include "GpuBackend/Allocators/B3DGpuLinearAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
 
 namespace b3d::render
@@ -73,32 +74,54 @@ namespace b3d::render
 		D3D12GpuDevice& mDevice;
 	};
 
-	/** Thread-safe persistent buffer pool, partitioned by native heap and resource flags. */
+	/** Owns persistent and transient buffer-page allocators, partitioned by native heap and resource flags. */
 	class D3D12BufferPool
 	{
 	public:
-		explicit D3D12BufferPool(D3D12GpuDevice& device);
-		~D3D12BufferPool();
-
-		/** Allocates a compatible buffer slice, returning false for unsupported heap/flag combinations or allocation failure. */
-		bool TryAllocate(u64 size, u32 alignment, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS resourceFlags, GpuResourceLocation& outAllocation);
-
-	private:
-		enum class PoolType : u32
+		/** Native page compatibility classes exposed as backend memory types. */
+		enum class MemoryType : u32
 		{
 			Default,                /**< Device-local slices without unordered access. */
 			DefaultUnorderedAccess, /**< Device-local slices supporting unordered access. */
 			Upload,                 /**< Persistently mapped CPU-to-GPU slices. */
 			Readback,               /**< Persistently mapped GPU-to-CPU slices. */
-			Count                   /**< Number of pool types. */
+			Count                   /**< Number of buffer memory types. */
 		};
 
-		using Allocator = TGpuTlsfAllocator<D3D12BufferPageBackend>;
+		explicit D3D12BufferPool(D3D12GpuDevice& device);
+		~D3D12BufferPool();
+
+		/** Lazily creates and returns the persistent TLSF allocator for @p memoryType. */
+		IGpuAllocator& GetOrCreatePersistentAllocator(MemoryType memoryType);
+
+		/** Creates a context-owned linear allocator for @p memoryType, backed by the shared page pool for that type. */
+		TUnique<IGpuAllocator> CreateTransientAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
+
+		/** Returns the memory type compatible with @p heapType and @p resourceFlags, or Count when unsupported. */
+		static MemoryType GetMemoryType(D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS resourceFlags);
+
+	private:
+		using PersistentAllocator = TGpuTlsfAllocator<D3D12BufferPageBackend>;
+		using LinearPagePool = TGpuLinearPagePool<D3D12BufferPageBackend>;
+		using TransientAllocator = TGpuLinearAllocator<D3D12BufferPageBackend>;
+
+		/** Lazily creates and returns the shared transient page pool for @p memoryType. */
+		LinearPagePool& GetOrCreateLinearPagePool(MemoryType memoryType);
+
+		/** Returns the native page properties for @p memoryType. */
+		static D3D12BufferPageCreateInformation GetPageCreateInformation(MemoryType memoryType);
+
+		/** Returns the initial persistent TLSF page size for @p memoryType. */
+		static u64 GetPersistentPageSize(MemoryType memoryType);
+
+		/** Returns the transient linear page size for @p memoryType. */
+		static u64 GetTransientPageSize(MemoryType memoryType);
 
 		D3D12BufferPageBackend mBackend;
-		TUnique<Allocator> mAllocators[(u32)PoolType::Count];
+		TUnique<PersistentAllocator> mPersistentAllocators[(u32)MemoryType::Count];
+		TUnique<LinearPagePool> mLinearPagePools[(u32)MemoryType::Count];
 
-		/** Guards lazy creation of the allocators; each allocator provides its own operation-level locking. */
+		/** Guards lazy creation of persistent allocators and transient page pools. */
 		Mutex mAllocatorMutex;
 	};
 }

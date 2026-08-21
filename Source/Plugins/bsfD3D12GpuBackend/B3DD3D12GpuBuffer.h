@@ -69,8 +69,8 @@ namespace b3d
 			};
 
 		public:
-			/** Creates an uninitialized D3D12 buffer; Initialize() allocates its native slice. */
-			D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device);
+			/** Creates an uninitialized D3D12 buffer whose native slice is obtained from @p allocator. */
+			D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, IGpuAllocator& allocator);
 			~D3D12GpuBuffer() override;
 
 			void Initialize() override;
@@ -138,6 +138,7 @@ namespace b3d
 			D3D12_CPU_DESCRIPTOR_HANDLE GetOrCreateView(GpuBufferFormat format, ViewType type) const;
 
 			D3D12Buffer* mBuffer = nullptr;
+			IGpuAllocator& mAllocator; /**< Allocator that owns the buffer's native slice. */
 
 			D3D12_VERTEX_BUFFER_VIEW mVertexBufferView{};
 			D3D12_INDEX_BUFFER_VIEW mIndexBufferView{};
