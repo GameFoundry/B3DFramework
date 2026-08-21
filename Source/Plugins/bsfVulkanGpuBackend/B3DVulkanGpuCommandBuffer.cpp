@@ -1298,11 +1298,11 @@ namespace
 			if(needsOwnershipTransfer)
 			{
 				const GpuAccessScope& sourceAccessScope = transition.SourceAccessScope;
-				const GpuAccessScope& destinationAccessScope = transition.DestinationAllAccessScope;
+				const GpuAccessScope& submissionBarrierAccessScope = transition.SubmissionBarrierAccessScope;
 				VkPipelineStageFlags sourceStages, destinationStages;
 				VkAccessFlags sourceAccess, destinationAccess;
 				VulkanUtility::GetPipelineStageAndAccessMask(sourceAccessScope.GetStages(), sourceAccessScope.GetAccess(), sourceStages, sourceAccess);
-				VulkanUtility::GetPipelineStageAndAccessMask(destinationAccessScope.GetStages(), destinationAccessScope.GetAccess(), destinationStages, destinationAccess);
+				VulkanUtility::GetPipelineStageAndAccessMask(submissionBarrierAccessScope.GetStages(), submissionBarrierAccessScope.GetAccess(), destinationStages, destinationAccess);
 
 				if(sourceStages == 0)
 					sourceStages = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
@@ -1349,11 +1349,11 @@ namespace
 				mSubmitInformation.RequiredWaitMask |= transition.ParallelAccessWaitMask;
 
 			const GpuAccessScope& sourceAccessScope = transition.SourceAccessScope;
-			const GpuAccessScope& destinationAccessScope = transition.DestinationAllAccessScope;
+			const GpuAccessScope& submissionBarrierAccessScope = transition.SubmissionBarrierAccessScope;
 			VkPipelineStageFlags sourceStages, destinationStages;
 			VkAccessFlags sourceAccess, destinationAccess;
 			VulkanUtility::GetPipelineStageAndAccessMask(sourceAccessScope.GetStages(), sourceAccessScope.GetAccess(), sourceStages, sourceAccess);
-			VulkanUtility::GetPipelineStageAndAccessMask(destinationAccessScope.GetStages(), destinationAccessScope.GetAccess(), destinationStages, destinationAccess);
+			VulkanUtility::GetPipelineStageAndAccessMask(submissionBarrierAccessScope.GetStages(), submissionBarrierAccessScope.GetAccess(), destinationStages, destinationAccess);
 
 			if(sourceStages == 0)
 				sourceStages = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
@@ -2116,10 +2116,7 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		GpuTextureSubresourceRange maskedRange = subresourceRange;
 		maskedRange.AspectMask &= vulkanImage->GetRange().AspectMask;
 
-		if(barrier.SourceUsage == GpuResourceUseFlag::Undefined)
-			mBarrierHelper.AddImageBarrier(vulkanImage, maskedRange, barrier.DestinationUsage, barrier.DestinationAccess, barrier.DestinationLayout);
-		else
-			mBarrierHelper.AddImageBarrier(vulkanImage, maskedRange, barrier.SourceUsage, barrier.SourceAccess, barrier.DestinationUsage, barrier.DestinationAccess, barrier.SourceLayout, barrier.DestinationLayout);
+		mResourceTracker.TrackExplicitImageBarrier(vulkanImage, maskedRange, barrier.DestinationUsage, barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
 	};
 
 	for(const auto& barrier : barriers.BufferBarriers)
@@ -2130,10 +2127,7 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 		VulkanBuffer* const vulkanBuffer = vulkanGpuBuffer->GetVulkanResource();
 
-		if(barrier.SourceUsage == GpuResourceUseFlag::Undefined)
-			mBarrierHelper.AddBufferBarrier(vulkanBuffer, barrier.DestinationUsage, barrier.DestinationAccess);
-		else
-			mBarrierHelper.AddBufferBarrier(vulkanBuffer, barrier.SourceUsage, barrier.SourceAccess, barrier.DestinationUsage, barrier.DestinationAccess);
+		mResourceTracker.TrackExplicitBufferBarrier(vulkanBuffer, barrier.DestinationUsage, barrier.DestinationAccess, mBarrierHelper);
 	}
 
 	for(const auto& barrier : barriers.TextureBarriers)

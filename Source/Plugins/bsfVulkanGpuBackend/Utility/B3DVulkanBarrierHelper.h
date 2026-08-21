@@ -71,23 +71,8 @@ namespace b3d::render
 	/**
 	 * Helper class for building and issuing Vulkan memory barriers.
 	 *
-	 * This class provides a convenient way to accumulate multiple barriers and issue them together.
-	 * It works with low-level Vulkan resources (VulkanBuffer*, VulkanImage*) making it suitable
-	 * for use in Copy operations and other low-level operations where IssueBarriers cannot be used.
-	 *
-	 * The helper automatically:
-	 * - Converts resource usage and access flags to Vulkan access masks
-	 * - Derives appropriate pipeline stages from access masks
-	 * - Accumulates barriers for batch execution
-	 * - Integrates with hazard tracking (when enabled)
-	 *
-	 * Typical usage:
-	 * @code
-	 * VulkanBarrierHelper helper(commandBuffer);
-	 * helper.AddBufferBarrier(sourceBuffer, ...);
-	 * helper.AddBufferBarrier(destBuffer, ...);
-	 * helper.Execute();
-	 * @endcode
+	 * Translates core barriers to Vulkan, accumulates them for one pipeline-barrier command, and reports
+	 * their effects back to the tracker after emission.
 	 */
 	class VulkanBarrierHelper : public TGpuBarrierHelper<VulkanBarrierHelper>
 	{
@@ -124,11 +109,11 @@ namespace b3d::render
 	private:
 		friend class TGpuBarrierHelper<VulkanBarrierHelper>;
 
-		/** CRTP hook: accumulates the native Vulkan buffer barrier (dedup + combined stage/access masks). Called by the shared low-level path. */
-		void RecordBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
+		/** Accumulates a resolved native Vulkan buffer barrier. */
+		void RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
 
-		/** CRTP hook: accumulates the native Vulkan image barrier; reconciles @p oldLayout from an already-merged barrier and flags layout transitions. Called by the shared low-level path. */
-		void RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout);
+		/** Accumulates a resolved native image barrier and reconciles @p oldLayout after barrier merging. */
+		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout);
 
 		VulkanBarrierBatch mBarrierBatch;
 	};

@@ -169,19 +169,27 @@ namespace b3d
 		};
 
 		/**
-		 * Tracks accesses, barriers and write-epoch hazards for one resource over a single command buffer recording scope. This information
-		 * is all that is required to determine barriers both within a single command buffer recording scope and between two command buffer submissions.
+		 * Tracks accesses, barriers and write-epoch hazards for one resource over a single command buffer recording scope. 
+		 *
+		 * Barriers can be placed into two categories depending where they are issued:
+		 *  - During command buffer recording - Barriers issued during recording depend exclusively on LastWriteEpochHazardState (and LastBarrier, for backends that require barrier chaining).  All other
+		 *	  state we keep is for the purpose of determining the submission barrier.
+		 *  - During command buffer submission - These barriers are issued in a specialized 'prelude' command buffer that will execute before the command buffer that recorded the resource access. We cannot
+		 *    issue these barriers during recording as at that time we do not know what command buffer will be submitted before it, and how will it use the same resources. The state tracking here generally
+		 *    boils down to 'how was the resource first used in this command buffer' and 'what is the last write-epoch hazard state at the end of this command buffer'. Additionally, user has the ability
+		 *    to issue explicit barriers before the first access of a resource, which is also tracked here. The submission barrier is determined by the combination of these three pieces of information.
+		 * 
 		 */
 		struct B3D_EXPORT GpuResourceHazardState
 		{
 			GpuStageFlags EntryReadStages = GpuStageFlag::None; /**< Reads recorded before the first write. */
-			GpuStageFlags FirstWriteStages = GpuStageFlag::None; /**< Stages of the first write. */
-			GpuAccessFlags FirstWriteAccess = GpuAccessFlag::None; /**< Access flags of the first access that writes. May include Read for read-modify-write access. */
+			GpuStageFlags FirstWriteStages = GpuStageFlag::None; /**< Stages that the first write occurred on (should be just one). */
+			GpuAccessFlags FirstWriteAccess = GpuAccessFlag::None; /**< Access flags of the first access that writes. Can be just Write or Read+Write. */
 
-			TInlineArray<GpuBarrierScope, 1> LeadingBarriers; /**< Explicit (user) barriers recorded before the first access. */
-			GpuAccessScope AllAccessScope; /**< All accesses recorded in the tracking scope. */
-			GpuResourceWriteEpochHazardState LastWriteEpochHazardState; /**< Last write-epoch hazard state in the recording scope. */
-			GpuBarrierScope LastBarrier; /**< Most recently recorded barrier in the command-buffer recording scope. */
+			TOptional<GpuAccessScope> LeadingBarrierAccessScope; /**< Explicit barrier recorded before the first access, if any. */
+			GpuAccessScope AllAccessScope; /**< Accumulation of all accesses recorded in the tracking scope. Generally only used for cross-queue synchronization (answers the question does this command buffer read and/or write?). */
+			GpuResourceWriteEpochHazardState LastWriteEpochHazardState; /**< Last write-epoch hazard state in the recording scope. Updated during recording. After recording stores the last state. */
+			GpuBarrierScope LastBarrier; /**< Most recently recorded barrier in the command-buffer recording scope. Some backends require this for barrier chaining, for others it's unused. */
 
 			/** See GpuResourceWriteEpocHazardState::GetRequiredBarrier */
 			GpuBarrierScope GetRequiredBarrier(GpuStageFlags stages, GpuAccessFlags access, GpuStageFlags broadenedReadStages = GpuStageFlag::None) const;
@@ -192,17 +200,23 @@ namespace b3d
 			/** Records a barrier and credits any visibility it establishes. */
 			void RecordBarrier(const GpuBarrierScope& barrier);
 
+			/** Merges the destination of an explicit barrier recorded before the first resource access. */
+			void RecordLeadingBarrier(GpuStageFlags destinationStages, GpuAccessFlags destinationAccess);
+
 			/** Returns true if the tracking scope accesses the resource. */
 			bool HasAccess() const { return AllAccessScope.IsValid(); }
 
+			/** Returns true if an explicit barrier precedes the first resource access. */
+			bool HasLeadingBarrier() const { return LeadingBarrierAccessScope.has_value(); }
+
 			/** Returns true if the tracking scope can change the resource's carried hazard state. */
-			bool HasSubmissionEffect() const { return HasAccess() || !LeadingBarriers.Empty(); }
+			bool HasSubmissionEffect() const { return HasAccess() || HasLeadingBarrier(); }
 
 			/** Returns true if the tracking scope writes the resource. */
 			bool HasWrite() const { return FirstWriteStages != GpuStageFlag::None; }
 
-			/** Returns the tracking scope's entry access scope. */
-			GpuAccessScope GetFirstAccessScope() const;
+			/** Returns the destination access scope required by the submission barrier, including any explicit leading barrier. */
+			GpuAccessScope GetSubmissionBarrierAccessScope() const;
 		};
 
 		/**
@@ -242,7 +256,7 @@ namespace b3d
 		struct B3D_EXPORT GpuSubmissionTransition
 		{
 			IGpuResource* StateResource = nullptr;
-			GpuAccessScope DestinationFirstAccessScope;
+			GpuAccessScope SubmissionBarrierAccessScope; /**< Destination access scope required by the submission barrier. */
 			GpuAccessScope DestinationAllAccessScope;
 			GpuAccessScope SourceAccessScope; /**< Conservative source scope for backend ownership/layout/state transitions. */
 			GpuBarrierScope MemoryBarrier; /**< Same-queue memory dependency recorded before destination execution. */
@@ -263,7 +277,7 @@ namespace b3d
 			 */
 			GpuQueueMask ExclusiveAccessWaitMask = GpuQueueMask::kNone;
 
-			GpuSubmissionTransition(IGpuResource& stateResource, const GpuAccessScope& destinationFirstAccessScope, const GpuAccessScope& destinationAllAccessScope);
+			GpuSubmissionTransition(IGpuResource& stateResource, const GpuAccessScope& submissionBarrierAccessScope, const GpuAccessScope& destinationAllAccessScope);
 
 			/** Returns true if a barrier must be recorded on the destination queue. */
 			bool HasSameQueueDependency() const { return MemoryBarrier.IsValid() || ExecutionBarrier.IsValid(); }

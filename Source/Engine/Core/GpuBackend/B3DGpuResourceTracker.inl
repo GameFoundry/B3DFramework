@@ -82,11 +82,40 @@ GpuBufferTrackingState& TGpuResourceTracker<TBarrierHelper>::GetOrCreateBufferTr
 }
 
 template<class TBarrierHelper>
+void TGpuResourceTracker<TBarrierHelper>::ResolveAndQueueBufferBarrier(IGpuBufferResource* buffer, const GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper)
+{
+	if(buffer == nullptr)
+		return;
+
+	const GpuStageFlags destinationStages = GpuBackendUtility::GetStageFlags(destinationUsage);
+	const GpuBarrierScope requiredBarrier = bufferTrackingState.HazardState->GetRequiredBarrier(destinationStages, destinationAccess);
+	if(requiredBarrier.IsValid())
+		barrierHelper.QueueResolvedBufferBarrier(buffer, requiredBarrier);
+}
+
+template<class TBarrierHelper>
+void TGpuResourceTracker<TBarrierHelper>::TrackExplicitBufferBarrier(IGpuBufferResource* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper)
+{
+	if(buffer == nullptr)
+		return;
+
+	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
+	if(!bufferTrackingState.HazardState->HasAccess())
+	{
+		const GpuStageFlags destinationStages = GpuBackendUtility::GetStageFlags(destinationUsage);
+		bufferTrackingState.HazardState->RecordLeadingBarrier(destinationStages, destinationAccess);
+		return;
+	}
+
+	ResolveAndQueueBufferBarrier(buffer, bufferTrackingState, destinationUsage, destinationAccess, barrierHelper);
+}
+
+template<class TBarrierHelper>
 void TGpuResourceTracker<TBarrierHelper>::TrackBufferUsage(IGpuBufferResource* buffer, GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, TBarrierHelper& barrierHelper, u32 dynamicOffset)
 {
 	B3D_ASSERT(!bufferTrackingState.UseHandle.Used);
 
-	barrierHelper.AddBufferBarrier(buffer, bufferTrackingState, useFlags, access);
+	ResolveAndQueueBufferBarrier(buffer, bufferTrackingState, useFlags, access, barrierHelper);
 
 	const GpuStageFlags accessStageFlags = GpuBackendUtility::GetStageFlags(useFlags);
 	GpuResourceHazardState* const hazardState = bufferTrackingState.HazardState;
@@ -180,6 +209,96 @@ void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* ima
 }
 
 template<class TBarrierHelper>
+void TGpuResourceTracker<TBarrierHelper>::TrackExplicitImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper)
+{
+	if(image == nullptr)
+		return;
+
+	struct CallbackParameters
+	{
+		TGpuResourceTracker* Tracker;
+		TBarrierHelper* BarrierHelper;
+		IGpuImageResource* Image;
+		GpuResourceUseFlags DestinationUsage;
+		GpuAccessFlags DestinationAccess;
+		GpuImageLayout DestinationLayout;
+	};
+
+	CallbackParameters callbackParameters { this, &barrierHelper, image, destinationUsage, destinationAccess, destinationLayout };
+	IterateAndCreateOverlappingImageSubresourceTrackingState(image, subresourceRange, [](u32 globalSubresourceIndex, void* userData)
+	{
+		CallbackParameters* const callbackParameters = static_cast<CallbackParameters*>(userData);
+		GpuImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Tracker->mSubresourceTrackingState[globalSubresourceIndex];
+
+		if(!subresourceTrackingState.HazardState->HasAccess())
+		{
+			const GpuStageFlags destinationStages = GpuBackendUtility::GetStageFlags(callbackParameters->DestinationUsage);
+			subresourceTrackingState.HazardState->RecordLeadingBarrier(destinationStages, callbackParameters->DestinationAccess);
+
+			if(callbackParameters->DestinationLayout != GpuImageLayout::Undefined)
+			{
+				subresourceTrackingState.InitialLayout = callbackParameters->DestinationLayout;
+				subresourceTrackingState.CurrentLayout = callbackParameters->DestinationLayout;
+				subresourceTrackingState.RequiredLayout = callbackParameters->DestinationLayout;
+			}
+
+			return;
+		}
+
+		callbackParameters->Tracker->ResolveAndQueueImageBarrier(callbackParameters->Image, subresourceTrackingState, callbackParameters->DestinationUsage, callbackParameters->DestinationAccess, callbackParameters->DestinationLayout, *callbackParameters->BarrierHelper);
+	}, &callbackParameters);
+}
+
+template<class TBarrierHelper>
+void TGpuResourceTracker<TBarrierHelper>::ResolveAndQueueImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper)
+{
+	if(image == nullptr)
+		return;
+
+	if(destinationLayout == GpuImageLayout::Undefined)
+		destinationLayout = subresourceTrackingState.CurrentLayout;
+
+	const GpuStageFlags destinationStages = GpuBackendUtility::GetStageFlags(destinationUsage);
+	const bool needsLayoutTransition = subresourceTrackingState.CurrentLayout != destinationLayout;
+	if(!subresourceTrackingState.HazardState->HasAccess() && subresourceTrackingState.HazardState->HasLeadingBarrier())
+	{
+		// If a leading barrier has set a layout, and nothing else is accessing the subresource yet, we just override its layout.
+		// Alternatively, if we wanted to respect the user's explicit layout, we could just log an error here and let it fail.
+		if(needsLayoutTransition)
+		{
+			subresourceTrackingState.InitialLayout = destinationLayout;
+			subresourceTrackingState.CurrentLayout = destinationLayout;
+			subresourceTrackingState.RequiredLayout = destinationLayout;
+		}
+
+		// Access/usage scope gets folded slightly differently, see GpuResourceHazardState::GetSubmissionBarrierAccessScope
+
+		return;
+	}
+
+	// A layout transition is potentially a write operation, so it must be ordered after both earlier reads and writes,
+	// even when the upcoming resource access itself is read-only.
+	GpuAccessFlags hazardAccess = destinationAccess;
+	if(needsLayoutTransition)
+		hazardAccess |= GpuAccessFlag::Write;
+
+	const GpuBarrierScope requiredBarrier = subresourceTrackingState.HazardState->GetRequiredBarrier(destinationStages, hazardAccess);
+	if(!requiredBarrier.IsValid() && !needsLayoutTransition)
+		return;
+
+	GpuBarrierScope barrier = requiredBarrier;
+	if(needsLayoutTransition)
+	{
+		// The synthetic write above only finds operations that must precede the transition. The native destination
+		// scope describes the real access that consumes the image in its new layout.
+		barrier.DestinationStages = destinationStages;
+		barrier.DestinationAccess = destinationAccess;
+	}
+
+	barrierHelper.QueueResolvedImageBarrier(image, subresourceTrackingState.Range, barrier, subresourceTrackingState.CurrentLayout, destinationLayout);
+}
+
+template<class TBarrierHelper>
 void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper)
 {
 	const bool isShaderUse = useFlags.IsSet(GpuResourceUseFlag::ShaderAccess);
@@ -187,7 +306,8 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 	const bool isTransferUse = useFlags.IsSetAny(GpuResourceUseFlag::Transfer);
 
 	GpuImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[globalSubresourceIndex];
-	if(subresourceTrackingState.Access == GpuAccessFlag::None) // New subresource
+	const bool hasLeadingBarrier = subresourceTrackingState.HazardState != nullptr && subresourceTrackingState.HazardState->HasLeadingBarrier();
+	if(subresourceTrackingState.Access == GpuAccessFlag::None && !hasLeadingBarrier) // New subresource
 	{
 		subresourceTrackingState.InitialLayout = layout;
 		subresourceTrackingState.RenderPassLayout = finalLayout; // TODO - Handle this below
@@ -235,7 +355,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 		}
 	}
 
-	barrierHelper.AddSubresourceBarrier(image, subresourceTrackingState, useFlags, accessFlags, subresourceTrackingState.RequiredLayout);
+	ResolveAndQueueImageBarrier(image, subresourceTrackingState, useFlags, accessFlags, subresourceTrackingState.RequiredLayout, barrierHelper);
 
 	const GpuStageFlags accessStageFlags = GpuBackendUtility::GetStageFlags(useFlags);
 	GpuResourceHazardState* const hazardState = subresourceTrackingState.HazardState;

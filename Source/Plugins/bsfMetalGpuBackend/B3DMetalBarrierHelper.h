@@ -16,11 +16,8 @@ namespace b3d::render
 	/**
 	 * Helper class for building and issuing Metal memory barriers.
 	 *
-	 * The backend-independent machinery (hazard analysis, subresource subdivision, post-barrier
-	 * tracker updates) lives in the TGpuBarrierHelper base. This class accumulates the Metal-native
-	 * side: which @c MTLBarrierScope categories need a barrier and the union of engine pipeline
-	 * stages involved, then emits at most one @c memoryBarrierWithScope: on the currently open
-	 * encoder in @c Execute.
+	 * Translates core barriers to Metal: which @c MTLBarrierScope categories need a barrier and the union of engine pipeline
+	 * stages involved, then emits at most one @c memoryBarrierWithScope: on the currently open encoder in @c Execute.
 	 *
 	 * Design notes:
 	 *  - Barriers are scope-based rather than per-resource: Metal's @c memoryBarrierWithScope:
@@ -57,7 +54,7 @@ namespace b3d::render
 		/**
 		 * Emits the accumulated barriers on the currently open encoder, then runs the post-barrier
 		 * tracker updates (ApplyPostBarrierTracking, CommitPendingHazardRegistrations) and clears the
-		 * accumulated state. Always call this after a batch of Track*Usage / Add*Barrier calls and
+		 * accumulated state. Always call this after a batch of Track*Usage / TrackExplicit*Barrier calls and
 		 * before recording the dependent commands — even when HasBarriers() is false — so deferred
 		 * hazard registrations commit at the right point.
 		 *
@@ -88,16 +85,15 @@ namespace b3d::render
 	private:
 		friend class TGpuBarrierHelper<MetalBarrierHelper>;
 
-		/** CRTP hook: accumulates the buffer barrier's scope + stage union. Called by the shared low-level path. */
-		void RecordBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
+		/** Accumulates the native buffer scope and stage union for a resolved barrier. */
+		void RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
 
 		/**
-		 * CRTP hook: accumulates the image barrier's scope + stage union. Metal performs no native layout
+		 * Accumulates the native image scope and stage union for a resolved barrier. Metal performs no native layout
 		 * transitions, so unlike the Vulkan hook @p oldLayout is taken by value and never reconciled —
 		 * the base's layout bookkeeping proceeds with the tracked value unchanged.
 		 */
-		void RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange,
-			const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout);
+		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout);
 
 		// Engine-typed native accumulation (no Metal types here so the header stays includable from
 		// plain C++ TUs). Converted to MTLBarrierScope / MTLRenderStages inside Execute.
