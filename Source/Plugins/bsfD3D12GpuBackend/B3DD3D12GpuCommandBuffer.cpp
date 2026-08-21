@@ -92,10 +92,9 @@ namespace
 
 			const GpuQueueType destinationQueueType = mDestinationQueueId.GetType();
 			const D3D12TextureLayout committedLayout = subresource->GetLayout();
-			const bool allowConcurrentQueueReads = image->AllowsConcurrentQueueReads();
 
-			const D3D12TextureLayout initialLayout = transition.InitialLayout != GpuImageLayout::Undefined ? D3D12BarrierUtility::GetTextureLayout(transition.InitialLayout, destinationQueueType, transition.ImageRange.AspectMask, allowConcurrentQueueReads) : committedLayout;
-			const D3D12TextureLayout finalLayout = transition.FinalLayout != GpuImageLayout::Undefined ? D3D12BarrierUtility::GetTextureLayout(transition.FinalLayout, destinationQueueType, transition.ImageRange.AspectMask, allowConcurrentQueueReads) : initialLayout;
+			const D3D12TextureLayout initialLayout = transition.InitialLayout != GpuImageLayout::Undefined ? image->GetTextureLayout(transition.InitialLayout, destinationQueueType, transition.ImageRange.AspectMask) : committedLayout;
+			const D3D12TextureLayout finalLayout = transition.FinalLayout != GpuImageLayout::Undefined ? image->GetTextureLayout(transition.FinalLayout, destinationQueueType, transition.ImageRange.AspectMask) : initialLayout;
 
 			if(!B3D_ENSURE_LOG(D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(initialLayout, transition.ImageRange.AspectMask, destinationQueueType), "D3D12 image layout is not supported on destination queue type {0}.", (u32)destinationQueueType))
 			{
@@ -160,7 +159,7 @@ namespace
 			// Record any remaining transition in the destination submission prologue.
 			if(transitionSourceLayout != initialLayout)
 			{
-				const GpuBarrierScope barrier(GpuStageFlag::None, GpuAccessFlag::None, transition.DestinationFirstAccessScope.GetStages(), transition.DestinationFirstAccessScope.GetAccess());
+				const GpuBarrierScope barrier(GpuStageFlag::None, GpuAccessFlag::None, transition.SubmissionBarrierAccessScope.GetStages(), transition.SubmissionBarrierAccessScope.GetAccess());
 				mDestinationBarriers.AddTextureBarrier(image->GetD3D12Resource(), transition.ImageRange, barrier, GpuImageLayout::Undefined, transition.InitialLayout, transitionSourceLayout, initialLayout);
 
 				layoutTransitionQueueId = mDestinationQueueId;
@@ -290,10 +289,7 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 		D3D12Buffer* const buffer = gpuBuffer->GetD3D12Buffer();
 
-		if(barrier.SourceUsage == GpuResourceUseFlag::Undefined)
-			mBarrierHelper.AddBufferBarrier(buffer, barrier.DestinationUsage, barrier.DestinationAccess);
-		else
-			mBarrierHelper.AddBufferBarrier(buffer, barrier.SourceUsage, barrier.SourceAccess, barrier.DestinationUsage, barrier.DestinationAccess);
+		mResourceTracker.TrackExplicitBufferBarrier(buffer, barrier.DestinationUsage, barrier.DestinationAccess, mBarrierHelper);
 
 	}
 
@@ -308,10 +304,7 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		GpuTextureSubresourceRange maskedRange = barrier.SubresourceRange;
 		maskedRange.AspectMask &= image->GetRange().AspectMask;
 
-		if(barrier.SourceUsage == GpuResourceUseFlag::Undefined)
-			mBarrierHelper.AddImageBarrier(image, maskedRange, barrier.DestinationUsage, barrier.DestinationAccess, barrier.DestinationLayout);
-		else
-			mBarrierHelper.AddImageBarrier(image, maskedRange, barrier.SourceUsage, barrier.SourceAccess, barrier.DestinationUsage, barrier.DestinationAccess, barrier.SourceLayout, barrier.DestinationLayout);
+		mResourceTracker.TrackExplicitImageBarrier(image, maskedRange, barrier.DestinationUsage, barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
 	}
 
 	for(const auto& barrier : barriers.RenderTargetBarriers)
@@ -324,14 +317,15 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		D3D12Framebuffer* framebuffer = nullptr;
 		if(barrier.Object->GetProperties().IsWindow)
 		{
-			const RenderWindow* const renderWindow = static_cast<const RenderWindow*>(barrier.Object.get());
+			RenderWindow* const renderWindow = static_cast<RenderWindow*>(barrier.Object.get());
 			const TShared<IRenderWindowSurface>& surface = renderWindow->GetRenderWindowSurface();
 			if(surface != nullptr)
 			{
-				D3D12RenderWindowSurface* d3d12Surface = static_cast<D3D12RenderWindowSurface*>(surface.get());
-				D3D12SwapChain* swapChain = d3d12Surface->GetSwapChain();
-				if(swapChain != nullptr)
-					framebuffer = d3d12Surface->GetFramebuffer(swapChain->GetCurrentBackBufferIndex());
+				ID3D12RenderWindowSurface* d3d12Surface = static_cast<ID3D12RenderWindowSurface*>(surface.get());
+				if(!d3d12Surface->IsSwapChainValid())
+					renderWindow->RebuildSwapChain();
+
+				framebuffer = d3d12Surface->GetActiveFramebuffer();
 			}
 		}
 		else
@@ -350,10 +344,7 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 			const GpuTextureSubresourceRange range = attachment.Image->GetRange(attachment.Surface);
 
-			if(barrier.SourceUsage == GpuResourceUseFlag::Undefined)
-				mBarrierHelper.AddImageBarrier(attachment.Image, range, barrier.DestinationUsage, barrier.DestinationAccess, barrier.DestinationLayout);
-			else
-				mBarrierHelper.AddImageBarrier(attachment.Image, range, barrier.SourceUsage, barrier.SourceAccess, barrier.DestinationUsage, barrier.DestinationAccess, barrier.SourceLayout, barrier.DestinationLayout);
+			mResourceTracker.TrackExplicitImageBarrier(attachment.Image, range, barrier.DestinationUsage, barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
 		};
 
 		for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)

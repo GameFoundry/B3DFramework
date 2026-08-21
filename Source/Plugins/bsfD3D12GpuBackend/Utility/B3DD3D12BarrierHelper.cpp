@@ -20,7 +20,7 @@ D3D12BarrierHelper::D3D12BarrierHelper(D3D12ResourceTracker* resourceTracker, Gp
 	: TGpuBarrierHelper<D3D12BarrierHelper>(resourceTracker), mQueueType(queueType)
 { }
 
-void D3D12BarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout)
+void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout)
 {
 	D3D12Image* const d3d12Image = static_cast<D3D12Image*>(image);
 	ID3D12Resource* const resource = d3d12Image->GetD3D12Resource();
@@ -30,21 +30,30 @@ void D3D12BarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image, cons
 	if(!B3D_ENSURE_LOG(mQueueType != GQT_TRANSFER || (nativeOldLayout == D3D12TextureLayout::Common() && nativeNewLayout == D3D12TextureLayout::Common()), "D3D12 copy queues cannot record texture layout transitions."))
 		return;
 
-	GpuBarrierScope nativeBarrier = barrier;
-	if(oldLayout != GpuImageLayout::Undefined && !nativeBarrier.SourceAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
+	// TODO - Everything below this point is incomprehensible and needs to be reworked
+	GpuAccessScope precedingBarrierDestinationScope = GetPrecedingBarrierDestinationScope(image, range);
+	GpuBarrierScope effectiveBarrier = barrier;
+	GpuStageFlags precedingBarrierDestinationStages = precedingBarrierDestinationScope.GetStages();
+	if(!barrier.SourceAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write) && oldLayout != GpuImageLayout::Undefined)
 	{
-		// A submission prologue can be prepended after this native command list has already been closed. Keep a leading
-		// barrier without a tracked source dependency conservative so it chains with any prologue SyncAfter.
-		// TODO - Use frame-graph-provided cross-command-buffer tracking to narrow this boundary scope.
-		nativeBarrier.SourceStages = GpuStageFlag::All;
-		// D3D12 requires a layout-compatible AccessBefore
-		nativeBarrier.SourceAccess = GpuAccessFlag::Read | GpuAccessFlag::Write;
+		if(!precedingBarrierDestinationScope.IsValid())
+		{
+			// A first-use layout barrier is recorded before the tracker records its consuming access. Its destination is
+			// consequently the exact scope that the submission prologue releases to.
+			precedingBarrierDestinationScope.Add(barrier.DestinationStages, barrier.DestinationAccess);
+		}
+
+		// D3D12 requires a defined LayoutBefore with non-NONE synchronization to carry compatible access. Translating
+		// the preceding destination through the old layout reproduces its native after scope exactly.
+		effectiveBarrier.SourceStages = precedingBarrierDestinationScope.GetStages();
+		effectiveBarrier.SourceAccess = precedingBarrierDestinationScope.GetAccess();
+		precedingBarrierDestinationStages = GpuStageFlag::None;
 	}
 
-	oldLayout = mBarriers.AddTextureBarrier(resource, range, nativeBarrier, oldLayout, newLayout, nativeOldLayout, nativeNewLayout, GetPrecedingBarrierDestinationStages(image, range));
+	oldLayout = mBarriers.AddTextureBarrier(resource, range, effectiveBarrier, oldLayout, newLayout, nativeOldLayout, nativeNewLayout, precedingBarrierDestinationStages);
 }
 
-void D3D12BarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
+void D3D12BarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
 {
 	D3D12BufferResource* const d3d12Buffer = static_cast<D3D12BufferResource*>(buffer);
 	D3D12BufferPage* const page = d3d12Buffer->GetPage();
@@ -78,24 +87,35 @@ void D3D12BarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const G
 GpuStageFlags D3D12BarrierHelper::GetPrecedingBarrierDestinationStages(IGpuBufferResource* buffer) const
 {
 	const GpuBufferTrackingState* const trackingState = mResourceTracker->FindBufferTrackingState(buffer);
-	return trackingState != nullptr && trackingState->HazardState != nullptr ? trackingState->HazardState->LastBarrier.DestinationStages : GpuStageFlag::None;
-}
-
-GpuStageFlags D3D12BarrierHelper::GetPrecedingBarrierDestinationStages(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
-{
-	if(mResourceTracker->FindImageTrackingState(image) == nullptr)
+	if(trackingState == nullptr || trackingState->HazardState == nullptr)
 		return GpuStageFlag::None;
 
-	GpuStageFlags destinationStages = GpuStageFlag::None;
+	const GpuResourceHazardState& hazardState = *trackingState->HazardState;
+	if(hazardState.LastBarrier.DestinationStages != GpuStageFlag::None)
+		return hazardState.LastBarrier.DestinationStages;
+
+	return hazardState.GetSubmissionBarrierAccessScope().GetStages();
+}
+
+GpuAccessScope D3D12BarrierHelper::GetPrecedingBarrierDestinationScope(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
+{
+	if(mResourceTracker->FindImageTrackingState(image) == nullptr)
+		return GpuAccessScope();
+
+	GpuAccessScope destinationScope;
 	for(const GpuImageSubresourceTrackingState& trackingState : mResourceTracker->GetSubresourceTrackingStatesForImage(image))
 	{
 		if(!GpuBackendUtility::RangeOverlaps(trackingState.Range, range) || trackingState.HazardState == nullptr)
 			continue;
 
-		destinationStages |= trackingState.HazardState->LastBarrier.DestinationStages;
+		const GpuResourceHazardState& hazardState = *trackingState.HazardState;
+		if(hazardState.LastBarrier.DestinationStages != GpuStageFlag::None)
+			destinationScope.Add(hazardState.LastBarrier.DestinationStages, hazardState.LastBarrier.DestinationAccess);
+		else
+			destinationScope.Add(hazardState.GetSubmissionBarrierAccessScope());
 	}
 
-	return destinationStages;
+	return destinationScope;
 }
 
 GpuStageFlags D3D12BarrierHelper::GetPrecedingBarrierDestinationStages(D3D12BufferPage& page) const

@@ -2743,10 +2743,7 @@ namespace b3d
 				if (resource == nullptr)
 					continue;
 
-				if (bufferBarrier.SourceUsage == GpuResourceUseFlag::Undefined)
-					mBarrierHelper.AddBufferBarrier(resource, bufferBarrier.DestinationUsage, bufferBarrier.DestinationAccess);
-				else
-					mBarrierHelper.AddBufferBarrier(resource, bufferBarrier.SourceUsage, bufferBarrier.SourceAccess, bufferBarrier.DestinationUsage, bufferBarrier.DestinationAccess);
+				mResourceTracker.TrackExplicitBufferBarrier(resource, bufferBarrier.DestinationUsage, bufferBarrier.DestinationAccess, mBarrierHelper);
 			}
 
 			for (const GpuTextureBarrier& textureBarrier : barriers.TextureBarriers)
@@ -2759,10 +2756,7 @@ namespace b3d
 				if (resource == nullptr)
 					continue;
 
-				if (textureBarrier.SourceUsage == GpuResourceUseFlag::Undefined)
-					mBarrierHelper.AddImageBarrier(resource, textureBarrier.SubresourceRange, textureBarrier.DestinationUsage, textureBarrier.DestinationAccess, textureBarrier.DestinationLayout);
-				else
-					mBarrierHelper.AddImageBarrier(resource, textureBarrier.SubresourceRange, textureBarrier.SourceUsage, textureBarrier.SourceAccess, textureBarrier.DestinationUsage, textureBarrier.DestinationAccess, textureBarrier.SourceLayout, textureBarrier.DestinationLayout);
+				mResourceTracker.TrackExplicitImageBarrier(resource, textureBarrier.SubresourceRange, textureBarrier.DestinationUsage, textureBarrier.DestinationAccess, textureBarrier.DestinationLayout, mBarrierHelper);
 			}
 
 			// Metal has no framebuffer object to resolve a surface mask against here. In explicit mode

@@ -227,20 +227,17 @@ namespace b3d
 			bool mIsDestroyed = false;
 		};
 
-		/** Describes common fields for both buffer and texture barriers. See GpuCommandBuffer::IssueBarrier. */
+		/**
+		 * Describes common fields for both buffer and texture barriers. The source scope is derived from tracked resource
+		 * state. See GpuCommandBuffer::IssueBarrier.
+		 */
 		struct GpuBarrier
 		{
 			GpuBarrier(GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
-				: SourceUsage(GpuResourceUseFlag::Undefined), SourceAccess(GpuAccessFlag::None), DestinationUsage(destinationUsage), DestinationAccess(destinationAccess)
+				: DestinationUsage(destinationUsage), DestinationAccess(destinationAccess)
 			{ }
 
-			GpuBarrier(GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
-				: SourceUsage(sourceUsage), SourceAccess(sourceAccess), DestinationUsage(destinationUsage), DestinationAccess(destinationAccess)
-			{ }
-
-			GpuResourceUseFlags SourceUsage; /**< Determines how was resource used before the barrier. Barrier will only work for provided accesses. If undefined, source usage, access and layout is automatically deduced based on current buffer use. */
-			GpuAccessFlags SourceAccess; /**< Determines if the resource was read or written before the barrier. */
-			GpuResourceUseFlags DestinationUsage; /**< Determines how was resource will be used after the barrier. Barrier will only work for provided accesses. Images will transition to a layout compatible for this usage - incompatible usages are not allowed. */
+			GpuResourceUseFlags DestinationUsage; /**< Determines how the resource will be used after the barrier. Images will transition to a layout compatible with this usage. */
 			GpuAccessFlags DestinationAccess; /**< Determines if the resource will be read or written after the barrier. */
 		};
 
@@ -249,10 +246,6 @@ namespace b3d
 		{
 			GpuBufferBarrier(const TShared<GpuBuffer>& object, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
 				: GpuBarrier(destinationUsage, destinationAccess), Object(object)
-			{ }
-
-			GpuBufferBarrier(const TShared<GpuBuffer>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
-				: GpuBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess), Object(object)
 			{ }
 
 			TShared<GpuBuffer> Object;
@@ -266,22 +259,11 @@ namespace b3d
 			{ }
 
 			GpuSurfaceBarrier(GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess,
-				GpuImageLayout sourceLayout, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: GpuBarrier(destinationUsage, destinationAccess), SubresourceRange(subResourceRange), SourceLayout(sourceLayout), DestinationLayout(destinationLayout)
-			{ }
-
-			GpuSurfaceBarrier(GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
-				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: GpuBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess), SubresourceRange(subResourceRange)
-			{ }
-
-			GpuSurfaceBarrier(GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess,
-				GpuImageLayout sourceLayout, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: GpuBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess), SubresourceRange(subResourceRange), SourceLayout(sourceLayout), DestinationLayout(destinationLayout)
+				GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
+				: GpuBarrier(destinationUsage, destinationAccess), SubresourceRange(subResourceRange), DestinationLayout(destinationLayout)
 			{ }
 
 			GpuTextureSubresourceRange SubresourceRange; /**< Subresources (mips, array levels) of the textures to apply the barrier to. */
-			GpuImageLayout SourceLayout = GpuImageLayout::Undefined; /**< Source image layout. If usage is set to undefined, layout is determined from the current usage of the texture object, otherwise it must be provided. */
 			GpuImageLayout DestinationLayout = GpuImageLayout::Undefined; /**< Destination image layout. If set to Undefined, no layout transition will be performed. */
 		};
 
@@ -293,23 +275,13 @@ namespace b3d
 			{ }
 
 			GpuTextureBarrier(const TShared<Texture>& object, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess,
-				GpuImageLayout sourceLayout, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: GpuSurfaceBarrier(destinationUsage, destinationAccess, sourceLayout, destinationLayout, subResourceRange), Object(object)
-			{ }
-
-			GpuTextureBarrier(const TShared<Texture>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
-				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, subResourceRange), Object(object)
-			{ }
-
-			GpuTextureBarrier(const TShared<Texture>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess,
-				GpuImageLayout sourceLayout, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, sourceLayout, destinationLayout, subResourceRange), Object(object)
+				GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& subResourceRange = GpuTextureSubresourceRange::AllSubresources())
+				: GpuSurfaceBarrier(destinationUsage, destinationAccess, destinationLayout, subResourceRange), Object(object)
 			{ }
 
 			TShared<Texture> Object;
 		};
-/**
+		/**
 		 * Describes a barrier for a RenderTarget.
 		 *
 		 * This is functionally equivalent to specifying GpuTextureBarrier on the color or depth/stencil textures of the
@@ -326,18 +298,8 @@ namespace b3d
 			{ }
 
 			GpuRenderTargetBarrier(const TShared<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask,
-				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout sourceLayout, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: GpuSurfaceBarrier(destinationUsage, destinationAccess, sourceLayout, destinationLayout, subresourceRange), Object(object), SurfaceMask(surfaceMask)
-			{ }
-
-			GpuRenderTargetBarrier(const TShared<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
-				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, subresourceRange), Object(object), SurfaceMask(surfaceMask)
-			{ }
-
-			GpuRenderTargetBarrier(const TShared<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess,
-				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout sourceLayout, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
-				: GpuSurfaceBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess, sourceLayout, destinationLayout, subresourceRange), Object(object), SurfaceMask(surfaceMask)
+				GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
+				: GpuSurfaceBarrier(destinationUsage, destinationAccess, destinationLayout, subresourceRange), Object(object), SurfaceMask(surfaceMask)
 			{ }
 
 			TShared<RenderTarget> Object;

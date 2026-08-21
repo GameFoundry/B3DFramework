@@ -113,7 +113,7 @@ namespace b3d
 		 * Tracker for all resources used on a single command buffer. Keeps bound resources alive while they are bound on the 
 		 * command buffer, keeps track of necessary barriers and layout transitions that need to be issued.
 		 *
-		 * @tparam	TBarrierHelper	Backend-specific barrier helper. Must expose AddBufferBarrier / AddSubresourceBarrier.
+		 * @tparam	TBarrierHelper	Backend-specific barrier helper used to queue resolved native barriers.
 		 *							After barriers are issued, the barrier helper must notify the resource tracker via the
 		 *							Update*TrackingAfterBarrier() methods and finally call CommitPendingHazardRegistrations().
 		 */
@@ -147,6 +147,18 @@ namespace b3d
 			 * @param	barrierHelper		If there are any necessary layout transitions or memory barriers before the buffer can be used they will be recorded into the provided object.
 			 */
 			void TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
+
+			/**
+			 * Tracks an explicit buffer barrier. Its source scope is derived from previous command-buffer accesses. A barrier
+			 * before the first access becomes a submission-entry requirement instead of a native command-list barrier.
+			 */
+			void TrackExplicitBufferBarrier(IGpuBufferResource* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper);
+
+			/**
+			 * Tracks an explicit image barrier. The tracker partitions @p subresourceRange and derives each source scope and
+			 * layout. A barrier before the first access becomes a submission-entry requirement.
+			 */
+			void TrackExplicitImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper);
 
 			/** Lets the tracker know that the provided swap chain will be queued on the associated command buffer. */
 			void TrackSwapChainUsage(IGpuSwapChainResource* swapChain);
@@ -249,6 +261,12 @@ namespace b3d
 		private:
 			/** Creates a new tracking state for the buffer (if this is the first time the buffer has been used on the command buffer), or returns existing tracking state. */
 			GpuBufferTrackingState& GetOrCreateBufferTrackingState(IGpuBufferResource* buffer);
+
+			/** Determines if a barrier is required for the provided destination usage/access, and if so queues a barrier in the barrier helper, to be executed before the next buffer access. */
+			void ResolveAndQueueBufferBarrier(IGpuBufferResource* buffer, const GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper);
+
+			/** Determines if a barrier is required for the provided destination usage/access, and if so queues a barrier in the barrier helper, to be executed before the next image subresource access. */
+			void ResolveAndQueueImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper);
 
 			/** Creates a new tracking state for the image (if this is the first time the image has been used on the command buffer), or returns existing tracking state. */
 			GpuImageTrackingState& GetOrCreateImageTrackingState(IGpuImageResource* image);

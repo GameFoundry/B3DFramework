@@ -214,13 +214,13 @@ VulkanBarrierHelper::VulkanBarrierHelper(VulkanResourceTracker* resourceTracker)
 	: TGpuBarrierHelper<VulkanBarrierHelper>(resourceTracker)
 { }
 
-void VulkanBarrierHelper::RecordBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
+void VulkanBarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
 {
 	const VkBuffer bufferHandle = static_cast<VulkanBuffer*>(buffer)->GetVulkanHandle();
 	mBarrierBatch.AddBufferBarrier(bufferHandle, barrier);
 }
 
-void VulkanBarrierHelper::RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout)
+void VulkanBarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout)
 {
 	const VkImage imageHandle = static_cast<VulkanImage*>(image)->GetVulkanHandle();
 	const VkImageLayout vkOldLayout = VulkanUtility::ToVkImageLayout(oldLayout);

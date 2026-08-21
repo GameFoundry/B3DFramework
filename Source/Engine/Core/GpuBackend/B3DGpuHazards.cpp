@@ -20,43 +20,39 @@ namespace
 		WriteEpochTransition result;
 
 		GpuResourceWriteEpochHazardState remainingWriteEpochHazardState = sourceWriteEpochHazardState;
-		for(const GpuBarrierScope& leadingBarrier : destinationHazardState.LeadingBarriers)
-			remainingWriteEpochHazardState.RecordBarrier(leadingBarrier);
+		const GpuAccessScope submissionBarrierAccessScope = destinationHazardState.GetSubmissionBarrierAccessScope();
+		if(submissionBarrierAccessScope.ReadStages != GpuStageFlag::None) // RAW
+			result.MemoryBarrier = sourceWriteEpochHazardState.GetRequiredBarrier(submissionBarrierAccessScope.ReadStages, GpuAccessFlag::Read);
 
-		const GpuResourceWriteEpochHazardState boundaryWriteEpochHazardState = remainingWriteEpochHazardState;
-		if(destinationHazardState.EntryReadStages != GpuStageFlag::None) // RAW
-			result.MemoryBarrier = boundaryWriteEpochHazardState.GetRequiredBarrier(destinationHazardState.EntryReadStages, GpuAccessFlag::Read);
-
-		if(destinationHazardState.HasWrite())
+		if(submissionBarrierAccessScope.WriteStages != GpuStageFlag::None)
 		{
 			// WAW
-			if(boundaryWriteEpochHazardState.WriteStages != GpuStageFlag::None)
+			if(sourceWriteEpochHazardState.WriteStages != GpuStageFlag::None)
 			{
-				result.MemoryBarrier.SourceStages |= boundaryWriteEpochHazardState.WriteStages;
+				result.MemoryBarrier.SourceStages |= sourceWriteEpochHazardState.WriteStages;
 				result.MemoryBarrier.SourceAccess |= GpuAccessFlag::Write;
-				result.MemoryBarrier.DestinationStages |= destinationHazardState.FirstWriteStages;
-				result.MemoryBarrier.DestinationAccess |= destinationHazardState.FirstWriteAccess;
+				result.MemoryBarrier.DestinationStages |= submissionBarrierAccessScope.WriteStages;
+				result.MemoryBarrier.DestinationAccess |= submissionBarrierAccessScope.GetAccess(submissionBarrierAccessScope.WriteStages);
 			}
 
 			// WAR
-			if(boundaryWriteEpochHazardState.ReaderStages != GpuStageFlag::None)
+			if(sourceWriteEpochHazardState.ReaderStages != GpuStageFlag::None)
 			{
-				result.ExecutionBarrier.SourceStages = boundaryWriteEpochHazardState.ReaderStages;
+				result.ExecutionBarrier.SourceStages = sourceWriteEpochHazardState.ReaderStages;
 				result.ExecutionBarrier.SourceAccess = GpuAccessFlag::Read;
-				result.ExecutionBarrier.DestinationStages = destinationHazardState.FirstWriteStages;
-				result.ExecutionBarrier.DestinationAccess = destinationHazardState.FirstWriteAccess;
+				result.ExecutionBarrier.DestinationStages = submissionBarrierAccessScope.WriteStages;
+				result.ExecutionBarrier.DestinationAccess = submissionBarrierAccessScope.GetAccess(submissionBarrierAccessScope.WriteStages);
 			}
 		}
+
+		remainingWriteEpochHazardState.RecordBarrier(result.MemoryBarrier);
 
 		if(destinationHazardState.HasWrite())
 			result.RemainingWriteEpochHazardState = destinationHazardState.LastWriteEpochHazardState;
 		else
 		{
 			if(destinationHazardState.EntryReadStages != GpuStageFlag::None)
-			{
-				remainingWriteEpochHazardState.RecordBarrier(result.MemoryBarrier);
 				remainingWriteEpochHazardState.RecordAccess(destinationHazardState.EntryReadStages, GpuAccessFlag::Read);
-			}
 
 			result.RemainingWriteEpochHazardState = remainingWriteEpochHazardState;
 		}
@@ -150,41 +146,56 @@ void GpuResourceHazardState::RecordAccess(GpuStageFlags stages, GpuAccessFlags a
 
 void GpuResourceHazardState::RecordBarrier(const GpuBarrierScope& barrier)
 {
-	if(!HasAccess() && barrier.IsValid())
-		LeadingBarriers.Add(barrier);
-
 	LastWriteEpochHazardState.RecordBarrier(barrier);
 	LastBarrier = barrier;
 }
 
-GpuAccessScope GpuResourceHazardState::GetFirstAccessScope() const
+void GpuResourceHazardState::RecordLeadingBarrier(GpuStageFlags destinationStages, GpuAccessFlags destinationAccess)
+{
+	if(!LeadingBarrierAccessScope.has_value())
+		LeadingBarrierAccessScope = GpuAccessScope();
+
+	LeadingBarrierAccessScope->Add(destinationStages, destinationAccess);
+}
+
+GpuAccessScope GpuResourceHazardState::GetSubmissionBarrierAccessScope() const
 {
 	GpuAccessScope scope;
 	if(EntryReadStages != GpuStageFlag::None)
 		scope.Add(EntryReadStages, GpuAccessFlag::Read);
-	else if(HasWrite())
+
+	if(HasWrite())
 		scope.Add(FirstWriteStages, FirstWriteAccess);
+
+	if(LeadingBarrierAccessScope.has_value())
+		scope.Add(*LeadingBarrierAccessScope);
 
 	return scope;
 }
 
-GpuSubmissionTransition::GpuSubmissionTransition(IGpuResource& stateResource, const GpuAccessScope& destinationFirstAccessScope, const GpuAccessScope& destinationAllAccessScope)
-	: StateResource(&stateResource), DestinationFirstAccessScope(destinationFirstAccessScope), DestinationAllAccessScope(destinationAllAccessScope)
+GpuSubmissionTransition::GpuSubmissionTransition(IGpuResource& stateResource, const GpuAccessScope& submissionBarrierAccessScope, const GpuAccessScope& destinationAllAccessScope)
+	: StateResource(&stateResource), SubmissionBarrierAccessScope(submissionBarrierAccessScope), DestinationAllAccessScope(destinationAllAccessScope)
 { }
 
 GpuSubmissionTransition GpuSubmissionTransition::Build(IGpuResource& stateResource, GpuQueueId destinationQueueId, const GpuResourceHazardState& destinationHazardState)
 {
 	const GpuResourceSubmissionState& sourceState = stateResource.GetSubmissionState();
 	const GpuAccessScope& destinationAllAccessScope = destinationHazardState.AllAccessScope;
-	const bool destinationReads = destinationAllAccessScope.ReadStages != GpuStageFlag::None;
-	const bool destinationWrites = destinationAllAccessScope.WriteStages != GpuStageFlag::None;
+	GpuAccessScope destinationSynchronizationScope = destinationAllAccessScope;
+	if(destinationHazardState.LeadingBarrierAccessScope.has_value())
+		destinationSynchronizationScope.Add(*destinationHazardState.LeadingBarrierAccessScope);
+
+	const bool synchronizeForReads = destinationSynchronizationScope.ReadStages != GpuStageFlag::None;
+	const bool synchronizeForWrites = destinationSynchronizationScope.WriteStages != GpuStageFlag::None;
+	const bool performsReads = destinationAllAccessScope.ReadStages != GpuStageFlag::None;
+	const bool performsWrites = destinationAllAccessScope.WriteStages != GpuStageFlag::None;
 	const GpuQueueMask destinationQueueMask(destinationQueueId);
 
 	// Backends must preserve a waitable progress point for the latest submission on every queue. Cross-queue dependencies remain
 	// required after the source submission completes because its memory dependency must still be acquired by a destination queue.
 	const GpuQueueMask activeReaderQueues = sourceState.ReaderQueues & stateResource.GetUseInfo(GpuAccessFlag::Read);
 
-	GpuSubmissionTransition transition(stateResource, destinationHazardState.GetFirstAccessScope(), destinationAllAccessScope);
+	GpuSubmissionTransition transition(stateResource, destinationHazardState.GetSubmissionBarrierAccessScope(), destinationAllAccessScope);
 	transition.PostTransitionSubmissionState = sourceState;
 	transition.SourceAccessScope = sourceState.GetUnsafeAccessScope();
 
@@ -196,7 +207,7 @@ GpuSubmissionTransition GpuSubmissionTransition::Build(IGpuResource& stateResour
 
 	// Full per-stage hazards are only retained for the writer queue. If this queue has outstanding reads and now writes,
 	// patch the same-queue state with the conservative reader-stage union carried by the submission state.
-	if(destinationWrites && activeReaderQueues.IsSet(destinationQueueId))
+	if(synchronizeForWrites && activeReaderQueues.IsSet(destinationQueueId))
 		sameQueueWriteEpochHazardState.ReaderStages |= sourceState.ReaderStages;
 
 	const WriteEpochTransition writeEpochTransition = BuildWriteEpochTransition(sameQueueWriteEpochHazardState, destinationHazardState);
@@ -216,14 +227,14 @@ GpuSubmissionTransition GpuSubmissionTransition::Build(IGpuResource& stateResour
 		transition.ExclusiveAccessWaitMask |= sourceState.WriterQueueId;
 
 	// Ordinary access: If destination is writer we need to wait on all readers, if destination is reader we need to wait on the writer.
-	if(destinationWrites)
+	if(synchronizeForWrites)
 		transition.ParallelAccessWaitMask = transition.ExclusiveAccessWaitMask;
-	else if(destinationReads && sourceState.HasWriter && sourceState.WriterQueueId.Id != destinationQueueId.Id && !sourceState.AcquiredQueues.IsSet(destinationQueueId))
+	else if(synchronizeForReads && sourceState.HasWriter && sourceState.WriterQueueId.Id != destinationQueueId.Id && !sourceState.AcquiredQueues.IsSet(destinationQueueId))
 	{
 		transition.ParallelAccessWaitMask |= sourceState.WriterQueueId;
 	}
 
-	if(destinationWrites)
+	if(performsWrites)
 	{
 		transition.PostTransitionSubmissionState = GpuResourceSubmissionState();
 		transition.PostTransitionSubmissionState.WriterHazards = destinationHazardState.LastWriteEpochHazardState;
@@ -236,10 +247,10 @@ GpuSubmissionTransition GpuSubmissionTransition::Build(IGpuResource& stateResour
 		if(sourceState.HasWriter && sourceState.WriterQueueId.Id == destinationQueueId.Id)
 			transition.PostTransitionSubmissionState.WriterHazards = writeEpochTransition.RemainingWriteEpochHazardState;
 
-		if(sourceState.HasWriter && destinationReads)
+		if(sourceState.HasWriter && performsReads)
 			transition.PostTransitionSubmissionState.AcquiredQueues |= destinationQueueId;
 
-		if(destinationReads)
+		if(performsReads)
 		{
 			transition.PostTransitionSubmissionState.ReaderQueues |= destinationQueueId;
 			transition.PostTransitionSubmissionState.ReaderStages |= destinationAllAccessScope.ReadStages;

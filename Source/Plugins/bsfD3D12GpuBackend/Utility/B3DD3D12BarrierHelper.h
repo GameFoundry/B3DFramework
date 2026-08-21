@@ -31,16 +31,16 @@ namespace b3d::render
 		friend class D3D12ResourceTracker;
 
 		/** Adds a native barrier for the resource backing @p buffer. */
-		void RecordBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
+		void RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
 
 		/** Adds a native transition for one logical image range. */
-		void RecordSubresourceBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout);
+		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout);
 
 		/** Returns the destination stages of the preceding barrier recorded for @p buffer. */
 		GpuStageFlags GetPrecedingBarrierDestinationStages(IGpuBufferResource* buffer) const;
 
-		/** Returns the combined destination stages of preceding barriers for tracked image partitions overlapping @p subresourceRange. */
-		GpuStageFlags GetPrecedingBarrierDestinationStages(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange) const;
+		/** Returns the combined destination scope of preceding barriers for tracked image partitions overlapping @p subresourceRange. */
+		GpuAccessScope GetPrecedingBarrierDestinationScope(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange) const;
 
 		/** Returns the destination stages of the preceding physical barrier recorded for @p page. */
 		GpuStageFlags GetPrecedingBarrierDestinationStages(D3D12BufferPage& page) const;

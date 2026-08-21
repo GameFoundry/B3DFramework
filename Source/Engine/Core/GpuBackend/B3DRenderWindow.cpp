@@ -298,7 +298,7 @@ TAsyncOp<TShared<PixelData>> RenderWindow::ReadAsync(GpuWorkContext& gpuContext,
 	if(!mCreateInformation.Headless && readOp != nullptr)
 	{
 		const TShared<RenderTarget> renderTarget = std::static_pointer_cast<RenderTarget>(GetShared());
-		const GpuRenderTargetBarrier presentBarrier(renderTarget, RT_COLOR0, GpuResourceUseFlag::Undefined, GpuAccessFlag::None, GpuImageLayout::Undefined, GpuImageLayout::Present);
+		const GpuRenderTargetBarrier presentBarrier(renderTarget, RT_COLOR0, GpuResourceUseFlag::Undefined, GpuAccessFlag::None, GpuImageLayout::Present);
 		commandBuffer.IssueBarriers(GpuBarriers(presentBarrier));
 	}
 
