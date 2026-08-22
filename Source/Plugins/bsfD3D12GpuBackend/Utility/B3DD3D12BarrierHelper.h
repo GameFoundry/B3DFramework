@@ -39,8 +39,8 @@ namespace b3d::render
 		/** Returns the destination stages of the preceding barrier recorded for @p buffer. */
 		GpuStageFlags GetPrecedingBarrierDestinationStages(IGpuBufferResource* buffer) const;
 
-		/** Returns the combined destination scope of preceding barriers for tracked image partitions overlapping @p subresourceRange. */
-		GpuAccessScope GetPrecedingBarrierDestinationScope(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange) const;
+		/** Returns the combined destination stages of preceding barriers for tracked image partitions overlapping @p subresourceRange. */
+		GpuStageFlags GetPrecedingBarrierDestinationStages(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange) const;
 
 		/** Returns the destination stages of the preceding physical barrier recorded for @p page. */
 		GpuStageFlags GetPrecedingBarrierDestinationStages(D3D12BufferPage& page) const;

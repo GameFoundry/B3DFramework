@@ -260,18 +260,14 @@ void TGpuResourceTracker<TBarrierHelper>::ResolveAndQueueImageBarrier(IGpuImageR
 
 	const GpuStageFlags destinationStages = GpuBackendUtility::GetStageFlags(destinationUsage);
 	const bool needsLayoutTransition = subresourceTrackingState.CurrentLayout != destinationLayout;
-	if(!subresourceTrackingState.HazardState->HasAccess() && subresourceTrackingState.HazardState->HasLeadingBarrier())
+	if(subresourceTrackingState.Access == GpuAccessFlag::None)
 	{
-		// If a leading barrier has set a layout, and nothing else is accessing the subresource yet, we just override its layout.
-		// Alternatively, if we wanted to respect the user's explicit layout, we could just log an error here and let it fail.
 		if(needsLayoutTransition)
 		{
 			subresourceTrackingState.InitialLayout = destinationLayout;
 			subresourceTrackingState.CurrentLayout = destinationLayout;
 			subresourceTrackingState.RequiredLayout = destinationLayout;
 		}
-
-		// Access/usage scope gets folded slightly differently, see GpuResourceHazardState::GetSubmissionBarrierAccessScope
 
 		return;
 	}
@@ -735,6 +731,18 @@ u32 TGpuResourceTracker<TBarrierHelper>::CopySubresourceTrackingStateWithNewRang
 
 	if(B3D_ENSURE(copyFromSubresource->HazardState != nullptr))
 		*subresourceCopy.HazardState = *copyFromSubresource->HazardState;
+
+	// Deferred accesses cover the source range and must remain associated with every partition created from it.
+	const u32 pendingHazardRegistrationCount = (u32)mPendingHazardRegistrations.size();
+	for(u32 registrationIndex = 0; registrationIndex < pendingHazardRegistrationCount; registrationIndex++)
+	{
+		if(mPendingHazardRegistrations[registrationIndex].State != copyFromSubresource->HazardState)
+			continue;
+
+		PendingHazardRegistration registrationCopy = mPendingHazardRegistrations[registrationIndex];
+		registrationCopy.State = subresourceCopy.HazardState;
+		mPendingHazardRegistrations.push_back(registrationCopy);
+	}
 
 	const u32 newSubresourceIndex = (u32)mSubresourceTrackingState.size();
 	if(copyFromSubresource->ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))

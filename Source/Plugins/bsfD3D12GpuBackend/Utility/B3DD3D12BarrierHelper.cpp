@@ -30,27 +30,11 @@ void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, cons
 	if(!B3D_ENSURE_LOG(mQueueType != GQT_TRANSFER || (nativeOldLayout == D3D12TextureLayout::Common() && nativeNewLayout == D3D12TextureLayout::Common()), "D3D12 copy queues cannot record texture layout transitions."))
 		return;
 
-	// TODO - Everything below this point is incomprehensible and needs to be reworked
-	GpuAccessScope precedingBarrierDestinationScope = GetPrecedingBarrierDestinationScope(image, range);
-	GpuBarrierScope effectiveBarrier = barrier;
-	GpuStageFlags precedingBarrierDestinationStages = precedingBarrierDestinationScope.GetStages();
-	if(!barrier.SourceAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write) && oldLayout != GpuImageLayout::Undefined)
-	{
-		if(!precedingBarrierDestinationScope.IsValid())
-		{
-			// A first-use layout barrier is recorded before the tracker records its consuming access. Its destination is
-			// consequently the exact scope that the submission prologue releases to.
-			precedingBarrierDestinationScope.Add(barrier.DestinationStages, barrier.DestinationAccess);
-		}
+	// If it a texture has a layout, it must have an access scope
+	B3D_ASSERT(oldLayout == GpuImageLayout::Undefined || barrier.SourceAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write));
 
-		// D3D12 requires a defined LayoutBefore with non-NONE synchronization to carry compatible access. Translating
-		// the preceding destination through the old layout reproduces its native after scope exactly.
-		effectiveBarrier.SourceStages = precedingBarrierDestinationScope.GetStages();
-		effectiveBarrier.SourceAccess = precedingBarrierDestinationScope.GetAccess();
-		precedingBarrierDestinationStages = GpuStageFlag::None;
-	}
-
-	oldLayout = mBarriers.AddTextureBarrier(resource, range, effectiveBarrier, oldLayout, newLayout, nativeOldLayout, nativeNewLayout, precedingBarrierDestinationStages);
+	const GpuStageFlags precedingBarrierDestinationStages = GetPrecedingBarrierDestinationStages(image, range);
+	oldLayout = mBarriers.AddTextureBarrier(resource, range, barrier, oldLayout, newLayout, nativeOldLayout, nativeNewLayout, precedingBarrierDestinationStages);
 }
 
 void D3D12BarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
@@ -97,12 +81,12 @@ GpuStageFlags D3D12BarrierHelper::GetPrecedingBarrierDestinationStages(IGpuBuffe
 	return hazardState.GetSubmissionBarrierAccessScope().GetStages();
 }
 
-GpuAccessScope D3D12BarrierHelper::GetPrecedingBarrierDestinationScope(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
+GpuStageFlags D3D12BarrierHelper::GetPrecedingBarrierDestinationStages(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
 {
 	if(mResourceTracker->FindImageTrackingState(image) == nullptr)
-		return GpuAccessScope();
+		return GpuStageFlag::None;
 
-	GpuAccessScope destinationScope;
+	GpuStageFlags destinationStages = GpuStageFlag::None;
 	for(const GpuImageSubresourceTrackingState& trackingState : mResourceTracker->GetSubresourceTrackingStatesForImage(image))
 	{
 		if(!GpuBackendUtility::RangeOverlaps(trackingState.Range, range) || trackingState.HazardState == nullptr)
@@ -110,12 +94,12 @@ GpuAccessScope D3D12BarrierHelper::GetPrecedingBarrierDestinationScope(IGpuImage
 
 		const GpuResourceHazardState& hazardState = *trackingState.HazardState;
 		if(hazardState.LastBarrier.DestinationStages != GpuStageFlag::None)
-			destinationScope.Add(hazardState.LastBarrier.DestinationStages, hazardState.LastBarrier.DestinationAccess);
+			destinationStages |= hazardState.LastBarrier.DestinationStages;
 		else
-			destinationScope.Add(hazardState.GetSubmissionBarrierAccessScope());
+			destinationStages |= hazardState.GetSubmissionBarrierAccessScope().GetStages();
 	}
 
-	return destinationScope;
+	return destinationStages;
 }
 
 GpuStageFlags D3D12BarrierHelper::GetPrecedingBarrierDestinationStages(D3D12BufferPage& page) const
