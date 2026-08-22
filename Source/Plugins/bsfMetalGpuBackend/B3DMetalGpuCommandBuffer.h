@@ -102,7 +102,7 @@ namespace b3d
 			 */
 			void NotifyParentPoolReset();
 
-			void Cleanup() override;
+			void ClearRecordingState() override;
 			void Destroy() override;
 
 #ifdef __OBJC__
@@ -290,7 +290,7 @@ namespace b3d
 			TShared<MetalGpuQueryPool> mActiveOcclusionQueryPool;
 
 			// Id of the queue this command buffer was last submitted on. Recorded in CommitInternal at
-			// the same point the resource tracker is notified of use, and consumed by Cleanup() to route
+			// the same point the resource tracker is notified of use, and consumed by ClearRecordingState() to route
 			// the tracker's completion notification (NotifyDone) to the correct queue. Mirrors
 			// VulkanGpuCommandBuffer::mSubmittedQueueId.
 			GpuQueueId mSubmittedQueueId;

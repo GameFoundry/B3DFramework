@@ -772,7 +772,7 @@ namespace b3d
 			 * - Queue sync mask reset
 			 * - Event clearing (OnDidComplete, OnDestroyed)
 			 */
-			virtual void Cleanup() {}
+			virtual void ClearRecordingState() {}
 
 			/** Destroys command buffer. Command buffer must not be used after this is called. */
 			virtual void Destroy() { mIsDestroyed = true; }

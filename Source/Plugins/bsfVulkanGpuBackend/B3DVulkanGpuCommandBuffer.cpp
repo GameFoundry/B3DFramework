@@ -1518,7 +1518,7 @@ void VulkanGpuCommandBuffer::Destroy()
 	GpuCommandBuffer::Destroy();
 }
 
-void VulkanGpuCommandBuffer::Cleanup()
+void VulkanGpuCommandBuffer::ClearRecordingState()
 {
 	const bool wasSubmitted = mState == GpuCommandBufferState::Executing || mState == GpuCommandBufferState::Done;
 
@@ -1540,7 +1540,7 @@ void VulkanGpuCommandBuffer::Cleanup()
 
 void VulkanGpuCommandBuffer::Reset()
 {
-	Cleanup();
+	ClearRecordingState();
 
 	if(!mPool.GetUsePoolReset())
 	{
@@ -1551,7 +1551,7 @@ void VulkanGpuCommandBuffer::Reset()
 
 void VulkanGpuCommandBuffer::NotifyParentPoolReset()
 {
-	Cleanup();
+	ClearRecordingState();
 	mState = GpuCommandBufferState::Ready;
 }
 

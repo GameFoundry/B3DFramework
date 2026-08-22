@@ -199,7 +199,7 @@ namespace b3d
 			/** Notifies the command buffer that the pool it was allocated from has been reset. */
 			void NotifyParentPoolReset();
 
-			void Cleanup() override;
+			void ClearRecordingState() override;
 			void Destroy() override;
 
 			/************************************************************************/
