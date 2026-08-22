@@ -3,6 +3,7 @@
 #include "Extensions/B3DTextureEx.h"
 
 #include "Generated/B3DScriptPixelData.generated.h"
+#include "Image/B3DPixelUtility.h"
 
 using namespace b3d;
 HTexture TextureEx::Create(PixelFormat format, u32 width, u32 height, u32 depth, TextureType texType, TextureUsageFlags usage, u32 numSamples, bool hasMipmaps, bool gammaCorrection)
