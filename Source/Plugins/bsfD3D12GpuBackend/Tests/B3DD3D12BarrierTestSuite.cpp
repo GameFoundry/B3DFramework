@@ -290,8 +290,8 @@ void D3D12BarrierTestSuite::TestTextureBarrierBatchMerging()
 	const GpuResourceUseFlags colorAttachmentUsage = GpuResourceUseFlag::ColorAttachment;
 	const GpuResourceUseFlags fragmentShaderUsage = GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader;
 	GpuBarriers sequentialBarriers;
-	sequentialBarriers.TextureBarriers.Add(GpuTextureBarrier(texture, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, colorAttachmentUsage, GpuAccessFlag::Write, GpuImageLayout::Undefined, GpuImageLayout::ColorAttachment, topMip));
-	sequentialBarriers.TextureBarriers.Add(GpuTextureBarrier(texture, colorAttachmentUsage, GpuAccessFlag::Write, fragmentShaderUsage, GpuAccessFlag::Read, GpuImageLayout::ColorAttachment, GpuImageLayout::ShaderReadOnly, topMip));
+	sequentialBarriers.TextureBarriers.Add(GpuTextureBarrier(texture, colorAttachmentUsage, GpuAccessFlag::Write, GpuImageLayout::ColorAttachment, topMip));
+	sequentialBarriers.TextureBarriers.Add(GpuTextureBarrier(texture, fragmentShaderUsage, GpuAccessFlag::Read, GpuImageLayout::ShaderReadOnly, topMip));
 
 	const TShared<GpuCommandBufferPool> graphicsPool = device->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
 	const TShared<GpuCommandBuffer> commandBuffer = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("D3D12 sequential texture barrier validation"));
@@ -662,9 +662,8 @@ void D3D12BarrierTestSuite::TestSubmissionBarrierChaining()
 	bufferWriteCommandBuffer->End();
 
 	const TShared<GpuCommandBuffer> leadingBarrierCommandBuffer = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("D3D12 chaining leading barrier"));
-	const GpuResourceUseFlags vertexShaderUse = GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageVertexShader;
 	const GpuResourceUseFlags fragmentShaderUse = GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader;
-	leadingBarrierCommandBuffer->IssueBarriers(GpuBarriers(GpuBufferBarrier(storageBuffer, vertexShaderUse, GpuAccessFlag::Write, fragmentShaderUse, GpuAccessFlag::Read)));
+	leadingBarrierCommandBuffer->IssueBarriers(GpuBarriers(GpuBufferBarrier(storageBuffer, fragmentShaderUse, GpuAccessFlag::Read)));
 	leadingBarrierCommandBuffer->CopyBufferToBuffer(storageBuffer, readbackBuffer, 0, 0, kBufferSize);
 	leadingBarrierCommandBuffer->End();
 
@@ -696,6 +695,8 @@ void D3D12BarrierTestSuite::TestSubmissionBarrierChaining()
 	textureWriteCommandBuffer->End();
 
 	const TShared<GpuCommandBuffer> textureChainCommandBuffer = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("D3D12 chaining texture reads and writes"));
+	textureChainCommandBuffer->IssueBarriers(GpuBarriers(GpuTextureBarrier(firstTexture, GpuResourceUseFlag::Transfer,
+		GpuAccessFlag::Read, GpuImageLayout::TransferSource)));
 	B3D_TEST_ASSERT(textureChainCommandBuffer->CopyTexture(firstTexture, destinationTexture))
 	B3D_TEST_ASSERT(textureChainCommandBuffer->CopyTexture(secondTexture, firstTexture))
 	textureChainCommandBuffer->End();

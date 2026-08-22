@@ -174,24 +174,20 @@ namespace b3d
 		 * Barriers can be placed into two categories depending where they are issued:
 		 *  - During command buffer recording - Barriers issued during recording depend exclusively on LastWriteEpochHazardState (and LastBarrier, for backends that require barrier chaining).  All other
 		 *	  state we keep is for the purpose of determining the submission barrier.
-		 *  - During command buffer submission - These barriers are issued in a specialized 'prelude' command buffer that will execute before the command buffer that recorded the resource access. We cannot
-		 *    issue these barriers during recording as at that time we do not know what command buffer will be submitted before it, and how will it use the same resources. The state tracking here generally
-		 *    boils down to 'how was the resource first used in this command buffer' and 'what is the last write-epoch hazard state at the end of this command buffer'. Additionally, user has the ability
-		 *    to issue explicit barriers before the first access of a resource, which is also tracked here. The submission barrier is determined by the combination of these three pieces of information.
+		 *  - During command buffer submission - These barriers are issued in a specialized 'prelude' command buffer that will execute before the command buffer that recorded the resource access. We call these 'submission barriers'.
+		 *    We cannot issue these barriers during recording as at that time we do not know what command buffer will be submitted before it, and how will it use the same resources. The state tracking here generally
+		 *    boils down to 'how was the resource first used in this command buffer'.
 		 * 
 		 */
 		struct B3D_EXPORT GpuResourceHazardState
 		{
-			GpuStageFlags EntryReadStages = GpuStageFlag::None; /**< Reads recorded before the first write. */
-			GpuStageFlags FirstWriteStages = GpuStageFlag::None; /**< Stages that the first write occurred on (should be just one). */
-			GpuAccessFlags FirstWriteAccess = GpuAccessFlag::None; /**< Access flags of the first access that writes. Can be just Write or Read+Write. */
-
+			GpuAccessScope AccessScopeBeforeFirstBarrier; /**< Accesses recorded before the first barrier. */
 			TOptional<GpuAccessScope> LeadingBarrierAccessScope; /**< Explicit barrier recorded before the first access, if any. */
 			GpuAccessScope AllAccessScope; /**< Accumulation of all accesses recorded in the tracking scope. Generally only used for cross-queue synchronization (answers the question does this command buffer read and/or write?). */
 			GpuResourceWriteEpochHazardState LastWriteEpochHazardState; /**< Last write-epoch hazard state in the recording scope. Updated during recording. After recording stores the last state. */
 			GpuBarrierScope LastBarrier; /**< Most recently recorded barrier in the command-buffer recording scope. Some backends require this for barrier chaining, for others it's unused. */
 
-			/** See GpuResourceWriteEpocHazardState::GetRequiredBarrier */
+			/** Determines the hazard and sequential-chain dependency required before an access. */
 			GpuBarrierScope GetRequiredBarrier(GpuStageFlags stages, GpuAccessFlags access, GpuStageFlags broadenedReadStages = GpuStageFlag::None) const;
 
 			/** Records that a resource was accessed on a particular stage. */
@@ -213,7 +209,7 @@ namespace b3d
 			bool HasSubmissionEffect() const { return HasAccess() || HasLeadingBarrier(); }
 
 			/** Returns true if the tracking scope writes the resource. */
-			bool HasWrite() const { return FirstWriteStages != GpuStageFlag::None; }
+			bool HasWrite() const { return AllAccessScope.WriteStages != GpuStageFlag::None; }
 
 			/** Returns the destination access scope required by the submission barrier, including any explicit leading barrier. */
 			GpuAccessScope GetSubmissionBarrierAccessScope() const;
