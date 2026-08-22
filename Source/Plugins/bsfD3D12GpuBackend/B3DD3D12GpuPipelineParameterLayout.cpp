@@ -17,7 +17,6 @@ D3D12GpuPipelineParameterSetLayout::D3D12GpuPipelineParameterSetLayout(const Gpu
 
 D3D12GpuPipelineParameterLayout::D3D12GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, D3D12GpuDevice& device) : GpuPipelineParameterLayout(device, createInformation), mDevice(device)
 {
-	MergeReflectedSetTables(createInformation);
 	CreateRootSignature();
 }
 
@@ -25,81 +24,6 @@ D3D12GpuPipelineParameterLayout::~D3D12GpuPipelineParameterLayout()
 {
 	if (mRootSignature != nullptr)
 		mRootSignature->Destroy();
-}
-
-void D3D12GpuPipelineParameterLayout::MergeReflectedSetTables(const GpuPipelineParameterLayoutCreateInformation& createInformation)
-{
-	// Locates the reflected table backing @p setIndex within a stage's resource-table layout: the child table referenced
-	// by a root-table SubTable entry whose set matches. Returns null when the stage does not reference the set.
-	auto fnFindSetTable = [](const GpuResourceTableLayout& layout, u32 setIndex) -> const GpuDescriptorTable*
-	{
-		if(layout.IsEmpty())
-			return nullptr;
-
-		for(const GpuDescriptorTableEntry& entry : layout.GetEntries(layout.GetRootTable()))
-		{
-			if(entry.Kind != GpuDescriptorEntryKind::SubTable)
-				continue;
-
-			if(layout.Tables[entry.TableIndex].Set == setIndex)
-				return &layout.Tables[entry.TableIndex];
-		}
-
-		return nullptr;
-	};
-
-	mReflectedSetEntries.resize(mSets.Size());
-	for(u32 setIndex = 0; setIndex < (u32)mSets.Size(); setIndex++)
-	{
-		Vector<GpuDescriptorTableEntry>& mergedEntries = mReflectedSetEntries[setIndex];
-		for(u32 programIndex = 0; programIndex < GPT_COUNT; programIndex++)
-		{
-			const TShared<GpuResourceTableLayout>& stageLayout = createInformation.ResourceTableLayouts[programIndex];
-			if(stageLayout == nullptr)
-				continue;
-
-			const GpuDescriptorTable* table = fnFindSetTable(*stageLayout, setIndex);
-			if(table == nullptr)
-				continue;
-
-			for(const GpuDescriptorTableEntry& entry : stageLayout->GetEntries(*table))
-			{
-				// D3D12 HLSL reflection only produces flat (Resource-only) set tables, see BuildResourceTableLayout()
-				if(entry.Kind != GpuDescriptorEntryKind::Resource)
-				{
-					B3D_LOG(Error, LogRenderBackend, "Unexpected nested descriptor table in reflected set {0}; entry ignored.", setIndex);
-					continue;
-				}
-
-				GpuDescriptorTableEntry* existingEntry = nullptr;
-				for(GpuDescriptorTableEntry& mergedEntry : mergedEntries)
-				{
-					if(mergedEntry.Slot == entry.Slot)
-					{
-						existingEntry = &mergedEntry;
-						break;
-					}
-				}
-
-				if(existingEntry == nullptr)
-				{
-					mergedEntries.push_back(entry);
-				}
-#if B3D_BUILD_TYPE_DEVELOPMENT
-				else if(*existingEntry != entry)
-				{
-					B3D_LOG(Error, LogRenderBackend, "GPU program stages disagree on the descriptor-table entry at slot {0} of set {1}; "
-						"parameter binding will be incorrect for at least one stage.", entry.Slot, setIndex);
-				}
-#endif
-			}
-		}
-
-		std::sort(mergedEntries.begin(), mergedEntries.end(), [](const GpuDescriptorTableEntry& lhs, const GpuDescriptorTableEntry& rhs)
-		{
-			return lhs.Slot < rhs.Slot;
-		});
-	}
 }
 
 void D3D12GpuPipelineParameterLayout::CreateRootSignature()
