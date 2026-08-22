@@ -131,27 +131,7 @@ void GpuResourceWriteEpochHazardState::RecordBarrier(const GpuBarrierScope& barr
 
 GpuBarrierScope GpuResourceHazardState::GetRequiredBarrier(GpuStageFlags stages, GpuAccessFlags access, GpuStageFlags broadenedReadStages) const
 {
-	GpuBarrierScope barrier = LastWriteEpochHazardState.GetRequiredBarrier(stages, access, broadenedReadStages);
-	if(LastBarrier.DestinationStages == GpuStageFlag::None)
-		return barrier;
-
-	if(barrier.IsValid())
-	{
-		// Chain the two barriers together. The destination of the last barrier is the source of the next barrier. Some backends (D3D12) require this.
-		barrier.SourceStages |= LastBarrier.DestinationStages;
-		return barrier;
-	}
-
-	// Even if no barrier is required for hazards, we need to issue one to maintain a chain
-	const GpuStageFlags unchainedStages = stages & ~LastBarrier.DestinationStages;
-	if(unchainedStages == GpuStageFlag::None)
-		return barrier;
-
-	barrier.SourceStages = LastBarrier.DestinationStages;
-	barrier.SourceAccess = LastBarrier.DestinationAccess;
-	barrier.DestinationStages = unchainedStages;
-	barrier.DestinationAccess = access;
-	return barrier;
+	return LastWriteEpochHazardState.GetRequiredBarrier(stages, access, broadenedReadStages);
 }
 
 void GpuResourceHazardState::RecordAccess(GpuStageFlags stages, GpuAccessFlags access)

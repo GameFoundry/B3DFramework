@@ -187,7 +187,7 @@ namespace b3d
 			GpuResourceWriteEpochHazardState LastWriteEpochHazardState; /**< Last write-epoch hazard state in the recording scope. Updated during recording. After recording stores the last state. */
 			GpuBarrierScope LastBarrier; /**< Most recently recorded barrier in the command-buffer recording scope. Some backends require this for barrier chaining, for others it's unused. */
 
-			/** Determines the hazard and sequential-chain dependency required before an access. */
+			/** Determines the resource hazard barrier required before an access. */
 			GpuBarrierScope GetRequiredBarrier(GpuStageFlags stages, GpuAccessFlags access, GpuStageFlags broadenedReadStages = GpuStageFlag::None) const;
 
 			/** Records that a resource was accessed on a particular stage. */
