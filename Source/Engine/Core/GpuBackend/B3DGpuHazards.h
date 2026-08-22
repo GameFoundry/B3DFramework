@@ -182,7 +182,7 @@ namespace b3d
 		struct B3D_EXPORT GpuResourceHazardState
 		{
 			GpuAccessScope AccessScopeBeforeFirstBarrier; /**< Accesses recorded before the first barrier. */
-			TOptional<GpuAccessScope> LeadingBarrierAccessScope; /**< Explicit barrier recorded before the first access, if any. */
+			bool HasLeadingBarrier = false; /**< Whether an explicit barrier was recorded before the first access. */
 			GpuAccessScope AllAccessScope; /**< Accumulation of all accesses recorded in the tracking scope. Generally only used for cross-queue synchronization (answers the question does this command buffer read and/or write?). */
 			GpuResourceWriteEpochHazardState LastWriteEpochHazardState; /**< Last write-epoch hazard state in the recording scope. Updated during recording. After recording stores the last state. */
 			GpuBarrierScope LastBarrier; /**< Most recently recorded barrier in the command-buffer recording scope. Some backends require this for barrier chaining, for others it's unused. */
@@ -196,23 +196,17 @@ namespace b3d
 			/** Records a barrier and credits any visibility it establishes. */
 			void RecordBarrier(const GpuBarrierScope& barrier);
 
-			/** Merges the destination of an explicit barrier recorded before the first resource access. */
-			void RecordLeadingBarrier(GpuStageFlags destinationStages, GpuAccessFlags destinationAccess);
-
 			/** Returns true if the tracking scope accesses the resource. */
 			bool HasAccess() const { return AllAccessScope.IsValid(); }
 
-			/** Returns true if an explicit barrier precedes the first resource access. */
-			bool HasLeadingBarrier() const { return LeadingBarrierAccessScope.has_value(); }
-
 			/** Returns true if the tracking scope can change the resource's carried hazard state. */
-			bool HasSubmissionEffect() const { return HasAccess() || HasLeadingBarrier(); }
+			bool HasSubmissionEffect() const { return HasAccess() || HasLeadingBarrier; }
 
 			/** Returns true if the tracking scope writes the resource. */
 			bool HasWrite() const { return AllAccessScope.WriteStages != GpuStageFlag::None; }
 
-			/** Returns the destination access scope required by the submission barrier, including any explicit leading barrier. */
-			GpuAccessScope GetSubmissionBarrierAccessScope() const;
+			/** Returns the destination access scope required by the submission barrier. */
+			const GpuAccessScope& GetSubmissionBarrierAccessScope() const { return AccessScopeBeforeFirstBarrier; }
 		};
 
 		/**

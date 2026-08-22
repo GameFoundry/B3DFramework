@@ -102,8 +102,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackExplicitBufferBarrier(IGpuBufferR
 	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
 	if(!bufferTrackingState.HazardState->HasAccess())
 	{
-		const GpuStageFlags destinationStages = GpuBackendUtility::GetStageFlags(destinationUsage);
-		bufferTrackingState.HazardState->RecordLeadingBarrier(destinationStages, destinationAccess);
+		bufferTrackingState.HazardState->HasLeadingBarrier = true;
 		return;
 	}
 
@@ -232,8 +231,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackExplicitImageBarrier(IGpuImageRes
 
 		if(!subresourceTrackingState.HazardState->HasAccess())
 		{
-			const GpuStageFlags destinationStages = GpuBackendUtility::GetStageFlags(callbackParameters->DestinationUsage);
-			subresourceTrackingState.HazardState->RecordLeadingBarrier(destinationStages, callbackParameters->DestinationAccess);
+			subresourceTrackingState.HazardState->HasLeadingBarrier = true;
 
 			if(callbackParameters->DestinationLayout != GpuImageLayout::Undefined)
 			{
@@ -302,7 +300,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 	const bool isTransferUse = useFlags.IsSetAny(GpuResourceUseFlag::Transfer);
 
 	GpuImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[globalSubresourceIndex];
-	const bool hasLeadingBarrier = subresourceTrackingState.HazardState != nullptr && subresourceTrackingState.HazardState->HasLeadingBarrier();
+	const bool hasLeadingBarrier = subresourceTrackingState.HazardState != nullptr && subresourceTrackingState.HazardState->HasLeadingBarrier;
 	if(subresourceTrackingState.Access == GpuAccessFlag::None && !hasLeadingBarrier) // New subresource
 	{
 		subresourceTrackingState.InitialLayout = layout;

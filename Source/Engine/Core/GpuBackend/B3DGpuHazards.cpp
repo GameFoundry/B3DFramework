@@ -20,7 +20,7 @@ namespace
 		WriteEpochTransition result;
 
 		GpuResourceWriteEpochHazardState remainingWriteEpochHazardState = sourceWriteEpochHazardState;
-		const GpuAccessScope submissionBarrierAccessScope = destinationHazardState.GetSubmissionBarrierAccessScope();
+		const GpuAccessScope& submissionBarrierAccessScope = destinationHazardState.GetSubmissionBarrierAccessScope();
 		const GpuStageFlags submissionBarrierStages = submissionBarrierAccessScope.GetStages();
 		const GpuAccessFlags submissionBarrierAccess = submissionBarrierAccessScope.GetAccess();
 		if(submissionBarrierAccessScope.ReadStages != GpuStageFlag::None) // RAW
@@ -150,24 +150,6 @@ void GpuResourceHazardState::RecordBarrier(const GpuBarrierScope& barrier)
 		LastBarrier = barrier;
 }
 
-void GpuResourceHazardState::RecordLeadingBarrier(GpuStageFlags destinationStages, GpuAccessFlags destinationAccess)
-{
-	if(!LeadingBarrierAccessScope.has_value())
-		LeadingBarrierAccessScope = GpuAccessScope();
-
-	LeadingBarrierAccessScope->Add(destinationStages, destinationAccess);
-}
-
-GpuAccessScope GpuResourceHazardState::GetSubmissionBarrierAccessScope() const
-{
-	GpuAccessScope scope = AccessScopeBeforeFirstBarrier;
-
-	if(LeadingBarrierAccessScope.has_value())
-		scope.Add(*LeadingBarrierAccessScope);
-
-	return scope;
-}
-
 GpuSubmissionTransition::GpuSubmissionTransition(IGpuResource& stateResource, const GpuAccessScope& submissionBarrierAccessScope, const GpuAccessScope& destinationAllAccessScope)
 	: StateResource(&stateResource), SubmissionBarrierAccessScope(submissionBarrierAccessScope), DestinationAllAccessScope(destinationAllAccessScope)
 { }
@@ -176,12 +158,6 @@ GpuSubmissionTransition GpuSubmissionTransition::Build(IGpuResource& stateResour
 {
 	const GpuResourceSubmissionState& sourceState = stateResource.GetSubmissionState();
 	const GpuAccessScope& destinationAllAccessScope = destinationHazardState.AllAccessScope;
-	GpuAccessScope destinationSynchronizationScope = destinationAllAccessScope;
-	if(destinationHazardState.LeadingBarrierAccessScope.has_value())
-		destinationSynchronizationScope.Add(*destinationHazardState.LeadingBarrierAccessScope);
-
-	const bool synchronizeForReads = destinationSynchronizationScope.ReadStages != GpuStageFlag::None;
-	const bool synchronizeForWrites = destinationSynchronizationScope.WriteStages != GpuStageFlag::None;
 	const bool performsReads = destinationAllAccessScope.ReadStages != GpuStageFlag::None;
 	const bool performsWrites = destinationAllAccessScope.WriteStages != GpuStageFlag::None;
 	const GpuQueueMask destinationQueueMask(destinationQueueId);
@@ -202,7 +178,7 @@ GpuSubmissionTransition GpuSubmissionTransition::Build(IGpuResource& stateResour
 
 	// Full per-stage hazards are only retained for the writer queue. If this queue has outstanding reads and now writes,
 	// patch the same-queue state with the conservative reader-stage union carried by the submission state.
-	if(synchronizeForWrites && activeReaderQueues.IsSet(destinationQueueId))
+	if(performsWrites && activeReaderQueues.IsSet(destinationQueueId))
 		sameQueueWriteEpochHazardState.ReaderStages |= sourceState.ReaderStages;
 
 	const WriteEpochTransition writeEpochTransition = BuildSubmissionBarrierWriteEpochTransition(sameQueueWriteEpochHazardState, destinationHazardState);
@@ -222,9 +198,9 @@ GpuSubmissionTransition GpuSubmissionTransition::Build(IGpuResource& stateResour
 		transition.ExclusiveAccessWaitMask |= sourceState.WriterQueueId;
 
 	// Ordinary access: If destination is writer we need to wait on all readers, if destination is reader we need to wait on the writer.
-	if(synchronizeForWrites)
+	if(performsWrites)
 		transition.ParallelAccessWaitMask = transition.ExclusiveAccessWaitMask;
-	else if(synchronizeForReads && sourceState.HasWriter && sourceState.WriterQueueId.Id != destinationQueueId.Id && !sourceState.AcquiredQueues.IsSet(destinationQueueId))
+	else if(performsReads && sourceState.HasWriter && sourceState.WriterQueueId.Id != destinationQueueId.Id && !sourceState.AcquiredQueues.IsSet(destinationQueueId))
 	{
 		transition.ParallelAccessWaitMask |= sourceState.WriterQueueId;
 	}
