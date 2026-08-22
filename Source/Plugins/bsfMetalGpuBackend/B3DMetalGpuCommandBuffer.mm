@@ -2962,7 +2962,7 @@ namespace b3d
 					auto* owner = static_cast<MetalGpuCommandBuffer*>(selfShared.get());
 					owner->mState = GpuCommandBufferState::Done;
 					owner->OnDidComplete();
-					owner->Cleanup();
+					owner->ClearRecordingState();
 					owner->mPool.NotifyCommandBufferReady(owner->mId);
 					ownerCompletion->NotifyDone();
 				}, "MetalGpuCommandBuffer failed submission");
@@ -3028,7 +3028,7 @@ namespace b3d
 						owner->OnDidComplete();
 						// See the fallback path above — release listeners + cached state on the
 						// owner thread once completion has been observed.
-						owner->Cleanup();
+						owner->ClearRecordingState();
 						ownerCompletion->NotifyDone();
 					}, "MetalGpuCommandBuffer empty completion");
 				}];
@@ -3100,7 +3100,7 @@ namespace b3d
 
 			// The completion handler flips the buffer to Done on GPU finish. It captures a strong
 			// pointer so the command buffer stays alive until completion, and posts the state
-			// transition + OnDidComplete + Cleanup back to the pool's owner thread so callers see
+			// transition + OnDidComplete + recording-state clearing back to the pool's owner thread so callers see
 			// these notifications on the same thread they recorded the buffer on. This matches the
 			// bsfVulkanGpuBackend backend's message-queue-back pattern.
 			TShared<GpuCommandBuffer> selfShared = GetShared();
@@ -3118,7 +3118,7 @@ namespace b3d
 					// Release completion listeners and cached recording state on the owner thread;
 					// listener closures may hold the last references to GPU resources (e.g.
 					// transient buffers) that must not outlive the submission.
-					owner->Cleanup();
+					owner->ClearRecordingState();
 					ownerCompletion->NotifyDone();
 				}, "MetalGpuCommandBuffer completion");
 			}];
@@ -3192,9 +3192,9 @@ namespace b3d
 			ResetComputeResidencyCaches();
 		}
 
-		void MetalGpuCommandBuffer::Cleanup()
+		void MetalGpuCommandBuffer::ClearRecordingState()
 		{
-			// Cleanup per the base-class contract (B3DGpuCommandBuffer.h): resource-tracker
+			// Clear recording state per the base-class contract (B3DGpuCommandBuffer.h): resource-tracker
 			// notify+clear, queue sync mask reset, event clearing, and cached-state teardown. Runs on
 			// the owner thread — either from the completion handler's message-queue lambda
 			// (CommitInternal) or from pool-level reset / destroy. Clearing OnDidComplete releases
@@ -3202,7 +3202,7 @@ namespace b3d
 			// buffers) that must be freed before GpuWorkContext::WaitAndReclaim drains its transient
 			// allocators.
 			//
-			// Resource tracker: mirror VulkanGpuCommandBuffer::Cleanup — a buffer whose resources were
+			// Resource tracker: mirror VulkanGpuCommandBuffer::ClearRecordingState — a buffer whose resources were
 			// promoted to submitted use notifies the tracker its work is done on the submitted queue; one
 			// that failed before native submission (or was reset pristine) is notified as unbound. Then
 			// the tracked state is cleared.
@@ -3279,7 +3279,7 @@ namespace b3d
 				return;
 
 			if (mState == GpuCommandBufferState::Done)
-				Cleanup();
+				ClearRecordingState();
 
 			mState = GpuCommandBufferState::Ready;
 		}
@@ -3292,7 +3292,7 @@ namespace b3d
 			// Drop listeners and cached state first — OnDestroyed is cleared here so the base
 			// destructor's OnDestroyed(...) fire becomes a no-op, matching the explicit-destroy
 			// semantics (the pool has already decided the buffer's fate).
-			Cleanup();
+			ClearRecordingState();
 
 			if (mImpl)
 			{
