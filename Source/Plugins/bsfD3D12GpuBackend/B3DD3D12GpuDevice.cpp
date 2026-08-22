@@ -181,7 +181,7 @@ TShared<render::Texture> D3D12GpuDevice::CreateTexture(const TextureCreateInform
 {
 	D3D12Texture* rawTexture = new (B3DAllocate<D3D12Texture>()) D3D12Texture(createInformation, *this);
 
-	TShared<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy) ? B3DMakeSharedFromExisting(rawTexture) : MakeSharedStandalone<Texture>(rawTexture);
+	TShared<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy) ? B3DMakeSharedFromExisting(rawTexture) : MakeSharedStandalone<D3D12Texture>(rawTexture);
 
 	output->SetShared(output);
 
@@ -208,7 +208,7 @@ TShared<render::GpuBuffer> D3D12GpuDevice::CreateGpuBuffer(const GpuBufferCreate
 {
 	D3D12GpuBuffer* rawBuffer = new (B3DAllocate<D3D12GpuBuffer>()) D3D12GpuBuffer(createInformation, *this, allocator);
 
-	TShared<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy) ? B3DMakeSharedFromExisting(rawBuffer) : MakeSharedStandalone<GpuBuffer>(rawBuffer);
+	TShared<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy) ? B3DMakeSharedFromExisting(rawBuffer) : MakeSharedStandalone<D3D12GpuBuffer>(rawBuffer);
 
 	output->SetShared(output);
 
