@@ -38,6 +38,37 @@ namespace b3d
 			GpuQueueMask RequiredWaitMask = GpuQueueMask::kNone; /**< Additional queues the destination waits for. */
 		};
 
+		/** DirectX 12 implementation of GpuCommandBufferPool. */
+		class D3D12GpuCommandBufferPool : public GpuCommandBufferPool
+		{
+			using Base = GpuCommandBufferPool;
+		public:
+			/** Creates a command-buffer pool backed by one D3D12 command allocator. */
+			D3D12GpuCommandBufferPool(D3D12GpuDevice& device, const GpuCommandBufferPoolCreateInformation& createInformation);
+			~D3D12GpuCommandBufferPool() override;
+
+			/**
+			 * @name GpuCommandBufferPool Interface
+			 * @{
+			 */
+
+			TShared<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) override;
+			TShared<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) override;
+			void Reset() override;
+			void Destroy() override;
+
+			/** @} */
+
+			/** Returns the D3D12 command allocator. */
+			ID3D12CommandAllocator* GetD3D12CommandAllocator() const { return mCommandAllocator.Get(); }
+
+		private:
+			ComPtr<ID3D12CommandAllocator> mCommandAllocator;
+			u32 mNextCommandBufferId = 1;
+
+			UnorderedMap<u32, TShared<D3D12GpuCommandBuffer>> mCommandBuffers;
+		};
+
 		/** CommandBuffer implementation for DirectX 12. */
 		class D3D12GpuCommandBuffer final : public GpuCommandBuffer
 		{
@@ -140,6 +171,64 @@ namespace b3d
 			 */
 			bool UpdateExecutionStatus(bool block);
 
+			/** Releases the current recording and returns the command buffer to the Ready state. */
+			void Reset();
+
+			/************************************************************************/
+			/* 								COPY COMMANDS                     		*/
+			/************************************************************************/
+
+			/**
+			 * Copies the contents of the source texture to the destination buffer at the ID3D12Resource level.
+			 *
+			 * @param	source				Source texture to copy from.
+			 * @param	destination			Destination buffer to copy to.
+			 * @param	layout				Footprint layout describing the buffer data organization.
+			 * @param	subresourceIndex	Source texture subresource index.
+			 */
+			void CopyTextureToBuffer(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex);
+
+			/**
+			 * Copies the top-level subresource of an image into a buffer, including the required resource tracking and
+			 * state transitions. Used for reading back images that have no owning texture (e.g. swap chain back buffers).
+			 *
+			 * @param	source			Image to copy from. Only subresource 0 (first face, top mip) is copied.
+			 * @param	destination		Buffer to copy into, at offset 0.
+			 * @param	width			Width of the image, in pixels.
+			 * @param	height			Height of the image, in pixels.
+			 * @param	rowPitchBytes	Byte pitch between rows in the buffer. Must be a multiple of
+			 *							D3D12_TEXTURE_DATA_PITCH_ALIGNMENT.
+			 */
+			void CopyImageToBuffer(D3D12Image* source, D3D12Buffer* destination, u32 width, u32 height, u32 rowPitchBytes);
+
+		private:
+			friend class D3D12GpuCommandBufferPool;
+			friend class D3D12GpuQueue;
+
+			/** Creates a command buffer wrapping @p commandList. */
+			D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id, ID3D12GraphicsCommandList7* commandList, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
+
+			/** Returns the pool the command buffer was allocated from. */
+			D3D12GpuCommandBufferPool& GetPool() const { return mPool; }
+
+			/** Makes the command buffer ready to start recording commands. */
+			void Begin();
+
+			/** Checks if all the prerequisites for rendering have been made. */
+			bool IsReadyForRender() const;
+
+			/** Marks the command buffer as submitted on a queue. */
+			void SetIsSubmitted() { mState = GpuCommandBufferState::Executing; }
+
+			/** Binds the current graphics pipeline to the command buffer. Returns true if bind was successful. */
+			bool BindGraphicsPipeline();
+
+			/** Binds any dynamic states to the pipeline, as required. */
+			void BindDynamicStates(bool forceAll);
+
+			/** Binds vertex and index buffers to the pipeline, if dirty. */
+			void BindVertexInputs();
+
 			/**
 			 * Binds the currently stored GPU parameter sets, if dirty. @p isGraphics selects whether the sets are bound
 			 * to the graphics or the compute root signature; both pipeline types can be bound on the command buffer
@@ -153,3 +242,81 @@ namespace b3d
 			 * UAV writes remain ordered when descriptor bindings do not change.
 			 */
 			void TrackGpuParameterSets(bool isGraphics);
+
+			/** Clears the specified area of the currently bound render target. */
+			void ClearViewportArea(const Area2I& area, RenderSurfaceMask mask);
+
+			/** Remembers a query pool written to during the current recording so its results are resolved on End(). */
+			void TrackQueryPool(const TShared<GpuQueryPool>& queryPool);
+
+			/** Returns the current viewport area in pixels. */
+			Area2I GetViewportArea() const;
+
+			/** Returns the current area of the render pass in pixels. */
+			Area2I GetRenderPassArea() const;
+
+			/** Returns the owner GPU device, cast as a D3D12GpuDevice. */
+			D3D12GpuDevice& GetD3D12GpuDevice() const { return static_cast<D3D12GpuDevice&>(mGpuDevice); }
+
+			u32 mId;
+			ComPtr<ID3D12GraphicsCommandList7> mCommandList;
+			D3D12GpuCommandBufferPool& mPool;
+			ComPtr<ID3D12Fence> mFence;
+			u64 mFenceValue = 0;
+
+			/** Tracks every resource used on the command buffer: lifetime (bound/use counts), hazards and states. */
+			D3D12ResourceTracker mResourceTracker;
+
+			/** Accumulates and emits the native barriers the tracker decides are required. */
+			D3D12BarrierHelper mBarrierHelper;
+
+			/** Queue the command buffer was submitted on; identifies the queue for NotifyDone. */
+			GpuQueueId mSubmittedQueueId;
+
+			// Render state
+			D3D12Framebuffer* mFramebuffer = nullptr;
+			RenderSurfaceMask mRenderTargetReadOnlyMask = RT_NONE;
+
+			TShared<D3D12GpuGraphicsPipelineState> mGraphicsPipeline;
+			TShared<D3D12GpuComputePipelineState> mComputePipeline;
+			TShared<VertexDescription> mVertexDescription;
+			TShared<D3D12GpuBuffer> mIndexBuffer;
+			Vector<TShared<D3D12GpuBuffer>> mVertexBuffers;
+			Area2 mNormalizedViewportArea{ 0.0f, 0.0f, 1.0f, 1.0f };
+			Area2I mScissor{ 0, 0, 0, 0 };
+			bool mIsScissorTestEnabled = false;
+			u32 mStencilReferenceValue = 0;
+			DrawOperationType mDrawOperation = DOT_TRIANGLE_LIST;
+			u32 mRequiredVertexBufferBindingCount = 0;
+			D3D12Pipeline* mLastBoundGraphicsPipeline = nullptr; /**< Pipeline variant currently set on the command list. */
+
+			bool mGraphicsPipelineRequiresBind : 1;
+			bool mGraphicsRootSignatureRequiresBind : 1;
+			bool mComputePipelineRequiresBind : 1;
+			bool mPrimitiveTopologyRequiresBind : 1;
+			bool mViewportRequiresBind : 1;
+			bool mStencilReferenceValueRequiresBind : 1;
+			bool mScissorRequiresBind : 1;
+			bool mGraphicsParametersRequireBind : 1;
+			bool mComputeParametersRequireBind : 1;
+			bool mVertexInputsDirty : 1;
+
+			Vector<TShared<D3D12GpuParameters>> mBoundParameterSets; /**< Bound parameter sets, indexed by set. */
+			TShared<RenderTarget> mRenderTarget;
+
+			/**
+			 * Per-set dynamic offset overrides (keyed by dynamic-offset index, see GpuPipelineParameterSetLayout::GetDynamicOffsetIndex), 
+			 * applied to root CBV binds on top of the bound parameter sets' own offsets. A set's overrides are cleared when new parameters are bound on it.
+			 */
+			Vector<UnorderedMap<u32, u32>> mDynamicOffsetOverridesPerSet;
+
+			/**
+			 * Query pools written to during the current recording. On End() each pool's allocated queries are resolved
+			 * into its readback buffer. The references also keep the pools alive until the command buffer is reset.
+			 */
+			Vector<TShared<GpuQueryPool>> mUsedQueryPools;
+		};
+
+		/** @} */
+	} // namespace render
+} // namespace b3d

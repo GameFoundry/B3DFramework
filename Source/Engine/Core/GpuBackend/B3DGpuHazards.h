@@ -210,8 +210,10 @@ namespace b3d
 		};
 
 		/**
-		 * Submission state for a resource. The latest writer keeps the full hazard state, while read-only submissions
-		 * are represented as parallel queue branches within that writer epoch.
+		 * Submission state for a GPU resource. Updated after a command buffer using a resource is submitted - it describes its usage
+		 * on the last submitted command buffer and its queue, as well as any other queues it was submitted on. Used for determining
+		 * what memory barriers, execution barriers or queue waits are required when a new command buffer using this resource is 
+		 * submitted (represented by GpuSubmissionTransition).
 		 */
 		struct B3D_EXPORT GpuResourceSubmissionState
 		{
