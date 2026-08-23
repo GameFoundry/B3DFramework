@@ -62,7 +62,6 @@ namespace b3d
 			D3D12RootConstantBufferLayout() = default;
 
 			u32 Slot = ~0u; /**< Engine parameter slot. */
-			u32 DynamicOffsetIndex = ~0u; /**< Dynamic offset override index. */
 			u32 RootParameterIndex = ~0u; /**< Root parameter used to bind the CBV. */
 		};
 

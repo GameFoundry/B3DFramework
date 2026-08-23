@@ -109,6 +109,7 @@ namespace b3d
 			struct RootConstantBuffer
 			{
 				u32 DataIndex = 0; /**< Index into the base class's uniform buffer data (sequential resource index). */
+				u32 DynamicOffsetIndex = ~0u; /**< Dynamic-offset index in this parameter set's own layout. */
 			};
 
 			/** Stores a CPU descriptor at the given (slot, arrayIndex) in @p bindings. */

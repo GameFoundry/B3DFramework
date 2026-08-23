@@ -126,6 +126,7 @@ void D3D12GpuParameters::Initialize()
 			{
 				RootConstantBuffer& rootBuffer = mRootConstantBuffers[uniformInformation->Slot];
 				rootBuffer.DataIndex = uniformInformation->SequentialResourceIndex;
+				rootBuffer.DynamicOffsetIndex = uniformInformation->DynamicOffsetIndex;
 
 				continue;
 			}
@@ -488,9 +489,9 @@ void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, D3D12ResourceTr
 			continue;
 
 		u32 offset = mUniformBufferData[rootBuffer.DataIndex].Offset;
-		if(dynamicOffsets != nullptr && rootBufferLayout.DynamicOffsetIndex != ~0u)
+		if(dynamicOffsets != nullptr && rootBuffer.DynamicOffsetIndex != ~0u)
 		{
-			if(const auto overrideIterator = dynamicOffsets->find(rootBufferLayout.DynamicOffsetIndex); overrideIterator != dynamicOffsets->end())
+			if(const auto overrideIterator = dynamicOffsets->find(rootBuffer.DynamicOffsetIndex); overrideIterator != dynamicOffsets->end())
 				offset = overrideIterator->second;
 		}
 
