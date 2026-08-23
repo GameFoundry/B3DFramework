@@ -198,10 +198,7 @@ namespace b3d
 			bool IsScreenCaptureRequested(const TShared<RenderWindow>& window) const;
 
 			/** Records a window readback and forwards its result to the pending capture operations. */
-			void ResolveScreenCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderWindow>& window);
-
-			/** Completes captures whose windows were not rendered during the current frame. */
-			void CompleteUnresolvedScreenCaptures();
+			bool ResolveScreenCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderWindow>& window);
 
 			// Render thread only fields
 			RenderBeastFeatureSet mFeatureSet = RenderBeastFeatureSet::Desktop;
