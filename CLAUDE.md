@@ -78,6 +78,7 @@ Framework/
  - Use FrameAllocator for temporary heap allocations
  - Re-use temporary containers (e.g. Vector, TArray). Allocate them as class members instead of locally in functions, so their memory can be re-used.
  - Use TInlineArray when allocating past a certain count is unlikely
+- Do not introduce private or internal helper methods with only one caller; inline the code at the call site with a short implementation comment instead.
 
 ## Code Style and Conventions
 
