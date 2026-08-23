@@ -162,7 +162,7 @@ IGpuAllocator& D3D12BufferPool::GetOrCreatePersistentAllocator(MemoryType memory
 		configuration.GrowthFactor = 2;
 		configuration.MaxEmptyHeapCount = 1;
 		configuration.MinAllocationSize = 64;
-		configuration.BufferImageGranularity = 1;
+		configuration.Granularity = 1;
 		configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
 		configuration.HeapCreateInfo = GetPageCreateInformation(memoryType);
 

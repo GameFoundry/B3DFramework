@@ -442,7 +442,7 @@ D3D12GpuDevice::GpuMemoryAllocator& D3D12GpuDevice::GetOrCreateGpuMemoryAllocato
 	configuration.GrowthFactor = 2;
 	configuration.MaxEmptyHeapCount = 1;
 	configuration.MinAllocationSize = 16;
-	configuration.BufferImageGranularity = 1;
+	configuration.Granularity = 1;
 	configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
 	configuration.HeapCreateInfo.Type = heapType;
 	configuration.HeapCreateInfo.Flags = heapFlags;
