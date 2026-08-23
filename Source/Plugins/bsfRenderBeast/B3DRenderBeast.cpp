@@ -246,7 +246,15 @@ void RenderBeast::DestroyOnRenderThread()
 {
 	// Make sure all tasks finish first
 	ProcessTasks(true);
-	CompleteUnresolvedScreenCaptures();
+
+	// Cancel capture requests before renderer resources are destroyed
+	for(ScreenCaptureRequest& request : mScreenCaptureRequests)
+	{
+		for(TAsyncOp<TShared<PixelData>>& operation : request.Operations)
+			operation.CompleteOperation(nullptr);
+	}
+
+	mScreenCaptureRequests.Clear();
 
 	while(!mScenes.empty())
 	{
@@ -367,7 +375,15 @@ void RenderBeast::RenderAllOnRenderThread(FrameTimings timings, PerFrameData per
 		entry->GetUniformBufferPools().AdvanceFrame();
 	}
 
-	CompleteUnresolvedScreenCaptures();
+	// If some windows were rendered outside of the renderer, still resolve their requested screen captures
+	while(!mScreenCaptureRequests.Empty())
+	{
+		const TShared<RenderWindow> window = mScreenCaptureRequests.Front().Window;
+		TShared<GpuCommandBuffer> commandBuffer = mCommandBufferPoolRing->GetCurrentPool().Create(GpuCommandBufferCreateInformation::Create("Screen capture"));
+
+		if(ResolveScreenCaptures(*commandBuffer, window))
+			GetGpuContext().SubmitCommandBuffer(commandBuffer);
+	}
 
 	EndFrame();
 
@@ -906,7 +922,7 @@ bool RenderBeast::IsScreenCaptureRequested(const TShared<RenderWindow>& window) 
 	return false;
 }
 
-void RenderBeast::ResolveScreenCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderWindow>& window)
+bool RenderBeast::ResolveScreenCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderWindow>& window)
 {
 	for(u32 requestIndex = 0; requestIndex < mScreenCaptureRequests.Size(); ++requestIndex)
 	{
@@ -918,6 +934,14 @@ void RenderBeast::ResolveScreenCaptures(GpuCommandBuffer& commandBuffer, const T
 		mScreenCaptureRequests.Erase(mScreenCaptureRequests.Begin() + requestIndex);
 
 		TAsyncOp<TShared<PixelData>> readOp = window->ReadAsync(GetGpuContext(), commandBuffer);
+		if(readOp == nullptr)
+		{
+			for(TAsyncOp<TShared<PixelData>>& captureOp : captureOps)
+				captureOp.CompleteOperation(nullptr);
+
+			return false;
+		}
+
 		auto fnOnReadOpCompleted = [captureOps = std::move(captureOps), readOp]() mutable
 		{
 			for(TAsyncOp<TShared<PixelData>>& captureOp : captureOps)
@@ -925,19 +949,10 @@ void RenderBeast::ResolveScreenCaptures(GpuCommandBuffer& commandBuffer, const T
 		};
 
 		readOp.DoWhenComplete(std::move(fnOnReadOpCompleted));
-		return;
-	}
-}
-
-void RenderBeast::CompleteUnresolvedScreenCaptures()
-{
-	for(ScreenCaptureRequest& request : mScreenCaptureRequests)
-	{
-		for(TAsyncOp<TShared<PixelData>>& operation : request.Operations)
-			operation.CompleteOperation(nullptr);
+		return true;
 	}
 
-	mScreenCaptureRequests.Clear();
+	return false;
 }
 
 TShared<RenderBeast> GetRenderBeast()
