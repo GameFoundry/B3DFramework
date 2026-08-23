@@ -1,0 +1,53 @@
+# Source files and their filters
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "Tests" BS_D3D12GPUBACKEND_SRC)
+
+if(WIN32)
+	include(${CMAKE_CURRENT_SOURCE_DIR}/B3DD3D12Agility.cmake)
+endif()
+
+# Target
+B3DAddPlugin(bsfD3D12GpuBackend ENGINE ${BS_D3D12GPUBACKEND_SRC})
+
+# Common flags
+B3DSetDefaultLinkAndCompileFlags(bsfD3D12GpuBackend)
+
+# Includes
+# The HLSL shader backend is not linked (bytecode compilation goes through the ShaderCompilers registry); only its
+# B3DHLSLShaderABI.h header is consumed, for the shared register-class/slot encoding.
+target_include_directories(bsfD3D12GpuBackend PRIVATE
+	"./"
+	"../ShaderBackends/bsfShaderBackendHLSL"
+)
+
+if(WIN32)
+	B3DConfigureD3D12AgilitySDK(bsfD3D12GpuBackend)
+endif()
+
+# Definitions
+target_compile_definitions(bsfD3D12GpuBackend PRIVATE
+	-DB3D_D3D12_EXPORTS
+)
+
+# Libraries
+# Windows-specific D3D12 libraries
+if(WIN32)
+	target_link_libraries(bsfD3D12GpuBackend PRIVATE
+		d3d12.lib
+		dxgi.lib
+		dxguid.lib
+		d3dcompiler.lib
+	)
+endif()
+
+# IDE specific
+set_property(TARGET bsfD3D12GpuBackend PROPERTY FOLDER Plugins)
+
+# Install
+if(B3D_GPU_BACKEND MATCHES "DirectX12" OR B3D_BUILD_ALL_PLUGINS)
+	B3DSetUpPostBuildAndInstallSteps(bsfD3D12GpuBackend)
+endif()
+
+# Tests
+if(B3D_BUILD_TESTS)
+	add_subdirectory(Tests)
+endif()
