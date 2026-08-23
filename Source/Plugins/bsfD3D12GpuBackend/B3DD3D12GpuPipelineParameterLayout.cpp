@@ -191,7 +191,6 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 
 			D3D12RootConstantBufferLayout rootBufferLayout;
 			rootBufferLayout.Slot = uniformInformation->Slot;
-			rootBufferLayout.DynamicOffsetIndex = uniformInformation->DynamicOffsetIndex;
 			rootBufferLayout.RootParameterIndex = rootParameterIndex;
 			mDescriptorSetLayouts[setIndex].RootConstantBuffers.Add(rootBufferLayout);
 		}
