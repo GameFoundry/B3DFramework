@@ -12,6 +12,8 @@
 #	include "Private/Linux/B3DLinuxRenderWindow.h"
 #elif B3D_PLATFORM_MACOS
 #	include "Private/MacOS/B3DMacOSRenderWindow.h"
+#elif B3D_PLATFORM_PS5
+#	include "Private/PS5/B3DPS5RenderWindow.h"
 #endif
 
 using namespace b3d;
@@ -35,6 +37,8 @@ TShared<RenderWindow> RenderWindowManager::CreateRenderWindow(const RenderWindow
 		renderWindow = B3DMakeShared<LinuxRenderWindow>(createInformation, id, parentWindow);
 #elif B3D_PLATFORM_MACOS
 		renderWindow = B3DMakeShared<MacOSRenderWindow>(createInformation, id, parentWindow);
+#elif B3D_PLATFORM_PS5
+		renderWindow = B3DMakeShared<PS5RenderWindow>(createInformation, id, parentWindow);
 #else
 		B3D_LOG(Warning, LogRenderBackend, "No native render window implementation on this platform. Creating a headless window.");
 		renderWindow = B3DMakeShared<HeadlessRenderWindow>(createInformation, id, parentWindow);
