@@ -35,7 +35,11 @@ target_link_libraries(FrameworkTests PUBLIC bsf)
 
 # Plugin dependencies (needed for Core layer tests)
 B3DAddRuntimeDependencies(FrameworkTests)
-add_dependencies(FrameworkTests bsfFBXImporter bsfFontImporter bsfFreeImgImporter bsfSL)
+foreach(pluginDependency bsfFBXImporter bsfFontImporter bsfFreeImgImporter bsfSL)
+	if(TARGET ${pluginDependency})
+		add_dependencies(FrameworkTests ${pluginDependency})
+	endif()
+endforeach()
 
 # IDE specific
 set_property(TARGET FrameworkTests PROPERTY FOLDER Tests)
