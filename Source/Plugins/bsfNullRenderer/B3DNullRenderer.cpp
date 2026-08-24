@@ -52,6 +52,12 @@ void render::NullRenderer::Destroy()
 
 void render::NullRenderer::RenderAll(PerFrameData perFrameData)
 {
+	// No scenes to render, but the frame boundary must still be pumped
+	GetRenderThread().PostCommand([this]()
+	{
+		BeginFrame();
+		EndFrame();
+	}, "NullRenderer::RenderAll");
 }
 
 void render::NullRenderer::RequestScreenCapture(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp)
