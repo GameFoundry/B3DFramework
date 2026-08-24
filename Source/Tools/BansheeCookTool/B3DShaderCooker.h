@@ -4,7 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "FileSystem/B3DPath.h"
-#include "Material/B3DShaderCookerSource.h"
+#include "B3DShaderCookerSource.h"
 
 namespace b3d
 {

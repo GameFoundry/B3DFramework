@@ -212,7 +212,10 @@ TShared<CoreVariantType<Shader, IsRenderProxy>> ShaderRegistry::GetOrCompileShad
 	// prebuilt miss it is required for cache validation and compilation.
 	TShared<DataStream> shaderFileStream;
 	if(shaderPath.IsAbsolute())
-		shaderFileStream = FileSystem::OpenFile(shaderPath);
+	{
+		if(FileSystem::Exists(shaderPath))
+			shaderFileStream = FileSystem::OpenFile(shaderPath);
+	}
 	else
 	{
 		Lock lock(mSearchPathMutex);

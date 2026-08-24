@@ -2,10 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DApplication.h"
 #include "B3DShaderCooker.h"
-#include "B3DBuiltinShaderCookerSource.h"
+#include "B3DShaderCookerSource.h"
 #include "Material/B3DShaderCompiler.h"
 #include "Material/B3DShaderRegistry.h"
 #include "Renderer/B3DRendererMaterialManager.h"
+#include "Renderer/B3DRendererMaterial.h"
 #include "Resources/B3DBuiltinResources.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuBackend.h"
@@ -51,8 +52,51 @@ namespace
 		return newest;
 	}
 
-	/** Runs the builtin shader cook. Returns the process exit code. */
-	int RunShaderCook(const Path& inputFolder, const Path& outputPath, const String& language, bool force)
+	/** Returns a comma-separated listing of @p folders, for log output. */
+	String MakeFolderListing(const Vector<Path>& folders)
+	{
+		StringStream stream;
+		for(u32 folderIndex = 0; folderIndex < (u32)folders.size(); ++folderIndex)
+		{
+			if(folderIndex > 0)
+				stream << ", ";
+
+			stream << "\"" << folders[folderIndex].ToString() << "\"";
+		}
+
+		return stream.str();
+	}
+
+	/**
+	 * Every registered renderer material must have its shader source in one of the cooked folders - a missing one would
+	 * silently miss the prebuilt store at runtime, so surface it loudly.
+	 */
+	void WarnAboutUncookedRendererMaterials(const Vector<ShaderCookItem>& items, const Vector<Path>& inputFolders)
+	{
+		Set<String> cookedRendererMaterialNames;
+		for(const ShaderCookItem& item : items)
+		{
+			if(item.CachePrefix == render::RendererMaterialBase::kRendererMaterialShaderCachePrefix)
+				cookedRendererMaterialNames.insert(item.Name);
+		}
+
+		Vector<RendererMaterialManager::RendererMaterialShaderInfo> rendererMaterialShaders;
+		RendererMaterialManager::GetRegisteredMaterialShaders(rendererMaterialShaders);
+
+		Set<String> reportedNames;
+		for(const RendererMaterialManager::RendererMaterialShaderInfo& info : rendererMaterialShaders)
+		{
+			const String name = info.ShaderPath.GetFilename(false);
+			if(cookedRendererMaterialNames.find(name) != cookedRendererMaterialNames.end())
+				continue;
+
+			if(reportedNames.insert(name).second)
+				B3D_LOG(Warning, LogResources, "Renderer-material shader \"{0}\" is registered but no matching \"{0}.bsl\" was found in any input folder ({1}); it will not be cooked.", name, MakeFolderListing(inputFolders));
+		}
+	}
+
+	/** Runs the shader cook: all *.bsl shaders from @p inputFolders into a single store package. Returns the process exit code. */
+	int RunShaderCook(const Vector<Path>& inputFolders, const Path& outputPath, const String& language, bool force)
 	{
 		if(!IsLanguageSupported(language))
 			return 2;
@@ -75,19 +119,28 @@ namespace
 		if(!force && FileSystem::Exists(outputPath))
 		{
 			const std::time_t outputTime = FileSystem::GetLastModifiedTime(outputPath);
-			if(outputTime >= GetNewestModifiedTime(inputFolder))
+
+			std::time_t newestInputTime = 0;
+			for(const Path& inputFolder : inputFolders)
+				newestInputTime = std::max(newestInputTime, GetNewestModifiedTime(inputFolder));
+
+			if(outputTime >= newestInputTime)
 			{
 				B3D_LOG(Info, LogGeneric, "Prebuilt shader store \"{0}\" is up to date. Skipping (use -force to re-cook).", outputPath.ToString());
 				return 0;
 			}
 		}
 
-		BuiltinShaderCookerSource source(inputFolder);
-
 		Vector<ShaderCookItem> items;
-		source.GetItems(items);
+		for(const Path& inputFolder : inputFolders)
+		{
+			ShaderCookerSource source(inputFolder);
+			source.GetItems(items);
+		}
 
-		B3D_LOG(Info, LogGeneric, "Cooking {0} shader(s) from \"{1}\" for language \"{2}\".", (u32)items.size(), inputFolder.ToString(), language);
+		WarnAboutUncookedRendererMaterials(items, inputFolders);
+
+		B3D_LOG(Info, LogGeneric, "Cooking {0} shader(s) from {1} for language \"{2}\".", (u32)items.size(), MakeFolderListing(inputFolders), language);
 
 		ShaderCooker::CookOptions cookOptions;
 		cookOptions.Language = language;
@@ -101,8 +154,9 @@ int main(int argc, char* argv[])
 {
 	CommandLine::Initialize(argc, argv);
 
-	// CLI: -input/-output folders and the single low-level shading language to cook for (-language, for example
-	// "-language vksl"). -force re-cooks even if up to date.
+	// CLI: -input takes one or more shader source folders, separated by ';' (defaults to the engine's builtin shader
+	// folder). -output names the store package to write and -language the single low-level shading language to cook for
+	// (for example "-language vksl"). -force re-cooks even if up to date.
 	const String inputParameter = CommandLine::GetParameterValue("input");
 	const String outputParameter = CommandLine::GetParameterValue("output");
 
@@ -113,6 +167,10 @@ int main(int argc, char* argv[])
 	const bool force = CommandLine::HasParameter("force");
 
 	ApplicationCreateInformation createInformation = Application::BuildCreateInformation(VideoMode(64, 64), "Banshee Cook Tool", false);
+#if !B3D_BUILD_IMPORTERS
+	// The cook itself always needs the BSL compiler; BuildCreateInformation only lists it in importer-enabled builds.
+	createInformation.Importers.push_back("bsfSL");
+#endif
 	createInformation.GpuBackend = "bsfNullGpuBackend";
 	createInformation.Renderer = "bsfNullRenderer";
 	createInformation.PrimaryWindow.Headless = true;
@@ -120,13 +178,23 @@ int main(int argc, char* argv[])
 
 	Application::StartUp(createInformation);
 
-	const Path inputFolder = inputParameter.empty() ? BuiltinResources::GetShaderFolder() : Path(inputParameter);
+	Vector<Path> inputFolders;
+	for(const String& folder : StringUtility::Split(inputParameter, ";"))
+	{
+		const String trimmed = StringUtility::Trim(folder);
+		if(!trimmed.empty())
+			inputFolders.push_back(Path(trimmed));
+	}
+
+	if(inputFolders.empty())
+		inputFolders.push_back(BuiltinResources::GetShaderFolder());
+
 	const Path outputPath = outputParameter.empty() ? ShaderRegistry::GetPrebuiltStorePath() : Path(outputParameter);
 
-	B3D_LOG(Info, LogGeneric, "Banshee Cook Tool started. Input \"{0}\", output \"{1}\", language \"{2}\", force {3}.",
-		inputFolder.ToString(), outputPath.ToString(), language, force ? "yes" : "no");
+	B3D_LOG(Info, LogGeneric, "Banshee Cook Tool started. Input {0}, output \"{1}\", language \"{2}\", force {3}.",
+		MakeFolderListing(inputFolders), outputPath.ToString(), language, force ? "yes" : "no");
 
-	int exitCode = RunShaderCook(inputFolder, outputPath, language, force);
+	int exitCode = RunShaderCook(inputFolders, outputPath, language, force);
 
 	Application::ShutDown();
 	return exitCode;

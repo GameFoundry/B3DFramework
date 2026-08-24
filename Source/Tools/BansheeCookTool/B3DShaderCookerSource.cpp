@@ -1,6 +1,6 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "B3DBuiltinShaderCookerSource.h"
+#include "B3DShaderCookerSource.h"
 
 #include "Renderer/B3DRendererMaterialManager.h"
 #include "Renderer/B3DRendererMaterial.h"
@@ -27,14 +27,14 @@ namespace
 	}
 }
 
-BuiltinShaderCookerSource::BuiltinShaderCookerSource(Path shaderFolder)
+ShaderCookerSource::ShaderCookerSource(Path shaderFolder)
 	: mShaderFolder(std::move(shaderFolder))
 {
 }
 
-void BuiltinShaderCookerSource::GetItems(Vector<ShaderCookItem>& outItems)
+void ShaderCookerSource::GetItems(Vector<ShaderCookItem>& outItems)
 {
-	// Build the renderer-material lookup once: map each renderer-material shader (keyed by filename, which is what the
+	// Build the renderer-material lookup: map each renderer-material shader (keyed by filename, which is what the
 	// runtime cache key is derived from) to the distinct define sets it is registered with. This requires the renderer
 	// materials to have registered, which is why the cook tool runs the real renderer over the Null GPU backend.
 	Vector<RendererMaterialManager::RendererMaterialShaderInfo> rendererMaterialShaders;
@@ -44,13 +44,10 @@ void BuiltinShaderCookerSource::GetItems(Vector<ShaderCookItem>& outItems)
 	for(const RendererMaterialManager::RendererMaterialShaderInfo& info : rendererMaterialShaders)
 		rendererMaterialsByName[info.ShaderPath.GetFilename(false)].push_back(info.Defines);
 
-	// Glob the top-level *.bsl files. GetChildren is non-recursive, so the Includes sub-folder (which holds shared
-	// shader code, not standalone shaders) is naturally excluded.
+	// Glob the top-level *.bsl files. GetChildren is non-recursive, so sub-folders (which hold shared shader code, not standalone shaders) are naturally excluded.
 	Vector<Path> files;
 	Vector<Path> directories;
 	FileSystem::GetChildren(mShaderFolder, files, directories);
-
-	Set<String> emittedRendererMaterialNames;
 
 	for(const Path& file : files)
 	{
@@ -96,18 +93,8 @@ void BuiltinShaderCookerSource::GetItems(Vector<ShaderCookItem>& outItems)
 			item.CachePrefix = render::RendererMaterialBase::kRendererMaterialShaderCachePrefix;
 			if(!distinctDefines.empty())
 				item.Defines = distinctDefines.front();
-
-			emittedRendererMaterialNames.insert(name);
 		}
 
 		outItems.push_back(std::move(item));
-	}
-
-	// A registered renderer material with no matching source file in this folder would silently miss the prebuilt store
-	// at runtime, so surface it loudly.
-	for(const auto& entry : rendererMaterialsByName)
-	{
-		if(emittedRendererMaterialNames.find(entry.first) == emittedRendererMaterialNames.end())
-			B3D_LOG(Warning, LogResources, "Renderer-material shader \"{0}\" is registered but no matching \"{0}.bsl\" was found in \"{1}\"; it will not be cooked.", entry.first, mShaderFolder.ToString());
 	}
 }

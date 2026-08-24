@@ -4,8 +4,8 @@ add_executable(BansheeCookTool
 	B3DBansheeCookTool.cpp
 	B3DShaderCooker.cpp
 	B3DShaderCooker.h
-	B3DBuiltinShaderCookerSource.cpp
-	B3DBuiltinShaderCookerSource.h)
+	B3DShaderCookerSource.cpp
+	B3DShaderCookerSource.h)
 B3DSetDefaultLinkAndCompileFlags(BansheeCookTool)
 
 target_link_libraries(BansheeCookTool bsf)

@@ -143,10 +143,18 @@ ShaderCooker::CookItemResult ShaderCooker::CookItem(const ShaderCookItem& item, 
 
 	bool anyVariationFailed = false;
 
+	// A shader with no GPU programs of its own (e.g. a subshader-only file that overrides renderer mixins) has no
+	// bytecode to prebuild, and its variations cannot be compiled. Only its shader meta-data is stored.
+	const bool hasGpuPrograms = metaData->GPUProgramTypes.size() > 0;
+	if(!hasGpuPrograms)
+		B3D_LOG(Info, LogResources, "Shader \"{0}\" contains no GPU programs; storing meta-data only.", item.Name);
+
 	// 2) Cook every variation. The shader's source must stay intact for these compiles, so the meta-data Source is only
 	//    stripped afterwards in step 3.
-	for(const ShaderVariationParameters& variationParameters : metaData->Variations)
+	for(u32 variationIndex = 0; hasGpuPrograms && variationIndex < (u32)metaData->Variations.size(); ++variationIndex)
 	{
+		const ShaderVariationParameters& variationParameters = metaData->Variations[variationIndex];
+
 		const TShared<Variation> variation = Variation::Create(shader, language, variationParameters);
 
 		const ShaderCompilerResult compileResult = bslCompiler->CompileVariation(*shader, variationParameters, language, *variation);

@@ -36,9 +36,9 @@ namespace b3d
 	};
 
 	/**
-	 * Provides the set of shaders to cook to the offline shader cook tool. Implementations enumerate shaders from a
-	 * particular origin (the engine's builtin shader folder, the editor project library, ...) and classify each one
-	 * into the cache prefix and defines the runtime resolver will look it up with.
+	 * Provides a set of shaders to the offline shader cook tool. Implementations enumerate shaders from a particular
+	 * origin (a shader source folder, the editor project library, ...) and classify each one into the cache prefix and
+	 * defines the runtime resolver will look it up with.
 	 */
 	class IShaderCookerSource
 	{
