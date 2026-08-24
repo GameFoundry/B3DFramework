@@ -4,37 +4,25 @@
 // R0..R3 G0..G3 B0..B3 A0..A3 (5 each, endpoint = 2*subset + which) | P0..P3 (1 each, per endpoint) | indices (2 bits
 // each, the two subset anchors store 1 bit) = 128 bits.
 //
-// The 64-partition search, refinement and anchor fixup are the shared EncodeBC7Subsets core (descriptor: 2 subsets,
-// RGBA, 64 partitions, 5-bit endpoints, per-endpoint P-bit, 2-bit indices); this header only builds the texels and
-// packs. Encodes full RGBA, so its error competes directly with mode 6/5 (no alpha penalty).
-#include "$ENGINE$\TextureCompression\TextureCompressBC7Common.bslinc"
+// A cooperative search pass chooses the partition; this finalizer refines and packs that partition. Full RGBA error
+// competes directly with modes 4/5/6.
+#include "$ENGINE$\TextureCompression\TextureCompressBC7Partition.bslinc"
 
 mixin TextureCompressBC7Mode7
 {
-	mixin TextureCompressBC7Common;
+	mixin TextureCompressBC7Partition;
 
 	code
 	{
-		uint4 CompressBC7Mode7(float4 texels[16], out float outErr)
+		uint4 PackBC7Mode7(int4 code[6], uint pbit[6], uint idx[16], uint partition)
 		{
-			int4 px[16];
-			[unroll]
-			for (uint i = 0; i < 16; ++i)
-				px[i] = (int4)round(saturate(texels[i]) * 255.0f);
-
-			int bestPart;
-			int4 code[6];   // [2*subset + which], 5-bit RGBA endpoint codes
-			uint pbit[6];   // per-endpoint P-bits
-			uint idx[16];
-			EncodeBC7Subsets(px, 2, 4, 64, 5, 1, 2, bestPart, code, pbit, idx, outErr);
-
-			uint anchor1 = kBC7Anchor2[bestPart];
+			uint anchor1 = kBC7Anchor2[partition];
 
 			// Pack the 128-bit block.
 			uint4 block = uint4(0, 0, 0, 0);
 			uint pos = 0;
 			PutBits(block, pos, 0x80u, 8);             // mode 7 prefix "00000001" (bit 7 set)
-			PutBits(block, pos, (uint)bestPart, 6);
+			PutBits(block, pos, partition, 6);
 			[unroll]
 			for (uint ch = 0; ch < 4; ++ch)
 			{
@@ -51,6 +39,20 @@ mixin TextureCompressBC7Mode7
 			}
 
 			return block;
+		}
+
+		uint4 CompressBC7Mode7(float4 texels[16], uint partition, out float outErr)
+		{
+			int4 px[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+				px[i] = (int4)round(saturate(texels[i]) * 255.0f);
+
+			int4 code[6];
+			uint pbit[6];
+			uint idx[16];
+			FinalizeBC7Partition(px, 2, 4, 5, 1, 2, (int)partition, code, pbit, idx, outErr);
+			return PackBC7Mode7(code, pbit, idx, partition);
 		}
 	};
 };

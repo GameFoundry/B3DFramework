@@ -2,13 +2,12 @@
 // 4-bit indices - the simplest BC7 mode. Block layout (LSB->MSB): mode(7, =0x40) | R0 R1 G0 G1 B0 B1 A0 A1 (7 each) |
 // P0 P1 (1 each) | index0 (3 bits, anchor) | index1..15 (4 bits each) = 128 bits.
 //
-// The endpoint search, refinement and anchor fixup are the shared EncodeBC7Subsets core (descriptor: 1 subset, RGBA,
-// 1 "partition", 7-bit endpoints, per-endpoint P-bit, 4-bit indices); this header only builds the texels and packs.
-#include "$ENGINE$\TextureCompression\TextureCompressBC7Common.bslinc"
+// The shared partition finalizer handles its single implicit partition; this header builds the texels and packs.
+#include "$ENGINE$\TextureCompression\TextureCompressBC7Partition.bslinc"
 
 mixin TextureCompressBC7Mode6
 {
-	mixin TextureCompressBC7Common;
+	mixin TextureCompressBC7Partition;
 
 	code
 	{
@@ -21,11 +20,10 @@ mixin TextureCompressBC7Mode6
 			for (uint i = 0; i < 16; ++i)
 				px[i] = (int4)round(saturate(texels[i]) * 255.0f);
 
-			int bestPart;
 			int4 code[6];
 			uint pbit[6];
 			uint idx[16];
-			EncodeBC7Subsets(px, 1, 4, 1, 7, 1, 4, bestPart, code, pbit, idx, outErr);
+			FinalizeBC7Partition(px, 1, 4, 7, 1, 4, 0, code, pbit, idx, outErr);
 
 			int4 e0 = code[0], e1 = code[1];
 

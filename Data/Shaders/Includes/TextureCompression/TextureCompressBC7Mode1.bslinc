@@ -4,40 +4,25 @@
 // R0 R1 R2 R3 G0 G1 G2 G3 B0 B1 B2 B3 (6 each, endpoint = 2*subset + which) | P0 P1 (1 each, one per subset) |
 // indices (3 bits each, the two subset anchors store 2 bits) = 128 bits.
 //
-// The 64-partition search, refinement and anchor fixup are the shared EncodeBC7Subsets core (descriptor: 2 subsets,
-// RGB, 64 partitions, 6-bit endpoints, shared-per-subset P-bit, 3-bit indices); this header only builds the texels and
-// packs. Alpha is not represented (the decoder forces A=255), so the dispatcher must add the alpha penalty before
-// comparing this mode's error against alpha-capable modes.
-#include "$ENGINE$\TextureCompression\TextureCompressBC7Common.bslinc"
+// A cooperative search pass chooses the partition; this finalizer refines and packs that partition. Alpha is not
+// represented (the decoder forces A=255), so the dispatcher adds the alpha penalty before comparing modes.
+#include "$ENGINE$\TextureCompression\TextureCompressBC7Partition.bslinc"
 
 mixin TextureCompressBC7Mode1
 {
-	mixin TextureCompressBC7Common;
+	mixin TextureCompressBC7Partition;
 
 	code
 	{
-		// Encodes a 4x4 RGB block into a 128-bit BC7 mode-1 block. @p outErr receives the total squared RGB reconstruction
-		// error (so the dispatcher can pick the best mode per block).
-		uint4 CompressBC7Mode1(float3 texels[16], out float outErr)
+		uint4 PackBC7Mode1(int4 code[6], uint pbit[6], uint idx[16], uint partition)
 		{
-			int4 px[16];
-			[unroll]
-			for (uint i = 0; i < 16; ++i)
-				px[i] = int4((int3)round(saturate(texels[i]) * 255.0f), 0);
-
-			int bestPart;
-			int4 code[6];   // [2*subset + which]
-			uint pbit[6];   // shared P-bit duplicated across each subset's two endpoints
-			uint idx[16];
-			EncodeBC7Subsets(px, 2, 3, 64, 6, 2, 3, bestPart, code, pbit, idx, outErr);
-
-			uint anchor1 = kBC7Anchor2[bestPart];
+			uint anchor1 = kBC7Anchor2[partition];
 
 			// Pack the 128-bit block.
 			uint4 block = uint4(0, 0, 0, 0);
 			uint pos = 0;
 			PutBits(block, pos, 0x2u, 2);              // mode 1 prefix "01" (bit 1 set)
-			PutBits(block, pos, (uint)bestPart, 6);
+			PutBits(block, pos, partition, 6);
 			[unroll]
 			for (uint ch = 0; ch < 3; ++ch)
 			{
@@ -53,6 +38,22 @@ mixin TextureCompressBC7Mode1
 			}
 
 			return block;
+		}
+
+		// Encodes a 4x4 RGB block into a 128-bit BC7 mode-1 block. @p outErr receives the total squared RGB reconstruction
+		// error (so the dispatcher can pick the best mode per block).
+		uint4 CompressBC7Mode1(float3 texels[16], uint partition, out float outErr)
+		{
+			int4 px[16];
+			[unroll]
+			for (uint i = 0; i < 16; ++i)
+				px[i] = int4((int3)round(saturate(texels[i]) * 255.0f), 0);
+
+			int4 code[6];
+			uint pbit[6];
+			uint idx[16];
+			FinalizeBC7Partition(px, 2, 3, 6, 2, 3, (int)partition, code, pbit, idx, outErr);
+			return PackBC7Mode1(code, pbit, idx, partition);
 		}
 	};
 };

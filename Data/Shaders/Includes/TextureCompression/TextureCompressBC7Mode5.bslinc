@@ -1,11 +1,5 @@
-// BC7 mode 5 encoder. Mode 5 is single-subset RGBA with a 2-bit channel rotation: RGB endpoints at 7-bit precision and
-// A endpoints at 8-bit (no P-bits), separate 2-bit colour and 2-bit alpha indices, and a rotation that optionally swaps
-// one colour channel with alpha (so the higher-variance channel can use the dedicated alpha index set). Block layout
-// (LSB->MSB): mode(6, ="000001") | rotation(2) | R0 R1 G0 G1 B0 B1 (7 each) | A0 A1 (8 each) | colour indices (2 bits
-// each, texel-0 anchor 1 bit) | alpha indices (2 bits each, texel-0 anchor 1 bit) = 128 bits.
-//
-// Encodes full RGBA, so its error is directly comparable to mode 6 (no alpha penalty needed). The encoder tries all four
-// rotations and keeps the lowest-error one.
+// BC7 mode 5 candidate encoder. One invocation evaluates one channel rotation; four cooperating lanes evaluate all
+// rotations and reduce them in the original serial order.
 #include "$ENGINE$\TextureCompression\TextureCompressBC7Common.bslinc"
 
 mixin TextureCompressBC7Mode5
@@ -14,138 +8,132 @@ mixin TextureCompressBC7Mode5
 
 	code
 	{
-		uint4 CompressBC7Mode5(float4 texels[16], out float outErr)
+		uint4 CompressBC7Mode5Candidate(float4 texels[16], uint rotation, out float outError)
 		{
-			int4 px[16];
+			int3 colors[16];
+			int alphas[16];
+			int alphaMin = 255;
+			int alphaMax = 0;
 			[unroll]
-			for (uint i = 0; i < 16; ++i)
-				px[i] = (int4)round(saturate(texels[i]) * 255.0f);
-
-			uint bestRot = 0;
-			float bestErr = 1e30f;
-			int3 bC0 = int3(0, 0, 0), bC1 = int3(0, 0, 0); // 7-bit colour endpoint codes
-			int bA0 = 0, bA1 = 0;                          // 8-bit alpha endpoint codes
-			uint bCIdx[16], bAIdx[16];
-
-			for (uint rot = 0; rot < 4; ++rot)
+			for (uint texelIndex = 0; texelIndex < 16; ++texelIndex)
 			{
-				int3 cmn = int3(255, 255, 255), cmx = int3(0, 0, 0);
-				int amn = 255, amx = 0;
-				int3 col[16];
-				int alp[16];
+				const int4 pixel = (int4)round(saturate(texels[texelIndex]) * 255.0f);
+				ApplyRotationBC7(pixel, rotation, colors[texelIndex], alphas[texelIndex]);
+				alphaMin = min(alphaMin, alphas[texelIndex]);
+				alphaMax = max(alphaMax, alphas[texelIndex]);
+			}
+
+			float3 colorEndpoint0;
+			float3 colorEndpoint1;
+			FitLineRGB(colors, 0xFFFFu, colorEndpoint0, colorEndpoint1);
+			float alphaEndpoint0 = (float)alphaMax;
+			float alphaEndpoint1 = (float)alphaMin;
+
+			int3 colorCode0 = int3(0, 0, 0);
+			int3 colorCode1 = int3(0, 0, 0);
+			int alphaCode0 = 0;
+			int alphaCode1 = 0;
+			uint colorIndices[16];
+			uint alphaIndices[16];
+			float error = 0.0f;
+
+			for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
+			{
+				int3 reconstructedColor0 = int3(0, 0, 0);
+				int3 reconstructedColor1 = int3(0, 0, 0);
 				[unroll]
-				for (uint i = 0; i < 16; ++i)
+				for (int channel = 0; channel < 3; ++channel)
 				{
-					int3 c; int a;
-					ApplyRotationBC7(px[i], rot, c, a);
-					col[i] = c; alp[i] = a;
-					cmn = min(cmn, c); cmx = max(cmx, c);
-					amn = min(amn, a); amx = max(amx, a);
+					colorCode0[channel] = clamp((int)round(colorEndpoint0[channel] * (127.0f / 255.0f)), 0, 127);
+					colorCode1[channel] = clamp((int)round(colorEndpoint1[channel] * (127.0f / 255.0f)), 0, 127);
+					reconstructedColor0[channel] = ExpandBC7(colorCode0[channel], 7);
+					reconstructedColor1[channel] = ExpandBC7(colorCode1[channel], 7);
 				}
 
-				// PCA principal-axis colour endpoints (over the rotated RGB); 1-D extent for the rotated alpha.
-				float3 fec0, fec1;
-				FitLineRGB(col, 0xFFFFu, fec0, fec1);
-				float fea0 = (float)amx, fea1 = (float)amn;
+				alphaCode0 = clamp((int)round(alphaEndpoint0), 0, 255);
+				alphaCode1 = clamp((int)round(alphaEndpoint1), 0, 255);
 
-				int3 c0 = int3(0, 0, 0), c1 = int3(0, 0, 0);
-				int a0 = 0, a1 = 0;
-				float err = 0;
-				uint cIdx[16], aIdx[16];
-
-				// Pass 0: quantize PCA endpoints, assign indices, least-squares-refine. Pass 1: re-quantize, re-assign.
-				// Runtime loop (not [unroll]), because we're seeing hangs when compiling this shader on AMD
-				for (uint refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
+				float colorWeights[16];
+				float alphaWeights[16];
+				error = 0.0f;
+				for (uint texelIndex = 0; texelIndex < 16; ++texelIndex)
 				{
-					// Colour endpoints: 7-bit, reconstruction = expand(code, 7).
-					int3 rc0 = int3(0, 0, 0), rc1 = int3(0, 0, 0);
-					[unroll]
-					for (int ch = 0; ch < 3; ++ch)
+					int bestColorIndex = 0;
+					int bestColorError = 0x7fffffff;
+					int bestAlphaIndex = 0;
+					int bestAlphaError = 0x7fffffff;
+					for (uint index = 0; index < 4; ++index)
 					{
-						int q0 = clamp((int)round(fec0[ch] * (127.0f / 255.0f)), 0, 127);
-						int q1 = clamp((int)round(fec1[ch] * (127.0f / 255.0f)), 0, 127);
-						c0[ch] = q0; c1[ch] = q1;
-						rc0[ch] = ExpandBC7(q0, 7); rc1[ch] = ExpandBC7(q1, 7);
-					}
-					// Alpha endpoints: 8-bit, reconstruction is the value itself.
-					a0 = clamp((int)round(fea0), 0, 255);
-					a1 = clamp((int)round(fea1), 0, 255);
-
-					float cwgt[16], awgt[16];
-					err = 0;
-					for (uint t = 0; t < 16; ++t)
-					{
-						int bestKc = 0; int bestDc = 0x7fffffff;
-						int bestKa = 0; int bestDa = 0x7fffffff;
-						for (uint k = 0; k < 4; ++k)
+						const int weight = (int)kBC7Weight2[index];
+						const int3 paletteColor = ((64 - weight) * reconstructedColor0 +
+							weight * reconstructedColor1 + 32) >> 6;
+						const int3 colorDifference = colors[texelIndex] - paletteColor;
+						const int colorError = colorDifference.x * colorDifference.x +
+							colorDifference.y * colorDifference.y + colorDifference.z * colorDifference.z;
+						if (colorError < bestColorError)
 						{
-							int w = (int)kBC7Weight2[k];
-							int3 pal = ((64 - w) * rc0 + w * rc1 + 32) >> 6;
-							int3 dc = col[t] - pal;
-							int ddc = dc.x * dc.x + dc.y * dc.y + dc.z * dc.z;
-							if (ddc < bestDc) { bestDc = ddc; bestKc = (int)k; }
-
-							int pa = ((64 - w) * a0 + w * a1 + 32) >> 6;
-							int da = alp[t] - pa;
-							int dda = da * da;
-							if (dda < bestDa) { bestDa = dda; bestKa = (int)k; }
+							bestColorError = colorError;
+							bestColorIndex = (int)index;
 						}
-						err += (float)(bestDc + bestDa);
-						cIdx[t] = (uint)bestKc;
-						aIdx[t] = (uint)bestKa;
-						cwgt[t] = (float)kBC7Weight2[bestKc] * (1.0f / 64.0f);
-						awgt[t] = (float)kBC7Weight2[bestKa] * (1.0f / 64.0f);
+
+						const int paletteAlpha = ((64 - weight) * alphaCode0 + weight * alphaCode1 + 32) >> 6;
+						const int alphaDifference = alphas[texelIndex] - paletteAlpha;
+						const int alphaError = alphaDifference * alphaDifference;
+						if (alphaError < bestAlphaError)
+						{
+							bestAlphaError = alphaError;
+							bestAlphaIndex = (int)index;
+						}
 					}
 
-					if (refinePass + 1 < BCN_REFINE_PASSES)
-					{
-						RefineLineRGB(col, 0xFFFFu, cwgt, fec0, fec1);
-						RefineScalar(alp, 0xFFFFu, awgt, fea0, fea1);
-					}
+					error += (float)(bestColorError + bestAlphaError);
+					colorIndices[texelIndex] = (uint)bestColorIndex;
+					alphaIndices[texelIndex] = (uint)bestAlphaIndex;
+					colorWeights[texelIndex] = (float)kBC7Weight2[bestColorIndex] * (1.0f / 64.0f);
+					alphaWeights[texelIndex] = (float)kBC7Weight2[bestAlphaIndex] * (1.0f / 64.0f);
 				}
 
-				if (err < bestErr)
+				if (refinePass + 1 < BCN_REFINE_PASSES)
 				{
-					bestErr = err;
-					bestRot = rot;
-					bC0 = c0; bC1 = c1; bA0 = a0; bA1 = a1;
-					[unroll]
-					for (uint t = 0; t < 16; ++t) { bCIdx[t] = cIdx[t]; bAIdx[t] = aIdx[t]; }
+					RefineLineRGB(colors, 0xFFFFu, colorWeights, colorEndpoint0, colorEndpoint1);
+					RefineScalar(alphas, 0xFFFFu, alphaWeights, alphaEndpoint0, alphaEndpoint1);
 				}
 			}
 
-			// Anchor fixups (texel 0 stores 1 bit for each index set, so its high bit must be clear). Colour and alpha
-			// index sets are fixed independently.
-			if (bCIdx[0] >= 2u)
+			if (colorIndices[0] >= 2u)
 			{
-				int3 t = bC0; bC0 = bC1; bC1 = t;
+				const int3 temporary = colorCode0;
+				colorCode0 = colorCode1;
+				colorCode1 = temporary;
 				[unroll]
-				for (uint tt = 0; tt < 16; ++tt) bCIdx[tt] = 3u - bCIdx[tt];
+				for (uint texelIndex = 0; texelIndex < 16; ++texelIndex)
+					colorIndices[texelIndex] = 3u - colorIndices[texelIndex];
 			}
-			if (bAIdx[0] >= 2u)
+			if (alphaIndices[0] >= 2u)
 			{
-				int t = bA0; bA0 = bA1; bA1 = t;
+				const int temporary = alphaCode0;
+				alphaCode0 = alphaCode1;
+				alphaCode1 = temporary;
 				[unroll]
-				for (uint tt = 0; tt < 16; ++tt) bAIdx[tt] = 3u - bAIdx[tt];
+				for (uint texelIndex = 0; texelIndex < 16; ++texelIndex)
+					alphaIndices[texelIndex] = 3u - alphaIndices[texelIndex];
 			}
 
-			outErr = bestErr;
-
-			// Pack the 128-bit block.
+			outError = error;
 			uint4 block = uint4(0, 0, 0, 0);
-			uint pos = 0;
-			PutBits(block, pos, 0x20u, 6);             // mode 5 prefix "000001" (bit 5 set)
-			PutBits(block, pos, bestRot, 2);
-			PutBits(block, pos, (uint)bC0.x, 7); PutBits(block, pos, (uint)bC1.x, 7);
-			PutBits(block, pos, (uint)bC0.y, 7); PutBits(block, pos, (uint)bC1.y, 7);
-			PutBits(block, pos, (uint)bC0.z, 7); PutBits(block, pos, (uint)bC1.z, 7);
-			PutBits(block, pos, (uint)bA0, 8); PutBits(block, pos, (uint)bA1, 8);
+			uint position = 0;
+			PutBits(block, position, 0x20u, 6);
+			PutBits(block, position, rotation, 2);
+			PutBits(block, position, (uint)colorCode0.x, 7); PutBits(block, position, (uint)colorCode1.x, 7);
+			PutBits(block, position, (uint)colorCode0.y, 7); PutBits(block, position, (uint)colorCode1.y, 7);
+			PutBits(block, position, (uint)colorCode0.z, 7); PutBits(block, position, (uint)colorCode1.z, 7);
+			PutBits(block, position, (uint)alphaCode0, 8); PutBits(block, position, (uint)alphaCode1, 8);
 			[unroll]
-			for (uint t = 0; t < 16; ++t)
-				PutBits(block, pos, bCIdx[t], (t == 0u) ? 1u : 2u);
+			for (uint texelIndex = 0; texelIndex < 16; ++texelIndex)
+				PutBits(block, position, colorIndices[texelIndex], texelIndex == 0u ? 1u : 2u);
 			[unroll]
-			for (uint t = 0; t < 16; ++t)
-				PutBits(block, pos, bAIdx[t], (t == 0u) ? 1u : 2u);
+			for (uint texelIndex = 0; texelIndex < 16; ++texelIndex)
+				PutBits(block, position, alphaIndices[texelIndex], texelIndex == 0u ? 1u : 2u);
 
 			return block;
 		}

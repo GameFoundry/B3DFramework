@@ -1,0 +1,218 @@
+// Partition evaluation and finalization shared by the partitioned BC7 modes. Partition selection is performed by a
+// cooperative search pass with one GPU lane per partition. Only the winning partition and its error are persisted; the
+// mode-specific finalizer re-evaluates that partition before applying anchor constraints and packing the block.
+#include "$ENGINE$\TextureCompression\TextureCompressBC7Common.bslinc"
+
+mixin TextureCompressBC7Partition
+{
+	mixin TextureCompressBC7Common;
+
+	code
+	{
+		// Fits and quantizes one partition. Four fit/refine passes keep the search compiler-friendly; the nested endpoint-code
+		// neighborhood polish from the serial encoder is intentionally omitted because it makes backend compilation pathological.
+		void EvaluateBC7Partition(int4 px[16], int numSubsets, int numCh, int bits, int pbMode, int ib, int partition,
+			out int4 endpoint0[3], out int4 endpoint1[3], out uint pbit0[3], out uint pbit1[3],
+			out uint idxOut[16], out float errOut)
+		{
+			const int idxCount = 1 << ib;
+
+			float4 points[16];
+			[unroll]
+			for (int texelIndex = 0; texelIndex < 16; ++texelIndex)
+				points[texelIndex] = (float4)px[texelIndex];
+
+			uint subsetOf[16];
+			uint subsetMasks[3];
+			BC7SubsetMembership(numSubsets, partition, subsetOf, subsetMasks);
+
+			float4 fittedEndpoint0[3];
+			float4 fittedEndpoint1[3];
+			[unroll]
+			for (int subsetIndex = 0; subsetIndex < 3; ++subsetIndex)
+			{
+				fittedEndpoint0[subsetIndex] = float4(0, 0, 0, 0);
+				fittedEndpoint1[subsetIndex] = float4(0, 0, 0, 0);
+				if (subsetIndex < numSubsets)
+				{
+					FitLine4f(points, subsetMasks[subsetIndex], fittedEndpoint0[subsetIndex], fittedEndpoint1[subsetIndex]);
+					fittedEndpoint0[subsetIndex] = clamp(fittedEndpoint0[subsetIndex], 0.0f, 255.0f);
+					fittedEndpoint1[subsetIndex] = clamp(fittedEndpoint1[subsetIndex], 0.0f, 255.0f);
+				}
+			}
+
+			int4 reconstructed0[3];
+			int4 reconstructed1[3];
+			[unroll]
+			for (int subsetIndex = 0; subsetIndex < 3; ++subsetIndex)
+			{
+				endpoint0[subsetIndex] = int4(0, 0, 0, 0);
+				endpoint1[subsetIndex] = int4(0, 0, 0, 0);
+				reconstructed0[subsetIndex] = int4(0, 0, 0, 0);
+				reconstructed1[subsetIndex] = int4(0, 0, 0, 0);
+				pbit0[subsetIndex] = 0u;
+				pbit1[subsetIndex] = 0u;
+			}
+
+			float error = 0;
+			float weights[16];
+			[unroll]
+			for (int texelIndex = 0; texelIndex < 16; ++texelIndex)
+			{
+				idxOut[texelIndex] = 0u;
+				weights[texelIndex] = 0.0f;
+			}
+
+			for (int refinePass = 0; refinePass < BCN_REFINE_PASSES; ++refinePass)
+			{
+				[unroll]
+				for (int subsetIndex = 0; subsetIndex < 3; ++subsetIndex)
+				{
+					if (subsetIndex >= numSubsets)
+						continue;
+
+					const int4 endpointValue0 = (int4)round(fittedEndpoint0[subsetIndex]);
+					const int4 endpointValue1 = (int4)round(fittedEndpoint1[subsetIndex]);
+					if (pbMode == 2)
+					{
+						uint sharedPbit;
+						QuantizeSubsetSPB(endpointValue0, endpointValue1, numCh, bits, endpoint0[subsetIndex],
+							endpoint1[subsetIndex], sharedPbit, reconstructed0[subsetIndex], reconstructed1[subsetIndex]);
+						pbit0[subsetIndex] = sharedPbit;
+						pbit1[subsetIndex] = sharedPbit;
+					}
+					else
+					{
+						QuantizeEndpointBC7(endpointValue0, numCh, bits, pbMode, endpoint0[subsetIndex],
+							pbit0[subsetIndex], reconstructed0[subsetIndex]);
+						QuantizeEndpointBC7(endpointValue1, numCh, bits, pbMode, endpoint1[subsetIndex],
+							pbit1[subsetIndex], reconstructed1[subsetIndex]);
+					}
+				}
+
+				error = 0;
+				for (int texelIndex = 0; texelIndex < 16; ++texelIndex)
+				{
+					const uint subsetIndex = subsetOf[texelIndex];
+					const int4 reconstructedEndpoint0 = reconstructed0[subsetIndex];
+					const int4 reconstructedEndpoint1 = reconstructed1[subsetIndex];
+					int bestIndex = 0;
+					int bestDistance = 0x7fffffff;
+					for (int indexCandidate = 0; indexCandidate < 16; ++indexCandidate)
+					{
+						if (indexCandidate >= idxCount)
+							continue;
+
+						const int weight = BC7IdxWeight(ib, (uint)indexCandidate);
+						const int4 paletteValue = ((64 - weight) * reconstructedEndpoint0 +
+							weight * reconstructedEndpoint1 + 32) >> 6;
+						const int4 delta = px[texelIndex] - paletteValue;
+						const int distance = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z +
+							((numCh == 4) ? delta.w * delta.w : 0);
+						if (distance < bestDistance)
+						{
+							bestDistance = distance;
+							bestIndex = indexCandidate;
+						}
+					}
+
+					error += (float)bestDistance;
+					idxOut[texelIndex] = (uint)bestIndex;
+					weights[texelIndex] = (float)BC7IdxWeight(ib, (uint)bestIndex) * (1.0f / 64.0f);
+				}
+
+				if (refinePass + 1 < BCN_REFINE_PASSES)
+				{
+					[unroll]
+					for (int subsetIndex = 0; subsetIndex < 3; ++subsetIndex)
+					{
+						if (subsetIndex >= numSubsets)
+							continue;
+
+						RefineLine4f(points, subsetMasks[subsetIndex], weights, fittedEndpoint0[subsetIndex],
+							fittedEndpoint1[subsetIndex]);
+						fittedEndpoint0[subsetIndex] = clamp(fittedEndpoint0[subsetIndex], 0.0f, 255.0f);
+						fittedEndpoint1[subsetIndex] = clamp(fittedEndpoint1[subsetIndex], 0.0f, 255.0f);
+					}
+				}
+			}
+
+			errOut = error;
+		}
+
+		// Applies the BC7 anchor constraints to an already-evaluated candidate and produces block-packer data.
+		void FinalizeBC7Candidate(int numSubsets, int pbMode, int ib, int partition, inout int4 endpoint0[3],
+			inout int4 endpoint1[3], inout uint pbit0[3], inout uint pbit1[3], inout uint idxOut[16],
+			out int4 codeStore[6], out uint pbitStore[6])
+		{
+			uint subsetOf[16];
+			uint subsetMasks[3];
+			BC7SubsetMembership(numSubsets, partition, subsetOf, subsetMasks);
+
+			uint anchors[3];
+			anchors[0] = 0u;
+			anchors[1] = 0u;
+			anchors[2] = 0u;
+			if (numSubsets == 2)
+				anchors[1] = kBC7Anchor2[partition];
+			else if (numSubsets == 3)
+			{
+				anchors[1] = kBC7Anchor3a[partition];
+				anchors[2] = kBC7Anchor3b[partition];
+			}
+
+			const int anchorThreshold = (1 << ib) >> 1;
+			const int invertedIndexMax = (1 << ib) - 1;
+			[unroll]
+			for (int subsetIndex = 0; subsetIndex < 3; ++subsetIndex)
+			{
+				if (subsetIndex >= numSubsets)
+					continue;
+
+				if (idxOut[anchors[subsetIndex]] >= (uint)anchorThreshold)
+				{
+					const int4 temporaryEndpoint = endpoint0[subsetIndex];
+					endpoint0[subsetIndex] = endpoint1[subsetIndex];
+					endpoint1[subsetIndex] = temporaryEndpoint;
+					if (pbMode == 1)
+					{
+						const uint temporaryPbit = pbit0[subsetIndex];
+						pbit0[subsetIndex] = pbit1[subsetIndex];
+						pbit1[subsetIndex] = temporaryPbit;
+					}
+
+					[unroll]
+					for (int texelIndex = 0; texelIndex < 16; ++texelIndex)
+					{
+						if (subsetOf[texelIndex] == (uint)subsetIndex)
+							idxOut[texelIndex] = (uint)invertedIndexMax - idxOut[texelIndex];
+					}
+				}
+			}
+
+			[unroll]
+			for (int subsetIndex = 0; subsetIndex < 3; ++subsetIndex)
+			{
+				codeStore[2 * subsetIndex] = endpoint0[subsetIndex];
+				codeStore[2 * subsetIndex + 1] = endpoint1[subsetIndex];
+				pbitStore[2 * subsetIndex] = pbit0[subsetIndex];
+				pbitStore[2 * subsetIndex + 1] = pbit1[subsetIndex];
+			}
+		}
+
+		// Evaluates and finalizes one selected partition. Partitioned modes intentionally repeat the winning evaluation so
+		// the search scratch remains one uint4 per block instead of transporting all endpoint and index data between passes.
+		void FinalizeBC7Partition(int4 px[16], int numSubsets, int numCh, int bits, int pbMode, int ib, int partition,
+			out int4 codeStore[6], out uint pbitStore[6], out uint idxOut[16], out float errOut)
+		{
+			int4 endpoint0[3];
+			int4 endpoint1[3];
+			uint pbit0[3];
+			uint pbit1[3];
+			EvaluateBC7Partition(px, numSubsets, numCh, bits, pbMode, ib, partition, endpoint0, endpoint1, pbit0,
+				pbit1, idxOut, errOut);
+			FinalizeBC7Candidate(numSubsets, pbMode, ib, partition, endpoint0, endpoint1, pbit0, pbit1, idxOut,
+				codeStore, pbitStore);
+		}
+	};
+};

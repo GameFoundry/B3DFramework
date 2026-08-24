@@ -1,13 +1,4 @@
-// BC6H / BC7 mode encoders live in their own headers (one mode per file where practical) to keep this dispatcher small;
-// see Includes/TextureCompression/
-#include "$ENGINE$\TextureCompression\TextureCompressBC7Mode6.bslinc"
-#include "$ENGINE$\TextureCompression\TextureCompressBC7Mode1.bslinc"
-#include "$ENGINE$\TextureCompression\TextureCompressBC7Mode3.bslinc"
-#include "$ENGINE$\TextureCompression\TextureCompressBC7Mode2.bslinc"
-#include "$ENGINE$\TextureCompression\TextureCompressBC7Mode0.bslinc"
-#include "$ENGINE$\TextureCompression\TextureCompressBC7Mode5.bslinc"
-#include "$ENGINE$\TextureCompression\TextureCompressBC7Mode7.bslinc"
-#include "$ENGINE$\TextureCompression\TextureCompressBC7Mode4.bslinc"
+// BC6H mode encoders live in their own headers to keep this dispatcher small; see Includes/TextureCompression/.
 #include "$ENGINE$\TextureCompression\TextureCompressBC6Mode1.bslinc"
 #include "$ENGINE$\TextureCompression\TextureCompressBC6Mode2.bslinc"
 #include "$ENGINE$\TextureCompression\TextureCompressBC6Mode3.bslinc"
@@ -29,14 +20,6 @@ shader TextureCompress
 {
 	featureset = HighEnd;
 
-	mixin TextureCompressBC7Mode6;
-	mixin TextureCompressBC7Mode1;
-	mixin TextureCompressBC7Mode3;
-	mixin TextureCompressBC7Mode2;
-	mixin TextureCompressBC7Mode0;
-	mixin TextureCompressBC7Mode5;
-	mixin TextureCompressBC7Mode7;
-	mixin TextureCompressBC7Mode4;
 	mixin TextureCompressBC6Mode1;
 	mixin TextureCompressBC6Mode2;
 	mixin TextureCompressBC6Mode3;
@@ -63,8 +46,7 @@ shader TextureCompress
 		//   2       - BC4  (single red channel, 64-bit block)
 		//   3       - BC5  (RG: two BC4 blocks, 128-bit)
 		//   4 .. 17 - BC6H (RGB HDR / UF16, 128-bit), one encoder mode per variation: 4 = mode 1 ... 17 = mode 14
-		//  18 .. 25 - BC7  (RGBA, 128-bit),           one encoder mode per variation: 18 = mode 0 ... 25 = mode 7
-		FORMAT = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
+		FORMAT = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 };
 	};
 
 	code
@@ -80,8 +62,6 @@ shader TextureCompress
 		#define IS_BC6H (FORMAT >= 4 && FORMAT <= 17)
 		// BC6H two-region modes (1..10) run cooperatively: 32 threads/block, one per partition (FORMAT 4..13).
 		#define IS_BC6H_TWOREGION (FORMAT >= 4 && FORMAT <= 13)
-		// BC7 is dispatched as 8 single-mode kernels (FORMAT 18..25, encoder modes 0..7). Both share a running-best buffer.
-		#define IS_BC7 (FORMAT >= 18 && FORMAT <= 25)
 
 		// Source pixels as a 2D texture: RGBA8 (read as normalized float4) for LDR, or RGBA32F for HDR (BC6H).
 		Texture2D gInput;
@@ -89,8 +69,8 @@ shader TextureCompress
 		// One packed block per texel, at the block-grid coordinate: a uint2 (64-bit formats) or uint4 (128-bit).
 		RWTexture2D<BLOCK_TYPE> gOutput;
 
-		#if IS_BC7 || IS_BC6H
-			// Per-block lowest error so far, carried between the BC7/BC6H mode-group dispatches; addressed by block
+		#if IS_BC6H
+			// Per-block lowest error so far, carried between the BC6H mode-group dispatches; addressed by block
 			// coordinate. The host seeds it to +inf so the first dispatched mode always wins; later modes continue the
 			// running minimum and write it back.
 			RWTexture2D<float> gBestErr;
@@ -120,7 +100,7 @@ shader TextureCompress
 			#else
 			uint2 blockId = dispatchId.xy;
 			#endif
-			#if IS_BC7 || IS_BC6H
+			#if IS_BC6H
 			// The per-tile gBestErr scratch is only one tile in size, so it is indexed by the tile-local block id (the
 			// dispatch grid starts at (0,0)), captured here before the global offset is applied below.
 			uint2 localBlockId = blockId;
@@ -134,10 +114,7 @@ shader TextureCompress
 			uint2 base = blockId * 4;
 			uint2 maxCoord = (uint2)texSize - 1;
 
-			#if IS_BC7
-				float4 rgba[16];
-				float3 rgbF[16];
-			#elif IS_BC6H
+			#if IS_BC6H
 				int3 hbits[16]; // RGB as UF16 half-float bits
 			#else
 				float3 rgb[16];
@@ -157,10 +134,7 @@ shader TextureCompress
 					float4 texel = gInput.Load(int3((int2)coord, 0));
 
 					uint idx = y * 4 + x;
-					#if IS_BC7
-						rgba[idx] = texel;
-						rgbF[idx] = texel.rgb;
-					#elif IS_BC6H
+					#if IS_BC6H
 						// UF16: clamp negatives, convert each channel to its half-float bit pattern, clamp to F16 max.
 						// f32tof16 is used per-component (the cross-compiler supports only the scalar form).
 						uint hbR = f32tof16(max(texel.r, 0.0f));
@@ -188,7 +162,7 @@ shader TextureCompress
 				uint2 redBlock = CompressBC4(red);
 				uint2 greenBlock = CompressBC4(green);
 				gOutput[blockId] = uint4(redBlock, greenBlock);
-			#elif IS_BC6H // BC6H (UF16, HDR): one encoder mode per kernel (FORMAT 4..17 -> modes 1..14); accumulate via gBestErr.
+			#else // BC6H (UF16, HDR): one encoder mode per kernel (FORMAT 4..17 -> modes 1..14); accumulate via gBestErr.
 				float modeErr;
 				uint4 modeBlock;
 				#if FORMAT == 4
@@ -233,45 +207,6 @@ shader TextureCompress
 					gOutput[blockId] = prevBlock6;
 					gBestErr[localBlockId] = prevErr6;
 				}
-			#else // BC7 (FORMAT 18..25 -> encoder modes 0..7): one mode per kernel; accumulate via gBestErr.
-				float modeErr;
-				uint4 modeBlock;
-				#if FORMAT >= 18 && FORMAT <= 21
-					// RGB-only modes (0, 1, 2, 3) cannot represent alpha (the decoder forces A=255), so charge them the
-					// alpha they drop before comparing against the alpha-capable modes (4/5/6/7).
-					float alphaPenalty = 0;
-					[unroll]
-					for (uint i = 0; i < 16; ++i)
-					{
-						float da = saturate(rgba[i].a) * 255.0f - 255.0f;
-						alphaPenalty += da * da;
-					}
-				#endif
-
-				#if FORMAT == 18
-					modeBlock = CompressBC7Mode0(rgbF, modeErr); modeErr += alphaPenalty; // 3-subset RGB
-				#elif FORMAT == 19
-					modeBlock = CompressBC7Mode1(rgbF, modeErr); modeErr += alphaPenalty; // 2-subset RGB
-				#elif FORMAT == 20
-					modeBlock = CompressBC7Mode2(rgbF, modeErr); modeErr += alphaPenalty; // 3-subset RGB
-				#elif FORMAT == 21
-					modeBlock = CompressBC7Mode3(rgbF, modeErr); modeErr += alphaPenalty; // 2-subset RGB
-				#elif FORMAT == 22
-					modeBlock = CompressBC7Mode4(rgba, modeErr); // RGBA single-subset, rotation + dual index
-				#elif FORMAT == 23
-					modeBlock = CompressBC7Mode5(rgba, modeErr); // RGBA single-subset, rotation + dual index
-				#elif FORMAT == 24
-					modeBlock = CompressBC7Mode6(rgba, modeErr); // RGBA single-subset
-				#else // FORMAT == 25
-					modeBlock = CompressBC7Mode7(rgba, modeErr); // RGBA two-subset
-				#endif
-
-				// Keep this mode's block if it beats the running best (gBestErr seeded to +inf by the host; see BC6H note).
-				float prevErr = gBestErr[localBlockId];
-				uint4 prevBlock = gOutput[blockId];
-				if (modeErr < prevErr) { prevErr = modeErr; prevBlock = modeBlock; }
-				gOutput[blockId] = prevBlock;
-				gBestErr[localBlockId] = prevErr;
 			#endif
 		}
 	};

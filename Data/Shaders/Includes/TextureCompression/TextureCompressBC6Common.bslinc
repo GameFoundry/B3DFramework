@@ -66,15 +66,24 @@ mixin TextureCompressBC6Common
 			return (u * 31) >> 6;
 		}
 
-		// Decoded half-float bits for palette entry @p i, given the two endpoint codes (already in @p wBits precision)
-		// and the index bit-width (3 or 4). Mirrors generate_palette_quantized + lerp + finish_unquantize.
-		int BC6PaletteValue(int codeA, int codeB, int wBits, uint i, uint indexBits)
+		// Decoded half-float bits for a palette weight, given the two endpoint codes (already in @p wBits precision).
+		// Mirrors generate_palette_quantized + lerp + finish_unquantize.
+		int BC6PaletteValueForWeight(int codeA, int codeB, int wBits, int weight)
 		{
 			int ua = UnquantizeBC6(codeA, wBits);
 			int ub = UnquantizeBC6(codeB, wBits);
-			int w = (indexBits == 4u) ? (int)kBC6Weight4[i] : (int)kBC6Weight3[i];
-			int v = (ua * (64 - w) + ub * w) >> 6;
+			int v = (ua * (64 - weight) + ub * weight) >> 6;
 			return FinishUnquantizeBC6(v);
+		}
+
+		int BC6PaletteValue3(int codeA, int codeB, int wBits, uint i)
+		{
+			return BC6PaletteValueForWeight(codeA, codeB, wBits, (int)kBC6Weight3[i]);
+		}
+
+		int BC6PaletteValue4(int codeA, int codeB, int wBits, uint i)
+		{
+			return BC6PaletteValueForWeight(codeA, codeB, wBits, (int)kBC6Weight4[i]);
 		}
 
 		// Clamps a float endpoint (half-bit space) to the representable UF16 range and rounds to an int.
@@ -154,9 +163,9 @@ mixin TextureCompressBC6Common
 				int palR[16], palG[16], palB[16];
 				for (uint k = 0; k < 16; ++k)
 				{
-					palR[k] = BC6PaletteValue(cA.x, cBa.x, wBits, k, 4u);
-					palG[k] = BC6PaletteValue(cA.y, cBa.y, wBits, k, 4u);
-					palB[k] = BC6PaletteValue(cA.z, cBa.z, wBits, k, 4u);
+					palR[k] = BC6PaletteValue4(cA.x, cBa.x, wBits, k);
+					palG[k] = BC6PaletteValue4(cA.y, cBa.y, wBits, k);
+					palB[k] = BC6PaletteValue4(cA.z, cBa.z, wBits, k);
 				}
 
 				float wgt[16];
@@ -198,9 +207,9 @@ mixin TextureCompressBC6Common
 			int palR[16], palG[16], palB[16];
 			for (uint k = 0; k < 16; ++k)
 			{
-				palR[k] = BC6PaletteValue(cA.x, cBa.x, wBits, k, 4u);
-				palG[k] = BC6PaletteValue(cA.y, cBa.y, wBits, k, 4u);
-				palB[k] = BC6PaletteValue(cA.z, cBa.z, wBits, k, 4u);
+				palR[k] = BC6PaletteValue4(cA.x, cBa.x, wBits, k);
+				palG[k] = BC6PaletteValue4(cA.y, cBa.y, wBits, k);
+				palB[k] = BC6PaletteValue4(cA.z, cBa.z, wBits, k);
 			}
 			float finalErr = 0;
 			for (uint t = 0; t < 16; ++t)
@@ -293,9 +302,9 @@ mixin TextureCompressBC6Common
 					{
 						for (uint k = 0; k < 8; ++k)
 						{
-							palR[s * 8 + k] = BC6PaletteValue(absC[2 * s].x, absC[2 * s + 1].x, wBits, k, 3u);
-							palG[s * 8 + k] = BC6PaletteValue(absC[2 * s].y, absC[2 * s + 1].y, wBits, k, 3u);
-							palB[s * 8 + k] = BC6PaletteValue(absC[2 * s].z, absC[2 * s + 1].z, wBits, k, 3u);
+							palR[s * 8 + k] = BC6PaletteValue3(absC[2 * s].x, absC[2 * s + 1].x, wBits, k);
+							palG[s * 8 + k] = BC6PaletteValue3(absC[2 * s].y, absC[2 * s + 1].y, wBits, k);
+							palB[s * 8 + k] = BC6PaletteValue3(absC[2 * s].z, absC[2 * s + 1].z, wBits, k);
 						}
 					}
 
@@ -417,9 +426,9 @@ mixin TextureCompressBC6Common
 			{
 				for (uint k = 0; k < 8; ++k)
 				{
-					palR2[s * 8 + k] = BC6PaletteValue(act[2 * s].x, act[2 * s + 1].x, wBits, k, 3u);
-					palG2[s * 8 + k] = BC6PaletteValue(act[2 * s].y, act[2 * s + 1].y, wBits, k, 3u);
-					palB2[s * 8 + k] = BC6PaletteValue(act[2 * s].z, act[2 * s + 1].z, wBits, k, 3u);
+					palR2[s * 8 + k] = BC6PaletteValue3(act[2 * s].x, act[2 * s + 1].x, wBits, k);
+					palG2[s * 8 + k] = BC6PaletteValue3(act[2 * s].y, act[2 * s + 1].y, wBits, k);
+					palB2[s * 8 + k] = BC6PaletteValue3(act[2 * s].z, act[2 * s + 1].z, wBits, k);
 				}
 			}
 			float finalErr = 0;
