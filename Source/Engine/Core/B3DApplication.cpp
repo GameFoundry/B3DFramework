@@ -680,10 +680,13 @@ ApplicationCreateInformation Application::BuildCreateInformation(VideoMode video
 	createInformation.Audio = B3D_AUDIO_BACKEND;
 	createInformation.Physics = B3D_PHYSICS_BACKEND;
 
+#if B3D_BUILD_IMPORTERS
+	// Builds without importer plugins (consoles, cooked-data runtimes) expect pre-baked data instead
 	createInformation.Importers.push_back("bsfFreeImgImporter");
 	createInformation.Importers.push_back("bsfFBXImporter");
 	createInformation.Importers.push_back("bsfFontImporter");
 	createInformation.Importers.push_back("bsfSL");
+#endif
 
 	createInformation.PrimaryWindow.VideoMode = videoMode;
 	createInformation.PrimaryWindow.Fullscreen = fullscreen;

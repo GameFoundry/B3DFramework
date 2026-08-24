@@ -43,3 +43,6 @@
 
 // Monolithic build: non-importer plugins are statically linked into bsf
 #cmakedefine01 B3D_MONOLITHIC_BUILD
+
+// Importer plugins are part of the build; when off (consoles, cooked-data runtimes) the application expects pre-baked data
+#cmakedefine01 B3D_BUILD_IMPORTERS
