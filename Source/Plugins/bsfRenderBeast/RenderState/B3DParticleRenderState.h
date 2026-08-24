@@ -267,7 +267,7 @@ namespace b3d
 		/** Default material used for rendering particles, when no other is available. */
 		class DefaultParticleMaterial : public RendererMaterial<DefaultParticleMaterial>
 		{
-			RMAT_DEF("ParticlesUnlit.bsl");
+			RMAT_DEF("DefaultParticlesUnlit.bsl");
 		};
 
 		/**

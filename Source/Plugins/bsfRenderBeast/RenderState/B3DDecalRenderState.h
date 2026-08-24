@@ -36,7 +36,7 @@ namespace b3d
 		/** Default material used for rendering decals, when no other is available. */
 		class DefaultDecalMaterial : public RendererMaterial<DefaultDecalMaterial>
 		{
-			RMAT_DEF("Decal.bsl");
+			RMAT_DEF("DefaultDecal.bsl");
 		};
 
 		/** Determines how is decal blended with the underlying surface. */

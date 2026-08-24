@@ -239,11 +239,11 @@ TOptional<Path> BuiltinResources::TryResolveFontPath(const String& font) const
 	if(packageManager.TryResolveVirtualResourcePath(fontVirtualFilePath).has_value())
 		return fontVirtualFilePath;
 
-		fontVirtualFilePath.SetFilename(font + ".ttf");
+	fontVirtualFilePath.SetFilename(font + ".ttf");
 	if(packageManager.TryResolveVirtualResourcePath(fontVirtualFilePath).has_value())
 		return fontVirtualFilePath;
 
-			fontVirtualFilePath.SetFilename(font + ".otf");
+	fontVirtualFilePath.SetFilename(font + ".otf");
 	if(packageManager.TryResolveVirtualResourcePath(fontVirtualFilePath).has_value())
 		return fontVirtualFilePath;
 
@@ -258,13 +258,13 @@ HFont BuiltinResources::GetFont(const String& font) const
 
 	const TOptional<Path> fontVirtualFilePath = TryResolveFontPath(font);
 	if(!fontVirtualFilePath.has_value())
-		{
-			B3D_LOG(Warning, LogGUI, "Cannot find the requested font: {0}. Using default font instead.", font);
-			return GetDefaultFont();
-		}
+	{
+		B3D_LOG(Warning, LogGUI, "Cannot find the requested font: {0}. Using default font instead.", font);
+		return GetDefaultFont();
+	}
 
 	return GetResources().Load<Font>(*fontVirtualFilePath, ResourceLoadOptions(false));
-	}
+}
 
 
 HShader BuiltinResources::GetOrCompileShader(const Path& path) const
