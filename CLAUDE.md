@@ -46,6 +46,8 @@ cmake --build . --target UnitTestRunner --config RelWithDebInfo
 
 When runtime debugging is required (breakpoints, call stacks, variable inspection, crash/assert investigation), use the `clion-debug` skill — it covers connecting to CLion's MCP servers, launching CLion if needed, building, and driving the debugger.
 
+When running any engine executable unattended (examples, UnitTestRunner, BansheeCookTool), always pass `--debug.DisableErrorDialogs=true`. Without it, Debug-build asserts and aborts pop up interactive dialogs that block the run until a human dismisses them; with it, errors go to stderr and the process fails fast with a proper exit code.
+
 ## Architecture
 
 ### Repository Structure
