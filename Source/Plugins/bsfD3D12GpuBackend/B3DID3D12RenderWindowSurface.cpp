@@ -11,11 +11,22 @@
 using namespace b3d;
 using namespace b3d::render;
 
+namespace
+{
+	/** Returns a completed null result for reads that could not be issued. */
+	TAsyncOp<TShared<PixelData>> CompletedNullReadOp()
+	{
+		TAsyncOp<TShared<PixelData>> op;
+		op.CompleteOperation(nullptr);
+		return op;
+	}
+}
+
 TAsyncOp<TShared<PixelData>> ID3D12RenderWindowSurface::ReadAsync(GpuCommandBuffer& commandBuffer)
 {
 	D3D12Image* colorImage = GetCurrentColorImage();
 	if (colorImage == nullptr)
-		return {};
+		return CompletedNullReadOp();
 
 	const u32 width = GetWidth();
 	const u32 height = GetHeight();
@@ -33,7 +44,7 @@ TAsyncOp<TShared<PixelData>> ID3D12RenderWindowSurface::ReadAsync(GpuCommandBuff
 	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(*GetD3D12GpuBackend().GetPrimaryDevice());
 	TShared<GpuBuffer> stagingBuffer = device.CreateGpuBuffer(bufferCreateInformation, GpuObjectCreateFlag::None);
 	if (stagingBuffer == nullptr)
-		return {};
+		return CompletedNullReadOp();
 
 	D3D12Buffer* d3d12StagingBuffer = static_cast<D3D12GpuBuffer*>(stagingBuffer.get())->GetD3D12Buffer();
 	D3D12GpuCommandBuffer& d3d12CommandBuffer = static_cast<D3D12GpuCommandBuffer&>(commandBuffer);

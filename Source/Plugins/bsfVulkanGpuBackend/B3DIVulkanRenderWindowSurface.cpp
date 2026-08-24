@@ -11,16 +11,30 @@
 using namespace b3d;
 using namespace b3d::render;
 
+namespace
+{
+	/**
+	 * An already-completed null result for reads that could not be issued. A default-constructed op would never
+	 * complete (nothing was recorded that could complete it), permanently blocking any caller waiting on it.
+	 */
+	TAsyncOp<TShared<PixelData>> CompletedNullReadOp()
+	{
+		TAsyncOp<TShared<PixelData>> op;
+		op.CompleteOperation(nullptr);
+		return op;
+	}
+}
+
 TAsyncOp<TShared<PixelData>> IVulkanRenderWindowSurface::ReadAsync(GpuCommandBuffer& commandBuffer)
 {
 	VulkanImage* colorImage = GetCurrentColorImage();
 	if(colorImage == nullptr)
-		return {};
+		return CompletedNullReadOp();
 
 	// Get image info from the framebuffer
 	VulkanFramebuffer* framebuffer = GetActiveFramebuffer(false);
 	if(framebuffer == nullptr)
-		return {};
+		return CompletedNullReadOp();
 
 	const u32 width = framebuffer->GetWidth();
 	const u32 height = framebuffer->GetHeight();
