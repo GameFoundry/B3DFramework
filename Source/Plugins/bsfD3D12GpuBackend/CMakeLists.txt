@@ -7,6 +7,7 @@ endif()
 
 # Target
 B3DAddPlugin(bsfD3D12GpuBackend ENGINE ${BS_D3D12GPUBACKEND_SRC})
+B3DRegisterGpuBackend(DirectX12 bsfD3D12GpuBackend hlsl)
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfD3D12GpuBackend)

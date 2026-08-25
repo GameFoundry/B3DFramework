@@ -29,6 +29,17 @@ macro(B3DAddPlugin TARGET_NAME PLUGIN_CATEGORY)
 	endif()
 endmacro()
 
+# Registers a GPU backend implementation. The backend name must match the name the platform lists in
+# B3D_GPU_BACKEND_CHOICES. 
+#
+# @param	backendName		Backend name as listed in B3D_GPU_BACKEND_CHOICES (e.g. Vulkan).
+# @param	libraryTarget	The backend's plugin library target (e.g. bsfVulkanGpuBackend).
+# @param	shadingLanguage	Identifier of the shading language the backend's prebuilt shaders are cooked in (e.g. vksl).
+function(B3DRegisterGpuBackend backendName libraryTarget shadingLanguage)
+	set_property(GLOBAL PROPERTY B3D_GPU_BACKEND_LIB_${backendName} ${libraryTarget})
+	set_property(GLOBAL PROPERTY B3D_GPU_BACKEND_LANGUAGE_${backendName} ${shadingLanguage})
+endfunction()
+
 # Registers optional subdirectories based on selected properties.
 function(B3DRegisterOptionalFrameworkSubdirectories)
 	# Grab examples projects
@@ -91,7 +102,8 @@ function(B3DAddRuntimeDependencies target)
 		add_dependencies(${target} bsfPhysX bsfNullPhysics)
 		add_dependencies(${target} bsfRenderBeast bsfNullRenderer)
 	else()
-		add_dependencies(${target} ${B3D_GPU_BACKEND_LIB_${B3D_GPU_BACKEND}})
+		get_property(gpuBackendLibrary GLOBAL PROPERTY B3D_GPU_BACKEND_LIB_${B3D_GPU_BACKEND})
+		add_dependencies(${target} ${gpuBackendLibrary})
 
 		if(B3D_AUDIO_BACKEND MATCHES "FMOD")
 			add_dependencies(${target} bsfFMOD)

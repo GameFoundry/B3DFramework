@@ -24,6 +24,7 @@ endif()
 	
 # Target
 B3DAddPlugin(bsfVulkanGpuBackend ENGINE ${B3D_VULKANGPUBACKEND_SOURCE_FILES})
+B3DRegisterGpuBackend(Vulkan bsfVulkanGpuBackend vksl)
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfVulkanGpuBackend)

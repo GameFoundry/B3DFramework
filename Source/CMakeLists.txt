@@ -69,54 +69,6 @@ endif()
 B3DCheckAndUpdateAssetPackage(FrameworkData)
 B3DCheckAndUpdateAssetPackage(FrameworkDataRaw)
 
-# Config file
-## Note: Must happen before script binding generation
-## Set names of libraries used in the config file
-set(GPU_BACKEND_MODULE_LIB ${B3D_GPU_BACKEND_LIB_${B3D_GPU_BACKEND}})
-
-if(B3D_AUDIO_BACKEND MATCHES "FMOD")
-	set(AUDIO_MODULE_LIB bsfFMOD)
-elseif(B3D_AUDIO_BACKEND MATCHES "OpenAudio")
-	set(AUDIO_MODULE_LIB bsfOpenAudio)
-else()
-	set(AUDIO_MODULE_LIB bsfNullAudio)
-endif()
-
-if(B3D_PHYSICS_BACKEND MATCHES "PhysX")
-	set(PHYSICS_MODULE_LIB bsfPhysX)
-else()
-	set(PHYSICS_MODULE_LIB bsfNullPhysics)
-endif()
-
-if(B3D_RENDERER MATCHES "RenderBeast")
-	set(RENDERER_MODULE_LIB bsfRenderBeast)
-else()
-	set(RENDERER_MODULE_LIB bsfNullRenderer)
-endif()
-
-if((B3D_SCRIPT_API AND (NOT B3D_SCRIPT_API MATCHES "None")) OR B3D_IS_ENGINE)
-	set(B3D_IS_SCRIPTING_ENABLED 1)
-else()
-	set(B3D_IS_SCRIPTING_ENABLED 0)
-endif()
-
-set(B3D_BUILD_TYPE_SHIPPING_ID 0)
-set(B3D_BUILD_TYPE_DEVELOPMENT_ID 1)
-set(B3D_BUILD_TYPE_PROFILING_ID 2)
-
-if(B3D_BUILD_TYPE MATCHES "Shipping")
-	set(B3D_BUILD_TYPE_ID B3D_BUILD_TYPE_SHIPPING_ID)
-else()
-	set(B3D_BUILD_TYPE_ID B3D_BUILD_TYPE_DEVELOPMENT_ID)
-endif()
-
-## Active platform (uppercased name maps to the matching B3D_PLATFORM_ID_* constant)
-string(TOUPPER ${B3D_PLATFORM} B3D_PLATFORM_UPPER)
-
-## Generate config files
-configure_file("${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DEngineConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/Core/B3DEngineConfig.h")
-configure_file("${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DFrameworkConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/Utility/B3DFrameworkConfig.h")
-
 # Sub-directories
 ## Engine
 add_subdirectory(Engine)
@@ -152,7 +104,7 @@ if(B3D_BUILD_ALL_PLUGINS)
 	if(APPLE)
 		add_subdirectory(Plugins/bsfMetalGpuBackend)
 	endif()
-	if(WIN32 AND B3D_ENABLE_EXPERIMENTAL_GPU_BACKEND)
+	if(WIN32)
 		add_subdirectory(Plugins/bsfD3D12GpuBackend)
 	endif()
 	add_subdirectory(Plugins/bsfNullGpuBackend)
@@ -239,6 +191,54 @@ if(B3D_BUILD_COOK_TOOL)
 	add_subdirectory(Tools/BansheeCookTool)
 endif()
 
+# Config file
+## Note: Must happen after the GPU backend plugin has registered itself (B3DRegisterGpuBackend), and before script binding generation.
+## Set names of libraries used in the config file
+get_property(GPU_BACKEND_MODULE_LIB GLOBAL PROPERTY B3D_GPU_BACKEND_LIB_${B3D_GPU_BACKEND})
+
+if(B3D_AUDIO_BACKEND MATCHES "FMOD")
+	set(AUDIO_MODULE_LIB bsfFMOD)
+elseif(B3D_AUDIO_BACKEND MATCHES "OpenAudio")
+	set(AUDIO_MODULE_LIB bsfOpenAudio)
+else()
+	set(AUDIO_MODULE_LIB bsfNullAudio)
+endif()
+
+if(B3D_PHYSICS_BACKEND MATCHES "PhysX")
+	set(PHYSICS_MODULE_LIB bsfPhysX)
+else()
+	set(PHYSICS_MODULE_LIB bsfNullPhysics)
+endif()
+
+if(B3D_RENDERER MATCHES "RenderBeast")
+	set(RENDERER_MODULE_LIB bsfRenderBeast)
+else()
+	set(RENDERER_MODULE_LIB bsfNullRenderer)
+endif()
+
+if((B3D_SCRIPT_API AND (NOT B3D_SCRIPT_API MATCHES "None")) OR B3D_IS_ENGINE)
+	set(B3D_IS_SCRIPTING_ENABLED 1)
+else()
+	set(B3D_IS_SCRIPTING_ENABLED 0)
+endif()
+
+set(B3D_BUILD_TYPE_SHIPPING_ID 0)
+set(B3D_BUILD_TYPE_DEVELOPMENT_ID 1)
+set(B3D_BUILD_TYPE_PROFILING_ID 2)
+
+if(B3D_BUILD_TYPE MATCHES "Shipping")
+	set(B3D_BUILD_TYPE_ID B3D_BUILD_TYPE_SHIPPING_ID)
+else()
+	set(B3D_BUILD_TYPE_ID B3D_BUILD_TYPE_DEVELOPMENT_ID)
+endif()
+
+## Active platform (uppercased name maps to the matching B3D_PLATFORM_ID_* constant)
+string(TOUPPER ${B3D_PLATFORM} B3D_PLATFORM_UPPER)
+
+## Generate config files
+configure_file("${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DEngineConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/Core/B3DEngineConfig.h")
+configure_file("${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DFrameworkConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/Utility/B3DFrameworkConfig.h")
+
 ## Generate static plugin registry for monolithic builds
 if(B3D_MONOLITHIC_BUILD)
 	# B3D_STATIC_PLUGIN_TARGETS is accumulated by B3DAddPlugin calls
@@ -288,8 +288,7 @@ endif()
 
 ## Builtin resource preprocessing
 if(B3D_BUILD_IMPORTERS)
-	add_executable(BansheeImportTool
-		Engine/Core/Resources/B3DBuiltinResourcesImporter.cpp)
+	add_executable(BansheeImportTool Engine/Core/Resources/B3DBuiltinResourcesImporter.cpp)
 	B3DSetDefaultLinkAndCompileFlags(BansheeImportTool)
 
 	target_link_libraries(BansheeImportTool bsf)

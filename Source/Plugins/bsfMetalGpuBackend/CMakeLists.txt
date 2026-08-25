@@ -9,6 +9,7 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "" BS_METALGPUBACKEN
 
 # Target
 B3DAddPlugin(bsfMetalGpuBackend ENGINE ${BS_METALGPUBACKEND_SRC})
+B3DRegisterGpuBackend(Metal bsfMetalGpuBackend msl)
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfMetalGpuBackend)

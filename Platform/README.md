@@ -36,8 +36,9 @@ platform whose folder is absent is a hard error pointing at the submodule init c
 ## CMake files per platform
 
 - **`Platform.cmake`** — discovery metadata, `include()`d before the GPU options. When this
-  platform is the build target it declares its GPU backends via `B3D_GPU_BACKEND_CHOICES`,
-  `B3D_GPU_BACKEND_DEFAULT`, and `B3D_GPU_BACKEND_LIB_<name>`.
+  platform is the build target it declares its GPU backends via `B3D_GPU_BACKEND_CHOICES` and
+  `B3D_GPU_BACKEND_DEFAULT`; each backend's own `CMakeLists.txt` registers its plugin target
+  and shading language through `B3DRegisterGpuBackend()`.
 - **`Source/CMakeLists.txt`** — build entry, added after `bsf` exists. Links the platform's
   OS libraries and registers overlay plugins. Must self-guard (e.g. `if(NOT WIN32) return()`).
 

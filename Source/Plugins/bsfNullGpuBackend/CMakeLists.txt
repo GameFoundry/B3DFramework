@@ -3,6 +3,7 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_NULLGPUBACKEND_SRC)
 
 # Target
 B3DAddPlugin(bsfNullGpuBackend ENGINE ${BS_NULLGPUBACKEND_SRC})
+B3DRegisterGpuBackend(Null bsfNullGpuBackend nullsl)
 
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfNullGpuBackend)
