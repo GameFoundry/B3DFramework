@@ -123,6 +123,13 @@ ShaderRegistry::~ShaderRegistry() = default;
 Path ShaderRegistry::GetPrebuiltStorePath()
 {
 	const String packageFileName = String(kPrebuiltShaderPackageName) + Package::kPackageExtension;
+
+	// Development builds look next to the executable
+	const Path buildStorePath = FileSystem::GetExecutableFolderPath() + kPrebuiltShaderFolderName + packageFileName;
+	if(FileSystem::Exists(buildStorePath))
+		return buildStorePath;
+
+	// Packaged builds look inside the data folder.
 	return Paths::GetDataPath() + kPrebuiltShaderFolderName + packageFileName;
 }
 

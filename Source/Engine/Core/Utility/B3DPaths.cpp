@@ -25,11 +25,21 @@ const Path& Paths::GetDataPath()
 	{
 		path = FileSystem::GetExecutableFolderPath() + kFrameworkDataPath;
 		if(!FileSystem::Exists(path))
+		{
 #if B3D_IS_ENGINE
 			path = Path(kRawAppRoot) + Path("Framework") + kFrameworkDataPath;
 #else
 			path = Path(kRawAppRoot) + kFrameworkDataPath;
 #endif
+
+			// Development runs on platforms served from a host PC (e.g. console devkits) reach the source tree through the host filesystem mount.
+			if(!FileSystem::Exists(path))
+			{
+				const Path hostRoot = FileSystem::GetHostFileSystemRoot();
+				if(!hostRoot.IsEmpty())
+					path = Path(hostRoot.ToString() + path.ToString());
+			}
+		}
 
 		initialized = true;
 	}

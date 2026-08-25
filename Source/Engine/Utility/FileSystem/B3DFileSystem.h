@@ -156,6 +156,13 @@ namespace b3d
 		/** Returns the application data folder for the current user. */
 		static Path GetApplicationDataFolder();
 
+		/**
+		 * Returns the root under which the development host machine's filesystem is reachable, on platforms where
+		 * development runs are served from a host PC (e.g. console devkits). Returns an empty path when no such mount
+		 * exists - on regular platforms, and in non-development builds.
+		 */
+		static Path GetHostFileSystemRoot();
+
 	private:
 		/**
 		 * Platform hook that constructs and opens the concrete synchronous file stream backing OpenFile() and

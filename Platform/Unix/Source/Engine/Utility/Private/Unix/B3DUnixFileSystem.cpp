@@ -404,6 +404,12 @@ Path FileSystem::GetApplicationDataFolder()
 	return path;
 }
 
+Path FileSystem::GetHostFileSystemRoot()
+{
+	// The application already runs on the host machine; there is no separate host mount.
+	return Path();
+}
+
 Path FileSystem::GetUniqueTemporaryFilePath()
 {
 	Path output = GetTemporaryFolderPath();

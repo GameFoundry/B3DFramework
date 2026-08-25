@@ -555,3 +555,9 @@ Path FileSystem::GetApplicationDataFolder()
 	return GetExecutableFolderPath();
 }
 
+Path FileSystem::GetHostFileSystemRoot()
+{
+	// The application already runs on the host machine; there is no separate host mount.
+	return Path();
+}
+

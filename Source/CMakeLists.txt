@@ -170,6 +170,9 @@ if(B3D_BUILD_IMPORTERS)
 	add_subdirectory(Plugins/bsfSL)
 endif()
 
+# Engine shaders are cooked into the prebuilt shader store (see B3DAddShaderCookTarget).
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_COOK_INPUT_FOLDERS "${B3D_FRAMEWORK_ROOT_FOLDER}/Data/Shaders")
+
 # Offline asset cook tool
 if(B3D_BUILD_COOK_TOOL)
 	if(NOT TARGET bsfSL)
