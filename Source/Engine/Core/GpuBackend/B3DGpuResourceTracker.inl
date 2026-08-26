@@ -307,21 +307,30 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 	const bool isShaderUse = useFlags.IsSet(GpuResourceUseFlag::ShaderAccess);
 	const bool isFramebufferUse = useFlags.IsSetAny(GpuResourceUseFlag::ColorAttachment | GpuResourceUseFlag::DepthStencilAttachment);
 	const bool isTransferUse = useFlags.IsSetAny(GpuResourceUseFlag::Transfer);
+	B3D_ASSERT(!isShaderUse || !isFramebufferUse || !accessFlags.IsSet(GpuAccessFlag::Write));
 
 	GpuImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[globalSubresourceIndex];
 	const bool hasLeadingBarrier = subresourceTrackingState.HazardState != nullptr && subresourceTrackingState.HazardState->HasLeadingBarrier;
 	if(subresourceTrackingState.Access == GpuAccessFlag::None && !hasLeadingBarrier) // New subresource
 	{
 		subresourceTrackingState.InitialLayout = layout;
-		subresourceTrackingState.RenderPassLayout = finalLayout; // TODO - Handle this below
-		subresourceTrackingState.CurrentLayout = layout; // TODO - Handle this below
-		subresourceTrackingState.RequiredLayout = layout; // TODO - Handle this below
+		subresourceTrackingState.RenderPassLayout = finalLayout;
+		subresourceTrackingState.CurrentLayout = layout;
+		subresourceTrackingState.RequiredLayout = layout;
 	}
 	// TODO - Unify existing and new subresource paths
 	else
 	{
 		// Determine required layout
-		if(isShaderUse)
+		if(isFramebufferUse)
+		{
+			// Framebuffer expects a certain layout and we must respect it. In the case when the FB attachment is also bound
+			// for shader reads, this will override the layout required for shader read (GENERAL or DEPTH_READ_ONLY), but that
+			// is fine because those transitions are handled automatically by render-pass layout transitions.
+			subresourceTrackingState.RequiredLayout = layout;
+			subresourceTrackingState.RenderPassLayout = finalLayout;
+		}
+		else if(isShaderUse)
 		{
 			// Register the necessary layout transition, but only if the image isn't bound for framebuffer bind. If it is
 			// then we are forced to use the layout that's expected by the framebuffer.
@@ -343,14 +352,6 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 				else if(subresourceTrackingState.RequiredLayout != layout)
 					subresourceTrackingState.RequiredLayout = GpuImageLayout::General;
 			}
-		}
-		else if(isFramebufferUse)
-		{
-			// Framebuffer expects a certain layout and we must respect it. In the case when the FB attachment is also bound
-			// for shader reads, this will override the layout required for shader read (GENERAL or DEPTH_READ_ONLY), but that
-			// is fine because those transitions are handled automatically by render-pass layout transitions.
-			subresourceTrackingState.RequiredLayout = layout;
-			subresourceTrackingState.RenderPassLayout = finalLayout;
 		}
 		else if(isTransferUse)
 		{
@@ -381,7 +382,8 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 		subresourceTrackingState.ShaderUse |= accessFlags;
 		mRenderPassSubresources.insert(globalSubresourceIndex);
 	}
-	else if(isFramebufferUse)
+
+	if(isFramebufferUse)
 		subresourceTrackingState.FramebufferUse |= accessFlags;
 }
 

@@ -12,6 +12,7 @@ namespace b3d
 		class D3D12DescriptorTable;
 		struct D3D12DescriptorSetLayout;
 		struct D3D12DescriptorTableLayout;
+		struct D3D12RenderPassResourceUsage;
 
 		/** @addtogroup D3D12GpuBackend
 		 *  @{
@@ -51,8 +52,9 @@ namespace b3d
 			 * @param	barrierHelper		Barrier helper associated with @p resourceTracker.
 			 * @param	pipelineSetLayout	Active pipeline's layout for this set. Resources are matched against this
 			 *								layout by slot and tracked only in the shader stages that consume each binding.
+			 * @param	renderPassUsage		Optional render-pass usage tracking. Used for registering shader reads of images that are also bound attachments.
 			 */
-			void TrackBoundResources(D3D12ResourceTracker& resourceTracker, D3D12BarrierHelper& barrierHelper, const GpuPipelineParameterSetLayout& pipelineSetLayout);
+			void TrackBoundResources(D3D12ResourceTracker& resourceTracker, D3D12BarrierHelper& barrierHelper, const GpuPipelineParameterSetLayout& pipelineSetLayout, D3D12RenderPassResourceUsage* renderPassUsage = nullptr);
 
 			/**
 			 * @name GpuParameterSet Interface

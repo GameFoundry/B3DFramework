@@ -562,13 +562,11 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 	if (!mIsScissorTestEnabled)
 		mScissorRequiresBind = true;
 
-	// Register the framebuffer attachments (and the swap chain, for window targets) with the tracker. This must
-	// come before the parameter-set registration below so that when a pass samples one of its own attachments, the
-	// shared tracker sees the framebuffer use first and keeps the attachment layout authoritative.
-	if (mFramebuffer != nullptr)
-		mResourceTracker.TrackRenderTargetUsage(mFramebuffer->GetAttachments(), mFramebuffer->GetAttachmentCount(), mRenderTargetReadOnlyMask, mBarrierHelper);
+	D3D12RenderPassResourceUsage renderPassResourceUsage;
+	if(mFramebuffer != nullptr)
+		renderPassResourceUsage = D3D12RenderPassResourceUsage(mFramebuffer->GetAttachments(), mFramebuffer->GetAttachmentCount(), mRenderTargetReadOnlyMask);
 
-	// Pre-register all parameter sets that will be bound during the pass, so their barriers/transitions are issued before the pass begins
+	// Register parameter resources once, collecting shader reads that overlap attachments before their transitions are resolved.
 	for (const TShared<GpuParameterSet>& parameterSet : createInformation.Parameters)
 	{
 		if (parameterSet == nullptr)
@@ -576,8 +574,11 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 
 		const TShared<GpuPipelineParameterSetLayout>& setLayout = parameterSet->GetLayout();
 		if (setLayout != nullptr)
-			static_cast<D3D12GpuParameters*>(parameterSet.get())->TrackBoundResources(mResourceTracker, mBarrierHelper, *setLayout);
+			static_cast<D3D12GpuParameters*>(parameterSet.get())->TrackBoundResources(mResourceTracker, mBarrierHelper, *setLayout, &renderPassResourceUsage);
 	}
+
+	if(mFramebuffer != nullptr)
+		mResourceTracker.TrackRenderTargetUsage(renderPassResourceUsage, mBarrierHelper);
 
 	if (swapChain != nullptr)
 		mResourceTracker.TrackSwapChainUsage(swapChain);

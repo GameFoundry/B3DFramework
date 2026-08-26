@@ -270,7 +270,7 @@ bool D3D12GpuParameters::SetSamplerState(u32 slot, const TShared<SamplerState>& 
 	return true;
 }
 
-void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTracker, D3D12BarrierHelper& barrierHelper, const GpuPipelineParameterSetLayout& pipelineSetLayout)
+void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTracker, D3D12BarrierHelper& barrierHelper, const GpuPipelineParameterSetLayout& pipelineSetLayout, D3D12RenderPassResourceUsage* renderPassUsage)
 {
 	const TShared<GpuPipelineParameterSetLayout>& setLayout = GetLayout();
 	if (setLayout == nullptr)
@@ -320,7 +320,7 @@ void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTrack
 						{
 							const GpuTextureSubresourceRange subresourceRange = image->GetRange(mSampledTextureData[dataIndex].Surface);
 
-							resourceTracker.TrackImageUsage(image, subresourceRange, GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly, stageUseFlags | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read, barrierHelper);
+							resourceTracker.TrackSampledImageUsage(image, subresourceRange, stageUseFlags | GpuResourceUseFlag::ShaderAccess, barrierHelper, renderPassUsage);
 						}
 					}
 					break;

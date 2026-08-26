@@ -95,6 +95,20 @@ void D3D12BarrierTestSuite::TestTextureBarrierScopes()
 	B3D_TEST_ASSERT(shaderReadScope.Access == D3D12_BARRIER_ACCESS_SHADER_RESOURCE)
 	B3D_TEST_ASSERT(shaderReadScope.Sync == D3D12_BARRIER_SYNC_PIXEL_SHADING)
 
+	const GpuStageFlags depthShaderStages = GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests |
+		GpuStageFlag::FragmentShaderNonUniform;
+	const D3D12BarrierScope sampledDepthScope = D3D12BarrierUtility::GetTextureScope(depthShaderStages,
+		GpuAccessFlag::Read, GpuImageLayout::DepthStencilReadOnly, GpuTextureAspectFlag::Depth);
+	B3D_TEST_ASSERT(sampledDepthScope.Access ==
+		(D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ | D3D12_BARRIER_ACCESS_SHADER_RESOURCE))
+	B3D_TEST_ASSERT(sampledDepthScope.Sync == (D3D12_BARRIER_SYNC_DEPTH_STENCIL | D3D12_BARRIER_SYNC_PIXEL_SHADING))
+
+	const D3D12BarrierScope depthAttachmentReadScope = D3D12BarrierUtility::GetTextureScope(
+		GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests, GpuAccessFlag::Read,
+		GpuImageLayout::DepthStencilAttachment, GpuTextureAspectFlag::Depth);
+	B3D_TEST_ASSERT(depthAttachmentReadScope.Access == D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ)
+	B3D_TEST_ASSERT(depthAttachmentReadScope.Sync == D3D12_BARRIER_SYNC_DEPTH_STENCIL)
+
 	const D3D12BarrierScope unorderedAccessScope = D3D12BarrierUtility::GetTextureScope(GpuStageFlag::ComputeShaderNonUniform,
 		GpuAccessFlag::Write, GpuImageLayout::General, colorAspect);
 	B3D_TEST_ASSERT(unorderedAccessScope.Access == D3D12_BARRIER_ACCESS_UNORDERED_ACCESS)

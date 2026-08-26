@@ -33,62 +33,142 @@ void D3D12ResourceTracker::TrackBufferUsage(IGpuBufferResource* buffer, GpuResou
 	TGpuResourceTracker<D3D12BarrierHelper>::TrackBufferUsage(buffer, useFlags, accessFlags, barrierHelper, dynamicOffset);
 }
 
-void D3D12ResourceTracker::TrackRenderTargetUsage(const D3D12FramebufferAttachment* attachments, u32 attachmentCount, RenderSurfaceMask readOnlyMask, D3D12BarrierHelper& barrierHelper)
+D3D12RenderPassResourceUsage::D3D12RenderPassResourceUsage(const D3D12FramebufferAttachment* attachments, u32 attachmentCount, RenderSurfaceMask readOnlyMask)
 {
-	for (u32 attachmentIndex = 0; attachmentIndex < attachmentCount; attachmentIndex++)
+	for(u32 attachmentIndex = 0; attachmentIndex < attachmentCount; attachmentIndex++)
 	{
 		const D3D12FramebufferAttachment& attachment = attachments[attachmentIndex];
-
-		GpuAccessFlag access = GpuAccessFlag::None;
-		GpuResourceUseFlag useFlags;
-		GpuImageLayout layout;
-		if (attachment.IsDepthStencil)
-		{
-			const bool hasStencil = attachment.Image->GetRange().AspectMask.IsSet(GpuTextureAspectFlag::Stencil);
-			const bool depthReadOnly = readOnlyMask.IsSet(RT_DEPTH);
-			const bool stencilReadOnly = !hasStencil || readOnlyMask.IsSet(RT_STENCIL);
-			const bool fullyReadOnly = depthReadOnly && stencilReadOnly;
-			useFlags = GpuResourceUseFlag::DepthStencilAttachment;
-			if(fullyReadOnly)
-				layout = GpuImageLayout::DepthStencilReadOnly;
-			else if(depthReadOnly)
-				layout = GpuImageLayout::DepthReadOnlyStencilAttachment;
-			else if(stencilReadOnly && hasStencil)
-				layout = GpuImageLayout::DepthAttachmentStencilReadOnly;
-			else
-				layout = GpuImageLayout::DepthStencilAttachment;
-		}
-		else
-		{
-			const RenderSurfaceMaskBits colorBit = (RenderSurfaceMaskBits)(1u << attachment.ColorIndex);
-			const bool readOnly = readOnlyMask.IsSet(colorBit);
-			access = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
-			useFlags = GpuResourceUseFlag::ColorAttachment;
-
-			// A read-only color attachment stays shader-readable (PIXEL/NON_PIXEL SRV states).
-			layout = readOnly ? GpuImageLayout::ShaderReadOnly : GpuImageLayout::ColorAttachment;
-		}
-
-		const GpuTextureSubresourceRange range = attachment.Image->GetRange(attachment.Surface);
+		const GpuTextureSubresourceRange attachmentRange = attachment.Image->GetRange(attachment.Surface);
 		if(!attachment.IsDepthStencil)
 		{
-			TrackImageUsage(attachment.Image, range, layout, layout, useFlags, access, barrierHelper);
+			const bool readOnly = readOnlyMask.IsSet((RenderSurfaceMaskBits)(1u << attachment.ColorIndex));
+
+			D3D12RenderPassAttachmentUsage attachmentUsage;
+			attachmentUsage.Image = attachment.Image;
+			attachmentUsage.Range = attachmentRange;
+			attachmentUsage.AttachmentUsage = GpuResourceUseFlag::ColorAttachment;
+			attachmentUsage.AttachmentAccess = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+			attachmentUsage.AttachmentLayout = readOnly ? GpuImageLayout::ShaderReadOnly : GpuImageLayout::ColorAttachment;
+
+			if(readOnly)
+				attachmentUsage.ShaderReadLayout = GpuImageLayout::ShaderReadOnly;
+
+			Attachments.Add(std::move(attachmentUsage));
 			continue;
 		}
 
-		GpuTextureSubresourceRange aspectRange = range;
-		aspectRange.AspectMask = GpuTextureAspectFlag::Depth;
-		const GpuAccessFlag depthAccess = readOnlyMask.IsSet(RT_DEPTH) ? GpuAccessFlag::Read : GpuAccessFlag::Write;
-
-		TrackImageUsage(attachment.Image, aspectRange, layout, layout, useFlags, depthAccess, barrierHelper);
-
-		if(range.AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
+		if(attachmentRange.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
 		{
-			aspectRange.AspectMask = GpuTextureAspectFlag::Stencil;
-			const GpuAccessFlag stencilAccess = readOnlyMask.IsSet(RT_STENCIL) ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+			const bool readOnly = readOnlyMask.IsSet(RT_DEPTH);
 
-			TrackImageUsage(attachment.Image, aspectRange, layout, layout, useFlags, stencilAccess, barrierHelper);
+			D3D12RenderPassAttachmentUsage attachmentUsage;
+			attachmentUsage.Image = attachment.Image;
+			attachmentUsage.Range = attachmentRange;
+			attachmentUsage.Range.AspectMask = GpuTextureAspectFlag::Depth;
+			attachmentUsage.AttachmentUsage = GpuResourceUseFlag::DepthStencilAttachment;
+			attachmentUsage.AttachmentAccess = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+			attachmentUsage.AttachmentLayout = GpuImageLayout::DepthStencilAttachment;
+
+			if(readOnly)
+				attachmentUsage.ShaderReadLayout = GpuImageLayout::DepthStencilReadOnly;
+
+			Attachments.Add(std::move(attachmentUsage));
 		}
+
+		if(attachmentRange.AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
+		{
+			const bool readOnly = readOnlyMask.IsSet(RT_STENCIL);
+
+			D3D12RenderPassAttachmentUsage attachmentUsage;
+			attachmentUsage.Image = attachment.Image;
+			attachmentUsage.Range = attachmentRange;
+			attachmentUsage.Range.AspectMask = GpuTextureAspectFlag::Stencil;
+			attachmentUsage.AttachmentUsage = GpuResourceUseFlag::DepthStencilAttachment;
+			attachmentUsage.AttachmentAccess = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+			attachmentUsage.AttachmentLayout = GpuImageLayout::DepthStencilAttachment;
+
+			if(readOnly)
+				attachmentUsage.ShaderReadLayout = GpuImageLayout::DepthStencilReadOnly;
+
+			Attachments.Add(std::move(attachmentUsage));
+		}
+	}
+}
+
+void D3D12ResourceTracker::TrackSampledImageUsage(D3D12Image* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags useFlags, D3D12BarrierHelper& barrierHelper, D3D12RenderPassResourceUsage* renderPassUsage)
+{
+	GpuTextureSubresourceRange shaderRange = subresourceRange;
+	if(shaderRange.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
+		shaderRange.AspectMask = GpuTextureAspectFlag::Depth;
+
+	if(renderPassUsage == nullptr)
+	{
+		TrackImageUsage(image, shaderRange, GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly, useFlags, GpuAccessFlag::Read, barrierHelper);
+		return;
+	}
+
+	TInlineArray<GpuTextureSubresourceRange, B3D_MAXIMUM_RENDER_TARGET_COUNT + 2> untrackedRanges;
+	untrackedRanges.Add(shaderRange);
+
+	for(D3D12RenderPassAttachmentUsage& attachmentUsage : renderPassUsage->Attachments)
+	{
+		if(attachmentUsage.Image != image)
+			continue;
+
+		for(u32 rangeIndex = 0; rangeIndex < untrackedRanges.Size();)
+		{
+			const GpuTextureSubresourceRange range = untrackedRanges[rangeIndex];
+			if(!GpuBackendUtility::RangeOverlaps(range, attachmentUsage.Range))
+			{
+				rangeIndex++;
+				continue;
+			}
+
+			if(!B3D_ENSURE_LOG(attachmentUsage.ShaderReadLayout.has_value(),
+				"D3D12 framebuffer attachments sampled during a render pass must be marked read-only."))
+			{
+				rangeIndex++;
+				continue;
+			}
+
+			attachmentUsage.ShaderUsage |= useFlags;
+			untrackedRanges.Erase(untrackedRanges.Begin() + rangeIndex);
+
+			std::array<GpuTextureSubresourceRange, 5> splitRanges;
+			u32 splitRangeCount = 0;
+			GpuBackendUtility::CutRange(range, attachmentUsage.Range, splitRanges, splitRangeCount);
+
+			for(u32 splitRangeIndex = 0; splitRangeIndex < splitRangeCount; splitRangeIndex++)
+			{
+				const GpuTextureSubresourceRange& splitRange = splitRanges[splitRangeIndex];
+
+				if(!GpuBackendUtility::RangeOverlaps(splitRange, attachmentUsage.Range))
+					untrackedRanges.Add(splitRange);
+			}
+		}
+	}
+
+	for(const GpuTextureSubresourceRange& range : untrackedRanges)
+		TrackImageUsage(image, range, GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly, useFlags, GpuAccessFlag::Read, barrierHelper);
+}
+
+void D3D12ResourceTracker::TrackRenderTargetUsage(const D3D12RenderPassResourceUsage& renderPassUsage, D3D12BarrierHelper& barrierHelper)
+{
+	for(const D3D12RenderPassAttachmentUsage& attachmentUsage : renderPassUsage.Attachments)
+	{
+		GpuResourceUseFlags useFlags = attachmentUsage.AttachmentUsage;
+		GpuImageLayout layout = attachmentUsage.AttachmentLayout;
+
+		if(attachmentUsage.ShaderUsage.IsSet(GpuResourceUseFlag::ShaderAccess))
+		{
+			B3D_ASSERT(attachmentUsage.AttachmentAccess == GpuAccessFlag::Read);
+			B3D_ASSERT(attachmentUsage.ShaderReadLayout.has_value());
+
+			useFlags |= attachmentUsage.ShaderUsage;
+			layout = *attachmentUsage.ShaderReadLayout;
+		}
+
+		TrackImageUsage(attachmentUsage.Image, attachmentUsage.Range, layout, layout, useFlags, attachmentUsage.AttachmentAccess, barrierHelper);
 	}
 }
 

@@ -232,6 +232,25 @@ void GpuBackendTestSuite::TestImageAspectTracking()
 
 	tracker.NotifyUnbound();
 	tracker.Clear();
+
+	SubmissionTestImage combinedUseImage(1, 1, GpuTextureAspectFlag::Depth);
+	SubmissionTestTracker combinedUseTracker;
+	const GpuResourceUseFlags combinedUseFlags = GpuResourceUseFlag::DepthStencilAttachment |
+		GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader;
+	combinedUseTracker.TrackImageUsage(&combinedUseImage, depthRange, GpuImageLayout::DepthStencilReadOnly,
+		GpuImageLayout::DepthStencilReadOnly, combinedUseFlags, GpuAccessFlag::Read, barrierHelper);
+	combinedUseTracker.CommitPendingHazardRegistrations();
+
+	const GpuImageSubresourceTrackingState& combinedUseState = combinedUseTracker.GetSubresourceTrackingState(
+		&combinedUseImage, 0, 0, GpuTextureAspectFlag::Depth);
+	B3D_TEST_ASSERT(combinedUseState.ShaderUse == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(combinedUseState.FramebufferUse == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(combinedUseState.CurrentLayout == GpuImageLayout::DepthStencilReadOnly)
+	B3D_TEST_ASSERT(combinedUseState.HazardState->AllAccessScope.ReadStages ==
+		(GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests | GpuStageFlag::FragmentShaderNonUniform))
+
+	combinedUseTracker.NotifyUnbound();
+	combinedUseTracker.Clear();
 }
 
 void GpuBackendTestSuite::TestResourceHazardState()
