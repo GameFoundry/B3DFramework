@@ -47,14 +47,54 @@ configure_file(
 )
 
 set_property(GLOBAL PROPERTY B3D_D3D12_AGILITY_EXPORT_SOURCE "${agilityExportSource}")
+set_property(GLOBAL PROPERTY B3D_D3D12_AGILITY_CORE_LIBRARY "${B3D_D3D12_AGILITY_CORE_LIBRARY}")
+set_property(GLOBAL PROPERTY B3D_D3D12_AGILITY_LAYERS_LIBRARY "${B3D_D3D12_AGILITY_LAYERS_LIBRARY}")
+set_property(GLOBAL PROPERTY B3D_D3D12_AGILITY_LICENSE "${B3D_D3D12_AGILITY_LICENSE}")
 
-# Adds the Agility SDK selection exports to an executable, ensuring they are present in the process module.
+# Stages the selected Agility SDK runtime beside a target that can load the D3D12 backend.
+#
+# @param	target	Name of the target whose output directory receives the runtime.
+function(B3DStageD3D12AgilitySDKRuntime target)
+	get_property(coreLibrary GLOBAL PROPERTY B3D_D3D12_AGILITY_CORE_LIBRARY)
+	get_property(layersLibrary GLOBAL PROPERTY B3D_D3D12_AGILITY_LAYERS_LIBRARY)
+	get_property(licenseFile GLOBAL PROPERTY B3D_D3D12_AGILITY_LICENSE)
+
+	set(runtimeDirectory "$<TARGET_FILE_DIR:${target}>/D3D12")
+	add_custom_command(TARGET ${target} POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E make_directory "${runtimeDirectory}"
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			"${coreLibrary}"
+			"${licenseFile}"
+			"${runtimeDirectory}"
+		COMMENT "Staging the Direct3D 12 Agility SDK runtime"
+		VERBATIM
+	)
+
+	if(B3D_BUILD_TYPE STREQUAL "Development")
+		add_custom_command(TARGET ${target} POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				"${layersLibrary}"
+				"${runtimeDirectory}"
+			COMMENT "Staging the Direct3D 12 Agility SDK debug layers"
+			VERBATIM
+		)
+	else()
+		add_custom_command(TARGET ${target} POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E rm -f "${runtimeDirectory}/d3d12SDKLayers.dll"
+			COMMENT "Removing Direct3D 12 SDK debug layers from the Shipping runtime"
+			VERBATIM
+		)
+	endif()
+endfunction()
+
+# Adds the Agility SDK selection exports and runtime to an executable.
 #
 # @param	target	Name of the executable target to configure.
 function(B3DApplyD3D12ExecutableConfiguration target)
 	get_property(agilityExportSource GLOBAL PROPERTY B3D_D3D12_AGILITY_EXPORT_SOURCE)
 	target_sources(${target} PRIVATE "${agilityExportSource}")
 	source_group("Generated" FILES "${agilityExportSource}")
+	B3DStageD3D12AgilitySDKRuntime(${target})
 endfunction()
 
 B3DRegisterExecutableConfigurationProvider(B3DApplyD3D12ExecutableConfiguration)
@@ -72,33 +112,7 @@ endfunction()
 # @param	target	Name of the D3D12 backend target to configure.
 function(B3DConfigureD3D12AgilitySDK target)
 	B3DUseD3D12AgilitySDKHeaders(${target})
-
-	set(runtimeDirectory "$<TARGET_FILE_DIR:${target}>/D3D12")
-	add_custom_command(TARGET ${target} POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E make_directory "${runtimeDirectory}"
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			"${B3D_D3D12_AGILITY_CORE_LIBRARY}"
-			"${B3D_D3D12_AGILITY_LICENSE}"
-			"${runtimeDirectory}"
-		COMMENT "Staging the Direct3D 12 Agility SDK runtime"
-		VERBATIM
-	)
-
-	if(B3D_BUILD_TYPE STREQUAL "Development")
-		add_custom_command(TARGET ${target} POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy_if_different
-				"${B3D_D3D12_AGILITY_LAYERS_LIBRARY}"
-				"${runtimeDirectory}"
-			COMMENT "Staging the Direct3D 12 Agility SDK debug layers"
-			VERBATIM
-		)
-	else()
-		add_custom_command(TARGET ${target} POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E rm -f "${runtimeDirectory}/d3d12SDKLayers.dll"
-			COMMENT "Removing Direct3D 12 SDK debug layers from the Shipping runtime"
-			VERBATIM
-		)
-	endif()
+	B3DStageD3D12AgilitySDKRuntime(${target})
 
 	if(B3D_IS_ENGINE)
 		set(installDirectory D3D12)
