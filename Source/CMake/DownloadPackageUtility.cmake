@@ -7,6 +7,8 @@ mark_as_advanced(B3D_PREBUILT_DEPENDENCIES_URL)
 
 # Downloads and extracts a package if the version is out of date.
 # Compares .reqversion and .version files in the target folder.
+# If the package contains a DataPackageRemovals.txt at its root, the paths it lists (relative to @p targetFolder)
+# are deleted from the target folder before the new contents are copied over.
 #
 # @param	targetFolder		Folder to extract contents into (e.g. Dependencies/XShaderCompiler)
 # @param	archivePrefix		Prefix for the archive name (version will be appended, e.g. XShaderCompiler_Win32)
@@ -64,6 +66,23 @@ function(B3DDownloadPackageIfNeeded targetFolder archivePrefix extractedFolderNa
 			COMMAND ${CMAKE_COMMAND} -E tar xzf ${tempFolder}/${archiveName}
 			WORKING_DIRECTORY ${tempFolder}
 	)
+
+	# Remove items the package declares obsolete. A package lists paths (relative to @p targetFolder, one per line)
+	# in a DataPackageRemovals.txt at its root; this cleans up leftovers of files that used to be part of the
+	# package but no longer are (e.g. files that moved into version control), which the remove-and-replace step
+	# below cannot reach because they are absent from the new package.
+	set(removalsFile ${tempFolder}/${extractedFolderName}/DataPackageRemovals.txt)
+	if(EXISTS ${removalsFile})
+		file(STRINGS ${removalsFile} removalEntries)
+		foreach(removalEntry ${removalEntries})
+			set(removalTarget ${targetFolder}/${removalEntry})
+			if(IS_DIRECTORY ${removalTarget})
+				execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${removalTarget})
+			elseif(EXISTS ${removalTarget})
+				execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${removalTarget})
+			endif()
+		endforeach()
+	endif()
 
 	# Get list of items in the extracted package
 	file(GLOB extractedContents "${tempFolder}/${extractedFolderName}/*")
