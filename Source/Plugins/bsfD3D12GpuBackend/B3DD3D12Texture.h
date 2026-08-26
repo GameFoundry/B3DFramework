@@ -78,7 +78,7 @@ namespace b3d
 		/**
 		 * Wraps a native D3D12 texture resource and its memory allocation. Lifetime is owned by the device's
 		 * resource manager and released via IGpuResource::Destroy(), deferred until the GPU is done with the
-		 * resource. Owns one D3D12ImageSubresource per (face × mip) for per-subresource usage/state tracking.
+		 * resource. Owns one D3D12ImageSubresource per (face × mip × aspect) for independent usage/state tracking.
 		 */
 		class D3D12Image : public TD3D12Resource<IGpuImageResource>
 		{
@@ -99,17 +99,17 @@ namespace b3d
 			bool IsPresentable() const { return mIsPresentable; }
 
 			/** Returns the native layout for @p layout, including resource-specific presentation constraints. */
-			D3D12TextureLayout GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType, GpuTextureAspectFlags aspects) const;
+			D3D12TextureLayout GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType) const;
 
 			using IGpuImageResource::GetRange;
 
 			/** Builds the subresource range selected by @p surface (its face/mip window), clamped to the image. */
 			GpuTextureSubresourceRange GetRange(const TextureSurface& surface) const;
 
-			/** Returns the typed subresource object for the specified face and mip level. */
-			D3D12ImageSubresource* GetD3D12Subresource(u32 face, u32 mipLevel) const
+			/** Returns the typed state object for one image subresource. */
+			D3D12ImageSubresource* GetD3D12Subresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
 			{
-				return static_cast<D3D12ImageSubresource*>(GetSubresource(face, mipLevel));
+				return static_cast<D3D12ImageSubresource*>(GetSubresource(face, mipLevel, aspect));
 			}
 
 			/** Returns the D3D12 subresource index (mip-major, as used by native transition barriers) for a face/mip pair. */

@@ -43,11 +43,20 @@ namespace b3d
 			/** Converts a logical texture use into a native enhanced-barrier scope. */
 			static D3D12BarrierScope GetTextureScope(GpuStageFlags stages, GpuAccessFlags access, GpuImageLayout layout, GpuTextureAspectFlags aspects);
 
+			/** Builds a native global barrier using buffer access semantics. */
+			static D3D12_GLOBAL_BARRIER GetGlobalBufferBarrier(D3D12_RESOURCE_FLAGS resourceFlags, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages);
+
+			/** Builds a whole-resource native buffer barrier. */
+			static D3D12_BUFFER_BARRIER GetBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages);
+
+			/** Builds a native texture barrier for one resolved, single-aspect subresource range. */
+			static D3D12_TEXTURE_BARRIER GetTextureBarrier(ID3D12Resource* resource, const GpuTextureSubresourceRange& range, const GpuBarrierScope& scope, GpuImageLayout logicalBeforeLayout, GpuImageLayout logicalAfterLayout, const D3D12TextureLayout& nativeBeforeLayout, const D3D12TextureLayout& nativeAfterLayout, GpuStageFlags precedingBarrierDestinationStages = GpuStageFlag::None);
+
 			/** Returns a conservative native access scope compatible with @p layout. */
 			static D3D12BarrierScope GetTextureLayoutScope(GpuImageLayout layout, const D3D12TextureLayout& nativeLayout, GpuTextureAspectFlags aspects, GpuStageFlags preferredStages = GpuStageFlag::None);
 
 			/** Converts a logical image layout and explicit resource properties into an aspect-aware native layout. */
-			static D3D12TextureLayout TranslateTextureLayout(GpuImageLayout layout, GpuQueueType queueType, GpuTextureAspectFlags aspects, const D3D12TextureLayoutOptions& options);
+			static D3D12TextureLayout TranslateTextureLayout(GpuImageLayout layout, GpuQueueType queueType, const D3D12TextureLayoutOptions& options);
 
 			/** Returns whether @p layout can be used by the specified queue type. */
 			static bool IsTextureLayoutSupportedOnQueue(const D3D12TextureLayout& layout, GpuTextureAspectFlags aspects, GpuQueueType queueType);
@@ -56,6 +65,12 @@ namespace b3d
 			static bool CanTransitionTextureLayoutOnQueue(const D3D12TextureLayout& layout, GpuTextureAspectFlags aspects, GpuQueueType queueType);
 
 		private:
+			/** 
+			 * Extends the required 'before' sync scope of barrier represented by @p beforeScope, by chaining the 'after' stages from @p precedingBarrierDestinationStages. 
+			 * Potentially expands the sync scope in order to make sure they are valid for the provided access scope.
+			 */
+			static D3D12_BARRIER_SYNC GetChainedSyncBefore(const D3D12BarrierScope& beforeScope, GpuStageFlags precedingBarrierDestinationStages);
+
 			/** Converts a logical buffer use into native access flags allowed by @p resourceFlags. */
 			static D3D12_BARRIER_ACCESS GetBufferAccess(GpuStageFlags stages, GpuAccessFlags access, D3D12_RESOURCE_FLAGS resourceFlags);
 

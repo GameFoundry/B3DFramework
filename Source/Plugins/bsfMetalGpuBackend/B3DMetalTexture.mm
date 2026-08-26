@@ -40,18 +40,26 @@ namespace b3d
 			, mAllocation(allocation)
 			, mType(createInformation.Type)
 		{
-			// Fill in the per-(face x mip) subresource wrappers the IGpuImageResource base
+			// Fill in the per-(face x mip x aspect) subresource wrappers the IGpuImageResource base
 			// allocated (zero-initialized). The resource tracker uses these to track subresource
 			// usage individually. Fresh image contents are undefined, mirroring Vulkan's
 			// VK_IMAGE_LAYOUT_UNDEFINED starting state.
-			const u32 subresourceCount = mFaceCount * mMipLevelCount;
-			for (u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
-				mSubresources[subresourceIndex] = owner->Create<MetalImageSubresource>(GpuImageLayout::Undefined);
+			for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+			{
+				if(!mFullRange.AspectMask.IsSet(aspect))
+					continue;
+
+				for(u32 mipLevel = 0; mipLevel < mMipLevelCount; mipLevel++)
+				{
+					for(u32 face = 0; face < mFaceCount; face++)
+						mSubresources[GetSubresourceIndex(face, mipLevel, aspect)] = owner->Create<MetalImageSubresource>(GpuImageLayout::Undefined);
+				}
+			}
 		}
 
 		MetalImage::~MetalImage()
 		{
-			const u32 subresourceCount = mFaceCount * mMipLevelCount;
+			const u32 subresourceCount = GetSubresourceCount();
 			for (u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
 			{
 				B3D_ASSERT(!mSubresources[subresourceIndex]->IsBound()); // Image being freed but its subresources are still bound somewhere
@@ -100,9 +108,9 @@ namespace b3d
 			}
 		}
 
-		MetalImageSubresource* MetalImage::GetSubresource(u32 face, u32 mipLevel)
+		MetalImageSubresource* MetalImage::GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
 		{
-			return static_cast<MetalImageSubresource*>(IGpuImageResource::GetSubresource(face, mipLevel));
+			return static_cast<MetalImageSubresource*>(IGpuImageResource::GetSubresource(face, mipLevel, aspect));
 		}
 
 		id<MTLTexture> MetalImage::GetShaderReadView(MTLPixelFormat viewFormat)
@@ -521,7 +529,7 @@ namespace b3d
 				arrayLayer >= (mProperties.Type == TEX_TYPE_3D ? 1u : mProperties.GetFaceCount()))
 				return GpuQueueMask::kNone;
 
-			return mImage->GetSubresource(arrayLayer, mipLevel)->GetUseInfo(accessFlags);
+			return mImage->GetSubresourceUseInfo(arrayLayer, mipLevel, accessFlags);
 		}
 
 		u32 MetalTexture::GetBoundCount(u32 subresourceIdx) const
@@ -534,7 +542,7 @@ namespace b3d
 			if (mProperties.Type == TEX_TYPE_3D)
 				face = 0;
 
-			return mImage->GetSubresource(face, mipLevel)->GetBoundCount();
+			return mImage->GetSubresourceBoundCount(face, mipLevel);
 		}
 
 		u32 MetalTexture::GetUseCount(u32 subresourceIdx) const
@@ -547,7 +555,7 @@ namespace b3d
 			if (mProperties.Type == TEX_TYPE_3D)
 				face = 0;
 
-			return mImage->GetSubresource(face, mipLevel)->GetUseCount();
+			return mImage->GetSubresourceUseCount(face, mipLevel);
 		}
 
 		GpuTextureMappedScope MetalTexture::Map(u32, u32, GpuMapOptions)

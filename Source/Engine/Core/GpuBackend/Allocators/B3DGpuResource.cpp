@@ -142,10 +142,12 @@ namespace b3d
 	IGpuImageResource::IGpuImageResource(GpuResourceManager* owner, const StringView& name, u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspectMask)
 		: IGpuResource(owner, name), mFaceCount(faceCount), mMipLevelCount(mipLevelCount), mFullRange(0, mipLevelCount, 0, faceCount, aspectMask)
 	{
-		const u32 subresourceCount = faceCount * mipLevelCount;
+		B3D_ASSERT(aspectMask);
+
+		const u32 subresourceCount = GetSubresourceCount();
 		mSubresources = (IGpuResource**)B3DAllocate(sizeof(IGpuResource*) * subresourceCount);
-		for(u32 i = 0; i < subresourceCount; i++)
-			mSubresources[i] = nullptr;
+		for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
+			mSubresources[subresourceIndex] = nullptr;
 	}
 
 	IGpuImageResource::~IGpuImageResource()
@@ -155,6 +157,67 @@ namespace b3d
 			B3DFree(mSubresources);
 			mSubresources = nullptr;
 		}
+	}
+
+	u32 IGpuImageResource::GetSubresourceIndex(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
+	{
+		B3D_ASSERT(face < mFaceCount && mipLevel < mMipLevelCount);
+		B3D_ASSERT(mFullRange.AspectMask.IsSet(aspect));
+
+		u32 aspectIndex = 0;
+		for(GpuTextureAspectFlag availableAspect : kGpuTextureAspects)
+		{
+			if(availableAspect == aspect)
+				break;
+
+			if(mFullRange.AspectMask.IsSet(availableAspect))
+				aspectIndex++;
+		}
+
+		return aspectIndex * mFaceCount * mMipLevelCount + mipLevel * mFaceCount + face;
+	}
+
+	IGpuResource* IGpuImageResource::GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
+	{
+		return mSubresources[GetSubresourceIndex(face, mipLevel, aspect)];
+	}
+
+	GpuQueueMask IGpuImageResource::GetSubresourceUseInfo(u32 face, u32 mipLevel, GpuAccessFlags useFlags) const
+	{
+		GpuQueueMask useMask = GpuQueueMask::kNone;
+		for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+		{
+			if(!mFullRange.AspectMask.IsSet(aspect))
+				continue;
+
+			useMask |= GetSubresource(face, mipLevel, aspect)->GetUseInfo(useFlags);
+		}
+
+		return useMask;
+	}
+
+	u32 IGpuImageResource::GetSubresourceBoundCount(u32 face, u32 mipLevel) const
+	{
+		u32 boundCount = 0;
+		for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+		{
+			if(mFullRange.AspectMask.IsSet(aspect))
+				boundCount += GetSubresource(face, mipLevel, aspect)->GetBoundCount();
+		}
+
+		return boundCount;
+	}
+
+	u32 IGpuImageResource::GetSubresourceUseCount(u32 face, u32 mipLevel) const
+	{
+		u32 useCount = 0;
+		for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+		{
+			if(mFullRange.AspectMask.IsSet(aspect))
+				useCount += GetSubresource(face, mipLevel, aspect)->GetUseCount();
+		}
+
+		return useCount;
 	}
 
 #if B3D_BUILD_TYPE_DEVELOPMENT

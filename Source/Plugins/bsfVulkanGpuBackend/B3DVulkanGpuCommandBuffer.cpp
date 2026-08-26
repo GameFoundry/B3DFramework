@@ -1723,7 +1723,7 @@ bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 	for(u32 i = 0; i < colorAttachmentCount; i++)
 	{
 		const VulkanFramebufferAttachment& framebufferAttachment = mFramebuffer->GetColorAttachment(i);
-		const GpuImageSubresourceTrackingState& subresourceTrackingState = static_cast<const VulkanResourceTracker&>(mResourceTracker).GetSubresourceTrackingState(framebufferAttachment.Image, framebufferAttachment.Surface.Face, framebufferAttachment.Surface.MipLevel);
+		const GpuImageSubresourceTrackingState& subresourceTrackingState = static_cast<const VulkanResourceTracker&>(mResourceTracker).GetSubresourceTrackingState(framebufferAttachment.Image, framebufferAttachment.Surface.Face, framebufferAttachment.Surface.MipLevel, GpuTextureAspectFlag::Color);
 
 		if(subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write) && !pipeline->IsColorReadOnly(i))
 		{
@@ -1735,7 +1735,7 @@ bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 	if(renderPass->HasDepthAttachment())
 	{
 		const VulkanFramebufferAttachment& framebufferAttachment = mFramebuffer->GetDepthStencilAttachment();
-		const GpuImageSubresourceTrackingState& subresourceTrackingState = static_cast<const VulkanResourceTracker&>(mResourceTracker).GetSubresourceTrackingState(framebufferAttachment.Image, framebufferAttachment.Surface.Face, framebufferAttachment.Surface.MipLevel);
+		const GpuImageSubresourceTrackingState& subresourceTrackingState = static_cast<const VulkanResourceTracker&>(mResourceTracker).GetSubresourceTrackingState(framebufferAttachment.Image, framebufferAttachment.Surface.Face, framebufferAttachment.Surface.MipLevel, GpuTextureAspectFlag::Depth);
 
 		if(subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write) && !pipeline->IsDepthReadOnly())
 		{

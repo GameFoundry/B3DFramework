@@ -46,7 +46,18 @@ namespace b3d::render
 
 	GpuImageLayout MetalResourceTracker::GetCurrentSubresourceLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
 	{
-		const GpuImageSubresourceTrackingState* subresourceState = FindSubresourceTrackingState(image, range.BaseArrayLayer, range.BaseMipLevel);
+		const GpuTextureAspectFlags trackedAspects = range.AspectMask & image->GetRange().AspectMask;
+		GpuTextureAspectFlag aspect = GpuTextureAspectFlag::Color;
+		for(GpuTextureAspectFlag candidate : kGpuTextureAspects)
+		{
+			if(trackedAspects.IsSet(candidate))
+			{
+				aspect = candidate;
+				break;
+			}
+		}
+
+		const GpuImageSubresourceTrackingState* subresourceState = FindSubresourceTrackingState(image, range.BaseArrayLayer, range.BaseMipLevel, aspect);
 		if(subresourceState == nullptr)
 			return GpuImageLayout::Undefined;
 

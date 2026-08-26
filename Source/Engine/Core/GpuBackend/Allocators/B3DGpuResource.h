@@ -464,7 +464,7 @@ namespace b3d
 
 	/**
 	 * Base for GPU image resources. Stores the full-image subresource range and
-	 * the per-(face × mip) subresource resource pointers shared across backends.
+	 * the per-(face × mip × aspect) subresource resource pointers shared across backends.
 	 * The subresource array is allocated by the constructor (zero-initialized);
 	 * backends fill in the pointers during their own construction.
 	 */
@@ -473,7 +473,7 @@ namespace b3d
 	public:
 		/**
 		 * Constructs the image resource, recording its shape (face/mip counts + full-image subresource range)
-		 * and allocating the per-(face × mip) subresource pointer storage. The pointers are zero-initialized;
+		 * and allocating the per-(face × mip × aspect) subresource pointer storage. The pointers are zero-initialized;
 		 * the backend fills them in during its own construction.
 		 */
 		IGpuImageResource(GpuResourceManager* owner, const StringView& name, u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspectMask);
@@ -483,18 +483,26 @@ namespace b3d
 		/** Retrieves a subresource range covering all the sub-resources of the image. */
 		const GpuTextureSubresourceRange& GetRange() const { return mFullRange; }
 
-		/**
-		 * Retrieves a separate resource for a specific image face & mip level. This allows the caller to track
-		 * subresource usage individually, instead of for the entire image.
-		 */
-		IGpuResource* GetSubresource(u32 face, u32 mipLevel) const
-		{
-			B3D_ASSERT(mipLevel * mFaceCount + face < mFaceCount * mMipLevelCount);
-			return mSubresources[mipLevel * mFaceCount + face];
-		}
+		/** Retrieves the persistent state resource for one image subresource. */
+		IGpuResource* GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const;
+
+		/** Returns queues using any aspect of the specified face and mip level. */
+		GpuQueueMask GetSubresourceUseInfo(u32 face, u32 mipLevel, GpuAccessFlags useFlags) const;
+
+		/** Returns the total bound count across every aspect of the specified face and mip level. */
+		u32 GetSubresourceBoundCount(u32 face, u32 mipLevel) const;
+
+		/** Returns the total in-flight use count across every aspect of the specified face and mip level. */
+		u32 GetSubresourceUseCount(u32 face, u32 mipLevel) const;
 
 	protected:
 		IGpuImageResource() = default;
+
+		/** Returns the storage index of one face, mip level and aspect. */
+		u32 GetSubresourceIndex(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const;
+
+		/** Returns the number of persistent subresource state objects owned by the image. */
+		u32 GetSubresourceCount() const { return mFaceCount * mMipLevelCount * mFullRange.GetAspectCount(); }
 
 		u32 mFaceCount = 0;
 		u32 mMipLevelCount = 0;

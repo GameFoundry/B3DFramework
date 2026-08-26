@@ -12,12 +12,70 @@ using namespace b3d::render;
 
 namespace
 {
-	struct SubmissionTestBarrierHelper { };
+	struct SubmissionTestBarrierHelper
+	{
+		void QueueResolvedBufferBarrier(IGpuBufferResource*, const GpuBarrierScope&) { }
+		void QueueResolvedImageBarrier(IGpuImageResource*, const GpuTextureSubresourceRange&, const GpuBarrierScope&, GpuImageLayout, GpuImageLayout) { }
+	};
 
 	class SubmissionTestBuffer : public IGpuBufferResource
 	{
 	public:
 		SubmissionTestBuffer() = default;
+	};
+
+	class SubmissionTestImageSubresource : public IGpuResource
+	{
+	public:
+		SubmissionTestImageSubresource() = default;
+	};
+
+	class SubmissionTestImage : public IGpuImageResource
+	{
+	public:
+		SubmissionTestImage(u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspects)
+		{
+			mFaceCount = faceCount;
+			mMipLevelCount = mipLevelCount;
+			mFullRange = GpuTextureSubresourceRange(0, mipLevelCount, 0, faceCount, aspects);
+
+			const u32 subresourceCount = GetSubresourceCount();
+			mSubresources = (IGpuResource**)B3DAllocate(sizeof(IGpuResource*) * subresourceCount);
+			for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+			{
+				if(!aspects.IsSet(aspect))
+					continue;
+
+				for(u32 mipLevel = 0; mipLevel < mipLevelCount; mipLevel++)
+				{
+					for(u32 face = 0; face < faceCount; face++)
+						mSubresources[GetSubresourceIndex(face, mipLevel, aspect)] = B3DNew<SubmissionTestImageSubresource>();
+				}
+			}
+		}
+
+		~SubmissionTestImage() override
+		{
+			const u32 subresourceCount = GetSubresourceCount();
+			for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
+				B3DDelete(mSubresources[subresourceIndex]);
+		}
+	};
+
+	class SubmissionImageTestVisitor : public GpuSubmissionTransitionVisitor
+	{
+	public:
+		void VisitBuffer(const GpuSubmissionBufferTransition&) override { }
+
+		void VisitImage(const GpuSubmissionImageTransition& transition) override
+		{
+			B3D_ASSERT(transition.ImageRange.HasSingleAspect());
+			VisitedAspects |= transition.ImageRange.AspectMask;
+			StateResources.Add(transition.StateResource);
+		}
+
+		GpuTextureAspectFlags VisitedAspects;
+		TInlineArray<IGpuResource*, 2> StateResources;
 	};
 
 	class SubmissionTestVisitor : public GpuSubmissionTransitionVisitor
@@ -48,6 +106,12 @@ namespace
 		GpuQueueMask ExclusiveAccessWaitMask;
 		GpuBarrierScope MemoryBarrier;
 		GpuBarrierScope ExecutionBarrier;
+	};
+
+	class SubmissionTestTracker : public TGpuResourceTracker<SubmissionTestBarrierHelper>
+	{
+	public:
+		using TGpuResourceTracker::GetSubresourceTrackingState;
 	};
 
 	template<class THazardState>
@@ -99,6 +163,75 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestResourceHazardState)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestResourceTransition)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestSubmissionTransitionPlanning)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestImageAspectTracking)
+}
+
+void GpuBackendTestSuite::TestImageAspectTracking()
+{
+	const GpuTextureSubresourceRange depthRange(0, 1, 0, 1, GpuTextureAspectFlag::Depth);
+	const GpuTextureSubresourceRange stencilRange(0, 1, 0, 1, GpuTextureAspectFlag::Stencil);
+	B3D_TEST_ASSERT(!GpuBackendUtility::RangeOverlaps(depthRange, stencilRange))
+
+	SubmissionTestImage image(2, 2, GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil);
+	SubmissionTestBarrierHelper barrierHelper;
+	SubmissionTestTracker tracker;
+
+	const GpuTextureSubresourceRange fullRange(0, 2, 0, 2, GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil);
+	u32 fullRangeCallbackCount = 0;
+	tracker.IterateAndCreateOverlappingImageSubresourceTrackingState(&image, fullRange, [](u32, void* userData)
+	{
+		(*(u32*)userData)++;
+	}, &fullRangeCallbackCount);
+	B3D_TEST_ASSERT(fullRangeCallbackCount == 2)
+
+	const TArrayView<const GpuImageSubresourceTrackingState> initialPartitions = tracker.GetSubresourceTrackingStatesForImage(&image);
+	B3D_TEST_ASSERT(initialPartitions.Size() == 2)
+	for(const GpuImageSubresourceTrackingState& partition : initialPartitions)
+		B3D_TEST_ASSERT(partition.Range.HasSingleAspect())
+
+	u32 partialRangeCallbackCount = 0;
+	tracker.IterateAndCreateOverlappingImageSubresourceTrackingState(&image, depthRange, [](u32, void* userData)
+	{
+		(*(u32*)userData)++;
+	}, &partialRangeCallbackCount);
+	B3D_TEST_ASSERT(partialRangeCallbackCount == 1)
+
+	const TArrayView<const GpuImageSubresourceTrackingState> partialPartitions = tracker.GetSubresourceTrackingStatesForImage(&image);
+	u32 stencilPartitionCount = 0;
+	for(const GpuImageSubresourceTrackingState& partition : partialPartitions)
+	{
+		B3D_TEST_ASSERT(partition.Range.HasSingleAspect())
+		if(partition.Range.AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
+			stencilPartitionCount++;
+	}
+	B3D_TEST_ASSERT(stencilPartitionCount == 1)
+
+	tracker.TrackImageUsage(&image, depthRange, GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly,
+		GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader, GpuAccessFlag::Read, barrierHelper);
+	tracker.TrackImageUsage(&image, stencilRange, GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilAttachment,
+		GpuResourceUseFlag::DepthStencilAttachment, GpuAccessFlag::Write, barrierHelper);
+	tracker.CommitPendingHazardRegistrations();
+
+	const GpuImageSubresourceTrackingState& depthState = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth);
+	const GpuImageSubresourceTrackingState& stencilState = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Stencil);
+	B3D_TEST_ASSERT(depthState.Access == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(depthState.CurrentLayout == GpuImageLayout::ShaderReadOnly)
+	B3D_TEST_ASSERT(stencilState.Access == GpuAccessFlag::Write)
+	B3D_TEST_ASSERT(stencilState.CurrentLayout == GpuImageLayout::DepthStencilAttachment)
+	B3D_TEST_ASSERT(depthState.HazardState != stencilState.HazardState)
+
+	SubmissionImageTestVisitor visitor;
+	tracker.ResolveSubmissionTransitions(GpuQueueId(GQT_GRAPHICS, 0), visitor);
+	B3D_TEST_ASSERT(visitor.VisitedAspects == (GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil))
+	B3D_TEST_ASSERT(visitor.StateResources.Size() == 2)
+	B3D_TEST_ASSERT(visitor.StateResources[0] != visitor.StateResources[1])
+
+	const TArrayView<const GpuImageSubresourceTrackingState> finalPartitions = tracker.GetSubresourceTrackingStatesForImage(&image);
+	for(const GpuImageSubresourceTrackingState& partition : finalPartitions)
+		B3D_TEST_ASSERT(partition.Range.HasSingleAspect())
+
+	tracker.NotifyUnbound();
+	tracker.Clear();
 }
 
 void GpuBackendTestSuite::TestResourceHazardState()

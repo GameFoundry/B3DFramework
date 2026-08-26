@@ -1129,8 +1129,17 @@ namespace
 			const GpuQueueType destinationQueueType = mDestinationQueueId.GetType();
 			const D3D12TextureLayout committedLayout = subresource->GetLayout();
 
-			const D3D12TextureLayout initialLayout = transition.InitialLayout != GpuImageLayout::Undefined ? image->GetTextureLayout(transition.InitialLayout, destinationQueueType, transition.ImageRange.AspectMask) : committedLayout;
-			const D3D12TextureLayout finalLayout = transition.FinalLayout != GpuImageLayout::Undefined ? image->GetTextureLayout(transition.FinalLayout, destinationQueueType, transition.ImageRange.AspectMask) : initialLayout;
+			auto fnResolveLayout = [image, destinationQueueType, aspects = transition.ImageRange.AspectMask](GpuImageLayout logicalLayout, const D3D12TextureLayout& fallback)
+			{
+				if(logicalLayout == GpuImageLayout::Undefined)
+					return fallback;
+
+				const D3D12TextureLayout translatedLayout = image->GetTextureLayout(logicalLayout, destinationQueueType);
+				return D3D12TextureLayout(translatedLayout.GetLayout(aspects));
+			};
+
+			const D3D12TextureLayout initialLayout = fnResolveLayout(transition.InitialLayout, committedLayout);
+			const D3D12TextureLayout finalLayout = fnResolveLayout(transition.FinalLayout, initialLayout);
 
 			if(!B3D_ENSURE_LOG(D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(initialLayout, transition.ImageRange.AspectMask, destinationQueueType), "D3D12 image layout is not supported on destination queue type {0}.", (u32)destinationQueueType))
 			{
@@ -1157,7 +1166,7 @@ namespace
 				const D3D12TextureLayout releaseLayout = D3D12BarrierUtility::CanTransitionTextureLayoutOnQueue(initialLayout, transition.ImageRange.AspectMask, sourceQueueType) ? initialLayout : D3D12TextureLayout::Common();
 
 				SourceTransitionBuildInformation& sourceTransition = GetSourceTransition(layoutTransitionQueueId, transition.ExclusiveAccessWaitMask);
-				sourceTransition.Barriers.AddTextureBarrier(image->GetD3D12Resource(), transition.ImageRange, GpuBarrierScope(), GpuImageLayout::Undefined, GpuImageLayout::Undefined, committedLayout, releaseLayout);
+				sourceTransition.Barriers.AddTextureBarrier(D3D12BarrierUtility::GetTextureBarrier(image->GetD3D12Resource(), transition.ImageRange, GpuBarrierScope(), GpuImageLayout::Undefined, GpuImageLayout::Undefined, committedLayout, releaseLayout));
 
 				mSubmitInformation.RequiredWaitMask |= layoutTransitionQueueId;
 				transitionSourceLayout = releaseLayout;
@@ -1178,7 +1187,7 @@ namespace
 				}
 
 				SourceTransitionBuildInformation& sourceTransition = GetSourceTransition(activationQueueId, GpuQueueMask::kNone);
-				sourceTransition.Barriers.AddTextureBarrier(image->GetD3D12Resource(), transition.ImageRange, GpuBarrierScope(), GpuImageLayout::Undefined, GpuImageLayout::Undefined, committedLayout, initialLayout);
+				sourceTransition.Barriers.AddTextureBarrier(D3D12BarrierUtility::GetTextureBarrier(image->GetD3D12Resource(), transition.ImageRange, GpuBarrierScope(), GpuImageLayout::Undefined, GpuImageLayout::Undefined, committedLayout, initialLayout));
 
 				mSubmitInformation.RequiredWaitMask |= activationQueueId;
 				transitionSourceLayout = initialLayout;
@@ -1196,7 +1205,7 @@ namespace
 			if(transitionSourceLayout != initialLayout)
 			{
 				const GpuBarrierScope barrier(GpuStageFlag::None, GpuAccessFlag::None, transition.SubmissionBarrierAccessScope.GetStages(), transition.SubmissionBarrierAccessScope.GetAccess());
-				mDestinationBarriers.AddTextureBarrier(image->GetD3D12Resource(), transition.ImageRange, barrier, GpuImageLayout::Undefined, transition.InitialLayout, transitionSourceLayout, initialLayout);
+				mDestinationBarriers.AddTextureBarrier(D3D12BarrierUtility::GetTextureBarrier(image->GetD3D12Resource(), transition.ImageRange, barrier, GpuImageLayout::Undefined, transition.InitialLayout, transitionSourceLayout, initialLayout));
 
 				layoutTransitionQueueId = mDestinationQueueId;
 				layoutTransitionQueueChanged = true;

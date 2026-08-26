@@ -9,6 +9,8 @@
 #include "B3DD3D12Texture.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 
+#include <algorithm>
+
 using namespace b3d;
 using namespace b3d::render;
 
@@ -23,9 +25,8 @@ D3D12BarrierHelper::D3D12BarrierHelper(D3D12ResourceTracker* resourceTracker, Gp
 void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout)
 {
 	D3D12Image* const d3d12Image = static_cast<D3D12Image*>(image);
-	ID3D12Resource* const resource = d3d12Image->GetD3D12Resource();
-	const D3D12TextureLayout nativeOldLayout = d3d12Image->GetTextureLayout(oldLayout, mQueueType, range.AspectMask);
-	const D3D12TextureLayout nativeNewLayout = d3d12Image->GetTextureLayout(newLayout, mQueueType, range.AspectMask);
+	const D3D12TextureLayout nativeOldLayout = d3d12Image->GetTextureLayout(oldLayout, mQueueType);
+	const D3D12TextureLayout nativeNewLayout = d3d12Image->GetTextureLayout(newLayout, mQueueType);
 
 	if(!B3D_ENSURE_LOG(mQueueType != GQT_TRANSFER || (nativeOldLayout == D3D12TextureLayout::Common() && nativeNewLayout == D3D12TextureLayout::Common()), "D3D12 copy queues cannot record texture layout transitions."))
 		return;
@@ -33,8 +34,50 @@ void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, cons
 	// If it a texture has a layout, it must have an access scope
 	B3D_ASSERT(oldLayout == GpuImageLayout::Undefined || barrier.SourceAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write));
 
-	const GpuStageFlags precedingBarrierDestinationStages = GetPrecedingBarrierDestinationStages(image, range);
-	oldLayout = mBarriers.AddTextureBarrier(resource, range, barrier, oldLayout, newLayout, nativeOldLayout, nativeNewLayout, precedingBarrierDestinationStages);
+	auto found = std::find_if(mPendingImageBarriers.begin(), mPendingImageBarriers.end(), [image, &range](const PendingImageBarrier& pendingBarrier)
+	{
+		return pendingBarrier.Image == image && GpuBackendUtility::RangeEquals(pendingBarrier.SubresourceRange, range);
+	});
+
+	if(found != mPendingImageBarriers.end())
+	{
+		found->Barrier.SourceStages |= barrier.SourceStages;
+		found->Barrier.SourceAccess |= barrier.SourceAccess;
+
+		if(found->NewLayout == newLayout)
+		{
+			found->Barrier.DestinationStages |= barrier.DestinationStages;
+			found->Barrier.DestinationAccess |= barrier.DestinationAccess;
+		}
+		else
+		{
+			found->Barrier.DestinationStages = barrier.DestinationStages;
+			found->Barrier.DestinationAccess = barrier.DestinationAccess;
+		}
+
+		found->NewLayout = newLayout;
+		found->PrecedingBarrierDestinationStages |= GetPrecedingBarrierDestinationStages(image, range);
+
+		oldLayout = found->OldLayout;
+
+		const D3D12TextureLayout resolvedOldLayout = d3d12Image->GetTextureLayout(found->OldLayout, mQueueType);
+		const D3D12TextureLayout resolvedNewLayout = d3d12Image->GetTextureLayout(found->NewLayout, mQueueType);
+		const D3D12_TEXTURE_BARRIER nativeBarrier = D3D12BarrierUtility::GetTextureBarrier(d3d12Image->GetD3D12Resource(), found->SubresourceRange, found->Barrier, found->OldLayout, found->NewLayout, resolvedOldLayout, resolvedNewLayout, found->PrecedingBarrierDestinationStages);
+
+		mBarriers.ReplaceTextureBarrier(found->NativeBarrierIndex, nativeBarrier);
+		return;
+	}
+
+	PendingImageBarrier pendingBarrier;
+	pendingBarrier.Image = image;
+	pendingBarrier.SubresourceRange = range;
+	pendingBarrier.Barrier = barrier;
+	pendingBarrier.OldLayout = oldLayout;
+	pendingBarrier.NewLayout = newLayout;
+	pendingBarrier.PrecedingBarrierDestinationStages = GetPrecedingBarrierDestinationStages(image, range);
+	pendingBarrier.NativeBarrierIndex = mBarriers.AddTextureBarrier(D3D12BarrierUtility::GetTextureBarrier(d3d12Image->GetD3D12Resource(), range, barrier, oldLayout, newLayout, nativeOldLayout, nativeNewLayout, pendingBarrier.PrecedingBarrierDestinationStages));
+
+	mPendingImageBarriers.Add(pendingBarrier);
 }
 
 void D3D12BarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
@@ -48,10 +91,10 @@ void D3D12BarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, c
 		// buffers, even when created with CreatePlacedResource2 and UNDEFINED. The enhanced-barrier specification
 		// explicitly permits these barriers for readback WAW hazards, so retain the dependency through a global barrier.
 		// TODO - Restore the page-scoped buffer barrier once the D3D12 debug layer accepts enhanced READBACK barriers.
-		mBarriers.AddGlobalBufferBarrier(page->GetFlags(), barrier, precedingBarrierDestinationStages);
+		mBarriers.AddGlobalBarrier(D3D12BarrierUtility::GetGlobalBufferBarrier(page->GetFlags(), barrier, precedingBarrierDestinationStages));
 	}
 	else
-		mBarriers.AddBufferBarrier(d3d12Buffer->GetD3D12Resource(), barrier, precedingBarrierDestinationStages);
+		mBarriers.AddBufferBarrier(D3D12BarrierUtility::GetBufferBarrier(d3d12Buffer->GetD3D12Resource(), barrier, precedingBarrierDestinationStages));
 
 	if(page != nullptr)
 	{
@@ -129,5 +172,6 @@ void D3D12BarrierHelper::Clear()
 {
 	mBarriers.Clear();
 	mPendingBufferPageBarriers.Clear();
+	mPendingImageBarriers.Clear();
 	TGpuBarrierHelper<D3D12BarrierHelper>::Clear();
 }

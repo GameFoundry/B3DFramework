@@ -3,11 +3,6 @@
 #pragma once
 
 #include "B3DD3D12Prerequisites.h"
-#include "B3DD3D12BarrierUtility.h"
-#include "B3DD3D12TextureLayout.h"
-#include "GpuBackend/B3DGpuHazards.h"
-#include "GpuBackend/B3DGpuTextureSubresource.h"
-
 namespace b3d
 {
 	class D3D12BarrierTestSuite;
@@ -15,25 +10,24 @@ namespace b3d
 
 namespace b3d::render
 {
+	class D3D12BarrierHelper;
+
 	/** @addtogroup D3D12GpuBackend
 	 *  @{
 	 */
 
-	/** Builds and records one batch of D3D12 enhanced barriers. */
+	/** Stores resolved D3D12 enhanced barriers and records them in insertion order. */
 	class D3D12BarrierBatch
 	{
 	public:
-		/** Adds a whole-resource buffer barrier chained after @p precedingBarrierDestinationStages. */
-		void AddBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages);
+		/** Adds an global barrier. */
+		void AddGlobalBarrier(const D3D12_GLOBAL_BARRIER& barrier);
 
-		/** Adds a global barrier using buffer access semantics, chained after @p precedingBarrierDestinationStages. */
-		void AddGlobalBufferBarrier(D3D12_RESOURCE_FLAGS resourceFlags, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages);
+		/** Adds an whole-resource buffer barrier. */
+		void AddBufferBarrier(const D3D12_BUFFER_BARRIER& barrier);
 
-		/**
-		 * Adds or merges a texture barrier. A native UNDEFINED before layout discards previous contents.
-		 * Returns the original logical layout retained by a merged barrier.
-		 */
-		GpuImageLayout AddTextureBarrier(ID3D12Resource* resource, const GpuTextureSubresourceRange& range, const GpuBarrierScope& scope, GpuImageLayout logicalBeforeLayout, GpuImageLayout logicalAfterLayout, const D3D12TextureLayout& nativeBeforeLayout, const D3D12TextureLayout& nativeAfterLayout, GpuStageFlags precedingBarrierDestinationStages = GpuStageFlag::None);
+		/** Adds an subresource texture barrier and returns its storage index. */
+		u32 AddTextureBarrier(const D3D12_TEXTURE_BARRIER& barrier);
 
 		/** Returns whether the batch contains no barriers. */
 		bool IsEmpty() const;
@@ -46,25 +40,26 @@ namespace b3d::render
 
 	private:
 		friend class ::b3d::D3D12BarrierTestSuite;
+		friend class D3D12BarrierHelper;
 
-		/** Logical and native state retained while an exact texture-subresource barrier is being merged. */
-		struct TextureBarrierEntry
+		/** Replaces an already-added native texture barrier without changing its position. */
+		void ReplaceTextureBarrier(u32 barrierIndex, const D3D12_TEXTURE_BARRIER& barrier);
+
+		/** Consecutive barriers of one native type. */
+		struct BarrierGroup
 		{
-			D3D12_TEXTURE_BARRIER Barrier{}; /**< Native barrier rebuilt after every merge. */
-			GpuBarrierScope Scope; /**< Combined logical source and destination scopes. */
-			GpuStageFlags PrecedingBarrierDestinationStages = GpuStageFlag::None; /**< Destination stages of the preceding barrier. */
-			GpuImageLayout LogicalBeforeLayout = GpuImageLayout::Undefined; /**< Original logical layout. */
-			GpuImageLayout LogicalAfterLayout = GpuImageLayout::Undefined; /**< Latest required logical layout. */
-			GpuTextureAspectFlags Aspects{}; /**< Aspect represented by the native plane. */
-			bool EmitsNativeBarrier = false; /**< Whether Record() needs to emit this entry. */
+			D3D12_BARRIER_TYPE Type = D3D12_BARRIER_TYPE_GLOBAL; /**< Native barrier type. */
+			u32 FirstBarrier = 0; /**< First entry in the corresponding typed array. */
+			u32 BarrierCount = 0; /**< Number of consecutive entries in the group. */
 		};
 
-		/** Rebuilds the native barrier from the entry's merged logical scope and final layout. */
-		static void RebuildTextureBarrier(TextureBarrierEntry& entry);
+		/** Extends the latest group of @p type or starts a new ordered group at @p barrierIndex. */
+		void AddToGroup(D3D12_BARRIER_TYPE type, u32 barrierIndex);
 
+		TInlineArray<BarrierGroup, 8> mBarrierGroups; /**< Consecutive native barrier groups in API insertion order. */
 		TInlineArray<D3D12_GLOBAL_BARRIER, 8> mGlobalBarriers; /**< Barriers that cannot be represented for a specific resource. */
 		TInlineArray<D3D12_BUFFER_BARRIER, 8> mBufferBarriers; /**< Whole-resource buffer barriers. */
-		TInlineArray<TextureBarrierEntry, 8> mTextureBarriers; /**< Image layout and access barriers. */
+		TInlineArray<D3D12_TEXTURE_BARRIER, 8> mTextureBarriers; /**< Image layout and access barriers. */
 	};
 
 	/** @} */

@@ -82,10 +82,18 @@ VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateIn
 		mMainView = CreateView(completeSurface, createInformation.Format, VK_IMAGE_ASPECT_COLOR_BIT, false);
 	}
 
-	const u32 subresourceCount = mFaceCount * mMipLevelCount;
 	const bool concurrentQueueAccess = createInformation.CreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT;
-	for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
-		mSubresources[subresourceIndex] = owner->Create<VulkanImageSubresource>(createInformation.Layout, concurrentQueueAccess);
+	for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+	{
+		if(!mFullRange.AspectMask.IsSet(aspect))
+			continue;
+
+		for(u32 mipLevel = 0; mipLevel < mMipLevelCount; mipLevel++)
+		{
+			for(u32 face = 0; face < mFaceCount; face++)
+				mSubresources[GetSubresourceIndex(face, mipLevel, aspect)] = owner->Create<VulkanImageSubresource>(createInformation.Layout, concurrentQueueAccess);
+		}
+	}
 }
 
 VulkanImage::~VulkanImage()
@@ -93,7 +101,7 @@ VulkanImage::~VulkanImage()
 	VulkanGpuDevice& device = mOwner->GetDevice();
 	VkDevice vkDevice = device.GetLogical();
 
-	const u32 subresourceCount = mFaceCount * mMipLevelCount;
+	const u32 subresourceCount = GetSubresourceCount();
 	for(u32 i = 0; i < subresourceCount; i++)
 	{
 		B3D_ASSERT(!mSubresources[i]->IsBound()); // Image beeing freed but its subresources are still bound somewhere
@@ -347,10 +355,9 @@ GpuTextureSubresourceRange VulkanImage::GetRange(const TextureSurface& surface) 
 	return range;
 }
 
-VulkanImageSubresource* VulkanImage::GetSubresource(u32 face, u32 mipLevel)
+VulkanImageSubresource* VulkanImage::GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
 {
-	B3D_ASSERT(mipLevel * mFaceCount + face < mFaceCount * mMipLevelCount);
-	return static_cast<VulkanImageSubresource*>(mSubresources[mipLevel * mFaceCount + face]);
+	return static_cast<VulkanImageSubresource*>(IGpuImageResource::GetSubresource(face, mipLevel, aspect));
 }
 
 VkSubresourceLayout VulkanImage::GetSubresourceLayout(u32 face, u32 mipLevel) const
@@ -576,8 +583,7 @@ void VulkanTexture::SetName(const StringView& name)
 
 GpuQueueMask VulkanTexture::GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags) const
 {
-	VulkanImageSubresource* subresource = mImage->GetSubresource(arrayLayer, mipLevel);
-	return subresource->GetUseInfo(accessFlags);
+	return mImage->GetSubresourceUseInfo(arrayLayer, mipLevel, accessFlags);
 }
 
 u32 VulkanTexture::GetBoundCount(u32 subresourceIdx) const
@@ -585,8 +591,7 @@ u32 VulkanTexture::GetBoundCount(u32 subresourceIdx) const
 	u32 face, mip;
 	mProperties.MapFromSubresourceIndex(subresourceIdx, face, mip);
 
-	VulkanImageSubresource* subresource = mImage->GetSubresource(face, mip);
-	return subresource->GetBoundCount();
+	return mImage->GetSubresourceBoundCount(face, mip);
 }
 
 u32 VulkanTexture::GetUseCount(u32 subresourceIdx) const
@@ -594,8 +599,7 @@ u32 VulkanTexture::GetUseCount(u32 subresourceIdx) const
 	u32 face, mip;
 	mProperties.MapFromSubresourceIndex(subresourceIdx, face, mip);
 
-	VulkanImageSubresource* subresource = mImage->GetSubresource(face, mip);
-	return subresource->GetUseCount();
+	return mImage->GetSubresourceUseCount(face, mip);
 }
 
 void VulkanTexture::Flush(u32 mipLevel, u32 arrayLayer)
@@ -786,7 +790,7 @@ render::GpuTextureMappedScope VulkanTexture::Map(u32 mipLevel, u32 arrayLayer, G
 		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_Texture);
 #endif
 
-	VulkanImageSubresource* const subresource = mImage->GetSubresource(arrayLayer, mipLevel);
+	VulkanImageSubresource* const subresource = mImage->GetSubresource(arrayLayer, mipLevel, GpuTextureAspectFlag::Color);
 
 	// GPU should never be allowed to write to a directly mappable texture, since only linear tiling is supported
 	// for direct mapping, and we don't support using it with either storage textures or render targets.

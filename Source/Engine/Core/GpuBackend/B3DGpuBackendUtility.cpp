@@ -216,6 +216,9 @@ void GpuBackendUtility::GetAccessStageNames(GpuStageFlags flags, StringStream& o
 
 void GpuBackendUtility::CutRange(const GpuTextureSubresourceRange& toCut, const GpuTextureSubresourceRange& cutWith, std::array<GpuTextureSubresourceRange, 5>& output, u32& numAreas)
 {
+	B3D_ASSERT(toCut.HasSingleAspect());
+	B3D_ASSERT(toCut.AspectMask == cutWith.AspectMask);
+
 	numAreas = 0;
 
 	// Cut horizontally
@@ -248,6 +251,9 @@ void GpuBackendUtility::CutRange(const GpuTextureSubresourceRange& toCut, const 
 
 bool GpuBackendUtility::RangeOverlaps(const GpuTextureSubresourceRange& a, const GpuTextureSubresourceRange& b)
 {
+	if(!a.AspectMask.IsSetAny(b.AspectMask))
+		return false;
+
 	i32 aRight = a.BaseArrayLayer + (i32)a.ArrayLayerCount;
 	i32 bRight = b.BaseArrayLayer + (i32)b.ArrayLayerCount;
 

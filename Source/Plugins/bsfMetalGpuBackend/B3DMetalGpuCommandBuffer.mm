@@ -1619,10 +1619,19 @@ namespace b3d
 							range.ArrayLayerCount = 1;
 							range.BaseMipLevel = dsSurface.MipLevel;
 							range.MipLevelCount = 1;
-							const bool loads = loadMask.IsSet(RT_DEPTH) || loadMask.IsSet(RT_STENCIL);
-							const GpuAccessFlags access = loads ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
-							mResourceTracker.TrackAttachmentUsage(image, range, GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilAttachment,
-								GpuResourceUseFlag::DepthStencilAttachment, access, mBarrierHelper);
+							if(range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
+							{
+								range.AspectMask = GpuTextureAspectFlag::Depth;
+								const GpuAccessFlags depthAccess = loadMask.IsSet(RT_DEPTH) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
+								mResourceTracker.TrackAttachmentUsage(image, range, GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilAttachment, GpuResourceUseFlag::DepthStencilAttachment, depthAccess, mBarrierHelper);
+							}
+
+							if(image->GetRange().AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
+							{
+								range.AspectMask = GpuTextureAspectFlag::Stencil;
+								const GpuAccessFlags stencilAccess = loadMask.IsSet(RT_STENCIL) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
+								mResourceTracker.TrackAttachmentUsage(image, range, GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilAttachment, GpuResourceUseFlag::DepthStencilAttachment, stencilAccess, mBarrierHelper);
+							}
 							mRenderPassAttachmentImages.Add(image);
 						}
 					}

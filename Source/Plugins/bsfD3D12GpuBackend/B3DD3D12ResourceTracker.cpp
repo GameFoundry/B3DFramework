@@ -39,7 +39,7 @@ void D3D12ResourceTracker::TrackRenderTargetUsage(const D3D12FramebufferAttachme
 	{
 		const D3D12FramebufferAttachment& attachment = attachments[attachmentIndex];
 
-		GpuAccessFlag access;
+		GpuAccessFlag access = GpuAccessFlag::None;
 		GpuResourceUseFlag useFlags;
 		GpuImageLayout layout;
 		if (attachment.IsDepthStencil)
@@ -48,7 +48,6 @@ void D3D12ResourceTracker::TrackRenderTargetUsage(const D3D12FramebufferAttachme
 			const bool depthReadOnly = readOnlyMask.IsSet(RT_DEPTH);
 			const bool stencilReadOnly = !hasStencil || readOnlyMask.IsSet(RT_STENCIL);
 			const bool fullyReadOnly = depthReadOnly && stencilReadOnly;
-			access = fullyReadOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
 			useFlags = GpuResourceUseFlag::DepthStencilAttachment;
 			if(fullyReadOnly)
 				layout = GpuImageLayout::DepthStencilReadOnly;
@@ -71,8 +70,25 @@ void D3D12ResourceTracker::TrackRenderTargetUsage(const D3D12FramebufferAttachme
 		}
 
 		const GpuTextureSubresourceRange range = attachment.Image->GetRange(attachment.Surface);
+		if(!attachment.IsDepthStencil)
+		{
+			TrackImageUsage(attachment.Image, range, layout, layout, useFlags, access, barrierHelper);
+			continue;
+		}
 
-		TrackImageUsage(attachment.Image, range, layout, layout, useFlags, access, barrierHelper);
+		GpuTextureSubresourceRange aspectRange = range;
+		aspectRange.AspectMask = GpuTextureAspectFlag::Depth;
+		const GpuAccessFlag depthAccess = readOnlyMask.IsSet(RT_DEPTH) ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+
+		TrackImageUsage(attachment.Image, aspectRange, layout, layout, useFlags, depthAccess, barrierHelper);
+
+		if(range.AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
+		{
+			aspectRange.AspectMask = GpuTextureAspectFlag::Stencil;
+			const GpuAccessFlag stencilAccess = readOnlyMask.IsSet(RT_STENCIL) ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+
+			TrackImageUsage(attachment.Image, aspectRange, layout, layout, useFlags, stencilAccess, barrierHelper);
+		}
 	}
 }
 

@@ -118,7 +118,7 @@ namespace b3d
 			 * Retrieves a separate resource for a specific image face & mip level. This allows the caller to track subresource
 			 * usage individually, instead for the entire image.
 			 */
-			VulkanImageSubresource* GetSubresource(u32 face, u32 mipLevel);
+			VulkanImageSubresource* GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const;
 
 			/** Returns a pointer to persistently mapped memory of the image, or null pointer if the image is not mappable. */
 			void* GetMappedMemory() const { return mMappedMemory; }

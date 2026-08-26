@@ -211,6 +211,10 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeatureProbe = {};
 	timelineFeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES;
 
+	VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures separateDepthStencilLayoutsFeatureProbe = {};
+	separateDepthStencilLayoutsFeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES;
+	timelineFeatureProbe.pNext = &separateDepthStencilLayoutsFeatureProbe;
+
 	VkPhysicalDeviceFeatures2 features2 = {};
 	features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
 	features2.pNext = &timelineFeatureProbe;
@@ -219,6 +223,9 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 
 	if(timelineFeatureProbe.timelineSemaphore != VK_TRUE)
 		B3D_LOG(Fatal, LogRenderBackend, "The Vulkan device does not support the Vulkan 1.2 timelineSemaphore feature required for queue synchronization. Update the graphics driver or use a different backend.");
+
+	if(separateDepthStencilLayoutsFeatureProbe.separateDepthStencilLayouts != VK_TRUE)
+		B3D_LOG(Fatal, LogRenderBackend, "The Vulkan device does not support the Vulkan 1.2 separateDepthStencilLayouts feature required for independent depth and stencil synchronization. Update the graphics driver or use a different backend.");
 
 	// Build the enabled-feature pNext chain. Maintenance4 is required and enabled unconditionally; if the
 	// physical device lacks the extension/feature, the vkCreateDevice below fails its assert.
@@ -229,6 +236,12 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	timelineFeatures.pNext = featureChain;
 	timelineFeatures.timelineSemaphore = VK_TRUE;
 	featureChain = &timelineFeatures;
+
+	VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures separateDepthStencilLayoutsFeatures = {};
+	separateDepthStencilLayoutsFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES;
+	separateDepthStencilLayoutsFeatures.pNext = featureChain;
+	separateDepthStencilLayoutsFeatures.separateDepthStencilLayouts = VK_TRUE;
+	featureChain = &separateDepthStencilLayoutsFeatures;
 
 	VkPhysicalDeviceMaintenance4FeaturesKHR maintenance4Features = {};
 	maintenance4Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES_KHR;

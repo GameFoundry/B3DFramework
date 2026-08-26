@@ -21,7 +21,7 @@ namespace b3d
 		void TestTextureBarrierScopes();
 
 		/** Checks conservative ordered texture transitions, discard and depth/stencil planes. */
-		void TestTextureBarrierBatchMerging();
+		void TestTextureBarrierBatch();
 
 		/** Checks exact native resolve mappings and verifies ordinary copies retain copy semantics. */
 		void TestResolveBarrierMappings();

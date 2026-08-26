@@ -13,13 +13,20 @@ namespace b3d
 	/** Represents a part of a texture. */
 	enum class GpuTextureAspectFlag
 	{
-		Color	= 1 << 0,
-		Depth	= 1 << 1,
-		Stencil = 1 << 2,
+		Color = 1 << 0, /**< Color plane. */
+		Depth = 1 << 1, /**< Depth plane. */
+		Stencil = 1 << 2, /**< Stencil plane. */
 	};
 
 	using GpuTextureAspectFlags = Flags<GpuTextureAspectFlag>;
 	B3D_FLAGS_OPERATORS(GpuTextureAspectFlag)
+
+	/** Stable order used when expanding a texture aspect mask. */
+	constexpr std::array<GpuTextureAspectFlag, 3> kGpuTextureAspects = {
+		GpuTextureAspectFlag::Color,
+		GpuTextureAspectFlag::Depth,
+		GpuTextureAspectFlag::Stencil
+	};
 
 	/** Represents a range of subresources in a texture. */
 	struct GpuTextureSubresourceRange
@@ -40,6 +47,26 @@ namespace b3d
 			return GpuTextureSubresourceRange(0, ~0u, 0, ~0u, aspectMask);
 		}
 
+		/** Returns whether the range identifies exactly one texture aspect. */
+		bool HasSingleAspect() const
+		{
+			const u32 aspectBits = (u32)AspectMask;
+			return aspectBits != 0 && (aspectBits & (aspectBits - 1)) == 0;
+		}
+
+		/** Returns the number of texture aspects covered by the range. */
+		u32 GetAspectCount() const
+		{
+			u32 count = 0;
+			for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+			{
+				if(AspectMask.IsSet(aspect))
+					count++;
+			}
+
+			return count;
+		}
+
 		u32 BaseMipLevel = 0;
 		u32 MipLevelCount = 1;
 		u32 BaseArrayLayer = 0;
@@ -47,19 +74,20 @@ namespace b3d
 		GpuTextureAspectFlags AspectMask = GpuTextureAspectFlag::Color;
 	};
 
-	/** Identifies a single texture subresource (face and mip level). */
+	/** Identifies a single texture subresource. */
 	struct GpuTextureSubresource
 	{
-		u32 MipLevel = 0;
-		u32 ArrayLayer = 0;
+		u32 MipLevel = 0; /**< Mip level index. */
+		u32 ArrayLayer = 0; /**< Array layer or cube face index. */
+		GpuTextureAspectFlag Aspect = GpuTextureAspectFlag::Color; /**< Image aspect. */
 
-		GpuTextureSubresource(u32 mipLevel = 0, u32 arrayLayer = 0)
-			: MipLevel(mipLevel), ArrayLayer(arrayLayer)
+		GpuTextureSubresource(u32 mipLevel = 0, u32 arrayLayer = 0, GpuTextureAspectFlag aspect = GpuTextureAspectFlag::Color)
+			: MipLevel(mipLevel), ArrayLayer(arrayLayer), Aspect(aspect)
 		{ }
 
 		bool operator==(const GpuTextureSubresource& other) const
 		{
-			return ArrayLayer == other.ArrayLayer && MipLevel == other.MipLevel;
+			return ArrayLayer == other.ArrayLayer && MipLevel == other.MipLevel && Aspect == other.Aspect;
 		}
 	};
 

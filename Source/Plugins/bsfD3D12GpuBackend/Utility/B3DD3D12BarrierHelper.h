@@ -56,8 +56,21 @@ namespace b3d::render
 			GpuBarrierScope Barrier; /**< Barrier forming the page's latest chain link. */
 		};
 
+		/** Pending image barrier used for merging multiple barriers for the same image range. */
+		struct PendingImageBarrier
+		{
+			IGpuImageResource* Image = nullptr; /**< Image receiving the barrier. */
+			GpuTextureSubresourceRange SubresourceRange{}; /**< Image range receiving the barrier. */
+			GpuBarrierScope Barrier; /**< Access/sync scopes to issue the barrier for. */
+			GpuImageLayout OldLayout = GpuImageLayout::Undefined; /**< Layout before this synchronization point. */
+			GpuImageLayout NewLayout = GpuImageLayout::Undefined; /**< Final layout after this synchronization point. */
+			GpuStageFlags PrecedingBarrierDestinationStages = GpuStageFlag::None; /**< Sync stages of the previous barrier, that need to be chained from. */
+			u32 NativeBarrierIndex = 0; /**< Entry to replace after merge. */
+		};
+
 		D3D12BarrierBatch mBarriers;
 		TInlineArray<PendingBufferPageBarrier, 8> mPendingBufferPageBarriers;
+		TInlineArray<PendingImageBarrier, 8> mPendingImageBarriers;
 		GpuQueueType mQueueType;
 	};
 

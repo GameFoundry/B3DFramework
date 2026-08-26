@@ -210,11 +210,11 @@ namespace b3d
 			/** Returns the subresource tracking state at the specified global index. */
 			const GpuImageSubresourceTrackingState& GetSubresourceTrackingStateAtIndex(u32 globalSubresourceIndex) { return mSubresourceTrackingState[globalSubresourceIndex]; }
 
-			/** Finds a read-only subresource tracking state for the specified face and mip level of the provided image. */
-			const GpuImageSubresourceTrackingState& GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip) const;
+			/** Finds a read-only subresource tracking state for the specified face, mip level, and aspect of the provided image. */
+			const GpuImageSubresourceTrackingState& GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect) const;
 
-			/** Finds a read-only subresource tracking state for the specified face and mip level of the provided image. */
-			const GpuImageSubresourceTrackingState* FindSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip) const;
+			/** Finds a read-only subresource tracking state for the specified face, mip level, and aspect of the provided image. */
+			const GpuImageSubresourceTrackingState* FindSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect) const;
 
 			/** Notifies all tracked resources that the command buffer has submitted to a GPU queue. */
 			void NotifyUsed(GpuQueueId queueId);
@@ -296,20 +296,6 @@ namespace b3d
 			// TODO - Refactor this signature, try to clean it up once we have explicit layout transitions
 			void TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
 
-			/**
-			 * Private overload of IterateAndCreateOverlappingImageSubresourceTrackingState that operates on an existing GpuImageTrackingState.
-			 * Iterates over all subresource tracking states that overlap with the provided subresource range. The provided callback is invoked for each overlapping subresource.
-			 * If a subresource state partially overlaps the provided range, the system will subdivide existing state so it can return only the fully overlapping ranges.
-			 * If a tracking state for a range doesn't exist, it will be created.
-			 *
-			 * @param	imageTrackingState				Existing image tracking state to operate on.
-			 * @param	image							Image whose subresources to iterate.
-			 * @param	subresourceRange				Subresource range to find overlaps for.
-			 * @param	fnDoOnOverlappingSubresource	Callback invoked for each overlapping subresource. Receives global subresource index and user data pointer.
-			 * @param	userData						Optional user data passed to the callback.
-			 */
-			void IterateAndCreateOverlappingImageSubresourceTrackingState(GpuImageTrackingState& imageTrackingState, const IGpuImageResource& image, GpuTextureSubresourceRange subresourceRange, void(*fnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData = nullptr);
-
 			/** Registers a new resource range using the provided parameters to initialize it. */
 			u32 AddSubresourceTrackingState(const GpuTextureSubresourceRange& range);
 
@@ -323,8 +309,8 @@ namespace b3d
 			u32 CopySubresourceTrackingStateWithNewRange(u32 copyFromIndex, const GpuTextureSubresourceRange& newRange);
 
 		protected:
-			/** Finds a subresource tracking state for the specified face and mip level of the provided image. */
-			GpuImageSubresourceTrackingState& GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip);
+			/** Finds a subresource tracking state for the specified face, mip level, and aspect of the provided image. */
+			GpuImageSubresourceTrackingState& GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect);
 
 			/** Maps images to their tracking state index in mImageTrackingState. */
 			TDenseMap<IGpuImageResource*, u32> mImages;

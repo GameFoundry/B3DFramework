@@ -75,11 +75,22 @@ void VulkanResourceTracker::TrackFramebufferUsage(VulkanFramebuffer* framebuffer
 		else
 			layout = GpuImageLayout::Undefined;
 
-		// Note: We purposefully don't check read-only stencil here as generally access tracking doesn't matter for it, as it's always an attachment and shader can't read/write it directly
-		const GpuAccessFlag access = readOnlyMask.IsSet(RT_DEPTH) ? GpuAccessFlag::Read : GpuAccessFlag::Write;
-
 		GpuTextureSubresourceRange range = attachment.Image->GetRange(attachment.Surface);
-		TrackImageUsage(attachment.Image, range, layout, attachment.FinalLayout, GpuResourceUseFlag::DepthStencilAttachment, access, barrierHelper);
+		if(range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
+		{
+			range.AspectMask = GpuTextureAspectFlag::Depth;
+
+			const GpuAccessFlag depthAccess = readOnlyMask.IsSet(RT_DEPTH) ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+			TrackImageUsage(attachment.Image, range, layout, attachment.FinalLayout, GpuResourceUseFlag::DepthStencilAttachment, depthAccess, barrierHelper);
+		}
+
+		if(attachment.Image->GetRange().AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
+		{
+			range.AspectMask = GpuTextureAspectFlag::Stencil;
+
+			const GpuAccessFlag stencilAccess = readOnlyMask.IsSet(RT_STENCIL) ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+			TrackImageUsage(attachment.Image, range, layout, attachment.FinalLayout, GpuResourceUseFlag::DepthStencilAttachment, stencilAccess, barrierHelper);
+		}
 	}
 }
 
@@ -128,7 +139,8 @@ GpuImageLayout VulkanResourceTracker::GetCurrentSubresourceLayout(VulkanImage* i
 	TArrayView<const GpuImageSubresourceTrackingState> subresourceTrackingStates = GetSubresourceTrackingStatesForImage(image);
 	for(const auto& subresourceTrackingState : subresourceTrackingStates)
 	{
-		if(face >= subresourceTrackingState.Range.BaseArrayLayer && face < (subresourceTrackingState.Range.BaseArrayLayer + subresourceTrackingState.Range.ArrayLayerCount) &&
+		if(subresourceTrackingState.Range.AspectMask.IsSetAny(range.AspectMask) &&
+		   face >= subresourceTrackingState.Range.BaseArrayLayer && face < (subresourceTrackingState.Range.BaseArrayLayer + subresourceTrackingState.Range.ArrayLayerCount) &&
 		   mip >= subresourceTrackingState.Range.BaseMipLevel && mip < (subresourceTrackingState.Range.BaseMipLevel + subresourceTrackingState.Range.MipLevelCount))
 		{
 			// If it's a FB attachment, retrieve its layout after the render pass begins
@@ -190,7 +202,7 @@ RenderSurfaceMask VulkanResourceTracker::GetFramebufferReadOnlyMask(VulkanFrameb
 	for(u32 colorAttachmentIndex = 0; colorAttachmentIndex < colorAttachmentCount; colorAttachmentIndex++)
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetColorAttachment(colorAttachmentIndex);
-		const GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		const GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel, GpuTextureAspectFlag::Color);
 
 		const bool readOnly = subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write); // Note: Should report error if shader write is used
 
@@ -201,7 +213,7 @@ RenderSurfaceMask VulkanResourceTracker::GetFramebufferReadOnlyMask(VulkanFrameb
 	if(renderPass->HasDepthAttachment())
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetDepthStencilAttachment();
-		const GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		const GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel, GpuTextureAspectFlag::Depth);
 
 		const bool readOnly = subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write); // Note: Should report error if shader write is used
 
@@ -225,7 +237,7 @@ void VulkanResourceTracker::MoveAllFramebufferAttachmentsToFinalLayouts(VulkanFr
 	for(u32 colorAttachmentIndex = 0; colorAttachmentIndex < colorAttachmentCount; colorAttachmentIndex++)
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetColorAttachment(colorAttachmentIndex);
-		GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel, GpuTextureAspectFlag::Color);
 
 		subresourceTrackingState.CurrentLayout = subresourceTrackingState.RenderPassLayout;
 		subresourceTrackingState.RequiredLayout = subresourceTrackingState.RenderPassLayout;
@@ -234,9 +246,14 @@ void VulkanResourceTracker::MoveAllFramebufferAttachmentsToFinalLayouts(VulkanFr
 	if(renderPass->HasDepthAttachment())
 	{
 		const VulkanFramebufferAttachment& fbAttachment = framebuffer->GetDepthStencilAttachment();
-		GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
+		for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+		{
+			if(!fbAttachment.Image->GetRange().AspectMask.IsSet(aspect))
+				continue;
 
-		subresourceTrackingState.CurrentLayout = subresourceTrackingState.RenderPassLayout;
-		subresourceTrackingState.RequiredLayout = subresourceTrackingState.RenderPassLayout;
+			GpuImageSubresourceTrackingState& subresourceTrackingState = GetSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel, aspect);
+			subresourceTrackingState.CurrentLayout = subresourceTrackingState.RenderPassLayout;
+			subresourceTrackingState.RequiredLayout = subresourceTrackingState.RenderPassLayout;
+		}
 	}
 }

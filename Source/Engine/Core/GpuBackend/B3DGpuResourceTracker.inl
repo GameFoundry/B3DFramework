@@ -32,6 +32,8 @@ void TGpuResourceTracker<TBarrierHelper>::ResolveSubmissionTransitions(GpuQueueI
 
 		for(const GpuImageSubresourceTrackingState& trackingState : trackingStates)
 		{
+			B3D_ASSERT(trackingState.Range.HasSingleAspect());
+
 			if(trackingState.HazardState == nullptr || !trackingState.HazardState->HasSubmissionEffect())
 				continue;
 
@@ -42,7 +44,7 @@ void TGpuResourceTracker<TBarrierHelper>::ResolveSubmissionTransitions(GpuQueueI
 			{
 				for(u32 face = trackedRange.BaseArrayLayer; face < faceEnd; ++face)
 				{
-					IGpuResource* const subresource = image->GetSubresource(face, mipLevel);
+					IGpuResource* const subresource = image->GetSubresource(face, mipLevel, (GpuTextureAspectFlag)(u32)trackedRange.AspectMask);
 					B3D_ASSERT(subresource != nullptr);
 
 					const GpuTextureSubresourceRange range(mipLevel, 1, face, 1, trackedRange.AspectMask);
@@ -183,7 +185,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* ima
 	};
 
 	CallbackParameters callbackParameters { this, &barrierHelper, image, layout, finalLayout, useFlags, accessFlags };
-	IterateAndCreateOverlappingImageSubresourceTrackingState(imageTrackingState, *image, subresourceRange, [](u32 globalSubresourceIndex, void* userData)
+	IterateAndCreateOverlappingImageSubresourceTrackingState(image, subresourceRange, [](u32 globalSubresourceIndex, void* userData)
 	{
 		CallbackParameters* const callbackParameters = (CallbackParameters*)userData;
 		TGpuResourceTracker<TBarrierHelper>* self = callbackParameters->Self;
@@ -195,14 +197,21 @@ void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* ima
 	B3D_ASSERT(subresourceRange.ArrayLayerCount != ~0u);
 	B3D_ASSERT(subresourceRange.MipLevelCount != ~0u);
 
-	for(u32 layerIndex = 0; layerIndex < subresourceRange.ArrayLayerCount; layerIndex++)
+	const GpuTextureAspectFlags trackedAspects = subresourceRange.AspectMask & image->GetRange().AspectMask;
+	for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
 	{
-		for(u32 levelIndex = 0; levelIndex < subresourceRange.MipLevelCount; levelIndex++)
-		{
-			const u32 layer = subresourceRange.BaseArrayLayer + layerIndex;
-			const u32 mipLevel = subresourceRange.BaseMipLevel + levelIndex;
+		if(!trackedAspects.IsSet(aspect))
+			continue;
 
-			TrackResourceUsage(image->GetSubresource(layer, mipLevel), accessFlags);
+		for(u32 layerIndex = 0; layerIndex < subresourceRange.ArrayLayerCount; layerIndex++)
+		{
+			for(u32 levelIndex = 0; levelIndex < subresourceRange.MipLevelCount; levelIndex++)
+			{
+				const u32 layer = subresourceRange.BaseArrayLayer + layerIndex;
+				const u32 mipLevel = subresourceRange.BaseMipLevel + levelIndex;
+
+				TrackResourceUsage(image->GetSubresource(layer, mipLevel, aspect), accessFlags);
+			}
 		}
 	}
 }
@@ -507,9 +516,9 @@ TArrayView<GpuImageSubresourceTrackingState> TGpuResourceTracker<TBarrierHelper>
 }
 
 template<class TBarrierHelper>
-const GpuImageSubresourceTrackingState& TGpuResourceTracker<TBarrierHelper>::GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip) const
+const GpuImageSubresourceTrackingState& TGpuResourceTracker<TBarrierHelper>::GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect) const
 {
-	const GpuImageSubresourceTrackingState* const trackingState = FindSubresourceTrackingState(image, face, mip);
+	const GpuImageSubresourceTrackingState* const trackingState = FindSubresourceTrackingState(image, face, mip, aspect);
 	if(!B3D_ENSURE(trackingState != nullptr))
 	{
 		// Fallback to first subresource
@@ -524,7 +533,7 @@ const GpuImageSubresourceTrackingState& TGpuResourceTracker<TBarrierHelper>::Get
 }
 
 template<class TBarrierHelper>
-const GpuImageSubresourceTrackingState* TGpuResourceTracker<TBarrierHelper>::FindSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip) const
+const GpuImageSubresourceTrackingState* TGpuResourceTracker<TBarrierHelper>::FindSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect) const
 {
 	const u32 imageTrackingIndex = mImages.find(image)->second;
 	const GpuImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
@@ -534,7 +543,8 @@ const GpuImageSubresourceTrackingState* TGpuResourceTracker<TBarrierHelper>::Fin
 	{
 		const GpuImageSubresourceTrackingState& subresourceTrackingState = subresourceTrackingStates[localSubresourceIndex];
 
-		if(face >= subresourceTrackingState.Range.BaseArrayLayer && face < (subresourceTrackingState.Range.BaseArrayLayer + subresourceTrackingState.Range.ArrayLayerCount) &&
+		if(subresourceTrackingState.Range.AspectMask.IsSet(aspect) &&
+		   face >= subresourceTrackingState.Range.BaseArrayLayer && face < (subresourceTrackingState.Range.BaseArrayLayer + subresourceTrackingState.Range.ArrayLayerCount) &&
 		   mip >= subresourceTrackingState.Range.BaseMipLevel && mip < (subresourceTrackingState.Range.BaseMipLevel + subresourceTrackingState.Range.MipLevelCount))
 		{
 			return &subresourceTrackingState;
@@ -555,68 +565,61 @@ const GpuBufferTrackingState* TGpuResourceTracker<TBarrierHelper>::FindBufferTra
 }
 
 template<class TBarrierHelper>
-GpuImageSubresourceTrackingState& TGpuResourceTracker<TBarrierHelper>::GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip)
+GpuImageSubresourceTrackingState& TGpuResourceTracker<TBarrierHelper>::GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect)
 {
 	// Delegate to 'const' version and re-cast
-	return const_cast<GpuImageSubresourceTrackingState&>(const_cast<const TGpuResourceTracker*>(this)->GetSubresourceTrackingState(image, face, mip));
+	return const_cast<GpuImageSubresourceTrackingState&>(const_cast<const TGpuResourceTracker*>(this)->GetSubresourceTrackingState(image, face, mip, aspect));
 }
 
 template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::IterateAndCreateOverlappingImageSubresourceTrackingState(IGpuImageResource* image, GpuTextureSubresourceRange subresourceRange, void (*FnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData)
+void TGpuResourceTracker<TBarrierHelper>::IterateAndCreateOverlappingImageSubresourceTrackingState(IGpuImageResource* image, GpuTextureSubresourceRange subresourceRange, void (*fnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData)
 {
 	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
-
-	IterateAndCreateOverlappingImageSubresourceTrackingState(imageTrackingState, *image, subresourceRange, FnDoOnOverlappingSubresource, userData);
-}
-
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::IterateAndCreateOverlappingImageSubresourceTrackingState(GpuImageTrackingState& imageTrackingState, const IGpuImageResource& image, GpuTextureSubresourceRange subresourceRange, void(*FnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData)
-{
 	// Provide exact size as code below doesn't handle the "remaining" sentinel
 	if(subresourceRange.ArrayLayerCount == ~0u)
-		subresourceRange.ArrayLayerCount = image.GetRange().ArrayLayerCount;
+		subresourceRange.ArrayLayerCount = image->GetRange().ArrayLayerCount;
 
 	if(subresourceRange.MipLevelCount == ~0u)
-		subresourceRange.MipLevelCount = image.GetRange().MipLevelCount;
+		subresourceRange.MipLevelCount = image->GetRange().MipLevelCount;
 
-	if(imageTrackingState.FirstSubresourceInfoIndex == ~0u)
+	subresourceRange.AspectMask &= image->GetRange().AspectMask;
+	B3D_ASSERT(subresourceRange.AspectMask);
+
+	auto fnProcessAspectSubresourceRange = [this, &imageTrackingState, fnDoOnOverlappingSubresource, userData](const GpuTextureSubresourceRange& aspectSubresourceRange)
 	{
-		const u32 subresourceIndex = AddSubresourceTrackingState(subresourceRange);
-		imageTrackingState.FirstSubresourceInfoIndex = subresourceIndex;
-		imageTrackingState.SubresourceInfoCount = 1;
+		B3D_ASSERT(aspectSubresourceRange.HasSingleAspect());
 
-		FnDoOnOverlappingSubresource(subresourceIndex, userData);
-		return;
-	}
-
-	GpuImageSubresourceTrackingState* const existingSubresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
-
-	// First test for the simplest and most common case (same range or no overlap) to avoid more complex computations.
-	bool foundRange = false;
-	for(u32 subresourceLocalIndex = 0; subresourceLocalIndex < imageTrackingState.SubresourceInfoCount; subresourceLocalIndex++)
-	{
-		GpuImageSubresourceTrackingState& existingSubresourceTrackingState = existingSubresourceTrackingStates[subresourceLocalIndex];
-		if(GpuBackendUtility::RangeOverlaps(existingSubresourceTrackingState.Range, subresourceRange))
+		if(imageTrackingState.FirstSubresourceInfoIndex == ~0u)
 		{
-			if(existingSubresourceTrackingState.Range.ArrayLayerCount == subresourceRange.ArrayLayerCount &&
-			   existingSubresourceTrackingState.Range.MipLevelCount == subresourceRange.MipLevelCount &&
-			   existingSubresourceTrackingState.Range.BaseArrayLayer == subresourceRange.BaseArrayLayer &&
-			   existingSubresourceTrackingState.Range.BaseMipLevel == subresourceRange.BaseMipLevel)
+			const u32 subresourceIndex = AddSubresourceTrackingState(aspectSubresourceRange);
+			imageTrackingState.FirstSubresourceInfoIndex = subresourceIndex;
+			imageTrackingState.SubresourceInfoCount = 1;
+
+			fnDoOnOverlappingSubresource(subresourceIndex, userData);
+			return;
+		}
+
+		GpuImageSubresourceTrackingState* const existingSubresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
+
+		// First test for the simplest and most common case (same range or no overlap) to avoid more complex computations.
+		for(u32 subresourceLocalIndex = 0; subresourceLocalIndex < imageTrackingState.SubresourceInfoCount; subresourceLocalIndex++)
+		{
+			GpuImageSubresourceTrackingState& existingSubresourceTrackingState = existingSubresourceTrackingStates[subresourceLocalIndex];
+			if(!GpuBackendUtility::RangeOverlaps(existingSubresourceTrackingState.Range, aspectSubresourceRange))
+				continue;
+
+			if(GpuBackendUtility::RangeEquals(existingSubresourceTrackingState.Range, aspectSubresourceRange))
 			{
 				const u32 subresourceIndex = imageTrackingState.FirstSubresourceInfoIndex + subresourceLocalIndex;
-				FnDoOnOverlappingSubresource(subresourceIndex, userData);
+				fnDoOnOverlappingSubresource(subresourceIndex, userData);
 				return;
 			}
 
 			// This means there's a partial overlap which means there's no point searching further, we must subdivide
 			break;
 		}
-	}
 
-	// We'll need to update subresource ranges or add new ones. The hope is that this code is trigger VERY rarely
-	// (for just a few specific textures per frame).
-	if(!foundRange)
-	{
+		// Rebuild the image's contiguous tracking range. This is expected only for a few textures per frame.
 		std::array<GpuTextureSubresourceRange, 5> cutRanges;
 
 		B3DMarkAllocatorFrame();
@@ -630,21 +633,21 @@ void TGpuResourceTracker<TBarrierHelper>::IterateAndCreateOverlappingImageSubres
 				const u32 globalSubresourceIndex = imageTrackingState.FirstSubresourceInfoIndex + subresourceLocalIndex;
 				GpuImageSubresourceTrackingState& subresource = mSubresourceTrackingState[globalSubresourceIndex];
 
-				if(!GpuBackendUtility::RangeOverlaps(subresource.Range, subresourceRange))
+				if(!GpuBackendUtility::RangeOverlaps(subresource.Range, aspectSubresourceRange))
 					CopySubresourceTrackingStateWithNewRange(globalSubresourceIndex, subresource.Range);
 				else // Need to cut
 				{
 					u32 cutRangeCount;
-					GpuBackendUtility::CutRange(subresource.Range, subresourceRange, cutRanges, cutRangeCount);
+					GpuBackendUtility::CutRange(subresource.Range, aspectSubresourceRange, cutRanges, cutRangeCount);
 
 					for(u32 cutRangeIndex = 0; cutRangeIndex < cutRangeCount; cutRangeIndex++)
 					{
 						// Create a copy of the original subresource with the new range
 						const u32 newGlobalSubresourceIndex = CopySubresourceTrackingStateWithNewRange(globalSubresourceIndex, cutRanges[cutRangeIndex]);
 
-						if(GpuBackendUtility::RangeOverlaps(cutRanges[cutRangeIndex], subresourceRange))
+						if(GpuBackendUtility::RangeOverlaps(cutRanges[cutRangeIndex], aspectSubresourceRange))
 						{
-							FnDoOnOverlappingSubresource(newGlobalSubresourceIndex, userData);
+							fnDoOnOverlappingSubresource(newGlobalSubresourceIndex, userData);
 
 							// Keep track of the overlapping ranges for later
 							cutOverlappingRanges.push_back((u32)mSubresourceTrackingState.size() - 1);
@@ -656,13 +659,13 @@ void TGpuResourceTracker<TBarrierHelper>::IterateAndCreateOverlappingImageSubres
 			// Our range doesn't overlap with any existing ranges, so just add it
 			if(cutOverlappingRanges.empty())
 			{
-				const u32 newGlobalSubresourceIndex = AddSubresourceTrackingState(subresourceRange);
-				FnDoOnOverlappingSubresource(newGlobalSubresourceIndex, userData);
+				const u32 newGlobalSubresourceIndex = AddSubresourceTrackingState(aspectSubresourceRange);
+				fnDoOnOverlappingSubresource(newGlobalSubresourceIndex, userData);
 			}
 			else // Search if overlapping ranges fully cover the requested range, and insert non-covered regions
 			{
 				FrameQueue<GpuTextureSubresourceRange> sourceRanges;
-				sourceRanges.push(subresourceRange);
+				sourceRanges.push(aspectSubresourceRange);
 
 				for(auto& entry : cutOverlappingRanges)
 				{
@@ -689,7 +692,8 @@ void TGpuResourceTracker<TBarrierHelper>::IterateAndCreateOverlappingImageSubres
 				// Any remaining range hasn't been covered yet
 				while(!sourceRanges.empty())
 				{
-					AddSubresourceTrackingState(sourceRanges.front());
+					const u32 newGlobalSubresourceIndex = AddSubresourceTrackingState(sourceRanges.front());
+					fnDoOnOverlappingSubresource(newGlobalSubresourceIndex, userData);
 					sourceRanges.pop();
 				}
 			}
@@ -698,12 +702,25 @@ void TGpuResourceTracker<TBarrierHelper>::IterateAndCreateOverlappingImageSubres
 			imageTrackingState.SubresourceInfoCount = (u32)mSubresourceTrackingState.size() - newSubresourceTrackingStateIndex;
 		}
 		B3DClearAllocatorFrame();
+	};
+
+	for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+	{
+		if(!subresourceRange.AspectMask.IsSet(aspect))
+			continue;
+
+		GpuTextureSubresourceRange aspectSubresourceRange = subresourceRange;
+		aspectSubresourceRange.AspectMask = aspect;
+
+		fnProcessAspectSubresourceRange(aspectSubresourceRange);
 	}
 }
 
 template<class TBarrierHelper>
 u32 TGpuResourceTracker<TBarrierHelper>::AddSubresourceTrackingState(const GpuTextureSubresourceRange& range)
 {
+	B3D_ASSERT(range.HasSingleAspect());
+
 	mSubresourceTrackingState.push_back(GpuImageSubresourceTrackingState());
 
 	GpuImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState.back();
@@ -720,6 +737,8 @@ u32 TGpuResourceTracker<TBarrierHelper>::AddSubresourceTrackingState(const GpuTe
 template<class TBarrierHelper>
 u32 TGpuResourceTracker<TBarrierHelper>::CopySubresourceTrackingStateWithNewRange(u32 copyFromIndex, const GpuTextureSubresourceRange& newRange)
 {
+	B3D_ASSERT(newRange.HasSingleAspect());
+
 	GpuImageSubresourceTrackingState* const copyFromSubresource = &mSubresourceTrackingState[copyFromIndex];
 
 	GpuImageSubresourceTrackingState subresourceCopy = *copyFromSubresource;
@@ -753,8 +772,6 @@ u32 TGpuResourceTracker<TBarrierHelper>::CopySubresourceTrackingStateWithNewRang
 template<class TBarrierHelper>
 void TGpuResourceTracker<TBarrierHelper>::UpdateImageLayoutTrackingAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuImageLayout oldLayout, GpuImageLayout newLayout)
 {
-	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
-
 	struct CallbackParameters
 	{
 		TGpuResourceTracker<TBarrierHelper>* Self;
@@ -764,7 +781,7 @@ void TGpuResourceTracker<TBarrierHelper>::UpdateImageLayoutTrackingAfterBarrier(
 
 	CallbackParameters callbackParameters = { this, oldLayout, newLayout };
 
-	IterateAndCreateOverlappingImageSubresourceTrackingState(imageTrackingState, *image, range, [](u32 globalSubresourceIndex, void* userData)
+	IterateAndCreateOverlappingImageSubresourceTrackingState(image, range, [](u32 globalSubresourceIndex, void* userData)
 	{
 		CallbackParameters* callbackParameters = (CallbackParameters*)userData;
 
@@ -804,8 +821,6 @@ void TGpuResourceTracker<TBarrierHelper>::UpdateHazardStateAfterBarrier(IGpuBuff
 template<class TBarrierHelper>
 void TGpuResourceTracker<TBarrierHelper>::UpdateHazardStateAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier)
 {
-	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
-
 	struct CallbackParameters
 	{
 		TGpuResourceTracker<TBarrierHelper>* Self;
@@ -814,7 +829,7 @@ void TGpuResourceTracker<TBarrierHelper>::UpdateHazardStateAfterBarrier(IGpuImag
 
 	CallbackParameters callbackParameters = { this, barrier };
 
-	IterateAndCreateOverlappingImageSubresourceTrackingState(imageTrackingState, *image, range, [](u32 globalSubresourceIndex, void* userData)
+	IterateAndCreateOverlappingImageSubresourceTrackingState(image, range, [](u32 globalSubresourceIndex, void* userData)
 	{
 		CallbackParameters* callbackParameters = (CallbackParameters*)userData;
 

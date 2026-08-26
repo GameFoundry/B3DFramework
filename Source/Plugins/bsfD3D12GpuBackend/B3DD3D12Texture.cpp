@@ -75,14 +75,23 @@ namespace b3d
 		D3D12Image::D3D12Image(D3D12ResourceManager* owner, const D3D12ImageCreateInformation& createInformation)
 			: TD3D12Resource<IGpuImageResource>(owner, createInformation.Name, createInformation.FaceCount, createInformation.MipLevelCount, createInformation.Aspect), mResource(createInformation.Resource), mAllocation(createInformation.Allocation), mFormat(createInformation.Format), mAllowConcurrentQueueReads(createInformation.AllowConcurrentQueueReads), mIsPresentable(createInformation.IsPresentable)
 		{
-			const u32 subresourceCount = mFaceCount * mMipLevelCount;
-			for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
-				mSubresources[subresourceIndex] = owner->Create<D3D12ImageSubresource>(createInformation.InitialLayout);
+			for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+			{
+				if(!mFullRange.AspectMask.IsSet(aspect))
+					continue;
+
+				const D3D12TextureLayout aspectLayout(createInformation.InitialLayout.GetLayout(aspect));
+				for(u32 mipLevel = 0; mipLevel < mMipLevelCount; mipLevel++)
+				{
+					for(u32 face = 0; face < mFaceCount; face++)
+						mSubresources[GetSubresourceIndex(face, mipLevel, aspect)] = owner->Create<D3D12ImageSubresource>(aspectLayout);
+				}
+			}
 		}
 
 		D3D12Image::~D3D12Image()
 		{
-			const u32 subresourceCount = mFaceCount * mMipLevelCount;
+			const u32 subresourceCount = GetSubresourceCount();
 			for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
 			{
 				if(mSubresources[subresourceIndex] != nullptr)
@@ -93,13 +102,13 @@ namespace b3d
 			GetDevice().FreeMemory(mAllocation);
 		}
 
-		D3D12TextureLayout D3D12Image::GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType, GpuTextureAspectFlags aspects) const
+		D3D12TextureLayout D3D12Image::GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType) const
 		{
 			D3D12TextureLayoutOptions options;
 			options.AllowConcurrentQueueReads = mAllowConcurrentQueueReads;
 			options.IsPresentable = mIsPresentable;
 
-			return D3D12BarrierUtility::TranslateTextureLayout(layout, queueType, aspects, options);
+			return D3D12BarrierUtility::TranslateTextureLayout(layout, queueType, options);
 		}
 
 		GpuTextureSubresourceRange D3D12Image::GetRange(const TextureSurface& surface) const
@@ -514,11 +523,7 @@ namespace b3d
 			if(mImage == nullptr)
 				return GpuQueueMask();
 
-			// Subresource use handles are registered on the generic tracker path, which does not split read/write
-			// counters, so per-subresource masks fall back to the whole-image mask filtered by access.
-			(void)mipLevel;
-			(void)arrayLayer;
-			return mImage->GetUseInfo(accessFlags);
+			return mImage->GetSubresourceUseInfo(arrayLayer, mipLevel, accessFlags);
 		}
 
 		u32 D3D12Texture::GetBoundCount(u32 subresourceIndex) const
@@ -528,7 +533,7 @@ namespace b3d
 
 			u32 face, mipLevel;
 			mProperties.MapFromSubresourceIndex(subresourceIndex, face, mipLevel);
-			return mImage->GetSubresource(face, mipLevel)->GetBoundCount();
+			return mImage->GetSubresourceBoundCount(face, mipLevel);
 		}
 
 		u32 D3D12Texture::GetUseCount(u32 subresourceIndex) const
@@ -538,7 +543,7 @@ namespace b3d
 
 			u32 face, mipLevel;
 			mProperties.MapFromSubresourceIndex(subresourceIndex, face, mipLevel);
-			return mImage->GetSubresource(face, mipLevel)->GetUseCount();
+			return mImage->GetSubresourceUseCount(face, mipLevel);
 		}
 
 	} // namespace render

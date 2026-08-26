@@ -21,5 +21,8 @@ namespace b3d
 
 		/** Verifies writer epochs allow parallel reads and only wait for active conflicting queues. */
 		void TestSubmissionTransitionPlanning();
+
+		/** Verifies image partitions and persistent submission state are independent per aspect. */
+		void TestImageAspectTracking();
 	};
 } // namespace b3d

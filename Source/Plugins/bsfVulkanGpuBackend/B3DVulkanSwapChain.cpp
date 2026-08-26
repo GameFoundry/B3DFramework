@@ -401,7 +401,7 @@ void VulkanSwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask sync
 
 	// Ensure the image is in the correct layout
 	VulkanImage *const image = mSurfaces[imageIndex].Image;
-	VulkanImageSubresource* const imageSubresource = image->GetSubresource(0, 0);
+	VulkanImageSubresource* const imageSubresource = image->GetSubresource(0, 0, GpuTextureAspectFlag::Color);
 	const VkImageLayout imageLayout = imageSubresource->GetLayout();
 
 	if(imageLayout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)

@@ -84,7 +84,7 @@ namespace b3d
 			 * Retrieves a separate resource for a specific image face & mip level. This allows the
 			 * caller to track subresource usage individually, instead of for the entire image.
 			 */
-			MetalImageSubresource* GetSubresource(u32 face, u32 mipLevel);
+			MetalImageSubresource* GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const;
 
 #ifdef __OBJC__
 			/** Returns the internal handle to the Metal object. */

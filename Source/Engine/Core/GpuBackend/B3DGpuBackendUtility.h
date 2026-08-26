@@ -67,7 +67,7 @@ namespace b3d
 		/** Checks if the two image subresource ranges have any overlapping subresources. */
 		static bool RangeOverlaps(const GpuTextureSubresourceRange& a, const GpuTextureSubresourceRange& b);
 
-		/** Checks if the two image subresource ranges cover the same mip levels and array layers. */
+		/** Checks if the two image subresource ranges cover the same aspects, mip levels and array layers. */
 		static bool RangeEquals(const GpuTextureSubresourceRange& a, const GpuTextureSubresourceRange& b);
 
 		/**
