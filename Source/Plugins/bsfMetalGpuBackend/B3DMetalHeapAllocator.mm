@@ -153,7 +153,7 @@ namespace b3d
 
 					// Metal placement heaps have no buffer-image granularity constraint analogous
 					// to Vulkan's; per-request alignment comes from heap*SizeAndAlign* queries.
-					configuration.BufferImageGranularity = 1;
+					configuration.Granularity = 1;
 
 					// Private resources dominate long-lived scene memory and benefit from larger heaps.
 					// Shared resources are generally staging/uniform data; starting those at 16 MiB avoids

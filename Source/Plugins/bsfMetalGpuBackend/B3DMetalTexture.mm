@@ -5,6 +5,7 @@
 #include "B3DMetalHeapAllocator.h"
 #include "B3DMetalResourceManager.h"
 #include "B3DMetalUtility.h"
+#include "Image/B3DPixelUtility.h"
 #include "Debug/B3DLog.h"
 #include "Math/B3DMath.h"
 

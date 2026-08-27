@@ -8,6 +8,7 @@
 #include "B3DMetalBarrierHelper.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuTimelineFence.h"
+#include "GpuBackend/B3DRenderTarget.h"
 
 namespace b3d
 {
