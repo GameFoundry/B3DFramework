@@ -20,7 +20,6 @@ namespace b3d
 		class MetalGpuQueryPool;
 		class IMetalRenderWindowSurface;
 		class MetalVertexInput;
-		class MetalImage;
 		class MetalGpuBuffer;
 
 		/** @addtogroup MetalGpuBackend
@@ -279,12 +278,12 @@ namespace b3d
 			// by the attachment layout of the current render pass.
 			MetalPipelineVariantKey mRenderPassPipelineKey;
 			IMetalRenderWindowSurface* mAcquiredWindowSurface = nullptr;
+			bool mRenderPassTrackingActive = false;
 			u32 mRenderPassWidth = 0;
 			u32 mRenderPassHeight = 0;
 
 			/** Fixed clear values of the bound target's surfaces, used by both the pass load actions and explicit clears. */
 			RenderTargetClearValues mRenderPassClearValues;
-			TInlineArray<MetalImage*, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> mRenderPassAttachmentImages;
 
 			/** Occlusion pool whose visibility buffer is attached to the current native render encoder. */
 			TShared<MetalGpuQueryPool> mActiveOcclusionQueryPool;

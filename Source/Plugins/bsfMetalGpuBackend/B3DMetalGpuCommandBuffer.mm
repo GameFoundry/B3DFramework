@@ -1405,7 +1405,6 @@ namespace b3d
 			mAcquiredWindowSurface = nullptr;
 			mRenderPassWidth = 0;
 			mRenderPassHeight = 0;
-			mRenderPassAttachmentImages.Clear();
 #if !__has_feature(objc_arc)
 			[mImpl->RestartRenderPassDescriptor release];
 #endif
@@ -1440,6 +1439,7 @@ namespace b3d
 
 			const RenderSurfaceMask clearMask = createInformation.ClearMask;
 			const RenderSurfaceMask loadMask = createInformation.LoadMask;
+			TInlineArray<GpuRenderPassAttachmentUsage, B3D_MAXIMUM_RENDER_TARGET_COUNT + 2> renderPassAttachments;
 
 			if (targetProps.IsWindow)
 			{
@@ -1555,10 +1555,15 @@ namespace b3d
 						range.ArrayLayerCount = 1;
 						range.BaseMipLevel = surface.MipLevel;
 						range.MipLevelCount = 1;
-						const GpuAccessFlags access = loadMask.IsSet(bit) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
-						mResourceTracker.TrackAttachmentUsage(image, range, GpuImageLayout::ColorAttachment, GpuImageLayout::ColorAttachment,
-							GpuResourceUseFlag::ColorAttachment, access, mBarrierHelper);
-						mRenderPassAttachmentImages.Add(image);
+
+						GpuRenderPassAttachmentUsage attachmentUsage;
+						attachmentUsage.Image = image;
+						attachmentUsage.Range = range;
+						attachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
+						attachmentUsage.Access = loadMask.IsSet(bit) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
+						attachmentUsage.Layout = GpuImageLayout::ColorAttachment;
+
+						renderPassAttachments.Add(std::move(attachmentUsage));
 					}
 				}
 
@@ -1622,21 +1627,36 @@ namespace b3d
 							if(range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
 							{
 								range.AspectMask = GpuTextureAspectFlag::Depth;
-								const GpuAccessFlags depthAccess = loadMask.IsSet(RT_DEPTH) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
-								mResourceTracker.TrackAttachmentUsage(image, range, GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilAttachment, GpuResourceUseFlag::DepthStencilAttachment, depthAccess, mBarrierHelper);
+								GpuRenderPassAttachmentUsage attachmentUsage;
+								attachmentUsage.Image = image;
+								attachmentUsage.Range = range;
+								attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
+								attachmentUsage.Access = loadMask.IsSet(RT_DEPTH) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
+								attachmentUsage.Layout = GpuImageLayout::DepthStencilAttachment;
+
+								renderPassAttachments.Add(std::move(attachmentUsage));
 							}
 
 							if(image->GetRange().AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
 							{
 								range.AspectMask = GpuTextureAspectFlag::Stencil;
-								const GpuAccessFlags stencilAccess = loadMask.IsSet(RT_STENCIL) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
-								mResourceTracker.TrackAttachmentUsage(image, range, GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilAttachment, GpuResourceUseFlag::DepthStencilAttachment, stencilAccess, mBarrierHelper);
+								GpuRenderPassAttachmentUsage attachmentUsage;
+								attachmentUsage.Image = image;
+								attachmentUsage.Range = range;
+								attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
+								attachmentUsage.Access = loadMask.IsSet(RT_STENCIL) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
+								attachmentUsage.Layout = GpuImageLayout::DepthStencilAttachment;
+
+								renderPassAttachments.Add(std::move(attachmentUsage));
 							}
-							mRenderPassAttachmentImages.Add(image);
 						}
 					}
 				}
 			}
+
+			mResourceTracker.PrepareRenderPass(renderPassAttachments);
+			mResourceTracker.BeginRenderPass(mBarrierHelper);
+			mRenderPassTrackingActive = true;
 
 			if (!ExecutePendingBarriers())
 				return;
@@ -1751,13 +1771,11 @@ namespace b3d
 			mImpl->VisibilityMode = MTLVisibilityResultModeDisabled;
 			mImpl->VisibilityOffset = 0;
 
-			for (MetalImage* image : mRenderPassAttachmentImages)
+			if(mRenderPassTrackingActive)
 			{
-				mResourceTracker.MoveAllAttachmentsToFinalLayouts(image);
-				mResourceTracker.ClearFramebufferFlagsForImage(image);
+				mResourceTracker.EndRenderPass();
+				mRenderPassTrackingActive = false;
 			}
-			mResourceTracker.ClearShaderFlagsForAllRenderPassImageSubresources();
-			mRenderPassAttachmentImages.Clear();
 		}
 
 		bool MetalGpuCommandBuffer::IsInRenderPass() const
@@ -3241,9 +3259,9 @@ namespace b3d
 			mStencilReference = 0;
 			mRenderPassPipelineKey = MetalPipelineVariantKey{};
 			mAcquiredWindowSurface = nullptr;
+			mRenderPassTrackingActive = false;
 			mRenderPassWidth = 0;
 			mRenderPassHeight = 0;
-			mRenderPassAttachmentImages.Clear();
 			mActiveOcclusionQueryPool.reset();
 			for (const TShared<MetalGpuQueryPool>& pool : mUsedQueryPools)
 			{

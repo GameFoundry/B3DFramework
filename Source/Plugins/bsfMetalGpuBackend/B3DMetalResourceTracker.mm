@@ -17,71 +17,11 @@ template class b3d::render::TGpuResourceTracker<b3d::render::MetalBarrierHelper>
 
 namespace b3d::render
 {
-	void MetalResourceTracker::TrackAttachmentUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, MetalBarrierHelper& barrierHelper)
-	{
-		// The generic per-subresource machinery (hazard analysis, layout bookkeeping, FramebufferUse /
-		// RenderPassLayout stamping, render-pass subresource registration) is entirely backend-agnostic;
-		// Metal needs no framebuffer-object glue on top of it. The named wrapper exists so render-pass
-		// setup code reads symmetrically with the Vulkan backend's TrackFramebufferUsage.
-		TrackImageUsage(image, subresourceRange, layout, finalLayout, useFlags, accessFlags, barrierHelper);
-	}
-
-	void MetalResourceTracker::ClearFramebufferFlagsForImage(IGpuImageResource* image)
-	{
-		if(FindImageTrackingState(image) == nullptr)
-			return;
-
-		TArrayView<GpuImageSubresourceTrackingState> subresourceStates = GetSubresourceTrackingStatesForImage(image);
-		for(GpuImageSubresourceTrackingState& subresourceState : subresourceStates)
-			subresourceState.FramebufferUse = GpuAccessFlag::None;
-	}
-
 	void MetalResourceTracker::ClearShaderFlagsForAllRenderPassImageSubresources()
 	{
 		for(u32 globalSubresourceIndex : mRenderPassSubresources)
 			mSubresourceTrackingState[globalSubresourceIndex].ShaderUse = GpuAccessFlag::None;
 
 		mRenderPassSubresources.clear();
-	}
-
-	GpuImageLayout MetalResourceTracker::GetCurrentSubresourceLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
-	{
-		const GpuTextureAspectFlags trackedAspects = range.AspectMask & image->GetRange().AspectMask;
-		GpuTextureAspectFlag aspect = GpuTextureAspectFlag::Color;
-		for(GpuTextureAspectFlag candidate : kGpuTextureAspects)
-		{
-			if(trackedAspects.IsSet(candidate))
-			{
-				aspect = candidate;
-				break;
-			}
-		}
-
-		const GpuImageSubresourceTrackingState* subresourceState = FindSubresourceTrackingState(image, range.BaseArrayLayer, range.BaseMipLevel, aspect);
-		if(subresourceState == nullptr)
-			return GpuImageLayout::Undefined;
-
-		return subresourceState->CurrentLayout;
-	}
-
-	void MetalResourceTracker::MoveAllAttachmentsToFinalLayouts(IGpuImageResource* image)
-	{
-		if(FindImageTrackingState(image) == nullptr)
-			return;
-
-		TArrayView<GpuImageSubresourceTrackingState> subresourceStates = GetSubresourceTrackingStatesForImage(image);
-		for(GpuImageSubresourceTrackingState& subresourceState : subresourceStates)
-		{
-			// Only subresources actually bound as attachments in this pass carry a meaningful
-			// RenderPassLayout; FramebufferUse is the marker TrackImageUsage stamps for those.
-			if(!subresourceState.FramebufferUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
-				continue;
-
-			if(subresourceState.RenderPassLayout == GpuImageLayout::Undefined)
-				continue;
-
-			subresourceState.CurrentLayout = subresourceState.RenderPassLayout;
-			subresourceState.RequiredLayout = subresourceState.RenderPassLayout;
-		}
 	}
 } // namespace b3d::render
