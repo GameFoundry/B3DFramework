@@ -562,9 +562,70 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 	if (!mIsScissorTestEnabled)
 		mScissorRequiresBind = true;
 
-	D3D12RenderPassResourceUsage renderPassResourceUsage;
+	TInlineArray<GpuRenderPassAttachmentUsage, B3D_MAXIMUM_RENDER_TARGET_COUNT + 2> renderPassAttachments;
 	if(mFramebuffer != nullptr)
-		renderPassResourceUsage = D3D12RenderPassResourceUsage(mFramebuffer->GetAttachments(), mFramebuffer->GetAttachmentCount(), mRenderTargetReadOnlyMask);
+	{
+		for(u32 attachmentIndex = 0; attachmentIndex < mFramebuffer->GetAttachmentCount(); attachmentIndex++)
+		{
+			const D3D12FramebufferAttachment& attachment = mFramebuffer->GetAttachments()[attachmentIndex];
+			const GpuTextureSubresourceRange attachmentRange = attachment.Image->GetRange(attachment.Surface);
+			if(!attachment.IsDepthStencil)
+			{
+				const bool readOnly = mRenderTargetReadOnlyMask.IsSet((RenderSurfaceMaskBits)(1u << attachment.ColorIndex));
+
+				GpuRenderPassAttachmentUsage attachmentUsage;
+				attachmentUsage.Image = attachment.Image;
+				attachmentUsage.Range = attachmentRange;
+				attachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
+				attachmentUsage.Access = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+				attachmentUsage.Layout = readOnly ? GpuImageLayout::ShaderReadOnly : GpuImageLayout::ColorAttachment;
+
+				if(readOnly)
+					attachmentUsage.ShaderReadLayout = GpuImageLayout::ShaderReadOnly;
+
+				renderPassAttachments.Add(std::move(attachmentUsage));
+				continue;
+			}
+
+			if(attachmentRange.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
+			{
+				const bool readOnly = mRenderTargetReadOnlyMask.IsSet(RT_DEPTH);
+
+				GpuRenderPassAttachmentUsage attachmentUsage;
+				attachmentUsage.Image = attachment.Image;
+				attachmentUsage.Range = attachmentRange;
+				attachmentUsage.Range.AspectMask = GpuTextureAspectFlag::Depth;
+				attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
+				attachmentUsage.Access = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+				attachmentUsage.Layout = GpuImageLayout::DepthStencilAttachment;
+
+				if(readOnly)
+					attachmentUsage.ShaderReadLayout = GpuImageLayout::DepthStencilReadOnly;
+
+				renderPassAttachments.Add(std::move(attachmentUsage));
+			}
+
+			if(attachmentRange.AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
+			{
+				const bool readOnly = mRenderTargetReadOnlyMask.IsSet(RT_STENCIL);
+
+				GpuRenderPassAttachmentUsage attachmentUsage;
+				attachmentUsage.Image = attachment.Image;
+				attachmentUsage.Range = attachmentRange;
+				attachmentUsage.Range.AspectMask = GpuTextureAspectFlag::Stencil;
+				attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
+				attachmentUsage.Access = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+				attachmentUsage.Layout = GpuImageLayout::DepthStencilAttachment;
+
+				if(readOnly)
+					attachmentUsage.ShaderReadLayout = GpuImageLayout::DepthStencilReadOnly;
+
+				renderPassAttachments.Add(std::move(attachmentUsage));
+			}
+		}
+	}
+
+	mResourceTracker.PrepareRenderPass(renderPassAttachments);
 
 	// Register parameter resources once, collecting shader reads that overlap attachments before their transitions are resolved.
 	for (const TShared<GpuParameterSet>& parameterSet : createInformation.Parameters)
@@ -574,11 +635,10 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 
 		const TShared<GpuPipelineParameterSetLayout>& setLayout = parameterSet->GetLayout();
 		if (setLayout != nullptr)
-			static_cast<D3D12GpuParameters*>(parameterSet.get())->TrackBoundResources(mResourceTracker, mBarrierHelper, *setLayout, &renderPassResourceUsage);
+			static_cast<D3D12GpuParameters*>(parameterSet.get())->TrackBoundResources(mResourceTracker, mBarrierHelper, *setLayout);
 	}
 
-	if(mFramebuffer != nullptr)
-		mResourceTracker.TrackRenderTargetUsage(renderPassResourceUsage, mBarrierHelper);
+	mResourceTracker.BeginRenderPass(mBarrierHelper);
 
 	if (swapChain != nullptr)
 		mResourceTracker.TrackSwapChainUsage(swapChain);
@@ -871,14 +931,10 @@ void D3D12GpuCommandBuffer::EndRenderPass()
 
 			mBarrierHelper.Execute(*this);
 		}
-
-		// Reset the per-pass shader/attachment usage flags
-		// needs no final-layout move: attachments stay in their in-pass states until the next transition.
-		mResourceTracker.ClearShaderFlagsForAllRenderPassImageSubresources();
-
-		for (u32 attachmentIndex = 0; attachmentIndex < mFramebuffer->GetAttachmentCount(); attachmentIndex++)
-			mResourceTracker.ClearRenderTargetFlagsForImage(mFramebuffer->GetAttachments()[attachmentIndex].Image);
 	}
+
+	// Reset the per-pass shader/attachment usage flags and publish final attachment layouts.
+	mResourceTracker.EndRenderPass();
 
 	mState = GpuCommandBufferState::Recording;
 }

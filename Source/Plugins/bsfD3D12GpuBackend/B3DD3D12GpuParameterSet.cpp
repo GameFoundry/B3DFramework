@@ -270,7 +270,7 @@ bool D3D12GpuParameters::SetSamplerState(u32 slot, const TShared<SamplerState>& 
 	return true;
 }
 
-void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTracker, D3D12BarrierHelper& barrierHelper, const GpuPipelineParameterSetLayout& pipelineSetLayout, D3D12RenderPassResourceUsage* renderPassUsage)
+void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTracker, D3D12BarrierHelper& barrierHelper, const GpuPipelineParameterSetLayout& pipelineSetLayout)
 {
 	const TShared<GpuPipelineParameterSetLayout>& setLayout = GetLayout();
 	if (setLayout == nullptr)
@@ -318,9 +318,12 @@ void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTrack
 						D3D12Image* const image = static_cast<D3D12Texture*>(texture)->GetD3D12Image();
 						if (image != nullptr)
 						{
-							const GpuTextureSubresourceRange subresourceRange = image->GetRange(mSampledTextureData[dataIndex].Surface);
+							GpuTextureSubresourceRange subresourceRange = image->GetRange(mSampledTextureData[dataIndex].Surface);
+							// GetRange() reports resource aspects, while sampled depth-stencil views select only the depth plane.
+							if(subresourceRange.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
+								subresourceRange.AspectMask = GpuTextureAspectFlag::Depth;
 
-							resourceTracker.TrackSampledImageUsage(image, subresourceRange, stageUseFlags | GpuResourceUseFlag::ShaderAccess, barrierHelper, renderPassUsage);
+							resourceTracker.TrackImageUsage(image, subresourceRange, GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly, stageUseFlags | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read, barrierHelper);
 						}
 					}
 					break;

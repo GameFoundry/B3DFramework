@@ -164,6 +164,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestResourceTransition)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestSubmissionTransitionPlanning)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestImageAspectTracking)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestRenderPassResourceTracking)
 }
 
 void GpuBackendTestSuite::TestImageAspectTracking()
@@ -251,6 +252,65 @@ void GpuBackendTestSuite::TestImageAspectTracking()
 
 	combinedUseTracker.NotifyUnbound();
 	combinedUseTracker.Clear();
+}
+
+void GpuBackendTestSuite::TestRenderPassResourceTracking()
+{
+	SubmissionTestImage image(2, 2, GpuTextureAspectFlag::Color);
+	SubmissionTestBarrierHelper barrierHelper;
+	SubmissionTestTracker tracker;
+
+	const GpuTextureSubresourceRange attachmentRange(0, 1, 0, 1, GpuTextureAspectFlag::Color);
+	GpuRenderPassAttachmentUsage attachmentUsage;
+	attachmentUsage.Image = &image;
+	attachmentUsage.Range = attachmentRange;
+	attachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
+	attachmentUsage.Access = GpuAccessFlag::Read;
+	attachmentUsage.Layout = GpuImageLayout::ColorAttachment;
+	attachmentUsage.ShaderReadLayout = GpuImageLayout::ShaderReadOnly;
+	attachmentUsage.FinalLayout = GpuImageLayout::TransferSource;
+
+	TInlineArray<GpuRenderPassAttachmentUsage, 1> attachments;
+	attachments.Add(attachmentUsage);
+	tracker.PrepareRenderPass(attachments);
+
+	const GpuTextureSubresourceRange fullRange(0, 2, 0, 2, GpuTextureAspectFlag::Color);
+	const GpuResourceUseFlags shaderUse = GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader;
+	tracker.TrackImageUsage(&image, fullRange, GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly,
+		shaderUse, GpuAccessFlag::Read, barrierHelper);
+
+	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = tracker.BeginRenderPass(barrierHelper);
+	GpuResourceUseFlags combinedUse = shaderUse;
+	combinedUse |= GpuResourceUseFlag::ColorAttachment;
+	B3D_TEST_ASSERT(resolvedAttachments.Size() == 1)
+	B3D_TEST_ASSERT(resolvedAttachments[0].UseFlags == combinedUse)
+	B3D_TEST_ASSERT(resolvedAttachments[0].Access == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(resolvedAttachments[0].Layout == GpuImageLayout::ShaderReadOnly)
+	B3D_TEST_ASSERT(resolvedAttachments[0].FinalLayout == GpuImageLayout::TransferSource)
+
+	tracker.CommitPendingHazardRegistrations();
+	const GpuImageSubresourceTrackingState& attachmentStateBeforeEnd = tracker.GetSubresourceTrackingState(
+		&image, 0, 0, GpuTextureAspectFlag::Color);
+	const GpuImageSubresourceTrackingState& sampledOnlyStateBeforeEnd = tracker.GetSubresourceTrackingState(
+		&image, 1, 1, GpuTextureAspectFlag::Color);
+	B3D_TEST_ASSERT(attachmentStateBeforeEnd.ShaderUse == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(attachmentStateBeforeEnd.FramebufferUse == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(attachmentStateBeforeEnd.RequiredLayout == GpuImageLayout::ShaderReadOnly)
+	B3D_TEST_ASSERT(sampledOnlyStateBeforeEnd.ShaderUse == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(sampledOnlyStateBeforeEnd.FramebufferUse == GpuAccessFlag::None)
+
+	tracker.EndRenderPass();
+	const GpuImageSubresourceTrackingState& attachmentStateAfterEnd = tracker.GetSubresourceTrackingState(
+		&image, 0, 0, GpuTextureAspectFlag::Color);
+	const GpuImageSubresourceTrackingState& sampledOnlyStateAfterEnd = tracker.GetSubresourceTrackingState(
+		&image, 1, 1, GpuTextureAspectFlag::Color);
+	B3D_TEST_ASSERT(attachmentStateAfterEnd.ShaderUse == GpuAccessFlag::None)
+	B3D_TEST_ASSERT(attachmentStateAfterEnd.FramebufferUse == GpuAccessFlag::None)
+	B3D_TEST_ASSERT(attachmentStateAfterEnd.CurrentLayout == GpuImageLayout::TransferSource)
+	B3D_TEST_ASSERT(sampledOnlyStateAfterEnd.ShaderUse == GpuAccessFlag::None)
+
+	tracker.NotifyUnbound();
+	tracker.Clear();
 }
 
 void GpuBackendTestSuite::TestResourceHazardState()

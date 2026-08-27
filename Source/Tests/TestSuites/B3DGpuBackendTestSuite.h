@@ -24,5 +24,8 @@ namespace b3d
 
 		/** Verifies image partitions and persistent submission state are independent per aspect. */
 		void TestImageAspectTracking();
+
+		/** Verifies render-pass attachment and shader usage is combined through core subresource partitions. */
+		void TestRenderPassResourceTracking();
 	};
 } // namespace b3d
