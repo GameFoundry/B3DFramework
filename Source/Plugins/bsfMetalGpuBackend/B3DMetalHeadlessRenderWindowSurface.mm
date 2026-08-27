@@ -7,12 +7,7 @@
 namespace b3d::render
 {
 	MetalHeadlessRenderWindowSurface::MetalHeadlessRenderWindowSurface(MetalGpuDevice& device, const RenderWindowSurfaceCreateInformation& createInformation)
-		: mGpuDevice(device)
-		, mWidth(createInformation.Width)
-		, mHeight(createInformation.Height)
-		, mVSync(createInformation.VSync)
-		, mCreateDepthBuffer(createInformation.CreateDepthBuffer)
-		, mUseHardwareSRGB(createInformation.UseHardwareSRGB)
+		: mGpuDevice(device), mWidth(createInformation.Width), mHeight(createInformation.Height), mVSync(createInformation.VSync), mCreateDepthBuffer(createInformation.CreateDepthBuffer), mUseHardwareSRGB(createInformation.UseHardwareSRGB)
 	{
 		CreateSwapChainImages();
 	}

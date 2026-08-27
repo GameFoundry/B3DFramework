@@ -95,7 +95,7 @@ namespace b3d
 			 * URL-loaded archives are immutable and are used only as pipeline lookup sources. Populating
 			 * an archive is an offline/prewarm responsibility because runtime insertion recompiles a PSO.
 			 *
-			 * The archives are created lazily on the first call (one-shot init under an internal mutex)
+			 * The archive is created lazily on the first call (one-shot init under an internal mutex)
 			 * so device @c Initialize performs zero filesystem I/O for the pipeline cache; the cost is
 			 * only paid when the first PSO actually compiles.
 			 */
@@ -248,16 +248,6 @@ namespace b3d
 
 			/** Initializes capabilities by querying the underlying MTLDevice. */
 			void InitializeCapabilities();
-
-#ifdef __OBJC__
-			/**
-			 * Lazy one-shot construction of the loaded pipeline binary archive. The first call resolves
-			 * the on-disk archive path, creates the caches folder if necessary, and loads an existing
-			 * immutable archive. Subsequent calls are cheap guarded reads. Kept private so only the
-			 * archive accessor triggers it.
-			 */
-			void EnsureBinaryArchives();
-#endif
 
 			/** Pimpl that holds Objective-C / Metal handles so they do not leak into plain C++ headers. */
 			struct Impl;

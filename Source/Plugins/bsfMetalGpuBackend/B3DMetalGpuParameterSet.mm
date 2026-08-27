@@ -72,10 +72,7 @@ namespace b3d
 		} // namespace
 
 		MetalGpuParameters::MetalGpuParameters(MetalGpuDevice& gpuDevice, const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex, MetalGpuParameterSetPool* pool)
-			: GpuParameterSet(parameterSetLayout, setIndex)
-			, mGpuDevice(gpuDevice)
-			, mImpl(B3DMakeUnique<Impl>())
-			, mPool(pool)
+			: GpuParameterSet(parameterSetLayout, setIndex), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>()), mPool(pool)
 		{
 			mMetalLayout = static_cast<const MetalGpuPipelineParameterSetLayout*>(parameterSetLayout.get());
 		}
@@ -125,15 +122,9 @@ namespace b3d
 					}
 
 					if (mImpl->ArgumentBuffer == nil)
-					{
-						B3D_LOG(Error, LogRenderBackend,
-							"Failed to allocate a {0}-byte Metal argument buffer for parameter set {1}.",
-							bufferSize, GetSet());
-					}
+						B3D_LOG(Error, LogRenderBackend, "Failed to allocate a {0}-byte Metal argument buffer for parameter set {1}.", bufferSize, GetSet());
 					else
-					{
 						std::memset((u8*)[mImpl->ArgumentBuffer contents] + mImpl->ArgumentBufferOffset, 0, (size_t)bufferSize);
-					}
 				}
 
 				// Keep one dense cache entry per resource-array element. Entries stay null until
@@ -527,9 +518,7 @@ namespace b3d
 				return false;
 
 			if (auto* existing = FindBinding(mSamplers, slot, arrayIndex))
-			{
 				existing->Sampler = sampler;
-			}
 			else
 			{
 				SamplerBinding binding;

@@ -19,11 +19,7 @@ namespace b3d
 		};
 
 		MetalVertexInput::MetalVertexInput(u32 id, const GpuVertexInputLayout& layout)
-			: mId(id)
-			, mStreamCount(layout.StreamCount)
-			, mUsedStreamMask(layout.UsedStreamMask)
-			, mNullStreamIndex(layout.NullStreamIndex)
-			, mImpl(B3DMakeUnique<Impl>())
+			: mId(id), mStreamCount(layout.StreamCount), mUsedStreamMask(layout.UsedStreamMask), mNullStreamIndex(layout.NullStreamIndex), mImpl(B3DMakeUnique<Impl>())
 		{
 			// Descriptor construction autoreleases Obj-C temporaries; drain locally since fiber-scheduled
 			// callers may never hit a runloop.

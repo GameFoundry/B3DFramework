@@ -24,8 +24,7 @@ namespace b3d
 		} // namespace
 
 		MetalGpuParameterSetPool::MetalGpuParameterSetPool(MetalGpuDevice& device, const GpuParameterSetPoolCreateInformation& createInformation)
-			: GpuParameterSetPool(createInformation)
-			, mDevice(device)
+			: GpuParameterSetPool(createInformation), mDevice(device)
 		{
 		}
 

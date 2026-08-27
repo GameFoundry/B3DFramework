@@ -26,16 +26,6 @@ namespace b3d
 			TShared<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) override;
 			TShared<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) override;
 
-			/**
-			 * Pool-level reset per the core contract: returns every previously allocated command buffer
-			 * to the Ready state and rebuilds the recycle free-list. Metal has no native pool object
-			 * (MTLCommandBuffers are one-shot and released at commit time), so this is bookkeeping only.
-			 *
-			 * Caller contract (see GpuCommandBufferPool::Reset and GpuCommandBufferPoolRing::AdvanceFrame):
-			 * all previously allocated command buffers must have completed executing AND this pool's
-			 * message queue must have been pumped (AdvanceFrame posts a blocking no-op command first),
-			 * so every completed buffer is observed in the Done state here.
-			 */
 			void Reset() override;
 
 			void Destroy() override;

@@ -24,7 +24,7 @@
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "B3DMetalEventQuery.h"
 #include "B3DMetalGpuQueryPool.h"
-#include "GpuBackend/B3DVideoModeInfo.h"
+#include "MacOS/B3DMacOSVideoModeInfo.h"
 #include "GpuBackend/B3DGpuTimelineFence.h"
 #include "B3DMetalGpuTimelineFence.h"
 #include "Math/B3DMatrix4.h"
@@ -94,7 +94,7 @@ namespace b3d
 
 			// Optional immutable binary archive populated by an offline/prewarm workflow.
 			//
-			// Archive construction is deferred to first use (see MetalGpuDevice::EnsureBinaryArchives)
+			// Archive construction is deferred to first use (see MetalGpuDevice::GetLoadedBinaryArchive)
 			// so device init does zero filesystem I/O — the NSSearchPathForDirectoriesInDomains +
 			// FileSystem::Exists + FileSystem::CreateFolder cost is only paid when the first PSO
 			// actually compiles. BinaryArchivesInitialized guards a double-checked locking init under
@@ -118,7 +118,10 @@ namespace b3d
 			MTLTimestamp FirstCpuTimestamp = 0;
 			MTLTimestamp FirstGpuTimestamp = 0;
 			bool FirstTimestampPairCaptured = false;
-			bool TimestampCalibrationDone = false;
+			// Atomic for the same reason as BinaryArchivesInitialized: the fast path reads it without
+			// holding TimestampCalibrationMutex, and the release store below publishes the
+			// mGpuTicksPerNanosecond write to those unsynchronized readers.
+			std::atomic<bool> TimestampCalibrationDone{ false };
 			Mutex TimestampCalibrationMutex;
 		};
 
@@ -152,7 +155,7 @@ namespace b3d
 		MetalGpuDevice::MetalGpuDevice()
 			: mImpl(B3DMakeUnique<Impl>())
 		{
-			mVideoModeInfo = B3DMakeShared<VideoModeInfo>();
+			mVideoModeInfo = B3DMakeShared<MacOSVideoModeInfo>();
 		}
 
 		MetalGpuDevice::~MetalGpuDevice()
@@ -230,14 +233,14 @@ namespace b3d
 			mImpl->DummyArgumentBuffer = nil;
 
 			// Explicitly release Metal handles. Under ARC assigning nil decrements the refcount.
-			for (u32 i = 0; i < GQT_COUNT; i++)
+			for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 			{
 #if !__has_feature(objc_arc)
-				[mImpl->QueueEvents[i] release];
-				[mImpl->CommandQueues[i] release];
+				[mImpl->QueueEvents[queueTypeIndex] release];
+				[mImpl->CommandQueues[queueTypeIndex] release];
 #endif
-				mImpl->QueueEvents[i] = nil;
-				mImpl->CommandQueues[i] = nil;
+				mImpl->QueueEvents[queueTypeIndex] = nil;
+				mImpl->CommandQueues[queueTypeIndex] = nil;
 			}
 
 #if !__has_feature(objc_arc)
@@ -341,29 +344,22 @@ namespace b3d
 
 		id<MTLBinaryArchive> MetalGpuDevice::GetLoadedBinaryArchive()
 		{
-			EnsureBinaryArchives();
-			return mImpl->LoadedBinaryArchive;
-		}
-
-		void MetalGpuDevice::EnsureBinaryArchives()
-		{
-			// Double-checked locking: once initialized, the two archive handles are read-only and
+			// Double-checked locking: once initialized, the archive handle is read-only and
 			// safe to return, so the common case takes no lock. An acquire load on the atomic flag
 			// pairs with the release store at the end of the initialization body below, giving us
 			// the happens-before edge that makes the archive / path writes visible to any thread
 			// that observes the flag set. Avoids a mutex acquisition on every PSO compile after the
 			// first, which matters because worker fibers hammer this path.
 			if (mImpl->BinaryArchivesInitialized.load(std::memory_order_acquire))
-				return;
+				return mImpl->LoadedBinaryArchive;
 
-			if (@available(macOS 11.0, *))
 			{
 				Lock lock(mImpl->BinaryArchivesMutex);
 				// Relaxed load is fine here: we hold BinaryArchivesMutex, which provides the
 				// synchronization edge from the publishing store to this read. No need for an
 				// acquire fence under the lock.
 				if (mImpl->BinaryArchivesInitialized.load(std::memory_order_relaxed))
-					return;
+					return mImpl->LoadedBinaryArchive;
 
 				// Wrap the transient descriptors / NSString / NSURL / NSError objects created below in an
 				// autorelease pool so they are reclaimed when this method returns rather than persisting
@@ -402,15 +398,9 @@ namespace b3d
 				// Release store publishes the archive / path writes above to any fast-path acquire
 				// load. Must be the final mutation of Impl before we return.
 				mImpl->BinaryArchivesInitialized.store(true, std::memory_order_release);
-				return;
 			}
-			// No binary-archive support on this platform / runtime. Flip the flag so future callers
-			// short-circuit without re-entering the availability check. Release store pairs with the
-			// fast-path acquire load.
-			{
-				Lock lock(mImpl->BinaryArchivesMutex);
-				mImpl->BinaryArchivesInitialized.store(true, std::memory_order_release);
-			}
+
+			return mImpl->LoadedBinaryArchive;
 		}
 
 		bool MetalGpuDevice::Initialize()
@@ -419,11 +409,10 @@ namespace b3d
 				return true;
 
 			// Any early-return failure path below leaves mImpl partially populated — command queues
-			// and their shared events may be created for queue slots 0..N while slot N+1 failed.
-			// The destructor already tears everything down, but we'd still serialize an empty
-			// binary archive to disk and leave mQueueInfos referencing queues whose backing
-			// MTLCommandQueue is about to be nil'd. Unwind here instead so a failed Initialize
-			// leaves the device identical to a freshly-constructed one.
+			// and their shared events may be created for queue slots 0..N while slot N+1 failed —
+			// and mQueueInfos referencing queues whose backing MTLCommandQueue is about to be nil'd.
+			// Unwind here instead so a failed Initialize leaves the device identical to a
+			// freshly-constructed one.
 			bool initSucceeded = false;
 			ScopeGuard fnTeardown([this, &initSucceeded]()
 			{
@@ -526,26 +515,26 @@ namespace b3d
 			// the engine's abstraction without any real affinity. Each queue owns one MTLSharedEvent
 			// that MetalGpuQueue / MetalGpuCommandBuffer use for cross-queue synchronization; the
 			// engine's GpuQueueMask maps onto waits on the target queue's event.
-			for (u32 i = 0; i < GQT_COUNT; i++)
+			for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 			{
-				mImpl->CommandQueues[i] = [mImpl->Device newCommandQueue];
-				if (mImpl->CommandQueues[i] == nil)
+				mImpl->CommandQueues[queueTypeIndex] = [mImpl->Device newCommandQueue];
+				if (mImpl->CommandQueues[queueTypeIndex] == nil)
 				{
-					B3D_LOG(Error, LogRenderBackend, "Failed to create a Metal command queue for queue type {0}.", i);
+					B3D_LOG(Error, LogRenderBackend, "Failed to create a Metal command queue for queue type {0}.", queueTypeIndex);
 					return false;
 				}
 
 				id<MTLSharedEvent> queueEvent = [mImpl->Device newSharedEvent];
 				if (queueEvent == nil)
 				{
-					B3D_LOG(Error, LogRenderBackend, "Failed to create a Metal shared event for queue type {0}.", i);
+					B3D_LOG(Error, LogRenderBackend, "Failed to create a Metal shared event for queue type {0}.", queueTypeIndex);
 					return false;
 				}
 
-				mImpl->QueueEvents[i] = queueEvent;
+				mImpl->QueueEvents[queueTypeIndex] = queueEvent;
 
-				mQueueInfos[i].FamilyIndex = i;
-				mQueueInfos[i].Queues.Add(B3DMakeShared<MetalGpuQueue>(*this, (GpuQueueType)i, 0, mImpl->CommandQueues[i], queueEvent));
+				mQueueInfos[queueTypeIndex].FamilyIndex = queueTypeIndex;
+				mQueueInfos[queueTypeIndex].Queues.Add(B3DMakeShared<MetalGpuQueue>(*this, (GpuQueueType)queueTypeIndex, 0, mImpl->CommandQueues[queueTypeIndex], queueEvent));
 			}
 
 			InitializeCapabilities();
@@ -947,10 +936,10 @@ namespace b3d
 			// as wide as whatever elapsed time accrued organically — typically many frames — which is
 			// substantially more accurate than a 1 ms sleep. Guarded under a mutex because this path
 			// may be reached from worker fibers concurrently.
-			if (!mImpl->TimestampCalibrationDone)
+			if (!mImpl->TimestampCalibrationDone.load(std::memory_order_acquire))
 			{
 				Lock lock(mImpl->TimestampCalibrationMutex);
-				if (!mImpl->TimestampCalibrationDone)
+				if (!mImpl->TimestampCalibrationDone.load(std::memory_order_relaxed))
 				{
 					MTLTimestamp cpuTs2 = 0, gpuTs2 = 0;
 					[mImpl->Device sampleTimestamps:&cpuTs2 gpuTimestamp:&gpuTs2];
@@ -961,7 +950,7 @@ namespace b3d
 					const double cpuDeltaNs = (double)(cpuTs2 - mImpl->FirstCpuTimestamp) * cpuTicksToNs;
 					const double gpuDelta = (double)(gpuTs2 - mImpl->FirstGpuTimestamp);
 					mGpuTicksPerNanosecond = cpuDeltaNs > 0.0 ? gpuDelta / cpuDeltaNs : 1.0;
-					mImpl->TimestampCalibrationDone = true;
+					mImpl->TimestampCalibrationDone.store(true, std::memory_order_release);
 				}
 			}
 

@@ -391,12 +391,7 @@ namespace b3d
 		} // namespace
 
 		MetalGpuCommandBuffer::MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
-			: GpuCommandBuffer(device, ownerThread, queueType, createInformation)
-			, mGpuDevice(device)
-			, mPool(pool)
-			, mImpl(B3DMakeUnique<Impl>())
-			, mId(id)
-			, mBarrierHelper(&mResourceTracker)
+			: GpuCommandBuffer(device, ownerThread, queueType, createInformation), mGpuDevice(device), mPool(pool), mImpl(B3DMakeUnique<Impl>()), mId(id), mBarrierHelper(&mResourceTracker)
 		{
 		}
 
@@ -1349,9 +1344,8 @@ namespace b3d
 					color.clearColor = MTLClearColorMake(clearColor.R, clearColor.G, clearColor.B, clearColor.A);
 				}
 				else
-				{
 					color.loadAction = load ? MTLLoadActionLoad : MTLLoadActionDontCare;
-				}
+
 				color.storeAction = MTLStoreActionStore;
 			}
 
@@ -1494,9 +1488,8 @@ namespace b3d
 							depth.clearDepth = mRenderPassClearValues.Depth;
 						}
 						else
-						{
 							depth.loadAction = loadMask.IsSet(RT_DEPTH) ? MTLLoadActionLoad : MTLLoadActionDontCare;
-						}
+
 						depth.storeAction = MTLStoreActionStore;
 
 						mRenderPassPipelineKey.DepthFormat = (u32)dsFormat;
@@ -1514,9 +1507,8 @@ namespace b3d
 							stencil.clearStencil = mRenderPassClearValues.Stencil;
 						}
 						else
-						{
 							stencil.loadAction = loadMask.IsSet(RT_STENCIL) ? MTLLoadActionLoad : MTLLoadActionDontCare;
-						}
+
 						stencil.storeAction = MTLStoreActionStore;
 
 						mRenderPassPipelineKey.StencilFormat = (u32)dsFormat;
@@ -1583,9 +1575,8 @@ namespace b3d
 								depth.clearDepth = mRenderPassClearValues.Depth;
 							}
 							else
-							{
 								depth.loadAction = loadMask.IsSet(RT_DEPTH) ? MTLLoadActionLoad : MTLLoadActionDontCare;
-							}
+
 							depth.storeAction = MTLStoreActionStore;
 
 							mRenderPassPipelineKey.DepthFormat = (u32)dsFormat;
@@ -1603,9 +1594,8 @@ namespace b3d
 								stencil.clearStencil = mRenderPassClearValues.Stencil;
 							}
 							else
-							{
 								stencil.loadAction = loadMask.IsSet(RT_STENCIL) ? MTLLoadActionLoad : MTLLoadActionDontCare;
-							}
+
 							stencil.storeAction = MTLStoreActionStore;
 
 							mRenderPassPipelineKey.StencilFormat = (u32)dsFormat;
@@ -1934,9 +1924,7 @@ namespace b3d
 			// so only the scissor needs restoring here. With no scissor previously set, widen back to
 			// the whole pass - Metal has no way to disable the test outright.
 			if (hadScissor)
-			{
 				[mImpl->RenderEncoder setScissorRect:previousScissor];
-			}
 			else
 			{
 				DisableScissorTest();
@@ -2551,7 +2539,7 @@ namespace b3d
 					return;
 				}
 
-				[mImpl->BlitEncoder sampleCountersInBuffer:counterBuffer atSampleIndex:query.Id withBarrier:YES];
+				[blitEncoder sampleCountersInBuffer:counterBuffer atSampleIndex:query.Id withBarrier:YES];
 			}
 
 			AddUniqueUsedQueryPool(metalPool);

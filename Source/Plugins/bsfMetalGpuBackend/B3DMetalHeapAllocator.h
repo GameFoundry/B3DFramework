@@ -57,7 +57,7 @@ namespace b3d
 		 * Vulkan backend's bind-at-offset model. Heap hazard mode follows
 		 * @c B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION and always matches its child resources.
 		 *
-		 * Requires placement-heap support (macOS 10.15). Apple Silicon Macs satisfy this requirement.
+		 * Placement heaps are guaranteed by the macOS 13 deployment target.
 		 *
 		 * @note Thread safe.
 		 */
@@ -80,7 +80,7 @@ namespace b3d
 			/**
 			 * Allocates a backing MTLHeap of @p sizeInBytes bytes according to @p createInformation.
 			 * Returns a stable MetalGpuHeap pointer (as IGpuHeap*) minted from the backend's pool,
-			 * or nullptr on failure (device lost, OS too old, or out of memory).
+			 * or nullptr on failure (device lost or out of memory).
 			 */
 			HeapHandle CreateHeap(u64 sizeInBytes, const HeapCreateInformation& createInformation);
 
@@ -128,6 +128,12 @@ namespace b3d
 			static constexpr u32 kMemoryTypeCount = 2;
 
 			MetalHeapAllocator(MetalGpuDevice& device);
+
+			/**
+			 * Releases every pooled MTLHeap through the backend. Every resource sub-allocated from
+			 * these heaps must have been destroyed beforehand — the resource manager's leak tracking
+			 * asserts that in debug builds.
+			 */
 			~MetalHeapAllocator();
 
 			MetalHeapAllocator(const MetalHeapAllocator&) = delete;
@@ -141,21 +147,17 @@ namespace b3d
 			static u32 PickBufferMemoryType(const GpuBufferInformation& information);
 
 			/**
-			 * Returns the persistent allocator for @p memoryType. Only valid when placement heaps
-			 * are supported; intended for device-level wiring (PickBufferMemoryType /
-			 * CreateTransientAllocator overrides) and diagnostics.
+			 * Returns the persistent allocator for @p memoryType. Intended for device-level wiring
+			 * (PickBufferMemoryType / CreateTransientAllocator overrides) and diagnostics.
 			 */
 			IGpuAllocator& GetAllocator(u32 memoryType);
 
 			/**
 			 * Creates a context-owned transient linear allocator for @p memoryType. Normal pages are
 			 * obtained from a device-owned per-memory-type pool and retired through
-			 * @p completionTracker. Returns null when placement heaps are unavailable.
+			 * @p completionTracker.
 			 */
 			TUnique<IGpuAllocator> CreateTransientAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
-
-			/** True when placement-heap sub-allocation is available on this device/OS. */
-			bool IsHeapSubAllocationSupported() const { return mPlacementHeapsSupported; }
 
 #ifdef __OBJC__
 			/**
@@ -183,14 +185,6 @@ namespace b3d
 			id<MTLTexture> AllocateTexture(MTLTextureDescriptor* descriptor, GpuResourceLocation& outLocation);
 #endif
 
-			/**
-			 * Destroys the persistent allocators and transient page pools, releasing every pooled
-			 * MTLHeap through the backend. Every resource sub-allocated from these heaps must have been destroyed
-			 * beforehand — the resource manager's leak tracking asserts that in debug builds.
-			 * Invoked from the device's destructor after WaitUntilIdle and resource teardown.
-			 */
-			void Shutdown();
-
 		private:
 			using MemoryAllocator = TGpuTlsfAllocator<MetalHeapBackend>;
 			using LinearPagePool = TGpuLinearPagePool<MetalHeapBackend>;
@@ -210,9 +204,6 @@ namespace b3d
 			TUnique<MemoryAllocator> mAllocators[kMemoryTypeCount];
 			TUnique<LinearPagePool> mLinearPagePools[kMemoryTypeCount];
 			Mutex mLinearPagePoolMutex;
-
-			bool mPlacementHeapsSupported = false; /**< Placement heaps need macOS 10.15. */
-			bool mSharedHeapsSupported = false;    /**< Shared-storage heaps require unified memory. */
 		};
 
 		/** @} */

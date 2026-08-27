@@ -36,10 +36,7 @@ namespace b3d
 		{ }
 
 		MetalImage::MetalImage(MetalResourceManager* owner, const MetalImageCreateInformation& createInformation, MetalTextureNativeHandle texture, const GpuResourceLocation& allocation)
-			: TMetalResource<IGpuImageResource>(owner, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format))
-			, mTexture(texture)
-			, mAllocation(allocation)
-			, mType(createInformation.Type)
+			: TMetalResource<IGpuImageResource>(owner, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format)), mTexture(texture), mAllocation(allocation)
 		{
 			// Fill in the per-(face x mip x aspect) subresource wrappers the IGpuImageResource base
 			// allocated (zero-initialized). The resource tracker uses these to track subresource
@@ -164,9 +161,7 @@ namespace b3d
 														slices:NSMakeRange(0, sliceCount)];
 			}
 			else
-			{
 				view = [mTexture newTextureViewWithPixelFormat:viewFormat];
-			}
 
 			if (view == nil)
 			{
@@ -375,10 +370,7 @@ namespace b3d
 			// MSAA textures cannot have mip chains on Metal — descriptor validation rejects
 			// sampleCount > 1 combined with mipmapLevelCount > 1. Fail unsupported combinations so
 			// engine-visible properties remain identical to the native resource.
-			bool supportsBCTextureCompression = false;
-			if (@available(macOS 11.0, *))
-				supportsBCTextureCompression = [device supportsBCTextureCompression];
-			if (PixelUtility::IsCompressed(mProperties.Format) && !supportsBCTextureCompression)
+			if (PixelUtility::IsCompressed(mProperties.Format) && ![device supportsBCTextureCompression])
 			{
 				B3D_LOG(Error, LogRenderBackend,
 					"Cannot create compressed MTLTexture: this Apple GPU does not support BC texture compression.");
@@ -478,14 +470,11 @@ namespace b3d
 			desc.storageMode = MTLStorageModePrivate;
 
 			// Direct textures and placement-heap textures use the same configured hazard policy.
-			if (@available(macOS 10.15, iOS 13.0, *))
-			{
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
-				desc.hazardTrackingMode = MTLHazardTrackingModeUntracked;
+			desc.hazardTrackingMode = MTLHazardTrackingModeUntracked;
 #else
-				desc.hazardTrackingMode = MTLHazardTrackingModeTracked;
+			desc.hazardTrackingMode = MTLHazardTrackingModeTracked;
 #endif
-			}
 
 			// Route through the device's memory manager so the texture sub-allocates out of a
 			// pooled placement MTLHeap at an allocator-chosen offset rather than paying the

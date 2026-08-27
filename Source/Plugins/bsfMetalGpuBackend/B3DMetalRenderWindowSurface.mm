@@ -211,18 +211,7 @@ namespace b3d::render
 	}
 
 	MetalRenderWindowSurface::MetalRenderWindowSurface(MetalGpuDevice& device, const RenderWindowSurfaceCreateInformation& createInformation)
-		: mGpuDevice(device)
-		, mWidth(createInformation.Width)
-		, mHeight(createInformation.Height)
-		, mVSync(createInformation.VSync)
-		, mVSyncInterval(createInformation.VsyncInterval == 0 ? 1 : createInformation.VsyncInterval)
-		, mRefreshRate(createInformation.RefreshRate)
-		, mHwGamma(createInformation.UseHardwareSRGB)
-		, mCreateDepthBuffer(createInformation.CreateDepthBuffer)
-		, mPendingWidth(createInformation.Width)
-		, mPendingHeight(createInformation.Height)
-		, mPendingVSync(createInformation.VSync)
-		, mPendingVSyncInterval(createInformation.VsyncInterval == 0 ? 1 : createInformation.VsyncInterval)
+		: mGpuDevice(device), mWidth(createInformation.Width), mHeight(createInformation.Height), mVSync(createInformation.VSync), mVSyncInterval(createInformation.VsyncInterval == 0 ? 1 : createInformation.VsyncInterval), mRefreshRate(createInformation.RefreshRate), mHwGamma(createInformation.UseHardwareSRGB), mCreateDepthBuffer(createInformation.CreateDepthBuffer), mPendingWidth(createInformation.Width), mPendingHeight(createInformation.Height), mPendingVSync(createInformation.VSync), mPendingVSyncInterval(createInformation.VsyncInterval == 0 ? 1 : createInformation.VsyncInterval)
 	{
 		@autoreleasepool
 		{

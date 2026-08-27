@@ -1,1 +1,0 @@
-This is a reference implementation only, not to be executed (I have certainly never tried). It's meant to serve as a basis for an eventual Metal backend.

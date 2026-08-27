@@ -69,14 +69,6 @@ namespace b3d
 			u64 GetLastCommittedEventValue() const;
 
 			/**
-			 * @deprecated Use @c GetLastCommittedEventValue for cross-queue waits (race-free) or
-			 * @c GetLastReservedEventValue for encoding the queue's own next signal. This alias forwards
-			 * to the committed value because every existing caller is a cross-queue waiter that wants
-			 * commit-order semantics.
-			 */
-			u64 GetLastScheduledEventValue() const { return GetLastCommittedEventValue(); }
-
-			/**
 			 * Returns the event value most recently signaled on the GPU side of this queue (i.e. the
 			 * completion frontier). Reads from @c [SharedEvent signaledValue], so the value changes
 			 * asynchronously as the GPU retires submissions. Used by @c MetalGpuQueryPool to decide

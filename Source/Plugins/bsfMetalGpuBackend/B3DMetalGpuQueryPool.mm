@@ -16,9 +16,7 @@ namespace b3d
 		};
 
 		MetalGpuQueryPool::MetalGpuQueryPool(MetalGpuDevice& gpuDevice, const GpuQueryPoolCreateInformation& createInformation)
-			: GpuQueryPool(createInformation)
-			, mGpuDevice(gpuDevice)
-			, mImpl(B3DMakeUnique<Impl>())
+			: GpuQueryPool(createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
 		{
 			id<MTLDevice> device = gpuDevice.GetMetalDevice();
 			mResolvedResults.resize(mPoolSize);

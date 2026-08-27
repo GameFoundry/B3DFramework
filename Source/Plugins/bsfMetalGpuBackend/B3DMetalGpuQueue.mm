@@ -97,8 +97,7 @@ namespace b3d
 		};
 
 		MetalGpuQueue::MetalGpuQueue(GpuDevice& device, GpuQueueType type, u32 index, id<MTLCommandQueue> commandQueue, id<MTLSharedEvent> sharedEvent)
-			: GpuQueue(device, type, index)
-			, mImpl(B3DMakeUnique<Impl>())
+			: GpuQueue(device, type, index), mImpl(B3DMakeUnique<Impl>())
 		{
 			mImpl->CommandQueue = commandQueue;
 			mImpl->SharedEvent = sharedEvent;
@@ -118,6 +117,11 @@ namespace b3d
 		{
 			if (mImpl)
 			{
+				// The listener is the only Obj-C object this queue owns (+1 from alloc); the event and
+				// command queue are device-owned and merely referenced here.
+#if !__has_feature(objc_arc)
+				[mImpl->EventListener release];
+#endif
 				mImpl->EventListener = nil;
 				mImpl->SharedEvent = nil;
 				mImpl->CommandQueue = nil;

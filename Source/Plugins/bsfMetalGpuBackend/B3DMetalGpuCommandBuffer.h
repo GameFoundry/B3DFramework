@@ -222,7 +222,7 @@ namespace b3d
 			 * when the pipeline consumes no vertex input, when no vertex description is bound (the draw
 			 * should be skipped), or when the input could not be expressed on Metal (skip the draw).
 			 *
-			 * @param[out]	outSkipDraw		Set to true when the caller must skip the draw: a pipeline that
+			 * @param	outSkipDraw		Set to true when the caller must skip the draw: a pipeline that
 			 *								declares vertex inputs but has no bound vertex description, or a
 			 *								vertex description that could not be resolved on Metal.
 			 */

@@ -13,12 +13,7 @@ namespace b3d
 	namespace render
 	{
 		MetalBuffer::MetalBuffer(MetalResourceManager* owner, const MetalBufferCreateInformation& createInformation, MetalBufferNativeHandle buffer, const GpuResourceLocation& allocation, void* mappedMemory)
-			: TMetalResource<IGpuBufferResource>(owner, createInformation.DebugName)
-			, mType(createInformation.Type)
-			, mFlags(createInformation.Flags)
-			, mBuffer(buffer)
-			, mAllocation(allocation)
-			, mMappedMemory(mappedMemory)
+			: TMetalResource<IGpuBufferResource>(owner, createInformation.DebugName), mType(createInformation.Type), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mMappedMemory(mappedMemory)
 		{ }
 
 		MetalBuffer::~MetalBuffer()
@@ -64,13 +59,7 @@ namespace b3d
 		}
 
 		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation)
-			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device))
-			, mGpuDevice(device)
-			, mMemoryType(MetalHeapAllocator::PickBufferMemoryType(createInformation))
-			, mDirectlyMappable(createInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess)
-				|| createInformation.Type == GpuBufferType::StagingRead
-				|| createInformation.Type == GpuBufferType::StagingWrite)
-			, mSupportsGPUWrites(createInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
+			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device)), mGpuDevice(device), mMemoryType(MetalHeapAllocator::PickBufferMemoryType(createInformation)), mDirectlyMappable(createInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite)
 		{ }
 
 		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation,
@@ -245,15 +234,22 @@ namespace b3d
 				return nil;
 			}
 
-			MTLTextureDescriptor* descriptor = [MTLTextureDescriptor
-				textureBufferDescriptorWithPixelFormat:pixelFormat
-												 width:(NSUInteger)elementCount
-									   resourceOptions:MetalUtility::GetResourceOptions([mBuffer storageMode])
-												 usage:writable ? (MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite)
-															    : MTLTextureUsageShaderRead];
-			id<MTLTexture> view = [mBuffer newTextureWithDescriptor:descriptor
-															 offset:offset
-														bytesPerRow:(NSUInteger)(elementCount * elementSize)];
+			// The descriptor below is autoreleased; drain locally — there may be no runloop under
+			// the engine's fiber scheduler. The view itself is a +1 reference (new* method) owned by
+			// the cache entry and survives the drain.
+			id<MTLTexture> view = nil;
+			@autoreleasepool
+			{
+				MTLTextureDescriptor* descriptor = [MTLTextureDescriptor
+					textureBufferDescriptorWithPixelFormat:pixelFormat
+													 width:(NSUInteger)elementCount
+										   resourceOptions:MetalUtility::GetResourceOptions([mBuffer storageMode])
+													 usage:writable ? (MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite)
+																    : MTLTextureUsageShaderRead];
+				view = [mBuffer newTextureWithDescriptor:descriptor
+												  offset:offset
+											 bytesPerRow:(NSUInteger)(elementCount * elementSize)];
+			}
 			if (view == nil)
 			{
 				B3D_LOG(Error, LogRenderBackend,
