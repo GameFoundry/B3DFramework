@@ -278,6 +278,7 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 	const GpuResourceUseFlags shaderUse = GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader;
 	tracker.TrackImageUsage(&image, fullRange, GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly,
 		shaderUse, GpuAccessFlag::Read, barrierHelper);
+	B3D_TEST_ASSERT(tracker.GetRequiredImageLayout(&image, attachmentRange) == GpuImageLayout::ShaderReadOnly)
 
 	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = tracker.BeginRenderPass(barrierHelper);
 	GpuResourceUseFlags combinedUse = shaderUse;
@@ -287,6 +288,7 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 	B3D_TEST_ASSERT(resolvedAttachments[0].Access == GpuAccessFlag::Read)
 	B3D_TEST_ASSERT(resolvedAttachments[0].Layout == GpuImageLayout::ShaderReadOnly)
 	B3D_TEST_ASSERT(resolvedAttachments[0].FinalLayout == GpuImageLayout::TransferSource)
+	B3D_TEST_ASSERT(tracker.GetRequiredImageLayout(&image, attachmentRange) == GpuImageLayout::ShaderReadOnly)
 
 	tracker.CommitPendingHazardRegistrations();
 	const GpuImageSubresourceTrackingState& attachmentStateBeforeEnd = tracker.GetSubresourceTrackingState(

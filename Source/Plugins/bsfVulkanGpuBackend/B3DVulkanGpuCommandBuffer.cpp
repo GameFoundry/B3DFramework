@@ -328,9 +328,82 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	mFramebuffer = newFramebuffer;
 	mRenderTargetReadOnlyMask = readOnlyMask;
 
-	// Register framebuffer & swap chain. Note this needs to happen before binding parameters, because if texture is used as a read-only attachment GPU parameters need to be
-	// aware to pick the correct layout
-	mResourceTracker.TrackFramebufferUsage(mFramebuffer, loadMask, readOnlyMask, mBarrierHelper);
+	mResourceTracker.TrackResourceUsage(mFramebuffer, GpuAccessFlag::Write);
+
+	TInlineArray<GpuRenderPassAttachmentUsage, B3D_MAXIMUM_RENDER_TARGET_COUNT + 2> renderPassAttachments;
+	VulkanRenderPass* renderPass = mFramebuffer->GetRenderPass();
+	const u32 colorAttachmentCount = renderPass->GetColorAttachmentCount();
+	for(u32 sequentialColorAttachmentIndex = 0; sequentialColorAttachmentIndex < colorAttachmentCount; sequentialColorAttachmentIndex++)
+	{
+		const VulkanFramebufferAttachment& attachment = mFramebuffer->GetColorAttachment(sequentialColorAttachmentIndex);
+		const RenderSurfaceMaskBits attachmentBit = (RenderSurfaceMaskBits)(1u << attachment.Index);
+		const bool readOnly = readOnlyMask.IsSet(attachmentBit);
+
+		GpuRenderPassAttachmentUsage attachmentUsage;
+		attachmentUsage.Image = attachment.Image;
+		attachmentUsage.Range = attachment.Image->GetRange(attachment.Surface);
+		attachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
+		attachmentUsage.Access = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+		attachmentUsage.Layout = loadMask.IsSet(attachmentBit) ? (readOnly ? GpuImageLayout::General : GpuImageLayout::ColorAttachment) : GpuImageLayout::Undefined;
+		attachmentUsage.FinalLayout = attachment.FinalLayout;
+
+		if(readOnly)
+			attachmentUsage.ShaderReadLayout = GpuImageLayout::General;
+
+		renderPassAttachments.Add(std::move(attachmentUsage));
+	}
+
+	if(renderPass->HasDepthAttachment())
+	{
+		const VulkanFramebufferAttachment& attachment = mFramebuffer->GetDepthStencilAttachment();
+		const bool depthReadOnly = readOnlyMask.IsSet(RT_DEPTH);
+		const bool stencilReadOnly = readOnlyMask.IsSet(RT_STENCIL);
+
+		GpuImageLayout depthStencilAccessLayout;
+		if(depthReadOnly)
+			depthStencilAccessLayout = stencilReadOnly ? GpuImageLayout::DepthStencilReadOnly : GpuImageLayout::DepthReadOnlyStencilAttachment;
+		else
+			depthStencilAccessLayout = stencilReadOnly ? GpuImageLayout::DepthAttachmentStencilReadOnly : GpuImageLayout::DepthStencilAttachment;
+
+		const GpuImageLayout depthStencilInitialLayout = loadMask.IsSetAny(RT_DEPTH | RT_STENCIL) ? depthStencilAccessLayout : GpuImageLayout::Undefined;
+
+		const GpuTextureSubresourceRange attachmentRange = attachment.Image->GetRange(attachment.Surface);
+		if(attachmentRange.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
+		{
+			GpuRenderPassAttachmentUsage attachmentUsage;
+			attachmentUsage.Image = attachment.Image;
+			attachmentUsage.Range = attachmentRange;
+			attachmentUsage.Range.AspectMask = GpuTextureAspectFlag::Depth;
+			attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
+			attachmentUsage.Access = depthReadOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+			attachmentUsage.Layout = depthStencilInitialLayout;
+			attachmentUsage.FinalLayout = attachment.FinalLayout;
+
+			if(depthReadOnly)
+				attachmentUsage.ShaderReadLayout = depthStencilAccessLayout;
+
+			renderPassAttachments.Add(std::move(attachmentUsage));
+		}
+
+		if(attachmentRange.AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
+		{
+			GpuRenderPassAttachmentUsage attachmentUsage;
+			attachmentUsage.Image = attachment.Image;
+			attachmentUsage.Range = attachmentRange;
+			attachmentUsage.Range.AspectMask = GpuTextureAspectFlag::Stencil;
+			attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
+			attachmentUsage.Access = stencilReadOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
+			attachmentUsage.Layout = depthStencilInitialLayout;
+			attachmentUsage.FinalLayout = attachment.FinalLayout;
+
+			if(stencilReadOnly)
+				attachmentUsage.ShaderReadLayout = depthStencilAccessLayout;
+
+			renderPassAttachments.Add(std::move(attachmentUsage));
+		}
+	}
+
+	mResourceTracker.PrepareRenderPass(renderPassAttachments);
 
 	if(swapChain)
 		mResourceTracker.TrackSwapChainUsage(swapChain);
@@ -344,13 +417,44 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		VulkanGpuParameterSet* vkParams = static_cast<VulkanGpuParameterSet*>(parameters.get());
 		VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 		TInlineArray<u32, 4> tempDynamicOffsets;
-		vkParams->PrepareForBind(*this, mResourceTracker, mBarrierHelper, descriptorSet, tempDynamicOffsets);
+		vkParams->PrepareForBind(mResourceTracker, mBarrierHelper, descriptorSet, tempDynamicOffsets);
 
 		// Cache the preparation results for later use by SetGpuParameterSet
 		CachedGpuParameterData& cacheData = mRenderPassGpuParameterSetCache[parameters.get()];
 		cacheData.DescriptorSet = descriptorSet;
 		cacheData.DynamicOffsets = std::move(tempDynamicOffsets);
 	}
+
+	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = mResourceTracker.BeginRenderPass(mBarrierHelper);
+	B3D_ASSERT(resolvedAttachments.size() == renderPassAttachments.size());
+
+	RenderSurfaceMask resolvedReadOnlyMask = RT_NONE;
+	u32 resolvedAttachmentIndex = 0;
+	for(u32 sequentialColorAttachmentIndex = 0; sequentialColorAttachmentIndex < colorAttachmentCount; sequentialColorAttachmentIndex++)
+	{
+		const VulkanFramebufferAttachment& attachment = mFramebuffer->GetColorAttachment(sequentialColorAttachmentIndex);
+		if(resolvedAttachments[resolvedAttachmentIndex].Access == GpuAccessFlag::Read)
+			resolvedReadOnlyMask.Set((RenderSurfaceMaskBits)(1u << attachment.Index));
+
+		resolvedAttachmentIndex++;
+	}
+
+	while(resolvedAttachmentIndex < resolvedAttachments.size())
+	{
+		const GpuResolvedRenderPassAttachmentUsage& attachment = resolvedAttachments[resolvedAttachmentIndex];
+		if(attachment.Access == GpuAccessFlag::Read)
+		{
+			if(attachment.Range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
+				resolvedReadOnlyMask.Set(RT_DEPTH);
+
+			if(attachment.Range.AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
+				resolvedReadOnlyMask.Set(RT_STENCIL);
+		}
+
+		resolvedAttachmentIndex++;
+	}
+
+	mRenderTargetReadOnlyMask = resolvedReadOnlyMask;
 
 	mBarrierHelper.Execute(*this);
 
@@ -365,21 +469,19 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 
 	const Area2I renderArea = GetRenderPassArea();
 
-	const RenderSurfaceMask readMask = mResourceTracker.GetFramebufferReadOnlyMask(mFramebuffer, mRenderTargetReadOnlyMask);
+	const RenderSurfaceMask readMask = mRenderTargetReadOnlyMask;
 	const RenderSurfaceMask originalClearMask = createInformation.ClearMask;
 	Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> clearValues = BuildClearValues(originalClearMask);
 
-	VulkanRenderPass* renderPass = mFramebuffer->GetRenderPass();
 	RenderSurfaceMask clearMask = createInformation.ClearMask;
 
 #if B3D_DEBUG
 	const VkClearColorValue kDebugClearColor = { { 1.0f, 0.0f, 1.0f, 1.0f } }; // Bright pink
 
-	const u32 colorAttachmentCount = renderPass->GetColorAttachmentCount();
 	for(u32 sequentialColorAttachmentIndex = 0; sequentialColorAttachmentIndex < colorAttachmentCount; sequentialColorAttachmentIndex++)
 	{
 		const VulkanFramebufferAttachment& colorAttachment = mFramebuffer->GetColorAttachment(sequentialColorAttachmentIndex);
-		const RenderSurfaceMaskBits colorAttachmentBit = (RenderSurfaceMaskBits)(1 << sequentialColorAttachmentIndex);
+		const RenderSurfaceMaskBits colorAttachmentBit = (RenderSurfaceMaskBits)(1 << colorAttachment.Index);
 		if(loadMask.IsSet(colorAttachmentBit))
 			continue;
 
@@ -393,7 +495,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		if(!originalClearMask.IsSet(colorAttachmentBit))
 		{
 			clearMask |= colorAttachmentBit;
-			clearValues[colorAttachment.Index].color = kDebugClearColor;
+			clearValues[sequentialColorAttachmentIndex].color = kDebugClearColor;
 		}
 	}
 
@@ -1233,29 +1335,8 @@ void VulkanGpuCommandBuffer::EndRenderPass()
 
 	mQueuedEvents.clear();
 
-	// Remove any shader use flags on images. Note this relies on the fact that we re-bind all parameters on every
-	// dispatch call and render pass, so they can reset this flags. Otherwise clearing the flags is wrong if the
-	// images remain to be used in subsequent calls).
-	mResourceTracker.ClearShaderFlagsForAllRenderPassImageSubresources();
-
-	if(mFramebuffer != nullptr)
-	{
-		mResourceTracker.MoveAllFramebufferAttachmentsToFinalLayouts(mFramebuffer);
-
-		VulkanRenderPass* renderPass = mFramebuffer->GetRenderPass();
-		u32 colorAttachmentCount = renderPass->GetColorAttachmentCount();
-		for(u32 i = 0; i < colorAttachmentCount; i++)
-		{
-			const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->GetColorAttachment(i);
-			mResourceTracker.ClearFramebufferFlagsForImage(fbAttachment.Image);
-		}
-
-		if(renderPass->HasDepthAttachment())
-		{
-			const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->GetDepthStencilAttachment();
-			mResourceTracker.ClearFramebufferFlagsForImage(fbAttachment.Image);
-		}
-	}
+	// Publish final attachment layouts and clear the render-pass tracking scope.
+	mResourceTracker.EndRenderPass();
 
 	mState = GpuCommandBufferState::Recording;
 	mRenderTarget = nullptr;
@@ -1718,32 +1799,6 @@ bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 	if(pipeline == nullptr)
 		return false;
 
-	// Check that pipeline matches the read-only state of any framebuffer attachments
-	u32 colorAttachmentCount = renderPass->GetColorAttachmentCount();
-	for(u32 i = 0; i < colorAttachmentCount; i++)
-	{
-		const VulkanFramebufferAttachment& framebufferAttachment = mFramebuffer->GetColorAttachment(i);
-		const GpuImageSubresourceTrackingState& subresourceTrackingState = static_cast<const VulkanResourceTracker&>(mResourceTracker).GetSubresourceTrackingState(framebufferAttachment.Image, framebufferAttachment.Surface.Face, framebufferAttachment.Surface.MipLevel, GpuTextureAspectFlag::Color);
-
-		if(subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write) && !pipeline->IsColorReadOnly(i))
-		{
-			B3D_LOG(Warning, LogRenderBackend, "Framebuffer attachment also used as a shader input, but color writes "
-										   "aren't disabled. This will result in undefined behavior.");
-		}
-	}
-
-	if(renderPass->HasDepthAttachment())
-	{
-		const VulkanFramebufferAttachment& framebufferAttachment = mFramebuffer->GetDepthStencilAttachment();
-		const GpuImageSubresourceTrackingState& subresourceTrackingState = static_cast<const VulkanResourceTracker&>(mResourceTracker).GetSubresourceTrackingState(framebufferAttachment.Image, framebufferAttachment.Surface.Face, framebufferAttachment.Surface.MipLevel, GpuTextureAspectFlag::Depth);
-
-		if(subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write) && !pipeline->IsDepthReadOnly())
-		{
-			B3D_LOG(Warning, LogRenderBackend, "Framebuffer attachment also used as a shader input, but depth/stencil "
-										   "writes aren't disabled. This will result in undefined behavior.");
-		}
-	}
-
 	mGraphicsPipeline->RegisterShaderModuleResources(mResourceTracker);
 	mResourceTracker.TrackResourceUsage(pipeline, GpuAccessFlag::Read);
 
@@ -1886,7 +1941,7 @@ void VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 
 				// Fallback: No cached data, call PrepareForBind now
 				// This handles compute dispatch and non-render-pass scenarios
-				boundGpuParameterSet->PrepareForBind(*this, mResourceTracker, barrierHelper, mDescriptorSetsTemp[set], setDynamicOffsets);
+				boundGpuParameterSet->PrepareForBind(mResourceTracker, barrierHelper, mDescriptorSetsTemp[set], setDynamicOffsets);
 			}
 
 			// Apply per-set dynamic offset overrides
@@ -2091,14 +2146,6 @@ void VulkanGpuCommandBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags source
 	barrier.size = VK_WHOLE_SIZE;
 
 	vkCmdPipelineBarrier(GetVulkanHandle(), sourceStage, destinationStage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
-}
-
-VkImageLayout VulkanGpuCommandBuffer::GetCurrentLayout(VulkanImage* image, const GpuTextureSubresourceRange& range, bool inRenderPass)
-{
-	if(inRenderPass)
-		return VulkanUtility::ToVkImageLayout(mResourceTracker.GetCurrentSubresourceLayout(image, range, mFramebuffer, mRenderTargetReadOnlyMask));
-
-	return VulkanUtility::ToVkImageLayout(mResourceTracker.GetCurrentSubresourceLayout(image, range));
 }
 
 void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)

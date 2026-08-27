@@ -256,6 +256,34 @@ void TGpuResourceTracker<TBarrierHelper>::EndRenderPass()
 }
 
 template<class TBarrierHelper>
+GpuImageLayout TGpuResourceTracker<TBarrierHelper>::GetRequiredImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange) const
+{
+	for(const PendingRenderPassAttachmentUsage& pendingAttachment : mPendingRenderPassAttachments)
+	{
+		if(pendingAttachment.Usage.Image == image && pendingAttachment.ShaderUseFlags.IsSet(GpuResourceUseFlag::ShaderAccess) && GpuBackendUtility::RangeOverlaps(pendingAttachment.Usage.Range, subresourceRange))
+		{
+			B3D_ASSERT(pendingAttachment.Usage.ShaderReadLayout.has_value());
+			return pendingAttachment.Usage.ShaderReadLayout.value_or(pendingAttachment.Usage.Layout);
+		}
+	}
+
+	for(const GpuResolvedRenderPassAttachmentUsage& attachment : mActiveRenderPassAttachments)
+	{
+		if(attachment.Image == image && GpuBackendUtility::RangeOverlaps(attachment.Range, subresourceRange))
+			return attachment.Layout;
+	}
+
+	for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+	{
+		if(subresourceRange.AspectMask.IsSet(aspect))
+			return GetSubresourceTrackingState(image, subresourceRange.BaseArrayLayer, subresourceRange.BaseMipLevel, aspect).RequiredLayout;
+	}
+
+	B3D_ASSERT(false);
+	return GpuImageLayout::Undefined;
+}
+
+template<class TBarrierHelper>
 void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper)
 {
 	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);

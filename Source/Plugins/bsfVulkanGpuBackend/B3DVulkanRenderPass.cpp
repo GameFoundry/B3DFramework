@@ -227,7 +227,6 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 		if(loadMask.IsSet((RenderSurfaceMaskBits)(1 << attachmentIndex)))
 		{
 			vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-			vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		}
 		else if(clearMask.IsSet((RenderSurfaceMaskBits)(1 << attachmentIndex)))
 		{
@@ -244,6 +243,9 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 			vkAttachmentReference.layout = VK_IMAGE_LAYOUT_GENERAL;
 		else
 			vkAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		if(loadMask.IsSet((RenderSurfaceMaskBits)(1 << attachmentIndex)))
+			vkAttachmentDescription.initialLayout = vkAttachmentReference.layout;
 	}
 
 	if(mHasDepthAttachment)
@@ -255,7 +257,6 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 		{
 			vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 			vkAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-			vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		}
 		else
 		{
@@ -288,6 +289,9 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 			else
 				vkAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		}
+
+		if(loadMask.IsSet(RT_DEPTH) || loadMask.IsSet(RT_STENCIL))
+			vkAttachmentDescription.initialLayout = vkAttachmentReference.layout;
 	}
 
 	VkRenderPass output;

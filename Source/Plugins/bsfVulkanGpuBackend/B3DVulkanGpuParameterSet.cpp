@@ -9,7 +9,7 @@
 #include "B3DVulkanDescriptorSet.h"
 #include "B3DVulkanDescriptorLayout.h"
 #include "B3DVulkanGpuPipelineParameterLayout.h"
-#include "B3DVulkanGpuCommandBuffer.h"
+#include "B3DVulkanResourceTracker.h"
 #include "B3DVulkanSamplerState.h"
 #include "Managers/B3DVulkanTextureManager.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
@@ -614,7 +614,7 @@ bool VulkanGpuParameterSet::SetSamplerState(u32 slot, const TShared<SamplerState
 	return true;
 }
 
-void VulkanGpuParameterSet::PrepareForBind(VulkanGpuCommandBuffer& commandBuffer, VulkanResourceTracker& resourceTracker, VulkanBarrierHelper& barrierHelper, VkDescriptorSet& outSet, TInlineArray<u32, 4>& outDynamicOffsets)
+void VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracker, VulkanBarrierHelper& barrierHelper, VkDescriptorSet& outSet, TInlineArray<u32, 4>& outDynamicOffsets)
 {
 	VulkanGpuPipelineParameterSetLayout& pipelineParameterInformationSet = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterSetLayout);
 
@@ -960,15 +960,17 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanGpuCommandBuffer& commandBuffer
 			}
 
 			// Register with command buffer
-			const GpuTextureSubresourceRange range = vulkanImage->GetRange(surface);
+			GpuTextureSubresourceRange range = vulkanImage->GetRange(surface);
+			// GetRange() reports resource aspects, while sampled depth-stencil views select only the depth plane.
+			if(range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
+				range.AspectMask = GpuTextureAspectFlag::Depth;
 
 			const TArrayView<const VkDescriptorSetLayoutBinding> perSetBindings = pipelineParameterInformationSet.GetBindings();
 
 			const GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::ShaderAccess;
 			resourceTracker.TrackImageUsage(vulkanImage, range, gpuLayout, gpuLayout, useFlags, GpuAccessFlag::Read, barrierHelper);
 
-			// Actual layout might be different than requested if the image is also used as a FB attachment
-			const VkImageLayout layout = commandBuffer.GetCurrentLayout(vulkanImage, range, true); // TODO - Might not be necessary provided the resource tracker is aware the image is being used in the framebuffer
+			const VkImageLayout layout = VulkanUtility::ToVkImageLayout(resourceTracker.GetRequiredImageLayout(vulkanImage, range));
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mSampledImages[sequentialResourceIndex] != VK_NULL_HANDLE);
