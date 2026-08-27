@@ -280,7 +280,7 @@ namespace b3d
 			 *
 			 * @note	Render thread.
 			 */
-			virtual void RequestScreenCapture(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp) { asyncOp.CompleteOperation(nullptr); }
+			void RequestScreenCapture(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp);
 
 			/**
 			 * Registers an extension object that will be called every frame, for each scene and view. Allows external code to perform
@@ -361,6 +361,31 @@ namespace b3d
 			 */
 			void ProcessTask(RendererTask& task, bool forceAll);
 
+			/**
+			 * Returns whether the specified window has a pending screen capture.
+			 *
+			 * @note	Render thread.
+			 */
+			bool IsScreenCaptureRequested(const TShared<RenderWindow>& window) const;
+
+			/**
+			 * Records a window readback into @p commandBuffer and forwards its result to the capture
+			 * operations pending on @p window, removing them from the pending list. Returns false if no
+			 * capture was pending or the window does not support readback.
+			 *
+			 * @note	Render thread.
+			 */
+			bool ResolveScreenCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderWindow>& window);
+
+			/**
+			 * Resolves pending screen captures for windows the frame's rendering did not cover (e.g. windows
+			 * rendered outside of the renderer), submitting a readback command buffer per window. Call once
+			 * per frame after regular rendering, before EndFrame().
+			 *
+			 * @note	Render thread.
+			 */
+			void ResolveOutstandingScreenCaptures();
+
 			TShared<GpuDevice> mDevice;
 
 			/**
@@ -387,6 +412,22 @@ namespace b3d
 			Vector<TShared<RendererTask>> mRunningTasks; // Render thread
 			Vector<TShared<RendererTask>> mRemainingTasks; // Render thread
 			Mutex mTaskMutex;
+
+		private:
+			/** Capture operations waiting for the next image rendered to a window. */
+			struct ScreenCaptureRequest
+			{
+				ScreenCaptureRequest(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp)
+					: Window(window)
+				{
+					Operations.Add(std::move(asyncOp));
+				}
+
+				TShared<RenderWindow> Window;
+				TInlineArray<TAsyncOp<TShared<PixelData>>, 1> Operations;
+			};
+
+			TInlineArray<ScreenCaptureRequest, 1> mScreenCaptureRequests; // Render thread
 		};
 
 		/**	Provides easy access to Renderer. */

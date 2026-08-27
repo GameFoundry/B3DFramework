@@ -2,9 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DNullRenderer.h"
 #include "CoreObject/B3DRenderThread.h"
-#include "GpuBackend/B3DRenderWindow.h"
-#include "Image/B3DColor.h"
-#include "Image/B3DPixelData.h"
+#include "Renderer/B3DGpuUniformBuffer.h"
 #include "Renderer/B3DRendererManager.h"
 #include "Renderer/B3DRendererUtility.h"
 
@@ -52,26 +50,17 @@ void render::NullRenderer::Destroy()
 
 void render::NullRenderer::RenderAll(PerFrameData perFrameData)
 {
-	// No scenes to render, but the frame boundary must still be pumped
+	// No scenes to render, but the frame boundary must still be pumped and screen captures resolved
+	// for windows rendered outside of the renderer (e.g. low-level rendering examples)
 	GetRenderThread().PostCommand([this]()
 	{
 		BeginFrame();
+		ResolveOutstandingScreenCaptures();
 		EndFrame();
+
+		GpuUniformBufferManager::Instance().AdvanceFrame();
+		mCommandBufferPoolRing->AdvanceFrame();
 	}, "NullRenderer::RenderAll");
-}
-
-void render::NullRenderer::RequestScreenCapture(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp)
-{
-	if(window == nullptr)
-	{
-		asyncOp.CompleteOperation(nullptr);
-		return;
-	}
-
-	const RenderTargetProperties& properties = window->GetProperties();
-	TShared<PixelData> pixelData = PixelData::Create(properties.Width, properties.Height, 1, PF_RGBA8);
-	pixelData->SetColors(Color::kBlack);
-	asyncOp.CompleteOperation(pixelData);
 }
 
 TShared<render::RendererScene> render::NullRenderer::CreateScene()

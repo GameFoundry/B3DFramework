@@ -15,6 +15,8 @@
 #include "Profiling/B3DProfilerCPU.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuWorkContext.h"
+#include "GpuBackend/B3DRenderWindow.h"
 #include "Scene/B3DSceneManager.h"
 
 using namespace b3d;
@@ -65,6 +67,85 @@ void Renderer::EndFrame()
 	mFrameCompletionTracker.AdvanceFrame();
 }
 
+void Renderer::RequestScreenCapture(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp)
+{
+	if(window == nullptr)
+	{
+		asyncOp.CompleteOperation(nullptr);
+		return;
+	}
+
+	for(ScreenCaptureRequest& request : mScreenCaptureRequests)
+	{
+		if(request.Window != window)
+			continue;
+
+		request.Operations.Add(std::move(asyncOp));
+		return;
+	}
+
+	mScreenCaptureRequests.EmplaceBack(window, std::move(asyncOp));
+}
+
+bool Renderer::IsScreenCaptureRequested(const TShared<RenderWindow>& window) const
+{
+	if(window == nullptr)
+		return false;
+
+	for(const ScreenCaptureRequest& request : mScreenCaptureRequests)
+	{
+		if(request.Window == window)
+			return true;
+	}
+
+	return false;
+}
+
+bool Renderer::ResolveScreenCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderWindow>& window)
+{
+	for(u32 requestIndex = 0; requestIndex < mScreenCaptureRequests.Size(); ++requestIndex)
+	{
+		ScreenCaptureRequest& request = mScreenCaptureRequests[requestIndex];
+		if(request.Window != window)
+			continue;
+
+		TInlineArray<TAsyncOp<TShared<PixelData>>, 1> captureOps = std::move(request.Operations);
+		mScreenCaptureRequests.Erase(mScreenCaptureRequests.Begin() + requestIndex);
+
+		TAsyncOp<TShared<PixelData>> readOp = window->ReadAsync(GetGpuContext(), commandBuffer);
+		if(readOp == nullptr)
+		{
+			for(TAsyncOp<TShared<PixelData>>& captureOp : captureOps)
+				captureOp.CompleteOperation(nullptr);
+
+			return false;
+		}
+
+		auto fnOnReadOpCompleted = [captureOps = std::move(captureOps), readOp]() mutable
+		{
+			for(TAsyncOp<TShared<PixelData>>& captureOp : captureOps)
+				captureOp.CompleteOperation(readOp.GetReturnValue());
+		};
+
+		readOp.DoWhenComplete(std::move(fnOnReadOpCompleted));
+		return true;
+	}
+
+	return false;
+}
+
+void Renderer::ResolveOutstandingScreenCaptures()
+{
+	while(!mScreenCaptureRequests.Empty())
+	{
+		const TShared<RenderWindow> window = mScreenCaptureRequests.Front().Window;
+		TShared<GpuCommandBuffer> commandBuffer = mCommandBufferPoolRing->GetCurrentPool().Create(GpuCommandBufferCreateInformation::Create("Screen capture"));
+
+		if(ResolveScreenCaptures(*commandBuffer, window))
+			GetGpuContext().SubmitCommandBuffer(commandBuffer);
+	}
+}
+
 void Renderer::InitializeOnRenderThread()
 {
 	// Borrows the renderer's frame completion tracker; all thread-affine state (transfer pools, transient
@@ -84,6 +165,15 @@ void Renderer::ActivateOnRenderThread()
 
 void Renderer::DestroyOnRenderThread()
 {
+	// Cancel capture requests before the renderer's GPU state is torn down
+	for(ScreenCaptureRequest& request : mScreenCaptureRequests)
+	{
+		for(TAsyncOp<TShared<PixelData>>& operation : request.Operations)
+			operation.CompleteOperation(nullptr);
+	}
+
+	mScreenCaptureRequests.Clear();
+
 	GpuUniformBufferManager::ShutDown();
 	GpuProfiler::Instance().Clear();
 

@@ -70,19 +70,6 @@ namespace b3d
 				u32 MatVersion;
 			};
 
-			/** Capture operations waiting for the next image rendered to a window. */
-			struct ScreenCaptureRequest
-			{
-				ScreenCaptureRequest(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp)
-					: Window(window)
-				{
-					Operations.Add(std::move(asyncOp));
-				}
-
-				TShared<RenderWindow> Window;
-				TInlineArray<TAsyncOp<TShared<PixelData>>, 1> Operations;
-			};
-
 		public:
 			RenderBeast();
 			~RenderBeast() = default;
@@ -112,7 +99,6 @@ namespace b3d
 			void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override;
 			void RequestGPUCommandCapture() override { mIsGPUCommandCaptureRequested = true; }
 			void RequestViewCapture(Camera* camera, TAsyncOp<TShared<PixelData>> asyncOp) override;
-			void RequestScreenCapture(const TShared<RenderWindow>& window, TAsyncOp<TShared<PixelData>> asyncOp) override;
 			TShared<GpuDevice> GetGpuDevice() const { return mDevice; }
 			TShared<RendererScene> CreateScene() override;
 
@@ -194,12 +180,6 @@ namespace b3d
 			/** Called just before a renderer scene is destroyed. */
 			void NotifySceneDestroyed(const RenderBeastScene* scene);
 
-			/** Returns whether the specified window has a pending screen capture. */
-			bool IsScreenCaptureRequested(const TShared<RenderWindow>& window) const;
-
-			/** Records a window readback and forwards its result to the pending capture operations. */
-			bool ResolveScreenCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderWindow>& window);
-
 			// Render thread only fields
 			RenderBeastFeatureSet mFeatureSet = RenderBeastFeatureSet::Desktop;
 			bool mIsGPUCommandCaptureRequested = false;
@@ -212,7 +192,6 @@ namespace b3d
 
 			// Scene data
 			Vector<RenderBeastScene*> mScenes;
-			TInlineArray<ScreenCaptureRequest, 1> mScreenCaptureRequests;
 
 			TShared<RenderBeastOptions> mRenderThreadOptions;
 
