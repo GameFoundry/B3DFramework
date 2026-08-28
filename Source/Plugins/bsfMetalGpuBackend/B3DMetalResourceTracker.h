@@ -18,11 +18,7 @@ namespace b3d::render
 
 	/** Metal-specific resource tracker. Inherits the backend-agnostic tracking machinery from TGpuResourceTracker. */
 	class MetalResourceTracker : public TGpuResourceTracker<MetalBarrierHelper>
-	{
-	public:
-		/** Clears shader-related usage flags for all image subresources that were used during the current render pass. Call after the render pass ends. */
-		void ClearShaderFlagsForAllRenderPassImageSubresources();
-	};
+	{ };
 
 	/** @} */
 } // namespace b3d::render

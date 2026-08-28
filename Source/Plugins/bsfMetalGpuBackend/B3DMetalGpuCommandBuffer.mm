@@ -381,7 +381,7 @@ namespace b3d
 
 						const GpuTextureSubresourceRange range = GetTextureRange(*resource, binding.Surface);
 						const GpuImageLayout imageLayout = type == GpuParameterType::StorageTexture ? GpuImageLayout::General : GpuImageLayout::ShaderReadOnly;
-						tracker.TrackImageUsage(resource, range, imageLayout, imageLayout, useFlags, access, barrierHelper);
+						tracker.TrackImageUsage(resource, range, imageLayout, useFlags, access, barrierHelper);
 					}
 				};
 
@@ -1299,7 +1299,6 @@ namespace b3d
 					std::static_pointer_cast<MetalGpuParameters>(slotSet)->MarkArgumentBufferConsumed();
 			}
 
-			mResourceTracker.ClearShaderFlagsForAllRenderPassImageSubresources();
 			} // @autoreleasepool
 		}
 
@@ -2212,7 +2211,7 @@ namespace b3d
 			if (sourceResource != nullptr)
 				mResourceTracker.TrackBufferUsage(sourceResource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper, bufferOffset);
 			if (destinationResource != nullptr)
-				mResourceTracker.TrackImageUsage(destinationResource, destinationRange, GpuImageLayout::TransferDestination, GpuImageLayout::TransferDestination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+				mResourceTracker.TrackImageUsage(destinationResource, destinationRange, GpuImageLayout::TransferDestination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 			if (!ExecutePendingBarriers())
 				return;
 
@@ -2266,7 +2265,7 @@ namespace b3d
 			if (source->GetProperties().Format == PF_D32_S8X24)
 				sourceRange.AspectMask = GpuTextureAspectFlag::Depth;
 			if (sourceResource != nullptr)
-				mResourceTracker.TrackImageUsage(sourceResource, sourceRange, GpuImageLayout::TransferSource, GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+				mResourceTracker.TrackImageUsage(sourceResource, sourceRange, GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
 			if (destinationResource != nullptr)
 				mResourceTracker.TrackBufferUsage(destinationResource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper, bufferOffset);
 			if (!ExecutePendingBarriers())
@@ -2400,8 +2399,8 @@ namespace b3d
 			// Metal resolves through a render-pass store action. Establish the encoder boundary before
 			// recording the resolve hazard instead of treating it as blit work.
 			EnsureEncoderKind(resolveMultisample ? EncoderKind::None : EncoderKind::Blit);
-			mResourceTracker.TrackImageUsage(sourceResource, sourceRange, sourceLayout, sourceLayout, resourceUse, GpuAccessFlag::Read, mBarrierHelper);
-			mResourceTracker.TrackImageUsage(destinationResource, destinationRange, destinationLayout, destinationLayout, resourceUse, GpuAccessFlag::Write, mBarrierHelper);
+			mResourceTracker.TrackImageUsage(sourceResource, sourceRange, sourceLayout, resourceUse, GpuAccessFlag::Read, mBarrierHelper);
+			mResourceTracker.TrackImageUsage(destinationResource, destinationRange, destinationLayout, resourceUse, GpuAccessFlag::Write, mBarrierHelper);
 			if (!ExecutePendingBarriers())
 				return false;
 

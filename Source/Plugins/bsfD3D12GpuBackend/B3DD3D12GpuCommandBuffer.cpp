@@ -511,8 +511,6 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 	mBarrierHelper.Execute(*this);
 
 	mCommandList->Dispatch(groupCountX, groupCountY, groupCountZ);
-
-	mResourceTracker.ClearShaderFlagsForAllRenderPassImageSubresources();
 }
 
 void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
@@ -579,6 +577,9 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 				attachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
 				attachmentUsage.Access = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
 				attachmentUsage.Layout = readOnly ? GpuImageLayout::ShaderReadOnly : GpuImageLayout::ColorAttachment;
+
+				if(target->GetProperties().IsWindow)
+					attachmentUsage.FinalLayout = GpuImageLayout::Present;
 
 				if(readOnly)
 					attachmentUsage.ShaderReadLayout = GpuImageLayout::ShaderReadOnly;
@@ -926,14 +927,13 @@ void D3D12GpuCommandBuffer::EndRenderPass()
 				if (attachment.Image == nullptr)
 					continue;
 
-				mResourceTracker.TrackImageUsage(attachment.Image, attachment.Image->GetRange(attachment.Surface), GpuImageLayout::Present, GpuImageLayout::Present, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read, mBarrierHelper);
+				mResourceTracker.TrackImageUsage(attachment.Image, attachment.Image->GetRange(attachment.Surface), GpuImageLayout::Present, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read, mBarrierHelper);
 			}
 
 			mBarrierHelper.Execute(*this);
 		}
 	}
 
-	// Reset the per-pass shader/attachment usage flags and publish final attachment layouts.
 	mResourceTracker.EndRenderPass();
 
 	mState = GpuCommandBufferState::Recording;
@@ -1595,7 +1595,7 @@ void D3D12GpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source
 	// Track the transfer and execute the copy-state transitions it requires.
 	const GpuTextureSubresourceRange subresourceRange(mipLevel, 1, arrayLayer, 1, destinationImage->GetRange().AspectMask);
 	mResourceTracker.TrackBufferUsage(d3d12Source->GetD3D12Buffer(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destinationImage, subresourceRange, GpuImageLayout::TransferDestination, GpuImageLayout::TransferDestination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(destinationImage, subresourceRange, GpuImageLayout::TransferDestination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 	mBarrierHelper.Execute(*this);
 
 	ID3D12Resource* textureResource = destinationImage->GetD3D12Resource();
@@ -1694,8 +1694,8 @@ bool D3D12GpuCommandBuffer::CopyTexture(const TShared<Texture>& source, const TS
 	const GpuTextureSubresourceRange sourceRange(copyInformation.SourceMip, 1, copyInformation.SourceFace, copyInformation.FaceCount, sourceImage->GetRange().AspectMask);
 	const GpuTextureSubresourceRange destinationRange(copyInformation.DestinationMip, 1, copyInformation.DestinationFace, copyInformation.FaceCount, destinationImage->GetRange().AspectMask);
 
-	mResourceTracker.TrackImageUsage(sourceImage, sourceRange, sourceLayout, sourceLayout, resourceUse, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destinationImage, destinationRange, destinationLayout, destinationLayout, resourceUse, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(sourceImage, sourceRange, sourceLayout, resourceUse, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(destinationImage, destinationRange, destinationLayout, resourceUse, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -1796,8 +1796,8 @@ bool D3D12GpuCommandBuffer::BlitTexture(const TShared<Texture>& source, const TS
 	const GpuTextureSubresourceRange sourceRange(blitInformation.SourceMip, 1, blitInformation.SourceFace, blitInformation.FaceCount, sourceImage->GetRange().AspectMask);
 	const GpuTextureSubresourceRange destinationRange(blitInformation.DestinationMip, 1, blitInformation.DestinationFace, blitInformation.FaceCount, destinationImage->GetRange().AspectMask);
 
-	mResourceTracker.TrackImageUsage(sourceImage, sourceRange, GpuImageLayout::TransferSource, GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destinationImage, destinationRange, GpuImageLayout::TransferDestination, GpuImageLayout::TransferDestination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(sourceImage, sourceRange, GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(destinationImage, destinationRange, GpuImageLayout::TransferDestination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -1846,7 +1846,7 @@ void D3D12GpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, 
 
 	const GpuTextureSubresourceRange subresourceRange(mipLevel, 1, arrayLayer, 1, sourceImage->GetRange().AspectMask);
 
-	mResourceTracker.TrackImageUsage(sourceImage, subresourceRange, GpuImageLayout::TransferSource, GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(sourceImage, subresourceRange, GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
 	mResourceTracker.TrackBufferUsage(d3d12Destination->GetD3D12Buffer(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
@@ -1876,7 +1876,7 @@ void D3D12GpuCommandBuffer::CopyImageToBuffer(D3D12Image* source, D3D12Buffer* d
 	// Track the transfer and execute the copy-state transitions it requires.
 	const GpuTextureSubresourceRange subresourceRange(0, 1, 0, 1, source->GetRange().AspectMask);
 
-	mResourceTracker.TrackImageUsage(source, subresourceRange, GpuImageLayout::TransferSource, GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(source, subresourceRange, GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
 	mResourceTracker.TrackBufferUsage(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);

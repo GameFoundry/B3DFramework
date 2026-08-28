@@ -981,11 +981,6 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 
 	vkCmdDispatch(mCommandBufferHandle, groupCountX, groupCountY, groupCountZ);
 
-	// Remove any shader use flags on images. Note this relies on the fact that we re-bind all parameters on every
-	// dispatch call and render pass, so they can reset this flags. Otherwise clearing the flags is wrong if the
-	// images remain to be used in subsequent calls).
-	mResourceTracker.ClearShaderFlagsForAllRenderPassImageSubresources();
-
 	B3D_INCREMENT_RENDER_STATISTIC(NumComputeCalls);
 }
 
@@ -2034,7 +2029,7 @@ void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage
 	copyRegion.imageSubresource = rangeLayers;
 
 	mResourceTracker.TrackBufferUsage(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destination, subresourceRange, layout, layout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(destination, subresourceRange, layout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -2067,7 +2062,7 @@ void VulkanGpuCommandBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer
 	GpuTextureSubresourceRange subresourceRangeForBarrier = subresourceRange;
 	subresourceRangeForBarrier.AspectMask = source->GetRange().AspectMask;
 
-	mResourceTracker.TrackImageUsage(source, subresourceRangeForBarrier, layout, layout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(source, subresourceRangeForBarrier, layout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
 	mResourceTracker.TrackBufferUsage(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
@@ -2086,8 +2081,8 @@ void VulkanGpuCommandBuffer::CopyImageToImage(VulkanImage* source, VulkanImage* 
 	GpuTextureSubresourceRange destinationSubresourceRangeForBarrier = destinationSubresourceRange;
 	destinationSubresourceRangeForBarrier.AspectMask = source->GetRange().AspectMask;
 
-	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, sourceLayout, sourceLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, destinationLayout, destinationLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, sourceLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, destinationLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -2105,8 +2100,8 @@ void VulkanGpuCommandBuffer::Blit(VulkanImage* source, VulkanImage* destination,
 	GpuTextureSubresourceRange destinationSubresourceRangeForBarrier = destinationSubresourceRange;
 	destinationSubresourceRangeForBarrier.AspectMask = source->GetRange().AspectMask;
 
-	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, sourceLayout, sourceLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, destinationLayout, destinationLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, sourceLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, destinationLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -2123,8 +2118,8 @@ void VulkanGpuCommandBuffer::Resolve(VulkanImage* source, VulkanImage* destinati
 	GpuTextureSubresourceRange destinationSubresourceRangeForBarrier = destinationSubresourceRange;
 	destinationSubresourceRangeForBarrier.AspectMask = source->GetRange().AspectMask;
 
-	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, sourceLayout, sourceLayout, GpuResourceUseFlag::Resolve, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, destinationLayout, destinationLayout, GpuResourceUseFlag::Resolve, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, sourceLayout, GpuResourceUseFlag::Resolve, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, destinationLayout, GpuResourceUseFlag::Resolve, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 

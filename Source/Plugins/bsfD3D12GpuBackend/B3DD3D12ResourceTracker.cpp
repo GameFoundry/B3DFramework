@@ -30,11 +30,3 @@ void D3D12ResourceTracker::TrackBufferUsage(IGpuBufferResource* buffer, GpuResou
 
 	TGpuResourceTracker<D3D12BarrierHelper>::TrackBufferUsage(buffer, useFlags, accessFlags, barrierHelper, dynamicOffset);
 }
-
-void D3D12ResourceTracker::ClearShaderFlagsForAllRenderPassImageSubresources()
-{
-	for (u32 subresourceIndex : mRenderPassSubresources)
-		mSubresourceTrackingState[subresourceIndex].ShaderUse = GpuAccessFlag::None;
-
-	mRenderPassSubresources.clear();
-}

@@ -323,7 +323,7 @@ void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTrack
 							if(subresourceRange.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
 								subresourceRange.AspectMask = GpuTextureAspectFlag::Depth;
 
-							resourceTracker.TrackImageUsage(image, subresourceRange, GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly, stageUseFlags | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read, barrierHelper);
+							resourceTracker.TrackImageUsage(image, subresourceRange, GpuImageLayout::ShaderReadOnly, stageUseFlags | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read, barrierHelper);
 						}
 					}
 					break;
@@ -338,7 +338,7 @@ void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTrack
 							// Conservative read-write: UAV image bindings do not declare their access.
 							const GpuTextureSubresourceRange subresourceRange = image->GetRange(mStorageTextureData[dataIndex].Surface);
 
-							resourceTracker.TrackImageUsage(image, subresourceRange, GpuImageLayout::General, GpuImageLayout::General, stageUseFlags | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper);
+							resourceTracker.TrackImageUsage(image, subresourceRange, GpuImageLayout::General, stageUseFlags | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper);
 						}
 					}
 					break;

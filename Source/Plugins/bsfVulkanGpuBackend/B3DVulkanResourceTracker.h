@@ -10,6 +10,7 @@
 namespace b3d::render
 {
 	class VulkanBarrierHelper;
+
 	/** @addtogroup Vulkan
 	 *  @{
 	 */
@@ -18,11 +19,7 @@ namespace b3d::render
 
 	/** Vulkan-specific resource tracker. Inherits the backend-agnostic tracking machinery from TGpuResourceTracker. */
 	class VulkanResourceTracker : public TGpuResourceTracker<VulkanBarrierHelper>
-	{
-	public:
-		/** Clears shader-related usage flags for all image subresources that were used during the current render pass. Usually called after render pass ends. */
-		void ClearShaderFlagsForAllRenderPassImageSubresources();
-	};
+	{ };
 
 	/** @} */
 } // namespace b3d::render

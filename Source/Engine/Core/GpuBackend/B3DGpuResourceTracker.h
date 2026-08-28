@@ -68,16 +68,10 @@ namespace b3d
 			/** The subresource range (mip levels and array layers) covered by this tracking state. */
 			GpuTextureSubresourceRange Range;
 
-			// Storing stage & access flags separately per use category so they can be cleared independantly when that use
-			// ends (e.g. image unbound as FB attachment, or memory barrier executed)
+			/** Epoch in which this range was last used through a shader binding. Multiple different usages in the same epoch can get merged into a more general usage. */
+			u64 AccessEpoch = 0;
 
-			/** Use flags when subresource is bound for shader reads or writes. Reset after resource is unbound. */
-			GpuAccessFlags ShaderUse;
-
-			/** Use flags when subresource is bound as a framebuffer attachment. Reset after resource is unbound. */
-			GpuAccessFlags FramebufferUse;
-
-			/** Specifies how will the subresource be accessed during the current render pass or dispatch call. Unlike accesses in *Use structs, this one is not reset after render pass. */
+			/** Accesses recorded for this range on the current command buffer. */
 			GpuAccessFlags Access;
 
 			/** State used to resolve read-after-write, write-after-write and write-after-read hazards. */
@@ -102,11 +96,6 @@ namespace b3d
 			 */
 			GpuImageLayout RequiredLayout;
 
-			/**
-			 * Layout the image will have after the render pass executes, taking account automatic transitions render pass
-			 * does on its attachments. Only relevant for framebuffer attachments. Ignored if render pass doesn't execute.
-			 */
-			GpuImageLayout RenderPassLayout;
 		};
 
 		/** Describes how one image subresource range is used as a render-pass attachment. */
@@ -186,12 +175,11 @@ namespace b3d
 			 * @param	image				Image to track.
 			 * @param	subresourceRange	Subresource range of the image to track.
 			 * @param	layout				Expected layout the image should be during use.
-			 * @param	finalLayout			Layout the image will be in after render pass completes (relevant only for framebuffer attachments).
 			 * @param	useFlags			Categorizes how the image be used (shader access, color attachment, depth attachment, etc.), and on which stages.
 			 * @param	accessFlags			Access flags specifying how the image will be accessed (read/write).
 			 * @param	barrierHelper		If there are any necessary layout transitions or memory barriers before the buffer can be used they will be recorded into the provided object.
 			 */
-			void TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
+			void TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
 
 			/**
 			 * Tracks an explicit buffer barrier. Its source scope is derived from previous command-buffer accesses. A barrier
@@ -286,8 +274,9 @@ namespace b3d
 			void UpdateHazardStateAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier);
 
 			/**
-			 * Applies all read/write hazard registrations deferred by TrackBufferUsage / TrackSubresourceUsage. Call after any
-			 * pending barriers have been issued, or after a recording scope that cannot contain barriers has ended.
+			 * Applies all read/write hazard registrations deferred by TrackBufferUsage / TrackSubresourceUsage and ends their
+			 * access epoch. Call after any pending barriers have been issued, or after a recording scope that cannot contain
+			 * barriers has ended.
 			 */
 			void CommitPendingHazardRegistrations();
 
@@ -344,6 +333,9 @@ namespace b3d
 			/** Finds the tracking state index for the specified image, or returns ~0u if not found. */
 			u32 FindImageTrackingStateIndex(IGpuImageResource* image) const;
 
+			/** Finds the render-pass attachment overlapping @p range, or returns null. */
+			const GpuResolvedRenderPassAttachmentUsage* FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const;
+
 			/**
 			 * Private overload of TrackBufferUsage that operates on an existing GpuBufferTrackingState.
 			 * Lets the tracker know that the provided buffer resource will be queued on the associated command buffer.
@@ -358,7 +350,7 @@ namespace b3d
 			 * and barriers based on previous subresource usage.
 			 */
 			// TODO - Refactor this signature, try to clean it up once we have explicit layout transitions
-			void TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
+			void TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
 
 			/** Registers a new resource range using the provided parameters to initialize it. */
 			u32 AddSubresourceTrackingState(const GpuTextureSubresourceRange& range);
@@ -394,9 +386,6 @@ namespace b3d
 			/** Storage for all image subresource tracking states. GpuImageTrackingState references ranges within this storage. */
 			Vector<GpuImageSubresourceTrackingState> mSubresourceTrackingState;
 
-			/** Set of global subresource indices that are used on the current render pass. */
-			Set<u32> mRenderPassSubresources;
-
 			/** Pool allocator for per-resource hazard states. */
 			PoolAlloc<sizeof(GpuResourceHazardState), 512, alignof(GpuResourceHazardState)> mHazardStatePool;
 
@@ -419,6 +408,9 @@ namespace b3d
 
 			/** Current lifecycle state of the render-pass attachment tracker. */
 			RenderPassTrackingPhase mRenderPassTrackingPhase = RenderPassTrackingPhase::Inactive;
+
+			/** Incremented each draw/dispatch call (i.e. after barrier is executed), used for combining usages of a single resource within an epoch. */
+			u64 mAccessEpoch = 1;
 		};
 
 		/** @} */

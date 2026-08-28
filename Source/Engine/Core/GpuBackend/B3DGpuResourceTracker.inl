@@ -1,8 +1,10 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 
+#include "GpuBackend/B3DGpuBackendUtility.h"
+
 // Template method definitions for TGpuResourceTracker. This file is not a translation unit of its own; include it after
-// the concrete barrier helper, frame allocator and GpuBackendUtility headers before instantiating a tracker type.
+// the concrete barrier helper and frame allocator headers before instantiating a tracker type.
 
 namespace b3d
 {
@@ -219,7 +221,7 @@ TArrayView<const GpuResolvedRenderPassAttachmentUsage> TGpuResourceTracker<TBarr
 	mRenderPassTrackingPhase = RenderPassTrackingPhase::Active;
 
 	for(const GpuResolvedRenderPassAttachmentUsage& attachment : mActiveRenderPassAttachments)
-		TrackImageUsage(attachment.Image, attachment.Range, attachment.Layout, attachment.FinalLayout, attachment.UseFlags, attachment.Access, barrierHelper);
+		TrackImageUsage(attachment.Image, attachment.Range, attachment.Layout, attachment.UseFlags, attachment.Access, barrierHelper);
 
 	return mActiveRenderPassAttachments;
 }
@@ -230,29 +232,45 @@ void TGpuResourceTracker<TBarrierHelper>::EndRenderPass()
 	if(!B3D_ENSURE(mRenderPassTrackingPhase == RenderPassTrackingPhase::Active))
 		return;
 
+	struct CallbackParameters
+	{
+		TGpuResourceTracker* Self;
+		GpuImageLayout FinalLayout;
+	};
+
 	for(const GpuResolvedRenderPassAttachmentUsage& attachment : mActiveRenderPassAttachments)
 	{
+		CallbackParameters callbackParameters;
+		callbackParameters.Self = this;
+		callbackParameters.FinalLayout = attachment.FinalLayout;
+
 		IterateAndCreateOverlappingImageSubresourceTrackingState(attachment.Image, attachment.Range, [](u32 globalSubresourceIndex, void* userData)
 		{
-			TGpuResourceTracker* const tracker = static_cast<TGpuResourceTracker*>(userData);
-			GpuImageSubresourceTrackingState& subresourceTrackingState = tracker->mSubresourceTrackingState[globalSubresourceIndex];
+			CallbackParameters* const callbackParameters = static_cast<CallbackParameters*>(userData);
+			GpuImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Self->mSubresourceTrackingState[globalSubresourceIndex];
 
-			if(subresourceTrackingState.RenderPassLayout != GpuImageLayout::Undefined)
+			if(callbackParameters->FinalLayout != GpuImageLayout::Undefined)
 			{
-				subresourceTrackingState.CurrentLayout = subresourceTrackingState.RenderPassLayout;
-				subresourceTrackingState.RequiredLayout = subresourceTrackingState.RenderPassLayout;
+				subresourceTrackingState.CurrentLayout = callbackParameters->FinalLayout;
+				subresourceTrackingState.RequiredLayout = callbackParameters->FinalLayout;
 			}
-
-			subresourceTrackingState.FramebufferUse = GpuAccessFlag::None;
-		}, this);
+		}, &callbackParameters);
 	}
 
-	for(u32 subresourceIndex : mRenderPassSubresources)
-		mSubresourceTrackingState[subresourceIndex].ShaderUse = GpuAccessFlag::None;
-
-	mRenderPassSubresources.clear();
 	mActiveRenderPassAttachments.Clear();
 	mRenderPassTrackingPhase = RenderPassTrackingPhase::Inactive;
+}
+
+template<class TBarrierHelper>
+const GpuResolvedRenderPassAttachmentUsage* TGpuResourceTracker<TBarrierHelper>::FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
+{
+	for(const GpuResolvedRenderPassAttachmentUsage& attachment : mActiveRenderPassAttachments)
+	{
+		if(attachment.Image == image && GpuBackendUtility::RangeOverlaps(attachment.Range, range))
+			return &attachment;
+	}
+
+	return nullptr;
 }
 
 template<class TBarrierHelper>
@@ -267,11 +285,9 @@ GpuImageLayout TGpuResourceTracker<TBarrierHelper>::GetRequiredImageLayout(IGpuI
 		}
 	}
 
-	for(const GpuResolvedRenderPassAttachmentUsage& attachment : mActiveRenderPassAttachments)
-	{
-		if(attachment.Image == image && GpuBackendUtility::RangeOverlaps(attachment.Range, subresourceRange))
-			return attachment.Layout;
-	}
+	const GpuResolvedRenderPassAttachmentUsage* const renderPassAttachment = FindRenderPassAttachment(image, subresourceRange);
+	if(renderPassAttachment != nullptr)
+		return renderPassAttachment->Layout;
 
 	for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
 	{
@@ -284,7 +300,7 @@ GpuImageLayout TGpuResourceTracker<TBarrierHelper>::GetRequiredImageLayout(IGpuI
 }
 
 template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper)
+void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper)
 {
 	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
 
@@ -297,12 +313,18 @@ void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* ima
 		TBarrierHelper* BarrierHelper;
 		IGpuImageResource* Image;
 		GpuImageLayout Layout;
-		GpuImageLayout FinalLayout;
 		GpuResourceUseFlags UseFlags;
 		GpuAccessFlags AccessFlags;
 	};
 
-	CallbackParameters callbackParameters { this, &barrierHelper, image, layout, finalLayout, useFlags, accessFlags };
+	CallbackParameters callbackParameters;
+	callbackParameters.Self = this;
+	callbackParameters.BarrierHelper = &barrierHelper;
+	callbackParameters.Image = image;
+	callbackParameters.Layout = layout;
+	callbackParameters.UseFlags = useFlags;
+	callbackParameters.AccessFlags = accessFlags;
+
 	IterateAndCreateOverlappingImageSubresourceTrackingState(image, subresourceRange, [](u32 globalSubresourceIndex, void* userData)
 	{
 		CallbackParameters* const callbackParameters = (CallbackParameters*)userData;
@@ -334,7 +356,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* ima
 		// Render pass attachments get tracked during EndRenderPass()
 		if(!foldedIntoRenderPassAttachment)
 		{
-			self->TrackSubresourceUsage(callbackParameters->Image, globalSubresourceIndex, callbackParameters->Layout, callbackParameters->FinalLayout, callbackParameters->UseFlags, callbackParameters->AccessFlags, *callbackParameters->BarrierHelper);
+			self->TrackSubresourceUsage(callbackParameters->Image, globalSubresourceIndex, callbackParameters->Layout, callbackParameters->UseFlags, callbackParameters->AccessFlags, *callbackParameters->BarrierHelper);
 		}
 
 	}, &callbackParameters);
@@ -448,7 +470,7 @@ void TGpuResourceTracker<TBarrierHelper>::ResolveAndQueueImageBarrier(IGpuImageR
 }
 
 template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuImageLayout finalLayout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper)
+void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper)
 {
 	const bool isShaderUse = useFlags.IsSet(GpuResourceUseFlag::ShaderAccess);
 	const bool isFramebufferUse = useFlags.IsSetAny(GpuResourceUseFlag::ColorAttachment | GpuResourceUseFlag::DepthStencilAttachment);
@@ -460,30 +482,21 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 	if(subresourceTrackingState.Access == GpuAccessFlag::None && !hasLeadingBarrier) // New subresource
 	{
 		subresourceTrackingState.InitialLayout = layout;
-		subresourceTrackingState.RenderPassLayout = finalLayout;
 		subresourceTrackingState.CurrentLayout = layout;
 		subresourceTrackingState.RequiredLayout = layout;
 	}
-	// TODO - Unify existing and new subresource paths
 	else
 	{
 		// Determine required layout
 		if(isFramebufferUse)
 		{
-			// Framebuffer expects a certain layout and we must respect it. In the case when the FB attachment is also bound
-			// for shader reads, this will override the layout required for shader read (GENERAL or DEPTH_READ_ONLY), but that
-			// is fine because those transitions are handled automatically by render-pass layout transitions.
 			subresourceTrackingState.RequiredLayout = layout;
-			subresourceTrackingState.RenderPassLayout = finalLayout;
 		}
 		else if(isShaderUse)
 		{
-			// Register the necessary layout transition, but only if the image isn't bound for framebuffer bind. If it is
-			// then we are forced to use the layout that's expected by the framebuffer.
-			if(subresourceTrackingState.FramebufferUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
+			const GpuResolvedRenderPassAttachmentUsage* const renderPassAttachment = FindRenderPassAttachment(image, subresourceTrackingState.Range);
+			if(renderPassAttachment != nullptr)
 			{
-				// Currently the system doesn't support image being bound to framebuffer, yet being written to by the
-				// shader. This seems like an unlikely scenario.
 				B3D_ASSERT(!accessFlags.IsSet(GpuAccessFlag::Write));
 			}
 			else
@@ -491,9 +504,8 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 				// Check if the image had a layout previously assigned, and if so check if multiple different layouts
 				// were requested. In that case we wish to transfer the image to GENERAL layout.
 
-				const bool firstUseInRenderPass = !subresourceTrackingState.ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write)
-					&& !subresourceTrackingState.FramebufferUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write);
-				if(firstUseInRenderPass || subresourceTrackingState.RequiredLayout == GpuImageLayout::Undefined)
+				const bool firstUseInAccessEpoch = subresourceTrackingState.AccessEpoch != mAccessEpoch;
+				if(firstUseInAccessEpoch || subresourceTrackingState.RequiredLayout == GpuImageLayout::Undefined)
 					subresourceTrackingState.RequiredLayout = layout;
 				else if(subresourceTrackingState.RequiredLayout != layout)
 					subresourceTrackingState.RequiredLayout = GpuImageLayout::General;
@@ -524,13 +536,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 	subresourceTrackingState.Access |= accessFlags;
 
 	if(isShaderUse)
-	{
-		subresourceTrackingState.ShaderUse |= accessFlags;
-		mRenderPassSubresources.insert(globalSubresourceIndex);
-	}
-
-	if(isFramebufferUse)
-		subresourceTrackingState.FramebufferUse |= accessFlags;
+		subresourceTrackingState.AccessEpoch = mAccessEpoch;
 }
 
 template<class TBarrierHelper>
@@ -875,7 +881,6 @@ u32 TGpuResourceTracker<TBarrierHelper>::AddSubresourceTrackingState(const GpuTe
 	subresourceTrackingState.CurrentLayout = GpuImageLayout::Undefined;
 	subresourceTrackingState.InitialLayout = GpuImageLayout::Undefined;
 	subresourceTrackingState.RequiredLayout = GpuImageLayout::Undefined;
-	subresourceTrackingState.RenderPassLayout = GpuImageLayout::Undefined;
 	subresourceTrackingState.Range = range;
 	subresourceTrackingState.HazardState = mHazardStatePool.Construct<GpuResourceHazardState>();
 
@@ -908,10 +913,6 @@ u32 TGpuResourceTracker<TBarrierHelper>::CopySubresourceTrackingStateWithNewRang
 		registrationCopy.State = subresourceCopy.HazardState;
 		mPendingHazardRegistrations.push_back(registrationCopy);
 	}
-
-	const u32 newSubresourceIndex = (u32)mSubresourceTrackingState.size();
-	if(copyFromSubresource->ShaderUse.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
-		mRenderPassSubresources.insert(newSubresourceIndex);
 
 	mSubresourceTrackingState.push_back(subresourceCopy);
 	return (u32)mSubresourceTrackingState.size() - 1;
@@ -955,6 +956,7 @@ void TGpuResourceTracker<TBarrierHelper>::CommitPendingHazardRegistrations()
 		registration.State->RecordAccess(registration.AccessStageFlags, registration.Access);
 
 	mPendingHazardRegistrations.clear();
+	mAccessEpoch++;
 }
 
 template<class TBarrierHelper>
@@ -1172,10 +1174,10 @@ void TGpuResourceTracker<TBarrierHelper>::Clear()
 	mSwapChains.clear();
 	mImageTrackingState.clear();
 	mSubresourceTrackingState.clear();
-	mRenderPassSubresources.clear();
 	mPendingRenderPassAttachments.Clear();
 	mActiveRenderPassAttachments.Clear();
 	mRenderPassTrackingPhase = RenderPassTrackingPhase::Inactive;
+	mAccessEpoch = 1;
 }
 
 	} // namespace render
