@@ -5,6 +5,7 @@
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuHazards.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuFramebuffer.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "Allocators/B3DPoolAlloc.h"
 #include "Utility/B3DDenseMap.h"
@@ -96,33 +97,6 @@ namespace b3d
 			 */
 			GpuImageLayout RequiredLayout;
 
-		};
-
-		/** Describes how one image subresource range is used as a render-pass attachment. */
-		struct GpuRenderPassAttachmentUsage
-		{
-			GpuRenderPassAttachmentUsage() = default;
-
-			IGpuImageResource* Image = nullptr; /**< Image bound by the attachment. */
-			GpuTextureSubresourceRange Range; /**< Subresources covered by this attachment aspect. */
-			GpuResourceUseFlags UseFlags; /**< Attachment role and fixed-function stages. */
-			GpuAccessFlags Access; /**< Access performed through the attachment. */
-			GpuImageLayout Layout = GpuImageLayout::Undefined; /**< Layout used when the attachment isn't sampled. */
-			TOptional<GpuImageLayout> ShaderReadLayout; /**< Layout supporting simultaneous attachment and shader reads, if available. */
-			TOptional<GpuImageLayout> FinalLayout; /**< Layout established when the render pass ends, or empty to retain the resolved access layout. */
-		};
-
-		/** Render-pass attachment usage after overlapping shader accesses have been resolved. */
-		struct GpuResolvedRenderPassAttachmentUsage
-		{
-			GpuResolvedRenderPassAttachmentUsage() = default;
-
-			IGpuImageResource* Image = nullptr; /**< Image bound by the attachment. */
-			GpuTextureSubresourceRange Range; /**< Subresources covered by this attachment aspect. */
-			GpuResourceUseFlags UseFlags; /**< Combined attachment and shader usage. */
-			GpuAccessFlags Access; /**< Combined access performed during the render pass. */
-			GpuImageLayout Layout = GpuImageLayout::Undefined; /**< Layout selected for the render pass. */
-			GpuImageLayout FinalLayout = GpuImageLayout::Undefined; /**< Layout established when the render pass ends. */
 		};
 
 		/**

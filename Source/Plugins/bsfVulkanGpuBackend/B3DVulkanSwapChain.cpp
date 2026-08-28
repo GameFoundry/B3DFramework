@@ -242,10 +242,8 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const TShared<Vul
 		framebufferInformation.Layers = 1;
 		framebufferInformation.Color[0].Image = mSurfaces[framebufferIndex].Image;
 		framebufferInformation.Color[0].Surface = TextureSurface::kComplete;
-		framebufferInformation.Color[0].BaseLayer = 0;
 		framebufferInformation.Depth.Image = mDepthStencilImage;
 		framebufferInformation.Depth.Surface = TextureSurface::kComplete;
-		framebufferInformation.Depth.BaseLayer = 0;
 
 		mSurfaces[framebufferIndex].Framebuffer = owner->Create<VulkanFramebuffer>(renderPass, framebufferInformation);
 	}

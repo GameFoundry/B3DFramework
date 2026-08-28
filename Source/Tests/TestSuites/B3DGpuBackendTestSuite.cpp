@@ -62,6 +62,17 @@ namespace
 		}
 	};
 
+	class SubmissionTestFramebuffer : public GpuFramebuffer
+	{
+	public:
+		SubmissionTestFramebuffer(u32 width, u32 height, u32 layerCount)
+			: GpuFramebuffer(width, height, layerCount)
+		{ }
+
+		using GpuFramebuffer::AddColorAttachment;
+		using GpuFramebuffer::AddDepthStencilAttachment;
+	};
+
 	class SubmissionImageTestVisitor : public GpuSubmissionTransitionVisitor
 	{
 	public:
@@ -165,6 +176,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestSubmissionTransitionPlanning)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestImageAspectTracking)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestImageAccessEpochTracking)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestFramebufferAttachmentUsage)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRenderPassResourceTracking)
 }
 
@@ -274,6 +286,58 @@ void GpuBackendTestSuite::TestImageAccessEpochTracking()
 	tracker.Clear();
 }
 
+void GpuBackendTestSuite::TestFramebufferAttachmentUsage()
+{
+	SubmissionTestImage colorImage(4, 2, GpuTextureAspectFlag::Color);
+	SubmissionTestImage depthStencilImage(2, 1, GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil);
+	SubmissionTestFramebuffer framebuffer(640, 480, 2);
+
+	const GpuTextureSubresourceRange colorRange(1, 1, 2, 2, GpuTextureAspectFlag::Color);
+	const GpuTextureSubresourceRange depthStencilRange(0, 1, 1, 1, GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil);
+	framebuffer.AddColorAttachment(colorImage, colorRange, 3, GpuImageLayout::TransferSource);
+	framebuffer.AddDepthStencilAttachment(depthStencilImage, depthStencilRange, GpuImageLayout::General);
+
+	B3D_TEST_ASSERT(framebuffer.GetWidth() == 640)
+	B3D_TEST_ASSERT(framebuffer.GetHeight() == 480)
+	B3D_TEST_ASSERT(framebuffer.GetLayerCount() == 2)
+	B3D_TEST_ASSERT(framebuffer.GetAttachmentCount() == 3)
+	B3D_TEST_ASSERT(framebuffer.GetColorAttachmentCount() == 1)
+	B3D_TEST_ASSERT(framebuffer.FindAttachment(RT_COLOR0) == nullptr)
+	B3D_TEST_ASSERT(framebuffer.FindAttachment(RT_COLOR3)->GetIndex() == 3)
+	B3D_TEST_ASSERT(framebuffer.FindAttachment(RT_DEPTH)->GetIndex() == 0)
+	B3D_TEST_ASSERT(framebuffer.FindAttachment(RT_STENCIL)->GetIndex() == 0)
+	B3D_TEST_ASSERT(framebuffer.FindAttachment(RT_DEPTH)->Range.AspectMask == GpuTextureAspectFlag::Depth)
+	B3D_TEST_ASSERT(framebuffer.FindAttachment(RT_STENCIL)->Range.AspectMask == GpuTextureAspectFlag::Stencil)
+
+	const GpuFramebufferLayoutPolicy layoutPolicy(
+		GpuRenderPassAttachmentLayout(GpuImageLayout::ColorAttachment),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::General, GpuImageLayout::ShaderReadOnly),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthReadOnlyStencilAttachment, GpuImageLayout::DepthStencilReadOnly),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthAttachmentStencilReadOnly, GpuImageLayout::DepthStencilReadOnly),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilReadOnly, GpuImageLayout::DepthStencilReadOnly),
+		GpuImageLayout::Undefined);
+	const RenderSurfaceMask readOnlyMask = RT_COLOR3 | RT_DEPTH;
+	const RenderSurfaceMask loadMask = RT_COLOR3 | RT_STENCIL;
+	const GpuRenderPassAttachmentUsageArray attachmentUsages = framebuffer.BuildRenderPassAttachmentUsages(readOnlyMask, loadMask, layoutPolicy);
+
+	B3D_TEST_ASSERT(attachmentUsages.Size() == 3)
+	B3D_TEST_ASSERT(attachmentUsages[0].Surface == RT_COLOR3)
+	B3D_TEST_ASSERT(attachmentUsages[0].Access == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(attachmentUsages[0].Layout == GpuImageLayout::General)
+	B3D_TEST_ASSERT(attachmentUsages[0].ShaderReadLayout == GpuImageLayout::ShaderReadOnly)
+	B3D_TEST_ASSERT(attachmentUsages[0].FinalLayout == GpuImageLayout::TransferSource)
+	B3D_TEST_ASSERT(attachmentUsages[1].Surface == RT_DEPTH)
+	B3D_TEST_ASSERT(attachmentUsages[1].Access == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(attachmentUsages[1].Layout == GpuImageLayout::Undefined)
+	B3D_TEST_ASSERT(attachmentUsages[1].ShaderReadLayout == GpuImageLayout::DepthStencilReadOnly)
+	B3D_TEST_ASSERT(attachmentUsages[2].Surface == RT_STENCIL)
+	B3D_TEST_ASSERT(attachmentUsages[2].Access == GpuAccessFlag::Write)
+	B3D_TEST_ASSERT(attachmentUsages[2].Layout == GpuImageLayout::DepthReadOnlyStencilAttachment)
+	B3D_TEST_ASSERT(!attachmentUsages[2].ShaderReadLayout.has_value())
+	B3D_TEST_ASSERT(attachmentUsages[2].FinalLayout == GpuImageLayout::General)
+}
+
 void GpuBackendTestSuite::TestRenderPassResourceTracking()
 {
 	SubmissionTestImage image(2, 2, GpuTextureAspectFlag::Color);
@@ -284,6 +348,7 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 	GpuRenderPassAttachmentUsage attachmentUsage;
 	attachmentUsage.Image = &image;
 	attachmentUsage.Range = attachmentRange;
+	attachmentUsage.Surface = RT_COLOR2;
 	attachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
 	attachmentUsage.Access = GpuAccessFlag::Read;
 	attachmentUsage.Layout = GpuImageLayout::ColorAttachment;
@@ -304,6 +369,7 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 	GpuResourceUseFlags combinedUse = shaderUse;
 	combinedUse |= GpuResourceUseFlag::ColorAttachment;
 	B3D_TEST_ASSERT(resolvedAttachments.Size() == 1)
+	B3D_TEST_ASSERT(resolvedAttachments[0].Surface == RT_COLOR2)
 	B3D_TEST_ASSERT(resolvedAttachments[0].UseFlags == combinedUse)
 	B3D_TEST_ASSERT(resolvedAttachments[0].Access == GpuAccessFlag::Read)
 	B3D_TEST_ASSERT(resolvedAttachments[0].Layout == GpuImageLayout::ShaderReadOnly)

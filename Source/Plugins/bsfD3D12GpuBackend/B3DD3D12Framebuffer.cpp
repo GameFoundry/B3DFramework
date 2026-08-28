@@ -142,7 +142,7 @@ namespace
 }
 
 D3D12Framebuffer::D3D12Framebuffer(const D3D12FramebufferCreateInformation& createInformation)
-	: mWidth(createInformation.Width), mHeight(createInformation.Height)
+	: GpuFramebuffer(createInformation.Width, createInformation.Height)
 {
 	bool hasSampleCount = false;
 	auto fnRecordSampleCount = [this, &hasSampleCount](D3D12Image& image)
@@ -163,17 +163,13 @@ D3D12Framebuffer::D3D12Framebuffer(const D3D12FramebufferCreateInformation& crea
 		if (attachment.Image == nullptr || attachment.Image->GetD3D12Resource() == nullptr)
 			continue;
 
-		const u32 attachmentIndex = mColorAttachmentCount;
+		const u32 attachmentIndex = GetColorAttachmentCount();
 		if (!CreateRenderTargetView(attachmentIndex, attachment))
 			continue;
 
-		D3D12FramebufferAttachment& storedAttachment = mAttachments[attachmentIndex];
-		storedAttachment.Image = attachment.Image;
-		storedAttachment.Surface = attachment.Surface;
-		storedAttachment.ColorIndex = colorIndex;
+		AddColorAttachment(*attachment.Image, attachment.Image->GetRange(attachment.Surface), colorIndex, attachment.FinalLayout);
 
 		mColorFormats[attachmentIndex] = attachment.Image->GetDXGIFormat();
-		mColorAttachmentCount++;
 
 		fnRecordSampleCount(*attachment.Image);
 	}
@@ -182,10 +178,7 @@ D3D12Framebuffer::D3D12Framebuffer(const D3D12FramebufferCreateInformation& crea
 	if (depthStencil.Image == nullptr || depthStencil.Image->GetD3D12Resource() == nullptr || !CreateDepthStencilViews(depthStencil))
 		return;
 
-	D3D12FramebufferAttachment& storedDepthStencil = mAttachments[mColorAttachmentCount];
-	storedDepthStencil.Image = depthStencil.Image;
-	storedDepthStencil.Surface = depthStencil.Surface;
-	storedDepthStencil.IsDepthStencil = true;
+	AddDepthStencilAttachment(*depthStencil.Image, depthStencil.Image->GetRange(depthStencil.Surface), depthStencil.FinalLayout);
 
 	mDepthStencilFormat = depthStencil.Image->GetDXGIFormat();
 
@@ -211,7 +204,7 @@ D3D12Framebuffer::~D3D12Framebuffer()
 
 const D3D12_CPU_DESCRIPTOR_HANDLE* D3D12Framebuffer::GetDepthStencilView(RenderSurfaceMask readOnlyMask) const
 {
-	if(GetDepthStencilAttachment().Image == nullptr)
+	if(FindAttachment(RT_DEPTH) == nullptr && FindAttachment(RT_STENCIL) == nullptr)
 		return nullptr;
 
 	u32 viewIndex = readOnlyMask.IsSet(RT_DEPTH) ? 1u : 0u;
@@ -219,6 +212,19 @@ const D3D12_CPU_DESCRIPTOR_HANDLE* D3D12Framebuffer::GetDepthStencilView(RenderS
 		viewIndex |= 2u;
 
 	return &mDepthStencilViews[viewIndex];
+}
+
+const GpuFramebufferLayoutPolicy& D3D12Framebuffer::GetLayoutPolicy()
+{
+	static const GpuFramebufferLayoutPolicy policy(
+		GpuRenderPassAttachmentLayout(GpuImageLayout::ColorAttachment),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilReadOnly),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilReadOnly),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilReadOnly));
+
+	return policy;
 }
 
 bool D3D12Framebuffer::CreateRenderTargetView(u32 attachmentIndex, const D3D12FramebufferAttachmentCreateInformation& attachment)

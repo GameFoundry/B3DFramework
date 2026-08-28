@@ -28,6 +28,9 @@ namespace b3d
 		/** Verifies incompatible shader layouts are coalesced only within one access epoch. */
 		void TestImageAccessEpochTracking();
 
+		/** Verifies framebuffer attachment normalization and render-pass usage construction. */
+		void TestFramebufferAttachmentUsage();
+
 		/** Verifies render-pass attachment and shader usage is combined through core subresource partitions. */
 		void TestRenderPassResourceTracking();
 	};

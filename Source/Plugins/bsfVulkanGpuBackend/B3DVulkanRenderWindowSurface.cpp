@@ -4,6 +4,7 @@
 #include "B3DVulkanFramebuffer.h"
 #include "B3DVulkanGpuBackend.h"
 #include "B3DVulkanGpuQueue.h"
+#include "B3DVulkanTexture.h"
 #include "GpuBackend/B3DGpuSubmitThread.h"
 #include "B3DVulkanSwapChain.h"
 
@@ -202,7 +203,7 @@ VulkanImage* VulkanRenderWindowSurface::GetCurrentColorImage() const
 	if(framebuffer == nullptr)
 		return nullptr;
 
-	return framebuffer->GetColorAttachment(0).Image;
+	return static_cast<VulkanImage*>(framebuffer->GetColorAttachments()[0].Image);
 }
 
 PixelFormat VulkanRenderWindowSurface::GetColorPixelFormat() const

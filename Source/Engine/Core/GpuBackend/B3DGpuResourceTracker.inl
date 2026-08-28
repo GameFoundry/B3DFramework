@@ -199,6 +199,7 @@ TArrayView<const GpuResolvedRenderPassAttachmentUsage> TGpuResourceTracker<TBarr
 		GpuResolvedRenderPassAttachmentUsage resolvedAttachment;
 		resolvedAttachment.Image = attachment.Image;
 		resolvedAttachment.Range = attachment.Range;
+		resolvedAttachment.Surface = attachment.Surface;
 		resolvedAttachment.UseFlags = attachment.UseFlags | pendingAttachment.ShaderUseFlags;
 		resolvedAttachment.Access = attachment.Access;
 		resolvedAttachment.Layout = attachment.Layout;

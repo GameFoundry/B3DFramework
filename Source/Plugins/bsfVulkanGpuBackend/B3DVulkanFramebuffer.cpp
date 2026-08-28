@@ -12,7 +12,7 @@ using namespace b3d::render;
 u32 VulkanFramebuffer::sNextValidId = 1;
 
 VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, VulkanRenderPass* renderPass, const VulkanFramebufferInformation& desc, const StringView& name)
-	: VulkanResource(owner, false, name), mRenderPass(renderPass), mWidth(desc.Width), mHeight(desc.Height), mNumLayers(desc.Layers)
+	: VulkanResource(owner, false, name), GpuFramebuffer(desc.Width, desc.Height, desc.Layers), mRenderPass(renderPass)
 {
 	mId = sNextValidId++;
 
@@ -25,32 +25,24 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, VulkanRenderP
 		if(desc.Color[i].Image == nullptr)
 			continue;
 
-		mColorAttachments[attachmentIdx].BaseLayer = desc.Color[i].BaseLayer;
-		mColorAttachments[attachmentIdx].Image = desc.Color[i].Image;
-		mColorAttachments[attachmentIdx].FinalLayout = renderPass->GetColorAttachmentFinalLayout(attachmentIdx);
-		mColorAttachments[attachmentIdx].Index = i;
-		mColorAttachments[attachmentIdx].Surface = desc.Color[i].Surface;
-
 		if(desc.Color[i].Surface.MipLevelCount == 0)
 			attachmentViews[attachmentIdx] = desc.Color[i].Image->GetView(true).Handle;
 		else
 			attachmentViews[attachmentIdx] = desc.Color[i].Image->GetView(desc.Color[i].Surface, true).Handle;
+
+		AddColorAttachment(*desc.Color[i].Image, desc.Color[i].Image->GetRange(desc.Color[i].Surface), i, renderPass->GetColorAttachmentFinalLayout(attachmentIdx));
 
 		attachmentIdx++;
 	}
 
 	if(renderPass->HasDepthAttachment())
 	{
-		mDepthStencilAttachment.BaseLayer = desc.Depth.BaseLayer;
-		mDepthStencilAttachment.Image = desc.Depth.Image;
-		mDepthStencilAttachment.FinalLayout = renderPass->GetDepthAttachmentFinalLayout();
-		mDepthStencilAttachment.Index = 0;
-		mDepthStencilAttachment.Surface = desc.Depth.Surface;
-
 		if(desc.Depth.Surface.MipLevelCount == 0)
 			attachmentViews[attachmentIdx] = desc.Depth.Image->GetView(true).Handle;
 		else
 			attachmentViews[attachmentIdx] = desc.Depth.Image->GetView(desc.Depth.Surface, true).Handle;
+
+		AddDepthStencilAttachment(*desc.Depth.Image, desc.Depth.Image->GetRange(desc.Depth.Surface), renderPass->GetDepthAttachmentFinalLayout());
 
 		attachmentIdx++;
 	}
@@ -76,6 +68,20 @@ VulkanFramebuffer::~VulkanFramebuffer()
 {
 	VkDevice device = mOwner->GetDevice().GetLogical();
 	vkDestroyFramebuffer(device, mVkFramebuffer, gVulkanAllocator);
+}
+
+const GpuFramebufferLayoutPolicy& VulkanFramebuffer::GetLayoutPolicy()
+{
+	static const GpuFramebufferLayoutPolicy policy(
+		GpuRenderPassAttachmentLayout(GpuImageLayout::ColorAttachment),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::General, GpuImageLayout::General),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthReadOnlyStencilAttachment, GpuImageLayout::DepthReadOnlyStencilAttachment),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthAttachmentStencilReadOnly, GpuImageLayout::DepthAttachmentStencilReadOnly),
+		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilReadOnly, GpuImageLayout::DepthStencilReadOnly),
+		GpuImageLayout::Undefined);
+
+	return policy;
 }
 
 

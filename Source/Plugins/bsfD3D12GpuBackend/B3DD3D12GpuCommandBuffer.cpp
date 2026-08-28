@@ -560,73 +560,11 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 	if (!mIsScissorTestEnabled)
 		mScissorRequiresBind = true;
 
-	TInlineArray<GpuRenderPassAttachmentUsage, B3D_MAXIMUM_RENDER_TARGET_COUNT + 2> renderPassAttachments;
+	GpuRenderPassAttachmentUsageArray renderPassAttachmentUsages;
 	if(mFramebuffer != nullptr)
-	{
-		for(u32 attachmentIndex = 0; attachmentIndex < mFramebuffer->GetAttachmentCount(); attachmentIndex++)
-		{
-			const D3D12FramebufferAttachment& attachment = mFramebuffer->GetAttachments()[attachmentIndex];
-			const GpuTextureSubresourceRange attachmentRange = attachment.Image->GetRange(attachment.Surface);
-			if(!attachment.IsDepthStencil)
-			{
-				const bool readOnly = mRenderTargetReadOnlyMask.IsSet((RenderSurfaceMaskBits)(1u << attachment.ColorIndex));
+		renderPassAttachmentUsages = mFramebuffer->BuildRenderPassAttachmentUsages(mRenderTargetReadOnlyMask, createInformation.LoadMask, D3D12Framebuffer::GetLayoutPolicy());
 
-				GpuRenderPassAttachmentUsage attachmentUsage;
-				attachmentUsage.Image = attachment.Image;
-				attachmentUsage.Range = attachmentRange;
-				attachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
-				attachmentUsage.Access = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
-				attachmentUsage.Layout = readOnly ? GpuImageLayout::ShaderReadOnly : GpuImageLayout::ColorAttachment;
-
-				if(target->GetProperties().IsWindow)
-					attachmentUsage.FinalLayout = GpuImageLayout::Present;
-
-				if(readOnly)
-					attachmentUsage.ShaderReadLayout = GpuImageLayout::ShaderReadOnly;
-
-				renderPassAttachments.Add(std::move(attachmentUsage));
-				continue;
-			}
-
-			if(attachmentRange.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
-			{
-				const bool readOnly = mRenderTargetReadOnlyMask.IsSet(RT_DEPTH);
-
-				GpuRenderPassAttachmentUsage attachmentUsage;
-				attachmentUsage.Image = attachment.Image;
-				attachmentUsage.Range = attachmentRange;
-				attachmentUsage.Range.AspectMask = GpuTextureAspectFlag::Depth;
-				attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
-				attachmentUsage.Access = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
-				attachmentUsage.Layout = GpuImageLayout::DepthStencilAttachment;
-
-				if(readOnly)
-					attachmentUsage.ShaderReadLayout = GpuImageLayout::DepthStencilReadOnly;
-
-				renderPassAttachments.Add(std::move(attachmentUsage));
-			}
-
-			if(attachmentRange.AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
-			{
-				const bool readOnly = mRenderTargetReadOnlyMask.IsSet(RT_STENCIL);
-
-				GpuRenderPassAttachmentUsage attachmentUsage;
-				attachmentUsage.Image = attachment.Image;
-				attachmentUsage.Range = attachmentRange;
-				attachmentUsage.Range.AspectMask = GpuTextureAspectFlag::Stencil;
-				attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
-				attachmentUsage.Access = readOnly ? GpuAccessFlag::Read : GpuAccessFlag::Write;
-				attachmentUsage.Layout = GpuImageLayout::DepthStencilAttachment;
-
-				if(readOnly)
-					attachmentUsage.ShaderReadLayout = GpuImageLayout::DepthStencilReadOnly;
-
-				renderPassAttachments.Add(std::move(attachmentUsage));
-			}
-		}
-	}
-
-	mResourceTracker.PrepareRenderPass(renderPassAttachments);
+	mResourceTracker.PrepareRenderPass(renderPassAttachmentUsages);
 
 	// Register parameter resources once, collecting shader reads that overlap attachments before their transitions are resolved.
 	for (const TShared<GpuParameterSet>& parameterSet : createInformation.Parameters)
@@ -706,11 +644,12 @@ void D3D12GpuCommandBuffer::ClearViewportArea(const Area2I& area, RenderSurfaceM
 
 	// Clear color attachments
 	const D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandles = mFramebuffer->GetRenderTargetViews();
+	const TArrayView<const GpuFramebufferAttachment> colorAttachments = mFramebuffer->GetColorAttachments();
 	const u32 renderTargetCount = mFramebuffer->GetColorAttachmentCount();
 
 	for (u32 renderTargetIndex = 0; renderTargetIndex < renderTargetCount; renderTargetIndex++)
 	{
-		const u32 colorIndex = mFramebuffer->GetColorAttachment(renderTargetIndex).ColorIndex;
+		const u32 colorIndex = colorAttachments[renderTargetIndex].GetIndex();
 		if (!mask.IsSet((RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex)))
 			continue;
 
@@ -918,20 +857,15 @@ void D3D12GpuCommandBuffer::EndRenderPass()
 		// Swap-chain back buffers must be in PRESENT (COMMON) state by the time the queue presents; there is no
 		// other point in the frame where a transition can be recorded, so it happens as the pass ends (Vulkan
 		// analog: finalLayout = PRESENT_SRC on window render passes).
-		if (mRenderTarget != nullptr && mRenderTarget->GetProperties().IsWindow)
+		for(const GpuFramebufferAttachment& attachment : mFramebuffer->GetColorAttachments())
 		{
-			const u32 colorAttachmentCount = mFramebuffer->GetColorAttachmentCount();
-			for (u32 colorIndex = 0; colorIndex < colorAttachmentCount; colorIndex++)
-			{
-				const D3D12FramebufferAttachment& attachment = mFramebuffer->GetColorAttachment(colorIndex);
-				if (attachment.Image == nullptr)
-					continue;
+			if(attachment.FinalLayout != GpuImageLayout::Present)
+				continue;
 
-				mResourceTracker.TrackImageUsage(attachment.Image, attachment.Image->GetRange(attachment.Surface), GpuImageLayout::Present, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read, mBarrierHelper);
-			}
-
-			mBarrierHelper.Execute(*this);
+			mResourceTracker.TrackImageUsage(static_cast<D3D12Image*>(attachment.Image), attachment.Range, GpuImageLayout::Present, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read, mBarrierHelper);
 		}
+
+		mBarrierHelper.Execute(*this);
 	}
 
 	mResourceTracker.EndRenderPass();
@@ -1522,28 +1456,9 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		if(framebuffer == nullptr)
 			continue;
 
-		auto fnAddAttachmentBarrier = [this, &barrier](const D3D12FramebufferAttachment& attachment)
-		{
-			if(attachment.Image == nullptr)
-				return;
-
-			const GpuTextureSubresourceRange range = attachment.Image->GetRange(attachment.Surface);
-
-			mResourceTracker.TrackExplicitImageBarrier(attachment.Image, range, barrier.DestinationUsage, barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
-		};
-
-		for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
-		{
-			const RenderSurfaceMaskBits colorMask = static_cast<RenderSurfaceMaskBits>(RT_COLOR0 << colorIndex);
-			if(barrier.SurfaceMask == colorMask)
-			{
-				fnAddAttachmentBarrier(framebuffer->GetColorAttachment(colorIndex));
-				break;
-			}
-		}
-
-		if(barrier.SurfaceMask == RT_DEPTH || barrier.SurfaceMask == RT_STENCIL)
-			fnAddAttachmentBarrier(framebuffer->GetDepthStencilAttachment());
+		const GpuFramebufferAttachment* const attachment = framebuffer->FindAttachment(barrier.SurfaceMask);
+		if(attachment != nullptr)
+			mResourceTracker.TrackExplicitImageBarrier(attachment->Image, attachment->Range, barrier.DestinationUsage, barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
 	}
 
 	mBarrierHelper.Execute(*this);

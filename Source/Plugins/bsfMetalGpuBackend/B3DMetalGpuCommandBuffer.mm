@@ -1438,7 +1438,7 @@ namespace b3d
 
 			const RenderSurfaceMask clearMask = createInformation.ClearMask;
 			const RenderSurfaceMask loadMask = createInformation.LoadMask;
-			TInlineArray<GpuRenderPassAttachmentUsage, B3D_MAXIMUM_RENDER_TARGET_COUNT + 2> renderPassAttachments;
+			GpuRenderPassAttachmentUsageArray renderPassAttachmentUsages;
 
 			if (targetProps.IsWindow)
 			{
@@ -1558,11 +1558,12 @@ namespace b3d
 						GpuRenderPassAttachmentUsage attachmentUsage;
 						attachmentUsage.Image = image;
 						attachmentUsage.Range = range;
+						attachmentUsage.Surface = bit;
 						attachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
 						attachmentUsage.Access = loadMask.IsSet(bit) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
 						attachmentUsage.Layout = GpuImageLayout::ColorAttachment;
 
-						renderPassAttachments.Add(std::move(attachmentUsage));
+					renderPassAttachmentUsages.Add(std::move(attachmentUsage));
 					}
 				}
 
@@ -1629,11 +1630,12 @@ namespace b3d
 								GpuRenderPassAttachmentUsage attachmentUsage;
 								attachmentUsage.Image = image;
 								attachmentUsage.Range = range;
+								attachmentUsage.Surface = RT_DEPTH;
 								attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
 								attachmentUsage.Access = loadMask.IsSet(RT_DEPTH) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
 								attachmentUsage.Layout = GpuImageLayout::DepthStencilAttachment;
 
-								renderPassAttachments.Add(std::move(attachmentUsage));
+								renderPassAttachmentUsages.Add(std::move(attachmentUsage));
 							}
 
 							if(image->GetRange().AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
@@ -1642,18 +1644,19 @@ namespace b3d
 								GpuRenderPassAttachmentUsage attachmentUsage;
 								attachmentUsage.Image = image;
 								attachmentUsage.Range = range;
+								attachmentUsage.Surface = RT_STENCIL;
 								attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
 								attachmentUsage.Access = loadMask.IsSet(RT_STENCIL) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
 								attachmentUsage.Layout = GpuImageLayout::DepthStencilAttachment;
 
-								renderPassAttachments.Add(std::move(attachmentUsage));
+								renderPassAttachmentUsages.Add(std::move(attachmentUsage));
 							}
 						}
 					}
 				}
 			}
 
-			mResourceTracker.PrepareRenderPass(renderPassAttachments);
+			mResourceTracker.PrepareRenderPass(renderPassAttachmentUsages);
 			mResourceTracker.BeginRenderPass(mBarrierHelper);
 			mRenderPassTrackingActive = true;
 

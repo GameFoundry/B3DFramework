@@ -195,6 +195,7 @@ void D3D12SwapChain::Initialize()
 		framebufferCreateInformation.Width = mWidth;
 		framebufferCreateInformation.Height = mHeight;
 		framebufferCreateInformation.ColorAttachments[0].Image = GetBackBufferImage(backBufferIndex);
+		framebufferCreateInformation.ColorAttachments[0].FinalLayout = GpuImageLayout::Present;
 		framebufferCreateInformation.DepthStencilAttachment.Image = mDepthStencilImage;
 
 		mFramebuffers[backBufferIndex] = B3DNew<D3D12Framebuffer>(framebufferCreateInformation);

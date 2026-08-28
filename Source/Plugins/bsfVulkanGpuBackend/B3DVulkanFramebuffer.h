@@ -5,6 +5,7 @@
 #include "B3DVulkanPrerequisites.h"
 #include "B3DVulkanRenderPass.h"
 #include "B3DVulkanResource.h"
+#include "GpuBackend/B3DGpuFramebuffer.h"
 
 namespace b3d
 {
@@ -24,9 +25,6 @@ namespace b3d
 
 			/** Surface representing the sub-resource of the image to use as an attachment. */
 			TextureSurface Surface;
-
-			/** Initial layer of the surface as pointed to by the provided image view. */
-			u32 BaseLayer = 0;
 		};
 
 		/** Contains parameters used for initializing VulkanFrameBuffer object. */
@@ -48,18 +46,8 @@ namespace b3d
 			u32 Layers = 0;
 		};
 
-		/** Information about a single framebuffer attachment. */
-		struct VulkanFramebufferAttachment
-		{
-			VulkanImage* Image = nullptr;
-			TextureSurface Surface;
-			u32 BaseLayer = 0;
-			GpuImageLayout FinalLayout = GpuImageLayout::Undefined;
-			u32 Index = 0;
-		};
-
 		/** Vulkan frame buffer containing one or multiple color surfaces, and an optional depth surface. */
-		class VulkanFramebuffer : public VulkanResource
+		class VulkanFramebuffer : public VulkanResource, public GpuFramebuffer
 		{
 		public:
 			/** Creates a new frame buffer with the specified image views attached.
@@ -78,40 +66,19 @@ namespace b3d
 			/** Returns a unique ID of this framebuffer. */
 			u32 GetId() const { return mId; }
 
-			/** Returns the width of the framebuffer, in pixels. */
-			u32 GetWidth() const { return mWidth; }
-
-			/** Returns the height of the framebuffer, in pixels. */
-			u32 GetHeight() const { return mHeight; }
-
 			/** Gets the internal Vulkan framebuffer object. */
 			VkFramebuffer GetVulkanHandle() const { return mVkFramebuffer; }
 
 			/** Returns the render pass that this framebuffer is tied to. */
 			VulkanRenderPass* GetRenderPass() const { return mRenderPass; }
 
-			/**
-			 * Gets the number of layers in each framebuffer surface. A layer is an element in a texture array, or a depth
-			 * slice in a 3D texture).
-			 */
-			u32 GetLayerCount() const { return mNumLayers; }
-
-			/** Returns information about a color attachment at the specified index. */
-			const VulkanFramebufferAttachment& GetColorAttachment(u32 colorIdx) const { return mColorAttachments[colorIdx]; }
-
-			/** Returns information about a depth-stencil attachment. */
-			const VulkanFramebufferAttachment& GetDepthStencilAttachment() const { return mDepthStencilAttachment; }
+			/** Returns the layout policy used for Vulkan render-pass tracking. */
+			static const GpuFramebufferLayoutPolicy& GetLayoutPolicy();
 
 		private:
 			u32 mId;
 			VkFramebuffer mVkFramebuffer;
 			VulkanRenderPass* mRenderPass;
-
-			u32 mWidth;
-			u32 mHeight;
-			u32 mNumLayers;
-			VulkanFramebufferAttachment mColorAttachments[B3D_MAXIMUM_RENDER_TARGET_COUNT]{};
-			VulkanFramebufferAttachment mDepthStencilAttachment;
 
 			static u32 sNextValidId;
 		};

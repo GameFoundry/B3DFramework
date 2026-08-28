@@ -66,7 +66,6 @@ void VulkanRenderTexture::Initialize()
 			surface.Face = 0;
 			surface.FaceCount = layerCount;
 
-			framebufferInformation.Color[renderTargetIndex].BaseLayer = 0;
 			framebufferInformation.Layers = layerCount;
 		}
 		else
@@ -74,7 +73,6 @@ void VulkanRenderTexture::Initialize()
 			surface.Face = viewSurface.Face;
 			surface.FaceCount = viewExplicitLayerCount;
 
-			framebufferInformation.Color[renderTargetIndex].BaseLayer = viewSurface.Face;
 			framebufferInformation.Layers = viewExplicitLayerCount;
 		}
 
@@ -126,7 +124,6 @@ void VulkanRenderTexture::Initialize()
 
 			framebufferInformation.Depth.Image = image;
 			framebufferInformation.Depth.Surface = surface;
-			framebufferInformation.Depth.BaseLayer = viewSurface.Face;
 
 			renderPassInformation.DepthAttachment.IsEnabled = true;
 			renderPassInformation.DepthAttachment.IsShaderReadAllowed = image->IsShaderReadAllowed();

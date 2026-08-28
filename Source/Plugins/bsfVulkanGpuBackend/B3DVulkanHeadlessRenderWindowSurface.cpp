@@ -112,10 +112,8 @@ void VulkanHeadlessRenderWindowSurface::CreateSwapChainImages()
 		framebufferInformation.Layers = 1;
 		framebufferInformation.Color[0].Image = mColorImages[imageIndex];
 		framebufferInformation.Color[0].Surface = TextureSurface::kComplete;
-		framebufferInformation.Color[0].BaseLayer = 0;
 		framebufferInformation.Depth.Image = mDepthImage;
 		framebufferInformation.Depth.Surface = TextureSurface::kComplete;
-		framebufferInformation.Depth.BaseLayer = 0;
 
 		mFramebuffers[imageIndex] = resourceManager->Create<VulkanFramebuffer>(renderPass, framebufferInformation);
 	}
