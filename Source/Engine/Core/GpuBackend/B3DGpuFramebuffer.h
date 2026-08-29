@@ -26,6 +26,7 @@ namespace b3d
 			RenderSurfaceMaskBits Surface = RT_NONE; /**< Logical render-target surface represented by this entry. */
 			GpuResourceUseFlags UseFlags; /**< Describes attachment usage (color or depth attachment). */
 			GpuAccessFlags Access; /**< Access performed through the attachment. */
+			GpuImageBarrierFlags BarrierFlags; /**< Behavior requested from the barrier preceding attachment access. */
 			GpuImageLayout Layout = GpuImageLayout::Undefined; /**< Layout used when the attachment isn't sampled. */
 			TOptional<GpuImageLayout> ShaderReadLayout; /**< Layout supporting simultaneous attachment and shader reads, if available. */
 			TOptional<GpuImageLayout> FinalLayout; /**< Layout established when the render pass ends, or empty to retain the resolved access layout. */
@@ -41,6 +42,7 @@ namespace b3d
 			RenderSurfaceMaskBits Surface = RT_NONE; /**< Logical render-target surface represented by this entry. */
 			GpuResourceUseFlags UseFlags; /**< Describes combined shader and attachment usage. */
 			GpuAccessFlags Access; /**< Combined access performed during the render pass. */
+			GpuImageBarrierFlags BarrierFlags; /**< Behavior requested from the barrier preceding attachment access. */
 			GpuImageLayout Layout = GpuImageLayout::Undefined; /**< Layout selected for the render pass. */
 			GpuImageLayout FinalLayout = GpuImageLayout::Undefined; /**< Layout established when the render pass ends. */
 		};

@@ -220,7 +220,7 @@ void VulkanBarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, 
 	mBarrierBatch.AddBufferBarrier(bufferHandle, barrier);
 }
 
-void VulkanBarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout)
+void VulkanBarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags)
 {
 	const VkImage imageHandle = static_cast<VulkanImage*>(image)->GetVulkanHandle();
 	const VkImageLayout vkOldLayout = VulkanUtility::ToVkImageLayout(oldLayout);

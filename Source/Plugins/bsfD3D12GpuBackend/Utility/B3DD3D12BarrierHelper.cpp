@@ -22,17 +22,20 @@ D3D12BarrierHelper::D3D12BarrierHelper(D3D12ResourceTracker* resourceTracker, Gp
 	: TGpuBarrierHelper<D3D12BarrierHelper>(resourceTracker), mQueueType(queueType)
 { }
 
-void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout)
+void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags)
 {
 	D3D12Image* const d3d12Image = static_cast<D3D12Image*>(image);
-	const D3D12TextureLayout nativeOldLayout = d3d12Image->GetTextureLayout(oldLayout, mQueueType);
+	const bool discardContents = barrierFlags.IsSet(GpuImageBarrierFlag::DiscardContents);
+	const GpuImageLayout barrierOldLayout = discardContents ? GpuImageLayout::Undefined : oldLayout;
+	const D3D12TextureLayout nativeOldLayout = discardContents ? D3D12TextureLayout::Undefined() : d3d12Image->GetTextureLayout(oldLayout, mQueueType);
 	const D3D12TextureLayout nativeNewLayout = d3d12Image->GetTextureLayout(newLayout, mQueueType);
+	const D3D12_TEXTURE_BARRIER_FLAGS nativeBarrierFlags = discardContents ? D3D12_TEXTURE_BARRIER_FLAG_DISCARD : D3D12_TEXTURE_BARRIER_FLAG_NONE;
 
 	if(!B3D_ENSURE_LOG(mQueueType != GQT_TRANSFER || (nativeOldLayout == D3D12TextureLayout::Common() && nativeNewLayout == D3D12TextureLayout::Common()), "D3D12 copy queues cannot record texture layout transitions."))
 		return;
 
 	// If it a texture has a layout, it must have an access scope
-	B3D_ASSERT(oldLayout == GpuImageLayout::Undefined || barrier.SourceAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write));
+	B3D_ASSERT(barrierOldLayout == GpuImageLayout::Undefined || barrier.SourceAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write));
 
 	auto found = std::find_if(mPendingImageBarriers.begin(), mPendingImageBarriers.end(), [image, &range](const PendingImageBarrier& pendingBarrier)
 	{
@@ -56,13 +59,17 @@ void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, cons
 		}
 
 		found->NewLayout = newLayout;
+		found->BarrierFlags |= barrierFlags;
 		found->PrecedingBarrierDestinationStages |= GetPrecedingBarrierDestinationStages(image, range);
 
 		oldLayout = found->OldLayout;
 
-		const D3D12TextureLayout resolvedOldLayout = d3d12Image->GetTextureLayout(found->OldLayout, mQueueType);
+		const bool mergedDiscardContents = found->BarrierFlags.IsSet(GpuImageBarrierFlag::DiscardContents);
+		const GpuImageLayout resolvedOldLogicalLayout = mergedDiscardContents ? GpuImageLayout::Undefined : found->OldLayout;
+		const D3D12TextureLayout resolvedOldLayout = mergedDiscardContents ? D3D12TextureLayout::Undefined() : d3d12Image->GetTextureLayout(found->OldLayout, mQueueType);
 		const D3D12TextureLayout resolvedNewLayout = d3d12Image->GetTextureLayout(found->NewLayout, mQueueType);
-		const D3D12_TEXTURE_BARRIER nativeBarrier = D3D12BarrierUtility::GetTextureBarrier(d3d12Image->GetD3D12Resource(), found->SubresourceRange, found->Barrier, found->OldLayout, found->NewLayout, resolvedOldLayout, resolvedNewLayout, found->PrecedingBarrierDestinationStages);
+		const D3D12_TEXTURE_BARRIER_FLAGS mergedNativeBarrierFlags = mergedDiscardContents ? D3D12_TEXTURE_BARRIER_FLAG_DISCARD : D3D12_TEXTURE_BARRIER_FLAG_NONE;
+		const D3D12_TEXTURE_BARRIER nativeBarrier = D3D12BarrierUtility::GetTextureBarrier(d3d12Image->GetD3D12Resource(), found->SubresourceRange, found->Barrier, resolvedOldLogicalLayout, found->NewLayout, resolvedOldLayout, resolvedNewLayout, mergedNativeBarrierFlags, found->PrecedingBarrierDestinationStages);
 
 		mBarriers.ReplaceTextureBarrier(found->NativeBarrierIndex, nativeBarrier);
 		return;
@@ -74,8 +81,9 @@ void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, cons
 	pendingBarrier.Barrier = barrier;
 	pendingBarrier.OldLayout = oldLayout;
 	pendingBarrier.NewLayout = newLayout;
+	pendingBarrier.BarrierFlags = barrierFlags;
 	pendingBarrier.PrecedingBarrierDestinationStages = GetPrecedingBarrierDestinationStages(image, range);
-	pendingBarrier.NativeBarrierIndex = mBarriers.AddTextureBarrier(D3D12BarrierUtility::GetTextureBarrier(d3d12Image->GetD3D12Resource(), range, barrier, oldLayout, newLayout, nativeOldLayout, nativeNewLayout, pendingBarrier.PrecedingBarrierDestinationStages));
+	pendingBarrier.NativeBarrierIndex = mBarriers.AddTextureBarrier(D3D12BarrierUtility::GetTextureBarrier(d3d12Image->GetD3D12Resource(), range, barrier, barrierOldLayout, newLayout, nativeOldLayout, nativeNewLayout, nativeBarrierFlags, pendingBarrier.PrecedingBarrierDestinationStages));
 
 	mPendingImageBarriers.Add(pendingBarrier);
 }

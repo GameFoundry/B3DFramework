@@ -75,6 +75,9 @@ namespace b3d
 			/** Accesses recorded for this range on the current command buffer. */
 			GpuAccessFlags Access;
 
+			/** Behavior requested from the barrier preceding the first access in this command buffer. */
+			GpuImageBarrierFlags SubmissionBarrierFlags;
+
 			/** State used to resolve read-after-write, write-after-write and write-after-read hazards. */
 			GpuResourceHazardState* HazardState = nullptr;
 
@@ -152,8 +155,9 @@ namespace b3d
 			 * @param	useFlags			Categorizes how the image be used (shader access, color attachment, depth attachment, etc.), and on which stages.
 			 * @param	accessFlags			Access flags specifying how the image will be accessed (read/write).
 			 * @param	barrierHelper		If there are any necessary layout transitions or memory barriers before the buffer can be used they will be recorded into the provided object.
+			 * @param	barrierFlags		Additional behavior requested from the barrier preceding the first image access.
 			 */
-			void TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
+			void TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags = GpuImageBarrierFlag::None);
 
 			/**
 			 * Tracks an explicit buffer barrier. Its source scope is derived from previous command-buffer accesses. A barrier
@@ -293,7 +297,7 @@ namespace b3d
 			void ResolveAndQueueBufferBarrier(IGpuBufferResource* buffer, const GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper);
 
 			/** Determines if a barrier is required for the provided destination usage/access, and if so queues a barrier in the barrier helper, to be executed before the next image subresource access. */
-			void ResolveAndQueueImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper);
+			void ResolveAndQueueImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags = GpuImageBarrierFlag::None);
 
 			/** Creates a new tracking state for the image (if this is the first time the image has been used on the command buffer), or returns existing tracking state. */
 			GpuImageTrackingState& GetOrCreateImageTrackingState(IGpuImageResource* image);
@@ -324,7 +328,7 @@ namespace b3d
 			 * and barriers based on previous subresource usage.
 			 */
 			// TODO - Refactor this signature, try to clean it up once we have explicit layout transitions
-			void TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
+			void TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags);
 
 			/** Registers a new resource range using the provided parameters to initialize it. */
 			u32 AddSubresourceTrackingState(const GpuTextureSubresourceRange& range);

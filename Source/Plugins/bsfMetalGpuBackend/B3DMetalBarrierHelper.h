@@ -93,7 +93,7 @@ namespace b3d::render
 		 * transitions, so unlike the Vulkan hook @p oldLayout is taken by value and never reconciled —
 		 * the base's layout bookkeeping proceeds with the tracked value unchanged.
 		 */
-		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout);
+		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags);
 
 		// Engine-typed native accumulation (no Metal types here so the header stays includable from
 		// plain C++ TUs). Converted to MTLBarrierScope / MTLRenderStages inside Execute.

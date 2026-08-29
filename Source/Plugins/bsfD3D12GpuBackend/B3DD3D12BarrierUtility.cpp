@@ -195,12 +195,14 @@ D3D12_BUFFER_BARRIER D3D12BarrierUtility::GetBufferBarrier(ID3D12Resource* resou
 	return barrier;
 }
 
-D3D12_TEXTURE_BARRIER D3D12BarrierUtility::GetTextureBarrier(ID3D12Resource* resource, const GpuTextureSubresourceRange& range, const GpuBarrierScope& scope, GpuImageLayout logicalBeforeLayout, GpuImageLayout logicalAfterLayout, const D3D12TextureLayout& nativeBeforeLayout, const D3D12TextureLayout& nativeAfterLayout, GpuStageFlags precedingBarrierDestinationStages)
+D3D12_TEXTURE_BARRIER D3D12BarrierUtility::GetTextureBarrier(ID3D12Resource* resource, const GpuTextureSubresourceRange& range, const GpuBarrierScope& scope, GpuImageLayout logicalBeforeLayout, GpuImageLayout logicalAfterLayout, const D3D12TextureLayout& nativeBeforeLayout, const D3D12TextureLayout& nativeAfterLayout, D3D12_TEXTURE_BARRIER_FLAGS flags, GpuStageFlags precedingBarrierDestinationStages)
 {
 	B3D_ASSERT(resource != nullptr);
 	B3D_ASSERT(range.HasSingleAspect());
 
-	const D3D12BarrierScope beforeScope = GetTextureScope(scope.SourceStages, scope.SourceAccess, logicalBeforeLayout, range.AspectMask);
+	D3D12BarrierScope beforeScope;
+	beforeScope.Access = GetTextureAccess(scope.SourceStages, scope.SourceAccess, logicalBeforeLayout, range.AspectMask);
+	beforeScope.Sync = GetTextureSync(scope.SourceStages | precedingBarrierDestinationStages, beforeScope.Access);
 	const D3D12BarrierScope afterScope = GetTextureScope(scope.DestinationStages, scope.DestinationAccess, logicalAfterLayout, range.AspectMask);
 
 	D3D12_TEXTURE_BARRIER barrier{};
@@ -217,7 +219,8 @@ D3D12_TEXTURE_BARRIER D3D12BarrierUtility::GetTextureBarrier(ID3D12Resource* res
 	barrier.Subresources.NumArraySlices = range.ArrayLayerCount;
 	barrier.Subresources.FirstPlane = range.AspectMask.IsSet(GpuTextureAspectFlag::Stencil) ? 1 : 0;
 	barrier.Subresources.NumPlanes = 1;
-	barrier.Flags = barrier.LayoutBefore == D3D12_BARRIER_LAYOUT_UNDEFINED ? D3D12_TEXTURE_BARRIER_FLAG_DISCARD : D3D12_TEXTURE_BARRIER_FLAG_NONE;
+	B3D_ASSERT((flags & D3D12_TEXTURE_BARRIER_FLAG_DISCARD) == 0 || barrier.LayoutBefore == D3D12_BARRIER_LAYOUT_UNDEFINED);
+	barrier.Flags = flags;
 
 	return barrier;
 }
@@ -364,8 +367,7 @@ D3D12_BARRIER_SYNC D3D12BarrierUtility::GetTextureSync(GpuStageFlags stages, D3D
 		const D3D12_BARRIER_SYNC shaderSync = GetStageSync(shaderStages);
 		if(shaderSync == D3D12_BARRIER_SYNC_NONE)
 		{
-			// TODO - Submission preludes can establish a shader-readable layout before a leading primary barrier. Once
-			// entry barriers are absorbed into the prelude, the exact shader stage must always be available here.
+			B3D_ASSERT(false && "D3D12 shader texture access requires at least one shader stage.");
 			return D3D12_BARRIER_SYNC_ALL_SHADING;
 		}
 

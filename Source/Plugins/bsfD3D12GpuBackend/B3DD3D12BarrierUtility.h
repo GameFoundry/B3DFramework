@@ -50,7 +50,7 @@ namespace b3d
 			static D3D12_BUFFER_BARRIER GetBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages);
 
 			/** Builds a native texture barrier for one resolved, single-aspect subresource range. */
-			static D3D12_TEXTURE_BARRIER GetTextureBarrier(ID3D12Resource* resource, const GpuTextureSubresourceRange& range, const GpuBarrierScope& scope, GpuImageLayout logicalBeforeLayout, GpuImageLayout logicalAfterLayout, const D3D12TextureLayout& nativeBeforeLayout, const D3D12TextureLayout& nativeAfterLayout, GpuStageFlags precedingBarrierDestinationStages = GpuStageFlag::None);
+			static D3D12_TEXTURE_BARRIER GetTextureBarrier(ID3D12Resource* resource, const GpuTextureSubresourceRange& range, const GpuBarrierScope& scope, GpuImageLayout logicalBeforeLayout, GpuImageLayout logicalAfterLayout, const D3D12TextureLayout& nativeBeforeLayout, const D3D12TextureLayout& nativeAfterLayout, D3D12_TEXTURE_BARRIER_FLAGS flags, GpuStageFlags precedingBarrierDestinationStages = GpuStageFlag::None);
 
 			/** Returns a conservative native access scope compatible with @p layout. */
 			static D3D12BarrierScope GetTextureLayoutScope(GpuImageLayout layout, const D3D12TextureLayout& nativeLayout, GpuTextureAspectFlags aspects, GpuStageFlags preferredStages = GpuStageFlag::None);

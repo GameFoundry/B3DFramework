@@ -15,7 +15,9 @@ namespace
 	struct SubmissionTestBarrierHelper
 	{
 		void QueueResolvedBufferBarrier(IGpuBufferResource*, const GpuBarrierScope&) { }
-		void QueueResolvedImageBarrier(IGpuImageResource*, const GpuTextureSubresourceRange&, const GpuBarrierScope&, GpuImageLayout, GpuImageLayout) { }
+		void QueueResolvedImageBarrier(IGpuImageResource*, const GpuTextureSubresourceRange&, const GpuBarrierScope&, GpuImageLayout, GpuImageLayout, GpuImageBarrierFlags barrierFlags) { LastImageBarrierFlags = barrierFlags; }
+
+		GpuImageBarrierFlags LastImageBarrierFlags;
 	};
 
 	class SubmissionTestBuffer : public IGpuBufferResource
@@ -83,10 +85,12 @@ namespace
 			B3D_ASSERT(transition.ImageRange.HasSingleAspect());
 			VisitedAspects |= transition.ImageRange.AspectMask;
 			StateResources.Add(transition.StateResource);
+			SubmissionBarrierFlags |= transition.SubmissionBarrierFlags;
 		}
 
 		GpuTextureAspectFlags VisitedAspects;
 		TInlineArray<IGpuResource*, 2> StateResources;
+		GpuImageBarrierFlags SubmissionBarrierFlags;
 	};
 
 	class SubmissionTestVisitor : public GpuSubmissionTransitionVisitor
@@ -324,18 +328,25 @@ void GpuBackendTestSuite::TestFramebufferAttachmentUsage()
 	B3D_TEST_ASSERT(attachmentUsages.Size() == 3)
 	B3D_TEST_ASSERT(attachmentUsages[0].Surface == RT_COLOR3)
 	B3D_TEST_ASSERT(attachmentUsages[0].Access == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(attachmentUsages[0].BarrierFlags == GpuImageBarrierFlag::None)
 	B3D_TEST_ASSERT(attachmentUsages[0].Layout == GpuImageLayout::General)
 	B3D_TEST_ASSERT(attachmentUsages[0].ShaderReadLayout == GpuImageLayout::ShaderReadOnly)
 	B3D_TEST_ASSERT(attachmentUsages[0].FinalLayout == GpuImageLayout::TransferSource)
 	B3D_TEST_ASSERT(attachmentUsages[1].Surface == RT_DEPTH)
 	B3D_TEST_ASSERT(attachmentUsages[1].Access == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(attachmentUsages[1].BarrierFlags == GpuImageBarrierFlag::None)
 	B3D_TEST_ASSERT(attachmentUsages[1].Layout == GpuImageLayout::Undefined)
 	B3D_TEST_ASSERT(attachmentUsages[1].ShaderReadLayout == GpuImageLayout::DepthStencilReadOnly)
 	B3D_TEST_ASSERT(attachmentUsages[2].Surface == RT_STENCIL)
 	B3D_TEST_ASSERT(attachmentUsages[2].Access == GpuAccessFlag::Write)
+	B3D_TEST_ASSERT(attachmentUsages[2].BarrierFlags == GpuImageBarrierFlag::None)
 	B3D_TEST_ASSERT(attachmentUsages[2].Layout == GpuImageLayout::DepthReadOnlyStencilAttachment)
 	B3D_TEST_ASSERT(!attachmentUsages[2].ShaderReadLayout.has_value())
 	B3D_TEST_ASSERT(attachmentUsages[2].FinalLayout == GpuImageLayout::General)
+
+	const GpuRenderPassAttachmentUsageArray discardAttachmentUsages = framebuffer.BuildRenderPassAttachmentUsages(RT_NONE, RT_NONE, layoutPolicy);
+	for(const GpuRenderPassAttachmentUsage& attachmentUsage : discardAttachmentUsages)
+		B3D_TEST_ASSERT(attachmentUsage.BarrierFlags == GpuImageBarrierFlag::DiscardContents)
 }
 
 void GpuBackendTestSuite::TestRenderPassResourceTracking()
@@ -394,6 +405,42 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 
 	tracker.NotifyUnbound();
 	tracker.Clear();
+
+	SubmissionTestImage discardImage(1, 1, GpuTextureAspectFlag::Color);
+	SubmissionTestBarrierHelper discardBarrierHelper;
+	SubmissionTestTracker discardTracker;
+	GpuRenderPassAttachmentUsage discardAttachmentUsage;
+	discardAttachmentUsage.Image = &discardImage;
+	discardAttachmentUsage.Range = attachmentRange;
+	discardAttachmentUsage.Surface = RT_COLOR0;
+	discardAttachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
+	discardAttachmentUsage.Access = GpuAccessFlag::Write;
+	discardAttachmentUsage.BarrierFlags = GpuImageBarrierFlag::DiscardContents;
+	discardAttachmentUsage.Layout = GpuImageLayout::ColorAttachment;
+
+	TInlineArray<GpuRenderPassAttachmentUsage, 1> discardAttachments;
+	discardAttachments.Add(discardAttachmentUsage);
+	discardTracker.PrepareRenderPass(discardAttachments);
+	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedDiscardAttachments = discardTracker.BeginRenderPass(discardBarrierHelper);
+	B3D_TEST_ASSERT(resolvedDiscardAttachments[0].BarrierFlags == GpuImageBarrierFlag::DiscardContents)
+
+	discardTracker.CommitPendingHazardRegistrations();
+	const GpuImageSubresourceTrackingState& discardTrackingState = discardTracker.GetSubresourceTrackingState(
+		&discardImage, 0, 0, GpuTextureAspectFlag::Color);
+	B3D_TEST_ASSERT(discardTrackingState.SubmissionBarrierFlags == GpuImageBarrierFlag::DiscardContents)
+
+	discardTracker.EndRenderPass();
+	SubmissionImageTestVisitor discardVisitor;
+	discardTracker.ResolveSubmissionTransitions(GpuQueueId(GQT_GRAPHICS, 0), discardVisitor);
+	B3D_TEST_ASSERT(discardVisitor.SubmissionBarrierFlags == GpuImageBarrierFlag::DiscardContents)
+
+	discardTracker.PrepareRenderPass(discardAttachments);
+	discardTracker.BeginRenderPass(discardBarrierHelper);
+	B3D_TEST_ASSERT(discardBarrierHelper.LastImageBarrierFlags == GpuImageBarrierFlag::DiscardContents)
+	discardTracker.CommitPendingHazardRegistrations();
+	discardTracker.EndRenderPass();
+	discardTracker.NotifyUnbound();
+	discardTracker.Clear();
 }
 
 void GpuBackendTestSuite::TestResourceHazardState()

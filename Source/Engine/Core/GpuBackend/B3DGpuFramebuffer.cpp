@@ -81,6 +81,9 @@ namespace b3d::render
 			usage.Surface = attachment.Surface;
 			usage.UseFlags = attachment.GetUseFlags();
 			usage.Access = readOnly ? GpuAccessFlags(GpuAccessFlag::Read) : GpuAccessFlags(GpuAccessFlag::Write);
+			if(!readOnly && !loadMask.IsSet(attachment.Surface))
+				usage.BarrierFlags.Set(GpuImageBarrierFlag::DiscardContents);
+
 			usage.Layout = layout.AttachmentOnly;
 			usage.FinalLayout = attachment.FinalLayout;
 

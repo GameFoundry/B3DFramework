@@ -27,14 +27,14 @@ namespace b3d::render
 	}
 
 	template<class TDerived>
-	void TGpuBarrierHelper<TDerived>::QueueResolvedImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout)
+	void TGpuBarrierHelper<TDerived>::QueueResolvedImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags)
 	{
 		if(image == nullptr)
 			return;
 
 		// Accumulate the native barrier. The backend may reconcile oldLayout from an already-merged barrier (e.g. Vulkan),
 		// in which case the layout-tracking bookkeeping below must observe the reconciled value.
-		static_cast<TDerived*>(this)->RecordNativeImageBarrier(image, subresourceRange, barrier, oldLayout, newLayout);
+		static_cast<TDerived*>(this)->RecordNativeImageBarrier(image, subresourceRange, barrier, oldLayout, newLayout, barrierFlags);
 
 		if(oldLayout != newLayout)
 		{

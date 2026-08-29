@@ -29,7 +29,7 @@ namespace b3d::render
 		mCombinedDestinationStages |= barrier.DestinationStages;
 	}
 
-	void MetalBarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout)
+	void MetalBarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags)
 	{
 		// Metal has no image layouts — the transition itself is a no-op natively. The base records the
 		// layout bookkeeping (mImageLayoutTracking) and pushes it back into the tracker after Execute.
