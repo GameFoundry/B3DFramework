@@ -6,6 +6,7 @@
 #include "B3DMetalTextureManager.h"
 #include "B3DMetalRenderWindowManager.h"
 #include "B3DMetalGpuCommandCapture.h"
+#include "Utility/B3DPlatformUtility.h"
 
 namespace b3d
 {
@@ -19,6 +20,14 @@ namespace b3d
 		auto device = B3DMakeShared<render::MetalGpuDevice>();
 		device->Initialize();
 		mDevices.Add(device);
+
+		if (device->IsInitialized())
+		{
+			GPUInfo gpuInfo;
+			gpuInfo.NumGpUs = 1;
+			gpuInfo.Names[0] = device->GetCapabilities().DeviceName;
+			PlatformUtility::SetGPUInfo(gpuInfo);
+		}
 
 		// Create the texture managers
 		TextureManager::StartUp<MetalTextureManager>();

@@ -129,7 +129,11 @@ namespace b3d
 			/** Returns the underlying MTLBuffer. May be nil before Initialize() has been called, or if creation failed. */
 			id<MTLBuffer> GetMetalBuffer() const;
 
-			/** @copydoc MetalBuffer::GetTextureBufferView */
+			/**
+			 * Returns a lazily-created, wrapper-lifetime-cached texture-buffer view over the underlying
+			 * buffer (see MetalBuffer::GetTextureBufferView). An unspecified @p format resolves to the
+			 * buffer's own element format.
+			 */
 			id<MTLTexture> GetTextureBufferView(GpuBufferFormat format, u32 offset, u32 range, bool writable);
 #endif
 
@@ -153,7 +157,6 @@ namespace b3d
 			IGpuAllocator* mAllocator = nullptr;
 
 			bool mDirectlyMappable : 1;
-			bool mSupportsGPUWrites : 1;
 		};
 
 		/** @} */

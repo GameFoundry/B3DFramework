@@ -121,8 +121,7 @@ namespace b3d
 		};
 
 		MetalClearPipeline::MetalClearPipeline(MetalGpuDevice& gpuDevice)
-			: mGpuDevice(gpuDevice)
-			, mImpl(B3DMakeUnique<Impl>())
+			: mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
 		{ }
 
 		MetalClearPipeline::~MetalClearPipeline()

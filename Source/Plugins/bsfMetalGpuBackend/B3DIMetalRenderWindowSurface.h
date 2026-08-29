@@ -66,10 +66,6 @@ namespace b3d::render
 		 */
 		virtual void MarkDrawableAsRendered() {}
 
-		/**
-		 * Shared readback implementation: blits the current color texture into a CPU-visible staging buffer via the
-		 * provided command buffer, and completes when the command buffer finishes executing.
-		 */
 		TAsyncOp<TShared<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer) override;
 	};
 

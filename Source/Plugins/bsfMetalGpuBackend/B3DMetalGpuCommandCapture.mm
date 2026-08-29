@@ -13,8 +13,7 @@ namespace b3d
 	};
 
 	MetalGpuCommandCapture::MetalGpuCommandCapture(render::MetalGpuDevice& device)
-		: mDevice(device)
-		, mImpl(B3DMakeUnique<Impl>())
+		: mDevice(device), mImpl(B3DMakeUnique<Impl>())
 	{ }
 
 	MetalGpuCommandCapture::~MetalGpuCommandCapture()

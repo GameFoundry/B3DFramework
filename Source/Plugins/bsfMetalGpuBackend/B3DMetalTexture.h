@@ -110,7 +110,6 @@ namespace b3d
 		private:
 			MetalTextureNativeHandle mTexture = nullptr;
 			GpuResourceLocation mAllocation;
-			TextureType mType = TEX_TYPE_2D;
 
 			/**
 			 * Lazily-created MTLPixelFormat -> view cache, used for depth-stencil / sRGB shader-read
@@ -163,10 +162,10 @@ namespace b3d
 			/** Returns the underlying MTLTexture. May be nil if Initialize() failed or has not been called yet. */
 			id<MTLTexture> GetMetalTexture() const;
 
-			/** @copydoc MetalImage::GetShaderReadView */
+			/** Returns a cached reinterpret view of the backing image (see MetalImage::GetShaderReadView), or nil when no image exists. */
 			id<MTLTexture> GetShaderReadView(MTLPixelFormat viewFormat);
 
-			/** @copydoc MetalImage::GetSubresourceView */
+			/** Returns a cached subresource-range view of the backing image (see MetalImage::GetSubresourceView), or nil when no image exists. */
 			id<MTLTexture> GetSubresourceView(const TextureSurface& surface);
 #endif
 

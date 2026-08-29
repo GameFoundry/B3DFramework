@@ -38,9 +38,7 @@ namespace b3d
 		};
 
 		MetalGpuGraphicsPipelineState::MetalGpuGraphicsPipelineState(MetalGpuDevice& gpuDevice, const GpuGraphicsPipelineStateCreateInformation& createInformation)
-			: GpuGraphicsPipelineState(gpuDevice, createInformation)
-			, mGpuDevice(gpuDevice)
-			, mImpl(B3DMakeUnique<Impl>())
+			: GpuGraphicsPipelineState(gpuDevice, createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
 		{ }
 
 		MetalGpuGraphicsPipelineState::~MetalGpuGraphicsPipelineState()
@@ -280,19 +278,12 @@ namespace b3d
 			if (key.StencilFormat != 0)
 				desc.stencilAttachmentPixelFormat = (MTLPixelFormat)key.StencilFormat;
 
-			// Use the archive loaded from an earlier offline/prewarm pass for pipeline lookup.
-			id<MTLBinaryArchive> loadedArchive = nil;
-			if (@available(macOS 11.0, iOS 14.0, *))
-			{
-				// Runtime archive population recompiles this descriptor. Only consume the archive loaded
-				// from an earlier offline/prewarm pass on this latency-sensitive path.
-				loadedArchive = mGpuDevice.GetLoadedBinaryArchive();
-				NSMutableArray<id<MTLBinaryArchive>>* archives = [NSMutableArray arrayWithCapacity:1];
-				if (loadedArchive != nil)
-					[archives addObject:loadedArchive];
-				if ([archives count] > 0)
-					desc.binaryArchives = archives;
-			}
+			// Use the archive loaded from an earlier offline/prewarm pass for pipeline lookup. Runtime
+			// archive population recompiles this descriptor, so only consume the loaded archive on this
+			// latency-sensitive path.
+			id<MTLBinaryArchive> loadedArchive = mGpuDevice.GetLoadedBinaryArchive();
+			if (loadedArchive != nil)
+				desc.binaryArchives = @[ loadedArchive ];
 
 			Impl* implPtr = mImpl.get();
 			const MetalPipelineVariantKey keyCopy = key;
@@ -381,9 +372,7 @@ namespace b3d
 		};
 
 		MetalGpuComputePipelineState::MetalGpuComputePipelineState(MetalGpuDevice& gpuDevice, const GpuComputePipelineStateCreateInformation& createInformation)
-			: GpuComputePipelineState(gpuDevice, createInformation)
-			, mGpuDevice(gpuDevice)
-			, mImpl(B3DMakeUnique<Impl>())
+			: GpuComputePipelineState(gpuDevice, createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
 		{ }
 
 		MetalGpuComputePipelineState::~MetalGpuComputePipelineState()
@@ -497,16 +486,9 @@ namespace b3d
 			// default; incorrectly promising a multiple makes non-conforming dispatches undefined.
 			desc.threadGroupSizeIsMultipleOfThreadExecutionWidth = NO;
 
-			id<MTLBinaryArchive> loadedArchive = nil;
-			if (@available(macOS 11.0, iOS 14.0, *))
-			{
-				loadedArchive = mGpuDevice.GetLoadedBinaryArchive();
-				NSMutableArray<id<MTLBinaryArchive>>* archives = [NSMutableArray arrayWithCapacity:1];
-				if (loadedArchive != nil)
-					[archives addObject:loadedArchive];
-				if ([archives count] > 0)
-					desc.binaryArchives = archives;
-			}
+			id<MTLBinaryArchive> loadedArchive = mGpuDevice.GetLoadedBinaryArchive();
+			if (loadedArchive != nil)
+				desc.binaryArchives = @[ loadedArchive ];
 
 			Impl* implPtr = mImpl.get();
 

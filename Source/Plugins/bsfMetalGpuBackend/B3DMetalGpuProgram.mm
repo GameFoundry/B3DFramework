@@ -19,9 +19,7 @@ namespace b3d
 		};
 
 		MetalGpuProgram::MetalGpuProgram(MetalGpuDevice& gpuDevice, const GpuProgramCreateInformation& createInformation)
-			: GpuProgram(createInformation)
-			, mGpuDevice(gpuDevice)
-			, mImpl(B3DMakeUnique<Impl>())
+			: GpuProgram(createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
 		{
 			const Array<u32, 3>& threadGroupSize = createInformation.Bytecode != nullptr
 				? createInformation.Bytecode->ThreadGroupSize
@@ -98,6 +96,11 @@ namespace b3d
 
 			if (mIsCompiled)
 			{
+				// The library / function creation below produces autoreleased transients (NSStrings,
+				// NSError); drain them locally — worker fibers may never hit a runloop drain. The
+				// library and function handles are strong refs in mImpl and survive the pool.
+				@autoreleasepool
+				{
 				if (mType == GPT_COMPUTE_PROGRAM)
 				{
 					mWorkgroupSize[0] = mBytecode->ThreadGroupSize[0];
@@ -164,6 +167,7 @@ namespace b3d
 
 				if (mType == GPT_VERTEX_PROGRAM)
 					mVertexInputDescription = B3DMakeShared<VertexDescription>(mBytecode->VertexInput, false);
+				} // @autoreleasepool
 			}
 
 			B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuProgram);

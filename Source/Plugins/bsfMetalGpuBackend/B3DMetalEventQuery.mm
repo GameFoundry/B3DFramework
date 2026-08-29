@@ -15,8 +15,7 @@ namespace b3d
 		};
 
 		MetalEventQuery::MetalEventQuery(MetalGpuDevice& gpuDevice)
-			: mGpuDevice(gpuDevice)
-			, mImpl(B3DMakeUnique<Impl>())
+			: mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
 		{
 			B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Query);
 			id<MTLDevice> device = gpuDevice.GetMetalDevice();

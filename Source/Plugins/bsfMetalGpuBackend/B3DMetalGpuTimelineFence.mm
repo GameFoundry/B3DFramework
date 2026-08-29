@@ -49,6 +49,11 @@ namespace b3d
 		{
 			if (mImpl)
 			{
+				// Both the listener and the event are +1 references owned by this fence.
+#if !__has_feature(objc_arc)
+				[mImpl->Listener release];
+				[mImpl->Event release];
+#endif
 				mImpl->Listener = nil;
 				mImpl->Event = nil;
 

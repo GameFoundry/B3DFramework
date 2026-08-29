@@ -60,13 +60,14 @@ namespace b3d
 			/**
 			 * Sub-allocates @p size bytes (aligned to @p alignment) from the pool. Returns the host
 			 * @c MTLBuffer plus the offset into it. When the request does not fit the current block a
-			 * new one is grown into place. When the request exceeds @c kLargeSliceThreshold or the
-			 * pool is @c Persistent the function falls through to a direct device allocation and the
-			 * returned offset is zero.
+			 * new one is grown into place. Requests above @c kLargeSliceThreshold fall through to a
+			 * dedicated device allocation (returned offset zero) tracked in @c mDirectBuffers. Only
+			 * transient pools reach this method — @c Create hands @c Persistent sets a null pool, so
+			 * they allocate their argument buffer directly in @c MetalGpuParameters::Initialize.
 			 *
 			 * The returned @c MTLBuffer is owned by the pool; callers must @b not release it. Its
-			 * lifetime is gated on @c Reset (for pooled slices) or on the caller's ARC/MRC reference
-			 * (for direct allocations). Invoked by @c MetalGpuParameters::Initialize.
+			 * lifetime is gated on @c Reset (for pooled slices and direct allocations alike).
+			 * Invoked by @c MetalGpuParameters::Initialize.
 			 */
 			id<MTLBuffer> AcquireArgumentBufferSlice(u64 size, u32 alignment, u64& outOffset);
 #endif

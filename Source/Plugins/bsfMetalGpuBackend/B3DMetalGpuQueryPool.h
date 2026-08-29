@@ -20,7 +20,7 @@ namespace b3d
 		 * Metal implementation of a query pool.
 		 *
 		 * Occlusion pools allocate a shared @c MTLBuffer used as the visibility result buffer; each
-		 * query gets an 8-byte slot. Timestamp pools (macOS 10.15+) use an @c MTLCounterSampleBuffer.
+		 * query gets an 8-byte slot. Timestamp pools use an @c MTLCounterSampleBuffer.
 		 * Pipeline-statistics pools are not implemented (Metal does not expose the same granularity as
 		 * Vulkan).
 		 */
