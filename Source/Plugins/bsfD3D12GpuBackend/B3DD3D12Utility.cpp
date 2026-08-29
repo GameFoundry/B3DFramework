@@ -151,6 +151,62 @@ DXGI_FORMAT D3D12Utility::GetDXGIFormat(PixelFormat format, bool sRGB)
 	}
 }
 
+DXGI_FORMAT D3D12Utility::GetTextureResourceFormat(DXGI_FORMAT viewFormat)
+{
+	switch(viewFormat)
+	{
+	case DXGI_FORMAT_D16_UNORM:
+		return DXGI_FORMAT_R16_TYPELESS;
+	case DXGI_FORMAT_D32_FLOAT:
+		return DXGI_FORMAT_R32_TYPELESS;
+	case DXGI_FORMAT_D24_UNORM_S8_UINT:
+		return DXGI_FORMAT_R24G8_TYPELESS;
+	case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+		return DXGI_FORMAT_R32G8X24_TYPELESS;
+	default:
+		return viewFormat;
+	}
+}
+
+DXGI_FORMAT D3D12Utility::GetShaderResourceViewFormat(DXGI_FORMAT viewFormat)
+{
+	switch(viewFormat)
+	{
+	case DXGI_FORMAT_D16_UNORM:
+		return DXGI_FORMAT_R16_UNORM;
+	case DXGI_FORMAT_D32_FLOAT:
+		return DXGI_FORMAT_R32_FLOAT;
+	case DXGI_FORMAT_D24_UNORM_S8_UINT:
+		return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+		return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+	default:
+		return viewFormat;
+	}
+}
+
+D3D12_SRV_DIMENSION D3D12Utility::GetTextureShaderResourceViewDimension(TextureType textureType, bool isCube, bool isArray, u32 sampleCount)
+{
+	if(sampleCount > 1)
+		return isArray ? D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY : D3D12_SRV_DIMENSION_TEXTURE2DMS;
+
+	switch(textureType)
+	{
+	case TEX_TYPE_1D:
+		return D3D12_SRV_DIMENSION_TEXTURE1D;
+	case TEX_TYPE_3D:
+		return D3D12_SRV_DIMENSION_TEXTURE3D;
+	case TEX_TYPE_CUBE_MAP:
+	case TEX_TYPE_2D:
+	default:
+		// A cube map that isn't viewed as a cube always has IsBoundAs2DArray set, so it lands in the array branch
+		if(isCube)
+			return D3D12_SRV_DIMENSION_TEXTURECUBE;
+
+		return isArray ? D3D12_SRV_DIMENSION_TEXTURE2DARRAY : D3D12_SRV_DIMENSION_TEXTURE2D;
+	}
+}
+
 D3D12_RESOURCE_FLAGS D3D12Utility::GetBufferResourceFlags(GpuBufferFlags flags)
 {
 	D3D12_RESOURCE_FLAGS output = D3D12_RESOURCE_FLAG_NONE;

@@ -11,30 +11,6 @@
 #include <algorithm>
 #include <numeric>
 
-namespace
-{
-	/**
-	 * Returns an SRV-compatible DXGI format for a texture format. Depth formats cannot be read through an SRV using
-	 * their depth format and must be viewed through a colour-compatible aliasing format.
-	 */
-	DXGI_FORMAT GetShaderReadFormat(DXGI_FORMAT format)
-	{
-		switch(format)
-		{
-		case DXGI_FORMAT_D32_FLOAT:
-			return DXGI_FORMAT_R32_FLOAT;
-		case DXGI_FORMAT_D16_UNORM:
-			return DXGI_FORMAT_R16_UNORM;
-		case DXGI_FORMAT_D24_UNORM_S8_UINT:
-			return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-			return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-		default:
-			return format;
-		}
-	}
-}
-
 namespace b3d
 {
 	namespace render
@@ -73,7 +49,7 @@ namespace b3d
 		}
 
 		D3D12Image::D3D12Image(D3D12ResourceManager* owner, const D3D12ImageCreateInformation& createInformation)
-			: TD3D12Resource<IGpuImageResource>(owner, createInformation.Name, createInformation.FaceCount, createInformation.MipLevelCount, createInformation.Aspect), mResource(createInformation.Resource), mAllocation(createInformation.Allocation), mFormat(createInformation.Format), mAllowConcurrentQueueReads(createInformation.AllowConcurrentQueueReads), mIsPresentable(createInformation.IsPresentable)
+			: TD3D12Resource<IGpuImageResource>(owner, createInformation.Name, createInformation.FaceCount, createInformation.MipLevelCount, createInformation.Aspect), mResource(createInformation.Resource), mAllocation(createInformation.Allocation), mViewFormat(createInformation.ViewFormat), mAllowConcurrentQueueReads(createInformation.AllowConcurrentQueueReads), mIsPresentable(createInformation.IsPresentable)
 		{
 			for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
 			{
@@ -164,8 +140,8 @@ namespace b3d
 			// Convert pixel format to DXGI format. sRGB variants cannot be used with UAVs, so unordered-access
 			// textures keep the linear variant (mirroring the Vulkan backend's storage-image behavior).
 			const bool useSRGB = properties.UseHardwareSRGB && !properties.Usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
-			mDXGIFormat = D3D12Utility::GetDXGIFormat(properties.Format, useSRGB);
-			if (mDXGIFormat == DXGI_FORMAT_UNKNOWN)
+			mViewFormat = D3D12Utility::GetDXGIFormat(properties.Format, useSRGB);
+			if (mViewFormat == DXGI_FORMAT_UNKNOWN)
 			{
 				B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported texture format");
 				return;
@@ -201,7 +177,7 @@ namespace b3d
 			resourceDesc.Height = properties.Height;
 			resourceDesc.DepthOrArraySize = (dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D) ? (u16)properties.Depth : (u16)faceCount;
 			resourceDesc.MipLevels = (u16)(properties.MipMapCount + 1);
-			resourceDesc.Format = mDXGIFormat;
+			resourceDesc.Format = D3D12Utility::GetTextureResourceFormat(mViewFormat);
 			resourceDesc.SampleDesc.Count = properties.SampleCount > 0 ? properties.SampleCount : 1;
 			resourceDesc.SampleDesc.Quality = 0;
 			resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -228,7 +204,7 @@ namespace b3d
 
 			if (properties.Usage.IsSet(TextureUsageFlag::RenderTarget) || properties.Usage.IsSet(TextureUsageFlag::DepthStencil))
 			{
-				clearValue.Format = mDXGIFormat;
+				clearValue.Format = mViewFormat;
 				if (PixelUtility::IsDepth(properties.Format))
 				{
 					clearValue.DepthStencil.Depth = properties.ClearDepth;
@@ -265,7 +241,7 @@ namespace b3d
 			GpuTextureAspectFlags aspect = GpuTextureAspectFlag::Color;
 			if (PixelUtility::IsDepth(properties.Format))
 			{
-				const bool hasStencil = mDXGIFormat == DXGI_FORMAT_D24_UNORM_S8_UINT || mDXGIFormat == DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+				const bool hasStencil = mViewFormat == DXGI_FORMAT_D24_UNORM_S8_UINT || mViewFormat == DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 
 				aspect = hasStencil ? (GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil) : GpuTextureAspectFlags(GpuTextureAspectFlag::Depth);
 			}
@@ -273,7 +249,7 @@ namespace b3d
 			D3D12ImageCreateInformation imageCreateInformation;
 			imageCreateInformation.Resource = std::move(resource);
 			imageCreateInformation.Allocation = allocation;
-			imageCreateInformation.Format = mDXGIFormat;
+			imageCreateInformation.ViewFormat = mViewFormat;
 			imageCreateInformation.InitialLayout = D3D12TextureLayout::Undefined();
 			imageCreateInformation.FaceCount = faceCount;
 			imageCreateInformation.MipLevelCount = properties.MipMapCount + 1;
@@ -285,7 +261,7 @@ namespace b3d
 			if(UsesDefaultSRV())
 				mDefaultSRV = CreateView(TextureSurface::kComplete, ViewType::SRV);
 
-			B3D_LOG(Verbose, LogRenderBackend, "D3D12: Created texture '{0}': {1}x{2}, format={3}, mips={4}", properties.Name, properties.Width, properties.Height, (u32)mDXGIFormat, properties.MipMapCount + 1);
+			B3D_LOG(Verbose, LogRenderBackend, "D3D12: Created texture '{0}': {1}x{2}, format={3}, mips={4}", properties.Name, properties.Width, properties.Height, (u32)mViewFormat, properties.MipMapCount + 1);
 		}
 
 		void D3D12Texture::RecreateInternalTexture()
@@ -424,57 +400,56 @@ namespace b3d
 			if(type == ViewType::SRV)
 			{
 				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-				srvDesc.Format = GetShaderReadFormat(mDXGIFormat);
+				srvDesc.Format = D3D12Utility::GetShaderResourceViewFormat(mViewFormat);
 				srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-				switch(properties.Type)
+				const D3D12_RESOURCE_DESC resourceDescription = nativeResource->GetDesc();
+				srvDesc.ViewDimension = D3D12Utility::GetTextureShaderResourceViewDimension(properties.Type, isCube, isArray, resourceDescription.SampleDesc.Count);
+				switch(srvDesc.ViewDimension)
 				{
-				case TEX_TYPE_1D:
-					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
+				case D3D12_SRV_DIMENSION_TEXTURE1D:
 					srvDesc.Texture1D.MostDetailedMip = baseMip;
 					srvDesc.Texture1D.MipLevels = selectedMipCount;
 					break;
-				case TEX_TYPE_3D:
-					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+				case D3D12_SRV_DIMENSION_TEXTURE3D:
 					srvDesc.Texture3D.MostDetailedMip = baseMip;
 					srvDesc.Texture3D.MipLevels = selectedMipCount;
 					break;
-				case TEX_TYPE_CUBE_MAP:
-				case TEX_TYPE_2D:
+				case D3D12_SRV_DIMENSION_TEXTURECUBE:
+					srvDesc.TextureCube.MostDetailedMip = baseMip;
+					srvDesc.TextureCube.MipLevels = selectedMipCount;
+					break;
+				case D3D12_SRV_DIMENSION_TEXTURE2DARRAY:
+					srvDesc.Texture2DArray.MostDetailedMip = baseMip;
+					srvDesc.Texture2DArray.MipLevels = selectedMipCount;
+					srvDesc.Texture2DArray.FirstArraySlice = baseFace;
+					srvDesc.Texture2DArray.ArraySize = selectedFaceCount;
+					break;
+				case D3D12_SRV_DIMENSION_TEXTURE2D:
+					srvDesc.Texture2D.MostDetailedMip = baseMip;
+					srvDesc.Texture2D.MipLevels = selectedMipCount;
+					break;
+				case D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY:
+					B3D_ASSERT(resourceDescription.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D);
+					B3D_ASSERT(baseMip == 0 && selectedMipCount == 1);
+					srvDesc.Texture2DMSArray.FirstArraySlice = baseFace;
+					srvDesc.Texture2DMSArray.ArraySize = selectedFaceCount;
+					break;
+				case D3D12_SRV_DIMENSION_TEXTURE2DMS:
+					B3D_ASSERT(resourceDescription.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D);
+					B3D_ASSERT(baseMip == 0 && selectedMipCount == 1);
+					break;
 				default:
-					// A cube map that isn't viewed as a cube always has IsBoundAs2DArray set, so it lands in the array branch
-					if(isCube)
-					{
-						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-						srvDesc.TextureCube.MostDetailedMip = baseMip;
-						srvDesc.TextureCube.MipLevels = selectedMipCount;
-					}
-					else if(isArray)
-					{
-						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-						srvDesc.Texture2DArray.MostDetailedMip = baseMip;
-						srvDesc.Texture2DArray.MipLevels = selectedMipCount;
-						srvDesc.Texture2DArray.FirstArraySlice = baseFace;
-						srvDesc.Texture2DArray.ArraySize = selectedFaceCount;
-					}
-					else
-					{
-						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-						srvDesc.Texture2D.MostDetailedMip = baseMip;
-						srvDesc.Texture2D.MipLevels = selectedMipCount;
-					}
+					B3D_ASSERT(false);
 					break;
 				}
 
-				// Note: For depth textures the resource was created with a typed depth format (e.g. D32_FLOAT). A
-				// colour-aliased SRV over a non-typeless depth resource is invalid in D3D12.
-				// TODO(d3d12-port): Create depth textures with a typeless format so a shader-read SRV can be created.
 				d3d12Device->CreateShaderResourceView(nativeResource, &srvDesc, handle);
 			}
 			else
 			{
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-				uavDesc.Format = mDXGIFormat;
+				uavDesc.Format = mViewFormat;
 
 				switch(properties.Type)
 				{

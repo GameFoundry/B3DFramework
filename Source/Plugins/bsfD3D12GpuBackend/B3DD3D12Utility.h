@@ -26,6 +26,15 @@ namespace b3d
 			 */
 			static DXGI_FORMAT GetDXGIFormat(PixelFormat format, bool sRGB = false);
 
+			/** Returns the resource format compatible with views using @p viewFormat. */
+			static DXGI_FORMAT GetTextureResourceFormat(DXGI_FORMAT viewFormat);
+
+			/** Returns the shader-resource view format compatible with @p viewFormat. */
+			static DXGI_FORMAT GetShaderResourceViewFormat(DXGI_FORMAT viewFormat);
+
+			/** Returns the shader-resource view dimension for the specified texture shape. */
+			static D3D12_SRV_DIMENSION GetTextureShaderResourceViewDimension(TextureType textureType, bool isCube, bool isArray, u32 sampleCount);
+
 			/** Converts engine buffer flags to D3D12 resource flags. */
 			static D3D12_RESOURCE_FLAGS GetBufferResourceFlags(GpuBufferFlags flags);
 

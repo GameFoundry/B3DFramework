@@ -1929,6 +1929,10 @@ void GpuAllocatorTestSuite::TestLinear_BumpPointerAlignedOffsets()
 		}
 	}
 
+	MockLocation nonPowerOfTwoAligned;
+	B3D_TEST_ASSERT(allocator.TryAllocate(512, 1536, nonPowerOfTwoAligned))
+	B3D_TEST_ASSERT(nonPowerOfTwoAligned.Offset % 1536 == 0)
+
 	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 1)
 }
 

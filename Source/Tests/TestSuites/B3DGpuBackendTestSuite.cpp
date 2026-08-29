@@ -406,6 +406,52 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 	tracker.NotifyUnbound();
 	tracker.Clear();
 
+	SubmissionTestImage depthStencilImage(1, 1, GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil);
+	SubmissionTestBarrierHelper depthStencilBarrierHelper;
+	SubmissionTestTracker depthStencilTracker;
+	const GpuTextureSubresourceRange depthRange(0, 1, 0, 1, GpuTextureAspectFlag::Depth);
+	const GpuTextureSubresourceRange stencilRange(0, 1, 0, 1, GpuTextureAspectFlag::Stencil);
+
+	GpuRenderPassAttachmentUsage depthAttachmentUsage;
+	depthAttachmentUsage.Image = &depthStencilImage;
+	depthAttachmentUsage.Range = depthRange;
+	depthAttachmentUsage.Surface = RT_DEPTH;
+	depthAttachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
+	depthAttachmentUsage.Access = GpuAccessFlag::Read;
+	depthAttachmentUsage.Layout = GpuImageLayout::DepthReadOnlyStencilAttachment;
+	depthAttachmentUsage.ShaderReadLayout = GpuImageLayout::DepthStencilReadOnly;
+
+	GpuRenderPassAttachmentUsage stencilAttachmentUsage;
+	stencilAttachmentUsage.Image = &depthStencilImage;
+	stencilAttachmentUsage.Range = stencilRange;
+	stencilAttachmentUsage.Surface = RT_STENCIL;
+	stencilAttachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
+	stencilAttachmentUsage.Access = GpuAccessFlag::Write;
+	stencilAttachmentUsage.Layout = GpuImageLayout::DepthReadOnlyStencilAttachment;
+
+	TInlineArray<GpuRenderPassAttachmentUsage, 2> depthStencilAttachments;
+	depthStencilAttachments.Add(depthAttachmentUsage);
+	depthStencilAttachments.Add(stencilAttachmentUsage);
+	depthStencilTracker.PrepareRenderPass(depthStencilAttachments);
+	depthStencilTracker.TrackImageUsage(&depthStencilImage, depthRange, GpuImageLayout::ShaderReadOnly,
+		shaderUse, GpuAccessFlag::Read, depthStencilBarrierHelper);
+
+	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedDepthStencilAttachments = depthStencilTracker.BeginRenderPass(depthStencilBarrierHelper);
+	B3D_TEST_ASSERT(resolvedDepthStencilAttachments.Size() == 2)
+	B3D_TEST_ASSERT(resolvedDepthStencilAttachments[0].Surface == RT_DEPTH)
+	B3D_TEST_ASSERT(resolvedDepthStencilAttachments[0].UseFlags == (shaderUse | GpuResourceUseFlag::DepthStencilAttachment))
+	B3D_TEST_ASSERT(resolvedDepthStencilAttachments[0].Access == GpuAccessFlag::Read)
+	B3D_TEST_ASSERT(resolvedDepthStencilAttachments[0].Layout == GpuImageLayout::DepthStencilReadOnly)
+	B3D_TEST_ASSERT(resolvedDepthStencilAttachments[1].Surface == RT_STENCIL)
+	B3D_TEST_ASSERT(resolvedDepthStencilAttachments[1].UseFlags == GpuResourceUseFlag::DepthStencilAttachment)
+	B3D_TEST_ASSERT(resolvedDepthStencilAttachments[1].Access == GpuAccessFlag::Write)
+	B3D_TEST_ASSERT(resolvedDepthStencilAttachments[1].Layout == GpuImageLayout::DepthReadOnlyStencilAttachment)
+
+	depthStencilTracker.CommitPendingHazardRegistrations();
+	depthStencilTracker.EndRenderPass();
+	depthStencilTracker.NotifyUnbound();
+	depthStencilTracker.Clear();
+
 	SubmissionTestImage discardImage(1, 1, GpuTextureAspectFlag::Color);
 	SubmissionTestBarrierHelper discardBarrierHelper;
 	SubmissionTestTracker discardTracker;

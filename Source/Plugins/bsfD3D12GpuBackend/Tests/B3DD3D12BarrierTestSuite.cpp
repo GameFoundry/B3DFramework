@@ -4,6 +4,7 @@
 #include "B3DD3D12BarrierUtility.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12Texture.h"
+#include "B3DD3D12Utility.h"
 #include "Utility/B3DD3D12BarrierBatch.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBuffer.h"
@@ -59,6 +60,7 @@ D3D12BarrierTestSuite::D3D12BarrierTestSuite() : TestSuite("D3D12BarrierTestSuit
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestTextureBarrierScopes)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestTextureBarrierBatch)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestPlacedRenderTargetAllocation)
+	B3D_ADD_TEST(D3D12BarrierTestSuite::TestShaderReadableDepthTextures)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestResolveBarrierMappings)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestTextureLayoutMappings)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestCopyQueueLayoutMappings)
@@ -394,6 +396,87 @@ void D3D12BarrierTestSuite::TestPlacedRenderTargetAllocation()
 	{
 		fnTestPlacedAllocation(PF_RGBA8, TextureUsageFlag::RenderTarget, 4);
 	}
+}
+
+void D3D12BarrierTestSuite::TestShaderReadableDepthTextures()
+{
+	B3D_TEST_ASSERT(D3D12Utility::GetTextureResourceFormat(DXGI_FORMAT_D16_UNORM) == DXGI_FORMAT_R16_TYPELESS)
+	B3D_TEST_ASSERT(D3D12Utility::GetShaderResourceViewFormat(DXGI_FORMAT_D16_UNORM) == DXGI_FORMAT_R16_UNORM)
+	B3D_TEST_ASSERT(D3D12Utility::GetTextureResourceFormat(DXGI_FORMAT_D32_FLOAT) == DXGI_FORMAT_R32_TYPELESS)
+	B3D_TEST_ASSERT(D3D12Utility::GetShaderResourceViewFormat(DXGI_FORMAT_D32_FLOAT) == DXGI_FORMAT_R32_FLOAT)
+	B3D_TEST_ASSERT(D3D12Utility::GetTextureResourceFormat(DXGI_FORMAT_D24_UNORM_S8_UINT) == DXGI_FORMAT_R24G8_TYPELESS)
+	B3D_TEST_ASSERT(D3D12Utility::GetShaderResourceViewFormat(DXGI_FORMAT_D24_UNORM_S8_UINT) == DXGI_FORMAT_R24_UNORM_X8_TYPELESS)
+	B3D_TEST_ASSERT(D3D12Utility::GetTextureResourceFormat(DXGI_FORMAT_D32_FLOAT_S8X24_UINT) == DXGI_FORMAT_R32G8X24_TYPELESS)
+	B3D_TEST_ASSERT(D3D12Utility::GetShaderResourceViewFormat(DXGI_FORMAT_D32_FLOAT_S8X24_UINT) == DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS)
+	B3D_TEST_ASSERT(D3D12Utility::GetTextureResourceFormat(DXGI_FORMAT_R8G8B8A8_UNORM) == DXGI_FORMAT_R8G8B8A8_UNORM)
+	B3D_TEST_ASSERT(D3D12Utility::GetShaderResourceViewFormat(DXGI_FORMAT_R8G8B8A8_UNORM) == DXGI_FORMAT_R8G8B8A8_UNORM)
+	B3D_TEST_ASSERT(D3D12Utility::GetTextureShaderResourceViewDimension(TEX_TYPE_2D, false, false, 1) == D3D12_SRV_DIMENSION_TEXTURE2D)
+	B3D_TEST_ASSERT(D3D12Utility::GetTextureShaderResourceViewDimension(TEX_TYPE_2D, false, true, 1) == D3D12_SRV_DIMENSION_TEXTURE2DARRAY)
+	B3D_TEST_ASSERT(D3D12Utility::GetTextureShaderResourceViewDimension(TEX_TYPE_2D, false, false, 4) == D3D12_SRV_DIMENSION_TEXTURE2DMS)
+	B3D_TEST_ASSERT(D3D12Utility::GetTextureShaderResourceViewDimension(TEX_TYPE_2D, false, true, 4) == D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY)
+
+	GpuDevice* const gpuDevice = GetActiveD3D12Device();
+	if(gpuDevice == nullptr)
+		return;
+
+	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(*gpuDevice);
+	auto fnTestDepthTexture = [this, gpuDevice, &device](PixelFormat pixelFormat, DXGI_FORMAT viewFormat, DXGI_FORMAT resourceFormat, DXGI_FORMAT shaderResourceViewFormat, u32 sampleCount, u32 arraySliceCount)
+	{
+		D3D12_FEATURE_DATA_FORMAT_SUPPORT viewFormatSupport = {};
+		viewFormatSupport.Format = viewFormat;
+		if(FAILED(device.GetD3D12Device()->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &viewFormatSupport, sizeof(viewFormatSupport))) ||
+			(viewFormatSupport.Support1 & (D3D12_FORMAT_SUPPORT1_TEXTURE2D | D3D12_FORMAT_SUPPORT1_DEPTH_STENCIL)) !=
+			(D3D12_FORMAT_SUPPORT1_TEXTURE2D | D3D12_FORMAT_SUPPORT1_DEPTH_STENCIL))
+		{
+			return;
+		}
+
+		D3D12_FEATURE_DATA_FORMAT_SUPPORT shaderResourceViewFormatSupport = {};
+		shaderResourceViewFormatSupport.Format = shaderResourceViewFormat;
+		if(FAILED(device.GetD3D12Device()->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &shaderResourceViewFormatSupport, sizeof(shaderResourceViewFormatSupport))) ||
+			(shaderResourceViewFormatSupport.Support1 & D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE) == 0)
+		{
+			return;
+		}
+
+		if(sampleCount > 1)
+		{
+			D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS qualityLevels = {};
+			qualityLevels.Format = viewFormat;
+			qualityLevels.SampleCount = sampleCount;
+			if(FAILED(device.GetD3D12Device()->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &qualityLevels, sizeof(qualityLevels))) || qualityLevels.NumQualityLevels == 0)
+				return;
+		}
+
+		TextureCreateInformation createInformation;
+		createInformation.Name = "D3D12 shader-readable depth texture test";
+		createInformation.Format = pixelFormat;
+		createInformation.Width = 64;
+		createInformation.Height = 64;
+		createInformation.ArraySliceCount = arraySliceCount;
+		createInformation.SampleCount = sampleCount;
+		createInformation.Usage = TextureUsageFlag::DepthStencil;
+
+		const TShared<render::Texture> texture = gpuDevice->CreateTexture(createInformation);
+		B3D_TEST_ASSERT(texture != nullptr)
+		if(texture == nullptr)
+			return;
+
+		D3D12Texture* const d3d12Texture = static_cast<D3D12Texture*>(texture.get());
+		D3D12Image* const image = d3d12Texture->GetD3D12Image();
+		B3D_TEST_ASSERT(image != nullptr)
+		if(image == nullptr)
+			return;
+
+		B3D_TEST_ASSERT(image->GetD3D12Resource()->GetDesc().Format == resourceFormat)
+		B3D_TEST_ASSERT(image->GetViewFormat() == viewFormat)
+	};
+
+	fnTestDepthTexture(PF_D16, DXGI_FORMAT_D16_UNORM, DXGI_FORMAT_R16_TYPELESS, DXGI_FORMAT_R16_UNORM, 1, 1);
+	fnTestDepthTexture(PF_D32, DXGI_FORMAT_D32_FLOAT, DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_FLOAT, 1, 2);
+	fnTestDepthTexture(PF_D24S8, DXGI_FORMAT_D24_UNORM_S8_UINT, DXGI_FORMAT_R24G8_TYPELESS, DXGI_FORMAT_R24_UNORM_X8_TYPELESS, 1, 1);
+	fnTestDepthTexture(PF_D32_S8X24, DXGI_FORMAT_D32_FLOAT_S8X24_UINT, DXGI_FORMAT_R32G8X24_TYPELESS, DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS, 1, 1);
+	fnTestDepthTexture(PF_D32, DXGI_FORMAT_D32_FLOAT, DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_FLOAT, 4, 2);
 }
 
 void D3D12BarrierTestSuite::TestResolveBarrierMappings()

@@ -66,7 +66,7 @@ void D3D12HeadlessRenderWindowSurface::CreateSurfaceResources()
 		D3D12ImageCreateInformation imageCreateInformation;
 		imageCreateInformation.Resource = mColorBuffers[imageIndex];
 		imageCreateInformation.Allocation = allocation;
-		imageCreateInformation.Format = mColorFormat;
+		imageCreateInformation.ViewFormat = mColorFormat;
 		imageCreateInformation.InitialLayout = D3D12TextureLayout::Undefined();
 		imageCreateInformation.FaceCount = 1;
 		imageCreateInformation.MipLevelCount = 1;
@@ -107,7 +107,7 @@ void D3D12HeadlessRenderWindowSurface::CreateSurfaceResources()
 		D3D12ImageCreateInformation imageCreateInformation;
 		imageCreateInformation.Resource = mDepthStencilBuffer;
 		imageCreateInformation.Allocation = allocation;
-		imageCreateInformation.Format = mDepthFormat;
+		imageCreateInformation.ViewFormat = mDepthFormat;
 		imageCreateInformation.InitialLayout = D3D12TextureLayout::Undefined();
 		imageCreateInformation.FaceCount = 1;
 		imageCreateInformation.MipLevelCount = 1;

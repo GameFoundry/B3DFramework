@@ -26,7 +26,7 @@ namespace
 		}
 
 		outDesc = {};
-		outDesc.Format = attachment.Image->GetDXGIFormat();
+		outDesc.Format = attachment.Image->GetViewFormat();
 		switch (resourceDescription.Dimension)
 		{
 		case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
@@ -106,7 +106,7 @@ namespace
 		}
 
 		outDesc = {};
-		outDesc.Format = attachment.Image->GetDXGIFormat();
+		outDesc.Format = attachment.Image->GetViewFormat();
 		if (resourceDescription.SampleDesc.Count > 1)
 		{
 			if (surface.MipLevel != 0)
@@ -169,7 +169,7 @@ D3D12Framebuffer::D3D12Framebuffer(const D3D12FramebufferCreateInformation& crea
 
 		AddColorAttachment(*attachment.Image, attachment.Image->GetRange(attachment.Surface), colorIndex, attachment.FinalLayout);
 
-		mColorFormats[attachmentIndex] = attachment.Image->GetDXGIFormat();
+		mColorFormats[attachmentIndex] = attachment.Image->GetViewFormat();
 
 		fnRecordSampleCount(*attachment.Image);
 	}
@@ -180,7 +180,7 @@ D3D12Framebuffer::D3D12Framebuffer(const D3D12FramebufferCreateInformation& crea
 
 	AddDepthStencilAttachment(*depthStencil.Image, depthStencil.Image->GetRange(depthStencil.Surface), depthStencil.FinalLayout);
 
-	mDepthStencilFormat = depthStencil.Image->GetDXGIFormat();
+	mDepthStencilFormat = depthStencil.Image->GetViewFormat();
 
 	fnRecordSampleCount(*depthStencil.Image);
 }

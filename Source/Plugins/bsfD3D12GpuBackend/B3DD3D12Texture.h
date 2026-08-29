@@ -65,7 +65,7 @@ namespace b3d
 		{
 			ComPtr<ID3D12Resource> Resource; /**< Native resource wrapped by the image. */
 			GpuResourceLocation Allocation; /**< Memory allocation backing the resource. Invalid for externally owned resources (swap-chain buffers). */
-			DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN; /**< Format of the resource. */
+			DXGI_FORMAT ViewFormat = DXGI_FORMAT_UNKNOWN; /**< Default typed format used by native views. */
 			D3D12TextureLayout InitialLayout; /**< Native layout the resource was created or acquired in for every plane. */
 			u32 FaceCount = 1; /**< Number of array slices (or cube faces) in the image. */
 			u32 MipLevelCount = 1; /**< Number of mip levels in the image. */
@@ -89,8 +89,8 @@ namespace b3d
 			/** Returns the native D3D12 resource. */
 			ID3D12Resource* GetD3D12Resource() const { return mResource.Get(); }
 
-			/** Returns the DXGI format of the image. */
-			DXGI_FORMAT GetDXGIFormat() const { return mFormat; }
+			/** Returns the default typed format used by native views. */
+			DXGI_FORMAT GetViewFormat() const { return mViewFormat; }
 
 			/** Returns whether shader reads may overlap on multiple GPU queues. */
 			bool AllowsConcurrentQueueReads() const { return mAllowConcurrentQueueReads; }
@@ -118,7 +118,7 @@ namespace b3d
 		private:
 			ComPtr<ID3D12Resource> mResource;
 			GpuResourceLocation mAllocation;
-			DXGI_FORMAT mFormat = DXGI_FORMAT_UNKNOWN;
+			DXGI_FORMAT mViewFormat = DXGI_FORMAT_UNKNOWN;
 			bool mAllowConcurrentQueueReads = false;
 			bool mIsPresentable = false;
 		};
@@ -145,8 +145,8 @@ namespace b3d
 			/** Returns the native D3D12 resource. */
 			ID3D12Resource* GetD3D12Resource() const { return mImage != nullptr ? mImage->GetD3D12Resource() : nullptr; }
 
-			/** Returns the DXGI format of the texture. */
-			DXGI_FORMAT GetDXGIFormat() const { return mDXGIFormat; }
+			/** Returns the default typed format used by native views. */
+			DXGI_FORMAT GetViewFormat() const { return mViewFormat; }
 
 			GpuDevice& GetDevice() const override { return mGpuDevice; }
 
@@ -210,7 +210,7 @@ namespace b3d
 
 			GpuDevice& mGpuDevice;
 			D3D12Image* mImage = nullptr;
-			DXGI_FORMAT mDXGIFormat = DXGI_FORMAT_UNKNOWN;
+			DXGI_FORMAT mViewFormat = DXGI_FORMAT_UNKNOWN;
 
 			D3D12_CPU_DESCRIPTOR_HANDLE mDefaultSRV{};
 			TInlineArray<ViewEntry, 1> mViews;

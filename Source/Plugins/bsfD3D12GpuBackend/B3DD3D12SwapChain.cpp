@@ -135,7 +135,7 @@ void D3D12SwapChain::Initialize()
 
 		D3D12ImageCreateInformation imageCreateInformation;
 		imageCreateInformation.Resource = mBackBuffers[backBufferIndex];
-		imageCreateInformation.Format = mCreateInformation.ColorFormat;
+		imageCreateInformation.ViewFormat = mCreateInformation.ColorFormat;
 		imageCreateInformation.InitialLayout = D3D12TextureLayout::Present();
 		imageCreateInformation.FaceCount = 1;
 		imageCreateInformation.MipLevelCount = 1;
@@ -177,7 +177,7 @@ void D3D12SwapChain::Initialize()
 			D3D12ImageCreateInformation imageCreateInformation;
 			imageCreateInformation.Resource = mDepthStencilBuffer;
 			imageCreateInformation.Allocation = depthStencilAllocation;
-			imageCreateInformation.Format = mCreateInformation.DepthStencilFormat;
+			imageCreateInformation.ViewFormat = mCreateInformation.DepthStencilFormat;
 			imageCreateInformation.InitialLayout = D3D12TextureLayout::Undefined();
 			imageCreateInformation.FaceCount = 1;
 			imageCreateInformation.MipLevelCount = 1;

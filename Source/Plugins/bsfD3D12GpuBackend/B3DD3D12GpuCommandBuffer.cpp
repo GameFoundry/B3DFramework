@@ -1636,7 +1636,7 @@ bool D3D12GpuCommandBuffer::CopyTexture(const TShared<Texture>& source, const TS
 		if(needsResolve)
 		{
 			// ResolveSubresource always covers the entire subresource, so a sub-region resolve isn't expressible.
-			mCommandList->ResolveSubresource(destinationResource, destinationSubresource, sourceResource, sourceSubresource, d3d12Destination->GetDXGIFormat());
+			mCommandList->ResolveSubresource(destinationResource, destinationSubresource, sourceResource, sourceSubresource, d3d12Destination->GetViewFormat());
 
 			continue;
 		}
@@ -1806,7 +1806,7 @@ void D3D12GpuCommandBuffer::CopyImageToBuffer(D3D12Image* source, D3D12Buffer* d
 
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
 	footprint.Offset = destination->GetOffset();
-	footprint.Footprint.Format = source->GetDXGIFormat();
+	footprint.Footprint.Format = source->GetViewFormat();
 	footprint.Footprint.Width = width;
 	footprint.Footprint.Height = height;
 	footprint.Footprint.Depth = 1;

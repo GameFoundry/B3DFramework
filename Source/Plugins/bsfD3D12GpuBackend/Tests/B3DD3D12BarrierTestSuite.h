@@ -26,6 +26,9 @@ namespace b3d
 		/** Checks RT/DS resources use placed allocations from compatible texture heaps. */
 		void TestPlacedRenderTargetAllocation();
 
+		/** Checks depth resources use compatible resource/view formats and shader-resource view dimensions. */
+		void TestShaderReadableDepthTextures();
+
 		/** Checks exact native resolve mappings and verifies ordinary copies retain copy semantics. */
 		void TestResolveBarrierMappings();
 
