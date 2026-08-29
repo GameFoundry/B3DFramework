@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "GpuBackend/Allocators/B3DGpuAllocator.h"
+#include "Math/B3DMath.h"
 #include "Utility/B3DBitwise.h"
 #include "Utility/B3DPool.h"
 #include "Threading/B3DThreading.h"
@@ -305,11 +306,13 @@ namespace b3d
 		/** Effective normal-page size: the shared pool's when present, otherwise the configured size. */
 		u64 GetPageSize() const { return mPagePool != nullptr ? mPagePool->GetPageSize() : mConfig.PageSize; }
 
-		/** Round @p value up to the next multiple of @p alignment, which must be a power of two. */
+		/** Round @p value up to the next multiple of @p alignment. */
 		static u64 AlignUp(u64 value, u32 alignment)
 		{
-			const u64 mask = (u64)alignment - 1;
-			return (value + mask) & ~mask;
+			if(Bitwise::IsPow2(alignment))
+				return Bitwise::AlignUp(value, (u64)alignment);
+
+			return Math::CeilToMultiple(value, (u64)alignment);
 		}
 
 		/** One backend heap. Lives in mPages until its fence drains and the slot is vacated. */
@@ -375,7 +378,6 @@ namespace b3d
 	{
 		B3D_ASSERT(out.Allocator == nullptr);
 		B3D_ASSERT(alignment > 0);
-		B3D_ASSERT(Bitwise::IsPow2(alignment));
 		B3D_ASSERT(kind == GpuResourceKind::Linear); // Linear pages are buffer-only by convention.
 		B3D_ASSERT(owner == nullptr); // Linear allocations don't participate in defrag.
 		(void)kind;
