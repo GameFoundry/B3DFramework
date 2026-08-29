@@ -23,6 +23,9 @@ namespace b3d
 		/** Checks conservative ordered texture transitions, discard and depth/stencil planes. */
 		void TestTextureBarrierBatch();
 
+		/** Checks RT/DS resources use placed allocations from compatible texture heaps. */
+		void TestPlacedRenderTargetAllocation();
+
 		/** Checks exact native resolve mappings and verifies ordinary copies retain copy semantics. */
 		void TestResolveBarrierMappings();
 

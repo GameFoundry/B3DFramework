@@ -390,7 +390,7 @@ D3D12GpuDevice::MemoryPoolType D3D12GpuDevice::GetMemoryPoolType(const D3D12_RES
 
 	const bool isRenderTarget = (resourceDesc.Flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)) != 0;
 	if(isRenderTarget)
-		return MemoryPoolType::Count;
+		return resourceDesc.SampleDesc.Count > 1 ? MemoryPoolType::DefaultMsaaRenderTargetTexture : MemoryPoolType::DefaultRenderTargetTexture;
 
 	return resourceDesc.SampleDesc.Count > 1 ? MemoryPoolType::DefaultMsaaTexture : MemoryPoolType::DefaultTexture;
 }
@@ -419,6 +419,13 @@ D3D12GpuDevice::GpuMemoryAllocator& D3D12GpuDevice::GetOrCreateGpuMemoryAllocato
 		break;
 	case MemoryPoolType::DefaultMsaaTexture:
 		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
+		heapAlignment = D3D12_DEFAULT_MSAA_RESOURCE_PLACEMENT_ALIGNMENT;
+		break;
+	case MemoryPoolType::DefaultRenderTargetTexture:
+		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
+		break;
+	case MemoryPoolType::DefaultMsaaRenderTargetTexture:
+		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
 		heapAlignment = D3D12_DEFAULT_MSAA_RESOURCE_PLACEMENT_ALIGNMENT;
 		break;
 	case MemoryPoolType::UploadBuffer:
@@ -468,21 +475,6 @@ HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, 
 	enhancedResourceDescription.SampleDesc = resourceDesc.SampleDesc;
 	enhancedResourceDescription.Layout = resourceDesc.Layout;
 	enhancedResourceDescription.Flags = resourceDesc.Flags;
-
-	// TODO - Placed RT/DS resources begin uninitialized and must receive a full-subresource Clear, Discard, or Copy before
-	// any other operation. The renderer supports rectangular clears and may render without a preceding full clear,
-	// so keep these resources committed (and therefore zero-initialized) until first-use initialization is explicit.
-	if((resourceDesc.Flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)) != 0)
-	{
-		D3D12_HEAP_PROPERTIES heapProperties = {};
-		heapProperties.Type = heapType;
-		heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-		heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-		heapProperties.CreationNodeMask = 0;
-		heapProperties.VisibleNodeMask = 0;
-
-		return mEnhancedDevice->CreateCommittedResource3(&heapProperties, D3D12_HEAP_FLAG_NONE, &enhancedResourceDescription, initialLayout, optimizedClearValue, nullptr, 0, nullptr, IID_PPV_ARGS(&outResource));
-	}
 
 	const MemoryPoolType poolType = GetMemoryPoolType(resourceDesc, heapType);
 	if(poolType == MemoryPoolType::Count)

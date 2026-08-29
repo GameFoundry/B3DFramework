@@ -147,12 +147,14 @@ namespace b3d
 
 			enum class MemoryPoolType : u32
 			{
-				DefaultBuffer,      /**< GPU-local buffers. */
-				DefaultTexture,     /**< GPU-local, non-multisampled textures. */
-				DefaultMsaaTexture, /**< GPU-local multisampled textures. */
-				UploadBuffer,       /**< CPU-writable upload buffers. */
-				ReadbackBuffer,     /**< CPU-readable readback buffers. */
-				Count               /**< Number of allocatable memory pool types. */
+				DefaultBuffer,                  /**< GPU-local buffers. */
+				DefaultTexture,                 /**< GPU-local, non-multisampled textures without RT/DS flags. */
+				DefaultMsaaTexture,             /**< GPU-local multisampled textures without RT/DS flags. */
+				DefaultRenderTargetTexture,     /**< GPU-local, non-multisampled RT/DS textures. */
+				DefaultMsaaRenderTargetTexture, /**< GPU-local multisampled RT/DS textures. */
+				UploadBuffer,                   /**< CPU-writable upload buffers. */
+				ReadbackBuffer,                 /**< CPU-readable readback buffers. */
+				Count                           /**< Number of allocatable memory pool types. */
 			};
 
 			using GpuMemoryAllocator = TGpuTlsfAllocator<D3D12HeapBackend>;

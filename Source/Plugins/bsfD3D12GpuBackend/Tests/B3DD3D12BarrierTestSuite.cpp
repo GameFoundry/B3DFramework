@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12BarrierTestSuite.h"
 #include "B3DD3D12BarrierUtility.h"
+#include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12Texture.h"
 #include "Utility/B3DD3D12BarrierBatch.h"
 #include "GpuBackend/B3DGpuBackend.h"
@@ -57,6 +58,7 @@ D3D12BarrierTestSuite::D3D12BarrierTestSuite() : TestSuite("D3D12BarrierTestSuit
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestBufferBarrierScopes)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestTextureBarrierScopes)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestTextureBarrierBatch)
+	B3D_ADD_TEST(D3D12BarrierTestSuite::TestPlacedRenderTargetAllocation)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestResolveBarrierMappings)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestTextureLayoutMappings)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestCopyQueueLayoutMappings)
@@ -347,6 +349,51 @@ void D3D12BarrierTestSuite::TestTextureBarrierBatch()
 	const TShared<GpuCommandBuffer> commandBuffer = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("D3D12 sequential texture barrier validation"));
 	commandBuffer->IssueBarriers(sequentialBarriers);
 	commandBuffer->End();
+}
+
+void D3D12BarrierTestSuite::TestPlacedRenderTargetAllocation()
+{
+	GpuDevice* const gpuDevice = GetActiveD3D12Device();
+	if(gpuDevice == nullptr)
+		return;
+
+	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(*gpuDevice);
+	auto fnTestPlacedAllocation = [this, gpuDevice](PixelFormat format, TextureUsageFlags usage, u32 sampleCount)
+	{
+		TextureCreateInformation createInformation;
+		createInformation.Format = format;
+		createInformation.Width = 64;
+		createInformation.Height = 64;
+		createInformation.SampleCount = sampleCount;
+		createInformation.Usage = usage;
+
+		const TShared<render::Texture> texture = gpuDevice->CreateTexture(createInformation);
+		B3D_TEST_ASSERT(texture != nullptr)
+		if(texture != nullptr)
+		{
+			D3D12Image* const image = static_cast<D3D12Texture*>(texture.get())->GetD3D12Image();
+			B3D_TEST_ASSERT(image != nullptr)
+			if(image == nullptr)
+				return;
+
+			D3D12_HEAP_PROPERTIES heapProperties = {};
+			D3D12_HEAP_FLAGS heapFlags = D3D12_HEAP_FLAG_NONE;
+			B3D_TEST_ASSERT(SUCCEEDED(image->GetD3D12Resource()->GetHeapProperties(&heapProperties, &heapFlags)))
+			B3D_TEST_ASSERT((heapFlags & D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES) == D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES)
+		}
+	};
+
+	fnTestPlacedAllocation(PF_RGBA8, TextureUsageFlag::RenderTarget, 1);
+	fnTestPlacedAllocation(PF_D32, TextureUsageFlag::DepthStencil, 1);
+
+	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS qualityLevels = {};
+	qualityLevels.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	qualityLevels.SampleCount = 4;
+	if(SUCCEEDED(device.GetD3D12Device()->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
+		&qualityLevels, sizeof(qualityLevels))) && qualityLevels.NumQualityLevels > 0)
+	{
+		fnTestPlacedAllocation(PF_RGBA8, TextureUsageFlag::RenderTarget, 4);
+	}
 }
 
 void D3D12BarrierTestSuite::TestResolveBarrierMappings()
