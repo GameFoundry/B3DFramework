@@ -4,6 +4,7 @@
 #if B3D_PLATFORM_MACOS
 #include "B3DMetalSourceCompiler.h"
 #endif
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DSamplerState.h"
 #include "Material/B3DShader.h"
 #include "Resources/B3DBuiltinResources.h"
@@ -630,10 +631,8 @@ static Mutex& GetXscCompileMutex()
 }
 
 template<bool IsRenderProxy>
-static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target,
-	bool optionalEntry, u32& startBindingSlot, ShaderCompilerResult& outCompileResult,
-	CoreVariantType<ShaderCreateInformation, IsRenderProxy>* outShaderCreateInformation = nullptr,
-	TInlineArray<GpuProgramType, 2>* detectedTypes = nullptr, Array<u32, 3>* outThreadGroupSize = nullptr)
+static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, bool optionalEntry, u32& startBindingSlot, ShaderCompilerResult& outCompileResult,
+	CoreVariantType<ShaderCreateInformation, IsRenderProxy>* outShaderCreateInformation = nullptr, TInlineArray<GpuProgramType, 2>* detectedTypes = nullptr, Array<u32, 3>* outThreadGroupSize = nullptr, u32* outPushConstantBufferSize = nullptr)
 {
 	TShared<StringStream> input = B3DMakeShared<StringStream>();
 
@@ -693,6 +692,9 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 	outputDesc.sourceCode = &output;
 	outputDesc.options.autoBinding = true;
 	outputDesc.options.autoBindingStartSlot = startBindingSlot;
+	outputDesc.options.maxPushConstantSize = kMaxPushConstantSizeInBytes;
+	outputDesc.options.pushConstantHLSLRegister = kPushConstantHlslRegister;
+	outputDesc.options.pushConstantHLSLRegisterSpace = kPushConstantHlslRegisterSpace;
 	outputDesc.options.fragmentLocations = true;
 	outputDesc.options.separateShaders = true;
 	outputDesc.options.separateSamplers = true;
@@ -796,6 +798,12 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 		(*outThreadGroupSize)[2] = reflectionData.numThreads.z > 0 ? (u32)reflectionData.numThreads.z : 1;
 	}
 
+	if(outPushConstantBufferSize != nullptr)
+	{
+		B3D_ASSERT(reflectionData.pushConstantBuffers.size() <= 1);
+		*outPushConstantBufferSize = reflectionData.pushConstantBuffers.empty() ? 0u : (u32)reflectionData.pushConstantBuffers.front().size;
+	}
+
 	return output.str();
 }
 
@@ -818,10 +826,11 @@ const HLSLCrossCompileTarget* HLSLCrossCompiler::GetTarget(const String& languag
 	return found != registry.end() ? &found->second : nullptr;
 }
 
-ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& startBindingSlot, String& outSource, Array<u32, 3>& outThreadGroupSize)
+ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& startBindingSlot, String& outSource, Array<u32, 3>& outThreadGroupSize, u32& outPushConstantBufferSize)
 {
 	ShaderCompilerResult compileResult;
 	outThreadGroupSize = { 1, 1, 1 };
+	outPushConstantBufferSize = 0;
 
 	HLSLCrossCompileTarget xscTarget = target;
 #if B3D_PLATFORM_MACOS
@@ -830,7 +839,7 @@ ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProg
 		xscTarget.TargetLanguage = Xsc::TargetLanguage::VKSL450;
 #endif
 
-	outSource = ::CrossCompile<false>(hlsl, type, xscTarget, false, startBindingSlot, compileResult, nullptr, nullptr, &outThreadGroupSize);
+	outSource = ::CrossCompile<false>(hlsl, type, xscTarget, false, startBindingSlot, compileResult, nullptr, nullptr, &outThreadGroupSize, &outPushConstantBufferSize);
 
 #if B3D_PLATFORM_MACOS
 	if(compileResult.ErrorMessage.empty() && compileMetalSource)

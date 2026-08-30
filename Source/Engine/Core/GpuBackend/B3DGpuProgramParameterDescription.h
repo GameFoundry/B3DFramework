@@ -77,6 +77,9 @@ namespace b3d
 		Map<String, GpuObjectParameterInformation> StorageTextures;
 		Map<String, GpuObjectParameterInformation> Buffers;
 
+		/** Declared push-constant buffer size in bytes, or zero when the program does not use push constants. */
+		u32 PushConstantBufferSize = 0;
+
 		/**
 		 * Attempts to combine another parameter description into this one. Parameters with the same name
 		 * have their stage fields combined. Parameters with the same name but different type, slot, or array size

@@ -193,10 +193,14 @@ namespace b3d
 		/** Returns pipeline layout for a particular set. */
 		TShared<GpuPipelineParameterSetLayout> GetSet(u32 set) const { return mSets[set]; }
 
+		/** Returns the push-constant buffer size required by the pipeline, or zero when it is unused. */
+		u32 GetPushConstantBufferSize() const { return mPushConstantBufferSize; }
+
 	protected:
 		GpuPipelineParameterLayout(GpuDevice& device, const GpuPipelineParameterLayoutCreateInformation& createInformation);
 
 		TInlineArray<TShared<GpuPipelineParameterSetLayout>, 2> mSets;
+		u32 mPushConstantBufferSize = 0;
 	};
 
 	/** @} */

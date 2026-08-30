@@ -3,8 +3,10 @@
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 
 #include "B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuProgram.h"
+#include "Debug/B3DDebug.h"
 #include "Math/B3DMath.h"
 #include "Utility/B3DResult.h"
 
@@ -405,6 +407,13 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const 
 			continue;
 
 		const GpuProgramStageBit stageBit = (GpuProgramStageBit)(1 << programIndex);
+		if(parameterDescription->PushConstantBufferSize != 0)
+		{
+			const u32 pushConstantBufferSize = parameterDescription->PushConstantBufferSize;
+			B3D_ASSERT((pushConstantBufferSize & 3u) == 0);
+			B3D_ASSERT(pushConstantBufferSize <= kMaxPushConstantSizeInBytes);
+			mPushConstantBufferSize = std::max(mPushConstantBufferSize, pushConstantBufferSize);
+		}
 
 		// Split the program's parameter description by set
 		TInlineArray<GpuProgramParameterDescription, 4> programPerSetDescriptions;

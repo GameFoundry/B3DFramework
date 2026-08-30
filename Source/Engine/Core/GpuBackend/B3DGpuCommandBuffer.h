@@ -452,6 +452,13 @@ namespace b3d
 			 */
 			virtual void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) = 0;
 
+			/**
+			 * Updates the push-constant block used by subsequent draw or dispatch commands. Bytes outside the updated
+			 * range remain unchanged. The offset and size must be four-byte aligned and the update must remain
+			 * within the guaranteed block.
+			 */
+			virtual void SetPushConstants(u32 offsetInBytes, u32 sizeInBytes, const void* data);
+
 			/** Sets a pipeline state that controls how will subsequent draw commands render primitives. */
 			virtual void SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState) = 0;
 

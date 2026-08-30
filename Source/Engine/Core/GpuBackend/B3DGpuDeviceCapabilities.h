@@ -180,6 +180,9 @@ namespace b3d
 		/** Minimum alignment required for uniform buffers that are sub-allocated within a larger buffer. */
 		u32 MinimumUniformBufferOffsetAlignment = 16;
 
+		/** Maximum number of push-constant bytes accepted by this backend. Zero means push constants are unsupported. */
+		u32 MaximumPushConstantSize = 0;
+
 		/** Optimal alignment for offsets used in buffers for copy source or destination operations, when copying from a buffer to another buffer. */
 		u32 OptimalBufferToBufferCopyOffsetAlignment = 16;
 

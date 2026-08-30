@@ -33,15 +33,17 @@ namespace b3d
 		/**
 		 * Cross compiles the provided HLSL source code into the requested output language.
 		 *
-		 * @param	hlsl					HLSL to cross compile.
-		 * @param	type					GPU program stage that the HLSL code represents.
-		 * @param	target					Description of the language to cross-compile to.
-		 * @param	inOutStartBindingSlot	Slot at which to start assigning resource bindings. This is important if your shader has multiple GPU program types, in which case you wish to set
-		 *									this to 0 for the first program type, and keep passing the value to any next program, which ensures that each program of the shader gets a unique set of bindings.
-		 * @param	outSource				Cross compiled shader source, if successful.
-		 * @return							A result object containing an error message if not successful.
+		 * @param	hlsl						HLSL to cross compile.
+		 * @param	type						GPU program stage that the HLSL code represents.
+		 * @param	target						Description of the language to cross-compile to.
+		 * @param	inOutStartBindingSlot		Slot at which to start assigning resource bindings. This is important if your shader has multiple GPU program types, in which case you wish to set
+		 *										this to 0 for the first program type, and keep passing the value to any next program, which ensures that each program of the shader gets a unique set of bindings.
+		 * @param	outSource					Cross compiled shader source, if successful.
+		 * @param	outThreadGroupSize			Compute threads per threadgroup declared by the source program.
+		 * @param	outPushConstantBufferSize	Declared push-constant buffer size in bytes, or zero when unused.
+		 * @return								A result object containing an error message if not successful.
 		 */
-		static ShaderCompilerResult CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& inOutStartBindingSlot, String& outSource, Array<u32, 3>& outThreadGroupSize);
+		static ShaderCompilerResult CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& inOutStartBindingSlot, String& outSource, Array<u32, 3>& outThreadGroupSize, u32& outPushConstantBufferSize);
 
 		/**
 		 * Registers every cross-compilation target supported by this build. Call once during plugin start-up.

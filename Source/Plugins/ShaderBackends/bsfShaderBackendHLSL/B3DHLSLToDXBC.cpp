@@ -2,11 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DHLSLToDXBC.h"
 #include "B3DHLSLShaderABI.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Debug/B3DLog.h"
 #include "Math/B3DMath.h"
+#include "String/B3DStringFormat.h"
 #include "Utility/B3DConfigVariable.h"
 
 #include <d3dcompiler.h>
@@ -51,6 +53,26 @@ namespace
 		default:
 			return nullptr;
 		}
+	}
+
+	/** Returns true when a reflected binding is the reserved push-constant carrier. */
+	bool IsPushConstantBufferBinding(const D3D12_SHADER_INPUT_BIND_DESC& bindingDescription)
+	{
+		return bindingDescription.Type == D3D_SIT_CBUFFER && bindingDescription.BindPoint == kPushConstantHlslRegister && bindingDescription.Space == kPushConstantHlslRegisterSpace;
+	}
+
+	/** Returns the occupied byte range of a constant buffer without including the carrier's trailing register padding. */
+	u32 GetConstantBufferSize(ID3D12ShaderReflectionConstantBuffer* reflection, const D3D12_SHADER_BUFFER_DESC& description)
+	{
+		u32 size = 0;
+		for (u32 variableIndex = 0; variableIndex < description.Variables; variableIndex++)
+		{
+			D3D12_SHADER_VARIABLE_DESC variableDescription;
+			reflection->GetVariableByIndex(variableIndex)->GetDesc(&variableDescription);
+			size = std::max(size, variableDescription.StartOffset + variableDescription.Size);
+		}
+
+		return size;
 	}
 
 	/** Converts a D3D shader variable type to the matching engine data parameter type. */
@@ -258,7 +280,7 @@ namespace
 	}
 
 	/** Reflects constant buffers and their members. */
-	void ReflectConstantBuffers(ID3D12ShaderReflection* reflection, const D3D12_SHADER_DESC& shaderDesc, GpuProgramParameterDescription& parameterDescription)
+	bool ReflectConstantBuffers(ID3D12ShaderReflection* reflection, const D3D12_SHADER_DESC& shaderDesc, GpuProgramParameterDescription& parameterDescription, String& outMessages)
 	{
 		for (u32 bufferIndex = 0; bufferIndex < shaderDesc.ConstantBuffers; bufferIndex++)
 		{
@@ -278,6 +300,20 @@ namespace
 				reflection->GetResourceBindingDesc(resourceIndex, &bindDesc);
 				if (strcmp(bindDesc.Name, cbDesc.Name) == 0)
 					break;
+			}
+
+			if (IsPushConstantBufferBinding(bindDesc))
+			{
+				const u32 pushConstantBufferSize = GetConstantBufferSize(constantBufferReflection, cbDesc);
+				if (pushConstantBufferSize == 0 || (pushConstantBufferSize & 3u) != 0 || pushConstantBufferSize > kMaxPushConstantSizeInBytes)
+				{
+					outMessages = StringUtility::Format("Push-constant buffer '{0}' has an invalid reflected size of {1} bytes; expected a non-zero, four-byte-aligned size no greater than {2} bytes.",
+						cbDesc.Name, pushConstantBufferSize, kMaxPushConstantSizeInBytes);
+					return false;
+				}
+
+				parameterDescription.PushConstantBufferSize = pushConstantBufferSize;
+				continue;
 			}
 
 			GpuUniformBufferInformation bufferInformation;
@@ -314,6 +350,8 @@ namespace
 
 			parameterDescription.UniformBuffers[bufferInformation.Name] = bufferInformation;
 		}
+
+		return true;
 	}
 
 	/** Reflects bound resources (textures, samplers, UAVs, etc.). */
@@ -491,6 +529,8 @@ namespace
 		{
 			D3D12_SHADER_INPUT_BIND_DESC bindDesc;
 			reflection->GetResourceBindingDesc(resourceIndex, &bindDesc);
+			if (IsPushConstantBufferBinding(bindDesc))
+				continue;
 
 			GpuParameterType type;
 			HLSLRegisterClass registerClass;
@@ -540,15 +580,16 @@ namespace
 	}
 
 	/** Performs shader reflection to extract parameter descriptions and vertex inputs. */
-	void ReflectShader(ID3DBlob* shaderBlob, GpuProgramType type, GpuProgramBytecode& bytecode)
+	bool ReflectShader(ID3DBlob* shaderBlob, GpuProgramType type, GpuProgramBytecode& bytecode)
 	{
 		ComPtr<ID3D12ShaderReflection> reflection;
 		HRESULT hr = D3DReflect(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), IID_PPV_ARGS(&reflection));
 
 		if (FAILED(hr))
 		{
-			B3D_LOG(Warning, LogRenderBackend, "Failed to reflect shader");
-			return;
+			bytecode.Messages = "Failed to reflect compiled HLSL shader.";
+			B3D_LOG(Error, LogRenderBackend, "{0}", bytecode.Messages);
+			return false;
 		}
 
 		D3D12_SHADER_DESC shaderDesc;
@@ -557,12 +598,16 @@ namespace
 		if (!bytecode.ParameterDescription)
 			bytecode.ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
 
-		ReflectConstantBuffers(reflection.Get(), shaderDesc, *bytecode.ParameterDescription);
+		if (!ReflectConstantBuffers(reflection.Get(), shaderDesc, *bytecode.ParameterDescription, bytecode.Messages))
+			return false;
+
 		ReflectBoundResources(reflection.Get(), shaderDesc, *bytecode.ParameterDescription);
 		BuildResourceTableLayout(reflection.Get(), shaderDesc, bytecode);
 
 		if (type == GPT_VERTEX_PROGRAM)
 			ReflectVertexInput(reflection.Get(), shaderDesc, bytecode.VertexInput);
+
+		return true;
 	}
 } // namespace
 
@@ -667,14 +712,13 @@ TShared<GpuProgramBytecode> HLSLToDXBC::CompileBytecode(const GpuProgramCreateIn
 	else
 		bytecode->Messages = "Shader compiled successfully";
 
-	u32 bytecodeSize = (u32)shaderBlob->GetBufferSize();
-	u8* bytecodeData = (u8*)B3DAllocate(bytecodeSize);
-	memcpy(bytecodeData, shaderBlob->GetBufferPointer(), bytecodeSize);
+	if (!ReflectShader(shaderBlob.Get(), desc.Type, *bytecode))
+		return bytecode;
 
+	const u32 bytecodeSize = (u32)shaderBlob->GetBufferSize();
+	bytecode->Instructions.Data = (u8*)B3DAllocate(bytecodeSize);
 	bytecode->Instructions.Size = bytecodeSize;
-	bytecode->Instructions.Data = bytecodeData;
-
-	ReflectShader(shaderBlob.Get(), desc.Type, *bytecode);
+	memcpy(bytecode->Instructions.Data, shaderBlob->GetBufferPointer(), bytecodeSize);
 
 	return bytecode;
 }

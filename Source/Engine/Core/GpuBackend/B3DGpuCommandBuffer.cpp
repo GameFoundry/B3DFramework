@@ -41,6 +41,15 @@ GpuCommandBuffer::~GpuCommandBuffer()
 	OnDestroyed(mState == GpuCommandBufferState::Executing);
 }
 
+void GpuCommandBuffer::SetPushConstants(u32 /*offsetInBytes*/, u32 sizeInBytes, const void* /*data*/)
+{
+	EnsureValidThread();
+	if(sizeInBytes == 0)
+		return;
+
+	B3D_LOG(Error, LogRenderBackend, "Push constants are unsupported by this GPU backend.");
+}
+
 #if B3D_PROFILING_ENABLED
 TShared<GpuCommandBufferProfiler> GpuCommandBuffer::BeginProfiling(const ProfilerString& profilingScopeName)
 {

@@ -33,5 +33,17 @@ namespace b3d
 
 		/** Verifies render-pass attachment and shader usage is combined through core subresource partitions. */
 		void TestRenderPassResourceTracking();
+
+		/** Verifies push-constant metadata merging and carrier separation across program stages. */
+		void TestPushConstantMetadata();
+
+		/** Verifies push-constant partial updates and API validation rules. */
+		void TestPushConstantWrites();
+
+		/** Verifies push-constant buffer metadata survives bytecode serialization. */
+		void TestPushConstantSerialization();
+
+		/** Verifies bytecode reflection reports the declared push-constant size without exposing its native carrier. */
+		void TestPushConstantShaderCompilation();
 	};
 } // namespace b3d

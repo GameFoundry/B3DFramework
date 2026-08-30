@@ -105,7 +105,10 @@ namespace b3d
 		String Language; /**< Language the source is written in, for example "hlsl" or "glsl". */
 		GpuProgramType Type = GPT_VERTEX_PROGRAM; /**< Type of the program, for example vertex or fragment. */
 		bool RequiresAdjacency = false; /**< If true then adjacency information will be provided when rendering. */
+
+		// Reflection data (usually things that cannot be reflected by the bytecode compiler on all or some backends)
 		Array<u32, 3> ThreadGroupSize = { 1, 1, 1 }; /**< Compute threads per threadgroup declared by the source program. */
+		u32 PushConstantBufferSize = 0; /**< Declared push-constant buffer size in bytes, or zero when unused. */
 
 		/**
 		 * Optional intermediate version of the GPU program. Can significantly speed up GPU program compilation/creation

@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DGLSLToSPIRV.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "GpuBackend/B3DGpuProgram.h"
@@ -587,9 +588,29 @@ namespace
 	}
 
 	/** Parses all uniforms as reflected by the provided SPIRVCross compiler. Appends the out data into @p outParameterDescription, and logs any warnings in @p outLog. */
-	void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramParameterDescription& outParameterDescription, StringStream& outLog)
+	bool ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramParameterDescription& outParameterDescription, StringStream& outLog)
 	{
 		const spirv_cross::ShaderResources& sprivResources = compiler.get_shader_resources();
+		if (sprivResources.push_constant_buffers.size() > 1)
+		{
+			outLog << "SPIR-V declares more than one push-constant buffer.";
+			return false;
+		}
+
+		if (!sprivResources.push_constant_buffers.empty())
+		{
+			const spirv_cross::SPIRType& pushConstantType = compiler.get_type(sprivResources.push_constant_buffers.front().base_type_id);
+			const size_t pushConstantSize = compiler.get_declared_struct_size(pushConstantType);
+			if (pushConstantSize == 0 || (pushConstantSize & 3u) != 0 || pushConstantSize > kMaxPushConstantSizeInBytes)
+			{
+				outLog << "SPIR-V push-constant buffer has an invalid reflected size of " << pushConstantSize
+					<< " bytes; expected a non-zero, four-byte-aligned size no greater than " << kMaxPushConstantSizeInBytes << " bytes.";
+				return false;
+			}
+
+			outParameterDescription.PushConstantBufferSize = (u32)pushConstantSize;
+		}
+
 		for (const auto& resource : sprivResources.uniform_buffers)
 		{
 			TOptional<GpuUniformBufferInformation> uniformBufferInformation = ParseSPIRVCrossUniformBuffer(compiler, resource, outLog);
@@ -686,6 +707,8 @@ namespace
 				outParameterDescription.Buffers[std::move(name)] = std::move(storageBufferInformation.value());
 			}
 		}
+
+		return true;
 	}
 
 	/**	Holds a GLSL program input attribute used in vertex programs. */
@@ -876,7 +899,11 @@ TShared<GpuProgramBytecode> GLSLToSPIRV::CompileBytecode(const GpuProgramCreateI
 	bytecode->ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
 
 	StringStream messageLog;
-	ParseSPIRVCrossUniforms(spirvCompiler, *bytecode->ParameterDescription, messageLog);
+	if (!ParseSPIRVCrossUniforms(spirvCompiler, *bytecode->ParameterDescription, messageLog))
+	{
+		bytecode->Messages = messageLog.str();
+		return bytecode;
+	}
 
 	const String& messageLogString = messageLog.str();
 	if (!messageLogString.empty())

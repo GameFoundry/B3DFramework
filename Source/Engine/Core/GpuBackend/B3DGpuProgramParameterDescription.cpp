@@ -10,6 +10,9 @@ constexpr u32 RTTIPlainType<GpuUniformBufferMemberInformation>::kVersion;
 
 Result GpuProgramParameterDescription::TryCombine(const GpuProgramParameterDescription& other, GpuProgramStageBit stage)
 {
+	if(other.PushConstantBufferSize > PushConstantBufferSize)
+		PushConstantBufferSize = other.PushConstantBufferSize;
+
 	// Combine uniform buffers
 	for(const auto& entry : other.UniformBuffers)
 	{

@@ -21,7 +21,7 @@ namespace b3d
 		 * Version of the compiler used for compiling Vulkan GPU programs. Tick this whenever the compiler updates in order
 		 * to force bytecode to rebuild.
 		 */
-		inline constexpr u32 kVulkanCompilerVersion = 3;
+		inline constexpr u32 kVulkanCompilerVersion = 5;
 
 		/**
 		 * Constructs the device-independent vksl bytecode compiler (engine VKSL / GLSL source -> SPIR-V via glslang,

@@ -6,12 +6,49 @@
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuResourceTracker.h"
 #include "GpuBackend/B3DGpuResourceTracker.inl"
+#include "GpuBackend/B3DGpuProgram.h"
+#include "GpuBackend/B3DGpuProgramParameterDescription.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
+#include "Material/B3DShaderCompiler.h"
+#include "Material/B3DShader.h"
+#include "Material/B3DVariation.h"
+#include "Material/B3DPass.h"
+#include "Serialization/B3DBinarySerializer.h"
+#include "FileSystem/B3DDataStream.h"
+#include "String/B3DStringFormat.h"
+#include "Utility/B3DResult.h"
 
 using namespace b3d;
 using namespace b3d::render;
 
 namespace
 {
+	Result ValidatePushConstantWrite(u32 maximumPushConstantSize, u32 offsetInBytes, u32 sizeInBytes, const void* data)
+	{
+		if(sizeInBytes == 0)
+			return Result::Success();
+
+		if(maximumPushConstantSize < kMaxPushConstantSizeInBytes)
+		{
+			return Result::Fail("The active GPU backend does not support the guaranteed push-constant block.",
+				ResultStatus::FailedInvalidInput, StringUtility::Format("Backend limit {0} bytes; required {1} bytes.", maximumPushConstantSize, kMaxPushConstantSizeInBytes));
+		}
+
+		if((offsetInBytes & 3u) != 0 || (sizeInBytes & 3u) != 0)
+			return Result::Fail("Push-constant offsets and sizes must be aligned to four bytes.", ResultStatus::FailedInvalidInput);
+
+		if(data == nullptr)
+			return Result::Fail("Push-constant data cannot be null for a non-empty update.", ResultStatus::FailedInvalidInput);
+
+		if(offsetInBytes > kMaxPushConstantSizeInBytes || sizeInBytes > kMaxPushConstantSizeInBytes - offsetInBytes)
+		{
+			return Result::Fail("Push-constant update is outside the guaranteed block.", ResultStatus::FailedInvalidInput,
+				StringUtility::Format("Offset {0}, size {1}, block size {2} bytes.", offsetInBytes, sizeInBytes, kMaxPushConstantSizeInBytes));
+		}
+
+		return Result::Success();
+	}
+
 	struct SubmissionTestBarrierHelper
 	{
 		void QueueResolvedBufferBarrier(IGpuBufferResource*, const GpuBarrierScope&) { }
@@ -182,6 +219,189 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestImageAccessEpochTracking)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestFramebufferAttachmentUsage)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRenderPassResourceTracking)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantMetadata)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantWrites)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantSerialization)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantShaderCompilation)
+}
+
+void GpuBackendTestSuite::TestPushConstantMetadata()
+{
+	GpuProgramParameterDescription vertex;
+	vertex.PushConstantBufferSize = 4;
+	GpuProgramParameterDescription fragment;
+	fragment.PushConstantBufferSize = 12;
+
+	GpuProgramParameterDescription combined;
+	B3D_TEST_ASSERT(combined.TryCombine(vertex, GpuProgramStageBit::Vertex).IsSuccessful())
+	B3D_TEST_ASSERT(combined.TryCombine(fragment, GpuProgramStageBit::Fragment).IsSuccessful())
+	B3D_TEST_ASSERT(combined.PushConstantBufferSize == 12)
+
+	TInlineArray<GpuProgramParameterDescription, 4> perSetDescriptions;
+	combined.SplitBySet(perSetDescriptions);
+	B3D_TEST_ASSERT(perSetDescriptions.Size() == 0)
+}
+
+void GpuBackendTestSuite::TestPushConstantWrites()
+{
+	const Array<u32, 4> values = { 1, 2, 3, 4 };
+
+	B3D_TEST_ASSERT(ValidatePushConstantWrite(16, 0, 16, values.data()).IsSuccessful())
+	B3D_TEST_ASSERT(ValidatePushConstantWrite(16, 4, 8, values.data()).IsSuccessful())
+	B3D_TEST_ASSERT(ValidatePushConstantWrite(0, 16, 0, nullptr).IsSuccessful())
+	B3D_TEST_ASSERT(!ValidatePushConstantWrite(0, 0, 4, values.data()).IsSuccessful())
+	B3D_TEST_ASSERT(!ValidatePushConstantWrite(8, 0, 4, values.data()).IsSuccessful())
+	B3D_TEST_ASSERT(!ValidatePushConstantWrite(16, 2, 4, values.data()).IsSuccessful())
+	B3D_TEST_ASSERT(!ValidatePushConstantWrite(16, 12, 8, values.data()).IsSuccessful())
+	B3D_TEST_ASSERT(!ValidatePushConstantWrite(16, 0, 4, nullptr).IsSuccessful())
+
+	GpuPushConstantPayload payload;
+	payload.Write(4, 8, values.data() + 1);
+	B3D_TEST_ASSERT(payload.Values[0] == 0)
+	B3D_TEST_ASSERT(payload.Values[1] == 2)
+	B3D_TEST_ASSERT(payload.Values[2] == 3)
+	B3D_TEST_ASSERT(payload.Values[3] == 0)
+
+	const u32 lastValue = 9;
+	payload.Write(12, 4, &lastValue);
+	B3D_TEST_ASSERT(payload.Values[3] == 9)
+	payload.Clear();
+	const Array<u32, 4> emptyValues{};
+	B3D_TEST_ASSERT(payload.Values == emptyValues)
+}
+
+void GpuBackendTestSuite::TestPushConstantSerialization()
+{
+	GpuProgramCreateInformation createInformation;
+	createInformation.Name = "PushConstantSerialization";
+	createInformation.Type = GPT_COMPUTE_PROGRAM;
+	createInformation.PushConstantBufferSize = 12;
+	createInformation.Bytecode = B3DMakeShared<GpuProgramBytecode>();
+	createInformation.Bytecode->ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
+	createInformation.Bytecode->ParameterDescription->PushConstantBufferSize = 12;
+
+	const TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+	BinarySerializer serializer;
+	serializer.Encode(&createInformation, stream);
+	stream->Seek(0);
+
+	const TShared<GpuProgramCreateInformation> decoded = B3DRTTICast<GpuProgramCreateInformation>(
+		serializer.Decode(stream, (u32)stream->Size()));
+	B3D_TEST_ASSERT(decoded != nullptr)
+	B3D_TEST_ASSERT(decoded->PushConstantBufferSize == 12)
+	B3D_TEST_ASSERT(decoded->Bytecode != nullptr)
+	B3D_TEST_ASSERT(decoded->Bytecode->ParameterDescription != nullptr)
+	B3D_TEST_ASSERT(decoded->Bytecode->ParameterDescription->PushConstantBufferSize == 12)
+}
+
+void GpuBackendTestSuite::TestPushConstantShaderCompilation()
+{
+	const TShared<IShaderCompiler> compiler = ShaderCompilers::Instance().GetCompiler("bsl");
+	B3D_TEST_ASSERT(compiler != nullptr)
+
+	TInlineArray<String, 3> targetLanguages;
+	targetLanguages.Add("vksl");
+#if B3D_PLATFORM_WIN32
+	targetLanguages.Add("hlsl");
+	if(ShaderCompilers::Instance().GetBytecodeCompiler("pssl") != nullptr)
+		targetLanguages.Add("pssl");
+#endif
+
+	for(const String& targetLanguage : targetLanguages)
+	{
+		for(u32 valueCount = 1; valueCount <= kMaxPushConstantValueCount; valueCount++)
+		{
+			String members;
+			for(u32 valueIndex = 0; valueIndex < valueCount; valueIndex++)
+				members += "\t\t\tuint Value" + ToString(valueIndex) + ";\n";
+
+			const String shaderName = "PushConstant" + ToString(valueCount * sizeof(u32)) + targetLanguage;
+			const String source = "shader " + shaderName + "\n"
+				"{\n"
+				"\tcode\n"
+				"\t{\n"
+				"\t\t[pushConstant]\n"
+				"\t\tcbuffer DrawConstants\n"
+				"\t\t{\n" + members +
+				"\t\t};\n"
+				"\n"
+				"\t\tfloat4 vsmain(uint vertexId : SV_VertexID) : SV_Position\n"
+				"\t\t{\n"
+				"\t\t\treturn float4((float)(Value0 + vertexId), 0.0, 0.0, 1.0);\n"
+				"\t\t}\n"
+				"\t};\n"
+				"};\n";
+
+			TShared<Shader> shader;
+			const ShaderCompilerResult compileResult = compiler->Compile(shaderName, source, {}, { targetLanguage }, true, shader);
+			B3D_TEST_ASSERT(compileResult.ErrorMessage.empty())
+			B3D_TEST_ASSERT(shader != nullptr)
+			B3D_TEST_ASSERT(shader->GetVariations().size() == 1)
+
+			const TShared<Variation>& variation = shader->GetVariations().front();
+			B3D_TEST_ASSERT(variation->GetPassCount() == 1)
+			const GpuProgramCreateInformation& program = variation->GetPass(0)->GetGpuProgramCreateInformation(GPT_VERTEX_PROGRAM);
+			B3D_TEST_ASSERT(program.PushConstantBufferSize == valueCount * sizeof(u32))
+			B3D_TEST_ASSERT(program.Bytecode != nullptr)
+			B3D_TEST_ASSERT(program.Bytecode->ParameterDescription != nullptr)
+			B3D_TEST_ASSERT(program.Bytecode->ParameterDescription->PushConstantBufferSize == valueCount * sizeof(u32))
+			B3D_TEST_ASSERT(program.Bytecode->ParameterDescription->UniformBuffers.find("DrawConstants") == program.Bytecode->ParameterDescription->UniformBuffers.end())
+		}
+	}
+
+#if B3D_PLATFORM_WIN32
+	// Also exercise native PSSL compilation with caller-provided metadata, including resource layouts that aren't
+	// produced by this BSL shader.
+	const TShared<IGpuBytecodeCompiler> psslCompiler = ShaderCompilers::Instance().GetBytecodeCompiler("pssl");
+	if(psslCompiler != nullptr)
+	{
+		auto compilePssl = [&](u32 valueCount, bool withResource)
+		{
+			String source;
+			if(valueCount != 0)
+				source += "#pragma argument(reservedusersgpr=" + ToString(valueCount) + ")\n";
+
+			if(withResource)
+			{
+				source += "struct VertexData { float4 Position; };\n"
+					"RegularBuffer<VertexData> Vertices;\n";
+			}
+
+			source += "float4 main(uint vertexId : S_VERTEX_ID) : S_POSITION\n"
+				"{\n";
+			if(withResource)
+				source += "\tfloat4 position = Vertices[vertexId].Position;\n";
+			else
+				source += "\tfloat4 position = float4((float)vertexId, 0.0, 0.0, 1.0);\n";
+
+			if(valueCount != 0)
+				source += "\tposition.x += (float)__read_user_sgpr(" + ToString(valueCount - 1) + ");\n";
+			source += "\treturn position;\n"
+				"}\n";
+
+			GpuProgramCreateInformation createInformation;
+			createInformation.Name = "PsslPushConstant" + ToString(valueCount * sizeof(u32));
+			createInformation.Source = source;
+			createInformation.EntryPoint = "main";
+			createInformation.Language = "pssl";
+			createInformation.Type = GPT_VERTEX_PROGRAM;
+			createInformation.PushConstantBufferSize = valueCount * sizeof(u32);
+
+			const TShared<GpuProgramBytecode> bytecode = psslCompiler->CompileBytecode(createInformation);
+			B3D_TEST_ASSERT(bytecode != nullptr)
+			B3D_TEST_ASSERT(bytecode->Instructions.Data != nullptr)
+			B3D_TEST_ASSERT(bytecode->ParameterDescription != nullptr)
+			B3D_TEST_ASSERT(bytecode->ParameterDescription->PushConstantBufferSize == valueCount * sizeof(u32))
+		};
+
+		for(u32 valueCount = 1; valueCount <= kMaxPushConstantValueCount; valueCount++)
+			compilePssl(valueCount, false);
+
+		// A resource may occupy User SGPRs after the reserved prefix; the caller-provided size remains authoritative.
+		compilePssl(0, true);
+		compilePssl(2, true);
+	}
+#endif
 }
 
 void GpuBackendTestSuite::TestImageAspectTracking()
