@@ -1874,11 +1874,10 @@ namespace b3d
 					TShared<RenderTarget> faceRt = RenderTexture::Create(rtDesc);
 
 					// Render all renderables into the shadow map
-					ConvexVolume boundingVolume(boundingPlanes);
 					ShadowRenderQueueCubeSingleOptions cubeOptions(
 						*this,
 						frustum,
-						shadowUniforms);
+						faceUniforms);
 
 					ShadowRenderQueue::Execute(commandBuffer, scene, frameInfo, faceRt, cubeOptions);
 				}
