@@ -858,7 +858,7 @@ namespace b3d::RTTIObjectWrapper
 	{
 		IterateFields(object, operationType, [&fnPredicate, &fnFieldFilterPredicate](const RTTIFieldSchema& rttiFieldSchema, const Field<IsIReflectable>& field) {
 			if(fnFieldFilterPredicate != nullptr && !fnFieldFilterPredicate(rttiFieldSchema))
-				return false;
+				return true;
 
 			ValueIterator<IsIReflectable> valueIterator = field.GetValueIterator();
 			for(u32 elementIndex = 0; valueIterator.MoveNext(); ++elementIndex)

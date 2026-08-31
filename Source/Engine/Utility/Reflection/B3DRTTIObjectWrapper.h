@@ -434,10 +434,10 @@ namespace b3d::RTTIObjectWrapper
 		/** Returns the size of the plain data in a field, in bytes. Only valid if the field holds a plain type. */
 		u32 GetPlainSize() const;
 
-		/** Compares the data between two plain fields and returns true if they're equal. */
+		/** Compares the data between two plain fields and returns true if they're different. */
 		bool ComparePlain(const Value<false>& other) const;
 
-		/** Compares the data between two plain fields and returns true if they're equal. */
+		/** Compares the data between two plain fields and returns true if they're different. */
 		bool ComparePlain(const Value<true>& other) const;
 
 		/** Clones the contents of this value and returns them as intermediate serialized data. */
@@ -492,10 +492,10 @@ namespace b3d::RTTIObjectWrapper
 		 */
 		void GetPlainData(u8* buffer, u32 bufferSize) const;
 
-		/** Compares the data between two plain fields and returns true if they're equal. */
+		/** Compares the data between two plain fields and returns true if they're different. */
 		bool ComparePlain(const Value<false>& other) const;
 
-		/** Compares the data between two plain fields and returns true if they're equal. */
+		/** Compares the data between two plain fields and returns true if they're different. */
 		bool ComparePlain(const Value<true>& other) const;
 
 		/** Clones the contents of this value and returns them as intermediate serialized data. */
@@ -518,7 +518,8 @@ namespace b3d::RTTIObjectWrapper
 	/**
 	 * Iterates over all fields in the provided object and triggers @p fnPredicate. This includes fields from all base classes.
 	 *
-	 * Predicate signature must be void(const RTTIField& rttiField, Field<IsIReflectable>& field).
+	 * Predicate signature must be bool(const RTTIFieldSchema& rttiFieldSchema, const Field<IsIReflectable>& field).
+	 * Return false to stop iterating fields in the current sub-object.
 	 */
 	template<bool IsIReflectable, typename Predicate>
 	void IterateFields(Object<IsIReflectable> object, RTTIOperationType operationType, Predicate&& fnPredicate);
