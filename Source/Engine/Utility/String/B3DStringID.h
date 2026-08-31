@@ -48,12 +48,6 @@ namespace b3d
 			char Chars[kStringSize];
 		};
 
-		/**	Performs initialization of static members as soon as the library is loaded. */
-		struct InitStatics
-		{
-			InitStatics();
-		};
-
 	public:
 		StringID() = default;
 
@@ -128,7 +122,6 @@ namespace b3d
 
 		InternalData* mData = nullptr;
 
-		static volatile InitStatics mInitStatics;
 		static InternalData* mStringHashTable[kHashTableSize];
 		static InternalData* mChunks[kMaxChunkCount];
 

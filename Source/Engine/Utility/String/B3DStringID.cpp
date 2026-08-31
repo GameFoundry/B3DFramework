@@ -6,27 +6,12 @@ using namespace b3d;
 
 const StringID StringID::kNone;
 
-volatile StringID::InitStatics StringID::mInitStatics = StringID::InitStatics();
-
 StringID::InternalData* StringID::mStringHashTable[kHashTableSize];
 StringID::InternalData* StringID::mChunks[kMaxChunkCount];
 
 u32 StringID::mNextId = 0;
 u32 StringID::mNumChunks = 0;
 SpinLock StringID::mSync;
-
-StringID::InitStatics::InitStatics()
-{
-	ScopedSpinLock lock(mSync);
-
-	memset(mStringHashTable, 0, sizeof(mStringHashTable));
-	memset(mChunks, 0, sizeof(mChunks));
-
-	mChunks[0] = (InternalData*)B3DAllocate(sizeof(InternalData) * kElementsPerChunk);
-	memset(mChunks[0], 0, sizeof(InternalData) * kElementsPerChunk);
-
-	mNumChunks++;
-}
 
 template <class T>
 void StringID::Construct(T const& name)
