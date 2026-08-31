@@ -573,6 +573,8 @@ namespace b3d::RTTIObjectWrapper
 		if(!isModified)
 			isModified = memcmp(curFieldData->Value, buffer, otherTypeSize) != 0;
 
+		B3DStackFree(buffer);
+
 		return isModified;
 	}
 
@@ -714,6 +716,9 @@ namespace b3d::RTTIObjectWrapper
 		if(!isModified)
 			isModified = memcmp(curBuffer, otherBuffer, otherTypeSize) != 0;
 
+		B3DStackFree(otherBuffer);
+		B3DStackFree(curBuffer);
+
 		return isModified;
 	}
 
@@ -732,6 +737,8 @@ namespace b3d::RTTIObjectWrapper
 		bool isModified = otherFieldData->Size != curTypeSize;
 		if(!isModified)
 			isModified = memcmp(otherFieldData->Value, buffer, curTypeSize) != 0;
+
+		B3DStackFree(buffer);
 
 		return isModified;
 	}
