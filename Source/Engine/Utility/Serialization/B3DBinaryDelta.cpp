@@ -493,6 +493,9 @@ TShared<SerializedObject> GenerateObjectDelta(TOptional<Object<IsLHSIReflectable
 			if(field == nullptr)
 				continue;
 
+			if(field->Schema.Info.Flags.IsSet(RTTIFieldFlag::ReadOnly))
+				continue;
+
 			if(replicableOnly && !field->Schema.Info.Flags.IsSet(RTTIFieldFlag::Replicate))
 				continue;
 

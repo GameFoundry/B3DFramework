@@ -74,6 +74,9 @@ BinaryCloner::ObjectExternalReferences BinaryCloner::GatherExternalReferences(IR
 		{
 			RTTIField* const field = rtti->GetField(fieldIndex);
 
+			if(field->Schema.Info.Flags.IsSet(RTTIFieldFlag::ReadOnly))
+				continue;
+
 			ReferenceId referenceId;
 			referenceId.Field = field;
 

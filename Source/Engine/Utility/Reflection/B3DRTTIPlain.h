@@ -70,6 +70,11 @@ namespace b3d
 		 * copy of the object is being serialized (i.e. not necessarily limited to IDeltaHandler).
 		 */
 		SkipInDeltaCopy = 1 << 5,
+		/**
+		 * Field is read during deserialization but omitted during serialization. This allows data stored under a
+		 * deprecated field to be loaded without writing that field to new serialized data.
+		 */
+		ReadOnly = 1 << 6,
 	};
 
 	typedef Flags<RTTIFieldFlag> RTTIFieldFlags;

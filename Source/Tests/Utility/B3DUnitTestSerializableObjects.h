@@ -10,6 +10,7 @@ namespace b3d
 	{
 		u32 IntA = 100;
 		String StrA = "100";
+		u32 ReadOnlyValue = 100;
 
 		/** Optional raw data, serialized as a data block. Empty by default so existing round-trip tests are unaffected. */
 		Vector<u8> DataBlock;

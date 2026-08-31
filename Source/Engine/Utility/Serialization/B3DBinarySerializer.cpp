@@ -1048,6 +1048,9 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 		{
 			RTTIField* const field = rtti->GetField(fieldIndex);
 
+			if(field->Schema.Info.Flags.IsSet(RTTIFieldFlag::ReadOnly))
+				continue;
+
 			if(writeMeta)
 			{
 				// Copy field ID & other meta-data like field size and type

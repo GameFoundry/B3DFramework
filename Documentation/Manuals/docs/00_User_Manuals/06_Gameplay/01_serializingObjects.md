@@ -259,6 +259,7 @@ public:
 ~~~~~~~~~~~~~
 
 Available field flags include:
+- **ReadOnly** - Field is read during deserialization but omitted during serialization, allowing deprecated data to be migrated
 - **SkipInDeltaCompare** - Field won't be compared when generating deltas
 - **SkipInDeltaCopy** - Field won't be copied when applying deltas
 - **WeakRef** - Field is a weak reference and won't be serialized deeply

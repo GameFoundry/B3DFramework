@@ -71,6 +71,7 @@ namespace b3d
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(IntA, 0)
 			B3D_RTTI_MEMBER(StrA, 1)
+			B3D_RTTI_MEMBER_INFO(ReadOnlyValue, 3, RTTIFieldInfo(RTTIFieldFlag::ReadOnly))
 		B3D_RTTI_END_MEMBERS
 
 		TShared<DataStream> GetDataBlock(UnitTestSerializationObjectB* obj, u32& size)

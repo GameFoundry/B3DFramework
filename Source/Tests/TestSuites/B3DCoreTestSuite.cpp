@@ -3,6 +3,7 @@
 #include "B3DCoreTestSuite.h"
 #include "Animation/B3DAnimationCurve.h"
 #include "Particles/B3DParticleDistribution.h"
+#include "Reflection/B3DRTTIObjectWrapper.h"
 #include "Serialization/B3DBinarySerializer.h"
 #include "FileSystem/B3DDataStream.h"
 #include "B3DUnitTestSerializableObjects.h"
@@ -29,6 +30,9 @@ CoreTestSuite::CoreTestSuite()
 	B3D_ADD_TEST(CoreTestSuite::TestBinarySerialization)
 	B3D_ADD_TEST(CoreTestSuite::TestDataBlockSerialization)
 	B3D_ADD_TEST(CoreTestSuite::TestSerializedObject)
+	B3D_ADD_TEST(CoreTestSuite::TestReadOnlySerialization)
+	B3D_ADD_TEST(CoreTestSuite::TestRTTIObjectWrapperComparison)
+	B3D_ADD_TEST(CoreTestSuite::TestRTTIObjectWrapperFieldFilter)
 	B3D_ADD_TEST(CoreTestSuite::TestBinaryDelta)
 
 	// TODO - Add unit test for binary cloner test that restores external references
@@ -185,6 +189,129 @@ void CoreTestSuite::TestSerializedObject()
 	const TShared<UnitTestSerializationObjectA> deserializedObject = B3DRTTICast<UnitTestSerializationObjectA>(serializedObject->Decode(rttiOperationContext));
 
 	UnitTestSerializationHelpers::TestAssertObjectsMatch(*this, object, deserializedObject, false);
+}
+
+void CoreTestSuite::TestReadOnlySerialization()
+{
+	static constexpr u32 kReadOnlyFieldId = 3;
+	static constexpr u32 kReadOnlyDefaultValue = 100;
+	static constexpr u32 kReadOnlyStoredValue = 200;
+
+	const TShared<UnitTestSerializationObjectB> object = B3DMakeShared<UnitTestSerializationObjectB>();
+	object->ReadOnlyValue = kReadOnlyStoredValue;
+
+	const TShared<SerializedObject> serializedObject = SerializedObject::Create(*object);
+	B3D_TEST_ASSERT(serializedObject->SubObjects.size() == 1)
+	B3D_TEST_ASSERT(serializedObject->SubObjects[0].FieldEntries.find(kReadOnlyFieldId) == serializedObject->SubObjects[0].FieldEntries.end())
+
+	const TShared<RTTISchema>& schema = object->GetRtti()->GetSchema();
+	const auto readOnlySchema = std::find_if(schema->FieldSchemas.begin(), schema->FieldSchemas.end(), [](const RTTIFieldSchema& fieldSchema)
+	{
+		return fieldSchema.Id == kReadOnlyFieldId;
+	});
+	B3D_TEST_ASSERT(readOnlySchema == schema->FieldSchemas.end())
+
+	TShared<MemoryDataStream> binaryStream = B3DMakeShared<MemoryDataStream>();
+	BinarySerializer serializer;
+	serializer.Encode(object.get(), binaryStream, BinarySerializerFlag::None);
+
+	binaryStream->Seek(0);
+	const TShared<UnitTestSerializationObjectB> binaryObject = B3DRTTICast<UnitTestSerializationObjectB>(serializer.Decode(binaryStream, (u32)binaryStream->Size()));
+	B3D_TEST_ASSERT(binaryObject->ReadOnlyValue == kReadOnlyDefaultValue)
+
+	TShared<MemoryDataStream> noMetaStream = B3DMakeShared<MemoryDataStream>();
+	serializer.Encode(object.get(), noMetaStream, BinarySerializerFlag::NoMeta);
+
+	noMetaStream->Seek(0);
+	const TShared<UnitTestSerializationObjectB> noMetaObject = B3DRTTICast<UnitTestSerializationObjectB>(serializer.Decode(noMetaStream, (u32)noMetaStream->Size(), BinarySerializerFlag::NoMeta, nullptr, schema));
+	B3D_TEST_ASSERT(noMetaObject->ReadOnlyValue == kReadOnlyDefaultValue)
+
+	TShared<SerializedPlainData> legacyReadOnlyData = B3DMakeShared<SerializedPlainData>();
+	legacyReadOnlyData->Value = static_cast<u8*>(B3DAllocate(sizeof(kReadOnlyStoredValue)));
+	legacyReadOnlyData->Size = sizeof(kReadOnlyStoredValue);
+	legacyReadOnlyData->OwnsMemory = true;
+	memcpy(legacyReadOnlyData->Value, &kReadOnlyStoredValue, sizeof(kReadOnlyStoredValue));
+
+	SerializedField legacyReadOnlyField;
+	legacyReadOnlyField.FieldId = kReadOnlyFieldId;
+	legacyReadOnlyField.Value = legacyReadOnlyData;
+	serializedObject->SubObjects[0].FieldEntries[kReadOnlyFieldId] = std::move(legacyReadOnlyField);
+
+	RTTIOperationEngineContext deserializeContext;
+	const TShared<UnitTestSerializationObjectB> legacyObject = B3DRTTICast<UnitTestSerializationObjectB>(serializedObject->Decode(deserializeContext));
+	B3D_TEST_ASSERT(legacyObject->ReadOnlyValue == kReadOnlyStoredValue)
+
+	const TShared<UnitTestSerializationObjectB> originalObject = B3DMakeShared<UnitTestSerializationObjectB>();
+	const TShared<UnitTestSerializationObjectB> modifiedObject = B3DMakeShared<UnitTestSerializationObjectB>();
+	modifiedObject->ReadOnlyValue = kReadOnlyStoredValue;
+
+	RTTIOperationEngineContext deltaContext;
+	IDeltaHandler& deltaHandler = originalObject->GetRtti()->GetDeltaHandler();
+	const TShared<SerializedObject> delta = deltaHandler.GenerateDelta(originalObject, modifiedObject, deltaContext);
+	B3D_TEST_ASSERT(delta == nullptr)
+}
+
+void CoreTestSuite::TestRTTIObjectWrapperComparison()
+{
+	static constexpr u32 kComparedFieldId = 0;
+
+	const TShared<UnitTestSerializationObjectB> object = B3DMakeShared<UnitTestSerializationObjectB>();
+	const TShared<SerializedObject> serializedObject = SerializedObject::Create(*object);
+	const TShared<ISerialized>& serializedField = serializedObject->SubObjects[0].FieldEntries.at(kComparedFieldId).Value;
+
+	FrameAllocator& allocator = GetFrameAllocator();
+	FrameAllocatorScope allocatorScope(&allocator);
+
+	const RTTIObjectWrapper::Value<false> serializedValue(0, serializedField, &allocator);
+	bool compared = false;
+	bool liveToSerializedModified = true;
+	bool serializedToLiveModified = true;
+
+	RTTIObjectWrapper::Object<true> wrappedObject(object.get(), object->GetRtti(), &allocator);
+	RTTIObjectWrapper::IterateFieldValues(wrappedObject, RTTIOperationType::DeltaGenerate,
+		[&](const RTTIFieldSchema&, const RTTIObjectWrapper::Value<true>& value)
+		{
+			const RTTIObjectWrapper::Value<true> liveValue = value.GetTupleElement(0);
+			liveToSerializedModified = liveValue.ComparePlain(serializedValue);
+			serializedToLiveModified = serializedValue.ComparePlain(liveValue);
+			compared = true;
+		},
+		[](const RTTIFieldSchema& fieldSchema)
+		{
+			return fieldSchema.Id == kComparedFieldId;
+		});
+
+	B3D_TEST_ASSERT(compared)
+	B3D_TEST_ASSERT(!liveToSerializedModified)
+	B3D_TEST_ASSERT(!serializedToLiveModified)
+}
+
+void CoreTestSuite::TestRTTIObjectWrapperFieldFilter()
+{
+	static constexpr u32 kFilteredFieldId = 1;
+	static constexpr u32 kFieldAfterFilterId = 3;
+
+	const TShared<UnitTestSerializationObjectB> object = B3DMakeShared<UnitTestSerializationObjectB>();
+	FrameAllocator& allocator = GetFrameAllocator();
+	FrameAllocatorScope allocatorScope(&allocator);
+
+	bool visitedFilteredField = false;
+	bool visitedFieldAfterFilter = false;
+
+	RTTIObjectWrapper::Object<true> wrappedObject(object.get(), object->GetRtti(), &allocator);
+	RTTIObjectWrapper::IterateFieldValues(wrappedObject, RTTIOperationType::GatherReferences,
+		[&](const RTTIFieldSchema& fieldSchema, const RTTIObjectWrapper::Value<true>&)
+		{
+			visitedFilteredField |= fieldSchema.Id == kFilteredFieldId;
+			visitedFieldAfterFilter |= fieldSchema.Id == kFieldAfterFilterId;
+		},
+		[](const RTTIFieldSchema& fieldSchema)
+		{
+			return fieldSchema.Id != kFilteredFieldId;
+		});
+
+	B3D_TEST_ASSERT(!visitedFilteredField)
+	B3D_TEST_ASSERT(visitedFieldAfterFilter)
 }
 
 void CoreTestSuite::TestBinaryDelta()

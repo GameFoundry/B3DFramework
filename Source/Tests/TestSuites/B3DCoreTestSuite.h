@@ -17,6 +17,9 @@ namespace b3d
 		void TestBinarySerialization();
 		void TestDataBlockSerialization();
 		void TestSerializedObject();
+		void TestReadOnlySerialization();
+		void TestRTTIObjectWrapperComparison();
+		void TestRTTIObjectWrapperFieldFilter();
 		void TestBinaryDelta();
 	};
 } // namespace b3d

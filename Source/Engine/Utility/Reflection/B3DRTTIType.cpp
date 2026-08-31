@@ -67,6 +67,9 @@ void RTTIType::InitSchemaInternal()
 	for(auto& entry : mFields)
 	{
 		entry->InitSchema();
+		if(entry->Schema.Info.Flags.IsSet(RTTIFieldFlag::ReadOnly))
+			continue;
+
 		mSchema->FieldSchemas.push_back(entry->Schema);
 	}
 }

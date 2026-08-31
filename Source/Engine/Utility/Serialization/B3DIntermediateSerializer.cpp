@@ -304,6 +304,9 @@ TShared<SerializedObject> IntermediateSerializer::SerializeReflectableObject(con
 		{
 			RTTIField* const field = rtti->GetField(fieldIndex);
 
+			if(field->Schema.Info.Flags.IsSet(RTTIFieldFlag::ReadOnly))
+				continue;
+
 			if(replicableOnly && !field->Schema.Info.Flags.IsSet(RTTIFieldFlag::Replicate))
 				continue;
 
