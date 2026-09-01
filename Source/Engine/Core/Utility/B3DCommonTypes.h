@@ -465,6 +465,23 @@ namespace b3d
 		{
 			return !IsTexture(type) && !IsSampler(type) && type != GPOT_UNKNOWN;
 		}
+
+		/** Returns true if @p type represents a buffer that shaders can write to. */
+		static bool IsReadWriteBuffer(GpuParameterObjectType type)
+		{
+			switch(type)
+			{
+			case GPOT_RWTYPED_BUFFER:
+			case GPOT_RWBYTE_BUFFER:
+			case GPOT_RWSTRUCTURED_BUFFER:
+			case GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER:
+			case GPOT_RWAPPEND_BUFFER:
+			case GPOT_RWCONSUME_BUFFER:
+				return true;
+			default:
+				return false;
+			}
+		}
 	};
 
 	/** Specifies the type of GPU queue. This controls which command buffers are allowed to be submitted on the queue. */

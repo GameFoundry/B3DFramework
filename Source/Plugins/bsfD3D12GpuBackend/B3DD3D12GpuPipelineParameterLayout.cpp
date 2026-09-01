@@ -102,23 +102,7 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 			return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
 
 		case GpuParameterType::StorageBuffer:
-			switch (objectType)
-			{
-			case GPOT_BYTE_BUFFER:
-			case GPOT_STRUCTURED_BUFFER:
-				return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-
-			case GPOT_RWBYTE_BUFFER:
-			case GPOT_RWSTRUCTURED_BUFFER:
-			case GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER:
-			case GPOT_RWTYPED_BUFFER:
-			case GPOT_RWAPPEND_BUFFER:
-			case GPOT_RWCONSUME_BUFFER:
-				return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-
-			default:
-				return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-			}
+			return GpuObjectParameterTypeInformation::IsReadWriteBuffer(objectType) ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV : D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 
 		default:
 			return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;

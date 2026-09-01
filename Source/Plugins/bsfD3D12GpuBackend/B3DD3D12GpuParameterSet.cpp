@@ -19,23 +19,6 @@ using namespace b3d::render;
 
 namespace
 {
-	/** Returns true when the storage-buffer object type is writeable from the shader (UAV-class binding). */
-	bool IsReadWriteStorageBuffer(GpuParameterObjectType type)
-	{
-		switch(type)
-		{
-		case GPOT_RWTYPED_BUFFER:
-		case GPOT_RWBYTE_BUFFER:
-		case GPOT_RWSTRUCTURED_BUFFER:
-		case GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER:
-		case GPOT_RWAPPEND_BUFFER:
-		case GPOT_RWCONSUME_BUFFER:
-			return true;
-		default:
-			return false;
-		}
-	}
-
 	/** Converts reflected shader-stage visibility into the shader-stage flags used by resource tracking. */
 	GpuResourceUseFlags GetShaderResourceUseFlags(const GpuProgramStageBits& stages)
 	{
@@ -151,7 +134,7 @@ void D3D12GpuParameters::Initialize()
 				binding.NullDescriptorHandle = descriptorManager.GetNullUAVHandle(GetUAVDimension(uniformInformation->ObjectType));
 				break;
 			case GpuParameterType::StorageBuffer:
-				binding.NullDescriptorHandle = IsReadWriteStorageBuffer(uniformInformation->ObjectType) ? descriptorManager.GetNullUAVHandle(D3D12_UAV_DIMENSION_BUFFER) : descriptorManager.GetNullSRVHandle(D3D12_SRV_DIMENSION_BUFFER);
+				binding.NullDescriptorHandle = GpuObjectParameterTypeInformation::IsReadWriteBuffer(uniformInformation->ObjectType) ? descriptorManager.GetNullUAVHandle(D3D12_UAV_DIMENSION_BUFFER) : descriptorManager.GetNullSRVHandle(D3D12_SRV_DIMENSION_BUFFER);
 				break;
 			case GpuParameterType::Sampler:
 				binding.NullDescriptorHandle = descriptorManager.GetDefaultSamplerCPUHandle();
@@ -235,7 +218,7 @@ bool D3D12GpuParameters::SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& bu
 
 	// TODO(d3d12-port): view.Offset/Range are not applied (no engine callers currently pass them for storage buffers).
 	const UniformInformation* uniformInformation = GetLayout()->TryGetUniformInformation(slot);
-	const bool isReadWrite = uniformInformation != nullptr && IsReadWriteStorageBuffer(uniformInformation->ObjectType);
+	const bool isReadWrite = uniformInformation != nullptr && GpuObjectParameterTypeInformation::IsReadWriteBuffer(uniformInformation->ObjectType);
 
 	auto* d3d12Buffer = static_cast<D3D12GpuBuffer*>(buffer.get());
 
@@ -348,7 +331,7 @@ void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTrack
 					if (GpuBuffer* const buffer = mStorageBufferData[dataIndex].Buffer.get())
 					{
 						GpuAccessFlags accessFlags = GpuAccessFlag::Read;
-						if (IsReadWriteStorageBuffer(uniformInformation->ObjectType))
+						if (GpuObjectParameterTypeInformation::IsReadWriteBuffer(uniformInformation->ObjectType))
 							accessFlags |= GpuAccessFlag::Write;
 
 						resourceTracker.TrackBufferUsage(static_cast<D3D12GpuBuffer*>(buffer)->GetD3D12Buffer(), stageUseFlags | GpuResourceUseFlag::ShaderAccess, accessFlags, barrierHelper);
@@ -398,7 +381,7 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 		case GpuParameterType::StorageTexture:
 			return descriptorManager.GetNullUAVHandle(GetUAVDimension(bindingLayout.ObjectType));
 		case GpuParameterType::StorageBuffer:
-			return IsReadWriteStorageBuffer(bindingLayout.ObjectType) ? descriptorManager.GetNullUAVHandle(D3D12_UAV_DIMENSION_BUFFER) : descriptorManager.GetNullSRVHandle(D3D12_SRV_DIMENSION_BUFFER);
+			return GpuObjectParameterTypeInformation::IsReadWriteBuffer(bindingLayout.ObjectType) ? descriptorManager.GetNullUAVHandle(D3D12_UAV_DIMENSION_BUFFER) : descriptorManager.GetNullSRVHandle(D3D12_SRV_DIMENSION_BUFFER);
 		case GpuParameterType::Sampler:
 			return descriptorManager.GetDefaultSamplerCPUHandle();
 		default:
