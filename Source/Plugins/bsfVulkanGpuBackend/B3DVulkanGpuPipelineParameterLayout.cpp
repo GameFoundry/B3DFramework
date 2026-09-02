@@ -3,6 +3,7 @@
 #include "B3DVulkanGpuPipelineParameterLayout.h"
 #include "B3DVulkanUtility.h"
 #include "B3DVulkanGpuDevice.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 
 using namespace b3d;
@@ -54,32 +55,8 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 		usedResourceSlotCount += arraySize;
 	}
 
-	auto fnGetShaderStageFlags = [](const GpuProgramStageBits& bits)
-	{
-		VkShaderStageFlags flags = 0;
-		if(bits.IsSet(GpuProgramStageBit::Vertex))
-			flags |= VK_SHADER_STAGE_VERTEX_BIT;
-
-		if(bits.IsSet(GpuProgramStageBit::Fragment))
-			flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
-
-		if(bits.IsSet(GpuProgramStageBit::Hull))
-			flags |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-
-		if(bits.IsSet(GpuProgramStageBit::Domain))
-			flags |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-
-		if(bits.IsSet(GpuProgramStageBit::Geometry))
-			flags |= VK_SHADER_STAGE_GEOMETRY_BIT;
-
-		if(bits.IsSet(GpuProgramStageBit::Compute))
-			flags |= VK_SHADER_STAGE_COMPUTE_BIT;
-
-		return flags;
-	};
-
 	using PerTypeUniformArray = std::decay_t<decltype(mUniformsPerType[0])>;
-	auto fnSetUniformBindings = [this, fnGetShaderStageFlags](const PerTypeUniformArray& uniforms, VkDescriptorType descriptorType)
+	auto fnSetUniformBindings = [this](const PerTypeUniformArray& uniforms, VkDescriptorType descriptorType)
 	{
 		for(const auto& entry : uniforms)
 		{
@@ -88,12 +65,12 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 
 			VkDescriptorSetLayoutBinding& binding = mBindings[usedBindingSequentialIndex];
 			binding.descriptorCount = 1;
-			binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
+			binding.stageFlags |= VulkanUtility::GetShaderStages(entry->Usage);
 			binding.descriptorType = descriptorType;
 		}
 	};
 
-	auto fnSetBindings = [this, fnGetShaderStageFlags](const PerTypeUniformArray& uniforms, VkDescriptorType descriptorType)
+	auto fnSetBindings = [this](const PerTypeUniformArray& uniforms, VkDescriptorType descriptorType)
 	{
 		for(const auto& entry : uniforms)
 		{
@@ -102,7 +79,7 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 
 			VkDescriptorSetLayoutBinding& binding = mBindings[usedBindingSequentialIndex];
 			binding.descriptorCount = entry->ArraySize;
-			binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
+			binding.stageFlags |= VulkanUtility::GetShaderStages(entry->Usage);
 			binding.descriptorType = descriptorType;
 
 			mTypes[usedBindingSequentialIndex] = entry->ObjectType;
@@ -129,7 +106,7 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 		else
 		{
 			binding.descriptorCount = entry->ArraySize;
-			binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
+			binding.stageFlags |= VulkanUtility::GetShaderStages(entry->Usage);
 			binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
 
 			mTypes[usedBindingSequentialIndex] = entry->ObjectType;
@@ -146,7 +123,7 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 
 		VkDescriptorSetLayoutBinding& binding = mBindings[usedBindingSequentialIndex];
 		binding.descriptorCount = entry->ArraySize;
-		binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
+		binding.stageFlags |= VulkanUtility::GetShaderStages(entry->Usage);
 
 		switch(entry->ObjectType)
 		{
@@ -175,6 +152,51 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 
 VulkanGpuPipelineParameterLayout::VulkanGpuPipelineParameterLayout(VulkanGpuDevice& gpuDevice, const GpuPipelineParameterLayoutCreateInformation& createInformation)
 	: GpuPipelineParameterLayout(gpuDevice, createInformation)
-{}
+{
+	const u32 pushConstantBufferSize = GetPushConstantBufferSize();
+	if(pushConstantBufferSize == 0)
+		return;
+
+	if(!B3D_ENSURE_LOG((pushConstantBufferSize & 3u) == 0 && pushConstantBufferSize <= kMaxPushConstantSizeInBytes,
+		"Vulkan pipeline declares an invalid push-constant buffer size of {0} bytes; expected a four-byte-aligned size no greater than {1} bytes.", pushConstantBufferSize, kMaxPushConstantSizeInBytes))
+	{
+		return;
+	}
+
+	if(!B3D_ENSURE_LOG(pushConstantBufferSize <= gpuDevice.GetCapabilities().MaximumPushConstantSize,
+		"Vulkan pipeline requires {0} push-constant bytes, but the device supports only {1} bytes.", pushConstantBufferSize, gpuDevice.GetCapabilities().MaximumPushConstantSize))
+	{
+		return;
+	}
+
+	GpuProgramStageBits pushConstantStages = GpuProgramStageBit::None;
+	if(createInformation.Vertex != nullptr && createInformation.Vertex->PushConstantBufferSize != 0)
+		pushConstantStages |= GpuProgramStageBit::Vertex;
+
+	if(createInformation.Fragment != nullptr && createInformation.Fragment->PushConstantBufferSize != 0)
+		pushConstantStages |= GpuProgramStageBit::Fragment;
+
+	if(createInformation.Hull != nullptr && createInformation.Hull->PushConstantBufferSize != 0)
+		pushConstantStages |= GpuProgramStageBit::Hull;
+
+	if(createInformation.Domain != nullptr && createInformation.Domain->PushConstantBufferSize != 0)
+		pushConstantStages |= GpuProgramStageBit::Domain;
+
+	if(createInformation.Geometry != nullptr && createInformation.Geometry->PushConstantBufferSize != 0)
+		pushConstantStages |= GpuProgramStageBit::Geometry;
+
+	if(createInformation.Compute != nullptr && createInformation.Compute->PushConstantBufferSize != 0)
+		pushConstantStages |= GpuProgramStageBit::Compute;
+
+	VkPushConstantRange pushConstantRange;
+	pushConstantRange.stageFlags = VulkanUtility::GetShaderStages(pushConstantStages);
+	pushConstantRange.offset = 0;
+	pushConstantRange.size = pushConstantBufferSize;
+
+	if(!B3D_ENSURE_LOG(pushConstantRange.stageFlags != 0, "Vulkan pipeline declares push constants without a shader stage."))
+		return;
+
+	mPushConstantRange = pushConstantRange;
+}
 
 

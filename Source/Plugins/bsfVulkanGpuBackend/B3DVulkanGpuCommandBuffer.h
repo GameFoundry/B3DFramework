@@ -4,6 +4,7 @@
 
 #include "B3DVulkanPrerequisites.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "B3DVulkanResource.h"
 #include "B3DVulkanGpuPipelineState.h"
 #include "B3DVulkanGpuDevice.h"
@@ -106,6 +107,7 @@ namespace b3d
 			void SetName(const StringView& name) override;
 			void SetGpuParameterSet(const TShared<GpuParameterSet>& parameterSet) override;
 			void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) override;
+			void SetPushConstants(u32 offsetInBytes, u32 sizeInBytes, const void* data) override;
 			void SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState) override;
 			void SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState) override;
 			void SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount) override;
@@ -392,6 +394,9 @@ namespace b3d
 			/** Binds the currently stored GPU parameter sets, if dirty. */
 			void BindGpuParameters(const TShared<GpuPipelineParameterLayout>& pipelineParameterLayout, VulkanBarrierHelper& barrierHelper);
 
+			/** Uploads the cached push-constant block for the selected pipeline bind point. */
+			void BindPushConstants(bool isGraphics);
+
 			/**
 			 * Creates an array of clear values for the currently bound render target, using the fixed clear values its
 			 * surfaces were created with. To be used for the explicit clear command, or render pass begin.
@@ -455,8 +460,11 @@ namespace b3d
 			DrawOperationType mDrawOp = DOT_TRIANGLE_LIST;
 			u32 mRequiredVertexBufferBindingCount = 0;
 			u32 mBoundDescriptorSetCount = 0;
+			GpuPushConstantPayload mPushConstants;
 			bool mGfxPipelineRequiresBind : 1;
 			bool mCmpPipelineRequiresBind : 1;
+			bool mGraphicsPushConstantsRequireBind : 1;
+			bool mComputePushConstantsRequireBind : 1;
 			bool mViewportRequiresBind : 1;
 			bool mStencilRefRequiresBind : 1;
 			bool mScissorRequiresBind : 1;

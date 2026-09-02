@@ -62,6 +62,12 @@ namespace b3d
 		public:
 			VulkanGpuPipelineParameterLayout(VulkanGpuDevice& gpuDevice, const GpuPipelineParameterLayoutCreateInformation& createInformation);
 			~VulkanGpuPipelineParameterLayout() = default;
+
+			/** Returns the optional native push-constant range. */
+			const TOptional<VkPushConstantRange>& GetPushConstantRange() const { return mPushConstantRange; }
+
+		private:
+			TOptional<VkPushConstantRange> mPushConstantRange;
 		};
 
 		/** @} */

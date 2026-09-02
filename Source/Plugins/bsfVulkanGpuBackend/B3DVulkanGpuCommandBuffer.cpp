@@ -7,6 +7,7 @@
 #include "B3DVulkanGpuQueue.h"
 #include "B3DVulkanTexture.h"
 #include "B3DVulkanGpuBuffer.h"
+#include "B3DVulkanGpuPipelineParameterLayout.h"
 #include "B3DVulkanFramebuffer.h"
 #include "B3DVulkanSwapChain.h"
 #include "Managers/B3DVulkanVertexInputManager.h"
@@ -174,7 +175,7 @@ const Color kDebugLabelColor = Color::kBansheeOrange;
 constexpr u32 kMaximumBoundDescriptorSets = 64;
 
 VulkanGpuCommandBuffer::VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
-	: GpuCommandBuffer(device, ownerThread, queueType, createInformation), mId(id), mCommandBufferHandle(commandBufferHandle), mPool(pool), mOwnerThread(ownerThread), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false), mBarrierHelper(&mResourceTracker)
+	: GpuCommandBuffer(device, ownerThread, queueType, createInformation), mId(id), mCommandBufferHandle(commandBufferHandle), mPool(pool), mOwnerThread(ownerThread), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mGraphicsPushConstantsRequireBind(false), mComputePushConstantsRequireBind(false), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false), mBarrierHelper(&mResourceTracker)
 {
 	const u32 maximumBoundDescriptorSets = Math::Min(kMaximumBoundDescriptorSets, device.GetDeviceProperties().limits.maxBoundDescriptorSets);
 	mDescriptorSetsTemp = (VkDescriptorSet*)B3DAllocate(sizeof(VkDescriptorSet) * maximumBoundDescriptorSets);
@@ -239,6 +240,9 @@ void VulkanGpuCommandBuffer::Begin()
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	mState = GpuCommandBufferState::Recording;
+	mPushConstants.Clear();
+	mGraphicsPushConstantsRequireBind = false;
+	mComputePushConstantsRequireBind = false;
 }
 
 void VulkanGpuCommandBuffer::End()
@@ -492,6 +496,7 @@ void VulkanGpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphi
 
 	mGraphicsPipeline = std::static_pointer_cast<VulkanGpuGraphicsPipelineState>(state);
 	mGfxPipelineRequiresBind = true;
+	mGraphicsPushConstantsRequireBind = true;
 
 	// Potentially need to rebind vertex buffers as we bind dummy vertex buffers for shaders attributes not provided by the user
 	mVertexInputsDirty = true;
@@ -508,6 +513,7 @@ void VulkanGpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuCompute
 
 	mComputePipeline = std::static_pointer_cast<VulkanGpuComputePipelineState>(state);
 	mCmpPipelineRequiresBind = true;
+	mComputePushConstantsRequireBind = true;
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
@@ -562,6 +568,27 @@ void VulkanGpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u3
 			RebuildFlatDynamicOffsets();
 		}
 	}
+}
+
+void VulkanGpuCommandBuffer::SetPushConstants(u32 offsetInBytes, u32 sizeInBytes, const void* data)
+{
+	EnsureValidThread();
+
+	if(sizeInBytes == 0)
+		return;
+
+	if(!B3D_ENSURE_LOG(data != nullptr, "Push-constant data cannot be null for a non-empty update."))
+		return;
+
+	if(!B3D_ENSURE_LOG((offsetInBytes & 3u) == 0 && (sizeInBytes & 3u) == 0, "Push-constant offsets and sizes must be aligned to four bytes."))
+		return;
+
+	if(!B3D_ENSURE_LOG(offsetInBytes <= kMaxPushConstantSizeInBytes && sizeInBytes <= kMaxPushConstantSizeInBytes - offsetInBytes, "Push-constant update at offset {0} with size {1} exceeds the {2}-byte Vulkan block.", offsetInBytes, sizeInBytes, kMaxPushConstantSizeInBytes))
+		return;
+
+	mPushConstants.Write(offsetInBytes, sizeInBytes, data);
+	mGraphicsPushConstantsRequireBind = true;
+	mComputePushConstantsRequireBind = true;
 }
 
 void VulkanGpuCommandBuffer::SetViewport(const Area2& area)
@@ -781,6 +808,8 @@ void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanc
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Graphics);
 	}
 
+	BindPushConstants(true);
+
 	if(instanceCount <= 0)
 		instanceCount = 1;
 
@@ -836,6 +865,8 @@ void VulkanGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 ver
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Graphics);
 	}
 
+	BindPushConstants(true);
+
 	if(instanceCount <= 0)
 		instanceCount = 1;
 
@@ -878,6 +909,7 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 
 		vkCmdBindPipeline(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline->GetVulkanHandle());
 		mCmpPipelineRequiresBind = false;
+		mComputePushConstantsRequireBind = true;
 	}
 
 	if(mDescriptorSetsBindState.IsSet(DescriptorSetBindFlag::Compute))
@@ -890,6 +922,8 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Compute);
 	}
+
+	BindPushConstants(false);
 
 	vkCmdDispatch(mCommandBufferHandle, groupCountX, groupCountY, groupCountZ);
 
@@ -1521,6 +1555,9 @@ void VulkanGpuCommandBuffer::ClearRecordingState()
 
 	mResourceTracker.Clear();
 	mQueueSyncMask = GpuQueueMask();
+	mPushConstants.Clear();
+	mGraphicsPushConstantsRequireBind = false;
+	mComputePushConstantsRequireBind = false;
 
 	OnDidComplete.Clear();
 	OnDestroyed.Clear();
@@ -1716,6 +1753,7 @@ bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 
 	vkCmdBindPipeline(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVulkanHandle());
 	BindDynamicStates(true);
+	mGraphicsPushConstantsRequireBind = true;
 
 	mRequiredVertexBufferBindingCount = pipeline->GetVertexBufferBindingCount();
 	mGfxPipelineRequiresBind = false;
@@ -1870,6 +1908,40 @@ void VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 
 	RebuildFlatDynamicOffsets();
 	mBoundParamsDirty = false;
+}
+
+void VulkanGpuCommandBuffer::BindPushConstants(bool isGraphics)
+{
+	if((isGraphics && !mGraphicsPushConstantsRequireBind) || (!isGraphics && !mComputePushConstantsRequireBind))
+		return;
+
+	const VulkanGpuPipelineParameterLayout* parameterLayout = nullptr;
+	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+	if(isGraphics && mGraphicsPipeline != nullptr)
+	{
+		parameterLayout = static_cast<VulkanGpuPipelineParameterLayout*>(mGraphicsPipeline->GetParameterLayout().get());
+		pipelineLayout = mGraphicsPipeline->GetPipelineLayoutHandle();
+	}
+	else if(!isGraphics && mComputePipeline != nullptr)
+	{
+		parameterLayout = static_cast<VulkanGpuPipelineParameterLayout*>(mComputePipeline->GetParameterLayout().get());
+		pipelineLayout = mComputePipeline->GetPipelineLayoutHandle();
+	}
+
+	if(parameterLayout == nullptr)
+		return;
+
+	const TOptional<VkPushConstantRange>& pushConstantRange = parameterLayout->GetPushConstantRange();
+	if(pushConstantRange)
+	{
+		B3D_ASSERT(pipelineLayout != VK_NULL_HANDLE);
+		vkCmdPushConstants(mCommandBufferHandle, pipelineLayout, pushConstantRange->stageFlags, pushConstantRange->offset, pushConstantRange->size, mPushConstants.GetData());
+	}
+
+	if(isGraphics)
+		mGraphicsPushConstantsRequireBind = false;
+	else
+		mComputePushConstantsRequireBind = false;
 }
 
 void VulkanGpuCommandBuffer::RebuildFlatDynamicOffsets()

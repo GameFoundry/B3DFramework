@@ -358,7 +358,8 @@ void VulkanGpuGraphicsPipelineState::Initialize()
 	for(u32 layoutIndex = 0; layoutIndex < layoutCount; layoutIndex++)
 		layouts[layoutIndex] = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterLayout->GetSet(layoutIndex)).GetLayout();
 
-	mPipelineLayout = descManager.GetPipelineLayout(layouts, layoutCount);
+	const auto* parameterLayout = static_cast<VulkanGpuPipelineParameterLayout*>(mParameterLayout.get());
+	mPipelineLayout = descManager.GetPipelineLayout(layouts, layoutCount, parameterLayout->GetPushConstantRange());
 
 	B3DStackFree(layouts);
 
@@ -583,7 +584,8 @@ void VulkanGpuComputePipelineState::Initialize()
 	else
 		pipelineCI.stage.module = VK_NULL_HANDLE;
 
-	pipelineCI.layout = descManager.GetPipelineLayout(layouts, layoutCount);
+	const auto* parameterLayout = static_cast<VulkanGpuPipelineParameterLayout*>(mParameterLayout.get());
+	pipelineCI.layout = descManager.GetPipelineLayout(layouts, layoutCount, parameterLayout->GetPushConstantRange());
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	// When the gpu.DumpPipelineStats config variable is enabled, ask the driver to keep per-shader executable

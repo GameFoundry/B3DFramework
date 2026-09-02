@@ -22,18 +22,19 @@ namespace b3d
 		};
 
 		/** Used as a key in a hash map containing pipeline layouts. */
-		struct VulkanPipelineLayoutKey
+		struct B3D_EXPORT VulkanPipelineLayoutKey
 		{
-			VulkanPipelineLayoutKey(VulkanDescriptorLayout** layouts, u32 numLayouts);
+			VulkanPipelineLayoutKey(VulkanDescriptorLayout** layouts, u32 numLayouts, const TOptional<VkPushConstantRange>& pushConstantRange);
 
 			/** Compares two pipeline layouts. */
 			bool operator==(const VulkanPipelineLayoutKey& rhs) const;
 
-			/** Calculates a has value for the provided descriptor layouts. */
+			/** Calculates a hash value for the descriptor layouts and push-constant range. */
 			size_t CalculateHash() const;
 
 			u32 NumLayouts;
 			VulkanDescriptorLayout** Layouts;
+			TOptional<VkPushConstantRange> PushConstantRange;
 		};
 	} // namespace render
 } // namespace b3d
@@ -90,8 +91,8 @@ namespace b3d
 			/** Attempts to find an existing one, or allocates a new descriptor set layout from the provided set of bindings. */
 			VulkanDescriptorLayout* GetLayout(TArrayView<VkDescriptorSetLayoutBinding> bindings);
 
-			/** Attempts to find an existing one, or allocates a new pipeline layout based on the provided descriptor layouts. */
-			VkPipelineLayout GetPipelineLayout(VulkanDescriptorLayout** layouts, u32 bindingCount);
+			/** Attempts to find an existing one, or allocates a new pipeline layout based on the provided descriptor layouts and push-constant range. */
+			VkPipelineLayout GetPipelineLayout(VulkanDescriptorLayout** layouts, u32 bindingCount, const TOptional<VkPushConstantRange>& pushConstantRange);
 
 		protected:
 			VulkanGpuDevice& mDevice;

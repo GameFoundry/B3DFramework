@@ -395,6 +395,30 @@ VkShaderStageFlagBits VulkanUtility::GetShaderStage(GpuProgramType type)
 	return VK_SHADER_STAGE_VERTEX_BIT;
 }
 
+VkShaderStageFlags VulkanUtility::GetShaderStages(const GpuProgramStageBits& stages)
+{
+	VkShaderStageFlags flags = 0;
+	if(stages.IsSet(GpuProgramStageBit::Vertex))
+		flags |= VK_SHADER_STAGE_VERTEX_BIT;
+
+	if(stages.IsSet(GpuProgramStageBit::Fragment))
+		flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	if(stages.IsSet(GpuProgramStageBit::Hull))
+		flags |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+
+	if(stages.IsSet(GpuProgramStageBit::Domain))
+		flags |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+
+	if(stages.IsSet(GpuProgramStageBit::Geometry))
+		flags |= VK_SHADER_STAGE_GEOMETRY_BIT;
+
+	if(stages.IsSet(GpuProgramStageBit::Compute))
+		flags |= VK_SHADER_STAGE_COMPUTE_BIT;
+
+	return flags;
+}
+
 VkSamplerAddressMode VulkanUtility::GetAddressingMode(TextureAddressingMode mode)
 {
 	switch(mode)

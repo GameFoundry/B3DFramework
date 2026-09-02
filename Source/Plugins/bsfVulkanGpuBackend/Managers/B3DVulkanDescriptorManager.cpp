@@ -40,14 +40,19 @@ bool VulkanLayoutKey::operator==(const VulkanLayoutKey& rhs) const
 	return true;
 }
 
-VulkanPipelineLayoutKey::VulkanPipelineLayoutKey(VulkanDescriptorLayout** layouts, u32 numLayouts)
-	: NumLayouts(numLayouts), Layouts(layouts)
-{
-}
+VulkanPipelineLayoutKey::VulkanPipelineLayoutKey(VulkanDescriptorLayout** layouts, u32 numLayouts, const TOptional<VkPushConstantRange>& pushConstantRange)
+	: NumLayouts(numLayouts), Layouts(layouts), PushConstantRange(pushConstantRange)
+{ }
 
 bool VulkanPipelineLayoutKey::operator==(const VulkanPipelineLayoutKey& rhs) const
 {
 	if(NumLayouts != rhs.NumLayouts)
+		return false;
+
+	if(PushConstantRange.has_value() != rhs.PushConstantRange.has_value())
+		return false;
+
+	if(PushConstantRange && (PushConstantRange->stageFlags != rhs.PushConstantRange->stageFlags || PushConstantRange->offset != rhs.PushConstantRange->offset || PushConstantRange->size != rhs.PushConstantRange->size))
 		return false;
 
 	for(u32 i = 0; i < NumLayouts; i++)
@@ -64,6 +69,14 @@ size_t VulkanPipelineLayoutKey::CalculateHash() const
 	size_t hash = 0;
 	for(u32 i = 0; i < NumLayouts; i++)
 		B3DCombineHash(hash, Layouts[i]->GetHash());
+
+	B3DCombineHash(hash, PushConstantRange.has_value());
+	if(PushConstantRange)
+	{
+		B3DCombineHash(hash, PushConstantRange->stageFlags);
+		B3DCombineHash(hash, PushConstantRange->offset);
+		B3DCombineHash(hash, PushConstantRange->size);
+	}
 
 	return hash;
 }
@@ -108,9 +121,9 @@ VulkanDescriptorLayout* VulkanDescriptorManager::GetLayout(TArrayView<VkDescript
 	return key.Layout;
 }
 
-VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayout** layouts, u32 bindingCount)
+VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayout** layouts, u32 bindingCount, const TOptional<VkPushConstantRange>& pushConstantRange)
 {
-	VulkanPipelineLayoutKey key(layouts, bindingCount);
+	VulkanPipelineLayoutKey key(layouts, bindingCount, pushConstantRange);
 
 	auto iterFind = mPipelineLayouts.find(key);
 	if(iterFind != mPipelineLayouts.end())
@@ -125,8 +138,8 @@ VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayo
 	layoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	layoutCI.pNext = nullptr;
 	layoutCI.flags = 0;
-	layoutCI.pushConstantRangeCount = 0;
-	layoutCI.pPushConstantRanges = nullptr;
+	layoutCI.pushConstantRangeCount = pushConstantRange ? 1u : 0u;
+	layoutCI.pPushConstantRanges = pushConstantRange ? &pushConstantRange.value() : nullptr;
 	layoutCI.setLayoutCount = bindingCount;
 	layoutCI.pSetLayouts = setLayouts;
 

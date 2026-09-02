@@ -12,6 +12,7 @@
 #include "CoreObject/B3DRenderThread.h"
 #include "Managers/B3DVulkanDescriptorManager.h"
 #include "Managers/B3DVulkanQueries.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 
 #if B3D_PLATFORM_WIN32
 #	include "Private/Win32/B3DWin32VideoModeInfo.h"
@@ -1149,4 +1150,7 @@ void VulkanGpuDevice::InitializeCapabilities()
 	mCapabilities.MinimumUniformBufferOffsetAlignment = (u32)deviceLimits.minUniformBufferOffsetAlignment;
 	mCapabilities.OptimalBufferToBufferCopyOffsetAlignment = (u32)deviceLimits.optimalBufferCopyOffsetAlignment;
 	mCapabilities.OptimalBufferToImageCopyOffsetAlignment = (u32)deviceLimits.optimalBufferCopyRowPitchAlignment;
+	mCapabilities.MaximumPushConstantSize = deviceLimits.maxPushConstantsSize;
+
+	B3D_ENSURE_LOG(mCapabilities.MaximumPushConstantSize >= kMaxPushConstantSizeInBytes, "Vulkan device supports only {0} push-constant bytes; the engine requires at least {1} bytes.", mCapabilities.MaximumPushConstantSize, kMaxPushConstantSizeInBytes);
 }
