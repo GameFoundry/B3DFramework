@@ -4,6 +4,7 @@
 #include "B3DD3D12Utility.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12ResourceManager.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 
 #include <algorithm>
@@ -28,7 +29,15 @@ D3D12GpuPipelineParameterLayout::~D3D12GpuPipelineParameterLayout()
 
 void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 {
-	constexpr u32 kReservedRootParameterRegisterSpace = 0xFFFFu;
+	static_assert(kMaxPushConstantValueCount == 4, "The D3D12 root-signature ABI reserves four DWORDs for push constants.");
+
+	if(!B3D_ENSURE_LOG((GetPushConstantBufferSize() & 3u) == 0 && GetPushConstantBufferSize() <= kMaxPushConstantSizeInBytes,
+		"D3D12 pipeline declares an invalid push-constant buffer size of {0} bytes; expected a four-byte-aligned size no greater than {1} bytes.", GetPushConstantBufferSize(), kMaxPushConstantSizeInBytes))
+	{
+		return;
+	}
+
+	constexpr u32 kReservedRootParameterRegisterSpace = kPushConstantHlslRegisterSpace;
 	const u32 setCount = (u32)mSets.Size();
 
 	u32 totalBindingCount = 0;
@@ -109,13 +118,12 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 		}
 	};
 
-	// Root parameter 0 reserves four DWORDs for push-constants. 
-	// TODO - Until that API exists no shader references this reserved register and command buffers leave the values unset.
+	// Root parameter 0 is the fixed push-constant ABI shared with the HLSL shader compiler.
 	D3D12_ROOT_PARAMETER rootConstantParameter = {};
 	rootConstantParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-	rootConstantParameter.Constants.ShaderRegister = 0;
-	rootConstantParameter.Constants.RegisterSpace = kReservedRootParameterRegisterSpace;
-	rootConstantParameter.Constants.Num32BitValues = kD3D12RootConstantValueCount;
+	rootConstantParameter.Constants.ShaderRegister = kPushConstantHlslRegister;
+	rootConstantParameter.Constants.RegisterSpace = kPushConstantHlslRegisterSpace;
+	rootConstantParameter.Constants.Num32BitValues = kMaxPushConstantValueCount;
 	rootConstantParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	rootParameters.push_back(rootConstantParameter);
 

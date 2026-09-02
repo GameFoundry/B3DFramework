@@ -183,7 +183,7 @@ void D3D12GpuCommandBufferPool::Reset()
 	B3D_ASSERT(SUCCEEDED(hr) && "Failed to reset command allocator");
 }
 
-D3D12GpuCommandBuffer::D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id, ID3D12GraphicsCommandList7* commandList, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation) : GpuCommandBuffer(device, ownerThread, queueType, createInformation), mId(id), mCommandList(commandList), mPool(pool), mBarrierHelper(&mResourceTracker, queueType), mGraphicsPipelineRequiresBind(true), mGraphicsRootSignatureRequiresBind(true), mComputePipelineRequiresBind(true), mPrimitiveTopologyRequiresBind(true), mViewportRequiresBind(true), mStencilReferenceValueRequiresBind(true), mScissorRequiresBind(true), mGraphicsParametersRequireBind(false), mComputeParametersRequireBind(false), mVertexInputsDirty(false)
+D3D12GpuCommandBuffer::D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id, ID3D12GraphicsCommandList7* commandList, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation) : GpuCommandBuffer(device, ownerThread, queueType, createInformation), mId(id), mCommandList(commandList), mPool(pool), mBarrierHelper(&mResourceTracker, queueType), mGraphicsPipelineRequiresBind(true), mGraphicsRootSignatureRequiresBind(true), mComputePipelineRequiresBind(true), mPrimitiveTopologyRequiresBind(true), mViewportRequiresBind(true), mStencilReferenceValueRequiresBind(true), mScissorRequiresBind(true), mGraphicsParametersRequireBind(false), mComputeParametersRequireBind(false), mGraphicsPushConstantsRequireBind(false), mComputePushConstantsRequireBind(false), mVertexInputsDirty(false)
 {
 	HRESULT hr = GetD3D12GpuDevice().GetD3D12Device()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
 	B3D_ASSERT(SUCCEEDED(hr) && "Failed to create fence");
@@ -252,6 +252,9 @@ void D3D12GpuCommandBuffer::Begin()
 	mScissorRequiresBind = true;
 	mGraphicsParametersRequireBind = false;
 	mComputeParametersRequireBind = false;
+	mPushConstants.Clear();
+	mGraphicsPushConstantsRequireBind = false;
+	mComputePushConstantsRequireBind = false;
 	mVertexInputsDirty = false;
 }
 
@@ -339,6 +342,27 @@ void D3D12GpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32
 	mComputeParametersRequireBind = true;
 }
 
+void D3D12GpuCommandBuffer::SetPushConstants(u32 offsetInBytes, u32 sizeInBytes, const void* data)
+{
+	EnsureValidThread();
+
+	if(sizeInBytes == 0)
+		return;
+
+	if(!B3D_ENSURE_LOG(data != nullptr, "Push-constant data cannot be null for a non-empty update."))
+		return;
+
+	if(!B3D_ENSURE_LOG((offsetInBytes & 3u) == 0 && (sizeInBytes & 3u) == 0, "Push-constant offsets and sizes must be aligned to four bytes."))
+		return;
+
+	if(!B3D_ENSURE_LOG(offsetInBytes <= kMaxPushConstantSizeInBytes && sizeInBytes <= kMaxPushConstantSizeInBytes - offsetInBytes, "Push-constant update at offset {0} with size {1} exceeds the {2}-byte D3D12 block.", offsetInBytes, sizeInBytes, kMaxPushConstantSizeInBytes))
+		return;
+
+	mPushConstants.Write(offsetInBytes, sizeInBytes, data);
+	mGraphicsPushConstantsRequireBind = true;
+	mComputePushConstantsRequireBind = true;
+}
+
 void D3D12GpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState)
 {
 	EnsureValidThread();
@@ -349,6 +373,7 @@ void D3D12GpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphic
 	mGraphicsPipeline = std::static_pointer_cast<D3D12GpuGraphicsPipelineState>(pipelineState);
 	mGraphicsPipelineRequiresBind = true;
 	mGraphicsRootSignatureRequiresBind = true;
+	mGraphicsPushConstantsRequireBind = true;
 	mVertexInputsDirty = true;
 }
 
@@ -361,6 +386,7 @@ void D3D12GpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputeP
 
 	mComputePipeline = std::static_pointer_cast<D3D12GpuComputePipelineState>(pipelineState);
 	mComputePipelineRequiresBind = true;
+	mComputePushConstantsRequireBind = true;
 }
 
 void D3D12GpuCommandBuffer::SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount)
@@ -443,6 +469,7 @@ void D3D12GpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instance
 
 	// Barriers accumulated by the bind-time tracking above. Parameter sets are normally pre-registered at BeginRenderPass so this is usually empty.
 	mBarrierHelper.Execute(*this);
+	BindPushConstants(true);
 
 	if (instanceCount == 0)
 		instanceCount = 1;
@@ -469,6 +496,7 @@ void D3D12GpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vert
 
 	// See Draw()
 	mBarrierHelper.Execute(*this);
+	BindPushConstants(true);
 
 	if (instanceCount == 0)
 		instanceCount = 1;
@@ -501,6 +529,7 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 
 		mComputePipelineRequiresBind = false;
 		mComputeParametersRequireBind = true;
+		mComputePushConstantsRequireBind = true;
 	}
 
 	if (mComputeParametersRequireBind)
@@ -509,6 +538,7 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 		TrackGpuParameterSets(false);
 
 	mBarrierHelper.Execute(*this);
+	BindPushConstants(false);
 
 	mCommandList->Dispatch(groupCountX, groupCountY, groupCountZ);
 }
@@ -947,6 +977,7 @@ bool D3D12GpuCommandBuffer::BindGraphicsPipeline()
 
 		// Setting a root signature wipes all of the command list's graphics root arguments; re-record them on the next parameter bind
 		mGraphicsParametersRequireBind = true;
+		mGraphicsPushConstantsRequireBind = true;
 	}
 
 	if(mPrimitiveTopologyRequiresBind)
@@ -1076,6 +1107,39 @@ void D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
 		mGraphicsParametersRequireBind = false;
 	else
 		mComputeParametersRequireBind = false;
+}
+
+void D3D12GpuCommandBuffer::BindPushConstants(bool isGraphics)
+{
+	if((isGraphics && !mGraphicsPushConstantsRequireBind) || (!isGraphics && !mComputePushConstantsRequireBind))
+		return;
+
+	const D3D12GpuPipelineParameterLayout* parameterLayout = nullptr;
+	if(isGraphics)
+		parameterLayout = mGraphicsPipeline != nullptr ? mGraphicsPipeline->GetD3D12ParameterLayout() : nullptr;
+	else
+		parameterLayout = mComputePipeline != nullptr ? mComputePipeline->GetD3D12ParameterLayout() : nullptr;
+
+	if(parameterLayout == nullptr)
+		return;
+
+	const u32 pushConstantBufferSize = parameterLayout->GetPushConstantBufferSize();
+	B3D_ASSERT((pushConstantBufferSize & 3u) == 0);
+	B3D_ASSERT(pushConstantBufferSize <= kMaxPushConstantSizeInBytes);
+
+	const u32 valueCount = pushConstantBufferSize / sizeof(u32);
+	if(valueCount != 0)
+	{
+		if(isGraphics)
+			mCommandList->SetGraphicsRoot32BitConstants(kD3D12PushConstantRootParameterIndex, valueCount, mPushConstants.Values.data(), 0);
+		else
+			mCommandList->SetComputeRoot32BitConstants(kD3D12PushConstantRootParameterIndex, valueCount, mPushConstants.Values.data(), 0);
+	}
+
+	if(isGraphics)
+		mGraphicsPushConstantsRequireBind = false;
+	else
+		mComputePushConstantsRequireBind = false;
 }
 
 void D3D12GpuCommandBuffer::TrackGpuParameterSets(bool isGraphics)
@@ -1380,6 +1444,9 @@ void D3D12GpuCommandBuffer::Reset()
 	mFramebuffer = nullptr;
 	mUsedQueryPools.clear();
 	mDynamicOffsetOverridesPerSet.clear();
+	mPushConstants.Clear();
+	mGraphicsPushConstantsRequireBind = false;
+	mComputePushConstantsRequireBind = false;
 }
 
 Area2I D3D12GpuCommandBuffer::GetViewportArea() const

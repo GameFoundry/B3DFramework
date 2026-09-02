@@ -23,6 +23,7 @@
 #include "B3DD3D12Texture.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "Utility/B3DBitwise.h"
 
@@ -742,6 +743,7 @@ void D3D12GpuDevice::InitializeCapabilities()
 
 	// Constant buffer addresses (root CBVs and suballocation offsets alike) must be 256-byte aligned in D3D12
 	mCapabilities.MinimumUniformBufferOffsetAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
+	mCapabilities.MaximumPushConstantSize = kMaxPushConstantSizeInBytes;
 
 	mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_BC);
 	mCapabilities.SetCapability(RSC_GEOMETRY_PROGRAM);

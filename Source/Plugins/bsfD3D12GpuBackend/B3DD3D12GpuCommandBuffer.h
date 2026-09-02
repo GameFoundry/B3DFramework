@@ -8,6 +8,7 @@
 #include "B3DD3D12ResourceTracker.h"
 #include "Utility/B3DD3D12BarrierHelper.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "Math/B3DArea2.h"
 
 namespace b3d
@@ -84,6 +85,7 @@ namespace b3d
 
 			void SetGpuParameterSet(const TShared<GpuParameterSet>& parameters) override;
 			void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) override;
+			void SetPushConstants(u32 offsetInBytes, u32 sizeInBytes, const void* data) override;
 			void SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState) override;
 			void SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState) override;
 			void SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount) override;
@@ -236,6 +238,9 @@ namespace b3d
 			 */
 			void BindGpuParameterSets(bool isGraphics);
 
+			/** Uploads the cached push-constant block for the selected pipeline bind point. */
+			void BindPushConstants(bool isGraphics);
+
 			/**
 			 * Registers resources from the currently bound parameter sets without rebinding their descriptors, using the
 			 * active graphics or compute pipeline's per-binding stage visibility. Used for repeated compute dispatches so
@@ -299,7 +304,12 @@ namespace b3d
 			bool mScissorRequiresBind : 1;
 			bool mGraphicsParametersRequireBind : 1;
 			bool mComputeParametersRequireBind : 1;
+			bool mGraphicsPushConstantsRequireBind : 1;
+			bool mComputePushConstantsRequireBind : 1;
 			bool mVertexInputsDirty : 1;
+
+			/** Shared values retained across partial writes and graphics/compute pipeline changes. */
+			GpuPushConstantPayload mPushConstants;
 
 			Vector<TShared<D3D12GpuParameters>> mBoundParameterSets; /**< Bound parameter sets, indexed by set. */
 			TShared<RenderTarget> mRenderTarget;

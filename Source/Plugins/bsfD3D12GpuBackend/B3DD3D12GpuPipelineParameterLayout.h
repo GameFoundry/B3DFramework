@@ -14,8 +14,8 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Number of 32-bit values reserved for the push-constant block. */
-		constexpr u32 kD3D12RootConstantValueCount = 4;
+		/** Root parameter occupied by the push-constant block. */
+		constexpr u32 kD3D12PushConstantRootParameterIndex = 0;
 
 		/** Number of root CBVs reserved for dynamically offset uniform buffers. */
 		constexpr u32 kD3D12DynamicConstantBufferCount = 8;
