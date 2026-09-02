@@ -1,12 +1,53 @@
 #!/bin/bash
 set -e
 
+# Requires bash >= 4 (associative arrays, ${var,,}). macOS ships 3.2: the BansheeForge agent runs
+# this through Homebrew bash when installed (brew install bash).
+if [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
+	echo "::error::bash >= 4 required, found $BASH_VERSION (on macOS: brew install bash)"
+	exit 1
+fi
+
 BUILD_TYPE="${BUILD_TYPE:-RelWithDebInfo}"
 BUILD_DIR="$WORKSPACE/Build"
-BIN_DIR="$BUILD_DIR/bin/x64/$BUILD_TYPE"
+
+# Target platform, as injected by the BansheeForge agent ($PLATFORM: win32, darwin, linux, ps5).
+# When run by hand outside CI, fall back to the host OS.
+if [ -z "${PLATFORM:-}" ]; then
+	case "$OSTYPE" in
+		msys*|cygwin*|win32) PLATFORM="win32" ;;
+		darwin*)             PLATFORM="darwin" ;;
+		linux*)              PLATFORM="linux" ;;
+		*) echo "::error::Cannot infer platform from OSTYPE=$OSTYPE; set PLATFORM" ; exit 1 ;;
+	esac
+fi
+
+# Binary layout and executable suffix per platform. $ARCH comes from the agent (x64/arm64);
+# CMake places binaries under bin/<arch>/<config>.
+case "$PLATFORM" in
+	win32)
+		ARCH="${ARCH:-x64}"
+		EXE_SUFFIX=".exe"
+		;;
+	darwin)
+		ARCH="${ARCH:-$(uname -m | sed 's/x86_64/x64/')}"
+		EXE_SUFFIX=""
+		;;
+	linux)
+		ARCH="${ARCH:-x64}"
+		EXE_SUFFIX=""
+		;;
+	*)
+		# Console platforms run their tests through an overlay (see below); binaries are not local.
+		ARCH="${ARCH:-x64}"
+		EXE_SUFFIX=""
+		;;
+esac
+BIN_DIR="$BUILD_DIR/bin/$ARCH/$BUILD_TYPE"
 
 echo "::phase::setup"
 echo "Workspace: $WORKSPACE"
+echo "Platform: $PLATFORM ($ARCH)"
 echo "Build type: $BUILD_TYPE"
 echo "Binary directory: $BIN_DIR"
 echo "Results directory: $RESULTS_DIR"
@@ -19,7 +60,7 @@ FAILED_TESTS=()
 
 echo "::phase::unit_tests"
 
-TEST_RUNNER="$BIN_DIR/UnitTestRunner.exe"
+TEST_RUNNER="$BIN_DIR/UnitTestRunner$EXE_SUFFIX"
 
 if [ ! -f "$TEST_RUNNER" ]; then
 	echo "::error::UnitTestRunner not found at $TEST_RUNNER"
@@ -30,7 +71,7 @@ echo "Running unit tests..."
 
 cd "$BIN_DIR"
 set +e
-./UnitTestRunner.exe \
+"$TEST_RUNNER" \
 	--headless \
 	--gpu.PreferIntegrated=true \
 	--debug.DisableErrorDialogs=true \
@@ -55,26 +96,59 @@ fi
 # sub-tab order in the UI. Category names must be filesystem/URL-safe
 # ([A-Za-z0-9_-]) as they are used as directory names.
 # ---------------------------------------------------------------------------
-SNAPSHOT_CATEGORIES=("Vulkan" "D3D12" "Editor")
-
-declare -A CATEGORY_ARGS=(
-	["Vulkan"]=""
-	["D3D12"]="--gpu.backend=bsfD3D12GpuBackend"
-	["Editor"]=""
-)
-
-# List of example executables for snapshot testing
-# Note: CustomMaterials is disabled in CMakeLists.txt (outdated shader language)
-# NullBackends hardcodes the null GPU backend so it only runs in the default category
+# Categories differ per platform: Windows exercises Vulkan and D3D12, macOS exercises Metal and
+# Vulkan via MoltenVK. The first category on each platform is that platform's default backend and
+# passes no backend argument, so NullBackends (which hardcodes the null GPU backend and therefore
+# only runs in that category) gets no conflicting override. The Editor category runs the editor itself in headless mode and
+# captures a screenshot of its UI, using the same snapshot mechanism as the example snapshot tests.
+# It is skipped on platforms where the editor binary was not built.
 COMMON_TESTS="Audio Decals GUI GUICulling Lighting LowLevelRendering Particles Physics PhysicallyBasedShading SkeletalAnimation VectorGraphics"
 
-# The Editor category runs the editor itself in headless mode and captures a screenshot
-# of its UI, using the same snapshot mechanism as the example snapshot tests.
-declare -A CATEGORY_TESTS=(
-	["Vulkan"]="$COMMON_TESTS NullBackends"
-	["D3D12"]="$COMMON_TESTS"
-	["Editor"]="Editor"
-)
+declare -A CATEGORY_ARGS=()
+declare -A CATEGORY_TESTS=()
+
+case "$PLATFORM" in
+	win32)
+		SNAPSHOT_CATEGORIES=("Vulkan" "D3D12" "Editor")
+		CATEGORY_ARGS["Vulkan"]=""
+		CATEGORY_ARGS["D3D12"]="--gpu.backend=bsfD3D12GpuBackend"
+		CATEGORY_ARGS["Editor"]=""
+		CATEGORY_TESTS["Vulkan"]="$COMMON_TESTS NullBackends"
+		CATEGORY_TESTS["D3D12"]="$COMMON_TESTS"
+		CATEGORY_TESTS["Editor"]="Editor"
+		;;
+	darwin)
+		SNAPSHOT_CATEGORIES=("Metal" "Vulkan" "Editor")
+		CATEGORY_ARGS["Metal"]=""
+		CATEGORY_ARGS["Vulkan"]="--gpu.backend=bsfVulkanGpuBackend"
+		CATEGORY_ARGS["Editor"]=""
+		CATEGORY_TESTS["Metal"]="$COMMON_TESTS NullBackends"
+		CATEGORY_TESTS["Vulkan"]="$COMMON_TESTS"
+		CATEGORY_TESTS["Editor"]="Editor"
+		;;
+	linux)
+		SNAPSHOT_CATEGORIES=("Vulkan" "Editor")
+		CATEGORY_ARGS["Vulkan"]=""
+		CATEGORY_ARGS["Editor"]=""
+		CATEGORY_TESTS["Vulkan"]="$COMMON_TESTS NullBackends"
+		CATEGORY_TESTS["Editor"]="Editor"
+		;;
+	*)
+		# Console platforms declare their categories from an overlay.
+		SNAPSHOT_CATEGORIES=()
+		;;
+esac
+
+# Skip the Editor category when the editor was not built for this platform (e.g. a port in progress).
+if [ ! -f "$BIN_DIR/Banshee3D$EXE_SUFFIX" ] && [ "${CATEGORY_TESTS[Editor]:-}" = "Editor" ]; then
+	echo "Editor binary not found at $BIN_DIR/Banshee3D$EXE_SUFFIX; skipping Editor snapshot category"
+	FILTERED=()
+	for CATEGORY in "${SNAPSHOT_CATEGORIES[@]}"; do
+		[ "$CATEGORY" != "Editor" ] && FILTERED+=("$CATEGORY")
+	done
+	SNAPSHOT_CATEGORIES=("${FILTERED[@]}")
+	unset 'CATEGORY_TESTS[Editor]'
+fi
 
 # ---------------------------------------------------------------------------
 # Platform overlays with proprietary SDKs (kept outside this repository) may
@@ -155,9 +229,9 @@ for CATEGORY in "${SNAPSHOT_CATEGORIES[@]}"; do
 
 		# The Editor snapshot runs the editor executable itself; all other tests are example exes
 		if [ "$TEST_NAME" = "Editor" ]; then
-			EXE="$BIN_DIR/Banshee3D.exe"
+			EXE="$BIN_DIR/Banshee3D$EXE_SUFFIX"
 		else
-			EXE="$BIN_DIR/$TEST_NAME.exe"
+			EXE="$BIN_DIR/$TEST_NAME$EXE_SUFFIX"
 		fi
 
 		run_snapshot "$CATEGORY" "$TEST_NAME" "$EXE"

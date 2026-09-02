@@ -11,23 +11,49 @@ cd "$WORKSPACE"
 # Build type from config (default to RelWithDebInfo)
 BUILD_TYPE="${BUILD_TYPE:-RelWithDebInfo}"
 
+# Target platform, as injected by the BansheeForge agent ($PLATFORM: win32, darwin, linux, ps5).
+# When run by hand outside CI, fall back to the host OS.
+if [ -z "${PLATFORM:-}" ]; then
+	case "$OSTYPE" in
+		msys*|cygwin*|win32) PLATFORM="win32" ;;
+		darwin*)             PLATFORM="darwin" ;;
+		linux*)              PLATFORM="linux" ;;
+		*) echo "::error::Cannot infer platform from OSTYPE=$OSTYPE; set PLATFORM" ; exit 1 ;;
+	esac
+fi
+Platform="$PLATFORM"
+
 # Platform-specific CMake generator + architecture defaults. Override by exporting
 # B3D_CMAKE_GENERATOR and/or B3D_CMAKE_ARCHITECTURE before invoking this script
 # (e.g. to build for a non-host target such as ARM64 Windows).
-Platform="${PLATFORM:-$OSTYPE}"
-if [[ $Platform == "win32" || $Platform == "msys" || $Platform == "cygwin"* ]]; then
-	DefaultGenerator="Visual Studio 17 2022"
-	DefaultArchitecture="x64"
-elif [[ $Platform == "darwin"* ]]; then
-	DefaultGenerator="Ninja Multi-Config"
-	DefaultArchitecture=""
-elif [[ $Platform == "linux-gnu"* || $Platform == "linux"* ]]; then
-	DefaultGenerator="Ninja Multi-Config"
-	DefaultArchitecture=""
-else
-	echo "::error::Unsupported platform: $Platform"
-	exit 1
-fi
+case "$Platform" in
+	win32)
+		DefaultGenerator="Visual Studio 17 2022"
+		DefaultArchitecture="x64"
+		InstallTarget="INSTALL"
+		;;
+	darwin|linux)
+		DefaultGenerator="Ninja Multi-Config"
+		DefaultArchitecture=""
+		InstallTarget="install"
+		;;
+	*)
+		# Console platforms with proprietary SDKs are built by an overlay kept outside this
+		# repository (Framework/Platform/<Name>/Scripts/CI/B3DCIBuildOverlay.sh), which takes over
+		# the whole build when present.
+		OVERLAY_BUILD=""
+		for OVERLAY_SCRIPT in "$WORKSPACE"/Framework/Platform/*/Scripts/CI/B3DCIBuildOverlay.sh; do
+			[ -f "$OVERLAY_SCRIPT" ] && OVERLAY_BUILD="$OVERLAY_SCRIPT"
+		done
+		if [ -z "$OVERLAY_BUILD" ]; then
+			echo "::error::Unsupported platform: $Platform (no build overlay found)"
+			exit 1
+		fi
+		echo "Delegating $Platform build to overlay: $OVERLAY_BUILD"
+		source "$OVERLAY_BUILD"
+		exit $?
+		;;
+esac
 
 CMakeGenerator="${B3D_CMAKE_GENERATOR:-$DefaultGenerator}"
 CMakeArchitecture="${B3D_CMAKE_ARCHITECTURE-$DefaultArchitecture}"
@@ -113,6 +139,6 @@ done
 echo "::phase::artifacts"
 echo "Copying build artifacts..."
 
-cmake --build . --target INSTALL --config "$BUILD_TYPE" --parallel
+cmake --build . --target "$InstallTarget" --config "$BUILD_TYPE" --parallel
 
 echo "=== Build complete ==="
