@@ -7,6 +7,7 @@
 #include "B3DMetalResourceTracker.h"
 #include "B3DMetalBarrierHelper.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuTimelineFence.h"
 #include "GpuBackend/B3DRenderTarget.h"
 
@@ -47,6 +48,7 @@ namespace b3d
 
 			void SetGpuParameterSet(const TShared<GpuParameterSet>& parameters) override;
 			void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) override;
+			void SetPushConstants(u32 offsetInBytes, u32 sizeInBytes, const void* data) override;
 			void SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState) override;
 			void SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState) override;
 			void SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount) override;
@@ -233,6 +235,9 @@ namespace b3d
 			 * are executed, so a restarted render pass replays an up-to-date binding list.
 			 */
 			void ApplyVertexBuffersToRenderEncoder();
+
+			/** Uploads the cached push-constant block to the active render or compute encoder. */
+			void BindPushConstants(bool isGraphics);
 #endif
 
 			MetalGpuDevice& mGpuDevice;
@@ -249,6 +254,9 @@ namespace b3d
 			// Cached pipeline + input state; applied to the render encoder at bind time.
 			TShared<MetalGpuGraphicsPipelineState> mBoundGraphicsPipeline;
 			TShared<GpuComputePipelineState> mBoundComputePipeline;
+			GpuPushConstantPayload mPushConstants;
+			bool mGraphicsPushConstantsRequireBind = false;
+			bool mComputePushConstantsRequireBind = false;
 			TShared<GpuBuffer> mBoundIndexBuffer;
 			/**
 			 * Vertex buffers bound by @c SetVertexBuffers, indexed by engine stream index; null slots are

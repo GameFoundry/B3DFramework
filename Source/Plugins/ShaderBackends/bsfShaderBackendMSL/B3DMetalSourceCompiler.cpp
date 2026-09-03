@@ -19,7 +19,7 @@ using namespace b3d::render;
 namespace
 {
 	/** Converts VKSL to SPIR-V and retains the reflection required to configure SPIRV-Cross's MSL ABI. */
-	TShared<GpuProgramBytecode> CompileSpirvBytecode(const String& vkslSource, GpuProgramType programType)
+	TShared<GpuProgramBytecode> CompileSpirvBytecode(const String& vkslSource, GpuProgramType programType, u32 pushConstantBufferSize)
 	{
 		static GLSLToSPIRV converter("MetalSource", 1);
 
@@ -28,6 +28,7 @@ namespace
 		createInformation.EntryPoint = "main";
 		createInformation.Language = "vksl";
 		createInformation.Type = programType;
+		createInformation.PushConstantBufferSize = pushConstantBufferSize;
 
 		return converter.CompileBytecode(createInformation);
 	}
@@ -355,7 +356,7 @@ namespace
 	};
 
 	/** Compiles VKSL to MSL and returns the generated source together with any diagnostics. */
-	MetalSourceCompilation CompileMetalSource(const String& vkslSource, GpuProgramType programType)
+	MetalSourceCompilation CompileMetalSource(const String& vkslSource, GpuProgramType programType, u32 pushConstantBufferSize)
 	{
 		MetalSourceCompilation compilation;
 		if(programType != GPT_VERTEX_PROGRAM && programType != GPT_FRAGMENT_PROGRAM && programType != GPT_COMPUTE_PROGRAM)
@@ -364,7 +365,7 @@ namespace
 			return compilation;
 		}
 
-		TShared<GpuProgramBytecode> spirvBytecode = CompileSpirvBytecode(vkslSource, programType);
+		TShared<GpuProgramBytecode> spirvBytecode = CompileSpirvBytecode(vkslSource, programType, pushConstantBufferSize);
 		if(spirvBytecode == nullptr || spirvBytecode->Instructions.Data == nullptr || spirvBytecode->Instructions.Size == 0)
 		{
 			compilation.Result.ErrorMessage = spirvBytecode != nullptr && !spirvBytecode->Messages.empty()
@@ -379,6 +380,38 @@ namespace
 		spirv_cross::CompilerMSL compiler((u32*)spirvBytecode->Instructions.Data, spirvBytecode->Instructions.Size / sizeof(u32));
 		const spv::ExecutionModel executionModel = GetExecutionModel(programType);
 		compiler.rename_entry_point("main", GetEntryPointName(programType), executionModel);
+
+		const spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+		if(resources.push_constant_buffers.size() > 1)
+		{
+			compilation.Result.ErrorMessage = "Metal source generation received more than one SPIR-V push-constant block.";
+			return compilation;
+		}
+
+		const u32 reflectedPushConstantBufferSize = spirvBytecode->ParameterDescription != nullptr ? spirvBytecode->ParameterDescription->PushConstantBufferSize : 0;
+		if(reflectedPushConstantBufferSize != pushConstantBufferSize)
+		{
+			compilation.Result.ErrorMessage = StringUtility::Format("Metal SPIR-V push-constant size mismatch: source reflection reports {0} bytes but SPIR-V reports {1} bytes.", pushConstantBufferSize, reflectedPushConstantBufferSize);
+			return compilation;
+		}
+
+		if((pushConstantBufferSize != 0) != !resources.push_constant_buffers.empty())
+		{
+			compilation.Result.ErrorMessage = "Metal SPIR-V push-constant presence does not match source reflection.";
+			return compilation;
+		}
+
+		if(pushConstantBufferSize != 0)
+		{
+			spirv_cross::MSLResourceBinding pushConstantBinding;
+			pushConstantBinding.stage = executionModel;
+			pushConstantBinding.desc_set = spirv_cross::ResourceBindingPushConstantDescriptorSet;
+			pushConstantBinding.binding = spirv_cross::ResourceBindingPushConstantBinding;
+			pushConstantBinding.count = 1;
+			pushConstantBinding.msl_buffer = kMetalPushConstantBufferIndex;
+
+			compiler.add_msl_resource_binding(pushConstantBinding);
+		}
 
 		spirv_cross::CompilerMSL::Options mslOptions;
 		mslOptions.msl_version = spirv_cross::CompilerMSL::Options::make_msl_version(3, 0);
@@ -432,15 +465,22 @@ namespace
 			return compilation;
 		}
 
+		if(pushConstantBufferSize != 0 && compilation.MslSource.find(StringUtility::Format("[[buffer({0})]]", kMetalPushConstantBufferIndex)) == String::npos)
+		{
+			compilation.MslSource.clear();
+			compilation.Result.ErrorMessage = "SPIRV-Cross did not emit the Metal push-constant block at the reserved buffer index.";
+			return compilation;
+		}
+
 		return compilation;
 	}
 }
 
-ShaderCompilerResult MetalSourceCompiler::Compile(const String& vkslSource, GpuProgramType programType, String& outMslSource)
+ShaderCompilerResult MetalSourceCompiler::Compile(const String& vkslSource, GpuProgramType programType, u32 pushConstantBufferSize, String& outMslSource)
 {
 	outMslSource.clear();
 
-	MetalSourceCompilation compilation = CompileMetalSource(vkslSource, programType);
+	MetalSourceCompilation compilation = CompileMetalSource(vkslSource, programType, pushConstantBufferSize);
 	outMslSource = std::move(compilation.MslSource);
 	return std::move(compilation.Result);
 }

@@ -10,6 +10,7 @@
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Math/B3DMath.h"
 #include "Utility/B3DScopeGuard.h"
@@ -462,7 +463,7 @@ namespace
 		return true;
 	}
 
-	bool ReflectLibrary(id<MTLLibrary> library, NSString* entryPointName, GpuProgramType type, GpuProgramBytecode& outBytecode, id<MTLFunction> __strong& outFunction)
+	bool ReflectLibrary(id<MTLLibrary> library, NSString* entryPointName, GpuProgramType type, u32 pushConstantBufferSize, GpuProgramBytecode& outBytecode, id<MTLFunction> __strong& outFunction)
 	{
 		outFunction = [library newFunctionWithName:entryPointName];
 		if(outFunction == nil)
@@ -483,6 +484,7 @@ namespace
 
 		Vector<ReflectedTable> reflectedTables;
 		UnorderedSet<u32> reflectedSets;
+		bool reflectedPushConstantBuffer = false;
 		bool reflectionValid = true;
 		for(id<MTLBinding> binding in reflection.bindings)
 		{
@@ -495,6 +497,29 @@ namespace
 
 			id<MTLBufferBinding> bufferBinding = (id<MTLBufferBinding>)binding;
 			MTLStructType* tableStruct = bufferBinding.bufferStructType;
+			if((u32)binding.index == kMetalPushConstantBufferIndex)
+			{
+				if(pushConstantBufferSize == 0)
+				{
+					outBytecode.Messages += "Metal reflection found an unexpected buffer at the reserved push-constant index.\n";
+					reflectionValid = false;
+				}
+				else if(reflectedPushConstantBuffer)
+				{
+					outBytecode.Messages += "Metal reflection found more than one buffer at the reserved push-constant index.\n";
+					reflectionValid = false;
+				}
+				else if(tableStruct == nil || bufferBinding.bufferDataSize < pushConstantBufferSize)
+				{
+					outBytecode.Messages += StringUtility::Format("Metal reflection reported an invalid push-constant carrier size of {0} bytes; expected at least {1} bytes.\n", (u32)bufferBinding.bufferDataSize, pushConstantBufferSize);
+					reflectionValid = false;
+				}
+				else
+					reflectedPushConstantBuffer = true;
+
+				continue;
+			}
+
 			if(tableStruct == nil)
 			{
 				outBytecode.Messages += StringUtility::Format("Metal reflection found a buffer binding that is not a parameter-set argument buffer: '{0}'.\n", binding.name != nil ? binding.name.UTF8String : "<unnamed>");
@@ -536,6 +561,14 @@ namespace
 				reflectedTables.push_back(std::move(table));
 			}
 		}
+
+		if(pushConstantBufferSize != 0 && !reflectedPushConstantBuffer)
+		{
+			outBytecode.Messages += "Metal reflection did not find the declared push-constant block at the reserved buffer index.\n";
+			reflectionValid = false;
+		}
+
+		outBytecode.ParameterDescription->PushConstantBufferSize = pushConstantBufferSize;
 
 		if(!reflectionValid)
 			return false;
@@ -633,7 +666,15 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 		return bytecode;
 	}
 
-	if(createInformation.Bytecode != nullptr && IsUpToDate(*createInformation.Bytecode))
+	if(createInformation.PushConstantBufferSize != 0 && ((createInformation.PushConstantBufferSize & 3u) != 0 || createInformation.PushConstantBufferSize > kMaxPushConstantSizeInBytes))
+	{
+		bytecode->Messages = StringUtility::Format("Metal push-constant size must be four-byte aligned and no greater than {0} bytes.", kMaxPushConstantSizeInBytes);
+		return bytecode;
+	}
+
+	if(createInformation.Bytecode != nullptr && createInformation.Bytecode->ParameterDescription != nullptr
+		&& IsUpToDate(*createInformation.Bytecode)
+		&& createInformation.Bytecode->ParameterDescription->PushConstantBufferSize == createInformation.PushConstantBufferSize)
 		return createInformation.Bytecode;
 
 	if(createInformation.Type == GPT_COMPUTE_PROGRAM && (createInformation.ThreadGroupSize[0] == 0 || createInformation.ThreadGroupSize[1] == 0 || createInformation.ThreadGroupSize[2] == 0))
@@ -756,7 +797,7 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 
 		NSString* entryPointName = [NSString stringWithUTF8String:entryPoint.c_str()];
 		id<MTLFunction> function = nil;
-		const bool reflectionSucceeded = ReflectLibrary(library, entryPointName, createInformation.Type, *bytecode, function);
+		const bool reflectionSucceeded = ReflectLibrary(library, entryPointName, createInformation.Type, createInformation.PushConstantBufferSize, *bytecode, function);
 #if !__has_feature(objc_arc)
 		[function release];
 		[library release];

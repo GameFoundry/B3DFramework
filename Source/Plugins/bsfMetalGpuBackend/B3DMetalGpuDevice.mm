@@ -21,6 +21,7 @@
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
+#include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "B3DMetalEventQuery.h"
 #include "B3DMetalGpuQueryPool.h"
@@ -700,8 +701,11 @@ namespace b3d
 			mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;
 
 			// Metal exposes 31 vertex-stage buffer slots. Parameter sets use 0..15, vertex streams use
-			// 16..29, and slot 30 remains reserved for SPIRV-Cross auxiliary buffers.
+			// 16..29, and slot 30 carries SPIRV-Cross's standalone push-constant block.
+			static_assert(kMetalVertexBufferSlotEnd == kMetalPushConstantBufferIndex,
+				"The Metal push-constant buffer must immediately follow the vertex-stream range.");
 			mCapabilities.VertexBufferCount = kMetalVertexBufferSlotEnd - kMetalVertexBufferSlotBase;
+			mCapabilities.MaximumPushConstantSize = kMaxPushConstantSizeInBytes;
 			mCapabilities.RenderTargetCount = 8;
 
 			constexpr u16 resourcesPerStage = (kMetalMaximumParameterSetIndex + 1)

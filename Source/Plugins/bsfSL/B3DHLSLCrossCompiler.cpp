@@ -845,7 +845,7 @@ ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProg
 	if(compileResult.ErrorMessage.empty() && compileMetalSource)
 	{
 		String metalSource;
-		compileResult = MetalSourceCompiler::Compile(outSource, type, metalSource);
+		compileResult = MetalSourceCompiler::Compile(outSource, type, outPushConstantBufferSize, metalSource);
 		if(compileResult.ErrorMessage.empty())
 			outSource = std::move(metalSource);
 	}

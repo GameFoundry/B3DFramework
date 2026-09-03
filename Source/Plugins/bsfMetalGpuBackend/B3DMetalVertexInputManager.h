@@ -29,8 +29,7 @@ namespace b3d
 
 		/**
 		 * One-past-the-highest vertex-stage buffer slot usable for vertex streams. Metal exposes 31
-		 * vertex-stage buffer slots [0, 31); slot 30 is left free for SPIRV-Cross auxiliary buffers
-		 * (for example the texture swizzle buffer), which default to the top of the table.
+		 * vertex-stage buffer slots [0, 31); slot 30 is reserved for the standalone push-constant block.
 		 */
 		constexpr u32 kMetalVertexBufferSlotEnd = 30;
 

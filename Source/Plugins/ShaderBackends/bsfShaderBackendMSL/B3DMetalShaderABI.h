@@ -32,6 +32,9 @@ namespace b3d
 		/** Highest parameter-set index; Metal buffer slots 16 and above are reserved for vertex streams. */
 		inline constexpr u32 kMetalMaximumParameterSetIndex = 15;
 
+		/** Standalone buffer index used by SPIRV-Cross's push-constant emulation. */
+		inline constexpr u32 kMetalPushConstantBufferIndex = 30;
+
 		/** Apple7 Tier-2 per-stage texture-resource limit across argument buffers. */
 		inline constexpr u32 kMetalMaximumTextureArgumentsPerStage = 1048576;
 

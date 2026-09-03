@@ -23,7 +23,7 @@ namespace b3d
 		 * Version of the compiler used for compiling Metal GPU programs. Tick this whenever the compiler updates in order
 		 * to force bytecode to rebuild.
 		 */
-		inline constexpr u32 kMetalCompilerVersion = 2;
+		inline constexpr u32 kMetalCompilerVersion = 3;
 
 		/**
 		 * Compiles Metal Shading Language into a native @c metallib and translates Metal's native function reflection into

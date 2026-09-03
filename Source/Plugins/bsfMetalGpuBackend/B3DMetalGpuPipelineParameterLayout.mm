@@ -479,6 +479,13 @@ namespace b3d
 			MetalGpuDevice& gpuDevice, const GpuPipelineParameterLayoutCreateInformation& createInformation)
 			: GpuPipelineParameterLayout(gpuDevice, createInformation)
 		{
+			if(createInformation.Vertex != nullptr && createInformation.Vertex->PushConstantBufferSize != 0)
+				mPushConstantStageMask |= (u32)GpuProgramStageBit::Vertex;
+			if(createInformation.Fragment != nullptr && createInformation.Fragment->PushConstantBufferSize != 0)
+				mPushConstantStageMask |= (u32)GpuProgramStageBit::Fragment;
+			if(createInformation.Compute != nullptr && createInformation.Compute->PushConstantBufferSize != 0)
+				mPushConstantStageMask |= (u32)GpuProgramStageBit::Compute;
+
 			// The generic constructor hands each set a single stage's reflected table, which silently
 			// assumes every stage packs the set identically. Per-stage dead-resource stripping breaks that
 			// assumption (a vertex program that never samples a texture packs a smaller struct than its

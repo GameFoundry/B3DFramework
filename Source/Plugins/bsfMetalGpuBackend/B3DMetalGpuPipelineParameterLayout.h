@@ -204,6 +204,12 @@ namespace b3d
 		public:
 			MetalGpuPipelineParameterLayout(MetalGpuDevice& gpuDevice, const GpuPipelineParameterLayoutCreateInformation& createInformation);
 			~MetalGpuPipelineParameterLayout() = default;
+
+			/** Returns the shader stages that consume the standalone push-constant block. */
+			u32 GetPushConstantStageMask() const { return mPushConstantStageMask; }
+
+		private:
+			u32 mPushConstantStageMask = 0;
 		};
 
 		/** @} */

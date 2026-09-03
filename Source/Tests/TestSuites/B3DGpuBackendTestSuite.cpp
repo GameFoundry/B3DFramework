@@ -301,6 +301,9 @@ void GpuBackendTestSuite::TestPushConstantShaderCompilation()
 
 	TInlineArray<String, 3> targetLanguages;
 	targetLanguages.Add("vksl");
+#if B3D_PLATFORM_MACOS
+	targetLanguages.Add("msl");
+#endif
 #if B3D_PLATFORM_WIN32
 	targetLanguages.Add("hlsl");
 	if(ShaderCompilers::Instance().GetBytecodeCompiler("pssl") != nullptr)

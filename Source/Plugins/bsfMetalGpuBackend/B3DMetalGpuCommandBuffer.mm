@@ -15,6 +15,7 @@
 #include "B3DMetalRenderTexture.h"
 #include "B3DMetalRenderWindowSurface.h"
 #include "B3DMetalClearPipeline.h"
+#include "B3DMetalShaderABI.h"
 #include "B3DMetalUtility.h"
 #include "B3DIMetalRenderWindowSurface.h"
 #include "GpuBackend/B3DRenderWindow.h"
@@ -577,6 +578,7 @@ namespace b3d
 				mRecordingFailed = true;
 				return false;
 			}
+			mGraphicsPushConstantsRequireBind = true;
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			mImpl->RenderEncoder.label = @"Render pass (resumed)";
 #endif
@@ -830,16 +832,39 @@ namespace b3d
 			} // @autoreleasepool
 		}
 
+		void MetalGpuCommandBuffer::SetPushConstants(u32 offsetInBytes, u32 sizeInBytes, const void* data)
+		{
+			EnsureValidThread();
+
+			if(sizeInBytes == 0)
+				return;
+
+			if(!B3D_ENSURE_LOG(data != nullptr, "Push-constant data cannot be null for a non-empty update."))
+				return;
+
+			if(!B3D_ENSURE_LOG((offsetInBytes & 3u) == 0 && (sizeInBytes & 3u) == 0, "Push-constant offsets and sizes must be aligned to four bytes."))
+				return;
+
+			if(!B3D_ENSURE_LOG(offsetInBytes <= kMaxPushConstantSizeInBytes && sizeInBytes <= kMaxPushConstantSizeInBytes - offsetInBytes, "Push-constant update at offset {0} with size {1} exceeds the {2}-byte Metal block.", offsetInBytes, sizeInBytes, kMaxPushConstantSizeInBytes))
+				return;
+
+			mPushConstants.Write(offsetInBytes, sizeInBytes, data);
+			mGraphicsPushConstantsRequireBind = true;
+			mComputePushConstantsRequireBind = true;
+		}
+
 		void MetalGpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState)
 		{
 			EnsureValidThread();
 			mBoundGraphicsPipeline = std::static_pointer_cast<MetalGpuGraphicsPipelineState>(pipelineState);
+			mGraphicsPushConstantsRequireBind = true;
 		}
 
 		void MetalGpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState)
 		{
 			EnsureValidThread();
 			mBoundComputePipeline = pipelineState;
+			mComputePushConstantsRequireBind = true;
 
 			if (!pipelineState || !mImpl->ComputeEncoder)
 				return;
@@ -848,6 +873,49 @@ namespace b3d
 			id<MTLComputePipelineState> pso = metalCompute->GetMetalPipeline();
 			if (pso)
 				[mImpl->ComputeEncoder setComputePipelineState:pso];
+		}
+
+		void MetalGpuCommandBuffer::BindPushConstants(bool isGraphics)
+		{
+			if((isGraphics && !mGraphicsPushConstantsRequireBind) || (!isGraphics && !mComputePushConstantsRequireBind))
+				return;
+
+			const MetalGpuPipelineParameterLayout* parameterLayout = nullptr;
+			if(isGraphics && mBoundGraphicsPipeline != nullptr)
+				parameterLayout = static_cast<MetalGpuPipelineParameterLayout*>(mBoundGraphicsPipeline->GetParameterLayout().get());
+			else if(!isGraphics && mBoundComputePipeline != nullptr)
+				parameterLayout = static_cast<MetalGpuPipelineParameterLayout*>(mBoundComputePipeline->GetParameterLayout().get());
+
+			if(parameterLayout == nullptr)
+				return;
+
+			const u32 pushConstantBufferSize = parameterLayout->GetPushConstantBufferSize();
+			const u32 stageMask = parameterLayout->GetPushConstantStageMask();
+			B3D_ASSERT((pushConstantBufferSize & 3u) == 0);
+			B3D_ASSERT(pushConstantBufferSize <= kMaxPushConstantSizeInBytes);
+
+			if(pushConstantBufferSize != 0)
+			{
+				if(isGraphics)
+				{
+					B3D_ASSERT(mImpl->RenderEncoder != nil);
+					if(stageMask & (u32)GpuProgramStageBit::Vertex)
+						[mImpl->RenderEncoder setVertexBytes:mPushConstants.GetData() length:pushConstantBufferSize atIndex:kMetalPushConstantBufferIndex];
+					if(stageMask & (u32)GpuProgramStageBit::Fragment)
+						[mImpl->RenderEncoder setFragmentBytes:mPushConstants.GetData() length:pushConstantBufferSize atIndex:kMetalPushConstantBufferIndex];
+				}
+				else
+				{
+					B3D_ASSERT(mImpl->ComputeEncoder != nil);
+					if(stageMask & (u32)GpuProgramStageBit::Compute)
+						[mImpl->ComputeEncoder setBytes:mPushConstants.GetData() length:pushConstantBufferSize atIndex:kMetalPushConstantBufferIndex];
+				}
+			}
+
+			if(isGraphics)
+				mGraphicsPushConstantsRequireBind = false;
+			else
+				mComputePushConstantsRequireBind = false;
 		}
 
 		void MetalGpuCommandBuffer::SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount)
@@ -1079,6 +1147,7 @@ namespace b3d
 
 			if (!BindGraphicsPipelineForDraw(*mImpl, mBoundGraphicsPipeline.get(), mDrawOperation, mRenderPassPipelineKey, vertexInput))
 				return;
+			BindPushConstants(true);
 			[mImpl->RenderEncoder setStencilReferenceValue:mStencilReference];
 
 			MTLPrimitiveType primitive = MetalUtility::GetPrimitiveType(mDrawOperation);
@@ -1161,6 +1230,7 @@ namespace b3d
 
 			if (!BindGraphicsPipelineForDraw(*mImpl, mBoundGraphicsPipeline.get(), mDrawOperation, mRenderPassPipelineKey, vertexInput))
 				return;
+			BindPushConstants(true);
 			[mImpl->RenderEncoder setStencilReferenceValue:mStencilReference];
 
 			id<MTLBuffer> indexBuffer = metalIndex->GetMetalBuffer();
@@ -1236,6 +1306,7 @@ namespace b3d
 				mImpl->ComputeEncoder = [cmdBuffer computeCommandEncoder];
 				if (mImpl->ComputeEncoder == nil)
 					return;
+				mComputePushConstantsRequireBind = true;
 #if B3D_BUILD_TYPE_DEVELOPMENT
 				mImpl->ComputeEncoder.label = @"Compute pass";
 #endif
@@ -1283,6 +1354,7 @@ namespace b3d
 				}
 			}
 
+			BindPushConstants(false);
 			MTLSize threadsPerGroup = MTLSizeMake(workgroup[0], workgroup[1], workgroup[2]);
 			MTLSize groups = MTLSizeMake(groupCountX, groupCountY, groupCountZ);
 			[mImpl->ComputeEncoder dispatchThreadgroups:groups threadsPerThreadgroup:threadsPerGroup];
@@ -1688,6 +1760,7 @@ namespace b3d
 
 			if (mImpl->RenderEncoder == nil)
 				return;
+			mGraphicsPushConstantsRequireBind = true;
 
 			// A'14: tell the window surface that a render encoder has successfully been opened
 			// against its drawable, so @c SwapBuffers can distinguish "drawable acquired but never
@@ -3247,6 +3320,9 @@ namespace b3d
 			mBoundVertexDescription = nullptr;
 			mDrawOperation = DOT_TRIANGLE_LIST;
 			mStencilReference = 0;
+			mPushConstants.Clear();
+			mGraphicsPushConstantsRequireBind = false;
+			mComputePushConstantsRequireBind = false;
 			mRenderPassPipelineKey = MetalPipelineVariantKey{};
 			mAcquiredWindowSurface = nullptr;
 			mRenderPassTrackingActive = false;

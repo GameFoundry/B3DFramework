@@ -21,12 +21,13 @@ namespace b3d
 		/**
 		 * Compiles a VKSL GPU program into MSL that uses the native Metal argument-buffer ABI.
 		 *
-		 * @param	vkslSource		VKSL source containing a single GPU program with a "main" entry point.
-		 * @param	programType		Stage represented by @p vkslSource. Vertex, fragment, and compute stages are supported.
-		 * @param	outMslSource	Receives the generated MSL source on success; cleared on failure.
-		 * @return					Compilation result. A non-empty error message indicates failure.
+		 * @param	vkslSource				VKSL source containing a single GPU program with a "main" entry point.
+		 * @param	programType				Stage represented by @p vkslSource. Vertex, fragment, and compute stages are supported.
+		 * @param	pushConstantBufferSize	Push-constant block size in bytes, or zero when unused.
+		 * @param	outMslSource			Receives the generated MSL source on success; cleared on failure.
+		 * @return							Compilation result. A non-empty error message indicates failure.
 		 */
-		static ShaderCompilerResult Compile(const String& vkslSource, GpuProgramType programType, String& outMslSource);
+		static ShaderCompilerResult Compile(const String& vkslSource, GpuProgramType programType, u32 pushConstantBufferSize, String& outMslSource);
 	};
 } // namespace b3d
 
