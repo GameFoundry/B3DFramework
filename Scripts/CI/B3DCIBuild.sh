@@ -117,6 +117,7 @@ cmake --build . --target UnitTestRunner --config "$BUILD_TYPE" --parallel
 # Build all examples for snapshot testing
 # Note: CustomMaterials is disabled in CMakeLists.txt (outdated shader language)
 EXAMPLES=(
+	"AdvancedLowLevelRendering"
 	"Audio"
 	"Decals"
 	"GUI"
