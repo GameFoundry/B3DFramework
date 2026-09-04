@@ -22,7 +22,7 @@ namespace b3d
 		};
 
 		/** Used as a key in a hash map containing pipeline layouts. */
-		struct B3D_EXPORT VulkanPipelineLayoutKey
+		struct B3D_VULKAN_EXPORT VulkanPipelineLayoutKey
 		{
 			VulkanPipelineLayoutKey(VulkanDescriptorLayout** layouts, u32 numLayouts, const TOptional<VkPushConstantRange>& pushConstantRange);
 

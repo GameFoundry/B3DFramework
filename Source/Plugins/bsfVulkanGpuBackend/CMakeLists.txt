@@ -26,6 +26,10 @@ endif()
 B3DAddPlugin(bsfVulkanGpuBackend ENGINE ${B3D_VULKANGPUBACKEND_SOURCE_FILES})
 B3DRegisterGpuBackend(Vulkan bsfVulkanGpuBackend vksl)
 
+if(NOT B3D_MONOLITHIC_BUILD)
+	target_compile_definitions(bsfVulkanGpuBackend PRIVATE B3D_VULKAN_EXPORTS)
+endif()
+
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfVulkanGpuBackend)
 

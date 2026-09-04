@@ -52,7 +52,7 @@ namespace b3d
 	};
 
 	/**	Provides easy access to the VulkanGpuBackend. */
-	B3D_EXPORT VulkanGpuBackend& GetVulkanGpuBackend();
+	B3D_VULKAN_EXPORT VulkanGpuBackend& GetVulkanGpuBackend();
 
 	extern PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT;
 	extern PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT;

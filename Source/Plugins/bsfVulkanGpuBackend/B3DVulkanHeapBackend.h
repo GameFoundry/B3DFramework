@@ -43,7 +43,7 @@ namespace b3d
 	};
 
 	/** Vulkan implementation of the GpuHeapBackend trait. */
-	class B3D_EXPORT VulkanHeapBackend
+	class B3D_VULKAN_EXPORT VulkanHeapBackend
 	{
 	public:
 		using HeapHandle = IGpuHeap*;

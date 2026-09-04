@@ -23,6 +23,18 @@
 #undef MemoryBarrier // Conflicting define from winnt.h
 #undef None // Conflicting define from Xlib
 
+#if B3D_MONOLITHIC_BUILD
+#	define B3D_VULKAN_EXPORT
+#elif B3D_PLATFORM_WIN32
+#	if defined(B3D_VULKAN_EXPORTS)
+#		define B3D_VULKAN_EXPORT __declspec(dllexport)
+#	else
+#		define B3D_VULKAN_EXPORT __declspec(dllimport)
+#	endif
+#else
+#	define B3D_VULKAN_EXPORT B3D_EXPORT
+#endif
+
 /** @addtogroup Plugins
  *  @{
  */
