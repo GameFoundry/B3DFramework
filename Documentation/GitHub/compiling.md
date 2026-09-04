@@ -3,30 +3,30 @@
 ## Quick start
 Use the guide below to get B3D Framework up and running as quickly as possible. Scroll further below for advanced build options that allow for more customization.
 
-- Install git (https://git-scm.com) and CMake 3.31.0 or higher (https://cmake.org)
+- Install git (https://git-scm.com) and CMake 4.2 or higher (https://cmake.org)
   - Ensure they are added to your *PATH* environment variable
+- On Windows, install Visual Studio 2026 with the **Desktop development with C++** workload
+  - Use the v145 platform toolset (MSVC 14.50 or newer) and Windows 11 SDK 10.0.26100.0 or newer
 - Install other dependencies
   - See [here](#otherDeps)
 - Run the following commands in the terminal/command line:
   - `git clone https://github.com/GameFoundry/bsf.git`
   - `cd bsf`
-  - `mkdir Build`
-  - `cd Build`
-  - `cmake -G "$generator$" ..`
+  - `cmake -S . -B Build -G "$generator$"`
     - Where *$generator$* should be replaced with any of the supported generators. Some common ones:
-	  - `Visual Studio 17 2022` - Visual Studio 2022
+	  - `Visual Studio 18 2026`
 	  - `Unix Makefiles`
 	  - `Ninja`
 	  - `Xcode`
 	  - See all valid generators: [cmake-generators](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html)
 	- Optionally provide the `CMAKE_INSTALL_PREFIX` to override the default install path:
-	  - `cmake -G "$generator$" -DCMAKE_INSTALL_PREFIX=/path/to/install ..`
-  - `cmake --build . --config Release`
+	  - `cmake -S . -B Build -G "$generator$" -DCMAKE_INSTALL_PREFIX=/path/to/install`
+  - `cmake --build Build --config Release`
     - Alternatively you can also run your build system manually (depending on your choice of generator):
-	  - Visual Studio solution is present at `bsf/Build/bsf.sln`
+	  - Visual Studio solution is present at `bsf/Build/bsf.slnx`
 	  - XCode project is present at `bsf/Build`
 	  - Makefiles are present at `bsf/Build`
-  - `cmake --build . --config Release --target install`
+  - `cmake --build Build --config Release --target install`
 	- Alternatively you can run the install target in your chosen build tool
     - Note that files install to the default install folder, unless you have overridden it as specified above
 	 
@@ -48,7 +48,7 @@ You can choose to use a different *CMake* generator than those specified above, 
     - Linux (currently non functional while major refactor is in progress)
     - macOS 13.0 or newer on Apple Silicon (arm64)
   - Supported compilers:
-    - MSVC++ 17.0 (Visual Studio 2022)
+    - MSVC 14.50 or newer with the v145 platform toolset (Visual Studio 2026)
     - GCC 7.0 (or newer) (currently non functional while major refactor is in progress)
     - Apple Clang provided by a current Xcode installation on macOS
 	
@@ -61,8 +61,10 @@ Note that prebuilt dependencies only come as 64-bit, if you wish to build as 32-
 The following dependencies will need to be installed manually. Which ones are required depend on the selected *CMake* options and your usage of B3D Framework (check text of each entry below).
 
 **Windows**
+  - **Visual Studio 2026 Desktop development with C++ workload**
+    - Include the v145 C++ tools and ATL components
   - **Windows SDK**
-    - Version 10.0.26100.0, but others may work as well
+    - Version 10.0.26100.0 or newer
 
 **Linux**
   - **X11**

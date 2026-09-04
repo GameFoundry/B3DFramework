@@ -55,11 +55,11 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
 		exit 1
 	fi
 
-	# Build with MSBuild (VS 2017 solution, override SDK to latest). The FreeImage solution
+	# Build the legacy VS 2017 solution with the VS 2026 toolset and latest installed Windows SDK. The solution
 	# produces a DLL plus import lib — both must ship: the .lib for link-time resolution,
 	# the .dll for runtime loading.
-	"$MSBUILD" FreeImage.2017.sln -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset=v143 -p:WindowsTargetPlatformVersion=10.0 || exit 1
-	"$MSBUILD" FreeImage.2017.sln -p:Configuration=Debug -p:Platform=x64 -p:PlatformToolset=v143 -p:WindowsTargetPlatformVersion=10.0 || exit 1
+	"$MSBUILD" FreeImage.2017.sln -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset=v145 -p:WindowsTargetPlatformVersion=10.0 || exit 1
+	"$MSBUILD" FreeImage.2017.sln -p:Configuration=Debug -p:Platform=x64 -p:PlatformToolset=v145 -p:WindowsTargetPlatformVersion=10.0 || exit 1
 
 	cp -p Dist/x64/FreeImage.lib "$OutputFolder/lib/Release/"
 	cp -p Dist/x64/FreeImaged.lib "$OutputFolder/lib/Debug/"

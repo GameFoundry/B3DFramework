@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.31.0)
+cmake_minimum_required (VERSION 4.2.0)
 
 if(CMAKE_HOST_APPLE)
 	if(NOT CMAKE_OSX_ARCHITECTURES)

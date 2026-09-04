@@ -21,6 +21,11 @@ echo ""
 # (overlay names are single tokens), so a plain `for overlay in $ActiveBackendOverlays` walks it.
 ActiveBackendOverlays=""
 
+# Optional platform backends are discovered from the real platform overlays, but their installed output
+# can be redirected alongside the public dependency output during a non-destructive validation build.
+PlatformOverlayRoot="$CurrentDirectory/../Platform"
+PlatformOverlayDependencyOutputRoot="${B3D_PLATFORM_DEPENDENCY_OUTPUT_ROOT:-$PlatformOverlayRoot}"
+
 # Enrolls the named platform overlay's optional shader backend for this build, if it applies. A backend is
 # host-only tooling and, for now, Windows-only (the .dll routing layout; Linux/macOS host backends are
 # deferred), and each overlay is independent -- one being present says nothing about another. When the
@@ -34,7 +39,7 @@ B3DPrepareOverlayBackend() {
 	overlayName="$1"
 
 	case "$Platform" in win32|msys) ;; *) return 0 ;; esac
-	[ -d "$CurrentDirectory/../Platform/$overlayName" ] || return 0
+	[ -d "$PlatformOverlayRoot/$overlayName" ] || return 0
 
 	echo "$overlayName overlay detected -- initializing its optional shader backend submodule..."
 	git -C "$CompilerRepositoryRoot" submodule update --init -- "src/Compiler/Backend/$overlayName" || true
@@ -57,7 +62,7 @@ B3DInstallOverlayBackend() {
 	cmakeConfiguration="$2"
 	outputConfiguration="$3"
 
-	backendDestination="$CurrentDirectory/../Platform/$overlayName/Dependencies/B3DShaderCompilerBackend/bin/$outputConfiguration"
+	backendDestination="$PlatformOverlayDependencyOutputRoot/$overlayName/Dependencies/B3DShaderCompilerBackend/bin/$outputConfiguration"
 	cmake --install . \
 		--config "$cmakeConfiguration" \
 		--component "backend_$overlayName" \
@@ -75,7 +80,7 @@ B3DInstallOverlayBackend() {
 
 # Check prerequisites
 if ! command -v cmake &> /dev/null; then
-	echo "[Error] CMake is not installed. Please install CMake 2.8 or later."
+	echo "[Error] CMake is not installed. Please install CMake 4.2 or later."
 	exit 1
 fi
 
@@ -231,6 +236,6 @@ echo "Headers location:  $ShaderCompilerOutputFolder/include/Xsc"
 echo "Binaries location: $ShaderCompilerOutputFolder/bin"
 echo "Import libraries:  $ShaderCompilerOutputFolder/lib"
 for overlay in $ActiveBackendOverlays; do
-	echo "$overlay backend:       $CurrentDirectory/../Platform/$overlay/Dependencies/B3DShaderCompilerBackend/bin"
+	echo "$overlay backend:       $PlatformOverlayDependencyOutputRoot/$overlay/Dependencies/B3DShaderCompilerBackend/bin"
 done
 echo ""

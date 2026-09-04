@@ -14,6 +14,9 @@ B3DAddRuntimeDependencies(BansheeCookTool)
 
 # The cook runs deviceless on the Null GPU + Null renderer, but loads bsfRenderBeast (without activating it) so we can query its renderer materials.
 add_dependencies(BansheeCookTool bsfSL bsfNullGpuBackend bsfNullRenderer bsfRenderBeast)
+if(B3D_BUILD_IMPORTERS)
+	add_dependencies(BansheeCookTool bsfFBXImporter bsfFontImporter bsfFreeImgImporter)
+endif()
 
 set_property(TARGET BansheeCookTool PROPERTY FOLDER Tools)
 

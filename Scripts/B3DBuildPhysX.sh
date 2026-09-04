@@ -8,7 +8,7 @@ echo ""
 
 # PhysX 3.4 is not CMake-based: each platform ships hand-written build files under
 # PhysX_3.4/Source/compiler/<platform>/. On Windows we use the VS 2017 solution
-# retargeted to the v143 toolset + latest Windows SDK; on Linux we use the supplied
+# retargeted to the v145 toolset + latest Windows SDK; on Linux we use the supplied
 # Makefile; on macOS we use the supplied Xcode project.
 
 # Create intermediate folders
@@ -72,8 +72,8 @@ PhysXReleaseConfig="release"
 PhysXDebugConfig="checked"
 
 if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
-	# PhysX 3.4 ships a VS 2017 solution (vc15win64). Retarget to v143 (VS 2022) so
-	# users don't need VS 2017 build tools side-installed.
+	# PhysX 3.4 ships a VS 2017 solution (vc15win64). Retarget to v145 (VS 2026) so
+	# users don't need an older toolset side-installed.
 	VSWHERE="/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe"
 	VSINSTALL=$("$VSWHERE" -latest -requires Microsoft.Component.MSBuild -property installationPath)
 	MSBUILD="$VSINSTALL/MSBuild/Current/Bin/MSBuild.exe"
@@ -90,7 +90,7 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
 
 	# Build release + checked. The solution already wires PxShared (PxFoundation, PxPvdSDK)
 	# as project references, so a single MSBuild invocation per config produces everything.
-	MSBuildArgs="-p:Platform=x64 -p:PlatformToolset=v143 -p:WindowsTargetPlatformVersion=10.0 -m"
+	MSBuildArgs="-p:Platform=x64 -p:PlatformToolset=v145 -p:WindowsTargetPlatformVersion=10.0 -m"
 	"$MSBUILD" PhysX.sln -p:Configuration=release $MSBuildArgs || exit 1
 	"$MSBUILD" PhysX.sln -p:Configuration=checked $MSBuildArgs || exit 1
 

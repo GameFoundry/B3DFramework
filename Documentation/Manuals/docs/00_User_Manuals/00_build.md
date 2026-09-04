@@ -39,7 +39,7 @@ First create a new directory where you would like your project to live. Grab the
 In your project folder create `CMakeLists.txt`, and fill it out like so:
 ```
 # Minimum version of CMake as required by bsf
-cmake_minimum_required (VERSION 3.31.0)
+cmake_minimum_required (VERSION 4.2.0)
 
 # Name of your project
 project (myProject)
@@ -96,7 +96,7 @@ We will explain the code above in following manuals, but for now you can just co
 Place the `Main.cpp` into your project's root folder.
 
 ## Get CMake
-If you don't already have it, grab the latest version of CMake from [www.cmake.org](https://cmake.org/download/). Make sure to grab version 3.31.0 or later. 
+If you don't already have it, grab the latest version of CMake from [www.cmake.org](https://cmake.org/download/). Make sure to grab version 4.2 or later. On Windows, install Visual Studio 2026 with the v145 platform toolset (MSVC 14.50 or newer) and Windows 11 SDK 10.0.26100.0 or newer.
 
 ## Build
 You are now ready to build the project. From your project's root folder execute the following commands in terminal/command line:
@@ -104,7 +104,7 @@ You are now ready to build the project. From your project's root folder execute 
  - `cd build`
  - `cmake -G "$generator" ..`
    - Where *$generator* should be replaced with any of the supported generators. Some common ones:
-     - `Visual Studio 17 2022` - Visual Studio 20 (64-bit build)
+     - `Visual Studio 18 2026`
 	 - `Unix Makefiles`
 	 - `Ninja`
 	 - `Xcode`
@@ -112,7 +112,7 @@ You are now ready to build the project. From your project's root folder execute 
    - If your system complains that `cmake` is not a valid command, you need to add the path of CMake binaries to your $PATH environment variable
 	 
 Your build files will be output to the `build` folder. 
- - If you are using Visual Studio open up the `build/myProject.sln` solution and proceed building as normal
+ - If you are using Visual Studio open up the `build/myProject.slnx` solution and proceed building as normal
  - If you are using XCode open up the project in the `build` folder and proceed building as normal
  - If you are using Makefiles simply run `make` within the `build` folder
  
@@ -138,7 +138,7 @@ First make sure to follow the compilation guide on [GitHub](https://github.com/G
 Create a new project folder, with a `CMakeLists.txt` file with the following contents:
 ```
 # Minimum version of CMake as required by bsf
-cmake_minimum_required (VERSION 3.31.0)
+cmake_minimum_required (VERSION 4.2.0)
 
 # Name of your project
 project (myProject)
@@ -193,7 +193,7 @@ You are now ready to build the project. From your project's root folder execute 
  - `cd build`
  - `cmake -G "$generator" ..`
    - Where *$generator* should be replaced with any of the supported generators. Some common ones:
-     - `Visual Studio 17 2022` - Visual Studio 2022 (64-bit build)
+     - `Visual Studio 18 2026`
 	 - `Unix Makefiles`
 	 - `Ninja`
 	 - `Xcode`
@@ -201,7 +201,7 @@ You are now ready to build the project. From your project's root folder execute 
    - If your system complains that `cmake` is not a valid command, you need to add the path of CMake binaries to your $PATH environment variable
 	 
 Your build files will be output to the `build` folder. 
- - If you are using Visual Studio open up the `build/myProject.sln` solution and proceed building as normal
+ - If you are using Visual Studio open up the `build/myProject.slnx` solution and proceed building as normal
  - If you are using XCode open up the project in the `build` folder and proceed building as normal
  - If you are using Makefiles simply run `make` within the `build` folder
  

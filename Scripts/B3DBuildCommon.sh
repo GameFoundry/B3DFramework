@@ -1,7 +1,9 @@
 #!/bin/sh
 
 CurrentDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PlatformDependencyFolder="$CurrentDirectory/../Dependencies"
+
+# Dependency install root. Normal builds install into the framework's Dependencies folder, but user can override.
+PlatformDependencyFolder="${B3D_DEPENDENCY_OUTPUT_ROOT:-$CurrentDirectory/../Dependencies}"
 
 # Target platform selection. Pass `--target <platform>` to cross-compile a dependency for a
 # non-host platform; with no flag we build for the host (derived from $OSTYPE). Parsing is
@@ -29,7 +31,7 @@ Platform="${Platform:-$OSTYPE}"
 B3D_EXTRA_CMAKE_ARGS="${B3D_EXTRA_CMAKE_ARGS:-}"
 
 if [[ $Platform == "win32" || $Platform == "msys" ]]; then
-	DefaultCMakeGenerator="Visual Studio 17 2022"
+	DefaultCMakeGenerator="Visual Studio 18 2026"
 	SharedLibraryExtension=".dll"
 	StaticLibraryExtension=".lib"
 	ImportLibraryExtension=".lib"

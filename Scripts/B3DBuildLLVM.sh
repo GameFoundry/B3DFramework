@@ -13,16 +13,18 @@ cd Intermediate
 mkdir -p DependencySources
 cd DependencySources
 
-# Clone
-if [ -d "llvm" ]; then
+# Clone or select the documented LLVM release. Keep reruns pinned instead of pulling into a detached tag.
+LLVM_VERSION="llvmorg-20.1.7"
+
+if [ -d "llvm/.git" ]; then
     cd llvm
-    git stash
-    git pull origin llvmorg-20.1.7
-    git stash pop
+    git fetch --tags
+    git reset --hard
+    git checkout --detach "$LLVM_VERSION" || exit 1
 else
     git clone https://github.com/llvm/llvm-project.git llvm
     cd llvm
-    git checkout llvmorg-20.1.7
+    git checkout --detach "$LLVM_VERSION" || exit 1
 fi
 
 # Setup LLVM output folder

@@ -7,7 +7,7 @@ echo ""
 
 # Check prerequisites
 if ! command -v cmake &> /dev/null; then
-    echo "[Error] CMake is not installed. Please install CMake 2.8 or later."
+    echo "[Error] CMake is not installed. Please install CMake 4.2 or later."
     exit 1
 fi
 
@@ -27,16 +27,19 @@ echo "Building GKlib (METIS dependency)"
 echo "======================================================================"
 echo ""
 
-if [ -d "GKlib" ]; then
-    echo "GKlib repository exists, updating..."
+GKLIB_VERSION="b8b8bdc7e0186f1f36412c74e89153feecb5d436"
+
+if [ -d "GKlib/.git" ]; then
+    echo "GKlib repository exists, selecting pinned revision..."
     cd GKlib
-    git reset --hard HEAD
     git fetch --tags
-    git pull origin master
+    git reset --hard
+    git checkout --detach "$GKLIB_VERSION" || exit 1
 else
     echo "Cloning GKlib repository..."
     git clone https://github.com/KarypisLab/GKlib.git GKlib
     cd GKlib
+    git checkout --detach "$GKLIB_VERSION" || exit 1
 fi
 
 # Apply patch to fix Windows include paths
@@ -66,6 +69,7 @@ echo "Configuring GKlib CMake..."
 # - GKLIB_BUILD_APPS=OFF: Don't build GKlib applications (they have Windows compatibility issues)
 cmake .. -G "$CMakeGenerator" \
     -DCMAKE_INSTALL_PREFIX="install" \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DGKLIB_BUILD_APPS=OFF || exit 1
 
 if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
@@ -107,18 +111,19 @@ echo "Building METIS"
 echo "======================================================================"
 echo ""
 
-if [ -d "METIS" ]; then
-    echo "METIS repository exists, updating..."
+METIS_VERSION="v5.2.1"
+
+if [ -d "METIS/.git" ]; then
+    echo "METIS repository exists, selecting pinned revision..."
     cd METIS
-    git reset --hard HEAD
     git fetch --tags
-    git pull origin master
+    git reset --hard
+    git checkout --detach "$METIS_VERSION" || exit 1
 else
     echo "Cloning METIS repository..."
     git clone https://github.com/KarypisLab/METIS.git METIS
     cd METIS
-    # Use the latest stable version
-    git checkout v5.2.1 || git checkout master
+    git checkout --detach "$METIS_VERSION" || exit 1
 fi
 
 # Apply patch to fix Windows compilation (disable programs)
@@ -168,6 +173,7 @@ echo "Configuring METIS CMake..."
 
 cmake .. -G "$CMakeGenerator" \
     -DCMAKE_INSTALL_PREFIX="install" \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DGKLIB_PATH="$GKlibOutputFolder" \
     -DSHARED=OFF || exit 1
 

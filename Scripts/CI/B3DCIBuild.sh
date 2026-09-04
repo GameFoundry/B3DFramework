@@ -28,7 +28,7 @@ Platform="$PLATFORM"
 # (e.g. to build for a non-host target such as ARM64 Windows).
 case "$Platform" in
 	win32)
-		DefaultGenerator="Visual Studio 17 2022"
+		DefaultGenerator="Visual Studio 18 2026"
 		DefaultArchitecture="x64"
 		InstallTarget="INSTALL"
 		;;

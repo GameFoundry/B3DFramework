@@ -49,7 +49,7 @@ The script clones or updates the upstream source, configures CMake, builds, and 
 
 ### Overriding the CMake generator
 
-The default generator is picked by `B3DBuildCommon.sh` (`Visual Studio 17 2022` on Windows, `Ninja Multi-Config` on macOS/Linux). To use a different generator, set the `B3D_CMAKE_GENERATOR` environment variable before running the script:
+The scripts require CMake 4.2 or newer. The default generator is picked by `B3DBuildCommon.sh` (`Visual Studio 18 2026` with the v145 toolset on Windows, `Ninja Multi-Config` on macOS/Linux). To use a different generator, set the `B3D_CMAKE_GENERATOR` environment variable before running the script:
 
 ```sh
 B3D_CMAKE_GENERATOR="Ninja" ./B3DBuildSnappy.sh
@@ -160,7 +160,7 @@ B3D_CMAKE_GENERATOR="Ninja" ./B3DBuildSnappy.sh
 - Build script: `B3DBuildShaderCompiler.sh`
 
 **Slang**
-- Slang v2025.21.0
+- Slang v2025.21.2
 - https://github.com/shader-slang/slang
 - Required by bsfSL
 - Compile as a static library

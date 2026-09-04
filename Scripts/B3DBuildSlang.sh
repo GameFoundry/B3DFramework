@@ -7,7 +7,7 @@ echo ""
 
 # Check prerequisites
 if ! command -v cmake &> /dev/null; then
-    echo "[Error] CMake is not installed. Please install CMake 3.26 or later."
+    echo "[Error] CMake is not installed. Please install CMake 4.2 or later."
     exit 1
 fi
 
@@ -19,7 +19,6 @@ fi
 # Platform-specific information
 if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
     echo "Building for Windows."
-    CMakePreset="vs2022"
 elif [[ "$Platform" == "darwin"* ]]; then
     echo "Building for macOS."
     CMakePreset="default"
@@ -40,20 +39,20 @@ cd Intermediate
 mkdir -p DependencySources
 cd DependencySources
 
-# Clone or update Slang repository
-if [ -d "slang" ]; then
-    echo "Slang repository exists, updating..."
+SLANG_VERSION="v2025.21.2"
+
+if [ -d "slang/.git" ]; then
+    echo "Slang repository exists, selecting pinned revision..."
     cd slang
-    git stash
     git fetch --tags
-    git pull origin v2025.21.0
+    git reset --hard
+    git checkout --detach "$SLANG_VERSION" || exit 1
     git submodule update --init --recursive
-    git stash pop
 else
     echo "Cloning Slang repository..."
     git clone https://github.com/shader-slang/slang.git --recursive slang
     cd slang
-    git checkout v2025.21.0 || git checkout master
+    git checkout --detach "$SLANG_VERSION" || exit 1
 fi
 
 # Setup Slang output folders
@@ -73,17 +72,31 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
     mkdir -p "$SlangOutputFolder/bin/Debug/"
 fi
 
-# Configure CMake
-echo "Configuring CMake with preset: $CMakePreset"
-cmake --preset "$CMakePreset" || exit 1
+# Slang v2025.21.2 predates a VS2026 preset. Reproduce its upstream MSVC preset options with the selected
+# generator so the source checkout remains pristine and generator overrides continue to work.
+if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
+    echo "Configuring CMake with generator: $CMakeGenerator"
+    cmake -S . -B build -G "$CMakeGenerator" \
+        '-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>' \
+        '-DSLANG_ENABLE_IR_BREAK_ALLOC=$<$<CONFIG:Debug>:TRUE>$<$<NOT:$<CONFIG:Debug>>:FALSE>' \
+        '-DCMAKE_CONFIGURATION_TYPES=Debug;Release;RelWithDebInfo;MinSizeRel' \
+        '-DCMAKE_C_FLAGS_INIT=-D_ITERATOR_DEBUG_LEVEL=0 /MP' \
+        '-DCMAKE_CXX_FLAGS_INIT=-D_ITERATOR_DEBUG_LEVEL=0 /MP' \
+        -DSLANG_ENABLE_TESTS=OFF \
+        -DSLANG_ENABLE_EXAMPLES=OFF \
+        -DSLANG_ENABLE_SLANG_RHI=OFF || exit 1
+else
+    echo "Configuring CMake with preset: $CMakePreset"
+    cmake --preset "$CMakePreset" || exit 1
+fi
 
 # Build based on platform
 if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
     echo "Building Release configuration..."
-    cmake --build --preset release || exit 1
+    cmake --build build --config Release || exit 1
 
     echo "Building Debug configuration..."
-    cmake --build --preset debug || exit 1
+    cmake --build build --config Debug || exit 1
 
     # Copy Release binaries
     echo "Copying Release binaries..."
@@ -112,7 +125,7 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
 
 else
     echo "Building Release configuration..."
-    cmake --build --preset release || exit 1
+    cmake --build build --config Release || exit 1
 
     # Copy Release binaries
     echo "Copying Release binaries..."

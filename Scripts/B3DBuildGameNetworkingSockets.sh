@@ -7,7 +7,7 @@ echo ""
 
 # Check prerequisites
 if ! command -v cmake &> /dev/null; then
-    echo "[Error] CMake is not installed. Please install CMake 3.15 or later."
+    echo "[Error] CMake is not installed. Please install CMake 4.2 or later."
     exit 1
 fi
 
@@ -99,20 +99,20 @@ cd Intermediate
 mkdir -p DependencySources
 cd DependencySources
 
-# Clone or update GameNetworkingSockets repository
-if [ -d "GameNetworkingSockets" ]; then
-    echo "GameNetworkingSockets repository exists, updating..."
+GNS_VERSION="v1.4.1"
+
+if [ -d "GameNetworkingSockets/.git" ]; then
+    echo "GameNetworkingSockets repository exists, selecting pinned revision..."
     cd GameNetworkingSockets
-    git stash
     git fetch --tags
-    git pull origin master
+    git reset --hard
+    git checkout --detach "$GNS_VERSION" || exit 1
     git submodule update --init --recursive
-    git stash pop
 else
     echo "Cloning GameNetworkingSockets repository..."
     git clone https://github.com/ValveSoftware/GameNetworkingSockets.git --recursive GameNetworkingSockets
     cd GameNetworkingSockets
-    git checkout v1.4.1 || git checkout master
+    git checkout --detach "$GNS_VERSION" || exit 1
 fi
 
 # Setup GameNetworkingSockets output folders
@@ -146,26 +146,27 @@ cd build
 # - Protobuf_USE_STATIC_LIBS=ON: Link with static protobuf libraries
 echo "Configuring CMake..."
 
-# Set OpenSSL paths for CMake if OPENSSL_ROOT_DIR is defined
-OpenSSLCMakeArgs=""
+# Accumulate dependency paths as positional arguments so spaces in paths (notably Program Files) remain
+# part of a single CMake -D argument. Embedded quote characters in a word-split string are not reparsed by
+# the shell and previously produced malformed cache values.
+set -- -DProtobuf_USE_STATIC_LIBS=ON
 if [ ! -z "$OPENSSL_ROOT_DIR" ]; then
-    OpenSSLCMakeArgs="-DOPENSSL_ROOT_DIR=\"$OPENSSL_ROOT_DIR\""
+    set -- "$@" "-DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR"
 fi
 
 # Set Protobuf paths for CMake
-ProtobufCMakeArgs="-DProtobuf_USE_STATIC_LIBS=ON"
 if [ -d "$ProtobufDependencyFolder" ]; then
-    ProtobufCMakeArgs="$ProtobufCMakeArgs -DProtobuf_INCLUDE_DIR=\"$ProtobufDependencyFolder/include\""
+    set -- "$@" "-DProtobuf_INCLUDE_DIR=$ProtobufDependencyFolder/include"
 
     if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
         # For multi-config generators on Windows, specify both Debug and Release libraries
-        ProtobufCMakeArgs="$ProtobufCMakeArgs -DProtobuf_LIBRARY_RELEASE=\"$ProtobufDependencyFolder/lib/Release/libprotobuf.lib\""
-        ProtobufCMakeArgs="$ProtobufCMakeArgs -DProtobuf_LIBRARY_DEBUG=\"$ProtobufDependencyFolder/lib/Debug/libprotobufd.lib\""
-        ProtobufCMakeArgs="$ProtobufCMakeArgs -DProtobuf_LIBRARY=\"$ProtobufDependencyFolder/lib/Release/libprotobuf.lib\""
-        ProtobufCMakeArgs="$ProtobufCMakeArgs -DProtobuf_PROTOC_EXECUTABLE=\"$ProtobufDependencyFolder/bin/Release/protoc.exe\""
+        set -- "$@" "-DProtobuf_LIBRARY_RELEASE=$ProtobufDependencyFolder/lib/Release/libprotobuf.lib"
+        set -- "$@" "-DProtobuf_LIBRARY_DEBUG=$ProtobufDependencyFolder/lib/Debug/libprotobufd.lib"
+        set -- "$@" "-DProtobuf_LIBRARY=$ProtobufDependencyFolder/lib/Release/libprotobuf.lib"
+        set -- "$@" "-DProtobuf_PROTOC_EXECUTABLE=$ProtobufDependencyFolder/bin/Release/protoc.exe"
     else
-        ProtobufCMakeArgs="$ProtobufCMakeArgs -DProtobuf_LIBRARY=\"$ProtobufDependencyFolder/lib/${StaticLibraryPrefix}protobuf${StaticLibraryExtension}\""
-        ProtobufCMakeArgs="$ProtobufCMakeArgs -DProtobuf_PROTOC_EXECUTABLE=\"$ProtobufDependencyFolder/bin/protoc\""
+        set -- "$@" "-DProtobuf_LIBRARY=$ProtobufDependencyFolder/lib/${StaticLibraryPrefix}protobuf${StaticLibraryExtension}"
+        set -- "$@" "-DProtobuf_PROTOC_EXECUTABLE=$ProtobufDependencyFolder/bin/protoc"
     fi
 fi
 
@@ -174,8 +175,7 @@ cmake .. -G "$CMakeGenerator" \
     -DGAMENETWORKINGSOCKETS_BUILD_TESTS=OFF \
     -DGAMENETWORKINGSOCKETS_BUILD_EXAMPLES=OFF \
     -DUSE_STEAMWEBRTC=OFF \
-    $OpenSSLCMakeArgs \
-    $ProtobufCMakeArgs || exit 1
+    "$@" || exit 1
 
 # Build based on platform
 if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then

@@ -7,7 +7,7 @@ echo ""
 
 # Check prerequisites
 if ! command -v cmake &> /dev/null; then
-    echo "[Error] CMake is not installed. Please install CMake 3.15 or later."
+    echo "[Error] CMake is not installed. Please install CMake 4.2 or later."
     exit 1
 fi
 
@@ -20,21 +20,20 @@ cd Intermediate
 mkdir -p DependencySources
 cd DependencySources
 
-# Clone or update Protobuf repository
-if [ -d "protobuf" ]; then
-    echo "Protobuf repository exists, updating..."
+PROTOBUF_VERSION="v21.12"
+
+if [ -d "protobuf/.git" ]; then
+    echo "Protobuf repository exists, selecting pinned revision..."
     cd protobuf
-    git stash
     git fetch --tags
-    git pull origin main
+    git reset --hard
+    git checkout --detach "$PROTOBUF_VERSION" || exit 1
     git submodule update --init --recursive
-    git stash pop
 else
     echo "Cloning Protobuf repository..."
     git clone https://github.com/protocolbuffers/protobuf.git --recursive protobuf
     cd protobuf
-    # Checkout a stable release (v21.x is compatible with most systems)
-    git checkout v21.12 || git checkout main
+    git checkout --detach "$PROTOBUF_VERSION" || exit 1
 fi
 
 # Setup Protobuf output folders

@@ -1,4 +1,4 @@
-cmake_policy(VERSION 3.12)
+cmake_policy(VERSION 4.2)
 
 # Cleans up the provided name so it can be used as a C++ enum name.
 function(B3DMakeEnumName input output)
