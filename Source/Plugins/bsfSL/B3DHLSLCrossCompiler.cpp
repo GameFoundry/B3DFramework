@@ -654,7 +654,8 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 	inputDesc.extensions =
 		Xsc::Extensions::LayoutAttribute |
 		Xsc::Extensions::SrtSignature |
-		Xsc::Extensions::HLSLTemplates;
+		Xsc::Extensions::HLSLTemplates |
+		Xsc::Extensions::PushConstants;
 
 	switch(type)
 	{
