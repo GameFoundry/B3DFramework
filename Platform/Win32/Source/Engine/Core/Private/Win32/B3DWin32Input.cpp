@@ -275,8 +275,10 @@ void Win32InputBackend::ChangeCaptureContext(u64 windowHandle)
 
 void Win32InputBackend::EnumerateGamepads(Vector<GamepadInfo>& outGamepadInfos)
 {
-	// Enumerate all attached DirectInput devices
-	mDirectInput->EnumDevices(NULL, DIEnumDevCallbackInternal, &outGamepadInfos, DIEDFL_ATTACHEDONLY);
+	// Enumerate all attached DirectInput game controllers
+	HRESULT result = mDirectInput->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevCallbackInternal, &outGamepadInfos, DIEDFL_ATTACHEDONLY);
+	if(FAILED(result))
+		B3D_LOG(Error, LogInput, "DirectInput gamepad enumeration failed. Error code: {0}.", (u64)result);
 
 	for(u32 i = 0; i < 4; ++i)
 	{
