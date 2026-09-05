@@ -1,7 +1,8 @@
-# Device-independent hlsl bytecode compiler: engine HLSL source -> DXBC (via the OS-provided D3D shader compiler)
-# with D3D reflection. Built as a static library so any consumer (the Direct3D GPU backends, the offline cook tool)
-# can link it and inherit the CreateBytecodeCompilerhlsl() factory, with no DLL boundary. The "HLSL" suffix matches
-# the engine shading-language id "hlsl" (first field of B3D_SHADER_CROSS_COMPILE_TARGETS).
+# Device-independent HLSL bytecode compiler: engine HLSL source -> DXIL with DXC reflection. Built as a static library
+# so any consumer can link it and inherit the CreateBytecodeCompilerhlsl() factory, with no DLL boundary. The "HLSL"
+# suffix matches the engine shading-language id "hlsl" (first field of B3D_SHADER_CROSS_COMPILE_TARGETS).
+
+find_package(DirectXShaderCompiler REQUIRED)
 
 # Source files and their filters
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" B3D_SHADERBACKENDHLSL_SOURCE_FILES)
@@ -20,13 +21,14 @@ else()
 	target_link_libraries(bsfShaderBackendHLSL PUBLIC bsf)
 endif()
 
-# The D3D shader compiler (D3DCompile/D3DReflect), shipped with the OS
-target_link_libraries(bsfShaderBackendHLSL PUBLIC d3dcompiler.lib)
+# DXC is linked here for standalone users of the static compiler and appended below so bsfSL also receives and deploys
+# the compiler and validator DLLs.
+target_link_libraries(bsfShaderBackendHLSL PRIVATE DirectXShaderCompiler::dxcompiler)
 
 set_property(TARGET bsfShaderBackendHLSL PROPERTY FOLDER Plugins)
 
 # Register shader compiler target as "<language>|<targetLanguage>|<define>|KeepEntryNames". Used to determine supported targets.
-set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "hlsl|HLSL5|DIRECTX|KeepEntryNames")
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "hlsl|HLSL6|DIRECTX|KeepEntryNames")
 
 # Anything that needs shader compilation will use this property to find libraries it needs to link
-set_property(GLOBAL APPEND PROPERTY B3D_SHADER_BACKEND_LIBRARIES bsfShaderBackendHLSL)
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_BACKEND_LIBRARIES bsfShaderBackendHLSL ${DirectXShaderCompiler_LIBRARIES})

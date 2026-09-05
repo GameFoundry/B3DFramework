@@ -7,8 +7,6 @@
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Profiling/B3DRenderStats.h"
 
-#include <d3dcompiler.h>
-
 using namespace b3d;
 using namespace b3d::render;
 
@@ -19,8 +17,6 @@ D3D12GpuProgram::D3D12GpuProgram(const GpuProgramCreateInformation& createInform
 
 D3D12GpuProgram::~D3D12GpuProgram()
 {
-	mShaderBlob.Reset();
-
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_GpuProgram);
 }
 
@@ -50,24 +46,15 @@ void D3D12GpuProgram::Initialize()
 		mBytecode = mGpuDevice.CompileGpuProgramBytecode(createInformation);
 	}
 
-	// Keep a private bytecode copy because graphics pipeline variants are created lazily
-	if (mBytecode && mBytecode->Instructions.Data && mBytecode->Instructions.Size > 0)
-	{
-		if (SUCCEEDED(D3DCreateBlob(mBytecode->Instructions.Size, &mShaderBlob)))
-			memcpy(mShaderBlob->GetBufferPointer(), mBytecode->Instructions.Data, mBytecode->Instructions.Size);
-		else
-			B3D_LOG(Error, LogRenderBackend, "Failed to create shader blob for '{0}'", mName);
-	}
-
 	if (mBytecode)
 		mCompileMessages = mBytecode->Messages;
 
-	mIsCompiled = mShaderBlob != nullptr;
+	mIsCompiled = mBytecode && mBytecode->Instructions.Data && mBytecode->Instructions.Size > 0;
 
 	if (mIsCompiled)
 	{
-		mShaderBytecode.pShaderBytecode = mShaderBlob->GetBufferPointer();
-		mShaderBytecode.BytecodeLength = mShaderBlob->GetBufferSize();
+		mShaderBytecode.pShaderBytecode = mBytecode->Instructions.Data;
+		mShaderBytecode.BytecodeLength = mBytecode->Instructions.Size;
 
 		mParametersDescription = mBytecode->ParameterDescription;
 

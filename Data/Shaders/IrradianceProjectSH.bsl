@@ -31,20 +31,20 @@ shader IrradianceProjectSH
 			
 			// Band 1 (factor 2/3)
 			float f = (2.0f/3.0f);
-			for(int i = 1; i < 4; i++)
-				output += coeffs.v[i] * f;
+			for(int band1Index = 1; band1Index < 4; band1Index++)
+				output += coeffs.v[band1Index] * f;
 			
 			// Band 2 (factor 1/4)
 			f = (1.0f/4.0f);
-			for(int i = 4; i < 9; i++)
-				output += coeffs.v[i] * f;
+			for(int band2Index = 4; band2Index < 9; band2Index++)
+				output += coeffs.v[band2Index] * f;
 						
 			// Band 3 (factor 0)
 			
 			// Band 4 (factor -1/24)
 			f = (-1.0f/24.0f);
-			for(int i = 16; i < 25; i++)
-				output += coeffs.v[i] * f;
+			for(int band4Index = 16; band4Index < 25; band4Index++)
+				output += coeffs.v[band4Index] * f;
 			
 			return output;
 		}

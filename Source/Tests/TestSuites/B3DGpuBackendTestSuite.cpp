@@ -223,6 +223,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantWrites)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantSerialization)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantShaderCompilation)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestHlslShaderModel66Compilation)
 }
 
 void GpuBackendTestSuite::TestPushConstantMetadata()
@@ -404,6 +405,222 @@ void GpuBackendTestSuite::TestPushConstantShaderCompilation()
 		compilePssl(0, true);
 		compilePssl(2, true);
 	}
+#endif
+}
+
+void GpuBackendTestSuite::TestHlslShaderModel66Compilation()
+{
+#if B3D_PLATFORM_WIN32
+	const TShared<IGpuBytecodeCompiler> compiler = ShaderCompilers::Instance().GetBytecodeCompiler("hlsl");
+	B3D_TEST_ASSERT(compiler != nullptr)
+
+	auto compile = [&](const String& name, GpuProgramType type, const String& source)
+	{
+		GpuProgramCreateInformation createInformation;
+		createInformation.Name = name;
+		createInformation.Source = source;
+		createInformation.EntryPoint = "main";
+		createInformation.Language = "hlsl";
+		createInformation.Type = type;
+
+		const TShared<GpuProgramBytecode> bytecode = compiler->CompileBytecode(createInformation);
+		B3D_TEST_ASSERT(bytecode != nullptr)
+		B3D_TEST_ASSERT(bytecode->Instructions.Data != nullptr)
+		B3D_TEST_ASSERT(bytecode->Instructions.Size != 0)
+		B3D_TEST_ASSERT(bytecode->CompilerId == "HLSL_DXC")
+		B3D_TEST_ASSERT(compiler->IsUpToDate(*bytecode))
+
+		bool containsDxilPart = false;
+		for(u32 offset = 0; offset + 4 <= bytecode->Instructions.Size; offset++)
+		{
+			const u8* marker = bytecode->Instructions.Data + offset;
+			if(marker[0] == 'D' && marker[1] == 'X' && marker[2] == 'I' && marker[3] == 'L')
+			{
+				containsDxilPart = true;
+				break;
+			}
+		}
+		B3D_TEST_ASSERT(containsDxilPart)
+
+		return bytecode;
+	};
+
+	const String vertexSource = R"(
+cbuffer FrameData : register(b2, space1)
+{
+	column_major float4x4 Transform;
+	float Exponent;
+};
+
+struct VertexInput
+{
+	float3 Position : POSITION0;
+	float2 Uv : TEXCOORD0;
+};
+
+struct VertexOutput
+{
+	float4 Position : SV_Position;
+	float Value : TEXCOORD0;
+};
+
+VertexOutput main(VertexInput input)
+{
+	VertexOutput output;
+	output.Position = mul(Transform, float4(input.Position, 1.0f));
+	output.Value = pow(abs(input.Uv.x + 1.0f), Exponent);
+	return output;
+}
+)";
+	const TShared<GpuProgramBytecode> vertexBytecode = compile("HlslVertex", GPT_VERTEX_PROGRAM, vertexSource);
+	B3D_TEST_ASSERT(vertexBytecode->VertexInput.size() == 2)
+	B3D_TEST_ASSERT(vertexBytecode->ParameterDescription != nullptr)
+	B3D_TEST_ASSERT(vertexBytecode->ParameterDescription->UniformBuffers.find("FrameData") != vertexBytecode->ParameterDescription->UniformBuffers.end())
+	const auto transformMember = vertexBytecode->ParameterDescription->UniformBufferMembers.find("Transform");
+	const auto exponentMember = vertexBytecode->ParameterDescription->UniformBufferMembers.find("Exponent");
+	B3D_TEST_ASSERT(transformMember != vertexBytecode->ParameterDescription->UniformBufferMembers.end())
+	B3D_TEST_ASSERT(exponentMember != vertexBytecode->ParameterDescription->UniformBufferMembers.end())
+	B3D_TEST_ASSERT(transformMember->second.GpuOffset == 0)
+	B3D_TEST_ASSERT(exponentMember->second.GpuOffset == 16)
+
+	const String fragmentSource = R"(
+Texture2D<float4> InputTextures[3] : register(t2, space1);
+SamplerState InputSampler : register(s1, space1);
+
+float4 main(float2 uv : TEXCOORD0) : SV_Target0
+{
+	return InputTextures[1].Sample(InputSampler, uv);
+}
+)";
+	const TShared<GpuProgramBytecode> fragmentBytecode = compile("HlslFragment", GPT_FRAGMENT_PROGRAM, fragmentSource);
+	B3D_TEST_ASSERT(fragmentBytecode->ParameterDescription != nullptr)
+	B3D_TEST_ASSERT(fragmentBytecode->ParameterDescription->SampledTextures.find("InputTextures") != fragmentBytecode->ParameterDescription->SampledTextures.end())
+	B3D_TEST_ASSERT(fragmentBytecode->ParameterDescription->Samplers.find("InputSampler") != fragmentBytecode->ParameterDescription->Samplers.end())
+	B3D_TEST_ASSERT(fragmentBytecode->ResourceTableLayout != nullptr)
+	B3D_TEST_ASSERT(fragmentBytecode->ResourceTableLayout->Tables.size() == 2)
+	B3D_TEST_ASSERT(fragmentBytecode->ResourceTableLayout->Tables[1].Set == 1)
+	const TArrayView<const GpuDescriptorTableEntry> fragmentEntries = fragmentBytecode->ResourceTableLayout->GetEntries(
+		fragmentBytecode->ResourceTableLayout->Tables[1]);
+	B3D_TEST_ASSERT(fragmentEntries.Size() == 2)
+	B3D_TEST_ASSERT(fragmentEntries[1].DescriptorCount == 3)
+
+	const String geometrySource = R"(
+struct Vertex
+{
+	float4 Position : SV_Position;
+};
+
+[maxvertexcount(3)]
+void main(triangle Vertex input[3], inout TriangleStream<Vertex> outputStream)
+{
+	outputStream.Append(input[0]);
+	outputStream.Append(input[1]);
+	outputStream.Append(input[2]);
+}
+)";
+	compile("HlslGeometry", GPT_GEOMETRY_PROGRAM, geometrySource);
+
+	const String hullSource = R"(
+struct ControlPoint
+{
+	float4 Position : POSITION0;
+};
+
+struct PatchConstants
+{
+	float Edges[3] : SV_TessFactor;
+	float Inside : SV_InsideTessFactor;
+};
+
+PatchConstants GetPatchConstants(InputPatch<ControlPoint, 3> input)
+{
+	PatchConstants output;
+	output.Edges[0] = 1.0f;
+	output.Edges[1] = 1.0f;
+	output.Edges[2] = 1.0f;
+	output.Inside = 1.0f;
+	return output;
+}
+
+[domain("tri")]
+[partitioning("integer")]
+[outputtopology("triangle_cw")]
+[outputcontrolpoints(3)]
+[patchconstantfunc("GetPatchConstants")]
+ControlPoint main(InputPatch<ControlPoint, 3> input, uint controlPointId : SV_OutputControlPointID)
+{
+	return input[controlPointId];
+}
+)";
+	compile("HlslHull", GPT_HULL_PROGRAM, hullSource);
+
+	const String domainSource = R"(
+struct ControlPoint
+{
+	float4 Position : POSITION0;
+};
+
+struct PatchConstants
+{
+	float Edges[3] : SV_TessFactor;
+	float Inside : SV_InsideTessFactor;
+};
+
+[domain("tri")]
+float4 main(PatchConstants constants, float3 barycentric : SV_DomainLocation,
+	const OutputPatch<ControlPoint, 3> input) : SV_Position
+{
+	return input[0].Position * barycentric.x + input[1].Position * barycentric.y +
+		input[2].Position * barycentric.z + constants.Inside * 0.0f;
+}
+)";
+	compile("HlslDomain", GPT_DOMAIN_PROGRAM, domainSource);
+
+	const String computeSource = R"(
+RWStructuredBuffer<uint> OutputData : register(u0, space2);
+
+[numthreads(8, 4, 2)]
+void main(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+	OutputData[dispatchThreadId.x] = dispatchThreadId.y;
+}
+)";
+	const TShared<GpuProgramBytecode> computeBytecode = compile("HlslCompute", GPT_COMPUTE_PROGRAM, computeSource);
+	B3D_TEST_ASSERT(computeBytecode->ThreadGroupSize[0] == 8)
+	B3D_TEST_ASSERT(computeBytecode->ThreadGroupSize[1] == 4)
+	B3D_TEST_ASSERT(computeBytecode->ThreadGroupSize[2] == 2)
+
+	const String waveSource = R"(
+RWStructuredBuffer<uint> OutputData : register(u0);
+
+[numthreads(32, 1, 1)]
+void main(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+	OutputData[dispatchThreadId.x] = WaveActiveSum(dispatchThreadId.x + 1);
+}
+)";
+	compile("HlslWave", GPT_COMPUTE_PROGRAM, waveSource);
+
+	const String bindlessSource = R"(
+cbuffer ResourceIndices : register(b0)
+{
+	uint TextureIndex;
+	uint SamplerIndex;
+};
+
+float4 main(float2 uv : TEXCOORD0) : SV_Target0
+{
+	Texture2D<float4> textureResource = ResourceDescriptorHeap[TextureIndex];
+	SamplerState samplerResource = SamplerDescriptorHeap[SamplerIndex];
+	return textureResource.Sample(samplerResource, uv);
+}
+)";
+	compile("HlslBindless", GPT_FRAGMENT_PROGRAM, bindlessSource);
+
+	GpuProgramBytecode fxcBytecode;
+	fxcBytecode.CompilerId = "HLSL_FXC";
+	fxcBytecode.CompilerVersion = 6;
+	B3D_TEST_ASSERT(!compiler->IsUpToDate(fxcBytecode))
 #endif
 }
 

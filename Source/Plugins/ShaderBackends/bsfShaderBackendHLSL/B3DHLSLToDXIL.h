@@ -4,6 +4,9 @@
 
 #include "B3DPrerequisites.h"
 #include "Material/B3DShaderCompiler.h"
+#include <Windows.h>
+#include <dxcapi.h>
+#include <wrl/client.h>
 
 namespace b3d
 {
@@ -14,18 +17,18 @@ namespace b3d
 		 */
 
 		/**
-		 * Compiles engine HLSL source code into DXBC using the D3D shader compiler (fxc). Also reflects the produced
-		 * bytecode through the D3D reflection interface to populate parameter- and vertex-input descriptions, with
+		 * Compiles engine HLSL source code into DXIL using the DirectX Shader Compiler. Also reflects the produced
+		 * bytecode through the D3D reflection interface to populate parameter and vertex-input descriptions, with
 		 * parameter slots encoded per B3DHLSLShaderABI.h.
 		 */
-		class HLSLToDXBC final : public IGpuBytecodeCompiler
+		class HLSLToDXIL final : public IGpuBytecodeCompiler
 		{
 		public:
 			/**
 			 * @param	compilerId		Identifier stamped into the produced bytecode.
 			 * @param	compilerVersion	Version stamped into the produced bytecode, used to detect stale bytecode.
 			 */
-			HLSLToDXBC(const char* compilerId, u32 compilerVersion);
+			HLSLToDXIL(const char* compilerId, u32 compilerVersion);
 
 			TShared<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& createInformation) override;
 			bool IsUpToDate(const GpuProgramBytecode& bytecode) const override;
@@ -33,6 +36,8 @@ namespace b3d
 		private:
 			const char* mCompilerId;
 			u32 mCompilerVersion;
+			Microsoft::WRL::ComPtr<IDxcUtils> mUtilities;
+			Microsoft::WRL::ComPtr<IDxcCompiler3> mCompiler;
 		};
 
 		/** @} */

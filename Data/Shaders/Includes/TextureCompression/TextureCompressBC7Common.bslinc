@@ -163,7 +163,7 @@ mixin TextureCompressBC7Common
 		// bits+1). Returns the code and outputs the 8-bit reconstruction the hardware decoder produces.
 		int QuantizeChannelBC7(int v, int bits, int p, out int recon)
 		{
-			int maxCode = (1 << bits) - 1;
+			int maxCode = int((1u << bits) - 1u);
 			if (p < 0)
 			{
 				int q = clamp((int)round((float)v * ((float)maxCode / 255.0f)), 0, maxCode);
@@ -171,7 +171,7 @@ mixin TextureCompressBC7Common
 				return q;
 			}
 			int eff = bits + 1;
-			int effMax = (1 << eff) - 1;
+			int effMax = int((1u << eff) - 1u);
 			int t = (int)round((float)v * ((float)effMax / 255.0f));
 			int code = clamp((t - p + 1) >> 1, 0, maxCode);
 			recon = ExpandBC7((code << 1) | p, eff);

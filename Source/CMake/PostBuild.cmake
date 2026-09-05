@@ -60,7 +60,8 @@ function(B3DSetUpPostBuildAndInstallSteps target)
 		get_target_property(libraryImportLocation ${library} IMPORTED_LOCATION)
 
 		cmake_path(IS_PREFIX PROJECT_SOURCE_DIR ${libraryImportLocation} isInProjectFolder)
-		if(NOT ${isInProjectFolder})
+		get_target_property(deployImportedRuntime ${library} B3D_DEPLOY_IMPORTED_RUNTIME)
+		if(NOT ${isInProjectFolder} AND NOT deployImportedRuntime)
 			continue()
 		endif()
 

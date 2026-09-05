@@ -15,17 +15,17 @@ namespace b3d
 		 */
 
 		/** Identifier of the compiler used for compiling HLSL GPU programs (stamped into the produced bytecode). */
-		inline constexpr const char* kHlslCompilerId = "HLSL_FXC";
+		inline constexpr const char* kHlslCompilerId = "HLSL_DXC";
 
 		/**
 		 * Version of the compiler used for compiling HLSL GPU programs. Tick this whenever the compiler updates in order
 		 * to force bytecode to rebuild.
 		 */
-		inline constexpr u32 kHlslCompilerVersion = 6;
+		inline constexpr u32 kHlslCompilerVersion = 1;
 
 		/**
-		 * Constructs the device-independent hlsl bytecode compiler (engine HLSL source -> DXBC via the D3D shader
-		 * compiler, with D3D reflection). The "hlsl" suffix matches the engine shading-language id (the first field of
+		 * Constructs the device-independent HLSL bytecode compiler (engine HLSL source -> DXIL via DXC, with D3D
+		 * reflection). The "hlsl" suffix matches the engine shading-language id (the first field of
 		 * B3D_SHADER_CROSS_COMPILE_TARGETS).
 		 */
 		TShared<IGpuBytecodeCompiler> CreateBytecodeCompilerhlsl();

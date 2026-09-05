@@ -46,7 +46,7 @@ mixin TextureCompressBC6Common
 		{
 			if (prec <= 1) return 0;
 			if (h < 0) h = 0;
-			int bias = (prec > 10 && prec != 16) ? ((1 << (prec - 11)) - 1) : 0;
+			int bias = (prec > 10 && prec != 16) ? int((1u << (prec - 11)) - 1u) : 0;
 			if (prec == 16) bias = 15;
 			return ((h << prec) + bias) / 31744; // 31744 = 0x7C00 = F16_MAX_BITS + 1
 		}
@@ -56,7 +56,7 @@ mixin TextureCompressBC6Common
 		{
 			if (prec >= 15) return q;
 			if (q == 0) return 0;
-			if (q == (1 << prec) - 1) return 0xFFFF;
+			if (q == int((1u << prec) - 1u)) return 0xFFFF;
 			return ((q << 16) + 0x8000) >> prec;
 		}
 
@@ -95,7 +95,7 @@ mixin TextureCompressBC6Common
 		// Sign-extends the low @p bits of @p v to a full int (matches the decoder's SIGN_EXTEND).
 		int SignExtendBC6(int v, int bits)
 		{
-			return (v & (1 << (bits - 1))) ? (v | (~0 << bits)) : v;
+			return (v & int(1u << (bits - 1))) ? (v | int(~0u << bits)) : v;
 		}
 
 		// Quantizes a PCA endpoint pair (half-bit space floats e0/e1) of one subset to @p wBits. When @p transformed,
@@ -105,7 +105,7 @@ mixin TextureCompressBC6Common
 		void QuantizeBC6Pair(float3 e0, float3 e1, int wBits, int3 tBits, bool transformed,
 			out int3 codeA, out int3 codeBStore, out int3 codeBAct)
 		{
-			int wmask = (1 << wBits) - 1;
+			int wmask = int((1u << wBits) - 1u);
 			[unroll]
 			for (int ch = 0; ch < 3; ++ch)
 			{
@@ -115,15 +115,15 @@ mixin TextureCompressBC6Common
 				if (transformed)
 				{
 					int tb = tBits[ch];
-					int tm = (1 << tb) - 1;
+					int tm = int((1u << tb) - 1u);
 					// Clamp the delta to the signed tb-bit range, and further so the decoder's reconstruction
 					// (sign-extended delta + base) stays within [0, wmask] without wrapping. The hardware decodes the
 					// second endpoint as (SIGN_EXTEND(delta) + base) & MASK(wBits); a delta whose magnitude exceeds the
 					// field wraps to a near-max code that unquantizes to ~65504 (a firefly), even when both endpoints
 					// are individually in range. Clamping keeps the reconstruction in range, so a block whose endpoints
 					// are too far apart for this mode just incurs a larger error (and loses mode selection).
-					int lo = -(1 << (tb - 1));
-					int hi = (1 << (tb - 1)) - 1;
+					int lo = -int(1u << (tb - 1));
+					int hi = int((1u << (tb - 1)) - 1u);
 					int delta = clamp(b - a, max(lo, -a), min(hi, wmask - a));
 					int d = delta & tm;
 					codeBStore[ch] = d;
@@ -385,7 +385,7 @@ mixin TextureCompressBC6Common
 			}
 
 			// Convert absolute codes to the stored representation and reconstruct the decoder's actual codes.
-			int wmask = (1 << wBits) - 1;
+			int wmask = int((1u << wBits) - 1u);
 			int3 act[4];
 			codeStore[0] = bestAbs[0];
 			act[0] = bestAbs[0];
@@ -403,10 +403,10 @@ mixin TextureCompressBC6Common
 						// it when the two regions differ in brightness, so an unclamped delta wraps to a near-max code
 						// that decodes to ~65504 (a firefly). Clamping yields a larger error instead, losing selection.
 						int tb = tBits[ch];
-						int tm = (1 << tb) - 1;
+						int tm = int((1u << tb) - 1u);
 						int base = bestAbs[0][ch];
-						int lo = -(1 << (tb - 1));
-						int hi = (1 << (tb - 1)) - 1;
+						int lo = -int(1u << (tb - 1));
+						int hi = int((1u << (tb - 1)) - 1u);
 						int delta = clamp(bestAbs[k][ch] - base, max(lo, -base), min(hi, wmask - base));
 						int d = delta & tm;
 						codeStore[k][ch] = d;

@@ -42,6 +42,12 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 	if(FAILED(hr))
 		B3D_LOG(Fatal, LogRenderBackend, "Failed to create the selected D3D12 device (hr={0}).", (u32)hr);
 
+	D3D12_FEATURE_DATA_SHADER_MODEL shaderModelInformation = {};
+	shaderModelInformation.HighestShaderModel = D3D_SHADER_MODEL_6_6;
+	hr = mDevice->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shaderModelInformation, sizeof(shaderModelInformation));
+	if(FAILED(hr) || shaderModelInformation.HighestShaderModel < D3D_SHADER_MODEL_6_6)
+		B3D_LOG(Fatal, LogRenderBackend, "The selected D3D12 device does not support Shader Model 6.6 (hr={0}, highest={1}).", (u32)hr, (u32)shaderModelInformation.HighestShaderModel);
+
 	D3D12_FEATURE_DATA_D3D12_OPTIONS12 options = {};
 	hr = mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options, sizeof(options));
 	if(FAILED(hr))
@@ -721,6 +727,11 @@ void D3D12GpuDevice::InitializeCapabilities()
 	DXGI_ADAPTER_DESC3 adapterDesc;
 	mAdapter->GetDesc3(&adapterDesc);
 
+	D3D12_FEATURE_DATA_D3D12_OPTIONS1 options = {};
+	const HRESULT optionsResult = mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS1, &options, sizeof(options));
+	if(FAILED(optionsResult))
+		B3D_LOG(Fatal, LogRenderBackend, "Failed to query D3D12_OPTIONS1 on the selected device (hr={0}).", (u32)optionsResult);
+
 	char deviceName[128];
 	wcstombs(deviceName, adapterDesc.Description, sizeof(deviceName));
 
@@ -744,6 +755,8 @@ void D3D12GpuDevice::InitializeCapabilities()
 	// Constant buffer addresses (root CBVs and suballocation offsets alike) must be 256-byte aligned in D3D12
 	mCapabilities.MinimumUniformBufferOffsetAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
 	mCapabilities.MaximumPushConstantSize = kMaxPushConstantSizeInBytes;
+	mCapabilities.MinimumWaveLaneCount = options.WaveLaneCountMin;
+	mCapabilities.MaximumWaveLaneCount = options.WaveLaneCountMax;
 
 	mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_BC);
 	mCapabilities.SetCapability(RSC_GEOMETRY_PROGRAM);
@@ -753,6 +766,8 @@ void D3D12GpuDevice::InitializeCapabilities()
 	mCapabilities.SetCapability(RSC_BYTECODE_CACHING);
 	mCapabilities.SetCapability(RSC_TEXTURE_VIEWS);
 	mCapabilities.SetCapability(RSC_RENDER_TARGET_LAYERS);
+	if(options.WaveOps)
+		mCapabilities.SetCapability(RSC_WAVE_OPERATIONS);
 
 	mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Up;
 	mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;

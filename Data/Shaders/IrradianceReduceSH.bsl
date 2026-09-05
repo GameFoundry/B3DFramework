@@ -47,9 +47,9 @@ shader IrradianceReduceSH
 			SHZero(coeffs.B);
 			
 			// Note: There shouldn't be many entries, so we add them all in one thread. Otherwise we should do parallel reduction.
-			for(uint i = 0; i < gNumEntries; i++)
+			for(uint entryIndex = 0; entryIndex < gNumEntries; entryIndex++)
 			{
-				SHCoeffsAndWeight current = gInput[i];
+				SHCoeffsAndWeight current = gInput[entryIndex];
 			
 				SHAdd(coeffs.R, current.coeffs.R);
 				SHAdd(coeffs.G, current.coeffs.G);
@@ -66,9 +66,9 @@ shader IrradianceReduceSH
 			
 			uint2 writeIdx = gOutputIdx;
 			[unroll]
-			for(int i = 0; i < SH_NUM_COEFFS; ++i)
+			for(int coefficientIndex = 0; coefficientIndex < SH_NUM_COEFFS; ++coefficientIndex)
 			{			
-				gOutput[writeIdx] = float4(coeffs.R.v[i], coeffs.G.v[i], coeffs.B.v[i], 0.0f);
+				gOutput[writeIdx] = float4(coeffs.R.v[coefficientIndex], coeffs.G.v[coefficientIndex], coeffs.B.v[coefficientIndex], 0.0f);
 				writeIdx.x += 1;
 			}
 		}

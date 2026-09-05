@@ -15,7 +15,7 @@ mixin TextureCompressBC7Partition
 			out int4 endpoint0[3], out int4 endpoint1[3], out uint pbit0[3], out uint pbit1[3],
 			out uint idxOut[16], out float errOut)
 		{
-			const int idxCount = 1 << ib;
+			const int idxCount = int(1u << ib);
 
 			float4 points[16];
 			[unroll]
@@ -161,8 +161,8 @@ mixin TextureCompressBC7Partition
 				anchors[2] = kBC7Anchor3b[partition];
 			}
 
-			const int anchorThreshold = (1 << ib) >> 1;
-			const int invertedIndexMax = (1 << ib) - 1;
+			const int anchorThreshold = int((1u << ib) >> 1u);
+			const int invertedIndexMax = int((1u << ib) - 1u);
 			[unroll]
 			for (int subsetIndex = 0; subsetIndex < 3; ++subsetIndex)
 			{

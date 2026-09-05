@@ -61,6 +61,8 @@ namespace b3d
 		RSC_MULTI_THREADED_CB = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 11),
 		/** Supports GPU timer queries for measuring elapsed time of GPU work. */
 		RSC_TIMER_QUERIES = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 12),
+		/** Supports wave-level GPU program operations. */
+		RSC_WAVE_OPERATIONS = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 13),
 	};
 
 	/** Conventions used for a specific render backend. */
@@ -182,6 +184,12 @@ namespace b3d
 
 		/** Maximum number of push-constant bytes accepted by this backend. Zero means push constants are unsupported. */
 		u32 MaximumPushConstantSize = 0;
+
+		/** Minimum number of lanes in a hardware wave. Zero when wave operations are unsupported. */
+		u32 MinimumWaveLaneCount = 0;
+
+		/** Maximum number of lanes in a hardware wave. Zero when wave operations are unsupported. */
+		u32 MaximumWaveLaneCount = 0;
 
 		/** Optimal alignment for offsets used in buffers for copy source or destination operations, when copying from a buffer to another buffer. */
 		u32 OptimalBufferToBufferCopyOffsetAlignment = 16;

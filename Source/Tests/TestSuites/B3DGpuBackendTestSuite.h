@@ -45,5 +45,8 @@ namespace b3d
 
 		/** Verifies bytecode reflection reports the declared push-constant size without exposing its native carrier. */
 		void TestPushConstantShaderCompilation();
+
+		/** Verifies DXC compiles every supported HLSL stage and preserves the engine's reflection contract. */
+		void TestHlslShaderModel66Compilation();
 	};
 } // namespace b3d

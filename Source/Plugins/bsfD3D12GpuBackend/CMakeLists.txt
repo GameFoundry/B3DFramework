@@ -36,7 +36,6 @@ if(WIN32)
 		d3d12.lib
 		dxgi.lib
 		dxguid.lib
-		d3dcompiler.lib
 	)
 endif()
 
