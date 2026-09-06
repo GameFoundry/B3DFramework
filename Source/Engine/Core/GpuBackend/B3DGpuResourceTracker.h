@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuHazards.h"
+#include "GpuBackend/B3DGpuImageNativeState.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuFramebuffer.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
@@ -80,6 +81,9 @@ namespace b3d
 
 			/** State used to resolve read-after-write, write-after-write and write-after-read hazards. */
 			GpuResourceHazardState* HazardState = nullptr;
+
+			/** Backend state for native layout/encoding operations, partitioned together with this range. */
+			TShared<GpuImageNativeState> NativeState;
 
 			// Only relevant for layout transitions
 			/**
@@ -192,7 +196,7 @@ namespace b3d
 			 *
 			 * Submit thread only.
 			 */
-			void ResolveSubmissionTransitions(GpuQueueId destinationQueueId, GpuSubmissionTransitionVisitor& visitor) const;
+			void ResolveSubmissionTransitions(GpuQueueId destinationQueueId, GpuSubmissionTransitionVisitor& visitor);
 
 			/**
 			 * Iterates over all subresource tracking states that overlap with the provided subresource range. The provided callback is invoked for each overlapping subresource.
@@ -331,7 +335,7 @@ namespace b3d
 			void TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags);
 
 			/** Registers a new resource range using the provided parameters to initialize it. */
-			u32 AddSubresourceTrackingState(const GpuTextureSubresourceRange& range);
+			u32 AddSubresourceTrackingState(IGpuImageResource* image, const GpuTextureSubresourceRange& range);
 
 			/**
 			 * Creates a copy of an existing subresource with a new range.
@@ -345,6 +349,17 @@ namespace b3d
 		protected:
 			/** Finds a subresource tracking state for the specified face, mip level, and aspect of the provided image. */
 			GpuImageSubresourceTrackingState& GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect);
+
+			/** Native image requirement awaiting recording in the current barrier batch. */
+			struct PendingImageNativeTransition
+			{
+				PendingImageNativeTransition(IGpuImageResource& image, const GpuTextureSubresourceRange& range) : Image(&image), Range(range) { }
+				IGpuImageResource* Image;
+				GpuTextureSubresourceRange Range;
+			};
+
+			/** Pending native requirements, cleared together with the destination access registrations. */
+			Vector<PendingImageNativeTransition> mPendingImageNativeTransitions;
 
 			/** Maps images to their tracking state index in mImageTrackingState. */
 			TDenseMap<IGpuImageResource*, u32> mImages;
@@ -371,6 +386,7 @@ namespace b3d
 			struct PendingHazardRegistration
 			{
 				GpuResourceHazardState* State;
+				GpuImageNativeState* NativeState = nullptr;
 				GpuStageFlags AccessStageFlags;
 				GpuAccessFlags Access;
 			};
