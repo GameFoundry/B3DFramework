@@ -275,6 +275,7 @@ enum class MouseEventType
 					(point.y >= area.Y && point.y < (area.Y + (b3d::i32)area.Height)))
 			{
 				[window performWindowDragWithEvent:event];
+				b3d::MacOSPlatform::OnButtonChanged(b3d::ButtonCode::MouseLeft, false, (b3d::u64)(NSProcessInfo.processInfo.systemUptime * 1000.0));
 				isManualDrag = true;
 				break;
 			}

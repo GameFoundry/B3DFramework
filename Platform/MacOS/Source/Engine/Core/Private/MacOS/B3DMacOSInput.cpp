@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Input/B3DInput.h"
 #include "Private/MacOS/B3DMacOSInput.h"
+#include "Private/MacOS/B3DMacOSPlatform.h"
 
 #include "B3DApplication.h"
 #include "GpuBackend/B3DGpuDevice.h"
@@ -49,26 +50,6 @@ static CFDictionaryRef CreateHIDDeviceMatchDictionary(u32 page, u32 usage)
 		CFRelease(usageNumRef);
 
 	return output;
-}
-
-/** Returns the name of the run loop used for processing events for the specified category of input devices. */
-static CFStringRef GetRunLoopMode(HIDType type)
-{
-	static CFStringRef KeyboardMode = CFSTR("B3DKeyboard");
-	static CFStringRef MouseMode = CFSTR("B3DMouse");
-	static CFStringRef GamepadMode = CFSTR("B3DGamepad");
-
-	switch(type)
-	{
-	case HIDType::Keyboard:
-		return KeyboardMode;
-	case HIDType::Mouse:
-		return MouseMode;
-	case HIDType::Gamepad:
-		return GamepadMode;
-	}
-
-	return nullptr;
 }
 
 static void HIDAddElements(CFArrayRef array, HIDDevice* device);
@@ -127,7 +108,6 @@ static void HIDAddElement(const void* value, void* passthrough)
 	switch(usagePage)
 	{
 	case kHIDPage_Button:
-	case kHIDPage_KeyboardOrKeypad:
 		state = IsButton;
 		break;
 	case kHIDPage_GenericDesktop:
@@ -255,9 +235,8 @@ static void HIDDeviceAddedCallback(void* context, IOReturn result, void* sender,
 		CFRelease(elements);
 	}
 
-	// Create a queue. IOKit returns null when the device cannot be opened - typically a device the
-	// process has no Input Monitoring authorization for - so the device is still registered (its axes
-	// are polled directly), just without queued button/hat events.
+	// Create a queue. IOKit returns null when the device cannot be opened, so the device is still
+	// registered (its axes are polled directly), just without queued button/hat events.
 	newDevice.QueueRef = IOHIDQueueCreate(kCFAllocatorDefault, device, 128, kIOHIDOptionsTypeNone);
 	if(newDevice.QueueRef != nullptr)
 	{
@@ -271,32 +250,26 @@ static void HIDDeviceAddedCallback(void* context, IOReturn result, void* sender,
 	}
 
 	// Assign a device ID
-	if(data->Type == HIDType::Gamepad)
+	// Assign the lowest free id, so device ids (and with them the per-device state slots in Input) get reused
+	// instead of growing unbounded across plug/unplug cycles
+	u32 id = 0;
+	while(true)
 	{
-		// Assign the lowest free id, so device ids (and with them the per-device state slots in Input) get reused
-		// instead of growing unbounded across plug/unplug cycles
-		u32 id = 0;
-		while(true)
-		{
-			bool isUsed = false;
-			for(auto& entry : data->Devices)
-				isUsed |= entry.Id == id;
+		bool isUsed = false;
+		for(auto& entry : data->Devices)
+			isUsed |= entry.Id == id;
 
-			if(!isUsed)
-				break;
+		if(!isUsed)
+			break;
 
-			id++;
-		}
-
-		newDevice.Id = id;
+		id++;
 	}
-	else // All keyboard/mouse devices are coalesced into a single device
-		newDevice.Id = 0;
+
+	newDevice.Id = id;
 
 	data->Devices.push_back(newDevice);
 
-	if(data->Type == HIDType::Gamepad)
-		data->Owner->NotifyGamepadAdded(newDevice.Id, newDevice.Name);
+	data->Owner->NotifyGamepadAdded(newDevice.Id, newDevice.Name);
 }
 
 /** Callback triggered when an input device is removed. */
@@ -316,8 +289,7 @@ static void HIDDeviceRemovedCallback(void* context, IOReturn result, void* sende
 		}
 
 		// Release any input the device was holding at the moment of removal
-		if(data->Type == HIDType::Gamepad)
-			data->Owner->NotifyGamepadRemoved(iterFind->Id, iterFind->Name);
+		data->Owner->NotifyGamepadRemoved(iterFind->Id, iterFind->Name);
 
 		data->Devices.erase(iterFind);
 	}
@@ -341,183 +313,6 @@ static i32 ScaleHIDAxisValue(const HIDElement& element, i32 value, i32 targetMin
 
 	const float normalized = (value - element.DetectedMin) / range;
 	return targetMin + (i32)(normalized * (float)(IInputBackend::kMaxAxis - targetMin));
-}
-
-/** Callback triggered when an input value changes. Only registered for mice, where relative motion is accumulated. */
-static void HIDValueChangedCallback(void* context, IOReturn result, void* sender, IOHIDValueRef valueRef)
-{
-	auto data = (HIDData*)context;
-
-	IOHIDElementRef elementRef = IOHIDValueGetElement(valueRef);
-	auto usage = (u32)IOHIDElementGetUsage(elementRef);
-	auto axisValue = (i32)IOHIDValueGetIntegerValue(valueRef);
-	switch(usage)
-	{
-	case kHIDUsage_GD_X:
-		data->MouseAxisValues[0] += axisValue;
-		break;
-	case kHIDUsage_GD_Y:
-		data->MouseAxisValues[1] += axisValue;
-		break;
-	case kHIDUsage_GD_Z:
-		data->MouseAxisValues[2] += axisValue;
-		break;
-	default:
-		break;
-	}
-}
-
-/** Converts a keyboard scan key (as reported by the HID manager) into the engine's ButtonCode. */
-static ButtonCode ScanCodeToButtonCode(u32 scanCode)
-{
-	switch(scanCode)
-	{
-	case 0x04: return ButtonCode::A;
-	case 0x05: return ButtonCode::B;
-	case 0x06: return ButtonCode::C;
-	case 0x07: return ButtonCode::D;
-	case 0x08: return ButtonCode::E;
-	case 0x09: return ButtonCode::F;
-	case 0x0a: return ButtonCode::G;
-	case 0x0b: return ButtonCode::H;
-	case 0x0c: return ButtonCode::I;
-	case 0x0d: return ButtonCode::J;
-	case 0x0e: return ButtonCode::K;
-	case 0x0f: return ButtonCode::L;
-	case 0x10: return ButtonCode::M;
-	case 0x11: return ButtonCode::N;
-	case 0x12: return ButtonCode::O;
-	case 0x13: return ButtonCode::P;
-	case 0x14: return ButtonCode::Q;
-	case 0x15: return ButtonCode::R;
-	case 0x16: return ButtonCode::S;
-	case 0x17: return ButtonCode::T;
-	case 0x18: return ButtonCode::U;
-	case 0x19: return ButtonCode::V;
-	case 0x1a: return ButtonCode::W;
-	case 0x1b: return ButtonCode::X;
-	case 0x1c: return ButtonCode::Y;
-	case 0x1d: return ButtonCode::Z;
-
-	case 0x1e: return ButtonCode::Key1;
-	case 0x1f: return ButtonCode::Key2;
-	case 0x20: return ButtonCode::Key3;
-	case 0x21: return ButtonCode::Key4;
-	case 0x22: return ButtonCode::Key5;
-	case 0x23: return ButtonCode::Key6;
-	case 0x24: return ButtonCode::Key7;
-	case 0x25: return ButtonCode::Key8;
-	case 0x26: return ButtonCode::Key9;
-	case 0x27: return ButtonCode::Key0;
-
-	case 0x28: return ButtonCode::Enter;
-	case 0x29: return ButtonCode::Escape;
-	case 0x2a: return ButtonCode::Backspace;
-	case 0x2b: return ButtonCode::Tab;
-	case 0x2c: return ButtonCode::Space;
-	case 0x2d: return ButtonCode::Minus;
-	case 0x2e: return ButtonCode::Equals;
-	case 0x2f: return ButtonCode::LeftBracket;
-	case 0x30: return ButtonCode::RightBracket;
-	case 0x31: return ButtonCode::Backslash;
-	case 0x32: return ButtonCode::Grave;
-	case 0x33: return ButtonCode::Semicolon;
-	case 0x34: return ButtonCode::Apostrophe;
-	case 0x35: return ButtonCode::Grave;
-	case 0x36: return ButtonCode::Comma;
-	case 0x37: return ButtonCode::Period;
-	case 0x38: return ButtonCode::Slash;
-	case 0x39: return ButtonCode::CapsLock;
-
-	case 0x3a: return ButtonCode::F1;
-	case 0x3b: return ButtonCode::F2;
-	case 0x3c: return ButtonCode::F3;
-	case 0x3d: return ButtonCode::F4;
-	case 0x3e: return ButtonCode::F5;
-	case 0x3f: return ButtonCode::F6;
-	case 0x40: return ButtonCode::F7;
-	case 0x41: return ButtonCode::F8;
-	case 0x42: return ButtonCode::F9;
-	case 0x43: return ButtonCode::F10;
-	case 0x44: return ButtonCode::F11;
-	case 0x45: return ButtonCode::F12;
-
-	case 0x46: return ButtonCode::SysRq;
-	case 0x47: return ButtonCode::ScrollLock;
-	case 0x48: return ButtonCode::Pause;
-	case 0x49: return ButtonCode::Insert;
-	case 0x4a: return ButtonCode::Home;
-	case 0x4b: return ButtonCode::PageUp;
-	case 0x4c: return ButtonCode::Delete;
-	case 0x4d: return ButtonCode::End;
-	case 0x4e: return ButtonCode::PageDown;
-	case 0x4f: return ButtonCode::ArrowRight;
-	case 0x50: return ButtonCode::ArrowLeft;
-	case 0x51: return ButtonCode::ArrowDown;
-	case 0x52: return ButtonCode::ArrowUp;
-
-	case 0x53: return ButtonCode::NumLock;
-	case 0x54: return ButtonCode::NumpadDivide;
-	case 0x55: return ButtonCode::NumpadMultiply;
-	case 0x56: return ButtonCode::NumpadMinus;
-	case 0x57: return ButtonCode::NumpadPlus;
-	case 0x58: return ButtonCode::NumpadEnter;
-	case 0x59: return ButtonCode::Numpad1;
-	case 0x5a: return ButtonCode::Numpad2;
-	case 0x5b: return ButtonCode::Numpad3;
-	case 0x5c: return ButtonCode::Numpad4;
-	case 0x5d: return ButtonCode::Numpad5;
-	case 0x5e: return ButtonCode::Numpad6;
-	case 0x5f: return ButtonCode::Numpad7;
-	case 0x60: return ButtonCode::Numpad8;
-	case 0x61: return ButtonCode::Numpad9;
-	case 0x62: return ButtonCode::Numpad0;
-	case 0x63: return ButtonCode::NumpadDecimal;
-
-	case 0x64: return ButtonCode::OEM102;
-	case 0x66: return ButtonCode::Power;
-	case 0x67: return ButtonCode::NumadEquals;
-
-	case 0x68: return ButtonCode::F13;
-	case 0x69: return ButtonCode::F14;
-	case 0x6a: return ButtonCode::F15;
-
-	case 0x78: return ButtonCode::Stop;
-	case 0x7f: return ButtonCode::Mute;
-	case 0x80: return ButtonCode::VolumeUp;
-	case 0x81: return ButtonCode::VolumeDown;
-	case 0x85: return ButtonCode::NumpadComma;
-	case 0x86: return ButtonCode::NumadEquals;
-	case 0x89: return ButtonCode::Yen;
-
-	case 0xe0: return ButtonCode::LeftControl;
-	case 0xe1: return ButtonCode::LeftShift;
-	case 0xe2: return ButtonCode::LeftAlt;
-	case 0xe3: return ButtonCode::LeftWindows;
-	case 0xe4: return ButtonCode::RightControl;
-	case 0xe5: return ButtonCode::RightShift;
-	case 0xe6: return ButtonCode::RightAlt;
-	case 0xe7: return ButtonCode::RightWindows;
-
-	case 0xe8: return ButtonCode::PlayPause;
-	case 0xe9: return ButtonCode::MediaStop;
-	case 0xea: return ButtonCode::PreviousTrack;
-	case 0xeb: return ButtonCode::NextTrack;
-	case 0xed: return ButtonCode::VolumeUp;
-	case 0xee: return ButtonCode::VolumeDown;
-	case 0xef: return ButtonCode::Mute;
-	case 0xf0: return ButtonCode::WebSearch;
-	case 0xf1: return ButtonCode::WebBack;
-	case 0xf2: return ButtonCode::WebForward;
-	case 0xf3: return ButtonCode::WebStop;
-	case 0xf4: return ButtonCode::WebSearch;
-	case 0xf8: return ButtonCode::Sleep;
-	case 0xf9: return ButtonCode::Awake;
-	case 0xfb: return ButtonCode::Calculator;
-
-	default:
-		return ButtonCode::Unassigned;
-	}
 }
 
 /** Converts a gamepad button usage (as reported by the HID manager) into the engine's ButtonCode. */
@@ -574,73 +369,45 @@ static ButtonCode HatDirectionToButtonCode(i32 direction)
 	}
 }
 
-HIDManager::HIDManager(HIDType type, Input& input)
+HIDGamepadManager::HIDGamepadManager(Input& input)
 {
-	mData.Type = type;
 	mData.Owner = &input;
-	B3DZeroOut(mData.MouseAxisValues);
-
 	mHIDManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDManagerOptionNone);
 	if(mHIDManager == nullptr)
 		return;
 
+	const void* entries[] = {
+		CreateHIDDeviceMatchDictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_Joystick),
+		CreateHIDDeviceMatchDictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_GamePad),
+		CreateHIDDeviceMatchDictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_MultiAxisController)
+	};
+
+	CFArrayRef entryArray = CFArrayCreate(kCFAllocatorDefault, entries, 3, &kCFTypeArrayCallBacks);
+	IOHIDManagerSetDeviceMatchingMultiple(mHIDManager, entryArray);
+	CFRelease(entryArray);
+
+	for(const void* entry : entries)
+		CFRelease((CFTypeRef)entry);
+
+	// Restrict the device set before opening it so keyboards and mice are never opened.
 	if(IOHIDManagerOpen(mHIDManager, kIOHIDOptionsTypeNone) != kIOReturnSuccess)
 	{
-		B3D_LOG(Error, LogPlatform, "Unable to open the IOKit HID manager, no input devices will be reported.");
-
+		B3D_LOG(Warning, LogPlatform, "Unable to open the IOKit game controller manager.");
 		CFRelease(mHIDManager);
 		mHIDManager = nullptr;
 		return;
 	}
 
-	u32 numEntries = 0;
-	const void* entries[3];
-
-	switch(type)
-	{
-	case HIDType::Keyboard:
-		entries[0] = CreateHIDDeviceMatchDictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard);
-		numEntries = 1;
-		break;
-	case HIDType::Mouse:
-		entries[0] = CreateHIDDeviceMatchDictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse);
-		numEntries = 1;
-		break;
-	case HIDType::Gamepad:
-		entries[0] = CreateHIDDeviceMatchDictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_Joystick);
-		entries[1] = CreateHIDDeviceMatchDictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_GamePad);
-		entries[2] = CreateHIDDeviceMatchDictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_MultiAxisController);
-		numEntries = 3;
-		break;
-	}
-
-	CFArrayRef entryArray = CFArrayCreate(kCFAllocatorDefault, entries, numEntries, &kCFTypeArrayCallBacks);
-
-	IOHIDManagerSetDeviceMatchingMultiple(mHIDManager, entryArray);
 	IOHIDManagerRegisterDeviceMatchingCallback(mHIDManager, HIDDeviceAddedCallback, &mData);
 	IOHIDManagerRegisterDeviceRemovalCallback(mHIDManager, HIDDeviceRemovedCallback, &mData);
+	IOHIDManagerScheduleWithRunLoop(mHIDManager, CFRunLoopGetCurrent(), CFSTR("B3DGamepad"));
 
-	// We only care about input callbacks for mice, so we can accumulate all axis movement
-	if(type == HIDType::Mouse)
-		IOHIDManagerRegisterInputValueCallback(mHIDManager, HIDValueChangedCallback, &mData);
-
-	CFStringRef runLoopMode = GetRunLoopMode(type);
-	IOHIDManagerScheduleWithRunLoop(mHIDManager, CFRunLoopGetCurrent(), runLoopMode);
-
-	while(CFRunLoopRunInMode(runLoopMode, 0, TRUE) == kCFRunLoopRunHandledSource)
+	while(CFRunLoopRunInMode(CFSTR("B3DGamepad"), 0, TRUE) == kCFRunLoopRunHandledSource)
 	{ /* Do nothing */
 	}
-
-	for(u32 entryIndex = 0; entryIndex < numEntries; entryIndex++)
-	{
-		if(entries[entryIndex])
-			CFRelease((CFTypeRef)entries[entryIndex]);
-	}
-
-	CFRelease(entryArray);
 }
 
-HIDManager::~HIDManager()
+HIDGamepadManager::~HIDGamepadManager()
 {
 	if(mHIDManager == nullptr)
 		return;
@@ -654,23 +421,20 @@ HIDManager::~HIDManager()
 		CFRelease(device.QueueRef);
 	}
 
-	CFStringRef runLoopMode = GetRunLoopMode(mData.Type);
+	CFStringRef runLoopMode = CFSTR("B3DGamepad");
 	IOHIDManagerUnscheduleFromRunLoop(mHIDManager, CFRunLoopGetCurrent(), runLoopMode);
 
 	IOHIDManagerClose(mHIDManager, kIOHIDOptionsTypeNone);
 	CFRelease(mHIDManager);
 }
 
-void HIDManager::Capture(IOHIDDeviceRef device, bool ignoreEvents)
+void HIDGamepadManager::Capture(IOHIDDeviceRef device, bool ignoreEvents)
 {
 	if(mHIDManager == nullptr)
 		return;
 
-	if(mData.Type == HIDType::Mouse)
-		B3DZeroOut(mData.MouseAxisValues);
-
 	// First trigger any callbacks. This is also what pumps the device added/removed callbacks, handling hot-plug.
-	CFStringRef runLoopMode = GetRunLoopMode(mData.Type);
+	CFStringRef runLoopMode = CFSTR("B3DGamepad");
 	while(CFRunLoopRunInMode(runLoopMode, 0, TRUE) == kCFRunLoopRunHandledSource)
 	{ /* Do nothing */
 	}
@@ -681,7 +445,7 @@ void HIDManager::Capture(IOHIDDeviceRef device, bool ignoreEvents)
 			continue;
 
 		// Poll non-queued elements. These are the gamepad axes, for which we only care about the latest absolute values.
-		if(mData.Type == HIDType::Gamepad && !ignoreEvents)
+		if(!ignoreEvents)
 		{
 			struct AxisState
 			{
@@ -820,22 +584,7 @@ void HIDManager::Capture(IOHIDDeviceRef device, bool ignoreEvents)
 
 			ButtonCode button = ButtonCode::Unassigned;
 			if(usagePage == kHIDPage_Button)
-			{
-				if(mData.Type == HIDType::Mouse)
-				{
-					if(usage > 0 && usage <= (u32)ButtonCode::MouseKeyCount)
-						button = (ButtonCode)((u32)ButtonCode::MouseLeft + usage - 1);
-				}
-				else if(mData.Type == HIDType::Gamepad)
-					button = GamepadUsageToButtonCode(usage);
-			}
-			else if(usagePage == kHIDPage_KeyboardOrKeypad)
-			{
-				// Usage -1 and 1 are special signals that happen along with every button press/release and should be
-				// ignored
-				if(usage != (u32)-1 && usage != 1)
-					button = ScanCodeToButtonCode(usage);
-			}
+				button = GamepadUsageToButtonCode(usage);
 
 			if(button != ButtonCode::Unassigned)
 			{
@@ -849,15 +598,9 @@ void HIDManager::Capture(IOHIDDeviceRef device, bool ignoreEvents)
 		}
 	}
 
-	// Report accumulated mouse movement
-	if(mData.Type == HIDType::Mouse && !ignoreEvents)
-	{
-		if(mData.MouseAxisValues[0] != 0 || mData.MouseAxisValues[1] != 0 || mData.MouseAxisValues[2] != 0)
-			mData.Owner->NotifyMouseMoved(mData.MouseAxisValues[0], mData.MouseAxisValues[1], mData.MouseAxisValues[2]);
-	}
 }
 
-String HIDManager::GetDeviceName(u32 deviceId) const
+String HIDGamepadManager::GetDeviceName(u32 deviceId) const
 {
 	for(auto& entry : mData.Devices)
 	{
@@ -869,26 +612,45 @@ String HIDManager::GetDeviceName(u32 deviceId) const
 }
 
 MacOSInputBackend::MacOSInputBackend(Input& owner)
+	: mOwner(owner)
 {
 	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-
-	const bool isHeadless = gpuDevice == nullptr || gpuDevice->GetCapabilities().DeviceName == "Null" ||
-		owner.GetWindowHandle() == 0;
-	if(isHeadless)
+	mHasDesktopInput = gpuDevice != nullptr && gpuDevice->GetCapabilities().DeviceName != "Null" && owner.GetWindowHandle() != 0;
+	if(!mHasDesktopInput)
 		return;
 
-	mKeyboard = B3DNew<HIDManager>(HIDType::Keyboard, owner);
-	mMouse = B3DNew<HIDManager>(HIDType::Mouse, owner);
-	mGamepad = B3DNew<HIDManager>(HIDType::Gamepad, owner);
+	mButtonChangedConnection = MacOSPlatform::OnButtonChanged.Connect([this](ButtonCode button, bool pressed, u64 timestamp)
+	{
+		Lock lock(mMutex);
+		const u32 index = (u32)button & 0xFFFF;
+		if(!mHasInputFocus || button == ButtonCode::Unassigned || index >= std::size(mPressedButtons) || mPressedButtons[index] == pressed)
+			return;
+
+		mPressedButtons[index] = pressed;
+		if(pressed)
+			mOwner.NotifyButtonPressed(0, button, timestamp);
+		else
+			mOwner.NotifyButtonReleased(0, button, timestamp);
+	});
+
+	mMouseMovedConnection = MacOSPlatform::OnMouseMoved.Connect([this](float x, float y, float z)
+	{
+		Lock lock(mMutex);
+		if(!mHasInputFocus)
+			return;
+
+		mMouseDelta[0] += x;
+		mMouseDelta[1] += y;
+		mMouseDelta[2] += z;
+	});
+
+	mGamepad = B3DNew<HIDGamepadManager>(owner);
 }
 
 MacOSInputBackend::~MacOSInputBackend()
 {
-	if(mMouse != nullptr)
-		B3DDelete(mMouse);
-
-	if(mKeyboard != nullptr)
-		B3DDelete(mKeyboard);
+	mButtonChangedConnection.Disconnect();
+	mMouseMovedConnection.Disconnect();
 
 	if(mGamepad != nullptr)
 		B3DDelete(mGamepad);
@@ -896,28 +658,34 @@ MacOSInputBackend::~MacOSInputBackend()
 
 void MacOSInputBackend::Update()
 {
-	// Note: Events are captured (or drained, when the window doesn't have focus) even with no focus, so stale input
-	// doesn't get reported when focus returns
-	if(mMouse != nullptr)
-		mMouse->Capture(nullptr, !mHasInputFocus);
+	bool hasInputFocus;
+	{
+		Lock lock(mMutex);
+		hasInputFocus = mHasInputFocus;
+		i32 motion[3];
+		for(u32 axis = 0; axis < 3; axis++)
+		{
+			motion[axis] = (i32)mMouseDelta[axis];
+			mMouseDelta[axis] -= (float)motion[axis];
+		}
 
-	if(mKeyboard != nullptr)
-		mKeyboard->Capture(nullptr, !mHasInputFocus);
+		if(motion[0] != 0 || motion[1] != 0 || motion[2] != 0)
+			mOwner.NotifyMouseMoved(motion[0], motion[1], motion[2]);
+	}
 
+	// Drain controller events while unfocused so stale input is not delivered on reactivation.
 	if(mGamepad != nullptr)
-		mGamepad->Capture(nullptr, !mHasInputFocus);
+		mGamepad->Capture(nullptr, !hasInputFocus);
 }
 
 u32 MacOSInputBackend::GetDeviceCount(InputDevice device) const
 {
 	switch(device)
 	{
-	// Note: All keyboard/mouse HID devices get coalesced into a single logical device
-	case InputDevice::Keyboard: return mKeyboard != nullptr ? 1 : 0;
-	case InputDevice::Mouse: return mMouse != nullptr ? 1 : 0;
+	case InputDevice::Keyboard:
+	case InputDevice::Mouse: return mHasDesktopInput ? 1 : 0;
 	case InputDevice::Gamepad: return mGamepad != nullptr ? mGamepad->GetDeviceCount() : 0;
-	default:
-	case InputDevice::Count: return 0;
+	default: return 0;
 	}
 }
 
@@ -925,31 +693,32 @@ String MacOSInputBackend::GetDeviceName(InputDevice type, u32 deviceIndex) const
 {
 	switch(type)
 	{
-	case InputDevice::Keyboard:
-		if(mKeyboard != nullptr && deviceIndex == 0)
-			return "Keyboard";
-
-		return StringUtility::kBlank;
-	case InputDevice::Mouse:
-		if(mMouse != nullptr && deviceIndex == 0)
-			return "Mouse";
-
-		return StringUtility::kBlank;
-	case InputDevice::Gamepad:
-		if(mGamepad != nullptr)
-			return mGamepad->GetDeviceName(deviceIndex);
-
-		return StringUtility::kBlank;
-	default:
-		return StringUtility::kBlank;
+	case InputDevice::Keyboard: return mHasDesktopInput && deviceIndex == 0 ? "Keyboard" : StringUtility::kBlank;
+	case InputDevice::Mouse: return mHasDesktopInput && deviceIndex == 0 ? "Mouse" : StringUtility::kBlank;
+	case InputDevice::Gamepad: return mGamepad != nullptr ? mGamepad->GetDeviceName(deviceIndex) : StringUtility::kBlank;
+	default: return StringUtility::kBlank;
 	}
 }
 
 void MacOSInputBackend::ChangeCaptureContext(u64 windowHandle)
 {
-	// The HID manager reports input system-wide rather than per-window, so all that matters is whether any of the
-	// application's windows have focus
+	Lock lock(mMutex);
 	mHasInputFocus = windowHandle != 0;
+	if(mHasInputFocus)
+		return;
+
+	const u64 timestamp = MachTimeToMs(mach_absolute_time());
+	for(u32 index = 0; index < std::size(mPressedButtons); index++)
+	{
+		if(!mPressedButtons[index])
+			continue;
+
+		mPressedButtons[index] = false;
+		const u32 flags = index >= (u32)ButtonCode::KeyboardKeyCount ? 0x80000000 : 0;
+		mOwner.NotifyButtonReleased(0, (ButtonCode)(flags | index), timestamp);
+	}
+
+	B3DZeroOut(mMouseDelta);
 }
 
 namespace b3d

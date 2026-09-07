@@ -14,23 +14,13 @@ namespace b3d
 	 *  @{
 	 */
 
-	static constexpr u32 kHIDMouseAxisCount = 3;
-
 	// Number of axis slots tracked per gamepad. Covers the common InputAxis entries plus a few extra slots that
 	// unrecognized device axes get mapped to (starting past InputAxis::RightTrigger).
 	static constexpr u32 kHIDGamepadAxisCount = 24;
 
-	/** Available types of devices supported by the HIDManager. */
-	enum class HIDType
-	{
-		Keyboard,
-		Mouse,
-		Gamepad
-	};
-
 	/**
 	 * Contains information about a single element of an input device (e.g. a button, an axis), as reported by the
-	 * HIDManager.
+	 * HIDGamepadManager.
 	 */
 	struct HIDElement
 	{
@@ -42,7 +32,7 @@ namespace b3d
 		u32 Usage;
 	};
 
-	/** Contains information about a single input device and its elements, as reported by the HIDManager. */
+	/** Contains information about a single input device and its elements, as reported by the HIDGamepadManager. */
 	struct HIDDevice
 	{
 		IOHIDDeviceRef Ref;
@@ -61,32 +51,29 @@ namespace b3d
 		ButtonCode PovState;
 	};
 
-	/** Contains information about all enumerated input devices for a specific HIDManager. */
+	/** Contains information about all enumerated input devices for a specific HIDGamepadManager. */
 	struct HIDData
 	{
 		Vector<HIDDevice> Devices;
-		HIDType Type;
 		Input* Owner = nullptr;
 
-		i32 MouseAxisValues[kHIDMouseAxisCount];
 	};
 
 	/**
-	 * Provides access to the low level IO HID manager. Enumerates available input devices and reports their input to the
+	 * Provides access to game controllers through the IO HID manager. Enumerates available game controllers and reports their input to the
 	 * Input object. Hot-plug is handled internally: the IOKit device matching/removal callbacks fire while events are
 	 * pumped during Capture().
 	 */
-	class HIDManager
+	class HIDGamepadManager
 	{
 	public:
 		/**
 		 *  Constructs a new HID manager object.
 		 *
-		 * @param type 		Determines what category of input devices will this manager enumerate and report events for.
 		 * @param input		Input object that will by called by the HID manager when input events occur.
 		 */
-		HIDManager(HIDType type, Input& input);
-		~HIDManager();
+		HIDGamepadManager(Input& input);
+		~HIDGamepadManager();
 
 		/**
 		 * Checks if any new input events have been generated and reports them to the Input object.
@@ -109,7 +96,7 @@ namespace b3d
 		HIDData mData;
 	};
 
-	/** MacOS implementation of the input backend, based on the IOKit HID manager. */
+	/** MacOS input backend using application-local keyboard/mouse events and IOKit game controllers. */
 	class MacOSInputBackend final : public IInputBackend
 	{
 	public:
@@ -122,9 +109,14 @@ namespace b3d
 		void ChangeCaptureContext(u64 windowHandle) override;
 
 	private:
-		HIDManager* mKeyboard = nullptr;
-		HIDManager* mMouse = nullptr;
-		HIDManager* mGamepad = nullptr;
+		Input& mOwner;
+		Mutex mMutex;
+		HEvent mButtonChangedConnection;
+		HEvent mMouseMovedConnection;
+		bool mHasDesktopInput = false;
+		bool mPressedButtons[(u32)ButtonCode::KeyboardKeyCount + (u32)ButtonCode::MouseKeyCount] = {};
+		float mMouseDelta[3] = {};
+		HIDGamepadManager* mGamepad = nullptr;
 		bool mHasInputFocus = true;
 	};
 
