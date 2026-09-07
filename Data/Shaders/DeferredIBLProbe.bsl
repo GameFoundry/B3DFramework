@@ -110,7 +110,7 @@ shader DeferredIBLProbe
 			return output;
 		}			
 
-		float4 fsmain(VStoFS input, float4 pixelPos : SV_Position
+		float4 fsmain(VStoFS input
 			#if MSAA_COUNT > 1 && !MSAA_RESOLVE_0TH
 			, uint sampleIdx : SV_SampleIndex
 			#endif
@@ -118,12 +118,12 @@ shader DeferredIBLProbe
 		{
 			#if MSAA_COUNT > 1
 				#if MSAA_RESOLVE_0TH
-					SurfaceData surfaceData = getGBufferData((uint2)pixelPos.xy, 0);
+					SurfaceData surfaceData = getGBufferData((uint2)input.position.xy, 0);
 				#else
-					SurfaceData surfaceData = getGBufferData((uint2)pixelPos.xy, sampleIdx);
+					SurfaceData surfaceData = getGBufferData((uint2)input.position.xy, sampleIdx);
 				#endif
 			#else
-				SurfaceData surfaceData = getGBufferData((uint2)pixelPos.xy);
+				SurfaceData surfaceData = getGBufferData((uint2)input.position.xy);
 			#endif			
 		
 			if(surfaceData.worldNormal.w > 0.0f)

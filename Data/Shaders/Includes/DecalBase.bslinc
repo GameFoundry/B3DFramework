@@ -235,7 +235,6 @@ mixin DecalBase
 
 		void fsmain(
 			in DecalVStoFS input,
-			in float4 screenPos : SV_Position,
 			#if MSAA_MODE == 2
 			uint sampleIdx : SV_SampleIndex,
 			#endif
@@ -245,14 +244,14 @@ mixin DecalBase
 			out float4 OutGBufferC : SV_Target3)
 		{
 			#if MSAA_MODE == 0
-				float deviceZ = gDepthBufferTex.Load(int3(screenPos.xy, 0)).r;
-				uint layer = (uint)(gMaskTex.Load(int3(screenPos.xy, 0)).r * 256.0f);
+				float deviceZ = gDepthBufferTex.Load(int3(input.position.xy, 0)).r;
+				uint layer = (uint)(gMaskTex.Load(int3(input.position.xy, 0)).r * 256.0f);
 			#elif MSAA_MODE == 1
-				float deviceZ = gDepthBufferTex.Load(screenPos.xy, 0).r;
-				uint layer = (uint)(gMaskTex.Load(screenPos.xy, 0).r * 256.0f);
+				float deviceZ = gDepthBufferTex.Load(input.position.xy, 0).r;
+				uint layer = (uint)(gMaskTex.Load(input.position.xy, 0).r * 256.0f);
 			#else
-				float deviceZ = gDepthBufferTex.Load(screenPos.xy, sampleIdx).r;
-				uint layer = (uint)(gMaskTex.Load(screenPos.xy, sampleIdx).r * 256.0f);
+				float deviceZ = gDepthBufferTex.Load(input.position.xy, sampleIdx).r;
+				uint layer = (uint)(gMaskTex.Load(input.position.xy, sampleIdx).r * 256.0f);
 			#endif
 
 			if(layer < 32 && (gLayerMask & (1 << layer)) == 0)

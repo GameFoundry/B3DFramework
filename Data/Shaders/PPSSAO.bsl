@@ -136,7 +136,7 @@ shader PPSSAO
 			return weightedSum / weightSum;
 		}
 		
-		float fsmain(VStoFS input, float4 pixelPos : SV_Position) : SV_Target0
+		float fsmain(VStoFS input) : SV_Target0
 		{
 			#if FINAL_AO // Final uses gbuffer input
 			float sceneDepth = convertFromDeviceZ(gDepthTex.Sample(gInputSamp, input.uv0).r);
@@ -271,7 +271,7 @@ shader PPSSAO
 			float4 dX = ddx(myVal);
 			float4 dY = ddy(myVal);
 			
-			int2 mod = (int2)(pixelPos.xy) % 2;
+			int2 mod = (int2)(input.position.xy) % 2;
 			float4 horzVal = myVal - dX * (mod.x * 2 - 1);
 			float4 vertVal = myVal - dY * (mod.y * 2 - 1);
 			

@@ -76,7 +76,7 @@ shader PPSSRTrace
 				 | (y << 1) & 0x2 	| ((y << 2) & 0x8);
 		}		
 
-		float4 fsmain(VStoFS input, float4 pixelPos : SV_Position
+		float4 fsmain(VStoFS input
 			#if MSAA_COUNT > 1 && !MSAA_RESOLVE_0TH
 			, uint sampleIdx : SV_SampleIndex
 			#endif
@@ -102,7 +102,7 @@ shader PPSSRTrace
 			float roughness4 = roughness2 * roughness2;
 			
 			// Jitter ray offset in 4x4 tile, in order to avoid stairstep artifacts
-			uint pixelIdx = mortonCode4x4((uint)pixelPos.x, (uint)pixelPos.y);
+			uint pixelIdx = mortonCode4x4((uint)input.position.x, (uint)input.position.y);
 			
 			RayMarchParams rayMarchParams;
 			rayMarchParams.bufferSize = gHiZSize;
@@ -113,7 +113,7 @@ shader PPSSRTrace
 
 			// Make sure each pixel chooses different ray directions (noise looks better than repeating patterns)
 			//// Magic integer is arbitrary, in order to convert from [0, 1] float
-			uint2 pixRandom = random(pixelPos.xy + gTemporalJitter * uint2(61, 85)) * uint2(0x36174842, 0x15249835);
+			uint2 pixRandom = random(input.position.xy + gTemporalJitter * uint2(61, 85)) * uint2(0x36174842, 0x15249835);
 
 			float4 sum = 0;
 			[loop]

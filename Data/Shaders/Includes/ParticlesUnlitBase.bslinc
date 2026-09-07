@@ -44,13 +44,13 @@ mixin ParticlesUnlitBase
 			float gInvDepthRange = 1.0f;
 		};
 
-		float4 fsmain(in VStoFS input, in float4 screenPos : SV_Position) : SV_Target0
+		float4 fsmain(in VStoFS input) : SV_Target0
 		{
 			float4 output = gTexture.Sample(gSampler, input.uv0) * input.color;
 
 			#if SOFT
 				float particleDepth = input.depth;
-				float sceneDepth = -convertFromDeviceZ(gDepthBufferTex.Load(int3(screenPos.xy, 0)).r);
+				float sceneDepth = -convertFromDeviceZ(gDepthBufferTex.Load(int3(input.position.xy, 0)).r);
 
 				float diff = sceneDepth - particleDepth;
 				float fade = saturate(diff * gInvDepthRange);

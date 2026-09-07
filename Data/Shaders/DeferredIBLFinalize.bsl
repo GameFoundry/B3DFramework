@@ -59,7 +59,7 @@ shader DeferredIBLFinalize
 			Texture2D gIBLRadianceTex;
 		#endif
 	
-		float4 fsmain(VStoFS input, float4 pixelPos : SV_Position
+		float4 fsmain(VStoFS input
 			#if MSAA_COUNT > 1 && !MSAA_RESOLVE_0TH
 			, uint sampleIdx : SV_SampleIndex
 			#endif
@@ -67,15 +67,15 @@ shader DeferredIBLFinalize
 		{		
 			#if MSAA_COUNT > 1
 				#if MSAA_RESOLVE_0TH
-					SurfaceData surfaceData = getGBufferData((uint2)pixelPos.xy, 0);
-					float3 radiance = gIBLRadianceTex.Load((uint2)pixelPos.xy, 0).rgb;
+					SurfaceData surfaceData = getGBufferData((uint2)input.position.xy, 0);
+					float3 radiance = gIBLRadianceTex.Load((uint2)input.position.xy, 0).rgb;
 				#else
-					SurfaceData surfaceData = getGBufferData((uint2)pixelPos.xy, sampleIdx);
-					float3 radiance = gIBLRadianceTex.Load((uint2)pixelPos.xy, sampleIdx).rgb;
+					SurfaceData surfaceData = getGBufferData((uint2)input.position.xy, sampleIdx);
+					float3 radiance = gIBLRadianceTex.Load((uint2)input.position.xy, sampleIdx).rgb;
 				#endif
 			#else
-				SurfaceData surfaceData = getGBufferData((uint2)pixelPos.xy);
-				float3 radiance = gIBLRadianceTex.Load(int3((int2)pixelPos.xy, 0)).rgb;
+				SurfaceData surfaceData = getGBufferData((uint2)input.position.xy);
+				float3 radiance = gIBLRadianceTex.Load(int3((int2)input.position.xy, 0)).rgb;
 			#endif	
 
 			if(surfaceData.worldNormal.w > 0.0f)
