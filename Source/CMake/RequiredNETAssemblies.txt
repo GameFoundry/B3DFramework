@@ -49,10 +49,18 @@ System.ComponentModel.Primitives
 System.Diagnostics.Process
 System.Diagnostics.FileVersionInfo
 System.Diagnostics.StackTrace
+System.Diagnostics.Tracing
+System.Diagnostics.DiagnosticSource
 
 # IO
 System.IO.Compression
 System.IO.MemoryMappedFiles
+System.IO.Pipes
+
+# Process pipe support on Unix
+System.Net.Primitives
+System.Net.Sockets
+System.Net.NameResolution
 
 # Numerics / LINQ / URI
 System.Linq

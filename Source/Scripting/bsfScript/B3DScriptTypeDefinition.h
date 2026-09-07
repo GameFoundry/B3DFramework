@@ -12,16 +12,6 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Checks if the type has a `static void InitializeAdditionalMetaData(ScriptTypeMetaData&&)` method. */
-	template <typename T, typename = void>
-	struct B3DHasInitializeAdditionalMetaDataMethod : std::false_type
-	{};
-
-	template <typename T>
-	struct B3DHasInitializeAdditionalMetaDataMethod<T, std::enable_if_t<std::is_same_v<decltype(T::InitializeAdditionalMetaData(std::declval<ScriptTypeMetaData>())), void>>>
-		: std::true_type
-	{};
-
 	/** Checks if the type has a `static void SetupScriptBindings()` method. */
 	template <typename T, typename = void>
 	struct B3DHasSetupScriptBindingsMethod : std::false_type
@@ -73,6 +63,16 @@ namespace b3d
 	template <typename SelfType>
 	class TScriptTypeDefinition
 	{
+		/** Checks if the type has a `static void InitializeAdditionalMetaData(ScriptTypeMetaData&)` method. */
+		template <typename T, typename = void>
+		struct HasInitializeAdditionalMetaDataMethod : std::false_type
+		{};
+
+		template <typename T>
+		struct HasInitializeAdditionalMetaDataMethod<T, std::enable_if_t<std::is_same_v<decltype(T::InitializeAdditionalMetaData(std::declval<ScriptTypeMetaData&>())), void>>>
+			: std::true_type
+		{};
+
 	public:
 		TScriptTypeDefinition()
 		{
@@ -95,7 +95,7 @@ namespace b3d
 			if constexpr(B3DHasSetupScriptBindingsMethod<SelfType>::value)
 				localMetaData.SetupScriptBindingsCallback = &SelfType::SetupScriptBindings;
 
-			if constexpr(B3DHasInitializeAdditionalMetaDataMethod<SelfType>::value)
+			if constexpr(HasInitializeAdditionalMetaDataMethod<SelfType>::value)
 				SelfType::InitializeAdditionalMetaData(localMetaData);
 
 			MonoManager::RegisterScriptType(&sInteropMetaData, localMetaData);
