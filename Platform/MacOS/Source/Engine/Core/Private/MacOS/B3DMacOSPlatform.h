@@ -4,6 +4,7 @@
 
 #include "Platform/B3DPlatform.h"
 #include "GpuBackend/B3DRenderWindow.h"
+#include "Input/B3DInputFwd.h"
 
 // Don't include macOS frameworks when generating script bindings, as it can't find them.
 // Also skip them in plain C++ translation units - Objective-C headers only parse in Objective-C++.
@@ -34,6 +35,12 @@ namespace b3d
 	class B3D_EXPORT MacOSPlatform : public Platform
 	{
 	public:
+		/** Reports physical keyboard and mouse button transitions. Timestamps are milliseconds since boot. */
+		static Event<void(ButtonCode, bool, u64)> OnButtonChanged;
+
+		/** Reports relative mouse movement and vertical scrolling. */
+		static Event<void(float, float, float)> OnMouseMoved;
+
 		/** Notifies the system that a new window was created. */
 		static void RegisterWindow(CocoaWindow* window);
 

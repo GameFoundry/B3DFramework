@@ -12,6 +12,137 @@
 #include "B3DApplication.h"
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
+#import <IOKit/hidsystem/IOLLEvent.h>
+
+namespace b3d
+{
+	namespace
+	{
+		void SendKeyEvent(u16 keyCode, bool pressed, u64 timestamp)
+		{
+			ButtonCode button;
+			switch(keyCode)
+			{
+			case kVK_ANSI_A: button = ButtonCode::A; break;
+			case kVK_ANSI_B: button = ButtonCode::B; break;
+			case kVK_ANSI_C: button = ButtonCode::C; break;
+			case kVK_ANSI_D: button = ButtonCode::D; break;
+			case kVK_ANSI_E: button = ButtonCode::E; break;
+			case kVK_ANSI_F: button = ButtonCode::F; break;
+			case kVK_ANSI_G: button = ButtonCode::G; break;
+			case kVK_ANSI_H: button = ButtonCode::H; break;
+			case kVK_ANSI_I: button = ButtonCode::I; break;
+			case kVK_ANSI_J: button = ButtonCode::J; break;
+			case kVK_ANSI_K: button = ButtonCode::K; break;
+			case kVK_ANSI_L: button = ButtonCode::L; break;
+			case kVK_ANSI_M: button = ButtonCode::M; break;
+			case kVK_ANSI_N: button = ButtonCode::N; break;
+			case kVK_ANSI_O: button = ButtonCode::O; break;
+			case kVK_ANSI_P: button = ButtonCode::P; break;
+			case kVK_ANSI_Q: button = ButtonCode::Q; break;
+			case kVK_ANSI_R: button = ButtonCode::R; break;
+			case kVK_ANSI_S: button = ButtonCode::S; break;
+			case kVK_ANSI_T: button = ButtonCode::T; break;
+			case kVK_ANSI_U: button = ButtonCode::U; break;
+			case kVK_ANSI_V: button = ButtonCode::V; break;
+			case kVK_ANSI_W: button = ButtonCode::W; break;
+			case kVK_ANSI_X: button = ButtonCode::X; break;
+			case kVK_ANSI_Y: button = ButtonCode::Y; break;
+			case kVK_ANSI_Z: button = ButtonCode::Z; break;
+			case kVK_ANSI_0: button = ButtonCode::Key0; break;
+			case kVK_ANSI_1: button = ButtonCode::Key1; break;
+			case kVK_ANSI_2: button = ButtonCode::Key2; break;
+			case kVK_ANSI_3: button = ButtonCode::Key3; break;
+			case kVK_ANSI_4: button = ButtonCode::Key4; break;
+			case kVK_ANSI_5: button = ButtonCode::Key5; break;
+			case kVK_ANSI_6: button = ButtonCode::Key6; break;
+			case kVK_ANSI_7: button = ButtonCode::Key7; break;
+			case kVK_ANSI_8: button = ButtonCode::Key8; break;
+			case kVK_ANSI_9: button = ButtonCode::Key9; break;
+			case kVK_ANSI_Equal: button = ButtonCode::Equals; break;
+			case kVK_ANSI_Minus: button = ButtonCode::Minus; break;
+			case kVK_ANSI_RightBracket: button = ButtonCode::RightBracket; break;
+			case kVK_ANSI_LeftBracket: button = ButtonCode::LeftBracket; break;
+			case kVK_ANSI_Quote: button = ButtonCode::Apostrophe; break;
+			case kVK_ANSI_Semicolon: button = ButtonCode::Semicolon; break;
+			case kVK_ANSI_Backslash: button = ButtonCode::Backslash; break;
+			case kVK_ANSI_Comma: button = ButtonCode::Comma; break;
+			case kVK_ANSI_Slash: button = ButtonCode::Slash; break;
+			case kVK_ANSI_Period: button = ButtonCode::Period; break;
+			case kVK_ANSI_Grave: button = ButtonCode::Grave; break;
+			case kVK_ANSI_KeypadDecimal: button = ButtonCode::NumpadDecimal; break;
+			case kVK_ANSI_KeypadMultiply: button = ButtonCode::NumpadMultiply; break;
+			case kVK_ANSI_KeypadPlus: button = ButtonCode::NumpadPlus; break;
+			case kVK_ANSI_KeypadClear: button = ButtonCode::NumLock; break;
+			case kVK_ANSI_KeypadDivide: button = ButtonCode::NumpadDivide; break;
+			case kVK_ANSI_KeypadEnter: button = ButtonCode::NumpadEnter; break;
+			case kVK_ANSI_KeypadMinus: button = ButtonCode::NumpadMinus; break;
+			case kVK_ANSI_KeypadEquals: button = ButtonCode::NumadEquals; break;
+			case kVK_ANSI_Keypad0: button = ButtonCode::Numpad0; break;
+			case kVK_ANSI_Keypad1: button = ButtonCode::Numpad1; break;
+			case kVK_ANSI_Keypad2: button = ButtonCode::Numpad2; break;
+			case kVK_ANSI_Keypad3: button = ButtonCode::Numpad3; break;
+			case kVK_ANSI_Keypad4: button = ButtonCode::Numpad4; break;
+			case kVK_ANSI_Keypad5: button = ButtonCode::Numpad5; break;
+			case kVK_ANSI_Keypad6: button = ButtonCode::Numpad6; break;
+			case kVK_ANSI_Keypad7: button = ButtonCode::Numpad7; break;
+			case kVK_ANSI_Keypad8: button = ButtonCode::Numpad8; break;
+			case kVK_ANSI_Keypad9: button = ButtonCode::Numpad9; break;
+			case kVK_Return: button = ButtonCode::Enter; break;
+			case kVK_Tab: button = ButtonCode::Tab; break;
+			case kVK_Space: button = ButtonCode::Space; break;
+			case kVK_Delete: button = ButtonCode::Backspace; break;
+			case kVK_Escape: button = ButtonCode::Escape; break;
+			case kVK_Command: button = ButtonCode::LeftWindows; break;
+			case kVK_RightCommand: button = ButtonCode::RightWindows; break;
+			case kVK_Shift: button = ButtonCode::LeftShift; break;
+			case kVK_CapsLock: button = ButtonCode::CapsLock; break;
+			case kVK_Option: button = ButtonCode::LeftAlt; break;
+			case kVK_Control: button = ButtonCode::LeftControl; break;
+			case kVK_RightShift: button = ButtonCode::RightShift; break;
+			case kVK_RightOption: button = ButtonCode::RightAlt; break;
+			case kVK_RightControl: button = ButtonCode::RightControl; break;
+			case kVK_ISO_Section: button = ButtonCode::OEM102; break;
+			case kVK_JIS_Yen: button = ButtonCode::Yen; break;
+			case kVK_JIS_Underscore: button = ButtonCode::Underline; break;
+			case kVK_JIS_KeypadComma: button = ButtonCode::NumpadComma; break;
+			case kVK_JIS_Kana: button = ButtonCode::Kana; break;
+			case kVK_JIS_Eisu: button = ButtonCode::Kanji; break;
+			case kVK_VolumeUp: button = ButtonCode::VolumeUp; break;
+			case kVK_VolumeDown: button = ButtonCode::VolumeDown; break;
+			case kVK_Mute: button = ButtonCode::Mute; break;
+			case kVK_Help: button = ButtonCode::Insert; break;
+			case kVK_Home: button = ButtonCode::Home; break;
+			case kVK_PageUp: button = ButtonCode::PageUp; break;
+			case kVK_ForwardDelete: button = ButtonCode::Delete; break;
+			case kVK_End: button = ButtonCode::End; break;
+			case kVK_PageDown: button = ButtonCode::PageDown; break;
+			case kVK_LeftArrow: button = ButtonCode::ArrowLeft; break;
+			case kVK_RightArrow: button = ButtonCode::ArrowRight; break;
+			case kVK_DownArrow: button = ButtonCode::ArrowDown; break;
+			case kVK_UpArrow: button = ButtonCode::ArrowUp; break;
+			case kVK_F1: button = ButtonCode::F1; break;
+			case kVK_F2: button = ButtonCode::F2; break;
+			case kVK_F3: button = ButtonCode::F3; break;
+			case kVK_F4: button = ButtonCode::F4; break;
+			case kVK_F5: button = ButtonCode::F5; break;
+			case kVK_F6: button = ButtonCode::F6; break;
+			case kVK_F7: button = ButtonCode::F7; break;
+			case kVK_F8: button = ButtonCode::F8; break;
+			case kVK_F9: button = ButtonCode::F9; break;
+			case kVK_F10: button = ButtonCode::F10; break;
+			case kVK_F11: button = ButtonCode::F11; break;
+			case kVK_F12: button = ButtonCode::F12; break;
+			case kVK_F13: button = ButtonCode::F13; break;
+			case kVK_F14: button = ButtonCode::F14; break;
+			case kVK_F15: button = ButtonCode::F15; break;
+			default: return;
+			}
+
+			MacOSPlatform::OnButtonChanged(button, pressed, timestamp);
+		}
+	}
+}
 
 /** Application implementation that overrides the terminate logic with custom shutdown, and tracks Esc key presses. */
 @interface BSApplication : NSApplication
@@ -27,6 +158,56 @@
 
 -(void)sendEvent:(NSEvent *)event
 {
+	static Class engineWindowClass = NSClassFromString(@"BSWindow");
+	if(self.active && [event.window isKindOfClass:engineWindowClass])
+	{
+		const b3d::u64 timestamp = (b3d::u64)(event.timestamp * 1000.0);
+		switch(event.type)
+		{
+		case NSEventTypeKeyDown:
+		case NSEventTypeKeyUp:
+			b3d::SendKeyEvent(event.keyCode, event.type == NSEventTypeKeyDown, timestamp);
+			break;
+		case NSEventTypeFlagsChanged:
+		{
+			const NSUInteger flags = event.modifierFlags;
+			b3d::SendKeyEvent(kVK_Shift, (flags & NX_DEVICELSHIFTKEYMASK) != 0, timestamp);
+			b3d::SendKeyEvent(kVK_RightShift, (flags & NX_DEVICERSHIFTKEYMASK) != 0, timestamp);
+			b3d::SendKeyEvent(kVK_Control, (flags & NX_DEVICELCTLKEYMASK) != 0, timestamp);
+			b3d::SendKeyEvent(kVK_RightControl, (flags & NX_DEVICERCTLKEYMASK) != 0, timestamp);
+			b3d::SendKeyEvent(kVK_Option, (flags & NX_DEVICELALTKEYMASK) != 0, timestamp);
+			b3d::SendKeyEvent(kVK_RightOption, (flags & NX_DEVICERALTKEYMASK) != 0, timestamp);
+			b3d::SendKeyEvent(kVK_Command, (flags & NX_DEVICELCMDKEYMASK) != 0, timestamp);
+			b3d::SendKeyEvent(kVK_RightCommand, (flags & NX_DEVICERCMDKEYMASK) != 0, timestamp);
+			b3d::SendKeyEvent(kVK_CapsLock, (flags & NSEventModifierFlagCapsLock) != 0, timestamp);
+			break;
+		}
+		case NSEventTypeLeftMouseDown:
+		case NSEventTypeRightMouseDown:
+		case NSEventTypeOtherMouseDown:
+		case NSEventTypeLeftMouseUp:
+		case NSEventTypeRightMouseUp:
+		case NSEventTypeOtherMouseUp:
+			if(event.buttonNumber >= 0 && event.buttonNumber < (NSInteger)b3d::ButtonCode::MouseKeyCount)
+			{
+				const bool pressed = event.type == NSEventTypeLeftMouseDown || event.type == NSEventTypeRightMouseDown || event.type == NSEventTypeOtherMouseDown;
+				b3d::MacOSPlatform::OnButtonChanged((b3d::ButtonCode)((b3d::u32)b3d::ButtonCode::MouseLeft + event.buttonNumber), pressed, timestamp);
+			}
+			break;
+		case NSEventTypeMouseMoved:
+		case NSEventTypeLeftMouseDragged:
+		case NSEventTypeRightMouseDragged:
+		case NSEventTypeOtherMouseDragged:
+			b3d::MacOSPlatform::OnMouseMoved((float)event.deltaX, (float)event.deltaY, 0.0f);
+			break;
+		case NSEventTypeScrollWheel:
+			b3d::MacOSPlatform::OnMouseMoved(0.0f, 0.0f, (float)event.deltaY);
+			break;
+		default:
+			break;
+		}
+	}
+
 	// Handle Esc & Tab key here, as it doesn't seem to be reported elsewhere
 	if([event type] == NSEventTypeKeyDown)
 	{
@@ -584,6 +765,9 @@ namespace b3d
 	Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::OnPointerButtonPressed;
 	Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::OnPointerButtonReleased;
 	Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::OnPointerDoubleClick;
+	Event<void(ButtonCode, bool, u64)> MacOSPlatform::OnButtonChanged;
+	Event<void(float, float, float)> MacOSPlatform::OnMouseMoved;
+
 	Event<void(InputCommandType)> Platform::OnInputCommand;
 	Event<void(float)> Platform::OnMouseWheelScrolled;
 	Event<void(u32)> Platform::OnCharInput;
