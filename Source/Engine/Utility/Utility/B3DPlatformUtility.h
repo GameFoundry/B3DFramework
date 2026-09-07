@@ -40,6 +40,9 @@ namespace b3d
 	class B3D_EXPORT PlatformUtility
 	{
 	public:
+		/** Returns whether a debugger is currently attached to this process. */
+		static bool IsDebuggerAttached();
+
 		/**
 		 * Terminates the current process.
 		 *

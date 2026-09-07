@@ -15,6 +15,11 @@ using namespace b3d;
 
 GPUInfo PlatformUtility::sGPUInfo;
 
+bool PlatformUtility::IsDebuggerAttached()
+{
+	return ::IsDebuggerPresent() != FALSE;
+}
+
 void PlatformUtility::Terminate(bool force)
 {
 	if(!force)

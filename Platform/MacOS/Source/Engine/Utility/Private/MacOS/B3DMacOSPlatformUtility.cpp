@@ -4,11 +4,26 @@
 #include "Utility/B3DPlatformUtility.h"
 #include <uuid/uuid.h>
 #include <sys/sysctl.h>
+#include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
 
 using namespace b3d;
 
 GPUInfo PlatformUtility::sGPUInfo;
+
+bool PlatformUtility::IsDebuggerAttached()
+{
+	int selectors[4];
+	selectors[0] = CTL_KERN;
+	selectors[1] = KERN_PROC;
+	selectors[2] = KERN_PROC_PID;
+	selectors[3] = getpid();
+
+	kinfo_proc processInformation;
+	size_t processInformationSize = sizeof(processInformation);
+	return sysctl(selectors, 4, &processInformation, &processInformationSize, nullptr, 0) == 0
+		&& processInformationSize == sizeof(processInformation) && (processInformation.kp_proc.p_flag & P_TRACED) != 0;
+}
 
 void PlatformUtility::Terminate(bool force)
 {

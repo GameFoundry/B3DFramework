@@ -3,6 +3,7 @@
 #include "B3DUtilityPrerequisites.h"
 #include "Utility/B3DPlatformUtility.h"
 #include <stdlib.h>
+#include <cstdio>
 #include <uuid/uuid.h>
 #include <sys/utsname.h>
 #include <unistd.h>
@@ -66,6 +67,28 @@ extern "C" U_EXPORT const ICU_Data_Header U_ICUDATA_ENTRY_POINT = {
 };
 
 GPUInfo PlatformUtility::sGPUInfo;
+
+bool PlatformUtility::IsDebuggerAttached()
+{
+	FILE* statusFile = std::fopen("/proc/self/status", "r");
+	if(statusFile == nullptr)
+		return false;
+
+	char line[256];
+	bool isDebuggerAttached = false;
+	while(std::fgets(line, sizeof(line), statusFile) != nullptr)
+	{
+		unsigned int tracerProcessId;
+		if(std::sscanf(line, "TracerPid: %u", &tracerProcessId) == 1)
+		{
+			isDebuggerAttached = tracerProcessId != 0;
+			break;
+		}
+	}
+
+	std::fclose(statusFile);
+	return isDebuggerAttached;
+}
 
 void PlatformUtility::Terminate(bool force)
 {
