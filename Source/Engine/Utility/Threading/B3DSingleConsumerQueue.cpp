@@ -8,7 +8,7 @@
 using namespace b3d;
 
 SingleConsumerQueue::SingleConsumerQueue()
-	:mCommandCompletedSignalEvent(SignalEvent::Mode::AutomaticallyReset)
+	:mRunCompletedSignalEvent(B3DMakeShared<SignalEvent>())
 {
 	mCommandQueue = B3DNew<Queue<QueuedCommand>>();
 }
@@ -30,6 +30,7 @@ SingleConsumerQueue::~SingleConsumerQueue()
 
 void SingleConsumerQueue::RunUntilShutdown()
 {
+	const TShared<SignalEvent> runCompleted = mRunCompletedSignalEvent;
 	mThreadId = Thread::GetCurrentThreadId();
 	mSchedulerThread = SchedulerThread::Get();
 
@@ -45,11 +46,13 @@ void SingleConsumerQueue::RunUntilShutdown()
 		Lock lock(mCommandQueueMutex);
 		mCommandAddedSignal.Wait(lock, fnIsNotEmpty);
 	}
+
+	runCompleted->Signal();
 }
 
 void SingleConsumerQueue::ScheduleRunUntilShutdown(Scheduler& scheduler, bool runOnCallingThread, Milliseconds yieldInterval, bool blockUntilDone)
 {
-	TShared<SignalEvent> isDone = B3DMakeShared<SignalEvent>();
+	const TShared<SignalEvent> isDone = mRunCompletedSignalEvent;
 
 	auto fnRun = [this, yieldInterval, &scheduler, isDone](const auto& run)
 	{
@@ -93,7 +96,10 @@ void SingleConsumerQueue::ScheduleRunUntilShutdown(Scheduler& scheduler, bool ru
 
 void SingleConsumerQueue::PostRequestShutdownCommand(bool waitUntilComplete)
 {
-	PostCommand([this]() { mIsShutdownRequested = true; }, "Request shutdown", waitUntilComplete);
+	PostCommand([this]() { mIsShutdownRequested = true; }, "Request shutdown", false);
+
+	if(waitUntilComplete)
+		mRunCompletedSignalEvent->Wait();
 }
 
 void SingleConsumerQueue::PostCommand(Function<void()>&& callback, const char* debugName, bool waitUntilComplete, const String& extraInformation)
@@ -196,6 +202,11 @@ bool SingleConsumerQueue::RunUntilIdle(TimePoint startTime, Milliseconds timeout
 				}
 				
 				mCommandQueue = commandsToProcess;
+			}
+			else
+			{
+				Lock lock(mCommandQueueMutex);
+				mEmptyCommandQueues.push(commandsToProcess);
 			}
 
 			return true;

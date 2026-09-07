@@ -52,7 +52,7 @@ namespace b3d
 		/** Posts a command for execution on the queue. Optionally blocks the calling fiber/thread until the command completes. Thread safe. */
 		void PostCommand(Function<void()>&& callback, const char* debugName = nullptr, bool waitUntilComplete = false, const String& extraInformation = StringUtility::kBlank);
 
-		/** Posts a special command that requests shutdown. Optionally blocks the calling fiber/thread until the command completes. Thread safe. */
+		/** Posts a shutdown request. When waiting, blocks until the consumer has stopped accessing the queue, allowing it to be destroyed. Thread safe. */
 		void PostRequestShutdownCommand(bool waitUntilComplete);
 
 		/**
@@ -97,7 +97,7 @@ namespace b3d
 		bool mIsShutdownRequested = false;
 		Mutex mCommandQueueMutex;
 		Signal mCommandAddedSignal;
-		SignalEvent mCommandCompletedSignalEvent;
+		TShared<SignalEvent> mRunCompletedSignalEvent;
 	};
 
 	/** @} */
