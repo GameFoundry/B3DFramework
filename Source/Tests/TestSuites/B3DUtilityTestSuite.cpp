@@ -28,19 +28,21 @@
 
 using namespace b3d;
 
-/** Verifies stack allocation from TLS destructors on either side of allocator cleanup. */
+/**
+ * Verifies stack allocation from TLS destructors on either side of allocator cleanup.
+ *
+ * Which side each instance ends up on depends on the platform. MSVC destroys thread-local objects per module, so the
+ * allocator's own cleanup guard (living in a different binary) can run either before or after these checks.
+ */
 class StackAllocatorExitCheck
 {
 public:
-	StackAllocatorExitCheck(std::atomic<bool>& success, std::atomic<u32>& completed, bool afterCleanup)
-		: mSuccess(success), mCompleted(completed), mAfterCleanup(afterCleanup), mAllocations(MemoryCounter::GetAllocationCount()), mFrees(MemoryCounter::GetFreeCount())
+	StackAllocatorExitCheck(std::atomic<bool>& success, std::atomic<u32>& completed)
+		: mSuccess(success), mCompleted(completed)
 	{}
 
 	~StackAllocatorExitCheck()
 	{
-		if(mAfterCleanup && MemoryCounter::GetAllocationCount() - mAllocations != MemoryCounter::GetFreeCount() - mFrees)
-			mSuccess = false;
-
 		u8* data = MemStack::Alloc(3 * 1024 * 1024);
 		data[0] = 71;
 		data[3 * 1024 * 1024 - 1] = 93;
@@ -51,17 +53,12 @@ public:
 		MemStack::DeallocLast(nestedData);
 		MemStack::DeallocLast(data);
 
-		if(mAfterCleanup && MemoryCounter::GetAllocationCount() - mAllocations != MemoryCounter::GetFreeCount() - mFrees)
-			mSuccess = false;
 		mCompleted++;
 	}
 
 private:
 	std::atomic<bool>& mSuccess;
 	std::atomic<u32>& mCompleted;
-	bool mAfterCleanup;
-	u64 mAllocations;
-	u64 mFrees;
 };
 
 struct DebugOctreeElement
@@ -199,11 +196,11 @@ void UtilityTestSuite::TestAutomaticStackAllocator()
 	{
 		threads[threadIndex] = std::thread([&success, &completed, threadIndex]()
 		{
-			thread_local StackAllocatorExitCheck afterCleanup(success, completed, true);
+			thread_local StackAllocatorExitCheck afterCleanup(success, completed);
 			(void)afterCleanup;
 			u8* outer = MemStack::Alloc(31);
 			std::memset(outer, (int)threadIndex, 31);
-			thread_local StackAllocatorExitCheck beforeCleanup(success, completed, false);
+			thread_local StackAllocatorExitCheck beforeCleanup(success, completed);
 			(void)beforeCleanup;
 
 			for(u32 iteration = 0; iteration < 16; iteration++)
