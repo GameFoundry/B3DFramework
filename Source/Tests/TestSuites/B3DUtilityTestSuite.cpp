@@ -16,6 +16,7 @@
 #include "Utility/B3DPool.h"
 #include "Allocators/B3DSegregatedFitAllocator.h"
 #include "Allocators/B3DTlsfAllocator.h"
+#include "Allocators/B3DStackAllocator.h"
 #include "Utility/B3DSpatialTree.h"
 #include "Utility/B3DBitstream.h"
 #include "Utility/B3DQueue.h"

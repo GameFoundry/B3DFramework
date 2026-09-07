@@ -481,7 +481,7 @@ namespace b3d
 	/** @} */
 } // namespace b3d
 
-#include "Allocators/B3DStackAlloc.h"
+#include "Allocators/B3DStackAllocator.h"
 #include "Allocators/B3DFreeAlloc.h"
 #include "Allocators/B3DFrameAllocator.h"
 #include "Allocators/B3DStaticAlloc.h"

@@ -380,8 +380,6 @@ FolderMonitor::~FolderMonitor()
 
 void FolderMonitor::WorkerThreadMain()
 {
-	MemStack::BeginThread();
-
 	while(true)
 	{
 		// Start up low level monitor if needed
@@ -456,8 +454,6 @@ void FolderMonitor::WorkerThreadMain()
 				break;
 		}
 	}
-
-	MemStack::EndThread();
 }
 
 void FolderMonitor::HandleNotifications(FileNotifyInfo& notifyInfo)

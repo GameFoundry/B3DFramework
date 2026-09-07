@@ -4,7 +4,7 @@
 #include "Testing/B3DTestSuiteRegistry.h"
 #include "Utility/B3DCommandLine.h"
 #include "Utility/B3DDynamicLibrary.h"
-#include "Allocators/B3DStackAlloc.h"
+#include "Allocators/B3DStackAllocator.h"
 #include "String/B3DString.h"
 
 #include <iostream>
@@ -64,9 +64,6 @@ int main(int argc, char* argv[])
 
 	CrashHandler::StartUp(crashSettings);
 	CommandLine::Initialize(argc, argv);
-
-	// Utility-layer tests run before Application::StartUp, so the main thread's stack allocator must be set up here
-	MemStack::BeginThread();
 
 	String formatStr = CommandLine::GetParameterValue("test-output-format", "console");
 	String outputPathStr = CommandLine::GetParameterValue("test-output-path", "");
@@ -140,7 +137,6 @@ int main(int argc, char* argv[])
 	}
 
 	TestSuiteRegistry::ShutDown();
-	MemStack::EndThread();
 	CrashHandler::ShutDown();
 
 	return exitCode;
