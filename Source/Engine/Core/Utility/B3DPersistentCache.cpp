@@ -114,7 +114,7 @@ void PersistentCache::Initialize(const Path& cacheFolder)
 				}
 
 				TShared<Package> package = Package::Load(path);
-				if(!B3D_ENSURE(package != nullptr))
+				if(!B3D_ENSURE_LOG(package != nullptr, "Skipping unavailable cache package '{0}'.", path))
 					return true;
 
 				bool isPackageOutOfDate = false;
@@ -291,10 +291,22 @@ void PersistentCache::WriteDirtyMetaData()
 		if(!writeOperation.has_value())
 			continue;
 
+		bool isMetaDataSaved = false;
+		ScopeGuard keepMetaDataDirtyOnFailure([this, &entryPath, &isMetaDataSaved]()
+		{
+			if(isMetaDataSaved)
+				return;
+
+			Lock lock(mMutex);
+			auto found = mEntries.find(entryPath);
+			if(found != mEntries.end())
+				found->second.IsMetaDataOutOfDate = true;
+		});
+
 		const Path pathToPackage = GetPackagePathForEntry(entryPath);
 
 		const TShared<Package> package = Package::Load(pathToPackage);
-		if(!B3D_ENSURE(package != nullptr))
+		if(!B3D_ENSURE_LOG(package != nullptr, "Deferring metadata update for unavailable cache package '{0}'.", pathToPackage))
 			continue;
 
 		// Make sure to do this after Package::Load above, so we don't get a sharing violation when attempting to read a file being opened for write.
@@ -332,7 +344,7 @@ void PersistentCache::WriteDirtyMetaData()
 
 		if(package->Save(packageDataStream, savePackageOptions))
 		{
-			B3D_ENSURE(packageDataStream->Close());
+			isMetaDataSaved = B3D_ENSURE(packageDataStream->Close());
 		}
 		else
 		{
@@ -355,7 +367,7 @@ void PersistentCache::WriteDirtyMetaData()
 			}
 
 			FileSystem::Remove(pathToPackage);
-			B3D_ENSURE(FileSystem::Move(temporarySavePath, pathToPackage));
+			isMetaDataSaved = B3D_ENSURE(FileSystem::Move(temporarySavePath, pathToPackage));
 		}
 	}
 
