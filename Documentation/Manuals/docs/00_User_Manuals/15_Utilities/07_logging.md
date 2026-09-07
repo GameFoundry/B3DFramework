@@ -18,6 +18,19 @@ if(variableX != 5)
 
 All logged messages will be output to the standard console output, as well as the attached debugger output (if any).
 
+## Recoverable checks
+
+**B3D_ENSURE(expression)** evaluates the expression once and returns its boolean result. A failed check logs an error and continues execution. If a debugger is attached, it pauses at a resumable breakpoint before returning false. **B3D_ENSURE_LOG(expression, format, ...)** also includes a formatted error message.
+
+**B3D_ENSURE_ONCE** and **B3D_ENSURE_ONCE_LOG** report and break only on the first failure at each call site. They still evaluate the expression and return its result on subsequent calls. Use **PlatformUtility::IsDebuggerAttached()** to query whether the process currently has a debugger attached.
+
+~~~~~~~~~~~~~{.cpp}
+if(!B3D_ENSURE_LOG(resource != nullptr, "Required resource is unavailable"))
+	return;
+~~~~~~~~~~~~~
+
+## Saving and categorizing logs
+
 Messages are also saved internally, and can be output to a either .html file or to a text file by calling @b3d::Debug::SaveLog.
 
 ~~~~~~~~~~~~~{.cpp}

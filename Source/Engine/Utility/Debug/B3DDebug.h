@@ -215,7 +215,7 @@ namespace b3d
 				B3D_EXPAND_VA(B3D_LOG(Error, LogUncategorized, __VA_ARGS__)); \
 				return true; \
 			} \
-			return false; }) && ([]() { B3D_BREAK(); }(), false)))
+			return false; }) && ([]() { if (::b3d::PlatformUtility::IsDebuggerAttached()) B3D_BREAK(); }(), false)))
 
 	#define B3D_ENSURE(InExpression) B3D_ENSURE_IMPLEMENTATION(, true, InExpression,"")
 	#define B3D_ENSURE_LOG(InExpression, InFormat, ...) B3D_ENSURE_IMPLEMENTATION(&, true, InExpression, InFormat, ##__VA_ARGS__)

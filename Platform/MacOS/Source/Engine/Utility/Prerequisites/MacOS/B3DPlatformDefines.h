@@ -18,11 +18,7 @@
 #	define B3D_DEBUG 0
 #endif
 
-#if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64 || B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_32
-#	define B3D_BREAK() __asm__("int $3")
-#else
-#	define B3D_BREAK() __builtin_trap()
-#endif
+#define B3D_BREAK() __builtin_debugtrap()
 
 #define B3D_CODE_SECTION(name) __attribute__((section("__TEXT,__" name ",regular,pure_instructions")))
 
