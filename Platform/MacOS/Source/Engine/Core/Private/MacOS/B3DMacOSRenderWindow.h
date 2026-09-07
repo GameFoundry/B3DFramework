@@ -50,6 +50,7 @@ namespace b3d
 
 		TShared<render::RenderProxy> CreateRenderProxy() const override;
 		void DoOnWindowMovedOrResized() override;
+		void DoOnDPIScaleChanged() override;
 
 		/**
 		 * Changes the display mode (resolution, refresh rate) of the display with the specified Core Graphics display ID.
