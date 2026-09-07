@@ -9,6 +9,10 @@ Stack allocator allows you to allocate memory quickly and with zero fragmentatio
 
 Use @b3d::B3DStackAllocate / @b3d::B3DStackFree or @b3d::B3DStackNew / @b3d::B3DStackDelete to allocate/free memory using the stack allocator.
 
+Each OS thread has an independent stack that is available automatically. Backing blocks are allocated on demand and released at thread exit. Allocation from TLS destructors is supported; after thread cleanup, backing blocks are released as soon as the stack becomes empty.
+
+Free allocations on the same thread, in reverse order, before that thread exits. The stack belongs to the OS thread, not a fiber: do not keep stack allocations across a fiber yield that can interleave allocations from another fiber.
+
 ~~~~~~~~~~~~~{.cpp}
 u8* buffer = B3DStackAllocate(1024);
 ... do something with buffer ...

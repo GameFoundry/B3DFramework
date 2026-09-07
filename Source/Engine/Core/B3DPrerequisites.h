@@ -983,21 +983,6 @@ namespace b3d
 	template <typename T, typename A = StdAlloc<T, ProfilerAllocatorTag>>
 	using ProfilerStack = std::stack<T, std::deque<T, A>>;
 
-	/** Default thread policy for the framework. Performs special startup/shutdown on threads managed by thread pool. */
-	class B3D_EXPORT ThreadDefaultPolicy
-	{
-	public:
-		static void OnThreadStarted(const String& name)
-		{
-			MemStack::BeginThread();
-		}
-
-		static void OnThreadEnded(const String& name)
-		{
-			MemStack::EndThread();
-		}
-	};
-
 #define BS_ALL_LAYERS 0xFFFFFFFFFFFFFFFF
 
 	/** Used for marking a CoreObject dependency as dirty. */

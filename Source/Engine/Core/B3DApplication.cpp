@@ -213,7 +213,6 @@ Application::~Application()
 	ConfigVariableManager::ShutDown();
 
 	ThreadPool::ShutDown();
-	MemStack::EndThread();
 	Platform::ShutDown();
 	FileSystem::ShutDown();
 
@@ -224,8 +223,7 @@ void Application::OnStartUp()
 {
 	FileSystem::StartUp();
 	Platform::StartUp();
-	MemStack::BeginThread();
-	ThreadPool::StartUp<TThreadPool<ThreadDefaultPolicy>>((Thread::GetLogicalCoreCount()));
+	ThreadPool::StartUp<TThreadPool<>>((Thread::GetLogicalCoreCount()));
 
 	mMainThreadScheduler.BindToCurrentThread();
 

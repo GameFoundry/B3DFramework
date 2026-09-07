@@ -28,7 +28,6 @@ int main(int __argc, char* __argv[])
 		return 0;
 	}
 
-	MemStack::BeginThread();
 	MonoManager::StartUp();
 
 	TShared<EngineScriptLibrary> library = B3DMakeShared<EngineScriptLibrary>();
@@ -42,7 +41,6 @@ int main(int __argc, char* __argv[])
 	gameAssembly.Invoke("Program::Start");
 
 	MonoManager::ShutDown();
-	MemStack::EndThread();
 
 	return 0;
 }

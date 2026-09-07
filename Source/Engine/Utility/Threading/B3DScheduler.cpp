@@ -171,8 +171,6 @@ void SchedulerThread::Start()
 
 			mThread = Thread(std::move(affinity), [this]
 			{
-				MemStack::BeginThread();
-
 				Thread::SetName("Thread<%.2d>", int(Id));
 
 				if (const auto& initializer = mOwnerScheduler->GetInformation().ThreadInitializeCallback)
@@ -191,8 +189,6 @@ void SchedulerThread::Start()
 
 				mMainFiber.reset();
 				Current = nullptr;
-
-				MemStack::EndThread();
 			});
 
 			break;
