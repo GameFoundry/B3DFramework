@@ -47,6 +47,12 @@ cd Framework/Scripts
 
 The script clones or updates the upstream source, configures CMake, builds, and installs the result into `Framework/Dependencies/<DepName>/` in the layout the framework expects.
 
+The scripts run under bash. On Windows, CMake uses the bash shipped with Git for Windows.
+
+### Automatic builds during CMake configure
+
+Each bundled dependency folder carries a `.reqversion` file (the version the source tree needs) and a `.version` file (the version on disk). When configuring, CMake compares the two and, for a missing or outdated dependency, downloads the matching prebuilt package. If no package exists for the required version, CMake runs the dependency's build script itself instead of failing the configure, and stamps `.version` with the required version once the script succeeds. Setting `B3D_USE_BUNDLED_LIBRARIES=OFF` skips the download entirely and always builds an outdated dependency from source, unless you point `<DepName>_INSTALL_DIR` at your own copy.
+
 ### Overriding the CMake generator
 
 The scripts require CMake 4.2 or newer. The default generator is picked by `B3DBuildCommon.sh` (`Visual Studio 18 2026` with the v145 toolset on Windows, `Ninja Multi-Config` on macOS/Linux). To use a different generator, set the `B3D_CMAKE_GENERATOR` environment variable before running the script:

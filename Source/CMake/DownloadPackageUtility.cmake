@@ -5,46 +5,56 @@
 set(B3D_PREBUILT_DEPENDENCIES_URL "https://dependencies.banshee3d.io" CACHE STRING "The location that binary packages (prebuilt dependencies, built-in assets) will be pulled from.")
 mark_as_advanced(B3D_PREBUILT_DEPENDENCIES_URL)
 
-# Downloads and extracts a package if the version is out of date.
-# Compares .reqversion and .version files in the target folder.
+# Reads the version stamps of a package folder and reports whether the package needs updating.
+# Compares .reqversion (the version the source tree requires) and .version (the version present on disk).
+#
+# @param	targetFolder		Folder holding the package (e.g. Dependencies/XShaderCompiler)
+# @param	packageName			Name used in status messages
+# @param	outRequiredVersion	Receives the required version, or an empty string if the folder has no .reqversion
+# @param	outNeedsUpdate		Receives TRUE if the package is missing or older than required, FALSE otherwise
+function(B3DCheckPackageVersion targetFolder packageName outRequiredVersion outNeedsUpdate)
+	set(versionFile ${targetFolder}/.version)
+	set(reqVersionFile ${targetFolder}/.reqversion)
+
+	set(${outRequiredVersion} "" PARENT_SCOPE)
+	set(${outNeedsUpdate} FALSE PARENT_SCOPE)
+
+	if(NOT EXISTS ${reqVersionFile})
+		message(WARNING "No .reqversion file found in '${targetFolder}'. Skipping update check.")
+		return()
+	endif()
+
+	file(STRINGS ${reqVersionFile} requiredVersion)
+	set(${outRequiredVersion} ${requiredVersion} PARENT_SCOPE)
+
+	if(NOT EXISTS ${versionFile})
+		message(STATUS "Package '${packageName}' is missing (need v${requiredVersion}).")
+		set(${outNeedsUpdate} TRUE PARENT_SCOPE)
+		return()
+	endif()
+
+	file(STRINGS ${versionFile} currentVersion)
+	if(${requiredVersion} GREATER ${currentVersion})
+		message(STATUS "Package '${packageName}' is out of date (have v${currentVersion}, need v${requiredVersion}).")
+		set(${outNeedsUpdate} TRUE PARENT_SCOPE)
+	endif()
+endfunction()
+
+# Downloads a package archive and extracts it over the target folder. Does not check versions; see
+# B3DCheckPackageVersion for that. A failed download leaves the target folder untouched.
 # If the package contains a DataPackageRemovals.txt at its root, the paths it lists (relative to @p targetFolder)
 # are deleted from the target folder before the new contents are copied over.
 #
 # @param	targetFolder		Folder to extract contents into (e.g. Dependencies/XShaderCompiler)
 # @param	archivePrefix		Prefix for the archive name (version will be appended, e.g. XShaderCompiler_Win32)
 # @param	extractedFolderName	Name of the folder inside the archive (e.g. XShaderCompiler)
-function(B3DDownloadPackageIfNeeded targetFolder archivePrefix extractedFolderName)
-	set(versionFile ${targetFolder}/.version)
-	set(reqVersionFile ${targetFolder}/.reqversion)
-
-	# Check if .reqversion file exists
-	if(NOT EXISTS ${reqVersionFile})
-		message(WARNING "No .reqversion file found in '${targetFolder}'. Skipping update check.")
-		return()
-	endif()
-
-	# Read required version
-	file(STRINGS ${reqVersionFile} requiredVersion)
-
-	# Check if package needs to be downloaded
-	set(needsDownload FALSE)
-	if(NOT EXISTS ${versionFile})
-		message(STATUS "Package '${archivePrefix}' is missing. Downloading version ${requiredVersion}...")
-		set(needsDownload TRUE)
-	else()
-		file(STRINGS ${versionFile} currentVersion)
-		if(${requiredVersion} GREATER ${currentVersion})
-			message(STATUS "Package '${archivePrefix}' is out of date (have v${currentVersion}, need v${requiredVersion}). Downloading...")
-			set(needsDownload TRUE)
-		endif()
-	endif()
-
-	if(NOT needsDownload)
-		return()
-	endif()
+# @param	version				Version of the package to download
+# @param	outSucceeded		Receives TRUE if the package was downloaded and extracted, FALSE if the download failed
+function(B3DDownloadPackage targetFolder archivePrefix extractedFolderName version outSucceeded)
+	set(${outSucceeded} FALSE PARENT_SCOPE)
 
 	set(tempFolder ${B3D_FRAMEWORK_ROOT_FOLDER}/Temp)
-	set(archiveName ${archivePrefix}_${requiredVersion}.tar.gz)
+	set(archiveName ${archivePrefix}_${version}.tar.gz)
 	set(packageURL ${B3D_PREBUILT_DEPENDENCIES_URL}/${archiveName})
 
 	# Clean and create a temporary folder
@@ -58,7 +68,10 @@ function(B3DDownloadPackageIfNeeded targetFolder archivePrefix extractedFolderNa
 
 	list(GET DOWNLOAD_STATUS 0 statusCode)
 	if(NOT statusCode EQUAL 0)
-		message(FATAL_ERROR "Package failed to download from URL: ${packageURL}")
+		list(GET DOWNLOAD_STATUS 1 statusMessage)
+		message(STATUS "Package failed to download from URL: ${packageURL} (${statusMessage})")
+		execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${tempFolder})
+		return()
 	endif()
 
 	message(STATUS "Extracting ${archiveName}...")
@@ -112,29 +125,143 @@ function(B3DDownloadPackageIfNeeded targetFolder archivePrefix extractedFolderNa
 
 	# Clean up
 	execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${tempFolder})
+
+	set(${outSucceeded} TRUE PARENT_SCOPE)
+endfunction()
+
+# Downloads and extracts a package if the version is out of date. Fails the configure if the download fails.
+# Compares .reqversion and .version files in the target folder.
+#
+# @param	targetFolder		Folder to extract contents into (e.g. Dependencies/XShaderCompiler)
+# @param	archivePrefix		Prefix for the archive name (version will be appended, e.g. XShaderCompiler_Win32)
+# @param	extractedFolderName	Name of the folder inside the archive (e.g. XShaderCompiler)
+function(B3DDownloadPackageIfNeeded targetFolder archivePrefix extractedFolderName)
+	B3DCheckPackageVersion(${targetFolder} ${archivePrefix} requiredVersion needsUpdate)
+	if(NOT needsUpdate)
+		return()
+	endif()
+
+	B3DDownloadPackage(${targetFolder} ${archivePrefix} ${extractedFolderName} ${requiredVersion} downloaded)
+	if(NOT downloaded)
+		message(FATAL_ERROR "Failed to download package '${archivePrefix}' version ${requiredVersion}.")
+	endif()
+endfunction()
+
+#######################################################################################
+######################## Dependency build from source #################################
+#######################################################################################
+
+# Locates the shell that runs the dependency build scripts in Framework/Scripts. On Windows this must be the
+# bash shipped with Git for Windows, because the scripts rely on its MSYS environment; the WSL launcher at
+# System32/bash.exe would not work, so the system search path is deliberately skipped there.
+# Set B3D_DEPENDENCY_BUILD_SHELL in the cache to override the choice.
+#
+# @param	outShell		Receives the path to the shell executable. Fails the configure if no shell is found.
+function(B3DFindDependencyBuildShell outShell)
+	if(WIN32)
+		find_package(Git QUIET)
+
+		set(searchFolders "")
+		if(GIT_EXECUTABLE)
+			get_filename_component(gitFolder ${GIT_EXECUTABLE} DIRECTORY)
+			list(APPEND searchFolders ${gitFolder}/../bin ${gitFolder}/../../bin)
+		endif()
+		list(APPEND searchFolders "$ENV{ProgramFiles}/Git/bin" "$ENV{ProgramW6432}/Git/bin" "$ENV{LOCALAPPDATA}/Programs/Git/bin")
+
+		find_program(B3D_DEPENDENCY_BUILD_SHELL NAMES bash PATHS ${searchFolders} NO_DEFAULT_PATH
+			DOC "Shell used to run the dependency build scripts in Framework/Scripts (bash from Git for Windows).")
+	else()
+		find_program(B3D_DEPENDENCY_BUILD_SHELL NAMES bash
+			DOC "Shell used to run the dependency build scripts in Framework/Scripts.")
+	endif()
+	mark_as_advanced(B3D_DEPENDENCY_BUILD_SHELL)
+
+	if(NOT B3D_DEPENDENCY_BUILD_SHELL)
+		message(FATAL_ERROR "Cannot find bash, which is needed to run the dependency build scripts. "
+			"On Windows install Git for Windows, or point B3D_DEPENDENCY_BUILD_SHELL at a bash executable.")
+	endif()
+
+	set(${outShell} ${B3D_DEPENDENCY_BUILD_SHELL} PARENT_SCOPE)
+endfunction()
+
+# Builds a dependency from source by running its build script from Framework/Scripts, and stamps the dependency
+# folder with the required version once the script succeeds. The script clones the upstream source, builds it and
+# installs the result into the dependency folder, so this can take a long time. Fails the configure if the
+# script fails.
+#
+# @param	dependencyName		Name of the dependency (e.g. 'XShaderCompiler'), used for messages
+# @param	buildScript			File name of the build script in Framework/Scripts (e.g. 'B3DBuildShaderCompiler.sh')
+# @param	dependencyFolder	Folder the script installs the dependency into
+# @param	requiredVersion		Version written to the folder's .version file after a successful build
+function(B3DBuildDependencyFromSource dependencyName buildScript dependencyFolder requiredVersion)
+	set(scriptsFolder ${B3D_FRAMEWORK_ROOT_FOLDER}/Scripts)
+	if(NOT EXISTS ${scriptsFolder}/${buildScript})
+		message(FATAL_ERROR "Build script '${buildScript}' for dependency '${dependencyName}' not found in '${scriptsFolder}'.")
+	endif()
+
+	B3DFindDependencyBuildShell(shell)
+
+	# The scripts invoke 'cmake' by name. Put the running CMake first on the search path so the script uses it even
+	# when CMake is not on the user's PATH (e.g. an IDE-bundled CMake).
+	get_filename_component(cmakeFolder ${CMAKE_COMMAND} DIRECTORY)
+	if(WIN32)
+		set(scriptPath "${cmakeFolder};$ENV{PATH}")
+	else()
+		set(scriptPath "${cmakeFolder}:$ENV{PATH}")
+	endif()
+
+	# The scripts build for the host unless told otherwise.
+	set(scriptArgs "")
+	if(NOT B3D_PLATFORM STREQUAL B3D_HOST_PLATFORM)
+		list(APPEND scriptArgs --target ${B3D_PLATFORM})
+	endif()
+
+	message(STATUS "Building '${dependencyName}' from source with ${buildScript}. This can take a while...")
+	execute_process(
+		COMMAND ${CMAKE_COMMAND} -E env "PATH=${scriptPath}" ${shell} ./${buildScript} ${scriptArgs}
+		WORKING_DIRECTORY ${scriptsFolder}
+		RESULT_VARIABLE scriptResult
+	)
+
+	if(NOT scriptResult EQUAL 0)
+		message(FATAL_ERROR "Build script '${buildScript}' for dependency '${dependencyName}' failed (exit code ${scriptResult}). See the output above.")
+	endif()
+
+	# The script stamps .version relative to whatever was on disk before. The build satisfies the required version,
+	# so record that instead, otherwise the next configure would try to update the dependency again.
+	file(WRITE ${dependencyFolder}/.version "${requiredVersion}")
+	message(STATUS "Built '${dependencyName}' v${requiredVersion} from source.")
 endfunction()
 
 #######################################################################################
 ######################## Dependency functions #########################################
 #######################################################################################
 
-# Checks if a dependency is out of date and if so, downloads it.
-# Version is read from .reqversion file in the dependency folder.
+# Ensures a dependency is present and up to date. Version is read from the .reqversion file in the dependency folder.
+#
+# With bundled libraries enabled, an out-of-date dependency is updated by downloading its prebuilt package. If no
+# package is available for the required version, and the dependency has a build script, the dependency is built
+# from source instead. With bundled libraries disabled (B3D_USE_BUNDLED_LIBRARIES=OFF), no download is attempted
+# and an out-of-date dependency is always built from source, unless the user pointed ${dependencyName}_INSTALL_DIR
+# at their own copy.
 #
 # The prebuilt-archive suffix is the active platform (B3D_PLATFORM, e.g. Win32/Linux/MacOS),
 # resolved during platform discovery in Prerequisites.cmake.
 #
 # @param	dependencyName		Name of the dependency (e.g. 'XShaderCompiler', 'Mono', etc.)
-# @param	usePlatformFolder	(optional) If TRUE, the dependency lives in the active platform's Dependencies folder
-#								(Framework/Platform/<B3D_PLATFORM>/Dependencies), if FALSE the dependency lives in
+# @param	USE_PLATFORM_FOLDER	(optional) If present, the dependency lives in the active platform's Dependencies folder
+#								(Framework/Platform/<B3D_PLATFORM>/Dependencies), otherwise the dependency lives in
 #								the framework's global Dependencies folder.
+# @param	BUILD_SCRIPT		(optional) File name of the script in Framework/Scripts that builds the dependency
+#								from source (e.g. 'B3DBuildShaderCompiler.sh'). Without it the dependency can only be
+#								downloaded.
 function(B3DCheckAndUpdatePrebuiltDependency dependencyName)
-	set(usePlatformFolder FALSE)
-	if(${ARGC} GREATER 1 AND ARGV1)
-		set(usePlatformFolder TRUE)
+	cmake_parse_arguments(ARG "USE_PLATFORM_FOLDER" "BUILD_SCRIPT" "" ${ARGN})
+	if(ARG_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "B3DCheckAndUpdatePrebuiltDependency(${dependencyName}): unknown arguments '${ARG_UNPARSED_ARGUMENTS}'. Use USE_PLATFORM_FOLDER and/or BUILD_SCRIPT <script>.")
 	endif()
 
-	if(usePlatformFolder)
+	if(ARG_USE_PLATFORM_FOLDER)
 		if(NOT B3D_PLATFORM_${B3D_PLATFORM}_DEPENDENCIES_FOLDER)
 			message(FATAL_ERROR "Platform '${B3D_PLATFORM}' has no Dependencies folder; cannot update '${dependencyName}'.")
 		endif()
@@ -143,9 +270,48 @@ function(B3DCheckAndUpdatePrebuiltDependency dependencyName)
 		set(dependencyFolder ${B3D_FRAMEWORK_ROOT_FOLDER}/Dependencies/${dependencyName})
 	endif()
 
-	set(archivePrefix ${dependencyName}_${B3D_PLATFORM})
+	if(NOT B3D_USE_BUNDLED_LIBRARIES)
+		# Nothing to do for a dependency we cannot build, or one the user supplies themselves.
+		if(NOT ARG_BUILD_SCRIPT)
+			return()
+		endif()
 
-	B3DDownloadPackageIfNeeded(${dependencyFolder} ${archivePrefix} ${dependencyName})
+		if(${dependencyName}_INSTALL_DIR)
+			# The Find module spells the bundled folder with a '..' segment, so compare normalized paths.
+			set(installFolder ${${dependencyName}_INSTALL_DIR})
+			cmake_path(NORMAL_PATH installFolder)
+
+			set(bundledFolder ${dependencyFolder})
+			cmake_path(NORMAL_PATH bundledFolder)
+
+			if(NOT installFolder STREQUAL bundledFolder)
+				return()
+			endif()
+		endif()
+	endif()
+
+	B3DCheckPackageVersion(${dependencyFolder} ${dependencyName} requiredVersion needsUpdate)
+	if(NOT needsUpdate)
+		return()
+	endif()
+
+	if(B3D_USE_BUNDLED_LIBRARIES)
+		set(archivePrefix ${dependencyName}_${B3D_PLATFORM})
+		B3DDownloadPackage(${dependencyFolder} ${archivePrefix} ${dependencyName} ${requiredVersion} downloaded)
+		if(downloaded)
+			return()
+		endif()
+
+		if(NOT ARG_BUILD_SCRIPT)
+			message(FATAL_ERROR "Failed to download prebuilt package '${archivePrefix}' version ${requiredVersion}, and dependency '${dependencyName}' cannot be built from source.")
+		endif()
+
+		message(STATUS "No prebuilt package available for '${dependencyName}' v${requiredVersion}, building from source instead.")
+	else()
+		message(STATUS "Bundled libraries are disabled, building '${dependencyName}' from source.")
+	endif()
+
+	B3DBuildDependencyFromSource(${dependencyName} ${ARG_BUILD_SCRIPT} ${dependencyFolder} ${requiredVersion})
 endfunction()
 
 #######################################################################################

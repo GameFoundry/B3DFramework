@@ -90,10 +90,9 @@ configure_file(
 list(APPEND BS_SL_SRC ${BS_SL_SHADER_BACKENDS_GENERATED})
 source_group("Generated" FILES ${BS_SL_SHADER_BACKENDS_GENERATED})
 
-# Ensure pre-built binary dependencies are up to date
-if(B3D_USE_BUNDLED_LIBRARIES)
-	B3DCheckAndUpdatePrebuiltDependency(XShaderCompiler)
-endif()
+# Ensure the shader compiler dependency is up to date. Downloads the prebuilt package, or builds it from source when
+# no package is available or bundled libraries are disabled.
+B3DCheckAndUpdatePrebuiltDependency(XShaderCompiler BUILD_SCRIPT B3DBuildShaderCompiler.sh)
 
 # Find package
 find_package(XShaderCompiler)
