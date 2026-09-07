@@ -21,8 +21,48 @@
 #include "Utility/B3DBitstream.h"
 #include "Utility/B3DQueue.h"
 #include "Threading/B3DThread.h"
+#include "Threading/B3DSingleConsumerQueue.h"
+#include "Threading/B3DScheduler.h"
+
+#include <thread>
 
 using namespace b3d;
+
+/** Verifies stack allocation from TLS destructors on either side of allocator cleanup. */
+class StackAllocatorExitCheck
+{
+public:
+	StackAllocatorExitCheck(std::atomic<bool>& success, std::atomic<u32>& completed, bool afterCleanup)
+		: mSuccess(success), mCompleted(completed), mAfterCleanup(afterCleanup), mAllocations(MemoryCounter::GetAllocationCount()), mFrees(MemoryCounter::GetFreeCount())
+	{}
+
+	~StackAllocatorExitCheck()
+	{
+		if(mAfterCleanup && MemoryCounter::GetAllocationCount() - mAllocations != MemoryCounter::GetFreeCount() - mFrees)
+			mSuccess = false;
+
+		u8* data = MemStack::Alloc(3 * 1024 * 1024);
+		data[0] = 71;
+		data[3 * 1024 * 1024 - 1] = 93;
+		u8* nestedData = MemStack::Alloc(37);
+		std::memset(nestedData, 18, 37);
+		if(data[0] != 71 || data[3 * 1024 * 1024 - 1] != 93)
+			mSuccess = false;
+		MemStack::DeallocLast(nestedData);
+		MemStack::DeallocLast(data);
+
+		if(mAfterCleanup && MemoryCounter::GetAllocationCount() - mAllocations != MemoryCounter::GetFreeCount() - mFrees)
+			mSuccess = false;
+		mCompleted++;
+	}
+
+private:
+	std::atomic<bool>& mSuccess;
+	std::atomic<u32>& mCompleted;
+	bool mAfterCleanup;
+	u64 mAllocations;
+	u64 mFrees;
+};
 
 struct DebugOctreeElement
 {
@@ -128,6 +168,8 @@ i32 PoolLifetimeProbe::sDestructCount = 0;
 UtilityTestSuite::UtilityTestSuite()
 	: TestSuite("UtilityTestSuite")
 {
+	B3D_ADD_TEST(UtilityTestSuite::TestAutomaticStackAllocator);
+	B3D_ADD_TEST(UtilityTestSuite::TestEnsure);
 	B3D_ADD_TEST(UtilityTestSuite::TestOctree);
 	B3D_ADD_TEST(UtilityTestSuite::TestBitfield);
 	B3D_ADD_TEST(UtilityTestSuite::TestInlineArray);
@@ -140,11 +182,101 @@ UtilityTestSuite::UtilityTestSuite()
 	B3D_ADD_TEST(UtilityTestSuite::TestRTTIIterator)
 	B3D_ADD_TEST(UtilityTestSuite::TestMPSCQueue)
 	B3D_ADD_TEST(UtilityTestSuite::TestSPSCQueue)
+	B3D_ADD_TEST(UtilityTestSuite::TestSingleConsumerQueueShutdown)
 	B3D_ADD_TEST(UtilityTestSuite::TestHashedString)
 	B3D_ADD_TEST(UtilityTestSuite::TestUnique)
 	B3D_ADD_TEST(UtilityTestSuite::TestPool)
 	B3D_ADD_TEST(UtilityTestSuite::TestSegregatedFitAllocator)
 	B3D_ADD_TEST(UtilityTestSuite::TestTlsfAllocator)
+}
+
+void UtilityTestSuite::TestAutomaticStackAllocator()
+{
+	std::atomic<bool> success(true);
+	std::atomic<u32> completed(0);
+	std::thread threads[8];
+	for(u32 threadIndex = 0; threadIndex < std::size(threads); threadIndex++)
+	{
+		threads[threadIndex] = std::thread([&success, &completed, threadIndex]()
+		{
+			thread_local StackAllocatorExitCheck afterCleanup(success, completed, true);
+			(void)afterCleanup;
+			u8* outer = MemStack::Alloc(31);
+			std::memset(outer, (int)threadIndex, 31);
+			thread_local StackAllocatorExitCheck beforeCleanup(success, completed, false);
+			(void)beforeCleanup;
+
+			for(u32 iteration = 0; iteration < 16; iteration++)
+			{
+				u8* data[4];
+				for(u32 allocationIndex = 0; allocationIndex < std::size(data); allocationIndex++)
+				{
+					const u32 size = allocationIndex * 1024 * 1024 + iteration;
+					data[allocationIndex] = MemStack::Alloc(size);
+					std::memset(data[allocationIndex], (int)(threadIndex + allocationIndex), size);
+				}
+
+				for(u32 allocationIndex = (u32)std::size(data); allocationIndex-- > 0;)
+				{
+					const u32 size = allocationIndex * 1024 * 1024 + iteration;
+					for(u32 byteIndex = 0; byteIndex < size; byteIndex++)
+					{
+						if(data[allocationIndex][byteIndex] != (u8)(threadIndex + allocationIndex))
+							success = false;
+					}
+					MemStack::DeallocLast(data[allocationIndex]);
+				}
+			}
+
+			for(u32 byteIndex = 0; byteIndex < 31; byteIndex++)
+			{
+				if(outer[byteIndex] != (u8)threadIndex)
+					success = false;
+			}
+			MemStack::DeallocLast(outer);
+		});
+	}
+
+	for(std::thread& thread : threads)
+		thread.join();
+	B3D_TEST_ASSERT(success);
+	B3D_TEST_ASSERT(completed == 2 * std::size(threads));
+}
+
+void UtilityTestSuite::TestEnsure()
+{
+	u32 evaluationCount = 0;
+	B3D_TEST_ASSERT(B3D_ENSURE(++evaluationCount == 1));
+	B3D_TEST_ASSERT(B3D_ENSURE_LOG(++evaluationCount == 2, "Successful ensure must not log"));
+
+	for(u32 iteration = 0; iteration < 2; iteration++)
+	{
+		LoggingScope logScope(*this);
+		logScope.ExpectError("Repeated ensure failure");
+		logScope.ExpectError("UtilityTestSuite::TestEnsure");
+		B3D_TEST_ASSERT(!B3D_ENSURE(++evaluationCount == 0));
+		B3D_TEST_ASSERT(!B3D_ENSURE_LOG(++evaluationCount == 0, "Repeated ensure failure {0}", evaluationCount));
+	}
+
+	B3D_TEST_ASSERT(evaluationCount == 6);
+
+	auto fnEnsureOnce = [](bool condition) { return B3D_ENSURE_ONCE(condition); };
+	auto fnEnsureOnceLog = [](bool condition) { return B3D_ENSURE_ONCE_LOG(condition, "Ensure once failure"); };
+	B3D_TEST_ASSERT(fnEnsureOnce(true));
+	B3D_TEST_ASSERT(fnEnsureOnceLog(true));
+	{
+		LoggingScope logScope(*this);
+		logScope.ExpectError("Ensure once failure");
+		logScope.ExpectError("UtilityTestSuite::TestEnsure");
+		B3D_TEST_ASSERT(!fnEnsureOnce(false));
+		B3D_TEST_ASSERT(!fnEnsureOnceLog(false));
+	}
+
+	// Repeated failures at these call sites must remain false without logging again.
+	B3D_TEST_ASSERT(!fnEnsureOnce(false));
+	B3D_TEST_ASSERT(!fnEnsureOnceLog(false));
+	B3D_TEST_ASSERT(fnEnsureOnce(true));
+	B3D_TEST_ASSERT(fnEnsureOnceLog(true));
 }
 
 void UtilityTestSuite::TestBitfield()
@@ -1827,5 +1959,46 @@ void UtilityTestSuite::TestTlsfAllocator()
 		B3D_TEST_ASSERT(allocator.TryAllocate(64, 1, handle))
 		B3D_TEST_ASSERT(handle.IsValid())
 		allocator.Free(handle);
+	}
+}
+
+void UtilityTestSuite::TestSingleConsumerQueueShutdown()
+{
+	SchedulerCreateInformation createInformation;
+	createInformation.InternalWorkerThreadCount = 2;
+	createInformation.AffinityPolicy = B3DMakeShared<AnyOfThreadAffinityPolicy>(ThreadCoreMask::CreateAnyThreadMask());
+	Scheduler scheduler(createInformation);
+
+	for(u32 iteration = 0; iteration < 512; iteration++)
+	{
+		TUnique<SingleConsumerQueue> queue = B3DMakeUnique<SingleConsumerQueue>();
+		const Milliseconds yieldInterval = iteration % 2 == 0 ? 0ms : 1ms;
+		queue->ScheduleRunUntilShutdown(scheduler, false, yieldInterval);
+
+		u32 commandCount = 0;
+		queue->PostCommand([yieldInterval]()
+		{
+			if(yieldInterval != 0ms)
+				std::this_thread::sleep_for(2ms);
+		});
+		for(u32 commandIndex = 0; commandIndex < 8; commandIndex++)
+			queue->PostCommand([&commandCount]() { commandCount++; });
+
+		queue->PostRequestShutdownCommand(true);
+		queue.reset();
+		B3D_TEST_ASSERT(commandCount == 8);
+	}
+
+	for(u32 iteration = 0; iteration < 128; iteration++)
+	{
+		TUnique<SingleConsumerQueue> queue = B3DMakeUnique<SingleConsumerQueue>();
+		Thread consumer([queuePointer = queue.get()]() { queuePointer->RunUntilShutdown(); });
+		u32 commandCount = 0;
+		queue->PostCommand([&commandCount]() { commandCount++; });
+		queue->PostRequestShutdownCommand(true);
+		queue.reset();
+
+		consumer.WaitUntilComplete();
+		B3D_TEST_ASSERT(commandCount == 1);
 	}
 }

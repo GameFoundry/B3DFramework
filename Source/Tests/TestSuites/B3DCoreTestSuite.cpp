@@ -9,6 +9,15 @@
 #include "B3DUnitTestSerializableObjects.h"
 #include "B3DUnitTestSerializationHelper.h"
 #include "Utility/B3DUtility.h"
+#include "Utility/B3DPersistentCache.h"
+#include "Utility/B3DScopeGuard.h"
+#include "FileSystem/B3DFileSystem.h"
+#if B3D_PLATFORM_MACOS
+#include "Private/MacOS/B3DMacOSPlatform.h"
+#include "Input/B3DInput.h"
+#include "Managers/B3DRenderWindowManager.h"
+#include "B3DApplication.h"
+#endif
 
 using namespace b3d;
 
@@ -34,8 +43,134 @@ CoreTestSuite::CoreTestSuite()
 	B3D_ADD_TEST(CoreTestSuite::TestRTTIObjectWrapperComparison)
 	B3D_ADD_TEST(CoreTestSuite::TestRTTIObjectWrapperFieldFilter)
 	B3D_ADD_TEST(CoreTestSuite::TestBinaryDelta)
+	B3D_ADD_TEST(CoreTestSuite::TestPersistentCacheLockedEntry)
+#if B3D_PLATFORM_MACOS
+	B3D_ADD_TEST(CoreTestSuite::TestMacOSDesktopInput)
+#endif
 
 	// TODO - Add unit test for binary cloner test that restores external references
+}
+
+#if B3D_PLATFORM_MACOS
+void CoreTestSuite::TestMacOSDesktopInput()
+{
+	Input& input = Input::Instance();
+	RenderWindow& window = *GetApplication().GetPrimaryWindow();
+	RenderWindowManager& windows = RenderWindowManager::Instance();
+	windows.OnFocusGained(window);
+	input.TriggerCallbacks();
+	B3D_TEST_ASSERT(input.GetDeviceCount(InputDevice::Keyboard) == 1);
+	B3D_TEST_ASSERT(input.GetDeviceCount(InputDevice::Mouse) == 1);
+
+	u32 pressCount = 0;
+	u32 releaseCount = 0;
+	HEvent pressed = input.OnButtonDown.Connect([&pressCount](const ButtonEvent&) { pressCount++; });
+	HEvent released = input.OnButtonUp.Connect([&releaseCount](const ButtonEvent&) { releaseCount++; });
+	ScopeGuard disconnect([&pressed, &released, &windows, &window, &input]()
+	{
+		pressed.Disconnect();
+		released.Disconnect();
+		windows.OnFocusLost(window);
+		input.TriggerCallbacks();
+		windows.OnFocusGained(window);
+	});
+
+	MacOSPlatform::OnButtonChanged(ButtonCode::A, true, 1000); // Physical A key
+	MacOSPlatform::OnButtonChanged(ButtonCode::A, true, 1001); // Repeat
+	MacOSPlatform::OnButtonChanged(ButtonCode::LeftShift, true, 1002); // Left Shift
+	MacOSPlatform::OnButtonChanged(ButtonCode::RightShift, true, 1003); // Right Shift
+	MacOSPlatform::OnButtonChanged(ButtonCode::LeftShift, false, 1004);
+	MacOSPlatform::OnButtonChanged(ButtonCode::ArrowUp, true, 1005); // Up arrow
+	MacOSPlatform::OnButtonChanged(ButtonCode::Numpad1, true, 1006); // Keypad 1
+	MacOSPlatform::OnButtonChanged(ButtonCode::Unassigned, true, 1007); // Unsupported key
+	MacOSPlatform::OnButtonChanged(ButtonCode::MouseButton4, true, 1008);
+	input.TriggerCallbacks();
+	B3D_TEST_ASSERT(pressCount == 6);
+	B3D_TEST_ASSERT(releaseCount == 1);
+	B3D_TEST_ASSERT(input.IsButtonHeld(ButtonCode::A));
+	B3D_TEST_ASSERT(input.IsButtonUp(ButtonCode::LeftShift));
+	B3D_TEST_ASSERT(input.IsButtonHeld(ButtonCode::RightShift));
+	B3D_TEST_ASSERT(input.IsButtonHeld(ButtonCode::ArrowUp));
+	B3D_TEST_ASSERT(input.IsButtonHeld(ButtonCode::Numpad1));
+	B3D_TEST_ASSERT(input.IsButtonHeld(ButtonCode::MouseButton4));
+	input.Update();
+	B3D_TEST_ASSERT(!input.IsButtonHeld(ButtonCode::LeftShift));
+	B3D_TEST_ASSERT(input.IsButtonHeld(ButtonCode::RightShift));
+
+	windows.OnFocusLost(window);
+	MacOSPlatform::OnButtonChanged(ButtonCode::S, true, 1009); // Ignore while unfocused
+	MacOSPlatform::OnMouseMoved(0.0f, 0.0f, 10.0f);
+	input.Update();
+	input.TriggerCallbacks();
+	B3D_TEST_ASSERT(releaseCount == 6);
+	B3D_TEST_ASSERT(pressCount == 6);
+	B3D_TEST_ASSERT(!input.IsButtonHeld(ButtonCode::A));
+	B3D_TEST_ASSERT(!input.IsButtonHeld(ButtonCode::RightShift));
+	B3D_TEST_ASSERT(!input.IsButtonHeld(ButtonCode::MouseButton4));
+	B3D_TEST_ASSERT(input.GetAxisValue((u32)InputAxis::MouseZ) == 0.0f);
+
+	windows.OnFocusGained(window);
+	MacOSPlatform::OnMouseMoved(0.0f, 0.0f, 0.75f);
+	MacOSPlatform::OnMouseMoved(0.0f, 0.0f, 0.75f);
+	input.Update();
+	B3D_TEST_ASSERT(input.GetAxisValue((u32)InputAxis::MouseZ) == 1.0f);
+	MacOSPlatform::OnMouseMoved(0.0f, 0.0f, 0.5f);
+	input.Update();
+	B3D_TEST_ASSERT(input.GetAxisValue((u32)InputAxis::MouseZ) == 1.0f);
+}
+#endif
+
+void CoreTestSuite::TestPersistentCacheLockedEntry()
+{
+	const Path cacheFolder = FileSystem::GetTemporaryFolderPath() + (UUIDGenerator::GenerateRandom().ToString() + "/");
+	ScopeGuard removeCache([&cacheFolder]() { FileSystem::Remove(cacheFolder, true); });
+	const Path entryPath("entry");
+	const TShared<PersistentCache> cache = PersistentCache::Create();
+	cache->Initialize(cacheFolder);
+	const TShared<PersistentCacheMetaData> value = B3DMakeShared<PersistentCacheMetaData>();
+	value->Priority = PersistentCachePriority::Critical;
+	B3D_TEST_ASSERT(cache->SetEntry(entryPath, value));
+
+	const Path packagePath = cacheFolder + "PersistentCache/entry";
+	const TShared<Package> originalPackage = Package::Load(packagePath);
+	B3D_TEST_ASSERT(originalPackage != nullptr);
+	const TShared<PersistentCacheMetaData> originalMetaData = B3DRTTICast<PersistentCacheMetaData>(originalPackage->GetResourceMetaData(entryPath)->AdditionalMetaData);
+	originalMetaData->LastUsedTimestamp = 0;
+
+	TShared<DataStream> lockedStream = FileSystem::OpenFile(packagePath, FileAccessFlag::Read | FileAccessFlag::Write);
+	B3D_TEST_ASSERT(lockedStream != nullptr);
+	SavePackageOptions saveOptions;
+	saveOptions.SaveMetaDataOnly = true;
+	B3D_TEST_ASSERT(originalPackage->Save(lockedStream, saveOptions));
+
+	const TShared<PersistentCache> reopenedCache = PersistentCache::Create();
+	{
+		LoggingScope logScope(*this);
+		logScope.IgnoreError("Failed to acquire shared lock on file");
+		logScope.IgnoreError("Failed to open file");
+		logScope.ExpectWarning("Failed to open file");
+		logScope.ExpectError("Skipping unavailable cache package");
+		logScope.ExpectError("Deferring metadata update for unavailable cache package");
+		logScope.ExpectError("Failed retrieving cache entry");
+
+		reopenedCache->Initialize(cacheFolder);
+		B3D_TEST_ASSERT(reopenedCache->TryGetEntry(entryPath) == nullptr);
+		B3D_TEST_ASSERT(cache->TryGetEntry(entryPath) == nullptr);
+		cache->Update();
+	}
+
+	B3D_TEST_ASSERT(lockedStream->Close());
+	lockedStream = nullptr;
+	cache->Update();
+	const TShared<Package> updatedPackage = Package::Load(packagePath);
+	B3D_TEST_ASSERT(updatedPackage != nullptr);
+	const TShared<PersistentCacheMetaData> updatedMetaData = B3DRTTICast<PersistentCacheMetaData>(updatedPackage->GetResourceMetaData(entryPath)->AdditionalMetaData);
+	B3D_TEST_ASSERT(updatedMetaData->LastUsedTimestamp != 0);
+
+	reopenedCache->Initialize(cacheFolder);
+	const TShared<PersistentCacheMetaData> restoredValue = reopenedCache->TryGetEntry<PersistentCacheMetaData>(entryPath);
+	B3D_TEST_ASSERT(restoredValue != nullptr);
+	B3D_TEST_ASSERT(restoredValue->Priority == PersistentCachePriority::Critical);
 }
 
 void CoreTestSuite::TestAnimCurveIntegration()
