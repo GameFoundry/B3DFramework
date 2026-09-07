@@ -135,15 +135,13 @@ MACRO(B3DAddImportedLibrary libraryName libraryType releaseLibraryPath debugLibr
 			set_target_properties(${libraryName} PROPERTIES IMPORTED_LOCATION_DEBUG "${debugLibraryPath}")
 		endif()
 	elseif(${libraryType} STREQUAL "MODULE")
+		# Runtime-loaded modules provide includes and deployment paths without a link-time dependency.
+		add_library(${libraryName} INTERFACE IMPORTED)
 
 		if(WIN32)
-			add_library(${libraryName} INTERFACE IMPORTED)
-
 			set_target_properties(${libraryName} PROPERTIES IMPORTED_LOCATION "${releaseBinaryPath}") # .dll
 			set_target_properties(${libraryName} PROPERTIES IMPORTED_LOCATION_DEBUG "${debugBinaryPath}") # .dll
 		else()
-			add_library(${libraryName} MODULE IMPORTED)
-
 			set_target_properties(${libraryName} PROPERTIES IMPORTED_LOCATION "${releaseLibraryPath}")
 			set_target_properties(${libraryName} PROPERTIES IMPORTED_LOCATION_DEBUG "${debugLibraryPath}")
 		endif()

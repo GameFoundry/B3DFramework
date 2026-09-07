@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/bin/bash
+
+set -e
+
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
 . ./B3DBuildCommon.sh
 
@@ -116,6 +120,8 @@ copy_libraries()
         cp -p -- "artifacts/bin/mono/$1.$2.$3/coreclr$SharedLibraryExtension" "$MonoOutputFolder/bin/$4"
     else
         cp -p -- "artifacts/bin/mono/$1.$2.$3/libcoreclr$SharedLibraryExtension" "$MonoOutputFolder/lib/$4"
+		# Native BCL support libraries must match the managed runtime assemblies.
+		cp -p -- "$runtimeDir/"libSystem.*"$SharedLibraryExtension" "$MonoOutputFolder/lib/$4"
     fi
 
     # Copy the AOT cross compiler (built via the BuildMonoAOTCrossCompiler property).
@@ -202,6 +208,23 @@ else
     # Copy includes
     cp -a -r -- "artifacts/bin/mono/linux.x64.Release/include/mono-2.0/." "$MonoOutputFolder/include/"
 fi
+
+# Package the SDK's Roslyn compiler with its own host, separate from the embedded Mono runtime.
+sdkRoot="$PWD/.dotnet"
+compilerFolder="$MonoOutputFolder/bin/Compiler"
+dotnetExecutable="dotnet$ExecutableExtension"
+sdkVersion="$(cd "$sdkRoot" && "./$dotnetExecutable" --version)"
+roslynFolder="$sdkRoot/sdk/$sdkVersion/Roslyn/bincore"
+test -f "$roslynFolder/csc.dll"
+
+mkdir -p "$compilerFolder/shared"
+cp -p "$sdkRoot/$dotnetExecutable" "$compilerFolder/"
+cp -R "$sdkRoot/host" "$compilerFolder/"
+cp -R "$sdkRoot/shared/Microsoft.NETCore.App" "$compilerFolder/shared/"
+cp -R "$roslynFolder/." "$compilerFolder/"
+cp -p "$sdkRoot/LICENSE.txt" "$sdkRoot/ThirdPartyNotices.txt" "$compilerFolder/"
+
+echo "Packaged Roslyn from SDK $sdkVersion and its .NET host in $compilerFolder"
 
 echo ""
 echo "======================================================================"

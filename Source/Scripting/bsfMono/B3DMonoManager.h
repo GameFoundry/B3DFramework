@@ -72,7 +72,7 @@ namespace b3d
 		/** Returns the absolute path to the Mono /etc folder that is required for initializing Mono. */
 		Path GetMonoEtcFolder() const;
 
-		/**	Returns the absolute path to the Mono compiler managed executable. */
+		/**	Returns the absolute path to the Roslyn C# compiler assembly. */
 		Path GetCompilerPath() const;
 
 		/** Returns the absolute path to the executable capable of executing managed assemblies. */

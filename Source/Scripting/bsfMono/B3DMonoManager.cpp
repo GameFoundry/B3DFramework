@@ -16,7 +16,7 @@ using namespace b3d;
 #define B3D_MONO_CHECKED_RUNTIME 0
 #endif
 
-const String kMonoCompilerDir = "bin/Mono/compiler/";
+const String kMonoCompilerDir = "bin/Compiler/";
 
 #if !B3D_MONO_AOT
 // Flat (config-independent) assemblies folder used in JIT mode. Under B3D_MONO_AOT the assemblies are in different folders depending on the config.
@@ -408,18 +408,18 @@ Path MonoManager::GetMonoEtcFolder() const
 Path MonoManager::GetCompilerPath() const
 {
 	Path compilerPath = Paths::FindPath(kMonoCompilerDir);
-	compilerPath.Append("mcs.exe");
+	compilerPath.Append("csc.dll");
 	return compilerPath;
 }
 
 Path MonoManager::GetMonoExecPath() const
 {
-	Path path = Paths::GetBinariesPath();
+	Path path = Paths::FindPath(kMonoCompilerDir);
 
 #if B3D_PLATFORM_WIN32
-	path.Append("MonoExec.exe");
+	path.Append("dotnet.exe");
 #else
-	path.Append("MonoExec");
+	path.Append("dotnet");
 #endif
 
 	return path;
