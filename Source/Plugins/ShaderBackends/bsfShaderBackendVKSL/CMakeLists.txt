@@ -3,12 +3,6 @@
 # link it and inherit its third-party dependencies plus the CreateBytecodeCompilervksl() factory, with no DLL boundary.
 # The "VKSL" suffix matches the engine shading-language id "vksl" (first field of B3D_SHADER_CROSS_COMPILE_TARGETS).
 
-# Ensure pre-built binary dependencies are up to date
-if(B3D_USE_BUNDLED_LIBRARIES)
-	B3DCheckAndUpdatePrebuiltDependency(glslang)
-	B3DCheckAndUpdatePrebuiltDependency(SPIRVCross)
-endif()
-
 find_package(glslang)
 find_package(SPIRVCross)
 

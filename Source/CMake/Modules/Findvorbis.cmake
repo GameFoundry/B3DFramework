@@ -11,6 +11,10 @@ set(vorbis_BUNDLED_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/li
 if(B3D_USE_BUNDLED_LIBRARIES OR NOT vorbis_INSTALL_DIR)
 	set(vorbis_INSTALL_DIR ${vorbis_BUNDLED_INSTALL_DIR} CACHE PATH "Path to vorbis dependency" FORCE)
 endif()
+
+# Ensure the bundled copy is up to date, building it from source if no prebuilt package is available
+B3DEnsureBundledDependency(vorbis BUILD_SCRIPT B3DBuildVorbis.sh)
+
 B3DPopulateDefaultPackageSearchPaths(vorbis)
 
 B3DFindImportedIncludes(vorbis vorbis/vorbisenc.h)

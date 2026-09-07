@@ -53,6 +53,14 @@ The scripts run under bash. On Windows, CMake uses the bash shipped with Git for
 
 Each bundled dependency folder carries a `.reqversion` file (the version the source tree needs) and a `.version` file (the version on disk). When configuring, CMake compares the two and, for a missing or outdated dependency, downloads the matching prebuilt package. If no package exists for the required version, CMake runs the dependency's build script itself instead of failing the configure, and stamps `.version` with the required version once the script succeeds. Setting `B3D_USE_BUNDLED_LIBRARIES=OFF` skips the download entirely and always builds an outdated dependency from source, unless you point `<DepName>_INSTALL_DIR` at your own copy.
 
+The check runs inside the dependency's `Find***.cmake` module, so it happens once per dependency no matter how many targets need it, and `find_package` is all a target has to call. A module names its build script when it has one:
+
+```cmake
+B3DEnsureBundledDependency(snappy BUILD_SCRIPT B3DBuildSnappy.sh)
+```
+
+A dependency without a Find module is checked directly instead, with `B3DCheckAndUpdatePrebuiltDependency(<DepName> BUILD_SCRIPT <script>)`. Either way, a dependency that names no build script still fails the configure when its package cannot be downloaded.
+
 ### Overriding the CMake generator
 
 The scripts require CMake 4.2 or newer. The default generator is picked by `B3DBuildCommon.sh` (`Visual Studio 18 2026` with the v145 toolset on Windows, `Ninja Multi-Config` on macOS/Linux). To use a different generator, set the `B3D_CMAKE_GENERATOR` environment variable before running the script:

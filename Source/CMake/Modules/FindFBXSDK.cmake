@@ -11,6 +11,10 @@ set(FBXSDK_BUNDLED_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/FB
 if(B3D_USE_BUNDLED_LIBRARIES OR NOT FBXSDK_INSTALL_DIR)
 	set(FBXSDK_INSTALL_DIR ${FBXSDK_BUNDLED_INSTALL_DIR} CACHE PATH "Path to FBXSDK dependency" FORCE)
 endif()
+
+# Ensure the bundled copy is up to date
+B3DEnsureBundledDependency(FBXSDK)
+
 B3DPopulateDefaultPackageSearchPaths(FBXSDK)
 
 if(WIN32)

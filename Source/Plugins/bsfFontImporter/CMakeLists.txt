@@ -2,10 +2,6 @@
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_FONTIMPORTER_SRC)
 
 # Packages
-if(B3D_USE_BUNDLED_LIBRARIES)
-    B3DCheckAndUpdatePrebuiltDependency(freetype)
-endif()
-
 find_package(freetype REQUIRED)
 	
 # Target

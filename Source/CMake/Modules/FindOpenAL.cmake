@@ -11,6 +11,10 @@ set(OpenAL_BUNDLED_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/Op
 if(B3D_USE_BUNDLED_LIBRARIES OR NOT OpenAL_INSTALL_DIR)
 	set(OpenAL_INSTALL_DIR ${OpenAL_BUNDLED_INSTALL_DIR} CACHE PATH "Path to OpenAL dependency" FORCE)
 endif()
+
+# Ensure the bundled copy is up to date, building it from source if no prebuilt package is available
+B3DEnsureBundledDependency(OpenAL BUILD_SCRIPT B3DBuildOpenAL.sh)
+
 B3DPopulateDefaultPackageSearchPaths(OpenAL)
 
 if(WIN32)

@@ -3,14 +3,6 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_OPENAUDIO_SRC)
 
 # Find packages
 if(B3D_AUDIO_BACKEND MATCHES "OpenAudio" OR B3D_BUILD_ALL_PLUGINS)
-	# Ensure pre-built binary dependencies are up to date
-	if(B3D_USE_BUNDLED_LIBRARIES)
-		B3DCheckAndUpdatePrebuiltDependency(OpenAL)
-		B3DCheckAndUpdatePrebuiltDependency(libFLAC)
-		B3DCheckAndUpdatePrebuiltDependency(libvorbis)
-		B3DCheckAndUpdatePrebuiltDependency(libogg)
-	endif()
-
 	find_package(OpenAL REQUIRED)
 	find_package(ogg REQUIRED)
 	find_package(vorbis REQUIRED)

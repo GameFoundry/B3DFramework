@@ -4,13 +4,6 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "" B3D_VULKANGPUBACK
 
 # Packages
 if(B3D_GPU_BACKEND MATCHES "Vulkan" OR B3D_BUILD_ALL_PLUGINS)
-	# Ensure pre-built binary dependencies are up to date. glslang and SPIRV-Cross come from bsfShaderBackendVKSL.
-	if(B3D_USE_BUNDLED_LIBRARIES)
-		if(WIN32)
-			B3DCheckAndUpdatePrebuiltDependency(RenderDoc)
-		endif()
-	endif()
-
 	if(APPLE)
 		find_package(MoltenVK)
 	else()

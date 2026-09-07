@@ -2,11 +2,6 @@
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_FBXIMPORTER_SRC)
 
 # Packages
-# Ensure pre-built binary dependencies are up to date
-if(B3D_USE_BUNDLED_LIBRARIES)
-	B3DCheckAndUpdatePrebuiltDependency(FBXSDK)
-endif()
-
 find_package(FBXSDK REQUIRED)
 	
 # Target

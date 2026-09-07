@@ -237,18 +237,94 @@ endfunction()
 ######################## Dependency functions #########################################
 #######################################################################################
 
-# Ensures a dependency is present and up to date. Version is read from the .reqversion file in the dependency folder.
+# Ensures a dependency folder holds the required version, downloading or building it if it does not. Version is read
+# from the .reqversion file in the dependency folder, and compared against the .version file the package carries.
 #
 # With bundled libraries enabled, an out-of-date dependency is updated by downloading its prebuilt package. If no
-# package is available for the required version, and the dependency has a build script, the dependency is built
-# from source instead. With bundled libraries disabled (B3D_USE_BUNDLED_LIBRARIES=OFF), no download is attempted
-# and an out-of-date dependency is always built from source, unless the user pointed ${dependencyName}_INSTALL_DIR
-# at their own copy.
+# package is available for the required version, and the dependency has a build script, the dependency is built from
+# source instead. With bundled libraries disabled (B3D_USE_BUNDLED_LIBRARIES=OFF) no download is attempted, and an
+# out-of-date dependency is always built from source.
 #
 # The prebuilt-archive suffix is the active platform (B3D_PLATFORM, e.g. Win32/Linux/MacOS),
 # resolved during platform discovery in Prerequisites.cmake.
 #
-# @param	dependencyName		Name of the dependency (e.g. 'XShaderCompiler', 'Mono', etc.)
+# @param	dependencyFolder	Folder the dependency is installed in
+# @param	dependencyName		Name of the dependency, which is also its folder name and prebuilt-archive prefix
+# @param	buildScript			File name of the script in Framework/Scripts that builds the dependency from source
+#								(e.g. 'B3DBuildShaderCompiler.sh'), or an empty string if it has no build script. A
+#								dependency without a build script can only be downloaded.
+function(B3DUpdateDependency dependencyFolder dependencyName buildScript)
+	# Without a build script an unbundled build has no way to provide the dependency, so leave it to the user.
+	if(NOT B3D_USE_BUNDLED_LIBRARIES AND NOT buildScript)
+		return()
+	endif()
+
+	B3DCheckPackageVersion(${dependencyFolder} ${dependencyName} requiredVersion needsUpdate)
+	if(NOT needsUpdate)
+		return()
+	endif()
+
+	if(B3D_USE_BUNDLED_LIBRARIES)
+		set(archivePrefix ${dependencyName}_${B3D_PLATFORM})
+		B3DDownloadPackage(${dependencyFolder} ${archivePrefix} ${dependencyName} ${requiredVersion} downloaded)
+		if(downloaded)
+			return()
+		endif()
+
+		if(NOT buildScript)
+			message(FATAL_ERROR "Failed to download prebuilt package '${archivePrefix}' version ${requiredVersion}, and dependency '${dependencyName}' cannot be built from source.")
+		endif()
+
+		message(STATUS "No prebuilt package available for '${dependencyName}' v${requiredVersion}, building from source instead.")
+	else()
+		message(STATUS "Bundled libraries are disabled, building '${dependencyName}' from source.")
+	endif()
+
+	B3DBuildDependencyFromSource(${dependencyName} ${buildScript} ${dependencyFolder} ${requiredVersion})
+endfunction()
+
+# Ensures the bundled copy of a package is present and up to date, see B3DUpdateDependency for how it is provided.
+# Meant to be called from a Find module, after it resolved ${packageName}_INSTALL_DIR and ${packageName}_BUNDLED_INSTALL_DIR,
+# so every consumer of the package gets the check without repeating it. Does nothing when the user pointed
+# ${packageName}_INSTALL_DIR at a copy of their own, as that copy is theirs to manage.
+#
+# The bundled folder's name is the dependency name, which need not match the package name (e.g. package 'FLAC' lives in
+# a 'libFLAC' folder).
+#
+# @param	packageName		Name of the package being located (the name passed to B3DStartFindPackage)
+# @param	BUILD_SCRIPT	(optional) File name of the script in Framework/Scripts that builds the dependency
+#							from source (e.g. 'B3DBuildShaderCompiler.sh'). Without it the dependency can only be
+#							downloaded.
+function(B3DEnsureBundledDependency packageName)
+	cmake_parse_arguments(ARG "" "BUILD_SCRIPT" "" ${ARGN})
+	if(ARG_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "B3DEnsureBundledDependency(${packageName}): unknown arguments '${ARG_UNPARSED_ARGUMENTS}'. Use BUILD_SCRIPT <script>.")
+	endif()
+
+	if(NOT ${packageName}_BUNDLED_INSTALL_DIR)
+		message(FATAL_ERROR "B3DEnsureBundledDependency(${packageName}): ${packageName}_BUNDLED_INSTALL_DIR is not set. Resolve it before the call.")
+	endif()
+
+	# Bundled folders are spelled with a '..' segment in some Find modules, so compare normalized paths.
+	set(bundledFolder ${${packageName}_BUNDLED_INSTALL_DIR})
+	cmake_path(NORMAL_PATH bundledFolder)
+
+	set(installFolder ${${packageName}_INSTALL_DIR})
+	if(installFolder)
+		cmake_path(NORMAL_PATH installFolder)
+		if(NOT installFolder STREQUAL bundledFolder)
+			return()
+		endif()
+	endif()
+
+	get_filename_component(dependencyName ${bundledFolder} NAME)
+	B3DUpdateDependency(${bundledFolder} ${dependencyName} "${ARG_BUILD_SCRIPT}")
+endfunction()
+
+# Ensures a dependency is present and up to date, see B3DUpdateDependency for how it is provided. Locates the
+# dependency folder by name; prefer B3DEnsureBundledDependency for a dependency that has a Find module.
+#
+# @param	dependencyName		Name of the dependency (e.g. 'FontAwesome', 'LLVM', etc.)
 # @param	USE_PLATFORM_FOLDER	(optional) If present, the dependency lives in the active platform's Dependencies folder
 #								(Framework/Platform/<B3D_PLATFORM>/Dependencies), otherwise the dependency lives in
 #								the framework's global Dependencies folder.
@@ -267,51 +343,10 @@ function(B3DCheckAndUpdatePrebuiltDependency dependencyName)
 		endif()
 		set(dependencyFolder ${B3D_PLATFORM_${B3D_PLATFORM}_DEPENDENCIES_FOLDER}/${dependencyName})
 	else()
-		set(dependencyFolder ${B3D_FRAMEWORK_ROOT_FOLDER}/Dependencies/${dependencyName})
+		set(dependencyFolder ${B3D_DEPENDENCY_DIRECTORY}/${dependencyName})
 	endif()
 
-	if(NOT B3D_USE_BUNDLED_LIBRARIES)
-		# Nothing to do for a dependency we cannot build, or one the user supplies themselves.
-		if(NOT ARG_BUILD_SCRIPT)
-			return()
-		endif()
-
-		if(${dependencyName}_INSTALL_DIR)
-			# The Find module spells the bundled folder with a '..' segment, so compare normalized paths.
-			set(installFolder ${${dependencyName}_INSTALL_DIR})
-			cmake_path(NORMAL_PATH installFolder)
-
-			set(bundledFolder ${dependencyFolder})
-			cmake_path(NORMAL_PATH bundledFolder)
-
-			if(NOT installFolder STREQUAL bundledFolder)
-				return()
-			endif()
-		endif()
-	endif()
-
-	B3DCheckPackageVersion(${dependencyFolder} ${dependencyName} requiredVersion needsUpdate)
-	if(NOT needsUpdate)
-		return()
-	endif()
-
-	if(B3D_USE_BUNDLED_LIBRARIES)
-		set(archivePrefix ${dependencyName}_${B3D_PLATFORM})
-		B3DDownloadPackage(${dependencyFolder} ${archivePrefix} ${dependencyName} ${requiredVersion} downloaded)
-		if(downloaded)
-			return()
-		endif()
-
-		if(NOT ARG_BUILD_SCRIPT)
-			message(FATAL_ERROR "Failed to download prebuilt package '${archivePrefix}' version ${requiredVersion}, and dependency '${dependencyName}' cannot be built from source.")
-		endif()
-
-		message(STATUS "No prebuilt package available for '${dependencyName}' v${requiredVersion}, building from source instead.")
-	else()
-		message(STATUS "Bundled libraries are disabled, building '${dependencyName}' from source.")
-	endif()
-
-	B3DBuildDependencyFromSource(${dependencyName} ${ARG_BUILD_SCRIPT} ${dependencyFolder} ${requiredVersion})
+	B3DUpdateDependency(${dependencyFolder} ${dependencyName} "${ARG_BUILD_SCRIPT}")
 endfunction()
 
 #######################################################################################

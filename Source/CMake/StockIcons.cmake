@@ -1,9 +1,7 @@
 set(FONT_AWESOME_INSTALL_DIR ${B3D_FRAMEWORK_ROOT_FOLDER}/Dependencies/FontAwesome CACHE PATH "")
 mark_as_advanced(FONT_AWESOME_INSTALL_DIR)
 
-if(B3D_USE_BUNDLED_LIBRARIES)
-	B3DCheckAndUpdatePrebuiltDependency(FontAwesome)
-endif()
+B3DCheckAndUpdatePrebuiltDependency(FontAwesome)
 
 # Registers a target that can be used for building stock icons.
 function(B3DRegisterBuildStockIconsTarget)

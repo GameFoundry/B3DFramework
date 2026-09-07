@@ -3,12 +3,6 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_FMOD_SRC)
 
 # Packages
 if(B3D_AUDIO_BACKEND MATCHES "FMOD")
-	# Ensure pre-built binary dependencies are up to date
-	if(B3D_USE_BUNDLED_LIBRARIES)
-		B3DCheckAndUpdatePrebuiltDependency(libvorbis)
-		B3DCheckAndUpdatePrebuiltDependency(libogg)
-	endif()
-
 	find_package(FMOD)
 	find_package(ogg)
 	find_package(vorbis)

@@ -12,6 +12,9 @@ if(B3D_USE_BUNDLED_LIBRARIES OR NOT DotNETCoreMono_INSTALL_DIR)
 	set(DotNETCoreMono_INSTALL_DIR ${DotNETCoreMono_BUNDLED_INSTALL_DIR} CACHE PATH "Path to DotNETCoreMono dependency" FORCE)
 endif()
 
+# Ensure the bundled copy is up to date, building it from source if no prebuilt package is available
+B3DEnsureBundledDependency(DotNETCoreMono BUILD_SCRIPT B3DBuildMono.sh)
+
 B3DPopulateDefaultPackageSearchPaths(DotNETCoreMono)
 list(APPEND DotNETCoreMono_INCLUDE_SEARCH_DIRS ${DotNETCoreMono_INSTALL_DIR}/include)
 

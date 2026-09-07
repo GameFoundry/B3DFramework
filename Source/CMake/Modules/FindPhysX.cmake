@@ -11,6 +11,10 @@ set(PhysX_BUNDLED_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/Phy
 if(B3D_USE_BUNDLED_LIBRARIES OR NOT PhysX_INSTALL_DIR)
 	set(PhysX_INSTALL_DIR ${PhysX_BUNDLED_INSTALL_DIR} CACHE PATH "Path to PhysX dependency" FORCE)
 endif()
+
+# Ensure the bundled copy is up to date, building it from source if no prebuilt package is available
+B3DEnsureBundledDependency(PhysX BUILD_SCRIPT B3DBuildPhysX.sh)
+
 B3DPopulateDefaultPackageSearchPaths(PhysX)
 
 if(NOT APPLE)

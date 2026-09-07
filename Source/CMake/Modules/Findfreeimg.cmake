@@ -11,6 +11,10 @@ set(freeimg_BUNDLED_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/f
 if(B3D_USE_BUNDLED_LIBRARIES OR NOT freeimg_INSTALL_DIR)
 	set(freeimg_INSTALL_DIR ${freeimg_BUNDLED_INSTALL_DIR} CACHE PATH "Path to freeimg dependency" FORCE)
 endif()
+
+# Ensure the bundled copy is up to date, building it from source if no prebuilt package is available
+B3DEnsureBundledDependency(freeimg BUILD_SCRIPT B3DBuildFreeImage.sh)
+
 B3DPopulateDefaultPackageSearchPaths(freeimg)
 
 B3DFindImportedIncludes(freeimg FreeImage.h)

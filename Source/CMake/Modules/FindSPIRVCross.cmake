@@ -12,6 +12,9 @@ if(B3D_USE_BUNDLED_LIBRARIES OR NOT SPIRVCross_INSTALL_DIR)
 	set(SPIRVCross_INSTALL_DIR ${SPIRVCross_BUNDLED_INSTALL_DIR} CACHE PATH "Path to SPIRVCross dependency" FORCE)
 endif()
 
+# Ensure the bundled copy is up to date, building it from source if no prebuilt package is available
+B3DEnsureBundledDependency(SPIRVCross BUILD_SCRIPT B3DBuildSPIRVCross.sh)
+
 B3DPopulateDefaultPackageSearchPaths(SPIRVCross)
 
 B3DFindImportedIncludes(SPIRVCross spirv_cross/spirv_cross.hpp)

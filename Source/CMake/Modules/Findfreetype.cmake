@@ -11,6 +11,10 @@ B3DGetBundledDependencyFolder(freetype freetype_BUNDLED_INSTALL_DIR)
 if(B3D_USE_BUNDLED_LIBRARIES OR NOT freetype_INSTALL_DIR)
 	set(freetype_INSTALL_DIR ${freetype_BUNDLED_INSTALL_DIR} CACHE PATH "Path to freetype dependency" FORCE)
 endif()
+
+# Ensure the bundled copy is up to date, building it from source if no prebuilt package is available
+B3DEnsureBundledDependency(freetype BUILD_SCRIPT B3DBuildFreetype.sh)
+
 B3DPopulateDefaultPackageSearchPaths(freetype)
 
 list(APPEND freetype_INCLUDE_SEARCH_DIRS /usr/local/include/freetype2 /usr/include/freetype2)

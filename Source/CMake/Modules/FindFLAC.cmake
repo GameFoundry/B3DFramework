@@ -11,6 +11,10 @@ set(FLAC_BUNDLED_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/libF
 if(B3D_USE_BUNDLED_LIBRARIES OR NOT FLAC_INSTALL_DIR)
 	set(FLAC_INSTALL_DIR ${FLAC_BUNDLED_INSTALL_DIR} CACHE PATH "Path to FLAC dependency" FORCE)
 endif()
+
+# Ensure the bundled copy is up to date, building it from source if no prebuilt package is available
+B3DEnsureBundledDependency(FLAC BUILD_SCRIPT B3DBuildFLAC.sh)
+
 B3DPopulateDefaultPackageSearchPaths(FLAC)
 
 B3DFindImportedIncludes(FLAC FLAC/all.h)

@@ -11,6 +11,10 @@ set(glslang_BUNDLED_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/g
 if(B3D_USE_BUNDLED_LIBRARIES OR NOT glslang_INSTALL_DIR)
 	set(glslang_INSTALL_DIR ${glslang_BUNDLED_INSTALL_DIR} CACHE PATH "Path to glslang dependency" FORCE)
 endif()
+
+# Ensure the bundled copy is up to date, building it from source if no prebuilt package is available
+B3DEnsureBundledDependency(glslang BUILD_SCRIPT B3DBuildGlslang.sh)
+
 B3DPopulateDefaultPackageSearchPaths(glslang)
 
 if(WIN32)

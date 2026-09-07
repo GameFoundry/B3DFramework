@@ -11,6 +11,10 @@ set(XShaderCompiler_BUNDLED_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Depend
 if(B3D_USE_BUNDLED_LIBRARIES OR NOT XShaderCompiler_INSTALL_DIR)
 	set(XShaderCompiler_INSTALL_DIR ${XShaderCompiler_BUNDLED_INSTALL_DIR} CACHE PATH "Path to XShaderCompiler dependency" FORCE)
 endif()
+
+# Ensure the bundled copy is up to date, building it from source if no prebuilt package is available
+B3DEnsureBundledDependency(XShaderCompiler BUILD_SCRIPT B3DBuildShaderCompiler.sh)
+
 B3DPopulateDefaultPackageSearchPaths(XShaderCompiler)
 
 B3DFindImportedIncludes(XShaderCompiler Xsc/Xsc.h)
