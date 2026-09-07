@@ -433,8 +433,8 @@ namespace b3d
 	class Scheduler final
 	{
 	public:
-		Scheduler(const SchedulerCreateInformation& createInformation);
-		~Scheduler();
+		B3D_EXPORT Scheduler(const SchedulerCreateInformation& createInformation);
+		B3D_EXPORT ~Scheduler();
 
 		/** Returns information describing the scheduler. */
 		B3D_EXPORT const SchedulerInformation& GetInformation() const { return mInformation; }

@@ -64,7 +64,7 @@ namespace b3d
 	};
 
 	/** Meta-data associated with each cache entry. */
-	class PersistentCacheMetaData : public PackageResourceUserMetaData
+	class B3D_EXPORT PersistentCacheMetaData : public PackageResourceUserMetaData
 	{
 	public:
 		PersistentCachePriority Priority = PersistentCachePriority::Normal;
