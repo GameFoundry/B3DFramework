@@ -12,6 +12,8 @@ namespace b3d
 		UtilityTestSuite();
 
 	private:
+		void TestAutomaticStackAllocator();
+		void TestEnsure();
 		void TestBitfield();
 		void TestOctree();
 		void TestInlineArray();
@@ -24,6 +26,7 @@ namespace b3d
 		void TestRTTIIterator();
 		void TestMPSCQueue();
 		void TestSPSCQueue();
+		void TestSingleConsumerQueueShutdown();
 		void TestHashedString();
 		void TestUnique();
 		void TestPool();

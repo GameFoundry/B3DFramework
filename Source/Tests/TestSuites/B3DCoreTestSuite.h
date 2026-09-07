@@ -21,5 +21,9 @@ namespace b3d
 		void TestRTTIObjectWrapperComparison();
 		void TestRTTIObjectWrapperFieldFilter();
 		void TestBinaryDelta();
+		void TestPersistentCacheLockedEntry();
+#if B3D_PLATFORM_MACOS
+		void TestMacOSDesktopInput();
+#endif
 	};
 } // namespace b3d
