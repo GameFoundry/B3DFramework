@@ -45,4 +45,4 @@ platform whose folder is absent is a hard error pointing at the submodule init c
 `Unix` needs neither (sources picked up by the glob). Engine sources under
 `Source/Engine/{Core,Utility}` merge into `bsf`; `Source/Plugins/<name>` are platform-only
 plugins. Optional `Dependencies/<Package>/` mirrors `Framework/Dependencies/<Package>/` and
-is fetched with `B3DCheckAndUpdatePrebuiltDependency(<Package> TRUE)`.
+is fetched with `B3DCheckAndUpdatePrebuiltDependency(<Package> USE_PLATFORM_FOLDER)`.

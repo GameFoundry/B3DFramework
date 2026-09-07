@@ -259,6 +259,12 @@ function(B3DUpdateDependency dependencyFolder dependencyName buildScript)
 		return()
 	endif()
 
+	# A folder without a required-version stamp is hand-managed rather than packaged (e.g. the mirror a platform
+	# overlay keeps under Platform/<name>/Dependencies), so there is no version to update it to.
+	if(NOT EXISTS ${dependencyFolder}/.reqversion)
+		return()
+	endif()
+
 	B3DCheckPackageVersion(${dependencyFolder} ${dependencyName} requiredVersion needsUpdate)
 	if(NOT needsUpdate)
 		return()
