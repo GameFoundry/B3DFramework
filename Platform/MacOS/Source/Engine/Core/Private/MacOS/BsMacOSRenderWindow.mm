@@ -141,6 +141,7 @@ void MacOSRenderWindow::Initialize()
 	const Vector2I framebufferSize = mWindow->GetFramebufferSizeInternal();
 	mRenderTargetProperties.Width = (u32)framebufferSize.X;
 	mRenderTargetProperties.Height = (u32)framebufferSize.Y;
+	mRenderTargetProperties.DPIScale = (float)mWindow->GetPrivateDataInternal()->Window.backingScaleFactor;
 	mRenderWindowProperties.Top = area.Y;
 	mRenderWindowProperties.Left = area.X;
 	mRenderWindowProperties.HasFocus = true;
@@ -431,6 +432,17 @@ void MacOSRenderWindow::DoOnWindowMovedOrResized()
 	MarkRenderProxyDataDirty();
 
 	Super::DoOnWindowMovedOrResized();
+}
+
+void MacOSRenderWindow::DoOnDPIScaleChanged()
+{
+	if(mWindow == nullptr)
+		return;
+
+	mRenderTargetProperties.DPIScale = (float)mWindow->GetPrivateDataInternal()->Window.backingScaleFactor;
+	MarkRenderProxyDataDirty();
+
+	Super::DoOnDPIScaleChanged();
 }
 
 namespace b3d::render

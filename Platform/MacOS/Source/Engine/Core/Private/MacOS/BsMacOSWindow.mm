@@ -597,6 +597,7 @@ namespace b3d
 		NSScreen* screen = nil;
 		i32 x = 0;
 		i32 y = 0;
+		NSSize contentSize = NSMakeSize(createInformation.Width, createInformation.Height);
 
 		for(NSScreen* entry in screens)
 		{
@@ -610,15 +611,18 @@ namespace b3d
 			if(((createInformation.X >= left && createInformation.X < right) || createInformation.X == -1) &&
 			   ((createInformation.Y >= bottom && createInformation.Y < top) || createInformation.Y == -1))
 			{
+				contentSize.width = createInformation.Width / entry.backingScaleFactor;
+				contentSize.height = createInformation.Height / entry.backingScaleFactor;
+
 				if(createInformation.X == -1)
-					x = left + std::max(0, (i32)screenRect.size.width - (i32)createInformation.Width) / 2;
+					x = left + std::max(0, (i32)screenRect.size.width - (i32)contentSize.width) / 2;
 				else
 					x = createInformation.X - left;
 
 				if(createInformation.Y == -1)
-					y = bottom + std::max(0, (i32)screenRect.size.height - (i32)createInformation.Height) / 2;
+					y = bottom + std::max(0, (i32)screenRect.size.height - (i32)contentSize.height) / 2;
 				else
-					y = ((i32)screenRect.size.height - (createInformation.Y + (i32)createInformation.Height)) - bottom;
+					y = ((i32)screenRect.size.height - (createInformation.Y + (i32)contentSize.height)) - bottom;
 
 				screen = entry;
 				break;
@@ -634,7 +638,7 @@ namespace b3d
 			m->Style |= NSWindowStyleMaskResizable;
 
 		window = [window
-				initWithContentRect:NSMakeRect(x, y, createInformation.Width, createInformation.Height)
+				initWithContentRect:NSMakeRect(x, y, contentSize.width, contentSize.height)
 				styleMask:(NSWindowStyleMask)m->Style
 				backing:NSBackingStoreBuffered
 				defer:NO
@@ -731,6 +735,7 @@ namespace b3d
 			NSRect frameRect = m->Window.frame;
 			NSRect contentRect = [m->Window contentRectForFrameRect:frameRect];
 
+			contentRect.origin.y += contentRect.size.height - size.height;
 			contentRect.size.width = size.width;
 			contentRect.size.height = size.height;
 
