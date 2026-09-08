@@ -59,8 +59,10 @@ namespace b3d
 			DepthStencilAttachment = 1 << 6, /**< Depth/stencil attachment. */
 			Host = 1 << 7, /**< Access by the host (CPU). */
 			Resolve = 1 << 11, /**< Multisample resolve source or destination. */
+			// TODO(task-TuWO6aCR): Separate binding policy from operation access tracking, then remove this special classification.
+			AttachmentClear = 1 << 12, /**< Shader clear of attachment contents in their existing layout. Specify Stage* flags; do not combine with ShaderAccess. */
 
-			// Stage flags can be combined with ShaderAccess or UniformBuffer usages, to clearly define at which stage the use is happening.
+			// Stage flags can be combined with ShaderAccess, UniformBuffer or AttachmentClear usages, to clearly define at which stage the use is happening.
 			// If not provided system usually assumes potential use in all shader stages.
 			StageVertexShader = 1 << 8, /**< Access in vertex shader. */
 			StageFragmentShader = 1 << 9, /**< Access in fragment shader. */
