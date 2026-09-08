@@ -164,7 +164,7 @@ shader PPSSAO
 			#if QUALITY == 0
 			float2 rotateDir = float2(0, 1); // No random rotation
 			#else
-			float2 rotateDir = gRandomTex.Sample(gRandomSamp, input.uv0 * gRandomTileScale) * 2 - 1;
+			float2 rotateDir = gRandomTex.Sample(gRandomSamp, input.uv0 * gRandomTileScale).xy * 2 - 1;
 			#endif
 			
 			// Scale by screen space sample radius

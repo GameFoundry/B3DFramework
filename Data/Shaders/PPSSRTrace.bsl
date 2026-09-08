@@ -73,7 +73,7 @@ shader PPSSRTrace
 		uint mortonCode4x4(uint x, uint y)
 		{
 			return (x & 0x1) 		| ((x << 1) & 0x4)
-				 | (y << 1) & 0x2 	| ((y << 2) & 0x8);
+				 | ((y << 1) & 0x2) 	| ((y << 2) & 0x8);
 		}		
 
 		float4 fsmain(VStoFS input

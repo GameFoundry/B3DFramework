@@ -113,7 +113,7 @@ mixin RayMarch
 					// Little extra to ensure the boundary is crossed. max() to ensure the value isn't too
 					// small to prevent it ever leaving a cell. Note that this clamping results in a quality loss,
 					// you want to keep the clamp value as low as possible, but not too low to avoid artifacts.
-					minIntersect = max(minIntersect * 1.05f, 1.0f / (bufferSize * 512)); // 1/512th of a pixel
+					minIntersect = max(minIntersect * 1.05f, 1.0f / (bufferSize.x * 512)); // 1/512th of a pixel
 					
 					// Move the ray past the boundary
 					rayPos = O + D * (rayPos.z + minIntersect);
@@ -158,8 +158,8 @@ mixin RayMarch
 	
 		float4 rayMarch(Texture2D depth, SamplerState samp, RayMarchParams params)
 		{
-			float3 viewOrigin = mul(gMatView, float4(params.rayOrigin, 1));
-			float3 viewDir = mul(gMatView, float4(params.rayDir, 0));
+			float3 viewOrigin = mul(gMatView, float4(params.rayOrigin, 1)).xyz;
+			float3 viewDir = mul(gMatView, float4(params.rayDir, 0)).xyz;
 		
 			float3 ndcStart = viewToNDC(viewOrigin);
 			float3 ndcEnd = viewToNDC(viewOrigin + viewDir);

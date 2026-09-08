@@ -243,6 +243,11 @@ mixin DecalBase
 			out float4 OutGBufferB : SV_Target2,
 			out float4 OutGBufferC : SV_Target3)
 		{
+			OutSceneColor = 0;
+			OutGBufferA = 0;
+			OutGBufferB = 0;
+			OutGBufferC = 0;
+
 			#if MSAA_MODE == 0
 				float deviceZ = gDepthBufferTex.Load(int3(input.position.xy, 0)).r;
 				uint layer = (uint)(gMaskTex.Load(int3(input.position.xy, 0)).r * 256.0f);
@@ -254,7 +259,7 @@ mixin DecalBase
 				uint layer = (uint)(gMaskTex.Load(input.position.xy, sampleIdx).r * 256.0f);
 			#endif
 
-			if(layer < 32 && (gLayerMask & (1 << layer)) == 0)
+			if(layer < 32 && (gLayerMask & (1u << layer)) == 0)
 				discard;
 
 			float depth = convertFromDeviceZ(deviceZ);
@@ -276,11 +281,6 @@ mixin DecalBase
 			{
 #ifdef METAL
 				// 'discard' is causing artifacts on Metal
-				OutSceneColor = 0;
-				OutGBufferA = 0;
-				OutGBufferB = 0;
-				OutGBufferC = 0;
-
 				return;
 #else
 				discard;
@@ -299,7 +299,7 @@ mixin DecalBase
 				uv = uv * gSpriteUV.zw + gSpriteUV.xy;
 			#endif
 
-			float opacity = gOpacityTex.Sample(gOpacitySamp, uv);
+			float opacity = gOpacityTex.Sample(gOpacitySamp, uv).r;
 
 			#if BLEND_MODE == 3
 				OutSceneColor = float4(gEmissiveColor * gEmissiveMaskTex.Sample(gEmissiveMaskSamp, uv).x, opacity);
