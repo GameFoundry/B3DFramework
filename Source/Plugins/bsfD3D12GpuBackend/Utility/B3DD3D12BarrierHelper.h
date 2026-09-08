@@ -11,7 +11,7 @@ namespace b3d::render
 	class D3D12ResourceTracker;
 
 	/** Accumulates and emits D3D12 enhanced barriers for one command buffer. */
-	class D3D12BarrierHelper : public TGpuBarrierHelper<D3D12BarrierHelper>
+	class D3D12BarrierHelper : public TGpuBarrierHelper<D3D12BarrierHelper, D3D12ResourceTracker>
 	{
 	public:
 		/** Creates a barrier collector for command buffers recorded for @p queueType. */
@@ -27,7 +27,7 @@ namespace b3d::render
 		bool HasBarriers() const { return !mBarriers.IsEmpty(); }
 
 	private:
-		friend class TGpuBarrierHelper<D3D12BarrierHelper>;
+		friend class TGpuBarrierHelper<D3D12BarrierHelper, D3D12ResourceTracker>;
 		friend class D3D12ResourceTracker;
 
 		/** Adds a native barrier for the resource backing @p buffer. */
@@ -75,5 +75,5 @@ namespace b3d::render
 		GpuQueueType mQueueType;
 	};
 
-	extern template class TGpuBarrierHelper<D3D12BarrierHelper>;
+	extern template class TGpuBarrierHelper<D3D12BarrierHelper, D3D12ResourceTracker>;
 } // namespace b3d::render

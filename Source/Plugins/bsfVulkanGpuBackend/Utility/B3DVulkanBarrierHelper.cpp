@@ -17,7 +17,7 @@ using namespace b3d::render;
 // instantiation elsewhere.
 #include "GpuBackend/B3DGpuBarrierHelper.inl"
 
-template class b3d::render::TGpuBarrierHelper<b3d::render::VulkanBarrierHelper>;
+template class b3d::render::TGpuBarrierHelper<b3d::render::VulkanBarrierHelper, b3d::render::VulkanResourceTracker>;
 
 VulkanBarrierBatch::VulkanBarrierBatch()
 {
@@ -211,7 +211,7 @@ bool VulkanBarrierBatch::HasBarriers() const
 }
 
 VulkanBarrierHelper::VulkanBarrierHelper(VulkanResourceTracker* resourceTracker)
-	: TGpuBarrierHelper<VulkanBarrierHelper>(resourceTracker)
+	: TGpuBarrierHelper<VulkanBarrierHelper, VulkanResourceTracker>(resourceTracker)
 { }
 
 void VulkanBarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
@@ -250,7 +250,7 @@ void VulkanBarrierHelper::Clear()
 {
 	mBarrierBatch.Clear();
 
-	TGpuBarrierHelper<VulkanBarrierHelper>::Clear();
+	TGpuBarrierHelper<VulkanBarrierHelper, VulkanResourceTracker>::Clear();
 }
 
 bool VulkanBarrierHelper::HasBarriers() const

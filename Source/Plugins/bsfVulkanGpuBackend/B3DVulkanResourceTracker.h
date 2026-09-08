@@ -10,15 +10,16 @@
 namespace b3d::render
 {
 	class VulkanBarrierHelper;
+	class VulkanResourceTracker;
 
 	/** @addtogroup Vulkan
 	 *  @{
 	 */
 
-	extern template class TGpuResourceTracker<VulkanBarrierHelper>;
+	extern template class TGpuResourceTracker<VulkanResourceTracker, VulkanBarrierHelper>;
 
 	/** Vulkan-specific resource tracker. Inherits the backend-agnostic tracking machinery from TGpuResourceTracker. */
-	class VulkanResourceTracker : public TGpuResourceTracker<VulkanBarrierHelper>
+	class VulkanResourceTracker : public TGpuResourceTracker<VulkanResourceTracker, VulkanBarrierHelper>
 	{ };
 
 	/** @} */

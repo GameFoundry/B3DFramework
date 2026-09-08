@@ -12,7 +12,7 @@ namespace b3d
 	class GpuResourceManager;
 	class IGpuResource;
 	struct GpuResourceLocation;
-	namespace render { class GpuCommandBuffer; class GpuImageNativeState; }
+	namespace render { class GpuCommandBuffer; }
 
 	/** @addtogroup GpuBackend
 	 *  @{
@@ -479,9 +479,6 @@ namespace b3d
 		IGpuImageResource(GpuResourceManager* owner, const StringView& name, u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspectMask);
 
 		~IGpuImageResource() override;
-
-		/** Creates optional tracking state that can be used for storing backend-specific tracking information for issuing hazard or layout transitions. */
-		virtual TShared<render::GpuImageNativeState> CreateNativeTrackingState(const GpuTextureSubresourceRange& range) const { return nullptr; }
 
 		/** Retrieves a subresource range covering all the sub-resources of the image. */
 		const GpuTextureSubresourceRange& GetRange() const { return mFullRange; }

@@ -38,7 +38,7 @@ namespace b3d::render
 	 * mBarrierHelper.Execute(renderEncoder, computeEncoder); // before recording the dependent command
 	 * @endcode
 	 */
-	class MetalBarrierHelper : public TGpuBarrierHelper<MetalBarrierHelper>
+	class MetalBarrierHelper : public TGpuBarrierHelper<MetalBarrierHelper, MetalResourceTracker>
 	{
 	public:
 		/**
@@ -83,7 +83,7 @@ namespace b3d::render
 		bool RequiresRenderPassRestart() const;
 
 	private:
-		friend class TGpuBarrierHelper<MetalBarrierHelper>;
+		friend class TGpuBarrierHelper<MetalBarrierHelper, MetalResourceTracker>;
 
 		/** Accumulates the native buffer scope and stage union for a resolved barrier. */
 		void RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
@@ -108,7 +108,7 @@ namespace b3d::render
 		GpuStageFlags mCombinedDestinationStages = GpuStageFlag::None;
 	};
 
-	extern template class TGpuBarrierHelper<MetalBarrierHelper>;
+	extern template class TGpuBarrierHelper<MetalBarrierHelper, MetalResourceTracker>;
 
 	/** @} */
 } // namespace b3d::render

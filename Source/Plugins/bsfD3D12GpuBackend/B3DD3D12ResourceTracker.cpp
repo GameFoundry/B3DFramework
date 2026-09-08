@@ -10,7 +10,7 @@
 
 #include "GpuBackend/B3DGpuResourceTracker.inl"
 
-template class b3d::render::TGpuResourceTracker<b3d::render::D3D12BarrierHelper>;
+template class b3d::render::TGpuResourceTracker<b3d::render::D3D12ResourceTracker, b3d::render::D3D12BarrierHelper>;
 
 using namespace b3d;
 using namespace b3d::render;
@@ -25,8 +25,8 @@ void D3D12ResourceTracker::TrackBufferUsage(IGpuBufferResource* buffer, GpuResou
 	D3D12BufferPage* const page = d3d12Buffer->GetPage();
 	if(page != nullptr && page != buffer && accessFlags.IsSet(GpuAccessFlag::Write))
 	{
-		TGpuResourceTracker<D3D12BarrierHelper>::TrackBufferUsage(page, useFlags, GpuAccessFlag::Write, barrierHelper);
+		TGpuResourceTracker<D3D12ResourceTracker, D3D12BarrierHelper>::TrackBufferUsage(page, useFlags, GpuAccessFlag::Write, barrierHelper);
 	}
 
-	TGpuResourceTracker<D3D12BarrierHelper>::TrackBufferUsage(buffer, useFlags, accessFlags, barrierHelper, dynamicOffset);
+	TGpuResourceTracker<D3D12ResourceTracker, D3D12BarrierHelper>::TrackBufferUsage(buffer, useFlags, accessFlags, barrierHelper, dynamicOffset);
 }

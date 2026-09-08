@@ -4,7 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuHazards.h"
-#include "GpuBackend/B3DGpuImageNativeState.h"
+#include "GpuBackend/B3DGpuImageMetadataState.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuFramebuffer.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
@@ -82,8 +82,8 @@ namespace b3d
 			/** State used to resolve read-after-write, write-after-write and write-after-read hazards. */
 			GpuResourceHazardState* HazardState = nullptr;
 
-			/** Backend state for native layout/encoding operations, partitioned together with this range. */
-			TShared<GpuImageNativeState> NativeState;
+			/** Image meta-data tracking state, for backends that need it. */
+			TShared<GpuImageMetadataState> MetadataState;
 
 			// Only relevant for layout transitions
 			/**
@@ -110,11 +110,12 @@ namespace b3d
 		 * Tracker for all resources used on a single command buffer. Keeps bound resources alive while they are bound on the 
 		 * command buffer, keeps track of necessary barriers and layout transitions that need to be issued.
 		 *
+		 * @tparam	TDerived		Concrete backend resource tracker (CRTP self-type).
 		 * @tparam	TBarrierHelper	Backend-specific barrier helper used to queue resolved native barriers.
 		 *							After barriers are issued, the barrier helper must notify the resource tracker via the
 		 *							Update*TrackingAfterBarrier() methods and finally call CommitPendingHazardRegistrations().
 		 */
-		template<class TBarrierHelper>
+		template<class TDerived, class TBarrierHelper>
 		class TGpuResourceTracker
 		{
 		public:
@@ -275,6 +276,9 @@ namespace b3d
 			const TDenseMap<IGpuImageResource*, u32>& GetImages() const { return mImages; }
 
 		private:
+			/** Returns the instance of the resource tracker cast as the actual derived type. Useful to allow derived type to shadow (override) method implementations. */
+			TDerived& GetDerived();
+
 			enum class RenderPassTrackingPhase
 			{
 				Inactive,
@@ -296,12 +300,6 @@ namespace b3d
 
 			/** Creates a new tracking state for the buffer (if this is the first time the buffer has been used on the command buffer), or returns existing tracking state. */
 			GpuBufferTrackingState& GetOrCreateBufferTrackingState(IGpuBufferResource* buffer);
-
-			/** Determines if a barrier is required for the provided destination usage/access, and if so queues a barrier in the barrier helper, to be executed before the next buffer access. */
-			void ResolveAndQueueBufferBarrier(IGpuBufferResource* buffer, const GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper);
-
-			/** Determines if a barrier is required for the provided destination usage/access, and if so queues a barrier in the barrier helper, to be executed before the next image subresource access. */
-			void ResolveAndQueueImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags = GpuImageBarrierFlag::None);
 
 			/** Creates a new tracking state for the image (if this is the first time the image has been used on the command buffer), or returns existing tracking state. */
 			GpuImageTrackingState& GetOrCreateImageTrackingState(IGpuImageResource* image);
@@ -347,19 +345,20 @@ namespace b3d
 			u32 CopySubresourceTrackingStateWithNewRange(u32 copyFromIndex, const GpuTextureSubresourceRange& newRange);
 
 		protected:
+			/** Determines if a barrier is required for the provided destination usage/access, and if so queues a barrier in the barrier helper, to be executed before the next buffer access. */
+			void ResolveAndQueueBufferBarrier(IGpuBufferResource* buffer, const GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper);
+
+			/** Determines if a barrier is required for the provided destination usage/access, and if so queues a barrier in the barrier helper, to be executed before the next image subresource access. */
+			void ResolveAndQueueImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags = GpuImageBarrierFlag::None);
+
 			/** Finds a subresource tracking state for the specified face, mip level, and aspect of the provided image. */
 			GpuImageSubresourceTrackingState& GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect);
 
-			/** Native image requirement awaiting recording in the current barrier batch. */
-			struct PendingImageNativeTransition
-			{
-				PendingImageNativeTransition(IGpuImageResource& image, const GpuTextureSubresourceRange& range) : Image(&image), Range(range) { }
-				IGpuImageResource* Image;
-				GpuTextureSubresourceRange Range;
-			};
+			/** Creates optional backend meta-data values for a new image range. */
+			TShared<GpuImageMetadataState> CreateImageMetadataState(IGpuImageResource* image, const GpuTextureSubresourceRange& range) { return nullptr; }
 
-			/** Pending native requirements, cleared together with the destination access registrations. */
-			Vector<PendingImageNativeTransition> mPendingImageNativeTransitions;
+			/** Selects the accesses executed for one submitted subresource. */
+			const GpuResourceHazardState& ResolveImageSubmissionHazards(IGpuImageResource* image, const GpuImageSubresourceTrackingState& trackingState, IGpuResource& subresource) { return *trackingState.HazardState; }
 
 			/** Maps images to their tracking state index in mImageTrackingState. */
 			TDenseMap<IGpuImageResource*, u32> mImages;
@@ -386,7 +385,7 @@ namespace b3d
 			struct PendingHazardRegistration
 			{
 				GpuResourceHazardState* State;
-				GpuImageNativeState* NativeState = nullptr;
+				GpuImageMetadataState* MetadataState = nullptr;
 				GpuStageFlags AccessStageFlags;
 				GpuAccessFlags Access;
 			};

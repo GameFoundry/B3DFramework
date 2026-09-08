@@ -9,15 +9,16 @@
 namespace b3d::render
 {
 	class MetalBarrierHelper;
+	class MetalResourceTracker;
 
 	/** @addtogroup MetalGpuBackend
 	 *  @{
 	 */
 
-	extern template class TGpuResourceTracker<MetalBarrierHelper>;
+	extern template class TGpuResourceTracker<MetalResourceTracker, MetalBarrierHelper>;
 
 	/** Metal-specific resource tracker. Inherits the backend-agnostic tracking machinery from TGpuResourceTracker. */
-	class MetalResourceTracker : public TGpuResourceTracker<MetalBarrierHelper>
+	class MetalResourceTracker : public TGpuResourceTracker<MetalResourceTracker, MetalBarrierHelper>
 	{ };
 
 	/** @} */

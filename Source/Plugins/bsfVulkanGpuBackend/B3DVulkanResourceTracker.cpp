@@ -5,4 +5,4 @@
 
 #include "GpuBackend/B3DGpuResourceTracker.inl"
 
-template class b3d::render::TGpuResourceTracker<b3d::render::VulkanBarrierHelper>;
+template class b3d::render::TGpuResourceTracker<b3d::render::VulkanResourceTracker, b3d::render::VulkanBarrierHelper>;

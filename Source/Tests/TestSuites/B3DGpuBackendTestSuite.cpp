@@ -160,7 +160,7 @@ namespace
 		GpuBarrierScope ExecutionBarrier;
 	};
 
-	class SubmissionTestTracker : public TGpuResourceTracker<SubmissionTestBarrierHelper>
+	class SubmissionTestTracker : public TGpuResourceTracker<SubmissionTestTracker, SubmissionTestBarrierHelper>
 	{
 	public:
 		using TGpuResourceTracker::GetSubresourceTrackingState;
@@ -181,7 +181,7 @@ namespace
 		GpuResourceHazardState hazardState;
 		ResolveTestAccess(hazardState, stages, access);
 
-		TGpuResourceTracker<SubmissionTestBarrierHelper> tracker;
+		SubmissionTestTracker tracker;
 		GpuBufferTrackingState trackingState;
 		trackingState.HazardState = &hazardState;
 		tracker.GetBuffers().insert(std::make_pair(&buffer, trackingState));

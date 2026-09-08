@@ -11,8 +11,14 @@ namespace b3d
 	namespace render
 	{
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::ResolveSubmissionTransitions(GpuQueueId destinationQueueId, GpuSubmissionTransitionVisitor& visitor)
+template<class TDerived, class TBarrierHelper>
+TDerived& TGpuResourceTracker<TDerived, TBarrierHelper>::GetDerived()
+{
+	return static_cast<TDerived&>(*this);
+}
+
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions(GpuQueueId destinationQueueId, GpuSubmissionTransitionVisitor& visitor)
 {
 	for(const auto& entry : mBuffers)
 	{
@@ -49,13 +55,15 @@ void TGpuResourceTracker<TBarrierHelper>::ResolveSubmissionTransitions(GpuQueueI
 					IGpuResource* const subresource = image->GetSubresource(face, mipLevel, (GpuTextureAspectFlag)(u32)trackedRange.AspectMask);
 					B3D_ASSERT(subresource != nullptr);
 
-					const GpuResourceHazardState& hazards = trackingState.NativeState != nullptr ? trackingState.NativeState->ResolveSubmission(*subresource) : *trackingState.HazardState;
+					const GpuResourceHazardState& hazards = GetDerived().ResolveImageSubmissionHazards(image, trackingState, *subresource);
 					if(!hazards.HasSubmissionEffect())
 						continue;
 
-					// Make sure subresource is tracked as bound/used on the command buffer (needed in case of an explicit barrier with no actual access - in that case transition counts as a write)
-					if(trackingState.NativeState != nullptr && hazards.HasWrite())
-						mResources.find(subresource)->second.Flags |= GpuAccessFlag::Write;
+					// Selected meta-data work contributes to both subresource and parent-image use flags.
+					if(trackingState.MetadataState != nullptr && hazards.HasAccess())
+					{
+
+					}
 
 					const GpuTextureSubresourceRange range(mipLevel, 1, face, 1, trackedRange.AspectMask);
 					GpuSubmissionImageTransition transition(*image, range, trackingState.InitialLayout, trackingState.CurrentLayout, trackingState.SubmissionBarrierFlags, GpuSubmissionTransition::Build(*subresource, destinationQueueId, hazards));
@@ -68,8 +76,8 @@ void TGpuResourceTracker<TBarrierHelper>::ResolveSubmissionTransitions(GpuQueueI
 	}
 }
 
-template<class TBarrierHelper>
-GpuBufferTrackingState& TGpuResourceTracker<TBarrierHelper>::GetOrCreateBufferTrackingState(IGpuBufferResource* buffer)
+template<class TDerived, class TBarrierHelper>
+GpuBufferTrackingState& TGpuResourceTracker<TDerived, TBarrierHelper>::GetOrCreateBufferTrackingState(IGpuBufferResource* buffer)
 {
 	auto insertResult = mBuffers.insert(std::make_pair(buffer, GpuBufferTrackingState()));
 	if(insertResult.second) // New element
@@ -92,8 +100,8 @@ GpuBufferTrackingState& TGpuResourceTracker<TBarrierHelper>::GetOrCreateBufferTr
 	}
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::ResolveAndQueueBufferBarrier(IGpuBufferResource* buffer, const GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveAndQueueBufferBarrier(IGpuBufferResource* buffer, const GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper)
 {
 	if(buffer == nullptr)
 		return;
@@ -104,8 +112,8 @@ void TGpuResourceTracker<TBarrierHelper>::ResolveAndQueueBufferBarrier(IGpuBuffe
 		barrierHelper.QueueResolvedBufferBarrier(buffer, requiredBarrier);
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::TrackExplicitBufferBarrier(IGpuBufferResource* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitBufferBarrier(IGpuBufferResource* buffer, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper)
 {
 	if(buffer == nullptr)
 		return;
@@ -120,8 +128,8 @@ void TGpuResourceTracker<TBarrierHelper>::TrackExplicitBufferBarrier(IGpuBufferR
 	ResolveAndQueueBufferBarrier(buffer, bufferTrackingState, destinationUsage, destinationAccess, barrierHelper);
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::TrackBufferUsage(IGpuBufferResource* buffer, GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, TBarrierHelper& barrierHelper, u32 dynamicOffset)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferUsage(IGpuBufferResource* buffer, GpuBufferTrackingState& bufferTrackingState, GpuResourceUseFlags useFlags, GpuAccessFlags access, TBarrierHelper& barrierHelper, u32 dynamicOffset)
 {
 	B3D_ASSERT(!bufferTrackingState.UseHandle.Used);
 
@@ -167,15 +175,15 @@ void TGpuResourceTracker<TBarrierHelper>::TrackBufferUsage(IGpuBufferResource* b
 #endif
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::TrackBufferUsage(IGpuBufferResource* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, u32 dynamicOffset)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferUsage(IGpuBufferResource* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, u32 dynamicOffset)
 {
 	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
 	TrackBufferUsage(buffer, bufferTrackingState, useFlags, accessFlags, barrierHelper, dynamicOffset);
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::PrepareRenderPass(TArrayView<const GpuRenderPassAttachmentUsage> attachments)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::PrepareRenderPass(TArrayView<const GpuRenderPassAttachmentUsage> attachments)
 {
 	if(!B3D_ENSURE(mRenderPassTrackingPhase == RenderPassTrackingPhase::Inactive))
 		return;
@@ -193,8 +201,8 @@ void TGpuResourceTracker<TBarrierHelper>::PrepareRenderPass(TArrayView<const Gpu
 	}
 }
 
-template<class TBarrierHelper>
-TArrayView<const GpuResolvedRenderPassAttachmentUsage> TGpuResourceTracker<TBarrierHelper>::BeginRenderPass(TBarrierHelper& barrierHelper)
+template<class TDerived, class TBarrierHelper>
+TArrayView<const GpuResolvedRenderPassAttachmentUsage> TGpuResourceTracker<TDerived, TBarrierHelper>::BeginRenderPass(TBarrierHelper& barrierHelper)
 {
 	if(!B3D_ENSURE(mRenderPassTrackingPhase == RenderPassTrackingPhase::Preparing))
 		return TArrayView<const GpuResolvedRenderPassAttachmentUsage>();
@@ -235,8 +243,8 @@ TArrayView<const GpuResolvedRenderPassAttachmentUsage> TGpuResourceTracker<TBarr
 	return mActiveRenderPassAttachments;
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::EndRenderPass()
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::EndRenderPass()
 {
 	if(!B3D_ENSURE(mRenderPassTrackingPhase == RenderPassTrackingPhase::Active))
 		return;
@@ -270,8 +278,8 @@ void TGpuResourceTracker<TBarrierHelper>::EndRenderPass()
 	mRenderPassTrackingPhase = RenderPassTrackingPhase::Inactive;
 }
 
-template<class TBarrierHelper>
-const GpuResolvedRenderPassAttachmentUsage* TGpuResourceTracker<TBarrierHelper>::FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
+template<class TDerived, class TBarrierHelper>
+const GpuResolvedRenderPassAttachmentUsage* TGpuResourceTracker<TDerived, TBarrierHelper>::FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
 {
 	for(const GpuResolvedRenderPassAttachmentUsage& attachment : mActiveRenderPassAttachments)
 	{
@@ -282,8 +290,8 @@ const GpuResolvedRenderPassAttachmentUsage* TGpuResourceTracker<TBarrierHelper>:
 	return nullptr;
 }
 
-template<class TBarrierHelper>
-GpuImageLayout TGpuResourceTracker<TBarrierHelper>::GetRequiredImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange) const
+template<class TDerived, class TBarrierHelper>
+GpuImageLayout TGpuResourceTracker<TDerived, TBarrierHelper>::GetRequiredImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange) const
 {
 	for(const PendingRenderPassAttachmentUsage& pendingAttachment : mPendingRenderPassAttachments)
 	{
@@ -308,8 +316,8 @@ GpuImageLayout TGpuResourceTracker<TBarrierHelper>::GetRequiredImageLayout(IGpuI
 	return GpuImageLayout::Undefined;
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags)
 {
 	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
 
@@ -318,7 +326,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* ima
 
 	struct CallbackParameters
 	{
-		TGpuResourceTracker<TBarrierHelper>* Self;
+		TGpuResourceTracker<TDerived, TBarrierHelper>* Self;
 		TBarrierHelper* BarrierHelper;
 		IGpuImageResource* Image;
 		GpuImageLayout Layout;
@@ -339,7 +347,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* ima
 	IterateAndCreateOverlappingImageSubresourceTrackingState(image, subresourceRange, [](u32 globalSubresourceIndex, void* userData)
 	{
 		CallbackParameters* const callbackParameters = (CallbackParameters*)userData;
-		TGpuResourceTracker<TBarrierHelper>* self = callbackParameters->Self;
+		TGpuResourceTracker<TDerived, TBarrierHelper>* self = callbackParameters->Self;
 
 		bool foldedIntoRenderPassAttachment = false;
 		const bool isStandaloneShaderUse = callbackParameters->UseFlags.IsSet(GpuResourceUseFlag::ShaderAccess) && !callbackParameters->UseFlags.IsSetAny(GpuResourceUseFlag::ColorAttachment | GpuResourceUseFlag::DepthStencilAttachment);
@@ -395,8 +403,8 @@ void TGpuResourceTracker<TBarrierHelper>::TrackImageUsage(IGpuImageResource* ima
 	}
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::TrackExplicitImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper)
 {
 	if(image == nullptr)
 		return;
@@ -417,28 +425,9 @@ void TGpuResourceTracker<TBarrierHelper>::TrackExplicitImageBarrier(IGpuImageRes
 		CallbackParameters* const callbackParameters = static_cast<CallbackParameters*>(userData);
 		GpuImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Tracker->mSubresourceTrackingState[globalSubresourceIndex];
 
-		// An explicit barrier can perform a native write without a normal image access registering these subresources.
-		// Bind them with no access flags; submission adds Write only if native work executes. This does not split tracking ranges.
-		if(subresourceTrackingState.NativeState != nullptr)
-		{
-			const GpuTextureSubresourceRange& range = subresourceTrackingState.Range;
-			for(u32 mipLevel = range.BaseMipLevel; mipLevel < range.BaseMipLevel + range.MipLevelCount; mipLevel++)
-				for(u32 face = range.BaseArrayLayer; face < range.BaseArrayLayer + range.ArrayLayerCount; face++)
-					callbackParameters->Tracker->TrackResourceUsage(callbackParameters->Image->GetSubresource(face, mipLevel, (GpuTextureAspectFlag)(u32)range.AspectMask), GpuAccessFlag::None);
-		}
-
 		if(!subresourceTrackingState.HazardState->HasAccess())
 		{
 			subresourceTrackingState.HazardState->HasLeadingBarrier = true;
-
-			if(subresourceTrackingState.NativeState != nullptr)
-			{
-				const GpuStageFlags stages = GpuBackendUtility::GetStageFlags(callbackParameters->DestinationUsage);
-				if(subresourceTrackingState.NativeState->AccumulateTransitionRequirement(callbackParameters->DestinationLayout, stages, callbackParameters->DestinationAccess))
-					callbackParameters->Tracker->mPendingImageNativeTransitions.emplace_back(*callbackParameters->Image, subresourceTrackingState.Range);
-
-				subresourceTrackingState.NativeState->RecordBarrier(GpuBarrierScope(GpuStageFlag::None, GpuAccessFlag::None, stages, callbackParameters->DestinationAccess));
-			}
 
 			if(callbackParameters->DestinationLayout != GpuImageLayout::Undefined)
 			{
@@ -446,16 +435,14 @@ void TGpuResourceTracker<TBarrierHelper>::TrackExplicitImageBarrier(IGpuImageRes
 				subresourceTrackingState.CurrentLayout = callbackParameters->DestinationLayout;
 				subresourceTrackingState.RequiredLayout = callbackParameters->DestinationLayout;
 			}
-
-			return;
 		}
 
-		callbackParameters->Tracker->ResolveAndQueueImageBarrier(callbackParameters->Image, subresourceTrackingState, callbackParameters->DestinationUsage, callbackParameters->DestinationAccess, callbackParameters->DestinationLayout, *callbackParameters->BarrierHelper);
+		callbackParameters->Tracker->GetDerived().ResolveAndQueueImageBarrier(callbackParameters->Image, subresourceTrackingState, callbackParameters->DestinationUsage, callbackParameters->DestinationAccess, callbackParameters->DestinationLayout, *callbackParameters->BarrierHelper);
 	}, &callbackParameters);
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::ResolveAndQueueImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveAndQueueImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& subresourceTrackingState, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags)
 {
 	if(image == nullptr)
 		return;
@@ -464,11 +451,9 @@ void TGpuResourceTracker<TBarrierHelper>::ResolveAndQueueImageBarrier(IGpuImageR
 		destinationLayout = subresourceTrackingState.CurrentLayout;
 
 	const GpuStageFlags destinationStages = GpuBackendUtility::GetStageFlags(destinationUsage);
-	if(subresourceTrackingState.NativeState != nullptr && subresourceTrackingState.NativeState->AccumulateTransitionRequirement(destinationLayout, destinationStages, destinationAccess))
-		mPendingImageNativeTransitions.emplace_back(*image, subresourceTrackingState.Range);
 
 	const bool needsLayoutTransition = subresourceTrackingState.CurrentLayout != destinationLayout || barrierFlags.IsSet(GpuImageBarrierFlag::DiscardContents);
-	if(subresourceTrackingState.Access == GpuAccessFlag::None)
+	if(!subresourceTrackingState.HazardState->HasAccess())
 	{
 		if(needsLayoutTransition)
 		{
@@ -502,8 +487,8 @@ void TGpuResourceTracker<TBarrierHelper>::ResolveAndQueueImageBarrier(IGpuImageR
 	barrierHelper.QueueResolvedImageBarrier(image, subresourceTrackingState.Range, barrier, subresourceTrackingState.CurrentLayout, destinationLayout, barrierFlags);
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags)
 {
 	const bool isShaderUse = useFlags.IsSet(GpuResourceUseFlag::ShaderAccess);
 	const bool isFramebufferUse = useFlags.IsSetAny(GpuResourceUseFlag::ColorAttachment | GpuResourceUseFlag::DepthStencilAttachment);
@@ -515,7 +500,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 		subresourceTrackingState.SubmissionBarrierFlags |= barrierFlags;
 
 	const bool hasLeadingBarrier = subresourceTrackingState.HazardState != nullptr && subresourceTrackingState.HazardState->HasLeadingBarrier;
-	if(subresourceTrackingState.Access == GpuAccessFlag::None && !hasLeadingBarrier) // New subresource
+	if(subresourceTrackingState.Access == GpuAccessFlag::None && !subresourceTrackingState.HazardState->HasAccess() && !hasLeadingBarrier) // New subresource
 	{
 		subresourceTrackingState.InitialLayout = layout;
 		subresourceTrackingState.CurrentLayout = layout;
@@ -553,7 +538,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 		}
 	}
 
-	ResolveAndQueueImageBarrier(image, subresourceTrackingState, useFlags, accessFlags, subresourceTrackingState.RequiredLayout, barrierHelper, barrierFlags);
+	GetDerived().ResolveAndQueueImageBarrier(image, subresourceTrackingState, useFlags, accessFlags, subresourceTrackingState.RequiredLayout, barrierHelper, barrierFlags);
 
 	const GpuStageFlags accessStageFlags = GpuBackendUtility::GetStageFlags(useFlags);
 	GpuResourceHazardState* const hazardState = subresourceTrackingState.HazardState;
@@ -563,7 +548,7 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 	{
 		PendingHazardRegistration registration;
 		registration.State = hazardState;
-		registration.NativeState = subresourceTrackingState.NativeState.get();
+		registration.MetadataState = subresourceTrackingState.MetadataState.get();
 		registration.AccessStageFlags = accessStageFlags;
 		registration.Access = accessFlags;
 
@@ -578,6 +563,9 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSubresourceUsage(IGpuImageResourc
 
 template<class TBarrierHelper>
 void TGpuResourceTracker<TBarrierHelper>::TrackResourceUsage(IGpuResource* resource, GpuAccessFlags access)
+
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackResourceUsage(IGpuResource* resource, GpuAccessFlags access)
 {
 	auto insertResult = mResources.insert(std::make_pair(resource, GpuResourceUseHandle()));
 	if(insertResult.second) // New element
@@ -597,8 +585,8 @@ void TGpuResourceTracker<TBarrierHelper>::TrackResourceUsage(IGpuResource* resou
 	}
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::TrackSwapChainUsage(IGpuSwapChainResource* swapChain)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackSwapChainUsage(IGpuSwapChainResource* swapChain)
 {
 	auto insertResult = mSwapChains.insert(std::make_pair(swapChain, GpuResourceUseHandle()));
 	if(insertResult.second) // New element
@@ -618,8 +606,8 @@ void TGpuResourceTracker<TBarrierHelper>::TrackSwapChainUsage(IGpuSwapChainResou
 	}
 }
 
-template<class TBarrierHelper>
-GpuImageTrackingState& TGpuResourceTracker<TBarrierHelper>::GetOrCreateImageTrackingState(IGpuImageResource* image)
+template<class TDerived, class TBarrierHelper>
+GpuImageTrackingState& TGpuResourceTracker<TDerived, TBarrierHelper>::GetOrCreateImageTrackingState(IGpuImageResource* image)
 {
 	const u32 nextImageTrackingIndex = (u32)mImageTrackingState.size();
 
@@ -648,8 +636,8 @@ GpuImageTrackingState& TGpuResourceTracker<TBarrierHelper>::GetOrCreateImageTrac
 	}
 }
 
-template<class TBarrierHelper>
-u32 TGpuResourceTracker<TBarrierHelper>::FindImageTrackingStateIndex(IGpuImageResource* image) const
+template<class TDerived, class TBarrierHelper>
+u32 TGpuResourceTracker<TDerived, TBarrierHelper>::FindImageTrackingStateIndex(IGpuImageResource* image) const
 {
 	auto found = mImages.find(image);
 	if(found == mImages.end())
@@ -658,8 +646,8 @@ u32 TGpuResourceTracker<TBarrierHelper>::FindImageTrackingStateIndex(IGpuImageRe
 	return found->second;
 }
 
-template<class TBarrierHelper>
-const GpuImageTrackingState* TGpuResourceTracker<TBarrierHelper>::FindImageTrackingState(IGpuImageResource* image) const
+template<class TDerived, class TBarrierHelper>
+const GpuImageTrackingState* TGpuResourceTracker<TDerived, TBarrierHelper>::FindImageTrackingState(IGpuImageResource* image) const
 {
 	const u32 imageTrackingIndex = FindImageTrackingStateIndex(image);
 	if(imageTrackingIndex == ~0u)
@@ -668,8 +656,8 @@ const GpuImageTrackingState* TGpuResourceTracker<TBarrierHelper>::FindImageTrack
 	return &mImageTrackingState[imageTrackingIndex];
 }
 
-template<class TBarrierHelper>
-const GpuImageTrackingState& TGpuResourceTracker<TBarrierHelper>::GetImageTrackingState(IGpuImageResource* image) const
+template<class TDerived, class TBarrierHelper>
+const GpuImageTrackingState& TGpuResourceTracker<TDerived, TBarrierHelper>::GetImageTrackingState(IGpuImageResource* image) const
 {
 	const u32 imageTrackingIndex = FindImageTrackingStateIndex(image);
 	B3D_ASSERT(imageTrackingIndex != ~0u);
@@ -677,8 +665,8 @@ const GpuImageTrackingState& TGpuResourceTracker<TBarrierHelper>::GetImageTracki
 	return mImageTrackingState[imageTrackingIndex];
 }
 
-template<class TBarrierHelper>
-GpuImageTrackingState& TGpuResourceTracker<TBarrierHelper>::GetImageTrackingState(IGpuImageResource* image)
+template<class TDerived, class TBarrierHelper>
+GpuImageTrackingState& TGpuResourceTracker<TDerived, TBarrierHelper>::GetImageTrackingState(IGpuImageResource* image)
 {
 	const u32 imageTrackingIndex = FindImageTrackingStateIndex(image);
 	B3D_ASSERT(imageTrackingIndex != ~0u);
@@ -686,8 +674,8 @@ GpuImageTrackingState& TGpuResourceTracker<TBarrierHelper>::GetImageTrackingStat
 	return mImageTrackingState[imageTrackingIndex];
 }
 
-template<class TBarrierHelper>
-TArrayView<const GpuImageSubresourceTrackingState> TGpuResourceTracker<TBarrierHelper>::GetSubresourceTrackingStatesForImage(IGpuImageResource* image) const
+template<class TDerived, class TBarrierHelper>
+TArrayView<const GpuImageSubresourceTrackingState> TGpuResourceTracker<TDerived, TBarrierHelper>::GetSubresourceTrackingStatesForImage(IGpuImageResource* image) const
 {
 	const GpuImageTrackingState& imageTrackingState = GetImageTrackingState(image);
 	if(imageTrackingState.FirstSubresourceInfoIndex == ~0u)
@@ -696,8 +684,8 @@ TArrayView<const GpuImageSubresourceTrackingState> TGpuResourceTracker<TBarrierH
 	return TArrayView(&mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex], imageTrackingState.SubresourceInfoCount);
 }
 
-template<class TBarrierHelper>
-TArrayView<GpuImageSubresourceTrackingState> TGpuResourceTracker<TBarrierHelper>::GetSubresourceTrackingStatesForImage(IGpuImageResource* image)
+template<class TDerived, class TBarrierHelper>
+TArrayView<GpuImageSubresourceTrackingState> TGpuResourceTracker<TDerived, TBarrierHelper>::GetSubresourceTrackingStatesForImage(IGpuImageResource* image)
 {
 	GpuImageTrackingState& imageTrackingState = GetImageTrackingState(image);
 	if(imageTrackingState.FirstSubresourceInfoIndex == ~0u)
@@ -706,8 +694,8 @@ TArrayView<GpuImageSubresourceTrackingState> TGpuResourceTracker<TBarrierHelper>
 	return TArrayView(&mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex], imageTrackingState.SubresourceInfoCount);
 }
 
-template<class TBarrierHelper>
-const GpuImageSubresourceTrackingState& TGpuResourceTracker<TBarrierHelper>::GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect) const
+template<class TDerived, class TBarrierHelper>
+const GpuImageSubresourceTrackingState& TGpuResourceTracker<TDerived, TBarrierHelper>::GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect) const
 {
 	const GpuImageSubresourceTrackingState* const trackingState = FindSubresourceTrackingState(image, face, mip, aspect);
 	if(!B3D_ENSURE(trackingState != nullptr))
@@ -723,8 +711,8 @@ const GpuImageSubresourceTrackingState& TGpuResourceTracker<TBarrierHelper>::Get
 	return *trackingState;
 }
 
-template<class TBarrierHelper>
-const GpuImageSubresourceTrackingState* TGpuResourceTracker<TBarrierHelper>::FindSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect) const
+template<class TDerived, class TBarrierHelper>
+const GpuImageSubresourceTrackingState* TGpuResourceTracker<TDerived, TBarrierHelper>::FindSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect) const
 {
 	const u32 imageTrackingIndex = mImages.find(image)->second;
 	const GpuImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
@@ -745,8 +733,8 @@ const GpuImageSubresourceTrackingState* TGpuResourceTracker<TBarrierHelper>::Fin
 	return nullptr;
 }
 
-template<class TBarrierHelper>
-const GpuBufferTrackingState* TGpuResourceTracker<TBarrierHelper>::FindBufferTrackingState(IGpuBufferResource* buffer) const
+template<class TDerived, class TBarrierHelper>
+const GpuBufferTrackingState* TGpuResourceTracker<TDerived, TBarrierHelper>::FindBufferTrackingState(IGpuBufferResource* buffer) const
 {
 	auto found = mBuffers.find(buffer);
 	if(found != mBuffers.end())
@@ -755,15 +743,15 @@ const GpuBufferTrackingState* TGpuResourceTracker<TBarrierHelper>::FindBufferTra
 	return nullptr;
 }
 
-template<class TBarrierHelper>
-GpuImageSubresourceTrackingState& TGpuResourceTracker<TBarrierHelper>::GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect)
+template<class TDerived, class TBarrierHelper>
+GpuImageSubresourceTrackingState& TGpuResourceTracker<TDerived, TBarrierHelper>::GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect)
 {
 	// Delegate to 'const' version and re-cast
 	return const_cast<GpuImageSubresourceTrackingState&>(const_cast<const TGpuResourceTracker*>(this)->GetSubresourceTrackingState(image, face, mip, aspect));
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::IterateAndCreateOverlappingImageSubresourceTrackingState(IGpuImageResource* image, GpuTextureSubresourceRange subresourceRange, void (*fnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::IterateAndCreateOverlappingImageSubresourceTrackingState(IGpuImageResource* image, GpuTextureSubresourceRange subresourceRange, void (*fnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData)
 {
 	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
 	// Provide exact size as code below doesn't handle the "remaining" sentinel
@@ -907,8 +895,8 @@ void TGpuResourceTracker<TBarrierHelper>::IterateAndCreateOverlappingImageSubres
 	}
 }
 
-template<class TBarrierHelper>
-u32 TGpuResourceTracker<TBarrierHelper>::AddSubresourceTrackingState(IGpuImageResource* image, const GpuTextureSubresourceRange& range)
+template<class TDerived, class TBarrierHelper>
+u32 TGpuResourceTracker<TDerived, TBarrierHelper>::AddSubresourceTrackingState(IGpuImageResource* image, const GpuTextureSubresourceRange& range)
 {
 	B3D_ASSERT(range.HasSingleAspect());
 
@@ -919,14 +907,14 @@ u32 TGpuResourceTracker<TBarrierHelper>::AddSubresourceTrackingState(IGpuImageRe
 	subresourceTrackingState.InitialLayout = GpuImageLayout::Undefined;
 	subresourceTrackingState.RequiredLayout = GpuImageLayout::Undefined;
 	subresourceTrackingState.Range = range;
-	subresourceTrackingState.NativeState = image->CreateNativeTrackingState(range);
+	subresourceTrackingState.MetadataState = GetDerived().CreateImageMetadataState(image, range);
 	subresourceTrackingState.HazardState = mHazardStatePool.Construct<GpuResourceHazardState>();
 
 	return (u32)mSubresourceTrackingState.size() - 1;
 }
 
-template<class TBarrierHelper>
-u32 TGpuResourceTracker<TBarrierHelper>::CopySubresourceTrackingStateWithNewRange(u32 copyFromIndex, const GpuTextureSubresourceRange& newRange)
+template<class TDerived, class TBarrierHelper>
+u32 TGpuResourceTracker<TDerived, TBarrierHelper>::CopySubresourceTrackingStateWithNewRange(u32 copyFromIndex, const GpuTextureSubresourceRange& newRange)
 {
 	B3D_ASSERT(newRange.HasSingleAspect());
 
@@ -934,8 +922,8 @@ u32 TGpuResourceTracker<TBarrierHelper>::CopySubresourceTrackingStateWithNewRang
 
 	GpuImageSubresourceTrackingState subresourceCopy = *copyFromSubresource;
 	subresourceCopy.Range = newRange;
-	if(subresourceCopy.NativeState != nullptr)
-		subresourceCopy.NativeState = subresourceCopy.NativeState->Clone();
+	if(subresourceCopy.MetadataState != nullptr)
+		subresourceCopy.MetadataState = subresourceCopy.MetadataState->Clone();
 
 	subresourceCopy.HazardState = mHazardStatePool.Construct<GpuResourceHazardState>();
 
@@ -951,7 +939,7 @@ u32 TGpuResourceTracker<TBarrierHelper>::CopySubresourceTrackingStateWithNewRang
 
 		PendingHazardRegistration registrationCopy = mPendingHazardRegistrations[registrationIndex];
 		registrationCopy.State = subresourceCopy.HazardState;
-		registrationCopy.NativeState = subresourceCopy.NativeState.get();
+		registrationCopy.MetadataState = subresourceCopy.MetadataState.get();
 		mPendingHazardRegistrations.push_back(registrationCopy);
 	}
 
@@ -959,12 +947,12 @@ u32 TGpuResourceTracker<TBarrierHelper>::CopySubresourceTrackingStateWithNewRang
 	return (u32)mSubresourceTrackingState.size() - 1;
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::UpdateImageLayoutTrackingAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuImageLayout oldLayout, GpuImageLayout newLayout)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::UpdateImageLayoutTrackingAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuImageLayout oldLayout, GpuImageLayout newLayout)
 {
 	struct CallbackParameters
 	{
-		TGpuResourceTracker<TBarrierHelper>* Self;
+		TGpuResourceTracker<TDerived, TBarrierHelper>* Self;
 		GpuImageLayout OldLayout;
 		GpuImageLayout NewLayout;
 	};
@@ -990,24 +978,20 @@ void TGpuResourceTracker<TBarrierHelper>::UpdateImageLayoutTrackingAfterBarrier(
 	}, &callbackParameters);
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::CommitPendingHazardRegistrations()
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::CommitPendingHazardRegistrations()
 {
 	for(const PendingHazardRegistration& registration : mPendingHazardRegistrations)
 	{
 		registration.State->RecordAccess(registration.AccessStageFlags, registration.Access);
-
-		if(registration.NativeState != nullptr)
-			registration.NativeState->RecordAccess(registration.AccessStageFlags, registration.Access);
 	}
 
 	mPendingHazardRegistrations.clear();
-	mPendingImageNativeTransitions.clear();
 	mAccessEpoch++;
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::UpdateHazardStateAfterBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::UpdateHazardStateAfterBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
 {
 	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
 	GpuResourceHazardState* const hazardState = bufferTrackingState.HazardState;
@@ -1015,12 +999,12 @@ void TGpuResourceTracker<TBarrierHelper>::UpdateHazardStateAfterBarrier(IGpuBuff
 	hazardState->RecordBarrier(barrier);
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::UpdateHazardStateAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::UpdateHazardStateAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier)
 {
 	struct CallbackParameters
 	{
-		TGpuResourceTracker<TBarrierHelper>* Self;
+		TGpuResourceTracker<TDerived, TBarrierHelper>* Self;
 		GpuBarrierScope Barrier;
 	};
 
@@ -1034,14 +1018,11 @@ void TGpuResourceTracker<TBarrierHelper>::UpdateHazardStateAfterBarrier(IGpuImag
 		GpuResourceHazardState* const hazardState = subresourceTrackingState.HazardState;
 
 		hazardState->RecordBarrier(callbackParameters->Barrier);
-		if(subresourceTrackingState.NativeState != nullptr)
-			subresourceTrackingState.NativeState->RecordBarrier(callbackParameters->Barrier);
-
 	}, &callbackParameters);
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::NotifyUsed(GpuQueueId queueId)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::NotifyUsed(GpuQueueId queueId)
 {
 	for(auto& entry : mResources)
 	{
@@ -1098,8 +1079,8 @@ void TGpuResourceTracker<TBarrierHelper>::NotifyUsed(GpuQueueId queueId)
 	}
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::NotifyDone(GpuQueueId queueId)
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::NotifyDone(GpuQueueId queueId)
 {
 	for(auto& entry : mResources)
 	{
@@ -1163,8 +1144,8 @@ void TGpuResourceTracker<TBarrierHelper>::NotifyDone(GpuQueueId queueId)
 	}
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::NotifyUnbound()
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::NotifyUnbound()
 {
 	for(auto& entry : mResources)
 	{
@@ -1209,8 +1190,8 @@ void TGpuResourceTracker<TBarrierHelper>::NotifyUnbound()
 	}
 }
 
-template<class TBarrierHelper>
-void TGpuResourceTracker<TBarrierHelper>::Clear()
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::Clear()
 {
 	for(auto& entry : mBuffers)
 	{
@@ -1226,7 +1207,6 @@ void TGpuResourceTracker<TBarrierHelper>::Clear()
 
 	// Drop deferred registrations before destructing the hazard states they point at.
 	mPendingHazardRegistrations.clear();
-	mPendingImageNativeTransitions.clear();
 
 	mResources.clear();
 	mImages.clear();

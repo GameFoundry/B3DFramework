@@ -22,7 +22,7 @@ namespace b3d::render
 	 * The resource tracker resolves hazards, layouts and subresource partitions before queuing barriers here. The helper
 	 * translates those resolved barriers to the native API, batches them, and runs the post-emission tracker callbacks.
 	 *
-	 * Implemented with CRTP - a backend derives as `class XBarrierHelper : public TGpuBarrierHelper<XBarrierHelper>`
+	 * Implemented with CRTP - a backend derives as `class XBarrierHelper : public TGpuBarrierHelper<XBarrierHelper, XResourceTracker>`
 	 * and provides:
 	 *  - @c RecordNativeBufferBarrier / @c RecordNativeImageBarrier - accumulate the native barrier for one
 	 *    buffer/image. Called by the shared queueing path (befriend this template so they can stay private).
@@ -31,9 +31,10 @@ namespace b3d::render
 	 *  - @c Clear - reset the backend-specific accumulation, then call Clear().
 	 *  - @c HasBarriers - whether anything has been accumulated.
 	 *
-	 * @tparam	TDerived	The concrete backend barrier helper (CRTP self-type).
+	 * @tparam	TDerived		Concrete backend barrier helper (CRTP self-type).
+	 * @tparam	TResourceTracker	Concrete tracker notified after barriers execute.
 	 */
-	template<class TDerived>
+	template<class TDerived, class TResourceTracker>
 	class TGpuBarrierHelper
 	{
 	public:
@@ -43,7 +44,7 @@ namespace b3d::render
 		 * @param	resourceTracker		Object responsible for tracking all resource usages on a command buffer. It is
 		 *								notified after queued barriers and layout transitions are emitted.
 		 */
-		TGpuBarrierHelper(TGpuResourceTracker<TDerived>* resourceTracker);
+		TGpuBarrierHelper(TResourceTracker* resourceTracker);
 
 	protected:
 		/** Information needed to update hazard tracking after barrier execution. Either Buffer or Image is set. */
@@ -74,13 +75,13 @@ namespace b3d::render
 		/** Clears the shared accumulated tracking. The derived Clear must call this after resetting its native state. */
 		void Clear();
 
-		TGpuResourceTracker<TDerived>* mResourceTracker;
+		TResourceTracker* mResourceTracker;
 
 		TInlineArray<LayoutTrackingInfo, 4> mImageLayoutTracking;
 		TInlineArray<BarrierTrackingInfo, 8> mBarrierTracking;
 
 	private:
-		friend class TGpuResourceTracker<TDerived>;
+		friend class TGpuResourceTracker<TResourceTracker, TDerived>;
 
 		/** Queues a resolved buffer barrier and its post-emission tracker update. */
 		void QueueResolvedBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);

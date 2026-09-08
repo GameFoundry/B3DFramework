@@ -10,12 +10,12 @@
 // carries a matching `extern template` to suppress implicit instantiation elsewhere.
 #include "GpuBackend/B3DGpuBarrierHelper.inl"
 
-template class b3d::render::TGpuBarrierHelper<b3d::render::MetalBarrierHelper>;
+template class b3d::render::TGpuBarrierHelper<b3d::render::MetalBarrierHelper, b3d::render::MetalResourceTracker>;
 
 namespace b3d::render
 {
 	MetalBarrierHelper::MetalBarrierHelper(MetalResourceTracker* resourceTracker)
-		: TGpuBarrierHelper<MetalBarrierHelper>(resourceTracker)
+		: TGpuBarrierHelper<MetalBarrierHelper, MetalResourceTracker>(resourceTracker)
 	{ }
 
 	void MetalBarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
@@ -125,7 +125,7 @@ namespace b3d::render
 		mCombinedSourceStages = GpuStageFlag::None;
 		mCombinedDestinationStages = GpuStageFlag::None;
 
-		TGpuBarrierHelper<MetalBarrierHelper>::Clear();
+		TGpuBarrierHelper<MetalBarrierHelper, MetalResourceTracker>::Clear();
 	}
 
 	bool MetalBarrierHelper::HasBarriers() const

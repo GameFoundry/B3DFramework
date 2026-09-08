@@ -7,10 +7,10 @@
 namespace b3d
 {
 	/** CPU tests of native image state ownership, deferred accesses and submission hazards. */
-	class GpuImageNativeStateTestSuite : public TestSuite
+	class GpuImageMetadataStateTestSuite : public TestSuite
 	{
 	public:
-		GpuImageNativeStateTestSuite();
+		GpuImageMetadataStateTestSuite();
 
 	private:
 		/** Verifies independent partitions inherit deferred accesses and barriers in command order. */
@@ -18,5 +18,14 @@ namespace b3d
 
 		/** Verifies only selected native writes acquire readers and publish a writer epoch. */
 		void TestSubmissionSelection();
+
+		/** Verifies render-pass aggregation, base-typed accesses and post-barrier callbacks use static backend dispatch. */
+		void TestStaticDispatch();
+
+		/** Verifies an internal write participates in layout ordering, range splitting and reset. */
+		void TestInternalAccess();
+
+		/** Verifies compute attachment clears use deferred hazards without changing attachment layouts. */
+		void TestAttachmentClear();
 	};
 }

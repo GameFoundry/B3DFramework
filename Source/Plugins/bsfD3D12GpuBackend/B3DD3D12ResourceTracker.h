@@ -9,15 +9,16 @@
 namespace b3d::render
 {
 	class D3D12BarrierHelper;
+	class D3D12ResourceTracker;
 
 	/** @addtogroup D3D12GpuBackend
 	 *  @{
 	 */
 
-	extern template class TGpuResourceTracker<D3D12BarrierHelper>;
+	extern template class TGpuResourceTracker<D3D12ResourceTracker, D3D12BarrierHelper>;
 
 	/** D3D12-specific resource tracker. Adds physical buffer-page tracking to the core tracker. */
-	class D3D12ResourceTracker : public TGpuResourceTracker<D3D12BarrierHelper>
+	class D3D12ResourceTracker : public TGpuResourceTracker<D3D12ResourceTracker, D3D12BarrierHelper>
 	{
 	public:
 		/** Tracks a logical buffer use and write serialization for its shared physical page. */

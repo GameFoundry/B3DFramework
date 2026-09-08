@@ -4,4 +4,4 @@
 #include "B3DMetalBarrierHelper.h"
 #include "GpuBackend/B3DGpuResourceTracker.inl"
 
-template class b3d::render::TGpuResourceTracker<b3d::render::MetalBarrierHelper>;
+template class b3d::render::TGpuResourceTracker<b3d::render::MetalResourceTracker, b3d::render::MetalBarrierHelper>;

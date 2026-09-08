@@ -16,10 +16,10 @@ using namespace b3d::render;
 
 #include "GpuBackend/B3DGpuBarrierHelper.inl"
 
-template class b3d::render::TGpuBarrierHelper<b3d::render::D3D12BarrierHelper>;
+template class b3d::render::TGpuBarrierHelper<b3d::render::D3D12BarrierHelper, b3d::render::D3D12ResourceTracker>;
 
 D3D12BarrierHelper::D3D12BarrierHelper(D3D12ResourceTracker* resourceTracker, GpuQueueType queueType)
-	: TGpuBarrierHelper<D3D12BarrierHelper>(resourceTracker), mQueueType(queueType)
+	: TGpuBarrierHelper<D3D12BarrierHelper, D3D12ResourceTracker>(resourceTracker), mQueueType(queueType)
 { }
 
 void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier, GpuImageLayout& oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags)
@@ -181,5 +181,5 @@ void D3D12BarrierHelper::Clear()
 	mBarriers.Clear();
 	mPendingBufferPageBarriers.Clear();
 	mPendingImageBarriers.Clear();
-	TGpuBarrierHelper<D3D12BarrierHelper>::Clear();
+	TGpuBarrierHelper<D3D12BarrierHelper, D3D12ResourceTracker>::Clear();
 }

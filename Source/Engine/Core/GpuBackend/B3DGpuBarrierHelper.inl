@@ -7,13 +7,13 @@
 
 namespace b3d::render
 {
-	template<class TDerived>
-	TGpuBarrierHelper<TDerived>::TGpuBarrierHelper(TGpuResourceTracker<TDerived>* resourceTracker)
+	template<class TDerived, class TResourceTracker>
+	TGpuBarrierHelper<TDerived, TResourceTracker>::TGpuBarrierHelper(TResourceTracker* resourceTracker)
 		: mResourceTracker(resourceTracker)
 	{ }
 
-	template<class TDerived>
-	void TGpuBarrierHelper<TDerived>::QueueResolvedBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
+	template<class TDerived, class TResourceTracker>
+	void TGpuBarrierHelper<TDerived, TResourceTracker>::QueueResolvedBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
 	{
 		if(buffer == nullptr)
 			return;
@@ -26,8 +26,8 @@ namespace b3d::render
 		mBarrierTracking.Add(trackingInfo);
 	}
 
-	template<class TDerived>
-	void TGpuBarrierHelper<TDerived>::QueueResolvedImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags)
+	template<class TDerived, class TResourceTracker>
+	void TGpuBarrierHelper<TDerived, TResourceTracker>::QueueResolvedImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags)
 	{
 		if(image == nullptr)
 			return;
@@ -66,8 +66,8 @@ namespace b3d::render
 		mBarrierTracking.Add(barrierTrackingInfo);
 	}
 
-	template<class TDerived>
-	void TGpuBarrierHelper<TDerived>::ApplyPostBarrierTracking()
+	template<class TDerived, class TResourceTracker>
+	void TGpuBarrierHelper<TDerived, TResourceTracker>::ApplyPostBarrierTracking()
 	{
 		// Update layout for all image barriers
 		for(const auto& trackingInfo : mImageLayoutTracking)
@@ -88,8 +88,8 @@ namespace b3d::render
 		}
 	}
 
-	template<class TDerived>
-	void TGpuBarrierHelper<TDerived>::Clear()
+	template<class TDerived, class TResourceTracker>
+	void TGpuBarrierHelper<TDerived, TResourceTracker>::Clear()
 	{
 		mImageLayoutTracking.Clear();
 		mBarrierTracking.Clear();

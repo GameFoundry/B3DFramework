@@ -74,7 +74,7 @@ namespace b3d::render
 	 * Translates core barriers to Vulkan, accumulates them for one pipeline-barrier command, and reports
 	 * their effects back to the tracker after emission.
 	 */
-	class VulkanBarrierHelper : public TGpuBarrierHelper<VulkanBarrierHelper>
+	class VulkanBarrierHelper : public TGpuBarrierHelper<VulkanBarrierHelper, VulkanResourceTracker>
 	{
 	public:
 		/**
@@ -107,7 +107,7 @@ namespace b3d::render
 		bool HasBarriers() const;
 
 	private:
-		friend class TGpuBarrierHelper<VulkanBarrierHelper>;
+		friend class TGpuBarrierHelper<VulkanBarrierHelper, VulkanResourceTracker>;
 
 		/** Accumulates a resolved native Vulkan buffer barrier. */
 		void RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
@@ -118,7 +118,7 @@ namespace b3d::render
 		VulkanBarrierBatch mBarrierBatch;
 	};
 
-	extern template class TGpuBarrierHelper<VulkanBarrierHelper>;
+	extern template class TGpuBarrierHelper<VulkanBarrierHelper, VulkanResourceTracker>;
 
 	/** @} */
 }
