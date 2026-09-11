@@ -111,9 +111,9 @@ namespace b3d::render
 
 		// Post-barrier bookkeeping runs unconditionally: Track*Usage defers hazard registrations even
 		// when no native barrier was queued, and they must commit at this point (see the core
-		// CommitPendingHazardRegistrations contract).
+		// CommitPendingAccesses contract).
 		ApplyPostBarrierTracking();
-		mResourceTracker->CommitPendingHazardRegistrations();
+		mResourceTracker->CommitPendingAccesses();
 		Clear();
 	}
 

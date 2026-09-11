@@ -253,7 +253,7 @@ bool D3D12GpuParameters::SetSamplerState(u32 slot, const TShared<SamplerState>& 
 	return true;
 }
 
-void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTracker, D3D12BarrierHelper& barrierHelper, const GpuPipelineParameterSetLayout& pipelineSetLayout)
+void D3D12GpuParameters::CollectBindings(const GpuPipelineParameterSetLayout& pipelineSetLayout, GpuShaderBindings& outBindings)
 {
 	const TShared<GpuPipelineParameterSetLayout>& setLayout = GetLayout();
 	if (setLayout == nullptr)
@@ -290,7 +290,7 @@ void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTrack
 				case GpuParameterType::UniformBuffer:
 				{
 					if (GpuBuffer* const buffer = mUniformBufferData[dataIndex].Buffer.get())
-						resourceTracker.TrackBufferUsage(static_cast<D3D12GpuBuffer*>(buffer)->GetD3D12Buffer(), stageUseFlags | GpuResourceUseFlag::UniformBuffer, GpuAccessFlag::Read, barrierHelper, mUniformBufferData[dataIndex].Offset);
+						outBindings.AddBuffer(static_cast<D3D12GpuBuffer*>(buffer)->GetD3D12Buffer(), stageUseFlags | GpuResourceUseFlag::UniformBuffer, GpuAccessFlag::Read, mUniformBufferData[dataIndex].Offset);
 
 					break;
 				}
@@ -306,7 +306,7 @@ void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTrack
 							if(subresourceRange.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
 								subresourceRange.AspectMask = GpuTextureAspectFlag::Depth;
 
-							resourceTracker.TrackImageUsage(image, subresourceRange, GpuImageLayout::ShaderReadOnly, stageUseFlags | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read, barrierHelper);
+							outBindings.AddImage(image, subresourceRange, GpuImageLayout::ShaderReadOnly, stageUseFlags | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read);
 						}
 					}
 					break;
@@ -321,7 +321,7 @@ void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTrack
 							// Conservative read-write: UAV image bindings do not declare their access.
 							const GpuTextureSubresourceRange subresourceRange = image->GetRange(mStorageTextureData[dataIndex].Surface);
 
-							resourceTracker.TrackImageUsage(image, subresourceRange, GpuImageLayout::General, stageUseFlags | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper);
+							outBindings.AddImage(image, subresourceRange, GpuImageLayout::General, stageUseFlags | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read | GpuAccessFlag::Write);
 						}
 					}
 					break;
@@ -334,7 +334,7 @@ void D3D12GpuParameters::TrackBoundResources(D3D12ResourceTracker& resourceTrack
 						if (GpuObjectParameterTypeInformation::IsReadWriteBuffer(uniformInformation->ObjectType))
 							accessFlags |= GpuAccessFlag::Write;
 
-						resourceTracker.TrackBufferUsage(static_cast<D3D12GpuBuffer*>(buffer)->GetD3D12Buffer(), stageUseFlags | GpuResourceUseFlag::ShaderAccess, accessFlags, barrierHelper);
+						outBindings.AddBuffer(static_cast<D3D12GpuBuffer*>(buffer)->GetD3D12Buffer(), stageUseFlags | GpuResourceUseFlag::ShaderAccess, accessFlags);
 					}
 					break;
 				}

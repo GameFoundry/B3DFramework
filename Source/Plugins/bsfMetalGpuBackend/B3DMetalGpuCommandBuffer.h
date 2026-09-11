@@ -162,6 +162,9 @@ namespace b3d
 			/** Returns true if the command buffer is currently recording (with or without an open render pass). */
 			bool IsRecording() const { return mState == GpuCommandBufferState::Recording || mState == GpuCommandBufferState::RecordingRenderPass; }
 
+			/** Tracks shader and attachment accesses, refreshing cached bindings when parameters or the graphics/compute bind point change. */
+			bool PrepareShaderBindings(bool compute);
+
 #ifdef __OBJC__
 			/**
 			 * Closes any currently-active encoder whose kind does not match @p targetKind and resets
@@ -279,6 +282,8 @@ namespace b3d
 			 * loops skip them.
 			 */
 			TInlineArray<TShared<GpuParameterSet>, 4> mBoundParameterSets;
+			GpuShaderBindings mShaderBindings; /**< Cached resource accesses from the bound parameter sets. */
+			bool mShaderBindingsCompute = false; /**< Whether the cached accesses are for compute rather than graphics. */
 			DrawOperationType mDrawOperation = DOT_TRIANGLE_LIST;
 			u32 mStencilReference = 0;
 

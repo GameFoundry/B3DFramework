@@ -33,5 +33,8 @@ namespace b3d
 
 		/** Resolves a multisampled texture through the Vulkan transfer-native resolve path. */
 		void TestMultisampleResolve();
+
+		/** Two dispatches reuse one storage-image binding and consume each other's writes. */
+		void TestRepeatedStorageImageDispatch();
 	};
 } // namespace b3d

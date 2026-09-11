@@ -27,5 +27,9 @@ namespace b3d
 
 		/** Verifies compute attachment clears use deferred hazards without changing attachment layouts. */
 		void TestAttachmentClear();
+
+		/** Verifies shader-binding validation is distinct from sequential operations and repeated writes remain ordered. */
+		void TestShaderBindingAccess();
+		void TestShaderBindingReuse();
 	};
 }

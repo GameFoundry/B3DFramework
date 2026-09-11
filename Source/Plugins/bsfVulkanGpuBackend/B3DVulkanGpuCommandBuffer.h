@@ -392,7 +392,7 @@ namespace b3d
 			void BindVertexInputs();
 
 			/** Binds the currently stored GPU parameter sets, if dirty. */
-			void BindGpuParameters(const TShared<GpuPipelineParameterLayout>& pipelineParameterLayout, VulkanBarrierHelper& barrierHelper);
+			bool BindGpuParameters(const TShared<GpuPipelineParameterLayout>& pipelineParameterLayout, VulkanBarrierHelper& barrierHelper);
 
 			/** Uploads the cached push-constant block for the selected pipeline bind point. */
 			void BindPushConstants(bool isGraphics);
@@ -471,6 +471,7 @@ namespace b3d
 			bool mBoundParamsDirty : 1;
 			bool mVertexInputsDirty : 1;
 			bool mIsDebugLabelOpen = false;
+			GpuShaderBindings mShaderBindings;
 			DescriptorSetBindFlags mDescriptorSetsBindState;
 			TInlineArray<TShared<VulkanGpuParameterSet>, 4> mBoundGpuParameterSets;
 

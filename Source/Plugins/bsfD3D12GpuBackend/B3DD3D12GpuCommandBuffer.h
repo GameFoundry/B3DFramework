@@ -241,13 +241,6 @@ namespace b3d
 			/** Uploads the cached push-constant block for the selected pipeline bind point. */
 			void BindPushConstants(bool isGraphics);
 
-			/**
-			 * Registers resources from the currently bound parameter sets without rebinding their descriptors, using the
-			 * active graphics or compute pipeline's per-binding stage visibility. Used for repeated compute dispatches so
-			 * UAV writes remain ordered when descriptor bindings do not change.
-			 */
-			void TrackGpuParameterSets(bool isGraphics);
-
 			/** Clears the specified area of the currently bound render target. */
 			void ClearViewportArea(const Area2I& area, RenderSurfaceMask mask);
 
@@ -312,6 +305,7 @@ namespace b3d
 			GpuPushConstantPayload mPushConstants;
 
 			Vector<TShared<D3D12GpuParameters>> mBoundParameterSets; /**< Bound parameter sets, indexed by set. */
+			GpuShaderBindings mShaderBindings; /**< Cached resource accesses from the bound parameter sets. */
 			TShared<RenderTarget> mRenderTarget;
 
 			/**

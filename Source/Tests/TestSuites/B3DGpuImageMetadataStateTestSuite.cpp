@@ -12,6 +12,14 @@ using namespace b3d::render;
 
 namespace
 {
+	template<class TTracker, class TBarrierHelper>
+	bool TrackImageBinding(TTracker& tracker, IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuImageLayout layout, GpuResourceUseFlags usage, GpuAccessFlags access, TBarrierHelper& helper)
+	{
+		GpuShaderBindings bindings;
+		bindings.AddImage(image, range, layout, usage, access);
+		return tracker.TrackShaderAndAttachmentAccesses(bindings, helper);
+	}
+
 	/** CPU resource carrying a synthetic native encoding. */
 	class NativeTestSubresource : public IGpuResource
 	{
@@ -76,34 +84,23 @@ namespace
 		using Base::GetSubresourceTrackingState;
 		using Base::UpdateHazardStateAfterBarrier;
 
-		void ResolveAndQueueImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& state, GpuResourceUseFlags usage, GpuAccessFlags access, GpuImageLayout layout, NativeTestBarrierHelper& helper, GpuImageBarrierFlags flags = GpuImageBarrierFlag::None)
+		void QueueRequiredImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& state, GpuStageFlags usage, GpuAccessFlags access, GpuImageLayout layout, NativeTestBarrierHelper& helper, GpuImageBarrierFlags flags = GpuImageBarrierFlag::None, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None)
 		{
 			Requirements++;
-			Base::ResolveAndQueueImageBarrier(image, state, usage, access, layout, helper, flags);
+			LastRequiredStages = usage;
+			Base::QueueRequiredImageBarrier(image, state, usage, access, layout, helper, flags, trackingFlags);
 		}
 
 		u32 Requirements = 0;
+		GpuStageFlags LastRequiredStages;
 
-		void RecordImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuStageFlags stages, GpuAccessFlags access)
-		{
-			Base::RecordImageAccess(image, range, stages, access);
-			for(GpuImageSubresourceTrackingState& trackingState : GetSubresourceTrackingStatesForImage(image))
-			{
-				if(trackingState.MetadataState == nullptr || !GpuBackendUtility::RangeOverlaps(trackingState.Range, range))
-					continue;
-
-				NativeTestState& state = static_cast<NativeTestState&>(*trackingState.MetadataState);
-				state.Expanded.RecordAccess(stages, access);
-				state.Compressed.RecordAccess(stages, access);
-			}
-		}
 
 		TShared<GpuImageMetadataState> CreateImageMetadataState(IGpuImageResource*, const GpuTextureSubresourceRange& range)
 		{
 			return range.AspectMask.IsSet(GpuTextureAspectFlag::Depth) ? B3DMakeShared<NativeTestState>() : nullptr;
 		}
 
-		void CommitPendingHazardRegistrations()
+		void CommitPendingAccesses()
 		{
 			for(const PendingHazardRegistration& registration : mPendingHazardRegistrations)
 			{
@@ -114,7 +111,7 @@ namespace
 				state.Expanded.RecordAccess(registration.AccessStageFlags, registration.Access);
 				state.Compressed.RecordAccess(registration.AccessStageFlags, registration.Access);
 			}
-			Base::CommitPendingHazardRegistrations();
+			Base::CommitPendingAccesses();
 		}
 
 		void UpdateHazardStateAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier)
@@ -149,7 +146,7 @@ namespace
 	void NativeTestBarrierHelper::Execute()
 	{
 		ApplyPostBarrierTracking();
-		mResourceTracker->CommitPendingHazardRegistrations();
+		mResourceTracker->CommitPendingAccesses();
 		Clear();
 	}
 
@@ -176,6 +173,8 @@ GpuImageMetadataStateTestSuite::GpuImageMetadataStateTestSuite() : TestSuite("Gp
 	B3D_ADD_TEST(GpuImageMetadataStateTestSuite::TestStaticDispatch)
 	B3D_ADD_TEST(GpuImageMetadataStateTestSuite::TestInternalAccess)
 	B3D_ADD_TEST(GpuImageMetadataStateTestSuite::TestAttachmentClear)
+	B3D_ADD_TEST(GpuImageMetadataStateTestSuite::TestShaderBindingAccess)
+	B3D_ADD_TEST(GpuImageMetadataStateTestSuite::TestShaderBindingReuse)
 }
 
 void GpuImageMetadataStateTestSuite::TestRangeSplits()
@@ -183,10 +182,10 @@ void GpuImageMetadataStateTestSuite::TestRangeSplits()
 	NativeTestImage image;
 	NativeTestTracker tracker;
 	NativeTestBarrierHelper barrierHelper(&tracker);
-	tracker.TrackImageUsage(&image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader, GpuAccessFlag::Read, barrierHelper);
+	tracker.TrackImageAccess(&image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read, barrierHelper);
 	const GpuTextureSubresourceRange firstFace(0, 1, 0, 1, GpuTextureAspectFlag::Depth);
 	tracker.IterateAndCreateOverlappingImageSubresourceTrackingState(&image, firstFace, [](u32, void*) { });
-	tracker.CommitPendingHazardRegistrations();
+	tracker.CommitPendingAccesses();
 
 	const GpuImageSubresourceTrackingState& first = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth);
 	const GpuImageSubresourceTrackingState& second = tracker.GetSubresourceTrackingState(&image, 1, 0, GpuTextureAspectFlag::Depth);
@@ -219,11 +218,11 @@ void GpuImageMetadataStateTestSuite::TestSubmissionSelection()
 		NativeTestSubresource& subresource = static_cast<NativeTestSubresource&>(*image.GetSubresource(0, 0, GpuTextureAspectFlag::Depth));
 		NativeTestTracker tracker;
 		NativeTestBarrierHelper barrierHelper(&tracker);
-		tracker.TrackImageUsage(&image, range, GpuImageLayout::ShaderReadOnly, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Read, barrierHelper);
+		tracker.TrackImageAccess(&image, range, GpuImageLayout::ShaderReadOnly, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Read, barrierHelper);
 		const GpuImageSubresourceTrackingState& trackingState = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth);
 		NativeTestState& nativeState = static_cast<NativeTestState&>(*trackingState.MetadataState);
 		nativeState.Compressed.RecordAccess(GpuStageFlag::ColorAttachment, GpuAccessFlag::Write);
-		tracker.CommitPendingHazardRegistrations();
+		tracker.CommitPendingAccesses();
 
 		// The predecessor is assigned after recording; recording order must not select an execution.
 		subresource.Compressed = enableRewrite;
@@ -265,7 +264,7 @@ void GpuImageMetadataStateTestSuite::TestStaticDispatch()
 	GpuRenderPassAttachmentUsageArray attachments;
 	attachments.Add(attachment);
 	tracker.PrepareRenderPass(attachments);
-	tracker.TrackImageUsage(&image, range, GpuImageLayout::ShaderReadOnly, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader, GpuAccessFlag::Read, helper);
+	TrackImageBinding(tracker, &image, range, GpuImageLayout::ShaderReadOnly, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader, GpuAccessFlag::Read, helper);
 	B3D_TEST_ASSERT(tracker.Requirements == 0)
 	tracker.BeginRenderPass(helper);
 	helper.Execute();
@@ -278,7 +277,7 @@ void GpuImageMetadataStateTestSuite::TestStaticDispatch()
 
 	// A call through the base type must still reach the resolved-range backend boundary.
 	TGpuResourceTracker<NativeTestTracker, NativeTestBarrierHelper>& base = tracker;
-	base.TrackExplicitImageBarrier(&image, range, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuImageLayout::General, helper);
+	base.TrackExplicitImageBarrier(&image, range, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write, GpuImageLayout::General, helper);
 	helper.Execute();
 	B3D_TEST_ASSERT(tracker.Requirements == 2)
 	B3D_TEST_ASSERT(state.Expanded.LastBarrier.DestinationStages == GpuStageFlag::ComputeShaderNonUniform)
@@ -293,10 +292,9 @@ void GpuImageMetadataStateTestSuite::TestInternalAccess()
 	NativeTestBarrierHelper helper(&tracker);
 	const GpuTextureSubresourceRange range(0, 1, 0, 2, GpuTextureAspectFlag::Depth);
 	const GpuTextureSubresourceRange firstFace(0, 1, 0, 1, GpuTextureAspectFlag::Depth);
-	tracker.TrackExplicitImageBarrier(&image, range, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, GpuImageLayout::General, helper);
+	tracker.TrackImageAccess(&image, range, GpuImageLayout::General, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write, helper);
 	helper.Execute();
-	tracker.RecordImageAccess(&image, range, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write);
-	tracker.TrackExplicitImageBarrier(&image, firstFace, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader, GpuAccessFlag::Read, GpuImageLayout::ShaderReadOnly, helper);
+	tracker.TrackExplicitImageBarrier(&image, firstFace, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read, GpuImageLayout::ShaderReadOnly, helper);
 	helper.Execute();
 	const GpuImageSubresourceTrackingState& first = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth);
 	const GpuImageSubresourceTrackingState& second = tracker.GetSubresourceTrackingState(&image, 1, 0, GpuTextureAspectFlag::Depth);
@@ -306,22 +304,47 @@ void GpuImageMetadataStateTestSuite::TestInternalAccess()
 	B3D_TEST_ASSERT(!second.HazardState->LastWriteEpochHazardState.VisibleStages.IsSet(GpuStageFlag::FragmentShaderNonUniform))
 
 	// A new write cannot inherit the earlier write's visibility.
-	tracker.RecordImageAccess(&image, firstFace, GpuStageFlag::LateFragmentTests, GpuAccessFlag::Write);
+	tracker.TrackImageAccess(&image, firstFace, GpuImageLayout::Undefined, GpuStageFlag::LateFragmentTests, GpuAccessFlag::Write, helper);
+	helper.Execute();
 	B3D_TEST_ASSERT(first.HazardState->GetRequiredBarrier(GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read).IsValid())
 	B3D_TEST_ASSERT(static_cast<NativeTestState&>(*first.MetadataState).Expanded.GetRequiredBarrier(GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read).IsValid())
 	tracker.NotifyUnbound();
 	tracker.Clear();
 
 	// Abandoned/reset command buffers release data ownership and start with independent empty values.
-	tracker.TrackImageUsage(&image, firstFace, GpuImageLayout::ShaderReadOnly, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader, GpuAccessFlag::Read, helper);
+	tracker.TrackImageAccess(&image, firstFace, GpuImageLayout::ShaderReadOnly, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read, helper);
 	helper.Execute();
 	B3D_TEST_ASSERT(!tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth).HazardState->HasWrite())
 	tracker.NotifyUnbound();
 	tracker.Clear();
+
+	// Meta-data preparation retains the range but leaves its executed write to the backend.
+	tracker.TrackImageAccess(&image, firstFace, GpuImageLayout::General, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write, helper, GpuImageBarrierFlag::None, GpuImageTrackingFlag::MetadataOperation);
+	helper.Execute();
+	const GpuImageSubresourceTrackingState& metadata = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth);
+	B3D_TEST_ASSERT(!metadata.HazardState->HasAccess())
+	B3D_TEST_ASSERT(!static_cast<NativeTestState&>(*metadata.MetadataState).Compressed.HasAccess())
+	B3D_TEST_ASSERT(tracker.FindImageTrackingState(&image)->UseHandle.Flags == GpuAccessFlag::Read)
+	tracker.NotifyUnbound();
+	tracker.Clear();
+
+	// Non-shader usage follows ordinary access tracking, including deferred hazard registration.
+	B3D_TEST_ASSERT(TrackImageBinding(tracker, &image, firstFace, GpuImageLayout::TransferDestination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, helper))
+	const GpuImageSubresourceTrackingState& transfer = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth);
+	B3D_TEST_ASSERT(tracker.LastRequiredStages == GpuStageFlag::Transfer)
+	B3D_TEST_ASSERT(transfer.RequiredLayout == GpuImageLayout::TransferDestination)
+	B3D_TEST_ASSERT(!transfer.HazardState->HasAccess())
+	B3D_TEST_ASSERT(tracker.FindImageTrackingState(&image)->UseHandle.Flags == GpuAccessFlag::Write)
+	helper.Execute();
+	B3D_TEST_ASSERT(transfer.HazardState->LastWriteEpochHazardState.WriteStages == GpuStageFlag::Transfer)
+	tracker.NotifyUnbound();
+	tracker.Clear();
+
 }
 
 void GpuImageMetadataStateTestSuite::TestAttachmentClear()
 {
+	GpuShaderBindings emptyBindings;
 	NativeTestImage image;
 	NativeTestTracker tracker;
 	NativeTestBarrierHelper helper(&tracker);
@@ -340,7 +363,7 @@ void GpuImageMetadataStateTestSuite::TestAttachmentClear()
 	tracker.BeginRenderPass(helper);
 	helper.Execute();
 
-	tracker.TrackImageUsage(&image, firstFace, GpuImageLayout::Undefined, GpuResourceUseFlag::AttachmentClear | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Write, helper);
+	tracker.TrackImageAccess(&image, firstFace, GpuImageLayout::Undefined, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write, helper);
 	const GpuImageSubresourceTrackingState& cleared = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth);
 	const GpuImageSubresourceTrackingState& untouched = tracker.GetSubresourceTrackingState(&image, 1, 0, GpuTextureAspectFlag::Depth);
 	const GpuStageFlags depthStages = GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests;
@@ -356,7 +379,159 @@ void GpuImageMetadataStateTestSuite::TestAttachmentClear()
 	const NativeTestState& state = static_cast<NativeTestState&>(*cleared.MetadataState);
 	B3D_TEST_ASSERT(state.Expanded.LastWriteEpochHazardState.WriteStages == GpuStageFlag::ComputeShaderNonUniform)
 	B3D_TEST_ASSERT(state.Compressed.LastWriteEpochHazardState.WriteStages == GpuStageFlag::ComputeShaderNonUniform)
+	tracker.TrackShaderAndAttachmentAccesses(emptyBindings, helper);
+	B3D_TEST_ASSERT(cleared.HazardState->LastWriteEpochHazardState.WriteStages == GpuStageFlag::ComputeShaderNonUniform)
+	helper.Execute();
+	B3D_TEST_ASSERT(cleared.HazardState->LastBarrier.SourceStages == GpuStageFlag::ComputeShaderNonUniform)
+	B3D_TEST_ASSERT(cleared.HazardState->LastBarrier.DestinationStages == depthStages)
+	B3D_TEST_ASSERT(cleared.HazardState->LastWriteEpochHazardState.WriteStages == depthStages)
+	B3D_TEST_ASSERT(state.Expanded.LastWriteEpochHazardState.WriteStages == depthStages)
+	B3D_TEST_ASSERT(state.Compressed.LastWriteEpochHazardState.WriteStages == depthStages)
+
+	const u32 requirementsBeforeDraw = tracker.Requirements;
+	u64 attachmentAccessEpoch = tracker.GetEpoch();
+	for(u32 drawIndex = 0; drawIndex < 1000; drawIndex++)
+	{
+		tracker.TrackShaderAndAttachmentAccesses(emptyBindings, helper);
+
+		helper.Execute();
+		attachmentAccessEpoch = tracker.GetEpoch();
+	}
+	B3D_TEST_ASSERT(tracker.Requirements == requirementsBeforeDraw)
+
+	tracker.TrackExplicitImageBarrier(&image, firstFace, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read, GpuImageLayout::Undefined, helper);
+	helper.Execute();
+	B3D_TEST_ASSERT(attachmentAccessEpoch != tracker.GetEpoch())
+	tracker.TrackShaderAndAttachmentAccesses(emptyBindings, helper);
+	helper.Execute();
+
 	tracker.EndRenderPass();
+	tracker.TrackImageAccess(&image, firstFace, GpuImageLayout::ShaderReadOnly, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read, helper);
+	helper.Execute();
+	const GpuImageSubresourceTrackingState& sampled = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth);
+	B3D_TEST_ASSERT(sampled.HazardState->LastBarrier.SourceStages == depthStages)
+	B3D_TEST_ASSERT(sampled.HazardState->LastBarrier.DestinationStages == GpuStageFlag::FragmentShaderNonUniform)
+
+	tracker.NotifyUnbound();
+	tracker.Clear();
+}
+
+void GpuImageMetadataStateTestSuite::TestShaderBindingAccess()
+{
+	NativeTestImage image;
+	NativeTestTracker tracker;
+	NativeTestBarrierHelper helper(&tracker);
+	const GpuTextureSubresourceRange range(0, 1, 0, 1, GpuTextureAspectFlag::Depth);
+	const GpuResourceUseFlags shaderUsage = GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader;
+	GpuRenderPassAttachmentUsage attachment;
+	attachment.Image = &image;
+	attachment.Range = range;
+	attachment.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
+	attachment.Access = GpuAccessFlag::Write;
+	attachment.Layout = GpuImageLayout::DepthStencilAttachment;
+	GpuRenderPassAttachmentUsageArray attachments;
+	attachments.Add(attachment);
+	tracker.PrepareRenderPass(attachments);
+	{
+		LoggingScope logs(*this);
+		logs.ExpectError("Framebuffer attachments sampled during a render pass must be marked read-only");
+		B3D_TEST_ASSERT(!TrackImageBinding(tracker, &image, range, GpuImageLayout::General, shaderUsage, GpuAccessFlag::Write, helper))
+	}
+
+	tracker.BeginRenderPass(helper);
+	helper.Execute();
+	{
+		LoggingScope logs(*this);
+		logs.ExpectError("Framebuffer attachments sampled during a render pass must be marked read-only");
+		B3D_TEST_ASSERT(!TrackImageBinding(tracker, &image, range, GpuImageLayout::General, shaderUsage, GpuAccessFlag::Write, helper))
+	}
+
+	// The same stages and access are legal for an ordered internal operation.
+	tracker.TrackImageAccess(&image, range, GpuImageLayout::Undefined, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write, helper);
+	helper.Execute();
+	B3D_TEST_ASSERT(tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth).CurrentLayout == GpuImageLayout::DepthStencilAttachment)
+	tracker.EndRenderPass();
+
+	for(u32 dispatchIndex = 0; dispatchIndex < 2; dispatchIndex++)
+	{
+		B3D_TEST_ASSERT(TrackImageBinding(tracker, &image, range, GpuImageLayout::General, shaderUsage, GpuAccessFlag::Read | GpuAccessFlag::Write, helper))
+		helper.Execute();
+		const GpuImageSubresourceTrackingState& state = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth);
+		B3D_TEST_ASSERT(state.HazardState->LastWriteEpochHazardState.WriteStages == GpuStageFlag::ComputeShaderNonUniform)
+		B3D_TEST_ASSERT(state.HazardState->LastBarrier.DestinationAccess.IsSet(GpuAccessFlag::Write))
+	}
+
+	tracker.NotifyUnbound();
+	tracker.Clear();
+	attachment.Access = GpuAccessFlag::Read;
+	attachments.Clear();
+	attachments.Add(attachment);
+	GpuRenderPassAttachmentUsage stencilAttachment = attachment;
+	stencilAttachment.Range.AspectMask = GpuTextureAspectFlag::Stencil;
+	stencilAttachment.Surface = RT_STENCIL;
+	stencilAttachment.Access = GpuAccessFlag::Write;
+	attachments.Add(stencilAttachment);
+	tracker.PrepareRenderPass(attachments);
+	tracker.BeginRenderPass(helper);
+	helper.Execute();
+	B3D_TEST_ASSERT(TrackImageBinding(tracker, &image, range, GpuImageLayout::Undefined, shaderUsage, GpuAccessFlag::Read, helper))
+	helper.Execute();
+	B3D_TEST_ASSERT(tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth).HazardState->AllAccessScope.ReadStages == (GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests | GpuStageFlag::ComputeShaderNonUniform))
+	tracker.EndRenderPass();
+
+	tracker.NotifyUnbound();
+	tracker.Clear();
+}
+
+void GpuImageMetadataStateTestSuite::TestShaderBindingReuse()
+{
+	NativeTestImage image;
+	NativeTestImage otherImage;
+	NativeTestTracker tracker;
+	NativeTestBarrierHelper helper(&tracker);
+	const GpuTextureSubresourceRange range(0, 1, 0, 1, GpuTextureAspectFlag::Depth);
+	GpuShaderBindings bindings;
+	bindings.AddImage(&image, range, GpuImageLayout::ShaderReadOnly, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageComputeShader, GpuAccessFlag::Read);
+	B3D_TEST_ASSERT(tracker.TrackShaderAndAttachmentAccesses(bindings, helper))
+	helper.Execute();
+	u32 requirements = tracker.Requirements;
+	for(u32 drawIndex = 0; drawIndex < 1000; drawIndex++)
+	{
+		B3D_TEST_ASSERT(tracker.TrackShaderAndAttachmentAccesses(bindings, helper))
+		helper.Execute();
+	}
+	B3D_TEST_ASSERT(tracker.Requirements == requirements)
+
+	tracker.TrackImageAccess(&otherImage, range, GpuImageLayout::TransferDestination, GpuStageFlag::Transfer, GpuAccessFlag::Write, helper);
+	helper.Execute();
+	requirements = tracker.Requirements;
+	B3D_TEST_ASSERT(tracker.TrackShaderAndAttachmentAccesses(bindings, helper))
+	B3D_TEST_ASSERT(tracker.Requirements == requirements)
+	helper.Execute();
+
+	tracker.TrackImageAccess(&image, range, GpuImageLayout::TransferDestination, GpuStageFlag::Transfer, GpuAccessFlag::Write, helper);
+	helper.Execute();
+	requirements = tracker.Requirements;
+	B3D_TEST_ASSERT(tracker.TrackShaderAndAttachmentAccesses(bindings, helper))
+	B3D_TEST_ASSERT(tracker.Requirements == requirements + 1)
+	helper.Execute();
+	B3D_TEST_ASSERT(tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth).CurrentLayout == GpuImageLayout::ShaderReadOnly)
+
+	// Reading a copy source also invalidates the descriptor layout, despite having no write registration.
+	tracker.TrackImageAccess(&image, range, GpuImageLayout::TransferSource, GpuStageFlag::Transfer, GpuAccessFlag::Read, helper);
+	helper.Execute();
+	requirements = tracker.Requirements;
+	B3D_TEST_ASSERT(tracker.TrackShaderAndAttachmentAccesses(bindings, helper))
+	B3D_TEST_ASSERT(tracker.Requirements == requirements + 1)
+	helper.Execute();
+	B3D_TEST_ASSERT(tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth).CurrentLayout == GpuImageLayout::ShaderReadOnly)
+
+	tracker.TrackExplicitImageBarrier(&image, range, GpuStageFlag::Transfer, GpuAccessFlag::Read, GpuImageLayout::TransferSource, helper);
+	helper.Execute();
+	requirements = tracker.Requirements;
+	B3D_TEST_ASSERT(tracker.TrackShaderAndAttachmentAccesses(bindings, helper))
+	B3D_TEST_ASSERT(tracker.Requirements == requirements + 1)
+	helper.Execute();
 	tracker.NotifyUnbound();
 	tracker.Clear();
 }

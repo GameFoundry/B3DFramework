@@ -172,7 +172,7 @@ void D3D12BarrierHelper::Execute(D3D12GpuCommandBuffer& commandBuffer)
 		ApplyPostBarrierTracking();
 	}
 
-	mResourceTracker->CommitPendingHazardRegistrations();
+	mResourceTracker->CommitPendingAccesses();
 	Clear();
 }
 

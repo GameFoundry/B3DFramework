@@ -8,6 +8,11 @@
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
+#include "GpuBackend/B3DGpuProgram.h"
+#include "GpuBackend/B3DGpuPipelineState.h"
+#include "GpuBackend/B3DGpuPipelineParameterLayout.h"
+#include "GpuBackend/B3DGpuParameterSetPool.h"
+#include "GpuBackend/B3DGpuParameterSet.h"
 #include "Image/B3DTexture.h"
 
 using namespace b3d;
@@ -106,6 +111,7 @@ VulkanBarrierTestSuite::VulkanBarrierTestSuite()
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestSameQueueBufferBoundary)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestConcurrentQueueReadTexture)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestMultisampleResolve)
+	B3D_ADD_TEST(VulkanBarrierTestSuite::TestRepeatedStorageImageDispatch)
 }
 
 void VulkanBarrierTestSuite::TestGraphicsToComputeBufferHandoff()
@@ -233,4 +239,73 @@ void VulkanBarrierTestSuite::TestMultisampleResolve()
 
 	B3D_TEST_ASSERT(texturesCreated)
 	B3D_TEST_ASSERT(resolveRecorded)
+}
+
+void VulkanBarrierTestSuite::TestRepeatedStorageImageDispatch()
+{
+	GetRenderThread().PostCommand([this]()
+	{
+		VulkanGpuDevice* const device = GetActiveVulkanDevice();
+		if(device == nullptr)
+			return;
+
+		GpuProgramCreateInformation programInformation;
+		programInformation.Name = "Repeated storage-image dispatch";
+		programInformation.Type = GPT_COMPUTE_PROGRAM;
+		programInformation.Language = VulkanGpuDevice::kGpuProgramLanguageName;
+		programInformation.EntryPoint = "main";
+		programInformation.Source = R"(#version 450
+layout(local_size_x = 8, local_size_y = 8) in;
+layout(set = 0, binding = 0, r32ui) uniform uimage2D OutputImage;
+layout(push_constant) uniform Operation { uint Increment; } operation;
+void main()
+{
+	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+	uint value = operation.Increment == 0 ? 1 : imageLoad(OutputImage, pixel).r + 1;
+	imageStore(OutputImage, pixel, uvec4(value));
+}
+)";
+		const TShared<GpuProgram> program = device->CreateGpuProgram(programInformation);
+		B3D_TEST_ASSERT(program != nullptr && program->IsCompiled())
+		if(program == nullptr || !program->IsCompiled())
+			return;
+
+		GpuComputePipelineStateCreateInformation pipelineInformation;
+		pipelineInformation.Program = program;
+		const TShared<GpuComputePipelineState> pipeline = device->CreateGpuComputePipelineState(pipelineInformation);
+		TextureCreateInformation textureInformation;
+		textureInformation.Width = 64;
+		textureInformation.Height = 64;
+		textureInformation.Format = PF_R32U;
+		textureInformation.Usage = TextureUsageFlag::AllowUnorderedAccessOnTheGPU;
+		const TShared<render::Texture> texture = device->CreateTexture(textureInformation);
+		const TUnique<GpuParameterSetPool> parameterPool = device->CreateParameterSetPool(GpuParameterSetPoolCreateInformation());
+		const TShared<render::GpuParameterSet> parameters = parameterPool->Create(pipeline->GetParameterLayout()->GetSet(0), 0);
+		B3D_TEST_ASSERT(parameters->SetStorageTexture(0, texture, TextureSurface(0, 1, 0, 1)))
+
+		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(64 * 64 * sizeof(u32)));
+		const TShared<render::GpuCommandBufferPool> commandPool = device->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_COMPUTE));
+		const TShared<render::GpuCommandBuffer> commands = commandPool->Create(GpuCommandBufferCreateInformation::Create("Repeated storage-image dispatch"));
+		commands->SetGpuComputePipelineState(pipeline);
+		commands->SetGpuParameterSet(parameters);
+		u32 increment = 0;
+		commands->SetPushConstants(0, sizeof(increment), &increment);
+		commands->DispatchCompute(8, 8, 1);
+		increment = 1;
+		commands->SetPushConstants(0, sizeof(increment), &increment);
+		commands->DispatchCompute(8, 8, 1);
+		commands->CopyTextureToBuffer(texture, readback, 0, 0);
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		context->SubmitCommandBuffer(commands, GpuQueueMask::kNone);
+		device->WaitUntilIdle();
+
+		const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+		B3D_TEST_ASSERT(mapping.IsValid())
+		if(mapping.IsValid())
+		{
+			const u32* pixels = static_cast<const u32*>(mapping.GetMappedMemory());
+			for(u32 pixelIndex = 0; pixelIndex < 64 * 64; pixelIndex++)
+				B3D_TEST_ASSERT(pixels[pixelIndex] == 2)
+		}
+	}, "VulkanBarrierTestSuite::TestRepeatedStorageImageDispatch", true);
 }

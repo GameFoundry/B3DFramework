@@ -241,7 +241,7 @@ void VulkanBarrierHelper::Execute(VulkanGpuCommandBuffer& commandBuffer)
 	}
 
 	// Apply read/write hazard registrations deferred while tracking resource accesses
-	mResourceTracker->CommitPendingHazardRegistrations();
+	mResourceTracker->CommitPendingAccesses();
 
 	Clear();
 }

@@ -34,7 +34,7 @@ namespace b3d::render
 	 *
 	 * Typical usage (from MetalGpuCommandBuffer):
 	 * @code
-	 * mResourceTracker.TrackBufferUsage(buffer, usage, access, mBarrierHelper);
+	 * mResourceTracker.TrackBufferAccess(buffer, stages, access, mBarrierHelper);
 	 * mBarrierHelper.Execute(renderEncoder, computeEncoder); // before recording the dependent command
 	 * @endcode
 	 */
@@ -53,7 +53,7 @@ namespace b3d::render
 #ifdef __OBJC__
 		/**
 		 * Emits the accumulated barriers on the currently open encoder, then runs the post-barrier
-		 * tracker updates (ApplyPostBarrierTracking, CommitPendingHazardRegistrations) and clears the
+		 * tracker updates (ApplyPostBarrierTracking, CommitPendingAccesses) and clears the
 		 * accumulated state. Always call this after a batch of Track*Usage / TrackExplicit*Barrier calls and
 		 * before recording the dependent commands — even when HasBarriers() is false — so deferred
 		 * hazard registrations commit at the right point.

@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 #include "B3DVulkanUtility.h"
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanGpuParameterSet.h"
@@ -343,6 +344,8 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	if(swapChain)
 		mResourceTracker.TrackSwapChainUsage(swapChain);
 
+	mShaderBindings.Clear();
+
 	// Pre-register all GPU parameters before the render pass, so we can automatically issue barriers
 	for(const TShared<GpuParameterSet>& parameters : createInformation.Parameters)
 	{
@@ -350,17 +353,23 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 			continue;
 
 		VulkanGpuParameterSet* vkParams = static_cast<VulkanGpuParameterSet*>(parameters.get());
-		VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 		TInlineArray<u32, 4> tempDynamicOffsets;
-		vkParams->PrepareForBind(mResourceTracker, mBarrierHelper, descriptorSet, tempDynamicOffsets);
+		vkParams->PrepareBindingResources(mResourceTracker, mShaderBindings, tempDynamicOffsets);
 
 		// Cache the preparation results for later use by SetGpuParameterSet
 		CachedGpuParameterData& cacheData = mRenderPassGpuParameterSetCache[parameters.get()];
-		cacheData.DescriptorSet = descriptorSet;
+		cacheData.DescriptorSet = VK_NULL_HANDLE;
 		cacheData.DynamicOffsets = std::move(tempDynamicOffsets);
 	}
 
+	if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper))
+		return;
+
 	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = mResourceTracker.BeginRenderPass(mBarrierHelper);
+	for(const TShared<GpuParameterSet>& parameters : createInformation.Parameters)
+		if(parameters != nullptr)
+			static_cast<VulkanGpuParameterSet*>(parameters.get())->FinalizeDescriptorSet(mResourceTracker, mRenderPassGpuParameterSetCache[parameters.get()].DescriptorSet);
+
 	B3D_ASSERT(resolvedAttachments.size() == renderPassAttachmentUsages.size());
 
 	RenderSurfaceMask resolvedReadOnlyMask = RT_NONE;
@@ -776,7 +785,8 @@ void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanc
 	if(!IsReadyForRender())
 		return;
 
-	BindGpuParameters(mGraphicsPipeline->GetParameterLayout(), mBarrierHelper);
+	if(!BindGpuParameters(mGraphicsPipeline->GetParameterLayout(), mBarrierHelper))
+		return;
 
 	// All barriers should have been issued during begin render pass
 	B3D_ENSURE(!mBarrierHelper.HasBarriers());
@@ -833,7 +843,8 @@ void VulkanGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 ver
 	if(!IsReadyForRender())
 		return;
 
-	BindGpuParameters(mGraphicsPipeline->GetParameterLayout(), mBarrierHelper);
+	if(!BindGpuParameters(mGraphicsPipeline->GetParameterLayout(), mBarrierHelper))
+		return;
 
 	// All barriers should have been issued during begin render pass
 	B3D_ENSURE(!mBarrierHelper.HasBarriers());
@@ -894,7 +905,8 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 		return;
 
 	const TShared<GpuPipelineParameterLayout>& pipelineParameterLayout = mComputePipeline->GetParameterLayout();
-	BindGpuParameters(pipelineParameterLayout, mBarrierHelper);
+	if(!BindGpuParameters(pipelineParameterLayout, mBarrierHelper))
+		return;
 
 	mBarrierHelper.Execute(*this);
 
@@ -1268,7 +1280,7 @@ void VulkanGpuCommandBuffer::EndRenderPass()
 
 	// Resource uses recorded inside the render pass cannot be committed through the barrier helper while the pass is active.
 	B3D_ASSERT(!mBarrierHelper.HasBarriers());
-	mResourceTracker.CommitPendingHazardRegistrations();
+	mResourceTracker.CommitPendingAccesses();
 
 	// Execute any queued events
 	for(auto& entry : mQueuedEvents)
@@ -1817,7 +1829,7 @@ void VulkanGpuCommandBuffer::BindVertexInputs()
 				resource = dummyVertexBuffer;
 
 			mVertexBuffersTemp[bindingIndex] = resource->GetVulkanHandle();
-			mResourceTracker.TrackBufferUsage(resource, GpuResourceUseFlag::VertexBuffer, GpuAccessFlag::Read, mBarrierHelper);
+			mResourceTracker.TrackBufferAccess(resource, GpuStageFlag::VertexInputAttributes, GpuAccessFlag::Read, mBarrierHelper);
 		}
 
 		vkCmdBindVertexBuffers(mCommandBufferHandle, 0, mRequiredVertexBufferBindingCount, mVertexBuffersTemp, mVertexBufferOffsetsTemp);
@@ -1834,7 +1846,7 @@ void VulkanGpuCommandBuffer::BindVertexInputs()
 			if(B3D_ENSURE(mIndexBuffer->GetInformation().Type == GpuBufferType::Index))
 				indexType = VulkanUtility::GetIndexType(mIndexBuffer->GetInformation().Index.Type);
 
-			mResourceTracker.TrackBufferUsage(resource, GpuResourceUseFlag::IndexBuffer, GpuAccessFlag::Read, mBarrierHelper);
+			mResourceTracker.TrackBufferAccess(resource, GpuStageFlag::VertexInputIndices, GpuAccessFlag::Read, mBarrierHelper);
 
 			vkCmdBindIndexBuffer(mCommandBufferHandle, vkBuffer, 0, indexType);
 		}
@@ -1844,12 +1856,15 @@ void VulkanGpuCommandBuffer::BindVertexInputs()
 	B3D_ENSURE(!mBarrierHelper.HasBarriers());
 }
 
-void VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParameterLayout>& pipelineParameterLayout, VulkanBarrierHelper& barrierHelper)
+bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParameterLayout>& pipelineParameterLayout, VulkanBarrierHelper& barrierHelper)
 {
 	B3D_ASSERT(pipelineParameterLayout != nullptr);
 
 	if(!mBoundParamsDirty)
-		return;
+		return IsInRenderPass() || mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, barrierHelper);
+
+	if(!IsInRenderPass())
+		mShaderBindings.Clear();
 
 	mBoundDescriptorSetCount = 0;
 
@@ -1874,7 +1889,7 @@ void VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 			auto it = mRenderPassGpuParameterSetCache.find(boundGpuParameterSet.get());
 			if(it != mRenderPassGpuParameterSetCache.end())
 			{
-				// Use cached preparation data (skip PrepareForBind)
+				// Reuse the descriptor set and offsets prepared at render-pass begin.
 				const CachedGpuParameterData& cacheData = it->second;
 
 				mDescriptorSetsTemp[set] = cacheData.DescriptorSet;
@@ -1887,11 +1902,12 @@ void VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 				{
 					B3D_ENSURE(false);
 					B3D_LOG(Warning, LogRenderBackend, "SetGpuParameterSet() called with parameters not declared in RenderPassCreateInformation. Automatic resource barriers and layout transitions may not execute correctly.");
+					return false;
 				}
 
-				// Fallback: No cached data, call PrepareForBind now
+				// Prepare resources and collect compute accesses before resolving descriptor layouts
 				// This handles compute dispatch and non-render-pass scenarios
-				boundGpuParameterSet->PrepareForBind(mResourceTracker, barrierHelper, mDescriptorSetsTemp[set], setDynamicOffsets);
+				boundGpuParameterSet->PrepareBindingResources(mResourceTracker, mShaderBindings, setDynamicOffsets);
 			}
 
 			// Apply per-set dynamic offset overrides
@@ -1906,8 +1922,21 @@ void VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 		}
 	}
 
+	if(!IsInRenderPass())
+	{
+		if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, barrierHelper))
+			return false;
+
+		for(u32 set = 0; set < setCount; set++)
+		{
+			if(mBoundGpuParameterSets[set] != nullptr)
+				mBoundGpuParameterSets[set]->FinalizeDescriptorSet(mResourceTracker, mDescriptorSetsTemp[set]);
+		}
+	}
+
 	RebuildFlatDynamicOffsets();
 	mBoundParamsDirty = false;
+	return true;
 }
 
 void VulkanGpuCommandBuffer::BindPushConstants(bool isGraphics)
@@ -1972,7 +2001,7 @@ void VulkanGpuCommandBuffer::UpdateBuffer(VulkanBuffer* destination, u8* data, V
 {
 	// TODO - Down the line we should make these barriers explicit, so user can batch multiple updates and issue one set of barriers, rather than barriers for each update. Same applied to other transfer ops below.
 
-	mResourceTracker.TrackBufferUsage(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackBufferAccess(destination, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 	mBarrierHelper.Execute(*this);
 
 	vkCmdUpdateBuffer(GetVulkanHandle(), destination->GetVulkanHandle(), offset, length, (uint32_t*)data);
@@ -1987,8 +2016,8 @@ void VulkanGpuCommandBuffer::CopyBufferToBuffer(VulkanBuffer* source, VulkanBuff
 	region.srcOffset = sourceOffset;
 	region.dstOffset = destinationOffset;
 
-	mResourceTracker.TrackBufferUsage(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackBufferUsage(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackBufferAccess(source, GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackBufferAccess(destination, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -2017,8 +2046,8 @@ void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage
 	copyRegion.imageExtent = region;
 	copyRegion.imageSubresource = rangeLayers;
 
-	mResourceTracker.TrackBufferUsage(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destination, subresourceRange, layout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackBufferAccess(source, GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(destination, subresourceRange, layout, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -2051,8 +2080,8 @@ void VulkanGpuCommandBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer
 	GpuTextureSubresourceRange subresourceRangeForBarrier = subresourceRange;
 	subresourceRangeForBarrier.AspectMask = source->GetRange().AspectMask;
 
-	mResourceTracker.TrackImageUsage(source, subresourceRangeForBarrier, layout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackBufferUsage(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(source, subresourceRangeForBarrier, layout, GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackBufferAccess(destination, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -2070,8 +2099,8 @@ void VulkanGpuCommandBuffer::CopyImageToImage(VulkanImage* source, VulkanImage* 
 	GpuTextureSubresourceRange destinationSubresourceRangeForBarrier = destinationSubresourceRange;
 	destinationSubresourceRangeForBarrier.AspectMask = source->GetRange().AspectMask;
 
-	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, sourceLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, destinationLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(source, sourceSubresourceRangeForBarrier, sourceLayout, GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(destination, destinationSubresourceRangeForBarrier, destinationLayout, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -2089,8 +2118,8 @@ void VulkanGpuCommandBuffer::Blit(VulkanImage* source, VulkanImage* destination,
 	GpuTextureSubresourceRange destinationSubresourceRangeForBarrier = destinationSubresourceRange;
 	destinationSubresourceRangeForBarrier.AspectMask = source->GetRange().AspectMask;
 
-	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, sourceLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, destinationLayout, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(source, sourceSubresourceRangeForBarrier, sourceLayout, GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(destination, destinationSubresourceRangeForBarrier, destinationLayout, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -2107,8 +2136,8 @@ void VulkanGpuCommandBuffer::Resolve(VulkanImage* source, VulkanImage* destinati
 	GpuTextureSubresourceRange destinationSubresourceRangeForBarrier = destinationSubresourceRange;
 	destinationSubresourceRangeForBarrier.AspectMask = source->GetRange().AspectMask;
 
-	mResourceTracker.TrackImageUsage(source, sourceSubresourceRangeForBarrier, sourceLayout, GpuResourceUseFlag::Resolve, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destination, destinationSubresourceRangeForBarrier, destinationLayout, GpuResourceUseFlag::Resolve, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(source, sourceSubresourceRangeForBarrier, sourceLayout, GpuStageFlag::Resolve, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(destination, destinationSubresourceRangeForBarrier, destinationLayout, GpuStageFlag::Resolve, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -2147,7 +2176,7 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		GpuTextureSubresourceRange maskedRange = subresourceRange;
 		maskedRange.AspectMask &= vulkanImage->GetRange().AspectMask;
 
-		mResourceTracker.TrackExplicitImageBarrier(vulkanImage, maskedRange, barrier.DestinationUsage, barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
+		mResourceTracker.TrackExplicitImageBarrier(vulkanImage, maskedRange, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
 	};
 
 	for(const auto& barrier : barriers.BufferBarriers)
@@ -2158,7 +2187,7 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 		VulkanBuffer* const vulkanBuffer = vulkanGpuBuffer->GetVulkanResource();
 
-		mResourceTracker.TrackExplicitBufferBarrier(vulkanBuffer, barrier.DestinationUsage, barrier.DestinationAccess, mBarrierHelper);
+		mResourceTracker.TrackExplicitBufferBarrier(vulkanBuffer, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, mBarrierHelper);
 	}
 
 	for(const auto& barrier : barriers.TextureBarriers)

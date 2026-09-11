@@ -113,7 +113,7 @@ GpuStageFlags GpuBackendUtility::GetStageFlags(GpuResourceUseFlags usage)
 {
 	GpuStageFlags accessStageFlags;
 
-	if(usage.IsSetAny(GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::AttachmentClear))
+	if(usage.IsSetAny(GpuResourceUseFlag::ShaderAccess))
 	{
 		if(usage.IsSet(GpuResourceUseFlag::StageVertexShader))
 			accessStageFlags |= GpuStageFlag::VertexShaderNonUniform;

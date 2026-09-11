@@ -22,7 +22,7 @@ namespace b3d::render
 	{
 	public:
 		/** Tracks a logical buffer use and write serialization for its shared physical page. */
-		void TrackBufferUsage(IGpuBufferResource* buffer, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, D3D12BarrierHelper& barrierHelper, u32 dynamicOffset = 0);
+		void TrackBufferAccess(IGpuBufferResource* buffer, GpuStageFlags stages, GpuAccessFlags accessFlags, D3D12BarrierHelper& barrierHelper, u32 dynamicOffset = 0);
 	};
 
 	/** @} */

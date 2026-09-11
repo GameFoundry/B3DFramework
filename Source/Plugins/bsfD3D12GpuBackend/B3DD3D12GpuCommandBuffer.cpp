@@ -1,5 +1,6 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#include "GpuBackend/B3DGpuBackendUtility.h"
 #include "B3DD3D12GpuCommandBuffer.h"
 #include "B3DD3D12Utility.h"
 #include "B3DD3D12GpuDevice.h"
@@ -466,6 +467,8 @@ void D3D12GpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instance
 	BindDynamicStates(false);
 	BindVertexInputs();
 	BindGpuParameterSets(true);
+	if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper))
+		return;
 
 	// Barriers accumulated by the bind-time tracking above. Parameter sets are normally pre-registered at BeginRenderPass so this is usually empty.
 	mBarrierHelper.Execute(*this);
@@ -493,6 +496,8 @@ void D3D12GpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vert
 	BindDynamicStates(false);
 	BindVertexInputs();
 	BindGpuParameterSets(true);
+	if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper))
+		return;
 
 	// See Draw()
 	mBarrierHelper.Execute(*this);
@@ -532,10 +537,10 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 		mComputePushConstantsRequireBind = true;
 	}
 
-	if (mComputeParametersRequireBind)
-		BindGpuParameterSets(false);
-	else
-		TrackGpuParameterSets(false);
+	BindGpuParameterSets(false);
+
+	if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper))
+		return;
 
 	mBarrierHelper.Execute(*this);
 	BindPushConstants(false);
@@ -600,6 +605,7 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 	}
 
 	mResourceTracker.PrepareRenderPass(renderPassAttachmentUsages);
+	mShaderBindings.Clear();
 
 	// Register parameter resources once, collecting shader reads that overlap attachments before their transitions are resolved.
 	for (const TShared<GpuParameterSet>& parameterSet : createInformation.Parameters)
@@ -609,8 +615,11 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 
 		const TShared<GpuPipelineParameterSetLayout>& setLayout = parameterSet->GetLayout();
 		if (setLayout != nullptr)
-			static_cast<D3D12GpuParameters*>(parameterSet.get())->TrackBoundResources(mResourceTracker, mBarrierHelper, *setLayout);
+			static_cast<D3D12GpuParameters*>(parameterSet.get())->CollectBindings(*setLayout, mShaderBindings);
 	}
+
+	if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper))
+		return;
 
 	mResourceTracker.BeginRenderPass(mBarrierHelper);
 
@@ -897,7 +906,7 @@ void D3D12GpuCommandBuffer::EndRenderPass()
 			if(attachment.FinalLayout != GpuImageLayout::Present)
 				continue;
 
-			mResourceTracker.TrackImageUsage(static_cast<D3D12Image*>(attachment.Image), attachment.Range, GpuImageLayout::Present, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read, mBarrierHelper);
+			mResourceTracker.TrackImageAccess(static_cast<D3D12Image*>(attachment.Image), attachment.Range, GpuImageLayout::Present, GpuStageFlag::ColorAttachment, GpuAccessFlag::Read, mBarrierHelper);
 		}
 
 		mBarrierHelper.Execute(*this);
@@ -1045,7 +1054,7 @@ void D3D12GpuCommandBuffer::BindVertexInputs()
 				continue;
 
 			const TShared<D3D12GpuBuffer>& buffer = mVertexBuffers[slot];
-			mResourceTracker.TrackBufferUsage(buffer->GetD3D12Buffer(), GpuResourceUseFlag::VertexBuffer, GpuAccessFlag::Read, mBarrierHelper);
+			mResourceTracker.TrackBufferAccess(buffer->GetD3D12Buffer(), GpuStageFlag::VertexInputAttributes, GpuAccessFlag::Read, mBarrierHelper);
 			vertexBufferViews[slot] = buffer->GetVertexBufferView();
 		}
 
@@ -1055,7 +1064,7 @@ void D3D12GpuCommandBuffer::BindVertexInputs()
 
 	if (mIndexBuffer)
 	{
-		mResourceTracker.TrackBufferUsage(mIndexBuffer->GetD3D12Buffer(), GpuResourceUseFlag::IndexBuffer, GpuAccessFlag::Read, mBarrierHelper);
+		mResourceTracker.TrackBufferAccess(mIndexBuffer->GetD3D12Buffer(), GpuStageFlag::VertexInputIndices, GpuAccessFlag::Read, mBarrierHelper);
 		mCommandList->IASetIndexBuffer(&mIndexBuffer->GetIndexBufferView());
 	}
 	else
@@ -1067,7 +1076,7 @@ void D3D12GpuCommandBuffer::BindVertexInputs()
 void D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
 {
 	const bool requiresBind = isGraphics ? mGraphicsParametersRequireBind : mComputeParametersRequireBind;
-	if (!requiresBind || mBoundParameterSets.empty())
+	if (!requiresBind)
 		return;
 
 	const D3D12GpuPipelineParameterLayout* parameterLayout = nullptr;
@@ -1078,6 +1087,8 @@ void D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
 
 	if (parameterLayout == nullptr)
 		return;
+
+	mShaderBindings.Clear();
 
 	D3D12GpuDevice& device = GetD3D12GpuDevice();
 
@@ -1099,7 +1110,7 @@ void D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
 		if (pipelineSetLayout == nullptr)
 			continue;
 
-		parameters->TrackBoundResources(mResourceTracker, mBarrierHelper, *pipelineSetLayout);
+		parameters->CollectBindings(*pipelineSetLayout, mShaderBindings);
 		parameters->BindDescriptors(device, mResourceTracker, mCommandList.Get(), isGraphics, parameterLayout->GetDescriptorSetLayout(setIndex), dynamicOffsets);
 	}
 
@@ -1142,29 +1153,6 @@ void D3D12GpuCommandBuffer::BindPushConstants(bool isGraphics)
 		mComputePushConstantsRequireBind = false;
 }
 
-void D3D12GpuCommandBuffer::TrackGpuParameterSets(bool isGraphics)
-{
-	const D3D12GpuPipelineParameterLayout* parameterLayout = nullptr;
-	if (isGraphics)
-		parameterLayout = mGraphicsPipeline != nullptr ? mGraphicsPipeline->GetD3D12ParameterLayout() : nullptr;
-	else
-		parameterLayout = mComputePipeline != nullptr ? mComputePipeline->GetD3D12ParameterLayout() : nullptr;
-
-	if (parameterLayout == nullptr)
-		return;
-
-	const u32 setCount = parameterLayout->GetSetCount();
-	for (u32 setIndex = 0; setIndex < (u32)mBoundParameterSets.size() && setIndex < setCount; setIndex++)
-	{
-		const TShared<D3D12GpuParameters>& parameters = mBoundParameterSets[setIndex];
-		if (parameters == nullptr)
-			continue;
-
-		const TShared<GpuPipelineParameterSetLayout> pipelineSetLayout = parameterLayout->GetSet(setIndex);
-		if (pipelineSetLayout != nullptr)
-			parameters->TrackBoundResources(mResourceTracker, mBarrierHelper, *pipelineSetLayout);
-	}
-}
 
 namespace
 {
@@ -1483,7 +1471,7 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 		D3D12Buffer* const buffer = gpuBuffer->GetD3D12Buffer();
 
-		mResourceTracker.TrackExplicitBufferBarrier(buffer, barrier.DestinationUsage, barrier.DestinationAccess, mBarrierHelper);
+		mResourceTracker.TrackExplicitBufferBarrier(buffer, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, mBarrierHelper);
 
 	}
 
@@ -1498,7 +1486,7 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		GpuTextureSubresourceRange maskedRange = barrier.SubresourceRange;
 		maskedRange.AspectMask &= image->GetRange().AspectMask;
 
-		mResourceTracker.TrackExplicitImageBarrier(image, maskedRange, barrier.DestinationUsage, barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
+		mResourceTracker.TrackExplicitImageBarrier(image, maskedRange, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
 	}
 
 	for(const auto& barrier : barriers.RenderTargetBarriers)
@@ -1533,7 +1521,7 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 		const GpuFramebufferAttachment* const attachment = framebuffer->FindAttachment(barrier.SurfaceMask);
 		if(attachment != nullptr)
-			mResourceTracker.TrackExplicitImageBarrier(attachment->Image, attachment->Range, barrier.DestinationUsage, barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
+			mResourceTracker.TrackExplicitImageBarrier(attachment->Image, attachment->Range, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
 	}
 
 	mBarrierHelper.Execute(*this);
@@ -1557,8 +1545,8 @@ void D3D12GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source,
 	// UPLOAD-heap memory is CPU-write-only in D3D12; it cannot be a GPU copy destination. Engine paths must write such buffers through their persistent mapping instead (see GpuBufferUtility::Write).
 	B3D_ENSURE_ONCE_LOG(d3d12Destination->GetD3D12Buffer() == nullptr || d3d12Destination->GetD3D12Buffer()->GetHeapType() != D3D12_HEAP_TYPE_UPLOAD, "D3D12: CopyBufferToBuffer destination '{0}' lives on the UPLOAD heap; the copy is invalid.", destination->GetName());
 
-	mResourceTracker.TrackBufferUsage(d3d12Source->GetD3D12Buffer(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper, sourceOffset);
-	mResourceTracker.TrackBufferUsage(d3d12Destination->GetD3D12Buffer(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper, destinationOffset);
+	mResourceTracker.TrackBufferAccess(d3d12Source->GetD3D12Buffer(), GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper, sourceOffset);
+	mResourceTracker.TrackBufferAccess(d3d12Destination->GetD3D12Buffer(), GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper, destinationOffset);
 
 	mBarrierHelper.Execute(*this);
 
@@ -1584,8 +1572,8 @@ void D3D12GpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source
 
 	// Track the transfer and execute the copy-state transitions it requires.
 	const GpuTextureSubresourceRange subresourceRange(mipLevel, 1, arrayLayer, 1, destinationImage->GetRange().AspectMask);
-	mResourceTracker.TrackBufferUsage(d3d12Source->GetD3D12Buffer(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destinationImage, subresourceRange, GpuImageLayout::TransferDestination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackBufferAccess(d3d12Source->GetD3D12Buffer(), GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(destinationImage, subresourceRange, GpuImageLayout::TransferDestination, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 	mBarrierHelper.Execute(*this);
 
 	ID3D12Resource* textureResource = destinationImage->GetD3D12Resource();
@@ -1684,8 +1672,8 @@ bool D3D12GpuCommandBuffer::CopyTexture(const TShared<Texture>& source, const TS
 	const GpuTextureSubresourceRange sourceRange(copyInformation.SourceMip, 1, copyInformation.SourceFace, copyInformation.FaceCount, sourceImage->GetRange().AspectMask);
 	const GpuTextureSubresourceRange destinationRange(copyInformation.DestinationMip, 1, copyInformation.DestinationFace, copyInformation.FaceCount, destinationImage->GetRange().AspectMask);
 
-	mResourceTracker.TrackImageUsage(sourceImage, sourceRange, sourceLayout, resourceUse, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destinationImage, destinationRange, destinationLayout, resourceUse, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(sourceImage, sourceRange, sourceLayout, GpuBackendUtility::GetStageFlags(resourceUse), GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(destinationImage, destinationRange, destinationLayout, GpuBackendUtility::GetStageFlags(resourceUse), GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -1786,8 +1774,8 @@ bool D3D12GpuCommandBuffer::BlitTexture(const TShared<Texture>& source, const TS
 	const GpuTextureSubresourceRange sourceRange(blitInformation.SourceMip, 1, blitInformation.SourceFace, blitInformation.FaceCount, sourceImage->GetRange().AspectMask);
 	const GpuTextureSubresourceRange destinationRange(blitInformation.DestinationMip, 1, blitInformation.DestinationFace, blitInformation.FaceCount, destinationImage->GetRange().AspectMask);
 
-	mResourceTracker.TrackImageUsage(sourceImage, sourceRange, GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackImageUsage(destinationImage, destinationRange, GpuImageLayout::TransferDestination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(sourceImage, sourceRange, GpuImageLayout::TransferSource, GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(destinationImage, destinationRange, GpuImageLayout::TransferDestination, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -1836,8 +1824,8 @@ void D3D12GpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, 
 
 	const GpuTextureSubresourceRange subresourceRange(mipLevel, 1, arrayLayer, 1, sourceImage->GetRange().AspectMask);
 
-	mResourceTracker.TrackImageUsage(sourceImage, subresourceRange, GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackBufferUsage(d3d12Destination->GetD3D12Buffer(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(sourceImage, subresourceRange, GpuImageLayout::TransferSource, GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackBufferAccess(d3d12Destination->GetD3D12Buffer(), GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 
@@ -1866,8 +1854,8 @@ void D3D12GpuCommandBuffer::CopyImageToBuffer(D3D12Image* source, D3D12Buffer* d
 	// Track the transfer and execute the copy-state transitions it requires.
 	const GpuTextureSubresourceRange subresourceRange(0, 1, 0, 1, source->GetRange().AspectMask);
 
-	mResourceTracker.TrackImageUsage(source, subresourceRange, GpuImageLayout::TransferSource, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
-	mResourceTracker.TrackBufferUsage(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+	mResourceTracker.TrackImageAccess(source, subresourceRange, GpuImageLayout::TransferSource, GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+	mResourceTracker.TrackBufferAccess(destination, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
 
 	mBarrierHelper.Execute(*this);
 

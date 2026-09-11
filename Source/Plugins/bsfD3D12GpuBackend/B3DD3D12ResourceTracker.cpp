@@ -15,8 +15,7 @@ template class b3d::render::TGpuResourceTracker<b3d::render::D3D12ResourceTracke
 using namespace b3d;
 using namespace b3d::render;
 
-void D3D12ResourceTracker::TrackBufferUsage(IGpuBufferResource* buffer, GpuResourceUseFlags useFlags,
-	GpuAccessFlags accessFlags, D3D12BarrierHelper& barrierHelper, u32 dynamicOffset)
+void D3D12ResourceTracker::TrackBufferAccess(IGpuBufferResource* buffer, GpuStageFlags stages, GpuAccessFlags accessFlags, D3D12BarrierHelper& barrierHelper, u32 dynamicOffset)
 {
 	if(buffer == nullptr)
 		return;
@@ -25,8 +24,8 @@ void D3D12ResourceTracker::TrackBufferUsage(IGpuBufferResource* buffer, GpuResou
 	D3D12BufferPage* const page = d3d12Buffer->GetPage();
 	if(page != nullptr && page != buffer && accessFlags.IsSet(GpuAccessFlag::Write))
 	{
-		TGpuResourceTracker<D3D12ResourceTracker, D3D12BarrierHelper>::TrackBufferUsage(page, useFlags, GpuAccessFlag::Write, barrierHelper);
+		TGpuResourceTracker<D3D12ResourceTracker, D3D12BarrierHelper>::TrackBufferAccess(page, stages, GpuAccessFlag::Write, barrierHelper);
 	}
 
-	TGpuResourceTracker<D3D12ResourceTracker, D3D12BarrierHelper>::TrackBufferUsage(buffer, useFlags, accessFlags, barrierHelper, dynamicOffset);
+	TGpuResourceTracker<D3D12ResourceTracker, D3D12BarrierHelper>::TrackBufferAccess(buffer, stages, accessFlags, barrierHelper, dynamicOffset);
 }

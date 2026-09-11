@@ -27,7 +27,7 @@ namespace b3d::render
 	 *  - @c RecordNativeBufferBarrier / @c RecordNativeImageBarrier - accumulate the native barrier for one
 	 *    buffer/image. Called by the shared queueing path (befriend this template so they can stay private).
 	 *  - @c Execute - emit the accumulated native barriers, then call ApplyPostBarrierTracking(), the tracker's
-	 *    CommitPendingHazardRegistrations() and Clear().
+	 *    CommitPendingAccesses() and Clear().
 	 *  - @c Clear - reset the backend-specific accumulation, then call Clear().
 	 *  - @c HasBarriers - whether anything has been accumulated.
 	 *
