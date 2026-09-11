@@ -614,7 +614,7 @@ bool VulkanGpuParameterSet::SetSamplerState(u32 slot, const TShared<SamplerState
 	return true;
 }
 
-void VulkanGpuParameterSet::PrepareBindingResources(VulkanResourceTracker& resourceTracker, GpuShaderBindings& outBindings, TInlineArray<u32, 4>& outDynamicOffsets)
+void VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracker, GpuShaderBindings& outBindings, TInlineArray<u32, 4>& outDynamicOffsets, VkDescriptorSet& outSet)
 {
 	VulkanGpuPipelineParameterSetLayout& pipelineParameterInformationSet = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterSetLayout);
 
@@ -628,7 +628,6 @@ void VulkanGpuParameterSet::PrepareBindingResources(VulkanResourceTracker& resou
 	FrameVector<u32> dynamicOffsetMapping(mSetInformation.ElementCount, ~0u);
 
 	Lock lock(mMutex);
-	mPendingImageDescriptors.clear();
 
 	// Registers resources with the command buffer, and check if internal resource handled changed (in which case set
 	// needs updating - this can happen due to resource writes, as internally system might find it more performant
@@ -922,13 +921,7 @@ void VulkanGpuParameterSet::PrepareBindingResources(VulkanResourceTracker& resou
 			{
 				VulkanTexture* element = static_cast<VulkanTexture*>(mSampledTextureData[sequentialResourceIndex].Texture.get());
 				vulkanImage = element->GetVulkanResource();
-
-				// Keep dynamic textures in general layout, so they can be easily mapped by CPU
-				const TextureProperties& props = element->GetProperties();
-				if(props.Usage.IsSet(TextureUsageFlag::StoreOnCPUWithGPUAccess))
-					gpuLayout = GpuImageLayout::General;
-				else
-					gpuLayout = GpuImageLayout::ShaderReadOnly;
+				gpuLayout = element->UsesGeneralLayout() ? GpuImageLayout::General : GpuImageLayout::ShaderReadOnly;
 			}
 
 			const TextureSurface& surface = mSampledTextureData[sequentialResourceIndex].Surface;
@@ -969,9 +962,8 @@ void VulkanGpuParameterSet::PrepareBindingResources(VulkanResourceTracker& resou
 			const TArrayView<const VkDescriptorSetLayoutBinding> perSetBindings = pipelineParameterInformationSet.GetBindings();
 
 			const GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::ShaderAccess;
-			outBindings.AddImage(vulkanImage, range, gpuLayout, useFlags, GpuAccessFlag::Read);
-
-			mPendingImageDescriptors.emplace_back(vulkanImage, range, usedResourceSequentialIndex);
+			const GpuImageLayout resolvedLayout = resourceTracker.ResolveShaderImageLayout(vulkanImage, range, gpuLayout);
+			outBindings.AddImage(vulkanImage, range, resolvedLayout, useFlags, GpuAccessFlag::Read);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mSampledImages[sequentialResourceIndex] != VK_NULL_HANDLE);
@@ -986,6 +978,13 @@ void VulkanGpuParameterSet::PrepareBindingResources(VulkanResourceTracker& resou
 				imageInfo.imageView = imageView.Handle;
 				mSetDirty = true;
 			}
+
+			const VkImageLayout vkImageLayout = VulkanUtility::ToVkImageLayout(resolvedLayout);
+			if(imageInfo.imageLayout != vkImageLayout)
+			{
+				imageInfo.imageLayout = vkImageLayout;
+				mSetDirty = true;
+			}
 		}
 	}
 
@@ -994,23 +993,6 @@ void VulkanGpuParameterSet::PrepareBindingResources(VulkanResourceTracker& resou
 	{
 		if(dynamicOffset != ~0u)
 			outDynamicOffsets.Add(dynamicOffset);
-	}
-
-}
-
-void VulkanGpuParameterSet::FinalizeDescriptorSet(VulkanResourceTracker& resourceTracker, VkDescriptorSet& outSet)
-{
-	Lock lock(mMutex);
-	VulkanGpuPipelineParameterSetLayout& pipelineParameterInformationSet = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterSetLayout);
-	for(const PendingImageDescriptor& descriptor : mPendingImageDescriptors)
-	{
-		const VkImageLayout layout = VulkanUtility::ToVkImageLayout(resourceTracker.GetRequiredImageLayout(descriptor.Image, descriptor.Range));
-		VkDescriptorImageInfo& imageInformation = mSetInformation.ImageWriteInfos[descriptor.Index];
-		if(imageInformation.imageLayout != layout)
-		{
-			imageInformation.imageLayout = layout;
-			mSetDirty = true;
-		}
 	}
 
 	// Acquire sets as needed, and update their contents if dirty

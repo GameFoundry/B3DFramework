@@ -295,29 +295,19 @@ const GpuResolvedRenderPassAttachmentUsage* TGpuResourceTracker<TDerived, TBarri
 }
 
 template<class TDerived, class TBarrierHelper>
-GpuImageLayout TGpuResourceTracker<TDerived, TBarrierHelper>::GetRequiredImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange) const
+GpuImageLayout TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveShaderImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout requestedLayout) const
 {
 	for(const PendingRenderPassAttachmentUsage& pendingAttachment : mPendingRenderPassAttachments)
 	{
-		if(pendingAttachment.Usage.Image == image && pendingAttachment.ShaderUseFlags.IsSet(GpuResourceUseFlag::ShaderAccess) && GpuBackendUtility::RangeOverlaps(pendingAttachment.Usage.Range, subresourceRange))
-		{
-			B3D_ASSERT(pendingAttachment.Usage.ShaderReadLayout.has_value());
-			return pendingAttachment.Usage.ShaderReadLayout.value_or(pendingAttachment.Usage.Layout);
-		}
+		if(pendingAttachment.Usage.Image == image && pendingAttachment.Usage.ShaderReadLayout.has_value() && GpuBackendUtility::RangeOverlaps(pendingAttachment.Usage.Range, subresourceRange))
+			return *pendingAttachment.Usage.ShaderReadLayout;
 	}
 
 	const GpuResolvedRenderPassAttachmentUsage* const renderPassAttachment = FindRenderPassAttachment(image, subresourceRange);
 	if(renderPassAttachment != nullptr)
 		return renderPassAttachment->Layout;
 
-	for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
-	{
-		if(subresourceRange.AspectMask.IsSet(aspect))
-			return GetSubresourceTrackingState(image, subresourceRange.BaseArrayLayer, subresourceRange.BaseMipLevel, aspect).RequiredLayout;
-	}
-
-	B3D_ASSERT(false);
-	return GpuImageLayout::Undefined;
+	return requestedLayout;
 }
 
 template<class TDerived, class TBarrierHelper>

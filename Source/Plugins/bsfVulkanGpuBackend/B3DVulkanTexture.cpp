@@ -438,7 +438,7 @@ VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner, VkI
 {}
 
 VulkanTexture::VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation)
-	: Texture(createInformation), mGpuDevice(gpuDevice), mDirectlyMappable(false), mSupportsGPUWrites(false)
+	: Texture(createInformation), mGpuDevice(gpuDevice), mDirectlyMappable(false), mSupportsGPUWrites(false), mUsesGeneralLayout(false)
 {
 }
 
@@ -504,6 +504,9 @@ void VulkanTexture::Initialize()
 		mImageCreateInformation.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 		mSupportsGPUWrites = true;
 	}
+
+	// Storage images are accessed in the general layout, and keeping CPU-accessible images in it lets them be mapped without a transition
+	mUsesGeneralLayout = usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU) || usage.IsSet(TextureUsageFlag::StoreOnCPUWithGPUAccess);
 
 	VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
 	VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -710,7 +713,7 @@ void VulkanTexture::CopyImageToImage(VulkanGpuCommandBuffer& commandBuffer, Vulk
 	range.MipLevelCount = mipCount;
 
 	GpuImageLayout transferSourceLayout, transferDestinationLayout;
-	if(mDirectlyMappable)
+	if(mUsesGeneralLayout)
 	{
 		transferSourceLayout = GpuImageLayout::General;
 		transferDestinationLayout = GpuImageLayout::General;

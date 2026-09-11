@@ -352,24 +352,18 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		if(parameters == nullptr)
 			continue;
 
-		VulkanGpuParameterSet* vkParams = static_cast<VulkanGpuParameterSet*>(parameters.get());
-		TInlineArray<u32, 4> tempDynamicOffsets;
-		vkParams->PrepareBindingResources(mResourceTracker, mShaderBindings, tempDynamicOffsets);
-
 		// Cache the preparation results for later use by SetGpuParameterSet
 		CachedGpuParameterData& cacheData = mRenderPassGpuParameterSetCache[parameters.get()];
-		cacheData.DescriptorSet = VK_NULL_HANDLE;
-		cacheData.DynamicOffsets = std::move(tempDynamicOffsets);
+		cacheData.DynamicOffsets.clear();
+
+		VulkanGpuParameterSet* vkParams = static_cast<VulkanGpuParameterSet*>(parameters.get());
+		vkParams->PrepareForBind(mResourceTracker, mShaderBindings, cacheData.DynamicOffsets, cacheData.DescriptorSet);
 	}
 
 	if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper))
 		return;
 
 	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = mResourceTracker.BeginRenderPass(mBarrierHelper);
-	for(const TShared<GpuParameterSet>& parameters : createInformation.Parameters)
-		if(parameters != nullptr)
-			static_cast<VulkanGpuParameterSet*>(parameters.get())->FinalizeDescriptorSet(mResourceTracker, mRenderPassGpuParameterSetCache[parameters.get()].DescriptorSet);
-
 	B3D_ASSERT(resolvedAttachments.size() == renderPassAttachmentUsages.size());
 
 	RenderSurfaceMask resolvedReadOnlyMask = RT_NONE;
@@ -987,7 +981,7 @@ void VulkanGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& sourc
 	range.MipLevelCount = 1;
 
 	GpuImageLayout transferLayout;
-	if(vulkanDestination->IsDirectlyMappable())
+	if(vulkanDestination->UsesGeneralLayout())
 		transferLayout = GpuImageLayout::General;
 	else
 		transferLayout = GpuImageLayout::TransferDestination;
@@ -1055,9 +1049,9 @@ bool VulkanGpuCommandBuffer::CopyTexture(const TShared<Texture>& source, const T
 		copyInformation.SourceVolume.GetHeight() == 0 ||
 		copyInformation.SourceVolume.GetDepth() == 0;
 
-	const GpuImageLayout sourceLayout = vulkanSource->IsDirectlyMappable() ? GpuImageLayout::General :
+	const GpuImageLayout sourceLayout = vulkanSource->UsesGeneralLayout() ? GpuImageLayout::General :
 		(needsResolve ? GpuImageLayout::ResolveSource : GpuImageLayout::TransferSource);
-	const GpuImageLayout destinationLayout = vulkanDestination->IsDirectlyMappable() ? GpuImageLayout::General :
+	const GpuImageLayout destinationLayout = vulkanDestination->UsesGeneralLayout() ? GpuImageLayout::General :
 		(needsResolve ? GpuImageLayout::ResolveDestination : GpuImageLayout::TransferDestination);
 
 	u32 mipWidth, mipHeight, mipDepth;
@@ -1145,8 +1139,8 @@ bool VulkanGpuCommandBuffer::BlitTexture(const TShared<Texture>& source, const T
 	if(sourceImage == nullptr || destinationImage == nullptr)
 		return false;
 
-	GpuImageLayout transferSourceLayout = vulkanSource->IsDirectlyMappable() ? GpuImageLayout::General : GpuImageLayout::TransferSource;
-	GpuImageLayout transferDestinationLayout = vulkanDestination->IsDirectlyMappable() ? GpuImageLayout::General : GpuImageLayout::TransferDestination;
+	GpuImageLayout transferSourceLayout = vulkanSource->UsesGeneralLayout() ? GpuImageLayout::General : GpuImageLayout::TransferSource;
+	GpuImageLayout transferDestinationLayout = vulkanDestination->UsesGeneralLayout() ? GpuImageLayout::General : GpuImageLayout::TransferDestination;
 
 	const bool copyFromEntireSurface = blitInformation.SourceVolume.GetWidth() == 0 ||
 		blitInformation.SourceVolume.GetHeight() == 0 ||
@@ -1905,9 +1899,8 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 					return false;
 				}
 
-				// Prepare resources and collect compute accesses before resolving descriptor layouts
-				// This handles compute dispatch and non-render-pass scenarios
-				boundGpuParameterSet->PrepareBindingResources(mResourceTracker, mShaderBindings, setDynamicOffsets);
+				// Outside of a render pass sets are prepared on bind, and their accesses are tracked once all sets are prepared
+				boundGpuParameterSet->PrepareForBind(mResourceTracker, mShaderBindings, setDynamicOffsets, mDescriptorSetsTemp[set]);
 			}
 
 			// Apply per-set dynamic offset overrides
@@ -1922,17 +1915,8 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 		}
 	}
 
-	if(!IsInRenderPass())
-	{
-		if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, barrierHelper))
-			return false;
-
-		for(u32 set = 0; set < setCount; set++)
-		{
-			if(mBoundGpuParameterSets[set] != nullptr)
-				mBoundGpuParameterSets[set]->FinalizeDescriptorSet(mResourceTracker, mDescriptorSetsTemp[set]);
-		}
-	}
+	if(!IsInRenderPass() && !mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, barrierHelper))
+		return false;
 
 	RebuildFlatDynamicOffsets();
 	mBoundParamsDirty = false;

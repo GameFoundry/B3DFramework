@@ -38,35 +38,20 @@ namespace b3d
 			bool SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex = 0) override;
 
 			/**
-			 * Appends shader accesses and dynamic offsets, refreshes cached descriptor data for changed resource handles, and retains samplers through @p resourceTracker.
-			 * Prepares descriptor resource handles and views; image layouts and descriptor writes are completed by FinalizeDescriptorSet() after tracking accesses from all sets.
+			 * Prepares the descriptor set for a bind operation on a command buffer. Refreshes descriptor contents for resources whose internal handles changed,
+			 * allocates or updates the descriptor set as needed, and retains it and its samplers through @p resourceTracker. Shader accesses are appended to
+			 * @p outBindings and must be tracked once every set participating in the bind has been prepared.
 			 *
-			 * @param		resourceTracker		Command-buffer tracker used to retain samplers. Shader accesses are appended to @p outBindings for the caller to track.
+			 * Caller must prevent concurrent changes to this set and its resources until the bindings have been tracked.
+			 *
+			 * @param		resourceTracker		Tracker of the command buffer the set is bound on, used to resolve image layouts and retain resources.
 			 * @param		outBindings			Receives this set's image and buffer accesses, appended to any existing bindings.
 			 * @param		outDynamicOffsets	Receives this set's dynamic buffer offsets in descriptor binding order, appended to any existing offsets.
-			 */
-			void PrepareBindingResources(VulkanResourceTracker& resourceTracker, GpuShaderBindings& outBindings, TInlineArray<u32, 4>& outDynamicOffsets);
-
-			/**
-			 * Resolves descriptor image layouts from tracked accesses, allocates or updates the descriptor set as needed, and retains it for the command buffer.
-			 *
-			 * @param		resourceTracker		Command-buffer tracker supplying required image layouts and retaining the descriptor set.
 			 * @param		outSet				Receives the descriptor set handle to bind.
 			 */
-			void FinalizeDescriptorSet(VulkanResourceTracker& resourceTracker, VkDescriptorSet& outSet);
+			void PrepareForBind(VulkanResourceTracker& resourceTracker, GpuShaderBindings& outBindings, TInlineArray<u32, 4>& outDynamicOffsets, VkDescriptorSet& outSet);
 
 		protected:
-			/** Image descriptors awaiting layout resolution in FinalizeDescriptorSet(). */
-			struct PendingImageDescriptor
-			{
-				PendingImageDescriptor(IGpuImageResource* image, const GpuTextureSubresourceRange& range, u32 index) : Image(image), Range(range), Index(index) { }
-				IGpuImageResource* Image;
-				GpuTextureSubresourceRange Range;
-				u32 Index;
-			};
-
-			Vector<PendingImageDescriptor> mPendingImageDescriptors;
-
 			/** All GPU param data related to a single descriptor set. */
 			struct SetInformation
 			{

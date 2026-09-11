@@ -724,11 +724,11 @@ void GpuBackendTestSuite::TestImageAccessEpochTracking()
 
 	TrackImageBinding(tracker, &image, range, GpuImageLayout::ShaderReadOnly, shaderUse, GpuAccessFlag::Read, barrierHelper);
 	TrackImageBinding(tracker, &image, range, GpuImageLayout::TransferSource, shaderUse, GpuAccessFlag::Read, barrierHelper);
-	B3D_TEST_ASSERT(tracker.GetRequiredImageLayout(&image, range) == GpuImageLayout::General)
+	B3D_TEST_ASSERT(tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Color).RequiredLayout == GpuImageLayout::General)
 
 	tracker.CommitPendingAccesses();
 	TrackImageBinding(tracker, &image, range, GpuImageLayout::ShaderReadOnly, shaderUse, GpuAccessFlag::Read, barrierHelper);
-	B3D_TEST_ASSERT(tracker.GetRequiredImageLayout(&image, range) == GpuImageLayout::ShaderReadOnly)
+	B3D_TEST_ASSERT(tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Color).RequiredLayout == GpuImageLayout::ShaderReadOnly)
 
 	tracker.CommitPendingAccesses();
 	tracker.NotifyUnbound();
@@ -817,8 +817,9 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 
 	const GpuTextureSubresourceRange fullRange(0, 2, 0, 2, GpuTextureAspectFlag::Color);
 	const GpuResourceUseFlags shaderUse = GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader;
+	B3D_TEST_ASSERT(tracker.ResolveShaderImageLayout(&image, attachmentRange, GpuImageLayout::General) == GpuImageLayout::ShaderReadOnly)
+	B3D_TEST_ASSERT(tracker.ResolveShaderImageLayout(&image, GpuTextureSubresourceRange(1, 1, 1, 1, GpuTextureAspectFlag::Color), GpuImageLayout::General) == GpuImageLayout::General)
 	TrackImageBinding(tracker, &image, fullRange, GpuImageLayout::ShaderReadOnly, shaderUse, GpuAccessFlag::Read, barrierHelper);
-	B3D_TEST_ASSERT(tracker.GetRequiredImageLayout(&image, attachmentRange) == GpuImageLayout::ShaderReadOnly)
 
 	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = tracker.BeginRenderPass(barrierHelper);
 	GpuResourceUseFlags combinedUse = shaderUse;
@@ -829,7 +830,7 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 	B3D_TEST_ASSERT(resolvedAttachments[0].Access == GpuAccessFlag::Read)
 	B3D_TEST_ASSERT(resolvedAttachments[0].Layout == GpuImageLayout::ShaderReadOnly)
 	B3D_TEST_ASSERT(resolvedAttachments[0].FinalLayout == GpuImageLayout::TransferSource)
-	B3D_TEST_ASSERT(tracker.GetRequiredImageLayout(&image, attachmentRange) == GpuImageLayout::ShaderReadOnly)
+	B3D_TEST_ASSERT(tracker.ResolveShaderImageLayout(&image, attachmentRange, GpuImageLayout::General) == GpuImageLayout::ShaderReadOnly)
 
 	tracker.CommitPendingAccesses();
 	const GpuImageSubresourceTrackingState& attachmentStateBeforeEnd = tracker.GetSubresourceTrackingState(

@@ -143,8 +143,11 @@ namespace b3d
 			/** Publishes native render-pass final layouts and clears the active attachment tracking scope. */
 			void EndRenderPass();
 
-			/** Returns the required layout for the specified image range. Required layout is the layout that the image will be transitioned in when next set of barriers is executed. */
-			GpuImageLayout GetRequiredImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange) const;
+			/**
+			 * Returns the layout a shader read of the specified image range is performed in. Reads of a read-only attachment of the pending or active
+			 * render pass use the attachment's layout, all other reads use @p requestedLayout.
+			 */
+			GpuImageLayout ResolveShaderImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout requestedLayout) const;
 
 			/**
 			 * Lets the tracker know that the provided buffer resource will be used on the associated command buffer. Call this before the buffer is used, with

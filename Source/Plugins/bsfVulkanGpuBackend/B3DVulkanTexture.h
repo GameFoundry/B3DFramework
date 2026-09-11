@@ -257,6 +257,9 @@ namespace b3d
 			/** Returns true if the buffer can be mapped by directly by the CPU. */
 			bool IsDirectlyMappable() const { return mDirectlyMappable; }
 
+			/** Returns true if the image stays in the general layout for all shader and transfer accesses, rather than transitioning between access-specific layouts. */
+			bool UsesGeneralLayout() const { return mUsesGeneralLayout; }
+
 			void SetName(const StringView& name) override;
 			PixelFormat GetSupportedFormat() const override { return mInternalFormat; }
 			GpuTextureMappedScope Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options) override;
@@ -307,6 +310,7 @@ namespace b3d
 			VkImageCreateInfo mImageCreateInformation;
 			bool mDirectlyMappable : 1;
 			bool mSupportsGPUWrites : 1;
+			bool mUsesGeneralLayout : 1;
 		};
 
 		/** @} */
